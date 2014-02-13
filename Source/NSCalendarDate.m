@@ -252,6 +252,11 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   int h, m, dayOfEra;
   double a, b, c, d;
 
+  /* The 0.1 constant was experimentally derived to cause our behavior
+   * to match Mac OS X 10.9.1.
+   */
+  when = floor(when * 1000.0 + 0.1) / 1000.0;
+
   // Get reference date in terms of days
   a = when / 86400.0;
   // Offset by Gregorian reference
@@ -265,7 +270,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   // Calculate hour, minute, and seconds
   d = dayOfEra - GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - when);
+  a = fabs(d - when);
   b = a / 3600;
   *hour = (NSInteger)b;
   h = *hour;
@@ -277,7 +282,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   m = m * 60;
   c = a - h - m;
   *second = (NSInteger)c;
-  *mil = (NSInteger)((a - h - m - c) * 1000.0);
+  *mil = (NSInteger)rint((a - h - m - *second) * 1000.0);
 }
 
 /**
@@ -2093,16 +2098,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		break;
 
 	      case 'F': 	// milliseconds
-		{
-		  double	s;
-
-		  s = ([self dayOfCommonEra] - GREGORIAN_REFERENCE) * 86400.0;
-		  s -= (_seconds_since_ref + offset(_time_zone, self));
-		  s = fabs(s);
-		  s -= floor(s);
-		  s *= 1000.0;
-		  v = (NSInteger)(s + 0.5);
-		}
+                v = info->mil;
 		if (fmtlen == 1) // no format width specified; supply default
 		  {
 		    fldfmt[fmtlen++] = '0';

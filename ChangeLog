@@ -1,3 +1,7 @@
+2014-02-13  Larry Campbell <lcampbel@akamai.com>
+
+	* Source/NSCalendarDate.m: Fixup millisecond formatting to match OSX
+
 2014-02-12  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Tools/gsdoc-1_0_4.dtd: Added new DTD version that declares 'package' 
