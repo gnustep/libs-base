@@ -833,6 +833,7 @@ NSDictionary *locale)
   /* Buffer intermediate results.  */
   unichar work_buffer[1000];
   unichar *workend;
+  int workend_malloced = 0;
 
   /* State for restartable multibyte character handling functions.  */
 
@@ -1144,8 +1145,18 @@ NSDictionary *locale)
 	if ((unsigned)(MAX (prec, width) + 32)
 	  > sizeof (work_buffer) / sizeof (unichar))
 	  {
-	    workend = ((unichar *) alloca ((MAX (prec, width) + 32)
-	      * sizeof (unichar)) + (MAX (prec, width) + 32));
+            size_t      want = ((MAX (prec, width) + 32)
+	      * sizeof (unichar)) + (MAX (prec, width) + 32);
+
+            if (want > 168384)
+              {
+                workend = (unichar *)malloc(want);
+                workend_malloced = 1;
+              }
+            else
+              {
+                workend = (unichar *)alloca(want);
+              }
 	  }
 
 	/* Process format specifiers.  */
@@ -1933,6 +1944,7 @@ NSDictionary *locale)
   }
 
 all_done:
+  if (workend_malloced) free(workend);
   /* Unlock the stream.  */
   return;
 }
