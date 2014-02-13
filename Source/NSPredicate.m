@@ -961,6 +961,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       case NSBeginsWithPredicateOperatorType:
 	{
 	  NSRange range = NSMakeRange(0, [rightResult length]);
+
 	  return ([leftResult compare: rightResult
 			      options: compareOptions
 				range: range] == NSOrderedSame ? YES : NO);
@@ -968,9 +969,14 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       case NSEndsWithPredicateOperatorType:
 	{
 	  NSRange range;
+          NSUInteger    ll = [leftResult length];
+          NSUInteger    rl = [rightResult length];
 
-	  range = NSMakeRange([leftResult length] - [rightResult length],
-	    [rightResult length]);
+          if (ll < rl)
+            {
+              return NO;
+            }
+	  range = NSMakeRange(ll - rl, rl);
 	  return ([leftResult compare: rightResult
 			      options: compareOptions
 				range: range] == NSOrderedSame ? YES : NO);
