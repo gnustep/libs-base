@@ -1,3 +1,12 @@
+2014-02-14  Quentin Mathe <quentin.mathe@gmail.com>
+
+	* Headers/Foundation/NSSortDescriptor.h 
+	* Source/Foundation/NSSortDescriptor.m
+	(+sortDescriptorWithKey:ascending:selector:, 
+	+sortDescriptorWithKey:ascending, 
+	-[NSSet sortedArrayUsingDescriptors:]): Added missing Mac OS X 10.6 
+	methods.
+
 2014-02-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFormat.m: Fix to cope with cases where a format specifies

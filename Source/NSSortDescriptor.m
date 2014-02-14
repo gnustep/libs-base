@@ -121,6 +121,20 @@ static BOOL     initialized = NO;
   return _ascending + GSPrivateHash(0, sel, strlen(sel)) + [_key hash];
 }
 
++ (id) sortDescriptorWithKey: (NSString *)aKey ascending: (BOOL)ascending
+{
+	return AUTORELEASE([[self alloc] initWithKey: aKey ascending: ascending]);
+}
+
++ (id) sortDescriptorWithKey: (NSString *)aKey 
+                   ascending: (BOOL)ascending 
+                    selector: (SEL)aSelector
+{
+	return AUTORELEASE([[self alloc] initWithKey: aKey 
+	                                   ascending: ascending 
+	                                    selector: aSelector]);
+}
+
 - (id) initWithKey: (NSString *) key ascending: (BOOL) ascending
 {
   return [self initWithKey: key ascending: ascending selector: NULL];
@@ -449,3 +463,13 @@ SortRange(id *objects, NSRange range, id *descriptors,
 }
 
 @end
+
+@implementation NSSet (NSSortDescriptorSorting) 
+
+- (NSArray *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors
+{
+	return [[self allObjects] sortedArrayUsingDescriptors: sortDescriptors];
+}
+
+@end
+
