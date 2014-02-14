@@ -1,5 +1,12 @@
 2014-02-14  Quentin Mathe <quentin.mathe@gmail.com>
 
+	* Headers/Foundation/NSNotification.h
+	* Source/NSNotificationCenter.m
+	(-addObserverForName:selector:queue:usingBlock:): Added new Mac OS X 10.6 
+	method.
+
+2014-02-14  Quentin Mathe <quentin.mathe@gmail.com>
+
 	* Headers/Foundation/NSSortDescriptor.h 
 	* Source/Foundation/NSSortDescriptor.m
 	(+sortDescriptorWithKey:ascending:selector:, 

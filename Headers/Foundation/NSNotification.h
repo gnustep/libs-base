@@ -32,6 +32,7 @@
 
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSMapTable.h>
+#import <GNUstepBase/GSBlocks.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -40,6 +41,7 @@ extern "C" {
 @class NSString;
 @class NSDictionary;
 @class NSLock;
+@class NSOperationQueue;
 
 @interface NSNotification : NSObject <NSCopying, NSCoding>
 
@@ -59,7 +61,10 @@ extern "C" {
 
 @end
 
-
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+DEFINE_BLOCK_TYPE(GSNotificationBlock, void, NSNotification *);
+#endif
 
 @interface NSNotificationCenter : NSObject
 {
@@ -75,6 +80,12 @@ extern "C" {
             selector: (SEL)selector
                 name: (NSString*)name
               object: (id)object;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+- (id) addObserverForName: (NSString *)name 
+                   object: (id)object 
+                    queue: (NSOperationQueue *)queue 
+               usingBlock: (GSNotificationBlock)block;
+#endif
 
 - (void) removeObserver: (id)observer;
 - (void) removeObserver: (id)observer

@@ -35,6 +35,7 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
+#import "Foundation/NSOperation.h"
 #import "Foundation/NSThread.h"
 #import "GNUstepBase/GSLock.h"
 
@@ -642,7 +643,93 @@ purgeCollectedFromMapNode(GSIMapTable map, GSIMapNode node)
 #define purgeCollectedFromMapNode(X, Y) ((Observation*)Y->value.ext)
 #endif
 
-
+
+@interface GSNotificationBlockOperation : NSOperation
+{
+	NSNotification *_notification;
+	GSNotificationBlock _block;
+}
+
+- (id) initWithNotification: (NSNotification *)notif 
+                      block: (GSNotificationBlock)block;
+
+@end
+
+@implementation GSNotificationBlockOperation
+
+- (id) initWithNotification: (NSNotification *)notif 
+                      block: (GSNotificationBlock)block
+{
+	self = [super init];
+	if (self == nil)
+		return nil;
+
+	ASSIGN(_notification, notif);
+	_block = Block_copy(block);
+	return self;
+
+}
+
+- (void) dealloc
+{
+	DESTROY(_notification);
+	Block_release(_block);
+	[super dealloc];
+}
+
+- (void) main
+{
+	CALL_BLOCK(_block, _notification);
+}
+
+@end
+
+@interface GSNotificationObserver : NSObject
+{
+	NSOperationQueue *_queue;
+	GSNotificationBlock _block;
+}
+
+@end
+
+@implementation GSNotificationObserver
+
+- (id) initWithQueue: (NSOperationQueue *)queue 
+               block: (GSNotificationBlock)block
+{
+	self = [super init];
+	if (self == nil)
+		return nil;
+
+	ASSIGN(_queue, queue);
+	_block = Block_copy(block);
+	return self;
+}
+
+- (void) dealloc
+{
+	DESTROY(_queue);
+	Block_release(_block);
+	[super dealloc];
+}
+
+- (void) didReceiveNotification: (NSNotification *)notif
+{
+	if (_queue != nil)
+	{
+		GSNotificationBlockOperation *op = [[GSNotificationBlockOperation alloc] 
+			initWithNotification: notif block: _block];
+
+		[_queue addOperation: op];
+	}
+	else
+	{
+		CALL_BLOCK(_block, notif);
+	}
+}
+
+@end
+
 
 /**
  * <p>GNUstep provides a framework for sending messages between objects within
@@ -872,6 +959,35 @@ static NSNotificationCenter *default_center = nil;
     }
 
   unlockNCTable(TABLE);
+}
+
+/**
+ * <p>Returns a new observer added to the notification center, in order to 
+ * observe the given notification name posted by an object or any object (if 
+ * the object argument is nil).</p>
+ *
+ * <p>For the name and object arguments, the constraints and behavior described 
+ * in -addObserver:name:selector:object: remain valid.</p>
+ *
+ * <p>For each notification received by the center, the observer will execute 
+ * the notification block. If the queue is not nil, the notification block is 
+ * wrapped in a NSOperation and scheduled in the queue, otherwise the block is 
+ * executed immediately in the posting thread.</p>
+ */
+- (id) addObserverForName: (NSString *)name 
+                   object: (id)object 
+                    queue: (NSOperationQueue *)queue 
+               usingBlock: (GSNotificationBlock)block
+{
+	GSNotificationObserver *observer = 
+		[[GSNotificationObserver alloc] initWithQueue: queue block: block];
+
+	[self addObserver: observer 
+	         selector: @selector(didReceiveNotification:) 
+	             name: name 
+	           object: object];
+
+	return observer;
 }
 
 /**
