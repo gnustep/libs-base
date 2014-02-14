@@ -76,18 +76,18 @@ extern "C" {
 - (NSComparisonResult) compareObject: (id)object1 toObject: (id)object2;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST) 
-/** Returns an autoreleased sort descriptor for comparisons using the 
- * 'compare:' selector and the specified key and ordering.
+/** <p>Returns an autoreleased sort descriptor for comparisons using the 
+ * 'compare:' selector and the specified key and ordering.</p>
  *
- * See also -initWithKey:ascending:.
+ * <p>See also -initWithKey:ascending:.</p>
  */
 + (id) sortDescriptorWithKey: (NSString *)aKey ascending: (BOOL)ascending;
 
-/** Returns an autoreleased sort descriptor initialized to perform comparisons 
- * in the specified order using aSelector to compare the property aKey of each 
- * object.
+/** <p>Returns an autoreleased sort descriptor initialized to perform 
+ * comparisons in the specified order using aSelector to compare the property 
+ * aKey of each object.</p>
  *
- * See also -initWithKey:ascending:selector:.
+ * <p>See also -initWithKey:ascending:selector:.</p>
  */
 + (id) sortDescriptorWithKey: (NSString *)aKey 
                    ascending: (BOOL)ascending 
