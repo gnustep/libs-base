@@ -257,7 +257,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   if (self == nil)
     return nil;
 
-  _dateFormat = [format copy];
+  [self setDateFormat: format];
   _allowsNaturalLanguage = flag;
   internal->_behavior = NSDateFormatterBehavior10_0;
   return self;
@@ -422,9 +422,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   
   NSZoneFree ([self zone], pattern);
 #endif
-  if (_dateFormat)
-    RELEASE(_dateFormat);
-  _dateFormat = RETAIN(string);
+  ASSIGNCOPY(_dateFormat, string);
 }
 
 - (NSDateFormatterStyle) dateStyle

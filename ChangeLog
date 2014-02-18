@@ -1,17 +1,24 @@
+2014-02-18  Fred Kiefer <FredKiefer@gmx.de>
+
+	* Source/NSDateFormatter.m
+	(-initWithDateFormat:allowNaturalLanguage:):
+	Use method -setDateFormat: to get correct behaviour.
+	* Source/NSDateFormatter.m (-setDateFormat:): User ASSIGNCOPY for _dateFormat.
+
 2014-02-14  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Headers/Foundation/NSNotification.h
 	* Source/NSNotificationCenter.m
-	(-addObserverForName:selector:queue:usingBlock:): Added new Mac OS X 10.6 
+	(-addObserverForName:selector:queue:usingBlock:): Added new Mac OS X 10.6
 	method.
 
 2014-02-14  Quentin Mathe <quentin.mathe@gmail.com>
 
-	* Headers/Foundation/NSSortDescriptor.h 
+	* Headers/Foundation/NSSortDescriptor.h
 	* Source/Foundation/NSSortDescriptor.m
-	(+sortDescriptorWithKey:ascending:selector:, 
-	+sortDescriptorWithKey:ascending, 
-	-[NSSet sortedArrayUsingDescriptors:]): Added missing Mac OS X 10.6 
+	(+sortDescriptorWithKey:ascending:selector:,
+	+sortDescriptorWithKey:ascending,
+	-[NSSet sortedArrayUsingDescriptors:]): Added missing Mac OS X 10.6
 	methods.
 
 2014-02-13  Richard Frith-Macdonald <rfm@gnu.org>
@@ -26,11 +33,11 @@
 
 2014-02-12  Quentin Mathe <quentin.mathe@gmail.com>
 
-	* Tools/gsdoc-1_0_4.dtd: Added new DTD version that declares 'package' 
+	* Tools/gsdoc-1_0_4.dtd: Added new DTD version that declares 'package'
 	visibility as a valid ivar qualifier.
 	* Tools/AGSParser.m: Added 'package' visibility parsing.
 	* Tools/AGSOutput.m:
-	* Tools/autogsdoc.m: 
+	* Tools/autogsdoc.m:
 	* Tools/GNUmakefile.m:
 	Updated to refer to the latest DTD version.
 
@@ -64,7 +71,7 @@
 
 	* Source/NSString.m (stringByResolvingSymlinksInPath)
 	On GLIBC and FreeBSD use sysconf(_SC_SYMLOOP_MAX) instead of just
-	MAXSYMLINKS. For HURD this is necessary, since the latter is not 
+	MAXSYMLINKS. For HURD this is necessary, since the latter is not
 	defined.
 
 2014-01-31  Marcus Mueller <znek@mulle-kybernetik.com>
@@ -125,12 +132,12 @@
 
 	* Source/NSKeyValueMutableArray.m:
 	* Source/NSKeyValueMutableSet.m:
-	Don't post KVO notifications if +automaticallyNotifiesObserversForKey: 
+	Don't post KVO notifications if +automaticallyNotifiesObserversForKey:
 	returns NO, this ensures we match Cocoa behavior.
 
 2014-01-18  Quentin Mathe <quentin.mathe@gmail.com>
 
-	* Source/NSObject.m (-respondsToSelector, 
+	* Source/NSObject.m (-respondsToSelector,
 	+instancesRespondToSelector:): Fixed to check +resolveInstanceMethod:
 	and +resolveClassMethod: as documented in Cocoa NSObject API.
 
@@ -200,27 +207,27 @@
 
 2014-01-08  Quentin Mathe <quentin.mathe@gmail.com>
 
-	* Source/NSValueTransformer (+valueTransformerForName:): Fixed to 
-	automatically register any available NSValueTransformer subclass that 
-	matches  the given name and is not yet registered. This behavior is 
+	* Source/NSValueTransformer (+valueTransformerForName:): Fixed to
+	automatically register any available NSValueTransformer subclass that
+	matches  the given name and is not yet registered. This behavior is
 	described in the Cocoa API documentation.
 
 2014-01-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUUID.m:
-	* Source/Additions/NSData+GNUstepBase.m: 
-	* Headers/GNUstepBase/NSData+GNUstepBase.h: 
+	* Source/Additions/NSData+GNUstepBase.m:
+	* Headers/GNUstepBase/NSData+GNUstepBase.h:
 	Move random data generation out to the NSData(GNUstepBase) category.
 
 2014-01-07  Quentin Mathe <quentin.mathe@gmail.com>
 
-	* Source/NSJSONSerialization.m (writeObject()): Fixed double number 
+	* Source/NSJSONSerialization.m (writeObject()): Fixed double number
 	serialization to encode 17 significant digits (this matches the max
         number of significant digits in the double-precision floating point
         format). This prevents a loss of precision, in case the number has
         more than 3 digits after the decimal point.
-	* Tests/base/NSJSONSerialization/json.m: Updated to test double number  
-	serialization. 
+	* Tests/base/NSJSONSerialization/json.m: Updated to test double number
+	serialization.
 
 2014-01-07  Richard Frith-Macdonald <rfm@gnu.org>
 
@@ -312,9 +319,9 @@
 	* Source/Additions/GCDictionary.m:
 	* Source/Additions/GSInsensitiveDictionary.m:
 	* Source/GSDictionary.m:
-	Changed keys argument type to (const id <NSCopying>[]) in 
+	Changed keys argument type to (const id <NSCopying>[]) in
 	-initWithObjects:forKeys:count: and
-	+dictionaryWithObjects:forKeys:count:, 
+	+dictionaryWithObjects:forKeys:count:,
 	to follow the current Cocoa API.
 
 2013-12-04 Richard Frith-Macdonald <rfm@gnu.org>
@@ -421,7 +428,7 @@
         * configure: regenerate
         Use inttypes.h rather than stdint.h as it's more inclusive and works
         on Solaris where some defines are in the wrong place.
- 
+
 2013-10-29  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSTimeZone.m: Implement -hash as the hash of the time zone
@@ -516,7 +523,7 @@
 
         * Source/Additions/GSMime.m: When creating a child parser, pass on
         the flag to say we are parsing HTTP rather than MIME.
-        
+
 2013-09-09  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/Additions/GSMime.m: Add comments and a further fallback
@@ -670,7 +677,7 @@
 
 	* Source/NSPathUtilities.m:
 	Disabled check for secure temporary directories under Cygwin. Refer
-	to: 
+	to:
 	  http://stackoverflow.com/q/9561759/39974
 	for a possible cause of problems.
 
@@ -1253,7 +1260,7 @@
 
 	* Source/NSKeyValueObserving.m
 	* Source/NSXMLParser.m
-	  char is unsigned on macppc, so don't compare it 
+	  char is unsigned on macppc, so don't compare it
 	  against negative values
 
 2013-03-01  Richard Frith-Macdonald <rfm@gnu.org>
@@ -1291,7 +1298,7 @@
         of a string.
         * Source/GSString.m: ([rangeOfCharacterFromSet:options:range:])
         Fix for overrun when searching backwards ... spotted by Fred.
- 
+
 2013-02-17  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/GSAvahiRunLoopIntegration.m: Remove code which was clearing
@@ -1537,7 +1544,7 @@
 
 2012-10-25  Quentin Mathe <quentin.mathe@gmail.com>
 
-	* Headers/GNUstepBase/GSConfig.h.in: Prevent redefinition warnings for 
+	* Headers/GNUstepBase/GSConfig.h.in: Prevent redefinition warnings for
 	__STDC_LIMIT_MACROS and __STC_CONSTANT_MACROS (both are ObjC++ related).
 
 2012-10-22  Thomas Davie <tom.davie@gmail.com>
@@ -1732,7 +1739,7 @@
 	* Source/GSTimSort.m: Implement timsort sorting algorithm.
 	* Source/GSQuickSort.m
 	* Source/GSShellSort.m:
-	Factor out previously used sorting algorithms. 
+	Factor out previously used sorting algorithms.
 	* Source/GSArray.m
 	* Source/NSArray.m:
 	Modify to use the new sorting interface for sorting using
@@ -1754,7 +1761,7 @@
 	* Tests/base/NSArray/random.plist
 	* Tests/base/NSArray/sorted.plist:
 	Add sorting example data that is large enough to test more
-	sophisticated sorting algorithms. 
+	sophisticated sorting algorithms.
 
 	Completely overhaul how we do sorting in -base. GSSorting.h now
 	defines an interface that can be used for all sorting tasks in
@@ -1945,7 +1952,7 @@
 	* Source/NSObject.m: Mark NSZombie as a root class.
 
 	Changes to support clang's __attribute__((objc_root_class)).
- 	
+
 2012-08-10  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSScanner.m: Fix error in comment
@@ -1968,10 +1975,10 @@
         * Source/NSFileManager.m: ([-createDirectoryAtPath:attributes:])
         OSX compatibility change to no longer create intermediate directories
         (fixing bug #35672).
-        NB. Code depending on the original incorrect behavior should be 
+        NB. Code depending on the original incorrect behavior should be
         updated to use the new method:
         -createDirectoryAtPath:withIntermediateDirectories:attributes:error:
-        
+
 2012-08-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSpellServer.m:
@@ -1982,8 +1989,8 @@
 	* Source/NSDistributedLock.m:
 	* Source/NSMessagePort.m:
 	* Source/NSHTTPCookieStorage.m:
-        Use new method for creating intermediate directories rater than 
-        depending on incorrect behavior of the old method. 
+        Use new method for creating intermediate directories rater than
+        depending on incorrect behavior of the old method.
 
 2012-08-09  Richard Frith-Macdonald <rfm@gnu.org>
 
@@ -2122,7 +2129,7 @@
         Re-load a cached  handle if the content has been invalidated.
         Set the status of a file handle to not-loaded if the fiel is modified.
         Should fix bug #36726
-        
+
 2012-07-05  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSBundle.m: Don't assume that code loading won't be called
@@ -2130,7 +2137,7 @@
 
 2012-07-05  Quentin Mathe <quentin.mathe@gmail.com>
 
-	* Source/NSPathUtilities.m: Fixed constant string comparison error 
+	* Source/NSPathUtilities.m: Fixed constant string comparison error
 	reported by Clang SVN trunk r158230 or more recent.
 	See http://llvm.org/viewvc/llvm-project?view=rev&revision=158230
         This is a workaround for a Clang compiler bug ...
@@ -2352,7 +2359,7 @@
 	Detect the presence of libdispatch and, if available, use it for
 	collection enumeration methods that take blocks as arguments. This
 	allows us to implement the NSEnumerationConcurrent option of those
-	methods with minimal effort. 
+	methods with minimal effort.
 
 2012-03-27 Niels Grewe <niels.grewe@halbordnung.de>
 
@@ -2934,7 +2941,7 @@
 
 2012-02-03  Adam Fedor  <fedor@gnu.org>
 
-	* Bump version 
+	* Bump version
 
 2012-02-03  Adam Fedor  <fedor@gnu.org>
 
@@ -3672,7 +3679,7 @@
 
 	* Headers/Foundation/NSXMLNode.h:
 	* Source/NSXMLNode.m:
-	Fixed NSXMLNode compilation when using the "pure" non-fragile ABI 
+	Fixed NSXMLNode compilation when using the "pure" non-fragile ABI
 	(--disable-mixedabi was passed to Base configure).
 
 2011-10-17  Fred Kiefer <FredKiefer@gmx.de>
@@ -3815,7 +3822,7 @@
 
 	* Source/Additions/GSMime.m (GSMimeParser -scanToken:): Return an empty
 	string instead of nil when parsing an empty quoted string.
- 
+
 2011-10-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFileHandle.m:
@@ -3902,7 +3909,7 @@
 
 	* Source/NSBundle.m: ([objectForInfoDictionaryKey:])
 	Add missing one-line implementation.
-	
+
 2011-09-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNumberFormatter.m: Check for _C_BOOL definition.
@@ -18619,4 +18626,3 @@ Copyright @copyright{} 2005 Free Software Foundation
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
-
