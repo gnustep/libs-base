@@ -1647,6 +1647,10 @@ static NSMutableDictionary      *credentialsCache = nil;
             {
               NSLog(@"%@ in read: %@", self, p);
             }
+          if (EAGAIN == errno || EINTR == errno)
+            {
+              errno = EBADF;    // Fatal ... don't retry
+            }
         }
       else
         {
@@ -1689,6 +1693,10 @@ static NSMutableDictionary      *credentialsCache = nil;
           if (YES == debug)
             {
               NSLog(@"%@ in write: %@", self, p);
+            }
+          if (EAGAIN == errno || EINTR == errno)
+            {
+              errno = EBADF;    // Fatal ... don't retry
             }
         }
       else
