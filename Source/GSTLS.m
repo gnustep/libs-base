@@ -1557,13 +1557,13 @@ static NSMutableDictionary      *credentialsCache = nil;
               ASSIGN(problem, p);
               if (YES == debug)
                 {
-                  NSLog(@"%@ %@", self, p);
+                  NSLog(@"%@ in handshake: %@", self, p);
                 }
             }
           else
             {
               ASSIGN(problem, p);
-              NSLog(@"%@ %@", self, p);
+              NSLog(@"%@ in handshake: %@", self, p);
             }
           [self disconnect: NO];
           return YES;   // Failed ... not active.
@@ -1645,7 +1645,7 @@ static NSMutableDictionary      *credentialsCache = nil;
           ASSIGN(problem, p);
           if (YES == debug)
             {
-              NSLog(@"%@ %@", self, p);
+              NSLog(@"%@ in read: %@", self, p);
             }
         }
       else
@@ -1656,7 +1656,7 @@ static NSMutableDictionary      *credentialsCache = nil;
                 {
                   p = [NSString stringWithFormat: @"%s",
                     gnutls_alert_get_name(gnutls_alert_get(session))];
-                  NSLog(@"%@ %@", self, p);
+                  NSLog(@"%@ in read: %@", self, p);
                 }
             }
           errno = EAGAIN;       // Need to retry.
@@ -1688,7 +1688,7 @@ static NSMutableDictionary      *credentialsCache = nil;
           ASSIGN(problem, p);
           if (YES == debug)
             {
-              NSLog(@"%@ %@", self, p);
+              NSLog(@"%@ in write: %@", self, p);
             }
         }
       else
