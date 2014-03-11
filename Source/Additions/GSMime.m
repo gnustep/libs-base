@@ -509,7 +509,7 @@ selectCharacterSet(NSString *str, NSData **d)
  * For an ascii word, we just return the data.
  */
 static NSData*
-wordData(NSString *word)
+wordData(NSString *word, BOOL *encoded)
 {
   NSData	*d = nil;
   NSString	*charset;
@@ -517,6 +517,7 @@ wordData(NSString *word)
   charset = selectCharacterSet(word, &d);
   if ([charset isEqualToString: @"us-ascii"] == YES)
     {
+      *encoded = NO;
       return d;
     }
   else
@@ -525,6 +526,7 @@ wordData(NSString *word)
       char		buf[len + 1];
       NSMutableData	*md;
 
+      *encoded = YES;
       [charset getCString: buf
 		maxLength: len + 1
 		 encoding: NSISOLatin1StringEncoding];
@@ -3734,13 +3736,18 @@ static NSUInteger
 appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   NSString *str, BOOL *ok)
 {
-  NSUInteger      pos = 0;
-  NSUInteger      size = [str length];
+  NSUInteger    pos = 0;
+  NSUInteger    size = [str length];
+  BOOL          hadEncodedWord = NO;
+  BOOL          needSpace = NO;
 
   *ok = YES;
   while (pos < size)
     {
       NSRange   r = NSMakeRange(pos, size - pos);
+      NSString  *s = nil;
+      NSData    *d = nil;
+      BOOL      e = NO;
 
       r = [str rangeOfCharacterFromSet: whitespace
                                options: NSLiteralSearch
@@ -3749,7 +3756,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
         {
           /* Found space at the start of the string, so we reduce
            * it to a single space in the output, or omit it entirely
-           * if the string is nothing but space.
+           * if the string is contains nothing more but space.
            */
           pos++;
           while (pos < size
@@ -3759,37 +3766,60 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
             }
           if (pos < size)
             {
-              offset = appendBytes(m, offset, fold, " ", 1);
+              needSpace = YES;  // We need a space before the next word.
             }
         }
       else if (r.length == 0)
         {
-          NSString      *sub;
-          NSData        *d;
-
-          /* No space found ... we must output the entire string without
-           * folding it.
+          /* No more space found ... we must output the remaining string
+           * without folding it.
            */
-          sub = [str substringWithRange: NSMakeRange(pos, size - pos)];
+          s = [str substringWithRange: NSMakeRange(pos, size - pos)];
           pos = size;
-          d = wordData(sub);
-          offset = appendBytes(m, offset, fold, [d bytes], [d length]);
+          d = wordData(s, &e);
         }
       else
         {
-          NSString      *sub;
-          NSData        *d;
-
-          /* Output the substring up to the first space.
+          /* Output the substring up to the next space.
            */
-          sub = [str substringWithRange: NSMakeRange(pos, r.location - pos)];
+          s = [str substringWithRange: NSMakeRange(pos, r.location - pos)];
           pos = r.location;
-          d = wordData(sub);
-          offset = appendBytes(m, offset, fold, [d bytes], [d length]);
+          d = wordData(s, &e);
         }
-      if (fold > 0 && offset > fold)
+      if (nil != d)
         {
-          *ok = NO;
+          /* We have a 'word' to output ... do that after dealing with any
+           * space needede between the last word and the new one.
+           */
+          if (YES == needSpace)
+            {
+              if (YES == e && YES == hadEncodedWord)
+                {
+                  /* We can't have space between two encoded words, so
+                   * we incorporate the space at the start of the next
+                   * encoded word.
+                   */
+                  s = [@" " stringByAppendingString: s];
+                  d = wordData(s, &e);
+                }
+              else
+                {
+                  /* Add the needed space before the next word.
+                   */
+                  offset = appendBytes(m, offset, fold, " ", 1);
+                  if (fold > 0 && offset > fold)
+                    {
+                      *ok = NO;
+                    }
+                }
+              needSpace = NO;
+            }
+          hadEncodedWord = e;
+          offset = appendBytes(m, offset, fold, [d bytes], [d length]);
+          if (fold > 0 && offset > fold)
+            {
+              *ok = NO;
+            }
         }
     }
   return offset;
