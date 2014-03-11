@@ -895,6 +895,14 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
         case NSGreaterThanOrEqualToPredicateOperatorType:
           return (leftIsNil == rightIsNil);
           
+        case NSInPredicateOperatorType:
+        case NSLikePredicateOperatorType:
+        case NSBetweenPredicateOperatorType:
+        case NSEndsWithPredicateOperatorType:
+        case NSContainsPredicateOperatorType:
+        case NSBeginsWithPredicateOperatorType:
+          return (leftIsNil == rightIsNil);
+
         default:
           return (leftIsNil != rightIsNil);
       }
