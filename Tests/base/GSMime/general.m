@@ -196,12 +196,20 @@ int main()
    */
   data = [NSData dataWithContentsOfFile: @"mime12.dat"];
   idoc = exact(0, data);
+  doc = [GSMimeDocument documentWithContent: @"hello"
+                                       type: @"text/plain"
+                                       name: nil];
+  [doc setHeader: @"MIME-Version" value: @"1.0" parameters: nil];
+  [doc setHeader: @"Subject"
+    value: @"Avant de partir, n'oubliez pas de préparer votre séjour à Paris"
+    parameters: nil];
+  PASS_EQUAL(idoc, doc, "mime12.dat same as internally generated content");
   doc = [GSMimeParser documentFromData: data];
   PASS_EQUAL(idoc, doc, "mime12.dat documents are the same");
   data = [idoc rawMimeData];
   doc = [GSMimeParser documentFromData: data];
   PASS_EQUAL(idoc, doc, "rawMimeData reproduces document");
-
+  NSLog(@"Got %@", [doc rawMimeData]);
   
   [arp release]; arp = nil;
   return 0;
