@@ -94,7 +94,7 @@ int main()
   data = [[data mutableCopy] autorelease];
   [(NSMutableData*)data appendBytes: "\r\n\r\n" length: 4];
   [parser parse: data];
-  doc = [parser document];
+  doc = [parser mimeDocument];
   PASS([[parser excess] length] == 5, "Can detect excess data in multipart");
   [parser release];
   
@@ -182,12 +182,25 @@ int main()
   doc = [GSMimeParser documentFromData: data];
   PASS_EQUAL(idoc, doc, "rawMimeData reproduces document");
 
-  /* Test a document containing encoded words in header
+  /* Test parse of a document containing encoded words in header.
+   * Use JavaMail encoded words (different format from those GSMime
+   * produces).
    */
   data = [NSData dataWithContentsOfFile: @"mime11.dat"];
   idoc = exact(0, data);
   doc = [GSMimeParser documentFromData: data];
   PASS_EQUAL(idoc, doc, "mime11.dat documents are the same");
+
+  /* Test a document with adjacent encoded words in headers, as
+   * produced by GSMime
+   */
+  data = [NSData dataWithContentsOfFile: @"mime12.dat"];
+  idoc = exact(0, data);
+  doc = [GSMimeParser documentFromData: data];
+  PASS_EQUAL(idoc, doc, "mime12.dat documents are the same");
+  data = [idoc rawMimeData];
+  doc = [GSMimeParser documentFromData: data];
+  PASS_EQUAL(idoc, doc, "rawMimeData reproduces document");
 
   
   [arp release]; arp = nil;

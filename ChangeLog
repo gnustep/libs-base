@@ -1,16 +1,24 @@
+2014-03-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m:
+	When generating document with a header containing adjacent non-ascii
+	words which need to be encoded, omit the space between those words
+	for consistency with the change on Fe 3rd.
+
 2014-02-18  Fred Kiefer <FredKiefer@gmx.de>
 
 	* Source/NSDateFormatter.m
 	(-initWithDateFormat:allowNaturalLanguage:):
 	Use method -setDateFormat: to get correct behaviour.
-	* Source/NSDateFormatter.m (-setDateFormat:): User ASSIGNCOPY for _dateFormat.
+	* Source/NSDateFormatter.m (-setDateFormat:):
+	Use ASSIGNCOPY for _dateFormat.
 
 2014-02-14  Quentin Mathe <quentin.mathe@gmail.com>
 
 	* Headers/Foundation/NSNotification.h
 	* Source/NSNotificationCenter.m
-	(-addObserverForName:selector:queue:usingBlock:): Added new Mac OS X 10.6
-	method.
+	(-addObserverForName:selector:queue:usingBlock:):
+	Added new Mac OS X 10.6 method.
 
 2014-02-14  Quentin Mathe <quentin.mathe@gmail.com>
 
