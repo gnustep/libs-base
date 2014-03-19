@@ -1,3 +1,8 @@
+2014-03-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Don't open syslog connection until after we have
+	forked and closed old descriptors .. fix for bug #41751
+
 2014-03-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m:
