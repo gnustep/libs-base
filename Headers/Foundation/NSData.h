@@ -46,8 +46,11 @@ enum {
 };
 
 enum {
-  NSAtomicWrite = 1
+  NSDataWritingAtomic = 1
 };
+/* The original name for this was NSAtomicWrite ... need for backward comapat
+ */
+#define NSAtomicWrite   NSDataWritingAtomic
 #endif
 
 @interface NSData : NSObject <NSCoding, NSCopying, NSMutableCopying>
@@ -144,7 +147,7 @@ enum {
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) 
 /**
  * <p>Writes a copy of the data encapsulated by the receiver to a file
- * at path.  If the NSAtomicWrite option is set, this writes to a
+ * at path.  If the NSDataWritingAtomic option is set, this writes to a
  * temporary file and then renames that to the file at path, thus
  * ensuring that path exists and does not contain partially written
  * data at any point.
