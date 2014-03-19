@@ -5352,7 +5352,7 @@ static NSFileManager *fm = nil;
       return NO;
     }
   return [d writeToFile: path
-	        options: atomically ? NSAtomicWrite : 0
+	        options: atomically ? NSDataWritingAtomic : 0
 		  error: error];
 }
 
@@ -5387,7 +5387,7 @@ static NSFileManager *fm = nil;
       return NO;
     }
   return [d writeToURL: url
-	       options: atomically ? NSAtomicWrite : 0
+	       options: atomically ? NSDataWritingAtomic : 0
 		 error: error];
 }
 

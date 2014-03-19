@@ -2,6 +2,10 @@
 
 	* Tools/gdomap.c: Don't open syslog connection until after we have
 	forked and closed old descriptors .. fix for bug #41751
+	* Headers/Foundation/NSData.h:
+	* Source/NSData.m:
+	* Source/NSString.m:
+	Fix for bug #41626
 
 2014-03-11  Richard Frith-Macdonald <rfm@gnu.org>
 

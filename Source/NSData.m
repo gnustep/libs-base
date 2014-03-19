@@ -877,7 +877,7 @@ failure:
 {
   if (useAuxiliaryFile)
     {
-      return [self writeToFile: path options: NSAtomicWrite error: 0];
+      return [self writeToFile: path options: NSDataWritingAtomic error: 0];
     }
   else
     {
@@ -889,7 +889,7 @@ failure:
 {
   if (flag)
     {
-      return [self writeToURL: anURL options: NSAtomicWrite error: 0];
+      return [self writeToURL: anURL options: NSDataWritingAtomic error: 0];
     }
   else
     {
@@ -1328,7 +1328,7 @@ failure:
   BOOL		useAuxiliaryFile = NO;
   BOOL		error_BadPath = YES;
 
-  if (writeOptionsMask & NSAtomicWrite)
+  if (writeOptionsMask & NSDataWritingAtomic)
     {
       useAuxiliaryFile = YES;
     }
