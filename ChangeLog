@@ -6,6 +6,8 @@
 	* Source/NSData.m:
 	* Source/NSString.m:
 	Fix for bug #41626
+	* Source/Additions/GSObjCRuntime.m: patch by Mathias Bauer
+	for bool encoding/decoding.
 
 2014-03-11  Richard Frith-Macdonald <rfm@gnu.org>
 
