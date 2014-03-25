@@ -521,7 +521,7 @@ static NSArray	*empty = nil;
   [internal->lock lock];
   if (NO == internal->finished)
     {
-      if (NO == internal->executing)
+      if (YES == internal->executing)
         {
 	  [self willChangeValueForKey: @"isExecuting"];
 	  [self willChangeValueForKey: @"isFinished"];

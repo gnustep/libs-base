@@ -1,3 +1,7 @@
+2014-03-25  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Tools/NSOperation.m: ([_finish]) fix logic of 'executing' flag.
+
 2014-03-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: Don't open syslog connection until after we have
@@ -10177,7 +10181,7 @@
 	which is used there were erroneously changed to assume an NSNumber.
 	This was causing a crash in various applications.
 
-2009-04-24  Fred Morcos <fred.morcos"gmail.com>
+2009-04-24  Fred Morcos <fred.morcos@gmail.com>
 
 	* Headers/Foundation/NSFileManager.h:
 	* Source/NSFileManager.m:
