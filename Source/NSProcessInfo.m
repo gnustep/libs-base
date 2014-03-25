@@ -1,5 +1,5 @@
 /** Implementation for NSProcessInfo for GNUStep
-   Copyright (C) 1995-2001 Free Software Foundation, Inc.
+   Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
    Written by:  Georg Tuparev <Tuparev@EMBL-Heidelberg.de>
                 Heidelberg, Germany
@@ -1122,7 +1122,7 @@ static void determineOperatingSystem()
        * That's good if the binary is running on a system other than
        * the one it was built for (rare, but can happen).
        */
-      if (uname(&uts) == 0)
+      if (!(uname(&uts) < 0))
 	{
 	  os = [NSString stringWithCString: uts.sysname                                                           encoding: [NSString defaultCStringEncoding]];
 	  os = [os lowercaseString];
