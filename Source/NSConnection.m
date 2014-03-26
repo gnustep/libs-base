@@ -1673,20 +1673,32 @@ static NSLock	*cached_proxies_gate = nil;
   NSParameterAssert(IreceivePort);
   NSParameterAssert(IisValid);
 
-  /*
-   * If this is a server connection without a remote end, its root proxy
-   * is the same as its root object.
-   */
-  if (IreceivePort == IsendPort)
+  NS_DURING
     {
-      return [self rootObject];
-    }
-  op = [self _makeOutRmc: 0 generate: &seq_num reply: YES];
-  [self _sendOutRmc: op type: ROOTPROXY_REQUEST];
+      /*
+       * If this is a server connection without a remote end, its root proxy
+       * is the same as its root object.
+       */
+      if (IreceivePort == IsendPort)
+        {
+          return [self rootObject];
+        }
+      op = [self _makeOutRmc: 0 generate: &seq_num reply: YES];
+      [self _sendOutRmc: op type: ROOTPROXY_REQUEST];
 
-  ip = [self _getReplyRmc: seq_num];
-  [ip decodeValueOfObjCType: @encode(id) at: &newProxy];
-  [self _doneInRmc: ip];
+      ip = [self _getReplyRmc: seq_num];
+      [ip decodeValueOfObjCType: @encode(id) at: &newProxy];
+      [self _doneInRmc: ip];
+    }
+  NS_HANDLER
+    {
+      /* The ports/connection may have been invalidated while getting the
+       * root proxy ... if so we should return nil.
+       */
+      newProxy = nil;
+    }
+  NS_ENDHANDLER
+
   return AUTORELEASE(newProxy);
 }
 

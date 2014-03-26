@@ -124,10 +124,6 @@
 
 #import "GSPrivate.h"
 
-@interface NSBundle (Private)
-+ (NSString*) _gnustep_target_os;
-@end
-
 /* This error message should be called only if the private main function
  * was not executed successfully. This may happen ONLY if another library
  * or kit defines its own main function (as gnustep-base does).
