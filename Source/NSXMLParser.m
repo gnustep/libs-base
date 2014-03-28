@@ -388,8 +388,8 @@ static  NSNull  *null = nil;
   [self error: e];
 }
 - (void) fatalError: (NSString*)e
-       colNumber: (NSInteger)colNumber
-      lineNumber: (NSInteger)lineNumber
+          colNumber: (NSInteger)colNumber
+         lineNumber: (NSInteger)lineNumber
 {
   e = [NSString stringWithFormat: @"at line: %d column: %d ... %@",
     (int)lineNumber, (int)colNumber, e];
@@ -591,12 +591,28 @@ static  NSNull  *null = nil;
 
 - (NSString *) _stringByExpandingXMLEntities
 {
-  NSMutableString *t=[NSMutableString stringWithString: self];
-  [t replaceOccurrencesOfString: @"&" withString: @"&amp;" options: 0 range: NSMakeRange(0, [t length])];  // must be first!
-  [t replaceOccurrencesOfString: @"<" withString: @"&lt;" options: 0 range: NSMakeRange(0, [t length])];
-  [t replaceOccurrencesOfString: @">" withString: @"&gt;" options: 0 range: NSMakeRange(0, [t length])];
-  [t replaceOccurrencesOfString: @"\"" withString: @"&quot;" options: 0 range: NSMakeRange(0, [t length])];
-  [t replaceOccurrencesOfString: @"'" withString: @"&apos;" options: 0 range: NSMakeRange(0, [t length])];
+  NSMutableString       *t = [NSMutableString stringWithString: self];
+
+  [t replaceOccurrencesOfString: @"&"
+                     withString: @"&amp;"
+                        options: 0
+                          range: NSMakeRange(0, [t length])];  // must be first!
+  [t replaceOccurrencesOfString: @"<"
+                     withString: @"&lt;"
+                        options: 0
+                          range: NSMakeRange(0, [t length])];
+  [t replaceOccurrencesOfString: @">"
+                     withString: @"&gt;"
+                        options: 0
+                          range: NSMakeRange(0, [t length])];
+  [t replaceOccurrencesOfString: @"\""
+                     withString: @"&quot;"
+                        options: 0
+                          range: NSMakeRange(0, [t length])];
+  [t replaceOccurrencesOfString: @"'"
+                     withString: @"&apos;"
+                        options: 0
+                          range: NSMakeRange(0, [t length])];
   return t;
 }
 
@@ -1019,6 +1035,12 @@ NSLog(@"parserDidStartDocument: ");
       c = cget(); // scan name to delimiting character
     }
   decl = [NewUTF8STR(tp, this->cp - tp - 1) autorelease];
+  if (nil == decl)
+    {
+      [self _parseError: @"invalid character in declaraction"
+                   code: NSXMLParserInvalidCharacterError];
+      return;
+    }
 #if EXTRA_DEBUG
   NSLog(@"decl=%@ - %02x %c", decl, c, isprint(c)?c: ' ');
 #endif
@@ -1033,6 +1055,12 @@ NSLog(@"parserDidStartDocument: ");
       c = cget(); // scan name to delimiting character
     }
   name = [NewUTF8STR(tp, this->cp - tp - 1) autorelease];
+  if (nil == name)
+    {
+      [self _parseError: @"invalid character in declaraction name"
+                   code: NSXMLParserInvalidCharacterError];
+      return;
+    }
 #if EXTRA_DEBUG
   NSLog(@"name=%@ - %02x %c", name, c, isprint(c)?c: ' ');
 #endif
@@ -1074,6 +1102,12 @@ NSLog(@"_processDeclaration <%@%@ %@>", flag?@"/": @"", decl, name);
 	      c = cget(); // scan name to delimiting character
 	    }
 	  name = NewUTF8STR(tp, this->cp - tp - 1);
+          if (nil == name)
+            {
+              [self _parseError: @"invalid character in declaration attr"
+                           code: NSXMLParserInvalidCharacterError];
+              return;
+            }
 #if 1 || EXTRA_DEBUG
 NSLog(@"name=%@ - %02x %c", name, c, isprint(c)?c: ' ');
 #endif
@@ -1088,6 +1122,12 @@ NSLog(@"name=%@ - %02x %c", name, c, isprint(c)?c: ' ');
 	      c = cget(); // scan name to delimiting character
 	    }
 	  type = NewUTF8STR(tp, this->cp - tp - 1);
+          if (nil == type)
+            {
+              [self _parseError: @"invalid character in declaration type"
+                           code: NSXMLParserInvalidCharacterError];
+              return;
+            }
 #if 1 || EXTRA_DEBUG
 NSLog(@"type=%@ - %02x %c", type, c, isprint(c)?c: ' ');
 #endif
@@ -1414,6 +1454,11 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 	}
     }
   entity = NewUTF8STR(ep, len);
+  if (nil == entity)
+    {
+      [self _parseError: @"invalid character in entity name"
+                   code: NSXMLParserInvalidCharacterError];
+    }
 
 #if 1
   NSLog(@"NSXMLParser: unrecognized entity: &%@;", entity);
@@ -1461,6 +1506,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
   int c = cget();  // refetch first character
   int len;
   BOOL containsEntity = NO;
+  NSString *qs;
 
 #if EXTRA_DEBUG
   NSLog(@"_newQarg: %02x %c", c, isprint(c)?c: ' ');
@@ -1537,6 +1583,12 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
           if (ptr > start)
             {
               seg = NewUTF8STR(start, ptr - start);
+              if (nil == seg)
+                {
+                  [self _parseError: @"invalid character in quoted string"
+                               code: NSXMLParserInvalidCharacterError];
+                  return nil;
+                }
               [m appendString: seg];
               RELEASE(seg);
               start = ptr;
@@ -1559,7 +1611,14 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
         }
       return m;
     }
-  return NewUTF8STR(ap, len);
+  qs = NewUTF8STR(ap, len);
+  if (nil == qs)
+    {
+      [self _parseError: @"invalid character in quoted string"
+                   code: NSXMLParserInvalidCharacterError];
+      return nil;
+    }
+  return qs;
 }
 
 - (BOOL) parse
@@ -1627,11 +1686,20 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 			  if (this->foundCharacters != 0)
 			    {
 			      s = NewUTF8STR(vp, p - vp);
-			      /* Process this data as characters
-			       */
-			      (*this->foundCharacters)(_del,
-				foundCharactersSel, self, s);
-			      [s release];
+                              if (nil == s)
+                                {
+                                  [self _parseError: @"invalid character data"
+                                     code: NSXMLParserInvalidCharacterError];
+                                  continue;
+                                }
+                              else
+                                {
+                                  /* Process this data as characters
+                                   */
+                                  (*this->foundCharacters)(_del,
+                                    foundCharactersSel, self, s);
+                                  [s release];
+                                }
 			    }
 			}
 		      if (p < this->cp - 1)
@@ -1639,20 +1707,36 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 			  if (this->foundIgnorable != 0)
 			    {
 			      s = NewUTF8STR(p, this->cp - p - 1);
-			      /* Process data as ignorable whitespace
-			       */
-			      (*this->foundIgnorable)(_del,
-				foundIgnorableSel, self, s);
-			      [s release];
+                              if (nil == s)
+                                {
+                                  [self _parseError: @"invalid whitespace data"
+                                     code: NSXMLParserInvalidCharacterError];
+                                }
+                              else
+                                {
+                                  /* Process data as ignorable whitespace
+                                   */
+                                  (*this->foundIgnorable)(_del,
+                                    foundIgnorableSel, self, s);
+                                  [s release];
+                                }
 			    }
 			  else if (this->foundCharacters != 0)
 			    {
 			      s = NewUTF8STR(p, this->cp - p - 1);
-			      /* Process data as characters
-			       */
-			      (*this->foundCharacters)(_del,
-				foundCharactersSel, self, s);
-			      [s release];
+                              if (nil == s)
+                                {
+                                  [self _parseError: @"invalid character data"
+                                     code: NSXMLParserInvalidCharacterError];
+                                }
+                              else
+                                {
+                                  /* Process data as characters
+                                   */
+                                  (*this->foundCharacters)(_del,
+                                    foundCharactersSel, self, s);
+                                  [s release];
+                                }
 			    }
 			}
 		    }
@@ -1676,16 +1760,32 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 		    if (this->foundIgnorable != 0)
 		      {
 			s = NewUTF8STR(vp, this->cp - vp - 1);
-			(*this->foundIgnorable)(_del,
-			  foundIgnorableSel, self, s);
-			[s release];
+                        if (nil == s)
+                          {
+                            [self _parseError: @"invalid whitespace data"
+                               code: NSXMLParserInvalidCharacterError];
+                          }
+                        else
+                          {
+                            (*this->foundIgnorable)(_del,
+                              foundIgnorableSel, self, s);
+                            [s release];
+                          }
 		      }
 		    else if (this->foundCharacters != 0)
 		      {
 			s = NewUTF8STR(vp, this->cp - vp - 1);
-			(*this->foundCharacters)(_del,
-			  foundCharactersSel, self, s);
-			[s release];
+                        if (nil == s)
+                          {
+                            [self _parseError: @"invalid character data"
+                               code: NSXMLParserInvalidCharacterError];
+                          }
+                        else
+                          {
+                            (*this->foundCharacters)(_del,
+                              foundCharactersSel, self, s);
+                            [s release];
+                        }
 		      }
 		    vp = this->cp - 1;
 		  }
@@ -1788,9 +1888,17 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 		    {
 		      NSString	*c = NewUTF8STR(tp, this->cp - tp);
 
-		      (*this->foundComment)(_del,
-			foundCommentSel, self, c);
-		      [c release];
+                      if (nil == c)
+                        {
+                          [self _parseError: @"invalid comment data"
+                             code: NSXMLParserInvalidCharacterError];
+                        }
+                      else
+                        {
+                          (*this->foundComment)(_del,
+                            foundCommentSel, self, c);
+                          [c release];
+                        }
 		    }
                   this->cp += 3;	// might go beyond cend ... ok
                   vp = this->cp;	// value might continue
@@ -1865,6 +1973,11 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
               else
                 {
                   tag = NewUTF8STR(tp, this->cp - tp - 1);
+                }
+              if (nil == tag)
+                {
+                  [self _parseError: @"invalid character in tag"
+                     code: NSXMLParserInvalidCharacterError];
                 }
 #if EXTRA_DEBUG
               NSLog(@"tag=%@ - %02x %c", tag, c, isprint(c)?c: ' ');
