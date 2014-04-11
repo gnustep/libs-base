@@ -1,3 +1,10 @@
+2014-04-11  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Headers/Foundation/NSXMLNodeOptions.h: Add new 10.7 options.
+	* Source/NSXMLDocument.m: Use XML_PARSE_NONET as the default
+	option for xmlReadMemory. Add XML_PARSE_NOENT when
+	NSXMLNodeLoadExternalEntitiesNever is set.
+
 2014-03-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m: If parsing something which contains data

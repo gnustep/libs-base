@@ -128,6 +128,15 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
           xmlOptions |= XML_PARSE_NOBLANKS;
           //xmlKeepBlanksDefault(0);
         }
+      if (mask & NSXMLNodeLoadExternalEntitiesNever)
+        {
+          xmlOptions |= XML_PARSE_NOENT;
+        }
+      if (!(mask & NSXMLNodeLoadExternalEntitiesAlways))
+        {
+          xmlOptions |= XML_PARSE_NONET;
+        }
+
       doc = xmlReadMemory([data bytes], [data length], 
                           url, encoding, xmlOptions);
       if (doc == NULL)
@@ -425,7 +434,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 #ifdef HAVE_LIBXSLT
   xmlChar **params = NULL;
   xmlDocPtr stylesheetDoc = xmlReadMemory([xslt bytes], [xslt length],
-                                          NULL, NULL, XML_PARSE_NOERROR);
+                                          NULL, NULL, XML_PARSE_NOERROR | XML_PARSE_NONET);
   xsltStylesheetPtr stylesheet = xsltParseStylesheetDoc(stylesheetDoc);
   xmlDocPtr resultDoc = NULL;
  
