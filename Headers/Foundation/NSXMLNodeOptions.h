@@ -97,10 +97,19 @@ enum {
     
     NSXMLDocumentValidate = 1 << 13,
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST) 
+    NSXMLNodeLoadExternalEntitiesAlways = 1 << 14,
+    NSXMLNodeLoadExternalEntitiesSameOriginOnly = 1 << 15,
+#endif
+
     NSXMLDocumentXInclude = 1 << 16,
     
     NSXMLNodePrettyPrint = 1 << 17,
     NSXMLDocumentIncludeContentTypeDeclaration = 1 << 18,
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST) 
+    NSXMLNodeLoadExternalEntitiesNever = 1 << 19,
+#endif
     
     NSXMLNodePreserveNamespaceOrder = 1 << 20,
     NSXMLNodePreserveAttributeOrder = 1 << 21,
