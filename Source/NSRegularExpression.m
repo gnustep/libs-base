@@ -300,6 +300,11 @@ prepareResult(NSRegularExpression *regex,
       NSUInteger start = uregex_start(r, i, s);
       NSUInteger end = uregex_end(r, i, s);
 
+      if (end < start)
+        {
+          flags |= NSMatchingInternalError;
+          end = start = NSNotFound;
+        }
       ranges[i] = NSMakeRange(start, end-start);
     }
   if (uregex_hitEnd(r, s))
@@ -344,7 +349,8 @@ prepareResult(NSRegularExpression *regex,
 	  NSTextCheckingResult *result;
 
 	  flags = prepareResult(self, r, ranges, groups, &s);
-	  result = [NSTextCheckingResult
+	  result = (flags & NSMatchingInternalError) ? nil
+            : [NSTextCheckingResult
 	    regularExpressionCheckingResultWithRanges: ranges
 						count: groups
 				    regularExpression: self];
@@ -359,7 +365,8 @@ prepareResult(NSRegularExpression *regex,
 	  NSTextCheckingResult	*result;
 
 	  flags = prepareResult(self, r, ranges, groups, &s);
-	  result = [NSTextCheckingResult
+	  result = (flags & NSMatchingInternalError) ? nil
+            : [NSTextCheckingResult
 	    regularExpressionCheckingResultWithRanges: ranges
 						count: groups
 				    regularExpression: self];
@@ -403,7 +410,8 @@ prepareResult(NSRegularExpression *regex,
 	  NSTextCheckingResult *result;
 
 	  flags = prepareResult(self, r, ranges, groups, &s);
-	  result = [NSTextCheckingResult
+	  result = (flags & NSMatchingInternalError) ? nil
+            : [NSTextCheckingResult
 	    regularExpressionCheckingResultWithRanges: ranges
 						count: groups
 				    regularExpression: self];
@@ -418,7 +426,8 @@ prepareResult(NSRegularExpression *regex,
 	  NSTextCheckingResult	*result;
 
 	  flags = prepareResult(self, r, ranges, groups, &s);
-	  result = [NSTextCheckingResult
+	  result = (flags & NSMatchingInternalError) ? nil
+            : [NSTextCheckingResult
 	    regularExpressionCheckingResultWithRanges: ranges
 						count: groups
 				    regularExpression: self];
@@ -603,8 +612,11 @@ prepareResult(NSRegularExpression *regex,
 
   FAKE_BLOCK_HACK(result,
     {
-      prepareResult(self, r, ranges, groups, &s);
-      result = [NSTextCheckingResult
+      uint32_t  flags;
+
+      flags = prepareResult(self, r, ranges, groups, &s);
+      result = (flags & NSMatchingInternalError) ? nil
+        : [NSTextCheckingResult
 	regularExpressionCheckingResultWithRanges: ranges
 					    count: groups
 				regularExpression: self];
@@ -624,13 +636,18 @@ prepareResult(NSRegularExpression *regex,
   FAKE_BLOCK_HACK(array,
     {
       NSTextCheckingResult	*result = NULL;
+      uint32_t                  flags;
 
-      prepareResult(self, r, ranges, groups, &s);
-      result = [NSTextCheckingResult
+      flags = prepareResult(self, r, ranges, groups, &s);
+      result = (flags & NSMatchingInternalError) ? nil
+        : [NSTextCheckingResult
 	regularExpressionCheckingResultWithRanges: ranges
 					    count: groups
 				regularExpression: self];
-      [array addObject: result];
+      if (nil != result)
+        {
+          [array addObject: result];
+        }
     });
   return array;
 }

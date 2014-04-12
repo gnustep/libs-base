@@ -1,3 +1,9 @@
+2014-04-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRegularExpression.m: Check for bad range from ICU and
+	flag an internal error if we see it; mimic OSX behavior when a
+	range limited match fails.
+
 2014-04-11  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Headers/Foundation/NSXMLNodeOptions.h: Add new 10.7 options.
