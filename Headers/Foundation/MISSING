@@ -46,8 +46,6 @@ Foundation:
 	<NSOrthography.h>
 	<NSPort.h>
 	<NSPropertyList.h>
-	<NSRegularExpression.h>
-	<NSTextCheckingResult.h>
 	<NSByteCountFormatter.h>
 	<NSFileCoordinator.h>
 	<NSFilePresenter.h>
