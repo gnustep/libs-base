@@ -1085,7 +1085,7 @@ int main(int argc, char *argv[], char *env[])
 {
   if (!_gnu_hostName)
     {
-      _gnu_hostName = [[[NSHost currentHost] name] copy];
+      _gnu_hostName = [[[NSHost currentHost] localizedName] copy];
     }
   return _gnu_hostName;
 }
