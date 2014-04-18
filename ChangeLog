@@ -1,3 +1,9 @@
+2014-04-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSHost.h:
+	* Source/NSHost.m:
+	Add OSX 10.6 -localizedName method.
+
 2014-04-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRegularExpression.m: Check for bad range from ICU and
