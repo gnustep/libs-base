@@ -577,6 +577,17 @@ myHostName()
   return NO;
 }
 
+- (NSString*) localizedName
+{
+  NSString      *n = myHostName();
+
+  if (self != [NSHost hostWithName: n])
+    {
+      n = nil;
+    }
+  return n;
+}
+
 - (NSString*) name
 {
   return [_names anyObject];
