@@ -623,3 +623,9 @@ myHostName()
 }
 @end
 
+@implementation	NSHost (NSProcessInfo)
++ (NSString*) _myHostName
+{
+  return myHostName();
+}
+@end
