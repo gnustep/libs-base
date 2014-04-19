@@ -155,6 +155,10 @@ For more detailed assistance, please report the error to bug-gnustep@gnu.org.\n\
 #endif
 #endif
 
+@interface      NSHost (NSProcessInfo)
++ (NSString*) _myHostName;
+@end
+
 /*************************************************************************
  *** _NSConcreteProcessInfo
  *************************************************************************/
@@ -1085,7 +1089,7 @@ int main(int argc, char *argv[], char *env[])
 {
   if (!_gnu_hostName)
     {
-      _gnu_hostName = [[[NSHost currentHost] localizedName] copy];
+      _gnu_hostName = [[NSHost _myHostName] copy];
     }
   return _gnu_hostName;
 }
