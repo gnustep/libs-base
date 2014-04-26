@@ -424,7 +424,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
     (aKey ? (id)aKey : (id)@"(nil)"), @"NSUnknownUserInfoKey",
     nil];
   exp = [NSException exceptionWithName: NSUndefinedKeyException
-				reason: @"Unable to set nil value for key"
+				reason: @"Unable to set value for undefined key"
 			      userInfo: dict];
   [exp raise];
 }
