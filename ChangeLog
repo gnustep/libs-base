@@ -1,3 +1,7 @@
+2014-04-26  Manuel Guesdon <mguesdon@orange-concept.com>
+	* Source/NSKeyValueCoding.m
+	  Fix exception msg in setValue:forUndefinedKey:
+	
 2014-04-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSHost.h:
