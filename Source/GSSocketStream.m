@@ -2566,6 +2566,12 @@ setNonBlocking(SOCKET fd)
       [outs _setAddress: addr];
       [ins _setSock: acceptReturn];
       [outs _setSock: acceptReturn];
+      [ins _setStatus: NSStreamStatusOpen];
+      [outs _setStatus: NSStreamStatusOpen];
+      /* Set property to indicate that the input stream was accepted by
+       * a listening socket (server) rather than produced by an outgoing
+       * connection (client).
+       */
       [ins setProperty: @"YES" forKey: @"IsServer"];
     }
   if (inputStream)

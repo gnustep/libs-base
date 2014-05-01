@@ -1,3 +1,8 @@
+2014-05-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSSocketStream.m: Set initial state of accepted incoming
+	connection streams to be open (otherwise we can't close them).
+
 2014-04-26  Manuel Guesdon <mguesdon@orange-concept.com>
 	* Source/NSKeyValueCoding.m
 	  Fix exception msg in setValue:forUndefinedKey:
