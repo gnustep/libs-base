@@ -1,3 +1,10 @@
+2014-05-05  Ivan Vucica <ivan@vucica.net>
+
+	* GNUmakefile: gnustep-make's Master/deb.make now included.
+	* Tests/GNUmakefile: gnustep-tests --clean is now permitted to
+	fail. This helps in case 'make {dist,}clean' is called by some
+	automation.
+
 2014-05-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSSocketStream.m: Set initial state of accepted incoming

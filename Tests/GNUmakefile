@@ -77,7 +77,7 @@ check::
 	)
 
 clean::
-	gnustep-tests --clean
+	-gnustep-tests --clean
 
 # This makefile does nothing.
 include $(GNUSTEP_MAKEFILES)/rules.make

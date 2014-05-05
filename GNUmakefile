@@ -75,5 +75,6 @@ SUBPROJECTS += Tools NSTimeZones Resources Tests
 -include Makefile.preamble
 
 include $(GNUSTEP_MAKEFILES)/aggregate.make
+include $(GNUSTEP_MAKEFILES)/Master/deb.make
 
 -include Makefile.postamble
