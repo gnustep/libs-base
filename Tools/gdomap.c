@@ -4481,7 +4481,6 @@ main(int argc, char** argv)
   const char	*machine = 0;
   const char	*lookupf = 0;
   int		donamesf = 0;
-  int           forked = 0;
 
 #if	defined(__MINGW__)
   WORD wVersionRequested;
@@ -4489,6 +4488,8 @@ main(int argc, char** argv)
 
   wVersionRequested = MAKEWORD(2, 2);
   WSAStartup(wVersionRequested, &wsaData);
+#else
+  int           forked = 0;
 #endif
 
   local_hostname = xgethostname();
@@ -4913,8 +4914,6 @@ printf(
       gdomap_log(LOG_DEBUG);
     }
 
-#endif /* !__MINGW__ */
-
   if (forked)
     {
       is_daemon = 1;
@@ -4927,6 +4926,8 @@ printf(
 #endif
 #endif
     }
+
+#endif /* !__MINGW__ */
 
   init_my_port();	/* Determine port to listen on.		*/
   init_ports();		/* Create ports to handle requests.	*/
