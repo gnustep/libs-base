@@ -1,3 +1,7 @@
+2014-05-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.m: Fix ifdefs for MINGW to avoid fork relatred code.
+
 2014-05-05  Ivan Vucica <ivan@vucica.net>
 
 	* GNUmakefile: gnustep-make's Master/deb.make now included.
