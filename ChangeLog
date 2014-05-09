@@ -1,3 +1,12 @@
+2014-05-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDebug.m:
+	* Headers/Foundation/NSDebug.h:
+	Add GSDebugAllocationRecordObjects()
+	and deprecate GSDebugAllocationActiveRecordingObjects()
+	so we can turn individual object tracking on and off.
+	Move documentation from source to header.
+
 2014-05-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.m: Fix ifdefs for MINGW to avoid fork relatred code.
