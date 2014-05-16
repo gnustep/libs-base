@@ -435,7 +435,7 @@
       if (_nextTarget == nil)
 	{
 	  [NSException raise: NSInternalInconsistencyException
-		      format: @"forwardInvocation without perparation"];
+		      format: @"forwardInvocation without preparation"];
 	}
       if (_group == nil)
 	{
