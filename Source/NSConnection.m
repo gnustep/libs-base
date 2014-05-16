@@ -2000,7 +2000,8 @@ static NSLock	*cached_proxies_gate = nil;
       if (ImultipleThreads == NO)
 	{
 	  [NSException raise: NSObjectInaccessibleException
-		      format: @"Forwarding message in wrong thread"];
+            format: @"Forwarding message for %p in wrong thread - %@",
+            object, inv];
 	}
       else
 	{
