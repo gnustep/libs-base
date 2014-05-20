@@ -407,6 +407,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   if ((id)NSMapGet(wProperties, (void*)@"Host") == nil)
     {
+      NSString  *s = [u scheme];
       id	p = [u port];
       id	h = [u host];
 
@@ -414,7 +415,16 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	{
 	  h = @"";	// Must use an empty host header
 	}
-      if (p == nil)
+      if (([s isEqualToString: @"http"] && [p intValue] == 80)
+        || ([s isEqualToString: @"https"] && [p intValue] == 443))
+        {
+          /* Some buggy systems object to the port being in the Host
+           * header when it's the default (optional) value.  To keep
+           * them happy let's omit it in those cases.
+           */
+          p = nil;
+        }
+      if (nil == p)
 	{
           NSMapInsert(wProperties, (void*)@"Host", (void*)h);
 	}

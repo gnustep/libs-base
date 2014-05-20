@@ -1454,14 +1454,25 @@ static NSURLProtocol	*placeholder = nil;
 		}
 	      if ([this->request valueForHTTPHeaderField: @"Host"] == nil)
 		{
-		  id	p = [u port];
-		  id	h = [u host];
+                  NSString      *s = [u scheme];
+		  id	        p = [u port];
+		  id	        h = [u host];
 
 		  if (h == nil)
 		    {
 		      h = @"";	// Must send an empty host header
 		    }
-		  if (p == nil)
+                  if (([s isEqualToString: @"http"] && [p intValue] == 80)
+                    || ([s isEqualToString: @"https"] && [p intValue] == 443))
+                    {
+                      /* Some buggy systems object to the port being in
+                       * the Host header when it's the default (optional)
+                       * value.
+                       * To keep them happy let's omit it in those cases.
+                       */
+                      p = nil;
+                    }
+		  if (nil == p)
 		    {
 		      [m appendFormat: @"Host: %@\r\n", h];
 		    }

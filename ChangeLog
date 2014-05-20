@@ -1,3 +1,12 @@
+2014-05-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURLProtocol.m:
+	When creating the 'Host' header, omit the port part if the scheme is
+	http/https and the port is the normal 80/443.  A workaround for buggy
+	software which doesn't understand the spec saying that the port is
+	'optional', not 'omitted' in these cases.
+
 2014-05-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDebug.m:
