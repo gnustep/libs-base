@@ -39,10 +39,6 @@ typedef struct	{
   BOOL		isReg;
 } NSArgumentInfo;
 
-@interface NSInvocation (MacroSetup)
-- (id) initWithMethodSignature: (NSMethodSignature*)aSignature;
-@end
-
 
 @interface GSFFIInvocation : NSInvocation
 {
@@ -77,13 +73,15 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp);
 extern void
 GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp);
 
-#define CLEAR_RETURN_VALUE_IF_OBJECT  do { if (_validReturn && *_inf[0].type == _C_ID) \
-                                            { \
-                                            RELEASE (*(id*) _retval); \
-                                            *(id*) _retval = nil; \
-                                            _validReturn = NO; \
-                                            }\
-                                        } while (0)
+#define CLEAR_RETURN_VALUE_IF_OBJECT \
+do {\
+  if (_validReturn && *_inf[0].type == _C_ID) \
+    { \
+      RELEASE (*(id*) _retval); \
+      *(id*) _retval = nil; \
+      _validReturn = NO; \
+    }\
+  } while (0)
 
 #define RETAIN_RETURN_VALUE IF_NO_GC(do { if (*_inf[0].type == _C_ID) RETAIN (*(id*) _retval);} while (0))                                         
 
