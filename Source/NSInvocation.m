@@ -186,6 +186,22 @@ static Class   NSInvocation_concrete_class;
 
 
 
+GS_ROOT_CLASS
+@interface GSInvocationProxy
+{
+@public
+  Class		isa;
+  id		target;
+  NSInvocation	*invocation;
+}
++ (id) _newWithTarget: (id)t;
+- (NSInvocation*) _invocation;
+- (void) forwardInvocation: (NSInvocation*)anInvocation;
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector;
+@end
+@interface GSMessageProxy : GSInvocationProxy
+@end
+
 #define	_inf	((NSArgumentInfo*)_info)
 
 /**
@@ -804,6 +820,23 @@ _arg_addr(NSInvocation *inv, int index)
   return nil;
 }
 
+/**
+ * Internal use.
+ */
++ (id) _newProxyForInvocation: (id)target
+{
+  return (id)[GSInvocationProxy _newWithTarget: target];
+}
++ (id) _newProxyForMessage: (id)target
+{
+  return (id)[GSMessageProxy _newWithTarget: target];
+}
++ (NSInvocation*) _returnInvocationAndDestroyProxy: (id)proxy
+{
+  NSInvocation  *inv = [proxy _invocation];
+  NSDeallocateObject(proxy);
+  return inv;
+}
 @end
 
 @implementation NSInvocation (BackwardCompatibility)
@@ -818,7 +851,6 @@ _arg_addr(NSInvocation *inv, int index)
 #if !defined(USE_FFCALL) && !defined(USE_LIBFFI)
 #warning Using dummy NSInvocation implementation.  It is strongly recommended that you use libffi.
 @implementation GSDummyInvocation
-
 
 /*
  *	This is the de_signated initialiser.
@@ -844,4 +876,34 @@ _arg_addr(NSInvocation *inv, int index)
 
 @end
 #endif
+
+@implementation	GSInvocationProxy
++ (id) _newWithTarget: (id)t
+{
+  GSInvocationProxy	*o;
+  o = (GSInvocationProxy*) NSAllocateObject(self, 0, NSDefaultMallocZone());
+  o->target = RETAIN(t);
+  return o;
+}
+- (NSInvocation*) _invocation
+{
+  return invocation;
+}
+- (void) forwardInvocation: (NSInvocation*)anInvocation
+{
+  invocation = anInvocation;
+}
+- (NSMethodSignature*) methodSignatureForSelector: (SEL)aSelector
+{
+  return [target methodSignatureForSelector: aSelector];
+}
+@end
+
+@implementation	GSMessageProxy
+- (NSInvocation*) _invocation
+{
+  [invocation setTarget: target];
+  return invocation;
+}
+@end
 

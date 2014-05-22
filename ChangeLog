@@ -1,3 +1,11 @@
+2014-05-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSInvocation.h:
+	* Source/NSInvocation.m:
+	* Headers/Foundation/NSInvocation.h:
+	* Tests/base/NSInvocation/test02.m:
+	Reinstate lost code for NS_MESSAGE and NS_INVOCATION macros
+
 2014-05-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m:
