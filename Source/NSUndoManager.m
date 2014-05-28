@@ -745,6 +745,9 @@
 	}
       g = _group;
       sig = [target methodSignatureForSelector: aSelector];
+      NSAssert2(sig,@"No methodSignatureForSelector:%@ for target of class %@",
+		NSStringFromSelector(aSelector),
+		[target class]);
       inv = [NSInvocation invocationWithMethodSignature: sig];
       [inv retainArgumentsIncludingTarget: NO];
       [inv setTarget: target];
