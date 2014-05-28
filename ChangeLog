@@ -1,3 +1,7 @@
+2014-05-28  Manuel Guesdon <mguesdon@orange-concept.com>
+	* Source/NSUndoManager.m
+	  Assert sig is not null in registerUndoWithTarget:selector:object:
+
 2014-05-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSInvocation.h:
