@@ -28,6 +28,7 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
+#import "Foundation/NSFileManager.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
@@ -53,6 +54,16 @@ NSString * const GSTLSRemoteHosts = @"GSTLSRemoteHosts";
 NSString * const GSTLSRevokeFile = @"GSTLSRevokeFile";
 NSString * const GSTLSVerify = @"GSTLSVerify";
 
+static NSString *
+standardizedPath(NSString *path)
+{
+  if (NO == [path isAbsolutePath])
+    {
+      path = [[[NSFileManager defaultManager] currentDirectoryPath]
+        stringByAppendingPathComponent: path];
+    }
+  return [path stringByStandardizingPath];
+}
 
 #if     defined(HAVE_GNUTLS)
 
@@ -177,7 +188,7 @@ static NSMutableDictionary      *fileMap = nil;
   str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSCAFile];
   if (nil != str)
     {
-      str = [str stringByStandardizingPath];
+      str = standardizedPath(str);
       ASSIGN(caFile, str);
     }
 
@@ -187,7 +198,7 @@ static NSMutableDictionary      *fileMap = nil;
   str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSRevokeFile];
   if (nil != str)
     {
-      str = [str stringByStandardizingPath];
+      str = standardizedPath(str);
       ASSIGN(revokeFile, str);
     }
 
@@ -268,7 +279,7 @@ static NSMutableDictionary      *fileMap = nil;
             }
           else
             {
-              str = [str stringByStandardizingPath];
+              str = standardizedPath(str);
             }
           ASSIGN(caFile, str);
 
@@ -285,7 +296,7 @@ static NSMutableDictionary      *fileMap = nil;
             }
           else
             {
-              str = [str stringByStandardizingPath];
+              str = standardizedPath(str);
             }
           ASSIGN(revokeFile, str);
 
@@ -471,7 +482,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
     {
       return nil;
     }
-  f = [f stringByStandardizingPath];
+  f = standardizedPath(f);
   [paramsLock lock];
   p = [[paramsCache objectForKey: f] retain];
   [paramsLock unlock];
@@ -658,7 +669,7 @@ static NSMutableDictionary      *certificateListCache = nil;
     {
       return nil;
     }
-  f = [f stringByStandardizingPath];
+  f = standardizedPath(f);
   [certificateListLock lock];
   l = [[certificateListCache objectForKey: f] retain];
   [certificateListLock unlock];
@@ -845,7 +856,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
     {
       return nil;
     }
-  f = [f stringByStandardizingPath];
+  f = standardizedPath(f);
   [privateKeyLock lock];
   if (nil == p)
     {
@@ -1009,12 +1020,12 @@ static NSMutableDictionary      *credentialsCache = nil;
    * information (file names and password) used to build them.
    */
   k = [NSMutableString stringWithCapacity: 1024];
-  ca = [ca stringByStandardizingPath];
+  ca = standardizedPath(ca);
   if (nil != ca) [k appendString: ca];
   [k appendString: @":"];
   if (nil != dca) [k appendString: dca];
   [k appendString: @":"];
-  rv = [rv stringByStandardizingPath];
+  rv = standardizedPath(rv);
   if (nil != rv) [k appendString: rv];
   [k appendString: @":"];
   if (nil != drv) [k appendString: drv];
