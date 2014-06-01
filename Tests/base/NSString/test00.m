@@ -256,8 +256,20 @@ int main()
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSString	*str;
   NSString	*sub;
-  char	buf[10];
+  const char    *ptr;
+  char	        buf[10];
   
+  str = @"a";
+  while ([str length] < 30000)
+    {
+      str = [str stringByAppendingString: str];
+    }
+  if (0 == [str length] % 2)
+    {
+      str = [str stringByAppendingString: @"x"];
+    }
+  ptr = [str cStringUsingEncoding: NSASCIIStringEncoding];
+
   PASS_EXCEPTION([NSString stringWithUTF8String: 0],
     NSInvalidArgumentException,
     "stringWithUTF8String raises for NULL");

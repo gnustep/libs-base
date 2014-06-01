@@ -1,3 +1,9 @@
+2014-06-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Fix buffer overrun.
+	* Source/GSString.m: Fix uninitialised variable.
+	Cure for bug #42483
+
 2014-05-28  Manuel Guesdon <mguesdon@orange-concept.com>
 	* Source/NSUndoManager.m
 	  Assert sig is not null in registerUndoWithTarget:selector:object:

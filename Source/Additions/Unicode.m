@@ -2068,9 +2068,9 @@ bases:
 		    uint8_t	*tmp;
 
 #if	GS_WITH_GC
-		    tmp = NSAllocateCollectable(slen, 0);
+		    tmp = NSAllocateCollectable(slen + extra, 0);
 #else
-		    tmp = NSZoneMalloc(zone, slen);
+		    tmp = NSZoneMalloc(zone, slen + extra);
 		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);

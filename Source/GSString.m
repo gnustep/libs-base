@@ -1806,7 +1806,7 @@ compare_u(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
 static inline const char*
 cString_c(GSStr self, NSStringEncoding enc)
 {
-  unsigned char *r;
+  unsigned char *r = 0;
 
   if (self->_count == 0)
     {
