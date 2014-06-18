@@ -1,3 +1,8 @@
+2014-06-19 Riccardo Mottola <rm@gnu.org>
+
+	* Source/common.h
+	Include and do not import pure-C header, guard against re-inclusion
+
 2014-06-18 Riccardo Mottola <rm@gnu.org>
 
 	* Source/unix/NSStream.m
