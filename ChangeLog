@@ -1,3 +1,9 @@
+2014-06-18 Riccardo Mottola <rm@gnu.org>
+
+	* Source/unix/NSStream.m
+	Add missing includes (in correct order) for open() on most OS,
+	including Solaris.
+
 2014-06-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: Fix buffer overrun.
