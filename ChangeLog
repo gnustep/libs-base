@@ -1,3 +1,11 @@
+2014-06-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * configure.ac: Temporarily add -O0 to turn off optimisation while
+        checking for the need for shorts to be word-aligned ... should fix
+        the case where the optimiser breaks the test by 'correcting' the
+        misaligned access.
+        * configure: regenerate
+
 2014-06-19 Riccardo Mottola <rm@gnu.org>
 
 	* Source/common.h
