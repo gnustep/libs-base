@@ -590,7 +590,12 @@ typedef enum {
 	}
       s = (NSSocketPortNameServer*)NSAllocateObject(self, 0,
 	NSDefaultMallocZone());
-      s->_portMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
+      /* Use NSNonOwnedPointerMapKeyCallBacks for the ports used as keys
+       * since we want as pointer test for equality as we may be doing
+       * lookup while dealocating the port (in which case the -isEqual:
+       * method could fail).
+       */
+      s->_portMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 			NSObjectMapValueCallBacks, 0);
       s->_nameMap = NSCreateMapTable(NSObjectMapKeyCallBacks,
 			NSNonOwnedPointerMapValueCallBacks, 0);
