@@ -21233,6 +21233,8 @@ done
 #--------------------------------------------------------------------
 # Check if short and int values need to be word aligned
 #--------------------------------------------------------------------
+saved_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -O0"
 { $as_echo "$as_me:$LINENO: checking short/int needs to be word aligned" >&5
 $as_echo_n "checking short/int needs to be word aligned... " >&6; }
 if test "$cross_compiling" = yes; then
@@ -21282,6 +21284,7 @@ rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext conftest.$a
 fi
 
 
+CFLAGS="$saved_CFLAGS"
 
 cat >>confdefs.h <<_ACEOF
 #define NEED_WORD_ALIGNMENT $NEED_WORD_ALIGNMENT

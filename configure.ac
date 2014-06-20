@@ -2443,11 +2443,14 @@ AC_CHECK_HEADERS(wchar.h)
 #--------------------------------------------------------------------
 # Check if short and int values need to be word aligned
 #--------------------------------------------------------------------
+saved_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -O0"
 AC_MSG_CHECKING(short/int needs to be word aligned)
 AC_TRY_RUN([#include "$srcdir/config/config.align.c"],
 	NEED_WORD_ALIGNMENT=0,
 	NEED_WORD_ALIGNMENT=1,
 	NEED_WORD_ALIGNMENT="$cross_NEED_WORD_ALIGNMENT")
+CFLAGS="$saved_CFLAGS"
 AC_DEFINE_UNQUOTED(NEED_WORD_ALIGNMENT, $NEED_WORD_ALIGNMENT,
                    [Define if your system needs to have short/int word aligned])
 if test $NEED_WORD_ALIGNMENT = 1; then
