@@ -12,8 +12,8 @@ int main ()
 {
   char  *buf = malloc(30);
   void  *v;
-  int   *sp;
-  int   *sq;
+  short *sp;
+  short *sq;
   int   *ip;
   int   *iq;
   int   i;
