@@ -7,6 +7,7 @@
   notice and this notice are preserved.
 
 */
+#include <stdlib.h>
 
 int main ()
 {
