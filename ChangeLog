@@ -1,5 +1,14 @@
 2014-06-20  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSMessagePortNameServer.m:
+	Maps of ports to names modified to treat the ports as non owned
+	pointers rather than non retained objects ... so we simply do
+	pointer comparisons (faster and also safer if we are removing
+	a port which is being deallocated).
+
+2014-06-20  Richard Frith-Macdonald <rfm@gnu.org>
+
         * configure.ac: Temporarily add -O0 to turn off optimisation while
         checking for the need for shorts to be word-aligned ... should fix
         the case where the optimiser breaks the test by 'correcting' the

@@ -133,8 +133,13 @@ static NSMapTable *portToNamesMap;
       NSEnumerator	*files;
 
       serverLock = [NSRecursiveLock new];
-      portToNamesMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
-			 NSObjectMapValueCallBacks, 0);
+      /* Use NSNonOwnedPointerMapKeyCallBacks for the ports used as keys
+       * since we want as pointer test for equality as we may be doing
+       * lookup while dealocating the port (in which case the -isEqual:
+       * method could fail).
+       */
+      portToNamesMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
+        NSObjectMapValueCallBacks, 0);
       [self registerAtExit];
 
       /* It's possible that an old process, with the same process ID as
