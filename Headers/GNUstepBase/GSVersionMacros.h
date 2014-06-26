@@ -1,5 +1,5 @@
 /* GSVersionMacros.h - macros for managing API versioning and visibility
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
    Written by: Richard Frith-Macdonald <rfm@gnu.org>
    Date: Oct, October 2006
@@ -214,9 +214,9 @@
 
 
 #if	defined(GNUSTEP_BASE_INTERNAL)
-#import "GNUstepBase/GSConfig.h"
+#include "GNUstepBase/GSConfig.h"
 #else
-#import <GNUstepBase/GSConfig.h>
+#include <GNUstepBase/GSConfig.h>
 #endif
 
 
