@@ -1,3 +1,10 @@
+2014-06-26 Riccardo Mottola <rm@gnu.org>
+
+	* Headers/GNUstepBase/GSTypeEncoding.h
+	* Headers/GNUstepBase/GSVersionMacros.h
+	Substitute #import with #include so that the header can be used in
+	a pure C file without gcc warnings.
+
 2014-06-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSocketPortNameServer.m:
