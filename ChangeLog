@@ -1,3 +1,14 @@
+2014-06-30 Yavor Doganov  <yavor@gnu.org>
+
+	* GNUmakefile: Use -include for deb.make (for backward compatibility
+	with old versions of gnustep-make).
+	* Documentation/GNUmakefile:
+	* Documentation/General/GNUmakefile:
+	* Source/DocMakefile:
+	* Tools/DocMakefile:
+	Flags alterations to build documentation before base/autogsdoc is
+	installed.
+
 2014-06-26 Riccardo Mottola <rm@gnu.org>
 
 	* Headers/GNUstepBase/GSTypeEncoding.h
