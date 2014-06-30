@@ -25301,7 +25301,8 @@ $as_echo "no" >&6; }
     fi
   fi
   if test $HAVE_GNUTLS = 1; then
-    { $as_echo "$as_me:$LINENO: checking for gcry_control in -lgcrypt" >&5
+    if ! pkg-config --atleast-version=2.12 gnutls; then
+      { $as_echo "$as_me:$LINENO: checking for gcry_control in -lgcrypt" >&5
 $as_echo_n "checking for gcry_control in -lgcrypt... " >&6; }
 if test "${ac_cv_lib_gcrypt_gcry_control+set}" = set; then
   $as_echo_n "(cached) " >&6
@@ -25372,12 +25373,11 @@ else
   have_gcrypt=no
 fi
 
-    if test "$have_gcrypt" = "no"; then
-      { $as_echo "$as_me:$LINENO: WARNING: Missing support for thread-safe operation in GNUTLS.  Disabling TLS support)." >&5
-$as_echo "$as_me: WARNING: Missing support for thread-safe operation in GNUTLS.  Disabling TLS support)." >&2;}
-      HAVE_GNUTLS=0
-    else
-      TLS_LIBS="$TLS_LIBS -lgcrypt"
+      if test "$have_gcrypt" = "no"; then
+        HAVE_GNUTLS=0
+      else
+        TLS_LIBS="$TLS_LIBS -lgcrypt"
+      fi
     fi
   fi
   if test $HAVE_GNUTLS = 0; then

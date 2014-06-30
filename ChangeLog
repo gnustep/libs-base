@@ -8,6 +8,10 @@
 	* Tools/DocMakefile:
 	Flags alterations to build documentation before base/autogsdoc is
 	installed.
+        * configure.ac: Test whether gnutls needs libgcrypt
+        * Source/GSTLS.h: Use test
+        * Source/GSTLS.m: Use test
+        * configure: regenerate
 
 2014-06-26 Riccardo Mottola <rm@gnu.org>
 
