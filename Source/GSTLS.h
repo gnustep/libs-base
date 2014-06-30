@@ -49,7 +49,9 @@ extern NSString * const GSTLSVerify;
 #define	_GCRYPT_IN_LIBGCRYPT
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
+#if GNUTLS_VERSION_NUMBER <= 0x020b00
 #include <gcrypt.h>
+#endif
 #undef	id
 
 /* This class is used to ensure that the GNUTLS system is initialised

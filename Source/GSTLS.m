@@ -67,6 +67,7 @@ standardizedPath(NSString *path)
 
 #if     defined(HAVE_GNUTLS)
 
+#if GNUTLS_VERSION_NUMBER <= 0x020b00
 /* Set up locking callbacks for gcrypt so that it will be thread-safe.
  */
 static int gcry_mutex_init(void **priv)
@@ -98,6 +99,7 @@ static struct gcry_thread_cbs gcry_threads_other = {
   gcry_mutex_lock,
   gcry_mutex_unlock
 };
+#endif
 
 static void
 GSTLSLog(int level, const char *msg)
@@ -324,9 +326,11 @@ static NSMutableDictionary      *fileMap = nil;
                    name: NSUserDefaultsDidChangeNotification
                  object: nil];
 
+#if GNUTLS_VERSION_NUMBER <= 0x020b00
           /* Make gcrypt thread-safe
            */
           gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_other);
+#endif
 
           /* Initialise gnutls
            */

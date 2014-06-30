@@ -3130,12 +3130,13 @@ if test $enable_tls = yes; then
     fi
   fi
   if test $HAVE_GNUTLS = 1; then
-    AC_CHECK_LIB(gcrypt, gcry_control, have_gcrypt=yes, have_gcrypt=no)
-    if test "$have_gcrypt" = "no"; then
-      AC_MSG_WARN([Missing support for thread-safe operation in GNUTLS.  Disabling TLS support).])
-      HAVE_GNUTLS=0
-    else
-      TLS_LIBS="$TLS_LIBS -lgcrypt"
+    if ! pkg-config --atleast-version=2.12 gnutls; then
+      AC_CHECK_LIB(gcrypt, gcry_control, have_gcrypt=yes, have_gcrypt=no)
+      if test "$have_gcrypt" = "no"; then
+        HAVE_GNUTLS=0
+      else
+        TLS_LIBS="$TLS_LIBS -lgcrypt"
+      fi
     fi
   fi
   if test $HAVE_GNUTLS = 0; then
