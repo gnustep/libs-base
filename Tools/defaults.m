@@ -135,7 +135,7 @@ main(int argc, char** argv, char **env)
 #ifdef GS_PASS_ARGUMENTS
   GSInitializeProcess(argc, argv, env);
 #endif
-  [NSObject enableDoubleReleaseCheck: YES];
+//[NSObject enableDoubleReleaseCheck: YES];
   pool = [NSAutoreleasePool new];
   proc = [NSProcessInfo processInfo];
   if (proc == nil)
