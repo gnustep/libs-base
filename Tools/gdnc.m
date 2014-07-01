@@ -1102,7 +1102,7 @@ main(int argc, char** argv, char** env)
 #ifdef GS_PASS_ARGUMENTS
   GSInitializeProcess(argc, argv, env);
 #endif
-  [NSObject enableDoubleReleaseCheck: YES];
+//[NSObject enableDoubleReleaseCheck: YES];
   pInfo = [NSProcessInfo processInfo];
   args = AUTORELEASE([[pInfo arguments] mutableCopy]);
 
