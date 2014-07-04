@@ -2104,9 +2104,14 @@ GSClassSwizzle(id instance, Class newClass)
 {
   Class	oldClass = object_getClass(instance);
 
+  /* Only set if the old and new class differ
+   */
   if (oldClass != newClass)
     {
-#if     defined(GNUSTEP_BASE_LIBRARY)
+      /* NB.  The call to object_setClass() may not work (eg for a libobjc2
+       * 'small object', in which case the class is unchanged and we need
+       * to allow for that.
+       */
 # if	GS_WITH_GC
       /* We only do allocation counting for objects that can be
        * finalised - for other objects we have no way of decrementing
@@ -2118,22 +2123,26 @@ GSClassSwizzle(id instance, Class newClass)
 	   * accounting.
 	   */
           AREM(oldClass, instance);
-          AADD(newClass, instance);
-	}
-      else if (GSIsFinalizable(newClass))
+        }
+      object_setClass(instance, newClass);
+      newClass = object_getClass(instance);
+      if (GSIsFinalizable(newClass))
 	{
 	  /* New class is finalizable, so we must register the instance
 	   * for finalisation and do allocation acounting for it.
 	   */
 	  AADD(newClass, instance);
-	  GC_REGISTER_FINALIZER (instance, GSFinalize, NULL, NULL, NULL);
+          if (NO == GSIsFinalizable(oldClass))
+            {
+              GC_REGISTER_FINALIZER (instance, GSFinalize, NULL, NULL, NULL);
+            }
 	}
 # else
       AREM(oldClass, instance);
+      object_setClass(instance, newClass);
+      newClass = object_getClass(instance);
       AADD(newClass, instance);
 # endif	/* GS_WITH_GC */
-#endif	/* defined(GNUSTEP_BASE_LIBRARY) */
-      object_setClass(instance, newClass);
     }
 }
 
