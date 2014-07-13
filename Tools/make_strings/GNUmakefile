@@ -37,6 +37,8 @@ make_strings_OBJC_FILES = \
 	StringsEntry.m \
 	StringsFile.m
 
+CONFIG_SYSTEM_LIBS :=
+
 include GNUmakefile.preamble
 
 include $(GNUSTEP_MAKEFILES)/tool.make
