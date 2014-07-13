@@ -1,3 +1,10 @@
+2014-06-30  Yavor Doganov  <yavor@gnu.org>
+
+	* Tools/GNUmakefile (CONFIG_SYSTEM_LIBS):
+	* Tools/make_strings/GNUmakefile (CONFIG_SYSTEM_LIBS): Define
+	to the empty string to avoid linking the tools against
+	external libraries.
+	
 2014-07-13 Yavor Doganov  <yavor@gnu.org>
 
 	* base.make.in: make base dependencies explicit only when statically

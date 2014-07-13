@@ -103,6 +103,10 @@ locale_alias_OBJC_FILES = locale_alias.m
 xmlparse_OBJC_FILES = xmlparse.m
 HTMLLinker_OBJC_FILES = HTMLLinker.m
 
+# Reset this variable (defined in config.mak) to avoid useless linkage
+# against the libraries gnustep-base uses.
+CONFIG_SYSTEM_LIBS :=
+
 DOCUMENT_NAME = autogsdoc
 
 # Documentation rules for autogsdoc
