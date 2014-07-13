@@ -5,12 +5,13 @@
 #import <Foundation/NSString.h>
 #import <Foundation/NSArray.h>
 #import <Foundation/NSFileHandle.h>
+#import <Foundation/NSDictionary.h>
 
 #include <unistd.h>
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  START_SET("NSRunLoop performers")
   NSRunLoop *run;
   NSDate *date;
   NSMutableString *str;
@@ -45,6 +46,8 @@ int main()
   date = [NSDate dateWithTimeIntervalSinceNow: delay];
   [run runUntilDate: date];
   [run runUntilDate: date];
+  if ([str isEqual: @""])
+    SKIP("it looks like stdin is redirected")
   PASS([str isEqual: @"foo"],
        "-performSelector:target:argument:order:modes: only sends the message once");
   
@@ -107,6 +110,6 @@ int main()
   [fh closeFile];
   [fh release];
 
-  [arp release]; arp = nil;
+  END_SET("NSRunLoop performers")
   return 0;
 }

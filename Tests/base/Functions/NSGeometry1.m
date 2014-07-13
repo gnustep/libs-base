@@ -105,11 +105,14 @@ geom_string()
   PASS((EQ(s2.width, s.width) && EQ(s2.height, s.height)), 
        "Can read output of NSStringFromSize");
 
-  dflt = [NSUserDefaults standardUserDefaults];
-  [dflt setBool: YES forKey: @"GSMacOSXCompatible"];
-  [NSUserDefaults resetStandardUserDefaults];
-  PASS((MacOSXCompatibleGeometry() == YES), 
-       "In MacOSX geometry compat mode");
+  if ([[NSFileManager defaultManager] isWritableFileAtPath: NSHomeDirectory()])
+    {
+      dflt = [NSUserDefaults standardUserDefaults];
+      [dflt setBool: YES forKey: @"GSMacOSXCompatible"];
+      [NSUserDefaults resetStandardUserDefaults];
+      PASS((MacOSXCompatibleGeometry() == YES),
+	   "In MacOSX geometry compat mode");
+    }
 #endif
 
   sp = NSStringFromPoint(p);
