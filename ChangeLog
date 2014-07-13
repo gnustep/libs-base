@@ -1,3 +1,8 @@
+2014-07-13 Yavor Doganov  <yavor@gnu.org>
+
+	* base.make.in: make base dependencies explicit only when statically
+	linnking (bug #42423)
+
 2014-06-30 Yavor Doganov  <yavor@gnu.org>
 
 	* GNUmakefile: Use -include for deb.make (for backward compatibility
