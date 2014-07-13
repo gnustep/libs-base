@@ -1,3 +1,9 @@
+2014-07-07  Yunqiang Su  <wzssyqa@gmail.com>  (tiny change)
+
+	* config/config.trampoline.c:
+	* Source/NSObject.m (GSAtomicIncrement, GSAtomicDecrement):
+	Use __mips64 to distinguish MIPS64.
+
 2014-06-30  Yavor Doganov  <yavor@gnu.org>
 
 	* Tools/GNUmakefile (CONFIG_SYSTEM_LIBS):
