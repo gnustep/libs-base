@@ -390,7 +390,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
 - (void) _addWatcher: (GSRunLoopWatcher*)item
 	     forMode: (NSString*)mode;
-- (void) _checkPerformers: (GSRunLoopCtxt*)context;
+- (BOOL) _checkPerformers: (GSRunLoopCtxt*)context;
 - (GSRunLoopWatcher*) _getWatcher: (void*)data
 			     type: (RunLoopEventType)type
 			  forMode: (NSString*)mode;
@@ -429,9 +429,9 @@ static inline BOOL timerInvalidated(NSTimer *t)
     }
 }
 
-- (void) _checkPerformers: (GSRunLoopCtxt*)context
+- (BOOL) _checkPerformers: (GSRunLoopCtxt*)context
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  BOOL                  found = NO;
 
   if (context != nil)
     {
@@ -440,12 +440,14 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
       if (count > 0)
 	{
+          NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 	  GSRunLoopPerformer	*array[count];
 	  NSMapEnumerator	enumerator;
 	  GSRunLoopCtxt		*context;
 	  void			*mode;
 	  unsigned		i;
 
+          found = YES;
 	  /*
 	   * Copy the array - because we have to cancel the requests
 	   * before firing.
@@ -492,9 +494,10 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	      RELEASE(array[i]);
 	      IF_NO_GC([arp emptyPool];)
 	    }
+          [arp drain];
 	}
     }
-  [arp drain];
+  return found;
 }
 
 /**
@@ -1243,6 +1246,8 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 - (BOOL) runMode: (NSString*)mode beforeDate: (NSDate*)date
 {
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  NSString              *savedMode = _currentMode;
+  GSRunLoopCtxt		*context;
   NSDate		*d;
 
   NSAssert(mode != nil, NSInvalidArgumentException);
@@ -1251,6 +1256,14 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
    */
   GSPrivateCheckTasks(); 
   GSPrivateNotifyASAP(mode); 
+
+  /* And process any performers scheduled in the loop (eg something from
+   * another thread.
+   */
+  _currentMode = mode;
+  context = NSMapGet(_contextMap, mode);
+  [self _checkPerformers: context];
+  _currentMode = savedMode;
 
   /* Find out how long we can wait before first limit date.
    */
