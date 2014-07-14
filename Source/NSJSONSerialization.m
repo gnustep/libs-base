@@ -154,23 +154,58 @@ updateStreamBuffer(ParserState* state)
 	{
 	  case NSUTF8StringEncoding:
 	    {
-	      int i = -1;
-
 	      // Read one UTF8 character from the stream
-	      do
+	      NSUInteger i = 0;
+	      NSInteger n;
+
+              n = [stream read: &bytes[0] maxLength: 1];
+              if (n != 1)
 		{
-		  [stream read: &bytes[++i] maxLength: 1];
+		  state->error = [stream streamError];
+                  if (state->error == nil)
+                    {
+                      state->error
+                        = [NSError errorWithDomain: NSCocoaErrorDomain
+                                              code: 0
+                                          userInfo: nil];
+                    }
+                  break;
 		}
-	      while (bytes[i] & 0xf);
+	      else
+		{
+		  if ((bytes[0] & 0xC0) == 0xC0)
+                    {
+		      for (i = 1; i <= 5; i++)
+			if ((bytes[0] & (0x40 >> i)) == 0)
+			  break;
+		    }
+		}
 	      if (0 == i)
 		{
 		  state->buffer[0] = bytes[0];
 		}
 	      else
 		{
-		  str = [[NSString alloc] initWithUTF8String: (char*)bytes];
-		  [str getCharacters: state->buffer range: NSMakeRange(0,1)];
-		  [str release];
+		  n = [stream read: &bytes[1] maxLength: i];
+                  if (n == i)
+		    {
+                      str = [[NSString alloc] initWithUTF8String: (char*)bytes];
+                      [str getCharacters: state->buffer
+                                   range: NSMakeRange(0,1)];
+                      [str release];
+                    }
+                  else
+                    {
+                      state->error = [stream streamError];
+                      if (state->error == nil)
+                        {
+                          state->error
+                            = [NSError errorWithDomain: NSCocoaErrorDomain
+                                                  code: 0
+                                              userInfo: nil];
+                        }
+                      break;
+                    }
 		}
 	      break;
 	    }
@@ -209,6 +244,7 @@ updateStreamBuffer(ParserState* state)
       state->sourceIndex = -1;
       state->bufferIndex = 0;
       state->bufferLength = 1;
+      return;
     }
   // Use an NSString to do the character set conversion.  We could do this more
   // efficiently.  We could also reuse the string.
@@ -243,7 +279,7 @@ consumeChar(ParserState *state)
 {
   state->sourceIndex++;
   state->bufferIndex++;
-  if (state->bufferIndex >= BUFFER_SIZE)
+  if (state->bufferIndex >= state->bufferLength)
     {
       state->updateBuffer(state);
     }

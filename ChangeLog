@@ -1,3 +1,9 @@
+2014-02-17  Larry Campbell <lcampbel@akamai.com>
+
+	* Source/NSJSONSerialization.m:
+	* Tests/base/NSJSONSerialization/tests00.m:
+	Fixes for bug #41628
+
 2014-07-12 Yavor Doganov  <yavor@gnu.org>
 
 	* Tests/GNUmakefile:
