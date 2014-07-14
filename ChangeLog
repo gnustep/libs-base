@@ -1,3 +1,8 @@
+2014-07-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: ([-runMode:beforeDate:]) check performers as
+	well as notifications etc ... should fix bug #39107
+
 2014-02-17  Larry Campbell <lcampbel@akamai.com>
 
 	* Source/NSJSONSerialization.m:
