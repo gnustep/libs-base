@@ -236,6 +236,9 @@
 /* Define if libobjc has the __objc_msg_forward2 function */
 #undef HAVE_FORWARD2
 
+/* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
+#undef HAVE_FSEEKO
+
 /* Define if GC_allow_register_threads function is available */
 #undef HAVE_GC_ALLOW_REGISTER_THREADS
 
@@ -854,6 +857,15 @@
 # endif
 #endif
 
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2). */
+#undef _LARGEFILE_SOURCE
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
+
 /* Define to 1 if on MINIX. */
 #undef _MINIX
 
@@ -870,5 +882,17 @@
 #undef inline
 #endif
 
+/* Define to `long int' if <sys/types.h> does not define. */
+#undef off_t
+
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
+
+
+/* Define `fseeko' to `fseek' if the former is missing.
+   Likewise for `ftello'.  */
+#if !HAVE_FSEEKO
+# define fseeko fseek
+# define ftello ftell
+#endif
+
