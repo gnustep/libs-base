@@ -1,5 +1,13 @@
 2014-07-25  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSSocketStream.m: Fix handling TLS handshake in the case
+	where there is a network failure during the handshake (bug#42781).
+	* Source/GSTLS.m: Fix erroneous attempt to load revocation lists.
+	* Tests/base/NSURLConnection/test01.m: https test contributed by
+	Sergei Golovin.
+
+2014-07-25  Richard Frith-Macdonald <rfm@gnu.org>
+
         * configure.ac: Remove compiler charset options
         * config.mak.in: Remove compiler charset options
         * configure: regenerate:

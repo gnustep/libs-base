@@ -628,37 +628,47 @@ static NSArray  *keys = nil;
           case NSStreamEventHasSpaceAvailable:
           case NSStreamEventHasBytesAvailable:
           case NSStreamEventOpenCompleted:
-            [self hello]; /* try to complete the handshake */
-            if (handshake == NO)
-              {
-                NSDebugMLLog(@"NSStream",
-                  @"GSTLSHandler completed on %p", stream);
-                if ([istream streamStatus] == NSStreamStatusOpen)
-                  {
-		    [istream _resetEvents: NSStreamEventOpenCompleted];
-                    [istream _sendEvent: NSStreamEventOpenCompleted];
-                  }
-                else
-                  {
-		    [istream _resetEvents: NSStreamEventErrorOccurred];
-                    [istream _sendEvent: NSStreamEventErrorOccurred];
-                  }
-                if ([ostream streamStatus]  == NSStreamStatusOpen)
-                  {
-		    [ostream _resetEvents: NSStreamEventOpenCompleted
-		      | NSStreamEventHasSpaceAvailable];
-                    [ostream _sendEvent: NSStreamEventOpenCompleted];
-                    [ostream _sendEvent: NSStreamEventHasSpaceAvailable];
-                  }
-                else
-                  {
-		    [ostream _resetEvents: NSStreamEventErrorOccurred];
-                    [ostream _sendEvent: NSStreamEventErrorOccurred];
-                  }
-              }
+            /* try to complete the handshake.
+             */
+            [self hello];
             break;
+
+          case NSStreamEventErrorOccurred:
+          case NSStreamEventEndEncountered:
+            /* stream error or close ... handshake fails.
+             */
+            handshake = NO;
+            break;
+
           default:
             break;
+        }
+      if (NO == handshake)
+        {
+          NSDebugMLLog(@"NSStream",
+            @"GSTLSHandler completed on %p", stream);
+          if ([istream streamStatus] == NSStreamStatusOpen)
+            {
+              [istream _resetEvents: NSStreamEventOpenCompleted];
+              [istream _sendEvent: NSStreamEventOpenCompleted];
+            }
+          else
+            {
+              [istream _resetEvents: NSStreamEventErrorOccurred];
+              [istream _sendEvent: NSStreamEventErrorOccurred];
+            }
+          if ([ostream streamStatus] == NSStreamStatusOpen)
+            {
+              [ostream _resetEvents: NSStreamEventOpenCompleted
+                | NSStreamEventHasSpaceAvailable];
+              [ostream _sendEvent: NSStreamEventOpenCompleted];
+              [ostream _sendEvent: NSStreamEventHasSpaceAvailable];
+            }
+          else
+            {
+              [ostream _resetEvents: NSStreamEventErrorOccurred];
+              [ostream _sendEvent: NSStreamEventErrorOccurred];
+            }
         }
     }
 }
