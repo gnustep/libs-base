@@ -1,3 +1,15 @@
+2014-07-13  Yavor Doganov  <yavor@gnu.org>
+
+	Add large file support (LFS) for NSData.
+	* configure.ac: Call AC_FUNC_FSEEKO/AC_SYS_LARGEFILE.
+	* Source/NSData.m (readContentsOfFile): Use fseeko/ftello and
+	off_t as appropriate.
+	(-initWithContentsOfFile:): Define fileLength of type off_t.
+	* Source/GSFileHandle.m:
+	* Source/win32/GSFileHandle.m:
+	* Source/NSFileManager.m: Remove _FILE_OFFSET_BITS define (now
+	defined globally in config.h).
+
 2014-07-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m: ([-runMode:beforeDate:]) check performers as

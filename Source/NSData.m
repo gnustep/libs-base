@@ -140,7 +140,7 @@ static SEL	appendSel;
 static IMP	appendImp;
 
 static BOOL
-readContentsOfFile(NSString* path, void** buf, long* len, NSZone* zone)
+readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
 {
 #if defined(__MINGW__)
   const unichar	*thePath = 0;
@@ -150,7 +150,7 @@ readContentsOfFile(NSString* path, void** buf, long* len, NSZone* zone)
   FILE		*theFile = 0;
   void		*tmp = 0;
   int		c;
-  long		fileLength;
+  off_t        fileLength;
 	
 #if defined(__MINGW__)
   thePath = (const unichar*)[path fileSystemRepresentation];
@@ -175,14 +175,10 @@ readContentsOfFile(NSString* path, void** buf, long* len, NSZone* zone)
       goto failure;
     }
 
-  // FIXME: since fseek returns a long, this code will fail on files
-  // larger than ~2GB on 32-bit systems. Probably this entire function should
-  // be removed and NSFileHandle used instead. -Eric
-
   /*
    *	Seek to the end of the file.
    */
-  c = fseek(theFile, 0L, SEEK_END);
+  c = fseeko(theFile, 0, SEEK_END);
   if (c != 0)
     {
       NSWarnFLog(@"Seek to end of file (%@) failed - %@", path,
@@ -192,10 +188,10 @@ readContentsOfFile(NSString* path, void** buf, long* len, NSZone* zone)
 	
   /*
    *	Determine the length of the file (having seeked to the end of the
-   *	file) by calling ftell().
+   *	file) by calling ftello().
    */
-  fileLength = ftell(theFile);
-  if (fileLength == -1)
+  fileLength = ftello(theFile);
+  if (fileLength == (off_t) -1)
     {
       NSWarnFLog(@"Ftell on %@ failed - %@", path, [NSError _last]);
       goto failure;
@@ -205,7 +201,7 @@ readContentsOfFile(NSString* path, void** buf, long* len, NSZone* zone)
    *	Rewind the file pointer to the beginning, preparing to read in
    *	the file.
    */
-  c = fseek(theFile, 0L, SEEK_SET);
+  c = fseeko(theFile, 0, SEEK_SET);
   if (c != 0)
     {
       NSWarnFLog(@"Fseek to start of file (%@) failed - %@", path,
@@ -246,8 +242,8 @@ readContentsOfFile(NSString* path, void** buf, long* len, NSZone* zone)
 #endif
 	  if (tmp == 0)
 	    {
-	      NSLog(@"Malloc failed for file (%@) of length %ld - %@", path,
-		fileLength + c, [NSError _last]);
+	      NSLog(@"Malloc failed for file (%@) of length %jd - %@", path,
+		(intmax_t)fileLength + c, [NSError _last]);
 	      goto failure;
 	    }
 	  memcpy(tmp + fileLength, buf, c);
@@ -256,7 +252,7 @@ readContentsOfFile(NSString* path, void** buf, long* len, NSZone* zone)
     }
   else
     {
-      long	offset = 0;
+      off_t	offset = 0;
 
 #if	GS_WITH_GC
       tmp = NSAllocateCollectable(fileLength, 0);
@@ -265,8 +261,8 @@ readContentsOfFile(NSString* path, void** buf, long* len, NSZone* zone)
 #endif
       if (tmp == 0)
 	{
-	  NSLog(@"Malloc failed for file (%@) of length %ld - %@", path,
-	    fileLength, [NSError _last]);
+	  NSLog(@"Malloc failed for file (%@) of length %jd - %@", path,
+	    (intmax_t)fileLength, [NSError _last]);
 	  goto failure;
 	}
 	    
@@ -632,7 +628,7 @@ failure:
 - (id) initWithContentsOfFile: (NSString*)path
 {
   void		*fileBytes;
-  long          fileLength;
+  off_t         fileLength;
 
 #if	GS_WITH_GC
   if (readContentsOfFile(path, &fileBytes, &fileLength, 0) == NO)
@@ -647,7 +643,7 @@ failure:
     }
 #endif
   self = [self initWithBytesNoCopy: fileBytes
-			    length: fileLength
+			    length: (NSUInteger)fileLength
 		      freeWhenDone: YES];
   return self;
 }
