@@ -353,6 +353,18 @@ int main()
   PASS([date2 testDateValues: 2002 : 10 : 29 : 00 : 30 : 00],
     "date day calculation check with %s", [[date2 description] cString]);
 
+  date2 = [NSCalendarDate dateWithString: @"2002-10-27 00:00:00"
+			  calendarFormat: val2
+				  locale: locale];
+  PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 00 : 00],
+    "date day calculation check with %s", [[date2 description] cString]);
+
+  date2 = [NSCalendarDate dateWithString: @"2002-10-26 24:00:00"
+			  calendarFormat: val2
+				  locale: locale];
+  PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 00 : 00],
+    "date day calculation check with 2002-10-26 24:00:00");
+
   /* Months calculation checks */
   date2 = [NSCalendarDate dateWithString: @"2002-10-27 00:30:00"
 			  calendarFormat: val2
