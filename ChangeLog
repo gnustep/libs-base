@@ -1,3 +1,12 @@
+2014-07-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * configure.ac: Remove compiler charset options
+        * config.mak.in: Remove compiler charset options
+        * configure: regenerate:
+        Yavor pointed out that the gcc manual is wrong and gcc (all the
+        versions we support anyway) always uses utf-8 (as does clang),
+        so we can get rid of stuff intended to try to force it to use utf8
+
 2014-07-13  Yavor Doganov  <yavor@gnu.org>
 
 	Add large file support (LFS) for NSData.
