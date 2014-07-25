@@ -1,5 +1,12 @@
 2014-07-25  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Tools/gdomap.c: Unless running on windows, allow new -j
+	command-line argument to specify the path in which the process should
+	be jailed (chroot).  The default remains to jail the process in /tmp
+	since there doesn't seem to be a general, portable alternative.
+
+2014-07-25  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSSocketStream.m: Fix handling TLS handshake in the case
 	where there is a network failure during the handshake (bug#42781).
 	* Source/GSTLS.m: Fix erroneous attempt to load revocation lists.
