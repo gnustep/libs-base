@@ -60,11 +60,6 @@ ifeq ($(BASE_MAKE_LOADED),)
     AUXILIARY_CFLAGS += -I$(GNUSTEP_HEADERS)/ObjectiveC2
   endif
 
-  # For literal string handling, base requires the compiler to store the
-  # string as UTF-8
-  AUXILIARY_OBJCFLAGS += @GS_EXEC_CHARSET@
-
-
   # Now we have definitions to show whether important dependencies have
   # been met ... if thse are 0 then some core functi0nailyt is missing.
 
