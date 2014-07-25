@@ -150,7 +150,11 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
   FILE		*theFile = 0;
   void		*tmp = 0;
   int		c;
+#if defined(__MINGW__)
+  long         fileLength;
+#else
   off_t        fileLength;
+#endif
 	
 #if defined(__MINGW__)
   thePath = (const unichar*)[path fileSystemRepresentation];
@@ -178,7 +182,11 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
   /*
    *	Seek to the end of the file.
    */
+#if defined(__MINGW__)
+  c = fseek(theFile, 0L, SEEK_END);
+#else
   c = fseeko(theFile, 0, SEEK_END);
+#endif
   if (c != 0)
     {
       NSWarnFLog(@"Seek to end of file (%@) failed - %@", path,
@@ -190,8 +198,13 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
    *	Determine the length of the file (having seeked to the end of the
    *	file) by calling ftello().
    */
+#if defined(__MINGW__)
+  fileLength = ftell(theFile);
+  if (fileLength == -1)
+#else
   fileLength = ftello(theFile);
   if (fileLength == (off_t) -1)
+#endif
     {
       NSWarnFLog(@"Ftell on %@ failed - %@", path, [NSError _last]);
       goto failure;
@@ -201,7 +214,11 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
    *	Rewind the file pointer to the beginning, preparing to read in
    *	the file.
    */
+#if defined(__MINGW__)
+  c = fseek(theFile, 0L, SEEK_SET);
+#else
   c = fseeko(theFile, 0, SEEK_SET);
+#endif
   if (c != 0)
     {
       NSWarnFLog(@"Fseek to start of file (%@) failed - %@", path,
