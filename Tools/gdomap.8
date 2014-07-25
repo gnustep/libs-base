@@ -35,6 +35,8 @@ gdomap \- GNUstep Distributed Objects name server
 .RB [ -f ]
 .RB [-i 
 .IR seconds ]
+.RB [-j 
+.IR path ]
 .RB [ -p ]
 
 .SH DESCRIPTION
@@ -137,6 +139,8 @@ extra debug logging (normally via syslog).
 avoid fork() to make debugging easy
 .IP "\fB-i \fIseconds"
 re-probe at this interval (roughly), min 60
+.IP "\fB-j \fIpath"
+place the process in a chroot jail at this path rather than in /tmp
 .IP "\fB-p"
 disable probing for other servers
 .PP
