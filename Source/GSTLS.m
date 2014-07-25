@@ -57,6 +57,10 @@ NSString * const GSTLSVerify = @"GSTLSVerify";
 static NSString *
 standardizedPath(NSString *path)
 {
+  if (0 == [path length])
+    {
+      return nil;       // Not a path
+    }
   if (NO == [path isAbsolutePath])
     {
       path = [[[NSFileManager defaultManager] currentDirectoryPath]
@@ -188,9 +192,9 @@ static NSMutableDictionary      *fileMap = nil;
    * GS_TLS_CA_FILE environment variable.
    */
   str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSCAFile];
+  str = standardizedPath(str);
   if (nil != str)
     {
-      str = standardizedPath(str);
       ASSIGN(caFile, str);
     }
 
@@ -198,9 +202,9 @@ static NSMutableDictionary      *fileMap = nil;
    * GS_TLS_REVOKE environment variable.
    */
   str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSRevokeFile];
+  str = standardizedPath(str);
   if (nil != str)
     {
-      str = standardizedPath(str);
       ASSIGN(revokeFile, str);
     }
 
@@ -1133,7 +1137,7 @@ static NSMutableDictionary      *credentialsCache = nil;
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
             {
-              NSLog(@"Problem loading revocation list from %@: %s",
+              NSLog(@"Problem loading default revocation list from %@: %s",
                 drv, gnutls_strerror(ret));
             }
           else
