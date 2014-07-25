@@ -1067,6 +1067,21 @@ if test "$CC" != "$MAKECC"; then
   exit 1
 fi
 
+# Large file support needed by NSData/NSFileHandle.
+# These macros must be called after AC_USE_SYSTEM_EXTENSIONS because
+# the `fseeko' declaration may be hidden by default on some systems.
+AC_FUNC_FSEEKO
+AH_BOTTOM([
+/* Define `fseeko' to `fseek' if the former is missing.
+   Likewise for `ftello'.  */
+#if !HAVE_FSEEKO
+# define fseeko fseek
+# define ftello ftell
+#endif
+])
+AC_SYS_LARGEFILE
+AC_TYPE_OFF_T
+
 #--------------------------------------------------------------------
 # Check wether the compiler supports UTF-8 constant strings
 #--------------------------------------------------------------------
