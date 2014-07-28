@@ -149,6 +149,17 @@ notice and this notice are preserved.
 		event log.
 	      </p>
 	    </desc>
+	    <term>GSLogOffset</term>
+	    <desc>
+	      <p>
+		Setting the user default <code>GSLogOffset</code> to
+		<code>YES</code> will cause NSLog and debug output to
+		include the current time zone offset in the timestamp
+		of the logged message.<br />
+		This is useful when comparing logs from machines in
+		different countries.
+	      </p>
+	    </desc>
 	    <term>GSLogThread</term>
 	    <desc>
 	      <p>
