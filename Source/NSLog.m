@@ -40,8 +40,9 @@
 #ifdef	HAVE_SYSLOG_H
 #include <syslog.h>
 #elif HAVE_SYS_SLOG_H
-  // we are on a QNX-ish system, which has a syslog symbol somewhere, but it isn't
-  // our syslog function (we use slogf().)
+  /* we are on a QNX-ish system, which has a syslog symbol somewhere,
+   * but it isn't our syslog function (we use slogf().)
+   */
 # ifdef HAVE_SYSLOG
 #   undef HAVE_SYSLOG
 # endif
@@ -303,7 +304,11 @@ NSLog(NSString* format, ...)
  *   In GNUstep, the GSLogThread user default may be set to YES in
  *   order to instruct this function to include the internal ID of
  *   the current thread after the process ID.  This can help you
- *   to track the behavior of a multi-threaded program.
+ *   to track the behavior of a multi-threaded program.<br />
+ *   Also the GSLogOffset user default may be set to YES in order
+ *   to instruct this function to include the time zone offset in
+ *   the timestamp it logs (good when examining debug logs from
+ *   systems running in different countries).
  * </p>
  * <p>
  *   The resulting message is then passed to a handler function to
@@ -356,12 +361,22 @@ NSLogv(NSString* format, va_list args)
   else
 #endif
     {
+      NSString  *fmt;
+
+      if (GSPrivateDefaultsFlag(GSLogOffset) == YES)
+        {
+          fmt = @"%Y-%m-%d %H:%M:%S.%F %z";
+        }
+      else
+        {
+          fmt = @"%Y-%m-%d %H:%M:%S.%F";
+        }
+
       if (GSPrivateDefaultsFlag(GSLogThread) == YES)
 	{
 	  prefix = [NSString
 	    stringWithFormat: @"%@ %@[%d,%"PRIxPTR"x] ",
-	    [[NSCalendarDate calendarDate]
-	      descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
+	    [[NSCalendarDate calendarDate] descriptionWithCalendarFormat: fmt],
 	    [[NSProcessInfo processInfo] processName],
 	    pid, (NSUInteger)GSCurrentThread()];
 	}
@@ -369,8 +384,7 @@ NSLogv(NSString* format, va_list args)
 	{
 	  prefix = [NSString
 	    stringWithFormat: @"%@ %@[%d] ",
-	    [[NSCalendarDate calendarDate]
-	      descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
+	    [[NSCalendarDate calendarDate] descriptionWithCalendarFormat: fmt],
 	    [[NSProcessInfo processInfo] processName],
 	    pid];
 	}

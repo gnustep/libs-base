@@ -252,6 +252,8 @@ updateCache(NSUserDefaults *self)
 	= [self boolForKey: @"GSLogSyslog"];
       flags[GSLogThread]
 	= [self boolForKey: @"GSLogThread"];
+      flags[GSLogOffset]
+	= [self boolForKey: @"GSLogOffset"];
       flags[NSWriteOldStylePropertyLists]
 	= [self boolForKey: @"NSWriteOldStylePropertyLists"];
     }

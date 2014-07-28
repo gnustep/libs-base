@@ -236,6 +236,7 @@ typedef enum {
   GSOldStyleGeometry,			// Control geometry string output.
   GSLogSyslog,				// Force logging to go to syslog.
   GSLogThread,				// Include thread ID in log message.
+  GSLogOffset,			        // Include time zone offset in message.
   NSWriteOldStylePropertyLists,		// Control PList output.
   GSUserDefaultMaxFlag			// End marker.
 } GSUserDefaultFlagType;
