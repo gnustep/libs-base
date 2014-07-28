@@ -647,6 +647,12 @@ static NSArray  *keys = nil;
         {
           NSDebugMLLog(@"NSStream",
             @"GSTLSHandler completed on %p", stream);
+
+          /* Make sure that, if ostream gets released as a result of
+           * the event we send to istream, it doesn't get deallocated
+           * and cause a crash when we try to send to it.
+           */
+          AUTORELEASE(RETAIN(ostream));
           if ([istream streamStatus] == NSStreamStatusOpen)
             {
               [istream _resetEvents: NSStreamEventOpenCompleted];
