@@ -305,6 +305,9 @@
 /* Define to 1 if you have the `gnutls_transport_set_errno' function. */
 #undef HAVE_GNUTLS_TRANSPORT_SET_ERRNO
 
+/* Define to 1 if you have the `grantpt' function. */
+#undef HAVE_GRANTPT
+
 /* Define to 1 if you have the <grp.h> header file. */
 #undef HAVE_GRP_H
 

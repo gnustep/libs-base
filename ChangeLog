@@ -1,3 +1,10 @@
+2014-08-19  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* configure.ac:
+	* Headers/GNUstepBase/config.h.in: Add test for grantpt function.
+
+	* configure: Regenerated.
+
 2014-07-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m:
