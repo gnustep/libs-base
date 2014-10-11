@@ -1,3 +1,7 @@
+2014-10-11  Marcus Mueller <znek@mulle-kybernetik.com>
+
+	* Headers/GNUstepBase/GSVersionMacros.h: UNAVAILABLE_ATTRIBUTE added
+
 2014-08-19  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* configure.ac:

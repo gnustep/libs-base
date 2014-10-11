@@ -421,6 +421,13 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 
 #define NS_REQUIRES_NIL_TERMINATION __attribute__((sentinel))
 
+// FIXME ... what exact version of clang and gcc?
+#if defined(__clang__) || GS_GCC_MINREQ(4,0)
+#  define UNAVAILABLE_ATTRIBUTE __attribute__((unavailable))
+#else
+#  define UNAVAILABLE_ATTRIBUTE
+#endif
+
 /* Check if compiler supports @optional in protocols
  */
 #if defined(__clang__) || GS_GCC_MINREQ(4,6)
