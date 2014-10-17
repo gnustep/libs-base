@@ -1,3 +1,17 @@
+2014-10-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/news.texi:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Version: Bump subminor version for bugfix release
+	* NSTimeZones/NSTimeZones.tar: update
+	* Source/NSProcessInfo.m: Use separate lock for globally unique
+	string rather than sharing lock intended for other purposes.
+	* Source/GSTLS.m: Change default TLS 'priority' to disable SSLv3.0
+	as it renders things open to the 'POODLE' attack.
+	Also, print warning if it is expressly requested from the code
+	(though the use of the GSTLSPriority user default will still
+	allow complete control without warnings).
+
 2014-10-11  Marcus Mueller <znek@mulle-kybernetik.com>
 
 	* Headers/GNUstepBase/GSVersionMacros.h: UNAVAILABLE_ATTRIBUTE added
@@ -8,12 +22,6 @@
 	* Headers/GNUstepBase/config.h.in: Add test for grantpt function.
 
 	* configure: Regenerated.
-
-2014-07-28  Richard Frith-Macdonald <rfm@gnu.org>
-
-	* Source/NSUserDefaults.m:
-	* Source/GSPrivate.h:
-	* Source/NSLog.m:
 
 2014-07-25  Richard Frith-Macdonald <rfm@gnu.org>
 
