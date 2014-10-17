@@ -11,6 +11,16 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.24.7}
+
+@itemize @bullet
+@item TLS and other security improvements
+@item Latest timezone data included
+@item Various other bugfixes
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.24.6}
 
 @itemize @bullet
@@ -20,8 +30,6 @@ See the @url{ReleaseNotes.html} document for more information.
 @item Various new methods for OSX compatibility
 @item Various other bugfixes
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.24.5}
 

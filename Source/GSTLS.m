@@ -1448,8 +1448,6 @@ static NSMutableDictionary      *credentialsCache = nil;
             @" these locations.");
         }
 
-      gnutls_set_default_priority(session);
-
       pri = [opts objectForKey: NSStreamSocketSecurityLevelKey];
       str = [opts objectForKey: GSTLSPriority];
       if (nil == pri && nil == str)
@@ -1467,6 +1465,15 @@ static NSMutableDictionary      *credentialsCache = nil;
           str = nil;
         }
 
+#if GNUTLS_VERSION_NUMBER < 0x020C00
+      gnutls_set_default_priority(session);
+#else
+      /* By default we disable SSL3.0 as the 'POODLE' attack (Oct 2014)
+       * renders it insecure.
+       */
+      gnutls_priority_set_direct(session, "NORMAL:-VERS-SSL3.0", NULL);
+#endif
+
       if (nil == str)
         {
           if ([pri isEqual: NSStreamSocketSecurityLevelNone] == YES)
@@ -1480,13 +1487,15 @@ static NSMutableDictionary      *credentialsCache = nil;
           else if ([pri isEqual: NSStreamSocketSecurityLevelSSLv2] == YES)
             {
               // pri = NSStreamSocketSecurityLevelSSLv2;
-              GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv2 is insecure ..."
+              GSOnceMLog(@"NSStreamSocketSecurityLevelSSLv2 is insecure ..."
                 @" not implemented");
               DESTROY(self);
               return nil;
             }
           else if ([pri isEqual: NSStreamSocketSecurityLevelSSLv3] == YES)
             {
+              GSOnceMLog(@"NSStreamSocketSecurityLevelSSLv3 is insecure ..."
+                @" please change your code to stop using it");
 #if GNUTLS_VERSION_NUMBER < 0x020C00
               const int proto_prio[2] = {
                 GNUTLS_SSL3,
