@@ -8,7 +8,8 @@ See the `ReleaseNotes.html' document for more information.
 1.1 Noteworthy changes in version `1.24.7'
 ==========================================
 
-   * TLS and other security improvements
+   * TLS and other security improvements (note, SSLv3.0 is disabled by
+     default in order to prevent the 'POODLE' attack).
 
    * Latest timezone data included
 
