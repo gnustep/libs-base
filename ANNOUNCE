@@ -1,7 +1,7 @@
 1 Announcement
 **************
 
-The GNUstep Base Library, version 1.24.6, is now available.
+The GNUstep Base Library, version 1.24.7, is now available.
 
 1.1 What is the GNUstep Base Library?
 =====================================
@@ -18,23 +18,19 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 `http://www.gnustep.org'.
 
-1.2 Noteworthy changes in version `1.24.6'
+1.2 Noteworthy changes in version `1.24.7'
 ==========================================
 
-   * NSUUID implemented
+   * TLS and other security improvements
 
-   * New OSX version macros
-
-   * TLS support improvements
-
-   * Various new methods for OSX compatibility
+   * Latest timezone data included
 
    * Various other bugfixes
 
 1.3 Where can you get it?  How can you compile it?
 ==================================================
 
-The gnustep-base-1.24.6.tar.gz distribution file has been placed at
+The gnustep-base-1.24.7.tar.gz distribution file has been placed at
 `ftp://ftp.gnustep.org/pub/gnustep/core'.
 
 Please log bug reports on the GNUstep project page
