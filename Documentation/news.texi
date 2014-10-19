@@ -14,7 +14,8 @@ See the @url{ReleaseNotes.html} document for more information.
 @section Noteworthy changes in version @samp{1.24.7}
 
 @itemize @bullet
-@item TLS and other security improvements
+@item TLS and other security improvements (note, SSLv3.0 is disabled by default
+in order to prevent the 'POODLE' attack).
 @item Latest timezone data included
 @item Various other bugfixes
 @end itemize
