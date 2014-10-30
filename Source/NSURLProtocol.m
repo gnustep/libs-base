@@ -1579,6 +1579,17 @@ static NSURLProtocol	*placeholder = nil;
 				    buffer + written length: len];
 				  _writeOffset = 0;
 				}
+			      else if (len == 0 && ![_body hasBytesAvailable])
+				{
+				  /* all _body's bytes are read and written
+                                   * so we shouldn't wait for another
+                                   * opportunity to close _body and set
+				   * the flag 'sent'.
+				   */
+				  [_body close];
+				  DESTROY(_body);
+				  sent = YES;
+				}
 			    }
                           else if ([this->output streamStatus]
                             == NSStreamStatusWriting)
