@@ -1,3 +1,8 @@
+2014-10-30  Sergei Golovin <Golovin.SV@gmail.com>
+
+	* Source/NSURLProtocol.m: Fix memory leak and possible hang on retry
+	(bug #43461).
+
 2014-10-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/news.texi:
