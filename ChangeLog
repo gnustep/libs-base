@@ -1,3 +1,8 @@
+2014-11-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Fix leak of handle when starting a new
+	connection after an older one is dropped by the remote end.
+
 2014-10-30  Sergei Golovin <Golovin.SV@gmail.com>
 
 	* Source/NSURLProtocol.m: Fix memory leak and possible hang on retry
