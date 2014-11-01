@@ -1161,6 +1161,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    NSLog(@"%@ %p restart on new connection",
 	      NSStringFromSelector(_cmd), self);
 	  [self _tryLoadInBackground: u];
+          RELEASE(self);
 	  return;
 	}
       NSLog(@"Failed to write command to socket - %@ %p %s",
