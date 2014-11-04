@@ -1,3 +1,10 @@
+2014-11-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: When handling perform in another thread, check
+	more carefully for inter-thread communications (pipe on unix, event
+	on windows) and make sure we invalidate performers safely outside
+	the lock protected region when I/O is complete.
+
 2014-11-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Fix leak of handle when starting a new

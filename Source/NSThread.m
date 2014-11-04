@@ -897,12 +897,20 @@ static void *nsthreadLauncher(void* thread)
 @implementation GSRunLoopThreadInfo
 - (void) addPerformer: (id)performer
 {
+  BOOL  signalled = NO;
+
   [lock lock];
-  [performers addObject: performer];
 #if defined(__MINGW__)
-  if (SetEvent(event) == 0)
+  if (INVALID_HANDLE_VALUE != event)
     {
-      NSLog(@"Set event failed - %@", [NSError _last]);
+      if (SetEvent(event) == 0)
+        {
+          NSLog(@"Set event failed - %@", [NSError _last]);
+        }
+      else
+        {
+          signalled = YES;
+        }
     }
 #else
   /* The write could concievably fail if the pipe is full.
@@ -911,19 +919,30 @@ static void *nsthreadLauncher(void* thread)
    * and its runloop might stop during that ... so we need to check that
    * outputFd is still valid.
    */
-  while (outputFd >= 0 && write(outputFd, "0", 1) != 1)
+  while (outputFd >= 0
+    && NO == (signalled = (write(outputFd, "0", 1) == 1) ? YES : NO))
     {
       [lock unlock];
       [lock lock];
     }
 #endif
+  if (YES == signalled)
+    {
+      [performers addObject: performer];
+    }
   [lock unlock];
+  if (NO == signalled)
+    {
+      /* We failed to add the performer ... so we must invalidate it in
+       * case there is code waiting for it to complete.
+       */
+      [performer invalidate];
+    }
 }
 
 - (void) dealloc
 {
   [self invalidate];
-  DESTROY(performers);
   DESTROY(lock);
   DESTROY(loop);
   [super dealloc];
@@ -990,9 +1009,11 @@ static void *nsthreadLauncher(void* thread)
 
 - (void) invalidate
 {
+  NSArray       *p;
+
   [lock lock];
-  [performers makeObjectsPerformSelector: @selector(invalidate)];
-  [performers removeAllObjects];
+  p = [performers autorelease];
+  performers = nil;
 #ifdef __MINGW__
   if (event != INVALID_HANDLE_VALUE)
     {
@@ -1012,6 +1033,7 @@ static void *nsthreadLauncher(void* thread)
     }
 #endif
   [lock unlock];
+  [p makeObjectsPerformSelector: @selector(invalidate)];
 }
 
 - (void) fire
