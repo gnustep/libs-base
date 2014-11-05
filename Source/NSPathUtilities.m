@@ -583,7 +583,7 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     }
   [c removeObjectForKey: @"GNUSTEP_SYSTEM_DEFAULTS_FILE"];
 
-  /* If GNUSTEP_CREATE_DIRECTORIES is YES then we should ensure that the
+  /* If GNUSTEP_CREATE_LIBRARY_PATH is YES then we should ensure that the
    * per-user directory and the Library subdirectory exist so resources
    * can safely be stored in them.
    */

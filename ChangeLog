@@ -1,3 +1,10 @@
+2014-11-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTLS.m: If a user default value is removed while running,
+	revert to the value from the environment or the hard coded fallback
+	rather than continuing to use the previous value from the defaults
+	system.
+
 2014-11-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: When handling perform in another thread, check

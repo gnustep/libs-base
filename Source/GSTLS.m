@@ -174,63 +174,94 @@ static NSMutableDictionary      *fileMap = nil;
 
 + (void) _defaultsChanged: (NSNotification*)n
 {
-  NSString      *str;
+  NSBundle              *bundle;
+  NSUserDefaults        *defs;
+  NSDictionary          *env;
+  NSString              *str;
 
-  str = [[NSUserDefaults standardUserDefaults] stringForKey: @"GSCipherList"];
+  bundle = [NSBundle bundleForClass: [NSObject class]];
+  defs = [NSUserDefaults standardUserDefaults];
+  env = [[NSProcessInfo processInfo] environment];
+
+  str = [defs stringForKey: @"GSCipherList"];
   if (nil != str)
     {
       GSOnceMLog(@"GSCipherList is no longer used, please try GSTLSPriority");
     }
 
-  str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSPriority];
-  if (nil != str)
+  str = [defs stringForKey: GSTLSPriority];
+  if (0 == [str length])
     {
-      ASSIGN(priority, str);
+      str = nil;        // nil or empty string resets to default
     }
+  ASSIGN(priority, str);
+
 
   /* The GSTLSCAFile user default overrides the builtin value or the
    * GS_TLS_CA_FILE environment variable.
    */
-  str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSCAFile];
-  str = standardizedPath(str);
-  if (nil != str)
+  str = [defs stringForKey: GSTLSCAFile];
+  if (nil == str)
     {
-      ASSIGN(caFile, str);
+      /* Let the GS_TLS_CA_FILE environment variable override the
+       * default certificate authority location.
+       */
+      str = [env objectForKey: @"GS_TLS_CA_FILE"];
+      if (nil == str)
+        {
+          str = [bundle pathForResource: @"ca-certificates"
+                                 ofType: @"crt"
+                            inDirectory: @"GSTLS"];
+        }
     }
+  str = standardizedPath(str);
+  ASSIGN(caFile, str);
 
   /* The GSTLSRevokeFile user default overrides the builtin value or the
    * GS_TLS_REVOKE environment variable.
    */
-  str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSRevokeFile];
+  str = [defs stringForKey: GSTLSRevokeFile];
+  if (nil == str)
+    {
+      /* Let the GS_TLS_REVOKE environment variable override the
+       * default revocation list location.
+       */
+      str = [env objectForKey: @"GS_TLS_REVOKE"];
+      if (nil == str)
+        {
+          str = [bundle pathForResource: @"revoke"
+                                 ofType: @"crl"
+                            inDirectory: @"GSTLS"];
+        }
+    }
   str = standardizedPath(str);
-  if (nil != str)
-    {
-      ASSIGN(revokeFile, str);
-    }
+  ASSIGN(revokeFile, str);
 
-  str = [[NSUserDefaults standardUserDefaults]
-    stringForKey: @"GSTLSVerifyClient"];
-  if (nil != str)
+  str = [defs stringForKey: @"GSTLSVerifyClient"];
+  if (nil == str)
     {
-      verifyClient = [str boolValue];
+      str = [env objectForKey: @"GS_TLS_VERIFY_C"];
     }
+  verifyClient = [str boolValue];
 
-  str = [[NSUserDefaults standardUserDefaults]
-    stringForKey: @"GSTLSVerifyServer"];
-  if (nil != str)
-    {
-      verifyServer = [str boolValue];
+  str = [defs stringForKey: @"GSTLSVerifyServer"];
+  if (nil == str)
+    { 
+      str = [env objectForKey: @"GS_TLS_VERIFY_S"];
     }
+  verifyServer = [str boolValue];
 
-  str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSDebug];
-  if (nil != str)
+  str = [defs stringForKey: GSTLSDebug];
+  if (nil == str)
     {
-      globalDebug = [str intValue];
+      str = [env objectForKey: @"GS_TLS_DEBUG"];
     }
+  globalDebug = [str intValue];
   if (globalDebug < 0)
     {
       globalDebug = 0;
     }
+
   gnutls_global_set_log_level(globalDebug);
 }
 
@@ -261,68 +292,10 @@ static NSMutableDictionary      *fileMap = nil;
 
       if (beenHere == NO)
         {
-          NSProcessInfo         *pi;
-          NSBundle              *bundle;
-          NSString              *str;
-
           beenHere = YES;
-
-          bundle = [NSBundle bundleForClass: [NSObject class]];
 
           fileLock = [NSLock new];
           fileMap = [NSMutableDictionary new];
-
-          /* Let the GS_TLS_CA_FILE environment variable override the
-           * default certificate authority location.
-           */
-          pi = [NSProcessInfo processInfo];
-          str = [[pi environment] objectForKey: @"GS_TLS_CA_FILE"];
-          if (nil == str)
-            {
-              str = [bundle pathForResource: @"ca-certificates"
-                                     ofType: @"crt"
-                                inDirectory: @"GSTLS"];
-            }
-          else
-            {
-              str = standardizedPath(str);
-            }
-          ASSIGN(caFile, str);
-
-          /* Let the GS_TLS_REVOKE environment variable override the
-           * default revocation list location.
-           */
-          pi = [NSProcessInfo processInfo];
-          str = [[pi environment] objectForKey: @"GS_TLS_REVOKE"];
-          if (nil == str)
-            {
-              str = [bundle pathForResource: @"revoke"
-                                     ofType: @"crl"
-                                inDirectory: @"GSTLS"];
-            }
-          else
-            {
-              str = standardizedPath(str);
-            }
-          ASSIGN(revokeFile, str);
-
-          str = [[pi environment] objectForKey: @"GS_TLS_VERIFY_C"];
-          if (nil != str)
-            {
-              verifyClient = [str boolValue];
-            }
-
-          str = [[pi environment] objectForKey: @"GS_TLS_VERIFY_S"];
-          if (nil != str)
-            {
-              verifyServer = [str boolValue];
-            }
-
-          str = [[pi environment] objectForKey: @"GS_TLS_DEBUG"];
-          if (nil != str)
-            {
-              globalDebug = [str intValue];
-            }
 
           [[NSNotificationCenter defaultCenter]
             addObserver: self
