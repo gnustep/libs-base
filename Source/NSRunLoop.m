@@ -115,7 +115,7 @@ static NSDate	*theFuture = nil;
         @"raised during performSelector... with target %p "
         @"and selector '%@'",
         [localException name], [localException reason], target,
-        NSStringFromSelector([target selector]));
+        NSStringFromSelector(selector));
     }
   NS_ENDHANDLER
 }
