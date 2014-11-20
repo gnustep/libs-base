@@ -443,27 +443,29 @@ static inline BOOL timerInvalidated(NSTimer *t)
           NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 	  GSRunLoopPerformer	*array[count];
 	  NSMapEnumerator	enumerator;
-	  GSRunLoopCtxt		*context;
+	  GSRunLoopCtxt		*original;
 	  void			*mode;
 	  unsigned		i;
 
           found = YES;
-	  /*
-	   * Copy the array - because we have to cancel the requests
-	   * before firing.
+
+	  /* We have to remove the performers before firing, so we copy
+	   * the pointers withoutm releasing the objects, and then set
+	   * the array to be empty.
 	   */
 	  for (i = 0; i < count; i++)
 	    {
-	      array[i] = RETAIN(GSIArrayItemAtIndex(performers, i).obj);
+	      array[i] = GSIArrayItemAtIndex(performers, i).obj;
 	    }
+          performers->count = 0;
 
-	  /*
-	   * Remove the requests that we are about to fire from all modes.
+	  /* Remove the requests that we are about to fire from all modes.
 	   */
+          original = context;
 	  enumerator = NSEnumerateMapTable(_contextMap);
 	  while (NSNextMapEnumeratorPair(&enumerator, &mode, (void**)&context))
 	    {
-	      if (context != nil)
+	      if (context != nil && context != original)
 		{
 		  GSIArray	performers = context->performers;
 		  unsigned	tmpCount = GSIArrayCount(performers);
