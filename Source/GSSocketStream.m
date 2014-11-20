@@ -354,6 +354,17 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 @public
   GSTLSSession  *session;
 }
+
+/**
+ * Populates the dictionary 'dict', copying in all the properties
+ * of the supplied streams. If a property is set for both then
+ * the output stream's one has precedence.
+ */
++ (void) populateProperties: (NSMutableDictionary**)dict
+            withTLSPriority: (NSString*)pri
+            fromInputStream: (NSStream*)i
+             orOutputStream: (NSStream*)o;
+
 @end
 
 /* Callback to allow the TLS code to pull data from the remote system.
@@ -440,6 +451,37 @@ static NSArray  *keys = nil;
         GSTLSVerify,
         nil];
       [[NSObject leakAt: &keys] release];
+    }
+}
+
++ (void) populateProperties: (NSMutableDictionary**)dict
+	    withTLSPriority: (NSString*)pri
+	    fromInputStream: (NSStream*)i
+	     orOutputStream: (NSStream*)o
+{
+  NSString              *str;
+  NSMutableDictionary   *opts = *dict;
+  NSUInteger            count;
+  
+  if (NULL != dict)
+    {
+      if (nil != pri)
+	{
+	  [opts setObject: pri forKey: GSTLSPriority];
+	}
+      count = [keys count];
+      while (count-- > 0)
+	{
+	  NSString  *key = [keys objectAtIndex: count];
+
+	  str = [o propertyForKey: key];
+	  if (nil == str) str = [i propertyForKey: key];
+	  if (nil != str) [opts setObject: str forKey: key];
+	}
+    }
+  else
+    {
+      NSWarnLog(@"%@ requires not nil 'dict'", NSStringFromSelector(_cmd));
     }
 }
 
@@ -537,10 +579,10 @@ static NSArray  *keys = nil;
 {
   NSString              *str;
   NSMutableDictionary   *opts;
-  NSUInteger            count;
   BOOL		        server;
 
-  server = [[o propertyForKey: @"IsServer"] boolValue];
+  // Check whether the input stream has been accepted by a listening socket
+  server = [[i propertyForKey: @"IsServer"] boolValue];
 
   str = [o propertyForKey: NSStreamSocketSecurityLevelKey];
   if (nil == str) str = [i propertyForKey: NSStreamSocketSecurityLevelKey];
@@ -580,16 +622,10 @@ static NSArray  *keys = nil;
    * properties.  GSTLSPriority overrides NSStreamSocketSecurityLevelKey.
    */
   opts = [NSMutableDictionary new];
-  if (nil != str) [opts setObject: str forKey: GSTLSPriority];
-  count = [keys count];
-  while (count-- > 0)
-    {
-      NSString  *key = [keys objectAtIndex: count];
-
-      str = [o propertyForKey: key];
-      if (nil == str) str = [i propertyForKey: key];
-      if (nil != str) [opts setObject: str forKey: key];
-    }
+  [[self class] populateProperties: &opts
+		   withTLSPriority: str
+		   fromInputStream: i
+		    orOutputStream: o];
   
   session = [[GSTLSSession alloc] initWithOptions: opts
                                         direction: (server ? NO : YES)
@@ -2244,15 +2280,31 @@ setNonBlocking(SOCKET fd)
 
 - (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
+  if (len == 0)
+    {
+      /*
+       *  The method allows the 'len' equal to 0. In this case the 'buffer'
+       *  is ignored. This can be useful if there is a necessity to postpone
+       *  actual writing (for no data are ready for example) without leaving
+       *  the stream in the state of unhandled NSStreamEventHasSpaceAvailable
+       *  (to keep receiving of that event from a runloop).
+       *  The delegate's -[stream:handleEvent:] would keep calling of
+       *  -[write: NULL maxLength: 0] until the delegate's state allows it
+       *  to write actual bytes.
+       *  The downside of that is that it produces a busy wait ... with the
+       *  run loop immediately notifying the stream that it has space to
+       *  write, so care should be taken to ensure that the delegate has a
+       *  near constant supply of data to write, or has some mechanism to
+       *  detect that no more data is arriving, and shut down.
+       */ 
+      _events &= ~NSStreamEventHasSpaceAvailable;
+      return 0;
+    }
+
   if (buffer == 0)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"null pointer for buffer"];
-    }
-  if (len == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"zero byte length write requested"];
     }
 
   if (_handler == nil)
@@ -2550,6 +2602,11 @@ setNonBlocking(SOCKET fd)
 - (void) acceptWithInputStream: (NSInputStream **)inputStream
                   outputStream: (NSOutputStream **)outputStream
 {
+  NSArray *keys;
+  NSUInteger count;
+  NSMutableDictionary *opts;
+  NSString *str;
+
   GSSocketStream *ins = AUTORELEASE([[self _inputStreamClass] new]);
   GSSocketStream *outs = AUTORELEASE([[self _outputStreamClass] new]);
   /* Align on a 2 byte boundary for a 16bit port number in the sockaddr
@@ -2589,6 +2646,31 @@ setNonBlocking(SOCKET fd)
        * connection (client).
        */
       [ins setProperty: @"YES" forKey: @"IsServer"];
+
+      str = [self propertyForKey: NSStreamSocketSecurityLevelKey];
+      if(nil != str)
+	{
+	  opts = [NSMutableDictionary new];
+	  [opts setObject: str forKey: NSStreamSocketSecurityLevelKey];
+	  // copy the properties in the 'opts'
+	  [GSTLSHandler populateProperties: &opts
+			   withTLSPriority: str
+			   fromInputStream: self
+			    orOutputStream: nil];
+	  // and set the input/output streams's properties from the 'opts'
+	  keys = [opts allKeys];
+	  count = [keys count];
+	  while(count-- > 0)
+	    {
+	      NSString *key = [keys objectAtIndex: count];
+	      str = [opts objectForKey: key];
+	      [ins setProperty: str forKey: key];
+	      [outs setProperty: str forKey: key];
+	    }
+
+	  [GSTLSHandler tryInput: (GSSocketInputStream *)ins output: (GSSocketOutputStream *)outs];
+	  DESTROY(opts);
+	}
     }
   if (inputStream)
     {
