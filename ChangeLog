@@ -1,3 +1,18 @@
+2014-11-20  Sergei Golovin <Golovin.SV@gmail.com>
+
+	* Source/GSSocketStream.m:
+	* Tests/base/NSURL/Helpers/capture.m:
+	* Tests/base/NSURL/testKey.pem:
+	* Tests/base/NSURL/test02.m:
+	* Tests/base/NSURL/testCert.pem:
+	Implement TLS on server socket and make use of it in HTTPS URL helper
+	code. Also, permit NSStream zero length write (it seems OSX allows
+	it).
+
+2014-11-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m: Avoinf some unnecessary retain/release cycles.
+
 2014-11-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTLS.m: If a user default value is removed while running,
