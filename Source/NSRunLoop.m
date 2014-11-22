@@ -450,8 +450,9 @@ static inline BOOL timerInvalidated(NSTimer *t)
           found = YES;
 
 	  /* We have to remove the performers before firing, so we copy
-	   * the pointers withoutm releasing the objects, and then set
-	   * the array to be empty.
+	   * the pointers without releasing the objects, and then set
+	   * the performers to be empty.  The copied objects in 'array'
+	   * will be released later.
 	   */
 	  for (i = 0; i < count; i++)
 	    {
@@ -487,8 +488,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	    }
 	  NSEndMapTableEnumeration(&enumerator);
 
-	  /*
-	   * Finally, fire the requests.
+	  /* Finally, fire the requests ands release them.
 	   */
 	  for (i = 0; i < count; i++)
 	    {
