@@ -775,6 +775,9 @@
 /* Define as the link to exe of process in /proc filesystem. */
 #undef PROCFS_EXE_LINK
 
+/* Description: Define set name function for pthread */
+#undef PTHREAD_SETNAME
+
 /* Define to 1 if the `setpgrp' function takes no argument. */
 #undef SETPGRP_VOID
 
