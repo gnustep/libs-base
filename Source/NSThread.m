@@ -92,6 +92,58 @@
 #  define IS_MAIN_PTHREAD (1)
 #endif
 
+#if 0
+/* 
+ * NSThread setName: method for windows.
+ * FIXME ... This is code for the microsoft compiler;
+ * how do we make it work for gcc/clang?
+ */
+#if defined(__MINGW__) && defined(HAVE_WINDOWS_H)
+// Usage: SetThreadName (-1, "MainThread");
+#include <windows.h>
+const DWORD MS_VC_EXCEPTION=0x406D1388;
+
+#pragma pack(push,8)
+typedef struct tagTHREADNAME_INFO
+{
+  DWORD dwType; // Must be 0x1000.
+  LPCSTR szName; // Pointer to name (in user addr space).
+  DWORD dwThreadID; // Thread ID (-1=caller thread).
+  DWORD dwFlags; // Reserved for future use, must be zero.
+} THREADNAME_INFO;
+#pragma pack(pop)
+
+static int SetThreadName(DWORD dwThreadID, const char *threadName)
+{
+  THREADNAME_INFO info;
+  int result;
+
+  info.dwType = 0x1000;
+  info.szName = threadName;
+  info.dwThreadID = dwThreadID;
+  info.dwFlags = 0;
+
+  __try
+  {	
+    RaiseException(MS_VC_EXCEPTION, 0,
+      sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info);
+    result = 0;
+  }
+  __except(EXCEPTION_EXECUTE_HANDLER)
+  {
+    result = -1;
+  }
+}
+
+#define PTHREAD_SETNAME(a,b)  SetThreadName(-1, b)
+
+#endif
+#endif
+
+#ifndef PTHREAD_SETNAME
+#define PTHREAD_SETNAME(a,b) -1
+#endif
+
 
 // Some older BSD systems used a non-standard range of thread priorities.
 // Use these if they exist, otherwise define standard ones.
@@ -749,9 +801,49 @@ unregisterActiveThread(NSThread *thread)
   return _name;
 }
 
+- (void) _setName: (NSString *)aName
+{
+  int   result = -1;
+
+  while (result != 0 && [aName length] > 0)
+    {
+      result = PTHREAD_SETNAME(pthread_self(),
+        [aName cStringUsingEncoding: NSUTF8StringEncoding]);
+      if (result != 0)
+        {
+          if (ERANGE == errno)
+            {
+              /* Name must be too long ... gnu/linix uses 15 characters
+               */
+              if ([aName length] > 15)
+                {
+                  aName = [aName substringToIndex: 15];
+                }
+              else
+                {
+                  aName = [aName substringToIndex: [aName length] - 1];
+                }
+            }
+          else
+            {
+              break;    // Some other error
+            }
+        }
+    }
+}
+
 - (void) setName: (NSString*)aName
 {
   ASSIGN(_name, aName);
+#ifdef PTHREAD_SETNAME
+  if (YES == _active)
+    {
+      [self performSelector: @selector(_setName:)
+                   onThread: self
+                 withObject: aName
+              waitUntilDone: NO];
+    }
+#endif
 }
 
 - (void) setStackSize: (NSUInteger)stackSize
@@ -805,6 +897,8 @@ static void *nsthreadLauncher(void* thread)
   [nc postNotificationName: NSThreadDidStartNotification
 		    object: t
 		  userInfo: nil];
+
+  [t _setName: [t name]];
 
   [t main];
 

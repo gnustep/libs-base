@@ -1743,6 +1743,26 @@ AC_DEFINE_UNQUOTED(HAVE_OBJC_ROOT_CLASS_ATTRIBUTE,$gs_objc_root_class_attr,
   [Says whether the objc_root_class attribute works])
 CFLAGS=$saved_CFLAGS
 
+
+#--------------------------------------------------------------------
+# Check if we can name pthreads
+#--------------------------------------------------------------------
+
+
+AC_CHECK_FUNC(pthread_setname_np, pthread_setname_ok=yes, pthread_setname_ok=no)
+if test $pthread_setname_ok = yes ; then
+  case "$target_os" in
+    darwin*) AC_DEFINE(PTHREAD_SETNAME(a,b), pthread_setname_np(b), [Description: Define set name function for pthread]);;
+          *) AC_DEFINE(PTHREAD_SETNAME(a,b), pthread_setname_np(a,b), [Description: Define set name function for pthread]);;
+  esac
+fi
+
+AC_CHECK_FUNC(pthread_set_name_np, pthread_set_name_ok=yes, pthread_set_name_ok=no)
+if test $pthread_set_name_ok = yes ; then
+  AC_DEFINE(PTHREAD_SETNAME(a,b), pthread_set_name_np(a,b), [Description: Define set name function for pthread])
+fi
+
+
 #--------------------------------------------------------------------
 # Check whether Objective-C /really/ works
 #--------------------------------------------------------------------
