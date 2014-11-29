@@ -43,7 +43,7 @@ static NSMapTable *_flagMap = nil;
 
 + (void)initialize
 {
-  if(nil == _flagMap)
+  if (nil == _flagMap)
     {
       _flagMap = NSCreateMapTable(NSObjectMapKeyCallBacks, 
 				   NSIntegerMapValueCallBacks,
@@ -64,7 +64,7 @@ static NSMapTable *_flagMap = nil;
 
 - (id)init
 {
-  if((self = [super init]) != nil)
+  if ((self = [super init]) != nil)
     {
       _conn = nil;
       _error = nil;
@@ -97,7 +97,7 @@ static NSMapTable *_flagMap = nil;
   CREATE_AUTORELEASE_POOL(arp);
   NSTimeInterval duration = 0.0;
 
-  if(YES == _debug)
+  if (YES == _debug)
     {
       NSLog(@"%@: started with request:\n%@", self, _request);
       [self logFlags];
@@ -106,17 +106,17 @@ static NSMapTable *_flagMap = nil;
   _conn = [[NSURLConnection alloc] initWithRequest: _request
 					  delegate: self];
 
-  while(!_done && !_failed)
+  while (!_done && !_failed)
     {
       [[NSRunLoop currentRunLoop]
 		runUntilDate: [NSDate dateWithTimeIntervalSinceNow: TIMING]];
       duration += TIMING;
-      if(duration >= MAXDURATION)
+      if (duration >= MAXDURATION)
 	{
 	  _failed = YES;
 	}
     }
-  if(YES == _debug)
+  if (YES == _debug)
     {
       NSLog(@"%@: stopped with request:\n%@", self, _request);
       [self logFlags];
@@ -128,7 +128,7 @@ static NSMapTable *_flagMap = nil;
 {
   BOOL isToStop = YES; // whether to stop the main TestWebServer instance
   BOOL isToStopAux = YES; // whether to stop the auxilliary TestWebServer instance
-  if([_extra isKindOfClass: [NSDictionary class]])
+  if ([_extra isKindOfClass: [NSDictionary class]])
     {
       NSDictionary *d = _extra;
       isToStop = ([d objectForKey: @"Instance"] == nil);
@@ -136,16 +136,16 @@ static NSMapTable *_flagMap = nil;
 		     [[d objectForKey: @"IsAuxilliary"] isEqualToString: @"YES"]);
     }
 
-  if(isToStop)
+  if (isToStop)
     {
-      if(nil != _server)
+      if (nil != _server)
 	{
 	  [_server stop];
 	}
     }
-  if(isToStopAux)
+  if (isToStopAux)
     {
-      if(nil != _auxServer)
+      if (nil != _auxServer)
 	{
 	  [_auxServer stop];
 	}
@@ -169,22 +169,22 @@ static NSMapTable *_flagMap = nil;
   BOOL ret = [super isSuccess];
 
 
-  if(!ret)
+  if (!ret)
     {
       /* log the flags that differ */
       NSString *key;
       NSUInteger flag;
       NSMapEnumerator en = NSEnumerateMapTable(_flagMap);
-      while(NSNextMapEnumeratorPair(&en, (void **)&key, (void **)&flag))
+      while (NSNextMapEnumeratorPair(&en, (void **)&key, (void **)&flag))
 	{
-	  if([self isReferenceFlagSet: flag] != [self isFlagSet: flag])
+	  if ([self isReferenceFlagSet: flag] != [self isFlagSet: flag])
 	    {
 	      NSLog(@"ERR: %@", key);
 	    }
 	}
       NSEndMapTableEnumeration(&en);
 
-      if(_failed)
+      if (_failed)
 	{
 	  NSLog(@"FAILED for unknown reason possibly not related to the test (e.g. a timer has expired)");
 	}
@@ -199,9 +199,9 @@ static NSMapTable *_flagMap = nil;
   NSString *key;
   NSUInteger flag;
   NSMapEnumerator en = NSEnumerateMapTable(_flagMap);
-  while(NSNextMapEnumeratorPair(&en, (void **)&key, (void **)&flag))
+  while (NSNextMapEnumeratorPair(&en, (void **)&key, (void **)&flag))
     {
-      if([self isFlagSet: flag])
+      if ([self isFlagSet: flag])
 	{
 	  value = @"YES";
 	}
@@ -212,7 +212,7 @@ static NSMapTable *_flagMap = nil;
 
       NSLog(@"ACTUAL:    %@ -> %@", key, value);
 
-      if([self isReferenceFlagSet: flag])
+      if ([self isReferenceFlagSet: flag])
 	{
 	  value = @"YES";
 	}
@@ -240,19 +240,19 @@ static NSMapTable *_flagMap = nil;
   NSData *content = [request convertToData];
 
   [self setFlags: SENTREQUEST];
-  if(YES == _debug)
+  if (YES == _debug)
     {
       NSLog(@"%@: set SENTREQUEST (-[%@])", self, NSStringFromSelector(_cmd));
     }
 
   // TODO: more comparisons of _request and request
-  if([method isEqualToString: @"POST"] ||
+  if ([method isEqualToString: @"POST"] ||
      [method isEqualToString: @"PUT"])
     {
-      if([content isEqualToData: [_request HTTPBody]])
+      if ([content isEqualToData: [_request HTTPBody]])
 	{
 	  [self setFlags: GOTREQUEST];
-	  if(YES == _debug)
+	  if (YES == _debug)
 	    {
 	      NSLog(@"%@: set GOTREQUEST (-[%@])", self, NSStringFromSelector(_cmd));
 	    }
@@ -261,7 +261,7 @@ static NSMapTable *_flagMap = nil;
   else
     {
       [self setFlags: GOTREQUEST];
-      if(YES == _debug)
+      if (YES == _debug)
 	{
 	  NSLog(@"%@: set GOTREQUEST (-[%@])", self, NSStringFromSelector(_cmd));
 	}
@@ -273,7 +273,7 @@ willSendUnauthorized:(GSMimeDocument *)response
 	   with:(TestWebServer *)server
 {
   [self setFlags: NOTAUTHORIZED];
-  if(YES == _debug)
+  if (YES == _debug)
     {
       NSLog(@"%@: set NOTAUTHORIZED (-[%@])", self, NSStringFromSelector(_cmd));
     }
@@ -284,7 +284,7 @@ willSendUnauthorized:(GSMimeDocument *)response
 	   with:(TestWebServer *)server
 {
   [self setFlags: AUTHORIZED];
-  if(YES == _debug)
+  if (YES == _debug)
     {
       NSLog(@"%@: set AUTHORIZED (-[%@])", self, NSStringFromSelector(_cmd));
     }
@@ -295,7 +295,7 @@ willSendUnauthorized:(GSMimeDocument *)response
 	   with:(TestWebServer *)server
 {
   [self setFlags: SENTRESPONSE];
-  if(YES == _debug)
+  if (YES == _debug)
     {
       NSLog(@"%@: set SENTRESPONSE (-[%@])", self, NSStringFromSelector(_cmd));
     }
@@ -312,12 +312,12 @@ willSendUnauthorized:(GSMimeDocument *)response
              willSendRequest:(NSURLRequest *)request
             redirectResponse:(NSURLResponse *)redirectResponse
 {
-  if([redirectResponse isKindOfClass: [NSHTTPURLResponse class]])
+  if ([redirectResponse isKindOfClass: [NSHTTPURLResponse class]])
     {
-      if([(NSHTTPURLResponse *)redirectResponse statusCode] == _redirectStatusCode)
+      if ([(NSHTTPURLResponse *)redirectResponse statusCode] == _redirectStatusCode)
 	{
 	  [self setFlags: GOTREDIRECT];
-	  if(YES == _debug)
+	  if (YES == _debug)
 	    {
 	      NSLog(@"%@: set GOTREDIRECT (-[%@])", self, NSStringFromSelector(_cmd));
 	    }
@@ -326,7 +326,7 @@ willSendUnauthorized:(GSMimeDocument *)response
   else
     {
       [self setFlags: GOTREDIRECT];
-      if(YES == _debug)
+      if (YES == _debug)
 	{
 	  NSLog(@"%@: set GOTREDIRECT (-[%@])", self, NSStringFromSelector(_cmd));
 	}
@@ -339,28 +339,28 @@ willSendUnauthorized:(GSMimeDocument *)response
 didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
 {
   [self setFlags: GOTUNAUTHORIZED];
-  if(YES == _debug)
+  if (YES == _debug)
     {
       NSLog(@"%@: set GOTUNAUTHORIZED (-[%@])", self, NSStringFromSelector(_cmd));
     }
 
-  if([challenge previousFailureCount] == 0)
+  if ([challenge previousFailureCount] == 0)
     {
       NSURLCredential *cred;
       // TODO: _auxServer?
       NSString *login = [_server login];
       NSString *password = [_server password];
 
-      if(nil == login)
+      if (nil == login)
 	{
-	  if([_extra isKindOfClass: [NSDictionary class]])
+	  if ([_extra isKindOfClass: [NSDictionary class]])
 	    {
 	      login = [(NSDictionary *)_extra objectForKey: @"Login"];
 	    }
 	}
-      if(nil == password)
+      if (nil == password)
 	{
-	  if([_extra isKindOfClass: [NSDictionary class]])
+	  if ([_extra isKindOfClass: [NSDictionary class]])
 	    {
 	      password = [(NSDictionary *)_extra objectForKey: @"Password"];
 	    }
@@ -380,21 +380,22 @@ didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
 - (void)connection:(NSURLConnection *)connection
 didReceiveResponse:(NSURLResponse *)response
 {
-  if(YES == _debug)
+  if (YES == _debug)
     {
-      if([response isKindOfClass: [NSHTTPURLResponse class]])
+      if ([response isKindOfClass: [NSHTTPURLResponse class]])
 	{
-	  NSLog(@"%@: received response (-[%@]):\nStatus Code: %u",
-		self, NSStringFromSelector(_cmd), [(NSHTTPURLResponse *)response statusCode]);
+	  NSLog(@"%@: received response (-[%@]):\nStatus Code: %i",
+            self, NSStringFromSelector(_cmd),
+            (int)[(NSHTTPURLResponse *)response statusCode]);
 	}
     }
 
-  if([response isKindOfClass: [NSHTTPURLResponse class]])
+  if ([response isKindOfClass: [NSHTTPURLResponse class]])
     {
-      if([(NSHTTPURLResponse *)response statusCode] == _expectedStatusCode)
+      if ([(NSHTTPURLResponse *)response statusCode] == _expectedStatusCode)
 	{
 	  [self setFlags: GOTRESPONSE];
-	  if(YES == _debug)
+	  if (YES == _debug)
 	    {
 	      NSLog(@"%@: set GOTRESPONSE (-[%@])", self, NSStringFromSelector(_cmd));
 	    }
@@ -403,7 +404,7 @@ didReceiveResponse:(NSURLResponse *)response
   else
     {
       [self setFlags: GOTRESPONSE];
-      if(YES == _debug)
+      if (YES == _debug)
 	{
 	  NSLog(@"%@: set GOTRESPONSE (-[%@])", self, NSStringFromSelector(_cmd));
 	}
@@ -414,7 +415,7 @@ didReceiveResponse:(NSURLResponse *)response
     didReceiveData:(NSData *)data
 {
   [_received appendData: data];
-  if(YES == _debug)
+  if (YES == _debug)
     {
       NSLog(@"%@: received data '%@' (-[%@])", self, data, NSStringFromSelector(_cmd));
     }
@@ -422,18 +423,18 @@ didReceiveResponse:(NSURLResponse *)response
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
 {
-  if(nil != _expectedContent &&
+  if (nil != _expectedContent &&
      [_received isEqualToData: _expectedContent])
     {
       [self setFlags: GOTCONTENT];
-      if(YES == _debug)
+      if (YES == _debug)
 	{
 	  NSLog(@"%@: set GOTCONTENT (-[%@])", self, NSStringFromSelector(_cmd));
 	}
     }
 
   [self setFlags: GOTFINISH];
-  if(YES == _debug)
+  if (YES == _debug)
     {
       NSLog(@"%@: set GOTFINISH (-[%@])", self, NSStringFromSelector(_cmd));
     }
@@ -445,7 +446,7 @@ didReceiveResponse:(NSURLResponse *)response
 {
   ASSIGN(_error, error);
 
-  /*  if((nil != _expectedContent &&
+  /*  if ((nil != _expectedContent &&
       [_received isEqualToData: _expectedContent]) ||
      (nil == _expectedContent && [_received length] == 0))
     {
@@ -454,7 +455,7 @@ didReceiveResponse:(NSURLResponse *)response
   */
 
   [self setFlags: GOTFAIL];
-  if(YES == _debug)
+  if (YES == _debug)
     {
       NSLog(@"%@: set GOTFAIL (-[%@])", self, NSStringFromSelector(_cmd));
       NSLog(@"%@: error %@", self, error);
@@ -493,17 +494,17 @@ didReceiveResponse:(NSURLResponse *)response
   NSURL *url;
   NSDictionary *d = nil;
 
-  if([extra isKindOfClass: [NSDictionary class]])
+  if ([extra isKindOfClass: [NSDictionary class]])
     {
       d = extra;
 
       instance = [d objectForKey: @"Instance"];
-      if(nil != instance)
+      if (nil != instance)
 	{
 	  NSString *value;
 
 	  protocol = [instance isSecure] ? @"https" : @"http";
-	  if((value = [d objectForKey: @"Protocol"]) == nil ||
+	  if ((value = [d objectForKey: @"Protocol"]) == nil ||
 	     ![[value lowercaseString] isEqualToString: protocol])
 	    {
 	      d = [d mutableCopy];
@@ -526,7 +527,7 @@ didReceiveResponse:(NSURLResponse *)response
 	}
 
       auxInstance = [d objectForKey: @"AuxInstance"];
-      if(nil != auxInstance)
+      if (nil != auxInstance)
 	{
 	  auxPort = [auxInstance port];
 	  ASSIGN(_auxServer, auxInstance);
@@ -535,11 +536,11 @@ didReceiveResponse:(NSURLResponse *)response
 	  isOwnAuxServer = NO;
 	}
 
-      if(isOwnServer)
+      if (isOwnServer)
 	{
-	  if((tmp = [d objectForKey: @"IsDetached"]) != nil)
+	  if ((tmp = [d objectForKey: @"IsDetached"]) != nil)
 	    {
-	      if([tmp isEqualToString: @"YES"])
+	      if ([tmp isEqualToString: @"YES"])
 		{
 		  isDetached = YES;
 		}
@@ -552,13 +553,13 @@ didReceiveResponse:(NSURLResponse *)response
 
       isOwnAuxServer = [[d objectForKey: @"IsAuxilliary"] isEqualToString: @"YES"] &&
 	               nil == _auxServer;
-      if(isOwnAuxServer)
+      if (isOwnAuxServer)
 	{
 	  auxPort = [d objectForKey: @"AuxPort"];
 	}
 
       path = [d objectForKey: @"Path"];
-      if(isOwnAuxServer || nil != _auxServer)
+      if (isOwnAuxServer || nil != _auxServer)
 	{
 	  redirectPath = [d objectForKey: @"RedirectPath"];
 	}
@@ -569,80 +570,80 @@ didReceiveResponse:(NSURLResponse *)response
       payload = [d objectForKey: @"Payload"];
       content = [d objectForKey: @"Content"];
     } // Is extra NSDictionary?
-  else if([extra isKindOfClass: [NSURLRequest class]])
+  else if ([extra isKindOfClass: [NSURLRequest class]])
     {
       ASSIGN(_request, extra);
     }
 
-  if(nil == _request)
+  if (nil == _request)
     {
-      if(nil == protocol)
+      if (nil == protocol)
 	{
 	  protocol = @"http";
 	}
-      if(nil == address)
+      if (nil == address)
 	{
 	  address = @"localhost";
 	}
-      if(nil == port)
+      if (nil == port)
 	{
 	  port = @"54321";
 	}
-      if(nil == auxPort)
+      if (nil == auxPort)
 	{
 	  auxPort = @"54322";
 	}
-      if(nil == path)
+      if (nil == path)
 	{
 	  path = @"/";
 	}
-      if((isOwnAuxServer || nil != _auxServer) && nil == redirectPath)
+      if ((isOwnAuxServer || nil != _auxServer) && nil == redirectPath)
 	{
 	  redirectPath = path;
 	}
-      if(nil != redirectPath && nil == redirectCode)
+      if (nil != redirectPath && nil == redirectCode)
 	{
 	  _redirectStatusCode = 301;
 	}
-      if(nil == statusCode)
+      if (nil == statusCode)
 	{
 	  _expectedStatusCode = 204;
 	}
       else
 	{
 	  _expectedStatusCode = [statusCode intValue];
-	  if(_expectedStatusCode == 0)
+	  if (_expectedStatusCode == 0)
 	    {
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Invalid expected 'StatusCode' supplied %@", statusCode];
 	    }
 	}
-      if(nil == redirectCode)
+      if (nil == redirectCode)
 	{
 	  _redirectStatusCode = 301;
 	}
       else
 	{
 	  _redirectStatusCode = [redirectCode intValue];
-	  if(_redirectStatusCode == 0)
+	  if (_redirectStatusCode == 0)
 	    {
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"Invalid expected 'RedirectCode' supplied %@", redirectCode];
 	    }
 	}
 
-      if(nil == method)
+      if (nil == method)
 	{
 	  method = @"GET";
 	}
 
-      if(![path hasPrefix: @"/"])
+      if (![path hasPrefix: @"/"])
 	{
 	  // path MUST begin with '/'
 	  path = [@"/" stringByAppendingString: path];
 	}
 
-      if(![redirectPath hasPrefix: @"/"])
+      if (![redirectPath hasPrefix: @"/"])
 	{
 	  // path MUST begin with '/'
 	  redirectPath = [@"/" stringByAppendingString: redirectPath];
@@ -659,13 +660,13 @@ didReceiveResponse:(NSURLResponse *)response
       RETAIN(_request);
 
       [(NSMutableURLRequest *)_request setHTTPMethod: method];
-      if(nil != payload)
+      if (nil != payload)
 	{
-	  if([payload isKindOfClass: [NSString class]])
+	  if ([payload isKindOfClass: [NSString class]])
 	    {
 	      payload = [payload dataUsingEncoding: NSUTF8StringEncoding];
 	    }
-	  if(![payload isKindOfClass: [NSData class]])
+	  if (![payload isKindOfClass: [NSData class]])
 	    {
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"invalid payload"];
@@ -673,26 +674,26 @@ didReceiveResponse:(NSURLResponse *)response
 	  [(NSMutableURLRequest *)_request setHTTPBody: payload];
 	}
 
-      if(nil != content)
+      if (nil != content)
 	{
-	  if([content isKindOfClass: [NSString class]])
+	  if ([content isKindOfClass: [NSString class]])
 	    {
 	      content = [content dataUsingEncoding: NSUTF8StringEncoding];
 	    }
-	  if(![content isKindOfClass: [NSData class]])
+	  if (![content isKindOfClass: [NSData class]])
 	    {
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"invalid content"];
 	    }
 	  ASSIGN(_expectedContent, content);
 	}
-      if(nil != _expectedContent && nil == statusCode)
+      if (nil != _expectedContent && nil == statusCode)
 	{
 	  _expectedStatusCode = 200;
 	}
     }
 
-  if(isOwnServer)
+  if (isOwnServer)
     {
       _server = [[TestWebServer alloc] initWithAddress: address
 						  port: port
@@ -702,7 +703,7 @@ didReceiveResponse:(NSURLResponse *)response
       [_server setDelegate: self];
       [_server start: d];
     }
-  if(isOwnAuxServer)
+  if (isOwnAuxServer)
     {
       _auxServer = [[TestWebServer alloc] initWithAddress: address
 						     port: auxPort
@@ -718,7 +719,7 @@ didReceiveResponse:(NSURLResponse *)response
 {
   // trying to guess the execution path
   // and to infer the reference flag set
-  if(nil != _request)
+  if (nil != _request)
     {
       // default reference set
       [self setReferenceFlags: SENTREQUEST];
@@ -728,7 +729,7 @@ didReceiveResponse:(NSURLResponse *)response
       [self setReferenceFlags: GOTREQUEST];
       [self setReferenceFlags: SENTRESPONSE];
       [self setReferenceFlags: GOTRESPONSE];
-      if(nil != _expectedContent)
+      if (nil != _expectedContent)
 	{
 	  [self setReferenceFlags: GOTCONTENT];
 	}
@@ -740,26 +741,27 @@ didReceiveResponse:(NSURLResponse *)response
 		  format: @"no request"];
     }
 
-  if([extra isKindOfClass: [NSDictionary class]])
+  if ([extra isKindOfClass: [NSDictionary class]])
     {
       // make correction in the reference flag set
       NSDictionary *d = extra;
-      if((d = [d objectForKey: @"ReferenceFlags"]) != nil)
+      if ((d = [d objectForKey: @"ReferenceFlags"]) != nil)
 	{
 	  NSEnumerator *en = [d keyEnumerator];
 	  NSString *key;
 	  NSString *value;
 	  SEL sel;
 
-	  while((key = [en nextObject]) != nil)
+	  while ((key = [en nextObject]) != nil)
 	    {
 	      value = [d objectForKey: key];
 	      NSString *originalKey = nil;
 	      NSUInteger flag = NORESULTS;
-	      //	      NSUInteger flag = (NSUInteger)NSMapGet(_flagMap, key);
-	      if(NSMapMember(_flagMap, key, (void **)&originalKey, (void **)&flag))
+	      // NSUInteger flag = (NSUInteger)NSMapGet(_flagMap, key);
+	      if (NSMapMember(_flagMap,
+                key, (void **)&originalKey, (void **)&flag))
 		{
-		  if([value isEqualToString: @"YES"])
+		  if ([value isEqualToString: @"YES"])
 		    {
 		      sel = @selector(setReferenceFlags:);
 		    }
