@@ -62,7 +62,7 @@
 
 - (id)init
 {
-  if((self = [super init]) != nil)
+  if ((self = [super init]) != nil)
     {
       _debug = NO;
       _delegate = nil;
@@ -81,9 +81,9 @@
 {
   NSStream *s = _serverStream;
 
-  if(nil == s) s = _ip;
-  if(nil == s) s = _op;
-  if(nil == s) return nil;
+  if (nil == s) s = _ip;
+  if (nil == s) s = _op;
+  if (nil == s) return nil;
 
   return [s streamStatus] == NSStreamStatusOpen ? _port : nil;
 }
@@ -96,13 +96,13 @@
 {
   BOOL ret = NO;
 
-  if(nil == _serverStream)
+  if (nil == _serverStream)
     {
       ASSIGN(_address, address);
       ASSIGN(_port, port);
       ASSIGN(_secure, dict);
       [self _openServerStream];
-      if(nil != _serverStream)
+      if (nil != _serverStream)
 	{
 	  ret = YES;
 	}
@@ -131,7 +131,7 @@
 {
   NSRunLoop *rl = [NSRunLoop currentRunLoop];;
 
-  if(nil != _serverStream)
+  if (nil != _serverStream)
     {
       [self _closeServerStream];
       DESTROY(_address);
@@ -191,11 +191,11 @@
 		}
 
 	      _doRespond = [self _tryCaptured];
-	      if(_doRespond)
+	      if (_doRespond)
 		{
 		  // reset the output stream to trigger polling
 		  [_op write: NULL maxLength: 0];
-		  if(YES == _debug)
+		  if (YES == _debug)
 		    {
 		      NSLog(@"%@: about to send response\n%@", self, _response);
 		    }
@@ -205,7 +205,7 @@
 	}
       case NSStreamEventHasSpaceAvailable: 
 	{
-	  if(_doRespond && _canRespond)
+	  if (_doRespond && _canRespond)
 	    {
 	      NSMutableData *data;
 	      NSString      *status;
@@ -222,7 +222,7 @@
 
 	      // adding the 'Connection' to the response
 	      connection = [[_request headerNamed: @"Connection"] value];
-	      if(nil == connection)
+	      if (nil == connection)
 		{
 		  connection = [[_request headerNamed: @"connection"] value];
 		}
@@ -232,11 +232,11 @@
 
 	      // adding the 'Content-Length' to the response
 	      content = [_response content];
-	      if([content isKindOfClass: [NSString class]])
+	      if ([content isKindOfClass: [NSString class]])
 		{
 		  contentData = [(NSString *)content dataUsingEncoding: NSUTF8StringEncoding];
 		}
-	      else if([content isKindOfClass: [NSData class]])
+	      else if ([content isKindOfClass: [NSData class]])
 		{
 		  contentData = (NSData *)content;
 		}
@@ -244,17 +244,20 @@
 		{
 		  // yet unsupported
 		}
-	      if(nil != content)
+	      if (nil != content)
 		{
 		  cLength = [contentData length];
-		  if(cLength > 0)
+		  if (cLength > 0)
 		    {
+                      NSString  *l;
+
+                      l = [NSString stringWithFormat: @"%u", (unsigned)cLength];
 		      [_response setHeader: @"Content-Length" 
-				     value: [NSString stringWithFormat: @"%u", cLength]
+				     value: l
 				parameters: nil];
 		    }
 		}
-	      if(cLength == 0)
+	      if (cLength == 0)
 		{
 		  [_response setHeader: @"Content-Length" 
 				 value: @"0"
@@ -263,11 +266,11 @@
 
 	      // adding the status line
 	      status = [[_response headerNamed: @"http"] value];
-	      if(nil == status)
+	      if (nil == status)
 		{
 		  status = [[_response headerNamed: @"HTTP"] value];
 		}
-	      if(nil == status)
+	      if (nil == status)
 		{
 		  status = [[_response headerNamed: @"Http"] value];
 		}	      
@@ -294,7 +297,7 @@
 		}
 	      if (_written == [data length])
 		{
-		  if(close)
+		  if (close)
 		    {
 		      // if the client didn't supply the header 'Connection' or explicitly stated
 		      // to close the current connection
@@ -312,7 +315,7 @@
 	}
       case NSStreamEventEndEncountered: 
 	{
-	  if(theStream == _ip || theStream == _op)
+	  if (theStream == _ip || theStream == _op)
 	    {
 	      [self _closeIOStreams];
 	      [self _resetCycle];
@@ -330,7 +333,7 @@
 	{
 	  int	code = [[theStream streamError] code];
 
-	  if(theStream == _ip || theStream == _op)
+	  if (theStream == _ip || theStream == _op)
 	    {
 	      [self _closeIOStreams];
 	      [self _resetCycle];
@@ -364,7 +367,7 @@
   NSString *keyFile = nil;
   NSRunLoop *rl;
 
-  if(nil == _serverStream)
+  if (nil == _serverStream)
     {
       rl = [NSRunLoop currentRunLoop];
 
@@ -376,7 +379,7 @@
 	  return;
 	}
 
-      if(nil != _secure &&
+      if (nil != _secure &&
 	 (certFile = [_secure objectForKey: @"CertificateFile"]) != nil &&
 	 (keyFile = [_secure objectForKey: @"KeyFile"]) != nil)
 	{
@@ -391,7 +394,7 @@
       [_serverStream setDelegate: self];
       [_serverStream scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
       [_serverStream open];
-      if(YES == _debug)
+      if (YES == _debug)
 	{
 	  NSLog(@"%@: started '%@' on '%@'", self, _serverStream, [NSThread currentThread]);
 	}
@@ -406,13 +409,13 @@
 {
   NSRunLoop *rl;
 
-  if(nil != _serverStream)
+  if (nil != _serverStream)
     {
       rl = [NSRunLoop currentRunLoop];
 
       [_serverStream close];
       [_serverStream removeFromRunLoop: rl forMode: NSDefaultRunLoopMode];
-      if(YES == _debug)
+      if (YES == _debug)
 	{
 	  NSLog(@"%@: stopped server stream %@", self, _serverStream);
 	}
@@ -433,7 +436,7 @@
 {
   NSRunLoop *rl;
 
-  if(_ip != nil && _op != nil)
+  if (_ip != nil && _op != nil)
     {
       rl = [NSRunLoop currentRunLoop];
 
@@ -455,7 +458,7 @@
 {
   NSRunLoop *rl;
 
-  if(nil != _ip || nil != _op)
+  if (nil != _ip || nil != _op)
     {
       rl = [NSRunLoop currentRunLoop];
 
@@ -478,7 +481,7 @@
   NSString *headers;
   NSString *tmp1;
   NSString *tmp2;
-  NSUInteger contentLength;
+  NSUInteger contentLength = 0;
 
   // the following chunk ensures that the captured data are written only
   // when all request's bytes are read... it waits for full headers and
@@ -487,13 +490,13 @@
   tmp1 = [[NSString alloc] initWithData: _capture 
 			       encoding: NSUTF8StringEncoding];
   // whether the headers are read
-  if((r1 = [tmp1 rangeOfString: @"\r\n\r\n"]).location != NSNotFound)
+  if ((r1 = [tmp1 rangeOfString: @"\r\n\r\n"]).location != NSNotFound)
     {
       headers = [tmp1 substringToIndex: r1.location + 2];
-      if((r2 = [[headers lowercaseString] rangeOfString: @"content-length:"]).location != NSNotFound)
+      if ((r2 = [[headers lowercaseString] rangeOfString: @"content-length:"]).location != NSNotFound)
 	{
 	  tmp2 = [headers substringFromIndex: r2.location + r2.length]; // content-length:<tmp2><end of headers>
-	  if((r2 = [tmp2 rangeOfString: @"\r\n"]).location != NSNotFound)
+	  if ((r2 = [tmp2 rangeOfString: @"\r\n"]).location != NSNotFound)
 	    {
 	      // full line with content-length is present
 	      tmp2 = [tmp2 substringToIndex: r2.location]; // number of content's bytes
@@ -504,7 +507,7 @@
 	{
 	  contentLength = 0; // no header 'content-length'
 	}
-      if(r1.location + 4 + contentLength == [_capture length]) // Did we get headers + body?
+      if (r1.location + 4 + contentLength == [_capture length]) // Did we get headers + body?
 	{
 	  // The request has been received
 	  NSString *method = @"";
@@ -516,7 +519,7 @@
 
 	  // TODO: currently no checks
 	  r2 = [headers rangeOfString: @"\r\n"]; 
-	  while(r2.location == 0)
+	  while (r2.location == 0)
 	    {
 	      // ignore an empty line before the request line
 	      headers = [headers substringFromIndex: 2];
@@ -539,7 +542,7 @@
 		   stringByTrimmingCharactersInSet: [NSCharacterSet whitespaceCharacterSet]];
 	  
 	  r2 = [tmp2 rangeOfString: @"?"]; // path?query
-	  if(r2.location != NSNotFound)
+	  if (r2.location != NSNotFound)
 	    {
 	      // path?query
 	      path = [tmp2 substringToIndex: r2.location];
@@ -579,16 +582,16 @@
 			value: version
 		   parameters: nil];
 	  
-	  if(YES == _debug)
+	  if (YES == _debug)
 	    {
 	      NSLog(@"%@: got request\n%@", self, _request);
 	    }
 	  _response = [GSMimeDocument new];
-	  if(nil != _delegate && [_delegate respondsToSelector: @selector(processRequest:response:for:)])
+	  if (nil != _delegate && [_delegate respondsToSelector: @selector(processRequest:response:for:)])
 	    {
 	      ret = [_delegate processRequest: _request response: _response for: self];
 	    }
-	  if(!ret)
+	  if (!ret)
 	    {
 	      DESTROY(_response);
 	      _response = [GSMimeDocument new];
