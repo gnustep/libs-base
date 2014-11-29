@@ -28,6 +28,26 @@ int main()
   d = [@"                                1.2" doubleValue];
   PASS(d > 1.199999 && d < 1.200001, "doubleValue with leading space works");
 
+  s = @"50.6468746467461646";
+  sscanf([s UTF8String], "%lg", &d);
+  PASS(EQ([s doubleValue], d), "50.6468746467461646 -doubleValue OK");
+
+  s = @"50.64687464674616461";
+  sscanf([s UTF8String], "%lg", &d);
+  PASS(EQ([s doubleValue], d), "50.64687464674616461 -doubleValue OK");
+
+  s = @"0.646874646746164616898211";
+  sscanf([s UTF8String], "%lg", &d);
+  PASS(EQ([s doubleValue], d), "0.646874646746164616898211 -doubleValue OK");
+
+  s = @"502.646874646746164";
+  sscanf([s UTF8String], "%lg", &d);
+  PASS(EQ([s doubleValue], d), "502.646874646746164 -doubleValue OK");
+
+  s = @"502.6468746467461646";
+  sscanf([s UTF8String], "%lg", &d);
+  PASS(EQ([s doubleValue], d), "502.6468746467461646 -doubleValue OK");
+
   s = [NSString stringWithCharacters: &u length: 1];
   PASS_EQUAL(s, @"£", "UTF-8 string literal matches 16bit unicode string");
 
