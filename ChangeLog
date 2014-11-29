@@ -1,3 +1,8 @@
+2014-11-29  Sergei Golovin <Golovin.SV@gmail.com>
+
+	* Tests/base/NSURLConnection: Test helper tool plus a load of
+	tests for NSURLConnection.
+
 2014-11-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSScanner.m: Fixup error in scanning doubles with excess
