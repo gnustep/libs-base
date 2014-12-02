@@ -329,11 +329,6 @@ myHostName()
 	    {
 	      if ([name isEqualToString: myHostName()] == YES)
 		{
-		  NSLog(@"No network address appears to be available "
-		    @"for this machine (%@) - using loopback address "
-		    @"(127.0.0.1)", name);
-		  NSLog(@"You probably need a line like '"
-		    @"127.0.0.1 %@ localhost' in your /etc/hosts file", name);
 		  host = [self hostWithAddress: @"127.0.0.1"];
 		  [host _addName: name];
 		}
