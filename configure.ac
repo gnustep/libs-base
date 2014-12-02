@@ -1749,19 +1749,34 @@ CFLAGS=$saved_CFLAGS
 #--------------------------------------------------------------------
 
 
-AC_CHECK_FUNC(pthread_setname_np, pthread_setname_ok=yes, pthread_setname_ok=no)
-if test $pthread_setname_ok = yes ; then
-  case "$target_os" in
-    darwin*) AC_DEFINE(PTHREAD_SETNAME(a,b), pthread_setname_np(b), [Description: Define set name function for pthread]);;
-          *) AC_DEFINE(PTHREAD_SETNAME(a,b), pthread_setname_np(a,b), [Description: Define set name function for pthread]);;
+AC_CHECK_FUNCS(pthread_set_name_np)
+if test $ac_cv_func_pthread_set_name_np == yes; then
+  AC_DEFINE(PTHREAD_SETNAME(a,b), pthread_set_name_np(b),
+    [Description: Define set name function for pthread])
+else
+  AC_CACHE_CHECK(
+    [for pthread_setname_np() variant],
+    [gs_cv_pthread_setname_np],
+    [AC_LINK_IFELSE(
+      [AC_LANG_PROGRAM([#include <pthread.h>],
+        [pthread_setname_np(pthread_self(), "name");])],
+        [gs_cv_pthread_setname_np=glibc],
+        [AC_LINK_IFELSE(
+          [AC_LANG_PROGRAM([#include <pthread.h>],
+            [pthread_setname_np(pthread_self(), "%s", "name");])],
+             [gs_cv_pthread_setname_np=netbsd],
+             [gs_cv_pthread_setname_np=none])])])
+  case $gs_cv_pthread_setname_np in
+    glibc)
+      AC_DEFINE(PTHREAD_SETNAME(a,b), pthread_setname_np(a,b),
+        [Description: Define set name function for pthread])
+      ;;
+    netbsd)
+      AC_DEFINE(PTHREAD_SETNAME(a,b), pthread_setname_np(a,"%s",b),
+        [Description: Define set name function for pthread])
+      ;;
   esac
 fi
-
-AC_CHECK_FUNC(pthread_set_name_np, pthread_set_name_ok=yes, pthread_set_name_ok=no)
-if test $pthread_set_name_ok = yes ; then
-  AC_DEFINE(PTHREAD_SETNAME(a,b), pthread_set_name_np(a,b), [Description: Define set name function for pthread])
-fi
-
 
 #--------------------------------------------------------------------
 # Check whether Objective-C /really/ works
