@@ -1,3 +1,8 @@
+2014-12-23 Riccardo Mottola <rm@gnu.org>
+
+	* Source/GSSocketStream.m
+	Fix code-path for non AF_INET6
+
 2014-11-29  Sergei Golovin <Golovin.SV@gmail.com>
 
 	* Tests/base/NSURLConnection: Test helper tool plus a load of
