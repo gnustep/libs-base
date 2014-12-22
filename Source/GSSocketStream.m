@@ -240,7 +240,7 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
       ((struct sockaddr_in*)(void*)sin)->sin_port = GSSwapHostI16ToBig(port);
     }
 #else
-  ((struct sockaddr_ind*)sin)->sin6_port = GSSwapHostI16ToBig(port);
+  ((struct sockaddr_in*)sin)->sin_port = GSSwapHostI16ToBig(port);
 #endif
   return YES;
 }
