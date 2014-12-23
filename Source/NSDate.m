@@ -49,6 +49,11 @@
 #define DISTANT_FUTURE	63113990400.0
 #define DISTANT_PAST	-63113817600.0
 
+/* On older Solaris we don't have NAN nor nan() */
+#if defined(__sun) && defined(__SVR4) && !defined(NAN)
+#define NAN 0x7fffffffffffffff
+#endif
+
 const NSTimeInterval NSTimeIntervalSince1970 = 978307200.0;
 
 

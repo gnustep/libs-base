@@ -3,6 +3,9 @@
 	* Source/GSSocketStream.m
 	Fix code-path for non AF_INET6
 
+	* Source/NSDate.m
+	Provide NAN constant for Solaris if not available.
+
 2014-11-29  Sergei Golovin <Golovin.SV@gmail.com>
 
 	* Tests/base/NSURLConnection: Test helper tool plus a load of
