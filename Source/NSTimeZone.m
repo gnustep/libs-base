@@ -112,7 +112,6 @@
 #ifdef HAVE_TZHEAD
 #include <tzfile.h>
 #else
-#define NOID
 #include "nstzfile.h"
 #endif
 

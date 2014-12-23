@@ -1,3 +1,9 @@
+2014-12-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m:
+	* Source/nstzfile.h:
+	Remove unused include of (possibly) non existent file.
+
 2014-12-23 Riccardo Mottola <rm@gnu.org>
 
 	* Source/GSSocketStream.m
