@@ -1751,7 +1751,7 @@ CFLAGS=$saved_CFLAGS
 
 AC_CHECK_FUNCS(pthread_set_name_np)
 if test $ac_cv_func_pthread_set_name_np == yes; then
-  AC_DEFINE(PTHREAD_SETNAME(a,b), {pthread_set_name_np(b),0}
+  AC_DEFINE(PTHREAD_SETNAME(a,b), (pthread_set_name_np(b),0),
     [Description: Define set_name function for pthread returning void])
 else
   AC_CACHE_CHECK(
