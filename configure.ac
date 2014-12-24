@@ -1751,8 +1751,8 @@ CFLAGS=$saved_CFLAGS
 
 AC_CHECK_FUNCS(pthread_set_name_np)
 if test $ac_cv_func_pthread_set_name_np == yes; then
-  AC_DEFINE(PTHREAD_SETNAME(a,b), pthread_set_name_np(b),
-    [Description: Define set name function for pthread])
+  AC_DEFINE(PTHREAD_SETNAME(a,b), {pthread_set_name_np(b),0}
+    [Description: Define set_name function for pthread returning void])
 else
   AC_CACHE_CHECK(
     [for pthread_setname_np() variant],
@@ -1769,11 +1769,11 @@ else
   case $gs_cv_pthread_setname_np in
     glibc)
       AC_DEFINE(PTHREAD_SETNAME(a,b), pthread_setname_np(a,b),
-        [Description: Define set name function for pthread])
+        [Description: Define setname function for pthread with two args])
       ;;
     netbsd)
       AC_DEFINE(PTHREAD_SETNAME(a,b), pthread_setname_np(a,"%s",b),
-        [Description: Define set name function for pthread])
+        [Description: Define setname function for pthread with three args])
       ;;
   esac
 fi
