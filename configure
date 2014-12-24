@@ -13815,7 +13815,7 @@ done
 if test $ac_cv_func_pthread_set_name_np == yes; then
 
 cat >>confdefs.h <<\_ACEOF
-#define PTHREAD_SETNAME(a,b) {pthread_set_name_np(b)
+#define PTHREAD_SETNAME(a,b) (pthread_set_name_np(b),0)
 _ACEOF
 
 else
