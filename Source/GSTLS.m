@@ -54,6 +54,8 @@ NSString * const GSTLSRemoteHosts = @"GSTLSRemoteHosts";
 NSString * const GSTLSRevokeFile = @"GSTLSRevokeFile";
 NSString * const GSTLSVerify = @"GSTLSVerify";
 
+#if     defined(HAVE_GNUTLS)
+
 static NSString *
 standardizedPath(NSString *path)
 {
@@ -68,8 +70,6 @@ standardizedPath(NSString *path)
     }
   return [path stringByStandardizingPath];
 }
-
-#if     defined(HAVE_GNUTLS)
 
 #if GNUTLS_VERSION_NUMBER <= 0x020b00
 /* Set up locking callbacks for gcrypt so that it will be thread-safe.
