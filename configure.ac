@@ -1752,7 +1752,7 @@ CFLAGS=$saved_CFLAGS
 AC_CHECK_FUNCS(pthread_set_name_np)
 if test $ac_cv_func_pthread_set_name_np == yes; then
   AC_DEFINE(PTHREAD_SETNAME(a), (pthread_set_name_np(pthread_self(), a), 0),
-    [Description: Define set name function for pthread])
+    [Description: Define set name function for pthread returning void])
 else
   AC_CACHE_CHECK(
     [for pthread_setname_np() variant],
@@ -1773,7 +1773,7 @@ else
   case $gs_cv_pthread_setname_np in
     darwin)
       AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(a),
-        [Description: Define set name function for pthread])
+        [Description: Define set name function for pthread with one arg])
       ;;
     glibc)
       AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(pthread_self(),a),
