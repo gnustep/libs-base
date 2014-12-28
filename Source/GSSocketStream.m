@@ -729,6 +729,59 @@ static NSArray  *keys = nil;
 @interface      GSTLSHandler : GSStreamHandler
 @end
 @implementation GSTLSHandler
+
+static NSArray  *keys = nil;
+
++ (void) initialize
+{
+  if (nil == keys)
+    {
+      keys = [[NSArray alloc] initWithObjects:
+        GSTLSCAFile,
+        GSTLSCertificateFile,
+        GSTLSCertificateKeyFile,
+        GSTLSCertificateKeyPassword,
+        GSTLSDebug,
+        GSTLSPriority,
+        GSTLSRemoteHosts,
+        GSTLSRevokeFile,
+        GSTLSVerify,
+        nil];
+      [[NSObject leakAt: &keys] release];
+    }
+}
+
++ (void) populateProperties: (NSMutableDictionary**)dict
+	    withTLSPriority: (NSString*)pri
+	    fromInputStream: (NSStream*)i
+	     orOutputStream: (NSStream*)o
+{
+  NSString              *str;
+  NSMutableDictionary   *opts = *dict;
+  NSUInteger            count;
+  
+  if (NULL != dict)
+    {
+      if (nil != pri)
+	{
+	  [opts setObject: pri forKey: GSTLSPriority];
+	}
+      count = [keys count];
+      while (count-- > 0)
+	{
+	  NSString  *key = [keys objectAtIndex: count];
+
+	  str = [o propertyForKey: key];
+	  if (nil == str) str = [i propertyForKey: key];
+	  if (nil != str) [opts setObject: str forKey: key];
+	}
+    }
+  else
+    {
+      NSWarnLog(@"%@ requires not nil 'dict'", NSStringFromSelector(_cmd));
+    }
+}
+
 + (void) tryInput: (GSSocketInputStream*)i output: (GSSocketOutputStream*)o
 {
   NSString	*tls;
