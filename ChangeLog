@@ -1,5 +1,14 @@
 2014-12-28  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
+	* configure.ac:
+	* Source/NSThread.m (PTHREAD_SETNAME):
+	Fix detection of the proper pthread_setname_np and
+	pthread_set_name_np variants on FreeBSD, OpenBSD and Darwin.
+
+	* configure: Regenerated.
+
+2014-12-28  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
 	* Source/GSSocketStream.m: Add necessary GSTLSHandler methods when
 	TLS is disabled.
 	* Source/GSTLS.m (standardizedPath): Define private function only

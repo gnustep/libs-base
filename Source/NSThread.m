@@ -135,13 +135,13 @@ static int SetThreadName(DWORD dwThreadID, const char *threadName)
   }
 }
 
-#define PTHREAD_SETNAME(a,b)  SetThreadName(-1, b)
+#define PTHREAD_SETNAME(a)  SetThreadName(-1, a)
 
 #endif
 #endif
 
 #ifndef PTHREAD_SETNAME
-#define PTHREAD_SETNAME(a,b) -1
+#define PTHREAD_SETNAME(a) -1
 #endif
 
 
@@ -807,13 +807,13 @@ unregisterActiveThread(NSThread *thread)
 
   while (result != 0 && [aName length] > 0)
     {
-      result = PTHREAD_SETNAME(pthread_self(),
-        [aName cStringUsingEncoding: NSUTF8StringEncoding]);
+      result =
+        PTHREAD_SETNAME([aName cStringUsingEncoding: NSUTF8StringEncoding]);
       if (result != 0)
         {
           if (ERANGE == errno)
             {
-              /* Name must be too long ... gnu/linix uses 15 characters
+              /* Name must be too long ... gnu/linux uses 15 characters
                */
               if ([aName length] > 15)
                 {
