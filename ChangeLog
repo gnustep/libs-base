@@ -1,3 +1,8 @@
+2015-01-15  Doug Simons <doug.simons@testplant.com>
+
+       * NSCalendarDate.m: Fixed init methods to not throw an exception when
+	   called with description strings containing non-ASCII characters.
+	   
 2013-10-31  Doug Simons <doug.simons@testplant.com>
 
        * NSData.m: Fixed a bug in replaceBytesInRange:withBytes:length: that

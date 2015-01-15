@@ -716,7 +716,8 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
     {
       description = @"";
     }
-  source = [description cString];
+  source = [description cStringUsingEncoding:NSUTF8StringEncoding];
+
   sourceLen = strlen(source);
   if (locale == nil)
     {
