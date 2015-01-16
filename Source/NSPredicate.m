@@ -213,7 +213,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
               case 'i':
                 ptr++;
                 [arr addObject: [NSNumber numberWithInt:
-                  va_arg(args, NSInteger)]];
+                  va_arg(args, int)]];
                 break;
 
               case 'o':
@@ -224,7 +224,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
               case 'X':
                 ptr++;
                 [arr addObject: [NSNumber numberWithUnsignedInt:
-                  va_arg(args, NSUInteger)]];
+                  va_arg(args, unsigned)]];
                 break;
 
               case 'e':

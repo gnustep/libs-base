@@ -1463,13 +1463,13 @@ compare(id elem1, id elem2, void* context)
 
   if ([key isEqualToString: @"@count"] == YES)
     {
-      result = [NSNumber numberWithUnsignedInt: [self count]];
+      result = [NSNumber numberWithUnsignedInteger: [self count]];
     }
   else if ([key isEqualToString: @"count"] == YES)
     {
       GSOnceMLog(
 @"[NSArray-valueForKey:] called wth 'count' is deprecated .. use '@count'");
-      result = [NSNumber numberWithUnsignedInt: [self count]];
+      result = [NSNumber numberWithUnsignedInteger: [self count]];
     }
   else
     {
@@ -1517,7 +1517,7 @@ compare(id elem1, id elem2, void* context)
         {
           if ([path isEqualToString: @"@count"] == YES)
             {
-              result = [NSNumber numberWithUnsignedInt: [self count]];
+              result = [NSNumber numberWithUnsignedInteger: [self count]];
             }
           else
             {
@@ -1532,7 +1532,7 @@ compare(id elem1, id elem2, void* context)
 
           if ([op isEqualToString: @"@count"] == YES)
             {
-              result = [NSNumber numberWithUnsignedInt: count];
+              result = [NSNumber numberWithUnsignedInteger: count];
             }
           else if ([op isEqualToString: @"@avg"] == YES)
             {

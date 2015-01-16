@@ -752,12 +752,12 @@ static NSDictionary *makeReference(unsigned ref)
 	return;
 
       case _C_INT:
-	o = [NSNumber numberWithInt: *(NSInteger*)address];
+	o = [NSNumber numberWithInt: *(int*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 
       case _C_UINT:
-	o = [NSNumber numberWithUnsignedInt: *(NSUInteger*)address];
+	o = [NSNumber numberWithUnsignedInt: *(unsigned int*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 
