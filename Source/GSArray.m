@@ -84,8 +84,8 @@ static Class	GSInlineArrayClass;
   NSString     *reason;
 
   info = [NSDictionary dictionaryWithObjectsAndKeys:
-    [NSNumber numberWithUnsignedInt: index], @"Index",
-    [NSNumber numberWithUnsignedInt: _count], @"Count",
+    [NSNumber numberWithUnsignedInteger: index], @"Index",
+    [NSNumber numberWithUnsignedInteger: _count], @"Count",
     self, @"Array", nil, nil];
 
   reason = [NSString stringWithFormat:
@@ -591,7 +591,7 @@ static Class	GSInlineArrayClass;
       NSDictionary *info;
 
       info = [NSDictionary dictionaryWithObjectsAndKeys:
-	[NSNumber numberWithUnsignedInt: index], @"Index",
+	[NSNumber numberWithUnsignedInteger: index], @"Index",
 	self, @"Array", nil, nil];
 
       exception = [NSException exceptionWithName: NSInvalidArgumentException
@@ -772,7 +772,7 @@ static Class	GSInlineArrayClass;
       NSDictionary *info;
 
       info = [NSDictionary dictionaryWithObjectsAndKeys:
-	[NSNumber numberWithUnsignedInt: index], @"Index",
+	[NSNumber numberWithUnsignedInteger: index], @"Index",
         _contents_array[index], @"OldObject",
 	self, @"Array", nil, nil];
 

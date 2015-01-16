@@ -229,8 +229,8 @@ static Class	concreteClass = Nil;
   NSString     *reason;
 
   info = [NSDictionary dictionaryWithObjectsAndKeys:
-    [NSNumber numberWithUnsignedInt: index], @"Index",
-    [NSNumber numberWithUnsignedInt: _count], @"Count",
+    [NSNumber numberWithUnsignedInteger: index], @"Index",
+    [NSNumber numberWithUnsignedInteger: _count], @"Count",
     self, @"Array", nil, nil];
 
   reason = [NSString stringWithFormat:
