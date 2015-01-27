@@ -40,10 +40,20 @@
 #import <dns_sd.h>		// Apple's DNS Service Discovery
 
 #import <sys/types.h>
-#import <sys/socket.h>		// AF_INET / AF_INET6
 
+#ifdef __MINGW__
+#import <winsock2.h>
+#import <ws2tcpip.h>
+#else
+#import <sys/select.h>
+#import <sys/socket.h>		// AF_INET / AF_INET6
+#endif
+#import <sys/types.h>
+
+#ifndef __MINGW__
 #import <netinet/in.h>		// struct sockaddr_in / sockaddr_in6
 #import <arpa/inet.h>		// inet_pton(3)
+#endif
 
 //
 // Define
@@ -948,6 +958,8 @@ static void DNSSD_API
 	DESTROY(service->timer);
       }
     
+#if 0
+    // Cocoa lave this information intact on stop/cleanup...
     if (_netService)
       {
 	DNSServiceRefDeallocate(_netService);
@@ -956,6 +968,7 @@ static void DNSSD_API
     
     [service->info removeAllObjects];
     [service->foundAddresses removeAllObjects];
+#endif
   }
   UNLOCK(service);
 }
@@ -2800,7 +2813,7 @@ ConvertError(int errorCode)
  *
  */
 
-static void
+static void DNSSD_API
 EnumerationCallback(DNSServiceRef sdRef,
                       DNSServiceFlags flags,
                       uint32_t interfaceIndex,
@@ -2822,7 +2835,7 @@ EnumerationCallback(DNSServiceRef sdRef,
  *
  */
 
-static void
+static void DNSSD_API
 BrowserCallback(DNSServiceRef sdRef,
                   DNSServiceFlags flags,
                   uint32_t interfaceIndex,
@@ -2848,7 +2861,7 @@ BrowserCallback(DNSServiceRef sdRef,
  *
  */
 
-static void
+static void DNSSD_API
 ResolverCallback(DNSServiceRef sdRef,
                    DNSServiceFlags flags,
                    uint32_t interfaceIndex,
@@ -2878,7 +2891,7 @@ ResolverCallback(DNSServiceRef sdRef,
  *
  */
 
-static void
+static void DNSSD_API
 RegistrationCallback(DNSServiceRef sdRef,
                        DNSServiceFlags flags,
                        DNSServiceErrorType errorCode,
@@ -2902,7 +2915,7 @@ RegistrationCallback(DNSServiceRef sdRef,
  *
  */
 
-static void
+static void DNSSD_API
 QueryCallback(DNSServiceRef sdRef,
                 DNSServiceFlags flags,
                 uint32_t interfaceIndex,

@@ -3026,7 +3026,8 @@ if test $enable_zeroconf = yes; then
   if test "$zeroconf_api" = "any" || test "$zeroconf_api" = "mdns"; then
     AC_CHECK_HEADERS(dns_sd.h, have_mdns=yes, have_mdns=no)
     if test "$have_mdns" = "yes"; then
-      AC_CHECK_LIB(dns_sd, DNSServiceBrowse, have_mdns=yes, have_mdns=no)
+      #AC_CHECK_LIB(dns_sd, DNSServiceBrowse, have_mdns=yes, have_mdns=no)
+      have_mdns=yes
       if test "$have_mdns" = "yes"; then
         MDNS_LIBS="-ldns_sd"
         HAVE_MDNS=1
