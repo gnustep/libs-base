@@ -11317,25 +11317,18 @@ fi
 
 if test $enable_zeroconf = yes; then
   if test "$zeroconf_api" = "any" || test "$zeroconf_api" = "mdns"; then
-    for ac_header in dns_sd.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "dns_sd.h" "ac_cv_header_dns_sd_h" "$ac_includes_default"
+    ac_fn_c_check_header_mongrel "$LINENO" "dns_sd.h" "ac_cv_header_dns_sd_h" "$ac_includes_default"
 if test "x$ac_cv_header_dns_sd_h" = x""yes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_DNS_SD_H 1
-_ACEOF
- have_mdns=yes
+  have_mdns=yes
 else
   have_mdns=no
 fi
 
-done
 
     if test "$have_mdns" = "yes"; then
       #AC_CHECK_LIB(dns_sd, DNSServiceBrowse, have_mdns=yes, have_mdns=no)
-      have_mdns=yes
       if test "$have_mdns" = "yes"; then
-        MDNS_LIBS="-ldns_sd"
+        MDNS_LIBS="-ldnssd"
         HAVE_MDNS=1
       fi
     fi
