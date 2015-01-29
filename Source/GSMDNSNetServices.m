@@ -163,6 +163,9 @@ typedef struct _Monitor		// The actual NSNetServiceMonitor
 //
 // Private
 //
+@interface GSMDNSNetService (Private)
+- (void)stopResolving:(id)sender;
+@end
 
 //
 // Private Interface
@@ -317,7 +320,20 @@ QueryCallback(DNSServiceRef			 sdRef,
       _netServiceBrowser = NULL;
     }
     
-    [browser->services removeAllObjects];
+    {
+      id            key;
+      NSEnumerator *iter = [browser->services keyEnumerator];
+      
+      while ((key = [iter nextObject]))
+      {
+        GSMDNSNetService *service = [browser->services objectForKey: key];
+        
+        [service stopMonitoring];
+        [service stopResolving: self];
+        [service stop];
+        [browser->services removeObjectForKey: key];
+      }
+    }
   }
   UNLOCK(browser);
 }
@@ -958,7 +974,6 @@ QueryCallback(DNSServiceRef			 sdRef,
       DESTROY(service->timer);
     }
     
-#if 0
     // Cocoa leaves this information intact on stop/cleanup...
     if (_netService)
     {
@@ -966,6 +981,7 @@ QueryCallback(DNSServiceRef			 sdRef,
       _netService = NULL;
     }
     
+#if 0
     [service->info removeAllObjects];
     [service->foundAddresses removeAllObjects];
 #endif
@@ -987,17 +1003,20 @@ QueryCallback(DNSServiceRef			 sdRef,
   
   service = (Service *) _reserved;
   
-  LOCK(service);
+  if (service->timeout)
   {
-    [service->timeout invalidate];
-    DESTROY(service->timeout);
-    [service->timer invalidate];
-    DESTROY(service->timer);
+    LOCK(service);
+    {
+      [service->timeout invalidate];
+      DESTROY(service->timeout);
+      [service->timer invalidate];
+      DESTROY(service->timer);
 
-    [self netService: self
-       didNotResolve: CreateError(self, NSNetServicesTimeoutError)];
+      [self netService: self
+         didNotResolve: CreateError(self, NSNetServicesTimeoutError)];
+    }
+    UNLOCK(service);
   }
-  UNLOCK(service);
 }
 
 /**
@@ -1019,7 +1038,7 @@ QueryCallback(DNSServiceRef			 sdRef,
   Service	*service;
   
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
   
   LOCK(service);
@@ -1092,15 +1111,22 @@ QueryCallback(DNSServiceRef			 sdRef,
                                         self);
       
       // No error? Then create a new timer
-      if (kDNSServiceErr_NoError == errorCode)
+      if (kDNSServiceErr_NoError != errorCode)
+      {
+        // Notify delegate...
+        [self netService: self
+           didNotResolve: CreateError(self, errorCode)];
+        [self stopResolving: self];
+      }
+      else
 	    {
-	      service->timer = [[NSTimer timerWithTimeInterval: INTERVAL
+        service->timer = [[NSTimer timerWithTimeInterval: INTERVAL
                                                   target: self
                                                 selector: @selector(loop:)
                                                 userInfo: nil
                                                  repeats: YES] retain];
-	      [service->timer fire];
-        
+        [service->timer fire];
+
         // notify the delegate
         [self netServiceDidResolveAddress: self];
 	    }
@@ -1275,7 +1301,7 @@ QueryCallback(DNSServiceRef			 sdRef,
   Service	*service;
   
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
   
   LOCK(service);
@@ -1457,18 +1483,24 @@ QueryCallback(DNSServiceRef			 sdRef,
   DNSServiceErrorType	err = kDNSServiceErr_NoError;
   
   sock = DNSServiceRefSockFD(_netService);
-  
+
   if (-1 != sock)
   {
     FD_ZERO(&set);
     FD_SET(sock, &set);
     
-    if (1 == select(sock + 1, &set, (fd_set *) NULL, (fd_set *) NULL, &tout))
+    int selcode;
+    selcode = select(sock + 1, &set, (fd_set *) NULL, (fd_set *) NULL, &tout);
+    if (1 == selcode)
     {
       err = DNSServiceProcessResult(_netService);
     }
+    else
+    {
+      NSLog(@"%s:%d:DNSServiceProcessResult select code: %d errno: %d", __PRETTY_FUNCTION__, __LINE__, selcode, errno);
+    }
   }
-  
+
   if (kDNSServiceErr_NoError != err)
   {
     Service	*service;
@@ -2017,13 +2049,16 @@ QueryCallback(DNSServiceRef			 sdRef,
   
   service = (Service *) _reserved;
   
-  LOCK(service);
+  if (service->timer)
   {
-    [self cleanup];
-    
-    [self netServiceDidStop: self];
+    LOCK(service);
+    {
+      [self cleanup];
+      
+      [self netServiceDidStop: self];
+    }
+    UNLOCK(service);
   }
-  UNLOCK(service);
 }
 
 /**
@@ -2342,12 +2377,12 @@ QueryCallback(DNSServiceRef			 sdRef,
   Service	*service;
  
   INTERNALTRACE;
-  [self setDelegate: nil];
   service = (Service *) _reserved;
   {
     LOCK(service);
     {
       [self stopMonitoring];
+      [self stopResolving: self];
       [self cleanup];
       
       DESTROY(service->info);
@@ -2359,6 +2394,7 @@ QueryCallback(DNSServiceRef			 sdRef,
     
     free(service);
   }
+  [self setDelegate: nil];
   [super dealloc];
 }
 
