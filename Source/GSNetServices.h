@@ -139,3 +139,36 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
   NSMutableDictionary *_services;
 }
 @end
+
+#else // GS_USE_MDNS
+
+// Include(s)...
+#import <dns_sd.h>
+
+// Subclasses using mDNSResponder:
+
+/**
+ * NSNetService using the mDNSResponder API.
+ */
+#ifdef __clang__        /* FIXME ... this is not clang specific! */
+@interface GSMDNSNetService : NSNetService <NSNetServiceDelegate>
+#else
+@interface GSMDNSNetService : NSNetService
+#endif
+{
+  DNSServiceRef _resolverRef;
+  DNSServiceRef _queryRef;
+}
+@end
+
+/**
+ * NSNetServiceBrowser using the mDNSResponder API.
+ */
+#ifdef __clang__        /* FIXME ... this is not clang specific! */
+@interface GSMDNSNetServiceBrowser : NSNetServiceBrowser <NSNetServiceBrowserDelegate>
+#else
+@interface GSMDNSNetServiceBrowser : NSNetServiceBrowser
+#endif
+@end
+
+#endif // GS_USE_AVAHI
