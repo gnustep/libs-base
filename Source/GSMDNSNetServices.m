@@ -928,9 +928,13 @@ QueryCallback(DNSServiceRef			 sdRef,
                         forMode: NSDefaultRunLoopMode];
       }
       
+#if 0
       [service->runloop addTimer: service->timer
                          forMode: service->runloopmode];
       [service->timer fire];
+#else
+      DNSServiceProcessResult(_netService);
+#endif
     }
     else // notify the delegate of the error
     {
@@ -1104,7 +1108,7 @@ QueryCallback(DNSServiceRef			 sdRef,
       }
       
       // Prepare query for A and/or AAAA record
-      errorCode = DNSServiceQueryRecord((DNSServiceRef *) &_netService,
+      errorCode = DNSServiceQueryRecord((DNSServiceRef *) &_queryRef,
                                         flags,
                                         interfaceIndex,
                                         hosttarget,
@@ -1123,15 +1127,76 @@ QueryCallback(DNSServiceRef			 sdRef,
       }
       else
 	    {
+#if 0
+        // Try delaying a bit for Bonjour to respond...
         service->timer = [[NSTimer timerWithTimeInterval: INTERVAL
                                                   target: self
                                                 selector: @selector(loop:)
                                                 userInfo: nil
                                                  repeats: YES] retain];
         [service->timer fire];
-
+        
         // notify the delegate
         [self netServiceDidResolveAddress: self];
+#else
+#if 0
+        while (errorCode == kDNSServiceErr_NoError)
+        {
+          errorCode = DNSServiceProcessResult(_queryRef);
+        }
+#else
+        {
+          struct  timeval	tout = { 0, 50 };
+          fd_set  set;
+          int     sock = DNSServiceRefSockFD(_queryRef);;
+        
+          if (-1 != sock)
+          {
+            int selcode = 1;
+            FD_ZERO(&set);
+            FD_SET(sock, &set);
+            
+            while ((selcode = select(sock + 1, &set, (fd_set *) NULL, (fd_set *) NULL, &tout)) == 1)
+            {
+              errorCode = DNSServiceProcessResult(_queryRef);
+            }
+            if (-1 == selcode)
+            {
+              NSLog(@"%s:%d:DNSServiceProcessResult select code: %d errno: %d", __PRETTY_FUNCTION__, __LINE__, selcode, errno);
+            }
+            else if (selcode == 0)
+            {
+              NSLog(@"%s:%d:DNSServiceProcessResult select code: %d TIMEOUT", __PRETTY_FUNCTION__, __LINE__, selcode);
+            }
+          }
+        }
+#endif
+        
+#if 0
+        if (kDNSServiceErr_NoError != errorCode)
+        {
+          // Notify delegate...
+          [self netService: self
+             didNotResolve: CreateError(self, errorCode)];
+          [self stopResolving: self];
+        }
+        else
+#endif
+        if (([self addresses] == nil) || ([[self addresses] count] == 0))
+        {
+          // Notify delegate...
+          [self netService: self
+             didNotResolve: CreateError(self, errorCode)];
+          [self stopResolving: self];
+        }
+        else
+        {
+          // notify the delegate
+          [self netServiceDidResolveAddress: self];
+        }
+        DNSServiceRefDeallocate(_queryRef);
+        NSLog(@"%s:%d:errorCode: %ld", __PRETTY_FUNCTION__, __LINE__, (long)errorCode);
+#endif
 	    }
     }
   }
@@ -1304,6 +1369,7 @@ QueryCallback(DNSServiceRef			 sdRef,
   Service	*service;
   
   INTERNALTRACE;
+  NSLog(@"%s:%d:DNSServiceRef: %p", __PRETTY_FUNCTION__, __LINE__, sdRef);
 
   service = (Service *) _reserved;
   
@@ -1489,10 +1555,10 @@ QueryCallback(DNSServiceRef			 sdRef,
 
   if (-1 != sock)
   {
+    int selcode;
     FD_ZERO(&set);
     FD_SET(sock, &set);
     
-    int selcode;
     selcode = select(sock + 1, &set, (fd_set *) NULL, (fd_set *) NULL, &tout);
     if (1 == selcode)
     {
@@ -2023,7 +2089,7 @@ QueryCallback(DNSServiceRef			 sdRef,
         DESTROY(service->timeout);
       }
       
-      service->timeout = [[NSTimer scheduledTimerWithTimeInterval: timeout + SHORTTIMEOUT
+      service->timeout = [[NSTimer timerWithTimeInterval: timeout + SHORTTIMEOUT
                                                            target: self
                                                          selector: @selector(stopResolving:)
                                                          userInfo: nil
