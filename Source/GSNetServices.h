@@ -142,6 +142,9 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
 
 #else // GS_USE_MDNS
 
+// Include(s)...
+#import <dns_sd.h>
+
 // Subclasses using mDNSResponder:
 
 /**
@@ -152,6 +155,10 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
 #else
 @interface GSMDNSNetService : NSNetService
 #endif
+{
+  DNSServiceRef _resolverRef;
+  DNSServiceRef _queryRef;
+}
 @end
 
 /**
