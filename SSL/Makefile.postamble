@@ -76,10 +76,18 @@ after-distclean::
 # after-check::
 
 config.mak: config.mak.in
-	./configure
+	if [ -x config.status ]; then \
+	  ./config.status --recheck; \
+	else \
+	  ./configure; \
+	fi
 
 config.h: config.h.in
-	./configure
+	if [ -x config.status ]; then \
+	  ./config.status --recheck; \
+	else \
+	  ./configure; \
+	fi
 
 # PS: the config.h file is specific to the target that was configured.
 # At the moment, we use a single config.h file in ./, so if you want
