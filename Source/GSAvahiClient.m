@@ -175,7 +175,7 @@ GSAvahiClientState(AvahiClient *client, AvahiClientState state, void *userInfo)
         }
       [_lock unlock];
       
-      if ((_client == NULL) || (*errNo != 0))
+      if ((_client == NULL) || ((errNo != NULL) && (*errNo != 0)))
         {
           NSWarnLog(@"client allocation error: %ld", *errNo);
         }
