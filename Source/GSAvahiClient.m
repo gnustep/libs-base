@@ -147,10 +147,10 @@ GSAvahiClientState(AvahiClient *client, AvahiClientState state, void *userInfo)
     {
       [_lock lock];
       if (_client != NULL)
-	{
-	  avahi_client_free((AvahiClient*)_client);
-	  _client = NULL;
-	}
+        {
+          avahi_client_free((AvahiClient*)_client);
+          _client = NULL;
+        }
       [_lock unlock];
     }
 }
@@ -166,14 +166,19 @@ GSAvahiClientState(AvahiClient *client, AvahiClientState state, void *userInfo)
     {
       [_lock lock];
       if (_client == NULL)
-	{
-	  _client = (void*)avahi_client_new([ctx avahiPoll],
-	    (AvahiClientFlags)flags,
-	    GSAvahiClientState,
-	    (void*)self,
-	    errNo);
-	}
+        {
+          _client = (void*)avahi_client_new([ctx avahiPoll],
+                                            (AvahiClientFlags)flags,
+                                            GSAvahiClientState,
+                                            (void*)self,
+                                            errNo);
+        }
       [_lock unlock];
+      
+      if ((_client == NULL) || (*errNo != 0))
+        {
+          NSWarnLog(@"client allocation error: %ld", *errNo);
+        }
     }
 }
 
