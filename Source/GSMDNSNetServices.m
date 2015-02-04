@@ -1010,9 +1010,9 @@ QueryCallback(DNSServiceRef			 sdRef,
   
   service = (Service *) _reserved;
   
+  LOCK(service);
   if (service->timeout)
   {
-    LOCK(service);
     {
       [service->timeout invalidate];
       DESTROY(service->timeout);
@@ -1022,8 +1022,8 @@ QueryCallback(DNSServiceRef			 sdRef,
       [self netService: self
          didNotResolve: CreateError(self, NSNetServicesTimeoutError)];
     }
-    UNLOCK(service);
   }
+  UNLOCK(service);
 }
 
 /**
@@ -1121,8 +1121,6 @@ QueryCallback(DNSServiceRef			 sdRef,
       if (kDNSServiceErr_NoError != errorCode)
       {
         // Notify delegate...
-        [self netService: self
-           didNotResolve: CreateError(self, errorCode)];
         [self stopResolving: self];
       }
       else
@@ -1176,8 +1174,6 @@ QueryCallback(DNSServiceRef			 sdRef,
         if (kDNSServiceErr_NoError != errorCode)
         {
           // Notify delegate...
-          [self netService: self
-             didNotResolve: CreateError(self, errorCode)];
           [self stopResolving: self];
         }
         else
@@ -1185,12 +1181,11 @@ QueryCallback(DNSServiceRef			 sdRef,
         if (([self addresses] == nil) || ([[self addresses] count] == 0))
         {
           // Notify delegate...
-          [self netService: self
-             didNotResolve: CreateError(self, errorCode)];
           [self stopResolving: self];
         }
         else
         {
+          // timeout should have been stopped byt the query results processing...
           // notify the delegate
           [self netServiceDidResolveAddress: self];
         }
