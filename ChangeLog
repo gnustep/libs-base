@@ -1,3 +1,8 @@
+2015-02-05 	Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/GSTLS.m: Use path standardization when setting up TLS data
+	to be mapped to a specific filesystem location.
+
 2015-01-13  Marcus Mueller <znek@mulle-kybernetik.com>
 
 	* Headers/Foundation/Foundation.h: added NSUUID.h 
