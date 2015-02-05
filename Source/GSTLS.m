@@ -328,6 +328,7 @@ static NSMutableDictionary      *fileMap = nil;
 
 + (void) setData: (NSData*)data forTLSFile: (NSString*)fileName
 {
+  fileName = standardizedPath(fileName);
   if (nil != data && NO == [data isKindOfClass: [NSData class]])
     {
       [NSException raise: NSInvalidArgumentException
