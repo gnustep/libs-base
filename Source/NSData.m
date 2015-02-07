@@ -1315,10 +1315,6 @@ failure:
   NSUInteger	length = [path length];
   unichar	wthePath[length + 100];
   unichar	wtheRealPath[length + 100];
-#else
-  char		thePath[BUFSIZ*2+8];
-  char		theRealPath[BUFSIZ*2];
-#endif
   int		c;
   FILE		*theFile;
   BOOL		useAuxiliaryFile = NO;
@@ -1328,64 +1324,20 @@ failure:
     {
       useAuxiliaryFile = YES;
     }
-#if defined(__MINGW__)
   [path getCharacters: wtheRealPath];
   wtheRealPath[length] = L'\0';
   error_BadPath = (length <= 0);
-#else
-  if ([path canBeConvertedToEncoding: [NSString defaultCStringEncoding]])
-    {	
-      const char *local_c_path = [path cString];
-
-      if (local_c_path != 0 && strlen(local_c_path) < (BUFSIZ*2))
-	{	
-	  strncpy(theRealPath, local_c_path, sizeof(theRealPath) - 1);
-	  theRealPath[sizeof(theRealPath) - 1] = '\0';
-	  error_BadPath = NO;
-	}	
-    }
-#endif
   if (error_BadPath)
     {
       NSWarnMLog(@"Open (%@) attempt failed - bad path",path);
       return NO;
     }
 
-#ifdef	HAVE_MKSTEMP
-  if (useAuxiliaryFile)
-    {
-      int	desc;
-      int	mask;
-
-      strncpy(thePath, theRealPath, sizeof(thePath) - 1);
-      thePath[sizeof(thePath) - 1] = '\0';
-      strncat(thePath, "XXXXXX", 6);
-      if ((desc = mkstemp(thePath)) < 0)
-	{
-          NSWarnMLog(@"mkstemp (%s) failed - %@", thePath, [NSError _last]);
-          goto failure;
-	}
-      mask = umask(0);
-      umask(mask);
-      fchmod(desc, 0644 & ~mask);
-      if ((theFile = fdopen(desc, "w")) == 0)
-	{
-	  close(desc);
-	}
-    }
-  else
-    {
-      strncpy(thePath, theRealPath, sizeof(thePath) - 1);
-      thePath[sizeof(thePath) - 1] = '\0';
-      theFile = fopen(thePath, "wb");
-    }
-#else
   if (useAuxiliaryFile)
     {
       /* Use the path name of the destination file as a prefix for the
-       * mktemp() call so that we can be sure that both files are on
+       * _wmktemp() call so that we can be sure that both files are on
        * the same filesystem and the subsequent rename() will work. */
-#if defined(__MINGW__)
       wcscpy(wthePath, wtheRealPath);
       wcscat(wthePath, L"XXXXXX");
       if (_wmktemp(wthePath) == 0)
@@ -1395,46 +1347,20 @@ failure:
 	    [NSError _last]);
 	  goto failure;
 	}
-#else
-      strncpy(thePath, theRealPath, sizeof(thePath) - 1);
-      thePath[sizeof(thePath) - 1] = '\0';
-      strncat(thePath, "XXXXXX", 6);
-      if (mktemp(thePath) == 0)
-	{
-          NSWarnMLog(@"mktemp (%s) failed - %@", thePath, [NSError _last]);
-          goto failure;
-	}
-#endif
     }
   else
     {
-#if defined(__MINGW__)
       wcscpy(wthePath,wtheRealPath);
-#else
-      strncpy(thePath, theRealPath, sizeof(thePath) - 1);
-      thePath[sizeof(thePath) - 1] = '\0';
-#endif
     }
-
-  /* Open the file (whether temp or real) for writing. */
-#if defined(__MINGW__)
   theFile = _wfopen(wthePath, L"wb");
-#else
-  theFile = fopen(thePath, "wb");
-#endif
-#endif
 
   if (theFile == 0)
     {
       /* Something went wrong; we weren't
        * even able to open the file. */
-#if defined(__MINGW__)
       NSWarnMLog(@"Open (%@) failed - %@",
 	[NSString stringWithCharacters: wthePath length: wcslen(wthePath)],
 	  [NSError _last]);
-#else
-      NSWarnMLog(@"Open (%s) failed - %@", thePath, [NSError _last]);
-#endif
       goto failure;
     }
 
@@ -1446,13 +1372,9 @@ failure:
   if (c < (int)[self length])        /* We failed to write everything for
                                  * some reason. */
     {
-#if defined(__MINGW__)
       NSWarnMLog(@"Fwrite (%@) failed - %@",
 	[NSString stringWithCharacters: wthePath length: wcslen(wthePath)],
 	[NSError _last]);
-#else
-      NSWarnMLog(@"Fwrite (%s) failed - %@", thePath, [NSError _last]);
-#endif
       goto failure;
     }
 
@@ -1463,13 +1385,9 @@ failure:
                                  * closing the file, but we got here,
                                  * so we need to deal with it. */
     {
-#if defined(__MINGW__)
       NSWarnMLog(@"Fclose (%@) failed - %@",
 	[NSString stringWithCharacters: wthePath length: wcslen(wthePath)],
 	[NSError _last]);
-#else
-      NSWarnMLog(@"Fclose (%s) failed - %@", thePath, [NSError _last]);
-#endif
       goto failure;
     }
 
@@ -1480,9 +1398,7 @@ failure:
     {
       NSFileManager		*mgr = [NSFileManager defaultManager];
       NSMutableDictionary	*att = nil;
-#if defined(__MINGW__)
       NSUInteger		perm;
-#endif
 
       if ([mgr fileExistsAtPath: path])
 	{
@@ -1491,7 +1407,6 @@ failure:
 	  IF_NO_GC(AUTORELEASE(att));
 	}
 
-#if defined(__MINGW__)
       /* To replace the existing file on windows, it must be writable.
        */
       perm = [att filePosixPermissions];
@@ -1504,19 +1419,8 @@ failure:
       /*
        * The windoze implementation of the POSIX rename() function is buggy
        * and doesn't work if the destination file already exists ... so we
-       * try to use a windoze specific function instead.
+       * use a windoze specific move file function instead.
        */
-#if 0
-      if (ReplaceFile(theRealPath, thePath, 0,
-	REPLACEFILE_IGNORE_MERGE_ERRORS, 0, 0) != 0)
-	{
-	  c = 0;
-	}
-      else
-	{
-	  c = -1;
-	}
-#else
       if (MoveFileExW(wthePath, wtheRealPath, MOVEFILE_REPLACE_EXISTING) != 0)
 	{
 	  c = 0;
@@ -1554,23 +1458,15 @@ failure:
 	{
 	  c = -1;
 	}
-#endif
-#else
-      c = rename(thePath, theRealPath);
-#endif
+
       if (c != 0)               /* Many things could go wrong, I guess. */
         {
-#if defined(__MINGW__)
           NSWarnMLog(@"Rename ('%@' to '%@') failed - %@",
 	    [NSString stringWithCharacters: wthePath
 				    length: wcslen(wthePath)],
 	    [NSString stringWithCharacters: wtheRealPath
 				    length: wcslen(wtheRealPath)],
 	    [NSError _last]);
-#else
-	  NSWarnMLog(@"Rename ('%s' to '%s') failed - %@",
-	    thePath, theRealPath, [NSError _last]);
-#endif
           goto failure;
         }
 
@@ -1593,17 +1489,6 @@ failure:
 		path);
 	    }
 	}
-#ifndef __MINGW__
-      else if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
-	{
-	  att = [NSDictionary dictionaryWithObjectsAndKeys:
-			NSFileOwnerAccountName, NSUserName(), nil];
-	  if ([mgr changeFileAttributes: att atPath: path] == NO)
-	    {
-	      NSWarnMLog(@"Unable to correctly set ownership for '%@'", path);
-	    }
-	}
-#endif
     }
 
   /* success: */
@@ -1616,13 +1501,189 @@ failure:
    */
   if (useAuxiliaryFile)
     {
-#if defined(__MINGW__)
       _wunlink(wthePath);
-#else
-      unlink(thePath);
-#endif
     }
   return NO;
+
+#else
+
+  char		thePath[BUFSIZ*2+8];
+  char		theRealPath[BUFSIZ*2];
+  int		c;
+  FILE		*theFile;
+  BOOL		useAuxiliaryFile = NO;
+  BOOL		error_BadPath = YES;
+
+  if (writeOptionsMask & NSDataWritingAtomic)
+    {
+      useAuxiliaryFile = YES;
+    }
+  if ([path canBeConvertedToEncoding: [NSString defaultCStringEncoding]])
+    {	
+      const char *local_c_path = [path cString];
+
+      if (local_c_path != 0 && strlen(local_c_path) < (BUFSIZ*2))
+	{	
+	  strncpy(theRealPath, local_c_path, sizeof(theRealPath) - 1);
+	  theRealPath[sizeof(theRealPath) - 1] = '\0';
+	  error_BadPath = NO;
+	}	
+    }
+  if (error_BadPath)
+    {
+      NSWarnMLog(@"Open (%@) attempt failed - bad path",path);
+      return NO;
+    }
+
+#  if   defined(HAVE_MKSTEMP)
+  if (useAuxiliaryFile)
+    {
+      int	desc;
+      int	mask;
+
+      strncpy(thePath, theRealPath, sizeof(thePath) - 1);
+      thePath[sizeof(thePath) - 1] = '\0';
+      strncat(thePath, "XXXXXX", 6);
+      if ((desc = mkstemp(thePath)) < 0)
+	{
+          NSWarnMLog(@"mkstemp (%s) failed - %@", thePath, [NSError _last]);
+          goto failure;
+	}
+      mask = umask(0);
+      umask(mask);
+      fchmod(desc, 0644 & ~mask);
+      if ((theFile = fdopen(desc, "w")) == 0)
+	{
+	  close(desc);
+	}
+    }
+  else
+    {
+      strncpy(thePath, theRealPath, sizeof(thePath) - 1);
+      thePath[sizeof(thePath) - 1] = '\0';
+      theFile = fopen(thePath, "wb");
+    }
+#  else
+  if (useAuxiliaryFile)
+    {
+      /* Use the path name of the destination file as a prefix for the
+       * mktemp() call so that we can be sure that both files are on
+       * the same filesystem and the subsequent rename() will work. */
+      strncpy(thePath, theRealPath, sizeof(thePath) - 1);
+      thePath[sizeof(thePath) - 1] = '\0';
+      strncat(thePath, "XXXXXX", 6);
+      if (mktemp(thePath) == 0)
+	{
+          NSWarnMLog(@"mktemp (%s) failed - %@", thePath, [NSError _last]);
+          goto failure;
+	}
+    }
+  else
+    {
+      strncpy(thePath, theRealPath, sizeof(thePath) - 1);
+      thePath[sizeof(thePath) - 1] = '\0';
+    }
+#  endif
+  theFile = fopen(thePath, "wb");
+
+  if (theFile == 0)
+    {
+      /* Something went wrong; we weren't
+       * even able to open the file. */
+      NSWarnMLog(@"Open (%s) failed - %@", thePath, [NSError _last]);
+      goto failure;
+    }
+
+  /* Now we try and write the NSData's bytes to the file.  Here `c' is
+   * the number of bytes which were successfully written to the file
+   * in the fwrite() call. */
+  c = fwrite([self bytes], sizeof(char), [self length], theFile);
+
+  if (c < (int)[self length])        /* We failed to write everything for
+                                 * some reason. */
+    {
+      NSWarnMLog(@"Fwrite (%s) failed - %@", thePath, [NSError _last]);
+      goto failure;
+    }
+
+  /* We're done, so close everything up. */
+  c = fclose(theFile);
+
+  if (c != 0)                   /* I can't imagine what went wrong
+                                 * closing the file, but we got here,
+                                 * so we need to deal with it. */
+    {
+      NSWarnMLog(@"Fclose (%s) failed - %@", thePath, [NSError _last]);
+      goto failure;
+    }
+
+  /* If we used a temporary file, we still need to rename() it be the
+   * real file.  Also, we need to try to retain the file attributes of
+   * the original file we are overwriting (if we are) */
+  if (useAuxiliaryFile)
+    {
+      NSFileManager		*mgr = [NSFileManager defaultManager];
+      NSMutableDictionary	*att = nil;
+
+      if ([mgr fileExistsAtPath: path])
+	{
+	  att = [[mgr fileAttributesAtPath: path
+			      traverseLink: YES] mutableCopy];
+	  IF_NO_GC(AUTORELEASE(att));
+	}
+
+      c = rename(thePath, theRealPath);
+      if (c != 0)               /* Many things could go wrong, I guess. */
+        {
+	  NSWarnMLog(@"Rename ('%s' to '%s') failed - %@",
+	    thePath, theRealPath, [NSError _last]);
+          goto failure;
+        }
+
+      if (att != nil)
+	{
+	  /*
+	   * We have created a new file - so we attempt to make it's
+	   * attributes match that of the original.
+	   */
+	  [att removeObjectForKey: NSFileSize];
+	  [att removeObjectForKey: NSFileModificationDate];
+	  [att removeObjectForKey: NSFileReferenceCount];
+	  [att removeObjectForKey: NSFileSystemNumber];
+	  [att removeObjectForKey: NSFileSystemFileNumber];
+	  [att removeObjectForKey: NSFileDeviceIdentifier];
+	  [att removeObjectForKey: NSFileType];
+	  if ([mgr changeFileAttributes: att atPath: path] == NO)
+	    {
+	      NSWarnMLog(@"Unable to correctly set all attributes for '%@'",
+		path);
+	    }
+	}
+      else if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
+	{
+	  att = [NSDictionary dictionaryWithObjectsAndKeys:
+			NSFileOwnerAccountName, NSUserName(), nil];
+	  if ([mgr changeFileAttributes: att atPath: path] == NO)
+	    {
+	      NSWarnMLog(@"Unable to correctly set ownership for '%@'", path);
+	    }
+	}
+    }
+
+  /* success: */
+  return YES;
+
+  /* Just in case the failure action needs to be changed. */
+failure:
+  /*
+   * Attempt to tidy up by removing temporary file on failure.
+   */
+  if (useAuxiliaryFile)
+    {
+      unlink(thePath);
+    }
+  return NO;
+#endif
 }
 
 - (BOOL) writeToURL: (NSURL *)url
