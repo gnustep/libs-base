@@ -1,3 +1,7 @@
+2015-02-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: Simplify mingw/unixy ifdefs for writing a file.
+
 2015-02-05 	Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/GSTLS.m: Use path standardization when setting up TLS data
