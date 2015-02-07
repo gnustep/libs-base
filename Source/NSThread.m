@@ -220,21 +220,62 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
   delay = when - GSPrivateTimeNow();
   if (delay <= 0.0)
     {
+      /* We don't need to wait, but since we are willing to wait at this
+       * point, we should let other threads have preference over this one.
+       */
       sched_yield();
       return;
     }
 
-#ifdef	HAVE_NANOSLEEP
-  // Avoid any possibility of overflow by sleeping in chunks.
-  while (delay > 32768)
+#if     defined(__MINGW__)
+  /*
+   * Avoid integer overflow by breaking up long sleeps.
+   */
+  while (delay > 30.0*60.0)
     {
-      struct timespec request;
-
-      request.tv_sec = (time_t)32768;
-      request.tv_nsec = (long)0;
-      nanosleep(&request, 0);
+      // sleep 30 minutes
+      Sleep (30*60*1000);
       delay = when - GSPrivateTimeNow();
     }
+
+  /* Don't use nanosleep (even if available) on mingw ... it's reported no
+   * to work with pthreads.
+   * Sleeping may return early because of signals, so we need to re-calculate
+   * the required delay and check to see if we need to sleep again.
+   */
+  while (delay > 0)
+    {
+#if	defined(HAVE_USLEEP)
+      /* On windows usleep() seems to perform a busy wait ... so we only
+       * use it for short delays ... otherwise use the less accurate Sleep()
+       */
+      if (delay > 0.1)
+	{
+          Sleep ((NSInteger)(delay*1000));
+	}
+      else
+	{
+          usleep ((NSInteger)(delay*1000000));
+	}
+#else
+      Sleep ((NSInteger)(delay*1000));
+#endif	/* HAVE_USLEEP */
+      delay = when - GSPrivateTimeNow();
+    }
+
+#else   /* __MINGW__ */
+
+  /*
+   * Avoid integer overflow by breaking up long sleeps.
+   */
+  while (delay > 30.0*60.0)
+    {
+      // sleep 30 minutes
+      sleep(30*60);
+      delay = when - GSPrivateTimeNow();
+    }
+
+#ifdef	HAVE_NANOSLEEP
   if (delay > 0)
     {
       struct timespec request;
@@ -259,21 +300,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
 	  remainder.tv_nsec = 0;
 	}
     }
-#else
-
-  /*
-   * Avoid integer overflow by breaking up long sleeps.
-   */
-  while (delay > 30.0*60.0)
-    {
-      // sleep 30 minutes
-#if defined(__MINGW__)
-      Sleep (30*60*1000);
-#else
-      sleep (30*60);
-#endif
-      delay = when - GSPrivateTimeNow();
-    }
+#else   /* HAVE_NANOSLEEP */
 
   /*
    * sleeping may return early because of signals, so we need to re-calculate
@@ -281,32 +308,15 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
    */
   while (delay > 0)
     {
-#if	defined(__MINGW__)
 #if	defined(HAVE_USLEEP)
-      /* On windows usleep() seems to perform a busy wait ... so we only
-       * use it for short delays ... otherwise use the less accurate Sleep()
-       */
-      if (delay > 0.1)
-	{
-          Sleep ((NSInteger)(delay*1000));
-	}
-      else
-	{
-          usleep ((NSInteger)(delay*1000000));
-	}
-#else
-      Sleep ((NSInteger)(delay*1000));
-#endif	/* HAVE_USLEEP */
-#else
-#if	defined(HAVE_USLEEP)
-      usleep ((NSInteger)(delay*1000000));
-#else
-      sleep ((NSInteger)delay);
-#endif	/* HAVE_USLEEP */
-#endif	/* __MINGW__ */
+      usleep((NSInteger)(delay*1000000));
+#else	/* HAVE_USLEEP */
+      sleep((NSInteger)delay);
+#endif	/* !HAVE_USLEEP */
       delay = when - GSPrivateTimeNow();
     }
-#endif	/* HAVE_NANOSLEEP */
+#endif	/* !HAVE_NANOSLEEP */
+#endif	/* !__MINGW__ */
 }
 
 static NSArray *
