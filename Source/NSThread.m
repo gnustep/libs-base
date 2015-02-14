@@ -710,18 +710,14 @@ unregisterActiveThread(NSThread *thread)
 
 - (void) dealloc
 {
+  int   retries = 0;
+
   if (_active == YES)
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Deallocating an active thread without [+exit]!"];
     }
-  if (_runLoopInfo != 0)
-    {
-      GSRunLoopThreadInfo       *info = (GSRunLoopThreadInfo*)_runLoopInfo;
-
-      _runLoopInfo = 0;
-      [info release];
-    }
+  DESTROY(_runLoopInfo);
   DESTROY(_thread_dictionary);
   DESTROY(_target);
   DESTROY(_arg);
@@ -731,24 +727,33 @@ unregisterActiveThread(NSThread *thread)
       [NSAutoreleasePool _endThread: self];
     }
 
-  if (_thread_dictionary != nil)
+  while ((_thread_dictionary != nil || _runLoopInfo != nil) && retries++ < 10)
     {
-      /*
-       * Try again to get rid of thread dictionary.
+      /* Try again.
        */
+      DESTROY(_runLoopInfo);
       DESTROY(_thread_dictionary);
       if (_autorelease_vars.pool_cache != 0)
 	{
 	  [NSAutoreleasePool _endThread: self];
 	}
-      if (_thread_dictionary != nil)
-	{
-	  NSLog(@"Oops - leak - thread dictionary is %@", _thread_dictionary);
-	  if (_autorelease_vars.pool_cache != 0)
-	    {
-	      [NSAutoreleasePool _endThread: self];
-	    }
-	}
+    }
+
+  if (_runLoopInfo != nil)
+    {
+      NSLog(@"Oops - leak - run loop is %@", _runLoopInfo);
+      if (_autorelease_vars.pool_cache != 0)
+        {
+          [NSAutoreleasePool _endThread: self];
+        }
+    }
+  if (_thread_dictionary != nil)
+    {
+      NSLog(@"Oops - leak - thread dictionary is %@", _thread_dictionary);
+      if (_autorelease_vars.pool_cache != 0)
+        {
+          [NSAutoreleasePool _endThread: self];
+        }
     }
   DESTROY(_gcontext);
   [super dealloc];
