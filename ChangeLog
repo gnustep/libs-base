@@ -1,3 +1,11 @@
+2015-02-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/objc-sys-dynamic.m4: Check for windows before anything else
+	* configure: regenerate
+	Apparently recent mingw implements headers which folled configure
+	into using dlopen() with doesn't support native windows paths ...
+	change order of checks so we still use the native API.
+
 2015-02-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Be more agressive about releasing thread
