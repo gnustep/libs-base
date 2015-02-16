@@ -1,3 +1,8 @@
+2015-02-16  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSData.m (writeToFile:options:error:): Fix leak of open
+	file descriptor on systems where mkstemp is defined.
+
 2015-02-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* config/objc-sys-dynamic.m4: Check for windows before anything else
