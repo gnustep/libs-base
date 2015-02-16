@@ -1583,8 +1583,8 @@ failure:
       strncpy(thePath, theRealPath, sizeof(thePath) - 1);
       thePath[sizeof(thePath) - 1] = '\0';
     }
-#  endif
   theFile = fopen(thePath, "wb");
+#  endif
 
   if (theFile == 0)
     {
