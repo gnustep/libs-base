@@ -1654,6 +1654,7 @@ replacementForClass(Class c)
   pathInfo = [info lockReturningPathInfoForKey: aKey];
   if (pathInfo != nil)
     {
+      [pathInfo retain];
       if (pathInfo->recursion++ == 0)
         {
           id    old = [pathInfo->change objectForKey: NSKeyValueChangeNewKey];
@@ -1687,6 +1688,7 @@ replacementForClass(Class c)
 
           [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: YES];
         }
+      [pathInfo release];
       [info unlock];
     }
 
@@ -1697,7 +1699,7 @@ replacementForClass(Class c)
 {
   GSKVOPathInfo *pathInfo;
   GSKVOInfo	*info;
-
+  
   info = (GSKVOInfo *)[self observationInfo];
   if (info == nil)
     {
@@ -1707,6 +1709,7 @@ replacementForClass(Class c)
   pathInfo = [info lockReturningPathInfoForKey: aKey];
   if (pathInfo != nil)
     {
+      [pathInfo retain];
       if (pathInfo->recursion == 1)
         {
           id    value = [self valueForKey: aKey];
@@ -1726,6 +1729,7 @@ replacementForClass(Class c)
         {
           pathInfo->recursion--;
         }
+      [pathInfo release];
       [info unlock];
     }
 
