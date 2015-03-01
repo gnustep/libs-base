@@ -1708,7 +1708,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   pathInfo = [info lockReturningPathInfoForKey: aKey];
   if (pathInfo != nil)
     {
-      [pathInfo retain];
+      RETAIN(pathInfo);
       if (pathInfo->recursion++ == 0)
         {
           id    old = [pathInfo->change objectForKey: NSKeyValueChangeNewKey];
@@ -1742,7 +1742,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
 
           [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: YES];
         }
-      [pathInfo release];
+      RELEASE(pathInfo);
       [info unlock];
     }
 
@@ -1763,7 +1763,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   pathInfo = [info lockReturningPathInfoForKey: aKey];
   if (pathInfo != nil)
     {
-      [pathInfo retain];
+      RETAIN(pathInfo);
       if (pathInfo->recursion == 1)
         {
           id    value = [self valueForKey: aKey];
@@ -1783,7 +1783,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
         {
           pathInfo->recursion--;
         }
-      [pathInfo release];
+      RELEASE(pathInfo);
       [info unlock];
     }
 
