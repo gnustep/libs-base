@@ -1,3 +1,17 @@
+2015-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for gettid availability
+	* configure: Regenerate
+	* Headers/GNUstepBase/config.h.in: Regenerate
+	* Source/GSPrivate.h: Update comment on GSLogThread
+	* Documentation/Base.gsdoc: Update doc of GSLogThread
+	* Source/NSLog.m: Change to log thread ID (to match OSX which now
+	logs the thread ID along with the process ID).  Change the meaning
+	of the GSLogThread user default (which used to turn on logging of
+	the thread ID) so that it now turns on logging of the thread name
+	(where a thread name has been set) and the NSThread address if no
+	name has been set.
+
 2015-02-16  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSData.m (writeToFile:options:error:): Fix leak of open

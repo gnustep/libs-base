@@ -165,8 +165,8 @@ notice and this notice are preserved.
 	      <p>
 		Setting the user default <code>GSLogThread</code> to
 		<code>YES</code> will cause NSLog and debug output to
-		include the current thread in the logged message.<br />
-		This is useful for debugging multi-threaded applications.
+		include the current thread name in the logged message.<br />
+		This may be useful for debugging multi-threaded applications.
 	      </p>
 	    </desc>
 	    <term>GSMacOSXCompatible</term>
