@@ -1748,7 +1748,6 @@ CFLAGS=$saved_CFLAGS
 # Check if we can name pthreads
 #--------------------------------------------------------------------
 
-
 AC_CHECK_FUNCS(pthread_set_name_np)
 if test $ac_cv_func_pthread_set_name_np == yes; then
   AC_DEFINE(PTHREAD_SETNAME(a), (pthread_set_name_np(pthread_self(), a), 0),
@@ -1784,6 +1783,21 @@ else
         [Description: Define setname function for pthread with three args])
       ;;
   esac
+fi
+
+#--------------------------------------------------------------------
+# Check whether we can get the system thread ID
+#--------------------------------------------------------------------
+AC_CACHE_CHECK([for gettid()], ac_cv_gettid,
+[AC_TRY_RUN(#define _GNU_SOURCE
+#include <unistd.h>
+#include <sys/syscall.h>
+#include <sys/types.h>
+int main(int argc, char **argv) {
+pid_t t = syscall(SYS_gettid); return t == -1 ? 1 : 0; },
+[ac_cv_gettid=yes], [ac_cv_gettid=no], [ac_cv_gettid=no])])
+if test "$ac_cv_gettid" = "yes"; then
+  AC_DEFINE(HAVE_GETTID, 1, [Define if you have gettid()])
 fi
 
 #--------------------------------------------------------------------
