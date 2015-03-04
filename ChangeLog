@@ -1,5 +1,10 @@
 2015-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/GNUstepBase/NSDebug+GNUstepBase.h:
+	Define DLog() and ALog() as suggested by Amr Aboelela
+
+2015-02-28  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* configure.ac: Check for gettid availability
 	* configure: Regenerate
 	* Headers/GNUstepBase/config.h.in: Regenerate
