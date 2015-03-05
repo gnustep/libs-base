@@ -483,6 +483,13 @@ GSAvahiServiceBrowserEvent(
       _browser = NULL;
   }
   _type = GSAvahiUnknownBrowser;
+
+  {
+    GSAvahiNetService *service = nil;
+    NSEnumerator      *iter    = [_services objectEnumerator];
+    while ((service = [iter nextObject]))
+      [service stop];
+  }
   [_services removeAllObjects];
   
   if (!hadError)
