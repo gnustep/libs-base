@@ -56,7 +56,7 @@ GSThreadID()
 {
 #if defined(__MINGW__)
   return (unsigned long)GetCurrentThreadId();
-#elsif defined(HAVE_GETTID)
+#elif defined(HAVE_GETTID)
   return (unsigned long)syscall(SYS_gettid);
 #else
   return (unsigned long)GSCurrentThread();
