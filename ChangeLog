@@ -1,3 +1,10 @@
+2015-03-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileHandle.m: ([-sslHandshakeEstablished:outgoing:])
+	If we can't create a session, the handshake should fail rather
+	than being retried.  Fix infinite loop establish session on closed
+	handle.
+
 2015-02-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/NSDebug+GNUstepBase.h:
