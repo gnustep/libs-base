@@ -89,7 +89,7 @@ after-distclean::
 # completely, wiping out any memory of specific configuration.
 config.mak base.make: config.mak.in base.make.in Version configure
 	if [ -x config.status ]; then \
-	  ./config.status --recheck; \
+	  ./config.status --recheck && ./config.status; \
 	else \
 	  ./configure; \
 	fi
