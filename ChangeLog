@@ -1,3 +1,10 @@
+2015-03-10 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/GSTimSort.m: Fix a DoS vulnerability discovered in the 
+	Timsort algorithm. For information about the problem please refer to
+	http://www.envisage-project.eu/proving-android-java-and-python-sorting
+	-algorithm-is-broken-and-how-to-fix-it/
+
 2015-03-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileHandle.m: ([-sslHandshakeEstablished:outgoing:])

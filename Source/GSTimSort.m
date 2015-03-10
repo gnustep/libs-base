@@ -615,38 +615,36 @@ descriptorOrComparator: (id)descriptorOrComparator
   NSDebugMLLog(@"GSTimSort", @"Pushing run: %@", NSStringFromRange(r));
 }
 
+/**
+ * Ensure that the invariant enabling the algorithm holds for the stack.
+ *
+ * see: http://www.envisage-project.eu/proving-android-java-and-python-sorting-algorithm-is-broken-and-how-to-fix-it/#sec3
+ */
 - (void) suggestMerge
 {
   while (stackSize > 1)
     {
       NSInteger n = stackSize -2;
-
-      if (n > 0)
+      if (  (n >= 1
+              && runStack[n-1].length <= (runStack[n].length
+                                          + runStack[n+1].length)
+            )
+         || (n >= 2 
+              && runStack[n-2].length <= (runStack[n].length 
+                                          + runStack[n-1].length)
+            )
+         )
         {
-          NSUInteger topLen = runStack[n+1].length;
-          NSUInteger midLen = runStack[n].length;
-          NSUInteger botLen = runStack[n-1].length;
-          if (botLen <= (midLen + topLen))
+          if (runStack[n-1].length < runStack[n+1].length)
             {
-              if (botLen < topLen)
-                {
-                  n--;
-                }
-              GS_TIMSORT_MERGE_AT_INDEX(self, n);
-            }
-          else if (midLen <= topLen)
-            {
-              GS_TIMSORT_MERGE_AT_INDEX(self, n);
-            }
-          else
-            {
-              break;
+              n--;
             }
         }
-	else
-	  {
-	    break;
-	  }
+      else if (runStack[n].length > runStack[n+1].length)
+        {
+          break; //invariant reached
+        }
+      GS_TIMSORT_MERGE_AT_INDEX(self, n);
     }
 }
 
