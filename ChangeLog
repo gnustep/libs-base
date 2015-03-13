@@ -1,3 +1,10 @@
+2015-03-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m: Fix a bug leading to crashes on thread
+	exit in cases where deallocation of something in the thread dictionary
+	causes further use of the thread's autorelease pool (which has already
+	been deallocated).
+
 2015-03-10 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/GSTimSort.m: Fix a DoS vulnerability discovered in the 
