@@ -5018,8 +5018,8 @@ printf(
     }
 {
 #ifndef __MINGW__
-  int uid = -2;
-  int gid = -2;
+  uid_t uid = -2;
+  gid_t gid = -2;
 #endif
 
 #if	defined(HAVE_PWD_H)
@@ -5076,6 +5076,10 @@ printf(
       uid = getuid();
       gid = getgid();
     }
+  /* The call to setgroups may fail if we don't have that capability ...
+   * but in that case we aren't too bothered anyway.
+   */
+  setgroups (1, &gid);
   if (setgid (gid) < 0)
     {
       snprintf(ebuf, sizeof(ebuf),
