@@ -1157,11 +1157,11 @@ QueryCallback(DNSServiceRef			 sdRef,
             }
             if (-1 == selcode)
             {
-              NSLog(@"%s:%d:DNSServiceProcessResult select code: %d errno: %d", __PRETTY_FUNCTION__, __LINE__, selcode, errno);
+              NSDebugMLLog(@"MDNS", @":DNSServiceProcessResult select code: %d errno: %d", selcode, errno);
             }
             else if (selcode == 0)
             {
-              NSLog(@"%s:%d:DNSServiceProcessResult select code: %d TIMEOUT", __PRETTY_FUNCTION__, __LINE__, selcode);
+              NSDebugMLLog(@"MDNS", @":DNSServiceProcessResult select code: %d TIMEOUT", selcode);
             }
           }
         }
@@ -1187,7 +1187,7 @@ QueryCallback(DNSServiceRef			 sdRef,
           [self netServiceDidResolveAddress: self];
         }
         DNSServiceRefDeallocate(_queryRef);
-        NSLog(@"%s:%d:errorCode: %ld", __PRETTY_FUNCTION__, __LINE__, (long)errorCode);
+        NSDebugMLLog(@"MDNS", @":errorCode: %ld", (long)errorCode);
 #endif
 	    }
     }
@@ -1361,7 +1361,8 @@ QueryCallback(DNSServiceRef			 sdRef,
   Service	*service;
   
   INTERNALTRACE;
-  NSLog(@"%s:%d:DNSServiceRef: %p", __PRETTY_FUNCTION__, __LINE__, sdRef);
+
+  NSDebugMLLog(@"MDNS", @":DNSServiceRef: %p", sdRef);
 
   service = (Service *) _reserved;
   
@@ -1558,7 +1559,7 @@ QueryCallback(DNSServiceRef			 sdRef,
     }
     else
     {
-      NSLog(@"%s:%d:DNSServiceProcessResult select code: %d errno: %d", __PRETTY_FUNCTION__, __LINE__, selcode, errno);
+      NSDebugMLLog(@"MDNS", @":DNSServiceProcessResult select code: %d errno: %d", selcode, errno);
     }
   }
 
