@@ -248,6 +248,9 @@
 /* Define if GC_register_my_thread function is available */
 #undef HAVE_GC_REGISTER_MY_THREAD
 
+/* Define to 1 if you have the `getaddrinfo' function. */
+#undef HAVE_GETADDRINFO
+
 /* Define to 1 if you have the `getcwd' function. */
 #undef HAVE_GETCWD
 
@@ -455,8 +458,14 @@
 /* Define if your Lib C defines program_invocation_name */
 #undef HAVE_PROGRAM_INVOCATION_NAME
 
+/* Define to 1 if you have the `pthread_getthreadid_np' function. */
+#undef HAVE_PTHREAD_GETTHREADID_NP
+
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H
+
+/* Define to 1 if you have the <pthread_np.h> header file. */
+#undef HAVE_PTHREAD_NP_H
 
 /* Define to 1 if you have the `pthread_set_name_np' function. */
 #undef HAVE_PTHREAD_SET_NAME_NP

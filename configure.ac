@@ -1647,10 +1647,12 @@ if test "$ac_cv_func_gethostbyname" = "no"; then
   AC_CHECK_LIB(socket, gethostbyname)
 fi
 
+AC_CHECK_FUNCS(getaddrinfo)
+
 #--------------------------------------------------------------------
 # Check for pthread.h 
 #--------------------------------------------------------------------
-AC_CHECK_HEADERS(pthread.h)
+AC_CHECK_HEADERS(pthread.h pthread_np.h)
 if test $ac_cv_header_pthread_h = yes ; then
   AC_CHECK_SIZEOF(pthread_mutex_t,,[AC_INCLUDES_DEFAULT
 #include <pthread.h>])
@@ -1713,6 +1715,9 @@ if test $pthread_ok = no ; then
   AC_MSG_ERROR([Unable to find pthread library (needed for thread support).])
 fi
 
+/* See if we have an extension to get a pthread ID
+ */
+AC_CHECK_FUNCS(pthread_getthreadid_np)
 
 # Typically need librt on Solaris for sched_yield
 AC_CHECK_LIB(rt, sched_yield)
@@ -2415,6 +2420,7 @@ AC_SUBST(DEFINE_UINTPTR_T)
 #--------------------------------------------------------------------
 AC_SEARCH_LIBS([inet_ntop],[nsl])
 AC_CHECK_FUNCS(gethostbyaddr_r inet_aton inet_pton inet_ntop sigaction)
+
 USE_ZLIB=0
 AC_CHECK_HEADERS(zlib.h)
 if test $ac_cv_header_zlib_h = yes; then
