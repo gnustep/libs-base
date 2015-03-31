@@ -1,3 +1,13 @@
+2015-03-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSPrivate.h: Internal function to get OS thread ID
+	* Source/NSThread.m: Report thread name and ID in description
+	* Source/NSLog.m: Use new function for thread ID
+	* configure.ac: Detect getaddrinfo and bsd thread id extensions
+	* Headers/GNUstepBase/config.h.in: regenerate
+	* configure: regenerate
+	* Source/NSHost.m: Start of code to use getaddrinfo
+
 2015-03-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m: Fix a bug leading to crashes on thread

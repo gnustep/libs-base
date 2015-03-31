@@ -34,20 +34,20 @@
 #import "common.h"
 #define	EXPOSE_NSThread_IVARS	1
 #ifdef HAVE_NANOSLEEP
-#include <time.h>
+#  include <time.h>
 #endif
 #ifdef HAVE_SYS_TIME_H
-#include <sys/time.h>
+#  include <sys/time.h>
 #endif
 #ifdef HAVE_SYS_RESOURCE_H
-#include <sys/resource.h>
+#  include <sys/resource.h>
 #endif
 #ifdef HAVE_PTHREAD_H
-#include <pthread.h>
+#  include <pthread.h>
 #endif
 
 #if	defined(HAVE_SYS_FILE_H)
-#  include	<sys/file.h>
+#  include <sys/file.h>
 #endif
 
 #if	defined(HAVE_SYS_FCNTL_H)
@@ -79,18 +79,49 @@
 #import "GSRunLoopCtxt.h"
 
 #if	GS_WITH_GC
-#include	<gc/gc.h>
+#  include <gc/gc.h>
 #endif
 #if __OBJC_GC__
-#include <objc/objc-auto.h>
+#  include <objc/objc-auto.h>
+#endif
+
+#if defined(HAVE_PTHREAD_NP_H)
+#  include <pthread_np.h>
 #endif
 
 #if defined(__FreeBSD__) || defined(__OpenBSD__)
-#  include <pthread_np.h>
 #  define IS_MAIN_PTHREAD (pthread_main_np() == 1)
 #else
 #  define IS_MAIN_PTHREAD (1)
 #endif
+
+#if defined(HAVE_GETTID)
+#  include <unistd.h>
+#  include <sys/syscall.h>
+#  include <sys/types.h>
+#endif
+
+/* Return the current thread ID as an unsigned long.
+ * Ideally, we use the operating-system's notion of a thread ID so
+ * that external process monitoring software will be using the same
+ * value that we log.  If we don't know the system's mechanism, we
+ * use the address of the current NSThread object so that, even if
+ * it makes no sense externally, it can still be used to show that
+ * different threads generated different logs.
+ */
+unsigned long
+GSPrivateThreadID()
+{
+#if defined(__MINGW__)
+  return (unsigned long)GetCurrentThreadId();
+#elif defined(HAVE_GETTID)
+  return (unsigned long)syscall(SYS_gettid);
+#elif defined(HAVE_PTHREAD_GETTHREADID_NP)
+  return pthread_getthreadid_np();
+#else
+  return (unsigned long)GSCurrentThread();
+#endif
+}
 
 #if 0
 /* 
@@ -757,6 +788,12 @@ unregisterActiveThread(NSThread *thread)
     }
   DESTROY(_gcontext);
   [super dealloc];
+}
+
+- (NSString*) description
+{
+  return [NSString stringWithFormat: @"%@{name = %@, num = %lu}",
+    [super description], _name, GSPrivateThreadID()];
 }
 
 - (id) init

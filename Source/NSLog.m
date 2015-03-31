@@ -37,32 +37,6 @@
 #import "Foundation/NSThread.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
-#if defined(HAVE_GETTID)
-#include <unistd.h>
-#include <sys/syscall.h>
-#include <sys/types.h>
-#endif
-
-/* Return the current thread ID as an unsigned long.
- * Ideally, we use the operating-system's notion of a thread ID so
- * that external process monitoring software will be using the same
- * value that we log.  If we don't know the system's mechanism, we
- * use the address of the current NSThread object so that, even if
- * it makes no sense externally, it can still be used to show that
- * different threads generated different logs.
- */
-static unsigned long
-GSThreadID()
-{
-#if defined(__MINGW__)
-  return (unsigned long)GetCurrentThreadId();
-#elif defined(HAVE_GETTID)
-  return (unsigned long)syscall(SYS_gettid);
-#else
-  return (unsigned long)GSCurrentThread();
-#endif
-}
-
 // Some older BSD systems used a non-standard range of thread priorities.
 #ifdef	HAVE_SYSLOG_H
 #include <syslog.h>
@@ -394,11 +368,12 @@ NSLogv(NSString* format, va_list args)
     {
       if (nil != threadName)
         {
-          [prefix appendFormat: @"[thread:%lu,%@] ", GSThreadID(), threadName];
+          [prefix appendFormat: @"[thread:%lu,%@] ",
+            GSPrivateThreadID(), threadName];
         }
       else
         {
-          [prefix appendFormat: @"[thread:%lu] ", GSThreadID()];
+          [prefix appendFormat: @"[thread:%lu] ", GSPrivateThreadID()];
         }
     }
   else
@@ -423,12 +398,12 @@ NSLogv(NSString* format, va_list args)
       if (nil == threadName)
         {
           [prefix appendFormat: @"[%d:%lu] ",
-            pid, GSThreadID()];
+            pid, GSPrivateThreadID()];
         }
       else
         {
           [prefix appendFormat: @"[%d:%lu,%@] ",
-            pid, GSThreadID(), threadName];
+            pid, GSPrivateThreadID(), threadName];
         }
     }
 
