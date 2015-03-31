@@ -13569,10 +13569,11 @@ $as_echo "$as_me: error: Unable to find pthread library (needed for thread suppo
    { (exit 1); exit 1; }; }
 fi
 
-/* See if we have an extension to get a pthread ID
+/* Check threading extensions
  */
 
-for ac_func in pthread_getthreadid_np
+
+for ac_func in pthread_getthreadid_np pthread_main_np
 do
 as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 { $as_echo "$as_me:$LINENO: checking for $ac_func" >&5

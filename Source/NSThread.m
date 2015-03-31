@@ -89,16 +89,18 @@
 #  include <pthread_np.h>
 #endif
 
-#if defined(__FreeBSD__) || defined(__OpenBSD__)
-#  define IS_MAIN_PTHREAD (pthread_main_np() == 1)
-#else
-#  define IS_MAIN_PTHREAD (1)
-#endif
-
 #if defined(HAVE_GETTID)
 #  include <unistd.h>
 #  include <sys/syscall.h>
 #  include <sys/types.h>
+#endif
+
+#if defined(HAVE_PTHREAD_MAIN_NP)
+#  define IS_MAIN_PTHREAD (pthread_main_np() == 1)
+#elif defined(HAVE_GETTID)
+#  define IS_MAIN_PTHREAD (getpid() == (pid_t)syscall(SYS_gettid))
+#else
+#  define IS_MAIN_PTHREAD (1)
 #endif
 
 /* Return the current thread ID as an unsigned long.
@@ -845,7 +847,6 @@ unregisterActiveThread(NSThread *thread)
     }
 
   [_target performSelector: _selector withObject: _arg];
-
 }
 
 - (NSString*) name
