@@ -1715,9 +1715,9 @@ if test $pthread_ok = no ; then
   AC_MSG_ERROR([Unable to find pthread library (needed for thread support).])
 fi
 
-/* See if we have an extension to get a pthread ID
+/* Check threading extensions
  */
-AC_CHECK_FUNCS(pthread_getthreadid_np)
+AC_CHECK_FUNCS(pthread_getthreadid_np pthread_main_np)
 
 # Typically need librt on Solaris for sched_yield
 AC_CHECK_LIB(rt, sched_yield)
