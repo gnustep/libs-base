@@ -1,8 +1,9 @@
 2015-04-01  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
-	* configure.ac:
-	* configure:
-	Use standard operator in test command
+	* configure.ac: Fix comment syntax and use standard operator in
+	test command.
+
+	* configure: Regenerated.
 
 2015-03-31  Richard Frith-Macdonald <rfm@gnu.org>
 
