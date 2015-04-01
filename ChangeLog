@@ -1,3 +1,9 @@
+2015-04-01  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* configure.ac:
+	* configure:
+	Use standard operator in test command
+
 2015-03-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSPrivate.h: Internal function to get OS thread ID
