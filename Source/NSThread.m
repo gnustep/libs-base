@@ -222,6 +222,8 @@ static NSNotificationCenter *nc = nil;
   NSConditionLock	*lock;		// Not retained.
   NSArray		*modes;
   BOOL                  invalidated;
+@public
+  NSException           *exception;
 }
 + (GSPerformHolder*) newForReceiver: (id)r
 			   argument: (id)a
@@ -1286,6 +1288,7 @@ GSRunLoopInfoForThread(NSThread *aThread)
 
 - (void) dealloc
 {
+  DESTROY(exception);
   DESTROY(receiver);
   DESTROY(argument);
   DESTROY(modes);
@@ -1309,7 +1312,23 @@ GSRunLoopInfoForThread(NSThread *aThread)
     }
   threadInfo = GSRunLoopInfoForThread(GSCurrentThread());
   [threadInfo->loop cancelPerformSelectorsWithTarget: self];
-  [receiver performSelector: selector withObject: argument];
+  NS_DURING
+    {
+      [receiver performSelector: selector withObject: argument];
+    }
+  NS_HANDLER
+    {
+      ASSIGN(exception, localException);
+      if (nil == lock)
+        {
+          NSLog(@"*** NSRunLoop ignoring exception '%@' (reason '%@') "
+            @"raised during perform in other thread... with receiver %p "
+            @"and selector '%@'",
+            [localException name], [localException reason], receiver,
+            NSStringFromSelector(selector));
+        }
+    }
+  NS_ENDHANDLER
   DESTROY(receiver);
   DESTROY(argument);
   DESTROY(modes);
@@ -1452,9 +1471,19 @@ GSRunLoopInfoForThread(NSThread *aThread)
 	  RELEASE(l);
           if ([h isInvalidated] == YES)
             {
+              RELEASE(h);
               [NSException raise: NSInternalInconsistencyException
                           format: @"perform on finished thread"];
+            }
+          /* If we have an exception passed back from the remote thread,
+           * re-raise it.
+           */
+          if (nil != h->exception)
+            {
+              NSException       *e = AUTORELEASE(RETAIN(h->exception));
+
               RELEASE(h);
+              [e raise];
             }
 	}
       RELEASE(h);
