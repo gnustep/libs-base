@@ -1,3 +1,9 @@
+2015-04-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: If an exception occurs while performing a
+	selector in another thread, catch it and cleanup (and if the
+	caller is waiting, pass the exception back to it).
+
 2015-04-01  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* configure.ac: Fix comment syntax and use standard operator in
