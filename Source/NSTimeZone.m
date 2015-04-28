@@ -222,6 +222,7 @@ static NSString *tzdir = nil;
  */
 static GSPlaceholderTimeZone	*defaultPlaceholderTimeZone;
 static NSMapTable		*placeholderMap;
+static GSAbsTimeZone            *commonAbsolutes[145] = { 0 };
 
 /*
  * Temporary structure for holding time zone details.
@@ -703,6 +704,17 @@ static NSMapTable	*absolutes = 0;
     }
   anOffset *= sign;
 
+  if (anOffset % 900 == 0)
+    {
+      z = commonAbsolutes[anOffset/900 + 72];
+      if (z != nil)
+        {
+          IF_NO_GC(RETAIN(z));
+          DESTROY(self);
+          return z;
+        }
+    }
+
   if (zone_mutex != nil)
     {
       [zone_mutex lock];
@@ -747,6 +759,15 @@ static NSMapTable	*absolutes = 0;
       z = self;
       NSMapInsert(absolutes, (void*)(uintptr_t)anOffset, (void*)z);
       [zoneDictionary setObject: self forKey: (NSString*)name];
+    }
+  if (anOffset % 900 == 0)
+    {
+      int       index = anOffset/900 + 72;
+
+      if (nil == commonAbsolutes[index])
+        {
+          commonAbsolutes[index] = RETAIN(self);
+        }
     }
   if (zone_mutex != nil)
     {
@@ -1927,9 +1948,50 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 + (NSTimeZone*) timeZoneForSecondsFromGMT: (NSInteger)seconds
 {
   NSTimeZone	*zone;
+  int		sign = seconds >= 0 ? 1 : -1;
+  int           extra;
 
-  zone = [[GSAbsTimeZone alloc] initWithOffset: seconds name: nil];
-  return AUTORELEASE(zone);
+  /*
+   * Round the offset to the nearest minute, (for MacOS-X compatibility)
+   * and ensure it is no more than 18 hours.
+   */
+  seconds *= sign;
+  extra = seconds % 60;
+  if (extra < 30)
+    {
+      seconds -= extra;
+    }
+  else
+    {
+      seconds += 60 - extra;
+    }
+  if (seconds > 64800)
+    {
+      return nil;
+    }
+  seconds *= sign;
+  if (seconds % 900 == 0)
+    {
+      zone = commonAbsolutes[seconds/900 + 72];
+    }
+  else
+    {
+      if (zone_mutex != nil)
+        {
+          [zone_mutex lock];
+        }
+      zone = (NSTimeZone*)NSMapGet(absolutes, (void*)(uintptr_t)seconds);
+      if (zone_mutex != nil)
+        {
+          [zone_mutex unlock];
+        }
+    }
+  if (nil == zone)
+    {
+      zone = [[GSAbsTimeZone alloc] initWithOffset: seconds name: nil];
+      zone = AUTORELEASE(zone);
+    }
+  return zone;
 }
 
 /**

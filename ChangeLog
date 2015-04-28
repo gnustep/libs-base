@@ -1,3 +1,7 @@
+2015-04-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m: Improve caching of common absolute timezones.
+
 2015-04-28  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/NSDateFormatter.m: Properly reinstall the user provided
