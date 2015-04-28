@@ -986,7 +986,11 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
                           &err);
   if (U_FAILURE(err))
     internal->_formatter = NULL;
-  
+  if (nil != self->_dateFormat)
+    {
+      // Set the date format to the user provide one
+      [self setDateFormat: _dateFormat];
+    }
   NSZoneFree ([self zone], tzID);
 #else
   return;
