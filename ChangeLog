@@ -1,3 +1,13 @@
+2015-05-02 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/GSSet.m
+	* Source/NSCountedSet.m
+	* Source/NSSet.m:
+	Implement a private method -_countForObject: that enables to correctly
+	compare NSSet and NSCountedSet (behaviour verified to match OS X).
+	Fixes bug #43915.
+	* Tests/base/NSCountedSet/equality.m: Test cases for equality behaviour.
+
 2015-04-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZone.m: Improve caching of common absolute timezones.

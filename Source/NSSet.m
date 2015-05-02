@@ -590,6 +590,11 @@ static Class NSMutableSet_concrete_class;
   return NO;
 }
 
+- (NSUInteger)_countForObject: (id)object
+{
+  return 1;
+}
+
 /**
  *  Return whether each set is subset of the other.
  */
@@ -602,8 +607,19 @@ static Class NSMutableSet_concrete_class;
       id	o, e = [self objectEnumerator];
 
       while ((o = [e nextObject]))
-	if (![other member: o])
-	  return NO;
+        {
+	  if (![other member: o])
+            {
+	      return NO;
+            }
+         else
+           {
+             if ([self _countForObject: o] != [other _countForObject: o])
+               {
+                 return NO;
+               }
+           }
+        }
     }
   /* xxx Recheck this. */
   return YES;

@@ -48,7 +48,7 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
 #include "GNUstepBase/GSIMap.h"
 
 static SEL	memberSel;
-
+static SEL      privateCountOfSel;
 @interface GSSet : NSSet
 {
 @public
@@ -128,6 +128,7 @@ static Class	mutableSetClass;
       setClass = [GSSet class];
       mutableSetClass = [GSMutableSet class];
       memberSel = @selector(member:);
+      privateCountOfSel = @selector(_countForObject:);
     }
 }
 
@@ -424,8 +425,10 @@ static Class	mutableSetClass;
 	      GSIMapEnumerator_t	enumerator;
 	      GSIMapNode 		node;
 	      IMP			imp;
+              IMP                       countImp;
 
 	      imp = [other methodForSelector: memberSel];
+              countImp = [other methodForSelector: privateCountOfSel];
 	      enumerator = GSIMapEnumeratorForMap(&map);
 	      node = GSIMapEnumeratorNextNode(&enumerator);
 
@@ -436,6 +439,16 @@ static Class	mutableSetClass;
 		      GSIMapEndEnumerator(&enumerator);
 		      return NO;
 		    }
+                  else
+                    {
+                      NSUInteger c = (NSUInteger)
+                       countImp(other,privateCountOfSel,node->key.obj);
+                      // GSSet does not have duplicate entries
+                      if (c != 1)
+                        {
+                          return NO;
+                        }
+                    }
 		  node = GSIMapEnumeratorNextNode(&enumerator);
 		}
 	      GSIMapEndEnumerator(&enumerator);
