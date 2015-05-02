@@ -1712,7 +1712,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   d = dayOfCommonEra(when);
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (_seconds_since_ref + offset(_time_zone, self)));
+  a = fabs(d - (_seconds_since_ref + offset(_time_zone, self)));
   a = a / 3600;
   h = (NSInteger)a;
 
@@ -1737,7 +1737,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   d = dayOfCommonEra(when);
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (_seconds_since_ref + offset(_time_zone, self)));
+  a = fabs(d - (_seconds_since_ref + offset(_time_zone, self)));
   b = a / 3600;
   h = (NSInteger)b;
   h = h * 3600;
@@ -1775,7 +1775,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   d = dayOfCommonEra(when);
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (_seconds_since_ref + offset(_time_zone, self)));
+  a = fabs(d - (_seconds_since_ref + offset(_time_zone, self)));
   b = a / 3600;
   h = (NSInteger)b;
   h = h * 3600;

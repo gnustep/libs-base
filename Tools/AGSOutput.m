@@ -2409,7 +2409,7 @@ static BOOL snuggleStart(NSString *t)
   else if (end.location <= start.location)
     {
       NSLog(@"End marker comes before start marker in %@ document", kind);
-      return NO;
+      return nil;
     }
 
   /*
