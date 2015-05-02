@@ -91,6 +91,11 @@ static Class NSCountedSet_concrete_class;
     }
 }
 
+- (NSUInteger) _countForObject: (id)anObject
+{
+  return [self countForObject: anObject];
+}
+
 /**
  * Returns the number of times that an object that is equal to the
  * specified object (as determined by the [-isEqual:] method) has
