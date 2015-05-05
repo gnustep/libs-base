@@ -1,3 +1,9 @@
+2015-05-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m:
+	Fix for 64bit systems using TinyString objects ... missing
+	implementations for common methods were making performance dire.
+
 2015-05-02 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/GSSet.m

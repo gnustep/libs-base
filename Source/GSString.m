@@ -759,11 +759,43 @@ static void logTinyStringCount(void)
   fprintf(stderr, "%d tiny strings created\n", tinyStrings);
 }
 #endif
-@implementation GSTinyString
-- (NSUInteger) length
+
+static int
+tsbytes(uintptr_t s, char *buf)
 {
-  uintptr_t s = (uintptr_t)self;
-  return (s >> TINY_STRING_LENGTH_SHIFT) & TINY_STRING_LENGTH_MASK;
+  int   length = (s >> TINY_STRING_LENGTH_SHIFT) & TINY_STRING_LENGTH_MASK;
+  int   index;
+ 
+  for (index = 0; index < length; index++)
+    {
+      buf[index] = (char)TINY_STRING_CHAR(s, index);
+    }
+  buf[index] = 0;
+  return index;
+}
+
+@implementation GSTinyString
+
+- (BOOL) boolValue
+{
+  char  buf[9];
+  int   count =  tsbytes((uintptr_t)self, buf);
+  int   i;
+
+  for (i = 0; i < count; i++)
+    {
+      char	c = buf[i];
+
+      if (strchr("123456789yYtT", c) != 0)
+        {
+          return YES;
+        }
+      if (!isspace(c) && c != '0' && c != '-' && c != '+')
+	{
+	  break;
+	}
+    }
+  return NO;
 }
 
 - (unichar) characterAtIndex: (NSUInteger)anIndex
@@ -782,6 +814,162 @@ static void logTinyStringCount(void)
       return '\0';
     }
   return TINY_STRING_CHAR(s, anIndex);
+}
+
+- (void) getCharacters: (unichar*)buffer
+{
+  uintptr_t s = (uintptr_t)self;
+  int   length = (s >> TINY_STRING_LENGTH_SHIFT) & TINY_STRING_LENGTH_MASK;
+  int   index;
+ 
+  for (index = 0; index < length; index++)
+    {
+      buffer[index] = (unichar)TINY_STRING_CHAR(s, index);
+    }
+}
+
+- (void) getCharacters: (unichar*)buffer range: (NSRange)aRange
+{
+  uintptr_t s = (uintptr_t)self;
+  int   length = (s >> TINY_STRING_LENGTH_SHIFT) & TINY_STRING_LENGTH_MASK;
+  int   index;
+  int   offset;
+
+  GS_RANGE_CHECK(aRange, length);
+  length = NSMaxRange(aRange);
+  offset = 0;
+  for (index = aRange.location; index < length; index++)
+    {
+      buffer[offset++] = (unichar)TINY_STRING_CHAR(s, index);
+    }
+}
+
+- (BOOL) getCString: (char*)buffer
+	  maxLength: (NSUInteger)maxLength
+	   encoding: (NSStringEncoding)encoding
+{
+  uintptr_t s = (uintptr_t)self;
+  int   length = (s >> TINY_STRING_LENGTH_SHIFT) & TINY_STRING_LENGTH_MASK;
+  int   index;
+
+  if (buffer == 0)
+    {
+      return NO;	// Can't fit in here
+    }
+  if (NSUnicodeStringEncoding == encoding)
+    {
+      maxLength /= 2;
+      if (maxLength > 1)
+	{
+          unichar       *buf = (unichar*)buffer;
+
+          if (maxLength <= length)
+            {
+              length = maxLength - 1;
+            }
+          for (index = 0; index < length; index++)
+            {
+              buf[index] = (unichar)TINY_STRING_CHAR(s, index);
+            }
+          buf[index] = 0;
+          return YES;
+	}
+      return NO;
+    }
+  else if (isByteEncoding(encoding))
+    {
+      if (maxLength > 0)
+	{
+          if (maxLength <= length)
+            {
+              length = maxLength - 1;
+            }
+          for (index = 0; index < length; index++)
+            {
+              buffer[index] = (char)TINY_STRING_CHAR(s, index);
+            }
+          buffer[index] = 0;
+          return YES;
+        }
+      return NO;
+    }
+  return [super getCString: buffer maxLength: maxLength encoding: encoding];
+}
+
+- (NSUInteger) hash
+{
+  uintptr_t s = (uintptr_t)self;
+  int   length = (s >> TINY_STRING_LENGTH_SHIFT) & TINY_STRING_LENGTH_MASK;
+  uint32_t	ret = 0;
+
+  if (length > 0)
+    {
+      unichar   buf[10];
+      int	index;
+
+      for (index = 0; index < length; index++)
+        {
+          buf[index] = (char)TINY_STRING_CHAR(s, index);
+        }
+      ret = GSPrivateHash(0, buf, length * sizeof(unichar));
+
+      /*
+       * The hash caching in our concrete string classes uses zero to denote
+       * an empty cache value, so we MUST NOT return a hash of zero.
+       */
+      ret &= 0x0fffffff;
+      if (ret == 0)
+        {
+          ret = 0x0fffffff;
+        }
+    }
+  else
+    {
+      ret = 0x0ffffffe;	/* Hash for an empty string.	*/
+    }
+  return ret;
+}
+
+- (int) intValue
+{
+  char  buf[9];
+ 
+  tsbytes((uintptr_t)self, buf);
+  return strtol(buf, 0, 10);
+}
+
+- (NSInteger) integerValue
+{
+  char  buf[9];
+
+  tsbytes((uintptr_t)self, buf);
+#if GS_SIZEOF_VOIDP == GS_SIZEOF_LONG
+  return strtol(buf, 0, 10);
+#else
+  return strtoll(buf, 0, 10);
+#endif
+}
+
+- (NSUInteger) length
+{
+  uintptr_t s = (uintptr_t)self;
+  return (s >> TINY_STRING_LENGTH_SHIFT) & TINY_STRING_LENGTH_MASK;
+}
+
+- (long long) longLongValue
+{
+  char  buf[9];
+
+  tsbytes((uintptr_t)self, buf);
+  return strtoll(buf, 0, 10);
+}
+
+- (const char*) UTF8String
+{
+  char  *buf = GSAutoreleasedBuffer(9);
+
+  tsbytes((uintptr_t)self, buf);
+  return buf;
 }
 
 + (void) load
@@ -1557,10 +1745,10 @@ UTF8String_u(GSStr self)
 static inline BOOL
 boolValue_c(GSStr self)
 {
-  unsigned  c = self->_count;
+  unsigned  count = self->_count;
   unsigned  i;
 
-  for (i = 0; i < c; i++)
+  for (i = 0; i < count; i++)
     {
       char	c = self->_contents.c[i];
 
@@ -1579,10 +1767,10 @@ boolValue_c(GSStr self)
 static inline BOOL
 boolValue_u(GSStr self)
 {
-  unsigned  c = self->_count;
+  unsigned  count = self->_count;
   unsigned  i;
 
-  for (i = 0; i < c; i++)
+  for (i = 0; i < count; i++)
     {
       unichar	c = self->_contents.u[i];
 
@@ -1600,6 +1788,62 @@ boolValue_u(GSStr self)
 	}
     }
   return NO;
+}
+
+static inline void
+intBuf_c(GSStr self, char *buf)
+{
+  unsigned  c = self->_count;
+  unsigned  i = 0;
+  unsigned  j = 0;
+
+  while (i < c && isspace(self->_contents.c[i]))
+    {
+      i++;
+    }
+  if (i < c)
+    {
+      char      sign = self->_contents.c[i];
+
+      if ('+' == sign || '-' == sign)
+        {
+          buf[j++] = sign;
+          i++;
+        }
+    }
+  while (i < c && j < 20 && isdigit(self->_contents.c[i]))
+    {
+      buf[j++] = self->_contents.c[i++];
+    }
+  buf[j] = '\0';
+}
+
+static inline void
+intBuf_u(GSStr self, char *buf)
+{
+  unsigned  c = self->_count;
+  unsigned  i = 0;
+  unsigned  j = 0;
+
+  while (i < c && isspace(self->_contents.u[i]))
+    {
+      i++;
+    }
+  if (i < c)
+    {
+      unichar   sign = self->_contents.u[i];
+
+      if ('+' == sign || '-' == sign)
+        {
+          buf[j++] = (char)sign;
+          i++;
+        }
+    }
+  while (i < c && j < 20 && isdigit(self->_contents.u[i]))
+    {
+      buf[j++] = (char)self->_contents.u[i++];
+    }
+  buf[j] = '\0';
 }
 
 static inline BOOL
@@ -2621,56 +2865,6 @@ getCStringE_u(GSStr self, char *buffer, unsigned int maxLength,
     }
 }
 
-static inline int
-intValue_c(GSStr self)
-{
-  const char	*ptr = (const char*)self->_contents.c;
-  const char	*end = ptr + self->_count;
-
-  while (ptr < end && isspace(*ptr))
-    {
-      ptr++;
-    }
-  if (ptr == end)
-    {
-      return 0;
-    }
-  else
-    {
-      unsigned int	l = (end - ptr) < 32 ? (end - ptr) : 31;
-      char		buf[32];
-
-      memcpy(buf, ptr, l);
-      buf[l] = '\0';
-      return atol((const char*)buf);
-    }
-}
-
-static inline int
-intValue_u(GSStr self)
-{
-  const unichar	*ptr = self->_contents.u;
-  const unichar	*end = ptr + self->_count;
-
-  while (ptr < end && isspace(*ptr))
-    {
-      ptr++;
-    }
-  if (ptr == end)
-    {
-      return 0;
-    }
-  else
-    {
-      unsigned int	l = (end - ptr) < 32 ? (end - ptr) : 31;
-      unsigned char	buf[32];
-      unsigned char	*b = buf;
-
-      GSFromUnicode(&b, &l, ptr, l, internalEncoding, 0, GSUniTerminate);
-      return atol((const char*)buf);
-    }
-}
-
 static inline BOOL
 isEqual_c(GSStr self, id anObject)
 {
@@ -3666,7 +3860,22 @@ agree, create a new GSCInlineString otherwise.
 
 - (int) intValue
 {
-  return intValue_c((GSStr)self);
+  char  buf[24];
+
+  intBuf_c((GSStr)self, buf);
+  return strtol(buf, 0, 10);
+}
+
+- (NSInteger) integerValue
+{
+  char  buf[24];
+
+  intBuf_c((GSStr)self, buf);
+#if GS_SIZEOF_VOIDP == GS_SIZEOF_LONG
+  return strtol(buf, 0, 10);
+#else
+  return strtoll(buf, 0, 10);
+#endif
 }
 
 - (BOOL) isEqual: (id)anObject
@@ -3687,6 +3896,14 @@ agree, create a new GSCInlineString otherwise.
 - (NSUInteger) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
 {
   return cStringLength_c((GSStr)self, encoding);
+}
+
+- (long long) longLongValue
+{
+  char  buf[24];
+
+  intBuf_c((GSStr)self, buf);
+  return strtoll(buf, 0, 10);
 }
 
 - (const char*) lossyCString
@@ -4020,7 +4237,22 @@ agree, create a new GSCInlineString otherwise.
 
 - (int) intValue
 {
-  return intValue_u((GSStr)self);
+  char  buf[24];
+
+  intBuf_u((GSStr)self, buf);
+  return strtol(buf, 0, 10);
+}
+
+- (NSInteger) integerValue
+{
+  char  buf[24];
+
+  intBuf_u((GSStr)self, buf);
+#if GS_SIZEOF_VOIDP == GS_SIZEOF_LONG
+  return strtol(buf, 0, 10);
+#else
+  return strtoll(buf, 0, 10);
+#endif
 }
 
 - (BOOL) isEqual: (id)anObject
@@ -4041,6 +4273,14 @@ agree, create a new GSCInlineString otherwise.
 - (NSUInteger) lengthOfBytesUsingEncoding: (NSStringEncoding)encoding
 {
   return cStringLength_u((GSStr)self, encoding);
+}
+
+- (long long) longLongValue
+{
+  char  buf[24];
+
+  intBuf_u((GSStr)self, buf);
+  return strtoll(buf, 0, 10);
 }
 
 - (const char*) lossyCString
@@ -4832,10 +5072,28 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 
 - (int) intValue
 {
+  char  buf[24];
+
   if (_flags.wide == 1)
-    return intValue_u((GSStr)self);
+    intBuf_u((GSStr)self, buf);
   else
-    return intValue_c((GSStr)self);
+    intBuf_c((GSStr)self, buf);
+  return strtol(buf, 0, 10);
+}
+
+- (NSInteger) integerValue
+{
+  char  buf[24];
+
+  if (_flags.wide == 1)
+    intBuf_u((GSStr)self, buf);
+  else
+    intBuf_c((GSStr)self, buf);
+#if GS_SIZEOF_VOIDP == GS_SIZEOF_LONG
+  return strtol(buf, 0, 10);
+#else
+  return strtoll(buf, 0, 10);
+#endif
 }
 
 - (BOOL) isEqual: (id)anObject
@@ -4865,6 +5123,17 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     return cStringLength_u((GSStr)self, encoding);
   else
     return cStringLength_c((GSStr)self, encoding);
+}
+
+- (long long) longLongValue
+{
+  char  buf[24];
+
+  if (_flags.wide == 1)
+    intBuf_u((GSStr)self, buf);
+  else
+    intBuf_c((GSStr)self, buf);
+  return strtoll(buf, 0, 10);
 }
 
 - (const char*) lossyCString
@@ -5619,9 +5888,28 @@ literalIsEqual(NXConstantString *self, id anObject)
   return literalIsEqual(self, other);
 }
 
+- (int) intValue
+{
+  return strtol((const char*)nxcsptr, 0, 10);
+}
+
+- (NSInteger) integerValue
+{
+#if GS_SIZEOF_VOIDP == GS_SIZEOF_LONG
+  return strtol((const char*)nxcsptr, 0, 10);
+#else
+  return strtoll((const char*)nxcsptr, 0, 10);
+#endif
+}
+
 - (NSUInteger) length
 {
   return lengthUTF8((const uint8_t*)nxcsptr, nxcslen, 0, 0);
+}
+
+- (long long) longLongValue
+{
+  return strtoll((const char*)nxcsptr, 0, 10);
 }
 
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
