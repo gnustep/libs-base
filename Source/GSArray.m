@@ -637,6 +637,38 @@ static Class	GSInlineArrayClass;
   return self;
 }
 
+- (void) removeAllObjects
+{
+  NSUInteger    pos;
+
+  if ((pos = _count) > 0)
+    {
+#if	GS_WITH_GC == 0
+      IMP       rel = 0;
+      Class    last = Nil;
+#endif
+
+      _version++;
+      _count = 0;
+      while (pos-- > 0)
+        {
+#if	GS_WITH_GC == 0
+          id    o = _contents_array[pos];
+          Class c = object_getClass(o);
+
+          if (c != last)
+            {
+              last = c;
+              rel = [o methodForSelector: @selector(release)];
+            }
+          (*rel)(o, @selector(release));
+#endif
+          _contents_array[pos] = nil;
+        }
+      _version++;
+    }
+}
+
 - (void) removeLastObject
 {
   _version++;
