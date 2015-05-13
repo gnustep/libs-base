@@ -1048,24 +1048,34 @@ LDFLAGS="$LDFLAGS -L$GNUSTEP_LOCAL_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GNU
 #--------------------------------------------------------------------
 # Find the compiler
 #--------------------------------------------------------------------
+MAKECC=`gnustep-config --variable=CC`
+MAKECPP=`gnustep-config --variable=CPP`
+MAKECXX=`gnustep-config --variable=CXX`
 if test "$CC" = ""; then
-  CC=`gnustep-config --variable=CC`
+  CC=$MAKECC
+else
+  if test "$CC" != "$MAKECC"; then
+    AC_MSG_WARN([You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CC or run the gnustep-base configure again with your CC environment variable set to $MAKECC])
+  fi
 fi
 if test "$CPP" = ""; then
-  CPP=`gnustep-config --variable=CPP`
+  CPP=$MAKECPP
+else
+  if test "$CPP" != "$MAKECPP"; then
+    AC_MSG_WARN([You are running configure with the preprocessor ($CPP) set to a different value from that used by gnustep-make ($MAKECPP).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CPP or run the gnustep-base configure again with your CPP environment variable set to $MAKECPP])
+  fi
 fi
 if test "$CXX" = ""; then
-  CXX=`gnustep-config --variable=CXX`
+  CXX=$MAKECXX
+else
+  if test "$CXX" != "$MAKECXX"; then
+    AC_MSG_WARN([You are running configure with the compiler ($CXX) set to a different value from that used by gnustep-make ($MAKECXX).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CXX or run the gnustep-base configure again with your CXX environment variable set to $MAKECXX])
+  fi
 fi
 AC_PROG_CC
 AC_PROG_CPP
 AC_USE_SYSTEM_EXTENSIONS
 
-MAKECC=`gnustep-config --variable=CC`
-if test "$CC" != "$MAKECC"; then
-  AC_MSG_ERROR([You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  Please run configure again with your environment set to match your gnustep-make])
-  exit 1
-fi
 
 # Large file support needed by NSData/NSFileHandle.
 # These macros must be called after AC_USE_SYSTEM_EXTENSIONS because
