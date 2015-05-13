@@ -1,5 +1,11 @@
 2015-05-13  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* configure.ac: Tidy compiler and preprocessor  detection and use
+	warning for potentially broken compiler selection.
+	* configure: regenerate
+
+2015-05-13  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Version:
 	* Documentation/news.texi:
 	* Documentation/ReleaseNotes.gsdoc:
