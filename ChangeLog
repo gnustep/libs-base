@@ -1,3 +1,15 @@
+2015-05-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version:
+	* Documentation/news.texi:
+	* Documentation/ReleaseNotes.gsdoc:
+	Update in preparation for release
+	* Source/Makefile.postamble:
+	* Makefile.postamble:
+	* GNUmakefile:
+	Apply Yavor Doganov's patch to avoid re-run of configure when we do
+	multiple 'make distclean' invocations (bug #29730).
+
 2015-05-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZones/NSTimeZones.tar: updated

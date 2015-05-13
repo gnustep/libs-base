@@ -30,6 +30,22 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.24.8</heading>
+        <p>A new stable (bugfix) release.<br />
+        The release contains a variety of bugfixes as well as some
+        performance optimisations (particularly in the use of tiny string
+        objects by the new objc runtime on 64bit systems).<br />
+        Thread naming and logging of threads by NSLog() has been made
+        consistent with the latest OSX releases, making debugging of
+        multithreaded code a little easier.<br />
+        Sergei Golovin has added NSURLConnection regression tests (while
+        fixing a few bugs there).<br />
+        As usual, this release also contains an update to include the
+        most recent international timezone data.
+        </p>
+      </section>
+
+      <section>
 	<heading>Version 1.24.7</heading>
         <p>A new stable (bugfix) release.<br />
         The release has various platform/portability tweaks, as
