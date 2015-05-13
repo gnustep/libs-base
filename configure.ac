@@ -3085,8 +3085,13 @@ if test $enable_tls = yes; then
   if test $HAVE_GNUTLS = 1; then
     AC_CHECK_LIB(gcrypt, gcry_control, have_gcrypt=yes, have_gcrypt=no)
     if test "$have_gcrypt" = "no"; then
-      AC_MSG_WARN([Missing support for thread-safe operation in GNUTLS.  Disabling TLS support).])
-      HAVE_GNUTLS=0
+      AC_CHECK_LIB(nettle, nettle_sha1_digest, have_nettle=yes, have_nettle=no)
+      if test "$have_nettle" = "no"; then
+          AC_MSG_WARN([Missing support for thread-safe operation in GNUTLS.  Disabling TLS support).])
+          HAVE_GNUTLS=0
+      else
+          TLS_LIBS="$TLS_LIBS -lnettle"
+      fi
     else
       TLS_LIBS="$TLS_LIBS -lgcrypt"
     fi
