@@ -61,9 +61,15 @@ include $(GNUSTEP_MAKEFILES)/common.make
 include ./Version
 -include config.mak
 
+# Helper variable to check if the generated makefiles are present.  If
+# they are not, the tree is clean so prevent make from recursing into
+# subprojects when clean/distclean is being invoked again.
+_have_makefiles := $(shell test -f config.mak -o -f base.make && echo yes)
+
 #
 # The list of subproject directories
 #
+ifeq ($(_have_makefiles),yes)
 SUBPROJECTS = Source
 ifeq ($(GNUSTEP_BASE_HAVE_GNUTLS), 0)
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
@@ -71,6 +77,7 @@ ifneq ($(GNUSTEP_TARGET_OS), mingw32)
 endif
 endif
 SUBPROJECTS += Tools NSTimeZones Resources Tests
+endif
 
 -include Makefile.preamble
 
