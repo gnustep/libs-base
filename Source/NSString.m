@@ -2685,12 +2685,19 @@ static BOOL             (*nbImp)(id, SEL, unichar) = 0;
  */
 - (BOOL) isEqualToString: (NSString*)aString
 {
+  if (aString == self)
+    {
+      return YES;
+    }
   if ([self hash] != [aString hash])
-    return NO;
-
+    {
+      return NO;
+    }
   if (strCompNsNs(self, aString, 0, (NSRange){0, [self length]})
     == NSOrderedSame)
-    return YES;
+    {
+      return YES;
+    }
   return NO;
 }
 
