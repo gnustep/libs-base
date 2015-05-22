@@ -2532,7 +2532,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 }
 
 - (NSUInteger) indexOfString: (NSString*)substring
-		     fromIndex: (NSUInteger)index
+                   fromIndex: (NSUInteger)index
 {
   NSRange range = {index, [self length] - index};
 
@@ -2638,9 +2638,10 @@ static BOOL             (*nbImp)(id, SEL, unichar) = 0;
 - (BOOL) hasPrefix: (NSString*)aString
 {
   NSRange	range = NSMakeRange(0, [self length]);
+  NSUInteger    mask = NSLiteralSearch | NSAnchoredSearch;
 
   range = [self rangeOfString: aString
-                      options: NSAnchoredSearch
+                      options: mask
                         range: range
                        locale: nil];
   return (range.length > 0) ? YES : NO;
@@ -2652,9 +2653,10 @@ static BOOL             (*nbImp)(id, SEL, unichar) = 0;
 - (BOOL) hasSuffix: (NSString*)aString
 {
   NSRange	range = NSMakeRange(0, [self length]);
+  NSUInteger    mask = NSLiteralSearch | NSAnchoredSearch | NSBackwardsSearch;
 
   range = [self rangeOfString: aString
-                      options: NSAnchoredSearch | NSBackwardsSearch
+                      options: mask
                         range: range
                        locale: nil];
   return (range.length > 0) ? YES : NO;

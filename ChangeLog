@@ -1,3 +1,10 @@
+2015-05-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m:
+	* Source/GSString.m:
+	Some optimisation.  Fix -hasPrefix: and -hasSuffix: to use literal
+	search as on OSX.
+
 2015-05-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/install.texi:
