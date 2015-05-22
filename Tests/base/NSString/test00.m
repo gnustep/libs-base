@@ -428,6 +428,11 @@ int main()
   [str release];
   PASS_EQUAL(sub, @"aaa", "a substring uses its own buffer");
   
+  PASS(YES == [@"hello" hasPrefix: @"hel"], "hello has hel as a prefix");
+  PASS(NO == [@"hello" hasPrefix: @"Hel"], "hello does not have Hel as a prefix");
+  PASS(YES == [@"hello" hasSuffix: @"llo"], "hello has llo as a suffix");
+  PASS(NO == [@"hello" hasSuffix: @"lLo"], "hello does not have lLo as a suffix");
+
   [arp release]; arp = nil;
   return 0;
 }
