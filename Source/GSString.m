@@ -964,6 +964,16 @@ tsbytes(uintptr_t s, char *buf)
   return strtoll(buf, 0, 10);
 }
 
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
+{
+  uintptr_t s = (uintptr_t)self;
+  NSUInteger    l = (s >> TINY_STRING_LENGTH_SHIFT) & TINY_STRING_LENGTH_MASK;
+
+  if (anIndex >= l)
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  return NSMakeRange(anIndex, 1);
+}
+
 - (const char*) UTF8String
 {
   char  *buf = GSAutoreleasedBuffer(9);
@@ -1004,6 +1014,7 @@ tsbytes(uintptr_t s, char *buf)
 {
   return self;
 }
+
 - (NSUInteger) retainCount
 {
   return UINT_MAX;
@@ -1213,36 +1224,37 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 	      length: (NSUInteger)length
 	    encoding: (NSStringEncoding)encoding
 {
+  const void	*original;
   void		*chars = 0;
   BOOL		flag = NO;
   
-  if (GSPrivateIsEncodingSupported(encoding) == NO)
+  if (0 == length)
     {
-      return nil;	// Invalid encoding
+      return (id)@"";
     }
-  if (length > 0)
+
+  if (0 == bytes)
     {
-      const void	*original;
+      [NSException raise: NSInvalidArgumentException
+                  format: @"-initWithBytes:lenth:encoding given nul bytes"];
+    }
 
-      if (0 == bytes)
-	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"-initWithBytes:lenth:encoding given nul bytes"];
-	}
-      original = bytes;
 #if defined(OBJC_SMALL_OBJECT_SHIFT) && (OBJC_SMALL_OBJECT_SHIFT == 3)
-      if (useTinyStrings)
+  if (useTinyStrings)
+    {
+      if (NSASCIIStringEncoding == encoding)
         {
-          if (NSASCIIStringEncoding == encoding)
-            {
-              id tinyString = createTinyString(bytes, length);
+          id tinyString = createTinyString(bytes, length);
 
-              if (tinyString)
-                {
-                  return tinyString;
-                }
+          if (tinyString)
+            {
+              return tinyString;
             }
-          if (NSUTF8StringEncoding == encoding && (length < 9))
+        }
+      if (length < 9)
+        {
+          if (NSUTF8StringEncoding == encoding
+            || GSPrivateIsByteEncoding(encoding))
             {
               NSUInteger i;
 
@@ -1264,31 +1276,33 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
                 }
             }
         }
+    }
 #endif
 
-      fixBOM((unsigned char**)&bytes, &length, &flag, encoding);
-      /*
-       * We need to copy the data if there is any, unless fixBOM()
-       * has already done it for us.
-       */
-      if (original == bytes)
-	{
+  original = bytes;
+  fixBOM((unsigned char**)&bytes, &length, &flag, encoding);
+  /*
+   * We need to copy the data if there is any, unless fixBOM()
+   * has already done it for us.
+   */
+  if (original == bytes)
+    {
 #if	GS_WITH_GC
-	  chars = NSAllocateCollectable(length, 0);
+      chars = NSAllocateCollectable(length, 0);
 #else
-	  chars = NSZoneMalloc([self zone], length);
+      chars = NSZoneMalloc([self zone], length);
 #endif
-	  memcpy(chars, bytes, length);
-	}
-      else
-	{
-	  /*
-	   * The fixBOM() function has already copied the data and allocated
-	   * new memory, so we can just pass that to the designated initialiser
-	   */
-	  chars = (void*)bytes;
-	}
+      memcpy(chars, bytes, length);
     }
+  else
+    {
+      /*
+       * The fixBOM() function has already copied the data and allocated
+       * new memory, so we can just pass that to the designated initialiser
+       */
+      chars = (void*)bytes;
+    }
+
   return [self initWithBytesNoCopy: chars
 			    length: length
 			  encoding: encoding
@@ -1305,49 +1319,27 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   BOOL		isLatin1 = NO;
   GSStr		me;
 
-  if (GSPrivateIsEncodingSupported(encoding) == NO)
+  if (0 == length)
     {
-      if (flag == YES && bytes != 0)
-	{
-	  NSZoneFree(NSZoneFromPointer(bytes), bytes);
-	}
-      return nil;	// Invalid encoding
-    }
-
-  if (length > 0)
-    {
-      fixBOM((unsigned char**)&bytes, &length, &flag, encoding);
-      if (encoding == NSUnicodeStringEncoding)
-	{
-	  chars.u = bytes;
-	}
-      else
-	{
-	  chars.c = bytes;
-	}
-    }
-
-  if (encoding == NSUTF8StringEncoding)
-    {
-      unsigned i;
-
-      for (i = 0; i < length; i++)
+      if (0 != bytes)
         {
-	  if ((chars.c)[i] > 127)
-	    {
-	      break;
-	    }
+          NSZoneFree(NSZoneFromPointer(bytes), bytes);
         }
-      if (i == length)
-	{
-	  /*
-	   * This is actually ASCII data ... so we can just store it as if
-	   * in the internal 8bit encoding scheme.
-	   */
-	  encoding = internalEncoding;
-	}
+      return (id)@"";
     }
-  else if (encoding != internalEncoding && isByteEncoding(encoding) == YES)
+
+  fixBOM((unsigned char**)&bytes, &length, &flag, encoding);
+  if (encoding == NSUnicodeStringEncoding)
+    {
+      chars.u = bytes;
+    }
+  else
+    {
+      chars.c = bytes;
+    }
+
+  if (encoding == NSUTF8StringEncoding
+    || (encoding != internalEncoding && isByteEncoding(encoding) == YES))
     {
       unsigned i;
 
@@ -1375,7 +1367,6 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 	  encoding = internalEncoding;
 	}
     }
-
 
   if (encoding == internalEncoding)
     {
@@ -1406,6 +1397,15 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
     {
       unichar	*u = 0;
       unsigned	l = 0;
+
+      if (GSPrivateIsEncodingSupported(encoding) == NO)
+        {
+          if (flag == YES && bytes != 0)
+            {
+              NSZoneFree(NSZoneFromPointer(bytes), bytes);
+            }
+          return nil;	// Invalid encoding
+        }
 
       if (GSToUnicode(&u, &l, chars.c, length, encoding,
 	[self zone], 0) == NO)
@@ -3947,6 +3947,7 @@ agree, create a new GSCInlineString otherwise.
   return rangeOfCharacter_c((GSStr)self, aSet, mask, aRange);
 }
 
+/*
 - (NSRange) rangeOfString: (NSString*)aString
 		  options: (NSUInteger)mask
 		    range: (NSRange)aRange
@@ -3966,6 +3967,7 @@ agree, create a new GSCInlineString otherwise.
     }
   return rangeOfString_c((GSStr)self, aString, mask, aRange);
 }
+*/
 
 - (NSStringEncoding) smallestEncoding
 {
@@ -4338,6 +4340,7 @@ agree, create a new GSCInlineString otherwise.
   return rangeOfCharacter_u((GSStr)self, aSet, mask, aRange);
 }
 
+/*
 - (NSRange) rangeOfString: (NSString*)aString
 		  options: (NSUInteger)mask
 		    range: (NSRange)aRange
@@ -4357,6 +4360,7 @@ agree, create a new GSCInlineString otherwise.
     }
   return rangeOfString_u((GSStr)self, aString, mask, aRange);
 }
+*/
 
 - (NSStringEncoding) smallestEncoding
 {
@@ -5230,6 +5234,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     return rangeOfCharacter_c((GSStr)self, aSet, mask, aRange);
 }
 
+/*
 - (NSRange) rangeOfString: (NSString*)aString
 		  options: (NSUInteger)mask
 		    range: (NSRange)aRange
@@ -5252,6 +5257,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
   else
     return rangeOfString_c((GSStr)self, aString, mask, aRange);
 }
+*/
 
 - (void) replaceCharactersInRange: (NSRange)aRange
 		       withString: (NSString*)aString

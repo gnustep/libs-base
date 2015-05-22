@@ -967,9 +967,10 @@ static SEL	foundIgnorableSel;
 
       if (this->shouldProcessNamespaces)
         {
-          NSRange   r = [tag rangeOfString: @":"];
+          NSRange   r;
           NSString  *p = @"";
 
+          r = [tag rangeOfString: @":" options: NSLiteralSearch];
           if (r.length > 0)
             {
               p = [tag substringToIndex: r.location];
@@ -1354,9 +1355,10 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 	      qualified = tag;
               if (this->shouldProcessNamespaces)
                 {
-                  NSRange   r = [tag rangeOfString: @":"];
+                  NSRange   r;
                   NSString  *p = @"";
 
+                  r = [tag rangeOfString: @":" options: NSLiteralSearch];
                   if (r.length > 0)
                     {
                       p = [tag substringToIndex: r.location];

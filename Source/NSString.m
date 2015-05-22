@@ -149,7 +149,7 @@ static SEL	cMemberSel = 0;
 #define IS_BIT_SET(a,i) ((((a) & (1<<(i)))) > 0)
 
 static NSCharacterSet	*nonspace = nil;
-static NSData *whitespaceBitmap;
+static NSData           *whitespaceBitmap;
 static unsigned const char *whitespaceBitmapRep = NULL;
 #define GS_IS_WHITESPACE(X) IS_BIT_SET(whitespaceBitmapRep[(X)/8], (X) % 8)
 
@@ -623,8 +623,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     {
       localeCString = [[locale localeIdentifier] UTF8String];
 
-      if (localeCString == NULL
-	  || strcmp("", localeCString) == 0)
+      if (localeCString == NULL || strcmp("", localeCString) == 0)
 	{
 	  return NULL;
 	}
@@ -2273,7 +2272,10 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
                     range: (NSRange)searchRange
                    locale: (NSLocale *)locale
 {
-  GS_RANGE_CHECK(searchRange, [self length]);
+  NSUInteger    length = [self length];
+  NSUInteger    countOther;
+
+  GS_RANGE_CHECK(searchRange, length);
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
 
@@ -2301,7 +2303,150 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
       return r;
     }
 
+  countOther = [aString length];
+  if (0 == countOther)
+    {
+      if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+        {
+          searchRange.location += searchRange.length;
+        }
+      searchRange.length = 0;
+      return searchRange;
+    }
+
+  if ((mask & NSLiteralSearch) == NSLiteralSearch)
+    {
+      NSRange   result;
+
+      if (searchRange.length < countOther)
+        {
+          /* Range to search is smaller than string to look for.
+           */
+          result = NSMakeRange(NSNotFound, 0);
+        }
+      else
+        {
+          GS_BEGINITEMBUF(charsOther, (countOther*sizeof(unichar)), unichar)
+
+          [aString getCharacters: charsOther range: NSMakeRange(0, countOther)];
+          if ((mask & NSAnchoredSearch) == NSAnchoredSearch
+            || searchRange.length == countOther)
+            {
+              /* Range to search is same size as string to look for.
+               */
+              GS_BEGINITEMBUF2(charsSelf, (countOther*sizeof(unichar)), unichar)
+              if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+                {
+                  searchRange.location = NSMaxRange(searchRange) - countOther;
+                  searchRange.length = countOther;
+                }
+              else
+                {
+                  searchRange.length = countOther;
+                }
+              [self getCharacters: charsSelf range: searchRange];
+              if (memcmp(&charsSelf[0], &charsOther[0],
+                countOther * sizeof(unichar)) == 0)
+                {
+                  result = searchRange;
+                }
+              else
+                {
+                  result = NSMakeRange(NSNotFound, 0);
+                }
+              GS_ENDITEMBUF2()
+            }
+          else
+            {
+              NSUInteger    pos;
+              NSUInteger    end;
+
+              end = searchRange.length - countOther + 1;
+              if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+                {
+                  pos = end;
+                }
+              else
+                {
+                  pos = 0;
+                }
+              /* Range to search is bigger than string to look for.
+               */
+              GS_BEGINITEMBUF2(charsSelf, (searchRange.length*sizeof(unichar)),
+                unichar)
+              [self getCharacters: charsSelf range: searchRange];
+              if (1 == countOther)
+                {
+                  unichar       u = charsOther[pos];
+
+                  if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+                    {
+                      while (pos-- > 0)
+                        {
+                          if (charsSelf[pos] == u)
+                            {
+                              break;
+                            }
+                        }
+                    }
+                  else
+                    {
+                      while (pos < end)
+                        {
+                          if (charsSelf[pos] == u)
+                            {
+                              break;
+                            }
+                          pos++;
+                        }                        
+                    }
+                }
+              else
+                {
+                  if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+                    {
+                      while (pos-- > 0)
+                        {
+                          if (memcmp(&charsSelf[pos], charsOther,
+                            countOther * sizeof(unichar)) == 0)
+                            {
+                              break;
+                            }
+                        }
+                    }
+                  else
+                    {
+                      while (pos < end)
+                        {
+                          if (memcmp(&charsSelf[pos], charsOther,
+                            countOther * sizeof(unichar)) == 0)
+                            {
+                              break;
+                            }
+                          pos++;
+                        }                        
+                    }
+                }
+              if (pos >= end)
+                {
+                  result = NSMakeRange(NSNotFound, 0);
+                }
+              else
+                {
+                  result = NSMakeRange(searchRange.location + pos, countOther);
+                }
+              GS_ENDITEMBUF2()
+            }
+          GS_ENDITEMBUF()
+        }
+      return result;
+    }
+
 #if GS_USE_ICU == 1
+  if (nil != locale && ![locale isKindOfClass: [NSLocale class]])
+    {
+      locale = [NSLocale currentLocale];
+    }
     {
       UCollator *coll = GSICUCollatorOpen(mask, locale);
 
@@ -2310,7 +2455,6 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	  NSRange       result = NSMakeRange(NSNotFound, 0);
 	  UErrorCode    status = U_ZERO_ERROR; 
 	  NSUInteger    countSelf = searchRange.length;
-	  NSUInteger    countOther = [aString length];       
 	  UStringSearch *search = NULL;
           GS_BEGINITEMBUF(charsSelf, (countSelf * sizeof(unichar)), unichar)
           GS_BEGINITEMBUF2(charsOther, (countOther * sizeof(unichar)), unichar)
@@ -2405,28 +2549,36 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
  */
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
 {
+static NSCharacterSet	*nonbase = nil;
+static SEL              nbSel;
+static BOOL             (*nbImp)(id, SEL, unichar) = 0;
   unsigned	start;
   unsigned	end;
   unsigned	length = [self length];
   unichar	ch;
   unichar	(*caiImp)(NSString*, SEL, NSUInteger);
-  NSCharacterSet *nbSet = [NSCharacterSet nonBaseCharacterSet];
 
   if (anIndex >= length)
     [NSException raise: NSRangeException format:@"Invalid location."];
   caiImp = (unichar (*)(NSString*,SEL,NSUInteger))
     [self methodForSelector: caiSel];
 
+  if (nil == nonbase)
+    {
+      nonbase = [[NSCharacterSet nonBaseCharacterSet] retain];
+      nbSel = @selector(characterIsMember:);
+      nbImp = (BOOL(*)(id,SEL,unichar))[nonbase methodForSelector: nbSel];
+    }
   for (start = anIndex; start > 0; start--)
     {
       ch = (*caiImp)(self, caiSel, start);
-      if ([nbSet characterIsMember: ch] == NO)
+      if ((*nbImp)(nonbase, nbSel, ch) == NO)
         break;
     }
   for (end = start+1; end < length; end++)
     {
       ch = (*caiImp)(self, caiSel, end);
-      if ([nbSet characterIsMember: ch] == NO)
+      if ((*nbImp)(nonbase, nbSel, ch) == NO)
         break;
     }
 
@@ -5247,12 +5399,10 @@ static NSFileManager *fm = nil;
     [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
 
 #if GS_USE_ICU == 1
-  if (nil != locale
-    && ![locale isKindOfClass: [NSLocale class]])
+  if (nil != locale && ![locale isKindOfClass: [NSLocale class]])
     {
       locale = [NSLocale currentLocale];
     }
-
     {
       UCollator *coll = GSICUCollatorOpen(mask, locale);
 
