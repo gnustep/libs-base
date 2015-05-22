@@ -749,6 +749,38 @@ static BOOL useTinyStrings;
 #define TINY_STRING_CHAR(s, x) ((s & (0xFE00000000000000 >> (x*7))) >> (57-(x*7)))
 #define TINY_STRING_LENGTH_MASK 0x1f
 #define TINY_STRING_LENGTH_SHIFT OBJC_SMALL_OBJECT_SHIFT
+
+static BOOL
+tinyEqualToString(uintptr_t s, NSString *aString)
+{
+  NSUInteger    l;
+
+  if ((NSString*)s == aString)
+    {
+      return YES;
+    }
+  
+  l = (s >> TINY_STRING_LENGTH_SHIFT) & TINY_STRING_LENGTH_MASK;
+  if ([aString length] != l)
+    {
+      return NO;
+    }
+  else if (l > 0)
+    {
+      unichar   buf[8];
+
+      [aString getCharacters: buf range: NSMakeRange(0, l)];
+      while (l-- > 0)
+        {
+          if ((unichar)TINY_STRING_CHAR(s, l) != buf[l])
+            {
+              return NO;
+            }
+        }
+    }
+  return YES;
+}
+
 @interface GSTinyString : NSString
 @end
 
@@ -948,6 +980,11 @@ tsbytes(uintptr_t s, char *buf)
 #else
   return strtoll(buf, 0, 10);
 #endif
+}
+
+- (BOOL) isEqualToString: (NSString*)aString
+{
+  return tinyEqualToString((uintptr_t)self, aString);
 }
 
 - (NSUInteger) length
@@ -5571,6 +5608,17 @@ literalIsEqual(NXConstantString *self, id anObject)
     {
       return NO;
     }
+#if defined(OBJC_SMALL_OBJECT_SHIFT) && (OBJC_SMALL_OBJECT_SHIFT == 3)
+  if (useTinyStrings)
+    {
+      uintptr_t s = (uintptr_t)anObject;
+
+      if (s & TINY_STRING_MASK)
+        {
+          return tinyEqualToString((uintptr_t)anObject, self);
+        }
+    }
+#endif
   if (GSObjCIsInstance(anObject) == NO)
     {
       return NO;
