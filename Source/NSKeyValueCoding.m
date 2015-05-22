@@ -287,7 +287,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (NSMutableSet*) mutableSetValueForKeyPath: (NSString*)aKey
 {
-  NSRange       r = [aKey rangeOfString: @"."];
+  NSRange       r = [aKey rangeOfString: @"." options: NSLiteralSearch];
 
   if (r.length == 0)
     {
@@ -309,7 +309,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (NSMutableArray*) mutableArrayValueForKeyPath: (NSString*)aKey
 {
-  NSRange       r = [aKey rangeOfString: @"."];
+  NSRange       r = [aKey rangeOfString: @"." options: NSLiteralSearch];
 
   if (r.length == 0)
     {
@@ -373,7 +373,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (void) setValue: (id)anObject forKeyPath: (NSString*)aKey
 {
-  NSRange       r = [aKey rangeOfString: @"."];
+  NSRange       r = [aKey rangeOfString: @"." options: NSLiteralSearch];
 #ifdef WANT_DEPRECATED_KVC_COMPAT
   IMP	        o = [self methodForSelector: @selector(takeValue:forKeyPath:)];
 
@@ -499,7 +499,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
             forKeyPath: (NSString*)aKey
                  error: (NSError**)anError
 {
-  NSRange       r = [aKey rangeOfString: @"."];
+  NSRange       r = [aKey rangeOfString: @"." options: NSLiteralSearch];
 
   if (r.length == 0)
     {
@@ -532,7 +532,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (id) valueForKeyPath: (NSString*)aKey
 {
-  NSRange       r = [aKey rangeOfString: @"."];
+  NSRange       r = [aKey rangeOfString: @"." options: NSLiteralSearch];
 
   if (r.length == 0)
     {
@@ -858,7 +858,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (void) takeValue: (id)anObject forKeyPath: (NSString*)aKey
 {
-  NSRange	r = [aKey rangeOfString: @"."];
+  NSRange	r = [aKey rangeOfString: @"." options: NSLiteralSearch];
 
   GSOnceMLog(@"This method is deprecated, use -setValue:forKeyPath:");
   if (r.length == 0)
