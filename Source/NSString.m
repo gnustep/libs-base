@@ -1985,7 +1985,10 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
   search = NSMakeRange (0, [self length]);
   complete = search;
-  found = [self rangeOfString: separator];
+  found = [self rangeOfString: separator
+                      options: 0
+                        range: search
+                       locale: nil];
   while (found.length != 0)
     {
       NSRange current;
@@ -1998,7 +2001,8 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	complete.length - found.location - found.length);
       found = [self rangeOfString: separator
 			  options: 0
-			    range: search];
+			    range: search
+                           locale: nil];
     }
   // Add the last search string range
   [array addObject: [self substringWithRange: search]];
@@ -2211,7 +2215,8 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
   return [self rangeOfString: string
 		     options: 0
-		       range: all];
+		       range: all
+                      locale: nil];
 }
 
 /**
@@ -2225,7 +2230,8 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
   return [self rangeOfString: string
 		     options: mask
-		       range: all];
+		       range: all
+                      locale: nil];
 }
 
 /**
@@ -2301,18 +2307,13 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
       if (NULL != coll)
 	{
-	  NSRange result = NSMakeRange(NSNotFound, 0);
-	  UErrorCode status = U_ZERO_ERROR; 
-	  NSUInteger countSelf = searchRange.length;
-	  NSUInteger countOther = [aString length];       
-	  unichar *charsSelf;
-	  unichar *charsOther;
+	  NSRange       result = NSMakeRange(NSNotFound, 0);
+	  UErrorCode    status = U_ZERO_ERROR; 
+	  NSUInteger    countSelf = searchRange.length;
+	  NSUInteger    countOther = [aString length];       
 	  UStringSearch *search = NULL;
-
-	  charsSelf = NSZoneMalloc(NSDefaultMallocZone(),
-	    countSelf * sizeof(unichar));
-	  charsOther = NSZoneMalloc(NSDefaultMallocZone(),
-	    countOther * sizeof(unichar));
+          GS_BEGINITEMBUF(charsSelf, (countSelf * sizeof(unichar)), unichar)
+          GS_BEGINITEMBUF2(charsOther, (countOther * sizeof(unichar)), unichar)
 
 	  // Copy to buffer
       
@@ -2326,6 +2327,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	    {
 	      int32_t matchLocation;
 	      int32_t matchLength;
+
 	      if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
 		{		
 		  matchLocation = usearch_last(search, &status);
@@ -2365,8 +2367,8 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 		    }
 		}
 	    }
-	  NSZoneFree(NSDefaultMallocZone(), charsSelf);
-	  NSZoneFree(NSDefaultMallocZone(), charsOther);	  
+          GS_ENDITEMBUF2()
+          GS_ENDITEMBUF()
 	  usearch_close(search);
 	  ucol_close(coll);
 	  return result;
@@ -2381,7 +2383,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 {
   NSRange range = {0, [self length]};
 
-  range = [self rangeOfString: substring options: 0 range: range];
+  range = [self rangeOfString: substring options: 0 range: range locale: nil];
   return range.length ? range.location : NSNotFound;
 }
 
@@ -2390,7 +2392,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 {
   NSRange range = {index, [self length] - index};
 
-  range = [self rangeOfString: substring options: 0 range: range];
+  range = [self rangeOfString: substring options: 0 range: range locale: nil];
   return range.length ? range.location : NSNotFound;
 }
 
@@ -2483,9 +2485,12 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
  */
 - (BOOL) hasPrefix: (NSString*)aString
 {
-  NSRange	range;
+  NSRange	range = NSMakeRange(0, [self length]);
 
-  range = [self rangeOfString: aString options: NSAnchoredSearch];
+  range = [self rangeOfString: aString
+                      options: NSAnchoredSearch
+                        range: range
+                       locale: nil];
   return (range.length > 0) ? YES : NO;
 }
 
@@ -2494,10 +2499,12 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
  */
 - (BOOL) hasSuffix: (NSString*)aString
 {
-  NSRange	range;
+  NSRange	range = NSMakeRange(0, [self length]);
 
   range = [self rangeOfString: aString
-                      options: NSAnchoredSearch | NSBackwardsSearch];
+                      options: NSAnchoredSearch | NSBackwardsSearch
+                        range: range
+                       locale: nil];
   return (range.length > 0) ? YES : NO;
 }
 
@@ -2511,12 +2518,9 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     {
       return YES;
     }
-  if (anObject != nil && GSObjCIsInstance(anObject) == YES)
+  if (anObject != nil && [anObject isKindOfClass: NSStringClass])
     {
-      if ([anObject isKindOfClass: NSStringClass])
-	{
-	  return [self isEqualToString: anObject];
-	}
+      return [self isEqualToString: anObject];
     }
   return NO;
 }
@@ -3905,7 +3909,10 @@ static NSFileManager *fm = nil;
    * Look for a dot in the path ... if there isn't one, or if it is
    * immediately after the root or a path separator, there is no extension.
    */
-  range = [self rangeOfString: @"." options: NSBackwardsSearch range: range];
+  range = [self rangeOfString: @"."
+                      options: NSBackwardsSearch
+                        range: range
+                       locale: nil];
   if (range.length > 0 && range.location > root
     && pathSepMember([self characterAtIndex: range.location-1]) == NO)
     {
@@ -4232,7 +4239,8 @@ static NSFileManager *fm = nil;
    */
   r0 = [self rangeOfString: @"."
 		   options: NSBackwardsSearch
-		     range: range];
+		     range: range
+                    locale: nil];
   /*
    * Locate a path separator.
    */
@@ -4841,7 +4849,8 @@ static NSFileManager *fm = nil;
 
   // Condense ('/./') sequences.
   r = (NSRange){root, l-root};
-  while ((r = [s rangeOfString: @"." options: 0 range: r]).length == 1)
+  while ((r = [s rangeOfString: @"." options: 0 range: r locale: nil]).length
+    == 1)
     {
       if (r.location > 0 && r.location < l - 1
 	&& pathSepMember((*caiImp)(s, caiSel, r.location-1)) == YES
@@ -4884,7 +4893,8 @@ static NSFileManager *fm = nil;
    *	remove '/../' sequences and their matching parent directories.
    */
   r = (NSRange){root, l-root};
-  while ((r = [s rangeOfString: @".." options: 0 range: r]).length == 2)
+  while ((r = [s rangeOfString: @".." options: 0 range: r locale: nil]).length
+    == 2)
     {
       if (r.location > 0
 	&& pathSepMember((*caiImp)(s, caiSel, r.location-1)) == YES

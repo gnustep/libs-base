@@ -110,14 +110,28 @@ __attribute__((unused)) static void GSFreeTempBuffer(void **b)
       _base = malloc((S) * sizeof(T));\
       P = _base;\
     }
+#  define	GS_BEGINITEMBUF2(P, S, T) { \
+  T _ibuf2[GS_MAX_OBJECTS_FROM_STACK];\
+  T *P = _ibuf2;\
+  __attribute__((cleanup(GSFreeTempBuffer))) void *_base2 = 0;\
+  if (S > GS_MAX_OBJECTS_FROM_STACK)\
+    {\
+      _base2 = malloc((S) * sizeof(T));\
+      P = _base2;\
+    }
 #else
 /* Make minimum size of _ibuf 1 to avoid compiler warnings.
  */
 #  define	GS_BEGINITEMBUF(P, S, T) { \
   T _ibuf[(S) > 0 && (S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 1]; \
   T *_base = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf \
-    : (T*)NSZoneMalloc(NSDefaultMallocZone(), (S) * sizeof(T)); \
+    : (T*)malloc((S) * sizeof(T)); \
   T *(P) = _base;
+#  define	GS_BEGINITEMBUF2(P, S, T) { \
+  T _ibuf2[(S) > 0 && (S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 1]; \
+  T *_base2 = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf2 \
+    : (T*)malloc((S) * sizeof(T)); \
+  T *(P) = _base2;
 #endif
 
 /**
@@ -127,10 +141,15 @@ __attribute__((unused)) static void GSFreeTempBuffer(void **b)
  */
 #if __GNUC__ > 3 && !defined(__clang__)
 # define	GS_ENDITEMBUF() }
+# define	GS_ENDITEMBUF2() }
 #else
 #  define	GS_ENDITEMBUF() \
   if (_base != _ibuf) \
-    NSZoneFree(NSDefaultMallocZone(), _base); \
+    free(_base); \
+  }
+#  define	GS_ENDITEMBUF2() \
+  if (_base2 != _ibuf2) \
+    free(_base2); \
   }
 #endif
 
