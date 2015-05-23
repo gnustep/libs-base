@@ -1358,7 +1358,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 
   if (0 == length)
     {
-      if (0 != bytes)
+      if (YES == flag && 0 != bytes)
         {
           NSZoneFree(NSZoneFromPointer(bytes), bytes);
         }
