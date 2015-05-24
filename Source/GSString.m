@@ -2464,16 +2464,29 @@ fillHole(GSStr self, unsigned index, unsigned size)
 static inline void
 getCharacters_c(GSStr self, unichar *buffer, NSRange aRange)
 {
-  unsigned	len = aRange.length;
+  if (aRange.length)
+    { 
+      if (NSISOLatin1StringEncoding == internalEncoding)
+        {
+          register NSUInteger   count = aRange.length;
+          register NSUInteger   base = aRange.location;
 
-  if (!len)
-    return;
+          while (count-- > 0)
+            {
+              buffer[count] = self->_contents.c[base + count];
+            }
+        }
+      else
+        {
+          unsigned      len = aRange.length;
 
-  if (!GSToUnicode(&buffer, &len, self->_contents.c + aRange.location,
-    aRange.length, internalEncoding, 0, 0))
-    {
-      [NSException raise: NSInternalInconsistencyException
-		  format: @"Can't convert to Unicode."];
+          if (!GSToUnicode(&buffer, &len, self->_contents.c + aRange.location,
+            aRange.length, internalEncoding, 0, 0))
+            {
+              [NSException raise: NSInternalInconsistencyException
+                          format: @"Can't convert to Unicode."];
+            }
+        }
     }
 }
 
