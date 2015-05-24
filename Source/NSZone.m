@@ -120,10 +120,13 @@ default_malloc (NSZone *zone, size_t size)
   void *mem;
 
   mem = malloc(size);
-  if (mem == NULL)
-    [NSException raise: NSMallocException
-                 format: @"Default zone has run out of memory"];
-  return mem;
+  if (mem != NULL)
+    {
+      return mem;
+    }
+  [NSException raise: NSMallocException
+               format: @"Default zone has run out of memory"];
+  return 0;
 }
 
 static void*
@@ -131,24 +134,14 @@ default_realloc (NSZone *zone, void *ptr, size_t size)
 {
   void *mem;
 
-  if (size == 0)
+  mem = realloc(ptr, size);
+  if (mem != NULL)
     {
-      free(ptr);
-      return NULL;
-    }
-  if (ptr == 0)
-    {
-      mem = malloc(size);
-      if (mem == NULL)
-	[NSException raise: NSMallocException
-		     format: @"Default zone has run out of memory"];
       return mem;
     }
-  mem = realloc(ptr, size);
-  if (mem == NULL)
-    [NSException raise: NSMallocException
-                 format: @"Default zone has run out of memory"];
-  return mem;
+  [NSException raise: NSMallocException
+               format: @"Default zone has run out of memory"];
+  return 0;
 }
 
 static void
@@ -271,7 +264,7 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
   return &default_zone;
 }
 
-NSZone*
+inline NSZone*
 NSDefaultMallocZone (void)
 {
   return &default_zone;
@@ -443,7 +436,7 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
   return &default_zone;
 }
 
-NSZone*
+inline NSZone*
 NSDefaultMallocZone (void)
 {
   return &default_zone;
@@ -2072,6 +2065,18 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
 void*
 NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
 {
+  void *mem;
+
+  if (0 == zone || NSDefaultMallocZone() == zone)
+    {
+      mem = calloc(elems, bytes);
+      if (mem != NULL)
+        {
+          return mem;
+        }
+      [NSException raise: NSMallocException
+                  format: @"Default zone has run out of memory"];
+    }
   return memset(NSZoneMalloc(zone, elems*bytes), 0, elems*bytes);
 }
 
