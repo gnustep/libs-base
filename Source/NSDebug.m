@@ -66,7 +66,11 @@ static table_entry*	the_table = 0;
 
 static BOOL	debug_allocation = NO;
 
-static GSLazyRecursiveLock	*uniqueLock = nil;
+static NSRecursiveLock	*uniqueLock = nil;
+static SEL              doLockSel = 0;
+static SEL              unLockSel = 0;
+static IMP              doLockImp = 0;
+static IMP              unLockImp = 0;
 
 static const char*	_GSDebugAllocationList(BOOL difference);
 static const char*	_GSDebugAllocationListAll(void);
@@ -79,6 +83,9 @@ static void (*_GSDebugAllocationAddFunc)(Class c, id o)
 static void (*_GSDebugAllocationRemoveFunc)(Class c, id o)
   = _GSDebugAllocationRemove;
 
+#define doLock() (*doLockImp)(uniqueLock, doLockSel)
+#define unLock() (*unLockImp)(uniqueLock, unLockSel)
+
 @interface GSDebugAlloc : NSObject
 + (void) initialize;
 @end
@@ -86,7 +93,11 @@ static void (*_GSDebugAllocationRemoveFunc)(Class c, id o)
 @implementation GSDebugAlloc
 + (void) initialize
 {
-  uniqueLock = [GSLazyRecursiveLock new];
+  uniqueLock = [NSRecursiveLock new];
+  doLockSel = @selector(lock);
+  unLockSel = @selector(unlock);
+  doLockImp = [uniqueLock methodForSelector: doLockSel];
+  unLockImp = [uniqueLock methodForSelector: unLockSel];
   [[NSObject leakAt: &uniqueLock] release];
 }
 @end
@@ -95,7 +106,7 @@ void
 GSSetDebugAllocationFunctions(void (*newAddObjectFunc)(Class c, id o),
   void (*newRemoveObjectFunc)(Class c, id o))
 {
-  [uniqueLock lock];
+  doLock();
 
   if (newAddObjectFunc && newRemoveObjectFunc)
     {	   	
@@ -109,7 +120,7 @@ GSSetDebugAllocationFunctions(void (*newAddObjectFunc)(Class c, id o),
       _GSDebugAllocationRemoveFunc = _GSDebugAllocationRemove;
     }
 
-  [uniqueLock unlock];
+  unLock();
 }
 
 BOOL
@@ -137,7 +148,7 @@ GSDebugAllocationRecordObjects(Class c, BOOL newState)
     {
       if (the_table[i].class == c)
 	{
-	  [uniqueLock lock];
+	  doLock();
           oldState = (YES == the_table[i].is_recording) ? YES : NO;
           if (newState)
             {
@@ -156,13 +167,13 @@ GSDebugAllocationRecordObjects(Class c, BOOL newState)
                   the_table[i].recorded_tags[j] = nil;
                 }
             }
-	  [uniqueLock unlock];
+	  unLock();
 	  return oldState;
 	}
     }
   if (YES == newState)
     {
-      [uniqueLock lock];
+      doLock();
       if (num_classes >= table_size)
         {
           int		more = table_size + 128;
@@ -172,7 +183,7 @@ GSDebugAllocationRecordObjects(Class c, BOOL newState)
 
           if (tmp == 0)
             {
-              [uniqueLock unlock];
+              unLock();
               return NO;
             }
           if (the_table)
@@ -194,7 +205,7 @@ GSDebugAllocationRecordObjects(Class c, BOOL newState)
       the_table[num_classes].num_recorded_objects = 0;
       the_table[num_classes].stack_size = 0;
       num_classes++;
-      [uniqueLock unlock];
+      unLock();
     }
   return oldState;
 }
@@ -222,7 +233,7 @@ _GSDebugAllocationAdd(Class c, id o)
 	{
 	  if (the_table[i].class == c)
 	    {
-	      [uniqueLock lock];
+	      doLock();
 	      the_table[i].count++;
 	      the_table[i].total++;
 	      if (the_table[i].count > the_table[i].peak)
@@ -242,7 +253,7 @@ _GSDebugAllocationAdd(Class c, id o)
 					 more * sizeof(id));
 		      if (tmp == 0)
 			{
-			  [uniqueLock unlock];
+			  unLock();
 			  return;
 			}
 
@@ -251,7 +262,7 @@ _GSDebugAllocationAdd(Class c, id o)
 		      if (tmp1 == 0)
 			{
 			  NSZoneFree(NSDefaultMallocZone(),  tmp);
-			  [uniqueLock unlock];
+			  unLock();
 			  return;
 			}
 
@@ -280,11 +291,11 @@ _GSDebugAllocationAdd(Class c, id o)
 		    [the_table[i].num_recorded_objects] = nil;
 		  the_table[i].num_recorded_objects++;
 		}
-	      [uniqueLock unlock];
+	      unLock();
 	      return;
 	    }
 	}
-      [uniqueLock lock];
+      doLock();
       if (num_classes >= table_size)
 	{
 	  unsigned int	more = table_size + 128;
@@ -294,7 +305,7 @@ _GSDebugAllocationAdd(Class c, id o)
 	
 	  if (tmp == 0)
 	    {
-	      [uniqueLock unlock];
+	      unLock();
 	      return;		/* Argh	*/
 	    }
 	  if (the_table)
@@ -316,7 +327,7 @@ _GSDebugAllocationAdd(Class c, id o)
       the_table[num_classes].num_recorded_objects = 0;
       the_table[num_classes].stack_size = 0;
       num_classes++;
-      [uniqueLock unlock];
+      unLock();
     }
 }
 
@@ -372,7 +383,7 @@ GSDebugAllocationClassList()
   size_t siz;
   unsigned int	i;
 
-  [uniqueLock lock];
+  doLock();
 
   siz = sizeof(Class) * (num_classes + 1);
   ans = NSZoneMalloc(NSDefaultMallocZone(), siz);
@@ -383,7 +394,7 @@ GSDebugAllocationClassList()
     }
   ans[num_classes] = NULL;
 
-  [uniqueLock unlock];
+  unLock();
 
   return ans;
 }
@@ -398,10 +409,10 @@ GSDebugAllocationList(BOOL changeFlag)
     {
       return "Debug allocation system is not active!\n";
     }
-  [uniqueLock lock];
+  doLock();
   ans = _GSDebugAllocationList(changeFlag);
   d = [NSData dataWithBytes: ans length: strlen(ans) + 1];
-  [uniqueLock unlock];
+  unLock();
   return (const char*)[d bytes];
 }
 
@@ -491,10 +502,10 @@ GSDebugAllocationListAll()
     {
       return "Debug allocation system is not active!\n";
     }
-  [uniqueLock lock];
+  doLock();
   ans = _GSDebugAllocationListAll();
   d = [NSData dataWithBytes: ans length: strlen(ans)+1];
-  [uniqueLock unlock];
+  unLock();
   return (const char*)[d bytes];
 }
 
@@ -575,7 +586,7 @@ _GSDebugAllocationRemove(Class c, id o)
 	    {
 	      id	tag = nil;
 
-	      [uniqueLock lock];
+	      doLock();
 	      the_table[i].count--;
 	      if (the_table[i].is_recording)
 		{
@@ -610,7 +621,7 @@ _GSDebugAllocationRemove(Class c, id o)
 		      ;
 		    }
 		}
-	      [uniqueLock unlock];
+	      unLock();
 	      [tag release];
 	      return;
 	    }
@@ -630,7 +641,7 @@ GSDebugAllocationTagRecordedObject(id object, id tag)
     {
       return nil;
     }
-  [uniqueLock lock];
+  doLock();
 
   for (i = 0; i < num_classes; i++)
     {
@@ -644,7 +655,7 @@ GSDebugAllocationTagRecordedObject(id object, id tag)
     || the_table[i].is_recording == NO
     || the_table[i].num_recorded_objects == 0)
     {
-      [uniqueLock unlock];
+      unLock();
       return nil;
     }
 
@@ -658,7 +669,7 @@ GSDebugAllocationTagRecordedObject(id object, id tag)
 	}
     }
 
-  [uniqueLock unlock];
+  unLock();
   return AUTORELEASE(o);
 }
 
@@ -674,7 +685,7 @@ GSDebugAllocationListRecordedObjects(Class c)
       return nil;
     }
 
-  [uniqueLock lock];
+  doLock();
 
   for (i = 0; i < num_classes; i++)
     {
@@ -686,19 +697,19 @@ GSDebugAllocationListRecordedObjects(Class c)
 
   if (i == num_classes)
     {
-      [uniqueLock unlock];
+      unLock();
       return nil;
     }
 
   if (the_table[i].is_recording == NO)
     {
-      [uniqueLock unlock];
+      unLock();
       return nil;
     }
 
   if (the_table[i].num_recorded_objects == 0)
     {
-      [uniqueLock unlock];
+      unLock();
       return [NSArray array];
     }
 
@@ -706,7 +717,7 @@ GSDebugAllocationListRecordedObjects(Class c)
     the_table[i].num_recorded_objects * sizeof(id));
   if (tmp == 0)
     {
-      [uniqueLock unlock];
+      unLock();
       return nil;
     }
 
@@ -724,7 +735,7 @@ GSDebugAllocationListRecordedObjects(Class c)
 #endif
 
   /* Then, we bravely unlock the lock */
-  [uniqueLock unlock];
+  unLock();
 
   /* Only then we create an array with them - this is now safe as we
    * have copied the objects out, unlocked, and retained them. */
