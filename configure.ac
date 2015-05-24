@@ -1195,6 +1195,8 @@ elif test "$OBJC_RUNTIME_LIB" = "gnugc"; then
   AC_MSG_RESULT(GNU)
   OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
   OBJC_WITH_GC=yes
+elif test "$OBJC_RUNTIME_LIB" = "ng"; then
+  AC_MSG_RESULT(Next Gen)
 else
   AC_MSG_RESULT(GNU)
   OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
