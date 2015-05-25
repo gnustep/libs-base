@@ -1671,6 +1671,61 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   return (id)me;
 }
 
+- (id) initWithUTF8String: (const char*)bytes
+{
+  BOOL		ascii = YES;
+  NSUInteger    length;
+  GSStr		me;
+
+  if (0 == bytes)
+    {
+      return (id)@"";
+    }
+  /* Skip leading BOM
+   */
+  if (bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+    {
+      bytes = &bytes[3];
+    }
+  if (0 == bytes[0])
+    {
+      return (id)@"";
+    }
+
+  for (length = 0; bytes[length]; length++)
+    {
+      if (bytes[length] > 127)
+        {
+          ascii = NO;
+        }
+    }
+
+  if (YES == ascii)
+    {
+      me = (GSStr)newCInline(length, [self zone]);
+      memcpy(me->_contents.c, bytes, length);
+      return (id)me;
+    }
+  else
+    {
+      const unsigned char       *b = (const unsigned char*)bytes;
+      NSZone                    *z = [self zone];
+      unichar	                *u = 0;
+      unsigned	                l = 0;
+
+      if (GSToUnicode(&u, &l, b, length, NSUTF8StringEncoding, z, 0) == NO)
+	{
+	  return nil;	// Invalid data
+	}
+      me = (GSStr)NSAllocateObject(GSUnicodeBufferStringClass, 0, z);
+      me->_contents.u = u;
+      me->_count = l;
+      me->_flags.wide = 1;
+      me->_flags.owned = YES;
+    }
+  return (id)me;
+}
+
 - (NSUInteger) length
 {
   [NSException raise: NSInternalInconsistencyException
