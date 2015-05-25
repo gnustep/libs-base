@@ -1072,7 +1072,7 @@ tsbytes(uintptr_t s, char *buf)
 /**
  * Constructs a tiny string.
  */
-static id
+static inline id
 createTinyString(const char *str, int length)
 {
   unsigned int i;
@@ -1112,7 +1112,7 @@ createTinyString(const char *str, int length)
   return (id)s;
 }
 #else
-static id
+static inline id
 createTinyString(const char *str, int length)
 {
   return nil;
@@ -1712,9 +1712,15 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 
   if (YES == ascii)
     {
-      me = (GSStr)newCInline(length, myZone);
-      memcpy(me->_contents.c, bytes, length);
-      return (id)me;
+      id        o = createTinyString(bytes, length);
+
+      if (nil == o)
+        {
+          me = (GSStr)newCInline(length, myZone);
+          memcpy(me->_contents.c, bytes, length);
+          o = (id)me;
+        }
+      return o;
     }
   else
     {
