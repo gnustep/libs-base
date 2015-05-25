@@ -2992,11 +2992,11 @@ isEqual_c(GSStr self, id anObject)
     {
       return NO;
     }
-  if (GSObjCIsInstance(anObject) == NO)
+  c = object_getClass(anObject);
+  if (class_isMetaClass(c) == YES)
     {
       return NO;
     }
-  c = object_getClass(anObject);
   if (c == NSConstantStringClass)
     {
       return literalIsEqualInternal((NXConstantString*)anObject, (GSStr)self);
@@ -3006,15 +3006,24 @@ isEqual_c(GSStr self, id anObject)
       GSStr	other = (GSStr)anObject;
       NSRange	r = {0, self->_count};
 
-      /*
-       * First see if the hash is the same - if not, we can't be equal.
+      /* First see if the hash is the same - if not, we can't be equal.
+       * However, it's not worth calculating hashes unless the strings
+       * are fairly long.
        */
-      if (self->_flags.hash == 0)
-        self->_flags.hash = (*hashImp)((id)self, hashSel);
-      if (other->_flags.hash == 0)
-        other->_flags.hash = (*hashImp)((id)other, hashSel);
-      if (self->_flags.hash != other->_flags.hash)
-	return NO;
+      if (self->_count > 15)
+        {
+          if (self->_flags.hash == 0)
+            self->_flags.hash = (*hashImp)((id)self, hashSel);
+          if (other->_flags.hash == 0)
+            other->_flags.hash = (*hashImp)((id)other, hashSel);
+          if (self->_flags.hash != other->_flags.hash)
+            return NO;
+        }
+      else if (self->_flags.hash && other->_flags.hash)
+        {
+          if (self->_flags.hash != other->_flags.hash)
+            return NO;
+        }
 
       /*
        * Do a compare depending on the type of the other string.
@@ -3055,11 +3064,11 @@ isEqual_u(GSStr self, id anObject)
     {
       return NO;
     }
-  if (GSObjCIsInstance(anObject) == NO)
+  c = object_getClass(anObject);
+  if (class_isMetaClass(c) == YES)
     {
       return NO;
     }
-  c = object_getClass(anObject);
   if (c == NSConstantStringClass)
     {
       return literalIsEqualInternal((NXConstantString*)anObject, (GSStr)self);
@@ -3069,15 +3078,24 @@ isEqual_u(GSStr self, id anObject)
       GSStr	other = (GSStr)anObject;
       NSRange	r = {0, self->_count};
 
-      /*
-       * First see if the hash is the same - if not, we can't be equal.
+      /* First see if the hash is the same - if not, we can't be equal.
+       * However, it's not worth calculating hashes unless the strings
+       * are fairly long.
        */
-      if (self->_flags.hash == 0)
-        self->_flags.hash = (*hashImp)((id)self, hashSel);
-      if (other->_flags.hash == 0)
-        other->_flags.hash = (*hashImp)((id)other, hashSel);
-      if (self->_flags.hash != other->_flags.hash)
-	return NO;
+      if (self->_count > 15)
+        {
+          if (self->_flags.hash == 0)
+            self->_flags.hash = (*hashImp)((id)self, hashSel);
+          if (other->_flags.hash == 0)
+            other->_flags.hash = (*hashImp)((id)other, hashSel);
+          if (self->_flags.hash != other->_flags.hash)
+            return NO;
+        }
+      else if (self->_flags.hash && other->_flags.hash)
+        {
+          if (self->_flags.hash != other->_flags.hash)
+            return NO;
+        }
 
       /*
        * Do a compare depending on the type of the other string.
