@@ -1411,15 +1411,20 @@ static NSMapTable	*nodeNames = 0;
 - (NSString*) objectForKey: (NSString*)key
 {
   NSString	*value = nil;
+  const char    *str = 0;
   xmlAttrPtr	prop;
 
   prop = ((xmlNodePtr)(lib))->properties;
   while (prop != NULL)
     {
       const void	*name = prop->name;
-      NSString		*n = UTF8Str(name);
 
-      if ([key isEqualToString: n] == YES)
+      if (0 == str)
+        {
+          str = [key UTF8String];
+        }
+
+      if (strcmp(str, name) == 0)
         {
 	  xmlNodePtr	child = prop->children;
 

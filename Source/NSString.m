@@ -981,7 +981,14 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   if (NULL == bytes)
     [NSException raise: NSInvalidArgumentException
 		format: @"[NSString+stringWithUTF8String:]: NULL cString"];
-  obj = [self allocWithZone: NSDefaultMallocZone()];
+  if (self == NSStringClass)
+    {
+      obj = defaultPlaceholderString;
+    }
+  else
+    {
+      obj = [self allocWithZone: NSDefaultMallocZone()];
+    }
   obj = [obj initWithUTF8String: bytes];
   return AUTORELEASE(obj);
 }
