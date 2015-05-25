@@ -458,6 +458,7 @@ literalIsEqualInternal(NXConstantString *s, GSStr o)
  */
 @interface GSPlaceholderString : NSString
 {
+  NSZone        *myZone;
 }
 @end
 
@@ -1125,6 +1126,13 @@ createTinyString(const char *str, int length)
  * on the initialisation method used.
  */
 @implementation GSPlaceholderString
++ (id) allocWithZone: (NSZone*)z
+{
+  GSPlaceholderString   *o = NSAllocateObject(self, 0, z);
+  o->myZone = z;
+  return o;
+}
+
 + (void) initialize
 {
   setup(NO);
@@ -1327,7 +1335,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 #if	GS_WITH_GC
       chars = NSAllocateCollectable(length, 0);
 #else
-      chars = NSZoneMalloc([self zone], length);
+      chars = NSZoneMalloc(myZone, length);
 #endif
       memcpy(chars, bytes, length);
     }
@@ -1413,13 +1421,13 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
        */
       if (GSPrivateIsCollectable(chars.c) == NO)
 	{
-          me = newCInline(length, [self zone]);
+          me = newCInline(length, myZone);
 	  memcpy(me->_contents.c, chars.c, length);
 	  NSZoneFree(NSZoneFromPointer(chars.c), chars.c);
           return (id)me;
 	}
 #endif
-      me = (GSStr)NSAllocateObject(GSCBufferStringClass, 0, [self zone]);
+      me = (GSStr)NSAllocateObject(GSCBufferStringClass, 0, myZone);
       me->_contents.c = chars.c;
       me->_count = length;
       me->_flags.wide = 0;
@@ -1444,8 +1452,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
           return nil;	// Invalid encoding
         }
 
-      if (GSToUnicode(&u, &l, chars.c, length, encoding,
-	[self zone], 0) == NO)
+      if (GSToUnicode(&u, &l, chars.c, length, encoding, myZone, 0) == NO)
 	{
 	  if (flag == YES && chars.c != 0)
 	    {
@@ -1475,7 +1482,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   if (isASCII == YES
     || (internalEncoding == NSISOLatin1StringEncoding && isLatin1 == YES))
     {
-      me = (GSStr)newCInline(length, [self zone]);
+      me = (GSStr)newCInline(length, myZone);
       while (length-- > 0)
         {
 	  me->_contents.c[length] = chars.u[length];
@@ -1493,14 +1500,13 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
        */
       if (GSPrivateIsCollectable(chars.u) == NO)
 	{
-          me = newUInline(length, [self zone]);
+          me = newUInline(length, myZone);
 	  memcpy(me->_contents.u, chars.u, length * sizeof(unichar));
 	  NSZoneFree(NSZoneFromPointer(chars.u), chars.u);
           return (id)me;
 	}
 #endif
-      me = (GSStr)NSAllocateObject(GSUnicodeBufferStringClass,
-	0, [self zone]);
+      me = (GSStr)NSAllocateObject(GSUnicodeBufferStringClass, 0, myZone);
       me->_contents.u = chars.u;
       me->_count = length;
       me->_flags.wide = 1;
@@ -1598,12 +1604,12 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
    */
   if (f->_flags.wide == 1)
     {
-      me = (GSStr)newUInline(f->_count, [self zone]);
+      me = (GSStr)newUInline(f->_count, myZone);
       memcpy(me->_contents.u, f->_contents.u, f->_count*sizeof(unichar));
     }
   else
     {
-      me = (GSStr)newCInline(f->_count, [self zone]);
+      me = (GSStr)newCInline(f->_count, myZone);
       memcpy(me->_contents.c, f->_contents.c, f->_count);
     }
 
@@ -1645,7 +1651,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
        * For a GSCString subclass, or an 8-bit GSMutableString,
        * we can copy the bytes directly into an inline string.
        */
-      me = (GSStr)newCInline(length, [self zone]);
+      me = (GSStr)newCInline(length, myZone);
       memcpy(me->_contents.c, ((GSStr)string)->_contents.c, length);
     }
   else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
@@ -1655,7 +1661,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
        * For a GSUnicodeString subclass, or a 16-bit GSMutableString,
        * we can copy the bytes directly into an inline string.
        */
-      me = (GSStr)newUInline(length, [self zone]);
+      me = (GSStr)newUInline(length, myZone);
       memcpy(me->_contents.u, ((GSStr)string)->_contents.u,
 	length*sizeof(unichar));
     }
@@ -1665,7 +1671,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
        * For a string with an unknown class, we can initialise by
        * having the string copy its content directly into our buffer.
        */
-      me = (GSStr)newUInline(length, [self zone]);
+      me = (GSStr)newUInline(length, myZone);
       [string getCharacters: me->_contents.u];
     }
   return (id)me;
@@ -1676,6 +1682,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   BOOL		ascii = YES;
   NSUInteger    length;
   GSStr		me;
+  char          c;
 
   if (0 == bytes)
     {
@@ -1687,37 +1694,39 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
     {
       bytes = &bytes[3];
     }
-  if (0 == bytes[0])
-    {
-      return (id)@"";
-    }
 
-  for (length = 0; bytes[length]; length++)
+  length = 0;
+  while ((c = bytes[length]))
     {
-      if (bytes[length] > 127)
+      length++;
+      if (c > 127)
         {
           ascii = NO;
+          while (bytes[length])
+            {
+              length++;
+            }
+          break;
         }
     }
 
   if (YES == ascii)
     {
-      me = (GSStr)newCInline(length, [self zone]);
+      me = (GSStr)newCInline(length, myZone);
       memcpy(me->_contents.c, bytes, length);
       return (id)me;
     }
   else
     {
       const unsigned char       *b = (const unsigned char*)bytes;
-      NSZone                    *z = [self zone];
       unichar	                *u = 0;
       unsigned	                l = 0;
 
-      if (GSToUnicode(&u, &l, b, length, NSUTF8StringEncoding, z, 0) == NO)
+      if (GSToUnicode(&u, &l, b, length, NSUTF8StringEncoding, myZone, 0) == NO)
 	{
 	  return nil;	// Invalid data
 	}
-      me = (GSStr)NSAllocateObject(GSUnicodeBufferStringClass, 0, z);
+      me = (GSStr)NSAllocateObject(GSUnicodeBufferStringClass, 0, myZone);
       me->_contents.u = u;
       me->_count = l;
       me->_flags.wide = 1;

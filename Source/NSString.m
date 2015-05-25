@@ -790,7 +790,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
        * Set up infrastructure for placeholder strings.
        */
       defaultPlaceholderString = (GSPlaceholderString*)
-	NSAllocateObject(GSPlaceholderStringClass, 0, NSDefaultMallocZone());
+	[GSPlaceholderStringClass allocWithZone: NSDefaultMallocZone()];
       placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
       placeholderLock = [NSLock new];
@@ -852,7 +852,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	       * There is no placeholder object for this zone, so we
 	       * create a new one and use that.
 	       */
-	      obj = (id)NSAllocateObject(GSPlaceholderStringClass, 0, z);
+	      obj = (id)[GSPlaceholderStringClass allocWithZone: z];
 	      NSMapInsert(placeholderMap, (void*)z, (void*)obj);
 	    }
 	  [placeholderLock unlock];
