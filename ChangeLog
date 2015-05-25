@@ -1,7 +1,18 @@
+2015-05-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLParser.m: Use libxml2 if available.
+
+2015-05-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* GSString.m:
+	* NSDebug.m:
+	* NSZone.m:
+	Minor optimisations and tidyups
+
 2015-05-23  Richard Frith-Macdonald <rfm@gnu.org>
 
-	 Source/GSString.m: Fix failure to check free when done flag before
-	 freeing memory.
+	* Source/GSString.m: Fix failure to check free when done flag before
+	freeing memory.
 
 2015-05-22  Richard Frith-Macdonald <rfm@gnu.org>
 
