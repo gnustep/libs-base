@@ -1002,6 +1002,26 @@ tsbytes(uintptr_t s, char *buf)
   return strtoll(buf, 0, 10);
 }
 
+- (id) mutableCopyWithZone: (NSZone*)z
+{
+  uintptr_t             s = (uintptr_t)self;
+  NSUInteger            i;
+  NSUInteger            l;
+  GSMutableString	*obj;
+  char                  bytes[8];
+
+  l = (s >> TINY_STRING_LENGTH_SHIFT) & TINY_STRING_LENGTH_MASK;
+  for (i = 0; i < l; i++)
+    {
+      bytes[i] = (unichar)TINY_STRING_CHAR(s, i);
+    }
+  obj = (GSMutableString*)NSAllocateObject(GSMutableStringClass, 0, z);
+  obj = [obj initWithBytes: bytes
+		    length: l
+		  encoding: internalEncoding];
+  return obj;
+}
+
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
 {
   uintptr_t s = (uintptr_t)self;
@@ -1679,6 +1699,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 
 - (id) initWithUTF8String: (const char*)bytes
 {
+  const unsigned char       *b = (const unsigned char*)bytes;
   BOOL		ascii = YES;
   NSUInteger    length;
   GSStr		me;
@@ -1690,19 +1711,19 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
     }
   /* Skip leading BOM
    */
-  if (bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+  if (b[0] == 0xEF && b[1] == 0xBB && b[2] == 0xBF)
     {
-      bytes = &bytes[3];
+      b = &b[3];
     }
 
   length = 0;
-  while ((c = bytes[length]))
+  while ((c = b[length]))
     {
       length++;
       if (c > 127)
         {
           ascii = NO;
-          while (bytes[length])
+          while (b[length])
             {
               length++;
             }
@@ -1712,19 +1733,18 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 
   if (YES == ascii)
     {
-      id        o = createTinyString(bytes, length);
+      id        o = createTinyString((const char*)b, length);
 
       if (nil == o)
         {
           me = (GSStr)newCInline(length, myZone);
-          memcpy(me->_contents.c, bytes, length);
+          memcpy(me->_contents.c, b, length);
           o = (id)me;
         }
       return o;
     }
   else
     {
-      const unsigned char       *b = (const unsigned char*)bytes;
       unichar	                *u = 0;
       unsigned	                l = 0;
 
