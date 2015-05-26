@@ -1037,7 +1037,7 @@ static NSRecursiveLock *classLock = nil;
   
   result = [[NSCalendar alloc] initWithCalendarIdentifier: calId];
   
-  return result;
+  return AUTORELEASE(result);
 #else
   return nil;
 #endif
