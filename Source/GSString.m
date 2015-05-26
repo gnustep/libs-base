@@ -1699,11 +1699,11 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 
 - (id) initWithUTF8String: (const char*)bytes
 {
-  const unsigned char       *b = (const unsigned char*)bytes;
+  const uint8_t *b = (const uint8_t*)bytes;
   BOOL		ascii = YES;
   NSUInteger    length;
   GSStr		me;
-  char          c;
+  uint8_t       c;
 
   if (0 == bytes)
     {
@@ -5693,6 +5693,13 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
       return o;
     }
   return [super uppercaseString];
+}
+
+- (const char *) UTF8String
+{
+  if (_flags.wide == 1)
+    return UTF8String_u((GSStr)self);
+  return UTF8String_c((GSStr)self);
 }
 
 // private method for Unicode level 3 implementation
