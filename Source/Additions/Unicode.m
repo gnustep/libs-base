@@ -396,7 +396,7 @@ EntrySupported(NSStringEncoding enc)
 
   if (entry == 0)
     {
-      return NO;
+      return NULL;
     }
 #ifdef HAVE_ICONV
   if (entry->iconv != 0 && entry->supported == 0)
