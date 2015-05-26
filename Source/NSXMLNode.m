@@ -459,10 +459,8 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 - (void) _removeSubNode: (NSXMLNode *)subNode
 {
   // retain temporarily so we can safely remove from our subNodes list first
-  [subNode retain]; 
+  AUTORELEASE(RETAIN(subNode));
   [internal->subNodes removeObjectIdenticalTo: subNode];
-  // release temporary hold. Apple seems to do an autorelease here.
-  [subNode autorelease];
 }
 
 - (void) _createInternal
@@ -880,11 +878,11 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 {
   NSXMLNode *n;
 
-  n = [[[self alloc] initWithKind: NSXMLAttributeKind] autorelease];
+  n = [[self alloc] initWithKind: NSXMLAttributeKind];
   [n setStringValue: stringValue];
   [n setName: name];
   
-  return n;
+  return AUTORELEASE(n);
 }
 
 + (id) attributeWithName: (NSString*)name
@@ -893,55 +891,55 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 {
   NSXMLNode *n;
   
-  n = [[[self alloc] initWithKind: NSXMLAttributeKind] autorelease];
+  n = [[self alloc] initWithKind: NSXMLAttributeKind];
   [n setURI: URI];
   [n setStringValue: stringValue];
   [n setName: name];
   
-  return n;
+  return AUTORELEASE(n);
 }
 
 + (id) commentWithStringValue: (NSString*)stringValue
 {
   NSXMLNode *n;
 
-  n = [[[self alloc] initWithKind: NSXMLCommentKind] autorelease];
+  n = [[self alloc] initWithKind: NSXMLCommentKind];
   [n setStringValue: stringValue];
 
-  return n;
+  return AUTORELEASE(n);
 }
 
 + (id) DTDNodeWithXMLString: (NSString*)string
 {
   NSXMLNode *n;
 
-  n = [[[NSXMLDTDNode alloc] initWithXMLString: string] autorelease];
+  n = [[NSXMLDTDNode alloc] initWithXMLString: string];
 
-  return n;
+  return AUTORELEASE(n);
 }
 
 + (id) document
 {
   NSXMLNode *n;
 
-  n = [[[NSXMLDocument alloc] initWithKind: NSXMLDocumentKind] autorelease];
-  return n;
+  n = [[NSXMLDocument alloc] initWithKind: NSXMLDocumentKind];
+  return AUTORELEASE(n);
 }
 
 + (id) documentWithRootElement: (NSXMLElement*)element
 {
   NSXMLDocument	*d;
 
-  d = [[[NSXMLDocument alloc] initWithRootElement: element] autorelease];
-  return d;
+  d = [[NSXMLDocument alloc] initWithRootElement: element];
+  return AUTORELEASE(d);
 }
 
 + (id) elementWithName: (NSString*)name
 {
   NSXMLNode *n;
 
-  n = [[[NSXMLElement alloc] initWithName: name] autorelease];
-  return n;
+  n = [[NSXMLElement alloc] initWithName: name];
+  return AUTORELEASE(n);
 }
 
 + (id) elementWithName: (NSString*)name
@@ -960,8 +958,8 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 {
   NSXMLNode *n;
 
-  n = [[[NSXMLElement alloc] initWithName: name URI: URI] autorelease];
-  return n;
+  n = [[NSXMLElement alloc] initWithName: name URI: URI];
+  return AUTORELEASE(n);
 }
 
 + (id) elementWithName: (NSString*)name
@@ -970,7 +968,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
   NSXMLElement *e;
   
   e = [[NSXMLElement alloc] initWithName: name stringValue: string];
-  return e;
+  return AUTORELEASE(e);
 }
 
 + (NSString*) localNameForName: (NSString*)name
@@ -999,10 +997,10 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 {
   NSXMLNode *n;
 
-  n = [[[self alloc] initWithKind: NSXMLNamespaceKind] autorelease];
+  n = [[self alloc] initWithKind: NSXMLNamespaceKind];
   [n setName: name];
   [n setStringValue: stringValue];
-  return n;
+  return AUTORELEASE(n);
 }
 
 + (NSXMLNode*) predefinedNamespaceForPrefix: (NSString*)name
@@ -1065,19 +1063,19 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 {
   NSXMLNode *n;
 
-  n = [[[self alloc] initWithKind: NSXMLProcessingInstructionKind] autorelease];
+  n = [[self alloc] initWithKind: NSXMLProcessingInstructionKind];
   [n setStringValue: stringValue];
   [n setName: name];
-  return n;
+  return AUTORELEASE(n);
 }
 
 + (id) textWithStringValue: (NSString*)stringValue
 {
   NSXMLNode *n;
 
-  n = [[[self alloc] initWithKind: NSXMLTextKind] autorelease];
+  n = [[self alloc] initWithKind: NSXMLTextKind];
   [n setStringValue: stringValue];
-  return n;
+  return AUTORELEASE(n);
 }
 
 - (NSString*) canonicalXMLStringPreservingComments: (BOOL)comments
@@ -1198,10 +1196,10 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
         {
           [subNode detach];
         }
-      [theSubNodes release];
+      RELEASE(theSubNodes);
 
-      [internal->objectValue release];
-      [internal->subNodes release];
+      RELEASE(internal->objectValue);
+      RELEASE(internal->subNodes);
       if (theNode)
         {
           if (theNode->type == XML_NAMESPACE_DECL)
@@ -1366,7 +1364,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 	break;
 
       case NSXMLAttributeDeclarationKind: 
-	[self release];
+	RELEASE(self);
 	return nil;
 	
       default: 
@@ -1382,7 +1380,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
    */
   if (NO == [self isKindOfClass: theSubclass])
     {
-      [self release];
+      RELEASE(self);
       return [[theSubclass alloc] initWithKind: theKind
 				       options: theOptions];
     }
@@ -1865,7 +1863,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
                   [subNode detach];
                 }
             }
-          [theSubNodes release];
+          RELEASE(theSubNodes);
         }
 
       if (resolve == NO)
