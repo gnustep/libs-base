@@ -461,6 +461,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   unsigned int count = [_subs count];
   NSMutableArray *esubs = [NSMutableArray arrayWithCapacity: count];
   unsigned int i;
+  NSPredicate  *p;
 
   for (i = 0; i < count; i++)
     {
@@ -468,7 +469,8 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
                             predicateWithSubstitutionVariables: variables]];
     }
 
-  return [[[self class] alloc] initWithType: _type subpredicates: esubs];
+  p = [[[self class] alloc] initWithType: _type subpredicates: esubs];
+  return AUTORELEASE(p);
 }
 
 - (Class) classForCoder
