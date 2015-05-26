@@ -144,7 +144,7 @@ static  NSNull  *null = nil;
     {
       [_delegate parser: _owner
 	didStartElement: elementName
-	   namespaceURI: href
+	   namespaceURI: (nil == href) ? @"" : href
 	  qualifiedName: qName
 	     attributes: elementAttributes];
     }
@@ -199,7 +199,7 @@ static  NSNull  *null = nil;
     {
       [_delegate parser: _owner
 	  didEndElement: elementName
-	   namespaceURI: href
+	   namespaceURI: (nil == href) ? @"" : href
 	  qualifiedName: qName];
     }
   else
@@ -306,7 +306,7 @@ static  NSNull  *null = nil;
   [_delegate parser: _owner
     foundAttributeDeclarationWithName: name
     forElement: nameElement
-    type: nil		// FIXME
+    type: @""		// FIXME
     defaultValue: value];
 }
 
@@ -315,7 +315,7 @@ static  NSNull  *null = nil;
 {
   [_delegate parser: _owner
     foundElementDeclarationWithName: name
-    model: nil];	// FIXME
+    model: @""];	// FIXME
 }
 
 /**
