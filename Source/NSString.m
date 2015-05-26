@@ -2384,7 +2384,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
               [self getCharacters: charsSelf range: searchRange];
               if (1 == countOther)
                 {
-                  unichar       u = charsOther[pos];
+                  unichar       u = charsOther[0];
 
                   if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
                     {
