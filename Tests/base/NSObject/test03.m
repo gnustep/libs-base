@@ -5,7 +5,7 @@
 
 /* Only do associated objects test if they are supported by the runtime.
  */
-#if     OBJC2RUNTIME
+#if     OBJC2RUNTIME && defined(OBJC_ASSOCIATION_RETAIN)
 
 static BOOL AssociatedObjectDeallocCalled = NO;
 static const char* objc_setAssociatedObjectKey = "objc_setAssociatedObjectKey";
