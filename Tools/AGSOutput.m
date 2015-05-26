@@ -2393,7 +2393,7 @@ static BOOL snuggleStart(NSString *t)
       if (start.length == 0)
 	{
 	  NSLog(@"No <back> or </body> markup in %@ document", kind);
-	  return NO;
+	  return nil;
 	}
       [str insertString: tmp atIndex: start.location];
       start.length = [tmp length];

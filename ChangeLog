@@ -1,3 +1,10 @@
+2015-05-26: Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
+
+	* Source/Additions/Unicode.m
+	* Tools/AGSOutput.m
+	  return NULL or nil instead of NO where pointers are to
+	  be returned 
+
 2015-05-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* GSString.m: Fix sign extension bug
