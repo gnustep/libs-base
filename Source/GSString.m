@@ -3533,38 +3533,6 @@ GSPrivateRangeOfString(NSString *receiver, NSString *target)
     }
 }
 
-static inline NSRange
-rangeOfString_c(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
-{
-  Class	c;
-
-  c = object_getClass(aString);
-  if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
-    || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 1))
-    return strRangeCsUs((id)self, aString, mask, aRange);
-  else if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 0))
-    return strRangeCsCs((id)self, aString, mask, aRange);
-  else
-    return strRangeCsNs((id)self, aString, mask, aRange);
-}
-
-static inline NSRange
-rangeOfString_u(GSStr self, NSString *aString, unsigned mask, NSRange aRange)
-{
-  Class	c;
-
-  c = object_getClass(aString);
-  if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
-    || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 1))
-    return strRangeUsUs((id)self, aString, mask, aRange);
-  else if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || (c == GSMutableStringClass && ((GSStr)aString)->_flags.wide == 0))
-    return strRangeUsCs((id)self, aString, mask, aRange);
-  else
-    return strRangeUsNs((id)self, aString, mask, aRange);
-}
-
 static inline NSString*
 substring_c(GSStr self, NSRange aRange)
 {
@@ -4104,28 +4072,6 @@ agree, create a new GSCInlineString otherwise.
   GS_RANGE_CHECK(aRange, _count);
   return rangeOfCharacter_c((GSStr)self, aSet, mask, aRange);
 }
-
-/*
-- (NSRange) rangeOfString: (NSString*)aString
-		  options: (NSUInteger)mask
-		    range: (NSRange)aRange
-{
-  GS_RANGE_CHECK(aRange, _count);
-  if (aString == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] nil string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-  if (GSObjCIsInstance(aString) == NO)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] not a string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-  if ((mask & NSRegularExpressionSearch) == NSRegularExpressionSearch)
-    {
-      return [super rangeOfString: aString options: mask range: aRange];
-    }
-  return rangeOfString_c((GSStr)self, aString, mask, aRange);
-}
-*/
 
 - (NSStringEncoding) smallestEncoding
 {
@@ -5391,31 +5337,6 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
   else
     return rangeOfCharacter_c((GSStr)self, aSet, mask, aRange);
 }
-
-/*
-- (NSRange) rangeOfString: (NSString*)aString
-		  options: (NSUInteger)mask
-		    range: (NSRange)aRange
-{
-  GS_RANGE_CHECK(aRange, _count);
-  if (aString == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] nil string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-  if (GSObjCIsInstance(aString) == NO)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] not a string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-  if ((mask & NSRegularExpressionSearch) == NSRegularExpressionSearch)
-    {
-      return [super rangeOfString: aString options: mask range: aRange];
-    }
-  if (_flags.wide == 1)
-    return rangeOfString_u((GSStr)self, aString, mask, aRange);
-  else
-    return rangeOfString_c((GSStr)self, aString, mask, aRange);
-}
-*/
 
 - (void) replaceCharactersInRange: (NSRange)aRange
 		       withString: (NSString*)aString
