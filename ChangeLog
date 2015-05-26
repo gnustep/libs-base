@@ -1,3 +1,8 @@
+2015-05-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* GSString.m: Fix sign extension bug
+	* Source/NSXMLParser.m: Update to more exactly match OSX behavior
+
 2015-05-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m: Use libxml2 if available.
