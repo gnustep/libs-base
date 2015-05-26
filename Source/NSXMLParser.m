@@ -734,7 +734,7 @@ static SEL	foundIgnorableSel;
       RELEASE(this->tagPath);
       RELEASE(this->namespaces);
       RELEASE(this->defaults);
-      [this release];
+      RELEASE(this);
       _parser = 0;
       _handler = 0;
     }
@@ -782,7 +782,7 @@ static SEL	foundIgnorableSel;
 	      tmp = [[NSString alloc] initWithData: data encoding: enc];
 	      this->data
 		= [[tmp dataUsingEncoding: NSUTF8StringEncoding] retain];
-	      [tmp release];
+	      RELEASE(tmp);
 	    }
 	  this->tagPath = [[NSMutableArray alloc] init];
 	  this->namespaces = [[NSMutableArray alloc] init];
@@ -1587,6 +1587,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
               seg = NewUTF8STR(start, ptr - start);
               if (nil == seg)
                 {
+                  [m release];
                   [self _parseError: @"invalid character in quoted string"
                                code: NSXMLParserInvalidCharacterError];
                   return nil;
@@ -2008,6 +2009,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                       if (c != '>')
                         {
 			  [attributes release];
+			  [tag release];
                           return [self _parseError: @"<tag/ is missing the >"
 			    code: NSXMLParserGTRequiredError];
                         }
@@ -2024,6 +2026,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                       c = cget();
                       if (c != '>')
                         {
+			  [attributes release];
+			  [tag release];
                           return [self _parseError:
                             @"<?tag ...? is missing the >"
 			    code: NSXMLParserGTRequiredError];
@@ -2034,6 +2038,8 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 		      if ([tag isEqualToString: @"?xml"]
 			&& sp != [this->data bytes])
 			{
+			  [attributes release];
+			  [tag release];
 			  return [self _parseError: @"bad <?xml > preamble"
 			    code: NSXMLParserDocumentStartError];
 			}
@@ -2062,6 +2068,9 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 #endif
                   if (!this->acceptHTML && [arg length] == 0)
                     {
+                      RELEASE(arg);
+                      RELEASE(tag);
+                      RELEASE(attributes);
                       return [self _parseError: @"empty attribute name"
 			code: NSXMLParserAttributeNotStartedError];
                     }
@@ -2082,7 +2091,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 			}
 		      val = [self _newQarg];
                       [attributes setObject: val forKey: arg];
-		      [val release];
+		      RELEASE(val);
                       c = cget();  // get character behind qarg value
 		      while (isspace(c))
 			{
@@ -2092,11 +2101,11 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                   else  // implicit
                     {
                       [attributes setObject: @"" forKey: arg];
-                    }
-		  [arg release];
+                    }                    
+		  RELEASE(arg);
                 }
-	      [attributes release];
-	      [tag release];
+	      RELEASE(attributes);
+	      RELEASE(tag);
               vp = this->cp;    // prepare for next value
               c = cget();  // skip > and fetch next character
             }
