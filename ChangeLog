@@ -1,3 +1,8 @@
+2015-05-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLConnection.m: Fix leak of limit date
+	* Source/NSXMLParser.m: Fix leak of string
+
 2015-05-26: Sebastian Reitenbach <sebastia@l00-bugdead-prods.de>
 
 	* Source/Additions/Unicode.m
