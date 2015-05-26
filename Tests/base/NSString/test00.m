@@ -348,6 +348,13 @@ int main()
     NSMakeRange(0,5), NSMakeRange(0,2));
   strRange("hello", "h", NSLiteralSearch,
     NSMakeRange(0,5), NSMakeRange(0,1));
+
+  strRange("hello", "l", NSLiteralSearch,
+    NSMakeRange(0,5), NSMakeRange(2,1));
+
+  strRange("hello", "l", NSLiteralSearch | NSBackwardsSearch,
+    NSMakeRange(0,5), NSMakeRange(3,1));
+
   strRange("hello", "", NSLiteralSearch,
     NSMakeRange(0,5), NSMakeRange(0,0));
   strRange("hello", "el", NSLiteralSearch,
