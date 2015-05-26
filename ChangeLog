@@ -9,6 +9,8 @@
 
 	* GSString.m: Fix sign extension bug
 	* Source/NSXMLParser.m: Update to more exactly match OSX behavior
+	* Source/NSDateFormatter.m: attempt to fix functionality broken
+	by additional call to set date format during reset.
 
 2015-05-25  Richard Frith-Macdonald <rfm@gnu.org>
 
