@@ -167,8 +167,7 @@
 - (void) parser: (NSXMLParser *)parser
   foundCharacters: (NSString *)string
 {
-  [s appendFormat: @"%@ %@\n", NSStringFromSelector(_cmd),
-    string];
+  [s appendString: string];
 }
 
 - (void) parser: (NSXMLParser *)parser
