@@ -2311,6 +2311,9 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     }
 
   countOther = [aString length];
+
+  /* A zero length string is always found at the start of the given range.
+   */
   if (0 == countOther)
     {
       if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
@@ -2319,6 +2322,91 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
         }
       searchRange.length = 0;
       return searchRange;
+    }
+
+  /* If the string to search for is a single codepoint which is not
+   * decomposable to a sequence, then it can only match the identical
+   * codepoint, so we can perform the much cheaper literal search.
+   */
+  if (1 == countOther)
+    {
+      unichar   u = [aString characterAtIndex: 0];
+
+      if ((mask & NSLiteralSearch) == NSLiteralSearch || uni_is_decomp(u))
+        {
+          NSRange   result;
+
+          if (searchRange.length < countOther)
+            {
+              /* Range to search is smaller than string to look for.
+               */
+              result = NSMakeRange(NSNotFound, 0);
+            }
+          else if ((mask & NSAnchoredSearch) == NSAnchoredSearch
+            || searchRange.length == 1)
+            {
+              /* Range to search is a single character.
+               */
+              if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+                {
+                  searchRange.location = NSMaxRange(searchRange) - 1;
+                }
+              if ([self characterAtIndex: searchRange.location] == u)
+                {
+                  result = searchRange;
+                }
+              else
+                {
+                  result = NSMakeRange(NSNotFound, 0);
+                }
+            }
+          else
+            {
+              NSUInteger    pos;
+              NSUInteger    end;
+
+              /* Range to search is bigger than string to look for.
+               */
+              GS_BEGINITEMBUF2(charsSelf, (searchRange.length*sizeof(unichar)),
+                unichar)
+              [self getCharacters: charsSelf range: searchRange];
+              end = searchRange.length;
+              if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+                {
+                  pos = end;
+                  while (pos-- > 0)
+                    {
+                      if (charsSelf[pos] == u)
+                        {
+                          break;
+                        }
+                    }
+                }
+              else
+                {
+                  pos = 0;
+                  while (pos < end)
+                    {
+                      if (charsSelf[pos] == u)
+                        {
+                          break;
+                        }
+                      pos++;
+                    }                        
+                }
+              GS_ENDITEMBUF2()
+
+              if (pos >= end)
+                {
+                  result = NSMakeRange(NSNotFound, 0);
+                }
+              else
+                {
+                  result = NSMakeRange(searchRange.location + pos, countOther);
+                }
+            }
+          return result;
+        }
     }
 
   if ((mask & NSLiteralSearch) == NSLiteralSearch)
@@ -2382,58 +2470,31 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
               GS_BEGINITEMBUF2(charsSelf, (searchRange.length*sizeof(unichar)),
                 unichar)
               [self getCharacters: charsSelf range: searchRange];
-              if (1 == countOther)
-                {
-                  unichar       u = charsOther[0];
 
-                  if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+              if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+                {
+                  while (pos-- > 0)
                     {
-                      while (pos-- > 0)
+                      if (memcmp(&charsSelf[pos], charsOther,
+                        countOther * sizeof(unichar)) == 0)
                         {
-                          if (charsSelf[pos] == u)
-                            {
-                              break;
-                            }
+                          break;
                         }
-                    }
-                  else
-                    {
-                      while (pos < end)
-                        {
-                          if (charsSelf[pos] == u)
-                            {
-                              break;
-                            }
-                          pos++;
-                        }                        
                     }
                 }
               else
                 {
-                  if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+                  while (pos < end)
                     {
-                      while (pos-- > 0)
+                      if (memcmp(&charsSelf[pos], charsOther,
+                        countOther * sizeof(unichar)) == 0)
                         {
-                          if (memcmp(&charsSelf[pos], charsOther,
-                            countOther * sizeof(unichar)) == 0)
-                            {
-                              break;
-                            }
+                          break;
                         }
-                    }
-                  else
-                    {
-                      while (pos < end)
-                        {
-                          if (memcmp(&charsSelf[pos], charsOther,
-                            countOther * sizeof(unichar)) == 0)
-                            {
-                              break;
-                            }
-                          pos++;
-                        }                        
-                    }
+                      pos++;
+                    }                        
                 }
+
               if (pos >= end)
                 {
                   result = NSMakeRange(NSNotFound, 0);
