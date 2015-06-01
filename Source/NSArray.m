@@ -1,5 +1,5 @@
 /** NSArray - Array object to hold other objects.
-   Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1995-2015 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
@@ -976,6 +976,17 @@ static SEL	rlSel;
   if (count == 0)
     return nil;
   return [self objectAtIndex: count-1];
+}
+
+/**
+ * Returns the first object in the receiver, or nil if the receiver is empty.
+ */
+- (id) firstObject
+{
+  NSUInteger count = [self count];
+  if (count == 0)
+    return nil;
+  return [self objectAtIndex: 0];
 }
 
 /**
