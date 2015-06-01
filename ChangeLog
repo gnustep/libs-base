@@ -1,3 +1,9 @@
+2015-06-01 Riccardo Mottola <rm@gnu.org>
+
+	* Headers/Foundation/NSArray.h
+	* Source/NSArray.m
+	Add firstObject: method existing since 10.6
+
 2015-05-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLConnection.m: Fix leak of limit date
