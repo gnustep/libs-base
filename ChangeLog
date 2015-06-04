@@ -1,3 +1,11 @@
+2015-06-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArray.m: Use NSUInteger rather than unsigned, use memory
+	management macros.
+	* Source/NSConnection.m: Changes to avoid compiler warnings.
+	* Headers/Foundation/NSData.h:
+	* Source/NSData.m: add base64 initialisation methods (bug #45240)
+
 2015-06-01 Riccardo Mottola <rm@gnu.org>
 
 	* Headers/Foundation/NSArray.h

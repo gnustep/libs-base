@@ -139,6 +139,14 @@ static Class	mutableDataFinalized;
 static SEL	appendSel;
 static IMP	appendImp;
 
+static inline void
+decodebase64(unsigned char *dst, const unsigned char *src)
+{
+  dst[0] =  (src[0]         << 2) | ((src[1] & 0x30) >> 4);
+  dst[1] = ((src[1] & 0x0F) << 4) | ((src[2] & 0x3C) >> 2);
+  dst[2] = ((src[2] & 0x03) << 6) |  (src[3] & 0x3F);
+}
+
 static BOOL
 readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
 {
@@ -555,7 +563,138 @@ failure:
 
 - (id) init
 {
-   return [self initWithBytesNoCopy: 0 length: 0 freeWhenDone: YES];
+  return [self initWithBytesNoCopy: 0 length: 0 freeWhenDone: YES];
+}
+
+- (id) initWithBase64EncodedData: (NSData*)base64Data
+                         options: (NSDataBase64DecodingOptions)options
+{
+  NSUInteger	length;
+  NSUInteger	declen;
+  const unsigned char	*src;
+  const unsigned char	*end;
+  unsigned char *result;
+  unsigned char	*dst;
+  unsigned char	buf[4];
+  unsigned	pos = 0;
+
+  if (nil == base64Data)
+    {
+      AUTORELEASE(self);
+      [NSException raise: NSInvalidArgumentException
+	format: @"[%@-initWithBase64EncodedData:options:] called with "
+	@"nil data", NSStringFromClass([self class])];
+      return nil;
+    }
+  length = [base64Data length];
+  if (length == 0)
+    {
+      return [self initWithBytesNoCopy: 0 length: 0 freeWhenDone: YES];
+    }
+  declen = ((length + 3) * 3)/4;
+  src = (const unsigned char*)[base64Data bytes];
+  end = &src[length];
+
+  result = (unsigned char*)malloc(declen);
+  dst = result;
+
+  while ((src != end) && *src != '\0')
+    {
+      int	c = *src++;
+
+      if (isupper(c))
+	{
+	  c -= 'A';
+	}
+      else if (islower(c))
+	{
+	  c = c - 'a' + 26;
+	}
+      else if (isdigit(c))
+	{
+	  c = c - '0' + 52;
+	}
+      else if (c == '/')
+	{
+	  c = 63;
+	}
+      else if (c == '+')
+	{
+	  c = 62;
+	}
+      else if  (c == '=')
+        {
+          c = -1;
+        }
+      else if (options & NSDataBase64DecodingIgnoreUnknownCharacters)
+        {
+          c = -1;               /* ignore */
+        }
+      else
+        {
+          free(result);
+          DESTROY(self);
+          return nil;
+        }
+
+      if (c >= 0)
+	{
+	  buf[pos++] = c;
+	  if (pos == 4)
+	    {
+	      pos = 0;
+	      decodebase64(dst, buf);
+	      dst += 3;
+	    }
+	}
+    }
+
+  if (pos > 0)
+    {
+      unsigned	i;
+
+      for (i = pos; i < 4; i++)
+	{
+	  buf[i] = '\0';
+	}
+      pos--;
+      if (pos > 0)
+	{
+	  unsigned char	tail[3];
+	  decodebase64(tail, buf);
+	  memcpy(dst, tail, pos);
+	  dst += pos;
+	}
+    }
+  length = dst - result;
+  if (options & NSDataBase64DecodingIgnoreUnknownCharacters)
+    {
+      /* If the decoded length is a lot shorter than expected (because we
+       * ignored a lot of characters), reallocate to get smaller memory.
+       */
+      if ((((declen - length) * 100) / declen) > 5)
+        {
+          result = realloc(result, length);
+        }
+    }
+  return [self initWithBytesNoCopy: result length: length freeWhenDone: YES];
+}
+
+- (id) initWithBase64EncodedString: (NSString*)base64String
+                           options: (NSDataBase64DecodingOptions)options
+{
+  NSData        *data;
+
+  if (nil == base64String)
+    {
+      AUTORELEASE(self);
+      [NSException raise: NSInvalidArgumentException
+	format: @"[%@-initWithBase64EncodedString:options:] called with "
+	@"nil string", NSStringFromClass([self class])];
+      return nil;
+    }
+  data = [base64String dataUsingEncoding: NSUTF8StringEncoding];
+  return [self initWithBase64EncodedData: data options: options];
 }
 
 /**
