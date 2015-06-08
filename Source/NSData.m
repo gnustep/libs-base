@@ -598,7 +598,7 @@ failure:
   result = (unsigned char*)malloc(declen);
   dst = result;
 
-  while ((src != end) && *src != '\0')
+  while (src != end)
     {
       int	c = *src++;
 
@@ -624,6 +624,17 @@ failure:
 	}
       else if  (c == '=')
         {
+          /* Only legal as padding at end of string */
+          while (src != end)
+            {
+              c = *src++;
+              if (c != '=')
+                {
+                  free(result);
+                  DESTROY(self);
+                  return nil;
+                }
+            }
           c = -1;
         }
       else if (options & NSDataBase64DecodingIgnoreUnknownCharacters)
