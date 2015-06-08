@@ -635,6 +635,13 @@ failure:
                   return nil;
                 }
             }
+          /* For OSX compatibility, if we have unnecessary padding at the
+           * end of a string, we treat it as representing a zero byte.
+           */
+          if (0 == pos)
+            {
+              *dst++ = '\0';
+            }
           c = -1;
         }
       else if (options & NSDataBase64DecodingIgnoreUnknownCharacters)
