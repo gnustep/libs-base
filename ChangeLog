@@ -1,3 +1,8 @@
+2015-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: be strict about '=' padding only occurring at end
+	of base64 encoded data.
+
 2015-06-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArray.m: Use NSUInteger rather than unsigned, use memory
