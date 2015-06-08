@@ -41,9 +41,26 @@ int main()
   PASS_EQUAL(data, ref, "base64 decoding vector 6")
   [data release];
 
+  data = [[NSData alloc] initWithBase64EncodedString: @"Zm9vYmE==" options: 0];
+  ref = [NSData dataWithBytes: "fooba" length: 5];
+  PASS_EQUAL(data, ref, "base64 decoding vector 6 with 1 extra padding")
+  [data release];
+
+  data = [[NSData alloc] initWithBase64EncodedString: @"Zm9vYmE====="
+    options: 0];
+  ref = [NSData dataWithBytes: "fooba" length: 5];
+  PASS_EQUAL(data, ref, "base64 decoding vector 6 with 4 extra padding")
+  [data release];
+
   data = [[NSData alloc] initWithBase64EncodedString: @"Zm9vYmFy" options: 0];
   ref = [NSData dataWithBytes: "foobar" length: 6];
   PASS_EQUAL(data, ref, "base64 decoding vector 7")
+  [data release];
+
+  data = [[NSData alloc] initWithBase64EncodedString: @"Zm9vYmFy====="
+    options: 0];
+  ref = [NSData dataWithBytes: "foobar\0" length: 7];
+  PASS_EQUAL(data, ref, "base64 decoding excess padding gives single nul byte")
   [data release];
 
   data = [[NSData alloc] initWithBase64EncodedString: @"Zm9v YmFy" options: 0];
