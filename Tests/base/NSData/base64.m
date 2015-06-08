@@ -46,6 +46,16 @@ int main()
   PASS_EQUAL(data, ref, "base64 decoding vector 7")
   [data release];
 
+  data = [[NSData alloc] initWithBase64EncodedString: @"Zm9v YmFy" options: 0];
+  PASS_EQUAL(data, nil, "base64 decoding with space returns nil")
+  [data release];
+
+  data = [[NSData alloc] initWithBase64EncodedString: @"Zm9v YmFy"
+    options: NSDataBase64DecodingIgnoreUnknownCharacters];
+  ref = [NSData dataWithBytes: "foobar" length: 6];
+  PASS_EQUAL(data, ref, "base64 decoding vector 8")
+  [data release];
+
   [arp release]; arp = nil;
   return 0;
 }
