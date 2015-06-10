@@ -121,6 +121,12 @@ enum {
 	    range: (NSRange)aRange;
 - (NSData*) subdataWithRange: (NSRange)aRange;
 
+// base64
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST) 
+- (NSData *)base64EncodedDataWithOptions:(NSDataBase64EncodingOptions)options;
+- (NSString *)base64EncodedStringWithOptions:(NSDataBase64EncodingOptions)options;
+#endif
+ 
 // Querying a Data Object
 
 - (BOOL) isEqualToData: (NSData*)other;
