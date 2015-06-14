@@ -7,6 +7,9 @@ int main()
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSData        *data;
   NSData        *ref;
+  NSString      *str1;
+  NSString      *str2;
+  NSString      *strEnc;
 
   PASS_EXCEPTION([[NSData alloc] initWithBase64EncodedString: nil options: 0],
     NSInvalidArgumentException, "nil argument causes exception");
@@ -72,6 +75,46 @@ int main()
   ref = [NSData dataWithBytes: "foobar" length: 6];
   PASS_EQUAL(data, ref, "base64 decoding vector 8")
   [data release];
+
+  str1 = @"In principio creavit Deus caelum et terram.\nTerra autem erat inanis et vacua, et tenebrae super faciem abyssi, et spiritus Dei ferebatur super aquas.\nDixitque Deus: \"Fiat lux\". Et facta est lux.";
+  data = [str1 dataUsingEncoding:NSASCIIStringEncoding];
+  strEnc = [data base64EncodedStringWithOptions:0];
+  data = [[NSData alloc] initWithBase64EncodedString:strEnc options: 0];
+  str2 = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+  PASS_EQUAL(str1, str2, "Encode / Decode no lines")
+  [str2 release];
+
+  str1 = @"In principio creavit Deus caelum et terram.\nTerra autem erat inanis et vacua, et tenebrae super faciem abyssi, et spiritus Dei ferebatur super aquas.\nDixitque Deus: \"Fiat lux\". Et facta est lux.";
+  data = [str1 dataUsingEncoding:NSASCIIStringEncoding];
+  strEnc = [data base64EncodedStringWithOptions:(NSDataBase64Encoding64CharacterLineLength | NSDataBase64EncodingEndLineWithLineFeed)];
+  data = [[NSData alloc] initWithBase64EncodedString:strEnc options: 0];
+  str2 = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+  PASS_EQUAL(str1, str2, "Encode / Decode 64 - LF")
+  [str2 release];
+
+  str1 = @"In principio creavit Deus caelum et terram.\nTerra autem erat inanis et vacua, et tenebrae super faciem abyssi, et spiritus Dei ferebatur super aquas.\nDixitque Deus: \"Fiat lux\". Et facta est lux.";
+  data = [str1 dataUsingEncoding:NSASCIIStringEncoding];
+  strEnc = [data base64EncodedStringWithOptions:(NSDataBase64Encoding76CharacterLineLength | NSDataBase64EncodingEndLineWithLineFeed)];
+  data = [[NSData alloc] initWithBase64EncodedString:strEnc options: 0];
+  str2 = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+  PASS_EQUAL(str1, str2, "Encode / Decode 76 - LF")
+  [str2 release];
+
+  str1 = @"In principio creavit Deus caelum et terram.\nTerra autem erat inanis et vacua, et tenebrae super faciem abyssi, et spiritus Dei ferebatur super aquas.\nDixitque Deus: \"Fiat lux\". Et facta est lux.";
+  data = [str1 dataUsingEncoding:NSASCIIStringEncoding];
+  strEnc = [data base64EncodedStringWithOptions:(NSDataBase64Encoding64CharacterLineLength | NSDataBase64EncodingEndLineWithCarriageReturn)];
+  data = [[NSData alloc] initWithBase64EncodedString:strEnc options:0];
+  str2 = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+  PASS_EQUAL(str1, str2, "Encode / Decode 64 - CR")
+  [str2 release];
+
+  str1 = @"In principio creavit Deus caelum et terram.\nTerra autem erat inanis et vacua, et tenebrae super faciem abyssi, et spiritus Dei ferebatur super aquas.\nDixitque Deus: \"Fiat lux\". Et facta est lux.";
+  data = [str1 dataUsingEncoding:NSASCIIStringEncoding];
+  strEnc = [data base64EncodedStringWithOptions:NSDataBase64Encoding64CharacterLineLength];
+  data = [[NSData alloc] initWithBase64EncodedString:strEnc options:0];
+  str2 = [[NSString alloc] initWithData:data encoding:NSASCIIStringEncoding];
+  PASS_EQUAL(str1, str2, "Encode / Decode 64 - implicit CR LF")
+  [str2 release];
 
   [arp release]; arp = nil;
   return 0;
