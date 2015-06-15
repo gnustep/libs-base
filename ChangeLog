@@ -1,3 +1,9 @@
+2015-06-14 Riccardo Mottola <rm@gnu.org>
+
+	* Headers/Foundation/NSData.h
+	* Source/NSData.m
+	base64EncodedDataWithOptions, base64EncodedStringWithOptions: first implementation
+
 2015-06-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: be strict about '=' padding only occurring at end
