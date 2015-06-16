@@ -767,7 +767,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       NSLog(@"bad address-service-protocol combination");
       return nil;
     }
-  [self setAddr: &sin];		// Store the address of the remote end.
+  [self setAddr: (struct sockaddr *)&sin]; // Store the address of the remote end.
 
   /*
    * Don't use SOCKS if we are contacting the local host.
@@ -941,7 +941,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       acceptOK = YES;
       readOK = NO;
       writeOK = NO;
-      [self setAddr: &sin];
+      [self setAddr: (struct sockaddr *)&sin];
     }
   return self;
 }
@@ -2005,7 +2005,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 					  closeOnDealloc: YES];
 	  h->isSocket = YES;
 	  getpeername(desc, (struct sockaddr*)&sin, &size);
-	  [h setAddr: &sin];
+	  [h setAddr: (struct sockaddr *)&sin];
 	  [readInfo setObject: h
 		       forKey: NSFileHandleNotificationFileHandleItem];
 	  RELEASE(h);

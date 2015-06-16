@@ -28,6 +28,7 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
+#import "Foundation/NSFileManager.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
@@ -40,6 +41,7 @@
 #import "GSTLS.h"
 
 #import "GSPrivate.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 /* Constants to control TLS/SSL (options).
  */
@@ -53,9 +55,24 @@ NSString * const GSTLSRemoteHosts = @"GSTLSRemoteHosts";
 NSString * const GSTLSRevokeFile = @"GSTLSRevokeFile";
 NSString * const GSTLSVerify = @"GSTLSVerify";
 
-
 #if     defined(HAVE_GNUTLS)
 
+static NSString *
+standardizedPath(NSString *path)
+{
+  if (0 == [path length])
+    {
+      return nil;       // Not a path
+    }
+  if (NO == [path isAbsolutePath])
+    {
+      path = [[[NSFileManager defaultManager] currentDirectoryPath]
+        stringByAppendingPathComponent: path];
+    }
+  return [path stringByStandardizingPath];
+}
+
+#if GNUTLS_VERSION_NUMBER <= 0x020b00
 /* Set up locking callbacks for gcrypt so that it will be thread-safe.
  */
 static int gcry_mutex_init(void **priv)
@@ -87,6 +104,7 @@ static struct gcry_thread_cbs gcry_threads_other = {
   gcry_mutex_lock,
   gcry_mutex_unlock
 };
+#endif
 
 static void
 GSTLSLog(int level, const char *msg)
@@ -152,66 +170,119 @@ static gnutls_anon_client_credentials_t anoncred;
  */
 @implementation GSTLSObject
 
+static NSLock                   *fileLock = nil;
+static NSMutableDictionary      *fileMap = nil;
+
 + (void) _defaultsChanged: (NSNotification*)n
 {
-  NSString      *str;
+  NSBundle              *bundle;
+  NSUserDefaults        *defs;
+  NSDictionary          *env;
+  NSString              *str;
 
-  str = [[NSUserDefaults standardUserDefaults] stringForKey: @"GSCipherList"];
+  bundle = [NSBundle bundleForClass: [NSObject class]];
+  defs = [NSUserDefaults standardUserDefaults];
+  env = [[NSProcessInfo processInfo] environment];
+
+  str = [defs stringForKey: @"GSCipherList"];
   if (nil != str)
     {
       GSOnceMLog(@"GSCipherList is no longer used, please try GSTLSPriority");
     }
 
-  str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSPriority];
-  if (nil != str)
+  str = [defs stringForKey: GSTLSPriority];
+  if (0 == [str length])
     {
-      ASSIGN(priority, str);
+      str = nil;        // nil or empty string resets to default
     }
+  ASSIGN(priority, str);
+
 
   /* The GSTLSCAFile user default overrides the builtin value or the
    * GS_TLS_CA_FILE environment variable.
    */
-  str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSCAFile];
-  if (nil != str)
+  str = [defs stringForKey: GSTLSCAFile];
+  if (nil == str)
     {
-      str = [str stringByStandardizingPath];
-      ASSIGN(caFile, str);
+      /* Let the GS_TLS_CA_FILE environment variable override the
+       * default certificate authority location.
+       */
+      str = [env objectForKey: @"GS_TLS_CA_FILE"];
+      if (nil == str)
+        {
+          str = [bundle pathForResource: @"ca-certificates"
+                                 ofType: @"crt"
+                            inDirectory: @"GSTLS"];
+        }
     }
+  str = standardizedPath(str);
+  ASSIGN(caFile, str);
 
   /* The GSTLSRevokeFile user default overrides the builtin value or the
    * GS_TLS_REVOKE environment variable.
    */
-  str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSRevokeFile];
-  if (nil != str)
+  str = [defs stringForKey: GSTLSRevokeFile];
+  if (nil == str)
     {
-      str = [str stringByStandardizingPath];
-      ASSIGN(revokeFile, str);
+      /* Let the GS_TLS_REVOKE environment variable override the
+       * default revocation list location.
+       */
+      str = [env objectForKey: @"GS_TLS_REVOKE"];
+      if (nil == str)
+        {
+          str = [bundle pathForResource: @"revoke"
+                                 ofType: @"crl"
+                            inDirectory: @"GSTLS"];
+        }
     }
+  str = standardizedPath(str);
+  ASSIGN(revokeFile, str);
 
-  str = [[NSUserDefaults standardUserDefaults]
-    stringForKey: @"GSTLSVerifyClient"];
-  if (nil != str)
+  str = [defs stringForKey: @"GSTLSVerifyClient"];
+  if (nil == str)
     {
-      verifyClient = [str boolValue];
+      str = [env objectForKey: @"GS_TLS_VERIFY_C"];
     }
+  verifyClient = [str boolValue];
 
-  str = [[NSUserDefaults standardUserDefaults]
-    stringForKey: @"GSTLSVerifyServer"];
-  if (nil != str)
-    {
-      verifyServer = [str boolValue];
+  str = [defs stringForKey: @"GSTLSVerifyServer"];
+  if (nil == str)
+    { 
+      str = [env objectForKey: @"GS_TLS_VERIFY_S"];
     }
+  verifyServer = [str boolValue];
 
-  str = [[NSUserDefaults standardUserDefaults] stringForKey: GSTLSDebug];
-  if (nil != str)
+  str = [defs stringForKey: GSTLSDebug];
+  if (nil == str)
     {
-      globalDebug = [str intValue];
+      str = [env objectForKey: @"GS_TLS_DEBUG"];
     }
+  globalDebug = [str intValue];
   if (globalDebug < 0)
     {
       globalDebug = 0;
     }
+
   gnutls_global_set_log_level(globalDebug);
+}
+
++ (NSData*) dataForTLSFile: (NSString*)fileName
+{
+  NSData        *result;
+
+  if (NO == [fileName isKindOfClass: [NSString class]])
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"[GSTLS+dataForTLSFile:] called with bad file name"];
+    }
+  [fileLock lock];
+  result = [[fileMap objectForKey: fileName] retain];
+  [fileLock unlock];
+  if (nil == result)
+    {
+      return [NSData dataWithContentsOfFile: fileName];
+    }
+  return [result autorelease];
 }
 
 + (void) initialize
@@ -222,65 +293,10 @@ static gnutls_anon_client_credentials_t anoncred;
 
       if (beenHere == NO)
         {
-          NSProcessInfo         *pi;
-          NSBundle              *bundle;
-          NSString              *str;
-
           beenHere = YES;
 
-          bundle = [NSBundle bundleForClass: [NSObject class]];
-
-          /* Let the GS_TLS_CA_FILE environment variable override the
-           * default certificate authority location.
-           */
-          pi = [NSProcessInfo processInfo];
-          str = [[pi environment] objectForKey: @"GS_TLS_CA_FILE"];
-          if (nil == str)
-            {
-              str = [bundle pathForResource: @"ca-certificates"
-                                     ofType: @"crt"
-                                inDirectory: @"GSTLS"];
-            }
-          else
-            {
-              str = [str stringByStandardizingPath];
-            }
-          ASSIGN(caFile, str);
-
-          /* Let the GS_TLS_REVOKE environment variable override the
-           * default revocation list location.
-           */
-          pi = [NSProcessInfo processInfo];
-          str = [[pi environment] objectForKey: @"GS_TLS_REVOKE"];
-          if (nil == str)
-            {
-              str = [bundle pathForResource: @"revoke"
-                                     ofType: @"crl"
-                                inDirectory: @"GSTLS"];
-            }
-          else
-            {
-              str = [str stringByStandardizingPath];
-            }
-          ASSIGN(revokeFile, str);
-
-          str = [[pi environment] objectForKey: @"GS_TLS_VERIFY_C"];
-          if (nil != str)
-            {
-              verifyClient = [str boolValue];
-            }
-
-          str = [[pi environment] objectForKey: @"GS_TLS_VERIFY_S"];
-          if (nil != str)
-            {
-              verifyServer = [str boolValue];
-            }
-
-          str = [[pi environment] objectForKey: @"GS_TLS_DEBUG"];
-          if (nil != str)
-            {
-              globalDebug = [str intValue];
-            }
+          fileLock = [NSLock new];
+          fileMap = [NSMutableDictionary new];
 
           [[NSNotificationCenter defaultCenter]
             addObserver: self
@@ -288,9 +304,11 @@ static gnutls_anon_client_credentials_t anoncred;
                    name: NSUserDefaultsDidChangeNotification
                  object: nil];
 
+#if GNUTLS_VERSION_NUMBER <= 0x020b00
           /* Make gcrypt thread-safe
            */
           gcry_control(GCRYCTL_SET_THREAD_CBS, &gcry_threads_other);
+#endif
 
           /* Initialise gnutls
            */
@@ -307,6 +325,24 @@ static gnutls_anon_client_credentials_t anoncred;
           [self _defaultsChanged: nil];
         }
     }
+}
+
++ (void) setData: (NSData*)data forTLSFile: (NSString*)fileName
+{
+  fileName = standardizedPath(fileName);
+  if (nil != data && NO == [data isKindOfClass: [NSData class]])
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"[GSTLS+setData:forTLSFile:] called with bad data"];
+    }
+  if (NO == [fileName isKindOfClass: [NSString class]])
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"[GSTLS+setData:forTLSFile:] called with bad file"];
+    }
+  [fileLock lock];
+  [fileMap setObject: data forKey: fileName];
+  [fileLock unlock];
 }
 
 @end
@@ -411,8 +447,10 @@ static GSTLSDHParams            *paramsCurrent = nil;
   if (nil == paramsLock)
     {
       paramsLock = [NSLock new];
+      [[NSObject leakAt: &paramsLock] release];
       paramsWhen = [NSDate timeIntervalSinceReferenceDate];
       paramsCache = [NSMutableDictionary new];
+      [[NSObject leakAt: &paramsCache] release];
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
 	name: @"GSHousekeeping" object: nil];
@@ -427,7 +465,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
     {
       return nil;
     }
-  f = [f stringByStandardizingPath];
+  f = standardizedPath(f);
   [paramsLock lock];
   p = [[paramsCache objectForKey: f] retain];
   [paramsLock unlock];
@@ -438,7 +476,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
       int                       ret;
       gnutls_datum_t            datum;
 
-      data = [NSData dataWithContentsOfFile: f];
+      data = [[self class] dataForTLSFile: f];
       if (nil == data)
         {
           NSLog(@"Unable to read DF params file '%@'", f);
@@ -597,7 +635,9 @@ static NSMutableDictionary      *certificateListCache = nil;
   if (nil == certificateListLock)
     {
       certificateListLock = [NSLock new];
+      [[NSObject leakAt: &certificateListLock] release];
       certificateListCache = [NSMutableDictionary new];
+      [[NSObject leakAt: &certificateListCache] release];
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
 	name: @"GSHousekeeping" object: nil];
@@ -612,7 +652,7 @@ static NSMutableDictionary      *certificateListCache = nil;
     {
       return nil;
     }
-  f = [f stringByStandardizingPath];
+  f = standardizedPath(f);
   [certificateListLock lock];
   l = [[certificateListCache objectForKey: f] retain];
   [certificateListLock unlock];
@@ -625,7 +665,7 @@ static NSMutableDictionary      *certificateListCache = nil;
       unsigned int              count = 100;
       gnutls_x509_crt_t         crts[count];
 
-      data = [NSData dataWithContentsOfFile: f];
+      data = [[self class] dataForTLSFile: f];
       if (nil == data)
         {
           NSLog(@"Unable to read certificate file '%@'", f);
@@ -779,8 +819,11 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
   if (nil == privateKeyLock)
     {
       privateKeyLock = [NSLock new];
+      [[NSObject leakAt: &privateKeyLock] release];
       privateKeyCache0 = [NSMutableDictionary new];
+      [[NSObject leakAt: &privateKeyCache0] release];
       privateKeyCache1 = [NSMutableDictionary new];
+      [[NSObject leakAt: &privateKeyCache1] release];
 
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
@@ -796,7 +839,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
     {
       return nil;
     }
-  f = [f stringByStandardizingPath];
+  f = standardizedPath(f);
   [privateKeyLock lock];
   if (nil == p)
     {
@@ -825,7 +868,7 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       int                       ret;
       gnutls_datum_t            datum;
 
-      data = [NSData dataWithContentsOfFile: f];
+      data = [[self class] dataForTLSFile: f];
       if (nil == data)
         {
           NSLog(@"Unable to read private key file '%@'", f);
@@ -933,7 +976,9 @@ static NSMutableDictionary      *credentialsCache = nil;
   if (nil == credentialsLock)
     {
       credentialsLock = [NSLock new];
+      [[NSObject leakAt: &credentialsLock] release];
       credentialsCache = [NSMutableDictionary new];
+      [[NSObject leakAt: &credentialsCache] release];
 
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
@@ -958,12 +1003,12 @@ static NSMutableDictionary      *credentialsCache = nil;
    * information (file names and password) used to build them.
    */
   k = [NSMutableString stringWithCapacity: 1024];
-  ca = [ca stringByStandardizingPath];
+  ca = standardizedPath(ca);
   if (nil != ca) [k appendString: ca];
   [k appendString: @":"];
   if (nil != dca) [k appendString: dca];
   [k appendString: @":"];
-  rv = [rv stringByStandardizingPath];
+  rv = standardizedPath(rv);
   if (nil != rv) [k appendString: rv];
   [k appendString: @":"];
   if (nil != drv) [k appendString: drv];
@@ -1067,7 +1112,7 @@ static NSMutableDictionary      *credentialsCache = nil;
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
             {
-              NSLog(@"Problem loading revocation list from %@: %s",
+              NSLog(@"Problem loading default revocation list from %@: %s",
                 drv, gnutls_strerror(ret));
             }
           else
@@ -1161,7 +1206,7 @@ static NSMutableDictionary      *credentialsCache = nil;
 
       if (YES == debug)
         {
-          NSLog(@"Created credentials %p for '%@'", c, k);
+          NSLog(@"%@ created credentials %p for '%@'", self, c, k);
         }
       [credentialsLock lock];
       [credentialsCache setObject: c forKey: c->name];
@@ -1218,7 +1263,7 @@ static NSMutableDictionary      *credentialsCache = nil;
 
 - (BOOL) active
 {
-   return active;
+  return active;
 }
 
 - (void) dealloc
@@ -1230,13 +1275,32 @@ static NSMutableDictionary      *credentialsCache = nil;
   [super dealloc];
 }
 
-- (void) disconnect
+- (BOOL) disconnect: (BOOL)reusable
 {
+  BOOL  ok = YES;
+
   if (YES == active || YES == handshake)
     {
       active = NO;
       handshake = NO;
-      gnutls_bye(session, GNUTLS_SHUT_RDWR);
+      if (NO == reusable)
+        {
+          gnutls_bye(session, GNUTLS_SHUT_WR);
+        }
+      else
+        {
+          int   result;
+
+          do
+            {
+              result = gnutls_bye(session, GNUTLS_SHUT_RDWR);
+            }
+          while (GNUTLS_E_AGAIN == result || GNUTLS_E_INTERRUPTED == result);
+          if (result < 0)
+            {
+              ok = NO;
+            }
+        }
     }
   if (YES == setup)
     {
@@ -1244,11 +1308,12 @@ static NSMutableDictionary      *credentialsCache = nil;
       gnutls_db_remove_session(session);
       gnutls_deinit(session);
     }
+  return ok;
 }
 
 - (void) finalize
 {
-  [self disconnect];
+  [self disconnect: NO];
   [super finalize];
 }
 
@@ -1358,8 +1423,6 @@ static NSMutableDictionary      *credentialsCache = nil;
             @" these locations.");
         }
 
-      gnutls_set_default_priority(session);
-
       pri = [opts objectForKey: NSStreamSocketSecurityLevelKey];
       str = [opts objectForKey: GSTLSPriority];
       if (nil == pri && nil == str)
@@ -1377,6 +1440,15 @@ static NSMutableDictionary      *credentialsCache = nil;
           str = nil;
         }
 
+#if GNUTLS_VERSION_NUMBER < 0x020C00
+      gnutls_set_default_priority(session);
+#else
+      /* By default we disable SSL3.0 as the 'POODLE' attack (Oct 2014)
+       * renders it insecure.
+       */
+      gnutls_priority_set_direct(session, "NORMAL:-VERS-SSL3.0", NULL);
+#endif
+
       if (nil == str)
         {
           if ([pri isEqual: NSStreamSocketSecurityLevelNone] == YES)
@@ -1390,13 +1462,15 @@ static NSMutableDictionary      *credentialsCache = nil;
           else if ([pri isEqual: NSStreamSocketSecurityLevelSSLv2] == YES)
             {
               // pri = NSStreamSocketSecurityLevelSSLv2;
-              GSOnceMLog(@"NSStreamSocketSecurityLevelTLSv2 is insecure ..."
+              GSOnceMLog(@"NSStreamSocketSecurityLevelSSLv2 is insecure ..."
                 @" not implemented");
               DESTROY(self);
               return nil;
             }
           else if ([pri isEqual: NSStreamSocketSecurityLevelSSLv3] == YES)
             {
+              GSOnceMLog(@"NSStreamSocketSecurityLevelSSLv3 is insecure ..."
+                @" please change your code to stop using it");
 #if GNUTLS_VERSION_NUMBER < 0x020C00
               const int proto_prio[2] = {
                 GNUTLS_SSL3,
@@ -1473,23 +1547,28 @@ static NSMutableDictionary      *credentialsCache = nil;
            * and errors which are caused by other interoperability
            * issues.  The first sort are not normally worth reporting.
            */
-          if (GNUTLS_E_UNSUPPORTED_VERSION_PACKET == ret
-            || GNUTLS_E_UNEXPECTED_PACKET_LENGTH == ret)
+          if (ret == GNUTLS_E_UNEXPECTED_PACKET_LENGTH
+            || ret == GNUTLS_E_FATAL_ALERT_RECEIVED
+            || ret == GNUTLS_E_DECRYPTION_FAILED
+#ifdef GNUTLS_E_PREMATURE_TERMINATION
+            || ret == GNUTLS_E_PREMATURE_TERMINATION
+#endif
+            || ret == GNUTLS_E_UNSUPPORTED_VERSION_PACKET)
             {
               p = [p stringByAppendingString:
                 @"\nmost often due to the remote end not expecting TLS/SSL"];
               ASSIGN(problem, p);
               if (YES == debug)
                 {
-                  NSLog(@"%@", p);
+                  NSLog(@"%@ in handshake: %@", self, p);
                 }
             }
           else
             {
               ASSIGN(problem, p);
-              NSLog(@"%@", p);
+              NSLog(@"%@ in handshake: %@", self, p);
             }
-          [self disconnect];
+          [self disconnect: NO];
           return YES;   // Failed ... not active.
         }
       else
@@ -1521,7 +1600,7 @@ static NSMutableDictionary      *credentialsCache = nil;
 
       if (globalDebug > 1)
         {
-          NSLog(@"Before verify:\n%@", [self sessionInfo]);
+          NSLog(@"%@ before verify:\n%@", self, [self sessionInfo]);
         }
       if (YES == shouldVerify)
         {
@@ -1531,11 +1610,11 @@ static NSMutableDictionary      *credentialsCache = nil;
               if (globalDebug > 0
                 || YES == [[opts objectForKey: GSTLSDebug] boolValue])
                 {
-                  NSLog(@"unable to verify SSL connection - %s",
-                    gnutls_strerror(ret));
-                  NSLog(@"%@", [self sessionInfo]);
+                  NSLog(@"%@ unable to verify SSL connection - %s",
+                    self, gnutls_strerror(ret));
+                  NSLog(@"%@ %@", self, [self sessionInfo]);
                 }
-              [self disconnect];
+              [self disconnect: NO];
             }
         }
       return YES;       // Handshake complete
@@ -1549,12 +1628,87 @@ static NSMutableDictionary      *credentialsCache = nil;
 
 - (NSInteger) read: (void*)buf length: (NSUInteger)len
 {
-  return gnutls_record_recv(session, buf, len);
+  int   result = gnutls_record_recv(session, buf, len);
+
+  if (result < 0)
+    {
+      NSString  *p;
+
+      if (GNUTLS_E_AGAIN == result)
+        {
+          errno = EAGAIN;       // Need to retry.
+        }
+      else if (GNUTLS_E_INTERRUPTED == result)
+        {
+          errno = EINTR;        // Need to retry
+        }
+      else if (gnutls_error_is_fatal(result))
+        {
+          p = [NSString stringWithFormat: @"%s", gnutls_strerror(result)];
+          ASSIGN(problem, p);
+          if (YES == debug)
+            {
+              NSLog(@"%@ in read: %@", self, p);
+            }
+          if (EAGAIN == errno || EINTR == errno)
+            {
+              errno = EBADF;    // Fatal ... don't retry
+            }
+        }
+      else
+        {
+          if (GNUTLS_E_WARNING_ALERT_RECEIVED == result)
+            {
+              if (YES == debug)
+                {
+                  p = [NSString stringWithFormat: @"%s",
+                    gnutls_alert_get_name(gnutls_alert_get(session))];
+                  NSLog(@"%@ in read: %@", self, p);
+                }
+            }
+          errno = EAGAIN;       // Need to retry.
+        }
+      result = -1;
+    }
+  return result;
 }
 
 - (NSInteger) write: (const void*)buf length: (NSUInteger)len
 {
-  return gnutls_record_send(session, buf, len);
+  int   result = gnutls_record_send(session, buf, len);
+
+  if (result < 0)
+    {
+      if (GNUTLS_E_AGAIN == result)
+        {
+          errno = EAGAIN;       // Need to retry.
+        }
+      else if (GNUTLS_E_INTERRUPTED == result)
+        {
+          errno = EINTR;        // Need to retry
+        }
+      else if (gnutls_error_is_fatal(result))
+        {
+          NSString      *p;
+
+          p = [NSString stringWithFormat: @"%s", gnutls_strerror(result)];
+          ASSIGN(problem, p);
+          if (YES == debug)
+            {
+              NSLog(@"%@ in write: %@", self, p);
+            }
+          if (EAGAIN == errno || EINTR == errno)
+            {
+              errno = EBADF;    // Fatal ... don't retry
+            }
+        }
+      else
+        {
+          errno = EAGAIN;       // Need to retry.
+        }
+      result = -1;
+    }
+  return result;
 }
 
 /* Copied/based on the public domain code provided by gnutls
@@ -1754,30 +1908,36 @@ static NSMutableDictionary      *credentialsCache = nil;
   ret = gnutls_certificate_verify_peers2 (session, &status);
   if (ret < 0)
     {
-      NSLog(@"Error %s", gnutls_strerror(ret));
+      str = [NSString stringWithFormat:
+        @"TLS verification: error %s", gnutls_strerror(ret)];
+      ASSIGN(problem, str);
+      if (YES == debug) NSLog(@"%@ %@", self, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
   if (YES == debug)
     {
       if (status & GNUTLS_CERT_SIGNER_NOT_FOUND)
-        NSLog(@"The certificate hasn't got a known issuer.");
+        NSLog(@"%@ TLS verification: certificate hasn't got a known issuer.",
+          self);
 
       if (status & GNUTLS_CERT_REVOKED)
-        NSLog(@"The certificate has been revoked.");
+        NSLog(@"%@ TLS verification: certificate has been revoked.", self);
 
     /*
       if (status & GNUTLS_CERT_EXPIRED)
-        NSLog(@"The certificate has expired");
+        NSLog(@"%@ TLS verification: certificate has expired", self);
 
       if (status & GNUTLS_CERT_NOT_ACTIVATED)
-        NSLog(@"The certificate is not yet activated");
+        NSLog(@"%@ TLS verification: certificate is not yet activated", self);
     */
     }
 
   if (status & GNUTLS_CERT_INVALID)
     {
-      NSLog(@"The remote certificate is not trusted.");
+      ASSIGN(problem,
+        @"TLS verification: remote certificate is not trusted.");
+      if (YES == debug) NSLog(@"%@ %@", self, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -1787,26 +1947,34 @@ static NSMutableDictionary      *credentialsCache = nil;
    */
   if (gnutls_certificate_type_get(session) != GNUTLS_CRT_X509)
     {
-      NSLog(@"The remote certificate is not of the X509 type.");
+      ASSIGN(problem,
+        @"TLS verification: remote certificate not of the X509 type.");
+      if (YES == debug) NSLog(@"%@ %@", self, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
   if (gnutls_x509_crt_init(&cert) < 0)
     {
-      NSLog(@"error in certificate initialization");
+      ASSIGN(problem, @"TLS verification: error in certificate initialization");
+      gnutls_x509_crt_deinit(cert);
+      if (YES == debug) NSLog(@"%@ %@", self, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
   cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
   if (cert_list == NULL)
     {
-      NSLog(@"No certificate form remote end was found!");
+      ASSIGN(problem, @"TLS verification: no certificate from remote end!");
+      gnutls_x509_crt_deinit(cert);
+      if (YES == debug) NSLog(@"%@ %@", self, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
   if (gnutls_x509_crt_import(cert, &cert_list[0], GNUTLS_X509_FMT_DER) < 0)
     {
-      NSLog(@"error parsing certificate");
+      ASSIGN(problem, @"TLS verification: error parsing certificate");
+      gnutls_x509_crt_deinit(cert);
+      if (YES == debug) NSLog(@"%@ %@", self, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
@@ -1838,8 +2006,12 @@ static NSMutableDictionary      *credentialsCache = nil;
         }
       if (NO == found)
         {
-          NSLog(@"The certificate's owner does not match '%@'", names);
+          str = [NSString stringWithFormat:
+            @"TLS verification: certificate's owner does not match '%@'",
+            names];
+          ASSIGN(problem, str);
           gnutls_x509_crt_deinit(cert);
+          if (YES == debug) NSLog(@"%@ %@", self, problem);
           return GNUTLS_E_CERTIFICATE_ERROR;
         }
     }

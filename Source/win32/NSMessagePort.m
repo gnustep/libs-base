@@ -943,7 +943,11 @@ again:
   return sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader);
 }
 
+#if defined(__clang__)
+- (oneway void) release
+#else
 - (void) release
+#endif
 {
   /* We lock the port table while checking, to prevent
    * another thread from grabbing this port while we are

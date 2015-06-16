@@ -46,8 +46,8 @@
 #import "Foundation/NSThread.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSMapTable.h"
+#import "Foundation/NSUserDefaults.h"
 #import "GNUstepBase/GSLocale.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -138,11 +138,8 @@ static Class		zombieClass = Nil;
 static NSMapTable	*zombieMap = 0;
 
 #if	!GS_WITH_GC
-static void GSMakeZombie(NSObject *o)
+static void GSMakeZombie(NSObject *o, Class c)
 {
-  Class		c;
-
-  c = object_getClass(o);
   object_setClass(o, zombieClass);
   if (0 != zombieMap)
     {
@@ -340,7 +337,7 @@ GSAtomicIncrement(gsatomic_t X)
   int tmp;
 
   __asm__ __volatile__ (
-#if !defined(__mips64__)
+#if !defined(__mips64)
     "   .set  mips2  \n"
 #endif
     "0: ll    %0, %1 \n"
@@ -357,7 +354,7 @@ GSAtomicDecrement(gsatomic_t X)
   int tmp;
 
   __asm__ __volatile__ (
-#if !defined(__mips64__)
+#if !defined(__mips64)
     "   .set  mips2  \n"
 #endif
     "0: ll    %0, %1 \n"
@@ -854,7 +851,7 @@ NSDeallocateObject(id anObject)
       AREM(aClass, (id)anObject);
       if (NSZombieEnabled == YES)
 	{
-	  GSMakeZombie(anObject);
+	  GSMakeZombie(anObject, aClass);
 	  if (NSDeallocateZombies == YES)
 	    {
 	      NSZoneFree(z, o);
@@ -1132,7 +1129,7 @@ static id gs_weak_load(id obj)
        */
       zombieClass = objc_lookUpClass("NSZombie");
 
-      /* Now that we have a workign autorelease system and working string
+      /* Now that we have a working autorelease system and working string
        * classes we are able to set up notifications.
        */
       [[NSNotificationCenter defaultCenter]
@@ -1140,6 +1137,11 @@ static id gs_weak_load(id obj)
 	   selector: @selector(_becomeMultiThreaded:)
 	       name: NSWillBecomeMultiThreadedNotification
 	     object: nil];
+
+      /* It is also safer to set upo the user defaults system before doing
+       * other stuff which might use it.
+       */
+      [NSUserDefaults class];
     }
   return;
 }
@@ -1415,11 +1417,11 @@ static id gs_weak_load(id obj)
 #ifdef OBJC_SMALL_OBJECT_MASK
   if (((NSUInteger)self & OBJC_SMALL_OBJECT_MASK) == 0)
     {
-      destructorClass = object_getClass(self);
+      destructorClass = isa;                    // Potentially hidden class
     }
   else
     {
-      destructorClass = isa;
+      destructorClass = object_getClass(self);  // Small object
     }
 #else
   destructorClass = isa;
@@ -1445,7 +1447,7 @@ static id gs_weak_load(id obj)
       destructorClass = class_getSuperclass(destructorClass);
 
       if (newDestructor != destructor)
-	  {
+	{
 	  newDestructor(self, cxx_destruct);
 	  destructor = newDestructor;
 	}
@@ -1517,7 +1519,22 @@ static id gs_weak_load(id obj)
 	}
       return NO;
     }
-  return class_respondsToSelector(self, aSelector) ? YES : NO;
+
+  if (class_respondsToSelector(self, aSelector))
+    {
+      return YES;
+    }
+
+  if (class_isMetaClass(self))
+    {
+      /* It seems convoluted to attempt to access the class from the 
+         metaclass just to call +resolveClassMethod: in this rare case. */
+      return NO;
+    }
+  else
+    {
+      return [self resolveInstanceMethod: aSelector];
+    }
 }
 
 /**
@@ -1885,13 +1902,16 @@ static id gs_weak_load(id obj)
 - (NSUInteger) hash
 {
   /*
-   * Ideally we would shift left to lose any zero bits produced by the
-   * alignment of the object in memory ... but that depends on the
-   * processor architecture and the memory allocatiion implementation.
-   * In the absence of detailed information, pick a reasonable value
-   * assuming the object will be aligned to an eight byte boundary.
+   *  malloc() must return pointers aligned to point to any data type
    */
-  return (NSUInteger)(uintptr_t)self >> 3;
+#define MAXALIGN (__alignof__(_Complex long double))
+
+  static int shift = MAXALIGN==16 ? 4 : (MAXALIGN==8 ? 3 : 2);
+
+  /* We shift left to lose any zero bits produced by the
+   * alignment of the object in memory.
+   */
+  return (NSUInteger)((uintptr_t)self >> shift);
 }
 
 /**
@@ -2109,6 +2129,8 @@ static id gs_weak_load(id obj)
  */
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
+  Class cls = object_getClass(self);
+
   if (aSelector == 0)
     {
       if (GSPrivateDefaultsFlag(GSMacOSXCompatible))
@@ -2120,7 +2142,19 @@ static id gs_weak_load(id obj)
       return NO;
     }
 
-  return class_respondsToSelector(object_getClass(self), aSelector) ? YES : NO;
+  if (class_respondsToSelector(cls, aSelector))
+    {
+      return YES;
+    }
+
+  if (class_isMetaClass(cls))
+    {
+      return [(Class)self resolveClassMethod: aSelector];
+    }
+  else
+    {
+      return [cls resolveInstanceMethod: aSelector];
+    }
 }
 
 /**

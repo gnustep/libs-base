@@ -40,6 +40,10 @@ int _MB_init_runtime()
 }
 #endif /* __MS_WIN32__ */
 
+#if defined(__WIN32__)
+#include <winsock2.h>
+#endif
+
 void
 gnustep_base_socket_init()
 {
@@ -56,7 +60,7 @@ gnustep_base_socket_init()
 // This function gets called everytime a process/thread attaches to DLL
 //
 WINBOOL WINAPI
-DllMain(HANDLE hInst, ULONG ul_reason_for_call,	LPVOID lpReserved)
+DllMain(HINSTANCE hInst, DWORD ul_reason_for_call, LPVOID lpReserved)
 {
   switch(ul_reason_for_call)
     {

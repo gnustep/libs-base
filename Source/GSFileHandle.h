@@ -32,6 +32,10 @@
 
 #import <GNUstepBase/GSConfig.h>
 
+#if defined(__MINGW__) && defined(__clang__)
+#import <winsock2.h>
+#endif
+
 #if	USE_ZLIB
 #include <zlib.h>
 #endif
