@@ -48,6 +48,7 @@
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSUserDefaults.h"
 #import "GNUstepBase/GSLocale.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
