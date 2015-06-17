@@ -1374,8 +1374,10 @@ QueryCallback(DNSServiceRef			 sdRef,
     {
       [self cleanup];
       
+#if 0 // Duplicate invocation of netService:didNotResolve: causing crashes???
       [self netService: self
          didNotResolve: CreateError(self, errorCode)];
+#endif
       
       UNLOCK(service);
       
