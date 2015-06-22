@@ -409,12 +409,19 @@ typedef	struct {
 #endif
 
 #if !__has_feature(objc_arc)
-#  if __OBJC_GC__
-#    define __strong __attribute__((objc_gc(strong)))
-#    define __weak __attribute__((objc_gc(weak)))
-#  else
-#    define __strong
-#    define __weak
+#  if !defined(__weak)
+#    if __OBJC_GC__
+#      define __weak __attribute__((objc_gc(weak)))
+#    else
+#      define __weak
+#    endif
+#  endif
+#  if !defined(__strong)
+#    if __OBJC_GC__
+#      define __strong __attribute__((objc_gc(strong)))
+#    else
+#      define __strong
+#    endif
 #  endif
 #endif
 
