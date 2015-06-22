@@ -406,26 +406,34 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 /* Attribute macros compatible with Apple.
  */
 
+#ifndef NS_FORMAT_ARGUMENT
 #if defined(__clang__) || GS_GCC_MINREQ(4,2)
 #  define NS_FORMAT_ARGUMENT(A) __attribute__((format_arg(A)))
 #else
 #  define NS_FORMAT_ARGUMENT(F,A) 
 #endif
+#endif
 
 // FIXME ... what version of gcc?
+#ifndef NS_FORMAT_FUNCTION
 #if __clang__
 #  define NS_FORMAT_FUNCTION(F,A) __attribute__((format(__NSString__, F, A)))
 #else
 #  define NS_FORMAT_FUNCTION(F,A) 
 #endif
+#endif
 
+#ifndef NS_REQUIRES_NIL_TERMINATION
 #define NS_REQUIRES_NIL_TERMINATION __attribute__((sentinel))
+#endif
 
 // FIXME ... what exact version of clang and gcc?
+#ifndef UNAVAILABLE_ATTRIBUTE
 #if defined(__clang__) || GS_GCC_MINREQ(4,0)
 #  define UNAVAILABLE_ATTRIBUTE __attribute__((unavailable))
 #else
 #  define UNAVAILABLE_ATTRIBUTE
+#endif
 #endif
 
 /* Check if compiler supports @optional in protocols
