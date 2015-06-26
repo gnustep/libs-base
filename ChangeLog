@@ -1,3 +1,9 @@
+2015-06-26 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSMethodSignature.m
+	* Source/cifframe.m
+	Minor include fixes to avoid malloc.h warnings on OpenBSD.
+
 2015-06-22  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/GNUstepBase/Additions.h:
