@@ -4,6 +4,9 @@
 	* Source/cifframe.m
 	Minor include fixes to avoid malloc.h warnings on OpenBSD.
 
+	* Source/NSScanner.m
+	Remove set but unused variable.
+
 2015-06-22  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/GNUstepBase/Additions.h:

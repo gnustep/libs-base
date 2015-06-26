@@ -1243,7 +1243,6 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
   int	        exponent = 0;
   BOOL	        negativeMantissa = NO;
   BOOL		negativeExponent = NO;
-  BOOL          extra = NO;
   unsigned	pos = 0;
   int           mantissaLength;
   int           dotPos = -1;
@@ -1303,7 +1302,6 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
       /* Mantissa too long ... ignore excess.
        */
       mantissaLength = 18;
-      extra = YES;
     }
   if (dotPos < 0)
     {
