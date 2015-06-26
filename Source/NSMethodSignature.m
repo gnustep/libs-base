@@ -1,5 +1,5 @@
 /** Implementation of NSMethodSignature for GNUStep
-   Copyright (C) 1994, 1995, 1996, 1998 Free Software Foundation, Inc.
+   Copyright (C) 1994-2015 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: August 1994
@@ -42,8 +42,11 @@
 #import "GSInvocation.h"
 
 #ifdef HAVE_MALLOC_H
+#if !defined(__OpenBSD__)
 #include <malloc.h>
 #endif
+#endif
+
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
 #endif
