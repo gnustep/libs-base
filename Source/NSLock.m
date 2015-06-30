@@ -56,6 +56,32 @@
   [_name release];\
   [super dealloc];\
 }
+
+#if     defined(HAVE_PTHREAD_MUTEX_OWNER)
+#define	MDESCRIPTION \
+- (NSString*) description\
+{\
+  if (_mutex.__data.__owner)\
+    {\
+      if (_name == nil)\
+        {\
+          return [NSString stringWithFormat: @"%@ (locked by %d)",\
+            [super description], (int)_mutex.__data.__owner];\
+        }\
+      return [NSString stringWithFormat: @"%@ '%@' (locked by %d)",\
+        [super description], _name, (int)_mutex.__data.__owner];\
+    }\
+  else\
+    {\
+      if (_name == nil)\
+        {\
+          return [super description];\
+        }\
+      return [NSString stringWithFormat: @"%@ '%@'",\
+        [super description], _name];\
+    }\
+}
+#else
 #define	MDESCRIPTION \
 - (NSString*) description\
 {\
@@ -66,11 +92,14 @@
   return [NSString stringWithFormat: @"%@ '%@'",\
     [super description], _name];\
 }
+#endif
+
 #define MFINALIZE \
 - (void) finalize\
 {\
   pthread_mutex_destroy(&_mutex);\
 }
+
 #define MNAME \
 - (void) setName: (NSString*)newName\
 {\
@@ -80,6 +109,7 @@
 {\
   return _name;\
 }
+
 #define	MLOCK \
 - (void) lock\
 {\
@@ -91,9 +121,10 @@
     }\
   if (EDEADLK == err)\
     {\
-      _NSLockError(self, _cmd, YES, &_mutex);\
+      _NSLockError(self, _cmd, YES);\
     }\
 }
+
 #define	MLOCKBEFOREDATE \
 - (BOOL) lockBeforeDate: (NSDate*)limit\
 {\
@@ -108,12 +139,14 @@
     } while ([limit timeIntervalSinceNow] > 0);\
   return NO;\
 }
+
 #define	MTRYLOCK \
 - (BOOL) tryLock\
 {\
   int err = pthread_mutex_trylock(&_mutex);\
   return (0 == err) ? YES : NO;\
 }
+
 #define	MUNLOCK \
 - (void) unlock\
 {\
@@ -132,15 +165,10 @@ static pthread_mutexattr_t attr_recursive;
 /*
  * OS X 10.5 compatibility function to allow debugging deadlock conditions.
  */
-void _NSLockError(id obj, SEL _cmd, BOOL stop, pthread_mutex_t *mutex)
+void _NSLockError(id obj, SEL _cmd, BOOL stop)
 {
-#if     defined(HAVE_PTHREAD_MUTEX_OWNER)
-  NSLog(@"*** -[%@ %@]: deadlock (%@), held by thread %d", [obj class],
-    NSStringFromSelector(_cmd), obj, mutex->__data.__owner);
-#else
   NSLog(@"*** -[%@ %@]: deadlock (%@)", [obj class],
     NSStringFromSelector(_cmd), obj);
-#endif
   NSLog(@"*** Break on _NSLockError() to debug.");
   if (YES == stop)
      pthread_mutex_lock(&deadlock);
@@ -220,7 +248,7 @@ MLOCK
 	}
       if (EDEADLK == err)
 	{
-	  _NSLockError(self, _cmd, NO, &_mutex);
+	  _NSLockError(self, _cmd, NO);
 	}
       sched_yield();
     } while ([limit timeIntervalSinceNow] > 0);
