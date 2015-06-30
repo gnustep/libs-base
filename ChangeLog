@@ -5,6 +5,8 @@
         * Headers/GNUstepBase/config.h.in:
         Add test for pthread_mutex_t.__data.__owner
         Update various tests to silence autoconf warnings.
+	* Source/NSLock.m: If available, use pthread_mutex_t.__data.__owner
+	to print the owning thread ID when a lock is deadlocked.
 
 2015-06-26 Riccardo Mottola <rm@gnu.org>
 
@@ -26,7 +28,8 @@
 
 	* Headers/Foundation/NSData.h
 	* Source/NSData.m
-	base64EncodedDataWithOptions, base64EncodedStringWithOptions: first implementation
+	base64EncodedDataWithOptions, base64EncodedStringWithOptions:
+	first implementation
 
 2015-06-08  Richard Frith-Macdonald <rfm@gnu.org>
 

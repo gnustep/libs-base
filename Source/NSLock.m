@@ -91,7 +91,7 @@
     }\
   if (EDEADLK == err)\
     {\
-      _NSLockError(self, _cmd, YES);\
+      _NSLockError(self, _cmd, YES, &_mutex);\
     }\
 }
 #define	MLOCKBEFOREDATE \
@@ -132,10 +132,15 @@ static pthread_mutexattr_t attr_recursive;
 /*
  * OS X 10.5 compatibility function to allow debugging deadlock conditions.
  */
-void _NSLockError(id obj, SEL _cmd, BOOL stop)
+void _NSLockError(id obj, SEL _cmd, BOOL stop, pthread_mutex_t *mutex)
 {
+#if     defined(HAVE_PTHREAD_MUTEX_OWNER)
+  NSLog(@"*** -[%@ %@]: deadlock (%@), held by thread %d", [obj class],
+    NSStringFromSelector(_cmd), obj, mutex->__data.__owner);
+#else
   NSLog(@"*** -[%@ %@]: deadlock (%@)", [obj class],
     NSStringFromSelector(_cmd), obj);
+#endif
   NSLog(@"*** Break on _NSLockError() to debug.");
   if (YES == stop)
      pthread_mutex_lock(&deadlock);
@@ -215,7 +220,7 @@ MLOCK
 	}
       if (EDEADLK == err)
 	{
-	  _NSLockError(self, _cmd, NO);
+	  _NSLockError(self, _cmd, NO, &_mutex);
 	}
       sched_yield();
     } while ([limit timeIntervalSinceNow] > 0);
