@@ -150,8 +150,14 @@ decodebase64(unsigned char *dst, const unsigned char *src)
 static char b64[]
   = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
+static const int crlf64 = NSDataBase64EncodingEndLineWithCarriageReturn
+  | NSDataBase64EncodingEndLineWithLineFeed;
+
 static NSUInteger
-encodebase64(unsigned char **dstRef, const unsigned char *src, NSUInteger length, NSDataBase64EncodingOptions options)
+encodebase64(unsigned char **dstRef,
+  const unsigned char *src,
+  NSUInteger length,
+  NSDataBase64EncodingOptions options)
 {
   unsigned char *dst;
   NSUInteger dIndex = 0;
@@ -166,11 +172,12 @@ encodebase64(unsigned char **dstRef, const unsigned char *src, NSUInteger length
   else if (options & NSDataBase64Encoding76CharacterLineLength)
     lineLength = 76;
 
-  /* if no EndLine options are set but a line length is given, CR+LF is implied */
-  if (lineLength && !(options & NSDataBase64EncodingEndLineWithCarriageReturn) && !(options & NSDataBase64EncodingEndLineWithLineFeed))
+  /* if no EndLine options are set but a line length is given,
+   * CR+LF is implied
+   */
+  if (lineLength && !(options & crlf64))
     {
-      options |= NSDataBase64EncodingEndLineWithCarriageReturn;
-      options |= NSDataBase64EncodingEndLineWithLineFeed;
+      options |= crlf64;
     }
 
   /* estimate destination length */
@@ -178,10 +185,10 @@ encodebase64(unsigned char **dstRef, const unsigned char *src, NSUInteger length
   /* we need to take in account line-endings */
   if (lineLength)
     {
-      if (options & (NSDataBase64EncodingEndLineWithCarriageReturn | NSDataBase64EncodingEndLineWithLineFeed))
-        destLen += (destLen / lineLength)*2;
+      if ((options & crlf64) == crlf64)
+        destLen += (destLen / lineLength)*2;    // CR and LF
       else
-        destLen += (destLen / lineLength);
+        destLen += (destLen / lineLength);      // CR or LF
     }
 
 #if	GS_WITH_GC
@@ -1041,28 +1048,37 @@ failure:
   return [NSData dataWithBytesNoCopy: buffer length: aRange.length];
 }
 
-- (NSData *)base64EncodedDataWithOptions:(NSDataBase64EncodingOptions)options
+- (NSData *) base64EncodedDataWithOptions: (NSDataBase64EncodingOptions)options
 {
-  void *srcBytes = (void*)[self bytes];
-  NSUInteger length = [self length];
-  NSUInteger resLen;
+  void          *srcBytes = (void*)[self bytes];
+  NSUInteger    length = [self length];
+  NSUInteger    resLen;
   unsigned char *resBytes;
+  NSData        *result;
 
   resLen = encodebase64(&resBytes, srcBytes, length, options);
-  return AUTORELEASE([[NSData alloc] initWithBytesNoCopy: resBytes length: resLen freeWhenDone: YES]);
+  result = [[NSData alloc] initWithBytesNoCopy: resBytes
+                                        length: resLen
+                                  freeWhenDone: YES];
+  return AUTORELEASE(result);
 }
 
-- (NSString *)base64EncodedStringWithOptions:(NSDataBase64EncodingOptions)options
+- (NSString *) base64EncodedStringWithOptions:
+  (NSDataBase64EncodingOptions)options
 {
-  void *srcBytes = (void*)[self bytes];
-  NSUInteger length = [self length];
-  NSUInteger resLen;
+  void          *srcBytes = (void*)[self bytes];
+  NSUInteger    length = [self length];
+  NSUInteger    resLen;
   unsigned char *resBytes;
+  NSString      *result;
 
   resLen = encodebase64(&resBytes, srcBytes, length, options);
-  return AUTORELEASE([[NSString alloc] initWithBytesNoCopy: resBytes length: resLen encoding: NSASCIIStringEncoding freeWhenDone: YES]);
+  result = [[NSString alloc] initWithBytesNoCopy: resBytes
+                                          length: resLen
+                                        encoding: NSASCIIStringEncoding
+                                    freeWhenDone: YES];
+  return AUTORELEASE(result);
 }
-
 
 - (NSUInteger) hash
 {
