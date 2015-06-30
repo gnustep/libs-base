@@ -1,3 +1,11 @@
+2015-06-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * configure.ac:
+        * configure:
+        * Headers/GNUstepBase/config.h.in:
+        Add test for pthread_mutex_t.__data.__owner
+        Update various tests to silence autoconf warnings.
+
 2015-06-26 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSMethodSignature.m
