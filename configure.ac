@@ -1346,11 +1346,11 @@ fi
 AC_MSG_CHECKING(for gcc visibility attribute support)
 saved_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -Werror"
-AC_COMPILE_IFELSE([
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
   #include <stdio.h>
   int foo() __attribute__ ((visibility("internal")));
   int foo(){ return 1; }
-  int main(){ return foo(); }],
+  int main(){ return foo(); }])],
   AC_MSG_RESULT([found])
   gs_visibility=1,
   AC_MSG_RESULT([not present])
@@ -1673,6 +1673,15 @@ if test $ac_cv_header_pthread_h = yes ; then
     AC_MSG_ERROR([Unable to find size of pthread_mutex_t (required).])
   fi
   AC_SUBST(GS_SIZEOF_MUTEX_T)
+# pthread_mutex_t.__data.__owner is non-standard since pthread_mutex_t is
+# nominally an opaque type.  We must not rely on this for anything other
+# than debug output!
+  AC_CHECK_MEMBER([pthread_mutex_t.__data.__owner],,,[AC_INCLUDES_DEFAULT
+#include <pthread.h>])
+  if test $ac_cv_member_pthread_mutex_t___data___owner = yes ; then
+    AC_DEFINE(HAVE_PTHREAD_MUTEX_OWNER, 1,
+      [Define if you have pthread_mutex_t.__data.__owner])
+  fi
   AC_CHECK_SIZEOF(pthread_cond_t,,[AC_INCLUDES_DEFAULT
 #include <pthread.h>])
   if test $ac_cv_sizeof_pthread_cond_t = 0 ; then
@@ -1742,11 +1751,11 @@ AC_CHECK_FUNCS(nanosleep usleep Sleep)
 AC_MSG_CHECKING(for objc_root_class attribute support)
 saved_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -Werror $OBJCFLAGS -x objective-c"
-AC_COMPILE_IFELSE([
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
   __attribute__((objc_root_class)) @interface RootObject
   @end
   @implementation RootObject
-  @end],
+  @end])],
   AC_MSG_RESULT([found])
   gs_objc_root_class_attr=1,
   AC_MSG_RESULT([not present])
@@ -1966,7 +1975,8 @@ if test "$nonfragile" = "yes"; then
   saved_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $OBJCFLAGS -fobjc-nonfragile-abi -x objective-c"
   AC_MSG_CHECKING(for non-fragile-abi support)
-  AC_RUN_IFELSE([#include "$srcdir/config/config.non-fragile-ivars.m"],
+  AC_RUN_IFELSE([AC_LANG_SOURCE(
+    [[#include "$srcdir/config/config.non-fragile-ivars.m"]])],
     non_fragile=yes, non_fragile=no,
     non_fragile="$cross_non_fragile")
   CPPFLAGS="$saved_CPPFLAGS"
@@ -2034,7 +2044,8 @@ fi
 # the other hand, that case is going to become more and more unusual.
 
 AC_MSG_CHECKING(for objc_setUncaughtExceptionHandler() in runtime)
-AC_LINK_IFELSE([#include "$srcdir/config/config.setUncaughtExceptionHandler.m"],
+AC_LINK_IFELSE([AC_LANG_SOURCE(
+  [[#include "$srcdir/config/config.setUncaughtExceptionHandler.m"]])],
 	have_set_uncaught_exception_handler=yes, have_set_uncaught_exception_handler=no)
 if test $have_set_uncaught_exception_handler = yes; then
   AC_DEFINE(HAVE_SET_UNCAUGHT_EXCEPTION_HANDLER,1,
@@ -2045,7 +2056,8 @@ AC_MSG_RESULT($have_set_uncaught_exception_handler)
 # Don't revert any Objective-C flags as they are used in the next test
 
 AC_MSG_CHECKING(for objc_set_unexpected() in runtime)
-AC_LINK_IFELSE([#include "$srcdir/config/config.set_unexpected.m"],
+AC_LINK_IFELSE(
+  [AC_LANG_SOURCE([[#include "$srcdir/config/config.set_unexpected.m"]])],
 	have_set_unexpected=yes, have_set_unexpected=no)
 if test $have_set_unexpected = yes; then
   AC_DEFINE(HAVE_SET_UNEXPECTED,1,
@@ -2056,8 +2068,11 @@ AC_MSG_RESULT($have_set_unexpected)
 # Don't revert any Objective-C flags as they are used in the next test
 
 AC_MSG_CHECKING(for _objc_unexpected_exception in runtime)
-AC_RUN_IFELSE([#include "$srcdir/config/config.unexpected.m"],
-	have_unexpected=yes, have_unexpected=no, have_unexpected="$cross_have_unexpected")
+AC_RUN_IFELSE(
+  [AC_LANG_SOURCE([[#include "$srcdir/config/config.unexpected.m"]])],
+    have_unexpected=yes,
+    have_unexpected=no,
+    have_unexpected="$cross_have_unexpected")
 if test $have_unexpected = yes; then
   AC_DEFINE(HAVE_UNEXPECTED,1,
 	    [Define if libobjc has the _objc_unexpected_exception callback])
@@ -2106,7 +2121,8 @@ AC_SUBST(HAVE_OBJC_SYNC_ENTER)
 # Don't revert any Objective-C flags as they are used in the next test
 
 AC_MSG_CHECKING(for thread-safe +initialize in runtime)
-AC_RUN_IFELSE([#include "$srcdir/config/config.initialize.m"],
+AC_RUN_IFELSE(
+  [AC_LANG_SOURCE([[#include "$srcdir/config/config.initialize.m"]])],
 	safe_initialize=yes, safe_initialize=no, safe_initialize="$cross_safe_initialize")
 if test $safe_initialize = yes; then
   AC_DEFINE(HAVE_INITIALIZE,1,
@@ -2795,13 +2811,15 @@ have_forward_hook=yes
 saved_CPPFLAGS="$CPPFLAGS"
 CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
 AC_MSG_CHECKING(for forwarding callback in runtime)
-AC_COMPILE_IFELSE([#include "$srcdir/config/config.forward2.m"],
+AC_COMPILE_IFELSE(
+  [AC_LANG_SOURCE([[#include "$srcdir/config/config.forward2.m"]])],
 	have_forward_hook=yes, have_forward_hook=no)
 if test $have_forward_hook = yes; then
   AC_DEFINE(HAVE_FORWARD2,1,
             [Define if libobjc has the __objc_msg_forward2 function])
 else
-  AC_COMPILE_IFELSE([#include "$srcdir/config/config.forward.m"],
+  AC_COMPILE_IFELSE(
+    [AC_LANG_SOURCE([[#include "$srcdir/config/config.forward.m"]])],
 	have_forward_hook=yes, have_forward_hook=no)
 fi
 AC_MSG_RESULT($have_forward_hook)
@@ -2850,7 +2868,8 @@ fi
 
 if test $enable_ffcall = yes -a $ffi_ok = yes; then
   AC_MSG_CHECKING(if ffcall trampolines work)
-  AC_RUN_IFELSE([#include "$srcdir/config/config.trampoline.c"],
+  AC_RUN_IFELSE(
+    [AC_LANG_SOURCE([[#include "$srcdir/config/config.trampoline.c"]])],
 	  have_working_trampoline=yes, have_working_trampoline=no, 
 	  have_working_trampoline=yes)
   AC_MSG_RESULT($have_working_trampoline)
@@ -2916,9 +2935,9 @@ AC_ARG_ENABLE(iconv,
 
 if test $enable_iconv = yes; then
 AC_MSG_CHECKING(iconv support)
-AC_RUN_IFELSE([[#include <iconv.h>
+AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }]]
+{ return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }])]
 ,
   # libc has a working iconv.
   AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
@@ -2943,9 +2962,9 @@ if test $found_iconv = no ; then
 
   old_LIBS="$LIBS"
   LIBS="-liconv $LIBS"
-  AC_RUN_IFELSE([[#include <iconv.h>
+  AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }]]
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }])]
   ,
     # -liconv works.
     AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
@@ -2967,9 +2986,9 @@ if test $found_iconv = no ; then
   # BSDs install this lib as libgiconv.
   old_LIBS="$LIBS"
   LIBS="-lgiconv $LIBS"
-  AC_RUN_IFELSE([[#include <giconv.h>
+  AC_RUN_IFELSE([AC_LANG_SOURCE([#include <giconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }]]
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }])]
   ,
     AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
     AC_DEFINE(HAVE_GICONV,1, [Define if you have this function])
@@ -2991,9 +3010,9 @@ AC_ARG_ENABLE(stricticonv,
   enable_stricticonv=no)
 if test $enable_stricticonv = yes; then
 AC_MSG_CHECKING(non-lossy iconv support)
-AC_RUN_IFELSE([[#include <iconv.h>
+AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }]]
+{ return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }])]
 ,
   # libc has a working iconv.
   AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
@@ -3016,9 +3035,9 @@ if test $found_iconv = no ; then
 
   old_LIBS="$LIBS"
   LIBS="-liconv $LIBS"
-  AC_RUN_IFELSE([[#include <iconv.h>
+  AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }]]
+  { return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }])]
   ,
     # -liconv works.
     AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
@@ -3035,9 +3054,9 @@ if test $found_iconv = no ; then
   # BSDs install this lib as libgiconv.
   old_LIBS="$LIBS"
   LIBS="-lgiconv $LIBS"
-  AC_RUN_IFELSE([[#include <giconv.h>
+  AC_RUN_IFELSE([AC_LANG_SOURCE([#include <giconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }]]
+  { return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }])]
   ,
     AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
     AC_DEFINE(HAVE_GICONV,1, [Define if you have this function])

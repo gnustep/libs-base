@@ -467,6 +467,9 @@
 /* Define to 1 if you have the `pthread_main_np' function. */
 #undef HAVE_PTHREAD_MAIN_NP
 
+/* Define if you have pthread_mutex_t.__data.__owner */
+#undef HAVE_PTHREAD_MUTEX_OWNER
+
 /* Define to 1 if you have the <pthread_np.h> header file. */
 #undef HAVE_PTHREAD_NP_H
 
