@@ -6,7 +6,7 @@
         Add test for pthread_mutex_t.__data.__owner
         Update various tests to silence autoconf warnings.
 	* Source/NSLock.m: If available, use pthread_mutex_t.__data.__owner
-	to print the owning thread ID when a lock is deadlocked.
+	to print the owning thread ID in the -description method.
 
 2015-06-26 Riccardo Mottola <rm@gnu.org>
 
