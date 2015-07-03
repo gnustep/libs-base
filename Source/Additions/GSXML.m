@@ -2878,7 +2878,15 @@ startElementNsFunction(void *ctx, const unsigned char *name,
       for (i = j = 0; i < nb_attributes; i++, j += 5)
 	{
 	  NSString	*key = UTF8Str(atts[j]);
-	  NSString	*obj = UTF8StrLen(atts[j+3], atts[j+4]-atts[j+3]);
+          NSString      *obj = nil;
+          // We need to append the namespace prefix
+          if (atts[j+1] != NULL)
+            {
+              key =
+               [[UTF8Str(atts[j+1]) stringByAppendingString: @":"]
+                                      stringByAppendingString: key];
+            }
+	  obj = UTF8StrLen(atts[j+3], atts[j+4]-atts[j+3]);
 
 	  [adict setObject: obj forKey: key];
 	}
