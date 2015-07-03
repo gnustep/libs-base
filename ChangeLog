@@ -1,3 +1,8 @@
+2015-07-03 Niels Grewe <niels.grewe@halbordnung.de>
+
+        * Source/Additions/GSXML.m: Fix reporting namespace prefixes
+        of attributes when using the SAX2 parser.
+
 2015-06-30  Richard Frith-Macdonald <rfm@gnu.org>
 
         * configure.ac:
