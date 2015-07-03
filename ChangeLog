@@ -1,5 +1,11 @@
 2015-07-03 Niels Grewe <niels.grewe@halbordnung.de>
 
+        * Tests/base/NSXMLParser/ParseData/namespaced-attributes.xml:
+        * Tests/base/NSXMLParser/ParseData/namespaced-attributes.result:
+        Test case for attribute namespace prefixes.
+
+2015-07-03 Niels Grewe <niels.grewe@halbordnung.de>
+
         * Source/Additions/GSXML.m: Fix reporting namespace prefixes
         of attributes when using the SAX2 parser.
 
