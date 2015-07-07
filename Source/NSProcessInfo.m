@@ -1,5 +1,5 @@
 /** Implementation for NSProcessInfo for GNUStep
-   Copyright (C) 1995-2001 Free Software Foundation, Inc.
+   Copyright (C) 1995-2014 Free Software Foundation, Inc.
 
    Written by:  Georg Tuparev <Tuparev@EMBL-Heidelberg.de>
                 Heidelberg, Germany
@@ -108,7 +108,6 @@
 #include <crt_externs.h>
 #endif
 
-#import "GNUstepBase/GSConfig.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSCharacterSet.h"
@@ -160,6 +159,10 @@ For more detailed assistance, please report the error to bug-gnustep@gnu.org.\n\
 #endif
 #endif
 
+@interface      NSHost (NSProcessInfo)
++ (NSString*) _myHostName;
+@end
+
 /*************************************************************************
  *** _NSConcreteProcessInfo
  *************************************************************************/
@@ -201,6 +204,10 @@ For more detailed assistance, please report the error to bug-gnustep@gnu.org.\n\
 /*************************************************************************
  *** Static global vars
  *************************************************************************/
+
+// The lock to protect shared process resources.
+static NSRecursiveLock  *procLock = nil;
+
 // The shared NSProcessInfo instance
 static NSProcessInfo	*_gnu_sharedProcessInfoObject = nil;
 
@@ -900,6 +907,7 @@ _gnu_noobjc_free_vars(void)
 
 + (void) initialize
 {
+  if (nil == procLock) procLock = [NSRecursiveLock new];
   if (self == [NSProcessInfo class]
     && !_gnu_processName && !_gnu_arguments && !_gnu_environment)
     {
@@ -918,6 +926,7 @@ _gnu_noobjc_free_vars(void)
 /* For WindowsAPI Library, we know the global variables (argc, etc) */
 + (void) initialize
 {
+  if (nil == procLock) procLock = [NSRecursiveLock new];
   if (self == [NSProcessInfo class]
     && !_gnu_processName && !_gnu_arguments && !_gnu_environment)
     {
@@ -930,6 +939,7 @@ extern int __libc_argc;
 extern char **__libc_argv;
 + (void) initialize
 {
+  if (nil == procLock) procLock = [NSRecursiveLock new];
   if (self == [NSProcessInfo class]
     && !_gnu_processName && !_gnu_arguments && !_gnu_environment)
     {
@@ -939,6 +949,10 @@ extern char **__libc_argv;
 
 
 #else
++ (void) initialize
+{
+  if (nil == procLock) procLock = [NSRecursiveLock new];
+}
 #ifndef GS_PASS_ARGUMENTS
 #undef main
 /* The gnustep_base_user_main function is declared 'weak' so that the linker
@@ -1009,7 +1023,7 @@ int main(int argc, char *argv[], char *env[])
   if (!_gnu_sharedProcessInfoObject)
     {
       _gnu_sharedProcessInfoObject = [[_NSConcreteProcessInfo alloc] init];
-      [gnustep_global_lock lock];
+      [procLock lock];
       if (mySet != nil)
 	{
 	  NSEnumerator	*e = [mySet objectEnumerator];
@@ -1023,7 +1037,7 @@ int main(int argc, char *argv[], char *env[])
 	  [mySet release];
 	  mySet = nil;
         }
-      [gnustep_global_lock unlock];
+      [procLock unlock];
     }
 
   return _gnu_sharedProcessInfoObject;
@@ -1066,19 +1080,30 @@ int main(int argc, char *argv[], char *env[])
   static unsigned long	counter = 0;
   unsigned long		count;
   static NSString	*host = nil;
+  NSString              *thost = nil;
   static int		pid;
+  int                   tpid;
   static unsigned long	start;
 
-  [gnustep_global_lock lock];
-  if (host == nil)
+  /* We obtain the host name and pid outside the locked region in case
+   * the lookup is slow or indirectly calls this method fromm another
+   * thread (as unlikely as that is ... some subclass/category could
+   * do it).
+   */
+  if (nil == host)
     {
-      pid = [self processIdentifier];
+      thost = [[self hostName] stringByReplacingString: @"." withString: @"_"];
+      tpid = [self processIdentifier];
+    }
+  [procLock lock];
+  if (nil == host)
+    {
       start = (unsigned long)GSPrivateTimeNow();
-      host = [[self hostName] stringByReplacingString: @"." withString: @"_"];
-      IF_NO_GC(RETAIN(host);)
+      ASSIGN(host, thost);
+      pid = tpid;
     }
   count = counter++;
-  [gnustep_global_lock unlock];
+  [procLock unlock];
 
   // $$$ The format of the string is not specified by the OpenStep
   // specification.
@@ -1090,7 +1115,7 @@ int main(int argc, char *argv[], char *env[])
 {
   if (!_gnu_hostName)
     {
-      _gnu_hostName = [[[NSHost currentHost] name] copy];
+      _gnu_hostName = [[NSHost _myHostName] copy];
     }
   return _gnu_hostName;
 }
@@ -1123,7 +1148,7 @@ static void determineOperatingSystem()
        * That's good if the binary is running on a system other than
        * the one it was built for (rare, but can happen).
        */
-      if (uname(&uts) == 0)
+      if (!(uname(&uts) < 0))
 	{
 	  os = [NSString stringWithCString: uts.sysname                                                           encoding: [NSString defaultCStringEncoding]];
 	  os = [os lowercaseString];
@@ -1450,10 +1475,10 @@ void
 GSInitializeProcess(int argc, char **argv, char **envp)
 {
   [NSProcessInfo class];
-  [gnustep_global_lock lock];
+  [procLock lock];
   fallbackInitialisation = YES;
   _gnu_process_args(argc, argv, envp);
-  [gnustep_global_lock unlock];
+  [procLock unlock];
 }
 
 @implementation	NSProcessInfo (GNUstep)

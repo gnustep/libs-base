@@ -540,7 +540,9 @@ static NSLock			*urlLock = nil;
   if (self == [GSFTPURLHandle class])
     {
       urlCache = [NSMutableDictionary new];
+      [[NSObject leakAt: &urlCache] release];
       urlLock = [NSLock new];
+      [[NSObject leakAt: &urlLock] release];
     }
 }
 

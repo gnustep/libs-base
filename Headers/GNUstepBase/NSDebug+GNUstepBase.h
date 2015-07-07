@@ -301,6 +301,30 @@ GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 #define NSWarnMLog(format, args...)
 #endif
 
+/** The DLog macro is a less powerful but commonly used logging macro,
+ * defined here for convenience when porting code.  It will tell you
+ * the function name and line number but not the fle location.
+ * It performs unconditional logging but is only compiled in when the
+ * program is built with DEBUG defined.
+ */
+#if     !defined(DLog)
+#ifdef DEBUG
+#define DLog(fmt, ...) \
+NSLog((@"%s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+#else
+#define DLog(...)
+#endif
+#endif
+
+/** The Alog macro is the same as the DLog macro, but is always compiled
+ * in to the code whether DEBUG is defined or not.
+ */
+#if     !defined(ALog)
+#define ALog(fmt, ...) \
+NSLog((@"%s [Line %d] " fmt), __PRETTY_FUNCTION__, __LINE__, ##__VA_ARGS__)
+#endif
+
+
 #endif	/* OS_API_VERSION */
 
 #if	defined(__cplusplus)

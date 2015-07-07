@@ -47,8 +47,8 @@
 #include <objc/message.h>
 #endif
 
-#ifndef INLINE
-#define INLINE inline
+#ifndef GS_STATIC_INLINE
+#define GS_STATIC_INLINE static inline
 #endif
 
 /* Function that implements the actual forwarding */
@@ -65,7 +65,7 @@ static void GSFFIInvocationCallback(ffi_cif*, void*, void **, void*);
  * work around it.
  */
 
-static INLINE GSMethod
+GS_STATIC_INLINE GSMethod
 gs_method_for_receiver_and_selector (id receiver, SEL sel)
 {
   if (receiver)
@@ -90,7 +90,7 @@ gs_method_for_receiver_and_selector (id receiver, SEL sel)
    Older runtimes do not have facilities in the API to check for
    conflicting types, hence would return a random selector in that
    case.  */
-static INLINE SEL
+GS_STATIC_INLINE SEL
 gs_find_best_typed_sel (SEL sel)
 #ifdef __GNUSTEP_RUNTIME__
 {

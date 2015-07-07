@@ -26,7 +26,6 @@
 
 #define	EXPOSE_NSURLCache_IVARS	1
 #import "GSURLPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 // FIXME ... locking and disk storage needed
 typedef struct {

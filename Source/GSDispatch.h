@@ -22,8 +22,8 @@
    Boston, MA 02111 USA.
    */
 
-#import "GNUstepBase/GSConfig.h"
-#import <GNUstepBase/GSBlocks.h>
+#import "GNUstepBase/GSBlocks.h"
+
 #if HAVE_DISPATCH_H
 #include <dispatch.h>
 #elif HAVE_DISPATCH_DISPATCH_H
@@ -40,8 +40,8 @@
 #if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
 
 /*
- * Older versions of libdispatch do not support concurrent queues. We define away the
- * attributes in this case.
+ * Older versions of libdispatch do not support concurrent queues.
+ * We define away the attributes in this case.
  */
 #ifndef DISPATCH_QUEUE_SERIAL
 #define DISPATCH_QUEUE_SERIAL NULL

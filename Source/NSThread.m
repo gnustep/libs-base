@@ -85,11 +85,96 @@
 #include <objc/objc-auto.h>
 #endif
 
-#if defined(__FreeBSD__) || defined(__OpenBSD__)
+#if defined(HAVE_PTHREAD_NP_H)
 #  include <pthread_np.h>
+#endif
+
+#if defined(HAVE_GETTID)
+#  include <unistd.h>
+#  include <sys/syscall.h>
+#  include <sys/types.h>
+#endif
+
+#if defined(HAVE_PTHREAD_MAIN_NP)
 #  define IS_MAIN_PTHREAD (pthread_main_np() == 1)
+#elif defined(HAVE_GETTID)
+#  define IS_MAIN_PTHREAD (getpid() == (pid_t)syscall(SYS_gettid))
 #else
 #  define IS_MAIN_PTHREAD (1)
+#endif
+
+/* Return the current thread ID as an unsigned long.
+ * Ideally, we use the operating-system's notion of a thread ID so
+ * that external process monitoring software will be using the same
+ * value that we log.  If we don't know the system's mechanism, we
+ * use the address of the current NSThread object so that, even if
+ * it makes no sense externally, it can still be used to show that
+ * different threads generated different logs.
+ */
+unsigned long
+GSPrivateThreadID()
+{
+#if defined(__MINGW__)
+  return (unsigned long)GetCurrentThreadId();
+#elif defined(HAVE_GETTID)
+  return (unsigned long)syscall(SYS_gettid);
+#elif defined(HAVE_PTHREAD_GETTHREADID_NP)
+  return pthread_getthreadid_np();
+#else
+  return (unsigned long)GSCurrentThread();
+#endif
+}
+
+#if 0
+/* 
+ * NSThread setName: method for windows.
+ * FIXME ... This is code for the microsoft compiler;
+ * how do we make it work for gcc/clang?
+ */
+#if defined(__MINGW__) && defined(HAVE_WINDOWS_H)
+// Usage: SetThreadName (-1, "MainThread");
+#include <windows.h>
+const DWORD MS_VC_EXCEPTION=0x406D1388;
+
+#pragma pack(push,8)
+typedef struct tagTHREADNAME_INFO
+{
+  DWORD dwType; // Must be 0x1000.
+  LPCSTR szName; // Pointer to name (in user addr space).
+  DWORD dwThreadID; // Thread ID (-1=caller thread).
+  DWORD dwFlags; // Reserved for future use, must be zero.
+} THREADNAME_INFO;
+#pragma pack(pop)
+
+static int SetThreadName(DWORD dwThreadID, const char *threadName)
+{
+  THREADNAME_INFO info;
+  int result;
+
+  info.dwType = 0x1000;
+  info.szName = threadName;
+  info.dwThreadID = dwThreadID;
+  info.dwFlags = 0;
+
+  __try
+  {	
+    RaiseException(MS_VC_EXCEPTION, 0,
+      sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info);
+    result = 0;
+  }
+  __except(EXCEPTION_EXECUTE_HANDLER)
+  {
+    result = -1;
+  }
+}
+
+#define PTHREAD_SETNAME(a)  SetThreadName(-1, a)
+
+#endif
+#endif
+
+#ifndef PTHREAD_SETNAME
+#define PTHREAD_SETNAME(a) -1
 #endif
 
 
@@ -137,6 +222,8 @@ static NSNotificationCenter *nc = nil;
   NSConditionLock	*lock;		// Not retained.
   NSArray		*modes;
   BOOL                  invalidated;
+@public
+  NSException           *exception;
 }
 + (GSPerformHolder*) newForReceiver: (id)r
 			   argument: (id)a
@@ -168,21 +255,62 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
   delay = when - GSPrivateTimeNow();
   if (delay <= 0.0)
     {
+      /* We don't need to wait, but since we are willing to wait at this
+       * point, we should let other threads have preference over this one.
+       */
       sched_yield();
       return;
     }
 
-#ifdef	HAVE_NANOSLEEP
-  // Avoid any possibility of overflow by sleeping in chunks.
-  while (delay > 32768)
+#if     defined(__MINGW__)
+  /*
+   * Avoid integer overflow by breaking up long sleeps.
+   */
+  while (delay > 30.0*60.0)
     {
-      struct timespec request;
-
-      request.tv_sec = (time_t)32768;
-      request.tv_nsec = (long)0;
-      nanosleep(&request, 0);
+      // sleep 30 minutes
+      Sleep (30*60*1000);
       delay = when - GSPrivateTimeNow();
     }
+
+  /* Don't use nanosleep (even if available) on mingw ... it's reported no
+   * to work with pthreads.
+   * Sleeping may return early because of signals, so we need to re-calculate
+   * the required delay and check to see if we need to sleep again.
+   */
+  while (delay > 0)
+    {
+#if	defined(HAVE_USLEEP)
+      /* On windows usleep() seems to perform a busy wait ... so we only
+       * use it for short delays ... otherwise use the less accurate Sleep()
+       */
+      if (delay > 0.1)
+	{
+          Sleep ((NSInteger)(delay*1000));
+	}
+      else
+	{
+          usleep ((NSInteger)(delay*1000000));
+	}
+#else
+      Sleep ((NSInteger)(delay*1000));
+#endif	/* HAVE_USLEEP */
+      delay = when - GSPrivateTimeNow();
+    }
+
+#else   /* __MINGW__ */
+
+  /*
+   * Avoid integer overflow by breaking up long sleeps.
+   */
+  while (delay > 30.0*60.0)
+    {
+      // sleep 30 minutes
+      sleep(30*60);
+      delay = when - GSPrivateTimeNow();
+    }
+
+#ifdef	HAVE_NANOSLEEP
   if (delay > 0)
     {
       struct timespec request;
@@ -207,21 +335,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
 	  remainder.tv_nsec = 0;
 	}
     }
-#else
-
-  /*
-   * Avoid integer overflow by breaking up long sleeps.
-   */
-  while (delay > 30.0*60.0)
-    {
-      // sleep 30 minutes
-#if defined(__MINGW__)
-      Sleep (30*60*1000);
-#else
-      sleep (30*60);
-#endif
-      delay = when - GSPrivateTimeNow();
-    }
+#else   /* HAVE_NANOSLEEP */
 
   /*
    * sleeping may return early because of signals, so we need to re-calculate
@@ -229,32 +343,15 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
    */
   while (delay > 0)
     {
-#if	defined(__MINGW__)
 #if	defined(HAVE_USLEEP)
-      /* On windows usleep() seems to perform a busy wait ... so we only
-       * use it for short delays ... otherwise use the less accurate Sleep()
-       */
-      if (delay > 0.1)
-	{
-          Sleep ((NSInteger)(delay*1000));
-	}
-      else
-	{
           usleep ((NSInteger)(delay*1000000));
-	}
-#else
-      Sleep ((NSInteger)(delay*1000));
-#endif	/* HAVE_USLEEP */
-#else
-#if	defined(HAVE_USLEEP)
-      usleep ((NSInteger)(delay*1000000));
-#else
+#else	/* HAVE_USLEEP */
       sleep ((NSInteger)delay);
-#endif	/* HAVE_USLEEP */
-#endif	/* __MINGW__ */
+#endif	/* !HAVE_USLEEP */
       delay = when - GSPrivateTimeNow();
     }
-#endif	/* HAVE_NANOSLEEP */
+#endif	/* !HAVE_NANOSLEEP */
+#endif	/* !__MINGW__ */
 }
 
 static NSArray *
@@ -648,18 +745,14 @@ unregisterActiveThread(NSThread *thread)
 
 - (void) dealloc
 {
+  int   retries = 0;
+
   if (_active == YES)
     {
       [NSException raise: NSInternalInconsistencyException
 		  format: @"Deallocating an active thread without [+exit]!"];
     }
-  if (_runLoopInfo != 0)
-    {
-      GSRunLoopThreadInfo       *info = (GSRunLoopThreadInfo*)_runLoopInfo;
-
-      _runLoopInfo = 0;
-      [info release];
-    }
+  DESTROY(_runLoopInfo);
   DESTROY(_thread_dictionary);
   DESTROY(_target);
   DESTROY(_arg);
@@ -669,16 +762,26 @@ unregisterActiveThread(NSThread *thread)
       [NSAutoreleasePool _endThread: self];
     }
 
-  if (_thread_dictionary != nil)
+  while ((_thread_dictionary != nil || _runLoopInfo != nil) && retries++ < 10)
     {
-      /*
-       * Try again to get rid of thread dictionary.
+      /* Try again.
        */
+      DESTROY(_runLoopInfo);
       DESTROY(_thread_dictionary);
       if (_autorelease_vars.pool_cache != 0)
 	{
 	  [NSAutoreleasePool _endThread: self];
 	}
+    }
+
+  if (_runLoopInfo != nil)
+    {
+      NSLog(@"Oops - leak - run loop is %@", _runLoopInfo);
+      if (_autorelease_vars.pool_cache != 0)
+        {
+          [NSAutoreleasePool _endThread: self];
+        }
+    }
       if (_thread_dictionary != nil)
 	{
 	  NSLog(@"Oops - leak - thread dictionary is %@", _thread_dictionary);
@@ -687,9 +790,14 @@ unregisterActiveThread(NSThread *thread)
 	      [NSAutoreleasePool _endThread: self];
 	    }
 	}
-    }
   DESTROY(_gcontext);
   [super dealloc];
+}
+
+- (NSString*) description
+{
+  return [NSString stringWithFormat: @"%@{name = %@, num = %lu}",
+    [super description], _name, GSPrivateThreadID()];
 }
 
 - (id) init
@@ -741,7 +849,6 @@ unregisterActiveThread(NSThread *thread)
     }
 
   [_target performSelector: _selector withObject: _arg];
-
 }
 
 - (NSString*) name
@@ -749,9 +856,49 @@ unregisterActiveThread(NSThread *thread)
   return _name;
 }
 
+- (void) _setName: (NSString *)aName
+{
+  int   result = -1;
+
+  while (result != 0 && [aName length] > 0)
+    {
+      result =
+        PTHREAD_SETNAME([aName cStringUsingEncoding: NSUTF8StringEncoding]);
+      if (result != 0)
+        {
+          if (ERANGE == errno)
+            {
+              /* Name must be too long ... gnu/linux uses 15 characters
+               */
+              if ([aName length] > 15)
+                {
+                  aName = [aName substringToIndex: 15];
+                }
+              else
+                {
+                  aName = [aName substringToIndex: [aName length] - 1];
+                }
+            }
+          else
+            {
+              break;    // Some other error
+            }
+        }
+    }
+}
+
 - (void) setName: (NSString*)aName
 {
   ASSIGN(_name, aName);
+#ifdef PTHREAD_SETNAME
+  if (YES == _active)
+    {
+      [self performSelector: @selector(_setName:)
+                   onThread: self
+                 withObject: aName
+              waitUntilDone: NO];
+}
+#endif
 }
 
 - (void) setStackSize: (NSUInteger)stackSize
@@ -805,6 +952,8 @@ static void *nsthreadLauncher(void* thread)
   [nc postNotificationName: NSThreadDidStartNotification
 		    object: t
 		  userInfo: nil];
+
+  [t _setName: [t name]];
 
   [t main];
 
@@ -897,12 +1046,20 @@ static void *nsthreadLauncher(void* thread)
 @implementation GSRunLoopThreadInfo
 - (void) addPerformer: (id)performer
 {
+  BOOL  signalled = NO;
+
   [lock lock];
-  [performers addObject: performer];
 #if defined(__MINGW__)
+  if (INVALID_HANDLE_VALUE != event)
+    {
   if (SetEvent(event) == 0)
     {
       NSLog(@"Set event failed - %@", [NSError _last]);
+    }
+      else
+        {
+          signalled = YES;
+        }
     }
 #else
   /* The write could concievably fail if the pipe is full.
@@ -911,19 +1068,30 @@ static void *nsthreadLauncher(void* thread)
    * and its runloop might stop during that ... so we need to check that
    * outputFd is still valid.
    */
-  while (outputFd >= 0 && write(outputFd, "0", 1) != 1)
+  while (outputFd >= 0
+    && NO == (signalled = (write(outputFd, "0", 1) == 1) ? YES : NO))
     {
       [lock unlock];
       [lock lock];
     }
 #endif
+  if (YES == signalled)
+    {
+      [performers addObject: performer];
+    }
   [lock unlock];
+  if (NO == signalled)
+    {
+      /* We failed to add the performer ... so we must invalidate it in
+       * case there is code waiting for it to complete.
+       */
+      [performer invalidate];
+}
 }
 
 - (void) dealloc
 {
   [self invalidate];
-  DESTROY(performers);
   DESTROY(lock);
   DESTROY(loop);
   [super dealloc];
@@ -990,9 +1158,11 @@ static void *nsthreadLauncher(void* thread)
 
 - (void) invalidate
 {
+  NSArray       *p;
+
   [lock lock];
-  [performers makeObjectsPerformSelector: @selector(invalidate)];
-  [performers removeAllObjects];
+  p = [performers autorelease];
+  performers = nil;
 #ifdef __MINGW__
   if (event != INVALID_HANDLE_VALUE)
     {
@@ -1012,6 +1182,7 @@ static void *nsthreadLauncher(void* thread)
     }
 #endif
   [lock unlock];
+  [p makeObjectsPerformSelector: @selector(invalidate)];
 }
 
 - (void) fire
@@ -1063,15 +1234,12 @@ static void *nsthreadLauncher(void* thread)
   for (i = 0; i < c; i++)
     {
       GSPerformHolder	*h = [toDo objectAtIndex: i];
-	  NS_DURING
+
       [loop performSelector: @selector(fire)
 		     target: h
 		   argument: nil
 		      order: 0
 		      modes: [h modes]];
-	  NS_HANDLER
-	    NSLog(@"Exception During Perform Loop (%@):\n%@", h, localException);
-	  NS_ENDHANDLER
     }
 }
 @end
@@ -1120,6 +1288,7 @@ GSRunLoopInfoForThread(NSThread *aThread)
 
 - (void) dealloc
 {
+  DESTROY(exception);
   DESTROY(receiver);
   DESTROY(argument);
   DESTROY(modes);
@@ -1144,11 +1313,22 @@ GSRunLoopInfoForThread(NSThread *aThread)
   threadInfo = GSRunLoopInfoForThread(GSCurrentThread());
   [threadInfo->loop cancelPerformSelectorsWithTarget: self];
   NS_DURING
+    {
   [receiver performSelector: selector withObject: argument];
+    }
   NS_HANDLER
-    NSLog(@"Exception During Perform Fire (%@):\n%@", self, localException);
+    {
+      ASSIGN(exception, localException);
+      if (nil == lock)
+        {
+          NSLog(@"*** NSRunLoop ignoring exception '%@' (reason '%@') "
+            @"raised during perform in other thread... with receiver %p "
+            @"and selector '%@'",
+            [localException name], [localException reason], receiver,
+            NSStringFromSelector(selector));
+        }
+    }
   NS_ENDHANDLER
-
   DESTROY(receiver);
   DESTROY(argument);
   DESTROY(modes);
@@ -1296,9 +1476,19 @@ GSRunLoopInfoForThread(NSThread *aThread)
 	  RELEASE(l);
           if ([h isInvalidated] == YES)
             {
+              RELEASE(h);
               [NSException raise: NSInternalInconsistencyException
                           format: @"perform on finished thread"];
+            }
+          /* If we have an exception passed back from the remote thread,
+           * re-raise it.
+           */
+          if (nil != h->exception)
+            {
+              NSException       *e = AUTORELEASE(RETAIN(h->exception));
+
               RELEASE(h);
+              [e raise];
             }
 	}
       RELEASE(h);

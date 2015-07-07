@@ -106,15 +106,12 @@
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSLocale.h"
-#import "GNUstepBase/GSConfig.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GSPrivate.h"
 
 #ifdef HAVE_TZHEAD
 #include <tzfile.h>
 #else
-#define NOID
 #include "nstzfile.h"
 #endif
 
@@ -225,6 +222,7 @@ static NSString *tzdir = nil;
  */
 static GSPlaceholderTimeZone	*defaultPlaceholderTimeZone;
 static NSMapTable		*placeholderMap;
+static GSAbsTimeZone            *commonAbsolutes[145] = { 0 };
 
 /*
  * Temporary structure for holding time zone details.
@@ -298,30 +296,6 @@ static NSRecursiveLock *zone_mutex = nil;
 static Class	NSTimeZoneClass;
 static Class	GSPlaceholderTimeZoneClass;
 
-/* Decode the four bytes at PTR as a signed integer in network byte order.
-   Based on code included in the GNU C Library 2.0.3. */
-static inline int
-decode (const void *ptr)
-{
-#if defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4
-#if NEED_WORD_ALIGNMENT
-  int value;
-  memcpy(&value, ptr, sizeof(NSInteger));
-  return value;
-#else
-  return *(const NSInteger*) ptr;
-#endif
-#else /* defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4 */
-  const unsigned char *p = ptr;
-  int result = *p & (1 << (CHAR_BIT - 1)) ? ~0 : 0;
-
-  result = (result << 8) | *p++;
-  result = (result << 8) | *p++;
-  result = (result << 8) | *p++;
-  result = (result << 8) | *p;
-  return result;
-#endif /* defined(WORDS_BIGENDIAN) && SIZEOF_INT == 4 */
-}
 
 /* Return path to a TimeZone directory file */
 static NSString *_time_zone_path(NSString *subpath, NSString *type)
@@ -730,6 +704,17 @@ static NSMapTable	*absolutes = 0;
     }
   anOffset *= sign;
 
+  if (anOffset % 900 == 0)
+    {
+      z = commonAbsolutes[anOffset/900 + 72];
+      if (z != nil)
+        {
+          IF_NO_GC(RETAIN(z));
+          DESTROY(self);
+          return z;
+        }
+    }
+
   if (zone_mutex != nil)
     {
       [zone_mutex lock];
@@ -774,6 +759,15 @@ static NSMapTable	*absolutes = 0;
       z = self;
       NSMapInsert(absolutes, (void*)(uintptr_t)anOffset, (void*)z);
       [zoneDictionary setObject: self forKey: (NSString*)name];
+    }
+  if (anOffset % 900 == 0)
+    {
+      int       index = anOffset/900 + 72;
+
+      if (nil == commonAbsolutes[index])
+        {
+          commonAbsolutes[index] = RETAIN(self);
+        }
     }
   if (zone_mutex != nil)
     {
@@ -1358,6 +1352,12 @@ static NSMapTable	*absolutes = 0;
 
       zone_mutex = [GSLazyRecursiveLock new];
       [[NSObject leakAt: (id*)&zone_mutex] release];
+
+      [[NSObject leakAt: (id*)&defaultTimeZone] release];
+      [[NSObject leakAt: (id*)&systemTimeZone] release];
+      [[NSObject leakAt: (id*)&abbreviationDictionary] release];
+      [[NSObject leakAt: (id*)&abbreviationMap] release];
+      [[NSObject leakAt: (id*)&absolutes] release];
 
       [[NSNotificationCenter defaultCenter] addObserver: self
         selector: @selector(_notified:)
@@ -1948,9 +1948,50 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 + (NSTimeZone*) timeZoneForSecondsFromGMT: (NSInteger)seconds
 {
   NSTimeZone	*zone;
+  int		sign = seconds >= 0 ? 1 : -1;
+  int           extra;
 
+  /*
+   * Round the offset to the nearest minute, (for MacOS-X compatibility)
+   * and ensure it is no more than 18 hours.
+   */
+  seconds *= sign;
+  extra = seconds % 60;
+  if (extra < 30)
+    {
+      seconds -= extra;
+    }
+  else
+    {
+      seconds += 60 - extra;
+    }
+  if (seconds > 64800)
+    {
+      return nil;
+    }
+  seconds *= sign;
+  if (seconds % 900 == 0)
+    {
+      zone = commonAbsolutes[seconds/900 + 72];
+    }
+  else
+    {
+      if (zone_mutex != nil)
+        {
+          [zone_mutex lock];
+        }
+      zone = (NSTimeZone*)NSMapGet(absolutes, (void*)(uintptr_t)seconds);
+      if (zone_mutex != nil)
+        {
+          [zone_mutex unlock];
+        }
+    }
+  if (nil == zone)
+    {
   zone = [[GSAbsTimeZone alloc] initWithOffset: seconds name: nil];
-  return AUTORELEASE(zone);
+      zone = AUTORELEASE(zone);
+}
+  return zone;
 }
 
 /**
@@ -2054,6 +2095,11 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [aCoder encodeObject: [self name]];
+}
+
+- (NSUInteger) hash
+{
+  return [[self name] hash];
 }
 
 - (id) init
@@ -2558,7 +2604,7 @@ GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
   else
     {
       if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_LOCAL_MACHINE,
-          L"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion\\Time Zones",
+          L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Time Zones",
           0,
           KEY_READ,
           &regDirKey))
@@ -3109,10 +3155,12 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
       for (i = 0; i < n_types; i++)
 	{
 	  struct ttinfo	*ptr = (struct ttinfo*)(bytes + pos);
+          uint32_t      off;
 
 	  types[i].isdst = (ptr->isdst != 0 ? YES : NO);
 	  types[i].abbr_idx = ptr->abbr_idx;
-	  types[i].offset = decode(ptr->offset);
+          memcpy(&off, ptr->offset, 4);
+	  types[i].offset = GSSwapBigI32ToHost(off);
 	  pos += sizeof(struct ttinfo);
 	}
       abbr = (unsigned char*)(bytes + pos);

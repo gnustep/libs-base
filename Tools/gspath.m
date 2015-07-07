@@ -36,6 +36,9 @@
  <deflist>
    <term>defaults</term>
    <desc>The GNUstep defaults directory of the current user</desc>
+   <term>devpath</term>
+   <desc>A path specification which may be used to add the root(s) of
+     the GNUstep development environment on the current system.</desc>
    <term>libpath</term>
    <desc>A path specification which may be used to add all the standard
      GNUstep directories where dynamic libraries are normally stored.<br />
@@ -96,6 +99,16 @@ main(int argc, char** argv, char **env)
 	  path = [directories componentsJoinedByString: sep];
 	  GSPrintf(stdout, @"%@", path);
 	}
+      else if ([name isEqualToString: @"devpath"] == YES)
+	{
+	  NSArray	*directories;
+	  NSString	*path;
+
+	  directories = NSSearchPathForDirectoriesInDomains
+	    (NSDeveloperDirectory, NSAllDomainsMask, YES);
+	  path = [directories componentsJoinedByString: sep];
+	  GSPrintf(stdout, @"%@", path);
+	}
       else if ([name isEqualToString: @"libpath"] == YES)
 	{
 	  NSArray	*directories;
@@ -128,7 +141,10 @@ main(int argc, char** argv, char **env)
 @"to be printed.\n\n"
 @"The arguments and their meanings are -\n\n"
 @"defaults\n"
-@"  The GNUstep defaults directory of the current user\n\n"
+@"  The GNUstep defaults directory of the current user.\n\n"
+@"devpath\n"
+@"  A path specification which may be used to add the root(s) of\n"
+@"  the GNUstep development environment on the current system.\n\n"
 @"libpath\n"
 @"  A path specification which may be used to add all the standard GNUstep\n"
 @"  directories where dynamic libraries are normally stored.\n\n"

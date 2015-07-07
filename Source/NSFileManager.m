@@ -37,7 +37,6 @@
    $Date$ $Revision$
 */
 
-#define _FILE_OFFSET_BITS 64
 /* The following define is needed for Solaris get(pw/gr)(nam/uid)_r declartions
    which default to pre POSIX declaration.  */
 #define _POSIX_PTHREAD_SEMANTICS
@@ -61,8 +60,8 @@
 #import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
 #import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSTask+GNUstepBase.h"
 
 #include <stdio.h>
 
@@ -1655,6 +1654,7 @@ static NSStringEncoding	defaultEncoding;
 #if defined(__MINGW__)
     {
       DWORD res;
+      NSString  *ext;
 
       res = GetFileAttributesW(lpath);
 
@@ -1662,10 +1662,20 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  return NO;
 	}
-	// TODO: Actually should check all extensions in env var PATHEXT
-      if ([[[path pathExtension] lowercaseString] isEqualToString: @"exe"])
+
+      ext = [[path pathExtension] uppercaseString];
+      if ([ext length] > 0)
 	{
+          static NSSet  *executable = nil;
+
+          if (nil == executable)
+            {
+              executable = [[NSTask executableExtensions] copy];
+            }
+          if (nil != [executable member: ext])
+            {
 	  return YES;
+	}
 	}
       /* FIXME: On unix, directory accessible == executable, so we simulate that
       here for Windows. Is there a better check for directory access? */
@@ -1905,6 +1915,8 @@ static NSStringEncoding	defaultEncoding;
   
   return d;
 }
+
+// Testplant-MAL-2015-07-07: Using testplant code...
 - (BOOL)setAttributes:(NSDictionary *) attributes
          ofItemAtPath:(NSString *) path
                 error:(NSError **) error
@@ -3154,6 +3166,7 @@ static NSSet	*fileKeys = nil;
 	NSFileSystemNumber,
 	NSFileType,
 	nil];
+      [[NSObject leakAt: &fileKeys] release];
     }
 }
 

@@ -390,7 +390,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
 - (void) _addWatcher: (GSRunLoopWatcher*)item
 	     forMode: (NSString*)mode;
-- (void) _checkPerformers: (GSRunLoopCtxt*)context;
+- (BOOL) _checkPerformers: (GSRunLoopCtxt*)context;
 - (GSRunLoopWatcher*) _getWatcher: (void*)data
 			     type: (RunLoopEventType)type
 			  forMode: (NSString*)mode;
@@ -429,9 +429,9 @@ static inline BOOL timerInvalidated(NSTimer *t)
     }
 }
 
-- (void) _checkPerformers: (GSRunLoopCtxt*)context
+- (BOOL) _checkPerformers: (GSRunLoopCtxt*)context
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  BOOL                  found = NO;
 
   if (context != nil)
     {
@@ -440,28 +440,33 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
       if (count > 0)
 	{
+          NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 	  GSRunLoopPerformer	*array[count];
 	  NSMapEnumerator	enumerator;
-	  GSRunLoopCtxt		*context;
+	  GSRunLoopCtxt		*original;
 	  void			*mode;
 	  unsigned		i;
 
-	  /*
-	   * Copy the array - because we have to cancel the requests
-	   * before firing.
+          found = YES;
+
+	  /* We have to remove the performers before firing, so we copy
+	   * the pointers without releasing the objects, and then set
+	   * the performers to be empty.  The copied objects in 'array'
+	   * will be released later.
 	   */
 	  for (i = 0; i < count; i++)
 	    {
-	      array[i] = RETAIN(GSIArrayItemAtIndex(performers, i).obj);
+	      array[i] = GSIArrayItemAtIndex(performers, i).obj;
 	    }
+          performers->count = 0;
 
-	  /*
-	   * Remove the requests that we are about to fire from all modes.
+	  /* Remove the requests that we are about to fire from all modes.
 	   */
+          original = context;
 	  enumerator = NSEnumerateMapTable(_contextMap);
 	  while (NSNextMapEnumeratorPair(&enumerator, &mode, (void**)&context))
 	    {
-	      if (context != nil)
+	      if (context != nil && context != original)
 		{
 		  GSIArray	performers = context->performers;
 		  unsigned	tmpCount = GSIArrayCount(performers);
@@ -483,8 +488,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	    }
 	  NSEndMapTableEnumeration(&enumerator);
 
-	  /*
-	   * Finally, fire the requests.
+	  /* Finally, fire the requests ands release them.
 	   */
 	  for (i = 0; i < count; i++)
 	    {
@@ -492,9 +496,10 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	      RELEASE(array[i]);
 	      IF_NO_GC([arp emptyPool];)
 	    }
+          [arp drain];
 	}
     }
-  [arp drain];
+  return found;
 }
 
 /**
@@ -706,15 +711,13 @@ static inline BOOL timerInvalidated(NSTimer *t)
     {
       [self currentRunLoop];
       theFuture = RETAIN([NSDate distantFuture]);
+      [[NSObject leakAt: &theFuture] release];
     }
 }
 
-/**
- * Returns the run loop instance for the current thread.
- */
-+ (NSRunLoop*) currentRunLoop
++ (NSRunLoop*) _runLoopForThread: (NSThread*) aThread
 {
-  GSRunLoopThreadInfo	*info = GSRunLoopInfoForThread(nil);
+  GSRunLoopThreadInfo	*info = GSRunLoopInfoForThread(aThread);
   NSRunLoop             *current = info->loop;
 
   if (nil == current)
@@ -769,6 +772,16 @@ static inline BOOL timerInvalidated(NSTimer *t)
         }
     }
   return current;
+}
+
++ (NSRunLoop*) currentRunLoop
+{
+  return [self _runLoopForThread: nil];
+}
+
++ (NSRunLoop*) mainRunLoop
+{
+  return [self _runLoopForThread: [NSThread mainThread]];
 }
 
 - (id) init
@@ -1247,11 +1260,27 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 - (BOOL) runMode: (NSString*)mode beforeDate: (NSDate*)date
 {
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  NSString              *savedMode = _currentMode;
+  GSRunLoopCtxt		*context;
   NSDate		*d;
 
   NSAssert(mode != nil, NSInvalidArgumentException);
 
-  /* Find out how long we can wait before first limit date. */
+  /* Process any pending notifications.
+   */
+  GSPrivateCheckTasks(); 
+  GSPrivateNotifyASAP(mode); 
+
+  /* And process any performers scheduled in the loop (eg something from
+   * another thread.
+   */
+  _currentMode = mode;
+  context = NSMapGet(_contextMap, mode);
+  [self _checkPerformers: context];
+  _currentMode = savedMode;
+
+  /* Find out how long we can wait before first limit date.
+   */
   d = [self limitDateForMode: mode];
   if (d == nil)
     {
@@ -1259,8 +1288,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       return NO;
     }
 
-  /*
-   * Use the earlier of the two dates we have.
+  /* Use the earlier of the two dates we have.
    * Retain the date in case the firing of a timer (or some other event)
    * releases it.
    */

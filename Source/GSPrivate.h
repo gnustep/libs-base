@@ -26,6 +26,7 @@
 
 #include <errno.h>
 
+#import "Foundation/NSBundle.h"
 #import "Foundation/NSError.h"
 
 @class	_GSInsensitiveDictionary;
@@ -109,14 +110,28 @@ __attribute__((unused)) static void GSFreeTempBuffer(void **b)
       _base = malloc((S) * sizeof(T));\
       P = _base;\
     }
+#  define	GS_BEGINITEMBUF2(P, S, T) { \
+  T _ibuf2[GS_MAX_OBJECTS_FROM_STACK];\
+  T *P = _ibuf2;\
+  __attribute__((cleanup(GSFreeTempBuffer))) void *_base2 = 0;\
+  if (S > GS_MAX_OBJECTS_FROM_STACK)\
+    {\
+      _base2 = malloc((S) * sizeof(T));\
+      P = _base2;\
+    }
 #else
 /* Make minimum size of _ibuf 1 to avoid compiler warnings.
  */
 #  define	GS_BEGINITEMBUF(P, S, T) { \
   T _ibuf[(S) > 0 && (S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 1]; \
   T *_base = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf \
-    : (T*)NSZoneMalloc(NSDefaultMallocZone(), (S) * sizeof(T)); \
+    : (T*)malloc((S) * sizeof(T)); \
   T *(P) = _base;
+#  define	GS_BEGINITEMBUF2(P, S, T) { \
+  T _ibuf2[(S) > 0 && (S) <= GS_MAX_OBJECTS_FROM_STACK ? (S) : 1]; \
+  T *_base2 = ((S) <= GS_MAX_OBJECTS_FROM_STACK) ? _ibuf2 \
+    : (T*)malloc((S) * sizeof(T)); \
+  T *(P) = _base2;
 #endif
 
 /**
@@ -126,10 +141,15 @@ __attribute__((unused)) static void GSFreeTempBuffer(void **b)
  */
 #if __GNUC__ > 3 && !defined(__clang__)
 # define	GS_ENDITEMBUF() }
+# define	GS_ENDITEMBUF2() }
 #else
 #  define	GS_ENDITEMBUF() \
   if (_base != _ibuf) \
-    NSZoneFree(NSDefaultMallocZone(), _base); \
+    free(_base); \
+  }
+#  define	GS_ENDITEMBUF2() \
+  if (_base2 != _ibuf2) \
+    free(_base2); \
   }
 #endif
 
@@ -234,12 +254,23 @@ typedef enum {
   GSMacOSXCompatible,			// General behavior flag.
   GSOldStyleGeometry,			// Control geometry string output.
   GSLogSyslog,				// Force logging to go to syslog.
-  GSLogThread,				// Include thread ID in log message.
+  GSLogThread,				// Include thread name in log message.
+  GSLogOffset,			        // Include time zone offset in message.
   NSWriteOldStylePropertyLists,		// Control PList output.
   GSUserDefaultMaxFlag			// End marker.
 } GSUserDefaultFlagType;
 
 
+
+@interface NSBundle (Private)
++ (NSString *) _absolutePathOfExecutable: (NSString *)path;
++ (NSBundle*) _addFrameworkFromClass: (Class)frameworkClass;
++ (NSMutableArray*) _addFrameworks;
++ (NSString*) _gnustep_target_cpu;
++ (NSString*) _gnustep_target_dir;
++ (NSString*) _gnustep_target_os;
++ (NSString*) _library_combo;
+@end
 
 /**
  * This class exists simply as a mechanism for encapsulating arrays
@@ -538,6 +569,18 @@ GSPrivateIncrementalHash(uint32_t *p0, uint32_t *p1, const void *b, int l)
  */
 uint32_t
 GSPrivateFinishHash(uint32_t s0, uint32_t s1, uint32_t totalLength)
+  GS_ATTRIB_PRIVATE;
+
+/* Return the current thread ID as an unsigned long.
+ * Ideally, we use the operating-system's notion of a thread ID so
+ * that external process monitoring software will be using the same
+ * value that we log.  If we don't know the system's mechanism, we
+ * use the address of the current NSThread object so that, even if
+ * it makes no sense externally, it can still be used to show that
+ * different threads generated different logs.
+ */
+unsigned long
+GSPrivateThreadID()
   GS_ATTRIB_PRIVATE;
 
 #endif /* _GSPrivate_h_ */

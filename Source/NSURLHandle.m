@@ -35,7 +35,6 @@
 #import "Foundation/NSURLHandle.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSFileManager.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 
 @class	GSFTPURLHandle;
@@ -177,7 +176,9 @@ static Class		NSURLHandleClass = 0;
     {
       NSURLHandleClass = self;
       registry = [NSMutableArray new];
+      [[NSObject leakAt: &registry] release];
       registryLock = [NSLock new];
+      [[NSObject leakAt: &registryLock] release];
       [self registerURLHandleClass: [GSFileURLHandle class]];
       [self registerURLHandleClass: [GSFTPURLHandle class]];
       [self registerURLHandleClass: [GSHTTPURLHandle class]];
@@ -675,7 +676,9 @@ static NSLock			*fileLock = nil;
 + (void) initialize
 {
   fileCache = [NSMutableDictionary new];
+  [[NSObject leakAt: &fileCache] release];
   fileLock = [NSLock new];
+  [[NSObject leakAt: &fileLock] release];
 }
 
 - (NSData*) availableResourceData

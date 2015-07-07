@@ -35,13 +35,15 @@ gdomap \- GNUstep Distributed Objects name server
 .RB [ -f ]
 .RB [-i 
 .IR seconds ]
+.RB [-j 
+.IR path ]
 .RB [ -p ]
 
 .SH DESCRIPTION
 .B gdomap
 The gdomap daemon is used by GNUstep programs to look up distributed objects
 of processes running across the network (and between different user accounts
-on a single machine).  The deamon is NOT used for lookup where two processes
+on a single machine).  The daemon is NOT used for lookup where two processes
 belonging to the same user are using a host-local connection.  This
 manual page explains the usage of gdomap.  For design and implementation
 information (and special notes for packagers), please see the HTML
@@ -77,14 +79,14 @@ consists of a list of IP addresses to be probed.
 The IP addresses should be in standard 'dot' notation, one per line.
 Empty lines are permitted in the configuration file.
 Anything on a line after a hash ('#') is ignored.
-You tell gdomap about the config file with the '-c' command line option.
+You tell gdomap about the config file with the '\-c' command line option.
 .PP
 
 gdomap uses the SIOCGIFCONF ioctl to build a list of IP addresses and
 netmasks for the network interface cards on your machine.  On some operating
 systems, this facility is not available (or is broken), so you must tell
-gdomap the addresses and masks of the interfaces using the '-a' command line
-option.  The file named with '-a' should contain a series of lines with
+gdomap the addresses and masks of the interfaces using the '\-a' command line
+option.  The file named with '\-a' should contain a series of lines with
 space separated pairs of addresses and masks in 'dot' notation.
 You must NOT include loopback interfaces in this list.
 If you want to support broadcasting of probe information on a network,
@@ -137,6 +139,8 @@ extra debug logging (normally via syslog).
 avoid fork() to make debugging easy
 .IP "\fB-i \fIseconds"
 re-probe at this interval (roughly), min 60
+.IP "\fB-j \fIpath"
+place the process in a chroot jail at this path rather than in /tmp
 .IP "\fB-p"
 disable probing for other servers
 .PP

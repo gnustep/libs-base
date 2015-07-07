@@ -291,6 +291,8 @@ NSURLResponse.m \
 NSTextCheckingResult.m\
 NSURLHandle.m \
 NSUserDefaults.m \
+NSUserNotification.m \
+NSUUID.m \
 NSValue.m \
 NSValueTransformer.m \
 NSXMLDocument.m \
@@ -450,7 +452,9 @@ NSURLProtocol.h \
 NSURLRequest.h \
 NSURLResponse.h \
 NSUserDefaults.h \
+NSUserNotification.h \
 NSUtilities.h \
+NSUUID.h \
 NSValue.h \
 NSValueTransformer.h \
 NSXMLDocument.h \

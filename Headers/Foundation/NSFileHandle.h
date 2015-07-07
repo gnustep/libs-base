@@ -273,7 +273,9 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
  * Sets options to be used to configure this channel before the handshake.<br />
  * Returns nil on success, or an error message if some options could not
  * be set.<br />
- * Expects key value pairs with the follwiing names/meanings:
+ * You may use the same options as property settings with the GNUstep
+ * implementation of NSStream.<br />
+ * Expects key value pairs with the follwing names/meanings:
  * <deflist>
  *   <term>GSTLSCAFile</term>
  *   <desc>A string identifying the full path to the file containing any
@@ -324,7 +326,21 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
  */
 - (NSString*) sslSetOptions: (NSDictionary*)options;
 
+/** Sets the known (cached) data content for the specified file name.<br />
+ * Calling this with a nil data object will remove any existing value
+ * from the cache.<br />
+ * You may use this method to control what data is used for specified
+ * file names when those file names are used as a result of SSL/TLS
+ * options being set for a file handle or stream.
+ */
++ (void) setData: (NSData*)data forTLSFile: (NSString*)fileName;
+
 @end
+
+/** Dictionary key for the path to a PEM encoded certificate authority
+ * file.
+ */
+GS_EXPORT NSString * const GSTLSCAFile;
 
 /** Dictionary key for the path to a PEM encoded certificate used
  * to identify this end of a connection.
@@ -340,6 +356,27 @@ GS_EXPORT NSString * const GSTLSCertificateKeyFile;
  * to unlock the certificate used by this end of a connection.
  */
 GS_EXPORT NSString * const GSTLSCertificateKeyPassword;
+
+/** Dictionary key for a boolean to enable TLS debug for a session.
+ */
+GS_EXPORT NSString * const GSTLSDebug;
+
+/** Dictionary key for a GNUTLS priority setting for a session.
+ */
+GS_EXPORT NSString * const GSTLSPriority;
+
+/** Dictionary key for a list of hosts to use in certificate verification.
+ */
+GS_EXPORT NSString * const GSTLSRemoteHosts;
+
+/** Dictionary key for the path to a PEM encoded certificate revocation
+ * file.
+ */
+GS_EXPORT NSString * const GSTLSRevokeFile;
+
+/** Dictionary key for a boolean to enable certificate verification.
+ */
+GS_EXPORT NSString * const GSTLSVerify;
 
 // GNUstep Notification names.
 
@@ -360,6 +397,7 @@ GS_EXPORT NSString * const GSFileHandleWriteCompletionNotification;
  * operation.
  */
 GS_EXPORT NSString * const GSFileHandleNotificationError;
+
 #endif
 
 #if	defined(__cplusplus)

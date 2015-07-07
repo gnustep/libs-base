@@ -16,22 +16,8 @@
 */
 
 /*
-** ID
-*/
-
-#ifndef lint
-#ifndef NOID
-static char	tzfilehid[] = "@(#)tzfile.h	7.14";
-#endif /* !defined NOID */
-#endif /* !defined lint */
-
-/*
 ** Information about time zone files.
 */
-
-#ifndef TZDIR
-#define TZDIR	"/usr/local/etc/zoneinfo" /* Time zone object file directory */
-#endif /* !defined TZDIR */
 
 #ifndef TZDEFAULT
 #define TZDEFAULT	"localtime"

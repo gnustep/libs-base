@@ -24,6 +24,8 @@
    AutogsdocSource: NSMetadata.m
 */ 
 
+#import "common.h"
+
 #define EXPOSE_NSMetadataItem_IVARS 1
 #define EXPOSE_NSMetadataQuery_IVARS 1
 #define EXPOSE_NSMetadataQueryAttributeValueTuple_IVARS 1
@@ -36,7 +38,6 @@
 #import "Foundation/NSPredicate.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSTimer.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 // Metadata item constants...
 NSString * const NSMetadataItemFSNameKey = @"NSMetadataItemFSNameKey";

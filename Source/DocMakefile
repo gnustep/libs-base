@@ -179,42 +179,15 @@ Base_AGSDOC_FLAGS = \
 	-HeaderDirectory ../Headers/Foundation \
 	-Declared Foundation \
 	-Standards YES \
+	-DTDs ../Tools \
 	-ConstantsTemplate TypesAndConstants \
 	-FunctionsTemplate Functions \
 	-MacrosTemplate Functions \
 	-TypedefsTemplate TypesAndConstants \
 	-VariablesTemplate TypesAndConstants \
 	-WordMap '{\
-	DEFINE_BLOCK_TYPE="//";\
-	FOUNDATION_EXPORT=extern;\
-	FOUNDATION_STATIC_INLINE="";\
-	GS_ATTRIB_DEPRECATED="";\
-	GS_DECLARE="";\
-	GS_DEPRECATED_FUNC="";\
-	GS_EXPORT=extern;\
-	GS_GC_STRONG="";\
-	GS_GEOM_ATTR="";\
-	GS_GEOM_SCOPE=extern;\
-	GS_NORETURN_METHOD="";\
 	GS_PRIVATE_INTERNAL="//";\
-	GS_RANGE_ATTR="";\
-	GS_RANGE_SCOPE=extern;\
-	GS_ROOT_CLASS="";\
-	GS_STATIC_INLINE="";\
-	GS_UNUSED_ARG="";\
-	GS_UNUSED_FUNC="";\
-	GS_UNUSED_IVAR="";\
-	GS_ZONE_ATTR="";\
-	GS_ZONE_SCOPE=extern;\
-	INLINE=inline;\
-	NS_AUTOMATED_REFCOUNT_UNAVAILABLE="";\
-	NS_CONSUMED="";\
-	NS_CONSUMES_SELF="";\
-	NS_RETURNS_NOT_RETAINED="";\
-	NS_RETURNS_RETAINED="";\
 	WINAPI="";\
-	__strong="";\
-	__weak="";\
 	}' -Up Base
 
 BaseAdditions_AGSDOC_FLAGS = \
@@ -230,27 +203,7 @@ BaseAdditions_AGSDOC_FLAGS = \
 	-TypedefsTemplate TypesAndConstants \
 	-VariablesTemplate TypesAndConstants \
 	-WordMap '{\
-	DEFINE_BLOCK_TYPE="//";\
-	FOUNDATION_EXPORT=extern;\
-	FOUNDATION_STATIC_INLINE="";\
-	GS_ATTRIB_DEPRECATED="";\
-	GS_DECLARE="";\
-	GS_EXPORT=extern;\
-	GS_GEOM_ATTR="";\
-	GS_GEOM_SCOPE=extern;\
-	GS_NORETURN_METHOD="";\
 	GS_PRIVATE_INTERNAL="//";\
-	GS_RANGE_ATTR="";\
-	GS_RANGE_SCOPE=extern;\
-	GS_STATIC_INLINE="";\
-	GS_UNUSED_IVAR="";\
-	GS_ZONE_ATTR="";\
-	GS_ZONE_SCOPE=extern;\
-	INLINE=inline;\
-	NS_CONSUMED="";\
-	NS_CONSUMES_SELF="";\
-	NS_RETURNS_NOT_RETAINED="";\
-	NS_RETURNS_RETAINED="";\
 	WINAPI="";\
 	}' -Up BaseAdditions
 

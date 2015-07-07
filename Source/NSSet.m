@@ -37,7 +37,6 @@
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 
@@ -591,6 +590,11 @@ static Class NSMutableSet_concrete_class;
   return NO;
 }
 
+- (NSUInteger)_countForObject: (id)object
+{
+  return 1;
+}
+
 /**
  *  Return whether each set is subset of the other.
  */
@@ -603,8 +607,19 @@ static Class NSMutableSet_concrete_class;
       id	o, e = [self objectEnumerator];
 
       while ((o = [e nextObject]))
+        {
 	if (![other member: o])
+            {
 	  return NO;
+    }
+         else
+           {
+             if ([self _countForObject: o] != [other _countForObject: o])
+               {
+                 return NO;
+               }
+           }
+        }
     }
   /* xxx Recheck this. */
   return YES;
@@ -626,6 +641,24 @@ static Class NSMutableSet_concrete_class;
   return [[self allObjects] descriptionWithLocale: locale];
 }
 
+- (id) valueForKey: (NSString*)key
+{
+  NSEnumerator *e = [self objectEnumerator];
+  id object = nil;
+  NSMutableSet *results = [NSMutableSet setWithCapacity: [self count]];
+
+  while ((object = [e nextObject]) != nil)
+    {
+      id result = [object valueForKey: key];
+
+      if (result == nil)
+        continue;
+
+      [results addObject: result];
+    }
+  return results;
+}
+
 - (id) valueForKeyPath: (NSString*)path
 {
   id result = (id) nil;
@@ -639,7 +672,7 @@ static Class NSMutableSet_concrete_class;
         {
           if ([path isEqualToString: @"@count"] == YES)
             {
-              result = [NSNumber numberWithUnsignedInt: [self count]];
+              result = [NSNumber numberWithUnsignedInteger: [self count]];
             }
           else
             {
@@ -654,7 +687,7 @@ static Class NSMutableSet_concrete_class;
 
           if ([op isEqualToString: @"@count"] == YES)
             {
-              result = [NSNumber numberWithUnsignedInt: count];
+              result = [NSNumber numberWithUnsignedInteger: count];
             }
           else if ([op isEqualToString: @"@avg"] == YES)
             {

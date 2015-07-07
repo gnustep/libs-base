@@ -70,10 +70,14 @@ static	NSIndexPath	*dummy = nil;
     {
       myClass = self;
       empty = (NSIndexPath*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+      [[NSObject leakAt: &empty] release];
       dummy = (NSIndexPath*)NSAllocateObject(self, 0, NSDefaultMallocZone());
+      [[NSObject leakAt: &dummy] release];
       shared = NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 1024);
+      [[NSObject leakAt: &shared] release];
       NSHashInsert(shared, empty);
       lock = [GSLazyRecursiveLock new];
+      [[NSObject leakAt: &lock] release];
     }
 }
 
@@ -123,9 +127,15 @@ static	NSIndexPath	*dummy = nil;
   if (self != empty)
     {
       [lock lock];
+      if (shared != nil)
+        {
       NSHashRemove(shared, self);
+        }
       [lock unlock];
+      if (_indexes != 0)
+        {
       NSZoneFree(NSDefaultMallocZone(), _indexes);
+        }
       [super dealloc];
     }
   GSNOSUPERDEALLOC;
@@ -156,7 +166,8 @@ static	NSIndexPath	*dummy = nil;
       [aCoder encodeInt: (NSInteger)_length forKey: @"NSIndexPathLength"];
       if (_length == 1)
 	{
-	  [aCoder encodeInt: (NSInteger)_indexes[0] forKey: @"NSIndexPathValue"];
+	  [aCoder encodeInt: (NSInteger)_indexes[0]
+                     forKey: @"NSIndexPathValue"];
 	}
       else if (_length > 1)
 	{
@@ -313,8 +324,7 @@ static	NSIndexPath	*dummy = nil;
       [aCoder decodeValueOfObjCType: @encode(NSUInteger) at: &length];
       if (length == 0)
 	{
-	  DESTROY(self);
-	  self = empty;
+	  ASSIGN(self, empty);
 	}
       else
 	{
@@ -374,6 +384,7 @@ static	NSIndexPath	*dummy = nil;
     {
       if (self == empty)
 	{
+          RELEASE(self);
 	  self = (NSIndexPath*)NSAllocateObject([self class],
 	    0, NSDefaultMallocZone());
 	}
@@ -386,9 +397,9 @@ static	NSIndexPath	*dummy = nil;
     }
   else
     {
-      DESTROY(self);
-      self = RETAIN(found);
+      ASSIGN(self, found);
     }
+  dummy->_indexes = 0;  // Don't want static indexes deallocated atExit
   [lock unlock];
   return self;
 }

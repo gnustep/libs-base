@@ -21,6 +21,7 @@ int main(void)
   \"emptyString\":\"\",\"emptyArray\":[],\"emptyObject\":{},\
   \"IDs\": [116, 943, 234, 38793],\
   \"escapeTest\": \"\\\"\\u0001\"\
+  \"double\": 123.456789012254,\
 }";
   NSStringEncoding encs[] = {\
     NSUTF8StringEncoding,\
@@ -48,7 +49,7 @@ int main(void)
       obj = tmp;
     }
 
-  PASS([obj count] == 6,
+  PASS([obj count] == 7,
     "Decoded dictionary had the right number of elements");
   PASS([NSJSONSerialization isValidJSONObject: obj],
     "Can serialise deserialised JSON");

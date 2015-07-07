@@ -318,6 +318,9 @@ static NSString *parse_string(NSString **ptr)
   [str appendString: @"\""];
   [str appendString: [se key]];
 
+  /* Try to write a nice readable output ... key and value with whitrespace
+   * around the '=' charactger, or wrap to a new line with a two space indent.
+   */
   if ([[se key] length]+[[se translated] length] < 70)
     [str appendString: @"\"  =  \""];
   else
@@ -355,14 +358,16 @@ static NSString *parse_string(NSString **ptr)
 
 -(BOOL) _shouldIgnore: (StringsEntry *)se
 {
-  if (([se flags] & (FLAG_UNMATCHED|FLAG_UNTRANSLATED)) == 
-		    (FLAG_UNMATCHED|FLAG_UNTRANSLATED))
+  if (([se flags] & (FLAG_UNMATCHED|FLAG_UNTRANSLATED))
+    == (FLAG_UNMATCHED|FLAG_UNTRANSLATED))
     return YES;
 
-  if (aggressive_import && [[se file] isEqual: DUMMY] && [self isMatched: [se key]])
+  if (aggressive_import && [[se file] isEqual: DUMMY]
+    && [self isMatched: [se key]])
     return YES;
 
-  if (aggressive_remove && ([se flags] & FLAG_UNMATCHED) && [self isMatched: [se key]])
+  if (aggressive_remove && ([se flags] & FLAG_UNMATCHED)
+    && [self isMatched: [se key]])
     return YES;
 
   return NO;
@@ -509,7 +514,8 @@ static NSString *parse_string(NSString **ptr)
 			       last_filename]];
 	    }
 	  [self _writeTo: str  entryHead: se];
-	  if (i == c-1 || ![[se key] isEqual: [[str_list objectAtIndex: i+1] key]])
+	  if (i == c - 1
+            || ![[se key] isEqual: [[str_list objectAtIndex: i + 1] key]])
 	    [self _writeTo: str  entryKey: se];
 	}
     }

@@ -37,7 +37,6 @@
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSSerialization.h"
 #import "Foundation/NSUserDefaults.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @implementation NSCoder
 

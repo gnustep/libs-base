@@ -48,9 +48,16 @@
 
 #include <stdio.h>
 
+#if HAVE_LOCALE_H
+#include <locale.h>
+#endif
 #if HAVE_LANGINFO_CODESET
 #include <langinfo.h>
 #endif
+#if     defined(HAVE_UNICODE_UCNV_H)
+#include <unicode/ucnv.h>
+#endif
+
 
 typedef struct {unichar from; unsigned char to;} _ucc_;
 
@@ -389,7 +396,7 @@ EntrySupported(NSStringEncoding enc)
 
   if (entry == 0)
     {
-      return NO;
+      return NULL;
     }
 #ifdef HAVE_ICONV
   if (entry->iconv != 0 && entry->supported == 0)
@@ -2061,9 +2068,9 @@ bases:
 		    uint8_t	*tmp;
 
 #if	GS_WITH_GC
-		    tmp = NSAllocateCollectable(slen, 0);
+		    tmp = NSAllocateCollectable(slen + extra, 0);
 #else
-		    tmp = NSZoneMalloc(zone, slen);
+		    tmp = NSZoneMalloc(zone, slen + extra);
 		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);
@@ -2541,7 +2548,7 @@ GSPrivateDefaultCStringEncoding()
 {
   if (defEnc == GSUndefinedEncoding)
     {
-      char		*encoding;
+      const char	*encoding = 0;
 #if HAVE_LANGINFO_CODESET
       char		encbuf[BUFSIZ];
 #endif
@@ -2558,16 +2565,42 @@ GSPrivateDefaultCStringEncoding()
 
       if (natEnc == GSUndefinedEncoding)
 	{
-          
 	  /* Encoding not set */
+#if HAVE_UNICODE_UCNV_H
+          
+          const char *defaultName;
+          UErrorCode err = U_ZERO_ERROR;
+
+          defaultName = ucnv_getDefaultName ();
+          encoding = ucnv_getStandardName (defaultName, "MIME", &err);
+          if (0 == encoding)
+            {
+              encoding = ucnv_getStandardName (defaultName, "IANA", &err);
+            }
+#endif
 #if HAVE_LANGINFO_CODESET
+          if (0 == encoding)
+            {
+              char  *old;
 	  /* Take it from the system locale information.  */
           [gnustep_global_lock lock];
+              /* Initialise locale system by setting current locale from
+               * environment and then resetting it.  Must be done before
+               * any call to nl_langinfo()
+               */
+              if (0 != (old = setlocale(LC_CTYPE, "")))
+                {
+                  setlocale(LC_CTYPE, old);
+                }
           strncpy(encbuf, nl_langinfo(CODESET), sizeof(encbuf)-1);
           encbuf[sizeof(encbuf)-1] = '\0';
           [gnustep_global_lock unlock];
           encoding = encbuf;
+            }
+#endif
 
+          if (0 != encoding)
+            {
 	  /*
 	   * First handle the fallback response from nl_langinfo() ...
 	   * if we are getting the default value we can't assume that
@@ -2671,8 +2704,8 @@ GSPrivateDefaultCStringEncoding()
 	    || strcmp(encoding, "IBM-eucKR") == 0 /* AIX */
 	    || strcmp(encoding, "5601") == 0 /* Solaris */)
 	    natEnc = NSKoreanEUCStringEncoding;
-#endif
 	}
+        }
 
       encoding = getenv("GNUSTEP_STRING_ENCODING");
       if (encoding != 0)

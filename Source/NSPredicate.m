@@ -47,7 +47,6 @@
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 // For pow()
 #include <math.h>
@@ -214,7 +213,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
               case 'i':
                 ptr++;
                 [arr addObject: [NSNumber numberWithInt:
-                  va_arg(args, NSInteger)]];
+                  va_arg(args, int)]];
                 break;
 
               case 'o':
@@ -225,7 +224,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
               case 'X':
                 ptr++;
                 [arr addObject: [NSNumber numberWithUnsignedInt:
-                  va_arg(args, NSUInteger)]];
+                  va_arg(args, unsigned int)]];
                 break;
 
               case 'e':
@@ -434,16 +433,8 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   if ((self = [super init]) != nil)
     {
       _type = type;
-      if ([list isMemberOfClass: [NSMutableArray class]])
-        {
-          ASSIGN(_subs, list);
+      ASSIGNCOPY(_subs, list);
         }
-      else if (_subs != list)
-        {
-          [_subs release];
-          _subs = [list mutableCopy];
-        }
-    }
   return self;
 }
 
@@ -468,6 +459,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   unsigned int count = [_subs count];
   NSMutableArray *esubs = [NSMutableArray arrayWithCapacity: count];
    unsigned int i;
+  NSPredicate  *p;
 
   for (i = 0; i < count; i++)
     {
@@ -475,7 +467,8 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
                             predicateWithSubstitutionVariables: variables]];
     }
 
-  return [[[self class] alloc] initWithType: _type subpredicates: esubs];
+  p = [[[self class] alloc] initWithType: _type subpredicates: esubs];
+  return AUTORELEASE(p);
 }
 
 - (Class) classForCoder
@@ -890,11 +883,13 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
        */
       switch (_type)
       {
+        // Testplant-MAL-2015-07-07: using testplant branch code...
         case NSEqualToPredicateOperatorType:
         case NSLessThanOrEqualToPredicateOperatorType:
         case NSGreaterThanOrEqualToPredicateOperatorType:
           return (leftIsNil == rightIsNil);
           
+        // Testplant-MAL-2015-07-07: using testplant branch code...
         case NSInPredicateOperatorType:
         case NSLikePredicateOperatorType:
         case NSBetweenPredicateOperatorType:
@@ -924,13 +919,17 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   switch (_type)
     {
       case NSLessThanPredicateOperatorType:
-	return ([leftResult compare: rightResult] == NSOrderedAscending);
+	return ([leftResult compare: rightResult] == NSOrderedAscending)
+          ? YES : NO;
       case NSLessThanOrEqualToPredicateOperatorType:
-	return ([leftResult compare: rightResult] != NSOrderedDescending);
+	return ([leftResult compare: rightResult] != NSOrderedDescending)
+          ? YES : NO;
       case NSGreaterThanPredicateOperatorType:
-	return ([leftResult compare: rightResult] == NSOrderedDescending);
+	return ([leftResult compare: rightResult] == NSOrderedDescending)
+          ? YES : NO;
       case NSGreaterThanOrEqualToPredicateOperatorType:
-	return ([leftResult compare: rightResult] != NSOrderedAscending);
+	return ([leftResult compare: rightResult] != NSOrderedAscending)
+          ? YES : NO;
       case NSEqualToPredicateOperatorType:
 	return [leftResult isEqual: rightResult];
       case NSNotEqualToPredicateOperatorType:
@@ -940,7 +939,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 	return GSICUStringMatchesRegex(leftResult, rightResult, compareOptions);
 #else
 	return [leftResult compare: rightResult options: compareOptions]
-	  == NSOrderedSame;  
+	  == NSOrderedSame ? YES : NO;
 #endif
       case NSLikePredicateOperatorType:
 #if	GS_USE_ICU == 1
@@ -960,24 +959,30 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 	}
 #else
 	return [leftResult compare: rightResult options: compareOptions]
-	  == NSOrderedSame;
+	  == NSOrderedSame ? YES : NO;
 #endif
       case NSBeginsWithPredicateOperatorType:
 	{
 	  NSRange range = NSMakeRange(0, [rightResult length]);
+
 	  return ([leftResult compare: rightResult
 			      options: compareOptions
-				range: range] == NSOrderedSame);
+				range: range] == NSOrderedSame ? YES : NO);
 	}
       case NSEndsWithPredicateOperatorType:
 	{
 	  NSRange range;
+          NSUInteger    ll = [leftResult length];
+          NSUInteger    rl = [rightResult length];
 
-	  range = NSMakeRange([leftResult length] - [rightResult length],
-	    [rightResult length]);
+          if (ll < rl)
+            {
+              return NO;
+            }
+	  range = NSMakeRange(ll - rl, rl);
 	  return ([leftResult compare: rightResult
 			      options: compareOptions
-				range: range] == NSOrderedSame);
+				range: range] == NSOrderedSame ? YES : NO);
 	}
       case NSInPredicateOperatorType:
 	/* Handle special case where rightResult is a collection
@@ -1006,7 +1011,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 	  }
 	return ([rightResult rangeOfString: leftResult
 				   options: compareOptions].location
-	  != NSNotFound);
+	  != NSNotFound ? YES : NO);
       case NSCustomSelectorPredicateOperatorType:
 	{
 	  BOOL (*function)(id,SEL,id) = (BOOL (*)(id,SEL,id))[leftResult methodForSelector: _selector];
@@ -1850,28 +1855,44 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
         && [(NSCompoundPredicate *)r compoundPredicateType]
         == NSAndPredicateType)
         {
+          NSCompoundPredicate   *right = (NSCompoundPredicate*)r;
+
           // merge
           if ([l isKindOfClass:[NSCompoundPredicate class]]
             && [(NSCompoundPredicate *)l compoundPredicateType]
             == NSAndPredicateType)
             {
-              [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
-                addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
+              NSCompoundPredicate       *left;
+              NSMutableArray            *subs;
+
+              left = (NSCompoundPredicate*)l;
+              subs = [[left subpredicates] mutableCopy];
+              [subs addObjectsFromArray: [right subpredicates]];
+              l = [NSCompoundPredicate andPredicateWithSubpredicates: subs];
+              [subs release];
             }
           else
             {
-              [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
-                insertObject: l atIndex: 0];
-              l = r;
+              NSMutableArray            *subs;
+
+              subs = [[right subpredicates] mutableCopy];
+              [subs insertObject: l atIndex: 0];
+              l = [NSCompoundPredicate andPredicateWithSubpredicates: subs];
+              [subs release];
             }
         }
       else if ([l isKindOfClass: [NSCompoundPredicate class]]
         && [(NSCompoundPredicate *)l compoundPredicateType]
         == NSAndPredicateType)
         {
-          // add to l
-          [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates]
-            addObject: r];
+          NSCompoundPredicate   *left;
+          NSMutableArray        *subs;
+
+          left = (NSCompoundPredicate*)l;
+          subs = [[left subpredicates] mutableCopy];
+          [subs addObject: r];
+          l = [NSCompoundPredicate andPredicateWithSubpredicates: subs];
+          [subs release];
         }
       else
         {
@@ -1928,27 +1949,42 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
         && [(NSCompoundPredicate *)r compoundPredicateType]
         == NSOrPredicateType)
         {
+          NSCompoundPredicate   *right = (NSCompoundPredicate*)r;
+
           // merge
           if ([l isKindOfClass: [NSCompoundPredicate class]]
             && [(NSCompoundPredicate *)l compoundPredicateType]
             == NSOrPredicateType)
             {
-              [(NSMutableArray *)[(NSCompoundPredicate *)l subpredicates] 
-                addObjectsFromArray: [(NSCompoundPredicate *)r subpredicates]];
+              NSCompoundPredicate       *left = (NSCompoundPredicate*)l;
+              NSMutableArray            *subs;
+
+              subs = [[left subpredicates] mutableCopy];
+              [subs addObjectsFromArray: [right subpredicates]];
+              l = [NSCompoundPredicate orPredicateWithSubpredicates: subs];
+              [subs release];
             }
           else
             {
-              [(NSMutableArray *)[(NSCompoundPredicate *)r subpredicates] 
-                insertObject: l atIndex: 0];
-              l = r;
+              NSMutableArray            *subs;
+
+              subs = [[right subpredicates] mutableCopy];
+              [subs insertObject: l atIndex: 0];
+              l = [NSCompoundPredicate orPredicateWithSubpredicates: subs];
+              [subs release];
             }
         }
       else if ([l isKindOfClass: [NSCompoundPredicate class]]
         && [(NSCompoundPredicate *)l compoundPredicateType]
         == NSOrPredicateType)
         {
-          [(NSMutableArray *) [(NSCompoundPredicate *) l subpredicates]
-            addObject:r];
+          NSCompoundPredicate   *left = (NSCompoundPredicate*)l;
+          NSMutableArray        *subs;
+
+          subs = [[left subpredicates] mutableCopy];
+          [subs addObject:r];
+          l = [NSCompoundPredicate orPredicateWithSubpredicates: subs];
+          [subs release];
         }
       else
         {

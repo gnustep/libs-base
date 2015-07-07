@@ -242,17 +242,17 @@ Generally, the text in comments is reformatted to standardise and
 indent it nicely ... the reformatting is
 .I not
 performed on any text inside an <example> element.  When the text is
-reformatted, it is broken into whitespace separated
-'words' which are then subjected to some extra processing ...
+reformatted, it is broken into whitespace separated \*(lqwords\*(rq
+which are then subjected to some extra processing ...
 .IP "" 4
 Certain well known constants such as YES, NO, and nil are enclosed in <code>
-... </code> markup.
+\&... </code> markup.
 .IP "" 4
 The names of method arguments within method descriptions are enclosed in
 <var> ... </var> markup.
 .IP "" 4
 Method names (beginning with a plus or minus) are enclosed in <ref...>
-... </ref> markup.  E.g. "-init" (without the quotes) would be
+\&... </ref> markup.  E.g. "\-init" (without the quotes) would be
 wrapped in a GSDoc reference element to point to the init method of the
 current class or, if only one known class had an init method, it would refer
 to the method of that class.  Note the fact that the method name must be
@@ -263,7 +263,7 @@ Method specifiers including class names (beginning and ending with square
 brackets) are enclosed in <ref...> ... </ref> markup.
 e.g. '[NSObject-init]', will create a reference to the init method of NSObject
 (either the class proper, or any of its categories), while
-'[(NSCopying)-copyWithZone:]', creates a reference to a method in the
+\&'[(NSCopying)-copyWithZone:]', creates a reference to a method in the
 NSCopying protocol.  Note that no spaces must appear between the square
 brackets in these specifiers.  Protocol names are enclosed in round
 brackets rather than the customary angle brackets, because GSDoc is an XML
@@ -278,18 +278,18 @@ at the end of the specifier will also act as a whitespace terminator).
 
 .SH ARGUMENTS AND DEFAULTS
 .P
-The tool accepts certain user defaults (which can of course be supplied as
-command-line arguments by prepending '-' before the default name and giving
-the value afterwards, as in -Clean YES):
+The tool accepts certain user defaults (which can of course be
+supplied as command-line arguments by prepending '\-' before the
+default name and giving the value afterwards, as in \-Clean YES):
 .IP "\fBClean" 4
 If this boolean value is set to YES, then rather than generating
 documentation, the tool removes all GSDoc files generated in the
-project, and all html files generated from them (as well as any
-which would be generated from GSDoc files listed explicitly),
-and finally removes the project index file.
-The only exception to this is that template GSDoc files (i.e. those
-specified using "-ConstantsTemplate ...", "-FunctionsTemplate ..."
-arguments etc) are not deleted unless the CleanTemplates flag is set.
+project, and all html files generated from them (as well as any which
+would be generated from GSDoc files listed explicitly), and finally
+removes the project index file.  The only exception to this is that
+template GSDoc files (i.e. those specified using
+"\-ConstantsTemplate ...", "\-FunctionsTemplate ..."  arguments etc)
+are not deleted unless the CleanTemplates flag is set.
 .IP "\fBCleanTemplates" 4
 This flag specifies whether template GSDoc files are to be removed
 along with other files when the Clean option is specified.
@@ -312,21 +312,19 @@ of the
 .I body
 element) in the template.
 .IP "\fBDeclared" 4
-Specify where headers are to be documented as being found.
-The actual name produced in the documentation is formed by appending
-the last component of the header file name to the value of this
-default.
-If this default is not specified, the full name of the header file
-(as supplied on the command line), with the HeaderDirectory
-default prepended, is used.
-A typical usage of this might be '"-Declared Foundation"'
-when generating documentation for the GNUstep base library.  This
-would result in the documentation saying that NSString is declared
-in 'Foundation/NSString.h'
+Specify where headers are to be documented as being found.  The actual
+name produced in the documentation is formed by appending the last
+component of the header file name to the value of this default.  If
+this default is not specified, the full name of the header file (as
+supplied on the command line), with the HeaderDirectory default
+prepended, is used.  A typical usage of this might be '"\-Declared
+Foundation"' when generating documentation for the GNUstep base
+library.  This would result in the documentation saying that NSString
+is declared in 'Foundation/NSString.h'
 .IP "\fBDocumentAllInstanceVariables" 4
 This flag permits you to generate documentation for all instance
 variables.  Normally, only those explicitly declared 'public' or
-'protected' will be documented.
+\&'protected' will be documented.
 .IP "\fBDocumentInstanceVariables" 4
 This flag permits you to turn off documentation for instance variables
 completely.  Normally, explicitly declared 'public' or 'protected' instance
@@ -425,7 +423,7 @@ of the
 A filename to be used to output dependency information for make.  This
 will take the form of listing all header and source files known for
 the project as dependencies of the project name (see
-'Project').
+\&'Project').
 .IP "\fBProject" 4
 May be used to specify the name of this project ... determines the
 name of the index reference file produced as part of the documentation
@@ -436,10 +434,10 @@ This value may be supplied as a dictionary containing the paths to
 the igsdoc index/reference files used by external projects, along
 with values to be used to map the filenames found in the indexes.
 For example, if a project index (igsdoc) file says that the class
-'Foo' is found in the file 'Foo', and the
+\&'Foo' is found in the file 'Foo', and the
 path associated with that project index is '/usr/doc/proj',
 Then generated html output may reference the class as being in
-'/usr/doc/prj/Foo.html' .  Note that a dictionary may be
+\&'/usr/doc/prj/Foo.html' .  Note that a dictionary may be
 given on the command line by using the standard PropertyList format
 (not the XML format of OS X), using semicolons as line-separators, and
 enclosing it in single quotes.

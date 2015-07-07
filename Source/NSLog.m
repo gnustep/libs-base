@@ -37,11 +37,13 @@
 #import "Foundation/NSThread.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
+// Some older BSD systems used a non-standard range of thread priorities.
 #ifdef	HAVE_SYSLOG_H
 #include <syslog.h>
 #elif HAVE_SYS_SLOG_H
-  // we are on a QNX-ish system, which has a syslog symbol somewhere, but it isn't
-  // our syslog function (we use slogf().)
+  /* we are on a QNX-ish system, which has a syslog symbol somewhere,
+   * but it isn't our syslog function (we use slogf().)
+   */
 # ifdef HAVE_SYSLOG
 #   undef HAVE_SYSLOG
 # endif
@@ -301,9 +303,13 @@ NSLog(NSString* format, ...)
  * </p>
  * <p>
  *   In GNUstep, the GSLogThread user default may be set to YES in
- *   order to instruct this function to include the internal ID of
- *   the current thread after the process ID.  This can help you
- *   to track the behavior of a multi-threaded program.
+ *   order to instruct this function to include the name (if any)
+ *   of the current thread after the process ID.  This can help you
+ *   to track the behavior of a multi-threaded program.<br />
+ *   Also the GSLogOffset user default may be set to YES in order
+ *   to instruct this function to include the time zone offset in
+ *   the timestamp it logs (good when examining debug logs from
+ *   systems running in different countries).
  * </p>
  * <p>
  *   The resulting message is then passed to a handler function to
@@ -321,8 +327,9 @@ NSLog(NSString* format, ...)
 void
 NSLogv(NSString* format, va_list args)
 {
-  NSString		*prefix;
+  NSMutableString	*prefix;
   NSString		*message;
+  NSString              *threadName = nil;
   static int		pid = 0;
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
 
@@ -340,50 +347,73 @@ NSLogv(NSString* format, va_list args)
 #endif
     }
 
+  if (GSPrivateDefaultsFlag(GSLogThread) == YES)
+    {
+      NSThread  *t = GSCurrentThread();
+
+      threadName = [t name];
+      /* If no name has been set for the current thread, we log the address
+       * of the NSThread object instead.
+       */
+      if ([threadName length] == 0)
+        {
+          threadName = [NSString stringWithFormat: @"%lu", (unsigned long)t];
+        }
+    }
+
+  prefix = [NSMutableString stringWithCapacity: 1000];
+
 #ifdef	HAVE_SYSLOG
   if (GSPrivateDefaultsFlag(GSLogSyslog) == YES)
     {
-      if (GSPrivateDefaultsFlag(GSLogThread) == YES)
+      if (nil != threadName)
 	{
-	  prefix = [NSString stringWithFormat: @"[thread:%"PRIxPTR"] ",
-	    (NSUInteger)GSCurrentThread()];
+          [prefix appendFormat: @"[thread:%lu,%@] ",
+            GSPrivateThreadID(), threadName];
 	}
       else
 	{
-	  prefix = @"";
+          [prefix appendFormat: @"[thread:%lu] ", GSPrivateThreadID()];
 	}
     }
   else
 #endif
     {
-      if (GSPrivateDefaultsFlag(GSLogThread) == YES)
+      NSString  *fmt;
+      NSString  *cal;
+
+      if (GSPrivateDefaultsFlag(GSLogOffset) == YES)
 	{
-	  prefix = [NSString
-	    stringWithFormat: @"%@ %@[%d,%"PRIxPTR"x] ",
-	    [[NSCalendarDate calendarDate]
-	      descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
-	    [[NSProcessInfo processInfo] processName],
-	    pid, (NSUInteger)GSCurrentThread()];
+          fmt = @"%Y-%m-%d %H:%M:%S.%F %z";
 	}
       else
 	{
-	  prefix = [NSString
-	    stringWithFormat: @"%@ %@[%d] ",
-	    [[NSCalendarDate calendarDate]
-	      descriptionWithCalendarFormat: @"%Y-%m-%d %H:%M:%S.%F"],
-	    [[NSProcessInfo processInfo] processName],
-	    pid];
+          fmt = @"%Y-%m-%d %H:%M:%S.%F";
 	}
+      cal = [[NSCalendarDate calendarDate] descriptionWithCalendarFormat: fmt];
+
+      [prefix appendString: cal];
+      [prefix appendString: @" "];
+      [prefix appendString: [[NSProcessInfo processInfo] processName]];
+      if (nil == threadName)
+        {
+          [prefix appendFormat: @"[%d:%lu] ",
+            pid, GSPrivateThreadID()];
+    }
+      else
+        {
+          [prefix appendFormat: @"[%d:%lu,%@] ",
+            pid, GSPrivateThreadID(), threadName];
+        }
     }
 
-  /* Check if there is already a newline at the end of the format */
-  if ([format hasSuffix: @"\n"] == NO)
+  message = [[NSString alloc] initWithFormat: format arguments: args];
+  [prefix appendString: message];
+  [message release];
+  if ([prefix hasSuffix: @"\n"] ==  NO)
     {
-      format = [format stringByAppendingString: @"\n"];
+      [prefix appendString: @"\n"];
     }
-  message = [NSString stringWithFormat: format arguments: args];
-
-  prefix = [prefix stringByAppendingString: message];
 
   if (myLock == nil)
     {

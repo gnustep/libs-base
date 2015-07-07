@@ -92,6 +92,7 @@ static NSArray	*empty = nil;
 + (void) initialize
 {
   empty = [NSArray new];
+  [[NSObject leakAt: &empty] release];
 }
 
 - (void) addDependency: (NSOperation *)op
@@ -520,7 +521,7 @@ static NSArray	*empty = nil;
   [internal->lock lock];
   if (NO == internal->finished)
   {
-    if (NO == internal->executing)
+      if (YES == internal->executing)
     {
       [self willChangeValueForKey: @"isExecuting"];
       [self willChangeValueForKey: @"isFinished"];
@@ -582,13 +583,18 @@ static NSOperationQueue *mainQueue = nil;
 
 + (id) currentQueue
 {
+  if ([NSThread isMainThread])
+    {
+      return mainQueue;
+    }
   return [[[NSThread currentThread] threadDictionary] objectForKey: threadKey];
 }
 
 + (void) initialize
 {
-  if (mainQueue == nil)
+  if (nil == mainQueue)
   {
+    // Testplant-MAL-2015-07-07: using testplant branch code...
     [self performSelectorOnMainThread: @selector(_mainQueue)
                            withObject: nil
                         waitUntilDone: YES];
@@ -872,6 +878,7 @@ static NSOperationQueue *mainQueue = nil;
 
 @implementation	NSOperationQueue (Private)
 
+// Testplant-MAL-2015-07-07: using testplant branch code...
 + (void) _mainQueue
 {
   if (mainQueue == nil)
@@ -891,6 +898,7 @@ static NSOperationQueue *mainQueue = nil;
   if (YES == [object isFinished])
   {
     internal->executing--;
+    // Testplant-MAL-2015-07-07: using testplant branch code...
     [object removeObserver: self forKeyPath: @"isFinished"];
     [object removeObserver: self forKeyPath: @"isReady"];
     [self willChangeValueForKey: @"operations"];
@@ -912,6 +920,8 @@ static NSOperationQueue *mainQueue = nil;
 {
   NSAutoreleasePool	*pool = [NSAutoreleasePool new];
 
+  [[[NSThread currentThread] threadDictionary] setObject: self
+                                                  forKey: threadKey];
   for (;;)
   {
     NSOperation	*op;
@@ -949,6 +959,7 @@ static NSOperationQueue *mainQueue = nil;
     
     if (nil != op)
     {
+      // Testplant-MAL-2015-07-07: using testplant branch code...
       NSAutoreleasePool	*opPool = [NSAutoreleasePool new];
       NS_DURING
 	    {
@@ -969,6 +980,7 @@ static NSOperationQueue *mainQueue = nil;
     }
   }
   
+  [[[NSThread currentThread] threadDictionary] removeObjectForKey: threadKey];
   [internal->lock lock];
   internal->threadCount--;
   [internal->lock unlock];

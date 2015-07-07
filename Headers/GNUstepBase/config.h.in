@@ -236,6 +236,9 @@
 /* Define if libobjc has the __objc_msg_forward2 function */
 #undef HAVE_FORWARD2
 
+/* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
+#undef HAVE_FSEEKO
+
 /* Define if GC_allow_register_threads function is available */
 #undef HAVE_GC_ALLOW_REGISTER_THREADS
 
@@ -244,6 +247,9 @@
 
 /* Define if GC_register_my_thread function is available */
 #undef HAVE_GC_REGISTER_MY_THREAD
+
+/* Define to 1 if you have the `getaddrinfo' function. */
+#undef HAVE_GETADDRINFO
 
 /* Define to 1 if you have the `getcwd' function. */
 #undef HAVE_GETCWD
@@ -290,6 +296,9 @@
 /* Define to 1 if you have the `getpwuid_r' function. */
 #undef HAVE_GETPWUID_R
 
+/* Define if you have gettid() */
+#undef HAVE_GETTID
+
 /* Define if you have this function */
 #undef HAVE_GICONV
 
@@ -301,6 +310,9 @@
 
 /* Define to 1 if you have the `gnutls_transport_set_errno' function. */
 #undef HAVE_GNUTLS_TRANSPORT_SET_ERRNO
+
+/* Define to 1 if you have the `grantpt' function. */
+#undef HAVE_GRANTPT
 
 /* Define to 1 if you have the <grp.h> header file. */
 #undef HAVE_GRP_H
@@ -449,8 +461,23 @@
 /* Define if your Lib C defines program_invocation_name */
 #undef HAVE_PROGRAM_INVOCATION_NAME
 
+/* Define to 1 if you have the `pthread_getthreadid_np' function. */
+#undef HAVE_PTHREAD_GETTHREADID_NP
+
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H
+
+/* Define to 1 if you have the `pthread_main_np' function. */
+#undef HAVE_PTHREAD_MAIN_NP
+
+/* Define if you have pthread_mutex_t.__data.__owner */
+#undef HAVE_PTHREAD_MUTEX_OWNER
+
+/* Define to 1 if you have the <pthread_np.h> header file. */
+#undef HAVE_PTHREAD_NP_H
+
+/* Define to 1 if you have the `pthread_set_name_np' function. */
+#undef HAVE_PTHREAD_SET_NAME_NP
 
 /* Define this if you work on sysv */
 #undef HAVE_PTS_STREAM_MODULES
@@ -670,6 +697,9 @@
 /* Define to 1 if you have the <unicode/ucal.h> header file. */
 #undef HAVE_UNICODE_UCAL_H
 
+/* Define to 1 if you have the <unicode/ucnv.h> header file. */
+#undef HAVE_UNICODE_UCNV_H
+
 /* Define to 1 if you have the <unicode/ucol.h> header file. */
 #undef HAVE_UNICODE_UCOL_H
 
@@ -763,11 +793,17 @@
 /* Define to the one symbol short name of this package. */
 #undef PACKAGE_TARNAME
 
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
 /* Define as the link to exe of process in /proc filesystem. */
 #undef PROCFS_EXE_LINK
+
+/* Description: Define setname function for pthread with three args */
+#undef PTHREAD_SETNAME
 
 /* Define to 1 if the `setpgrp' function takes no argument. */
 #undef SETPGRP_VOID
@@ -854,6 +890,20 @@
 # endif
 #endif
 
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2). */
+#undef _LARGEFILE_SOURCE
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
+
 /* Define to 1 if on MINIX. */
 #undef _MINIX
 
@@ -870,5 +920,17 @@
 #undef inline
 #endif
 
+/* Define to `long int' if <sys/types.h> does not define. */
+#undef off_t
+
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
+
+
+/* Define `fseeko' to `fseek' if the former is missing.
+   Likewise for `ftello'.  */
+#if !HAVE_FSEEKO
+# define fseeko fseek
+# define ftello ftell
+#endif
+

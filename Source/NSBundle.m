@@ -51,8 +51,8 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
+#import "GNUstepBase/NSTask+GNUstepBase.h"
 
 #import "GSPrivate.h"
 
@@ -69,6 +69,7 @@ manager()
   if (mgr == nil)
     {
       mgr = RETAIN([NSFileManager defaultManager]);
+      [[NSObject leakAt: &mgr] release];
     }
   return mgr;
 }
@@ -307,30 +308,31 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 	    {
 	      NSString	*extension = [path pathExtension];
 
-	      /* Also add common executable extensions on windows */
-	      if (extension == nil || [extension length] == 0)
+	      /* Also try adding any executable extensions on windows
+               */
+	      if ([extension length] == 0)
 		{
+                  static NSSet  *executable = nil;
 		  NSString *wpath;
+                  NSEnumerator  *e;
+                  NSString      *s;
 
-		  wpath = [prefix stringByAppendingPathExtension: @"exe"];
-		  if ([mgr isExecutableFileAtPath: wpath])
+                  if (nil == executable)
 		    {
-		      result = [wpath stringByStandardizingPath];
-		      break;
+                      executable = [[NSTask executableExtensions] copy];
 		    }
-		  wpath = [prefix stringByAppendingPathExtension: @"com"];
-		  if ([mgr isExecutableFileAtPath: wpath])
+
+                  e = [executable objectEnumerator];
+                  while (nil != (s = [e nextObject]))
 		    {
-		      result = [wpath stringByStandardizingPath];
-		      break;
-		    }
-		  wpath = [prefix stringByAppendingPathExtension: @"cmd"];
+                      wpath = [prefix stringByAppendingPathExtension: s];
 		  if ([mgr isExecutableFileAtPath: wpath])
 		    {
 		      result = [wpath stringByStandardizingPath];
 		      break;
 		    }
 		}
+	    }
 	    }
 #endif
 	}
@@ -618,17 +620,6 @@ _find_main_bundle_for_tool(NSString *toolName)
   return nil;
 }
 
-
-
-@interface NSBundle (Private)
-+ (NSString *) _absolutePathOfExecutable: (NSString *)path;
-+ (NSBundle*) _addFrameworkFromClass: (Class)frameworkClass;
-+ (NSMutableArray*) _addFrameworks;
-+ (NSString*) _gnustep_target_cpu;
-+ (NSString*) _gnustep_target_dir;
-+ (NSString*) _gnustep_target_os;
-+ (NSString*) _library_combo;
-@end
 
 @implementation NSBundle (Private)
 
@@ -1054,6 +1045,29 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
 @implementation NSBundle
 
++ (void) atExit
+{
+  if ([NSObject shouldCleanUp])
+    {
+      DESTROY(_emptyTable);
+      DESTROY(langAliases);
+      DESTROY(langCanonical);
+      DESTROY(_bundles);
+      DESTROY(_byClass);
+      DESTROY(_byIdentifier);
+      DESTROY(pathCache);
+      DESTROY(pathCacheLock);
+      DESTROY(load_lock);
+      DESTROY(gnustep_target_cpu);
+      DESTROY(gnustep_target_os);
+      DESTROY(gnustep_target_dir);
+      DESTROY(library_combo);
+      DESTROY(_launchDirectory);
+      DESTROY(_gnustep_bundle);
+      DESTROY(_mainBundle);
+    }
+}
+
 + (void) initialize
 {
   if (self == [NSBundle class])
@@ -1227,6 +1241,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 #endif
       GSPathHandling(mode);
       [pool release];
+      [self registerAtExit];
     }
 }
 
@@ -1803,7 +1818,10 @@ IF_NO_GC(
       NSString		*path;
 
       [load_lock lock];
+      if (_bundles != nil)
+        {
       NSMapRemove(_bundles, _path);
+        }
       if (identifier != nil)
         {
 	  NSMapRemove(_byIdentifier, identifier);
@@ -1812,12 +1830,15 @@ IF_NO_GC(
         {
 	  NSMapRemove(_byClass, _principalClass);
         }
+      if (_byClass != nil)
+        {
       count = [_bundleClasses count];
       while (count-- > 0)
 	{
 	  NSMapRemove(_byClass,
             [[_bundleClasses objectAtIndex: count] pointerValue]);
 	}
+        }
       [load_lock unlock];
 
       /* Clean up path cache for this bundle.
@@ -1872,6 +1893,11 @@ IF_NO_GC(
 - (NSString*) bundlePath
 {
   return _path;
+}
+
+- (NSURL*) bundleURL
+{
+  return [NSURL fileURLWithPath: [self bundlePath]];
 }
 
 - (Class) classNamed: (NSString *)className
@@ -2732,6 +2758,40 @@ IF_NO_GC(
   return object;
 }
 
+- (NSURL *) executableURL
+{
+  return [NSURL fileURLWithPath: [self executablePath]];
+}
+
+- (NSString *) pathForAuxiliaryExecutable: (NSString *) executableName
+{
+  NSString  *version = _frameworkVersion;
+
+  if (!version)
+    version = @"Current";
+
+  if (_bundleType == NSBUNDLE_FRAMEWORK)
+    {
+#if !defined(__MINGW__)
+      return [_path stringByAppendingPathComponent:
+                      [NSString stringWithFormat:@"Versions/%@/%@",
+                      version, executableName]];
+#else
+      return [_path stringByAppendingPathComponent: executableName];
+#endif
+    }
+  else
+    {
+      return [_path stringByAppendingPathComponent: executableName];
+    }
+}
+
+- (NSURL *) URLForAuxiliaryExecutable: (NSString *) executableName
+{
+  return [NSURL fileURLWithPath: [self pathForAuxiliaryExecutable:
+                       executableName]];
+}
+
 - (NSString *) resourcePath
 {
   NSString *version = _frameworkVersion;
@@ -2755,6 +2815,12 @@ IF_NO_GC(
       return [_path stringByAppendingPathComponent: @"Resources"];
     }
 }
+
+- (NSURL *) resourceURL
+{
+  return [NSURL fileURLWithPath: [self resourcePath]];
+}
+
 
 - (NSDictionary *) infoDictionary
 {
@@ -2805,6 +2871,40 @@ IF_NO_GC(
       return [_path stringByAppendingPathComponent: @"PlugIns"];
     }
 }
+
+- (NSURL *) builtInPlugInsURL
+{
+  return [NSURL fileURLWithPath: [self builtInPlugInsPath]];
+}
+
+- (NSString *) privateFrameworksPath
+{
+  NSString  *version = _frameworkVersion;
+
+  if (!version)
+    version = @"Current";
+
+  if (_bundleType == NSBUNDLE_FRAMEWORK)
+    {
+#if !defined(__MINGW__)
+      return [_path stringByAppendingPathComponent:
+                      [NSString stringWithFormat:@"Versions/%@/PrivateFrameworks",
+                      version]];
+#else
+      return [_path stringByAppendingPathComponent: @"PrivateFrameworks"];
+#endif
+    }
+  else
+    {
+      return [_path stringByAppendingPathComponent: @"PrivateFrameworks"];
+    }
+}
+
+- (NSURL *) privateFrameworksURL
+{
+  return [NSURL fileURLWithPath: [self privateFrameworksPath]];
+}
+
 
 - (NSString*) bundleIdentifier
 {

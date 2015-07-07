@@ -2,10 +2,7 @@ parserDidStartDocument:
 parser:didStartElement:namespaceURI:qualifiedName:attributes: node  node {
     attr = "-\"+";
 }
-parser:foundCharacters: 
 
-parser:foundCharacters: content
-parser:foundCharacters: 
-
+content
 parser:didEndElement:namespaceURI:qualifiedName: node  node
 parserDidEndDocument:

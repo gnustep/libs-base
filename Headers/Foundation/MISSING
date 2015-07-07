@@ -39,7 +39,6 @@ Missing headers:
 	<NSUbiquitousKeyValueStore.h>
 	<NSUserNotification.h>
 	<NSUserScriptTask.h>
-	<NSUUID.h>
 	<NSXPCConnection.h>
 -------------------------------------------------------------
 Foundation:
@@ -47,8 +46,6 @@ Foundation:
 	<NSOrthography.h>
 	<NSPort.h>
 	<NSPropertyList.h>
-	<NSRegularExpression.h>
-	<NSTextCheckingResult.h>
 	<NSByteCountFormatter.h>
 	<NSFileCoordinator.h>
 	<NSFilePresenter.h>
@@ -56,7 +53,6 @@ Foundation:
 	<NSFileWrapper.h>
 	<NSLinguisticTagger.h>
 	<NSUbiquitousKeyValueStore.h>
-	<NSUUID.h>
 	<NSAppleEventDescriptor.h>
 	<NSAppleEventManager.h>
 	<NSAppleScript.h>
@@ -71,7 +67,6 @@ Foundation:
 	<NSScriptObjectSpecifiers.h>
 	<NSScriptStandardSuiteCommands.h>
 	<NSScriptSuiteRegistry.h>
-	<NSUserNotification.h>
 	<NSUserScriptTask.h>
 	<NSXPCConnection.h>
 -------------------------------------------------------------

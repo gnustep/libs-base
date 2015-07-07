@@ -1,7 +1,7 @@
 /*
  * Objective-C type encoding support
  *
- * Copyright (C) 2012-2013 Free Software Foundation, Inc.
+ * Copyright (C) 2012-2014 Free Software Foundation, Inc.
  *
  * Written by Marat Ibadinov <ibadinov@me.com>
  *
@@ -27,7 +27,8 @@
 #ifndef GS_TYPE_ENCODING_H
 #define GS_TYPE_ENCODING_H
 
-#include <stdint.h>
+#include <GNUstepBase/GSVersionMacros.h>
+#include <GNUstepBase/GSConfig.h>
 
 #if defined (NeXT_RUNTIME)
 #  include <objc/objc-runtime.h>
@@ -41,11 +42,11 @@
 #  endif
 #endif
 
-#if !defined(ENCODING_INLINE)
+#if !defined(GS_STATIC_INLINE)
 #  if defined(__GNUC__)
-#    define ENCODING_INLINE static __inline__ __attribute__((always_inline))
+#    define GS_STATIC_INLINE static __inline__ __attribute__((always_inline))
 #  else
-#    define ENCODING_INLINE static inline
+#    define GS_STATIC_INLINE static inline
 #  endif
 #endif
 
@@ -153,13 +154,13 @@ GSObjCParseTypeSpecification (const char *cursor,
                               void *context,
                               unsigned options);
 
-ENCODING_INLINE size_t
+GS_STATIC_INLINE size_t
 GSObjCPadSize (size_t size, uint8_t alignment)
 {
   return alignment * ((size + alignment - 1) / alignment);
 }
 
-ENCODING_INLINE size_t
+GS_STATIC_INLINE size_t
 GSObjCGetPadding (size_t size, uint8_t alignment)
 {
   return (alignment - (size & (alignment - 1))) & (alignment - 1);

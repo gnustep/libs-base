@@ -261,7 +261,7 @@ static Class	gcClass = 0;
 }
 
 - (id) initWithObjects: (const id[])objects
-	       forKeys: (const id[])keys
+	       forKeys: (const id <NSCopying>[])keys
 		 count: (NSUInteger)count
 {
   NSUInteger	size = (count * 4) / 3;
@@ -284,7 +284,7 @@ static Class	gcClass = 0;
       keyStruct = NSZoneMalloc(z, sizeof(GCInfo));
       valueStruct = NSZoneMalloc(z, sizeof(GCInfo));
       keyStruct->object = keys[count];
-      keyStruct->isGCObject = [keys[count] isKindOfClass: gcClass];
+      keyStruct->isGCObject = [(id <NSObject>)keys[count] isKindOfClass: gcClass];
       valueStruct->object = objects[count];
       valueStruct->isGCObject
 	  = [objects[count] isKindOfClass: gcClass];

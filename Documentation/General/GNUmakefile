@@ -43,6 +43,7 @@ OpenStepCompliance.gsdoc \
 # directory.
 #
 #General_AGSDOC_FLAGS = -DocumentationDirectory .
+General_AGSDOC_FLAGS = -DTDs ../../Tools
 
 # Use local version of autogsdoc in case it is not installed
 AUTOGSDOC=../../Tools/$(GNUSTEP_OBJ_DIR_NAME)/autogsdoc

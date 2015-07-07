@@ -202,7 +202,6 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
 #import "Foundation/NSXMLDTDNode.h"
 #import "Foundation/NSXMLDTD.h"
 #import "Foundation/NSXMLElement.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #ifdef	HAVE_LIBXML
 

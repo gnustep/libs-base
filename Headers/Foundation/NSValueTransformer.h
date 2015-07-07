@@ -85,6 +85,10 @@ GS_EXPORT NSString* const NSUnarchiveFromDataTransformerName;
 /**
  * Returns the transformer registered for the specified name, or nil
  * if no transformer is registered for name.
+ *
+ * If no transformer is found, but the name corresponds to a valid 
+ * NSValueTransformer subclass name, the receiver instantiates this subclass 
+ * using -init and registers it automatically for name.
  */
 + (NSValueTransformer *) valueTransformerForName: (NSString *)name;
 

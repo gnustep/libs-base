@@ -24,7 +24,6 @@
 */
 #import "common.h"
 #import "GNUstepBase/GSLocale.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSLock.h"

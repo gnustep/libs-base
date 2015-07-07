@@ -46,20 +46,12 @@
 #import "Foundation/NSXMLParser.h"
 #import "GNUstepBase/Unicode.h"
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
 #import "GSPrivate.h"
 
 static id       boolN = nil;
 static id       boolY = nil;
-
-static void
-setupBooleans()
-{
-  if (nil == boolN) boolN = [[NSNumber numberWithBool: NO] retain];
-  if (nil == boolY) boolY = [[NSNumber numberWithBool: YES] retain];
-}
 
 @class  GSSloppyXMLParser;
 
@@ -588,33 +580,6 @@ static const unsigned char whitespace[32] = {
 
 static NSCharacterSet *oldQuotables = nil;
 static NSCharacterSet *xmlQuotables = nil;
-
-static void setupQuotables(void)
-{
-  if (nil == oldQuotables)
-    {
-      NSMutableCharacterSet	*s;
-
-      /* The '$', '.', '/' and '_' characters used to be OK to use in
-       * property lists, but OSX now quotes them, so we follow suite.
-       */
-      s = [NSMutableCharacterSet new];
-      [s addCharactersInString:
-	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	@"abcdefghijklmnopqrstuvwxyz"];
-      [s invert];
-      oldQuotables = s;
-
-      s = [NSMutableCharacterSet new];
-      [s addCharactersInString: @"&<>'\\\""];
-      [s addCharactersInRange: NSMakeRange(0x0001, 0x001f)];
-      [s removeCharactersInRange: NSMakeRange(0x0009, 0x0002)];
-      [s removeCharactersInRange: NSMakeRange(0x000D, 0x0001)];
-      [s addCharactersInRange: NSMakeRange(0xD800, 0x07FF)];
-      [s addCharactersInRange: NSMakeRange(0xFFFE, 0x0002)];
-      xmlQuotables = s;
-    }
-}
 
 typedef	struct	{
   const unsigned char	*ptr;
@@ -2335,6 +2300,8 @@ static BOOL	classInitialized = NO;
 {
   if (classInitialized == NO)
     {
+      NSMutableCharacterSet	*s;
+
       classInitialized = YES;
 
       NSStringClass = [NSString class];
@@ -2355,8 +2322,32 @@ static BOOL	classInitialized = NO;
       plSet = (id (*)(id, SEL, id, id))
 	[plDictionary instanceMethodForSelector: @selector(setObject:forKey:)];
 
-      setupQuotables();
-      setupBooleans();
+      /* The '$', '.', '/' and '_' characters used to be OK to use in
+       * property lists, but OSX now quotes them, so we follow suite.
+       */
+      s = [NSMutableCharacterSet new];
+      [s addCharactersInString:
+	@"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	@"abcdefghijklmnopqrstuvwxyz"];
+      [s invert];
+      oldQuotables = s;
+      [[NSObject leakAt: &oldQuotables] release];
+
+      s = [NSMutableCharacterSet new];
+      [s addCharactersInString: @"&<>'\\\""];
+      [s addCharactersInRange: NSMakeRange(0x0001, 0x001f)];
+      [s removeCharactersInRange: NSMakeRange(0x0009, 0x0002)];
+      [s removeCharactersInRange: NSMakeRange(0x000D, 0x0001)];
+      [s addCharactersInRange: NSMakeRange(0xD800, 0x07FF)];
+      [s addCharactersInRange: NSMakeRange(0xFFFE, 0x0002)];
+      xmlQuotables = s;
+      [[NSObject leakAt: &xmlQuotables] release];
+
+      boolN = [[NSNumber numberWithBool: NO] retain];
+      [[NSObject leakAt: &boolN] release];
+
+      boolY = [[NSNumber numberWithBool: YES] retain];
+      [[NSObject leakAt: &boolY] release];
     }
 }
 

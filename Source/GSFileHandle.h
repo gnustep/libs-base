@@ -25,10 +25,10 @@
 #ifndef __GSFileHandle_h_GNUSTEP_BASE_INCLUDE
 #define __GSFileHandle_h_GNUSTEP_BASE_INCLUDE
 
-#import <Foundation/NSFileHandle.h>
-#import <Foundation/NSArray.h>
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSRunLoop.h>
+#import "Foundation/NSFileHandle.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSRunLoop.h"
 
 #import <GNUstepBase/GSConfig.h>
 

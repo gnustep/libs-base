@@ -149,6 +149,34 @@ typedef	gsuaddr gsaddr;
 #define GS_HAVE_I128	@GS_HAVE_I128@
 
 /*
+ * Ensure some standard types are defined.
+ */
+@INCLUDE_INTTYPES@
+@DEFINE_INT8_T@
+@DEFINE_UINT8_T@
+@DEFINE_INT16_T@
+@DEFINE_UINT16_T@
+@DEFINE_INT32_T@
+@DEFINE_UINT32_T@
+@DEFINE_INT64_T@
+@DEFINE_UINT64_T@
+@DEFINE_INTPTR_T@
+@DEFINE_UINTPTR_T@
+
+/*
+ * PTR Limit information replacements for buggy headers
+ */ 
+#if @BUGGY_PTR_LIMITS@
+#undef INTPTR_MAX
+#define INTPTR_MAX @GS_INTPTR_MAX@
+#undef INTPTR_MIN
+#define INTPTR_MIN @GS_INTPTR_MIN@
+#undef UINTPTR_MAX
+#define UINTPTR_MAX @GS_UINTPTR_MAX@
+#endif
+
+
+/*
  *	Do we have zlib for file handle compression?
  */
 #define USE_ZLIB	@USE_ZLIB@
@@ -181,20 +209,6 @@ typedef	gsuaddr gsaddr;
  */
 #define NXConstantString	@NX_CONST_STRING_CLASS@
 
-/*
- * Ensure some standard types are defined.
- */
-@INCLUDE_STDINT@
-@DEFINE_INT8_T@
-@DEFINE_UINT8_T@
-@DEFINE_INT16_T@
-@DEFINE_UINT16_T@
-@DEFINE_INT32_T@
-@DEFINE_UINT32_T@
-@DEFINE_INT64_T@
-@DEFINE_UINT64_T@
-@DEFINE_INTPTR_T@
-@DEFINE_UINTPTR_T@
 
 /*
  * Wide unicode character type.
@@ -263,6 +277,7 @@ typedef	struct {
 #endif
 
 #if defined(__WIN32__)
+#define BOOL WinBOOL
 #include <w32api.h>
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT Windows2000
@@ -274,6 +289,7 @@ typedef	struct {
 #define WINVER Windows2000
 #endif
 #include <windows.h>
+#undef  BOOL
 #endif
 
 // Include the blocks runtime header if it's available (It shouldn't matter
@@ -381,9 +397,7 @@ typedef	struct {
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <inttypes.h>
 #include <stdbool.h>
-#include <stdint.h>
 #endif
 
 // Strong has different semantics in GC and ARC modes, so we need to have a
@@ -395,12 +409,19 @@ typedef	struct {
 #endif
 
 #if !__has_feature(objc_arc)
+#  if !defined(__weak)
 #  if __OBJC_GC__
-#    define __strong __attribute__((objc_gc(strong)))
 #    define __weak __attribute__((objc_gc(weak)))
 #  else
-#    define __strong
 #    define __weak
+#  endif
+#endif
+#  if !defined(__strong)
+#    if __OBJC_GC__
+#      define __strong __attribute__((objc_gc(strong)))
+#    else
+#      define __strong
+#    endif
 #  endif
 #endif
 

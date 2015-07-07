@@ -7,8 +7,18 @@
  * data for the parse can be either a static JSON string or some JSON data.
  */
 
-#import <Foundation/Foundation.h>
-#import <GNUstepBase/NSObject+GNUstepBase.h>
+#import "common.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSByteOrder.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSJSONSerialization.h"
+#import "Foundation/NSNull.h"
+#import "Foundation/NSStream.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSValue.h"
 #import "GSFastEnumeration.h"
 
 /* Boolean constants.
@@ -144,23 +154,58 @@ updateStreamBuffer(ParserState* state)
 	{
 	  case NSUTF8StringEncoding:
 	    {
-	      int i = -1;
-
 	      // Read one UTF8 character from the stream
-	      do
+	      NSUInteger i = 0;
+	      NSInteger n;
+
+              n = [stream read: &bytes[0] maxLength: 1];
+              if (n != 1)
 		{
-		  [stream read: &bytes[++i] maxLength: 1];
+		  state->error = [stream streamError];
+                  if (state->error == nil)
+                    {
+                      state->error
+                        = [NSError errorWithDomain: NSCocoaErrorDomain
+                                              code: 0
+                                          userInfo: nil];
 		}
-	      while (bytes[i] & 0xf);
+                  break;
+		}
+	      else
+		{
+		  if ((bytes[0] & 0xC0) == 0xC0)
+                    {
+		      for (i = 1; i <= 5; i++)
+			if ((bytes[0] & (0x40 >> i)) == 0)
+			  break;
+		    }
+		}
 	      if (0 == i)
 		{
 		  state->buffer[0] = bytes[0];
 		}
 	      else
 		{
+		  n = [stream read: &bytes[1] maxLength: i];
+                  if (n == i)
+		    {
 		  str = [[NSString alloc] initWithUTF8String: (char*)bytes];
-		  [str getCharacters: state->buffer range: NSMakeRange(0,1)];
+                      [str getCharacters: state->buffer
+                                   range: NSMakeRange(0,1)];
 		  [str release];
+		}
+                  else
+                    {
+                      state->error = [stream streamError];
+                      if (state->error == nil)
+                        {
+                          state->error
+                            = [NSError errorWithDomain: NSCocoaErrorDomain
+                                                  code: 0
+                                              userInfo: nil];
+                        }
+	      break;
+	    }
 		}
 	      break;
 	    }
@@ -199,6 +244,7 @@ updateStreamBuffer(ParserState* state)
       state->sourceIndex = -1;
       state->bufferIndex = 0;
       state->bufferLength = 1;
+      return;
     }
   // Use an NSString to do the character set conversion.  We could do this more
   // efficiently.  We could also reuse the string.
@@ -233,7 +279,7 @@ consumeChar(ParserState *state)
 {
   state->sourceIndex++;
   state->bufferIndex++;
-  if (state->bufferIndex >= BUFFER_SIZE)
+  if (state->bufferIndex >= state->bufferLength)
     {
       state->updateBuffer(state);
     }
@@ -881,7 +927,18 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
     }
   else if ([obj isKindOfClass: NSNumberClass])
     {
-      [output appendFormat: @"%g", [obj doubleValue]];
+      const char        *t = [obj objCType];
+
+      if (strchr("cCsSiIlLqQ", *t) != 0)
+        {
+          long long     i = [(NSNumber*)obj longLongValue];
+
+          [output appendFormat: @"%lld", i];
+    }
+      else
+        {
+          [output appendFormat: @"%.17g", [(NSNumber*)obj doubleValue]];
+        }
     }
   else if ([obj isKindOfClass: NSNullClass])
     {
@@ -897,15 +954,24 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
 @implementation NSJSONSerialization
 + (void) initialize
 {
+  static BOOL beenHere = NO;
+
+  if (NO == beenHere)
+    {
   NSNullClass = [NSNull class];
   NSArrayClass = [NSArray class];
   NSStringClass = [NSString class];
   NSDictionaryClass = [NSDictionary class];
   NSNumberClass = [NSNumber class];
   escapeSet = [NSMutableCharacterSet new];
+      [[NSObject leakAt: &escapeSet] release];
   [escapeSet addCharactersInString: @"\"\\"];
   boolN = [[NSNumber alloc] initWithBool: NO];
+      [[NSObject leakAt: &boolN] release];
   boolY = [[NSNumber alloc] initWithBool: YES];
+      [[NSObject leakAt: &boolY] release];
+      beenHere = YES;
+}
 }
 
 + (NSData*) dataWithJSONObject: (id)obj

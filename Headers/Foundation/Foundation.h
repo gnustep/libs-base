@@ -114,6 +114,7 @@
 #import	<Foundation/NSStream.h>
 #import	<Foundation/NSString.h>
 #import	<Foundation/NSTask.h>
+#import	<Foundation/NSTextCheckingResult.h>
 #import	<Foundation/NSThread.h>
 #import	<Foundation/NSTimer.h>
 #import	<Foundation/NSTimeZone.h>
@@ -132,6 +133,8 @@
 #import	<Foundation/NSURLRequest.h>
 #import	<Foundation/NSURLResponse.h>
 #import	<Foundation/NSUserDefaults.h>
+#import	<Foundation/NSUserNotification.h>
+#import	<Foundation/NSUUID.h>
 #import	<Foundation/NSValue.h>
 #import	<Foundation/NSValueTransformer.h>
 #import <Foundation/NSXMLDocument.h>

@@ -31,7 +31,6 @@
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/GSMime.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSData+GNUstepBase.h"
 
 
@@ -87,10 +86,15 @@ static GSMimeParser		*mimeParser = nil;
   if (store == nil)
     {
       mimeParser = [GSMimeParser new];
+      [[NSObject leakAt: &mimeParser] release];
       spaces = [NSMutableSet new];
+      [[NSObject leakAt: &spaces] release];
       domainMap = [NSMutableDictionary new];
+      [[NSObject leakAt: &domainMap] release];
       store = [NSMutableDictionary new];
+      [[NSObject leakAt: &store] release];
       storeLock = [GSLazyLock new];
+      [[NSObject leakAt: &storeLock] release];
     }
 }
 

@@ -29,7 +29,7 @@ with your program, you must make the improvements you have made to the
 libraries freely available. You should read the COPYING.LIB file for
 more information. All files in the `Source', `Headers'
 `NSCharacterSets', `NSTimeZones', `Resources', and `SSL' directories
-and subdirectories under this are covered under the GLPL.
+and subdirectories under this are covered under the LGPL.
 
    GNUstep tools, test programs, and other files are covered under the
 GNU Public License. This means if you make changes to these programs,

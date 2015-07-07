@@ -59,8 +59,6 @@
 
 #define		SANITY_CHECKS	0
 
-static	NSDictionary	*blank;
-
 
 @interface GSAttributedString : NSAttributedString
 {
@@ -97,11 +95,31 @@ static	NSDictionary	*blank;
 
 
 
+static BOOL     adding;
+
+/* When caching attributes we make a shallow copy of the dictionary cached,
+ * so that it is immutable and safe to cache.
+ * However, we have a potential problem if the objects within the attributes
+ * dictionary are themselves mutable, and something mutates them while they
+ * are in the cache.  In this case we could items added while different and
+ * then mutated to have the same contents, so we would not know which of
+ * the equal dictionaries to remove.
+ * The solution is to require dictionaries to be identical for removal.
+ */
+static inline BOOL
+cacheEqual(id A, id B)
+{
+  if (YES == adding)
+    return [A isEqualToDictionary: B];
+  else
+    return A == B;
+}
+
 #define	GSI_MAP_RETAIN_KEY(M, X)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
-#define	GSI_MAP_EQUAL(M, X,Y)	[(X).obj isEqualToDictionary: (Y).obj]
+#define	GSI_MAP_EQUAL(M, X,Y)	cacheEqual((X).obj, (Y).obj)
 #define GSI_MAP_KTYPES	GSUNION_OBJ
 #define GSI_MAP_VTYPES	GSUNION_NSINT
 #define	GSI_MAP_NOCLEAN	1
@@ -125,58 +143,81 @@ static IMP		unlockImp;
 #define	ALOCK()	if (attrLock != nil) (*lockImp)(attrLock, lockSel)
 #define	AUNLOCK() if (attrLock != nil) (*unlockImp)(attrLock, unlockSel)
 
-/*
- * Add a dictionary to the cache - if it was not already there, return
+@class  GSCachedDictionary;
+@protocol       GSCachedDictionary
+- (void) _uncache;
+@end
+
+/* Add a dictionary to the cache - if it was not already there, return
  * the copy added to the cache, if it was, count it and return retained
  * object that was there.
  */
 static NSDictionary*
 cacheAttributes(NSDictionary *attrs)
 {
+  if (nil != attrs)
+    {
   GSIMapNode	node;
 
   ALOCK();
+      adding = YES;
   node = GSIMapNodeForKey(&attrMap, (GSIMapKey)((id)attrs));
   if (node == 0)
     {
-      /*
-       * Shallow copy of dictionary, without copying objects ... results
-       * in an immutable dictionary that can safely be cached.
+          /* Shallow copy of dictionary, without copying objects ....
+           * result in an immutable dictionary that can safely be cached.
        */
-      attrs = [[NSDictionary alloc] initWithDictionary: attrs copyItems: NO];
-      GSIMapAddPair(&attrMap, (GSIMapKey)((id)attrs), (GSIMapVal)(NSUInteger)1);
+          attrs = [(NSDictionary*)[GSCachedDictionary alloc]
+            initWithDictionary: attrs copyItems: NO];
+          GSIMapAddPair(&attrMap,
+            (GSIMapKey)((id)attrs), (GSIMapVal)(NSUInteger)1);
     }
   else
     {
       node->value.nsu++;
-      attrs = RETAIN(node->key.obj);
+          attrs = node->key.obj;
     }
   AUNLOCK();
+    }
   return attrs;
 }
 
+/* Decrement the count of a dictionary in the cache and release it.
+ * If the count goes to zero, remove it from the cache.
+ */
 static void
 unCacheAttributes(NSDictionary *attrs)
 {
+  if (nil != attrs)
+    {
   GSIMapBucket       bucket;
+      id<GSCachedDictionary> removed = nil;
 
   ALOCK();
+      adding = NO;
   bucket = GSIMapBucketForKey(&attrMap, (GSIMapKey)((id)attrs));
   if (bucket != 0)
     {
       GSIMapNode     node;
 
-      node = GSIMapNodeForKeyInBucket(&attrMap, bucket, (GSIMapKey)((id)attrs));
+          node = GSIMapNodeForKeyInBucket(&attrMap,
+            bucket, (GSIMapKey)((id)attrs));
       if (node != 0)
 	{
 	  if (--node->value.nsu == 0)
 	    {
+                  removed = node->key.obj;
 	      GSIMapRemoveNodeFromMap(&attrMap, bucket, node);
 	      GSIMapFreeNode(&attrMap, node);
 	    }
 	}
     }
   AUNLOCK();
+      if (nil != removed)
+        {
+          [removed _uncache];
+}
+    }
 }
 
 
@@ -194,6 +235,19 @@ unCacheAttributes(NSDictionary *attrs)
 
 @implementation	GSAttrInfo
 
++ (void) initialize
+{
+  if (nil == attrLock)
+    {
+      attrLock = [NSLock new];
+      lockSel = @selector(lock);
+      unlockSel = @selector(unlock);
+      lockImp = [attrLock methodForSelector: lockSel];
+      unlockImp = [attrLock methodForSelector: unlockSel];
+      GSIMapInitWithZoneAndCapacity(&attrMap, NSDefaultMallocZone(), 32);
+    }
+}
+
 /*
  * Called to record attributes at a particular location - the given attributes
  * dictionary must have been produced by 'cacheAttributes()' so that it is
@@ -204,7 +258,7 @@ unCacheAttributes(NSDictionary *attrs)
   GSAttrInfo	*info = (GSAttrInfo*)NSAllocateObject(self, 0, z);
 
   info->loc = l;
-  info->attrs = a;
+  info->attrs = cacheAttributes(a);
   return info;
 }
 
@@ -229,7 +283,7 @@ unCacheAttributes(NSDictionary *attrs)
 - (void) finalize
 {
   unCacheAttributes(attrs);
-  DESTROY(attrs);
+  attrs = nil;
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder
@@ -253,6 +307,8 @@ unCacheAttributes(NSDictionary *attrs)
 
 @implementation GSAttributedString
 
+static	GSAttrInfo	*blank;
+
 static Class	infCls = 0;
 
 static SEL	infSel;
@@ -275,49 +331,6 @@ static void	(*remImp)(NSMutableArray*,SEL,unsigned);
 #define	OBJECTAT(I)	((*oatImp)(_infoArray, oatSel, (I)))
 #define	REMOVEAT(I)	((*remImp)(_infoArray, remSel, (I)))
 
-static void _setup(void)
-{
-  if (infCls == 0)
-    {
-      NSMutableArray	*a;
-      NSDictionary	*d;
-
-#if	GS_WITH_GC
-      /* We create a typed memory descriptor for map nodes.
-       * Only the pointer to the key needs to be scanned.
-       */
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#endif
-      GSIMapInitWithZoneAndCapacity(&attrMap, NSDefaultMallocZone(), 32);
-
-      infSel = @selector(newWithZone:value:at:);
-      addSel = @selector(addObject:);
-      cntSel = @selector(count);
-      insSel = @selector(insertObject:atIndex:);
-      oatSel = @selector(objectAtIndex:);
-      remSel = @selector(removeObjectAtIndex:);
-
-      infCls = [GSAttrInfo class];
-      infImp = [infCls methodForSelector: infSel];
-
-      a = [NSMutableArray allocWithZone: NSDefaultMallocZone()];
-      a = [a initWithCapacity: 1];
-      addImp = (void (*)(NSMutableArray*,SEL,id))[a methodForSelector: addSel];
-      cntImp = (unsigned (*)(NSArray*,SEL))[a methodForSelector: cntSel];
-      insImp = (void (*)(NSMutableArray*,SEL,id,unsigned))
-	[a methodForSelector: insSel];
-      oatImp = [a methodForSelector: oatSel];
-      remImp = (void (*)(NSMutableArray*,SEL,unsigned))
-	[a methodForSelector: remSel];
-      RELEASE(a);
-      d = [NSDictionary new];
-      blank = cacheAttributes(d);
-      RELEASE(d);
-    }
-}
-
 static void
 _setAttributesFrom(
   NSAttributedString *attributedString,
@@ -337,7 +350,7 @@ _setAttributesFrom(
 
   if (aRange.length == 0)
     {
-      attr = blank;
+      attr = blank->attrs;
       range = aRange; /* Set to satisfy the loop condition below. */
     }
   else
@@ -345,7 +358,6 @@ _setAttributesFrom(
       attr = [attributedString attributesAtIndex: aRange.location
 				  effectiveRange: &range];
     }
-  attr = cacheAttributes(attr);
   info = NEWINFO(z, attr, 0);
   ADDOBJECT(info);
   RELEASE(info);
@@ -354,7 +366,6 @@ _setAttributesFrom(
     {
       attr = [attributedString attributesAtIndex: loc
 				  effectiveRange: &range];
-      attr = cacheAttributes(attr);
       info = NEWINFO(z, attr, loc - aRange.location);
       ADDOBJECT(info);
       RELEASE(info);
@@ -447,13 +458,47 @@ _attributesAtIndexEffectiveRange(
 
 + (void) initialize
 {
-  _setup();
+  if (infCls == 0)
+    {
+      NSMutableArray	*a;
+      NSDictionary	*d;
 
-  attrLock = [GSLazyLock new];
-  lockSel = @selector(lock);
-  unlockSel = @selector(unlock);
-  lockImp = [attrLock methodForSelector: lockSel];
-  unlockImp = [attrLock methodForSelector: unlockSel];
+#if	GS_WITH_GC
+      /* We create a typed memory descriptor for map nodes.
+       * Only the pointer to the key needs to be scanned.
+       */
+      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
+      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
+      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
+#endif
+
+      infSel = @selector(newWithZone:value:at:);
+      addSel = @selector(addObject:);
+      cntSel = @selector(count);
+      insSel = @selector(insertObject:atIndex:);
+      oatSel = @selector(objectAtIndex:);
+      remSel = @selector(removeObjectAtIndex:);
+
+      infCls = [GSAttrInfo class];
+      infImp = [infCls methodForSelector: infSel];
+
+      d = [NSDictionary new];
+      blank = NEWINFO(NSDefaultMallocZone(), d, 0);
+      [[NSObject leakAt: &blank] release];
+      RELEASE(d);
+
+      a = [NSMutableArray allocWithZone: NSDefaultMallocZone()];
+      a = [a initWithCapacity: 1];
+      addImp = (void (*)(NSMutableArray*,SEL,id))[a methodForSelector: addSel];
+      cntImp = (unsigned (*)(NSArray*,SEL))[a methodForSelector: cntSel];
+      insImp = (void (*)(NSMutableArray*,SEL,id,unsigned))
+	[a methodForSelector: insSel];
+      oatImp = [a methodForSelector: oatSel];
+      remImp = (void (*)(NSMutableArray*,SEL,unsigned))
+	[a methodForSelector: remSel];
+      RELEASE(a);
+}
+  [[NSObject leakAt: &attrLock] release];
 }
 
 - (id) initWithString: (NSString*)aString
@@ -488,9 +533,8 @@ _attributesAtIndexEffectiveRange(
 
       if (attributes == nil)
 	{
-	  attributes = blank;
+	  attributes = blank->attrs;
 	}
-      attributes = cacheAttributes(attributes);
       info = NEWINFO(z, attributes, 0);
       ADDOBJECT(info);
       RELEASE(info);
@@ -598,9 +642,8 @@ _attributesAtIndexEffectiveRange(
 
       if (attributes == nil)
         {
-          attributes = blank;
+          attributes = blank->attrs;
         }
-      attributes = cacheAttributes(attributes);
       info = NEWINFO(z, attributes, 0);
       ADDOBJECT(info);
       RELEASE(info);
@@ -667,9 +710,8 @@ SANITY();
     }
   if (attributes == nil)
     {
-      attributes = blank;
+      attributes = blank->attrs;
     }
-  attributes = cacheAttributes(attributes);
 SANITY();
   tmpLength = [_textChars length];
   GS_RANGE_CHECK(range, tmpLength);
@@ -715,7 +757,7 @@ SANITY();
 	   * The located range ends after our range.
 	   * Create a subrange to go from our end to the end of the old range.
 	   */
-	  info = NEWINFO(z, cacheAttributes(attrs), afterRangeLoc);
+	  info = NEWINFO(z, attrs, afterRangeLoc);
 	  arrayIndex++;
 	  INSOBJECT(info, arrayIndex);
 	  RELEASE(info);
@@ -747,24 +789,13 @@ SANITY();
   if (info->loc >= beginRangeLoc)
     {
       info->loc = beginRangeLoc;
-      if (info->attrs == attributes)
-	{
-	  unCacheAttributes(attributes);
-	  RELEASE(attributes);
-	}
-      else
+      if (info->attrs != attributes)
 	{
 	  unCacheAttributes(info->attrs);
-	  RELEASE(info->attrs);
-	  info->attrs = attributes;
+	  info->attrs = cacheAttributes(attributes);
 	}
     }
-  else if (info->attrs == attributes)
-    {
-      unCacheAttributes(attributes);
-      RELEASE(attributes);
-    }
-  else
+  else if (info->attrs != attributes)
     {
       arrayIndex++;
       info = NEWINFO(z, attributes, beginRangeLoc);
@@ -845,6 +876,7 @@ SANITY();
 	  while (next < arraySize)
 	    {
 	      GSAttrInfo	*n = OBJECTAT(next);
+
 	      if (n->loc <= NSMaxRange(range))
 		{
 		  REMOVEAT(arrayIndex);
@@ -890,13 +922,9 @@ SANITY();
 	    }
 	  else
 	    {
-	      NSDictionary	*d = blank;
-
 	      info = OBJECTAT(0);
 	      unCacheAttributes(info->attrs);
-	      DESTROY(info->attrs);
-	      d = cacheAttributes(d);
-	      info->attrs = d;
+	      info->attrs = cacheAttributes(blank->attrs);
 	      info->loc = NSMaxRange(range);
 	    }
 	}

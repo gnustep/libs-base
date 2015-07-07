@@ -87,7 +87,9 @@ static NSMapTable	*classMap;
     {
       classMap = NSCreateMapTable(NSObjectMapKeyCallBacks,
         NSObjectMapValueCallBacks, 100);
+      [[NSObject leakAt: &classMap] release];
       mapLock = [NSRecursiveLock new];
+      [[NSObject leakAt: &mapLock] release];
     }
 }
 

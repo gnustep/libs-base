@@ -41,7 +41,6 @@
 #import "Foundation/NSUserDefaults.h"
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSFastEnumeration.h"
 #import "GSDispatch.h"
@@ -226,7 +225,7 @@ static SEL	appSel;
  * other initialisers work.
  */
 - (id) initWithObjects: (const id[])objects
-	       forKeys: (const id[])keys
+	       forKeys: (const id <NSCopying>[])keys
 		 count: (NSUInteger)count
 {
   self = [self init];
@@ -445,7 +444,7 @@ static SEL	appSel;
  * element of the keys array.
  */
 + (id) dictionaryWithObjects: (const id[])objects
-		     forKeys: (const id[])keys
+		     forKeys: (const id <NSCopying>[])keys
 		       count: (NSUInteger)count
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
@@ -1358,7 +1357,7 @@ compareIt(id o1, id o2, void* context)
  * element of the keys array.
  */
 - (id) initWithObjects: (const id[])objects
-	       forKeys: (const id[])keys
+	       forKeys: (const id <NSCopying>[])keys
 		 count: (NSUInteger)count
 {
   self = [self initWithCapacity: count];

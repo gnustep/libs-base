@@ -38,7 +38,6 @@
 #import	"Foundation/NSRunLoop.h"
 #import	"Foundation/NSTask.h"
 #import	"GNUstepBase/NSTask+GNUstepBase.h"
-#import	"GNUstepBase/NSObject+GNUstepBase.h"
 #import	"Foundation/NSDistributedNotificationCenter.h"
 #import	"Foundation/NSUserDefaults.h"
 #import	"Foundation/NSHost.h"
@@ -120,13 +119,6 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  */
 + (id) defaultCenter
 {
-  NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
-
-  if([defaults boolForKey: @"GSDisableDistributedNotifications"])
-    { // return nil so that any calls to distributed notifications are ignored.
-      return nil;  
-    }
-
   return [self notificationCenterForType: NSLocalNotificationCenterType];
 }
 

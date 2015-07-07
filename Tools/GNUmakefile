@@ -59,11 +59,12 @@ DTD_FILES = plist-0_9.dtd \
 	gsdoc-1_0_1.dtd \
 	gsdoc-1_0_2.dtd \
 	gsdoc-1_0_3.dtd \
+	gsdoc-1_0_4.dtd \
 	gsdoc-1_0_1.rnc
 
 # Manual pages to install
 MAN1_PAGES = gdnc.1 autogsdoc.1 cvtenc.1 defaults.1 gspath.1 \
-  pldes.1 sfparse.1 xmlparse.1
+  pldes.1 sfparse.1 xmlparse.1 HTMLLinker.1
 MAN7_PAGES = gsdoc.7
 MAN8_PAGES = gdomap.8
 
@@ -101,6 +102,10 @@ pl2link_OBJC_FILES = pl2link.m
 locale_alias_OBJC_FILES = locale_alias.m
 xmlparse_OBJC_FILES = xmlparse.m
 HTMLLinker_OBJC_FILES = HTMLLinker.m
+
+# Reset this variable (defined in config.mak) to avoid useless linkage
+# against the libraries gnustep-base uses.
+CONFIG_SYSTEM_LIBS :=
 
 DOCUMENT_NAME = autogsdoc
 

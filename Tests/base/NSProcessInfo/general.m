@@ -36,12 +36,15 @@ int main()
        "-globallyUniqueString works");
 
   obj = [info operatingSystemName];
-  PASS((obj != nil &&
-       [obj isKindOfClass:[NSString class]] &&
-       [obj length] > 0),
+  PASS((obj != nil && [obj isKindOfClass:[NSString class]] && [obj length] > 0),
        "-operatingSystemName works");
+  NSLog(@"operatingSystemName %@", obj);
   val = [info operatingSystem];
   PASS(val != 0, "-operatingSystem works"); 
+  obj = [info hostName];
+  PASS((obj != nil && [obj isKindOfClass:[NSString class]] && [obj length] > 0),
+    "-hostName works"); 
+  NSLog(@"hostName %@", obj);
   [arp release]; arp = nil;
   return 0;
 }

@@ -45,7 +45,6 @@
 #import "Foundation/NSString.h"
 #import "Foundation/NSCalendarDate.h"
 #import "GNUstepBase/Unicode.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 NSString * const NSHTTPCookieComment = @"Comment";
 NSString * const NSHTTPCookieCommentURL = @"CommentURL";

@@ -551,8 +551,8 @@
     </p>
 <example>
   &lt;?xml version="1.0"?&gt;
-  &lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN"
-  "http://www.gnustep.org/gsdoc-1_0_3.dtd"&gt;
+  &lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.4//EN"
+  "http://www.gnustep.org/gsdoc-1_0_4.dtd"&gt;
   &lt;gsdoc base="index"&gt;
     &lt;head&gt;
       &lt;title&gt;My project reference&lt;/title&gt;
@@ -1250,6 +1250,7 @@ main(int argc, char **argv, char **env)
       AGSParser		*parser;
       AGSOutput		*output;
       NSString		*up;
+      NSMutableDictionary       *wm;
 
       up = [defs stringForKey: @"Up"];
 
@@ -1258,7 +1259,43 @@ main(int argc, char **argv, char **env)
 #endif
 
       parser = [AGSParser new];
-      [parser setWordMap: [defs dictionaryForKey: @"WordMap"]];
+      wm = [[defs dictionaryForKey: @"WordMap"] mutableCopy];
+      if (nil == wm)
+        {
+          wm = [NSMutableDictionary new];
+        }
+      if ([defs boolForKey: @"DisableDefaultWords"] == NO)
+        {
+	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE"];
+	  [wm setObject: @"" forKey: @"GS_ATTRIB_DEPRECATED"];
+	  [wm setObject: @"" forKey: @"GS_DECLARE"];
+	  [wm setObject: @"" forKey: @"GS_DEPRECATED_FUNC"];
+	  [wm setObject: @"extern" forKey: @"GS_EXPORT"];
+	  [wm setObject: @"" forKey: @"GS_GC_STRONG"];
+	  [wm setObject: @"" forKey: @"GS_GEOM_ATTR"];
+	  [wm setObject: @"extern" forKey: @"GS_GEOM_SCOPE"];
+	  [wm setObject: @"" forKey: @"GS_NORETURN_METHOD"];
+	  [wm setObject: @"" forKey: @"GS_RANGE_ATTR"];
+	  [wm setObject: @"extern" forKey: @"GS_RANGE_SCOPE"];
+	  [wm setObject: @"" forKey: @"GS_ROOT_CLASS"];
+	  [wm setObject: @"static" forKey: @"GS_STATIC_INLINE"];
+	  [wm setObject: @"" forKey: @"GS_UNUSED_ARG"];
+	  [wm setObject: @"" forKey: @"GS_UNUSED_FUNC"];
+	  [wm setObject: @"" forKey: @"GS_UNUSED_IVAR"];
+	  [wm setObject: @"" forKey: @"GS_ZONE_ATTR"];
+	  [wm setObject: @"extern" forKey: @"GS_ZONE_SCOPE"];
+	  [wm setObject: @"" forKey: @"NS_AUTOMATED_REFCOUNT_UNAVAILABLE"];
+	  [wm setObject: @"" forKey: @"NS_CONSUMED"];
+	  [wm setObject: @"" forKey: @"NS_CONSUMES_SELF"];
+	  [wm setObject: @"" forKey: @"NS_RETURNS_NOT_RETAINED"];
+	  [wm setObject: @"" forKey: @"NS_RETURNS_RETAINED"];
+	  [wm setObject: @"" forKey: @"__strong"];
+	  [wm setObject: @"" forKey: @"__weak"];
+        }
+      [parser setWordMap: wm];
+#if GS_WITH_GC == 0
+      RELEASE(wm);
+#endif
       output = [AGSOutput new];
       if ([defs boolForKey: @"Standards"] == YES)
 	{
@@ -1873,7 +1910,7 @@ main(int argc, char **argv, char **env)
 
       // skeleton for table of contents files
       [tocSkel setString: @"<?xml version=\"1.0\"?>\n"
-@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.3//EN\" \"http://www.gnustep.org/gsdoc-1_0_3.dtd\">\n"
+@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.4//EN\" \"http://www.gnustep.org/gsdoc-1_0_4.dtd\">\n"
 @"<gsdoc base=\"[typeU]\" stylesheeturl=\"gsdoc_contents\">\n"
 @"  <head>\n"
 @"    <title>[typeU]</title>\n"
@@ -1979,7 +2016,7 @@ main(int argc, char **argv, char **env)
 @"named %@ in the documentation output directory.\n"
 @"Then include this file in the arguments to autogsdoc.\n\n", prjFile);
           [prjFileContents setString: @"<?xml version=\"1.0\"?>\n"
-@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.3//EN\" \"http://www.gnustep.org/gsdoc-1_0_3.dtd\">\n"
+@"<!DOCTYPE gsdoc PUBLIC \"-//GNUstep//DTD gsdoc 1.0.3//EN\" \"http://www.gnustep.org/gsdoc-1_0_4.dtd\">\n"
 @"<gsdoc base=\"[prjName]\">\n"
 @"  <head>\n"
 @"    <title>The [prjName] Project</title>\n"

@@ -32,7 +32,6 @@
 #import "Foundation/NSKeyValueCoding.h"
 
 #import "GNUstepBase/GSObjCRuntime.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSSorting.h"
 
@@ -69,16 +68,6 @@ static BOOL     initialized = NO;
 #endif
       initialized = YES;
     }
-}
-
-+ (id) sortDescriptorWithKey: (NSString*)key ascending: (BOOL)ascending
-{
-  return AUTORELEASE([[NSSortDescriptor alloc] initWithKey: key ascending: ascending]);
-}
-
-+ (id) sortDescriptorWithKey: (NSString*)key ascending: (BOOL)ascending selector: (SEL)theSelector;
-{
-  return AUTORELEASE([[NSSortDescriptor alloc] initWithKey: key ascending: ascending selector: theSelector]);
 }
 
 - (BOOL) ascending
@@ -130,6 +119,20 @@ static BOOL     initialized = NO;
   const char	*sel = sel_getName(_selector);
 
   return _ascending + GSPrivateHash(0, sel, strlen(sel)) + [_key hash];
+}
+
++ (id) sortDescriptorWithKey: (NSString *)aKey ascending: (BOOL)ascending
+{
+	return AUTORELEASE([[self alloc] initWithKey: aKey ascending: ascending]);
+}
+
++ (id) sortDescriptorWithKey: (NSString *)aKey 
+                   ascending: (BOOL)ascending 
+                    selector: (SEL)aSelector
+{
+	return AUTORELEASE([[self alloc] initWithKey: aKey 
+	                                   ascending: ascending 
+	                                    selector: aSelector]);
 }
 
 - (id) initWithKey: (NSString *) key ascending: (BOOL) ascending
@@ -460,3 +463,13 @@ SortRange(id *objects, NSRange range, id *descriptors,
 }
 
 @end
+
+@implementation NSSet (NSSortDescriptorSorting) 
+
+- (NSArray *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors
+{
+	return [[self allObjects] sortedArrayUsingDescriptors: sortDescriptors];
+}
+
+@end
+

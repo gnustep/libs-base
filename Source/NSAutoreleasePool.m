@@ -790,6 +790,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   /* Now free the memory (we have finished usingthe pool).
    */
   pool = tv->current_pool;
+  tv->current_pool = nil;
   while (pool)
     {
       NSAutoreleasePool *p = pool->_parent;

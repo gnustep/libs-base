@@ -435,7 +435,7 @@
       if (_nextTarget == nil)
 	{
 	  [NSException raise: NSInternalInconsistencyException
-		      format: @"forwardInvocation without perparation"];
+		      format: @"forwardInvocation without preparation"];
 	}
       if (_group == nil)
 	{
@@ -695,7 +695,7 @@
 	  return [NSString stringWithFormat: @"%@ %@", _(@"Redo"), actionName];
 	}
     }
-  return actionName;
+  return _(@"Redo");
 }
 
 /**
@@ -745,6 +745,9 @@
 	}
       g = _group;
       sig = [target methodSignatureForSelector: aSelector];
+      NSAssert2(sig,@"No methodSignatureForSelector:%@ for target of class %@",
+		NSStringFromSelector(aSelector),
+		[target class]);
       inv = [NSInvocation invocationWithMethodSignature: sig];
       [inv retainArgumentsIncludingTarget: NO];
       [inv setTarget: target];
@@ -944,7 +947,15 @@
     {
       return nil;
     }
+
+  if (_group != nil)
+    {
+      return [_group actionName];
+    }
+  else
+    {
   return [[_undoStack lastObject] actionName];
+}
 }
 
 /**
@@ -975,7 +986,7 @@
 	  return [NSString stringWithFormat: @"%@ %@", _(@"Undo"), actionName];
 	}
     }
-  return actionName;
+  return _(@"Undo");
 }
 
 /**

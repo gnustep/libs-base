@@ -1,5 +1,5 @@
 /* Interface for NSArray for GNUStep
-   Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+   Copyright (C) 1995-2015 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: 1995
@@ -105,6 +105,9 @@ typedef NSUInteger NSBinarySearchingOptions;
 - (id) initWithObjects: (const id[])objects
                  count: (NSUInteger)count;
 - (id) lastObject;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+- (id) firstObject;
+#endif
 
 /** <override-subclass />
  * Returns the object at the specified index.

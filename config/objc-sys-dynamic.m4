@@ -13,12 +13,12 @@ AC_REQUIRE([OBJC_CON_AUTOLOAD])dnl
 #		in objc-load.c (i.e. #include "${DYNAMIC_LINKER}-load.h")
 #--------------------------------------------------------------------
 DYNAMIC_LINKER=null
-AC_CHECK_HEADER(dlfcn.h, DYNAMIC_LINKER=simple)
+AC_CHECK_HEADER(windows.h, DYNAMIC_LINKER=win32)
 if test $DYNAMIC_LINKER = null; then
-  AC_CHECK_HEADER(dl.h, DYNAMIC_LINKER=hpux)
+AC_CHECK_HEADER(dlfcn.h, DYNAMIC_LINKER=simple)
 fi
 if test $DYNAMIC_LINKER = null; then
-  AC_CHECK_HEADER(windows.h, DYNAMIC_LINKER=win32)
+  AC_CHECK_HEADER(dl.h, DYNAMIC_LINKER=hpux)
 fi
 if test $DYNAMIC_LINKER = null; then
   AC_CHECK_HEADER(dld/defs.h, DYNAMIC_LINKER=dld)

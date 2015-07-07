@@ -63,6 +63,7 @@
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSBundle.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSProcessInfo.h"
@@ -199,6 +200,8 @@ static NSString *gnustepUserDocumentation = nil;
 static NSString *gnustepUserDocumentationInfo = nil;
 static NSString *gnustepUserDocumentationMan = nil;
 
+static NSString	*gnustepDeveloperDir = nil;
+
 /* These are the same as the corresponding User variables, but
  * they hold the path before GNUSTEP_HOME is prepended.  It's what
  * we read from config files.
@@ -222,6 +225,9 @@ static BOOL ParseConfigurationFile(NSString *name, NSMutableDictionary *dict,
 
 static void InitialisePathUtilities(void);
 static void ShutdownPathUtilities(void);
+
+@interface GSPathUtilities : NSObject
+@end
 
 /* Conditionally assign an object from a dictionary to var
  * We don't need to retain val before releasing var, because we
@@ -392,7 +398,7 @@ getPathConfig(NSDictionary *dict, NSString *key)
 	  NSLog(@"GNUstep configuration file entry '%@' ('%@') is not "
 	    @"an absolute path.  Please fix your configuration file",
 	    key, [dict objectForKey: key]);
-#if	defined(__MINGW32_)
+#if	defined(__MINGW_)
 	  if ([path length] > 2)
 	    {
 	      unichar	buf[3];
@@ -428,6 +434,9 @@ static void ExtractValuesFromConfig(NSDictionary *config)
 
   ASSIGN_PATH(gnustepMakefiles, c,
     @"GNUSTEP_MAKEFILES");
+
+  ASSIGN_PATH(gnustepDeveloperDir, c,
+    @"GNUSTEP_DEVELOPER_DIR");
 
   ASSIGN_PATH(gnustepSystemUsersDir, c,
     @"GNUSTEP_SYSTEM_USERS_DIR");
@@ -574,7 +583,7 @@ static void ExtractValuesFromConfig(NSDictionary *config)
     }
   [c removeObjectForKey: @"GNUSTEP_SYSTEM_DEFAULTS_FILE"];
 
-  /* If GNUSTEP_CREATE_DIRECTORIES is YES then we should ensure that the
+  /* If GNUSTEP_CREATE_LIBRARY_PATH is YES then we should ensure that the
    * per-user directory and the Library subdirectory exist so resources
    * can safely be stored in them.
    */
@@ -894,10 +903,16 @@ NSMutableDictionary*
 GNUstepConfig(NSDictionary *newConfig)
 {
   static NSDictionary	*config = nil;
+  static BOOL beenHere = NO;
   NSMutableDictionary	*conf = nil;
   BOOL			changedSystemConfig = NO;
 
   [gnustep_global_lock lock];
+  if (NO == beenHere)
+    {
+      beenHere = YES;
+      [[NSObject leakAt: &config] release];
+    }
   if (config == nil || (newConfig != nil && [config isEqual: newConfig] == NO))
     {
       NS_DURING
@@ -969,7 +984,7 @@ GNUstepConfig(NSDictionary *newConfig)
 			@"an absolute path.  Please rebuild GNUstep-base "
 			@"specifying a valid path to the config file.", file);
 		    }
-#if	defined(__MINGW32_)
+#if	defined(__MINGW_)
 		  if ([file length] > 2)
 		    {
 		      unichar	buf[3];
@@ -1124,8 +1139,18 @@ static void InitialisePathUtilities(void)
   NS_DURING
     {
       NSMutableDictionary	*config;
+      static BOOL               beenHere = NO;
 
       [gnustep_global_lock lock];
+      if (NO == beenHere)
+        {
+          beenHere = YES;
+          if (YES == [NSObject shouldCleanUp])
+            {
+              // Get path utilities shutdown called at process exit.
+              [GSPathUtilities class];
+            }
+        }
       ASSIGNCOPY(uninstalled, [[[NSProcessInfo processInfo] environment]
 	objectForKey: @"GNUSTEP_UNINSTALLED_LIBRARY_DIRECTORY"]);
       gnustepUserName = [NSUserName() copy];
@@ -1233,6 +1258,8 @@ static void ShutdownPathUtilities(void)
   DESTROY(gnustepLocalDocumentation);
   DESTROY(gnustepLocalDocumentationMan);
   DESTROY(gnustepLocalDocumentationInfo);
+
+  DESTROY(gnustepDeveloperDir);
 
   DESTROY(gnustepUserApps);
   DESTROY(gnustepUserAdminApps);
@@ -1942,6 +1969,7 @@ NSTemporaryDirectory(void)
 	  if (baseTempDirName == nil)
 	    {
 #if	defined(__CYGWIN__)
+#warning Basing temporary directory in /cygdrive/c; any reason?
 	      baseTempDirName = @"/cygdrive/c/";
 #elif	defined(__MINGW__)
 	      baseTempDirName = @"C:\\";
@@ -1982,7 +2010,9 @@ NSTemporaryDirectory(void)
   perm = perm & 0777;
 
 // Mateu Batle: secure temporary directories don't work in MinGW
-#ifndef __MINGW__
+// Ivan Vucica: there are also problems with Cygwin
+//              probable cause: http://stackoverflow.com/q/9561759/39974
+#if !defined(__MINGW__) && !defined(__CYGWIN__)
 
 #if	defined(__MINGW__)
   uid = owner;
@@ -2067,6 +2097,56 @@ NSOpenStepRootDirectory(void)
 #endif
   return root;
 }
+
+#if	defined(__MINGW__)
+/* The developer root on a windows system (where we have an msys environment
+ * set up) is the point in the filesystem where we can reference make.exe via
+ * msys/.../bin/.  That is, it's the windows path at which msys is installed.
+ */
+static NSString*
+devroot(NSFileManager *manager, NSString *path)
+{
+  NSString      *tmp = @"";
+
+  while (NO == [tmp isEqual: path])
+    {
+      NSString	*pb;
+      NSString	*msys;
+      BOOL 	isDir;
+
+      msys = [path stringByAppendingPathComponent: @"msys"];
+      if (YES == [manager fileExistsAtPath: msys isDirectory: &isDir]
+	&& YES == isDir)
+	{
+	  NSEnumerator  *e;
+	  NSString      *file;
+
+	  e = [[manager directoryContentsAtPath: msys] objectEnumerator];
+	  while (nil != (file = [e nextObject]))
+	    {
+	      if (isdigit([file characterAtIndex: 0]))
+		{
+		  float 	v = atof([file UTF8String]);
+
+		  if (v <= 0)
+		    {
+		      continue;
+		    }
+		  file = [msys stringByAppendingPathComponent: file];
+		  pb = [file stringByAppendingPathComponent: @"bin/make.exe"];
+		  if ([manager isExecutableFileAtPath: pb])
+		    {
+		      return path;
+		    }
+		}
+	    }
+	}
+      tmp = path;
+      path = [tmp stringByDeletingLastPathComponent];
+    }
+  return nil;
+}
+#endif
 
 NSArray *
 NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
@@ -2163,21 +2243,12 @@ if (domainMask & mask) \
 
       case NSDeveloperApplicationDirectory:
 	{
+	  /* Deprecated key ... for now just point to normal apps.
+	   */
 	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepUserApps);
 	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepLocalApps);
 	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepNetworkApps);
 	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepSystemApps);
-
-	  /* I imagine if ever wanted a separate Developer directory, the
-	   * only way for this to have some meaning across filesystems
-	   * would be as a subdirectory of Applications, as follows.
-	   */
-	  /*
-	    ADD_PATH(NSUserDomainMask, gnustepUserApps, @"Developer");
-	    ADD_PATH(NSLocalDomainMask, gnustepLocalApps, @"Developer");
-	    ADD_PATH(NSNetworkDomainMask, gnustepNetworkApps, @"Developer");
-	    ADD_PATH(NSSystemDomainMask, gnustepSystemApps, @"Developer");
-	  */
 	}
 	break;
 
@@ -2216,13 +2287,117 @@ if (domainMask & mask) \
 
       case NSDeveloperDirectory:
 	{
-	  /* The only way of having a Developer directory is as a
-	   * sub-dir of Library.
+#if	defined(__MINGW__)
+          if (nil == gnustepDeveloperDir)
+            {
+              NSString          *path = nil;
+	      NSString		*bpath = nil;
+	      NSString		*ipath = nil;
+	      NSString		*mpath = nil;
+              NSFileManager	*mgr;
+
+              mgr = [NSFileManager defaultManager];
+
+              /* See if we can find the developer root above the
+               * system tools directory of the current running process.
 	   */
-	  ADD_PATH(NSUserDomainMask, gnustepUserLibrary, @"Developer");
-	  ADD_PATH(NSLocalDomainMask, gnustepLocalLibrary, @"Developer");
-	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibrary, @"Developer");
-	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary, @"Developer");
+	      path = devroot(mgr, gnustepSystemTools);
+
+	      /* Failing that, try looking above the base library.
+	       */
+	      if (nil == path)
+		{
+		  NSBundle	*baseBundle;
+
+		  baseBundle = [NSBundle bundleForLibrary: @"gnustep-base"];
+		  bpath = [baseBundle bundlePath];
+		  path = devroot(mgr, bpath);
+	}
+
+              /* If we havent found the developer area relative to the
+	       * hierarchy used by the current process, look for the
+	       * GNUstep package installation root in case we have the
+	       * developer environment installed from a package.
+               */
+              if (nil == path)
+                {
+                  HKEY	regKey;
+                  BOOL	found = NO;
+
+                  /* Open the key for the current user or local machine where
+                   * the installation path for the GNUstep package is stored.
+                   */
+                  if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_CURRENT_USER,
+L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
+                    0,
+                    KEY_READ,
+                    &regKey))
+                    {
+                      found = YES;
+                    }
+                  else
+                    {
+                      if (ERROR_SUCCESS == RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
+                        0,
+                        KEY_READ,
+                        &regKey))
+                        {
+                          found = YES;
+                        }
+                    }
+                  if (found)
+                    {
+                      wchar_t       buf[1024];
+                      DWORD         bufsize;
+                      DWORD         type;
+
+                      bufsize = sizeof(buf);
+                      if (ERROR_SUCCESS == RegQueryValueExW(regKey,
+                        0, 0, &type, (BYTE *)buf, &bufsize))
+                        {
+                          ipath = [NSString stringWithCharacters: buf
+                            length: wcslen(buf)];
+
+			  path = devroot(mgr, ipath);
+                        }
+                      RegCloseKey(regKey);
+                    }
+                }
+              if (nil == path)
+                {
+		  mpath = [NSBundle _absolutePathOfExecutable: @"make.exe"];
+		  if (nil != mpath)
+		    {
+		      path = devroot(mgr, mpath);
+		    }
+		}
+              ASSIGNCOPY(gnustepDeveloperDir, path);
+	      if (nil == gnustepDeveloperDir)
+		{
+	          NSLog(@"Failed to locate NSDeveloperDirectory by GNUstep configuration, installed GNUstep package, or process PATH.");
+
+		}
+            }
+#endif
+	  if (nil == gnustepDeveloperDir)
+	    {
+	      gnustepDeveloperDir = RETAIN(NSOpenStepRootDirectory());
+	    }
+
+	  /* The Developer directory is deprecated on OSX, but for GNUstep
+	   * specific apps we return the root of the system containing the
+	   * development environment.  On most systems, that's the root
+	   * directory, but on windows it can be anywhere the user has put it.
+	   * If not explicitly defined, or found relative to the hierarchy
+	   * of the running process, *with the GNUstep package installed it's
+	   * the location of the msys filesystem within the GNUstep package
+	   * installation.
+	   */
+	  ADD_PLATFORM_PATH(NSUserDomainMask, gnustepDeveloperDir);
+	  ADD_PLATFORM_PATH(NSLocalDomainMask, gnustepDeveloperDir);
+	  ADD_PLATFORM_PATH(NSNetworkDomainMask, gnustepDeveloperDir);
+	  ADD_PLATFORM_PATH(NSSystemDomainMask, gnustepDeveloperDir);
 	}
 	break;
 
@@ -2467,3 +2642,14 @@ if (domainMask & mask) \
 
   return paths;
 }
+
+@implementation GSPathUtilities
++ (void) atExit
+{
+  ShutdownPathUtilities();
+}
++ (void) initialize
+{
+  [self registerAtExit];
+}
+@end

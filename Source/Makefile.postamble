@@ -1,4 +1,4 @@
-#
+#  -*-makefile-gmake-*-
 #  Makefile.postamble
 #
 #  Copyright (C) 1997 Free Software Foundation, Inc.
@@ -102,18 +102,16 @@ before-uninstall::
 
 # Things to do after cleaning
 after-clean::
-	rm -f libgnustep-base.def
+	rm -f libgnustep-base.def Info-gnustep.plist
 
 # Things to do before distcleaning
 # before-distclean::
 
 # Things to do after distcleaning
 after-distclean::
-	rm -f mframe/mframe.h Foundation \
-		NSNumber[0-9]*.m GSValue[0-9]*.m
+	rm -f $(GNUSTEP_TARGET_DIR)/dynamic-load.h
+	rm -f $(GNUSTEP_TARGET_DIR)/config.h
 	rm -rf $(GNUSTEP_TARGET_DIR)/GNUstepBase
-	rm -rf $(GNUSTEP_TARGET_DIR)/mframe.h
-	rm -rf $(GNUSTEP_TARGET_DIR)/mframe.h
 	rm -rf $(GNUSTEP_TARGET_CPU)
 
 # Things to do before checking
@@ -138,11 +136,6 @@ $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_DIR)/GNUstepBase
 	-mv $(HEADER_DIR_BASE)/GSConfig.h $(GNUSTEP_TARGET_DIR)/GNUstepBase
 	-touch $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
-
-$(GNUSTEP_TARGET_DIR)/mframe.h: mframe/config.status
-	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
-	-mv mframe/mframe.h $(GNUSTEP_TARGET_DIR)
-	-touch $(GNUSTEP_TARGET_DIR)/mframe.h
 
 ifneq ($(GNUSTEP_TARGET_DIR),.)
 $(GNUSTEP_TARGET_DIR)/common.h: common.h

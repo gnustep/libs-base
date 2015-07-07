@@ -51,7 +51,6 @@
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSUserDefaults.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "GSPrivate.h"
 
@@ -1147,7 +1146,11 @@ typedef GSString	*ivars;
 }
 - (BOOL) scanInteger: (NSInteger *)value
 {
-  return NO;    // FIXME
+#if GS_SIZEOF_VOIDP == GS_SIZEOF_INT
+  return [self scanInt: (int *)value];
+#else
+  return [self scanLongLong: (long long *)value];
+#endif
 }
 @end
 
@@ -1218,9 +1221,12 @@ GSScanInt(unichar *buf, unsigned length, int *result)
 /* Table of binary powers of 10 represented by bits in a byte.
  * Used to convert decimal integer exponents to doubles.
  */
+// Testplant-MAL-2015-07-07: omitting main branch changes...
+#if 0
 static double powersOf10[] = {
   1.0e1, 1.0e2, 1.0e4, 1.0e8, 1.0e16, 1.0e32, 1.0e64, 1.0e128, 1.0e256
 };
+#endif
 
 /**
  * Scan in a double value in the standard locale ('.' as decimal point).<br />
@@ -1231,10 +1237,11 @@ static double powersOf10[] = {
 BOOL
 GSScanDouble(unichar *buf, unsigned length, double *result)
 {
+  // Testplant-MAL-2015-07-07: keeping testplant branch changes...
   NSString *string = [[NSString alloc] initWithCharactersNoCopy:buf length:length freeWhenDone:NO];
   NSScanner *scanner = [[NSScanner alloc] initWithString:string];
   BOOL success = [scanner scanDouble:result];
-  [scanner release];
-  [string release];
+  RELEASE(scanner);
+  RELEASE(string);
   return success;
 }

@@ -33,7 +33,6 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSUserDefaults.h"
 #import "GSPortPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 
 /**

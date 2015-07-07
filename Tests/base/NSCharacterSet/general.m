@@ -8,6 +8,7 @@ int main()
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSCharacterSet *theSet,*iSet;
   NSData *data1 = nil;
+  unichar ch;
   theSet = [NSCharacterSet alphanumericCharacterSet];
   PASS([theSet characterIsMember:'A'] &&
        [theSet characterIsMember:'Z'] &&
@@ -45,6 +46,8 @@ int main()
        [theSet characterIsMember:'\t'],
        "Check some characters from whitespaceAndNewlineCharacterSet");
   
+  PASS([theSet characterIsMember: 0x00A0], "a non-break-space is whitespace");
+
   data1 = [theSet bitmapRepresentation];
   PASS(data1 != nil && [data1 isKindOfClass:[NSData class]],
        "-bitmapRepresentation works");

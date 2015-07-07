@@ -22,8 +22,6 @@
    Boston, MA 02111 USA.
    */
 
-#define	_FILE_OFFSET_BITS 64
-
 #import "common.h"
 #define	EXPOSE_NSFileHandle_IVARS	1
 #define	EXPOSE_GSFileHandle_IVARS	1
@@ -40,7 +38,6 @@
 #import "Foundation/NSUserDefaults.h"
 #import "GSPrivate.h"
 #import "GSNetwork.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSFileHandle.h"
 
 #import "../Tools/gdomap.h"
@@ -96,12 +93,163 @@
 #endif
 
 // Maximum data in single I/O operation
-#define	NETBUF_SIZE	4096
+#define	NETBUF_SIZE	(1024 * 16)
 #define	READ_SIZE	NETBUF_SIZE*10
 
 static GSFileHandle*	fh_stdin = nil;
 static GSFileHandle*	fh_stdout = nil;
 static GSFileHandle*	fh_stderr = nil;
+
+@interface      GSTcpTune : NSObject
+- (int) delay;
+- (int) recvSize;
+- (int) sendSize: (int)bytesToSend;
+- (void) tune: (void*)handle;
+@end
+
+@implementation GSTcpTune
+
+static int      tuneDelay = 0;
+static int      tuneLinger = -1;
+static int      tuneReceive = 0;
+static BOOL     tuneSendAll = NO;
+static int	tuneRBuf = 0;
+static int	tuneSBuf = 0;
+
++ (void) defaultsChanged: (NSNotification*)n
+{
+  NSUserDefaults        *defs = (NSUserDefaults*)[n object];
+  NSString              *str;
+
+  if (nil == defs)
+    {
+      defs = [NSUserDefaults standardUserDefaults];
+    }
+  str = [defs stringForKey: @"GSTcpLinger"];
+  if (nil == str)
+    {
+      tuneLinger = -1;
+    }
+  else
+    {
+      tuneLinger = [str intValue];
+    }
+  tuneRBuf = (int)[defs integerForKey: @"GSTcpRcvBuf"];
+  tuneSBuf = (int)[defs integerForKey: @"GSTcpSndBuf"];
+  tuneReceive = (int)[defs integerForKey: @"GSTcpReceive"];
+  tuneSendAll = [defs boolForKey: @"GSTcpSendAll"];
+  tuneDelay = [defs boolForKey: @"GSTcpDelay"];
+}
+
++ (void) initialize
+{
+  static BOOL   beenHere = NO;
+
+  if (NO == beenHere)
+    {
+      NSNotificationCenter      *nc;
+      NSUserDefaults	        *defs;
+
+      beenHere = YES;
+      nc = [NSNotificationCenter defaultCenter];
+      defs = [NSUserDefaults standardUserDefaults];
+      [nc addObserver: self
+             selector: @selector(defaultsChanged:)
+                 name: NSUserDefaultsDidChangeNotification
+               object: defs];
+      [self defaultsChanged: nil];
+    }
+}
+
+- (int) delay
+{
+  return tuneDelay;             // Milliseconds to delay close
+}
+
+- (int) recvSize
+{
+  if (tuneReceive > 0)
+    {
+      return tuneReceive;       // Return receive buffer size
+    }
+  if (tuneRBuf > 0)
+    {
+      return tuneRBuf;          // Return socket receive buffer size
+    }
+  return READ_SIZE;             // Return hard-coded default
+}
+
+- (int) sendSize: (int)bytesToSend
+{
+  if (YES == tuneSendAll)
+    {
+      return bytesToSend;       // Try to send all in one go
+    }
+  if (tuneSBuf > 0 && tuneSBuf <= bytesToSend)
+    {
+      return tuneSBuf;          // Limit to socket send buffer
+    }
+  if (NETBUF_SIZE <= bytesToSend)
+    {
+      return NETBUF_SIZE;       // Limit to hard coded default
+    }
+  return bytesToSend;
+}
+
+- (void) tune: (void*)handle
+{
+  int   desc = (int)(intptr_t)handle;
+  int   value;
+
+  /*
+   * Enable tcp-level tracking of whether connection is alive.
+   */
+  value = 1;
+  setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char *)&value, sizeof(value));
+
+  if (tuneLinger >= 0)
+    {
+      struct linger     l;
+
+      l.l_onoff = 1;
+      l.l_linger = tuneLinger;
+      if (setsockopt(desc, SOL_SOCKET, SO_LINGER, (char *)&l, sizeof(l)) < 0)
+        {
+          NSLog(@"Failed to set GSTcpLinger %d: %@",
+            tuneLinger, [NSError _last]);
+        }
+    }
+  
+  if (tuneRBuf > 0)
+    {
+      /* Set the receive buffer for the socket.
+       */
+      if (setsockopt(desc, SOL_SOCKET, SO_RCVBUF,
+        (char *)&tuneRBuf, sizeof(tuneRBuf)) < 0)
+        {
+          NSLog(@"Failed to set GSTcpRcvBuf %d: %@", tuneRBuf, [NSError _last]);
+        }
+      else
+        {
+	  NSDebugMLLog(@"GSTcpTune", @"Set GSTcpRcvBuf %d", tuneRBuf);
+        }
+    }
+  if (tuneSBuf > 0)
+    {
+      /* Set the send buffer for the socket.
+       */
+      if (setsockopt(desc, SOL_SOCKET, SO_SNDBUF,
+        (char *)&tuneSBuf, sizeof(tuneSBuf)) < 0)
+        {
+          NSLog(@"Failed to set GSTcpSndBuf %d: %@", tuneSBuf, [NSError _last]);
+        }
+      else
+        {
+	  NSDebugMLLog(@"GSTcpTune", @"Set GSTcpSndBuf %d", tuneSBuf);
+        }
+    }
+}
+@end
 
 // Key to info dictionary for operation mode.
 static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
@@ -112,6 +260,16 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 @end
 
 @implementation GSFileHandle
+
+static GSTcpTune        *tune = nil;
+
++ (void) initialize
+{
+  if (nil == tune)
+    {
+      tune = [GSTcpTune new];
+    }
+}
 
 /**
  * Encapsulates low level read operation to get data from the operating
@@ -180,6 +338,24 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
 - (void) dealloc
 {
+  if (self == fh_stdin)
+    {
+      RETAIN(self);
+      [NSException raise: NSGenericException
+                  format: @"Attempt to deallocate standard input handle"];
+    }
+  if (self == fh_stdout)
+    {
+      RETAIN(self);
+      [NSException raise: NSGenericException
+                  format: @"Attempt to deallocate standard output handle"];
+    }
+  if (self == fh_stderr)
+    {
+      RETAIN(self);
+      [NSException raise: NSGenericException
+                  format: @"Attempt to deallocate standard error handle"];
+    }
   DESTROY(address);
   DESTROY(service);
   DESTROY(protocol);
@@ -193,16 +369,15 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
 - (void) finalize
 {
-  if (self == fh_stdin)
-    fh_stdin = nil;
-  if (self == fh_stdout)
-    fh_stdout = nil;
-  if (self == fh_stderr)
-    fh_stderr = nil;
-
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
 
+  if (closeOnDealloc == YES && descriptor != -1)
+    {
+      [self closeFile];
+    }
+  else
+    {
 #if	USE_ZLIB
   /*
    * The gzDescriptor should always be closed when we have done with it.
@@ -216,10 +391,6 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
   if (descriptor != -1)
     {
       [self setNonBlocking: wasNonBlocking];
-      if (closeOnDealloc == YES)
-	{
-	  close(descriptor);
-	  descriptor = -1;
 	}
     }
 }
@@ -605,7 +776,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   NSString		*lhost = nil;
   NSString		*shost = nil;
   NSString		*sport = nil;
-  int			status;
 
   if (beenHere == NO)
     {
@@ -738,11 +908,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       DESTROY(self);
       return nil;
     }
-  /*
-   * Enable tcp-level tracking of whether connection is alive.
-   */
-  status = 1;
-  setsockopt(net, SOL_SOCKET, SO_KEEPALIVE, (char *)&status, sizeof(status));
+
+  [tune tune: (void*)(intptr_t)net];
 
   if (lhost != nil)
     {
@@ -965,7 +1132,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       self = [self initWithFileDescriptor: 2 closeOnDealloc: NO];
-      fh_stderr = self;
+      ASSIGN(fh_stderr, self);
       if (self)
 	{
 	  readOK = NO;
@@ -983,7 +1150,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       self = [self initWithFileDescriptor: 0 closeOnDealloc: NO];
-      fh_stdin = self;
+      ASSIGN(fh_stdin, self);
       if (self)
 	{
 	  writeOK = NO;
@@ -1001,7 +1168,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       self = [self initWithFileDescriptor: 1 closeOnDealloc: NO];
-      fh_stdout = self;
+      ASSIGN(fh_stdout, self);
       if (self)
 	{
 	  readOK = NO;
@@ -1211,7 +1378,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (NSData*) availableData
 {
-  char			buf[READ_SIZE];
+  int			rmax = [tune recvSize];
+  char			buf[rmax];
   NSMutableData*	d;
   int			len;
 
@@ -1280,7 +1448,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (NSData*) readDataToEndOfFile
 {
-  char			buf[READ_SIZE];
+  int			rmax = [tune recvSize];
+  char			buf[rmax];
   NSMutableData*	d;
   int			len;
 
@@ -1307,7 +1476,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   NSMutableData	*d;
   int		got;
-  char		buf[READ_SIZE];
+  int		rmax = [tune recvSize];
+  char		buf[rmax];
 
   [self checkRead];
   if (isNonBlocking == YES)
@@ -1315,7 +1485,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       [self setNonBlocking: NO];
     }
 
-  d = [NSMutableData dataWithCapacity: len < READ_SIZE ? len : READ_SIZE];
+  d = [NSMutableData dataWithCapacity: len < sizeof(buf) ? len : sizeof(buf)];
   do
     {
       int	chunk = len > sizeof(buf) ? sizeof(buf) : len;
@@ -1354,10 +1524,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       int	toWrite = len - pos;
 
-      if (toWrite > NETBUF_SIZE)
-	{
-	  toWrite = NETBUF_SIZE;
-	}
+      toWrite = [tune sendSize: toWrite];
       rval = [self write: (char*)ptr+pos length: toWrite];
       if (rval < 0)
 	{
@@ -1547,7 +1714,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
 
-  [self setNonBlocking: wasNonBlocking];
+  [self setNonBlocking: NO];
 #if	USE_ZLIB
   if (gzDescriptor != 0)
     {
@@ -1555,6 +1722,42 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       gzDescriptor = 0;
     }
 #endif
+  if (YES == isSocket)
+    {
+      int       milli = [tune delay];
+
+      shutdown(descriptor, SHUT_WR);
+      if (milli > 0)
+        {
+          NSTimeInterval        until;
+
+          until = [NSDate timeIntervalSinceReferenceDate];
+          until += ((double)milli) / 1000.0;
+
+          [self setNonBlocking: YES];
+          while ([NSDate timeIntervalSinceReferenceDate] < until)
+            {
+              int       result;
+              char      buffer[4096];
+
+              result = read(descriptor, buffer, sizeof(buffer));
+              if (result <= 0)
+                {
+                  if (result < 0)
+                    {
+                      if (EAGAIN == errno || EINTR == errno)
+                        {
+                          continue;
+                        }
+                      NSLog(@"%@ read fail on socket shutdown: %@",
+                        self, [NSError _last]);
+                    }
+                  break;
+                }
+            }
+          [self setNonBlocking: YES];
+        }
+    }
   (void)close(descriptor);
   descriptor = -1;
   acceptOK = NO;
@@ -1874,14 +2077,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  GSFileHandle		*h;
 	  struct sockaddr	sin;
 	  unsigned int		size = sizeof(sin);
-	  int			status;
 
-	  /*
-	   * Enable tcp-level tracking of whether connection is alive.
-	   */
-	  status = 1;
-	  setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char *)&status,
-	    sizeof(status));
+          [tune tune: (void*)(intptr_t)desc];
 
 	  h = [[[self class] alloc] initWithFileDescriptor: desc
 						closeOnDealloc: YES];
@@ -1903,7 +2100,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       NSMutableData	*item;
       int		length;
       int		received = 0;
-      char		buf[READ_SIZE];
+      int		rmax = [tune recvSize];
+      char		buf[rmax];
 
       item = [readInfo objectForKey: NSFileHandleNotificationDataItem];
       /*

@@ -206,9 +206,17 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
   int		l;
   unsigned int	len = 1;
 
+  if (NO == rel->hasNoPath)
+    {
+      len += 1;                         // trailing '/' to be added
+    }
   if (rel->scheme != 0)
     {
       len += strlen(rel->scheme) + 3;	// scheme://
+    }
+  else if (YES == rel->isGeneric)
+    {
+      len += 2;                         // need '//' even if no scheme
     }
   if (rel->user != 0)
     {
@@ -612,6 +620,7 @@ static NSUInteger	urlAlign;
   return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath]);
 }
 
+// Testplant-MAL-2015-07-07: keeping testplant branch changes...
 + (id) fileURLWithPath: (NSString*)aPath isDirectory: (BOOL) isDir
 {
   return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath isDirectory: isDir]);
@@ -628,6 +637,7 @@ static NSUInteger	urlAlign;
     {
       NSGetSizeAndAlignment(@encode(parsedURL), &urlAlign, 0);
       clientsLock = [NSLock new];
+      [[NSObject leakAt: &clientsLock] release];
     }
 }
 

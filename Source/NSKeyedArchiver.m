@@ -30,7 +30,6 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSValue.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "GSPrivate.h"
 
@@ -505,6 +504,7 @@ static NSDictionary *makeReference(unsigned ref)
       globalClassMap =
 	NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 			  NSObjectMapValueCallBacks, 0);
+      [[NSObject leakAt: &globalClassMap] release];
     }
 }
 
@@ -752,12 +752,12 @@ static NSDictionary *makeReference(unsigned ref)
 	return;
 
       case _C_INT:
-	o = [NSNumber numberWithInt: *(NSInteger*)address];
+	o = [NSNumber numberWithInt: *(int*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 
       case _C_UINT:
-	o = [NSNumber numberWithUnsignedInt: *(NSUInteger*)address];
+	o = [NSNumber numberWithUnsignedInt: *(unsigned int*)address];
 	[_enc setObject: o forKey: aKey];
 	return;
 

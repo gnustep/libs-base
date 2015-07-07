@@ -185,7 +185,7 @@ static SEL	objSel;
 
 /* Designated initialiser */
 - (id) initWithObjects: (const id[])objs
-               forKeys: (const id[])keys
+               forKeys: (const id <NSCopying>[])keys
                  count: (NSUInteger)c
 {
   NSUInteger	i;
@@ -208,7 +208,7 @@ static SEL	objSel;
 		      format: @"Tried to init dictionary with nil value"];
 	}
 
-      node = GSIMapNodeForKey(&map, (GSIMapKey)keys[i]);
+      node = GSIMapNodeForKey(&map, (GSIMapKey)(id)keys[i]);
       if (node)
 	{
 	  IF_NO_GC(RETAIN(objs[i]));
@@ -217,7 +217,7 @@ static SEL	objSel;
 	}
       else
 	{
-	  GSIMapAddPair(&map, (GSIMapKey)keys[i], (GSIMapVal)objs[i]);
+	  GSIMapAddPair(&map, (GSIMapKey)(id)keys[i], (GSIMapVal)objs[i]);
 	}
     }
   return self;
@@ -543,3 +543,24 @@ static SEL	objSel;
 }
 @end
 
+@interface	GSCachedDictionary : GSDictionary
+{
+  BOOL  _uncached;
+}
+@end
+@implementation	GSCachedDictionary
+- (void) dealloc
+{
+  if (NO == _uncached)
+    {
+      [NSException raise: NSInternalInconsistencyException
+                  format: @"Deallocating attributes which are still cached"];
+    }
+  [super dealloc];
+}
+- (void) _uncache
+{
+  _uncached = YES;
+  RELEASE(self);
+}
+@end

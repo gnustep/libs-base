@@ -51,10 +51,12 @@
 
 @interface      OpFlag : NSOperation
 {
+  NSOperationQueue      *queue;
   NSThread      *thread;
   BOOL flag;
 }
 - (void) main;
+- (NSOperationQueue*) queue;
 - (BOOL) ran;
 - (NSThread*) thread;
 @end
@@ -63,7 +65,12 @@
 - (void) main
 {
   flag = YES;
+  queue = [NSOperationQueue currentQueue];
   thread = [NSThread currentThread];
+}
+- (NSOperationQueue*) queue
+{
+  return queue;
 }
 - (BOOL) ran
 {
@@ -132,6 +139,7 @@ int main()
   [obj start];
   PASS(([obj ran] == YES), "operation ran");
   PASS(([obj thread] == [NSThread currentThread]), "operation ran in this thread");
+  PASS(([obj queue] == [NSOperationQueue mainQueue]), "operation ran in main queue");
   [obj release];
 
   // Check that monitoring of another thread works.
@@ -176,11 +184,14 @@ int main()
 
   obj = [OpFlag new];
   q = [NSOperationQueue new];
+  PASS(q != [NSOperationQueue mainQueue], "my queue is not main queue");
+  PASS(q != [NSOperationQueue currentQueue], "my queue is not current queue");
   [cnt reset];
   [q addOperation: obj];
   [q waitUntilAllOperationsAreFinished];
   PASS(([obj ran] == YES), "operation ran");
   PASS(([obj thread] != [NSThread currentThread]), "operation ran in other thread");
+  PASS(([obj queue] == q), "operation ran in my queue");
 
   PASS(([cnt count] == 0), "thread did not exit immediately");
   [obj release];

@@ -185,9 +185,9 @@ static Class		messagePortClass = 0;
       messagePortClass = self;
       ports = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
-
+      [[NSObject leakAt: &ports] release];
       messagePortLock = [GSLazyRecursiveLock new];
-
+      [[NSObject leakAt: &messagePortLock] release];
       security.nLength = sizeof(SECURITY_ATTRIBUTES);
       security.lpSecurityDescriptor = 0;	// Default
       security.bInheritHandle = FALSE;
@@ -943,6 +943,7 @@ again:
   return sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader);
 }
 
+// Testplant-MAL-2015-07-07: keeping testplant branch code...
 #if defined(__clang__)
 - (oneway void) release
 #else

@@ -94,7 +94,7 @@ int main()
   data = [[data mutableCopy] autorelease];
   [(NSMutableData*)data appendBytes: "\r\n\r\n" length: 4];
   [parser parse: data];
-  doc = [parser document];
+  doc = [parser mimeDocument];
   PASS([[parser excess] length] == 5, "Can detect excess data in multipart");
   [parser release];
   
@@ -177,11 +177,39 @@ int main()
   data = [NSData dataWithContentsOfFile: @"mime10.dat"];
   idoc = exact(0, data);
   doc = [GSMimeParser documentFromData: data];
-  PASS([idoc isEqual: doc], "mime10.dat documents are the same");
+  PASS_EQUAL(idoc, doc, "mime10.dat documents are the same");
   data = [idoc rawMimeData];
   doc = [GSMimeParser documentFromData: data];
-  PASS([idoc isEqual: doc], "rawMimeData reproduces docuement");
+  PASS_EQUAL(idoc, doc, "rawMimeData reproduces document");
 
+  /* Test parse of a document containing encoded words in header.
+   * Use JavaMail encoded words (different format from those GSMime
+   * produces).
+   */
+  data = [NSData dataWithContentsOfFile: @"mime11.dat"];
+  idoc = exact(0, data);
+  doc = [GSMimeParser documentFromData: data];
+  PASS_EQUAL(idoc, doc, "mime11.dat documents are the same");
+  
+  /* Test a document with adjacent encoded words in headers, as
+   * produced by GSMime
+   */
+  data = [NSData dataWithContentsOfFile: @"mime12.dat"];
+  idoc = exact(0, data);
+  doc = [GSMimeDocument documentWithContent: @"hello"
+                                       type: @"text/plain"
+                                       name: nil];
+  [doc setHeader: @"MIME-Version" value: @"1.0" parameters: nil];
+  [doc setHeader: @"Subject"
+    value: @"Avant de partir, n'oubliez pas de préparer votre séjour à Paris"
+    parameters: nil];
+  PASS_EQUAL(idoc, doc, "mime12.dat same as internally generated content");
+  doc = [GSMimeParser documentFromData: data];
+  PASS_EQUAL(idoc, doc, "mime12.dat documents are the same");
+  data = [idoc rawMimeData];
+  doc = [GSMimeParser documentFromData: data];
+  PASS_EQUAL(idoc, doc, "rawMimeData reproduces document");
+  NSLog(@"Got %@", [doc rawMimeData]);
   
   [arp release]; arp = nil;
   return 0;

@@ -313,6 +313,7 @@ static NSMapTable	*globalClassMap = 0;
       globalClassMap =
 	NSCreateMapTable(NSObjectMapKeyCallBacks,
 			  NSNonOwnedPointerMapValueCallBacks, 0);
+      [[NSObject leakAt: &globalClassMap] release];
     }
 }
 

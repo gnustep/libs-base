@@ -149,13 +149,24 @@ notice and this notice are preserved.
 		event log.
 	      </p>
 	    </desc>
+	    <term>GSLogOffset</term>
+	    <desc>
+	      <p>
+		Setting the user default <code>GSLogOffset</code> to
+		<code>YES</code> will cause NSLog and debug output to
+		include the current time zone offset in the timestamp
+		of the logged message.<br />
+		This is useful when comparing logs from machines in
+		different countries.
+	      </p>
+	    </desc>
 	    <term>GSLogThread</term>
 	    <desc>
 	      <p>
 		Setting the user default <code>GSLogThread</code> to
 		<code>YES</code> will cause NSLog and debug output to
-		include the current thread in the logged message.<br />
-		This is useful for debugging multi-threaded applications.
+		include the current thread name in the logged message.<br />
+		This may be useful for debugging multi-threaded applications.
 	      </p>
 	    </desc>
 	    <term>GSMacOSXCompatible</term>
@@ -416,13 +427,16 @@ notice and this notice are preserved.
 	    <term>HOMEDRIVE</term>
 	    <desc>
 	      <p>
-		Used on ms-windows to locate the home directory.
+		Used on ms-windows to locate the home directory if the
+		HOMEPATH environment variable is also used.
 	      </p>
 	    </desc>
 	    <term>HOMEPATH</term>
 	    <desc>
 	      <p>
-		Used on ms-windows to locate the home directory.
+		Used on ms-windows to locate the home directoryb in
+		conjunction with HOMEDRIVE.  If this is just a backslash
+		then the USERPROFILE variable is used if possible.
 	      </p>
 	    </desc>
             <term>LANGUAGES</term>
@@ -469,10 +483,12 @@ notice and this notice are preserved.
 	        the object to be morphed into a Zombie ... a special object
 		which will call the GNUstep specific GSLogZombie() function
 		to log the method call.<br />
-		You can set a breakpoint in this function and examine the
-		process memory if you are running under a debugger.<br />
+		If GNUstep-base was built for debugging (make debug=yes),
+                you can set a breakpoint in this function and examine the
+		process memory when you are running under a debugger.<br />
 		As this overrides actual object deallocation, all memory
-		allocated for objects will be leaked!<br />
+		allocated for objects will be leaked unless the
+                NSDeallocateZombies environment variable is also set.<br />
 		You can use the <code>CRASH_ON_ZOMBIE</code> environment
 		variable to force an abort after the message is logged.
 	      </p>
@@ -506,6 +522,15 @@ notice and this notice are preserved.
 	      </p>
 	    </desc>
 
+	    <term>USERPROFILE</term>
+	    <desc>
+	      <p>
+		Used on windows to identify the home directory of the
+		current used (unless HOMEPATH and HOMEDRIVE are set to
+		point to an individual user's home).
+	      </p>
+	    </desc>
+
 	  </deflist>
 	</subsect>
 
@@ -519,7 +544,10 @@ notice and this notice are preserved.
 	    configured and/or what operating system it was configured on.
 	    On a GNU/Linux system, the default would be
 	    /etc/GNUstep/GNUstep.conf for instance, while on mswindows
-	    it would be ./GNUstep.conf.
+	    it would be ./GNUstep.conf (the leading './' here indicates
+	    that the file is located relative to the base library, on
+	    windows this is the location of the base library DLL, which
+	    is normally the same location as command line tools).
 	  </p>
           <p>
             If setting up GNUstep in a sandbox for packaging it as part
@@ -540,8 +568,8 @@ notice and this notice are preserved.
 	    (ie in a target/deployment environment).<br />
 	    In particular it is normal for the two files to differ on
 	    mswindows (where the build environment is an UNIX-like MSYS
-	    shell, using unix style paths, but the deployment environment
-	    is native-windows using windows style paths).
+	    shell, using the its own paths, but the deployment environment
+	    is native-windows using real windows paths).
 	  </p>
 	  <p>
 	    The location of the GNUstep configuration file can be specified
@@ -639,6 +667,13 @@ notice and this notice are preserved.
 	    '%u' is replaced by the user name<br />
 	    '%i' is replaced by the user ID<br />
 	    '%%' is replaced by a single '%'<br />
+	  </p>
+	  <p>
+	    The GNUSTEP_DEVELOPER_DIR path may be used to specify where
+	    the development system is located.  On most systems this
+	    should be the default value of '/', but on windows it should
+	    be the location of the msys/mingw filesystem (so that msys
+	    development tools can be found).
 	  </p>
 	  <p>
 	    Other paths for each user are defined by the following:

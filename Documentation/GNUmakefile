@@ -58,7 +58,7 @@ SUBPROJECTS = manual General
 DOCUMENT_TEXT_NAME = \
 INSTALL NEWS README ANNOUNCE
 
-TOP_DOC_FILES = INSTALL NEWS README ANNOUNCE README.initialize
+TOP_DOC_FILES = INSTALL NEWS README ANNOUNCE
 
 gnustep-base_TEXI_FILES = \
 version.texi \
@@ -97,8 +97,10 @@ ReleaseNotes.gsdoc
 # directory.
 #
 #ReleaseNotes_AGSDOC_FLAGS = -DocumentationDirectory .
+ReleaseNotes_AGSDOC_FLAGS = -DTDs ../Tools
 
 # Use local version of autogsdoc in case it is not installed
+LD_LIBRARY_PATH := $(dir $(CURDIR))/Source/$(GNUSTEP_OBJ_DIR_NAME):$(LD_LIBRARY_PATH)
 AUTOGSDOC=../Tools/$(GNUSTEP_OBJ_DIR_NAME)/autogsdoc
 BASE_MAKE_LOADED=yes
 

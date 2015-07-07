@@ -11,6 +11,41 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.24.8}
+@itemize @bullet
+@item Performance optimisations (particularly in the use of tiny string
+objects by the new objc runtime on 64bit systems).
+@item Thread naming and logging of threads by NSLog() has been made
+consistent with the latest OSX releases, making debugging of
+multithreaded code a little easier.
+@item Sergei Golovin has added NSURLConnection regression tests (while
+fixing a few bugs there).
+@item As usual, this release also contains an update to include the
+most recent international timezone data.
+@item Various other bugfixes.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
+@section Noteworthy changes in version @samp{1.24.7}
+
+@itemize @bullet
+@item TLS and other security improvements (note, SSLv3.0 is disabled by default
+in order to prevent the 'POODLE' attack).
+@item Latest timezone data included.
+@item Various other bugfixes.
+@end itemize
+
+@section Noteworthy changes in version @samp{1.24.6}
+
+@itemize @bullet
+@item NSUUID implemented
+@item New OSX version macros
+@item TLS support improvements
+@item Various new methods for OSX compatibility
+@item Various other bugfixes
+@end itemize
+
 @section Noteworthy changes in version @samp{1.24.5}
 
 @itemize @bullet
@@ -19,8 +54,6 @@ See the @url{ReleaseNotes.html} document for more information.
 @item Static analyzer fixes (mostly printf format string issues)
 @item Various other bugfixes
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.24.4}
 

@@ -30,6 +30,46 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.24.8</heading>
+        <p>A new stable (bugfix) release.<br />
+        The release contains a variety of bugfixes as well as some
+        performance optimisations (particularly in the use of tiny string
+        objects by the new objc runtime on 64bit systems).<br />
+        Thread naming and logging of threads by NSLog() has been made
+        consistent with the latest OSX releases, making debugging of
+        multithreaded code a little easier.<br />
+        Sergei Golovin has added NSURLConnection regression tests (while
+        fixing a few bugs there).<br />
+        As usual, this release also contains an update to include the
+        most recent international timezone data.
+        </p>
+      </section>
+
+      <section>
+	<heading>Version 1.24.7</heading>
+        <p>A new stable (bugfix) release.<br />
+        The release has various platform/portability tweaks, as
+        well as a variety of bugfixes.<br />
+        The default HTTPS connection configuration is modified to disable
+        SSLv3.0 support (to prevent the 'POODLE' security attack).<br />
+        This release also contains an update to include the most recent
+        international timezone data.
+        </p>
+      </section>
+
+      <section>
+	<heading>Version 1.24.6</heading>
+        <p>A new stable (bugfix) release.<br />
+        This release contains a new class (NSUUID) and several
+        new methods.<br />
+        The OSX version compatibility macros have been updated
+        to add the latest version of OSX.<br />
+        The release has various platform/portability tweaks, as
+        well as a variety of bugfixes.
+        </p>
+      </section>
+
+      <section>
 	<heading>Version 1.24.5</heading>
         <p>A new stable (bugfix) release.<br />
         The main reason for this version is to release a collection of minor
@@ -44,6 +84,7 @@ notice and this notice are preserved.
         to correct issues (mostly with NSInteger/NSUInteger on 64bit systems)
         with printf formats in various debug/logging messages.<br />
         Timezone data was updated for this release.
+        </p>
       </section>
 
       <section>

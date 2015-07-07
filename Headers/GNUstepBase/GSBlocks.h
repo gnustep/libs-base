@@ -28,6 +28,10 @@
 #define __has_feature(x) 0
 #endif
 
+#ifndef GCC_VERSION
+#define GCC_VERSION (__GNUC__ * 1000 + __GNUC_MINOR__)
+#endif
+
 #if __has_feature(blocks)
 
 #define BLOCK_SCOPE __block
@@ -64,18 +68,27 @@ typedef retTy(^name)()
     retTy (*invoke)(void*, argTys, ## __VA_ARGS__);\
   } *name
 
-#define CALL_BLOCK(block, args, ...) block->invoke(block, args, ## __VA_ARGS__)
-
-#define CALL_BLOCK_NO_ARGS(block) block->invoke()
-
-#else /* GCC_VERSION >= 3000 */
-
-#define DEFINE_BLOCK_TYPE(name, retTy, argTys, args...) \
+#define DEFINE_BLOCK_TYPE_NO_ARGS(name, retTy) \
   typedef struct {\
     void *isa;\
     int flags;\
     int reserved;\
-    retTy (*invoke)(void*, argTys, args);\
+    retTy (*invoke)(void*);\
+  } *name
+
+#define CALL_BLOCK(block, args, ...) block->invoke(block, args, ## __VA_ARGS__)
+
+#define CALL_BLOCK_NO_ARGS(block) block->invoke(block)
+#define BLOCK_SCOPE
+
+#else /* GCC_VERSION >= 3000 */
+
+#define DEFINE_BLOCK_TYPE(name, retTy, argTys...) \
+  typedef struct {\
+    void *isa;\
+    int flags;\
+    int reserved;\
+    retTy (*invoke)(void*, argTys);\
   } *name
 
 #define DEFINE_BLOCK_TYPE_NO_ARGS(name, retTy) \

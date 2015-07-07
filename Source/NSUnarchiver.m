@@ -680,20 +680,20 @@ static unsigned	encodingVersion;
       switch (size)
 	{
 	  case 1:
-	    max = 0x80;
-	    min = 0x7f;
+	    max = INT8_MAX;
+	    min = INT8_MIN;
 	    break;
 	  case 2:
-	    max = 0x8000;
-	    min = 0x7fff;
+	    max = INT16_MAX;
+	    min = INT16_MAX;
 	    break;
 	  case 4:
-	    max = 0x80000000;
-	    min = 0x7fffffff;
+	    max = INT32_MAX;
+	    min = INT32_MIN;
 	    break;
 	  default:
-	    max = 0x8000000000000000;
-	    min = 0x7fffffffffffffff;
+	    max = INT64_MAX;
+	    min = INT64_MIN;
 	}
 
       for (i = 0; i < count; i++)
@@ -758,16 +758,16 @@ static unsigned	encodingVersion;
       switch (size)
 	{
 	  case 1:
-	    max = 0xff;
+	    max = UINT8_MAX;
 	    break;
 	  case 2:
-	    max = 0xffff;
+	    max = UINT16_MAX;
 	    break;
 	  case 4:
-	    max = 0xffffffff;
+	    max = UINT32_MAX;
 	    break;
 	  default:
-	    max = 0xffffffffffffffff;
+	    max = UINT64_MAX;
 	}
 
       for (i = 0; i < count; i++)

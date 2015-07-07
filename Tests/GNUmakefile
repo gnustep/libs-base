@@ -63,7 +63,7 @@ check::
 	ADDITIONAL_INCLUDE_DIRS="-I$(TOP_DIR)/Headers -I$(TOP_DIR)/Source/$(GNUSTEP_TARGET_DIR)";\
 	ADDITIONAL_LIB_DIRS="-L$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR)";\
 	LD_LIBRARY_PATH="$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR):${LD_LIBRARY_PATH}";\
-	PATH="$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR):${PATH}";\
+	PATH="$(TOP_DIR)/Tools/$(GNUSTEP_OBJ_DIR):${PATH}";\
 	export GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES;\
 	export ADDITIONAL_INCLUDE_DIRS;\
 	export ADDITIONAL_LIB_DIRS;\
@@ -77,7 +77,7 @@ check::
 	)
 
 clean::
-	gnustep-tests --clean
+	-gnustep-tests --clean
 
 # This makefile does nothing.
 include $(GNUSTEP_MAKEFILES)/rules.make

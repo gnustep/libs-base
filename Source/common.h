@@ -4,7 +4,10 @@
  * might be from an earlier build.
  */
 
-#import	"config.h"
+#ifndef COMMON_H
+#define COMMON_H
+
+#include "config.h"
 
 #if	defined(HAVE_STRING_H)
 /* For POSIX strerror_r() and others
@@ -49,6 +52,7 @@
  * "Foundation/NSObject.h" first, to ensure we have a local copy.
  */
 #import	"Foundation/NSObject.h"
+#import	"GNUstepBase/NSObject+GNUstepBase.h"
 
 /* These headers are used in almost every file.
  */
@@ -81,3 +85,4 @@
 #  endif
 #endif
 
+#endif /* COMMON_H */

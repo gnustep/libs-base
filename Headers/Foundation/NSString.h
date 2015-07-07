@@ -44,9 +44,11 @@
  path handling methods cope with both 'unix' and 'windows' style paths in
  portable and tolerant manner:<br />
  Paths are read in literally so they can be in the native format provided
- by the operating system or in a non-native format.<br />
+ by the operating system or in a non-native format. See
+ [NSFileManager-stringWithFileSystemRepresentation:length:].<br />
  Paths are written out using the native format of the system the application
- is running on (eg on windows slashes are converted to backslashes).<br />
+ is running on (eg on windows slashes are converted to backslashes).
+ See [NSFileManager-fileSystemRepresentationWithPath:].<br />
  The path handling methods accept either a forward or backward slash as a
  path separator when parsing any path.<br />
  Unless operating in 'unix' mode, a leading letter followed by a colon is
@@ -60,8 +62,23 @@
  An important case to note is that on windows a path which looks at first
  glance like an absolute path may actually be a relative one.<br />
  'C:file' is a relative path because it specifies  a file on the C drive
- but does not say what directory it is in.
+ but does not say what directory it is in.<br />
+Similarly, '/dir/file' is a relative path because it specifies the full
+location fo a file on a drive, but does not specify which drive it is on.
  </p>
+<p>As a consequence of this path handling, you are able to work completely
+portably using relative paths (adding components, extensions and
+relative paths to a pth, or removing components, extensions and relative
+paths from a path etc), and when you save paths as strings in files
+which may be transferred to another platform, you should save a relative
+path.<br />
+When you need to know absolute paths of various points in the filesystem,
+you can use various path utility functions to obtain those absolute paths.
+For instance, instead of saving an absolute path to a file, you might want
+to save a path relative to a user's home directory.  You could do that by
+calling NSHomeDirectory() to get the home directory, and only saving the
+part of the full path after that prefix.
+</p>
 </chapter>
  */ 
 

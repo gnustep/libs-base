@@ -334,6 +334,7 @@ typedef struct
             {
               [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
             }
+          RELEASE(limit);
           if (NO == [collector done])
             {
               data = nil;

@@ -40,7 +40,6 @@
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSUserDefaults.h"
 #import "GNUstepBase/GSObjCRuntime.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "GSPrivate.h"
 
@@ -49,6 +48,11 @@
 /* These constants seem to be what MacOS-X uses */
 #define DISTANT_FUTURE	63113990400.0
 #define DISTANT_PAST	-63113817600.0
+
+/* On older Solaris we don't have NAN nor nan() */
+#if defined(__sun) && defined(__SVR4) && !defined(NAN)
+#define NAN 0x7fffffffffffffff
+#endif
 
 const NSTimeInterval NSTimeIntervalSince1970 = 978307200.0;
 
@@ -975,9 +979,13 @@ otherTime(NSDate* other)
     seconds]);
 }
 
+/**
+ * Returns an autoreleased instance with the offset from the given date.
+ */
 + (id)dateWithTimeInterval:(NSTimeInterval)seconds sinceDate:(NSDate *)date
 {
-  return AUTORELEASE([[self alloc] initWithTimeInterval:seconds sinceDate:date]);
+  return AUTORELEASE([[self alloc] initWithTimeInterval: seconds
+                                              sinceDate: date]);
 }
 
 /**
@@ -1137,6 +1145,12 @@ otherTime(NSDate* other)
   return self;
 }
 
+- (id) dateByAddingTimeInterval: (NSTimeInterval)ti
+{
+  return [[self class] dateWithTimeIntervalSinceReferenceDate:
+    otherTime(self) + ti];
+}
+
 /**
  * Returns an autoreleased instance of the [NSCalendarDate] class whose
  * date/time value is the same as that of the receiver, and which uses
@@ -1150,16 +1164,6 @@ otherTime(NSDate* other)
   [d setCalendarFormat: formatString];
   [d setTimeZone: timeZone];
   return AUTORELEASE(d);
-}
-
-/**
- * Returns an autoreleased instance with the offset from the target
- * date/time given by seconds (which may be fractional).
- * Mac OS 10.6
- */
-- (id) dateByAddingTimeInterval: (NSTimeInterval)seconds
-{
-  return AUTORELEASE([[[self class] alloc] initWithTimeInterval:seconds sinceDate:self]);
 }
 
 /**
@@ -1218,15 +1222,9 @@ otherTime(NSDate* other)
   return [s autorelease];
 }
 
-/**
- * Returns an autoreleased NSDate instance whose value if offset from
- * that of the receiver by seconds.
- */
 - (id) addTimeInterval: (NSTimeInterval)seconds
 {
-    /* xxx We need to check for overflow? */
-    return [[self class] dateWithTimeIntervalSinceReferenceDate:
-            otherTime(self) + seconds];
+  return [self dateByAddingTimeInterval: seconds];
 }
 
 /**

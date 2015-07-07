@@ -1,11 +1,10 @@
 #include "ObjectiveC2/objc/capabilities.h"
-#include <stdint.h>
 
 /**
  * Bitmask of all of the capabilities compiled into this version of the
  * runtime.
  */
-static const int32_t caps = 0
+static const int caps = 0
   | (1 << OBJC_CAP_EXCEPTIONS)
   | (1 << OBJC_CAP_SYNCRONIZE)
   | (1 << OBJC_CAP_PROPERTIES);

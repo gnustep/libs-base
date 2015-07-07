@@ -35,6 +35,7 @@
   NSString *key;
   NSMutableArray *array;
   BOOL otherChangeInProgress;
+  BOOL notifiesObservers;
 }
 
 + (NSKeyValueMutableArray *) arrayForKey: (NSString *)aKey ofObject: (id)anObject;
@@ -126,6 +127,8 @@
       object = anObject;
       key = [aKey copy];
       otherChangeInProgress = NO;
+      notifiesObservers = 
+       [[anObject class] automaticallyNotifiesObserversForKey: aKey];
     }
   return self;
 }
@@ -224,7 +227,7 @@
 {
   NSIndexSet *indexes = nil;
 
-  if (!otherChangeInProgress)
+  if (notifiesObservers && !otherChangeInProgress)
     {
       indexes = [NSIndexSet indexSetWithIndex: index];
       [object willChange: NSKeyValueChangeRemoval
@@ -233,7 +236,7 @@
     }
   [removeObjectInvocation setArgument: &index atIndex: 2];
   [removeObjectInvocation invoke];
-  if (!otherChangeInProgress)
+  if (notifiesObservers && !otherChangeInProgress)
     {
       [object didChange: NSKeyValueChangeRemoval
         valuesAtIndexes: indexes
@@ -245,7 +248,7 @@
 {
   NSIndexSet *indexes = nil;
 
-  if (!otherChangeInProgress)
+  if (notifiesObservers && !otherChangeInProgress)
     {
       indexes = [NSIndexSet indexSetWithIndex: index];
       [object willChange: NSKeyValueChangeInsertion
@@ -255,7 +258,7 @@
   [insertObjectInvocation setArgument: &anObject atIndex: 2];
   [insertObjectInvocation setArgument: &index atIndex: 3];
   [insertObjectInvocation invoke];
-  if (!otherChangeInProgress)
+  if (notifiesObservers && !otherChangeInProgress)
     {
       [object didChange: NSKeyValueChangeInsertion
        valuesAtIndexes: indexes
@@ -266,9 +269,8 @@
 - (void) replaceObjectAtIndex: (NSUInteger)index withObject: (id)anObject
 {
   NSIndexSet *indexes = nil;
-  BOOL triggerNotifications = !otherChangeInProgress;
 
-  if (triggerNotifications)
+  if (notifiesObservers && !otherChangeInProgress)
     {
       otherChangeInProgress = YES;
       indexes = [NSIndexSet indexSetWithIndex: index];
@@ -287,7 +289,7 @@
       [self removeObjectAtIndex: index];
       [self insertObject: anObject atIndex: index];
     }
-  if (triggerNotifications)
+  if (notifiesObservers && !otherChangeInProgress)
     {
       [object didChange: NSKeyValueChangeReplacement
        valuesAtIndexes: indexes
@@ -336,7 +338,7 @@
   NSIndexSet *indexes = nil;
   NSMutableArray *temp;
 
-  if (!otherChangeInProgress)
+  if (notifiesObservers && !otherChangeInProgress)
     {
       indexes = [NSIndexSet indexSetWithIndex: index];
       [object willChange: NSKeyValueChangeRemoval
@@ -350,7 +352,7 @@
   [setArrayInvocation setArgument: &temp atIndex: 2];
   [setArrayInvocation invoke];
 
-  if (!otherChangeInProgress)
+  if (notifiesObservers && !otherChangeInProgress)
     {
       [object didChange: NSKeyValueChangeRemoval
        valuesAtIndexes: indexes
@@ -363,7 +365,7 @@
   NSIndexSet *indexes = nil;
   NSMutableArray *temp;
 
-  if (!otherChangeInProgress)
+  if (notifiesObservers && !otherChangeInProgress)
     {
       indexes = [NSIndexSet indexSetWithIndex: index];
       [object willChange: NSKeyValueChangeInsertion
@@ -377,7 +379,7 @@
   [setArrayInvocation setArgument: &temp atIndex: 2];
   [setArrayInvocation invoke];
 
-  if (!otherChangeInProgress)
+  if (notifiesObservers && !otherChangeInProgress)
     {
       [object didChange: NSKeyValueChangeInsertion
        valuesAtIndexes: indexes
@@ -390,7 +392,7 @@
   NSIndexSet *indexes = nil;
   NSMutableArray *temp;
 
-  if (!otherChangeInProgress)
+  if (notifiesObservers && !otherChangeInProgress)
     {
       indexes = [NSIndexSet indexSetWithIndex: index];
       [object willChange: NSKeyValueChangeReplacement
@@ -405,7 +407,7 @@
   [setArrayInvocation setArgument: &temp atIndex: 2];
   [setArrayInvocation invoke];
 
-  if (!otherChangeInProgress)
+  if (notifiesObservers && !otherChangeInProgress)
     {
       [object didChange: NSKeyValueChangeReplacement
        valuesAtIndexes: indexes
@@ -458,67 +460,102 @@
 
 - (void) addObject: (id)anObject
 {
-  NSIndexSet *indexes = [NSIndexSet indexSetWithIndex: [array count]];
+  NSIndexSet *indexes = nil;
 
+  if (notifiesObservers)
+    {
+      indexes = [NSIndexSet indexSetWithIndex: [array count]];
   [object willChange: NSKeyValueChangeInsertion
      valuesAtIndexes: indexes
               forKey: key];
+    }
   [array addObject: anObject];
+  if (notifiesObservers)
+    {
   [object didChange: NSKeyValueChangeInsertion
     valuesAtIndexes: indexes
              forKey: key];
+}
 }
 
 - (void) removeObjectAtIndex: (NSUInteger)index
 {
-  NSIndexSet *indexes = [NSIndexSet indexSetWithIndex: index];
+  NSIndexSet *indexes = nil;
 
+  if (notifiesObservers)
+    {
+      indexes = [NSIndexSet indexSetWithIndex: index];
   [object willChange: NSKeyValueChangeRemoval
      valuesAtIndexes: indexes
               forKey: key];
+    }
   [array removeObjectAtIndex: index];
+  if (notifiesObservers)
+    {
   [object didChange: NSKeyValueChangeRemoval
     valuesAtIndexes: indexes
              forKey: key];
+}
 }
 
 - (void) insertObject: (id)anObject atIndex: (NSUInteger)index
 {
-  NSIndexSet *indexes = [NSIndexSet indexSetWithIndex: index];
+  NSIndexSet *indexes = nil;
 
+  if (notifiesObservers)
+    {
+      indexes = [NSIndexSet indexSetWithIndex: index];
   [object willChange: NSKeyValueChangeInsertion
      valuesAtIndexes: indexes
               forKey: key];
+    }
   [array insertObject: anObject atIndex: index];
+  if (notifiesObservers)
+    {
   [object didChange: NSKeyValueChangeInsertion
     valuesAtIndexes: indexes
              forKey: key];
 }
+}
 
 - (void) removeLastObject
 {
-  NSIndexSet *indexes = [NSIndexSet indexSetWithIndex: [array count] - 1];
+  NSIndexSet *indexes =  nil;
 
+  if (notifiesObservers)
+    {
+      indexes = [NSIndexSet indexSetWithIndex: [array count] - 1];
   [object willChange: NSKeyValueChangeRemoval
      valuesAtIndexes: indexes
               forKey: key];
+    }
   [array removeObjectAtIndex: [indexes firstIndex]];
+  if (notifiesObservers)
+    {
   [object didChange: NSKeyValueChangeRemoval
     valuesAtIndexes: indexes
              forKey: key];
 }
+}
 
 - (void) replaceObjectAtIndex: (NSUInteger)index withObject: (id)anObject
 {
-  NSIndexSet *indexes = [NSIndexSet indexSetWithIndex: index];
+  NSIndexSet *indexes = nil;
 
+  if (notifiesObservers)
+    {
+      indexes = [NSIndexSet indexSetWithIndex: index];
   [object willChange: NSKeyValueChangeReplacement
      valuesAtIndexes: indexes
               forKey: key];
+    }
   [array replaceObjectAtIndex: index withObject: anObject];
+  if (notifiesObservers)
+    {
   [object didChange: NSKeyValueChangeReplacement
     valuesAtIndexes: indexes
              forKey: key];
+}
 }
 
 

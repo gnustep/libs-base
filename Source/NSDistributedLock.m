@@ -55,6 +55,7 @@ static NSFileManager	*mgr = nil;
   if (mgr == nil)
     {
       mgr = RETAIN([NSFileManager defaultManager]);
+      [[NSObject leakAt: &mgr] release];
     }
 }
 
@@ -185,23 +186,11 @@ static NSFileManager	*mgr = nil;
   NSMutableDictionary	*attributesToSet;
   NSDictionary		*attributes;
   BOOL			locked;
-  BOOL existingDir;
 
-  
   attributesToSet = [NSMutableDictionary dictionaryWithCapacity: 1];
   [attributesToSet setObject: [NSNumber numberWithUnsignedInt: 0755]
 		      forKey: NSFilePosixPermissions];
 	
-  if ([mgr fileExistsAtPath: _lockPath isDirectory: &existingDir] == YES)
-    {
-	  /*
-	   * The lock already exists, so our attempt to
-	   * set it has failed.
-	   */
-	  NSLog (@"Lock directory is already set: %@", _lockPath);
-	  return NO;
-	}
-			  
   locked = [mgr createDirectoryAtPath: _lockPath
           withIntermediateDirectories: YES
 			   attributes: attributesToSet
@@ -240,20 +229,8 @@ static NSFileManager	*mgr = nil;
 				traverseLink: YES];
       if (attributes == nil)
 	{
-          /*
-           * We've seen cases where several instances of the same
-           * program were launched at once, where this exception
-           * got raised. It may be possible that one process removed
-           * the lock we've been using here, and with the right timing
-           * the exception could get raised, however we would only
-           * expect a failure in setting the lock:
-           */
-           /*
-            * [NSException raise: NSGenericException
-            *             format: @"Unable to get attributes of lock file we made"];
-            */
-           NSLog(@"Unable to get attributes of lock file we made");
-           return NO;
+	  [NSException raise: NSGenericException
+		      format: @"Unable to get attributes of lock file we made"];
 	}
       ASSIGN(_lockTime, [attributes fileModificationDate]);
       return YES;

@@ -40,6 +40,7 @@ int _MB_init_runtime()
 }
 #endif /* __MS_WIN32__ */
 
+// Testplant-MAL-2015-07-07
 #if defined(__WIN32__)
 #include <winsock2.h>
 #endif
@@ -59,6 +60,7 @@ gnustep_base_socket_init()
 // DLL entry function for GNUstep Base Library
 // This function gets called everytime a process/thread attaches to DLL
 //
+// Testplant-MAL-2015-07-07
 WINBOOL WINAPI
 DllMain(HINSTANCE hInst, DWORD ul_reason_for_call, LPVOID lpReserved)
 {

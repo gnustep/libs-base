@@ -32,7 +32,6 @@
 #import "Foundation/NSHost.h"
 #import "Foundation/NSFileHandle.h"
 #import "Foundation/NSPathUtilities.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSNetwork.h"
@@ -711,6 +710,17 @@ NSString * const NSFileHandleOperationException
 @end
 
 @implementation NSFileHandle (GNUstepTLS)
+
++ (void) setData: (NSData*)data forTLSFile: (NSString*)fileName
+{
+#if     defined(HAVE_GNUTLS)
+  [GSTLSObject setData: data forTLSFile: fileName];
+#else
+  [NSException raise: NSInternalInconsistencyException
+              format: @"[NSFileHandle+setData:forTLSFile:] called for a copy of gnustep-base which had GNUTLS support explicitly disabled at configure time"];
+#endif
+}
+
 /**
  * returns the concrete class used to implement SSL/TLS connections.
  */
@@ -905,7 +915,10 @@ GSTLSHandlePull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
   if (result < 0)
     {
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
+      if (tls->session && tls->session->session)
+        {
       gnutls_transport_set_errno (tls->session->session, errno);
+        }
 #endif
     }
   return result;
@@ -925,7 +938,10 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
   if (result < 0)
     {
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
+      if (tls->session && tls->session->session)
+        {
       gnutls_transport_set_errno (tls->session->session, errno);
+        }
 #endif
     }
   return result;
@@ -949,8 +965,12 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
 - (void) dealloc
 {
-  DESTROY(opts);
-  DESTROY(session);
+  // Don't DESTROY ivars below. First release them, then set nil, because
+  // `session' may need this back-reference during TLS teardown.
+  TEST_RELEASE(opts);
+  TEST_RELEASE(session);
+  opts = nil;
+  session = nil;
   [super dealloc];
 }
 
@@ -971,7 +991,8 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
 - (void) sslDisconnect
 {
-  [session disconnect];
+  [self setNonBlocking: NO];
+  [session disconnect: NO];
 }
 
 - (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing
@@ -980,12 +1001,14 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
   if (YES == [session active])
     {
+      *result =  YES;
       return YES;	/* Already connected.	*/
     }
 
   if (YES == isStandardFile)
     {
       NSLog(@"Attempt to perform ssl handshake with a standard file");
+      *result =  NO;
       return YES;
     }
 
@@ -1025,6 +1048,11 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
   if (NO == [session handshake])
     {
+      *result = NO;
+      if (nil == session)
+        {
+          return YES;   // Unable to create session
+        }
       return NO;        // Need more.
     }
   else

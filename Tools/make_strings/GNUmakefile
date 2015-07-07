@@ -29,13 +29,19 @@ include ../../config.mak
 VERSION = 0.4.2
 TOOL_NAME = make_strings
 
+MAN1_PAGES = make_strings.1
+
 make_strings_OBJC_FILES = \
 	make_strings.m \
 	SourceEntry.m \
 	StringsEntry.m \
 	StringsFile.m
 
+CONFIG_SYSTEM_LIBS :=
+
 include GNUmakefile.preamble
 
 include $(GNUSTEP_MAKEFILES)/tool.make
+
+include GNUmakefile.postamble
 

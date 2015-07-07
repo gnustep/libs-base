@@ -24,7 +24,6 @@
 
 #import "common.h"
 #include <pthread.h>
-#import "GNUstepBase/GSConfig.h"
 #import "GSPrivate.h"
 #define	gs_cond_t	pthread_cond_t
 #define	gs_mutex_t	pthread_mutex_t
@@ -57,6 +56,32 @@
   [_name release];\
   [super dealloc];\
 }
+
+#if     defined(HAVE_PTHREAD_MUTEX_OWNER)
+#define	MDESCRIPTION \
+- (NSString*) description\
+{\
+  if (_mutex.__data.__owner)\
+    {\
+  if (_name == nil)\
+    {\
+          return [NSString stringWithFormat: @"%@ (locked by %d)",\
+            [super description], (int)_mutex.__data.__owner];\
+        }\
+      return [NSString stringWithFormat: @"%@ '%@' (locked by %d)",\
+        [super description], _name, (int)_mutex.__data.__owner];\
+    }\
+  else\
+    {\
+      if (_name == nil)\
+        {\
+      return [super description];\
+    }\
+  return [NSString stringWithFormat: @"%@ '%@'",\
+    [super description], _name];\
+    }\
+}
+#else
 #define	MDESCRIPTION \
 - (NSString*) description\
 {\
@@ -67,11 +92,14 @@
   return [NSString stringWithFormat: @"%@ '%@'",\
     [super description], _name];\
 }
+#endif
+
 #define MFINALIZE \
 - (void) finalize\
 {\
   pthread_mutex_destroy(&_mutex);\
 }
+
 #define MNAME \
 - (void) setName: (NSString*)newName\
 {\
@@ -81,6 +109,7 @@
 {\
   return _name;\
 }
+
 #define	MLOCK \
 - (void) lock\
 {\
@@ -95,6 +124,7 @@
       _NSLockError(self, _cmd, YES);\
     }\
 }
+
 #define	MLOCKBEFOREDATE \
 - (BOOL) lockBeforeDate: (NSDate*)limit\
 {\
@@ -109,12 +139,14 @@
     } while ([limit timeIntervalSinceNow] > 0);\
   return NO;\
 }
+
 #define	MTRYLOCK \
 - (BOOL) tryLock\
 {\
   int err = pthread_mutex_trylock(&_mutex);\
   return (0 == err) ? YES : NO;\
 }
+
 #define	MUNLOCK \
 - (void) unlock\
 {\

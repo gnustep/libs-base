@@ -232,7 +232,16 @@ debugRead(GSHTTPURLHandle *handle, NSData *data)
 {
   int		len = (int)[data length];
   const char	*ptr = (const char*)[data bytes];
+  int           pos;
 
+  for (pos = 0; pos < len; pos++)
+    {
+      if (0 == ptr[pos])
+        {
+          NSLog(@"Read for %p of %d bytes - %@", handle, len, data); 
+          return;
+        }
+    }
   NSLog(@"Read for %p of %d bytes -'%*.*s'", handle, len, len, len, ptr); 
 }
 static void
@@ -240,7 +249,16 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 {
   int		len = (int)[data length];
   const char	*ptr = (const char*)[data bytes];
+  int           pos = len;
 
+  for (pos = 0; pos < len; pos++)
+    {
+      if (0 == ptr[pos])
+        {
+          NSLog(@"Write for %p of %d bytes - %@", handle, len, data); 
+          return;
+        }
+    }
   NSLog(@"Write for %p of %d bytes -'%*.*s'", handle, len, len, len, ptr); 
 }
 
@@ -272,8 +290,11 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (self == [GSHTTPURLHandle class])
     {
       urlCache = [NSMutableDictionary new];
+      [[NSObject leakAt: &urlCache] release];
       urlOrder = [NSMutableArray new];
+      [[NSObject leakAt: &urlOrder] release];
       urlLock = [GSLazyLock new];
+      [[NSObject leakAt: &urlLock] release];
 #if	!defined(__MINGW__)
       sslClass = [NSFileHandle sslClass];
 #endif
@@ -386,6 +407,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   if ((id)NSMapGet(wProperties, (void*)@"Host") == nil)
     {
+      NSString  *s = [u scheme];
       id	p = [u port];
       id	h = [u host];
 
@@ -393,7 +415,16 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	{
 	  h = @"";	// Must use an empty host header
 	}
-      if (p == nil)
+      if (([s isEqualToString: @"http"] && [p intValue] == 80)
+        || ([s isEqualToString: @"https"] && [p intValue] == 443))
+	{
+          /* Some buggy systems object to the port being in the Host
+           * header when it's the default (optional) value.  To keep
+           * them happy let's omit it in those cases.
+           */
+          p = nil;
+        }
+      if (nil == p)
 	{
           NSMapInsert(wProperties, (void*)@"Host", (void*)h);
 	}
@@ -730,6 +761,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    {
 		      [self writeProperty: auth forKey: @"Authorization"];
 		      [self _tryLoadInBackground: u];
+                      RELEASE(self);
 		      return;	// Retrying.
 		    }
 		}
@@ -1050,6 +1082,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  if (debug)
 	    NSLog(@"%@ %p %s Failed to make ssl connect",
 	      NSStringFromSelector(_cmd), self, keepalive?"K":"");
+          [sock closeFile];
+          DESTROY(sock);
 	  [self endLoadInBackground];
 	  [self backgroundLoadDidFailWithReason:
 	    @"Failed to make ssl connect"];
@@ -1127,6 +1161,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    NSLog(@"%@ %p restart on new connection",
 	      NSStringFromSelector(_cmd), self);
 	  [self _tryLoadInBackground: u];
+          RELEASE(self);
 	  return;
 	}
       NSLog(@"Failed to write command to socket - %@ %p %s",

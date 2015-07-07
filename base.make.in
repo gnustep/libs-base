@@ -28,9 +28,11 @@ ifeq ($(BASE_MAKE_LOADED),)
     # FIXME - macro names
     #
     AUXILIARY_OBJCFLAGS += @NX_CONST_STRING_OBJCFLAGS@
+
     ifeq ($(shared),no)
       CONFIG_SYSTEM_LIBS += @LIBS@
       CONFIG_SYSTEM_LIB_DIR += @LDIR_FLAGS@
+      CONFIG_SYSTEM_INCL += @CPPFLAGS@
     endif
 
     GNUSTEP_BASE_VERSION = @VERSION@
@@ -57,11 +59,6 @@ ifeq ($(BASE_MAKE_LOADED),)
     AUXILIARY_OBJCFLAGS += -I$(GNUSTEP_HEADERS)/ObjectiveC2
     AUXILIARY_CFLAGS += -I$(GNUSTEP_HEADERS)/ObjectiveC2
   endif
-
-  # For literal string handling, base requires the compiler to store the
-  # string as UTF-8
-  AUXILIARY_OBJCFLAGS += @GS_EXEC_CHARSET@
-
 
   # Now we have definitions to show whether important dependencies have
   # been met ... if thse are 0 then some core functi0nailyt is missing.

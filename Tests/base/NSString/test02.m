@@ -12,6 +12,8 @@ int main()
   char *testPath = NULL;
   char *resultPath = NULL;
 
+NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory, NSAllDomainsMask, YES));
+
   PASS([[[@"home" pathComponents] objectAtIndex:0] isEqual: @"home"],
        "[@\"home\" pathComponents] == @\"home\"]");
   
@@ -60,6 +62,9 @@ int main()
   
   PASS([[@"/home/nicola./" pathExtension] isEqual: @""],
        "[@\"/home/nicola./\" pathExtension] == @\"\"");
+  
+  PASS_EQUAL([@"/home" stringByAppendingPathComponent: @"/"], @"/home",
+    "'/home' stringByAppendingPathComponent: '/' == '/home'");
   
   PASS([[@"/home" stringByAppendingPathComponent: @"nicola.jpg"] isEqual: @"/home/nicola.jpg"],
        "'/home' stringByAppendingPathComponent: 'nicola.jpg' == '/home/nicola.jpg'");
@@ -209,8 +214,7 @@ int main()
   
 #ifdef	GNUSTEP_BASE_LIBRARY
 
-  PASS_EQUAL([@"//home/user/" stringByStandardizingPath], @"//home/user/",
-    "//home/user/ stringByStandardizingPath == //home/user/");
+  GSPathHandling("windows");
 
   PASS_EQUAL([@"\\\\home\\user\\" stringByStandardizingPath],
     @"\\\\home\\user\\",
@@ -222,8 +226,24 @@ int main()
   PASS_EQUAL([@"c:\\..." stringByStandardizingPath], @"c:\\...",
     "'c:\\...' stringByStandardizingPath == 'c:\\...'");
   
+  PASS([@"c:\\home" isAbsolutePath] == YES,
+       "'c:\\home' isAbsolutePath == YES");
+
+  GSPathHandling("right");
+  
+  PASS_EQUAL([@"//home/user/" stringByStandardizingPath],
+    @"//home/user/",
+    "//home/user/ stringByStandardizingPath == //home/user/");
+
+  PASS_EQUAL([@"c:/." stringByStandardizingPath], @"c:/.",
+    "'c:/.' stringByStandardizingPath == 'c:/.'");
+  
+  PASS_EQUAL([@"c:/..." stringByStandardizingPath], @"c:/...",
+    "'c:/...' stringByStandardizingPath == 'c:/...'");
+
   PASS([@"c:/home" isAbsolutePath] == YES,
        "'c:/home' isAbsolutePath == YES");
+
 
   PASS([@"//host/share/" isAbsolutePath] == YES,
        "'//host/share/' isAbsolutePath == YES");

@@ -81,12 +81,12 @@
 
 
 @protocol  GSNetServiceDelegate <NSNetServiceDelegate>
-#ifdef __clang__
+#if GS_PROTOCOLS_HAVE_OPTIONAL
 @optional
 #else
 @end
 @interface NSObject (GSNetServiceDelegateMethods)
-#endif // __clang__
+#endif // GS_PROTOCOLS_HAVE_OPTIONAL
 
 /**
  * Notifies the delegate that the addresses for the <var>service</var> have

@@ -256,8 +256,20 @@ int main()
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSString	*str;
   NSString	*sub;
+  const char    *ptr;
   char	buf[10];
   
+  str = @"a";
+  while ([str length] < 30000)
+    {
+      str = [str stringByAppendingString: str];
+    }
+  if (0 == [str length] % 2)
+    {
+      str = [str stringByAppendingString: @"x"];
+    }
+  ptr = [str cStringUsingEncoding: NSASCIIStringEncoding];
+
   PASS_EXCEPTION([NSString stringWithUTF8String: 0],
     NSInvalidArgumentException,
     "stringWithUTF8String raises for NULL");
@@ -277,11 +289,15 @@ int main()
 		 NSRangeException,
 		 "NSString comparison with range beyond end of string");
 
+  PASS_EQUAL([@"a\"b" description], @"a\"b",
+    "the description of a string is itsself");
+
   strCompare("hello", "hello", NSOrderedSame, NSOrderedSame, NSOrderedSame,
   	     NSOrderedSame,NSMakeRange(0,5)); 
   strCompare("", "",NSOrderedSame, NSOrderedSame, NSOrderedSame, NSOrderedSame,
   	     NSMakeRange(0,0)); 
-  strCompare("hello", "Hello", NSOrderedSame, NSOrderedDescending, NSOrderedSame,
+  strCompare("hello", "Hello",
+    NSOrderedSame, NSOrderedDescending, NSOrderedSame,
   	     NSOrderedDescending,NSMakeRange(0,5)); 
   strCompare("Hello", "hello", NSOrderedSame, NSOrderedAscending, NSOrderedSame,
   	     NSOrderedAscending, NSMakeRange(0,5)); 
@@ -289,12 +305,12 @@ int main()
              NSOrderedDescending, NSOrderedDescending, NSMakeRange(0,3));
   strCompare("ab", "abc", NSOrderedAscending, NSOrderedAscending, 
              NSOrderedAscending, NSOrderedAscending, NSMakeRange(0,2));
-  strCompare("", "a", NSOrderedAscending, NSOrderedAscending, NSOrderedAscending,
-  	     NSOrderedAscending, NSMakeRange(0,0));
+  strCompare("", "a", NSOrderedAscending, NSOrderedAscending,
+    NSOrderedAscending, NSOrderedAscending, NSMakeRange(0,0));
   strCompare("a", "", NSOrderedDescending, NSOrderedDescending, 
   	     NSOrderedDescending, NSOrderedDescending, NSMakeRange(0,1));
-  strCompare("a", "", NSOrderedSame, NSOrderedSame, NSOrderedSame, NSOrderedSame,
-             NSMakeRange(0,0));  
+  strCompare("a", "", NSOrderedSame, NSOrderedSame, NSOrderedSame,
+    NSOrderedSame, NSMakeRange(0,0));  
   strCompare("Location", "LoCaTiOn", NSOrderedSame, NSOrderedDescending,
              NSOrderedSame, NSOrderedDescending, NSMakeRange(0,8));
   strCompare("1234567890_!@$%^&*()QWERTYUIOP{}ASDFGHJKL:;'ZXCVBNM,./<>?",
@@ -316,26 +332,58 @@ int main()
   strCompare("abcdefg", "CDEF", NSOrderedAscending, NSOrderedDescending,
   	     NSOrderedAscending, NSOrderedDescending, NSMakeRange(2,3));
   
-  strRange("hello", "hello", NSAnchoredSearch, NSMakeRange(0,5), NSMakeRange(0,5));
-  strRange("hello", "hello", NSAnchoredSearch | NSBackwardsSearch, NSMakeRange(0,5), NSMakeRange(0,5));
-  strRange("hello", "hElLo", NSLiteralSearch, NSMakeRange(0,5), NSMakeRange(0,0));
-  strRange("hello", "hElLo", NSCaseInsensitiveSearch, NSMakeRange(0,5), NSMakeRange(0,5));
-  strRange("hello", "hell", NSAnchoredSearch, NSMakeRange(0,5), NSMakeRange(0,4));
-  strRange("hello", "hel", NSBackwardsSearch, NSMakeRange(0,5), NSMakeRange(0,3));
-  strRange("hello", "he", NSLiteralSearch, NSMakeRange(0,5), NSMakeRange(0,2));
-  strRange("hello", "h", NSLiteralSearch, NSMakeRange(0,5), NSMakeRange(0,1));
-  strRange("hello", "", NSLiteralSearch, NSMakeRange(0,5), NSMakeRange(0,0));
-  strRange("hello", "el", NSLiteralSearch, NSMakeRange(0,5), NSMakeRange(1,2));
-  strRange("hello", "el", NSLiteralSearch, NSMakeRange(0,2), NSMakeRange(0,0));
-  strRange("hello", "el", NSLiteralSearch, NSMakeRange(2,3), NSMakeRange(0,0));
-  strRange("hello", "ell", NSLiteralSearch, NSMakeRange(0,5), NSMakeRange(1,3));
-  strRange("hello", "lo", NSLiteralSearch, NSMakeRange(2,3), NSMakeRange(3,2));
-  strRange("boaboaboa", "abo", NSLiteralSearch, NSMakeRange(0,9), NSMakeRange(2,3));
-  strRange("boaboaboa", "abo", NSBackwardsSearch, NSMakeRange(0,9), NSMakeRange(5,3));
-  strRange("boaboaboa", "ABO", NSCaseInsensitiveSearch, NSMakeRange(0,9), NSMakeRange(2,3)); 
+  strRange("hello", "hello", NSAnchoredSearch,
+    NSMakeRange(0,5), NSMakeRange(0,5));
+  strRange("hello", "hello", NSAnchoredSearch | NSBackwardsSearch,
+    NSMakeRange(0,5), NSMakeRange(0,5));
+  strRange("hello", "hElLo", NSLiteralSearch,
+    NSMakeRange(0,5), NSMakeRange(NSNotFound,0));
+  strRange("hello", "hElLo", NSCaseInsensitiveSearch,
+    NSMakeRange(0,5), NSMakeRange(0,5));
+  strRange("hello", "hell", NSAnchoredSearch,
+    NSMakeRange(0,5), NSMakeRange(0,4));
+  strRange("hello", "hel", NSBackwardsSearch,
+    NSMakeRange(0,5), NSMakeRange(0,3));
+  strRange("hello", "he", NSLiteralSearch,
+    NSMakeRange(0,5), NSMakeRange(0,2));
+  strRange("hello", "h", NSLiteralSearch,
+    NSMakeRange(0,5), NSMakeRange(0,1));
+
+  strRange("hello", "l", NSLiteralSearch,
+    NSMakeRange(0,5), NSMakeRange(2,1));
+
+  strRange("hello", "l", NSLiteralSearch | NSBackwardsSearch,
+    NSMakeRange(0,5), NSMakeRange(3,1));
+
+  strRange("hello", "", NSLiteralSearch,
+    NSMakeRange(0,5), NSMakeRange(0,0));
+  strRange("hello", "el", NSLiteralSearch,
+    NSMakeRange(0,5), NSMakeRange(1,2));
+  strRange("hello", "el", NSLiteralSearch,
+    NSMakeRange(0,2), NSMakeRange(0,0));
+  strRange("hello", "el", NSLiteralSearch,
+    NSMakeRange(2,3), NSMakeRange(0,0));
+  strRange("hello", "ell", NSLiteralSearch,
+    NSMakeRange(0,5), NSMakeRange(1,3));
+  strRange("hello", "lo", NSLiteralSearch,
+    NSMakeRange(2,3), NSMakeRange(3,2));
+  strRange("boaboaboa", "abo", NSLiteralSearch,
+    NSMakeRange(0,9), NSMakeRange(2,3));
+  strRange("boaboaboa", "abo", NSBackwardsSearch,
+    NSMakeRange(0,9), NSMakeRange(5,3));
+  strRange("boaboaboa", "ABO", NSCaseInsensitiveSearch,
+    NSMakeRange(0,9), NSMakeRange(2,3)); 
   strRange("boaboaboa", "abo", NSCaseInsensitiveSearch | NSBackwardsSearch,
            NSMakeRange(0,9), NSMakeRange(5,3)); 
  
+  strRange("", "", NSLiteralSearch,
+    NSMakeRange(0,0), NSMakeRange(0,0));
+
+  strRange("x", "", NSLiteralSearch,
+    NSMakeRange(0,1), NSMakeRange(0,0));
+  strRange("x", "", NSLiteralSearch|NSBackwardsSearch,
+    NSMakeRange(0,1), NSMakeRange(1,0));
+
   strRangeFromSet("boaboaboa", 
 		  [NSCharacterSet alphanumericCharacterSet],
 		  NSCaseInsensitiveSearch | NSBackwardsSearch,
@@ -366,9 +414,12 @@ int main()
 		  NSCaseInsensitiveSearch | NSBackwardsSearch,
 		  NSMakeRange(2,6), NSMakeRange(2,1));
   
-  testLineRange("This is a line of text\n", NSMakeRange(10, 10), NSMakeRange(0, 23));
-  testLineRange("This is a line of text\r\n", NSMakeRange(10, 10), NSMakeRange(0, 24));
-  testLineRange("This is a line of text\r\r", NSMakeRange(10, 10), NSMakeRange(0, 23));
+  testLineRange("This is a line of text\n",
+    NSMakeRange(10, 10), NSMakeRange(0, 23));
+  testLineRange("This is a line of text\r\n",
+    NSMakeRange(10, 10), NSMakeRange(0, 24));
+  testLineRange("This is a line of text\r\r",
+    NSMakeRange(10, 10), NSMakeRange(0, 23));
   
   PASS([@"1.2e3" doubleValue] == 1.2e3, "Simple double conversion works");
   PASS([@"4.5E6" floatValue] == 4.5e6, "Simple float conversion works");
@@ -384,6 +435,13 @@ int main()
   [str release];
   PASS_EQUAL(sub, @"aaa", "a substring uses its own buffer");
   
+  PASS(YES == [@"hello" hasPrefix: @"hel"], "hello has hel as a prefix");
+  PASS(NO == [@"hello" hasPrefix: @"Hel"], "hello does not have Hel as a prefix");
+  PASS(NO == [@"hello" hasPrefix: @""], "hello does not have an empty string as a prefix");
+  PASS(YES == [@"hello" hasSuffix: @"llo"], "hello has llo as a suffix");
+  PASS(NO == [@"hello" hasSuffix: @"lLo"], "hello does not have lLo as a suffix");
+  PASS(NO == [@"hello" hasSuffix: @""], "hello does not have an empty string as a suffix");
+
   [arp release]; arp = nil;
   return 0;
 }

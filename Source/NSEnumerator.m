@@ -29,7 +29,6 @@
 #import "Foundation/NSArray.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 
 /**

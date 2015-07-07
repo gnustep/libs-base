@@ -22,8 +22,6 @@
    Boston, MA 02111 USA.
    */
 
-#define	_FILE_OFFSET_BITS 64
-
 #include "common.h"
 
 #import "Foundation/NSObject.h"

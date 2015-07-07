@@ -99,6 +99,14 @@ extern "C" {
  */
 - (BOOL) isEqualToHost: (NSHost*) aHost;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
+/**
+ * If the receiver is the currentHost, returns the default name of the
+ * computer, otherwise returns nil.
+ */
+- (NSString*) localizedName;
+#endif
+
 /**
  * Return host name.  Chosen arbitrarily if a host has more than one.
  */

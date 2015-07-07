@@ -31,6 +31,23 @@
  */
 @implementation NSCalendarDate (GNUstepBase)
 
+- (NSUInteger) isoYear
+{
+  NSUInteger year = [self yearOfCommonEra];
+  NSUInteger week = [self weekOfYear];
+  NSUInteger month = [self monthOfYear];
+
+  if (week == 1 && month == 12)
+    {
+      year++;
+    }
+  else if (week >= 52 && month == 1)
+    {
+      year--;
+    }
+  return year;
+}
+
 /**
  * The ISO standard week of the year is based on the first week of the
  * year being that week (starting on monday) for which the thursday

@@ -54,7 +54,6 @@
 #import "GNUstepBase/GSLocale.h"
 #import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
 #if	defined(__MINGW__)
@@ -101,6 +100,7 @@ static BOOL		hasSharedDefaults = NO;
 /*
  * Caching some defaults.
  */
+static BOOL     parsingArguments = NO;
 static BOOL	flags[GSUserDefaultMaxFlag] = { 0 };
 
 /* An instance of the GSPersistentDomain class is used to encapsulate
@@ -252,6 +252,8 @@ updateCache(NSUserDefaults *self)
 	= [self boolForKey: @"GSLogSyslog"];
       flags[GSLogThread]
 	= [self boolForKey: @"GSLogThread"];
+      flags[GSLogOffset]
+	= [self boolForKey: @"GSLogOffset"];
       flags[NSWriteOldStylePropertyLists]
 	= [self boolForKey: @"NSWriteOldStylePropertyLists"];
     }
@@ -543,11 +545,9 @@ newLanguages(NSArray *oldNames)
 
 + (void) atExit
 {
-  id	tmp;
-
-  tmp = sharedDefaults;
-  sharedDefaults = nil;
-  [tmp release];
+  DESTROY(sharedDefaults);
+  DESTROY(processName);
+  DESTROY(classLock);
 }
 
 + (void) initialize
@@ -1806,7 +1806,6 @@ static BOOL isPlistObject(id o)
 	    {
 	      NSEnumerator		*enumerator;
 	      NSString			*domainName;
-	      NSFileManager		*mgr;
 
 	      haveChange = [self _readDefaults];
 	      if (YES == haveChange)
@@ -1814,12 +1813,16 @@ static BOOL isPlistObject(id o)
 		  DESTROY(_dictionaryRep);
 		}
 
-	      mgr = [NSFileManager defaultManager];
+	      if (_changedDomains != nil)
+                {
+                  haveChange = YES;
 
-	      if (_changedDomains != nil && NO == [self _readOnly])
+                  if (NO == [self _readOnly])
 		{
 		  GSPersistentDomain	*domain;
+                      NSFileManager		*mgr;
 
+                      mgr = [NSFileManager defaultManager];
 		  enumerator = [_changedDomains objectEnumerator];
 		  DESTROY(_changedDomains);	// Retained by enumerator.
 		  while ((domainName = [enumerator nextObject]) != nil)
@@ -1840,6 +1843,7 @@ static BOOL isPlistObject(id o)
 			}
 		    }
 		}
+                }
 
 	      if (YES == haveChange)
 		{
@@ -2107,7 +2111,7 @@ static BOOL isPlistObject(id o)
 BOOL
 GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
 {
-  if (sharedDefaults == nil)
+  if (nil == sharedDefaults && NO == parsingArguments)
     {
       [NSUserDefaults standardUserDefaults];
     }
@@ -2161,6 +2165,12 @@ NSDictionary *GSPrivateDefaultLocale()
   id		key, val;
 
   [_lock lock];
+  if (YES == parsingArguments)
+    {
+      [_lock unlock];
+      return nil;       // Prevent recursion
+    }
+  parsingArguments = YES;
   NS_DURING
     {
       args = [[NSProcessInfo processInfo] arguments];
@@ -2175,10 +2185,13 @@ NSDictionary *GSPrivateDefaultLocale()
 	    {
 	      NSString	*old = nil;
 
-	      /* anything beginning with a '-' is a defaults key and we must strip
-	          the '-' from it.  As a special case, we leave the '- in place
-	          for '-GS...' and '--GS...' for backward compatibility. */
-	      if ([key hasPrefix: @"-GS"] == YES || [key hasPrefix: @"--GS"] == YES)
+	      /* anything beginning with a '-' is a defaults key and we
+               * must strip the '-' from it.
+               * As a special case, we leave the '- in place for '-GS...'
+               * and '--GS...' for backward compatibility.
+               */
+	      if ([key hasPrefix: @"-GS"] == YES
+                || [key hasPrefix: @"--GS"] == YES)
 	        {
 	          old = key;
 	        }
@@ -2194,7 +2207,8 @@ NSDictionary *GSPrivateDefaultLocale()
 	          done = YES;
 	          continue;
 	        }
-	      else if ([val hasPrefix: @"-"] == YES && [val isEqual: @"-"] == NO)
+	      else if ([val hasPrefix: @"-"] == YES
+                && [val isEqual: @"-"] == NO)
 	        {  // Yet another argument
 	          [argDict setObject: @"" forKey: key];		// arg is empty.
 	          if (old != nil)
@@ -2239,10 +2253,12 @@ NSDictionary *GSPrivateDefaultLocale()
 	    }
           done = ((key = [enumerator nextObject]) == nil);
         }
+      parsingArguments = NO;
       [_lock unlock];
     }
   NS_HANDLER
     {
+      parsingArguments = NO;
       [_lock unlock];
       [localException raise];
     }
@@ -2385,9 +2401,12 @@ static BOOL isLocked = NO;
 	       * synchronize to load the domain contents into memory
 	       * so a lookup will work.
 	       */
-	      haveChange = [pd synchronize];
+              if (YES == [pd synchronize])
+                {
+                  haveChange = YES;
 	    }
 	}
+    }
     }
   return haveChange;
 }

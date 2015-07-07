@@ -37,7 +37,6 @@
 #import "GSStream.h"
 #import "GSPrivate.h"
 #import "GSSocketStream.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 NSString * const NSStreamDataWrittenToMemoryStreamKey
   = @"NSStreamDataWrittenToMemoryStreamKey";

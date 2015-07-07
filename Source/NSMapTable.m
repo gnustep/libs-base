@@ -31,7 +31,6 @@
 #import "Foundation/NSPointerFunctions.h"
 #import "Foundation/NSMapTable.h"
 #import "NSCallBacks.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @interface	NSConcreteMapTable : NSMapTable
 @end

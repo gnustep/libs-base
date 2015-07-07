@@ -20,6 +20,7 @@ typedef struct {
   int num4;
   TestClass *child;
   myStruct s;
+  bool b;
 }
 
 - (void) setNum3:(int) num;
@@ -165,6 +166,7 @@ int main()
   UndefinedKey2 *undefinedKey2 = [[[UndefinedKey2 alloc] init] autorelease];
 
   NSNumber *n = [NSNumber numberWithInt:8];
+  NSNumber *nb = [NSNumber numberWithBool:1];
   NSNumber *adjustedN = [NSNumber numberWithInt:7];
   NSNumber *n2 = [NSNumber numberWithDouble:87.999];
 
@@ -180,6 +182,10 @@ int main()
     {
       PASS(rc + 1 == [m retainCount], "KVC retains object values");
     }
+
+  [tester setValue:nb forKey: @"b"];
+  PASS([[tester valueForKey: @"b"] isEqualToNumber:nb],
+      "KVC works with bool");
 
   [tester setValue:n forKey: @"num1"];
   PASS([[tester valueForKey: @"num1"] isEqualToNumber:n],

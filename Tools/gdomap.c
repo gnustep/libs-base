@@ -296,7 +296,7 @@ static char	ebuf[2048];
 #    define syslog(prio, msg,...) slogf(_SLOG_SETCODE(_SLOG_SYSLOG, 0), prio, msg, __VA_ARGS__)
 #  endif
 
-static int	log_priority;
+static int	log_priority = 0;
 
 static void
 gdomap_log (int prio)
@@ -4372,6 +4372,10 @@ static void do_help(int argc, char **argv, char *options)
   printf("-d		extra debug logging (normally via syslog).\n");
   printf("-f		avoid fork() to make debugging easy\n");
   printf("-i seconds	re-probe at this interval (roughly), min 60\n");
+#if	!defined(__MINGW__)
+  printf("-j path		specify a jail directory the process is to\n");
+  printf("		run in (if omitted, /tmp is used).\n");
+#endif
   printf("-p		disable probing for other servers\n");
   printf("\n");
   printf("Kill with SIGUSR1 to obtain a dump of all known peers\n");
@@ -4474,7 +4478,12 @@ int
 main(int argc, char** argv)
 {
   extern char	*optarg;
+#if	defined(__MINGW__)
   char	*options = "-CHI:L:M:NP:R:T:U:a:bc:dfi:p";
+#else
+  char	*options = "-CHI:L:M:NP:R:T:U:a:bc:dfi:j:p";
+  const char    *jail = 0;
+#endif
   int		c;
   int		ptype = GDO_TCP_GDO;
   int		port = 0;
@@ -4482,22 +4491,14 @@ main(int argc, char** argv)
   const char	*lookupf = 0;
   int		donamesf = 0;
 
-#if	defined(HAVE_SYSLOG)
-  /* Initially, gdomap_log errors to stderr as well as to syslogd. */
-#if	defined(SYSLOG_4_2)
-  openlog ("gdomap", LOG_NDELAY);
-  log_priority = LOG_DAEMON;
-#elif !defined(HAVE_SLOGF)
-  openlog ("gdomap", LOG_NDELAY, LOG_DAEMON);
-#endif
-#endif
-
 #if	defined(__MINGW__)
   WORD wVersionRequested;
   WSADATA wsaData;
 
   wVersionRequested = MAKEWORD(2, 2);
   WSAStartup(wVersionRequested, &wsaData);
+#else
+  int           forked = 0;
 #endif
 
   local_hostname = xgethostname();
@@ -4801,6 +4802,12 @@ printf(
 	      }
 	    break;
 
+#if	!defined(__MINGW__)
+	  case 'j':
+	    jail = optarg;
+            break;
+#endif
+
 	  case 'p':
 	    noprobe++;
 	    break;
@@ -4851,7 +4858,6 @@ printf(
 #else
   if (nofork == 0)
     {
-      is_daemon = 1;
       /*
        *	Now fork off child process to run in background.
        */
@@ -4865,6 +4871,7 @@ printf(
 	    /*
 	     *	Try to run in background.
 	     */
+          forked = 1;
 #if	defined(NeXT)
 	    setpgrp(0, getpid());
 #else
@@ -4920,6 +4927,19 @@ printf(
     {
       snprintf(ebuf, sizeof(ebuf), "Closed descriptors");
       gdomap_log(LOG_DEBUG);
+    }
+
+  if (forked)
+    {
+      is_daemon = 1;
+#if	defined(HAVE_SYSLOG)
+#if	defined(SYSLOG_4_2)
+      openlog ("gdomap", LOG_NDELAY);
+      log_priority = LOG_DAEMON;
+#elif !defined(HAVE_SLOGF)
+      openlog ("gdomap", LOG_NDELAY, LOG_DAEMON);
+#endif
+#endif
     }
 
 #endif /* !__MINGW__ */
@@ -4998,8 +5018,8 @@ printf(
     }
 {
 #ifndef __MINGW__
-  int uid = -2;
-  int gid = -2;
+  uid_t uid = -2;
+  gid_t gid = -2;
 #endif
 
 #if	defined(HAVE_PWD_H)
@@ -5016,21 +5036,25 @@ printf(
 
 #if	!defined(__svr4__)
   /*
-   * As another level of paranoia - restrict this process to /tmp
+   * As another level of paranoia - jail this process to a directory
    */
 #ifndef __MINGW__
-  if (chdir("/tmp") < 0)
+  if (0 == jail)
     {
-      snprintf(ebuf, sizeof(ebuf), "Unable to change directory to /tmp");
+      jail = "/tmp";    /* Not great, but better than nothing */
+    }
+  if (chdir(jail) < 0)
+    {
+      snprintf(ebuf, sizeof(ebuf), "Unable to change directory to %s", jail);
       gdomap_log(LOG_CRIT);
       exit(EXIT_FAILURE);
     }
 
   if (geteuid() == 0)
     {
-      if (chroot("/tmp") < 0)
+      if (chroot(jail) < 0)
 	{
-	  snprintf(ebuf, sizeof(ebuf), "Unable to change root to /tmp");
+	  snprintf(ebuf, sizeof(ebuf), "Unable to change root to %s", jail);
 	  gdomap_log(LOG_CRIT);
 	  exit(EXIT_FAILURE);
 	}
@@ -5052,6 +5076,10 @@ printf(
       uid = getuid();
       gid = getgid();
     }
+  /* The call to setgroups may fail if we don't have that capability ...
+   * but in that case we aren't too bothered anyway.
+   */
+  setgroups (1, &gid);
   if (setgid (gid) < 0)
     {
       snprintf(ebuf, sizeof(ebuf),

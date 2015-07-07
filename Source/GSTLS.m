@@ -41,7 +41,6 @@
 #import "GSTLS.h"
 
 #import "GSPrivate.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 /* Constants to control TLS/SSL (options).
  */

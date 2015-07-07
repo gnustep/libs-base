@@ -74,8 +74,10 @@ static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler = 0;
 #define _e_info (((id*)_reserved)[0])
 #define _e_stack (((id*)_reserved)[1])
 
+#if 0 // Testplant-MAL-2015-07-07: Not in main branch
 #if defined(HAVE_UNEXPECTED)
 extern void (*_objc_unexpected_exception)(id);
+#endif
 #endif
 
 /* This is the GNU name for the CTOR list */

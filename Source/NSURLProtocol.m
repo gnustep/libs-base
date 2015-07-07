@@ -36,7 +36,6 @@
 #import "GSTLS.h"
 #import "GSURLPrivate.h"
 #import "GNUstepBase/GSMime.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
@@ -98,7 +97,9 @@ static NSLock		*pairLock = nil;
        * to the same value.
        */
       pairCache = [NSMutableArray new];
+      [[NSObject leakAt: &pairCache] release];
       pairLock = [NSLock new];
+      [[NSObject leakAt: &pairLock] release];
       /*  Purge expired pairs at intervals.
        */
       [[NSNotificationCenter defaultCenter] addObserver: self
@@ -366,8 +367,11 @@ static NSURLProtocol	*placeholder = nil;
       placeholderClass = [NSURLProtocolPlaceholder class];
       placeholder = (NSURLProtocol*)NSAllocateObject(placeholderClass, 0,
 	NSDefaultMallocZone());
+      [[NSObject leakAt: &placeholder] release];
       registered = [NSMutableArray new];
+      [[NSObject leakAt: &registered] release];
       regLock = [NSLock new];
+      [[NSObject leakAt: &regLock] release];
       [self registerClass: [_NSHTTPURLProtocol class]];
       [self registerClass: [_NSHTTPSURLProtocol class]];
       [self registerClass: [_NSFTPURLProtocol class]];
@@ -1450,6 +1454,7 @@ static NSURLProtocol	*placeholder = nil;
 		}
 	      if ([this->request valueForHTTPHeaderField: @"Host"] == nil)
 		{
+                  NSString      *s = [u scheme];
 		  id	p = [u port];
 		  id	h = [u host];
 
@@ -1457,7 +1462,17 @@ static NSURLProtocol	*placeholder = nil;
 		    {
 		      h = @"";	// Must send an empty host header
 		    }
-		  if (p == nil)
+                  if (([s isEqualToString: @"http"] && [p intValue] == 80)
+                    || ([s isEqualToString: @"https"] && [p intValue] == 443))
+		    {
+                      /* Some buggy systems object to the port being in
+                       * the Host header when it's the default (optional)
+                       * value.
+                       * To keep them happy let's omit it in those cases.
+                       */
+                      p = nil;
+                    }
+		  if (nil == p)
 		    {
 		      [m appendFormat: @"Host: %@\r\n", h];
 		    }
@@ -1564,20 +1579,29 @@ static NSURLProtocol	*placeholder = nil;
 				    buffer + written length: len];
 				  _writeOffset = 0;
 				}
+			      else if (len == 0 && ![_body hasBytesAvailable])
+				{
+				  /* all _body's bytes are read and written
+                                   * so we shouldn't wait for another
+                                   * opportunity to close _body and set
+				   * the flag 'sent'.
+				   */
+				  [_body close];
+				  DESTROY(_body);
+				  sent = YES;
 			    }
-				else
+			    }
+                          else if ([this->output streamStatus]
+                            == NSStreamStatusWriting)
 				  {
-					if ([this->output streamStatus] == NSStreamStatusWriting)
-					  {
-						_writeData = [[NSData alloc] initWithBytes:	buffer length: len];
+                              /* Couldn't write it all now, save and try
+                               * again later.
+                               */
+                              _writeData = [[NSData alloc] initWithBytes:
+                                buffer length: len];
 						_writeOffset = 0;
 					  }
-					else if (_debug == YES)
-					  {
-					    NSLog(@"%@ Failed to write data", self);
 					  }
-				  }
-			}
 		      else
 		        {
 			  [_body close];

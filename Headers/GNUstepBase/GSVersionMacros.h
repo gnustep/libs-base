@@ -1,5 +1,5 @@
 /* GSVersionMacros.h - macros for managing API versioning and visibility
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
    Written by: Richard Frith-Macdonald <rfm@gnu.org>
    Date: Oct, October 2006
@@ -60,6 +60,7 @@
 #define	MAC_OS_X_VERSION_10_6	1060
 #define	MAC_OS_X_VERSION_10_7	1070
 #define	MAC_OS_X_VERSION_10_8	1080
+#define	MAC_OS_X_VERSION_10_9	1090
 #endif	/* MAC_OS_X_VERSION_10_0 */
 
 /* Allow MAC_OS_X_VERSION_MAX_ALLOWED to be used in place of GS_OPENSTEP_V
@@ -147,6 +148,7 @@
  * <ref type="macro" id="MAC_OS_X_VERSION_10_6">MAC_OS_X_VERSION_10_6</ref>,
  * <ref type="macro" id="MAC_OS_X_VERSION_10_7">MAC_OS_X_VERSION_10_7</ref>,
  * <ref type="macro" id="MAC_OS_X_VERSION_10_8">MAC_OS_X_VERSION_10_8</ref>
+ * <ref type="macro" id="MAC_OS_X_VERSION_10_9">MAC_OS_X_VERSION_10_9</ref>
  * </p>
  */
 #define	OS_API_VERSION(ADD,REM) \
@@ -212,11 +214,25 @@
 
 
 #if	defined(GNUSTEP_BASE_INTERNAL)
-#import "GNUstepBase/GSConfig.h"
+#include "GNUstepBase/GSConfig.h"
 #else
-#import <GNUstepBase/GSConfig.h>
+#include <GNUstepBase/GSConfig.h>
 #endif
 
+
+#if defined(__GNUC__) && defined(__GNUC_MINOR__) && !defined(__clang__)
+#  define GS_GCC_MINREQ(maj, min) \
+  ((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#else
+#  define GS_GCC_MINREQ(maj, min) 0
+#endif
+
+#if defined(__clang__)
+#  define GS_CLANG_MINREQ(maj, min) \
+  ((__clang_major__ << 16) + __clang_minor__ >= ((maj) << 16) + (min))
+#else
+#  define GS_CLANG_MINREQ(maj, min) 0
+#endif
 
 /* Attribute definitions for attributes which may or may not be supported
  * depending on the compiler being used.
@@ -227,7 +243,7 @@
  * depending on where the attribute can be applied.
  */
 
-#if __GNUC__*10+__GNUC_MINOR__ >= 31
+#if defined(__clang__) || GS_GCC_MINREQ(3,1)
 #  define GS_DEPRECATED_FUNC __attribute__ ((deprecated))
 #else
 #  define GS_DEPRECATED_FUNC
@@ -337,7 +353,7 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
  */
 #if __has_feature(blocks)
 #  if	OBJC2RUNTIME
-#    if defined(_APPLE_)
+#    if defined(__APPLE__)
 #      include <Block.h>
 #    else
 #      include <objc/blocks_runtime.h>
@@ -390,20 +406,42 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 /* Attribute macros compatible with Apple.
  */
 
-#if __GNUC__*10+__GNUC_MINOR__ >= 42
+#ifndef NS_FORMAT_ARGUMENT
+#if defined(__clang__) || GS_GCC_MINREQ(4,2)
 #  define NS_FORMAT_ARGUMENT(A) __attribute__((format_arg(A)))
 #else
 #  define NS_FORMAT_ARGUMENT(F,A) 
 #endif
+#endif
 
 // FIXME ... what version of gcc?
+#ifndef NS_FORMAT_FUNCTION
 #if __clang__
 #  define NS_FORMAT_FUNCTION(F,A) __attribute__((format(__NSString__, F, A)))
 #else
 #  define NS_FORMAT_FUNCTION(F,A) 
 #endif
+#endif
 
+#ifndef NS_REQUIRES_NIL_TERMINATION
 #define NS_REQUIRES_NIL_TERMINATION __attribute__((sentinel))
+#endif
 
+// FIXME ... what exact version of clang and gcc?
+#ifndef UNAVAILABLE_ATTRIBUTE
+#if defined(__clang__) || GS_GCC_MINREQ(4,0)
+#  define UNAVAILABLE_ATTRIBUTE __attribute__((unavailable))
+#else
+#  define UNAVAILABLE_ATTRIBUTE
+#endif
+#endif
+
+/* Check if compiler supports @optional in protocols
+ */
+#if defined(__clang__) || GS_GCC_MINREQ(4,6)
+#  define GS_PROTOCOLS_HAVE_OPTIONAL 1
+#else
+#  define GS_PROTOCOLS_HAVE_OPTIONAL 0
+#endif
 
 #endif /* __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_ */

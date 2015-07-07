@@ -41,7 +41,6 @@
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/Unicode.h"
 #import "GNUstepBase/GSLock.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GSInvocation.h"
 
 #if defined(USE_LIBFFI)
@@ -1097,15 +1096,17 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   return instance;
 }
 
-/* Locks receiver and returns path info on success, otherwise
- * leaves receiver munlocked and returns nil.
+/* Locks receiver and returns path info on success, otherwise leaves
+ * receiver unlocked and returns nil.
+ * The returned path info is retained and autoreleased in case something
+ * removes it from the receiver while it's being used by the caller.
  */
 - (GSKVOPathInfo*) lockReturningPathInfoForKey: (NSString*)key
 {
   GSKVOPathInfo *pathInfo;
 
   [iLock lock];
-  pathInfo = (GSKVOPathInfo*)NSMapGet(paths, (void*)key);
+  pathInfo = AUTORELEASE(RETAIN((GSKVOPathInfo*)NSMapGet(paths, (void*)key)));
   if (pathInfo == nil)
     {
       [iLock unlock];
@@ -1193,7 +1194,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
         {
           id    value;
 
-          value = [instance valueForKey: aPath];
+          value = [instance valueForKeyPath: aPath];
           if (value == nil)
             {
               value = null;
@@ -1708,6 +1709,8 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   pathInfo = [info lockReturningPathInfoForKey: aKey];
   if (pathInfo != nil)
     {
+      // Testplant-MAL-2015-07-07: retain path info object otherwise could
+      // be released before we're finished....
       RETAIN(pathInfo);
       if (pathInfo->recursion++ == 0)
         {
@@ -1742,6 +1745,8 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
 
           [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: YES];
         }
+      // Testplant-MAL-2015-07-07: retain path info object otherwise could
+      // be released before we're finished....
       RELEASE(pathInfo);
       [info unlock];
     }
@@ -1763,6 +1768,8 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   pathInfo = [info lockReturningPathInfoForKey: aKey];
   if (pathInfo != nil)
     {
+      // Testplant-MAL-2015-07-07: retain path info object otherwise could
+      // be released before we're finished....
       RETAIN(pathInfo);
       if (pathInfo->recursion == 1)
         {
@@ -1783,6 +1790,8 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
         {
           pathInfo->recursion--;
         }
+      // Testplant-MAL-2015-07-07: retain path info object otherwise could
+      // be released before we're finished....
       RELEASE(pathInfo);
       [info unlock];
     }
@@ -2017,6 +2026,32 @@ triggerChangeNotificationsForDependentKey: (NSString*)dependentKey
         }
       NSHashInsert(dependentKeys, dependentKey);
     }
+}
+
++ (NSSet*) keyPathsForValuesAffectingValueForKey: (NSString*)dependentKey
+{
+  NSString *selString = [NSString stringWithFormat: @"keyPathsForValuesAffecting%@",
+                                  [dependentKey capitalizedString]];
+  SEL sel = NSSelectorFromString(selString);
+  NSMapTable *affectingKeys;
+  NSEnumerator *enumerator;
+  NSString *affectingKey;
+  NSMutableSet *keyPaths;
+
+  if ([self respondsToSelector: sel])
+    {
+      return [self performSelector: sel];
+    }
+
+  affectingKeys = NSMapGet(dependentKeyTable, self);
+  keyPaths = [[NSMutableSet alloc] initWithCapacity: [affectingKeys count]];
+  enumerator = [affectingKeys keyEnumerator];
+  while ((affectingKey = [enumerator nextObject]))
+    {
+      [keyPaths addObject: affectingKey];
+    }
+
+  return AUTORELEASE(keyPaths);
 }
 
 - (void*) observationInfo

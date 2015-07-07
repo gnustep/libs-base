@@ -185,7 +185,9 @@ static NSRecursiveLock *classLock = nil;
   if (self == [NSLocale class])
     {
       classLock = [GSLazyRecursiveLock new];
+      [[NSObject leakAt: &classLock] release];
       allLocales = [[NSMutableDictionary alloc] initWithCapacity: 0];
+      [[NSObject leakAt: &allLocales] release];
     }
 }
 
@@ -1035,7 +1037,7 @@ static NSRecursiveLock *classLock = nil;
   
   result = [[NSCalendar alloc] initWithCalendarIdentifier: calId];
   
-  return result;
+  return AUTORELEASE(result);
 #else
   return nil;
 #endif

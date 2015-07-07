@@ -132,7 +132,9 @@ typedef struct {
     {
       return NO;
     }
-  return [[(NSURLCredential*)other user] isEqualToString: this->user];
+  return [[(NSURLCredential*)other user] isEqualToString: this->user]
+    && [[(NSURLCredential*)other password] isEqualToString: this->password]
+    && [(NSURLCredential*)other persistence] == this->persistence;
 }
 
 - (NSString *) password

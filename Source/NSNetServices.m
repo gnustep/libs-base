@@ -24,10 +24,9 @@
    Boston, MA 02111 USA.
    */ 
 
+#import "common.h"
 #import "GSNetServices.h"
 #import "GSFastEnumeration.h"
-#import "GNUstepBase/NSObject+GNUstepBase.h"
-#import "GNUstepBase/GSConfig.h"
 #import "GNUstepBase/NSNetServices+GNUstepBase.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"

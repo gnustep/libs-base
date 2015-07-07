@@ -252,6 +252,11 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   int h, m, dayOfEra;
   double a, b, c, d;
 
+  /* The 0.1 constant was experimentally derived to cause our behavior
+   * to match Mac OS X 10.9.1.
+   */
+  when = floor(when * 1000.0 + 0.1) / 1000.0;
+
   // Get reference date in terms of days
   a = when / 86400.0;
   // Offset by Gregorian reference
@@ -265,7 +270,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   // Calculate hour, minute, and seconds
   d = dayOfEra - GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - when);
+  a = fabs(d - when);
   b = a / 3600;
   *hour = (NSInteger)b;
   h = *hour;
@@ -277,7 +282,7 @@ GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   m = m * 60;
   c = a - h - m;
   *second = (NSInteger)c;
-  *mil = (NSInteger)((a - h - m - c) * 1000.0);
+  *mil = (NSInteger)rint((a - h - m - *second) * 1000.0);
 }
 
 /**
@@ -716,8 +721,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
     {
       description = @"";
     }
-  source = [description cStringUsingEncoding:NSUTF8StringEncoding];
-
+  source = [description cString];
   sourceLen = strlen(source);
   if (locale == nil)
     {
@@ -1708,7 +1712,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   d = dayOfCommonEra(when);
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (_seconds_since_ref + offset(_time_zone, self)));
+  a = fabs(d - (_seconds_since_ref + offset(_time_zone, self)));
   a = a / 3600;
   h = (NSInteger)a;
 
@@ -1733,7 +1737,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   d = dayOfCommonEra(when);
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (_seconds_since_ref + offset(_time_zone, self)));
+  a = fabs(d - (_seconds_since_ref + offset(_time_zone, self)));
   b = a / 3600;
   h = (NSInteger)b;
   h = h * 3600;
@@ -1771,7 +1775,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   d = dayOfCommonEra(when);
   d -= GREGORIAN_REFERENCE;
   d *= 86400;
-  a = abs(d - (_seconds_since_ref + offset(_time_zone, self)));
+  a = fabs(d - (_seconds_since_ref + offset(_time_zone, self)));
   b = a / 3600;
   h = (NSInteger)b;
   h = h * 3600;
@@ -2094,6 +2098,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		break;
 
 	      case 'F': 	// milliseconds
+#if 0   // Testplant-MAL-2015-07-07: Omitted as part of merge but unsure...
 		{
 		  double	s;
 
@@ -2104,6 +2109,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		  s *= 1000.0;
 		  v = (NSInteger)(s + 0.5);
 		}
+#endif
 		if (fmtlen == 1) // no format width specified; supply default
 		  {
 		    fldfmt[fmtlen++] = '0';

@@ -1,5 +1,5 @@
 /** Implementation of GNUSTEP printf-style formatting
-   Copyright (C) 1994-2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1994-2000, 2001-2013 Free Software Foundation, Inc.
 
    Hacked together by Kai Henningsen <kai@cats.ms>
    from the glibc 2.2.1 sources
@@ -51,7 +51,9 @@
 #endif
 
 #ifdef HAVE_MALLOC_H
+#if !defined(__OpenBSD__)
 #include <malloc.h>
+#endif
 #endif
 #ifdef HAVE_ALLOCA_H
 #include <alloca.h>
@@ -98,9 +100,6 @@ typedef uint32_t wint_t;
 #endif
 #ifdef HAVE_SYS_INTTYPES_H
 #include <sys/inttypes.h>
-#endif
-#ifdef HAVE_MALLOC_H
-#include <malloc.h>
 #endif
 #ifndef HAVE_UINTMAX_T
 typedef unsigned long long uintmax_t;
@@ -834,6 +833,7 @@ NSDictionary *locale)
   /* Buffer intermediate results.  */
   unichar work_buffer[1000];
   unichar *workend;
+  int workend_malloced = 0;
 
   /* State for restartable multibyte character handling functions.  */
 
@@ -1145,8 +1145,18 @@ NSDictionary *locale)
 	if ((unsigned)(MAX (prec, width) + 32)
 	  > sizeof (work_buffer) / sizeof (unichar))
 	  {
-	    workend = ((unichar *) alloca ((MAX (prec, width) + 32)
-	      * sizeof (unichar)) + (MAX (prec, width) + 32));
+            size_t      want = ((MAX (prec, width) + 32)
+	      * sizeof (unichar)) + (MAX (prec, width) + 32);
+
+            if (want > 168384)
+              {
+                workend = (unichar *)malloc(want);
+                workend_malloced = 1;
+	  }
+            else
+              {
+                workend = (unichar *)alloca(want);
+              }
 	  }
 
 	/* Process format specifiers.  */
@@ -1934,6 +1944,7 @@ NSDictionary *locale)
   }
 
 all_done:
+  if (workend_malloced) free(workend);
   /* Unlock the stream.  */
   return;
 }

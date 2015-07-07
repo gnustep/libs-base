@@ -243,6 +243,10 @@ GS_EXPORT NSString* const NSLoadedClasses;
 /** Return the path to the bundle - an absolute path.  */
 - (NSString*) bundlePath;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
+- (NSURL*) bundleURL;
+#endif
+
 /** Returns the class in the bundle with the given name. If no class
     of this name exists in the bundle, then Nil is returned.
  */
@@ -341,8 +345,29 @@ GS_EXPORT NSString* const NSLoadedClasses;
 /** Returns the absolute path to the resources directory of the bundle.  */
 - (NSString*) resourcePath;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
+/** Returns the absolute path to the resources directory of the bundle.  */
+- (NSURL *) resourceURL;
+#endif
+
 /** Returns the full path to the plug-in subdirectory of the bundle.  */
 - (NSString *) builtInPlugInsPath;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
+/** Returns the full path to the plug-in subdirectory of the bundle.  */
+- (NSURL *) builtInPlugInsURL;
+#endif
+
+/** Returns the full path to the private frameworks subdirectory of the bundle.  */
+- (NSString *) privateFrameworksPath;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
+/** Returns the full path to the private frameworks subdirectory of the bundle.  */
+- (NSURL *) privateFrameworksURL;
+#endif
+
+
+
 
 /** Returns the bundle identifier, as defined by the CFBundleIdentifier
     key in the infoDictionary */
@@ -440,6 +465,18 @@ GS_EXPORT NSString* const NSLoadedClasses;
 
 /** Returns the path to the executable code in the bundle */
 - (NSString *) executablePath;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
+- (NSURL *) executableURL;
+#endif
+
+- (NSString *) pathForAuxiliaryExecutable: (NSString *) executableName;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
+- (NSURL *)URLForAuxiliaryExecutable: (NSString *) executableName;
+#endif
+
+
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 

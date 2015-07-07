@@ -226,6 +226,7 @@ static pthread_mutex_t *allocationLock = NULL;
     {
       allObjects = (_GCObjectList*)
 	NSAllocateObject([_GCObjectList class], 0, NSDefaultMallocZone());
+      [[NSObject leakAt: &allObjects] release];
       allObjects->gc.next = allObjects;
       allObjects->gc.previous = allObjects;
       if ([NSThread isMultiThreaded] == YES)
