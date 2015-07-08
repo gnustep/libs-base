@@ -1,3 +1,8 @@
+2015-07-08 Riccardo Mottola <rm@gnu.org>
+
+	* Headers/GNUstepBase/GSConfig.h.in
+	On NetBSD, undefine the system __weak first.
+
 2015-07-03 Niels Grewe <niels.grewe@halbordnung.de>
 
         * Tests/base/NSXMLParser/ParseData/namespaced-attributes.xml:
