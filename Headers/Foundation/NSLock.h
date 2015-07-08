@@ -78,10 +78,12 @@ extern "C" {
 #endif
 }
 
-/**
- *  Try to acquire lock and return immediately, YES if succeeded, NO if not.
+#if !NO_GNUSTEP
+/** Report whether this lock is held by the current thread.<br />
+ * Raises an exception if this is not supported by the system lock mechanism.
  */
-- (BOOL) tryLock;
+- (BOOL) isLockedByCurrentThread;
+#endif
 
 /**
  *  Try to acquire lock and return before limit, YES if succeeded, NO if not.
@@ -92,6 +94,11 @@ extern "C" {
  *  Block until acquiring lock.
  */
 - (void) lock;
+
+/**
+ *  Try to acquire lock and return immediately, YES if succeeded, NO if not.
+ */
+- (BOOL) tryLock;
 
 /**
  *  Relinquish lock.
@@ -183,6 +190,13 @@ extern "C" {
  */
 - (NSInteger) condition;
 
+#if !NO_GNUSTEP
+/** Report whether this lock is held by the current thread.<br />
+ * Raises an exception if this is not supported by the system lock mechanism.
+ */
+- (BOOL) isLockedByCurrentThread;
+#endif
+
 /*
  * Acquiring and releasing the lock.
  */
@@ -264,6 +278,13 @@ extern "C" {
   NSString      *_name;
 #endif
 }
+
+#if !NO_GNUSTEP
+/** Report whether this lock is held by the current thread.<br />
+ * Raises an exception if this is not supported by the system lock mechanism.
+ */
+- (BOOL) isLockedByCurrentThread;
+#endif
 
 /**
  *  Try to acquire lock regardless of condition and return immediately, YES if
