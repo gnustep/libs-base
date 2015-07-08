@@ -409,6 +409,10 @@ typedef	struct {
 #endif
 
 #if !__has_feature(objc_arc)
+// NetBSD > 6 defines __weak in cdefs_elf.h
+#ifdef __NetBSD__
+#undef __weak
+#endif
 #  if !defined(__weak)
 #    if __OBJC_GC__
 #      define __weak __attribute__((objc_gc(weak)))
