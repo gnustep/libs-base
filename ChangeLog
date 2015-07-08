@@ -1,3 +1,11 @@
+2015-07-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSLock.h:
+	* Source/NSLock.m:
+	Add extension method -isLockedByCurrentThread for debug purposes.
+	Also make description report the OS thread id of the thread which
+	holds the lock (if any).
+
 2015-07-08 Riccardo Mottola <rm@gnu.org>
 
 	* Headers/GNUstepBase/GSConfig.h.in

@@ -571,7 +571,7 @@ uint32_t
 GSPrivateFinishHash(uint32_t s0, uint32_t s1, uint32_t totalLength)
   GS_ATTRIB_PRIVATE;
 
-/* Return the current thread ID as an unsigned long.
+/* Return the current thread ID as an NSUInteger.
  * Ideally, we use the operating-system's notion of a thread ID so
  * that external process monitoring software will be using the same
  * value that we log.  If we don't know the system's mechanism, we
@@ -579,7 +579,7 @@ GSPrivateFinishHash(uint32_t s0, uint32_t s1, uint32_t totalLength)
  * it makes no sense externally, it can still be used to show that
  * different threads generated different logs.
  */
-unsigned long
+NSUInteger
 GSPrivateThreadID()
   GS_ATTRIB_PRIVATE;
 

@@ -368,12 +368,13 @@ NSLogv(NSString* format, va_list args)
     {
       if (nil != threadName)
         {
-          [prefix appendFormat: @"[thread:%lu,%@] ",
-            GSPrivateThreadID(), threadName];
+          [prefix appendFormat: @"[thread:%llu,%@] ",
+            (unsigned long long)GSPrivateThreadID(), threadName];
         }
       else
         {
-          [prefix appendFormat: @"[thread:%lu] ", GSPrivateThreadID()];
+          [prefix appendFormat: @"[thread:%llu] ",
+            (unsigned long long)GSPrivateThreadID()];
         }
     }
   else
@@ -397,13 +398,13 @@ NSLogv(NSString* format, va_list args)
       [prefix appendString: [[NSProcessInfo processInfo] processName]];
       if (nil == threadName)
         {
-          [prefix appendFormat: @"[%d:%lu] ",
-            pid, GSPrivateThreadID()];
+          [prefix appendFormat: @"[%d:%llu] ",
+            pid, (unsigned long long)GSPrivateThreadID()];
         }
       else
         {
-          [prefix appendFormat: @"[%d:%lu,%@] ",
-            pid, GSPrivateThreadID(), threadName];
+          [prefix appendFormat: @"[%d:%llu,%@] ",
+            pid, (unsigned long long)GSPrivateThreadID(), threadName];
         }
     }
 

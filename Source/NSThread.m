@@ -111,17 +111,17 @@
  * it makes no sense externally, it can still be used to show that
  * different threads generated different logs.
  */
-unsigned long
+NSUInteger
 GSPrivateThreadID()
 {
 #if defined(__MINGW__)
-  return (unsigned long)GetCurrentThreadId();
+  return (NSUInteger)GetCurrentThreadId();
 #elif defined(HAVE_GETTID)
-  return (unsigned long)syscall(SYS_gettid);
+  return (NSUInteger)syscall(SYS_gettid);
 #elif defined(HAVE_PTHREAD_GETTHREADID_NP)
   return pthread_getthreadid_np();
 #else
-  return (unsigned long)GSCurrentThread();
+  return (NSUInteger)GSCurrentThread();
 #endif
 }
 
@@ -796,8 +796,8 @@ unregisterActiveThread(NSThread *thread)
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"%@{name = %@, num = %lu}",
-    [super description], _name, GSPrivateThreadID()];
+  return [NSString stringWithFormat: @"%@{name = %@, num = %llu}",
+    [super description], _name, (unsigned long long)GSPrivateThreadID()];
 }
 
 - (id) init
