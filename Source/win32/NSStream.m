@@ -169,13 +169,13 @@
 {
   HANDLE	h;
 
-  h = (void*)CreateFileW([_path fileSystemRepresentation],
-    GENERIC_READ,
-    FILE_SHARE_READ,
-    0,
-    OPEN_EXISTING,
-    0,
-    0);
+  h = (void*)CreateFileW((LPCWSTR)[_path fileSystemRepresentation],
+                         GENERIC_READ,
+                         FILE_SHARE_READ,
+                         0,
+                         OPEN_EXISTING,
+                         0,
+                         0);
   if (h == INVALID_HANDLE_VALUE)
     {
       [self _recordError];
@@ -578,13 +578,13 @@
 {
   HANDLE	h;
 
-  h = (void*)CreateFileW([_path fileSystemRepresentation],
-    GENERIC_WRITE,
-    FILE_SHARE_WRITE,
-    0,
-    OPEN_ALWAYS,
-    0,
-    0);
+  h = (void*)CreateFileW((LPCWSTR)[_path fileSystemRepresentation],
+                         GENERIC_WRITE,
+                         FILE_SHARE_WRITE,
+                         0,
+                         OPEN_ALWAYS,
+                         0,
+                         0);
   if (h == INVALID_HANDLE_VALUE)
     {
       [self _recordError];
@@ -1011,7 +1011,7 @@
   /*
    * We allocate a new within the local pipe area
    */
-  name = [[@"\\\\.\\pipe\\GSLocal" stringByAppendingString: path]
+  name = (const unichar *)[[@"\\\\.\\pipe\\GSLocal" stringByAppendingString: path]
     fileSystemRepresentation];
 
   saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
@@ -1019,12 +1019,12 @@
   saAttr.lpSecurityDescriptor = NULL;
 
   handle = CreateFileW(name,
-    GENERIC_WRITE|GENERIC_READ,
-    0,
-    &saAttr,
-    OPEN_EXISTING,
-    FILE_FLAG_OVERLAPPED,
-    NULL);
+                       GENERIC_WRITE|GENERIC_READ,
+                       0,
+                       &saAttr,
+                       OPEN_EXISTING,
+                       FILE_FLAG_OVERLAPPED,
+                       NULL);
   if (handle == INVALID_HANDLE_VALUE)
     {
       [NSException raise: NSInternalInconsistencyException
@@ -1074,7 +1074,7 @@ done:
    * support asynchronous I/O!
    * We allocate a name known to be unique.
    */
-  name = [[@"\\\\.\\pipe\\" stringByAppendingString:
+  name = (const unichar *)[[@"\\\\.\\pipe\\" stringByAppendingString:
     [[NSProcessInfo processInfo] globallyUniqueString]]
     fileSystemRepresentation];
   readh = CreateNamedPipeW(name,
@@ -1096,12 +1096,12 @@ done:
   ConnectNamedPipe(readh, &ov);
 
   writeh = CreateFileW(name,
-    GENERIC_WRITE,
-    0,
-    &saAttr,
-    OPEN_EXISTING,
-    FILE_FLAG_OVERLAPPED,
-    NULL);
+                       GENERIC_WRITE,
+                       0,
+                       &saAttr,
+                       OPEN_EXISTING,
+                       FILE_FLAG_OVERLAPPED,
+                       NULL);
   if (writeh == INVALID_HANDLE_VALUE)
     {
       CloseHandle(event);
@@ -1348,14 +1348,14 @@ done:
   saAttr.bInheritHandle = FALSE;
   saAttr.lpSecurityDescriptor = NULL;
 
-  handle = CreateNamedPipeW([path fileSystemRepresentation],
-    PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
-    PIPE_TYPE_MESSAGE,
-    PIPE_UNLIMITED_INSTANCES,
-    BUFSIZ*64,
-    BUFSIZ*64,
-    100000,
-    &saAttr);
+  handle = CreateNamedPipeW((LPCWSTR)[path fileSystemRepresentation],
+                            PIPE_ACCESS_DUPLEX | FILE_FLAG_OVERLAPPED,
+                            PIPE_TYPE_MESSAGE,
+                            PIPE_UNLIMITED_INSTANCES,
+                            BUFSIZ*64,
+                            BUFSIZ*64,
+                            100000,
+                            &saAttr);
   if (handle == INVALID_HANDLE_VALUE)
     {
       [self _recordError];
