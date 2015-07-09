@@ -40,6 +40,8 @@
 #import "Foundation/NSThread.h"
 #import "Foundation/NSValue.h"
 
+#import "GSSorting.h"
+
 #if     HAVE_EXECINFO_H
 #include        <execinfo.h>
 #endif
@@ -59,6 +61,16 @@ typedef struct {
   unsigned int   stack_size;
 } table_entry;
 
+typedef struct {
+  const char    *name;
+  int           count;
+} list_entry;
+
+static NSInteger itemComp(id v0, id v1, void *ctxt)
+{
+  return strcmp(((list_entry*)v0)->name, ((list_entry *)v1)->name);
+}
+
 static	unsigned int	num_classes = 0;
 static	unsigned int	table_size = 0;
 
@@ -72,8 +84,8 @@ static SEL              unLockSel = 0;
 static IMP              doLockImp = 0;
 static IMP              unLockImp = 0;
 
-static const char*	_GSDebugAllocationList(BOOL difference);
-static const char*	_GSDebugAllocationListAll(void);
+static void     _GSDebugAllocationFetch(list_entry *items, BOOL difference);
+static void     _GSDebugAllocationFetchAll(list_entry *items);
 
 static void _GSDebugAllocationAdd(Class c, id o);
 static void _GSDebugAllocationRemove(Class c, id o);
@@ -402,76 +414,131 @@ GSDebugAllocationClassList()
 const char*
 GSDebugAllocationList(BOOL changeFlag)
 {
-  const char	*ans;
-  NSData	*d;
+  list_entry    *items;
+  unsigned      size;
 
   if (debug_allocation == NO)
     {
       return "Debug allocation system is not active!\n";
     }
+
   doLock();
-  ans = _GSDebugAllocationList(changeFlag);
-  d = [NSData dataWithBytes: ans length: strlen(ans) + 1];
+  size = num_classes;
+  if (size > 0)
+    {
+      items = malloc(sizeof(list_entry) * size);
+      _GSDebugAllocationFetch(items, changeFlag);
+    }
+  else
+    {
+      items = 0;
+    }
   unLock();
-  return (const char*)[d bytes];
+
+  while (size > 0 && 0 == items[size - 1].name)
+    {
+      size--;
+    }
+  if (0 == size)
+    {
+      if (items != 0)
+        {
+          free(items);
+        }
+      if (changeFlag)
+        {
+          return "There are NO newly allocated or deallocated object!\n";
+        }
+      else
+        {
+          return "I can find NO allocated object!\n";
+        }
+    }
+  else
+    {
+      NSMutableString   *result;
+      id                order[size];
+      unsigned          index;
+
+      for (index = 0; index < size; index++)
+        {
+          order[index] = (id)&items[index];
+        }
+      GSSortUnstable(order, NSMakeRange(0,size), (id)itemComp,
+        GSComparisonTypeFunction, 0);
+
+      result = [NSMutableString stringWithCapacity: 1000];
+      for (index = 0; index < size; index++)
+        {
+          list_entry    *item = (list_entry*)order[index];
+
+          [result appendFormat: @"%d\t%s\n", item->count, item->name];
+        }
+      free(items);
+      return [result UTF8String];
+    }
 }
 
-static const char*
-_GSDebugAllocationList(BOOL difference)
+const char*
+GSDebugAllocationListAll()
 {
-  unsigned int	pos = 0;
-  unsigned int	i;
-  static unsigned int	siz = 0;
-  static char	*buf = 0;
+  list_entry    *items;
+  unsigned      size;
 
-  for (i = 0; i < num_classes; i++)
+  if (debug_allocation == NO)
     {
-      int	val = the_table[i].count;
-
-      if (difference)
-	{
-	  val -= the_table[i].lastc;
-	}
-      if (val != 0)
-	{
-	  pos += 22 + strlen(class_getName(the_table[i].class));
-	}
-    }
-  if (pos == 0)
-    {
-      if (difference)
-	{
-	  return "There are NO newly allocated or deallocated object!\n";
-	}
-      else
-	{
-	  return "I can find NO allocated object!\n";
-	}
+      return "Debug allocation system is not active!\n";
     }
 
-  pos++;
-
-  if (pos > siz)
+  doLock();
+  size = num_classes;
+  if (size > 0)
     {
-      if (pos & 0xff)
-	{
-	  pos = ((pos >> 8) + 1) << 8;
-	}
-      siz = pos;
-      if (buf)
-	{
-	  NSZoneFree(NSDefaultMallocZone(), buf);
-	}
-      buf = NSZoneMalloc(NSDefaultMallocZone(), siz);
+      items = malloc(sizeof(list_entry) * size);
+      _GSDebugAllocationFetchAll(items);
     }
-
-  if (0 == buf)
+  else
     {
-      return "";
+      items = 0;
     }
+  unLock();
 
-  pos = 0;
-  for (i = 0; i < num_classes; i++)
+  if (0 == items)
+    {
+      return "I can find NO allocated object!\n";
+    }
+  else
+    {
+      NSMutableString   *result;
+      id                order[size];
+      unsigned          index;
+
+      for (index = 0; index < size; index++)
+        {
+          order[index] = (id)&items[index];
+        }
+      GSSortUnstable(order, NSMakeRange(0,size), (id)itemComp,
+        GSComparisonTypeFunction, 0);
+
+      result = [NSMutableString stringWithCapacity: 1000];
+      for (index = 0; index < size; index++)
+        {
+          list_entry    *item = (list_entry*)order[index];
+
+          [result appendFormat: @"%d\t%s\n", item->count, item->name];
+        }
+      free(items);
+      return [result UTF8String];
+    }
+}
+
+static void
+_GSDebugAllocationFetch(list_entry *items, BOOL difference)
+{
+  unsigned      i;
+  unsigned      pos;
+
+  for (i = pos = 0; i < num_classes; i++)
     {
       int	val = the_table[i].count;
 
@@ -480,91 +547,31 @@ _GSDebugAllocationList(BOOL difference)
 	  val -= the_table[i].lastc;
 	}
       the_table[i].lastc = the_table[i].count;
-
-      if (val != 0)
-	{
-	  snprintf(&buf[pos], siz - pos, "%d\t%s\n",
-	    val, class_getName(the_table[i].class));
-	  pos += strlen(&buf[pos]);
-	}
+      if (val)
+        {
+          items[pos].name = class_getName(the_table[i].class);
+          items[pos].count = val;
+          pos++;
+        }
     }
-
-  return buf;
-}
-
-const char*
-GSDebugAllocationListAll()
-{
-  const char	*ans;
-  NSData	*d;
-
-  if (debug_allocation == NO)
+  while (pos < num_classes)
     {
-      return "Debug allocation system is not active!\n";
+      items[pos].name = 0;
+      items[pos].count = 0;
+      pos++;
     }
-  doLock();
-  ans = _GSDebugAllocationListAll();
-  d = [NSData dataWithBytes: ans length: strlen(ans)+1];
-  unLock();
-  return (const char*)[d bytes];
 }
 
-static const char*
-_GSDebugAllocationListAll(void)
+static void
+_GSDebugAllocationFetchAll(list_entry *items)
 {
-  unsigned int	pos = 0;
-  unsigned int	i;
-  static unsigned int	siz = 0;
-  static char	*buf = 0;
+  unsigned      i;
 
   for (i = 0; i < num_classes; i++)
     {
-      int	val = the_table[i].total;
-
-      if (val != 0)
-	{
-	  pos += 22 + strlen(class_getName(the_table[i].class));
-	}
+      items[i].name = class_getName(the_table[i].class);
+      items[i].count = the_table[i].total;
     }
-  if (pos == 0)
-    {
-      return "I can find NO allocated object!\n";
-    }
-  pos++;
-
-  if (pos > siz)
-    {
-      if (pos & 0xff)
-	{
-	  pos = ((pos >> 8) + 1) << 8;
-	}
-      siz = pos;
-      if (buf)
-	{
-	  NSZoneFree(NSDefaultMallocZone(), buf);
-	}
-      buf = NSZoneMalloc(NSDefaultMallocZone(), siz);
-    }
-
-  if (0 == buf)
-    {
-      return "";
-    }
-
-  pos = 0;
-  for (i = 0; i < num_classes; i++)
-    {
-      int	val = the_table[i].total;
-
-      if (val != 0)
-	{
-	  snprintf(&buf[pos], siz - pos, "%d\t%s\n",
-	    val, class_getName(the_table[i].class));
-	  pos += strlen(&buf[pos]);
-	}
-    }
-
-  return buf;
 }
 
 void
