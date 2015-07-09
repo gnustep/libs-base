@@ -2,6 +2,8 @@
 
 	* Source/NSDebug.m: List memory allocation statistics in alphabetical
 	order (by class name) for easier interpretation.
+	Fix bug where the counter for differences was updated when difference
+	listing was not requested.
 
 2015-07-08  Richard Frith-Macdonald <rfm@gnu.org>
 

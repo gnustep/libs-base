@@ -545,8 +545,8 @@ _GSDebugAllocationFetch(list_entry *items, BOOL difference)
       if (difference)
 	{
 	  val -= the_table[i].lastc;
+          the_table[i].lastc = the_table[i].count;
 	}
-      the_table[i].lastc = the_table[i].count;
       if (val)
         {
           items[pos].name = class_getName(the_table[i].class);
