@@ -357,7 +357,7 @@ NSLogv(NSString* format, va_list args)
        */
       if ([threadName length] == 0)
         {
-          threadName = [NSString stringWithFormat: @"%lu", (unsigned long)t];
+          threadName = [NSString stringWithFormat: @"%p", t];
         }
     }
 
@@ -368,13 +368,13 @@ NSLogv(NSString* format, va_list args)
     {
       if (nil != threadName)
         {
-          [prefix appendFormat: @"[thread:%llu,%@] ",
-            (unsigned long long)GSPrivateThreadID(), threadName];
+          [prefix appendFormat: @"[thread:%"PRIuPTR",%@] ",
+            GSPrivateThreadID(), threadName];
         }
       else
         {
-          [prefix appendFormat: @"[thread:%llu] ",
-            (unsigned long long)GSPrivateThreadID()];
+          [prefix appendFormat: @"[thread:%"PRIuPTR"] ",
+            GSPrivateThreadID()];
         }
     }
   else
@@ -398,13 +398,13 @@ NSLogv(NSString* format, va_list args)
       [prefix appendString: [[NSProcessInfo processInfo] processName]];
       if (nil == threadName)
         {
-          [prefix appendFormat: @"[%d:%llu] ",
-            pid, (unsigned long long)GSPrivateThreadID()];
+          [prefix appendFormat: @"[%d:%"PRIuPTR"] ",
+            pid, GSPrivateThreadID()];
         }
       else
         {
-          [prefix appendFormat: @"[%d:%llu,%@] ",
-            pid, (unsigned long long)GSPrivateThreadID(), threadName];
+          [prefix appendFormat: @"[%d:%"PRIuPTR",%@] ",
+            pid, GSPrivateThreadID(), threadName];
         }
     }
 
