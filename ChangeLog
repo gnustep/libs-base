@@ -6,6 +6,7 @@
 	Stefan Bidigaray pointed out that the heading we currently write is
 	very out of date.
 	* Source/NSThread.m: On premature thread exist, log native thread ID.
+	* Source/NSLog.m: Optimisations to make logging a little quicker.
 
 2015-07-09  Richard Frith-Macdonald <rfm@gnu.org>
 
