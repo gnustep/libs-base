@@ -434,7 +434,7 @@ NSLogv(NSString* format, va_list args)
 
   _NSLog_printf_handler(prefix);
 
-  (*lockImp)(myLock, @selector(unlock));
+  (*unlockImp)(myLock, @selector(unlock));
 
   [prefix release];
 }
