@@ -1,3 +1,11 @@
+2015-07-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: Write xml document headers referring to
+	the current location of Apple's property list dtd for compatibility
+	with software expecting to validate using that dtd.
+	Stefan Bidigaray pointed out that the heading we currently write is
+	very out of date.
+
 2015-07-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDebug.m: List memory allocation statistics in alphabetical
