@@ -53,6 +53,12 @@
 static id       boolN = nil;
 static id       boolY = nil;
 
+static const char *prefix =
+  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+  "<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" "
+  "\"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">\n"
+  "<plist version=\"1.0\">\n";
+
 @class  GSSloppyXMLParser;
 
 #define inrange(ch,min,max) ((ch)>=(min) && (ch)<=(max))
@@ -2390,12 +2396,6 @@ static BOOL	classInitialized = NO;
 
   if (aFormat == NSPropertyListXMLFormat_v1_0)
     {
-      const char *prefix =
-	"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist "
-	"PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" "
-	"\"http://www.gnustep.org/plist-0_9.xml\">\n"
-	"<plist version=\"0.9\">\n";
-
       [dest appendBytes: prefix length: strlen(prefix)];
       OAppend(aPropertyList, loc, 0, step > 3 ? 3 : step, aFormat, dest);
       [dest appendBytes: "</plist>" length: 8];
@@ -2459,12 +2459,6 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
   if (style == NSPropertyListXMLFormat_v1_0)
     {
-      const char	*prefix =
-	"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<!DOCTYPE plist "
-	"PUBLIC \"-//GNUstep//DTD plist 0.9//EN\" "
-	"\"http://www.gnustep.org/plist-0_9.xml\">\n"
-	"<plist version=\"0.9\">\n";
-
       [dest appendBytes: prefix length: strlen(prefix)];
       OAppend(obj, loc, 0, step > 3 ? 3 : step, style, dest);
       [dest appendBytes: "</plist>" length: 8];
