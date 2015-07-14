@@ -119,7 +119,7 @@ GSPrivateThreadID()
 #elif defined(HAVE_GETTID)
   return (NSUInteger)syscall(SYS_gettid);
 #elif defined(HAVE_PTHREAD_GETTHREADID_NP)
-  return pthread_getthreadid_np();
+  return (NSUInteger)pthread_getthreadid_np();
 #else
   return (NSUInteger)GSCurrentThread();
 #endif
@@ -412,8 +412,20 @@ static void exitedThread(void *thread)
 {
   if (thread != defaultThread)
     {
-      fprintf(stderr, "WARNING thread %p terminated without calling +exit!\n",
-        thread);
+      NSUInteger        tid;
+
+#if defined(__MINGW__)
+      tid = (NSUInteger)GetCurrentThreadId();
+#elif defined(HAVE_GETTID)
+      tid = (NSUInteger)syscall(SYS_gettid);
+#elif defined(HAVE_PTHREAD_GETTHREADID_NP)
+      tid = (NSUInteger)pthread_getthreadid_np();
+#else
+      tid = (NSUInteger)thread;
+#endif
+
+      fprintf(stderr, "WARNING thread %"PRIuPTR
+        " terminated without calling +exit!\n", tid);
     }
 }
 
@@ -796,8 +808,8 @@ unregisterActiveThread(NSThread *thread)
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"%@{name = %@, num = %llu}",
-    [super description], _name, (unsigned long long)GSPrivateThreadID()];
+  return [NSString stringWithFormat: @"%@{name = %@, num = %"PRIuPTR"}",
+    [super description], _name, GSPrivateThreadID()];
 }
 
 - (id) init

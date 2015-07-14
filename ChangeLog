@@ -5,6 +5,7 @@
 	with software expecting to validate using that dtd.
 	Stefan Bidigaray pointed out that the heading we currently write is
 	very out of date.
+	* Source/NSThread.m: On premature thread exist, log native thread ID.
 
 2015-07-09  Richard Frith-Macdonald <rfm@gnu.org>
 
