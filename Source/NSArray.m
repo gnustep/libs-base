@@ -1771,6 +1771,7 @@ compare(id elem1, id elem2, void* context)
 {
   [self enumerateObjectsWithOptions: 0 usingBlock: aBlock];
 }
+
 - (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts
 			  usingBlock: (GSEnumeratorBlock)aBlock
 {
@@ -1792,18 +1793,18 @@ compare(id elem1, id elem2, void* context)
   FOR_IN (id, obj, enumerator)
     GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (YES == shouldStop) {return;}, return, aBlock, obj, count, &shouldStop);
       if (isReverse)
-      {
-        count--;
-      }
+        {
+          count--;
+        }
       else
-      {
-        count++;
-      }
+        {
+          count++;
+        }
 
       if (shouldStop)
-      {
-        break;
-      }
+        {
+          break;
+        }
     END_FOR_IN(enumerator)
     GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
   }
@@ -1888,8 +1889,8 @@ compare(id elem1, id elem2, void* context)
     passingTest: predicate];
 }
 
-- (NSUInteger)indexOfObjectWithOptions: (NSEnumerationOptions)opts
-			   passingTest: (GSPredicateBlock)predicate
+- (NSUInteger) indexOfObjectWithOptions: (NSEnumerationOptions)opts
+			    passingTest: (GSPredicateBlock)predicate
 {
   /* TODO: Concurrency. */
   id<NSFastEnumeration> enumerator = self;
@@ -1954,13 +1955,30 @@ compare(id elem1, id elem2, void* context)
   return [self indexOfObjectWithOptions: 0 passingTest: predicate];
 }
 
-- (NSUInteger)indexOfObjectAtIndexes: (NSIndexSet*)indexSet
-			     options: (NSEnumerationOptions)opts
-			 passingTest: (GSPredicateBlock)predicate
+- (NSUInteger) indexOfObjectAtIndexes: (NSIndexSet*)indexSet
+			      options: (NSEnumerationOptions)opts
+			  passingTest: (GSPredicateBlock)predicate
 {
   return [[self objectsAtIndexes: indexSet]
-    indexOfObjectWithOptions: 0
-    passingTest: predicate];
+        indexOfObjectWithOptions: 0
+                     passingTest: predicate];
+}
+
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  NSUInteger	size = [super sizeInBytes: exclude];
+
+  if (size > 0)
+    {
+      NSUInteger	count = [self count];
+
+      size += count*sizeof(void*);
+      while (count-- > 0)
+	{
+	  size += [[self objectAtIndex: count] sizeInBytes: exclude];
+	}
+    }
+  return size;
 }
 @end
 

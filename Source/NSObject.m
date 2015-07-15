@@ -41,6 +41,7 @@
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSHashTable.h"
 #import "Foundation/NSPortCoder.h"
 #import "Foundation/NSDistantObject.h"
 #import "Foundation/NSThread.h"
@@ -2607,3 +2608,24 @@ static id gs_weak_load(id obj)
 }
 @end
 
+NSUInteger
+GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
+{
+  if (0 == NSHashGet(exclude, self))
+    {
+      NSHashInsert(exclude, self);
+      return class_getInstanceSize(object_getClass(self));
+    }
+  return 0;
+}
+
+@implementation	NSObject (MemorySize)
++ (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  return 0;
+}
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  return GSPrivateMemorySize(self, exclude);
+}
+@end

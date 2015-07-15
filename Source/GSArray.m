@@ -387,6 +387,7 @@ static Class	GSInlineArrayClass;
   state->state += count;
   return count;
 }
+
 @end
 
 #if	!GS_WITH_GC
@@ -969,6 +970,23 @@ static Class	GSInlineArrayClass;
     }
   state->itemsPtr = stackbuf;
   return count;
+}
+
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  NSUInteger	size = GSPrivateMemorySize(self, exclude);
+
+  if (size > 0)
+    {
+      NSUInteger	count = _count;
+
+      size += _capacity*sizeof(void*);
+      while (count-- > 0)
+	{
+	  size += [[self objectAtIndex: count] sizeInBytes: exclude];
+	}
+    }
+  return size;
 }
 @end
 
