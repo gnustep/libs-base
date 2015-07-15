@@ -36,6 +36,8 @@ extern "C" {
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
+@class  NSHashTable;
+
 @interface NSObject (GNUstepBase)
 
 /**
@@ -94,6 +96,15 @@ extern "C" {
  */
 - (id) shouldNotImplement: (SEL)aSel GS_NORETURN_METHOD;
 
+@end
+
+/** This is an informal protocol ... classes may implement the method to
+ * report how much memory is used by the instance and any objects it acts
+ * as a container for.  The method should return zero if calling the
+ * superclass version returns zero (ie the object is in the exclude table).
+ */
+@interface      NSObject(MemorySize)
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude;
 @end
 
 /** This is an informal protocol ... classes may implement the method and

@@ -1,3 +1,24 @@
+2015-07-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSIMap.h:
+	* Headers/GNUstepBase/NSObject+GNUstepBase.h:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	* Source/GSArray.m:
+	* Source/GSCountedSet.m:
+	* Source/GSDictionary.m:
+	* Source/GSPrivate.h:
+	* Source/GSSet.m:
+	* Source/GSString.m:
+	* Source/NSArray.m:
+	* Source/NSData.m:
+	* Source/NSDictionary.m:
+	* Source/NSObject.m:
+	* Source/NSSet.m:
+	* Source/NSString.m:
+	Extension API to interrogate object memory usage (stolen from
+	GSCache and modified a bit).
+
 2015-07-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPropertyList.m: Write xml document headers referring to

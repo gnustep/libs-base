@@ -364,6 +364,34 @@ static SEL	objSel;
   return GSIMapCountByEnumeratingWithStateObjectsCount
     (&map, state, stackbuf, len);
 }
+
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  NSUInteger	size = GSPrivateMemorySize(self, exclude);
+
+  if (size > 0)
+    {
+      NSUInteger	count = [self count];
+
+      size += GSIMapSize(&map) - sizeof(map);
+      if (count > 0)
+        {
+	  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+	  NSEnumerator		*enumerator = [self keyEnumerator];
+	  NSObject		*k;
+
+	  while ((k = [enumerator nextObject]) != nil)
+	    {
+	      NSObject	*o = [self objectForKey: k];
+
+	      size += [k sizeInBytes: exclude] + [o sizeInBytes: exclude];
+	    }
+	  [pool release];
+	}
+    }
+  return size;
+}
+
 @end
 
 @implementation GSMutableDictionary

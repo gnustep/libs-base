@@ -4085,6 +4085,21 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   return value;
 }
+
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  NSUInteger    size = [super sizeInBytes: exclude];
+
+  if (size > 0)
+    {
+      size += [name sizeInBytes: exclude];
+      size += [value sizeInBytes: exclude];
+      size += [objects sizeInBytes: exclude];
+      size += [params sizeInBytes: exclude];
+    }
+  return size;
+}
+
 @end
 
 
@@ -6486,6 +6501,18 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   [self setHeader: hdr];
   RELEASE(hdr);
   return hdr;
+}
+
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  NSUInteger    size = [super sizeInBytes: exclude];
+
+  if (size > 0)
+    {
+      size += [headers sizeInBytes: exclude];
+      size += [content sizeInBytes: exclude];
+    }
+  return size;
 }
 
 @end

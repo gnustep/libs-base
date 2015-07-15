@@ -27,6 +27,7 @@
 
 #import "common.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSArray.h"
@@ -997,6 +998,32 @@ static Class NSMutableSet_concrete_class;
     [self subclassResponsibility: _cmd];
     return 0;
 }
+
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  NSUInteger    size = [super sizeInBytes: exclude];
+
+  if (size > 0)
+    {
+      NSUInteger        count = [self count];
+
+      size += 3 * sizeof(void*) * count;
+      if (count > 0)
+        {
+          NSAutoreleasePool     *pool = [NSAutoreleasePool new];
+          NSEnumerator          *enumerator = [self objectEnumerator];
+          NSObject              *o;
+
+          while ((o = [enumerator nextObject]) != nil)
+            {
+              size += [o sizeInBytes: exclude];
+            }
+          [pool release];
+        }
+    }
+  return size;
+}
+
 @end
 
 

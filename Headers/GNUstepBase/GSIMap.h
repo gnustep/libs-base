@@ -1259,6 +1259,37 @@ GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, uintptr_t capacity)
   GSIMapMoreNodes(map, capacity);
 }
 
+GS_STATIC_INLINE NSUInteger 
+GSIMapSize(GSIMapTable map)
+{
+  NSUInteger    index;
+  NSUInteger    size;
+  GSIMapNode	node;
+
+  /* Map table plus arrays of pointers to chunks
+   */
+  size = sizeof(*map) + map->chunkCount * sizeof(void*);
+
+  /* Add the array of buckets.
+   */
+  size += map->bucketCount * sizeof(GSIMapBucket_t);
+
+  /* Add the free nodes.
+   */
+  for (node = map->freeNodes; 0 != node; node = node->nextInBucket)
+    {
+      size += sizeof(GSIMapNode_t);
+    }
+
+  /* Add the used nodes (in the buckets).
+   */
+  for (index = 0; index < map->bucketCount; index++)
+    {
+      size += sizeof(GSIMapNode_t) * map->buckets[index].nodeCount;
+    }
+  return size;
+}
+
 #if	defined(__cplusplus)
 }
 #endif

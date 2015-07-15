@@ -537,6 +537,32 @@ static Class	mutableSetClass;
   return GSIMapCountByEnumeratingWithStateObjectsCount
     (&map, state, stackbuf, len);
 }
+
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  NSUInteger	size = GSPrivateMemorySize(self, exclude);
+
+  if (size > 0)
+    {
+      NSUInteger	count = [self count];
+
+      size += GSIMapSize(&map) - sizeof(map);
+      if (count > 0)
+        {
+	  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+	  NSEnumerator		*enumerator = [self keyEnumerator];
+	  NSObject		*k;
+
+	  while ((k = [enumerator nextObject]) != nil)
+	    {
+	      size += [k sizeInBytes: exclude];
+	    }
+	  [pool release];
+	}
+    }
+  return size;
+}
+
 @end
 
 @implementation GSMutableSet

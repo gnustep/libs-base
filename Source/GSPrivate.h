@@ -571,6 +571,16 @@ uint32_t
 GSPrivateFinishHash(uint32_t s0, uint32_t s1, uint32_t totalLength)
   GS_ATTRIB_PRIVATE;
 
+@class  NSHashTable;
+/* If 'self' is not a member of 'exclude', adds to the hash
+ * table and returns the memory footprint of 'self' assuming
+ * it contains no pointers and has no extra memory allocated.
+ * Otherwise returns 0.
+ */
+NSUInteger
+GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
+  GS_ATTRIB_PRIVATE;
+
 /* Return the current thread ID as an NSUInteger.
  * Ideally, we use the operating-system's notion of a thread ID so
  * that external process monitoring software will be using the same

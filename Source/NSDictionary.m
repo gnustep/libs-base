@@ -1229,6 +1229,33 @@ compareIt(id o1, id o2, void* context)
   [self subclassResponsibility: _cmd];
   return 0;
 }
+
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  NSUInteger	size = [super sizeInBytes: exclude];
+
+  if (size > 0)
+    {
+      NSUInteger	count = [self count];
+
+      size += 3 * sizeof(void*) * count;
+      if (count > 0)
+        {
+	  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+	  NSEnumerator		*enumerator = [self keyEnumerator];
+	  NSObject		*k;
+
+	  while ((k = [enumerator nextObject]) != nil)
+	    {
+	      NSObject	*o = [self objectForKey: k];
+
+	      size += [k sizeInBytes: exclude] + [o sizeInBytes: exclude];
+	    }
+	  [pool release];
+	}
+    }
+  return size;
+}
 @end
 
 

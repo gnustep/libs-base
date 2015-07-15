@@ -1980,6 +1980,18 @@ failure:
     }
   return NO;
 }
+
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  NSUInteger    size = [super sizeInBytes: exclude];
+
+  if (size > 0)
+    {
+      size += [self length];
+    }
+  return size;
+}
+
 @end
 
 /**
@@ -3282,6 +3294,13 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     }
 }
 
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  NSUInteger    size = GSPrivateMemorySize(self, exclude);
+
+  return size;
+}
+
 @end
 
 
@@ -3337,6 +3356,17 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   bytes = aBuffer;
   length = bufferSize;
   return self;
+}
+
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  NSUInteger    size = GSPrivateMemorySize(self, exclude);
+
+  if (size > 0)
+    {
+      size += length;
+    }
+  return size;
 }
 
 @end
@@ -4160,6 +4190,17 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       memset(bytes + length, '\0', size - length);
     }
   length = size;
+}
+
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  NSUInteger    size = GSPrivateMemorySize(self, exclude);
+
+  if (size > 0)
+    {
+      size += capacity;
+    }
+  return size;
 }
 
 @end
