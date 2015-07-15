@@ -1090,7 +1090,7 @@ tsbytes(uintptr_t s, char *buf)
 
 - (NSUInteger) sizeInBytes: (NSHashTable*)exclude
 {
-  if (0 == NSMapGet(exclude, self))
+  if (0 == NSHashGet(exclude, self))
     {
       return 0;
     }

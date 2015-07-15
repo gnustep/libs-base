@@ -550,12 +550,12 @@ static Class	mutableSetClass;
       if (count > 0)
         {
 	  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
-	  NSEnumerator		*enumerator = [self keyEnumerator];
-	  NSObject		*k;
+	  NSEnumerator		*enumerator = [self objectEnumerator];
+	  NSObject		*o;
 
-	  while ((k = [enumerator nextObject]) != nil)
+	  while ((o = [enumerator nextObject]) != nil)
 	    {
-	      size += [k sizeInBytes: exclude];
+	      size += [o sizeInBytes: exclude];
 	    }
 	  [pool release];
 	}

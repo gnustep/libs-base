@@ -29,6 +29,7 @@
 #import "common.h"
 
 #import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
@@ -1428,6 +1429,33 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 
   p->_x = self->cb.pf.v;
   return [p autorelease];
+}
+
+- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+{
+  NSUInteger	size = [super sizeInBytes: exclude];
+
+  if (size > 0)
+    {
+      NSUInteger	count = [self count];
+
+      size += GSIMapSize(self);
+      if (count > 0)
+        {
+	  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+	  NSEnumerator		*enumerator = [self keyEnumerator];
+	  NSObject		*k;
+
+	  while ((k = [enumerator nextObject]) != nil)
+	    {
+	      NSObject	*o = [self objectForKey: k];
+
+	      size += [k sizeInBytes: exclude] + [o sizeInBytes: exclude];
+	    }
+	  [pool release];
+	}
+    }
+  return size;
 }
 @end
 
