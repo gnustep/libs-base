@@ -1010,7 +1010,6 @@ static Class NSMutableSet_concrete_class;
       size += 3 * sizeof(void*) * count;
       if (count > 0)
         {
-          NSAutoreleasePool     *pool = [NSAutoreleasePool new];
           NSEnumerator          *enumerator = [self objectEnumerator];
           NSObject              *o;
 
@@ -1018,7 +1017,6 @@ static Class NSMutableSet_concrete_class;
             {
               size += [o sizeInBytesExcluding: exclude];
             }
-          [pool release];
         }
     }
   return size;

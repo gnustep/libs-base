@@ -1971,12 +1971,15 @@ compare(id elem1, id elem2, void* context)
   if (size > 0)
     {
       NSUInteger	count = [self count];
+      GS_BEGINIDBUF(objects, count);
 
       size += count*sizeof(void*);
+      [self getObjects: objects];
       while (count-- > 0)
 	{
-	  size += [[self objectAtIndex: count] sizeInBytesExcluding: exclude];
+	  size += [objects[count] sizeInBytesExcluding: exclude];
 	}
+      GS_ENDIDBUF();
     }
   return size;
 }
