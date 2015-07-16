@@ -1431,29 +1431,26 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
   return [p autorelease];
 }
 
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
-  NSUInteger	size = [super sizeInBytes: exclude];
+  NSUInteger	size = [super sizeInBytesExcluding: exclude];
 
   if (size > 0)
     {
-      NSUInteger	count = [self count];
-
-      size += GSIMapSize(self);
-      if (count > 0)
-        {
-	  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
-	  NSEnumerator		*enumerator = [self keyEnumerator];
-	  NSObject		*k;
-
-	  while ((k = [enumerator nextObject]) != nil)
-	    {
-	      NSObject	*o = [self objectForKey: k];
-
-	      size += [k sizeInBytes: exclude] + [o sizeInBytes: exclude];
-	    }
-	  [pool release];
-	}
+/* If we knew that this table held objects, we could return their size...
+ *
+ *    GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(self);
+ *    GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
+ *
+ *    while (node != 0)
+ *      {
+ *        node = GSIMapEnumeratorNextNode(&enumerator);
+ *        size += [node->key.obj sizeInBytesExcluding: exclude];
+ *        size += [node->value.obj sizeInBytesExcluding: exclude];
+ *      }
+ *    GSIMapEndEnumerator(&enumerator);
+ */
+      size += GSIMapSize(self) - sizeof(GSI_MAP_TABLE_T);
     }
   return size;
 }

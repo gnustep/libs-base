@@ -999,9 +999,9 @@ static Class NSMutableSet_concrete_class;
     return 0;
 }
 
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
-  NSUInteger    size = [super sizeInBytes: exclude];
+  NSUInteger    size = [super sizeInBytesExcluding: exclude];
 
   if (size > 0)
     {
@@ -1016,7 +1016,7 @@ static Class NSMutableSet_concrete_class;
 
           while ((o = [enumerator nextObject]) != nil)
             {
-              size += [o sizeInBytes: exclude];
+              size += [o sizeInBytesExcluding: exclude];
             }
           [pool release];
         }

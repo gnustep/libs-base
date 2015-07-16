@@ -305,12 +305,12 @@ GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
   return 0;
 }
 
-@interface      NSObject (MemorySize)
-+ (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+@interface      NSObject (MemoryFootprint)
++ (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   return 0;
 }
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   if (0 == NSHashGet(exclude, self))
     {

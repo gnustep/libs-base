@@ -972,7 +972,7 @@ static Class	GSInlineArrayClass;
   return count;
 }
 
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   NSUInteger	size = GSPrivateMemorySize(self, exclude);
 
@@ -983,7 +983,7 @@ static Class	GSInlineArrayClass;
       size += _capacity*sizeof(void*);
       while (count-- > 0)
 	{
-	  size += [[self objectAtIndex: count] sizeInBytes: exclude];
+	  size += [_contents_array[count] sizeInBytesExcluding: exclude];
 	}
     }
   return size;

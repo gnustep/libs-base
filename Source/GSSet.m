@@ -544,21 +544,16 @@ static Class	mutableSetClass;
 
   if (size > 0)
     {
-      NSUInteger	count = [self count];
+      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+      GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
       size += GSIMapSize(&map) - sizeof(map);
-      if (count > 0)
+      while (node != 0)
         {
-	  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
-	  NSEnumerator		*enumerator = [self objectEnumerator];
-	  NSObject		*o;
-
-	  while ((o = [enumerator nextObject]) != nil)
-	    {
-	      size += [o sizeInBytes: exclude];
-	    }
-	  [pool release];
-	}
+          node = GSIMapEnumeratorNextNode(&enumerator);
+          size += [node->key.obj sizeInBytes: exclude];
+        }
+      GSIMapEndEnumerator(&enumerator);
     }
   return size;
 }

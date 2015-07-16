@@ -100,11 +100,25 @@ extern "C" {
 
 /** This is an informal protocol ... classes may implement the method to
  * report how much memory is used by the instance and any objects it acts
- * as a container for.  The method should return zero if calling the
- * superclass version returns zero (ie the object is in the exclude table).
+ * as a container for.
  */
-@interface      NSObject(MemorySize)
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude;
+@interface      NSObject(MemoryFootprint)
+/* This method returns the memory usage of the receiver, excluding any
+ * objects already present in the exclude table.<br />
+ * The argument is a hash table configured to hold non-retained pointer
+ * objects and is used to inform the receiver that its size should not
+ * be counted again if it's already in the table.<br />
+ * The NSObject implementation returns zero if the receiver is in the
+ * table, but otherwise adds itself to the table and returns its memory
+ * footprint (the sum of all of its instance variables, but not any
+ * memory pointed to by those variables).<br />
+ * Subclasses should override this method by calling the superclass
+ * implementation, and either return the result (if it was zero) or
+ * return that value plus the sizes of any memory owned by the receiver
+ * (eg found by calling the same method on objects pointed to by the
+ * receiver's instance variables).
+ */
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude;
 @end
 
 /** This is an informal protocol ... classes may implement the method and
