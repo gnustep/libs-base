@@ -379,9 +379,9 @@ static SEL	objSel;
       size += GSIMapSize(&map) - sizeof(map);
       while (node != 0)
         {
-          node = GSIMapEnumeratorNextNode(&enumerator);
           size += [node->key.obj sizeInBytesExcluding: exclude];
           size += [node->value.obj sizeInBytesExcluding: exclude];
+          node = GSIMapEnumeratorNextNode(&enumerator);
         }
       GSIMapEndEnumerator(&enumerator);
     }

@@ -407,8 +407,8 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
       size += GSIMapSize(&map) - sizeof(map);
       while (node != 0)
         {
-          node = GSIMapEnumeratorNextNode(&enumerator);
           size += [node->key.obj sizeInBytesExcluding: exclude];
+          node = GSIMapEnumeratorNextNode(&enumerator);
         }
       GSIMapEndEnumerator(&enumerator);
     }
