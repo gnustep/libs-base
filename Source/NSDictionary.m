@@ -1241,9 +1241,8 @@ compareIt(id o1, id o2, void* context)
       size += 3 * sizeof(void*) * count;
       if (count > 0)
         {
-	  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
-	  NSEnumerator		*enumerator = [self keyEnumerator];
-	  NSObject		*k;
+	  NSEnumerator  *enumerator = [self keyEnumerator];
+	  NSObject	*k;
 
 	  while ((k = [enumerator nextObject]) != nil)
 	    {
@@ -1252,7 +1251,6 @@ compareIt(id o1, id o2, void* context)
 	      size += [k sizeInBytesExcluding: exclude];
 	      size += [o sizeInBytesExcluding: exclude];
 	    }
-	  [pool release];
 	}
     }
   return size;
