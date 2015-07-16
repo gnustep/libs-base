@@ -4086,16 +4086,16 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   return value;
 }
 
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
-  NSUInteger    size = [super sizeInBytes: exclude];
+  NSUInteger    size = [super sizeInBytesExcluding: exclude];
 
   if (size > 0)
     {
-      size += [name sizeInBytes: exclude];
-      size += [value sizeInBytes: exclude];
-      size += [objects sizeInBytes: exclude];
-      size += [params sizeInBytes: exclude];
+      size += [name sizeInBytesExcluding: exclude];
+      size += [value sizeInBytesExcluding: exclude];
+      size += [objects sizeInBytesExcluding: exclude];
+      size += [params sizeInBytesExcluding: exclude];
     }
   return size;
 }
@@ -5803,7 +5803,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (NSMutableData*) rawMimeData: (BOOL)isOuter
 {
-  // 78 is the maximum line lengt specified by MIME RFCs
+  // 78 is the maximum line length specified by MIME RFCs
   return [self rawMimeData: isOuter foldedAt: 78];
 }
 
@@ -6503,14 +6503,14 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   return hdr;
 }
 
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
-  NSUInteger    size = [super sizeInBytes: exclude];
+  NSUInteger    size = [super sizeInBytesExcluding: exclude];
 
   if (size > 0)
     {
-      size += [headers sizeInBytes: exclude];
-      size += [content sizeInBytes: exclude];
+      size += [headers sizeInBytesExcluding: exclude];
+      size += [content sizeInBytesExcluding: exclude];
     }
   return size;
 }

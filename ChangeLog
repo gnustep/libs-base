@@ -1,3 +1,24 @@
+2015-07-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSIMap.h:
+	* Headers/GNUstepBase/NSObject+GNUstepBase.h:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	* Source/GSArray.m:
+	* Source/GSCountedSet.m:
+	* Source/GSDictionary.m:
+	* Source/GSPrivate.h:
+	* Source/GSSet.m:
+	* Source/GSString.m:
+	* Source/NSArray.m:
+	* Source/NSData.m:
+	* Source/NSDictionary.m:
+	* Source/NSObject.m:
+	* Source/NSSet.m:
+	* Source/NSString.m:
+	Rewriting naive implementations to improve efficiency and fix a few
+	bugs as well as renaming to avoid conflict with old GSCache.
+
 2015-07-16 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Headers/GNUstepBase/NSHashTable+GNUstepBase.h

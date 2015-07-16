@@ -1088,7 +1088,7 @@ tsbytes(uintptr_t s, char *buf)
   return;
 }
 
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   if (0 == NSHashGet(exclude, self))
     {
@@ -3844,7 +3844,7 @@ transmute(GSStr self, NSString *aString)
 		      freeWhenDone: flag];
 }
 
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   NSUInteger    size = GSPrivateMemorySize(self, exclude);
 
@@ -5665,7 +5665,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     return _count;
 }
 
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   NSUInteger    size = GSPrivateMemorySize(self, exclude);
 

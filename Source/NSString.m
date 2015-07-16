@@ -5923,9 +5923,9 @@ static NSFileManager *fm = nil;
   return GSPropertyListFromStringsFormat(self);
 }
 
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
-  NSUInteger    size = [super sizeInBytes: exclude];
+  NSUInteger    size = [super sizeInBytesExcluding: exclude];
 
   if (size > 0)
     {

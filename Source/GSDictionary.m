@@ -34,6 +34,8 @@
 
 #import "GNUstepBase/GSObjCRuntime.h"
 
+#import "GSPrivate.h"
+
 /*
  *	The 'Fastmap' stuff provides an inline implementation of a mapping
  *	table - for maximum performance.
@@ -365,29 +367,23 @@ static SEL	objSel;
     (&map, state, stackbuf, len);
 }
 
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   NSUInteger	size = GSPrivateMemorySize(self, exclude);
 
   if (size > 0)
     {
-      NSUInteger	count = [self count];
+      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+      GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
       size += GSIMapSize(&map) - sizeof(map);
-      if (count > 0)
+      while (node != 0)
         {
-	  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
-	  NSEnumerator		*enumerator = [self keyEnumerator];
-	  NSObject		*k;
-
-	  while ((k = [enumerator nextObject]) != nil)
-	    {
-	      NSObject	*o = [self objectForKey: k];
-
-	      size += [k sizeInBytes: exclude] + [o sizeInBytes: exclude];
-	    }
-	  [pool release];
-	}
+          node = GSIMapEnumeratorNextNode(&enumerator);
+          size += [node->key.obj sizeInBytesExcluding: exclude];
+          size += [node->value.obj sizeInBytesExcluding: exclude];
+        }
+      GSIMapEndEnumerator(&enumerator);
     }
   return size;
 }

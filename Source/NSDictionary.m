@@ -1230,9 +1230,9 @@ compareIt(id o1, id o2, void* context)
   return 0;
 }
 
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
-  NSUInteger	size = [super sizeInBytes: exclude];
+  NSUInteger	size = [super sizeInBytesExcluding: exclude];
 
   if (size > 0)
     {
@@ -1249,7 +1249,8 @@ compareIt(id o1, id o2, void* context)
 	    {
 	      NSObject	*o = [self objectForKey: k];
 
-	      size += [k sizeInBytes: exclude] + [o sizeInBytes: exclude];
+	      size += [k sizeInBytesExcluding: exclude];
+	      size += [o sizeInBytesExcluding: exclude];
 	    }
 	  [pool release];
 	}

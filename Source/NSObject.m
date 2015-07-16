@@ -2619,12 +2619,12 @@ GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
   return 0;
 }
 
-@implementation	NSObject (MemorySize)
-+ (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+@implementation	NSObject (MemoryFootprint)
++ (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   return 0;
 }
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   return GSPrivateMemorySize(self, exclude);
 }
