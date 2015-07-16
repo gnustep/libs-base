@@ -1,3 +1,9 @@
+2015-07-16 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/GSSet.m
+	* Source/GSCountedSet.m:
+	Fix a few more names.
+
 2015-07-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSIMap.h:

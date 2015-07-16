@@ -538,7 +538,7 @@ static Class	mutableSetClass;
     (&map, state, stackbuf, len);
 }
 
-- (NSUInteger) sizeInBytes: (NSHashTable*)exclude
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   NSUInteger	size = GSPrivateMemorySize(self, exclude);
 
@@ -551,7 +551,7 @@ static Class	mutableSetClass;
       while (node != 0)
         {
           node = GSIMapEnumeratorNextNode(&enumerator);
-          size += [node->key.obj sizeInBytes: exclude];
+          size += [node->key.obj sizeInBytesExcluding: exclude];
         }
       GSIMapEndEnumerator(&enumerator);
     }
