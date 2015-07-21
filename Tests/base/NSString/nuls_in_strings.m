@@ -14,6 +14,7 @@ int main(int argc, char **argv)
   NSString *constantString=@"a\0b";
   NSString *normalString;
   unichar characters[3]={'a',0,'b'};
+  NSRange r;
 
   normalString = [[NSString alloc] initWithCharacters: characters length: 3];
 
@@ -22,6 +23,8 @@ int main(int argc, char **argv)
   PASS([constantString hash] == [normalString hash], "hashes match");
   PASS([normalString isEqual: constantString]
     && [constantString isEqual: normalString], "compare as equal");
+  r = [normalString rangeOfString: @"\0"];
+  PASS(1 == r.length && 1 == r.location, "find nul in string");
 
   return 0;
 }
