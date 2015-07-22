@@ -827,11 +827,14 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
 @implementation	NSConcreteHashTable
 
+static unsigned instanceSize = 0;
+
 + (void) initialize
 {
   if (concreteClass == Nil)
     {
       concreteClass = [NSConcreteHashTable class];
+      instanceSize = class_getInstanceSize(concreteClass);
     }
 #if	GS_WITH_GC
   /* We create a typed memory descriptor for hash nodes.
@@ -1084,7 +1087,7 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
  *      }
  *    GSIMapEndEnumerator(&enumerator);
  */
-      size += GSIMapSize(self) - sizeof(GSI_MAP_TABLE_T);
+      size += GSIMapSize(self) - instanceSize;
     }
   return size;
 }

@@ -1185,11 +1185,14 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 
 @implementation	NSConcreteMapTable
 
+static unsigned instanceSize = 0;
+
 + (void) initialize
 {
   if (concreteClass == Nil)
     {
       concreteClass = [NSConcreteMapTable class];
+      instanceSize = class_getInstanceSize(concreteClass);
     }
 #if	GS_WITH_GC
   /* We create a typed memory descriptor for map nodes.
@@ -1450,7 +1453,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
  *      }
  *    GSIMapEndEnumerator(&enumerator);
  */
-      size += GSIMapSize(self) - sizeof(GSI_MAP_TABLE_T);
+      size += GSIMapSize(self) - instanceSize;
     }
   return size;
 }

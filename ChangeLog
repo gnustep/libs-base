@@ -1,3 +1,9 @@
+2015-07-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcreteMapTable.m:
+	Get instance size at run time, so we can compile using nonfragile-abi
+
 2015-07-16 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/GSSet.m
