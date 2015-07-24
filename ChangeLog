@@ -1,3 +1,10 @@
+2015-07-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSIMap.h: add GSI_MAP_TABLE_S
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcreteMapTable.m:
+	Pass variable holding run time size calculation as GSI_MAP_TABLE_S
+
 2015-07-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConcreteHashTable.m:

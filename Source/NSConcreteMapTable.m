@@ -40,6 +40,8 @@
 #import "NSCallBacks.h"
 
 static Class	concreteClass = Nil;
+static unsigned instanceSize = 0;
+
 
 /* Here is the interface for the concrete class as used by the functions.
  */
@@ -76,6 +78,7 @@ typedef GSIMapNode_t *GSIMapNode;
 @end
 
 #define	GSI_MAP_TABLE_T	NSConcreteMapTable
+#define	GSI_MAP_TABLE_S	instanceSize
 
 #define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ
 #define	GSI_MAP_VTYPES	GSUNION_PTR | GSUNION_OBJ
@@ -1184,8 +1187,6 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 @end
 
 @implementation	NSConcreteMapTable
-
-static unsigned instanceSize = 0;
 
 + (void) initialize
 {
