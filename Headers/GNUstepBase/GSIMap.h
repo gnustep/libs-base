@@ -378,6 +378,10 @@ struct	_GSIMapTable {
 #define GSI_MAP_TABLE_T GSIMapTable_t
 #endif
 
+#ifndef GSI_MAP_TABLE_S
+#define GSI_MAP_TABLE_S sizeof(GSI_MAP_TABLE_T)
+#endif
+
 typedef struct	_GSIMapEnumerator {
   GSIMapTable	map;		/* the map being enumerated.	*/
   GSIMapNode	node;		/* The next node to use.	*/
@@ -1269,7 +1273,7 @@ GSIMapSize(GSIMapTable map)
 
   /* Map table plus arrays of pointers to chunks
    */
-  size = sizeof(GSI_MAP_TABLE_T) + map->chunkCount * sizeof(void*);
+  size = GSI_MAP_TABLE_S + map->chunkCount * sizeof(void*);
 
   /* Add the array of buckets.
    */

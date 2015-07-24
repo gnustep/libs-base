@@ -41,6 +41,8 @@
 #import "GSPrivate.h"
 
 static Class	concreteClass = Nil;
+static unsigned instanceSize = 0;
+
 
 /* Here is the interface for the concrete class as used by the functions.
  */
@@ -73,6 +75,7 @@ typedef GSIMapNode_t *GSIMapNode;
 #define	GSI_MAP_HAS_VALUE	0
 #define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ
 #define	GSI_MAP_TABLE_T	NSConcreteHashTable
+#define	GSI_MAP_TABLE_S	instanceSize
 
 #define GSI_MAP_HASH(M, X)\
  (M->legacy ? M->cb.old.hash(M, X.ptr) \
@@ -826,8 +829,6 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 @end
 
 @implementation	NSConcreteHashTable
-
-static unsigned instanceSize = 0;
 
 + (void) initialize
 {
