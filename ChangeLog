@@ -1,3 +1,8 @@
+2015-07-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSStream.m: Fix failure to unschedule from run loop if a
+	stream is opened more than once.
+
 2015-07-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSIMap.h: add GSI_MAP_TABLE_S
