@@ -1,3 +1,8 @@
+2015-07-29  Doug Simons <doug.simons@testplant.com>
+
+       * NSTask.m: Fixed launch method to throw an exception on Windows when it
+	   fails to launch the process, as documented and implemented in Cocoa.
+	   
 2015-01-15  Doug Simons <doug.simons@testplant.com>
 
        * NSCalendarDate.m: Fixed init methods to not throw an exception when

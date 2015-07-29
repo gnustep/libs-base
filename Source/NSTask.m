@@ -1266,6 +1266,8 @@ quotedFromString(NSString *aString)
   if (result == 0)
     {
       NSLog(@"Error launching task: %@ ... %@", lpath, last);
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - Error launching task: %@ ... %@", lpath, last];
       return;
     }
 
