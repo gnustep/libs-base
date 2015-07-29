@@ -1,3 +1,29 @@
+2015-07-29  Doug Simons <doug.simons@testplant.com>
+
+       * NSTask.m: Fixed launch method to throw an exception on Windows when it
+	   fails to launch the process, as documented and implemented in Cocoa.
+
+2015-01-15  Doug Simons <doug.simons@testplant.com>
+
+       * NSCalendarDate.m: Fixed init methods to not throw an exception when
+	   called with description strings containing non-ASCII characters.
+
+2013-10-31  Doug Simons <doug.simons@testplant.com>
+
+       * NSData.m: Fixed a bug in replaceBytesInRange:withBytes:length: that
+	   would throw an exception when called with (0,0), NULL, 0 after an alloc/init
+	   (so internal bytes pointer is NULL). Now it works as a no-op.
+
+2013-08-22  Doug Simons <doug.simons@testplant.com>
+
+       * NSScanner.m: Fixed GSScanDouble() function to use NSScanner's code
+	   which works correctly for large and small numbers including numbers
+	   with more than 19 digits.
+
+2013-08-08  Frank Le Grand <frank.legrand@testplant.com>
+
+       Merged changes from Trunk (since rev 35219) to TestPlant branch.
+
 2013-07-08  Jonathan Gillaspie <jonathan.gillaspie@testplant.com>
 
        * NSRunLoop.m: Added to the 1000's of performers log message to report the
