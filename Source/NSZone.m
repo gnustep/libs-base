@@ -125,7 +125,7 @@ default_malloc (NSZone *zone, size_t size)
       return mem;
     }
   [NSException raise: NSMallocException
-               format: @"Default zone has run out of memory"];
+              format: @"Default zone has run out of memory"];
   return 0;
 }
 
@@ -140,7 +140,7 @@ default_realloc (NSZone *zone, void *ptr, size_t size)
       return mem;
     }
   [NSException raise: NSMallocException
-               format: @"Default zone has run out of memory"];
+              format: @"Default zone has run out of memory"];
   return 0;
 }
 
@@ -1971,7 +1971,7 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
       zone = malloc(sizeof(ffree_zone));
       if (zone == NULL)
         [NSException raise: NSMallocException
-                     format: @"No memory to create zone"];
+                    format: @"No memory to create zone"];
       zone->common.malloc = fmalloc;
       zone->common.realloc = frealloc;
       zone->common.free = ffree;
@@ -1994,7 +1994,7 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
           pthread_mutex_destroy(&(zone->lock));
           free(zone);
           [NSException raise: NSMallocException
-                       format: @"No memory to create zone"];
+                      format: @"No memory to create zone"];
         }
       /*
        *	Set up block header.
@@ -2026,7 +2026,7 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
       zone = malloc(sizeof(nfree_zone));
       if (zone == NULL)
         [NSException raise: NSMallocException
-                     format: @"No memory to create zone"];
+                    format: @"No memory to create zone"];
       zone->common.malloc = nmalloc;
       zone->common.realloc = nrealloc;
       zone->common.free = nfree;
@@ -2044,7 +2044,7 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
           pthread_mutex_destroy(&(zone->lock));
           free(zone);
           [NSException raise: NSMallocException
-                       format: @"No memory to create zone"];
+                      format: @"No memory to create zone"];
         }
 
       block = zone->blocks;
