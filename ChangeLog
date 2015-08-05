@@ -1,3 +1,8 @@
+2015-08-05 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSArray.m:
+	Minor cast fixes.
+
 2015-07-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSStream.m: Fix failure to unschedule from run loop if a
