@@ -329,6 +329,21 @@ int main()
 }
 #endif
 
+#if     defined(GNUSTEP_BASE_LIBRARY)
+{
+  NSData        	*d = [NSData dataWithContentsOfFile: @"cyclic.plist"];
+  NSPropertyListFormat	format;
+  id			u = nil;
+  PASS_EXCEPTION(
+  u = [NSPropertyListSerialization propertyListFromData: d
+    mutabilityOption: NSPropertyListImmutable
+    format: &format
+    errorDescription: 0];, NSGenericException, "Does not crash on binary plist with cyclic references." );
+  PASS(nil == u, "Rejects cyclic plist");
+}
+#endif
+
+
   [arp release]; arp = nil;
   return 0;
 }

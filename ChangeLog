@@ -1,3 +1,11 @@
+2015-08-07 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSPropertyList.m: Cope with certain malformed binary
+	property lists.
+	* Tests/PropertyLists/test01.m
+	* Tests/PropertyLists/cyclic.plist:
+	Test case for binary plists.
+
 2015-08-05 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSArray.m:

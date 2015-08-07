@@ -36,6 +36,7 @@
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSHashTable.h"
 #import "Foundation/NSPropertyList.h"
 #import "Foundation/NSSerialization.h"
 #import "Foundation/NSStream.h"
@@ -457,6 +458,7 @@ foundIgnorableWhitespace: (NSString *)string
   unsigned		object_count;	// Number of objects
   unsigned		root_index;	// Index of root object
   unsigned		table_start;	// Start address of object table
+  NSHashTable           *_stack; // The stack of objects we are currently parsing
 }
 
 - (id) initWithData: (NSData*)plData
@@ -2774,10 +2776,18 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 
 
 @implementation GSBinaryPLParser
+#define PUSH_OBJ(index) if (NO == [self _pushObject: index]) \
+        { \
+          [NSException raise: NSGenericException \
+                      format: @"Cyclic object graph"]; \
+        } 
+
+#define POP_OBJ(index) do { [self _popObject: index]; } while (0)
 
 - (void) dealloc
 {
   DESTROY(data);
+  DESTROY(_stack);
   [super dealloc];
 }
 
@@ -2943,6 +2953,28 @@ NSAssert(pos + count < _length, NSInvalidArgumentException);
 - (id) rootObject
 {
   return [self objectAtIndex: root_index];
+}
+
+- (BOOL)_pushObject: (NSUInteger)index
+{
+  uintptr_t val;
+  if (nil == _stack)
+    {
+      _stack = NSCreateHashTable(NSIntegerHashCallBacks,
+                                 5);
+    }
+  val = (index == 0) ? UINTPTR_MAX : (uintptr_t)(void*)index;
+  // NSHashInsertIfAbsent() returns NULL on success
+  return NO == NSHashInsertIfAbsent(_stack, (void*)val);
+}
+
+- (void)_popObject: (NSUInteger)index
+{
+  if (_stack != nil)
+    {
+      uintptr_t val = (index == 0) ? UINTPTR_MAX : (uintptr_t)(void*)index;
+      NSHashRemove(_stack, (void*)val);
+    }
 }
 
 - (id) objectAtIndex: (NSUInteger)index
@@ -3148,14 +3180,14 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
       unsigned	len = next - 0xA0;
       unsigned	i;
       id	objects[len];
-
+      PUSH_OBJ(index);
       for (i = 0; i < len; i++)
         {
 	  int oid = [self readObjectIndexAt: &counter];
 
 	  objects[i] = [self objectAtIndex: oid];
 	}
-
+      POP_OBJ(index);
       if (mutability == NSPropertyListMutableContainersAndLeaves
 	|| mutability == NSPropertyListMutableContainers)
 	{
@@ -3175,14 +3207,14 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
 
       len = [self readCountAt: &counter];
       objects = NSAllocateCollectable(sizeof(id) * len, NSScannedOption);
-
+      PUSH_OBJ(index);
       for (i = 0; i < len; i++)
         {
 	  int oid = [self readObjectIndexAt: &counter];
 
 	  objects[i] = [self objectAtIndex: oid];
 	}
-
+      POP_OBJ(index);
       if (mutability == NSPropertyListMutableContainersAndLeaves
 	|| mutability == NSPropertyListMutableContainers)
 	{
@@ -3201,14 +3233,13 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
       unsigned	i;
       id	keys[len];
       id	values[len];
-
+      PUSH_OBJ(index);
       for (i = 0; i < len; i++)
         {
 	  int oid = [self readObjectIndexAt: &counter];
 
 	  keys[i] = [self objectAtIndex: oid];
 	}
-
       for (i = 0; i < len; i++)
         {
 	  int oid = [self readObjectIndexAt: &counter];
@@ -3216,6 +3247,7 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
 	  values[i] = [self objectAtIndex: oid];
 	}
 
+      POP_OBJ(index);
       if (mutability == NSPropertyListMutableContainersAndLeaves
 	|| mutability == NSPropertyListMutableContainers)
 	{
@@ -3241,6 +3273,7 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
       len = [self readCountAt: &counter];
       keys = NSAllocateCollectable(sizeof(id) * len * 2, NSScannedOption);
       values = keys + len;
+      PUSH_OBJ(index);
       for (i = 0; i < len; i++)
         {
 	  int oid = [self readObjectIndexAt: &counter];
@@ -3254,7 +3287,7 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
 
 	  values[i] = [self objectAtIndex: oid];
 	}
-
+      POP_OBJ(index);
       if (mutability == NSPropertyListMutableContainersAndLeaves
 	|| mutability == NSPropertyListMutableContainers)
 	{
@@ -3278,7 +3311,8 @@ NSAssert(counter + len <= _length, NSInvalidArgumentException);
 
   return result;
 }
-
+#undef PUSH_OBJ
+#undef POP_OBJ
 @end
 
 /* Test two items for equality ... both are objects.
