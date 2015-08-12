@@ -120,7 +120,7 @@ default_malloc (NSZone *zone, size_t size)
   void *mem;
 
   mem = malloc(size);
-  if (mem != NULL)
+  if (mem != NULL || size == 0)
     {
       return mem;
     }
@@ -135,7 +135,7 @@ default_realloc (NSZone *zone, void *ptr, size_t size)
   void *mem;
 
   mem = realloc(ptr, size);
-  if (mem != NULL)
+  if (mem != NULL || size == 0)
     {
       return mem;
     }
