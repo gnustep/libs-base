@@ -1,3 +1,8 @@
+2015-08-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Use the compiler provided by gnustep-make unless
+	it's specifically overridden in the environment.
+
 2015-08-07 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/NSPropertyList.m: Cope with certain malformed binary
