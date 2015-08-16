@@ -34,15 +34,16 @@
 */
 
 #import "common.h"
-#import "Foundation/NSCoder.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSCoder.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
-#import "Foundation/NSCharacterSet.h"
-#import "Foundation/NSRange.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSValue.h"
+#import "Foundation/NSHashTable.h"
 #import "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSRange.h"
+#import "Foundation/NSValue.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 
 #import "GSPrivate.h"
