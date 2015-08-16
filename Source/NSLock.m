@@ -67,10 +67,10 @@
       if (_name == nil)\
         {\
           return [NSString stringWithFormat: @"%@ (locked by %llu)",\
-            [super description], (NSUInteger)_mutex.__data.__owner];\
+            [super description], (unsigned long long)_mutex.__data.__owner];\
         }\
       return [NSString stringWithFormat: @"%@ '%@' (locked by %llu)",\
-        [super description], _name, (NSUInteger)_mutex.__data.__owner];\
+        [super description], _name, (unsigned long long)_mutex.__data.__owner];\
     }\
   else\
     {\

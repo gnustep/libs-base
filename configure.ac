@@ -90,13 +90,18 @@ if test -z "$LIBRARY_COMBO"; then
   LIBRARY_COMBO=`gnustep-config --variable=LIBRARY_COMBO 2>&5`
 fi
 
-nonfragile=`gnustep-config --objc-flags | grep _NONFRAGILE_ABI 2>&5`
-if test -z "$nonfragile"; then
-  nonfragile=no
-  BASE_NONFRAGILE_ABI=0
-else
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
   nonfragile=yes
   BASE_NONFRAGILE_ABI=1
+else
+  nonfragile=`gnustep-config --objc-flags | grep _NONFRAGILE_ABI 2>&5`
+  if test -z "$nonfragile"; then
+    nonfragile=no
+    BASE_NONFRAGILE_ABI=0
+  else
+    nonfragile=yes
+    BASE_NONFRAGILE_ABI=1
+  fi
 fi
 AC_SUBST(BASE_NONFRAGILE_ABI)
 
@@ -1984,7 +1989,7 @@ if test "$nonfragile" = "yes"; then
     non_fragile="$cross_non_fragile")
   CPPFLAGS="$saved_CPPFLAGS"
   if test $non_fragile = yes; then
-    OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
+    OBJCLIBS="$OBJLIBS -fobjc-nonfragile-abi"
     GS_NONFRAGILE=1
     AC_ARG_ENABLE(mixedabi,
       [  --disable-mixedabi
@@ -2017,19 +2022,23 @@ AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h,
 # Native Objective-C exceptions
 #--------------------------------------------------------------------
 
-# First of all, determine if native Objective-C exceptions are enabled
-# in gnustep-make.  They are enabled if the compiler supports it; they
-# are disabled if it doesn't.  And, of course, the user may have
-# forced one behaviour or the other.  Note that we go and look at the
-# actual config.make file to be able to know what was configured in
-# gnustep-make regardless of any gnustep-base that is currently
-# installed.  We can't use `gnustep-config --objc-flags` because that
-# may report native exceptions as disabled because the currently
-# installed gnustep-base has them disabled.
-if grep USE_OBJC_EXCEPTIONS $CURRENT_GNUSTEP_MAKEFILES/$lobj_dir/config.make | grep yes >&5 2>&5; then
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
   exceptions=yes
 else
-  exceptions=no
+  # Determine if native Objective-C exceptions are enabled
+  # in gnustep-make.  They are enabled if the compiler supports it; they
+  # are disabled if it doesn't.  And, of course, the user may have
+  # forced one behaviour or the other.  Note that we go and look at the
+  # actual config.make file to be able to know what was configured in
+  # gnustep-make regardless of any gnustep-base that is currently
+  # installed.  We can't use `gnustep-config --objc-flags` because that
+  # may report native exceptions as disabled because the currently
+  # installed gnustep-base has them disabled.
+  if grep USE_OBJC_EXCEPTIONS $CURRENT_GNUSTEP_MAKEFILES/$lobj_dir/config.make | grep yes >&5 2>&5; then
+    exceptions=yes
+  else
+    exceptions=no
+  fi
 fi
 
 # At this point, if exceptions=no, then native exceptions are disabled
