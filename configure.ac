@@ -1053,6 +1053,7 @@ MAKECPP=`gnustep-config --variable=CPP`
 MAKECXX=`gnustep-config --variable=CXX`
 if test "$CC" = ""; then
   CC=$MAKECC
+  export CC
 else
   if test "$CC" != "$MAKECC"; then
     AC_MSG_WARN([You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CC or run the gnustep-base configure again with your CC environment variable set to $MAKECC])
@@ -1060,6 +1061,7 @@ else
 fi
 if test "$CPP" = ""; then
   CPP=$MAKECPP
+  export CPP
 else
   if test "$CPP" != "$MAKECPP"; then
     AC_MSG_WARN([You are running configure with the preprocessor ($CPP) set to a different value from that used by gnustep-make ($MAKECPP).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CPP or run the gnustep-base configure again with your CPP environment variable set to $MAKECPP])
@@ -1067,6 +1069,7 @@ else
 fi
 if test "$CXX" = ""; then
   CXX=$MAKECXX
+  export CXX
 else
   if test "$CXX" != "$MAKECXX"; then
     AC_MSG_WARN([You are running configure with the compiler ($CXX) set to a different value from that used by gnustep-make ($MAKECXX).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CXX or run the gnustep-base configure again with your CXX environment variable set to $MAKECXX])
@@ -1129,7 +1132,7 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
           CFLAGS="$saved_CFLAGS $ATOMIC_CFLAGS"
           ;;
       esac
-      AC_MSG_CHECKING([whether gcc supports atomic operations with -march]);
+      AC_MSG_CHECKING([whether CC supports atomic operations with -march]);
         AC_LINK_IFELSE([AC_LANG_PROGRAM([[typedef int atomic;]],
           [[atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y+1);]])],
         need_march=yes,
@@ -1144,7 +1147,7 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
         AC_MSG_RESULT([no]);
         saved_LDFLAGS="$LDFLAGS";
         LDFLAGS="$saved_LDFLAGS -lgcc";
-        AC_MSG_CHECKING([whether gcc supports atomic operations using libgcc]);
+        AC_MSG_CHECKING([whether CC supports atomic operations using libgcc]);
           AC_LINK_IFELSE([AC_LANG_PROGRAM([[typedef int atomic;]],
             [[atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y+1);]])],
           atomic_in_libgcc=yes,
@@ -1288,8 +1291,8 @@ fi
 AC_CHECK_HEADERS(objc/runtime.h)
 AC_CHECK_HEADERS(objc/objc.h)
 if test $ac_cv_header_objc_objc_h = no; then
-  echo "Check to make sure you have a full installation of the GCC"
-  echo "compiler that includes the Objective-C headers and libraries"
+  echo "Check to make sure you have the Objective-C runtime library"
+  echo "and its headers installed."
   AC_MSG_ERROR(Could not find Objective-C headers)
 fi
 
@@ -1343,7 +1346,7 @@ else
   AC_MSG_RESULT([not found])
 fi
 
-AC_MSG_CHECKING(for gcc visibility attribute support)
+AC_MSG_CHECKING(for compiler visibility attribute support)
 saved_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -Werror"
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([
