@@ -145,6 +145,18 @@ GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
 
 @end
 
+@interface NSCellUndoManager : NSUndoManager
+// Special undo manager for the field editor so that it doesn't interfere with the window's undo manager.
+{
+  NSUndoManager * _nextUndoManager;
+}
+- (BOOL)canUndo;
+- (void)undo;
+- (BOOL)canRedo;
+- (void)redo;
+- (void)setNextUndoManager:(NSUndoManager *)manager;
+@end
+
 #if	defined(__cplusplus)
 }
 #endif

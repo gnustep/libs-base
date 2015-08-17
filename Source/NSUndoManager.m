@@ -1026,13 +1026,14 @@
       return;
     }
 
+  _isUndoing = YES;
+
   [[NSNotificationCenter defaultCenter]
       postNotificationName: NSUndoManagerWillUndoChangeNotification
 		    object: self];
 
   oldGroup = _group;
   _group = nil;
-  _isUndoing = YES;
 
   if (oldGroup)
     {
@@ -1102,3 +1103,57 @@
   return NO;
 }
 @end
+
+
+@implementation NSCellUndoManager
+
+- (void)dealloc
+{
+  [_nextUndoManager release];
+  [super dealloc];
+}
+
+- (BOOL)canUndo
+{
+  return [super canUndo] || [_nextUndoManager canUndo];
+}
+
+- (void)undo
+{
+  if ([super canUndo])
+    {
+      [super undo];
+    }
+  else
+    {
+      [_nextUndoManager undo];
+    }
+}
+
+- (BOOL)canRedo
+{
+  return [_nextUndoManager canRedo] || [super canRedo];
+}
+
+- (void)redo
+{
+  if ([_nextUndoManager canRedo])
+    {
+      [_nextUndoManager redo];
+    }
+  else
+    {
+      [super redo];
+    }
+}
+
+- (void)setNextUndoManager:(NSUndoManager *)manager
+{
+  [manager retain];
+  [_nextUndoManager release];
+  _nextUndoManager = manager;
+}
+
+@end
+
+
