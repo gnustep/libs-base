@@ -31,6 +31,10 @@
 
 #include <ctype.h>
 
+#if     USE_ZLIB
+#include <zlib.h>
+#endif
+
 #if	defined(__MINGW32__)
 #include <wincrypt.h>
 #else
@@ -154,6 +158,122 @@ randombytes(uint8_t *buf, unsigned len)
   return AUTORELEASE(string);
 }
 
+- (NSData*) gunzipped
+{
+#if     USE_ZLIB
+  NSUInteger    length = [self length];
+  z_stream      stream;
+
+  if (NO == [self isGzipped])
+    {
+      return self;
+    }
+
+  stream.zalloc = Z_NULL;
+  stream.zfree = Z_NULL;
+  stream.avail_in = (unsigned)length;
+  stream.next_in = (uint8_t *)[self bytes];
+  stream.total_out = 0;
+  stream.avail_out = 0;
+
+  if (inflateInit2(&stream, 15 + 32) == Z_OK)   // inflate or gzip
+    {
+      NSZone    *zone = NSDefaultMallocZone();
+      uint8_t   *dst;
+      unsigned  capacity;
+      int       status = Z_OK;
+
+      capacity = 2 * length;
+      dst = NSZoneMalloc(zone, capacity);
+      while (Z_OK == status)
+        {
+          if (stream.total_out >= capacity)
+            {
+              capacity += length / 2;
+              dst = NSZoneRealloc(zone, dst, capacity);
+            }
+          stream.next_out = dst + stream.total_out;
+          stream.avail_out = (unsigned)(capacity - stream.total_out);
+          status = inflate(&stream, Z_SYNC_FLUSH);
+        }
+      if (inflateEnd(&stream) == Z_OK)
+        {
+          if (Z_STREAM_END == status)
+            {
+              NSMutableData     *result;
+
+              result = [NSMutableData alloc];
+              result = [result initWithBytesNoCopy: dst
+                                            length: stream.total_out
+                                      freeWhenDone: YES];
+              return AUTORELEASE(result);
+            }
+        }
+      NSZoneFree(zone, dst);
+    }
+#else
+  [NSException raise: NSGenericException
+              format: @"library was configured without zlib support"];
+#endif
+  return nil;
+}
+
+- (NSData*) gzipped: (int)compressionLevel
+{
+#if     USE_ZLIB
+  NSUInteger    length = [self length];
+  z_stream      stream;
+
+  stream.zalloc = Z_NULL;
+  stream.zfree = Z_NULL;
+  stream.opaque = Z_NULL;
+  stream.avail_in = (unsigned)length;
+  stream.next_in = (uint8_t*)[self bytes];
+  stream.total_out = 0;
+  stream.avail_out = 0;
+
+  if (compressionLevel < 0 || compressionLevel > 9)
+    {
+      compressionLevel = Z_DEFAULT_COMPRESSION;
+    }
+  if (deflateInit2(&stream,
+    compressionLevel,
+    Z_DEFLATED,
+    31,
+    8,
+    Z_DEFAULT_STRATEGY) == Z_OK)
+    {
+      NSMutableData     *result;
+      NSZone            *zone = NSDefaultMallocZone();
+      unsigned          capacity = 1024 * 16;
+      uint8_t           *dst;
+
+      dst = NSZoneMalloc(zone, capacity);
+      while (stream.avail_out == 0)
+        {
+          if (stream.total_out >= capacity)
+            {
+              capacity += 1024 * 16;
+              dst = NSZoneRealloc(zone, dst, capacity);
+            }
+          stream.next_out = dst + stream.total_out;
+          stream.avail_out = (unsigned)(capacity - stream.total_out);
+          deflate(&stream, Z_FINISH);
+        }
+      deflateEnd(&stream);
+      result = [NSMutableData alloc];
+      result = [result initWithBytesNoCopy: dst
+                                    length: stream.total_out
+                              freeWhenDone: YES];
+      return AUTORELEASE(result);
+    }
+#else
+  [NSException raise: NSGenericException
+              format: @"library was configured without zlib support"];
+#endif
+  return nil;
+}
+
 /**
  * Initialises the receiver with the supplied string data which contains
  * a hexadecimal coding of the bytes.  The parsing of the string is
@@ -235,6 +355,14 @@ randombytes(uint8_t *buf, unsigned len)
 	NSStringFromSelector(_cmd)];
     }
   return self;
+}
+
+- (BOOL) isGzipped
+{
+  NSUInteger    length = [self length];
+  const uint8_t *bytes = (const uint8_t *)[self bytes];
+
+  return (length >= 2 && bytes[0] == 0x1f && bytes[1] == 0x8b) ? YES : NO;
 }
 
 struct MD5Context
@@ -781,4 +909,5 @@ static void MD5Transform (uint32_t buf[4], uint32_t const in[16])
   [encoded appendBytes: "`\nend\n" length: 6];
   return YES;
 }
+
 @end

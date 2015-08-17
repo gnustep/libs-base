@@ -1,3 +1,10 @@
+2015-08-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/NSData+GNUstepBase.h: Simple gzip API
+	* Source/Additions/NSData+GNUstepBase.m: Use zlib to zip/unzip data
+	* Tests/base/NSData/additions.m: tests for NSData additions (gzip)
+	* Tests/base/NSData/Lorum: Data file for compress/uncompress tests
+
 2015-08-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Use the compiler provided by gnustep-make unless
