@@ -1,3 +1,9 @@
+2015-08-17  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Resources/Korean.lproj/Localizable.string: Correct encoding
+	* Resources/Languages/Korean: Add missing quotes.
+	Patch by Seong-Gu Lee <sgleehd@gmail.com>
+
 2015-08-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/NSData+GNUstepBase.h: Simple gzip API
@@ -674,7 +680,7 @@
 2014-04-26  Manuel Guesdon <mguesdon@orange-concept.com>
 	* Source/NSKeyValueCoding.m
 	  Fix exception msg in setValue:forUndefinedKey:
-	
+
 2014-04-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSHost.h:
