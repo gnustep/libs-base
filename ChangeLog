@@ -1,3 +1,7 @@
+2015-08-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSFileHandle.m: include winsock2.h earlier for msys2
+
 2015-08-17  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Resources/Korean.lproj/Localizable.string: Correct encoding
