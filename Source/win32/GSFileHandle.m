@@ -22,6 +22,7 @@
    Boston, MA 02111 USA.
    */
 
+#include <windows.h>
 #include <winsock2.h>
 
 #include "common.h"
