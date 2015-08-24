@@ -24,9 +24,10 @@
  * THE SOFTWARE.
  */
 
+#include "GNUstepBase/GSTypeEncoding.h"
+
 #include <stdlib.h>
 #include <string.h>
-#include "GNUstepBase/GSTypeEncoding.h"
 
 #undef  MAX
 #define MAX(X, Y)                     \
