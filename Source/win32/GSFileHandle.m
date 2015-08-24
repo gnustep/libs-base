@@ -22,6 +22,8 @@
    Boston, MA 02111 USA.
    */
 
+#include <winsock2.h>
+
 #include "common.h"
 
 #import "Foundation/NSObject.h"
@@ -43,7 +45,6 @@
 #import "../GSPrivate.h"
 #import "../GSNetwork.h"
 
-#include <winsock2.h>
 #include <fcntl.h>
 #include <sys/file.h>
 #include <sys/types.h>
