@@ -5540,7 +5540,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   [desc appendString: [headers descriptionWithLocale: locale]];
   if ([content isKindOfClass: NSDataClass])
     {
-      NSString  *t = [content convertToText];
+      NSString  *t = [self convertToText];
 
       if (nil != t)
         {
