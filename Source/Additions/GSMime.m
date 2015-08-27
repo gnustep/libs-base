@@ -117,6 +117,7 @@ static  NSMapTable	*charsets = 0;
 static  NSMapTable	*encodings = 0;
 static	Class		NSArrayClass = 0;
 static	Class		NSStringClass = 0;
+static	Class		NSDataClass = 0;
 static	Class		documentClass = 0;
 
 typedef BOOL (*boolIMP)(id, SEL, id);
@@ -458,48 +459,6 @@ selectCharacterSet(NSString *str, NSData **d)
     return @"us-ascii";	// Default character set.
   if ((*d = [str dataUsingEncoding: NSISOLatin1StringEncoding]) != nil)
     return @"iso-8859-1";
-
-  /*
-   * What's the point of trying loads of charactersets ... utf-8 is
-   * well-known nowadays, so if we can't use ascii or latin1 we may
-   * as well go straight to utf-8
-   */
-#if 0
-  if ((*d = [str dataUsingEncoding: NSISOLatin2StringEncoding]) != nil)
-    return @"iso-8859-2";
-  if ((*d = [str dataUsingEncoding: NSISOLatin3StringEncoding]) != nil)
-    return @"iso-8859-3";
-  if ((*d = [str dataUsingEncoding: NSISOLatin4StringEncoding]) != nil)
-    return @"iso-8859-4";
-  if ((*d = [str dataUsingEncoding: NSISOCyrillicStringEncoding]) != nil)
-    return @"iso-8859-5";
-  if ((*d = [str dataUsingEncoding: NSISOArabicStringEncoding]) != nil)
-    return @"iso-8859-6";
-  if ((*d = [str dataUsingEncoding: NSISOGreekStringEncoding]) != nil)
-    return @"iso-8859-7";
-  if ((*d = [str dataUsingEncoding: NSISOHebrewStringEncoding]) != nil)
-    return @"iso-8859-8";
-  if ((*d = [str dataUsingEncoding: NSISOLatin5StringEncoding]) != nil)
-    return @"iso-8859-9";
-  if ((*d = [str dataUsingEncoding: NSISOLatin6StringEncoding]) != nil)
-    return @"iso-8859-10";
-  if ((*d = [str dataUsingEncoding: NSISOLatin7StringEncoding]) != nil)
-    return @"iso-8859-13";
-  if ((*d = [str dataUsingEncoding: NSISOLatin8StringEncoding]) != nil)
-    return @"iso-8859-14";
-  if ((*d = [str dataUsingEncoding: NSISOLatin9StringEncoding]) != nil)
-    return @"iso-8859-15";
-  if ((*d = [str dataUsingEncoding: NSWindowsCP1250StringEncoding]) != nil)
-    return @"windows-1250";
-  if ((*d = [str dataUsingEncoding: NSWindowsCP1251StringEncoding]) != nil)
-    return @"windows-1251";
-  if ((*d = [str dataUsingEncoding: NSWindowsCP1252StringEncoding]) != nil)
-    return @"windows-1252";
-  if ((*d = [str dataUsingEncoding: NSWindowsCP1253StringEncoding]) != nil)
-    return @"windows-1253";
-  if ((*d = [str dataUsingEncoding: NSWindowsCP1254StringEncoding]) != nil)
-    return @"windows-1254";
-#endif
   *d = [str dataUsingEncoding: NSUTF8StringEncoding];
   return @"utf-8";		// Catch-all character set.
 }
@@ -911,6 +870,10 @@ wordData(NSString *word, BOOL *encoded)
   if (NSArrayClass == 0)
     {
       NSArrayClass = [NSArray class];
+    }
+  if (NSDataClass == 0)
+    {
+      NSDataClass = [NSData class];
     }
   if (NSStringClass == 0)
     {
@@ -2507,8 +2470,12 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		    }
 		}
 
+              /* We assume any text data is best treated as a string
+               * unless it's some format we will probably be parsing.
+               */
 	      if ([type isEqualToString: @"text"] == YES
-		&& [subtype isEqualToString: @"xml"] == NO)
+		&& [subtype isEqualToString: @"xml"] == NO
+		&& [subtype isEqualToString: @"json"] == NO)
 		{
 		  NSStringEncoding	stringEncoding = _defaultEncoding;
 		  NSString		*string;
@@ -5416,7 +5383,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  [hdr setParameter: charset forKey: @"charset"];
 	}
     }
-  else if ([content isKindOfClass: [NSData class]] == YES)
+  else if ([content isKindOfClass: NSDataClass] == YES)
     {
       d = content;
     }
@@ -5435,26 +5402,27 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       s = content;
     }
-  else if ([content isKindOfClass: [NSData class]] == YES)
+  else if ([content isKindOfClass: NSDataClass] == YES)
     {
       GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
       NSString		*charset = [hdr parameterForKey: @"charset"];
+      NSString          *s = [hdr objectForKey: @"Subtype"];
       NSStringEncoding	enc;
 
-      /*
-       * Treat text/xml as a special case ... if we have no charset
-       * specified then we can get the charset from the xml header
-       * or, if that is not present, xml is utf-8
-       */
-      if (charset == nil
-	&& [[hdr objectForKey: @"Subtype"] isEqualToString: @"xml"] == YES)
-	{
-	  charset = [documentClass charsetForXml: content];
-	  if (charset == nil)
-	    {
-	      charset = @"utf-8";
-	    }
-	}
+      if (charset == nil)
+        {
+          /* Treat xml as a special case ... if we have no charset
+           * specified then we can get the charset from the xml header
+           */
+          if ([s isEqualToString: @"xml"] == YES)
+            {
+              charset = [documentClass charsetForXml: content];
+            }
+          if (charset == nil)
+            {
+              charset = @"utf-8";
+            }
+        }
       enc = [documentClass encodingFromCharset: charset];
       s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
       s = [s initWithData: content encoding: enc];
@@ -5570,7 +5538,26 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     (NSUInteger)self];
   locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   [desc appendString: [headers descriptionWithLocale: locale]];
-  [desc appendFormat: @"\nDocument content -\n%@", content];
+  if ([content isKindOfClass: NSDataClass])
+    {
+      NSString  *t = [content convertToText];
+
+      if (nil != t)
+        {
+          [desc appendFormat:
+            @"\nDocument content %lu chars:\n%@\n%lu bytes: %@",
+            [t length], t, [content length], content];
+        }
+      else
+        {
+          [desc appendFormat: @"\nDocument content %lu bytes: %@",
+            [content length], content];
+        }
+    }
+  else
+    {
+      [desc appendFormat: @"\nDocument content -\n%@", content];
+    }
   return desc;
 }
 
@@ -5919,7 +5906,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	{
 	  [self setContent: content type: @"text/plain" name: nil];
 	}
-      else if ([content isKindOfClass: [NSData class]] == YES)
+      else if ([content isKindOfClass: NSDataClass] == YES)
 	{
 	  [self setContent: content
 		      type: @"application/octet-stream"
@@ -6296,7 +6283,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  ASSIGNCOPY(content, newContent);
 	}
     }
-  else if ([newContent isKindOfClass: [NSData class]] == YES)
+  else if ([newContent isKindOfClass: NSDataClass] == YES)
     {
       if (newContent != content)
 	{
