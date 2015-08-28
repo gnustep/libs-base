@@ -99,16 +99,16 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
 DEFINE_BLOCK_TYPE(GSIndexSetEnumerationBlock, void, NSUInteger, BOOL*);
-- (void)enumerateIndexesInRange: (NSRange)range
-                        options: (NSEnumerationOptions)opts
-		     usingBlock: (GSIndexSetEnumerationBlock)aBlock;
+- (void) enumerateIndexesInRange: (NSRange)range
+                         options: (NSEnumerationOptions)opts
+		      usingBlock: (GSIndexSetEnumerationBlock)aBlock;
 /**
  * Enumerate all indices in the set by applying a block to them.
  */
-- (void)enumerateIndexesUsingBlock: (GSIndexSetEnumerationBlock)aBlock;
+- (void) enumerateIndexesUsingBlock: (GSIndexSetEnumerationBlock)aBlock;
 
-- (void)enumerateIndexesWithOptions: (NSEnumerationOptions)opts
-		         usingBlock: (GSIndexSetEnumerationBlock)aBlock;
+- (void) enumerateIndexesWithOptions: (NSEnumerationOptions)opts
+		          usingBlock: (GSIndexSetEnumerationBlock)aBlock;
 
 #endif
 
