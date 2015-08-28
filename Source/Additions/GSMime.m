@@ -5406,7 +5406,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
       NSString		*charset = [hdr parameterForKey: @"charset"];
-      NSString          *s = [hdr objectForKey: @"Subtype"];
+      NSString          *subtype = [hdr objectForKey: @"Subtype"];
       NSStringEncoding	enc;
 
       if (nil == charset)
@@ -5414,7 +5414,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
           /* Treat xml as a special case ... if we have no charset
            * specified then we can get the charset from the xml header
            */
-          if ([s isEqualToString: @"xml"] == YES)
+          if ([subtype isEqualToString: @"xml"] == YES)
             {
               charset = [documentClass charsetForXml: content];
             }
