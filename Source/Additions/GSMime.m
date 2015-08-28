@@ -5409,7 +5409,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       NSString          *s = [hdr objectForKey: @"Subtype"];
       NSStringEncoding	enc;
 
-      if (charset == nil)
+      if (nil == charset)
         {
           /* Treat xml as a special case ... if we have no charset
            * specified then we can get the charset from the xml header
@@ -5418,12 +5418,16 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
             {
               charset = [documentClass charsetForXml: content];
             }
-          if (charset == nil)
+          if (nil == charset)
             {
               charset = @"utf-8";
             }
         }
       enc = [documentClass encodingFromCharset: charset];
+      if (NSASCIIStringEncoding == enc)
+        {
+          enc = NSUTF8StringEncoding;
+        }
       s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
       s = [s initWithData: content encoding: enc];
       IF_NO_GC([s autorelease];)
