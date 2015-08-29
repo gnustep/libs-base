@@ -47,6 +47,18 @@ extern "C" {
  */
 + (id) dataWithRandomBytesOfLength: (NSUInteger)length;
 
+/** Returns an NSString object containing a backslash escaped representation
+ * of the receiver.
+ */
+- (NSString*) escapedRepresentation;
+
+/**
+ * Returns a buffer containing an ASCII backslash escaped representation
+ * of the receiver, (and optionally the size of the buffer excluding
+ * the trailing nul terminator).
+ */
+- (char*) escapedRepresentation: (NSUInteger*)length;
+
 /** Returns data formed by gunzipping the contents of the receiver.<br />
  * If the receiver did not contain data produced by gzip, this method
  * simply returns the receiver.<br />
@@ -70,22 +82,21 @@ extern "C" {
  */
 - (BOOL) isGzipped;
 
-/**
- * Returns an NSString object containing an ASCII hexadecimal representation
+/** Returns an NSString object containing an ASCII hexadecimal representation
  * of the receiver.  This means that the returned object will contain
  * exactly twice as many characters as there are bytes as the receiver,
  * as each byte in the receiver is represented by two hexadecimal digits.<br />
  * The high order four bits of each byte is encoded before the low
  * order four bits.  Capital letters 'A' to 'F' are used to represent
- * values from 10 to 15.<br />
- * If you need the hexadecimal representation as raw byte data, use code
- * like -
- * <example>
- *   hexData = [[sourceData hexadecimalRepresentation]
- *     dataUsingEncoding: NSASCIIStringEncoding];
- * </example>
+ * values from 10 to 15.
  */
 - (NSString*) hexadecimalRepresentation;
+
+/** Returns a buffer containing an ASCII string with a nul terminated
+ * hexadecimal representation of the receiver, (and optionally the size
+ * of the buffer excluding the trailing nul terminator).
+ */
+- (char*) hexadecimalRepresentation: (NSUInteger*)length;
 
 /**
  * Initialises the receiver with the supplied string data which contains
