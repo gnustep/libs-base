@@ -1265,11 +1265,10 @@ wordData(NSString *word, BOOL *encoded)
 
 - (NSString*) description
 {
-  NSMutableString	*desc;
+  NSString	*desc;
 
-  desc = [NSMutableString stringWithFormat: @"GSMimeParser <0x%"PRIxPTR"> -\n",
-    (NSUInteger)self];
-  [desc appendString: [document description]];
+  desc = [NSMutableString stringWithFormat: @"%@ - %@",
+    [super description], document];
   return desc;
 }
 
@@ -3458,10 +3457,19 @@ static NSCharacterSet	*tokenSet = nil;
 
 - (NSString*) description
 {
-  NSMutableString	*desc;
+  NSString	*desc;
+  NSDictionary  *p = [self parameters];
 
-  desc = [NSString stringWithFormat: @"%@ name: %@ value: %@ params: %@",
-    [super description], [self name], [self value], [self parameters]];
+  if ([p count] > 0)
+    {
+      desc = [NSString stringWithFormat: @"%@ %@: %@ params: %@",
+        [super description], [self name], [self value], p];
+    }
+  else
+    {
+      desc = [NSString stringWithFormat: @"%@ %@: %@",
+        [super description], [self name], [self value]];
+    }
   return desc;
 }
 
@@ -5528,37 +5536,77 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     }
 }
 
-- (NSString*) description
+- (void) _descriptionTo: (NSMutableString*)m level: (NSUInteger)level
 {
-  NSMutableString	*desc;
-  NSDictionary		*locale;
+  NSUInteger            count;
+  NSUInteger            index;
+  NSUInteger            pad;
 
-  desc = [NSMutableString
-    stringWithFormat: @"GSMimeDocument <0x%"PRIxPTR"> -\n",
-    (NSUInteger)self];
-  locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
-  [desc appendString: [headers descriptionWithLocale: locale]];
+  for (pad = 0; pad < level; pad++) { [m appendString: @"  "]; }
+  [m appendString: [super description]];
+  [m appendString: @"\n"];
+  level++;
+  if ((count = [headers count]) > 0)
+    {
+      for (pad = 0; pad < level; pad++) { [m appendString: @"  "]; }
+      [m appendString: @"Headers:\n"];
+      for (index = 0; index < count; index++)
+        {
+          for (pad = 0; pad <= level; pad++) { [m appendString: @"  "]; }
+          [m appendString: [[headers objectAtIndex: index] description]];
+          [m appendString: @"\n"];
+        }
+    }
+  for (pad = 0; pad < level; pad++) { [m appendString: @"  "]; }
+  [m appendString: @"Content:\n"];
   if ([content isKindOfClass: NSDataClass])
     {
       NSString  *t = [self convertToText];
+      NSData    *d = [[self class] encodeBase64: content];
 
       if (nil != t)
         {
-          [desc appendFormat:
-            @"\nDocument content %lu chars:\n%@\n%lu bytes: %@",
-            [t length], t, [content length], content];
+          for (pad = 0; pad <= level; pad++) { [m appendString: @"  "]; }
+          [m appendFormat: @"%lu chars: ", (unsigned long)[t length]];
+          [m appendString: t];
+          [m appendString: @"\n"];
         }
-      else
-        {
-          [desc appendFormat: @"\nDocument content %lu bytes: %@",
-            [content length], content];
-        }
+      for (pad = 0; pad <= level; pad++) { [m appendString: @"  "]; }
+      [m appendFormat: @"%lu bytes: ", (unsigned long)[content length]];
+      t = [[NSString alloc] initWithData: d encoding: NSASCIIStringEncoding];
+      [m appendString: t];
+      [m appendString: @"\n"];
+      RELEASE(t);
+    }
+  else if ([content isKindOfClass: NSStringClass])
+    {
+      for (pad = 0; pad <= level; pad++) { [m appendString: @"  "]; }
+      [m appendFormat: @"%lu chars: ", (unsigned long)[content length]];
+      [m appendString: content];
+      [m appendString: @"\n"];
     }
   else
     {
-      [desc appendFormat: @"\nDocument content -\n%@", content];
+      count = [content count];
+      for (index = 0; index < count; index++)
+        {
+          [[content objectAtIndex: index] _descriptionTo: m
+                                                   level: level+1];
+        }
     }
-  return desc;
+}
+
+- (NSString*) description
+{
+  CREATE_AUTORELEASE_POOL(arp);
+  NSMutableString       *m;
+  NSString              *s;
+
+  m = [NSMutableString stringWithCapacity: 1000];
+  [self _descriptionTo: m level: 0];
+  s = RETAIN(m);
+  RELEASE(arp);
+  return AUTORELEASE(s);  
 }
 
 - (NSUInteger) hash

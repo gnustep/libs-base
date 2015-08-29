@@ -1,3 +1,7 @@
+2015-08-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Improve descriptions for debug.
+
 2015-08-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/GSFileHandle.m: include winsock2.h earlier for msys2
