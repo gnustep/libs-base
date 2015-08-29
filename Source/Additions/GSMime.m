@@ -3446,8 +3446,7 @@ static NSCharacterSet	*tokenSet = nil;
       [c setObject: [self objectForKey: k] forKey: k];
     }
   return c;
-}
-
+} 
 - (void) dealloc
 {
   RELEASE(name);
@@ -3461,11 +3460,8 @@ static NSCharacterSet	*tokenSet = nil;
 {
   NSMutableString	*desc;
 
-  desc = [NSMutableString stringWithFormat: @"GSMimeHeader <0x%"PRIxPTR"> -\n",
-    (NSUInteger)self];
-  [desc appendFormat: @"  name: %@\n", [self name]];
-  [desc appendFormat: @"  value: %@\n", [self value]];
-  [desc appendFormat: @"  params: %@\n", [self parameters]];
+  desc = [NSString stringWithFormat: @"%@ name: %@ value: %@ params: %@",
+    [super description], [self name], [self value], [self parameters]];
   return desc;
 }
 
