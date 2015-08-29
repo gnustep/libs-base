@@ -232,19 +232,43 @@ static void
 debugRead(GSHTTPURLHandle *handle, NSData *data)
 {
   unsigned	len = (unsigned)[data length];
-  char	        *esc = [data escapedRepresentation: 0];
+  const char	*ptr = (const char*)[data bytes];
+  int           pos;
 
-  NSLog(@"Read for %p of %u bytes - '%s'\n%@", handle, len, esc, data); 
-  free(esc);
+  for (pos = 0; pos < len; pos++)
+    {
+      if (0 == ptr[pos])
+        {
+          char  *esc = [data escapedRepresentation: 0];
+
+          NSLog(@"Read for %p of %u bytes (escaped) - '%s'\n%@",
+            handle, len, esc, data); 
+          free(esc);
+          return;
+        }
+    }
+  NSLog(@"Read for %p of %d bytes - '%*.*s'", handle, len, len, len, ptr); 
 }
 static void
 debugWrite(GSHTTPURLHandle *handle, NSData *data)
 {
   unsigned	len = (unsigned)[data length];
-  char	        *esc = [data escapedRepresentation: 0];
+  const char	*ptr = (const char*)[data bytes];
+  int           pos;
 
-  NSLog(@"Write for %p of %u bytes - '%s'\n%@", handle, len, esc, data); 
-  free(esc);
+  for (pos = 0; pos < len; pos++)
+    {
+      if (0 == ptr[pos])
+        {
+          char  *esc = [data escapedRepresentation: 0];
+
+          NSLog(@"Write for %p of %u bytes (escaped) - '%s'\n%@",
+            handle, len, esc, data); 
+          free(esc);
+          return;
+        }
+    }
+  NSLog(@"Write for %p of %d bytes - '%*.*s'", handle, len, len, len, ptr); 
 }
 
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)newUrl
