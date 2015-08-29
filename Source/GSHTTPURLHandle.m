@@ -247,7 +247,8 @@ debugRead(GSHTTPURLHandle *handle, NSData *data)
           return;
         }
     }
-  NSLog(@"Read for %p of %d bytes - '%*.*s'", handle, len, len, len, ptr); 
+  NSLog(@"Read for %p of %d bytes - '%*.*s'\n%@",
+    handle, len, len, len, ptr, data); 
 }
 static void
 debugWrite(GSHTTPURLHandle *handle, NSData *data)
@@ -268,7 +269,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
           return;
         }
     }
-  NSLog(@"Write for %p of %d bytes - '%*.*s'", handle, len, len, len, ptr); 
+  NSLog(@"Write for %p of %d bytes - '%*.*s'\n%@",
+    handle, len, len, len, ptr, data); 
 }
 
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)newUrl
