@@ -1,6 +1,9 @@
 2015-08-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Improve descriptions for debug.
+	* Source/Additions/NSData+GNUstepBase.m: Add escaped representation.
+	* Source/GSHTTPURLHandle.m: Use escaped text format for debug log
+	(and plist armored format) to ensure that we safely log binary data
 
 2015-08-24  Richard Frith-Macdonald <rfm@gnu.org>
 

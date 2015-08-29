@@ -43,6 +43,7 @@
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/NSData+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 #import "NSCallBacks.h"
@@ -230,36 +231,20 @@ static Class			sslClass = 0;
 static void
 debugRead(GSHTTPURLHandle *handle, NSData *data)
 {
-  int		len = (int)[data length];
-  const char	*ptr = (const char*)[data bytes];
-  int           pos;
+  unsigned	len = (unsigned)[data length];
+  char	        *esc = [data escapedRepresentation: 0];
 
-  for (pos = 0; pos < len; pos++)
-    {
-      if (0 == ptr[pos])
-        {
-          NSLog(@"Read for %p of %d bytes - %@", handle, len, data); 
-          return;
-        }
-    }
-  NSLog(@"Read for %p of %d bytes - '%*.*s'", handle, len, len, len, ptr); 
+  NSLog(@"Read for %p of %u bytes - '%s'\n%@", handle, len, esc, data); 
+  free(esc);
 }
 static void
 debugWrite(GSHTTPURLHandle *handle, NSData *data)
 {
-  int		len = (int)[data length];
-  const char	*ptr = (const char*)[data bytes];
-  int           pos = len;
+  unsigned	len = (unsigned)[data length];
+  char	        *esc = [data escapedRepresentation: 0];
 
-  for (pos = 0; pos < len; pos++)
-    {
-      if (0 == ptr[pos])
-        {
-          NSLog(@"Write for %p of %d bytes - %@", handle, len, data); 
-          return;
-        }
-    }
-  NSLog(@"Write for %p of %d bytes -'%*.*s'", handle, len, len, len, ptr); 
+  NSLog(@"Write for %p of %u bytes - '%s'\n%@", handle, len, esc, data); 
+  free(esc);
 }
 
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)newUrl
