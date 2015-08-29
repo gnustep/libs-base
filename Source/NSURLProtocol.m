@@ -36,6 +36,7 @@
 #import "GSTLS.h"
 #import "GSURLPrivate.h"
 #import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSData+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
@@ -45,6 +46,7 @@
 # undef	USE_ZLIB
 #endif
 #define	USE_ZLIB	0
+
 
 #if	USE_ZLIB
 #if	defined(HAVE_ZLIB_H)
@@ -65,6 +67,61 @@ zfree(void *opaque, void *mem)
 # define	USE_ZLIB	0
 #endif
 #endif
+
+static void
+debugRead(id handle, unsigned len, const unsigned char *ptr)
+{
+  int           pos;
+  NSData        *data;
+
+  data = [[NSData alloc] initWithBytesNoCopy: (void*)ptr
+                                      length: len
+                                freeWhenDone: NO];
+
+  for (pos = 0; pos < len; pos++)
+    {
+      if (0 == ptr[pos])
+        {
+          char  *esc = [data escapedRepresentation: 0];
+
+          NSLog(@"Read for %p of %u bytes (escaped) - '%s'\n%@",
+            handle, len, esc, data); 
+          free(esc);
+          RELEASE(data);
+          return;
+        }
+    }
+  NSLog(@"Read for %p of %d bytes - '%*.*s'\n%@",
+    handle, len, len, len, ptr, data); 
+  RELEASE(data);
+}
+static void
+debugWrite(id handle, unsigned len, const unsigned char *ptr)
+{
+  int           pos;
+  NSData        *data;
+
+  data = [[NSData alloc] initWithBytesNoCopy: (void*)ptr
+                                      length: len
+                                freeWhenDone: NO];
+
+  for (pos = 0; pos < len; pos++)
+    {
+      if (0 == ptr[pos])
+        {
+          char  *esc = [data escapedRepresentation: 0];
+
+          NSLog(@"Write for %p of %u bytes (escaped) - '%s'\n%@",
+            handle, len, esc, data); 
+          free(esc);
+          RELEASE(data);
+          return;
+        }
+    }
+  NSLog(@"Write for %p of %d bytes - '%*.*s'\n%@",
+    handle, len, len, len, ptr, data); 
+  RELEASE(data);
+}
 
 @interface	GSSocketStreamPair : NSObject
 {
@@ -887,8 +944,7 @@ static NSURLProtocol	*placeholder = nil;
     }
   if (_debug)
     {
-      NSLog(@"%@ read %d bytes: '%*.*s'",
-	self, readCount, readCount, readCount, buffer);
+      debugRead(self, readCount, buffer);
     }
 
   if (_parser == nil)
@@ -1508,8 +1564,7 @@ static NSURLProtocol	*placeholder = nil;
 		    {
 		      if (_debug == YES)
 		        {
-			  NSLog(@"%@ wrote %d bytes: '%*.*s'", self, written,
-			    written, written, bytes + _writeOffset);
+                          debugWrite(self, written, bytes + _writeOffset);
 			}
 		      _writeOffset += written;
 		      if (_writeOffset >= len)
@@ -1566,8 +1621,7 @@ static NSURLProtocol	*placeholder = nil;
 			    {
 			      if (_debug == YES)
 				{
-				  NSLog(@"%@ wrote %d bytes: '%*.*s'", self,
-				    written, written, written, buffer);
+                                  debugWrite(self, written, buffer);
 				}
 			      len -= written;
 			      if (len > 0)
