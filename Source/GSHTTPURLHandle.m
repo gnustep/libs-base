@@ -231,7 +231,7 @@ static Class			sslClass = 0;
 static void
 debugRead(GSHTTPURLHandle *handle, NSData *data)
 {
-  NSUInteger	len = [data length];
+  int   	len = (int)[data length];
   const uint8_t	*ptr = (const uint8_t*)[data bytes];
   uint8_t       *hex;
   NSUInteger    hl;
@@ -240,28 +240,28 @@ debugRead(GSHTTPURLHandle *handle, NSData *data)
   hl = ((len + 2) / 3) * 4;
   hex = malloc(hl + 1);
   hex[hl] = '\0';
-  GSPrivateEncodeBase64(ptr, len, hex);
+  GSPrivateEncodeBase64(ptr, (NSUInteger)len, hex);
   for (pos = 0; pos < len; pos++)
     {
       if (0 == ptr[pos])
         {
           char  *esc = [data escapedRepresentation: 0];
 
-          NSLog(@"Read for %p of %u bytes (escaped) - '%s'\n<[%*.*s]>",
-            handle, (unsigned)len, esc, hex); 
+          NSLog(@"Read for %p of %d bytes (escaped) - '%s'\n<[%s]>",
+            handle, len, esc, hex); 
           free(esc);
           free(hex);
           return;
         }
     }
-  NSLog(@"Read for %p of %d bytes - '%s'\n<[%*.*s]>",
-    handle, (unsigned)len, ptr, hex); 
+  NSLog(@"Read for %p of %d bytes - '%*.*s'\n<[%s]>",
+    handle, len, len, len, ptr, hex); 
   free(hex);
 }
 static void
 debugWrite(GSHTTPURLHandle *handle, NSData *data)
 {
-  NSUInteger	len = [data length];
+  int	        len = (int)[data length];
   const uint8_t	*ptr = (const uint8_t*)[data bytes];
   uint8_t       *hex;
   NSUInteger    hl;
@@ -270,22 +270,22 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   hl = ((len + 2) / 3) * 4;
   hex = malloc(hl + 1);
   hex[hl] = '\0';
-  GSPrivateEncodeBase64(ptr, len, hex);
+  GSPrivateEncodeBase64(ptr, (NSUInteger)len, hex);
   for (pos = 0; pos < len; pos++)
     {
       if (0 == ptr[pos])
         {
           char  *esc = [data escapedRepresentation: 0];
 
-          NSLog(@"Write for %p of %u bytes (escaped) - '%s'\n<[%s]>",
-            handle, (unsigned)len, esc, hex); 
+          NSLog(@"Write for %p of %d bytes (escaped) - '%s'\n<[%s]>",
+            handle, len, esc, hex); 
           free(esc);
           free(hex);
           return;
         }
     }
-  NSLog(@"Write for %p of %d bytes - '%s'\n<[%s]>",
-    handle, (unsigned)len, ptr, hex); 
+  NSLog(@"Write for %p of %d bytes - '%*.*s'\n<[%s]>",
+    handle, len, len, len, ptr, hex); 
   free(hex);
 }
 

@@ -69,7 +69,7 @@ zfree(void *opaque, void *mem)
 #endif
 
 static void
-debugRead(id handle, unsigned len, const unsigned char *ptr)
+debugRead(id handle, int len, const unsigned char *ptr)
 {
   int           pos;
   uint8_t       *hex;
@@ -78,7 +78,7 @@ debugRead(id handle, unsigned len, const unsigned char *ptr)
   hl = ((len + 2) / 3) * 4;
   hex = malloc(hl + 1);
   hex[hl] = '\0';
-  GSPrivateEncodeBase64(ptr, len, hex);
+  GSPrivateEncodeBase64(ptr, (NSUInteger)len, hex);
 
   for (pos = 0; pos < len; pos++)
     {
@@ -92,7 +92,7 @@ debugRead(id handle, unsigned len, const unsigned char *ptr)
                                         freeWhenDone: NO];
           esc = [data escapedRepresentation: 0];
 
-          NSLog(@"Read for %p of %u bytes (escaped) - '%s'\n<[%s]>",
+          NSLog(@"Read for %p of %d bytes (escaped) - '%s'\n<[%s]>",
             handle, len, esc, hex); 
           free(esc);
           RELEASE(data);
@@ -100,11 +100,12 @@ debugRead(id handle, unsigned len, const unsigned char *ptr)
           return;
         }
     }
-  NSLog(@"Read for %p of %d bytes - '%s'\n<[%s]>", handle, len, ptr, hex); 
+  NSLog(@"Read for %p of %d bytes - '%*.*s'\n<[%s]>",
+    handle, len, len, len, ptr, hex); 
   free(hex);
 }
 static void
-debugWrite(id handle, unsigned len, const unsigned char *ptr)
+debugWrite(id handle, int len, const unsigned char *ptr)
 {
   int           pos;
   uint8_t       *hex;
@@ -113,7 +114,7 @@ debugWrite(id handle, unsigned len, const unsigned char *ptr)
   hl = ((len + 2) / 3) * 4;
   hex = malloc(hl + 1);
   hex[hl] = '\0';
-  GSPrivateEncodeBase64(ptr, len, hex);
+  GSPrivateEncodeBase64(ptr, (NSUInteger)len, hex);
 
   for (pos = 0; pos < len; pos++)
     {
@@ -126,7 +127,7 @@ debugWrite(id handle, unsigned len, const unsigned char *ptr)
                                               length: len
                                         freeWhenDone: NO];
           esc = [data escapedRepresentation: 0];
-          NSLog(@"Write for %p of %u bytes (escaped) - '%s'\n<[%s]>",
+          NSLog(@"Write for %p of %d bytes (escaped) - '%s'\n<[%s]>",
             handle, len, esc, hex); 
           free(esc);
           RELEASE(data);
@@ -134,7 +135,8 @@ debugWrite(id handle, unsigned len, const unsigned char *ptr)
           return;
         }
     }
-  NSLog(@"Write for %p of %d bytes - '%s'\n<[%s]>", handle, len, ptr, hex); 
+  NSLog(@"Write for %p of %d bytes - '%*.*s'\n<[%s]>",
+    handle, len, len, len, ptr, hex); 
   free(hex);
 }
 
