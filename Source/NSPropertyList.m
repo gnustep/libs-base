@@ -865,8 +865,8 @@ static inline id parseQuotedString(pldata* pld)
       NSZoneFree(NSDefaultMallocZone(), temp);
       length = k;
 
-      if (pld->key ==
-	NO && pld->opt == NSPropertyListMutableContainersAndLeaves)
+      if (pld->key == NO
+        && pld->opt == NSPropertyListMutableContainersAndLeaves)
 	{
 	  obj = [GSMutableString alloc];
 	  obj = [obj initWithCharactersNoCopy: chars
@@ -875,7 +875,7 @@ static inline id parseQuotedString(pldata* pld)
 	}
       else
 	{
-	  obj = [GSMutableString alloc];
+	  obj = [NSStringClass allocWithZone: NSDefaultMallocZone()];
 	  obj = [obj initWithCharactersNoCopy: chars
 				       length: length
 				 freeWhenDone: YES];
@@ -907,7 +907,8 @@ static inline id parseUnquotedString(pldata *pld)
       chars[i] = pld->ptr[start + i];
     }
 
-  if (pld->key == NO && pld->opt == NSPropertyListMutableContainersAndLeaves)
+  if (pld->key == NO
+    && pld->opt == NSPropertyListMutableContainersAndLeaves)
     {
       obj = [GSMutableString alloc];
       obj = [obj initWithCharactersNoCopy: chars
@@ -916,7 +917,7 @@ static inline id parseUnquotedString(pldata *pld)
     }
   else
     {
-      obj = [GSMutableString alloc];
+      obj = [NSStringClass allocWithZone: NSDefaultMallocZone()];
       obj = [obj initWithCharactersNoCopy: chars
 				   length: length
 			     freeWhenDone: YES];
@@ -1189,15 +1190,104 @@ static id parsePlItem(pldata* pld)
 	      }
 	    pld->pos++;
 	  }
+	else if (pld->pos < pld->end && pld->ptr[pld->pos] == '[')
+	  {
+	    const unsigned char	*ptr;
+	    unsigned		min;
+	    unsigned		len;
+
+	    pld->old = NO;
+	    pld->pos++;
+	    min = pld->pos;
+	    ptr = &(pld->ptr[min]);
+	    while (pld->pos < pld->end && pld->ptr[pld->pos] != ']')
+	      {
+		pld->pos++;
+	      }
+	    len = pld->pos - min;
+	    if (pld->pos >= pld->end)
+	      {
+		pld->err = @"unexpected end of string when parsing data";
+		return nil;
+	      }
+	    pld->pos++;
+	    if (pld->pos >= pld->end)
+	      {
+		pld->err = @"unexpected end of string when parsing ']>'";
+		return nil;
+	      }
+	    if (pld->ptr[pld->pos] != '>')
+	      {
+		pld->err = @"unexpected character (wanted '>')";
+		return nil;
+	      }
+	    pld->pos++;
+            if (0 == len)
+              {
+                if (pld->key == NO
+                  && pld->opt == NSPropertyListMutableContainersAndLeaves)
+                  {
+                    result = [NSMutableData new];
+                  }
+                else
+                  {
+                    result = [NSData new];
+                  }
+              }
+            else
+              {
+                NSData  *d;
+
+                d = [[NSData alloc] initWithBytesNoCopy: (void*)ptr
+                                                 length: len
+                                           freeWhenDone: NO];
+                NS_DURING
+                  {
+                    if (pld->key == NO
+                      && pld->opt == NSPropertyListMutableContainersAndLeaves)
+                      {
+                        result = [[NSMutableData alloc]
+                          initWithBase64EncodedData: d
+                          options: NSDataBase64DecodingIgnoreUnknownCharacters];
+                      }
+                    else
+                      {
+                        result = [[NSData alloc]
+                          initWithBase64EncodedData: d
+                          options: NSDataBase64DecodingIgnoreUnknownCharacters];
+                      }
+                  }
+                NS_HANDLER
+                  {
+                    pld->err = @"invalid base64 data";
+                    result = nil;
+                  }
+                NS_ENDHANDLER
+                RELEASE(d);
+              }
+	  }
 	else
 	  {
-	    NSMutableData	*data;
-	    unsigned	max = pld->end - 1;
-	    unsigned	char	buf[BUFSIZ];
-	    unsigned	len = 0;
+	    unsigned	        max = pld->pos;
+	    unsigned char	*buf;
+	    unsigned	        len = 0;
 
-	    data = [[NSMutableData alloc] initWithCapacity: 0];
+	    while (max < pld->end && pld->ptr[max] != '>')
+	      {
+                if (isxdigit(pld->ptr[max]))
+                  {
+                    len++;
+                  }
+		max++;
+	      }
+            if (max >= pld->end)
+              {
+		pld->err = @"unexpected end of string when parsing data";
+		return nil;
+              }
+            buf = NSZoneMalloc(NSDefaultMallocZone(), (len + 1) / 2);
 	    skipSpace(pld);
+            len = 0;
 	    while (pld->pos < max
 	      && isxdigit(pld->ptr[pld->pos])
 	      && isxdigit(pld->ptr[pld->pos+1]))
@@ -1209,32 +1299,28 @@ static id parsePlItem(pldata* pld)
 		byte |= char2num(pld->ptr[pld->pos]);
 		pld->pos++;
 		buf[len++] = byte;
-		if (len == sizeof(buf))
-		  {
-		    [data appendBytes: buf length: len];
-		    len = 0;
-		  }
 		skipSpace(pld);
 	      }
-	    if (pld->pos >= pld->end)
-	      {
-		pld->err = @"unexpected end of string when parsing data";
-		RELEASE(data);
-		return nil;
-	      }
-	    if (pld->ptr[pld->pos] != '>')
-	      {
+            if (pld->ptr[pld->pos] != '>')
+              {
+                NSZoneFree(NSDefaultMallocZone(), buf);
 		pld->err = @"unexpected character (wanted '>')";
-		RELEASE(data);
 		return nil;
-	      }
-	    if (len > 0)
-	      {
-		[data appendBytes: buf length: len];
-	      }
+              }
 	    pld->pos++;
-	    // FIXME ... should be immutable sometimes.
-	    result = data;
+            if (pld->key == NO
+              && pld->opt == NSPropertyListMutableContainersAndLeaves)
+              {
+                result = [[NSMutableData alloc] initWithBytesNoCopy: buf
+                                                             length: len
+                                                       freeWhenDone: YES];
+              }
+            else
+              {
+                result = [[NSData alloc] initWithBytesNoCopy: buf
+                                                      length: len
+                                                freeWhenDone: YES];
+              }
 	  }
 	break;
 

@@ -1,6 +1,9 @@
 2015-08-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSOperation.m: Fix potential deadlock with adding observers.
+	* Source/NSPropertyList.m: Fix a few mutability errors.  Improve
+	parsing NSData performance. Add support for parsing base64 encoded
+	data in text property lists (delimited by <[ and ]>).
 
 2015-08-29  Richard Frith-Macdonald <rfm@gnu.org>
 
