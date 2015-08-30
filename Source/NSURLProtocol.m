@@ -72,55 +72,70 @@ static void
 debugRead(id handle, unsigned len, const unsigned char *ptr)
 {
   int           pos;
-  NSData        *data;
+  uint8_t       *hex;
+  NSUInteger    hl;
 
-  data = [[NSData alloc] initWithBytesNoCopy: (void*)ptr
-                                      length: len
-                                freeWhenDone: NO];
+  hl = ((len + 2) / 3) * 4;
+  hex = malloc(hl + 1);
+  hex[hl] = '\0';
+  GSPrivateEncodeBase64(ptr, len, hex);
 
   for (pos = 0; pos < len; pos++)
     {
       if (0 == ptr[pos])
         {
-          char  *esc = [data escapedRepresentation: 0];
+          NSData        *data;
+          char          *esc;
 
-          NSLog(@"Read for %p of %u bytes (escaped) - '%s'\n%@",
-            handle, len, esc, data); 
+          data = [[NSData alloc] initWithBytesNoCopy: (void*)ptr
+                                              length: len
+                                        freeWhenDone: NO];
+          esc = [data escapedRepresentation: 0];
+
+          NSLog(@"Read for %p of %u bytes (escaped) - '%s'\n<[%s]>",
+            handle, len, esc, hex); 
           free(esc);
           RELEASE(data);
+          free(hex);
           return;
         }
     }
-  NSLog(@"Read for %p of %d bytes - '%*.*s'\n%@",
-    handle, len, len, len, ptr, data); 
-  RELEASE(data);
+  NSLog(@"Read for %p of %d bytes - '%s'\n<[%s]>", handle, len, ptr, hex); 
+  free(hex);
 }
 static void
 debugWrite(id handle, unsigned len, const unsigned char *ptr)
 {
   int           pos;
-  NSData        *data;
+  uint8_t       *hex;
+  NSUInteger    hl;
 
-  data = [[NSData alloc] initWithBytesNoCopy: (void*)ptr
-                                      length: len
-                                freeWhenDone: NO];
+  hl = ((len + 2) / 3) * 4;
+  hex = malloc(hl + 1);
+  hex[hl] = '\0';
+  GSPrivateEncodeBase64(ptr, len, hex);
 
   for (pos = 0; pos < len; pos++)
     {
       if (0 == ptr[pos])
         {
-          char  *esc = [data escapedRepresentation: 0];
+          NSData        *data;
+          char          *esc;
 
-          NSLog(@"Write for %p of %u bytes (escaped) - '%s'\n%@",
-            handle, len, esc, data); 
+          data = [[NSData alloc] initWithBytesNoCopy: (void*)ptr
+                                              length: len
+                                        freeWhenDone: NO];
+          esc = [data escapedRepresentation: 0];
+          NSLog(@"Write for %p of %u bytes (escaped) - '%s'\n<[%s]>",
+            handle, len, esc, hex); 
           free(esc);
           RELEASE(data);
+          free(hex);
           return;
         }
     }
-  NSLog(@"Write for %p of %d bytes - '%*.*s'\n%@",
-    handle, len, len, len, ptr, data); 
-  RELEASE(data);
+  NSLog(@"Write for %p of %d bytes - '%s'\n<[%s]>", handle, len, ptr, hex); 
+  free(hex);
 }
 
 @interface	GSSocketStreamPair : NSObject

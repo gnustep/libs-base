@@ -1475,57 +1475,19 @@ GSPropertyListFromStringsFormat(NSString *string)
 
 #include <math.h>
 
-static char base64[]
-  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
 static void
 encodeBase64(NSData *source, NSMutableData *dest)
 {
-  int		length = [source length];
-  int		enclen = length / 3;
-  int		remlen = length - 3 * enclen;
-  int		destlen = 4 * ((length + 2) / 3);
-  unsigned char *sBuf;
-  unsigned char *dBuf;
-  int		sIndex = 0;
-  int		dIndex = [dest length];
+  NSUInteger	length = [source length];
 
-  [dest setLength: dIndex + destlen];
+  if (length > 0)
+    {
+      NSUInteger	base = [dest length];
+      NSUInteger	destlen = 4 * ((length + 2) / 3);
 
-  if (length == 0)
-    {
-      return;
-    }
-  sBuf = (unsigned char*)[source bytes];
-  dBuf = [dest mutableBytes];
-
-  for (sIndex = 0; sIndex < length - 2; sIndex += 3, dIndex += 4)
-    {
-      dBuf[dIndex] = base64[sBuf[sIndex] >> 2];
-      dBuf[dIndex + 1]
-	= base64[((sBuf[sIndex] << 4) | (sBuf[sIndex + 1] >> 4)) & 0x3f];
-      dBuf[dIndex + 2]
-	= base64[((sBuf[sIndex + 1] << 2) | (sBuf[sIndex + 2] >> 6)) & 0x3f];
-      dBuf[dIndex + 3] = base64[sBuf[sIndex + 2] & 0x3f];
-    }
-
-  if (remlen == 1)
-    {
-      dBuf[dIndex] = base64[sBuf[sIndex] >> 2];
-      dBuf[dIndex + 1] = (sBuf[sIndex] << 4) & 0x30;
-      dBuf[dIndex + 1] = base64[dBuf[dIndex + 1]];
-      dBuf[dIndex + 2] = '=';
-      dBuf[dIndex + 3] = '=';
-    }
-  else if (remlen == 2)
-    {
-      dBuf[dIndex] = base64[sBuf[sIndex] >> 2];
-      dBuf[dIndex + 1] = (sBuf[sIndex] << 4) & 0x30;
-      dBuf[dIndex + 1] |= sBuf[sIndex + 1] >> 4;
-      dBuf[dIndex + 1] = base64[dBuf[dIndex + 1]];
-      dBuf[dIndex + 2] = (sBuf[sIndex + 1] << 2) & 0x3c;
-      dBuf[dIndex + 2] = base64[dBuf[dIndex + 2]];
-      dBuf[dIndex + 3] = '=';
+      [dest setLength: base + destlen];
+      GSPrivateEncodeBase64((const uint8_t*)[source bytes],
+        length, (uint8_t*)[dest mutableBytes]);
     }
 }
 

@@ -139,17 +139,16 @@ decodebase64(unsigned char *dst, const unsigned char *src)
   dst[2] = ((src[2] & 0x03) << 6) |  (src[3] & 0x3F);
 }
 
-static char b64[]
-  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-static int
-encodebase64(unsigned char *dst, const unsigned char *src, int length)
+void
+GSPrivateEncodeBase64(const uint8_t *src, NSUInteger length, uint8_t *dst)
 {
   int	dIndex = 0;
   int	sIndex;
 
   for (sIndex = 0; sIndex < length; sIndex += 3)
     {
+      static char b64[]
+        = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
       int	c0 = src[sIndex];
       int	c1 = (sIndex+1 < length) ? src[sIndex+1] : 0;
       int	c2 = (sIndex+2 < length) ? src[sIndex+2] : 0;
@@ -174,9 +173,7 @@ encodebase64(unsigned char *dst, const unsigned char *src, int length)
        dst[dIndex - 1] = '=';
        dst[dIndex - 2] = '=';
      }
-  return dIndex;
 }
-
 
 static void
 encodeQuotedPrintable(NSMutableData *result,
@@ -4442,7 +4439,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   dBuf = NSZoneMalloc(NSDefaultMallocZone(), destlen);
 #endif
 
-  destlen = encodebase64(dBuf, sBuf, length);
+  GSPrivateEncodeBase64(sBuf, length, dBuf);
 
   return AUTORELEASE([[NSData allocWithZone: NSDefaultMallocZone()]
     initWithBytesNoCopy: dBuf length: destlen]);
@@ -5727,14 +5724,12 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 - (NSString*) makeBoundary
 {
   static int		count = 0;
-  unsigned char		output[20];
-  unsigned char		*ptr;
-  NSMutableData		*md;
+  uint8_t		output[20];
+  uint8_t		*ptr;
   NSString		*result;
   NSData		*source;
   NSData		*digest;
   int			sequence = ++count;
-  int			length;
 
   source = [[[NSProcessInfo processInfo] globallyUniqueString]
     dataUsingEncoding: NSUTF8StringEncoding];
@@ -5746,16 +5741,15 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   output[18] = (sequence >> 8) & 0xff;
   output[19] = sequence & 0xff;
 
-  md = [NSMutableData allocWithZone: NSDefaultMallocZone()];
-  md = [md initWithLength: 40];
-  length = encodebase64([md mutableBytes], output, 20);
-  [md setLength: length + 2];
-  ptr = (unsigned char*)[md mutableBytes];
-  ptr[length] = '=';
-  ptr[length+1] = '_';
+  ptr = (uint8_t*)NSZoneMalloc(NSDefaultMallocZone(), 30);
+  GSPrivateEncodeBase64(output, 20, ptr);
+  ptr[28] = '=';
+  ptr[29] = '_';
   result = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-  result = [result initWithData: md encoding: NSASCIIStringEncoding];
-  RELEASE(md);
+  result = [result initWithBytesNoCopy: ptr
+                                length: 30
+                              encoding: NSASCIIStringEncoding
+                          freeWhenDone: YES];
   return AUTORELEASE(result);
 }
 

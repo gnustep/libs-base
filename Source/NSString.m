@@ -110,8 +110,6 @@
 
 #import "GNUstepBase/Unicode.h"
 
-#import "GSPrivate.h"
-
 extern BOOL GSScanDouble(unichar*, unsigned, double*);
 
 @class	GSString;
