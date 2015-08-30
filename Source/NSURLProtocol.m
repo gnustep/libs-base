@@ -352,7 +352,6 @@ static NSLock		*pairLock = nil;
   NSURLCredential		*_credential;
   NSHTTPURLResponse		*_response;
 }
-- (void) setDebug: (BOOL)flag;
 @end
 
 @interface _NSHTTPSURLProtocol : _NSHTTPURLProtocol
@@ -471,28 +470,6 @@ static NSURLProtocol	*placeholder = nil;
     }
   return NO;
 }
-
-+ (Class) _classToHandleRequest:(NSURLRequest *)request
-{
-  Class protoClass = nil;
-  int count;
-  [regLock lock];
-
-  count = [registered count];
-  while (count-- > 0)
-    {
-      Class	proto = [registered objectAtIndex: count];
-
-      if ([proto canInitWithRequest: request] == YES)
-	{
-	  protoClass = proto;
-	  break;
-	}
-    }
-  [regLock unlock];
-  return protoClass;
-}
-
 
 + (void) setProperty: (id)value
 	      forKey: (NSString *)key
@@ -618,16 +595,32 @@ static NSURLProtocol	*placeholder = nil;
   return this->request;
 }
 
-/* This method is here so that it's safe to set debug on any NSURLProtocol
- * even if the concrete subclass doesn't actually support debug logging.
- */
-- (void) setDebug: (BOOL)flag
+@end
+
+@implementation	NSURLProtocol (Private)
+
++ (Class) _classToHandleRequest:(NSURLRequest *)request
 {
-  return;
+  Class protoClass = nil;
+  int count;
+  [regLock lock];
+
+  count = [registered count];
+  while (count-- > 0)
+    {
+      Class	proto = [registered objectAtIndex: count];
+
+      if ([proto canInitWithRequest: request] == YES)
+	{
+	  protoClass = proto;
+	  break;
+	}
+    }
+  [regLock unlock];
+  return protoClass;
 }
 
 @end
-
 
 @implementation	NSURLProtocol (Subclassing)
 
@@ -705,23 +698,12 @@ static NSURLProtocol	*placeholder = nil;
   [super dealloc];
 }
 
-- (id) init
-{
-  if (nil != (self = [super init]))
-    {
-      _debug = GSDebugSet(@"NSURLProtocol");
-    }
-  return self;
-}
-
-- (void) setDebug: (BOOL)flag
-{
-  _debug = flag;
-}
-
 - (void) startLoading
 {
   static NSDictionary *methods = nil;
+
+  _debug = GSDebugSet(@"NSURLProtocol");
+  if (YES == [this->request _debug]) _debug = YES;
 
   if (methods == nil)
     {
