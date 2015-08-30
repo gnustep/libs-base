@@ -1,3 +1,7 @@
+2015-08-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSOperation.m: Fix potential deadlock with adding observers.
+
 2015-08-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m: Improve descriptions for debug.
