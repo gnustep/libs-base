@@ -1970,12 +1970,18 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
     }
   else if ([obj isKindOfClass: NSDataClass])
     {
-      if (x == NSPropertyListXMLFormat_v1_0)
+      if (NSPropertyListXMLFormat_v1_0 == x)
 	{
 	  [dest appendBytes: "<data>\n" length: 7];
 	  encodeBase64(obj, dest);
 	  [dest appendBytes: "</data>\n" length: 8];
 	}
+      else if (NSPropertyListGNUstepFormat == x)
+        {
+          [dest appendBytes: "<[" length: 2];
+	  encodeBase64(obj, dest);
+          [dest appendBytes: "]>" length: 2];
+        }
       else
 	{
 	  const unsigned char	*src;
