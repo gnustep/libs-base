@@ -593,5 +593,13 @@ NSUInteger
 GSPrivateThreadID()
   GS_ATTRIB_PRIVATE;
 
+/** Function to base64 encode data.  The destination buffer must be of
+ * size (((length + 2) / 3) * 4) or more.
+ */
+void
+GSPrivateEncodeBase64(const uint8_t *src, NSUInteger length, uint8_t *dst)
+  GS_ATTRIB_PRIVATE;
+
+
 #endif /* _GSPrivate_h_ */
 

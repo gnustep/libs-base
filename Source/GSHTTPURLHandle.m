@@ -231,46 +231,62 @@ static Class			sslClass = 0;
 static void
 debugRead(GSHTTPURLHandle *handle, NSData *data)
 {
-  unsigned	len = (unsigned)[data length];
-  const char	*ptr = (const char*)[data bytes];
+  NSUInteger	len = [data length];
+  const uint8_t	*ptr = (const uint8_t*)[data bytes];
+  uint8_t       *hex;
+  NSUInteger    hl;
   int           pos;
 
+  hl = ((len + 2) / 3) * 4;
+  hex = malloc(hl + 1);
+  hex[hl] = '\0';
+  GSPrivateEncodeBase64(ptr, len, hex);
   for (pos = 0; pos < len; pos++)
     {
       if (0 == ptr[pos])
         {
           char  *esc = [data escapedRepresentation: 0];
 
-          NSLog(@"Read for %p of %u bytes (escaped) - '%s'\n%@",
-            handle, len, esc, data); 
+          NSLog(@"Read for %p of %u bytes (escaped) - '%s'\n<[%*.*s]>",
+            handle, (unsigned)len, esc, hex); 
           free(esc);
+          free(hex);
           return;
         }
     }
-  NSLog(@"Read for %p of %d bytes - '%*.*s'\n%@",
-    handle, len, len, len, ptr, data); 
+  NSLog(@"Read for %p of %d bytes - '%s'\n<[%*.*s]>",
+    handle, (unsigned)len, ptr, hex); 
+  free(hex);
 }
 static void
 debugWrite(GSHTTPURLHandle *handle, NSData *data)
 {
-  unsigned	len = (unsigned)[data length];
-  const char	*ptr = (const char*)[data bytes];
+  NSUInteger	len = [data length];
+  const uint8_t	*ptr = (const uint8_t*)[data bytes];
+  uint8_t       *hex;
+  NSUInteger    hl;
   int           pos;
 
+  hl = ((len + 2) / 3) * 4;
+  hex = malloc(hl + 1);
+  hex[hl] = '\0';
+  GSPrivateEncodeBase64(ptr, len, hex);
   for (pos = 0; pos < len; pos++)
     {
       if (0 == ptr[pos])
         {
           char  *esc = [data escapedRepresentation: 0];
 
-          NSLog(@"Write for %p of %u bytes (escaped) - '%s'\n%@",
-            handle, len, esc, data); 
+          NSLog(@"Write for %p of %u bytes (escaped) - '%s'\n<[%s]>",
+            handle, (unsigned)len, esc, hex); 
           free(esc);
+          free(hex);
           return;
         }
     }
-  NSLog(@"Write for %p of %d bytes - '%*.*s'\n%@",
-    handle, len, len, len, ptr, data); 
+  NSLog(@"Write for %p of %d bytes - '%s'\n<[%s]>",
+    handle, (unsigned)len, ptr, hex); 
+  free(hex);
 }
 
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)newUrl
