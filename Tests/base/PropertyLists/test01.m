@@ -78,6 +78,21 @@ test_parse_unparse_binary_old(id object)
     errorDescription: 0];
   return [u isEqual: object];
 }
+static BOOL
+test_parse_unparse_gnustep(id object)
+{
+  NSPropertyListFormat	format;
+  NSData		*d;
+  id			u;
+
+  d = [NSPropertyListSerialization dataFromPropertyList: object
+    format: NSPropertyListGNUstepFormat errorDescription: 0];
+  u = [NSPropertyListSerialization propertyListFromData: d
+    mutabilityOption: NSPropertyListImmutable
+    format: &format
+    errorDescription: 0];
+  return [u isEqual: object];
+}
 #endif
 
 int main()
@@ -86,7 +101,7 @@ int main()
   int	i;
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
 
-  for (i = 0; i < 5; i++)
+  for (i = 0; i < 6; i++)
     {
       switch (i)
         {
@@ -106,6 +121,13 @@ int main()
 	    func = test_parse_unparse_openstep;
 	    NSLog(@"test OpenStep");
 	    break;
+	  case 4:
+#if     defined(GNUSTEP_BASE_LIBRARY)
+	    func = test_parse_unparse_gnustep;
+	    NSLog(@"test GNUStep text");
+#else
+	    func = 0;
+#endif
 	  case 5:
 #if     defined(GNUSTEP_BASE_LIBRARY)
 	    func = test_parse_unparse_binary_old;
@@ -120,6 +142,9 @@ int main()
 
       PASS(func(@"ariosto"),
 	   "We can generate a property list from a string");
+
+      PASS(func([@"ariosto" dataUsingEncoding: NSASCIIStringEncoding]),
+	   "We can generate a property list from data");
 
       PASS(func([NSArray array]),
 	   "We can generate a property list from an empty array");
