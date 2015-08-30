@@ -5558,9 +5558,14 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   [m appendString: @"Content:\n"];
   if ([content isKindOfClass: NSDataClass])
     {
-      NSString  *t = [self convertToText];
-      NSData    *d = [[self class] encodeBase64: content];
+      NSString          *t = [self convertToText];
+      NSUInteger        l = [content length];
+      int               hl = (int)(((l + 2) / 3) * 4);
+      uint8_t           *hex;
 
+      hex = (uint8_t*)malloc(hl + 1);
+      hex[hl] = '\0';
+      GSPrivateEncodeBase64([content bytes], l, hex);
       if (nil != t)
         {
           for (pad = 0; pad <= level; pad++) { [m appendString: @"  "]; }
@@ -5569,11 +5574,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
           [m appendString: @"\n"];
         }
       for (pad = 0; pad <= level; pad++) { [m appendString: @"  "]; }
-      [m appendFormat: @"%lu bytes: ", (unsigned long)[content length]];
-      t = [[NSString alloc] initWithData: d encoding: NSASCIIStringEncoding];
-      [m appendString: t];
-      [m appendString: @"\n"];
-      RELEASE(t);
+      [m appendFormat: @"%lu bytes: <[%s]>\n", (unsigned long)l, (char*)hex];
+      free(hex);
     }
   else if ([content isKindOfClass: NSStringClass])
     {
