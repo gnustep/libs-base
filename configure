@@ -4023,13 +4023,14 @@ LDFLAGS="$LDFLAGS -L$GNUSTEP_LOCAL_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GNU
 MAKECC=`gnustep-config --variable=CC`
 MAKECPP=`gnustep-config --variable=CPP`
 MAKECXX=`gnustep-config --variable=CXX`
+MAKELDFLAGS=`gnustep-config --variable=LDFLAGS`
 if test "$CC" = ""; then
   CC=$MAKECC
   export CC
 else
   if test "$CC" != "$MAKECC"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CC or run the gnustep-base configure again with your CC environment variable set to $MAKECC" >&5
-$as_echo "$as_me: WARNING: You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CC or run the gnustep-base configure again with your CC environment variable set to $MAKECC" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CC=$CC or run the gnustep-base configure again with your CC environment variable set to $MAKECC" >&5
+$as_echo "$as_me: WARNING: You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CC=$CC or run the gnustep-base configure again with your CC environment variable set to $MAKECC" >&2;}
   fi
 fi
 if test "$CPP" = ""; then
@@ -4037,8 +4038,8 @@ if test "$CPP" = ""; then
   export CPP
 else
   if test "$CPP" != "$MAKECPP"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You are running configure with the preprocessor ($CPP) set to a different value from that used by gnustep-make ($MAKECPP).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CPP or run the gnustep-base configure again with your CPP environment variable set to $MAKECPP" >&5
-$as_echo "$as_me: WARNING: You are running configure with the preprocessor ($CPP) set to a different value from that used by gnustep-make ($MAKECPP).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CPP or run the gnustep-base configure again with your CPP environment variable set to $MAKECPP" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You are running configure with the preprocessor ($CPP) set to a different value from that used by gnustep-make ($MAKECPP).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CPP=$CPP or run the gnustep-base configure again with your CPP environment variable set to $MAKECPP" >&5
+$as_echo "$as_me: WARNING: You are running configure with the preprocessor ($CPP) set to a different value from that used by gnustep-make ($MAKECPP).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CPP=$CPP or run the gnustep-base configure again with your CPP environment variable set to $MAKECPP" >&2;}
   fi
 fi
 if test "$CXX" = ""; then
@@ -4046,8 +4047,17 @@ if test "$CXX" = ""; then
   export CXX
 else
   if test "$CXX" != "$MAKECXX"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You are running configure with the compiler ($CXX) set to a different value from that used by gnustep-make ($MAKECXX).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CXX or run the gnustep-base configure again with your CXX environment variable set to $MAKECXX" >&5
-$as_echo "$as_me: WARNING: You are running configure with the compiler ($CXX) set to a different value from that used by gnustep-make ($MAKECXX).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CXX or run the gnustep-base configure again with your CXX environment variable set to $MAKECXX" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You are running configure with the compiler ($CXX) set to a different value from that used by gnustep-make ($MAKECXX).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CXX=$CXX or run the gnustep-base configure again with your CXX environment variable set to $MAKECXX" >&5
+$as_echo "$as_me: WARNING: You are running configure with the compiler ($CXX) set to a different value from that used by gnustep-make ($MAKECXX).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CXX=$CXX or run the gnustep-base configure again with your CXX environment variable set to $MAKECXX" >&2;}
+  fi
+fi
+if test "$LDFLAGS" = ""; then
+  LDFLAGS=$MAKELDFLAGS
+  export LDFLAGS
+else
+  if test "$LDFLAGS" != "$MAKELDFLAGS"; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You are running configure with the link options ($LDFLAGS) set to a different value from that used by gnustep-make ($MAKELDFLAGS).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use LDFLAGS=$LDFLAGS or run the gnustep-base configure again with your LDFLAGS environment variable set to $MAKELDFLAGS" >&5
+$as_echo "$as_me: WARNING: You are running configure with the link options ($LDFLAGS) set to a different value from that used by gnustep-make ($MAKELDFLAGS).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use LDFLAGS=$LDFLAGS or run the gnustep-base configure again with your LDFLAGS environment variable set to $MAKELDFLAGS" >&2;}
   fi
 fi
 ac_ext=c
