@@ -297,8 +297,18 @@ prepareResult(NSRegularExpression *regex,
 
   for (i = 0; i < groups; i++)
     {
-      NSUInteger start = uregex_start(r, i, s);
-      NSUInteger end = uregex_end(r, i, s);
+      NSInteger start = uregex_start(r, i, s);
+      NSInteger end = uregex_end(r, i, s);
+      // The ICU API defines -1 as not found. Convert to
+      // NSNotFound if applicable.
+      if (start == -1)
+        {
+          start = NSNotFound;
+        }
+      if (end == -1)
+        {
+          end = NSNotFound;
+        }
 
       if (end < start)
         {
