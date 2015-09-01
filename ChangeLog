@@ -1,3 +1,7 @@
+2015-09-01 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSRegularExpression.m: Fix handling of empty capture groups.
+
 2015-08-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSOperation.m: Fix potential deadlock with adding observers.
