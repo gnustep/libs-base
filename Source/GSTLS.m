@@ -42,6 +42,35 @@
 
 #import "GSPrivate.h"
 
+@interface	NSString(gnutlsFileSystemRepresentation)
+- (const char*) gnutlsFileSystemRepresentation;
+@end
+
+@implementation	NSString(gnutlsFileSystemRepresentation)
+- (const char*) gnutlsFileSystemRepresentation
+{
+#if	defined(__MINGW__)
+  const unichar	*buf = (const unichar*)[self fileSystemRepresentation];
+  int		len = 0;
+  NSString	*str;
+  const char	*result;
+
+  while (buf[len] > 0)
+    {
+      len++;
+    }
+  str = [[NSString alloc] initWithBytes: buf 
+				 length: len * 2
+			       encoding: NSUnicodeStringEncoding];
+  result = [str UTF8String];
+  RELEASE(str);
+  return result;   
+#else
+  return [self fileSystemRepresentation];
+#endif
+}
+@end
+
 /* Constants to control TLS/SSL (options).
  */
 NSString * const GSTLSCAFile = @"GSTLSCAFile";
@@ -1045,7 +1074,7 @@ static NSMutableDictionary      *credentialsCache = nil;
           const char    *path;
           int           ret;
 
-          path = [dca fileSystemRepresentation];
+          path = [dca gnutlsFileSystemRepresentation];
           ret = gnutls_certificate_set_x509_trust_file(c->certcred,
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
@@ -1074,7 +1103,7 @@ static NSMutableDictionary      *credentialsCache = nil;
           const char    *path;
           int           ret;
 
-          path = [dca fileSystemRepresentation];
+          path = [dca gnutlsFileSystemRepresentation];
           ret = gnutls_certificate_set_x509_trust_file(c->certcred,
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
@@ -1106,7 +1135,7 @@ static NSMutableDictionary      *credentialsCache = nil;
           const char    *path;
           int           ret;
 
-          path = [drv fileSystemRepresentation];
+          path = [drv gnutlsFileSystemRepresentation];
           ret = gnutls_certificate_set_x509_crl_file(c->certcred,
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
@@ -1130,7 +1159,7 @@ static NSMutableDictionary      *credentialsCache = nil;
           const char    *path;
           int           ret;
 
-          path = [rv fileSystemRepresentation];
+          path = [rv gnutlsFileSystemRepresentation];
           ret = gnutls_certificate_set_x509_crl_file(c->certcred,
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
@@ -1468,8 +1497,6 @@ static NSMutableDictionary      *credentialsCache = nil;
             }
           else if ([pri isEqual: NSStreamSocketSecurityLevelSSLv3] == YES)
             {
-              GSOnceMLog(@"NSStreamSocketSecurityLevelSSLv3 is insecure ..."
-                @" please change your code to stop using it");
 #if GNUTLS_VERSION_NUMBER < 0x020C00
               const int proto_prio[2] = {
                 GNUTLS_SSL3,
@@ -1479,6 +1506,8 @@ static NSMutableDictionary      *credentialsCache = nil;
               gnutls_priority_set_direct(session,
                 "NORMAL:-VERS-TLS-ALL:+VERS-SSL3.0", NULL);
 #endif
+              GSOnceMLog(@"NSStreamSocketSecurityLevelSSLv3 is insecure ..."
+                @" please change your code to stop using it");
             }
           else if ([pri isEqual: NSStreamSocketSecurityLevelTLSv1] == YES)
             {
