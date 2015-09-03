@@ -105,6 +105,26 @@ else
 fi
 AC_SUBST(BASE_NONFRAGILE_ABI)
 
+MAKECPPFLAGS=`gnustep-config --variable=CPPFLAGS`
+if test "$CPPFLAGS" = ""; then
+  CPPFLAGS=$MAKECPPFLAGS
+  export CPPFLAGS
+else
+  if test "$CPPFLAGS" != "$MAKECPPFLAGS"; then
+    AC_MSG_WARN([You are running configure with the preprocessor options ($CPPFLAGS) set to a different value from that used by gnustep-make ($MAKECPPFLAGS).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CPPFLAGS=$CPPFLAGS or run the gnustep-base configure again with your CPPFLAGS environment variable set to $MAKECPPFLAGS])
+  fi
+fi
+
+MAKELDFLAGS=`gnustep-config --variable=LDFLAGS`
+if test "$LDFLAGS" = ""; then
+  LDFLAGS=$MAKELDFLAGS
+  export LDFLAGS
+else
+  if test "$LDFLAGS" != "$MAKELDFLAGS"; then
+    AC_MSG_WARN([You are running configure with the link options ($LDFLAGS) set to a different value from that used by gnustep-make ($MAKELDFLAGS).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use LDFLAGS=$LDFLAGS or run the gnustep-base configure again with your LDFLAGS environment variable set to $MAKELDFLAGS])
+  fi
+fi
+
 # We shouldn't be loading GNUstep.sh here.  It would load in a lot of
 # variables which might get confused with the ones that will be used
 # at runtime.  We will load it later once we have determined (and
@@ -1056,7 +1076,6 @@ LDFLAGS="$LDFLAGS -L$GNUSTEP_LOCAL_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GNU
 MAKECC=`gnustep-config --variable=CC`
 MAKECPP=`gnustep-config --variable=CPP`
 MAKECXX=`gnustep-config --variable=CXX`
-MAKELDFLAGS=`gnustep-config --variable=LDFLAGS`
 if test "$CC" = ""; then
   CC=$MAKECC
   export CC
@@ -1079,14 +1098,6 @@ if test "$CXX" = ""; then
 else
   if test "$CXX" != "$MAKECXX"; then
     AC_MSG_WARN([You are running configure with the compiler ($CXX) set to a different value from that used by gnustep-make ($MAKECXX).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CXX=$CXX or run the gnustep-base configure again with your CXX environment variable set to $MAKECXX])
-  fi
-fi
-if test "$LDFLAGS" = ""; then
-  LDFLAGS=$MAKELDFLAGS
-  export LDFLAGS
-else
-  if test "$LDFLAGS" != "$MAKELDFLAGS"; then
-    AC_MSG_WARN([You are running configure with the link options ($LDFLAGS) set to a different value from that used by gnustep-make ($MAKELDFLAGS).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use LDFLAGS=$LDFLAGS or run the gnustep-base configure again with your LDFLAGS environment variable set to $MAKELDFLAGS])
   fi
 fi
 AC_PROG_CC
