@@ -1,3 +1,9 @@
+2015-09-04 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/GSString.m: Optimisation for formatting strings that are stored as
+	UTF-16 (use memcpy instead of looping over the characters).
+	* Tests/base/NSString/unichar_format.m: Test cases for formatting.
+
 2015-09-01 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/NSRegularExpression.m: Fix handling of empty capture groups.
