@@ -6267,12 +6267,8 @@ GSPrivateStrAppendUnichars(GSStr s, const unichar *u, unsigned l)
    */
   if (s->_flags.wide == 1)
     {
-      unsigned 	i;
-
-      for (i = 0; i < l; i++)
-	{
-	  s->_contents.u[s->_count++] = u[i];
-	}
+      memcpy(s->_contents.u + s->_count, u, l * sizeof(unichar));
+      s->_count += l;
     }
   else
     {
