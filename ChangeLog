@@ -1,3 +1,7 @@
+2015-09-08 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSPropertyList.m: Fix writing base64 data.
+
 2015-09-04 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/GSString.m: Optimisation for formatting strings that are stored as

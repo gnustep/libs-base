@@ -1487,7 +1487,7 @@ encodeBase64(NSData *source, NSMutableData *dest)
 
       [dest setLength: base + destlen];
       GSPrivateEncodeBase64((const uint8_t*)[source bytes],
-        length, (uint8_t*)[dest mutableBytes]);
+        length, (uint8_t*)[dest mutableBytes] + base);
     }
 }
 
