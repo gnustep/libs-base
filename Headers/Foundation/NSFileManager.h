@@ -198,12 +198,13 @@ typedef	uint32_t	OSType;
 #define OSTYPE_DECLARED
 #endif
 
-typedef enum : NSUInteger
+enum _NSDirectoryEnumerationOptions
   {
     NSDirectoryEnumerationSkipsSubdirectoryDescendants = 1L << 0,
     NSDirectoryEnumerationSkipsPackageDescendants = 1L << 1,
     NSDirectoryEnumerationSkipsHiddenFiles = 1L << 2
-  } NSDirectoryEnumerationOptions; 
+  };
+typedef NSUInteger NSDirectoryEnumerationOptions; 
   
 @interface NSFileManager : NSObject
 {
