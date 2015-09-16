@@ -2753,8 +2753,8 @@ if test "$CPPFLAGS" = ""; then
   export CPPFLAGS
 else
   if test "$CPPFLAGS" != "$MAKECPPFLAGS"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You are running configure with the link options ($CPPFLAGS) set to a different value from that used by gnustep-make ($MAKECPPFLAGS).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CPPFLAGS=$CPPFLAGS or run the gnustep-base configure again with your CPPFLAGS environment variable set to $MAKECPPFLAGS" >&5
-$as_echo "$as_me: WARNING: You are running configure with the link options ($CPPFLAGS) set to a different value from that used by gnustep-make ($MAKECPPFLAGS).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CPPFLAGS=$CPPFLAGS or run the gnustep-base configure again with your CPPFLAGS environment variable set to $MAKECPPFLAGS" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You are running configure with the preprocessor options ($CPPFLAGS) set to a different value from that used by gnustep-make ($MAKECPPFLAGS).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CPPFLAGS=$CPPFLAGS or run the gnustep-base configure again with your CPPFLAGS environment variable set to $MAKECPPFLAGS" >&5
+$as_echo "$as_me: WARNING: You are running configure with the preprocessor options ($CPPFLAGS) set to a different value from that used by gnustep-make ($MAKECPPFLAGS).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CPPFLAGS=$CPPFLAGS or run the gnustep-base configure again with your CPPFLAGS environment variable set to $MAKECPPFLAGS" >&2;}
   fi
 fi
 
@@ -7612,24 +7612,8 @@ CFLAGS=$saved_CFLAGS
 # Check if we can name pthreads
 #--------------------------------------------------------------------
 
-for ac_func in pthread_set_name_np
-do :
-  ac_fn_c_check_func "$LINENO" "pthread_set_name_np" "ac_cv_func_pthread_set_name_np"
-if test "x$ac_cv_func_pthread_set_name_np" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_PTHREAD_SET_NAME_NP 1
-_ACEOF
-
-fi
-done
-
-if test $ac_cv_func_pthread_set_name_np = yes; then
-
-$as_echo "#define PTHREAD_SETNAME(a) (pthread_set_name_np(pthread_self(), a), 0)" >>confdefs.h
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_setname_np() variant" >&5
-$as_echo_n "checking for pthread_setname_np() variant... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for pthread_setname_np()" >&5
+$as_echo_n "checking for pthread_setname_np()... " >&6; }
 if ${gs_cv_pthread_setname_np+:} false; then :
   $as_echo_n "(cached) " >&6
 else
@@ -7688,24 +7672,23 @@ rm -f core conftest.err conftest.$ac_objext \
 fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $gs_cv_pthread_setname_np" >&5
 $as_echo "$gs_cv_pthread_setname_np" >&6; }
-  case $gs_cv_pthread_setname_np in
-    darwin)
+case $gs_cv_pthread_setname_np in
+  darwin)
 
 $as_echo "#define PTHREAD_SETNAME(a) pthread_setname_np(a)" >>confdefs.h
 
-      ;;
-    glibc)
+    ;;
+  glibc)
 
 $as_echo "#define PTHREAD_SETNAME(a) pthread_setname_np(pthread_self(),a)" >>confdefs.h
 
-      ;;
-    netbsd)
+    ;;
+  netbsd)
 
 $as_echo "#define PTHREAD_SETNAME(a) pthread_setname_np(pthread_self(),\"%s\",a)" >>confdefs.h
 
-      ;;
-  esac
-fi
+    ;;
+esac
 
 #--------------------------------------------------------------------
 # Check whether we can get the system thread ID

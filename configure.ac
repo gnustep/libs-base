@@ -1801,42 +1801,34 @@ CFLAGS=$saved_CFLAGS
 # Check if we can name pthreads
 #--------------------------------------------------------------------
 
-AC_CHECK_FUNCS(pthread_set_name_np)
-if test $ac_cv_func_pthread_set_name_np = yes; then
-  AC_DEFINE(PTHREAD_SETNAME(a), (pthread_set_name_np(pthread_self(), a), 0),
-    [Description: Define set name function for pthread returning void])
-else
-  AC_CACHE_CHECK(
-    [for pthread_setname_np() variant],
-    [gs_cv_pthread_setname_np],
+AC_CACHE_CHECK([for pthread_setname_np()], gs_cv_pthread_setname_np,
+[AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM([#include <pthread.h>],
+    [pthread_setname_np("name");])],
+  [gs_cv_pthread_setname_np=darwin],
+  [AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([#include <pthread.h>],
+      [pthread_setname_np(pthread_self(), "name");])],
+    [gs_cv_pthread_setname_np=glibc],
     [AC_LINK_IFELSE(
       [AC_LANG_PROGRAM([#include <pthread.h>],
-        [pthread_setname_np("name");])],
-      [gs_cv_pthread_setname_np=darwin],
-      [AC_LINK_IFELSE(
-     	[AC_LANG_PROGRAM([#include <pthread.h>],
-     	  [pthread_setname_np(pthread_self(), "name");])],
-     	[gs_cv_pthread_setname_np=glibc],
-     	[AC_LINK_IFELSE(
-     	  [AC_LANG_PROGRAM([#include <pthread.h>],
-     	    [pthread_setname_np(pthread_self(), "%s", "name");])],
-     	  [gs_cv_pthread_setname_np=netbsd],
-     	  [gs_cv_pthread_setname_np=none])])])])
-  case $gs_cv_pthread_setname_np in
-    darwin)
-      AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(a),
-        [Description: Define set name function for pthread with one arg])
-      ;;
-    glibc)
-      AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(pthread_self(),a),
-        [Description: Define setname function for pthread with two args])
-      ;;
-    netbsd)
-      AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(pthread_self(),"%s",a),
-        [Description: Define setname function for pthread with three args])
-      ;;
-  esac
-fi
+        [pthread_setname_np(pthread_self(), "%s", "name");])],
+      [gs_cv_pthread_setname_np=netbsd],
+      [gs_cv_pthread_setname_np=none])])])])
+case $gs_cv_pthread_setname_np in
+  darwin)
+    AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(a),
+      [Description: Define set name function for pthread with one arg])
+    ;;
+  glibc)
+    AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(pthread_self(),a),
+      [Description: Define setname function for pthread with two args])
+    ;;
+  netbsd)
+    AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(pthread_self(),"%s",a),
+      [Description: Define setname function for pthread with three args])
+    ;;
+esac
 
 #--------------------------------------------------------------------
 # Check whether we can get the system thread ID
