@@ -1,7 +1,7 @@
 /**
    NSFileManager.m
 
-   Copyright (C) 1997-2002 Free Software Foundation, Inc.
+   Copyright (C) 1997-2015 Free Software Foundation, Inc.
 
    Author: Mircea Oancea <mircea@jupiter.elcom.pub.ro>
    Author: Ovidiu Predescu <ovidiu@net-community.com>
@@ -691,6 +691,69 @@ static NSStringEncoding	defaultEncoding;
     {
       return YES;
     }
+}
+
+- (NSArray*) contentsOfDirectoryAtURL:(NSURL*)url
+           includingPropertiesForKeys:(NSArray*)keys
+                              options:(NSDirectoryEnumerationOptions)mask
+                                error:(NSError **)error
+{
+  NSArray                *result;
+  NSDirectoryEnumerator *direnum;
+  NSString      *path;
+  
+  DESTROY(_lastError);
+
+  if (![[url scheme] isEqualToString:@"file"])
+    return nil;
+  path = [url path];
+  
+  direnum = [[NSDirectoryEnumerator alloc]
+		       initWithDirectoryPath: path
+                   recurseIntoSubdirectories: NO
+                              followSymlinks: NO
+                                justContents: NO
+                                         for: self];
+
+  /* we make an array of NSURLs */
+  result = nil;
+  if (nil != direnum)
+    {
+      IMP	nxtImp;
+      NSMutableArray *urlArray;
+      NSString *tempPath;
+
+
+      nxtImp = [direnum methodForSelector: @selector(nextObject)];
+
+      urlArray = [NSMutableArray arrayWithCapacity:128];
+      while ((tempPath = (*nxtImp)(direnum, @selector(nextObject))) != nil)
+	{
+          NSURL *tempURL;
+          NSString *lastComponent;
+      
+          tempURL = [NSURL fileURLWithPath:tempPath];
+          lastComponent = [tempPath lastPathComponent];
+          
+          /* we purge files beginning with . */
+          if (!((mask & NSDirectoryEnumerationSkipsHiddenFiles) && [lastComponent hasPrefix:@"."]))
+            [urlArray addObject:tempURL];
+	}
+      RELEASE(direnum);
+ 
+      if ([urlArray count] > 0)
+        result = [NSArray arrayWithArray:urlArray];
+    }
+
+  if (error != NULL)
+    {
+      if (nil == result)
+	{
+	  *error = [self _errorFrom: path to: nil];
+	}
+    }
+
+  return result;  
 }
 
 - (NSArray*) contentsOfDirectoryAtPath: (NSString*)path error: (NSError**)error

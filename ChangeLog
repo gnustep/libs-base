@@ -1,3 +1,9 @@
+2015-09-16 Riccardo Mottola <rm@gnu.org>
+
+	* Headers/Foundation/NSFileManager.h
+	* Source/NSFileManager.m
+	Add simple (files only and no keys handling) implementation of 10.6 method contentsOfDirectoryAtURL.
+
 2015-09-08 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/NSPropertyList.m: Fix writing base64 data.
