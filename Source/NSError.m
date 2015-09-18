@@ -43,8 +43,8 @@ NSString* const NSLocalizedRecoverySuggestionErrorKey
 NSString* const NSRecoveryAttempterErrorKey
   = @"NSRecoveryAttempterErrorKey";
 
-NSString* const NSURLErrorFailingURLErrorKey = @"NSURLErrorFailingURLErrorKey";
-NSString* const NSURLErrorFailingURLStringErrorKey = @"NSURLErrorFailingURLStringErrorKey";
+NSString* const NSURLErrorFailingURLErrorKey = @"NSErrorFailingURLKey";
+NSString* const NSURLErrorFailingURLStringErrorKey = @"NSErrorFailingURLStringKey";
 
 NSString* const NSMACHErrorDomain = @"NSMACHErrorDomain";
 NSString* const NSOSStatusErrorDomain = @"NSOSStatusErrorDomain";
