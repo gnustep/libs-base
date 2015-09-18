@@ -1,6 +1,7 @@
 2015-09-18 Riccardo Mottola <rm@gnu.org>
 
 	* Headers/Foundation/NSError.h
+	* Source/NSError.m
 	Add some 10.6 URL errors
 
 2015-09-16  Richard Frith-Macdonald <rfm@gnu.org>
