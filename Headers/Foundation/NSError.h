@@ -86,6 +86,20 @@ GS_EXPORT NSString* const NSLocalizedRecoverySuggestionErrorKey;
 GS_EXPORT NSString* const NSRecoveryAttempterErrorKey;
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
+/**
+ * NSURL to indicate the URL which did not load, in the NSURLErrorDomain.
+ */
+GS_EXPORT NSString* const NSURLErrorFailingURLErrorKey;
+
+/**
+ * NSString in the NSURLDomain to indicate the object for the URL that did not load.
+ * This supersedes NSErrorFailingURLStringKey
+ */
+GS_EXPORT NSString* const NSURLErrorFailingURLStringErrorKey;
+
+#endif
+
 /**
  * Domain for system errors (on MACH).
  */
