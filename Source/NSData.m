@@ -1385,6 +1385,15 @@ failure:
 	  *(double*)data = NSSwapBigDoubleToHost(nd);
 	  return;
 	}
+#if __GNUC__ != 2
+      case _C_BOOL:
+	{
+	  [self deserializeBytes: data
+			  length: sizeof(_Bool)
+			atCursor: cursor];
+	  return;
+	}
+#endif
       case _C_CLASS:
 	{
 	  uint16_t ni;
@@ -2663,6 +2672,11 @@ failure:
 	  [self appendBytes: &nd length: sizeof(NSSwappedDouble)];
 	  return;
 	}
+#if __GNUC__ != 2
+      case _C_BOOL:
+	[self appendBytes: data length: sizeof(_Bool)];
+	return;
+#endif
       case _C_CLASS:
 	{
 	  const char  *name = *(Class*)data?class_getName(*(Class*)data):"";
@@ -3145,6 +3159,13 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  *(double*)data = NSSwapBigDoubleToHost(nd);
 	  return;
 	}
+#if __GNUC__ != 2
+      case _C_BOOL:
+	{
+	  getBytes(data, bytes, sizeof(_Bool), length, cursor);
+	  return;
+	}
+#endif
       case _C_CLASS:
 	{
 	  uint16_t	ni;
@@ -3979,6 +4000,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  (*appendImp)(self, appendSel, &nd, sizeof(NSSwappedDouble));
 	  return;
 	}
+#if __GNUC__ != 2
+      case _C_BOOL:
+	(*appendImp)(self, appendSel, data, sizeof(_Bool));
+	return;
+#endif
       case _C_CLASS:
 	{
 	  const char  *name = *(Class*)data?class_getName(*(Class*)data):"";

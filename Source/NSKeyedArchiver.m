@@ -792,6 +792,13 @@ static NSDictionary *makeReference(unsigned ref)
 	[_enc setObject: o forKey: aKey];
 	return;
 
+#if __GNUC__ != 2
+      case _C_BOOL:
+	o = [NSNumber numberWithInt: (NSInteger)*(_Bool*)address];
+	[_enc setObject: o forKey: aKey];
+	return;
+#endif
+
       case _C_STRUCT_B:
 	[NSException raise: NSInvalidArgumentException
 		    format: @"-[%@ %@]: this archiver cannote encode structs",

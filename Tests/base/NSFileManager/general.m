@@ -215,7 +215,7 @@ NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
   PASS(YES == exists && YES == isDir, "directory exists");
   if (exists && isDir)
     {
-      dir - [dir stringByStandardizingPath];
+      dir = [dir stringByStandardizingPath];
       PASS([mgr removeFileAtPath: dir handler: nil], "removed directory");
       PASS(![mgr fileExistsAtPath: dir], "directory no longer exists");
 GSPrintf(stdout, @"%@\n", dir);

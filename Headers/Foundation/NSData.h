@@ -257,6 +257,7 @@ enum {
 #define	_GSC_ULNG_LNG	0x0a
 #define	_GSC_FLT	0x0b
 #define	_GSC_DBL	0x0c
+#define	_GSC_BOOL       0x0d
 
 #define	_GSC_ID		0x10
 #define	_GSC_CLASS	0x11
