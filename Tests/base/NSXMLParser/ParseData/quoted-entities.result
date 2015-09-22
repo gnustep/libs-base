@@ -1,6 +1,6 @@
 parserDidStartDocument:
 parser:didStartElement:namespaceURI:qualifiedName:attributes: node  node {
-    attr = "-\"+";
+    attr = "-\"+&";
 }
 
 content
