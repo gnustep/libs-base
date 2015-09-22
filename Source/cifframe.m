@@ -540,6 +540,10 @@ cifframe_type(const char *typePtr, const char **advance)
 
     case _C_VOID: ftype = &ffi_type_void;
       break;
+#if __GNUC__ != 2
+    case _C_BOOL: ftype = &ffi_type_uchar;
+      break;
+#endif
     default:
       ftype = &ffi_type_void;
       NSCAssert(0, @"Unknown type in sig");

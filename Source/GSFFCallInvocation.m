@@ -425,6 +425,11 @@ gs_sel_type_to_callback_type (const char *sel_type,
       case _C_DBL:
 	vatype->type = __VAdouble;
 	break;
+#if __GNUC__ != 2
+      case _C_BOOL:
+	vatype->type = __VAuchar;
+	break;
+#endif
       case _C_STRUCT_B:
 	vatype->structSize = objc_sizeof_type (sel_type);
 	if (vatype->structSize > sizeof (long)
@@ -580,31 +585,38 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
       case _C_ID:
 	av_start_ptr(alist, imp, id, retval);
 	break;
+
       case _C_CLASS:
 	av_start_ptr(alist, imp, Class, retval);
 	break;
+
       case _C_SEL:
 	av_start_ptr(alist, imp, SEL, retval);
 	break;
+
       case _C_PTR:
 	av_start_ptr(alist, imp, void *, retval);
 	break;
+
       case _C_CHARPTR:
 	av_start_ptr(alist, imp, char *, retval);
 	break;
 	
-	CASE_TYPE(_C_CHR,  char, av_start_char)
-	CASE_TYPE(_C_UCHR, unsigned char, av_start_uchar)
-	CASE_TYPE(_C_SHT,  short, av_start_short)
-	CASE_TYPE(_C_USHT, unsigned short, av_start_ushort)
-	CASE_TYPE(_C_INT,  int, av_start_int)
-	CASE_TYPE(_C_UINT, unsigned int, av_start_uint)
-	CASE_TYPE(_C_LNG,  long, av_start_long)
-	CASE_TYPE(_C_ULNG, unsigned long, av_start_ulong)
-	CASE_TYPE(_C_LNG_LNG,  long long, av_start_longlong)
-	CASE_TYPE(_C_ULNG_LNG, unsigned long long, av_start_ulonglong)
-	CASE_TYPE(_C_FLT,  float, av_start_float)
-	CASE_TYPE(_C_DBL,  double, av_start_double)
+      CASE_TYPE(_C_CHR,  char, av_start_char)
+      CASE_TYPE(_C_UCHR, unsigned char, av_start_uchar)
+      CASE_TYPE(_C_SHT,  short, av_start_short)
+      CASE_TYPE(_C_USHT, unsigned short, av_start_ushort)
+      CASE_TYPE(_C_INT,  int, av_start_int)
+      CASE_TYPE(_C_UINT, unsigned int, av_start_uint)
+      CASE_TYPE(_C_LNG,  long, av_start_long)
+      CASE_TYPE(_C_ULNG, unsigned long, av_start_ulong)
+      CASE_TYPE(_C_LNG_LNG,  long long, av_start_longlong)
+      CASE_TYPE(_C_ULNG_LNG, unsigned long long, av_start_ulonglong)
+      CASE_TYPE(_C_FLT,  float, av_start_float)
+      CASE_TYPE(_C_DBL,  double, av_start_double)
+#if __GNUC__ != 2
+      CASE_TYPE(_C_BOOL, _Bool, av_start_uchar)
+#endif
 
       case _C_STRUCT_B:
 	{
@@ -619,9 +631,11 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	    info[0].size, split, retval);
 	  break;
 	}
+
       case _C_VOID:
 	av_start_void(alist, imp);
 	break;
+
       default:
 	NSCAssert1(0, @"GSFFCallInvocation: Return Type '%s' not implemented",
 	  info[0].type);
@@ -660,6 +674,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	      av_ptr(alist, id, obj);
 	      break;
 	    }
+
 	  case _C_CLASS:
 	    {
 	      Class obj;
@@ -667,6 +682,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	      av_ptr(alist, Class, obj);
 	      break;
 	    }
+
 	  case _C_SEL:
 	    {
 	      SEL sel;
@@ -674,6 +690,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	      av_ptr(alist, SEL, sel);
 	      break;
 	    }
+
 	  case _C_PTR:
 	    {
 	      void *ptr;
@@ -681,6 +698,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	      av_ptr(alist, void *, ptr);
 	      break;
 	    }
+
 	  case _C_CHARPTR:
 	    {
 	      char *ptr;
@@ -689,23 +707,27 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
 	      break;
 	    }
 	
-	    CASE_TYPE(_C_CHR,  char, av_char)
-	    CASE_TYPE(_C_UCHR, unsigned char, av_uchar)
-	    CASE_TYPE(_C_SHT,  short, av_short)
-	    CASE_TYPE(_C_USHT, unsigned short, av_ushort)
-	    CASE_TYPE(_C_INT,  int, av_int)
-	    CASE_TYPE(_C_UINT, unsigned int, av_uint)
-	    CASE_TYPE(_C_LNG,  long, av_long)
-	    CASE_TYPE(_C_ULNG, unsigned long, av_ulong)
-	    CASE_TYPE(_C_LNG_LNG,  long long, av_longlong)
-	    CASE_TYPE(_C_ULNG_LNG, unsigned long long, av_ulonglong)
-	    CASE_TYPE(_C_FLT,  float, av_float)
-	    CASE_TYPE(_C_DBL,  double, av_double)
+          CASE_TYPE(_C_CHR,  char, av_char)
+          CASE_TYPE(_C_UCHR, unsigned char, av_uchar)
+          CASE_TYPE(_C_SHT,  short, av_short)
+          CASE_TYPE(_C_USHT, unsigned short, av_ushort)
+          CASE_TYPE(_C_INT,  int, av_int)
+          CASE_TYPE(_C_UINT, unsigned int, av_uint)
+          CASE_TYPE(_C_LNG,  long, av_long)
+          CASE_TYPE(_C_ULNG, unsigned long, av_ulong)
+          CASE_TYPE(_C_LNG_LNG,  long long, av_longlong)
+          CASE_TYPE(_C_ULNG_LNG, unsigned long long, av_ulonglong)
+          CASE_TYPE(_C_FLT,  float, av_float)
+          CASE_TYPE(_C_DBL,  double, av_double)
+#if __GNUC__ != 2
+          CASE_TYPE(_C_BOOL, _Bool, av_uchar)
+#endif
 	
 	  case _C_STRUCT_B:
 	    _av_struct(alist, size,
 	      info[i+1].align, datum);
 	    break;
+
 	  default:
 	    NSCAssert1(0, @"GSFFCallInvocation: Type '%s' not implemented",
 	      type);
@@ -994,24 +1016,28 @@ GSInvocationCallback (void *callback_data, va_alist args)
 	      [invocation setArgument: &obj atIndex: i];
 	      break;
 	    }
+
 	  case _C_CLASS:
 	    {
 	      Class obj = va_arg_ptr (args, Class);
 	      [invocation setArgument: &obj atIndex: i];
 	      break;
 	    }
+
 	  case _C_SEL:
 	    {
 	      SEL sel = va_arg_ptr (args, SEL);
 	      [invocation setArgument: &sel atIndex: i];
 	      break;
 	    }
+
 	  case _C_PTR:
 	    {
 	      void *ptr = va_arg_ptr (args, void *);
 	      [invocation setArgument: &ptr atIndex: i];
 	      break;
 	    }
+
 	  case _C_CHARPTR:
 	    {
 	      char *ptr = va_arg_ptr (args, char *);
@@ -1031,6 +1057,9 @@ GSInvocationCallback (void *callback_data, va_alist args)
 	  CASE_TYPE(_C_ULNG_LNG, unsigned long long, va_arg_ulonglong)
 	  CASE_TYPE(_C_FLT,  float, va_arg_float)
 	  CASE_TYPE(_C_DBL,  double, va_arg_double)
+#if __GNUC__ != 2
+	  CASE_TYPE(_C_BOOL,  _Bool, va_arg_uchar)
+#endif
 	
 	  case _C_STRUCT_B:
 	    {
@@ -1039,6 +1068,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
 	      [invocation setArgument: ptr atIndex: i];
 	      break;
 	    }
+
 	  default:
 	    NSCAssert1(0, @"GSFFCallInvocation: Type '%s' not implemented",
 	      type);
@@ -1090,10 +1120,14 @@ GSInvocationCallback (void *callback_data, va_alist args)
       CASE_TYPE(_C_ULNG_LNG, unsigned long long, va_return_ulonglong)
       CASE_TYPE(_C_FLT,  float, va_return_float)
       CASE_TYPE(_C_DBL,  double, va_return_double)
+#if __GNUC__ != 2
+      CASE_TYPE(_C_BOOL, _Bool, va_return_uchar)
+#endif
 
       case _C_STRUCT_B:
 	_va_return_struct(args, info[0].size, info[0].align, retval);
 	break;
+
       case _C_VOID:
 	/* FIXME ... evil hack ... where the compiler did not know
 	 * selector types, if may have had to assume a method returning
@@ -1111,6 +1145,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
 	    va_return_void(args);
 	  }
 	break;
+
       default:
 	NSCAssert1(0, @"GSFFCallInvocation: Return Type '%s' not implemented",
 	  info[0].type);

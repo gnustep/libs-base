@@ -310,6 +310,9 @@ static Class	NSMutableDataMallocClass;
       case _C_ULNG_LNG:	info = _GSC_ULNG_LNG | _GSC_S_LNG_LNG;	break;
       case _C_FLT:	info = _GSC_FLT;	break;
       case _C_DBL:	info = _GSC_DBL;	break;
+#if __GNUC__ != 2
+      case _C_BOOL:	info = _GSC_BOOL;	break;
+#endif
       default:		info = _GSC_NONE;	break;
     }
 
@@ -680,6 +683,13 @@ static Class	NSMutableDataMallocClass;
 	(*_tagImp)(_dst, tagSel, _GSC_DBL);
 	(*_serImp)(_dst, serSel, (void*)buf, @encode(double), nil);
 	return;
+
+#if __GNUC__ != 2
+      case _C_BOOL:
+	(*_tagImp)(_dst, tagSel, _GSC_BOOL);
+	(*_serImp)(_dst, serSel, (void*)buf, @encode(_Bool), nil);
+	return;
+#endif
 
       case _C_VOID:
 	[NSException raise: NSInvalidArgumentException

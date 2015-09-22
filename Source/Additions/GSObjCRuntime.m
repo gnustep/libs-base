@@ -1090,23 +1090,23 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
 	    }
 	    break;
 
-#if     defined(_C_BOOL)
+#if __GNUC__ != 2
           case _C_BOOL:
             {
-              bool      v;
+              _Bool     v;
  
               if (sel == 0)
                 {
-                  v = *(bool *)((char *)self + offset);
+                  v = *(_Bool *)((char *)self + offset);
                 }
               else
                 {
-                  bool  (*imp)(id, SEL) =
-                    (bool (*)(id, SEL))[self methodForSelector: sel];
+                  _Bool (*imp)(id, SEL) =
+                    (_Bool (*)(id, SEL))[self methodForSelector: sel];
  
                   v = (*imp)(self, sel);
                 }
-              val = [NSNumber numberWithBool: v];
+              val = [NSNumber numberWithBool: (BOOL)v];
             }
             break;
 #endif
@@ -1555,21 +1555,21 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
 	    }
 	    break;
 
-#if     defined(_C_BOOL)
+#if __GNUC__ != 2
           case _C_BOOL:
             {
-              bool      v = [val boolValue];
+              _Bool     v = (_Bool)[val boolValue];
  
               if (sel == 0)
                 {
-                  bool *ptr = (bool*)((char *)self + offset);
+                  _Bool *ptr = (_Bool*)((char *)self + offset);
  
                   *ptr = v;
                 }
               else
                 {
-                  void  (*imp)(id, SEL, bool) =
-                    (void (*)(id, SEL, bool))[self methodForSelector: sel];
+                  void  (*imp)(id, SEL, _Bool) =
+                    (void (*)(id, SEL, _Bool))[self methodForSelector: sel];
  
                   (*imp)(self, sel, v);
                 }

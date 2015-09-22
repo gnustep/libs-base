@@ -1,6 +1,25 @@
+2015-09-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSData.h:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/GSFFCallInvocation.m:
+	* Source/GSFormat.m:
+	* Source/GSValue.m:
+	* Source/NSArchiver.m:
+	* Source/NSData.m:
+	* Source/NSDecimalNumber.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSMethodSignature.m:
+	* Source/NSPortCoder.m:
+	* Source/NSUnarchiver.m:
+	* Source/cifframe.m:
+	Implement support for C99 _Bool type.
+
 2015-09-22 Riccardo Mottola <rm@gnu.org>
 
-	* Headers\GNUstepBase\GSBlocks.h
+	* Headers/GNUstepBase/GSBlocks.h
 	Do not enable weak on mingw, because it works only with ELF.
 
 2015-09-18 Riccardo Mottola <rm@gnu.org>
