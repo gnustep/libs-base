@@ -1,3 +1,8 @@
+2015-09-22 Riccardo Mottola <rm@gnu.org>
+
+	* Headers\GNUstepBase\GSBlocks.h
+	Do not enable weak on mingw, because it works only with ELF.
+
 2015-09-18 Riccardo Mottola <rm@gnu.org>
 
 	* Headers/Foundation/NSError.h
