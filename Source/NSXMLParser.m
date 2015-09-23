@@ -497,6 +497,7 @@ static  NSNull  *null = nil;
   _handler = [NSXMLSAXHandler new];
   [myHandler _setOwner: self];
   _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler withData: data];
+  [(GSXMLParser*)_parser substituteEntities: YES];
   return self;
 }
 
