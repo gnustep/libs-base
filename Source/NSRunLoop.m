@@ -112,9 +112,11 @@ static NSDate	*theFuture = nil;
   NS_HANDLER
     {
       NSLog(@"*** NSRunLoop ignoring exception '%@' (reason '%@') "
-        @"raised during performSelector... with target %p "
+        @"raised during performSelector... with target %s(%s) "
         @"and selector '%s'",
-        [localException name], [localException reason], target,
+        [localException name], [localException reason],
+        GSClassNameFromObject(target),
+        GSObjCIsInstance(target) ? "instance" : "class",
         sel_getName(selector));
     }
   NS_ENDHANDLER
