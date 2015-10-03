@@ -1335,9 +1335,9 @@ GSRunLoopInfoForThread(NSThread *aThread)
         {
           NSLog(@"*** NSRunLoop ignoring exception '%@' (reason '%@') "
             @"raised during perform in other thread... with receiver %p "
-            @"and selector '%@'",
+            @"and selector '%s'",
             [localException name], [localException reason], receiver,
-            NSStringFromSelector(selector));
+            sel_getName(selector));
         }
     }
   NS_ENDHANDLER
