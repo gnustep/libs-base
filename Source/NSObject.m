@@ -2009,8 +2009,8 @@ static id gs_weak_load(id obj)
   if (!msg)
     {
       [NSException raise: NSGenericException
-		   format: @"invalid selector passed to %s",
-		     sel_getName(_cmd)];
+		   format: @"invalid selector '%s' passed to %s",
+		     sel_getName(aSelector), sel_getName(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector);
@@ -2042,8 +2042,8 @@ static id gs_weak_load(id obj)
   if (!msg)
     {
       [NSException raise: NSGenericException
-		   format: @"invalid selector passed to %s",
-		   sel_getName(_cmd)];
+		   format: @"invalid selector '%s' passed to %s",
+                   sel_getName(aSelector), sel_getName(_cmd)];
       return nil;
     }
 
@@ -2078,7 +2078,8 @@ static id gs_weak_load(id obj)
   if (!msg)
     {
       [NSException raise: NSGenericException
-		  format: @"invalid selector passed to %s", sel_getName(_cmd)];
+		   format: @"invalid selector '%s' passed to %s",
+                   sel_getName(aSelector), sel_getName(_cmd)];
       return nil;
     }
 
