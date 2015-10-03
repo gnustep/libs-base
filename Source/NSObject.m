@@ -2022,7 +2022,7 @@ static id gs_weak_load(id obj)
  * The method must be one which takes one argument and returns an object.
  * <br />Raises NSInvalidArgumentException if given a null selector.
  */
-- (id) performSelector: (SEL)aSelector withObject: (id) anObject
+- (id) performSelector: (SEL)aSelector withObject: (id)anObject
 {
   IMP msg;
 
@@ -2033,7 +2033,7 @@ static id gs_weak_load(id obj)
   /* The Apple runtime API would do:
    * msg = class_getMethodImplementation(object_getClass(self), aSelector);
    * but this cannot ask self for information about any method reached by
-   * forwarding, so the returned forwarding function would ge a generic one
+   * forwarding, so the returned forwarding function would be a generic one
    * rather than one aware of hardware issues with returning structures
    * and floating points.  We therefore prefer the GNU API which is able to
    * use forwarding callbacks to get better type information.
