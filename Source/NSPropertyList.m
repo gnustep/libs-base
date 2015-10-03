@@ -2981,14 +2981,15 @@ NSAssert(pos + 2 < _length, NSInvalidArgumentException);
       *counter = pos;
       return count;
     }
-  else if ((c > 0x11) && (c <= 0x13))
+  // FIXME: Handling for 0x13 is wrong, but this value will only
+  // show up for incorrect old GNUstep property lists.
+  else if ((c == 0x12) || (c == 0x13))
     {
-      unsigned len = c - 0x10;
+      unsigned len = 4;
 
-NSAssert(pos + 1 < _length, NSInvalidArgumentException);
+NSAssert(pos + 4 < _length, NSInvalidArgumentException);
       count = _bytes[pos++];
-NSAssert(pos + count < _length, NSInvalidArgumentException);
-      while (len-- > 0)
+      while (--len > 0)
         {
           count = (count << 8) + _bytes[pos++];
         }
@@ -3715,7 +3716,7 @@ isEqualFunc(const void *item1, const void *item2,
     }
   else
     {
-      code = 0x13;
+      code = 0x12;
       [dest appendBytes: &code length: 1];
       count = NSSwapHostIntToBig(count);
       [dest appendBytes: &count length: 4];
