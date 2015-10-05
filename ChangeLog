@@ -1,3 +1,10 @@
+2015-10-05 Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Headers/GNUstepBase/GNUstep.h: Define __has_extension() if the
+	compiler does not support it.
+	* Headers/Foundation/NSObjCRuntime.h: Provide definitions for
+	NS_ENUM and NS_OPTIONS.
+
 2015-10-03  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/NSPropertyList.m (GSBinaryPLGenerator-storeCount:): Use

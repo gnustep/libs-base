@@ -33,6 +33,17 @@
 #  define __has_feature(x) 0
 #endif
 
+/*
+ * __has_extension has slightly different semantics from __has_feature.
+ * It evaluates to true if the feature is supported by by clang for the
+ * current compilation unit (language and -f switches), regardless of 
+ * whether it is part of the language standard or just a (non-standard)
+ * extension.
+ */
+#ifndef __has_extension
+#  define __has_extension(x) __has_feature(x)
+#endif
+
 #if	GS_WITH_GC || __has_feature(objc_arc)
 
 #ifndef	RETAIN
