@@ -1,3 +1,8 @@
+2015-10-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSocketPortNameServer.m: Fix retain/release error causing
+	crash on failure to launch gdomap.
+
 2015-10-05 Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Headers/GNUstepBase/GNUstep.h: Define __has_extension() if the

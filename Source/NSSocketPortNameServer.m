@@ -191,7 +191,7 @@ typedef enum {
       [self close];
       if (launchCmd == nil)
 	{
-	  launchCmd = [NSTask launchPathForTool: @"gdomap"];
+	  launchCmd = RETAIN([NSTask launchPathForTool: @"gdomap"]);
 	}
       if (state == GSPC_LOPEN && launchCmd != nil)
 	{
