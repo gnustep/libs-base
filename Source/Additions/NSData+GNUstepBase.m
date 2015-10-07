@@ -147,7 +147,7 @@ randombytes(uint8_t *buf, unsigned len)
       else if ('\r' == b) size++;
       else if ('\t' == b) size++;
       else if ('\\' == b) size++;
-      else if (!isprint(b)) size += 3;
+      else if (b < 32 || b > 126) size += 3;
     }
   buf = (uint8_t*)malloc(size);
   for (pos = index = 0; index < count; index++)
@@ -174,7 +174,7 @@ randombytes(uint8_t *buf, unsigned len)
           buf[pos++] = '\\';
           buf[pos++] = '\\';
         }
-      else if (!isprint(b))
+      else if (b < 32 || b > 126)
         {
           sprintf((char*)&buf[pos], "\\x%02x", b);
           pos += 4;
