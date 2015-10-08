@@ -1385,7 +1385,7 @@ failure:
 	  *(double*)data = NSSwapBigDoubleToHost(nd);
 	  return;
 	}
-#ifdef  _C_BOOL
+#if __GNUC__ > 2 && defined(_C_BOOL)
       case _C_BOOL:
 	{
 	  [self deserializeBytes: data
@@ -2672,7 +2672,7 @@ failure:
 	  [self appendBytes: &nd length: sizeof(NSSwappedDouble)];
 	  return;
 	}
-#ifdef  _C_BOOL
+#if __GNUC__ > 2 && defined(_C_BOOL)
       case _C_BOOL:
 	[self appendBytes: data length: sizeof(_Bool)];
 	return;
@@ -3159,7 +3159,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  *(double*)data = NSSwapBigDoubleToHost(nd);
 	  return;
 	}
-#ifdef  _C_BOOL
+#if __GNUC__ > 2 && defined(_C_BOOL)
       case _C_BOOL:
 	{
 	  getBytes(data, bytes, sizeof(_Bool), length, cursor);
@@ -4000,7 +4000,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  (*appendImp)(self, appendSel, &nd, sizeof(NSSwappedDouble));
 	  return;
 	}
-#ifdef  _C_BOOL
+#if __GNUC__ > 2 && defined(_C_BOOL)
       case _C_BOOL:
 	(*appendImp)(self, appendSel, data, sizeof(_Bool));
 	return;

@@ -61,7 +61,7 @@ typeSize(const char* type)
       case _C_ULNG_LNG:	return sizeof(unsigned long long);
       case _C_FLT:	return sizeof(float);
       case _C_DBL:	return sizeof(double);
-#ifdef  _C_BOOL
+#if __GNUC__ > 2 && defined(_C_BOOL)
       case _C_BOOL:	return sizeof(_Bool);
 #endif
       case _C_PTR:	return sizeof(void*);

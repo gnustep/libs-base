@@ -78,7 +78,7 @@ typeToName1(char type)
       case _C_ULNG_LNG:	return "unsigned long long";
       case _C_FLT:	return "float";
       case _C_DBL:	return "double";
-#ifdef  _C_BOOL
+#if __GNUC__ > 2 && defined(_C_BOOL)
       case _C_BOOL:	return "_Bool";
 #endif
       case _C_PTR:	return "pointer";
@@ -170,7 +170,7 @@ static char	type_map[32] = {
   _C_ULNG_LNG,
   _C_FLT,
   _C_DBL,
-#ifdef  _C_BOOL
+#if __GNUC__ > 2 && defined(_C_BOOL)
   _C_BOOL,
 #else
   0,
@@ -616,7 +616,7 @@ static unsigned	encodingVersion;
       case _C_ULNG_LNG:	info = _GSC_ULNG_LNG; break;
       case _C_FLT:	info = _GSC_FLT; break;
       case _C_DBL:	info = _GSC_DBL; break;
-#ifdef  _C_BOOL
+#if __GNUC__ > 2 && defined(_C_BOOL)
       case _C_BOOL:	info = _GSC_BOOL; break;
 #endif
       default:		info = _GSC_NONE; break;
