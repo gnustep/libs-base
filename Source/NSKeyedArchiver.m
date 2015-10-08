@@ -792,7 +792,7 @@ static NSDictionary *makeReference(unsigned ref)
 	[_enc setObject: o forKey: aKey];
 	return;
 
-#if __GNUC__ != 2
+#ifdef  _C_BOOL
       case _C_BOOL:
 	o = [NSNumber numberWithInt: (NSInteger)*(_Bool*)address];
 	[_enc setObject: o forKey: aKey];
