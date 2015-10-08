@@ -129,7 +129,9 @@ typeToName1(char type)
       case _C_CHARPTR:	return "cstring";
       case _C_ARY_B:	return "array";
       case _C_STRUCT_B:	return "struct";
+#ifdef  _C_BOOL
       case _C_BOOL:	return "_Bool";
+#endif
       default:
 	{
 	  static char	buf1[32];
@@ -220,7 +222,11 @@ static char	type_map[32] = {
 #endif
   _C_FLT,
   _C_DBL,
+#ifdef  _C_BOOL
   _C_BOOL,
+#else
+  0,
+#endif
   0,
   0,
   _C_ID,
@@ -517,7 +523,9 @@ static unsigned	encodingVersion;
 #endif
       case _C_FLT:	info = _GSC_FLT; break;
       case _C_DBL:	info = _GSC_DBL; break;
+#ifdef  _C_BOOL
       case _C_BOOL:	info = _GSC_BOOL; break;
+#endif
       default:		info = _GSC_NONE; break;
     }
 
@@ -1214,7 +1222,9 @@ static unsigned	encodingVersion;
       case _C_ULNG_LNG:	info = _GSC_ULNG_LNG | _GSC_S_LNG_LNG;	break;
       case _C_FLT:	info = _GSC_FLT;	break;
       case _C_DBL:	info = _GSC_DBL;	break;
+#ifdef  _C_BOOL
       case _C_BOOL:	info = _GSC_BOOL;	break;
+#endif
       default:		info = _GSC_NONE;	break;
     }
 
@@ -1813,7 +1823,7 @@ static unsigned	encodingVersion;
 	(*_eSerImp)(_dst, eSerSel, (void*)buf, @encode(double), nil);
 	return;
 
-#if __GNUC__ != 2
+#ifdef  _C_BOOL
       case _C_BOOL:
 	(*_eTagImp)(_dst, eTagSel, _GSC_BOOL);
 	(*_eSerImp)(_dst, eSerSel, (void*)buf, @encode(_Bool), nil);

@@ -1090,8 +1090,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
 	    }
 	    break;
 
-#if __GNUC__ != 2
-#ifdef  _C_BOOL
+#if __GNUC__ != 2 && defined(_C_BOOL)
           case _C_BOOL:
             {
               _Bool     v;
@@ -1110,7 +1109,6 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
               val = [NSNumber numberWithBool: (BOOL)v];
             }
             break;
-#endif
 #endif
 
 	  case _C_SHT:
@@ -1557,8 +1555,7 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
 	    }
 	    break;
 
-#if __GNUC__ != 2
-#ifdef  _C_BOOL
+#if __GNUC__ != 2 && defined(_C_BOOL)
           case _C_BOOL:
             {
               _Bool     v = (_Bool)[val boolValue];
@@ -1578,7 +1575,6 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
                 }
             }
             break;
-#endif
 #endif
 
 	  case _C_SHT:

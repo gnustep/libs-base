@@ -573,7 +573,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
                 imp = [[GSKVOSetter class]
                   instanceMethodForSelector: @selector(setterDouble:)];
                 break;
-#if __GNUC__ != 2
+#ifdef  _C_BOOL
               case _C_BOOL:
                 imp = [[GSKVOSetter class]
                   instanceMethodForSelector: @selector(setterChar:)];
