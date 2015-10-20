@@ -2421,9 +2421,20 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
         }
       else
         {
+          NSString *selfString = self;
+          NSString *otherString = aString;
+          
+          if ((mask & NSCaseInsensitiveSearch) == NSCaseInsensitiveSearch)
+            {
+              selfString = [[self copy] autorelease];
+              otherString = [[aString copy] autorelease];
+              selfString = [selfString lowercaseString];
+              otherString = [otherString lowercaseString];
+            }
+          
           GS_BEGINITEMBUF(charsOther, (countOther*sizeof(unichar)), unichar)
 
-          [aString getCharacters: charsOther range: NSMakeRange(0, countOther)];
+          [otherString getCharacters: charsOther range: NSMakeRange(0, countOther)];
           if ((mask & NSAnchoredSearch) == NSAnchoredSearch
             || searchRange.length == countOther)
             {
@@ -2439,7 +2450,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
                 {
                   searchRange.length = countOther;
                 }
-              [self getCharacters: charsSelf range: searchRange];
+              [selfString getCharacters: charsSelf range: searchRange];
               if (memcmp(&charsSelf[0], &charsOther[0],
                 countOther * sizeof(unichar)) == 0)
                 {
@@ -2469,7 +2480,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
                */
               GS_BEGINITEMBUF2(charsSelf, (searchRange.length*sizeof(unichar)),
                 unichar)
-              [self getCharacters: charsSelf range: searchRange];
+              [selfString getCharacters: charsSelf range: searchRange];
 
               if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
                 {
