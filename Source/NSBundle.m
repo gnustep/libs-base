@@ -173,8 +173,6 @@ static NSLock *pathCacheLock = nil;
 static NSMutableDictionary *pathCache = nil;
 
 @interface NSObject (PrivateFrameworks)
-+ (NSString*) frameworkEnv;
-+ (NSString*) frameworkPath;
 + (NSString*) frameworkVersion;
 + (NSString**) frameworkClasses;
 @end
