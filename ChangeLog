@@ -1,3 +1,9 @@
+2015-10-31  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Fix for fastpath code for literal string
+	comparison which was ignoring the case insensititve option.
+	Problems spotted by Fred, triggered by a Testplant change.
+
 2015-10-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: remove declaration of unused methods.
