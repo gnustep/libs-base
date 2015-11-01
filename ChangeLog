@@ -1,3 +1,8 @@
+2015-11-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLDocument.m: When libxml2 is not enabled, create a
+	stub class which will raise an exception on instantiation.
+
 2015-10-31  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Fix for fastpath code for literal string

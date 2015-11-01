@@ -529,4 +529,193 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 }
 @end
 
+#else
+
+@implementation	NSXMLDocument
+
++ (Class) replacementClassForClass: (Class)cls
+{
+  return cls;
+}
+
+- (NSString*) characterEncoding
+{
+  return nil;
+}
+
+- (NSXMLDocumentContentKind) documentContentKind
+{
+  return 0
+}
+
+- (NSXMLDTD*) DTD
+{
+  return nil;
+}
+
+- (id) init
+{
+  NSString      *className = NSStringFromClass([self class]);
+
+  DESTROY(self);
+  [NSException raise: NSGenericException
+              format: @"%@ - no libxml2 at configure time", className];
+  return nil
+}
+
+- (id) initWithContentsOfURL: (NSURL*)url
+                     options: (NSUInteger)mask
+                       error: (NSError**)error
+{
+  return [self init];
+}
+
+- (id) initWithData: (NSData*)data
+            options: (NSUInteger)mask
+              error: (NSError**)error
+{
+  return [self init];
+}
+
+- (id) initWithKind: (NSXMLNodeKind)theKind options: (NSUInteger)theOptions
+{
+  return [self init]
+}
+
+- (id) initWithRootElement: (NSXMLElement*)element
+{
+  return [self init];
+}
+
+- (id) initWithXMLString: (NSString*)string
+                 options: (NSUInteger)mask
+                   error: (NSError**)error
+{
+  return [self init];
+}
+
+- (BOOL) isStandalone
+{
+  return NO;
+}
+
+- (NSString*) MIMEType
+{
+  return nil;
+}
+
+- (NSXMLElement*) rootElement
+{
+  return nil;
+}
+
+- (void) setCharacterEncoding: (NSString*)encoding
+{
+}
+
+- (void) setDocumentContentKind: (NSXMLDocumentContentKind)theContentKind
+{
+}
+
+- (void) setDTD: (NSXMLDTD*)documentTypeDeclaration
+{
+}
+
+- (void) setMIMEType: (NSString*)theMIMEType
+{
+}
+
+- (void) setRootElement: (NSXMLNode*)root
+{
+}
+
+- (void) setStandalone: (BOOL)standalone
+{
+}
+
+- (void) setURI: (NSString*)URI
+{
+}
+
+- (NSString*) URI
+{
+}
+
+- (void) setVersion: (NSString*)version
+{
+}
+
+- (NSString*) version
+{
+}
+
+- (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
+{
+}
+
+- (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
+{
+}
+
+- (void) removeChildAtIndex: (NSUInteger)index
+{
+}
+
+- (void) setChildren: (NSArray*)children
+{
+}
+ 
+- (void) addChild: (NSXMLNode*)child
+{
+}
+ 
+- (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)theNode
+{
+}
+
+- (NSData*) XMLData
+{ 
+}
+
+- (NSData *) XMLDataWithOptions: (NSUInteger)theOptions
+{
+}
+
+- (id) objectByApplyingXSLT: (NSData*)xslt
+                  arguments: (NSDictionary*)arguments
+                      error: (NSError**)error
+{
+  return nil;
+}
+
+- (id) objectByApplyingXSLTString: (NSString*)xslt
+                        arguments: (NSDictionary*)arguments
+                            error: (NSError**)error
+{
+  return nil;
+}
+
+- (id) objectByApplyingXSLTAtURL: (NSURL*)xsltURL
+                       arguments: (NSDictionary*)arguments
+                           error: (NSError**)error
+{
+  return nil;
+}
+
+- (BOOL) validateAndReturnError: (NSError**)error
+{
+  return NO;
+}
+
+- (id) copyWithZone: (NSZone *)zone
+{
+  return nil;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  return NO;
+}
+@end
+
 #endif
