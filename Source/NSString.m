@@ -108,6 +108,22 @@
 # include <unicode/usearch.h>
 #endif
 
+/* Create local inline versions of key functions for case-insensitive operations
+ */
+#import "Additions/unicode/caseconv.h"
+static inline unichar
+uni_toupper(unichar ch)
+{
+  unichar result = gs_toupper_map[ch / 256][ch % 256];
+  return result ? result : ch;
+}
+static inline unichar
+uni_tolower(unichar ch)
+{
+  unichar result = gs_tolower_map[ch / 256][ch % 256];
+  return result ? result : ch;
+}
+
 #import "GNUstepBase/Unicode.h"
 
 extern BOOL GSScanDouble(unichar*, unsigned, double*);
