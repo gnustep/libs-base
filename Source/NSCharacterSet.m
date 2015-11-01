@@ -40,7 +40,7 @@
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSData.h"
 
-/* Using and index set to hold a characterset is more space efficient but
+/* Using an index set to hold a characterset is more space efficient but
  * on the intel core-2 system I benchmarked on, it made my applications
  * about 20% slower.
  * It only makes sense to build base to use index charactersets on machines
