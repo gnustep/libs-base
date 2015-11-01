@@ -36,7 +36,7 @@
 GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 //#import <Foundation/NSXMLParser.h>
-#import <Foundation/NSError.h>
+#import "Foundation/NSError.h"
 
 @implementation	NSXMLDocument
 
@@ -531,6 +531,9 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 #else
 
+#import "Foundation/NSException.h"
+#import "Foundation/NSXMLDocument.h"
+
 @implementation	NSXMLDocument
 
 + (Class) replacementClassForClass: (Class)cls
@@ -545,7 +548,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSXMLDocumentContentKind) documentContentKind
 {
-  return 0
+  return 0;
 }
 
 - (NSXMLDTD*) DTD
@@ -560,7 +563,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   DESTROY(self);
   [NSException raise: NSGenericException
               format: @"%@ - no libxml2 at configure time", className];
-  return nil
+  return nil;
 }
 
 - (id) initWithContentsOfURL: (NSURL*)url
@@ -579,7 +582,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (id) initWithKind: (NSXMLNodeKind)theKind options: (NSUInteger)theOptions
 {
-  return [self init]
+  return [self init];
 }
 
 - (id) initWithRootElement: (NSXMLElement*)element
@@ -639,6 +642,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) URI
 {
+  return nil;
 }
 
 - (void) setVersion: (NSString*)version
@@ -647,6 +651,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) version
 {
+  return nil;
 }
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
@@ -675,10 +680,12 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSData*) XMLData
 { 
+  return nil;
 }
 
 - (NSData *) XMLDataWithOptions: (NSUInteger)theOptions
 {
+  return nil;
 }
 
 - (id) objectByApplyingXSLT: (NSData*)xslt
