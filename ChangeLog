@@ -1,3 +1,9 @@
+2015-11-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLElement.m: (insertChild:atIndex:) if the child already
+	has a parent, detach from that before adding to the new parent.
+	OSX compatibility fix.
+
 2015-11-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLDocument.m: When libxml2 is not enabled, create a
