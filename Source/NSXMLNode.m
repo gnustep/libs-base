@@ -245,7 +245,29 @@ isEqualNode(xmlNodePtr nodeA, xmlNodePtr nodeB)
       xmlFree(contentA);
       xmlFree(contentB);
     }
-  // FIXME: Handle more node types
+  if (1) 
+    {
+      xmlChar *contentA = NULL;
+      xmlChar *contentB = NULL;
+
+      // FIXME: Handle more node types
+      if (!isEqualAttributes(nodeA, nodeB))
+	{
+	  return NO;
+	}
+
+      // Get the value of any text node underneath the current element.
+      contentA = xmlNodeGetContent((const xmlNodePtr)nodeA);
+      contentB = xmlNodeGetContent((const xmlNodePtr)nodeB);
+      if (xmlStrcmp(contentA, contentB) != 0)
+	{
+          xmlFree(contentA);
+          xmlFree(contentB);
+	  return NO;
+	}
+      xmlFree(contentA);
+      xmlFree(contentB);
+    }
   
   return YES;
 }
@@ -541,8 +563,9 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 
               if (ns->href == NULL)
                 {
-                  xmlNsPtr ns1 = xmlSearchNs(parentNode->doc, parentNode, ns->prefix);
+                  xmlNsPtr ns1;
 
+                  ns1 = xmlSearchNs(parentNode->doc, parentNode, ns->prefix);
                   if (ns1 != NULL)
                     {
                       cleanup_namespaces(childNode, ns1);
@@ -552,8 +575,10 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
               /*
               else if (ns->prefix == NULL)
                 {
-                  xmlNsPtr ns1 = xmlSearchNsByHref(parentNode->doc, parentNode, ns->href);
+                  xmlNsPtr ns1;
 
+                  ns1
+                    = xmlSearchNsByHref(parentNode->doc, parentNode, ns->href);
                   if (ns1 != NULL)
                     {
                       cleanup_namespaces(childNode, ns1);
@@ -609,9 +634,9 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
         }
     }
 
-  if (mergeTextNodes ||
-           ((childNode->type != XML_TEXT_NODE) &&
-            (parentNode->type != XML_TEXT_NODE)))
+  if (mergeTextNodes
+    || ((childNode->type != XML_TEXT_NODE)
+      && (parentNode->type != XML_TEXT_NODE)))
     {
       // this uses the built-in libxml functions which merge adjacent text nodes
       xmlNodePtr addedNode = NULL;

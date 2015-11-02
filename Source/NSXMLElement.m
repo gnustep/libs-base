@@ -648,7 +648,6 @@ extern void ensure_oldNs(xmlNodePtr node);
   // Check to make sure this is a valid addition...
   NSAssert(nil != child, NSInvalidArgumentException);
   NSAssert(index <= childCount, NSInvalidArgumentException);
-  NSAssert(nil == [child parent], NSInvalidArgumentException);
   NSAssert(NSXMLAttributeKind != theKind, NSInvalidArgumentException);
   NSAssert(NSXMLDTDKind != theKind, NSInvalidArgumentException);
   NSAssert(NSXMLDocumentKind != theKind, NSInvalidArgumentException);
@@ -657,6 +656,11 @@ extern void ensure_oldNs(xmlNodePtr node);
   NSAssert(NSXMLInvalidKind != theKind, NSInvalidArgumentException);
   NSAssert(NSXMLNamespaceKind != theKind, NSInvalidArgumentException);
   NSAssert(NSXMLNotationDeclarationKind != theKind, NSInvalidArgumentException);
+
+  if (nil != [child parent])
+    {
+      [child detach];
+    }
 
   [self _insertChild: child atIndex: index];
 }
