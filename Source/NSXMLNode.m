@@ -2092,6 +2092,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 #else
 
+#import "Foundation/NSException.h"
 #import "Foundation/NSXMLNode.h"
 
 @implementation NSXMLNode
@@ -2221,7 +2222,11 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (id) init
 {
+  NSString      *className = NSStringFromClass([self class]);
+
   DESTROY(self);
+  [NSException raise: NSGenericException
+              format: @"%@ - no libxml2 at configure time", className];
   return nil;
 }
 

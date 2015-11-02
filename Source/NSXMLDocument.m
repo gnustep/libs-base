@@ -531,7 +531,6 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 #else
 
-#import "Foundation/NSException.h"
 #import "Foundation/NSXMLDocument.h"
 
 @implementation	NSXMLDocument
@@ -558,12 +557,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (id) init
 {
-  NSString      *className = NSStringFromClass([self class]);
-
-  DESTROY(self);
-  [NSException raise: NSGenericException
-              format: @"%@ - no libxml2 at configure time", className];
-  return nil;
+  return [super init];
 }
 
 - (id) initWithContentsOfURL: (NSURL*)url
