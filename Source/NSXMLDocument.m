@@ -470,9 +470,9 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   NSZoneFree([self zone], params);
 
   return [NSXMLNode _objectForNode: (xmlNodePtr)resultDoc];
-#else
+#else /* HAVE_LIBXSLT */ 
   return nil;
-#endif
+#endif /* HAVE_LIBXSLT */
 }
 
 - (id) objectByApplyingXSLTString: (NSString*)xslt
@@ -529,7 +529,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 }
 @end
 
-#else
+#else /* HAVE_LIBXML */
 
 #import "Foundation/NSXMLDocument.h"
 
@@ -719,4 +719,4 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 }
 @end
 
-#endif
+#endif /* HAVE_LIBXML */
