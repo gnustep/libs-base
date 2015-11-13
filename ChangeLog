@@ -1,3 +1,8 @@
+2015-11-13 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSRange.m: (NSRangeFromString)
+	Parse length and location with scanInteger and not scanInt (suggested by Fred Kiefer to fix 64bit)
+
 2015-11-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLElement.m: (insertChild:atIndex:) if the child already
