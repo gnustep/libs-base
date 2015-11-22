@@ -804,6 +804,11 @@ static NSStringEncoding	defaultEncoding;
 	      result = [self createDirectoryAtPath: dir
 		     			attributes: attributes];
 	    }
+          // an existing not created dir is equivalent to a created one
+          else
+            {
+              result = YES;
+            }
 	}
     }
   else
