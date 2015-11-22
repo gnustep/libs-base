@@ -1,3 +1,8 @@
+2015-11-22 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSFileManager.m (createDirectoryAtPath)
+	Should return success even if all path components do exist, as by Apple spec.
+
 2015-11-13 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSRange.m: (NSRangeFromString)
