@@ -1,3 +1,12 @@
+2015-11-30: Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSCalendar.h
+	* Headers/Foundation/NSCalendar.h:
+	Implement -components:fromDate:toDate:options:. (Not handling
+	NSWrapCalendarComponents yet.)
+	* Tests/base/NSCalendar/component-diff.m:
+	Test case for new functionality.
+
 2015-11-22 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSFileManager.m (createDirectoryAtPath)

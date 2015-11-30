@@ -194,6 +194,17 @@ enum
 
 - (NSDateComponents *) components: (NSUInteger) unitFlags
                          fromDate: (NSDate *) date;
+/**
+ * Compute the different between the specified components in the two dates.
+ * Values are summed up as long as now higher-granularity unit is specified.
+ * That means if you want to extract the year and the day from two dates
+ * which are 13 months + 1 day apart, you will get 1 as the result for the year
+ * but the rest of the difference in days. (29 <= x <= 32, depending on the 
+ * month). 
+ *
+ * Please note that the NSWrapCalendarComponents option that should affect the
+ * calculations is not presently supported.
+ */
 - (NSDateComponents *) components: (NSUInteger) unitFlags
                          fromDate: (NSDate *) startingDate
                            toDate: (NSDate *) resultDate

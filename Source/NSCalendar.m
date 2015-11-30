@@ -367,12 +367,81 @@ static NSRecursiveLock *classLock = nil;
 #endif
 }
 
+/*
+ * Convenience macro for field extraction.
+ * TODO: We need to implement NSWrapCalendarComponents, but it is unclear how that
+ * actually works.
+ */
+#define COMPONENT_DIFF(cal, units, components, toDate, nsunit, setSel, uunit, err) \
+do { if (units & nsunit) \
+  { \
+  int32_t uunit ## Diff = ucal_getFieldDifference(cal, toDate, uunit, &err); \
+  if (U_FAILURE(err)) \
+    { \
+      RELEASE(components); \
+      return nil; \
+    } \
+  [components setSel uunit ## Diff]; \
+  } \
+} while (0)
+
+
 - (NSDateComponents *) components: (NSUInteger) unitFlags
                          fromDate: (NSDate *) startingDate
                            toDate: (NSDate *) resultDate
                           options: (NSUInteger) opts
 {
+#if GS_USE_ICU == 1
+  NSDateComponents *comps = nil;
+  UErrorCode err = U_ZERO_ERROR;
+  UDate udateFrom = (UDate)floor([startingDate timeIntervalSince1970] * 1000.0);
+  UDate udateTo = (UDate)floor([resultDate timeIntervalSince1970] * 1000.0);
+  ucal_setMillis (my->cal, udateFrom, &err);
+  if (U_FAILURE(err))
+    {
+      return nil;
+    }
+  comps = [[NSDateComponents alloc] init];
+  /*
+   * Since the ICU field difference function automatically advances the calendar as appropriate, we
+   * need to process the units from the largest to the smallest.
+   */
+  COMPONENT_DIFF(my->cal, unitFlags, comps, udateTo, NSEraCalendarUnit, setEra:, UCAL_ERA, err);
+  COMPONENT_DIFF(my->cal, unitFlags, comps, udateTo, NSYearCalendarUnit, setYear:, UCAL_YEAR, err);
+  COMPONENT_DIFF(my->cal, unitFlags, comps, udateTo, NSMonthCalendarUnit, setMonth:, UCAL_MONTH, err);
+  COMPONENT_DIFF(my->cal, unitFlags, comps, udateTo, NSWeekOfYearCalendarUnit, setWeek:, UCAL_WEEK_OF_YEAR, err);
+  if (!(unitFlags & NSWeekOfYearCalendarUnit))
+    {
+      /* We must avoid setting the same unit twice (it would be zero because
+       * of the automatic advancement.
+       */
+      COMPONENT_DIFF(my->cal, unitFlags, comps, udateTo, NSWeekCalendarUnit, setWeek:, UCAL_WEEK_OF_YEAR, err);
+    }
+  COMPONENT_DIFF(my->cal, unitFlags, comps, udateTo, NSWeekOfMonthCalendarUnit, setWeekOfMonth:, UCAL_WEEK_OF_MONTH, err);
+  COMPONENT_DIFF(my->cal, unitFlags, comps, udateTo, NSDayCalendarUnit, setDay:, UCAL_DAY_OF_MONTH, err);
+  COMPONENT_DIFF(my->cal, unitFlags, comps, udateTo, NSWeekdayOrdinalCalendarUnit, setWeekdayOrdinal:, UCAL_DAY_OF_WEEK_IN_MONTH, err);
+  COMPONENT_DIFF(my->cal, unitFlags, comps, udateTo, NSWeekdayCalendarUnit, setWeekday:, UCAL_DAY_OF_WEEK, err);
+  COMPONENT_DIFF(my->cal, unitFlags, comps, udateTo, NSHourCalendarUnit, setHour:, UCAL_HOUR_OF_DAY, err);
+  COMPONENT_DIFF(my->cal, unitFlags, comps, udateTo, NSMinuteCalendarUnit, setMinute:, UCAL_MINUTE, err);
+  COMPONENT_DIFF(my->cal, unitFlags, comps, udateTo, NSSecondCalendarUnit, setSecond:, UCAL_SECOND, err);
+# if 0
+  if (unitFlags & NSCalendarUnitNanosecond)
+    {
+      int32_t ns = ucal_getFieldDifference(my->cal, udateTo, UCAL_MILLISECOND, &err) * 1000000;
+      if (U_FAILURE(err))
+        {
+          RELEASE(comps);
+          return nil;
+        }
+      [comps setNanosecond: ns];
+    }
+# endif
+  return AUTORELEASE(comps);
+
+
+#else
   return nil;
+#endif
 }
 
 - (NSDate *) dateByAddingComponents: (NSDateComponents *) comps
