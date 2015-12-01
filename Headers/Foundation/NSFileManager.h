@@ -197,6 +197,20 @@ extern "C" {
 typedef	uint32_t	OSType;
 #define OSTYPE_DECLARED
 #endif
+  
+typedef enum {
+  /* NSDirectoryEnumerationSkipsSubdirectoryDescendants causes the NSDirectoryEnumerator to perform a shallow enumeration and not descend into directories it encounters.
+   */
+  NSDirectoryEnumerationSkipsSubdirectoryDescendants = 1UL << 0,
+  
+  /* NSDirectoryEnumerationSkipsPackageDescendants will cause the NSDirectoryEnumerator to not descend into packages.
+   */
+  NSDirectoryEnumerationSkipsPackageDescendants      = 1UL << 1,
+  
+  /* NSDirectoryEnumerationSkipsHiddenFiles causes the NSDirectoryEnumerator to not enumerate hidden files.
+   */
+  NSDirectoryEnumerationSkipsHiddenFiles             = 1UL << 2
+} NSDirectoryEnumerationOptions;
 
 @interface NSFileManager : NSObject
 {
@@ -314,6 +328,13 @@ typedef	uint32_t	OSType;
 - (NSArray*) contentsOfDirectoryAtPath: (NSString*)path error: (NSError**)error;
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+- (NSArray*)contentsOfDirectoryAtURL:(NSURL*)url
+          includingPropertiesForKeys:(NSArray*)keys
+                             options:(NSDirectoryEnumerationOptions)mask
+                               error:(NSError**)error;
+#endif
+
 - (BOOL) copyPath: (NSString*)source
 	   toPath: (NSString*)destination
 	  handler: (id)handler;
@@ -348,7 +369,7 @@ typedef	uint32_t	OSType;
  */
 - (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path;
 - (NSDictionary*) fileAttributesAtPath: (NSString*)path
-			  traverseLink: (BOOL)flag;
+                          traverseLink: (BOOL)flag;
 
 /**
  * Returns YES if a file (or directory etc) exists at the specified path.

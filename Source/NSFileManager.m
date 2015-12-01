@@ -771,6 +771,82 @@ static NSStringEncoding	defaultEncoding;
   return result;
 }
 
+- (NSArray*)contentsOfDirectoryAtURL:(NSURL*)url
+          includingPropertiesForKeys:(NSArray*)keys
+                             options:(NSDirectoryEnumerationOptions)mask
+                               error:(NSError**)errorptr;
+{
+  NSMutableArray *dirurls = [NSMutableArray array];
+  BOOL            isDir   = NO;
+  
+  if (url == nil)
+    {
+      NSWarnMLog(@"URL is nil");
+    }
+  else if ([self fileExistsAtPath:[url path] isDirectory:&isDir] == NO)
+    {
+      NSWarnMLog(@"URL path does not exists");
+    }
+  else if (isDir == NO)
+    {
+      NSWarnMLog(@"URL path is not a directory");
+    }
+  else
+    {
+      NSError   *error    = nil;
+      NSString  *dirpath  = [url path];
+      NSArray   *contents = [[NSFileManager defaultManager] contentsOfDirectoryAtPath:dirpath error:&error];
+
+      if (error)
+      {
+        NSWarnMLog(@"error: %@", error);
+        
+        // Return possible error...
+        if (errorptr != NULL)
+          *errorptr = error;
+      }
+      else
+      {
+        NSEnumerator   *iter     = [contents objectEnumerator];
+        NSString       *filename = nil;
+        
+        // Iterate and create NSURL's for each path...
+        while ((filename = [iter nextObject]))
+          {
+            NSString      *filepath = [dirpath stringByAppendingPathComponent:filename];
+            NSURL         *url      = [NSURL fileURLWithPath:filepath];
+#if 0
+            NSEnumerator  *keyiter  = [keys objectEnumerator];
+            NSString      *key      = nil;
+#endif
+            
+            // Add URL...
+            [dirurls addObject:url];
+            
+#if 0
+            // TODO: Resource keys not currently processed...
+            // Preload resources for requested keys...
+            while ((key = [keyiter nextObject]))
+              {
+                // Just ask for the property key - NSURL will cache...
+                NSDictionary *fileattr = [self fileAttributesAtPath:filepath traverseLink:NO];
+                NSEnumerator *attrkeyiter = [fileattr keyEnumerator];
+                NSString     *attrkey     = nil;
+                
+                while ((attrkey = [attrkeyiter nextObject]))
+                {
+                  [url setResourceValue:[fileattr objectForKey:attrkey] forKey:attrkey];
+                }
+              }
+#endif
+          }
+      }
+    }
+  
+  // Return an immutable copy...
+  return([[dirurls copy] autorelease]);
+}
+
 /**
  * Creates a new directory and all intermediate directories in the file URL
  * if flag is YES.
