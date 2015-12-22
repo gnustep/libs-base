@@ -1,3 +1,9 @@
+2015-12-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLElement.m: For OSX compatibility, raise an exception
+	it we attempt to insert an element which is already the child of
+	some other element.
+
 2015-11-30: Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/NSCalendar.h
@@ -10,12 +16,14 @@
 2015-11-22 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSFileManager.m (createDirectoryAtPath)
-	Should return success even if all path components do exist, as by Apple spec.
+	Should return success even if all path components do exist,
+	as by Apple spec.
 
 2015-11-13 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSRange.m: (NSRangeFromString)
-	Parse length and location with scanInteger and not scanInt (suggested by Fred Kiefer to fix 64bit)
+	Parse length and location with scanInteger and not scanInt
+	(suggested by Fred Kiefer to fix 64bit)
 
 2015-11-02  Richard Frith-Macdonald <rfm@gnu.org>
 
