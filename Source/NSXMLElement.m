@@ -657,10 +657,16 @@ extern void ensure_oldNs(xmlNodePtr node);
   NSAssert(NSXMLNamespaceKind != theKind, NSInvalidArgumentException);
   NSAssert(NSXMLNotationDeclarationKind != theKind, NSInvalidArgumentException);
 
-  if (nil != [child parent])
-    {
-      [child detach];
-    }
+/* On OSX we get NSInternalInconsistencyException if we try to add an element
+ * which is already a child of some other parent.  So presumably we shouldn't
+ * be auto-removing...
+ * 
+ *  if (nil != [child parent])
+ *    {
+ *      [child detach];
+ *    }
+ */
+  NSAssert(nil == [child parent], NSInternalInconsistencyException);
 
   [self _insertChild: child atIndex: index];
 }
