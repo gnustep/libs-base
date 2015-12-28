@@ -603,7 +603,16 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
       @"You should request NSConnectionDidDieNotification's and\n"
       @"release all references to the proxy's of invalid Connections."];
 
-  [_connection forwardInvocation: anInvocation forProxy: self];
+  NS_DURING
+  {
+    [_connection forwardInvocation: anInvocation forProxy: self];
+  }
+  NS_HANDLER
+  {
+    [_connection invalidate];
+    [localException raise];
+  }
+  NS_ENDHANDLER
 }
 
 - (id) initWithCoder: (NSCoder*)aCoder

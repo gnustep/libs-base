@@ -1267,7 +1267,7 @@ static NSLock	*cached_proxies_gate = nil;
        * Not invalidated as a result of a shutdown from the other end,
        * so tell the other end it must shut down.
        */
-      //[self _shutdown];
+      [self _shutdown];
     }
   IisValid = NO;
   GS_M_LOCK(connection_table_gate);
