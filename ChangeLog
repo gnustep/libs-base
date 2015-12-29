@@ -1,3 +1,8 @@
+2015-12-29  Marcus Mueller <znek@mulle-kybernetik.com>
+
+	* Source/NSUserNotification.m: "NSUserNotificationDefaultSoundName"
+	constant string was declared but missing, fixed
+
 2015-12-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLElement.m: For OSX compatibility, raise an exception
