@@ -1271,16 +1271,18 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
       
       //sort out the padding for the integer part
       intPartRange = [useFormat rangeOfCharacterFromSet: placeHolders];
-      if (NSMaxRange(intPartRange) < ([useFormat length] - 1))
+      if (intPartRange.location != NSNotFound)
         {
+          int nextFormatCharLoc = intPartRange.location;
           while (([placeHolders characterIsMember:
-            [useFormat characterAtIndex: NSMaxRange(intPartRange)]]
+            [useFormat characterAtIndex: nextFormatCharLoc]]
             || [[useFormat substringWithRange:
-              NSMakeRange(NSMaxRange(intPartRange), 1)] isEqual:
+              NSMakeRange(nextFormatCharLoc, 1)] isEqual:
           defaultThousandsSeparator])
-            && NSMaxRange(intPartRange) < [useFormat length] - 1)
+            && nextFormatCharLoc < [useFormat length] - 1)
             {
               intPartRange.length++;
+              nextFormatCharLoc++;
             }
         }
       intPad = [[[useFormat substringWithRange: intPartRange]
@@ -1298,7 +1300,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
           NSRange		ipRange;
 
           ipRange =
-            NSMakeRange(0, [intPad length] - [intPartString length] + 1);
+            NSMakeRange(0, [intPad length] - [intPartString length]);
           [intPartString insertString:
             [intPad substringWithRange: ipRange] atIndex: 0];
           [intPartString replaceOccurrencesOfString: @"_"

@@ -1,3 +1,11 @@
+2015-12-30  Marcus Mueller <znek@mulle-kybernetik.com>
+
+	* Source/NSNumberFormatter.m: fixed a subtle off-by-one formatter
+	bug in conjunction with zero padding and NSNumberFormatterBehavior10_0.
+
+	* Tests/base/NSNumberFormatter/basic.m: added a test for this
+	particular issue
+
 2015-12-29  Marcus Mueller <znek@mulle-kybernetik.com>
 
 	* Source/NSUserNotification.m: "NSUserNotificationDefaultSoundName"
