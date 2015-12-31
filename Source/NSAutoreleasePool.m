@@ -36,9 +36,11 @@
 
 #if __has_include(<objc/capabilities.h>)
 #  include <objc/capabilities.h>
+#if 0 // Omit for test
 #  ifdef OBJC_ARC_AUTORELEASE_DEBUG
 #    include <objc/objc-arc.h>
 #    define ARC_RUNTIME 1
+#  endif
 #  endif
 #endif
 
