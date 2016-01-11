@@ -27,11 +27,30 @@
 
 #import "common.h"
 
+#ifdef __GNUSTEP_RUNTIME__
+#include <objc/capabilities.h>
+#if defined(OBJC_CAP_ARC)
+//#define USE_USE_OBJC_CAP_ARC
+#endif
+#endif
+
 NSObject *NSCopyObject(NSObject *anObject, NSUInteger extraBytes, NSZone *zone)
 {
   Class	c = object_getClass(anObject);
+#if defined(USE_USE_OBJC_CAP_ARC)
+  id copy = object_copy(anObject, class_getInstanceSize(c) + extraBytes);
+#else
   id copy = NSAllocateObject(c, extraBytes, zone);
-
   memcpy(copy, anObject, class_getInstanceSize(c) + extraBytes);
+#endif
+  
+  return copy;
+}
+
+NSObject *NSCopyObject_TP(NSObject *anObject, NSUInteger extraBytes, NSZone *zone)
+{
+  Class	c = object_getClass(anObject);
+  id copy = NSAllocateObject(c, extraBytes, zone);
+  memcpy(((char*)copy + sizeof(id)), ((char*)anObject + sizeof(id)), class_getInstanceSize(c) - sizeof(id));
   return copy;
 }

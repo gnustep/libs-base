@@ -76,7 +76,9 @@
 #include <objc/capabilities.h>
 #include <objc/hooks.h>
 #ifdef OBJC_CAP_ARC
+//#define USE_OBJC_CAP_ARC
 #include <objc/objc-arc.h>
+#include <objc/runtime.h>
 #endif
 #endif
 
@@ -796,6 +798,9 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
     {
       zone = NSDefaultMallocZone();
     }
+#if defined(USE_OBJC_CAP_ARC)
+  new = class_createInstance(aClass, extraBytes);
+#else
   new = NSZoneMalloc(zone, size);
   if (new != nil)
     {
@@ -804,6 +809,7 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
       object_setClass(new, aClass);
       AADD(aClass, new);
     }
+#endif
 
   /* Don't bother doing this in a thread-safe way, because the cost of locking
    * will be a lot more than the cost of doing the same call in two threads.
@@ -837,6 +843,9 @@ inline void
 NSDeallocateObject(id anObject)
 #endif
 {
+#if defined(USE_OBJC_CAP_ARC)
+  object_dispose(anObject);
+#else
   Class aClass = object_getClass(anObject);
 
   if ((anObject != nil) && !class_isMetaClass(aClass))
@@ -863,6 +872,7 @@ NSDeallocateObject(id anObject)
 	  NSZoneFree(z, o);
 	}
     }
+#endif
   return;
 }
 
