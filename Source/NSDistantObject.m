@@ -605,6 +605,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 
   NS_DURING
   {
+    [[self retain] autorelease];
     [_connection forwardInvocation: anInvocation forProxy: self];
   }
   NS_HANDLER
