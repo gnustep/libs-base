@@ -605,7 +605,9 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 
   NS_DURING
   {
-    [[self retain] autorelease];
+    // If the forward invocation fails there are times this object
+    // is already free'd by the time the exception handler executes...
+    AUTORELEASE(RETAIN(self));
     [_connection forwardInvocation: anInvocation forProxy: self];
   }
   NS_HANDLER
