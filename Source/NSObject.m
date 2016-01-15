@@ -994,7 +994,7 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
 extern BOOL
 objc_create_block_classes_as_subclasses_of(Class super);
 
-#ifdef USE_OBJC_CAP_ARC
+#ifdef OBJC_CAP_ARC
 static id gs_weak_load(id obj)
 {
 	return [obj retainCount] > 0 ? obj : nil;
@@ -1003,7 +1003,7 @@ static id gs_weak_load(id obj)
 
 + (void) load
 {
-#ifdef USE_OBJC_CAP_ARC
+#ifdef OBJC_CAP_ARC
   _objc_weak_load = gs_weak_load;
 #endif
   objc_create_block_classes_as_subclasses_of(self);
@@ -2111,7 +2111,7 @@ static id gs_weak_load(id obj)
 #if	(GS_WITH_GC == 0)
   if (NSDecrementExtraRefCountWasZero(self))
     {
-#  ifdef USE_OBJC_CAP_ARC
+#  ifdef OBJC_CAP_ARC
       objc_delete_weak_refs(self);
 #  endif
       [self dealloc];
