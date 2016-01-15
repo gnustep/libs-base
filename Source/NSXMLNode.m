@@ -245,7 +245,29 @@ isEqualNode(xmlNodePtr nodeA, xmlNodePtr nodeB)
       xmlFree(contentA);
       xmlFree(contentB);
     }
+  if (1) 
+    {
+      xmlChar *contentA = NULL;
+      xmlChar *contentB = NULL;
+
   // FIXME: Handle more node types
+      if (!isEqualAttributes(nodeA, nodeB))
+	{
+	  return NO;
+	}
+  
+      // Get the value of any text node underneath the current element.
+      contentA = xmlNodeGetContent((const xmlNodePtr)nodeA);
+      contentB = xmlNodeGetContent((const xmlNodePtr)nodeB);
+      if (xmlStrcmp(contentA, contentB) != 0)
+	{
+          xmlFree(contentA);
+          xmlFree(contentB);
+	  return NO;
+	}
+      xmlFree(contentA);
+      xmlFree(contentB);
+    }
   
   return YES;
 }
@@ -541,8 +563,9 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 
               if (ns->href == NULL)
                 {
-                  xmlNsPtr ns1 = xmlSearchNs(parentNode->doc, parentNode, ns->prefix);
+                  xmlNsPtr ns1;
 
+                  ns1 = xmlSearchNs(parentNode->doc, parentNode, ns->prefix);
                   if (ns1 != NULL)
                     {
                       cleanup_namespaces(childNode, ns1);
@@ -552,8 +575,10 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
               /*
               else if (ns->prefix == NULL)
                 {
-                  xmlNsPtr ns1 = xmlSearchNsByHref(parentNode->doc, parentNode, ns->href);
+                  xmlNsPtr ns1;
 
+                  ns1
+                    = xmlSearchNsByHref(parentNode->doc, parentNode, ns->href);
                   if (ns1 != NULL)
                     {
                       cleanup_namespaces(childNode, ns1);
@@ -609,9 +634,9 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
         }
     }
 
-  if (mergeTextNodes ||
-           ((childNode->type != XML_TEXT_NODE) &&
-            (parentNode->type != XML_TEXT_NODE)))
+  if (mergeTextNodes
+    || ((childNode->type != XML_TEXT_NODE)
+      && (parentNode->type != XML_TEXT_NODE)))
     {
       // this uses the built-in libxml functions which merge adjacent text nodes
       xmlNodePtr addedNode = NULL;
@@ -2087,6 +2112,279 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
   return [self objectsForXQuery: xquery
                       constants: nil
                           error: error];
+}
+@end
+
+#else
+
+#import "Foundation/NSException.h"
+#import "Foundation/NSXMLNode.h"
+
+@implementation NSXMLNode
+
++ (id) attributeWithName: (NSString*)name
+	     stringValue: (NSString*)stringValue
+{
+  return nil;
+}
+
++ (id) attributeWithName: (NSString*)name
+		     URI: (NSString*)URI
+	     stringValue: (NSString*)stringValue
+{
+  return nil;
+}
+
++ (id) commentWithStringValue: (NSString*)stringValue
+{
+  return nil;
+}
+
++ (id) DTDNodeWithXMLString: (NSString*)string
+{
+  return nil;
+}
+
++ (id) document
+{
+  return nil;
+}
+
++ (id) documentWithRootElement: (NSXMLElement*)element
+{
+  return nil;
+}
+
++ (id) elementWithName: (NSString*)name
+{
+  return nil;
+}
+
++ (id) elementWithName: (NSString*)name
+	      children: (NSArray*)children
+	    attributes: (NSArray*)attributes
+{
+  return nil;
+}
+
++ (id) elementWithName: (NSString*)name
+		   URI: (NSString*)URI
+{
+  return nil;
+}
+
++ (id) elementWithName: (NSString*)name
+	   stringValue: (NSString*)string
+{
+  return nil;
+}
+
++ (NSString*) localNameForName: (NSString*)name
+{
+  return nil;
+}
+
++ (id) namespaceWithName: (NSString*)name
+	     stringValue: (NSString*)stringValue
+{
+  return nil;
+}
+
++ (NSXMLNode*) predefinedNamespaceForPrefix: (NSString*)name
+{
+  return nil;
+}
+
++ (NSString*) prefixForName: (NSString*)name
+{
+  return nil;
+}
+
++ (id) processingInstructionWithName: (NSString*)name
+			 stringValue: (NSString*)stringValue
+{
+  return nil;
+}
+
++ (id) textWithStringValue: (NSString*)stringValue
+{
+  return nil;
+}
+
+- (NSString*) canonicalXMLStringPreservingComments: (BOOL)comments
+{
+  return nil;
+}
+
+- (NSXMLNode*) childAtIndex: (NSUInteger)index
+{
+  return nil;
+}
+
+- (NSUInteger) childCount
+{
+  return 0;
+}
+
+- (NSArray*) children
+{
+  return nil;
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  return nil;
+}
+
+- (void) detach
+{
+}
+
+- (NSUInteger) index
+{
+  return 0;
+}
+
+- (id) init
+{
+  NSString      *className = NSStringFromClass([self class]);
+
+  DESTROY(self);
+  [NSException raise: NSGenericException
+              format: @"%@ - no libxml2 at configure time", className];
+  return nil;
+}
+
+- (id) initWithKind: (NSXMLNodeKind)theKind
+{
+  return [self init];
+}
+
+- (id) initWithKind: (NSXMLNodeKind)theKind options: (NSUInteger)theOptions
+{
+  return [self init];
+}
+
+- (NSXMLNodeKind) kind
+{
+  return 0;
+}
+
+- (NSUInteger) level
+{
+  return 0;
+}
+
+- (NSString*) localName
+{
+  return nil;
+}
+
+- (NSString*) name
+{
+  return nil;
+}
+
+- (NSXMLNode*) nextNode
+{
+  return nil;
+}
+
+- (NSXMLNode*) nextSibling
+{
+  return nil;
+}
+
+- (id) objectValue
+{
+  return nil;
+}
+
+- (NSXMLNode*) parent
+{
+  return nil;
+}
+
+- (NSString*) prefix
+{
+  return nil;
+}
+
+- (NSXMLNode*) previousNode
+{
+  return nil;
+}
+
+- (NSXMLNode*) previousSibling
+{
+  return nil;
+}
+
+- (NSXMLDocument*) rootDocument
+{
+  return nil;
+}
+
+- (NSString*) stringValue
+{
+  return nil;
+}
+
+- (void) setObjectValue: (id)value
+{
+}
+
+- (void) setName: (NSString *)name
+{
+}
+
+- (void) setStringValue: (NSString*)string
+{
+}
+
+- (void) setStringValue: (NSString*)string resolvingEntities: (BOOL)resolve
+{
+}
+
+- (void) setURI: (NSString*)URI
+{
+}
+
+- (NSString*) URI
+{
+  return nil;
+}
+
+- (NSString*) XMLString
+{
+  return nil;
+}
+
+- (NSString*) XMLStringWithOptions: (NSUInteger)theOptions
+{
+  return nil;
+}
+
+- (NSString*) XPath
+{
+  return nil;
+}
+
+- (NSArray*) nodesForXPath: (NSString*)anxpath error: (NSError**)error
+{
+  return nil;
+}
+
+ - (NSArray*) objectsForXQuery: (NSString*)xquery
+		     constants: (NSDictionary*)constants
+		         error: (NSError**)error
+{
+  return nil;
+}
+
+- (NSArray*) objectsForXQuery: (NSString*)xquery error: (NSError**)error
+{
+  return nil;
 }
 @end
 

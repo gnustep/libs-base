@@ -170,14 +170,13 @@ GS_EXPORT int		GSDebugAllocationTotal(Class c);
 GS_EXPORT Class*        GSDebugAllocationClassList(void);
 
 /**
- * This function returns a newline
- * separated list of the classes which have instances
- * allocated, and the instance counts.  If the 'changeFlag'
- * argument is YES then the list gives the number of
- * instances allocated/deallocated since the function was
- * last called.  This function only returns the current count
- * of instances (not the peak or total count), but its output
- * is ready to be displayed or logged.
+ * This function returns a newline separated list of the classes
+ * which have instances allocated, and the instance counts.
+ * If the 'changeFlag' argument is YES then the list gives the number
+ * of instances allocated/deallocated since the function was
+ * last called with that setting.  This function only returns the
+ * current count of instances (not the peak or total count), but its
+ * output is ready to be displayed or logged.
  */
 GS_EXPORT const char*	GSDebugAllocationList(BOOL changeFlag);
 

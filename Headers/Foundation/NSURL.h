@@ -176,6 +176,10 @@ GS_EXPORT NSString* const NSURLFileScheme;
  * Returns YES on success, NO on failure.
  */
 - (BOOL) checkResourceIsReachableAndReturnError: (NSError **)error;
+
+/** Load/cache resource information */
+- (BOOL) getResourceValue:(id*)value forKey:(NSString *)key error:(NSError**)error;
+- (NSDictionary*) resourceValuesForKeys:(NSArray*)keys error:(NSError**)error;
 #endif
 
 /**

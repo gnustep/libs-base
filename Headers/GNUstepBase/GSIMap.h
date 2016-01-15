@@ -375,6 +375,11 @@ struct	_GSIMapTable {
   GSI_MAP_EXTRA	extra;
 #endif
 };
+#define GSI_MAP_TABLE_T GSIMapTable_t
+#endif
+
+#ifndef GSI_MAP_TABLE_S
+#define GSI_MAP_TABLE_S sizeof(GSI_MAP_TABLE_T)
 #endif
 
 typedef struct	_GSIMapEnumerator {
@@ -1257,6 +1262,37 @@ GSIMapInitWithZoneAndCapacity(GSIMapTable map, NSZone *zone, uintptr_t capacity)
   map->increment = 300000;   // choosen so the chunksize will be less than 4Mb
   GSIMapRightSizeMap(map, capacity);
   GSIMapMoreNodes(map, capacity);
+}
+
+GS_STATIC_INLINE NSUInteger 
+GSIMapSize(GSIMapTable map)
+{
+  NSUInteger    index;
+  NSUInteger    size;
+  GSIMapNode	node;
+
+  /* Map table plus arrays of pointers to chunks
+   */
+  size = GSI_MAP_TABLE_S + map->chunkCount * sizeof(void*);
+
+  /* Add the array of buckets.
+   */
+  size += map->bucketCount * sizeof(GSIMapBucket_t);
+
+  /* Add the free nodes.
+   */
+  for (node = map->freeNodes; 0 != node; node = node->nextInBucket)
+    {
+      size += sizeof(GSIMapNode_t);
+    }
+
+  /* Add the used nodes (in the buckets).
+   */
+  for (index = 0; index < map->bucketCount; index++)
+    {
+      size += sizeof(GSIMapNode_t) * map->buckets[index].nodeCount;
+    }
+  return size;
 }
 
 #if	defined(__cplusplus)

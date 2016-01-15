@@ -41,6 +41,7 @@
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSHashTable.h"
 #import "Foundation/NSPortCoder.h"
 #import "Foundation/NSDistantObject.h"
 #import "Foundation/NSThread.h"
@@ -993,7 +994,7 @@ GSGarbageCollectorLog(char *msg, GC_word arg)
 extern BOOL
 objc_create_block_classes_as_subclasses_of(Class super);
 
-#ifdef OBJC_CAP_ARC
+#ifdef USE_OBJC_CAP_ARC
 static id gs_weak_load(id obj)
 {
 	return [obj retainCount] > 0 ? obj : nil;
@@ -1002,7 +1003,7 @@ static id gs_weak_load(id obj)
 
 + (void) load
 {
-#ifdef OBJC_CAP_ARC
+#ifdef USE_OBJC_CAP_ARC
   _objc_weak_load = gs_weak_load;
 #endif
   objc_create_block_classes_as_subclasses_of(self);
@@ -2018,8 +2019,8 @@ static id gs_weak_load(id obj)
   if (!msg)
     {
       [NSException raise: NSGenericException
-		   format: @"invalid selector passed to %s",
-		     sel_getName(_cmd)];
+		   format: @"invalid selector '%s' passed to %s",
+		     sel_getName(aSelector), sel_getName(_cmd)];
       return nil;
     }
   return (*msg)(self, aSelector);
@@ -2042,7 +2043,7 @@ static id gs_weak_load(id obj)
   /* The Apple runtime API would do:
    * msg = class_getMethodImplementation(object_getClass(self), aSelector);
    * but this cannot ask self for information about any method reached by
-   * forwarding, so the returned forwarding function would ge a generic one
+   * forwarding, so the returned forwarding function would be a generic one
    * rather than one aware of hardware issues with returning structures
    * and floating points.  We therefore prefer the GNU API which is able to
    * use forwarding callbacks to get better type information.
@@ -2051,8 +2052,8 @@ static id gs_weak_load(id obj)
   if (!msg)
     {
       [NSException raise: NSGenericException
-		   format: @"invalid selector passed to %s",
-		   sel_getName(_cmd)];
+		   format: @"invalid selector '%s' passed to %s",
+                   sel_getName(aSelector), sel_getName(_cmd)];
       return nil;
     }
 
@@ -2087,7 +2088,8 @@ static id gs_weak_load(id obj)
   if (!msg)
     {
       [NSException raise: NSGenericException
-		  format: @"invalid selector passed to %s", sel_getName(_cmd)];
+		   format: @"invalid selector '%s' passed to %s",
+                   sel_getName(aSelector), sel_getName(_cmd)];
       return nil;
     }
 
@@ -2109,7 +2111,7 @@ static id gs_weak_load(id obj)
 #if	(GS_WITH_GC == 0)
   if (NSDecrementExtraRefCountWasZero(self))
     {
-#  ifdef OBJC_CAP_ARC
+#  ifdef USE_OBJC_CAP_ARC
       objc_delete_weak_refs(self);
 #  endif
       [self dealloc];
@@ -2617,3 +2619,24 @@ static id gs_weak_load(id obj)
 }
 @end
 
+NSUInteger
+GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
+{
+  if (0 == NSHashGet(exclude, self))
+    {
+      NSHashInsert(exclude, self);
+      return class_getInstanceSize(object_getClass(self));
+    }
+  return 0;
+}
+
+@implementation	NSObject (MemoryFootprint)
++ (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  return 0;
+}
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  return GSPrivateMemorySize(self, exclude);
+}
+@end

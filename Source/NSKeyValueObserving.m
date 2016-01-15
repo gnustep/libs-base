@@ -573,6 +573,12 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
                 imp = [[GSKVOSetter class]
                   instanceMethodForSelector: @selector(setterDouble:)];
                 break;
+#if __GNUC__ > 2 && defined(_C_BOOL)
+              case _C_BOOL:
+                imp = [[GSKVOSetter class]
+                  instanceMethodForSelector: @selector(setterChar:)];
+                break;
+#endif
               case _C_ID:
               case _C_CLASS:
               case _C_PTR:
@@ -1709,9 +1715,6 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   pathInfo = [info lockReturningPathInfoForKey: aKey];
   if (pathInfo != nil)
     {
-      // Testplant-MAL-2015-07-07: retain path info object otherwise could
-      // be released before we're finished....
-      RETAIN(pathInfo);
       if (pathInfo->recursion++ == 0)
         {
           id    old = [pathInfo->change objectForKey: NSKeyValueChangeNewKey];
@@ -1745,9 +1748,6 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
 
           [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: YES];
         }
-      // Testplant-MAL-2015-07-07: retain path info object otherwise could
-      // be released before we're finished....
-      RELEASE(pathInfo);
       [info unlock];
     }
 
@@ -1768,9 +1768,6 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   pathInfo = [info lockReturningPathInfoForKey: aKey];
   if (pathInfo != nil)
     {
-      // Testplant-MAL-2015-07-07: retain path info object otherwise could
-      // be released before we're finished....
-      RETAIN(pathInfo);
       if (pathInfo->recursion == 1)
         {
           id    value = [self valueForKey: aKey];
@@ -1790,9 +1787,6 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
         {
           pathInfo->recursion--;
         }
-      // Testplant-MAL-2015-07-07: retain path info object otherwise could
-      // be released before we're finished....
-      RELEASE(pathInfo);
       [info unlock];
     }
 

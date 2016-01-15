@@ -1428,6 +1428,43 @@ static NSUInteger	urlAlign;
   return nil == errorStr ? YES : NO;
 }
 
+- (BOOL) getResourceValue:(id*)value forKey:(NSString *)key error:(NSError**)error
+{
+  if ([self isFileURL])
+  {
+    NSDictionary *fileattr = [[NSFileManager defaultManager] fileAttributesAtPath:[self path] traverseLink: NO];
+    NSLog(@"%s:fileattr: %@", __PRETTY_FUNCTION__, fileattr);
+  }
+  
+  return(NO);
+}
+
+- (NSDictionary*)resourceValuesForKeys:(NSArray*)keys error:(NSError**)errorptr
+{
+  NSMutableDictionary *values   = [NSMutableDictionary dictionary];
+  NSString            *key      = nil;
+  NSEnumerator        *keyiter  = [keys objectEnumerator];
+  
+  // Loop through and load the reource information for each key...
+  while ((key = [keyiter nextObject]))
+    {
+      id       value = nil;
+      NSError *error = nil;
+      
+      if ([self getResourceValue:&value forKey:key error:&error] == NO)
+        {
+          // Return the error from the retrieval attempt...
+          if ((error != nil) && (errorptr != NULL))
+            *errorptr = error;
+          
+          // and return nil...
+          return(nil);
+        }
+    }
+  
+  return(values);
+}
+
 - (NSString*) fragment
 {
   NSString	*fragment = nil;

@@ -332,6 +332,97 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 	info->align = __alignof__(char*);
 	break;
 
+#if __GNUC__ > 2 && defined(_C_BOOL)
+      case _C_BOOL:
+	info->size = sizeof(_Bool);
+	info->align = __alignof__(_Bool);
+	break;
+#endif
+#if     defined(_C_BFLD)
+      case _C_BFLD:
+        /* Rely on the runtime to either provide the info or bomb out.
+         * Nowadays we ought to be able to expect modern enough runtimes.
+         */
+        typePtr--;
+        info->size = objc_sizeof_type(typePtr);
+        info->align = objc_alignof_type(typePtr);
+        typePtr = objc_skip_typespec(typePtr);
+        break;
+#endif
+
+#if     defined(_C_COMPLEX)
+      case _C_COMPLEX:
+        switch (*typePtr++)
+          {
+            case _C_CHR:
+              info->size = sizeof(_Complex char);
+              info->align = __alignof__(_Complex char);
+              break;
+
+            case _C_UCHR:
+              info->size = sizeof(_Complex unsigned char);
+              info->align = __alignof__(_Complex unsigned char);
+              break;
+
+            case _C_SHT:
+              info->size = sizeof(_Complex short);
+              info->align = __alignof__(_Complex short);
+              break;
+
+            case _C_USHT:
+              info->size = sizeof(_Complex unsigned short);
+              info->align = __alignof__(_Complex unsigned short);
+              break;
+
+            case _C_INT:
+              info->size = sizeof(_Complex int);
+              info->align = __alignof__(_Complex int);
+              break;
+
+            case _C_UINT:
+              info->size = sizeof(_Complex unsigned int);
+              info->align = __alignof__(_Complex unsigned int);
+              break;
+
+            case _C_LNG:
+              info->size = sizeof(_Complex long);
+              info->align = __alignof__(_Complex long);
+              break;
+
+            case _C_ULNG:
+              info->size = sizeof(_Complex unsigned long);
+              info->align = __alignof__(_Complex unsigned long);
+              break;
+
+            case _C_LNG_LNG:
+              info->size = sizeof(_Complex long long);
+              info->align = __alignof__(_Complex long long);
+              break;
+
+            case _C_ULNG_LNG:
+              info->size = sizeof(_Complex unsigned long long);
+              info->align = __alignof__(_Complex unsigned long long);
+              break;
+
+            case _C_FLT:
+              info->size = sizeof(_Complex float);
+              info->align = __alignof__(_Complex float);
+              break;
+
+            case _C_DBL:
+              info->size = sizeof(_Complex double);
+              info->align = __alignof__(_Complex double);
+              break;
+            
+      default:
+              {
+                NSLog(@"unknown complex type '%s'", typePtr-2);
+	return 0;
+    }
+          }
+        break;
+#endif
+
       default:
 	return 0;
     }

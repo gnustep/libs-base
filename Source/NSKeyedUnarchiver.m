@@ -748,6 +748,12 @@ static NSMapTable	*globalClassMap = 0;
 	*(double*)address = [o doubleValue];
 	return;
 
+#if __GNUC__ > 2 && defined(_C_BOOL)
+      case _C_BOOL:
+	*(_Bool*)address = (_Bool)[o unsignedCharValue];
+	return;
+#endif
+
       case _C_STRUCT_B:
 	[NSException raise: NSInvalidArgumentException
 		    format: @"-[%@ %@]: this archiver cannote decode structs",
