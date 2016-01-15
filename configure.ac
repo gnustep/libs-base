@@ -90,6 +90,10 @@ if test -z "$LIBRARY_COMBO"; then
   LIBRARY_COMBO=`gnustep-config --variable=LIBRARY_COMBO 2>&5`
 fi
 
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
+  nonfragile=yes
+  BASE_NONFRAGILE_ABI=1
+else
 nonfragile=`gnustep-config --objc-flags | grep _NONFRAGILE_ABI 2>&5`
 if test -z "$nonfragile"; then
   nonfragile=no
@@ -98,7 +102,28 @@ else
   nonfragile=yes
   BASE_NONFRAGILE_ABI=1
 fi
+fi
 AC_SUBST(BASE_NONFRAGILE_ABI)
+
+MAKECPPFLAGS=`gnustep-config --variable=CPPFLAGS`
+if test "$CPPFLAGS" = ""; then
+  CPPFLAGS=$MAKECPPFLAGS
+  export CPPFLAGS
+else
+  if test "$CPPFLAGS" != "$MAKECPPFLAGS"; then
+    AC_MSG_WARN([You are running configure with the preprocessor options ($CPPFLAGS) set to a different value from that used by gnustep-make ($MAKECPPFLAGS).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CPPFLAGS=$CPPFLAGS or run the gnustep-base configure again with your CPPFLAGS environment variable set to $MAKECPPFLAGS])
+  fi
+fi
+
+MAKELDFLAGS=`gnustep-config --variable=LDFLAGS`
+if test "$LDFLAGS" = ""; then
+  LDFLAGS=$MAKELDFLAGS
+  export LDFLAGS
+else
+  if test "$LDFLAGS" != "$MAKELDFLAGS"; then
+    AC_MSG_WARN([You are running configure with the link options ($LDFLAGS) set to a different value from that used by gnustep-make ($MAKELDFLAGS).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use LDFLAGS=$LDFLAGS or run the gnustep-base configure again with your LDFLAGS environment variable set to $MAKELDFLAGS])
+  fi
+fi
 
 # We shouldn't be loading GNUstep.sh here.  It would load in a lot of
 # variables which might get confused with the ones that will be used
@@ -1053,23 +1078,26 @@ MAKECPP=`gnustep-config --variable=CPP`
 MAKECXX=`gnustep-config --variable=CXX`
 if test "$CC" = ""; then
   CC=$MAKECC
+  export CC
 else
   if test "$CC" != "$MAKECC"; then
-    AC_MSG_WARN([You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CC or run the gnustep-base configure again with your CC environment variable set to $MAKECC])
+    AC_MSG_WARN([You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CC=$CC or run the gnustep-base configure again with your CC environment variable set to $MAKECC])
 fi
 fi
 if test "$CPP" = ""; then
   CPP=$MAKECPP
+  export CPP
 else
   if test "$CPP" != "$MAKECPP"; then
-    AC_MSG_WARN([You are running configure with the preprocessor ($CPP) set to a different value from that used by gnustep-make ($MAKECPP).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CPP or run the gnustep-base configure again with your CPP environment variable set to $MAKECPP])
+    AC_MSG_WARN([You are running configure with the preprocessor ($CPP) set to a different value from that used by gnustep-make ($MAKECPP).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CPP=$CPP or run the gnustep-base configure again with your CPP environment variable set to $MAKECPP])
 fi
 fi
 if test "$CXX" = ""; then
   CXX=$MAKECXX
+  export CXX
 else
   if test "$CXX" != "$MAKECXX"; then
-    AC_MSG_WARN([You are running configure with the compiler ($CXX) set to a different value from that used by gnustep-make ($MAKECXX).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use $CXX or run the gnustep-base configure again with your CXX environment variable set to $MAKECXX])
+    AC_MSG_WARN([You are running configure with the compiler ($CXX) set to a different value from that used by gnustep-make ($MAKECXX).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CXX=$CXX or run the gnustep-base configure again with your CXX environment variable set to $MAKECXX])
 fi
 fi
 AC_PROG_CC
@@ -1129,7 +1157,7 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
           CFLAGS="$saved_CFLAGS $ATOMIC_CFLAGS"
           ;;
       esac
-      AC_MSG_CHECKING([whether gcc supports atomic operations with -march]);
+      AC_MSG_CHECKING([whether CC supports atomic operations with -march]);
         AC_LINK_IFELSE([AC_LANG_PROGRAM([[typedef int atomic;]],
           [[atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y+1);]])],
         need_march=yes,
@@ -1144,7 +1172,7 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
         AC_MSG_RESULT([no]);
         saved_LDFLAGS="$LDFLAGS";
         LDFLAGS="$saved_LDFLAGS -lgcc";
-        AC_MSG_CHECKING([whether gcc supports atomic operations using libgcc]);
+        AC_MSG_CHECKING([whether CC supports atomic operations using libgcc]);
           AC_LINK_IFELSE([AC_LANG_PROGRAM([[typedef int atomic;]],
             [[atomic x; atomic y; __sync_bool_compare_and_swap(&x, y, y+1);]])],
           atomic_in_libgcc=yes,
@@ -1288,8 +1316,8 @@ fi
 AC_CHECK_HEADERS(objc/runtime.h)
 AC_CHECK_HEADERS(objc/objc.h)
 if test $ac_cv_header_objc_objc_h = no; then
-  echo "Check to make sure you have a full installation of the GCC"
-  echo "compiler that includes the Objective-C headers and libraries"
+  echo "Check to make sure you have the Objective-C runtime library"
+  echo "and its headers installed."
   AC_MSG_ERROR(Could not find Objective-C headers)
 fi
 
@@ -1343,7 +1371,7 @@ else
   AC_MSG_RESULT([not found])
 fi
 
-AC_MSG_CHECKING(for gcc visibility attribute support)
+AC_MSG_CHECKING(for compiler visibility attribute support)
 saved_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -Werror"
 AC_COMPILE_IFELSE([AC_LANG_SOURCE([
@@ -1773,14 +1801,7 @@ CFLAGS=$saved_CFLAGS
 # Check if we can name pthreads
 #--------------------------------------------------------------------
 
-AC_CHECK_FUNCS(pthread_set_name_np)
-if test $ac_cv_func_pthread_set_name_np = yes; then
-  AC_DEFINE(PTHREAD_SETNAME(a), (pthread_set_name_np(pthread_self(), a), 0),
-    [Description: Define set name function for pthread returning void])
-else
-  AC_CACHE_CHECK(
-    [for pthread_setname_np() variant],
-    [gs_cv_pthread_setname_np],
+AC_CACHE_CHECK([for pthread_setname_np()], gs_cv_pthread_setname_np,
     [AC_LINK_IFELSE(
       [AC_LANG_PROGRAM([#include <pthread.h>],
         [pthread_setname_np("name");])],
@@ -1808,7 +1829,6 @@ else
         [Description: Define setname function for pthread with three args])
       ;;
   esac
-fi
 
 #--------------------------------------------------------------------
 # Check whether we can get the system thread ID
@@ -1981,7 +2001,7 @@ if test "$nonfragile" = "yes"; then
     non_fragile="$cross_non_fragile")
   CPPFLAGS="$saved_CPPFLAGS"
   if test $non_fragile = yes; then
-    OBJCFLAGS="$OBJCFLAGS -fobjc-nonfragile-abi"
+    OBJCLIBS="$OBJLIBS -fobjc-nonfragile-abi"
     GS_NONFRAGILE=1
     AC_ARG_ENABLE(mixedabi,
       [  --disable-mixedabi
@@ -2014,7 +2034,10 @@ AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h,
 # Native Objective-C exceptions
 #--------------------------------------------------------------------
 
-# First of all, determine if native Objective-C exceptions are enabled
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
+  exceptions=yes
+else
+  # Determine if native Objective-C exceptions are enabled
 # in gnustep-make.  They are enabled if the compiler supports it; they
 # are disabled if it doesn't.  And, of course, the user may have
 # forced one behaviour or the other.  Note that we go and look at the
@@ -2027,6 +2050,7 @@ if grep USE_OBJC_EXCEPTIONS $CURRENT_GNUSTEP_MAKEFILES/$lobj_dir/config.make | g
   exceptions=yes
 else
   exceptions=no
+fi
 fi
 
 # At this point, if exceptions=no, then native exceptions are disabled
