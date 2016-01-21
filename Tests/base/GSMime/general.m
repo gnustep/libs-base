@@ -67,9 +67,15 @@ int main()
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSData *cr;
   NSData *data;
+  NSData *orig;
+  NSString *str;
   GSMimeParser *parser;
   GSMimeDocument *doc;
   GSMimeDocument *idoc;
+  BOOL  oldStyleFolding;
+
+  oldStyleFolding = [[NSUserDefaults standardUserDefaults]
+    boolForKey: @"GSMimeOldStyleFolding"];
 
   cr = [NSData dataWithBytes: "\r" length: 1];
 
@@ -164,11 +170,20 @@ int main()
 
   data = [NSData dataWithContentsOfFile: @"mime9.dat"];
   idoc = exact(0, data);
-  PASS(([[[idoc headerNamed: @"Long"] value] isEqual: @"first second third"]),
+
+  if (YES == oldStyleFolding)
+    {
+      str = @"first second third";
+    }
+  else
+    {
+      str = @"first\tsecond\tthird";
+    }
+  PASS(([[[idoc headerNamed: @"Long"] value] isEqual: str]),
    "mime9.dat folded header unfolds correctly incrementally");
   doc = [GSMimeParser documentFromData: data];
 //NSLog(@"'%@'", [[doc headerNamed: @"Long"] value]);
-  PASS(([[[doc headerNamed: @"Long"] value] isEqual: @"first second third"]),
+  PASS(([[[doc headerNamed: @"Long"] value] isEqual: str]),
    "mime9.dat folded header unfolds correctly in one go");
   PASS([idoc isEqual: doc], "mime9.dat documents are the same");
 
@@ -194,22 +209,37 @@ int main()
   /* Test a document with adjacent encoded words in headers, as
    * produced by GSMime
    */
-  data = [NSData dataWithContentsOfFile: @"mime12.dat"];
-  idoc = exact(0, data);
+  orig = [NSData dataWithContentsOfFile: @"mime12.dat"];
+  idoc = exact(0, orig);
+  if (YES == oldStyleFolding)
+    {
+      str = @"Avant de partir, n'oubliez pas de préparer votre séjour à Paris";
+    }
+  else
+    {
+      str = @"Avant de partir, n'oubliez pas de préparer votre\tséjour à Paris";
+    }
   doc = [GSMimeDocument documentWithContent: @"hello"
                                        type: @"text/plain"
                                        name: nil];
   [doc setHeader: @"MIME-Version" value: @"1.0" parameters: nil];
-  [doc setHeader: @"Subject"
-    value: @"Avant de partir, n'oubliez pas de préparer votre séjour à Paris"
-    parameters: nil];
+  [doc setHeader: @"Subject" value: str parameters: nil];
   PASS_EQUAL(idoc, doc, "mime12.dat same as internally generated content");
-  doc = [GSMimeParser documentFromData: data];
+  doc = [GSMimeParser documentFromData: orig];
   PASS_EQUAL(idoc, doc, "mime12.dat documents are the same");
   data = [idoc rawMimeData];
   doc = [GSMimeParser documentFromData: data];
-  PASS_EQUAL(idoc, doc, "rawMimeData reproduces document");
-  NSLog(@"Got %@", [doc rawMimeData]);
+  PASS_EQUAL(idoc, doc, "rawMimeData reproduces document with 'q' header");
+  NSLog(@"Made\n%@\nOrig\n%@", data, orig);
+
+  if (NO == oldStyleFolding)
+    {
+      [idoc setHeader: @"Subject" value: @"==répà==" parameters: nil];
+      data = [idoc rawMimeData];
+      NSLog(@"Made\n%@", data);
+      doc = [GSMimeParser documentFromData: data];
+      PASS_EQUAL(doc, idoc, "rawMimeData reproduces document with 'b' header");
+    }
   
   [arp release]; arp = nil;
   return 0;

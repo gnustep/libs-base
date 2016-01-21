@@ -86,12 +86,19 @@ int main()
   [doc rawMimeData];
   PASS([[[doc headerNamed:@"content-type"] parameterForKey:@"charset"] isEqual:@"utf-8"],"charset is inferred");
 
-  
   val = @"by mail.turbocat.net (Postfix, from userid 1002) id 90885422ECBF; Sat, 22 Dec 2007 15:40:10 +0100 (CET)";
-  raw = @"Received: by mail.turbocat.net (Postfix, from userid 1002) id 90885422ECBF;\r\n\tSat, 22 Dec 2007 15:40:10 +0100 (CET)\r\n";
+  if ([[NSUserDefaults standardUserDefaults]
+    boolForKey: @"GSMimeOldStyleFolding"] == YES)
+    {
+      raw = @"Received: by mail.turbocat.net (Postfix, from userid 1002) id 90885422ECBF;\r\n\tSat, 22 Dec 2007 15:40:10 +0100 (CET)\r\n";
+    }
+  else
+    {
+      raw = @"Received: by mail.turbocat.net (Postfix, from userid 1002) id 90885422ECBF;\r\n Sat, 22 Dec 2007 15:40:10 +0100 (CET)\r\n";
+    }
   hdr = [[GSMimeHeader alloc] initWithName: @"Received" value: val];
   data = [hdr rawMimeDataPreservingCase: YES];
-//NSLog(@"Header: '%*.*s'", [data length], [data length], [data bytes]);
+//  NSLog(@"Header: '%*.*s'", [data length], [data length], [data bytes]);
   PASS([data isEqual: [raw dataUsingEncoding: NSASCIIStringEncoding]],
     "raw mime data for long header is OK");
   
