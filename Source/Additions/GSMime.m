@@ -3750,6 +3750,8 @@ lastWhiteSpace(const uint8_t *ptr, NSUInteger minimum, NSUInteger from)
   return NSNotFound;
 }
 
+static char* _charsToEncode = "()<>@,;:_\"/[]?.=";
+
 static NSUInteger
 quotableLength(const uint8_t *ptr, NSUInteger size, NSUInteger max,
   NSUInteger *quotedLength)
@@ -3762,7 +3764,7 @@ quotableLength(const uint8_t *ptr, NSUInteger size, NSUInteger max,
       uint8_t   c = ptr[index];
       int       add = 1;
 
-      if (c < 32 || c >= 127 || strchr("()<>@,;:\"/[]?.=", c))
+      if (c < 32 || c >= 127 || strchr(_charsToEncode, c))
         {
           add += 2;
         }
@@ -3790,7 +3792,7 @@ quotedWord(const uint8_t *ptr, NSUInteger size, uint8_t *buffer)
         {
           buffer[encoded++] = '_';
         }
-      else if (c < 32 || c >= 127 || strchr("()<>@,;:_\"/[]?.=", c))
+      else if (c < 32 || c >= 127 || strchr(_charsToEncode, c))
         {
           buffer[encoded++] = '=';
           buffer[encoded++] = hex[c>>4];
