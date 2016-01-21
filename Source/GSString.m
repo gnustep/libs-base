@@ -5904,7 +5904,7 @@ literalIsEqual(NXConstantString *self, id anObject)
       /* If all the characters are latin1 we can copy them efficiently.
        */
       p = b = NSAllocateCollectable(length, 0);
-      while (i < length)
+      while (i < nxcslen)
         {
           *p++ = (uint8_t)nextUTF8((const uint8_t *)nxcsptr, nxcslen, &i, &n);
         }
