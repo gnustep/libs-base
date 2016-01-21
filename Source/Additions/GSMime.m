@@ -2832,7 +2832,7 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
       return 0;
     }
 
-  while (src < end && isWSP(*src))
+  while (src < end && isspace(*src))
     {
       if (*src == '\r' || *src == '\n')
 	{
@@ -2975,7 +2975,7 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 
 	      src += 2;
 	      tmp = src;
-	      while (tmp < end && *tmp != '?' && !isWSP(*tmp))
+	      while (tmp < end && *tmp != '?' && !isspace(*tmp))
 		{
 		  tmp++;
 		}
@@ -2995,12 +2995,12 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 
 	      src = tmp + 1;
 	      if (src >= end) return nil;
-	      c = toupper(*src);
-	      if (c == 'B')
+	      c = tolower(*src);
+	      if (c == 'b')
 		{
 		  encoding = WE_BASE64;
 		}
-	      else if (c == 'Q')
+	      else if (c == 'q')
 		{
 		  encoding = WE_QUOTED;
 		}
@@ -3019,7 +3019,7 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 	      src++;
 	      if (src >= end) return nil;
 	      tmp = src;
-	      while (tmp < end && *tmp != '?' && !isWSP(*tmp))
+	      while (tmp < end && *tmp != '?' && !isspace(*tmp))
 		{
 		  tmp++;
 		}
@@ -3138,7 +3138,7 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 	}
       else if (1 == flags.encodedWord)
         {
-          if (isWSP(src[0]))
+          if (isspace(src[0]))
             {
               expect++;                 // Count expected space after word
             }
@@ -3819,7 +3819,7 @@ appendBytes(NSMutableData *m, NSUInteger offset, NSUInteger fold,
           /* If we already have space at the end of the line,
            * we remove it because the wrapping counts as a space.
            */
-          if (len > 0 && isWSP(((const uint8_t *)[m bytes])[len - 1]))
+          if (len > 0 && isspace(((const uint8_t *)[m bytes])[len - 1]))
             {
               [m setLength: --len];
             }
@@ -3828,7 +3828,7 @@ appendBytes(NSMutableData *m, NSUInteger offset, NSUInteger fold,
            */
           [m appendBytes: "\r\n\t" length: 3];
           offset = 8;
-          if (size > 0 && isWSP(bytes[0]))
+          if (size > 0 && isspace(bytes[0]))
             {
               /* The folding counts as a space character,
                * so we refrain from writing the next character
