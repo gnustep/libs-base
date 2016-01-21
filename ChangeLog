@@ -1,3 +1,16 @@
+2016-01-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+
+	* Source/GSString.m: Fix errors in conversion from a constant utf-8
+	string containing non-ascii characters to latin1 encoded data.
+	* Source/Additions/GSMime.m: Change line folding code to preserve
+	exact whitespace (using encoded words if necessary). Add support
+	for generating more readable 'q' encoded words rather than just
+	base64 encoded.  Uses old behavior of folding with a tab character
+	if the GSMimeOldStyleFolding user default is set to YES, though
+	it's likely that this backward compatibility feature will be removed
+	in future.
+
 2015-12-30  Marcus Mueller <znek@mulle-kybernetik.com>
 
 	* Source/NSNumberFormatter.m: fixed a subtle off-by-one formatter
