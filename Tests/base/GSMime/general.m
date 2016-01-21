@@ -206,6 +206,10 @@ int main()
   doc = [GSMimeParser documentFromData: data];
   PASS_EQUAL(idoc, doc, "mime11.dat documents are the same");
 
+  NSData *oData = [doc rawMimeData: YES foldedAt: 78];
+  GSMimeDocument *oDoc = [GSMimeParser documentFromData: oData];
+  PASS_EQUAL(doc, oDoc, "mime11.dat (folded and quoted boundary header) equal after writing and re-parsing");
+
   /* Test a document with adjacent encoded words in headers, as
    * produced by GSMime
    */
