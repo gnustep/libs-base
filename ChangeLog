@@ -1,5 +1,10 @@
 2016-01-21	Niels Grewe <niels.grewe@halbordnung.de>
 
+	* Source/Additions/GSMime.m: Fix folding of headers containing
+	a '_' character.
+
+2016-01-21	Niels Grewe <niels.grewe@halbordnung.de>
+
 	* Tests/base/GSMime/general.m: Test case for quoted boundary
 	parameter failure.
 
