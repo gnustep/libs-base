@@ -4280,7 +4280,19 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  k = [k lowercaseString];
 	}
       offset = appendBytes(md, offset, fold, ";", 1);
-      offset = appendBytes(md, offset, fold, " ", 1);
+
+      /* Crude heuristic ... if the length of the value will definitely be
+       * too long to fit on a line, fold right now.
+       */
+      if (fold > 0 && offset + [k length] > fold)
+        {
+          [md appendBytes: "\r\n " length: 3];
+          offset = 1;
+        }
+      else
+        {
+          offset = appendBytes(md, offset, fold, " ", 1);
+        }
       offset = appendString(md, offset, fold, k, &ok);
       if (ok == NO)
         {
@@ -4289,6 +4301,15 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
             k, n, fold);
         }
       offset = appendBytes(md, offset, fold, "=", 1);
+
+      /* Crude heuristic ... if the length of the value will definitely be
+       * too long to fit on a line, fold right now.
+       */
+      if (fold > 0 && offset + [v length] > fold)
+        {
+          [md appendBytes: "\r\n " length: 3];
+          offset = 1;
+        }
       offset = appendString(md, offset, fold, v, &ok);
       if (ok == NO)
         {
@@ -4381,8 +4402,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       m = [[_GSMutableInsensitiveDictionary alloc] initWithCapacity: c];
       while ((k = [e nextObject]) != nil)
 	{
-	  [m setObject: [d objectForKey: k]
-		forKey: [headerClass makeToken: k preservingCase: YES]];
+          NSString      *v = [d objectForKey: k];
+
+          k = [headerClass makeToken: k preservingCase: YES];
+	  [m setObject: v forKey: k];
 	}
     }
   DESTROY(params);
