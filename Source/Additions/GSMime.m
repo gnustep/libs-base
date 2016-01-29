@@ -4272,7 +4272,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   while ((k = [e nextObject]) != nil)
     {
-      NSString	*v;
+      NSString	        *v;
+      NSUInteger        kLength;
+      NSUInteger        vLength;
 
       v = [headerClass makeQuoted: [params objectForKey: k] always: NO];
       if (preserve == NO)
@@ -4281,10 +4283,14 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	}
       offset = appendBytes(md, offset, fold, ";", 1);
 
-      /* Crude heuristic ... if the length of the value will definitely be
+      kLength = [k length];
+      vLength = [v length];
+
+      /* Crude heuristic ...
+       * if the length of the key=value will definitely be
        * too long to fit on a line, fold right now.
        */
-      if (fold > 0 && offset + [k length] > fold)
+      if (fold > 0 && offset + kLength + vLength + 1 >= fold)
         {
           [md appendBytes: "\r\n " length: 3];
           offset = 1;
