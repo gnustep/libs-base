@@ -4311,7 +4311,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       /* Crude heuristic ... if the length of the value will definitely be
        * too long to fit on a line, fold right now.
        */
-      if (fold > 0 && offset + [v length] > fold)
+      if (fold > 0 && offset + vLength > fold)
         {
           [md appendBytes: "\r\n " length: 3];
           offset = 1;

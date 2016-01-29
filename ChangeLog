@@ -1,11 +1,18 @@
+2016-01-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: keep key=value pairs in structured fields
+	on the same line if possible.
+
 2016-01-29	Niels Grewe <niels.grewe@halbordnung.de>
 
-	* Source/NSThread.m: Automatic 'late' unregistration of thread objects: When
-	+exit is not called, we no longer log a warning and leak the thread object.
-	Instead, we add it to a map table, keyed under the current thread ID, and
-	use that in GSCurrentThread() to find the correct NSThread object if
-	pthread_getspecific wont return it to us. 
-	* Tests/base/NSThread/late_unregister.m: Test case for late unregistration.
+	* Source/NSThread.m: Automatic 'late' unregistration of thread objects:
+	When +exit is not called, we no longer log a warning and leak the
+	thread object.
+	Instead, we add it to a map table, keyed under the current thread ID,
+	and use that in GSCurrentThread() to find the correct NSThread object
+	if pthread_getspecific wont return it to us. 
+	* Tests/base/NSThread/late_unregister.m: Test case for late
+	unregistration.
 
 2016-01-21	Niels Grewe <niels.grewe@halbordnung.de>
 
@@ -18,7 +25,6 @@
 	parameter failure.
 
 2016-01-21  Richard Frith-Macdonald <rfm@gnu.org>
-
 
 	* Source/GSString.m: Fix errors in conversion from a constant utf-8
 	string containing non-ascii characters to latin1 encoded data.
