@@ -74,6 +74,7 @@
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSGarbageCollector.h"
+#import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
 #import "GSRunLoopCtxt.h"
@@ -126,7 +127,7 @@ GSPrivateThreadID()
 }
 
 #if 0
-/* 
+/*
  * NSThread setName: method for windows.
  * FIXME ... This is code for the microsoft compiler;
  * how do we make it work for gcc/clang?
@@ -157,7 +158,7 @@ static int SetThreadName(DWORD dwThreadID, const char *threadName)
   info.dwFlags = 0;
 
   __try
-  {	
+  {
     RaiseException(MS_VC_EXCEPTION, 0,
       sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info);
     result = 0;
@@ -391,41 +392,210 @@ static NSThread *defaultThread;
 
 static pthread_key_t thread_object_key;
 
+
+/**
+ * pthread_t is an opaque type. It might be a scalar type or
+ * some kind of struct depending on the implementation, so we
+ * need to wrap it up in an NSValue object if we want to pass
+ * it around.
+ * This follows the CoreFoundation 'create rule' and returns an object with
+ * a reference count of 1.
+ */
+static inline NSValue* NSValueCreateFromPthread(pthread_t thread)
+{
+  return [[NSValue alloc] initWithBytes: &thread
+                               objCType: @encode(pthread_t)];
+}
+
+/**
+ * Conversely, we need to be able to retrieve the pthread_t
+ * from an NSValue.
+ */
+static inline void _getPthreadFromNSValue(NSValue* value, pthread_t *thread_ptr)
+{
+  NSCAssert(thread_ptr, @"No storage for thread reference");
+# ifndef NS_BLOCK_ASSERTIONS
+  const char* enc = [value objCType];
+  NSCAssert(enc != NULL && (0 == strcmp(@encode(pthread_t),enc)),
+    @"Invalid NSValue container for thread reference");
+# endif
+  [value getValue: (void*)thread_ptr];
+}
+
+/**
+ * This is the comparison function for boxed pthreads, as used by the
+ * NSMapTable containing them.
+ */
+static BOOL
+_boxedPthreadIsEqual(NSMapTable *t,
+  const void* boxed,
+  const void* boxedOther)
+{
+  pthread_t thread;
+  pthread_t otherThread;
+  _getPthreadFromNSValue(boxed, &thread);
+  _getPthreadFromNSValue(boxedOther, &otherThread);
+  return pthread_equal(thread, otherThread);
+}
+
+/**
+ * Since pthread_t is opaque, we cannot make any assumption about how
+ * to hash it. There are a few problems here:
+ * 1. Functions to obtain the thread ID of an arbitrary thread
+ *    exist in the in the Win32 and some pthread APIs (GetThreadId() and
+ *    pthread_getunique_np(), respectively), but there is no protable solution
+ *    for this problem.
+ * 2. Even where pthread_getunique_np() is available, it might have different
+ *    definitions, so it's not really robust to use it.
+ *
+ * For these reasons, we always return the same hash. That fulfills the API
+ * contract for NSMapTable (key-hash equality as a necessary condition for key
+ * equality), but makes things quite inefficient (linear search over all
+ * elements), so we need to keep the table small.
+ */
+static NSUInteger _boxedPthreadHash(NSMapTable* t, const void* value)
+{
+  return 0;
+}
+
+/**
+ * Retain callback for boxed thread references.
+ */
+static void _boxedPthreadRetain(NSMapTable* t, const void* value)
+{
+  [(NSValue*)value retain];
+}
+
+/**
+ * Release callback for boxed thread references.
+ */
+static void _boxedPthreadRelease(NSMapTable* t, void* value)
+{
+  [(NSValue*)value release];
+}
+
+/**
+ * Description callback for boxed thread references.
+ */
+static NSString *_boxedPthreadDescribe(NSMapTable* t, const void* value)
+{
+  return [(NSValue*)value description];
+}
+
+
+static const NSMapTableKeyCallBacks _boxedPthreadKeyCallBacks =
+{
+  _boxedPthreadHash,
+  _boxedPthreadIsEqual,
+  _boxedPthreadRetain,
+  _boxedPthreadRelease,
+  _boxedPthreadDescribe,
+  NULL
+};
+
+
+/**
+ * This map table maintains a list of all threads currently undergoing
+ * cleanup. This is a required so that +currentThread can still find the
+ * thred if called from within the late-cleanup function.
+ */
+static NSMapTable *_exitingThreads;
+static NSLock *_exitingThreadsLock;
+
+/**
+ * Called before late cleanup is run and inserts the NSThread object into the
+ * table that is used by GSCurrentThread to find the thread if it is called
+ * during cleanup. The boxedThread variable contains a boxed reference to
+ * the result of calling pthread_self().
+ */
+static inline void _willLateUnregisterThread(NSValue *boxedThread,
+  NSThread *specific)
+{
+  [_exitingThreadsLock lock];
+  NS_DURING
+    {
+      NSMapInsert(_exitingThreads, (const void*)boxedThread,
+        (const void*)specific);
+    }
+  NS_HANDLER
+    {
+      [_exitingThreadsLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  [_exitingThreadsLock unlock];
+}
+
+/**
+ * Called after late cleanup has run. Will remove the current thread from
+ * the lookup table again. The boxedThread variable contains a boxed reference
+ * to the result of calling pthread_self().
+ */
+static inline void _didLateUnregisterCurrentThread(NSValue *boxedThread)
+{
+  [_exitingThreadsLock lock];
+  NS_DURING
+    {
+      NSMapRemove(_exitingThreads, (const void*)boxedThread);
+    }
+  NS_HANDLER
+    {
+      [_exitingThreadsLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  [_exitingThreadsLock unlock];
+}
+
+/*
+ * Forward declaration of the thread unregistration function
+ */
+static void
+unregisterActiveThread(NSThread *thread);
+
 /**
  * Pthread cleanup call.
  *
  * We should normally not get here ... because threads should exit properly
  * and clean up, so that this function doesn't get called.  However if a
  * thread terminates for some reason without calling the exit method, we
- * can at least log it.
- *
- * We can't do anything more than that since at the point
- * when this function is called, the thread specific data is no longer
- * available, so the currentThread method will always fail and the
- * repercussions of that would well be a crash.
- *
- * As a special case, we ignore the exit of the default thread ... that one
- * will usually terminate without calling the exit method as it ends the
- * whole process by returning from the 'main' function.
+ * we add it to a special lookup table that is used by GSCurrentThread() to
+ * obtain the NSThread object.
+ * We need to be a bit careful about this regarding object allocation because
+ * we must not call into NSAutoreleasePool unless the NSThread object can still
+ * be found using GSCurrentThread()
  */
 static void exitedThread(void *thread)
 {
+
   if (thread != defaultThread)
     {
-      NSUInteger        tid;
+      [(NSThread*)thread retain];
+      NSValue *ref = NSValueCreateFromPthread(pthread_self());
+      _willLateUnregisterThread(ref, (NSThread*)thread);
+      /* We create a pool for all objects used during cleanup to go into.
+       */
+      NSAutoreleasePool *arp = [NSAutoreleasePool new];
+      NS_DURING
+        {
+           unregisterActiveThread((NSThread*)thread);
+        }
+      NS_HANDLER
+        {
+          DESTROY(arp);
+          _didLateUnregisterCurrentThread(ref);
+          DESTROY(ref);
+          [(NSThread*)thread release];
+        }
+      NS_ENDHANDLER
+      DESTROY(arp);
 
-#if defined(__MINGW__)
-      tid = (NSUInteger)GetCurrentThreadId();
-#elif defined(HAVE_GETTID)
-      tid = (NSUInteger)syscall(SYS_gettid);
-#elif defined(HAVE_PTHREAD_GETTHREADID_NP)
-      tid = (NSUInteger)pthread_getthreadid_np();
-#else
-      tid = (NSUInteger)thread;
-#endif
-
-      fprintf(stderr, "WARNING thread %"PRIuPTR
-        " terminated without calling +exit!\n", tid);
+      /* At this point threre shouldn't be any autoreleased objects lingering
+       * around anymore. So we may remove the thread from the lookup table.
+       */
+      _didLateUnregisterCurrentThread(ref);
+      DESTROY(ref);
+      [(NSThread*)thread release];
     }
 }
 
@@ -437,6 +607,24 @@ inline NSThread*
 GSCurrentThread(void)
 {
   NSThread *thr = pthread_getspecific(thread_object_key);
+  if (nil == thr)
+    {
+      NSValue *selfThread = NSValueCreateFromPthread(pthread_self());
+      [_exitingThreadsLock lock];
+      NS_DURING
+        {
+          thr = NSMapGet(_exitingThreads, (const void*)selfThread);
+        }
+      NS_HANDLER
+        {
+          [_exitingThreadsLock unlock];
+          DESTROY(selfThread);
+          [localException raise];
+        }
+      NS_ENDHANDLER
+      [_exitingThreadsLock unlock];
+      DESTROY(selfThread);
+    }
   if (nil == thr)
     {
       GSRegisterCurrentThread();
@@ -538,7 +726,6 @@ gnustep_base_thread_callback(void)
     }
 }
 
-
 @implementation NSThread
 
 static void
@@ -662,8 +849,11 @@ unregisterActiveThread(NSThread *thread)
        * Ensure that the default thread exists.
        */
       threadClass = self;
-
+      _exitingThreads = NSCreateMapTable(_boxedPthreadKeyCallBacks,
+        NSObjectMapValueCallBacks, 10);
+      _exitingThreadsLock = [NSLock new];
       GSCurrentThread();
+
     }
 }
 
@@ -1514,7 +1704,7 @@ GSRunLoopInfoForThread(NSThread *aThread)
                   modes: commonModes()];
 }
 
-- (void) performSelectorInBackground: (SEL)aSelector 
+- (void) performSelectorInBackground: (SEL)aSelector
                           withObject: (id)anObject
 {
   [NSThread detachNewThreadSelector: aSelector

@@ -1,3 +1,12 @@
+2016-01-29	Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSThread.m: Automatic 'late' unregistration of thread objects: When
+	+exit is not called, we no longer log a warning and leak the thread object.
+	Instead, we add it to a map table, keyed under the current thread ID, and
+	use that in GSCurrentThread() to find the correct NSThread object if
+	pthread_getspecific wont return it to us. 
+	* Tests/base/NSThread/late_unregister.m: Test case for late unregistration.
+
 2016-01-21	Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/Additions/GSMime.m: Fix folding of headers containing
@@ -394,7 +403,7 @@
 	* Source/Additions/Unicode.m
 	* Tools/AGSOutput.m
 	  return NULL or nil instead of NO where pointers are to
-	  be returned 
+	  be returned
 
 2015-05-26  Richard Frith-Macdonald <rfm@gnu.org>
 
@@ -513,7 +522,7 @@
 
 2015-03-10 Niels Grewe <niels.grewe@halbordnung.de>
 
-	* Source/GSTimSort.m: Fix a DoS vulnerability discovered in the 
+	* Source/GSTimSort.m: Fix a DoS vulnerability discovered in the
 	Timsort algorithm. For information about the problem please refer to
 	http://www.envisage-project.eu/proving-android-java-and-python-sorting
 	-algorithm-is-broken-and-how-to-fix-it/
@@ -576,7 +585,7 @@
 
 2015-01-13  Marcus Mueller <znek@mulle-kybernetik.com>
 
-	* Headers/Foundation/Foundation.h: added NSUUID.h 
+	* Headers/Foundation/Foundation.h: added NSUUID.h
 
 2014-12-28  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
@@ -756,7 +765,7 @@
 	* Tools/make_strings/GNUmakefile (CONFIG_SYSTEM_LIBS): Define
 	to the empty string to avoid linking the tools against
 	external libraries.
-	
+
 2014-06-30 Yavor Doganov  <yavor@gnu.org>
 
 	* base.make.in: make base dependencies explicit only when statically
