@@ -120,6 +120,12 @@ int main()
   PASS_EQUAL(str1, str2, "Encode / Decode 64 - implicit CR LF")
   [str2 release];
 
+  data = [[NSData alloc] initWithBase64EncodedString:
+    @"Yml0bWFya2V0cyB1c2VyIGluZGVudGl0eQ==" options: 0];
+  ref = [NSData dataWithBytes: "bitmarkets user indentity" length: 25];
+  PASS_EQUAL(data, ref, "base64 decoding Yml0bWFya2V0cyB1c2VyIGluZGVudGl0eQ==")
+  [data release];
+
   [arp release]; arp = nil;
   return 0;
 }
