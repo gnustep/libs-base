@@ -719,6 +719,14 @@ failure:
               c = *src++;
               if (c != '=')
                 {
+                  if (options & NSDataBase64DecodingIgnoreUnknownCharacters)
+                    {
+                      if (!isupper(c) && !islower(c) && !isdigit(c)
+                        && c != '/' && c != '+')
+                        {
+                          continue;     // An unknown character
+                        }
+                    }
                   free(result);
                   DESTROY(self);
                   return nil;
