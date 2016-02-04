@@ -121,7 +121,8 @@ int main()
   [str2 release];
 
   data = [[NSData alloc] initWithBase64EncodedString:
-    @"Yml0bWFya2V0cyB1c2VyIGluZGVudGl0eQ==" options: 0];
+    @"Yml0bWFya2V0cyB1c2VyIGluZGVudGl0eQ==\n"
+    options: NSDataBase64DecodingIgnoreUnknownCharacters];
   ref = [NSData dataWithBytes: "bitmarkets user indentity" length: 25];
   PASS_EQUAL(data, ref, "base64 decoding Yml0bWFya2V0cyB1c2VyIGluZGVudGl0eQ==")
   [data release];
