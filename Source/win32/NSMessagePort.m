@@ -178,6 +178,12 @@ static Class		messagePortClass = 0;
   return result;
 }
 
+
+#if defined(__MINGW__)
+typedef void (*PrintStackTracePtr)();
+static HANDLE BTHandle = NULL;
+#endif
+
 + (void) initialize
 {
   if (self == [NSMessagePort class])
@@ -191,8 +197,33 @@ static Class		messagePortClass = 0;
       security.nLength = sizeof(SECURITY_ATTRIBUTES);
       security.lpSecurityDescriptor = 0;	// Default
       security.bInheritHandle = FALSE;
+      
+#if defined(__MINGW__)
+      // Load backtrace library for mingw...
+      BTHandle = LoadLibraryA("Resources/backtrace.dll");
+      if (BTHandle == 0)
+      {
+        NSLog(@"%s:error loading mingw backtrace library - status: %d", __PRETTY_FUNCTION__, GetLastError());
+      }
+      else
+      {
+        NSLog(@"%s:Windows/mingw backtrace library loaded successfully", __PRETTY_FUNCTION__);
+      }
+#endif
     }
 }
+
+#if defined(__MINGW__)
++ (void) printStackTrace
+{
+  if (BTHandle != NULL)
+  {
+    PrintStackTracePtr printStackTrace = GetProcAddress(BTHandle, "backtracePrintStackTrace");
+    if (printStackTrace != NULL)
+      (*printStackTrace)();
+  }
+}
+#endif
 
 + (id) newWithName: (NSString*)name
 {
@@ -644,6 +675,9 @@ static Class		messagePortClass = 0;
 	      if (rPort == nil)
 		{
 		  NSLog(@"%@ - unable to decode remote port", self);
+#if defined(__MINGW__)
+      [[self class] printStackTrace];
+#endif
 		  break;
 		}
 	      rItems = [NSMutableArray alloc];
@@ -681,6 +715,9 @@ static Class		messagePortClass = 0;
 	      if (p == nil)
 		{
 		  NSLog(@"%@ - unable to decode remote port", self);
+#if defined(__MINGW__)
+      [[self class] printStackTrace];
+#endif
 		  break;
 		}
 	      [rItems addObject: p];
