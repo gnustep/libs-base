@@ -818,6 +818,7 @@ newLanguages(NSArray *oldNames)
 		{
 		  NS_VALRETURN([defs autorelease]);
 		}
+              RELEASE(defs);
 	    }
 	  NSLog(@"WARNING - unable to create shared user defaults!\n");
 	  NS_VALRETURN(nil);
