@@ -7,23 +7,35 @@ static BOOL freed;
 @implementation Test
 - (void)dealloc
 {
-	freed = YES;
-	[super dealloc];
+  freed = YES;
+  [super dealloc];
 }
 @end
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSObject *o = [NSObject new];
-  unsigned i;
+  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  NSObject              *o = [NSObject new];
+  unsigned              c;
+  unsigned              i;
 
+  [[o retain] autorelease];
+  RELEASE(arp);
+
+  arp = [NSAutoreleasePool new];
+  c = [arp autoreleaseCount];
+  printf("Initial count %u\n", c);
   for (i = 0; i < 1000; i++)
-  {
-    [[o retain] autorelease];
-  }
-  NSUInteger totalCount = [arp autoreleaseCount];
-  PASS(totalCount == 1000, "Autorelease count is correct");
+    {
+      [[o retain] autorelease];
+    }
+  i = [arp autoreleaseCount];
+  printf("Final count %u\n", i);
+  NSCAssert(arp == [NSAutoreleasePool currentPool],
+    NSInternalInconsistencyException);
+  PASS(1000 == i - c, "Autorelease count is correct");
+  PASS([arp autoreleaseCountForObject: o] == 1000,
+       "Autorelease count for object is correct");
   PASS([NSAutoreleasePool autoreleaseCountForObject: o] == 1000,
        "Autorelease count for object is correct");
   PASS(freed == NO, "Object not prematurely freed");
