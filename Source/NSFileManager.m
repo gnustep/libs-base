@@ -2893,6 +2893,12 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
       if ([fileType isEqual: NSFileTypeDirectory])
 	{
+      attributes = AUTORELEASE([attributes mutableCopy]);
+      [(NSMutableDictionary*)attributes removeObjectForKey: NSFileOwnerAccountID];
+      [(NSMutableDictionary*)attributes removeObjectForKey: NSFileGroupOwnerAccountID];
+      [(NSMutableDictionary*)attributes removeObjectForKey: NSFileGroupOwnerAccountName];
+      [(NSMutableDictionary*)attributes setObject: NSUserName()
+                                           forKey: NSFileOwnerAccountName];
 	  BOOL	dirOK;
 
 	  dirOK = [self createDirectoryAtPath: destinationFile
