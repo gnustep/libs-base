@@ -1,3 +1,10 @@
+2016-02-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Use uint32_t rather than unsigned long ... we are
+	actually dealing with 4 byte values (from htonl), not native longs,
+	and this can result in buffer overrun when we try copying a 64bit
+	value into a 32bit buffer on a 64bit system.
+
 2016-02-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: Fix for decoding base64 with unknown characters
