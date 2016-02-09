@@ -804,6 +804,21 @@ newLanguages(NSArray *oldNames)
 
       if (nil == defs)
 	{
+	  const unsigned retryCount = 100;
+	  const NSTimeInterval retryInterval = 0.1;
+	  unsigned i;
+	  for (i = 0; i < retryCount; i++)
+	    {
+	      [NSThread sleepForTimeInterval:retryInterval];
+	      [classLock lock];
+	      defs = [sharedDefaults retain];
+	      setup = hasSharedDefaults;
+	      [classLock unlock];
+	      if (YES == setup)
+		{
+		  NS_VALRETURN([defs autorelease]);
+		}
+	    }
 	  NSLog(@"WARNING - unable to create shared user defaults!\n");
 	  NS_VALRETURN(nil);
 	}
@@ -1101,6 +1116,7 @@ newLanguages(NSArray *oldNames)
   NSFileManager	*mgr = [NSFileManager defaultManager];
   NSRange	r;
   BOOL		flag;
+  NSDictionary *argumentsDictionary = nil;
 
   self = [super init];
 
@@ -1158,8 +1174,12 @@ newLanguages(NSArray *oldNames)
 
   // Create volatile defaults and add the Argument and the Registration domains
   _tempDomains = [[NSMutableDictionaryClass alloc] initWithCapacity: 10];
-  [_tempDomains setObject: [self _createArgumentDictionary]
+  argumentsDictionary = [self _createArgumentDictionary];
+  if (nil != argumentsDictionary)
+    {
+      [_tempDomains setObject: argumentsDictionary
 		   forKey: NSArgumentDomain];
+    }
   [_tempDomains
     setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
     forKey: NSRegistrationDomain];
@@ -2164,13 +2184,15 @@ NSDictionary *GSPrivateDefaultLocale()
   BOOL		done;
   id		key, val;
 
-  [_lock lock];
+  [classLock lock];
   if (YES == parsingArguments)
     {
-      [_lock unlock];
+      [classLock unlock];
       return nil;       // Prevent recursion
     }
   parsingArguments = YES;
+  [classLock unlock];
+  [_lock lock];
   NS_DURING
     {
       args = [[NSProcessInfo processInfo] arguments];
@@ -2253,12 +2275,16 @@ NSDictionary *GSPrivateDefaultLocale()
 	    }
           done = ((key = [enumerator nextObject]) == nil);
         }
+      [classLock lock];
       parsingArguments = NO;
+      [classLock unlock];
       [_lock unlock];
     }
   NS_HANDLER
     {
+      [classLock lock];
       parsingArguments = NO;
+      [classLock unlock];
       [_lock unlock];
       [localException raise];
     }
