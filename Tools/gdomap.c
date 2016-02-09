@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <unistd.h>		/* for gethostname() */
+#include <inttypes.h>
 #ifndef __MINGW__
 #include <sys/param.h>		/* for MAXHOSTNAMELEN */
 #include <sys/types.h>
@@ -178,11 +179,11 @@ static struct in_addr	loopback;
 
 static unsigned short	my_port;	/* Set in init_iface()		*/
 
-static unsigned long	class_a_net;
 static struct in_addr	class_a_mask;
-static unsigned long	class_b_net;
 static struct in_addr	class_b_mask;
-static unsigned long	class_c_net;
+static uint32_t	class_a_net;
+static uint32_t	class_b_net;
+static uint32_t	class_c_net;
 struct in_addr	class_c_mask;
 
 static char	*local_hostname = 0;
@@ -904,8 +905,8 @@ map_del(map_ent* e)
  *	Variables and functions for keeping track of the IP addresses of
  *	hosts which are running the name server.
  */
-static unsigned long	prb_used = 0;
-static unsigned long	prb_size = 0;
+static uint32_t	prb_used = 0;
+static uint32_t	prb_size = 0;
 typedef struct	{
   struct in_addr	sin;
   time_t		when;
@@ -1103,7 +1104,8 @@ dump_stats()
   gdomap_log(LOG_INFO);
   snprintf(ebuf, sizeof(ebuf), "size of name-to-port map - %d", map_used);
   gdomap_log(LOG_INFO);
-  snprintf(ebuf, sizeof(ebuf), "number of known name servers - %ld", prb_used);
+  snprintf(ebuf, sizeof(ebuf), "number of known name servers - %"PRIu32,
+    prb_used);
   gdomap_log(LOG_INFO);
   snprintf(ebuf, sizeof(ebuf), "TCP %d read, %d sent", tcp_read, tcp_sent);
   gdomap_log(LOG_INFO);
@@ -1168,7 +1170,7 @@ init_iface()
 {
 #if	defined(__MINGW__)
   INTERFACE_INFO InterfaceList[20];
-  unsigned long nBytesReturned;
+  uint32_t nBytesReturned;
   int i, countActive, nNumInterfaces;
   SOCKET desc = WSASocket(PF_INET, SOCK_RAW, AF_INET, 0, 0, 0);
 
@@ -1758,7 +1760,7 @@ init_ports()
   int		r;
   struct sockaddr_in	sa;
 #if	defined(__MINGW__)
-  unsigned long dummy;
+  uint32_t dummy;
 #endif /* __MINGW__ */
 
   /*
@@ -2055,7 +2057,7 @@ other_addresses_on_net(struct in_addr old, struct in_addr **extra)
 static void
 init_probe()
 {
-  unsigned long nlist[interfaces];
+  uint32_t nlist[interfaces];
   int	nlist_size = 0;
   int	iface;
   int	i;
@@ -2075,7 +2077,7 @@ init_probe()
    */
   for (iface = 0; iface < interfaces; iface++)
     {
-      unsigned long	net = (addr[iface].s_addr & mask[iface].s_addr);
+      uint32_t	net = (addr[iface].s_addr & mask[iface].s_addr);
 
       if (addr[iface].s_addr == loopback.s_addr)
 	{
@@ -2103,7 +2105,7 @@ init_probe()
       struct in_addr	sin = { 0 };
       int		high = 0;
       int		low = 0;
-      unsigned long	net = 0;
+      uint32_t  	net = 0;
       int		j;
       struct in_addr	b;
 
@@ -2125,8 +2127,8 @@ init_probe()
 		}
 	      else
 		{
-		  unsigned long ha;		/* full host address.	*/
-		  unsigned long hm;		/* full netmask.	*/
+		  uint32_t ha;		/* full host address.	*/
+		  uint32_t hm;		/* full netmask.	*/
 
 		  ha = ntohl(addr[iface].s_addr);
 		  hm = ntohl(mask[iface].s_addr);
@@ -2308,7 +2310,7 @@ handle_accept()
     {
       RInfo		*ri;
 #if	defined(__MINGW__)
-      unsigned long	dummy = 1;
+      uint32_t	dummy = 1;
 #else
       int		r;
 #endif /* !__MINGW__ */
@@ -2699,7 +2701,7 @@ handle_request(int desc)
   unsigned char	type;
   unsigned char	size;
   unsigned char	ptype;
-  unsigned long	port;
+  uint32_t	port;
   unsigned char	*buf;
   map_ent	*m;
 
@@ -2740,7 +2742,7 @@ handle_request(int desc)
       else
 	{
 	  snprintf(ebuf, sizeof(ebuf),
-	    "  name: '%.*s' port: %ld", size, buf, port);
+	    "  name: '%.*s' port: %"PRIu32, size, buf, port);
 	  gdomap_log(LOG_DEBUG);
 	}
     }
@@ -2823,7 +2825,7 @@ handle_request(int desc)
 	      snprintf(ebuf, sizeof(ebuf), "Already registered ... success");
 	      gdomap_log(LOG_DEBUG);
 	    }
-	  *(unsigned long*)wi->buf = htonl(port);
+	  *(uint32_t*)wi->buf = htonl(port);
 	}
       else if (m != 0)
 	{
@@ -2876,7 +2878,7 @@ handle_request(int desc)
 		      if (debug > 1)
 			{
 			  snprintf(ebuf, sizeof(ebuf),
-			    "re-register from %d to %ld",
+			    "re-register from %d to %"PRIu32,
 			    m->port, port);
 			  gdomap_log(LOG_DEBUG);
 			}
@@ -2884,7 +2886,7 @@ handle_request(int desc)
 		      m->net = (ptype & GDO_NET_MASK);
 		      m->svc = (ptype & GDO_SVC_MASK);
 		      port = htonl(m->port);
-		      *(unsigned long*)wi->buf = port;
+		      *(uint32_t*)wi->buf = port;
 		    }
 		}
 #if	defined(__MINGW__)
@@ -2901,18 +2903,18 @@ handle_request(int desc)
 	      snprintf(ebuf, sizeof(ebuf), "Port not provided in request!");
 	      gdomap_log(LOG_DEBUG);
 	    }
-	  *(unsigned long*)wi->buf = 0;
+	  *(uint32_t*)wi->buf = 0;
 	}
       else
 	{		/* Use port provided in request.	*/
 	  if (debug)
 	    {
-	      snprintf(ebuf, sizeof(ebuf), "Registered on port %lu", port);
+	      snprintf(ebuf, sizeof(ebuf), "Registered on port %"PRIu32, port);
 	      gdomap_log(LOG_DEBUG);
 	    }
 	  m = map_add(buf, size, port, ptype);
 	  port = htonl(m->port);
-	  *(unsigned long*)wi->buf = port;
+	  *(uint32_t*)wi->buf = port;
 	}
     }
   else if (type == GDO_LOOKUP)
@@ -3019,7 +3021,7 @@ handle_request(int desc)
 	}
       if (m)
 	{	/* Lookup found live server.	*/
-	  *(unsigned long*)wi->buf = htonl(m->port);
+	  *(uint32_t*)wi->buf = htonl(m->port);
 	}
       else
 	{		/* Not found.			*/
@@ -3059,7 +3061,7 @@ handle_request(int desc)
 		}
 	      else
 		{
-		  *(unsigned long*)wi->buf = htonl(m->port);
+		  *(uint32_t*)wi->buf = htonl(m->port);
 		  map_del(m);
 		}
 	    }
@@ -3074,11 +3076,11 @@ handle_request(int desc)
 	}
       else
 	{
-	  *(unsigned long*)wi->buf = 0;
+	  *(uint32_t*)wi->buf = 0;
 
 	  while ((m = map_by_port(port, ptype)) != 0)
 	    {
-	      *(unsigned long*)wi->buf = htonl(m->port);
+	      *(uint32_t*)wi->buf = htonl(m->port);
 	      map_del(m);
 	    }
 	}
@@ -3089,9 +3091,9 @@ handle_request(int desc)
       unsigned int	j;
 
       free(wi->buf);
-      wi->buf = (char*)calloc(sizeof(unsigned long)
+      wi->buf = (char*)calloc(sizeof(uint32_t)
 	+ (prb_used+1)*IASIZE, 1);
-      *(unsigned long*)wi->buf = htonl(prb_used+1);
+      *(uint32_t*)wi->buf = htonl(prb_used+1);
       memcpy(&wi->buf[4], &ri->addr.sin_addr, IASIZE);
 
       /*
@@ -3126,7 +3128,7 @@ handle_request(int desc)
        * Allocate with space for number of names and set it up.
        */
       wi->buf = (char*)malloc(4 + bytes);
-      *(unsigned long*)wi->buf = htonl(bytes);
+      *(uint32_t*)wi->buf = htonl(bytes);
       ptr = (uptr)wi->buf;
       ptr += 4;
       for (i = 0; i < map_used; i++)
@@ -3165,7 +3167,7 @@ handle_request(int desc)
 #if 0
 	{
 	  struct in_addr	*ptr;
-	  unsigned long	net;
+	  uint32_t	net;
 	  int	c;
 
 #if	defined(__MINGW__)
@@ -3281,7 +3283,7 @@ handle_request(int desc)
       else
 	{
 	  port = my_port;
-	  *(unsigned long*)wi->buf = htonl(port);
+	  *(uint32_t*)wi->buf = htonl(port);
 	}
     }
   else if (type == GDO_PREPLY)
@@ -3708,11 +3710,11 @@ int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
 {
   int desc = socket(AF_INET, SOCK_STREAM, 0);
   int	e = 0;
-  unsigned long	port = *p;
+  uint32_t	port = *p;
   gdo_req		msg;
   struct sockaddr_in sin;
 #if	defined(__MINGW__)
-  unsigned long dummy;
+  uint32_t dummy;
 #endif /* __MINGW__ */
 
   *p = 0;
