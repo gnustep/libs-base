@@ -411,11 +411,14 @@ static inline NSValue* NSValueCreateFromPthread(pthread_t thread)
  * Conversely, we need to be able to retrieve the pthread_t
  * from an NSValue.
  */
-static inline void _getPthreadFromNSValue(NSValue* value, pthread_t *thread_ptr)
+static inline void
+_getPthreadFromNSValue(NSValue* value, pthread_t *thread_ptr)
 {
+  const char    *enc;
+
   NSCAssert(thread_ptr, @"No storage for thread reference");
 # ifndef NS_BLOCK_ASSERTIONS
-  const char* enc = [value objCType];
+  enc = [value objCType];
   NSCAssert(enc != NULL && (0 == strcmp(@encode(pthread_t),enc)),
     @"Invalid NSValue container for thread reference");
 # endif
@@ -433,6 +436,7 @@ _boxedPthreadIsEqual(NSMapTable *t,
 {
   pthread_t thread;
   pthread_t otherThread;
+
   _getPthreadFromNSValue(boxed, &thread);
   _getPthreadFromNSValue(boxedOther, &otherThread);
   return pthread_equal(thread, otherThread);
@@ -463,7 +467,7 @@ static NSUInteger _boxedPthreadHash(NSMapTable* t, const void* value)
  */
 static void _boxedPthreadRetain(NSMapTable* t, const void* value)
 {
-  [(NSValue*)value retain];
+  RETAIN((NSValue*)value);
 }
 
 /**
@@ -471,7 +475,7 @@ static void _boxedPthreadRetain(NSMapTable* t, const void* value)
  */
 static void _boxedPthreadRelease(NSMapTable* t, void* value)
 {
-  [(NSValue*)value release];
+  RELEASE((NSValue*)value);
 }
 
 /**
@@ -567,25 +571,24 @@ unregisterActiveThread(NSThread *thread);
  */
 static void exitedThread(void *thread)
 {
-
   if (thread != defaultThread)
     {
-      [(NSThread*)thread retain];
-      NSValue *ref = NSValueCreateFromPthread(pthread_self());
+      CREATE_AUTORELEASE_POOL(arp);
+      NSValue           *ref;
+
+      RETAIN((NSThread*)thread);
+      ref = NSValueCreateFromPthread(pthread_self());
       _willLateUnregisterThread(ref, (NSThread*)thread);
-      /* We create a pool for all objects used during cleanup to go into.
-       */
-      NSAutoreleasePool *arp = [NSAutoreleasePool new];
       NS_DURING
         {
-           unregisterActiveThread((NSThread*)thread);
+          unregisterActiveThread((NSThread*)thread);
         }
       NS_HANDLER
         {
           DESTROY(arp);
           _didLateUnregisterCurrentThread(ref);
           DESTROY(ref);
-          [(NSThread*)thread release];
+          RELEASE((NSThread*)thread);
         }
       NS_ENDHANDLER
       DESTROY(arp);
@@ -595,7 +598,7 @@ static void exitedThread(void *thread)
        */
       _didLateUnregisterCurrentThread(ref);
       DESTROY(ref);
-      [(NSThread*)thread release];
+      RELEASE((NSThread*)thread);
     }
 }
 
@@ -631,7 +634,7 @@ GSCurrentThread(void)
       thr = pthread_getspecific(thread_object_key);
       if ((nil == defaultThread) && IS_MAIN_PTHREAD)
         {
-          defaultThread = [thr retain];
+          defaultThread = RETAIN(thr);
         }
     }
   assert(nil != thr && "No main thread");
@@ -759,7 +762,7 @@ unregisterActiveThread(NSThread *thread)
 		      userInfo: nil];
 
       [(GSRunLoopThreadInfo*)thread->_runLoopInfo invalidate];
-      [thread  release];
+      RELEASE(thread);
 
       [[NSGarbageCollector defaultCollector] enableCollectorForPointer: thread];
       pthread_setspecific(thread_object_key, nil);
@@ -1197,7 +1200,7 @@ static void *nsthreadLauncher(void* thread)
 
   /* The thread must persist until it finishes executing.
    */
-  [self retain];
+  RETAIN(self);
 
   /* Mark the thread as active whiul it's running.
    */
@@ -1363,7 +1366,7 @@ static void *nsthreadLauncher(void* thread)
   NSArray       *p;
 
   [lock lock];
-  p = [performers autorelease];
+  p = AUTORELEASE(performers);
   performers = nil;
 #ifdef __MINGW__
   if (event != INVALID_HANDLE_VALUE)
