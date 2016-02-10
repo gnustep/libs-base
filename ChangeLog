@@ -1,9 +1,17 @@
+2016-02-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: In GSCurrentThread() the check for exiting
+	thread needs to NOT be wrapped in an exception handler, since the
+	exception handling code can attempt to get the current thread,
+	causing recursion.
+
 2016-02-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m:
 	Remove dependency on NSUserDefaults in order to parse property list
 	in program arguments ... get boolean defaults settings from the
 	argument domain
+
 2016-02-09  Larry Campbell <lcampbel@akamai.com>
 
 	* Source/NSUserDefaults.m: Fix for bug #46956

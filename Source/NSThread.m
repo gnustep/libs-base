@@ -610,21 +610,17 @@ inline NSThread*
 GSCurrentThread(void)
 {
   NSThread *thr = pthread_getspecific(thread_object_key);
+
   if (nil == thr)
     {
       NSValue *selfThread = NSValueCreateFromPthread(pthread_self());
+
+      /* NB this locked section cannot be protected by an exception handler
+       * because the exception handler stores information in the current
+       * thread variables ... which causes recursion.
+       */
       [_exitingThreadsLock lock];
-      NS_DURING
-        {
-          thr = NSMapGet(_exitingThreads, (const void*)selfThread);
-        }
-      NS_HANDLER
-        {
-          [_exitingThreadsLock unlock];
-          DESTROY(selfThread);
-          [localException raise];
-        }
-      NS_ENDHANDLER
+      thr = NSMapGet(_exitingThreads, (const void*)selfThread);
       [_exitingThreadsLock unlock];
       DESTROY(selfThread);
     }
