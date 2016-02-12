@@ -1,3 +1,8 @@
+2016-02-12  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Headers/Foundation/NSObjCRuntime.h: Define macros for
+	non-null sections if available.
+
 2016-02-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: In GSCurrentThread() the check for exiting
