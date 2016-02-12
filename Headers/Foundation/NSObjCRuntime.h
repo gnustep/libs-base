@@ -150,6 +150,18 @@ extern "C" {
  */
 #define NS_ENUM(...) _GS_GET_ENUM_MACRO(__VA_ARGS__,_GS_NAMED_ENUM,_GS_ANON_ENUM)(__VA_ARGS__)
 
+/*
+ * If the compiler supports nullability qualifiers, we define the macros for
+ * non-null sections.
+ */
+#if __has_feature(nullability)
+#  define NS_ASSUME_NONNULL_BEGIN _Pragma("clang assume_nonnull begin")
+#  define NS_ASSUME_NONNULL_END   _Pragma("clang assume_nonnull end")
+#else 
+#  define NS_ASSUME_NONNULL_BEGIN
+#  define NS_ASSUME_NONNULL_END
+#endif
+
 /** Bitfield used to specify options to control enumeration over collections.
  */
 typedef NS_OPTIONS(NSUInteger, NSEnumerationOptions)
