@@ -576,6 +576,7 @@ newLanguages(NSArray *oldNames)
       NSNumberClass = [NSNumber class];
       NSMutableDictionaryClass = [NSMutableDictionary class];
       NSStringClass = [NSString class];
+      argumentsDictionary = [NSDictionary new];
       [self registerAtExit];
 
       /* Initialise the defaults flags to take values from the
@@ -2340,12 +2341,11 @@ NSDictionary *GSPrivateDefaultLocale()
 	    }
           done = ((key = [enumerator nextObject]) == nil);
         }
-      argumentsDictionary = [argDict copy];
+      ASSIGNCOPY(argumentsDictionary, argDict);
       [classLock unlock];
     }
   NS_HANDLER
     {
-      argumentsDictionary = [NSDictionary new];
       [classLock unlock];
       [localException raise];
     }

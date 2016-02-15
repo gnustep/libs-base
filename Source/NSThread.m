@@ -573,25 +573,28 @@ static void exitedThread(void *thread)
 {
   if (thread != defaultThread)
     {
-      CREATE_AUTORELEASE_POOL(arp);
       NSValue           *ref;
 
       RETAIN((NSThread*)thread);
       ref = NSValueCreateFromPthread(pthread_self());
       _willLateUnregisterThread(ref, (NSThread*)thread);
-      NS_DURING
-        {
-          unregisterActiveThread((NSThread*)thread);
-        }
-      NS_HANDLER
-        {
-          DESTROY(arp);
-          _didLateUnregisterCurrentThread(ref);
-          DESTROY(ref);
-          RELEASE((NSThread*)thread);
-        }
-      NS_ENDHANDLER
-      DESTROY(arp);
+
+      {
+        CREATE_AUTORELEASE_POOL(arp);
+        NS_DURING
+          {
+            unregisterActiveThread((NSThread*)thread);
+          }
+        NS_HANDLER
+          {
+            DESTROY(arp);
+            _didLateUnregisterCurrentThread(ref);
+            DESTROY(ref);
+            RELEASE((NSThread*)thread);
+          }
+        NS_ENDHANDLER
+        DESTROY(arp);
+      }
 
       /* At this point threre shouldn't be any autoreleased objects lingering
        * around anymore. So we may remove the thread from the lookup table.
