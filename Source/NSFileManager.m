@@ -1018,7 +1018,7 @@ static NSStringEncoding	defaultEncoding;
 	    NSFileOwnerAccountName, NSUserName(), nil];
 	  if (![self changeFileAttributes: attributes atPath: path])
 	    {
-	      NSLog(@"Failed to change ownership of '%@' to '%@'",
+	      NSDebugLog(@"Failed to change ownership of '%@' to '%@'",
 		path, NSUserName());
 	    }
 	}
@@ -2105,7 +2105,7 @@ static NSStringEncoding	defaultEncoding;
 
   return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
 #else
-  NSLog(@"NSFileManager", @"no support for filesystem attributes");
+  GSOnceMLog(@"NSFileManager", @"no support for filesystem attributes");
   ASSIGN(_lastError, @"no support for filesystem attributes");
   return nil;
 #endif
@@ -2389,7 +2389,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
         }
       else
         {
-          NSLog(@"Failed to recurse into directory '%@' - %@", path,
+          NSDebugLog(@"Failed to recurse into directory '%@' - %@", path,
             [NSError _last]);
         }
     }
@@ -2540,7 +2540,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		}
 	      if (S_IFDIR == (S_IFMT & statbuf.st_mode))
 		{
-		  _DIR*  dir_pointer;
+		  _DIR  *dir_pointer;
 
 		  dir_pointer
 		    = _OPENDIR([_mgr fileSystemRepresentationWithPath:
@@ -2556,7 +2556,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		    }
 		  else
 		    {
-		      NSLog(@"Failed to recurse into directory '%@' - %@",
+		      NSDebugLog(@"Failed to recurse into directory '%@' - %@",
 			_currentFilePath, [NSError _last]);
 		    }
 		}
@@ -2944,7 +2944,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	  s = [NSString stringWithFormat: @"cannot copy file type '%@'",
 	    fileType];
 	  ASSIGN(_lastError, s);
-	  NSLog(@"%@: %@", sourceFile, s);
+	  NSDebugLog(@"%@: %@", sourceFile, s);
 	  continue;
 	}
       [self changeFileAttributes: attributes atPath: destinationFile];
@@ -3639,7 +3639,7 @@ static NSSet	*fileKeys = nil;
     }
   if (count >= 2)
     {
-      NSLog(@"Warning ... key '%@' not handled", key);
+      NSDebugLog(@"Warning ... key '%@' not handled", key);
     }
   return nil;
 }

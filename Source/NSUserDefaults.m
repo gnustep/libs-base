@@ -88,6 +88,7 @@ static NSString		*GSPrimaryDomain = @"GSPrimaryDomain";
 static NSString		*defaultsFile = @".GNUstepDefaults";
 
 static NSUserDefaults	*sharedDefaults = nil;
+static NSDictionary     *argumentsDictionary = nil;
 static NSMutableString	*processName = nil;
 static NSRecursiveLock	*classLock = nil;
 
@@ -97,10 +98,10 @@ static NSRecursiveLock	*classLock = nil;
  * have no defaults available.
  */
 static BOOL		hasSharedDefaults = NO;
-/*
- * Caching some defaults.
+
+/* Caching some default flag values.  Until the standard defaults have
+ * been loaded, these values are taken from the process arguments.
  */
-static BOOL     parsingArguments = NO;
 static BOOL	flags[GSUserDefaultMaxFlag] = { 0 };
 
 /* An instance of the GSPersistentDomain class is used to encapsulate
@@ -244,6 +245,8 @@ updateCache(NSUserDefaults *self)
 	    }
 	}
 
+      /* NB the following flags are first set up, in the +initialize method.
+       */
       flags[GSMacOSXCompatible]
 	= [self boolForKey: @"GSMacOSXCompatible"];
       flags[GSOldStyleGeometry]
@@ -429,7 +432,7 @@ newLanguages(NSArray *oldNames)
  *** Private method definitions
  *************************************************************************/
 @interface NSUserDefaults (Private)
-- (NSDictionary*) _createArgumentDictionary;
++ (void) _createArgumentDictionary: (NSArray*)args;
 - (void) _changePersistentDomain: (NSString*)domainName;
 - (NSString*) _directory;
 - (BOOL) _lockDefaultsFile: (BOOL*)wasLocked;
@@ -547,6 +550,7 @@ newLanguages(NSArray *oldNames)
 {
   DESTROY(sharedDefaults);
   DESTROY(processName);
+  DESTROY(argumentsDictionary);
   DESTROY(classLock);
 }
 
@@ -554,6 +558,11 @@ newLanguages(NSArray *oldNames)
 {
   if (self == [NSUserDefaults class])
     {
+      CREATE_AUTORELEASE_POOL(pool);
+      NSEnumerator      *enumerator;
+      NSArray           *args;
+      NSString          *key;
+
       nextObjectSel = @selector(nextObject);
       objectForKeySel = @selector(objectForKey:);
       addSel = @selector(addEntriesFromDictionary:);
@@ -567,8 +576,67 @@ newLanguages(NSArray *oldNames)
       NSNumberClass = [NSNumber class];
       NSMutableDictionaryClass = [NSMutableDictionary class];
       NSStringClass = [NSString class];
-      classLock = [GSLazyRecursiveLock new];
       [self registerAtExit];
+
+      /* Initialise the defaults flags to take values from the
+       * process arguments.  These are otherwise set in updateCache()
+       * We do this early on so that the boolean argument settings can
+       * be used while parsing property list values of other args in
+       * the +_createArgumentDictionary: method.
+       */
+      args = [[NSProcessInfo processInfo] arguments];
+      enumerator = [[[NSProcessInfo processInfo] arguments] objectEnumerator];
+      [enumerator nextObject];	// Skip process name.
+      while (nil != (key = [enumerator nextObject]))
+        {
+          if ([key hasPrefix: @"-"] == YES && [key isEqual: @"-"] == NO)
+	    {
+              id        val;
+
+	      /* Anything beginning with a '-' is a defaults key and we
+               * must strip the '-' from it.
+               */
+	      key = [key substringFromIndex: 1];
+	      while (nil != (val = [enumerator nextObject]))
+                {
+                  if ([val hasPrefix: @"-"] == YES && [val isEqual: @"-"] == NO)
+                    {
+                      key = val;
+                    }
+                  else if ([key isEqualToString: @"GSMacOSXCompatible"])
+                    {
+                      flags[GSMacOSXCompatible] = [val boolValue];
+                    }
+                  else if ([key isEqualToString: @"GSOldStyleGeometry"])
+                    {
+                      flags[GSOldStyleGeometry] = [val boolValue];
+                    }
+                  else if ([key isEqualToString: @"GSLogSyslog"])
+                    {
+                      flags[GSLogSyslog] = [val boolValue];
+                    }
+                  else if ([key isEqualToString: @"GSLogThread"])
+                    {
+                      flags[GSLogThread] = [val boolValue];
+                    }
+                  else if ([key isEqualToString: @"GSLogOffset"])
+                    {
+                      flags[GSLogOffset] = [val boolValue];
+                    }
+                  else if ([key isEqual: @"NSWriteOldStylePropertyLists"])
+                    {
+                      flags[NSWriteOldStylePropertyLists] = [val boolValue];
+                    }
+	        }
+	    }
+        }
+      /* The classLock must be created after setting up the flags[] array,
+       * so once it exists we know we can used them safely.
+       */
+      classLock = [NSRecursiveLock new];
+
+      [self _createArgumentDictionary: args];
+      DESTROY(pool);
     }
 }
 
@@ -804,19 +872,20 @@ newLanguages(NSArray *oldNames)
 
       if (nil == defs)
 	{
-	  const unsigned retryCount = 100;
-	  const NSTimeInterval retryInterval = 0.1;
-	  unsigned i;
+	  const unsigned        retryCount = 100;
+	  const NSTimeInterval  retryInterval = 0.1;
+	  unsigned              i;
+
 	  for (i = 0; i < retryCount; i++)
 	    {
-	      [NSThread sleepForTimeInterval:retryInterval];
+	      [NSThread sleepForTimeInterval: retryInterval];
 	      [classLock lock];
-	      defs = [sharedDefaults retain];
+	      defs = RETAIN(sharedDefaults);
 	      setup = hasSharedDefaults;
 	      [classLock unlock];
 	      if (YES == setup)
 		{
-		  NS_VALRETURN([defs autorelease]);
+		  NS_VALRETURN(AUTORELEASE(defs));
 		}
               RELEASE(defs);
 	    }
@@ -1117,7 +1186,6 @@ newLanguages(NSArray *oldNames)
   NSFileManager	*mgr = [NSFileManager defaultManager];
   NSRange	r;
   BOOL		flag;
-  NSDictionary *argumentsDictionary = nil;
 
   self = [super init];
 
@@ -1175,12 +1243,7 @@ newLanguages(NSArray *oldNames)
 
   // Create volatile defaults and add the Argument and the Registration domains
   _tempDomains = [[NSMutableDictionaryClass alloc] initWithCapacity: 10];
-  argumentsDictionary = [self _createArgumentDictionary];
-  if (nil != argumentsDictionary)
-    {
-      [_tempDomains setObject: argumentsDictionary
-		   forKey: NSArgumentDomain];
-    }
+  [_tempDomains setObject: argumentsDictionary forKey: NSArgumentDomain];
   [_tempDomains
     setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
     forKey: NSRegistrationDomain];
@@ -2132,9 +2195,18 @@ static BOOL isPlistObject(id o)
 BOOL
 GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
 {
-  if (nil == sharedDefaults && NO == parsingArguments)
+  if (nil == classLock)
     {
-      [NSUserDefaults standardUserDefaults];
+      /* The order of +initialise of NSUserDefaults is such that our
+       * flags[] array is set up directly from the process arguments
+       * before classLock is created, so once * that variable exists
+       * this function may be used safely.
+       */
+      [NSUserDefaults class];
+      if (NO == hasSharedDefaults)
+        {
+          [NSUserDefaults standardUserDefaults];
+        }
     }
   return flags[type];
 }
@@ -2150,7 +2222,7 @@ NSDictionary *GSPrivateDefaultLocale()
   NSDictionary	        *locale = nil;
   NSUserDefaults        *defs = nil;
 
-  if (classLock == nil)
+  if (nil == classLock)
     {
       [NSUserDefaults standardUserDefaults];
     }
@@ -2177,26 +2249,16 @@ NSDictionary *GSPrivateDefaultLocale()
 
 @implementation NSUserDefaults (Private)
 
-- (NSDictionary*) _createArgumentDictionary
++ (void) _createArgumentDictionary: (NSArray*)args
 {
-  NSArray	*args;
   NSEnumerator	*enumerator;
   NSMutableDictionary *argDict = nil;
   BOOL		done;
   id		key, val;
 
   [classLock lock];
-  if (YES == parsingArguments)
-    {
-      [classLock unlock];
-      return nil;       // Prevent recursion
-    }
-  parsingArguments = YES;
-  [classLock unlock];
-  [_lock lock];
   NS_DURING
     {
-      args = [[NSProcessInfo processInfo] arguments];
       enumerator = [args objectEnumerator];
       argDict = [NSMutableDictionaryClass dictionaryWithCapacity: 2];
       [enumerator nextObject];	// Skip process name.
@@ -2204,40 +2266,35 @@ NSDictionary *GSPrivateDefaultLocale()
 
       while (done == NO)
         {
-          if ([key hasPrefix: @"-"] == YES && [key isEqual: @"-"] == NO)
+          /* Any value with a leading '-' may be the name of a default
+           * in the argument domain.
+           * NB. Testing on OSX shows that this includes a single '-'
+           * (where the key is an empty string), but GNUstep disallows
+           * en empty string as a key (so it can be a value).
+           */
+          if ([key hasPrefix: @"-"] == YES
+            && [key isEqual: @"-"] == NO)
 	    {
-	      NSString	*old = nil;
-
-	      /* anything beginning with a '-' is a defaults key and we
-               * must strip the '-' from it.
-               * As a special case, we leave the '- in place for '-GS...'
-               * and '--GS...' for backward compatibility.
+	      /* Strip the '-' before the defaults key, and get the
+               * corresponding value (the next argument).
                */
-	      if ([key hasPrefix: @"-GS"] == YES
-                || [key hasPrefix: @"--GS"] == YES)
-	        {
-	          old = key;
-	        }
 	      key = [key substringFromIndex: 1];
 	      val = [enumerator nextObject];
-	      if (val == nil)
-	        {            // No more args
-	          [argDict setObject: @"" forKey: key];		// arg is empty.
-	          if (old != nil)
-		    {
-		      [argDict setObject: @"" forKey: old];
-		    }
+	      if (nil == val)
+	        {
+                  /* No more arguments and no value ... arg is not set.
+                   */
 	          done = YES;
 	          continue;
 	        }
 	      else if ([val hasPrefix: @"-"] == YES
                 && [val isEqual: @"-"] == NO)
-	        {  // Yet another argument
-	          [argDict setObject: @"" forKey: key];		// arg is empty.
-	          if (old != nil)
-		    {
-		      [argDict setObject: @"" forKey: old];
-		    }
+	        {
+                  /* Value is actually an argument key ...
+                   * current key is not used (behavior matches OSX).
+                   * NB. GNUstep allows a '-' as the value for a default,
+                   * but OSX does not.
+                   */
 	          key = val;
 	          continue;
 	        }
@@ -2250,15 +2307,26 @@ NSDictionary *GSPrivateDefaultLocale()
 		     foreign environment. */
 	          NSObject *plist_val;
 
-	          NS_DURING
-		    {
-		      plist_val = [val propertyList];
-		    }
-	          NS_HANDLER
-		    {
-		      plist_val = val;
-		    }
-	          NS_ENDHANDLER
+                  NS_DURING
+                    {
+                      NSData		        *data;
+
+                      data = [val dataUsingEncoding: NSUTF8StringEncoding];
+                      plist_val = [NSPropertyListSerialization
+                        propertyListFromData: data
+                        mutabilityOption: NSPropertyListMutableContainers
+                        format: 0
+                        errorDescription: 0];
+                      if (nil == plist_val)
+                        {
+                          plist_val = val;
+                        }
+                    }
+                  NS_HANDLER
+                    {
+                      plist_val = val;
+                    }
+                  NS_ENDHANDLER
 
 	          /* Make sure we don't crash being caught adding nil to
                      a dictionary. */
@@ -2268,29 +2336,20 @@ NSDictionary *GSPrivateDefaultLocale()
 		    }
 
 	          [argDict setObject: plist_val  forKey: key];
-	          if (old != nil)
-		    {
-		      [argDict setObject: plist_val  forKey: old];
-		    }
 	        }
 	    }
           done = ((key = [enumerator nextObject]) == nil);
         }
-      [classLock lock];
-      parsingArguments = NO;
+      argumentsDictionary = [argDict copy];
       [classLock unlock];
-      [_lock unlock];
     }
   NS_HANDLER
     {
-      [classLock lock];
-      parsingArguments = NO;
+      argumentsDictionary = [NSDictionary new];
       [classLock unlock];
-      [_lock unlock];
       [localException raise];
     }
   NS_ENDHANDLER
-  return argDict;
 }
 
 - (void) _changePersistentDomain: (NSString*)domainName
