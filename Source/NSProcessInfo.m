@@ -129,7 +129,7 @@
  * or kit defines its own main function (as gnustep-base does).
  */
 #if GS_FAKE_MAIN
-#define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Internal Error:\n\
+#define _GNU_MISSING_MAIN_FUNCTION_CALL "\nGNUSTEP Internal Error:\n\
 The private GNUstep function to establish the argv and environment\n\
 variables was not called.\n\
 Perhaps your program failed to #include <Foundation/NSObject.h> or\n\
@@ -137,12 +137,12 @@ Perhaps your program failed to #include <Foundation/NSObject.h> or\n\
 If that is not the problem, Please report the error to bug-gnustep@gnu.org.\n\n"
 #else
 #ifdef GS_PASS_ARGUMENTS
-#define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Error:\n\
+#define _GNU_MISSING_MAIN_FUNCTION_CALL "\nGNUSTEP Error:\n\
 A call to NSProcessInfo +initializeWithArguments:... must be made\n\
 as the first ObjC statment in main. This function is used to \n\
 establish the argv and environment variables.\n"
 #else
-#define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Internal Error:\n\
+#define _GNU_MISSING_MAIN_FUNCTION_CALL "\nGNUSTEP Internal Error:\n\
 The private GNUstep function to establish the argv and environment\n\
 variables was not called.\n\
 \n\
@@ -909,7 +909,7 @@ _gnu_noobjc_free_vars(void)
     {
       if (_gnu_noobjc_argv == 0 || _gnu_noobjc_env == 0)
 	{
-          _NSLog_printf_handler(_GNU_MISSING_MAIN_FUNCTION_CALL);
+          fprintf(stderr, _GNU_MISSING_MAIN_FUNCTION_CALL);
           exit(1);
 	}
       _gnu_process_args(_gnu_noobjc_argc, _gnu_noobjc_argv, _gnu_noobjc_env);
@@ -1012,7 +1012,7 @@ int main(int argc, char *argv[], char *env[])
   // We can't use NSAssert, which calls NSLog, which calls NSProcessInfo...
   if (!(_gnu_processName && _gnu_arguments && _gnu_environment))
     {
-      _NSLog_printf_handler(_GNU_MISSING_MAIN_FUNCTION_CALL);
+      fprintf(stderr, _GNU_MISSING_MAIN_FUNCTION_CALL);
       exit(1);
     }
 
