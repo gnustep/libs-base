@@ -1,3 +1,16 @@
+2016-02-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Use NSDebugLog for most debug warnings
+	* Source/NSUserDefaults.m: Restructure to cache flag information
+	from NSProcessInfo directly on initialization, so it can be used
+	when parsing property lists in the argument domain, avoiding any
+	recursion trying to parse arguments.  Remove obsolete code for
+	for parsing -GS and --GS argument prefixes specially.
+	Make sure that argument parsiong behavior matches OSX apart from
+	The handling of a lone '-' used as key/value, and for this case
+	document the difference (since the GNUstep behavior is more useful
+	and changing it would have a real chance of breaking existing code).
+
 2016-02-12  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Headers/Foundation/NSObjCRuntime.h: Define macros for

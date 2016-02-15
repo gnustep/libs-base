@@ -2622,7 +2622,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
             }
           
           if (length - index > 2
-              && bytes[index] == '<' && bytes[index+1] == '?')
+            && bytes[index] == '<' && bytes[index+1] == '?')
             {
               // It begins with '<?' so it is xml
               format = NSPropertyListXMLFormat_v1_0;
@@ -2630,7 +2630,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
           else
             {
               // Assume openstep format unless we find otherwise.
-          format = NSPropertyListOpenStepFormat;
+              format = NSPropertyListOpenStepFormat;
             }
         }
     }
