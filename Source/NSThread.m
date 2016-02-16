@@ -503,7 +503,7 @@ static const NSMapTableKeyCallBacks _boxedPthreadKeyCallBacks =
  * cleanup. This is a required so that +currentThread can still find the
  * thred if called from within the late-cleanup function.
  */
-static NSMapTable *_exitingThreads;
+static NSMapTable *_exitingThreads = nil;
 static NSLock *_exitingThreadsLock;
 
 /**
@@ -518,6 +518,15 @@ static inline void _willLateUnregisterThread(NSValue *boxedThread,
   [_exitingThreadsLock lock];
   NS_DURING
     {
+      /* The map table is created lazily/late so that the NSThread
+       * +initilize method can be called without causing other
+       * classes to be initialized.
+       */
+      if (nil == _exitingThreads)
+        {
+          _exitingThreads = NSCreateMapTable(_boxedPthreadKeyCallBacks,
+            NSObjectMapValueCallBacks, 10);
+        }
       NSMapInsert(_exitingThreads, (const void*)boxedThread,
         (const void*)specific);
     }
@@ -538,16 +547,19 @@ static inline void _willLateUnregisterThread(NSValue *boxedThread,
 static inline void _didLateUnregisterCurrentThread(NSValue *boxedThread)
 {
   [_exitingThreadsLock lock];
-  NS_DURING
+  if (nil != _exitingThreads)
     {
-      NSMapRemove(_exitingThreads, (const void*)boxedThread);
+      NS_DURING
+        {
+          NSMapRemove(_exitingThreads, (const void*)boxedThread);
+        }
+      NS_HANDLER
+        {
+          [_exitingThreadsLock unlock];
+          [localException raise];
+        }
+      NS_ENDHANDLER
     }
-  NS_HANDLER
-    {
-      [_exitingThreadsLock unlock];
-      [localException raise];
-    }
-  NS_ENDHANDLER
   [_exitingThreadsLock unlock];
 }
 
@@ -622,9 +634,12 @@ GSCurrentThread(void)
        * because the exception handler stores information in the current
        * thread variables ... which causes recursion.
        */
-      [_exitingThreadsLock lock];
-      thr = NSMapGet(_exitingThreads, (const void*)selfThread);
-      [_exitingThreadsLock unlock];
+      if (nil != _exitingThreads)
+        {
+          [_exitingThreadsLock lock];
+          thr = NSMapGet(_exitingThreads, (const void*)selfThread);
+          [_exitingThreadsLock unlock];
+        }
       DESTROY(selfThread);
     }
   if (nil == thr)
@@ -847,15 +862,15 @@ unregisterActiveThread(NSThread *thread)
 	  [NSException raise: NSInternalInconsistencyException
 		      format: @"Unable to create thread key!"];
 	}
-      /*
-       * Ensure that the default thread exists.
+      /* Ensure that the default thread exists.
+       * It's safe to create a lock here (since [NSObject+initialize]
+       * creates locks, and locks don't depend on any other class),
+       * but we want to avoid initialising other classes while we are
+       * initialising NSThread.
        */
       threadClass = self;
-      _exitingThreads = NSCreateMapTable(_boxedPthreadKeyCallBacks,
-        NSObjectMapValueCallBacks, 10);
       _exitingThreadsLock = [NSLock new];
       GSCurrentThread();
-
     }
 }
 
