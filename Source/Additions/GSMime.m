@@ -6505,8 +6505,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    {
 	      [NSException raise: NSInvalidArgumentException
 		format: @"multipart/related 'type' (%@) does not match "
-		@"that of the 'start' part (%@)",
-		[type parameterForKey: @"type"], v];
+		@"that of the 'start' part (%@) in %@",
+		[type parameterForKey: @"type"], v, self];
 	    }
 	}
     }
