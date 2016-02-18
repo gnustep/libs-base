@@ -568,7 +568,8 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (NSArray *) weekdaySymbols
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbols: UDAT_WEEKDAYS];
+  NSArray *array = [self _getSymbols: UDAT_WEEKDAYS];
+  return ([array count] == 8 ? [array subarrayWithRange:NSMakeRange(1,7)] : array);
 #else
   return nil;
 #endif
@@ -586,7 +587,8 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (NSArray *) shortWeekdaySymbols
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbols: UDAT_SHORT_WEEKDAYS];
+  NSArray *array = [self _getSymbols: UDAT_SHORT_WEEKDAYS];
+  return ([array count] == 8 ? [array subarrayWithRange:NSMakeRange(1,7)] : array);
 #else
   return nil;
 #endif
@@ -595,7 +597,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (void) setShortWeekdaySymbols: (NSArray *) array
 {
 #if GS_USE_ICU == 1
-  [self _getSymbols: UDAT_SHORT_WEEKDAYS];
+  [self _setSymbols: array : UDAT_SHORT_WEEKDAYS];
 #else
   return;
 #endif
@@ -613,7 +615,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (void) setMonthSymbols: (NSArray *) array
 {
 #if GS_USE_ICU == 1
-  [self _getSymbols: UDAT_MONTHS];
+  [self _setSymbols: array : UDAT_MONTHS];
 #else
   return;
 #endif
@@ -631,7 +633,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (void) setShortMonthSymbols: (NSArray *) array
 {
 #if GS_USE_ICU == 1
-  [self _getSymbols: UDAT_SHORT_MONTHS];
+  [self _setSymbols: array : UDAT_SHORT_MONTHS];
 #else
   return;
 #endif
@@ -831,7 +833,8 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (NSArray *) shortStandaloneWeekdaySymbols
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbols: UDAT_STANDALONE_SHORT_WEEKDAYS];
+  NSArray *array = [self _getSymbols: UDAT_STANDALONE_SHORT_WEEKDAYS];
+  return ([array count] == 8 ? [array subarrayWithRange:NSMakeRange(1,7)] : array);
 #else
   return nil;
 #endif
@@ -849,7 +852,8 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (NSArray *) standaloneWeekdaySymbols
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbols: UDAT_STANDALONE_WEEKDAYS];
+  NSArray *array = [self _getSymbols: UDAT_STANDALONE_WEEKDAYS];
+  return ([array count] == 8 ? [array subarrayWithRange:NSMakeRange(1,7)] : array);
 #else
   return nil;
 #endif
@@ -867,7 +871,8 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (NSArray *) veryShortWeekdaySymbols
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbols: UDAT_SHORT_WEEKDAYS];
+  NSArray *array = [self _getSymbols: UDAT_SHORT_WEEKDAYS];
+  return ([array count] == 8 ? [array subarrayWithRange:NSMakeRange(1,7)] : array);
 #else
   return nil;
 #endif
@@ -885,7 +890,8 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (NSArray *) veryShortStandaloneWeekdaySymbols
 {
 #if GS_USE_ICU == 1
-  return [self _getSymbols: UDAT_STANDALONE_NARROW_WEEKDAYS];
+  NSArray *array = [self _getSymbols: UDAT_STANDALONE_NARROW_WEEKDAYS];
+  return ([array count] == 8 ? [array subarrayWithRange:NSMakeRange(1,7)] : array);
 #else
   return nil;
 #endif
