@@ -1,3 +1,8 @@
+2016-02-18  Doug Simons <doug.simons@testplant.com>
+
+       * NSDateFormatter.m: Fixed the weekday names methods. The ICU weekday
+	   names arrays all contain 8 items, with the first one empty. Go figure.
+	   
 2015-07-29  Doug Simons <doug.simons@testplant.com>
 
        * NSTask.m: Fixed launch method to throw an exception on Windows when it
