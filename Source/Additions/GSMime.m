@@ -3845,7 +3845,7 @@ appendBytes(NSMutableData *m, NSUInteger offset, NSUInteger fold,
           uint8_t       wsp;
           uint8_t       buf[3];
 
-          /* Modern folding preserved exact whitespace characters.
+          /* Modern folding preserves exact whitespace characters.
            */
           if (size > 0 && isWSP(bytes[0]))
             {
@@ -4289,10 +4289,13 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       /* Crude heuristic ...
        * if the length of the key=value will definitely be
        * too long to fit on a line, fold right now.
+       * Since we are producing a key=value pair in a structured
+       * field, we use a tab to fold to maximise the chances of a
+       * parser understanding it.
        */
       if (fold > 0 && offset + kLength + vLength + 1 >= fold)
         {
-          [md appendBytes: "\r\n " length: 3];
+          [md appendBytes: "\r\n\t" length: 3];
           offset = 1;
         }
       else
@@ -4310,10 +4313,13 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
       /* Crude heuristic ... if the length of the value will definitely be
        * too long to fit on a line, fold right now.
+       * Since we are producing a key=value pair in a structured
+       * field, we use a tab to fold to maximise the chances of a
+       * parser understanding it.
        */
       if (fold > 0 && offset + vLength > fold)
         {
-          [md appendBytes: "\r\n " length: 3];
+          [md appendBytes: "\r\n\t" length: 3];
           offset = 1;
         }
       offset = appendString(md, offset, fold, v, &ok);
