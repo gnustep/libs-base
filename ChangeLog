@@ -1,3 +1,10 @@
+2016-02-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m:
+	Fold using tabs between key=value tokens in structured headers
+	in the hope that it will improve compatibility with code which
+	doesn't cope well with a space as the folding character.
+
 2016-02-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: Use NSDebugLog for most debug warnings
