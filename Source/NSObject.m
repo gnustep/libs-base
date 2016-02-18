@@ -1138,11 +1138,6 @@ static id gs_weak_load(id obj)
 	   selector: @selector(_becomeMultiThreaded:)
 	       name: NSWillBecomeMultiThreadedNotification
 	     object: nil];
-
-      /* It is also safer to set upo the user defaults system before doing
-       * other stuff which might use it.
-       */
-      [NSUserDefaults class];
     }
   return;
 }
