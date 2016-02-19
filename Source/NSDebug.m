@@ -68,7 +68,10 @@ typedef struct {
 
 static NSInteger itemComp(id v0, id v1, void *ctxt)
 {
-  return strcmp(((list_entry*)v0)->name, ((list_entry *)v1)->name);
+  int i = strcmp(((list_entry*)v0)->name, ((list_entry *)v1)->name);
+  if (i < 0) return NSOrderedAscending;
+  if (i > 0) return NSOrderedDescending;
+  return NSOrderedSame;
 }
 
 static	unsigned int	num_classes = 0;
