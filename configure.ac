@@ -3317,7 +3317,7 @@ AC_ARG_WITH(icu-library,
 
 if test $enable_icu = yes; then
   if test "$enable_icu_config" = "yes"; then
-    AC_CHECK_ICU(4.0, have_icu=yes, have_icu=no)
+    AC_CHECK_ICU(4.8, have_icu=yes, have_icu=no)
   else
     have_icu=no;
     AC_CHECKING([for libicu (icu-config disabled)])
