@@ -48,7 +48,7 @@
 #if defined(__hppa__) && defined(__hpux__) && !defined(PRIuPTR)
 #define PRIuPTR "lu"
 #endif
- 
+
 /* IRIX kludge.  */
 #if defined(__sgi)
 /* IRIX 6.5 <inttypes.h> provides all definitions, but only for C99
@@ -70,7 +70,7 @@
    are uintptr_t, which is always unsigned long.  */
 #define PRIuPTR "lu"
 #endif
- 
+
 /* Solaris < 10 kludge.  */
 #if defined(__sun__) && defined(__svr4__) && !defined(PRIuPTR)
 #if defined(__arch64__) || defined (__x86_64__)
@@ -157,10 +157,29 @@ extern "C" {
 #if __has_feature(nullability)
 #  define NS_ASSUME_NONNULL_BEGIN _Pragma("clang assume_nonnull begin")
 #  define NS_ASSUME_NONNULL_END   _Pragma("clang assume_nonnull end")
-#else 
+#else
 #  define NS_ASSUME_NONNULL_BEGIN
 #  define NS_ASSUME_NONNULL_END
 #endif
+
+/*
+ * Backwards compatibility macro for instance type.
+ */
+#if !__has_feature(objc_instancetype)
+# define instancetype id
+#endif
+
+/*
+ * Backwards compatibility macros for Objective-C lightweight generics.
+ */
+#if __has_feature(objc_generics)
+# define GS_GENERIC_CLASS(clz, ...) clz<__VA_ARGS__>
+# define GS_GENERIC_TYPE_F(typeRef, fallback) typeRef
+#else
+# define GS_GENERIC_CLASS(clz, ...) clz
+# define GS_GENERIC_TYPE_F(typeRef, fallback) fallback
+#endif
+#define GS_GENERIC_TYPE(typeRef) GS_GENERIC_TYPE_F(typeRef, id)
 
 /** Bitfield used to specify options to control enumeration over collections.
  */

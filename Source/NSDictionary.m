@@ -863,7 +863,7 @@ static SEL	appSel;
 }
 
 - (void)getObjects: (__unsafe_unretained id[])objects
-           andKeys: (__unsafe_unretained id[])keys
+           andKeys: (__unsafe_unretained id<NSCopying>[])keys
 {
   int i=0;
   FOR_IN(id, key, self)
@@ -1242,7 +1242,7 @@ compareIt(id o1, id o2, void* context)
       if (count > 0)
         {
 	  NSEnumerator  *enumerator = [self keyEnumerator];
-	  NSObject	*k;
+	  NSObject<NSCopying>	*k = nil;
 
 	  while ((k = [enumerator nextObject]) != nil)
 	    {
