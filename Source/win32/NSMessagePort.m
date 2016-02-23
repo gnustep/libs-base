@@ -671,15 +671,16 @@ static HANDLE BTHandle = NULL;
 					 encoding: NSASCIIStringEncoding];
 	      NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%@'", n);
 	      rPort = [messagePortClass newWithName: n];
-	      RELEASE(n);
 	      if (rPort == nil)
 		{
-		  NSLog(@"%@ - unable to decode remote port", self);
+		  NSLog(@"%@ - unable to decode remote port: %@", self, n);
+      RELEASE(n);
 #if defined(__MINGW__)
       [[self class] printStackTrace];
 #endif
 		  break;
 		}
+        RELEASE(n);
 	      rItems = [NSMutableArray alloc];
 	      rItems = [rItems initWithCapacity: nItems];
 	      d = [[NSMutableData alloc] initWithBytes: buf + off
@@ -711,15 +712,16 @@ static HANDLE BTHandle = NULL;
 					 encoding: NSASCIIStringEncoding];
 	      NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%@'", n);
 	      p = [messagePortClass newWithName: n];
-	      RELEASE(n);
 	      if (p == nil)
 		{
-		  NSLog(@"%@ - unable to decode remote port", self);
+		  NSLog(@"%@ - unable to decode remote port: %@", self, n);
+      RELEASE(n);
 #if defined(__MINGW__)
       [[self class] printStackTrace];
 #endif
 		  break;
 		}
+        RELEASE(n);
 	      [rItems addObject: p];
 	      RELEASE(p);
 	    }
