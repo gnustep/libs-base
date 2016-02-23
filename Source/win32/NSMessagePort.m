@@ -161,6 +161,11 @@ static Class		messagePortClass = 0;
 	  NSDebugMLLog(@"NSMessagePort",
 	    @"unable to access mailslot '%@' for write - %@",
 	    [self name], [NSError _last]);
+    NSLog(@"%s:error creating mailslot (CreateFileW) - name: %@ error: %ld - %@", __PRETTY_FUNCTION__,
+          [self name], (long)GetLastError(), [NSError _last]);
+#if defined(__MINGW__)
+    [[self class] printStackTrace];
+#endif
 	  result = NO;
 	}
       else
