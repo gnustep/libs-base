@@ -38,8 +38,8 @@ extern "C" {
 @class NSString, NSURL;
 
 @interface GS_GENERIC_CLASS(NSDictionary,
-	__covariant KeyT:id<NSCopying>, __covariant ValT)
-	 : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
+  __covariant KeyT:id<NSCopying>, __covariant ValT)
+  : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 + (instancetype) dictionary;
 + (instancetype) dictionaryWithContentsOfFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -47,19 +47,17 @@ extern "C" {
 #endif
 + (instancetype) dictionaryWithDictionary: (NSDictionary*)otherDictionary;
 + (instancetype) dictionaryWithObject: (GS_GENERIC_TYPE(ValT))object
-                               forKey:
-							     (GS_GENERIC_TYPE(KeyT))key;
+                               forKey: (GS_GENERIC_TYPE(KeyT))key;
 + (instancetype) dictionaryWithObjects: (GS_GENERIC_CLASS(NSArray,ValT)*)objects
                                forKeys: (GS_GENERIC_CLASS(NSArray,KeyT)*)keys;
 + (instancetype) dictionaryWithObjects: (const GS_GENERIC_TYPE(ValT)[])objects
-		                       forKeys:
-							 (const GS_GENERIC_TYPE_F(KeyT,id<NSCopying>)[])keys
-		                         count: (NSUInteger)count;
+  forKeys: (const GS_GENERIC_TYPE_F(KeyT,id<NSCopying>)[])keys
+  count: (NSUInteger)count;
 + (instancetype) dictionaryWithObjectsAndKeys: (id)firstObject, ...;
 
 - (GS_GENERIC_CLASS(NSArray,KeyT)*) allKeys;
 - (GS_GENERIC_CLASS(NSArray,KeyT)*) allKeysForObject:
-    (GS_GENERIC_TYPE(ValT))anObject;
+  (GS_GENERIC_TYPE(ValT))anObject;
 - (GS_GENERIC_CLASS(NSArray,ValT)*) allValues;
 - (NSUInteger) count;						// Primitive
 - (NSString*) description;
@@ -70,7 +68,7 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void,
-	GS_GENERIC_TYPE_F(KeyT,id<NSCopying>), GS_GENERIC_TYPE(ValT), BOOL*);
+  GS_GENERIC_TYPE_F(KeyT,id<NSCopying>), GS_GENERIC_TYPE(ValT), BOOL*);
 - (void) enumerateKeysAndObjectsUsingBlock:
   (GSKeysAndObjectsEnumeratorBlock)aBlock;
 - (void) enumerateKeysAndObjectsWithOptions: (NSEnumerationOptions)opts
@@ -78,8 +76,7 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void,
 #endif
 
 - (void) getObjects: (__unsafe_unretained GS_GENERIC_TYPE(ValT)[])objects
-            andKeys:
-			  (__unsafe_unretained GS_GENERIC_TYPE_F(KeyT,id<NSCopying>)[])keys;
+  andKeys: (__unsafe_unretained GS_GENERIC_TYPE_F(KeyT,id<NSCopying>)[])keys;
 - (instancetype) init;
 - (instancetype) initWithContentsOfFile: (NSString*)path;
 
@@ -96,10 +93,10 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void,
 - (id) initWithObjectsAndKeys: (GS_GENERIC_TYPE(ValT))firstObject, ...;
 - (id) initWithObjects: (const GS_GENERIC_TYPE(ValT)[])objects
 	       forKeys: (const GS_GENERIC_TYPE_F(KeyT,id<NSCopying>)[])keys
-		 count: (NSUInteger)count;			// Primitive
+		 count: (NSUInteger)count; // Primitive
 - (BOOL) isEqualToDictionary: (GS_GENERIC_CLASS(NSDictionary,KeyT, ValT)*)other;
 
-- (GS_GENERIC_CLASS(NSEnumerator,KeyT)*) keyEnumerator;			// Primitive
+- (GS_GENERIC_CLASS(NSEnumerator,KeyT)*) keyEnumerator;	// Primitive
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL,
@@ -107,17 +104,17 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL,
 - (GS_GENERIC_CLASS(NSSet,KeyT)*) keysOfEntriesPassingTest:
     (GSKeysAndObjectsPredicateBlock)aPredicate;
 - (GS_GENERIC_CLASS(NSSet,KeyT)*) keysOfEntriesWithOptions:
-    (NSEnumerationOptions)opts
-                        passingTest: (GSKeysAndObjectsPredicateBlock)aPredicate;
+  (NSEnumerationOptions)opts
+  passingTest: (GSKeysAndObjectsPredicateBlock)aPredicate;
 #endif
 
 - (GS_GENERIC_CLASS(NSArray,ValT)*) keysSortedByValueUsingSelector: (SEL)comp;
-- (GS_GENERIC_CLASS(NSEnumerator,ValT)*) objectEnumerator;		// Primitive
+- (GS_GENERIC_CLASS(NSEnumerator,ValT)*) objectEnumerator;	// Primitive
 - (GS_GENERIC_TYPE(ValT)) objectForKey:
-    (GS_GENERIC_TYPE(KeyT))aKey;				// Primitive
+  (GS_GENERIC_TYPE(KeyT))aKey;				// Primitive
 - (GS_GENERIC_CLASS(NSArray,ValT)*) objectsForKeys:
-    (GS_GENERIC_CLASS(NSArray,KeyT)*)keys
-             notFoundMarker: (GS_GENERIC_TYPE(ValT))marker;
+  (GS_GENERIC_CLASS(NSArray,KeyT)*)keys
+  notFoundMarker: (GS_GENERIC_TYPE(ValT))marker;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (GS_GENERIC_TYPE(ValT)) valueForKey: (NSString*)key;
@@ -132,7 +129,7 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL,
  * Method called by array subscripting.
  */
 - (GS_GENERIC_TYPE(ValT)) objectForKeyedSubscript:
-    (GS_GENERIC_TYPE(KeyT))aKey;
+  (GS_GENERIC_TYPE(KeyT))aKey;
 @end
 
 @interface  GS_GENERIC_CLASS(NSMutableDictionary, KeyT:id<NSCopying>, ValT) :
@@ -142,7 +139,7 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL,
 
 - (void) addEntriesFromDictionary:
     (GS_GENERIC_CLASS(NSDictionary, KeyT, ValT)*)otherDictionary;
-- (instancetype) initWithCapacity: (NSUInteger)numItems;		// Primitive
+- (instancetype) initWithCapacity: (NSUInteger)numItems;	// Primitive
 - (void) removeAllObjects;
 /**
  * Removes the object with the specified key from the receiver. This method
