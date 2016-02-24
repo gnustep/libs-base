@@ -1,29 +1,39 @@
+2016-02-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSArray.h:
+	* Source/NSArray.m:
+	Correct argument types in ([-objectAtIndexedSubscript:]) and
+	([setObject:atIndexedSubscript:]) to match OSX.
+	Apply patch by Patrick Laurent <plaurent@me.com> to fix bug setting
+	an object at the end of the array.
+
 2016-02-22	Niels Grewe <niels.grewe@halbordnung.de>
 	* Headers/Foundation/NSObjCRuntime.h: Add macros for backwards-
 	compatible generics annotations. Also define instancetype if necessary.
-	* Headers/Foundation/NSArray.h
-	* Headers/Foundation/NSCache.h
-	* Headers/Foundation/NSDictionary.h
-	* Headers/Foundation/NSEnumerator.h
+	* Headers/Foundation/NSArray.h:
+	* Headers/Foundation/NSCache.h:
+	* Headers/Foundation/NSDictionary.h:
+	* Headers/Foundation/NSEnumerator.h:
 	* Headers/Foundation/NSSet.h: Update interfaces for instancetype and
 	generics.
 	* Source/NSCache.m: Use NSMapTable instead of NSMutableDictionary.
 	The API contract for NSCache stipulates that keys are not copied, so
 	using a dictionary wasn't apropriate.
-	* Source/NSConnection.m
+	* Source/NSConnection.m:
 	* Source/NSData.m: Small type safety improvements (mostly to keep the
 	compiler happy).
 	* Source/NSDictionary.m: Change id to id<NSCopying> in a few places to
 	avoid compiler warnings.
-	* Tests/base/NSCache
-	* Tests/base/NSCache/TestInfo
-	* Tests/base/NSCache/basic.m
+	* Tests/base/NSCache:
+	* Tests/base/NSCache/TestInfo:
+	* Tests/base/NSCache/basic.m:
 	* Tests/base/NSCache/cache.m:
 	Test cases eviction from NSCache. Turns out we currently only evict
-	NSDiscardableContent, while the API documentation seems to suggest that cost
-	and count based eviction without NSDiscardableContent is also possible.
+	NSDiscardableContent, while the API documentation seems to suggest
+	that cost and count based eviction without NSDiscardableContent is
+	also possible.
 
-2016-02-18  Richard Frith-Macdonald <rfm@gnu.org>
+016-02-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m:
 	Fold using tabs between key=value tokens in structured headers

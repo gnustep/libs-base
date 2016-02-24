@@ -71,9 +71,9 @@ typedef NSUInteger NSBinarySearchingOptions;
 + (instancetype) arrayWithObjects: (const id[])objects count: (NSUInteger)count;
 
 - (GS_GENERIC_CLASS(NSArray, ElementT) *) arrayByAddingObject:
-    (GS_GENERIC_TYPE(ElementT))anObject;
+  (GS_GENERIC_TYPE(ElementT))anObject;
 - (GS_GENERIC_CLASS(NSArray, ElementT) *) arrayByAddingObjectsFromArray:
-    (GS_GENERIC_CLASS(NSArray, ElementT)*)anotherArray;
+  (GS_GENERIC_CLASS(NSArray, ElementT)*)anotherArray;
 - (BOOL) containsObject: (GS_GENERIC_TYPE(ElementT))anObject;
 
 /** <override-subclass />
@@ -122,7 +122,8 @@ typedef NSUInteger NSBinarySearchingOptions;
 - (GS_GENERIC_TYPE(ElementT)) objectAtIndex: (NSUInteger)index;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
-- (GS_GENERIC_CLASS(NSArray, ElementT) *) objectsAtIndexes: (NSIndexSet *)indexes;
+- (GS_GENERIC_CLASS(NSArray, ElementT) *) objectsAtIndexes:
+  (NSIndexSet *)indexes;
 #endif
 
 - (GS_GENERIC_TYPE(ElementT)) firstObjectCommonWithArray:
@@ -146,7 +147,8 @@ typedef NSUInteger NSBinarySearchingOptions;
     (NSComparisonResult (*)(id, id, void*))comparator
 			      context: (void*)context
 				     hint: (NSData*)hint;
-- (GS_GENERIC_CLASS(NSArray, ElementT)*) sortedArrayUsingSelector: (SEL)comparator;
+- (GS_GENERIC_CLASS(NSArray, ElementT)*) sortedArrayUsingSelector:
+  (SEL)comparator;
 - (GS_GENERIC_CLASS(NSArray, ElementT)*) subarrayWithRange: (NSRange)aRange;
 
 - (NSString*) componentsJoinedByString: (NSString*)separator;
@@ -170,8 +172,10 @@ typedef NSUInteger NSBinarySearchingOptions;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 
-DEFINE_BLOCK_TYPE(GSEnumeratorBlock, void, GS_GENERIC_TYPE(ElementT), NSUInteger, BOOL*);
-DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger, BOOL*);
+DEFINE_BLOCK_TYPE(GSEnumeratorBlock, void, GS_GENERIC_TYPE(ElementT),
+  NSUInteger, BOOL*);
+DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT),
+  NSUInteger, BOOL*);
 /**
  * Enumerate over the collection using the given block.  The first argument is
  * the object and the second is the index in the array.  The final argument is
@@ -295,7 +299,7 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger,
  * Accessor for subscripting.  This is called by the compiler when you write
  * code like anArray[12].  It should not be called directly.
  */
-- (GS_GENERIC_TYPE(ElementT)) objectAtIndexedSubscript: (size_t)anIndex;
+- (GS_GENERIC_TYPE(ElementT)) objectAtIndexedSubscript: (NSUInteger)anIndex;
 @end
 
 
@@ -359,11 +363,11 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger,
 #endif
 
 - (void) replaceObjectsInRange: (NSRange)aRange
-	      withObjectsFromArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)anArray;
+          withObjectsFromArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)anArray;
 
 - (void) replaceObjectsInRange: (NSRange)aRange
-	      withObjectsFromArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)anArray
-			             range: (NSRange)anotherRange;
+          withObjectsFromArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)anArray
+                         range: (NSRange)anotherRange;
 
 - (void) setArray: (GS_GENERIC_CLASS(NSArray, ElementT) *)otherArray;
 
@@ -399,11 +403,13 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger,
 - (void) sortWithOptions: (NSSortOptions)options
          usingComparator: (NSComparator)comparator;
 #endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
 /**
  * Set method called by the compiler with array subscripting.
  */
 - (void) setObject: (GS_GENERIC_TYPE(ElementT))anObject
-atIndexedSubscript: (size_t)anIndex;
+atIndexedSubscript: (NSUInteger)anIndex;
+#endif
 @end
 
 #if	defined(__cplusplus)
