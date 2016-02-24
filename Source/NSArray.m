@@ -2055,9 +2055,18 @@ compare(id elem1, id elem2, void* context)
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ * Sets the object at the index with the passed object, adding the object
+ * to the end of the array (growing it) if the passed index is equal to
+ * the current count.
+ */
 - (void) setObject: (id)anObject atIndexedSubscript: (size_t)anIndex
 {
-  [self replaceObjectAtIndex: (NSUInteger)anIndex withObject: anObject];
+  if ([self count] == anIndex) {
+    [self addObject: anObject];
+  } else {
+    [self replaceObjectAtIndex: (NSUInteger)anIndex withObject: anObject];
+  }
 }
 
 /** Replaces the values in the receiver at the locations given by the
