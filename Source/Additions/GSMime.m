@@ -4072,7 +4072,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
           NSUInteger    overhead;
 
           /* The overhead is the number of bytes needed to wrap an
-           * encoded word in the formt =?csetname?B?encodedtext?=
+           * encoded word in the format =?csetname?B?encodedtext?=
            */
           csetLength = [cset length];
           overhead = csetLength + 7;
@@ -4129,7 +4129,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                   quotedLength = 4 * ((charLength + 2) / 3);
                 }
 
-              /* make sure we have enough spoace in the output buffer.
+              /* make sure we have enough space in the output buffer.
                */
               existingLength = [m length];
               [m setLength: existingLength + quotedLength + overhead];
