@@ -46,15 +46,3 @@ NSObject *NSCopyObject(NSObject *anObject, NSUInteger extraBytes, NSZone *zone)
   
   return copy;
 }
-
-NSObject *NSCopyObject_TP(NSObject *anObject, NSUInteger extraBytes, NSZone *zone)
-{
-#if !defined(USE_OBJC_CAP_ARC)
-  Class	c = object_getClass(anObject);
-  id copy = NSAllocateObject(c, extraBytes, zone);
-  memcpy(((char*)copy + sizeof(id)), ((char*)anObject + sizeof(id)), class_getInstanceSize(c) - sizeof(id));
-  return copy;
-#else
-  return NSCopyObject(anObject, extraBytes, zone);
-#endif
-}
