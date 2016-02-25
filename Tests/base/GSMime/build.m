@@ -31,7 +31,6 @@ int main(int argc,char **argv)
                             parameters: nil]];
   data = [doc rawMimeData];
   PASS(data != nil, "Can use non-ascii character in subject");
-  [[doc rawMimeData] writeToFile: @"/tmp/xyz" atomically: NO];
   doc = [GSMimeParser documentFromData: data];
   PASS_EQUAL([[doc headerNamed: @"subject"] value], string,
    "Can restore non-ascii character in subject");
