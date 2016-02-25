@@ -24,7 +24,7 @@ int main(int argc,char **argv)
   data = [NSData dataWithContentsOfFile: @"mime8.dat"];
   PASS([[doc rawMimeData] isEqual: data], "Can make a simple document");
 
-  string = @"MBNA credit card account − more information about Apple Pay.";
+  string = @"ABCD credit card account − more information about Peach Pay.";
   [doc setHeader:
     [[GSMimeHeader alloc] initWithName: @"subject"
                                  value: string
