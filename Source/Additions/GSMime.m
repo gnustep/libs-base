@@ -3911,14 +3911,14 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   NSString *str, BOOL *ok)
 {
   NSUInteger    pos = 0;
-  NSUInteger    size = [str length];
   BOOL          hadEncodedWord = NO;
 
   *ok = YES;
 
   if (YES == oldStyleFolding)
     {
-      BOOL      needSpace = NO;
+      NSUInteger        size = [str length];
+      BOOL              needSpace = NO;
 
       while (pos < size)
         {
@@ -4048,13 +4048,13 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                    */
                   [m appendBytes: ptr + pos length: next - pos];
                   offset += next - pos;
-                  pos = next;
+                  pos += next;
                   if (pos < len)
                     {
                       /* We have more text to output, so fold the line.
                        */
                       [m appendBytes: "\r\n" length: 2];
-                      [m appendBytes: ptr + pos length:1 ];
+                      [m appendBytes: ptr + pos length: 1];
                       pos++;
                       offset = 1;
                     }
@@ -4110,7 +4110,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                   offset = 1;
                 }
 
-              charLength = quotableLength(ptr + pos, size - pos,
+              charLength = quotableLength(ptr + pos, len - pos,
                 fold - offset - overhead, &quotedLength);
               if (quotedLength > (charLength * 4) / 3)
                 {
