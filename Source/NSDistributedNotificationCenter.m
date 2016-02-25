@@ -742,10 +742,24 @@ static NSDistributedNotificationCenter	*netCenter = nil;
               NSAutoreleasePool	*pool = [NSAutoreleasePool new];
 
               [NSThread sleepForTimeInterval: 0.05];
-	      _remote = [NSConnection
-		rootProxyForConnectionWithRegisteredName: service
-		host: host usingNameServer: ns];
-              [_remote retain];
+              
+              NS_DURING
+              {
+                _remote = [NSConnection
+                           rootProxyForConnectionWithRegisteredName: service
+                           host: host usingNameServer: ns];
+                [_remote retain];
+              }
+              NS_HANDLER
+              {
+                NSLog(@"%s:exception: %@", __PRETTY_FUNCTION__, localException);
+                _remote = nil;
+                // Re-raise??? Another exeption will be raised below...
+                //[pool drain]; // Avoid autorelease pool leak...
+                //[localException raise];
+              }
+              NS_ENDHANDLER
+
               [pool drain];
 	    }
 	  if (_remote == nil)
