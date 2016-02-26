@@ -1,3 +1,8 @@
+2016-02-26 	Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Headers/Foundation/NSObjCRuntime.h: Declare the FOUNDATION_EXPORT
+	macro as an alias for GS_EXPORT.
+
 2016-02-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSArray.h:
