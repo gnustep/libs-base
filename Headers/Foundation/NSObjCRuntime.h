@@ -266,6 +266,11 @@ enum {NSNotFound = NSIntegerMax};
 
 DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
 
+/**
+ * Declare the foundation export macro as an alias to GS_EXPORT 
+ */
+#define FOUNDATION_EXPORT GS_EXPORT
+
 #if	defined(__cplusplus)
 }
 #endif
