@@ -38,7 +38,8 @@
 #import "Foundation/NSString.h"
 #import "Foundation/NSTimeZone.h"
 
-NSString * const NSUserNotificationDefaultSoundName = @"NSUserNotificationDefaultSoundName";
+NSString * const NSUserNotificationDefaultSoundName
+  = @"NSUserNotificationDefaultSoundName";
 
 @interface NSUserNotification ()
 @property (readwrite) NSDate *actualDeliveryDate;
