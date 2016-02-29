@@ -1,7 +1,10 @@
 2016-02-29  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Based on testplant patch, fix bug with ownership when copying
-	subdirectories.
+	* Source/NSFileManager.m: Based on testplant patch, fix bug with
+	ownership when copying subdirectories.
+	* Source/NSTask.m OSX compatibility tweak .. raise an exception if
+	the task can't be launched.
+	* Source/NSNumberFormatter.m: Fixes for symbol indexes.
 
 2016-02-26 	Niels Grewe <niels.grewe@halbordnung.de>
 
