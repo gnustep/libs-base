@@ -1263,10 +1263,10 @@ quotedFromString(NSString *aString)
   SetHandleInformation(hErr, HANDLE_FLAG_INHERIT, 0);
   [tasksLock unlock];
 
-  if (result == 0)
+  if (0 == result)
     {
-      NSLog(@"Error launching task: %@ ... %@", lpath, last);
-      return;
+      [NSException raise: NSInvalidArgumentException
+        format: @"NSTask - Error launching task: %@ ... %@", lpath, last];
     }
 
   _taskId = procInfo.dwProcessId;
