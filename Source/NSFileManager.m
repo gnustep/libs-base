@@ -693,19 +693,21 @@ static NSStringEncoding	defaultEncoding;
     }
 }
 
-- (NSArray*) contentsOfDirectoryAtURL:(NSURL*)url
-           includingPropertiesForKeys:(NSArray*)keys
-                              options:(NSDirectoryEnumerationOptions)mask
-                                error:(NSError **)error
+- (NSArray*) contentsOfDirectoryAtURL: (NSURL*)url
+           includingPropertiesForKeys: (NSArray*)keys
+                              options: (NSDirectoryEnumerationOptions)mask
+                                error: (NSError **)error
 {
-  NSArray                *result;
+  NSArray               *result;
   NSDirectoryEnumerator *direnum;
-  NSString      *path;
+  NSString              *path;
   
   DESTROY(_lastError);
 
-  if (![[url scheme] isEqualToString:@"file"])
-    return nil;
+  if (![[url scheme] isEqualToString: @"file"])
+    {
+      return nil;
+    }
   path = [url path];
   
   direnum = [[NSDirectoryEnumerator alloc]
@@ -719,9 +721,9 @@ static NSStringEncoding	defaultEncoding;
   result = nil;
   if (nil != direnum)
     {
-      IMP	nxtImp;
-      NSMutableArray *urlArray;
-      NSString *tempPath;
+      IMP	        nxtImp;
+      NSMutableArray    *urlArray;
+      NSString          *tempPath;
 
 
       nxtImp = [direnum methodForSelector: @selector(nextObject)];
@@ -729,20 +731,25 @@ static NSStringEncoding	defaultEncoding;
       urlArray = [NSMutableArray arrayWithCapacity:128];
       while ((tempPath = (*nxtImp)(direnum, @selector(nextObject))) != nil)
 	{
-          NSURL *tempURL;
-          NSString *lastComponent;
+          NSURL         *tempURL;
+          NSString      *lastComponent;
       
-          tempURL = [NSURL fileURLWithPath:tempPath];
+          tempURL = [NSURL fileURLWithPath: tempPath];
           lastComponent = [tempPath lastPathComponent];
           
           /* we purge files beginning with . */
-          if (!((mask & NSDirectoryEnumerationSkipsHiddenFiles) && [lastComponent hasPrefix:@"."]))
-            [urlArray addObject:tempURL];
+          if (!((mask & NSDirectoryEnumerationSkipsHiddenFiles)
+            && [lastComponent hasPrefix:@"."]))
+            {
+              [urlArray addObject: tempURL];
+            }
 	}
       RELEASE(direnum);
  
       if ([urlArray count] > 0)
-        result = [NSArray arrayWithArray:urlArray];
+        {
+          result = [NSArray arrayWithArray: urlArray];
+        }
     }
 
   if (error != NULL)
@@ -2872,10 +2879,18 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
       if ([fileType isEqual: NSFileTypeDirectory])
 	{
-	  BOOL	dirOK;
+          NSMutableDictionary   *newAttributes;
+	  BOOL	                dirOK;
 
+          newAttributes = [attributes mutableCopy];
+          [newAttributes removeObjectForKey: NSFileOwnerAccountID];
+          [newAttributes removeObjectForKey: NSFileGroupOwnerAccountID];
+          [newAttributes removeObjectForKey: NSFileGroupOwnerAccountName];
+          [newAttributes setObject: NSUserName()
+                            forKey: NSFileOwnerAccountName];
 	  dirOK = [self createDirectoryAtPath: destinationFile
-				   attributes: attributes];
+				   attributes: newAttributes];
+          RELEASE(newAttributes);
 	  if (dirOK == NO)
 	    {
               if (![self _proceedAccordingToHandler: handler
@@ -2900,8 +2915,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    {
 	      [enumerator skipDescendents];
 	      if (![self _copyPath: sourceFile
-                         toPath: destinationFile
-                         handler: handler])
+                            toPath: destinationFile
+                           handler: handler])
                 {
                   RELEASE(pool);
                   return NO;
