@@ -38,6 +38,7 @@
 #if defined(HAVE_UNICODE_UCAL_H)
 #define id ucal_id
 #include <unicode/ucal.h>
+#include <unicode/uvernum.h>
 #undef id
 #endif
 
@@ -396,11 +397,14 @@ do \
                            toDate: (NSDate *) resultDate
                           options: (NSUInteger) opts
 {
-#if GS_USE_ICU == 1
+#if GS_USE_ICU == 1 && (U_ICU_VERSION_MAJOR_NUM > 4 \
+  || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 8))
+
   NSDateComponents *comps = nil;
   UErrorCode err = U_ZERO_ERROR;
   UDate udateFrom = (UDate)floor([startingDate timeIntervalSince1970] * 1000.0);
   UDate udateTo = (UDate)floor([resultDate timeIntervalSince1970] * 1000.0);
+
   ucal_setMillis (my->cal, udateFrom, &err);
   if (U_FAILURE(err))
     {

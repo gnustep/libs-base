@@ -12117,9 +12117,9 @@ fi
     echo "See http://site.icu-project.org/ for help."
   else
     ICU_VERSION=`$ICU_CONFIG --version`
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ICU >= 4.8" >&5
-$as_echo_n "checking for ICU >= 4.8... " >&6; }
-      found=`expr $ICU_VERSION \>= 4.8`
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ICU >= 4.6" >&5
+$as_echo_n "checking for ICU >= 4.6... " >&6; }
+      found=`expr $ICU_VERSION \>= 4.6`
       if test "$found" = "1" ; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
