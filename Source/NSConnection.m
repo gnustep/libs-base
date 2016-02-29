@@ -1430,12 +1430,12 @@ static NSLock	*cached_proxies_gate = nil;
 
       GSIMapEnumerator_t	enumerator;
       GSIMapNode 		node;
+      NSMutableArray            *c;
 
       enumerator = GSIMapEnumeratorForMap(IlocalObjects);
       node = GSIMapEnumeratorNextNode(&enumerator);
 
-      NSMutableArray *c =
-        [NSMutableArray arrayWithCapacity: IlocalObjects->nodeCount];
+      c = [NSMutableArray arrayWithCapacity: IlocalObjects->nodeCount];
       while (node != 0)
 	{
 	  [c addObject: node->key.obj];
