@@ -1,5 +1,14 @@
 2016-02-29  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * configure.ac:
+        * configure:
+	* NSCalendar.m:
+	Don't require recent ICU just for the method
+	([-components:fromDate:toDate:options:]).
+	Leave the method as a no-op if older versions are used.
+
+2016-02-29  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSFileManager.m: Based on testplant patch, fix bug with
 	ownership when copying subdirectories.
 	* Source/NSTask.m OSX compatibility tweak .. raise an exception if
@@ -160,7 +169,7 @@
 
 2015-11-30: Niels Grewe <niels.grewe@halbordnung.de>
 
-	* Source/NSCalendar.h
+	* Source/NSCalendar.m:
 	* Headers/Foundation/NSCalendar.h:
 	Implement -components:fromDate:toDate:options:. (Not handling
 	NSWrapCalendarComponents yet.)
