@@ -1,3 +1,8 @@
+2016-02-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Based on testplant patch, fix bug with ownership when copying
+	subdirectories.
+
 2016-02-26 	Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Headers/Foundation/NSObjCRuntime.h: Declare the FOUNDATION_EXPORT
