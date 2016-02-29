@@ -603,6 +603,11 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
       @"You should request NSConnectionDidDieNotification's and\n"
       @"release all references to the proxy's of invalid Connections."];
 
+  /* We could be released while the connection is forwarding, so we need
+   * to retain self.  But, the remote end couild raise an exception, so
+   * we can't rely on being able to release again; use autorelease.
+   */
+  AUTORELEASE(RETAIN(self));
   [_connection forwardInvocation: anInvocation forProxy: self];
 }
 
