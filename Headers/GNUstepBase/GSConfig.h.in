@@ -29,6 +29,21 @@
 #ifndef	included_GSConfig_h
 #define	included_GSConfig_h
 
+#if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
+#  if	!defined(__WIN32__)
+#    define __WIN32__
+#  endif
+#endif
+
+#if	defined(__MINGW32__) || defined(__MINGW64__)
+#  if	!defined(__MINGW__)
+#    define __MINGW__
+#  endif
+#  if	!defined(__WIN32__)
+#    define __WIN32__
+#  endif
+#endif
+
 // Make sure we expose the constants that we use in ObjC++ mode
 #ifndef __STDC_CONSTANT_MACROS
 #define __STDC_CONSTANT_MACROS 1
@@ -220,10 +235,11 @@ typedef	gsuaddr gsaddr;
 /*
  * Native character type for use in systemcalls etc.
  */
+
 #if	defined(__MINGW__)
-#define	GSNativeChar	uint16_t
+#  define	GSNativeChar	uint16_t
 #else
-#define	GSNativeChar	char
+#  define	GSNativeChar	char
 #endif
 
 /*
@@ -250,21 +266,6 @@ typedef	struct {
 #define GS_USE_ICU @HAVE_ICU@
 #define GS_USE_LIBDISPATCH @HAVE_LIBDISPATCH@
 #define GS_HAVE_OBJC_ROOT_CLASS_ATTR @GS_HAVE_OBJC_ROOT_CLASS_ATTR@
-
-#if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
-#  if	!defined(__WIN32__)
-#    define __WIN32__
-#  endif
-#endif
-
-#if	defined(__MINGW32__)
-#  if	!defined(__MINGW__)
-#    define __MINGW__
-#  endif
-#  if	!defined(__WIN32__)
-#    define __WIN32__
-#  endif
-#endif
 
 #ifndef __has_include
 #  define __has_include(x) 0
@@ -299,13 +300,17 @@ typedef	struct {
 #undef	WINVER
 #define WINVER Windows2000
 #endif
+
+/* mingw wants winsock2.h before windows.h */
+#include <winsock2.h>
 #include <windows.h>
 #undef  BOOL
 #endif
 
-// Include the blocks runtime header if it's available (It shouldn't matter
-// that this doesn't work on compilers that don't support __has_include(),
-// because they also don't support blocks).
+/* Include the blocks runtime header if it's available (It shouldn't matter
+ * that this doesn't work on compilers that don't support __has_include(),
+ * because they also don't support blocks).
+ */
 #if __has_include(<objc/block_runtime.h>)
 #  include <objc/block_runtime.h>
 #endif

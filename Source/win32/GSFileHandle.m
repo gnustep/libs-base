@@ -22,8 +22,9 @@
    Boston, MA 02111 USA.
    */
 
-#include <windows.h>
+/* mingw wants winsock2.h before windows.h */
 #include <winsock2.h>
+#include <windows.h>
 
 #include "common.h"
 
