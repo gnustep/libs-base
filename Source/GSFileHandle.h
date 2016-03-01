@@ -105,7 +105,9 @@ struct sockaddr_in;
 		  type: (RunLoopEventType)type
 	         extra: (void*)extra
 	       forMode: (NSString*)mode;
+
 - (void) setAddr: (struct sockaddr *)sin;
+
 - (BOOL) useCompression;
 - (void) watchReadDescriptorForModes: (NSArray*)modes;
 - (void) watchWriteDescriptor;

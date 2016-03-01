@@ -29,6 +29,12 @@
 
 #include <GNUstepBase/GSVersionMacros.h>
 
+#if defined(__MINGW__)
+/* On MINGW we need to get the boolean type from the runtime at this point.
+ */
+#define _NO_BOOL_TYPEDEF
+#endif
+
 #if defined (NeXT_RUNTIME)
 #  include <objc/objc-runtime.h>
 #else

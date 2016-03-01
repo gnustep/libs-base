@@ -1,3 +1,11 @@
+2016-03-01  Seong Gu Lee <sgleehd@gmail.com>
+
+        * Headers/GNUstepBase/GSConfig.h.in:
+        * Headers/GNUstepBase/GSTypeEncoding.h:
+        * Source/GSFileHandle.h:
+        * Source/win32/GSFileHandle.m:
+	Tweaks for WIN64 build
+
 2016-02-29  Richard Frith-Macdonald <rfm@gnu.org>
 
         * configure.ac:
