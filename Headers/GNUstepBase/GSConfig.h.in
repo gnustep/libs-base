@@ -29,18 +29,40 @@
 #ifndef	included_GSConfig_h
 #define	included_GSConfig_h
 
-#if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
+/* Check the compiler to see if we are building on/for ms-windows.
+ * Whatever the compiler uses, we want a standard setting of __WIN32__
+ * for a windows build.
+ */
+#if     defined(__WIN32__) \
+	|| defined(_WIN32) \
+	|| defined(__MS_WIN32__) \
+	|| defined(__MINGW64__)
 #  if	!defined(__WIN32__)
 #    define __WIN32__
 #  endif
 #endif
 
-#if	defined(__MINGW32__) || defined(__MINGW64__)
-#  if	!defined(__MINGW__)
-#    define __MINGW__
+/* Check the compiler to see if we are building on/for 64bit ms-windows.
+ * Whatever the compiler uses, we want a standard setting of __WIN64__
+ * to indicate 64bit AND __WIN32__ to indicate ms-windows.
+ */
+#if     defined(__WIN64__) \
+	|| defined(_WIN64) \
+	|| defined(__MS_WIN64__) \
+	|| defined(__MINGW64__)
+#  if	!defined(__WIN64__)
+#    define __WIN64__
 #  endif
 #  if	!defined(__WIN32__)
 #    define __WIN32__
+#  endif
+#endif
+
+/* Check to see if this is a MINGW build (all we currently support)
+ */
+#if	defined(__MINGW32__) || defined(__MINGW64__)
+#  if	!defined(__MINGW__)
+#    define __MINGW__
 #  endif
 #endif
 
