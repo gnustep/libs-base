@@ -1006,6 +1006,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 #endif
 }
 
+#if GS_USE_ICU == 1
 static inline void
 symbolRange(NSInteger symbol, int *from)
 {
@@ -1026,6 +1027,7 @@ symbolRange(NSInteger symbol, int *from)
         break;
     }
 }
+#endif
 
 - (void) _setSymbols: (NSArray*)array : (NSInteger)symbol
 {
