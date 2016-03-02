@@ -7910,6 +7910,9 @@ if test $ac_cv_func_objc_sync_enter = yes ; then
   OBJCSYNC=1
 else
   OBJCSYNC=0
+  if test "$OBJC_RUNTIME_LIB" = "ng"; then
+    as_fn_error $? "The objc runtime library does not appear to have synchronisation support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option." "$LINENO" 5
+  fi
 fi
 
 
@@ -7938,6 +7941,9 @@ done
     OBJC2RUNTIME=1
   else
     OBJC2RUNTIME=0
+    if test "$OBJC_RUNTIME_LIB" = "ng"; then
+      as_fn_error $? "The objc runtime library does not appear to have property support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option." "$LINENO" 5
+    fi
   fi
 fi
 
@@ -7960,6 +7966,9 @@ if test $ac_cv_func__Block_copy = yes ; then
   HAVE_BLOCKS=1
 else
   HAVE_BLOCKS=0
+  if test "$OBJC_RUNTIME_LIB" = "ng"; then
+    as_fn_error $? "The objc runtime library does not appear to have blocks support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option." "$LINENO" 5
+  fi
 fi
 
 
@@ -7992,15 +8001,17 @@ fi
   if test $non_fragile = yes; then
     OBJCLIBS="$OBJLIBS -fobjc-nonfragile-abi"
     GS_NONFRAGILE=1
-    # Check whether --enable-mixedabi was given.
+    if test "$OBJC_RUNTIME_LIB" != "ng"; then
+      # Check whether --enable-mixedabi was given.
 if test "${enable_mixedabi+set}" = set; then :
   enableval=$enable_mixedabi;
 else
   enable_mixedabi=yes
 fi
 
-    if test $enable_mixedabi = yes; then
-      GS_MIXEDABI=1
+      if test $enable_mixedabi = yes; then
+        GS_MIXEDABI=1
+      fi
     fi
   fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $non_fragile" >&5
