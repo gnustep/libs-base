@@ -977,15 +977,15 @@ GNUstepConfig(NSDictionary *newConfig)
 		{
 		  if (fromEnvironment ==  YES)
 		    {
-		      fprintf(stderr, "GNUSTEP_CONFIG_FILE value ('%s') is not "
-			@"an absolute path.  Please fix the environment "
-			@"variable.\n", [file UTF8String]);
+		      fprintf(stderr, "GNUSTEP_CONFIG_FILE value ('%s') is not"
+			" an absolute path.  Please fix the environment"
+			" variable.\n", [file UTF8String]);
 		    }
 		  else
 		    {
-		      fprintf(stderr, "GNUSTEP_CONFIG_FILE value ('%s') is not "
-			@"an absolute path.  Please rebuild GNUstep-base "
-			@"specifying a valid path to the config file.\n",
+		      fprintf(stderr, "GNUSTEP_CONFIG_FILE value ('%s') is not"
+			" an absolute path.  Please rebuild GNUstep-base"
+			" specifying a valid path to the config file.\n",
                         [file UTF8String]);
 		    }
 #if	defined(__MINGW_)
