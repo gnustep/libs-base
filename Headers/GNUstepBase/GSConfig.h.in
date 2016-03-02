@@ -323,9 +323,8 @@ typedef	struct {
 #define WINVER Windows2000
 #endif
 
-/* mingw wants winsock2.h before windows.h */
-#include <winsock2.h>
 #include <windows.h>
+#include <winsock2.h>
 #undef  BOOL
 #endif
 
