@@ -1955,6 +1955,9 @@ if test $ac_cv_func_objc_sync_enter = yes ; then
   OBJCSYNC=1
 else
   OBJCSYNC=0
+  if test "$OBJC_RUNTIME_LIB" = "ng"; then
+    AC_MSG_ERROR([The objc runtime library does not appear to have synchronisation support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option.])
+  fi
 fi
 AC_SUBST(OBJCSYNC)
 
@@ -1972,6 +1975,9 @@ else
     OBJC2RUNTIME=1
   else
     OBJC2RUNTIME=0
+    if test "$OBJC_RUNTIME_LIB" = "ng"; then
+      AC_MSG_ERROR([The objc runtime library does not appear to have property support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option.])
+    fi
   fi
 fi
 AC_SUBST(OBJC2RUNTIME)
@@ -1984,6 +1990,9 @@ if test $ac_cv_func__Block_copy = yes ; then
   HAVE_BLOCKS=1
 else
   HAVE_BLOCKS=0
+  if test "$OBJC_RUNTIME_LIB" = "ng"; then
+    AC_MSG_ERROR([The objc runtime library does not appear to have blocks support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option.])
+  fi
 fi
 AC_SUBST(HAVE_BLOCKS)
 
@@ -2003,13 +2012,15 @@ if test "$nonfragile" = "yes"; then
   if test $non_fragile = yes; then
     OBJCLIBS="$OBJLIBS -fobjc-nonfragile-abi"
     GS_NONFRAGILE=1
-    AC_ARG_ENABLE(mixedabi,
-      [  --disable-mixedabi
+    if test "$OBJC_RUNTIME_LIB" != "ng"; then
+      AC_ARG_ENABLE(mixedabi,
+        [  --disable-mixedabi
 	    Disables the combined use of fragile and nonfragile ABI so that base
 	    can be built taking full advantage of the nonfragile ABI.],,
-      enable_mixedabi=yes)
-    if test $enable_mixedabi = yes; then
-      GS_MIXEDABI=1
+        enable_mixedabi=yes)
+      if test $enable_mixedabi = yes; then
+        GS_MIXEDABI=1
+      fi
     fi
   fi
   AC_MSG_RESULT($non_fragile)
