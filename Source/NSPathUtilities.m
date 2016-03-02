@@ -395,9 +395,10 @@ getPathConfig(NSDictionary *dict, NSString *key)
       path = getPath(path);
       if ([path isAbsolutePath] == NO)
 	{
-	  NSLog(@"GNUstep configuration file entry '%@' ('%@') is not "
-	    @"an absolute path.  Please fix your configuration file",
-	    key, [dict objectForKey: key]);
+	  fprintf(stderr, "GNUstep configuration file entry '%s' ('%s') is not "
+	    "an absolute path.\nPlease fix your configuration file.\n",
+	    [key UTF8String],
+            [[[dict objectForKey: key] description] UTF8String]);
 #if	defined(__MINGW_)
 	  if ([path length] > 2)
 	    {
@@ -411,7 +412,8 @@ getPathConfig(NSDictionary *dict, NSString *key)
 		    [path substringFromindex: 2]];
 		  path = [path stringByReplacingString: @"/"
 					    withString: @"\\"];
-		  NSLog(@"I am guessing that you meant '%@'", path);
+		  fprintf(stderr, "I am guessing that you meant '%s'\n",
+                    [path UTF8String]);
 		}
 	    }
 #endif
@@ -608,7 +610,8 @@ static void ExtractValuesFromConfig(NSDictionary *config)
       /*
        * The dictionary should be empty ... report problems
        */
-      fprintf(stderr, "Configuration contains unknown keys - %s\n",
+      fprintf(stderr, "Configuration contains unknown keys - %s\n"
+        "Add them in the comma separated list GNUSTEP_EXTRA=... if required.\n",
 	[[[c allKeys] description] UTF8String]);
     }
   DESTROY(c);
@@ -974,15 +977,16 @@ GNUstepConfig(NSDictionary *newConfig)
 		{
 		  if (fromEnvironment ==  YES)
 		    {
-		      NSLog(@"GNUSTEP_CONFIG_FILE value ('%@') is not "
+		      fprintf(stderr, "GNUSTEP_CONFIG_FILE value ('%s') is not "
 			@"an absolute path.  Please fix the environment "
-			@"variable.", file);
+			@"variable.\n", [file UTF8String]);
 		    }
 		  else
 		    {
-		      NSLog(@"GNUSTEP_CONFIG_FILE value ('%@') is not "
+		      fprintf(stderr, "GNUSTEP_CONFIG_FILE value ('%s') is not "
 			@"an absolute path.  Please rebuild GNUstep-base "
-			@"specifying a valid path to the config file.", file);
+			@"specifying a valid path to the config file.\n",
+                        [file UTF8String]);
 		    }
 #if	defined(__MINGW_)
 		  if ([file length] > 2)
@@ -997,7 +1001,8 @@ GNUstepConfig(NSDictionary *newConfig)
 			    (char)buf[1], [file substringFromindex: 2]];
 			  file = [file stringByReplacingString: @"/"
 						    withString: @"\\"];
-			  NSLog(@"I am guessing that you meant '%@'", file);
+			  fprintf(stderr, "I am guessing that you meant '%s'\n",
+                            [file UTF8String]);
 			}
 		    }
 #endif
@@ -1014,10 +1019,6 @@ GNUstepConfig(NSDictionary *newConfig)
 		  gnustepConfigPath
 		    = RETAIN([file stringByDeletingLastPathComponent]);
 		  ParseConfigurationFile(file, conf, nil);
-		  if (nil != [conf objectForKey: @"GNUSTEP_EXTRA"])
-		    {
-		      NSLog(@"Warning: use of GNUSTEP_EXTRA in your GNUstep.conf file is deprecated.  Please use a GlobalDefaults.plist instead.\n");
-		    }
 		}
 
 	      /* Merge in any values from property lists in the
@@ -1797,15 +1798,17 @@ NSHomeDirectoryForUser(NSString *loginName)
   else
     {
       s = nil;
-      NSLog(@"Trying to get home for '%@' when user is '%@'",
-	loginName, NSUserName());
-      NSLog(@"Can't determine other user home directories in Win32.");
+      fprintf(stderr, "Trying to get home for '%s' when user is '%s'\n",
+	[loginName UTF8String], [NSUserName() UTF8String]);
+      fprintf(stderr,
+        "Can't determine other user home directories in Win32.\n");
     }
 
   if ([s length] == 0 && [loginName length] != 1)
     {
       s = nil;
-      NSLog(@"NSHomeDirectoryForUser(%@) failed", loginName);
+      fprintf(stderr, "NSHomeDirectoryForUser(%s) failed.\n",
+        [loginName UTF8String]);
     }
 #endif
   return s;
@@ -2375,8 +2378,9 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
               ASSIGNCOPY(gnustepDeveloperDir, path);
 	      if (nil == gnustepDeveloperDir)
 		{
-	          NSLog(@"Failed to locate NSDeveloperDirectory by GNUstep configuration, installed GNUstep package, or process PATH.");
-
+	          fprintf(stderr, "Failed to locate NSDeveloperDirectory"
+                    " by GNUstep configuration, installed GNUstep package,"
+                    " or process PATH.\n");
 		}
             }
 #endif
