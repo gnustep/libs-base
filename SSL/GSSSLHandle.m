@@ -25,19 +25,13 @@
 
 #include "config.h"
 
-#if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
-#ifndef __WIN32__
-#define __WIN32__
+#if     defined(__WIN32__) || defined(__MINGW32__) || defined(__MS_WIN32__)
+#ifndef _WIN32
+#define _WIN32
 #endif
 #endif
 
-#ifdef __MINGW__
-#ifndef __WIN32__
-#define __WIN32__
-#endif
-#endif
-
-#if defined(__WIN32__)
+#if defined(_WIN32)
 #include <windows.h>
 #endif
 

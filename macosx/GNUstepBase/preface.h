@@ -28,26 +28,6 @@
 #include <stdarg.h>
 #include <GNUstepBase/objc-gnu2next.h>
 
-#if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
-#ifndef __WIN32__
-#define __WIN32__
-#endif
-#endif
-
-#ifdef __MINGW32__
-#ifndef __MINGW__
-#define __MINGW__
-#endif
-#ifndef __WIN32__
-#define __WIN32__
-#endif
-#endif
-
-#if defined(__WIN32__)
-#include <windows.h>
-#define GNUSTEP_BASE_SOCKET_MESSAGE (WM_USER + 1)
-#endif
-
 #if NeXT_RUNTIME
  #include <objc/objc.h>
  #include <objc/objc-class.h>
@@ -86,9 +66,7 @@
 #define	_C_ULNG_LNG	'Q'
 #endif
 
-#ifndef __WIN32__
 #include <sys/param.h> /* Hack to get rid of warning in GNU libc 2.0.3. */
-#endif
 
 /* The following group of lines maintained by the gstep-base configure */
 #define GNUSTEP_BASE_VERSION            @VERSION@
