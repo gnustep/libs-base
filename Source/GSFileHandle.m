@@ -96,9 +96,9 @@
 #define	NETBUF_SIZE	(1024 * 16)
 #define	READ_SIZE	NETBUF_SIZE*10
 
-static GSFileHandle*	fh_stdin = nil;
-static GSFileHandle*	fh_stdout = nil;
-static GSFileHandle*	fh_stderr = nil;
+static GSFileHandle     *fh_stdin = nil;
+static GSFileHandle     *fh_stdout = nil;
+static GSFileHandle     *fh_stderr = nil;
 
 @interface      GSTcpTune : NSObject
 - (int) delay;
