@@ -300,7 +300,10 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 	      WSACloseEvent(event);
 	      event = WSA_INVALID_EVENT;
             }
-	  close(descriptor);
+	  else
+	    {
+	      close(descriptor);
+	    }
 	  descriptor = -1;
 	}
     }
@@ -1288,10 +1291,11 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 // Synchronous I/O operations
 
+#if 0
 - (NSData*) availableData
 {
   char			buf[READ_SIZE];
-  NSMutableData*	d;
+  SMutableData*	d;
   int			len;
 
   [self checkRead];
@@ -1310,6 +1314,76 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   else
     {
       len = [self read: buf length: sizeof(buf)];
+      if (len > 0)
+	{
+	  [d appendBytes: buf length: len];
+	}
+    }
+  if (len < 0)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"unable to read from descriptor - %@",
+                  [NSError _last]];
+    }
+  return d;
+}
+#endif
+- (NSData*) availableData
+{
+  char			buf[READ_SIZE];
+  NSMutableData*	d;
+  int			len;
+
+  [self checkRead];
+  d = [NSMutableData dataWithCapacity: 0];
+  if (isStandardFile)
+    {
+      if (isNonBlocking == YES)
+	{
+	  [self setNonBlocking: NO];
+	}
+      while ((len = [self read: buf length: sizeof(buf)]) > 0)
+        {
+	  [d appendBytes: buf length: len];
+        }
+    }
+  else
+    {
+      if (isNonBlocking == NO)
+	{
+	  [self setNonBlocking: YES];
+	}
+      len = [self read: buf length: sizeof(buf)];
+
+      if (len <= 0)
+	{
+          if (WSAGetLastError()== WSAEINTR
+	    || WSAGetLastError()== WSAEWOULDBLOCK)
+	    {
+	      /*
+	       * Read would have blocked ... so try to get a single character
+	       * in non-blocking mode (to ensure we wait until data arrives)
+	       * and then try again.
+	       * This ensures that we block for *some* data as we should.
+	       */
+	      [self setNonBlocking: NO];
+	      len = [self read: buf length: 1];
+	      [self setNonBlocking: YES];
+	      if (len == 1)
+		{
+		  len = [self read: &buf[1] length: sizeof(buf) - 1];
+		  if (len <= 0)
+		    {
+		      len = 1;
+		    }
+		  else
+		    {
+		      len = len + 1;
+		    }
+		}
+	    }
+	}
+
       if (len > 0)
 	{
 	  [d appendBytes: buf length: len];
@@ -2330,6 +2404,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (void) setNonBlocking: (BOOL)flag
 {
+  if (flag == isNonBlocking)
+    {
+      return;
+    }
   if (descriptor < 0)
     {
       return;
@@ -2350,7 +2428,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
         {                        // Not a file and not a socket, must be a pipe
           DWORD mode;
 
-          if (flag)
+          if (YES == flag)
             mode = PIPE_NOWAIT;
           else
             mode = PIPE_WAIT;
@@ -2361,34 +2439,39 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
             }
           else
             {
-	      NSLog(@"unable to set pipe non-blocking mode - %d",
-		GetLastError());
+	      NSLog(@"unable to set pipe non-blocking mode to %s - %d",
+		(YES  == flag ? "YES" : "NO"), GetLastError());
             }
           return;
         }
 
-      if (flag)
+      if (YES == flag)
 	{
+	  WSAEventSelect((SOCKET)_get_osfhandle(descriptor), event,
+	    FD_ALL_EVENTS);
 	  dummy = 1;
 	  if (ioctlsocket((SOCKET)_get_osfhandle(descriptor), FIONBIO, &dummy)
 	    == SOCKET_ERROR)
 	    {
-	      NSLog(@"unable to set non-blocking mode - %@",
+	      NSLog(@"unable to set non-blocking mode to YES - %@",
 		[NSError _last]);
 	    }
 	  else
-	    isNonBlocking = flag;
+	    {
+	      isNonBlocking = flag;
+	    }
 	}
       else
 	{
+	  WSAEventSelect((SOCKET)_get_osfhandle(descriptor), event, 0);
 	  dummy = 0;
 	  if (ioctlsocket((SOCKET)_get_osfhandle(descriptor), FIONBIO, &dummy)
 	    == SOCKET_ERROR)
 	    {
-	      NSLog(@"unable to set blocking mode - %@", [NSError _last]);
+	      NSLog(@"unable to set blocking mode to NO - %@",
+		[NSError _last]);
 	    }
-	  else
-	    isNonBlocking = flag;
+          isNonBlocking = flag;
 	}
     }
 }

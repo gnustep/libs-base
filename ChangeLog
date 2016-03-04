@@ -8,6 +8,7 @@
 	* macosx\GNUstepBase\preface.h:
 	Standardise on using _WIN32 and _WIN64 defines, following the
 	informal convention used by all the compilers we might be compiled with.
+	* Source/win32/GSFileHandle.m: Various network/file bugfixes.
 
 2016-03-01  Richard Frith-Macdonald <rfm@gnu.org>
 
