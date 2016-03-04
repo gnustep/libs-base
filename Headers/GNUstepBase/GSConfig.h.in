@@ -30,31 +30,25 @@
 #define	included_GSConfig_h
 
 /* Check the compiler to see if we are building on/for ms-windows.
- * Whatever the compiler uses, we want a standard setting of __WIN32__
- * for a windows build.
+ * Whatever the compiler uses, we want a standard setting of _WIN64
+ * to indicate 64bit AND _WIN32 to indicate ms-windows.
+ * These are defined by gcc, clang, and microsoft compilers anyway.
  */
 #if     defined(__WIN32__) \
-	|| defined(_WIN32) \
 	|| defined(__MS_WIN32__) \
-	|| defined(__MINGW64__)
-#  if	!defined(__WIN32__)
-#    define __WIN32__
+	|| defined(__MINGW32__)
+#  if	!defined(_WIN32)
+#    define _WIN32
 #  endif
 #endif
-
-/* Check the compiler to see if we are building on/for 64bit ms-windows.
- * Whatever the compiler uses, we want a standard setting of __WIN64__
- * to indicate 64bit AND __WIN32__ to indicate ms-windows.
- */
 #if     defined(__WIN64__) \
-	|| defined(_WIN64) \
 	|| defined(__MS_WIN64__) \
 	|| defined(__MINGW64__)
 #  if	!defined(__WIN64__)
 #    define __WIN64__
 #  endif
-#  if	!defined(__WIN32__)
-#    define __WIN32__
+#  if	!defined(_WIN32)
+#    define _WIN32
 #  endif
 #endif
 
@@ -310,7 +304,7 @@ typedef	struct {
 #  define __has_extension(x) __has_feature(x)
 #endif
 
-#if defined(__WIN32__)
+#if defined(_WIN32)
 #define BOOL WinBOOL
 #include <w32api.h>
 #ifndef _WIN32_WINNT
@@ -336,7 +330,7 @@ typedef	struct {
 #  include <objc/block_runtime.h>
 #endif
 
-#ifndef __WIN32__
+#ifndef _WIN32
 #include <sys/param.h> /* Hack to get rid of warning in GNU libc 2.0.3. */
 #endif
 

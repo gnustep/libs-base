@@ -301,7 +301,7 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 	      result = [prefix stringByStandardizingPath];
 	      break;
 	    }
-#if defined(__WIN32__)
+#if defined(_WIN32)
 	  else
 	    {
 	      NSString	*extension = [path pathExtension];
@@ -1348,7 +1348,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
          the executable name here - just in case it turns out it's a
          tool.  */
       NSString *toolName = [GSPrivateExecutablePath() lastPathComponent];
-#if defined(__WIN32__) || defined(__CYGWIN__)
+#if defined(_WIN32) || defined(__CYGWIN__)
       toolName = [toolName stringByDeletingPathExtension];
 #endif
 

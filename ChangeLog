@@ -1,6 +1,13 @@
 2016-03-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendar.m: Fix 64bit issue with undefined components.
+	* Source\NSBundle.m:
+	* Source\NSFileManager.m:
+	* SSL\GSSSLHandle.m:
+	* Headers\GNUstepBase\GSConfig.h.in:
+	* macosx\GNUstepBase\preface.h:
+	Standardise on using _WIN32 and _WIN64 defines, following the
+	informal convention used by all the compilers we might be compiled with.
 
 2016-03-01  Richard Frith-Macdonald <rfm@gnu.org>
 

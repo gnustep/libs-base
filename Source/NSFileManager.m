@@ -92,7 +92,7 @@
 
 /* determine filesystem max path length */
 
-#if defined(_POSIX_VERSION) || defined(__WIN32__)
+#if defined(_POSIX_VERSION) || defined(_WIN32)
 # if defined(__MINGW__)
 #   include <sys/utime.h>
 # else
@@ -549,7 +549,7 @@ static NSStringEncoding	defaultEncoding;
       BOOL		ok = NO;
       struct _STATB	sb;
 
-#if  defined(__WIN32__) || defined(_POSIX_VERSION)
+#if  defined(_WIN32) || defined(_POSIX_VERSION)
       struct _UTIMB ub;
 #else
       time_t ub[2];
@@ -559,7 +559,7 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  ok = NO;
 	}
-#if  defined(__WIN32__)
+#if  defined(_WIN32)
       else if (sb.st_mode & _S_IFDIR)
 	{
 	  ok = YES;	// Directories don't have modification times.
@@ -567,7 +567,7 @@ static NSStringEncoding	defaultEncoding;
 #endif
       else
 	{
-#if  defined(__WIN32__) || defined(_POSIX_VERSION)
+#if  defined(_WIN32) || defined(_POSIX_VERSION)
 	  ub.actime = sb.st_atime;
 	  ub.modtime = [date timeIntervalSince1970];
 	  ok = (_UTIME(lpath, &ub) == 0);
