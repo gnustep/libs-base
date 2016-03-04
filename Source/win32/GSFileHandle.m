@@ -70,9 +70,9 @@
 #define	NETBUF_SIZE	4096
 #define	READ_SIZE	NETBUF_SIZE*10
 
-static GSFileHandle*	fh_stdin = nil;
-static GSFileHandle*	fh_stdout = nil;
-static GSFileHandle*	fh_stderr = nil;
+static GSFileHandle     *fh_stdin = nil;
+static GSFileHandle     *fh_stdout = nil;
+static GSFileHandle     *fh_stderr = nil;
 
 // Key to info dictionary for operation mode.
 static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
@@ -239,6 +239,24 @@ getAddr(NSString* name, NSString* svc, NSString* pcl, struct sockaddr_in *sin)
 
 - (void) dealloc
 {
+  if (self == fh_stdin)
+    {
+      RETAIN(self);
+      [NSException raise: NSGenericException
+                  format: @"Attempt to deallocate standard input handle"];
+    }
+  if (self == fh_stdout)
+    {
+      RETAIN(self);
+      [NSException raise: NSGenericException
+                  format: @"Attempt to deallocate standard output handle"];
+    }
+  if (self == fh_stderr)
+    {
+      RETAIN(self);
+      [NSException raise: NSGenericException
+                  format: @"Attempt to deallocate standard error handle"];
+    }
   RELEASE(address);
   RELEASE(service);
   RELEASE(protocol);
@@ -1022,18 +1040,16 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (fh_stderr != nil)
     {
-      RETAIN(fh_stderr);
-      DESTROY(self);
+      ASSIGN(self, fh_stderr);
     }
   else
     {
       self = [self initWithFileDescriptor: 2 closeOnDealloc: NO];
-      fh_stderr = self;
-    }
-  self = fh_stderr;
-  if (self)
-    {
-      readOK = NO;
+      ASSIGN(fh_stderr, self);
+      if (self)
+        {
+          readOK = NO;
+        }
     }
   return self;
 }
@@ -1042,18 +1058,16 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (fh_stdin != nil)
     {
-      RETAIN(fh_stdin);
-      DESTROY(self);
+      ASSIGN(self, fh_stdin);
     }
   else
     {
       self = [self initWithFileDescriptor: 0 closeOnDealloc: NO];
-      fh_stdin = self;
-    }
-  self = fh_stdin;
-  if (self)
-    {
-      writeOK = NO;
+      ASSIGN(fh_stdin, self);
+      if (self)
+        {
+          writeOK = NO;
+        }
     }
   return self;
 }
@@ -1062,18 +1076,16 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (fh_stdout != nil)
     {
-      RETAIN(fh_stdout);
-      DESTROY(self);
+      ASSIGN(fh_stdout, self);
     }
   else
     {
       self = [self initWithFileDescriptor: 1 closeOnDealloc: NO];
-      fh_stdout = self;
-    }
-  self = fh_stdout;
-  if (self)
-    {
-      readOK = NO;
+      ASSIGN(fh_stdout, self);
+      if (self)
+        {
+          readOK = NO;
+        }
     }
   return self;
 }
