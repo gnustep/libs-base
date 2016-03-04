@@ -378,7 +378,7 @@ static NSRecursiveLock *classLock = nil;
   cal, units, components, toDate, nsunit, setSel, uunit, err) \
 do \
   { \
-    if (units & nsunit) \
+    if (nsunit == (units & nsunit)) \
       { \
         int32_t uunit ## Diff \
           = ucal_getFieldDifference(cal, toDate, uunit, &err); \
@@ -474,7 +474,7 @@ do \
                             options: (NSUInteger) opts
 {
 #if GS_USE_ICU == 1
-  int32_t amount;
+  NSInteger amount;
   UErrorCode err = U_ZERO_ERROR;
   UDate udate;
   
@@ -487,49 +487,49 @@ do \
     ucal_roll (my->cal, c, n, &err); \
   else \
     ucal_add (my->cal, c, n, &err);
-  if ((amount = (int32_t)[comps era]) != NSUndefinedDateComponent)
+  if ((amount = [comps era]) != NSDateComponentUndefined)
     {
-      _ADD_COMPONENT(UCAL_ERA, amount);
+      _ADD_COMPONENT(UCAL_ERA, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps year]) != NSUndefinedDateComponent)
+  if ((amount = [comps year]) != NSDateComponentUndefined)
     {
-      _ADD_COMPONENT(UCAL_YEAR, amount);
+      _ADD_COMPONENT(UCAL_YEAR, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps month]) != NSUndefinedDateComponent)
+  if ((amount = [comps month]) != NSDateComponentUndefined)
     {
-      _ADD_COMPONENT(UCAL_MONTH, amount);
+      _ADD_COMPONENT(UCAL_MONTH, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps day]) != NSUndefinedDateComponent)
+  if ((amount = [comps day]) != NSDateComponentUndefined)
     {
-      _ADD_COMPONENT(UCAL_DAY_OF_MONTH, amount);
+      _ADD_COMPONENT(UCAL_DAY_OF_MONTH, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps hour]) != NSUndefinedDateComponent)
+  if ((amount = [comps hour]) != NSDateComponentUndefined)
     {
-      _ADD_COMPONENT(UCAL_HOUR_OF_DAY, amount);
+      _ADD_COMPONENT(UCAL_HOUR_OF_DAY, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps minute]) != NSUndefinedDateComponent)
+  if ((amount = [comps minute]) != NSDateComponentUndefined)
     {
-      _ADD_COMPONENT(UCAL_MINUTE, amount);
+      _ADD_COMPONENT(UCAL_MINUTE, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps second]) != NSUndefinedDateComponent)
+  if ((amount = [comps second]) != NSDateComponentUndefined)
     {
-      _ADD_COMPONENT(UCAL_SECOND, amount);
+      _ADD_COMPONENT(UCAL_SECOND, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps week]) != NSUndefinedDateComponent)
+  if ((amount = [comps week]) != NSDateComponentUndefined)
     {
-      _ADD_COMPONENT(UCAL_WEEK_OF_YEAR, amount);
+      _ADD_COMPONENT(UCAL_WEEK_OF_YEAR, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps weekday]) != NSUndefinedDateComponent)
+  if ((amount = [comps weekday]) != NSDateComponentUndefined)
     {
-      _ADD_COMPONENT(UCAL_DAY_OF_WEEK, amount);
+      _ADD_COMPONENT(UCAL_DAY_OF_WEEK, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps weekOfMonth]) != NSUndefinedDateComponent)
+  if ((amount = [comps weekOfMonth]) != NSDateComponentUndefined)
     {
-      _ADD_COMPONENT(UCAL_WEEK_OF_MONTH, amount);
+      _ADD_COMPONENT(UCAL_WEEK_OF_MONTH, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps yearForWeekOfYear]) != NSUndefinedDateComponent)
+  if ((amount = [comps yearForWeekOfYear]) != NSDateComponentUndefined)
     {
-      _ADD_COMPONENT(UCAL_YEAR_WOY, amount);
+      _ADD_COMPONENT(UCAL_YEAR_WOY, (int32_t)amount);
     }
 #undef _ADD_COMPONENT
   
@@ -546,56 +546,56 @@ do \
 - (NSDate *) dateFromComponents: (NSDateComponents *) comps
 {
 #if GS_USE_ICU == 1
-  int32_t amount;
+  NSInteger amount;
   UDate udate;
   UErrorCode err = U_ZERO_ERROR;
   
   [self _resetCalendar];
   ucal_clear (my->cal);
   
-  if ((amount = (int32_t)[comps era]) != NSUndefinedDateComponent)
+  if ((amount = [comps era]) != NSDateComponentUndefined)
     {
-      ucal_set (my->cal, UCAL_ERA, amount);
+      ucal_set (my->cal, UCAL_ERA, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps year]) != NSUndefinedDateComponent)
+  if ((amount = [comps year]) != NSDateComponentUndefined)
     {
-      ucal_set (my->cal, UCAL_YEAR, amount);
+      ucal_set (my->cal, UCAL_YEAR, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps month]) != NSUndefinedDateComponent)
+  if ((amount = [comps month]) != NSDateComponentUndefined)
     {
       ucal_set (my->cal, UCAL_MONTH, amount-1);
     }
-  if ((amount = (int32_t)[comps day]) != NSUndefinedDateComponent)
+  if ((amount = [comps day]) != NSDateComponentUndefined)
     {
-      ucal_set (my->cal, UCAL_DAY_OF_MONTH, amount);
+      ucal_set (my->cal, UCAL_DAY_OF_MONTH, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps hour]) != NSUndefinedDateComponent)
+  if ((amount = [comps hour]) != NSDateComponentUndefined)
     {
-      ucal_set (my->cal, UCAL_HOUR_OF_DAY, amount);
+      ucal_set (my->cal, UCAL_HOUR_OF_DAY, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps minute]) != NSUndefinedDateComponent)
+  if ((amount = [comps minute]) != NSDateComponentUndefined)
     {
-      ucal_set (my->cal, UCAL_MINUTE, amount);
+      ucal_set (my->cal, UCAL_MINUTE, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps second]) != NSUndefinedDateComponent)
+  if ((amount = [comps second]) != NSDateComponentUndefined)
     {
-      ucal_set (my->cal, UCAL_SECOND, amount);
+      ucal_set (my->cal, UCAL_SECOND, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps week]) != NSUndefinedDateComponent)
+  if ((amount = [comps week]) != NSDateComponentUndefined)
     {
-      ucal_set (my->cal, UCAL_WEEK_OF_YEAR, amount);
+      ucal_set (my->cal, UCAL_WEEK_OF_YEAR, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps weekday]) != NSUndefinedDateComponent)
+  if ((amount = [comps weekday]) != NSDateComponentUndefined)
     {
-      ucal_set (my->cal, UCAL_DAY_OF_WEEK, amount);
+      ucal_set (my->cal, UCAL_DAY_OF_WEEK, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps weekOfMonth]) != NSUndefinedDateComponent)
+  if ((amount = [comps weekOfMonth]) != NSDateComponentUndefined)
     {
-      ucal_set (my->cal, UCAL_WEEK_OF_MONTH, amount);
+      ucal_set (my->cal, UCAL_WEEK_OF_MONTH, (int32_t)amount);
     }
-  if ((amount = (int32_t)[comps yearForWeekOfYear]) != NSUndefinedDateComponent)
+  if ((amount = [comps yearForWeekOfYear]) != NSDateComponentUndefined)
     {
-      ucal_set (my->cal, UCAL_YEAR_WOY, amount);
+      ucal_set (my->cal, UCAL_YEAR_WOY, (int32_t)amount);
     }
   
   udate = ucal_getMillis (my->cal, &err);
@@ -860,19 +860,19 @@ typedef struct {
       NSZoneCalloc([self zone], sizeof(DateComp), 1);
 #endif
 
-      my->era = NSUndefinedDateComponent;
-      my->year = NSUndefinedDateComponent;
-      my->month = NSUndefinedDateComponent;
-      my->day = NSUndefinedDateComponent;
-      my->hour = NSUndefinedDateComponent;
-      my->minute = NSUndefinedDateComponent;
-      my->second = NSUndefinedDateComponent;
-      my->week = NSUndefinedDateComponent;
-      my->weekday = NSUndefinedDateComponent;
-      my->weekdayOrdinal = NSUndefinedDateComponent;
-      my->quarter = NSUndefinedDateComponent;
-      my->weekOfMonth = NSUndefinedDateComponent;
-      my->yearForWeekOfYear = NSUndefinedDateComponent;
+      my->era = NSDateComponentUndefined;
+      my->year = NSDateComponentUndefined;
+      my->month = NSDateComponentUndefined;
+      my->day = NSDateComponentUndefined;
+      my->hour = NSDateComponentUndefined;
+      my->minute = NSDateComponentUndefined;
+      my->second = NSDateComponentUndefined;
+      my->week = NSDateComponentUndefined;
+      my->weekday = NSDateComponentUndefined;
+      my->weekdayOrdinal = NSDateComponentUndefined;
+      my->quarter = NSDateComponentUndefined;
+      my->weekOfMonth = NSDateComponentUndefined;
+      my->yearForWeekOfYear = NSDateComponentUndefined;
       my->cal = NULL;
       my->tz = NULL;
      } 
