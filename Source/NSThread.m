@@ -516,26 +516,20 @@ static inline void _willLateUnregisterThread(NSValue *boxedThread,
   NSThread *specific)
 {
   [_exitingThreadsLock lock];
-  NS_DURING
+  /* The map table is created lazily/late so that the NSThread
+   * +initilize method can be called without causing other
+   * classes to be initialized.
+   * NB this locked section cannot be protected by an exception handler
+   * because the exception handler stores information in the current
+   * thread variables ... which causes recursion.
+   */
+  if (nil == _exitingThreads)
     {
-      /* The map table is created lazily/late so that the NSThread
-       * +initilize method can be called without causing other
-       * classes to be initialized.
-       */
-      if (nil == _exitingThreads)
-        {
-          _exitingThreads = NSCreateMapTable(_boxedPthreadKeyCallBacks,
-            NSObjectMapValueCallBacks, 10);
-        }
-      NSMapInsert(_exitingThreads, (const void*)boxedThread,
-        (const void*)specific);
+      _exitingThreads = NSCreateMapTable(_boxedPthreadKeyCallBacks,
+	NSObjectMapValueCallBacks, 10);
     }
-  NS_HANDLER
-    {
-      [_exitingThreadsLock unlock];
-      [localException raise];
-    }
-  NS_ENDHANDLER
+  NSMapInsert(_exitingThreads, (const void*)boxedThread,
+    (const void*)specific);
   [_exitingThreadsLock unlock];
 }
 
@@ -546,19 +540,14 @@ static inline void _willLateUnregisterThread(NSValue *boxedThread,
  */
 static inline void _didLateUnregisterCurrentThread(NSValue *boxedThread)
 {
+  /* NB this locked section cannot be protected by an exception handler
+   * because the exception handler stores information in the current
+   * thread variables ... which causes recursion.
+   */
   [_exitingThreadsLock lock];
   if (nil != _exitingThreads)
     {
-      NS_DURING
-        {
-          NSMapRemove(_exitingThreads, (const void*)boxedThread);
-        }
-      NS_HANDLER
-        {
-          [_exitingThreadsLock unlock];
-          [localException raise];
-        }
-      NS_ENDHANDLER
+      NSMapRemove(_exitingThreads, (const void*)boxedThread);
     }
   [_exitingThreadsLock unlock];
 }
