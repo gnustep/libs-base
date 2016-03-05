@@ -1824,6 +1824,7 @@ setNonBlocking(SOCKET fd)
     }
   [_handler bye];
 #if	defined(__MINGW__)
+  [super close];
   if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
     {
       /*
@@ -1843,15 +1844,14 @@ setNonBlocking(SOCKET fd)
       closesocket(_sock);
     }
   WSACloseEvent(_loopID);
-  [super close];
   _loopID = WSA_INVALID_EVENT;
 #else
+  [super close];
   // read shutdown is ignored, because the other side may shutdown first.
   if (!_sibling || [_sibling streamStatus] == NSStreamStatusClosed)
     close((intptr_t)_loopID);
   else
     shutdown((intptr_t)_loopID, SHUT_RD);
-  [super close];
   _loopID = (void*)(intptr_t)-1;
 #endif
   _sock = INVALID_SOCKET;
@@ -2687,21 +2687,23 @@ setNonBlocking(SOCKET fd)
       // no need to connect again
       [ins _setPassive: YES];
       [outs _setPassive: YES];
+
       // copy the addr to outs
       [ins _setAddress: addr];
       [outs _setAddress: addr];
       [ins _setSock: acceptReturn];
       [outs _setSock: acceptReturn];
-      [ins _setStatus: NSStreamStatusOpen];
-      [outs _setStatus: NSStreamStatusOpen];
+
       /* Set property to indicate that the input stream was accepted by
        * a listening socket (server) rather than produced by an outgoing
        * connection (client).
        */
       [ins setProperty: @"YES" forKey: @"IsServer"];
 
+      /* At this point, we can insert the handler to deal with TLS
+       */
       str = [self propertyForKey: NSStreamSocketSecurityLevelKey];
-      if(nil != str)
+      if (nil != str)
 	{
 	  opts = [NSMutableDictionary new];
 	  [opts setObject: str forKey: NSStreamSocketSecurityLevelKey];
@@ -2721,7 +2723,8 @@ setNonBlocking(SOCKET fd)
 	      [outs setProperty: str forKey: key];
 	    }
 
-	  [GSTLSHandler tryInput: (GSSocketInputStream *)ins output: (GSSocketOutputStream *)outs];
+	  [GSTLSHandler tryInput: (GSSocketInputStream *)ins
+			  output: (GSSocketOutputStream *)outs];
 	  DESTROY(opts);
 	}
     }
@@ -2735,6 +2738,8 @@ setNonBlocking(SOCKET fd)
       [outs _setSibling: ins];
       *outputStream = (NSOutputStream*)outs;
     }
+  /* Now the streams are redy to be opened.
+   */
 }
 
 - (void) _dispatch
