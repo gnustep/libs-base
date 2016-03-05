@@ -39,11 +39,11 @@ int main(int argc, char **argv, char **env)
 			nil];
       // create a shared TestWebServer instance for performance
       server = [[[testClass testWebServerClass] alloc] initWithAddress: @"localhost"
-								  port: @"54321"
+								  port: @"1234"
 								  mode: NO
 								 extra: d];
       [server setDebug: debug];
-      [server start: d]; // 127.0.0.1:54321 HTTPS
+      [server start: d]; // 127.0.0.1:1234 HTTPS
 
       /*
        *  Simple GET via HTTPS without authorization with empty response's body and
@@ -67,7 +67,7 @@ int main(int argc, char **argv, char **env)
 			nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... no auth...GET https://localhost:54321/withoutauth");
+      PASS([testCase isSuccess], "HTTPS... no auth...GET https://localhost:1234/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -95,7 +95,7 @@ int main(int argc, char **argv, char **env)
 			nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... no auth... response 400... GET https://localhost:54321/400/withoutauth");
+      PASS([testCase isSuccess], "HTTPS... no auth... response 400... GET https://localhost:1234/400/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -125,7 +125,7 @@ int main(int argc, char **argv, char **env)
 			nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... no auth... payload... response 400 .... POST https://localhost:54321/400/withoutauth");
+      PASS([testCase isSuccess], "HTTPS... no auth... payload... response 400 .... POST https://localhost:1234/400/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -156,7 +156,7 @@ int main(int argc, char **argv, char **env)
 			nil];      
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... no auth... redirecting... GET https://localhost:54321/301/withoutauth");
+      PASS([testCase isSuccess], "HTTPS... no auth... redirecting... GET https://localhost:1234/301/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 

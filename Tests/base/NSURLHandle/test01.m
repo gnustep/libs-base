@@ -22,7 +22,7 @@ int main(int argc, char **argv)
   NSData *resp;
   NSData *rxd;
   
-  url = [NSURL URLWithString: @"http://localhost:54321/200"];
+  url = [NSURL URLWithString: @"http://localhost:1234/200"];
   cls = [NSURLHandle URLHandleClassForURL: url];
   resp = [NSData dataWithBytes: "Hello\r\n" length: 7];
   
@@ -45,13 +45,13 @@ int main(int argc, char **argv)
       PASS([handle status] == NSURLHandleLoadSucceeded,
            "200 - status: Handle load succeeded") ;
       
-      url = [NSURL URLWithString: @"http://localhost:54321/401"];
+      url = [NSURL URLWithString: @"http://localhost:1234/401"];
       handle = [[[cls alloc] initWithURL: url cached: NO] autorelease];
       rxd = [handle loadInForeground];
       PASS([handle status] == NSURLHandleNotLoaded,
            "401 - status: Handle load not loaded (unanswered auth challenge)");
 
-      url = [NSURL URLWithString: @"http://localhost:54321/404"];
+      url = [NSURL URLWithString: @"http://localhost:1234/404"];
       handle = [[[cls alloc] initWithURL: url cached: NO] autorelease];
       rxd = [handle loadInForeground];
       PASS([handle status] == NSURLHandleNotLoaded,

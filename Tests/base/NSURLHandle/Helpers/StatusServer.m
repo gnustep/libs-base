@@ -2,8 +2,8 @@
 
 #if     GNUSTEP
 
-#define PORT_LISTEN 54321
-#define LOCATION200 @"http://localhost:54321/200"
+#define PORT_LISTEN 1234
+#define LOCATION200 @"http://localhost:1234/200"
 
 @interface StatusServer : NSObject
 {

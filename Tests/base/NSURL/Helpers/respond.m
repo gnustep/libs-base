@@ -40,7 +40,7 @@
   NSString		*file;
   int			port = [[defs stringForKey: @"Port"] intValue];
 
-  if (port == 0) port = 54321;
+  if (port == 0) port = 1234;
 
   count = [[defs stringForKey: @"Count"] intValue];
   if (count <= 0) count = 1;
