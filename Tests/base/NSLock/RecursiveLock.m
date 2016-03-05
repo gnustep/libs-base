@@ -36,7 +36,7 @@ int main()
         "NSRecursiveLock isLockedByCurrentThread returns NO when not locked");
       [lock lock];
       PASS([lock isLockedByCurrentThread] == YES,
-        "NSRecursiveLock isLockedByCurrentThread returns YES when not locked");
+        "NSRecursiveLock isLockedByCurrentThread returns YES when locked");
       [lock unlock];
       PASS([lock isLockedByCurrentThread] == NO,
         "NSRecursiveLock isLockedByCurrentThread returns NO when unlocked");
