@@ -1066,8 +1066,10 @@ static NSStringEncoding	defaultEncoding;
 
 	      // Windows may count the trailing nul ... we don't want to.
 	      if (len > 0 && lpath[len] == 0) len--;
-	      path = [NSString stringWithCharacters: lpath length: len];
-	      currentDir = path;
+	      path = [[NSString alloc] initWithCharacters: lpath length: len];
+	      // Standardise to get rid of backslashes
+	      currentDir = [path stringByStandardizingPath];
+	      RELEASE(path);
 	    }
 	  free(lpath);
 	}
