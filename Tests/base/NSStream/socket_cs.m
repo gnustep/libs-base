@@ -13,6 +13,23 @@ static NSInputStream *serverInput = nil;
 static NSInputStream *clientInput = nil;
 static NSData *goldData;
 static NSMutableData *testData;
+static NSString *prefix = @"";
+
+static NSString *
+eventString(NSStream *stream, NSStreamEvent event)
+{
+  switch (event)
+    {
+      case NSStreamEventOpenCompleted: return @"open completed";
+      case NSStreamEventHasSpaceAvailable: return @"space available";
+      case NSStreamEventHasBytesAvailable: return @"bytes available";
+      case NSStreamEventEndEncountered: return @"end encountered"; 
+      case NSStreamEventErrorOccurred: 
+        return [NSString stringWithFormat: @"error %d (%@)",
+          [[stream streamError] code], [stream streamError]];
+      default: return [NSString stringWithFormat: @"unknown event %d", event];
+    }
+}
 
 @interface ClientListener : NSObject
 {
@@ -25,55 +42,61 @@ static NSMutableData *testData;
 
 - (void)stream: (NSStream *)theStream handleEvent: (NSStreamEvent)streamEvent
 {
-NSLog(@"Client %p %d", theStream, streamEvent);
+NSLog(@"%@ Client %p %@", prefix, theStream, eventString(theStream, streamEvent));
   switch (streamEvent) 
     {
     case NSStreamEventOpenCompleted: 
       {
         if (theStream==clientOutput)
-          writePointer = 0;
+	  {
+	    NSLog(@"%@ Client %p set write pointer to zero", prefix, theStream);
+            writePointer = 0;
+	  }
         break;
       }
     case NSStreamEventHasSpaceAvailable: 
       {
         NSAssert(theStream==clientOutput, @"Wrong stream for writing");
-        if (writePointer<[goldData length])
+        if (writePointer < [goldData length])
           {
-            int writeReturn = [clientOutput write: [goldData bytes]+writePointer 
-	      maxLength: [goldData length]-writePointer];
-	    NSLog(@"Client %p wrote %d", clientOutput, writeReturn);
+            int writeReturn;
+
+            writeReturn = [clientOutput write: [goldData bytes]+writePointer 
+				    maxLength: [goldData length]-writePointer];
+	    NSLog(@"%@ Client %p wrote %d", prefix, theStream, writeReturn);
             if (writeReturn < 0)
-              NSLog(@"Error ... %@", [clientOutput streamError]);
+              NSLog(@"%@ Error ... %@", prefix, [theStream streamError]);
             writePointer += writeReturn;
           }          
         else
 	  {
 	    writePointer = 0;
-            [clientOutput close];          
-	    [clientOutput removeFromRunLoop: [NSRunLoop currentRunLoop]
-				    forMode: NSDefaultRunLoopMode];
-            NSLog(@"Client close %p", clientOutput);
+            [theStream close];          
+	    [theStream removeFromRunLoop: [NSRunLoop currentRunLoop]
+				 forMode: NSDefaultRunLoopMode];
+            NSLog(@"%@ Client close %p", prefix, theStream);
 	  }
         break;
       }
     case NSStreamEventHasBytesAvailable: 
       {
         int readSize;
+
         NSAssert(theStream==clientInput, @"Wrong stream for reading");
         readSize = [clientInput read: buffer maxLength: 4096];
-        NSLog(@"Client %p read %d", clientInput, readSize);
+        NSLog(@"%@ Client %p read %d", prefix, theStream, readSize);
         if (readSize < 0)
           {
-            NSLog(@"Error ... %@", [clientInput streamError]);
+            NSLog(@"%@ Error ... %@", prefix, [theStream streamError]);
             // it is possible that readSize<0 but not an Error.
 	    // For example would block
           }
         else if (readSize == 0)
 	  {
-            [clientInput close];
-	    [clientInput removeFromRunLoop: [NSRunLoop currentRunLoop]
+            [theStream close];
+	    [theStream removeFromRunLoop: [NSRunLoop currentRunLoop]
 				   forMode: NSDefaultRunLoopMode];
-            NSLog(@"Client close %p", clientInput);
+            NSLog(@"%@ Client close %p", prefix, theStream);
 	  }
         else
 	  {
@@ -83,16 +106,14 @@ NSLog(@"Client %p %d", theStream, streamEvent);
       }
     case NSStreamEventEndEncountered: 
       {
+        [theStream setDelegate: nil];
         [theStream close];
 	[theStream removeFromRunLoop: [NSRunLoop currentRunLoop]
 			     forMode: NSDefaultRunLoopMode];
-        NSLog(@"Client close %p", theStream);
         break;
       }
     case NSStreamEventErrorOccurred: 
       {
-        NSLog(@"Error code is %d ... %@",
-          [[theStream streamError] code], [theStream streamError]);
         break;
       }  
     default: 
@@ -116,7 +137,7 @@ NSLog(@"Client %p %d", theStream, streamEvent);
 
 - (void)stream: (NSStream *)theStream handleEvent: (NSStreamEvent)streamEvent
 {
-NSLog(@"Server %p %d", theStream, streamEvent);
+NSLog(@"%@ Server %p %@", prefix, theStream, eventString(theStream, streamEvent));
   switch (streamEvent) 
     {
     case NSStreamEventHasBytesAvailable: 
@@ -124,25 +145,36 @@ NSLog(@"Server %p %d", theStream, streamEvent);
         if (theStream==serverStream)
           {
             NSAssert(serverInput==nil, @"accept twice");
+NSLog(@"%@ Server %p %@ accepting incoming connection", prefix, theStream);
             [serverStream acceptWithInputStream: &serverInput
 				   outputStream: &serverOutput];
-            if (serverInput)   // it is ok to accept nothing
+            if (nil == serverInput)   // it is ok to accept nothing
+	      {
+NSLog(@"%@ Server %p %@ accept failed (no connection)", prefix, theStream);
+	      }
+	    else
               {
                 NSRunLoop *rl = [NSRunLoop currentRunLoop];
+
                 [serverInput scheduleInRunLoop: rl
 				       forMode: NSDefaultRunLoopMode];
                 [serverOutput scheduleInRunLoop: rl
 					forMode: NSDefaultRunLoopMode];
-		NSLog(@"Server input stream is %p", serverInput);
-		NSLog(@"Server output stream is %p", serverOutput);
-                [serverInput retain];
-                [serverOutput retain];
+		NSLog(@"%@ Server input stream is %p", prefix, serverInput);
+		NSLog(@"%@ Server output stream is %p", prefix, serverOutput);
+                RETAIN(serverInput);
+                RETAIN(serverOutput);
                 [serverInput setDelegate: self];
                 [serverOutput setDelegate: self];
                 [serverInput open];
                 [serverOutput open];
+                [serverInput scheduleInRunLoop: rl
+				       forMode: NSDefaultRunLoopMode];
+                [serverOutput scheduleInRunLoop: rl
+					forMode: NSDefaultRunLoopMode];
                 readSize = 0;
                 writeSize = 0;
+		[serverStream setDelegate: nil];
                 [serverStream close];
 		[serverStream removeFromRunLoop: [NSRunLoop currentRunLoop]
 					forMode: NSDefaultRunLoopMode];
@@ -162,25 +194,23 @@ NSLog(@"Server %p %d", theStream, streamEvent);
       }
     case NSStreamEventEndEncountered: 
       {
+	[theStream setDelegate: nil];
         [theStream close];
 	[theStream removeFromRunLoop: [NSRunLoop currentRunLoop]
 			     forMode: NSDefaultRunLoopMode];
-        NSLog(@"Server close %p", theStream);
+        NSLog(@"%@ Server close %p", prefix, theStream);
 	if (theStream == serverInput && writeSize == readSize)
 	  {
+	    [serverOutput setDelegate: nil];
 	    [serverOutput close];
 	    [serverOutput removeFromRunLoop: [NSRunLoop currentRunLoop]
 				    forMode: NSDefaultRunLoopMode];
-	    NSLog(@"Server output close %p", serverOutput);
+	    NSLog(@"%@ Server output close %p", prefix, serverOutput);
 	  }
         break;
       }
     case NSStreamEventErrorOccurred: 
-      {
-        NSLog(@"Error code is %d ... %@",
-          [[theStream streamError] code], [theStream streamError]);
         break;
-      }  
     default: 
       break;
     }
@@ -192,22 +222,24 @@ NSLog(@"Server %p %d", theStream, streamEvent);
 	{
 	  readSize = [serverInput read: buffer maxLength: 4096];
 	  readable = NO;
-	  NSLog(@"Server %p read %d", serverInput, readSize);
+	  NSLog(@"%@ Server %p read %d", prefix, serverInput, readSize);
 	  writeSize = 0;
 	  if (readSize == 0)
 	    {
+	      [serverInput setDelegate: nil];
 	      [serverInput close];
 	      [serverInput removeFromRunLoop: [NSRunLoop currentRunLoop]
 				     forMode: NSDefaultRunLoopMode];
-	      NSLog(@"Server input close %p", serverInput);
+	      NSLog(@"%@ Server input close %p", prefix, serverInput);
+	      [serverOutput setDelegate: nil];
 	      [serverOutput close];
 	      [serverOutput removeFromRunLoop: [NSRunLoop currentRunLoop]
 				      forMode: NSDefaultRunLoopMode];
-	      NSLog(@"Server output close %p", serverOutput);
+	      NSLog(@"%@ Server output close %p", prefix, serverOutput);
 	    }
 	  else if (readSize < 0)
 	    {
-              NSLog(@"Error ... %@", [clientInput streamError]);
+              NSLog(@"%@ Error ... %@", prefix, [clientInput streamError]);
 	      readSize = 0;
 	    }
 	}
@@ -215,18 +247,20 @@ NSLog(@"Server %p %d", theStream, streamEvent);
 	{
 	  int writeReturn = [serverOutput write: buffer+writeSize 
 					  maxLength: readSize-writeSize];
-	  NSLog(@"Server %p wrote %d", serverOutput, writeReturn);
+	  NSLog(@"%@ Server %p wrote %d", prefix, serverOutput, writeReturn);
 	  writable = NO;
 	  if (writeReturn == 0)
 	    {
+	      [serverOutput setDelegate: nil];
 	      [serverOutput close];
 	      [serverOutput removeFromRunLoop: [NSRunLoop currentRunLoop]
 				      forMode: NSDefaultRunLoopMode];
-	      NSLog(@"Server close %p", serverOutput);
+	      NSLog(@"%@ Server close %p", prefix, serverOutput);
+	      [serverInput setDelegate: nil];
 	      [serverInput close];
 	      [serverInput removeFromRunLoop: [NSRunLoop currentRunLoop]
 				     forMode: NSDefaultRunLoopMode];
-	      NSLog(@"Server input close %p", serverInput);
+	      NSLog(@"%@ Server input close %p", prefix, serverInput);
 	    }
 	  else if (writeReturn > 0)
 	    {
@@ -234,7 +268,7 @@ NSLog(@"Server %p %d", theStream, streamEvent);
 	    }
 	  else if (writeReturn < 0)
 	    {
-	      NSLog(@"Error ... %@", [serverOutput streamError]);
+	      NSLog(@"%@ Error ... %@", prefix, [serverOutput streamError]);
 	    }
 
 	  /* If we have finished writing and there is no more data coming,
@@ -243,10 +277,11 @@ NSLog(@"Server %p %d", theStream, streamEvent);
 	  if (writeSize == readSize
 	    && [serverInput streamStatus] == NSStreamStatusClosed)
 	    {
+	      [serverOutput setDelegate: nil];
 	      [serverOutput close];
 	      [serverOutput removeFromRunLoop: [NSRunLoop currentRunLoop]
 				      forMode: NSDefaultRunLoopMode];
-	      NSLog(@"Server output close %p", serverOutput);
+	      NSLog(@"%@ Server output close %p", prefix, serverOutput);
 	    }
 	}
     }
@@ -256,32 +291,38 @@ NSLog(@"Server %p %d", theStream, streamEvent);
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  CREATE_AUTORELEASE_POOL(arp);
   NSRunLoop *rl = [NSRunLoop currentRunLoop];
   NSHost *host = [NSHost hostWithAddress: @"127.0.0.1"];
   ServerListener *sli;
   ClientListener *cli;
   NSString *path = @"socket_cs.m";
   NSString *socketPath = @"test-socket";
+  NSDate *end;
 
   [[NSFileManager defaultManager] removeFileAtPath: socketPath handler: nil];
   NSLog(@"sending and receiving on %@: %@", host, [host address]);
   goldData = [NSData dataWithContentsOfFile: path];
   testData = [NSMutableData dataWithCapacity: 4096];
 
-  sli = [ServerListener new];
-  cli = [ClientListener new];
+{
+  CREATE_AUTORELEASE_POOL(inner);
+
+  prefix = @"Test1";
+  [testData setLength: 0];
+  sli = AUTORELEASE([ServerListener new]);
+  cli = AUTORELEASE([ClientListener new]);
   serverStream
-    = [GSServerStream serverStreamToAddr: [host address] port: 54321];
+    = [GSServerStream serverStreamToAddr: [host address] port: 1234];
   [serverStream setDelegate: sli];
   [serverStream scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
   [serverStream open];
   [NSStream getStreamsToHost: host
-			port: 54321
+			port: 1234
 		 inputStream: &clientInput
 		outputStream: &clientOutput];
-  NSLog(@"Client input stream is %p", clientInput);
-  NSLog(@"Client output stream is %p", clientOutput);
+  NSLog(@"%@ Client input stream is %p", prefix, clientInput);
+  NSLog(@"%@ Client output stream is %p", prefix, clientOutput);
   [clientInput setDelegate: cli];
   [clientOutput setDelegate: cli];
   [clientInput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
@@ -289,30 +330,37 @@ int main()
   [clientInput open];
   [clientOutput open];
 
-  [rl runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 30]];
+  end = [NSDate dateWithTimeIntervalSinceNow: 5];
+  [rl runUntilDate: end];
   PASS([goldData isEqualToData: testData], "Local tcp");
+  if ([end timeIntervalSinceNow] < 0.0)
+    NSLog(@"%@ timed out.\n", prefix);
 
+  [clientInput setDelegate: nil];
+  [clientOutput setDelegate: nil];
   DESTROY(serverInput);
   DESTROY(serverOutput);
-  clientInput = nil;
-  clientOutput = nil;
-  DESTROY(sli);
-  DESTROY(cli);
-  [testData setLength: 0];
+  RELEASE(inner);
+}
 
-  sli = [ServerListener new];
-  cli = [ClientListener new];
+{
+  CREATE_AUTORELEASE_POOL(inner);
+
+  prefix = @"Test2";
+  [testData setLength: 0];
+  sli = AUTORELEASE([ServerListener new]);
+  cli = AUTORELEASE([ClientListener new]);
   serverStream
-    = [GSServerStream serverStreamToAddr: [host address] port: 54321];
+    = [GSServerStream serverStreamToAddr: [host address] port: 1234];
   [serverStream setDelegate: sli];
   [serverStream open];
   [serverStream scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
   [NSStream getStreamsToHost: host
-			port: 54321
+			port: 1234
 		 inputStream: &clientInput
 		outputStream: &clientOutput];
-  NSLog(@"Client input stream is %p", clientInput);
-  NSLog(@"Client output stream is %p", clientOutput);
+  NSLog(@"%@ Client input stream is %p", prefix, clientInput);
+  NSLog(@"%@ Client output stream is %p", prefix, clientOutput);
   [clientInput setDelegate: cli];
   [clientOutput setDelegate: cli];
   [clientInput open];
@@ -320,19 +368,26 @@ int main()
   [clientInput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
   [clientOutput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
 
-  [rl runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 30]];
+  end = [NSDate dateWithTimeIntervalSinceNow: 5];
+  [rl runUntilDate: end];
   PASS([goldData isEqualToData: testData], "Local tcp (blocking open)");
+  if ([end timeIntervalSinceNow] < 0.0)
+    NSLog(@"%@ timed out.\n", prefix);
 
+  [clientInput setDelegate: nil];
+  [clientOutput setDelegate: nil];
   DESTROY(serverInput);
   DESTROY(serverOutput);
-  clientInput = nil;
-  clientOutput = nil;
-  DESTROY(sli);
-  DESTROY(cli);
-  [testData setLength: 0];
+  RELEASE(inner);
+}
 
-  sli = [ServerListener new];
-  cli = [ClientListener new];
+{
+  CREATE_AUTORELEASE_POOL(inner);
+
+  prefix = @"Test3";
+  [testData setLength: 0];
+  sli = AUTORELEASE([ServerListener new]);
+  cli = AUTORELEASE([ClientListener new]);
   serverStream = [GSServerStream serverStreamToAddr: socketPath];
   [serverStream setDelegate: sli];
   [serverStream scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
@@ -340,8 +395,8 @@ int main()
   [NSStream getLocalStreamsToPath: socketPath
 		      inputStream: &clientInput
 		     outputStream: &clientOutput];
-  NSLog(@"Client input stream is %p", clientInput);
-  NSLog(@"Client output stream is %p", clientOutput);
+  NSLog(@"%@ Client input stream is %p", prefix, clientInput);
+  NSLog(@"%@ Client output stream is %p", prefix, clientOutput);
   [clientInput setDelegate: cli];
   [clientOutput setDelegate: cli];
   [clientInput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
@@ -349,21 +404,29 @@ int main()
   [clientInput open];
   [clientOutput open];
 
-  [rl runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 30]];
-
+  end = [NSDate dateWithTimeIntervalSinceNow: 5];
+  [rl runUntilDate: end];
   PASS([goldData isEqualToData: testData], "Local socket");
+  if ([end timeIntervalSinceNow] < 0.0)
+    NSLog(@"%@ timed out.\n", prefix);
 
+  [clientInput setDelegate: nil];
+  [clientOutput setDelegate: nil];
   DESTROY(serverInput);
   DESTROY(serverOutput);
-  clientInput = nil;
-  clientOutput = nil;
-  DESTROY(sli);
-  DESTROY(cli);
+  RELEASE(inner);
+}
+
+{
+  CREATE_AUTORELEASE_POOL(inner);
+
+  prefix = @"Test4";
   [testData setLength: 0];
+  sli = AUTORELEASE([ServerListener new]);
+  cli = AUTORELEASE([ClientListener new]);
+
   [[NSFileManager defaultManager] removeFileAtPath: socketPath handler: nil];
 
-  sli = [ServerListener new];
-  cli = [ClientListener new];
   serverStream = [GSServerStream serverStreamToAddr: socketPath];
   [serverStream setDelegate: sli];
   [serverStream open];
@@ -371,8 +434,8 @@ int main()
   [NSStream getLocalStreamsToPath: socketPath
 		      inputStream: &clientInput
 		     outputStream: &clientOutput];
-  NSLog(@"Client input stream is %p", clientInput);
-  NSLog(@"Client output stream is %p", clientOutput);
+  NSLog(@"%@ Client input stream is %p", prefix, clientInput);
+  NSLog(@"%@ Client output stream is %p", prefix, clientOutput);
   [clientInput setDelegate: cli];
   [clientOutput setDelegate: cli];
   [clientInput open];
@@ -380,20 +443,22 @@ int main()
   [clientInput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
   [clientOutput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
 
-  [rl runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 30]];
-
+  end = [NSDate dateWithTimeIntervalSinceNow: 5];
+  [rl runUntilDate: end];
   PASS([goldData isEqualToData: testData], "Local socket (blocking open)");
+  if ([end timeIntervalSinceNow] < 0.0)
+    NSLog(@"%@ timed out.\n", prefix);
 
+  [clientInput setDelegate: nil];
+  [clientOutput setDelegate: nil];
   DESTROY(serverInput);
   DESTROY(serverOutput);
-  clientInput = nil;
-  clientOutput = nil;
-  DESTROY(sli);
-  DESTROY(cli);
-  [testData setLength: 0];
+  RELEASE(inner);
+}
+
   [[NSFileManager defaultManager] removeFileAtPath: socketPath handler: nil];
 
-  [arp release];
+  RELEASE(arp);
   return 0;
 }
 #else
