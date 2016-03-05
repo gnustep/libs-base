@@ -4729,12 +4729,13 @@ static NSFileManager *fm = nil;
 
 - (NSString*) stringByAbbreviatingWithTildeInPath
 {
-  NSString	*homedir = NSHomeDirectory ();
+  NSString	*homedir;
 
   if (YES == [self hasPrefix: @"~"])
     {
       return IMMUTABLE(self);
     }
+  homedir = NSHomeDirectory();
   if (NO == [self hasPrefix: homedir])
     {
       /* OSX compatibility ... we clean up the path to try to get a
