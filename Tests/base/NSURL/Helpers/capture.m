@@ -58,7 +58,7 @@
 
   isSecure = [[defs stringForKey: @"Secure"] boolValue];
 
-  if (port == 0) port = 54321;
+  if (port == 0) port = 1234;
 
   file = [defs stringForKey: @"FileName"];
   RETAIN(file);

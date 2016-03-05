@@ -35,7 +35,7 @@ int main(int argc, char **argv, char **env)
       // create a shared TestWebServer instance for performance
       server = [[testClass testWebServerClass] new];
       [server setDebug: debug];
-      [server start: nil]; // 127.0.0.1:54321 HTTP
+      [server start: nil]; // 127.0.0.1:1234 HTTP
 
       /*
        *  Simple GET via HTTP without authorization with empty response's body and
@@ -59,7 +59,7 @@ int main(int argc, char **argv, char **env)
 			nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "no auth... GET http://localhost:54321/withoutauth");
+      PASS([testCase isSuccess], "no auth... GET http://localhost:1234/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -87,7 +87,7 @@ int main(int argc, char **argv, char **env)
 			nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "no auth... response 400 .... GET http://localhost:54321/400/withoutauth");
+      PASS([testCase isSuccess], "no auth... response 400 .... GET http://localhost:1234/400/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -117,7 +117,7 @@ int main(int argc, char **argv, char **env)
 			nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "no auth... payload... response 400 .... POST http://localhost:54321/400/withoutauth");
+      PASS([testCase isSuccess], "no auth... payload... response 400 .... POST http://localhost:1234/400/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -148,7 +148,7 @@ int main(int argc, char **argv, char **env)
 			nil];      
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "no auth... redirecting... GET http://localhost:54321/301/withoutauth");
+      PASS([testCase isSuccess], "no auth... redirecting... GET http://localhost:1234/301/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 

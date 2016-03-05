@@ -19,11 +19,11 @@ int main(int argc, char **argv, char **env)
   // load the test suite's classes
   fm = [NSFileManager defaultManager];
   helperPath = [[fm currentDirectoryPath]
-		 stringByAppendingString: @"/Helpers/TestConnection.bundle"];
+    stringByAppendingString: @"/Helpers/TestConnection.bundle"];
   bundle = [NSBundle bundleWithPath: helperPath];
   loaded = [bundle load];
 
-  if(loaded)
+  if (loaded)
     {
       NSDictionary *d;
       Class testClass;
@@ -36,15 +36,16 @@ int main(int argc, char **argv, char **env)
 
       // the extra dictionary commanding to use HTTPS
       d = [NSDictionary dictionaryWithObjectsAndKeys:
-			  @"HTTPS", @"Protocol",
-			nil];
+        @"HTTPS", @"Protocol",
+        nil];
       // create a shared TestWebServer instance for performance
-      server = [[[testClass testWebServerClass] alloc] initWithAddress: @"localhost"
-								  port: @"54321"
-								  mode: NO
-								 extra: d];
+      server = [[[testClass testWebServerClass] alloc]
+        initWithAddress: @"127.0.0.1"
+                   port: @"1234"
+                   mode: NO
+                  extra: d];
       [server setDebug: debug];
-      [server start: d]; // 127.0.0.1:54321 HTTPS
+      [server start: d]; // 127.0.0.1:1234 HTTPS
 
       /*
        *  Simple GET via HTTPS with empty response's body and
@@ -54,11 +55,11 @@ int main(int argc, char **argv, char **env)
       [testCase setDebug: debug];
       // the extra dictionary with test case's parameters
       d = [NSDictionary dictionaryWithObjectsAndKeys:
-			  server, @"Instance", // we use the shared TestWebServer instance
-			nil];
+        server, @"Instance", // we use the shared TestWebServer instance
+        nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... GET https://localhost:54321");
+      PASS([testCase isSuccess], "HTTPS... GET https://127.0.0.1:1234/");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -70,14 +71,14 @@ int main(int argc, char **argv, char **env)
       [testCase setDebug: debug];
       // the extra dictionary with test case's parameters
       d = [NSDictionary dictionaryWithObjectsAndKeys:
-			  server, @"Instance", // we use the shared TestWebServer instance
-			@"400", @"Path",       // request the handler responding with 400
-			@"400", @"StatusCode", // the expected status code
-			@"You have issued a request with invalid data", @"Content", // the expected response's body
-			nil];
+        server, @"Instance", // we use the shared TestWebServer instance
+        @"400", @"Path",       // request the handler responding with 400
+        @"400", @"StatusCode", // the expected status code
+        @"You have issued a request with invalid data", @"Content",
+        nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... response 400 .... GET https://localhost:54321/400");
+      PASS([testCase isSuccess], "HTTPS... response 400 .... GET https://localhost:1234/400");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -89,16 +90,16 @@ int main(int argc, char **argv, char **env)
       [testCase setDebug: debug];
       // the extra dictionary with test case's parameters
       d = [NSDictionary dictionaryWithObjectsAndKeys:
-			  server, @"Instance", // we use the shared TestWebServer instance
-			@"400", @"Path",       // request the handler responding with 400
-			@"400", @"StatusCode", // the expected status code
-			@"You have issued a request with invalid data", @"Content", // the expected response's body
-			@"Some payload", @"Payload", // the custom payload
-			@"POST", @"Method",    // use POST
-			nil];
+        server, @"Instance", // we use the shared TestWebServer instance
+        @"400", @"Path",       // request the handler responding with 400
+        @"400", @"StatusCode", // the expected status code
+        @"You have issued a request with invalid data", @"Content",
+        @"Some payload", @"Payload", // the custom payload
+        @"POST", @"Method",    // use POST
+        nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... payload... response 400 .... POST https://localhost:54321/400");
+      PASS([testCase isSuccess], "HTTPS... payload... response 400 .... POST https://localhost:1234/400");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -112,19 +113,19 @@ int main(int argc, char **argv, char **env)
       [testCase setDebug: debug];
       // the reference set difference (from the default reference set) we expect
       refs = [NSDictionary dictionaryWithObjectsAndKeys:
-			     @"YES", @"GOTREDIRECT",
-			    nil];
-      // the extra dictionary with test case's parameters
-      d = [NSDictionary dictionaryWithObjectsAndKeys:
-			  server, @"Instance", // we use the shared TestWebServer instance
-			@"/301", @"Path",      // request the handler responding with a redirect
-			@"/", @"RedirectPath", // the URL's path of redirecting
-			@"YES", @"IsAuxilliary", // start an auxilliary TestWebServer instance
-			refs, @"ReferenceFlags", // the expected reference set difference
-			nil];      
+        @"YES", @"GOTREDIRECT",
+        nil];
+        // the extra dictionary with test case's parameters
+        d = [NSDictionary dictionaryWithObjectsAndKeys:
+        server, @"Instance", // we use the shared TestWebServer instance
+        @"/301", @"Path",      // request the handler responding with a redirect
+        @"/", @"RedirectPath", // the URL's path of redirecting
+        @"YES", @"IsAuxilliary", // start an auxilliary TestWebServer instance
+        refs, @"ReferenceFlags", // the expected reference set difference
+        nil];      
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... redirecting... GET https://localhost:54321/301");
+      PASS([testCase isSuccess], "HTTPS... redirecting... GET https://localhost:1234/301");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -136,7 +137,7 @@ int main(int argc, char **argv, char **env)
     {
       // no classes no tests
       [NSException raise: NSInternalInconsistencyException
-		  format: @"can't load bundle TestConnection"];
+                  format: @"can't load bundle TestConnection"];
     }
 
   DESTROY(arp);

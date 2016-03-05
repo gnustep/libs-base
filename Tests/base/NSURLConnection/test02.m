@@ -35,7 +35,7 @@ int main(int argc, char **argv, char **env)
       // create a shared TestWebServer instance for performance
       server = [[testClass testWebServerClass] new];
       [server setDebug: debug];
-      [server start: nil]; // 127.0.0.1:54321 HTTP
+      [server start: nil]; // 127.0.0.1:1234 HTTP
 
       /*
        *  Simple GET via HTTP with empty response's body and
@@ -49,7 +49,7 @@ int main(int argc, char **argv, char **env)
 			nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "GET http://localhost:54321");
+      PASS([testCase isSuccess], "GET http://localhost:1234/");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -68,7 +68,7 @@ int main(int argc, char **argv, char **env)
 			nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "response 400 .... GET http://localhost:54321/400");
+      PASS([testCase isSuccess], "response 400 .... GET http://localhost:1234/400");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -89,7 +89,7 @@ int main(int argc, char **argv, char **env)
 			nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "payload... response 400 .... POST http://localhost:54321/400");
+      PASS([testCase isSuccess], "payload... response 400 .... POST http://localhost:1234/400");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -115,7 +115,7 @@ int main(int argc, char **argv, char **env)
 			nil];      
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "redirecting... GET http://localhost:54321/301");
+      PASS([testCase isSuccess], "redirecting... GET http://localhost:1234/301");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 

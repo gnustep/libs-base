@@ -13,7 +13,7 @@
  *  test.
  *
  *  The test case which the NSURLConnectionTest implements by default is connecting
- *  to the http://localhost:54321/ whith the HTTP method 'GET'. You can change variable
+ *  to the http://127.0.0.1:1234/ whith the HTTP method 'GET'. You can change variable
  *  parts of process by supplying a custom dictionary to the method -[setUpTest:]
  *  before the test case is started by a call of the -[startTest:]. The use pattern:
  *  --------------------------------------------------------------------------
@@ -57,12 +57,12 @@
  *                      (the instance will be run within a detached thread).
  *                      Default: NO
  *     'Address'      - the address of the remote side.
- *                      Default: localhost
+ *                      Default: 127.0.0.1
  *     'Port'         - the port of the remote side.
- *                      Default: 54321
+ *                      Default: 1234
  *     'AuxPort'      - the port of the auxilliary remote side (where the connection
  *                      to be redirected).
- *                      Default: 54322
+ *                      Default: 1235
  *     'Protocol'     - the network protocol (supports currently http, https).
  *                      Default: http
  *     'Path'         - the path of the URL.

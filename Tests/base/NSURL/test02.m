@@ -44,7 +44,7 @@ int main()
       // remove the captured data from a possible previous run
       [fm removeItemAtPath: file error: NULL];
       // making a POST request
-      url = [NSURL URLWithString: @"http://localhost:54321/"];
+      url = [NSURL URLWithString: @"http://localhost:1234/"];
       request = [NSMutableURLRequest requestWithURL: url];
       data = [m dataUsingEncoding: NSUTF8StringEncoding];
       [request setHTTPBody: data];
@@ -86,7 +86,7 @@ int main()
       // remove the captured data from a possible previous run
       [fm removeItemAtPath: file error: NULL];
       // making a POST request
-      url = [NSURL URLWithString: @"https://localhost:54321/"];
+      url = [NSURL URLWithString: @"https://localhost:1234/"];
       request = [NSMutableURLRequest requestWithURL: url];
       data = [m dataUsingEncoding: NSUTF8StringEncoding];
       [request setHTTPBody: data];

@@ -583,15 +583,15 @@ didReceiveResponse:(NSURLResponse *)response
 	}
       if (nil == address)
 	{
-	  address = @"localhost";
+	  address = @"127.0.0.1";
 	}
       if (nil == port)
 	{
-	  port = @"54321";
+	  port = @"1234";
 	}
       if (nil == auxPort)
 	{
-	  auxPort = @"54322";
+	  auxPort = @"1235";
 	}
       if (nil == path)
 	{

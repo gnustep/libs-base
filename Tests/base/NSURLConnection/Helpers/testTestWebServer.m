@@ -3,25 +3,25 @@
  *  Author: Sergei Golovin <Golovin.SV@gmail.com>
  *
  *  Runs two TestWebServer instances to check how the class TestWebServer
- *  behaves. Visit http://localhost:54321/index to see all supported resources.
+ *  behaves. Visit http://127.0.0.1:1234/index to see all supported resources.
  *  
  *  If you visit the main TestWebServer instance with the following command:
  *
- *       wget  -O - --user=login --password=password http://localhost:54321/301 2>&1
+ *       wget  -O - --user=login --password=password http://127.0.0.1:1234/301 2>&1
  *
  *  you should get a session log like this:
  *
- *       --2014-08-13 12:08:01--  http://localhost:54321/301
- *       Resolving localhost (localhost)... 127.0.0.1
- *       Connecting to localhost (localhost)|127.0.0.1|:54321... connected.
+ *       --2014-08-13 12:08:01--  http://127.0.0.1:1234/301
+ *       Resolving 127.0.0.1 (localhost)... 127.0.0.1
+ *       Connecting to 127.0.0.1 (localhost)|127.0.0.1|:1234... connected.
  *       HTTP request sent, awaiting response... 401 Unauthorized
- *       Reusing existing connection to localhost:54321.
+ *       Reusing existing connection to 127.0.0.1:1234.
  *       HTTP request sent, awaiting response... 301 Moved Permanently
- *       Location: http://127.0.0.1:54322/ [following]
- *       --2014-08-13 12:08:01--  http://127.0.0.1:54322/
- *       Connecting to 127.0.0.1:54322... connected.
+ *       Location: http://127.0.0.1:1235/ [following]
+ *       --2014-08-13 12:08:01--  http://127.0.0.1:1235/
+ *       Connecting to 127.0.0.1:1235... connected.
  *       HTTP request sent, awaiting response... 401 Unauthorized
- *       Reusing existing connection to 127.0.0.1:54322.
+ *       Reusing existing connection to 127.0.0.1:1235.
  *       HTTP request sent, awaiting response... 204 No Content
  *       Length: 0
  *       Saving to: ‘STDOUT’
@@ -47,11 +47,11 @@ int main(int argc, char **argv, char **env)
 
   fm = [NSFileManager defaultManager];
   helperPath = [[fm currentDirectoryPath]
-		 stringByAppendingString: @"/TestConnection.bundle"];
+    stringByAppendingString: @"/TestConnection.bundle"];
   bundle = [NSBundle bundleWithPath: helperPath];
   loaded = [bundle load];
 
-  if(loaded)
+  if (loaded)
     {
       TestWebServer *server1;
       TestWebServer *server2;
@@ -61,23 +61,25 @@ int main(int argc, char **argv, char **env)
 
       testClass = [bundle principalClass]; // NSURLConnectionTest
       d = [NSDictionary dictionaryWithObjectsAndKeys:
-			  //			  @"https", @"Protocol",
-			nil];
-      server1 = [[[testClass testWebServerClass] alloc] initWithAddress: @"localhost"
-								   port: @"54321"
-								   mode: NO
-								  extra: d];
+        //			  @"https", @"Protocol",
+        nil];
+      server1 = [[[testClass testWebServerClass] alloc]
+        initWithAddress: @"127.0.0.1"
+        port: @"1234"
+        mode: NO
+        extra: d];
       [server1 setDebug: debug];
-      [server1 start: d]; // 127.0.0.1:54321 HTTP
+      [server1 start: d]; // 127.0.0.1:1234 HTTP
 
-      server2 = [[[testClass testWebServerClass] alloc] initWithAddress: @"localhost"
-								   port: @"54322"
-								   mode: NO
-								  extra: d];
+      server2 = [[[testClass testWebServerClass] alloc]
+        initWithAddress: @"127.0.0.1"
+        port: @"1235"
+        mode: NO
+        extra: d];
       [server2 setDebug: debug];
-      [server2 start: d]; // 127.0.0.1:54322 HTTP
+      [server2 start: d]; // 127.0.0.1:1235 HTTP
       
-      while(YES)
+      while (YES)
 	{
 	  [[NSRunLoop currentRunLoop]
       		runUntilDate: [NSDate dateWithTimeIntervalSinceNow: TIMING]];
