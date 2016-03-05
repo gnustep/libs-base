@@ -1291,43 +1291,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 // Synchronous I/O operations
 
-#if 0
-- (NSData*) availableData
-{
-  char			buf[READ_SIZE];
-  SMutableData*	d;
-  int			len;
-
-  [self checkRead];
-  if (isNonBlocking == YES)
-    {
-      [self setNonBlocking: NO];
-    }
-  d = [NSMutableData dataWithCapacity: 0];
-  if (isStandardFile)
-    {
-      while ((len = [self read: buf length: sizeof(buf)]) > 0)
-        {
-	  [d appendBytes: buf length: len];
-        }
-    }
-  else
-    {
-      len = [self read: buf length: sizeof(buf)];
-      if (len > 0)
-	{
-	  [d appendBytes: buf length: len];
-	}
-    }
-  if (len < 0)
-    {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"unable to read from descriptor - %@",
-                  [NSError _last]];
-    }
-  return d;
-}
-#endif
 - (NSData*) availableData
 {
   char			buf[READ_SIZE];
