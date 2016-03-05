@@ -1719,7 +1719,7 @@ NSUserName(void)
 NSString *
 NSHomeDirectory(void)
 {
-  return NSHomeDirectoryForUser (NSUserName ());
+  return NSHomeDirectoryForUser(NSUserName());
 }
 
 /**
@@ -1809,6 +1809,10 @@ NSHomeDirectoryForUser(NSString *loginName)
       s = nil;
       fprintf(stderr, "NSHomeDirectoryForUser(%s) failed.\n",
         [loginName UTF8String]);
+    }
+  if (nil != s)
+    {
+      s = [s stringByStandardizingPath];
     }
 #endif
   return s;
@@ -2094,7 +2098,7 @@ NSOpenStepRootDirectory(void)
 #if	defined(__CYGWIN__)
   root = @"/cygdrive/c/";
 #elif	defined(__MINGW__)
-  root = @"C:\\";
+  root = @"C:/";
 #else
   root = @"/";
 #endif

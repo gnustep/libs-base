@@ -32,9 +32,14 @@ int main()
   PASS_EQUAL([tmp stringByAbbreviatingWithTildeInPath], @"~/Documents/./..",
     "dot directory reference retained");
 
+#ifndef	_WIN32
+  /* This test can't work on windows, because the ome directory of a
+   * user doesn't start with a slash... don't run it on _WIN32
+   */
   tmp = [NSString stringWithFormat: @"////%@//Documents///", home];
   PASS_EQUAL([tmp stringByAbbreviatingWithTildeInPath], @"~/Documents",
     "multiple slashes removed");
+#endif
 
   PASS_EQUAL([@"//////Documents///" stringByAbbreviatingWithTildeInPath],
     @"/Documents",
