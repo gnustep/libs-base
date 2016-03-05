@@ -13,13 +13,13 @@ int main()
   NSBundle *bundle;
   NSArray  *arr, *carr;
   
-  path = [[[[NSFileManager defaultManager] currentDirectoryPath]
-		    stringByAppendingPathComponent:@"Resources"]
-		   stringByAppendingPathComponent: @"TestBundle.bundle"];
+  path = [[[[[NSFileManager defaultManager] currentDirectoryPath]
+    stringByStandardizingPath] stringByAppendingPathComponent: @"Resources"]
+      stringByAppendingPathComponent: @"TestBundle.bundle"];
 
   /* --- [NSBundle -pathsForResourcesOfType:inDirectory:] --- */
   bundle = [NSBundle bundleWithPath: path];
-  arr = [bundle pathsForResourcesOfType:@"txt" inDirectory: nil];
+  arr = [bundle pathsForResourcesOfType: @"txt" inDirectory: nil];
   PASS((arr && [arr count]),
     "-pathsForResourcesOfType:inDirectory: returns an array");
   localPath = [path stringByAppendingPathComponent:
@@ -32,12 +32,12 @@ int main()
     "Returned array contains localized resource");
 
   /* --- [NSBundle +pathsForResourcesOfType:inDirectory:] --- */
-  carr = [NSBundle pathsForResourcesOfType:@"txt" inDirectory: path];
+  carr = [NSBundle pathsForResourcesOfType: @"txt" inDirectory: path];
   PASS([arr isEqual: carr],
     "+pathsForResourcesOfType:inDirectory: returns same array");
 
   /* --- [NSBundle -pathsForResourcesOfType:inDirectory:forLocalization:] --- */
-  arr = [bundle pathsForResourcesOfType:@"txt" inDirectory: nil
+  arr = [bundle pathsForResourcesOfType: @"txt" inDirectory: nil
     forLocalization: @"English"];
   PASS((arr && [arr count]),
     "-pathsForResourcesOfType:inDirectory:forLocalization returns an array");
@@ -51,7 +51,7 @@ int main()
     "Returned array contains localized resource");
 
   /* --- [NSBundle -pathsForResourcesOfType:inDirectory:forLocalization:] --- */
-  arr = [bundle pathsForResourcesOfType:@"txt" inDirectory: nil
+  arr = [bundle pathsForResourcesOfType: @"txt" inDirectory: nil
     forLocalization: @"en"];
   PASS((arr && [arr count]),
     "-pathsForResources... returns an array for 'en'");
@@ -65,7 +65,7 @@ int main()
     "Returned array for 'en' contains localized resource");
 
   /* --- [NSBundle -pathsForResourcesOfType:inDirectory:forLocalization:] --- */
-  arr = [bundle pathsForResourcesOfType:@"txt" inDirectory: nil
+  arr = [bundle pathsForResourcesOfType: @"txt" inDirectory: nil
     forLocalization: @"German"];
   PASS((arr && [arr count]),
     "-pathsForResources... returns an array for 'German'");
