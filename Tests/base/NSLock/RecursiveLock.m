@@ -32,7 +32,7 @@ int main()
 #if     defined(GNUSTEP_BASE_LIBRARY)
   START_SET("mutex ownership extension")
 #if     defined(_WIN32)
-  SKIP("feature not available on windows")
+  SKIP("mutex ownership feature not available on windows")
 #endif
   NS_DURING
     {
