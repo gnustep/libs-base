@@ -2723,6 +2723,11 @@ setNonBlocking(SOCKET fd)
 	      [outs setProperty: str forKey: key];
 	    }
 
+          /* Set the streams to be 'open' in order to have the TLS
+           * handshake done.  On completion the state will be reset.
+           */
+          [ins _setStatus: NSStreamStatusOpen];
+          [outs _setStatus: NSStreamStatusOpen];
 	  [GSTLSHandler tryInput: (GSSocketInputStream *)ins
 			  output: (GSSocketOutputStream *)outs];
 	  DESTROY(opts);
