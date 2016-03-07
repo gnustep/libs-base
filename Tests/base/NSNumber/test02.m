@@ -27,13 +27,13 @@ int main()
     s1 = [NSString stringWithFormat: @"%0.2f", 0.009];
     n1 = [NSDecimalNumber decimalNumberWithString: @"0.009"];
     n2 = [n1 decimalNumberByRoundingAccordingToBehavior: handler];
-    s2 = [n2 description];
+    s2 = [n2 descriptionWithLocale: nil];
     PASS_EQUAL(s2, s1, "rounding 0.009");
 
     s1 = [NSString stringWithFormat: @"%0.2f", 0.019];
     n1 = [NSDecimalNumber decimalNumberWithString: @"0.019"];
     n2 = [n1 decimalNumberByRoundingAccordingToBehavior: handler];
-    s2 = [n2 description];
+    s2 = [n2 descriptionWithLocale: nil];
     PASS_EQUAL(s2, s1, "rounding 0.019");
 
     handler = [NSDecimalNumberHandler alloc];
@@ -47,13 +47,13 @@ int main()
     s1 = [NSString stringWithFormat: @"%0.3f", 0.0009];
     n1 = [NSDecimalNumber decimalNumberWithString: @"0.0009"];
     n2 = [n1 decimalNumberByRoundingAccordingToBehavior: handler];
-    s2 = [n2 description];
+    s2 = [n2 descriptionWithLocale: nil];
     PASS_EQUAL(s2, s1, "rounding 0.0009");
 
     s1 = [NSString stringWithFormat: @"%0.3f", 0.0019];
     n1 = [NSDecimalNumber decimalNumberWithString: @"0.0019"];
     n2 = [n1 decimalNumberByRoundingAccordingToBehavior: handler];
-    s2 = [n2 description];
+    s2 = [n2 descriptionWithLocale: nil];
     PASS_EQUAL(s2, s1, "rounding 0.0019");
 
   END_SET("NSDecimalNumber")
