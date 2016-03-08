@@ -25,6 +25,7 @@
 #import "common.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSHashTable.h"
 #import "Foundation/NSLock.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
@@ -292,6 +293,33 @@ handleExit()
 @end
 
 #else
+
+NSUInteger
+GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
+{
+  if (0 == NSHashGet(exclude, self))
+    {
+      NSHashInsert(exclude, self);
+      return class_getInstanceSize(object_getClass(self));
+    }
+  return 0;
+}
+
+@interface      NSObject (MemoryFootprint)
++ (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  return 0;
+}
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  if (0 == NSHashGet(exclude, self))
+    {
+      NSHashInsert(exclude, self);
+      return class_getInstanceSize(object_getClass(self));
+    }
+  return 0;
+}
+@end
 
 /* Dummy implementation
  */

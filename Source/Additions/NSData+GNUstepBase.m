@@ -31,6 +31,10 @@
 
 #include <ctype.h>
 
+#if     USE_ZLIB
+#include <zlib.h>
+#endif
+
 #if	defined(__MINGW32__)
 #include <wincrypt.h>
 #else
@@ -112,33 +116,107 @@ randombytes(uint8_t *buf, unsigned len)
   return AUTORELEASE(d);
 }
 
-/**
- * Returns an NSString object containing an ASCII hexadecimal representation
- * of the receiver.  This means that the returned object will contain
- * exactly twice as many characters as there are bytes as the receiver,
- * as each byte in the receiver is represented by two hexadecimal digits.<br />
- * The high order four bits of each byte is encoded before the low
- * order four bits.  Capital letters 'A' to 'F' are used to represent
- * values from 10 to 15.<br />
- * If you need the hexadecimal representation as raw byte data, use code
- * like -
- * <example>
- *   hexData = [[sourceData hexadecimalRepresentation]
- *     dataUsingEncoding: NSASCIIStringEncoding];
- * </example>
- */
+- (NSString*) escapedRepresentation
+{
+  char          *buf;
+  NSUInteger    len;
+  NSString      *string;
+
+  buf = [self escapedRepresentation: &len];
+  string = [[NSString alloc] initWithBytesNoCopy: buf
+                                          length: len
+                                        encoding: NSASCIIStringEncoding
+                                    freeWhenDone: YES];
+  return AUTORELEASE(string);
+}
+
+- (char*) escapedRepresentation: (NSUInteger*)length
+{
+  const uint8_t *bytes = (const uint8_t*)[self bytes];
+  uint8_t       *buf;
+  NSUInteger    count = [self length];
+  NSUInteger    size = count + 1;
+  NSUInteger    index;
+  NSUInteger    pos;
+
+  for (index = 0; index < count; index++)
+    {
+      uint8_t   b = bytes[index];
+
+      if ('\n' == b) size++;
+      else if ('\r' == b) size++;
+      else if ('\t' == b) size++;
+      else if ('\\' == b) size++;
+      else if (b < 32 || b > 126) size += 3;
+    }
+  buf = (uint8_t*)malloc(size);
+  for (pos = index = 0; index < count; index++)
+    {
+      uint8_t   b = bytes[index];
+
+      if ('\n' == b)
+        {
+          buf[pos++] = '\\';
+          buf[pos++] = 'n';
+        }
+      else if ('\r' == b)
+        {
+          buf[pos++] = '\\';
+          buf[pos++] = 'r';
+        }
+      else if ('\t' == b)
+        {
+          buf[pos++] = '\\';
+          buf[pos++] = 't';
+        }
+      else if ('\\' == b)
+        {
+          buf[pos++] = '\\';
+          buf[pos++] = '\\';
+        }
+      else if (b < 32 || b > 126)
+        {
+          sprintf((char*)&buf[pos], "\\x%02x", b);
+          pos += 4;
+        }
+      else
+        {
+          buf[pos++] = b;
+        }
+    }
+  buf[pos] = '\0';
+  if (0 != length)
+    {
+      *length = pos;
+    }
+  return (char*)buf;
+}
+
 - (NSString*) hexadecimalRepresentation
+{
+  char          *buf;
+  NSUInteger    len;
+  NSString      *string;
+
+  buf = [self hexadecimalRepresentation: &len];
+  string = [[NSString alloc] initWithBytesNoCopy: buf
+                                          length: len
+                                        encoding: NSASCIIStringEncoding
+                                    freeWhenDone: YES];
+  return AUTORELEASE(string);
+}
+
+- (char*) hexadecimalRepresentation: (NSUInteger*)length
 {
   static const char	*hexChars = "0123456789ABCDEF";
   unsigned		slen = [self length];
   unsigned		dlen = slen * 2;
   const unsigned char	*src = (const unsigned char *)[self bytes];
-  char			*dst = (char*)NSZoneMalloc(NSDefaultMallocZone(), dlen);
+  char			*dst;
   unsigned		spos = 0;
   unsigned		dpos = 0;
-  NSData		*data;
-  NSString		*string;
 
+  dst = (char*)malloc(dlen + 1);
   while (spos < slen)
     {
       unsigned char	c = src[spos++];
@@ -146,12 +224,128 @@ randombytes(uint8_t *buf, unsigned len)
       dst[dpos++] = hexChars[(c >> 4) & 0x0f];
       dst[dpos++] = hexChars[c & 0x0f];
     }
-  data = [NSData allocWithZone: NSDefaultMallocZone()];
-  data = [data initWithBytesNoCopy: dst length: dlen];
-  string = [[NSString alloc] initWithData: data
-				 encoding: NSASCIIStringEncoding];
-  RELEASE(data);
-  return AUTORELEASE(string);
+  dst[dpos] = '\0';
+  if (0 != length)
+    {
+      *length = dpos;
+}
+  return dst;
+}
+
+- (NSData*) gunzipped
+{
+#if     USE_ZLIB
+  NSUInteger    length = [self length];
+  z_stream      stream;
+
+  if (NO == [self isGzipped])
+    {
+      return self;
+    }
+
+  stream.zalloc = Z_NULL;
+  stream.zfree = Z_NULL;
+  stream.avail_in = (unsigned)length;
+  stream.next_in = (uint8_t *)[self bytes];
+  stream.total_out = 0;
+  stream.avail_out = 0;
+
+  if (inflateInit2(&stream, 15 + 32) == Z_OK)   // inflate or gzip
+    {
+      NSZone    *zone = NSDefaultMallocZone();
+      uint8_t   *dst;
+      unsigned  capacity;
+      int       status = Z_OK;
+
+      capacity = 2 * length;
+      dst = NSZoneMalloc(zone, capacity);
+      while (Z_OK == status)
+        {
+          if (stream.total_out >= capacity)
+            {
+              capacity += length / 2;
+              dst = NSZoneRealloc(zone, dst, capacity);
+            }
+          stream.next_out = dst + stream.total_out;
+          stream.avail_out = (unsigned)(capacity - stream.total_out);
+          status = inflate(&stream, Z_SYNC_FLUSH);
+        }
+      if (inflateEnd(&stream) == Z_OK)
+        {
+          if (Z_STREAM_END == status)
+            {
+              NSMutableData     *result;
+
+              result = [NSMutableData alloc];
+              result = [result initWithBytesNoCopy: dst
+                                            length: stream.total_out
+                                      freeWhenDone: YES];
+              return AUTORELEASE(result);
+            }
+        }
+      NSZoneFree(zone, dst);
+    }
+#else
+  [NSException raise: NSGenericException
+              format: @"library was configured without zlib support"];
+#endif
+  return nil;
+}
+
+- (NSData*) gzipped: (int)compressionLevel
+{
+#if     USE_ZLIB
+  NSUInteger    length = [self length];
+  z_stream      stream;
+
+  stream.zalloc = Z_NULL;
+  stream.zfree = Z_NULL;
+  stream.opaque = Z_NULL;
+  stream.avail_in = (unsigned)length;
+  stream.next_in = (uint8_t*)[self bytes];
+  stream.total_out = 0;
+  stream.avail_out = 0;
+
+  if (compressionLevel < 0 || compressionLevel > 9)
+    {
+      compressionLevel = Z_DEFAULT_COMPRESSION;
+    }
+  if (deflateInit2(&stream,
+    compressionLevel,
+    Z_DEFLATED,
+    31,
+    8,
+    Z_DEFAULT_STRATEGY) == Z_OK)
+    {
+      NSMutableData     *result;
+      NSZone            *zone = NSDefaultMallocZone();
+      unsigned          capacity = 1024 * 16;
+      uint8_t           *dst;
+
+      dst = NSZoneMalloc(zone, capacity);
+      while (stream.avail_out == 0)
+        {
+          if (stream.total_out >= capacity)
+            {
+              capacity += 1024 * 16;
+              dst = NSZoneRealloc(zone, dst, capacity);
+            }
+          stream.next_out = dst + stream.total_out;
+          stream.avail_out = (unsigned)(capacity - stream.total_out);
+          deflate(&stream, Z_FINISH);
+        }
+      deflateEnd(&stream);
+      result = [NSMutableData alloc];
+      result = [result initWithBytesNoCopy: dst
+                                    length: stream.total_out
+                              freeWhenDone: YES];
+      return AUTORELEASE(result);
+    }
+#else
+  [NSException raise: NSGenericException
+              format: @"library was configured without zlib support"];
+#endif
+  return nil;
 }
 
 /**
@@ -235,6 +429,14 @@ randombytes(uint8_t *buf, unsigned len)
 	NSStringFromSelector(_cmd)];
     }
   return self;
+}
+
+- (BOOL) isGzipped
+{
+  NSUInteger    length = [self length];
+  const uint8_t *bytes = (const uint8_t *)[self bytes];
+
+  return (length >= 2 && bytes[0] == 0x1f && bytes[1] == 0x8b) ? YES : NO;
 }
 
 struct MD5Context
@@ -781,4 +983,5 @@ static void MD5Transform (uint32_t buf[4], uint32_t const in[16])
   [encoded appendBytes: "`\nend\n" length: 6];
   return YES;
 }
+
 @end
