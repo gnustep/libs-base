@@ -52,9 +52,22 @@ int main()
 
     s1 = [NSString stringWithFormat: @"%0.3f", 0.0019];
     n1 = [NSDecimalNumber decimalNumberWithString: @"0.0019"];
-    n2 = [n1 decimalNumberByRoundingAccordingToBehavior: handler];
+    /* Try working with NSDecimal directly
+     */
+    {
+      NSDecimal result;
+      NSDecimal d1 = [n1 decimalValue];
+      NSString  *s2;
+
+      NSLog(@"NSDecimal before rounding %g", NSDecimalDouble(&d1));
+      NSDecimalRound(&result, &d1, [handler scale], [handler roundingMode]);
+      NSLog(@"NSDecimal after rounding %g", NSDecimalDouble(&result));
+      s2 = NSDecimalString(&result, nil);
+      PASS_EQUAL(s2, s1, "NSDecimal rounding 0.0019 to 0.02");
+      n2 = [NSDecimalNumber decimalNumberWithDecimal: result];
+    }
     s2 = [n2 descriptionWithLocale: nil];
-    PASS_EQUAL(s2, s1, "rounding 0.0019");
+    PASS_EQUAL(s2, s1, "NSDecimalNumber rounding 0.0019");
 
   END_SET("NSDecimalNumber")
 
