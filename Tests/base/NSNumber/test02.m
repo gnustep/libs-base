@@ -15,7 +15,9 @@ int main()
     NSDecimalNumber             *n2;
     NSString                    *s1;
     NSString                    *s2;
+    NSLocale                    *locale;
 
+    locale = [NSLocale systemLocale];
     handler = [NSDecimalNumberHandler alloc];
     handler = [[handler initWithRoundingMode: NSRoundPlain
                                        scale: 2
@@ -25,15 +27,15 @@ int main()
                          raiseOnDivideByZero: NO] autorelease];
 
     s1 = [NSString stringWithFormat: @"%0.2f", 0.009];
-    n1 = [NSDecimalNumber decimalNumberWithString: @"0.009"];
+    n1 = [NSDecimalNumber decimalNumberWithString: @"0.009" locale: locale];
     n2 = [n1 decimalNumberByRoundingAccordingToBehavior: handler];
-    s2 = [n2 descriptionWithLocale: nil];
+    s2 = [n2 descriptionWithLocale: locale];
     PASS_EQUAL(s2, s1, "rounding 0.009");
 
     s1 = [NSString stringWithFormat: @"%0.2f", 0.019];
-    n1 = [NSDecimalNumber decimalNumberWithString: @"0.019"];
+    n1 = [NSDecimalNumber decimalNumberWithString: @"0.019" locale: locale];
     n2 = [n1 decimalNumberByRoundingAccordingToBehavior: handler];
-    s2 = [n2 descriptionWithLocale: nil];
+    s2 = [n2 descriptionWithLocale: locale];
     PASS_EQUAL(s2, s1, "rounding 0.019");
 
     handler = [NSDecimalNumberHandler alloc];
@@ -45,13 +47,13 @@ int main()
                          raiseOnDivideByZero: NO] autorelease];
 
     s1 = [NSString stringWithFormat: @"%0.3f", 0.0009];
-    n1 = [NSDecimalNumber decimalNumberWithString: @"0.0009"];
+    n1 = [NSDecimalNumber decimalNumberWithString: @"0.0009" locale: locale];
     n2 = [n1 decimalNumberByRoundingAccordingToBehavior: handler];
-    s2 = [n2 descriptionWithLocale: nil];
+    s2 = [n2 descriptionWithLocale: locale];
     PASS_EQUAL(s2, s1, "rounding 0.0009");
 
     s1 = [NSString stringWithFormat: @"%0.3f", 0.0019];
-    n1 = [NSDecimalNumber decimalNumberWithString: @"0.0019"];
+    n1 = [NSDecimalNumber decimalNumberWithString: @"0.0019" locale: locale];
     /* Try working with NSDecimal directly
      */
     {
@@ -66,7 +68,7 @@ int main()
       PASS_EQUAL(s2, s1, "NSDecimal rounding 0.0019 to 0.02");
       n2 = [NSDecimalNumber decimalNumberWithDecimal: result];
     }
-    s2 = [n2 descriptionWithLocale: nil];
+    s2 = [n2 descriptionWithLocale: locale];
     PASS_EQUAL(s2, s1, "NSDecimalNumber rounding 0.0019");
 
   END_SET("NSDecimalNumber")
