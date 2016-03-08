@@ -571,7 +571,17 @@ uint32_t
 GSPrivateFinishHash(uint32_t s0, uint32_t s1, uint32_t totalLength)
   GS_ATTRIB_PRIVATE;
 
-/* Return the current thread ID as an unsigned long.
+@class  NSHashTable;
+/* If 'self' is not a member of 'exclude', adds to the hash
+ * table and returns the memory footprint of 'self' assuming
+ * it contains no pointers and has no extra memory allocated.
+ * Otherwise returns 0.
+ */
+NSUInteger
+GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
+  GS_ATTRIB_PRIVATE;
+
+/* Return the current thread ID as an NSUInteger.
  * Ideally, we use the operating-system's notion of a thread ID so
  * that external process monitoring software will be using the same
  * value that we log.  If we don't know the system's mechanism, we
@@ -579,9 +589,17 @@ GSPrivateFinishHash(uint32_t s0, uint32_t s1, uint32_t totalLength)
  * it makes no sense externally, it can still be used to show that
  * different threads generated different logs.
  */
-unsigned long
+NSUInteger
 GSPrivateThreadID()
   GS_ATTRIB_PRIVATE;
+
+/** Function to base64 encode data.  The destination buffer must be of
+ * size (((length + 2) / 3) * 4) or more.
+ */
+void
+GSPrivateEncodeBase64(const uint8_t *src, NSUInteger length, uint8_t *dst)
+  GS_ATTRIB_PRIVATE;
+
 
 #endif /* _GSPrivate_h_ */
 

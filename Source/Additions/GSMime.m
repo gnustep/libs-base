@@ -92,6 +92,7 @@
 #import	"Foundation/NSEnumerator.h"
 #import	"Foundation/NSException.h"
 #import	"Foundation/NSHost.h"
+#import	"Foundation/NSNotification.h"
 #import	"Foundation/NSRunLoop.h"
 #import	"Foundation/NSScanner.h"
 #import	"Foundation/NSStream.h"
@@ -117,9 +118,24 @@ static  NSMapTable	*charsets = 0;
 static  NSMapTable	*encodings = 0;
 static	Class		NSArrayClass = 0;
 static	Class		NSStringClass = 0;
+static	Class		NSDataClass = 0;
 static	Class		documentClass = 0;
+static	Class		headerClass = 0;
+
+static BOOL             oldStyleFolding = NO;
 
 typedef BOOL (*boolIMP)(id, SEL, id);
+
+static char	*hex = "0123456789ABCDEF";
+
+/* This is a test for SMTP standard white space characters.
+ * In RCC2822 these are limited to just space and tab
+ */
+static inline BOOL
+isWSP(int c)
+{
+  return (c == ' ' || c == '\t') ? YES : NO;
+}
 
 @interface GSMimeDocument (Private)
 - (GSMimeHeader*) _lastHeaderNamed: (NSString*)name;
@@ -138,17 +154,16 @@ decodebase64(unsigned char *dst, const unsigned char *src)
   dst[2] = ((src[2] & 0x03) << 6) |  (src[3] & 0x3F);
 }
 
-static char b64[]
-  = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-
-static int
-encodebase64(unsigned char *dst, const unsigned char *src, int length)
+void
+GSPrivateEncodeBase64(const uint8_t *src, NSUInteger length, uint8_t *dst)
 {
   int	dIndex = 0;
   int	sIndex;
 
   for (sIndex = 0; sIndex < length; sIndex += 3)
     {
+      static char b64[]
+        = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
       int	c0 = src[sIndex];
       int	c1 = (sIndex+1 < length) ? src[sIndex+1] : 0;
       int	c2 = (sIndex+2 < length) ? src[sIndex+2] : 0;
@@ -173,15 +188,12 @@ encodebase64(unsigned char *dst, const unsigned char *src, int length)
        dst[dIndex - 1] = '=';
        dst[dIndex - 2] = '=';
      }
-  return dIndex;
 }
-
 
 static void
 encodeQuotedPrintable(NSMutableData *result,
   const unsigned char *src, unsigned length)
 {
-  static char	*hex = "0123456789ABCDEF";
   unsigned	offset;
   unsigned	column = 0;
   unsigned	size = 0;
@@ -204,7 +216,7 @@ encodeQuotedPrintable(NSMutableData *result,
 	  continue;
 	}
 
-      if ((' ' == c || '\t' == c) && i < length
+      if (isWSP(c) && i < length
 	&& ('\r' == src[i + 1] || '\n' == src[i + 1]))
 	{
 	  /* RFC 2045 says we have to encode space and tab characters when
@@ -255,7 +267,7 @@ encodeQuotedPrintable(NSMutableData *result,
 	  continue;
 	}
 
-      if ((' ' == c || '\t' == c) && i < length
+      if (isWSP(c) && i < length
 	&& ('\r' == src[i + 1] || '\n' == src[i + 1]))
 	{
 	  /* RFC 2045 says we have to encode space and tab characters when
@@ -311,7 +323,8 @@ typedef	enum {
  *	Purpose -	Decode text with BASE64 or QUOTED-PRINTABLE codes.
  */
 static unsigned char*
-decodeWord(unsigned char *dst, const unsigned char *src, const unsigned char *end, WE enc)
+decodeWord(unsigned char *dst, const unsigned char *src,
+  const unsigned char *end, WE enc)
 {
   int	c;
 
@@ -458,48 +471,6 @@ selectCharacterSet(NSString *str, NSData **d)
     return @"us-ascii";	// Default character set.
   if ((*d = [str dataUsingEncoding: NSISOLatin1StringEncoding]) != nil)
     return @"iso-8859-1";
-
-  /*
-   * What's the point of trying loads of charactersets ... utf-8 is
-   * well-known nowadays, so if we can't use ascii or latin1 we may
-   * as well go straight to utf-8
-   */
-#if 0
-  if ((*d = [str dataUsingEncoding: NSISOLatin2StringEncoding]) != nil)
-    return @"iso-8859-2";
-  if ((*d = [str dataUsingEncoding: NSISOLatin3StringEncoding]) != nil)
-    return @"iso-8859-3";
-  if ((*d = [str dataUsingEncoding: NSISOLatin4StringEncoding]) != nil)
-    return @"iso-8859-4";
-  if ((*d = [str dataUsingEncoding: NSISOCyrillicStringEncoding]) != nil)
-    return @"iso-8859-5";
-  if ((*d = [str dataUsingEncoding: NSISOArabicStringEncoding]) != nil)
-    return @"iso-8859-6";
-  if ((*d = [str dataUsingEncoding: NSISOGreekStringEncoding]) != nil)
-    return @"iso-8859-7";
-  if ((*d = [str dataUsingEncoding: NSISOHebrewStringEncoding]) != nil)
-    return @"iso-8859-8";
-  if ((*d = [str dataUsingEncoding: NSISOLatin5StringEncoding]) != nil)
-    return @"iso-8859-9";
-  if ((*d = [str dataUsingEncoding: NSISOLatin6StringEncoding]) != nil)
-    return @"iso-8859-10";
-  if ((*d = [str dataUsingEncoding: NSISOLatin7StringEncoding]) != nil)
-    return @"iso-8859-13";
-  if ((*d = [str dataUsingEncoding: NSISOLatin8StringEncoding]) != nil)
-    return @"iso-8859-14";
-  if ((*d = [str dataUsingEncoding: NSISOLatin9StringEncoding]) != nil)
-    return @"iso-8859-15";
-  if ((*d = [str dataUsingEncoding: NSWindowsCP1250StringEncoding]) != nil)
-    return @"windows-1250";
-  if ((*d = [str dataUsingEncoding: NSWindowsCP1251StringEncoding]) != nil)
-    return @"windows-1251";
-  if ((*d = [str dataUsingEncoding: NSWindowsCP1252StringEncoding]) != nil)
-    return @"windows-1252";
-  if ((*d = [str dataUsingEncoding: NSWindowsCP1253StringEncoding]) != nil)
-    return @"windows-1253";
-  if ((*d = [str dataUsingEncoding: NSWindowsCP1254StringEncoding]) != nil)
-    return @"windows-1254";
-#endif
   *d = [str dataUsingEncoding: NSUTF8StringEncoding];
   return @"utf-8";		// Catch-all character set.
 }
@@ -534,7 +505,7 @@ wordData(NSString *word, BOOL *encoded)
       d = [documentClass encodeBase64: d];
       [md appendBytes: "=?" length: 2];
       [md appendBytes: buf length: len];
-      [md appendBytes: "?b?" length: 3];
+      [md appendBytes: "?B?" length: 3];
       [md appendData: d];
       [md appendBytes: "?=" length: 2];
       return md;
@@ -912,6 +883,10 @@ wordData(NSString *word, BOOL *encoded)
     {
       NSArrayClass = [NSArray class];
     }
+  if (NSDataClass == 0)
+    {
+      NSDataClass = [NSData class];
+    }
   if (NSStringClass == 0)
     {
       NSStringClass = [NSString class];
@@ -920,6 +895,10 @@ wordData(NSString *word, BOOL *encoded)
     {
       documentClass = [GSMimeDocument class];
     }
+  if (headerClass == 0)
+    {
+      headerClass = [GSMimeHeader class];
+}
 }
 
 /**
@@ -1302,11 +1281,10 @@ wordData(NSString *word, BOOL *encoded)
 
 - (NSString*) description
 {
-  NSMutableString	*desc;
+  NSString	*desc;
 
-  desc = [NSMutableString stringWithFormat: @"GSMimeParser <0x%"PRIxPTR"> -\n",
-    (NSUInteger)self];
-  [desc appendString: [document description]];
+  desc = [NSMutableString stringWithFormat: @"%@ - %@",
+    [super description], document];
   return desc;
 }
 
@@ -1730,7 +1708,7 @@ wordData(NSString *word, BOOL *encoded)
   GSMimeHeader		*info;
 
   NSDebugMLLog(@"GSMime", @"Parse header - '%@'", aHeader);
-  info = AUTORELEASE([GSMimeHeader new]);
+  info = AUTORELEASE([headerClass new]);
 
   /*
    * Special case - permit web response status line to act like a header.
@@ -2507,15 +2485,19 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 		    }
 		}
 
+              /* We assume any text data is best treated as a string
+               * unless it's some format we will probably be parsing.
+               */
 	      if ([type isEqualToString: @"text"] == YES
-		&& [subtype isEqualToString: @"xml"] == NO)
+		&& [subtype isEqualToString: @"xml"] == NO
+		&& [subtype isEqualToString: @"json"] == NO)
 		{
 		  NSStringEncoding	stringEncoding = _defaultEncoding;
 		  NSString		*string;
 
 		  if (typeInfo == nil)
 		    {
-		      typeInfo = [GSMimeHeader new];
+		      typeInfo = [headerClass new];
 		      [typeInfo setName: @"content-type"];
 		      [typeInfo setValue: @"text/plain"];
 		      [typeInfo setObject: type forKey: @"Type"];
@@ -2643,8 +2625,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
                            * and before crlf.  Strictly this is wrong ... but
                            * at least one mailer generates bogus whitespace.
                            */
-                          while (eol < len
-                            && (buf[eol] == ' ' || buf[eol] == '\t'))
+                          while (eol < len && isWSP(buf[eol]))
                             {
                               eol++;
                             }
@@ -2906,7 +2887,7 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
   NSStringEncoding	enc;
   WE			encoding;
   unsigned char		c;
-  NSMutableString	*hdr = [NSMutableString string];
+  NSMutableString	*hdr = nil;
   NSString		*s;
   const unsigned char	*beg = &bytes[input];
   const unsigned char	*end = &bytes[dataEnd];
@@ -2977,7 +2958,14 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
                   flags.hadErrors = 1;
                   return nil;
                 }
+              if (nil == hdr)
+                {
+                  hdr = AUTORELEASE([s mutableCopy]);
+                }
+              else
+                {
 	      [hdr appendString: s];
+                }
 	      RELEASE(s);
 	    }
 
@@ -3061,7 +3049,14 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 		  s = [s initWithBytes: buf
 				length: ptr - buf
 			      encoding: enc];
+                  if (nil == hdr)
+                    {
+                      hdr = AUTORELEASE([s mutableCopy]);
+                    }
+                  else
+                    {
 		  [hdr appendString: s];
+                    }
 		  RELEASE(s);
 		}
 	      /* Point past end to continue parsing.
@@ -3095,6 +3090,10 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 		{
 		  return nil;	// need more data
 		}
+              if (nil == hdr)
+                {
+                  hdr = [NSMutableString stringWithCapacity: 1];
+                }
 	      if (NO == folded)
 		{
 		  /* End of line ... return this header.
@@ -3106,7 +3105,26 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 		}
 	      /* Folded line ... add space at fold and continue parsing.
 	       */
+              if (YES == oldStyleFolding)
+                {
+                  /* Old style ... any fold is at a space.
+                   */
 	      [hdr appendString: @" "];
+                }
+              else
+                {
+                  /* Modern style ... exact whitespace character is
+                   * preserved.
+                   */
+                  if (' ' == src[-1])
+                    {
+                      [hdr appendString: @" "];
+                    }
+                  else
+                    {
+                      [hdr appendString: @"\t"];
+                    }
+                }
               if (1 == flags.encodedWord)
                 {
                   /* NB Space is ignored between encoded words;
@@ -3332,6 +3350,12 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 static NSCharacterSet	*nonToken = nil;
 static NSCharacterSet	*tokenSet = nil;
 
++ (void) _defaultsChanged: (NSNotification*)n
+{
+  oldStyleFolding = [[NSUserDefaults standardUserDefaults]
+    boolForKey: @"GSMimeOldStyleFolding"];
+}
+
 + (void) initialize
 {
   if (nonToken == nil)
@@ -3358,7 +3382,16 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  documentClass = [GSMimeDocument class];
 	}
+      if (headerClass == 0)
+        {
+          headerClass = [GSMimeHeader class];
     }
+      [[NSNotificationCenter defaultCenter] addObserver: self
+        selector: @selector(_defaultsChanged:)
+        name: NSUserDefaultsDidChangeNotification
+        object: nil];
+      [self _defaultsChanged: nil];
+}
 }
 
 /**
@@ -3466,10 +3499,11 @@ static NSCharacterSet	*tokenSet = nil;
 
 - (id) copyWithZone: (NSZone*)z
 {
-  GSMimeHeader	*c = [GSMimeHeader allocWithZone: z];
+  GSMimeHeader	*c;
   NSEnumerator	*e;
   NSString	*k;
 
+  c = [headerClass allocWithZone: z];
   c = [c initWithName: [self namePreservingCase: YES]
 		value: [self value]
 	   parameters: [self parametersPreservingCase: YES]];
@@ -3480,7 +3514,6 @@ static NSCharacterSet	*tokenSet = nil;
     }
   return c;
 }
-
 - (void) dealloc
 {
   RELEASE(name);
@@ -3492,13 +3525,19 @@ static NSCharacterSet	*tokenSet = nil;
 
 - (NSString*) description
 {
-  NSMutableString	*desc;
+  NSString	*desc;
+  NSDictionary  *p = [self parameters];
 
-  desc = [NSMutableString stringWithFormat: @"GSMimeHeader <0x%"PRIxPTR"> -\n",
-    (NSUInteger)self];
-  [desc appendFormat: @"  name: %@\n", [self name]];
-  [desc appendFormat: @"  value: %@\n", [self value]];
-  [desc appendFormat: @"  params: %@\n", [self parameters]];
+  if ([p count] > 0)
+    {
+      desc = [NSString stringWithFormat: @"%@ %@: %@ params: %@",
+        [super description], [self name], [self value], p];
+    }
+  else
+    {
+      desc = [NSString stringWithFormat: @"%@ %@: %@",
+        [super description], [self name], [self value]];
+    }
   return desc;
 }
 
@@ -3522,7 +3561,7 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  NSString	*v;
 
-	  v = [GSMimeHeader makeQuoted: [params objectForKey: k] always: NO];
+	  v = [headerClass makeQuoted: [params objectForKey: k] always: NO];
 	  [m appendString: @"; "];
 	  [m appendString: k];
 	  [m appendString: @"="];
@@ -3577,7 +3616,7 @@ static NSCharacterSet	*tokenSet = nil;
     {
       return YES;
     }
-  if (NO == [other isKindOfClass: [GSMimeHeader class]])
+  if (NO == [other isKindOfClass: headerClass])
     {
       return NO;
     }
@@ -3646,7 +3685,7 @@ static NSCharacterSet	*tokenSet = nil;
 
   if (p == nil)
     {
-      k = [GSMimeHeader makeToken: k];
+      k = [headerClass makeToken: k];
       p = [params objectForKey: k];
     }
   return p;
@@ -3692,23 +3731,103 @@ static NSCharacterSet	*tokenSet = nil;
   return [m makeImmutableCopyOnFail: YES];
 }
 
+/* Given a byte buffer and a minimum position in the buffer,
+ * return the first white space found before the starting position.
+ * If no white space is found, return NSNotFound.
+ */
+static NSUInteger
+lastWhiteSpace(const uint8_t *ptr, NSUInteger minimum, NSUInteger from)
+{
+  while (from-- > minimum)
+    {
+      uint8_t   c = ptr[from];
+
+      if (' ' == c || '\t' == c)
+        {
+          return from;
+        }
+    }
+  return NSNotFound;
+}
+
+static char* _charsToEncode = "()<>@,;:_\"/[]?.=";
+
+static NSUInteger
+quotableLength(const uint8_t *ptr, NSUInteger size, NSUInteger max,
+  NSUInteger *quotedLength)
+{
+  NSUInteger    encoded;
+  NSUInteger    index;
+
+  for (encoded = index = 0; index < size; index++)
+    {
+      uint8_t   c = ptr[index];
+      int       add = 1;
+
+      if (c < 32 || c >= 127 || strchr(_charsToEncode, c))
+        {
+          add += 2;
+        }
+      if (encoded + add > max)
+        {
+          break;
+        }
+      encoded += add;
+    }
+  *quotedLength = encoded;
+  return index;
+}
+
+static void
+quotedWord(const uint8_t *ptr, NSUInteger size, uint8_t *buffer)
+{
+  NSUInteger    encoded = 0;
+  NSUInteger    index;
+
+  for (index = 0; index < size; index++)
+    {
+      uint8_t   c = ptr[index];
+
+      if (' ' == c)
+        {
+          buffer[encoded++] = '_';
+        }
+      else if (c < 32 || c >= 127 || strchr(_charsToEncode, c))
+        {
+          buffer[encoded++] = '=';
+          buffer[encoded++] = hex[c>>4];
+          buffer[encoded++] = hex[c&15];
+        }
+      else
+        {
+          buffer[encoded++] = c;
+        }
+    }
+}
+
 static NSUInteger
 appendBytes(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   const char *bytes, NSUInteger size)
 {
   if (fold > 0 && offset + size > fold && size + 8 <= fold)
     {
-      NSUInteger  len = [m length];
-
       /* This would take the line beyond the folding limit,
        * so we fold at this point.
-       * If we already have space at the end of the line,
+       */
+      if (YES == oldStyleFolding)
+        {
+      NSUInteger  len = [m length];
+
+          /* If we already have space at the end of the line,
        * we remove it because the wrapping counts as a space.
        */
-      if (len > 0 && isspace(((unsigned char*)[m bytes])[len - 1]))
+          if (len > 0 && isspace(((const uint8_t *)[m bytes])[len - 1]))
         {
           [m setLength: --len];
         }
+
+          /* Folding results in a follow-on line starting with white space
+           */
       [m appendBytes: "\r\n\t" length: 3];
       offset = 8;
       if (size > 0 && isspace(bytes[0]))
@@ -3719,6 +3838,61 @@ appendBytes(NSMutableData *m, NSUInteger offset, NSUInteger fold,
            */
           size--;
           bytes++;
+        }
+    }
+      else
+        {
+          uint8_t       wsp;
+          uint8_t       buf[3];
+
+          /* Modern folding preserves exact whitespace characters.
+           */
+          if (size > 0 && isWSP(bytes[0]))
+            {
+              /* Next char is whitespace, so we fold before it.
+               */
+              wsp = bytes[0];
+              bytes++;
+              size--;
+            }
+          else
+            {
+              NSUInteger        len = [m length];
+
+              /* We are expecting white space to be present after the
+               * last word (because we didn't find it before the next
+               * one).  If it's there, we need to step back so we have
+               * it after the CRLF.
+               */
+              wsp = ' ';
+              if (len > 0)
+                {
+                  const uint8_t     *ptr = [m bytes];
+
+                  len--;
+                  if (isWSP(ptr[len]))
+                    {
+                      wsp = ptr[len];
+                      [m setLength: len];
+                    }
+                }
+            }
+
+          /* Now we append the CRLF and first whitespace character on
+           * the new line, and record the current character position.
+           */
+          buf[0] = '\r';
+          buf[1] = '\n';
+          buf[2] = wsp;
+          [m appendBytes: buf length: 3];
+          if ('\t' == wsp)
+            {
+              offset = 8;
+            }
+          else
+            {
+              offset = 1;
+            }
         }
     }
   if (size > 0)
@@ -3737,11 +3911,15 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   NSString *str, BOOL *ok)
 {
   NSUInteger      pos = 0;
-  NSUInteger      size = [str length];
   BOOL          hadEncodedWord = NO;
-  BOOL          needSpace = NO;
 
   *ok = YES;
+
+  if (YES == oldStyleFolding)
+    {
+  NSUInteger      size = [str length];
+  BOOL          needSpace = NO;
+
   while (pos < size)
     {
       NSRange   r = NSMakeRange(pos, size - pos);
@@ -3756,7 +3934,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
         {
           /* Found space at the start of the string, so we reduce
            * it to a single space in the output, or omit it entirely
-           * if the string is contains nothing more but space.
+               * if the string contains nothing more but space.
            */
           pos++;
           while (pos < size
@@ -3789,7 +3967,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       if (nil != d)
         {
           /* We have a 'word' to output ... do that after dealing with any
-           * space needede between the last word and the new one.
+               * space needed between the last word and the new one.
            */
           if (YES == needSpace)
             {
@@ -3823,6 +4001,165 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
         }
     }
   return offset;
+}
+  else
+    {
+      NSData            *d;
+      NSString          *cset = selectCharacterSet(str, &d);
+      const uint8_t     *ptr = (const uint8_t*)[d bytes];
+      NSUInteger        len = [d length];
+
+      if ([cset isEqualToString: @"us-ascii"])
+        {
+          if (0 == fold)
+            {
+              /* Simple ... no folding to do so we can just add the ascii.
+               */
+              [m appendBytes: ptr + pos length: len - pos];
+              offset += (len - pos);
+              pos = len;
+            }
+          else
+            {
+              while (pos < len)
+                {
+                  NSUInteger    next;
+
+                  /* Find the longest string we can fit on the current line,
+                   * either the whole string or by breaking at whitespace.
+                   */
+                  if (offset + len - pos <= fold)
+                    {
+                      next = len;
+                    }
+                  else
+                    {
+                      next = lastWhiteSpace(ptr, pos, pos + fold - offset);
+                      if (NSNotFound == next)
+                        {
+                          /* The header text has no whitespace usable as
+                           * a folding point before the end of the line.
+                           * break out and use encoded words.
+                           */
+                          break;
+                        }
+                    }
+                  /* Add the string to the output and adjust position.
+                   */
+                  [m appendBytes: ptr + pos length: next - pos];
+                  offset += next - pos;
+                  pos += next;
+                  if (pos < len)
+                    {
+                      /* We have more text to output, so fold the line.
+                       */
+                      [m appendBytes: "\r\n" length: 2];
+                      [m appendBytes: ptr + pos length: 1];
+                      pos++;
+                      offset = 1;
+                    }
+                }
+            }
+        }
+
+      /* We get here to use encoded words, either because the text to be
+       * added contains non-ascii characters, or because it contains some
+       * non-foldable sequence too long to fit in the given line limit.
+       */
+      if (pos < len)
+        {
+          NSUInteger    csetLength;
+          NSUInteger    overhead;
+
+          /* The overhead is the number of bytes needed to wrap an
+           * encoded word in the format =?csetname?B?encodedtext?=
+           */
+          csetLength = [cset length];
+          overhead = csetLength + 7;
+
+          /* RFC2047 says that any header line containing an encoded word
+           * is limited to 76 characters, so we temporarily adjust the
+           * fold if necessary.
+           */
+          if (0 == fold || fold > 76)
+            {
+              fold = 76;
+            }
+
+          while (pos < len)
+            {
+              uint8_t           *buffer;
+              NSUInteger        existingLength;
+              NSUInteger        quotedLength;
+              NSUInteger        charLength;
+              uint8_t           style = 'q';
+
+              /* Calculate the number of encoded characters we can
+               * fit on the current line.  If there's no room, we
+               * fold the line and recalculate.
+               * With base64 encoding, the minimum space used for an
+               * encoded character (because it works in triplets) is
+               * 4 bytes, while for quoted characters it's 3 bytes
+               * (the '=' followed by two hexadecimal digits).
+               * We therefore check that we have at least space for
+               * four characters left on the line.
+               */
+              if (offset + overhead + 4 > fold)
+                {
+                  [m appendBytes: "\r\n " length: 3];
+                  offset = 1;
+                }
+
+              charLength = quotableLength(ptr + pos, len - pos,
+                fold - offset - overhead, &quotedLength);
+              if (quotedLength > (charLength * 4) / 3)
+                {
+                  /* Using base64 is more compact than using quoted
+                   * text, so lets do that.
+                   */
+                  style = 'b';
+                  charLength = ((fold - offset - overhead) / 4) * 3;
+                  if (charLength >= len - pos)
+                    {
+                      /* If we have less text than we can fit,
+                       * just encode all of it.
+                       */
+                      charLength = len - pos;
+                    }
+                  quotedLength = 4 * ((charLength + 2) / 3);
+                }
+
+              /* make sure we have enough space in the output buffer.
+               */
+              existingLength = [m length];
+              [m setLength: existingLength + quotedLength + overhead];
+              buffer = (uint8_t*)[m mutableBytes] + existingLength;
+
+              memcpy(buffer, "=?", 2);
+              buffer += 2;
+              [cset getCString: (char*)buffer
+                     maxLength: csetLength + 1
+                      encoding: NSASCIIStringEncoding];
+              buffer += csetLength;
+              *buffer++ = '?';
+              *buffer++ = style;
+              *buffer++ = '?';
+              if ('q' == style)
+                {
+                  quotedWord(ptr + pos, charLength, buffer);
+                }
+              else
+                {
+                  GSPrivateEncodeBase64(ptr + pos, charLength, buffer);
+                }
+              buffer[quotedLength] = '?';
+              buffer[quotedLength + 1] = '=';
+              offset += quotedLength + overhead;
+              pos += charLength;
+            }
+        }
+      return offset;
+    }
 }
 
 /**
@@ -3936,14 +4273,35 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   while ((k = [e nextObject]) != nil)
     {
       NSString	*v;
+      NSUInteger        kLength;
+      NSUInteger        vLength;
 
-      v = [GSMimeHeader makeQuoted: [params objectForKey: k] always: NO];
+      v = [headerClass makeQuoted: [params objectForKey: k] always: NO];
       if (preserve == NO)
         {
 	  k = [k lowercaseString];
 	}
       offset = appendBytes(md, offset, fold, ";", 1);
+
+      kLength = [k length];
+      vLength = [v length];
+
+      /* Crude heuristic ...
+       * if the length of the key=value will definitely be
+       * too long to fit on a line, fold right now.
+       * Since we are producing a key=value pair in a structured
+       * field, we use a tab to fold to maximise the chances of a
+       * parser understanding it.
+       */
+      if (fold > 0 && offset + kLength + vLength + 1 >= fold)
+        {
+          [md appendBytes: "\r\n\t" length: 3];
+          offset = 1;
+        }
+      else
+        {
       offset = appendBytes(md, offset, fold, " ", 1);
+        }
       offset = appendString(md, offset, fold, k, &ok);
       if (ok == NO)
         {
@@ -3952,6 +4310,18 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
             k, n, fold);
         }
       offset = appendBytes(md, offset, fold, "=", 1);
+
+      /* Crude heuristic ... if the length of the value will definitely be
+       * too long to fit on a line, fold right now.
+       * Since we are producing a key=value pair in a structured
+       * field, we use a tab to fold to maximise the chances of a
+       * parser understanding it.
+       */
+      if (fold > 0 && offset + vLength > fold)
+        {
+          [md appendBytes: "\r\n\t" length: 3];
+          offset = 1;
+        }
       offset = appendString(md, offset, fold, v, &ok);
       if (ok == NO)
         {
@@ -3974,7 +4344,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (void) setName: (NSString*)s
 {
-  s = [GSMimeHeader makeToken: s preservingCase: YES];
+  s = [headerClass makeToken: s preservingCase: YES];
   if ([s length] == 0)
     {
       s = @"unknown";
@@ -4012,7 +4382,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (void) setParameter: (NSString*)v forKey: (NSString*)k
 {
-  k = [GSMimeHeader makeToken: k preservingCase: YES];
+  k = [headerClass makeToken: k preservingCase: YES];
   if (v == nil)
     {
       [params removeObjectForKey: k];
@@ -4044,8 +4414,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       m = [[_GSMutableInsensitiveDictionary alloc] initWithCapacity: c];
       while ((k = [e nextObject]) != nil)
 	{
-	  [m setObject: [d objectForKey: k]
-		forKey: [GSMimeHeader makeToken: k preservingCase: YES]];
+          NSString      *v = [d objectForKey: k];
+
+          k = [headerClass makeToken: k preservingCase: YES];
+	  [m setObject: v forKey: k];
 	}
     }
   DESTROY(params);
@@ -4085,6 +4457,21 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   return value;
 }
+
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  NSUInteger    size = [super sizeInBytesExcluding: exclude];
+
+  if (size > 0)
+    {
+      size += [name sizeInBytesExcluding: exclude];
+      size += [value sizeInBytesExcluding: exclude];
+      size += [objects sizeInBytesExcluding: exclude];
+      size += [params sizeInBytesExcluding: exclude];
+    }
+  return size;
+}
+
 @end
 
 
@@ -4456,7 +4843,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   dBuf = NSZoneMalloc(NSDefaultMallocZone(), destlen);
 #endif
 
-  destlen = encodebase64(dBuf, sBuf, length);
+  GSPrivateEncodeBase64(sBuf, length, dBuf);
 
   return AUTORELEASE([[NSData allocWithZone: NSDefaultMallocZone()]
     initWithBytesNoCopy: dBuf length: destlen]);
@@ -4547,7 +4934,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	{
 	  NSStringClass = [NSString class];
 	}
-      if (charsets == 0)
+      if (0 == charsets)
 	{
 	  charsets = NSCreateMapTable (NSObjectMapKeyCallBacks,
 	    NSIntegerMapValueCallBacks, 0);
@@ -4907,7 +5294,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    (void*)@"ksc5601.1987");
 #endif
 	}
+      if (headerClass == 0)
+        {
+          headerClass = [GSMimeHeader class];
     }
+}
 }
 
 /**
@@ -5017,7 +5408,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   GSMimeHeader	*hdr;
 
-  hdr = [[GSMimeHeader alloc] initWithName: name
+  hdr = [headerClass alloc];
+  hdr = [hdr initWithName: name
 				     value: value
 				parameters: parameters];
   [self addHeader: hdr];
@@ -5401,7 +5793,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  [hdr setParameter: charset forKey: @"charset"];
 	}
     }
-  else if ([content isKindOfClass: [NSData class]] == YES)
+  else if ([content isKindOfClass: NSDataClass] == YES)
     {
       d = content;
     }
@@ -5420,27 +5812,32 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       s = content;
     }
-  else if ([content isKindOfClass: [NSData class]] == YES)
+  else if ([content isKindOfClass: NSDataClass] == YES)
     {
       GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
       NSString		*charset = [hdr parameterForKey: @"charset"];
+      NSString          *subtype = [hdr objectForKey: @"Subtype"];
       NSStringEncoding	enc;
 
-      /*
-       * Treat text/xml as a special case ... if we have no charset
+      if (nil == charset)
+        {
+          /* Treat xml as a special case ... if we have no charset
        * specified then we can get the charset from the xml header
-       * or, if that is not present, xml is utf-8
        */
-      if (charset == nil
-	&& [[hdr objectForKey: @"Subtype"] isEqualToString: @"xml"] == YES)
+          if ([subtype isEqualToString: @"xml"] == YES)
 	{
 	  charset = [documentClass charsetForXml: content];
-	  if (charset == nil)
+            }
+          if (nil == charset)
 	    {
 	      charset = @"utf-8";
 	    }
 	}
       enc = [documentClass encodingFromCharset: charset];
+      if (NSASCIIStringEncoding == enc)
+        {
+          enc = NSUTF8StringEncoding;
+        }
       s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
       s = [s initWithData: content encoding: enc];
       IF_NO_GC([s autorelease];)
@@ -5545,18 +5942,79 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     }
 }
 
+- (void) _descriptionTo: (NSMutableString*)m level: (NSUInteger)level
+{
+  NSUInteger            count;
+  NSUInteger            index;
+  NSUInteger            pad;
+
+  for (pad = 0; pad < level; pad++) { [m appendString: @"  "]; }
+  [m appendString: [super description]];
+  [m appendString: @"\n"];
+  level++;
+  if ((count = [headers count]) > 0)
+    {
+      for (pad = 0; pad < level; pad++) { [m appendString: @"  "]; }
+      [m appendString: @"Headers:\n"];
+      for (index = 0; index < count; index++)
+        {
+          for (pad = 0; pad <= level; pad++) { [m appendString: @"  "]; }
+          [m appendString: [[headers objectAtIndex: index] description]];
+          [m appendString: @"\n"];
+        }
+    }
+  for (pad = 0; pad < level; pad++) { [m appendString: @"  "]; }
+  [m appendString: @"Content:\n"];
+  if ([content isKindOfClass: NSDataClass])
+    {
+      NSString          *t = [self convertToText];
+      NSUInteger        l = [content length];
+      int               hl = (int)(((l + 2) / 3) * 4);
+      uint8_t           *hex;
+
+      hex = (uint8_t*)malloc(hl + 1);
+      hex[hl] = '\0';
+      GSPrivateEncodeBase64([content bytes], l, hex);
+      if (nil != t)
+        {
+          for (pad = 0; pad <= level; pad++) { [m appendString: @"  "]; }
+          [m appendFormat: @"%lu chars: ", (unsigned long)[t length]];
+          [m appendString: t];
+          [m appendString: @"\n"];
+        }
+      for (pad = 0; pad <= level; pad++) { [m appendString: @"  "]; }
+      [m appendFormat: @"%lu bytes: <[%s]>\n", (unsigned long)l, (char*)hex];
+      free(hex);
+    }
+  else if ([content isKindOfClass: NSStringClass])
+    {
+      for (pad = 0; pad <= level; pad++) { [m appendString: @"  "]; }
+      [m appendFormat: @"%lu chars: ", (unsigned long)[content length]];
+      [m appendString: content];
+      [m appendString: @"\n"];
+    }
+  else
+    {
+      count = [content count];
+      for (index = 0; index < count; index++)
+        {
+          [[content objectAtIndex: index] _descriptionTo: m
+                                                   level: level+1];
+        }
+    }
+}
+
 - (NSString*) description
 {
-  NSMutableString	*desc;
-  NSDictionary		*locale;
+  CREATE_AUTORELEASE_POOL(arp);
+  NSMutableString       *m;
+  NSString              *s;
 
-  desc = [NSMutableString
-    stringWithFormat: @"GSMimeDocument <0x%"PRIxPTR"> -\n",
-    (NSUInteger)self];
-  locale = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
-  [desc appendString: [headers descriptionWithLocale: locale]];
-  [desc appendFormat: @"\nDocument content -\n%@", content];
-  return desc;
+  m = [NSMutableString stringWithCapacity: 1000];
+  [self _descriptionTo: m level: 0];
+  s = RETAIN(m);
+  RELEASE(arp);
+  return AUTORELEASE(s);  
 }
 
 - (NSUInteger) hash
@@ -5577,7 +6035,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       IMP		imp1;
       boolIMP		imp2;
 
-      name = [GSMimeHeader makeToken: name preservingCase: NO];
+      name = [headerClass makeToken: name preservingCase: NO];
       imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
       imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       for (index = 0; index < count; index++)
@@ -5602,7 +6060,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   NSUInteger	count;
 
-  name = [GSMimeHeader makeToken: name preservingCase: NO];
+  name = [headerClass makeToken: name preservingCase: NO];
   count = [headers count];
   if (count > 0)
     {
@@ -5677,14 +6135,12 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 - (NSString*) makeBoundary
 {
   static int		count = 0;
-  unsigned char		output[20];
-  unsigned char		*ptr;
-  NSMutableData		*md;
+  uint8_t		output[20];
+  uint8_t		*ptr;
   NSString		*result;
   NSData		*source;
   NSData		*digest;
   int			sequence = ++count;
-  int			length;
 
   source = [[[NSProcessInfo processInfo] globallyUniqueString]
     dataUsingEncoding: NSUTF8StringEncoding];
@@ -5696,16 +6152,15 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   output[18] = (sequence >> 8) & 0xff;
   output[19] = sequence & 0xff;
 
-  md = [NSMutableData allocWithZone: NSDefaultMallocZone()];
-  md = [md initWithLength: 40];
-  length = encodebase64([md mutableBytes], output, 20);
-  [md setLength: length + 2];
-  ptr = (unsigned char*)[md mutableBytes];
-  ptr[length] = '=';
-  ptr[length+1] = '_';
+  ptr = (uint8_t*)NSZoneMalloc(NSDefaultMallocZone(), 30);
+  GSPrivateEncodeBase64(output, 20, ptr);
+  ptr[28] = '=';
+  ptr[29] = '_';
   result = [NSStringClass allocWithZone: NSDefaultMallocZone()];
-  result = [result initWithData: md encoding: NSASCIIStringEncoding];
-  RELEASE(md);
+  result = [result initWithBytesNoCopy: ptr
+                                length: 30
+                              encoding: NSASCIIStringEncoding
+                          freeWhenDone: YES];
   return AUTORELEASE(result);
 }
 
@@ -5721,7 +6176,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   NSString	*str = [[NSProcessInfo processInfo] globallyUniqueString];
 
   str = [NSStringClass stringWithFormat: @"<%@>", str];
-  hdr = [[GSMimeHeader alloc] initWithName: @"content-id"
+  hdr = [[headerClass alloc] initWithName: @"content-id"
 				     value: str
 				parameters: nil];
   [self setHeader: hdr];
@@ -5738,7 +6193,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   GSMimeHeader	*hdr;
 
-  hdr = [[GSMimeHeader alloc] initWithName: name
+  hdr = [[headerClass alloc] initWithName: name
 				     value: value
 				parameters: parameters];
   [self setHeader: hdr];
@@ -5758,7 +6213,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   NSString	*str = [[NSProcessInfo processInfo] globallyUniqueString];
 
   str = [NSStringClass stringWithFormat: @"<%@>", str];
-  hdr = [[GSMimeHeader alloc] initWithName: @"message-id"
+  hdr = [[headerClass alloc] initWithName: @"message-id"
 				     value: str
 				parameters: nil];
   [self setHeader: hdr];
@@ -5788,7 +6243,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (NSMutableData*) rawMimeData: (BOOL)isOuter
 {
-  // 78 is the maximum line lengt specified by MIME RFCs
+  // 78 is the maximum line length specified by MIME RFCs
   return [self rawMimeData: isOuter foldedAt: 78];
 }
 
@@ -5834,7 +6289,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       hdr = [self headerNamed: @"mime-version"];
       if (hdr == nil)
 	{
-	  hdr = [GSMimeHeader alloc];
+	  hdr = [headerClass alloc];
 	  hdr = [hdr initWithName: @"mime-version"
 			    value: @"1.0"
 		       parameters: nil];
@@ -5904,7 +6359,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	{
 	  [self setContent: content type: @"text/plain" name: nil];
 	}
-      else if ([content isKindOfClass: [NSData class]] == YES)
+      else if ([content isKindOfClass: NSDataClass] == YES)
 	{
 	  [self setContent: content
 		      type: @"application/octet-stream"
@@ -5994,7 +6449,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    }
 	  if (enc == nil)
 	    {
-	      enc = [GSMimeHeader alloc];
+	      enc = [headerClass alloc];
 	      enc = [enc initWithName: @"content-transfer-encoding"
 				value: encoding
 			   parameters: nil];
@@ -6056,8 +6511,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    {
 	      [NSException raise: NSInvalidArgumentException
 		format: @"multipart/related 'type' (%@) does not match "
-		@"that of the 'start' part (%@)",
-		[type parameterForKey: @"type"], v];
+		@"that of the 'start' part (%@) in %@",
+		[type parameterForKey: @"type"], v, self];
 	    }
 	}
     }
@@ -6084,7 +6539,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 #endif
 		{
 		  encoding = @"8bit";
-		  enc = [GSMimeHeader alloc];
+		  enc = [headerClass alloc];
 		  enc = [enc initWithName: @"content-transfer-encoding"
 				    value: encoding
 			       parameters: nil];
@@ -6094,7 +6549,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    }
 	  else
 	    {
-	      enc = [GSMimeHeader alloc];
+	      enc = [headerClass alloc];
 	      enc = [enc initWithName: @"content-transfer-encoding"
 				value: @"base64"
 			   parameters: nil];
@@ -6157,7 +6612,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    {
 	      if (enc == nil)
 		{
-		  enc = [GSMimeHeader alloc];
+		  enc = [headerClass alloc];
 		  enc = [enc initWithName: @"content-transfer-encoding"
 				    value: encoding
 			       parameters: nil];
@@ -6281,7 +6736,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  ASSIGNCOPY(content, newContent);
 	}
     }
-  else if ([newContent isKindOfClass: [NSData class]] == YES)
+  else if ([newContent isKindOfClass: NSDataClass] == YES)
     {
       if (newContent != content)
 	{
@@ -6386,7 +6841,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       GSMimeParser	*p = AUTORELEASE([GSMimeParser new]);
       NSScanner		*scanner = [NSScanner scannerWithString: type];
 
-      hdr = AUTORELEASE([GSMimeHeader new]);
+      hdr = AUTORELEASE([headerClass new]);
       [hdr setName: @"content-type"];
       if ([p scanHeaderBody: scanner into: hdr] == NO)
 	{
@@ -6400,7 +6855,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       NSString	*val;
 
       val = [NSStringClass stringWithFormat: @"%@/%@", type, subtype];
-      hdr = [GSMimeHeader alloc];
+      hdr = [headerClass alloc];
       hdr = [hdr initWithName: @"content-type" value: val parameters: nil];
       [hdr setObject: type forKey: @"Type"];
       [hdr setObject: subtype forKey: @"Subtype"];
@@ -6446,7 +6901,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   p = AUTORELEASE([GSMimeParser new]);
   scanner = [NSScanner scannerWithString: newType];
-  hdr = AUTORELEASE([GSMimeHeader new]);
+  hdr = AUTORELEASE([headerClass new]);
   [hdr setName: @"content-type"];
   if ([p scanHeaderBody: scanner into: hdr] == NO)
     {
@@ -6480,12 +6935,25 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   GSMimeHeader	*hdr;
 
-  hdr = [[GSMimeHeader alloc] initWithName: name
+  hdr = [headerClass alloc];
+  hdr = [hdr initWithName: name
 				     value: value
 				parameters: parameters];
   [self setHeader: hdr];
   RELEASE(hdr);
   return hdr;
+}
+
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  NSUInteger    size = [super sizeInBytesExcluding: exclude];
+
+  if (size > 0)
+    {
+      size += [headers sizeInBytesExcluding: exclude];
+      size += [content sizeInBytesExcluding: exclude];
+    }
+  return size;
 }
 
 @end
@@ -6504,9 +6972,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   if (count > 0)
     {
       NSUInteger	index;
-      IMP	imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
-      boolIMP	imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
+      IMP	        imp1;
+      boolIMP	        imp2;
 
+      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       for (index = 0; index < count; index++)
 	{
 	  GSMimeHeader	*info;
@@ -6527,9 +6997,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   if (count > 0)
     {
-      IMP	imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
-      boolIMP	imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
+      IMP	imp1;
+      boolIMP	imp2;
 
+      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       while (count-- > 0)
 	{
 	  GSMimeHeader	*info;
