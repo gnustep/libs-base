@@ -359,11 +359,14 @@ static GSTcpTune        *tune = nil;
   DESTROY(address);
   DESTROY(service);
   DESTROY(protocol);
-
-  [self finalize];
-
   DESTROY(readInfo);
   DESTROY(writeInfo);
+
+  /* Finalize *after* destroying readInfo and writeInfo so that, if the
+   * file handle needs to be closed, we don't generate any notifications
+   * containing the deallocated object.  Tnanks to david for this fix.
+   */
+  [self finalize];
   [super dealloc];
 }
 

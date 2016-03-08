@@ -29,6 +29,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSPortCoder.h"
 
+#import "GSPrivate.h"
 
 #define	GSI_MAP_RETAIN_VAL(M, X)	
 #define	GSI_MAP_RELEASE_VAL(M, X)	
@@ -393,4 +394,25 @@ static GC_descr	nodeDesc;	// Type descriptor for map node.
   return GSIMapCountByEnumeratingWithStateObjectsCount
     (&map, state, stackbuf, len);
 }
+
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  NSUInteger	size = GSPrivateMemorySize(self, exclude);
+
+  if (size > 0)
+    {
+      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+      GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
+
+      size += GSIMapSize(&map) - sizeof(map);
+      while (node != 0)
+        {
+          size += [node->key.obj sizeInBytesExcluding: exclude];
+          node = GSIMapEnumeratorNextNode(&enumerator);
+        }
+      GSIMapEndEnumerator(&enumerator);
+    }
+  return size;
+}
+
 @end
