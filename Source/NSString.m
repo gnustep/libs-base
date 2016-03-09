@@ -1536,9 +1536,15 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   const unsigned char	*data_bytes;
 
   d = [[NSDataClass alloc] initWithContentsOfFile: path];
-  if (d == nil)
+  if (nil == d)
     {
       DESTROY(self);
+      if (error != 0)
+        {
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                       code: NSFileReadUnknownError
+                                   userInfo: nil];
+        }
       return nil;
     }
   *enc = _DefaultStringEncoding;
@@ -1569,7 +1575,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     }
   self = [self initWithData: d encoding: *enc];
   RELEASE(d);
-  if (self == nil)
+  if (nil == self)
     {
       if (error != 0)
         {
