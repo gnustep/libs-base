@@ -58,29 +58,6 @@ typedef void (*f_fun) ();
 
 static void GSFFIInvocationCallback(ffi_cif*, void*, void **, void*);
 
-/*
- * If we are using the GNU ObjC runtime we could simplify this
- * function quite a lot because this function is already present in
- * the ObjC runtime.  However, it is not part of the public API, so we
- * work around it.
- */
-
-GS_STATIC_INLINE GSMethod
-gs_method_for_receiver_and_selector (id receiver, SEL sel)
-{
-  if (receiver)
-    {
-      return GSGetMethod((GSObjCIsInstance(receiver)
-                          ? object_getClass(receiver) : (Class)receiver),
-                         sel,
-                         GSObjCIsInstance(receiver),
-                         YES);
-    }
-
-  return 0;
-}
-
-
 /* This routine should return a typed selector corresponding to the
    name of the specified selector.  If there is only one type, then we
    can safely return that typed selector.  If not, then we can not be
