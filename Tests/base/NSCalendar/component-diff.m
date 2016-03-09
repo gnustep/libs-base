@@ -28,11 +28,16 @@ int main()
   date = [NSDate dateWithString: @"2015-01-01 01:01:01 +0100"];
   date2 = [NSDate dateWithString: @"2015-02-03 04:05:06 +0100"];
 
-  comps = [cal components: NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit
-                         | NSHourCalendarUnit | NSMinuteCalendarUnit | NSSecondCalendarUnit
+  comps = [cal components:
+    NSYearCalendarUnit | NSMonthCalendarUnit | NSDayCalendarUnit
+    | NSHourCalendarUnit | NSMinuteCalendarUnit | NSSecondCalendarUnit
                  fromDate: date
                    toDate: date2
                   options: 0];
+  if (nil == comps)
+    {
+      SKIP("-components:fromDate:toDate:options: not implementaed. The ICU library was not available (or too old) when GNUstep-base was built")
+    }
   PASS([comps year] == 0, "year difference correct");
   PASS([comps month] == 1, "month difference correct");
   PASS([comps day] == 2, "day difference correct");
