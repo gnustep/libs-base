@@ -56,7 +56,11 @@ DEFINE_BLOCK_TYPE(GSBlockPredicateBlock, BOOL, id, GS_GENERIC_CLASS(NSDictionary
 - (NSString *) predicateFormat;
 - (NSPredicate *) predicateWithSubstitutionVariables:
   (GS_GENERIC_CLASS(NSDictionary,NSString*,id)*)variables;
-
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+- (BOOL) evaluateWithObject: (id)object
+	  substitutionVariables: 
+	  (GS_GENERIC_CLASS(NSDictionary,NSString*,id)*)variables;
+#endif
 @end
 
 @interface NSArray (NSPredicate)

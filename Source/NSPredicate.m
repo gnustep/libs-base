@@ -360,6 +360,14 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   return AUTORELEASE([self copy]);  
 }
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+- (BOOL) evaluateWithObject: (id)object
+	  substitutionVariables: (GS_GENERIC_CLASS(NSDictionary, NSString*, id)*)variables
+{
+  return [[self predicateWithSubstitutionVariables: variables]
+		   evaluateWithObject: object];
+}
+#endif
 - (Class) classForCoder
 {
   return [NSPredicate class];
@@ -378,11 +386,12 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   return self;
 }
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 + (NSPredicate*)predicateWithBlock: (GSBlockPredicateBlock)block
 {
   return [[[GSBlockPredicate alloc] initWithBlock: block] autorelease];
 }
-
+#endif
 @end
 
 @implementation GSTruePredicate

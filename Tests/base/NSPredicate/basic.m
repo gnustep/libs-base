@@ -106,9 +106,11 @@ void
 testBlock(NSDictionary* dict)
 {
   START_SET("Block predicates");
+# if __has_feature(blocks)
   NSPredicate *p = nil;
   NSPredicate *p2 = nil;
-# if __has_feature(blocks)
+  NSDictionary *v = 
+    [NSDictionary dictionaryWithObjectsAndKeys: @"Record2", @"Key", nil];
   p = [NSPredicate predicateWithBlock: ^BOOL(id obj, NSDictionary *bindings)
     {
       NSString *key = [bindings objectForKey: @"Key"];
@@ -121,9 +123,22 @@ testBlock(NSDictionary* dict)
       return [value isEqualToString: @"John"];
     }];
   PASS([p evaluateWithObject: dict], "BLOCKPREDICATE() without bindings");
+  PASS(![p evaluateWithObject: dict 
+        substitutionVariables: v], "BLOCKPREDICATE() with bound variables");
   p2 = [p predicateWithSubstitutionVariables: 
     [NSDictionary dictionaryWithObjectsAndKeys: @"Record2", @"Key", nil]];
-  PASS(![p2 evaluateWithObject: dict], "BLOCKPREDICATE() with bound variables");
+  PASS(p2 != nil, "BLOCKPREDICATE() instantiated from template");
+# ifdef APPLE
+  /* The next test is known to be fail on OS X, so mark it as hopeful there. 
+   * cf. rdar://25059737
+   */
+  testHopeful = YES;
+# endif 
+  PASS(![p2 evaluateWithObject: dict], 
+    "BLOCKPREDICATE() with bound variables in separate object");
+# ifdef APPLE
+  testHopeful = NO;
+# endif
 #  else
   SKIP("No blocks support in the compiler.");
 #  endif

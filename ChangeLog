@@ -3,7 +3,8 @@
 	* Headers/Foundation/NSPredicate.h
 	* Source/NSPredicate.m
 	* Tests/base/NSPredicate/basic.m:
-	Implementation and tests for +predicateWithBlock:
+	Implementation and tests for +predicateWithBlock: and
+	-evaluateWithObject:substitutionVariables:
 
 2016-03-09  Richard Frith-Macdonald <rfm@gnu.org>
 
