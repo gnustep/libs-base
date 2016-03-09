@@ -101,6 +101,33 @@ testAttregate(NSDictionary *dict)
   PASS([p evaluateWithObject: dict], "Any %%K == %%@");
 }
 
+
+void
+testBlock(NSDictionary* dict)
+{
+  START_SET("Block predicates");
+  NSPredicate *p = nil;
+  NSPredicate *p2 = nil;
+# if __has_feature(blocks)
+  p = [NSPredicate predicateWithBlock: ^BOOL(id obj,
+                  GS_GENERIC_CLASS(NSDictionary,NSString*,id)* bindings){
+        NSString *key = [bindings objectForKey: @"Key"];
+        if (nil == key)
+          {
+            key = @"Record1";
+          }
+        NSString *value = [[obj objectForKey: key] objectForKey: @"Name"];
+        return [value isEqualToString: @"John"];
+          }];
+  PASS([p evaluateWithObject: dict], "BLOCKPREDICATE() without bindings");
+  p2 = [p predicateWithSubstitutionVariables: 
+    [NSDictionary dictionaryWithObjectsAndKeys: @"Record2", @"Key", nil]];
+  PASS(![p2 evaluateWithObject: dict], "BLOCKPREDICATE() with bound variables");
+#  else
+  SKIP("No blocks support in the compiler.");
+#  endif
+  END_SET("Block predicates");
+}
 int main()
 {
   NSArray *filtered;
@@ -134,6 +161,7 @@ int main()
   testInteger(dict);
   testFloat(dict);
   testAttregate(dict);
+  testBlock(dict);
   [dict release];
 
   pitches = [NSArray arrayWithObjects:
