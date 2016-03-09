@@ -582,6 +582,7 @@
 					  _URLString, @"507"];
 	      [response setContent: index];
 	      [response setHeader: @"content-type" value: @"text/html" parameters: nil];
+	      [response setHeader: @"HTTP" value: @"HTTP/1.1 200 OK" parameters:nil];
 	    }
 	}
       else
