@@ -37,7 +37,7 @@
 @implementation NSError(GNUstepBase)
 
 
-#if !defined(__MINGW__)
+#if !defined(_WIN32)
 #if !defined(HAVE_STRERROR_R)
 #if defined(HAVE_STRERROR)
 static int
@@ -90,7 +90,7 @@ strerror_r(int eno, char *buf, int len)
 + (NSError*) _last
 {
   int	eno;
-#if defined(__MINGW__)
+#if defined(_WIN32)
   eno = GetLastError();
   if (eno == 0) eno = errno;
 #else
@@ -108,7 +108,7 @@ strerror_r(int eno, char *buf, int len)
   NSError	*error;
   NSString	*domain;
   NSDictionary	*info;
-#if defined(__MINGW__)
+#if defined(_WIN32)
   LPVOID	lpMsgBuf;
   NSString	*message=nil;
 

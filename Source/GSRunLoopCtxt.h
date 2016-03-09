@@ -69,7 +69,7 @@ typedef struct{
   unsigned	maxWatchers;
   NSTimer	*housekeeper;	/** Housekeeping timer for loop.	*/
 @private
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   NSMapTable    *handleMap;     
   NSMapTable	*winMsgMap;
 #else

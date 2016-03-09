@@ -88,7 +88,7 @@ NSString * const NSStreamSOCKSProxyVersionKey
  */
 static RunLoopEventType typeForStream(NSStream *aStream)
 {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   if ([aStream _loopID] == (void*)aStream)
     {
       return ET_TRIGGER;

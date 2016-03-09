@@ -322,7 +322,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [[NSObject leakAt: &urlOrder] release];
       urlLock = [GSLazyLock new];
       [[NSObject leakAt: &urlLock] release];
-#if	!defined(__MINGW__)
+#if	!defined(_WIN32)
       sslClass = [NSFileHandle sslClass];
 #endif
     }
@@ -1380,7 +1380,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
    */
   if (sock != nil)
     {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
       NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
       NSRunLoop			*loop = [NSRunLoop currentRunLoop];
       NSFileHandle		*test = RETAIN(sock);

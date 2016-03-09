@@ -201,7 +201,7 @@ static void GSLogZombie(id o, SEL sel)
 #endif
 
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 #ifndef _WIN64
 #undef InterlockedIncrement
 #undef InterlockedDecrement
@@ -1011,13 +1011,13 @@ static id gs_weak_load(id obj)
       GC_set_warn_proc(GSGarbageCollectorLog);
 #endif
 
-#ifdef __MINGW__
+#ifdef _WIN32
       {
         // See libgnustep-base-entry.m
         extern void gnustep_base_socket_init(void);
         gnustep_base_socket_init();
       }
-#else /* __MINGW__ */
+#else /* _WIN32 */
 
 #ifdef	SIGPIPE
     /*
@@ -1059,7 +1059,7 @@ static id gs_weak_load(id obj)
       }
 #endif /* HAVE_SIGACTION */
 #endif /* SIGPIPE */
-#endif /* __MINGW__ */
+#endif /* _WIN32 */
 
       finalize_sel = @selector(finalize);
       finalize_imp = class_getMethodImplementation(self, finalize_sel);

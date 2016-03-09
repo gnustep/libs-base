@@ -112,12 +112,12 @@ static BOOL	hadChildSignal = NO;
 static void handleSignal(int sig)
 {
   hadChildSignal = YES;
-#ifndef __MINGW__
+#ifndef _WIN32
   signal(SIGCHLD, handleSignal);
 #endif
 }
 
-#ifdef __MINGW__
+#ifdef _WIN32
 @interface NSConcreteWindowsTask : NSTask
 {
 @public
@@ -280,7 +280,7 @@ pty_slave(const char* name)
         }
       [gnustep_global_lock unlock];
 
-#ifndef __MINGW__
+#ifndef _WIN32
       signal(SIGCHLD, handleSignal);
 #endif
     }
@@ -373,7 +373,7 @@ pty_slave(const char* name)
       return;
     }
 
-#ifndef __MINGW__
+#ifndef _WIN32
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGINT);
 #else
@@ -441,7 +441,7 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
-#ifndef __MINGW__
+#ifndef _WIN32
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGCONT);
 #else
@@ -632,7 +632,7 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
-#ifndef __MINGW__
+#ifndef _WIN32
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGSTOP);
 #else
@@ -664,7 +664,7 @@ pty_slave(const char* name)
     }
 
   _hasTerminated = YES;
-#ifndef __MINGW__
+#ifndef _WIN32
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGTERM);
 #else
@@ -799,7 +799,7 @@ pty_slave(const char* name)
 	  lpath = [current stringByAppendingPathComponent: lpath];
 	}
       lpath = [lpath stringByStandardizingPath];
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
       if ([lpath rangeOfString: @"/"].length > 0)
 	{
 	  lpath = [lpath stringByReplacingString: @"/" withString: @"\\"];
@@ -903,7 +903,7 @@ pty_slave(const char* name)
 
 @end
 
-#ifdef __MINGW__
+#ifdef _WIN32
 @implementation NSConcreteWindowsTask
 
 BOOL
@@ -1314,7 +1314,7 @@ quotedFromString(NSString *aString)
 
 @end
 
-#else /* !MINGW */
+#else /* !_WIN32 */
 
 @implementation NSConcreteUnixTask
 
@@ -1521,7 +1521,7 @@ GSPrivateCheckTasks()
 #endif
 #else
 #if	defined(HAVE_SETPGID)
-#if defined(__MINGW__)
+#if defined(_WIN32)
       pid = (int)GetCurrentProcessId(),
 #else
       pid = (int)getpid();
@@ -1721,4 +1721,4 @@ GSPrivateCheckTasks()
 }
 
 @end
-#endif /* !MINGW */
+#endif /* !_WIN32 */

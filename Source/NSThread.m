@@ -115,7 +115,7 @@
 NSUInteger
 GSPrivateThreadID()
 {
-#if defined(__MINGW__)
+#if defined(_WIN32)
   return (NSUInteger)GetCurrentThreadId();
 #elif defined(HAVE_GETTID)
   return (NSUInteger)syscall(SYS_gettid);
@@ -132,7 +132,7 @@ GSPrivateThreadID()
  * FIXME ... This is code for the microsoft compiler;
  * how do we make it work for gcc/clang?
  */
-#if defined(__MINGW__) && defined(HAVE_WINDOWS_H)
+#if defined(_WIN32) && defined(HAVE_WINDOWS_H)
 // Usage: SetThreadName (-1, "MainThread");
 #include <windows.h>
 const DWORD MS_VC_EXCEPTION=0x406D1388;
@@ -263,7 +263,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
       return;
     }
 
-#if     defined(__MINGW__)
+#if     defined(_WIN32)
   /*
    * Avoid integer overflow by breaking up long sleeps.
    */
@@ -299,7 +299,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
       delay = when - GSPrivateTimeNow();
     }
 
-#else   /* __MINGW__ */
+#else   /* _WIN32 */
 
   /*
    * Avoid integer overflow by breaking up long sleeps.
@@ -352,7 +352,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
       delay = when - GSPrivateTimeNow();
     }
 #endif	/* !HAVE_NANOSLEEP */
-#endif	/* !__MINGW__ */
+#endif	/* !_WIN32 */
 }
 
 static NSArray *
@@ -1257,7 +1257,7 @@ static void *nsthreadLauncher(void* thread)
   BOOL  signalled = NO;
 
   [lock lock];
-#if defined(__MINGW__)
+#if defined(_WIN32)
   if (INVALID_HANDLE_VALUE != event)
     {
       if (SetEvent(event) == 0)
@@ -1307,7 +1307,7 @@ static void *nsthreadLauncher(void* thread)
 
 - (id) init
 {
-#ifdef __MINGW__
+#ifdef _WIN32
   if ((event = CreateEvent(NULL, TRUE, FALSE, NULL)) == INVALID_HANDLE_VALUE)
     {
       DESTROY(self);
@@ -1371,7 +1371,7 @@ static void *nsthreadLauncher(void* thread)
   [lock lock];
   p = AUTORELEASE(performers);
   performers = nil;
-#ifdef __MINGW__
+#ifdef _WIN32
   if (event != INVALID_HANDLE_VALUE)
     {
       CloseHandle(event);
@@ -1400,7 +1400,7 @@ static void *nsthreadLauncher(void* thread)
   unsigned int	c;
 
   [lock lock];
-#if defined(__MINGW__)
+#if defined(_WIN32)
   if (event != INVALID_HANDLE_VALUE)
     {
       if (ResetEvent(event) == 0)

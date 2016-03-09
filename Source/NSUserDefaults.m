@@ -56,7 +56,7 @@
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 @class	NSUserDefaultsWin32;
 #endif
 
@@ -830,7 +830,7 @@ newLanguages(NSArray *oldNames)
        * instance locked ourselves at the point when it first becomes
        * visible to other threads.
        */
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
       {
         NSString	*path = GSDefaultsRootForUser(NSUserName());
         NSRange		r = [path rangeOfString: @":REGISTRY:"];
@@ -1207,7 +1207,7 @@ newLanguages(NSArray *oldNames)
     }
 
   r = [path rangeOfString: @":INTERNAL:"];
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   if (r.length == 0)
     {
       r = [path rangeOfString: @":REGISTRY:"];

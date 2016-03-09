@@ -4134,7 +4134,7 @@ static BOOL             (*nbImp)(id, SEL, unichar) = 0;
 
 static NSFileManager *fm = nil;
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 - (const GSNativeChar*) fileSystemRepresentation
 {
   if (fm == nil)
@@ -4947,7 +4947,7 @@ static NSFileManager *fm = nil;
     {
       s = [s stringByExpandingTildeInPath];
     }
-#if defined(__MINGW__)
+#if defined(_WIN32)
   return IMMUTABLE(s);
 #else
 
@@ -5451,7 +5451,7 @@ static NSFileManager *fm = nil;
    */
   if (c == pathSepChar())
     {
-#if defined(__MINGW__)
+#if defined(_WIN32)
       if (GSPathHandlingUnix() == YES)
 	{
 	  return YES;

@@ -1495,7 +1495,7 @@ static NSUInteger	urlAlign;
       unescape(buf, buf);
     }
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   /* On windows a file URL path may be of the form C:\xxx (ie we should
    * not insert the leading slash).
    * Also the vertical bar symbol may have been used instead of the

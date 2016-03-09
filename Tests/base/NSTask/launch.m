@@ -56,7 +56,7 @@ int main()
   [outPipe release];
   [task release];
 
-#if	!defined(__MINGW32__)
+#if	!defined(_WIN32)
   task = [[NSTask alloc] init];
   [task setLaunchPath:
     [helpers stringByAppendingPathComponent: @"processgroup"]];

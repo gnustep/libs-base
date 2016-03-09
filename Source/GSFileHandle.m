@@ -1208,7 +1208,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       if (fstat(desc, &sbuf) < 0)
 	{
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 	  /* On windows, an fstat will fail if the descriptor is a pipe
 	   * or socket, so we simply mark the descriptor as not being a
 	   * standard file.

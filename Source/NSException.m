@@ -100,7 +100,7 @@ static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler = 0;
 #endif
 
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 #if	defined(USE_BINUTILS)
 static NSString *
 GSPrivateBaseAddress(void *addr, void **base)
@@ -128,7 +128,7 @@ GSPrivateBaseAddress(void *addr, void **base)
   return nil;
 }
 #endif  /* USE_BINUTILS */
-#else	/* __MINGW__ */
+#else	/* _WIN32 */
 
 #include <dlfcn.h>
 
@@ -150,7 +150,7 @@ GSPrivateBaseAddress(void *addr, void **base)
 #endif
 }
 #endif  /* USE_BINUTILS */
-#endif	/* __MINGW__ */
+#endif	/* _WIN32 */
 
 #if	defined(USE_BINUTILS)
 
@@ -1126,7 +1126,7 @@ _NSAddHandler (NSHandler* handler)
   NSThread *thread;
 
   thread = GSCurrentThread();
-#if defined(__MINGW__) && defined(DEBUG)
+#if defined(_WIN32) && defined(DEBUG)
   if (thread->_exception_handler
     && IsBadReadPtr(thread->_exception_handler, sizeof(NSHandler)))
     {
@@ -1149,7 +1149,7 @@ _NSRemoveHandler (NSHandler* handler)
       fprintf(stderr, "ERROR: Removing exception handler that is not on top "
 	"of the stack. (You probably called return in an NS_DURING block.)\n");
     }
-#if defined(__MINGW__)
+#if defined(_WIN32)
   if (IsBadReadPtr(handler, sizeof(NSHandler)))
     {
       fprintf(stderr, "ERROR: Could not remove exception handler, "

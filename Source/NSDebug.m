@@ -796,7 +796,7 @@ __builtin_extract_return_address(__builtin_return_address(a + 1)) : 0); break;
 
 #include <setjmp.h>
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 #ifndef SIGBUS
 #define SIGBUS  SIGILL
 #endif

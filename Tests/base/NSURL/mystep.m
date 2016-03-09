@@ -82,6 +82,9 @@ int main()
   END_SET("test4b")
 
   START_SET("test5")
+#ifdef	_WIN32
+GSPathHandling("unix");
+#endif
   NSURL *url = [NSURL fileURLWithPath: @"/this#is a Path with % < > ?"];
   PASS_EQUAL([url scheme], @"file", "scheme");
   PASS_EQUAL([url host], @"localhost", "host");

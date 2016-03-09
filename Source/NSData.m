@@ -239,7 +239,7 @@ encodebase64(unsigned char **dstRef,
 static BOOL
 readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
 {
-#if defined(__MINGW__)
+#if defined(_WIN32)
   const unichar	*thePath = 0;
 #else
   const char	*thePath = 0;
@@ -249,7 +249,7 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
   int		c;
   off_t        fileLength;
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
   thePath = (const unichar*)[path fileSystemRepresentation];
 #else
   thePath = [path fileSystemRepresentation];
@@ -260,7 +260,7 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
       return NO;
     }
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
   theFile = _wfopen(thePath, L"rb");
 #else
   theFile = fopen(thePath, "rb");
@@ -1606,7 +1606,7 @@ failure:
              options: (NSUInteger)writeOptionsMask
                error: (NSError **)errorPtr
 {
-#if defined(__MINGW__)
+#if defined(_WIN32)
   NSUInteger	length = [path length];
   unichar	wthePath[length + 100];
   unichar	wtheRealPath[length + 100];
@@ -3444,7 +3444,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   off_t		off;
   int		fd;
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
   const unichar	*thePath = (const unichar*)[path fileSystemRepresentation];
 #else
   const char	*thePath = [path fileSystemRepresentation];
@@ -3457,7 +3457,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       return nil;
     }
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
   fd = _wopen(thePath, _O_RDONLY);
 #else
   fd = open(thePath, O_RDONLY);

@@ -49,7 +49,7 @@
 @implementation	NSString(gnutlsFileSystemRepresentation)
 - (const char*) gnutlsFileSystemRepresentation
 {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   const unichar	*buf = (const unichar*)[self fileSystemRepresentation];
   int		len = 0;
   NSString	*str;
