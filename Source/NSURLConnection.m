@@ -263,8 +263,15 @@ typedef struct
 - (void) connection: (NSURLConnection *)connection
   didReceiveAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
 {
-  [[challenge sender]
-    continueWithoutCredentialForAuthenticationChallenge: challenge];
+  if ([challenge proposedCredential] == nil
+    || [challenge previousFailureCount] > 0)
+    {
+      /* continue without a credential if there is no proposed credential
+       * at all or if an authentication failure has already happened.
+       */
+      [[challenge sender]
+        continueWithoutCredentialForAuthenticationChallenge: challenge];
+    }
 }
 
 - (void) connection: (NSURLConnection *)connection

@@ -791,7 +791,7 @@ static NSStringEncoding	defaultEncoding;
 - (BOOL) createDirectoryAtPath: (NSString *)path
    withIntermediateDirectories: (BOOL)flag
 		    attributes: (NSDictionary *)attributes
-			 error: (NSError **) error
+			 error: (NSError **)error
 {
   BOOL result = NO;
 
