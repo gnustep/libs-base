@@ -720,12 +720,6 @@ chunkSize(ff_block* ptr)
   return ptr->size & ~SIZE_BITS;
 }
 
-static inline void
-chunkClrInUse(ff_block* ptr)
-{
-  ptr->size &= ~INUSE;
-}
-
 static inline size_t
 chunkClrLive(ff_block* ptr)
 {

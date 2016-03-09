@@ -495,14 +495,6 @@ static unsigned rootOf(NSString *s, unsigned l)
 }
 
 
-/* Convert a high-low surrogate pair into Unicode scalar code-poNSInteger*/
-static inline uint32_t
-surrogatePairValue(unichar high, unichar low)
-{
-  return ((high - (unichar)0xD800) * (unichar)400)
-    + ((low - (unichar)0xDC00) + (unichar)10000);
-}
-
 @implementation NSString
 //  NSString itself is an abstract class which provides factory
 //  methods to generate objects of unspecified subclasses.
