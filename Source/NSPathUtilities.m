@@ -1,5 +1,5 @@
 /* Implementation of filesystem & path-related functions for GNUstep
-   Copyright (C) 1996-2010 Free Software Foundation, Inc.
+   Copyright (C) 1996-2016 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <address@hidden>
    Created: May 1996
@@ -2432,7 +2432,7 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 
       case NSDocumentDirectory:
 	{
-	  /* this is relative to the user home annd for the user domain only
+	  /* this is relative to the user home and for the user domain only
 	   * verified on Macintosh
 	   * despite the name it is Documents and not Document....
 	   */
@@ -2444,6 +2444,27 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 	{
 	  /* Be consistent with NSDocumentDirectory */
 	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Downloads");
+	}
+	break;
+	
+      case NSMoviesDirectory:
+	{
+	  /* Be consistent with NSDocumentDirectory */
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Videos");
+	}
+	break;
+
+      case NSMusicDirectory:
+	{
+	  /* Be consistent with NSDocumentDirectory */
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Music");
+	}
+	break;
+
+      case NSPicturesDirectory:
+	{
+	  /* Be consistent with NSDocumentDirectory */
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Images");
 	}
 	break;
 
