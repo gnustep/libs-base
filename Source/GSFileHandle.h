@@ -66,7 +66,7 @@ struct sockaddr_in;
 #if	USE_ZLIB
   gzFile		gzDescriptor;
 #endif
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   WSAEVENT  		event;
 #endif
 #endif

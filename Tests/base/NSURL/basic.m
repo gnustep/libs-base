@@ -77,7 +77,7 @@ int main()
   PASS([str isEqual: @"http://www.w3.org/silly-file-path/"],
     "Abs of http://www.w3.org/silly-file-path/ is correct");
 
-#if	defined(__MINGW32__)
+#if	defined(_WIN32)
   url = [NSURL fileURLWithPath: @"C:\\WINDOWS"];
   str = [url path];
   PASS_EQUAL(str, @"C:\\WINDOWS",
@@ -239,7 +239,7 @@ int main()
 //NSLog(@"with link %@, obtained URL: %@ String: %@", str, rel, [rel absoluteString]); 
   PASS([[rel absoluteString] isEqual: @"file://localhost/System/Library/Documentation/Developer/Gui/Reference/NSApplication.html#class$NSApplication"], "Adding relative file URL with fragment works");
 
-#if	defined(__MINGW32__)
+#if	defined(_WIN32)
 GSPathHandling("unix");
 #endif
 
@@ -266,7 +266,7 @@ GSPathHandling("unix");
   PASS_EQUAL([url relativeString], @"file://localhost/this%23is%20a%20Path%20with%20%25%20+%20=%20&%20%3C%20%3E%20%3F", "complex -relativeString");
   PASS_EQUAL([url description], @"file://localhost/this%23is%20a%20Path%20with%20%25%20+%20=%20&%20%3C%20%3E%20%3F", "complex -description");
 
-#if	defined(__MINGW32__)
+#if	defined(_WIN32)
 GSPathHandling("right");
 #endif
 

@@ -1,3 +1,52 @@
+2016-03-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source\NSSocketPortNameServer.m:
+	* Source\GSSocketStream.h:
+	* Source\NSTimeZone.m:
+	* Source\GSSocketStream.m:
+	* Source\NSCalendarDate.m:
+	* Source\NSBundle.m:
+	* Source\NSPathUtilities.m:
+	* Source\NSProcessInfo.m:
+	* Source\NSSocketPort.m:
+	* Source\GSRunLoopWatcher.m:
+	* Source\NSUserDefaults.m:
+	* Source\GSStream.m:
+	* Source\NSDebug.m:
+	* Source\GSTLS.m:
+	* Source\NSFileHandle.m:
+	* Source\GSHTTPURLHandle.m:
+	* Source\NSPage.m:
+	* Source\GSRunLoopCtxt.h:
+	* Source\GSPrivate.h:
+	* Source\NSInvocation.m:
+	* Source\NSFileManager.m:
+	* Source\objc-load.m:
+	* Source\NSException.m:
+	* Source\NSURL.m:
+	* Source\NSObject.m:
+	* Source\NSString.m:
+	* Source\cifframe.h:
+	* Source\Additions\NSData+GNUstepBase.m:
+	* Source\Additions\NSError+GNUstepBase.m:
+	* Source\Additions\NSTask+GNUstepBase.m:
+	* Source\NSConnection.m:
+	* Source\GSPortPrivate.h:
+	* Source\NSThread.m:
+	* Source\NSData.m:
+	* Source\NSHost.m:
+	* Source\GSNetwork.h:
+	* Source\NSPipe.m:
+	* Source\GSFileHandle.h:
+	* Source\NSLog.m:
+	* Source\GSFileHandle.m:
+	* Source\NSTask.m:
+	* Tests\base\NSTask\launch.m:
+	* Tests\base\NSURL\basic.m:
+	* Tests\base\NSURL\mystep.m:
+	* Tests\base\NSString\test02.m:
+	More changes to standardise on using _WIN32 define for windows.
+
 2016-03-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendar.m: Fix 64bit issue with undefined components.

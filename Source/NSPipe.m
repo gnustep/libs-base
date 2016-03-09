@@ -64,7 +64,7 @@
   self = [super init];
   if (self != nil)
     {
-#ifndef __MINGW__
+#ifndef _WIN32
       int	p[2];
 
       if (pipe(p) == 0)

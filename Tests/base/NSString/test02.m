@@ -200,7 +200,7 @@ NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory
 					isEqual: @"~/nil"],
       "'~/nil' stringByExpandingTildeInPath: != '~/nil'");
 
-#if	defined(__MINGW32__)
+#if	defined(_WIN32)
   {
     NSString *s = [@"~" stringByAppendingString: NSUserName()];
     PASS(![[s stringByExpandingTildeInPath] isEqual: s],
@@ -308,7 +308,7 @@ NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory
   [fm removeFileAtPath: tmpsrc handler: nil];
   [fm createSymbolicLinkAtPath: tmpsrc pathContent: tmpdst];
 
-#if	!defined(__MINGW32__)
+#if	!defined(_WIN32)
   PASS_EQUAL([tmpsrc stringByStandardizingPath], tmpsrc, 
     "foo->bar symlink not expanded by stringByStandardizingPath")
   PASS_EQUAL([tmpsrc stringByResolvingSymlinksInPath], tmpdst, 
@@ -346,7 +346,7 @@ NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory
   PASS([@"home" isAbsolutePath] == NO,
        "'home' isAbsolutePath == NO");
 
-#if	defined(__MINGW32__)
+#if	defined(_WIN32)
   PASS([@"/home" isAbsolutePath] == NO,
        "'/home' isAbsolutePath == NO");
   PASS([@"//host/share" isAbsolutePath] == NO,

@@ -79,7 +79,7 @@
 #if     defined(HAVE_MMAP)
       munmap(buffer, size);
 #else
-#if     !defined(__MINGW__) && defined(HAVE_MPROTECT)
+#if     !defined(_WIN32) && defined(HAVE_MPROTECT)
       if (mprotect(buffer, NSPageSize(), PROT_READ|PROT_WRITE) == -1)
 	{
 	  NSLog(@"Failed to protect memory as writable: %@", [NSError _last]);
@@ -159,7 +159,7 @@
 - (void) protect
 {
 #if	!defined(HAVE_FFI_PREP_CLOSURE_LOC)
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   DWORD old;
   if (VirtualProtect(buffer, size, PAGE_EXECUTE, &old) == 0)
     {

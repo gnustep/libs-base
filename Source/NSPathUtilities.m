@@ -115,7 +115,7 @@ static NSString	*gnustep_is_flattened =
   nil;
 #endif
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 
 #include	<sddl.h>
 #include	<lmaccess.h>
@@ -399,7 +399,7 @@ getPathConfig(NSDictionary *dict, NSString *key)
 	    "an absolute path.\nPlease fix your configuration file.\n",
 	    [key UTF8String],
             [[[dict objectForKey: key] description] UTF8String]);
-#if	defined(__MINGW_)
+#if	defined(_WIN32)
 	  if ([path length] > 2)
 	    {
 	      unichar	buf[3];
@@ -409,7 +409,7 @@ getPathConfig(NSDictionary *dict, NSString *key)
 		&& (buf[2] == '/' || buf[2] == '\\'))
 		{
 		  path = [NSString stringWithFormat: @"%c:%@", (char)buf[1],
-		    [path substringFromindex: 2]];
+		    [path substringFromIndex: 2]];
 		  path = [path stringByReplacingString: @"/"
 					    withString: @"\\"];
 		  fprintf(stderr, "I am guessing that you meant '%s'\n",
@@ -797,7 +797,7 @@ addDefaults(NSString *defs, NSMutableDictionary *conf)
       if (([attributes filePosixPermissions]
 	& (0022 & ATTRMASK)) != 0)
 	{
-#if defined(__MINGW__)
+#if defined(_WIN32)
 	  fprintf(stderr,
 	    "\nThe file '%S' is writable by someone other than"
 	    " its owner (permissions 0%lo).\nIgnoring it.\n",
@@ -846,7 +846,7 @@ addDefaults(NSString *defs, NSMutableDictionary *conf)
 	    }
 	  if (nil == d)
 	    {
-#if defined(__MINGW__)
+#if defined(_WIN32)
 	  fprintf(stderr,
 	    "\nThe file '%S' is not parseable as a property list"
 	    " containing a dictionary.\nIgnoring it.\n",
@@ -988,17 +988,17 @@ GNUstepConfig(NSDictionary *newConfig)
 			" specifying a valid path to the config file.\n",
                         [file UTF8String]);
 		    }
-#if	defined(__MINGW_)
+#if	defined(_WIN32)
 		  if ([file length] > 2)
 		    {
 		      unichar	buf[3];
 
 		      [file getCharacters: buf range: NSMakeRange(0, 3)];
-		      if ((buf[0] == '/' || bug[0] == '\\') && isalpha(buf[1])
-			&& (buf[2] == '/' || bug[2] == '\\'))
+		      if ((buf[0] == '/' || buf[0] == '\\') && isalpha(buf[1])
+			&& (buf[2] == '/' || buf[2] == '\\'))
 			{
 			  file = [NSString stringWithFormat: @"%c:%@",
-			    (char)buf[1], [file substringFromindex: 2]];
+			    (char)buf[1], [file substringFromIndex: 2]];
 			  file = [file stringByReplacingString: @"/"
 						    withString: @"\\"];
 			  fprintf(stderr, "I am guessing that you meant '%s'\n",
@@ -1155,7 +1155,7 @@ static void InitialisePathUtilities(void)
       ASSIGNCOPY(uninstalled, [[[NSProcessInfo processInfo] environment]
 	objectForKey: @"GNUSTEP_UNINSTALLED_LIBRARY_DIRECTORY"]);
       gnustepUserName = [NSUserName() copy];
-#if defined(__MINGW__)
+#if defined(_WIN32)
       {
         union {
 	  SID	sid;
@@ -1331,7 +1331,7 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
 
       if ([userName isEqual: fileOwner] == NO)
 	{
-#if defined(__MINGW__)
+#if defined(_WIN32)
 	  fprintf(stderr, "The file '%S' is owned by '%s' but we expect it"
 	    " to be the personal config file of '%s'.\nIgnoring it.\n",
 	    [fileName fileSystemRepresentation],
@@ -1347,7 +1347,7 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
     }
   if (([attributes filePosixPermissions] & (0022 & ATTRMASK)) != 0)
     {
-#if defined(__MINGW__)
+#if defined(_WIN32)
       fprintf(stderr, "The file '%S' is writable by someone other than"
 	" its owner (permissions 0%lo).\nIgnoring it.\n",
 	[fileName fileSystemRepresentation],
@@ -1637,7 +1637,7 @@ GSSetUserName(NSString *aName)
 NSString *
 NSUserName(void)
 {
-#if defined(__MINGW__)
+#if defined(_WIN32)
   if (theUserName == nil)
     {
       /* Use the LOGNAME environment variable if set. */
@@ -1740,7 +1740,7 @@ NSHomeDirectoryForUser(NSString *loginName)
 {
   NSString	*s = nil;
 
-#if !defined(__MINGW__)
+#if !defined(_WIN32)
 #if     defined(HAVE_GETPWNAM_R)
   struct passwd pw;
   struct passwd *p;
@@ -1824,7 +1824,7 @@ NSFullUserName(void)
   if (theFullUserName == nil)
     {
       NSString	*userName = NSUserName();
-#if defined(__MINGW__)
+#if defined(_WIN32)
       struct _USER_INFO_2	*userInfo;
 
       if (NetUserGetInfo(NULL, (unichar*)[userName cStringUsingEncoding:
@@ -1908,7 +1908,7 @@ GSDefaultsRootForUser(NSString *userName)
 	  defaultsDir = @GNUSTEP_TARGET_USER_DEFAULTS_DIR;
 	}
     }
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   if ([defaultsDir rangeOfString: @":REGISTRY:"].length > 0)
     {
       return defaultsDir;	// Just use windows registry.
@@ -1948,7 +1948,7 @@ NSTemporaryDirectory(void)
   int		perm;
   int		owner;
   BOOL		flag;
-#if	!defined(__MINGW__)
+#if	!defined(_WIN32)
   int		uid;
 #else
   unichar buffer[1024];
@@ -1978,7 +1978,7 @@ NSTemporaryDirectory(void)
 #if	defined(__CYGWIN__)
 #warning Basing temporary directory in /cygdrive/c; any reason?
 	      baseTempDirName = @"/cygdrive/c/";
-#elif	defined(__MINGW__)
+#elif	defined(_WIN32)
 	      baseTempDirName = @"C:\\";
 #elif   defined(__APPLE__)
 	      /*
@@ -2019,9 +2019,9 @@ NSTemporaryDirectory(void)
 // Mateu Batle: secure temporary directories don't work in MinGW
 // Ivan Vucica: there are also problems with Cygwin
 //              probable cause: http://stackoverflow.com/q/9561759/39974
-#if !defined(__MINGW__) && !defined(__CYGWIN__)
+#if !defined(_WIN32) && !defined(__CYGWIN__)
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   uid = owner;
 #else
 #ifdef HAVE_GETEUID
@@ -2097,7 +2097,7 @@ NSOpenStepRootDirectory(void)
 
 #if	defined(__CYGWIN__)
   root = @"/cygdrive/c/";
-#elif	defined(__MINGW__)
+#elif	defined(_WIN32)
   root = @"C:/";
 #else
   root = @"/";
@@ -2105,7 +2105,7 @@ NSOpenStepRootDirectory(void)
   return root;
 }
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 /* The developer root on a windows system (where we have an msys environment
  * set up) is the point in the filesystem where we can reference make.exe via
  * msys/.../bin/.  That is, it's the windows path at which msys is installed.
@@ -2294,7 +2294,7 @@ if (domainMask & mask) \
 
       case NSDeveloperDirectory:
 	{
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
           if (nil == gnustepDeveloperDir)
             {
               NSString          *path = nil;

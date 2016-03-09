@@ -270,7 +270,7 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 	{
 	  pathlist = [env objectForKey:@"Path"];
 	}
-#if defined(__MINGW__)
+#if defined(_WIN32)
       patharr = [pathlist componentsSeparatedByString:@";"];
 #else
       patharr = [pathlist componentsSeparatedByString:@":"];
@@ -462,7 +462,7 @@ bundle_object_name(NSString *path, NSString* executable)
     return path1;
   else if ([mgr isReadableFileAtPath: path0] == YES)
     return path0;
-#if defined(__MINGW__)
+#if defined(_WIN32)
   /* If we couldn't find the binary, and we are on windows, and the name
    * has no path extension, then let's try looking for a dll.
    */
@@ -788,7 +788,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 	    {
 	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
 	    }
-#if defined(__MINGW__)
+#if defined(_WIN32)
 	  /* On windows, the library (dll) is in the Tools area rather than
 	   * in the framework, so we can adjust the path here.
 	   */
@@ -823,7 +823,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 		  if (bundlePath)
 		    bundle = [[self alloc] initWithPath: bundlePath];
 		}
-#if !defined(__MINGW__)
+#if !defined(_WIN32)
 	    }
 #endif
 
@@ -1677,7 +1677,7 @@ IF_NO_GC(
       NSWarnMLog(@"NSBundle -initWithPath: requires absolute path names, "
 	@"given '%@'", path);
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
       if ([path length] > 0 &&
 	([path characterAtIndex: 0]=='/' || [path characterAtIndex: 0]=='\\'))
 	{
@@ -1863,7 +1863,7 @@ IF_NO_GC(
 		    {
 		      [pathCache removeObjectForKey: path];
 		    }
-#if defined(__MINGW__)
+#if defined(_WIN32)
 		  else if ('\\' == c)
 		    {
 		      [pathCache removeObjectForKey: path];
@@ -2258,7 +2258,7 @@ IF_NO_GC(
 {
   NSString *rootPath;
 
-#if !defined(__MINGW__)
+#if !defined(_WIN32)
   if (_frameworkVersion)
     rootPath = [NSString stringWithFormat:@"%@/Versions/%@", [self bundlePath],
       _frameworkVersion];
@@ -2737,7 +2737,7 @@ IF_NO_GC(
       mangledName = [mangledName stringByReplacingString: @"+"
 				 withString: @"_1"];
 
-#if !defined(__MINGW__)
+#if !defined(_WIN32)
       path = [_path stringByAppendingPathComponent:@"Versions/Current"];
 #else
       path = _path;
@@ -2770,7 +2770,7 @@ IF_NO_GC(
 
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
-#if !defined(__MINGW__)
+#if !defined(_WIN32)
       return [_path stringByAppendingPathComponent:
                       [NSString stringWithFormat:@"Versions/%@/%@",
                       version, executableName]];
@@ -2799,12 +2799,12 @@ IF_NO_GC(
 
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
-#if !defined(__MINGW__)
+#if !defined(_WIN32)
       return [_path stringByAppendingPathComponent:
 		      [NSString stringWithFormat:@"Versions/%@/Resources",
 				version]];
 #else
-      /* No Versions (that require symlinks) on MINGW */
+      /* No Versions (that require symlinks) on mswindows */
       return [_path stringByAppendingPathComponent: @"Resources"];
 #endif
     }
@@ -2856,7 +2856,7 @@ IF_NO_GC(
 
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
-#if !defined(__MINGW__)
+#if !defined(_WIN32)
       return [_path stringByAppendingPathComponent:
                       [NSString stringWithFormat:@"Versions/%@/PlugIns",
                       version]];
@@ -2884,7 +2884,7 @@ IF_NO_GC(
 
   if (_bundleType == NSBUNDLE_FRAMEWORK)
     {
-#if !defined(__MINGW__)
+#if !defined(_WIN32)
       return [_path stringByAppendingPathComponent:
                       [NSString stringWithFormat:@"Versions/%@/PrivateFrameworks",
                       version]];
@@ -2954,7 +2954,7 @@ IF_NO_GC(
    */
   libraryName = [libraryName lastPathComponent];
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
   /* A dll is usually of the form 'xxx-maj_min.dll'
    * so we can extract the version info and use it.
    */

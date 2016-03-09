@@ -887,7 +887,7 @@ NSString * const NSFileHandleOperationException
 
 #if     defined(HAVE_GNUTLS)
 
-#if	!defined(__MINGW__)
+#if	!defined(_WIN32)
 
 @interface      GSTLSHandle : GSFileHandle
 {
@@ -1082,7 +1082,7 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 }
 
 @end
-#endif  /* MINGW */
+#endif  /* _WIN32 */
 
 #endif  /* HAVE_GNUTLS */
 

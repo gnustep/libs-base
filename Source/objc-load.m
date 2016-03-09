@@ -87,7 +87,7 @@ static int
 objc_initialize_loading(FILE *errorStream)
 {
   NSString	*path;
-#if     defined(__MINGW__) || defined(__CYGWIN__)
+#if     defined(_WIN32) || defined(__CYGWIN__)
   const unichar *fsPath;
 #else  
   const char *fsPath;
@@ -130,7 +130,7 @@ objc_load_callback(Class class, struct objc_category * category)
     }
 }
 
-#if	defined(__MINGW__) || defined(__CYGWIN__)
+#if	defined(_WIN32) || defined(__CYGWIN__)
 #define	FSCHAR	unichar
 #else
 #define	FSCHAR	char
@@ -241,7 +241,7 @@ GSPrivateUnloadModule(FILE *errorStream,
 }
 
 
-#if defined(__MINGW__) || defined(__CYGWIN__)
+#if defined(_WIN32) || defined(__CYGWIN__)
 // FIXME: We can probably get rid of this now - MinGW should include a working
 // dladdr() wrapping this function, so we no longer need a Windows-only code
 // path

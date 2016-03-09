@@ -81,7 +81,7 @@
 #  include <windows.h>
 #endif
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 #include <stdio.h>
 #include <tchar.h>
 #include <wchar.h>
@@ -93,7 +93,7 @@
 /* determine filesystem max path length */
 
 #if defined(_POSIX_VERSION) || defined(_WIN32)
-# if defined(__MINGW__)
+# if defined(_WIN32)
 #   include <sys/utime.h>
 # else
 #   include <utime.h>
@@ -185,7 +185,7 @@
  * Macros to handle unichar filesystem support.
  */
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 
 #define	_CHMOD(A,B)	_wchmod(A,B)
 #define	_CLOSEDIR(A)	_wclosedir(A)
@@ -371,7 +371,7 @@ static NSStringEncoding	defaultEncoding;
     {
       bundleClass = [NSBundle class];
     }
-#if defined(__MINGW__)
+#if defined(_WIN32)
   return SetCurrentDirectoryW(lpath) == TRUE ? YES : NO;
 #else
   return (chdir(lpath) == 0) ? YES : NO;
@@ -400,7 +400,7 @@ static NSStringEncoding	defaultEncoding;
   old = [self fileAttributesAtPath: path traverseLink: YES];
   lpath = [defaultManager fileSystemRepresentationWithPath: path];
 
-#ifndef __MINGW__
+#ifndef _WIN32
   if (object_getClass(attributes) == GSAttrDictionaryClass)
     {
       num = ((GSAttrDictionary*)attributes)->statbuf.st_uid;
@@ -528,7 +528,7 @@ static NSStringEncoding	defaultEncoding;
 	  ASSIGN(_lastError, str);
 	}
     }
-#endif	/* __MINGW__ */
+#endif	/* _WIN32 */
 
   num = [attributes filePosixPermissions];
   if (num != NSNotFound && num != [old filePosixPermissions])
@@ -896,7 +896,7 @@ static NSStringEncoding	defaultEncoding;
     }
   else
     {
-#if defined(__MINGW__)
+#if defined(_WIN32)
       const _CHAR   *lpath;
           
       lpath = [self fileSystemRepresentationWithPath: path];
@@ -957,7 +957,7 @@ static NSStringEncoding	defaultEncoding;
 		 contents: (NSData*)contents
 	       attributes: (NSDictionary*)attributes
 {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
   HANDLE fh;
   DWORD	written = 0;
@@ -976,7 +976,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   fh = CreateFileW(lpath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
     FILE_ATTRIBUTE_NORMAL, 0);
   if (fh == INVALID_HANDLE_VALUE)
@@ -1052,7 +1052,7 @@ static NSStringEncoding	defaultEncoding;
 {
   NSString *currentDir = nil;
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
   int len = GetCurrentDirectoryW(0, 0);
   if (len > 0)
     {
@@ -1085,7 +1085,7 @@ static NSStringEncoding	defaultEncoding;
 #endif /* HAVE_GETCWD */
   currentDir = [self stringWithFileSystemRepresentation: path
 						 length: strlen(path)];
-#endif /* !MINGW */
+#endif /* !_WIN32 */
 
   return currentDir;
 }
@@ -1464,7 +1464,7 @@ static NSStringEncoding	defaultEncoding;
     }
   else
     {
-#if defined(__MINGW__)
+#if defined(_WIN32)
       DWORD res;
 
       res = GetFileAttributesW(lpath);
@@ -1489,12 +1489,12 @@ static NSStringEncoding	defaultEncoding;
 	  return NO;
 	}
       is_dir = ((statbuf.st_mode & S_IFMT) == S_IFDIR);
-#endif /* MINGW */
+#endif /* _WIN32 */
     }
 
   if (!is_dir)
     {
-#if defined(__MINGW__)
+#if defined(_WIN32)
       if (DeleteFileW(lpath) == FALSE)
 #else
       if (unlink(lpath) < 0)
@@ -1594,7 +1594,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
     {
       DWORD res;
 
@@ -1632,7 +1632,7 @@ static NSStringEncoding	defaultEncoding;
 
       return YES;
     }
-#endif /* MINGW */
+#endif /* _WIN32 */
 }
 
 /**
@@ -1649,7 +1649,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
     {
       DWORD res;
 
@@ -1686,7 +1686,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
     {
       DWORD res;
 
@@ -1728,7 +1728,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
     {
       DWORD res;
       NSString  *ext;
@@ -1787,7 +1787,7 @@ static NSStringEncoding	defaultEncoding;
       return NO;
     }
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
       // TODO - handle directories
     {
       DWORD res;
@@ -2011,7 +2011,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path
 {
-#if defined(__MINGW__)
+#if defined(_WIN32)
   unsigned long long totalsize, freesize;
   id  values[5];
   id	keys[5] = {
@@ -2118,7 +2118,7 @@ static NSStringEncoding	defaultEncoding;
   ASSIGN(_lastError, @"no support for filesystem attributes");
   return nil;
 #endif
-#endif /* MINGW */
+#endif /* _WIN32 */
 }
 
 /**
@@ -2274,7 +2274,7 @@ static NSStringEncoding	defaultEncoding;
 #endif
 }
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 - (const GSNativeChar*) fileSystemRepresentationWithPath: (NSString*)path
 {
   if (path != nil && [path rangeOfString: @"/"].length > 0)
@@ -2486,7 +2486,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
       if (dirbuf)
 	{
-#if defined(__MINGW__)
+#if defined(_WIN32)
 	  /* Skip "." and ".." directory entries */
 	  if (wcscmp(dirbuf->d_name, L".") == 0
 	    || wcscmp(dirbuf->d_name, L"..") == 0)
@@ -2521,7 +2521,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    {
 	      // Do not follow links
 #ifdef S_IFLNK
-#ifdef __MINGW__
+#ifdef _WIN32
 #warning "lstat does not support unichars"
 #else
 	      if (!_flags.isFollowing)
@@ -2756,7 +2756,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    toFile: (NSString*)destination
 	   handler: (id)handler
 {
-#if defined(__MINGW__)
+#if defined(_WIN32)
   if (CopyFileW([self fileSystemRepresentationWithPath: source],
     [self fileSystemRepresentationWithPath: destination], NO))
     {
@@ -3190,7 +3190,7 @@ static NSSet	*fileKeys = nil;
   d = (GSAttrDictionary*)NSAllocateObject(self, (l+1)*sizeof(_CHAR),
     NSDefaultMallocZone());
 
-#if defined(S_IFLNK) && !defined(__MINGW__)
+#if defined(S_IFLNK) && !defined(_WIN32)
   if (traverse == NO)
     {
       if (lstat(lpath, &d->statbuf) != 0)
@@ -3273,7 +3273,7 @@ static NSSet	*fileKeys = nil;
 {
   NSString	*group = @"UnknownGroup";
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   DWORD		returnCode = 0;
   PSID		sidOwner;
   int		result = TRUE;
@@ -3430,7 +3430,7 @@ static NSSet	*fileKeys = nil;
 {
   NSString	*owner = @"UnknownUser";
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   DWORD		returnCode = 0;
   PSID		sidOwner;
   int		result = TRUE;
@@ -3560,7 +3560,7 @@ static NSSet	*fileKeys = nil;
 
 - (NSUInteger) fileSystemNumber
 {
-#if defined(__MINGW__)
+#if defined(_WIN32)
   DWORD volumeSerialNumber = 0;
   _CHAR volumePathName[128];
   if (GetVolumePathNameW(_path,volumePathName,128))
