@@ -588,6 +588,11 @@ static NSRecursiveLock *classLock = nil;
   return AUTORELEASE(result);
 }
 
++ (id) localeWithLocaleIdentifier:(NSString *)string
+{
+  return AUTORELEASE([[NSLocale alloc] initWithLocaleIdentifier: string]);
+}
+
 + (NSString *) localeIdentifierFromComponents: (NSDictionary *) dict
 {
   NSString *result;

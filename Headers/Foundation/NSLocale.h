@@ -186,6 +186,12 @@ GS_EXPORT NSString * const NSISO8601Calendar;
 + (NSString *) localeIdentifierFromWindowsLocaleCode: (uint32_t)lcid;
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+/** Returns a locale initialised with the given locale identifier.
+ */
++ (id) localeWithLocaleIdentifier:(NSString *)string;
+#endif
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 /** Returns an array of preferred languages.  Sorted from most preferred to
  *  leave preferred.

@@ -1,3 +1,9 @@
+2016-03-10  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Headers/Foundation/NSLocale.h:
+	* Source/NSLocale.m (+localeWithLocaleIdentifier:):
+	Add trivial method introduced in OS X 10.6.
+
 2016-03-09 Riccardo Mottola <rm@gnu.org>
 
 	* Headers/Foundation/NSPathUtilities.h
