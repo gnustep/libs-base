@@ -325,6 +325,11 @@ static Class	GSInlineArrayClass;
   return nil;
 }
 
+- (BOOL) makeImmutable
+{
+  return YES;
+}
+
 - (id) objectAtIndex: (NSUInteger)index
 {
   if (index >= _count)
@@ -630,6 +635,12 @@ static Class	GSInlineArrayClass;
   _count++;
   _contents_array[index] = RETAIN(anObject);
   _version++;
+}
+
+- (BOOL) makeImmutable
+{
+  GSClassSwizzle(self, [GSArray class]);
+  return YES;
 }
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
@@ -1154,6 +1165,7 @@ static Class	GSInlineArrayClass;
     }
   return index;
 }
+
 @end
 
 @implementation	GSPlaceholderArray

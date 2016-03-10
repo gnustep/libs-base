@@ -832,7 +832,7 @@ static Class NSMutableSet_concrete_class;
                       o = [o valueForKeyPath: rem];
                       [result addObjectsFromArray: o];
                     }
-                  [result makeImmutableCopyOnFail: NO];
+                  result = GS_IMMUTABLE(result);
                 }
               else
                 {
@@ -852,7 +852,7 @@ static Class NSMutableSet_concrete_class;
                       o = [o valueForKeyPath: rem];
                       [result addObject: o];
                     }
-                  [result makeImmutableCopyOnFail: NO];
+                  result = GS_IMMUTABLE(result);
                 }
               else
                 {
@@ -872,7 +872,7 @@ static Class NSMutableSet_concrete_class;
                       o = [o valueForKeyPath: rem];
                       [result addObjectsFromArray: [o allObjects]];
                     }
-                  [result makeImmutableCopyOnFail: NO];
+                  result = GS_IMMUTABLE(result);
                 }
               else
                 {
@@ -946,7 +946,7 @@ static Class NSMutableSet_concrete_class;
     }
   END_FOR_IN(enumerator)
     
-  return [resultSet makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(resultSet);
 }
 
 /** Return a set formed by adding anObject to the receiver.

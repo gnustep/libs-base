@@ -3845,6 +3845,11 @@ transmute(GSStr self, NSString *aString)
 		      freeWhenDone: flag];
 }
 
+- (BOOL) makeImmutable
+{
+  return YES;
+}
+
 - (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   NSUInteger    size = GSPrivateMemorySize(self, exclude);
@@ -5294,6 +5299,20 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
       return [o autorelease];
     }
   return [super lowercaseString];
+}
+
+- (BOOL) makeImmutable
+{
+NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
+  if (_flags.wide == 1)
+    {
+      GSClassSwizzle(self, [GSUnicodeBufferString class]);
+    }
+  else
+    {
+      GSClassSwizzle(self, [GSCBufferString class]);
+    }
+  return YES;
 }
 
 - (id) makeImmutableCopyOnFail: (BOOL)force

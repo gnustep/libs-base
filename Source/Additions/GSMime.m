@@ -3555,7 +3555,7 @@ static NSCharacterSet	*tokenSet = nil;
       NSEnumerator	*e;
       NSString		*k;
 
-      m = [[value mutableCopy] autorelease];
+      m = AUTORELEASE([value mutableCopy]);
       e = [params keyEnumerator];
       while ((k = [e nextObject]) != nil)
 	{
@@ -3567,7 +3567,11 @@ static NSCharacterSet	*tokenSet = nil;
 	  [m appendString: @"="];
 	  [m appendString: v];
 	}
-      return [m makeImmutableCopyOnFail: YES];
+      if (YES == [m makeImmutable])
+        {
+          return m;
+        }
+      return AUTORELEASE([m copy]);
     }
   else
     {
@@ -3728,7 +3732,11 @@ static NSCharacterSet	*tokenSet = nil;
 	  [m setObject: [params objectForKey: k] forKey: [k lowercaseString]];
 	}
     }
-  return [m makeImmutableCopyOnFail: YES];
+  if (YES == [m makeImmutable])
+    {
+      return m;
+    }
+  return AUTORELEASE([m copy]);
 }
 
 /* Given a byte buffer and a minimum position in the buffer,

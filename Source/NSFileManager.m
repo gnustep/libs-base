@@ -2165,7 +2165,7 @@ static NSStringEncoding	defaultEncoding;
 	}
       RELEASE(direnum);
     }
-  return [content makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(content);
 }
 
 /**
@@ -2228,7 +2228,7 @@ static NSStringEncoding	defaultEncoding;
 	}
       RELEASE(direnum);
     }
-  return [content makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(content);
 }
 
 /**

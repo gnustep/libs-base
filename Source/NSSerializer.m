@@ -648,7 +648,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 		}
 	      if (code != ST_MARRAY && info->mutable == NO)
 		{
-		  [a makeImmutableCopyOnFail: NO];
+                  a = GS_IMMUTABLE(a);
 		}
 	    }
 	  return a;
@@ -701,7 +701,7 @@ deserializeFromInfo(_NSDeserializerInfo* info)
 		}
 	      if (code != ST_MDICT && info->mutable == NO)
 		{
-		  [d makeImmutableCopyOnFail: NO];
+                  d = GS_IMMUTABLE(d);
 		}
 	    }
 	  return d;

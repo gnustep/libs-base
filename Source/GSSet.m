@@ -458,6 +458,11 @@ static Class	mutableSetClass;
     }
 }
 
+- (BOOL) makeImmutable
+{
+  return YES;
+}
+
 - (void) makeObjectsPerform: (SEL)aSelector
 {
   GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
@@ -733,6 +738,12 @@ static Class	mutableSetClass;
           GSIMapEndEnumerator(&enumerator);
         }
     }
+}
+
+- (BOOL) makeImmutable
+{
+  GSClassSwizzle(self, [GSSet class]);
+  return YES;
 }
 
 - (id) makeImmutableCopyOnFail: (BOOL)force

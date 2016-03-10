@@ -1725,7 +1725,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
           [result addObject: object];  // passes filter
         }
     }
-  return [result makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(result);
 }
 
 @end
@@ -1765,7 +1765,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
           [result addObject: object];  // passes filter
         }
     }
-  return [result makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(result);
 }
 
 @end

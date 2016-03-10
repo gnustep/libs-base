@@ -431,7 +431,10 @@ parseString(ParserState *state)
     }
   if (!state->mutableStrings)
     {
-      val = [val makeImmutableCopyOnFail: YES];
+      if (NO == [val makeImmutable])
+        {
+          val = [val copy];
+        }
     }
   // Consume the trailing "
   consumeChar(state);
@@ -554,7 +557,10 @@ parseArray(ParserState *state)
   consumeChar(state);
   if (!state->mutableContainers)
     {
-      array = [array makeImmutableCopyOnFail: YES];
+      if (NO == [array makeImmutable])
+        {
+          array = [array copy];
+        }
     }
   return array;
 }
@@ -615,7 +621,10 @@ parseObject(ParserState *state)
   consumeChar(state);
   if (!state->mutableContainers)
     {
-      dict = [dict makeImmutableCopyOnFail: YES];
+      if (NO == [dict makeImmutable])
+        {
+          dict = [dict copy];
+        }
     }
   return dict;
 

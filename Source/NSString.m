@@ -2042,7 +2042,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
                         withString: by
                            options: opts
                              range: searchRange];
-  return [copy makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(copy);
 }
 
 - (NSString*) stringByReplacingOccurrencesOfString: (NSString*)replace
@@ -2067,7 +2067,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   copy = [[[GSMutableStringClass allocWithZone: NSDefaultMallocZone()]
     initWithString: self] autorelease];
   [copy replaceCharactersInRange: aRange withString: by];
-  return [copy makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(copy);
 }
 
 /**

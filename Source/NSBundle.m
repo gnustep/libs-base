@@ -2467,7 +2467,7 @@ IF_NO_GC(
   /* I guess this is arbitrary if we can't find a match? */
   if ([array count] == 0 && [localizationsArray count] > 0)
     [array addObject: [localizationsArray objectAtIndex: 0]];
-  return [array makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(array);
 }
 
 - (NSDictionary*) localizedInfoDictionary
@@ -2531,7 +2531,7 @@ IF_NO_GC(
       locale = [[locale lastPathComponent] stringByDeletingPathExtension];
       [array addObject: locale];
     }
-  return [array makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(array);
 }
 
 - (NSArray *) preferredLocalizations
