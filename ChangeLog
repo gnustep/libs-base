@@ -149,7 +149,7 @@
 	that cost and count based eviction without NSDiscardableContent is
 	also possible.
 
-016-02-18  Richard Frith-Macdonald <rfm@gnu.org>
+2016-02-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m:
 	Fold using tabs between key=value tokens in structured headers
