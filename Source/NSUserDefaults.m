@@ -2127,10 +2127,9 @@ static BOOL isPlistObject(id o)
                   (*addImp)(dictRep, addSel, dict);
                 }
 	    }
-          [dictRep makeImmutableCopyOnFail: NO];
-          _dictionaryRep = dictRep;
+          _dictionaryRep = GS_IMMUTABLE(dictRep);
         }
-      rep = [[_dictionaryRep retain] autorelease];
+      rep = AUTORELEASE(RETAIN(_dictionaryRep));
       [_lock unlock];
     }
   NS_HANDLER

@@ -57,7 +57,7 @@ extern "C" {
  */
 - (BOOL) isInstance;
 
-/**
+/** DEPRECATED ... do not use.
  * Transmutes the receiver into an immutable version of the same object
  * and returns the result.<br />
  * If the receiver is not a mutable object or cannot be simply transmuted,
@@ -70,6 +70,19 @@ extern "C" {
  * internally.
  */
 - (id) makeImmutableCopyOnFail: (BOOL)force;
+
+/** Transmutes the receiver into an immutable version of the same object.
+ * Returns YES if the receiver has become immutable, NO otherwise.<br />
+ * The default implementation returns NO.<br />
+ * Mutable classes which have an immutable counterpart they can efficiently
+ * change into, should override to transmute themselves and return YES.<br />
+ * Immutable classes should override this to simply return YES with no
+ * further action.<br />
+ * This method is used in methods which are declared to return immutable
+ * objects (eg. an NSArray), but which create and build mutable ones
+ * internally.
+ */
+- (BOOL) makeImmutable;
 
 /**
  * Message sent when an implementation wants to explicitly exclude a method
@@ -213,6 +226,11 @@ extern "C" {
 + (BOOL) shouldCleanUp;
 
 @end
+
+/* Macro to take an autoreleased object and either make it immutable or
+ * create an autoreleased copy of the original.
+ */
+#define GS_IMMUTABLE(O) ([O makeImmutable] == YES ? O : AUTORELEASE([O copy]))
 
 #endif	/* OS_API_VERSION */
 

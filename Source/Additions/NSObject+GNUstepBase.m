@@ -83,6 +83,11 @@
   return class_isMetaClass([self class]) ? NO : YES;
 }
 
+- (BOOL) makeImmutable
+{
+  return NO;
+}
+
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
   if (force == YES)

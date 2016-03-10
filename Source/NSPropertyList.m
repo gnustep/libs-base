@@ -240,7 +240,16 @@ foundIgnorableWhitespace: (NSString *)string
 	}
       else
         {
-	  ASSIGN(plist, [[stack lastObject] makeImmutableCopyOnFail: NO]);
+          NSObject      *o = [stack lastObject];
+
+          if ([o makeImmutable] == YES)
+            {
+              ASSIGN(plist, o);
+            }
+          else
+            {
+              ASSIGNCOPY(plist, o);
+            }
 	}
       [stack removeLastObject];
       inArray = NO;
@@ -1026,7 +1035,7 @@ static id parsePlItem(pldata* pld)
 	  result = dict;
 	  if (pld->opt == NSPropertyListImmutable)
 	    {
-	      [result makeImmutableCopyOnFail: NO];
+              result = GS_IMMUTABLE(result);
 	    }
 	}
 	break;
@@ -1078,7 +1087,7 @@ static id parsePlItem(pldata* pld)
 	  result = array;
 	  if (pld->opt == NSPropertyListImmutable)
 	    {
-	      [result makeImmutableCopyOnFail: NO];
+              result = GS_IMMUTABLE(result);
 	    }
 	}
 	break;

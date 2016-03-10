@@ -1040,8 +1040,15 @@ static NSMapTable	*absolutes = 0;
 		    }
 		}
 	    }
-	  [md makeImmutableCopyOnFail: NO];
-	  abbreviationDictionary = md;
+          if ([md makeImmutable] == YES)
+            {
+              abbreviationDictionary = md;
+            }
+          else
+            {
+              abbreviationDictionary = [md copy];
+              RELEASE(md);
+            }
 	}
       [pool drain];
     }
@@ -1187,8 +1194,14 @@ static NSMapTable	*absolutes = 0;
 	  [ma addObject: the_name];
 	}
 
-      [md makeImmutableCopyOnFail: NO];
-      abbreviationMap = RETAIN(md); 
+      if ([md makeImmutable] == YES)
+        {
+          abbreviationMap = RETAIN(md); 
+        }
+      else
+        {
+          abbreviationMap = [md copy];
+        }
       [pool drain];
     }
   if (zone_mutex != nil)
@@ -1231,9 +1244,15 @@ static NSMapTable	*absolutes = 0;
 
 	  [ma addObjectsFromArray: names];
 	}
-
-      [ma makeImmutableCopyOnFail: NO];
-      namesArray = ma;
+      if ([ma makeImmutable] == YES)
+        {
+          namesArray = ma;
+        }
+      else
+        {
+          namesArray = [ma copy];
+          RELEASE(ma);
+        }
     }
   if (zone_mutex != nil)
     {

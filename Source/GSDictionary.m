@@ -338,6 +338,11 @@ static SEL	objSel;
     NSDefaultMallocZone()] initWithDictionary: self]);
 }
 
+- (BOOL) makeImmutable
+{
+  return YES;
+}
+
 - (NSEnumerator*) objectEnumerator
 {
   return AUTORELEASE([[GSDictionaryObjectEnumerator allocWithZone:
@@ -417,6 +422,12 @@ static SEL	objSel;
 {
   GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
   return self;
+}
+
+- (BOOL) makeImmutable
+{
+  GSClassSwizzle(self, [GSDictionary class]);
+  return YES;
 }
 
 - (id) makeImmutableCopyOnFail: (BOOL)force

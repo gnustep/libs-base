@@ -350,7 +350,7 @@ GSSortUnstableConcurrent(id* buffer, NSRange range, id descriptorOrComparator,
 
   [sortedArray sortUsingDescriptors: sortDescriptors];
 
-  return [sortedArray makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(sortedArray);
 }
 
 @end

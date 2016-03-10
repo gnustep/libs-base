@@ -272,7 +272,7 @@ static Class	concreteClass = Nil;
 	      [a addObject: obj];
 	    }
 	}
-      return [a makeImmutableCopyOnFail: NO]; 
+      return GS_IMMUTABLE(a);
     }
 }
 
