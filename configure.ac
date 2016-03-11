@@ -2290,11 +2290,16 @@ AC_ARG_ENABLE(bfd,
 
 if test $enable_bfd = yes; then
   AC_CHECK_HEADERS(bfd.h)
+  AC_CHECK_LIB(intl, libintl_fprintf)
   AC_CHECK_LIB(iberty, dyn_string_append)
   AC_CHECK_LIB(bfd, bfd_openr)
 else
-  AC_CHECK_HEADERS(execinfo.h)
-  AC_CHECK_FUNCS(backtrace)
+  if test $ismingw = yes ; then
+    AC_CHECK_HEADERS(dbghelp.h)
+  else
+    AC_CHECK_HEADERS(execinfo.h)
+    AC_CHECK_FUNCS(backtrace)
+  fi
 fi
 AC_CHECK_FUNCS(__builtin_extract_return_address)
 

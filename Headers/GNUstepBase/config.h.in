@@ -201,6 +201,9 @@
 /* Define if you have currency_symbol field in struct lconv */
 #undef HAVE_CURRENCY_SYMBOL_IN_LCONV
 
+/* Define to 1 if you have the <dbghelp.h> header file. */
+#undef HAVE_DBGHELP_H
+
 /* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
    don't. */
 #undef HAVE_DECL_STRERROR_R
@@ -359,6 +362,9 @@
 /* Define to 1 if you have the `iberty' library (-liberty). */
 #undef HAVE_LIBIBERTY
 
+/* Define to 1 if you have the `intl' library (-lintl). */
+#undef HAVE_LIBINTL
+
 /* Define to 1 if you have the `kvm' library (-lkvm). */
 #undef HAVE_LIBKVM
 
@@ -472,9 +478,6 @@
 
 /* Define to 1 if you have the <pthread_np.h> header file. */
 #undef HAVE_PTHREAD_NP_H
-
-/* Define to 1 if you have the `pthread_set_name_np' function. */
-#undef HAVE_PTHREAD_SET_NAME_NP
 
 /* Define this if you work on sysv */
 #undef HAVE_PTS_STREAM_MODULES
@@ -885,11 +888,6 @@
 # ifndef WORDS_BIGENDIAN
 #  undef WORDS_BIGENDIAN
 # endif
-#endif
-
-/* Enable large inode numbers on Mac OS X 10.5.  */
-#ifndef _DARWIN_USE_64_BIT_INODE
-# define _DARWIN_USE_64_BIT_INODE 1
 #endif
 
 /* Number of bits in a file offset, on hosts where this is settable. */

@@ -32,12 +32,14 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCoder.h"
+#import "Foundation/NSLock.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSThread.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
+
 
 #ifdef __GNUSTEP_RUNTIME__
 #include <objc/hooks.h>
@@ -69,6 +71,44 @@
 #endif
 #endif
 
+/*
+ * Turn off USE_BINUTILS if we don't have bfd support for it.
+ */
+#if !(defined(HAVE_BFD_H) && defined(HAVE_LIBBFD) && defined(HAVE_LIBIBERTY))
+#if	defined(USE_BINUTILS)
+#undef	USE_BINUTILS
+#endif
+#endif
+
+#if	defined(_WIN32) && !defined(USE_BINUTILS)
+#include <windows.h>
+#if	defined(HAVE_DBGHELP_H)
+#include <dbghelp.h>
+#else
+/* Supply the relevant bits from dbghelp.h if we could't find the header.
+ */
+#define	SYMOPT_UNDNAME		0x00000002
+#define	SYMOPT_DEFERRED_LOADS	0x00000004
+typedef struct _SYMBOL_INFO {
+  ULONG   SizeOfStruct;
+  ULONG   TypeIndex;
+  uint64_t Reserved[2];
+  ULONG   Index;
+  ULONG   Size;
+  uint64_t ModBase;
+  ULONG   Flags;
+  uint64_t Value;
+  uint64_t Address;
+  ULONG   Register;
+  ULONG   Scope;
+  ULONG   Tag;
+  ULONG   NameLen;
+  ULONG   MaxNameLen;
+  TCHAR   Name[1];
+} SYMBOL_INFO;
+#endif
+#endif
+
 static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler = 0;
 
 #define _e_info (((id*)_reserved)[0])
@@ -89,15 +129,6 @@ static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler = 0;
 @interface NSException (GSPrivate)
 - (GSStackTrace*) _callStack;
 @end
-
-/*
- * Turn off USE_BINUTILS if we don't have bfd support for it.
- */
-#if !(defined(HAVE_BFD_H) && defined(HAVE_LIBBFD) && defined(HAVE_LIBIBERTY))
-#if	defined(USE_BINUTILS)
-#undef	USE_BINUTILS
-#endif
-#endif
 
 
 #if	defined(_WIN32)
@@ -552,6 +583,31 @@ GSListModules()
 
 @implementation GSStackTrace : NSObject
 
+static	NSRecursiveLock	*traceLock = nil;
+
+#if	defined(_WIN32) && !defined(USE_BINUTILS)
+typedef USHORT (WINAPI *CaptureStackBackTraceType)(ULONG,ULONG,PVOID*,PULONG);
+typedef BOOL (WINAPI *SymInitializeType)(HANDLE,char*,BOOL);
+typedef DWORD (WINAPI *SymSetOptionsType)(DWORD);
+typedef BOOL (WINAPI *SymFromAddrType)(HANDLE,DWORD64,PDWORD64,SYMBOL_INFO*);
+
+static CaptureStackBackTraceType capture = 0;
+static SymInitializeType initSym = 0;
+static SymSetOptionsType optSym = 0;
+static SymFromAddrType fromSym = 0;
+static HANDLE	hProcess = 0;
+#define	MAXFRAMES 62	/* Limitation of windows-xp */
+#endif
+
+
++ (void) initialize
+{
+  if (nil == traceLock)
+    {
+      traceLock = [NSRecursiveLock new];
+    }
+}
+
 - (NSArray*) addresses
 {
   return addresses;
@@ -586,7 +642,104 @@ GSListModules()
 // grab the current stack 
 - (id) init
 {
-#if	defined(HAVE_BACKTRACE)
+#if	defined(USE_BINUTILS)
+  addresses = [GSPrivateStackAddresses() copy];
+#elif	defined(_WIN32)
+  uint16_t	frames;
+  NSUInteger	addr[MAXFRAMES];
+  NSNumber	*vals[MAXFRAMES];
+  NSUInteger 	i;
+
+  [traceLock lock];
+  if (0 == hProcess)
+    {
+      hProcess = GetCurrentProcess();
+
+      if (0 == capture)
+	{
+	  HANDLE	hModule;
+
+	  hModule = LoadLibrary("kernel32.dll");
+	  if (0 == hModule)
+	    {
+	      fprintf(stderr, "Failed to load kernel32.dll with error: %d\n",
+		GetLastError());
+	      [traceLock unlock];
+	      return self;
+	    }
+	  capture = (CaptureStackBackTraceType)GetProcAddress(
+	    hModule, "RtlCaptureStackBackTrace");
+	  if (0 == capture)
+	    {
+	      fprintf(stderr, "Failed to find RtlCaptureStackBackTrace: %d\n",
+		GetLastError());
+	      [traceLock unlock];
+	      return self;
+	    }
+	  hModule = LoadLibrary("dbghelp.dll");
+	  if (0 == hModule)
+	    {
+	      fprintf(stderr, "Failed to load dbghelp.dll with error: %d\n",
+		GetLastError());
+	      [traceLock unlock];
+	      return self;
+	    }
+	  optSym = (SymSetOptionsType)GetProcAddress(
+	    hModule, "SymSetOptions");
+	  if (0 == optSym)
+	    {
+	      fprintf(stderr, "Failed to find SymSetOptions: %d\n",
+		GetLastError());
+	      [traceLock unlock];
+	      return self;
+	    }
+	  initSym = (SymInitializeType)GetProcAddress(
+	    hModule, "SymInitialize");
+	  if (0 == initSym)
+	    {
+	      fprintf(stderr, "Failed to find SymInitialize: %d\n",
+		GetLastError());
+	      [traceLock unlock];
+	      return self;
+	    }
+	  fromSym = (SymFromAddrType)GetProcAddress(
+	    hModule, "SymFromAddr");
+	  if (0 == fromSym)
+	    {
+	      fprintf(stderr, "Failed to find SymFromAddr: %d\n",
+		GetLastError());
+	      [traceLock unlock];
+	      return self;
+	    }
+	}
+
+      (optSym)(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
+
+      if (!(initSym)(hProcess, NULL, TRUE))
+	{
+	  fprintf(stderr, "SymInitialize failed with error: %d\n",
+	    GetLastError());
+	  fromSym = 0;
+	  [traceLock unlock];
+	  return self;
+	}
+    }
+  if (0 == capture)
+    {
+      [traceLock unlock];
+      return self;
+    }
+
+  frames = (capture)(0, MAXFRAMES, (void**)addr, NULL);
+  for (i = 0; i < frames; i++)
+    {
+      vals[i] = [NSNumber numberWithUnsignedInteger: addr[i]];
+    }
+  [traceLock unlock];
+
+  addresses = [[NSArray alloc] initWithObjects: vals count: frames];
+
+#elif	defined(HAVE_BACKTRACE)
   void		**addr;
   id		*vals;
   int		count;
@@ -617,28 +770,7 @@ GSListModules()
 
       if (count > 0)
 	{
-#if	defined(HAVE_BACKTRACE)
-	  char		**strs;
-	  void		**addr;
-	  NSString	**symbolArray;
-	  NSUInteger 	i;
-
-	  addr = alloca(count * sizeof(void*));
-	  for (i = 0; i < count; i++)
-	    {
-	      addr[i] = (void*)[[addresses objectAtIndex: i]
-		unsignedIntegerValue];
-	    }
-
-	  strs = backtrace_symbols(addr, count);
-	  symbolArray = alloca(count * sizeof(NSString*));
-	  for (i = 0; i < count; i++)
-	    {
-	      symbolArray[i] = [NSString stringWithUTF8String: strs[i]];
-	    }
-	  symbols = [[NSArray alloc] initWithObjects: symbolArray count: count];
-	  free(strs);
-#elif	defined(USE_BINUTILS)
+#if	defined(USE_BINUTILS)
 	  NSMutableArray	*a;
 	  NSUInteger 		i;
 
@@ -704,6 +836,58 @@ GSListModules()
 	    }
 	  symbols = [a copy];
 	  [a release];
+#elif	defined(_WIN32)
+	  SYMBOL_INFO	*symbol;
+	  NSString	*syms[MAXFRAMES];
+	  NSUInteger	i;
+
+	  symbol = (SYMBOL_INFO *)calloc(sizeof(SYMBOL_INFO)
+	    + 1024 * sizeof(char), 1);
+	  symbol->MaxNameLen = 1024;
+	  symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+
+	  [traceLock lock];
+	  for (i = 0; i < count; i++)
+	    {
+	      NSUInteger	addr; 
+
+	      addr = (NSUInteger)[[addresses objectAtIndex: i] integerValue];
+	      if ((fromSym)(hProcess, (DWORD64)addr, 0, symbol))
+		{
+		  syms[i] = [NSString stringWithFormat:
+		    @"%s - %p", symbol->Name, addr];
+		}
+	      else
+		{
+		  syms[i] = [NSString stringWithFormat:
+		    @"unknown - %p", symbol->Name, addr];
+		}
+	    }
+	  [traceLock unlock];
+	  free(symbol);
+
+	  symbols = [[NSArray alloc] initWithObjects: syms count: count];
+#elif	defined(HAVE_BACKTRACE)
+	  char		**strs;
+	  void		**addr;
+	  NSString	**symbolArray;
+	  NSUInteger 	i;
+
+	  addr = alloca(count * sizeof(void*));
+	  for (i = 0; i < count; i++)
+	    {
+	      addr[i] = (void*)[[addresses objectAtIndex: i]
+		unsignedIntegerValue];
+	    }
+
+	  strs = backtrace_symbols(addr, count);
+	  symbolArray = alloca(count * sizeof(NSString*));
+	  for (i = 0; i < count; i++)
+	    {
+	      symbolArray[i] = [NSString stringWithUTF8String: strs[i]];
+	    }
+	  symbols = [[NSArray alloc] initWithObjects: symbolArray count: count];
+	  free(strs);
 #endif
 	}
       else
