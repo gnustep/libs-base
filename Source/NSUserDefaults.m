@@ -91,6 +91,7 @@ static NSUserDefaults	*sharedDefaults = nil;
 static NSDictionary     *argumentsDictionary = nil;
 static NSMutableString	*processName = nil;
 static NSRecursiveLock	*classLock = nil;
+static NSLock	        *lockLock = nil;
 
 /* Flag to say whether the sharedDefaults variable has been set up by a
  * call to the +standardUserDefaults method.  If this is YES but the variable
@@ -552,6 +553,7 @@ newLanguages(NSArray *oldNames)
   DESTROY(processName);
   DESTROY(argumentsDictionary);
   DESTROY(classLock);
+  DESTROY(lockLock);
 }
 
 + (void) initialize
@@ -635,6 +637,10 @@ newLanguages(NSArray *oldNames)
        * so once it exists we know we can used them safely.
        */
       classLock = [NSRecursiveLock new];
+
+      /* This lock protects locking the defaults file.
+       */
+      lockLock = [NSLock new];
 
       [self _createArgumentDictionary: args];
       DESTROY(pool);
@@ -2388,52 +2394,63 @@ NSDictionary *GSPrivateDefaultLocale()
 static BOOL isLocked = NO;
 - (BOOL) _lockDefaultsFile: (BOOL*)wasLocked
 {
-  *wasLocked = isLocked;
-  if (isLocked == NO && _fileLock != nil)
+  [lockLock lock];
+  NS_DURING
     {
-      NSDate	*started = [NSDateClass date];
+      *wasLocked = isLocked;
+      if (NO == isLocked && _fileLock != nil)
+        {
+          NSDate	*started = [NSDateClass date];
 
-      while ([_fileLock tryLock] == NO)
-	{
-	  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
-	  NSDate		*when;
-	  NSDate		*lockDate;
+          while ([_fileLock tryLock] == NO)
+            {
+              NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+              NSDate		*when;
+              NSDate		*lockDate;
 
-	  lockDate = [_fileLock lockDate];
-	  when = [NSDateClass dateWithTimeIntervalSinceNow: 0.1];
+              lockDate = [_fileLock lockDate];
+              when = [NSDateClass dateWithTimeIntervalSinceNow: 0.1];
 
-	  /*
-	   * In case we have tried and failed to break the lock,
-	   * we give up after a while ... 16 seconds should give
-	   * us three lock breaks if we do them at 5 second
-	   * intervals.
-	   */
-	  if ([when timeIntervalSinceDate: started] > 16.0)
-	    {
-	      NSLog(@"Failed to lock user defaults database even after "
-		@"breaking old locks!");
-	      [arp drain];
-	      return NO;
-	    }
+              /*
+               * In case we have tried and failed to break the lock,
+               * we give up after a while ... 16 seconds should give
+               * us three lock breaks if we do them at 5 second
+               * intervals.
+               */
+              if ([when timeIntervalSinceDate: started] > 16.0)
+                {
+                  fprintf(stderr, "Failed to lock user defaults database even after "
+                    "breaking old locks!\n");
+                  [arp drain];
+                  break;
+                }
 
-	  /*
-	   * If lockDate is nil, we should be able to lock again ... but we
-	   * wait a little anyway ... so that in the case of a locking
-	   * problem we do an idle wait rather than a busy one.
-	   */
-	  if (lockDate != nil && [when timeIntervalSinceDate: lockDate] > 5.0)
-	    {
-	      [_fileLock breakLock];
-	    }
-	  else
-	    {
-	      [NSThread sleepUntilDate: when];
-	    }
-	  [arp drain];
-	}
-      isLocked = YES;
+              /*
+               * If lockDate is nil, we should be able to lock again ... but we
+               * wait a little anyway ... so that in the case of a locking
+               * problem we do an idle wait rather than a busy one.
+               */
+              if (lockDate != nil && [when timeIntervalSinceDate: lockDate] > 5.0)
+                {
+                  [_fileLock breakLock];
+                }
+              else
+                {
+                  [NSThread sleepUntilDate: when];
+                }
+              [arp drain];
+            }
+          isLocked = YES;
+        }
+      [lockLock unlock];
     }
-   return YES;
+  NS_HANDLER
+    {
+      [lockLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  return isLocked;
 }
 
 - (BOOL) _readDefaults
@@ -2503,18 +2520,23 @@ static BOOL isLocked = NO;
 
 - (void) _unlockDefaultsFile
 {
+  [lockLock lock];
   NS_DURING
     {
-      [_fileLock unlock];
+      if (YES == isLocked)
+        {  
+          [_fileLock unlock];
+        }
     }
   NS_HANDLER
     {
-      NSLog(@"Warning ... someone broke our lock (%@) ... and may have"
-        @" interfered with updating defaults data in file.",
-        lockPath(_defaultsDatabase, NO));
+      fprintf(stderr, "Warning ... someone broke our lock (%s) ... and may have"
+        " interfered with updating defaults data in file.",
+        [lockPath(_defaultsDatabase, NO) UTF8String]);
     }
   NS_ENDHANDLER
   isLocked = NO;
+  [lockLock unlock];
 }
 
 @end
