@@ -32,6 +32,7 @@
 #import	<Foundation/NSArray.h>
 #import	<Foundation/NSDictionary.h>
 #import	<Foundation/NSSet.h>
+#import <Foundation/NSString.h>
 
 #if	defined(__cplusplus)
 extern "C" {
