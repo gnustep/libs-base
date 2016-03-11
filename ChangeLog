@@ -1,3 +1,9 @@
+2016-03-11	Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Headers/Foundation/NSPredicate.h:
+	Include NSString.h so that we the header knows about NSString
+	conforming to NSCopying.
+
 2016-03-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/NSObject+GNUstepBase.h:
