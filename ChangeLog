@@ -1,3 +1,10 @@
+2016-03-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Remove five year old code for converting
+	old style single defaults file to new style (one file per domain).
+	Add some thread safety locks for distriobuted locking in case some
+	thread issue is causing Riccardo's problem.
+
 2016-03-11	Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Headers/Foundation/NSPredicate.h:

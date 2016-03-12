@@ -91,7 +91,7 @@ static NSUserDefaults	*sharedDefaults = nil;
 static NSDictionary     *argumentsDictionary = nil;
 static NSMutableString	*processName = nil;
 static NSRecursiveLock	*classLock = nil;
-static NSLock	        *lockLock = nil;
+static NSLock	        *syncLock = nil;
 
 /* Flag to say whether the sharedDefaults variable has been set up by a
  * call to the +standardUserDefaults method.  If this is YES but the variable
@@ -553,7 +553,7 @@ newLanguages(NSArray *oldNames)
   DESTROY(processName);
   DESTROY(argumentsDictionary);
   DESTROY(classLock);
-  DESTROY(lockLock);
+  DESTROY(syncLock);
 }
 
 + (void) initialize
@@ -640,7 +640,7 @@ newLanguages(NSArray *oldNames)
 
       /* This lock protects locking the defaults file.
        */
-      lockLock = [NSLock new];
+      syncLock = [NSLock new];
 
       [self _createArgumentDictionary: args];
       DESTROY(pool);
@@ -808,7 +808,6 @@ newLanguages(NSArray *oldNames)
   BOOL		added_lang;
   BOOL		added_locale;
   BOOL		setup;
-  BOOL		flag;
   id		lang;
   NSArray	*nL;
   NSArray	*uL;
@@ -898,73 +897,6 @@ newLanguages(NSArray *oldNames)
 	    }
 	  NSLog(@"WARNING - unable to create shared user defaults!\n");
 	  NS_VALRETURN(nil);
-	}
-
-      if (NO == [defs _readOnly]
-	&& YES == [defs _lockDefaultsFile: &flag])
-	{
-	  NSFileManager	*mgr = [NSFileManager defaultManager];
-	  NSString	*path;
-
-	  path = [defs _directory];
-	  path = [path stringByAppendingPathComponent: defaultsFile];
-	  if (YES == [mgr isReadableFileAtPath: path])
-	    {
-	      NSString	*bck = [path stringByAppendingPathExtension: @"bck"];
-
-	      if (NO == [mgr isReadableFileAtPath: bck])
-		{
-		  NSData	*data;
-		  NSDictionary	*d = nil;
-
-		  /* An old style defaults file was found,
-		   * and no backup had been made of it, so
-		   * we make a backup and convert it to a
-		   * new style collection of files.
-		   */
-		  data = [NSData dataWithContentsOfFile: path];
-		  if (nil != data)
-		    {
-		      d = [NSPropertyListSerialization
-			propertyListWithData: data
-			options: NSPropertyListImmutable
-			format: 0
-			error: 0];
-		    }
-		  if ([d isKindOfClass: [NSDictionary class]])
-		    {
-		      NSEnumerator	*e;
-		      NSString	*name;
-
-		      [mgr movePath: path toPath: bck handler: nil];
-		      e = [d keyEnumerator];
-		      while (nil != (name = [e nextObject]))
-			{
-			  NSDictionary	*domain = [d objectForKey: name];
-
-			  path = [[defs _directory]
-			    stringByAppendingPathComponent: name];
-			  path = [path
-			    stringByAppendingPathExtension: @"plist"];
-			  if ([domain isKindOfClass: [NSDictionary class]]
-			    && [domain count] > 0
-			    && NO == [mgr fileExistsAtPath: path])
-			    {
-			      writeDictionary(domain, path);
-			    }
-			}
-		    }
-		  else
-		    {
-		      fprintf(stderr, "Found unparseable file at '%s'\n",
-			[path UTF8String]);
-		    }
-		}
-	    }
-	  if (NO == flag)
-	    {
-	      [defs _unlockDefaultsFile];
-	    }
 	}
 
       /*
@@ -2394,7 +2326,7 @@ NSDictionary *GSPrivateDefaultLocale()
 static BOOL isLocked = NO;
 - (BOOL) _lockDefaultsFile: (BOOL*)wasLocked
 {
-  [lockLock lock];
+  [syncLock lock];
   NS_DURING
     {
       *wasLocked = isLocked;
@@ -2404,7 +2336,7 @@ static BOOL isLocked = NO;
 
           while ([_fileLock tryLock] == NO)
             {
-              NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+              CREATE_AUTORELEASE_POOL(arp);
               NSDate		*when;
               NSDate		*lockDate;
 
@@ -2421,7 +2353,7 @@ static BOOL isLocked = NO;
                 {
                   fprintf(stderr, "Failed to lock user defaults database even after "
                     "breaking old locks!\n");
-                  [arp drain];
+                  RELEASE(arp);
                   break;
                 }
 
@@ -2438,15 +2370,15 @@ static BOOL isLocked = NO;
                 {
                   [NSThread sleepUntilDate: when];
                 }
-              [arp drain];
+              RELEASE(arp);
             }
           isLocked = YES;
         }
-      [lockLock unlock];
+      [syncLock unlock];
     }
   NS_HANDLER
     {
-      [lockLock unlock];
+      [syncLock unlock];
       [localException raise];
     }
   NS_ENDHANDLER
@@ -2520,7 +2452,7 @@ static BOOL isLocked = NO;
 
 - (void) _unlockDefaultsFile
 {
-  [lockLock lock];
+  [syncLock lock];
   NS_DURING
     {
       if (YES == isLocked)
@@ -2536,7 +2468,7 @@ static BOOL isLocked = NO;
     }
   NS_ENDHANDLER
   isLocked = NO;
-  [lockLock unlock];
+  [syncLock unlock];
 }
 
 @end
