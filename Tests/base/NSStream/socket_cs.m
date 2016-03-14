@@ -145,12 +145,12 @@ NSLog(@"%@ Server %p %@", prefix, theStream, eventString(theStream, streamEvent)
         if (theStream==serverStream)
           {
             NSAssert(serverInput==nil, @"accept twice");
-NSLog(@"%@ Server %p %@ accepting incoming connection", prefix, theStream);
+NSLog(@"%@ Server %p accepting incoming connection", prefix, theStream);
             [serverStream acceptWithInputStream: &serverInput
 				   outputStream: &serverOutput];
             if (nil == serverInput)   // it is ok to accept nothing
 	      {
-NSLog(@"%@ Server %p %@ accept failed (no connection)", prefix, theStream);
+NSLog(@"%@ Server %p accept failed (no connection)", prefix, theStream);
 	      }
 	    else
               {
