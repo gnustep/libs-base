@@ -56,10 +56,14 @@ int main()
     PASS_EQUAL(str, @"NaN", "notANumber special case")
 
     START_SET("NSLocale")
+      NSLocale  *sys;
       if (!NSLOCALE_SUPPORTED)
         SKIP("NSLocale not supported\nThe ICU library was not available when GNUstep-base was built")
       
-      PASS([fmt getObjectValue: &num forString: @"0.00" errorDescription: nil]
+      sys = [NSLocale systemLocale];
+      [fmt setLocale: sys];
+
+      PASS([fmt getObjectValue: &num forString: @"0.00" errorDescription: 0]
         && num != nil, "formatting suceeded")
       if (testPassed)
         {
