@@ -99,6 +99,12 @@ static NSFileManager	*mgr = nil;
 
 - (void) dealloc
 {
+  if (_lockTime != nil)
+    {
+      NSLog(@"[%@-dealloc] still locked for %@ since %@",
+        NSStringFromClass([self class]), _lockPath, _lockTime);
+      [self unlock];
+    }
   RELEASE(_lockPath);
   RELEASE(_lockTime);
   [super dealloc];
@@ -214,7 +220,7 @@ static NSFileManager	*mgr = nil;
 	  if (locked == NO)
 	    {
 	      NSLog(@"Failed to create lock directory '%@' - %@",
-		    _lockPath, [NSError _last]);
+                _lockPath, [NSError _last]);
 	    }
 	}
     }
@@ -230,7 +236,8 @@ static NSFileManager	*mgr = nil;
       if (attributes == nil)
 	{
 	  [NSException raise: NSGenericException
-		      format: @"Unable to get attributes of lock file we made"];
+            format: @"Unable to get attributes of lock file we made at %@",
+            _lockPath];
 	}
       ASSIGN(_lockTime, [attributes fileModificationDate]);
       return YES;

@@ -2357,13 +2357,15 @@ static BOOL isLocked = NO;
                   break;
                 }
 
-              /*
-               * If lockDate is nil, we should be able to lock again ... but we
+              /* If lockDate is nil, we should be able to lock again ... but we
                * wait a little anyway ... so that in the case of a locking
                * problem we do an idle wait rather than a busy one.
                */
-              if (lockDate != nil && [when timeIntervalSinceDate: lockDate] > 5.0)
+              if (lockDate != nil
+                && [when timeIntervalSinceDate: lockDate] > 5.0)
                 {
+                  NSLog(@"NSUserdefaults file lock at %@ is dated %@ ... break",
+                    _fileLock, lockDate);
                   [_fileLock breakLock];
                 }
               else
