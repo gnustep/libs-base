@@ -37,12 +37,22 @@ int main(void)
 {
   CREATE_AUTORELEASE_POOL(arp);
 
-  PASS_EQUAL(formattedDaysSince1970(8640000000), @"17-07-23657486",
-   "format date for 8640000000");
+  if (sizeof(NSInteger) == 4)
+    {
+      PASS_EQUAL(formattedDaysSince1970(8640000000), @"02-01-4001",
+       "format date for 8640000000");
 
-  PASS_EQUAL(formattedDaysSince1970(2147483651), @"15-07-5881580",
-   "format date for 2147483651");
+      PASS_EQUAL(formattedDaysSince1970(2147483651), @"02-01-4001",
+       "format date for 2147483651");
+    }
+  else
+    {
+      PASS_EQUAL(formattedDaysSince1970(8640000000), @"17-07-23657486",
+       "format date for 8640000000");
 
+      PASS_EQUAL(formattedDaysSince1970(2147483651), @"15-07-5881580",
+       "format date for 2147483651");
+    }
   DESTROY(arp);
   return 0;
 }
