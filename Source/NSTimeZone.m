@@ -2575,8 +2575,9 @@ lastDayOfGregorianMonth(int month, int year)
 
 /* IMPORT from NSCalendar date */
 void
-GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
-  NSInteger*hour, NSInteger*minute, NSInteger*second, NSInteger*mil);
+GSBreakTime(NSTimeInterval when,
+  NSInteger *year, NSInteger *month, NSInteger *day,
+  NSInteger *hour, NSInteger *minute, NSInteger *second, NSInteger *mil);
 
 
 @implementation GSWindowsTimeZone
@@ -2801,7 +2802,7 @@ GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
 
 - (BOOL) isDaylightSavingTimeForDate: (NSDate*)aDate
 {
-  int year, month, day, hour, minute, second, mil;
+  NSInteger year, month, day, hour, minute, second, mil;
   int	dow;
   int daylightdate, count, maxdate;
   NSTimeInterval when;
