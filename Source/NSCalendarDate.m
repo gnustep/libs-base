@@ -187,10 +187,10 @@ absoluteGregorianDay(NSUInteger day, NSUInteger month, NSUInteger year)
      + year/400);   // ...plus prior years divisible by 400
 }
 
-static inline int
+static inline NSInteger
 dayOfCommonEra(NSTimeInterval when)
 {
-  int r;
+  NSInteger r;
 
   // Get reference date in terms of days
   when /= 86400.0;
@@ -249,7 +249,7 @@ void
 GSBreakTime(NSTimeInterval when, int *year, int *month, int *day,
   int *hour, int *minute, int *second, int *mil)
 {
-  int h, m, dayOfEra;
+  NSInteger h, m, dayOfEra;
   double a, b, c, d;
 
   /* The 0.1 constant was experimentally derived to cause our behavior
@@ -1666,7 +1666,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  */
 - (NSInteger) dayOfWeek
 {
-  int	d;
+  NSInteger	        d;
   NSTimeInterval	when;
 
   when = _seconds_since_ref + offset(_time_zone, self);
@@ -1704,7 +1704,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  */
 - (NSInteger) hourOfDay
 {
-  int h;
+  NSInteger h;
   double a, d;
   NSTimeInterval	when;
 
@@ -1729,7 +1729,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  */
 - (NSInteger) minuteOfHour
 {
-  int h, m;
+  NSInteger h, m;
   double a, b, d;
   NSTimeInterval	when;
 
@@ -1767,7 +1767,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  */
 - (NSInteger) secondOfMinute
 {
-  int h, m, s;
+  NSInteger h, m, s;
   double a, b, c, d;
   NSTimeInterval	when;
 
