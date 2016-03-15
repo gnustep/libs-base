@@ -1,3 +1,9 @@
+2016-03-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSCalendarDate.m:
+	* Source/NSTimeZone.m:
+	Use NSInteger conmsistently (don't mix with int).
+
 2016-03-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Log is we break the lock.
