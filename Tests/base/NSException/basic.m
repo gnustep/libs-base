@@ -46,6 +46,7 @@ int main()
       NSEnumerator *e = [a objectEnumerator];
       NSString  *s = nil;
 
+NSLog(@"Got %@", a);
       while ((s = [e nextObject]) != nil)
         if ([s rangeOfString: @"testAbc"].length > 0)
           break;

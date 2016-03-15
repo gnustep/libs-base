@@ -63,6 +63,9 @@
 @end
 
 
+#define DISTANT_FUTURE	63113990400.0
+#define DISTANT_PAST	-63113817600.0
+
 static NSString	*cformat = @"%Y-%m-%d %H:%M:%S %z";
 
 static NSTimeZone	*localTZ = nil;
@@ -1620,6 +1623,16 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 	          format: @"[%@-%@] interval is not a number",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
+#if	GS_SIZEOF_VOIDP == 4
+  if (seconds <= DISTANT_PAST)
+    {
+      seconds = DISTANT_PAST;
+    }
+  else if (seconds >= DISTANT_FUTURE)
+    {
+      seconds = DISTANT_FUTURE;
+    }
+#endif
   _seconds_since_ref = seconds;
   if (_calendar_format == nil)
     {

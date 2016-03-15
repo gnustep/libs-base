@@ -1412,6 +1412,18 @@ otherTime(NSDate* other)
 	          format: @"[%@-%@] interval is not a number",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
     }
+
+#if	GS_SIZEOF_VOIDP == 4
+  if (secs <= DISTANT_PAST)
+    {
+      secs = DISTANT_PAST;
+    }
+  else if (secs >= DISTANT_FUTURE)
+    {
+      secs = DISTANT_FUTURE;
+    }
+#endif
+
   _seconds_since_ref = secs;
   return self;
 }
