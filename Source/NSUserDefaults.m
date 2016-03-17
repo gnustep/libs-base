@@ -2345,14 +2345,14 @@ static BOOL isLocked = NO;
 
               /*
                * In case we have tried and failed to break the lock,
-               * we give up after a while ... 16 seconds should give
-               * us three lock breaks if we do them at 5 second
+               * we give up after a while ... 66 seconds should give
+               * us three lock breaks if we do them at 20 second
                * intervals.
                */
-              if ([when timeIntervalSinceDate: started] > 16.0)
+              if ([when timeIntervalSinceDate: started] > 66.0)
                 {
-                  fprintf(stderr, "Failed to lock user defaults database even after "
-                    "breaking old locks!\n");
+                  fprintf(stderr, "Failed to lock user defaults database"
+                    " even after breaking old locks!\n");
                   RELEASE(arp);
                   break;
                 }
@@ -2362,7 +2362,7 @@ static BOOL isLocked = NO;
                * problem we do an idle wait rather than a busy one.
                */
               if (lockDate != nil
-                && [when timeIntervalSinceDate: lockDate] > 5.0)
+                && [when timeIntervalSinceDate: lockDate] > 20.0)
                 {
                   NSLog(@"NSUserdefaults file lock at %@ is dated %@ ... break",
                     _fileLock, lockDate);
