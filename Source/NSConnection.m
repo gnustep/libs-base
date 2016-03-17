@@ -335,7 +335,7 @@ GS_PRIVATE_INTERNAL(NSConnection)
 
 - (void) handlePortMessage: (NSPortMessage*)msg;
 - (void) _runInNewThread;
-+ (void) setDebug: (int)val;
++ (int) setDebug: (int)val;
 - (void) _enableKeepalive;
 
 - (void) addLocalObject: (NSDistantObject*)anObj;
@@ -2466,9 +2466,12 @@ static NSLock	*cached_proxies_gate = nil;
   [loop run];
 }
 
-+ (void) setDebug: (int)val
++ (int) setDebug: (int)val
 {
+  int   old = debug_connection;
+
   debug_connection = val;
+  return old;
 }
 
 - (void) _keepalive: (NSNotification*)n
