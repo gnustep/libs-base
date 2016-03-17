@@ -380,13 +380,16 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 @end
 
 @interface NSDistantObject (Debug)
-+ (void) setDebug: (int)val;
++ (int) setDebug: (int)val;
 @end
 
 @implementation NSDistantObject (Debug)
-+ (void) setDebug: (int)val
++ (int) setDebug: (int)val
 {
+  int   old = debug_proxy;
+
   debug_proxy = val;
+  return old;
 }
 @end
 

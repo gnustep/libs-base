@@ -1,3 +1,16 @@
+2016-03-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Headers/GNUstepBase/GSXML.h:
+        * Source/Additions/GSXML.m:
+        * Source/GSHTTPURLHandle.m:
+        * Source/NSConnection.m:
+        * Source/NSDistantObject.m:
+        * Source/NSURLHandle.m:
+        * Source/NSURLRequest.m:
+	Make -setDebug: consistently set/return an integer even if the
+	underlying meaning is boolean.  Avoid compiler warnings when
+	calling the method on an id and signature is not known.
+
 2016-03-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSCalendarDate.m:

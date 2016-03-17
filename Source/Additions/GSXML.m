@@ -5454,14 +5454,15 @@ static void indentation(unsigned level, NSMutableString *str)
   return YES;
 }
 
-- (void) setDebug: (BOOL)flag
+- (int) setDebug: (int)flag
 {
 #ifdef GNUSTEP
   if ([handle respondsToSelector: _cmd] == YES)
     {
-      [(id)handle setDebug: flag];
+      return [(id)handle setDebug: flag];
     }
 #endif
+  return NO;
 }
 
 - (void) setCompact: (BOOL)flag

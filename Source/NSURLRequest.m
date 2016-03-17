@@ -276,9 +276,12 @@ typedef struct {
   return o;
 }
 
-- (void) setDebug: (BOOL)flag
+- (int) setDebug: (int)flag
 {
-  this->debug = flag;
+  int   old = this->debug;
+
+  this->debug = flag ? YES : NO;
+  return old;
 }
 
 - (NSTimeInterval) timeoutInterval

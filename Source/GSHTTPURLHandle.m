@@ -128,7 +128,7 @@ static NSString	*httpVersion = @"1.1";
     reading,
   } connectionState;
 }
-- (void) setDebug: (BOOL)flag;
+- (int) setDebug: (int)flag;
 - (void) _tryLoadInBackground: (NSURL*)fromURL;
 @end
 
@@ -1304,9 +1304,12 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   return result;
 }
 
-- (void) setDebug: (BOOL)flag
+- (int) setDebug: (int)flag
 {
-  debug = flag;
+  int   old = debug;
+
+  debug = flag ? YES : NO;
+  return old;
 }
 
 - (void) setReturnAll: (BOOL)flag
