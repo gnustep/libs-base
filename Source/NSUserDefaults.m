@@ -1789,7 +1789,8 @@ static BOOL isPlistObject(id o)
 - (BOOL) synchronize
 {
   NSDate		*saved;
-  BOOL			wasLocked;
+  BOOL			isLocked = NO;
+  BOOL			wasLocked = NO;
   BOOL			result = YES;
   BOOL			haveChange = NO;
 
@@ -1825,6 +1826,7 @@ static BOOL isPlistObject(id o)
 	      NSEnumerator		*enumerator;
 	      NSString			*domainName;
 
+              isLocked = YES;
 	      haveChange = [self _readDefaults];
 	      if (YES == haveChange)
 		{
@@ -1867,8 +1869,9 @@ static BOOL isPlistObject(id o)
 		{
 		  updateCache(self);
 		}
-	      if (NO == wasLocked)
+	      if (YES == isLocked && NO == wasLocked)
 		{
+                  isLocked = NO;
 		  [self _unlockDefaultsFile];
 		}
 	    }
@@ -1878,6 +1881,11 @@ static BOOL isPlistObject(id o)
     {
       [_lastSync release];
       _lastSync = saved;
+      if (YES == isLocked && NO == wasLocked)
+        {
+          isLocked = NO;
+          [self _unlockDefaultsFile];
+        }
       [_lock unlock];
       [localException raise];
     }
