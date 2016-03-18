@@ -1,7 +1,7 @@
 /** This tool produces GSDoc files from source files.
 
    <title>Autogsdoc ... a tool to make documentation from source code</title>
-   Copyright (C) 2001 Free Software Foundation, Inc.
+   Copyright (C) 2001-2016 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 2001
@@ -2266,7 +2266,7 @@ main(int argc, char **argv, char **env)
 				  options: NSLiteralSearch];
 		  if (r.length == 0)
 		    {
-		      NSLog(@"Missing '#' in href at %lu", replace.location);
+		      NSLog(@"Missing '#' in href at %lu", (unsigned long)replace.location);
 		      break;
 		    }
 		  href = [href substringFromIndex: NSMaxRange(r)];
@@ -2278,7 +2278,7 @@ main(int argc, char **argv, char **env)
 				  options: NSLiteralSearch];
 		  if (r.length == 0)
 		    {
-		      NSLog(@"Missing '$' in href at %lu", replace.location);
+		      NSLog(@"Missing '$' in href at %lu", (unsigned long)replace.location);
 		      break;
 		    }
 		  type = [href substringToIndex: r.location];
@@ -2318,7 +2318,7 @@ main(int argc, char **argv, char **env)
 		      if (unit == nil)
 			{
 			  NSLog(@"Missing unit name terminator at %lu",
-			    replace.location);
+                                (unsigned long)replace.location);
 			  break;
 			}
 		    }
