@@ -31,6 +31,7 @@
 #import "Foundation/NSNull.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSTimer.h"
+#import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #if defined(_REENTRANT)
@@ -543,6 +544,11 @@ QueryCallback(DNSServiceRef			 sdRef,
       
       if (flags & kDNSServiceFlagsAdd)
 	    {
+        if ([[NSUserDefaults standardUserDefaults] boolForKey: @"GSMDNSNetServiceLoggingEnabled"])
+        {
+          NSLog(@"%s:found service name: %@ <%s> type:  %@ <%s> domain: %@ <%s>", __PRETTY_FUNCTION__,
+                name, replyName, type, replyType, domain, replyDomain);
+        }
 	      service = [[GSMDNSNetService alloc] initWithDomain: domain
                                                       type: type
                                                       name: name];
@@ -1661,7 +1667,7 @@ QueryCallback(DNSServiceRef			 sdRef,
         }
 	      else if ([[values objectAtIndex: i] isKindOfClass: [NSData class]]
                  && [[values objectAtIndex: i] length] < 256
-                 && [[values objectAtIndex: i] length] >= 0)
+                 && [[values objectAtIndex: i] length] != 0)
         {
           err = TXTRecordSetValue(&txt,
                                   (const char *) key,
@@ -1858,11 +1864,11 @@ QueryCallback(DNSServiceRef			 sdRef,
     service->timeout = nil;
     
     service->info = [[NSMutableDictionary alloc] initWithCapacity: 3];
-    [service->info setObject: [domain retain]
+    [service->info setObject: [[domain copy] autorelease]
                       forKey: @"Domain"];
-    [service->info setObject: [name retain]
+    [service->info setObject: [[name copy] autorelease]
                       forKey: @"Name"];
-    [service->info setObject: [type retain]
+    [service->info setObject: [[type copy] autorelease]
                       forKey: @"Type"];
     
     service->foundAddresses = nil;
