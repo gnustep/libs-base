@@ -1,3 +1,8 @@
+2016-03-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Wait longer for locks on slow systems
+	Improve tracking of changes in persistent domains.
+
 2016-03-17  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/GNUstepBase/GSXML.h:
@@ -19,7 +24,7 @@
 
 2016-03-14  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSUserDefaults.m: Log is we break the lock.
+	* Source/NSUserDefaults.m: Log if we break the lock.
 	* Source/NSDistributedLock.m: Unlock if dealloc'ed while locked.
 
 2016-03-12  Richard Frith-Macdonald <rfm@gnu.org>
