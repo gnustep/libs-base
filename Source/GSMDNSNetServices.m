@@ -512,9 +512,8 @@ static void DNSSD_API
 	  
 	  if (flags & kDNSServiceFlagsAdd)
 	    {
-	      service = [[GSMDNSNetService alloc] initWithDomain: domain
-							type: type
-							name: name];
+	      service = AUTORELEASE([[GSMDNSNetService alloc]
+                initWithDomain: domain type: type name: name]);
 	      
 	      if (service)
 		{
@@ -526,8 +525,6 @@ static void DNSSD_API
 		  
 		  [browser->services setObject: service
 					forKey: key];
-		  
-		  [service autorelease];
 		}
 	      else
 		{
@@ -645,16 +642,14 @@ static void DNSSD_API
 	browser->timer = nil;
       }
     
-    browser->timer = [NSTimer timerWithTimeInterval: INTERVAL
-                                             target: self
-                                           selector: @selector(loop:)
-                                           userInfo: nil
-                                            repeats: YES];
+    browser->timer = RETAINM([NSTimer timerWithTimeInterval: INTERVAL
+                                                     target: self
+                                                   selector: @selector(loop:)
+                                                   userInfo: nil
+                                                    repeats: YES]);
     
     browser->runloop = aRunLoop;
     browser->runloopmode = mode;
-    
-    [browser->timer retain];
   }
   UNLOCK(browser);
 }
@@ -1020,12 +1015,12 @@ static void DNSSD_API
 	  
 	  // Add the TXT record
 	  txt = txtRecord
-	    ? [[NSData alloc] initWithBytes: txtRecord length: txtLen]
+	    ? [NSData dataWithBytes: txtRecord length: txtLen]
 	    : nil;
 	  
 	  // Get the host
 	  target = hosttarget
-	    ? [[NSString alloc] initWithUTF8String: hosttarget]
+	    ? [NSString stringWithUTF8String: hosttarget]
 	    : nil;
 	  
 	  // Add the port
@@ -1037,7 +1032,6 @@ static void DNSSD_API
 	  if (txt)
 	    {
 	      [service->info setObject: txt forKey: @"TXT"];
-	      [txt release];
 	    }
 	  
 	  // Remove the old host entry
@@ -1047,7 +1041,6 @@ static void DNSSD_API
 	  if (target)
 	    {
 	      [service->info setObject: target forKey: @"Host"];
-	      [target release];
 	    }
 	  
 	  /* Add the interface so all subsequent
@@ -1144,10 +1137,13 @@ static void DNSSD_API
     memset(rdb, 0, sizeof rdb);
     
     addresses = [service->info objectForKey: @"Addresses"];
-    
     if (nil == addresses)
       {
-	addresses = [[NSMutableArray alloc] initWithCapacity: 1];
+	addresses = [NSMutableArray arrayWithCapacity: 1];
+      }
+    else
+      {
+        addreses = AUTORELEASE([addresses mutableCopy]);
       }
     
     switch(rrtype)
@@ -1217,13 +1213,11 @@ static void DNSSD_API
 			      length: length];
 	
 	[addresses addObject: data];
-	[service->info setObject: [addresses retain]
+	[service->info setObject: AUTORELEASE([addresses copy])
 			  forKey: @"Addresses"];
 	
 	// notify the delegate
 	[self netServiceDidResolveAddress: self];
-	
-	[addresses release];
 	
 	// got it, so invalidate the timeout
 	[service->timeout invalidate];
@@ -1543,7 +1537,7 @@ static void DNSSD_API
 		}
 	      else if ([[values objectAtIndex: i] isKindOfClass: [NSData class]]
 		&& [[values objectAtIndex: i] length] < 256
-		&& [[values objectAtIndex: i] length] >= 0)
+		&& [[values objectAtIndex: i] length] > 0)
 		{
 		  err = TXTRecordSetValue(&txt,
 		    (const char *) key,
@@ -1740,11 +1734,11 @@ static void DNSSD_API
       service->timeout = nil;
       
       service->info = [[NSMutableDictionary alloc] initWithCapacity: 3];
-      [service->info setObject: [domain retain]
+      [service->info setObject: AUTORELEASE([domain copy])
 			forKey: @"Domain"];
-      [service->info setObject: [name retain]
+      [service->info setObject: AUTORELEASE([name copy])
 			forKey: @"Name"];
-      [service->info setObject: [type retain]
+      [service->info setObject: AUTORELEASE([type copy])
 			forKey: @"Type"];
       
       service->foundAddresses = nil;
@@ -1825,16 +1819,14 @@ static void DNSSD_API
 	service->timer = nil;
       }
     
-    service->timer = [NSTimer timerWithTimeInterval: INTERVAL
-                                             target: self
-                                           selector: @selector(loop:)
-                                           userInfo: nil
-                                            repeats: YES];
+    service->timer = RETAUN([NSTimer timerWithTimeInterval: INTERVAL
+                                                    target: self
+                                                  selector: @selector(loop:)
+                                                  userInfo: nil
+                                                   repeats: YES]);
     
     service->runloop = aRunLoop;
     service->runloopmode = mode;
-    
-    [service->timer retain];
   }
   UNLOCK(service);
 }
@@ -2476,7 +2468,7 @@ static void DNSSD_API
       monitor->timer = nil;
       
       _netServiceMonitor = NULL;
-      _delegate = [delegate retain];
+      ASSIGN(_delegate, delegate);
       _reserved = monitor;
     }
   return self;
