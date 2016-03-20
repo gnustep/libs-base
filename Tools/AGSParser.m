@@ -2424,6 +2424,7 @@ fail:
  * whitespace and try again.
  * If we read end of data, or anything which is invalid inside an
  * identifier, we return nil.
+ * If we read a GS_GENERIC... macro, we return its first argument.
  */
 - (NSString*) parseIdentifier
 {
@@ -2445,6 +2446,28 @@ try:
 
 	  tmp = [[NSString alloc] initWithCharacters: &buffer[start]
 					      length: pos - start];
+          if ([tmp isEqual: @"GS_GENERIC_CLASS"]
+            || [tmp isEqual: @"GS_GENERIC_TYPE"])
+            {
+              [self skipSpaces];
+              if (pos < length && buffer[pos] == '(')
+                {
+                  pos++;
+                  /* Found a GS_GENERIC_ macro ... the first
+                   * identifier inside the macro arguments is the 
+                   * name we want to return.
+                   */
+                  RELEASE(tmp);
+                  tmp = RETAIN([self parseIdentifier]);
+                  while (pos < length)
+                    {
+                      if (buffer[pos++] == ')')
+                        {
+                          break;
+                        }
+                    }
+                }
+            }
 	  val = [wordMap objectForKey: tmp];
 	  if (val == nil)
 	    {

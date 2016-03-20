@@ -1,3 +1,16 @@
+2016-03-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	* ANNOUNCE:
+	* NEWS:
+	* NSTimeZones/NSTimeZones.tar:
+	* Tools/AGSParser.m:
+	* Version:
+	Update version for new release. Add short news/announce entries.
+	Update timezone information to latest IANA data.
+	Add simple support for generics to autogsdoc.
+
 2016-03-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Wait longer for locks on slow systems
@@ -194,6 +207,7 @@
 	an object at the end of the array.
 
 2016-02-22	Niels Grewe <niels.grewe@halbordnung.de>
+
 	* Headers/Foundation/NSObjCRuntime.h: Add macros for backwards-
 	compatible generics annotations. Also define instancetype if necessary.
 	* Headers/Foundation/NSArray.h:
