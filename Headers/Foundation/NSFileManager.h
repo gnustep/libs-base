@@ -311,19 +311,22 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
 /**
  * Returns an array of NSURL of the contents of the specified directory. <br>
  * The listing is shallow and does not recurse into subdirectories.
- * The special files '.' and '..' are excluded but it can return hidden files. <br>
- * The only <i>mask</i> option supported is  NSDirectoryEnumerationSkipsHiddenFiles.<br>
+ * The special files '.' and '..' are excluded but it can return
+ * hidden files.<br>
+ * The only mask option supported is
+ * NSDirectoryEnumerationSkipsHiddenFiles.<br>
  * The current implementation handles only files and property keys are ignored.
  */
-- (NSArray*) contentsOfDirectoryAtURL:(NSURL*)url
-           includingPropertiesForKeys:(NSArray*)keys
-                              options:(NSDirectoryEnumerationOptions)mask
-                                error:(NSError **)error;
+- (NSArray*) contentsOfDirectoryAtURL: (NSURL*)url
+           includingPropertiesForKeys: (NSArray*)keys
+                              options: (NSDirectoryEnumerationOptions)mask
+                                error: (NSError **)error;
 #endif
   
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 /**
- * Returns an array of NSStrings of the contents of the specified directory.<br />
+ * Returns an array of NSStrings of the contents of the
+ * specified directory.<br />
  * The listing does <strong>not</strong> recursively list subdirectories.<br />
  * The special files '.' and '..' are not listed.<br />
  * Indicates an error by returning nil (eg. if path is not a directory or

@@ -30,6 +30,19 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.24.9</heading>
+        <p>A new stable (bugfix) release.<br />
+        Niels added support for generics.<br />
+        Support for 'ng' runtime library (latest language features
+        enabled)<br />
+        Performance optimisations and improved diagnostic messages.<br />
+        Garbage Collection deprecated (support to be removed).<br />
+        As usual, this release also contains an update to include the
+        most recent international timezone data.
+        </p>
+      </section>
+
+      <section>
 	<heading>Version 1.24.8</heading>
         <p>A new stable (bugfix) release.<br />
         The release contains a variety of bugfixes as well as some

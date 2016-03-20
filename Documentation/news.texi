@@ -11,6 +11,18 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.24.9}
+@itemize @bullet
+@item Niels added support for generics
+@item Support for 'ng' runtime library (latest language features enabled)
+@item Performance optimisations and improved diagnostic messages
+@item Garbage Collection deprecated (support to be removed)
+@item As usual, this release also contains an update to include the
+most recent international timezone data.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.24.8}
 @itemize @bullet
 @item Performance optimisations (particularly in the use of tiny string
@@ -24,8 +36,6 @@ fixing a few bugs there).
 most recent international timezone data.
 @item Various other bugfixes.
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.24.7}
 

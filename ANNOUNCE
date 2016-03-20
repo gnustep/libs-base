@@ -1,7 +1,7 @@
 1 Announcement
 **************
 
-The GNUstep Base Library, version 1.24.8, is now available.
+The GNUstep Base Library, version 1.24.9, is now available.
 
 1.1 What is the GNUstep Base Library?
 =====================================
@@ -16,33 +16,25 @@ remote object messaging support (distributed objects), and event loops.
 portion of the OpenStep standard (the Foundation library).
 
    There is more information available at the GNUstep homepage at
-`http://www.gnustep.org'.
+'http://www.gnustep.org'.
 
-1.2 Noteworthy changes in version `1.24.8'
+1.2 Noteworthy changes in version '1.24.9'
 ==========================================
 
-   * Performance optimisations (particularly in the use of tiny string
-     objects by the new objc runtime on 64bit systems).
-
-   * Thread naming and logging of threads by NSLog() has been made
-     consistent with the latest OSX releases, making debugging of
-     multithreaded code a little easier.
-
-   * Sergei Golovin has added NSURLConnection regression tests (while
-     fixing a few bugs there).
-
+   * Niels added support for generics
+   * Support for 'ng' runtime library (latest language features enabled)
+   * Performance optimisations and improved diagnostic messages
+   * Garbage Collection deprecated (support to be removed)
    * As usual, this release also contains an update to include the most
      recent international timezone data.
 
-   * Various other bugfixes.
+1.3 Where can you get it? How can you compile it?
+=================================================
 
-1.3 Where can you get it?  How can you compile it?
-==================================================
+The gnustep-base-1.24.9.tar.gz distribution file has been placed at
+<ftp://ftp.gnustep.org/pub/gnustep/core>.
 
-The gnustep-base-1.24.8.tar.gz distribution file has been placed at
-`ftp://ftp.gnustep.org/pub/gnustep/core'.
-
-Please log bug reports on the GNUstep project page
-`http://savannah.gnu.org/bugs/?group=gnustep' or send bug reports to
+   Please log bug reports on the GNUstep project page
+<http://savannah.gnu.org/bugs/?group=gnustep> or send bug reports to
 <bug-gnustep@gnu.org>.
 
