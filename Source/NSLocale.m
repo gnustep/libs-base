@@ -853,11 +853,12 @@ static NSRecursiveLock *classLock = nil;
   return _localeId;
 }
 
-- (BOOL) isEqual: (id) obj
+- (BOOL) isEqual: (id)obj
 {
   if ([obj isKindOfClass: [self class]])
-    return [_localeId isEqual: [obj localeIdentifier]];
-  
+    {
+      return [_localeId isEqual: [obj localeIdentifier]];
+    }
   return NO;
 }
 
@@ -1050,28 +1051,26 @@ static NSRecursiveLock *classLock = nil;
 
 - (NSString *) _getDecimalSeparator
 {
-  NSNumberFormatter *nFor;
-  NSString *result;
+  NSNumberFormatter    *nFor;
+  NSString              *result;
   
   nFor = [[NSNumberFormatter alloc] init];
   [nFor setLocale: self];
   [nFor setNumberStyle: NSNumberFormatterDecimalStyle];
   result = [nFor decimalSeparator];
-  
   RELEASE(nFor);
   return result;
 }
 
 - (NSString *) _getGroupingSeparator
 {
-  NSNumberFormatter *nFor;
-  NSString *result;
+  NSNumberFormatter     *nFor;
+  NSString              *result;
   
   nFor = [[NSNumberFormatter alloc] init];
   [nFor setLocale: self];
   [nFor setNumberStyle: NSNumberFormatterDecimalStyle];
   result = [nFor groupingSeparator];
-  
   RELEASE(nFor);
   return result;
 }
