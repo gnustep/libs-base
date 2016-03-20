@@ -642,11 +642,11 @@ static void DNSSD_API
 	browser->timer = nil;
       }
     
-    browser->timer = RETAINM([NSTimer timerWithTimeInterval: INTERVAL
-                                                     target: self
-                                                   selector: @selector(loop:)
-                                                   userInfo: nil
-                                                    repeats: YES]);
+    browser->timer = RETAIN([NSTimer timerWithTimeInterval: INTERVAL
+                                                    target: self
+                                                  selector: @selector(loop:)
+                                                  userInfo: nil
+                                                   repeats: YES]);
     
     browser->runloop = aRunLoop;
     browser->runloopmode = mode;
@@ -1143,7 +1143,7 @@ static void DNSSD_API
       }
     else
       {
-        addreses = AUTORELEASE([addresses mutableCopy]);
+        addresses = AUTORELEASE([addresses mutableCopy]);
       }
     
     switch(rrtype)
@@ -1819,7 +1819,7 @@ static void DNSSD_API
 	service->timer = nil;
       }
     
-    service->timer = RETAUN([NSTimer timerWithTimeInterval: INTERVAL
+    service->timer = RETAIN([NSTimer timerWithTimeInterval: INTERVAL
                                                     target: self
                                                   selector: @selector(loop:)
                                                   userInfo: nil
