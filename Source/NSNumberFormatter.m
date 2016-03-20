@@ -1523,16 +1523,17 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   return internal->_genDecimal; // FIXME
 }
 
-
-- (void) setLocale: (NSLocale *) locale
+- (void) setLocale: (NSLocale *)locale
 {
-  RELEASE(internal->_locale);
-  
-  if (locale == nil)
-    locale = [NSLocale currentLocale];
-  internal->_locale = RETAIN(locale);
-  
-  [self _resetUNumberFormat];
+  if (nil == locale)
+    {
+      locale = [NSLocale currentLocale];
+    }
+  if (NO == [locale isEqual: internal->_locale])
+    {
+      ASSIGN(internal->_locale, locale);
+      [self _resetUNumberFormat];
+    }
 }
 
 - (NSLocale *) locale
@@ -2135,23 +2136,24 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 - (void) _resetUNumberFormat
 {
 #if GS_USE_ICU == 1
-  unichar buffer[BUFFER_SIZE];
-  NSUInteger length;
-  UNumberFormatStyle style;
-  UErrorCode err = U_ZERO_ERROR;
-  const char *cLocaleId;
-  int32_t idx;
+  unichar               buffer[BUFFER_SIZE];
+  NSUInteger            length;
+  UNumberFormatStyle    style;
+  UErrorCode            err = U_ZERO_ERROR;
+  const char            *cLocaleId;
+  int32_t               idx;
   
   if (internal->_formatter)
-    unum_close(internal->_formatter);
-  
+    {
+      unum_close(internal->_formatter);
+    } 
   cLocaleId = [[internal->_locale localeIdentifier] UTF8String];
   style = NSToICUFormatStyle (internal->_style);
-  
   internal->_formatter = unum_open (style, NULL, 0, cLocaleId, NULL, &err);
   if (U_FAILURE(err))
-    internal->_formatter = NULL;
-  
+    {
+      internal->_formatter = NULL;
+     } 
   // Reset all properties
   for (idx = 0; idx < MAX_SYMBOLS; ++idx)
     {
@@ -2159,7 +2161,9 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 	{
 	  length = [internal->_symbols[idx] length];
 	  if (length > BUFFER_SIZE)
-	    length = BUFFER_SIZE;
+            {
+              length = BUFFER_SIZE;
+            }
 	  [internal->_symbols[idx] getCharacters: buffer
 					   range: NSMakeRange (0, length)];
 	  unum_setSymbol (internal->_formatter, idx, buffer, length, &err);
@@ -2172,9 +2176,11 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 	{
 	  length = [internal->_textAttributes[idx] length];
 	  if (length > BUFFER_SIZE)
-	    length = BUFFER_SIZE;
+            {
+              length = BUFFER_SIZE;
+            }
 	  [internal->_textAttributes[idx] getCharacters: buffer
-					   range: NSMakeRange (0, length)];
+            range: NSMakeRange (0, length)];
 	  unum_setTextAttribute
 	    (internal->_formatter, idx, buffer, length, &err);
 	}
