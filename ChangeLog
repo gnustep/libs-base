@@ -1,3 +1,9 @@
+2016-03-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: Remove unused function.  Change binary
+	plist generation to return NO if our index table needs to grow,
+	rather than raising exceptions during normal operation.
+
 2016-03-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/ReleaseNotes.gsdoc:
