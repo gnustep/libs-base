@@ -499,7 +499,7 @@ foundIgnorableWhitespace: (NSString *)string
 - (id) initWithPropertyList: (id)aPropertyList
                    intoData: (NSMutableData *)destination;
 - (void) generate;
-- (void) storeObject: (id)object;
+- (BOOL) storeObject: (id)object;
 - (void) cleanup;
 
 @end
@@ -1498,11 +1498,6 @@ encodeBase64(NSData *source, NSMutableData *dest)
       GSPrivateEncodeBase64((const uint8_t*)[source bytes],
         length, (uint8_t*)[dest mutableBytes] + base);
     }
-}
-
-static inline void Append(void *bytes, unsigned length, NSMutableData *dst)
-{
-  [dst appendBytes: bytes length: length];
 }
 
 /*
@@ -3488,7 +3483,7 @@ isEqualFunc(const void *item1, const void *item2,
     }
 }
 
-- (void) writeObjects
+- (BOOL) writeObjects
 {
   id object;
   const char *prefix = "bplist00";
@@ -3498,12 +3493,16 @@ isEqualFunc(const void *item1, const void *item2,
   while ([objectsToDoList count] != 0)
     {
       object = [objectsToDoList objectAtIndex: 0];
-      [self storeObject: object];
+      if (NO == [self storeObject: object])
+        {
+          return NO;
+        }
       [objectsToDoList removeObjectAtIndex: 0];
     }
+  return YES;
 }
 
-- (void) markOffset: (unsigned int) offset for: (id)object
+- (BOOL) markOffset: (unsigned int) offset for: (id)object
 {
   int oid;
 
@@ -3516,11 +3515,11 @@ isEqualFunc(const void *item1, const void *item2,
   oid--;
   if (oid >= table_size)
     {
-      [NSException raise: NSRangeException
-		   format: @"Object table index out of bounds %d.", oid];
+      return NO;
     }
 
   table[oid] = offset;
+  return YES;
 }
 
 - (void) writeObjectTable
@@ -4040,9 +4039,12 @@ isEqualFunc(const void *item1, const void *item2,
     }
 }
 
-- (void) storeObject: (id)object
+- (BOOL) storeObject: (id)object
 {
-  [self markOffset: [dest length] for: object];
+  if (NO == [self markOffset: [dest length] for: object])
+    {
+      return NO;
+    }
 
   if ([object isKindOfClass: NSStringClass])
     {
@@ -4072,6 +4074,7 @@ isEqualFunc(const void *item1, const void *item2,
     {
       NSLog(@"Unknown object class %@", object);
     }
+  return YES;
 }
 
 - (void) generate
@@ -4085,15 +4088,17 @@ isEqualFunc(const void *item1, const void *item2,
       NS_DURING
 	{
 	  [self setup];
-	  [self writeObjects];
-	  done = YES;
+	  done = [self writeObjects];
 	}
       NS_HANDLER
 	{
-	  [self cleanup];
-	  index_size += 1;
 	}
       NS_ENDHANDLER
+      if (NO == done)
+        {
+          [self cleanup];
+          index_size += 1;
+        }
     }
 
   [self writeObjectTable];
