@@ -1033,7 +1033,7 @@ if (aValue >= -1 && aValue <= 12)\
   double doublebuf;
   void  *buffer;
 
-  [coder encodeValueOfObjCType: @encode (char) at: type];
+  [coder encodeValueOfObjCType: @encode(char) at: type];
 
   switch (type[0])
     {
@@ -1056,6 +1056,9 @@ if (aValue >= -1 && aValue <= 12)\
         buffer = &floatbuf; break;
       case 'd':
         buffer = &doublebuf; break;
+      default:
+        [NSException raise: NSInternalInconsistencyException
+                    format: @"unknown NSNumber type '%s'", type];
     }
 
   [self getValue: buffer];
@@ -1080,7 +1083,7 @@ if (aValue >= -1 && aValue <= 12)\
   double doublebuf;
   void *buffer;
 
-  [coder decodeValueOfObjCType: @encode (char) at: type];
+  [coder decodeValueOfObjCType: @encode(char) at: type];
   switch (type[0])
     {
       case 'c':
@@ -1102,7 +1105,10 @@ if (aValue >= -1 && aValue <= 12)\
         buffer = &floatbuf; break;
       case 'd':
         buffer = &doublebuf; break;
-    }
+      default:
+        [NSException raise: NSInternalInconsistencyException
+                    format: @"unknown NSNumber type '%c'", type[0]];
+     }
   [coder decodeValueOfObjCType: type at: buffer];
   return [self initWithBytes: buffer objCType: type];
 }
