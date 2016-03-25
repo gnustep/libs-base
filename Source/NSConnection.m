@@ -110,13 +110,6 @@ skip_argspec(const char *ptr)
 #define	GSI_MAP_HASH(M, X)	((X).nsu ^ ((X).nsu >> 3))
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #define	GSI_MAP_NOCLEAN	1
-#if	GS_WITH_GC
-// FIXME ...
-#include	<gc/gc_typed.h>
-static GC_descr	nodeDesc;	// Type descriptor for map node.
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
-#endif
 
 
 #include "GNUstepBase/GSIMap.h"
@@ -643,16 +636,6 @@ static NSLock	*cached_proxies_gate = nil;
     {
       NSNotificationCenter	*nc;
 
-#if	GS_WITH_GC
-      /* We create a typed memory descriptor for map nodes.
-       * FIXME
-       */
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#endif
-
       GSMakeWeakPointer(self, "delegate");
       connectionClass = self;
       dateClass = [NSDate class];
@@ -896,7 +879,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (id) delegate
 {
-  return GS_GC_UNHIDE(Idelegate);
+  return Idelegate;
 }
 
 - (NSString*) description
@@ -1080,13 +1063,7 @@ static NSLock	*cached_proxies_gate = nil;
    * This maps request sequence numbers to the NSPortCoder objects representing
    * replies arriving from the remote connection.
    */
-#if	GS_WITH_GC
-  IreplyMap
-    = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
-    NSScannedOption);
-#else
   IreplyMap = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
-#endif
   GSIMapInitWithZoneAndCapacity(IreplyMap, z, 4);
 
   /*
@@ -1094,40 +1071,22 @@ static NSLock	*cached_proxies_gate = nil;
    * We use this instead of an NSHashTable because we only care about
    * the object's address, and don't want to send the -hash message to it.
    */
-#if	GS_WITH_GC
-  IlocalObjects
-    = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
-    NSScannedOption);
-#else
   IlocalObjects
     = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
-#endif
   GSIMapInitWithZoneAndCapacity(IlocalObjects, z, 4);
 
   /*
    * This maps handles for local objects to their local proxies.
    */
-#if	GS_WITH_GC
-  IlocalTargets
-    = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
-    NSScannedOption);
-#else
   IlocalTargets
     = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
-#endif
   GSIMapInitWithZoneAndCapacity(IlocalTargets, z, 4);
 
   /*
    * This maps targets to remote proxies.
    */
-#if	GS_WITH_GC
-  IremoteProxies
-    = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t),
-    NSScannedOption);
-#else
   IremoteProxies
     = (GSIMapTable)NSZoneMalloc(z, sizeof(GSIMapTable_t));
-#endif
   GSIMapInitWithZoneAndCapacity(IremoteProxies, z, 4);
 
   IrequestDepth = 0;
@@ -1732,7 +1691,7 @@ static NSLock	*cached_proxies_gate = nil;
  */
 - (void) setDelegate: (id)anObj
 {
-  Idelegate = GS_GC_HIDE(anObj);
+  Idelegate = anObj;
   IauthenticateIn =
     [anObj respondsToSelector: @selector(authenticateComponents:withData:)];
   IauthenticateOut =

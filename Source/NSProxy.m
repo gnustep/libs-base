@@ -217,9 +217,7 @@
  */
 - (id) autorelease
 {
-#if	GS_WITH_GC == 0
   [NSAutoreleasePool addObject: self];
-#endif
   return self;
 }
 
@@ -455,7 +453,6 @@
  */
 - (oneway void) release
 {
-#if	(GS_WITH_GC == 0)
   if (NSDecrementExtraRefCountWasZero(self))
     {
 #  ifdef OBJC_CAP_ARC
@@ -463,7 +460,6 @@
 #  endif
       [self dealloc];
     }
-#endif
 }
 
 /**

@@ -2372,11 +2372,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
       const _CHAR	*localPath;
 
       _mgr = RETAIN(mgr);
-#if	GS_WITH_GC
-      _stack = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
-#else
       _stack = NSZoneMalloc([self zone], sizeof(GSIArray_t));
-#endif
       GSIArrayInitWithZoneAndCapacity(_stack, [self zone], 64);
 
       _flags.isRecursive = recurse;

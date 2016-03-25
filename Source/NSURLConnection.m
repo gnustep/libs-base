@@ -137,13 +137,8 @@ typedef struct
 
   if (o != nil)
     {
-#if	GS_WITH_GC
-      o->_NSURLConnectionInternal
-	= NSAllocateCollectable(sizeof(Internal), NSScannedOption);
-#else
       o->_NSURLConnectionInternal = NSZoneCalloc([self zone],
 	1, sizeof(Internal));
-#endif
     }
   return o;
 }

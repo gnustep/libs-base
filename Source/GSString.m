@@ -1363,11 +1363,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
    */
   if (original == bytes)
     {
-#if	GS_WITH_GC
-      chars = NSAllocateCollectable(length, 0);
-#else
       chars = NSZoneMalloc(myZone, length);
-#endif
       memcpy(chars, bytes, length);
     }
   else
@@ -1446,18 +1442,6 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 
   if (encoding == internalEncoding)
     {
-#if	GS_WITH_GC
-      /* If we are using GC, copy and free any non-collectable buffer so
-       * we don't leak memory.
-       */
-      if (GSPrivateIsCollectable(chars.c) == NO)
-	{
-          me = newCInline(length, myZone);
-	  memcpy(me->_contents.c, chars.c, length);
-	  NSZoneFree(NSZoneFromPointer(chars.c), chars.c);
-          return (id)me;
-	}
-#endif
       me = (GSStr)NSAllocateObject(GSCBufferStringClass, 0, myZone);
       me->_contents.c = chars.c;
       me->_count = length;
@@ -1525,18 +1509,6 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
     }
   else
     {
-#if	GS_WITH_GC
-      /* If we are using GC, copy and free any non-collectable buffer so
-       * we don't leak memory.
-       */
-      if (GSPrivateIsCollectable(chars.u) == NO)
-	{
-          me = newUInline(length, myZone);
-	  memcpy(me->_contents.u, chars.u, length * sizeof(unichar));
-	  NSZoneFree(NSZoneFromPointer(chars.u), chars.u);
-          return (id)me;
-	}
-#endif
       me = (GSStr)NSAllocateObject(GSUnicodeBufferStringClass, 0, myZone);
       me->_contents.u = chars.u;
       me->_count = length;
@@ -3253,11 +3225,7 @@ static void GSStrMakeSpace(GSStr s, unsigned size)
        */
       if (s->_zone == 0)
 	{
-#if	GS_WITH_GC
-	  s->_zone = GSAtomicMallocZone();
-#else
           s->_zone = [(NSString*)s zone];
-#endif
 	}
       if (s->_flags.wide == 1)
 	{
@@ -3314,11 +3282,7 @@ static void GSStrWiden(GSStr s)
 
   if (!s->_zone)
     {
-#if GS_WITH_GC
-      s->_zone = GSAtomicMallocZone();
-#else
       s->_zone = [(NSString*)s zone];
-#endif
     }
 
   if (!GSToUnicode(&tmp, &len, s->_contents.c, s->_count,
@@ -4699,11 +4663,7 @@ agree, create a new GSUInlineString otherwise.
    */
   if (_zone == 0)
     {
-#if	GS_WITH_GC
-      _zone = GSAtomicMallocZone();
-#else
       _zone = [self zone];
-#endif
     }
   GSPrivateFormat((GSStr)self, fmt, ap, nil);
   _flags.hash = 0;	// Invalidate the hash for this string.
@@ -4967,11 +4927,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
   BOOL		shouldFree = NO;
 
   _flags.owned = YES;
-#if	GS_WITH_GC
-  _zone = GSAtomicMallocZone();
-#else
   _zone = [self zone];
-#endif
 
   if (length > 0)
     {
@@ -5148,11 +5104,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     }
   _count = 0;
   _capacity = capacity;
-#if	GS_WITH_GC
-  _zone = GSAtomicMallocZone();
-#else
   _zone = [self zone];
-#endif
   _contents.c = NSZoneMalloc(_zone, capacity + 1);
   _flags.wide = 0;
   _flags.owned = 1;

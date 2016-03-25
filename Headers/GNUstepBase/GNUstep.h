@@ -44,7 +44,7 @@
 #  define __has_extension(x) __has_feature(x)
 #endif
 
-#if	GS_WITH_GC || __has_feature(objc_arc)
+#if	__has_feature(objc_arc)
 
 #ifndef	RETAIN
 #define	RETAIN(object)		(object)

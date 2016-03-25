@@ -140,16 +140,6 @@ typedef GSIMapNode_t *GSIMapNode;
 
 #define	GSI_MAP_ENUMERATOR	NSMapEnumerator
 
-#if	GS_WITH_GC
-#include	<gc/gc_typed.h>
-static GC_descr	nodeSS = 0;
-static GC_descr	nodeSW = 0;
-static GC_descr	nodeWS = 0;
-static GC_descr	nodeWW = 0;
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), (GC_descr)M->zone)
-#endif
-
 #include "GNUstepBase/GSIMap.h"
 
 /**** Function Implementations ****/
@@ -388,9 +378,6 @@ NSCopyMapTableWithZone(NSMapTable *table, NSZone *zone)
       t->cb.pf.k = o->cb.pf.k;
       t->cb.pf.v = o->cb.pf.v;
     }
-#if	GS_WITH_GC
-  zone = ((GSIMapTable)table)->zone;
-#endif
   GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
 
   if (object_getClass(table) == concreteClass)
@@ -501,11 +488,7 @@ NSCreateMapTableWithZone(
   table->cb.old.k = k;
   table->cb.old.v = v;
 
-#if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(table, (NSZone*)nodeSS, capacity);
-#else
   GSIMapInitWithZoneAndCapacity(table, zone, capacity);
-#endif
 
   return (NSMapTable*)table;
 }
@@ -1195,23 +1178,6 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
       concreteClass = [NSConcreteMapTable class];
       instanceSize = class_getInstanceSize(concreteClass);
     }
-#if	GS_WITH_GC
-  /* We create a typed memory descriptor for map nodes.
-   */
-  if (nodeSS == 0)
-    {
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-
-      nodeWW = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      nodeSW = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-      nodeSS = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-      memset(&w[0], '\0', sizeof(w));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-      nodeWS = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-    }
-#endif
 }
 
 - (id) copyWithZone: (NSZone*)aZone

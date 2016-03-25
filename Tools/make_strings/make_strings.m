@@ -496,17 +496,13 @@ HandleLanguage(NSString *language_name, NSMutableDictionary *source_entries)
       UpdateTable([source_entries objectForKey: table_name], filename);
     }
 
-#if GS_WITH_GC == 0
   DESTROY(arp);
-#endif
 }
 
 
 int main(int argc, char **argv)
 {
-#if GS_WITH_GC == 0
   CREATE_AUTORELEASE_POOL(arp);
-#endif
 
   NSMutableDictionary *source_entries;
   NSMutableArray *languages = [NSMutableArray arrayWithCapacity: 10];
@@ -619,9 +615,8 @@ int main(int argc, char **argv)
 	}
     }
 
-#if GS_WITH_GC == 0
   DESTROY(arp);
-#endif
+
   if (error)
     return 1;
   else

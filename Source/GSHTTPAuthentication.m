@@ -56,11 +56,7 @@ static GSMimeParser		*mimeParser = nil;
   NSData		*data;
   NSString		*string;
 
-#if	GS_WITH_GC
-  dst = (char*)NSAllocateCollectable(dlen, 0);
-#else
   dst = (char*)NSZoneMalloc(NSDefaultMallocZone(), dlen);
-#endif
   while (spos < slen)
     {
       unsigned char	c = src[spos++];

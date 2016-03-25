@@ -118,10 +118,6 @@
 @class	NSDataMalloc;
 @class	NSDataStatic;
 @class	NSMutableDataMalloc;
-#if	GS_WITH_GC
-@class	NSDataFinalized;
-@class	NSMutableDataFinalized;
-#endif
 
 /*
  *	Some static variables to cache classes and methods for quick access -
@@ -132,10 +128,6 @@ static Class	dataMalloc;
 static Class	mutableDataMalloc;
 static Class	NSDataAbstract;
 static Class	NSMutableDataAbstract;
-#if	GS_WITH_GC
-static Class	dataFinalized;
-static Class	mutableDataFinalized;
-#endif
 static SEL	appendSel;
 static IMP	appendImp;
 
@@ -191,11 +183,7 @@ encodebase64(unsigned char **dstRef,
         destLen += (destLen / lineLength);      // CR or LF
     }
 
-#if	GS_WITH_GC
-  dst = NSAllocateCollectable(destLen, 0);
-#else
   dst = NSZoneMalloc(NSDefaultMallocZone(), destLen);
-#endif
 
   for (sIndex = 0; sIndex < length; sIndex += 3)
     {
@@ -318,16 +306,6 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
        */
       while ((c = fread(buf, 1, BUFSIZ, theFile)) != 0)
 	{
-#if	GS_WITH_GC
-	  if (tmp == 0)
-	    {
-	      tmp = NSAllocateCollectable(c, 0);
-	    }
-	  else
-	    {
-	      tmp = NSReallocateCollectable(tmp, fileLength + c, 0);
-	    }
-#else
 	  if (tmp == 0)
 	    {
 	      tmp = NSZoneMalloc(zone, c);
@@ -336,7 +314,6 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
 	    {
 	      tmp = NSZoneRealloc(zone, tmp, fileLength + c);
 	    }
-#endif
 	  if (tmp == 0)
 	    {
 	      NSLog(@"Malloc failed for file (%@) of length %jd - %@", path,
@@ -351,11 +328,7 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
     {
       off_t	offset = 0;
 
-#if	GS_WITH_GC
-      tmp = NSAllocateCollectable(fileLength, 0);
-#else
       tmp = NSZoneMalloc(zone, fileLength);
-#endif
       if (tmp == 0)
 	{
 	  NSLog(@"Malloc failed for file (%@) of length %jd - %@", path,
@@ -371,11 +344,7 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
       if (offset < fileLength)
 	{
           fileLength = offset;
-#if	GS_WITH_GC
-	  tmp = NSReallocateCollectable(tmp, fileLength, 0);
-#else
 	  tmp = NSZoneRealloc(zone, tmp, fileLength);
-#endif
 	}
     }
   if (ferror(theFile))
@@ -394,12 +363,9 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
    *	Just in case the failure action needs to be changed.
    */
 failure:
-#if	!GS_WITH_GC
-  if (tmp != 0)
     {
       NSZoneFree(zone, tmp);
     }
-#endif
   if (theFile != 0)
     {
       fclose(theFile);
@@ -428,25 +394,13 @@ failure:
 {
   NSUInteger	length;
   __strong void	*bytes;
-#if	GS_WITH_GC
-  BOOL		owned;
-#else
   NSZone	*zone;
-#endif
   NSUInteger	capacity;
   NSUInteger	growth;
 }
 /* Increase capacity to at least the specified minimum value.	*/
 - (void) _grow: (NSUInteger)minimum;
 @end
-
-#if	GS_WITH_GC
-@interface	NSDataFinalized : NSDataMalloc
-@end
-
-@interface	NSMutableDataFinalized : NSMutableDataMalloc
-@end
-#endif
 
 #ifdef	HAVE_MMAP
 @interface	NSDataMappedFile : NSDataMalloc
@@ -492,10 +446,6 @@ failure:
       dataStatic = [NSDataStatic class];
       dataMalloc = [NSDataMalloc class];
       mutableDataMalloc = [NSMutableDataMalloc class];
-#if	GS_WITH_GC
-      dataFinalized = [NSDataFinalized class];
-      mutableDataFinalized = [NSMutableDataFinalized class];
-#endif
       appendSel = @selector(appendBytes:length:);
       appendImp = [mutableDataMalloc instanceMethodForSelector: appendSel];
     }
@@ -884,18 +834,11 @@ failure:
   void		*fileBytes;
   off_t         fileLength;
 
-#if	GS_WITH_GC
-  if (readContentsOfFile(path, &fileBytes, &fileLength, 0) == NO)
-    {
-      return nil;
-    }
-#else
   if (readContentsOfFile(path, &fileBytes, &fileLength, [self zone]) == NO)
     {
       DESTROY(self);
       return nil;
     }
-#endif
   self = [self initWithBytesNoCopy: fileBytes
 			    length: (NSUInteger)fileLength
 		      freeWhenDone: YES];
@@ -1041,11 +984,7 @@ failure:
 
   GS_RANGE_CHECK(aRange, l);
 
-#if	GS_WITH_GC
-  buffer = NSAllocateCollectable(aRange.length, 0);
-#else
   buffer = NSZoneMalloc(NSDefaultMallocZone(), aRange.length);
-#endif
   if (buffer == 0)
     {
       [NSException raise: NSMallocException
@@ -1240,11 +1179,7 @@ failure:
 	    {
 	      unsigned	len = (length+1)*sizeof(char);
 
-#if	GS_WITH_GC
-	      *(char**)data = (char*)NSAllocateCollectable(len, 0);
-#else
 	      *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
-#endif
 	      if (*(char**)data == 0)
 	        {
 		  [NSException raise: NSMallocException
@@ -1305,11 +1240,7 @@ failure:
 	{
 	  unsigned	len = objc_sizeof_type(++type);
 
-#if	GS_WITH_GC
-	  *(char**)data = (char*)NSAllocateCollectable(len, 0);
-#else
 	  *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
-#endif
 	  if (*(char**)data == 0)
 	    {
 	      [NSException raise: NSMallocException
@@ -2297,11 +2228,7 @@ failure:
         {
           void *b;
 
-#if	GS_WITH_GC
-          b = NSAllocateCollectable(l, 0);
-#else
           b = NSZoneMalloc([self zone], l);
-#endif
           if (b == 0)
             {
               NSLog(@"[NSDataMalloc -initWithCoder:] unable to get %u bytes",
@@ -3031,11 +2958,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	    }
 	  else
 	    {
-#if	GS_WITH_GC
-	      *(char**)data = (char*)NSAllocateCollectable(len+1, 0);
-#else
 	      *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
-#endif
 	      if (*(char**)data == 0)
 	        {
 		  [NSException raise: NSMallocException
@@ -3093,11 +3016,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	{
 	  unsigned	len = objc_sizeof_type(++type);
 
-#if	GS_WITH_GC
-	  *(char**)data = (char*)NSAllocateCollectable(len, 0);
-#else
 	  *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
-#endif
 	  if (*(char**)data == 0)
 	    {
 	      [NSException raise: NSMallocException
@@ -3376,12 +3295,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       GSClassSwizzle(self, dataStatic);
     }
-#if	GS_WITH_GC
-  else if (aBuffer != 0 && GSPrivateIsCollectable(aBuffer) == NO)
-    {
-      GSClassSwizzle(self, dataFinalized);
-    }
-#endif
   bytes = aBuffer;
   length = bufferSize;
   return self;
@@ -3399,16 +3312,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 }
 
 @end
-
-#if	GS_WITH_GC
-@implementation	NSDataFinalized
-- (void) finalize
-{
-  NSZoneFree(NSDefaultMallocZone(), bytes);
-  [super finalize];
-}
-@end
-#endif
 
 
 #ifdef	HAVE_MMAP
@@ -3636,7 +3539,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (void) dealloc
 {
-#if	!GS_WITH_GC
   if (bytes != 0)
     {
       if (zone != 0)
@@ -3645,7 +3547,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       bytes = 0;
     }
-#endif
   [super dealloc];
 }
 
@@ -3685,18 +3586,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       [self setLength: 0];
       return self;
     }
-#if	GS_WITH_GC
-  if (shouldFree == YES && GSPrivateIsCollectable(aBuffer) == NO)
-    {
-      GSClassSwizzle(self, mutableDataFinalized);
-    }
-#endif
   self = [self initWithCapacity: 0];
   if (self)
     {
-#if	GS_WITH_GC
-      owned = shouldFree;	// Free memory on finalisation.
-#else
       if (shouldFree == NO)
 	{
 	  zone = 0;		// Don't free this memory.
@@ -3705,7 +3597,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	{
           zone = NSZoneFromPointer(aBuffer);
 	}
-#endif
       bytes = aBuffer;
       length = bufferSize;
       capacity = bufferSize;
@@ -3727,12 +3618,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (size)
     {
-#if	GS_WITH_GC
-      bytes = NSAllocateCollectable(size, 0);
-#else
       zone = [self zone];
       bytes = NSZoneMalloc(zone, size);
-#endif
       if (bytes == 0)
 	{
 	  NSLog(@"[NSMutableDataMalloc -initWithCapacity:] out of memory "
@@ -4143,23 +4030,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       void	*tmp;
 
-#if	GS_WITH_GC
-      tmp = NSAllocateCollectable(size, 0);
-      if (tmp == 0)
-	{
-	  [NSException raise: NSMallocException
-	    format: @"Unable to set data capacity to '%d'", size];
-	}
-      if (bytes)
-	{
-	  memcpy(tmp, bytes, capacity < size ? capacity : size);
-	  if (owned == YES)
-	    {
-	      NSZoneFree(NSDefaultMallocZone(), bytes);
-	      owned = NO;
-	    }
-	}
-#else
       tmp = NSZoneMalloc(zone, size);
       if (tmp == 0)
 	{
@@ -4182,7 +4052,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	{
 	  zone = NSDefaultMallocZone();
 	}
-#endif
       bytes = tmp;
       capacity = size;
       growth = capacity/2;
@@ -4238,17 +4107,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 }
 
 @end
-
-#if	GS_WITH_GC
-@implementation	NSMutableDataFinalized
-- (void) finalize
-{
-  if (owned == YES)
-    NSZoneFree(NSDefaultMallocZone(), bytes);
-  [super finalize];
-}
-@end
-#endif
 
 
 #ifdef	HAVE_SHMCTL

@@ -757,7 +757,7 @@ static Class	runLoopClass;
   if (recvPort == nil)
     return nil;
   else
-    return GS_GC_UNHIDE(recvPort);
+    return recvPort;
 }
 
 - (void) receivedEventRead
@@ -1456,9 +1456,9 @@ static Class	runLoopClass;
   if (sendPort == nil)
     return nil;
   else if (caller == YES)
-    return GS_GC_UNHIDE(sendPort);	// We called, so port is not retained.
+    return sendPort;	// We called, so port is not retained.
   else
-    return sendPort;			// Retained port.
+    return sendPort;	// Retained port.
 }
 
 - (void) setState: (GSHandleState)s
@@ -1760,7 +1760,7 @@ static Class		tcpPortClass;
   if (send == YES)
     {
       if (handle->caller == YES)
-	handle->sendPort = GS_GC_HIDE(self);
+	handle->sendPort = self;
       else
 	ASSIGN(handle->sendPort, self);
     }
@@ -1853,7 +1853,7 @@ static Class		tcpPortClass;
    * Enumerate all our socket handles, and put them in as long as they
    * are to be used for receiving.
    */
-  recvSelf = GS_GC_HIDE(self);
+  recvSelf = self;
   me = NSEnumerateMapTable(events);
   while (NSNextMapEnumeratorPair(&me, &event, (void**)&fd))
     {
@@ -1897,7 +1897,7 @@ static Class		tcpPortClass;
    * Enumerate all our socket handles, and put them in as long as they
    * are to be used for receiving.
    */
-  recvSelf = GS_GC_HIDE(self);
+  recvSelf = self;
   me = NSEnumerateMapTable(handles);
   while (NSNextMapEnumeratorPair(&me, &sock, (void**)&handle))
     {

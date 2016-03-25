@@ -107,14 +107,6 @@ typedef GSIMapNode_t *GSIMapNode;
 
 #define	GSI_MAP_ENUMERATOR	NSHashEnumerator
 
-#if	GS_WITH_GC
-#include	<gc/gc_typed.h>
-static GC_descr	nodeS = 0;
-static GC_descr	nodeW = 0;
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), (GC_descr)M->zone)
-#endif
-
 #include "GNUstepBase/GSIMap.h"
 
 /**** Function Implementations ****/
@@ -256,9 +248,6 @@ NSCopyHashTableWithZone(NSHashTable *table, NSZone *zone)
     {
       t->cb.pf = o->cb.pf;
     }
-#if	GS_WITH_GC
-  zone = ((GSIMapTable)table)->zone;
-#endif
   GSIMapInitWithZoneAndCapacity(t, zone, ((GSIMapTable)table)->nodeCount);
 
   enumerator = GSIMapEnumeratorForMap((GSIMapTable)table);
@@ -333,11 +322,7 @@ NSCreateHashTableWithZone(
   table->legacy = YES;
   table->cb.old = k;
 
-#if	GS_WITH_GC
-  GSIMapInitWithZoneAndCapacity(table, (NSZone*)nodeS, capacity);
-#else
   GSIMapInitWithZoneAndCapacity(table, zone, capacity);
-#endif
 
   return (NSHashTable*)table;
 }
@@ -837,18 +822,6 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
       concreteClass = [NSConcreteHashTable class];
       instanceSize = class_getInstanceSize(concreteClass);
     }
-#if	GS_WITH_GC
-  /* We create a typed memory descriptor for hash nodes.
-   */
-  if (nodeS == 0)
-    {
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-
-      nodeW = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      nodeS = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-    }
-#endif
 }
 
 - (void) addObject: (id)anObject

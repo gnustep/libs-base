@@ -45,17 +45,8 @@
 #define	GSI_MAP_HASH(M, X)	((X).nsu)
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #undef	GSI_MAP_NOCLEAN
-#if	GS_WITH_GC
-#include	<gc/gc_typed.h>
-static GC_descr	nodeDesc;	// Type descriptor for map node.
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
-#define	GSI_MAP_RETAIN_KEY(M, X)
-#define	GSI_MAP_RELEASE_KEY(M, X)
-#else
 #define	GSI_MAP_RETAIN_KEY(M, X)	RETAIN(X.obj)	
 #define	GSI_MAP_RELEASE_KEY(M, X)	RELEASE(X.obj)
-#endif
 
 
 #include "GNUstepBase/GSIMap.h"
@@ -488,15 +479,6 @@ static NSDictionary *makeReference(unsigned ref)
 
 + (void) initialize
 {
-#if	GS_WITH_GC
-  /* We create a typed memory descriptor for map nodes.
-   */
-  GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-  GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-  GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-  nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#endif
-
   GSMakeWeakPointer(self, "delegate");
 
   if (globalClassMap == 0)
@@ -871,12 +853,7 @@ static NSDictionary *makeReference(unsigned ref)
       /*
        *	Set up map tables.
        */
-#if	GS_WITH_GC
-      _cIdMap = (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t)*5,
-	NSScannedOption);
-#else
       _cIdMap = (GSIMapTable)NSZoneMalloc(zone, sizeof(GSIMapTable_t)*5);
-#endif
       _uIdMap = &_cIdMap[1];
       _repMap = &_cIdMap[2];
       GSIMapInitWithZoneAndCapacity(_cIdMap, zone, 10);

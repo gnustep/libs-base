@@ -257,13 +257,6 @@ static void obsFree(Observation *o);
 #define GSI_MAP_VEXTRA Observation*
 #define	GSI_MAP_EXTRA	BOOL
 
-#if	GS_WITH_GC
-#include	<gc/gc_typed.h>
-static GC_descr	nodeDesc;	// Type descriptor for map node.
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
-#endif
-
 #include "GNUstepBase/GSIMap.h"
 
 /*
@@ -370,11 +363,7 @@ obsNew(NCTable *t, SEL s, id o)
 #endif
 
   obs->selector = s;
-#if	GS_WITH_GC
-  GSAssignZeroingWeakPointer((void**)&obs->observer, (void*)o);
-#else
   obs->observer = o;
-#endif
 
   return obs;
 }
@@ -512,9 +501,6 @@ static void obsFree(Observation *o)
     {
       NCTable	*t = o->link;
 
-#if	GS_WITH_GC
-      GSAssignZeroingWeakPointer((void**)&o->observer, 0);
-#endif
       o->link = (NCTable*)t->freeList;
       t->freeList = o;
     }
@@ -624,24 +610,8 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
  * purgeCollectedFromMapNode() does the same thing but also handles cleanup
  * of the map node containing the list if necessary.
  */
-#if	GS_WITH_GC
-#define	purgeCollected(X)	listPurge(X, nil)
-static Observation*
-purgeCollectedFromMapNode(GSIMapTable map, GSIMapNode node)
-{
-  Observation	*o;
-
-  o = node->value.ext = purgeCollected((Observation*)(node->value.ext));
-  if (o == ENDOBS)
-    {
-      GSIMapRemoveKey(map, node->key);
-    }
-  return o;
-}
-#else
 #define	purgeCollected(X)	(X)
 #define purgeCollectedFromMapNode(X, Y) ((Observation*)Y->value.ext)
-#endif
 
 
 @interface GSNotificationBlockOperation : NSOperation
@@ -769,16 +739,7 @@ static NSNotificationCenter *default_center = nil;
 {
   if (self == [NSNotificationCenter class])
     {
-#if	GS_WITH_GC
-      /* We create a typed memory descriptor for map nodes.
-       */
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#else
       _zone = NSDefaultMallocZone();
-#endif
       if (concrete == 0)
 	{
 	  concrete = [GSNotification class];
@@ -1178,9 +1139,6 @@ static NSNotificationCenter *default_center = nil;
   GSIArrayItem	i[64];
   GSIArray_t	b;
   GSIArray	a = &b;
-#if	GS_WITH_GC
-  NSGarbageCollector	*collector = [NSGarbageCollector defaultCollector];
-#endif
 
   if (name == nil)
     {
@@ -1199,12 +1157,7 @@ static NSNotificationCenter *default_center = nil;
    * We use scanned memory in the array in the case where there are more
    * than the 64 observers we allowed room for on the stack.
    */
-#if	GS_WITH_GC
-  GSIArrayInitWithZoneAndStaticCapacity(a, (NSZone*)1, 64, i);
-  [collector disable];
-#else
   GSIArrayInitWithZoneAndStaticCapacity(a, _zone, 64, i);
-#endif
   lockNCTable(TABLE);
 
   /*
@@ -1282,15 +1235,9 @@ static NSNotificationCenter *default_center = nil;
 	}
     }
 
-  /*
-   * Finished with the table ... we can unlock it and re-enable garbage
-   * collection, safe in the knowledge that the observers we will be
-   * notifying won't get collected prematurely.
+  /* Finished with the table ... we can unlock it,
    */
   unlockNCTable(TABLE);
-#if	GS_WITH_GC
-  [collector enable];
-#endif
 
   /*
    * Now send all the notifications.

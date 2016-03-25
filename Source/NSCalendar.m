@@ -256,11 +256,7 @@ static NSRecursiveLock *classLock = nil;
 {
   NSAssert(0 == _NSCalendarInternal, NSInvalidArgumentException);
   _NSCalendarInternal = 
-#if     GS_WITH_GC
-    NSAllocateCollectable(sizeof(Calendar), NSScannedOption);
-#else
     NSZoneCalloc([self zone], sizeof(Calendar), 1);
-#endif
 
   my->firstWeekday = NSNotFound;
   my->minimumDaysInFirstWeek = NSNotFound;
@@ -854,11 +850,7 @@ typedef struct {
   if (nil != (self = [super init]))
     {
       _NSDateComponentsInternal = 
-#if     GS_WITH_GC
-      NSAllocateCollectable(sizeof(DateComp), NSScannedOption);
-#else
-      NSZoneCalloc([self zone], sizeof(DateComp), 1);
-#endif
+        NSZoneCalloc([self zone], sizeof(DateComp), 1);
 
       my->era = NSDateComponentUndefined;
       my->year = NSDateComponentUndefined;

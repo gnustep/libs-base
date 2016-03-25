@@ -1,5 +1,80 @@
 2016-03-25  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSObject.h:
+	* Headers/GNUstepBase/GNUstep.h:
+	* Headers/GNUstepBase/GSConfig.h.in:
+	* Headers/GNUstepBase/GSIArray.h:
+	* Headers/GNUstepBase/GSIMap.h:
+	* Source/Additions/GCDictionary.m:
+	* Source/Additions/GSLock.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/Additions/Unicode.m:
+	* Source/GSArray.m:
+	* Source/GSAttributedString.m:
+	* Source/GSConcreteValueTemplate.m:
+	* Source/GSCountedSet.m:
+	* Source/GSDictionary.m:
+	* Source/GSHTTPAuthentication.m:
+	* Source/GSRunLoopCtxt.h:
+	* Source/GSSet.m:
+	* Source/GSString.m:
+	* Source/NSArchiver.m:
+	* Source/NSArray.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSCalendar.m:
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/NSConcretePointerFunctions.h:
+	* Source/NSConcretePointerFunctions.m:
+	* Source/NSConnection.m:
+	* Source/NSCountedSet.m:
+	* Source/NSData.m:
+	* Source/NSDebug.m:
+	* Source/NSDictionary.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSFileManager.m:
+	* Source/NSGarbageCollector.m:
+	* Source/NSHashTable.m:
+	* Source/NSIndexSet.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSMapTable.m:
+	* Source/NSMessagePort.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSNotificationQueue.m:
+	* Source/NSObject.m:
+	* Source/NSPointerArray.m:
+	* Source/NSPortCoder.m:
+	* Source/NSProxy.m:
+	* Source/NSRunLoop.m:
+	* Source/NSSerializer.m:
+	* Source/NSSet.m:
+	* Source/NSSocketPort.m:
+	* Source/NSString.m:
+	* Source/NSThread.m:
+	* Source/NSTimeZone.m:
+	* Source/NSURL.m:
+	* Source/NSURLConnection.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSZone.m:
+	* Source/callframe.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	* Source/win32/GSRunLoopCtxt.m:
+	* Tools/AGSHtml.m:
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.m:
+	* Tools/autogsdoc.m:
+	* Tools/gdnc.m:
+	* Tools/make_strings/make_strings.m:
+	* configure.ac:
+	* macosx/config.h:
+	Removal of garbage collection support.
+
+2016-03-25  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSNumber.m: Attempt to fix endianness archiving issue.
 
 2016-03-23  Richard Frith-Macdonald <rfm@gnu.org>

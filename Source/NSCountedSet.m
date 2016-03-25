@@ -205,11 +205,9 @@ static Class NSCountedSet_concrete_class;
 	    (*addImp)(self, @selector(addObject:), os[j]);
 	}
     }
-#if	!GS_WITH_GC
   if (flag)
     while (i--)
       [os[i] release];
-#endif
   return self;
 }
 
@@ -257,13 +255,11 @@ static Class NSCountedSet_concrete_class;
     {
       o = anObject;
     }
-#if	!GS_WITH_GC
   if (o != anObject)
     {
       [anObject release];
       [o retain];
     }
-#endif
   return o;
 }
 @end

@@ -776,62 +776,6 @@ GSUnicode(const unichar *chars, unsigned length,
   return i;
 }
 
-#if	GS_WITH_GC
-
-#define	GROW() \
-if (dst == 0) \
-  { \
-    /* \
-     * Data is just being discarded anyway, so we can \
-     * reset the offset into the local buffer on the \
-     * stack and pretend the buffer has grown. \
-     */ \
-    ptr = buf - dpos; \
-    bsize = dpos + BUFSIZ; \
-    if (extra != 0) \
-      { \
-	bsize--; \
-      } \
-  } \
-else if (zone == 0) \
-  { \
-    result = NO; /* No buffer growth possible ... fail. */ \
-    goto done; \
-  } \
-else \
-  { \
-    unsigned	grow = slen; \
-\
-    if (grow < bsize + BUFSIZ) \
-      { \
-	grow = bsize + BUFSIZ; \
-      } \
-    grow *= sizeof(unichar); \
-\
-    if (ptr == buf || ptr == *dst) \
-      { \
-	unichar	*tmp; \
-\
-	tmp = NSAllocateCollectable(grow + extra, 0); \
-	if (tmp != 0) \
-	  { \
-	    memcpy(tmp, ptr, bsize * sizeof(unichar)); \
-	  } \
-	ptr = tmp; \
-      } \
-    else \
-      { \
-	ptr = NSReallocateCollectable(ptr, grow + extra, 0); \
-      } \
-    if (ptr == 0) \
-      { \
-	return NO;	/* Not enough memory */ \
-      } \
-    bsize = grow / sizeof(unichar); \
-  }
-
-#else	/* GS_WITH_GC */
-
 #define	GROW() \
 if (dst == 0) \
   { \
@@ -883,8 +827,6 @@ else \
       } \
     bsize = grow / sizeof(unichar); \
   }
-
-#endif	/* GS_WITH_GC */
 
 /**
  * Function to convert from 8-bit data to 16-bit unicode characters.
@@ -1111,21 +1053,15 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    unsigned	grow = (dpos + slen) * sizeof(unichar);
 		    unichar	*tmp;
 
-#if	GS_WITH_GC
-		    tmp = NSAllocateCollectable(grow + extra, 0);
-#else
 		    tmp = NSZoneMalloc(zone, grow + extra);
-#endif
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
 		      }
-#if	!GS_WITH_GC
 		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);
 		      }
-#endif
 		    ptr = tmp;
 		    if (ptr == 0)
 		      {
@@ -1175,21 +1111,15 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    unsigned	grow = (dpos + slen) * sizeof(unichar);
 		    unichar	*tmp;
 
-#if	GS_WITH_GC
-		    tmp = NSAllocateCollectable(grow + extra, 0);
-#else
 		    tmp = NSZoneMalloc(zone, grow + extra);
-#endif
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
 		      }
-#if	!GS_WITH_GC
 		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);
 		      }
-#endif
 		    ptr = tmp;
 		    if (ptr == 0)
 		      {
@@ -1264,21 +1194,15 @@ tables:
 		    unsigned	grow = (dpos + slen) * sizeof(unichar);
 		    unichar	*tmp;
 
-#if	GS_WITH_GC
-		    tmp = NSAllocateCollectable(grow + extra, 0);
-#else
 		    tmp = NSZoneMalloc(zone, grow + extra);
-#endif
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
 		      }
-#if	!GS_WITH_GC
 		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);
 		      }
-#endif
 		    ptr = tmp;
 		    if (ptr == 0)
 		      {
@@ -1436,17 +1360,12 @@ done:
 	  /*
 	   * Temporary string was requested ... make one.
 	   */
-#if	GS_WITH_GC
-	  r = NSAllocateCollectable(bytes, 0);
-	  memcpy(r, ptr, bytes);
-#else
 	  r = GSAutoreleasedBuffer(bytes);
 	  memcpy(r, ptr, bytes);
 	  if (ptr != buf && ptr != *dst)
 	    {
 	      NSZoneFree(zone, ptr);
 	    }
-#endif
 	  ptr = r;
 	  *dst = ptr;
 	}
@@ -1462,11 +1381,7 @@ done:
 	    {
 	      unichar	*tmp;
 
-#if	GS_WITH_GC
-	      tmp = NSAllocateCollectable(bytes, 0);
-#else
 	      tmp = NSZoneMalloc(zone, bytes);
-#endif
 	      if (tmp != 0)
 		{
 		  memcpy(tmp, ptr, bytes);
@@ -1475,11 +1390,7 @@ done:
 	    }
 	  else
 	    {
-#if	GS_WITH_GC
-	      ptr = NSReallocateCollectable(ptr, bytes, 0);
-#else
 	      ptr = NSZoneRealloc(zone, ptr, bytes);
-#endif
 	    }
 	  *dst = ptr;
 	}
@@ -1493,12 +1404,10 @@ done:
 	  *dst = ptr;
 	}
     }
-#if	!GS_WITH_GC
   else if (ptr != buf && dst != 0 && ptr != *dst)
     {
       NSZoneFree(zone, ptr);
     }
-#endif
 
   if (dst)
     NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
@@ -1507,62 +1416,6 @@ done:
 }
 
 #undef	GROW
-
-
-#if	GS_WITH_GC 
-
-#define	GROW() \
-if (dst == 0) \
-  { \
-    /* \
-     * Data is just being discarded anyway, so we can \
-     * reset the offset into the local buffer on the \
-     * stack and pretend the buffer has grown. \
-     */ \
-    ptr = buf - dpos; \
-    bsize = dpos + BUFSIZ; \
-    if (extra != 0) \
-      { \
-	bsize--; \
-      } \
-  } \
-else if (zone == 0) \
-  { \
-    result = NO; /* No buffer growth possible ... fail. */ \
-    goto done; \
-  } \
-else \
-  { \
-    unsigned	grow = slen; \
-\
-    if (grow < bsize + BUFSIZ) \
-      { \
-	grow = bsize + BUFSIZ; \
-      } \
-\
-    if (ptr == buf || ptr == *dst) \
-      { \
-	unsigned char	*tmp; \
-\
-	tmp = NSAllocateCollectable(grow + extra, 0); \
-	if (tmp != 0) \
-	  { \
-	    memcpy(tmp, ptr, bsize); \
-	  } \
-	ptr = tmp; \
-      } \
-    else \
-      { \
-	ptr = NSReallocateCollectable(ptr, grow + extra, 0); \
-      } \
-    if (ptr == 0) \
-      { \
-	return NO;	/* Not enough memory */ \
-      } \
-    bsize = grow; \
-  }
-
-#else	/* GS_WITH_GC */
 
 #define	GROW() \
 if (dst == 0) \
@@ -1614,8 +1467,6 @@ else \
       } \
     bsize = grow; \
   }
-
-#endif	/* GS_WITH_GC */
 
 static inline int chop(unichar c, _ucc_ *table, int hi)
 {
@@ -2067,15 +1918,11 @@ bases:
 		  {
 		    uint8_t	*tmp;
 
-#if	GS_WITH_GC
-		    tmp = NSAllocateCollectable(slen + extra, 0);
-#else
 		    tmp = NSZoneMalloc(zone, slen + extra);
 		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);
 		      }
-#endif
 		    ptr = tmp;
 		    if (ptr == 0)
 		      {
@@ -2432,17 +2279,12 @@ iconv_start:
 	  /*
 	   * Temporary string was requested ... make one.
 	   */
-#if	GS_WITH_GC
-	  r = NSAllocateCollectable(bytes, 0);
-	  memcpy(r, ptr, bytes);
-#else
 	  r = GSAutoreleasedBuffer(bytes);
 	  memcpy(r, ptr, bytes);
 	  if (ptr != buf && ptr != *dst)
 	    {
 	      NSZoneFree(zone, ptr);
 	    }
-#endif
 	  ptr = r;
 	  *dst = ptr;
 	}
@@ -2458,11 +2300,7 @@ iconv_start:
 	    {
 	      unsigned char	*tmp;
 
-#if	GS_WITH_GC
-	      tmp = NSAllocateCollectable(bytes, 0);
-#else
 	      tmp = NSZoneMalloc(zone, bytes);
-#endif
 	      if (tmp != 0)
 		{
 		  memcpy(tmp, ptr, bytes);
@@ -2471,11 +2309,7 @@ iconv_start:
 	    }
 	  else
 	    {
-#if	GS_WITH_GC
-	      ptr = NSReallocateCollectable(ptr, bytes, 0);
-#else
 	      ptr = NSZoneRealloc(zone, ptr, bytes);
-#endif
 	    }
 	  *dst = ptr;
 	}
@@ -2489,12 +2323,10 @@ iconv_start:
 	  *dst = ptr;
 	}
     }
-#if	!GS_WITH_GC
   else if (ptr != buf && dst != 0 && ptr != *dst)
     {
       NSZoneFree(zone, ptr);
     }
-#endif
 
   if (dst)
     NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");

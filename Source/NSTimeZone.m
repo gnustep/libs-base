@@ -1610,12 +1610,10 @@ static NSMapTable	*absolutes = 0;
 	        {
 		  localZoneString = tzdir = nil;
 		}
-#if	!GS_WITH_GC
 	      else
 		{
 		  [tzdir retain];
 		}
-#endif
 	    }
 #endif
 	  if (localZoneString != nil && [localZoneString hasPrefix: tzdir])

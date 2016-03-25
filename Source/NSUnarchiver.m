@@ -1481,11 +1481,7 @@ static unsigned	encodingVersion;
 	  void		*b;
 	  NSData	*d;
 
-#if	GS_WITH_GC
-	  b = NSAllocateCollectable(l, 0);
-#else
 	  b = NSZoneMalloc(zone, l);
-#endif
 	  [self decodeArrayOfObjCType: @encode(unsigned char)
 				count: l
 				   at: b];

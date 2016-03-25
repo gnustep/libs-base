@@ -94,14 +94,6 @@ static SEL autorelease_sel;
 static IMP autorelease_imp;
 
 
-
-#if GS_WITH_GC
-
-#include	<gc/gc.h>
-#include	<gc/gc_typed.h>
-
-#endif
-
 static SEL finalize_sel;
 static IMP finalize_imp;
 static Class	NSConstantStringClass;
@@ -138,7 +130,6 @@ BOOL	NSDeallocateZombies = NO;
 static Class		zombieClass = Nil;
 static NSMapTable	*zombieMap = 0;
 
-#if	!GS_WITH_GC
 static void GSMakeZombie(NSObject *o, Class c)
 {
   object_setClass(o, zombieClass);
@@ -149,7 +140,6 @@ static void GSMakeZombie(NSObject *o, Class c)
       [allocationLock unlock];
     }
 }
-#endif
 
 static void GSLogZombie(id o, SEL sel)
 {
@@ -461,7 +451,6 @@ BOOL
 NSDecrementExtraRefCountWasZero(id anObject)
 #endif
 {
-#if	!GS_WITH_GC
   if (double_release_check_enabled)
     {
       NSUInteger release_count;
@@ -523,7 +512,6 @@ NSDecrementExtraRefCountWasZero(id anObject)
 	  return NO;
 	}
     }
-#endif /* !GS_WITH_GC */
   return NO;
 }
 
@@ -541,11 +529,7 @@ NSExtraRefCount(id anObject)
       return UINT_MAX-1;
     }
 #endif
-#if	GS_WITH_GC
-  return UINT_MAX - 1;
-#else	/* GS_WITH_GC */
   return ((obj)anObject)[-1].retained;
-#endif /* GS_WITH_GC */
 }
 
 #ifdef __OBJC_GC__
@@ -577,9 +561,9 @@ inline void
 NSIncrementExtraRefCount(id anObject)
 #endif
 {
-#if	GS_WITH_GC || __OBJC_GC__
+#if	__OBJC_GC__
   return;
-#else	/* GS_WITH_GC */
+#else   /* __OBJC_GC__ */
   if (allocationLock != 0)
     {
 #if	defined(GSATOMICREAD)
@@ -616,7 +600,7 @@ NSIncrementExtraRefCount(id anObject)
 	}
       ((obj)anObject)[-1].retained++;
     }
-#endif	/* GS_WITH_GC */
+#endif	/* __OBJC_GC__ */
 }
 
 #ifndef	NDEBUG
@@ -667,95 +651,6 @@ callCXXConstructors(Class aClass, id anObject)
  *	depending on what information (if any) we are storing before
  *	the start of each object.
  */
-#if	GS_WITH_GC
-
-static void
-GSFinalize(void* object, void* data)
-{
-  [(id)object finalize];
-  AREM(object_getClass((id)object), (id)object);
-  object_setClass((id)object, (Class)(void*)0xdeadface);
-}
-
-static BOOL
-GSIsFinalizable(Class c)
-{
-  if (class_getMethodImplementation(c, finalize_sel) != finalize_imp
-    && class_respondsToSelector(c, finalize_sel))
-    return YES;
-  return NO;
-}
-
-inline id
-NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
-{
-  id	new;
-  int	size;
-  GC_descr	gc_type;
-
-  NSCAssert((!class_isMetaClass(aClass)), @"Bad class for new object");
-  gc_type = (GC_descr)aClass->gc_object_type;
-  size = class_getInstanceSize(aClass) + extraBytes;
-  if (size % sizeof(void*) != 0)
-    {
-      /* Size must be a multiple of pointer size for the garbage collector
-       * to be able to allocate explicitly typed memory.
-       */
-      size += sizeof(void*) - size % sizeof(void*);
-    }
-
-  if (gc_type == 0)
-    {
-      new = NSZoneCalloc(zone, 1, size);
-      NSLog(@"No garbage collection information for '%s'",
-	class_getName(aClass));
-    }
-  else
-    {
-      new = GC_calloc_explicitly_typed(1, size, gc_type);
-    }
-
-  if (new != nil)
-    {
-      object_setClass(new, aClass);
-
-      /* Don't bother doing this in a thread-safe way, because
-       * the cost of locking will be a lot more than the cost
-       * of doing the same call in two threads.
-       * The returned selector will persist and the runtime will
-       * ensure that both calls return the same selector, so we
-       * don't need to bother doing it ourselves.
-       */
-      if (0 == cxx_construct)
-	{
-	  cxx_construct = sel_registerName(".cxx_construct");
-	  cxx_destruct = sel_registerName(".cxx_destruct");
-	}
-      callCXXConstructors(aClass, new);
-
-      /* We only need to finalize this object if it implements its a
-       * -finalize method or has C++ destructors.
-       */
-      if (GSIsFinalizable(aClass)
-        || class_respondsToSelector(aClass, cxx_destruct))
-	{
-	  /* We only do allocation counting for objects that can be
-	   * finalised - for other objects we have no way of decrementing
-	   * the count when the object is collected.
-	   */
-	  AADD(aClass, new);
-	  GC_REGISTER_FINALIZER (new, GSFinalize, NULL, NULL, NULL);
-	}
-    }
-  return new;
-}
-
-inline void
-NSDeallocateObject(id anObject)
-{
-}
-
-#else	/* GS_WITH_GC */
 
 #if __OBJC_GC__
 static inline id
@@ -867,12 +762,10 @@ NSDeallocateObject(id anObject)
   return;
 }
 
-#endif	/* GS_WITH_GC */
-
 BOOL
 NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 {
-#if	GS_WITH_GC || __OBJC_GC__
+#if	__OBJC_GC__
   // If we're running in hybrid mode, we disable all of the clever zone stuff
   // for non-GC code, so this is always true if we're compiled for GC, even if
   // we're compiled for GC but not using GC.
@@ -963,20 +856,6 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
     }
 }
 
-#if	GS_WITH_GC
-/* Function to log Boehm GC warnings
- * NB. This must not allocate any collectable memory as it may result
- * in a deadlock in the garbage collecting library.
- */
-static void
-GSGarbageCollectorLog(char *msg, GC_word arg)
-{
-  char	buf[strlen(msg)+1024];
-  snprintf(buf, sizeof(buf), msg, (unsigned long)arg);
-  fprintf(stderr, "Garbage collector: %s", buf);
-}
-#endif
-
 /**
  * Semi-private function in libobjc2 that initialises the classes used for
  * blocks.
@@ -1003,14 +882,6 @@ static id gs_weak_load(id obj)
 {
   if (self == [NSObject class])
     {
-#if	GS_WITH_GC
-      /* Make sure that the garbage collection library is initialised.
-       * This is not necessary on most platforms, but is good practice.
-       */
-      GC_init();
-      GC_set_warn_proc(GSGarbageCollectorLog);
-#endif
-
 #ifdef _WIN32
       {
         // See libgnustep-base-entry.m
@@ -1852,7 +1723,6 @@ static id gs_weak_load(id obj)
  */
 - (id) autorelease
 {
-#if	!GS_WITH_GC
   if (double_release_check_enabled)
     {
       NSUInteger release_count;
@@ -1867,7 +1737,6 @@ static id gs_weak_load(id obj)
     }
 
   (*autorelease_imp)(autorelease_class, autorelease_sel, self);
-#endif
   return self;
 }
 
@@ -2093,7 +1962,6 @@ static id gs_weak_load(id obj)
  */
 - (oneway void) release
 {
-#if	(GS_WITH_GC == 0)
   if (NSDecrementExtraRefCountWasZero(self))
     {
 #  ifdef OBJC_CAP_ARC
@@ -2101,7 +1969,6 @@ static id gs_weak_load(id obj)
 #  endif
       [self dealloc];
     }
-#endif
 }
 
 /**
@@ -2160,9 +2027,7 @@ static id gs_weak_load(id obj)
  */
 - (id) retain
 {
-#if	(GS_WITH_GC == 0)
   NSIncrementExtraRefCount(self);
-#endif
   return self;
 }
 
@@ -2187,11 +2052,7 @@ static id gs_weak_load(id obj)
  */
 - (NSUInteger) retainCount
 {
-#if	GS_WITH_GC
-  return UINT_MAX;
-#else
   return NSExtraRefCount(self) + 1;
-#endif
 }
 
 /**
@@ -2217,7 +2078,7 @@ static id gs_weak_load(id obj)
  */
 - (NSZone*) zone
 {
-#if	GS_WITH_GC || __OBJC_GC__
+#if	__OBJC_GC__
   /* MacOS-X 10.5 seems to return the default malloc zone if GC is enabled.
    */
   return NSDefaultMallocZone();
@@ -2226,7 +2087,7 @@ static id gs_weak_load(id obj)
 #endif
 }
 
-#if	!GS_WITH_GC && !__OBJC_GC__
+#if	!__OBJC_GC__
 + (NSZone *) zone
 {
   return NSDefaultMallocZone();

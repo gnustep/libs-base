@@ -19,7 +19,6 @@
 
 #define	FDCOUNT	1024
 
-#if	GS_WITH_GC == 0
 static SEL	wRelSel;
 static SEL	wRetSel;
 static IMP	wRelImp;
@@ -43,20 +42,15 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   wRelease,
   0
 };
-#else
-#define	WatcherMapValueCallBacks	NSNonOwnedPointerMapValueCallBacks 
-#endif
 
 @implementation	GSRunLoopCtxt
 
 + (void) initialize
 {
-#if	GS_WITH_GC == 0
   wRelSel = @selector(release);
   wRetSel = @selector(retain);
   wRelImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRelSel];
   wRetImp = [[GSRunLoopWatcher class] instanceMethodForSelector: wRetSel];
-#endif
 }
 
 - (void) dealloc
@@ -151,19 +145,11 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 
       mode = [theMode copy];
       extra = e;
-#if	GS_WITH_GC
-      z = (NSZone*)1;
-      performers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
-      timers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
-      watchers = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
-      _trigger = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
-#else
       z = [self zone];
       performers = NSZoneMalloc(z, sizeof(GSIArray_t));
       timers = NSZoneMalloc(z, sizeof(GSIArray_t));
       watchers = NSZoneMalloc(z, sizeof(GSIArray_t));
       _trigger = NSZoneMalloc(z, sizeof(GSIArray_t));
-#endif
       GSIArrayInitWithZoneAndCapacity(performers, z, 8);
       GSIArrayInitWithZoneAndCapacity(timers, z, 8);
       GSIArrayInitWithZoneAndCapacity(watchers, z, 8);
