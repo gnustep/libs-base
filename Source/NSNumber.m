@@ -1024,14 +1024,40 @@ if (aValue >= -1 && aValue <= 12)\
 - (void) encodeWithCoder: (NSCoder *) coder
 {
   const char *type = [self objCType];
-  char buffer[16] __attribute__ ((aligned (16)));
+  unsigned char charbuf;
+  unsigned short shortbuf;
+  unsigned int intbuf;
+  unsigned long longbuf;
+  unsigned long long llongbuf;
+  float floatbuf;
+  double doublebuf;
+  void  *buffer;
 
   [coder encodeValueOfObjCType: @encode (char) at: type];
-  /* The most we currently store in an NSNumber is 8 bytes (double or long
-   * long), but we may add support for vectors or long doubles in future, so
-   * make this 16 bytes now so stuff doesn't break in fun and exciting ways
-   * later.
-   */
+
+  switch (type[0])
+    {
+      case 'c':
+      case 'C':
+        buffer = &charbuf; break;
+      case 's':
+      case 'S':
+        buffer = &shortbuf; break;
+      case 'i':
+      case 'I':
+        buffer = &intbuf; break;
+      case 'l':
+      case 'L':
+        buffer = &longbuf; break;
+      case 'q':
+      case 'Q':
+        buffer = &llongbuf; break;
+      case 'f':
+        buffer = &floatbuf; break;
+      case 'd':
+        buffer = &doublebuf; break;
+    }
+
   [self getValue: buffer];
   [coder encodeValueOfObjCType: type at: buffer];
 }
@@ -1045,9 +1071,38 @@ if (aValue >= -1 && aValue <= 12)\
 - (id) initWithCoder: (NSCoder *) coder
 {
   char type[2] = { 0 };
-  char buffer[16] __attribute__ ((aligned (16)));
+  unsigned char charbuf;
+  unsigned short shortbuf;
+  unsigned int intbuf;
+  unsigned long longbuf;
+  unsigned long long llongbuf;
+  float floatbuf;
+  double doublebuf;
+  void *buffer;
 
   [coder decodeValueOfObjCType: @encode (char) at: type];
+  switch (type[0])
+    {
+      case 'c':
+      case 'C':
+        buffer = &charbuf; break;
+      case 's':
+      case 'S':
+        buffer = &shortbuf; break;
+      case 'i':
+      case 'I':
+        buffer = &intbuf; break;
+      case 'l':
+      case 'L':
+        buffer = &longbuf; break;
+      case 'q':
+      case 'Q':
+        buffer = &llongbuf; break;
+      case 'f':
+        buffer = &floatbuf; break;
+      case 'd':
+        buffer = &doublebuf; break;
+    }
   [coder decodeValueOfObjCType: type at: buffer];
   return [self initWithBytes: buffer objCType: type];
 }
