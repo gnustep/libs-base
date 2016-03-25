@@ -5,6 +5,7 @@
 #import <Foundation/NSBundle.h>
 #import <Foundation/NSException.h>
 #import <Foundation/NSFileManager.h>
+#import <Foundation/NSGarbageCollector.h>
 #import <Foundation/NSInvocation.h>
 #import <Foundation/NSMethodSignature.h>
 #import <Foundation/NSProxy.h>

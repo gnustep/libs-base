@@ -4,6 +4,7 @@
 #import <Foundation/NSKeyValueCoding.h>
 #import <Foundation/NSValue.h>
 #import <Foundation/NSDecimalNumber.h>
+#import <Foundation/NSGarbageCollector.h>
 
 typedef struct {
   int	i;
