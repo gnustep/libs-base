@@ -1213,16 +1213,11 @@ esac
 #--------------------------------------------------------------------
 # Set Apple/Darwin/OSX/NeXT information for other tests
 #--------------------------------------------------------------------
-OBJC_WITH_GC=no
 OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 AC_MSG_CHECKING(the Objective-C runtime)
 if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   AC_MSG_RESULT(NeXT)
   OBJCFLAGS="$OBJCFLAGS -fnext-runtime -DNeXT_RUNTIME"
-elif test "$OBJC_RUNTIME_LIB" = "gnugc"; then
-  AC_MSG_RESULT(GNU)
-  OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
-  OBJC_WITH_GC=yes
 elif test "$OBJC_RUNTIME_LIB" = "ng"; then
   AC_MSG_RESULT(Next Gen)
 else
@@ -1319,36 +1314,6 @@ if test $ac_cv_header_objc_objc_h = no; then
   echo "Check to make sure you have the Objective-C runtime library"
   echo "and its headers installed."
   AC_MSG_ERROR(Could not find Objective-C headers)
-fi
-
-if test $OBJC_WITH_GC = yes; then
-  AC_CHECK_HEADERS(gc/gc.h, gc_ok=yes, gc_ok=no)
-  if test "$gc_ok" = no; then
-    AC_MSG_ERROR([Garbage collection was required, but the gc/gc.h header couldn't be found.])
-  fi
-  saved_LIBS="$LIBS"
-  LIBS+=" -lgc"
-  AC_CHECK_FUNC(GC_malloc, gc_ok=yes, gc_ok=no)
-  if test "$gc_ok" = no; then
-    AC_MSG_ERROR([Garbage collection was required, but the gc library couldn't be found.])
-  fi
-  AC_CHECK_FUNC(GC_register_my_thread)
-  if test "$ac_cv_func_GC_register_my_thread" = yes; then
-    AC_DEFINE(HAVE_GC_REGISTER_MY_THREAD,1,
-      [Define if GC_register_my_thread function is available])
-  fi
-  AC_CHECK_FUNC(GC_allow_register_threads)
-  if test "$ac_cv_func_GC_allow_register_threads" = yes; then
-    AC_DEFINE(HAVE_GC_ALLOW_REGISTER_THREADS,1,
-      [Define if GC_allow_register_threads function is available])
-  fi
-  LIBS="-lobjc_gc -ldl"
-  AC_CHECK_FUNC(class_ivar_set_gcinvisible, gc_ok=yes, gc_ok=no)
-  if test "$gc_ok" = no; then
-    AC_MSG_ERROR([Garbage collection was required, but the gc runtime couldn't be found.])
-  fi
-  LIBS="$saved_LIBS"
-  AC_SUBST(OBJC_WITH_GC)
 fi
 
 #--------------------------------------------------------------------

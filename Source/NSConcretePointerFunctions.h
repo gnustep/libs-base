@@ -48,11 +48,7 @@
 #    define STRONG_ACQUIRE(x) objc_retain(x)
 #else
 #  define WEAK_READ(x) (*x)
-#  if GS_WITH_GC
-#    define WEAK_WRITE(addr, x) GSAssignZeroingWeakPointer(addr, x)
-#  else
-#    define WEAK_WRITE(addr, x) (*(addr) =  x)
-#  endif
+#  define WEAK_WRITE(addr, x) (*(addr) =  x)
 #  define STRONG_WRITE(addr, x) ASSIGN(*((id*)addr), ((id)x))
 #  define STRONG_ACQUIRE(x) RETAIN(((id)x))
 #endif

@@ -732,20 +732,14 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
           [NSException raise: NSCharacterConversionException
                       format: @"precompose/decompose length check failed"];
         }
-#if	GS_WITH_GC
-      dst = NSAllocateCollectable(newLength * sizeof(unichar), 0);
-#else
       dst = NSZoneMalloc(NSDefaultMallocZone(), newLength * sizeof(unichar));
-#endif
       err = 0;
       unorm2_normalize(normalizer, (UChar*)src, length,
         (UChar*)dst, newLength, &err);
       free(src);
       if (U_FAILURE(err))
         {
-#if	!GS_WITH_GC
           NSZoneFree(NSDefaultMallocZone(), dst);
-#endif
           [NSException raise: NSCharacterConversionException
                       format: @"precompose/decompose failed"];
         }
@@ -1158,11 +1152,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     {
       void	*buf;
 
-#if	GS_WITH_GC
-      buf = NSAllocateCollectable(length, 0);
-#else
       buf = NSZoneMalloc([self zone], length);
-#endif
       memcpy(buf, bytes, length);
       return [self initWithBytesNoCopy: buf
 				length: length
@@ -5900,11 +5890,7 @@ static NSFileManager *fm = nil;
 	  NSZone		*zone;
 	
 	  [aCoder decodeValueOfObjCType: @encode(int) at: &enc];
-#if	GS_WITH_GC
-	  zone = GSAtomicMallocZone();
-#else
 	  zone = [self zone];
-#endif
 	
 	  if (enc == NSUnicodeStringEncoding)
 	    {
@@ -5922,11 +5908,7 @@ static NSFileManager *fm = nil;
 	    {
 	      unsigned char	*chars;
 	
-#if	GS_WITH_GC
-	      chars = NSAllocateCollectable(count+1, 0);
-#else
 	      chars = NSZoneMalloc(zone, count+1);
-#endif
 	      [aCoder decodeArrayOfObjCType: @encode(unsigned char)
 		                      count: count
 				         at: chars];

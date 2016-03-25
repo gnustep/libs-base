@@ -601,12 +601,10 @@ static SEL	appSel;
 	      i++;
 	    }
 	  self = [self initWithObjects: o + c forKeys: o count: i];
-#if	!GS_WITH_GC
 	  while (i-- > 0)
 	    {
 	      [o[c + i] release];
 	    }
-#endif
 	}
       else
 	{
@@ -1306,12 +1304,10 @@ compareIt(id o1, id o2, void* context)
 	  initWithObjects: o + count
 		  forKeys: o
 		    count: count];
-#if	!GS_WITH_GC
   while (i-- > 0)
     {
       [o[count + i] release];
     }
-#endif
   GS_ENDIDBUF();
 
   return newDictionary;

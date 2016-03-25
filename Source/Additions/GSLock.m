@@ -72,19 +72,11 @@
   locked = -1;
 }
 
-#ifdef __GS_WITH_GC__
-- (void) finalize
-{
-  [[NSNotificationCenter defaultCenter] removeObserver: self];
-  [super finalize];
-}
-#else
 - (void) dealloc
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
   [super dealloc];
 }
-#endif
 
 - (id) init
 {
@@ -222,22 +214,11 @@
   counter = -1;
 }
 
-#ifdef __GS_WITH_GC__
-- (void) finalize
-{
-  if (counter >= 0)
-    {
-      [[NSNotificationCenter defaultCenter] removeObserver: self];
-    }
-  [super finalize];
-}
-#else
 - (void) dealloc
 {
   [[NSNotificationCenter defaultCenter] removeObserver: self];
   [super dealloc];
 }
-#endif
 
 - (id) init
 {

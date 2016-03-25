@@ -267,12 +267,10 @@ static Class NSMutableSet_concrete_class;
 	      [aCoder decodeValueOfObjCType: @encode(id) at: &objs[i]];
 	    }
 	  self = [self initWithObjects: objs count: count];
-#if	GS_WITH_GC == 0
 	  while (count-- > 0)
 	    {
 	      [objs[count] release];
 	    }
-#endif
 	  GS_ENDIDBUF();
 	}
     }
@@ -418,11 +416,13 @@ static Class NSMutableSet_concrete_class;
       i++;
     }
   self = [self initWithObjects: os count: c];
-#if	!GS_WITH_GC
   if (flag)
-    while (i--)
-      [os[i] release];
-#endif
+    {
+      while (i--)
+        {
+          [os[i] release];
+        }
+    }
   GS_ENDIDBUF();
   return self;
 }

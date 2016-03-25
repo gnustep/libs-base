@@ -653,10 +653,8 @@ main(int argc, char **argv, char **env)
   NSString              *symbolDeclsFile = nil;
   NSMutableDictionary 	*symbolDecls = nil;
   NSMutableSet		*deps = nil;
-#if GS_WITH_GC == 0
   NSAutoreleasePool	*outer = nil;
   NSAutoreleasePool	*pool = nil;
-#endif
   NSString	*arg;
   NSString	*opt;
   NSSet		*argSet;
@@ -729,9 +727,7 @@ main(int argc, char **argv, char **env)
   GSInitializeProcess(argc, argv, env);
 #endif
 
-#if GS_WITH_GC == 0
   outer = [NSAutoreleasePool new];
-#endif
 
 #ifndef HAVE_LIBXML
   NSLog(@"ERROR: The GNUstep Base Library was built\n"
@@ -1254,9 +1250,7 @@ main(int argc, char **argv, char **env)
 
       up = [defs stringForKey: @"Up"];
 
-#if GS_WITH_GC == 0
       pool = [NSAutoreleasePool new];
-#endif
 
       parser = [AGSParser new];
       wm = [[defs dictionaryForKey: @"WordMap"] mutableCopy];
@@ -1293,9 +1287,7 @@ main(int argc, char **argv, char **env)
 	  [wm setObject: @"" forKey: @"__weak"];
         }
       [parser setWordMap: wm];
-#if GS_WITH_GC == 0
       RELEASE(wm);
-#endif
       output = [AGSOutput new];
       if ([defs boolForKey: @"Standards"] == YES)
 	{
@@ -1323,13 +1315,11 @@ main(int argc, char **argv, char **env)
 	  NSDate		*gDate = nil;
 	  unsigned		j;
 
-#if GS_WITH_GC == 0
 	  if (pool != nil)
 	    {
 	      RELEASE(pool);
 	      pool = [NSAutoreleasePool new];
 	    }
-#endif
 
 	  /*
 	   * Note the name of the header file without path or extension.
@@ -1571,9 +1561,7 @@ main(int argc, char **argv, char **env)
       [symbolDecls writeToFile: symbolDeclsFile atomically: YES];
 
       informalProtocols = RETAIN([output informalProtocols]);
-#if GS_WITH_GC == 0
       DESTROY(pool);
-#endif
       DESTROY(parser);
       DESTROY(output);
     }
@@ -1597,13 +1585,11 @@ main(int argc, char **argv, char **env)
 	  NSDictionary	*attrs;
 	  NSDate	*gDate = nil;
 
-#if GS_WITH_GC == 0
 	  if (arp != nil)
 	    {
 	      RELEASE(arp);
 	      arp = [NSAutoreleasePool new];
 	    }
-#endif
           /*
            * 6a) Chop off any path specification that might be there (for files
            *     given on the command line) and search for the file only in
@@ -1689,9 +1675,7 @@ main(int argc, char **argv, char **env)
           [projectRefs addInformalProtocols: informalProtocols];
           DESTROY(informalProtocols);
       }
-#if GS_WITH_GC == 0
       DESTROY(arp);
-#endif
 
       /*
        * 7) Save project references if they have been modified
@@ -1877,9 +1861,7 @@ main(int argc, char **argv, char **env)
        */
       [globalRefs mergeRefs: [projectRefs refs] override: YES];
 
-#if GS_WITH_GC == 0
       RELEASE(pool);
-#endif
     }
 
   /*
@@ -2044,9 +2026,7 @@ main(int argc, char **argv, char **env)
   count = [gFiles count];
   if (generateHtml == YES && count > 0)
     {
-#if GS_WITH_GC == 0
       pool = [NSAutoreleasePool new];
-#endif
 
       for (i = 0; i < count; i++)
 	{
@@ -2059,13 +2039,11 @@ main(int argc, char **argv, char **env)
 	  NSDate	*gDate = nil;
 	  NSDate	*hDate = nil;
 
-#if GS_WITH_GC == 0
 	  if (pool != nil)
 	    {
 	      RELEASE(pool);
 	      pool = [NSAutoreleasePool new];
 	    }
-#endif
           /*
            * 10a) As before in connection with (6a), drop path information
            *      and look for gsdoc files in 'documentationDirectory' or
@@ -2162,9 +2140,7 @@ main(int argc, char **argv, char **env)
 		gsdocfile);
 	    }
 	}
-#if GS_WITH_GC == 0
       RELEASE(pool);
-#endif
     }
 
   /*
@@ -2176,9 +2152,7 @@ main(int argc, char **argv, char **env)
   count = [hFiles count];
   if (count > 0)
     {
-#if GS_WITH_GC == 0
       pool = [NSAutoreleasePool new];
-#endif
 
       for (i = 0; i < count; i++)
 	{
@@ -2186,13 +2160,11 @@ main(int argc, char **argv, char **env)
 	  NSString	*src;
 	  NSString	*dst;
 
-#if GS_WITH_GC == 0
 	  if (pool != nil)
 	    {
 	      RELEASE(pool);
 	      pool = [NSAutoreleasePool new];
 	    }
-#endif
 
 	  file = [file lastPathComponent];
 
@@ -2367,9 +2339,7 @@ main(int argc, char **argv, char **env)
 	      NSLog(@"Type of file '%@' unrecognized ... skipping", src);
 	    }
 	}
-#if GS_WITH_GCC == 0
       RELEASE(pool);
-#endif
     }
 
   /*

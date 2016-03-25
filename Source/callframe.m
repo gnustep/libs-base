@@ -108,11 +108,7 @@ callframe_from_signature (NSMethodSignature *info, void **retval)
        * is sized exactly ... don't know why.
        */
       full += ret + 8;
-#if	GS_WITH_GC
-      cframe = buf = NSAllocateCollectable(full, NSScannedOption);
-#else
       cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), full, 1);
-#endif
       if (cframe)
 	{
 	  *retval = buf + pos;
@@ -120,11 +116,7 @@ callframe_from_signature (NSMethodSignature *info, void **retval)
     }
   else
     {
-#if	GS_WITH_GC
-      cframe = buf = NSAllocateCollectable(size, NSScannedOption);
-#else
       cframe = buf = NSZoneCalloc(NSDefaultMallocZone(), size, 1);
-#endif
     }
 
   if (cframe)

@@ -90,9 +90,7 @@ static Class	concreteClass = 0;
 
   k = [[NSPointerFunctions alloc] initWithOptions: options];
   o = [self initWithPointerFunctions: k capacity: initialCapacity];
-#if	!GS_WITH_GC
   [k release];
-#endif
   return o;
 }
 

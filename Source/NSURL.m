@@ -260,11 +260,7 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
       len += strlen(rel->fragment) + 1;		// #fragment
     }
 
-#if	GS_WITH_GC
-  ptr = buf = (char*)NSAllocateCollectable(len, 0);
-#else
   ptr = buf = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
-#endif
 
   if (rel->scheme != 0)
     {
@@ -843,11 +839,7 @@ static NSUInteger	urlAlign;
       BOOL	canBeGeneric = YES;
 
       size += sizeof(parsedURL) + urlAlign + 1;
-#if	GS_WITH_GC
-      buf = _data = (parsedURL*)NSAllocateCollectable(size, 0);
-#else
       buf = _data = (parsedURL*)NSZoneMalloc(NSDefaultMallocZone(), size);
-#endif
       memset(buf, '\0', size);
       start = end = ptr = (char*)&buf[1];
       [_urlString getCString: start

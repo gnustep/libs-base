@@ -838,10 +838,8 @@ static NSURLProtocol	*placeholder = nil;
 		nil]]];
 	  return;
 	}
-#if	!GS_WITH_GC
       [this->input retain];
       [this->output retain];
-#endif
       if ([[url scheme] isEqualToString: @"https"] == YES)
         {
           static NSArray        *keys;
@@ -1768,10 +1766,8 @@ static NSURLProtocol	*placeholder = nil;
 			    userInfo: nil]];
 	  return;
 	}
-#if	!GS_WITH_GC
       [this->input retain];
       [this->output retain];
-#endif
       if ([[url scheme] isEqualToString: @"https"] == YES)
         {
           [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL

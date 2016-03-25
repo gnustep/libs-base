@@ -735,14 +735,12 @@ GSDebugAllocationListRecordedObjects(Class c)
   memcpy(tmp, the_table[i].recorded_objects,
     the_table[i].num_recorded_objects * sizeof(id));
 
-#if	!GS_WITH_GC
   /* Retain all the objects - NB: if retaining one of the objects as a
    * side effect releases another one of them , we are broken ... */
   for (k = 0; k < the_table[i].num_recorded_objects; k++)
     {
       [tmp[k] retain];
     }
-#endif
 
   /* Then, we bravely unlock the lock */
   unLock();
@@ -752,13 +750,11 @@ GSDebugAllocationListRecordedObjects(Class c)
   answer = [NSArray arrayWithObjects: tmp
     count: the_table[i].num_recorded_objects];
 
-#if	!GS_WITH_GC
   /* Now we release all the objects to balance the retain */
   for (k = 0; k < the_table[i].num_recorded_objects; k++)
     {
       [tmp[k] release];
     }
-#endif
 
   /* And free the space used by them */
   NSZoneFree(NSDefaultMallocZone(), tmp);

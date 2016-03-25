@@ -36,13 +36,8 @@
 
 #define GSI_ARRAY_TYPES       GSUNION_OBJ
 
-#if	GS_WITH_GC == 0
 #define GSI_ARRAY_RELEASE(A, X)	[(X).obj release]
 #define GSI_ARRAY_RETAIN(A, X)	[(X).obj retain]
-#else
-#define GSI_ARRAY_RELEASE(A, X)	
-#define GSI_ARRAY_RETAIN(A, X)	
-#endif
 
 #include "GNUstepBase/GSIArray.h"
 

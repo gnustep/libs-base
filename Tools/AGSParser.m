@@ -1275,9 +1275,7 @@ recheck:
 - (NSMutableDictionary*) parseDeclaration
 {
   NSMutableDictionary	*d = [NSMutableDictionary dictionary];
-#if GS_WITH_GC == 0
   CREATE_AUTORELEASE_POOL(arp);
-#endif
   static NSSet		*qualifiers = nil;
   static NSSet		*keep = nil;
   NSMutableString	*t = nil;
@@ -2709,9 +2707,7 @@ fail:
 
 - (NSMutableDictionary*) parseMethodIsDeclaration: (BOOL)flag
 {
-#if GS_WITH_GC == 0
   CREATE_AUTORELEASE_POOL(arp);
-#endif
   NSMutableDictionary	*method;
   NSMutableString	*mname;
   NSString		*token;

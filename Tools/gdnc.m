@@ -1170,9 +1170,7 @@ main(int argc, char** argv, char** env)
   RELEASE(pool);
 
   {
-#if GS_WITH_GC == 0
     CREATE_AUTORELEASE_POOL(pool);
-#endif
     NSUserDefaults	*defs;
     int			sym;
 

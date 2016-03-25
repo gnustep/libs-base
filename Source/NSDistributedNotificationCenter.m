@@ -756,12 +756,10 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		@"I attempted to start it at '%@'\n", cmd];
 	    }
 	}
-#if	!GS_WITH_GC
       else
         {
           [_remote retain];
         }
-#endif
 
       c = [_remote connectionForProxy];
       [_remote setProtocolForProxy: p];

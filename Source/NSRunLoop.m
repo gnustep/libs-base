@@ -240,13 +240,8 @@ static NSDate	*theFuture = nil;
 #ifndef GSI_ARRAY_TYPES
 #define GSI_ARRAY_TYPES       GSUNION_OBJ
 
-#if	GS_WITH_GC == 0
 #define GSI_ARRAY_RELEASE(A, X)	[(X).obj release]
 #define GSI_ARRAY_RETAIN(A, X)	[(X).obj retain]
-#else
-#define GSI_ARRAY_RELEASE(A, X)	
-#define GSI_ARRAY_RETAIN(A, X)	
-#endif
 
 #include "GNUstepBase/GSIArray.h"
 #endif
@@ -554,12 +549,8 @@ static inline BOOL timerInvalidated(NSTimer *t)
 					 NSObjectMapValueCallBacks, 0);
       _timedPerformers = [[NSMutableArray alloc] initWithCapacity: 8];
 #ifdef	HAVE_POLL_F
-#if	GS_WITH_GC
-      _extra = NSAllocateCollectable(sizeof(pollextra), NSScannedOption);
-#else
       _extra = NSZoneMalloc(NSDefaultMallocZone(), sizeof(pollextra));
       memset(_extra, '\0', sizeof(pollextra));
-#endif
 #endif
     }
   return self;
@@ -1113,12 +1104,10 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	      when = theFuture;
 	    }
 	}
-#if	!GS_WITH_GC
       else
 	{
 	  AUTORELEASE(when);
 	}
-#endif
 
       NSDebugMLLog(@"NSRunLoop", @"limit date %f in %@",
 	nil == when ? 0.0 : [when timeIntervalSinceReferenceDate], mode);

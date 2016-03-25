@@ -36,10 +36,6 @@
 /* Define if Foundation implements KeyValueCoding.  */
 #define FOUNDATION_HAS_KVC 1
 
-#ifndef GS_WITH_GC
-#define GS_WITH_GC 0
-#endif
-
 #ifndef HAVE_LIBC_H
 #define HAVE_LIBC_H 1
 #endif

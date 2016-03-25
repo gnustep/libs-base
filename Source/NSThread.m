@@ -79,9 +79,6 @@
 #import "GSPrivate.h"
 #import "GSRunLoopCtxt.h"
 
-#if	GS_WITH_GC
-#  include <gc/gc.h>
-#endif
 #if __OBJC_GC__
 #  include <objc/objc-auto.h>
 #endif
@@ -687,13 +684,6 @@ gnustep_base_thread_callback(void)
 	   * threaded BEFORE sending the notifications.
 	   */
 	  entered_multi_threaded_state = YES;
-#if	GS_WITH_GC && defined(HAVE_GC_ALLOW_REGISTER_THREADS)
-	  /* This function needs to be called before going multi-threaded
-	   * so that the garbage collection library knows to support
-	   * registration of new threads.
-	   */
-	  GS_allow_register_threads();
-#endif
 	  NS_DURING
 	    {
 	      [GSPerformHolder class];	// Force initialization
@@ -1128,26 +1118,6 @@ static void *nsthreadLauncher(void* thread)
     setThreadForCurrentThread(t);
 #if __OBJC_GC__
 	objc_registerThreadWithCollector();
-#endif
-#if	GS_WITH_GC && defined(HAVE_GC_REGISTER_MY_THREAD)
-  {
-    struct GC_stack_base	base;
-
-    if (GC_get_stack_base(&base) == GC_SUCCESS)
-      {
-	int	result;
-
-	result = GC_register_my_thread(&base);
-	if (result != GC_SUCCESS && result != GC_DUPLICATE)
-	  {
-	    fprintf(stderr, "Argh ... no thread support in garbage collection library\n");
-	  }
-      }
-    else
-      {
-	fprintf(stderr, "Unable to determine stack base to register new thread for garbage collection\n");
-      }
-  }
 #endif
 
   /*
