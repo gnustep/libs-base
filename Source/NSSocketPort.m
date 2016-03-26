@@ -1766,7 +1766,7 @@ static Class		tcpPortClass;
     }
   else
     {
-      handle->recvPort = GS_GC_HIDE(self);
+      handle->recvPort = self;
     }
   NSMapInsert(handles, (void*)(uintptr_t)[handle descriptor], (void*)handle);
 #if	defined(_WIN32)

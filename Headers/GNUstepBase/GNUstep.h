@@ -47,17 +47,17 @@
 #if	__has_feature(objc_arc)
 
 #ifndef	RETAIN
-#define	RETAIN(object)		(object)
+#define	RETAIN(object)		        (object)
 #endif
 #ifndef	RELEASE
 #define	RELEASE(object)		
 #endif
 #ifndef	AUTORELEASE
-#define	AUTORELEASE(object)	(object)
+#define	AUTORELEASE(object)	        (object)
 #endif
 
 #ifndef	TEST_RETAIN
-#define	TEST_RETAIN(object)	(object)
+#define	TEST_RETAIN(object)	        (object)
 #endif
 #ifndef	TEST_RELEASE
 #define	TEST_RELEASE(object)
@@ -67,16 +67,28 @@
 #endif
 
 #ifndef	ASSIGN
-#define	ASSIGN(object,value)	object = (value)
+#define	ASSIGN(object,value)	        object = (value)
 #endif
 #ifndef	ASSIGNCOPY
 #define	ASSIGNCOPY(object,value)	object = [(value) copy]
 #endif
 #ifndef	DESTROY
-#define	DESTROY(object) 	object = nil
+#define	DESTROY(object) 	        object = nil
 #endif
 
 #define	IF_NO_GC(X)	
+
+#ifndef ENTER_POOL
+#define ENTER_POOL                      @autoreleasepool{do{
+#endif
+
+#ifndef LEAVE_POOL
+#define LEAVE_POOL                      }while(0);}
+#endif
+
+#ifndef DEALLOC
+#define DEALLOC
+#endif
 
 #else
 
@@ -183,17 +195,45 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
 
 #define	IF_NO_GC(X)	X
 
+#ifndef ENTER_POOL
+/**
+ *	ENTER_POOL creates an autorelease pool and places subsequent code
+ *	in a do/while loop (executed only once) which can be broken out of
+ *	to reach the point when the pool is drained.<br />
+ *	The block must be terminated with a corresponding LEAVE_POOL.<br />
+ *	You should not return from such a block of code (to do so could
+ *	leak an autorelease pool and give objects a longer lifetime than
+ *	they ought to have.  If you wish to leave the block of code early,
+ *	you may do so using a 'break' statement.
+ */
+#define ENTER_POOL      {NSAutoreleasePool *_lARP=[NSAutoreleasePool new];do{
+#endif
+
+#ifndef LEAVE_POOL
+/**
+ *	LEAVE_POOL terminates a block of code started with ENTER_POOL.
+ */
+#define LEAVE_POOL      }while(0);[_lARP drain];}
+#endif
+
+#ifndef DEALLOC
+/**
+ *	DEALLOC calls the superclass implementation of dealloc, unless
+ *	ARC is in use (in which case it does nothing).
+ */
+#define DEALLOC         [super dealloc];
+#endif
 #endif
 
 #ifndef	CREATE_AUTORELEASE_POOL
-/** DEPRECATED ... use NSAutoreleasePool *X = [NSAutoreleasePool new]
+/** DEPRECATED ... use ENTER_POOL and LEAVE_POOL
  */
 #define	CREATE_AUTORELEASE_POOL(X)	\
   NSAutoreleasePool *X = [NSAutoreleasePool new]
 #endif
 
 #ifndef RECREATE_AUTORELEASE_POOL
-/** DEPRECATED ... use [X release]; X = [NSAutoreleasePool new]
+/** DEPRECATED ... use ENTER_POOL and LEAVE_POOL
  */
 #define RECREATE_AUTORELEASE_POOL(X)  \
   DESTROY(X);\
