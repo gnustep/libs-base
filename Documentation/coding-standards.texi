@@ -317,7 +317,8 @@ explicit/readable code.
 
 We encourage the use of the following macros to ease retain and release
 and as a convenience for managing code which should work in both a
-garbage collecting and a retain counting environment.
+conventional retain counting environment and one with automatic reference
+counting (ARC)
 @itemize @bullet
 @item
 ASSIGN(object,value) to assign an object variable, performing the appropriate retain/release as necessary.
@@ -326,10 +327,8 @@ ASSIGNCOPY(object,value) to copy the value and assign it to the object.
 @item
 DESTROY(object) to release an object variable and set it to nil.
 @item
-CREATE_AUTORELEASE_POOL(name) to create an autorelease pool with the
-specified name.
-@item IF_NO_GC(X) compile the code 'X' only if GarbageCollection is not
-in use.
+ENTER_POOL and LEAVE_POOL to bracket statements which should be performed
+inside their own auutorlease context.
 @end itemize
 
 @c ******************************************************************
