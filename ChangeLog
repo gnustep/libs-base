@@ -1,3 +1,17 @@
+2016-04-04  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* configure.ac: Check for runloop integration hooks in libdispatch
+	* configure
+	* Headers/GNUstepBase/config.h.in
+	* SSL/config.h.in
+	* SSL/configure:
+	Regenerate
+	* Source/NSRunLoop.m: If available, monitor the file descriptor for
+	the libdispatch main queue and drain it when it becomes readable.
+	* Tests/base/NSRunLoop/dispatch.m
+	* Tests/base/NSRunLoop/GNUmakefile.preamble:
+	Tests for libdispatch runloop integration
+
 2016-03-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSObject.h:

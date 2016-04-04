@@ -62,6 +62,15 @@
 #include <math.h>
 #include <time.h>
 
+#if HAVE_DISPATCH_GET_MAIN_QUEUE_HANDLE_NP && HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP
+#  define RL_INTEGRATE_DISPATCH 1
+#  ifdef HAVE_DISPATCH_H
+#    include <dispatch.h>
+#  elif HAVE_DISPATCH_DISPATCH_H
+#    include <dispatch/dispatch.h>
+#  endif
+#endif
+
 
 NSString * const NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 
@@ -381,7 +390,26 @@ static inline BOOL timerInvalidated(NSTimer *t)
 
 @end
 
-
+#ifdef RL_INTEGRATE_DISPATCH
+@interface GSMainQueueDrainer : NSObject <RunLoopEvents>
++ (void*) mainQueueFileDescriptor;
+@end
+
+@implementation GSMainQueueDrainer
++ (void*) mainQueueFileDescriptor
+{
+  return (void*)(uintptr_t)dispatch_get_main_queue_handle_np();
+}
+
+- (void) receivedEvent: (void*)data
+		              type: (RunLoopEventType)type
+		             extra: (void*)extra
+	             forMode: (NSString*)mode
+{
+  dispatch_main_queue_drain_np();
+}
+@end
+#endif
 
 @interface NSRunLoop (Private)
 
@@ -739,7 +767,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
           [inv setSelector: sel];
           [inv setArgument: &not atIndex: 2];
           [inv retainArguments];
-            
+
           context = NSMapGet(current->_contextMap, NSDefaultRunLoopMode);
           if (context == nil)
             {
@@ -761,6 +789,18 @@ static inline BOOL timerInvalidated(NSTimer *t)
                                            userInfo: nil
                                             repeats: YES];
           context->housekeeper = timer;
+
+          #ifdef RL_INTEGRATE_DISPATCH
+          // We leak the queue drainer, because it's integral part of RL
+          // operations
+          GSMainQueueDrainer *drain =
+            [NSObject leak: [[GSMainQueueDrainer new] autorelease]];
+          [current addEvent: [GSMainQueueDrainer mainQueueFileDescriptor]
+                       type: ET_RDESC
+                    watcher: drain
+                    forMode: NSDefaultRunLoopMode];
+
+          #endif
           [arp drain];
         }
     }
@@ -1247,8 +1287,8 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 
   /* Process any pending notifications.
    */
-  GSPrivateCheckTasks(); 
-  GSPrivateNotifyASAP(mode); 
+  GSPrivateCheckTasks();
+  GSPrivateNotifyASAP(mode);
 
   /* And process any performers scheduled in the loop (eg something from
    * another thread.
@@ -1519,4 +1559,3 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 }
 
 @end
-
