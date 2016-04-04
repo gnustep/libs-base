@@ -215,8 +215,15 @@
 /* Define to 1 if you have the <dispatch/dispatch.h> header file. */
 #undef HAVE_DISPATCH_DISPATCH_H
 
+/* Define to 1 if you have the `dispatch_get_main_queue_handle_np' function.
+   */
+#undef HAVE_DISPATCH_GET_MAIN_QUEUE_HANDLE_NP
+
 /* Define to 1 if you have the <dispatch.h> header file. */
 #undef HAVE_DISPATCH_H
+
+/* Define to 1 if you have the `dispatch_main_queue_drain_np' function. */
+#undef HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP
 
 /* Define to 1 if you have the `dladdr' function. */
 #undef HAVE_DLADDR
@@ -241,15 +248,6 @@
 
 /* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
 #undef HAVE_FSEEKO
-
-/* Define if GC_allow_register_threads function is available */
-#undef HAVE_GC_ALLOW_REGISTER_THREADS
-
-/* Define to 1 if you have the <gc/gc.h> header file. */
-#undef HAVE_GC_GC_H
-
-/* Define if GC_register_my_thread function is available */
-#undef HAVE_GC_REGISTER_MY_THREAD
 
 /* Define to 1 if you have the `getaddrinfo' function. */
 #undef HAVE_GETADDRINFO

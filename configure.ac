@@ -12,7 +12,7 @@
 #   modify it under the terms of the GNU General Public
 #   License as published by the Free Software Foundation; either
 #   version 2 of the License, or (at your option) any later version.
-#   
+#
 #   This library is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -133,7 +133,7 @@ fi
 # This variable might get temporarily overwritten with the
 # GNUSTEP_MAKEFILES of the runtime configuration, make sure we keep
 # track of the original one.  CURRENT_GNUSTEP_MAKEFILES is the one
-# that we use to locate the actual gnustep-make installation that 
+# that we use to locate the actual gnustep-make installation that
 # will build the software.
 CURRENT_GNUSTEP_MAKEFILES="$GNUSTEP_MAKEFILES"
 
@@ -162,7 +162,7 @@ AC_ARG_WITH(cross-compilation-info,
 				contains information for the configure script in
 				case of cross compilation. This information
 				replaces those obtained from running programmes
-				during the configuration phase.], 
+				during the configuration phase.],
   cross_result="$withval",
   cross_result="no"
 )
@@ -170,7 +170,7 @@ CROSS_CONFIG="./cross.config"
 if test "$cross_result" != "no"
 then
  if test -f "$cross_result" && test -r "$cross_result"
-  then 
+  then
     CROSS_CONFIG="$cross_result"
   else
     AC_MSG_ERROR(["Could not load cross-compilation variables from $cross_result"])
@@ -224,7 +224,7 @@ AC_ARG_WITH(config-file,
 				environment variable at runtime.
 				If a trailing '/' is specified, the path is
 				used for locating domains but no GNUstep
-				config file is read at runtime.], 
+				config file is read at runtime.],
   result="$withval",
   result="no"
 )
@@ -255,7 +255,7 @@ case "$target_os" in
     *)		enable_env_config=yes;;
 esac
 AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
-AC_ARG_ENABLE(environment-config-file, 
+AC_ARG_ENABLE(environment-config-file,
 [  --disable-environment-config-file
                                 Disables the use of the GNUSTEP_CONFIG_FILE
 				environment variable to specify/override
@@ -272,7 +272,7 @@ AC_ARG_ENABLE(environment-config-file,
 				system (and containing unix-style paths
 				which cannot be used by windows apps).
 				Normally this should be left at its default
-				setting.], 
+				setting.],
   ac_cv_environment_config_file=$enableval,
   ac_cv_environment_config_file=$enable_env_config)
 if test "$ac_cv_environment_config_file" = "yes"; then
@@ -316,7 +316,7 @@ esac
 # It can be annoying in certain cases though; this option lets you
 # turn it off.
 AC_MSG_CHECKING([if we should import an existing configuration file now])
-AC_ARG_ENABLE(importing-config-file, 
+AC_ARG_ENABLE(importing-config-file,
 [  --disable-importing-config-file
                                 Disable importing of an existing GNUstep config
 				file and use inbuilt defaults instead.],
@@ -382,8 +382,8 @@ then
       # It looks like we need to make sure the user knows what they
       # are doing, as there is a high chance they don't and might end
       # up with a confused/non-working system.  As far as we know, the
-      # system might be already screwed.  If they don't want to import 
-      # a config file (eg, they don't have one and they don't care about 
+      # system might be already screwed.  If they don't want to import
+      # a config file (eg, they don't have one and they don't care about
       # the hardcoded paths) they should just say so. ;-)
       AC_MSG_ERROR([Please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
       exit 1
@@ -550,7 +550,7 @@ case "$target_os" in
     # so we can not use the 'short' option if we want gnustep-base
     # to work with older versions of gnustep-make.
     # Once everyone has upgraded to gnustep-make >= 2.0.5 (I'd say
-    # two years after it has been released ?), we could switch to the 
+    # two years after it has been released ?), we could switch to the
     # 'short' output though.
     GNUSTEP_SYSTEM_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_APPS`
     GNUSTEP_SYSTEM_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_APPS`
@@ -1065,7 +1065,7 @@ fi
 #
 # Add standard library and header directories for configure to use to locate
 # plain C developer headers/libraries which have been installed in the
-# GNUstep hierarchy. These take precedence 
+# GNUstep hierarchy. These take precedence
 #
 CPPFLAGS="$CPPFLAGS -I$GNUSTEP_LOCAL_HEADERS -I$GNUSTEP_NETWORK_HEADERS -I$GNUSTEP_SYSTEM_HEADERS"
 LDFLAGS="$LDFLAGS -L$GNUSTEP_LOCAL_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GNUSTEP_SYSTEM_LIBRARIES"
@@ -1139,14 +1139,14 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
     if test "$CC" = "gcc"; then
       saved_CFLAGS="$CFLAGS";
       ATOMIC_CFLAGS="";
-  
+
       # FIXME: Forcing -march=i568 for any i568 or later CPU is a
       # stop gap measure to make the compiler emit native assembly
       # for atomic operations on i586 or latter processors (GCC by
       # default emits code compatible with the original i386 and
       # requires library functions to emulate atomic operations).
       # When gnustep-make takes care of this kind of target setting,
-      # the check can safely be removed.  
+      # the check can safely be removed.
       case "$target_cpu" in
         i586*|i686*|i786*)
           ATOMIC_CFLAGS="-march=i586"
@@ -1186,7 +1186,7 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
           LDFLAGS="$saved_LDFLAGS";
           AC_MSG_RESULT([no]);
         fi
-      fi     
+      fi
     fi
   fi
 AC_LANG_POP(C)
@@ -1203,7 +1203,7 @@ LDIR_FLAGS="$LDFLAGS"
 # This is just for configuring. Later, in config.make, INCLUDE_FLAGS
 # goes in CONFIG_SYSTEM_INCL and LIBS goes in CONFIG_SYSTEM_LIBS
 case "$target_os" in
-  freebsd* | openbsd* )	
+  freebsd* | openbsd* )
 	        CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
   netbsd*)	CPPFLAGS="$CPPFLAGS -I/usr/pkg/include"
@@ -1640,7 +1640,7 @@ AC_SUBST(BUGGY_PTR_LIMITS)
 AC_LANG_POP(C)
 
 #--------------------------------------------------------------------
-# Setup dynamic linking 
+# Setup dynamic linking
 #--------------------------------------------------------------------
 OBJC_SYS_DYNAMIC_LINKER()
 # NOTE: libdl should be in LIBS now if it's available.
@@ -1655,7 +1655,7 @@ fi
 AC_CHECK_FUNCS(getaddrinfo)
 
 #--------------------------------------------------------------------
-# Check for pthread.h 
+# Check for pthread.h
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(pthread.h pthread_np.h)
 if test $ac_cv_header_pthread_h = yes ; then
@@ -1824,8 +1824,8 @@ fi
 LIBS="$LIBS $extra_LIBS"
 AC_CACHE_VAL(gs_cv_objc_works,
   AC_TRY_RUN([#include "$srcdir/config/config.objc.m"],
-  gs_cv_objc_works=yes, 
-  gs_cv_objc_works=no, 
+  gs_cv_objc_works=yes,
+  gs_cv_objc_works=no,
   gs_cv_objc_works="$cross_gs_cv_objc_works")
 )
 if test $gs_cv_objc_works = yes; then
@@ -1890,8 +1890,8 @@ AC_SUBST(NX_CONST_STRING_CLASS)
 # Don't revert any Objective-C flags as they are used in the next test
 
 #---------------------------------------------------------------------
-# Guess if we are using a compiler which has the (GNU extension) +load 
-# method which is executed before main.  
+# Guess if we are using a compiler which has the (GNU extension) +load
+# method which is executed before main.
 # Defines HAVE_LOAD_METHOD if +load methods are called before main.
 # Needed by NSProcessInfo.m
 #---------------------------------------------------------------------
@@ -1999,7 +1999,7 @@ AC_SUBST(GS_MIXEDABI)
 #--------------------------------------------------------------------
 # get_uninstalled_dtable used by behavior.m and objc-load.m
 #--------------------------------------------------------------------
-AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h, 
+AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h,
 	AC_DEFINE(HAVE_OBJC_GET_UNINSTALLED_DTABLE,1,
                   [ Define if objc-api.h defines this function]),)
 
@@ -2196,7 +2196,7 @@ AC_CACHE_CHECK([for pw_gecos field in struct passwd],
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <pwd.h> ]],
 	[[ struct passwd p; p.pw_gecos = 0; ]])],
 	[ ac_cv_have_pw_gecos_in_struct_passwd="yes" ],
-	[ ac_cv_have_pw_gecos_in_struct_passwd="no" 
+	[ ac_cv_have_pw_gecos_in_struct_passwd="no"
 	])
 ])
 if test "x$ac_cv_have_pw_gecos_in_struct_passwd" = "xyes" ; then
@@ -2209,7 +2209,7 @@ AC_CACHE_CHECK([for currency_symbol field in struct lconv],
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <locale.h> ]],
 	[[ struct lconv l; l.currency_symbol = NULL; ]])],
 	[ ac_cv_have_currency_symbol_in_struct_lconv="yes" ],
-	[ ac_cv_have_currency_symbol_in_struct_lconv="no" 
+	[ ac_cv_have_currency_symbol_in_struct_lconv="no"
 	])
 ])
 if test "x$ac_cv_have_currency_symbol_in_struct_lconv" = "xyes" ; then
@@ -2227,7 +2227,7 @@ AC_CHECK_FUNCS(time ctime tzset)
 
 # Check if tzfile contains the proper definitions
 if test $ac_cv_header_tzfile_h = yes; then
-  AC_EGREP_HEADER(tzhead, tzfile.h, 
+  AC_EGREP_HEADER(tzhead, tzfile.h,
 	AC_DEFINE(HAVE_TZHEAD,1,
                   [ Define if tzfile.h includes the proper definitions]),)
 fi
@@ -2290,7 +2290,7 @@ have_poll=no
 if test $ac_cv_header_poll_h = yes; then
   have_poll=yes
   AC_MSG_CHECKING(for poll emulation)
-  AC_EGREP_CPP(emulating_poll, [#include "config/config.poll.c"], 
+  AC_EGREP_CPP(emulating_poll, [#include "config/config.poll.c"],
   	have_poll=no,)
   if test $have_poll = yes; then
     AC_MSG_RESULT(no)
@@ -2522,17 +2522,17 @@ fi
 # This needed by NSString for handling of %@ printf directive.
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(register_printf_specifier)
-AC_CHECK_FUNC(register_printf_function, register_printf=1, 
+AC_CHECK_FUNC(register_printf_function, register_printf=1,
 register_printf=0)
 if test $register_printf = 1; then
   AC_TRY_RUN([#include "$srcdir/config/config.printf.c"],
-	       working_register_printf=1, working_register_printf=0, 
+	       working_register_printf=1, working_register_printf=0,
                working_register_printf="$cross_working_register_printf")
   if test $working_register_printf = 1; then
     AC_DEFINE(HAVE_REGISTER_PRINTF_FUNCTION,1,
               [Define if you have the register_printf_function function])
     AC_TRY_RUN([#include "$srcdir/config/config.wprintf.c"],
-	       wide_register_printf=1, wide_register_printf=0, 
+	       wide_register_printf=1, wide_register_printf=0,
                wide_register_printf="$cross_wide_register_printf")
     if test $wide_register_printf = 1; then
       AC_DEFINE(HAVE_WIDE_PRINTF_FUNCTION,1,
@@ -2555,7 +2555,7 @@ AC_MSG_CHECKING(program_invocation_name in C Library)
 AC_CACHE_VAL(gs_cv_program_invocation_name_worked,
 [AC_TRY_RUN([
 #include <string.h>
-int 
+int
 main (int argc, char *argv[])
 {
   extern char *program_invocation_name;
@@ -2572,19 +2572,19 @@ else
 fi
 
 #--------------------------------------------------------------------
-# Check for uname header used by NSProcessInfo.m 
+# Check for uname header used by NSProcessInfo.m
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/utsname.h)
 
 #--------------------------------------------------------------------
-# Check for sysctlbyname used by NSProcessInfo.m 
+# Check for sysctlbyname used by NSProcessInfo.m
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/sysctl.h)
 AC_CHECK_FUNCS(sysctlbyname)
 
 #--------------------------------------------------------------------
-# Defines HAVE_PROCFS if the kernel supports the /proc filesystem. 
-# Needed by NSProcessInfo.m 
+# Defines HAVE_PROCFS if the kernel supports the /proc filesystem.
+# Needed by NSProcessInfo.m
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(procfs.h)
 AC_SYS_PROCFS
@@ -2621,7 +2621,7 @@ if test "$ac_cv_lib_kvm_kvm_getenvv" = yes; then
 	have_kvm_env="$cross_have_kvm_env")
   if test $have_kvm_env = 1; then
     AC_MSG_RESULT(yes)
-    AC_DEFINE(HAVE_KVM_ENV, 1, 
+    AC_DEFINE(HAVE_KVM_ENV, 1,
     			    [Define if you can access the kernel via kvm_open])
   else
     AC_MSG_RESULT(no)
@@ -2781,7 +2781,7 @@ if test "$do_broken_libffi" = "no"; then
   if test "$PKGCONFIG" = "yes"; then
     if pkg-config --exists libffi; then
       pkg_config_libffi=yes
-      ffi_CFLAGS=`pkg-config --cflags libffi`; 
+      ffi_CFLAGS=`pkg-config --cflags libffi`;
       CPPFLAGS="$CPPFLAGS $ffi_CFLAGS"
       INCLUDE_FLAGS="$INCLUDE_FLAGS $ffi_CFLAGS"
     fi
@@ -2875,7 +2875,7 @@ if test $enable_ffcall = yes -a $ffi_ok = yes; then
   AC_MSG_CHECKING(if ffcall trampolines work)
   AC_RUN_IFELSE(
     [AC_LANG_SOURCE([[#include "$srcdir/config/config.trampoline.c"]])],
-	  have_working_trampoline=yes, have_working_trampoline=no, 
+	  have_working_trampoline=yes, have_working_trampoline=no,
 	  have_working_trampoline=yes)
   AC_MSG_RESULT($have_working_trampoline)
 fi
@@ -3309,9 +3309,9 @@ if test $enable_icu = yes; then
     LDFLAGS="$LDFLAGS $LIBS $ICU_LDFLAGS -licui18n -licuuc -licudata -lm"
     AC_TRY_LINK([],[], have_icu="yes", have_icu="no");
     LDFLAGS="$saved_LDFLAGS";
-    ICU_LIBS="-licui18n -licuuc -licudata -lm" 
+    ICU_LIBS="-licui18n -licuuc -licudata -lm"
   fi
-    
+
   if test "$have_icu" = "yes"; then
     AC_MSG_RESULT(yes)
     AC_CHECK_HEADERS(unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h)
@@ -3371,6 +3371,11 @@ if test $enable_libdispatch = yes; then
 fi
 AC_SUBST(HAVE_LIBDISPATCH)
 
+if test $HAVE_LIBDISPATCH = 1; then
+  # We check whether we have a variant of libdispatch that allows runloop
+  # integration
+  AC_CHECK_FUNCS(dispatch_main_queue_drain_np dispatch_get_main_queue_handle_np)
+fi
 
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal
@@ -3413,7 +3418,7 @@ AC_SUBST(USE_GMP)
 # Check which sorting algorithm to use.
 #--------------------------------------------------------------------
 AC_ARG_WITH(sort-algorithm,
-  [  --with-sort-algorithm=ALG  force use of a specific sorting algorithm. 
+  [  --with-sort-algorithm=ALG  force use of a specific sorting algorithm.
 				Possible values are timsort, quicksort, and shellsort.
 				Defaults to shellsort (others broken).],
   sort_algorithm="$withval", sort_algorithm="shellsort")

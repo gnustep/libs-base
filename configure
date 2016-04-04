@@ -716,7 +716,6 @@ ac_cv_sizeof_short
 GS_UINT8
 GS_SINT8
 GS_WORDS_BIGENDIAN
-OBJC_WITH_GC
 PKGCONFIG
 WHOAMI
 EGREP
@@ -2011,73 +2010,6 @@ $as_echo "$ac_res" >&6; }
 
 } # ac_fn_c_check_type
 
-# ac_fn_c_check_func LINENO FUNC VAR
-# ----------------------------------
-# Tests whether FUNC exists, setting the cache variable VAR accordingly
-ac_fn_c_check_func ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
-$as_echo_n "checking for $2... " >&6; }
-if eval \${$3+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-/* Define $2 to an innocuous variant, in case <limits.h> declares $2.
-   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
-#define $2 innocuous_$2
-
-/* System header to define __stub macros and hopefully few prototypes,
-    which can conflict with char $2 (); below.
-    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
-    <limits.h> exists even on freestanding compilers.  */
-
-#ifdef __STDC__
-# include <limits.h>
-#else
-# include <assert.h>
-#endif
-
-#undef $2
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char $2 ();
-/* The GNU C library defines this for functions which it implements
-    to always fail with ENOSYS.  Some functions are actually named
-    something starting with __ and the normal name is an alias.  */
-#if defined __stub_$2 || defined __stub___$2
-choke me
-#endif
-
-int
-main ()
-{
-return $2 ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  eval "$3=yes"
-else
-  eval "$3=no"
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-fi
-eval ac_res=\$$3
-	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
-$as_echo "$ac_res" >&6; }
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-
-} # ac_fn_c_check_func
-
 # ac_fn_c_compute_int LINENO EXPR VAR INCLUDES
 # --------------------------------------------
 # Tries to find the compile-time value of EXPR in a program that includes
@@ -2260,6 +2192,73 @@ rm -f conftest.val
   as_fn_set_status $ac_retval
 
 } # ac_fn_c_compute_int
+
+# ac_fn_c_check_func LINENO FUNC VAR
+# ----------------------------------
+# Tests whether FUNC exists, setting the cache variable VAR accordingly
+ac_fn_c_check_func ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $2" >&5
+$as_echo_n "checking for $2... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+/* Define $2 to an innocuous variant, in case <limits.h> declares $2.
+   For example, HP-UX 11i <limits.h> declares gettimeofday.  */
+#define $2 innocuous_$2
+
+/* System header to define __stub macros and hopefully few prototypes,
+    which can conflict with char $2 (); below.
+    Prefer <limits.h> to <assert.h> if __STDC__ is defined, since
+    <limits.h> exists even on freestanding compilers.  */
+
+#ifdef __STDC__
+# include <limits.h>
+#else
+# include <assert.h>
+#endif
+
+#undef $2
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char $2 ();
+/* The GNU C library defines this for functions which it implements
+    to always fail with ENOSYS.  Some functions are actually named
+    something starting with __ and the normal name is an alias.  */
+#if defined __stub_$2 || defined __stub___$2
+choke me
+#endif
+
+int
+main ()
+{
+return $2 ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  eval "$3=yes"
+else
+  eval "$3=no"
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_c_check_func
 
 # ac_fn_c_check_member LINENO AGGR MEMBER VAR INCLUDES
 # ----------------------------------------------------
@@ -5419,7 +5418,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5465,7 +5464,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5489,7 +5488,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5534,7 +5533,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5558,7 +5557,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5844,7 +5843,6 @@ esac
 #--------------------------------------------------------------------
 # Set Apple/Darwin/OSX/NeXT information for other tests
 #--------------------------------------------------------------------
-OBJC_WITH_GC=no
 OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking the Objective-C runtime" >&5
 $as_echo_n "checking the Objective-C runtime... " >&6; }
@@ -5852,11 +5850,6 @@ if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: NeXT" >&5
 $as_echo "NeXT" >&6; }
   OBJCFLAGS="$OBJCFLAGS -fnext-runtime -DNeXT_RUNTIME"
-elif test "$OBJC_RUNTIME_LIB" = "gnugc"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: GNU" >&5
-$as_echo "GNU" >&6; }
-  OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
-  OBJC_WITH_GC=yes
 elif test "$OBJC_RUNTIME_LIB" = "ng"; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: Next Gen" >&5
 $as_echo "Next Gen" >&6; }
@@ -5982,71 +5975,6 @@ if test $ac_cv_header_objc_objc_h = no; then
   echo "Check to make sure you have the Objective-C runtime library"
   echo "and its headers installed."
   as_fn_error $? "Could not find Objective-C headers" "$LINENO" 5
-fi
-
-if test $OBJC_WITH_GC = yes; then
-  for ac_header in gc/gc.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "gc/gc.h" "ac_cv_header_gc_gc_h" "$ac_includes_default"
-if test "x$ac_cv_header_gc_gc_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_GC_GC_H 1
-_ACEOF
- gc_ok=yes
-else
-  gc_ok=no
-fi
-
-done
-
-  if test "$gc_ok" = no; then
-    as_fn_error $? "Garbage collection was required, but the gc/gc.h header couldn't be found." "$LINENO" 5
-  fi
-  saved_LIBS="$LIBS"
-  LIBS+=" -lgc"
-  ac_fn_c_check_func "$LINENO" "GC_malloc" "ac_cv_func_GC_malloc"
-if test "x$ac_cv_func_GC_malloc" = xyes; then :
-  gc_ok=yes
-else
-  gc_ok=no
-fi
-
-  if test "$gc_ok" = no; then
-    as_fn_error $? "Garbage collection was required, but the gc library couldn't be found." "$LINENO" 5
-  fi
-  ac_fn_c_check_func "$LINENO" "GC_register_my_thread" "ac_cv_func_GC_register_my_thread"
-if test "x$ac_cv_func_GC_register_my_thread" = xyes; then :
-
-fi
-
-  if test "$ac_cv_func_GC_register_my_thread" = yes; then
-
-$as_echo "#define HAVE_GC_REGISTER_MY_THREAD 1" >>confdefs.h
-
-  fi
-  ac_fn_c_check_func "$LINENO" "GC_allow_register_threads" "ac_cv_func_GC_allow_register_threads"
-if test "x$ac_cv_func_GC_allow_register_threads" = xyes; then :
-
-fi
-
-  if test "$ac_cv_func_GC_allow_register_threads" = yes; then
-
-$as_echo "#define HAVE_GC_ALLOW_REGISTER_THREADS 1" >>confdefs.h
-
-  fi
-  LIBS="-lobjc_gc -ldl"
-  ac_fn_c_check_func "$LINENO" "class_ivar_set_gcinvisible" "ac_cv_func_class_ivar_set_gcinvisible"
-if test "x$ac_cv_func_class_ivar_set_gcinvisible" = xyes; then :
-  gc_ok=yes
-else
-  gc_ok=no
-fi
-
-  if test "$gc_ok" = no; then
-    as_fn_error $? "Garbage collection was required, but the gc runtime couldn't be found." "$LINENO" 5
-  fi
-  LIBS="$saved_LIBS"
-
 fi
 
 #--------------------------------------------------------------------
@@ -12416,6 +12344,21 @@ $as_echo "no" >&6; };
 fi
 
 
+if test $HAVE_LIBDISPATCH = 1; then
+  # We check whether we
+  for ac_func in dispatch_main_queue_drain_np dispatch_get_main_queue_handle_np
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+fi
 
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal
