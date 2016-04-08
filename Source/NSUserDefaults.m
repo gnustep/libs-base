@@ -2421,8 +2421,6 @@ static BOOL isLocked = NO;
           continue;
         }
 
-      NSLog(@"domain name: %@", domainName);
-
       /* We only look at files which do not represent domains in the
        * _changedDomains list, since our internal information on the
        * domains in that list overrides anything on disk.
