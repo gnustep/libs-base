@@ -89,7 +89,7 @@ static NSString		*defaultsFile = @".GNUstepDefaults";
 
 static NSUserDefaults	*sharedDefaults = nil;
 static NSDictionary     *argumentsDictionary = nil;
-static NSMutableString	*processName = nil;
+static NSString	        *processName = nil;
 static NSRecursiveLock	*classLock = nil;
 static NSLock	        *syncLock = nil;
 
@@ -584,6 +584,8 @@ newLanguages(NSArray *oldNames)
       NSStringClass = [NSString class];
       argumentsDictionary = [NSDictionary new];
       [self registerAtExit];
+
+      processName = [[[NSProcessInfo processInfo] processName] copy];
 
       /* Initialise the defaults flags to take values from the
        * process arguments.  These are otherwise set in updateCache()
@@ -1130,16 +1132,6 @@ newLanguages(NSArray *oldNames)
   BOOL		flag;
 
   self = [super init];
-
-  /*
-   * Global variable.
-   */
-  if (processName == nil)
-    {
-      NSString	*s = [[NSProcessInfo processInfo] processName];
-
-      processName = [s copy];
-    }
 
   if (path == nil || [path isEqual: @""] == YES)
     {
@@ -2293,6 +2285,7 @@ NSDictionary *GSPrivateDefaultLocale()
 
 - (void) _changePersistentDomain: (NSString*)domainName
 {
+  NSAssert(nil != domainName, NSInvalidArgumentException);
   [_lock lock];
   NS_DURING
     {
