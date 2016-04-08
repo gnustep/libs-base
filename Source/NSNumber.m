@@ -216,6 +216,11 @@ return NSOrderedSame;
 @end
 
 @implementation	NSBoolNumber
+- (void) getValue: (void*)buffer
+{
+  BOOL *ptr = (BOOL*)buffer;
+  *ptr = VALUE;
+}
 - (const char *) objCType
 {
   return @encode(BOOL);
