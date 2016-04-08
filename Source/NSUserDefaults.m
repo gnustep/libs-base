@@ -662,8 +662,8 @@ newLanguages(NSArray *oldNames)
         {
 	  /* Extract the registration domain from the old defaults.
 	   */
-	  regDefs = [[[sharedDefaults->_tempDomains
-	    objectForKey: NSRegistrationDomain] retain] autorelease];
+	  regDefs = AUTORELEASE(RETAIN([sharedDefaults->_tempDomains
+	    objectForKey: NSRegistrationDomain]));
 	  [sharedDefaults->_tempDomains
 	    removeObjectForKey: NSRegistrationDomain];
 
@@ -820,12 +820,12 @@ newLanguages(NSArray *oldNames)
   /* If the shared instance is already available ... return it.
    */
   [classLock lock];
-  defs = [sharedDefaults retain];
+  defs = RETAIN(sharedDefaults);
   setup = hasSharedDefaults;
   [classLock unlock];
   if (YES == setup)
     {
-      return [defs autorelease];
+      return AUTORELEASE(defs);
     }
  
   NS_DURING
@@ -867,15 +867,14 @@ newLanguages(NSArray *oldNames)
 	  if (NO == hasSharedDefaults)
 	    {
 	      hasSharedDefaults = YES;
-	      sharedDefaults = [defs retain];
+	      ASSIGN(sharedDefaults, defs);
 	    }
           else
 	    {
 	      /* Already set up by another thread.
 	       */
 	      [defs->_lock unlock];
-	      [defs release];
-	      defs = nil;
+	      DESTROY(defs);
 	    }
 	  [classLock unlock];
 	}
@@ -1079,12 +1078,12 @@ newLanguages(NSArray *oldNames)
       if (nil != defs)
 	{
 	  [defs->_lock unlock];
-	  [defs release];
+	  RELEASE(defs);
 	}
       [localException raise];
     }
   NS_ENDHANDLER
-  return [defs autorelease];
+  return AUTORELEASE(defs);
 }
 
 + (NSArray*) userLanguages
@@ -1114,7 +1113,7 @@ newLanguages(NSArray *oldNames)
     }
   [defs removeVolatileDomainForName: GSPrimaryDomain];
   [defs setVolatileDomain: dict forName: GSPrimaryDomain];
-  [dict release];
+  RELEASE(dict);
 }
 
 - (id) init
@@ -1383,7 +1382,7 @@ newLanguages(NSArray *oldNames)
           if (td != nil && (object = [td objectForKey: defaultName]))
 	    break;
         }
-      IF_NO_GC([object retain];)
+      RETAIN(object);
       [_lock unlock];
     }
   NS_HANDLER
@@ -1538,7 +1537,7 @@ static BOOL isPlistObject(id o)
 	  pd = [[GSPersistentDomain alloc] initWithName: processName
 						  owner: self];
           [_persDomains setObject: pd forKey: processName];
-	  [pd release];
+	  RELEASE(pd);
 	}
       if ([pd setObject: value forKey: defaultName])
         {
@@ -1732,7 +1731,7 @@ static BOOL isPlistObject(id o)
 	  pd = [[GSPersistentDomain alloc] initWithName: domainName
 						  owner: self];
           [_persDomains setObject: pd forKey: domainName];
-	  [pd release];
+	  RELEASE(pd);
 	}
       [pd setContents: domain];
       [self _changePersistentDomain: domainName];
@@ -1879,7 +1878,7 @@ static BOOL isPlistObject(id o)
     }
   NS_HANDLER
     {
-      [_lastSync release];
+      RELEASE(_lastSync);
       _lastSync = saved;
       if (YES == isLocked && NO == wasLocked)
         {
@@ -1893,11 +1892,11 @@ static BOOL isPlistObject(id o)
   
   if (YES == result)
     {
-      [saved release];
+      RELEASE(saved);
     }
   else
     {
-      [_lastSync release];
+      RELEASE(_lastSync);
       _lastSync = saved;
     }
   // Check and if not existent add the Application and the Global domains
@@ -1908,7 +1907,7 @@ static BOOL isPlistObject(id o)
       pd = [[GSPersistentDomain alloc] initWithName: processName
 					      owner: self];
       [_persDomains setObject: pd forKey: processName];
-      [pd release];
+      RELEASE(pd);
       [self _changePersistentDomain: processName];
     }
   if ([_persDomains objectForKey: NSGlobalDomain] == nil)
@@ -1918,7 +1917,7 @@ static BOOL isPlistObject(id o)
       pd = [[GSPersistentDomain alloc] initWithName: NSGlobalDomain
 					      owner: self];
       [_persDomains setObject: pd forKey: NSGlobalDomain];
-      [pd release];
+      RELEASE(pd);
       [self _changePersistentDomain: NSGlobalDomain];
     }
   [_lock unlock];
@@ -2174,7 +2173,7 @@ NSDictionary *GSPrivateDefaultLocale()
         {
           [NSUserDefaults standardUserDefaults];
         }
-      defs = [sharedDefaults retain];
+      ASSIGN(defs, sharedDefaults);
       [classLock unlock];
     }
   NS_HANDLER
@@ -2184,7 +2183,7 @@ NSDictionary *GSPrivateDefaultLocale()
     }
   NS_ENDHANDLER
   locale = [defs dictionaryRepresentation];
-  [defs release];
+  RELEASE(defs);
   return locale;
 }
 
@@ -2394,13 +2393,10 @@ static BOOL isLocked = NO;
 {
   NSEnumerator		*enumerator;
   NSString		*domainName;
-  NSFileManager		*mgr;
   BOOL			haveChange = NO;
 
-  mgr = [NSFileManager defaultManager];
-
-  enumerator
-    = [[mgr directoryContentsAtPath: _defaultsDatabase] objectEnumerator];
+  enumerator = [[[NSFileManager defaultManager]
+    directoryContentsAtPath: _defaultsDatabase] objectEnumerator];
   while (nil != (domainName = [enumerator nextObject]))
     {
       if (NO == [[domainName pathExtension] isEqual: @"plist"])
@@ -2412,7 +2408,7 @@ static BOOL isLocked = NO;
 	}
       domainName = [domainName stringByDeletingPathExtension];
 
-      /* We may what to know what domians are bing laoded.
+      /* We may what to know what domains are being loaded.
        */
       NSDebugMLog(@"domain name: %@", domainName);
 
@@ -2435,7 +2431,7 @@ static BOOL isLocked = NO;
 	      pd = [pd initWithName: domainName
 			      owner: self];
 	      [_persDomains setObject: pd forKey: domainName];
-	      [pd release];
+	      RELEASE(pd);
 	      haveChange = YES;
 	    }
 	  if (YES == [_searchList containsObject: domainName])
