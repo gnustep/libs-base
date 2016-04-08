@@ -2403,12 +2403,7 @@ static BOOL isLocked = NO;
     = [[mgr directoryContentsAtPath: _defaultsDatabase] objectEnumerator];
   while (nil != (domainName = [enumerator nextObject]))
     {
-      NSString *domainExtension;
-
-      domainExtension = [domainName pathExtension];
-      if (nil == domainExtension)
-        continue;
-      if (NO == [domainExtension isEqual: @"plist"])
+      if (NO == [[domainName pathExtension] isEqual: @"plist"])
 	{
 	  /* We only treat files with a .plist extension as being
 	   * defaults domain files.
@@ -2416,10 +2411,10 @@ static BOOL isLocked = NO;
 	  continue;
 	}
       domainName = [domainName stringByDeletingPathExtension];
-      if (nil == domainName)
-        {
-          continue;
-        }
+
+      /* We may what to know what domians are bing laoded.
+       */
+      NSDebugMLog(@"domain name: %@", domainName);
 
       /* We only look at files which do not represent domains in the
        * _changedDomains list, since our internal information on the
