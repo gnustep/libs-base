@@ -84,6 +84,10 @@ static NSString* (*abrIMP)(id, SEL, id);
 static NSString* (*absAbrIMP)(id, SEL, id);
 static NSString* (*dstAbrIMP)(id, SEL, id);
 
+/* Do not fetch the default locale unless we actually need it.
+ * Tries to avoid recursion when loading NSUserDefaults containing dates.
+ * This is also a little more efficient with many date formats.
+ */
 #define LOCALE  (nil == locale ? (locale = GSPrivateDefaultLocale()) : locale)
 
 
