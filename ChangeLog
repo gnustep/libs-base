@@ -1,3 +1,8 @@
+2016-05-08 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSUserDefaults.m
+	Skip nil domains explicitely and do not use nil values to look them up.
+
 2016-04-04  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* configure.ac: Check for runloop integration hooks in libdispatch

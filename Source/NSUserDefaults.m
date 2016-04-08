@@ -1,5 +1,5 @@
 /** Implementation for NSUserDefaults for GNUstep
-   Copyright (C) 1995-2001 Free Software Foundation, Inc.
+   Copyright (C) 1995-2016 Free Software Foundation, Inc.
 
    Written by:  Georg Tuparev <Tuparev@EMBL-Heidelberg.de>
    		EMBL & Academia Naturalis,
@@ -2403,7 +2403,12 @@ static BOOL isLocked = NO;
     = [[mgr directoryContentsAtPath: _defaultsDatabase] objectEnumerator];
   while (nil != (domainName = [enumerator nextObject]))
     {
-      if (NO == [[domainName pathExtension] isEqual: @"plist"])
+      NSString *domainExtension;
+
+      domainExtension = [domainName pathExtension];
+      if (nil == domainExtension)
+        continue;
+      if (NO == [domainExtension isEqual: @"plist"])
 	{
 	  /* We only treat files with a .plist extension as being
 	   * defaults domain files.
@@ -2411,6 +2416,12 @@ static BOOL isLocked = NO;
 	  continue;
 	}
       domainName = [domainName stringByDeletingPathExtension];
+      if (nil == domainName)
+        {
+          continue;
+        }
+
+      NSLog(@"domain name: %@", domainName);
 
       /* We only look at files which do not represent domains in the
        * _changedDomains list, since our internal information on the
