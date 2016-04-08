@@ -226,8 +226,8 @@ int main()
   testWriteBasicType_ushort("ushort", &us);
   testReadBasicType_ushort("ushort", &us, &us2);
   
-  testWriteBasicType_double("BOOL", &b);
-  testReadBasicType_double("BOOL", &b, &b2);
+  testWriteBasicType_BOOL("BOOL", &b);
+  testReadBasicType_BOOL("BOOL", &b, &b2);
   
   obj1 = [Model new];
   [obj1 setValues];
