@@ -421,6 +421,14 @@ int main()
   PASS([[date2 timeZone] isEqual: tz],
     "date year calculation preserves timezone");
 
+  tz = [NSTimeZone timeZoneForSecondsFromGMT: 3600];
+  date2 = [NSCalendarDate dateWithYear: 2016
+    month: 1 day: 6 hour: 1 minute: 0 second: 0 timeZone: tz];
+  date2 = [date2 dateByAddingYears: 0
+    months: 0 days: 0 hours: 0 minutes: 0 seconds: -3600];
+  PASS([date2 testDateValues: 2016 : 1 : 6 : 00 : 00 : 00],
+    "date year calculation check with %s", [[date2 description] cString]);
+
   [arp release]; arp = nil;
   return 0;
 }
