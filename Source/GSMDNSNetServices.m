@@ -540,7 +540,7 @@ QueryCallback(DNSServiceRef			 sdRef,
       type = [NSString stringWithUTF8String: replyType];
       name = [NSString stringWithUTF8String: replyName];
       
-      key = [NSString stringWithFormat: @"%@%@%@", name, type, domain];
+      key = RETAIN([NSString stringWithFormat: @"%@%@%@", name, type, domain]);
       
       if (flags & kDNSServiceFlagsAdd)
 	    {
@@ -564,7 +564,8 @@ QueryCallback(DNSServiceRef			 sdRef,
           [browser->services setObject: service
                                 forKey: key];
           
-          [service autorelease];
+          RELEASE(service);
+          RELEASE(key);
         }
 	      else
         {
