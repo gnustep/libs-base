@@ -540,7 +540,7 @@ QueryCallback(DNSServiceRef			 sdRef,
       type = [NSString stringWithUTF8String: replyType];
       name = [NSString stringWithUTF8String: replyName];
       
-      key = RETAIN([NSString stringWithFormat: @"%@%@%@", name, type, domain]);
+      key = [[NSString alloc] initWithFormat: @"%@%@%@", name, type, domain];
       
       if (flags & kDNSServiceFlagsAdd)
 	    {
