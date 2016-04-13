@@ -3854,6 +3854,10 @@ transmute(GSStr self, NSString *aString)
 		       options: (NSUInteger)mask
 			 range: (NSRange)aRange
 {
+  if (mask & NSNumericSearch)
+    {
+      return [super compare: aString options: mask range: aRange];
+    }
   GS_RANGE_CHECK(aRange, _count);
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException
@@ -4229,6 +4233,10 @@ agree, create a new GSCInlineString otherwise.
 		       options: (NSUInteger)mask
 			 range: (NSRange)aRange
 {
+  if (mask & NSNumericSearch)
+    {
+      return [super compare: aString options: mask range: aRange];
+    }
   GS_RANGE_CHECK(aRange, _count);
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException
@@ -4438,28 +4446,6 @@ agree, create a new GSCInlineString otherwise.
   GS_RANGE_CHECK(aRange, _count);
   return rangeOfCharacter_u((GSStr)self, aSet, mask, aRange);
 }
-
-/*
-- (NSRange) rangeOfString: (NSString*)aString
-		  options: (NSUInteger)mask
-		    range: (NSRange)aRange
-{
-  GS_RANGE_CHECK(aRange, _count);
-  if (aString == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] nil string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-  if (GSObjCIsInstance(aString) == NO)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] not a string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-  if ((mask & NSRegularExpressionSearch) == NSRegularExpressionSearch)
-    {
-      return [super rangeOfString: aString options: mask range: aRange];
-    }
-  return rangeOfString_u((GSStr)self, aString, mask, aRange);
-}
-*/
 
 - (NSStringEncoding) smallestEncoding
 {
@@ -4702,6 +4688,10 @@ agree, create a new GSUInlineString otherwise.
 		       options: (NSUInteger)mask
 			 range: (NSRange)aRange
 {
+  if (mask & NSNumericSearch)
+    {
+      return [super compare: aString options: mask range: aRange];
+    }
   GS_RANGE_CHECK(aRange, _count);
   if (aString == nil)
     [NSException raise: NSInvalidArgumentException
