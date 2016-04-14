@@ -2653,9 +2653,16 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     }
 
 #if GS_USE_ICU == 1
-  if (nil != locale && ![locale isKindOfClass: [NSLocale class]])
+  if (NO == [locale isKindOfClass: [NSLocale class]])
     {
-      locale = [NSLocale currentLocale];
+      if (nil == locale)
+        {
+          locale = [NSLocale systemLocale];
+        }
+      else
+        {
+          locale = [NSLocale currentLocale];
+        }
     }
     {
       UCollator *coll = GSICUCollatorOpen(mask, locale);
@@ -5619,9 +5626,16 @@ static NSFileManager *fm = nil;
     [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
 
 #if GS_USE_ICU == 1
-  if (nil != locale && ![locale isKindOfClass: [NSLocale class]])
+  if (NO == [locale isKindOfClass: [NSLocale class]])
     {
-      locale = [NSLocale currentLocale];
+      if (nil == locale)
+        {
+          locale = [NSLocale systemLocale];
+        }
+      else
+        {
+          locale = [NSLocale currentLocale];
+        }
     }
     {
       UCollator *coll = GSICUCollatorOpen(mask, locale);
