@@ -5623,7 +5623,13 @@ static NSFileManager *fm = nil;
     {
       if (nil == locale)
         {
-          locale = [NSLocale systemLocale];
+          /* See comments in GSICUCollatorOpen about the posix locale.
+           * It's bad for case insensitive search, but needed for numeric    
+           */
+          if (mask & NSNumericSearch)
+            {
+              locale = [NSLocale systemLocale];
+            }
         }
       else
         {
