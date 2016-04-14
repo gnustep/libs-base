@@ -2653,16 +2653,9 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     }
 
 #if GS_USE_ICU == 1
-  if (NO == [locale isKindOfClass: [NSLocale class]])
+  if (nil != locale && NO == [locale isKindOfClass: [NSLocale class]])
     {
-      if (nil == locale)
-        {
-          locale = [NSLocale systemLocale];
-        }
-      else
-        {
-          locale = [NSLocale currentLocale];
-        }
+      locale = [NSLocale currentLocale];
     }
     {
       UCollator *coll = GSICUCollatorOpen(mask, locale);
