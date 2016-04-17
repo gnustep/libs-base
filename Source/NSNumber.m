@@ -1064,6 +1064,7 @@ if (aValue >= -1 && aValue <= 12)\
       default:
         [NSException raise: NSInternalInconsistencyException
                     format: @"unknown NSNumber type '%s'", type];
+        return; // Avoid spurious compiler warning.
     }
 
   [self getValue: buffer];
@@ -1113,6 +1114,7 @@ if (aValue >= -1 && aValue <= 12)\
       default:
         [NSException raise: NSInternalInconsistencyException
                     format: @"unknown NSNumber type '%c'", type[0]];
+        return nil;     // Avoid spurious compiler warning.
      }
   [coder decodeValueOfObjCType: type at: buffer];
   return [self initWithBytes: buffer objCType: type];

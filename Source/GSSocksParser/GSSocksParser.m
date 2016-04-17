@@ -72,6 +72,7 @@
     {
       [NSException raise: NSInternalInconsistencyException
                   format: @"Unsupported socks verion: %@", version];
+      return nil;       // Avoid spurious compiler warning
     }
   return [[concreteClass alloc] initWithConfiguration: aConfiguration
                                               address: anAddress 
