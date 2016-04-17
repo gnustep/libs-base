@@ -1077,8 +1077,8 @@ int main(int argc, char *argv[], char *env[])
   unsigned long		count;
   static NSString	*host = nil;
   NSString              *thost = nil;
-  static int		pid;
-  int                   tpid;
+  static int		pid = 0;
+  int                   tpid = 0;
   static unsigned long	start;
 
   /* We obtain the host name and pid outside the locked region in case
