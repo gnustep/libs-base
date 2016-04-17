@@ -57,6 +57,7 @@ int main()
 
     START_SET("NSLocale")
       NSLocale  *sys;
+      NSLocale  *en;
       if (!NSLOCALE_SUPPORTED)
         SKIP("NSLocale not supported\nThe ICU library was not available when GNUstep-base was built")
       
@@ -78,7 +79,10 @@ int main()
       str = [fmt stringFromNumber: num];
       PASS_EQUAL(str, @"1235", "default 10.4 format same as Cocoa")
 
-      [fmt setLocale: [[NSLocale alloc] initWithLocaleIdentifier: @"en"]];
+      en = [[[NSLocale alloc] initWithLocaleIdentifier: @"en"] autorelease];
+      PASS_EQUAL([en localeIdentifier], @"en", "have locale 'en'");
+
+      [fmt setLocale: en];
 
       [fmt setMaximumFractionDigits: 2];
       str = [fmt stringFromNumber: num];
