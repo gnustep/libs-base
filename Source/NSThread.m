@@ -409,17 +409,17 @@ static inline NSValue* NSValueCreateFromPthread(pthread_t thread)
  * from an NSValue.
  */
 static inline void
-_getPthreadFromNSValue(NSValue* value, pthread_t *thread_ptr)
+_getPthreadFromNSValue(const void *value, pthread_t *thread_ptr)
 {
   const char    *enc;
 
   NSCAssert(thread_ptr, @"No storage for thread reference");
 # ifndef NS_BLOCK_ASSERTIONS
-  enc = [value objCType];
+  enc = [(NSValue*)value objCType];
   NSCAssert(enc != NULL && (0 == strcmp(@encode(pthread_t),enc)),
     @"Invalid NSValue container for thread reference");
 # endif
-  [value getValue: (void*)thread_ptr];
+  [(NSValue*)value getValue: (void*)thread_ptr];
 }
 
 /**
@@ -428,8 +428,8 @@ _getPthreadFromNSValue(NSValue* value, pthread_t *thread_ptr)
  */
 static BOOL
 _boxedPthreadIsEqual(NSMapTable *t,
-  const void* boxed,
-  const void* boxedOther)
+  const void *boxed,
+  const void *boxedOther)
 {
   pthread_t thread;
   pthread_t otherThread;
@@ -454,7 +454,7 @@ _boxedPthreadIsEqual(NSMapTable *t,
  * equality), but makes things quite inefficient (linear search over all
  * elements), so we need to keep the table small.
  */
-static NSUInteger _boxedPthreadHash(NSMapTable* t, const void* value)
+static NSUInteger _boxedPthreadHash(NSMapTable *t, const void *value)
 {
   return 0;
 }
@@ -462,7 +462,7 @@ static NSUInteger _boxedPthreadHash(NSMapTable* t, const void* value)
 /**
  * Retain callback for boxed thread references.
  */
-static void _boxedPthreadRetain(NSMapTable* t, const void* value)
+static void _boxedPthreadRetain(NSMapTable *t, const void *value)
 {
   RETAIN((NSValue*)value);
 }
@@ -470,7 +470,7 @@ static void _boxedPthreadRetain(NSMapTable* t, const void* value)
 /**
  * Release callback for boxed thread references.
  */
-static void _boxedPthreadRelease(NSMapTable* t, void* value)
+static void _boxedPthreadRelease(NSMapTable *t, void *value)
 {
   RELEASE((NSValue*)value);
 }
@@ -478,7 +478,7 @@ static void _boxedPthreadRelease(NSMapTable* t, void* value)
 /**
  * Description callback for boxed thread references.
  */
-static NSString *_boxedPthreadDescribe(NSMapTable* t, const void* value)
+static NSString *_boxedPthreadDescribe(NSMapTable *t, const void *value)
 {
   return [(NSValue*)value description];
 }
@@ -1112,7 +1112,7 @@ unregisterActiveThread(NSThread *thread)
 /**
  * Trampoline function called to launch the thread
  */
-static void *nsthreadLauncher(void* thread)
+static void *nsthreadLauncher(void *thread)
 {
     NSThread *t = (NSThread*)thread;
     setThreadForCurrentThread(t);
