@@ -50,6 +50,27 @@ NSString * const NSUserNotificationDefaultSoundName = @"NSUserNotificationDefaul
 
 @implementation NSUserNotification
 
+@synthesize title;
+@synthesize subtitle;
+@synthesize informativeText;
+@synthesize actionButtonTitle;
+@synthesize userInfo;
+@synthesize deliveryDate;
+@synthesize deliveryTimeZone;
+@synthesize deliveryRepeatInterval;
+@synthesize actualDeliveryDate;
+@synthesize presented;
+@synthesize remote;
+@synthesize soundName;
+@synthesize hasActionButton;
+@synthesize activationType;
+@synthesize otherButtonTitle;
+@synthesize identifier;
+@synthesize contentImage;
+@synthesize hasReplyButton;
+@synthesize responsePlaceholder;
+@synthesize response;
+
 - (id) init
 {
   if (nil != (self = [super init]))
@@ -104,17 +125,24 @@ NSString * const NSUserNotificationDefaultSoundName = @"NSUserNotificationDefaul
 
 static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
+@synthesize scheduledNotifications = _scheduledNotifications;
+@synthesize deliveredNotifications = _deliveredNotifications;
+@synthesize delegate = _delegate;
+
 + (Class) defaultUserNotificationCenterClass
 {
   NSBundle *bundle = [NSBundle bundleForClass: [self class]];
   NSString *bundlePath = [bundle pathForResource: @"NSUserNotification"
                                           ofType: @"bundle"
                                      inDirectory: nil];
+  NSLog(@"%s:bundle path: %@", __PRETTY_FUNCTION__, bundlePath);
   if (bundlePath)
     {
       bundle = [NSBundle bundleWithPath: bundlePath];
+      NSLog(@"%s:bundle: %@", __PRETTY_FUNCTION__, bundle);
       if (bundle)
         {
+          NSLog(@"%s:principal class: %@", __PRETTY_FUNCTION__, [bundle principalClass]);
           return [bundle principalClass];
         }
     }
@@ -128,6 +156,7 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
 + (void) initialize
 {
+  NSLog(@"%s:", __PRETTY_FUNCTION__);
   if ([NSUserNotificationCenter class] == self)
     {
       Class uncClass = [self defaultUserNotificationCenterClass];

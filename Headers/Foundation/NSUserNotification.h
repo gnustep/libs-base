@@ -25,6 +25,8 @@
 #ifndef __NSUserNotification_h_INCLUDE
 #define __NSUserNotification_h_INCLUDE
 
+#define NSUserNotification_IVARS 1
+#define NSUserNotificationCenter_IVARS 1
 #import	<GNUstepBase/GSVersionMacros.h>
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_8,GS_API_LATEST)
@@ -59,6 +61,26 @@ typedef NSInteger NSUserNotificationActivationType;
 #if	GS_EXPOSE(NSUserNotification)
   @public
   id _uniqueId;
+  NSString *title;
+  NSString *subtitle;
+  NSString *informativeText;
+  NSString *actionButtonTitle;
+  NSDictionary *userInfo;
+  NSDate *deliveryDate;
+  NSTimeZone *deliveryTimeZone;
+  NSDateComponents *deliveryRepeatInterval;
+  NSDate *actualDeliveryDate;
+  BOOL presented;
+  BOOL remote;
+  NSString *soundName;
+  BOOL hasActionButton;
+  NSUserNotificationActivationType activationType;
+  NSString *otherButtonTitle;
+  NSString *identifier;
+  NSImage *contentImage;
+  BOOL hasReplyButton;
+  NSString *responsePlaceholder;
+  NSAttributedString *response;
 #endif
 }
 
@@ -98,6 +120,7 @@ GS_EXPORT NSString * const NSUserNotificationDefaultSoundName;
 #if	GS_EXPOSE(NSUserNotificationCenter)
   NSMutableArray *_scheduledNotifications;
   NSMutableArray *_deliveredNotifications;
+  id <NSUserNotificationCenterDelegate> _delegate;
 #endif
 }
 
