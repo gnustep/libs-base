@@ -1941,6 +1941,7 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 
   while (i < lf)
     {
+      NSString  *str;
       BOOL	mtag = NO;
       BOOL	dtag = NO;
       BOOL	ycent = NO;
@@ -1956,8 +1957,9 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
       if (f[i] == '%')
 	{
           i++;
-	  fldfmt[fmtlen++] = '%'; // start format with %
-          while (fmtlen < 5 && f[i] >= '0' && f[i] <= '9') // field width specified
+	  fldfmt[fmtlen++] = '%';
+          // field width specified
+          while (fmtlen < 5 && f[i] >= '0' && f[i] <= '9')
 	    {
 	      fldfmt[fmtlen++] = f[i];
 	      width = 10 * width + f[i] - '0';
@@ -1965,8 +1967,12 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 	    }
 	  if (fmtlen >= 5 || width > MAX_FLD_WIDTH)
 	    {
-	      // ignore formats that specify field width greater than the max allowed
-	      i -= fmtlen; // set i back so all ignored characters will be copied
+	      /* ignore formats that specify field width
+               * greater than the max allowed.
+               * set i back so all ignored characters will
+               * be copied
+               */
+	      i -= fmtlen;
 	    }
 
 	  // check the character that comes after
@@ -1996,26 +2002,22 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
 		break;
 
 	      case 'c':
-		[self _format: [LOCALE objectForKey: NSTimeFormatString]
-		       locale: locale
-			 info: info];
+		str = (NSString*)[LOCALE objectForKey: NSTimeFormatString];
+		[self _format: str locale: locale info: info];
 		Grow(info, 1);
 		info->t[info->offset++] = ' ';
-		[self _format: [LOCALE objectForKey: NSDateFormatString]
-		       locale: locale
-			 info: info];
+		str = (NSString*)[LOCALE objectForKey: NSDateFormatString];
+		[self _format: str locale: locale info: info];
 		break;
 
 	      case 'X':
-		[self _format: [LOCALE objectForKey: NSTimeFormatString]
-		       locale: locale
-			 info: info];
+		str = (NSString*)[LOCALE objectForKey: NSTimeFormatString];
+		[self _format: str locale: locale info: info];
 		break;
 
 	      case 'x':
-		[self _format: [LOCALE objectForKey: NSDateFormatString]
-		       locale: locale
-			 info: info];
+		str = (NSString*)[LOCALE objectForKey: NSDateFormatString];
+		[self _format: str locale: locale info: info];
 		break;
 
 		// is it the year
