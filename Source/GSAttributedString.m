@@ -137,6 +137,8 @@ static IMP		unlockImp;
 #define	AUNLOCK() if (attrLock != nil) (*unlockImp)(attrLock, unlockSel)
 
 @class  GSCachedDictionary;
+@interface GSCachedDictionary : NSDictionary    // Help the compiler
+@end
 @protocol       GSCachedDictionary
 - (void) _uncache;
 @end
