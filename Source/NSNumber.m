@@ -355,9 +355,11 @@ return NSOrderedSame;
 
 #ifdef OBJC_SMALL_OBJECT_SHIFT
 static BOOL useSmallInt;
+#if OBJC_SMALL_OBJECT_SHIFT == 3
 static BOOL useSmallExtendedDouble;
 static BOOL useSmallRepeatingDouble;
 static BOOL useSmallFloat;
+#endif
 #define SMALL_INT_MASK 1
 #define SMALL_EXTENDED_DOUBLE_MASK 2
 #define SMALL_REPEATING_DOUBLE_MASK 3
@@ -484,8 +486,7 @@ boxDouble(double d, uintptr_t mask)
 #define FORMAT @"%0.16g"
 #include "NSNumberMethods.h"
 
-+ (void)
-load
++ (void) load
 {
   useSmallExtendedDouble = objc_registerSmallObjectClass_np
     (self, SMALL_EXTENDED_DOUBLE_MASK);
@@ -819,11 +820,12 @@ if (aValue >= -1 && aValue <= 12)\
 
   CHECK_SINGLETON (aValue);
 #ifdef OBJC_SMALL_OBJECT_SHIFT
-  if (useSmallInt &&
-      (aValue < (INT_MAX>>OBJC_SMALL_OBJECT_SHIFT)) &&
-      (aValue > -(INT_MAX>>OBJC_SMALL_OBJECT_SHIFT)))
+  if (useSmallInt
+    && (aValue < (INT_MAX>>OBJC_SMALL_OBJECT_SHIFT))
+    && (aValue > -(INT_MAX>>OBJC_SMALL_OBJECT_SHIFT)))
     {
-       return (id)((((NSInteger)aValue) << OBJC_SMALL_OBJECT_SHIFT) | SMALL_INT_MASK);
+      return (id)((((NSInteger)aValue) << OBJC_SMALL_OBJECT_SHIFT)
+        | SMALL_INT_MASK);
     }
 #endif
   n = NSAllocateObject (NSIntNumberClass, 0, 0);
