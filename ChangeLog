@@ -1,9 +1,15 @@
-2016-05-08  Richard Frith-Macdonald <rfm@gnu.org>
+2016-04-23  Marcus Mueller <znek@mulle-kybernetik.com>
+
+	* Source/GSAvahiNetService.m: Avahi-based NSNetServices did crash
+	upon publishing if Avahi daemon did not run. Hardened code for this
+	case which also works correctly if daemon is started later on.
+
+2016-04-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m
 	Remove redundant code.  Log domain names when debug is enabled.
 
-2016-05-08 Riccardo Mottola <rm@gnu.org>
+2016-04-08 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSUserDefaults.m
 	Skip nil domains explicitely and do not use nil values to look them up.
