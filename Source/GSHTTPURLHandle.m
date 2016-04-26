@@ -1642,6 +1642,9 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
  *     to 8080 for <code>http</code> and 4430 for <code>https</code>.
  *   </item>
  *   <item>
+ *     Any GSTLS... key to control TLS behavior
+ *   </item>
+ *   <item>
  *     Any NSHTTPProperty... key
  *   </item>
  * </list>
@@ -1655,6 +1658,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
         format: @"%@ %p with invalid key", NSStringFromSelector(_cmd), self];
     }
   if ([propertyKey hasPrefix: @"GSHTTPProperty"]
+    || [propertyKey hasPrefix: @"GSTLS"]
     || [propertyKey hasPrefix: @"NSHTTPProperty"])
     {
       if (property == nil)
