@@ -1,3 +1,9 @@
+2016-04-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSAutoreleasePool.m:
+	Check for a pool being deallocated when it has already been
+	deallocated (and raise an exception).
+
 2016-04-23  Marcus Mueller <znek@mulle-kybernetik.com>
 
 	* Source/GSAvahiNetService.m: Avahi-based NSNetServices did crash
@@ -6,12 +12,12 @@
 
 2016-04-08  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSUserDefaults.m
+	* Source/NSUserDefaults.m:
 	Remove redundant code.  Log domain names when debug is enabled.
 
 2016-04-08 Riccardo Mottola <rm@gnu.org>
 
-	* Source/NSUserDefaults.m
+	* Source/NSUserDefaults.m:
 	Skip nil domains explicitely and do not use nil values to look them up.
 
 2016-04-04  Niels Grewe <niels.grewe@halbordnung.de>
