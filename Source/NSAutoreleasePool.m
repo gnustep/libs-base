@@ -295,9 +295,14 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 + (id) allocWithZone: (NSZone*)zone
 {
   struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
-  if (tv->pool_cache_count)
-    return pop_pool_from_cache (tv);
 
+  if (tv->pool_cache_count)
+    {
+      NSAutoreleasePool *p = pop_pool_from_cache (tv);
+
+      NSAssert(++(p->_released_count) == 0, @"corrupted pool in cache");
+      return p;
+    }
   return NSAllocateObject (self, 0, zone);
 }
 
@@ -718,6 +723,13 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
     {
       _parent->_child = nil;
       _parent = nil;
+    }
+
+  if (_released_count-- != 0)
+    {
+      _released_count++;
+      [NSException raise: NSInternalInconsistencyException
+                  format: @"NSAutoreleasePool -dealloc of deallocated pool"];
     }
 
   /* Don't deallocate ourself, just save us for later use. */
