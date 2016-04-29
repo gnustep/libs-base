@@ -203,7 +203,7 @@ static BOOL autorelease_enabled = YES;
 
 /* When the _released_count of a pool gets over this value, we raise
    an exception.  This can be adjusted with +setPoolCountThreshhold */
-static unsigned pool_count_warning_threshhold = UINT_MAX;
+static unsigned pool_count_warning_threshhold = UINT_MAX-1;
 
 /* When the number of pools in a thread gets over this value, we raise
    an exception.  This can be adjusted with +setPoolNumberThreshhold */
@@ -300,7 +300,15 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
     {
       NSAutoreleasePool *p = pop_pool_from_cache (tv);
 
-      NSAssert(++(p->_released_count) == 0, @"corrupted pool in cache");
+      /* When we cache a 'deallocated' pool, we set its _released_count to
+       * UINT_MAX, so when we rtrieve it fromm the cache we must increment
+       * it to start with a count of zero.
+       */
+      if (++(p->_released_count) != 0)
+        {
+          [NSException raise: NSInternalInconsistencyException
+                      format: @"NSAutoreleasePool corrupted pool in cache"];
+        }
       return p;
     }
   return NSAllocateObject (self, 0, zone);
@@ -331,6 +339,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   {
     struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
     unsigned	level = 0;
+
     _parent = tv->current_pool;
     if (_parent)
       {
@@ -536,8 +545,10 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
     return;
 
   if (_released_count >= pool_count_warning_threshhold)
-    [NSException raise: NSGenericException
-		 format: @"AutoreleasePool count threshhold exceeded."];
+    {
+      [NSException raise: NSGenericException
+		  format: @"AutoreleasePool count threshhold exceeded."];
+    }
 
   /* Get a new array for the list, if the current one is full. */
   while (_released->count == _released->size)
@@ -707,7 +718,14 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 {
   struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
 
+  if (UINT_MAX == _released_count)
+    {
+      [NSException raise: NSInternalInconsistencyException
+                  format: @"NSAutoreleasePool -dealloc of deallocated pool"];
+    }
+
   [self emptyPool];
+  NSAssert(0 == _released_count, NSInternalInconsistencyException);
 
   /* Remove self from the linked list of pools in use.
    * We already know that we have deallocated any child (in -emptyPool),
@@ -725,12 +743,11 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
       _parent = nil;
     }
 
-  if (_released_count-- != 0)
-    {
-      _released_count++;
-      [NSException raise: NSInternalInconsistencyException
-                  format: @"NSAutoreleasePool -dealloc of deallocated pool"];
-    }
+  /* Mark pool as cached so that any attempt to add an object to use it
+   * or to deallocate it again will raise an exception.
+   * We reset to zero when we get i out of the cache as a new allocation.
+   */
+  _released_count = UINT_MAX;
 
   /* Don't deallocate ourself, just save us for later use. */
   push_pool_to_cache (tv, self);
@@ -802,6 +819,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 
 + (void) setPoolCountThreshhold: (unsigned)c
 {
+  if (c >= UINT_MAX) c = UINT_MAX - 1;
   pool_count_warning_threshhold = c;
 }
 
