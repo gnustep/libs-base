@@ -835,6 +835,15 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10,GS_API_LATEST) 
+
+/**
+  * Returns YES if the receiver contains string, otherwise, NO.
+  */
+- (BOOL) containsString: (NSString *)string;
+
+#endif
+
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 + (Class) constantStringClass;
 #endif	/* GS_API_NONE */
