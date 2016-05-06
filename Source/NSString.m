@@ -6082,6 +6082,14 @@ static NSFileManager *fm = nil;
   return size;
 }
 
+/**
+  * Returns YES if the receiver contains string, otherwise, NO.
+  */
+- (BOOL) containsString: (NSString *)string
+{
+  return [self rangeOfString: string].location != NSNotFound;
+}
+
 @end
 
 /**

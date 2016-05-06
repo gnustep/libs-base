@@ -1,3 +1,9 @@
+2016-05-06 18:03-EDT Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSString.h: Add containsString:
+	* Headers/GNUstepBase/GSVersionMacros.h: Add 10.10 and 10.11 macros.
+	* Source/NSString.m: Add containsString: implementation.
+
 2016-04-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSAutoreleasePool.m:
