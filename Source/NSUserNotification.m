@@ -41,11 +41,11 @@
 NSString * const NSUserNotificationDefaultSoundName = @"NSUserNotificationDefaultSoundName";
 
 @interface NSUserNotification ()
-@property (readwrite) NSDate *actualDeliveryDate;
+@property (readwrite, copy) NSDate *actualDeliveryDate;
 @property (readwrite, getter=isPresented) BOOL presented;
 @property (readwrite, getter=isRemote) BOOL remote;
 @property (readwrite) NSUserNotificationActivationType activationType;
-@property (readwrite) NSAttributedString *response;
+@property (readwrite, copy) NSAttributedString *response;
 @end
 
 @implementation NSUserNotification

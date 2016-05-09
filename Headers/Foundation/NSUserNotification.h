@@ -104,7 +104,7 @@ typedef NSInteger NSUserNotificationActivationType;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
 
 @property (copy) NSString *identifier;
-@property (copy) NSImage *contentImage;
+@property (retain) NSImage *contentImage;
 @property BOOL hasReplyButton;
 @property (copy) NSString *responsePlaceholder;
 @property (readonly) NSAttributedString *response;
