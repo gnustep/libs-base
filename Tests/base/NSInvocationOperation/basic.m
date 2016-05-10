@@ -8,26 +8,28 @@
 
 int main()
 {
+  START_SET("NSInvocationOperation - basic")
   NSInvocationOperation *op;
-  NSInvocation *inv1, *inv2;
-  NSValue *val;
-  int length;
-  NSString *hello = @"hello", *uppercaseHello;
-  NSOperationQueue *queue = [NSOperationQueue new];
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  NSInvocation          *inv1;
+  NSInvocation          *inv2;
+  NSValue               *val;
+  int                   length;
+  NSString              *hello = @"hello";
+  NSString              *uppercaseHello;
+  NSOperationQueue      *queue = [NSOperationQueue new];
 
   op = [[NSInvocationOperation alloc] initWithTarget: hello
-					     selector: @selector(length)
-					       object: nil];
+					    selector: @selector(length)
+					      object: nil];
   [queue addOperations: [NSArray arrayWithObject: op]
      waitUntilFinished: YES];
   val = [op result];
   [val getValue: &length];
   PASS((length == 5), "Can invoke a selector on a target");
-  [op release];
+  RELEASE(op);
 
   inv1 = [NSInvocation invocationWithMethodSignature: 
-		   [hello methodSignatureForSelector: @selector(uppercaseString)]];
+    [hello methodSignatureForSelector: @selector(uppercaseString)]];
   [inv1 setTarget: hello];
   [inv1 setSelector: @selector(uppercaseString)];
   op = [[NSInvocationOperation alloc] initWithInvocation: inv1];
@@ -36,17 +38,17 @@ int main()
   [queue addOperations: [NSArray arrayWithObject: op]
      waitUntilFinished: YES];
   uppercaseHello = [op result];
-  PASS(([uppercaseHello isEqualToString: @"HELLO"]), "Can schedule an NSInvocation");
-  [op release];
+  PASS_EQUAL(uppercaseHello, @"HELLO", "Can schedule an NSInvocation");
+  RELEASE(op);
 
   op = [[NSInvocationOperation alloc] initWithTarget: hello
-					     selector: @selector(release)
-					       object: nil];
+					    selector: @selector(release)
+					      object: nil];
   [queue addOperations: [NSArray arrayWithObject: op]
      waitUntilFinished: YES];
   PASS_EXCEPTION(([op result]), NSInvocationOperationVoidResultException, 
-		 "Can't get result of a void invocation");
-  [op release];
+    "Can't get result of a void invocation");
+  RELEASE(op);
 
   op = [[NSInvocationOperation alloc] initWithTarget: hello
 					    selector: @selector(length)
@@ -55,16 +57,17 @@ int main()
   [queue addOperations: [NSArray arrayWithObject: op]
      waitUntilFinished: YES];
   PASS_EXCEPTION(([op result]), NSInvocationOperationCancelledException,
-		 "Can't get the result of a cancelled invocation");
-  [op release];
+    "Can't get the result of a cancelled invocation");
+  RELEASE(op);
 
   op = [[NSInvocationOperation alloc] initWithTarget: hello
 					    selector: @selector(length)
 					      object: nil];
-  PASS(([op result] == nil), "Result is nil before the invocation has completed");
-  [op release];
+  PASS(([op result] == nil),
+    "Result is nil before the invocation has completed");
+  RELEASE(op);
 
-  [queue release];
-  [arp release]; arp = nil;
+  RELEASE(queue);
+  END_SET("NSInvocationOperation - basic")
   return 0;
 }
