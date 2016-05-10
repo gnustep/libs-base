@@ -1,4 +1,5 @@
 #import <Foundation/NSArray.h>
+#import <Foundation/NSKeyValueObserving.h>
 #import <Foundation/NSLock.h>
 #import <Foundation/NSOperation.h>
 #import <Foundation/NSThread.h>
