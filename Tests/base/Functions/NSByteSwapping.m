@@ -4,7 +4,6 @@
 int main()
 { 
   NSAutoreleasePool   *pool = [NSAutoreleasePool new];
-  id	o;
   float flt=M_PI;
   double dbl=M_PI;
 

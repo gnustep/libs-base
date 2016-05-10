@@ -32,7 +32,8 @@ int main()
   [archiver setOutputFormat: NSPropertyListXMLFormat_v1_0];
   [archiver encodeObject: ms forKey: @"root"];
   [archiver finishEncoding];
-  NSLog(@"%*.*s", [data2 length], [data2 length], [data2 bytes]);
+  NSLog(@"%*.*s",
+    (unsigned)[data2 length], (unsigned)[data2 length], [data2 bytes]);
   ms = [NSKeyedUnarchiver unarchiveObjectWithData: data2];
   PASS([[[ms anyObject] absoluteString] isEqual: @"http://www.w3.org/"],
     "Can archive and restore a URL");

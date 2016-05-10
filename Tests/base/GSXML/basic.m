@@ -7,7 +7,7 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   GSXMLDocument *doc;
-  volatile GSXMLNamespace *namespace;
+  GSXMLNamespace *namespace;
   NSMutableArray *iparams;
   NSMutableArray *oparams;
   GSXMLNode	*node;
