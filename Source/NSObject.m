@@ -2252,13 +2252,13 @@ static id gs_weak_load(id obj)
 
 - (id) perform: (SEL)sel with: (id)anObject
 {
-  return [self performSelector:sel withObject:anObject];
+  return [self performSelector: sel withObject: anObject];
 }
 
 - (id) perform: (SEL)sel with: (id)anObject with: (id)anotherObject
 {
-  return [self performSelector:sel withObject:anObject
-	       withObject:anotherObject];
+  return [self performSelector: sel withObject: anObject
+                    withObject: anotherObject];
 }
 
 @end

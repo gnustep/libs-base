@@ -738,12 +738,13 @@ static NSOperationQueue *mainQueue = nil;
 
 - (void) dealloc
 {
-  [internal->operations release];
-  [internal->starting release];
-  [internal->waiting release];
-  [internal->name release];
-  [internal->cond release];
-  [internal->lock release];
+  [self cancelAllOperations];
+  DESTROY(internal->operations);
+  DESTROY(internal->starting);
+  DESTROY(internal->waiting);
+  DESTROY(internal->name);
+  DESTROY(internal->cond);
+  DESTROY(internal->lock);
   GS_DESTROY_INTERNAL(NSOperationQueue);
   [super dealloc];
 }
