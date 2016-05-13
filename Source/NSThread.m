@@ -1056,25 +1056,65 @@ unregisterActiveThread(NSThread *thread)
 
 - (void) _setName: (NSString *)aName
 {
-  int   result = -1;
-
-  while (result != 0 && [aName length] > 0)
+  if ([aName isKindOfClass: [NSString class]])
     {
-      result =
-        PTHREAD_SETNAME([aName cStringUsingEncoding: NSUTF8StringEncoding]);
-      if (result != 0)
+      int       i;
+      char      buf[200];
+
+      if (YES == [aName getCString: buf
+                         maxLength: sizeof(buf)
+                          encoding: NSUTF8StringEncoding])
         {
+          i = strlen(buf);
+        }
+      else
+        {
+          /* Too much for buffer ... truncate on a character boundary.
+           */
+          i = sizeof(buf) - 1;
+          if (buf[i] & 0x80)
+            {
+              while (i > 0 && (buf[i] & 0x80))
+                {
+                  buf[i--] = '\0';
+                }
+            }
+          else
+            {
+              buf[i--] = '\0';
+            }
+        }
+      while (i > 0)
+        {
+          if (PTHREAD_SETNAME(buf) == 0)
+            {
+              break;    // Success
+            }
+
           if (ERANGE == errno)
             {
               /* Name must be too long ... gnu/linux uses 15 characters
                */
-              if ([aName length] > 15)
+              if (i > 15)
                 {
-                  aName = [aName substringToIndex: 15];
+                  i = 15;
                 }
               else
                 {
-                  aName = [aName substringToIndex: [aName length] - 1];
+                  i--;
+                }
+              /* too long a name ... truncate on a character boundary.
+               */
+              if (buf[i] & 0x80)
+                {
+                  while (i > 0 && (buf[i] & 0x80))
+                    {
+                      buf[i--] = '\0';
+                    }
+                }
+              else
+                {
+                  buf[i--] = '\0';
                 }
             }
           else
@@ -1112,13 +1152,12 @@ unregisterActiveThread(NSThread *thread)
 /**
  * Trampoline function called to launch the thread
  */
-static void *nsthreadLauncher(void *thread)
+static void *
+nsthreadLauncher(void *thread)
 {
-    NSThread *t = (NSThread*)thread;
-    setThreadForCurrentThread(t);
-#if __OBJC_GC__
-	objc_registerThreadWithCollector();
-#endif
+  NSThread *t = (NSThread*)thread;
+
+  setThreadForCurrentThread(t);
 
   /*
    * Let observers know a new thread is starting.
