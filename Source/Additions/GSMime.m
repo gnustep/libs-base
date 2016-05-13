@@ -4058,8 +4058,15 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                       /* We have more text to output, so fold the line.
                        */
                       [m appendBytes: "\r\n" length: 2];
-                      [m appendBytes: ptr + pos length: 1];
-                      pos++;
+                      if (isspace(ptr[pos]))
+                        {
+                          [m appendBytes: ptr + pos length: 1];
+                          pos++;
+                        }
+                      else
+                        {
+                          [m appendBytes: " " length: 1];
+                        }
                       offset = 1;
                     }
                 }

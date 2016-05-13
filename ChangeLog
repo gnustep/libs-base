@@ -1,3 +1,8 @@
+2016-05-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m:
+	Fix bug encoding very long headers with no whitespace to fold on.
+
 2016-05-06 18:03-EDT Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSString.h: Add containsString:
