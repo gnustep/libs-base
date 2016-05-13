@@ -1,5 +1,6 @@
 
-ADDITIONAL_OBJCFLAGS += -I../GenericTests/ -I../../.. -Wall
+ADDITIONAL_INCLUDE_DIRS += -I../GenericTests/ -I../../..
+ADDITIONAL_OBJCFLAGS += -Wall
 
 $(GNUSTEP_INSTANCE)_SUBPROJECTS = ../GenericTests
 
