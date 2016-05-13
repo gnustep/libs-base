@@ -135,14 +135,20 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
   NSString *bundlePath = [bundle pathForResource: @"NSUserNotification"
                                           ofType: @"bundle"
                                      inDirectory: nil];
+#if defined(DEBUG)
   NSLog(@"%s:bundle path: %@", __PRETTY_FUNCTION__, bundlePath);
+#endif
   if (bundlePath)
     {
       bundle = [NSBundle bundleWithPath: bundlePath];
+#if defined(DEBUG)
       NSLog(@"%s:bundle: %@", __PRETTY_FUNCTION__, bundle);
+#endif
       if (bundle)
         {
+#if defined(DEBUG)
           NSLog(@"%s:principal class: %@", __PRETTY_FUNCTION__, [bundle principalClass]);
+#endif
           return [bundle principalClass];
         }
     }
@@ -156,7 +162,6 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
 + (void) initialize
 {
-  NSLog(@"%s:", __PRETTY_FUNCTION__);
   if ([NSUserNotificationCenter class] == self)
     {
       Class uncClass = [self defaultUserNotificationCenterClass];
@@ -221,7 +226,6 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 - (void) _deliverNotification: (NSUserNotification *)un
 {
   un.presented = YES;
-  NSLog(@"NOTE: %@", un);
 }
 
 - (NSDate *) nextDeliveryDateForNotification: (NSUserNotification *)un
