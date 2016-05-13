@@ -2,6 +2,9 @@
 
 	* Source/Additions/GSMime.m:
 	Fix bug encoding very long headers with no whitespace to fold on.
+	* Source/NSThread.m:
+	Avoid use of autorelease pool when setting the name of the thread
+	(fix pointless warnings logs spotted by Wolfgang).
 
 2016-05-06 18:03-EDT Gregory John Casamento <greg.casamento@gmail.com>
 
