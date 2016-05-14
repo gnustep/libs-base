@@ -2242,7 +2242,6 @@ dnl AC_REPLACE_FUNCS(recvfrom)
 #--------------------------------------------------------------------
 # These headers/functions needed for stacktrace in NSException.m
 #--------------------------------------------------------------------
-PASS_ARG=no
 AC_ARG_ENABLE(bfd,
   [  --enable-bfd
 	Enables the use of libbfd to provide symbolic stack traces.
@@ -2251,21 +2250,23 @@ AC_ARG_ENABLE(bfd,
 	available or does not work properly.
 	Enabling this option also has the effect of changing the license
 	of gnustep-base from LGPL to GPL since libbfd uses the GPL license],,
-  enable_bfd=$PASS_ARG)
-
-if test $enable_bfd = yes; then
-  AC_CHECK_HEADERS(bfd.h)
-  AC_CHECK_LIB(intl, libintl_fprintf)
-  AC_CHECK_LIB(iberty, dyn_string_append)
-  AC_CHECK_LIB(bfd, bfd_openr)
-else
-  if test $ismingw = yes ; then
-    AC_CHECK_HEADERS(dbghelp.h)
-  else
-    AC_CHECK_HEADERS(execinfo.h)
-    AC_CHECK_FUNCS(backtrace)
-  fi
+  enable_bfd=no)
+if test $enable_bfd = yes ; then
+  AC_DEFINE(USE_BFD,1, [Define to use bfd library for stack traces])
+  AC_MSG_WARN([You enabled bfd, which causes gnustep-base to link with libbfd. This makes the license GPL rather than the normal LGPL.])
 fi
+
+AC_CHECK_HEADERS(bfd.h)
+AC_CHECK_LIB(intl, libintl_fprintf)
+AC_CHECK_LIB(iberty, dyn_string_append)
+AC_CHECK_LIB(bfd, bfd_openr)
+if test $ismingw = yes ; then
+  AC_CHECK_HEADERS(dbghelp.h)
+else
+  AC_CHECK_HEADERS(execinfo.h)
+  AC_CHECK_FUNCS(backtrace)
+fi
+
 AC_CHECK_FUNCS(__builtin_extract_return_address)
 
 #--------------------------------------------------------------------

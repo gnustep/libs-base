@@ -842,6 +842,9 @@
 /* Define if the compiler provides builtins for atomic operations */
 #undef USE_ATOMIC_BUILTINS
 
+/* Define to use bfd library for stack traces */
+#undef USE_BFD
+
 /* Define if using the ffcall library for invocations */
 #undef USE_FFCALL
 

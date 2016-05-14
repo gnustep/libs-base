@@ -1,5 +1,14 @@
 2016-05-14  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Headers/GNUstepBase/config.h.in:
+        * Source/NSException.m:
+        * configure.ac:
+        * configure:
+	Make USE_BFD control usage of libbfd and replace runtime warning with
+	a configure time warning about the license issue.
+
+2016-05-14  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSNotification.h:
 	* Headers/Foundation/NSZone.h:
 	* Headers/GNUstepBase/GSConfig.h.in:
