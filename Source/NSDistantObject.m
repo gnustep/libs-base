@@ -77,16 +77,19 @@ static Class	distantObjectClass = 0;
 @end
 /*
  * Evil hack ... if a remote system wants to know if we conform
- * to a protocol we usa a local protocol with the same name.
+ * to a protocol we use a local protocol with the same name.
  */
 #ifndef __GNUSTEP_RUNTIME__
+@interface Object (conformsTo)
+- (BOOL) conformsTo: (Protocol*)p;
+@end
 @implementation Object (NSConformsToProtocolNamed)
 - (BOOL) _conformsToProtocolNamed: (const char*)aName
 {
   Protocol	*p;
 
   p = objc_getProtocol(aName);
-  return [self conformsTo: p];
+  return [(id)self conformsTo: p];
 }
 @end
 #endif

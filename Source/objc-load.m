@@ -147,10 +147,10 @@ GSPrivateLoadModule(NSString *filename, FILE *errorStream,
   return objc_loadModule([filename fileSystemRepresentation],
     loadCallback, &errcode);
 #else
-  typedef void (*void_fn)();
   dl_handle_t handle;
   void __objc_resolve_class_links(void);
 #if !defined(__ELF__) && !defined(CON_AUTOLOAD)
+  typedef void (*void_fn)();
   void_fn *ctor_list;
   int i;
 #endif
