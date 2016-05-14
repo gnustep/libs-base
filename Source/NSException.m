@@ -62,25 +62,18 @@
 
 #ifdef HAVE_BACKTRACE
 #include <execinfo.h>
-#ifdef USE_BINUTILS
-#undef USE_BINUTILS
-#endif
-#else
-#ifndef USE_BINUTILS
-#define	USE_BINUTILS	1
-#endif
 #endif
 
 /*
- * Turn off USE_BINUTILS if we don't have bfd support for it.
+ * Turn off USE_BFD if we don't have bfd support for it.
  */
 #if !(defined(HAVE_BFD_H) && defined(HAVE_LIBBFD) && defined(HAVE_LIBIBERTY))
-#if	defined(USE_BINUTILS)
-#undef	USE_BINUTILS
-#endif
+# if defined(USE_BFD)
+#   undef USE_BFD
+# endif
 #endif
 
-#if	defined(_WIN32) && !defined(USE_BINUTILS)
+#if	defined(_WIN32) && !defined(USE_BFD)
 #include <windows.h>
 #if	defined(HAVE_DBGHELP_H)
 #include <dbghelp.h>
@@ -132,7 +125,7 @@ static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler = 0;
 
 
 #if	defined(_WIN32)
-#if	defined(USE_BINUTILS)
+#if	defined(USE_BFD)
 static NSString *
 GSPrivateBaseAddress(void *addr, void **base)
 {
@@ -158,12 +151,12 @@ GSPrivateBaseAddress(void *addr, void **base)
     }
   return nil;
 }
-#endif  /* USE_BINUTILS */
+#endif  /* USE_BFD */
 #else	/* _WIN32 */
 
 #include <dlfcn.h>
 
-#if	defined(USE_BINUTILS)
+#if	defined(USE_BFD)
 static NSString *
 GSPrivateBaseAddress(void *addr, void **base)
 {
@@ -180,10 +173,10 @@ GSPrivateBaseAddress(void *addr, void **base)
   return nil;
 #endif
 }
-#endif  /* USE_BINUTILS */
+#endif  /* USE_BFD */
 #endif	/* _WIN32 */
 
-#if	defined(USE_BINUTILS)
+#if	defined(USE_BFD)
 
 // GSStackTrace inspired by  FYStackTrace.m
 // created by Wim Oudshoorn on Mon 11-Apr-2006
@@ -578,14 +571,14 @@ GSListModules()
   return result;
 }
 
-#endif	/* USE_BINUTILS */
+#endif	/* USE_BFD */
 
 
 @implementation GSStackTrace : NSObject
 
 static	NSRecursiveLock	*traceLock = nil;
 
-#if	defined(_WIN32) && !defined(USE_BINUTILS)
+#if	defined(_WIN32) && !defined(USE_BFD)
 typedef USHORT (WINAPI *CaptureStackBackTraceType)(ULONG,ULONG,PVOID*,PULONG);
 typedef BOOL (WINAPI *SymInitializeType)(HANDLE,char*,BOOL);
 typedef DWORD (WINAPI *SymSetOptionsType)(DWORD);
@@ -642,7 +635,7 @@ static HANDLE	hProcess = 0;
 // grab the current stack 
 - (id) init
 {
-#if	defined(USE_BINUTILS)
+#if	defined(USE_BFD)
   addresses = [GSPrivateStackAddresses() copy];
 #elif	defined(_WIN32)
   uint16_t	frames;
@@ -770,7 +763,7 @@ static HANDLE	hProcess = 0;
 
       if (count > 0)
 	{
-#if	defined(USE_BINUTILS)
+#if	defined(USE_BFD)
 	  NSMutableArray	*a;
 	  NSUInteger 		i;
 
@@ -988,13 +981,12 @@ callUncaughtHandler(id value)
 
 + (void) initialize
 {
-#if	defined(USE_BINUTILS)
+#if	defined(USE_BFD)
   if (modLock == nil)
     {
       modLock = [NSRecursiveLock new];
     }
-  NSLog(@"WARNING this copy of gnustep-base has been built with libbfd to provide symbolic stacktrace support. This means that the license of this copy of gnustep-base is GPL rather than the normal LGPL license (since libbfd is released under the GPL license).  If this is not what you want, please obtain a copy of gnustep-base which was not configured with the --enable-bfd option");
-#endif	/* USE_BINUTILS */
+#endif	/* USE_BFD */
 #if defined(_NATIVE_OBJC_EXCEPTIONS)
 #  ifdef HAVE_SET_UNCAUGHT_EXCEPTION_HANDLER
   objc_setUncaughtExceptionHandler(callUncaughtHandler);

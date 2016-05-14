@@ -5418,7 +5418,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
+#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5464,7 +5464,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
+#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5488,7 +5488,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
+#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5533,7 +5533,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
+#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5557,7 +5557,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
+#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -8673,17 +8673,22 @@ fi
 #--------------------------------------------------------------------
 # These headers/functions needed for stacktrace in NSException.m
 #--------------------------------------------------------------------
-PASS_ARG=no
 # Check whether --enable-bfd was given.
 if test "${enable_bfd+set}" = set; then :
   enableval=$enable_bfd;
 else
-  enable_bfd=$PASS_ARG
+  enable_bfd=no
 fi
 
+if test $enable_bfd = yes ; then
 
-if test $enable_bfd = yes; then
-  for ac_header in bfd.h
+$as_echo "#define USE_BFD 1" >>confdefs.h
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You enabled bfd, which causes gnustep-base to link with libbfd. This makes the license GPL rather than the normal LGPL." >&5
+$as_echo "$as_me: WARNING: You enabled bfd, which causes gnustep-base to link with libbfd. This makes the license GPL rather than the normal LGPL." >&2;}
+fi
+
+for ac_header in bfd.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "bfd.h" "ac_cv_header_bfd_h" "$ac_includes_default"
 if test "x$ac_cv_header_bfd_h" = xyes; then :
@@ -8695,7 +8700,7 @@ fi
 
 done
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libintl_fprintf in -lintl" >&5
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libintl_fprintf in -lintl" >&5
 $as_echo_n "checking for libintl_fprintf in -lintl... " >&6; }
 if ${ac_cv_lib_intl_libintl_fprintf+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -8740,7 +8745,7 @@ _ACEOF
 
 fi
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dyn_string_append in -liberty" >&5
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dyn_string_append in -liberty" >&5
 $as_echo_n "checking for dyn_string_append in -liberty... " >&6; }
 if ${ac_cv_lib_iberty_dyn_string_append+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -8785,7 +8790,7 @@ _ACEOF
 
 fi
 
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for bfd_openr in -lbfd" >&5
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for bfd_openr in -lbfd" >&5
 $as_echo_n "checking for bfd_openr in -lbfd... " >&6; }
 if ${ac_cv_lib_bfd_bfd_openr+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -8830,9 +8835,8 @@ _ACEOF
 
 fi
 
-else
-  if test $ismingw = yes ; then
-    for ac_header in dbghelp.h
+if test $ismingw = yes ; then
+  for ac_header in dbghelp.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "dbghelp.h" "ac_cv_header_dbghelp_h" "$ac_includes_default"
 if test "x$ac_cv_header_dbghelp_h" = xyes; then :
@@ -8844,8 +8848,8 @@ fi
 
 done
 
-  else
-    for ac_header in execinfo.h
+else
+  for ac_header in execinfo.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "execinfo.h" "ac_cv_header_execinfo_h" "$ac_includes_default"
 if test "x$ac_cv_header_execinfo_h" = xyes; then :
@@ -8857,7 +8861,7 @@ fi
 
 done
 
-    for ac_func in backtrace
+  for ac_func in backtrace
 do :
   ac_fn_c_check_func "$LINENO" "backtrace" "ac_cv_func_backtrace"
 if test "x$ac_cv_func_backtrace" = xyes; then :
@@ -8868,8 +8872,8 @@ _ACEOF
 fi
 done
 
-  fi
 fi
+
 for ac_func in __builtin_extract_return_address
 do :
   ac_fn_c_check_func "$LINENO" "__builtin_extract_return_address" "ac_cv_func___builtin_extract_return_address"
@@ -12345,7 +12349,8 @@ fi
 
 
 if test $HAVE_LIBDISPATCH = 1; then
-  # We check whether we
+  # We check whether we have a variant of libdispatch that allows runloop
+  # integration
   for ac_func in dispatch_main_queue_drain_np dispatch_get_main_queue_handle_np
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
