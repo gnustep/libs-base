@@ -259,8 +259,6 @@ static void testDiacritics(void)
 
 int main()
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
-
   START_SET("NSString + locale")
   
   if (!NSLOCALE_SUPPORTED)
@@ -272,8 +270,6 @@ int main()
   testEszett();
   testLithuanian();
   testDiacritics();
-
-  [arp release]; arp = nil;
 
   END_SET("NSString + locale")
 
