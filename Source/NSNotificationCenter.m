@@ -148,23 +148,6 @@ struct	NCTbl;		/* Notification Center Table structure	*/
  * trivial class instead ... and gets managed by the garbage collector.
  */
 
-#ifdef __OBJC_GC__
-
-@interface	GSObservation : NSObject
-{
-  @public
-  __weak id	observer;	/* Object to receive message.	*/
-  SEL		selector;	/* Method selector.		*/
-  struct Obs	*next;		/* Next item in linked list.	*/
-  struct NCTbl	*link;		/* Pointer back to chunk table	*/
-}
-@end
-@implementation	GSObservation
-@end
-#define	Observation	GSObservation
-
-#else
-
 typedef	struct	Obs {
   id		observer;	/* Object to receive message.	*/
   SEL		selector;	/* Method selector.		*/
@@ -172,8 +155,6 @@ typedef	struct	Obs {
   int		retained;	/* Retain count for structure.	*/
   struct NCTbl	*link;		/* Pointer back to chunk table	*/
 } Observation;
-
-#endif
 
 #define	ENDOBS	((Observation*)-1)
 
@@ -214,34 +195,17 @@ static inline BOOL doEqual(BOOL shouldHash, NSString* key1, NSString* key2)
  */
 static void listFree(Observation *list);
 
-#ifdef __OBJC_GC__
-
-/* Observations are managed by the GC system because they need to be
- * instances of a class in order to implement weak pointer to observer.
- */
-#define	obsRetain(X)
-#define	obsFree(X)
-
-#else
-
 /* Observations have retain/release counts managed explicitly by fast
  * function calls.
  */
 static void obsRetain(Observation *o);
 static void obsFree(Observation *o);
 
-#endif
-
 
 #define GSI_ARRAY_TYPES	0
 #define GSI_ARRAY_TYPE	Observation*
-#ifdef __OBJC_GC__
-#define GSI_ARRAY_NO_RELEASE	1
-#define GSI_ARRAY_NO_RETAIN	1
-#else
 #define GSI_ARRAY_RELEASE(A, X)   obsFree(X.ext)
 #define GSI_ARRAY_RETAIN(A, X)    obsRetain(X.ext)
-#endif
 
 #include "GNUstepBase/GSIArray.h"
 
@@ -307,22 +271,6 @@ obsNew(NCTable *t, SEL s, id o)
 {
   Observation	*obs;
 
-#if __OBJC_GC__
-
-  /* With clang GC, observations are garbage collected and we don't
-   * use a cache.  However, because the reference to the observer must be
-   * weak, the observation has to be an instance of a class ...
-   */
-  static Class observationClass;
-
-  if (0 == observationClass)
-    {
-      observationClass = [GSObservation class];
-    }
-  obs = NSAllocateObject(observationClass, 0, _zone);
-
-#else
-
   /* Generally, observations are cached and we create a 'new' observation
    * by retrieving from the cache or by allocating a block of observations
    * in one go.  This works nicely to both hide observations from the
@@ -360,7 +308,6 @@ obsNew(NCTable *t, SEL s, id o)
   obs->link = (void*)t;
   obs->retained = 0;
   obs->next = 0;
-#endif
 
   obs->selector = s;
   obs->observer = o;
@@ -493,7 +440,6 @@ static inline void unlockNCTable(NCTable* t)
   [t->_lock unlock];
 }
 
-#ifndef __OBJC_GC__
 static void obsFree(Observation *o)
 {
   NSCAssert(o->retained >= 0, NSInternalInconsistencyException);
@@ -510,7 +456,6 @@ static void obsRetain(Observation *o)
 {
   o->retained++;
 }
-#endif
 
 static void listFree(Observation *list)
 {

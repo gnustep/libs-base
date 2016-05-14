@@ -79,10 +79,6 @@
 #import "GSPrivate.h"
 #import "GSRunLoopCtxt.h"
 
-#if __OBJC_GC__
-#  include <objc/objc-auto.h>
-#endif
-
 #if defined(HAVE_PTHREAD_NP_H)
 #  include <pthread_np.h>
 #endif

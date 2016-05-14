@@ -29,16 +29,7 @@
 #  include <objc/capabilities.h>
 #endif
 
-// Define a weak read barrier macro for ARC or GC, depending on which one this
-// target supports.  If this target doesn't support zeroing weak references,
-// then use an unsafe unretained access.
-#if __OBJC_GC__
-#  include <objc/objc-auto.h>
-#  define WEAK_READ(x) objc_read_weak((id*)x)
-#  define WEAK_WRITE(addr, x) objc_assign_weak((id)x, (id*)addr)
-#  define STRONG_WRITE(addr, x) objc_assign_strongCast((id)x, (id*)addr)
-#  define STRONG_ACQUIRE(x) x
-#elif defined(OBJC_CAP_ARC)
+#if defined(OBJC_CAP_ARC)
 #    include <objc/objc-arc.h>
 #    define ARC_WEAK_READ(x) objc_loadWeak((id*)x)
 #    define ARC_WEAK_WRITE(addr, x) objc_storeWeak((id*)addr, (id)x)
