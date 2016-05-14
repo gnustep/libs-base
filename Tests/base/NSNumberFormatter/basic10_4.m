@@ -149,7 +149,12 @@ int main()
         "prefix and suffix used properly");
 
       num = [[[NSNumber alloc] initWithFloat: -1234.56] autorelease];
-      PASS_EQUAL([fmt stringFromNumber: num], @"(R$1.235)",
+     
+      /* Different versions of ICU use different formats, so we need to
+       * permit alternative results.
+       */
+      str = [fmt stringFromNumber: num];
+      PASS([str isEqual: @"(R$1.235)"] || [str isEqual: @"_R$1.235"],
         "negativeFormat used for -ve number");
 
       [fmt setNumberStyle: NSNumberFormatterNoStyle];
