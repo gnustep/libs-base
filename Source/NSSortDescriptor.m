@@ -42,13 +42,16 @@ static BOOL     initialized = NO;
 #endif
 
 #if     GS_USE_TIMSORT
-@class  GSTimSortDescriptor;
+@interface GSTimSortPlaceHolder : NSObject
+@end
 #endif
 #if     GS_USE_QUICKSORT
-@class  GSQuickSortPlaceHolder;
+@interface GSQuickSortPlaceHolder : NSObject
+@end
 #endif
 #if     GS_USE_SHELLSORT
-@class  GSShellSortPlaceHolder;
+@interface GSShellSortPlaceHolder : NSObject
+@end
 #endif
 
 @implementation NSSortDescriptor

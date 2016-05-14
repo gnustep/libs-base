@@ -24,9 +24,11 @@
    $Date$ $Revision$
    */
 
-/* define to get system-v functions including inet_aton()
+/* defines to get system-v functions including inet_aton()
+ * The first define is for old versions of glibc, the second for newer ones
  */
 #define _SVID_SOURCE    1
+#define _DEFAULT_SOURCE    1
 
 #import "common.h"
 #define	EXPOSE_NSSocketPortNameServer_IVARS	1
