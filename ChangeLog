@@ -1,3 +1,21 @@
+2016-05-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSNotification.h:
+	* Headers/Foundation/NSZone.h:
+	* Headers/GNUstepBase/GSConfig.h.in:
+	* Source/GSQuickSort.m:
+	* Source/GSString.m:
+	* Source/GSTimSort.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSConcretePointerFunctions.h:
+	* Source/NSGarbageCollector.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSObject.m:
+	* Source/NSThread.m:
+	* Source/NSZone.m:
+	Completed(?) removal of GC support.
+	Plus various minor reorganisations to avoid compiler warnings.
+
 2016-05-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m:

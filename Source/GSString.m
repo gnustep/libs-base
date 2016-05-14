@@ -895,7 +895,7 @@ tsbytes(uintptr_t s, char *buf)
       maxLength /= 2;
       if (maxLength > 1)
 	{
-          unichar       *buf = (unichar*)buffer;
+          unichar       *buf = (unichar*)(void*)buffer;
 
           if (maxLength <= length)
             {

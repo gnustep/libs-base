@@ -65,10 +65,6 @@
 #endif
 #endif // __GNUC__
 
-#ifdef __OBJC_GC__
-#include <objc/objc-auto.h>
-#endif
-
 #define	IN_NSOBJECT_M	1
 #import "GSPrivate.h"
 
@@ -419,27 +415,6 @@ struct obj_layout {
 };
 typedef	struct obj_layout *obj;
 
-#ifdef __OBJC_GC__
-
-/**
- * If -base is compiled in GC mode, then we want to still support manual
- * reference counting if we are linked with non-GC code.
- */
-static BOOL GSDecrementExtraRefCountWasZero(id anObject);
-
-BOOL
-NSDecrementExtraRefCountWasZero(id anObject)
-{
-  if (!objc_collecting_enabled())
-    {
-      return GSDecrementExtraRefCountWasZero(anObject);
-    }
-  return NO;
-}
-
-
-static BOOL GSDecrementExtraRefCountWasZero(id anObject)
-#else
 /**
  * Examines the extra reference count for the object and, if non-zero
  * decrements it, otherwise leaves it unchanged.<br />
@@ -449,7 +424,6 @@ static BOOL GSDecrementExtraRefCountWasZero(id anObject)
  */
 BOOL
 NSDecrementExtraRefCountWasZero(id anObject)
-#endif
 {
   if (double_release_check_enabled)
     {
@@ -523,34 +497,9 @@ NSDecrementExtraRefCountWasZero(id anObject)
 inline NSUInteger
 NSExtraRefCount(id anObject)
 {
-#ifdef __OBJC_GC__
-  if (objc_collecting_enabled())
-    {
-      return UINT_MAX-1;
-    }
-#endif
   return ((obj)anObject)[-1].retained;
 }
 
-#ifdef __OBJC_GC__
-
-/**
- * If -base is compiled in GC mode, then we want to still support manual
- * reference counting if we are linked with non-GC code.
- */
-static void GSIncrementExtraRefCount(id anObject);
-
-inline void NSIncrementExtraRefCount(id anObject)
-{
-  if (!objc_collecting_enabled())
-    {
-      GSIncrementExtraRefCount(anObject);
-    }
-}
-
-
-static void GSIncrementExtraRefCount(id anObject)
-#else
 /**
  * Increments the extra reference count for anObject.<br />
  * The GNUstep version raises an exception if the reference count
@@ -559,11 +508,7 @@ static void GSIncrementExtraRefCount(id anObject)
  */
 inline void
 NSIncrementExtraRefCount(id anObject)
-#endif
 {
-#if	__OBJC_GC__
-  return;
-#else   /* __OBJC_GC__ */
   if (allocationLock != 0)
     {
 #if	defined(GSATOMICREAD)
@@ -600,7 +545,6 @@ NSIncrementExtraRefCount(id anObject)
 	}
       ((obj)anObject)[-1].retained++;
     }
-#endif	/* __OBJC_GC__ */
 }
 
 #ifndef	NDEBUG
@@ -652,36 +596,8 @@ callCXXConstructors(Class aClass, id anObject)
  *	the start of each object.
  */
 
-#if __OBJC_GC__
-static inline id
-GSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone);
-
-inline id
-NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
-{
-  id    new;
-
-  if (!objc_collecting_enabled())
-    {
-      new = GSAllocateObject(aClass, extraBytes, zone);
-    }
-  else
-    {
-      new = class_createInstance(aClass, extraBytes);
-    }
-  if (0 == cxx_construct)
-    {
-      cxx_construct = sel_registerName(".cxx_construct");
-      cxx_destruct = sel_registerName(".cxx_destruct");
-    }
-  return new;
-}
-inline id
-GSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
-#else
 inline id
 NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
-#endif
 {
   id	new;
   int	size;
@@ -716,22 +632,9 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
 
   return new;
 }
-#if __OBJC_GC__
-static void GSDeallocateObject(id anObject);
 
-inline void NSDeallocateObject(id anObject)
-{
-  if (!objc_collecting_enabled())
-    {
-      GSDeallocateObject(anObject);
-    }
-}
-
-static void GSDeallocateObject(id anObject)
-#else
 inline void
 NSDeallocateObject(id anObject)
-#endif
 {
   Class aClass = object_getClass(anObject);
 
@@ -765,15 +668,8 @@ NSDeallocateObject(id anObject)
 BOOL
 NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 {
-#if	__OBJC_GC__
-  // If we're running in hybrid mode, we disable all of the clever zone stuff
-  // for non-GC code, so this is always true if we're compiled for GC, even if
-  // we're compiled for GC but not using GC.
-  return YES;
-#else
   return (!requestedZone || requestedZone == NSDefaultMallocZone()
     || [anObject zone] == requestedZone);
-#endif
 }
 
 
@@ -2078,21 +1974,13 @@ static id gs_weak_load(id obj)
  */
 - (NSZone*) zone
 {
-#if	__OBJC_GC__
-  /* MacOS-X 10.5 seems to return the default malloc zone if GC is enabled.
-   */
-  return NSDefaultMallocZone();
-#else
   return NSZoneFromPointer(self);
-#endif
 }
 
-#if	!__OBJC_GC__
 + (NSZone *) zone
 {
   return NSDefaultMallocZone();
 }
-#endif
 
 /**
  * Called to encode the instance variables of the receiver to aCoder.<br />
