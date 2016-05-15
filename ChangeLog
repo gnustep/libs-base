@@ -1,3 +1,11 @@
+2016-05-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/manual/manual.texi:
+	* Source/GSSocksParser/GSSocks4Parser.m:
+	* Source/GSSocksParser/GSSocks5Parser.m:
+	* Tools/pldes.1:
+	Trivial fixes based on debian package.
+
 2016-05-14  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/GNUstepBase/config.h.in:
