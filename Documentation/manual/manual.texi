@@ -66,7 +66,6 @@ into another language, under the above conditions for modified versions.
 @end ifnothtml
 
 
-@ifinfo
 @c **Top node and master menu
 @node Top
 @top Objective-C Programming Manual
@@ -90,7 +89,6 @@ into another language, under the above conditions for modified versions.
 * Make::                 Using the Package to build GNUstep "Objects"
 @end menu
 @c **end Top node and master menu
-@end ifinfo
 
 @page
 
