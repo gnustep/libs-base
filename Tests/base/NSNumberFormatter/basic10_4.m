@@ -84,6 +84,11 @@ int main()
 
       [fmt setLocale: en];
 
+      [fmt setPaddingCharacter: @"+"];
+      PASS_EQUAL([fmt paddingCharacter], @"+", "padding character se to '+'")
+
+      [fmt setPaddingCharacter: @"*"]; // Subsequent tests use '*'
+
       [fmt setMaximumFractionDigits: 2];
       str = [fmt stringFromNumber: num];
 
