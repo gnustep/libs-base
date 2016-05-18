@@ -994,8 +994,8 @@ made on GNUSTEP.
      in List and HashTable.  New files zone.[hc] containing dummy stubs
      for NeXT-compatible zone functions.
 
-1.77 Noteworthy changes in verion '940524'
-==========================================
+1.77 Noteworthy changes in version '940524'
+===========================================
 
    * A NeXT-compatible NXStringTable object, thanks to Adam Fedor
      <adam@bastille.rmnug.org>.

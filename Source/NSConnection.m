@@ -2578,7 +2578,7 @@ static NSLock	*cached_proxies_gate = nil;
       if (GSSelectorTypesMatch(encoded_types, type) == NO)
 	{
 	  [NSException raise: NSInvalidArgumentException
-	    format: @"NSConection types (%s / %s) missmatch for %s",
+	    format: @"NSConection types (%s / %s) mismatch for %s",
 	    encoded_types, type, sel_getName(selector)];
 	}
 

@@ -307,7 +307,7 @@ NS_AUTOMATED_REFCOUNT_UNAVAILABLE
  *   Default value is maxint.
  * </p>
  */
-+ (void) setPoolCountThreshhold: (unsigned)c;
++ (void) setPoolCountThreshold: (unsigned)c;
 
 /**
  * Return the number of objects in this pool.
