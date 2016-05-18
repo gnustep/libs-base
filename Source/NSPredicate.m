@@ -1523,7 +1523,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
     }
   // apply method selector
   return [self performSelector: _selector
-                      withObject: eargs];
+                    withObject: eargs];
 }
 
 - (void) dealloc;
@@ -1541,6 +1541,20 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   copy->_function = [_function copyWithZone: zone];
   copy->_args = [_args copyWithZone: zone];
   return copy;
+}
+
+- (NSEnumerator*) _enum: (NSArray *)expressions
+{
+  id    o;
+
+  /* Check to see if this is aggregating over a collection.
+   */
+  if (1 == _argc && [(o = [expressions lastObject])
+    respondsToSelector: @selector(objectEnumerator)])
+    {
+      return [o objectEnumerator];
+    }
+  return [expressions objectEnumerator];
 }
 
 - (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables
@@ -1593,7 +1607,8 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   id left = [expressions objectAtIndex: 0];
   id right = [expressions objectAtIndex: 1];
 
-  return [NSNumber numberWithDouble: pow([left doubleValue], [right doubleValue])];
+  return [NSNumber numberWithDouble:
+    pow([left doubleValue], [right doubleValue])];
 }
 
 - (id) _eval__mul: (NSArray *)expressions
@@ -1637,42 +1652,47 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 - (id) _eval_avg: (NSArray *)expressions 
 {
-  unsigned int i;
-  double sum = 0.0;
+  NSEnumerator  *e = [self _enum: expressions];
+  double        sum = 0.0;
+  unsigned      count = 0;
+  id            o;
     
-  for (i = 0; i < _argc; i++)
+  while (nil != (o = [e nextObject]))
     {
-      sum += [[expressions objectAtIndex: i] doubleValue];
+      sum += [o doubleValue];
+      count++;
     }
-  return [NSNumber numberWithDouble: sum / _argc];
+  return [NSNumber numberWithDouble: sum / count];
 }
 
-- (id) _eval_sum: (NSArray *)expressions
+- (id) _eval_max: (NSArray *)expressions
 {
-  unsigned int i;
-  double sum = 0.0;
-    
-  for (i = 0; i < _argc; i++)
+  NSEnumerator  *e = [self _enum: expressions];
+  id            o = [e nextObject];
+  double        max = (nil == o) ? 0.0 : [o doubleValue];
+  double        cur;
+  
+  while (nil != (o = [e nextObject]))
     {
-      sum += [[expressions objectAtIndex: i] doubleValue];
+      cur = [o doubleValue];
+      if (max < cur)
+        {
+          max = cur;
+        }
     }
-  return [NSNumber numberWithDouble: sum];
+  return [NSNumber numberWithDouble: max];
 }
 
 - (id) _eval_min: (NSArray *)expressions
 {
-  unsigned int i;
-  double min = 0.0;
-  double cur;
-  
-  if (_argc > 0)
-    {
-      min = [[expressions objectAtIndex: 0] doubleValue];
-    }
+  NSEnumerator  *e = [self _enum: expressions];
+  id            o = [e nextObject];
+  double        min = (nil == o ? 0.0 : [o doubleValue]);
+  double        cur;
 
-  for (i = 1; i < _argc; i++)
+  while (nil != (o = [e nextObject]))
     {
-      cur = [[expressions objectAtIndex: i] doubleValue];
+      cur = [o doubleValue];
       if (min > cur)
         {
           min = cur;
@@ -1681,26 +1701,17 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return [NSNumber numberWithDouble: min];
 }
 
-- (id) _eval_max: (NSArray *)expressions
+- (id) _eval_sum: (NSArray *)expressions
 {
-  unsigned int i;
-  double max = 0.0;
-  double cur;
-  
-  if (_argc > 0)
-    {
-      max = [[expressions objectAtIndex: 0] doubleValue];
-    }
+  NSEnumerator  *e = [self _enum: expressions];
+  double        sum = 0.0;
+  id            o;
 
-  for (i = 1; i < _argc; i++)
+  while (nil != (o = [e nextObject]))
     {
-      cur = [[expressions objectAtIndex: i] doubleValue];
-      if (max < cur)
-        {
-          max = cur;
-        }
+      sum += [o doubleValue];
     }
-  return [NSNumber numberWithDouble: max];
+  return [NSNumber numberWithDouble: sum];
 }
 
 // add arithmetic functions: average, median, mode, stddev, sqrt, log, ln, exp, floor, ceiling, abs, trunc, random, randomn, now
