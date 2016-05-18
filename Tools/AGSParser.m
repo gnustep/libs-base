@@ -2106,7 +2106,7 @@ fail:
 
 			    if ([a1 isEqual: a2] == NO)
 			      {
-				[self log: @"Function %@ args missmatch - "
+				[self log: @"Function %@ args mismatch - "
 				  @"%@ %@", name, a1, a2];
 			      }
 			    /*

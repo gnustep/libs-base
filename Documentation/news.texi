@@ -1106,7 +1106,7 @@ NeXT-compatible zone functions.
 
 @end itemize
 
-@section Noteworthy changes in verion @samp{940524}
+@section Noteworthy changes in version @samp{940524}
 
 @itemize @bullet
 

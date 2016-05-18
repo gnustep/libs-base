@@ -51,12 +51,12 @@
 static BOOL autorelease_enabled = YES;
 
 /* When the _released_count of a pool gets over this value, we raise
-   an exception.  This can be adjusted with +setPoolCountThreshhold */
-static unsigned pool_count_warning_threshhold = UINT_MAX-1;
+   an exception.  This can be adjusted with +setPoolCountThreshold */
+static unsigned pool_count_warning_threshold = UINT_MAX-1;
 
 /* When the number of pools in a thread gets over this value, we raise
-   an exception.  This can be adjusted with +setPoolNumberThreshhold */
-static unsigned pool_number_warning_threshhold = 10000;
+   an exception.  This can be adjusted with +setPoolNumberThreshold */
+static unsigned pool_number_warning_threshold = 10000;
 
 /* The size of the first _released array. */
 #define BEGINNING_POOL_SIZE 32
@@ -198,7 +198,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
         _parent->_child = self;
       }
     tv->current_pool = self;
-    if (level > pool_number_warning_threshhold)
+    if (level > pool_number_warning_threshold)
       {
 	[NSException raise: NSGenericException
 	  format: @"Too many (%u) autorelease pools ... leaking them?", level];
@@ -297,7 +297,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
         _parent->_child = self;
       }
     tv->current_pool = self;
-    if (level > pool_number_warning_threshhold)
+    if (level > pool_number_warning_threshold)
       {
 	[NSException raise: NSGenericException
 	  format: @"Too many (%u) autorelease pools ... leaking them?", level];
@@ -389,10 +389,10 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   if (!autorelease_enabled)
     return;
 
-  if (_released_count >= pool_count_warning_threshhold)
+  if (_released_count >= pool_count_warning_threshold)
     {
       [NSException raise: NSGenericException
-		  format: @"AutoreleasePool count threshhold exceeded."];
+		  format: @"AutoreleasePool count threshold exceeded."];
     }
 
   /* Get a new array for the list, if the current one is full. */
@@ -662,15 +662,15 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   free_pool_cache(ARP_THREAD_VARS);
 }
 
-+ (void) setPoolCountThreshhold: (unsigned)c
++ (void) setPoolCountThreshold: (unsigned)c
 {
   if (c >= UINT_MAX) c = UINT_MAX - 1;
-  pool_count_warning_threshhold = c;
+  pool_count_warning_threshold = c;
 }
 
-+ (void) setPoolNumberThreshhold: (unsigned)c
++ (void) setPoolNumberThreshold: (unsigned)c
 {
-  pool_number_warning_threshhold = c;
+  pool_number_warning_threshold = c;
 }
 
 @end
