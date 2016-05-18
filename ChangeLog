@@ -1,3 +1,17 @@
+2016-05-18  Eric Heintzmann <heintzmann.eric@free.fr>
+
+	* ChangeLog.2:
+	* Documentation/news.texi:
+	* Headers/Foundation/NSAutoreleasePool.h:
+	* NEWS:
+	* Source/GSSocksParser/GSSocksParser.m:
+	* Source/NSAutoreleasePool.m:
+	* Source/NSConnection.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Tools/AGSParser.m:
+	Fix typos andss spelling erros, including the setPoolCountThreshold:
+	method.
+
 2016-05-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/manual/manual.texi:
