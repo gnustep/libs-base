@@ -1476,7 +1476,7 @@ compare(id elem1, id elem2, void* context)
   else if ([key isEqualToString: @"count"] == YES)
     {
       GSOnceMLog(
-@"[NSArray-valueForKey:] called wth 'count' is deprecated .. use '@count'");
+@"[NSArray-valueForKey:] called with 'count' is deprecated .. use '@count'");
       result = [NSNumber numberWithUnsignedInteger: [self count]];
     }
   else
