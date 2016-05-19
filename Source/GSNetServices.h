@@ -158,6 +158,7 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
 {
   DNSServiceRef _resolverRef;
   DNSServiceRef _queryRef;
+  BOOL          _didNotifyOfResolve;
 }
 @end
 
