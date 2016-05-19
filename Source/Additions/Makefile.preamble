@@ -48,8 +48,9 @@ $(WARN_FLAGS) \
 
 ifeq ($(GNUSTEP_TARGET_OS),mingw32)
   ADDITIONAL_OBJCFLAGS += -DBUILD_libgnustep_base_DLL=1
-endif
-ifeq ($(GNUSTEP_TARGET_OS),cygwin)
+else ifeq ($(GNUSTEP_TARGET_OS),mingw64)
+  ADDITIONAL_OBJCFLAGS += -DBUILD_libgnustep_base_DLL=1
+else ifeq ($(GNUSTEP_TARGET_OS),cygwin)
   ADDITIONAL_OBJCFLAGS += -DBUILD_libgnustep_base_DLL=1
 endif
 
