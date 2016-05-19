@@ -73,7 +73,9 @@ ifeq ($(_have_makefiles),yes)
 SUBPROJECTS = Source
 ifeq ($(GNUSTEP_BASE_HAVE_GNUTLS), 0)
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
-  SUBPROJECTS += SSL
+  ifneq ($(GNUSTEP_TARGET_OS), mingw64)
+    SUBPROJECTS += SSL
+  endif
 endif
 endif
 SUBPROJECTS += Tools NSTimeZones Resources Tests

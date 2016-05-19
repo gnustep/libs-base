@@ -1,3 +1,12 @@
+2016-05-19 Seong Gu Lee <sgleehd@gmail.com>
+
+	* GNUmakefile:
+	* Source/Additions/Makefile.preamble:
+	* Source/ObjectiveC2/Makefile.preamble:
+	* Source/unix/Makefile.preamble:
+	* Source/win32/Makefile.preamble:
+	mingw64 tweaks
+
 2016-05-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPredicate.m: attempt fix for bug #47619
