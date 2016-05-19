@@ -1001,6 +1001,23 @@ QueryCallback(DNSServiceRef			 sdRef,
  *
  *
  */
+// TESTPLANT-MAL-05192016: avoid duplicate resolution notification due to
+// retain/release cycles as specified in Cocoa documentation.
+// FIXME: obviously not the best solution...
+- (void) netServiceDidResolveAddress: service
+{
+  if (_didNotifyOfResolve == NO)
+  {
+    [super netServiceDidResolveAddress: service];
+    _didNotifyOfResolve = YES;
+  }
+}
+
+/**
+ * <em>Description forthcoming</em>
+ *
+ *
+ */
 
 - (void) stopResolving: (id) sender
 {
