@@ -149,10 +149,12 @@ int main()
   NSArray *filtered;
   NSArray *pitches;
   NSArray *expect;
+  NSArray *a;
   NSMutableDictionary *dict;
   NSPredicate *p;
   NSDictionary *d;
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+
+  START_SET("basic")
 
   dict = [[NSMutableDictionary alloc] init];
   [dict setObject: @"A Title" forKey: @"title"];
@@ -227,6 +229,19 @@ int main()
     @"$single LIKE (\"b\\\"\" + \"val_for_$b\") + \"val_for_$c\"",
     "Predicate created by substitution has the expected format");
 
-  [arp release]; arp = nil;
+  a = [NSArray arrayWithObjects:
+    [NSDictionary dictionaryWithObjectsAndKeys:
+      [NSNumber numberWithInt: 1], @"count", nil],
+    [NSDictionary dictionaryWithObjectsAndKeys:
+      [NSNumber numberWithInt: 1], @"count", nil],
+    nil];
+  p = [NSPredicate predicateWithFormat: @"sum(@count) == 2"]; 
+  PASS([p evaluateWithObject: a], "aggregate sum works");
+
+  p = [NSPredicate predicateWithFormat: @"avg(@count) == 1"]; 
+  PASS([p evaluateWithObject: a], "aggregate avg works");
+
+  END_SET("basic")
+
   return 0;
 }
