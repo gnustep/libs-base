@@ -237,10 +237,6 @@ int main()
     nil];
   p = [NSPredicate predicateWithFormat: @"sum(count) == 2"]; 
   PASS([p evaluateWithObject: a], "aggregate sum works");
-/*
-  p = [NSPredicate predicateWithFormat: @"avg(count) == 1"]; 
-  PASS([p evaluateWithObject: a], "aggregate avg works");
-*/
 
   END_SET("basic")
 
