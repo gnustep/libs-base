@@ -235,11 +235,12 @@ int main()
     [NSDictionary dictionaryWithObjectsAndKeys:
       [NSNumber numberWithInt: 1], @"count", nil],
     nil];
-  p = [NSPredicate predicateWithFormat: @"sum(@count) == 2"]; 
+  p = [NSPredicate predicateWithFormat: @"sum(count) == 2"]; 
   PASS([p evaluateWithObject: a], "aggregate sum works");
-
-  p = [NSPredicate predicateWithFormat: @"avg(@count) == 1"]; 
+/*
+  p = [NSPredicate predicateWithFormat: @"avg(count) == 1"]; 
   PASS([p evaluateWithObject: a], "aggregate avg works");
+*/
 
   END_SET("basic")
 
