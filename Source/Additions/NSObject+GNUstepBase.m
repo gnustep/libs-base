@@ -47,7 +47,8 @@
 
 - (NSComparisonResult) compare: (id)anObject
 {
-  NSLog(@"WARNING: The -compare: method for NSObject is deprecated.");
+
+  //NSLog(@"WARNING: The -compare: method for NSObject is deprecated.");
 
   if (anObject == self)
     {
