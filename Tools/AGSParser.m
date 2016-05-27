@@ -1327,7 +1327,8 @@ recheck:
 	  [self skipStatementLine];
 	  goto fail;
 	}
-      if ([s isEqual: @"__attribute__"] == YES)
+      if (([s isEqual: @"__attribute__"] == YES)
+          || ([s isEqual: @"__asm__"] == YES))
 	{
 	  if ([self skipSpaces] < length && buffer[pos] == '(')
 	    {
@@ -1340,12 +1341,12 @@ recheck:
 
 		  attr = [NSString stringWithCharacters: buffer + start
 						 length: pos - start];
-		  [self log: @"skip __attribute__ %@", attr];
+		  [self log: @"skip %@ %@", s, attr];
 		}
 	    }
 	  else
 	    {
-	      [self log: @"strange format __attribute__"];
+	      [self log: @"strange format %@", s];
 	    }
 	  continue;
 	}

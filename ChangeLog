@@ -1,3 +1,7 @@
+2016-05-27  Niels Grewe <niels.grewe@halbordnung.de>
+
+  * Tools/AGSParser.m: Ignore __asm__ directives 
+	
 2016-05-19 Seong Gu Lee <sgleehd@gmail.com>
 
 	* GNUmakefile:
