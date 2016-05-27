@@ -108,7 +108,7 @@
   
   [timer invalidate];
 
-  fh = [NSFileHandle fileHandleWithStandardInput];
+  fh = [[NSPipe pipe] fileHandleForReading];
   [nc addObserver: self selector:@selector(notified:) 
   	     name: nil object:fh];
   [fh readInBackgroundAndNotify];
