@@ -334,11 +334,6 @@ static Class	runLoopClass;
   return AUTORELEASE(handle);
 }
 
-#if defined(__MINGW__)
-typedef void (*PrintStackTracePtr)();
-static HANDLE BTHandle = NULL;
-#endif
-
 + (void) initialize
 {
   if (self == [GSMessageHandle class])
@@ -347,34 +342,8 @@ static HANDLE BTHandle = NULL;
       mutableDataClass = [NSMutableData class];
       portMessageClass = [NSPortMessage class];
       runLoopClass = [NSRunLoop class];
-      
-#if defined(__MINGW__)
-    // Load backtrace library for mingw...
-    BTHandle = LoadLibraryA("Resources/backtrace.dll");
-    if (BTHandle == 0)
-    {
-      NSLog(@"%s:error loading mingw backtrace library - status: %d", __PRETTY_FUNCTION__, GetLastError());
-    }
-    else
-    {
-      NSLog(@"%s:Windows/mingw backtrace library loaded successfully", __PRETTY_FUNCTION__);
-    }
-#endif
     }
 }
-
-
-#if defined(__MINGW__)
-+ (void) printStackTrace
-{
-  if (BTHandle != NULL)
-  {
-    PrintStackTracePtr printStackTrace = GetProcAddress(BTHandle, "backtracePrintStackTrace");
-    if (printStackTrace != NULL)
-      (*printStackTrace)();
-  }
-}
-#endif
 
 - (BOOL) connectToPort: (NSMessagePort*)aPort beforeDate: (NSDate*)when
 {
@@ -845,9 +814,6 @@ static HANDLE BTHandle = NULL;
 		      NSLog(@"%@ - unable to decode remote port", self);
 		      M_UNLOCK(myLock);
 		      [self invalidate];
-#if defined(__MINGW__)
-          [[self class] printStackTrace];
-#endif
 		      return;
 		    }
 		  /*
