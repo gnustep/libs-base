@@ -1,6 +1,13 @@
+2016-06-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m:
+	Conversion of multipart document between base64 and binary encoding
+	should use quoted-printable rather than base64 for text parts.
+	Rename -convertToBase64 to be -convertTo7BitSafe instead.
+
 2016-05-27  Niels Grewe <niels.grewe@halbordnung.de>
 
-  * Tools/AGSParser.m: Ignore __asm__ directives 
+  	* Tools/AGSParser.m: Ignore __asm__ directives 
 	
 2016-05-19 Seong Gu Lee <sgleehd@gmail.com>
 
