@@ -36,6 +36,7 @@ int main()
 #endif
   NS_DURING
     {
+      testHopeful = YES;
       PASS([lock isLockedByCurrentThread] == NO,
         "NSRecursiveLock isLockedByCurrentThread returns NO when not locked");
       [lock lock];
@@ -44,6 +45,7 @@ int main()
       [lock unlock];
       PASS([lock isLockedByCurrentThread] == NO,
         "NSRecursiveLock isLockedByCurrentThread returns NO when unlocked");
+      testHopeful = NO;
     }
   NS_HANDLER
     {
