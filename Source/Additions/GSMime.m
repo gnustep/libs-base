@@ -5712,11 +5712,12 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 /**
  * Converts any binary parts of the receiver's content to be base64
- * encoded rather than 8bit or binary encoded ... a convenience method to
- * make the results of the -rawMimeData method safe for sending via
- * routes which only support 7bit data.
+ * (or quoted-printable for text parts) encoded rather than 8bit or
+ * binary encoded ... a convenience method to make the results of
+ * the -rawMimeData method safe for sending via routes which only
+ * support 7bit data.
  */
-- (void) convertToBase64
+- (void) convertTo7BitSafe
 {
   if ([content isKindOfClass: NSArrayClass] == YES)
     {
@@ -5725,7 +5726,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
       while ((d = [e nextObject]) != nil)
 	{
-	  [d convertToBase64];
+	  [d convertTo7BitSafe];
 	}
     }
   else
@@ -5735,14 +5736,28 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
       if ([v isEqual: @"binary"] == YES || [v isEqual: @"8bit"] == YES)
 	{
-	  [h setValue: @"base64"];
+          h = [self headerNamed: @"content-type"];
+          v = [h value];
+
+          if ([v hasPrefix: @"text/"])
+            {
+              [h setValue: @"quoted-printable"];
+            }
+          else
+            {
+              [h setValue: @"base64"];
+            }
 	}
     }
 }
+- (void) convertToBase64
+{
+  [self convertTo7BitSafe];
+}
 
 /**
- * Converts any base64 encoded parts of the receiver's content to be
- * binary encoded instead ... a convenience method to
+ * Converts any base64 (or quoted-printable) encoded parts of the receiver's
+ * content to be binary encoded instead ... a convenience method to
  * shrink down the size of the message when converted to data using
  * the -rawMimeData method.
  */
@@ -5763,7 +5778,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       GSMimeHeader	*h = [self headerNamed: @"content-transfer-encoding"];
       NSString		*v = [h value];
 
-      if ([v isEqual: @"base64"] == YES)
+      if ([v isEqual: @"base64"] == YES
+        || [v isEqual: @"quoted-printable"] == YES)
 	{
 	  [h setValue: @"binary"];
 	}

@@ -171,7 +171,8 @@ extern "C" {
 - (NSString*) contentSubtype;
 - (NSString*) contentType;
 - (NSArray*) contentsByName: (NSString*)key;
-- (void) convertToBase64;
+- (void) convertTo7BitSafe;
+- (void) convertToBase64;       // DEPRECATED ... use convertTo7BitSafe
 - (void) convertToBinary;
 - (NSData*) convertToData;
 - (NSString*) convertToText;
