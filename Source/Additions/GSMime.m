@@ -2493,13 +2493,11 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 
 		  if (typeInfo == nil)
 		    {
-		      typeInfo = [headerClass new];
-		      [typeInfo setName: @"content-type"];
-		      [typeInfo setValue: @"text/plain"];
+                      typeInfo = [document setHeader: @"Content-Type"
+                                               value: @"text/plain"
+                                          parameters: nil];
 		      [typeInfo setObject: type forKey: @"Type"];
 		      [typeInfo setObject: subtype forKey: @"Subtype"];
-		      [document setHeader: typeInfo];
-		      RELEASE(typeInfo);
 		    }
 		  else
 		    {
@@ -5837,6 +5835,14 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       if (d == nil)
 	{
 	  charset = selectCharacterSet(content, &d);
+          if (nil == hdr)
+            {
+	      hdr = [self setHeader: @"Content-Type"
+                              value: @"text/plain"
+                         parameters: nil];
+              [hdr setObject: @"text" forKey: @"Type"];
+              [hdr setObject: @"plain" forKey: @"Subtype"];
+            }
 	  [hdr setParameter: charset forKey: @"charset"];
 	}
     }
@@ -6223,11 +6229,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   NSString	*str = [[NSProcessInfo processInfo] globallyUniqueString];
 
   str = [NSStringClass stringWithFormat: @"<%@>", str];
-  hdr = [[headerClass alloc] initWithName: @"content-id"
-				    value: str
-                               parameters: nil];
-  [self setHeader: hdr];
-  RELEASE(hdr);
+  hdr = [self setHeader: @"Content-ID"
+                  value: str
+             parameters: nil];
   return hdr;
 }
 
@@ -6260,11 +6264,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   NSString	*str = [[NSProcessInfo processInfo] globallyUniqueString];
 
   str = [NSStringClass stringWithFormat: @"<%@>", str];
-  hdr = [[headerClass alloc] initWithName: @"message-id"
-				    value: str
-                               parameters: nil];
-  [self setHeader: hdr];
-  RELEASE(hdr);
+  hdr = [self setHeader: @"Message-ID"
+                  value: str
+             parameters: nil];
   return hdr;
 }
 
@@ -6336,12 +6338,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       hdr = [self headerNamed: @"mime-version"];
       if (hdr == nil)
 	{
-	  hdr = [headerClass alloc];
-	  hdr = [hdr initWithName: @"mime-version"
-			    value: @"1.0"
-		       parameters: nil];
-	  [self addHeader: hdr];
-	  RELEASE(hdr);
+          hdr = [self setHeader: @"MIME-Version"
+                          value: @"1.0"
+                     parameters: nil];
 	}
     }
   else
@@ -6499,12 +6498,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    }
 	  if (enc == nil)
 	    {
-	      enc = [headerClass alloc];
-	      enc = [enc initWithName: @"content-transfer-encoding"
-				value: encoding
-			   parameters: nil];
-	      [self setHeader: enc];
-	      RELEASE(enc);
+              enc = [self setHeader: @"Content-Transfer-Encoding"
+                              value: encoding
+                         parameters: nil];
 	    }
 	  else
 	    {
@@ -6588,23 +6584,16 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	      if (e != NSASCIIStringEncoding && e != NSUTF7StringEncoding)
 #endif
 		{
-		  encoding = @"8bit";
-		  enc = [headerClass alloc];
-		  enc = [enc initWithName: @"content-transfer-encoding"
-				    value: encoding
+                  enc = [self setHeader: @"Content-Transfer-Encoding"
+                                  value: @"8bit"
 			       parameters: nil];
-		  [self addHeader: enc];
-		  RELEASE(enc);
 		}
 	    }
 	  else
 	    {
-	      enc = [headerClass alloc];
-	      enc = [enc initWithName: @"content-transfer-encoding"
-				value: @"base64"
-			   parameters: nil];
-	      [self addHeader: enc];
-	      RELEASE(enc);
+              enc = [self setHeader: @"Content-Transfer-Encoding"
+                              value: @"base64"
+                           parameters: nil];
 	    }
 	}
 
@@ -6660,14 +6649,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 	  if (encoding != nil)
 	    {
-	      if (enc == nil)
+	      if (nil == enc)
 		{
-		  enc = [headerClass alloc];
-		  enc = [enc initWithName: @"content-transfer-encoding"
-				    value: encoding
-			       parameters: nil];
-		  [self addHeader: enc];
-		  RELEASE(enc);
+                  enc = [self setHeader: @"Content-Transfer-Encoding"
+                                  value: encoding
+                               parameters: nil];
 		}
 	      else
 		{
@@ -6906,7 +6892,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
       val = [NSStringClass stringWithFormat: @"%@/%@", type, subtype];
       hdr = [headerClass alloc];
-      hdr = [hdr initWithName: @"content-type" value: val parameters: nil];
+      hdr = [hdr initWithName: @"Content-Type" value: val parameters: nil];
       [hdr setObject: type forKey: @"Type"];
       [hdr setObject: subtype forKey: @"Subtype"];
       IF_NO_GC([hdr autorelease];)
