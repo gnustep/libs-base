@@ -5734,19 +5734,30 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       GSMimeHeader	*h = [self headerNamed: @"content-transfer-encoding"];
       NSString		*v = [h value];
 
-      if ([v isEqual: @"binary"] == YES || [v isEqual: @"8bit"] == YES)
+      if (nil == h
+	|| YES == [v isEqualToString: @"binary"]
+	|| YES == [v isEqualToString: @"8bit"])
 	{
-          h = [self headerNamed: @"content-type"];
-          v = [h value];
+	  NSString	*t = [[doc headerNamed @"content-type"] value]
 
-          if ([v hasPrefix: @"text/"])
-            {
-              [h setValue: @"quoted-printable"];
-            }
-          else
-            {
-              [h setValue: @"base64"];
-            }
+	  if (YES == [t hasPrefix: @"text/"])
+	    {
+	      t = @"quoted-printable";
+	    }
+	  else
+	    {
+	      t = @"base64";
+	    }
+	  if (nil == h)
+	    {
+	      [doc setHeader: @"Content-Transfer-Encoding"
+		       value: t
+		  parameters: nil];
+	    }
+	  else
+	    {
+	      [h setValue: t];
+	    }
 	}
     }
 }
