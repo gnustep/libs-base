@@ -1,3 +1,10 @@
+2016-06-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m:
+	Fix output conversion to 7bit to work for quoted-printable.
+	Also, when generating headers, generate conventionally
+	capitalised names.
+
 2016-06-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m:
