@@ -5738,7 +5738,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	|| YES == [v isEqualToString: @"binary"]
 	|| YES == [v isEqualToString: @"8bit"])
 	{
-	  NSString	*t = [[doc headerNamed @"content-type"] value]
+	  NSString	*t = [[self headerNamed: @"content-type"] value];
 
 	  if (YES == [t hasPrefix: @"text/"])
 	    {
@@ -5750,9 +5750,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    }
 	  if (nil == h)
 	    {
-	      [doc setHeader: @"Content-Transfer-Encoding"
-		       value: t
-		  parameters: nil];
+	      [self setHeader: @"Content-Transfer-Encoding"
+		        value: t
+		   parameters: nil];
 	    }
 	  else
 	    {
