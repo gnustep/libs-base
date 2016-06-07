@@ -6433,7 +6433,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	      shouldSet = NO;
 	    }
 	}
-      else if (v == nil || [v isEqualToString: @"7bit"] == YES)
+      else if (v == nil
+        || [v isEqualToString: @"7bit"] == YES
+        || [v isEqualToString: @"quoted-printable"] == YES
+        || [v isEqualToString: @"x-uuencode"] == YES)
 	{
 	  /*
 	   * For 7bit encoding, we can accept the setting if the content
