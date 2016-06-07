@@ -5738,25 +5738,42 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	|| YES == [v isEqualToString: @"binary"]
 	|| YES == [v isEqualToString: @"8bit"])
 	{
-	  NSString	*t = [[self headerNamed: @"content-type"] value];
+          GSMimeHeader  *t = [self headerNamed: @"content-type"];
+          NSString      *v;
 
-	  if (YES == [t hasPrefix: @"text/"])
+	  if ([[t objectForKey: @"Type"] isEqualToString: @"text"] == YES)
 	    {
-	      t = @"quoted-printable";
+	      NSString		*charset;
+	      NSStringEncoding	e;
+
+	      charset = [t parameterForKey: @"charset"];
+	      e = [documentClass encodingFromCharset: charset];
+#if     defined(NeXT_Foundation_LIBRARY)
+	      if (e != NSASCIIStringEncoding)
+#else
+	      if (e != NSASCIIStringEncoding && e != NSUTF7StringEncoding)
+#endif
+		{
+                  v = @"quoted-printable";
+                }
+              else
+                {
+                  v = @"7bit";
+                }
 	    }
 	  else
 	    {
-	      t = @"base64";
+	      v = @"base64";
 	    }
 	  if (nil == h)
 	    {
 	      [self setHeader: @"Content-Transfer-Encoding"
-		        value: t
+		        value: v
 		   parameters: nil];
 	    }
 	  else
 	    {
-	      [h setValue: t];
+	      [h setValue: v];
 	    }
 	}
     }
