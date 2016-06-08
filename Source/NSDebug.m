@@ -1126,17 +1126,31 @@ GSPrivateStackAddresses(void)
 }
 
 
-const char *_NSPrintForDebugger(id object)
+const char *
+_NSPrintForDebugger(id object)
 {
   if (object && [object respondsToSelector: @selector(description)])
-    return [[object description] cString];
+    return [[object description] UTF8String];
 
   return NULL;
 }
 
-NSString *_NSNewStringFromCString(const char *cstring)
+NSString *
+_NSNewStringFromCString(const char *cstring)
 {
-  return [NSString stringWithCString: cstring
-			    encoding: [NSString defaultCStringEncoding]];
+  NSString      *string;
+
+  string = [NSString stringWithCString: cstring
+			      encoding: [NSString defaultCStringEncoding]];
+  if (nil == string)
+    {
+      string = [NSString stringWithUTF8String: cstring];
+      if (nil == string)
+        {
+          string = [NSString stringWithCString: cstring
+                                      encoding: NSISOLatin1StringEncoding];
+        }
+    }
+  return string;
 }
 
