@@ -231,11 +231,11 @@ int main()
 
   a = [NSArray arrayWithObjects:
     [NSDictionary dictionaryWithObjectsAndKeys:
-      [NSNumber numberWithInt: 1], @"count", nil],
+      [NSNumber numberWithInt: 1], @"a", nil],
     [NSDictionary dictionaryWithObjectsAndKeys:
-      [NSNumber numberWithInt: 1], @"count", nil],
+      [NSNumber numberWithInt: 2], @"a", nil],
     nil];
-  p = [NSPredicate predicateWithFormat: @"sum(count) == 2"]; 
+  p = [NSPredicate predicateWithFormat: @"sum(a) == 3"]; 
   PASS([p evaluateWithObject: a], "aggregate sum works");
 
   END_SET("basic")
