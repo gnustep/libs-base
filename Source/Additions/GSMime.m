@@ -6604,9 +6604,18 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  unsigned char	*bytes = (unsigned char*)[d bytes];
 	  NSUInteger	length = [d length];
 	  BOOL		hadCarriageReturn = NO;
+          BOOL          want7Bit = YES;
 	  NSUInteger 	lineLength = 0;
 	  NSUInteger	i;
 
+          if ([encoding isEqualToString: @"8bit"])
+            {
+              want7Bit = NO;
+            }
+
+          /* Check to see if the data is actually compatible (unaltered)
+           * with the specified content transfer encoding.
+           */
 	  for (i = 0; i < length; i++)
 	    {
 	      unsigned char	c = bytes[i];
@@ -6649,16 +6658,15 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 	  if (encoding != nil)
 	    {
-	      if (nil == enc)
-		{
-                  enc = [self setHeader: @"Content-Transfer-Encoding"
-                                  value: encoding
-                               parameters: nil];
-		}
-	      else
-		{
-		  [enc setValue: encoding];
-		}
+              /* Not OK ... need to change conten transfer encoding.
+               */
+              if (YES == want7Bit)
+                {
+                  encoding = @"quoted-printable";
+                }
+              enc = [self setHeader: @"Content-Transfer-Encoding"
+                              value: encoding
+                         parameters: nil];
 	    }
 	}
     }
