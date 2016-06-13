@@ -1722,6 +1722,11 @@ setNonBlocking(SOCKET fd)
       [self _setStatus: NSStreamStatusOpening];
       return;
     }
+  else if (_sibling && [_sibling streamStatus] == NSStreamStatusError)
+    {
+      [self _setStatus: NSStreamStatusError];
+      return;
+    }
   else
     {
       int result;
@@ -2191,6 +2196,11 @@ setNonBlocking(SOCKET fd)
   if (_sibling && [_sibling streamStatus] == NSStreamStatusOpening)
     {
       [self _setStatus: NSStreamStatusOpening];
+      return;
+    }
+  else if (_sibling && [_sibling streamStatus] == NSStreamStatusError)
+    {
+      [self _setStatus: NSStreamStatusError];
       return;
     }
   else
