@@ -1752,27 +1752,33 @@ setNonBlocking(SOCKET fd)
             }
         }
 
-      if (_handler == nil)
+      if (nil == _handler)
         {
           [GSTLSHandler tryInput: self output: _sibling];
         }
+
       result = connect([self _sock], &_address.s,
         GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
-          if (!socketWouldBlock())
+          if (socketWouldBlock())
             {
-              [self _recordError];
+              /* Need to set the status first, so that the run loop can tell
+               * it needs to add the stream as waiting on writable, as an
+               * indication of opened
+               */
+              [self _setStatus: NSStreamStatusOpening];
+            }
+          else
+            {
+              /* Had an immediate connect error, so record it and remove
+               * any handlers because we want higher level code to be
+               * told about it.
+               */
               [self _setHandler: nil];
               [_sibling _setHandler: nil];
-              return;
+              [self _recordError];
             }
-          /*
-           * Need to set the status first, so that the run loop can tell
-           * it needs to add the stream as waiting on writable, as an
-           * indication of opened
-           */
-          [self _setStatus: NSStreamStatusOpening];
 #if	defined(_WIN32)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
@@ -2228,7 +2234,7 @@ setNonBlocking(SOCKET fd)
             }
         }
 
-      if (_handler == nil)
+      if (nil == _handler)
         {
           [GSTLSHandler tryInput: _sibling output: self];
         }
@@ -2237,19 +2243,25 @@ setNonBlocking(SOCKET fd)
         GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
-          if (!socketWouldBlock())
+          if (socketWouldBlock())
             {
-              [self _recordError];
+              /*
+               * Need to set the status first, so that the run loop can tell
+               * it needs to add the stream as waiting on writable, as an
+               * indication of opened
+               */
+              [self _setStatus: NSStreamStatusOpening];
+            }
+          else
+            {
+              /* Had an immediate connect error, so record it and remove
+               * any handlers because we want higher level code to be
+               * told about it.
+               */
               [self _setHandler: nil];
               [_sibling _setHandler: nil];
-              return;
+              [self _recordError];
             }
-          /*
-           * Need to set the status first, so that the run loop can tell
-           * it needs to add the stream as waiting on writable, as an
-           * indication of opened
-           */
-          [self _setStatus: NSStreamStatusOpening];
 #if	defined(_WIN32)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
