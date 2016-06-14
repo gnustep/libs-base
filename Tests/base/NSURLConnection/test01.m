@@ -62,7 +62,6 @@ int main(int argc, char **argv, char **env)
   urlString = @"http://127.0.0.1:19750";
   req = [NSURLRequest requestWithURL: [NSURL URLWithString: urlString]];
   del = [[Delegate new] autorelease];
-  [del reset];
   [NSURLConnection connectionWithRequest: req
 				delegate: del];
   while (![del done] && duration < 3.0)
@@ -71,23 +70,26 @@ int main(int argc, char **argv, char **env)
         runUntilDate: [NSDate dateWithTimeIntervalSinceNow: timing]];
       duration += timing;
     }
+  PASS([del done], "http test completes");
   PASS([del done] && nil != [del error],
     "connection to dead(not-listening) HTTP service");
+  [del reset];
 
   duration = 0.0;
   urlString = @"https://127.0.0.1:19750";
   req = [NSURLRequest requestWithURL: [NSURL URLWithString: urlString]];
   [NSURLConnection connectionWithRequest: req
 				delegate: del];
-  [del reset];
   while (![del done] && duration < 3.0)
     {
       [[NSRunLoop currentRunLoop]
         runUntilDate: [NSDate dateWithTimeIntervalSinceNow: timing]];
       duration += timing;
     }
+  PASS([del done], "https test completes");
   PASS([del done] && nil != [del error],
     "connection to dead(not-listening) HTTPS service");
+  [del reset];
 
   [arp release]; arp = nil;
 

@@ -1714,17 +1714,17 @@ setNonBlocking(SOCKET fd)
   // could be opened because of sibling
   if ([self _isOpened])
     return;
+  if (_sibling && [_sibling streamStatus] == NSStreamStatusError)
+    {
+      [self _setStatus: NSStreamStatusError];
+      return;
+    }
   if (_passive || (_sibling && [_sibling _isOpened]))
     goto open_ok;
   // check sibling status, avoid double connect
   if (_sibling && [_sibling streamStatus] == NSStreamStatusOpening)
     {
       [self _setStatus: NSStreamStatusOpening];
-      return;
-    }
-  else if (_sibling && [_sibling streamStatus] == NSStreamStatusError)
-    {
-      [self _setStatus: NSStreamStatusError];
       return;
     }
   else
@@ -1771,13 +1771,10 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
-              /* Had an immediate connect error, so record it and remove
-               * any handlers because we want higher level code to be
-               * told about it.
+              /* Had an immediate connect error.
                */
-              [self _setHandler: nil];
-              [_sibling _setHandler: nil];
               [self _recordError];
+              [_sibling _recordError];
             }
 #if	defined(_WIN32)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
@@ -1787,7 +1784,7 @@ setNonBlocking(SOCKET fd)
 	      [self _schedule];
 	      return;
 	    }
-          else
+          else if (NSStreamStatusOpening == _currentStatus)
             {
               NSRunLoop *r;
               NSDate    *d;
@@ -1976,6 +1973,10 @@ setNonBlocking(SOCKET fd)
 	@"Received event for closed stream");
       [_sibling _dispatch];
     }
+  else if ([self streamStatus] == NSStreamStatusError)
+    {
+      [self _sendEvent: NSStreamEventErrorOccurred];
+    }
   else
     {
       WSANETWORKEVENTS events;
@@ -2103,6 +2104,10 @@ setNonBlocking(SOCKET fd)
     {
       myEvent = NSStreamEventEndEncountered;
     }
+  else if ([self streamStatus] == NSStreamStatusError)
+    {
+      myEvent = NSStreamEventErrorOccurred;
+    }
   else
     {
       [self _setStatus: NSStreamStatusOpen];
@@ -2196,17 +2201,17 @@ setNonBlocking(SOCKET fd)
   // could be opened because of sibling
   if ([self _isOpened])
     return;
+  if (_sibling && [_sibling streamStatus] == NSStreamStatusError)
+    {
+      [self _setStatus: NSStreamStatusError];
+      return;
+    }
   if (_passive || (_sibling && [_sibling _isOpened]))
     goto open_ok;
   // check sibling status, avoid double connect
   if (_sibling && [_sibling streamStatus] == NSStreamStatusOpening)
     {
       [self _setStatus: NSStreamStatusOpening];
-      return;
-    }
-  else if (_sibling && [_sibling streamStatus] == NSStreamStatusError)
-    {
-      [self _setStatus: NSStreamStatusError];
       return;
     }
   else
@@ -2254,13 +2259,10 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
-              /* Had an immediate connect error, so record it and remove
-               * any handlers because we want higher level code to be
-               * told about it.
+              /* Had an immediate connect error.
                */
-              [self _setHandler: nil];
-              [_sibling _setHandler: nil];
               [self _recordError];
+              [_sibling _recordError];
             }
 #if	defined(_WIN32)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
@@ -2270,7 +2272,7 @@ setNonBlocking(SOCKET fd)
 	      [self _schedule];
 	      return;
 	    }
-          else
+          else if (NSStreamStatusOpening == _currentStatus)
             {
               NSRunLoop *r;
               NSDate    *d;
@@ -2300,7 +2302,6 @@ setNonBlocking(SOCKET fd)
   WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
   [super open];
-
 }
 
 
@@ -2408,6 +2409,10 @@ setNonBlocking(SOCKET fd)
       NSAssert([_sibling streamStatus] != NSStreamStatusClosed,
 	@"Received event for closed stream");
       [_sibling _dispatch];
+    }
+  else if ([self streamStatus] == NSStreamStatusError)
+    {
+      [self _sendEvent: NSStreamEventErrorOccurred];
     }
   else
     {
@@ -2533,6 +2538,10 @@ setNonBlocking(SOCKET fd)
   else if ([self streamStatus] == NSStreamStatusAtEnd)
     {
       myEvent = NSStreamEventEndEncountered;
+    }
+  else if ([self streamStatus] == NSStreamStatusError)
+    {
+      myEvent = NSStreamEventErrorOccurred;
     }
   else
     {
