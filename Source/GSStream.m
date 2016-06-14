@@ -88,29 +88,22 @@ NSString * const NSStreamSOCKSProxyVersionKey
  */
 static RunLoopEventType typeForStream(NSStream *aStream)
 {
+  NSStreamStatus        status = [aStream streamStatus];
+
+  if (NSStreamStatusError == status
+    || [aStream _loopID] == (void*)aStream)
+    {
+      return ET_TRIGGER;
+    }
 #if	defined(_WIN32)
-  if ([aStream _loopID] == (void*)aStream)
-    {
-      return ET_TRIGGER;
-    }
-  else
-    {
-      return ET_HANDLE;
-    }
+  return ET_HANDLE;
 #else
-  if ([aStream _loopID] == (void*)aStream)
-    {
-      return ET_TRIGGER;
-    }
-  else if ([aStream isKindOfClass: [NSOutputStream class]] == NO
-    && [aStream  streamStatus] != NSStreamStatusOpening)
+  if ([aStream isKindOfClass: [NSOutputStream class]] == NO
+    && status != NSStreamStatusOpening)
     {
       return ET_RDESC;
     }
-  else
-    {
-      return ET_WDESC;	
-    }
+  return ET_WDESC;	
 #endif
 }
 

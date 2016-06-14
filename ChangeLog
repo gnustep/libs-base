@@ -1,3 +1,29 @@
+2016-06-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSSocketStream.m: Fix for failure of connect() call.
+	* Source/GSStream.m: Fix event handling for failed streams.
+	* Tests/NSURLConnection/test01.m: Add testcases, fix reset of delegate.
+	Fixes for kfreebsd network stack being clever enough to fail the
+	connect() call if the remote port is on the same machine and has
+	no process listening on it.  Reported by Heintzmann
+
+2016-06-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/Base.gsdoc:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	Documentation/release notes preparation for next release.
+
+	* Source/Makefile.postamble:
+	* Source/NSBundle.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSString.m:
+	* Source/NSTask.m:
+	* configure.ac:
+	Changes to use the new multiarch path component cpu-host rather
+	than a host subdirectory inside a cpu directory.
+	* configure: Regenerate
+
 2016-06-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m:
