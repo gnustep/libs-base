@@ -13,7 +13,7 @@ int main()
   NSInvocation          *inv1;
   NSInvocation          *inv2;
   NSValue               *val;
-  int                   length;
+  NSInteger             length;
   NSString              *hello = @"hello";
   NSString              *uppercaseHello;
   NSOperationQueue      *queue = [NSOperationQueue new];
