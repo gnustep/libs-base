@@ -1,3 +1,8 @@
+2016-06-17  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSRegularExpression.m: Implement -isEqual: and -hash
+	* Tests/base/NSRegularExpression/basic.m: Test NSCopying
+
 2016-06-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSSocketStream.m: Fix for failure of connect() call.

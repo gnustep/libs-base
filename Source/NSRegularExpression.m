@@ -133,6 +133,42 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
   return self;
 }
 
+- (BOOL) isEqual: (id)obj
+{
+  if ([obj isKindOfClass: [NSRegularExpression class]])
+    {
+      if (self == obj)
+        {
+          return YES;
+        }
+      else if (options != ((NSRegularExpression*)obj)->options)
+        {
+          return NO;
+        }
+      else
+        {
+          UErrorCode  myErr      = 0;
+          UErrorCode  theirErr   = 0;
+          const UText *myText    = uregex_patternUText(regex, &myErr);
+          const UText *theirText =
+           uregex_patternUText(((NSRegularExpression*)obj)->regex, &theirErr);
+          if (U_FAILURE(myErr) != U_FAILURE(theirErr))
+            {
+              return NO;
+            }
+          else if (U_FAILURE(myErr) && U_FAILURE(theirErr))
+            {
+              return YES;
+            }
+          return utext_equals(myText, theirText);
+        }
+    }
+  else
+    {
+      return [super isEqual: obj];
+    }
+}
+
 - (NSString*) pattern
 {
   UErrorCode	s = 0;
@@ -178,12 +214,58 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
   return self;
 }
 
+- (BOOL) isEqual: (id)obj
+{
+  if ([obj isKindOfClass: [NSRegularExpression class]])
+    {
+      if (self == obj)
+        {
+          return YES;
+        }
+      else if (options != ((NSRegularExpression*)obj)->options)
+        {
+          return NO;
+        }
+      else
+        {
+          UErrorCode  myErr      = 0;
+          UErrorCode  theirErr   = 0;
+          int32_t     myLen      = 0;
+          int32_t     theirLen   = 0;
+          const UChar *myText    = uregex_pattern(regex, &myLen, &myErr);
+          const UChar *theirText = uregex_pattern(
+                                     ((NSRegularExpression*)obj)->regex,
+                                     &theirLen, &theirErr);
+          if (U_FAILURE(myErr) != U_FAILURE(theirErr))
+            {
+              return NO;
+            }
+          else if (U_FAILURE(myErr) && U_FAILURE(theirErr))
+            {
+              return YES;
+            }
+          if (myLen != theirLen)
+            {
+              return NO;
+            }
+          return
+           (0 == memcmp((const void*)myText, (const void*)theirText, myLen));
+        }
+    }
+  else
+    {
+      return [super isEqual: obj];
+    }
+}
+
+
+
 - (NSString*) pattern
 {
   UErrorCode	s = 0;
   int32_t	length;
   const unichar *pattern = uregex_pattern(regex, &length, &s);
-  
+
   if (U_FAILURE(s))
     {
       return nil;
@@ -191,6 +273,11 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
   return [NSString stringWithCharacters: pattern length: length];
 }
 #endif
+
+- (NSUInteger) hash
+{
+  return [[self pattern] hash] ^ options;
+}
 
 static UBool
 callback(const void *context, int32_t steps)
