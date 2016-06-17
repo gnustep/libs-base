@@ -1,18 +1,19 @@
+
 /* Definition of class NSRegularExpression
    Copyright (C) 2011 Free Software Foundation, Inc.
-   
+
    This file is part of the GNUstep Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
@@ -72,7 +73,19 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*,
 #ifndef GSREGEXTYPE
 #  define GSREGEXTYPE void
 #endif
-
+/**
+ * NSRegularExpression is used to inspect and manipulate strings using regular
+ * expressions. The interface is thread safe: The same NSRegularExpression
+ * object may be used to concurrently perform matching on multiple threads.
+ *
+ * To guard against regular expressions with extremely poor performance, the
+ * underlying matcher will abort after a certain number of steps. This is
+ * controlled using the GSRegularExpressionWorkLimit user default. The value of
+ * this default key represents the number of steps executed by the match engine,
+ * so it is only indirectly correlated with the time taken to execute the
+ * pattern, but it usually in the order of milliseconds. The preset 1500,
+ * setting value to 0 disables the work limit.
+ */
 @interface NSRegularExpression : NSObject <NSCoding, NSCopying>
 {
 #if	GS_EXPOSE(NSRegularExpression)
@@ -153,4 +166,3 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*,
 #endif	/* GS_API_MACOSX */
 
 #endif	/* _NSRegualrExpression_h_GNUSTEP_BASE_INCLUDE */
-
