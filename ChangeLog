@@ -1,3 +1,10 @@
+2016-06-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURLprotocol.m:
+	When sending HTTP headers, use RFC2047 rules (as specified in HTTP/1.1
+	RFC2616) to encode non-ascii characters.
+
 2016-06-17  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Headers/Foundation/NSRegularExpression.h
