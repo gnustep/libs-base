@@ -1,5 +1,15 @@
 2016-06-17  Niels Grewe <niels.grewe@halbordnung.de>
 
+	* Headers/Foundation/NSRegularExpression.h
+	* Source/NSRegularExpression.m
+	* Tests/base/NSRegularExpression/basic.m:
+
+	Implement resource limits for regular expression evaluation. Tweaked
+	to roughly match the Cocoa behaviour, but can be changed through 
+	the GSRegularExpressionWorkLimit user default.
+
+2016-06-17  Niels Grewe <niels.grewe@halbordnung.de>
+
 	* Source/NSRegularExpression.m: Implement -isEqual: and -hash
 	* Tests/base/NSRegularExpression/basic.m: Test NSCopying
 

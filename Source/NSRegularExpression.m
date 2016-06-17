@@ -46,6 +46,8 @@
 #import "Foundation/NSTextCheckingResult.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCoder.h"
+#import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSNotification.h"
 
 
 /**
@@ -293,6 +295,48 @@ callback(const void *context, int32_t steps)
   return stop;
 }
 
+
+#define DEFAULT_WORK_LIMIT 1500
+/**
+ * The work limit specifies the number of iterations the matcher will do before
+ * aborting an operation. This ensures that degenerate pattern/input
+ * combinations don't send the application into what for all intents and
+ * purposes seems like an infinite loop.
+ */
+static int32_t _workLimit = DEFAULT_WORK_LIMIT;
+
++ (void) _defaultsChanged: (NSNotification*)n
+{
+  NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
+  id value = [defs objectForKey: @"GSRegularExpressionWorkLimit"];
+  int32_t newLimit = DEFAULT_WORK_LIMIT;
+  if ([value respondsToSelector: @selector(intValue)])
+    {
+      int32_t v = [value intValue];
+      if (v >= 0)
+        {
+          newLimit = v;
+        }
+    }
+  _workLimit = newLimit;
+}
+
++ (void) initialize
+{
+  if (self == [NSRegularExpression class])
+    {
+      [[NSNotificationCenter defaultCenter]
+        addObserver: self
+           selector: @selector(_defaultsChanged:)
+              name: NSUserDefaultsDidChangeNotification
+            object: nil];
+      [self _defaultsChanged: nil];
+    }
+}
+
+
+
+
 /**
  * Sets up a libicu regex object for use.  Note: the documentation states that
  * NSRegularExpression must be thread safe.  To accomplish this, we store a
@@ -328,6 +372,7 @@ setupRegex(URegularExpression *regex,
     {
       uregex_useTransparentBounds(r, TRUE, &s);
     }
+  uregex_setTimeLimit(r, _workLimit, &s);
   if (U_FAILURE(s))
     {
       uregex_close(r);
@@ -363,6 +408,7 @@ setupRegex(URegularExpression *regex,
     {
       uregex_useTransparentBounds(r, TRUE, &s);
     }
+  uregex_setTimeLimit(r, _workLimit, &s);
   if (U_FAILURE(s))
     {
       uregex_close(r);
