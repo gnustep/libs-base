@@ -547,15 +547,20 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
     }
 
+  buf = [[s dataUsingEncoding: NSISOLatin1StringEncoding] mutableCopy];
+
   enumerator = NSEnumerateMapTable(wProperties);
   while (NSNextMapEnumeratorPair(&enumerator, (void **)(&key), (void**)&val))
     {
-      [s appendFormat: @"%@: %@\r\n", key, val];
+      GSMimeHeader      *h;
+
+      h = [[GSMimeHeader alloc] initWithName: key value: val parameters: nil];
+      [buf appendData: [h rawMimeDataPreservingCase: YES foldedAt: 0]];
+      RELEASE(h);
     }
   NSEndMapTableEnumeration(&enumerator);
 
-  [s appendString: @"\r\n"];
-  buf = [[s dataUsingEncoding: NSASCIIStringEncoding] mutableCopy];
+  [buf appendBytes: "\r\n" length: 2];
 
   /*
    * Append any data to be sent
