@@ -1509,9 +1509,9 @@ static NSURLProtocol	*placeholder = nil;
 		  @"Content-Type"] == nil)
 		{
 		  /* On MacOSX, this is automatically added to POST methods */
-                  static char   ct[]
+                  static char   *ct
                     = "Content-Type: application/x-www-form-urlencoded\r\n";
-		  [m appendBytes: ct length: sizeof(ct)];
+		  [m appendBytes: ct length: strlen(ct)];
 		}
 	      if ([this->request valueForHTTPHeaderField: @"Host"] == nil)
 		{
