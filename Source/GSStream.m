@@ -407,7 +407,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 {
   NSDebugMLLog(@"NSStream", @"record error: %@ - %@", self, anError);
   ASSIGN(_lastError, anError);
-  _currentStatus = NSStreamStatusError;
+  [self _setStatus: NSStreamStatusError];
 }
 
 - (void) _resetEvents: (NSUInteger)mask
@@ -533,7 +533,22 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) _setStatus: (NSStreamStatus)newStatus
 {
-  _currentStatus = newStatus;
+  if (_currentStatus != newStatus)
+    {
+      if (NSStreamStatusError == newStatus && NSCountMapTable(_loops) > 0)
+        {
+          /* After an error, we are in the run loops only to trigger
+           * errors, not for I/O, sop we must re-schedule in the right mode.
+           */
+          [self _unschedule];
+          _currentStatus = newStatus;
+          [self _schedule];
+        }
+      else
+        {
+          _currentStatus = newStatus;
+        }
+    }
 }
 
 - (BOOL) _unhandledData

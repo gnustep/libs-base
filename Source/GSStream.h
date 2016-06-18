@@ -75,7 +75,7 @@
 { \
   id		         _delegate;	/* Delegate controls operation.	*/\
   NSMutableDictionary	*_properties;	/* storage for properties	*/\
-  BOOL                   _delegateValid;/* whether the delegate responds*/\
+  BOOL                  _delegateValid; /* whether the delegate responds*/\
   NSError               *_lastError;    /* last error occured           */\
   NSStreamStatus         _currentStatus;/* current status               */\
   NSMapTable		*_loops;	/* Run loops and their modes.	*/\
