@@ -920,7 +920,7 @@ static NSOperationQueue *mainQueue = nil;
 
       when = [[NSDate alloc] initWithTimeIntervalSinceNow: 5.0];
       found = [internal->cond lockWhenCondition: 1 beforeDate: when];
-      [when release];
+      RELEASE(when);
       if (NO == found)
 	{
 	  break;	// Idle for 5 seconds ... exit thread.
@@ -928,7 +928,7 @@ static NSOperationQueue *mainQueue = nil;
 
       if ([internal->starting count] > 0)
 	{
-          op = [internal->starting objectAtIndex: 0];
+          op = RETAIN([internal->starting objectAtIndex: 0]);
 	  [internal->starting removeObjectAtIndex: 0];
 	}
       else
@@ -958,7 +958,7 @@ static NSOperationQueue *mainQueue = nil;
 		  [NSThread setThreadPriority: [op threadPriority]];
 		  [op main];
 		}
-	      [opPool release];
+	      RELEASE(opPool);
 	    }
           NS_HANDLER
 	    {
@@ -967,6 +967,7 @@ static NSOperationQueue *mainQueue = nil;
 	    }
           NS_ENDHANDLER
 	  [op _finish];
+          RELEASE(op);
 	}
     }
 
@@ -974,7 +975,7 @@ static NSOperationQueue *mainQueue = nil;
   [internal->lock lock];
   internal->threadCount--;
   [internal->lock unlock];
-  [pool release];
+  RELEASE(pool);
   [NSThread exit];
 }
 
