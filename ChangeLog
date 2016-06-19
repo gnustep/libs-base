@@ -1,3 +1,11 @@
+2016-06-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/cifframe.m: Use sizeof(NSInteger) as the buffer size for
+	small scalars if we are on an LP64 machine.
+	* Source/NSOperation.m: Retain operation while taking it from queue,
+	releasing after it is finished.  Prevent crash if the original owner
+	of the operation releases it while it's in the queue.
+
 2016-06-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m:

@@ -45,9 +45,15 @@
 #import "GSInvocation.h"
 #import "GSPrivate.h"
 
+/* For each architecture, we need to know the native word size to
+ * which smaller integral types are promoted when they are passed
+ * as function arguments or return type.
+ */
 #if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))
 typedef long long smallret_t;
 #elif defined(__sparc)
+typedef NSInteger smallret_t;
+#elif defined(__LP64__)
 typedef NSInteger smallret_t;
 #else
 typedef int smallret_t;
