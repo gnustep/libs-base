@@ -1494,7 +1494,8 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   RELEASE(d);
   if (self == nil)
     {
-      NSWarnMLog(@"Contents of file '%@' are not string data", path);
+      NSWarnMLog(@"Contents of file '%@' are not string data using %@",
+        path, [NSString localizedNameOfStringEncoding: enc]);
     }
   return self;
 }
@@ -1667,7 +1668,8 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   self = [self initWithData: d encoding: enc];
   if (self == nil)
     {
-      NSWarnMLog(@"Contents of URL '%@' are not string data", url);
+      NSWarnMLog(@"Contents of URL '%@' are not string data using %@",
+        url, [NSString localizedNameOfStringEncoding: enc]);
     }
   return self;
 }
@@ -6033,13 +6035,16 @@ static NSFileManager *fm = nil;
         }
       NS_HANDLER
         {
+          error = [NSString stringWithFormat:
+            @"as property list {%@}, and as strings file {%@}",
+            error, [localException reason]];
           result = nil;
         }
       NS_ENDHANDLER
       if (result == nil)
         {
           [NSException raise: NSGenericException
-                      format: @"Parse failed  - %@", error];
+                      format: @"Parse failed - %@", error];
         }
     }
   return result;
