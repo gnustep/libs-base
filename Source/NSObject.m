@@ -202,8 +202,8 @@ typedef int32_t volatile *gsatomic_t;
 
 #define	GSATOMICREAD(X)	(*(X))
 
-#define	GSAtomicIncrement(X)	InterlockedIncrement((LONG volatile*)X)
-#define	GSAtomicDecrement(X)	InterlockedDecrement((LONG volatile*)X)
+#define	GSAtomicIncrement(X)	InterlockedIncrement(X)
+#define	GSAtomicDecrement(X)	InterlockedDecrement(X)
 
 
 #elif defined(__llvm__) || (defined(USE_ATOMIC_BUILTINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
@@ -223,10 +223,10 @@ typedef int32_t volatile *gsatomic_t;
 
 #define	GSATOMICREAD(X)	(*(X))
 
-static __inline__ int
+static __inline__ int32_t
 GSAtomicIncrement(gsatomic_t X)
 {
-  register int tmp;
+  register int32_t tmp;
   __asm__ __volatile__ (
     "movl $1, %0\n"
     "lock xaddl %0, %1"
@@ -236,10 +236,10 @@ GSAtomicIncrement(gsatomic_t X)
   return tmp + 1;
 }
 
-static __inline__ int
+static __inline__ int32_t
 GSAtomicDecrement(gsatomic_t X)
 {
-  register int tmp;
+  register int32_t tmp;
   __asm__ __volatile__ (
     "movl $1, %0\n"
     "negl %0\n"
@@ -256,10 +256,10 @@ typedef int32_t volatile *gsatomic_t;
 
 #define	GSATOMICREAD(X)	(*(X))
 
-static __inline__ int
+static __inline__ int32_t
 GSAtomicIncrement(gsatomic_t X)
 {
-  int tmp;
+  int32_t tmp;
   __asm__ __volatile__ (
     "0:"
     "lwarx %0,0,%1 \n"
@@ -272,10 +272,10 @@ GSAtomicIncrement(gsatomic_t X)
   return tmp;
 }
 
-static __inline__ int
+static __inline__ int32_t
 GSAtomicDecrement(gsatomic_t X)
 {
-  int tmp;
+  int32_t tmp;
   __asm__ __volatile__ (
     "0:"
     "lwarx %0,0,%1 \n"
@@ -294,7 +294,7 @@ typedef int32_t volatile *gsatomic_t;
 
 #define	GSATOMICREAD(X)	(*(X))
 
-static __inline__ int
+static __inline__ int32_t
 GSAtomicIncrement(gsatomic_t X)
 {
   __asm__ __volatile__ (
@@ -303,7 +303,7 @@ GSAtomicIncrement(gsatomic_t X)
     return *X;
 }
 
-static __inline__ int
+static __inline__ int32_t
 GSAtomicDecrement(gsatomic_t X)
 {
   __asm__ __volatile__ (
@@ -318,10 +318,10 @@ typedef int32_t volatile *gsatomic_t;
 
 #define	GSATOMICREAD(X)	(*(X))
 
-static __inline__ int
+static __inline__ int32_t
 GSAtomicIncrement(gsatomic_t X)
 {
-  int tmp;
+  int32_t tmp;
 
   __asm__ __volatile__ (
 #if !defined(__mips64)
@@ -335,10 +335,10 @@ GSAtomicIncrement(gsatomic_t X)
     return tmp;
 }
 
-static __inline__ int
+static __inline__ int32_t
 GSAtomicDecrement(gsatomic_t X)
 {
-  int tmp;
+  int32_t tmp;
 
   __asm__ __volatile__ (
 #if !defined(__mips64)
@@ -391,7 +391,7 @@ static inline NSLock *GSAllocationLockForObject(id p)
  *	(before the start) in each object.
  */
 typedef struct obj_layout_unpadded {
-    NSUInteger	retained;
+  int32_t	retained;
 } unp;
 #define	UNP sizeof(unp)
 
@@ -409,9 +409,9 @@ typedef struct obj_layout_unpadded {
  *	structure correct.
  */
 struct obj_layout {
-    char	padding[__BIGGEST_ALIGNMENT__ - ((UNP % __BIGGEST_ALIGNMENT__)
-      ? (UNP % __BIGGEST_ALIGNMENT__) : __BIGGEST_ALIGNMENT__)];
-    NSUInteger	retained;
+  char	padding[__BIGGEST_ALIGNMENT__ - ((UNP % __BIGGEST_ALIGNMENT__)
+    ? (UNP % __BIGGEST_ALIGNMENT__) : __BIGGEST_ALIGNMENT__)];
+  int32_t	retained;
 };
 typedef	struct obj_layout *obj;
 
@@ -437,7 +437,7 @@ NSDecrementExtraRefCountWasZero(id anObject)
   if (allocationLock != 0)
     {
 #if	defined(GSATOMICREAD)
-      int	result;
+      int32_t	result;
 
       result = GSAtomicDecrement((gsatomic_t)&(((obj)anObject)[-1].retained));
       if (result < 0)
@@ -526,7 +526,7 @@ NSIncrementExtraRefCount(id anObject)
       NSLock *theLock = GSAllocationLockForObject(anObject);
 
       [theLock lock];
-      if (((obj)anObject)[-1].retained == UINT_MAX - 1)
+      if (((obj)anObject)[-1].retained > 0xfffffe)
 	{
 	  [theLock unlock];
 	  [NSException raise: NSInternalInconsistencyException
@@ -538,7 +538,7 @@ NSIncrementExtraRefCount(id anObject)
     }
   else
     {
-      if (((obj)anObject)[-1].retained == UINT_MAX - 1)
+      if (((obj)anObject)[-1].retained > 0xfffffe)
 	{
 	  [NSException raise: NSInternalInconsistencyException
 	    format: @"NSIncrementExtraRefCount() asked to increment too far"];

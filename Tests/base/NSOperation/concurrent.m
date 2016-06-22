@@ -131,6 +131,7 @@ int main()
     {
       obj = [[MyOperation alloc] initWithValue: i];
       [a addObject: obj];
+      [obj release];
     }
   [q addOperations: a waitUntilFinished: YES];
   PASS(([obj isFinished] == YES), "operation ran");
