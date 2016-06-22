@@ -80,6 +80,19 @@
 {
   return thread;
 }
+
+- (void) release
+{
+  NSLog(@"Will release %@ at %@", self, [NSThread callStackSymbols]);
+  [super release];
+}
+
+- (id) retain
+{
+  NSLog(@"Will retain %@ at %@", self, [NSThread callStackSymbols]);
+  return [super retain];
+}
+
 @end
 
 @interface OpExit : OpFlag

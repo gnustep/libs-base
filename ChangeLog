@@ -1,3 +1,12 @@
+2016-06-22  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Make sure we treat the reference count as a
+	32bit integer everywhere, so that atomic operations operate on the
+	correct value on big endian CPUs with different word sizes.
+	* Source/NSOperation.m: When starting an operation, have it retain
+	itself in case it'ss removed from the queue and released while
+	running.
+
 2016-06-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/cifframe.m: Use sizeof(NSInteger) as the buffer size for

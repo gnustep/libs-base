@@ -413,6 +413,7 @@ static NSArray	*empty = nil;
   NSAutoreleasePool	*pool = [NSAutoreleasePool new];
   double		prio = [NSThread  threadPriority];
 
+  AUTORELEASE(RETAIN(self));	// Make sure we exist while running.
   [internal->lock lock];
   NS_DURING
     {
