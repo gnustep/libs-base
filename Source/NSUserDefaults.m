@@ -2332,11 +2332,7 @@ static BOOL isLocked = NO;
           while ([_fileLock tryLock] == NO)
             {
               CREATE_AUTORELEASE_POOL(arp);
-              NSDate		*when;
               NSDate		*lockDate;
-
-              lockDate = [_fileLock lockDate];
-              when = [NSDateClass dateWithTimeIntervalSinceNow: 0.1];
 
               /*
                * In case we have tried and failed to break the lock,
@@ -2344,7 +2340,7 @@ static BOOL isLocked = NO;
                * us three lock breaks if we do them at 20 second
                * intervals.
                */
-              if ([when timeIntervalSinceDate: started] > 66.0)
+              if ([started timeIntervalSinceNow] < -66.0)
                 {
                   fprintf(stderr, "Failed to lock user defaults database"
                     " even after breaking old locks!\n");
@@ -2356,16 +2352,16 @@ static BOOL isLocked = NO;
                * wait a little anyway ... so that in the case of a locking
                * problem we do an idle wait rather than a busy one.
                */
-              if (lockDate != nil
-                && [when timeIntervalSinceDate: lockDate] > 20.0)
+              if ((lockDate = [_fileLock lockDate]) != nil
+                && [lockDate timeIntervalSinceNow] < -20.0)
                 {
-                  NSLog(@"NSUserdefaults file lock at %@ is dated %@ ... break",
+                  NSLog(@"NSUserDefaults file lock at %@ is dated %@ ... break",
                     _fileLock, lockDate);
                   [_fileLock breakLock];
                 }
               else
                 {
-                  [NSThread sleepUntilDate: when];
+                  [NSThread sleepForTimeInterval: 0.1];
                 }
               RELEASE(arp);
             }
