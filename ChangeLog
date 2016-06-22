@@ -8,6 +8,7 @@
 	running.
 	* Headers/Foundation/NSDistributedLock.h: Add lock ivar.
 	* Source/NSDistributedLock.m: Make class thread-safe using lock.
+	* Source/Tests/base/KVC/mutable.m: Fix 64bit error in method types.
 
 2016-06-19  Richard Frith-Macdonald <rfm@gnu.org>
 

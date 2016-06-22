@@ -78,7 +78,7 @@ typedef struct {
   return self;
 }
 
-- (void) insertObject:(id)obj inNumbersAtIndex:(unsigned int)index
+- (void) insertObject: (id)obj inNumbersAtIndex: (NSUInteger)index
 {
   if (![obj isEqualToString:@"NaN"])
     {
@@ -86,20 +86,20 @@ typedef struct {
     }
 }
 
-- (void) removeObjectFromNumbersAtIndex:(unsigned int)index
+- (void) removeObjectFromNumbersAtIndex: (NSUInteger)index
 {
   if (![[numbers objectAtIndex:index] isEqualToString:@"One"])
     [numbers removeObjectAtIndex:index];
 }
 
-- (void) replaceObjectInNumbersAtIndex:(unsigned int)index withObject:(id)obj
+- (void) replaceObjectInNumbersAtIndex: (NSUInteger)index withObject: (id)obj
 {
   if (index == 1)
     obj = @"Two";
   [numbers replaceObjectAtIndex:index withObject:obj];
 }
 
-- (void) setCities:(NSArray *)other
+- (void) setCities: (NSArray *)other
 {
   [cities setArray:other];
 }
@@ -147,13 +147,13 @@ typedef struct {
   return self;
 }
 
-- (void) addOneObject:(id)anObject
+- (void) addOneObject: (id)anObject
 {
   if (![anObject isEqualToString:@"ten"])
     [one addObject:anObject];
 }
 
-- (void) removeOneObject:(id)anObject
+- (void) removeOneObject: (id)anObject
 {
   if (![anObject isEqualToString:@"one"])
     {
@@ -161,7 +161,7 @@ typedef struct {
     }
 }
 
-- (void) setTwo:(NSMutableSet *)set
+- (void) setTwo: (NSMutableSet *)set
 {
   [two setSet:set];
 }
@@ -189,11 +189,11 @@ int main(void)
   PASS([proxy isKindOfClass:[NSMutableArray class]],
       "proxy is a kind of NSMutableArray")
   [proxy removeLastObject];
-  PASS_EXCEPTION([proxy addObject:@"NaN"];,
+  PASS_EXCEPTION([proxy addObject: @"NaN"];,
     NSRangeException,"bad removal causes range exception when observing")
-  [proxy replaceObjectAtIndex:1 withObject:@"Seven"];
-  [proxy addObject:@"Four"];
-  [proxy removeObject:@"One"];
+  [proxy replaceObjectAtIndex: 1 withObject: @"Seven"];
+  [proxy addObject: @"Four"];
+  [proxy removeObject: @"One"];
   
   o = [NSArray arrayWithObjects:
       @"One",
@@ -201,74 +201,74 @@ int main(void)
       @"Three",
       @"Four",
       nil];
-  PASS([[list valueForKey:@"numbers"] isEqualToArray: o],
+  PASS([[list valueForKey: @"numbers"] isEqualToArray: o],
     "KVC mutableArrayValueForKey: proxy works with array proxy methods")
 
-  proxy = [list mutableArrayValueForKey:@"cities"];
-  PASS([proxy isKindOfClass:[NSMutableArray class]],
+  proxy = [list mutableArrayValueForKey: @"cities"];
+  PASS([proxy isKindOfClass: [NSMutableArray class]],
       "proxy is a kind of NSMutableArray")
-  [proxy addObject:@"Lima"];
+  [proxy addObject: @"Lima"];
   o = [NSArray arrayWithObjects:
       @"Grand Rapids",
       @"Chicago",
       @"Lima",
       nil];
-  PASS([[list valueForKey:@"cities"] isEqualToArray: o],
+  PASS([[list valueForKey: @"cities"] isEqualToArray: o],
     "KVC mutableArrayValueForKey: proxy works with set<Key>:")
 
-  proxy = [list mutableArrayValueForKey:@"third"];
-  PASS([proxy isKindOfClass:[NSMutableArray class]],
+  proxy = [list mutableArrayValueForKey: @"third"];
+  PASS([proxy isKindOfClass: [NSMutableArray class]],
       "proxy is a kind of NSMutableArray")
 
-  PASS(proxy != [list valueForKey:@"third"],
+  PASS(proxy != [list valueForKey: @"third"],
      "KVC mutableArrayValueForKey: returns a proxy array for the ivar")
-  PASS([[proxy objectAtIndex:1] isEqualToString:@"b"],
+  PASS([[proxy objectAtIndex: 1] isEqualToString: @"b"],
       "This proxy works")
   
-  temp = [NSDictionary dictionaryWithObject:list forKey:@"list"];
-  proxy = [temp mutableArrayValueForKeyPath:@"list.numbers"];
-  PASS([proxy isKindOfClass:NSClassFromString(@"NSKeyValueMutableArray")],
+  temp = [NSDictionary dictionaryWithObject: list forKey: @"list"];
+  proxy = [temp mutableArrayValueForKeyPath: @"list.numbers"];
+  PASS([proxy isKindOfClass: NSClassFromString(@"NSKeyValueMutableArray")],
        "mutableArrayValueForKey: works")
   
 
   Sets * set = [[[Sets alloc] init] autorelease];
   NSMutableSet * setProxy;
 
-  setProxy = [set mutableSetValueForKey:@"one"];
-  PASS([setProxy isKindOfClass:[NSMutableSet class]],
+  setProxy = [set mutableSetValueForKey: @"one"];
+  PASS([setProxy isKindOfClass: [NSMutableSet class]],
       "proxy is a kind of NSMutableSet")
 
-  [setProxy removeObject:@"one"];
-  [setProxy addObject:@"ten"];
-  [setProxy removeObject:@"eight"];
-  [setProxy addObject:@"three"];
+  [setProxy removeObject: @"one"];
+  [setProxy addObject: @"ten"];
+  [setProxy removeObject: @"eight"];
+  [setProxy addObject: @"three"];
 
-  o = [NSSet setWithObjects:@"one", @"two", @"three", nil];
+  o = [NSSet setWithObjects: @"one", @"two", @"three", nil];
   PASS([setProxy isEqualToSet: o],
       "KVC mutableSetValueForKey: proxy uses methods")
 
-  setProxy = [set mutableSetValueForKey:@"two"];
-  PASS([setProxy isKindOfClass:[NSMutableSet class]],
+  setProxy = [set mutableSetValueForKey: @"two"];
+  PASS([setProxy isKindOfClass: [NSMutableSet class]],
       "proxy is a kind of NSMutableSet")
-  [setProxy addObject:@"seven"];
-  [setProxy minusSet:[NSSet setWithObject:@"eight"]];
-  o = [NSSet setWithObjects:@"one", @"two", @"seven", nil];
-  PASS([setProxy isEqualToSet: o],
+  [setProxy addObject: @"seven"];
+  [setProxy minusSet: [NSSet setWithObject: @"eight"]];
+  o = [NSSet setWithObjects: @"one", @"two", @"seven", nil];
+  PASS([setProxy isEqualToSet:  o],
       "KVC mutableSetValueForKey: proxy works with set<Key>:")
 
-  setProxy = [set mutableSetValueForKey:@"three"];
-  PASS([setProxy isKindOfClass:[NSMutableSet class]],
+  setProxy = [set mutableSetValueForKey: @"three"];
+  PASS([setProxy isKindOfClass: [NSMutableSet class]],
       "proxy is kind of NSMutableSet")
-  PASS(setProxy != [set valueForKey:@"three"],
+  PASS(setProxy != [set valueForKey: @"three"],
          "KVC mutableSetValueForKey: returns a proxy set for the ivar")
-  [setProxy addObject:@"seven"];
-  [setProxy removeObject:@"eight"];
-  o = [NSSet setWithObjects:@"one", @"two", @"seven", nil];
-  PASS([setProxy isEqualToSet: o], "this proxy works")
+  [setProxy addObject: @"seven"];
+  [setProxy removeObject: @"eight"];
+  o = [NSSet setWithObjects: @"one", @"two", @"seven", nil];
+  PASS([setProxy isEqualToSet:  o], "this proxy works")
 
-  temp = [NSDictionary dictionaryWithObject:set forKey:@"set"];
-  setProxy = [temp mutableSetValueForKeyPath:@"set.three"];
-  PASS([setProxy isKindOfClass:NSClassFromString(@"NSKeyValueMutableSet")],
+  temp = [NSDictionary dictionaryWithObject: set forKey: @"set"];
+  setProxy = [temp mutableSetValueForKeyPath: @"set.three"];
+  PASS([setProxy isKindOfClass: NSClassFromString(@"NSKeyValueMutableSet")],
        "mutableSetValueForKey: works")
 
   [list setX: s];
