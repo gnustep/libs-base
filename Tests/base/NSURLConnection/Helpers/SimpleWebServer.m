@@ -109,7 +109,8 @@
     }
   else
     {
-      NSLog(@"%@: already started '%@' on '%@'", self, _serverStream, [NSThread currentThread]);
+      NSLog(@"%@: already started '%@' on '%@'",
+	self, _serverStream, [NSThread currentThread]);
     }
 
   return ret;
@@ -212,7 +213,7 @@
 	      NSData        *statusData;
 	      char          *crlf = "\r\n";
 	      id            content;
-	      NSData        *contentData;
+	      NSData        *contentData = nil;
 	      NSUInteger    cLength = 0; // content-length
 	      NSString      *connection;
 	      BOOL          close = YES;
@@ -226,15 +227,17 @@
 		{
 		  connection = [[_request headerNamed: @"connection"] value];
 		}
-	      // if the client didn't supply the header 'Connection' or explicitly stated
-	      // to close the current connection
-	      close = (nil == connection || [[connection lowercaseString] isEqualToString: @"close"]);
+	      // if the client didn't supply the header 'Connection' or
+	      // explicitly stated to close the current connection
+	      close = (nil == connection
+		|| [[connection lowercaseString] isEqualToString: @"close"]);
 
 	      // adding the 'Content-Length' to the response
 	      content = [_response content];
 	      if ([content isKindOfClass: [NSString class]])
 		{
-		  contentData = [(NSString *)content dataUsingEncoding: NSUTF8StringEncoding];
+		  contentData = [(NSString *)content
+		    dataUsingEncoding: NSUTF8StringEncoding];
 		}
 	      else if ([content isKindOfClass: [NSData class]])
 		{

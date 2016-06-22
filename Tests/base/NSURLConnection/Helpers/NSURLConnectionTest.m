@@ -487,7 +487,7 @@ didReceiveResponse:(NSURLResponse *)response
   NSString *path = nil;
   NSString *redirectPath = nil;
   NSString *statusCode = nil;
-  NSString *redirectCode;
+  NSString *redirectCode = nil;
   NSString *method = nil;
   id payload = nil;
   id content = nil;
@@ -551,8 +551,9 @@ didReceiveResponse:(NSURLResponse *)response
 	    }
 	}
 
-      isOwnAuxServer = [[d objectForKey: @"IsAuxilliary"] isEqualToString: @"YES"] &&
-	               nil == _auxServer;
+      isOwnAuxServer
+	= [[d objectForKey: @"IsAuxilliary"] isEqualToString: @"YES"]
+	&& nil == _auxServer;
       if (isOwnAuxServer)
 	{
 	  auxPort = [d objectForKey: @"AuxPort"];
@@ -615,7 +616,8 @@ didReceiveResponse:(NSURLResponse *)response
 	  if (_expectedStatusCode == 0)
 	    {
 	      [NSException raise: NSInvalidArgumentException
-			  format: @"Invalid expected 'StatusCode' supplied %@", statusCode];
+	  	format: @"Invalid expected 'StatusCode' supplied %@",
+		statusCode];
 	    }
 	}
       if (nil == redirectCode)
@@ -628,7 +630,8 @@ didReceiveResponse:(NSURLResponse *)response
 	  if (_redirectStatusCode == 0)
 	    {
 	      [NSException raise: NSInvalidArgumentException
-			  format: @"Invalid expected 'RedirectCode' supplied %@", redirectCode];
+		format: @"Invalid expected 'RedirectCode' supplied %@",
+		redirectCode];
 	    }
 	}
 
@@ -650,12 +653,14 @@ didReceiveResponse:(NSURLResponse *)response
 	}
 
       url = [NSURL URLWithString: 
-		     [NSString stringWithFormat: @"%@://%@:%@%@", protocol, address, auxPort, redirectPath]];
+        [NSString stringWithFormat:
+	  @"%@://%@:%@%@", protocol, address, auxPort, redirectPath]];
       _redirectRequest = [NSMutableURLRequest requestWithURL: url];
       RETAIN(_redirectRequest);
 
       url = [NSURL URLWithString: 
-		     [NSString stringWithFormat: @"%@://%@:%@%@", protocol, address, port, path]];
+	[NSString stringWithFormat:
+	  @"%@://%@:%@%@", protocol, address, port, path]];
       _request = [NSMutableURLRequest requestWithURL: url];
       RETAIN(_request);
 
