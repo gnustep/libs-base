@@ -6,6 +6,8 @@
 	* Source/NSOperation.m: When starting an operation, have it retain
 	itself in case it'ss removed from the queue and released while
 	running.
+	* Headers/Foundation/NSDistributedLock.h: Add lock ivar.
+	* Source/NSDistributedLock.m: Make class thread-safe using lock.
 
 2016-06-19  Richard Frith-Macdonald <rfm@gnu.org>
 
