@@ -28,8 +28,9 @@
 #import "common.h"
 #define	EXPOSE_NSDistributedLock_IVARS	1
 #import "Foundation/NSDistributedLock.h"
-#import "Foundation/NSFileManager.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSLock.h"
 #import "Foundation/NSValue.h"
 #import "GSPrivate.h"
 
@@ -74,27 +75,39 @@ static NSFileManager	*mgr = nil;
  */
 - (void) breakLock
 {
-  NSDictionary	*attributes;
-
-  DESTROY(_lockTime);
-  attributes = [mgr fileAttributesAtPath: _lockPath traverseLink: YES];
-  if (attributes != nil)
+  [_localLock lock];
+  NS_DURING
     {
-      NSDate	*modDate = [attributes fileModificationDate];
+      NSDictionary	*attributes;
 
-      if ([mgr removeFileAtPath: _lockPath handler: nil] == NO)
+      DESTROY(_lockTime);
+      attributes = [mgr fileAttributesAtPath: _lockPath traverseLink: YES];
+      if (attributes != nil)
 	{
-	  NSString	*err = [[NSError _last] localizedDescription];
+	  NSDate	*modDate = [attributes fileModificationDate];
 
-	  attributes = [mgr fileAttributesAtPath: _lockPath traverseLink: YES];
-	  if ([modDate isEqual: [attributes fileModificationDate]] == YES)
+	  if ([mgr removeFileAtPath: _lockPath handler: nil] == NO)
 	    {
-	      [NSException raise: NSGenericException
-		      format: @"Failed to remove lock directory '%@' - %@",
-		      _lockPath, err];
+	      NSString	*err = [[NSError _last] localizedDescription];
+
+	      attributes = [mgr fileAttributesAtPath: _lockPath
+					traverseLink: YES];
+	      if ([modDate isEqual: [attributes fileModificationDate]] == YES)
+		{
+		  [NSException raise: NSGenericException
+		    format: @"Failed to remove lock directory '%@' - %@",
+		    _lockPath, err];
+		}
 	    }
 	}
     }
+  NS_HANDLER
+    {
+      [_localLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  [_localLock unlock];
 }
 
 - (void) dealloc
@@ -107,21 +120,27 @@ static NSFileManager	*mgr = nil;
     }
   RELEASE(_lockPath);
   RELEASE(_lockTime);
+  RELEASE(_localLock);
   [super dealloc];
 }
 
 - (NSString*) description
 {
+  NSString	*result;
+
+  [_localLock lock];
   if (_lockTime == nil)
     {
-      return [[super description] stringByAppendingFormat:
+      result = [[super description] stringByAppendingFormat:
         @" path '%@' not locked", _lockPath];
     }
   else
     {
-      return [[super description] stringByAppendingFormat:
+      result = [[super description] stringByAppendingFormat:
         @" path '%@' locked at %@", _lockPath, _lockTime];
     }
+  [_localLock unlock];
+  return result;
 }
 
 /**
@@ -137,6 +156,7 @@ static NSFileManager	*mgr = nil;
   NSString	*lockDir;
   BOOL		isDirectory;
 
+  _localLock = [NSLock new];
   _lockPath = [[aPath stringByStandardizingPath] copy];
   _lockTime = nil;
 
@@ -189,59 +209,79 @@ static NSFileManager	*mgr = nil;
  */
 - (BOOL) tryLock
 {
-  NSMutableDictionary	*attributesToSet;
-  NSDictionary		*attributes;
-  BOOL			locked;
+  BOOL		locked = NO;
 
-  attributesToSet = [NSMutableDictionary dictionaryWithCapacity: 1];
-  [attributesToSet setObject: [NSNumber numberWithUnsignedInt: 0755]
-		      forKey: NSFilePosixPermissions];
-	
-  locked = [mgr createDirectoryAtPath: _lockPath
-          withIntermediateDirectories: YES
-			   attributes: attributesToSet
-                                error: NULL];
-  if (locked == NO)
+  [_localLock lock];
+  NS_DURING
     {
-      BOOL	dir;
+      NSMutableDictionary	*attributesToSet;
+      NSDictionary		*attributes;
 
-      /*
-       * We expect the directory creation to have failed because it already
-       * exists as another processes lock.  If the directory doesn't exist,
-       * then either the other process has removed it's lock (and we can retry)
-       * or we have a severe problem!
-       */
-      if ([mgr fileExistsAtPath: _lockPath isDirectory: &dir] == NO)
+      if (nil != _lockTime)
 	{
-	  locked = [mgr createDirectoryAtPath: _lockPath
-                  withIntermediateDirectories: YES
-				   attributes: attributesToSet
-                                        error: NULL];
-	  if (locked == NO)
+	  [NSException raise: NSGenericException
+		      format: @"Attempt to re-lock distributed lock %@",
+	    _lockPath];
+        }
+      attributesToSet = [NSMutableDictionary dictionaryWithCapacity: 1];
+      [attributesToSet setObject: [NSNumber numberWithUnsignedInt: 0755]
+			  forKey: NSFilePosixPermissions];
+	    
+      locked = [mgr createDirectoryAtPath: _lockPath
+	      withIntermediateDirectories: YES
+			       attributes: attributesToSet
+				    error: NULL];
+      if (NO == locked)
+	{
+	  BOOL	dir;
+
+	  /* We expect the directory creation to have failed because
+	   * it already exists as another processes lock.
+	   * If the directory doesn't exist, then either the other
+	   * process has removed it's lock (and we can retry)
+	   * or we have a severe problem!
+	   */
+	  if ([mgr fileExistsAtPath: _lockPath isDirectory: &dir] == NO)
 	    {
-	      NSLog(@"Failed to create lock directory '%@' - %@",
-                _lockPath, [NSError _last]);
+	      locked = [mgr createDirectoryAtPath: _lockPath
+		      withIntermediateDirectories: YES
+				       attributes: attributesToSet
+					    error: NULL];
+	      if (NO == locked)
+		{
+		  NSLog(@"Failed to create lock directory '%@' - %@",
+		    _lockPath, [NSError _last]);
+		}
+	    }
+	}
+
+      if (YES == locked)
+	{
+	  attributes = [mgr fileAttributesAtPath: _lockPath
+				    traverseLink: YES];
+	  if (attributes == nil)
+	    {
+	      [NSException raise: NSGenericException
+		format: @"Unable to get attributes of lock file we made at %@",
+		_lockPath];
+	    }
+	  ASSIGN(_lockTime, [attributes fileModificationDate]);
+	  if (nil == _lockTime)
+	    {
+	      [NSException raise: NSGenericException
+		format: @"Unable to get date of lock file we made at %@",
+		_lockPath];
 	    }
 	}
     }
-
-  if (locked == NO)
+  NS_HANDLER
     {
-      return NO;
+      [_localLock unlock];
+      [localException raise];
     }
-  else
-    {
-      attributes = [mgr fileAttributesAtPath: _lockPath
-				traverseLink: YES];
-      if (attributes == nil)
-	{
-	  [NSException raise: NSGenericException
-            format: @"Unable to get attributes of lock file we made at %@",
-            _lockPath];
-	}
-      ASSIGN(_lockTime, [attributes fileModificationDate]);
-      return YES;
-    }
+  NS_ENDHANDLER
+  [_localLock unlock];
+  return locked;
 }
 
 /**
@@ -251,43 +291,53 @@ static NSFileManager	*mgr = nil;
  */
 - (void) unlock
 {
-  NSDictionary	*attributes;
+  [_localLock lock];
+  NS_DURING
+    {
+      NSDictionary	*attributes;
 
-  if (_lockTime == nil)
-    {
-      [NSException raise: NSGenericException format: @"not locked by us"];
-    }
-
-  /*
-   *	Don't remove the lock if it has already been broken by someone
-   *	else and re-created.  Unfortunately, there is a window between
-   *	testing and removing, but we do the bset we can.
-   */
-  attributes = [mgr fileAttributesAtPath: _lockPath traverseLink: YES];
-  if (attributes == nil)
-    {
-      DESTROY(_lockTime);
-      [NSException raise: NSGenericException
-		  format: @"lock '%@' already broken", _lockPath];
-    }
-  if ([_lockTime isEqual: [attributes fileModificationDate]])
-    {
-      DESTROY(_lockTime);
-      if ([mgr removeFileAtPath: _lockPath handler: nil] == NO)
+      if (_lockTime == nil)
 	{
-	  [NSException raise: NSGenericException
-		      format: @"Failed to remove lock directory '%@' - %@",
-			  _lockPath, [NSError _last]];
+	  [NSException raise: NSGenericException format: @"not locked by us"];
 	}
-    }
-  else
-    {
+
+      /* Don't remove the lock if it has already been broken by someone
+       * else and re-created.  Unfortunately, there is a window between
+       * testing and removing, but we do the bset we can.
+       */
+      attributes = [mgr fileAttributesAtPath: _lockPath traverseLink: YES];
+      if (attributes == nil)
+	{
+	  DESTROY(_lockTime);
+	  [NSException raise: NSGenericException
+		      format: @"lock '%@' already broken", _lockPath];
+	}
+      if ([_lockTime isEqual: [attributes fileModificationDate]])
+	{
+	  DESTROY(_lockTime);
+	  if ([mgr removeFileAtPath: _lockPath handler: nil] == NO)
+	    {
+	      [NSException raise: NSGenericException
+			  format: @"Failed to remove lock directory '%@' - %@",
+			      _lockPath, [NSError _last]];
+	    }
+	}
+      else
+	{
+	  DESTROY(_lockTime);
+	  [NSException raise: NSGenericException
+		      format: @"lock '%@' already broken and in use again",
+	    _lockPath];
+	}
       DESTROY(_lockTime);
-      [NSException raise: NSGenericException
-		  format: @"lock '%@' already broken and in use again",
-	_lockPath];
     }
-  DESTROY(_lockTime);
+  NS_HANDLER
+    {
+      [_localLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
+  [_localLock unlock];
 }
 
 @end
