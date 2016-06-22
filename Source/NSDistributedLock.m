@@ -80,6 +80,10 @@ static NSFileManager	*mgr = nil;
     {
       NSDictionary	*attributes;
 
+      if (nil != _lockTime)
+	{
+	  NSLog(@"Breaking our own distributed lock %@", _lockPath);
+        }
       DESTROY(_lockTime);
       attributes = [mgr fileAttributesAtPath: _lockPath traverseLink: YES];
       if (attributes != nil)
