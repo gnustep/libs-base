@@ -3665,6 +3665,7 @@ static BOOL             (*nbImp)(id, SEL, unichar) = 0;
 	  maxLength: (NSUInteger)maxLength
 	   encoding: (NSStringEncoding)encoding
 {
+  if (0 == maxLength || 0 == buffer) return NO;
   if (encoding == NSUnicodeStringEncoding)
     {
       unsigned	length = [self length];
