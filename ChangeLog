@@ -1,3 +1,8 @@
+2016-06-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSString.m: Optimise getting ascii or utf8 characters
+	from a literal string.
+
 2016-06-22  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Make sure we treat the reference count as a

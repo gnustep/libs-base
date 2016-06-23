@@ -5916,6 +5916,67 @@ literalIsEqual(NXConstantString *self, id anObject)
     }
 }
 
+- (BOOL) getCString: (char*)buffer
+	  maxLength: (NSUInteger)maxLength
+	   encoding: (NSStringEncoding)encoding
+{
+  const uint8_t *ptr = (const uint8_t*)nxcsptr;
+  int           length = nxcslen;
+  int           index;
+
+  if (0 == maxLength || 0 == buffer)
+    {
+      return NO;	// Can't fit in here
+    }
+  if (NSUTF8StringEncoding == encoding)
+    {
+      /* We are already using UTF-8 so we can just copy directly.
+       */
+      if (maxLength <= length)
+        {
+          length = maxLength - 1;
+        }
+      for (index = 0; index < length; index++)
+        {
+          buffer[index] = (char)ptr[index];
+        }
+      /* Step back before any multibyte sequence
+       */
+      while (index > 0 && (ptr[index - 1] & 0x80))
+	{
+          index--;
+        }
+      buffer[index] = '\0';
+      return YES;
+    }
+  else if (isByteEncoding(encoding))
+    {
+      /* We want a single-byte encoding (ie ascii is a subset),
+       * so as long as this constant string is ascii, we can just
+       * copy directly.
+       */
+      if (maxLength <= length)
+        {
+          length = maxLength - 1;
+        }
+      for (index = 0; index < length; index++)
+        {
+          buffer[index] = (char)ptr[index];
+          if (ptr[index] & 0x80)
+            {
+              break;    // Not ascii 
+            }
+        }
+      if (index == length)
+        {
+          buffer[index] = '\0';
+          return YES;                   // All copied.
+        }
+      // Fall through to use superclass method.
+    }
+  return [super getCString: buffer maxLength: maxLength encoding: encoding];
+}
+
 /* Must match the implementation in NSString
  * To avoid allocating memory, we build the hash incrementally.
  */
