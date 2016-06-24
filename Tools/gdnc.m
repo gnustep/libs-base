@@ -37,6 +37,7 @@
 #import	"Foundation/NSProcessInfo.h"
 #import	"Foundation/NSRunLoop.h"
 #import	"Foundation/NSTask.h"
+#import	"Foundation/NSTimer.h"
 #import	"Foundation/NSUserDefaults.h"
 
 
@@ -68,6 +69,8 @@
 static BOOL	debugging = NO;
 static BOOL	is_daemon = NO;		/* Currently running as daemon.	 */
 static BOOL	auto_stop = NO;		/* Should we shut down when unused? */
+
+static NSTimer  *timer = nil;           /* When to shut down. */
 
 #if defined(HAVE_SYSLOG) || defined(HAVE_SLOGF)
 #  if defined(HAVE_SLOGF)
@@ -357,6 +360,20 @@ ihandler(int sig)
 @end
 
 @implementation	GDNCServer
+
+- (void) autoStop: (NSTimer*)t
+{
+  if (t == timer)
+    {
+      timer = nil;
+    }
+  if (auto_stop == YES && NSCountMapTable(connections) == 0)
+    {
+      /* There is nothing else using this process, stop.
+       */
+      exit(EXIT_SUCCESS);
+    }
+}
 
 - (void) dealloc
 {
@@ -662,6 +679,11 @@ ihandler(int sig)
   table = NSCreateMapTable(NSObjectMapKeyCallBacks,
 		NSObjectMapValueCallBacks, 0);
   NSMapInsert(connections, newConn, table);
+  if (nil != timer)
+    {
+      [timer invalidate];
+      timer = nil;
+    }
   return YES;
 }
 
@@ -697,10 +719,19 @@ ihandler(int sig)
 
       if (auto_stop == YES && NSCountMapTable(connections) == 0)
         {
-	  /* If there is nothing else using this process, and this is not
-	   * a daemon, then we can quietly terminate.
-	   */
-          exit(EXIT_SUCCESS);
+          /* There is nothing left using this notification center,
+           * so schedule the auto_stop to occur in a short while
+           * if nothing has connected to us.
+           */
+          if (nil != timer)
+            {
+              [timer invalidate];
+            }
+          timer = [NSTimer scheduledTimerWithTimeInterval: 15.0
+                                                   target: self
+                                                 selector: @selector(autoStop:)
+                                                 userInfo: nil
+                                                  repeats: NO];
 	}
     }
   return nil;
