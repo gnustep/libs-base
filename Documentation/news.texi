@@ -11,6 +11,16 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.25.0}
+@itemize @bullet
+@item Garbage collection support removed (NSGarbageCollector stub remains)
+@item Support for Debian style multi-architecture installations added
+@item As usual, this release also contains an update to include the
+most recent international timezone data.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.24.9}
 @itemize @bullet
 @item Niels added support for generics
@@ -20,8 +30,6 @@ See the @url{ReleaseNotes.html} document for more information.
 @item As usual, this release also contains an update to include the
 most recent international timezone data.
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.24.8}
 @itemize @bullet

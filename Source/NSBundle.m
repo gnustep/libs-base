@@ -776,15 +776,9 @@ _find_main_bundle_for_tool(NSString *toolName)
 	    {
 	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
 	    }
-	  /* target os */
+	  /* target directory */
 	  pathComponent = [bundlePath lastPathComponent];
-	  if ([pathComponent isEqual: gnustep_target_os])
-	    {
-	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
-	    }
-	  /* target cpu */
-	  pathComponent = [bundlePath lastPathComponent];
-	  if ([pathComponent isEqual: gnustep_target_cpu])
+	  if ([pathComponent isEqual: gnustep_target_dir])
 	    {
 	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
 	    }
@@ -1179,6 +1173,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	gnustep_target_dir = RETAIN(str);
       else if ((str = [env objectForKey: @"GNUSTEP_HOST_DIR"]) != nil)
 	gnustep_target_dir = RETAIN(str);
+      else if (gnustep_target_cpu != nil && gnustep_target_os != nil)
+	gnustep_target_dir = [[NSString alloc] initWithFormat: @"%@-%@",
+          gnustep_target_cpu, gnustep_target_os];
 
       if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
 	library_combo = RETAIN(str);
@@ -1356,7 +1353,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       path = [GSPrivateExecutablePath() stringByDeletingLastPathComponent];
 
       /* We now need to chop off the extra subdirectories, the library
-	 combo and the target cpu/os if they exist.  The executable
+	 combo and the target directory if they exist.  The executable
 	 and this library should match so that is why we can use the
 	 compiled-in settings. */
       /* library combo */
@@ -1365,15 +1362,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	{
 	  path = [path stringByDeletingLastPathComponent];
 	}
-      /* target os */
+      /* target dir */
       s = [path lastPathComponent];
-      if ([s isEqual: gnustep_target_os])
-	{
-	  path = [path stringByDeletingLastPathComponent];
-	}
-      /* target cpu */
-      s = [path lastPathComponent];
-      if ([s isEqual: gnustep_target_cpu])
+      if ([s isEqual: gnustep_target_dir])
 	{
 	  path = [path stringByDeletingLastPathComponent];
 	}

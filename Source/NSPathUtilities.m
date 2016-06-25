@@ -2521,8 +2521,8 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 	  if ([gnustep_is_flattened boolValue] == NO
 	    && gnustep_target_cpu != nil && gnustep_target_os != nil)
 	    {
-	      part = [gnustep_target_cpu stringByAppendingPathComponent:
-		gnustep_target_os];
+	      part = [NSString stringWithFormat: @"%@-%@",
+                gnustep_target_cpu, gnustep_target_os];
 	      if (library_combo != nil)
 		{
 		  full = [part stringByAppendingPathComponent: library_combo];
@@ -2563,8 +2563,8 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 	  if ([gnustep_is_flattened boolValue] == NO
 	    && gnustep_target_cpu != nil && gnustep_target_os != nil)
 	    {
-	      part = [gnustep_target_cpu stringByAppendingPathComponent:
-		gnustep_target_os];
+	      part = [NSString stringWithFormat: @"%@-%@",
+                gnustep_target_cpu, gnustep_target_os];
 	      if (library_combo != nil)
 		{
 		  full = [part stringByAppendingPathComponent: library_combo];
@@ -2605,8 +2605,8 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 	  if ([gnustep_is_flattened boolValue] == NO
 	    && gnustep_target_cpu != nil && gnustep_target_os != nil)
 	    {
-	      part = [gnustep_target_cpu stringByAppendingPathComponent:
-		gnustep_target_os];
+	      part = [NSString stringWithFormat: @"%@-%@",
+                gnustep_target_cpu, gnustep_target_os];
 	      if (library_combo != nil)
 		{
 		  full = [part stringByAppendingPathComponent: library_combo];

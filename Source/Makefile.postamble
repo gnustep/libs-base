@@ -109,10 +109,7 @@ after-clean::
 
 # Things to do after distcleaning
 after-distclean::
-	rm -f $(GNUSTEP_TARGET_DIR)/dynamic-load.h
-	rm -f $(GNUSTEP_TARGET_DIR)/config.h
-	rm -rf $(GNUSTEP_TARGET_DIR)/GNUstepBase
-	rm -rf $(GNUSTEP_TARGET_CPU)
+	rm -rf $(GNUSTEP_TARGET_DIR)
 
 # Things to do before checking
 # before-check::

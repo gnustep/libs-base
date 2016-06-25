@@ -1,3 +1,37 @@
+2016-06-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/Base.gsdoc:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	* Source/Makefile.postamble:
+	* Source/NSBundle.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSTask.m:
+	* Source/NSThread.m:
+	* configure:
+	* configure.ac:
+       When using  non-flattened environment, the subdirectory name for
+       libraries/binaries is changed for Debian compatibility (and simplicity)
+       to use a directory whose name is of the form architecture/library-combo
+       rather than nested directories of the form cpu/os-abi/library-combo.
+       The architecture name format is a sanitised triplet cpu-os-abi (where
+       previously we had cpu/os-abi). 
+       These changes are the first step in making GNUstep work seamlessly 
+       with Debian multiarch.  To use them you will need to rebuild your 
+       entire gnustep installation using a version of gnustep-make which
+       has correspoinding changes to know where to install bbinaries and
+       resources.  However, the changes should have no effect on a flattened
+       installation (currently the default).
+
+2016-06-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedNotificationCenter.m: Double timeout from five
+	to ten seconds when waiting for the server to become reachable.
+	* Tools/gdnc.m: Auto-stop 15 seconds after the last client disconnects
+	rather than immediately ... allowing other clients time to connect.
+	Changes to reduce the chance of gdnc failure on a slow system where
+	the server is not running as a daemon.
+
 2016-06-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m: Optimise getting ascii or utf8 characters

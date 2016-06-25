@@ -657,7 +657,7 @@ GSCurrentThreadDictionary(void)
 }
 
 /*
- * Callback function so send notifications on becoming multi-threaded.
+ * Callback function to send notifications on becoming multi-threaded.
  */
 static void
 gnustep_base_thread_callback(void)
