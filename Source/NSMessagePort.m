@@ -1503,9 +1503,6 @@ typedef	struct {
   NSMapEnumerator	me;
   int			sock;
   void			*dummy;
-#ifndef	BROKEN_SO_REUSEADDR
-  int			opt = 1;
-#endif
   GSMessageHandle	*handle = nil;
 
   M_LOCK(myLock);
@@ -1533,20 +1530,6 @@ typedef	struct {
     {
       NSLog(@"unable to create socket - %@", [NSError _last]);
     }
-#ifndef	BROKEN_SO_REUSEADDR
-  /*
-   * Under decent systems, SO_REUSEADDR means that the port can be reused
-   * immediately that this process exits.  Under some it means
-   * that multiple processes can serve the same port simultaneously.
-   * We don't want that broken behavior!
-   */
-  else if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&opt,
-    sizeof(opt)) < 0)
-    {
-      (void)close(sock);
-      NSLog(@"unable to set reuse on socket - %@", [NSError _last]);
-    }
-#endif
   else if ((handle = [GSMessageHandle handleWithDescriptor: sock]) == nil)
     {
       (void)close(sock);
