@@ -1,5 +1,11 @@
 2016-06-25  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSMessagePort.m:
+	* config/config.reuseaddr.c:
+	SO_REUSEADDR fixes.
+
+2016-06-25  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Documentation/Base.gsdoc:
 	* Documentation/ReleaseNotes.gsdoc:
 	* Documentation/news.texi:

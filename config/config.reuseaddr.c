@@ -44,13 +44,19 @@ main()
   sin.sin_addr.s_addr = htonl(INADDR_ANY);
   sin.sin_port = 0;
 
- if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
+  if ((net = socket(AF_INET, SOCK_STREAM, PF_UNSPEC)) < 0)
     {
       fprintf(stderr, "unable to create socket 1\n");
       return 2;
     }
 
-  setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char *)&status, sizeof(status));
+  if (setsockopt(net, SOL_SOCKET, SO_REUSEADDR,
+    (char *)&status, sizeof(status)) < 0)
+    {
+      fprintf(stderr, "unable to set socket 1 option\n");
+      (void) close(net);
+      return 1;
+    }
 
   if (bind(net, (struct sockaddr *)&sin, sizeof(sin)) < 0)
     {
@@ -80,7 +86,13 @@ main()
       return 2;
     }
 
-  setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char *)&status, sizeof(status));
+  if (setsockopt(net, SOL_SOCKET, SO_REUSEADDR,
+    (char *)&status, sizeof(status)) < 0)
+    {
+      fprintf(stderr, "unable to set socket 2 option\n");
+      (void) close(net);
+      return 1;
+    }
 
   /*
    * Now ... this bind should fail unless SO_REUSEADDR is broken.
