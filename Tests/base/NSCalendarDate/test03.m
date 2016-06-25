@@ -14,6 +14,7 @@ static NSString *
 formattedDaysSince1970(double daysSince1970)
 {
   NSCalendarDate *calendarDate;
+  NSTimeZone *tz;
   NSString *formattedDate;
   double secondsSinceReference;
 
@@ -27,6 +28,8 @@ formattedDaysSince1970(double daysSince1970)
 
   calendarDate = [[NSCalendarDate alloc]
     initWithTimeIntervalSinceReferenceDate: secondsSinceReference];
+  tz = [NSTimeZone timeZoneWithName: @"GMT"];
+  [calendarDate setTimeZone: tz];
 
   formattedDate = [calendarDate descriptionWithCalendarFormat: @"%d-%m-%Y"];
   RELEASE(calendarDate);
