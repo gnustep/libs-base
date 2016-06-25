@@ -896,6 +896,7 @@ tsbytes(uintptr_t s, char *buf)
       if (maxLength > 1)
 	{
           unichar       *buf = (unichar*)(void*)buffer;
+	  BOOL		result = (length < maxLength) ? YES : NO;
 
           if (maxLength <= length)
             {
@@ -906,7 +907,7 @@ tsbytes(uintptr_t s, char *buf)
               buf[index] = (unichar)TINY_STRING_CHAR(s, index);
             }
           buf[index] = 0;
-          return YES;
+          return result;
 	}
       return NO;
     }
@@ -914,6 +915,8 @@ tsbytes(uintptr_t s, char *buf)
     {
       if (maxLength > 0)
 	{
+	  BOOL	result = (length < maxLength) ? YES : NO;
+
           if (maxLength <= length)
             {
               length = maxLength - 1;
@@ -923,7 +926,7 @@ tsbytes(uintptr_t s, char *buf)
               buffer[index] = (char)TINY_STRING_CHAR(s, index);
             }
           buffer[index] = 0;
-          return YES;
+          return result;
         }
       return NO;
     }
@@ -5930,6 +5933,8 @@ literalIsEqual(NXConstantString *self, id anObject)
     }
   if (NSUTF8StringEncoding == encoding)
     {
+      BOOL	result = (length < maxLength) ? YES : NO;
+
       /* We are already using UTF-8 so we can just copy directly.
        */
       if (maxLength <= length)
@@ -5947,10 +5952,12 @@ literalIsEqual(NXConstantString *self, id anObject)
           index--;
         }
       buffer[index] = '\0';
-      return YES;
+      return result;
     }
   else if (isByteEncoding(encoding))
     {
+      BOOL	result = (length < maxLength) ? YES : NO;
+
       /* We want a single-byte encoding (ie ascii is a subset),
        * so as long as this constant string is ascii, we can just
        * copy directly.
@@ -5968,9 +5975,9 @@ literalIsEqual(NXConstantString *self, id anObject)
             }
         }
       if (index == length)
-        {
+	{
           buffer[index] = '\0';
-          return YES;                   // All copied.
+          return result;
         }
       // Fall through to use superclass method.
     }
