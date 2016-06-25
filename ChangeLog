@@ -2,7 +2,8 @@
 
 	* Source/NSMessagePort.m:
 	* config/config.reuseaddr.c:
-	SO_REUSEADDR fixes.
+	Hack to work around Hurd local domain socket bug.
+	Plus don't try to set SO_REUSEADDR on local domain sockets anyway.
 
 2016-06-25  Richard Frith-Macdonald <rfm@gnu.org>
 
