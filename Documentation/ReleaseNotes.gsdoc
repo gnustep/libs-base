@@ -30,6 +30,19 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.25.0</heading>
+        <p>A new stable release.<br />
+        Removes garbage collection support (though for now the
+        NSGarbageCollector class remains as a stub).<br />
+        Changes multi-architecture support to match the scheme used by
+        Debian.<br />
+        Improved support for 64bit little-endian systems.<br />
+        As usual, this release also contains an update to include the
+        most recent international timezone data.
+        </p>
+      </section>
+
+      <section>
 	<heading>Version 1.24.9</heading>
         <p>A new stable (bugfix) release.<br />
         Niels added support for generics.<br />

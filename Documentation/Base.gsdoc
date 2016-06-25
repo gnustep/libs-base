@@ -353,6 +353,8 @@ notice and this notice are preserved.
 	    <desc>
 	      <p>
 		Used in place of GNUSTEP_TARGET_CPU if the other is missing.
+                Please do not use this to locate resources; for architecture
+                dependent resources use GNUSTEP_TARGET_DIR.
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_HOST_DIR</term>
@@ -365,6 +367,8 @@ notice and this notice are preserved.
 	    <desc>
 	      <p>
 		Used in place of GNUSTEP_TARGET_OS if the other is missing.
+                Please do not use this to locate resources; for architecture
+                dependent resources use GNUSTEP_TARGET_DIR.
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_TARGET_CPU</term>
@@ -372,13 +376,15 @@ notice and this notice are preserved.
 	      <p>
 		Overrides the default value of the machine (hardware)
 		name used on this system.
+                Please do not use this to locate resources; for architecture
+                dependent resources use GNUSTEP_TARGET_DIR.
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_TARGET_DIR</term>
 	    <desc>
 	      <p>
 		Overrides the default path used to locate subdirectories
-		for GNUstep binaries withing bundles and applications.
+		for GNUstep binaries within bundles and applications.
 		This is normally equivalent to a path made up of the
 		GNUSTEP_TARGET_CPU and GNUSTEP_TARGET_OS
 	      </p>
@@ -388,6 +394,8 @@ notice and this notice are preserved.
 	      <p>
 		Overrides the default value of the operating system
 		name used on this system.
+                Please do not use this to locate resources; for architecture
+                dependent resources use GNUSTEP_TARGET_DIR.
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_TZ</term>

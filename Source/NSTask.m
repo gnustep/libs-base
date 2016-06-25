@@ -726,8 +726,7 @@ pty_slave(const char* name)
 - (NSString*) validatedLaunchPath
 {
   NSString	*libs;
-  NSString	*cpu;
-  NSString	*os;
+  NSString	*target_dir;
   NSString	*prog;
   NSString	*lpath;
   NSString	*base_path;
@@ -740,8 +739,7 @@ pty_slave(const char* name)
     }
 
   libs = [NSBundle _library_combo];
-  os = [NSBundle _gnustep_target_os];
-  cpu = [NSBundle _gnustep_target_cpu];
+  target_dir = [NSBundle _gnustep_target_dir];
 
   /*
    *	Set lpath to the actual path to use for the executable.
@@ -754,12 +752,14 @@ pty_slave(const char* name)
   base_path = [_launchPath stringByDeletingLastPathComponent];
   if ([[base_path lastPathComponent] isEqualToString: libs] == YES)
     base_path = [base_path stringByDeletingLastPathComponent];
-  if ([[base_path lastPathComponent] isEqualToString: os] == YES)
-    base_path = [base_path stringByDeletingLastPathComponent];
-  if ([[base_path lastPathComponent] isEqualToString: cpu] == YES)
-    base_path = [base_path stringByDeletingLastPathComponent];
-  arch_path = [base_path stringByAppendingPathComponent: cpu];
-  arch_path = [arch_path stringByAppendingPathComponent: os];
+  if (nil == target_dir)
+    arch_path = base_path;
+  else
+    {
+      if ([[base_path lastPathComponent] isEqualToString: target_dir] == YES)
+        base_path = [base_path stringByDeletingLastPathComponent];
+      arch_path = [base_path stringByAppendingPathComponent: target_dir];
+    }
   full_path = [arch_path stringByAppendingPathComponent: libs];
 
   lpath = [full_path stringByAppendingPathComponent: prog];
