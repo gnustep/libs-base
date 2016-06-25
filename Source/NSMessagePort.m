@@ -893,6 +893,11 @@ static Class	runLoopClass;
 	  int	   res = 0;
 	  unsigned len = sizeof(res);
 
+/* Currently gnu hurd doesn't support getsockopt on local domain sockets
+ * and fails with a 'protocol not supported' error.
+ * We therefore just hope the connect was a success.
+ */
+#if !defined(__gnu_hurd__)
 	  if (getsockopt(desc, SOL_SOCKET, SO_ERROR, (char*)&res, &len) != 0)
 	    {
 	      state = GS_H_UNCON;
@@ -905,6 +910,7 @@ static Class	runLoopClass;
 	        [NSError _systemError: res]);
 	    }
 	  else
+#endif
 	    {
 	      NSData	*d = newDataWithEncodedPort([self recvPort]);
 
