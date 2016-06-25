@@ -55,9 +55,6 @@ int main(void)
   PASS_EQUAL([locale objectForKey: NSLocaleDecimalSeparator],
     @",",
     "NSLocaleDecimalSeparator key returns ','");
-  PASS_EQUAL([locale objectForKey: NSLocaleGroupingSeparator],
-    @".",
-    "NSLocaleGroupingSeparator key returns '.'");
   u = 8359;
   PASS_EQUAL([locale objectForKey: NSLocaleCurrencySymbol],
     [NSString stringWithCharacters: &u length: 1],
@@ -68,6 +65,9 @@ int main(void)
   PASS_EQUAL([locale objectForKey: NSLocaleCollatorIdentifier],
     @"es_ES@currency=ESP", "NSLocaleCollatorIdentifier for Spain");
   testHopeful = YES;
+  PASS_EQUAL([locale objectForKey: NSLocaleGroupingSeparator],
+    @".",
+    "NSLocaleGroupingSeparator key returns '.'");
   u = 8216;
   PASS_EQUAL([locale objectForKey: NSLocaleQuotationBeginDelimiterKey],
     [NSString stringWithCharacters: &u length: 1],
