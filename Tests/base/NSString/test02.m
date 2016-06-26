@@ -319,8 +319,11 @@ NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory
     "foo->bar relative symlink expanded by stringByResolvingSymlinksInPath")
 #endif
 
-  PASS(NO == [[@"~" stringByResolvingSymlinksInPath] isEqual: @"~"], 
-    "tilde is expanded by stringByResolvingSymlinksInPath")
+  if (NSHomeDirectory() != nil)
+    {
+      PASS(NO == [[@"~" stringByResolvingSymlinksInPath] isEqual: @"~"], 
+        "tilde is expanded by stringByResolvingSymlinksInPath")
+    }
   [fm changeCurrentDirectoryPath: cwd];
 
   [fm removeFileAtPath: tmpdst handler: nil];

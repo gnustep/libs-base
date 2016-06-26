@@ -4659,8 +4659,8 @@ static NSFileManager *fm = nil;
     }
 
   firstSlashRange = [self rangeOfCharacterFromSet: pathSeps()
-					    options: NSLiteralSearch
-					      range: ((NSRange){0, length})];
+                                          options: NSLiteralSearch
+                                            range: ((NSRange){0, length})];
   if (firstSlashRange.length == 0)
     {
       firstSlashRange.location = length;
@@ -4692,12 +4692,12 @@ static NSFileManager *fm = nil;
 	  firstSlashRange.location = [self length];
 	}
       uname = [self substringWithRange: ((NSRange){1, userNameLen})];
-      homedir = NSHomeDirectoryForUser (uname);
+      homedir = NSHomeDirectoryForUser(uname);
     }
   else
     {
       /* It is of the form `~/blah/...' or is '~' */
-      homedir = NSHomeDirectory ();
+      homedir = NSHomeDirectory();
     }
 
   if (homedir != nil)
