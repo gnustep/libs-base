@@ -1238,7 +1238,7 @@ GSSimpleSubtract(NSDecimal *result, const NSDecimal *left,
 
   // check borrow
   if (borrow)
-    NSLog(@"Impossible error in substraction");
+    NSLog(@"Impossible error in subtraction");
 
   return error;
 }
@@ -1498,7 +1498,7 @@ GSSimpleSubtract(NSDecimal *result, const NSDecimal *left,
 
       if (-1 == i)
 	{
-	  NSLog(@"Impossible error in substraction left: %@, right: %@",
+	  NSLog(@"Impossible error in subtraction left: %@, right: %@",
 		NSDecimalString(left, nil), NSDecimalString(right, nil));
 	}
     }

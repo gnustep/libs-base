@@ -1295,7 +1295,7 @@ typedef	struct {
 	      if (connect(desc, (struct sockaddr*)&sockAddr,
 		SUN_LEN(&sockAddr)) < 0)
 		{
-		  NSDebugLLog(@"NSMessagePort", @"not live, reseting");
+		  NSDebugLLog(@"NSMessagePort", @"not live, resetting");
 		  unlink((const char*)socketName);
 		  close(desc);
 		  if ((desc = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC)) < 0)
