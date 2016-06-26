@@ -49,6 +49,8 @@ int main()
   [task setArguments: args];
   [task launch];
   [task waitUntilExit];
+  PASS([task terminationReason] == NSTaskTerminationReasonExit,
+    "termination reason for normal exit works");
   
   [arp release]; arp = nil;
   return 0;

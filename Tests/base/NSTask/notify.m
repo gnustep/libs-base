@@ -6,7 +6,7 @@
 #import <Foundation/NSRunLoop.h>
 #import <Foundation/NSAutoreleasePool.h>
 
-#import "ObjectTesting.h" 
+#import "ObjectTesting.h"
 
 @interface      TaskHandler : NSObject
 {
@@ -16,74 +16,81 @@
 
 @implementation TaskHandler
 
-static BOOL taskTerminationNotificationReceived; 
+static BOOL taskTerminationNotificationReceived;
 
 - (void) setLaunchPath: (NSString*)s
 {
   ASSIGNCOPY(path, s);
 }
 
-- (void) taskDidTerminate: (NSNotification *)notification 
-{ 
-  NSLog(@"Received NSTaskDidTerminateNotification %@", notification); 
-  taskTerminationNotificationReceived = YES; 
-} 
+- (void) taskDidTerminate: (NSNotification *)notification
+{
+  NSLog(@"Received NSTaskDidTerminateNotification %@", notification);
+  taskTerminationNotificationReceived = YES;
+}
 
-- (void) testNSTaskNotifications 
-{ 
-  NSDate        *deadline; 
-  BOOL          earlyTermination = NO; 
+- (void) testNSTaskNotifications
+{
+  NSDate        *deadline;
+  BOOL          earlyTermination = NO;
 
   for (;;)
-    { 
-      NSTask *task = [NSTask new]; 
+    {
+      NSTask *task = [NSTask new];
 
       [task setLaunchPath: path];
       [task setArguments: [NSArray arrayWithObjects:
-        @"-c", @"echo Child starting; sleep 10; echo Child exiting", nil]]; 
-      taskTerminationNotificationReceived = NO; 
+        @"-c", @"echo Child starting; sleep 10; echo Child exiting", nil]];
+      taskTerminationNotificationReceived = NO;
       [[NSNotificationCenter defaultCenter]
-        addObserver: self 
-        selector: @selector(taskDidTerminate:) 
-        name: NSTaskDidTerminateNotification 
-        object: task]; 
-      [task launch]; 
-      NSLog(@"Launched pid %d", [task processIdentifier]); 
+        addObserver: self
+        selector: @selector(taskDidTerminate:)
+        name: NSTaskDidTerminateNotification
+        object: task];
+      [task launch];
+      NSLog(@"Launched pid %d", [task processIdentifier]);
       if (earlyTermination)
-        { 
-          NSLog(@"Running run loop for 5 seconds"); 
-          deadline = [NSDate dateWithTimeIntervalSinceNow:5.0]; 
-          while ([deadline timeIntervalSinceNow] > 0.0) 
+        {
+          NSLog(@"Running run loop for 5 seconds");
+          deadline = [NSDate dateWithTimeIntervalSinceNow:5.0];
+          while ([deadline timeIntervalSinceNow] > 0.0
+            && !taskTerminationNotificationReceived)
             {
               [[NSRunLoop currentRunLoop]
-                runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]]; 
-              NSLog(@"Run loop finished, will now call -[NSTask terminate]"); 
-              [task terminate]; 
-              NSLog(@"Terminate returned, waiting for termination"); 
-              [task waitUntilExit]; 
+                runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
+              NSLog(@"Run loop finished, will now call -[NSTask terminate]");
+              [task terminate];
+              NSLog(@"Terminate returned, waiting for termination");
+              [task waitUntilExit];
+              PASS([task terminationReason]
+                == NSTaskTerminationReasonUncaughtSignal,
+                "termination reason for signal exit works");
             }
         }
       else
-        { 
-          NSLog(@"Running run loop for 15 seconds"); 
-          deadline = [NSDate dateWithTimeIntervalSinceNow: 15.0]; 
+        {
+          NSLog(@"Running run loop for 15 seconds");
+          deadline = [NSDate dateWithTimeIntervalSinceNow: 15.0];
           while ([deadline timeIntervalSinceNow] > 0.0
-            && !taskTerminationNotificationReceived) 
+            && !taskTerminationNotificationReceived)
             {
               [[NSRunLoop currentRunLoop]
-                runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]]; 
+                runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
             }
-        } 
-      [task release]; 
+          PASS([task terminationReason]
+            == NSTaskTerminationReasonExit,
+            "termination reason for normal exit works");
+        }
+      [task release];
       NSAssert(taskTerminationNotificationReceived,
-        @"termination notification not received"); 
+        @"termination notification not received");
       [[NSNotificationCenter defaultCenter]
-        removeObserver: self name: NSTaskDidTerminateNotification object: nil]; 
-      if (earlyTermination) 
-        break; 
-      earlyTermination = YES; 
-    } 
-} 
+        removeObserver: self name: NSTaskDidTerminateNotification object: nil];
+      if (earlyTermination)
+        break;
+      earlyTermination = YES;
+    }
+}
 
 @end
 

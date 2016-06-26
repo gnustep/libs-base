@@ -36,6 +36,14 @@
 extern "C" {
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
+enum {
+  NSTaskTerminationReasonExit = 1,
+  NSTaskTerminationReasonUncaughtSignal = 2
+};
+typedef NSInteger NSTaskTerminationReason;
+#endif
+
 @interface NSTask : NSObject
 {
 #if	GS_EXPOSE(NSTask)
@@ -53,6 +61,7 @@ extern "C" {
   BOOL		_hasTerminated;
   BOOL		_hasCollected;
   BOOL		_hasNotified;
+  NSTaskTerminationReason       _terminationReason;
 #endif
 #if     GS_NONFRAGILE
 #else
@@ -96,6 +105,9 @@ extern "C" {
 - (BOOL) isRunning;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (int) processIdentifier;
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
+- (NSTaskTerminationReason) terminationReason;
 #endif
 - (int) terminationStatus;
 

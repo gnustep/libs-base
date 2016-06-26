@@ -1,3 +1,11 @@
+2016-06-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Headers/Foundation/NSTask.h:
+        * Source/NSTask.m:
+        * Tests/base/NSTask/general.m:
+        * Tests/base/NSTask/notify.m:
+	Add -terminationReason method from OSX10.5
+
 2016-06-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMessagePort.m:
