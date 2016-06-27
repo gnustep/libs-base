@@ -294,6 +294,7 @@ typedef	struct {
 
 #if defined(_WIN32)
 #define BOOL WinBOOL
+#define __OBJC_BOOL 1
 #include <w32api.h>
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT Windows2000
@@ -305,8 +306,15 @@ typedef	struct {
 #define WINVER Windows2000
 #endif
 
+#if defined(__WIN64__)
+#include <winsock2.h>
+#include <windows.h>
+#else
 #include <windows.h>
 #include <winsock2.h>
+#endif
+
+#undef __OBJC_BOOL
 #undef  BOOL
 #endif
 
