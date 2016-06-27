@@ -569,6 +569,17 @@ static void exitedThread(void *thread)
     {
       NSValue           *ref;
 
+      if (0 == thread)
+	{
+	  /* On some systems this is called with a null thread pointer,
+	   * so try to ger the NSThread object for the current thread.
+	   */
+	  thread = pthread_getspecific(thread_object_key);
+	  if (0 == thread)
+	    {
+	      return;	// no thread info
+	    }
+	}
       RETAIN((NSThread*)thread);
       ref = NSValueCreateFromPthread(pthread_self());
       _willLateUnregisterThread(ref, (NSThread*)thread);
@@ -810,7 +821,7 @@ unregisterActiveThread(NSThread *thread)
   t = GSCurrentThread();
   if (t->_active == YES)
     {
-      unregisterActiveThread (t);
+      unregisterActiveThread(t);
 
       if (t == defaultThread || defaultThread == nil)
 	{
@@ -1742,7 +1753,7 @@ GSRunLoopInfoForThread(NSThread *aThread)
  * </p>
  */
 BOOL
-GSRegisterCurrentThread (void)
+GSRegisterCurrentThread(void)
 {
   return [NSThread _createThreadForCurrentPthread];
 }
@@ -1762,7 +1773,7 @@ GSRegisterCurrentThread (void)
  * </p>
  */
 void
-GSUnregisterCurrentThread (void)
+GSUnregisterCurrentThread(void)
 {
   unregisterActiveThread(GSCurrentThread());
 }
