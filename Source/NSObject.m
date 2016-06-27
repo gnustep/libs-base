@@ -187,26 +187,8 @@ static void GSLogZombie(id o, SEL sel)
 #endif
 
 
-#if	defined(_WIN32)
-#ifndef _WIN64
-#undef InterlockedIncrement
-#undef InterlockedDecrement
-LONG WINAPI InterlockedIncrement(LONG volatile *);
-LONG WINAPI InterlockedDecrement(LONG volatile *);
-#endif
 
-/* Set up atomic read, increment and decrement for mswindows
- */
-
-typedef int32_t volatile *gsatomic_t;
-
-#define	GSATOMICREAD(X)	(*(X))
-
-#define	GSAtomicIncrement(X)	InterlockedIncrement(X)
-#define	GSAtomicDecrement(X)	InterlockedDecrement(X)
-
-
-#elif defined(__llvm__) || (defined(USE_ATOMIC_BUILTINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
+#if defined(__llvm__) || (defined(USE_ATOMIC_BUILTINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
 /* Use the GCC atomic operations with recent GCC versions */
 
 typedef int32_t volatile *gsatomic_t;
@@ -214,6 +196,25 @@ typedef int32_t volatile *gsatomic_t;
 #define GSAtomicIncrement(X)    __sync_add_and_fetch(X, 1)
 #define GSAtomicDecrement(X)    __sync_sub_and_fetch(X, 1)
 
+
+#elif	defined(_WIN32)
+
+/* Set up atomic read, increment and decrement for mswindows
+ */
+
+typedef int32_t volatile *gsatomic_t;
+
+#ifndef _WIN64
+#undef InterlockedIncrement
+#undef InterlockedDecrement
+LONG WINAPI InterlockedIncrement(LONG volatile *);
+LONG WINAPI InterlockedDecrement(LONG volatile *);
+#endif
+
+#define	GSATOMICREAD(X)	(*(X))
+
+#define	GSAtomicIncrement(X)	InterlockedIncrement(X)
+#define	GSAtomicDecrement(X)	InterlockedDecrement(X)
 
 #elif	defined(__linux__) && (defined(__i386__) || defined(__x86_64__))
 /* Set up atomic read, increment and decrement for intel style linux
