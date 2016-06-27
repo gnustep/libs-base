@@ -656,7 +656,7 @@ static HANDLE	hProcess = 0;
 	  if (0 == hModule)
 	    {
 	      fprintf(stderr, "Failed to load kernel32.dll with error: %d\n",
-		GetLastError());
+		(int)GetLastError());
 	      [traceLock unlock];
 	      return self;
 	    }
@@ -665,7 +665,7 @@ static HANDLE	hProcess = 0;
 	  if (0 == capture)
 	    {
 	      fprintf(stderr, "Failed to find RtlCaptureStackBackTrace: %d\n",
-		GetLastError());
+		(int)GetLastError());
 	      [traceLock unlock];
 	      return self;
 	    }
@@ -673,7 +673,7 @@ static HANDLE	hProcess = 0;
 	  if (0 == hModule)
 	    {
 	      fprintf(stderr, "Failed to load dbghelp.dll with error: %d\n",
-		GetLastError());
+		(int)GetLastError());
 	      [traceLock unlock];
 	      return self;
 	    }
@@ -682,7 +682,7 @@ static HANDLE	hProcess = 0;
 	  if (0 == optSym)
 	    {
 	      fprintf(stderr, "Failed to find SymSetOptions: %d\n",
-		GetLastError());
+		(int)GetLastError());
 	      [traceLock unlock];
 	      return self;
 	    }
@@ -691,7 +691,7 @@ static HANDLE	hProcess = 0;
 	  if (0 == initSym)
 	    {
 	      fprintf(stderr, "Failed to find SymInitialize: %d\n",
-		GetLastError());
+		(int)GetLastError());
 	      [traceLock unlock];
 	      return self;
 	    }
@@ -700,7 +700,7 @@ static HANDLE	hProcess = 0;
 	  if (0 == fromSym)
 	    {
 	      fprintf(stderr, "Failed to find SymFromAddr: %d\n",
-		GetLastError());
+		(int)GetLastError());
 	      [traceLock unlock];
 	      return self;
 	    }
@@ -711,7 +711,7 @@ static HANDLE	hProcess = 0;
       if (!(initSym)(hProcess, NULL, TRUE))
 	{
 	  fprintf(stderr, "SymInitialize failed with error: %d\n",
-	    GetLastError());
+	    (int)GetLastError());
 	  fromSym = 0;
 	  [traceLock unlock];
 	  return self;

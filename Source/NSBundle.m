@@ -51,6 +51,7 @@
 #import "Foundation/NSData.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
+#import "Foundation/NSSet.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSTask+GNUstepBase.h"
 
