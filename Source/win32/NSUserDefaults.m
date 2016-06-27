@@ -16,6 +16,10 @@
 
 extern void GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
+@interface NSUserDefaults (Private)
+- (id) initWithContentsOfFile: (NSString*)fielName;
+@end
+
 @interface NSUserDefaultsWin32 : NSUserDefaults
 {
   NSString	*registryPrefix;
