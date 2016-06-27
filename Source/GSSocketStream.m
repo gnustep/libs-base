@@ -58,6 +58,9 @@
 #ifdef _WIN32
 extern const char *inet_ntop(int, const void *, char *, size_t);
 extern int inet_pton(int , const char *, void *);
+#define	OPTLEN	int
+#else
+#define	OPTLEN	socklen_t
 #endif
 
 unsigned
@@ -1492,14 +1495,14 @@ setNonBlocking(SOCKET fd)
       memset(&sin, '\0', size);
       if ([key isEqualToString: GSStreamLocalAddressKey])
 	{
-	  if (getsockname(s, (struct sockaddr*)&sin, &size) != -1)
+	  if (getsockname(s, (struct sockaddr*)&sin, (OPTLEN*)&size) != -1)
 	    {
 	      result = GSPrivateSockaddrHost(&sin);
 	    }
 	}
       else if ([key isEqualToString: GSStreamLocalPortKey])
 	{
-	  if (getsockname(s, (struct sockaddr*)&sin, &size) != -1)
+	  if (getsockname(s, (struct sockaddr*)&sin, (OPTLEN*)&size) != -1)
 	    {
 	      result = [NSString stringWithFormat: @"%d",
 		(int)GSPrivateSockaddrPort(&sin)];
@@ -1507,14 +1510,14 @@ setNonBlocking(SOCKET fd)
 	}
       else if ([key isEqualToString: GSStreamRemoteAddressKey])
 	{
-	  if (getpeername(s, (struct sockaddr*)&sin, &size) != -1)
+	  if (getpeername(s, (struct sockaddr*)&sin, (OPTLEN*)&size) != -1)
 	    {
 	      result = GSPrivateSockaddrHost(&sin);
 	    }
 	}
       else if ([key isEqualToString: GSStreamRemotePortKey])
 	{
-	  if (getpeername(s, (struct sockaddr*)&sin, &size) != -1)
+	  if (getpeername(s, (struct sockaddr*)&sin, (OPTLEN*)&size) != -1)
 	    {
 	      result = [NSString stringWithFormat: @"%d",
 		(int)GSPrivateSockaddrPort(&sin)];
@@ -1997,7 +2000,7 @@ setNonBlocking(SOCKET fd)
 	      socklen_t len = sizeof(error);
 
 	      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
-		(char*)&error, &len);
+		(char*)&error, (OPTLEN*)&len);
 	    }
 
 	  if (getReturn >= 0 && error == 0
@@ -2079,7 +2082,8 @@ setNonBlocking(SOCKET fd)
 
       IF_NO_GC([[self retain] autorelease];)
       [self _unschedule];
-      result = getsockopt([self _sock], SOL_SOCKET, SO_ERROR, &error, &len);
+      result = getsockopt([self _sock], SOL_SOCKET, SO_ERROR,
+	&error, (OPTLEN*)&len);
 
       if (result >= 0 && !error)
         { // finish up the opening
@@ -2434,7 +2438,7 @@ setNonBlocking(SOCKET fd)
 	      socklen_t len = sizeof(error);
 
 	      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
-		(char*)&error, &len);
+		(char*)&error, (OPTLEN*)&len);
 	    }
 
 	  if (getReturn >= 0 && error == 0
@@ -2514,8 +2518,8 @@ setNonBlocking(SOCKET fd)
 
       IF_NO_GC([[self retain] autorelease];)
       [self _schedule];
-      result
-	= getsockopt((intptr_t)_loopID, SOL_SOCKET, SO_ERROR, &error, &len);
+      result = getsockopt((intptr_t)_loopID, SOL_SOCKET, SO_ERROR,
+	&error, (OPTLEN*)&len);
       if (result >= 0 && !error)
         { // finish up the opening
           myEvent = NSStreamEventOpenCompleted;
@@ -2634,7 +2638,7 @@ setNonBlocking(SOCKET fd)
       int	status = 1;
 
       setsockopt([self _sock], SOL_SOCKET, SO_REUSEADDR,
-        (char *)&status, sizeof(status));
+        (char *)&status, (OPTLEN)sizeof(status));
     }
 #endif
 
@@ -2702,7 +2706,7 @@ setNonBlocking(SOCKET fd)
   socklen_t		len = sizeof(buf);
   int			acceptReturn;
 
-  acceptReturn = accept([self _sock], addr, &len);
+  acceptReturn = accept([self _sock], addr, (OPTLEN*)&len);
   _events &= ~NSStreamEventHasBytesAvailable;
   if (socketError(acceptReturn))
     { // test for real error
