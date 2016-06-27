@@ -1747,7 +1747,7 @@ NSHomeDirectoryForUser(NSString *loginName)
   char buf[BUFSIZ*10];
 
   if (getpwnam_r([loginName cString], &pw, buf, sizeof(buf), &p) == 0
-    && pw.pw_dir != 0)
+    && p != 0 && pw.pw_dir != 0 && pw.pw_dir[0] != '\0')
     {
       s = [NSString stringWithUTF8String: pw.pw_dir];
     }
@@ -1757,7 +1757,7 @@ NSHomeDirectoryForUser(NSString *loginName)
 
   [gnustep_global_lock lock];
   pw = getpwnam ([loginName cString]);
-  if (pw != 0  && pw->pw_dir != NULL)
+  if (pw != 0 && pw->pw_dir != 0 && pw->pw_dir[0] != '\0')
     {
       s = [NSString stringWithUTF8String: pw->pw_dir];
     }
