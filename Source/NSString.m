@@ -4973,7 +4973,7 @@ static NSFileManager *fm = nil;
     {
       if (!getcwd(newBuf, PATH_MAX))
 	{
-	  return IMMUTABLE(self);	/* Couldn't get directory.	*/
+	  return IMMUTABLE(s);	/* Couldn't get directory.	*/
 	}
       dest = strchr(newBuf, '\0');
     }
@@ -5031,7 +5031,7 @@ static NSFileManager *fm = nil;
 	    }
           if (&dest[len] >= &newBuf[PATH_MAX])
 	    {
-	      return IMMUTABLE(self);	/* Resolved name too long.	*/
+	      return IMMUTABLE(s);	/* Resolved name too long.	*/
 	    }
           memmove(dest, start, len);
           dest += len;
@@ -5039,7 +5039,7 @@ static NSFileManager *fm = nil;
 
           if (lstat(newBuf, &st) < 0)
 	    {
-	      return IMMUTABLE(self);	/* Unable to stat file.		*/
+	      return IMMUTABLE(s);	/* Unable to stat file.		*/
 	    }
           if (S_ISLNK(st.st_mode))
             {
@@ -5048,19 +5048,19 @@ static NSFileManager *fm = nil;
 
               if (++num_links > GS_MAXSYMLINKS)
 		{
-		  return IMMUTABLE(self);	/* Too many links.	*/
+		  return IMMUTABLE(s);	/* Too many links.	*/
 		}
               n = readlink(newBuf, buf, PATH_MAX);
               if (n < 0)
 		{
-		  return IMMUTABLE(self);	/* Couldn't resolve.	*/
+		  return IMMUTABLE(s);	/* Couldn't resolve.	*/
 		}
               buf[n] = '\0';
 
 	      l = strlen(end);
               if ((n + l) >= PATH_MAX)
 		{
-		  return IMMUTABLE(self);	/* Path too long.	*/
+		  return IMMUTABLE(s);	/* Path too long.	*/
 		}
 	      /*
 	       * Concatenate the resolved name with the string still to
