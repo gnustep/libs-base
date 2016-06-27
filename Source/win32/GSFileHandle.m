@@ -22,9 +22,14 @@
    Boston, MA 02111 USA.
    */
 
-/* mingw wants winsock2.h before windows.h */
+#if	defined(__WIN64__)
+#include <winsock2.h>
+#include <windows.h>
+#else
+/* mingw32 wants winsock2.h before windows.h */
 #include <windows.h>
 #include <winsock2.h>
+#endif
 
 #include "common.h"
 
@@ -789,7 +794,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       NSLog(@"bad address-service-protocol combination");
       return nil;
     }
-  [self setAddr: &sin];		// Store the address of the remote end.
+  // Store the address of the remote end.
+  [self setAddr: (struct sockaddr *)&sin];
 
   /*
    * Don't use SOCKS if we are contacting the local host.
@@ -963,7 +969,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       acceptOK = YES;
       readOK = NO;
       writeOK = NO;
-      [self setAddr: &sin];
+      [self setAddr: (struct sockaddr *)&sin];
     }
   return self;
 }
@@ -1746,13 +1752,11 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   NSMutableDictionary	*info = readInfo;
   NSNotification	*n;
   NSNotificationCenter	*q;
-  NSArray		*modes;
   NSString		*name;
 
   [self ignoreReadDescriptor];
   readInfo = nil;
   readMax = 0;
-  modes = (NSArray*)[info objectForKey: NSFileHandleNotificationMonitorModes];
   name = (NSString*)[info objectForKey: NotificationKey];
 
   if (name == nil)
@@ -1772,11 +1776,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   NSMutableDictionary	*info = [writeInfo objectAtIndex: 0];
   NSNotificationCenter	*q;
   NSNotification	*n;
-  NSArray		*modes;
   NSString		*name;
 
   [self ignoreWriteDescriptor];
-  modes = (NSArray*)[info objectForKey: NSFileHandleNotificationMonitorModes];
   name = (NSString*)[info objectForKey: NotificationKey];
 
   n = [NSNotification notificationWithName: name object: self userInfo: info];
@@ -2055,7 +2057,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 					  closeOnDealloc: YES];
 	  h->isSocket = YES;
 	  getpeername(desc, (struct sockaddr*)&sin, &size);
-	  [h setAddr: &sin];
+	  [h setAddr: (struct sockaddr *)&sin];
 	  [readInfo setObject: h
 		       forKey: NSFileHandleNotificationFileHandleItem];
 	  RELEASE(h);
@@ -2356,12 +2358,14 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   return nil;		/* Don't restart timed out events	*/
 }
 
-- (void) setAddr: (struct sockaddr_in *)sin
+- (void) setAddr: (struct sockaddr *)sin
 {
+  struct sockaddr_in *s = (struct sockaddr_in *)sin;
+
   address = [[NSString alloc] initWithUTF8String:
-    (char*)inet_ntoa(sin->sin_addr)];
+    (char*)inet_ntoa(s->sin_addr)];
   service = [[NSString alloc] initWithFormat: @"%d",
-    (int)GSSwapBigI16ToHost(sin->sin_port)];
+    (int)GSSwapBigI16ToHost(s->sin_port)];
   protocol = @"tcp";
 }
 

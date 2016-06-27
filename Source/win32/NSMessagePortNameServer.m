@@ -377,11 +377,10 @@ OutputDebugStringW(L"");
 - (BOOL) removePortForName: (NSString *)name
 {
   NSString	*n;
-  int		rc;
 
   NSDebugLLog(@"NSMessagePortNameServer", @"removePortForName: %@", name);
   n = [[self class] _translate: name];
-  rc = RegDeleteValueW(key, UNISTR(n));
+  (void)RegDeleteValueW(key, UNISTR(n));
 
   return YES;
 }
