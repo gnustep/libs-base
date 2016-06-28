@@ -104,7 +104,6 @@
  */
 void objc_enumerationMutation(id obj)
 {
-	[NSException raise: NSGenericException 
-	               format: @"Collection %@ was mutated while being enumerated", 
-	                       obj];
+  [NSException raise: NSGenericException 
+    format: @"Collection %@ was mutated while being enumerated", obj];
 }
