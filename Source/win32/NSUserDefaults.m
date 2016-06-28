@@ -28,6 +28,7 @@ extern void GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 @end
 
 @interface NSUserDefaults (Secrets)
+- (id) initWithContentsOfFile: (NSString*)aPath;
 - (BOOL) lockDefaultsFile: (BOOL*)wasLocked;
 - (void) unlockDefaultsFile;
 - (NSMutableDictionary*) readDefaults;
