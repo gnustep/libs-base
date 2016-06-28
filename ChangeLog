@@ -1,5 +1,12 @@
 2016-06-28  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSDebug.m: Yse setjmp/longjmp from NSException.h
+	* Headers/Foundation/NSException.h: On mingw-w64 use the builtin
+	setjmp/longjmp provided by gcc since the mingw version sometimes
+	crashes.
+
+2016-06-28  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* SSL: Openssl bundle directory deleted
 	* GNUmakefile: Don't build openssl bundle
 	* Source/NSFileHandle.m: Don't load openssl bundle

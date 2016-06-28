@@ -34,6 +34,7 @@
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSNotificationQueue.h"
@@ -789,8 +790,6 @@ __builtin_extract_return_address(__builtin_return_address(a + 1)) : 0); break;
 #elif	defined(HAVE_SIGNAL_H)
 #  include	<signal.h>
 #endif
-
-#include <setjmp.h>
 
 #if	defined(_WIN32)
 #ifndef SIGBUS
