@@ -91,7 +91,6 @@ GNUstep-HOWTO and are also located at the GNUstep web site at
 @menu
 * Reading Command-Line Arguments::  
 * FFI Library::                 
-* OpenSSL::                     
 @end menu
 
 @node Reading Command-Line Arguments, FFI Library, Configuration, Configuration
@@ -131,7 +130,7 @@ NSProcessInfo initializeWithArguments method to pass the program
 arguments to NSProcessInfo (This would be done automatically if you use
 the NSApplicationMain function in a gui application).
 
-@node FFI Library, OpenSSL, Reading Command-Line Arguments, Configuration
+@node FFI Library, , Reading Command-Line Arguments, Configuration
 @subsection FFI Library
 
 GNUstep's NSInvocations and Distributed Objects code involves detailed
@@ -140,17 +139,6 @@ implements a Foreign-Function Interface (FFI), such as the
 libffi library. Use of libffi is automatically enabled if the libffi
 library is found (and the same with ffcall, although libffi takes
 precedence), unless specifically disabled with @code{--disable-do}.
-
-@node OpenSSL,  , FFI Library, Configuration
-@subsection OpenSSL
-
-While GNUstep base has full support for HTTPS/TLS using gnustls, it also
-has optional support for using the OpenSSL libraries for secure URL
-connections (though only with the NSURL classes). This functionality is
-compiled as a separate bundle since the OpenSSL license is not
-compatible with GPL, and in the hopes that if someone writes an openssl
-replacement, it can quickly be used by creating another bundle. The
-openssl libraries need to be installed for this to work.
 
 @node Compilation,  , Configuration, Top
 @section Compilation

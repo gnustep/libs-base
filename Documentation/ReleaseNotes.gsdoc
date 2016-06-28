@@ -36,7 +36,9 @@ notice and this notice are preserved.
         NSGarbageCollector class remains as a stub).<br />
         Changes multi-architecture support to match the scheme used by
         Debian.<br />
+        OpenSSL bundle removed since it didn't match GNUTLS support.<br />
         Improved support for 64bit little-endian systems.<br />
+        Ported to Debian/Hurd.<br />
         As usual, this release also contains an update to include the
         most recent international timezone data.
         </p>

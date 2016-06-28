@@ -29,7 +29,7 @@ programs). If you distribute the libraries along with your program,
 you must make the improvements you have made
 to the libraries freely available. You should read the COPYING.LIB file
 for more information. All files in the @file{Source}, @file{Headers}
-@file{NSCharacterSets}, @file{NSTimeZones}, @file{Resources}, and @file{SSL}
+@file{NSCharacterSets}, @file{NSTimeZones}, and @file{Resources}
 directories and subdirectories under this are covered under the LGPL.
 
 GNUstep tools, test programs, and other files are covered under the
