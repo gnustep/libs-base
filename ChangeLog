@@ -1,3 +1,16 @@
+2016-06-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* SSL: Openssl bundle directory deleted
+	* GNUmakefile: Don't build openssl bundle
+	* Source/NSFileHandle.m: Don't load openssl bundle
+	* configure.ac: remove option to build bundle
+	* configure: regenerate
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/install.texi:
+	* Documentation/news.texi:
+	* Documentation/readme.texi:
+	Updates to note that the obsolete openssl bundle has been removed.
+
 2016-06-26  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Headers/Foundation/NSTask.h:

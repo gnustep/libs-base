@@ -71,13 +71,6 @@ _have_makefiles := $(shell test -f config.mak -o -f base.make && echo yes)
 #
 ifeq ($(_have_makefiles),yes)
 SUBPROJECTS = Source
-ifeq ($(GNUSTEP_BASE_HAVE_GNUTLS), 0)
-ifneq ($(GNUSTEP_TARGET_OS), mingw32)
-  ifneq ($(GNUSTEP_TARGET_OS), mingw64)
-    SUBPROJECTS += SSL
-  endif
-endif
-endif
 SUBPROJECTS += Tools NSTimeZones Resources Tests
 endif
 
