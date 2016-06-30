@@ -53,48 +53,81 @@ UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
 {
   NSString	*str = (NSString*)ut->p;
   NSUInteger	length = [str length];
+  NSUInteger    nativeStart = ut->chunkNativeStart;
+  NSUInteger    nativeLimit = ut->chunkNativeLimit;
   NSRange	r;
 
-  if (nativeIndex >= length)
-    {
-      return FALSE;
-    }
-
-  /* Special case if the chunk already contains this index
-   */
-  if (nativeIndex >= ut->chunkNativeStart
-    && nativeIndex < (ut->chunkNativeStart + ut->chunkLength))
-    {
-      ut->chunkOffset = nativeIndex - ut->chunkNativeStart;
-      return TRUE;
-    }
-  r = NSMakeRange(nativeIndex, chunkSize);
-  forward = TRUE;
   if (forward)
     {
-      if (nativeIndex + chunkSize > length)
-	{
-	  r.length = length - nativeIndex;
-	}
+      if (nativeIndex < nativeLimit && nativeIndex >= ut->chunkNativeStart)
+        {
+          /* The chunk already contains the index, set the offset
+           * to match it.
+           */
+          ut->chunkOffset = nativeIndex - ut->chunkNativeStart;
+          return TRUE;
+        }
+
+      if (nativeIndex >= length && nativeLimit >= length)
+        {
+          /* Asking for a position beyond the end of the string;
+           * Limit it to point just after the last character.
+           */
+          ut->chunkOffset = ut->chunkLength;
+          return FALSE;
+        }
+
+      /* Set up to fill the chunk with characters from the string
+       * and to start at the beginning of that buffer.
+       */
+      nativeStart = nativeIndex;
+      nativeLimit = nativeIndex + chunkSize;
+      if (nativeLimit > length)
+        {
+          nativeLimit = length;
+        }
+      r.location = nativeIndex;
+      r.length = nativeLimit - nativeIndex;
+      ut->chunkOffset = 0;
     }
   else
     {
-      if (nativeIndex - chunkSize > 0)
-	{
-	  r.location = nativeIndex - chunkSize;
-	  r.length = chunkSize;
-	}
-      else
-	{
-	  r.location = 0;
-	  r.length = chunkSize - nativeIndex;
-	}
+      if (nativeIndex <= nativeLimit && nativeIndex > ut->chunkNativeStart)
+        {
+          /* The chunk already contains the index, set the offset
+           * to match it.
+           */
+          ut->chunkOffset = nativeIndex - ut->chunkNativeStart;
+          return TRUE;
+        }
+
+      if (nativeIndex <= 0 && nativeStart <= 0)
+        {
+          /* Asking for a position beyond the start of the string;
+           * Limit it to position of the first character.
+           */
+          ut->chunkOffset = 0;
+          return FALSE;
+        }
+
+      nativeLimit = nativeIndex;
+      if (nativeLimit > length)
+        {
+          nativeLimit = length;
+        }
+      nativeStart = nativeLimit - chunkSize;
+      if (nativeStart < 0)
+        {
+          nativeStart = 0;
+        }
+      r.location = nativeStart;
+      r.length = nativeLimit - nativeStart;
+      ut->chunkOffset = r.length;
     }
   [str getCharacters: ut->pExtra range: r];
-  ut->chunkNativeStart = r.location;
-  ut->chunkNativeLimit = r.location + r.length;
+  ut->chunkNativeLimit = nativeLimit;
+  ut->chunkNativeStart = nativeStart;
   ut->chunkLength = r.length;
-  ut->chunkOffset = 0;
   return TRUE;
 }
 

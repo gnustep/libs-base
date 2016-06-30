@@ -1,3 +1,13 @@
+2016-06-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSICUString.m: Re-implement the function to let ICU access
+	the contents of an NSString.  The original version looks like it was
+	broken for cases where an algorithm is moving backwards in the string
+	(reverse search and regular expression parsing).
+	I hope the new implementation is correct (or at least clearer); the
+	ICU documentation is minimal and I didn't find any reference/example
+	implementations to work from.
+
 2016-06-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDebug.m: Yse setjmp/longjmp from NSException.h
