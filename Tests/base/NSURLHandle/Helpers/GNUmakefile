@@ -3,8 +3,9 @@ include $(GNUSTEP_MAKEFILES)/common.make
 
 TOOL_NAME = StatusServer
 
+NEEDS_GUI = NO
+
 StatusServer_OBJC_FILES = StatusServer.m
-StatusServer_NEEDS_GUI = NO
 
 -include GNUmakefile.preamble
 include $(GNUSTEP_MAKEFILES)/tool.make

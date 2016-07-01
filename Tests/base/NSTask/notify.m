@@ -38,19 +38,19 @@ static BOOL taskTerminationNotificationReceived;
     {
       NSTask *task = [NSTask new];
 
-      [task setLaunchPath: path];
-      [task setArguments: [NSArray arrayWithObjects:
-        @"-c", @"echo Child starting; sleep 10; echo Child exiting", nil]];
       taskTerminationNotificationReceived = NO;
       [[NSNotificationCenter defaultCenter]
         addObserver: self
         selector: @selector(taskDidTerminate:)
         name: NSTaskDidTerminateNotification
         object: task];
-      [task launch];
-      NSLog(@"Launched pid %d", [task processIdentifier]);
       if (earlyTermination)
         {
+          BOOL  terminated = NO;
+          [task setLaunchPath:
+            [path stringByAppendingPathComponent: @"testsleep"]];
+          [task launch];
+          NSLog(@"Launched pid %d", [task processIdentifier]);
           NSLog(@"Running run loop for 5 seconds");
           deadline = [NSDate dateWithTimeIntervalSinceNow:5.0];
           while ([deadline timeIntervalSinceNow] > 0.0
@@ -58,17 +58,25 @@ static BOOL taskTerminationNotificationReceived;
             {
               [[NSRunLoop currentRunLoop]
                 runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
-              NSLog(@"Run loop finished, will now call -[NSTask terminate]");
-              [task terminate];
-              NSLog(@"Terminate returned, waiting for termination");
-              [task waitUntilExit];
-              PASS([task terminationReason]
-                == NSTaskTerminationReasonUncaughtSignal,
-                "termination reason for signal exit works");
+              if (NO == terminated)
+                {
+                  NSLog(@"Run loop finished, calling -[NSTask terminate]");
+                  [task terminate];
+                  NSLog(@"Terminate returned, waiting for termination");
+                  terminated = YES;
+                }
             }
+          [task waitUntilExit];
+          PASS([task terminationReason]
+            == NSTaskTerminationReasonUncaughtSignal,
+            "termination reason for signal exit works");
         }
       else
         {
+          [task setLaunchPath:
+            [path stringByAppendingPathComponent: @"testecho"]];
+          [task launch];
+          NSLog(@"Launched pid %d", [task processIdentifier]);
           NSLog(@"Running run loop for 15 seconds");
           deadline = [NSDate dateWithTimeIntervalSinceNow: 15.0];
           while ([deadline timeIntervalSinceNow] > 0.0
@@ -99,7 +107,6 @@ int main()
   TaskHandler   *h;
   NSFileManager *mgr;
   NSString      *helpers;
-  NSString      *lp;
 
   START_SET("notify");
   mgr = [NSFileManager defaultManager];
@@ -107,10 +114,8 @@ int main()
   helpers = [helpers stringByAppendingPathComponent: @"Helpers"];
   helpers = [helpers stringByAppendingPathComponent: @"obj"];
 
-  lp = [helpers stringByAppendingPathComponent: @"testecho"];
-
   h = [TaskHandler new];
-  [h setLaunchPath: lp];
+  [h setLaunchPath: helpers];
   [h testNSTaskNotifications];
   [h release];
 

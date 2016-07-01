@@ -1,19 +1,19 @@
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
-TOOL_NAME = NSZombie processgroup testcat testecho
+TOOL_NAME = NSZombie processgroup testcat testecho testsleep
+
+NEEDS_GUI = NO
 
 NSZombie_OBJC_FILES = NSZombie.m
-NSZombie_NEEDS_GUI = NO
 
 processgroup_OBJC_FILES = processgroup.m
-processgroup_NEEDS_GUI = NO
 
 testcat_OBJC_FILES = testcat.m
-testcat_NEEDS_GUI = NO
 
 testecho_OBJC_FILES = testecho.m
-testecho_NEEDS_GUI = NO
+
+testsleep_OBJC_FILES = testsleep.m
 
 -include GNUmakefile.preamble
 include $(GNUSTEP_MAKEFILES)/tool.make

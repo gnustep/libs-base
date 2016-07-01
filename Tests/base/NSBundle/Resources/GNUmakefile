@@ -1,6 +1,7 @@
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
+NEEDS_GUI=no
 BUNDLE_NAME = TestBundle
 FRAMEWORK_NAME = TestFramework
 
