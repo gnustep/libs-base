@@ -59,12 +59,12 @@ UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
 
   if (forward)
     {
-      if (nativeIndex < nativeLimit && nativeIndex >= ut->chunkNativeStart)
+      if (nativeIndex < nativeLimit && nativeIndex >= nativeStart)
         {
           /* The chunk already contains the index, set the offset
            * to match it.
            */
-          ut->chunkOffset = nativeIndex - ut->chunkNativeStart;
+          ut->chunkOffset = nativeIndex - nativeStart;
           return TRUE;
         }
 
@@ -92,12 +92,12 @@ UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
     }
   else
     {
-      if (nativeIndex <= nativeLimit && nativeIndex > ut->chunkNativeStart)
+      if (nativeIndex <= nativeLimit && nativeIndex > nativeStart)
         {
           /* The chunk already contains the index, set the offset
            * to match it.
            */
-          ut->chunkOffset = nativeIndex - ut->chunkNativeStart;
+          ut->chunkOffset = nativeIndex - nativeStart;
           return TRUE;
         }
 
