@@ -40,7 +40,10 @@ static const NSUInteger chunkSize = 32;
 static int64_t
 UTextNSStringNativeLength(UText *ut)
 {
-  return [(NSString*)ut->p length];
+  /* For constant strings the length is stored in ut->c, but for mutable
+   * strings this is set to -1 and we must check the length every time.
+   */
+  return (-1 == ut->c) ? [(NSString*)ut->p length] : ut->c;
 }
 
 
@@ -52,7 +55,7 @@ UBool
 UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
 {
   NSString	*str = (NSString*)ut->p;
-  NSUInteger	length = [str length];
+  NSUInteger	length = (-1 == ut->c) ? [str length] : ut->c;
   NSUInteger    nativeStart = ut->chunkNativeStart;
   NSUInteger    nativeLimit = ut->chunkNativeLimit;
   NSRange	r;
@@ -153,9 +156,10 @@ UTextNSMutableStringReplace(UText *ut,
     }
   else
     {
-      replacement = [replacement initWithCharactersNoCopy: (unichar*)replacementText
-						   length: replacmentLength 
-					     freeWhenDone: NO];
+      replacement = [replacement
+        initWithCharactersNoCopy: (unichar*)replacementText
+                          length: replacmentLength 
+                    freeWhenDone: NO];
     }
   [str replaceCharactersInRange: r withString: replacement];
 
@@ -185,34 +189,35 @@ UTextNSStringExtract(UText *ut,
   int32_t destCapacity,
   UErrorCode *status)
 {
-  NSString	*str;
-  NSUInteger	length;
-  NSRange	r;
-
   /* If we're loading no characters, we are expected to return the number of
    * characters that we could load if requested.
    */
-  if (destCapacity == 0)
+  if (destCapacity <= 0)
     {
       return nativeLimit - nativeStart;
     }
-  str = (NSString*)ut->p;
-  length = [str length];
-  if (nativeLimit > length)
+  else
     {
-      nativeLimit = length;
+      NSString	        *str = (NSString*)ut->p;
+      NSUInteger	length = (-1 == ut->c) ? [str length] : ut->c;
+      NSRange	        r;
+
+      if (nativeLimit > length)
+        {
+          nativeLimit = length;
+        }
+      r = NSMakeRange(nativeStart, nativeLimit - nativeStart );
+      if (destCapacity < r.length)
+        {
+          r.length = destCapacity;
+        }
+      [str getCharacters: dest range: r];
+      if (destCapacity > r.length)
+        {
+          dest[r.length] = 0;
+        }
+      return r.length;
     }
-  r = NSMakeRange(nativeStart, nativeLimit - nativeStart );
-  if (destCapacity < r.length)
-    {
-      r.length = destCapacity;
-    }
-  [str getCharacters: dest range: r];
-  if (destCapacity > r.length)
-    {
-      dest[r.length] = 0;
-    }
-  return r.length;
 }
 
 /**
@@ -226,7 +231,7 @@ void UTextNSStringCopy(UText *ut,
   UErrorCode *status)
 {
   NSMutableString	*str = (NSMutableString*)ut->p;
-  NSUInteger		length = [str length];
+  NSUInteger	        length = (-1 == ut->c) ? [str length] : ut->c;
   NSRange		r;
   NSString		*substr;
 
@@ -374,7 +379,7 @@ UTextInitWithNSMutableString(UText *txt, NSMutableString *str)
   txt->pFuncs = &NSMutableStringFuncs;
   txt->chunkContents = txt->pExtra;
   txt->nativeIndexingLimit = INT32_MAX;
-
+  txt->c = -1;  // Need to fetch length every time
   txt->providerProperties = 1<<UTEXT_PROVIDER_WRITABLE;
 
   return txt;
@@ -395,6 +400,7 @@ UTextInitWithNSString(UText *txt, NSString *str)
   txt->pFuncs = &NSStringFuncs;
   txt->chunkContents = txt->pExtra;
   txt->nativeIndexingLimit = INT32_MAX;
+  txt->c = [str length];
 
   return txt;
 }
