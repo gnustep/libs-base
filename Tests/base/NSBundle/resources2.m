@@ -6,18 +6,19 @@
 #import <Foundation/NSString.h>
 #import <Foundation/NSPathUtilities.h>
 
-int main()
+@interface NSObject (TestMock)
+- (NSString*)test;
+@end
+
+
+static void _testBundle(NSString* name, NSString* className)
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSString *path, *localPath;
   NSBundle *bundle;
   NSArray  *arr, *carr;
-  
+  NSString *path, *localPath;
   path = [[[[[NSFileManager defaultManager] currentDirectoryPath]
     stringByStandardizingPath] stringByAppendingPathComponent: @"Resources"]
-      stringByAppendingPathComponent: @"TestBundle.bundle"];
-
-  /* --- [NSBundle -pathsForResourcesOfType:inDirectory:] --- */
+      stringByAppendingPathComponent: name];
   bundle = [NSBundle bundleWithPath: path];
   arr = [bundle pathsForResourcesOfType: @"txt" inDirectory: nil];
   PASS((arr && [arr count]),
@@ -77,7 +78,23 @@ int main()
     @"Resources/de.lproj/TextRes.txt"];
   PASS([arr containsObject: localPath],
     "Returned array for 'German' contains localized resource");
+  Class clz = [bundle classNamed: className];
+  PASS(clz, "Class can be loaded from bundle");
+  id obj = [clz new];
+  PASS(obj, "Objects from bundle-loaded classes can be instantiated");
+  PASS_EQUAL([obj test], @"Something", "Correct method called");
+  [obj release];
+}
 
+int main()
+{
+  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  START_SET("Bundle")
+  _testBundle(@"TestBundle.bundle", @"TestBundle");
+  END_SET("Bundle")
+  START_SET("Framework")
+  _testBundle(@"TestFramework.framework", @"TestFramework");
+  END_SET("Framework");
   [arp release]; arp = nil;
   return 0;
 }
