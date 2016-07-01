@@ -1,3 +1,8 @@
+2016-07-01  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSICUString.m: For immutable strings, cache the string
+	length in the UText structure to avoid repeated calls to -length
+
 2016-06-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSICUString.m: Re-implement the function to let ICU access
