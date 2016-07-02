@@ -201,6 +201,8 @@ static NSArray	*empty = nil;
     {
       NSOperation	*op;
 
+      [self removeObserver: self
+                forKeyPath: @"isFinished"];
       while ((op = [internal->dependencies lastObject]) != nil)
 	{
 	  [self removeDependency: op];
@@ -239,6 +241,11 @@ static NSArray	*empty = nil;
       internal->threadPriority = 0.5;
       internal->ready = YES;
       internal->lock = [NSRecursiveLock new];
+      internal->cond = [[NSConditionLock alloc] initWithCondition: 0];
+      [self addObserver: self
+             forKeyPath: @"isFinished"
+                options: NSKeyValueObservingOptionNew
+                context: NULL];
     }
   return self;
 }
@@ -280,13 +287,6 @@ static NSArray	*empty = nil;
 {
   [internal->lock lock];
 
-  /* We only observe isFinished changes, and we can remove self as an
-   * observer once we know the operation has finished since it can never
-   * become unfinished.
-   */
-  [object removeObserver: self
-	      forKeyPath: @"isFinished"];
-
   if (object == self)
     {
       /* We have finished and need to unlock the condition lock so that
@@ -294,8 +294,18 @@ static NSArray	*empty = nil;
        */
       [internal->cond lock];
       [internal->cond unlockWithCondition: 1];
+      [internal->lock unlock];
+      return;
     }
-  else if (NO == internal->ready)
+
+  /* We only observe isFinished changes, and we can remove self as an
+   * observer once we know the operation has finished since it can never
+   * become unfinished.
+   */
+  [object removeObserver: self
+	      forKeyPath: @"isFinished"];
+
+  if (NO == internal->ready)
     {
       NSEnumerator	*en;
       NSOperation	*op;
@@ -482,33 +492,8 @@ static NSArray	*empty = nil;
 
 - (void) waitUntilFinished
 {
-  if (NO == [self isFinished])
-    {
-      [internal->lock lock];
-      if (nil == internal->cond)
-	{
-	  /* Set up condition to wait on and observer to unblock.
-	   */
-	  internal->cond = [[NSConditionLock alloc] initWithCondition: 0];
-	  [self addObserver: self
-		 forKeyPath: @"isFinished"
-		    options: NSKeyValueObservingOptionNew
-		    context: NULL];
-	  /* Some other thread could have marked us as finished while we
-	   * were setting up ... so we can fake the observation if needed.
-	   */
-          if (YES == [self isFinished])
-	    {
-	      [self observeValueForKeyPath: @"isFinished"
-				  ofObject: self
-				    change: nil
-				   context: nil];
-	    }
-	}
-      [internal->lock unlock];
-      [internal->cond lockWhenCondition: 1];	// Wait for finish
-      [internal->cond unlockWithCondition: 1];	// Signal any other watchers
-    }
+  [internal->cond lockWhenCondition: 1];	// Wait for finish
+  [internal->cond unlockWithCondition: 1];	// Signal any other watchers
 }
 @end
 

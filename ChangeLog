@@ -1,3 +1,10 @@
+2016-07-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueObserving.m: Remove some unnecessary locking
+	* Source/NSOperation.m: Simplify handling of finishing of operation
+	to avoid occasional deadlock if an operation finishes in one thread
+	while in another thread we are waiting for it.
+
 2016-07-01  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSICUString.m: For immutable strings, cache the string
