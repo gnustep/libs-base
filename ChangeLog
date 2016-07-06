@@ -1,3 +1,10 @@
+2016-07-06  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSRegularExpression.m (-pattern): Fix bug where a UText
+	structure owned by the icu library is incorrectly closed, which
+	was causing a crash when -pattern is called more than once for the
+	same NSRegularExpression.
+
 2016-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyValueObserving.m: Remove some unnecessary locking
