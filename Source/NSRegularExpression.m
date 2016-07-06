@@ -183,7 +183,6 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
     }
   str = [GSUTextString new];
   utext_clone(&str->txt, t, FALSE, TRUE, &s);
-  utext_close(t);
   return [str autorelease];
 }
 #else
