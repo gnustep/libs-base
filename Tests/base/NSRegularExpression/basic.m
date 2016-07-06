@@ -73,6 +73,14 @@ int main()
   test_NSCopying(@"NSRegularExpression",@"NSRegularExpression",
                  [NSArray arrayWithObject:testObj],NO,NO);
 
+  NSAutoreleasePool *iPool = [NSAutoreleasePool new];
+    {
+      PASS_EQUAL([testObj pattern], @"^a", "Correct pattern returned");
+    }
+  DESTROY(iPool);
+  /* Regression test: We had a double-free bug on retrieving pattern,
+   * which is also the reason for wrapping the previous one in an ARP */
+  PASS_RUNS([testObj pattern], "Calling -pattern twice runs");
 
   /* To test whether we correctly bail out of processing degenerate patterns,
    * we spin up a new thread and evaluate an expression there. The expectation

@@ -1,3 +1,8 @@
+2016-07-06  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Tests/base/NSRegularExpression/basic.m: Test for -pattern
+	double free.
+
 2016-07-06  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSRegularExpression.m (-pattern): Fix bug where a UText
