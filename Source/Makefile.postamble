@@ -109,7 +109,7 @@ after-clean::
 
 # Things to do after distcleaning
 after-distclean::
-	rm -rf $(GNUSTEP_TARGET_DIR)
+#	rm -rf $(GNUSTEP_TARGET_DIR)
 
 # Things to do before checking
 # before-check::
