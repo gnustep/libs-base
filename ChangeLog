@@ -1,3 +1,9 @@
+2016-07-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSICUString.m (UTextNSStringAccess):
+	Fix to use signed integer variables so all the comparisons with zero
+	as a boundary actually work as intended etc (spotted by Wolfgang).
+	
 2016-07-12  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/GSICUString.m (UTextNSStringAccess): Fix unsigned
