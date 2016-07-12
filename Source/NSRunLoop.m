@@ -1301,7 +1301,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   /* Find out how long we can wait before first limit date.
    */
   d = [self limitDateForMode: mode];
-  if (d == nil)
+  if (nil == d || nil == date)
     {
       [arp drain];
       return NO;
@@ -1311,10 +1311,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
    * Retain the date in case the firing of a timer (or some other event)
    * releases it.
    */
-  if (date != nil)
-    {
-      d = [d earlierDate: date];
-    }
+  d = [d earlierDate: date];
   [d retain];
 
   /* Wait, listening to our input sources. */
@@ -1342,15 +1339,16 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
  */
 - (void) runUntilDate: (NSDate*)date
 {
-  double	ti = [date timeIntervalSinceNow];
   BOOL		mayDoMore = YES;
 
   /* Positive values are in the future. */
-  while (ti > 0 && mayDoMore == YES)
+  while (YES == mayDoMore)
     {
-      NSDebugMLLog(@"NSRunLoop", @"run until date %f seconds from now", ti);
       mayDoMore = [self runMode: NSDefaultRunLoopMode beforeDate: date];
-      ti = [date timeIntervalSinceNow];
+      if (nil == date || [date timeIntervalSinceNow] <= 0.0)
+        {
+          mayDoMore = NO;
+        }
     }
 }
 
