@@ -24,6 +24,7 @@ int main()
   MyClass               *dummy = [MyClass new];
   NSMethodSignature     *sig;
   NSInvocation          *inv;
+  NSTimer	        *dly;
   NSTimer	        *tim;
   NSRunLoop	        *run;
   NSDate	        *date;
@@ -34,6 +35,12 @@ int main()
   [inv setSelector: @selector(incrementCounter)];
   [inv setTarget: dummy];
   
+  /* Ensure the runloop has an 'input source' for events.
+   */
+  dly = [NSTimer scheduledTimerWithTimeInterval: 120.0
+                                     invocation: inv
+                                        repeats: NO];
+
   run = [NSRunLoop currentRunLoop];
   PASS(run != nil, "NSRunLoop understands [+currentRunLoop]");
   PASS([run currentMode] == nil, "-currentMode returns nil");
@@ -50,6 +57,12 @@ int main()
     "-runUntilDate: works for distant past");
   ti = [NSDate timeIntervalSinceReferenceDate] - ti;
   PASS(ti < 0.2, "-runUntilDate: takes very short time");
+
+  ti = [NSDate timeIntervalSinceReferenceDate]; 
+  PASS_RUNS([run runUntilDate: nil];,
+    "-runUntilDate: works for nil date");
+  ti = [NSDate timeIntervalSinceReferenceDate] - ti;
+  PASS(ti < 0.2, "-runUntilDate: for nil date takes very short time");
 
   tim = [NSTimer scheduledTimerWithTimeInterval: 0.005
                                      invocation: inv
