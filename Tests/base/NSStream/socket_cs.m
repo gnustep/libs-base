@@ -25,9 +25,10 @@ eventString(NSStream *stream, NSStreamEvent event)
       case NSStreamEventHasBytesAvailable: return @"bytes available";
       case NSStreamEventEndEncountered: return @"end encountered"; 
       case NSStreamEventErrorOccurred: 
-        return [NSString stringWithFormat: @"error %d (%@)",
-          [[stream streamError] code], [stream streamError]];
-      default: return [NSString stringWithFormat: @"unknown event %d", event];
+        return [NSString stringWithFormat: @"error %ld (%@)",
+          (long int)[[stream streamError] code], [stream streamError]];
+      default:
+      return [NSString stringWithFormat: @"unknown event %ld", (long int)event];
     }
 }
 
@@ -331,7 +332,11 @@ int main()
   [clientOutput open];
 
   end = [NSDate dateWithTimeIntervalSinceNow: 5];
-  [rl runUntilDate: end];
+  while (NO == [goldData isEqualToData: testData]
+    && [end timeIntervalSinceNow] > 0.0)
+    {
+      [rl runMode: NSDefaultRunLoopMode beforeDate: end];
+    }
   PASS([goldData isEqualToData: testData], "Local tcp");
   if ([end timeIntervalSinceNow] < 0.0)
     NSLog(@"%@ timed out.\n", prefix);
@@ -369,7 +374,11 @@ int main()
   [clientOutput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
 
   end = [NSDate dateWithTimeIntervalSinceNow: 5];
-  [rl runUntilDate: end];
+  while (NO == [goldData isEqualToData: testData]
+    && [end timeIntervalSinceNow] > 0.0)
+    {
+      [rl runMode: NSDefaultRunLoopMode beforeDate: end];
+    }
   PASS([goldData isEqualToData: testData], "Local tcp (blocking open)");
   if ([end timeIntervalSinceNow] < 0.0)
     NSLog(@"%@ timed out.\n", prefix);
@@ -405,7 +414,11 @@ int main()
   [clientOutput open];
 
   end = [NSDate dateWithTimeIntervalSinceNow: 5];
-  [rl runUntilDate: end];
+  while (NO == [goldData isEqualToData: testData]
+    && [end timeIntervalSinceNow] > 0.0)
+    {
+      [rl runMode: NSDefaultRunLoopMode beforeDate: end];
+    }
   PASS([goldData isEqualToData: testData], "Local socket");
   if ([end timeIntervalSinceNow] < 0.0)
     NSLog(@"%@ timed out.\n", prefix);
@@ -444,7 +457,11 @@ int main()
   [clientOutput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
 
   end = [NSDate dateWithTimeIntervalSinceNow: 5];
-  [rl runUntilDate: end];
+  while (NO == [goldData isEqualToData: testData]
+    && [end timeIntervalSinceNow] > 0.0)
+    {
+      [rl runMode: NSDefaultRunLoopMode beforeDate: end];
+    }
   PASS([goldData isEqualToData: testData], "Local socket (blocking open)");
   if ([end timeIntervalSinceNow] < 0.0)
     NSLog(@"%@ timed out.\n", prefix);
