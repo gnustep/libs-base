@@ -3,6 +3,10 @@
 	* Source/GSICUString.m (UTextNSStringAccess):
 	Fix to use signed integer variables so all the comparisons with zero
 	as a boundary actually work as intended etc (spotted by Wolfgang).
+	* Source/NSRunLoop.m: Closer to OSX behavior ... a nil date is treated
+	like a date in the distant past (ie loop terminates at once), and the
+	(-runUntilDate:) method fires any pending timers when given a date in
+	the past.
 	
 2016-07-12  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
