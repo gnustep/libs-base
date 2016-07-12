@@ -44,6 +44,14 @@
 #  define __has_extension(x) __has_feature(x)
 #endif
 
+/*
+ * __has_attribute is the equivalent to __has_feature and __has_extension
+ * for GNU-style attributes.
+ */
+#ifndef __has_attribute
+#  define __has_attribute(x) 0
+#endif
+
 #if	__has_feature(objc_arc)
 
 #ifndef	RETAIN

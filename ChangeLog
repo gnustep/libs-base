@@ -1,3 +1,10 @@
+2016-07-12  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Headers/Foundation/NSObjCRuntime.h
+	* Headers/GNUstepBase/GNUstep.h:
+	
+	Add NS_DESIGNATED_INITIALIZER macro
+
 2016-07-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSICUString.m (UTextNSStringAccess):
