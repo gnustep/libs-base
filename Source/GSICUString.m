@@ -118,8 +118,11 @@ UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
         {
           nativeLimit = length;
         }
-      nativeStart = nativeLimit - chunkSize;
-      if (nativeStart < 0)
+      if (nativeLimit >= chunkSize)
+        {
+          nativeStart = nativeLimit - chunkSize;
+        }
+      else
         {
           nativeStart = 0;
         }
