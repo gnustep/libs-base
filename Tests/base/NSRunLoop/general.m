@@ -64,6 +64,12 @@ int main()
   ti = [NSDate timeIntervalSinceReferenceDate] - ti;
   PASS(ti < 0.2, "-runUntilDate: for nil date takes very short time");
 
+  ti = [NSDate timeIntervalSinceReferenceDate]; 
+  PASS_RUNS([run runMode: NSDefaultRunLoopMode beforeDate: nil];,
+    "-runMode:beforeDate: works for nil date");
+  ti = [NSDate timeIntervalSinceReferenceDate] - ti;
+  PASS(ti < 0.2, "-runMode:beforentilDate: for nil date takes very short time");
+
   tim = [NSTimer scheduledTimerWithTimeInterval: 0.005
                                      invocation: inv
                                         repeats: NO];
