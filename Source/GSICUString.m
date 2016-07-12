@@ -55,9 +55,9 @@ UBool
 UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
 {
   NSString	*str = (NSString*)ut->p;
-  NSUInteger	length = (-1 == ut->c) ? [str length] : ut->c;
-  NSUInteger    nativeStart = ut->chunkNativeStart;
-  NSUInteger    nativeLimit = ut->chunkNativeLimit;
+  NSInteger	length = (-1 == ut->c) ? (NSInteger)[str length] : ut->c;
+  NSInteger     nativeStart = ut->chunkNativeStart;
+  NSInteger     nativeLimit = ut->chunkNativeLimit;
   NSRange	r;
 
   if (forward)
@@ -118,11 +118,8 @@ UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
         {
           nativeLimit = length;
         }
-      if (nativeLimit >= chunkSize)
-        {
-          nativeStart = nativeLimit - chunkSize;
-        }
-      else
+      nativeStart = nativeLimit - chunkSize;
+      if (nativeStart < 0)
         {
           nativeStart = 0;
         }
