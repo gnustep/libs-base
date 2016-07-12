@@ -1050,7 +1050,7 @@ descriptorOrComparator: (id)descriptorOrComparator
       return;
     }
   NSDebugMLLog(@"GSTimSort",
-    "Insertion point for r2 in r1: %lu, r1 for the merge is now %@.",
+    @"Insertion point for r2 in r1: %lu, r1 for the merge is now %@.",
     insert, NSStringFromRange(r1));
 
   // Find an insertion point for the last element of r1 into r2. Subtracting the
