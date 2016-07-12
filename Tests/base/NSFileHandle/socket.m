@@ -55,11 +55,15 @@ NSLog(@"%@", notif);
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  Handler *h;
-  NSFileHandle *sFH, *cFH;
-  NSData *wData = [@"Socket Test" dataUsingEncoding:NSASCIIStringEncoding];
-  NSData *rData;
+  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  Handler               *h;
+  NSFileHandle          *sFH;
+  NSFileHandle          *cFH;
+  NSData                *wData;
+  NSData                *rData;
+  NSDate                *limit;
+
+  wData = [@"Socket Test" dataUsingEncoding:NSASCIIStringEncoding];
   /* Note that the above data should be short enough to fit into the
      socket send buffer otherwise we risk being blocked in this single
      threaded process.  */
@@ -74,7 +78,6 @@ int main()
 
   [sFH acceptConnectionInBackgroundAndNotify];
 
-  
   cFH = [NSFileHandle fileHandleAsClientAtAddress: @"127.0.0.1"
 		      service: GST_PORT
 		      protocol: @"tcp"];
@@ -82,7 +85,12 @@ int main()
        "NSFileHandle understands +fileHandleAsClientAtAddress:");
 
   [cFH writeData: wData];
-  [[NSRunLoop currentRunLoop] run];
+  limit = [NSDate dateWithTimeIntervalSinceNow: 2.0];
+  while (nil == rFH && [limit timeIntervalSinceNow] > 0.0)
+    {
+      [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
+                               beforeDate: limit];
+    }
   PASS(rFH != nil, "NSFileHandle connection was made");
 
   rData = [rFH availableData];
