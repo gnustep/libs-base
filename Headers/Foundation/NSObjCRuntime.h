@@ -181,6 +181,15 @@ extern "C" {
 #endif
 #define GS_GENERIC_TYPE(typeRef) GS_GENERIC_TYPE_F(typeRef, id)
 
+/**
+ * Backwards compatibility macro for the objc_designated_initializer attribute
+ */
+#if __has_attribute(objc_designated_initializer)
+#  define NS_DESIGNATED_INITIALIZER __attribute__((objc_designated_initializer))
+#else
+#  define NS_DESIGNATED_INITIALIZER
+#endif
+
 /** Bitfield used to specify options to control enumeration over collections.
  */
 typedef NS_OPTIONS(NSUInteger, NSEnumerationOptions)
