@@ -52,7 +52,8 @@ static NSInputStream *defaultInput = nil;
       }
     default: 
       {
-        NSAssert1(1, @"Error! code is %d", [[theStream streamError] code]);
+        NSAssert1(1, @"Error! code is %ld",
+          (long int)[[theStream streamError] code]);
         break;
       }  
     }
@@ -100,7 +101,8 @@ static NSInputStream *defaultInput = nil;
       }
     default: 
       {
-        NSAssert1(1, @"Error! code is %d", [[theStream streamError] code]);
+        NSAssert1(1, @"Error! code is %ld",
+          (long int)[[theStream streamError] code]);
         break;
       }  
     }
@@ -111,7 +113,8 @@ static NSInputStream *defaultInput = nil;
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSRunLoop *rl = [NSRunLoop currentRunLoop];
+  NSRunLoop     *rl = [NSRunLoop currentRunLoop];
+  NSData        *answer;
 
   // first test, file to memory copy
   NSString *path = @"memandfile.m";
@@ -125,9 +128,9 @@ int main()
   [input open];
   [output open];
   defaultOutput = output;
-  [rl run];
+  [rl runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.5]];
 
-  NSData *answer = [output propertyForKey: NSStreamDataWrittenToMemoryStreamKey];
+  answer = [output propertyForKey: NSStreamDataWrittenToMemoryStreamKey];
   PASS([goldData isEqualToData: answer], "file to memory copy ok");
 
   // second test, memory to file copy
@@ -141,7 +144,7 @@ int main()
   [input2 open];
   [output2 open];
   defaultInput = input2;
-  [rl run];
+  [rl runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.5]];
 
   NSData *answer2 = [NSData dataWithContentsOfFile: pathO];
   PASS([goldData isEqualToData: answer2], "memory to file copy ok");
