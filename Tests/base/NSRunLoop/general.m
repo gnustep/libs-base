@@ -77,6 +77,8 @@ int main()
   [run runUntilDate: [NSDate distantPast]];
   PASS(1 == counter, "-runUntilDate: for distant past fires timer");
 
+  [dly invalidate];
+
   /* We run in a custom mode to ensure there are no other timers or
    * input sources.
    */
