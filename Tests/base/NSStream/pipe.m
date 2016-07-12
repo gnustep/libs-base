@@ -50,7 +50,8 @@ static NSMutableData *testData;
       }
     case NSStreamEventErrorOccurred:
       {
-        NSAssert1(1, @"Error! code is %d", [[theStream streamError] code]);
+        NSAssert1(1, @"Error! code is %ld",
+          (long int)[[theStream streamError] code]);
         break;
       }  
     default:
@@ -66,6 +67,7 @@ int main()
   NSRunLoop *rl = [NSRunLoop currentRunLoop];
   Listener *li = [[Listener new] autorelease];
   NSString *path = @"pipe.m";
+  NSDate   *end;
   
   [NSStream pipeWithInputStream:&defaultInput outputStream:&defaultOutput];
   goldData = [NSData dataWithContentsOfFile:path];
@@ -76,8 +78,12 @@ int main()
   [defaultOutput scheduleInRunLoop:rl forMode:NSDefaultRunLoopMode];
   [defaultInput open];
   [defaultOutput open];
-  [rl run];
-
+  end = [NSDate dateWithTimeIntervalSinceNow: 0.5];
+  while (NO == [goldData isEqualToData:testData]
+    && [end timeIntervalSinceNow] > 0.0)
+    {
+      [rl runMode: NSDefaultRunLoopMode beforeDate: end];
+    }
   PASS([goldData isEqualToData:testData], "Local pipe");
   [arp release];
   return 0;

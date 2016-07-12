@@ -28,7 +28,7 @@ static BOOL     done = NO;
   static uint8_t buffer[4096];
   static BOOL doneWrite = NO;
   int readSize;
-NSLog(@"Got %d on %p", streamEvent, theStream);
+NSLog(@"Got %ld on %p", (long int)streamEvent, theStream);
   switch (streamEvent) 
     {
     case NSStreamEventOpenCompleted: 
@@ -98,7 +98,8 @@ NSLog(@"%@", [defaultInput streamError]);
       }
     default: 
       {
-        NSAssert1(1, @"Error! code is %d", [[theStream streamError] code]);
+        NSAssert1(1, @"Error! code is %ld",
+          (long int)[[theStream streamError] code]);
         break;
       }  
     }

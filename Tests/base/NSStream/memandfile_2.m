@@ -114,7 +114,8 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSRunLoop     *rl = [NSRunLoop currentRunLoop];
-  NSData        *answer;
+  NSData        *answer = nil;
+  NSDate        *end;
 
   // first test, file to memory copy
   NSString *path = @"memandfile.m";
@@ -128,7 +129,13 @@ int main()
   [input open];
   [output open];
   defaultOutput = output;
-  [rl runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.5]];
+  end = [NSDate dateWithTimeIntervalSinceNow: 1.0];
+  while (NO == [goldData isEqualToData: answer]
+    && [end timeIntervalSinceNow] > 0.0)
+    {
+      [rl runMode: NSDefaultRunLoopMode beforeDate: end];
+      answer = [output propertyForKey: NSStreamDataWrittenToMemoryStreamKey];
+    }
 
   answer = [output propertyForKey: NSStreamDataWrittenToMemoryStreamKey];
   PASS([goldData isEqualToData: answer], "file to memory copy ok");
@@ -144,9 +151,17 @@ int main()
   [input2 open];
   [output2 open];
   defaultInput = input2;
-  [rl runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.5]];
 
-  NSData *answer2 = [NSData dataWithContentsOfFile: pathO];
+  end = [NSDate dateWithTimeIntervalSinceNow: 1.0];
+  NSData *answer2 = nil;
+  while (NO == [goldData isEqualToData: answer2]
+    && [end timeIntervalSinceNow] > 0.0)
+    {
+      [rl runMode: NSDefaultRunLoopMode beforeDate: end];
+      answer2 = [NSData dataWithContentsOfFile: pathO];
+    }
+
+  answer2 = [NSData dataWithContentsOfFile: pathO];
   PASS([goldData isEqualToData: answer2], "memory to file copy ok");
 
   [[NSFileManager defaultManager] removeFileAtPath: pathO handler: nil];
