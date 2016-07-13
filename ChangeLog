@@ -1,3 +1,11 @@
+2016-07-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m (-acceptInputForMode:beforeDate:):
+	Closer to OSX behavior ... when accepting input we should fire all
+	timers (possibly repeatedly) since a timer is not counted as an
+	input source.  Also simplify housekeeping timer so that it will
+	keep loops running as it does on OSX.
+
 2016-07-12  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Headers/Foundation/NSObjCRuntime.h
