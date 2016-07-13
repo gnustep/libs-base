@@ -1282,25 +1282,31 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
   _currentMode = savedMode;
 
   /* Find out how long we can wait before first limit date.
+   * If there are no input sources or timers, return immediately.
    */
   d = [self limitDateForMode: mode];
-  if (nil == d || nil == date)
+  if (nil == d)
     {
       [arp drain];
       return NO;
     }
 
-  /* Use the earlier of the two dates we have.
-   * Retain the date in case the firing of a timer (or some other event)
-   * releases it.
+  /* Use the earlier of the two dates we have (nil date is like distant past).
    */
-  d = [d earlierDate: date];
-  [d retain];
+  if (nil == date)
+    {
+      [self acceptInputForMode: mode beforeDate: nil];
+    }
+  else
+    {
+      /* Retain the date in case the firing of a timer (or some other event)
+       * releases it.
+       */
+      d = [[d earlierDate: date] copy];
+      [self acceptInputForMode: mode beforeDate: d];
+      [d release];
+    }
 
-  /* Wait, listening to our input sources. */
-  [self acceptInputForMode: mode beforeDate: d];
-
-  [d release];
   [arp drain];
   return YES;
 }
