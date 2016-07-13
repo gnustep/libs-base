@@ -1,0 +1,61 @@
+language: cpp
+dist: trusty
+compiler:
+    - clang
+    - gcc
+env:
+    - LIBRARY_COMBO=gnu-gnu-gnu
+    - LIBRARY_COMBO=gnu-gnu-gnu SORT_ALG=timsort
+    - LIBRARY_COMBO=ng-gnu-gnu
+    - LIBRARY_COMBO=ng-gnu-gnu SORT_ALG=timsort
+    - LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixed-abi
+    - LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixed-abi SORT_ALG=timsort
+matrix:
+    exclude:
+        - compiler: gcc
+          env: LIBRARY_COMBO=ng-gnu-gnu
+        - compiler: gcc
+          env: LIBRARY_COMBO=ng-gnu-gnu SORT_ALG=timsort
+        - compiler: gcc
+          env: LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixed-abi
+        - compiler: gcc
+          env: LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixed-abi SORT_ALG=timsort
+        - compiler: clang
+          env: LIBRARY_COMBO=gnu-gnu-gnu
+        - compiler: clang
+          env: LIBRARY_COMBO=gnu-gnu-gnu SORT_ALG=timsort
+sudo: required
+before_install:
+    - sudo apt-get -qq update
+    - sudo apt-get install -y cmake pkg-config libgnutls28-dev libgmp-dev libffi-dev libicu-dev libxml2-dev libxslt1-dev libssl-dev libavahi-client-dev zlib1g-dev
+    - >
+        if [ $LIBRARY_COMBO = 'gnu-gnu-gnu' ];
+        then
+          if [ $CC = 'gcc' ];
+          then
+            sudo apt-get install -y gobjc;
+          fi;
+          sudo apt-get install -y libobjc-4.8-dev;
+        else
+          sudo apt-get install -y libkqueue-dev libpthread-workqueue-dev;
+        fi;
+install: ./travis-deps.sh
+before_script: >
+    export LIBRARY_PATH=$HOME/staging/lib:$LIBRARY_PATH;
+    export LD_LIBRARY_PATH=$HOME/staging/lib:$LD_LIBRARY_PATH;
+    if [ $LIBRARY_COMBO = 'ng-gnu-gnu' ];
+    then
+      export CPATH=$HOME/staging/include;
+    else
+      export CPATH=/usr/lib/gcc/x86_64-linux-gnu/4.8/include;
+    fi;
+    export PATH=$HOME/staging/bin:$PATH;
+    export GNUSTEP_MAKEFILES=$HOME/staging/share/GNUstep/Makefiles;
+    . $HOME/staging/share/GNUstep/Makefiles/GNUstep.sh;
+script: >
+    if [ -z "$SORT_ALG" ];
+    then
+        SORT_ALG=shellsort
+    fi;
+    ./configure --with-sort-algorithm=$SORT_ALG $BASE_ABI;
+    make && make install && make check || (cat Tests/tests.log && false);
