@@ -821,7 +821,6 @@ with_icu_library
 enable_libdispatch
 with_gmp_include
 with_gmp_library
-with_sort_algorithm
 with_gdomap_port
 enable_setuid_gdomap
 '
@@ -1572,9 +1571,6 @@ Optional Packages:
 				if not using icu-config)
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
-  --with-sort-algorithm=ALG  force use of a specific sorting algorithm.
-				Possible values are timsort, quicksort, and shellsort.
-				Defaults to shellsort (others broken).
   --with-gdomap-port=PORT  alternative port for gdomap
 
 Some influential environment variables:
@@ -12520,38 +12516,6 @@ fi
 
 
 
-
-#--------------------------------------------------------------------
-# Check which sorting algorithm to use.
-#--------------------------------------------------------------------
-
-# Check whether --with-sort-algorithm was given.
-if test "${with_sort_algorithm+set}" = set; then :
-  withval=$with_sort_algorithm; sort_algorithm="$withval"
-else
-  sort_algorithm="shellsort"
-fi
-
-
-if test "$sort_algorithm" = "timsort"; then
-
-$as_echo "#define GS_USE_TIMSORT 1" >>confdefs.h
-
-else
-  if test "$sort_algorithm" = "quicksort"; then
-
-$as_echo "#define GS_USE_QUICKSORT 1" >>confdefs.h
-
-  else
-    if test "$sort_algorithm" = "shellsort"; then
-
-$as_echo "#define GS_USE_SHELLSORT 1" >>confdefs.h
-
-    else
-      as_fn_error $? "Unknown sort_algorithm defined!" "$LINENO" 5
-    fi
-  fi
-fi
 
 #--------------------------------------------------------------------
 # Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.
