@@ -39,6 +39,9 @@ notice and this notice are preserved.
         OpenSSL bundle removed since it didn't match GNUTLS support.<br />
         Improved support for 64bit little-endian systems.<br />
         Ported to Debian/Hurd.<br />
+        ICU string (regexp in particular) fixes.<br />
+        OSX compatibity changes in NSRunLoop behavior.<br />
+        Alterntive sort algorithms selectable at runtime.<br />
         As usual, this release also contains an update to include the
         most recent international timezone data.
         </p>

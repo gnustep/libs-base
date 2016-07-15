@@ -200,6 +200,18 @@ notice and this notice are preserved.
 		environment variables.
 	      </p>
 	    </desc>
+	    <term>GSSortAlgorithm</term>
+	    <desc>
+	      <p>
+		May be used to specify the sort algorithm used for sorting
+                arrays etc. The current options are QuickSort, ShellSort, and
+                TimSort, with TimSort being the default.<br />
+		NB. The QuickSort and ShellSort are 'unstable' algorithms,
+                which means that the order of equal objects may be changed
+                by a sort.  Selecting these may break code which assumes that
+	        sorting is stable.
+	      </p>
+	    </desc>
 	    <term>Local Time Zone</term>
 	    <desc>
 	      <p>

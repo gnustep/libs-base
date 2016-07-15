@@ -30,7 +30,6 @@
 #import "Foundation/NSObjCRuntime.h"
 #import "GSSorting.h"
 
-#if GS_USE_SHELLSORT
 void
 _GSShellSort(id *objects,
   NSRange sortRange,
@@ -114,13 +113,13 @@ _GSShellSort(id *objects,
 
 
 @interface GSShellSortPlaceHolder : NSObject
-
++ (void) setUnstable;
 @end
 
 @implementation GSShellSortPlaceHolder
-+ (void) load
++ (void) setUnstable
 {
   _GSSortUnstable = _GSShellSort;
 }
 @end
-#endif
+

@@ -30,7 +30,7 @@
 
 enum
 {
-  GSComparisonTypeSortDescriptor = 0, /** Comparison using an NSSortDescriptor */
+  GSComparisonTypeSortDescriptor = 0, /** Comparison using NSSortDescriptor */
   GSComparisonTypeComparatorBlock, /** Comparison using an NSComparator */
   GSComparisonTypeFunction, /** Comparison using a comparison function of type
   * NSInteger(*)(id,id,void*) */
@@ -130,7 +130,7 @@ GSRightInsertionPointForKeyInSortedRange(id key, id *buffer,
  * This function is provided using the implementation of the timsort algorithm.
  */
 NSUInteger
-GSLeftInsertionPointForKeyInSortedRange(id key, id* buffer,
+GSLeftInsertionPointForKeyInSortedRange(id key, id *buffer,
   NSRange range, NSComparator comparator);
 
 /**
@@ -139,7 +139,7 @@ GSLeftInsertionPointForKeyInSortedRange(id key, id* buffer,
  */
 static inline NSComparisonResult
 GSCompareUsingDescriptorOrComparator(id first, id second, id descOrComp,
-  GSComparisonType cmprType, void* context)
+  GSComparisonType cmprType, void *context)
 {
 
   switch (cmprType)

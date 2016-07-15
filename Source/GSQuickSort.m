@@ -35,7 +35,6 @@
  * Sorts the provided object array's sortRange according to sortDescriptor.
  */
 // Quicksort algorithm copied from Wikipedia :-).
-#if GS_USE_QUICKSORT
 
 static inline void
 SwapObjects(id * o1, id * o2)
@@ -84,12 +83,12 @@ _GSQuickSort(id *objects,
 }
 
 @interface GSQuickSortPlaceHolder : NSObject
++ (void) setUnstable;
 @end
 
 @implementation GSQuickSortPlaceHolder
-+ (void) load
++ (void) setUnstable
 {
   _GSSortUnstable = _GSQuickSort;
 }
 @end
-#endif

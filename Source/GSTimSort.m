@@ -295,8 +295,6 @@ NSRange range, NSComparator cmptr)
     GSComparisonTypeComparatorBlock, NULL);
 }
 
-#if GS_USE_TIMSORT
-
 static inline void
 reverseRange(id *buffer, NSRange r)
 {
@@ -476,7 +474,7 @@ static IMP mergeLowImp;
 static IMP mergeHighImp;
 static IMP ensureCapImp;
 
-@interface GSTimSortDescriptor : NSObject
+@interface GSTimSortPlaceHolder : NSObject
 {
   id *objects;
   NSRange sortRange;
@@ -511,7 +509,7 @@ _GSTimSort(id *objects,
   GSComparisonType comparisonType,
   void *context);
 
-@implementation GSTimSortDescriptor
+@implementation GSTimSortPlaceHolder
 + (void) load
 {
   _GSSortStable = _GSTimSort;
@@ -519,7 +517,7 @@ _GSTimSort(id *objects,
 
 + (void) initialize
 {
-  if ([GSTimSortDescriptor class] == [self class])
+  if ([GSTimSortPlaceHolder class] == [self class])
     {
       // We need to be fast, so we cache a lot of IMPs
       pushRunImp =
@@ -539,6 +537,11 @@ _GSTimSort(id *objects,
     }
 }
 
++ (void) setUnstable
+{
+  _GSSortUnstable = _GSTimSort; // Use for unstable even though we are stable
+}
+
 - (id) initWithObjects: (id*)theObjects
              sortRange: (NSRange)theSortRange
 descriptorOrComparator: (id)descriptorOrComparator
@@ -552,7 +555,7 @@ descriptorOrComparator: (id)descriptorOrComparator
     {
       return nil;
     }
-  /* GSTimSortDescriptors are ephemeral objects that just track state, so we
+  /* GSTimSortPlaceHolders are ephemeral objects that just track state, so we
    * don't bother making sure that the objects don't go away.
    */
   objects = theObjects;
@@ -1107,7 +1110,7 @@ _GSTimSort(id *objects,
   NSUInteger sortEnd = NSMaxRange(sortRange);
   NSUInteger sortLen = sortRange.length;
   NSUInteger minimalRunLen = 0;
-  GSTimSortDescriptor *desc = nil;
+  GSTimSortPlaceHolder *desc = nil;
   if (sortLen < 2)
     {
       // Don't sort anything that doesn't contain at least two elements.
@@ -1116,16 +1119,17 @@ _GSTimSort(id *objects,
 
   if (sortLen < GS_MIN_MERGE)
     {
-      miniTimSort(objects, sortRange, sortDescriptorOrComparator, comparisonType, context);
+      miniTimSort(objects, sortRange,
+        sortDescriptorOrComparator, comparisonType, context);
       return;
     }
 
   // Now we need a timsort descriptor for state-tracking.
-  desc = [[GSTimSortDescriptor alloc] initWithObjects: objects
-                                            sortRange: sortRange
-                               descriptorOrComparator: sortDescriptorOrComparator
-                                       comparisonType: comparisonType
-                                      functionContext: context];
+  desc = [[GSTimSortPlaceHolder alloc] initWithObjects: objects
+    sortRange: sortRange
+    descriptorOrComparator: sortDescriptorOrComparator
+    comparisonType: comparisonType
+    functionContext: context];
 
   NS_DURING
     {
@@ -1172,4 +1176,3 @@ _GSTimSort(id *objects,
   [desc release];
 }
 
-#endif

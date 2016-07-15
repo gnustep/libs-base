@@ -171,15 +171,6 @@
 /* Built in default value for GNUstep user_dir web apps */
 #undef GNUSTEP_TARGET_USER_DIR_WEB_APPS
 
-/* Build in/use quicksort */
-#undef GS_USE_QUICKSORT
-
-/* Build in/use shellsort */
-#undef GS_USE_SHELLSORT
-
-/* Build in/use timsort */
-#undef GS_USE_TIMSORT
-
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
 
