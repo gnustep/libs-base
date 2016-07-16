@@ -282,6 +282,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   int			wait_timeout;
   DWORD			wait_return;
   BOOL			immediate = NO;
+  BOOL			existingMessages = NO;
 
   // Set timeout how much time should wait
   if (milliseconds >= 0)
@@ -404,10 +405,11 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
    */
   if ([self processAllWindowsMessages: num_winMsgs within: contexts] == YES)
     {
-      wait_timeout = 0;	// Processed something ... no need to wait.
+      // Processed something ... no need to wait.
+      wait_return = WAIT_OBJECT_0;
+      existingMessages = YES;
     }
-
-  if (num_winMsgs > 0)
+  else if (num_winMsgs > 0)
     {
       /*
        * Wait for signalled events or window messages.
@@ -465,7 +467,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     }
 
   /*
-   * Trigger any watchers which are set up to for every runloop wait.
+   * Trigger any watchers which are set up to trigger for every runloop wait.
    */
   count = GSIArrayCount(_trigger);
   completed = NO;
@@ -499,12 +501,17 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	GSPrivateNotifyASAP(mode);
     }
 
+  if (existingMessages)
+    {
+      NSDebugMLLog(@"NSRunLoop", @"processed windows messages");
+      return YES;
+    }
+
   // if there are windows message
   if (wait_return == WAIT_OBJECT_0 + num_handles)
     {
       NSDebugMLLog(@"NSRunLoop", @"processing windows messages");
-      [self processAllWindowsMessages: num_winMsgs within: contexts];
-      return NO;
+      return [self processAllWindowsMessages: num_winMsgs within: contexts];
     }
 
   // if there aren't events

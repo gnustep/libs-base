@@ -83,7 +83,7 @@ typedef struct{
 }
 /* Check to see of the thread has been awakened, blocking until it
  * does get awakened or until the limit date has been reached.
- * A date in the past (or nil) results in a check follwed by an
+ * A date in the past (or nil) results in a check followed by an
  * immediate return.
  */
 + (BOOL) awakenedBefore: (NSDate*)when;

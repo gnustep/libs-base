@@ -1,3 +1,10 @@
+2016-07-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSRunLoopCtxt.m: fix bug in return value when polling.
+	The poll method must return YES if any input source fired, including
+	handling of windows messages which are already available and require
+	no wait.
+
 2016-07-15  Richard Frith-Macdonald <rfm@gnu.org>
 
         * configure.ac:
