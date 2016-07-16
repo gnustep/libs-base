@@ -1163,11 +1163,6 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       BOOL      done = NO;
       NSDate    *when;
 
-      if ([_contextStack indexOfObjectIdenticalTo: context] == NSNotFound)
-	{
-	  [_contextStack addObject: context];
-	}
-
       while (NO == done)
         {
           when = [self _limitDateForContext: context];
@@ -1224,6 +1219,10 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
             @"accept I/P before %d millisec from now in %@",
             timeout_ms, mode);
 
+	  if ([_contextStack indexOfObjectIdenticalTo: context] == NSNotFound)
+	    {
+	      [_contextStack addObject: context];
+	    }
           done = [context pollUntil: timeout_ms within: _contextStack];
           if (NO == done)
             {
@@ -1236,16 +1235,18 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
           [self _checkPerformers: context];
           GSPrivateNotifyASAP(_currentMode);
           [context endPoll];
+
+	  /* Once a poll has been completed on a context, we can remove that
+	   * context from the stack even if it actually polling at an outer
+	   * level of re-entrancy ... since the poll we have just done will
+	   * have handled any events that the outer levels would have wanted
+	   * to handle, and the polling for this context will be marked as
+	   * ended.
+	   */
+	  [_contextStack removeObjectIdenticalTo: context];
         }
 
-      /* Once a poll has been completed on a context, we can remove that
-       * context from the stack even if it actually polling at an outer
-       * level of re-entrancy ... since the poll we have just done will
-       * have handled any events that the outer levels would have wanted
-       * to handle, and the polling for this context will be marked as ended.
-       */
       _currentMode = savedMode;
-      [_contextStack removeObjectIdenticalTo: context];
     }
   NS_HANDLER
     {
