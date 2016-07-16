@@ -62,7 +62,6 @@ typedef struct{
   unsigned	maxTimers;
   GSIArray	watchers;	/** The inputs set for the runloop mode */
   unsigned	maxWatchers;
-  NSTimer	*housekeeper;	/** Housekeeping timer for loop.	*/
 @private
 #if	defined(_WIN32)
   NSMapTable    *handleMap;     
