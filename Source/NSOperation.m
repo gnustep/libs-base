@@ -64,11 +64,16 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSKeyValueObserving.h"
 #import "Foundation/NSThread.h"
+#import "GNUstepBase/NSArray+GNUstepBase.h"
 #import "GSPrivate.h"
 
 #define	GSInternal	NSOperationInternal
 #include	"GSInternal.h"
 GS_PRIVATE_INTERNAL(NSOperation)
+
+static void     *isFinishedCtxt = (void*)"isFinished";
+static void     *isReadyCtxt = (void*)"isReady";
+static void     *queuePriorityCtxt = (void*)"queuePriority";
 
 /* The pool of threads for 'non-concurrent' operations in a queue.
  */
@@ -135,7 +140,7 @@ static NSArray	*empty = nil;
 	      [op addObserver: self
 		   forKeyPath: @"isFinished"
 		      options: NSKeyValueObservingOptionNew
-		      context: NULL];
+		      context: isFinishedCtxt];
 	      if (internal->ready == YES)
 		{
 		  /* The new dependency stops us being ready ...
@@ -245,7 +250,7 @@ static NSArray	*empty = nil;
       [self addObserver: self
              forKeyPath: @"isFinished"
                 options: NSKeyValueObservingOptionNew
-                context: NULL];
+                context: isFinishedCtxt];
     }
   return self;
 }
@@ -355,7 +360,7 @@ static NSArray	*empty = nil;
 	      [self observeValueForKeyPath: @"isFinished"
 				  ofObject: op
 				    change: nil
-				   context: nil];
+				   context: isFinishedCtxt];
 	    }
 	  [self didChangeValueForKey: @"dependencies"];
 	}
@@ -603,7 +608,7 @@ static NSOperationQueue *mainQueue = nil;
       [op addObserver: self
 	   forKeyPath: @"isReady"
 	      options: NSKeyValueObservingOptionNew
-	      context: NULL];
+	      context: isReadyCtxt];
       [self willChangeValueForKey: @"operations"];
       [self willChangeValueForKey: @"operationCount"];
       [internal->operations addObject: op];
@@ -614,7 +619,7 @@ static NSOperationQueue *mainQueue = nil;
 	  [self observeValueForKeyPath: @"isReady"
 			      ofObject: op
 				change: nil
-			       context: nil];
+			       context: isReadyCtxt];
 	}
     }
   [internal->lock unlock];
@@ -679,7 +684,7 @@ static NSOperationQueue *mainQueue = nil;
 	      [op addObserver: self
 		   forKeyPath: @"isReady"
 		      options: NSKeyValueObservingOptionNew
-		      context: NULL];
+		      context: isReadyCtxt];
 	      [internal->operations addObject: op];
 	      if (NO == [op isReady])
 		{
@@ -697,7 +702,7 @@ static NSOperationQueue *mainQueue = nil;
 		  [self observeValueForKeyPath: @"isReady"
 				      ofObject: op
 					change: nil
-				       context: nil];
+				       context: isReadyCtxt];
 		}
 	    }
           [internal->lock unlock];
@@ -867,9 +872,14 @@ static NSOperationQueue *mainQueue = nil;
                          change: (NSDictionary *)change
                         context: (void *)context
 {
-  [internal->lock lock];
-  if (YES == [object isFinished])
+  /* We observe three properties in sequence ...
+   * isReady (while we wait for an operation to be ready)
+   * queuePriority (when priority of a ready operation may change)
+   * isFinished (to see if an executing operation is over).
+   */
+  if (context == isFinishedCtxt)
     {
+      [internal->lock lock];
       internal->executing--;
       [object removeObserver: self
 		  forKeyPath: @"isFinished"];
@@ -882,11 +892,27 @@ static NSOperationQueue *mainQueue = nil;
       [self didChangeValueForKey: @"operationCount"];
       [self didChangeValueForKey: @"operations"];
     }
-  else if (YES == [object isReady])
+  else if (context == queuePriorityCtxt || context == isReadyCtxt)
     {
-      [object removeObserver: self
-		  forKeyPath: @"isReady"];
-      [internal->waiting addObject: object];
+      NSInteger pos;
+
+      [internal->lock lock];
+      if (context == queuePriorityCtxt)
+        {
+          [internal->waiting removeObjectIdenticalTo: object];
+        }
+      if (context == isReadyCtxt)
+        {
+          [object removeObserver: self forKeyPath: @"isReady"];
+          [object addObserver: self
+                   forKeyPath: @"queuePriority"
+                      options: NSKeyValueObservingOptionNew
+                      context: queuePriorityCtxt];
+        }
+      pos = [internal->waiting insertionPosition: object
+                                   usingFunction: sortFunc
+                                         context: 0];
+      [internal->waiting insertObject: object atIndex: pos];
       [internal->lock unlock];
     }
   [self _execute];
@@ -985,10 +1011,6 @@ static NSOperationQueue *mainQueue = nil;
     {
       NSOperation	*op;
 
-      /* Make sure we have a sorted queue of operations waiting to execute.
-       */
-      [internal->waiting sortUsingFunction: sortFunc context: 0];
-
       /* Take the first operation from the queue and start it executing.
        * We set ourselves up as an observer for the operating finishing
        * and we keep track of the count of operations we have started,
@@ -996,10 +1018,11 @@ static NSOperationQueue *mainQueue = nil;
        */
       op = [internal->waiting objectAtIndex: 0];
       [internal->waiting removeObjectAtIndex: 0];
+      [op removeObserver: self forKeyPath: @"queuePriority"];
       [op addObserver: self
 	   forKeyPath: @"isFinished"
 	      options: NSKeyValueObservingOptionNew
-	      context: NULL];
+	      context: isFinishedCtxt];
       internal->executing++;
       if (YES == [op isConcurrent])
 	{
