@@ -1,3 +1,11 @@
+2016-07-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSOperation.m: avoid sorting the queue ... keep the array of
+	waiting operations sorted by inserting new operations at the correct
+	position and observing the queuePriority of waiting operations (and
+	re-positiuoning them in the waiting array as necessary).
+	Fix for scalability problem (bug #47926)
+
 2016-07-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/GSRunLoopCtxt.m: fix bug in return value when polling.

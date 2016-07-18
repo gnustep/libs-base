@@ -83,13 +83,13 @@
 
 - (void) release
 {
-  NSLog(@"Will release %@ at %@", self, [NSThread callStackSymbols]);
+  // NSLog(@"Will release %@ at %@", self, [NSThread callStackSymbols]);
   [super release];
 }
 
 - (id) retain
 {
-  NSLog(@"Will retain %@ at %@", self, [NSThread callStackSymbols]);
+  // NSLog(@"Will retain %@ at %@", self, [NSThread callStackSymbols]);
   return [super retain];
 }
 
@@ -218,7 +218,8 @@ int main()
   [q addOperation: obj];
   [q waitUntilAllOperationsAreFinished];
   PASS(([obj isFinished] == YES), "main queue runs an operation");
-  PASS(([obj thread] != [NSThread currentThread]), "operation ran in other thread");
+  PASS(([obj thread] != [NSThread currentThread]),
+    "operation ran in other thread");
 
   [q setSuspended: YES];
   obj = [OpFlag new];
@@ -259,6 +260,31 @@ int main()
   [list removeAllObjects];
   [a removeAllObjects];
   [q setSuspended: YES];
+  obj = [OpOrder new];
+  [obj setQueuePriority: NSOperationQueuePriorityHigh];
+  [a addObject: obj];
+  [q addOperation: obj];
+  [obj release];
+  obj = [OpOrder new];
+  [a addObject: obj];
+  [q addOperation: obj];
+  [obj release];
+  obj = [OpOrder new];
+  [obj setQueuePriority: NSOperationQueuePriorityLow];
+  [a addObject: obj];
+  [q addOperation: obj];
+  [obj release];
+  obj = [a objectAtIndex: 1];
+  [obj setQueuePriority: NSOperationQueuePriorityVeryLow];
+  [a addObject: obj];
+  [a removeObjectAtIndex: 1];
+  [q setSuspended: NO];
+  [q waitUntilAllOperationsAreFinished];
+  PASS(([list isEqual: a]), "operations ran in order of priority");
+
+  [list removeAllObjects];
+  [a removeAllObjects];
+  [q setSuspended: YES];
   old = [OpOrder new];
   [a addObject: old];
   [old release];
@@ -274,7 +300,9 @@ int main()
   [obj addDependency: old];
   [q setSuspended: NO];
   [q addOperations: a waitUntilFinished: YES];
-  PASS(([list objectAtIndex: 0] == [a objectAtIndex: 1] && [list objectAtIndex: 1] == [a objectAtIndex: 0]), "operations ran in order of dependency");
+  PASS(([list objectAtIndex: 0] == [a objectAtIndex: 1]
+    && [list objectAtIndex: 1] == [a objectAtIndex: 0]),
+    "operations ran in order of dependency");
   PASS(1 == [[old dependencies] count], "dependencies not removed when done")
 
   [arp release]; arp = nil;
