@@ -1,3 +1,8 @@
+2016-07-18  Larry Campbell <lcampbel@akamai.com>
+
+	* Source/NSThread.m: Send notification about becoming multithreaded
+	when the new thread is registered from outside our API.
+
 2016-07-18  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSOperation.m: avoid sorting the queue ... keep the array of
