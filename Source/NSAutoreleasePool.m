@@ -30,7 +30,6 @@
 #define	EXPOSE_NSAutoreleasePool_IVARS	1
 #define	EXPOSE_NSThread_IVARS	1
 #import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSGarbageCollector.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSThread.h"
 

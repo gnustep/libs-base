@@ -33,7 +33,6 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSGarbageCollector.h"
 #import "Foundation/NSMapTable.h"
 
 #import "NSConcretePointerFunctions.h"

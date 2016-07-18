@@ -73,7 +73,6 @@
 #import "Foundation/NSConnection.h"
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSUserDefaults.h"
-#import "Foundation/NSGarbageCollector.h"
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
@@ -734,7 +733,6 @@ gnustep_base_thread_callback(void)
 static void
 setThreadForCurrentThread(NSThread *t)
 {
-  [[NSGarbageCollector defaultCollector] disableCollectorForPointer: t];
   pthread_setspecific(thread_object_key, t);
   gnustep_base_thread_callback();
 }
@@ -764,7 +762,6 @@ unregisterActiveThread(NSThread *thread)
       [(GSRunLoopThreadInfo*)thread->_runLoopInfo invalidate];
       RELEASE(thread);
 
-      [[NSGarbageCollector defaultCollector] enableCollectorForPointer: thread];
       pthread_setspecific(thread_object_key, nil);
     }
 }
@@ -784,9 +781,12 @@ unregisterActiveThread(NSThread *thread)
     {
       t = [self new];
       t->_active = YES;
-      [[NSGarbageCollector defaultCollector] disableCollectorForPointer: t];
       pthread_setspecific(thread_object_key, t);
       GS_CONSUMED(t);
+      if (defaultThread != nil && t != defaultThread)
+        {
+          gnustep_base_thread_callback();
+        }
       return YES;
     }
   return NO;

@@ -26,14 +26,11 @@
 #import "common.h"
 #import	"Foundation/NSGarbageCollector.h"
 
-static NSGarbageCollector	*collector = nil;
-static unsigned			disabled = 0;
-
 @implementation	NSGarbageCollector
 
 + (id) defaultCollector
 {
-  return collector;
+  return nil;
 }
 
 - (void) collectIfNeeded
@@ -68,12 +65,8 @@ static unsigned			disabled = 0;
 
 - (id) init
 {
-  if (self != collector)
-    {
-      [self dealloc];
-      self = nil;
-    }
-  return self;
+  [self dealloc];
+  return nil;
 }
 
 - (BOOL) isCollecting
@@ -83,11 +76,7 @@ static unsigned			disabled = 0;
 
 - (BOOL) isEnabled
 {
-  if (disabled)
-    {
-      return NO;
-    }
-  return YES;
+  return NO;
 }
 
 - (NSZone*) zone
