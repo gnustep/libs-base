@@ -5732,19 +5732,43 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       GSMimeHeader	*h = [self headerNamed: @"content-transfer-encoding"];
       NSString		*v = [h value];
 
-      if (nil == h
-	|| YES == [v isEqualToString: @"binary"]
+      /* If there's no header then the implied encoding is 7bit.
+       * When there is a header, there are trwo possible 8bit encodings
+       * that we need to deal with...
+       */
+      if (YES == [v isEqualToString: @"binary"]
 	|| YES == [v isEqualToString: @"8bit"])
 	{
           GSMimeHeader  *t = [self headerNamed: @"content-type"];
+          NSString	*charset = [t parameterForKey: @"charset"];
+          BOOL          isText = (nil == charset) ? NO : YES;
           NSString      *v;
 
-	  if ([[t objectForKey: @"Type"] isEqualToString: @"text"] == YES)
-	    {
-	      NSString		*charset;
+          /* The presence of a charset parameter implies that the content
+           * is text, but if it's missing we may still have text content
+           */
+          if (NO == isText)
+            {
+              NSString  *type = [t objectForKey: @"Type"];
+
+              if ([type isEqualToString: @"text"] == YES)
+                {
+                  isText = YES;
+                }
+              else if ([type isEqualToString: @"application"] == YES)
+                {
+                  NSString      *subtype = [t objectForKey: @"Subtype"];
+
+                  if ([subtype isEqualToString: @"json"] == YES)
+                    {
+                      isText = YES;
+                    }
+                }
+            }
+          if (YES == isText)
+            {
 	      NSStringEncoding	e;
 
-	      charset = [t parameterForKey: @"charset"];
 	      e = [documentClass encodingFromCharset: charset];
 #if     defined(NeXT_Foundation_LIBRARY)
 	      if (e != NSASCIIStringEncoding)
@@ -6658,7 +6682,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 	  if (encoding != nil)
 	    {
-              /* Not OK ... need to change conten transfer encoding.
+              /* Not OK ... need to change content transfer encoding.
                */
               if (YES == want7Bit)
                 {
