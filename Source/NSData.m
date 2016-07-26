@@ -52,10 +52,12 @@
  *		    NSDataMappedFile		Memory mapped files.
  *		    NSDataShared		Extension for shared memory.
  *		    NSDataFinalized		For GC of non-GC data.
+ *          NSDataWithDeallocatorBlock Adds custom deallocation behaviour
  *	    NSMutableData			Abstract base class.
  *		NSMutableDataMalloc		Concrete class.
  *		    NSMutableDataShared		Extension for shared memory.
  *		    NSDataMutableFinalized	For GC of non-GC data.
+ *          NSMutableDataWithDeallocatorBlock Adds custom deallocation behaviour
  *
  *	NSMutableDataMalloc MUST share it's initial instance variable layout
  *	with NSDataMalloc so that it can use the 'behavior' code to inherit
@@ -126,6 +128,8 @@
 static Class	dataStatic;
 static Class	dataMalloc;
 static Class	mutableDataMalloc;
+static Class	dataBlock;
+static Class	mutableDataBlock;
 static Class	NSDataAbstract;
 static Class	NSMutableDataAbstract;
 static SEL	appendSel;
@@ -390,6 +394,13 @@ failure:
 @interface	NSDataMalloc : NSDataStatic
 @end
 
+@interface NSDataWithDeallocatorBlock : NSDataMalloc
+{
+  @private
+  GSDataDeallocatorBlock _deallocator;
+}
+@end
+
 @interface	NSMutableDataMalloc : NSMutableData
 {
   NSUInteger	length;
@@ -400,6 +411,13 @@ failure:
 }
 /* Increase capacity to at least the specified minimum value.	*/
 - (void) _grow: (NSUInteger)minimum;
+@end
+
+@interface NSMutableDataWithDeallocatorBlock : NSMutableDataMalloc
+{
+  @private
+  GSDataDeallocatorBlock _deallocator;
+}
 @end
 
 #ifdef	HAVE_MMAP
@@ -445,7 +463,9 @@ failure:
       NSMutableDataAbstract = [NSMutableData class];
       dataStatic = [NSDataStatic class];
       dataMalloc = [NSDataMalloc class];
+      dataBlock = [NSDataWithDeallocatorBlock class];
       mutableDataMalloc = [NSMutableDataMalloc class];
+      mutableDataBlock = [NSMutableDataWithDeallocatorBlock class];
       appendSel = @selector(appendBytes:length:);
       appendImp = [mutableDataMalloc instanceMethodForSelector: appendSel];
     }
@@ -819,6 +839,14 @@ failure:
 - (id) initWithBytesNoCopy: (void*)aBuffer
 		    length: (NSUInteger)bufferSize
 	      freeWhenDone: (BOOL)shouldFree
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (instancetype) initWithBytesNoCopy: (void*)bytes
+                              length: (NSUInteger)length
+                         deallocator: (GSDataDeallocatorBlock)deallocator
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -3300,6 +3328,37 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
+- (instancetype) initWithBytesNoCopy: (void*)buf
+                              length: (NSUInteger)len
+                         deallocator: (GSDataDeallocatorBlock)deallocator
+{
+  if (buf == NULL && len > 0)
+    {
+      [self release];
+      [NSException raise: NSInvalidArgumentException
+        format: @"[%@-initWithBytesNoCopy:length:deallocator:] called with "
+          @"length but NULL bytes", NSStringFromClass([self class])];
+    }
+  else if (NULL == deallocator)
+    {
+      // For a nil deallocator we can just swizzle into a static data object
+      GSClassSwizzle(self, dataStatic);
+      bytes = buf;
+      length = len;
+      return self;
+    }
+
+  /* This is a bit unfortunate: Our implementation has no space to hold the
+   * deallocator block ivar in NSDataMalloc, so if we are invoked via this
+   * initialiser, we have to undo the previous allocation and reallocate
+   * ourselves as NSDataWithDeallocatorBlock.
+   */
+  [self release];
+  return [[dataBlock alloc] initWithBytesNoCopy: buf
+                                         length: len
+                                    deallocator: deallocator];
+}
+
 - (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   NSUInteger    size = GSPrivateMemorySize(self, exclude);
@@ -3311,6 +3370,38 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return size;
 }
 
+@end
+
+@implementation NSDataWithDeallocatorBlock
+- (instancetype) initWithBytesNoCopy: (void*)buf
+                              length: (NSUInteger)len
+                         deallocator: (GSDataDeallocatorBlock)deallocator
+{
+  if (buf == NULL && len > 0)
+    {
+      [self release];
+      [NSException raise: NSInvalidArgumentException
+        format: @"[%@-initWithBytesNoCopy:length:deallocator:] called with "
+          @"length but NULL bytes", NSStringFromClass([self class])];
+    }
+
+  bytes = buf;
+  length = len;
+  ASSIGN(_deallocator, deallocator);
+  return self;
+}
+
+- (void) dealloc
+{
+  if (_deallocator != NULL)
+    {
+      CALL_BLOCK(_deallocator, bytes, length);
+    }
+  // Clear out the ivars so that super doesn't double free.
+  bytes = NULL;
+  length = 0;
+  [super dealloc];
+}
 @end
 
 
@@ -3607,6 +3698,35 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
     }
   return self;
+}
+
+- (instancetype) initWithBytesNoCopy: (void*)buf
+                              length: (NSUInteger)len
+                         deallocator: (GSDataDeallocatorBlock)deallocator
+{
+  if (buf == NULL && len > 0)
+    {
+      [self release];
+      [NSException raise: NSInvalidArgumentException
+        format: @"[%@-initWithBytesNoCopy:length:deallocator:] called with "
+          @"length but NULL bytes", NSStringFromClass([self class])];
+    }
+  else if (NULL == deallocator)
+    {
+      // Can reuse this class.
+      return [self initWithBytesNoCopy: buf
+                                length: len
+                          freeWhenDone: NO];
+    }
+
+  /*
+   * Custom deallocator. Need to re-allocate as an instance of
+   * NSMutableDataWithDeallocatorBlock
+   */
+  [self release];
+  return [[mutableDataBlock alloc] initWithBytesNoCopy: buf
+                                                length: len
+                                           deallocator: deallocator];
 }
 
 // THIS IS THE DESIGNATED INITIALISER
@@ -4104,6 +4224,105 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       size += capacity;
     }
   return size;
+}
+
+@end
+
+@implementation NSMutableDataWithDeallocatorBlock
+
++ (id) allocWithZone: (NSZone*)z
+{
+  return NSAllocateObject(mutableDataBlock, 0, z);
+}
+
+- (instancetype) initWithBytesNoCopy: (void*)buf
+                              length: (NSUInteger)len
+                         deallocator: (GSDataDeallocatorBlock)deallocator
+{
+  if (buf == NULL && len > 0)
+    {
+      [self release];
+      [NSException raise: NSInvalidArgumentException
+        format: @"[%@-initWithBytesNoCopy:length:deallocator:] called with "
+          @"length but NULL bytes", NSStringFromClass([self class])];
+    }
+
+  /* The assumption here is that the superclass if fully concrete and will
+   * not return a different instance. This invariant holds for the current
+   * implementation of NSMutableDataMalloc, but not NSDataMalloc.
+   */
+  if (nil == (self = [super initWithBytesNoCopy: buf
+                                         length: len
+                                   freeWhenDone: NO]))
+    {
+      return nil;
+    }
+  ASSIGN(_deallocator, deallocator);
+  return self;
+}
+
+- (void) dealloc
+{
+  if (_deallocator != NULL)
+    {
+      CALL_BLOCK(_deallocator, bytes, capacity);
+      // Clear out the ivars so that super doesn't double free.
+      bytes = NULL;
+      length = 0;
+      DESTROY(_deallocator);
+    }
+
+  [super dealloc];
+}
+
+- (id) setCapacity: (NSUInteger)size
+{
+  /* We need to override capacity modification so that we correctly call the
+   * block when we are operating on the initial allocation, usual malloc/free
+   * machinery otherwise. */
+  if (size != capacity)
+    {
+      void	*tmp;
+
+      tmp = NSZoneMalloc(zone, size);
+      if (tmp == 0)
+	{
+	  [NSException raise: NSMallocException
+	    format: @"Unable to set data capacity to '%"PRIuPTR"'", size];
+	}
+      if (bytes)
+	{
+	  memcpy(tmp, bytes, capacity < size ? capacity : size);
+	  if (_deallocator != NULL)
+	    {
+          CALL_BLOCK(_deallocator, bytes, capacity);
+          DESTROY(_deallocator);
+	      zone = NSDefaultMallocZone();
+	    }
+	  else
+	    {
+	      NSZoneFree(zone, bytes);
+	    }
+	}
+      else if (_deallocator != NULL)
+	{
+      CALL_BLOCK(_deallocator, bytes, capacity);
+      DESTROY(_deallocator);
+	  zone = NSDefaultMallocZone();
+	}
+      bytes = tmp;
+      capacity = size;
+      growth = capacity/2;
+      if (growth == 0)
+	{
+	  growth = 1;
+	}
+    }
+  if (size < length)
+    {
+      length = size;
+    }
+  return self;
 }
 
 @end
