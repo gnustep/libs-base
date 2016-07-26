@@ -1,5 +1,11 @@
 2016-07-26  Niels Grewe <niels.grewe@halbordnung.de>
 
+	* Source/NSDictionary.m
+	* Tests/base/NSDictionary/general.m:
+	Fix -getObjects:andKeys:
+	
+2016-07-26  Niels Grewe <niels.grewe@halbordnung.de>
+
 	* Headers/Foundation/NSData.h
 	* Source/NSData.m
 	* Tests/base/NSData/general.m:
@@ -66,7 +72,7 @@
 
 	* Headers/Foundation/NSObjCRuntime.h
 	* Headers/GNUstepBase/GNUstep.h:
-	
+
 	Add NS_DESIGNATED_INITIALIZER macro
 
 2016-07-12  Richard Frith-Macdonald <rfm@gnu.org>
@@ -78,7 +84,7 @@
 	like a date in the distant past (ie loop terminates at once), and the
 	(-runUntilDate:) method fires any pending timers when given a date in
 	the past.
-	
+
 2016-07-12  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/GSICUString.m (UTextNSStringAccess): Fix unsigned
@@ -170,9 +176,9 @@
        to use a directory whose name is of the form architecture/library-combo
        rather than nested directories of the form cpu/os-abi/library-combo.
        The architecture name format is a sanitised triplet cpu-os-abi (where
-       previously we had cpu/os-abi). 
-       These changes are the first step in making GNUstep work seamlessly 
-       with Debian multiarch.  To use them you will need to rebuild your 
+       previously we had cpu/os-abi).
+       These changes are the first step in making GNUstep work seamlessly
+       with Debian multiarch.  To use them you will need to rebuild your
        entire gnustep installation using a version of gnustep-make which
        has correspoinding changes to know where to install bbinaries and
        resources.  However, the changes should have no effect on a flattened
@@ -226,7 +232,7 @@
 	* Tests/base/NSRegularExpression/basic.m:
 
 	Implement resource limits for regular expression evaluation. Tweaked
-	to roughly match the Cocoa behaviour, but can be changed through 
+	to roughly match the Cocoa behaviour, but can be changed through
 	the GSRegularExpressionWorkLimit user default.
 
 2016-06-17  Niels Grewe <niels.grewe@halbordnung.de>
@@ -276,8 +282,8 @@
 
 2016-05-27  Niels Grewe <niels.grewe@halbordnung.de>
 
-  	* Tools/AGSParser.m: Ignore __asm__ directives 
-	
+  	* Tools/AGSParser.m: Ignore __asm__ directives
+
 2016-05-19 Seong Gu Lee <sgleehd@gmail.com>
 
 	* GNUmakefile:
