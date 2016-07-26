@@ -1,5 +1,14 @@
 2016-07-26  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSStream.m:
+	* Source/GSSocketStream.m:
+	In -close we should close the underlying file descriptor (even if the
+	stream has not formally been opened yet) to ensure we don't leak it.
+	In -dealloc, if the file descriptor still exists, we should call the
+	-close method.
+
+2016-07-26  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/NSObject+GNUstepbase.m: use separate lock to
 	protect at exit methods ... avoid conflict/deadlock with multithreaded
 	notification change.

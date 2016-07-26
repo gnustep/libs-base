@@ -1447,7 +1447,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) dealloc
 {
-  if ([self _isOpened])
+  if (_sock != INVALID_SOCKET)
     {
       [self close];
     }
@@ -1821,17 +1821,24 @@ setNonBlocking(SOCKET fd)
 
 - (void) close
 {
-  if (_currentStatus == NSStreamStatusNotOpen)
+  /* If the socket descriptor is still present, we need to close it to
+   * avoid a leak no matter what the nominal state of the stream is.
+   * The descriptor is created before the stream is formally opened.
+   */
+  if (INVALID_SOCKET == _sock)
     {
-      NSDebugMLLog(@"NSStream",
-        @"Attempt to close unopened stream %@", self);
-      return;
-    }
-  if (_currentStatus == NSStreamStatusClosed)
-    {
-      NSDebugMLLog(@"NSStream",
-        @"Attempt to close already closed stream %@", self);
-      return;
+      if (_currentStatus == NSStreamStatusNotOpen)
+        {
+          NSDebugMLLog(@"NSStream",
+            @"Attempt to close unopened stream %@", self);
+          return;
+        }
+      if (_currentStatus == NSStreamStatusClosed)
+        {
+          NSDebugMLLog(@"NSStream",
+            @"Attempt to close already closed stream %@", self);
+          return;
+        }
     }
   [_handler bye];
 #if	defined(_WIN32)
@@ -2311,17 +2318,24 @@ setNonBlocking(SOCKET fd)
 
 - (void) close
 {
-  if (_currentStatus == NSStreamStatusNotOpen)
+  /* If the socket descriptor is still present, we need to close it to
+   * avoid a leak no matter what the nominal state of the stream is.
+   * The descriptor is created before the stream is formally opened.
+   */
+  if (INVALID_SOCKET == _sock)
     {
-      NSDebugMLLog(@"NSStream",
-        @"Attempt to close unopened stream %@", self);
-      return;
-    }
-  if (_currentStatus == NSStreamStatusClosed)
-    {
-      NSDebugMLLog(@"NSStream",
-        @"Attempt to close already closed stream %@", self);
-      return;
+      if (_currentStatus == NSStreamStatusNotOpen)
+        {
+          NSDebugMLLog(@"NSStream",
+            @"Attempt to close unopened stream %@", self);
+          return;
+        }
+      if (_currentStatus == NSStreamStatusClosed)
+        {
+          NSDebugMLLog(@"NSStream",
+            @"Attempt to close already closed stream %@", self);
+          return;
+        }
     }
   [_handler bye];
 #if	defined(_WIN32)
