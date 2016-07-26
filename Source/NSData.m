@@ -3396,6 +3396,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (_deallocator != NULL)
     {
       CALL_BLOCK(_deallocator, bytes, length);
+      DESTROY(_deallocator);
     }
   // Clear out the ivars so that super doesn't double free.
   bytes = NULL;
