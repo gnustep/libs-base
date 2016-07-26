@@ -1,3 +1,12 @@
+2016-07-26  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Headers/Foundation/NSData.h
+	* Source/NSData.m
+	* Tests/base/NSData/general.m:
+	Implement OS X 10.9 method -initWithBytesNoCopy:length:deallocator:
+	that allows customising data deallocation based on a caller
+	supplied block. Also adds test cases for this functionality.
+
 2016-07-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSStream.m:
