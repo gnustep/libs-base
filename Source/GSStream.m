@@ -720,8 +720,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) dealloc
 {
-  if ([self _isOpened])
-    [self close];
+  if (_currentStatus != NSStreamStatusNotOpen
+    && _currentStatus != NSStreamStatusClosed)
+    {
+      [self close];
+    }
   RELEASE(_data);
   [super dealloc];
 }
