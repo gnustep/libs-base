@@ -145,6 +145,20 @@ struct exitLink {
 static struct exitLink	*exited = 0;
 static BOOL		enabled = NO;
 static BOOL		shouldCleanUp = NO;
+static NSLock           *exitLock = nil;
+
+static inline void setup()
+{
+  if (nil == exitLock)
+    {
+      [gnustep_global_lock lock];
+      if (nil == exitLock)
+        {
+          exitLock = [NSLock new];
+        } 
+      [gnustep_global_lock unlock];
+    }
+}
 
 static void
 handleExit()
@@ -197,10 +211,11 @@ handleExit()
   l->at = anAddress;
   l->obj = [*anAddress retain];
   l->sel = 0;
-  [gnustep_global_lock lock];
+  setup();
+  [exitLock lock];
   l->next = exited;
   exited = l;
-  [gnustep_global_lock unlock];
+  [exitLock unlock];
   return l->obj;
 }
 
@@ -212,10 +227,11 @@ handleExit()
   l->at = 0;
   l->obj = [anObject retain];
   l->sel = 0;
-  [gnustep_global_lock lock];
+  setup();
+  [exitLock lock];
   l->next = exited;
   exited = l;
-  [gnustep_global_lock unlock];
+  [exitLock unlock];
   return l->obj;
 }
 
@@ -247,12 +263,13 @@ handleExit()
       return NO;	// method not implemented in this class
     }
 
-  [gnustep_global_lock lock];
+  setup();
+  [exitLock lock];
   for (l = exited; l != 0; l = l->next)
     {
       if (l->obj == self && sel_isEqual(l->sel, sel))
 	{
-	  [gnustep_global_lock unlock];
+	  [exitLock unlock];
 	  return NO;	// Already registered
 	}
     }
@@ -267,7 +284,7 @@ handleExit()
       atexit(handleExit);
       enabled = YES;
     }
-  [gnustep_global_lock unlock];
+  [exitLock unlock];
   return YES;
 }
 
@@ -275,13 +292,14 @@ handleExit()
 {
   if (YES == aFlag)
     {
-      [gnustep_global_lock lock];
+      setup();
+      [exitLock lock];
       if (NO == enabled)
 	{
 	  atexit(handleExit);
 	  enabled = YES;
 	}
-      [gnustep_global_lock unlock];
+      [exitLock unlock];
       shouldCleanUp = YES;
     }
   else
