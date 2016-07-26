@@ -863,10 +863,11 @@ static SEL	appSel;
 - (void)getObjects: (__unsafe_unretained id[])objects
            andKeys: (__unsafe_unretained id<NSCopying>[])keys
 {
-  int i=0;
+  NSUInteger i=0;
   FOR_IN(id, key, self)
-    keys[i] = key;
-    objects[i] = [self objectForKey: key];
+    if (keys != NULL) keys[i] = key;
+    if (objects != NULL) objects[i] = [self objectForKey: key];
+    i++;
   END_FOR_IN(self)
 }
 
