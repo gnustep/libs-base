@@ -123,6 +123,7 @@ static	Class		documentClass = 0;
 static	Class		headerClass = 0;
 
 static BOOL             oldStyleFolding = NO;
+static NSString         *text7bitEncoding = @"quoted-printable";
 
 typedef BOOL (*boolIMP)(id, SEL, id);
 
@@ -4500,6 +4501,14 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 @implementation	GSMimeDocument
 
++ (void) setText7bitBase64: (BOOL)aFlag
+{
+  if (YES == aFlag)
+    text7bitEncoding = @"base64";
+  else
+    text7bitEncoding = @"quoted-printable";
+}
+
 /*
  * Examine xml data to find out the characterset needed to convert from
  * binary data to an NSString object.
@@ -5776,7 +5785,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	      if (e != NSASCIIStringEncoding && e != NSUTF7StringEncoding)
 #endif
 		{
-                  v = @"quoted-printable";
+                  v = text7bitEncoding;
                 }
               else
                 {
@@ -6686,7 +6695,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                */
               if (YES == want7Bit)
                 {
-                  encoding = @"quoted-printable";
+                  encoding = text7bitEncoding;
                 }
               enc = [self setHeader: @"Content-Transfer-Encoding"
                               value: encoding

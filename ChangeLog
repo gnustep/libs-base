@@ -1,3 +1,9 @@
+2016-07-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/NSObject+GNUstepbase.m: use separate lock to
+	protect at exit methods ... avoid conflict/deadlock with multithreaded
+	notification change.
+
 2016-07-18  Larry Campbell <lcampbel@akamai.com>
 
 	* Source/NSThread.m: Send notification about becoming multithreaded
