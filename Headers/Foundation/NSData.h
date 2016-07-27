@@ -102,11 +102,12 @@ DEFINE_BLOCK_TYPE(GSDataDeallocatorBlock, void, void*, NSUInteger);
  * <override-subclass/>
  * Initialize the receiver to hold memory pointed to by bytes without copying.
  * When the receiver is deallocated, the memory will be freed using the user
- * supplied deallocator block.
+ * supplied deallocBlock. Note that passing a block that (either directly or
+ * indirectly) holds a strong reference the receiver will cause a retain cycle. 
  */
 - (instancetype) initWithBytesNoCopy: (void*)bytes
                               length: (NSUInteger)length
-                         deallocator: (GSDataDeallocatorBlock)deallocator;
+                         deallocator: (GSDataDeallocatorBlock)deallocBlock;
 #endif
 - (id) initWithBytes: (const void*)aBuffer
 	      length: (NSUInteger)bufferSize;
