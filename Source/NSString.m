@@ -5580,7 +5580,7 @@ static NSFileManager *fm = nil;
  */
 - (NSComparisonResult) caseInsensitiveCompare: (NSString*)aString
 {
-  if (string == self) return NSOrderedSame;
+  if (aString == self) return NSOrderedSame;
   return [self compare: aString
 	       options: NSCaseInsensitiveSearch
 		 range: ((NSRange){0, [self length]})];
