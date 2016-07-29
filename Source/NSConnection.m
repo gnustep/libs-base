@@ -338,7 +338,7 @@ GS_PRIVATE_INTERNAL(NSConnection)
 - (void) _doneInRmc: (NSPortCoder*)c;
 - (void) _failInRmc: (NSPortCoder*)c;
 - (void) _failOutRmc: (NSPortCoder*)c;
-- (NSPortCoder*) _getReplyRmc: (int)sn;
+- (NSPortCoder*) _getReplyRmc: (int)sn for: (const char*)request;
 - (NSPortCoder*) _newInRmc: (NSMutableArray*)components;
 - (NSPortCoder*) _newOutRmc: (int)sequence generate: (int*)sno reply: (BOOL)f;
 - (void) _portIsInvalid: (NSNotification*)notification;
@@ -1648,7 +1648,7 @@ static NSLock	*cached_proxies_gate = nil;
       op = [self _newOutRmc: 0 generate: &seq_num reply: YES];
       [self _sendOutRmc: op type: ROOTPROXY_REQUEST];
 
-      ip = [self _getReplyRmc: seq_num];
+      ip = [self _getReplyRmc: seq_num for: "rootproxy"];
       [ip decodeValueOfObjCType: @encode(id) at: &newProxy];
       [self _doneInRmc: ip];
     }
@@ -1953,6 +1953,7 @@ static NSLock	*cached_proxies_gate = nil;
   NSPortCoder	*op;
   BOOL		outParams;
   BOOL		needsResponse;
+  const char	*name;
   const char	*type;
   unsigned	seq;
   NSRunLoop	*runLoop = GSRunLoopForThread(nil);
@@ -2022,8 +2023,9 @@ static NSLock	*cached_proxies_gate = nil;
     }
 
   [self _sendOutRmc: op type: METHOD_REQUEST];
+  name = sel_getName([inv selector]);
   NSDebugMLLog(@"NSConnection", @"Sent message %s RMC %d to 0x%"PRIxPTR,
-    sel_getName([inv selector]), seq, (NSUInteger)self);
+    name, seq, (NSUInteger)self);
 
   if (needsResponse == NO)
     {
@@ -2039,14 +2041,13 @@ static NSLock	*cached_proxies_gate = nil;
       if (node != 0 && node->value.obj != dummyObject)
 	{
 	  BOOL	is_exception = NO;
-	  SEL	sel = [inv selector];
 
 	  [node->value.obj decodeValueOfObjCType: @encode(BOOL)
 					      at: &is_exception];
 	  if (is_exception == YES)
-	    NSLog(@"Got exception with %@", NSStringFromSelector(sel));
+	    NSLog(@"Got exception with %s", name);
 	  else
-	    NSLog(@"Got response with %@", NSStringFromSelector(sel));
+	    NSLog(@"Got response with %@", name);
 	  [self _doneInRmc: node->value.obj];
 	}
       GSIMapRemoveKey(IreplyMap, (GSIMapKey)(NSUInteger)seq);
@@ -2066,7 +2067,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  [NSException raise: NSGenericException
 	    format: @"connection waiting for request was shut down"];
 	}
-      aRmc = [self _getReplyRmc: seq];
+      aRmc = [self _getReplyRmc: seq for: name];
 
       /*
        * Find out if the server is returning an exception instead
@@ -2188,7 +2189,7 @@ static NSLock	*cached_proxies_gate = nil;
   [op encodeValueOfObjCType: ":" at: &sel];
   [op encodeValueOfObjCType: @encode(unsigned) at: &target];
   [self _sendOutRmc: op type: METHODTYPE_REQUEST];
-  ip = [self _getReplyRmc: seq_num];
+  ip = [self _getReplyRmc: seq_num for: "methodtype"];
   [ip decodeValueOfObjCType: @encode(char*) at: &type];
   data = type ? [NSData dataWithBytes: type length: strlen(type)+1] : nil;
   [self _doneInRmc: ip];
@@ -3043,7 +3044,7 @@ static NSLock	*cached_proxies_gate = nil;
  * while we run the NSRunLoop.  Raise exception if we don't get anything
  * before timing out.
  */
-- (NSPortCoder*) _getReplyRmc: (int)sn
+- (NSPortCoder*) _getReplyRmc: (int)sn for: (const char*)request
 {
   NSPortCoder		*rmc = nil;
   GSIMapNode		node = 0;
@@ -3059,7 +3060,8 @@ static NSLock	*cached_proxies_gate = nil;
   if (IisValid == NO)
     {
       [NSException raise: NSObjectInaccessibleException
-		  format: @"Connection has been invalidated"];
+        format: @"Connection has been invalidated for reply %d (%s)",
+        sn, request];
     }
 
   /*
@@ -3078,7 +3080,8 @@ static NSLock	*cached_proxies_gate = nil;
       else
 	{
 	  [NSException raise: NSObjectInaccessibleException
-		      format: @"Waiting for reply in wrong thread"];
+            format: @"Waiting for reply %d (%s) in wrong thread",
+            sn, request];
 	}
     }
 
@@ -3109,8 +3112,7 @@ static NSLock	*cached_proxies_gate = nil;
       BOOL	warned = NO;
 
       if (debug_connection > 5)
-	NSLog(@"Waiting for reply sequence %d on %@",
-	  sn, self);
+	NSLog(@"Waiting for reply %d (%s) on %@", sn, request, self);
       GS_M_LOCK(IrefGate); isLocked = YES;
       while (IisValid == YES
 	&& (node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)(NSUInteger)sn)) != 0
@@ -3169,8 +3171,8 @@ static NSLock	*cached_proxies_gate = nil;
 	  else if (warned == NO && [start_date timeIntervalSinceNow] <= -300.0)
 	    {
 	      warned = YES;
-	      NSLog(@"WARNING ... waiting for reply %u since %@ on %@",
-		sn, start_date, self);
+	      NSLog(@"WARNING ... waiting for reply %u (%s) since %@ on %@",
+		sn, request, start_date, self);
 	    }
 	  GS_M_LOCK(IrefGate); isLocked = YES;
 	}
@@ -3190,19 +3192,22 @@ static NSLock	*cached_proxies_gate = nil;
       if (rmc == nil)
 	{
 	  [NSException raise: NSInternalInconsistencyException
-		      format: @"no reply message available"];
+            format: @"no reply available %d (%s)",
+            sn, request];
 	}
       if (rmc == dummyObject)
 	{
 	  if (IisValid == YES)
 	    {
 	      [NSException raise: NSPortTimeoutException
-			  format: @"timed out waiting for reply"];
+                format: @"timed out waiting for reply %d (%s)",
+                sn, request];
 	    }
 	  else
 	    {
 	      [NSException raise: NSInvalidReceivePortException
-			  format: @"invalidated while awaiting reply"];
+                format: @"invalidated while awaiting reply %d (%s)",
+                sn, request];
 	    }
 	}
     }
@@ -3216,8 +3221,8 @@ static NSLock	*cached_proxies_gate = nil;
     }
   NS_ENDHANDLER
 
-  NSDebugMLLog(@"NSConnection", @"Consuming reply RMC %d on %"PRIxPTR,
-    sn, (NSUInteger)self);
+  NSDebugMLLog(@"NSConnection", @"Consuming reply %d (%s) on %"PRIxPTR,
+    sn, request, (NSUInteger)self);
   return rmc;
 }
 
@@ -3789,7 +3794,7 @@ static NSLock	*cached_proxies_gate = nil;
 	      [op encodeValueOfObjCType: @encode(typeof(target)) at: &target];
 	      [self _sendOutRmc: op type: PROXY_RETAIN];
 
-	      ip = [self _getReplyRmc: seq_num];
+	      ip = [self _getReplyRmc: seq_num for: "retain"];
 	      [ip decodeValueOfObjCType: @encode(id) at: &result];
 	      [self _doneInRmc: ip];
 	      if (result != nil)
