@@ -2502,12 +2502,15 @@ static NSLock	*cached_proxies_gate = nil;
       const char	*tmptype;
       const char	*etmptype;
       id		tmp;
-      id		object;
+      id		target;
       SEL		selector;
       BOOL		is_exception = NO;
+      BOOL		is_async = NO;
+      BOOL		is_void = NO;
       unsigned		flags;
       int		argnum;
-      BOOL		out_parameters = NO;
+      unsigned		in_parameters = 0;
+      unsigned		out_parameters = 0;
       NSMethodSignature	*sig;
       const char	*encoded_types = forward_type;
 
@@ -2535,9 +2538,10 @@ static NSLock	*cached_proxies_gate = nil;
       [aRmc decodeValueOfObjCType: @encode(char*) at: &forward_type];
 
       if (debug_connection > 1)
-      NSLog(
-	@"Handling message (sig %s) RMC %d from %p",
-	forward_type, seq, self);
+        {
+          NSLog(@"Handling message (sig %s) RMC %d from %p",
+	    forward_type, seq, self);
+	}
 
       IreqInCount++;	/* Handling an incoming request. */
 
@@ -2550,7 +2554,7 @@ static NSLock	*cached_proxies_gate = nil;
        * Use the -decodeObject method to ensure that the target of the
        * invocation is autoreleased and will be deallocated when we finish.
        */
-      object = [decoder decodeObject];
+      target = [decoder decodeObject];
 
       /* Decode the selector, (which is the second argument to a method). */
       /* xxx @encode(SEL) produces "^v" in gcc 2.5.8.  It should be ":" */
@@ -2564,12 +2568,12 @@ static NSLock	*cached_proxies_gate = nil;
 	 as the ENCODED_TYPES string, but it will have different register
 	 and stack locations if the ENCODED_TYPES came from a machine of a
 	 different architecture. */
-      sig = [object methodSignatureForSelector: selector];
+      sig = [target methodSignatureForSelector: selector];
       if (nil == sig)
 	{
 	  [NSException raise: NSInvalidArgumentException
 		       format: @"decoded object %p doesn't handle %s",
-	    object, sel_getName(selector)];
+	    target, sel_getName(selector)];
 	}
       type = [sig methodType];
 
@@ -2587,7 +2591,7 @@ static NSLock	*cached_proxies_gate = nil;
 
       tmptype = skip_argspec (type);
       etmptype = skip_argspec (etmptype);
-      [inv setTarget: object];
+      [inv setTarget: target];
 
       tmptype = skip_argspec (tmptype);
       etmptype = skip_argspec (etmptype);
@@ -2629,7 +2633,9 @@ static NSLock	*cached_proxies_gate = nil;
 		   because the method may have changed it.  Set
 		   OUT_PARAMETERS accordingly. */
 		if ((flags & _F_OUT) || !(flags & _F_IN))
-		  out_parameters = YES;
+		  out_parameters++;
+		else
+		  in_parameters++;
 		/* If the char* is qualified as an IN parameter, or not
 		   explicity qualified as an OUT parameter, then decode it.
 		   Note: the decoder allocates memory for holding the
@@ -2651,7 +2657,9 @@ static NSLock	*cached_proxies_gate = nil;
 		   the method is run, because the method may have changed
 		   it.  Set OUT_PARAMETERS accordingly. */
 		if ((flags & _F_OUT) || !(flags & _F_IN))
-		  out_parameters = YES;
+		  out_parameters++;
+		else
+		  in_parameters++;
 
 		/* Handle an argument that is a pointer to a non-char.  But
 		   (void*) and (anything**) is not allowed. */
@@ -2670,6 +2678,7 @@ static NSLock	*cached_proxies_gate = nil;
 		break;
 
 	      default:
+		in_parameters++;
 		datum = alloca (objc_sizeof_type (tmptype));
 		if (*tmptype == _C_ID)
 		  {
@@ -2689,8 +2698,40 @@ static NSLock	*cached_proxies_gate = nil;
       decoder = nil;
       [self _doneInRmc: tmp];
 
+      /* Get the qualifier type of the return value. */
+      flags = objc_get_type_qualifiers (encoded_types);
+      /* Get the return type; store it our two temporary char*'s. */
+      etmptype = objc_skip_type_qualifiers (encoded_types);
+      tmptype = objc_skip_type_qualifiers (type);
+
+      if (_C_VOID == *tmptype)
+	{
+	  is_void = YES;
+	}
+
+      /* If this is a oneway void with no out parameters, we don't need to
+       * send back any response.
+       */
+      if (YES == is_void && (flags & _F_ONEWAY) && !out_parameters)
+        {
+	  is_async = YES;
+	}
+
+      NSDebugMLLog(@"RMC", @"RMC %d %s method '%s' on %p(%s)", seq,
+	(YES == is_async) ? "async" : "invoke",
+	selector ? sel_getName(selector) : "nil",
+	target, target ? class_getName([target class]) : "nil");
+
       /* Invoke the method! */
       [inv invoke];
+
+      if (YES == is_async)
+        {
+	  tmp = inv;
+	  inv = nil;
+	  [tmp release];
+	  NS_VOIDRETURN;
+	}
 
       /* It is possible that our connection died while the method was
        * being called - in this case we mustn't try to send the result
@@ -2698,6 +2739,7 @@ static NSLock	*cached_proxies_gate = nil;
        */
       if ([self isValid] == NO)
 	{
+	  NSDebugMLLog(@"RMC", @"RMC %d invalidated ... no return", seq);
 	  tmp = inv;
 	  inv = nil;
 	  [tmp release];
@@ -2710,23 +2752,6 @@ static NSLock	*cached_proxies_gate = nil;
       /* OUT_PARAMETERS should be true here in exactly the same
 	 situations as it was true in cifframe_dissect_call(). */
 
-      /* Get the qualifier type of the return value. */
-      flags = objc_get_type_qualifiers (encoded_types);
-      /* Get the return type; store it our two temporary char*'s. */
-      etmptype = objc_skip_type_qualifiers (encoded_types);
-      tmptype = objc_skip_type_qualifiers (type);
-
-      /* If this is a oneway void with no out parameters, we don't need to
-       * send back any response.
-       */
-      if (*tmptype == _C_VOID && (flags & _F_ONEWAY) && !out_parameters)
-        {
-	  tmp = inv;
-	  inv = nil;
-	  [tmp release];
-	  NS_VOIDRETURN;
-	}
-
       /* We create a new coder object and encode a flag to
        * say that this is not an exception.
        */
@@ -2737,7 +2762,7 @@ static NSLock	*cached_proxies_gate = nil;
 	 a non-oneway void return value, or if there are values that were
 	 passed by reference. */
 
-      if (*tmptype == _C_VOID)
+      if (YES == is_void)
 	{
 	  if ((flags & _F_ONEWAY) == 0)
 	    {
@@ -2820,6 +2845,9 @@ static NSLock	*cached_proxies_gate = nil;
       [tmp release];
       tmp = encoder;
       encoder = nil;
+      NSDebugMLLog(@"RMC", @"RMC %d replying with %s and %u out parameters",
+	seq, (YES == is_void ? "void result" : "result"), out_parameters);
+
       [self _sendOutRmc: tmp type: METHOD_REPLY];
     }
   NS_HANDLER

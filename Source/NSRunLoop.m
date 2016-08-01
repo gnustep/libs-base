@@ -1237,7 +1237,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
           [context endPoll];
 
 	  /* Once a poll has been completed on a context, we can remove that
-	   * context from the stack even if it actually polling at an outer
+	   * context from the stack even if it is actually polling at an outer
 	   * level of re-entrancy ... since the poll we have just done will
 	   * have handled any events that the outer levels would have wanted
 	   * to handle, and the polling for this context will be marked as
