@@ -1236,7 +1236,9 @@ quotedFromString(NSString *aString)
     w_args,
     NULL,      			/* proc attrs */
     NULL,      			/* thread attrs */
-    1,         			/* inherit handles */
+    0,         			/* inherit handles - you would think this should be true but it
+                       it seems that the SetHandleInformation above is all that is
+                       needed */
     0
     |CREATE_NO_WINDOW
 /* One would have thought the the CREATE_NO_WINDOW flag should be used,
