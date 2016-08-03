@@ -91,6 +91,7 @@
 #import	"Foundation/NSDictionary.h"
 #import	"Foundation/NSEnumerator.h"
 #import	"Foundation/NSException.h"
+#import	"Foundation/NSHashTable.h"
 #import	"Foundation/NSHost.h"
 #import	"Foundation/NSNotification.h"
 #import	"Foundation/NSRunLoop.h"
@@ -123,7 +124,12 @@ static	Class		documentClass = 0;
 static	Class		headerClass = 0;
 
 static BOOL             oldStyleFolding = NO;
-static NSString         *text7bitEncoding = @"quoted-printable";
+static NSString         *Cte7bit = @"7bit";
+static NSString         *Cte8bit = @"8bit";
+static NSString         *CteBase64 = @"base64";
+static NSString         *CteBinary = @"binary";
+static NSString         *CteQuotedPrintable = @"quoted-printable";
+static NSString         *CteXuuencode = @"x-uuencode";
 
 typedef BOOL (*boolIMP)(id, SEL, id);
 
@@ -943,7 +949,7 @@ wordData(NSString *word, BOOL *encoded)
 
   name = [info name];
   if ([name isEqualToString: @"content-transfer-encoding"] == YES
-   || [name isEqualToString: @"transfer-encoding"] == YES)
+    || [name isEqualToString: @"transfer-encoding"] == YES)
     {
       value = [[info value] lowercaseString];
       if ([value length] == 0)
@@ -951,23 +957,23 @@ wordData(NSString *word, BOOL *encoded)
 	  NSLog(@"Bad value for %@ header - assume binary encoding", name);
 	  return AUTORELEASE([GSMimeCodingContext new]);
 	}
-      if ([value isEqualToString: @"base64"] == YES)
+      if ([value isEqualToString: CteBase64] == YES)
 	{
 	  return AUTORELEASE([GSMimeBase64DecoderContext new]);
 	}
-      else if ([value isEqualToString: @"quoted-printable"] == YES)
+      else if ([value isEqualToString: CteQuotedPrintable] == YES)
 	{
 	  return AUTORELEASE([GSMimeQuotedDecoderContext new]);
 	}
-      else if ([value isEqualToString: @"binary"] == YES)
+      else if ([value isEqualToString: CteBinary] == YES)
 	{
 	  return AUTORELEASE([GSMimeCodingContext new]);
 	}
-      else if ([value characterAtIndex: 0] == '7')
+      else if ([value isEqualToString: Cte7bit] == YES)
 	{
 	  return AUTORELEASE([GSMimeCodingContext new]);
 	}
-      else if ([value characterAtIndex: 0] == '8')
+      else if ([value isEqualToString: Cte8bit] == YES)
 	{
 	  return AUTORELEASE([GSMimeCodingContext new]);
 	}
@@ -975,7 +981,7 @@ wordData(NSString *word, BOOL *encoded)
 	{
 	  return AUTORELEASE([GSMimeChunkedDecoderContext new]);
 	}
-      else if ([value isEqualToString: @"x-uuencode"] == YES)
+      else if ([value isEqualToString: CteXuuencode] == YES)
 	{
 	  return AUTORELEASE([GSMimeUUCodingContext new]);
 	}
@@ -1738,7 +1744,9 @@ wordData(NSString *word, BOOL *encoded)
   /*
    * Set the header name.
    */
-  [info setName: name];
+  info = [headerClass headerWithName: name
+                               value: nil
+                          parameters: nil];
   name = [info name];
 
   /*
@@ -3351,6 +3359,16 @@ static NSCharacterSet	*tokenSet = nil;
     boolForKey: @"GSMimeOldStyleFolding"];
 }
 
++ (GSMimeHeader*) headerWithName: (NSString*)n
+                           value: (NSString*)v
+                      parameters: (NSDictionary*)p
+{
+  GSMimeHeader  *h;
+
+  h = [[self alloc] initWithName: n value: v parameters: p];
+  return AUTORELEASE(h);
+}
+
 + (void) initialize
 {
   if (nonToken == nil)
@@ -3509,9 +3527,11 @@ static NSCharacterSet	*tokenSet = nil;
     }
   return c;
 } 
+
 - (void) dealloc
 {
   RELEASE(name);
+  RELEASE(lower);
   RELEASE(value);
   TEST_RELEASE(objects);
   TEST_RELEASE(params);
@@ -3534,6 +3554,11 @@ static NSCharacterSet	*tokenSet = nil;
         [super description], [self name], [self value]];
     }
   return desc;
+}
+
+- (NSUInteger) estimatedSize
+{
+  return ([name length] + [value length] + [params count] * 20) + 6;
 }
 
 /** Returns the full value of the header including any parameters and
@@ -3576,7 +3601,7 @@ static NSCharacterSet	*tokenSet = nil;
 
 - (NSUInteger) hash
 {
-  return [[self name] hash];
+  return [lower hash];
 }
 
 - (id) init
@@ -3603,9 +3628,36 @@ static NSCharacterSet	*tokenSet = nil;
 	      value: (NSString*)v
 	 parameters: (NSDictionary*)p
 {
-  [self setName: n];
-  [self setValue: v];
-  [self setParameters: p];
+  n = [headerClass makeToken: n preservingCase: YES];
+  if ([n length] == 0)
+    {
+      n = @"unknown";
+    }
+  ASSIGN(name, n);
+  if ([@"content-type" caseInsensitiveCompare: name]
+    == NSOrderedSame)
+    {
+      n = @"content-type";
+    }
+  else if ([@"content-transfer-encoding" caseInsensitiveCompare: name]
+    == NSOrderedSame)
+    {
+      n = @"content-transfer-encoding";
+    }
+  else
+    {
+      n = [name lowercaseString];
+    }
+  ASSIGN(lower, n);
+
+  if (nil != v)
+    {
+      [self setValue: v];
+    }
+  if (nil != p)
+    {
+      [self setParameters: p];
+    }
   return self;
 }
 
@@ -3639,7 +3691,7 @@ static NSCharacterSet	*tokenSet = nil;
  */
 - (NSString*) name
 {
-  return [self namePreservingCase: NO];
+  return lower;
 }
 
 /**
@@ -3655,7 +3707,7 @@ static NSCharacterSet	*tokenSet = nil;
     }
   else
     {
-      return [name lowercaseString];
+      return lower;
     }
 }
 
@@ -4202,6 +4254,15 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                                     foldedAt: (NSUInteger)fold
 {
   NSMutableData	*md = [NSMutableData dataWithCapacity: 128];
+
+  [self rawMimeDataPreservingCase: preserve foldedAt: fold to: md];
+  return md;
+}
+
+- (void) rawMimeDataPreservingCase: (BOOL)preserve
+                          foldedAt: (NSUInteger)fold
+                                to: (NSMutableData*)md
+{
   NSEnumerator	*e = [params keyEnumerator];
   NSString	*k;
   NSString	*n;
@@ -4210,7 +4271,6 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   BOOL		conv = YES;
   BOOL          ok = YES;
 
-  
   n = [self namePreservingCase: preserve];
   d = [n dataUsingEncoding: NSASCIIStringEncoding];
   if (preserve == YES)
@@ -4342,24 +4402,6 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
         }
     }
   [md appendBytes: "\r\n" length: 2];
-
-  return md;
-}
-
-/**
- * Sets the name of this header ... and removes illegal characters.<br />
- * If given a nil or empty string argument, sets the name to 'unknown'.<br />
- * NB. The value returned by the -name method will be a lowercase version
- * of thae name.
- */
-- (void) setName: (NSString*)s
-{
-  s = [headerClass makeToken: s preservingCase: YES];
-  if ([s length] == 0)
-    {
-      s = @"unknown";
-    }
-  ASSIGN(name, s);
 }
 
 /**
@@ -4435,7 +4477,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 }
 
 /**
- * Sets the value of this header (without changing parameters)<br />
+ * Sets the value of this header (without changing parameters).<br />
  * If given a nil argument, set an empty string value.
  */
 - (void) setValue: (NSString*)s
@@ -4444,7 +4486,15 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       s = @"";
     }
-  ASSIGN(value, s);
+  ASSIGNCOPY(value, s);
+  if (@"content-type" == lower)
+    {
+      NSArray   *a;
+
+      a = [[value lowercaseString] componentsSeparatedByString: @"/"];
+      [self setObject: [a objectAtIndex: 0] forKey: @"Type"];
+      [self setObject: [a objectAtIndex: 1] forKey: @"Subtype"];
+    }
 }
 
 /**
@@ -4474,7 +4524,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   if (size > 0)
     {
-      size += [name sizeInBytesExcluding: exclude];
+      size += 2 * [name sizeInBytesExcluding: exclude];
       size += [value sizeInBytesExcluding: exclude];
       size += [objects sizeInBytesExcluding: exclude];
       size += [params sizeInBytesExcluding: exclude];
@@ -4501,167 +4551,226 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 @implementation	GSMimeDocument
 
-+ (void) setText7bitBase64: (BOOL)aFlag
-{
-  if (YES == aFlag)
-    text7bitEncoding = @"base64";
-  else
-    text7bitEncoding = @"quoted-printable";
-}
-
-/*
- * Examine xml data to find out the characterset needed to convert from
- * binary data to an NSString object.
+/* Examine xml data/string to find out the characterset encoding specified
  */
-+ (NSString*) charsetForXml: (NSData*)xml
++ (NSString*) charsetForXml: (id)xml
 {
-  NSUInteger		length = [xml length];
-  const unsigned char	*ptr = (const unsigned char*)[xml bytes];
-  const unsigned char	*end = ptr + length;
-  NSUInteger		offset = 0;
-  NSUInteger		size = 1;
-  unsigned char		quote = 0;
-  unsigned char		buffer[30];
-  NSUInteger		buflen = 0;
-  BOOL			found = NO;
+  NSUInteger	length = [xml length];
 
   if (length < 4)
     {
-      // Not long enough to determine an encoding
-      return nil;
+      return nil;       // Not long enough to determine an encoding
     }
 
-  /*
-   * Determine encoding using byte-order-mark if present
-   */
-  if ((ptr[0] == 0xFE && ptr[1] == 0xFF)
-    || (ptr[0] == 0xFF && ptr[1] == 0xFE))
+  if ([xml isKindOfClass: [NSData class]])
     {
-      return @"utf-16";
-    }
-  if (ptr[0] == 0xEF && ptr[1] == 0xBB && ptr[2] == 0xBF)
-    {
-      return @"utf-8";
-    }
-  if ((ptr[0] == 0x00 && ptr[1] == 0x00)
-    && ((ptr[2] == 0xFE && ptr[3] == 0xFF)
-      || (ptr[2] == 0xFF && ptr[3] == 0xFE)))
-    {
-      return @"ucs-4";
-    }
+      const unsigned char	*ptr = (const unsigned char*)[xml bytes];
+      const unsigned char	*end = ptr + length;
+      NSUInteger		offset = 0;
+      NSUInteger		size = 1;
+      unsigned char		quote = 0;
+      unsigned char		buffer[30];
+      NSUInteger		buflen = 0;
+      BOOL			found = NO;
 
-  /*
-   * Look for nul bytes to determine whether this is a four byte
-   * encoding or a two byte encoding (or the default).
-   */
-  if (ptr[0] == 0 && ptr[1] == 0 && ptr[2] == 0)
-    {
-      offset = 3;
-      size = 4;
-    }
-  else if (ptr[0] == 0 && ptr[1] == 0 && ptr[3] == 0)
-    {
-      offset = 2;
-      size = 4;
-    }
-  else if (ptr[0] == 0 && ptr[2] == 0 && ptr[3] == 0)
-    {
-      offset = 1;
-      size = 4;
-    }
-  else if (ptr[1] == 0 && ptr[2] == 0 && ptr[3] == 0)
-    {
-      offset = 0;
-      size = 4;
-    }
-  else if (ptr[0] == 0)
-    {
-      offset = 1;
-      size = 2;
-    }
-  else if (ptr[1] == 0)
-    {
-      offset = 0;
-      size = 2;
-    }
+      /*
+       * Determine encoding using byte-order-mark if present
+       */
+      if ((ptr[0] == 0xFE && ptr[1] == 0xFF)
+        || (ptr[0] == 0xFF && ptr[1] == 0xFE))
+        {
+          return @"utf-16";
+        }
+      if (ptr[0] == 0xEF && ptr[1] == 0xBB && ptr[2] == 0xBF)
+        {
+          return @"utf-8";
+        }
+      if ((ptr[0] == 0x00 && ptr[1] == 0x00)
+        && ((ptr[2] == 0xFE && ptr[3] == 0xFF)
+          || (ptr[2] == 0xFF && ptr[3] == 0xFE)))
+        {
+          return @"ucs-4";
+        }
 
-  /*
-   * Now look for the xml encoding declaration ...
-   */
+      /*
+       * Look for nul bytes to determine whether this is a four byte
+       * encoding or a two byte encoding (or the default).
+       */
+      if (ptr[0] == 0 && ptr[1] == 0 && ptr[2] == 0)
+        {
+          offset = 3;
+          size = 4;
+        }
+      else if (ptr[0] == 0 && ptr[1] == 0 && ptr[3] == 0)
+        {
+          offset = 2;
+          size = 4;
+        }
+      else if (ptr[0] == 0 && ptr[2] == 0 && ptr[3] == 0)
+        {
+          offset = 1;
+          size = 4;
+        }
+      else if (ptr[1] == 0 && ptr[2] == 0 && ptr[3] == 0)
+        {
+          offset = 0;
+          size = 4;
+        }
+      else if (ptr[0] == 0)
+        {
+          offset = 1;
+          size = 2;
+        }
+      else if (ptr[1] == 0)
+        {
+          offset = 0;
+          size = 2;
+        }
 
-  // Tolerate leading whitespace
-  while (ptr + size <= end && isspace(ptr[offset])) ptr += size;
+      /*
+       * Now look for the xml encoding declaration ...
+       */
 
-  if (ptr + (size * 20) >= end || ptr[offset] != '<' || ptr[offset+size] != '?')
-    {
-      if (size == 1)
-	{
-	  return @"utf-8";
-	}
-      else if (size == 2)
-	{
-	  return @"utf-16";
-	}
-      else
-	{
-	  return @"ucs-4";
-	}
+      // Tolerate leading whitespace
+      while (ptr + size <= end && isspace(ptr[offset])) ptr += size;
+
+      if (ptr + (size * 20) >= end
+        || ptr[offset] != '<' || ptr[offset+size] != '?')
+        {
+          if (size == 1)
+            {
+              return @"utf-8";
+            }
+          else if (size == 2)
+            {
+              return @"utf-16";
+            }
+          else
+            {
+              return @"ucs-4";
+            }
+        }
+      ptr += size * 5;	// Step past '<?xml' prefix
+
+      while (ptr + size <= end)
+        {
+          unsigned char	c = ptr[offset];
+
+          ptr += size;
+          if (quote == 0)
+            {
+              if (c == '\'' || c == '"')
+                {
+                  buflen = 0;
+                  quote = c;
+                }
+              else
+                {
+                  if (isspace(c) || c == '=')
+                    {
+                      if (buflen == 8)
+                        {
+                          buffer[8] = '\0';
+                          if (strcasecmp((char*)buffer, "encoding") == 0)
+                            {
+                              found = YES;
+                            }
+                        }
+                      buflen = 0;
+                    }
+                  else
+                    {
+                      if (buflen == sizeof(buffer)) buflen = 0;
+                      buffer[buflen++] = c;
+                    }
+                }
+            }
+          else if (c == quote)
+            {
+              if (found == YES)
+                {
+                  NSString		*tmp;
+
+                  tmp = [[NSString alloc] initWithBytes: buffer
+                    length: buflen
+                    encoding: NSASCIIStringEncoding];
+                  IF_NO_GC([tmp autorelease];)
+                  return [tmp lowercaseString];
+                }
+              buflen = 0;
+              quote = 0;	// End of quoted section
+            }
+          else
+            {
+              if (buflen == sizeof(buffer)) buflen = 0;
+              buffer[buflen++] = c;
+            }
+        }
     }
-  ptr += size * 5;	// Step past '<?xml' prefix
-
-  while (ptr + size <= end)
+  else if ([xml isKindOfClass: [NSString class]])
     {
-      unsigned char	c = ptr[offset];
+      NSUInteger        index = 0;
+      NSRange           search;
+      NSRange           r;
 
-      ptr += size;
-      if (quote == 0)
-	{
-	  if (c == '\'' || c == '"')
-	    {
-	      buflen = 0;
-	      quote = c;
-	    }
-	  else
-	    {
-	      if (isspace(c) || c == '=')
-		{
-		  if (buflen == 8)
-		    {
-		      buffer[8] = '\0';
-		      if (strcasecmp((char*)buffer, "encoding") == 0)
-			{
-			  found = YES;
-			}
-		    }
-		  buflen = 0;
-		}
-	      else
-		{
-		  if (buflen == sizeof(buffer)) buflen = 0;
-		  buffer[buflen++] = c;
-		}
-	    }
-	}
-      else if (c == quote)
-	{
-	  if (found == YES)
-	    {
-	      NSString		*tmp;
+      /* Skip past any leading white space
+       */
+      while (index < length && isspace([xml characterAtIndex: index]))
+        {
+          index++;
+        }
 
-	      tmp = [[NSString alloc] initWithBytes: buffer
-		length: buflen
-		encoding: NSASCIIStringEncoding];
-	      IF_NO_GC([tmp autorelease];)
-	      return [tmp lowercaseString];
-	    }
-	  buflen = 0;
-	  quote = 0;	// End of quoted section
-	}
-      else
-	{
-	  if (buflen == sizeof(buffer)) buflen = 0;
-	  buffer[buflen++] = c;
-	}
+      /* Check for start of xml declaration after any leading space.
+       */
+      search = NSMakeRange(index, length - index);
+      if (search.length > 5
+        && [xml compare: @"<?xml"
+                options: NSLiteralSearch
+                  range: NSMakeRange(index, 5)] == NSOrderedSame)
+        {
+          /* And find end of declaration.
+           */
+          r = [xml rangeOfString: @">"];
+          if (r.length > 0)
+            {
+              /* Shorten the search range to the xml declaration end,
+               * then look for the 'encoding' keyword.
+               */
+              search = NSMakeRange(index, NSMaxRange(r) - index);
+              r = [xml rangeOfString: @"encoding"
+                             options: NSLiteralSearch
+                               range: search];
+              if (r.length > 0)
+                {
+                  /* Shorten the search range to after 'encoding' and
+                   * find the quote before the charset.
+                   */
+                  index = NSMaxRange(r);
+                  search = NSMakeRange(index, NSMaxRange(search) - index);
+                  r = [xml rangeOfString: @"\""
+                                 options: NSLiteralSearch
+                                   range: search];
+                  if (r.length > 0)
+                    {
+                      /* Narrow the search range to begin at the start of
+                       * the charset and find the quote after the charset.
+                       */
+                      index = NSMaxRange(r);
+                      search = NSMakeRange(index, NSMaxRange(search) - index);
+                      r = [xml rangeOfString: @"\""
+                                     options: NSLiteralSearch
+                                       range: search];
+                      if (r.length > 0)
+                        {
+                          /* Extract the charset and return it.
+                           */
+                          r = NSMakeRange(index, r.length - index);
+                          return [xml substringWithRange: r];
+                        }
+                    }
+                }
+            }
+        }
     }
 
   return @"utf-8";
@@ -5745,13 +5854,12 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
        * When there is a header, there are trwo possible 8bit encodings
        * that we need to deal with...
        */
-      if (YES == [v isEqualToString: @"binary"]
-	|| YES == [v isEqualToString: @"8bit"])
+      if ([CteBinary caseInsensitiveCompare: v] == NSOrderedSame
+	|| [Cte8bit caseInsensitiveCompare: v] == NSOrderedSame)
 	{
           GSMimeHeader  *t = [self headerNamed: @"content-type"];
           NSString	*charset = [t parameterForKey: @"charset"];
           BOOL          isText = (nil == charset) ? NO : YES;
-          NSString      *v;
 
           /* The presence of a charset parameter implies that the content
            * is text, but if it's missing we may still have text content
@@ -5785,16 +5893,16 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	      if (e != NSASCIIStringEncoding && e != NSUTF7StringEncoding)
 #endif
 		{
-                  v = text7bitEncoding;
+                  v = CteQuotedPrintable;
                 }
               else
                 {
-                  v = @"7bit";
+                  v = Cte7bit;
                 }
 	    }
 	  else
 	    {
-	      v = @"base64";
+	      v = CteBase64;
 	    }
 	  if (nil == h)
 	    {
@@ -5837,10 +5945,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       GSMimeHeader	*h = [self headerNamed: @"content-transfer-encoding"];
       NSString		*v = [h value];
 
-      if ([v isEqual: @"base64"] == YES
-        || [v isEqual: @"quoted-printable"] == YES)
+      if ([CteBase64 caseInsensitiveCompare: v] == NSOrderedSame
+        || [CteQuotedPrintable caseInsensitiveCompare: v] == NSOrderedSame)
 	{
-	  [h setValue: @"binary"];
+	  [h setValue: CteBinary];
 	}
     }
 }
@@ -5861,11 +5969,24 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
       NSString		*charset = [hdr parameterForKey: @"charset"];
+      NSString          *subtype;
       NSStringEncoding	enc;
 
+      if (nil == charset
+        && nil != (subtype = [self contentSubtype])
+        && [@"xml" caseInsensitiveCompare: subtype] == NSOrderedSame)
+        {
+          /* For an XML document (subtype is xml) we can try to get the
+           * characterset by examining the document header.
+           */
+          if (nil == (charset = [documentClass charsetForXml: content]))
+            {
+              charset = @"utf-8";
+            }
+        }
       enc = [documentClass encodingFromCharset: charset];
       d = [content dataUsingEncoding: enc];
-      if (d == nil)
+      if (nil == d)
 	{
 	  charset = selectCharacterSet(content, &d);
           if (nil == hdr)
@@ -5902,7 +6023,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
       NSString		*charset = [hdr parameterForKey: @"charset"];
-      NSString          *subtype = [hdr objectForKey: @"Subtype"];
+      NSString          *subtype = [self contentSubtype];
       NSStringEncoding	enc;
 
       if (nil == charset)
@@ -6101,6 +6222,42 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   s = RETAIN(m);
   RELEASE(arp);
   return AUTORELEASE(s);  
+}
+
+- (NSUInteger) estimatedSize
+{
+  NSUInteger    total = 0;
+  NSEnumerator	*enumerator = [headers objectEnumerator];
+  GSMimeHeader	*hdr;
+
+  /* Accumulate approximate size of all the headers.
+   */
+  while (nil != (hdr = [enumerator nextObject]))
+    {
+      total += [hdr estimatedSize];
+    }
+
+  if ([content isKindOfClass: [NSArray class]])
+    {
+      GSMimeDocument	*doc;
+
+      /* For each part, add the size of the part plus the typical size
+       * of an inter-part boundary.
+       */
+      enumerator = [content objectEnumerator];
+      while (nil != (doc = [enumerator nextObject]))
+        {
+          total += [doc estimatedSize] + 40;
+        }
+    }
+  else
+    {
+      /* If we base64 encode the data it will be 4/3 the size of the
+       * raw byte counts ... assume that as an estimate.
+       */
+      total += [content length] * 4 / 3;
+    }
+  return total;
 }
 
 - (NSUInteger) hash
@@ -6411,11 +6568,12 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 	      enc = [part headerNamed: @"content-transfer-encoding"];
 	      v = [enc value];
-	      if ([v isEqualToString: @"8bit"] == YES
-		|| [v isEqualToString: @"binary"] == YES)
+	      if (nil != v
+                && ([Cte8bit caseInsensitiveCompare: v] == NSOrderedSame
+                  || [CteBinary caseInsensitiveCompare: v] == NSOrderedSame))
 		{
 		  contentIs7bit = NO;
-		  if ([v isEqualToString: @"binary"] == YES)
+                  if ([CteBinary caseInsensitiveCompare: v] == NSOrderedSame)
 		    {
 		      contentIsBinary = YES;
 		    }
@@ -6464,14 +6622,30 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
       enc = [self headerNamed: @"content-transfer-encoding"];
       v = [enc value];
-      if ([v isEqualToString: @"binary"])
+      if (nil == v)
+        {
+	  /*
+	   * For 7bit encoding, we can accept the setting if the content
+	   * is all 7bit data, otherwise we must change it to 8bit so
+	   * that the content can be handled properly.
+	   */
+	  if (contentIs7bit == YES)
+	    {
+	      shouldSet = NO;
+	    }
+	  else
+	    {
+	      shouldSet = YES;
+	    }
+        }
+      else if ([CteBinary caseInsensitiveCompare: v] == NSOrderedSame)
 	{
 	  /*
 	   * For binary encoding, we can just accept the setting.
 	   */
 	  shouldSet = NO;
 	}
-      else if ([v isEqualToString: @"8bit"])
+      else if ([Cte8bit caseInsensitiveCompare: v] == NSOrderedSame)
 	{
 	  if (contentIsBinary == YES)
 	    {
@@ -6482,10 +6656,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	      shouldSet = NO;
 	    }
 	}
-      else if (v == nil
-        || [v isEqualToString: @"7bit"] == YES
-        || [v isEqualToString: @"quoted-printable"] == YES
-        || [v isEqualToString: @"x-uuencode"] == YES)
+      else if ([v isEqualToString: Cte7bit] == YES
+        || [v isEqualToString: CteQuotedPrintable] == YES
+        || [v isEqualToString: CteXuuencode] == YES)
 	{
 	  /*
 	   * For 7bit encoding, we can accept the setting if the content
@@ -6519,15 +6692,15 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	   */
 	  if (contentIs7bit == YES)
 	    {
-	      encoding = @"7bit";
+	      encoding = Cte7bit;
 	    }
 	  else if (contentIsBinary == YES)
 	    {
-	      encoding = @"binary";
+	      encoding = CteBinary;
 	    }
 	  else
 	    {
-	      encoding = @"8bit";
+	      encoding = Cte8bit;
 	    }
 	  if (enc == nil)
 	    {
@@ -6618,21 +6791,21 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 #endif
 		{
                   enc = [self setHeader: @"Content-Transfer-Encoding"
-                                  value: @"8bit"
+                                  value: Cte8bit
 			       parameters: nil];
 		}
 	    }
 	  else
 	    {
               enc = [self setHeader: @"Content-Transfer-Encoding"
-                              value: @"base64"
+                              value: CteBase64
                            parameters: nil];
 	    }
 	}
 
       if (encoding == nil
-	|| [encoding isEqualToString: @"7bit"] == YES
-	|| [encoding isEqualToString: @"8bit"] == YES)
+	|| [Cte7bit caseInsensitiveCompare: encoding] == NSOrderedSame
+	|| [Cte8bit caseInsensitiveCompare: encoding] == NSOrderedSame)
 	{
 	  unsigned char	*bytes = (unsigned char*)[d bytes];
 	  NSUInteger	length = [d length];
@@ -6641,7 +6814,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  NSUInteger 	lineLength = 0;
 	  NSUInteger	i;
 
-          if ([encoding isEqualToString: @"8bit"])
+          if (nil != encoding
+            && [Cte8bit caseInsensitiveCompare: encoding] == NSOrderedSame)
             {
               want7Bit = NO;
             }
@@ -6657,7 +6831,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 		{
 		  if (c != '\n')
 		    {
-		      encoding = @"binary";	// CR not part of CRLF
+		      encoding = CteBinary;	// CR not part of CRLF
 		      break;
 		    }
 		  hadCarriageReturn = NO;
@@ -6665,7 +6839,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 		}
 	      else if (c == '\n')
 		{
-		  encoding = @"binary";		// LF not part of CRLF
+		  encoding = CteBinary;		// LF not part of CRLF
 		  break;
 		}
 	      else if (c == '\r')
@@ -6674,18 +6848,18 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 		}
 	      else if (++lineLength > 998)
 		{
-		  encoding = @"binary";	// Line of more than 998
+		  encoding = CteBinary;	// Line of more than 998
 		  break;
 		}
 
 	      if (c == 0)
 		{
-		  encoding = @"binary";
+		  encoding = CteBinary;
 		  break;
 		}
 	      else if (c > 127)
 		{
-		  encoding = @"8bit";	// Not 7bit data
+		  encoding = Cte8bit;	// Not 7bit data
 		}
 	    }
 
@@ -6695,7 +6869,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                */
               if (YES == want7Bit)
                 {
-                  encoding = text7bitEncoding;
+                  encoding = CteQuotedPrintable;
                 }
               enc = [self setHeader: @"Content-Transfer-Encoding"
                               value: encoding
@@ -6727,8 +6901,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 	      enc = [part headerNamed: @"content-transport-encoding"];
 	      v = [enc value];
-	      if (v != nil && ([v isEqualToString: @"8bit"]
-		|| [v isEqualToString: @"binary"]))
+	      if (v != nil
+                && ([Cte8bit caseInsensitiveCompare: v] == NSOrderedSame
+                  || [CteBinary caseInsensitiveCompare: v] == NSOrderedSame))
 	        {
 		  [NSException raise: NSInternalInconsistencyException
 		    format: @"[%@ -%@] bad part encoding for 7bit container",
@@ -6750,12 +6925,18 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     }
   else
     {
+      NSString  *v = [enc value];
+
       /*
        * Separate headers from body.
        */
       [md appendBytes: "\r\n" length: 2];
 
-      if ([[enc value] isEqualToString: @"base64"] == YES)
+      if (nil == v)
+	{
+	  [md appendData: d];
+	}
+      else if ([CteBase64 caseInsensitiveCompare: v] == NSOrderedSame)
         {
 	  const char	*ptr;
 	  NSUInteger	len;
@@ -6777,11 +6958,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	      [md appendBytes: "\r\n" length: 2];
 	    }
 	}
-      else if ([[enc value] isEqualToString: @"quoted-printable"] == YES)
+      else if ([CteQuotedPrintable caseInsensitiveCompare: v] == NSOrderedSame)
         {
 	  encodeQuotedPrintable(md, [d bytes], [d length]);
 	}
-      else if ([[enc value] isEqualToString: @"x-uuencode"] == YES)
+      else if ([CteXuuencode caseInsensitiveCompare: v] == NSOrderedSame)
         {
 	  NSString	*name;
 
@@ -6918,8 +7099,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       GSMimeParser	*p = AUTORELEASE([GSMimeParser new]);
       NSScanner		*scanner = [NSScanner scannerWithString: type];
 
-      hdr = AUTORELEASE([headerClass new]);
-      [hdr setName: @"content-type"];
+      hdr = [headerClass headerWithName: @"Content-Type"
+                                  value: nil
+                             parameters: nil];
       if ([p scanHeaderBody: scanner into: hdr] == NO)
 	{
 	  [NSException raise: NSInvalidArgumentException
@@ -6978,8 +7160,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   p = AUTORELEASE([GSMimeParser new]);
   scanner = [NSScanner scannerWithString: newType];
-  hdr = AUTORELEASE([headerClass new]);
-  [hdr setName: @"content-type"];
+  hdr = [headerClass headerWithName: @"Content-Type"
+                              value: nil
+                         parameters: nil];
   if ([p scanHeaderBody: scanner into: hdr] == NO)
     {
       [NSException raise: NSInvalidArgumentException
@@ -7095,6 +7278,599 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 @end
 
+
+
+@implementation GSMimeSerializer
+
++ (GSMimeSerializer*) binarySerializer
+{
+  GSMimeSerializer      *binarySerializer;
+
+  binarySerializer = AUTORELEASE([GSMimeSerializer alloc]);
+  binarySerializer->foldAt = 0;
+  binarySerializer->use8bit = YES;
+  binarySerializer->dataEncoding = CteBinary;
+  binarySerializer->dataEncoding = CteBinary;
+  return binarySerializer;
+}
+
++ (GSMimeSerializer*) smtp7bitSerializer
+{
+  return AUTORELEASE([GSMimeSerializer new]);
+}
+
+- (instancetype) copyWithZone: (NSZone*)z
+{
+  GSMimeSerializer      *c = [[self class] new];
+
+  c->foldAt = foldAt;
+  c->use8bit = use8bit;
+  ASSIGNCOPY(c->dataEncoding, dataEncoding);
+  ASSIGNCOPY(c->textEncoding, textEncoding);
+  return c;
+}
+
+- (NSString*) dataEncoding
+{
+  return dataEncoding;
+}
+
+- (void) dealloc
+{
+  RELEASE(dataEncoding);
+  RELEASE(textEncoding);
+  [super dealloc];
+}
+
+- (NSMutableData*) encodeDocument: (GSMimeDocument*)document
+{
+  NSUInteger    size = [document estimatedSize];
+  NSMutableData *md = [NSMutableData dataWithCapacity: size];
+  GSMimeHeader  *hdr = [document headerNamed: @"mime-version"];
+
+  if (nil == hdr)
+    {
+      hdr = [document setHeader: @"MIME-Version"
+                          value: @"1.0"
+                     parameters: nil];
+    }
+  [self encodePart: document to: md];
+  return md;
+}
+
+- (void) encodePart: (GSMimeDocument*)document to: (NSMutableData*)md
+{
+  CREATE_AUTORELEASE_POOL(arp);
+  NSData		*d = nil;
+  NSEnumerator		*enumerator;
+  NSString              *type;
+  NSString              *subtype;
+  NSString              *charset;
+  NSString              *enc;
+  GSMimeHeader		*ct;
+  GSMimeHeader		*cte;
+  GSMimeHeader		*hdr;
+  NSData		*boundary = 0;
+  BOOL			contentIsArray = NO;
+  id                    content = [document content];
+
+  /* Do we have multipart data?
+   */
+  contentIsArray = [content isKindOfClass: NSArrayClass];
+
+  ct = [document headerNamed: @"content-type"];
+  if (nil == ct)
+    {
+      /*
+       * Attempt to infer the content type from the content.
+       */
+      if (YES == contentIsArray)
+	{
+          ct = [document setHeader: @"Content-Type"
+                             value: @"multipart/mixed"
+                        parameters: nil];
+          type = @"multipart";
+          subtype = @"mixed";
+	}
+      else if ([content isKindOfClass: NSDataClass] == YES)
+	{
+          ct = [document setHeader: @"Content-Type"
+                             value: @"application/octet-stream"
+                        parameters: nil];
+          type = @"application";
+          subtype = @"octet-stream";
+	}
+      else
+        {
+          if (nil == content)
+            {
+              /* An empty body is treated as an empty string part.
+               */
+              content = @"";
+              [document setContent: content];
+            }
+          else if ([content isKindOfClass: NSStringClass] == NO)
+            {
+              [NSException raise: NSInternalInconsistencyException
+                          format: @"[%@ -%@] with bad content",
+                NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+            }
+          ct = [document setHeader: @"Content-Type"
+                             value: @"text/plain"
+                        parameters: nil];
+          type = @"text";
+          subtype = @"plain";
+	}
+      [ct setObject: type forKey: @"Type"];
+      [ct setObject: subtype forKey: @"Subtype"];
+      charset = nil;
+    }
+  else
+    {
+      type = [ct objectForKey: @"Type"];
+      subtype = [ct objectForKey: @"Subtype"];
+      charset = [ct parameterForKey: @"charset"];
+      if (nil == content)
+        {
+          [document setContent: [NSData data]];
+          content = [document content];
+        }
+    }
+
+  /* Get the content transfer encoding.
+   */
+  cte = [document headerNamed: @"content-transfer-encoding"];
+  enc = [cte value];
+  if (nil == enc)
+    {
+      if (YES == use8bit)
+        {
+          if (0 == foldAt)
+            {
+              enc = CteBinary;
+            }
+          else
+            {
+              enc = Cte8bit;
+            }
+          cte = [document setHeader: @"Content-Transfer-Encoding"
+                              value: enc
+                         parameters: nil];
+        }
+      else
+        {
+          enc = Cte7bit;
+        }
+    }
+  else if ([Cte7bit caseInsensitiveCompare: enc] == NSOrderedSame)
+    {
+      enc = Cte7bit;
+    }
+  else if ([Cte8bit caseInsensitiveCompare: enc] == NSOrderedSame)
+    {
+      enc = Cte8bit;
+    }
+  else if ([CteBinary caseInsensitiveCompare: enc] == NSOrderedSame)
+    {
+      enc = CteBinary;
+    }
+  else if ([CteBase64 caseInsensitiveCompare: enc] == NSOrderedSame)
+    {
+      enc = CteBase64;
+    }
+  else if ([CteQuotedPrintable caseInsensitiveCompare: enc] == NSOrderedSame)
+    {
+      enc = CteQuotedPrintable;
+    }
+  else if ([CteXuuencode caseInsensitiveCompare: enc] == NSOrderedSame)
+    {
+      enc = CteXuuencode;
+    }
+
+  if (NO == use8bit && (Cte8bit == enc || CteBinary == enc))
+    {
+      enc = Cte7bit;
+      if (nil != cte)
+        {
+          cte = nil;
+          [document deleteHeaderNamed: @"Content-Transfer-Encoding"];
+        }
+    }
+
+  /* Check the sanity of the parts of a multipart document.
+   */
+  if (YES == contentIsArray)
+    {
+      NSUInteger        count = [content count];
+      NSUInteger        index;
+
+      if (enc != Cte7bit && enc != Cte8bit && enc != CteBinary)
+        {
+          [NSException raise: NSInternalInconsistencyException
+            format: @"[%@ -%@] bad content transfer encoding '%@' for %@",
+            NSStringFromClass([self class]), NSStringFromSelector(_cmd),
+            enc, document];
+        }
+      for (index = 0; index < count; index++)
+        {
+          GSMimeDocument        *d = [content objectAtIndex: index];
+
+          /* Parts of a multipart document must be MIME documents
+           * in their own right.
+           */
+          if (NO == [d isKindOfClass: documentClass])
+            {
+              [NSException raise: NSInternalInconsistencyException
+                          format: @"[%@ -%@] with bad body part %lu in %@",
+                NSStringFromClass([self class]), NSStringFromSelector(_cmd),
+                (unsigned long)index, document];
+            }
+
+          /* The MIME-Version header is not permitted in parts of
+           * a multipart document.
+           */
+          [d deleteHeaderNamed: @"MIME-Version"];
+        }
+    }
+  else if (nil == charset)
+    {
+      if (nil != subtype
+        && [@"xml" caseInsensitiveCompare: subtype] == NSOrderedSame)
+        {
+          /* For an XML document (subtype is xml) we can try to get the
+           * characterset by examining the document header.
+           */
+          if (nil == (charset = [documentClass charsetForXml: content]))
+            {
+              charset = @"utf-8";
+            }
+        }
+      if (YES == [content isKindOfClass: [NSString class]])
+        {
+          if (nil == charset)
+            {
+              /* Any string can be converted to utf-8
+               */
+              charset = @"utf-8";
+            }
+        }
+    }
+
+  if (YES == [content isKindOfClass: [NSString class]])
+    {
+      NSStringEncoding	e;
+      NSData            *d;
+
+      /* Get content as a data object, adjusting charset if necessary.
+       */
+      e = [documentClass encodingFromCharset: charset];
+      if (0 == e)
+        {
+          e = NSUTF8StringEncoding;
+          charset = @"utf-8";
+        }
+      d = [content dataUsingEncoding: e];
+      if (nil == d)
+        {
+	  charset = selectCharacterSet(content, &d);
+          [ct setParameter: charset forKey: @"charset"];
+        }
+      content = d;
+    }
+
+  if (YES == contentIsArray)
+    {
+      NSString	*v;
+
+      v = [ct parameterForKey: @"boundary"];
+      if (nil == v)
+	{
+	  v = [document makeBoundary];
+	  [ct setParameter: v forKey: @"boundary"];
+	}
+      boundary = [v dataUsingEncoding: NSASCIIStringEncoding];
+
+      if ([subtype isEqualToString: @"related"] == YES)
+	{
+	  GSMimeDocument	*start;
+
+	  v = [ct parameterForKey: @"start"];
+	  if (nil == v)
+	    {
+	      start = [content objectAtIndex: 0];
+	    }
+	  else
+	    {
+	      start = [document contentByID: v];
+	    }
+	  hdr = [start headerNamed: @"content-type"];
+	  v = [hdr value];
+	  /*
+	   * If there is no 'type' parameter, we can fill it in automatically.
+	   */
+	  if ([ct parameterForKey: @"type"] == nil)
+	    {
+	      [ct setParameter: v forKey: @"type"];
+	    }
+	  if ([v isEqual: [ct parameterForKey: @"type"]] == NO)
+	    {
+	      [NSException raise: NSInvalidArgumentException
+		format: @"multipart/related 'type' (%@) does not match "
+		@"that of the 'start' part (%@) in %@",
+		[ct parameterForKey: @"type"], v, document];
+	    }
+	}
+    }
+  else if (Cte7bit == enc || Cte8bit == enc)
+    {
+      unsigned char	*bytes = (unsigned char*)[content bytes];
+      NSUInteger	length = [content length];
+      BOOL		hadCarriageReturn = NO;
+      NSUInteger 	lineLength = 0;
+      NSUInteger	i;
+
+      /* Check to see if the data is actually compatible (unaltered)
+       * with the specified content transfer encoding.
+       */
+      for (i = 0; i < length; i++)
+        {
+          unsigned char	c = bytes[i];
+
+          if (hadCarriageReturn == YES)
+            {
+              if (c != '\n')
+                {
+                  /* CR not part of CRLF
+                   */
+                  enc = (nil == charset) ?  dataEncoding : textEncoding;
+                  break;
+                }
+              hadCarriageReturn = NO;
+              lineLength = 0;
+            }
+          else if ('\n' == c)
+            {
+              /* LF not part of CRLF
+               */
+              enc = (nil == charset) ?  dataEncoding : textEncoding;
+              break;
+            }
+          else if ('\r' == c)
+            {
+              hadCarriageReturn = YES;
+            }
+          else if (++lineLength > 998)
+            {
+              /* Line of more than 998 chars cannot be 7bit or 8bit
+               */
+              enc = (nil == charset) ?  dataEncoding : textEncoding;
+              break;
+            }
+          else if (0 == c)
+            {
+              /* Can't have nul byte in 7bit or 8bit
+               */
+              enc = (nil == charset) ?  dataEncoding : textEncoding;
+              break;
+            }
+          else if (c > 127)
+            {
+              if (YES == use8bit)
+                {
+                  enc = Cte8bit;	// Not 7bit data
+                }
+              else
+                {
+                  /* any 8bit value must be encoded
+                   */
+                  enc = (nil == charset) ?  dataEncoding : textEncoding;
+                  break;
+                }
+            }
+        }
+
+      if (NO == [enc isEqual: [cte value]])
+        {
+          /* We need to change content transfer encoding.
+           */
+          if (Cte7bit == enc)
+            {
+              [document deleteHeaderNamed: @"Content-Transfer-Encoding"];
+            }
+          else
+            {
+              cte = [document setHeader: @"Content-Transfer-Encoding"
+                                  value: enc
+                             parameters: nil];
+            }
+        }
+    }
+
+  /* Add all the headers.
+   */
+  enumerator = [[document allHeaders] objectEnumerator];
+  while ((hdr = [enumerator nextObject]) != nil)
+    {
+      [hdr rawMimeDataPreservingCase: NO foldedAt: foldAt to: md];
+    }
+
+  if (YES == contentIsArray)
+    {
+      NSUInteger        count = [content count];
+      NSUInteger        index;
+
+      for (index = 0; index < count; index++)
+	{
+	  GSMimeDocument	*part = [content objectAtIndex: index];
+
+	  /*
+	   * For a multipart document, insert the boundary before each part.
+	   */
+	  [md appendBytes: "\r\n--" length: 4];
+	  [md appendData: boundary];
+	  [md appendBytes: "\r\n" length: 2];
+          [self encodePart: part to: md];
+	}
+      [md appendBytes: "\r\n--" length: 4];
+      [md appendData: boundary];
+      [md appendBytes: "--\r\n" length: 4];
+    }
+  else
+    {
+      /*
+       * Separate headers from body.
+       */
+      [md appendBytes: "\r\n" length: 2];
+
+      if (CteBase64 == enc)
+        {
+	  const char	*ptr;
+	  NSUInteger	len;
+	  NSUInteger	pos = 0;
+
+	  d = [documentClass encodeBase64: d];
+	  ptr = [d bytes];
+	  len = [d length];
+
+	  while (len - pos > 76)
+	    {
+	      [md appendBytes: &ptr[pos] length: 76];
+	      [md appendBytes: "\r\n" length: 2];
+	      pos += 76;
+	    }
+	  if (pos < len)
+	    {
+	      [md appendBytes: &ptr[pos] length: len-pos];
+	      [md appendBytes: "\r\n" length: 2];
+	    }
+	}
+      else if (CteQuotedPrintable == enc)
+        {
+	  encodeQuotedPrintable(md, [d bytes], [d length]);
+	}
+      else if (CteXuuencode == enc)
+        {
+	  NSString	*name = [ct parameterForKey: @"name"];
+
+	  if (nil == name)
+	    {
+	      name = @"untitled";
+	    }
+          [d uuencodeInto: md name: name mode: 0644];
+	}
+      else
+	{
+	  [md appendData: d];
+	}
+    }
+  RELEASE(arp);
+}
+
+- (NSUInteger) foldAt
+{
+  return foldAt;
+}
+
+- (instancetype) init
+{
+  if (nil != (self = [super init]))
+    {
+      foldAt = 78;
+      use8bit = NO;
+
+      /* The default content transfer encoding to make 8bit data into
+       * 7bit-safe data is 'base64'
+       */
+      dataEncoding = CteBase64;
+
+      /* The default content transfer encoding to make 8bit text into
+       * 7bit-safe data is 'quoted-printable'
+       */
+      dataEncoding = CteQuotedPrintable;
+    }
+  return self;
+}
+
+- (void) setDataEncoding: (NSString*)encoding
+{
+  if ([encoding length] == 0)
+    {
+      encoding = CteBase64;
+    }
+  if ([CteQuotedPrintable caseInsensitiveCompare: encoding] == NSOrderedSame)
+    {
+      encoding = CteQuotedPrintable;
+    }
+  else if ([CteBase64 caseInsensitiveCompare: encoding] == NSOrderedSame)
+    {
+      encoding = CteBase64;
+    }
+  else if ([CteXuuencode caseInsensitiveCompare: encoding] == NSOrderedSame)
+    {
+      encoding = CteXuuencode;
+    }
+  else
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"[%@ -%@: %@] bad encoding",
+        NSStringFromClass([self class]), NSStringFromSelector(_cmd), encoding];
+    }
+  ASSIGN(dataEncoding, encoding);
+}
+
+- (void) setFoldAt: (NSUInteger)position
+{
+  if (position < 20 || position > 998)
+    {
+      position = 0;
+    }
+  foldAt = position;
+}
+
+- (void) setTextEncoding: (NSString*)encoding
+{
+  if ([encoding length] == 0)
+    {
+      encoding = CteQuotedPrintable;
+    }
+  if ([CteQuotedPrintable caseInsensitiveCompare: encoding] == NSOrderedSame)
+    {
+      encoding = CteQuotedPrintable;
+    }
+  else if ([CteBase64 caseInsensitiveCompare: encoding] == NSOrderedSame)
+    {
+      encoding = CteBase64;
+    }
+  else if ([CteXuuencode caseInsensitiveCompare: encoding] == NSOrderedSame)
+    {
+      encoding = CteXuuencode;
+    }
+  else
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"[%@ -%@: %@] bad encoding",
+        NSStringFromClass([self class]), NSStringFromSelector(_cmd), encoding];
+    }
+  ASSIGN(textEncoding, encoding);
+}
+
+- (void) setUse8bit: (BOOL)aFlag
+{
+  use8bit = (NO == aFlag) ? NO : YES;
+}
+
+- (NSString*) textEncoding
+{
+  return textEncoding;
+}
+
+- (BOOL) use8bit
+{
+  return use8bit;
+}
+
+@end
+
 
 NSString* const GSMimeErrorDomain = @"GSMimeErrorDomain";
 
@@ -7170,9 +7946,11 @@ static void makeBase64(GSMimeDocument *doc)
       GSMimeHeader	*h = [doc headerNamed: @"content-transfer-encoding"];
       NSString		*v = [h value];
 
-      if ([v isEqual: @"binary"] == YES || [v isEqual: @"8bit"] == YES)
+      if (nil != v
+        && ([CteBinary caseInsensitiveCompare: v] == NSOrderedSame
+          || [Cte8bit caseInsensitiveCompare: v] == NSOrderedSame))
 	{
-	  [h setValue: @"base64"];
+	  [h setValue: CteBase64];
 	}
     }
 }
@@ -7190,7 +7968,6 @@ static void makeBase64(GSMimeDocument *doc)
 - (void) _startup;
 - (void) _timer: (NSTimeInterval)s;
 @end
-
 #define	GSInternal	GSMimeSMTPClientInternal
 #include	"GSInternal.h"
 GS_PRIVATE_INTERNAL(GSMimeSMTPClient)

@@ -35,6 +35,12 @@ int main(int argc,char **argv)
   PASS_EQUAL([[doc headerNamed: @"subject"] value], string,
    "Can restore non-ascii character in subject");
 
+  data = [[GSMimeSerializer smtp7bitSerializer] encodeDocument: doc];
+  PASS(data != nil, "Can serialize with non-ascii character in subject");
+  doc = [GSMimeParser documentFromData: data];
+  PASS_EQUAL([[doc headerNamed: @"subject"] value], string,
+   "Can restore non-ascii character in subject form serialized document");
+
   [arp release]; arp = nil;
   return 0;
 }
