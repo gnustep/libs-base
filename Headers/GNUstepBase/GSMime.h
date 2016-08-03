@@ -1,6 +1,6 @@
 /** Interface for MIME parsing classes
 
-   Copyright (C) 2000 Free Software Foundation, Inc.
+   Copyright (C) 2000-2016 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald  <rfm@gnu.org>
 
@@ -71,6 +71,7 @@ extern "C" {
 {
 #if	GS_EXPOSE(GSMimeHeader)
   NSString              *name;
+  NSString              *lower;
   NSString              *value;
   NSMutableDictionary   *objects;
   NSMutableDictionary	*params;
@@ -85,10 +86,16 @@ extern "C" {
   @private id _internal GS_UNUSED_IVAR;
 #endif
 }
++ (GSMimeHeader*) headerWithName: (NSString*)n
+                           value: (NSString*)v
+                      parameters: (NSDictionary*)p;
 + (NSString*) makeQuoted: (NSString*)v always: (BOOL)flag;
 + (NSString*) makeToken: (NSString*)t preservingCase: (BOOL)preserve;
 + (NSString*) makeToken: (NSString*)t;
 - (id) copyWithZone: (NSZone*)z;
+/** How big this header might be when represented as raw MIME data.
+ */
+- (NSUInteger) estimatedSize;
 - (NSString*) fullValue;
 - (id) initWithName: (NSString*)n
 	      value: (NSString*)v;
@@ -106,7 +113,9 @@ extern "C" {
 - (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve;
 - (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve
                                     foldedAt: (NSUInteger)fold;
-- (void) setName: (NSString*)s;
+- (void) rawMimeDataPreservingCase: (BOOL)preserve
+                          foldedAt: (NSUInteger)fold
+                                to: (NSMutableData*)md;
 - (void) setObject: (id)o  forKey: (NSString*)k;
 - (void) setParameter: (NSString*)v forKey: (NSString*)k;
 - (void) setParameters: (NSDictionary*)d;
@@ -179,6 +188,9 @@ extern "C" {
 - (void) deleteContent: (GSMimeDocument*)aPart;
 - (void) deleteHeader: (GSMimeHeader*)aHeader;
 - (void) deleteHeaderNamed: (NSString*)name;
+/** How big this document might be when represented as raw MIME data.
+ */
+- (NSUInteger) estimatedSize;
 - (GSMimeHeader*) headerNamed: (NSString*)name;
 - (NSArray*) headersNamed: (NSString*)name;
 - (NSString*) makeBoundary;
@@ -280,6 +292,94 @@ extern "C" {
 - (void) setIsHttp;
 @end
 
+/** Instances of the GSMimeSerializer class are used to serialise
+ * GSMimeDocument objects to NSMutableData objects, producing data
+ * in a form suitable for sending as an Email over the SMTP protocol
+ * or in other forms.
+ */
+@interface GSMimeSerializer : NSObject <NSCopying>
+{
+  NSUInteger    foldAt;         /** Fold long lines at this position */
+  BOOL          use8bit;        /** Output does not need to be 7bit-safe */
+  NSString      *dataEncoding;  /** To make 8bit data 7bit-safe */
+  NSString      *textEncoding;  /** To make 8bit text 7bit-safe */
+}
+
+/** Returns an autorelease GSMimeSerializer configured for transfer
+ * over binary safe protocols with unliumited line lenth).
+ */
++ (GSMimeSerializer*) binarySerializer;
+
+/** Returns an autorelease GSMimeSerializer configured for Email
+ * to be sent as 7bit data over SMTP.
+ */
++ (GSMimeSerializer*) smtp7bitSerializer;
+
+/** Returns a copy of the receiver.
+ */
+- (id) copyWithZone: (NSZone*)aZone;
+
+/** Returns the default content transfer encoding used when 8bit data needs
+ * to be made 7bit safe.  This is base64 by default.
+ */
+- (NSString*) dataEncoding;
+
+/** Encodes the document and returns the resulting raw mime data.
+ */
+- (NSMutableData*) encodeDocument: (GSMimeDocument*)document;
+
+/** Appends a document part to the supplied data object.
+ */
+- (void) encodePart: (GSMimeDocument*)document to: (NSMutableData*)md;
+
+/** Returns the maximum line length (excluding the trailing CRLF) to which
+ * we will encode data. See also the -setFoldAt: method.
+ */ 
+- (NSUInteger) foldAt;
+
+/** This method allows you to control the position at which lines in
+ * headers and the body data are wrapped.<br />
+ * RFC 2822 says that the absolute maximum (except for 'binary' content
+ * transfer encoding) is 998 (excluding CRLF), but the recommended
+ * maximum is 78 so we use that by default.<br />
+ * Setting any ridiculously short value (less than 20) or an excessively
+ * long value (greater than the 998 character limit supported by SMTP)
+ * actually sets a value of zero, meaning that there is no limit.
+ */
+- (void) setFoldAt: (NSUInteger)position;
+
+/** Sets the content transfer encoding used when 8bit data needs to be sent
+ * in a 7bit safe form.<br />
+ * Setting a nil/empty encoding reverts to the default (base64).<br />
+ * Setting an unknown/inapplicable encoding raises an exception.
+ */
+- (void) setDataEncoding: (NSString*)encoding;
+
+/** Sets the content transfer encoding used when 8bit text needs to be sent
+ * in a 7bit safe form.<br />
+ * Setting a nil/empty encoding reverts to the default (quoted-printable).<br />
+ * Setting an unknown/inapplicable encoding raises an exception.
+ */
+- (void) setTextEncoding: (NSString*)encoding;
+
+/** Sets whether we will allow 8bit data in the output.<br />
+ * The default is NO (because 8bit data breaks some mail transfer agents).
+ */
+- (void) setUse8bit: (BOOL)aFlag;
+
+/** Returns the default content transfer encoding used when 8bit text needs
+ * to be made 7bit safe.  This is quoted-printable by default.
+ */
+- (NSString*) textEncoding;
+
+/** Returns YES is we will allow 8bit data in the output, NO if we encode
+ * everything in a 7bit safe form.
+ */
+- (BOOL) use8bit;
+
+@end
+
+
 
 /** The error domain for the GSMime system.
  */
