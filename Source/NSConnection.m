@@ -342,7 +342,9 @@ GS_PRIVATE_INTERNAL(NSConnection)
 - (NSPortCoder*) _newInRmc: (NSMutableArray*)components;
 - (NSPortCoder*) _newOutRmc: (int)sequence generate: (int*)sno reply: (BOOL)f;
 - (void) _portIsInvalid: (NSNotification*)notification;
-- (void) _sendOutRmc: (NSPortCoder*) NS_CONSUMED c type: (int)msgid;
+- (void) _sendOutRmc: (NSPortCoder*) NS_CONSUMED c
+                type: (int)msgid
+            sequence: (int)sno;
 
 - (void) _service_forwardForProxy: (NSPortCoder*)rmc;
 - (void) _service_release: (NSPortCoder*)rmc;
@@ -1646,7 +1648,7 @@ static NSLock	*cached_proxies_gate = nil;
           return [self rootObject];
         }
       op = [self _newOutRmc: 0 generate: &seq_num reply: YES];
-      [self _sendOutRmc: op type: ROOTPROXY_REQUEST];
+      [self _sendOutRmc: op type: ROOTPROXY_REQUEST sequence: seq_num];
 
       ip = [self _getReplyRmc: seq_num for: "rootproxy"];
       [ip decodeValueOfObjCType: @encode(id) at: &newProxy];
@@ -2022,7 +2024,7 @@ static NSLock	*cached_proxies_gate = nil;
 	}
     }
 
-  [self _sendOutRmc: op type: METHOD_REQUEST];
+  [self _sendOutRmc: op type: METHOD_REQUEST sequence: seq];
   name = sel_getName([inv selector]);
   NSDebugMLLog(@"NSConnection", @"Sent message %s RMC %d to 0x%"PRIxPTR,
     name, seq, (NSUInteger)self);
@@ -2188,7 +2190,7 @@ static NSLock	*cached_proxies_gate = nil;
   op = [self _newOutRmc: 0 generate: &seq_num reply: YES];
   [op encodeValueOfObjCType: ":" at: &sel];
   [op encodeValueOfObjCType: @encode(unsigned) at: &target];
-  [self _sendOutRmc: op type: METHODTYPE_REQUEST];
+  [self _sendOutRmc: op type: METHODTYPE_REQUEST sequence: seq_num];
   ip = [self _getReplyRmc: seq_num for: "methodtype"];
   [ip decodeValueOfObjCType: @encode(char*) at: &type];
   data = type ? [NSData dataWithBytes: type length: strlen(type)+1] : nil;
@@ -2446,7 +2448,9 @@ static NSLock	*cached_proxies_gate = nil;
 	   */
 	  op = [self _newOutRmc: 0 generate: &IlastKeepalive reply: NO];
 	  IkeepaliveWait = YES;
-	  [self _sendOutRmc: op type: ROOTPROXY_REQUEST];
+	  [self _sendOutRmc: op
+                       type: ROOTPROXY_REQUEST
+                   sequence: IlastKeepalive];
 	}
       else
 	{
@@ -2848,7 +2852,7 @@ static NSLock	*cached_proxies_gate = nil;
       NSDebugMLLog(@"RMC", @"RMC %d replying with %s and %u out parameters",
 	seq, (YES == is_void ? "void result" : "result"), out_parameters);
 
-      [self _sendOutRmc: tmp type: METHOD_REPLY];
+      [self _sendOutRmc: tmp type: METHOD_REPLY sequence: seq];
     }
   NS_HANDLER
     {
@@ -2880,7 +2884,7 @@ static NSLock	*cached_proxies_gate = nil;
 	      [op encodeValueOfObjCType: @encode(BOOL)
 				     at: &is_exception];
 	      [op encodeBycopyObject: localException];
-	      [self _sendOutRmc: op type: METHOD_REPLY];
+	      [self _sendOutRmc: op type: METHOD_REPLY sequence: seq];
 	    }
 	  NS_HANDLER
 	    {
@@ -2907,7 +2911,7 @@ static NSLock	*cached_proxies_gate = nil;
   [self _doneInRmc: rmc];
   op = [self _newOutRmc: sequence generate: 0 reply: NO];
   [op encodeObject: rootObject];
-  [self _sendOutRmc: op type: ROOTPROXY_REPLY];
+  [self _sendOutRmc: op type: ROOTPROXY_REPLY sequence: sequence];
 }
 
 - (void) _service_release: (NSPortCoder*)rmc
@@ -3001,7 +3005,7 @@ static NSLock	*cached_proxies_gate = nil;
   GSM_UNLOCK(IrefGate);
 
   [op encodeObject: response];
-  [self _sendOutRmc: op type: RETAIN_REPLY];
+  [self _sendOutRmc: op type: RETAIN_REPLY sequence: sequence];
 }
 
 - (void) _shutdown
@@ -3014,7 +3018,7 @@ static NSLock	*cached_proxies_gate = nil;
       int		sno;
 
       op = [self _newOutRmc: 0 generate: &sno reply: NO];
-      [self _sendOutRmc: op type: CONNECTION_SHUTDOWN];
+      [self _sendOutRmc: op type: CONNECTION_SHUTDOWN sequence: sno];
     }
   NS_HANDLER
   NS_ENDHANDLER
@@ -3062,7 +3066,7 @@ static NSLock	*cached_proxies_gate = nil;
   else
     type = "";
   [op encodeValueOfObjCType: @encode(char*) at: &type];
-  [self _sendOutRmc: op type: METHODTYPE_REPLY];
+  [self _sendOutRmc: op type: METHODTYPE_REPLY sequence: sequence];
 }
 
 
@@ -3188,7 +3192,7 @@ static NSLock	*cached_proxies_gate = nil;
 	   * of the loop.
 	   */
 	  if (([runLoop runMode: NSConnectionReplyMode
-		    beforeDate: limit_date] == NO
+		     beforeDate: limit_date] == NO
 	    && (limit_date == timeout_date))
 	    || [timeout_date timeIntervalSinceNow] <= 0.0)
 	    {
@@ -3335,7 +3339,7 @@ static NSLock	*cached_proxies_gate = nil;
   GSM_UNLOCK(IrefGate);
 
   coder = [coder initWithReceivePort: IreceivePort
-			    sendPort:IsendPort
+			    sendPort: IsendPort
 			  components: components];
   return coder;
 }
@@ -3397,7 +3401,7 @@ static NSLock	*cached_proxies_gate = nil;
   return coder;
 }
 
-- (void) _sendOutRmc: (NSPortCoder*)c type: (int)msgid
+- (void) _sendOutRmc: (NSPortCoder*)c type: (int)msgid sequence: (int)sno
 {
   NSDate		*limit;
   BOOL			sent = NO;
@@ -3440,7 +3444,7 @@ static NSLock	*cached_proxies_gate = nil;
     }
 
   NSDebugMLLog(@"NSConnection",
-    @"Sending %@ on %@", stringFromMsgType(msgid), self);
+    @"Sending %d (%@) on %@", sno, stringFromMsgType(msgid), self);
 
   limit = [dateClass dateWithTimeIntervalSinceNow: IrequestTimeout];
   sent = [IsendPort sendBeforeDate: limit
@@ -3661,7 +3665,7 @@ static NSLock	*cached_proxies_gate = nil;
 		  target, self);
 	    }
 
-	  [self _sendOutRmc: op type: PROXY_RELEASE];
+	  [self _sendOutRmc: op type: PROXY_RELEASE sequence: sequence];
 	}
     }
   NS_HANDLER
@@ -3820,7 +3824,7 @@ static NSLock	*cached_proxies_gate = nil;
 
 	      op = [self _newOutRmc: 0 generate: &seq_num reply: YES];
 	      [op encodeValueOfObjCType: @encode(typeof(target)) at: &target];
-	      [self _sendOutRmc: op type: PROXY_RETAIN];
+	      [self _sendOutRmc: op type: PROXY_RETAIN sequence: seq_num];
 
 	      ip = [self _getReplyRmc: seq_num for: "retain"];
 	      [ip decodeValueOfObjCType: @encode(id) at: &result];
