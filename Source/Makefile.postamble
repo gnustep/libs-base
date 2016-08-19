@@ -55,18 +55,14 @@ after-install::
 	    $(GNUSTEP_HEADERS)/ObjectiveC2/objc/$$file ; \
 	done
 endif
-# Unfortunately the way the header files are placed in relationship
-# to the source we must install the GNU header manually
-# Ayers 2003-07-31: This statement should be reevaluated!
 after-install::
 	$(MKDIRS) $(GNUSTEP_HEADERS)/GNUstepBase
 	for file in $(GNUSTEPBASE_HEADERS); do \
 	  $(INSTALL_DATA) ../Headers/GNUstepBase/$$file \
-	    $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
+	  $(GNUSTEP_HEADERS)/GNUstepBase/$$file ; \
 	done
-	$(MKDIRS) $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase
 	$(INSTALL_DATA) $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h \
-	  $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
+	  $(GNUSTEP_HEADERS)/GNUstepBase/GSConfig.h
 	if [ "$(DESTDIR)" = "" ]; then \
 	  services=/etc/services; \
 	  if [ "`$(WHOAMI)`" != root ]; then \
@@ -109,6 +105,8 @@ after-clean::
 
 # Things to do after distcleaning
 after-distclean::
+	rm -f $(GNUSTEP_TARGET_DIR)/config.h
+	rm -f $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
 #	rm -rf $(GNUSTEP_TARGET_DIR)
 
 # Things to do before checking
@@ -122,23 +120,20 @@ dynamic-load.h: ../config.status
 	cp $(DYNAMIC_LINKER)-load.h dynamic-load.h
 
 #
-# The config.h file is specific to a target
+# The following header files are specific to a target, so to enable multiple
+# builds in the same directory, we copy them to a target-specific subdirectory
+# which will be found by the compiler first when compiling for that target
 #
+ifneq ($(GNUSTEP_TARGET_DIR),.)
 $(GNUSTEP_TARGET_DIR)/config.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
-	-mv $(HEADER_DIR_BASE)/config.h $(GNUSTEP_TARGET_DIR)
+	-cp $(HEADER_DIR_BASE)/config.h $(GNUSTEP_TARGET_DIR)
 	-touch $(GNUSTEP_TARGET_DIR)/config.h
 
 $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_DIR)/GNUstepBase
-	-mv $(HEADER_DIR_BASE)/GSConfig.h $(GNUSTEP_TARGET_DIR)/GNUstepBase
+	-cp $(HEADER_DIR_BASE)/GSConfig.h $(GNUSTEP_TARGET_DIR)/GNUstepBase
 	-touch $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
-
-ifneq ($(GNUSTEP_TARGET_DIR),.)
-$(GNUSTEP_TARGET_DIR)/common.h: common.h
-	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
-	cp common.h $(GNUSTEP_TARGET_DIR)/common.h
-	-touch $(GNUSTEP_TARGET_DIR)/common.h
 endif
 
 #

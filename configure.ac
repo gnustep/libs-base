@@ -56,7 +56,7 @@
 # In addition the values should be substituted into the header file
 # Headers/GNUstepBase/GSConfig.h.in so that it can define a
 # preprocessor constant of the form GS_USE_XXX to 1 or 0, providing a
-# standard mechanism for parts of a paritcvular file to compile to make
+# standard mechanism for parts of a particular file to compile to make
 # use of the external code or not.
 # This file is included by all the base library source code, and may also
 # be included by code which uses the base library.
@@ -3387,11 +3387,19 @@ if test $enable_libdispatch = yes; then
 fi
 AC_SUBST(HAVE_LIBDISPATCH)
 
+HAVE_LIBDISPATCH_RUNLOOP=0
 if test $HAVE_LIBDISPATCH = 1; then
   # We check whether we have a variant of libdispatch that allows runloop
   # integration
   AC_CHECK_FUNCS(dispatch_main_queue_drain_np dispatch_get_main_queue_handle_np)
+  if test "$ac_cv_func_dispatch_main_queue_drain_np" = "no"; then
+    HAVE_LIBDISPATCH_RUNLOOP=1
+  fi
+  if test "$ac_cv_func_dispatch_get_main_queue_handle_np" = "no"; then
+    HAVE_LIBDISPATCH_RUNLOOP=1
+  fi
 fi
+AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal

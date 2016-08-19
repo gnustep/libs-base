@@ -1,3 +1,25 @@
+2016-08-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/objc-common.g: Darwin patch by David Wetzel
+	* Source/CompatibilityHeaders.make: Delete obsolete file
+	* configure.ac: Check for libdispatch runloop integration functions
+	* Headers/GNUstepBase/GSConfig.h.in: New define for libdispatch
+	* config.mak.in: New define for libdispatch
+	* Tests/base/NSRunLoop/dispatch.m: Use new define
+	* configure: Regenerate
+	* Source/Additions/Makefile.preamble:
+	* Source/GNUmakefile:
+	* Source/Makefile.postamble:
+	* Source/Makefile.preamble:
+	* Source/ObjectiveC2/Makefile.preamble:
+	* Source/unix/Makefile.preamble:
+	* Source/win32/Makefile.preamble:
+	* Tools/Makefile.preamble:
+	* Tools/make_strings/GNUmakefile.preamble:
+	Mostly tweaks for building cleanly non-flattened and removal of a few
+	long deprecated directories/headers.
+	Configuration time change by David Wetzel for building on OSX
+
 2016-07-27  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Header/Foundation/NSData.h

@@ -484,7 +484,6 @@ HEADERS_INSTALL = \
 GENERATED_HFILES = \
 dynamic-load.h \
 $(GNUSTEP_TARGET_DIR)/config.h \
-$(GNUSTEP_TARGET_DIR)/common.h \
 $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
 
 
@@ -543,4 +542,3 @@ include $(GNUSTEP_MAKEFILES)/resource-set.make
 
 -include Makefile.postamble
 
-include CompatibilityHeaders.make
