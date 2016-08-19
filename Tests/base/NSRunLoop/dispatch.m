@@ -1,14 +1,14 @@
 #import "ObjectTesting.h"
 
-#import <Foundation/NSAutoreleasePool.h>
-#import <Foundation/NSThread.h>
-#import <Foundation/NSTimer.h>
-#import <Foundation/NSRunLoop.h>
-#import "../../../Source/config.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSThread.h"
+#import "Foundation/NSTimer.h"
+#import "Foundation/NSRunLoop.h"
+#import "GNUstepBase/GSConfig.h"
 
 const NSTimeInterval kDelay = 0.01;
 
-#if HAVE_DISPATCH_GET_MAIN_QUEUE_HANDLE_NP && HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP && __has_feature(blocks)
+#if HAVE_LIBDISPATCH_RUNLOOP && __has_feature(blocks)
 #  define DISPATCH_RL_INTEGRATION 1
 #  ifdef HAVE_DISPATCH_H
 #    include <dispatch.h>
