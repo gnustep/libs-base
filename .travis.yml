@@ -5,25 +5,16 @@ compiler:
     - gcc
 env:
     - LIBRARY_COMBO=gnu-gnu-gnu
-    - LIBRARY_COMBO=gnu-gnu-gnu SORT_ALG=timsort
     - LIBRARY_COMBO=ng-gnu-gnu
-    - LIBRARY_COMBO=ng-gnu-gnu SORT_ALG=timsort
     - LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixed-abi
-    - LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixed-abi SORT_ALG=timsort
 matrix:
     exclude:
         - compiler: gcc
           env: LIBRARY_COMBO=ng-gnu-gnu
         - compiler: gcc
-          env: LIBRARY_COMBO=ng-gnu-gnu SORT_ALG=timsort
-        - compiler: gcc
           env: LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixed-abi
-        - compiler: gcc
-          env: LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixed-abi SORT_ALG=timsort
         - compiler: clang
           env: LIBRARY_COMBO=gnu-gnu-gnu
-        - compiler: clang
-          env: LIBRARY_COMBO=gnu-gnu-gnu SORT_ALG=timsort
 sudo: required
 before_install:
     - sudo apt-get -qq update
@@ -53,9 +44,5 @@ before_script: >
     export GNUSTEP_MAKEFILES=$HOME/staging/share/GNUstep/Makefiles;
     . $HOME/staging/share/GNUstep/Makefiles/GNUstep.sh;
 script: >
-    if [ -z "$SORT_ALG" ];
-    then
-        SORT_ALG=shellsort
-    fi;
-    ./configure --with-sort-algorithm=$SORT_ALG $BASE_ABI;
+    ./configure $BASE_ABI;
     make && make install && make check || (cat Tests/tests.log && false);
