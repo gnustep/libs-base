@@ -124,7 +124,6 @@ dynamic-load.h: ../config.status
 # builds in the same directory, we copy them to a target-specific subdirectory
 # which will be found by the compiler first when compiling for that target
 #
-ifneq ($(GNUSTEP_TARGET_DIR),.)
 $(GNUSTEP_TARGET_DIR)/config.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
 	-cp $(HEADER_DIR_BASE)/config.h $(GNUSTEP_TARGET_DIR)
@@ -134,7 +133,6 @@ $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h: ../config.status
 	$(MKDIRS) $(GNUSTEP_TARGET_DIR)/GNUstepBase
 	-cp $(HEADER_DIR_BASE)/GSConfig.h $(GNUSTEP_TARGET_DIR)/GNUstepBase
 	-touch $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
-endif
 
 #
 #       Files where optimisation breaks the code!
