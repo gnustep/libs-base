@@ -4103,7 +4103,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                    */
                   [m appendBytes: ptr + pos length: next - pos];
                   offset += next - pos;
-                  pos += next;
+                  pos = next;
                   if (pos < len)
                     {
                       /* We have more text to output, so fold the line.
