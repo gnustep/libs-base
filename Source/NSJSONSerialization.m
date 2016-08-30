@@ -409,6 +409,13 @@ parseString(ParserState *state)
       next = consumeChar(state);
     }
 
+  if (currentChar(state) != '"')
+    {
+      [val release];
+      parseError(state);
+      return nil;
+    }
+
   if (bufferIndex > 0)
     {
       NSMutableString *str;
