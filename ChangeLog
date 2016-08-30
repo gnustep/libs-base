@@ -1,3 +1,8 @@
+2016-08-30  Abbas Raza <abbas.raza.1707@gmail.com>
+
+	* Source/NSJSONSerialization.m: Generate NSError rather than raising
+	exception if the trailing '"' in the dsocument is missing.
+
 2016-08-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSMime.m: Fix typo which was causing premature termination of
