@@ -564,12 +564,26 @@ static NSMutableDictionary      *certificateListCache = nil;
   unsigned int    bits;
   int             i;
 
-  [str appendFormat: @"\n%@", _(@"- Certificate info:\n")];
+  [str appendFormat: _(@"- Certificate version: #%d\n"),
+    gnutls_x509_crt_get_version(cert)];
 
-  expiret = gnutls_x509_crt_get_expiration_time(cert);
+  dn_size = sizeof(dn);
+  gnutls_x509_crt_get_dn(cert, dn, &dn_size);
+  dn[dn_size - 1] = '\0';
+  [str appendFormat: @"- Certificate DN: %@\n",
+    [NSString stringWithUTF8String: dn]];
+
+  dn_size = sizeof(dn);
+  gnutls_x509_crt_get_issuer_dn(cert, dn, &dn_size);
+  dn[dn_size - 1] = '\0';
+  [str appendFormat: _(@"- Certificate Issuer's DN: %@\n"),
+    [NSString stringWithUTF8String: dn]];
+
   activet = gnutls_x509_crt_get_activation_time(cert);
   [str appendFormat: _(@"- Certificate is valid since: %s"),
     ctime(&activet)];
+
+  expiret = gnutls_x509_crt_get_expiration_time(cert);
   [str appendFormat: _(@"- Certificate expires: %s"),
     ctime (&expiret)];
 
@@ -604,33 +618,16 @@ static NSMutableDictionary      *certificateListCache = nil;
   algo = gnutls_x509_crt_get_pk_algorithm(cert, &bits);
   if (GNUTLS_PK_RSA == algo)
     {
-      [str appendString: _(@"RSA\n")];
-      [str appendFormat: _(@"- Modulus: %d bits\n"), bits];
+      [str appendFormat: _(@"RSA - Modulus: %d bits\n"), bits];
     }
   else if (GNUTLS_PK_DSA == algo)
     {
-      [str appendString: _(@"DSA\n")];
-      [str appendFormat: _(@"- Exponent: %d bits\n"), bits];
+      [str appendFormat: _(@"DSA - Exponent: %d bits\n"), bits];
     }
   else
     {
       [str appendString: _(@"UNKNOWN\n")];
     }
-
-  [str appendFormat: _(@"- Certificate version: #%d\n"),
-    gnutls_x509_crt_get_version(cert)];
-
-  dn_size = sizeof(dn);
-  gnutls_x509_crt_get_dn(cert, dn, &dn_size);
-  dn[dn_size - 1] = '\0';
-  [str appendFormat: @"- Certificate DN: %@\n",
-    [NSString stringWithUTF8String: dn]];
-
-  dn_size = sizeof(dn);
-  gnutls_x509_crt_get_issuer_dn(cert, dn, &dn_size);
-  dn[dn_size - 1] = '\0';
-  [str appendFormat: _(@"- Certificate Issuer's DN: %@\n"),
-    [NSString stringWithUTF8String: dn]];
 }
  
 /* Method to purge older lists from cache.
@@ -2006,7 +2003,6 @@ retrieve_callback(gnutls_session_t session,
               gnutls_x509_crt_import(cert,
                 &cert_list[cert_num], GNUTLS_X509_FMT_DER);
 
-              [str appendString: @"\n"];
               [str appendFormat: _(@"- Certificate %d info:\n"), cert_num];
 
               [GSTLSCertificateList certInfo: cert to: str];
