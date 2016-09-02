@@ -5,7 +5,7 @@ ca-certificates.crt
         a list of PEM encoded certificates of trusted authorities
 
         NB. This is just the list of trusted authorities from my personal
-        machine, it may bot be suitable for you ... please replace/remove
+        machine, it may not be suitable for you ... please replace/remove
         to meet your own needs.
 
 revoke.crl
