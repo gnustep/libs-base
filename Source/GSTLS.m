@@ -1277,6 +1277,7 @@ static NSMutableDictionary      *credentialsCache = nil;
 @end
 
 
+#if GNUTLS_VERSION_NUMBER >= 0x020C00
 /* Callback used only when debug is enabled, to print the request for a
  * certificate and the response to that request.
  * NB. This function always returns the certificate set for the session
@@ -1354,6 +1355,7 @@ retrieve_callback(gnutls_session_t session,
       return -1;
     }
 }
+#endif
 
 @implementation GSTLSSession
 
@@ -1637,6 +1639,7 @@ retrieve_callback(gnutls_session_t session,
       gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE,
         [credentials credentials]);
 
+#if GNUTLS_VERSION_NUMBER >= 0x020C00
       if (YES == outgoing && YES == debug)
         {
           /* Set a callback to log handling of a request (from the server)
@@ -1647,6 +1650,7 @@ retrieve_callback(gnutls_session_t session,
           gnutls_certificate_set_retrieve_function(
             [credentials credentials], retrieve_callback);
         }
+#endif
       
       /* Set transport layer to use 
        */
