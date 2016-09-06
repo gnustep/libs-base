@@ -1,3 +1,12 @@
+2016-09-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSScanner.h:
+	* Source/NSScanner.m:
+	* Tests/base/NSScanner/test01.m:
+	Add support for scanHexLongLong method inspired/based on patch from
+	Abbas Raza, but with minor bugfixes, reduced code duplication, and
+	avoiding compiler warnings.
+
 2016-08-30  Abbas Raza <abbas.raza.1707@gmail.com>
 
 	* Source/NSJSONSerialization.m: Generate NSError rather than raising
