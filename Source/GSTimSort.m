@@ -53,157 +53,6 @@
 #define GS_MIN_GALLOP 7
 #define GS_INITIAL_TEMP_STORAGE 256
 
-static inline void
-reverseRange(id *buffer, NSRange r)
-{
-  NSUInteger loc = r.location;
-  NSUInteger max = (NSMaxRange(r) - 1);
-
-  while (loc < max)
-    {
-      id temp = buffer[loc];
-      buffer[loc++] = buffer[max];
-      buffer[max--] = temp;
-    }
-}
-
-/* In-place binary insertion sorting for small arrays (i.e. those which are
- * smaller than GS_MIN_MERGE. We use this to generate minimal runs for timsort.
- */
-static void
-internalBinarySort(id *buffer,
-  NSRange r,
-  NSUInteger start,
-  id compOrDesc,
-  GSComparisonType type,
-  void *context)
-{
-  NSUInteger min = r.location;
-  NSUInteger max = NSMaxRange(r);
-
-  NSCAssert2(NSLocationInRange(start, r),
-    @"Start index %lu not in range %@",
-    start, NSStringFromRange(r));
-
-  if (min == start)
-    {
-      start++;
-    }
-  // We assume that everything before start is sorted.
-  for (; start < max; ++start)
-    {
-      NSUInteger left = min;
-      NSUInteger right = start;
-      id pivot = buffer[right];
-      int i = 0;
-
-      do
-        {
-          NSUInteger midPoint = (left + ((right - left) >> 1));
-          NSComparisonResult res = GSCompareUsingDescriptorOrComparator(pivot,
-            buffer[midPoint],
-            compOrDesc,
-            type,
-            context);
-          if (NSOrderedAscending == res)
-            {
-              right = midPoint;
-            }
-          else
-            {
-              left = midPoint + 1;
-            }
-        } while (left < right);
-      NSCAssert(left == right, @"Binary sort iteration did not end correctly,");
-      // We make room for the pivot and place it at left.
-      for (i = start; i > left; --i)
-        {
-          buffer[i] = buffer[(i - 1)];
-        }
-      buffer[left] = pivot;
-    }
-}
-
-
-/*
- * Count the number of elements in the range that are already ordered.
- * If the order is a descending one, reverse it so that all runs are ordered the
- * same way.
- */
-static inline NSUInteger
-countAscendizedRun(id *buf, NSRange r, id descOrComp,
-  GSComparisonType type, void*context)
-{
-  NSUInteger min = r.location;
-  NSUInteger runMax = min + 1;
-  NSUInteger rangeMax = NSMaxRange(r);
-
-  if (runMax == rangeMax)
-    {
-      return 1;
-    }
-  if (NSOrderedDescending == GSCompareUsingDescriptorOrComparator(buf[min],
-    buf[runMax++], descOrComp, type, context))
-    {
-      while ((runMax < rangeMax) && NSOrderedDescending
-        == GSCompareUsingDescriptorOrComparator(buf[runMax - 1],
-        buf[runMax], descOrComp, type, context))
-        {
-          runMax++;
-        }
-      reverseRange(buf, NSMakeRange(min, (runMax - min)));
-    }
-  else // ascending or equal
-    {
-      while ((runMax < rangeMax) && NSOrderedDescending
-        != GSCompareUsingDescriptorOrComparator(buf[runMax - 1],
-        buf[runMax], descOrComp, type, context))
-        {
-          runMax++;
-        }
-    }
-  return (runMax - min);
-}
-
-
-/*
- * Calculate a sensible minimum length for the runs, these need to be powers of
- * two, or less than, but close to, one, but always at least GS_MIN_MERGE. For
- * details on why this is useful, see Python's listsort.txt.
- */
-static inline NSUInteger
-minimumRunLength(NSUInteger length)
-{
-  NSUInteger r = 0;
-
-  while (length >= GS_MIN_MERGE)
-    {
-      r |= length & 1;
-      length >>= 1;
-    }
-
-  return (length + r);
-}
-
-/*
- * For arrays up to GS_MIN_MERGE, we don't do merging. Instead, we identify
- * pre-ordering at the begining of the range and sort the rest using binary
- * sort.
- */
-static inline void
-miniTimSort(id *buf, NSRange r, id descOrComp, GSComparisonType ty, void *ctx)
-{
-  NSUInteger firstRunLength = countAscendizedRun(buf, r, descOrComp, ty, ctx);
-
-  if (r.length == firstRunLength)
-    {
-      // In this case, we have already sorted the array here.
-      return;
-    }
-  internalBinarySort(buf, r, (r.location + firstRunLength),
-    descOrComp, ty, ctx);
-}
-
 /*
  * Galloping from left searches for an insertion point for key into the
  * already sorted buffer and returns the point immediately left of the first
@@ -303,9 +152,9 @@ gallopLeft(id key, id *buf, NSRange r, NSUInteger hint, id descOrComp,
    */
   offset = MIN(offset, NSMaxRange(r));
   if (lastOffset < (NSInteger)r.location)
-  {
-    lastOffset = (NSInteger)r.location;
-  }
+    {
+      lastOffset = (NSInteger)r.location;
+    }
   while (lastOffset < offset)
     {
       NSInteger midPoint = lastOffset + ((offset - lastOffset) >> 1);
@@ -446,7 +295,155 @@ NSRange range, NSComparator cmptr)
     GSComparisonTypeComparatorBlock, NULL);
 }
 
-#if GS_USE_TIMSORT
+static inline void
+reverseRange(id *buffer, NSRange r)
+{
+  NSUInteger loc = r.location;
+  NSUInteger max = (NSMaxRange(r) - 1);
+
+  while (loc < max)
+    {
+      id temp = buffer[loc];
+      buffer[loc++] = buffer[max];
+      buffer[max--] = temp;
+    }
+}
+
+/* In-place binary insertion sorting for small arrays (i.e. those which are
+ * smaller than GS_MIN_MERGE. We use this to generate minimal runs for timsort.
+ */
+static void
+internalBinarySort(id *buffer,
+  NSRange r,
+  NSUInteger start,
+  id compOrDesc,
+  GSComparisonType type,
+  void *context)
+{
+  NSUInteger min = r.location;
+  NSUInteger max = NSMaxRange(r);
+
+  NSCAssert2(NSLocationInRange(start, r),
+    @"Start index %lu not in range %@",
+    start, NSStringFromRange(r));
+
+  if (min == start)
+    {
+      start++;
+    }
+  // We assume that everything before start is sorted.
+  for (; start < max; ++start)
+    {
+      NSUInteger left = min;
+      NSUInteger right = start;
+      id pivot = buffer[right];
+      int i = 0;
+
+      do
+        {
+          NSUInteger midPoint = (left + ((right - left) >> 1));
+          NSComparisonResult res = GSCompareUsingDescriptorOrComparator(pivot,
+            buffer[midPoint],
+            compOrDesc,
+            type,
+            context);
+          if (NSOrderedAscending == res)
+            {
+              right = midPoint;
+            }
+          else
+            {
+              left = midPoint + 1;
+            }
+        } while (left < right);
+      NSCAssert(left == right, @"Binary sort iteration did not end correctly,");
+      // We make room for the pivot and place it at left.
+      for (i = start; i > left; --i)
+        {
+          buffer[i] = buffer[(i - 1)];
+        }
+      buffer[left] = pivot;
+    }
+}
+
+
+/*
+ * Count the number of elements in the range that are already ordered.
+ * If the order is a descending one, reverse it so that all runs are ordered the
+ * same way.
+ */
+static inline NSUInteger
+countAscendizedRun(id *buf, NSRange r, id descOrComp,
+  GSComparisonType type, void*context)
+{
+  NSUInteger min = r.location;
+  NSUInteger runMax = min + 1;
+  NSUInteger rangeMax = NSMaxRange(r);
+
+  if (runMax == rangeMax)
+    {
+      return 1;
+    }
+  if (NSOrderedDescending == GSCompareUsingDescriptorOrComparator(buf[min],
+    buf[runMax++], descOrComp, type, context))
+    {
+      while ((runMax < rangeMax) && NSOrderedDescending
+        == GSCompareUsingDescriptorOrComparator(buf[runMax - 1],
+        buf[runMax], descOrComp, type, context))
+        {
+          runMax++;
+        }
+      reverseRange(buf, NSMakeRange(min, (runMax - min)));
+    }
+  else // ascending or equal
+    {
+      while ((runMax < rangeMax) && NSOrderedDescending
+        != GSCompareUsingDescriptorOrComparator(buf[runMax - 1],
+        buf[runMax], descOrComp, type, context))
+        {
+          runMax++;
+        }
+    }
+  return (runMax - min);
+}
+
+/*
+ * Calculate a sensible minimum length for the runs, these need to be powers of
+ * two, or less than, but close to, one, but always at least GS_MIN_MERGE. For
+ * details on why this is useful, see Python's listsort.txt.
+ */
+static inline NSUInteger
+minimumRunLength(NSUInteger length)
+{
+  NSUInteger r = 0;
+
+  while (length >= GS_MIN_MERGE)
+    {
+      r |= length & 1;
+      length >>= 1;
+    }
+
+  return (length + r);
+}
+
+/*
+ * For arrays up to GS_MIN_MERGE, we don't do merging. Instead, we identify
+ * pre-ordering at the begining of the range and sort the rest using binary
+ * sort.
+ */
+static inline void
+miniTimSort(id *buf, NSRange r, id descOrComp, GSComparisonType ty, void *ctx)
+{
+  NSUInteger firstRunLength = countAscendizedRun(buf, r, descOrComp, ty, ctx);
+
+  if (r.length == firstRunLength)
+    {
+      // In this case, we have already sorted the array here.
+      return;
+    }
+  internalBinarySort(buf, r, (r.location + firstRunLength),
+    descOrComp, ty, ctx);
+}
 
 /* These macros make calling the cached IMPs easier,
  * if we choose to do so later.
@@ -477,7 +474,7 @@ static IMP mergeLowImp;
 static IMP mergeHighImp;
 static IMP ensureCapImp;
 
-@interface GSTimSortDescriptor : NSObject
+@interface GSTimSortPlaceHolder : NSObject
 {
   id *objects;
   NSRange sortRange;
@@ -512,7 +509,7 @@ _GSTimSort(id *objects,
   GSComparisonType comparisonType,
   void *context);
 
-@implementation GSTimSortDescriptor
+@implementation GSTimSortPlaceHolder
 + (void) load
 {
   _GSSortStable = _GSTimSort;
@@ -520,7 +517,7 @@ _GSTimSort(id *objects,
 
 + (void) initialize
 {
-  if ([GSTimSortDescriptor class] == [self class])
+  if ([GSTimSortPlaceHolder class] == [self class])
     {
       // We need to be fast, so we cache a lot of IMPs
       pushRunImp =
@@ -540,6 +537,11 @@ _GSTimSort(id *objects,
     }
 }
 
++ (void) setUnstable
+{
+  _GSSortUnstable = _GSTimSort; // Use for unstable even though we are stable
+}
+
 - (id) initWithObjects: (id*)theObjects
              sortRange: (NSRange)theSortRange
 descriptorOrComparator: (id)descriptorOrComparator
@@ -553,7 +555,7 @@ descriptorOrComparator: (id)descriptorOrComparator
     {
       return nil;
     }
-  /* GSTimSortDescriptors are ephemeral objects that just track state, so we
+  /* GSTimSortPlaceHolders are ephemeral objects that just track state, so we
    * don't bother making sure that the objects don't go away.
    */
   objects = theObjects;
@@ -637,16 +639,16 @@ descriptorOrComparator: (id)descriptorOrComparator
         {
           if (runStack[n-1].length < runStack[n+1].length)
             {
-                  n--;
-                }
+              n--;
             }
+        }
       else if (runStack[n].length > runStack[n+1].length)
-            {
+        {
           break; //invariant reached
         }
-              GS_TIMSORT_MERGE_AT_INDEX(self, n);
-            }
-            }
+      GS_TIMSORT_MERGE_AT_INDEX(self, n);
+    }
+}
 
 - (void) ensureTempCapacity: (NSUInteger)elementsRequired
 {
@@ -754,7 +756,8 @@ descriptorOrComparator: (id)descriptorOrComparator
                */
               localMinGallop -= localMinGallop > 1;
               minGallop = localMinGallop;
-              k = gallopRight(*buf2, buf1, NSMakeRange(0,num1), 0, descOrComp, ty, ctx);
+              k = gallopRight(*buf2, buf1,
+                NSMakeRange(0,num1), 0, descOrComp, ty, ctx);
               winners1 = k;
               if (0 != k)
                 {
@@ -1011,7 +1014,6 @@ descriptorOrComparator: (id)descriptorOrComparator
   NS_ENDHANDLER
 }
 
-
 - (void) mergeAtIndex: (NSUInteger)i
 {
   NSRange r1;
@@ -1023,7 +1025,8 @@ descriptorOrComparator: (id)descriptorOrComparator
 
   r1 = runStack[i];
   r2 = runStack[i+1];
-  NSDebugMLLog(@"GSTimSort", @"Merging stack location %lu (stack size: %lu, run %@ with %@)", i,
+  NSDebugMLLog(@"GSTimSort",
+    @"Merging stack location %lu (stack size: %lu, run %@ with %@)", i,
     stackSize, NSStringFromRange(r1), NSStringFromRange(r2));
 
   /* Do some housekeeping on the stack: We combine the two runs
@@ -1045,11 +1048,12 @@ descriptorOrComparator: (id)descriptorOrComparator
   r1.length = r1.length - (insert - r1.location);
   r1.location = insert;
   if (r1.length == 0)
-  {
-    // The entire run r2 lies after r1, just return.
-    return;
-  }
-  NSDebugMLLog(@"GSTimSort", @"Insertion point for r2 in r1: %lu, r1 for the merge is now %@.",
+    {
+      // The entire run r2 lies after r1, just return.
+      return;
+    }
+  NSDebugMLLog(@"GSTimSort",
+    @"Insertion point for r2 in r1: %lu, r1 for the merge is now %@.",
     insert, NSStringFromRange(r1));
 
   // Find an insertion point for the last element of r1 into r2. Subtracting the
@@ -1064,7 +1068,9 @@ descriptorOrComparator: (id)descriptorOrComparator
       return;
     }
 
-  (r1.length <= r2.length) ? GS_TIMSORT_MERGE_LOW(self, r1, r2) : GS_TIMSORT_MERGE_HIGH(self, r1, r2);
+  (r1.length <= r2.length)
+    ? GS_TIMSORT_MERGE_LOW(self, r1, r2)
+    : GS_TIMSORT_MERGE_HIGH(self, r1, r2);
 }
 
 /**
@@ -1084,8 +1090,6 @@ descriptorOrComparator: (id)descriptorOrComparator
     }
 }
 
-
-
 - (void) dealloc
 {
   free(runStack);
@@ -1093,8 +1097,8 @@ descriptorOrComparator: (id)descriptorOrComparator
   [super dealloc];
 }
 
-
 @end
+
 static void
 _GSTimSort(id *objects,
   NSRange sortRange,
@@ -1106,7 +1110,7 @@ _GSTimSort(id *objects,
   NSUInteger sortEnd = NSMaxRange(sortRange);
   NSUInteger sortLen = sortRange.length;
   NSUInteger minimalRunLen = 0;
-  GSTimSortDescriptor *desc = nil;
+  GSTimSortPlaceHolder *desc = nil;
   if (sortLen < 2)
     {
       // Don't sort anything that doesn't contain at least two elements.
@@ -1115,16 +1119,17 @@ _GSTimSort(id *objects,
 
   if (sortLen < GS_MIN_MERGE)
     {
-      miniTimSort(objects, sortRange, sortDescriptorOrComparator, comparisonType, context);
+      miniTimSort(objects, sortRange,
+        sortDescriptorOrComparator, comparisonType, context);
       return;
     }
 
   // Now we need a timsort descriptor for state-tracking.
-  desc = [[GSTimSortDescriptor alloc] initWithObjects: objects
-                                            sortRange: sortRange
-                               descriptorOrComparator: sortDescriptorOrComparator
-                                       comparisonType: comparisonType
-                                      functionContext: context];
+  desc = [[GSTimSortPlaceHolder alloc] initWithObjects: objects
+    sortRange: sortRange
+    descriptorOrComparator: sortDescriptorOrComparator
+    comparisonType: comparisonType
+    functionContext: context];
 
   NS_DURING
     {
@@ -1171,4 +1176,3 @@ _GSTimSort(id *objects,
   [desc release];
 }
 
-#endif

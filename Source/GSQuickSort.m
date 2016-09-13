@@ -31,7 +31,11 @@
 #import "Foundation/NSObjCRuntime.h"
 #import "GSSorting.h"
 
-/// Swaps the two provided objects.
+/**
+ * Sorts the provided object array's sortRange according to sortDescriptor.
+ */
+// Quicksort algorithm copied from Wikipedia :-).
+
 static inline void
 SwapObjects(id * o1, id * o2)
 {
@@ -42,11 +46,6 @@ SwapObjects(id * o1, id * o2)
   *o2 = temp;
 }
 
-/**
- * Sorts the provided object array's sortRange according to sortDescriptor.
- */
-// Quicksort algorithm copied from Wikipedia :-).
-#if GS_USE_QUICKSORT
 static void
 _GSQuickSort(id *objects,
   NSRange sortRange,
@@ -84,12 +83,12 @@ _GSQuickSort(id *objects,
 }
 
 @interface GSQuickSortPlaceHolder : NSObject
++ (void) setUnstable;
 @end
 
 @implementation GSQuickSortPlaceHolder
-+ (void) load
++ (void) setUnstable
 {
   _GSSortUnstable = _GSQuickSort;
 }
 @end
-#endif

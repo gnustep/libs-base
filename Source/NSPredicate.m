@@ -141,7 +141,24 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 }
 @end
 
-
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+@interface GSBlockPredicate : NSPredicate
+{
+  GSBlockPredicateBlock _block;
+}
+
+- (instancetype) initWithBlock: (GSBlockPredicateBlock)block;
+@end
+
+
+@interface GSBoundBlockPredicate : GSBlockPredicate
+{
+  GS_GENERIC_CLASS(NSDictionary,NSString*,id)* _bindings;
+}
+- (instancetype) initWithBlock: (GSBlockPredicateBlock)block
+                      bindings: (GS_GENERIC_CLASS(NSDictionary,NSString*,id)*)bindings;
+@end
+#endif
 
 @implementation NSPredicate
 
@@ -224,7 +241,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
               case 'X':
                 ptr++;
                 [arr addObject: [NSNumber numberWithUnsignedInt:
-                  va_arg(args, unsigned int)]];
+                  va_arg(args, unsigned)]];
                 break;
 
               case 'e':
@@ -343,6 +360,14 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   return AUTORELEASE([self copy]);  
 }
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+- (BOOL) evaluateWithObject: (id)object
+	  substitutionVariables: (GS_GENERIC_CLASS(NSDictionary, NSString*, id)*)variables
+{
+  return [[self predicateWithSubstitutionVariables: variables]
+		   evaluateWithObject: object];
+}
+#endif
 - (Class) classForCoder
 {
   return [NSPredicate class];
@@ -361,6 +386,12 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   return self;
 }
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
++ (NSPredicate*)predicateWithBlock: (GSBlockPredicateBlock)block
+{
+  return [[[GSBlockPredicate alloc] initWithBlock: block] autorelease];
+}
+#endif
 @end
 
 @implementation GSTruePredicate
@@ -405,21 +436,23 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 + (NSPredicate *) andPredicateWithSubpredicates: (NSArray *)list
 {
-  return AUTORELEASE([[GSAndCompoundPredicate alloc] initWithType: NSAndPredicateType
-                                                     subpredicates: list]);
+  return AUTORELEASE([[GSAndCompoundPredicate alloc]
+    initWithType: NSAndPredicateType subpredicates: list]);
 }
 
 + (NSPredicate *) notPredicateWithSubpredicate: (NSPredicate *)predicate
 {
+  NSArray       *list;
+
+  list = [NSArray arrayWithObject: predicate];
   return AUTORELEASE([[GSNotCompoundPredicate alloc] 
-                         initWithType: NSNotPredicateType
-                         subpredicates: [NSArray arrayWithObject: predicate]]);
+    initWithType: NSNotPredicateType subpredicates: list]);
 }
 
 + (NSPredicate *) orPredicateWithSubpredicates: (NSArray *)list
 {
-  return AUTORELEASE([[GSOrCompoundPredicate alloc] initWithType: NSOrPredicateType
-                                                     subpredicates: list]);
+  return AUTORELEASE([[GSOrCompoundPredicate alloc]
+    initWithType: NSOrPredicateType subpredicates: list]);
 }
 
 - (NSCompoundPredicateType) compoundPredicateType
@@ -434,7 +467,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
     {
       _type = type;
       ASSIGNCOPY(_subs, list);
-        }
+    }
   return self;
 }
 
@@ -458,7 +491,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 {
   unsigned int count = [_subs count];
   NSMutableArray *esubs = [NSMutableArray arrayWithCapacity: count];
-   unsigned int i;
+  unsigned int i;
   NSPredicate  *p;
 
   for (i = 0; i < count; i++)
@@ -1014,7 +1047,8 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 	  != NSNotFound ? YES : NO);
       case NSCustomSelectorPredicateOperatorType:
 	{
-	  BOOL (*function)(id,SEL,id) = (BOOL (*)(id,SEL,id))[leftResult methodForSelector: _selector];
+	  BOOL (*function)(id,SEL,id)
+            = (BOOL (*)(id,SEL,id))[leftResult methodForSelector: _selector];
 	  return function(leftResult, _selector, rightResult);
 	}
       default:
@@ -1492,7 +1526,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
     }
   // apply method selector
   return [self performSelector: _selector
-                      withObject: eargs];
+                    withObject: eargs];
 }
 
 - (void) dealloc;
@@ -1510,6 +1544,20 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   copy->_function = [_function copyWithZone: zone];
   copy->_args = [_args copyWithZone: zone];
   return copy;
+}
+
+- (NSEnumerator*) _enum: (NSArray *)expressions
+{
+  id    o;
+
+  /* Check to see if this is aggregating over a collection.
+   */
+  if (1 == _argc && [(o = [expressions lastObject])
+    respondsToSelector: @selector(objectEnumerator)])
+    {
+      return [o objectEnumerator];
+    }
+  return [expressions objectEnumerator];
 }
 
 - (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables
@@ -1562,7 +1610,8 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   id left = [expressions objectAtIndex: 0];
   id right = [expressions objectAtIndex: 1];
 
-  return [NSNumber numberWithDouble: pow([left doubleValue], [right doubleValue])];
+  return [NSNumber numberWithDouble:
+    pow([left doubleValue], [right doubleValue])];
 }
 
 - (id) _eval__mul: (NSArray *)expressions
@@ -1606,42 +1655,47 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 - (id) _eval_avg: (NSArray *)expressions 
 {
-  unsigned int i;
-  double sum = 0.0;
+  NSEnumerator  *e = [self _enum: expressions];
+  double        sum = 0.0;
+  unsigned      count = 0;
+  id            o;
     
-  for (i = 0; i < _argc; i++)
+  while (nil != (o = [e nextObject]))
     {
-      sum += [[expressions objectAtIndex: i] doubleValue];
+      sum += [o doubleValue];
+      count++;
     }
-  return [NSNumber numberWithDouble: sum / _argc];
+  return [NSNumber numberWithDouble: sum / count];
 }
 
-- (id) _eval_sum: (NSArray *)expressions
+- (id) _eval_max: (NSArray *)expressions
 {
-  unsigned int i;
-  double sum = 0.0;
-    
-  for (i = 0; i < _argc; i++)
+  NSEnumerator  *e = [self _enum: expressions];
+  id            o = [e nextObject];
+  double        max = (nil == o) ? 0.0 : [o doubleValue];
+  double        cur;
+  
+  while (nil != (o = [e nextObject]))
     {
-      sum += [[expressions objectAtIndex: i] doubleValue];
+      cur = [o doubleValue];
+      if (max < cur)
+        {
+          max = cur;
+        }
     }
-  return [NSNumber numberWithDouble: sum];
+  return [NSNumber numberWithDouble: max];
 }
 
 - (id) _eval_min: (NSArray *)expressions
 {
-  unsigned int i;
-  double min = 0.0;
-  double cur;
-  
-  if (_argc > 0)
-    {
-      min = [[expressions objectAtIndex: 0] doubleValue];
-    }
+  NSEnumerator  *e = [self _enum: expressions];
+  id            o = [e nextObject];
+  double        min = (nil == o ? 0.0 : [o doubleValue]);
+  double        cur;
 
-  for (i = 1; i < _argc; i++)
+  while (nil != (o = [e nextObject]))
     {
-      cur = [[expressions objectAtIndex: i] doubleValue];
+      cur = [o doubleValue];
       if (min > cur)
         {
           min = cur;
@@ -1650,26 +1704,17 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return [NSNumber numberWithDouble: min];
 }
 
-- (id) _eval_max: (NSArray *)expressions
+- (id) _eval_sum: (NSArray *)expressions
 {
-  unsigned int i;
-  double max = 0.0;
-  double cur;
-  
-  if (_argc > 0)
-    {
-      max = [[expressions objectAtIndex: 0] doubleValue];
-    }
+  NSEnumerator  *e = [self _enum: expressions];
+  double        sum = 0.0;
+  id            o;
 
-  for (i = 1; i < _argc; i++)
+  while (nil != (o = [e nextObject]))
     {
-      cur = [[expressions objectAtIndex: i] doubleValue];
-      if (max < cur)
-        {
-          max = cur;
-        }
+      sum += [o doubleValue];
     }
-  return [NSNumber numberWithDouble: max];
+  return [NSNumber numberWithDouble: sum];
 }
 
 // add arithmetic functions: average, median, mode, stddev, sqrt, log, ln, exp, floor, ceiling, abs, trunc, random, randomn, now
@@ -1694,7 +1739,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
           [result addObject: object];  // passes filter
         }
     }
-  return [result makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(result);
 }
 
 @end
@@ -1734,7 +1779,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
           [result addObject: object];  // passes filter
         }
     }
-  return [result makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(result);
 }
 
 @end
@@ -2591,5 +2636,82 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
         }
     }
 }
-
 @end
+
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+
+
+@implementation GSBlockPredicate
+
+- (instancetype) initWithBlock: (GSBlockPredicateBlock)block
+{
+  if (nil == (self = [super init]))
+    {
+      return nil;
+    }
+  _block = (GSBlockPredicateBlock)[(id)block retain];
+  return self;
+}
+
+- (instancetype) predicateWithSubstitutionVariables: 
+  (GS_GENERIC_CLASS(NSDictionary,NSString*,id)*)variables
+{
+  return [[[GSBoundBlockPredicate alloc] initWithBlock: _block
+                                              bindings: variables] autorelease];
+}
+
+- (BOOL) evaluateWithObject: (id)object
+      substitutionVariables: (GS_GENERIC_CLASS(NSDictionary,
+                                               NSString*,id)*)variables
+{
+  return CALL_BLOCK(_block, object, variables);
+}
+
+- (BOOL) evaluateWithObject: (id)object
+{
+  return [self evaluateWithObject: object
+            substitutionVariables: nil];
+}
+
+- (void) dealloc
+{
+  [(id)_block release];
+  _block = NULL;
+  [super dealloc];
+}
+
+- (NSString*) predicateFormat
+{
+  return [NSString stringWithFormat: @"BLOCKPREDICATE(%p)", (void*)_block];
+}
+@end
+
+@implementation GSBoundBlockPredicate
+
+- (instancetype) initWithBlock: (GSBlockPredicateBlock)block
+                      bindings: (GS_GENERIC_CLASS(NSDictionary,
+                                                   NSString*,id)*)bindings
+{
+  if (nil == (self = [super initWithBlock: block]))
+    {
+      return nil;
+    }
+  ASSIGN(_bindings, bindings);
+  return self;
+}
+
+- (BOOL) evaluateWithObject: (id)object
+{
+  return [self evaluateWithObject: object
+            substitutionVariables: _bindings];
+}
+
+- (void) dealloc
+{
+  DESTROY(_bindings);
+  [super dealloc];
+}
+@end
+
+#endif

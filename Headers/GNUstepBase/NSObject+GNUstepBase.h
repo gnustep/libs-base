@@ -36,6 +36,8 @@ extern "C" {
 
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
+@class  NSHashTable;
+
 @interface NSObject (GNUstepBase)
 
 /**
@@ -55,7 +57,7 @@ extern "C" {
  */
 - (BOOL) isInstance;
 
-/**
+/** DEPRECATED ... do not use.
  * Transmutes the receiver into an immutable version of the same object
  * and returns the result.<br />
  * If the receiver is not a mutable object or cannot be simply transmuted,
@@ -68,6 +70,19 @@ extern "C" {
  * internally.
  */
 - (id) makeImmutableCopyOnFail: (BOOL)force;
+
+/** Transmutes the receiver into an immutable version of the same object.
+ * Returns YES if the receiver has become immutable, NO otherwise.<br />
+ * The default implementation returns NO.<br />
+ * Mutable classes which have an immutable counterpart they can efficiently
+ * change into, should override to transmute themselves and return YES.<br />
+ * Immutable classes should override this to simply return YES with no
+ * further action.<br />
+ * This method is used in methods which are declared to return immutable
+ * objects (eg. an NSArray), but which create and build mutable ones
+ * internally.
+ */
+- (BOOL) makeImmutable;
 
 /**
  * Message sent when an implementation wants to explicitly exclude a method
@@ -94,6 +109,29 @@ extern "C" {
  */
 - (id) shouldNotImplement: (SEL)aSel GS_NORETURN_METHOD;
 
+@end
+
+/** This is an informal protocol ... classes may implement the method to
+ * report how much memory is used by the instance and any objects it acts
+ * as a container for.
+ */
+@interface      NSObject(MemoryFootprint)
+/* This method returns the memory usage of the receiver, excluding any
+ * objects already present in the exclude table.<br />
+ * The argument is a hash table configured to hold non-retained pointer
+ * objects and is used to inform the receiver that its size should not
+ * be counted again if it's already in the table.<br />
+ * The NSObject implementation returns zero if the receiver is in the
+ * table, but otherwise adds itself to the table and returns its memory
+ * footprint (the sum of all of its instance variables, but not any
+ * memory pointed to by those variables).<br />
+ * Subclasses should override this method by calling the superclass
+ * implementation, and either return the result (if it was zero) or
+ * return that value plus the sizes of any memory owned by the receiver
+ * (eg found by calling the same method on objects pointed to by the
+ * receiver's instance variables).
+ */
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude;
 @end
 
 /** This is an informal protocol ... classes may implement the method and
@@ -188,6 +226,11 @@ extern "C" {
 + (BOOL) shouldCleanUp;
 
 @end
+
+/* Macro to take an autoreleased object and either make it immutable or
+ * create an autoreleased copy of the original.
+ */
+#define GS_IMMUTABLE(O) ([O makeImmutable] == YES ? O : AUTORELEASE([O copy]))
 
 #endif	/* OS_API_VERSION */
 

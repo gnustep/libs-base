@@ -22,7 +22,7 @@ int main ()
   for (i = 0 ; i < 30; i++)
     {
       buf[i] = i;
-}
+    }
   v = buf;
 
   sp = (short*)(v + 1);

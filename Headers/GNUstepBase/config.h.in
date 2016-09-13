@@ -171,15 +171,6 @@
 /* Built in default value for GNUstep user_dir web apps */
 #undef GNUSTEP_TARGET_USER_DIR_WEB_APPS
 
-/* Build in/use quicksort */
-#undef GS_USE_QUICKSORT
-
-/* Build in/use shellsort */
-#undef GS_USE_SHELLSORT
-
-/* Build in/use timsort */
-#undef GS_USE_TIMSORT
-
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
 
@@ -201,6 +192,9 @@
 /* Define if you have currency_symbol field in struct lconv */
 #undef HAVE_CURRENCY_SYMBOL_IN_LCONV
 
+/* Define to 1 if you have the <dbghelp.h> header file. */
+#undef HAVE_DBGHELP_H
+
 /* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
    don't. */
 #undef HAVE_DECL_STRERROR_R
@@ -212,8 +206,15 @@
 /* Define to 1 if you have the <dispatch/dispatch.h> header file. */
 #undef HAVE_DISPATCH_DISPATCH_H
 
+/* Define to 1 if you have the `dispatch_get_main_queue_handle_np' function.
+   */
+#undef HAVE_DISPATCH_GET_MAIN_QUEUE_HANDLE_NP
+
 /* Define to 1 if you have the <dispatch.h> header file. */
 #undef HAVE_DISPATCH_H
+
+/* Define to 1 if you have the `dispatch_main_queue_drain_np' function. */
+#undef HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP
 
 /* Define to 1 if you have the `dladdr' function. */
 #undef HAVE_DLADDR
@@ -238,15 +239,6 @@
 
 /* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
 #undef HAVE_FSEEKO
-
-/* Define if GC_allow_register_threads function is available */
-#undef HAVE_GC_ALLOW_REGISTER_THREADS
-
-/* Define to 1 if you have the <gc/gc.h> header file. */
-#undef HAVE_GC_GC_H
-
-/* Define if GC_register_my_thread function is available */
-#undef HAVE_GC_REGISTER_MY_THREAD
 
 /* Define to 1 if you have the `getaddrinfo' function. */
 #undef HAVE_GETADDRINFO
@@ -358,6 +350,9 @@
 
 /* Define to 1 if you have the `iberty' library (-liberty). */
 #undef HAVE_LIBIBERTY
+
+/* Define to 1 if you have the `intl' library (-lintl). */
+#undef HAVE_LIBINTL
 
 /* Define to 1 if you have the `kvm' library (-lkvm). */
 #undef HAVE_LIBKVM
@@ -472,9 +467,6 @@
 
 /* Define to 1 if you have the <pthread_np.h> header file. */
 #undef HAVE_PTHREAD_NP_H
-
-/* Define to 1 if you have the `pthread_set_name_np' function. */
-#undef HAVE_PTHREAD_SET_NAME_NP
 
 /* Define this if you work on sysv */
 #undef HAVE_PTS_STREAM_MODULES
@@ -840,6 +832,9 @@
 
 /* Define if the compiler provides builtins for atomic operations */
 #undef USE_ATOMIC_BUILTINS
+
+/* Define to use bfd library for stack traces */
+#undef USE_BFD
 
 /* Define if using the ffcall library for invocations */
 #undef USE_FFCALL

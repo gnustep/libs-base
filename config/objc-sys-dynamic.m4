@@ -15,7 +15,7 @@ AC_REQUIRE([OBJC_CON_AUTOLOAD])dnl
 DYNAMIC_LINKER=null
 AC_CHECK_HEADER(windows.h, DYNAMIC_LINKER=win32)
 if test $DYNAMIC_LINKER = null; then
-AC_CHECK_HEADER(dlfcn.h, DYNAMIC_LINKER=simple)
+  AC_CHECK_HEADER(dlfcn.h, DYNAMIC_LINKER=simple)
 fi
 if test $DYNAMIC_LINKER = null; then
   AC_CHECK_HEADER(dl.h, DYNAMIC_LINKER=hpux)

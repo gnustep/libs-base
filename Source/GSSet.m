@@ -37,12 +37,6 @@
 
 #define	GSI_MAP_HAS_VALUE	0
 #define	GSI_MAP_KTYPES		GSUNION_OBJ
-#if	GS_WITH_GC
-#include	<gc/gc_typed.h>
-static GC_descr	nodeDesc;	// Type descriptor for map node.
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
-#endif
 
 
 #include "GNUstepBase/GSIMap.h"
@@ -116,14 +110,6 @@ static Class	mutableSetClass;
 {
   if (self == [GSSet class])
     {
-#if	GS_WITH_GC
-      /* We create a typed memory descriptor for map nodes.
-       * Only the pointer to the key needs to be scanned.
-       */
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#endif
       arrayClass = [NSArray class];
       setClass = [GSSet class];
       mutableSetClass = [GSMutableSet class];
@@ -458,6 +444,11 @@ static Class	mutableSetClass;
     }
 }
 
+- (BOOL) makeImmutable
+{
+  return YES;
+}
+
 - (void) makeObjectsPerform: (SEL)aSelector
 {
   GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
@@ -537,6 +528,27 @@ static Class	mutableSetClass;
   return GSIMapCountByEnumeratingWithStateObjectsCount
     (&map, state, stackbuf, len);
 }
+
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  NSUInteger	size = GSPrivateMemorySize(self, exclude);
+
+  if (size > 0)
+    {
+      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+      GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
+
+      size += GSIMapSize(&map) - sizeof(map);
+      while (node != 0)
+        {
+          size += [node->key.obj sizeInBytesExcluding: exclude];
+          node = GSIMapEnumeratorNextNode(&enumerator);
+        }
+      GSIMapEndEnumerator(&enumerator);
+    }
+  return size;
+}
+
 @end
 
 @implementation GSMutableSet
@@ -712,6 +724,12 @@ static Class	mutableSetClass;
           GSIMapEndEnumerator(&enumerator);
         }
     }
+}
+
+- (BOOL) makeImmutable
+{
+  GSClassSwizzle(self, [GSSet class]);
+  return YES;
 }
 
 - (id) makeImmutableCopyOnFail: (BOOL)force

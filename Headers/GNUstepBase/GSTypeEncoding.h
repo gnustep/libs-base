@@ -28,7 +28,12 @@
 #define GS_TYPE_ENCODING_H
 
 #include <GNUstepBase/GSVersionMacros.h>
-#include <GNUstepBase/GSConfig.h>
+
+#if defined(__MINGW__)
+/* On MINGW we need to get the boolean type from the runtime at this point.
+ */
+#define _NO_BOOL_TYPEDEF
+#endif
 
 #if defined (NeXT_RUNTIME)
 #  include <objc/objc-runtime.h>

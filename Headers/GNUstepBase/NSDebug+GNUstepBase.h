@@ -303,7 +303,7 @@ GS_EXPORT NSString*	GSDebugMethodMsg(id obj, SEL sel, const char *file,
 
 /** The DLog macro is a less powerful but commonly used logging macro,
  * defined here for convenience when porting code.  It will tell you
- * the function name and line number but not the fle location.
+ * the function name and line number but not the file location.
  * It performs unconditional logging but is only compiled in when the
  * program is built with DEBUG defined.
  */

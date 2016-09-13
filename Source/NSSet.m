@@ -27,6 +27,7 @@
 
 #import "common.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSArray.h"
@@ -266,12 +267,10 @@ static Class NSMutableSet_concrete_class;
 	      [aCoder decodeValueOfObjCType: @encode(id) at: &objs[i]];
 	    }
 	  self = [self initWithObjects: objs count: count];
-#if	GS_WITH_GC == 0
 	  while (count-- > 0)
 	    {
 	      [objs[count] release];
 	    }
-#endif
 	  GS_ENDIDBUF();
 	}
     }
@@ -417,11 +416,13 @@ static Class NSMutableSet_concrete_class;
       i++;
     }
   self = [self initWithObjects: os count: c];
-#if	!GS_WITH_GC
   if (flag)
-    while (i--)
-      [os[i] release];
-#endif
+    {
+      while (i--)
+        {
+          [os[i] release];
+        }
+    }
   GS_ENDIDBUF();
   return self;
 }
@@ -608,10 +609,10 @@ static Class NSMutableSet_concrete_class;
 
       while ((o = [e nextObject]))
         {
-	if (![other member: o])
+	  if (![other member: o])
             {
-	  return NO;
-    }
+	      return NO;
+            }
          else
            {
              if ([self _countForObject: o] != [other _countForObject: o])
@@ -831,7 +832,7 @@ static Class NSMutableSet_concrete_class;
                       o = [o valueForKeyPath: rem];
                       [result addObjectsFromArray: o];
                     }
-                  [result makeImmutableCopyOnFail: NO];
+                  result = GS_IMMUTABLE(result);
                 }
               else
                 {
@@ -851,7 +852,7 @@ static Class NSMutableSet_concrete_class;
                       o = [o valueForKeyPath: rem];
                       [result addObject: o];
                     }
-                  [result makeImmutableCopyOnFail: NO];
+                  result = GS_IMMUTABLE(result);
                 }
               else
                 {
@@ -871,7 +872,7 @@ static Class NSMutableSet_concrete_class;
                       o = [o valueForKeyPath: rem];
                       [result addObjectsFromArray: [o allObjects]];
                     }
-                  [result makeImmutableCopyOnFail: NO];
+                  result = GS_IMMUTABLE(result);
                 }
               else
                 {
@@ -945,7 +946,7 @@ static Class NSMutableSet_concrete_class;
     }
   END_FOR_IN(enumerator)
     
-  return [resultSet makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(resultSet);
 }
 
 /** Return a set formed by adding anObject to the receiver.
@@ -997,6 +998,30 @@ static Class NSMutableSet_concrete_class;
     [self subclassResponsibility: _cmd];
     return 0;
 }
+
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  NSUInteger    size = [super sizeInBytesExcluding: exclude];
+
+  if (size > 0)
+    {
+      NSUInteger        count = [self count];
+
+      size += 3 * sizeof(void*) * count;
+      if (count > 0)
+        {
+          NSEnumerator          *enumerator = [self objectEnumerator];
+          NSObject              *o;
+
+          while ((o = [enumerator nextObject]) != nil)
+            {
+              size += [o sizeInBytesExcluding: exclude];
+            }
+        }
+    }
+  return size;
+}
+
 @end
 
 

@@ -70,7 +70,7 @@
    are uintptr_t, which is always unsigned long.  */
 #define PRIuPTR "lu"
 #endif
- 
+
 /* Solaris < 10 kludge.  */
 #if defined(__sun__) && defined(__svr4__) && !defined(PRIuPTR)
 #if defined(__arch64__) || defined (__x86_64__)
@@ -149,6 +149,46 @@ extern "C" {
  * that the _GS_GET_ENUM_MACRO expands to into the correct position.
  */
 #define NS_ENUM(...) _GS_GET_ENUM_MACRO(__VA_ARGS__,_GS_NAMED_ENUM,_GS_ANON_ENUM)(__VA_ARGS__)
+
+/*
+ * If the compiler supports nullability qualifiers, we define the macros for
+ * non-null sections.
+ */
+#if __has_feature(nullability)
+#  define NS_ASSUME_NONNULL_BEGIN _Pragma("clang assume_nonnull begin")
+#  define NS_ASSUME_NONNULL_END   _Pragma("clang assume_nonnull end")
+#else
+#  define NS_ASSUME_NONNULL_BEGIN
+#  define NS_ASSUME_NONNULL_END
+#endif
+
+/*
+ * Backwards compatibility macro for instance type.
+ */
+#if !__has_feature(objc_instancetype)
+# define instancetype id
+#endif
+
+/*
+ * Backwards compatibility macros for Objective-C lightweight generics.
+ */
+#if __has_feature(objc_generics)
+# define GS_GENERIC_CLASS(clz, ...) clz<__VA_ARGS__>
+# define GS_GENERIC_TYPE_F(typeRef, fallback) typeRef
+#else
+# define GS_GENERIC_CLASS(clz, ...) clz
+# define GS_GENERIC_TYPE_F(typeRef, fallback) fallback
+#endif
+#define GS_GENERIC_TYPE(typeRef) GS_GENERIC_TYPE_F(typeRef, id)
+
+/**
+ * Backwards compatibility macro for the objc_designated_initializer attribute
+ */
+#if __has_attribute(objc_designated_initializer)
+#  define NS_DESIGNATED_INITIALIZER __attribute__((objc_designated_initializer))
+#else
+#  define NS_DESIGNATED_INITIALIZER
+#endif
 
 /** Bitfield used to specify options to control enumeration over collections.
  */
@@ -234,6 +274,11 @@ NSComparisonResult;
 enum {NSNotFound = NSIntegerMax};
 
 DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
+
+/**
+ * Declare the foundation export macro as an alias to GS_EXPORT 
+ */
+#define FOUNDATION_EXPORT GS_EXPORT
 
 #if	defined(__cplusplus)
 }

@@ -260,7 +260,7 @@ typedef struct {
 }
 @end
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 @interface	GSWindowsTimeZone : NSTimeZone
 {
 @public
@@ -510,7 +510,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 	          data = [NSData dataWithContentsOfFile: fileName];
 		}
 	      if (nil == data)
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName: name data: 0];
                   DESTROY(self);
@@ -522,7 +522,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 		}
 #endif
 	    }
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 	  if (!data)
 	    zone = [[GSWindowsTimeZone alloc] initWithName: name data: data];
 	  else
@@ -1040,8 +1040,15 @@ static NSMapTable	*absolutes = 0;
 		    }
 		}
 	    }
-	  [md makeImmutableCopyOnFail: NO];
-	  abbreviationDictionary = md;
+          if ([md makeImmutable] == YES)
+            {
+              abbreviationDictionary = md;
+            }
+          else
+            {
+              abbreviationDictionary = [md copy];
+              RELEASE(md);
+            }
 	}
       [pool drain];
     }
@@ -1090,7 +1097,7 @@ static NSMapTable	*absolutes = 0;
       path = _time_zone_path (ABBREV_MAP, nil);
       if (path != nil)
 	{
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 	  unichar	mode[3];
 
 	  mode[0] = 'r';
@@ -1187,8 +1194,14 @@ static NSMapTable	*absolutes = 0;
 	  [ma addObject: the_name];
 	}
 
-      [md makeImmutableCopyOnFail: NO];
-      abbreviationMap = RETAIN(md); 
+      if ([md makeImmutable] == YES)
+        {
+          abbreviationMap = RETAIN(md); 
+        }
+      else
+        {
+          abbreviationMap = [md copy];
+        }
       [pool drain];
     }
   if (zone_mutex != nil)
@@ -1231,9 +1244,15 @@ static NSMapTable	*absolutes = 0;
 
 	  [ma addObjectsFromArray: names];
 	}
-
-      [ma makeImmutableCopyOnFail: NO];
-      namesArray = ma;
+      if ([ma makeImmutable] == YES)
+        {
+          namesArray = ma;
+        }
+      else
+        {
+          namesArray = [ma copy];
+          RELEASE(ma);
+        }
     }
   if (zone_mutex != nil)
     {
@@ -1476,7 +1495,7 @@ static NSMapTable	*absolutes = 0;
 	    }
 	}
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
       /*
        * Try to get timezone from windows system call.
        */
@@ -1591,12 +1610,10 @@ static NSMapTable	*absolutes = 0;
 	        {
 		  localZoneString = tzdir = nil;
 		}
-#if	!GS_WITH_GC
 	      else
 		{
 		  [tzdir retain];
 		}
-#endif
 	    }
 #endif
 	  if (localZoneString != nil && [localZoneString hasPrefix: tzdir])
@@ -1821,7 +1838,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
       path = _time_zone_path (REGIONS_FILE, nil);
       if (path != nil)
 	{
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 	  unichar	mode[3];
 
 	  mode[0] = 'r';
@@ -1988,9 +2005,9 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
     }
   if (nil == zone)
     {
-  zone = [[GSAbsTimeZone alloc] initWithOffset: seconds name: nil];
+      zone = [[GSAbsTimeZone alloc] initWithOffset: seconds name: nil];
       zone = AUTORELEASE(zone);
-}
+    }
   return zone;
 }
 
@@ -2525,7 +2542,7 @@ static NSString *zoneDirs[] = {
 @end
 
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 /* Timezone information data as stored in the registry */
 typedef struct TZI_format {
 	LONG       Bias;
@@ -2556,8 +2573,9 @@ lastDayOfGregorianMonth(int month, int year)
 
 /* IMPORT from NSCalendar date */
 void
-GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
-  NSInteger*hour, NSInteger*minute, NSInteger*second, NSInteger*mil);
+GSBreakTime(NSTimeInterval when,
+  NSInteger *year, NSInteger *month, NSInteger *day,
+  NSInteger *hour, NSInteger *minute, NSInteger *second, NSInteger *mil);
 
 
 @implementation GSWindowsTimeZone
@@ -2782,7 +2800,7 @@ GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
 
 - (BOOL) isDaylightSavingTimeForDate: (NSDate*)aDate
 {
-  int year, month, day, hour, minute, second, mil;
+  NSInteger year, month, day, hour, minute, second, mil;
   int	dow;
   int daylightdate, count, maxdate;
   NSTimeInterval when;
@@ -2964,7 +2982,7 @@ GSBreakTime(NSTimeInterval when, NSInteger*year, NSInteger*month, NSInteger*day,
   return [self name];
 }
 @end
-#endif // __MINGW__
+#endif // _WIN32
 
 
 @implementation	GSTimeZone

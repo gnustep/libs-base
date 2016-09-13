@@ -29,6 +29,37 @@
 #ifndef	included_GSConfig_h
 #define	included_GSConfig_h
 
+/* Check the compiler to see if we are building on/for ms-windows.
+ * Whatever the compiler uses, we want a standard setting of _WIN64
+ * to indicate 64bit AND _WIN32 to indicate ms-windows.
+ * These are defined by gcc, clang, and microsoft compilers anyway.
+ */
+#if     defined(__WIN32__) \
+	|| defined(__MS_WIN32__) \
+	|| defined(__MINGW32__)
+#  if	!defined(_WIN32)
+#    define _WIN32
+#  endif
+#endif
+#if     defined(__WIN64__) \
+	|| defined(__MS_WIN64__) \
+	|| defined(__MINGW64__)
+#  if	!defined(__WIN64__)
+#    define __WIN64__
+#  endif
+#  if	!defined(_WIN32)
+#    define _WIN32
+#  endif
+#endif
+
+/* Check to see if this is a MINGW build (all we currently support)
+ */
+#if	defined(__MINGW32__) || defined(__MINGW64__)
+#  if	!defined(__MINGW__)
+#    define __MINGW__
+#  endif
+#endif
+
 // Make sure we expose the constants that we use in ObjC++ mode
 #ifndef __STDC_CONSTANT_MACROS
 #define __STDC_CONSTANT_MACROS 1
@@ -187,22 +218,10 @@ typedef	gsuaddr gsaddr;
 //#define USE_GMP	@USE_GMP@
 #define USE_GMP	0
 
-/*
- * Macros to deal with hiding an object from the garbage collector
- * This macro employs the procesor-dependent knowledge that a pointer to an
- * object will always be on an even address boundary.  If we ever port to a
- * system where this is not the case, we will have to find another mechanism.
- */
-#ifndef	GS_WITH_GC
+#ifdef	GS_WITH_GC
+#undef  GS_WITH_GC
+#endif
 #define	GS_WITH_GC	0
-#endif
-#if	GS_WITH_GC
-#define	GS_GC_HIDE(obj)		((id)(((uintptr_t)obj) | 1))
-#define	GS_GC_UNHIDE(obj)	((id)(((uintptr_t)obj) & ~1))
-#else
-#define	GS_GC_HIDE(obj)		((id)obj)
-#define	GS_GC_UNHIDE(obj)	((id)obj)
-#endif
 
 /*
  * Define to say if we use NXConstantString or NSConstantString
@@ -220,10 +239,11 @@ typedef	gsuaddr gsaddr;
 /*
  * Native character type for use in systemcalls etc.
  */
+
 #if	defined(__MINGW__)
-#define	GSNativeChar	uint16_t
+#  define	GSNativeChar	uint16_t
 #else
-#define	GSNativeChar	char
+#  define	GSNativeChar	char
 #endif
 
 /*
@@ -249,22 +269,8 @@ typedef	struct {
 #define GS_USE_MDNS @HAVE_MDNS@
 #define GS_USE_ICU @HAVE_ICU@
 #define GS_USE_LIBDISPATCH @HAVE_LIBDISPATCH@
+#define GS_USE_LIBDISPATCH_RUNLOOP @HAVE_LIBDISPATCH_RUNLOOP@
 #define GS_HAVE_OBJC_ROOT_CLASS_ATTR @GS_HAVE_OBJC_ROOT_CLASS_ATTR@
-
-#if     defined(__WIN32__) || defined(_WIN32) || defined(__MS_WIN32__)
-#  if	!defined(__WIN32__)
-#    define __WIN32__
-#  endif
-#endif
-
-#if	defined(__MINGW32__)
-#  if	!defined(__MINGW__)
-#    define __MINGW__
-#  endif
-#  if	!defined(__WIN32__)
-#    define __WIN32__
-#  endif
-#endif
 
 #ifndef __has_include
 #  define __has_include(x) 0
@@ -287,8 +293,9 @@ typedef	struct {
 #  define __has_extension(x) __has_feature(x)
 #endif
 
-#if defined(__WIN32__)
+#if defined(_WIN32)
 #define BOOL WinBOOL
+#define __OBJC_BOOL 1
 #include <w32api.h>
 #ifndef _WIN32_WINNT
 #define _WIN32_WINNT Windows2000
@@ -299,18 +306,29 @@ typedef	struct {
 #undef	WINVER
 #define WINVER Windows2000
 #endif
+
+#if defined(__WIN64__)
+#include <winsock2.h>
 #include <windows.h>
+#else
+#include <windows.h>
+/* This doesn't work on MINGW32/clang builds for some reason... */
+//#include <winsock2.h>
+#endif
+
+#undef __OBJC_BOOL
 #undef  BOOL
 #endif
 
-// Include the blocks runtime header if it's available (It shouldn't matter
-// that this doesn't work on compilers that don't support __has_include(),
-// because they also don't support blocks).
+/* Include the blocks runtime header if it's available (It shouldn't matter
+ * that this doesn't work on compilers that don't support __has_include(),
+ * because they also don't support blocks).
+ */
 #if __has_include(<objc/block_runtime.h>)
 #  include <objc/block_runtime.h>
 #endif
 
-#ifndef __WIN32__
+#ifndef _WIN32
 #include <sys/param.h> /* Hack to get rid of warning in GNU libc 2.0.3. */
 #endif
 
@@ -411,32 +429,16 @@ typedef	struct {
 #include <stdbool.h>
 #endif
 
-// Strong has different semantics in GC and ARC modes, so we need to have a
-// macro that picks the correct one.
-#if __OBJC_GC__
-#  define GS_GC_STRONG __strong
-#else
-#  define GS_GC_STRONG
-#endif
-
 #if !__has_feature(objc_arc)
 // NetBSD > 6 defines __weak in cdefs_elf.h
 #ifdef __NetBSD__
 #undef __weak
 #endif
 #  if !defined(__weak)
-#  if __OBJC_GC__
-#    define __weak __attribute__((objc_gc(weak)))
-#  else
 #    define __weak
 #  endif
-#endif
 #  if !defined(__strong)
-#    if __OBJC_GC__
-#      define __strong __attribute__((objc_gc(strong)))
-#    else
-#      define __strong
-#    endif
+#    define __strong
 #  endif
 #endif
 

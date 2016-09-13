@@ -208,23 +208,14 @@ GSIArrayGrow(GSIArray array)
 	}
       next = array->cap + array->old;
       size = next*sizeof(GSIArrayItem);
-#if	GS_WITH_GC
-      tmp = NSAllocateCollectable(size, array->zone ? NSScannedOption : 0);
-#else
       tmp = NSZoneMalloc(array->zone, size);
-#endif
       memcpy(tmp, array->ptr, array->count * sizeof(GSIArrayItem));
     }
   else
     {
       next = array->cap + array->old;
       size = next*sizeof(GSIArrayItem);
-#if	GS_WITH_GC
-      tmp = NSReallocateCollectable(array->ptr, size,
-	array->zone ? NSScannedOption : 0);
-#else
       tmp = NSZoneRealloc(array->zone, array->ptr, size);
-#endif
     }
 
   if (tmp == 0)
@@ -254,21 +245,12 @@ GSIArrayGrowTo(GSIArray array, unsigned next)
       /*
        * Statically initialised buffer ... copy into new heap buffer.
        */
-#if	GS_WITH_GC
-      tmp = NSAllocateCollectable(size, array->zone ? NSScannedOption : 0);
-#else
       tmp = NSZoneMalloc(array->zone, size);
-#endif
       memcpy(tmp, array->ptr, array->count * sizeof(GSIArrayItem));
     }
   else
     {
-#if	GS_WITH_GC
-      tmp = NSReallocateCollectable(array->ptr, size,
-	array->zone ? NSScannedOption : 0);
-#else
       tmp = NSZoneRealloc(array->zone, array->ptr, size);
-#endif
     }
 
   if (tmp == 0)
@@ -464,9 +446,6 @@ GSIArrayRemoveItemAtIndex(GSIArray array, unsigned index)
   while (++index < array->count)
     array->ptr[index-1] = array->ptr[index];
   array->count--;
-# if	GS_WITH_GC
-  array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
-# endif
 #else
   GSIArrayItem	tmp;
 # ifdef	GSI_ARRAY_CHECKS
@@ -476,9 +455,6 @@ GSIArrayRemoveItemAtIndex(GSIArray array, unsigned index)
   while (++index < array->count)
     array->ptr[index-1] = array->ptr[index];
   array->count--;
-# if	GS_WITH_GC
-  array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
-# endif
   GSI_ARRAY_RELEASE(array, tmp);
 #endif
 }
@@ -492,9 +468,6 @@ GSIArrayRemoveLastItem(GSIArray array)
   array->count--;
 #if	!defined(GSI_ARRAY_NO_RELEASE)
   GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
-#if	GS_WITH_GC
-  array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
-#endif
 #endif
 }
 
@@ -507,9 +480,6 @@ GSIArrayRemoveItemAtIndexNoRelease(GSIArray array, unsigned index)
   while (++index < array->count)
     array->ptr[index-1] = array->ptr[index];
   array->count--;
-#if	GS_WITH_GC && !defined(GSI_ARRAY_NO_RELEASE)
-  array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
-#endif
 }
 
 GS_STATIC_INLINE void
@@ -566,7 +536,6 @@ GSIArrayClear(GSIArray array)
 {
   if (array->ptr)
     {
-#if	!GS_WITH_GC
       /*
        * Only free memory if it was dynamically initialised (old > 0)
        */
@@ -574,7 +543,6 @@ GSIArrayClear(GSIArray array)
 	{
 	  NSZoneFree(array->zone, (void*)array->ptr);
 	}
-#endif
       array->ptr = 0;
       array->cap = 0;
     }
@@ -589,9 +557,6 @@ GSIArrayRemoveItemsFromIndex(GSIArray array, unsigned index)
       while (array->count-- > index)
 	{
 	  GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
-#if	GS_WITH_GC
-  	  array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
-#endif
 	}
 #endif
       array->count = index;
@@ -605,9 +570,6 @@ GSIArrayRemoveAllItems(GSIArray array)
   while (array->count--)
     {
       GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
-#if	GS_WITH_GC
-      array->ptr[array->count] = (GSIArrayItem)(NSUInteger)0;
-#endif
     }
 #endif
   array->count = 0;
@@ -632,12 +594,7 @@ GSIArrayInitWithZoneAndCapacity(GSIArray array, NSZone *zone, size_t capacity)
   array->cap = capacity;
   array->old = capacity/2;
   size = capacity*sizeof(GSIArrayItem);
-#if	GS_WITH_GC
-  array->ptr = (GSIArrayItem*)NSAllocateCollectable(size,
-    array->zone ? NSScannedOption : 0);
-#else
   array->ptr = (GSIArrayItem*)NSZoneMalloc(zone, size);
-#endif
   return array;
 }
 
@@ -659,12 +616,7 @@ GSIArrayCopyWithZone(GSIArray array, NSZone *zone)
   unsigned int i;
   GSIArray new;
 
-#if	GS_WITH_GC
-  new = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
-#else
   new = NSZoneMalloc(zone, sizeof(GSIArray_t));
-#endif
-
   GSIArrayInitWithZoneAndCapacity(new, zone, array->count);
   for (i = 0; i < array->count; i++)
     {

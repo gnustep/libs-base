@@ -30,10 +30,16 @@
 
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSArray.h>
+#import	<Foundation/NSDictionary.h>
 #import	<Foundation/NSSet.h>
+#import <Foundation/NSString.h>
 
 #if	defined(__cplusplus)
 extern "C" {
+#endif
+
+#if	OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+DEFINE_BLOCK_TYPE(GSBlockPredicateBlock, BOOL, id, GS_GENERIC_CLASS(NSDictionary,NSString*,id)*);
 #endif
 
 @interface NSPredicate : NSObject <NSCoding, NSCopying>
@@ -44,11 +50,18 @@ extern "C" {
 + (NSPredicate *) predicateWithFormat: (NSString *)format
 			    arguments: (va_list)args;
 + (NSPredicate *) predicateWithValue: (BOOL)value;
-
+#if	OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
++ (NSPredicate *) predicateWithBlock: (GSBlockPredicateBlock)block;
+#endif
 - (BOOL) evaluateWithObject: (id)object;
 - (NSString *) predicateFormat;
-- (NSPredicate *) predicateWithSubstitutionVariables: (NSDictionary *)variables;
-
+- (NSPredicate *) predicateWithSubstitutionVariables:
+  (GS_GENERIC_CLASS(NSDictionary,NSString*,id)*)variables;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+- (BOOL) evaluateWithObject: (id)object
+	  substitutionVariables: 
+	  (GS_GENERIC_CLASS(NSDictionary,NSString*,id)*)variables;
+#endif
 @end
 
 @interface NSArray (NSPredicate)
@@ -84,4 +97,4 @@ extern "C" {
 #endif
 
 #endif	/* 100400 */
-#endif	/* __NSPredicate_h_GNUSTEP_BASE_INCLUDE */
+#endif /* __NSPredicate_h_GNUSTEP_BASE_INCLUDE */

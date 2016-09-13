@@ -3,24 +3,24 @@
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: 1995
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
-   */ 
+   */
 
 #ifndef __NSArray_h_GNUSTEP_BASE_INCLUDE
 #define __NSArray_h_GNUSTEP_BASE_INCLUDE
@@ -57,43 +57,49 @@ enum
 typedef NSUInteger NSBinarySearchingOptions;
 #endif
 
-@interface NSArray : NSObject
+@interface GS_GENERIC_CLASS(NSArray, __covariant ElementT) : NSObject
   <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 
-+ (id) array;
-+ (id) arrayWithArray: (NSArray*)array;
-+ (id) arrayWithContentsOfFile: (NSString*)file;
++ (instancetype) array;
++ (instancetype) arrayWithArray: (GS_GENERIC_CLASS(NSArray, ElementT) *)array;
++ (instancetype) arrayWithContentsOfFile: (NSString*)file;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-+ (id) arrayWithContentsOfURL: (NSURL*)aURL;
++ (instancetype) arrayWithContentsOfURL: (NSURL*)aURL;
 #endif
-+ (id) arrayWithObject: (id)anObject;
-+ (id) arrayWithObjects: (id)firstObject, ...;
-+ (id) arrayWithObjects: (const id[])objects count: (NSUInteger)count;
++ (instancetype) arrayWithObject: (id)anObject;
++ (instancetype) arrayWithObjects: (id)firstObject, ...;
++ (instancetype) arrayWithObjects: (const id[])objects count: (NSUInteger)count;
 
-- (NSArray*) arrayByAddingObject: (id)anObject;
-- (NSArray*) arrayByAddingObjectsFromArray: (NSArray*)anotherArray;
-- (BOOL) containsObject: anObject;
+- (GS_GENERIC_CLASS(NSArray, ElementT) *) arrayByAddingObject:
+  (GS_GENERIC_TYPE(ElementT))anObject;
+- (GS_GENERIC_CLASS(NSArray, ElementT) *) arrayByAddingObjectsFromArray:
+  (GS_GENERIC_CLASS(NSArray, ElementT)*)anotherArray;
+- (BOOL) containsObject: (GS_GENERIC_TYPE(ElementT))anObject;
 
 /** <override-subclass />
  * Returns the number of elements contained in the receiver.
  */
 - (NSUInteger) count;
-- (void) getObjects: (__unsafe_unretained id[])aBuffer;
-- (void) getObjects: (__unsafe_unretained id[])aBuffer range: (NSRange)aRange;
-- (NSUInteger) indexOfObject: (id)anObject;
-- (NSUInteger) indexOfObject: (id)anObject inRange: (NSRange)aRange;
-- (NSUInteger) indexOfObjectIdenticalTo: (id)anObject;
-- (NSUInteger) indexOfObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
-- (id) init;
-- (id) initWithArray: (NSArray*)array;
+- (void) getObjects: (__unsafe_unretained GS_GENERIC_TYPE(ElementT)[])aBuffer;
+- (void) getObjects: (__unsafe_unretained GS_GENERIC_TYPE(ElementT)[])aBuffer
+              range: (NSRange)aRange;
+- (NSUInteger) indexOfObject: (GS_GENERIC_TYPE(ElementT))anObject;
+- (NSUInteger) indexOfObject: (GS_GENERIC_TYPE(ElementT))anObject
+                     inRange: (NSRange)aRange;
+- (NSUInteger) indexOfObjectIdenticalTo: (GS_GENERIC_TYPE(ElementT))anObject;
+- (NSUInteger) indexOfObjectIdenticalTo: (GS_GENERIC_TYPE(ElementT))anObject
+                                inRange: (NSRange)aRange;
+- (instancetype) init;
+- (instancetype) initWithArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)array;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (id) initWithArray: (NSArray*)array copyItems: (BOOL)shouldCopy;
+- (instancetype) initWithArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)array
+                     copyItems: (BOOL)shouldCopy;
 #endif
-- (id) initWithContentsOfFile: (NSString*)file;
+- (instancetype) initWithContentsOfFile: (NSString*)file;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (id) initWithContentsOfURL: (NSURL*)aURL;
+- (instancetype) initWithContentsOfURL: (NSURL*)aURL;
 #endif
-- (id) initWithObjects: firstObject, ...;
+- (instancetype) initWithObjects: (GS_GENERIC_TYPE(ElementT)) firstObject, ...;
 
 /** <init /> <override-subclass />
  * This should initialize the array with count (may be zero) objects.<br />
@@ -102,24 +108,26 @@ typedef NSUInteger NSBinarySearchingOptions;
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (id) initWithObjects: (const id[])objects
-                 count: (NSUInteger)count;
-- (id) lastObject;
+- (instancetype) initWithObjects: (const GS_GENERIC_TYPE(ElementT)[])objects
+                           count: (NSUInteger)count;
+- (GS_GENERIC_TYPE(ElementT)) lastObject;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-- (id) firstObject;
+- (GS_GENERIC_TYPE(ElementT)) firstObject;
 #endif
 
 /** <override-subclass />
  * Returns the object at the specified index.
  * Raises an exception of the index is beyond the array.
  */
-- (id) objectAtIndex: (NSUInteger)index;
+- (GS_GENERIC_TYPE(ElementT)) objectAtIndex: (NSUInteger)index;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
-- (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes;
+- (GS_GENERIC_CLASS(NSArray, ElementT) *) objectsAtIndexes:
+  (NSIndexSet *)indexes;
 #endif
 
-- (id) firstObjectCommonWithArray: (NSArray*)otherArray;
+- (GS_GENERIC_TYPE(ElementT)) firstObjectCommonWithArray:
+    (GS_GENERIC_CLASS(NSArray, ElementT) *)otherArray;
 - (BOOL) isEqualToArray: (NSArray*)otherArray;
 
 #if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
@@ -132,19 +140,23 @@ typedef NSUInteger NSBinarySearchingOptions;
 #endif
 
 - (NSData*) sortedArrayHint;
-- (NSArray*) sortedArrayUsingFunction: (NSComparisonResult (*)(id, id, void*))comparator 
-			      context: (void*)context;
-- (NSArray*) sortedArrayUsingFunction: (NSComparisonResult (*)(id, id, void*))comparator 
+- (GS_GENERIC_CLASS(NSArray, ElementT)*) sortedArrayUsingFunction:
+    (NSComparisonResult (*)(id, id, void*))comparator
+			        context: (void*)context;
+- (GS_GENERIC_CLASS(NSArray, ElementT)*) sortedArrayUsingFunction:
+    (NSComparisonResult (*)(id, id, void*))comparator
 			      context: (void*)context
-				 hint: (NSData*)hint;
-- (NSArray*) sortedArrayUsingSelector: (SEL)comparator;
-- (NSArray*) subarrayWithRange: (NSRange)aRange;
+				     hint: (NSData*)hint;
+- (GS_GENERIC_CLASS(NSArray, ElementT)*) sortedArrayUsingSelector:
+  (SEL)comparator;
+- (GS_GENERIC_CLASS(NSArray, ElementT)*) subarrayWithRange: (NSRange)aRange;
 
 - (NSString*) componentsJoinedByString: (NSString*)separator;
-- (NSArray*) pathsMatchingExtensions: (NSArray*)extensions;
+- (GS_GENERIC_CLASS(NSArray, NSString*)*) pathsMatchingExtensions:
+    (GS_GENERIC_CLASS(NSArray, NSString*)*)extensions;
 
-- (NSEnumerator*) objectEnumerator;
-- (NSEnumerator*) reverseObjectEnumerator;
+- (GS_GENERIC_CLASS(NSEnumerator, ElementT)*) objectEnumerator;
+- (GS_GENERIC_CLASS(NSEnumerator, ElementT)*) reverseObjectEnumerator;
 
 - (NSString*) description;
 - (NSString*) descriptionWithLocale: (id)locale;
@@ -154,14 +166,16 @@ typedef NSUInteger NSBinarySearchingOptions;
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
-- (id) valueForKey: (NSString*)key;
-- (void) setValue: (id)value forKey: (NSString*)key;
+- (GS_GENERIC_TYPE(ElementT)) valueForKey: (NSString*)key;
+- (void) setValue: (GS_GENERIC_TYPE(ElementT))value forKey: (NSString*)key;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 
-DEFINE_BLOCK_TYPE(GSEnumeratorBlock, void, id, NSUInteger, BOOL*);
-DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
+DEFINE_BLOCK_TYPE(GSEnumeratorBlock, void, GS_GENERIC_TYPE(ElementT),
+  NSUInteger, BOOL*);
+DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT),
+  NSUInteger, BOOL*);
 /**
  * Enumerate over the collection using the given block.  The first argument is
  * the object and the second is the index in the array.  The final argument is
@@ -180,7 +194,7 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
  * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
  * that it should be enumerated in reverse order.
  */
-- (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts 
+- (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts
 			  usingBlock: (GSEnumeratorBlock)aBlock;
 /**
  * Enumerate over the specified indexes in the collection using the given
@@ -204,7 +218,7 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
  * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
  * that it should be enumerated in reverse order.
  */
-- (NSIndexSet *) indexesOfObjectsWithOptions: (NSEnumerationOptions)opts 
+- (NSIndexSet *) indexesOfObjectsWithOptions: (NSEnumerationOptions)opts
 				 passingTest: (GSPredicateBlock)predicate;
 
 /**
@@ -233,7 +247,7 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
  * specifies that it is thread-safe.  The NSEnumerationReverse bit specifies
  * that it should be enumerated in reverse order.
  */
-- (NSUInteger) indexOfObjectWithOptions: (NSEnumerationOptions)opts 
+- (NSUInteger) indexOfObjectWithOptions: (NSEnumerationOptions)opts
 			    passingTest: (GSPredicateBlock)predicate;
 
 /**
@@ -257,7 +271,8 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
 /** Returns a sorted array using the comparator to determine the
  * order of objects.
  */
-- (NSArray *) sortedArrayUsingComparator: (NSComparator)comparator;
+- (GS_GENERIC_CLASS(NSArray, ElementT) *) sortedArrayUsingComparator:
+    (NSComparator)comparator;
 
 /** Returns a sorted array using the block to determine the order of objects.
  *
@@ -265,8 +280,9 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
  * specifies that it is thread-safe.  The NSSortStable bit specifies that
  * it should keep equal objects in the same order.
  */
-- (NSArray *) sortedArrayWithOptions: (NSSortOptions)options
-                     usingComparator: (NSComparator)comparator;
+- (GS_GENERIC_CLASS(NSArray, ElementT) *)
+    sortedArrayWithOptions: (NSSortOptions)options
+           usingComparator: (NSComparator)comparator;
 
 /**
  * Performs a binary search of the array within the specified range for the
@@ -283,20 +299,20 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
  * Accessor for subscripting.  This is called by the compiler when you write
  * code like anArray[12].  It should not be called directly.
  */
-- (id) objectAtIndexedSubscript: (size_t)anIndex;
+- (GS_GENERIC_TYPE(ElementT)) objectAtIndexedSubscript: (NSUInteger)anIndex;
 @end
 
 
-@interface NSMutableArray : NSArray
+@interface GS_GENERIC_CLASS(NSMutableArray, ElementT) : NSArray
 
-+ (id) arrayWithCapacity: (NSUInteger)numItems;
++ (instancetype) arrayWithCapacity: (NSUInteger)numItems;
 
 /** <override-subclass />
  * Adds anObject at the end of the array, thus increasing the size of
  * the array.  The object is retained upon addition.
  */
-- (void) addObject: (id)anObject;
-- (void) addObjectsFromArray: (NSArray*)otherArray;
+- (void) addObject: (GS_GENERIC_TYPE(ElementT))anObject;
+- (void) addObjectsFromArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)otherArray;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (void) exchangeObjectAtIndex: (NSUInteger)i1
 	     withObjectAtIndex: (NSUInteger)i2;
@@ -309,7 +325,7 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (id) initWithCapacity: (NSUInteger)numItems;
+- (instancetype) initWithCapacity: (NSUInteger)numItems;
 
 /** <override-subclass />
  * Inserts an object into the receiver at the specified location.<br />
@@ -317,9 +333,11 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
  * The size of the array increases by one.<br />
  * The object is retained by the array.
  */
-- (void) insertObject: (id)anObject atIndex: (NSUInteger)index;
+- (void) insertObject: (GS_GENERIC_TYPE(ElementT))anObject
+              atIndex: (NSUInteger)index;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
-- (void) insertObjects: (NSArray *)objects atIndexes: (NSIndexSet *)indexes;
+- (void) insertObjects: (GS_GENERIC_CLASS(NSArray, ElementT) *)objects
+             atIndexes: (NSIndexSet *)indexes;
 #endif
 
 /** <override-subclass />
@@ -337,35 +355,39 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
  * The object is retained by the array.
  */
 - (void) replaceObjectAtIndex: (NSUInteger)index
-		   withObject: (id)anObject;
+		   withObject: (GS_GENERIC_TYPE(ElementT))anObject;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
 - (void) replaceObjectsAtIndexes: (NSIndexSet *)indexes
-                     withObjects: (NSArray *)objects;
+                     withObjects: (GS_GENERIC_CLASS(NSArray, ElementT)*)objects;
 #endif
 
 - (void) replaceObjectsInRange: (NSRange)aRange
-	  withObjectsFromArray: (NSArray*)anArray;
+          withObjectsFromArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)anArray;
 
 - (void) replaceObjectsInRange: (NSRange)aRange
-	  withObjectsFromArray: (NSArray*)anArray
-			 range: (NSRange)anotherRange;
+          withObjectsFromArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)anArray
+                         range: (NSRange)anotherRange;
 
-- (void) setArray: (NSArray *)otherArray;
+- (void) setArray: (GS_GENERIC_CLASS(NSArray, ElementT) *)otherArray;
 
 - (void) removeAllObjects;
 - (void) removeLastObject;
-- (void) removeObject: (id)anObject;
-- (void) removeObject: (id)anObject inRange: (NSRange)aRange;
-- (void) removeObjectIdenticalTo: (id)anObject;
-- (void) removeObjectIdenticalTo: (id)anObject inRange: (NSRange)aRange;
-- (void) removeObjectsInArray: (NSArray*)otherArray;
+- (void) removeObject: (GS_GENERIC_TYPE(ElementT))anObject;
+- (void) removeObject: (GS_GENERIC_TYPE(ElementT))anObject
+              inRange: (NSRange)aRange;
+- (void) removeObjectIdenticalTo: (GS_GENERIC_TYPE(ElementT))anObject;
+- (void) removeObjectIdenticalTo: (GS_GENERIC_TYPE(ElementT))anObject
+                         inRange: (NSRange)aRange;
+- (void) removeObjectsInArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)otherArray;
 - (void) removeObjectsInRange: (NSRange)aRange;
-- (void) removeObjectsFromIndices: (NSUInteger*)indices 
+- (void) removeObjectsFromIndices: (NSUInteger*)indices
 		       numIndices: (NSUInteger)count;
 
-- (void) sortUsingFunction: (NSComparisonResult (*)(id,id,void*))compare 
-		   context: (void*)context;
+- (void) sortUsingFunction:
+    (NSComparisonResult (*)(GS_GENERIC_TYPE(ElementT),
+       GS_GENERIC_TYPE(ElementT),void*))compare
+		           context: (void*)context;
 - (void) sortUsingSelector: (SEL)comparator;
 
 
@@ -376,15 +398,18 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, id, NSUInteger, BOOL*);
 - (void) sortUsingComparator: (NSComparator)comparator;
 
 /**
- * Sorts the array using the specified comparator block and options. 
+ * Sorts the array using the specified comparator block and options.
  */
 - (void) sortWithOptions: (NSSortOptions)options
          usingComparator: (NSComparator)comparator;
 #endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
 /**
  * Set method called by the compiler with array subscripting.
  */
-- (void) setObject: (id)anObject atIndexedSubscript: (size_t)anIndex;
+- (void) setObject: (GS_GENERIC_TYPE(ElementT))anObject
+atIndexedSubscript: (NSUInteger)anIndex;
+#endif
 @end
 
 #if	defined(__cplusplus)

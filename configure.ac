@@ -12,7 +12,7 @@
 #   modify it under the terms of the GNU General Public
 #   License as published by the Free Software Foundation; either
 #   version 2 of the License, or (at your option) any later version.
-#   
+#
 #   This library is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
@@ -56,7 +56,7 @@
 # In addition the values should be substituted into the header file
 # Headers/GNUstepBase/GSConfig.h.in so that it can define a
 # preprocessor constant of the form GS_USE_XXX to 1 or 0, providing a
-# standard mechanism for parts of a paritcvular file to compile to make
+# standard mechanism for parts of a particular file to compile to make
 # use of the external code or not.
 # This file is included by all the base library source code, and may also
 # be included by code which uses the base library.
@@ -94,14 +94,14 @@ if test "$OBJC_RUNTIME_LIB" = "ng"; then
   nonfragile=yes
   BASE_NONFRAGILE_ABI=1
 else
-nonfragile=`gnustep-config --objc-flags | grep _NONFRAGILE_ABI 2>&5`
-if test -z "$nonfragile"; then
-  nonfragile=no
-  BASE_NONFRAGILE_ABI=0
-else
-  nonfragile=yes
-  BASE_NONFRAGILE_ABI=1
-fi
+  nonfragile=`gnustep-config --objc-flags | grep _NONFRAGILE_ABI 2>&5`
+  if test -z "$nonfragile"; then
+    nonfragile=no
+    BASE_NONFRAGILE_ABI=0
+  else
+    nonfragile=yes
+    BASE_NONFRAGILE_ABI=1
+  fi
 fi
 AC_SUBST(BASE_NONFRAGILE_ABI)
 
@@ -133,7 +133,7 @@ fi
 # This variable might get temporarily overwritten with the
 # GNUSTEP_MAKEFILES of the runtime configuration, make sure we keep
 # track of the original one.  CURRENT_GNUSTEP_MAKEFILES is the one
-# that we use to locate the actual gnustep-make installation that 
+# that we use to locate the actual gnustep-make installation that
 # will build the software.
 CURRENT_GNUSTEP_MAKEFILES="$GNUSTEP_MAKEFILES"
 
@@ -162,7 +162,7 @@ AC_ARG_WITH(cross-compilation-info,
 				contains information for the configure script in
 				case of cross compilation. This information
 				replaces those obtained from running programmes
-				during the configuration phase.], 
+				during the configuration phase.],
   cross_result="$withval",
   cross_result="no"
 )
@@ -170,7 +170,7 @@ CROSS_CONFIG="./cross.config"
 if test "$cross_result" != "no"
 then
  if test -f "$cross_result" && test -r "$cross_result"
-  then 
+  then
     CROSS_CONFIG="$cross_result"
   else
     AC_MSG_ERROR(["Could not load cross-compilation variables from $cross_result"])
@@ -224,7 +224,7 @@ AC_ARG_WITH(config-file,
 				environment variable at runtime.
 				If a trailing '/' is specified, the path is
 				used for locating domains but no GNUstep
-				config file is read at runtime.], 
+				config file is read at runtime.],
   result="$withval",
   result="no"
 )
@@ -255,7 +255,7 @@ case "$target_os" in
     *)		enable_env_config=yes;;
 esac
 AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
-AC_ARG_ENABLE(environment-config-file, 
+AC_ARG_ENABLE(environment-config-file,
 [  --disable-environment-config-file
                                 Disables the use of the GNUSTEP_CONFIG_FILE
 				environment variable to specify/override
@@ -272,7 +272,7 @@ AC_ARG_ENABLE(environment-config-file,
 				system (and containing unix-style paths
 				which cannot be used by windows apps).
 				Normally this should be left at its default
-				setting.], 
+				setting.],
   ac_cv_environment_config_file=$enableval,
   ac_cv_environment_config_file=$enable_env_config)
 if test "$ac_cv_environment_config_file" = "yes"; then
@@ -316,7 +316,7 @@ esac
 # It can be annoying in certain cases though; this option lets you
 # turn it off.
 AC_MSG_CHECKING([if we should import an existing configuration file now])
-AC_ARG_ENABLE(importing-config-file, 
+AC_ARG_ENABLE(importing-config-file,
 [  --disable-importing-config-file
                                 Disable importing of an existing GNUstep config
 				file and use inbuilt defaults instead.],
@@ -382,8 +382,8 @@ then
       # It looks like we need to make sure the user knows what they
       # are doing, as there is a high chance they don't and might end
       # up with a confused/non-working system.  As far as we know, the
-      # system might be already screwed.  If they don't want to import 
-      # a config file (eg, they don't have one and they don't care about 
+      # system might be already screwed.  If they don't want to import
+      # a config file (eg, they don't have one and they don't care about
       # the hardcoded paths) they should just say so. ;-)
       AC_MSG_ERROR([Please run configure again with the --disable-importing-config-file option or specifying an alternative file using the --with-default-config= option])
       exit 1
@@ -550,7 +550,7 @@ case "$target_os" in
     # so we can not use the 'short' option if we want gnustep-base
     # to work with older versions of gnustep-make.
     # Once everyone has upgraded to gnustep-make >= 2.0.5 (I'd say
-    # two years after it has been released ?), we could switch to the 
+    # two years after it has been released ?), we could switch to the
     # 'short' output though.
     GNUSTEP_SYSTEM_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_APPS`
     GNUSTEP_SYSTEM_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_APPS`
@@ -1044,31 +1044,48 @@ if test x"$GNUSTEP_LOCAL_LIBRARIES" = x""; then
   GNUSTEP_LOCAL_LIBRARIES="$GNUSTEP_LOCAL_ROOT/Library/Libraries"
 fi
 
-if test x"$GNUSTEP_IS_FLATTENED" = x"no"; then
-  GNUSTEP_SYSTEM_HEADERS="$GNUSTEP_SYSTEM_HEADERS/$LIBRARY_COMBO"
-  GNUSTEP_NETWORK_HEADERS="$GNUSTEP_NETWORK_HEADERS/$LIBRARY_COMBO"
-  GNUSTEP_LOCAL_HEADERS="$GNUSTEP_LOCAL_HEADERS/$LIBRARY_COMBO"
+#
+# Add standard library and header directories for configure to use to locate
+# plain C developer headers/libraries which have been installed in the
+# GNUstep hierarchy. These take precedence
+#
+if test x"$GNUSTEP_IS_FLATTENED" = x"yes"; then
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_LOCAL_HEADERS"
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_NETWORK_HEADERS"
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_HEADERS"
+  LDFLAGS="$LDFLAGS -L$GNUSTEP_LOCAL_LIBRARIES"
+  LDFLAGS="$LDFLAGS -L$GNUSTEP_NETWORK_LIBRARIES"
+  LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES"
+else
   # FIXME: Cross-compiling should read the target from the configure
   # options and use it.   GNUSTEP_TARGET_* variables do not exist in
   # this context (so "$GNUSTEP_TARGET_CPU" will always be "")
   if test x"$GNUSTEP_TARGET_CPU" = x""; then
-    GNUSTEP_SYSTEM_LIBRARIES="$GNUSTEP_SYSTEM_LIBRARIES/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/$LIBRARY_COMBO"
-    GNUSTEP_NETWORK_LIBRARIES="$GNUSTEP_NETWORK_LIBRARIES/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/$LIBRARY_COMBO"
-    GNUSTEP_LOCAL_LIBRARIES="$GNUSTEP_LOCAL_LIBRARIES/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/$LIBRARY_COMBO"
+    ARCH="$GNUSTEP_HOST_CPU-$GNUSTEP_HOST_OS"
   else
-    GNUSTEP_SYSTEM_LIBRARIES="$GNUSTEP_SYSTEM_LIBRARIES/$GNUSTEP_TARGET_CPU/$GNUSTEP_TARGET_OS/$LIBRARY_COMBO"
-    GNUSTEP_NETWORK_LIBRARIES="$GNUSTEP_NETWORK_LIBRARIES/$GNUSTEP_TARGET_CPU/$GNUSTEP_TARGET_OS/$LIBRARY_COMBO"
-    GNUSTEP_LOCAL_LIBRARIES="$GNUSTEP_LOCAL_LIBRARIES/$GNUSTEP_TARGET_CPU/$GNUSTEP_TARGET_OS/$LIBRARY_COMBO"
+    ARCH=$GNUSTEP_TARGET_CPU-$GNUSTEP_TARGET_OS
   fi
+  ALIB="$ARCH/$LIBRARY_COMBO"
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_LOCAL_HEADERS/$ALIB"
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_LOCAL_HEADERS/$ARCH"
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_LOCAL_HEADERS"
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_NETWORK_HEADERS/$ALIB"
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_NETWORK_HEADERS/$ARCH"
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_NETWORK_HEADERS"
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_HEADERS/$ALIB"
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_HEADERS/$ARCH"
+  CPPFLAGS="$CPPFLAGS -I$GNUSTEP_SYSTEM_HEADERS"
+  LDFLAGS="$LDFLAGS -L$GNUSTEP_LOCAL_LIBRARIES/$ALIB"
+  LDFLAGS="$LDFLAGS -L$GNUSTEP_LOCAL_LIBRARIES/$ARCH"
+  LDFLAGS="$LDFLAGS -L$GNUSTEP_LOCAL_LIBRARIES"
+  LDFLAGS="$LDFLAGS -L$GNUSTEP_NETWORK_LIBRARIES/$ALIB"
+  LDFLAGS="$LDFLAGS -L$GNUSTEP_NETWORK_LIBRARIES/$ARCH"
+  LDFLAGS="$LDFLAGS -L$GNUSTEP_NETWORK_LIBRARIES"
+  LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES/$ALIB"
+  LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES/$ARCH"
+  LDFLAGS="$LDFLAGS -L$GNUSTEP_SYSTEM_LIBRARIES"
 fi
 
-#
-# Add standard library and header directories for configure to use to locate
-# plain C developer headers/libraries which have been installed in the
-# GNUstep hierarchy. These take precedence 
-#
-CPPFLAGS="$CPPFLAGS -I$GNUSTEP_LOCAL_HEADERS -I$GNUSTEP_NETWORK_HEADERS -I$GNUSTEP_SYSTEM_HEADERS"
-LDFLAGS="$LDFLAGS -L$GNUSTEP_LOCAL_LIBRARIES -L$GNUSTEP_NETWORK_LIBRARIES -L$GNUSTEP_SYSTEM_LIBRARIES"
 
 #--------------------------------------------------------------------
 # Find the compiler
@@ -1082,7 +1099,7 @@ if test "$CC" = ""; then
 else
   if test "$CC" != "$MAKECC"; then
     AC_MSG_WARN([You are running configure with the compiler ($CC) set to a different value from that used by gnustep-make ($MAKECC).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CC=$CC or run the gnustep-base configure again with your CC environment variable set to $MAKECC])
-fi
+  fi
 fi
 if test "$CPP" = ""; then
   CPP=$MAKECPP
@@ -1090,7 +1107,7 @@ if test "$CPP" = ""; then
 else
   if test "$CPP" != "$MAKECPP"; then
     AC_MSG_WARN([You are running configure with the preprocessor ($CPP) set to a different value from that used by gnustep-make ($MAKECPP).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CPP=$CPP or run the gnustep-base configure again with your CPP environment variable set to $MAKECPP])
-fi
+  fi
 fi
 if test "$CXX" = ""; then
   CXX=$MAKECXX
@@ -1098,7 +1115,7 @@ if test "$CXX" = ""; then
 else
   if test "$CXX" != "$MAKECXX"; then
     AC_MSG_WARN([You are running configure with the compiler ($CXX) set to a different value from that used by gnustep-make ($MAKECXX).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use CXX=$CXX or run the gnustep-base configure again with your CXX environment variable set to $MAKECXX])
-fi
+  fi
 fi
 AC_PROG_CC
 AC_PROG_CPP
@@ -1139,14 +1156,14 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
     if test "$CC" = "gcc"; then
       saved_CFLAGS="$CFLAGS";
       ATOMIC_CFLAGS="";
-  
+
       # FIXME: Forcing -march=i568 for any i568 or later CPU is a
       # stop gap measure to make the compiler emit native assembly
       # for atomic operations on i586 or latter processors (GCC by
       # default emits code compatible with the original i386 and
       # requires library functions to emulate atomic operations).
       # When gnustep-make takes care of this kind of target setting,
-      # the check can safely be removed.  
+      # the check can safely be removed.
       case "$target_cpu" in
         i586*|i686*|i786*)
           ATOMIC_CFLAGS="-march=i586"
@@ -1186,7 +1203,7 @@ AC_MSG_CHECKING([whether the compiler supports atomic operations]);
           LDFLAGS="$saved_LDFLAGS";
           AC_MSG_RESULT([no]);
         fi
-      fi     
+      fi
     fi
   fi
 AC_LANG_POP(C)
@@ -1203,7 +1220,7 @@ LDIR_FLAGS="$LDFLAGS"
 # This is just for configuring. Later, in config.make, INCLUDE_FLAGS
 # goes in CONFIG_SYSTEM_INCL and LIBS goes in CONFIG_SYSTEM_LIBS
 case "$target_os" in
-  freebsd* | openbsd* )	
+  freebsd* | openbsd* )
 	        CPPFLAGS="$CPPFLAGS -I/usr/local/include"
 		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
   netbsd*)	CPPFLAGS="$CPPFLAGS -I/usr/pkg/include"
@@ -1213,16 +1230,11 @@ esac
 #--------------------------------------------------------------------
 # Set Apple/Darwin/OSX/NeXT information for other tests
 #--------------------------------------------------------------------
-OBJC_WITH_GC=no
 OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 AC_MSG_CHECKING(the Objective-C runtime)
 if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   AC_MSG_RESULT(NeXT)
   OBJCFLAGS="$OBJCFLAGS -fnext-runtime -DNeXT_RUNTIME"
-elif test "$OBJC_RUNTIME_LIB" = "gnugc"; then
-  AC_MSG_RESULT(GNU)
-  OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
-  OBJC_WITH_GC=yes
 elif test "$OBJC_RUNTIME_LIB" = "ng"; then
   AC_MSG_RESULT(Next Gen)
 else
@@ -1319,36 +1331,6 @@ if test $ac_cv_header_objc_objc_h = no; then
   echo "Check to make sure you have the Objective-C runtime library"
   echo "and its headers installed."
   AC_MSG_ERROR(Could not find Objective-C headers)
-fi
-
-if test $OBJC_WITH_GC = yes; then
-  AC_CHECK_HEADERS(gc/gc.h, gc_ok=yes, gc_ok=no)
-  if test "$gc_ok" = no; then
-    AC_MSG_ERROR([Garbage collection was required, but the gc/gc.h header couldn't be found.])
-  fi
-  saved_LIBS="$LIBS"
-  LIBS+=" -lgc"
-  AC_CHECK_FUNC(GC_malloc, gc_ok=yes, gc_ok=no)
-  if test "$gc_ok" = no; then
-    AC_MSG_ERROR([Garbage collection was required, but the gc library couldn't be found.])
-  fi
-  AC_CHECK_FUNC(GC_register_my_thread)
-  if test "$ac_cv_func_GC_register_my_thread" = yes; then
-    AC_DEFINE(HAVE_GC_REGISTER_MY_THREAD,1,
-      [Define if GC_register_my_thread function is available])
-  fi
-  AC_CHECK_FUNC(GC_allow_register_threads)
-  if test "$ac_cv_func_GC_allow_register_threads" = yes; then
-    AC_DEFINE(HAVE_GC_ALLOW_REGISTER_THREADS,1,
-      [Define if GC_allow_register_threads function is available])
-  fi
-  LIBS="-lobjc_gc -ldl"
-  AC_CHECK_FUNC(class_ivar_set_gcinvisible, gc_ok=yes, gc_ok=no)
-  if test "$gc_ok" = no; then
-    AC_MSG_ERROR([Garbage collection was required, but the gc runtime couldn't be found.])
-  fi
-  LIBS="$saved_LIBS"
-  AC_SUBST(OBJC_WITH_GC)
 fi
 
 #--------------------------------------------------------------------
@@ -1675,7 +1657,7 @@ AC_SUBST(BUGGY_PTR_LIMITS)
 AC_LANG_POP(C)
 
 #--------------------------------------------------------------------
-# Setup dynamic linking 
+# Setup dynamic linking
 #--------------------------------------------------------------------
 OBJC_SYS_DYNAMIC_LINKER()
 # NOTE: libdl should be in LIBS now if it's available.
@@ -1690,7 +1672,7 @@ fi
 AC_CHECK_FUNCS(getaddrinfo)
 
 #--------------------------------------------------------------------
-# Check for pthread.h 
+# Check for pthread.h
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(pthread.h pthread_np.h)
 if test $ac_cv_header_pthread_h = yes ; then
@@ -1802,33 +1784,33 @@ CFLAGS=$saved_CFLAGS
 #--------------------------------------------------------------------
 
 AC_CACHE_CHECK([for pthread_setname_np()], gs_cv_pthread_setname_np,
+[AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM([#include <pthread.h>],
+    [pthread_setname_np("name");])],
+  [gs_cv_pthread_setname_np=darwin],
+  [AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([#include <pthread.h>],
+      [pthread_setname_np(pthread_self(), "name");])],
+    [gs_cv_pthread_setname_np=glibc],
     [AC_LINK_IFELSE(
       [AC_LANG_PROGRAM([#include <pthread.h>],
-        [pthread_setname_np("name");])],
-      [gs_cv_pthread_setname_np=darwin],
-      [AC_LINK_IFELSE(
-     	[AC_LANG_PROGRAM([#include <pthread.h>],
-     	  [pthread_setname_np(pthread_self(), "name");])],
-     	[gs_cv_pthread_setname_np=glibc],
-     	[AC_LINK_IFELSE(
-     	  [AC_LANG_PROGRAM([#include <pthread.h>],
-     	    [pthread_setname_np(pthread_self(), "%s", "name");])],
-     	  [gs_cv_pthread_setname_np=netbsd],
-     	  [gs_cv_pthread_setname_np=none])])])])
-  case $gs_cv_pthread_setname_np in
-    darwin)
-      AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(a),
-        [Description: Define set name function for pthread with one arg])
-      ;;
-    glibc)
-      AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(pthread_self(),a),
-        [Description: Define setname function for pthread with two args])
-      ;;
-    netbsd)
-      AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(pthread_self(),"%s",a),
-        [Description: Define setname function for pthread with three args])
-      ;;
-  esac
+        [pthread_setname_np(pthread_self(), "%s", "name");])],
+      [gs_cv_pthread_setname_np=netbsd],
+      [gs_cv_pthread_setname_np=none])])])])
+case $gs_cv_pthread_setname_np in
+  darwin)
+    AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(a),
+      [Description: Define set name function for pthread with one arg])
+    ;;
+  glibc)
+    AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(pthread_self(),a),
+      [Description: Define setname function for pthread with two args])
+    ;;
+  netbsd)
+    AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(pthread_self(),"%s",a),
+      [Description: Define setname function for pthread with three args])
+    ;;
+esac
 
 #--------------------------------------------------------------------
 # Check whether we can get the system thread ID
@@ -1859,8 +1841,8 @@ fi
 LIBS="$LIBS $extra_LIBS"
 AC_CACHE_VAL(gs_cv_objc_works,
   AC_TRY_RUN([#include "$srcdir/config/config.objc.m"],
-  gs_cv_objc_works=yes, 
-  gs_cv_objc_works=no, 
+  gs_cv_objc_works=yes,
+  gs_cv_objc_works=no,
   gs_cv_objc_works="$cross_gs_cv_objc_works")
 )
 if test $gs_cv_objc_works = yes; then
@@ -1925,8 +1907,8 @@ AC_SUBST(NX_CONST_STRING_CLASS)
 # Don't revert any Objective-C flags as they are used in the next test
 
 #---------------------------------------------------------------------
-# Guess if we are using a compiler which has the (GNU extension) +load 
-# method which is executed before main.  
+# Guess if we are using a compiler which has the (GNU extension) +load
+# method which is executed before main.
 # Defines HAVE_LOAD_METHOD if +load methods are called before main.
 # Needed by NSProcessInfo.m
 #---------------------------------------------------------------------
@@ -1955,6 +1937,9 @@ if test $ac_cv_func_objc_sync_enter = yes ; then
   OBJCSYNC=1
 else
   OBJCSYNC=0
+  if test "$OBJC_RUNTIME_LIB" = "ng"; then
+    AC_MSG_ERROR([The objc runtime library does not appear to have synchronisation support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option.])
+  fi
 fi
 AC_SUBST(OBJCSYNC)
 
@@ -1972,6 +1957,9 @@ else
     OBJC2RUNTIME=1
   else
     OBJC2RUNTIME=0
+    if test "$OBJC_RUNTIME_LIB" = "ng"; then
+      AC_MSG_ERROR([The objc runtime library does not appear to have property support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option.])
+    fi
   fi
 fi
 AC_SUBST(OBJC2RUNTIME)
@@ -1984,6 +1972,9 @@ if test $ac_cv_func__Block_copy = yes ; then
   HAVE_BLOCKS=1
 else
   HAVE_BLOCKS=0
+  if test "$OBJC_RUNTIME_LIB" = "ng"; then
+    AC_MSG_ERROR([The objc runtime library does not appear to have blocks support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option.])
+  fi
 fi
 AC_SUBST(HAVE_BLOCKS)
 
@@ -2003,13 +1994,15 @@ if test "$nonfragile" = "yes"; then
   if test $non_fragile = yes; then
     OBJCLIBS="$OBJLIBS -fobjc-nonfragile-abi"
     GS_NONFRAGILE=1
-    AC_ARG_ENABLE(mixedabi,
-      [  --disable-mixedabi
+    if test "$OBJC_RUNTIME_LIB" != "ng"; then
+      AC_ARG_ENABLE(mixedabi,
+        [  --disable-mixedabi
 	    Disables the combined use of fragile and nonfragile ABI so that base
 	    can be built taking full advantage of the nonfragile ABI.],,
-      enable_mixedabi=yes)
-    if test $enable_mixedabi = yes; then
-      GS_MIXEDABI=1
+        enable_mixedabi=yes)
+      if test $enable_mixedabi = yes; then
+        GS_MIXEDABI=1
+      fi
     fi
   fi
   AC_MSG_RESULT($non_fragile)
@@ -2023,7 +2016,7 @@ AC_SUBST(GS_MIXEDABI)
 #--------------------------------------------------------------------
 # get_uninstalled_dtable used by behavior.m and objc-load.m
 #--------------------------------------------------------------------
-AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h, 
+AC_EGREP_HEADER(objc_get_uninstalled_dtable, objc/objc-api.h,
 	AC_DEFINE(HAVE_OBJC_GET_UNINSTALLED_DTABLE,1,
                   [ Define if objc-api.h defines this function]),)
 
@@ -2038,19 +2031,19 @@ if test "$OBJC_RUNTIME_LIB" = "ng"; then
   exceptions=yes
 else
   # Determine if native Objective-C exceptions are enabled
-# in gnustep-make.  They are enabled if the compiler supports it; they
-# are disabled if it doesn't.  And, of course, the user may have
-# forced one behaviour or the other.  Note that we go and look at the
-# actual config.make file to be able to know what was configured in
-# gnustep-make regardless of any gnustep-base that is currently
-# installed.  We can't use `gnustep-config --objc-flags` because that
-# may report native exceptions as disabled because the currently
-# installed gnustep-base has them disabled.
-if grep USE_OBJC_EXCEPTIONS $CURRENT_GNUSTEP_MAKEFILES/$lobj_dir/config.make | grep yes >&5 2>&5; then
-  exceptions=yes
-else
-  exceptions=no
-fi
+  # in gnustep-make.  They are enabled if the compiler supports it; they
+  # are disabled if it doesn't.  And, of course, the user may have
+  # forced one behaviour or the other.  Note that we go and look at the
+  # actual config.make file to be able to know what was configured in
+  # gnustep-make regardless of any gnustep-base that is currently
+  # installed.  We can't use `gnustep-config --objc-flags` because that
+  # may report native exceptions as disabled because the currently
+  # installed gnustep-base has them disabled.
+  if grep USE_OBJC_EXCEPTIONS $CURRENT_GNUSTEP_MAKEFILES/$lobj_dir/config.make | grep yes >&5 2>&5; then
+    exceptions=yes
+  else
+    exceptions=no
+  fi
 fi
 
 # At this point, if exceptions=no, then native exceptions are disabled
@@ -2220,7 +2213,7 @@ AC_CACHE_CHECK([for pw_gecos field in struct passwd],
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <pwd.h> ]],
 	[[ struct passwd p; p.pw_gecos = 0; ]])],
 	[ ac_cv_have_pw_gecos_in_struct_passwd="yes" ],
-	[ ac_cv_have_pw_gecos_in_struct_passwd="no" 
+	[ ac_cv_have_pw_gecos_in_struct_passwd="no"
 	])
 ])
 if test "x$ac_cv_have_pw_gecos_in_struct_passwd" = "xyes" ; then
@@ -2233,7 +2226,7 @@ AC_CACHE_CHECK([for currency_symbol field in struct lconv],
 	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <locale.h> ]],
 	[[ struct lconv l; l.currency_symbol = NULL; ]])],
 	[ ac_cv_have_currency_symbol_in_struct_lconv="yes" ],
-	[ ac_cv_have_currency_symbol_in_struct_lconv="no" 
+	[ ac_cv_have_currency_symbol_in_struct_lconv="no"
 	])
 ])
 if test "x$ac_cv_have_currency_symbol_in_struct_lconv" = "xyes" ; then
@@ -2251,7 +2244,7 @@ AC_CHECK_FUNCS(time ctime tzset)
 
 # Check if tzfile contains the proper definitions
 if test $ac_cv_header_tzfile_h = yes; then
-  AC_EGREP_HEADER(tzhead, tzfile.h, 
+  AC_EGREP_HEADER(tzhead, tzfile.h,
 	AC_DEFINE(HAVE_TZHEAD,1,
                   [ Define if tzfile.h includes the proper definitions]),)
 fi
@@ -2266,7 +2259,6 @@ dnl AC_REPLACE_FUNCS(recvfrom)
 #--------------------------------------------------------------------
 # These headers/functions needed for stacktrace in NSException.m
 #--------------------------------------------------------------------
-PASS_ARG=no
 AC_ARG_ENABLE(bfd,
   [  --enable-bfd
 	Enables the use of libbfd to provide symbolic stack traces.
@@ -2275,16 +2267,23 @@ AC_ARG_ENABLE(bfd,
 	available or does not work properly.
 	Enabling this option also has the effect of changing the license
 	of gnustep-base from LGPL to GPL since libbfd uses the GPL license],,
-  enable_bfd=$PASS_ARG)
+  enable_bfd=no)
+if test $enable_bfd = yes ; then
+  AC_DEFINE(USE_BFD,1, [Define to use bfd library for stack traces])
+  AC_MSG_WARN([You enabled bfd, which causes gnustep-base to link with libbfd. This makes the license GPL rather than the normal LGPL.])
+fi
 
-if test $enable_bfd = yes; then
-  AC_CHECK_HEADERS(bfd.h)
-  AC_CHECK_LIB(iberty, dyn_string_append)
-  AC_CHECK_LIB(bfd, bfd_openr)
+AC_CHECK_HEADERS(bfd.h)
+AC_CHECK_LIB(intl, libintl_fprintf)
+AC_CHECK_LIB(iberty, dyn_string_append)
+AC_CHECK_LIB(bfd, bfd_openr)
+if test $ismingw = yes ; then
+  AC_CHECK_HEADERS(dbghelp.h)
 else
   AC_CHECK_HEADERS(execinfo.h)
   AC_CHECK_FUNCS(backtrace)
 fi
+
 AC_CHECK_FUNCS(__builtin_extract_return_address)
 
 #--------------------------------------------------------------------
@@ -2309,7 +2308,7 @@ have_poll=no
 if test $ac_cv_header_poll_h = yes; then
   have_poll=yes
   AC_MSG_CHECKING(for poll emulation)
-  AC_EGREP_CPP(emulating_poll, [#include "config/config.poll.c"], 
+  AC_EGREP_CPP(emulating_poll, [#include "config/config.poll.c"],
   	have_poll=no,)
   if test $have_poll = yes; then
     AC_MSG_RESULT(no)
@@ -2541,17 +2540,17 @@ fi
 # This needed by NSString for handling of %@ printf directive.
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(register_printf_specifier)
-AC_CHECK_FUNC(register_printf_function, register_printf=1, 
+AC_CHECK_FUNC(register_printf_function, register_printf=1,
 register_printf=0)
 if test $register_printf = 1; then
   AC_TRY_RUN([#include "$srcdir/config/config.printf.c"],
-	       working_register_printf=1, working_register_printf=0, 
+	       working_register_printf=1, working_register_printf=0,
                working_register_printf="$cross_working_register_printf")
   if test $working_register_printf = 1; then
     AC_DEFINE(HAVE_REGISTER_PRINTF_FUNCTION,1,
               [Define if you have the register_printf_function function])
     AC_TRY_RUN([#include "$srcdir/config/config.wprintf.c"],
-	       wide_register_printf=1, wide_register_printf=0, 
+	       wide_register_printf=1, wide_register_printf=0,
                wide_register_printf="$cross_wide_register_printf")
     if test $wide_register_printf = 1; then
       AC_DEFINE(HAVE_WIDE_PRINTF_FUNCTION,1,
@@ -2574,7 +2573,7 @@ AC_MSG_CHECKING(program_invocation_name in C Library)
 AC_CACHE_VAL(gs_cv_program_invocation_name_worked,
 [AC_TRY_RUN([
 #include <string.h>
-int 
+int
 main (int argc, char *argv[])
 {
   extern char *program_invocation_name;
@@ -2591,19 +2590,19 @@ else
 fi
 
 #--------------------------------------------------------------------
-# Check for uname header used by NSProcessInfo.m 
+# Check for uname header used by NSProcessInfo.m
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/utsname.h)
 
 #--------------------------------------------------------------------
-# Check for sysctlbyname used by NSProcessInfo.m 
+# Check for sysctlbyname used by NSProcessInfo.m
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/sysctl.h)
 AC_CHECK_FUNCS(sysctlbyname)
 
 #--------------------------------------------------------------------
-# Defines HAVE_PROCFS if the kernel supports the /proc filesystem. 
-# Needed by NSProcessInfo.m 
+# Defines HAVE_PROCFS if the kernel supports the /proc filesystem.
+# Needed by NSProcessInfo.m
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(procfs.h)
 AC_SYS_PROCFS
@@ -2640,7 +2639,7 @@ if test "$ac_cv_lib_kvm_kvm_getenvv" = yes; then
 	have_kvm_env="$cross_have_kvm_env")
   if test $have_kvm_env = 1; then
     AC_MSG_RESULT(yes)
-    AC_DEFINE(HAVE_KVM_ENV, 1, 
+    AC_DEFINE(HAVE_KVM_ENV, 1,
     			    [Define if you can access the kernel via kvm_open])
   else
     AC_MSG_RESULT(no)
@@ -2733,10 +2732,8 @@ fi
 
 #--------------------------------------------------------------------
 # Check for FFI interface libraries for invocations
-# We enable ffi by default now, as it's fixed for some previouly bad
-# platforms, and it has the advantage over ffcall that it does not
-# mess up the stack, so stacktraces and native exception handling
-# work better with it.
+# We enable ffi by default now, as it's the only well supported
+# library nowadays.
 #--------------------------------------------------------------------
 do_broken_libffi=no
 do_broken_libffcall=no
@@ -2800,7 +2797,7 @@ if test "$do_broken_libffi" = "no"; then
   if test "$PKGCONFIG" = "yes"; then
     if pkg-config --exists libffi; then
       pkg_config_libffi=yes
-      ffi_CFLAGS=`pkg-config --cflags libffi`; 
+      ffi_CFLAGS=`pkg-config --cflags libffi`;
       CPPFLAGS="$CPPFLAGS $ffi_CFLAGS"
       INCLUDE_FLAGS="$INCLUDE_FLAGS $ffi_CFLAGS"
     fi
@@ -2894,7 +2891,7 @@ if test $enable_ffcall = yes -a $ffi_ok = yes; then
   AC_MSG_CHECKING(if ffcall trampolines work)
   AC_RUN_IFELSE(
     [AC_LANG_SOURCE([[#include "$srcdir/config/config.trampoline.c"]])],
-	  have_working_trampoline=yes, have_working_trampoline=no, 
+	  have_working_trampoline=yes, have_working_trampoline=no,
 	  have_working_trampoline=yes)
   AC_MSG_RESULT($have_working_trampoline)
 fi
@@ -3214,13 +3211,7 @@ if test $enable_tls = yes; then
     if ! pkg-config --atleast-version=2.12 gnutls; then
       AC_CHECK_LIB(gcrypt, gcry_control, have_gcrypt=yes, have_gcrypt=no)
       if test "$have_gcrypt" = "no"; then
-        AC_CHECK_LIB(nettle, nettle_sha1_digest, have_nettle=yes, have_nettle=no)
-        if test "$have_nettle" = "no"; then
-            AC_MSG_WARN([Missing support for thread-safe operation in GNUTLS.  Disabling TLS support).])
-            HAVE_GNUTLS=0
-        else
-            TLS_LIBS="$TLS_LIBS -lnettle"
-        fi
+        HAVE_GNUTLS=0
       else
         TLS_LIBS="$TLS_LIBS -lgcrypt"
       fi
@@ -3271,12 +3262,26 @@ AC_ARG_WITH(zeroconf-api,
   zeroconf_api="$withval", zeroconf_api="any")
 if test $enable_zeroconf = yes; then
   if test "$zeroconf_api" = "any" || test "$zeroconf_api" = "mdns"; then
-    AC_CHECK_HEADER(dns_sd.h, have_mdns=yes, have_mdns=no)
+    AC_CHECK_HEADERS(dns_sd.h, have_mdns=yes, have_mdns=no)
     if test "$have_mdns" = "yes"; then
-      #AC_CHECK_LIB(dns_sd, DNSServiceBrowse, have_mdns=yes, have_mdns=no)
+      AC_CHECK_LIB(dns_sd, DNSServiceBrowse, have_mdns=yes, have_mdns=no)
       if test "$have_mdns" = "yes"; then
-        MDNS_LIBS="-ldnssd"
+        MDNS_LIBS="-ldns_sd"
         HAVE_MDNS=1
+      else
+        # Unfortunately, the bonjour MSI installed dnssd doesn't have the stripped symbol?!?
+        AC_MSG_CHECKING([for DNSServiceBrowse in -ldnssd]);
+        temp_LIBS=$LIBS
+        LIBS="-ldnssd $LIBS"
+        AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <dns_sd.h>]], [[return DNSServiceBrowse(0,0,0,0,0,0,0);]])], have_mdns=yes, have_mdns=no)
+        if test "$have_mdns" = "yes"; then
+          MDNS_LIBS="-ldnssd"
+          HAVE_MDNS=1
+          AC_MSG_RESULT([yes])
+        else
+          AC_MSG_RESULT([no])
+        fi
+        LIBS="$temp_LIBS"
       fi
     fi
   fi
@@ -3323,7 +3328,7 @@ AC_ARG_WITH(icu-library,
 
 if test $enable_icu = yes; then
   if test "$enable_icu_config" = "yes"; then
-    AC_CHECK_ICU(4.0, have_icu=yes, have_icu=no)
+    AC_CHECK_ICU(4.6, have_icu=yes, have_icu=no)
   else
     have_icu=no;
     AC_CHECKING([for libicu (icu-config disabled)])
@@ -3334,9 +3339,9 @@ if test $enable_icu = yes; then
     LDFLAGS="$LDFLAGS $LIBS $ICU_LDFLAGS -licui18n -licuuc -licudata -lm"
     AC_TRY_LINK([],[], have_icu="yes", have_icu="no");
     LDFLAGS="$saved_LDFLAGS";
-    ICU_LIBS="-licui18n -licuuc -licudata -lm" 
+    ICU_LIBS="-licui18n -licuuc -licudata -lm"
   fi
-    
+
   if test "$have_icu" = "yes"; then
     AC_MSG_RESULT(yes)
     AC_CHECK_HEADERS(unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h)
@@ -3396,6 +3401,19 @@ if test $enable_libdispatch = yes; then
 fi
 AC_SUBST(HAVE_LIBDISPATCH)
 
+HAVE_LIBDISPATCH_RUNLOOP=0
+if test $HAVE_LIBDISPATCH = 1; then
+  # We check whether we have a variant of libdispatch that allows runloop
+  # integration
+  AC_CHECK_FUNCS(dispatch_main_queue_drain_np dispatch_get_main_queue_handle_np)
+  if test "$ac_cv_func_dispatch_main_queue_drain_np" = "no"; then
+    HAVE_LIBDISPATCH_RUNLOOP=1
+  fi
+  if test "$ac_cv_func_dispatch_get_main_queue_handle_np" = "no"; then
+    HAVE_LIBDISPATCH_RUNLOOP=1
+  fi
+fi
+AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal
@@ -3433,29 +3451,6 @@ fi
 
 AC_SUBST(USE_GMP)
 
-
-#--------------------------------------------------------------------
-# Check which sorting algorithm to use.
-#--------------------------------------------------------------------
-AC_ARG_WITH(sort-algorithm,
-  [  --with-sort-algorithm=ALG  force use of a specific sorting algorithm. 
-				Possible values are timsort, quicksort, and shellsort.
-				Defaults to shellsort (others broken).],
-  sort_algorithm="$withval", sort_algorithm="shellsort")
-
-if test "$sort_algorithm" = "timsort"; then
-  AC_DEFINE(GS_USE_TIMSORT,1,[Build in/use timsort])
-else
-  if test "$sort_algorithm" = "quicksort"; then
-    AC_DEFINE(GS_USE_QUICKSORT,1,[Build in/use quicksort])
-  else
-    if test "$sort_algorithm" = "shellsort"; then
-      AC_DEFINE(GS_USE_SHELLSORT,1,[Build in/use shellsort])
-    else
-      AC_MSG_ERROR([Unknown sort_algorithm defined!])
-    fi
-  fi
-fi
 
 #--------------------------------------------------------------------
 # Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.
@@ -3526,29 +3521,6 @@ else
 fi
 
 AC_SUBST(GNUSTEP_INSTALL_GDOMAP_AS_SETUID)
-
-# If there's no TLS support ... try to get some limited functionality
-# by using OpenSSL instead.
-
-if test "$HAVE_TLS" = "0"; then
-
-#--------------------------------------------------------------------
-# Configure flags from sub-configure runs, so they show up in our
-# help file.
-#--------------------------------------------------------------------
-AC_ARG_ENABLE(openssl,
-  [  --disable-openssl		Disable support for openssl in URL classes],,
-  enable_openssl=yes)
-  HAVE_GNUTLS=0
-AC_ARG_WITH(openssl-include,
-  [  --with-openssl-include=PATH  include path for openssl headers],
-  openssl_incdir="$withval", openssl_incdir="no")
-AC_ARG_WITH(openssl-library,
-  [  --with-openssl-library=PATH  library path for openssl libraries],
-  openssl_libdir="$withval", openssl_libdir="no")
-
-AC_CONFIG_SUBDIRS(SSL)
-fi
 
 #--------------------------------------------------------------------
 # Record the version

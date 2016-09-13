@@ -106,7 +106,9 @@ extern "C" {
 - (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve;
 - (NSMutableData*) rawMimeDataPreservingCase: (BOOL)preserve
                                     foldedAt: (NSUInteger)fold;
-- (void) setName: (NSString*)s;
+- (void) rawMimeDataPreservingCase: (BOOL)preserve
+                          foldedAt: (NSUInteger)fold
+                                to: (NSMutableData*)md;
 - (void) setObject: (id)o  forKey: (NSString*)k;
 - (void) setParameter: (NSString*)v forKey: (NSString*)k;
 - (void) setParameters: (NSDictionary*)d;

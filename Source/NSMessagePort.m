@@ -520,7 +520,7 @@ static Class	runLoopClass;
   if (recvPort == nil)
     return nil;
   else
-    return GS_GC_UNHIDE(recvPort);
+    return recvPort;
 }
 
 - (void) receivedEvent: (void*)data
@@ -893,6 +893,11 @@ static Class	runLoopClass;
 	  int	   res = 0;
 	  unsigned len = sizeof(res);
 
+/* Currently gnu hurd doesn't support getsockopt on local domain sockets
+ * and fails with a 'protocol not supported' error.
+ * We therefore just hope the connect was a success.
+ */
+#if !defined(__gnu_hurd__)
 	  if (getsockopt(desc, SOL_SOCKET, SO_ERROR, (char*)&res, &len) != 0)
 	    {
 	      state = GS_H_UNCON;
@@ -905,6 +910,7 @@ static Class	runLoopClass;
 	        [NSError _systemError: res]);
 	    }
 	  else
+#endif
 	    {
 	      NSData	*d = newDataWithEncodedPort([self recvPort]);
 
@@ -1061,9 +1067,9 @@ static Class	runLoopClass;
   if (sendPort == nil)
     return nil;
   else if (caller == YES)
-    return GS_GC_UNHIDE(sendPort);	// We called, so port is not retained.
+    return sendPort;	// We called, so port is not retained.
   else
-    return sendPort;			// Retained port.
+    return sendPort;	// Retained port.
 }
 
 - (void) setState: (GSHandleState)s
@@ -1116,7 +1122,7 @@ static Class		messagePortClass;
   DESTROY(messagePortMap);
   DESTROY(messagePortLock);
   [arp drain];
-    }
+}
 
 typedef	struct {
   NSData                *_name;
@@ -1289,7 +1295,7 @@ typedef	struct {
 	      if (connect(desc, (struct sockaddr*)&sockAddr,
 		SUN_LEN(&sockAddr)) < 0)
 		{
-		  NSDebugLLog(@"NSMessagePort", @"not live, reseting");
+		  NSDebugLLog(@"NSMessagePort", @"not live, resetting");
 		  unlink((const char*)socketName);
 		  close(desc);
 		  if ((desc = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC)) < 0)
@@ -1375,13 +1381,13 @@ typedef	struct {
   if (send == YES)
     {
       if (handle->caller == YES)
-	handle->sendPort = GS_GC_HIDE(self);
+	handle->sendPort = self;
       else
 	ASSIGN(handle->sendPort, self);
     }
   else
     {
-      handle->recvPort = GS_GC_HIDE(self);
+      handle->recvPort = self;
     }
   NSMapInsert(handles, (void*)(uintptr_t)[handle descriptor], (void*)handle);
   M_UNLOCK(myLock);
@@ -1453,7 +1459,7 @@ typedef	struct {
    * Enumerate all our socket handles, and put them in as long as they
    * are to be used for receiving.
    */
-  recvSelf = GS_GC_HIDE(self);
+  recvSelf = self;
   me = NSEnumerateMapTable(handles);
   while (NSNextMapEnumeratorPair(&me, &sock, (void**)&handle))
     {
@@ -1503,9 +1509,6 @@ typedef	struct {
   NSMapEnumerator	me;
   int			sock;
   void			*dummy;
-#ifndef	BROKEN_SO_REUSEADDR
-  int			opt = 1;
-#endif
   GSMessageHandle	*handle = nil;
 
   M_LOCK(myLock);
@@ -1533,20 +1536,6 @@ typedef	struct {
     {
       NSLog(@"unable to create socket - %@", [NSError _last]);
     }
-#ifndef	BROKEN_SO_REUSEADDR
-  /*
-   * Under decent systems, SO_REUSEADDR means that the port can be reused
-   * immediately that this process exits.  Under some it means
-   * that multiple processes can serve the same port simultaneously.
-   * We don't want that broken behavior!
-   */
-  else if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (char*)&opt,
-    sizeof(opt)) < 0)
-    {
-      (void)close(sock);
-      NSLog(@"unable to set reuse on socket - %@", [NSError _last]);
-    }
-#endif
   else if ((handle = [GSMessageHandle handleWithDescriptor: sock]) == nil)
     {
       (void)close(sock);

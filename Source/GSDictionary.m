@@ -47,13 +47,6 @@
 #define	GSI_MAP_RETAIN_KEY(M, X)	((X).obj) = \
 				[((id)(X).obj) copyWithZone: map->zone]
 
-#if	GS_WITH_GC
-#include	<gc/gc_typed.h>
-static GC_descr	nodeDesc;	// Type descriptor for map node.
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
-#endif
-
 #include	"GNUstepBase/GSIMap.h"
 
 @interface GSDictionary : NSDictionary
@@ -91,15 +84,6 @@ static SEL	objSel;
 {
   if (self == [GSDictionary class])
     {
-#if	GS_WITH_GC
-      /* We create a typed memory descriptor for map nodes.
-       * The pointers to the key and value need to be scanned.
-       */
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#endif
       nxtSel = @selector(nextObject);
       objSel = @selector(objectForKey:);
     }
@@ -338,6 +322,11 @@ static SEL	objSel;
     NSDefaultMallocZone()] initWithDictionary: self]);
 }
 
+- (BOOL) makeImmutable
+{
+  return YES;
+}
+
 - (NSEnumerator*) objectEnumerator
 {
   return AUTORELEASE([[GSDictionaryObjectEnumerator allocWithZone:
@@ -417,6 +406,12 @@ static SEL	objSel;
 {
   GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
   return self;
+}
+
+- (BOOL) makeImmutable
+{
+  GSClassSwizzle(self, [GSDictionary class]);
+  return YES;
 }
 
 - (id) makeImmutableCopyOnFail: (BOOL)force

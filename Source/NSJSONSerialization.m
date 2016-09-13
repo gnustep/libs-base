@@ -168,7 +168,7 @@ updateStreamBuffer(ParserState* state)
                         = [NSError errorWithDomain: NSCocoaErrorDomain
                                               code: 0
                                           userInfo: nil];
-		}
+                    }
                   break;
 		}
 	      else
@@ -189,11 +189,11 @@ updateStreamBuffer(ParserState* state)
 		  n = [stream read: &bytes[1] maxLength: i];
                   if (n == i)
 		    {
-		  str = [[NSString alloc] initWithUTF8String: (char*)bytes];
+                      str = [[NSString alloc] initWithUTF8String: (char*)bytes];
                       [str getCharacters: state->buffer
                                    range: NSMakeRange(0,1)];
-		  [str release];
-		}
+                      [str release];
+                    }
                   else
                     {
                       state->error = [stream streamError];
@@ -204,8 +204,8 @@ updateStreamBuffer(ParserState* state)
                                                   code: 0
                                               userInfo: nil];
                         }
-	      break;
-	    }
+                      break;
+                    }
 		}
 	      break;
 	    }
@@ -409,6 +409,13 @@ parseString(ParserState *state)
       next = consumeChar(state);
     }
 
+  if (currentChar(state) != '"')
+    {
+      [val release];
+      parseError(state);
+      return nil;
+    }
+
   if (bufferIndex > 0)
     {
       NSMutableString *str;
@@ -431,7 +438,10 @@ parseString(ParserState *state)
     }
   if (!state->mutableStrings)
     {
-      val = [val makeImmutableCopyOnFail: YES];
+      if (NO == [val makeImmutable])
+        {
+          val = [val copy];
+        }
     }
   // Consume the trailing "
   consumeChar(state);
@@ -554,7 +564,10 @@ parseArray(ParserState *state)
   consumeChar(state);
   if (!state->mutableContainers)
     {
-      array = [array makeImmutableCopyOnFail: YES];
+      if (NO == [array makeImmutable])
+        {
+          array = [array copy];
+        }
     }
   return array;
 }
@@ -615,7 +628,10 @@ parseObject(ParserState *state)
   consumeChar(state);
   if (!state->mutableContainers)
     {
-      dict = [dict makeImmutableCopyOnFail: YES];
+      if (NO == [dict makeImmutable])
+        {
+          dict = [dict copy];
+        }
     }
   return dict;
 
@@ -934,7 +950,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
           long long     i = [(NSNumber*)obj longLongValue];
 
           [output appendFormat: @"%lld", i];
-    }
+        }
       else
         {
           [output appendFormat: @"%.17g", [(NSNumber*)obj doubleValue]];
@@ -958,20 +974,20 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
 
   if (NO == beenHere)
     {
-  NSNullClass = [NSNull class];
-  NSArrayClass = [NSArray class];
-  NSStringClass = [NSString class];
-  NSDictionaryClass = [NSDictionary class];
-  NSNumberClass = [NSNumber class];
-  escapeSet = [NSMutableCharacterSet new];
+      NSNullClass = [NSNull class];
+      NSArrayClass = [NSArray class];
+      NSStringClass = [NSString class];
+      NSDictionaryClass = [NSDictionary class];
+      NSNumberClass = [NSNumber class];
+      escapeSet = [NSMutableCharacterSet new];
       [[NSObject leakAt: &escapeSet] release];
-  [escapeSet addCharactersInString: @"\"\\"];
-  boolN = [[NSNumber alloc] initWithBool: NO];
+      [escapeSet addCharactersInString: @"\"\\"];
+      boolN = [[NSNumber alloc] initWithBool: NO];
       [[NSObject leakAt: &boolN] release];
-  boolY = [[NSNumber alloc] initWithBool: YES];
+      boolY = [[NSNumber alloc] initWithBool: YES];
       [[NSObject leakAt: &boolY] release];
       beenHere = YES;
-}
+    }
 }
 
 + (NSData*) dataWithJSONObject: (id)obj

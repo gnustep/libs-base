@@ -61,7 +61,7 @@ extern "C" {
 
 @end
 
-
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 DEFINE_BLOCK_TYPE(GSNotificationBlock, void, NSNotification *);
 #endif
@@ -70,7 +70,7 @@ DEFINE_BLOCK_TYPE(GSNotificationBlock, void, NSNotification *);
 {
 #if	GS_EXPOSE(NSNotificationCenter)
 @private
-  GS_GC_STRONG void	*_table;
+  void	*_table;
 #endif
 }
 

@@ -42,9 +42,6 @@
 static SEL	eqSel;
 static SEL	oaiSel;
 
-#if	GS_WITH_GC
-static Class	GSArrayClass;
-#else
 static Class	GSInlineArrayClass;
 /* This class stores objects inline in data beyond the end of the instance.
  * However, when GC is enabled the object data is typed, and all data after
@@ -56,7 +53,6 @@ static Class	GSInlineArrayClass;
 {
 }
 @end
-#endif
 
 @class	GSArray;
 
@@ -105,11 +101,7 @@ static Class	GSInlineArrayClass;
       [self setVersion: 1];
       eqSel = @selector(isEqual:);
       oaiSel = @selector(objectAtIndex:);
-#if	GS_WITH_GC
-      GSArrayClass = [GSArray class];
-#else
       GSInlineArrayClass = [GSInlineArray class];
-#endif
     }
 }
 
@@ -129,14 +121,12 @@ static Class	GSInlineArrayClass;
 {
   if (_contents_array)
     {
-#if	!GS_WITH_GC
       NSUInteger	i;
 
       for (i = 0; i < _count; i++)
 	{
 	  [_contents_array[i] release];
 	}
-#endif
       NSZoneFree([self zone], _contents_array);
       _contents_array = 0;
     }
@@ -155,12 +145,7 @@ static Class	GSInlineArrayClass;
     {
       NSUInteger i;
 
-#if	GS_WITH_GC
-      _contents_array = NSAllocateCollectable(sizeof(id)*count,
-	NSScannedOption);
-#else
       _contents_array = NSZoneMalloc([self zone], sizeof(id)*count);
-#endif
       if (_contents_array == 0)
 	{
 	  DESTROY(self);
@@ -217,12 +202,7 @@ static Class	GSInlineArrayClass;
 				 at: &_count];
       if (_count > 0)
 	{
-#if	GS_WITH_GC
-          _contents_array = NSAllocateCollectable(sizeof(id) * _count,
-	    NSScannedOption);
-#else
 	  _contents_array = NSZoneCalloc([self zone], _count, sizeof(id));
-#endif
 	  if (_contents_array == 0)
 	    {
 	      [NSException raise: NSMallocException
@@ -325,6 +305,11 @@ static Class	GSInlineArrayClass;
   return nil;
 }
 
+- (BOOL) makeImmutable
+{
+  return YES;
+}
+
 - (id) objectAtIndex: (NSUInteger)index
 {
   if (index >= _count)
@@ -387,9 +372,9 @@ static Class	GSInlineArrayClass;
   state->state += count;
   return count;
 }
+
 @end
 
-#if	!GS_WITH_GC
 @implementation	GSInlineArray
 - (void) dealloc
 {
@@ -433,7 +418,6 @@ static Class	GSInlineArrayClass;
   return self;
 }
 @end
-#endif
 
 @implementation GSMutableArray
 
@@ -481,11 +465,7 @@ static Class	GSInlineArrayClass;
 {
   NSArray       *copy;
 
-#if	GS_WITH_GC
-  copy = (id)NSAllocateObject(GSArrayClass, 0, zone);
-#else
   copy = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*_count, zone);
-#endif
   return [copy initWithObjects: _contents_array count: _count];
 }
 
@@ -522,11 +502,7 @@ static Class	GSInlineArrayClass;
     {
       cap = 1;
     }
-#if	GS_WITH_GC
-  _contents_array = NSAllocateCollectable(sizeof(id)*cap, NSScannedOption);
-#else
   _contents_array = NSZoneMalloc([self zone], sizeof(id)*cap);
-#endif
   _capacity = cap;
   _grow_factor = cap > 1 ? cap/2 : 1;
   return self;
@@ -631,6 +607,12 @@ static Class	GSInlineArrayClass;
   _version++;
 }
 
+- (BOOL) makeImmutable
+{
+  GSClassSwizzle(self, [GSArray class]);
+  return YES;
+}
+
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
   GSClassSwizzle(self, [GSArray class]);
@@ -643,16 +625,13 @@ static Class	GSInlineArrayClass;
 
   if ((pos = _count) > 0)
     {
-#if	GS_WITH_GC == 0
       IMP       rel = 0;
       Class    last = Nil;
-#endif
 
       _version++;
       _count = 0;
       while (pos-- > 0)
         {
-#if	GS_WITH_GC == 0
           id    o = _contents_array[pos];
           Class c = object_getClass(o);
 
@@ -662,7 +641,6 @@ static Class	GSInlineArrayClass;
               rel = [o methodForSelector: @selector(release)];
             }
           (*rel)(o, @selector(release));
-#endif
           _contents_array[pos] = nil;
         }
       _version++;
@@ -697,9 +675,7 @@ static Class	GSInlineArrayClass;
   if (index > 0)
     {
       BOOL	(*imp)(id,SEL,id);
-#if	GS_WITH_GC == 0
       BOOL	retained = NO;
-#endif
 
       imp = (BOOL (*)(id,SEL,id))[anObject methodForSelector: eqSel];
       while (index-- > 0)
@@ -707,15 +683,13 @@ static Class	GSInlineArrayClass;
 	  if ((*imp)(anObject, eqSel, _contents_array[index]) == YES)
 	    {
 	      NSUInteger	pos = index;
-#if	GS_WITH_GC == 0
-	      id	obj = _contents_array[index];
+	      id	        obj = _contents_array[index];
 
 	      if (retained == NO)
 		{
 		  RETAIN(anObject);
 		  retained = YES;
 		}
-#endif
 
 	      while (++pos < _count)
 		{
@@ -726,12 +700,10 @@ static Class	GSInlineArrayClass;
 	      RELEASE(obj);
 	    }
 	}
-#if	GS_WITH_GC == 0
       if (retained == YES)
 	{
 	  RELEASE(anObject);
 	}
-#endif
     }
   _version++;
 }
@@ -772,9 +744,7 @@ static Class	GSInlineArrayClass;
     {
       if (_contents_array[index] == anObject)
 	{
-#if	GS_WITH_GC == 0
 	  id		obj = _contents_array[index];
-#endif
 	  NSUInteger	pos = index;
 
 	  while (++pos < _count)
@@ -798,15 +768,12 @@ static Class	GSInlineArrayClass;
       NSUInteger        index;
       NSUInteger        tail;
       NSUInteger        end;
-#if	GS_WITH_GC == 0
       IMP       rel = 0;
       Class    last = Nil;
-#endif
 
       _version++;
       index = aRange.location;
 
-#if	GS_WITH_GC == 0
       /* Release all the objects we are removing.
        */
       end = NSMaxRange(aRange);
@@ -823,7 +790,7 @@ static Class	GSInlineArrayClass;
           (*rel)(o, @selector(release));
           _contents_array[end] = nil;
         }
-#endif
+
       /* Move any trailing objects to fill the hole we made.
        */
       end = NSMaxRange(aRange);
@@ -969,6 +936,23 @@ static Class	GSInlineArrayClass;
     }
   state->itemsPtr = stackbuf;
   return count;
+}
+
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  NSUInteger	size = GSPrivateMemorySize(self, exclude);
+
+  if (size > 0)
+    {
+      NSUInteger	count = _count;
+
+      size += _capacity*sizeof(void*);
+      while (count-- > 0)
+	{
+	  size += [_contents_array[count] sizeInBytesExcluding: exclude];
+	}
+    }
+  return size;
 }
 @end
 
@@ -1136,17 +1120,14 @@ static Class	GSInlineArrayClass;
     }
   return index;
 }
+
 @end
 
 @implementation	GSPlaceholderArray
 
 + (void) initialize
 {
-#if	GS_WITH_GC
-  GSArrayClass = [GSArray class];
-#else
   GSInlineArrayClass = [GSInlineArray class];
-#endif
 }
 
 - (id) autorelease
@@ -1189,14 +1170,7 @@ static Class	GSInlineArrayClass;
     }
   else
     {
-      unsigned	c;
-#if	GS_WITH_GC
-      GSArray	*a;
-
-      [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
-      a = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
-      a->_contents_array = NSAllocateCollectable(sizeof(id)*c, NSScannedOption);
-#else
+      unsigned	        c;
       GSInlineArray	*a;
 
       [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
@@ -1204,7 +1178,6 @@ static Class	GSInlineArrayClass;
 	sizeof(id)*c, [self zone]);
       a->_contents_array
         = (id*)(((void*)a) + class_getInstanceSize([a class]));
-#endif
       if (c > 0)
         {
 	  [aCoder decodeArrayOfObjCType: @encode(id)
@@ -1218,12 +1191,8 @@ static Class	GSInlineArrayClass;
 
 - (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
-#if	GS_WITH_GC
-  self = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
-#else
   self = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*count,
     [self zone]);
-#endif
   return [self initWithObjects: objects count: count];
 }
 

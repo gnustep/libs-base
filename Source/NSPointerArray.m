@@ -272,7 +272,7 @@ static Class	concreteClass = Nil;
 	      [a addObject: obj];
 	    }
 	}
-      return [a makeImmutableCopyOnFail: NO]; 
+      return GS_IMMUTABLE(a);
     }
 }
 
@@ -304,19 +304,7 @@ static Class	concreteClass = Nil;
   c = (NSConcretePointerArray*)NSCopyObject(self, 0, NSDefaultMallocZone());
   c->_capacity = c->_count;
   c->_grow_factor = c->_capacity/2;
-#if	GS_WITH_GC
-  if (_pf.options & NSPointerFunctionsZeroingWeakMemory)
-    {
-      c->_contents = NSAllocateCollectable(sizeof(id) * _count, 0);
-    }
-  else
-    {
-      c->_contents = NSAllocateCollectable(sizeof(id) * _count,
-	NSScannedOption);
-    }
-#else
   c->_contents = NSZoneCalloc([self zone], _count, sizeof(id));
-#endif
   for (i = 0; i < _count; i++)
     {
       NSLog(@"Copying %d, %p", i, _contents[i]);
@@ -397,19 +385,7 @@ static Class	concreteClass = Nil;
 				 at: &_count];
       if (_count > 0)
 	{
-#if	GS_WITH_GC
-	  if (_pf.options & NSPointerFunctionsZeroingWeakMemory)
-	    {
-	      _contents = NSAllocateCollectable(sizeof(id) * _count, 0);
-	    }
-	  else
-	    {
-	      _contents = NSAllocateCollectable(sizeof(id) * _count,
-		NSScannedOption);
-	    }
-#else
 	  _contents = NSZoneCalloc([self zone], _count, sizeof(id));
-#endif
 	  if (_contents == 0)
 	    {
 	      [NSException raise: NSMallocException
@@ -558,9 +534,6 @@ static Class	concreteClass = Nil;
 	  new_gf = new_cap / 2;
 	  if (_contents == 0)
 	    {
-#if	GS_WITH_GC
-	      ptr = (void**)NSZoneMalloc([self zone], size);
-#else
 	      if (_pf.options & NSPointerFunctionsZeroingWeakMemory)
 		{
 		  ptr = (void**)NSAllocateCollectable(size, 0);
@@ -569,13 +542,9 @@ static Class	concreteClass = Nil;
 		{
 		  ptr = (void**)NSAllocateCollectable(size, NSScannedOption);
 		} 
-#endif
 	    }
 	  else
 	    {
-#if	GS_WITH_GC
-	      ptr = (void**)NSZoneRealloc([self zone], _contents, size);
-#else
 	      if (_pf.options & NSPointerFunctionsZeroingWeakMemory)
 		{
 		  ptr = (void**)NSReallocateCollectable(
@@ -586,7 +555,6 @@ static Class	concreteClass = Nil;
 		  ptr = (void**)NSReallocateCollectable(
 		    _contents, size, NSScannedOption);
 		} 
-#endif
 	    }
 	  if (ptr == 0)
 	    {

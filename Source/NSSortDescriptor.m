@@ -30,6 +30,8 @@
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSKeyValueCoding.h"
+#import "Foundation/NSNotification.h"
+#import "Foundation/NSUserDefaults.h"
 
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GSPrivate.h"
@@ -41,31 +43,61 @@ static BOOL     initialized = NO;
 #pragma clang diagnostic ignored "-Wreceiver-forward-class"
 #endif
 
-#if     GS_USE_TIMSORT
-@class  GSTimSortDescriptor;
-#endif
-#if     GS_USE_QUICKSORT
-@class  GSQuickSortPlaceHolder;
-#endif
-#if     GS_USE_SHELLSORT
-@class  GSShellSortPlaceHolder;
-#endif
+@interface GSTimSortPlaceHolder : NSObject
++ (void) setUnstable;
+@end
+@interface GSQuickSortPlaceHolder : NSObject
++ (void) setUnstable;
+@end
+@interface GSShellSortPlaceHolder : NSObject
++ (void) setUnstable;
+@end
 
 @implementation NSSortDescriptor
+
++ (void) defaultsChanged: (NSNotification*)n
+{
+  NSUserDefaults        *defs = (NSUserDefaults*)[n object];
+  NSString              *algorithm;
+
+  algorithm = [defs stringForKey: @"GSSortAlgorithm"];
+  if ([algorithm isEqual: @"QuickSort"])
+    {
+      [GSQuickSortPlaceHolder setUnstable];
+    }
+  else if ([algorithm isEqual: @"ShellSort"])
+    {
+      [GSShellSortPlaceHolder setUnstable];
+    }
+  else if ([algorithm isEqual: @"TimSort"])
+    {
+      [GSTimSortPlaceHolder setUnstable];
+    }
+  else
+    {
+      [GSTimSortPlaceHolder setUnstable];
+      if (nil != algorithm)
+        {
+          NSLog(@"GSSortAlgorithm default unknown value (%@)", algorithm);
+        }
+    }
+}
 
 + (void) initialize
 {
   if (NO == initialized)
     {
-#if     GS_USE_TIMSORT
-      [GSTimSortDescriptor class];
-#endif
-#if     GS_USE_QUICKSORT
-      [GSQuickSortPlaceHolder class];
-#endif
-#if     GS_USE_SHELLSORT
-      [GSShellSortPlaceHolder class];
-#endif
+      NSNotificationCenter      *nc;
+      NSUserDefaults            *defs;
+
+      [GSTimSortPlaceHolder class];     // default stable sort
+      nc = [NSNotificationCenter defaultCenter];
+      defs = [NSUserDefaults standardUserDefaults];
+      [nc addObserver: self
+             selector: @selector(defaultsChanged:)
+                 name: NSUserDefaultsDidChangeNotification
+               object: defs];
+      [self defaultsChanged: nil];      // set unstable sort
       initialized = YES;
     }
 }
@@ -123,16 +155,16 @@ static BOOL     initialized = NO;
 
 + (id) sortDescriptorWithKey: (NSString *)aKey ascending: (BOOL)ascending
 {
-	return AUTORELEASE([[self alloc] initWithKey: aKey ascending: ascending]);
+  return AUTORELEASE([[self alloc] initWithKey: aKey ascending: ascending]);
 }
 
 + (id) sortDescriptorWithKey: (NSString *)aKey 
                    ascending: (BOOL)ascending 
                     selector: (SEL)aSelector
 {
-	return AUTORELEASE([[self alloc] initWithKey: aKey 
-	                                   ascending: ascending 
-	                                    selector: aSelector]);
+  return AUTORELEASE([[self alloc] initWithKey: aKey 
+                                     ascending: ascending 
+                                      selector: aSelector]);
 }
 
 - (id) initWithKey: (NSString *) key ascending: (BOOL) ascending
@@ -344,13 +376,13 @@ GSSortUnstableConcurrent(id* buffer, NSRange range, id descriptorOrComparator,
 
 @implementation NSArray (NSSortDescriptorSorting)
 
-- (NSArray *) sortedArrayUsingDescriptors: (NSArray *) sortDescriptors
+- (NSArray *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors
 {
   NSMutableArray *sortedArray = [GSMutableArray arrayWithArray: self];
 
   [sortedArray sortUsingDescriptors: sortDescriptors];
 
-  return [sortedArray makeImmutableCopyOnFail: NO];
+  return GS_IMMUTABLE(sortedArray);
 }
 
 @end
@@ -361,19 +393,19 @@ GSSortUnstableConcurrent(id* buffer, NSRange range, id descriptorOrComparator,
  */
 static void
 SortRange(id *objects, NSRange range, id *descriptors,
-  unsigned numDescriptors)
+  NSUInteger numDescriptors)
 {
   NSSortDescriptor	*sd = (NSSortDescriptor*)descriptors[0];
 
   GSSortUnstable(objects, range, sd, GSComparisonTypeSortDescriptor, NULL);
   if (numDescriptors > 1)
     {
-      unsigned	start = range.location;
-      unsigned	finish = NSMaxRange(range);
+      NSUInteger	start = range.location;
+      NSUInteger	finish = NSMaxRange(range);
 
       while (start < finish)
 	{
-	  unsigned	pos = start + 1;
+	  NSUInteger	pos = start + 1;
 
 	  /* Find next range of adjacent objects.
 	   */
@@ -400,8 +432,8 @@ SortRange(id *objects, NSRange range, id *descriptors,
 
 - (void) sortUsingDescriptors: (NSArray *)sortDescriptors
 {
-  unsigned	count = [self count];
-  unsigned	numDescriptors = [sortDescriptors count];
+  NSUInteger	count = [self count];
+  NSUInteger	numDescriptors = [sortDescriptors count];
 
   if (count > 1 && numDescriptors > 0)
     {
@@ -412,7 +444,7 @@ SortRange(id *objects, NSRange range, id *descriptors,
       [self getObjects: objects];
       if ([sortDescriptors isProxy])
 	{
-	  unsigned	i;
+	  NSUInteger	i;
 
 	  for (i = 0; i < numDescriptors; i++)
 	    {
@@ -437,7 +469,7 @@ SortRange(id *objects, NSRange range, id *descriptors,
 
 - (void) sortUsingDescriptors: (NSArray *)sortDescriptors
 {
-  unsigned	dCount = [sortDescriptors count];
+  NSUInteger	dCount = [sortDescriptors count];
 
   if (_count > 1 && dCount > 0)
     {
@@ -445,7 +477,7 @@ SortRange(id *objects, NSRange range, id *descriptors,
 
       if ([sortDescriptors isProxy])
 	{
-	  unsigned	i;
+	  NSUInteger	i;
 
 	  for (i = 0; i < dCount; i++)
 	    {

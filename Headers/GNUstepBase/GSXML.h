@@ -701,9 +701,10 @@ extern "C" {
 - (void) setCompact: (BOOL)flag;
 
 /**
- * Specify whether to perform debug trace on I/O
+ * Specify whether to perform debug trace on I/O<br />
+ * Return the previous value
  */
-- (void) setDebug: (BOOL)flag;
+- (int) setDebug: (int)flag;
 
 /**
  * Sets the delegate object which will receive callbacks when an XMLRPC
