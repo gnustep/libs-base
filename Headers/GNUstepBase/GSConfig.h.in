@@ -312,7 +312,7 @@ typedef	struct {
 #include <windows.h>
 #else
 #include <windows.h>
-/* This doesn't work on MINGW32/clang builds for some reason... */
+/* Testplant-MAL-09132016 - This doesn't work on MINGW32/clang builds for some reason... */
 //#include <winsock2.h>
 #endif
 
