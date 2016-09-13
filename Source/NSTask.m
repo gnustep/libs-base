@@ -112,12 +112,16 @@ static BOOL	hadChildSignal = NO;
 static void handleSignal(int sig)
 {
   hadChildSignal = YES;
-#ifndef __MINGW__
+#ifndef _WIN32
   signal(SIGCHLD, handleSignal);
 #endif
 }
 
-#ifdef __MINGW__
+#ifdef _WIN32
+/* We use exit code 10 to denote a process termination.
+ * Windows does nt have an exit code to denote termination this way.
+ */
+#define WIN_SIGNALLED   10
 @interface NSConcreteWindowsTask : NSTask
 {
 @public
@@ -222,7 +226,7 @@ pty_slave(const char* name)
 @interface NSTask (Private)
 - (NSString *) _fullLaunchPath;
 - (void) _collectChild;
-- (void) _terminatedChild: (int)status;
+- (void) _terminatedChild: (int)status reason: (NSTaskTerminationReason)reason;
 @end
 
 
@@ -280,7 +284,7 @@ pty_slave(const char* name)
         }
       [gnustep_global_lock unlock];
 
-#ifndef __MINGW__
+#ifndef _WIN32
       signal(SIGCHLD, handleSignal);
 #endif
     }
@@ -373,7 +377,7 @@ pty_slave(const char* name)
       return;
     }
 
-#ifndef __MINGW__
+#ifndef _WIN32
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGINT);
 #else
@@ -441,7 +445,7 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
-#ifndef __MINGW__
+#ifndef _WIN32
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGCONT);
 #else
@@ -632,7 +636,7 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
-#ifndef __MINGW__
+#ifndef _WIN32
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGSTOP);
 #else
@@ -664,13 +668,37 @@ pty_slave(const char* name)
     }
 
   _hasTerminated = YES;
-#ifndef __MINGW__
+#ifndef _WIN32
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGTERM);
 #else
   kill(-_taskId, SIGTERM);
 #endif
 #endif
+}
+
+/**
+ * Returns the termination reason of the task.<br />
+ * If the task has not completed running, raises an
+ * NSInvalidArgumentException.
+ */
+- (NSTaskTerminationReason) terminationReason
+{
+  if (_hasLaunched == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has not yet launched"];
+    }
+  if (_hasCollected == NO)
+    {
+      [self _collectChild];
+    }
+  if (_hasTerminated == NO)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"NSTask - task has not yet terminated"];
+    }
+  return _terminationReason;
 }
 
 /**
@@ -726,8 +754,7 @@ pty_slave(const char* name)
 - (NSString*) validatedLaunchPath
 {
   NSString	*libs;
-  NSString	*cpu;
-  NSString	*os;
+  NSString	*target_dir;
   NSString	*prog;
   NSString	*lpath;
   NSString	*base_path;
@@ -740,8 +767,7 @@ pty_slave(const char* name)
     }
 
   libs = [NSBundle _library_combo];
-  os = [NSBundle _gnustep_target_os];
-  cpu = [NSBundle _gnustep_target_cpu];
+  target_dir = [NSBundle _gnustep_target_dir];
 
   /*
    *	Set lpath to the actual path to use for the executable.
@@ -754,12 +780,14 @@ pty_slave(const char* name)
   base_path = [_launchPath stringByDeletingLastPathComponent];
   if ([[base_path lastPathComponent] isEqualToString: libs] == YES)
     base_path = [base_path stringByDeletingLastPathComponent];
-  if ([[base_path lastPathComponent] isEqualToString: os] == YES)
-    base_path = [base_path stringByDeletingLastPathComponent];
-  if ([[base_path lastPathComponent] isEqualToString: cpu] == YES)
-    base_path = [base_path stringByDeletingLastPathComponent];
-  arch_path = [base_path stringByAppendingPathComponent: cpu];
-  arch_path = [arch_path stringByAppendingPathComponent: os];
+  if (nil == target_dir)
+    arch_path = base_path;
+  else
+    {
+      if ([[base_path lastPathComponent] isEqualToString: target_dir] == YES)
+        base_path = [base_path stringByDeletingLastPathComponent];
+      arch_path = [base_path stringByAppendingPathComponent: target_dir];
+    }
   full_path = [arch_path stringByAppendingPathComponent: libs];
 
   lpath = [full_path stringByAppendingPathComponent: prog];
@@ -783,10 +811,10 @@ pty_slave(const char* name)
 	      if (lpath != nil)
 		{
 		  lpath = [NSTask executablePath: lpath];
-		    }
 		}
 	    }
 	}
+    }
   if (lpath != nil)
     {
       /* Make sure we have a standardised absolute path to pass to execve()
@@ -799,10 +827,10 @@ pty_slave(const char* name)
 	  lpath = [current stringByAppendingPathComponent: lpath];
 	}
       lpath = [lpath stringByStandardizingPath];
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
       if ([lpath rangeOfString: @"/"].length > 0)
 	{
-  lpath = [lpath stringByReplacingString: @"/" withString: @"\\"];
+	  lpath = [lpath stringByReplacingString: @"/" withString: @"\\"];
 	}
 #endif
     }
@@ -876,13 +904,14 @@ pty_slave(const char* name)
   [self subclassResponsibility: _cmd];
 }
 
-- (void) _terminatedChild: (int)status
+- (void) _terminatedChild: (int)status reason: (NSTaskTerminationReason)reason
 {
   [tasksLock lock];
   IF_NO_GC([[self retain] autorelease];)
   NSMapRemove(activeTasks, (void*)(intptr_t)_taskId);
   [tasksLock unlock];
   _terminationStatus = status;
+  _terminationReason = reason;
   _hasCollected = YES;
   _hasTerminated = YES;
   if (_hasNotified == NO)
@@ -903,7 +932,7 @@ pty_slave(const char* name)
 
 @end
 
-#ifdef __MINGW__
+#ifdef _WIN32
 @implementation NSConcreteWindowsTask
 
 BOOL
@@ -930,7 +959,9 @@ GSPrivateCheckTasks()
 	    {
 	      if (eCode != STILL_ACTIVE)
 		{
-		  [t _terminatedChild: eCode];
+                  [t _terminatedChild: eCode reason: (WIN_SIGNALLED == eCode)
+                    ? NSTaskTerminationReasonUncaughtSignal
+                    : NSTaskTerminationReasonExit];
 		  found = YES;
 		}
 	    }
@@ -972,8 +1003,11 @@ GSPrivateCheckTasks()
       return;
     }
 
+  /* We use exit code 10 to denote a process termination.
+   * Windows does nt have an exit code to denote termination this way.
+   */
   _hasTerminated = YES;
-  TerminateProcess(procInfo.hProcess, 10);
+  TerminateProcess(procInfo.hProcess, WIN_SIGNALLED);
 }
 
 
@@ -1263,12 +1297,10 @@ quotedFromString(NSString *aString)
   SetHandleInformation(hErr, HANDLE_FLAG_INHERIT, 0);
   [tasksLock unlock];
 
-  if (result == 0)
+  if (0 == result)
     {
-      NSLog(@"Error launching task: %@ ... %@", lpath, last);
       [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - Error launching task: %@ ... %@", lpath, last];
-      return;
+        format: @"NSTask - Error launching task: %@ ... %@", lpath, last];
     }
 
   _taskId = procInfo.dwProcessId;
@@ -1309,14 +1341,16 @@ quotedFromString(NSString *aString)
 	}
       else if (eCode != STILL_ACTIVE)
 	{
-	  [self _terminatedChild: eCode];
+	  [self _terminatedChild: eCode reason: (WIN_SIGNALLED == eCode)
+            ? NSTaskTerminationReasonUncaughtSignal
+            : NSTaskTerminationReasonExit];
 	}
     }
 }
 
 @end
 
-#else /* !MINGW */
+#else /* !_WIN32 */
 
 @implementation NSConcreteUnixTask
 
@@ -1366,7 +1400,8 @@ GSPrivateCheckTasks()
 		      NSLog(@"waitpid %d, exit status = %d",
 			result, status);
 #endif
-		      [t _terminatedChild: WEXITSTATUS(status)];
+		      [t _terminatedChild: WEXITSTATUS(status)
+                        reason: NSTaskTerminationReasonExit];
 		      found = YES;
 		    }
 		  else if (WIFSIGNALED(status))
@@ -1375,7 +1410,8 @@ GSPrivateCheckTasks()
 		      NSLog(@"waitpid %d, termination status = %d",
 			result, status);
 #endif
-		      [t _terminatedChild: WTERMSIG(status)];
+		      [t _terminatedChild: WTERMSIG(status)
+                        reason: NSTaskTerminationReasonUncaughtSignal];
 		      found = YES;
 		    }
 		  else
@@ -1523,7 +1559,7 @@ GSPrivateCheckTasks()
 #endif
 #else
 #if	defined(HAVE_SETPGID)
-#if defined(__MINGW__)
+#if defined(_WIN32)
       pid = (int)GetCurrentProcessId(),
 #else
       pid = (int)getpid();
@@ -1671,7 +1707,8 @@ GSPrivateCheckTasks()
 	      NSLog(@"waitpid %d, exit status = %d",
 		result, status);
 #endif
-	      [self _terminatedChild: WEXITSTATUS(status)];
+	      [self _terminatedChild: WEXITSTATUS(status)
+                              reason: NSTaskTerminationReasonExit];
 	    }
 	  else if (WIFSIGNALED(status))
 	    {
@@ -1679,7 +1716,8 @@ GSPrivateCheckTasks()
 	      NSLog(@"waitpid %d, termination status = %d",
 		result, status);
 #endif
-	      [self _terminatedChild: WTERMSIG(status)];
+	      [self _terminatedChild: WTERMSIG(status)
+                              reason: NSTaskTerminationReasonUncaughtSignal];
 	    }
 	  else
 	    {
@@ -1723,4 +1761,4 @@ GSPrivateCheckTasks()
 }
 
 @end
-#endif /* !MINGW */
+#endif /* !_WIN32 */

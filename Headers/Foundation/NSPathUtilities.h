@@ -1,5 +1,5 @@
 /** Interface to file path utilities for GNUStep
-   Copyright (C) 1996 Free Software Foundation, Inc.
+   Copyright (C) 1996-2016 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Created: May 1996
@@ -130,9 +130,17 @@ enum
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
   NSDownloadsDirectory = 15,	        /** location of downloaded files */
 #endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+  NSMoviesDirectory = 17,	        /** location of video/movie files */
+  NSMusicDirectory = 18,	        /** location of music files */
+  NSPicturesDirectory = 19,	        /** location of picture/images files */ 
+#endif  
 
   NSAllApplicationsDirectory = 100,	/** all app directories */
   NSAllLibrariesDirectory = 101,	/** all library resources */
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
+  NSTrashDirectory = 102,	        /** location of the trash directory */ 
+#endif
 
 #define  GSApplicationSupportDirectory NSApplicationSupportDirectory
 /*  GNUstep Directory Identifiers

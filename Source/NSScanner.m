@@ -42,6 +42,9 @@
 #    error Neither LLONG_MAX nor __LONG_LONG_MAX__ found
 #  endif
 #endif
+#if	!defined(ULLONG_MAX)
+#  define ULLONG_MAX	(LLONG_MAX * 2ULL + 1)
+#endif
 
 #include <math.h>
 #include <ctype.h>    /* FIXME: May go away once I figure out Unicode */
@@ -352,22 +355,20 @@ typedef GSString	*ivars;
   return NO;
 }
 
-/*
- * Scan an unsigned int of the given radix into value.
- * Internal version used by scanRadixUnsignedInt: and scanHexInt: .
+/* Scan an unsigned long long of the given radix into value.
+ * Internal version used by scanHexInt:, scanHexLongLong: etc.
  */
-- (BOOL) scanUnsignedInt_: (unsigned int*)value
-		    radix: (NSUInteger)radix
-		gotDigits: (BOOL)gotDigits
+- (BOOL) scanUnsignedLongLong_: (unsigned long long int*)value
+                         radix: (NSUInteger)radix
+                       maximum: (unsigned long long)max
+                     gotDigits: (BOOL)gotDigits
 {
-  unsigned int	num = 0;
-  unsigned int	numLimit, digitLimit, digitValue;
-  BOOL		overflow = NO;
-  unsigned int	saveScanLocation = _scanLocation;
-
-  /* Set limits */
-  numLimit = UINT_MAX / radix;
-  digitLimit = UINT_MAX % radix;
+  unsigned long long int        num = 0;
+  unsigned long long int        numLimit = max / radix;
+  unsigned long long int        digitLimit = max % radix;
+  unsigned long long int        digitValue = 0;
+  BOOL                          overflow = NO;
+  unsigned int                  saveScanLocation = _scanLocation;
 
   /* Process digits */
   while (_scanLocation < myLength())
@@ -375,43 +376,49 @@ typedef GSString	*ivars;
       unichar digit = myCharacter(_scanLocation);
 
       switch (digit)
-	{
-	  case '0': digitValue = 0; break;
-	  case '1': digitValue = 1; break;
-	  case '2': digitValue = 2; break;
-	  case '3': digitValue = 3; break;
-	  case '4': digitValue = 4; break;
-	  case '5': digitValue = 5; break;
-	  case '6': digitValue = 6; break;
-	  case '7': digitValue = 7; break;
-	  case '8': digitValue = 8; break;
-	  case '9': digitValue = 9; break;
-	  case 'a': digitValue = 0xA; break;
-	  case 'b': digitValue = 0xB; break;
-	  case 'c': digitValue = 0xC; break;
-	  case 'd': digitValue = 0xD; break;
-	  case 'e': digitValue = 0xE; break;
-	  case 'f': digitValue = 0xF; break;
-	  case 'A': digitValue = 0xA; break;
-	  case 'B': digitValue = 0xB; break;
-	  case 'C': digitValue = 0xC; break;
-	  case 'D': digitValue = 0xD; break;
-	  case 'E': digitValue = 0xE; break;
-	  case 'F': digitValue = 0xF; break;
-	  default:
-	    digitValue = radix;
-	    break;
-	}
+        {
+          case '0': digitValue = 0; break;
+          case '1': digitValue = 1; break;
+          case '2': digitValue = 2; break;
+          case '3': digitValue = 3; break;
+          case '4': digitValue = 4; break;
+          case '5': digitValue = 5; break;
+          case '6': digitValue = 6; break;
+          case '7': digitValue = 7; break;
+          case '8': digitValue = 8; break;
+          case '9': digitValue = 9; break;
+          case 'a': digitValue = 0xA; break;
+          case 'b': digitValue = 0xB; break;
+          case 'c': digitValue = 0xC; break;
+          case 'd': digitValue = 0xD; break;
+          case 'e': digitValue = 0xE; break;
+          case 'f': digitValue = 0xF; break;
+          case 'A': digitValue = 0xA; break;
+          case 'B': digitValue = 0xB; break;
+          case 'C': digitValue = 0xC; break;
+          case 'D': digitValue = 0xD; break;
+          case 'E': digitValue = 0xE; break;
+          case 'F': digitValue = 0xF; break;
+          default:
+            digitValue = radix;
+            break;
+        }
       if (digitValue >= radix)
-	break;
+        {
+          break;
+        }
       if (!overflow)
-	{
-	  if ((num > numLimit)
-	    || ((num == numLimit) && (digitValue > digitLimit)))
-	    overflow = YES;
-	  else
-	    num = num * radix + digitValue;
-	}
+        {
+          if ((num > numLimit)
+            || ((num == numLimit) && (digitValue > digitLimit)))
+            {
+              overflow = YES;
+            }
+           else
+            {
+              num = num * radix + digitValue;
+            }
+        }
       _scanLocation++;
       gotDigits = YES;
     }
@@ -425,31 +432,36 @@ typedef GSString	*ivars;
   if (value)
     {
       if (overflow)
-	*value = UINT_MAX;
+        {
+          *value = ULLONG_MAX;
+        }
       else
-	*value = num;
+        {
+          *value = num;
+        }
     }
   return YES;
 }
 
 /**
  * After initial skipping (if any), this method scans an unsigned
- * integer value placing it in <em>intValue</em> if that is not null.
+ * integer placing it in <em>value</em> if that is not null.
  * If the number begins with "0x" or "0X" it is treated as hexadecimal,
  * otherwise if the number begins with "0" it is treated as octal,
  * otherwise the number is treated as decimal.
  * <br/>
  * Returns YES if anything is scanned, NO otherwise.
  * <br/>
- * On overflow, INT_MAX or INT_MIN is put into <em>intValue</em>
+ * On overflow, UINT_MAX is put into <em>value</em>
  * <br/>
  * Scans past any excess digits
  */
 - (BOOL) scanRadixUnsignedInt: (unsigned int*)value
 {
-  unsigned int	radix;
-  BOOL		gotDigits = NO;
-  unsigned int	saveScanLocation = _scanLocation;
+  unsigned int	        radix;
+  unsigned long long    tmp;
+  BOOL		        gotDigits = NO;
+  unsigned int	        saveScanLocation = _scanLocation;
 
   /* Skip whitespace */
   if (!skipToNextField())
@@ -478,8 +490,78 @@ typedef GSString	*ivars;
 	    }
 	}
     }
-  if ([self scanUnsignedInt_: value radix: radix gotDigits: gotDigits])
-    return YES;
+  if ([self scanUnsignedLongLong_: &tmp
+                            radix: radix
+                          maximum: UINT_MAX
+                        gotDigits: gotDigits])
+    {
+      if (tmp > UINT_MAX)
+        {
+          *value = UINT_MAX;
+        }
+      else
+        {
+          *value = (unsigned int)tmp;
+        }
+      return YES;
+    }
+  _scanLocation = saveScanLocation;
+  return NO;
+}
+
+/**
+ * After initial skipping (if any), this method scans an unsigned
+ * long long integer placing it in <em>value</em> if that is not null.
+ * If the number begins with "0x" or "0X" it is treated as hexadecimal,
+ * otherwise if the number begins with "0" it is treated as octal,
+ * otherwise the number is treated as decimal.
+ * <br/>
+ * Returns YES if anything is scanned, NO otherwise.
+ * <br/>
+ * On overflow, ULLONG_MAX is put into <em>value</em>
+ * <br/>
+ * Scans past any excess digits
+ */
+- (BOOL) scanRadixUnsignedLongLong: (unsigned long long*)value
+{
+  unsigned int	        radix;
+  BOOL		        gotDigits = NO;
+  unsigned int	        saveScanLocation = _scanLocation;
+
+  /* Skip whitespace */
+  if (!skipToNextField())
+    {
+      _scanLocation = saveScanLocation;
+      return NO;
+    }
+
+  /* Check radix */
+  radix = 10;
+  if ((_scanLocation < myLength()) && (myCharacter(_scanLocation) == '0'))
+    {
+      radix = 8;
+      _scanLocation++;
+      gotDigits = YES;
+      if (_scanLocation < myLength())
+	{
+	  switch (myCharacter(_scanLocation))
+	    {
+	      case 'x':
+	      case 'X':
+		_scanLocation++;
+		radix = 16;
+		gotDigits = NO;
+		break;
+	    }
+	}
+    }
+  if ([self scanUnsignedLongLong_: value
+                            radix: radix
+                          maximum: ULLONG_MAX
+                        gotDigits: gotDigits])
+    {
+      return YES;
+    }
   _scanLocation = saveScanLocation;
   return NO;
 }
@@ -497,7 +579,8 @@ typedef GSString	*ivars;
  */
 - (BOOL) scanHexInt: (unsigned int*)value
 {
-  unsigned int saveScanLocation = _scanLocation;
+  unsigned int          saveScanLocation = _scanLocation;
+  unsigned long long    tmp;
 
   /* Skip whitespace */
   if (!skipToNextField())
@@ -527,8 +610,14 @@ typedef GSString	*ivars;
 	  _scanLocation--;	// Just scan the zero.
 	}
     }
-  if ([self scanUnsignedInt_: value radix: 16 gotDigits: NO])
-    return YES;
+  if ([self scanUnsignedLongLong_: &tmp
+                            radix: 16
+                          maximum: UINT_MAX
+                        gotDigits: NO])
+    {
+      *value = (unsigned int)tmp;
+      return YES;
+    }
   _scanLocation = saveScanLocation;
   return NO;
 }
@@ -547,7 +636,6 @@ typedef GSString	*ivars;
  */
 - (BOOL) scanLongLong: (long long *)value
 {
-#if defined(LLONG_MAX)
   unsigned long long		num = 0;
   const unsigned long long	limit = ULLONG_MAX / 10;
   BOOL				negative = NO;
@@ -618,15 +706,60 @@ typedef GSString	*ivars;
 	}
     }
   return YES;
-#else /* defined(LLONG_MAX) */
-  /*
-   * Provide compile-time warning and run-time exception.
-   */
-#    warning "Can't use long long variables."
-  [NSException raise: NSGenericException
-	       format: @"Can't use long long variables."];
+}
+
+/**
+ * After initial skipping (if any), this method scans a hexadecimal
+ * long long value (optionally prefixed by "0x" or "0X"),
+ * placing it in <em>longLongValue</em> if that is not null.
+ * <br/>
+ * Returns YES if anything is scanned, NO otherwise.
+ * <br/>
+ * On overflow, ULLONG_MAX or ULLONG_MAX is put into <em>longLongValue</em>
+ * <br/>
+ * Scans past any excess digits
+ */
+- (BOOL) scanHexLongLong: (unsigned long long*)value
+{
+  unsigned int saveScanLocation = _scanLocation;
+
+  /* Skip whitespace */
+  if (!skipToNextField())
+    {
+      _scanLocation = saveScanLocation;
+      return NO;
+    }
+
+  if ((_scanLocation < myLength()) && (myCharacter(_scanLocation) == '0'))
+    {
+      _scanLocation++;
+      if (_scanLocation < myLength())
+       {
+         switch (myCharacter(_scanLocation))
+           {
+             case 'x':
+             case 'X':
+               _scanLocation++;        // Scan beyond the 0x prefix
+               break;
+             default:
+               _scanLocation--;        // Scan from the initial digit
+               break;
+           }
+       }
+      else
+       {
+         _scanLocation--;      // Just scan the zero.
+       }
+    }
+  if ([self scanUnsignedLongLong_: value
+                            radix: 16
+                          maximum: ULLONG_MAX
+                        gotDigits: NO])
+    {
+      return YES;
+    }
+  _scanLocation = saveScanLocation;
   return NO;
-#endif /* defined(LLONG_MAX) */
 }
 
 /**
@@ -1140,10 +1273,6 @@ typedef GSString	*ivars;
 {
   return NO;    // FIXME
 }
-- (BOOL) scanHexLongLong: (unsigned long long *)result
-{
-  return NO;    // FIXME
-}
 - (BOOL) scanInteger: (NSInteger *)value
 {
 #if GS_SIZEOF_VOIDP == GS_SIZEOF_INT
@@ -1221,12 +1350,9 @@ GSScanInt(unichar *buf, unsigned length, int *result)
 /* Table of binary powers of 10 represented by bits in a byte.
  * Used to convert decimal integer exponents to doubles.
  */
-// Testplant-MAL-2015-07-07: omitting main branch changes...
-#if 0
 static double powersOf10[] = {
   1.0e1, 1.0e2, 1.0e4, 1.0e8, 1.0e16, 1.0e32, 1.0e64, 1.0e128, 1.0e256
 };
-#endif
 
 /**
  * Scan in a double value in the standard locale ('.' as decimal point).<br />
@@ -1237,11 +1363,190 @@ static double powersOf10[] = {
 BOOL
 GSScanDouble(unichar *buf, unsigned length, double *result)
 {
-  // Testplant-MAL-2015-07-07: keeping testplant branch changes...
-  NSString *string = [[NSString alloc] initWithCharactersNoCopy:buf length:length freeWhenDone:NO];
-  NSScanner *scanner = [[NSScanner alloc] initWithString:string];
-  BOOL success = [scanner scanDouble:result];
-  RELEASE(scanner);
-  RELEASE(string);
-  return success;
+  unichar	c = 0;
+  char          mantissa[20];
+  const char    *ptr;
+  double        *d;
+  double        value;
+  double        e;
+  int	        exponent = 0;
+  BOOL	        negativeMantissa = NO;
+  BOOL		negativeExponent = NO;
+  unsigned	pos = 0;
+  int           mantissaLength;
+  int           dotPos = -1;
+  int           hi = 0;
+  int           lo = 0;
+
+  /* Skip whitespace */
+  while (pos < length && isspace((int)buf[pos]))
+    {
+      pos++;
+    }
+  if (pos >= length)
+    {
+      return NO;
+    }
+
+  /* Check for sign */
+  switch (buf[pos])
+    {
+      case '+':
+	pos++;
+	break;
+      case '-':
+	negativeMantissa = YES;
+	pos++;
+	break;
+    }
+  if (pos >= length)
+    {
+      return NO;
+    }
+
+  /* Scan the mantissa ... at most 18 digits and a decimal point.
+   */
+  for (mantissaLength = 0; pos < length && mantissaLength < 19; pos++)
+    {
+      mantissa[mantissaLength] = c = buf[pos];
+      if (!isdigit(c))
+        {
+          if ('.' != c || dotPos >= 0)
+            {
+              break;    // End of mantissa
+            }
+          dotPos = mantissaLength;
+        }
+      else
+	{
+          mantissaLength++;
+	}
+    }
+  if (0 == mantissaLength)
+    {
+      return NO;        // No mantissa ... not a double
+    }
+  if (mantissaLength > 18)
+    {
+      /* Mantissa too long ... ignore excess.
+       */
+      mantissaLength = 18;
+    }
+  if (dotPos < 0)
+    {
+      dotPos = mantissaLength;
+    }
+  dotPos -= mantissaLength;      // Exponent offset for decimal point
+
+  /* Convert mantissa characters to a double value
+   */
+  for (ptr = mantissa; mantissaLength > 9; mantissaLength -= 1)
+    {
+      c = *ptr;
+      ptr += 1;
+      hi = hi * 10 + (c - '0');
+    }
+  for (; mantissaLength > 0; mantissaLength -= 1)
+    {
+      c = *ptr;
+      ptr += 1;
+      lo = lo * 10 + (c - '0');
+    }
+  value = (1.0e9 * hi) + lo;
+
+  /* Scan the exponent (if any)
+   */
+  if (pos < length && ('E' == (c = buf[pos]) || 'e' == c))
+    {
+      if (++pos >= length)
+        {
+          return NO;    // Missing exponent
+        }
+      c = buf[pos];
+      if ('-' == c)
+        {
+          negativeExponent = YES;
+          if (++pos >= length)
+            {
+              return NO;    // Missing exponent
+            }
+          c = buf[pos];
+        }
+      else if ('+' == c)
+        {
+          if (++pos >= length)
+            {
+              return NO;    // Missing exponent
+            }
+          c = buf[pos];
+        }
+      while (isdigit(c))
+        {
+          exponent = exponent * 10 + (c - '0');
+          if (++pos >= length)
+            {
+              break;
+            }
+          c = buf[pos];
+        }
+    }
+
+  /* Add in the amount to shift the exponent depending on the position
+   * of the decimal point in the mantissa and check the adjusted sign
+   * of the exponent.
+   */
+  if (YES == negativeExponent)
+    {
+      exponent = dotPos - exponent;
+    }
+  else
+    {
+      exponent = dotPos + exponent;
+    }
+  if (exponent < 0)
+    {
+      negativeExponent = YES;
+      exponent = -exponent;
+    }
+  else
+    {
+      negativeExponent = NO;
+    }
+  if (exponent > 511)
+    {
+      return NO;        // Maximum exponent exceeded
+    }
+
+  /* Convert the exponent to a double then apply it to the value from
+   * the mantissa.
+   */
+  e = 1.0;
+  for (d = powersOf10; exponent != 0; exponent >>= 1, d += 1)
+    {
+      if (exponent & 1)
+        {
+          e *= *d;
+        }
+    }
+  if (YES == negativeExponent)
+    {
+      value /= e;
+    }
+  else
+    {
+      value *= e;
+    }
+
+  if (0 != result)
+    {
+      if (YES == negativeMantissa)
+        {
+          *result = -value;
+        }
+      else
+        {
+          *result = value;
+        }
+    }
+  return YES;
 }

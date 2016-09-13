@@ -93,7 +93,7 @@ enum
 typedef NSUInteger NSNetServicesError;
 
 enum {
-  NSNetServiceNoAutoRename = 1 << 0
+  NSNetServiceNoAutoRename          = 1 << 0
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
   ,NSNetServiceListenForConnections = 1 << 1
 #endif
