@@ -1975,9 +1975,6 @@ NSArray *GSObjCDirectSubclassesOfClass(Class cls)
 void *
 GSAutoreleasedBuffer(unsigned size)
 {
-#if GS_WITH_GC || __OBJC_GC__
-  return NSAllocateCollectable(size, NSScannedOption);
-#else
 #ifdef ALIGN
 #undef ALIGN
 #endif
@@ -2004,7 +2001,6 @@ GSAutoreleasedBuffer(unsigned size)
     size + offset, NSDefaultMallocZone());
   (*autorelease_imp)(autorelease_class, autorelease_sel, o);
   return ((void*)o) + instance_size + offset;
-#endif
 }
 
 
@@ -2070,33 +2066,6 @@ GSPrintf (FILE *fptr, NSString* format, ...)
 #   define	AREM(c, o) 
 # endif
 
-# if	GS_WITH_GC
-
-#include	<gc/gc.h>
-
-static BOOL
-GSIsFinalizable(Class c)
-{
-  static IMP	finalizeIMP = 0;
-
-  if (0 == finalizeIMP)
-    {
-      finalizeIMP = [NSObject instanceMethodForSelector: @selector(finalize)];
-    }
-  if (class_getMethodImplementation(c, @selector(finalize)) != finalizeIMP)
-    return YES;
-  return NO;
-}
-
-static void
-GSFinalize(void* object, void* data)
-{
-  [(id)object finalize];
-  AREM(object_getClass((id)object), (id)object);
-  object_setClass((id)object, (Class)(void*)0xdeadface);
-}
-
-# endif	/* GS_WITH_GC */
 #endif	/* defined(GNUSTEP_BASE_LIBRARY) */
 
 void
@@ -2112,37 +2081,10 @@ GSClassSwizzle(id instance, Class newClass)
        * 'small object', in which case the class is unchanged and we need
        * to allow for that.
        */
-# if	GS_WITH_GC
-      /* We only do allocation counting for objects that can be
-       * finalised - for other objects we have no way of decrementing
-       * the count when the object is collected.
-       */
-      if (GSIsFinalizable(oldClass))
-	{
-	  /* Already finalizable, so we just need to do any allocation
-	   * accounting.
-	   */
-          AREM(oldClass, instance);
-	}
-      object_setClass(instance, newClass);
-      newClass = object_getClass(instance);
-      if (GSIsFinalizable(newClass))
-	{
-	  /* New class is finalizable, so we must register the instance
-	   * for finalisation and do allocation acounting for it.
-	   */
-	  AADD(newClass, instance);
-          if (NO == GSIsFinalizable(oldClass))
-            {
-	  GC_REGISTER_FINALIZER (instance, GSFinalize, NULL, NULL, NULL);
-	}
-	}
-# else
       AREM(oldClass, instance);
       object_setClass(instance, newClass);
       newClass = object_getClass(instance);
       AADD(newClass, instance);
-# endif	/* GS_WITH_GC */
     }
 }
 

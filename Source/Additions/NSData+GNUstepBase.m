@@ -35,7 +35,7 @@
 #include <zlib.h>
 #endif
 
-#if	defined(__MINGW32__)
+#if	defined(_WIN32)
 #include <wincrypt.h>
 #else
 #include <fcntl.h>
@@ -44,7 +44,7 @@
 static int
 randombytes(uint8_t *buf, unsigned len)
 {
-#if	defined(__MINGW32__)
+#if	defined(_WIN32)
 
   HCRYPTPROV hProvider = 0;
 
@@ -228,7 +228,7 @@ randombytes(uint8_t *buf, unsigned len)
   if (0 != length)
     {
       *length = dpos;
-}
+    }
   return dst;
 }
 

@@ -97,6 +97,11 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 
 #define UNICODE_ENC ((unicode_enc) ? unicode_enc : internal_unicode_enc())
 
+
+/* Prototypes... */
+NSStringEncoding GSPrivateICUCStringEncoding();
+
+
 static const char *unicode_enc = NULL;
 
 /* Check to see what type of internal unicode format the library supports */
@@ -143,6 +148,7 @@ static GSLazyLock *local_lock = nil;
 typedef	unsigned char	unc;
 static NSStringEncoding	defEnc = GSUndefinedEncoding;
 static NSStringEncoding	natEnc = GSUndefinedEncoding;
+static NSStringEncoding	icuEnc = GSUndefinedEncoding;
 static NSStringEncoding *_availableEncodings = 0;
 
 struct _strenc_ {
@@ -776,62 +782,6 @@ GSUnicode(const unichar *chars, unsigned length,
   return i;
 }
 
-#if	GS_WITH_GC
-
-#define	GROW() \
-if (dst == 0) \
-  { \
-    /* \
-     * Data is just being discarded anyway, so we can \
-     * reset the offset into the local buffer on the \
-     * stack and pretend the buffer has grown. \
-     */ \
-    ptr = buf - dpos; \
-    bsize = dpos + BUFSIZ; \
-    if (extra != 0) \
-      { \
-	bsize--; \
-      } \
-  } \
-else if (zone == 0) \
-  { \
-    result = NO; /* No buffer growth possible ... fail. */ \
-    goto done; \
-  } \
-else \
-  { \
-    unsigned	grow = slen; \
-\
-    if (grow < bsize + BUFSIZ) \
-      { \
-	grow = bsize + BUFSIZ; \
-      } \
-    grow *= sizeof(unichar); \
-\
-    if (ptr == buf || ptr == *dst) \
-      { \
-	unichar	*tmp; \
-\
-	tmp = NSAllocateCollectable(grow + extra, 0); \
-	if (tmp != 0) \
-	  { \
-	    memcpy(tmp, ptr, bsize * sizeof(unichar)); \
-	  } \
-	ptr = tmp; \
-      } \
-    else \
-      { \
-	ptr = NSReallocateCollectable(ptr, grow + extra, 0); \
-      } \
-    if (ptr == 0) \
-      { \
-	return NO;	/* Not enough memory */ \
-      } \
-    bsize = grow / sizeof(unichar); \
-  }
-
-#else	/* GS_WITH_GC */
-
 #define	GROW() \
 if (dst == 0) \
   { \
@@ -883,8 +833,6 @@ else \
       } \
     bsize = grow / sizeof(unichar); \
   }
-
-#endif	/* GS_WITH_GC */
 
 /**
  * Function to convert from 8-bit data to 16-bit unicode characters.
@@ -1111,21 +1059,15 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    unsigned	grow = (dpos + slen) * sizeof(unichar);
 		    unichar	*tmp;
 
-#if	GS_WITH_GC
-		    tmp = NSAllocateCollectable(grow + extra, 0);
-#else
 		    tmp = NSZoneMalloc(zone, grow + extra);
-#endif
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
 		      }
-#if	!GS_WITH_GC
 		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);
 		      }
-#endif
 		    ptr = tmp;
 		    if (ptr == 0)
 		      {
@@ -1175,21 +1117,15 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    unsigned	grow = (dpos + slen) * sizeof(unichar);
 		    unichar	*tmp;
 
-#if	GS_WITH_GC
-		    tmp = NSAllocateCollectable(grow + extra, 0);
-#else
 		    tmp = NSZoneMalloc(zone, grow + extra);
-#endif
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
 		      }
-#if	!GS_WITH_GC
 		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);
 		      }
-#endif
 		    ptr = tmp;
 		    if (ptr == 0)
 		      {
@@ -1264,21 +1200,15 @@ tables:
 		    unsigned	grow = (dpos + slen) * sizeof(unichar);
 		    unichar	*tmp;
 
-#if	GS_WITH_GC
-		    tmp = NSAllocateCollectable(grow + extra, 0);
-#else
 		    tmp = NSZoneMalloc(zone, grow + extra);
-#endif
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
 		      }
-#if	!GS_WITH_GC
 		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);
 		      }
-#endif
 		    ptr = tmp;
 		    if (ptr == 0)
 		      {
@@ -1436,17 +1366,12 @@ done:
 	  /*
 	   * Temporary string was requested ... make one.
 	   */
-#if	GS_WITH_GC
-	  r = NSAllocateCollectable(bytes, 0);
-	  memcpy(r, ptr, bytes);
-#else
 	  r = GSAutoreleasedBuffer(bytes);
 	  memcpy(r, ptr, bytes);
 	  if (ptr != buf && ptr != *dst)
 	    {
 	      NSZoneFree(zone, ptr);
 	    }
-#endif
 	  ptr = r;
 	  *dst = ptr;
 	}
@@ -1462,11 +1387,7 @@ done:
 	    {
 	      unichar	*tmp;
 
-#if	GS_WITH_GC
-	      tmp = NSAllocateCollectable(bytes, 0);
-#else
 	      tmp = NSZoneMalloc(zone, bytes);
-#endif
 	      if (tmp != 0)
 		{
 		  memcpy(tmp, ptr, bytes);
@@ -1475,11 +1396,7 @@ done:
 	    }
 	  else
 	    {
-#if	GS_WITH_GC
-	      ptr = NSReallocateCollectable(ptr, bytes, 0);
-#else
 	      ptr = NSZoneRealloc(zone, ptr, bytes);
-#endif
 	    }
 	  *dst = ptr;
 	}
@@ -1493,12 +1410,10 @@ done:
 	  *dst = ptr;
 	}
     }
-#if	!GS_WITH_GC
   else if (ptr != buf && dst != 0 && ptr != *dst)
     {
       NSZoneFree(zone, ptr);
     }
-#endif
 
   if (dst)
     NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
@@ -1507,62 +1422,6 @@ done:
 }
 
 #undef	GROW
-
-
-#if	GS_WITH_GC 
-
-#define	GROW() \
-if (dst == 0) \
-  { \
-    /* \
-     * Data is just being discarded anyway, so we can \
-     * reset the offset into the local buffer on the \
-     * stack and pretend the buffer has grown. \
-     */ \
-    ptr = buf - dpos; \
-    bsize = dpos + BUFSIZ; \
-    if (extra != 0) \
-      { \
-	bsize--; \
-      } \
-  } \
-else if (zone == 0) \
-  { \
-    result = NO; /* No buffer growth possible ... fail. */ \
-    goto done; \
-  } \
-else \
-  { \
-    unsigned	grow = slen; \
-\
-    if (grow < bsize + BUFSIZ) \
-      { \
-	grow = bsize + BUFSIZ; \
-      } \
-\
-    if (ptr == buf || ptr == *dst) \
-      { \
-	unsigned char	*tmp; \
-\
-	tmp = NSAllocateCollectable(grow + extra, 0); \
-	if (tmp != 0) \
-	  { \
-	    memcpy(tmp, ptr, bsize); \
-	  } \
-	ptr = tmp; \
-      } \
-    else \
-      { \
-	ptr = NSReallocateCollectable(ptr, grow + extra, 0); \
-      } \
-    if (ptr == 0) \
-      { \
-	return NO;	/* Not enough memory */ \
-      } \
-    bsize = grow; \
-  }
-
-#else	/* GS_WITH_GC */
 
 #define	GROW() \
 if (dst == 0) \
@@ -1614,8 +1473,6 @@ else \
       } \
     bsize = grow; \
   }
-
-#endif	/* GS_WITH_GC */
 
 static inline int chop(unichar c, _ucc_ *table, int hi)
 {
@@ -2067,15 +1924,11 @@ bases:
 		  {
 		    uint8_t	*tmp;
 
-#if	GS_WITH_GC
-		    tmp = NSAllocateCollectable(slen + extra, 0);
-#else
 		    tmp = NSZoneMalloc(zone, slen + extra);
 		    if (ptr != buf && ptr != *dst)
 		      {
 			NSZoneFree(zone, ptr);
 		      }
-#endif
 		    ptr = tmp;
 		    if (ptr == 0)
 		      {
@@ -2432,17 +2285,12 @@ iconv_start:
 	  /*
 	   * Temporary string was requested ... make one.
 	   */
-#if	GS_WITH_GC
-	  r = NSAllocateCollectable(bytes, 0);
-	  memcpy(r, ptr, bytes);
-#else
 	  r = GSAutoreleasedBuffer(bytes);
 	  memcpy(r, ptr, bytes);
 	  if (ptr != buf && ptr != *dst)
 	    {
 	      NSZoneFree(zone, ptr);
 	    }
-#endif
 	  ptr = r;
 	  *dst = ptr;
 	}
@@ -2458,11 +2306,7 @@ iconv_start:
 	    {
 	      unsigned char	*tmp;
 
-#if	GS_WITH_GC
-	      tmp = NSAllocateCollectable(bytes, 0);
-#else
 	      tmp = NSZoneMalloc(zone, bytes);
-#endif
 	      if (tmp != 0)
 		{
 		  memcpy(tmp, ptr, bytes);
@@ -2471,11 +2315,7 @@ iconv_start:
 	    }
 	  else
 	    {
-#if	GS_WITH_GC
-	      ptr = NSReallocateCollectable(ptr, bytes, 0);
-#else
 	      ptr = NSZoneRealloc(zone, ptr, bytes);
-#endif
 	    }
 	  *dst = ptr;
 	}
@@ -2489,12 +2329,10 @@ iconv_start:
 	  *dst = ptr;
 	}
     }
-#if	!GS_WITH_GC
   else if (ptr != buf && dst != 0 && ptr != *dst)
     {
       NSZoneFree(zone, ptr);
     }
-#endif
 
   if (dst)
     NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
@@ -2544,14 +2382,133 @@ GSPrivateAvailableEncodings()
 }
 
 NSStringEncoding
+GSPrivateCStringEncoding(const char *encoding)
+{
+  NSStringEncoding  enc = GSUndefinedEncoding;
+
+  if (0 != encoding)
+    {
+      GSSetupEncodingTable();
+
+      if (strcmp(encoding, "ANSI_X3.4-1968") == 0 /* glibc */
+        || strcmp(encoding, "ISO_646.IRV:1983") == 0 /* glibc */
+        || strcmp(encoding, "646") == 0 /* Solaris NetBSD */)
+        enc = NSISOLatin1StringEncoding;
+      else if (strcmp(encoding, "EUC-JP") == 0 /* glibc */
+        /* HP-UX IRIX OSF/1 Solaris NetBSD */
+        || strcmp(encoding, "eucJP") == 0
+        || strcmp(encoding, "IBM-eucJP") == 0 /* AIX */)
+        enc = NSJapaneseEUCStringEncoding;
+      else if (strcmp(encoding, "UTF-8") == 0 /* glibc AIX OSF/1 Solaris */
+        || strcmp(encoding, "utf8") == 0 /* HP-UX */)
+        enc = NSUTF8StringEncoding;
+      else if (strcmp(encoding, "ISO-8859-1") == 0 /* glibc */
+        /* AIX IRIX OSF/1 Solaris NetBSD */
+        || strcmp(encoding, "ISO8859-1") == 0
+        || strcmp(encoding, "iso88591") == 0 /* HP-UX */)
+        enc = NSISOLatin1StringEncoding;
+      else if (strcmp(encoding, "IBM-932") == 0 /* AIX */
+        || strcmp(encoding, "SJIS") == 0 /* HP-UX OSF/1 NetBSD */
+        || strcmp(encoding, "PCK") == 0 /* Solaris */)
+        enc = NSShiftJISStringEncoding;
+      else if (strcmp(encoding, "ISO-8859-2") == 0 /* glibc */
+        /* AIX IRIX OSF/1 Solaris NetBSD */
+        || strcmp(encoding, "ISO8859-2") == 0
+        || strcmp(encoding, "iso88592") == 0 /* HP-UX */)
+        enc = NSISOLatin2StringEncoding;
+      else if (strcmp(encoding, "CP1251") == 0 /* glibc */
+        || strcmp(encoding, "ansi-1251") == 0 /* Solaris */)
+        enc = NSWindowsCP1251StringEncoding;
+      else if (strcmp(encoding, "CP1252") == 0 /*  */
+        || strcmp(encoding, "IBM-1252") == 0 /* AIX */)
+        enc = NSWindowsCP1252StringEncoding;
+      else if (strcmp(encoding, "ISO-8859-5") == 0 /* glibc */
+        /* AIX IRIX OSF/1 Solaris NetBSD */
+        || strcmp(encoding, "ISO8859-5") == 0
+        || strcmp(encoding, "iso88595") == 0 /* HP-UX */)
+        enc = NSISOCyrillicStringEncoding;
+      else if (strcmp(encoding, "KOI8-R") == 0 /* glibc */
+        || strcmp(encoding, "koi8-r") == 0 /* Solaris */)
+        enc = NSKOI8RStringEncoding;
+      else if (strcmp(encoding, "ISO-8859-3") == 0 /* glibc */
+        || strcmp(encoding, "ISO8859-3") == 0 /* Solaris */)
+        enc = NSISOLatin3StringEncoding;
+      else if (strcmp(encoding, "ISO-8859-4") == 0 /*  */
+        || strcmp(encoding, "ISO8859-4") == 0 /* OSF/1 Solaris NetBSD */)
+        enc = NSISOLatin4StringEncoding;
+      else if (strcmp(encoding, "ISO-8859-6") == 0 /* glibc */
+        || strcmp(encoding, "ISO8859-6") == 0 /* AIX Solaris */
+        || strcmp(encoding, "iso88596") == 0 /* HP-UX */)
+        enc = NSISOArabicStringEncoding;
+      else if (strcmp(encoding, "ISO-8859-7") == 0 /* glibc */
+        || strcmp(encoding, "ISO8859-7") == 0 /* AIX IRIX OSF/1 Solaris */
+        || strcmp(encoding, "iso88597") == 0 /* HP-UX */)
+        enc = NSISOGreekStringEncoding;
+      else if (strcmp(encoding, "ISO-8859-8") == 0 /* glibc */
+        || strcmp(encoding, "ISO8859-8") == 0 /* AIX OSF/1 Solaris */
+        || strcmp(encoding, "iso88598") == 0 /* HP-UX */)
+        enc = NSISOHebrewStringEncoding;
+      else if (strcmp(encoding, "ISO-8859-9") == 0 /* glibc */
+        || strcmp(encoding, "ISO8859-9") == 0 /* AIX IRIX OSF/1 Solaris */
+        || strcmp(encoding, "iso88599") == 0 /* HP-UX */)
+        enc = NSISOLatin5StringEncoding;
+      else if (strcmp(encoding, "ISO-8859-10") == 0 /*  */
+        || strcmp(encoding, "ISO8859-10") == 0 /*  */)
+        enc = NSISOLatin6StringEncoding;
+      else if (strcmp(encoding, "TIS-620") == 0 /* glibc AIX */
+        || strcmp(encoding, "tis620") == 0 /* HP-UX */
+        || strcmp(encoding, "TIS620.2533") == 0 /* Solaris */
+        || strcmp(encoding, "TACTIS") == 0 /* OSF/1 */)
+        enc = NSISOThaiStringEncoding;
+      else if (strcmp(encoding, "ISO-8859-13") == 0 /* glibc */
+        || strcmp(encoding, "ISO8859-13") == 0 /*  */
+        || strcmp(encoding, "IBM-921") == 0 /* AIX */)
+        enc = NSISOLatin7StringEncoding;
+      else if (strcmp(encoding, "ISO-8859-14") == 0 /* glibc */
+        || strcmp(encoding, "ISO8859-14") == 0 /*  */)
+        enc = NSISOLatin8StringEncoding;
+      else if (strcmp(encoding, "ISO-8859-15") == 0 /* glibc */
+        /* AIX OSF/1 Solaris NetBSD */
+        || strcmp(encoding, "ISO8859-15") == 0
+        || strcmp(encoding, "iso885915") == 0 /* HP-UX */)
+        enc = NSISOLatin9StringEncoding;
+      else if (strcmp(encoding, "GB2312") == 0 /* glibc */
+        || strcmp(encoding, "gb2312") == 0 /* Solaris */
+        || strcmp(encoding, "eucCN") == 0 /* IRIX NetBSD */
+        || strcmp(encoding, "IBM-eucCN") == 0 /* AIX */
+        || strcmp(encoding, "hp15CN") == 0 /* HP-UX */)
+        enc = NSGB2312StringEncoding;
+      else if (strcmp(encoding, "BIG5") == 0 /* glibc Solaris NetBSD */
+        || strcmp(encoding, "big5") == 0 /* AIX HP-UX OSF/1 */)
+        enc = NSBIG5StringEncoding;
+      else if (strcmp(encoding, "EUC-KR") == 0 /* glibc */
+        || strcmp(encoding, "eucKR") == 0 /* HP-UX IRIX OSF/1 NetBSD */
+        || strcmp(encoding, "IBM-eucKR") == 0 /* AIX */
+        || strcmp(encoding, "5601") == 0 /* Solaris */)
+        enc = NSKoreanEUCStringEncoding;
+    }
+
+  if (enc == GSUndefinedEncoding)
+    {
+      enc = NSISOLatin1StringEncoding;
+    }
+  else if (GSPrivateIsEncodingSupported(enc) == NO)
+    {
+      fprintf(stderr, "WARNING: %s - encoding not implemented as "
+              "c string encoding.\n", encoding);
+      fprintf(stderr, "  NSISOLatin1StringEncoding used instead.\n");
+      enc = NSISOLatin1StringEncoding;
+    }
+
+  return enc;
+}
+
+NSStringEncoding
 GSPrivateDefaultCStringEncoding()
 {
   if (defEnc == GSUndefinedEncoding)
     {
       const char	*encoding = 0;
-#if HAVE_LANGINFO_CODESET
-      char		encbuf[BUFSIZ];
-#endif
       unsigned int	count;
 
       GSSetupEncodingTable();
@@ -2562,150 +2519,6 @@ GSPrivateDefaultCStringEncoding()
 	  [local_lock unlock];
 	  return defEnc;
 	}
-
-      if (natEnc == GSUndefinedEncoding)
-	{
-	  /* Encoding not set */
-#if HAVE_UNICODE_UCNV_H
-          
-          const char *defaultName;
-          UErrorCode err = U_ZERO_ERROR;
-
-          defaultName = ucnv_getDefaultName ();
-          encoding = ucnv_getStandardName (defaultName, "MIME", &err);
-          if (0 == encoding)
-            {
-              encoding = ucnv_getStandardName (defaultName, "IANA", &err);
-            }
-#endif
-#if HAVE_LANGINFO_CODESET
-          if (0 == encoding)
-            {
-              char  *old;
-	  /* Take it from the system locale information.  */
-          [gnustep_global_lock lock];
-              /* Initialise locale system by setting current locale from
-               * environment and then resetting it.  Must be done before
-               * any call to nl_langinfo()
-               */
-              if (0 != (old = setlocale(LC_CTYPE, "")))
-                {
-                  setlocale(LC_CTYPE, old);
-                }
-          strncpy(encbuf, nl_langinfo(CODESET), sizeof(encbuf)-1);
-          encbuf[sizeof(encbuf)-1] = '\0';
-          [gnustep_global_lock unlock];
-          encoding = encbuf;
-            }
-#endif
-
-          if (0 != encoding)
-            {
-	  /*
-	   * First handle the fallback response from nl_langinfo() ...
-	   * if we are getting the default value we can't assume that
-	   * the user has set anything up at all, so we must use the
-	   * OpenStep/GNUstep default encoding ... latin1, even though
-	   * the nl_langinfo() stuff would say default is ascii.
-	   */
-	  if (strcmp(encoding, "ANSI_X3.4-1968") == 0 /* glibc */
-	    || strcmp(encoding, "ISO_646.IRV:1983") == 0 /* glibc */
-	    || strcmp(encoding, "646") == 0 /* Solaris NetBSD */)
-	    natEnc = NSISOLatin1StringEncoding;
-	  else if (strcmp(encoding, "EUC-JP") == 0 /* glibc */
-	    /* HP-UX IRIX OSF/1 Solaris NetBSD */
-	    || strcmp(encoding, "eucJP") == 0
-	    || strcmp(encoding, "IBM-eucJP") == 0 /* AIX */)
-	    natEnc = NSJapaneseEUCStringEncoding;
-	  else if (strcmp(encoding, "UTF-8") == 0 /* glibc AIX OSF/1 Solaris */
-	    || strcmp(encoding, "utf8") == 0 /* HP-UX */)
-	    natEnc = NSUTF8StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-1") == 0 /* glibc */
-	    /* AIX IRIX OSF/1 Solaris NetBSD */
-	    || strcmp(encoding, "ISO8859-1") == 0
-	    || strcmp(encoding, "iso88591") == 0 /* HP-UX */)
-	    natEnc = NSISOLatin1StringEncoding;
-	  else if (strcmp(encoding, "IBM-932") == 0 /* AIX */
-	    || strcmp(encoding, "SJIS") == 0 /* HP-UX OSF/1 NetBSD */
-	    || strcmp(encoding, "PCK") == 0 /* Solaris */)
-	    natEnc = NSShiftJISStringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-2") == 0 /* glibc */
-	    /* AIX IRIX OSF/1 Solaris NetBSD */
-	    || strcmp(encoding, "ISO8859-2") == 0
-	    || strcmp(encoding, "iso88592") == 0 /* HP-UX */)
-	    natEnc = NSISOLatin2StringEncoding;
-	  else if (strcmp(encoding, "CP1251") == 0 /* glibc */
-	    || strcmp(encoding, "ansi-1251") == 0 /* Solaris */)
-	    natEnc = NSWindowsCP1251StringEncoding;
-	  else if (strcmp(encoding, "CP1252") == 0 /*  */
-	    || strcmp(encoding, "IBM-1252") == 0 /* AIX */)
-	    natEnc = NSWindowsCP1252StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-5") == 0 /* glibc */
-	    /* AIX IRIX OSF/1 Solaris NetBSD */
-	    || strcmp(encoding, "ISO8859-5") == 0
-	    || strcmp(encoding, "iso88595") == 0 /* HP-UX */)
-	    natEnc = NSISOCyrillicStringEncoding;
-	  else if (strcmp(encoding, "KOI8-R") == 0 /* glibc */
-	    || strcmp(encoding, "koi8-r") == 0 /* Solaris */)
-	    natEnc = NSKOI8RStringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-3") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-3") == 0 /* Solaris */)
-	    natEnc = NSISOLatin3StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-4") == 0 /*  */
-	    || strcmp(encoding, "ISO8859-4") == 0 /* OSF/1 Solaris NetBSD */)
-	    natEnc = NSISOLatin4StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-6") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-6") == 0 /* AIX Solaris */
-	    || strcmp(encoding, "iso88596") == 0 /* HP-UX */)
-	    natEnc = NSISOArabicStringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-7") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-7") == 0 /* AIX IRIX OSF/1 Solaris */
-	    || strcmp(encoding, "iso88597") == 0 /* HP-UX */)
-	    natEnc = NSISOGreekStringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-8") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-8") == 0 /* AIX OSF/1 Solaris */
-	    || strcmp(encoding, "iso88598") == 0 /* HP-UX */)
-	    natEnc = NSISOHebrewStringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-9") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-9") == 0 /* AIX IRIX OSF/1 Solaris */
-	    || strcmp(encoding, "iso88599") == 0 /* HP-UX */)
-	    natEnc = NSISOLatin5StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-10") == 0 /*  */
-	    || strcmp(encoding, "ISO8859-10") == 0 /*  */)
-	    natEnc = NSISOLatin6StringEncoding;
-	  else if (strcmp(encoding, "TIS-620") == 0 /* glibc AIX */
-	    || strcmp(encoding, "tis620") == 0 /* HP-UX */
-	    || strcmp(encoding, "TIS620.2533") == 0 /* Solaris */
-	    || strcmp(encoding, "TACTIS") == 0 /* OSF/1 */)
-	    natEnc = NSISOThaiStringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-13") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-13") == 0 /*  */
-	    || strcmp(encoding, "IBM-921") == 0 /* AIX */)
-	    natEnc = NSISOLatin7StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-14") == 0 /* glibc */
-	    || strcmp(encoding, "ISO8859-14") == 0 /*  */)
-	    natEnc = NSISOLatin8StringEncoding;
-	  else if (strcmp(encoding, "ISO-8859-15") == 0 /* glibc */
-	    /* AIX OSF/1 Solaris NetBSD */
-	    || strcmp(encoding, "ISO8859-15") == 0
-	    || strcmp(encoding, "iso885915") == 0 /* HP-UX */)
-	    natEnc = NSISOLatin9StringEncoding;
-	  else if (strcmp(encoding, "GB2312") == 0 /* glibc */
-	    || strcmp(encoding, "gb2312") == 0 /* Solaris */
-	    || strcmp(encoding, "eucCN") == 0 /* IRIX NetBSD */
-	    || strcmp(encoding, "IBM-eucCN") == 0 /* AIX */
-	    || strcmp(encoding, "hp15CN") == 0 /* HP-UX */)
-	    natEnc = NSGB2312StringEncoding;
-	  else if (strcmp(encoding, "BIG5") == 0 /* glibc Solaris NetBSD */
-	    || strcmp(encoding, "big5") == 0 /* AIX HP-UX OSF/1 */)
-	    natEnc = NSBIG5StringEncoding;
-	  else if (strcmp(encoding, "EUC-KR") == 0 /* glibc */
-	    || strcmp(encoding, "eucKR") == 0 /* HP-UX IRIX OSF/1 NetBSD */
-	    || strcmp(encoding, "IBM-eucKR") == 0 /* AIX */
-	    || strcmp(encoding, "5601") == 0 /* Solaris */)
-	    natEnc = NSKoreanEUCStringEncoding;
-	}
-        }
 
       encoding = getenv("GNUSTEP_STRING_ENCODING");
       if (encoding != 0)
@@ -2732,7 +2545,7 @@ GSPrivateDefaultCStringEncoding()
 	}
       if (defEnc == GSUndefinedEncoding)
 	{
-	  defEnc = natEnc;
+	  defEnc = GSPrivateICUCStringEncoding();
 	}
       if (defEnc == GSUndefinedEncoding)
 	{
@@ -2745,11 +2558,6 @@ GSPrivateDefaultCStringEncoding()
 	  fprintf(stderr,
 		  "  NSISOLatin1StringEncoding set as default.\n");
 	  defEnc = NSISOLatin1StringEncoding;
-	}
-
-      if (natEnc == GSUndefinedEncoding)
-        {
-	  natEnc = defEnc;
 	}
 
       [local_lock unlock];
@@ -2781,15 +2589,63 @@ GSPrivateIsByteEncoding(NSStringEncoding encoding)
   return encInfo->eightBit;
 }
 
+/* Returns the C-String encoding as used by native locale functions.
+ * We can use this to convert strings produced by those functions to
+ * NSString objects.
+ */
 NSStringEncoding
 GSPrivateNativeCStringEncoding()
 {
   if (natEnc == GSUndefinedEncoding)
     {
-      /* GSPrivateDefaultCStringEncoding() will actually set the encoding.
+      char	encbuf[BUFSIZ];
+#if HAVE_LANGINFO_CODESET
+      char      *old;
+
+      /* Take it from the system locale information.  */
+      [gnustep_global_lock lock];
+      /* Initialise locale system by setting current locale from
+       * environment and then resetting it.  Must be done before
+       * any call to nl_langinfo()
        */
-      GSPrivateDefaultCStringEncoding();
+      if (0 != (old = setlocale(LC_CTYPE, "")))
+        {
+          setlocale(LC_CTYPE, old);
+        }
+      strncpy(encbuf, nl_langinfo(CODESET), sizeof(encbuf)-1);
+      encbuf[sizeof(encbuf)-1] = '\0';
+      [gnustep_global_lock unlock];
+#else
+      encbuf[0] = '\0';
+#endif
+      natEnc = GSPrivateCStringEncoding(encbuf);
     }
   return natEnc;
+}
+
+/* Returns the C-String encoding as used by ICU library functions.
+ * We can use this to convert strings produced by those functions
+ * to NSString objects.
+ */
+NSStringEncoding
+GSPrivateICUCStringEncoding()
+{
+  if (icuEnc == GSUndefinedEncoding)
+    {
+      const char        *encoding = 0;
+#if HAVE_UNICODE_UCNV_H
+      const char *defaultName;
+      UErrorCode err = U_ZERO_ERROR;
+
+      defaultName = ucnv_getDefaultName ();
+      encoding = ucnv_getStandardName (defaultName, "MIME", &err);
+      if (0 == encoding)
+        {
+          encoding = ucnv_getStandardName (defaultName, "IANA", &err);
+        }
+#endif
+      icuEnc = GSPrivateCStringEncoding(encoding);
+    }
+  return icuEnc;
 }
 

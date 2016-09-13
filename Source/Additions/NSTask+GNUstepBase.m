@@ -36,7 +36,7 @@
 {
   static NSSet  *executable = nil;
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
   if (nil == executable)
     {
       NSMutableSet      *m;
@@ -77,7 +77,7 @@
 static	NSString*
 executablePath(NSFileManager *mgr, NSString *path)
 {
-#if defined(__MINGW__)
+#if defined(_WIN32)
   NSString	*tmp = [path pathExtension];
 
   if ([tmp length] == 0)
@@ -94,12 +94,12 @@ executablePath(NSFileManager *mgr, NSString *path)
        * extensions to find an executable path.
        */
       do
-    {
+        {
           tmp = [path stringByAppendingPathExtension: ext];
-  if ([mgr isExecutableFileAtPath: tmp])
-    {
-      return tmp;
-    }
+          if ([mgr isExecutableFileAtPath: tmp])
+            {
+              return tmp;
+            }
         }
       while (nil != (ext = [e nextObject]));
     }
@@ -108,7 +108,7 @@ executablePath(NSFileManager *mgr, NSString *path)
       if ([mgr isExecutableFileAtPath: path])
         {
           return path;
-    }
+        }
     }
 #else
   if ([mgr isExecutableFileAtPath: path])
@@ -159,7 +159,7 @@ executablePath(NSFileManager *mgr, NSString *path)
 
   env = [[NSProcessInfo processInfo] environment];
   pathlist = [env objectForKey:@"PATH"];
-#if defined(__MINGW__)
+#if defined(_WIN32)
 /* Windows 2000 and perhaps others have "Path" not "PATH" */
   if (pathlist == nil)
     {

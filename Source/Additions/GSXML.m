@@ -2078,9 +2078,15 @@ static NSString	*endMarker = @"At end of incremental parse";
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
 		 withData: (NSData*)data
 {
-  if (data == nil || [data isKindOfClass: [NSData class]] == NO)
+  if (nil == data)
     {
-      NSLog(@"Bad NSData passed to initialize GSXMLParser");
+      NSLog(@"Nil NSData passed to initialize GSXMLParser");
+      DESTROY(self);
+      return nil;
+    }
+  if ([data isKindOfClass: [NSData class]] == NO)
+    {
+      NSLog(@"Non NSData passed to initialize GSXMLParser; %@", data);
       DESTROY(self);
       return nil;
     }
@@ -5454,14 +5460,15 @@ static void indentation(unsigned level, NSMutableString *str)
   return YES;
 }
 
-- (void) setDebug: (BOOL)flag
+- (int) setDebug: (int)flag
 {
 #ifdef GNUSTEP
   if ([handle respondsToSelector: _cmd] == YES)
     {
-      [(id)handle setDebug: flag];
+      return [(id)handle setDebug: flag];
     }
 #endif
+  return NO;
 }
 
 - (void) setCompact: (BOOL)flag
