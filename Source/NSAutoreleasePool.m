@@ -30,7 +30,6 @@
 #define	EXPOSE_NSAutoreleasePool_IVARS	1
 #define	EXPOSE_NSThread_IVARS	1
 #import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSGarbageCollector.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSThread.h"
 
@@ -42,183 +41,8 @@
 #  endif
 #endif
 
-#if GS_WITH_GC || __OBJC_GC__
-
-#if __OBJC_GC__
-@interface GSAutoreleasePool : NSAutoreleasePool @end
-#endif
-
-@implementation NSAutoreleasePool
-
-static NSAutoreleasePool	*pool = nil;
-
-#if GS_WITH_GC
-+ (void) initialize
-{
-  pool = NSAllocateObject(self, 0, NSDefaultMallocZone());
-  return;
-}
-
-+ (id) allocWithZone: (NSZone*)zone
-{
-  return pool;
-}
-
-+ (id) new
-{
-  return pool;
-}
-#endif
-#ifdef __OBJC_GC__ 
-
-static Class PoolClass;
-
-+ (void) initialize
-{
-  if ([NSGarbageCollector defaultCollector])
-    {
-      pool = NSAllocateObject(self, 0, NSDefaultMallocZone());
-    }
-  else
-    {
-      PoolClass = [GSAutoreleasePool class];
-    }
-  return;
-}
-
-+ (id) allocWithZone: (NSZone*)zone
-{
-  if (nil == pool)
-    {
-      return NSAllocateObject(PoolClass, 0, 0);
-    }
-  return pool;
-}
-
-+ (id) new
-{
-  if (nil == pool)
-    {
-      return [NSAllocateObject(PoolClass, 0, 0) init];
-    }
-  return pool;
-}
-#endif
-
-- (id) init
-{
-  return self;
-}
-
-- (unsigned) autoreleaseCount
-{
-  return 0;
-}
-
-- (unsigned) autoreleaseCountForObject: (id)anObject
-{
-  return 0;
-}
-
-+ (unsigned) autoreleaseCountForObject: (id)anObject
-{
-  return 0;
-}
-
-+ (id) currentPool
-{
-  return pool;
-}
-
-+ (void) addObject: (id)anObj
-{
-  return;
-}
-
-- (void) addObject: (id)anObj
-{
-  return;
-}
-
-- (void) drain
-{
-  static NSGarbageCollector	*collector = nil;
-  static SEL			sel;
-  static IMP			imp;
-
-  if (collector == nil)
-    {
-      collector = [NSGarbageCollector defaultCollector];
-      sel = @selector(collectIfNeeded);
-      imp = [collector methodForSelector: sel];
-    }
-  (*imp)(collector, sel);
-}
-
-- (id) retain
-{
-  [NSException raise: NSGenericException
-	       format: @"Don't call `-retain' on a NSAutoreleasePool"];
-  return self;
-}
-
-- (oneway void) release
-{
-  return;
-}
-
-- (void) dealloc
-{
-  [NSException raise: NSGenericException
-    format: @"dealloc should not be called in garbage collected mode"];
-  GSNOSUPERDEALLOC;
-  return;
-}
-
-- (void) emptyPool
-{
-  return;
-}
-
-- (id) autorelease
-{
-  [NSException raise: NSGenericException
-	       format: @"Don't call `-autorelease' on a NSAutoreleasePool"];
-  return self;
-}
-
-+ (void) _endThread: (NSThread*)thread
-{
-  return;
-}
-
-+ (void) enableRelease: (BOOL)enable
-{
-  return;
-}
-
-+ (void) freeCache
-{
-  return;
-}
-
-+ (void) setPoolCountThreshhold: (unsigned)c
-{
-  return;
-}
-
-+ (void) setPoolNumberThreshhold: (unsigned)c
-{
-  return;
-}
-
-@end
-
-#endif
 
 
-
-#if !GS_WITH_GC
 
 /* When this is `NO', autoreleased objects are never actually recorded
    in an NSAutoreleasePool, and are not sent a `release' message.
@@ -226,12 +50,12 @@ static Class PoolClass;
 static BOOL autorelease_enabled = YES;
 
 /* When the _released_count of a pool gets over this value, we raise
-   an exception.  This can be adjusted with +setPoolCountThreshhold */
-static unsigned pool_count_warning_threshhold = UINT_MAX;
+   an exception.  This can be adjusted with +setPoolCountThreshold */
+static unsigned pool_count_warning_threshold = UINT_MAX-1;
 
 /* When the number of pools in a thread gets over this value, we raise
-   an exception.  This can be adjusted with +setPoolNumberThreshhold */
-static unsigned pool_number_warning_threshhold = 10000;
+   an exception.  This can be adjusted with +setPoolNumberThreshold */
+static unsigned pool_number_warning_threshold = 10000;
 
 /* The size of the first _released array. */
 #define BEGINNING_POOL_SIZE 32
@@ -302,11 +126,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 }
 
 
-#if __OBJC_GC__
-@implementation GSAutoreleasePool
-#else
 @implementation NSAutoreleasePool
-#endif
 
 + (void) initialize
 {
@@ -319,9 +139,22 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 + (id) allocWithZone: (NSZone*)zone
 {
   struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
-  if (tv->pool_cache_count)
-    return pop_pool_from_cache (tv);
 
+  if (tv->pool_cache_count)
+    {
+      NSAutoreleasePool *p = pop_pool_from_cache (tv);
+
+      /* When we cache a 'deallocated' pool, we set its _released_count to
+       * UINT_MAX, so when we rtrieve it fromm the cache we must increment
+       * it to start with a count of zero.
+       */
+      if (++(p->_released_count) != 0)
+        {
+          [NSException raise: NSInternalInconsistencyException
+                      format: @"NSAutoreleasePool corrupted pool in cache"];
+        }
+      return p;
+    }
   return NSAllocateObject (self, 0, zone);
 }
 
@@ -350,6 +183,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   {
     struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
     unsigned	level = 0;
+
     _parent = tv->current_pool;
     if (_parent)
       {
@@ -363,7 +197,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
         _parent->_child = self;
       }
     tv->current_pool = self;
-    if (level > pool_number_warning_threshhold)
+    if (level > pool_number_warning_threshold)
       {
 	[NSException raise: NSGenericException
 	  format: @"Too many (%u) autorelease pools ... leaking them?", level];
@@ -462,7 +296,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
         _parent->_child = self;
       }
     tv->current_pool = self;
-    if (level > pool_number_warning_threshhold)
+    if (level > pool_number_warning_threshold)
       {
 	[NSException raise: NSGenericException
 	  format: @"Too many (%u) autorelease pools ... leaking them?", level];
@@ -554,9 +388,11 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   if (!autorelease_enabled)
     return;
 
-  if (_released_count >= pool_count_warning_threshhold)
-    [NSException raise: NSGenericException
-		 format: @"AutoreleasePool count threshhold exceeded."];
+  if (_released_count >= pool_count_warning_threshold)
+    {
+      [NSException raise: NSGenericException
+		  format: @"AutoreleasePool count threshold exceeded."];
+    }
 
   /* Get a new array for the list, if the current one is full. */
   while (_released->count == _released->size)
@@ -726,7 +562,14 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 {
   struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
 
+  if (UINT_MAX == _released_count)
+    {
+      [NSException raise: NSInternalInconsistencyException
+                  format: @"NSAutoreleasePool -dealloc of deallocated pool"];
+    }
+
   [self emptyPool];
+  NSAssert(0 == _released_count, NSInternalInconsistencyException);
 
   /* Remove self from the linked list of pools in use.
    * We already know that we have deallocated any child (in -emptyPool),
@@ -743,6 +586,12 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
       _parent->_child = nil;
       _parent = nil;
     }
+
+  /* Mark pool as cached so that any attempt to add an object to use it
+   * or to deallocate it again will raise an exception.
+   * We reset to zero when we get i out of the cache as a new allocation.
+   */
+  _released_count = UINT_MAX;
 
   /* Don't deallocate ourself, just save us for later use. */
   push_pool_to_cache (tv, self);
@@ -812,15 +661,16 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   free_pool_cache(ARP_THREAD_VARS);
 }
 
-+ (void) setPoolCountThreshhold: (unsigned)c
++ (void) setPoolCountThreshold: (unsigned)c
 {
-  pool_count_warning_threshhold = c;
+  if (c >= UINT_MAX) c = UINT_MAX - 1;
+  pool_count_warning_threshold = c;
 }
 
-+ (void) setPoolNumberThreshhold: (unsigned)c
++ (void) setPoolNumberThreshold: (unsigned)c
 {
-  pool_number_warning_threshhold = c;
+  pool_number_warning_threshold = c;
 }
 
 @end
-#endif // !GS_WITH_GC
+
