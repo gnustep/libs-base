@@ -3,24 +3,24 @@
 
    Written by:  David Chisnall <csdavec@swan.ac.uk>
    Created: 2009
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
-   */ 
+   */
 
 #ifndef __NSCache_h_GNUSTEP_BASE_INCLUDE
 #define __NSCache_h_GNUSTEP_BASE_INCLUDE
@@ -35,10 +35,10 @@ extern "C" {
 #endif
 
 @class NSString;
-@class NSMutableDictionary;
-@class NSMutableArray;
+@class NSMapTable;
+@class GS_GENERIC_CLASS(NSMutableArray, ElementT);
 
-@interface NSCache : NSObject
+@interface GS_GENERIC_CLASS(NSCache, KeyT, ValT) : NSObject
 {
 #if GS_EXPOSE(NSCache)
   @private
@@ -55,9 +55,9 @@ extern "C" {
   /** Name of this cache. */
   NSString *_name;
   /** The mapping from names to objects in this cache. */
-  NSMutableDictionary *_objects;
+  NSMapTable *_objects;
   /** LRU ordering of all potentially-evictable objects in this cache. */
-  NSMutableArray *_accesses;
+  GS_GENERIC_CLASS(NSMutableArray, ValT) *_accesses;
   /** Total number of accesses to objects */
   int64_t _totalAccesses;
 #endif
@@ -71,10 +71,15 @@ extern "C" {
   @private id _internal GS_UNUSED_IVAR;
 #endif
 }
-/** 
+/**
  * Returns the maximum number of objects that are supported by this cache.
  */
 - (NSUInteger) countLimit;
+
+/**
+ * Returns the total cost of all objects held in the cache.
+ */
+- (NSUInteger) totalCostLimit;
 
 /**
  * Returns the cache's delegate.
@@ -96,7 +101,8 @@ extern "C" {
 /**
  * Returns an object associated with the specified key in this cache.
  */
-- (id) objectForKey: (id)key;
+- (GS_GENERIC_TYPE(ValT)) objectForKey:
+    (GS_GENERIC_TYPE(KeyT))key;
 
 /**
  * Removes all objects from this cache.
@@ -106,7 +112,7 @@ extern "C" {
 /**
  * Removes the object associated with the given key.
  */
-- (void) removeObjectForKey: (id)key;
+- (void) removeObjectForKey: (GS_GENERIC_TYPE(KeyT))key;
 
 /**
  * Sets the maximum number of objects permitted in this cache.  This limit is
@@ -137,12 +143,15 @@ extern "C" {
  * total cost below the value set with -setTotalCostLimit: by discarding the
  * contents of objects which implement the NSDiscardableContent protocol.
  */
-- (void) setObject: (id)obj forKey: (id)key cost: (NSUInteger)num;
+- (void) setObject: (GS_GENERIC_TYPE(ValT))obj
+            forKey: (GS_GENERIC_TYPE(KeyT))key
+              cost: (NSUInteger)num;
 
 /**
  * Adds an object to the cache without associating a cost with it.
  */
-- (void) setObject: (id)obj forKey: (id)key;
+- (void) setObject: (GS_GENERIC_TYPE(ValT))obj
+            forKey: (GS_GENERIC_TYPE(KeyT))key;
 
 /**
  * Sets the maximum total cost for objects stored in this cache.  This limit is

@@ -72,7 +72,8 @@ enum
 
 enum
 {
-  NSUndefinedDateComponent = 0x7fffffff
+  NSDateComponentUndefined = NSIntegerMax,
+  NSUndefinedDateComponent = NSDateComponentUndefined
 };
 
 

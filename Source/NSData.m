@@ -52,10 +52,12 @@
  *		    NSDataMappedFile		Memory mapped files.
  *		    NSDataShared		Extension for shared memory.
  *		    NSDataFinalized		For GC of non-GC data.
+ *          NSDataWithDeallocatorBlock Adds custom deallocation behaviour
  *	    NSMutableData			Abstract base class.
  *		NSMutableDataMalloc		Concrete class.
  *		    NSMutableDataShared		Extension for shared memory.
  *		    NSDataMutableFinalized	For GC of non-GC data.
+ *          NSMutableDataWithDeallocatorBlock Adds custom deallocation behaviour
  *
  *	NSMutableDataMalloc MUST share it's initial instance variable layout
  *	with NSDataMalloc so that it can use the 'behavior' code to inherit
@@ -64,7 +66,7 @@
  *	Since all the other subclasses are based on NSDataMalloc or
  *	NSMutableDataMalloc, we can put most methods in here and not
  *	bother with duplicating them in the other classes.
- *		
+ *
  */
 
 #import "common.h"
@@ -118,10 +120,6 @@
 @class	NSDataMalloc;
 @class	NSDataStatic;
 @class	NSMutableDataMalloc;
-#if	GS_WITH_GC
-@class	NSDataFinalized;
-@class	NSMutableDataFinalized;
-#endif
 
 /*
  *	Some static variables to cache classes and methods for quick access -
@@ -130,12 +128,10 @@
 static Class	dataStatic;
 static Class	dataMalloc;
 static Class	mutableDataMalloc;
+static Class	dataBlock;
+static Class	mutableDataBlock;
 static Class	NSDataAbstract;
 static Class	NSMutableDataAbstract;
-#if	GS_WITH_GC
-static Class	dataFinalized;
-static Class	mutableDataFinalized;
-#endif
 static SEL	appendSel;
 static IMP	appendImp;
 
@@ -166,7 +162,7 @@ encodebase64(unsigned char **dstRef,
   NSUInteger lineLength;
   NSUInteger destLen;
 
-  lineLength = 0;  
+  lineLength = 0;
   if (options & NSDataBase64Encoding64CharacterLineLength)
     lineLength = 64;
   else if (options & NSDataBase64Encoding76CharacterLineLength)
@@ -191,11 +187,7 @@ encodebase64(unsigned char **dstRef,
         destLen += (destLen / lineLength);      // CR or LF
     }
 
-#if	GS_WITH_GC
-  dst = NSAllocateCollectable(destLen, 0);
-#else
   dst = NSZoneMalloc(NSDefaultMallocZone(), destLen);
-#endif
 
   for (sIndex = 0; sIndex < length; sIndex += 3)
     {
@@ -239,32 +231,32 @@ encodebase64(unsigned char **dstRef,
 static BOOL
 readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
 {
-#if defined(__MINGW__)
+#if defined(_WIN32)
   const unichar	*thePath = 0;
 #else
   const char	*thePath = 0;
-#endif	
+#endif
   FILE		*theFile = 0;
   void		*tmp = 0;
   int		c;
   off_t        fileLength;
-	
-#if defined(__MINGW__)
+
+#if defined(_WIN32)
   thePath = (const unichar*)[path fileSystemRepresentation];
 #else
   thePath = [path fileSystemRepresentation];
-#endif	
+#endif
   if (thePath == 0)
     {
       NSWarnFLog(@"Open (%@) attempt failed - bad path", path);
       return NO;
     }
-	
-#if defined(__MINGW__)
+
+#if defined(_WIN32)
   theFile = _wfopen(thePath, L"rb");
 #else
   theFile = fopen(thePath, "rb");
-#endif	
+#endif
 
   if (theFile == 0)		/* We failed to open the file. */
     {
@@ -282,7 +274,7 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
 	[NSError _last]);
       goto failure;
     }
-	
+
   /*
    *	Determine the length of the file (having seeked to the end of the
    *	file) by calling ftello().
@@ -293,7 +285,7 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
       NSWarnFLog(@"Ftell on %@ failed - %@", path, [NSError _last]);
       goto failure;
     }
-	
+
   /*
    *	Rewind the file pointer to the beginning, preparing to read in
    *	the file.
@@ -310,7 +302,7 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
   if (fileLength == 0)
     {
       unsigned char	buf[BUFSIZ];
-      
+
       /*
        * Special case ... a file of length zero may be a named pipe or some
        * file in the /proc filesystem, which will return us data if we read
@@ -318,16 +310,6 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
        */
       while ((c = fread(buf, 1, BUFSIZ, theFile)) != 0)
 	{
-#if	GS_WITH_GC
-	  if (tmp == 0)
-	    {
-	      tmp = NSAllocateCollectable(c, 0);
-	    }
-	  else
-	    {
-	      tmp = NSReallocateCollectable(tmp, fileLength + c, 0);
-	    }
-#else
 	  if (tmp == 0)
 	    {
 	      tmp = NSZoneMalloc(zone, c);
@@ -336,7 +318,6 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
 	    {
 	      tmp = NSZoneRealloc(zone, tmp, fileLength + c);
 	    }
-#endif
 	  if (tmp == 0)
 	    {
 	      NSLog(@"Malloc failed for file (%@) of length %jd - %@", path,
@@ -351,18 +332,14 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
     {
       off_t	offset = 0;
 
-#if	GS_WITH_GC
-      tmp = NSAllocateCollectable(fileLength, 0);
-#else
       tmp = NSZoneMalloc(zone, fileLength);
-#endif
       if (tmp == 0)
 	{
 	  NSLog(@"Malloc failed for file (%@) of length %jd - %@", path,
 	    (intmax_t)fileLength, [NSError _last]);
 	  goto failure;
 	}
-	    
+
       while (offset < fileLength
 	&& (c = fread(tmp + offset, 1, fileLength - offset, theFile)) != 0)
 	{
@@ -371,11 +348,7 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
       if (offset < fileLength)
 	{
           fileLength = offset;
-#if	GS_WITH_GC
-	  tmp = NSReallocateCollectable(tmp, fileLength, 0);
-#else
 	  tmp = NSZoneRealloc(zone, tmp, fileLength);
-#endif
 	}
     }
   if (ferror(theFile))
@@ -389,17 +362,14 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
   *len = fileLength;
   fclose(theFile);
   return YES;
-  
+
   /*
    *	Just in case the failure action needs to be changed.
    */
 failure:
-#if	!GS_WITH_GC
-  if (tmp != 0)
     {
       NSZoneFree(zone, tmp);
     }
-#endif
   if (theFile != 0)
     {
       fclose(theFile);
@@ -415,6 +385,11 @@ failure:
 {
   NSUInteger	length;
   __strong void	*bytes;
+  /**
+   * This is a GSDataDeallocatorBlock instance, stored as an id for backwards
+   * compatibility.
+   */
+  id            deallocator;
 }
 @end
 
@@ -424,15 +399,19 @@ failure:
 @interface	NSDataMalloc : NSDataStatic
 @end
 
+@interface NSDataWithDeallocatorBlock : NSDataMalloc
+@end
+
 @interface	NSMutableDataMalloc : NSMutableData
 {
   NSUInteger	length;
   __strong void	*bytes;
-#if	GS_WITH_GC
-  BOOL		owned;
-#else
+  /**
+   * This is a GSDataDeallocatorBlock instance, stored as an id for backwards
+   * compatibility.
+   */
+  id            deallocator;
   NSZone	*zone;
-#endif
   NSUInteger	capacity;
   NSUInteger	growth;
 }
@@ -440,13 +419,8 @@ failure:
 - (void) _grow: (NSUInteger)minimum;
 @end
 
-#if	GS_WITH_GC
-@interface	NSDataFinalized : NSDataMalloc
+@interface NSMutableDataWithDeallocatorBlock : NSMutableDataMalloc
 @end
-
-@interface	NSMutableDataFinalized : NSMutableDataMalloc
-@end
-#endif
 
 #ifdef	HAVE_MMAP
 @interface	NSDataMappedFile : NSDataMalloc
@@ -491,11 +465,9 @@ failure:
       NSMutableDataAbstract = [NSMutableData class];
       dataStatic = [NSDataStatic class];
       dataMalloc = [NSDataMalloc class];
+      dataBlock = [NSDataWithDeallocatorBlock class];
       mutableDataMalloc = [NSMutableDataMalloc class];
-#if	GS_WITH_GC
-      dataFinalized = [NSDataFinalized class];
-      mutableDataFinalized = [NSMutableDataFinalized class];
-#endif
+      mutableDataBlock = [NSMutableDataWithDeallocatorBlock class];
       appendSel = @selector(appendBytes:length:);
       appendImp = [mutableDataMalloc instanceMethodForSelector: appendSel];
     }
@@ -652,7 +624,7 @@ failure:
 
 - (id) init
 {
-   return [self initWithBytesNoCopy: 0 length: 0 freeWhenDone: YES];
+  return [self initWithBytesNoCopy: 0 length: 0 freeWhenDone: YES];
 }
 
 - (id) initWithBase64EncodedData: (NSData*)base64Data
@@ -719,6 +691,14 @@ failure:
               c = *src++;
               if (c != '=')
                 {
+                  if (options & NSDataBase64DecodingIgnoreUnknownCharacters)
+                    {
+                      if (!isupper(c) && !islower(c) && !isdigit(c)
+                        && c != '/' && c != '+')
+                        {
+                          continue;     // An unknown character
+                        }
+                    }
                   free(result);
                   DESTROY(self);
                   return nil;
@@ -866,6 +846,14 @@ failure:
   return nil;
 }
 
+- (instancetype) initWithBytesNoCopy: (void*)bytes
+                              length: (NSUInteger)length
+                         deallocator: (GSDataDeallocatorBlock)deallocator
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
 /**
  * Initialises the receiver with the contents of the specified file.<br />
  * Returns the resulting object.<br />
@@ -876,18 +864,11 @@ failure:
   void		*fileBytes;
   off_t         fileLength;
 
-#if	GS_WITH_GC
-  if (readContentsOfFile(path, &fileBytes, &fileLength, 0) == NO)
-    {
-      return nil;
-    }
-#else
   if (readContentsOfFile(path, &fileBytes, &fileLength, [self zone]) == NO)
     {
       DESTROY(self);
       return nil;
     }
-#endif
   self = [self initWithBytesNoCopy: fileBytes
 			    length: (NSUInteger)fileLength
 		      freeWhenDone: YES];
@@ -1033,11 +1014,7 @@ failure:
 
   GS_RANGE_CHECK(aRange, l);
 
-#if	GS_WITH_GC
-  buffer = NSAllocateCollectable(aRange.length, 0);
-#else
   buffer = NSZoneMalloc(NSDefaultMallocZone(), aRange.length);
-#endif
   if (buffer == 0)
     {
       [NSException raise: NSMallocException
@@ -1232,11 +1209,7 @@ failure:
 	    {
 	      unsigned	len = (length+1)*sizeof(char);
 
-#if	GS_WITH_GC
-	      *(char**)data = (char*)NSAllocateCollectable(len, 0);
-#else
 	      *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
-#endif
 	      if (*(char**)data == 0)
 	        {
 		  [NSException raise: NSMallocException
@@ -1297,11 +1270,7 @@ failure:
 	{
 	  unsigned	len = objc_sizeof_type(++type);
 
-#if	GS_WITH_GC
-	  *(char**)data = (char*)NSAllocateCollectable(len, 0);
-#else
 	  *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
-#endif
 	  if (*(char**)data == 0)
 	    {
 	      [NSException raise: NSMallocException
@@ -1385,6 +1354,15 @@ failure:
 	  *(double*)data = NSSwapBigDoubleToHost(nd);
 	  return;
 	}
+#if __GNUC__ > 2 && defined(_C_BOOL)
+      case _C_BOOL:
+	{
+	  [self deserializeBytes: data
+			  length: sizeof(_Bool)
+			atCursor: cursor];
+	  return;
+	}
+#endif
       case _C_CLASS:
 	{
 	  uint16_t ni;
@@ -1589,7 +1567,7 @@ failure:
              options: (NSUInteger)writeOptionsMask
                error: (NSError **)errorPtr
 {
-#if defined(__MINGW__)
+#if defined(_WIN32)
   NSUInteger	length = [path length];
   unichar	wthePath[length + 100];
   unichar	wtheRealPath[length + 100];
@@ -1625,7 +1603,7 @@ failure:
 	    [NSError _last]);
 	  goto failure;
 	}
-	}
+    }
   else
     {
       wcscpy(wthePath,wtheRealPath);
@@ -1719,7 +1697,7 @@ failure:
 		{
 		  c = 0;
 		  // Delete the old file if possible
-		  DeleteFileW(secondaryFile);	
+		  DeleteFileW(secondaryFile);
 		}
 	      else
 		{
@@ -1783,7 +1761,7 @@ failure:
     }
   return NO;
 
-#else // __MINGW__
+#else
 
   char		thePath[BUFSIZ*2+8];
   char		theRealPath[BUFSIZ*2];
@@ -1797,15 +1775,15 @@ failure:
       useAuxiliaryFile = YES;
     }
   if ([path canBeConvertedToEncoding: [NSString defaultCStringEncoding]])
-    {	
+    {
       const char *local_c_path = [path cString];
 
       if (local_c_path != 0 && strlen(local_c_path) < (BUFSIZ*2))
-	{	
+	{
 	  strncpy(theRealPath, local_c_path, sizeof(theRealPath) - 1);
 	  theRealPath[sizeof(theRealPath) - 1] = '\0';
 	  error_BadPath = NO;
-	}	
+	}
     }
   if (error_BadPath)
     {
@@ -1901,13 +1879,11 @@ failure:
   if (useAuxiliaryFile)
     {
       NSFileManager		*mgr = [NSFileManager defaultManager];
-      NSMutableDictionary	*att = nil;
+      NSDictionary	  *att = nil;
 
       if ([mgr fileExistsAtPath: path])
 	{
-	  att = [[mgr fileAttributesAtPath: path
-			      traverseLink: YES] mutableCopy];
-	  IF_NO_GC(AUTORELEASE(att));
+	  att = [mgr fileAttributesAtPath: path traverseLink: YES];
 	}
 
       c = rename(thePath, theRealPath);
@@ -1920,18 +1896,20 @@ failure:
 
       if (att != nil)
 	{
+    NSMutableDictionary *mAtt = [att mutableCopy];
+    IF_NO_GC(AUTORELEASE(mAtt));
 	  /*
 	   * We have created a new file - so we attempt to make it's
 	   * attributes match that of the original.
 	   */
-	  [att removeObjectForKey: NSFileSize];
-	  [att removeObjectForKey: NSFileModificationDate];
-	  [att removeObjectForKey: NSFileReferenceCount];
-	  [att removeObjectForKey: NSFileSystemNumber];
-	  [att removeObjectForKey: NSFileSystemFileNumber];
-	  [att removeObjectForKey: NSFileDeviceIdentifier];
-	  [att removeObjectForKey: NSFileType];
-	  if ([mgr changeFileAttributes: att atPath: path] == NO)
+	  [mAtt removeObjectForKey: NSFileSize];
+	  [mAtt removeObjectForKey: NSFileModificationDate];
+	  [mAtt removeObjectForKey: NSFileReferenceCount];
+	  [mAtt removeObjectForKey: NSFileSystemNumber];
+	  [mAtt removeObjectForKey: NSFileSystemFileNumber];
+	  [mAtt removeObjectForKey: NSFileDeviceIdentifier];
+	  [mAtt removeObjectForKey: NSFileType];
+	  if ([mgr changeFileAttributes: mAtt atPath: path] == NO)
 	    {
 	      NSWarnMLog(@"Unable to correctly set all attributes for '%@'",
 		path);
@@ -1980,6 +1958,18 @@ failure:
     }
   return NO;
 }
+
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  NSUInteger    size = [super sizeInBytesExcluding: exclude];
+
+  if (size > 0)
+    {
+      size += [self length];
+    }
+  return size;
+}
+
 @end
 
 /**
@@ -2221,10 +2211,10 @@ failure:
     {
       [aCoder encodeBytes: bytes
                    length: length
-                   forKey: @"NS.data"]; 
+                   forKey: @"NS.data"];
     }
   else
-    {  
+    {
       [aCoder encodeValueOfObjCType: @encode(NSUInteger)
 			         at: &length];
       if (length)
@@ -2256,23 +2246,19 @@ failure:
 
 
       data = [aCoder decodeBytesForKey: @"NS.data"
-                        returnedLength: &l]; 
+                        returnedLength: &l];
       self = [self initWithBytes: data length: l];
     }
   else
-    {  
+    {
       NSUInteger  l;
 
       [aCoder decodeValueOfObjCType: @encode(NSUInteger) at: &l];
       if (l)
         {
           void *b;
-          
-#if	GS_WITH_GC
-          b = NSAllocateCollectable(l, 0);
-#else
+
           b = NSZoneMalloc([self zone], l);
-#endif
           if (b == 0)
             {
               NSLog(@"[NSDataMalloc -initWithCoder:] unable to get %u bytes",
@@ -2651,6 +2637,11 @@ failure:
 	  [self appendBytes: &nd length: sizeof(NSSwappedDouble)];
 	  return;
 	}
+#if __GNUC__ > 2 && defined(_C_BOOL)
+      case _C_BOOL:
+	[self appendBytes: data length: sizeof(_Bool)];
+	return;
+#endif
       case _C_CLASS:
 	{
 	  const char  *name = *(Class*)data?class_getName(*(Class*)data):"";
@@ -2997,11 +2988,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	    }
 	  else
 	    {
-#if	GS_WITH_GC
-	      *(char**)data = (char*)NSAllocateCollectable(len+1, 0);
-#else
 	      *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len+1);
-#endif
 	      if (*(char**)data == 0)
 	        {
 		  [NSException raise: NSMallocException
@@ -3059,11 +3046,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	{
 	  unsigned	len = objc_sizeof_type(++type);
 
-#if	GS_WITH_GC
-	  *(char**)data = (char*)NSAllocateCollectable(len, 0);
-#else
 	  *(char**)data = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
-#endif
 	  if (*(char**)data == 0)
 	    {
 	      [NSException raise: NSMallocException
@@ -3133,6 +3116,13 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  *(double*)data = NSSwapBigDoubleToHost(nd);
 	  return;
 	}
+#if __GNUC__ > 2 && defined(_C_BOOL)
+      case _C_BOOL:
+	{
+	  getBytes(data, bytes, sizeof(_Bool), length, cursor);
+	  return;
+	}
+#endif
       case _C_CLASS:
 	{
 	  uint16_t	ni;
@@ -3282,6 +3272,13 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     }
 }
 
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  NSUInteger    size = GSPrivateMemorySize(self, exclude);
+
+  return size;
+}
+
 @end
 
 
@@ -3328,29 +3325,82 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       GSClassSwizzle(self, dataStatic);
     }
-#if	GS_WITH_GC
-  else if (aBuffer != 0 && GSPrivateIsCollectable(aBuffer) == NO)
-    {
-      GSClassSwizzle(self, dataFinalized);
-    }
-#endif
   bytes = aBuffer;
   length = bufferSize;
   return self;
 }
 
+- (instancetype) initWithBytesNoCopy: (void*)buf
+                              length: (NSUInteger)len
+                         deallocator: (GSDataDeallocatorBlock)deallocBlock
+{
+  if (buf == NULL && len > 0)
+    {
+      [self release];
+      [NSException raise: NSInvalidArgumentException
+        format: @"[%@-initWithBytesNoCopy:length:deallocator:] called with "
+          @"length but NULL bytes", NSStringFromClass([self class])];
+    }
+  else if (NULL == deallocBlock)
+    {
+      // For a nil deallocator we can just swizzle into a static data object
+      GSClassSwizzle(self, dataStatic);
+      bytes = buf;
+      length = len;
+      return self;
+    }
+
+  GSClassSwizzle(self, dataBlock);
+  ASSIGN(deallocator, (id)deallocBlock);
+  return self;
+}
+
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  NSUInteger    size = GSPrivateMemorySize(self, exclude);
+
+  if (size > 0)
+    {
+      size += length;
+    }
+  return size;
+}
+
 @end
 
-#if	GS_WITH_GC
-@implementation	NSDataFinalized
-- (void) finalize
+@implementation NSDataWithDeallocatorBlock
+- (instancetype) initWithBytesNoCopy: (void*)buf
+                              length: (NSUInteger)len
+                         deallocator: (GSDataDeallocatorBlock)deallocBlock
 {
-  NSZoneFree(NSDefaultMallocZone(), bytes);
-  [super finalize];
+  if (buf == NULL && len > 0)
+    {
+      [self release];
+      [NSException raise: NSInvalidArgumentException
+        format: @"[%@-initWithBytesNoCopy:length:deallocator:] called with "
+          @"length but NULL bytes", NSStringFromClass([self class])];
+    }
+
+  bytes = buf;
+  length = len;
+  ASSIGN(deallocator, (id)deallocBlock);
+  return self;
+}
+
+- (void) dealloc
+{
+  if (deallocator != NULL)
+    {
+      CALL_BLOCK(((GSDataDeallocatorBlock)deallocator), bytes, length);
+      DESTROY(deallocator);
+    }
+  // Clear out the ivars so that super doesn't double free.
+  bytes = NULL;
+  length = 0;
+  [super dealloc];
 }
 @end
-#endif
- 
+
 
 #ifdef	HAVE_MMAP
 @implementation	NSDataMappedFile
@@ -3384,21 +3434,21 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   off_t		off;
   int		fd;
-	
-#if defined(__MINGW__)
+
+#if defined(_WIN32)
   const unichar	*thePath = (const unichar*)[path fileSystemRepresentation];
 #else
   const char	*thePath = [path fileSystemRepresentation];
 #endif
 
-  if (thePath == 0)	
+  if (thePath == 0)
     {
       NSWarnMLog(@"Open (%@) attempt failed - bad path", path);
       DESTROY(self);
       return nil;
     }
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
   fd = _wopen(thePath, _O_RDONLY);
 #else
   fd = open(thePath, O_RDONLY);
@@ -3577,7 +3627,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 - (void) dealloc
 {
-#if	!GS_WITH_GC
   if (bytes != 0)
     {
       if (zone != 0)
@@ -3586,7 +3635,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       bytes = 0;
     }
-#endif
   [super dealloc];
 }
 
@@ -3626,18 +3674,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       [self setLength: 0];
       return self;
     }
-#if	GS_WITH_GC
-  if (shouldFree == YES && GSPrivateIsCollectable(aBuffer) == NO)
-    {
-      GSClassSwizzle(self, mutableDataFinalized);
-    }
-#endif
   self = [self initWithCapacity: 0];
   if (self)
     {
-#if	GS_WITH_GC
-      owned = shouldFree;	// Free memory on finalisation.
-#else
       if (shouldFree == NO)
 	{
 	  zone = 0;		// Don't free this memory.
@@ -3646,7 +3685,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	{
           zone = NSZoneFromPointer(aBuffer);
 	}
-#endif
       bytes = aBuffer;
       length = bufferSize;
       capacity = bufferSize;
@@ -3659,6 +3697,39 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   return self;
 }
 
+- (instancetype) initWithBytesNoCopy: (void*)buf
+                              length: (NSUInteger)len
+                         deallocator: (GSDataDeallocatorBlock)deallocBlock;
+{
+  if (buf == NULL && len > 0)
+    {
+      [self release];
+      [NSException raise: NSInvalidArgumentException
+        format: @"[%@-initWithBytesNoCopy:length:deallocator:] called with "
+          @"length but NULL bytes", NSStringFromClass([self class])];
+    }
+  else if (NULL == deallocBlock)
+    {
+      // Can reuse this class.
+      return [self initWithBytesNoCopy: buf
+                                length: len
+                          freeWhenDone: NO];
+    }
+
+  /*
+   * Custom deallocator. swizzle to NSMutableDataWithDeallocatorBlock
+   */
+  GSClassSwizzle(self, mutableDataBlock);
+  if (nil == (self = [self initWithBytesNoCopy: buf
+                                         length: len
+                                   freeWhenDone: NO]))
+    {
+      return nil;
+    }
+  ASSIGN(deallocator, (id)deallocBlock);
+  return self;
+}
+
 // THIS IS THE DESIGNATED INITIALISER
 /**
  *  Initialize with buffer capable of holding size bytes.
@@ -3668,12 +3739,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (size)
     {
-#if	GS_WITH_GC
-      bytes = NSAllocateCollectable(size, 0);
-#else
       zone = [self zone];
       bytes = NSZoneMalloc(zone, size);
-#endif
       if (bytes == 0)
 	{
 	  NSLog(@"[NSMutableDataMalloc -initWithCapacity:] out of memory "
@@ -3949,6 +4016,11 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  (*appendImp)(self, appendSel, &nd, sizeof(NSSwappedDouble));
 	  return;
 	}
+#if __GNUC__ > 2 && defined(_C_BOOL)
+      case _C_BOOL:
+	(*appendImp)(self, appendSel, data, sizeof(_Bool));
+	return;
+#endif
       case _C_CLASS:
 	{
 	  const char  *name = *(Class*)data?class_getName(*(Class*)data):"";
@@ -4079,23 +4151,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       void	*tmp;
 
-#if	GS_WITH_GC
-      tmp = NSAllocateCollectable(size, 0);
-      if (tmp == 0)
-	{
-	  [NSException raise: NSMallocException
-	    format: @"Unable to set data capacity to '%d'", size];
-	}
-      if (bytes)
-	{
-	  memcpy(tmp, bytes, capacity < size ? capacity : size);
-	  if (owned == YES)
-	    {
-	      NSZoneFree(NSDefaultMallocZone(), bytes);
-	      owned = NO;
-	    }
-	}
-#else
       tmp = NSZoneMalloc(zone, size);
       if (tmp == 0)
 	{
@@ -4118,7 +4173,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	{
 	  zone = NSDefaultMallocZone();
 	}
-#endif
       bytes = tmp;
       capacity = size;
       growth = capacity/2;
@@ -4162,19 +4216,118 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   length = size;
 }
 
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  NSUInteger    size = GSPrivateMemorySize(self, exclude);
+
+  if (size > 0)
+    {
+      size += capacity;
+    }
+  return size;
+}
+
 @end
 
-#if	GS_WITH_GC
-@implementation	NSMutableDataFinalized
-- (void) finalize
+@implementation NSMutableDataWithDeallocatorBlock
+
++ (id) allocWithZone: (NSZone*)z
 {
-  if (owned == YES)
-    NSZoneFree(NSDefaultMallocZone(), bytes);
-  [super finalize];
+  return NSAllocateObject(mutableDataBlock, 0, z);
 }
+
+- (instancetype) initWithBytesNoCopy: (void*)buf
+                              length: (NSUInteger)len
+                         deallocator: (GSDataDeallocatorBlock)deallocBlock
+{
+  if (buf == NULL && len > 0)
+    {
+      [self release];
+      [NSException raise: NSInvalidArgumentException
+        format: @"[%@-initWithBytesNoCopy:length:deallocator:] called with "
+          @"length but NULL bytes", NSStringFromClass([self class])];
+    }
+
+  /* The assumption here is that the superclass if fully concrete and will
+   * not return a different instance. This invariant holds for the current
+   * implementation of NSMutableDataMalloc, but not NSDataMalloc.
+   */
+  if (nil == (self = [super initWithBytesNoCopy: buf
+                                         length: len
+                                   freeWhenDone: NO]))
+    {
+      return nil;
+    }
+  ASSIGN(deallocator, (id)deallocBlock);
+  return self;
+}
+
+- (void) dealloc
+{
+  if (deallocator != NULL)
+    {
+      CALL_BLOCK(((GSDataDeallocatorBlock)deallocator), bytes, capacity);
+      // Clear out the ivars so that super doesn't double free.
+      bytes = NULL;
+      length = 0;
+      DESTROY(deallocator);
+    }
+
+  [super dealloc];
+}
+
+- (id) setCapacity: (NSUInteger)size
+{
+  /* We need to override capacity modification so that we correctly call the
+   * block when we are operating on the initial allocation, usual malloc/free
+   * machinery otherwise. */
+  if (size != capacity)
+    {
+      void	*tmp;
+
+      tmp = NSZoneMalloc(zone, size);
+      if (tmp == 0)
+	{
+	  [NSException raise: NSMallocException
+	    format: @"Unable to set data capacity to '%"PRIuPTR"'", size];
+	}
+      if (bytes)
+	{
+	  memcpy(tmp, bytes, capacity < size ? capacity : size);
+	  if (deallocator != NULL)
+	    {
+          CALL_BLOCK(((GSDataDeallocatorBlock)deallocator), bytes, capacity);
+          DESTROY(deallocator);
+	      zone = NSDefaultMallocZone();
+	    }
+	  else
+	    {
+	      NSZoneFree(zone, bytes);
+	    }
+	}
+      else if (deallocator != NULL)
+	{
+      CALL_BLOCK(((GSDataDeallocatorBlock)deallocator), bytes, capacity);
+      DESTROY(deallocator);
+	  zone = NSDefaultMallocZone();
+	}
+      bytes = tmp;
+      capacity = size;
+      growth = capacity/2;
+      if (growth == 0)
+	{
+	  growth = 1;
+	}
+    }
+  if (size < length)
+    {
+      length = size;
+    }
+  return self;
+}
+
 @end
-#endif
- 
+
 
 #ifdef	HAVE_SHMCTL
 @implementation	NSMutableDataShared
@@ -4345,4 +4498,3 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 
 @end
 #endif	/* HAVE_SHMCTL	*/
-

@@ -3,24 +3,24 @@
 
    Written by:  David Chisnall <csdavec@swan.ac.uk>
    Created: 2009
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
-   */ 
+   */
 
 #import "common.h"
 
@@ -28,7 +28,7 @@
 
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCache.h"
-#import "Foundation/NSDictionary.h"
+#import "Foundation/NSMapTable.h"
 #import "Foundation/NSEnumerator.h"
 
 /**
@@ -60,7 +60,7 @@
     {
       return nil;
     }
-  _objects = [NSMutableDictionary new];
+  ASSIGN(_objects,[NSMapTable strongToStrongObjectsMapTable]);
   _accesses = [NSMutableArray new];
   return self;
 }

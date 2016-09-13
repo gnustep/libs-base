@@ -124,13 +124,6 @@ cacheEqual(id A, id B)
 #define GSI_MAP_VTYPES	GSUNION_NSINT
 #define	GSI_MAP_NOCLEAN	1
 
-#if	GS_WITH_GC
-#include	<gc/gc_typed.h>
-static GC_descr	nodeDesc;	// Type descriptor for map node.
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
-#endif
-
 #include "GNUstepBase/GSIMap.h"
 
 static NSLock		*attrLock = nil;
@@ -144,6 +137,8 @@ static IMP		unlockImp;
 #define	AUNLOCK() if (attrLock != nil) (*unlockImp)(attrLock, unlockSel)
 
 @class  GSCachedDictionary;
+@interface GSCachedDictionary : NSDictionary    // Help the compiler
+@end
 @protocol       GSCachedDictionary
 - (void) _uncache;
 @end
@@ -157,27 +152,27 @@ cacheAttributes(NSDictionary *attrs)
 {
   if (nil != attrs)
     {
-  GSIMapNode	node;
+      GSIMapNode	node;
 
-  ALOCK();
+      ALOCK();
       adding = YES;
-  node = GSIMapNodeForKey(&attrMap, (GSIMapKey)((id)attrs));
-  if (node == 0)
-    {
+      node = GSIMapNodeForKey(&attrMap, (GSIMapKey)((id)attrs));
+      if (node == 0)
+        {
           /* Shallow copy of dictionary, without copying objects ....
            * result in an immutable dictionary that can safely be cached.
-       */
+           */
           attrs = [(NSDictionary*)[GSCachedDictionary alloc]
             initWithDictionary: attrs copyItems: NO];
           GSIMapAddPair(&attrMap,
             (GSIMapKey)((id)attrs), (GSIMapVal)(NSUInteger)1);
-    }
-  else
-    {
-      node->value.nsu++;
+        }
+      else
+        {
+          node->value.nsu++;
           attrs = node->key.obj;
-    }
-  AUNLOCK();
+        }
+      AUNLOCK();
     }
   return attrs;
 }
@@ -190,33 +185,33 @@ unCacheAttributes(NSDictionary *attrs)
 {
   if (nil != attrs)
     {
-  GSIMapBucket       bucket;
+      GSIMapBucket  bucket;
       id<GSCachedDictionary> removed = nil;
 
-  ALOCK();
+      ALOCK();
       adding = NO;
-  bucket = GSIMapBucketForKey(&attrMap, (GSIMapKey)((id)attrs));
-  if (bucket != 0)
-    {
-      GSIMapNode     node;
+      bucket = GSIMapBucketForKey(&attrMap, (GSIMapKey)((id)attrs));
+      if (bucket != 0)
+        {
+          GSIMapNode     node;
 
           node = GSIMapNodeForKeyInBucket(&attrMap,
             bucket, (GSIMapKey)((id)attrs));
-      if (node != 0)
-	{
-	  if (--node->value.nsu == 0)
-	    {
+          if (node != 0)
+            {
+              if (--node->value.nsu == 0)
+                {
                   removed = node->key.obj;
-	      GSIMapRemoveNodeFromMap(&attrMap, bucket, node);
-	      GSIMapFreeNode(&attrMap, node);
-	    }
-	}
-    }
-  AUNLOCK();
+                  GSIMapRemoveNodeFromMap(&attrMap, bucket, node);
+                  GSIMapFreeNode(&attrMap, node);
+                }
+            }
+        }
+      AUNLOCK();
       if (nil != removed)
         {
           [removed _uncache];
-}
+        }
     }
 }
 
@@ -463,15 +458,6 @@ _attributesAtIndexEffectiveRange(
       NSMutableArray	*a;
       NSDictionary	*d;
 
-#if	GS_WITH_GC
-      /* We create a typed memory descriptor for map nodes.
-       * Only the pointer to the key needs to be scanned.
-       */
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#endif
-
       infSel = @selector(newWithZone:value:at:);
       addSel = @selector(addObject:);
       cntSel = @selector(count);
@@ -497,7 +483,7 @@ _attributesAtIndexEffectiveRange(
       remImp = (void (*)(NSMutableArray*,SEL,unsigned))
 	[a methodForSelector: remSel];
       RELEASE(a);
-}
+    }
   [[NSObject leakAt: &attrLock] release];
 }
 
@@ -915,7 +901,7 @@ SANITY();
 	&& effectiveRange.length == range.length)
 	{
 	  arrayIndex--;
-	  if (arrayIndex!=0 || arraySize > 1)
+	  if (arrayIndex != 0 || arraySize > 1)
 	    {
 	      REMOVEAT(arrayIndex);
 	      arraySize--;

@@ -60,7 +60,7 @@ extern "C" {
  *	GSDebugAllocationList()
  *	GSDebugAllocationListAll()
  *
- * GSSetDebugAllocationFunctions()
+ *      GSSetDebugAllocationFunctions()
  *
  * When the previous functions have allowed you to find a memory leak,
  * and you know that you are leaking objects of class XXX, but you are

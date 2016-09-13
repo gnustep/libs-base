@@ -3,24 +3,24 @@
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: 1995
-   
+
    This file is part of the GNUstep Base Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
-   */ 
+   */
 
 #ifndef __NSData_h_GNUSTEP_BASE_INCLUDE
 #define __NSData_h_GNUSTEP_BASE_INCLUDE
@@ -29,6 +29,7 @@
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSRange.h>
 #import	<Foundation/NSSerialization.h>
+#import <GNUstepBase/GSBlocks.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -39,7 +40,7 @@ extern "C" {
 @class	NSURL;
 #endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
 enum {
   NSDataBase64DecodingIgnoreUnknownCharacters = (1UL << 0)
 };
@@ -54,7 +55,7 @@ enum {
 typedef NSUInteger NSDataBase64EncodingOptions;
 #endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST)
 enum {
   NSMappedRead = 1,
   NSUncachedRead = 2
@@ -66,6 +67,10 @@ enum {
 /* The original name for this was NSAtomicWrite ... need for backward comapat
  */
 #define NSAtomicWrite   NSDataWritingAtomic
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
+DEFINE_BLOCK_TYPE(GSDataDeallocatorBlock, void, void*, NSUInteger);
 #endif
 
 @interface NSData : NSObject <NSCoding, NSCopying, NSMutableCopying>
@@ -88,11 +93,21 @@ enum {
 + (id) dataWithContentsOfURL: (NSURL*)url;
 #endif
 + (id) dataWithData: (NSData*)data;
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
 - (id) initWithBase64EncodedData: (NSData*)base64Data
                          options: (NSDataBase64DecodingOptions)options;
 - (id) initWithBase64EncodedString: (NSString*)base64String
                            options: (NSDataBase64DecodingOptions)options;
+/**
+ * <override-subclass/>
+ * Initialize the receiver to hold memory pointed to by bytes without copying.
+ * When the receiver is deallocated, the memory will be freed using the user
+ * supplied deallocBlock. Note that passing a block that (either directly or
+ * indirectly) holds a strong reference the receiver will cause a retain cycle. 
+ */
+- (instancetype) initWithBytesNoCopy: (void*)bytes
+                              length: (NSUInteger)length
+                         deallocator: (GSDataDeallocatorBlock)deallocBlock;
 #endif
 - (id) initWithBytes: (const void*)aBuffer
 	      length: (NSUInteger)bufferSize;
@@ -110,7 +125,7 @@ enum {
 #endif
 - (id) initWithData: (NSData*)data;
 
-// Accessing Data 
+// Accessing Data
 
 - (const void*) bytes;
 - (NSString*) description;
@@ -122,11 +137,11 @@ enum {
 - (NSData*) subdataWithRange: (NSRange)aRange;
 
 // base64
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
 - (NSData *) base64EncodedDataWithOptions: (NSDataBase64EncodingOptions)options;
 - (NSString *) base64EncodedStringWithOptions: (NSDataBase64EncodingOptions)options;
 #endif
- 
+
 // Querying a Data Object
 
 - (BOOL) isEqualToData: (NSData*)other;
@@ -171,7 +186,7 @@ enum {
 		   count: (unsigned int)numInts
 		 atIndex: (unsigned int)index;
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST)
 /**
  * <p>Writes a copy of the data encapsulated by the receiver to a file
  * at path.  If the NSDataWritingAtomic option is set, this writes to a

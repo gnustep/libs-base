@@ -601,12 +601,10 @@ static SEL	appSel;
 	      i++;
 	    }
 	  self = [self initWithObjects: o + c forKeys: o count: i];
-#if	!GS_WITH_GC
 	  while (i-- > 0)
 	    {
 	      [o[c + i] release];
 	    }
-#endif
 	}
       else
 	{
@@ -863,12 +861,13 @@ static SEL	appSel;
 }
 
 - (void)getObjects: (__unsafe_unretained id[])objects
-           andKeys: (__unsafe_unretained id[])keys
+           andKeys: (__unsafe_unretained id<NSCopying>[])keys
 {
-  int i=0;
+  NSUInteger i=0;
   FOR_IN(id, key, self)
-    keys[i] = key;
-    objects[i] = [self objectForKey: key];
+    if (keys != NULL) keys[i] = key;
+    if (objects != NULL) objects[i] = [self objectForKey: key];
+    i++;
   END_FOR_IN(self)
 }
 
@@ -1229,6 +1228,32 @@ compareIt(id o1, id o2, void* context)
   [self subclassResponsibility: _cmd];
   return 0;
 }
+
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  NSUInteger	size = [super sizeInBytesExcluding: exclude];
+
+  if (size > 0)
+    {
+      NSUInteger	count = [self count];
+
+      size += 3 * sizeof(void*) * count;
+      if (count > 0)
+        {
+	  NSEnumerator  *enumerator = [self keyEnumerator];
+	  NSObject<NSCopying>	*k = nil;
+
+	  while ((k = [enumerator nextObject]) != nil)
+	    {
+	      NSObject	*o = [self objectForKey: k];
+
+	      size += [k sizeInBytesExcluding: exclude];
+	      size += [o sizeInBytesExcluding: exclude];
+	    }
+	}
+    }
+  return size;
+}
 @end
 
 
@@ -1280,12 +1305,10 @@ compareIt(id o1, id o2, void* context)
 	  initWithObjects: o + count
 		  forKeys: o
 		    count: count];
-#if	!GS_WITH_GC
   while (i-- > 0)
     {
       [o[count + i] release];
     }
-#endif
   GS_ENDIDBUF();
 
   return newDictionary;
