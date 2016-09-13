@@ -27,8 +27,10 @@
 #import	<GNUstepBase/GSVersionMacros.h>
 
 #import	<Foundation/NSObject.h>
-#import	<Foundation/NSString.h>
-#import	<Foundation/NSDate.h>
+
+@class	NSDate;
+@class	NSLock;
+@class	NSString;
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -39,6 +41,7 @@ extern "C" {
 #if	GS_EXPOSE(NSDistributedLock)
   NSString	*_lockPath;
   NSDate	*_lockTime;
+  NSLock	*_localLock;
 #endif
 #if     GS_NONFRAGILE
 #else

@@ -50,8 +50,18 @@
 #endif
 
 #import	<Foundation/NSString.h>
+
 #include <setjmp.h>
 #include <stdarg.h>
+
+#if	defined(__WIN64__)
+/* This hack is to deal with the fact that currently (June 2016) the
+ * implementation of longjmp in mingw-w64  sometimes crashes in msvcrt.dll
+ * but the builtin version provided by gcc seems to work.
+ */
+#define	setjmp(X)	__builtin_setjmp(X)
+#define	longjmp(X,Y)	__builtin_longjmp(X,Y)
+#endif
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -354,7 +364,7 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 
 #define NS_DURING { NSHandler NSLocalHandler;			\
 		    _NSAddHandler(&NSLocalHandler);		\
-		    if( !setjmp(NSLocalHandler.jumpState) ) {
+		    if (!setjmp(NSLocalHandler.jumpState)) {
 
 #define NS_HANDLER _NSRemoveHandler(&NSLocalHandler); } else { \
 		    NSException __attribute__((unused)) *localException \

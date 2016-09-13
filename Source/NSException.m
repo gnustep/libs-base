@@ -32,12 +32,14 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCoder.h"
+#import "Foundation/NSLock.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSThread.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
+
 
 #ifdef __GNUSTEP_RUNTIME__
 #include <objc/hooks.h>
@@ -60,12 +62,43 @@
 
 #ifdef HAVE_BACKTRACE
 #include <execinfo.h>
-#ifdef USE_BINUTILS
-#undef USE_BINUTILS
 #endif
+
+/*
+ * Turn off USE_BFD if we don't have bfd support for it.
+ */
+#if !(defined(HAVE_BFD_H) && defined(HAVE_LIBBFD) && defined(HAVE_LIBIBERTY))
+# if defined(USE_BFD)
+#   undef USE_BFD
+# endif
+#endif
+
+#if	defined(_WIN32) && !defined(USE_BFD)
+#include <windows.h>
+#if	defined(HAVE_DBGHELP_H)
+#include <dbghelp.h>
 #else
-#ifndef USE_BINUTILS
-#define	USE_BINUTILS	1
+/* Supply the relevant bits from dbghelp.h if we could't find the header.
+ */
+#define	SYMOPT_UNDNAME		0x00000002
+#define	SYMOPT_DEFERRED_LOADS	0x00000004
+typedef struct _SYMBOL_INFO {
+  ULONG   SizeOfStruct;
+  ULONG   TypeIndex;
+  uint64_t Reserved[2];
+  ULONG   Index;
+  ULONG   Size;
+  uint64_t ModBase;
+  ULONG   Flags;
+  uint64_t Value;
+  uint64_t Address;
+  ULONG   Register;
+  ULONG   Scope;
+  ULONG   Tag;
+  ULONG   NameLen;
+  ULONG   MaxNameLen;
+  TCHAR   Name[1];
+} SYMBOL_INFO;
 #endif
 #endif
 
@@ -73,12 +106,6 @@ static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler = 0;
 
 #define _e_info (((id*)_reserved)[0])
 #define _e_stack (((id*)_reserved)[1])
-
-#if 0 // Testplant-MAL-2015-07-07: Not in main branch
-#if defined(HAVE_UNEXPECTED)
-extern void (*_objc_unexpected_exception)(id);
-#endif
-#endif
 
 /* This is the GNU name for the CTOR list */
 
@@ -96,18 +123,9 @@ extern void (*_objc_unexpected_exception)(id);
 - (GSStackTrace*) _callStack;
 @end
 
-/*
- * Turn off USE_BINUTILS if we don't have bfd support for it.
- */
-#if !(defined(HAVE_BFD_H) && defined(HAVE_LIBBFD) && defined(HAVE_LIBIBERTY))
-#if	defined(USE_BINUTILS)
-#undef	USE_BINUTILS
-#endif
-#endif
 
-
-#if	defined(__MINGW__)
-#if	defined(USE_BINUTILS)
+#if	defined(_WIN32)
+#if	defined(USE_BFD)
 static NSString *
 GSPrivateBaseAddress(void *addr, void **base)
 {
@@ -133,12 +151,12 @@ GSPrivateBaseAddress(void *addr, void **base)
     }
   return nil;
 }
-#endif  /* USE_BINUTILS */
-#else	/* __MINGW__ */
+#endif  /* USE_BFD */
+#else	/* _WIN32 */
 
 #include <dlfcn.h>
 
-#if	defined(USE_BINUTILS)
+#if	defined(USE_BFD)
 static NSString *
 GSPrivateBaseAddress(void *addr, void **base)
 {
@@ -155,10 +173,10 @@ GSPrivateBaseAddress(void *addr, void **base)
   return nil;
 #endif
 }
-#endif  /* USE_BINUTILS */
-#endif	/* __MINGW__ */
+#endif  /* USE_BFD */
+#endif	/* _WIN32 */
 
-#if	defined(USE_BINUTILS)
+#if	defined(USE_BFD)
 
 // GSStackTrace inspired by  FYStackTrace.m
 // created by Wim Oudshoorn on Mon 11-Apr-2006
@@ -553,10 +571,35 @@ GSListModules()
   return result;
 }
 
-#endif	/* USE_BINUTILS */
+#endif	/* USE_BFD */
 
 
 @implementation GSStackTrace : NSObject
+
+static	NSRecursiveLock	*traceLock = nil;
+
+#if	defined(_WIN32) && !defined(USE_BFD)
+typedef USHORT (WINAPI *CaptureStackBackTraceType)(ULONG,ULONG,PVOID*,PULONG);
+typedef BOOL (WINAPI *SymInitializeType)(HANDLE,char*,BOOL);
+typedef DWORD (WINAPI *SymSetOptionsType)(DWORD);
+typedef BOOL (WINAPI *SymFromAddrType)(HANDLE,DWORD64,PDWORD64,SYMBOL_INFO*);
+
+static CaptureStackBackTraceType capture = 0;
+static SymInitializeType initSym = 0;
+static SymSetOptionsType optSym = 0;
+static SymFromAddrType fromSym = 0;
+static HANDLE	hProcess = 0;
+#define	MAXFRAMES 62	/* Limitation of windows-xp */
+#endif
+
+
++ (void) initialize
+{
+  if (nil == traceLock)
+    {
+      traceLock = [NSRecursiveLock new];
+    }
+}
 
 - (NSArray*) addresses
 {
@@ -592,7 +635,104 @@ GSListModules()
 // grab the current stack 
 - (id) init
 {
-#if	defined(HAVE_BACKTRACE)
+#if	defined(USE_BFD)
+  addresses = [GSPrivateStackAddresses() copy];
+#elif	defined(_WIN32)
+  uint16_t	frames;
+  NSUInteger	addr[MAXFRAMES];
+  NSNumber	*vals[MAXFRAMES];
+  NSUInteger 	i;
+
+  [traceLock lock];
+  if (0 == hProcess)
+    {
+      hProcess = GetCurrentProcess();
+
+      if (0 == capture)
+	{
+	  HANDLE	hModule;
+
+	  hModule = LoadLibrary("kernel32.dll");
+	  if (0 == hModule)
+	    {
+	      fprintf(stderr, "Failed to load kernel32.dll with error: %d\n",
+		(int)GetLastError());
+	      [traceLock unlock];
+	      return self;
+	    }
+	  capture = (CaptureStackBackTraceType)GetProcAddress(
+	    hModule, "RtlCaptureStackBackTrace");
+	  if (0 == capture)
+	    {
+	      fprintf(stderr, "Failed to find RtlCaptureStackBackTrace: %d\n",
+		(int)GetLastError());
+	      [traceLock unlock];
+	      return self;
+	    }
+	  hModule = LoadLibrary("dbghelp.dll");
+	  if (0 == hModule)
+	    {
+	      fprintf(stderr, "Failed to load dbghelp.dll with error: %d\n",
+		(int)GetLastError());
+	      [traceLock unlock];
+	      return self;
+	    }
+	  optSym = (SymSetOptionsType)GetProcAddress(
+	    hModule, "SymSetOptions");
+	  if (0 == optSym)
+	    {
+	      fprintf(stderr, "Failed to find SymSetOptions: %d\n",
+		(int)GetLastError());
+	      [traceLock unlock];
+	      return self;
+	    }
+	  initSym = (SymInitializeType)GetProcAddress(
+	    hModule, "SymInitialize");
+	  if (0 == initSym)
+	    {
+	      fprintf(stderr, "Failed to find SymInitialize: %d\n",
+		(int)GetLastError());
+	      [traceLock unlock];
+	      return self;
+	    }
+	  fromSym = (SymFromAddrType)GetProcAddress(
+	    hModule, "SymFromAddr");
+	  if (0 == fromSym)
+	    {
+	      fprintf(stderr, "Failed to find SymFromAddr: %d\n",
+		(int)GetLastError());
+	      [traceLock unlock];
+	      return self;
+	    }
+	}
+
+      (optSym)(SYMOPT_UNDNAME | SYMOPT_DEFERRED_LOADS);
+
+      if (!(initSym)(hProcess, NULL, TRUE))
+	{
+	  fprintf(stderr, "SymInitialize failed with error: %d\n",
+	    (int)GetLastError());
+	  fromSym = 0;
+	  [traceLock unlock];
+	  return self;
+	}
+    }
+  if (0 == capture)
+    {
+      [traceLock unlock];
+      return self;
+    }
+
+  frames = (capture)(0, MAXFRAMES, (void**)addr, NULL);
+  for (i = 0; i < frames; i++)
+    {
+      vals[i] = [NSNumber numberWithUnsignedInteger: addr[i]];
+    }
+  [traceLock unlock];
+
+  addresses = [[NSArray alloc] initWithObjects: vals count: frames];
+
+#elif	defined(HAVE_BACKTRACE)
   void		**addr;
   id		*vals;
   int		count;
@@ -623,28 +763,7 @@ GSListModules()
 
       if (count > 0)
 	{
-#if	defined(HAVE_BACKTRACE)
-	  char		**strs;
-	  void		**addr;
-	  NSString	**symbolArray;
-	  NSUInteger 	i;
-
-	  addr = alloca(count * sizeof(void*));
-	  for (i = 0; i < count; i++)
-	    {
-	      addr[i] = (void*)[[addresses objectAtIndex: i]
-		unsignedIntegerValue];
-	    }
-
-	  strs = backtrace_symbols(addr, count);
-	  symbolArray = alloca(count * sizeof(NSString*));
-	  for (i = 0; i < count; i++)
-	    {
-	      symbolArray[i] = [NSString stringWithUTF8String: strs[i]];
-	    }
-	  symbols = [[NSArray alloc] initWithObjects: symbolArray count: count];
-	  free(strs);
-#elif	defined(USE_BINUTILS)
+#if	defined(USE_BFD)
 	  NSMutableArray	*a;
 	  NSUInteger 		i;
 
@@ -710,6 +829,58 @@ GSListModules()
 	    }
 	  symbols = [a copy];
 	  [a release];
+#elif	defined(_WIN32)
+	  SYMBOL_INFO	*symbol;
+	  NSString	*syms[MAXFRAMES];
+	  NSUInteger	i;
+
+	  symbol = (SYMBOL_INFO *)calloc(sizeof(SYMBOL_INFO)
+	    + 1024 * sizeof(char), 1);
+	  symbol->MaxNameLen = 1024;
+	  symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+
+	  [traceLock lock];
+	  for (i = 0; i < count; i++)
+	    {
+	      NSUInteger	addr; 
+
+	      addr = (NSUInteger)[[addresses objectAtIndex: i] integerValue];
+	      if ((fromSym)(hProcess, (DWORD64)addr, 0, symbol))
+		{
+		  syms[i] = [NSString stringWithFormat:
+		    @"%s - %p", symbol->Name, addr];
+		}
+	      else
+		{
+		  syms[i] = [NSString stringWithFormat:
+		    @"unknown - %p", symbol->Name, addr];
+		}
+	    }
+	  [traceLock unlock];
+	  free(symbol);
+
+	  symbols = [[NSArray alloc] initWithObjects: syms count: count];
+#elif	defined(HAVE_BACKTRACE)
+	  char		**strs;
+	  void		**addr;
+	  NSString	**symbolArray;
+	  NSUInteger 	i;
+
+	  addr = alloca(count * sizeof(void*));
+	  for (i = 0; i < count; i++)
+	    {
+	      addr[i] = (void*)[[addresses objectAtIndex: i]
+		unsignedIntegerValue];
+	    }
+
+	  strs = backtrace_symbols(addr, count);
+	  symbolArray = alloca(count * sizeof(NSString*));
+	  for (i = 0; i < count; i++)
+	    {
+	      symbolArray[i] = [NSString stringWithUTF8String: strs[i]];
+	    }
+	  symbols = [[NSArray alloc] initWithObjects: symbolArray count: count];
+	  free(strs);
 #endif
 	}
       else
@@ -810,13 +981,12 @@ callUncaughtHandler(id value)
 
 + (void) initialize
 {
-#if	defined(USE_BINUTILS)
+#if	defined(USE_BFD)
   if (modLock == nil)
     {
       modLock = [NSRecursiveLock new];
     }
-  NSLog(@"WARNING this copy of gnustep-base has been built with libbfd to provide symbolic stacktrace support. This means that the license of this copy of gnustep-base is GPL rather than the normal LGPL license (since libbfd is released under the GPL license).  If this is not what you want, please obtain a copy of gnustep-base which was not configured with the --enable-bfd option");
-#endif	/* USE_BINUTILS */
+#endif	/* USE_BFD */
 #if defined(_NATIVE_OBJC_EXCEPTIONS)
 #  ifdef HAVE_SET_UNCAUGHT_EXCEPTION_HANDLER
   objc_setUncaughtExceptionHandler(callUncaughtHandler);
@@ -1132,7 +1302,7 @@ _NSAddHandler (NSHandler* handler)
   NSThread *thread;
 
   thread = GSCurrentThread();
-#if defined(__MINGW__) && defined(DEBUG)
+#if defined(_WIN32) && defined(DEBUG)
   if (thread->_exception_handler
     && IsBadReadPtr(thread->_exception_handler, sizeof(NSHandler)))
     {
@@ -1155,7 +1325,7 @@ _NSRemoveHandler (NSHandler* handler)
       fprintf(stderr, "ERROR: Removing exception handler that is not on top "
 	"of the stack. (You probably called return in an NS_DURING block.)\n");
     }
-#if defined(__MINGW__)
+#if defined(_WIN32)
   if (IsBadReadPtr(handler, sizeof(NSHandler)))
     {
       fprintf(stderr, "ERROR: Could not remove exception handler, "

@@ -45,14 +45,6 @@
 #import "GSInvocation.h"
 #import "GSPrivate.h"
 
-#if defined(ALPHA) || (defined(MIPS) && (_MIPS_SIM == _ABIN32))
-typedef long long smallret_t;
-#elif defined(__sparc)
-typedef NSInteger smallret_t;
-#else
-typedef int smallret_t;
-#endif
-
 /* ffi defines types in a very odd way that doesn't map to the
    normal objective-c type (see ffi.h). Here we make up for that */
 #if GS_SIZEOF_SHORT == 2
@@ -540,6 +532,10 @@ cifframe_type(const char *typePtr, const char **advance)
 
     case _C_VOID: ftype = &ffi_type_void;
       break;
+#if __GNUC__ > 2 && defined(_C_BOOL)
+    case _C_BOOL: ftype = &ffi_type_uchar;
+      break;
+#endif
     default:
       ftype = &ffi_type_void;
       NSCAssert(0, @"Unknown type in sig");
@@ -614,26 +610,34 @@ cifframe_decode_arg (const char *type, void* buffer)
   type = objc_skip_type_qualifiers (type);
   switch (*type)
     {
-    case _C_CHR:
-    case _C_UCHR:
-      {
-	*(unsigned char*)buffer = (unsigned char)(*((smallret_t *)buffer));
+      case _C_CHR:
+	*(signed char*)buffer = (signed char)(*((ffi_sarg *)buffer));
+        break;
+      case _C_UCHR:
+	*(unsigned char*)buffer = (unsigned char)(*((ffi_arg *)buffer));
 	break;
-      }
-    case _C_SHT:
-    case _C_USHT:
-      {
-	*(unsigned short*)buffer = (unsigned short)(*((smallret_t *)buffer));
+      case _C_SHT:
+	*(signed short*)buffer = (signed short)(*((ffi_sarg *)buffer));
 	break;
-      }
-    case _C_INT:
-    case _C_UINT:
-      {
-	*(unsigned int*)buffer = (unsigned int)(*((smallret_t *)buffer));
+      case _C_USHT:
+	*(unsigned short*)buffer = (unsigned short)(*((ffi_arg *)buffer));
 	break;
-      }
-    default:
-      return NO;
+      case _C_INT:
+	*(signed int*)buffer = (signed int)(*((ffi_sarg *)buffer));
+	break;
+      case _C_UINT:
+	*(unsigned int*)buffer = (unsigned int)(*((ffi_arg *)buffer));
+	break;
+      case _C_LNG:
+        if (sizeof(signed long) < sizeof(ffi_sarg))
+          *(signed long*)buffer = (signed long)(*((ffi_sarg *)buffer));
+	break;
+      case _C_ULNG:
+        if (sizeof(unsigned long) < sizeof(ffi_arg))
+          *(unsigned long*)buffer = (unsigned long)(*((ffi_arg *)buffer));
+	break;
+      default:
+        return NO;
     }
   return YES;
 }
@@ -644,26 +648,34 @@ cifframe_encode_arg (const char *type, void* buffer)
   type = objc_skip_type_qualifiers (type);
   switch (*type)
     {
-    case _C_CHR:
-    case _C_UCHR:
-      {
-	*(smallret_t *)buffer = (smallret_t)(*((unsigned char *)buffer));
-	break;
-      }
-    case _C_SHT:
-    case _C_USHT:
-      {
-	*(smallret_t *)buffer = (smallret_t)(*((unsigned short *)buffer));
-	break;
-      }
-    case _C_INT:
-    case _C_UINT:
-      {
-	*(smallret_t *)buffer = (smallret_t)(*((unsigned int *)buffer));
-	break;
-      }
-    default:
-      return NO;
+      case _C_CHR:
+        *(ffi_sarg *)buffer = (ffi_sarg)(*((signed char *)buffer));
+        break;
+      case _C_UCHR:
+        *(ffi_arg *)buffer = (ffi_arg)(*((unsigned char *)buffer));
+        break;
+      case _C_SHT:
+        *(ffi_sarg *)buffer = (ffi_sarg)(*((signed short *)buffer));
+        break;
+      case _C_USHT:
+        *(ffi_arg *)buffer = (ffi_arg)(*((unsigned short *)buffer));
+        break;
+      case _C_INT:
+        *(ffi_sarg *)buffer = (ffi_sarg)(*((signed int *)buffer));
+        break;
+      case _C_UINT:
+        *(ffi_arg *)buffer = (ffi_arg)(*((unsigned int *)buffer));
+        break;
+      case _C_LNG:
+        if (sizeof(signed long) < sizeof(ffi_sarg))
+          *(ffi_sarg *)buffer = (ffi_sarg)(*((signed long *)buffer));
+        break;
+      case _C_ULNG:
+        if (sizeof(unsigned long) < sizeof(ffi_arg))
+          *(ffi_arg *)buffer = (ffi_arg)(*((unsigned int *)buffer));
+        break;
+      default:
+        return NO;
     }
   return YES;
 }

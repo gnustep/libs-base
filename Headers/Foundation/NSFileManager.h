@@ -197,7 +197,7 @@ extern "C" {
 typedef	uint32_t	OSType;
 #define OSTYPE_DECLARED
 #endif
-  
+
 enum _NSDirectoryEnumerationOptions
   {
     NSDirectoryEnumerationSkipsSubdirectoryDescendants = 1L << 0,
@@ -232,10 +232,6 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 - (NSDictionary *) attributesOfItemAtPath: (NSString*)path
 				    error: (NSError**)error;
-
-- (BOOL)setAttributes:(NSDictionary *) attributes
-         ofItemAtPath:(NSString *) path
-                error:(NSError **) error;
 
 /**
  * Copies the item specified by the src path to the 
@@ -315,19 +311,22 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
 /**
  * Returns an array of NSURL of the contents of the specified directory. <br>
  * The listing is shallow and does not recurse into subdirectories.
- * The special files '.' and '..' are excluded but it can return hidden files. <br>
- * The only <i>mask</i> option supported is  NSDirectoryEnumerationSkipsHiddenFiles.<br>
+ * The special files '.' and '..' are excluded but it can return
+ * hidden files.<br>
+ * The only mask option supported is
+ * NSDirectoryEnumerationSkipsHiddenFiles.<br>
  * The current implementation handles only files and property keys are ignored.
  */
-- (NSArray*) contentsOfDirectoryAtURL:(NSURL*)url
-           includingPropertiesForKeys:(NSArray*)keys
-                              options:(NSDirectoryEnumerationOptions)mask
-                                error:(NSError **)error;
+- (NSArray*) contentsOfDirectoryAtURL: (NSURL*)url
+           includingPropertiesForKeys: (NSArray*)keys
+                              options: (NSDirectoryEnumerationOptions)mask
+                                error: (NSError **)error;
 #endif
   
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 /**
- * Returns an array of NSStrings of the contents of the specified directory.<br />
+ * Returns an array of NSStrings of the contents of the
+ * specified directory.<br />
  * The listing does <strong>not</strong> recursively list subdirectories.<br />
  * The special files '.' and '..' are not listed.<br />
  * Indicates an error by returning nil (eg. if path is not a directory or
@@ -370,7 +369,7 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
  */
 - (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path;
 - (NSDictionary*) fileAttributesAtPath: (NSString*)path
-                          traverseLink: (BOOL)flag;
+			  traverseLink: (BOOL)flag;
 
 /**
  * Returns YES if a file (or directory etc) exists at the specified path.
