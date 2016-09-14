@@ -61,6 +61,8 @@ typedef NSInteger NSUserNotificationActivationType;
 #if	GS_EXPOSE(NSUserNotification)
   @public
   id _uniqueId;
+  // Testplant-MAL-09142016: Addtions for supporting @synthesize which for does not
+  // compile for our version of clang - why?
   NSString *title;
   NSString *subtitle;
   NSString *informativeText;
