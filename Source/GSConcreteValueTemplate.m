@@ -90,17 +90,7 @@
    * Ensure that the version encoded is that used by the abstract class.
    */
   [self setVersion: [super version]];
-#if TYPE_ORDER == 0 && GS_WITH_GC
-  GSMakeWeakPointer(self, "data");
-#endif
 }
-
-#if TYPE_ORDER == 0 && GS_WITH_GC
-- (void) finalize
-{
-  GSAssignZeroingWeakPointer((void**)&data, (void*)nil);
-}
-#endif
 
 // Allocating and Initializing
 
@@ -109,11 +99,7 @@
 {
   typedef __typeof__(data) _dt;
   self = [super init];
-#if TYPE_ORDER == 0 && GS_WITH_GC
-  GSAssignZeroingWeakPointer((void**)&data, (void*)(*(id*)value));
-#else
   data = *(_dt *)value;
-#endif
   return self;
 }
 

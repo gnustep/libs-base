@@ -881,7 +881,19 @@ didUpdateRecordData: (id)data
     }
 
   //Create the entry group:
-  _entryGroup = avahi_entry_group_new((AvahiClient*)_client, GSAvahiEntryGroupStateChanged, (void*)self);
+  if (NULL != _client)
+    {
+      _entryGroup = avahi_entry_group_new((AvahiClient*)_client,
+                                          GSAvahiEntryGroupStateChanged,
+                                          (void*)self);
+    }
+  else
+    {
+      // having no _client usually means that avahi-daemon (or dbus)
+      // isn't running, unfortunately there's no precise errNo at this point
+      // so we're providing just our best guess
+      return AVAHI_ERR_NO_DAEMON;
+    }
 
   // Handle error:
   if (NULL == _entryGroup)
@@ -1058,9 +1070,9 @@ didUpdateRecordData: (id)data
         }
     }
 
-      [_lock unlock];
+  [_lock unlock];
   return ret == 0 ? YES : NO;
-    }
+}
 
 - (BOOL) addServiceRecord
 {
@@ -1072,10 +1084,11 @@ didUpdateRecordData: (id)data
   [_lock lock];
   if (_entryGroup == NULL)
     {
-  if (NO == [self addServiceRecordWithOptions: options])
-    {
-      [self handleError: avahi_client_errno((AvahiClient*)_client)];
-    }
+      if (NO == [self addServiceRecordWithOptions: options])
+        {
+          [self handleError: _client ? avahi_client_errno((AvahiClient*)_client)
+                                     : AVAHI_ERR_NO_DAEMON];
+        }
     }
   [self commitEntryGroup];
   [_lock unlock];
@@ -1219,7 +1232,7 @@ didUpdateRecordData: (id)data
       _entryGroup = NULL;
     }
 
-  if (0 != NSCountMapTable(_browsers))
+  if ((_browsers != NULL)  && (0 != NSCountMapTable(_browsers)))
     {
       NSMapTable *enumerationTable;
       NSMapEnumerator bEnum;

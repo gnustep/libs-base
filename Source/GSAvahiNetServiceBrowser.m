@@ -290,6 +290,7 @@ GSAvahiServiceBrowserEvent(
     {
       err = NSNetServicesActivityInProgress;
     }
+  // Testplant-MAL-09142016: Added error check...
   else if (_client == NULL)
     {
       err = NSNetServicesInvalidError;
@@ -484,6 +485,7 @@ GSAvahiServiceBrowserEvent(
   }
   _type = GSAvahiUnknownBrowser;
 
+  // Testplant-MAL-09142016: Added closing sequence...
   {
     GSAvahiNetService *service = nil;
     NSEnumerator      *iter    = [_services objectEnumerator];
