@@ -40,7 +40,10 @@ static const NSUInteger chunkSize = 32;
 static int64_t
 UTextNSStringNativeLength(UText *ut)
 {
-  return [(NSString*)ut->p length];
+  /* For constant strings the length is stored in ut->c, but for mutable
+   * strings this is set to -1 and we must check the length every time.
+   */
+  return (-1 == ut->c) ? [(NSString*)ut->p length] : ut->c;
 }
 
 
@@ -52,49 +55,82 @@ UBool
 UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
 {
   NSString	*str = (NSString*)ut->p;
-  NSUInteger	length = [str length];
+  NSInteger	length = (-1 == ut->c) ? (NSInteger)[str length] : ut->c;
+  NSInteger     nativeStart = ut->chunkNativeStart;
+  NSInteger     nativeLimit = ut->chunkNativeLimit;
   NSRange	r;
 
-  if (nativeIndex >= length)
-    {
-      return FALSE;
-    }
-
-  /* Special case if the chunk already contains this index
-   */
-  if (nativeIndex >= ut->chunkNativeStart
-    && nativeIndex < (ut->chunkNativeStart + ut->chunkLength))
-    {
-      ut->chunkOffset = nativeIndex - ut->chunkNativeStart;
-      return TRUE;
-    }
-  r = NSMakeRange(nativeIndex, chunkSize);
-  forward = TRUE;
   if (forward)
     {
-      if (nativeIndex + chunkSize > length)
-	{
-	  r.length = length - nativeIndex;
-	}
+      if (nativeIndex < nativeLimit && nativeIndex >= nativeStart)
+        {
+          /* The chunk already contains the index, set the offset
+           * to match it.
+           */
+          ut->chunkOffset = nativeIndex - nativeStart;
+          return TRUE;
+        }
+
+      if (nativeIndex >= length && nativeLimit >= length)
+        {
+          /* Asking for a position beyond the end of the string;
+           * Limit it to point just after the last character.
+           */
+          ut->chunkOffset = ut->chunkLength;
+          return FALSE;
+        }
+
+      /* Set up to fill the chunk with characters from the string
+       * and to start at the beginning of that buffer.
+       */
+      nativeStart = nativeIndex;
+      nativeLimit = nativeIndex + chunkSize;
+      if (nativeLimit > length)
+        {
+          nativeLimit = length;
+        }
+      r.location = nativeIndex;
+      r.length = nativeLimit - nativeIndex;
+      ut->chunkOffset = 0;
     }
   else
     {
-      if (nativeIndex - chunkSize > 0)
-	{
-	  r.location = nativeIndex - chunkSize;
-	  r.length = chunkSize;
-	}
-      else
-	{
-	  r.location = 0;
-	  r.length = chunkSize - nativeIndex;
-	}
+      if (nativeIndex <= nativeLimit && nativeIndex > nativeStart)
+        {
+          /* The chunk already contains the index, set the offset
+           * to match it.
+           */
+          ut->chunkOffset = nativeIndex - nativeStart;
+          return TRUE;
+        }
+
+      if (nativeIndex <= 0 && nativeStart <= 0)
+        {
+          /* Asking for a position beyond the start of the string;
+           * Limit it to position of the first character.
+           */
+          ut->chunkOffset = 0;
+          return FALSE;
+        }
+
+      nativeLimit = nativeIndex;
+      if (nativeLimit > length)
+        {
+          nativeLimit = length;
+        }
+      nativeStart = nativeLimit - chunkSize;
+      if (nativeStart < 0)
+        {
+          nativeStart = 0;
+        }
+      r.location = nativeStart;
+      r.length = nativeLimit - nativeStart;
+      ut->chunkOffset = r.length;
     }
   [str getCharacters: ut->pExtra range: r];
-  ut->chunkNativeStart = r.location;
-  ut->chunkNativeLimit = r.location + r.length;
+  ut->chunkNativeLimit = nativeLimit;
+  ut->chunkNativeStart = nativeStart;
   ut->chunkLength = r.length;
-  ut->chunkOffset = 0;
   return TRUE;
 }
 
@@ -120,9 +156,10 @@ UTextNSMutableStringReplace(UText *ut,
     }
   else
     {
-      replacement = [replacement initWithCharactersNoCopy: (unichar*)replacementText
-						   length: replacmentLength 
-					     freeWhenDone: NO];
+      replacement = [replacement
+        initWithCharactersNoCopy: (unichar*)replacementText
+                          length: replacmentLength 
+                    freeWhenDone: NO];
     }
   [str replaceCharactersInRange: r withString: replacement];
 
@@ -152,34 +189,35 @@ UTextNSStringExtract(UText *ut,
   int32_t destCapacity,
   UErrorCode *status)
 {
-  NSString	*str;
-  NSUInteger	length;
-  NSRange	r;
-
   /* If we're loading no characters, we are expected to return the number of
    * characters that we could load if requested.
    */
-  if (destCapacity == 0)
+  if (destCapacity <= 0)
     {
       return nativeLimit - nativeStart;
     }
-  str = (NSString*)ut->p;
-  length = [str length];
-  if (nativeLimit > length)
+  else
     {
-      nativeLimit = length;
+      NSString	        *str = (NSString*)ut->p;
+      NSUInteger	length = (-1 == ut->c) ? [str length] : ut->c;
+      NSRange	        r;
+
+      if (nativeLimit > length)
+        {
+          nativeLimit = length;
+        }
+      r = NSMakeRange(nativeStart, nativeLimit - nativeStart );
+      if (destCapacity < r.length)
+        {
+          r.length = destCapacity;
+        }
+      [str getCharacters: dest range: r];
+      if (destCapacity > r.length)
+        {
+          dest[r.length] = 0;
+        }
+      return r.length;
     }
-  r = NSMakeRange(nativeStart, nativeLimit - nativeStart );
-  if (destCapacity < r.length)
-    {
-      r.length = destCapacity;
-    }
-  [str getCharacters: dest range: r];
-  if (destCapacity > r.length)
-    {
-      dest[r.length] = 0;
-    }
-  return r.length;
 }
 
 /**
@@ -193,7 +231,7 @@ void UTextNSStringCopy(UText *ut,
   UErrorCode *status)
 {
   NSMutableString	*str = (NSMutableString*)ut->p;
-  NSUInteger		length = [str length];
+  NSUInteger	        length = (-1 == ut->c) ? [str length] : ut->c;
   NSRange		r;
   NSString		*substr;
 
@@ -341,7 +379,7 @@ UTextInitWithNSMutableString(UText *txt, NSMutableString *str)
   txt->pFuncs = &NSMutableStringFuncs;
   txt->chunkContents = txt->pExtra;
   txt->nativeIndexingLimit = INT32_MAX;
-
+  txt->c = -1;  // Need to fetch length every time
   txt->providerProperties = 1<<UTEXT_PROVIDER_WRITABLE;
 
   return txt;
@@ -362,6 +400,7 @@ UTextInitWithNSString(UText *txt, NSString *str)
   txt->pFuncs = &NSStringFuncs;
   txt->chunkContents = txt->pExtra;
   txt->nativeIndexingLimit = INT32_MAX;
+  txt->c = [str length];
 
   return txt;
 }

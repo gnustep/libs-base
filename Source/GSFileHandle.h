@@ -30,9 +30,8 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSRunLoop.h"
 
-#import <GNUstepBase/GSConfig.h>
 
-#if defined(__MINGW__) && defined(__clang__)
+#if defined(_WIN32) && defined(__clang__)
 #import <winsock2.h>
 #endif
 
@@ -71,7 +70,7 @@ struct sockaddr_in;
 #if	USE_ZLIB
   gzFile		gzDescriptor;
 #endif
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   WSAEVENT  		event;
 #endif
 #endif
@@ -110,7 +109,9 @@ struct sockaddr_in;
 		  type: (RunLoopEventType)type
 	         extra: (void*)extra
 	       forMode: (NSString*)mode;
+
 - (void) setAddr: (struct sockaddr *)sin;
+
 - (BOOL) useCompression;
 - (void) watchReadDescriptorForModes: (NSArray*)modes;
 - (void) watchWriteDescriptor;

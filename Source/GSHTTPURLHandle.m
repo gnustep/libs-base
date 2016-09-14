@@ -43,6 +43,7 @@
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/NSData+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 #import "NSCallBacks.h"
@@ -127,7 +128,7 @@ static NSString	*httpVersion = @"1.1";
     reading,
   } connectionState;
 }
-- (void) setDebug: (BOOL)flag;
+- (int) setDebug: (int)flag;
 - (void) _tryLoadInBackground: (NSURL*)fromURL;
 @end
 
@@ -230,36 +231,62 @@ static Class			sslClass = 0;
 static void
 debugRead(GSHTTPURLHandle *handle, NSData *data)
 {
-  int		len = (int)[data length];
-  const char	*ptr = (const char*)[data bytes];
+  int   	len = (int)[data length];
+  const uint8_t	*ptr = (const uint8_t*)[data bytes];
+  uint8_t       *hex;
+  NSUInteger    hl;
   int           pos;
 
+  hl = ((len + 2) / 3) * 4;
+  hex = malloc(hl + 1);
+  hex[hl] = '\0';
+  GSPrivateEncodeBase64(ptr, (NSUInteger)len, hex);
   for (pos = 0; pos < len; pos++)
     {
       if (0 == ptr[pos])
         {
-          NSLog(@"Read for %p of %d bytes - %@", handle, len, data); 
+          char  *esc = [data escapedRepresentation: 0];
+
+          NSLog(@"Read for %p of %d bytes (escaped) - '%s'\n<[%s]>",
+            handle, len, esc, hex); 
+          free(esc);
+          free(hex);
           return;
         }
     }
-  NSLog(@"Read for %p of %d bytes -'%*.*s'", handle, len, len, len, ptr); 
+  NSLog(@"Read for %p of %d bytes - '%*.*s'\n<[%s]>",
+    handle, len, len, len, ptr, hex); 
+  free(hex);
 }
 static void
 debugWrite(GSHTTPURLHandle *handle, NSData *data)
 {
-  int		len = (int)[data length];
-  const char	*ptr = (const char*)[data bytes];
-  int           pos = len;
+  int	        len = (int)[data length];
+  const uint8_t	*ptr = (const uint8_t*)[data bytes];
+  uint8_t       *hex;
+  NSUInteger    hl;
+  int           pos;
 
+  hl = ((len + 2) / 3) * 4;
+  hex = malloc(hl + 1);
+  hex[hl] = '\0';
+  GSPrivateEncodeBase64(ptr, (NSUInteger)len, hex);
   for (pos = 0; pos < len; pos++)
     {
       if (0 == ptr[pos])
         {
-          NSLog(@"Write for %p of %d bytes - %@", handle, len, data); 
+          char  *esc = [data escapedRepresentation: 0];
+
+          NSLog(@"Write for %p of %d bytes (escaped) - '%s'\n<[%s]>",
+            handle, len, esc, hex); 
+          free(esc);
+          free(hex);
           return;
         }
     }
-  NSLog(@"Write for %p of %d bytes -'%*.*s'", handle, len, len, len, ptr); 
+  NSLog(@"Write for %p of %d bytes - '%*.*s'\n<[%s]>",
+    handle, len, len, len, ptr, hex); 
+  free(hex);
 }
 
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)newUrl
@@ -295,7 +322,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [[NSObject leakAt: &urlOrder] release];
       urlLock = [GSLazyLock new];
       [[NSObject leakAt: &urlLock] release];
-#if	!defined(__MINGW__)
+#if	!defined(_WIN32)
       sslClass = [NSFileHandle sslClass];
 #endif
     }
@@ -417,7 +444,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
       if (([s isEqualToString: @"http"] && [p intValue] == 80)
         || ([s isEqualToString: @"https"] && [p intValue] == 443))
-	{
+        {
           /* Some buggy systems object to the port being in the Host
            * header when it's the default (optional) value.  To keep
            * them happy let's omit it in those cases.
@@ -520,15 +547,20 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
     }
 
+  buf = [[s dataUsingEncoding: NSISOLatin1StringEncoding] mutableCopy];
+
   enumerator = NSEnumerateMapTable(wProperties);
   while (NSNextMapEnumeratorPair(&enumerator, (void **)(&key), (void**)&val))
     {
-      [s appendFormat: @"%@: %@\r\n", key, val];
+      GSMimeHeader      *h;
+
+      h = [[GSMimeHeader alloc] initWithName: key value: val parameters: nil];
+      [buf appendData: [h rawMimeDataPreservingCase: YES foldedAt: 0]];
+      RELEASE(h);
     }
   NSEndMapTableEnumeration(&enumerator);
 
-  [s appendString: @"\r\n"];
-  buf = [[s dataUsingEncoding: NSASCIIStringEncoding] mutableCopy];
+  [buf appendBytes: "\r\n" length: 2];
 
   /*
    * Append any data to be sent
@@ -1277,9 +1309,12 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   return result;
 }
 
-- (void) setDebug: (BOOL)flag
+- (int) setDebug: (int)flag
 {
-  debug = flag;
+  int   old = debug;
+
+  debug = flag ? YES : NO;
+  return old;
 }
 
 - (void) setReturnAll: (BOOL)flag
@@ -1353,7 +1388,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
    */
   if (sock != nil)
     {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
       NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
       NSRunLoop			*loop = [NSRunLoop currentRunLoop];
       NSFileHandle		*test = RETAIN(sock);
@@ -1612,6 +1647,9 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
  *     to 8080 for <code>http</code> and 4430 for <code>https</code>.
  *   </item>
  *   <item>
+ *     Any GSTLS... key to control TLS behavior
+ *   </item>
+ *   <item>
  *     Any NSHTTPProperty... key
  *   </item>
  * </list>
@@ -1625,6 +1663,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
         format: @"%@ %p with invalid key", NSStringFromSelector(_cmd), self];
     }
   if ([propertyKey hasPrefix: @"GSHTTPProperty"]
+    || [propertyKey hasPrefix: @"GSTLS"]
     || [propertyKey hasPrefix: @"NSHTTPProperty"])
     {
       if (property == nil)

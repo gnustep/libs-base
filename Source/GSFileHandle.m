@@ -96,9 +96,9 @@
 #define	NETBUF_SIZE	(1024 * 16)
 #define	READ_SIZE	NETBUF_SIZE*10
 
-static GSFileHandle*	fh_stdin = nil;
-static GSFileHandle*	fh_stdout = nil;
-static GSFileHandle*	fh_stderr = nil;
+static GSFileHandle     *fh_stdin = nil;
+static GSFileHandle     *fh_stdout = nil;
+static GSFileHandle     *fh_stderr = nil;
 
 @interface      GSTcpTune : NSObject
 - (int) delay;
@@ -382,19 +382,19 @@ static GSTcpTune        *tune = nil;
   else
     {
 #if	USE_ZLIB
-  /*
-   * The gzDescriptor should always be closed when we have done with it.
-   */
-  if (gzDescriptor != 0)
-    {
-      gzclose(gzDescriptor);
-      gzDescriptor = 0;
-    }
+      /*
+       * The gzDescriptor should always be closed when we have done with it.
+       */
+      if (gzDescriptor != 0)
+        {
+          gzclose(gzDescriptor);
+          gzDescriptor = 0;
+        }
 #endif
-  if (descriptor != -1)
-    {
-      [self setNonBlocking: wasNonBlocking];
-	}
+      if (descriptor != -1)
+        {
+          [self setNonBlocking: wasNonBlocking];
+        }
     }
 }
 
@@ -1208,7 +1208,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
       if (fstat(desc, &sbuf) < 0)
 	{
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 	  /* On windows, an fstat will fail if the descriptor is a pipe
 	   * or socket, so we simply mark the descriptor as not being a
 	   * standard file.
@@ -2082,9 +2082,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  unsigned int		size = sizeof(sin);
 
           [tune tune: (void*)(intptr_t)desc];
-
+        
 	  h = [[[self class] alloc] initWithFileDescriptor: desc
-						closeOnDealloc: YES];
+					    closeOnDealloc: YES];
 	  h->isSocket = YES;
 	  getpeername(desc, &sin, &size);
 	  [h setAddr: &sin];
@@ -2205,7 +2205,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
           int	written;
 
           written = [self write: (char*)ptr+writePos
-    		     length: length-writePos];
+                         length: length-writePos];
           if (written <= 0)
             {
 	      if (written < 0 && errno != EAGAIN && errno != EINTR)
