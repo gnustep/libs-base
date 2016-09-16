@@ -304,7 +304,16 @@ static NSMutableDictionary      *fileMap = nil;
                   format: @"[GSTLS+dataForTLSFile:] called with bad file name"];
     }
   [fileLock lock];
-  result = [[fileMap objectForKey: fileName] retain];
+  NS_DURING
+    {
+      result = [[fileMap objectForKey: fileName] retain];
+    }
+  NS_HANDLER
+    {
+      [fileLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   [fileLock unlock];
   if (nil == result)
     {
@@ -369,7 +378,23 @@ static NSMutableDictionary      *fileMap = nil;
                   format: @"[GSTLS+setData:forTLSFile:] called with bad file"];
     }
   [fileLock lock];
-  [fileMap setObject: data forKey: fileName];
+  NS_DURING
+    {
+      if (data == nil)
+        {
+          [fileMap removeObjectForKey: fileName];
+        }
+      else
+        {
+          [fileMap setObject: data forKey: fileName];
+        }
+    }
+  NS_HANDLER
+    {
+      [fileLock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   [fileLock unlock];
 }
 
