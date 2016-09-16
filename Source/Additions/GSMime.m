@@ -5854,8 +5854,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
        * When there is a header, there are trwo possible 8bit encodings
        * that we need to deal with...
        */
-      if ([CteBinary caseInsensitiveCompare: v] == NSOrderedSame
-	|| [Cte8bit caseInsensitiveCompare: v] == NSOrderedSame)
+      if (v != nil
+        && ([CteBinary caseInsensitiveCompare: v] == NSOrderedSame
+	  || [Cte8bit caseInsensitiveCompare: v] == NSOrderedSame))
 	{
           GSMimeHeader  *t = [self headerNamed: @"content-type"];
           NSString	*charset = [t parameterForKey: @"charset"];
@@ -5945,8 +5946,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       GSMimeHeader	*h = [self headerNamed: @"content-transfer-encoding"];
       NSString		*v = [h value];
 
-      if ([CteBase64 caseInsensitiveCompare: v] == NSOrderedSame
-        || [CteQuotedPrintable caseInsensitiveCompare: v] == NSOrderedSame)
+      if (v != nil
+        && ([CteBase64 caseInsensitiveCompare: v] == NSOrderedSame
+          || [CteQuotedPrintable caseInsensitiveCompare: v] == NSOrderedSame))
 	{
 	  [h setValue: CteBinary];
 	}

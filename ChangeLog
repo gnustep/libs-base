@@ -1,3 +1,9 @@
+2016-09-16  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/Additions/GSMime.m (convertTo7BitSafe):
+	Add missing checks to avoid calling caseInsensitiveCompare: with a
+	nil argument.
+
 2016-09-16  Niels Grewe <niels.grewe@halbordnung.de>
 
 	* Source/GSTLS.m: Fix bug removing mapped certificates.
