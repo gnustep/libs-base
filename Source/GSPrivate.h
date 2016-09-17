@@ -312,7 +312,7 @@ typedef enum {
   NSRunLoop             *loop;
   NSLock                *lock;
   NSMutableArray        *performers;
-#ifdef __MINGW__
+#ifdef _WIN32
   HANDLE	        event;
 #else
   int                   inputFd;
@@ -418,10 +418,16 @@ GSPrivateLoadModule(NSString *filename, FILE *errorStream,
 
 /* Get the native C-string encoding as used by locale specific code in the
  * operating system.  This may differ from the default C-string encoding
- * if the latter has bewen set via an environment variable.
+ * if the latter has been set via an environment variable.
  */
 NSStringEncoding
 GSPrivateNativeCStringEncoding() GS_ATTRIB_PRIVATE;
+
+/* Get the native C-string encoding as used by the ICU library, which may
+ * differ from the native locale encoding or the default C-string encoding
+ */
+NSStringEncoding
+GSPrivateICUCStringEncoding() GS_ATTRIB_PRIVATE;
 
 /* Function used by the NSRunLoop and friends for processing
  * queued notifications which should be processed at the first safe moment.

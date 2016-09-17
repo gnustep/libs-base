@@ -74,11 +74,7 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
 /**
  * NSNetService using the avahi-client API.
  */
-#ifdef __clang__        /* FIXME ... this is not clang specific! */
 @interface GSAvahiNetService : NSNetService <NSNetServiceDelegate>
-#else
-@interface GSAvahiNetService : NSNetService
-#endif
 {
   // GSAvahiClient behaviour ivars:
   // From superclass: id _delegate;
@@ -120,12 +116,8 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
 /**
  * NSNetServiceBrowser using the avahi-client API.
  */
-#ifdef __clang__        /* FIXME ... this is not clang specific! */
 @interface GSAvahiNetServiceBrowser
   : NSNetServiceBrowser <NSNetServiceBrowserDelegate>
-#else
-@interface GSAvahiNetServiceBrowser: NSNetServiceBrowser
-#endif
 {
   // GSAvahiClient behaviour ivars:
   // from superclass: id _delegate;
@@ -145,16 +137,13 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
 // Include(s)...
 #import <dns_sd.h>
 
+
 // Subclasses using mDNSResponder:
 
 /**
  * NSNetService using the mDNSResponder API.
  */
-#ifdef __clang__        /* FIXME ... this is not clang specific! */
 @interface GSMDNSNetService : NSNetService <NSNetServiceDelegate>
-#else
-@interface GSMDNSNetService : NSNetService
-#endif
 {
   DNSServiceRef _resolverRef;
   DNSServiceRef _queryRef;
@@ -165,11 +154,7 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
 /**
  * NSNetServiceBrowser using the mDNSResponder API.
  */
-#ifdef __clang__        /* FIXME ... this is not clang specific! */
 @interface GSMDNSNetServiceBrowser : NSNetServiceBrowser <NSNetServiceBrowserDelegate>
-#else
-@interface GSMDNSNetServiceBrowser : NSNetServiceBrowser
-#endif
 @end
 
 #endif // GS_USE_AVAHI

@@ -36,13 +36,8 @@
 
 #define GSI_ARRAY_TYPES       GSUNION_OBJ
 
-#if	GS_WITH_GC == 0
 #define GSI_ARRAY_RELEASE(A, X)	[(X).obj release]
 #define GSI_ARRAY_RETAIN(A, X)	[(X).obj retain]
-#else
-#define GSI_ARRAY_RELEASE(A, X)	
-#define GSI_ARRAY_RETAIN(A, X)	
-#endif
 
 #include "GNUstepBase/GSIArray.h"
 
@@ -67,9 +62,8 @@ typedef struct{
   unsigned	maxTimers;
   GSIArray	watchers;	/** The inputs set for the runloop mode */
   unsigned	maxWatchers;
-  NSTimer	*housekeeper;	/** Housekeeping timer for loop.	*/
 @private
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   NSMapTable    *handleMap;     
   NSMapTable	*winMsgMap;
 #else
@@ -88,7 +82,7 @@ typedef struct{
 }
 /* Check to see of the thread has been awakened, blocking until it
  * does get awakened or until the limit date has been reached.
- * A date in the past (or nil) results in a check follwed by an
+ * A date in the past (or nil) results in a check followed by an
  * immediate return.
  */
 + (BOOL) awakenedBefore: (NSDate*)when;

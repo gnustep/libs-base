@@ -4487,7 +4487,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       s = @"";
     }
   ASSIGNCOPY(value, s);
-  if (@"content-type" == lower)
+  if ([lower isEqualToString:@"content-type"])
     {
       NSArray   *a;
 

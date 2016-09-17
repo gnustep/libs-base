@@ -321,6 +321,7 @@ QueryCallback(DNSServiceRef			 sdRef,
       _netServiceBrowser = NULL;
     }
     
+    // Testplant-MAL-09162016: leaks if closing without exiting app...
     {
       id            key;
       NSEnumerator *iter = [browser->services keyEnumerator];
@@ -544,6 +545,7 @@ QueryCallback(DNSServiceRef			 sdRef,
       
       if (flags & kDNSServiceFlagsAdd)
 	    {
+        // Testplant-MAL-09162016: debug help...
         if ([[NSUserDefaults standardUserDefaults] boolForKey: @"GSMDNSNetServiceLoggingEnabled"])
         {
           NSLog(@"%s:found service name: %@ <%s> type:  %@ <%s> domain: %@ <%s>", __PRETTY_FUNCTION__,
@@ -563,7 +565,8 @@ QueryCallback(DNSServiceRef			 sdRef,
           
           [browser->services setObject: service
                                 forKey: key];
-          
+
+          // Testplant-MAL-09162016: trying to fix that occasional crash that happens here so clean up...
           RELEASE(service);
           RELEASE(key);
         }
@@ -584,6 +587,7 @@ QueryCallback(DNSServiceRef			 sdRef,
           [self netServiceBrowser: self
                  didRemoveService: service
                        moreComing: more];
+          // Testplant-MAL-09162016: clean up...
           [browser->services removeObjectForKey: key];
         }
 	      else
@@ -693,6 +697,7 @@ QueryCallback(DNSServiceRef			 sdRef,
     browser->runloop = aRunLoop;
     browser->runloopmode = mode;
     
+    // Testplant-MAL-09162016: if we're going to hang onto the pointer we should retain it...
     [browser->timer retain];
   }
   UNLOCK(browser);
@@ -985,7 +990,7 @@ QueryCallback(DNSServiceRef			 sdRef,
       DESTROY(service->timer);
     }
     
-    // Cocoa leaves this information intact on stop/cleanup...
+    // Testplant-MAL-09162016: Cocoa leaves this information intact on stop/cleanup...
     if (_netService)
     {
       DNSServiceRefDeallocate(_netService);

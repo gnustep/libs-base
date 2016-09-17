@@ -58,6 +58,9 @@
 #ifdef _WIN32
 extern const char *inet_ntop(int, const void *, char *, size_t);
 extern int inet_pton(int , const char *, void *);
+#define	OPTLEN	int
+#else
+#define	OPTLEN	socklen_t
 #endif
 
 unsigned
@@ -68,7 +71,7 @@ GSPrivateSockaddrLength(struct sockaddr *addr)
 #ifdef	AF_INET6
     case AF_INET6:      return sizeof(struct sockaddr_in6);
 #endif
-#ifndef	__MINGW__
+#ifndef	_WIN32
     case AF_LOCAL:       return sizeof(struct sockaddr_un);
 #endif
     default:            return 0;
@@ -1405,7 +1408,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 static inline BOOL
 socketError(int result)
 {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   return (result == SOCKET_ERROR) ? YES : NO;
 #else
   return (result < 0) ? YES : NO;
@@ -1422,7 +1425,7 @@ socketWouldBlock()
 static void
 setNonBlocking(SOCKET fd)
 {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   unsigned long dummy = 1;
 
   if (ioctlsocket(fd, FIONBIO, &dummy) == SOCKET_ERROR)
@@ -1444,7 +1447,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) dealloc
 {
-  if ([self _isOpened])
+  if (_sock != INVALID_SOCKET)
     {
       [self close];
     }
@@ -1462,7 +1465,7 @@ setNonBlocking(SOCKET fd)
       _sibling = nil;
       _closing = NO;
       _passive = NO;
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
       _loopID = WSA_INVALID_EVENT;
 #else
       _loopID = (void*)(intptr_t)-1;
@@ -1492,14 +1495,14 @@ setNonBlocking(SOCKET fd)
       memset(&sin, '\0', size);
       if ([key isEqualToString: GSStreamLocalAddressKey])
 	{
-	  if (getsockname(s, (struct sockaddr*)&sin, &size) != -1)
+	  if (getsockname(s, (struct sockaddr*)&sin, (OPTLEN*)&size) != -1)
 	    {
 	      result = GSPrivateSockaddrHost(&sin);
 	    }
 	}
       else if ([key isEqualToString: GSStreamLocalPortKey])
 	{
-	  if (getsockname(s, (struct sockaddr*)&sin, &size) != -1)
+	  if (getsockname(s, (struct sockaddr*)&sin, (OPTLEN*)&size) != -1)
 	    {
 	      result = [NSString stringWithFormat: @"%d",
 		(int)GSPrivateSockaddrPort(&sin)];
@@ -1507,14 +1510,14 @@ setNonBlocking(SOCKET fd)
 	}
       else if ([key isEqualToString: GSStreamRemoteAddressKey])
 	{
-	  if (getpeername(s, (struct sockaddr*)&sin, &size) != -1)
+	  if (getpeername(s, (struct sockaddr*)&sin, (OPTLEN*)&size) != -1)
 	    {
 	      result = GSPrivateSockaddrHost(&sin);
 	    }
 	}
       else if ([key isEqualToString: GSStreamRemotePortKey])
 	{
-	  if (getpeername(s, (struct sockaddr*)&sin, &size) != -1)
+	  if (getpeername(s, (struct sockaddr*)&sin, (OPTLEN*)&size) != -1)
 	    {
 	      result = [NSString stringWithFormat: @"%d",
 		(int)GSPrivateSockaddrPort(&sin)];
@@ -1607,7 +1610,7 @@ setNonBlocking(SOCKET fd)
         }
 #endif
 
-#ifndef	__MINGW__
+#ifndef	_WIN32
       case AF_LOCAL:
 	{
 	  struct sockaddr_un	peer;
@@ -1641,7 +1644,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) _setLoopID: (void *)ref
 {
-#if	!defined(__MINGW__)
+#if	!defined(_WIN32)
   _sock = (SOCKET)(intptr_t)ref;        // On gnu/linux _sock is _loopID
 #endif
   _loopID = ref;
@@ -1672,7 +1675,7 @@ setNonBlocking(SOCKET fd)
    * monitored, and on mswindows systems we create an event object to be
    * monitored (the socket events are assoociated with this object later).
    */
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   _loopID = CreateEvent(NULL, NO, NO, NULL);
 #else
   _loopID = (void*)(intptr_t)sock;      // On gnu/linux _sock is _loopID
@@ -1714,6 +1717,11 @@ setNonBlocking(SOCKET fd)
   // could be opened because of sibling
   if ([self _isOpened])
     return;
+  if (_sibling && [_sibling streamStatus] == NSStreamStatusError)
+    {
+      [self _setStatus: NSStreamStatusError];
+      return;
+    }
   if (_passive || (_sibling && [_sibling _isOpened]))
     goto open_ok;
   // check sibling status, avoid double connect
@@ -1747,28 +1755,31 @@ setNonBlocking(SOCKET fd)
             }
         }
 
-      if (_handler == nil)
+      if (nil == _handler)
         {
           [GSTLSHandler tryInput: self output: _sibling];
         }
+
       result = connect([self _sock], &_address.s,
         GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
-          if (!socketWouldBlock())
+          if (socketWouldBlock())
             {
-              [self _recordError];
-              [self _setHandler: nil];
-              [_sibling _setHandler: nil];
-              return;
-            }
-          /*
-           * Need to set the status first, so that the run loop can tell
+              /* Need to set the status first, so that the run loop can tell
            * it needs to add the stream as waiting on writable, as an
            * indication of opened
            */
           [self _setStatus: NSStreamStatusOpening];
-#if	defined(__MINGW__)
+            }
+          else
+            {
+              /* Had an immediate connect error.
+               */
+              [self _recordError];
+              [_sibling _recordError];
+            }
+#if	defined(_WIN32)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
 	  if (NSCountMapTable(_loops) > 0)
@@ -1776,7 +1787,7 @@ setNonBlocking(SOCKET fd)
 	      [self _schedule];
 	      return;
 	    }
-          else
+          else if (NSStreamStatusOpening == _currentStatus)
             {
               NSRunLoop *r;
               NSDate    *d;
@@ -1802,7 +1813,7 @@ setNonBlocking(SOCKET fd)
     }
 
  open_ok:
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
   [super open];
@@ -1810,6 +1821,12 @@ setNonBlocking(SOCKET fd)
 
 - (void) close
 {
+  /* If the socket descriptor is still present, we need to close it to
+   * avoid a leak no matter what the nominal state of the stream is.
+   * The descriptor is created before the stream is formally opened.
+   */
+  if (INVALID_SOCKET == _sock)
+    {
   if (_currentStatus == NSStreamStatusNotOpen)
     {
       NSDebugMLLog(@"NSStream",
@@ -1822,8 +1839,10 @@ setNonBlocking(SOCKET fd)
         @"Attempt to close already closed stream %@", self);
       return;
     }
+    }
   [_handler bye];
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
+  [super close];
   if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
     {
       /*
@@ -1843,15 +1862,14 @@ setNonBlocking(SOCKET fd)
       closesocket(_sock);
     }
   WSACloseEvent(_loopID);
-  [super close];
   _loopID = WSA_INVALID_EVENT;
 #else
+  [super close];
   // read shutdown is ignored, because the other side may shutdown first.
   if (!_sibling || [_sibling streamStatus] == NSStreamStatusClosed)
     close((intptr_t)_loopID);
   else
     shutdown((intptr_t)_loopID, SHUT_RD);
-  [super close];
   _loopID = (void*)(intptr_t)-1;
 #endif
   _sock = INVALID_SOCKET;
@@ -1892,7 +1910,7 @@ setNonBlocking(SOCKET fd)
     }
   else
     {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
       readLen = recv([self _sock], (char*) buffer, (socklen_t) len, 0);
 #else
       readLen = read([self _sock], buffer, len);
@@ -1946,7 +1964,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) _dispatch
 {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   AUTORELEASE(RETAIN(self));
   /*
    * Windows only permits a single event to be associated with a socket
@@ -1964,6 +1982,10 @@ setNonBlocking(SOCKET fd)
       NSAssert([_sibling streamStatus] != NSStreamStatusClosed,
 	@"Received event for closed stream");
       [_sibling _dispatch];
+    }
+  else if ([self streamStatus] == NSStreamStatusError)
+    {
+      [self _sendEvent: NSStreamEventErrorOccurred];
     }
   else
     {
@@ -1985,7 +2007,7 @@ setNonBlocking(SOCKET fd)
 	      socklen_t len = sizeof(error);
 
 	      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
-		(char*)&error, &len);
+		(char*)&error, (OPTLEN*)&len);
 	    }
 
 	  if (getReturn >= 0 && error == 0
@@ -2067,7 +2089,8 @@ setNonBlocking(SOCKET fd)
 
       IF_NO_GC([[self retain] autorelease];)
       [self _unschedule];
-      result = getsockopt([self _sock], SOL_SOCKET, SO_ERROR, &error, &len);
+      result = getsockopt([self _sock], SOL_SOCKET, SO_ERROR,
+	&error, (OPTLEN*)&len);
 
       if (result >= 0 && !error)
         { // finish up the opening
@@ -2092,6 +2115,10 @@ setNonBlocking(SOCKET fd)
     {
       myEvent = NSStreamEventEndEncountered;
     }
+  else if ([self streamStatus] == NSStreamStatusError)
+    {
+      myEvent = NSStreamEventErrorOccurred;
+    }
   else
     {
       [self _setStatus: NSStreamStatusOpen];
@@ -2101,7 +2128,7 @@ setNonBlocking(SOCKET fd)
 #endif
 }
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
   *trigger = YES;
@@ -2139,7 +2166,7 @@ setNonBlocking(SOCKET fd)
       return 0;
     }
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   writeLen = send([self _sock], (char*) buffer, (socklen_t) len, 0);
 #else
   writeLen = write([self _sock], buffer, (socklen_t) len);
@@ -2185,6 +2212,11 @@ setNonBlocking(SOCKET fd)
   // could be opened because of sibling
   if ([self _isOpened])
     return;
+  if (_sibling && [_sibling streamStatus] == NSStreamStatusError)
+    {
+      [self _setStatus: NSStreamStatusError];
+      return;
+    }
   if (_passive || (_sibling && [_sibling _isOpened]))
     goto open_ok;
   // check sibling status, avoid double connect
@@ -2218,7 +2250,7 @@ setNonBlocking(SOCKET fd)
             }
         }
 
-      if (_handler == nil)
+      if (nil == _handler)
         {
           [GSTLSHandler tryInput: _sibling output: self];
         }
@@ -2227,20 +2259,23 @@ setNonBlocking(SOCKET fd)
         GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
-          if (!socketWouldBlock())
+          if (socketWouldBlock())
             {
-              [self _recordError];
-              [self _setHandler: nil];
-              [_sibling _setHandler: nil];
-              return;
-            }
           /*
            * Need to set the status first, so that the run loop can tell
            * it needs to add the stream as waiting on writable, as an
            * indication of opened
            */
           [self _setStatus: NSStreamStatusOpening];
-#if	defined(__MINGW__)
+            }
+          else
+            {
+              /* Had an immediate connect error.
+               */
+              [self _recordError];
+              [_sibling _recordError];
+            }
+#if	defined(_WIN32)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
 	  if (NSCountMapTable(_loops) > 0)
@@ -2248,7 +2283,7 @@ setNonBlocking(SOCKET fd)
 	      [self _schedule];
 	      return;
 	    }
-          else
+          else if (NSStreamStatusOpening == _currentStatus)
             {
               NSRunLoop *r;
               NSDate    *d;
@@ -2274,16 +2309,21 @@ setNonBlocking(SOCKET fd)
     }
 
  open_ok:
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
   [super open];
-
 }
 
 
 - (void) close
 {
+  /* If the socket descriptor is still present, we need to close it to
+   * avoid a leak no matter what the nominal state of the stream is.
+   * The descriptor is created before the stream is formally opened.
+   */
+  if (INVALID_SOCKET == _sock)
+    {
   if (_currentStatus == NSStreamStatusNotOpen)
     {
       NSDebugMLLog(@"NSStream",
@@ -2296,8 +2336,9 @@ setNonBlocking(SOCKET fd)
         @"Attempt to close already closed stream %@", self);
       return;
     }
+    }
   [_handler bye];
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   if (_sibling && [_sibling streamStatus] != NSStreamStatusClosed)
     {
       /*
@@ -2368,7 +2409,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) _dispatch
 {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   AUTORELEASE(RETAIN(self));
   /*
    * Windows only permits a single event to be associated with a socket
@@ -2386,6 +2427,10 @@ setNonBlocking(SOCKET fd)
       NSAssert([_sibling streamStatus] != NSStreamStatusClosed,
 	@"Received event for closed stream");
       [_sibling _dispatch];
+    }
+  else if ([self streamStatus] == NSStreamStatusError)
+    {
+      [self _sendEvent: NSStreamEventErrorOccurred];
     }
   else
     {
@@ -2407,7 +2452,7 @@ setNonBlocking(SOCKET fd)
 	      socklen_t len = sizeof(error);
 
 	      getReturn = getsockopt(_sock, SOL_SOCKET, SO_ERROR,
-		(char*)&error, &len);
+		(char*)&error, (OPTLEN*)&len);
 	    }
 
 	  if (getReturn >= 0 && error == 0
@@ -2487,8 +2532,8 @@ setNonBlocking(SOCKET fd)
 
       IF_NO_GC([[self retain] autorelease];)
       [self _schedule];
-      result
-	= getsockopt((intptr_t)_loopID, SOL_SOCKET, SO_ERROR, &error, &len);
+      result = getsockopt((intptr_t)_loopID, SOL_SOCKET, SO_ERROR,
+	&error, (OPTLEN*)&len);
       if (result >= 0 && !error)
         { // finish up the opening
           myEvent = NSStreamEventOpenCompleted;
@@ -2512,6 +2557,10 @@ setNonBlocking(SOCKET fd)
     {
       myEvent = NSStreamEventEndEncountered;
     }
+  else if ([self streamStatus] == NSStreamStatusError)
+    {
+      myEvent = NSStreamEventErrorOccurred;
+    }
   else
     {
       [self _setStatus: NSStreamStatusOpen];
@@ -2521,7 +2570,7 @@ setNonBlocking(SOCKET fd)
 #endif
 }
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
   *trigger = YES;
@@ -2603,7 +2652,7 @@ setNonBlocking(SOCKET fd)
       int	status = 1;
 
       setsockopt([self _sock], SOL_SOCKET, SO_REUSEADDR,
-        (char *)&status, sizeof(status));
+        (char *)&status, (OPTLEN)sizeof(status));
     }
 #endif
 
@@ -2622,7 +2671,7 @@ setNonBlocking(SOCKET fd)
       [self _sendEvent: NSStreamEventErrorOccurred];
       return;
     }
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
 #endif
   [super open];
@@ -2630,7 +2679,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) close
 {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   if (_loopID != WSA_INVALID_EVENT)
     {
       WSACloseEvent(_loopID);
@@ -2671,7 +2720,7 @@ setNonBlocking(SOCKET fd)
   socklen_t		len = sizeof(buf);
   int			acceptReturn;
 
-  acceptReturn = accept([self _sock], addr, &len);
+  acceptReturn = accept([self _sock], addr, (OPTLEN*)&len);
   _events &= ~NSStreamEventHasBytesAvailable;
   if (socketError(acceptReturn))
     { // test for real error
@@ -2687,19 +2736,21 @@ setNonBlocking(SOCKET fd)
       // no need to connect again
       [ins _setPassive: YES];
       [outs _setPassive: YES];
+
       // copy the addr to outs
       [ins _setAddress: addr];
       [outs _setAddress: addr];
       [ins _setSock: acceptReturn];
       [outs _setSock: acceptReturn];
-      [ins _setStatus: NSStreamStatusOpen];
-      [outs _setStatus: NSStreamStatusOpen];
+
       /* Set property to indicate that the input stream was accepted by
        * a listening socket (server) rather than produced by an outgoing
        * connection (client).
        */
       [ins setProperty: @"YES" forKey: @"IsServer"];
 
+      /* At this point, we can insert the handler to deal with TLS
+       */
       str = [self propertyForKey: NSStreamSocketSecurityLevelKey];
       if(nil != str)
 	{
@@ -2721,7 +2772,13 @@ setNonBlocking(SOCKET fd)
 	      [outs setProperty: str forKey: key];
     }
 
-	  [GSTLSHandler tryInput: (GSSocketInputStream *)ins output: (GSSocketOutputStream *)outs];
+          /* Set the streams to be 'open' in order to have the TLS
+           * handshake done.  On completion the state will be reset.
+           */
+          [ins _setStatus: NSStreamStatusOpen];
+          [outs _setStatus: NSStreamStatusOpen];
+	  [GSTLSHandler tryInput: (GSSocketInputStream *)ins
+			  output: (GSSocketOutputStream *)outs];
 	  DESTROY(opts);
 	}
     }
@@ -2735,11 +2792,13 @@ setNonBlocking(SOCKET fd)
       [outs _setSibling: ins];
       *outputStream = (NSOutputStream*)outs;
     }
+  /* Now the streams are redy to be opened.
+   */
 }
 
 - (void) _dispatch
 {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   WSANETWORKEVENTS events;
 
   if (WSAEnumNetworkEvents(_sock, _loopID, &events) == SOCKET_ERROR)

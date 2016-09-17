@@ -38,7 +38,11 @@
 #endif
 
 
-#if     defined(__MINGW32__) || defined(__MINGW64__)
+#if     defined(_WIN32)
+
+#if     defined(__WIN64__)
+#include <winsock2.h>
+#endif
 
 #include <io.h>
 #include <winsock2.h>
@@ -75,7 +79,7 @@
  || EINTR == errno\
  || EAGAIN == errno)
 
-#endif  /* __MINGW__ */
+#endif  /* _WIN32 */
 
 /* The backlog argument to the listen() system call.
  * Systems should silently truncate the backlog if they don't support one

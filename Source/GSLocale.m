@@ -319,10 +319,12 @@ GSLanguagesFromLocale(NSString *locale)
 
 NSString *GSDefaultLanguageLocale()
 {
-  NSString *backup, *locale = nil;
+  NSString *locale = nil;
 
 #ifdef HAVE_LOCALE_H
 #ifdef LC_MESSAGES
+  NSString *backup;
+
   [gnustep_global_lock lock];
 
   backup = privateSetLocale(LC_ALL, nil);

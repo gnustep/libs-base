@@ -83,7 +83,11 @@ libgnustep-baseadd_SUBPROJECTS += Additions
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
   libgnustep-base_SUBPROJECTS += win32
 else
-  libgnustep-base_SUBPROJECTS += unix
+  ifeq ($(GNUSTEP_TARGET_OS), mingw64)
+    libgnustep-base_SUBPROJECTS += win32
+  else
+    libgnustep-base_SUBPROJECTS += unix
+  endif
 endif
 
 DEFS+= -DGNUSTEP_TARGET_DIR=\"$(GNUSTEP_TARGET_DIR)\" \
@@ -104,6 +108,9 @@ ifeq ($(findstring openbsd, $(GNUSTEP_TARGET_OS)), openbsd)
 endif
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
+  GNU_MFILES += libgnustep-base-entry.m
+endif
+ifeq ($(GNUSTEP_TARGET_OS), mingw64)
   GNU_MFILES += libgnustep-base-entry.m
 endif
 
@@ -307,10 +314,12 @@ externs.m \
 objc-load.m 
 
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
+  ifneq ($(GNUSTEP_TARGET_OS), mingw64)
 BASE_MFILES += \
 GSFileHandle.m \
 NSMessagePort.m \
 NSMessagePortNameServer.m
+  endif
 endif
 
 ifeq ($(GNUSTEP_BASE_HAVE_MDNS), 1)
@@ -533,4 +542,3 @@ include $(GNUSTEP_MAKEFILES)/resource-set.make
 
 -include Makefile.postamble
 
-include CompatibilityHeaders.make
