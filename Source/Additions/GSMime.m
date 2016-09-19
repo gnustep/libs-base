@@ -4764,7 +4764,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                         {
                           /* Extract the charset and return it.
                            */
-                          r = NSMakeRange(index, r.length - index);
+                          r = NSMakeRange(index, r.location - index);
                           return [xml substringWithRange: r];
                         }
                     }

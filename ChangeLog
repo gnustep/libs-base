@@ -1,3 +1,13 @@
+2016-09-19  Niels Grewe <niels.grewe@halbordnung.de>>
+
+	* Source/Additions/GSMime.m (charsetForXml):
+	Fix detection of charset in XML document.
+	* Tests/base/GSMime/xml-charset.m: Test case.
+
+2016-09-16  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/Additions/GSMime.m (convertTo7BitSafe):
+
 2016-09-16  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/Additions/GSMime.m (convertTo7BitSafe):
