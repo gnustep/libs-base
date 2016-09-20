@@ -1240,7 +1240,21 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 
   NSAssert(mode != nil, NSInvalidArgumentException);
 
-  /* Find out how long we can wait before first limit date. */
+  /* Process any pending notifications.
+   */
+  GSPrivateCheckTasks(); 
+  GSPrivateNotifyASAP(mode); 
+
+  /* And process any performers scheduled in the loop (eg something from
+   * another thread.
+   */
+  _currentMode = mode;
+  context = NSMapGet(_contextMap, mode);
+  [self _checkPerformers: context];
+  _currentMode = savedMode;
+
+  /* Find out how long we can wait before first limit date.
+   */
   d = [self limitDateForMode: mode];
   if (d == nil)
     {
@@ -1248,8 +1262,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
       return NO;
     }
 
-  /*
-   * Use the earlier of the two dates we have.
+  /* Use the earlier of the two dates we have.
    * Retain the date in case the firing of a timer (or some other event)
    * releases it.
    */
