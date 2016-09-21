@@ -135,14 +135,11 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
   NSString *bundlePath = [bundle pathForResource: @"NSUserNotification"
                                           ofType: @"bundle"
                                      inDirectory: nil];
-#if defined(DEBUG)
-  NSLog(@"%s:bundle path: %@", __PRETTY_FUNCTION__, bundlePath);
-#endif
   if (bundlePath)
     {
       bundle = [NSBundle bundleWithPath: bundlePath];
 #if defined(DEBUG)
-      NSLog(@"%s:bundle: %@", __PRETTY_FUNCTION__, bundle);
+      NSLog(@"%s:bundlePath: %@ bundle: %@", __PRETTY_FUNCTION__, bundlePath, bundle);
 #endif
       if (bundle)
         {
