@@ -168,9 +168,7 @@ static void
 relinquishRetainedMemory(const void *item,
   NSUInteger (*size)(const void *item))
 {
-#if	!GS_WITH_GC
   [(NSObject*)item release];
-#endif
 }
 
 @implementation NSConcretePointerFunctions

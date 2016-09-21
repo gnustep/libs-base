@@ -89,8 +89,7 @@ endif
 
 # Additional directories to be created during installation
 ADDITIONAL_INSTALL_DIRS = $(GNUSTEP_HEADERS)/Foundation \
-   $(GNUSTEP_HEADERS)/GNUstepBase/unicode \
-   $(GNUSTEP_HEADERS)/$(GNUSTEP_TARGET_DIR)
+   $(GNUSTEP_HEADERS)/GNUstepBase \
 
 HEADER_DIR_BASE = ../Headers/GNUstepBase
 HEADER_DIR_FND = ../Headers/Foundation
