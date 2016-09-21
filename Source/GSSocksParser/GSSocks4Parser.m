@@ -124,14 +124,15 @@ typedef enum GSSocks4ResponseStatus {
         description = @"identd is not running or not reachable from the server";
         break;
       case GSSocks4ResponseStatusUserNotConfirmed:
-        description = @"identd could not confirm the user ID string in the request";
+        description
+	  = @"identd could not confirm the user ID string in the request";
         break;
       default:
         description = @"unknown";
         break;
   }
   description = [NSString stringWithFormat:
-    @"SOCKS4 connnection failed, reason: %@", description];
+    @"SOCKS4 connection failed, reason: %@", description];
   return [self errorWithCode: aStatus description: description];
 }
 

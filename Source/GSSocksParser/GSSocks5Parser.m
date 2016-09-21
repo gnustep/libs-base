@@ -126,7 +126,7 @@ typedef enum GSSocks5ResponseStatus {
         description = @"address type is not supported";
         break;
       default:
-        description = @"unkown";
+        description = @"unknown";
         break;
     }
   description = [NSString stringWithFormat:

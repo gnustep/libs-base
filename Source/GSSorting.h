@@ -30,7 +30,7 @@
 
 enum
 {
-  GSComparisonTypeSortDescriptor = 0, /** Comparison using an NSSortDescriptor */
+  GSComparisonTypeSortDescriptor = 0, /** Comparison using NSSortDescriptor */
   GSComparisonTypeComparatorBlock, /** Comparison using an NSComparator */
   GSComparisonTypeFunction, /** Comparison using a comparison function of type
   * NSInteger(*)(id,id,void*) */

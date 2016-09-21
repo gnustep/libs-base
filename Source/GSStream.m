@@ -88,29 +88,22 @@ NSString * const NSStreamSOCKSProxyVersionKey
  */
 static RunLoopEventType typeForStream(NSStream *aStream)
 {
-#if	defined(__MINGW__)
-  if ([aStream _loopID] == (void*)aStream)
+  NSStreamStatus        status = [aStream streamStatus];
+
+  if (NSStreamStatusError == status
+    || [aStream _loopID] == (void*)aStream)
     {
       return ET_TRIGGER;
     }
-  else
-    {
+#if	defined(_WIN32)
       return ET_HANDLE;
-    }
 #else
-  if ([aStream _loopID] == (void*)aStream)
-    {
-      return ET_TRIGGER;
-    }
-  else if ([aStream isKindOfClass: [NSOutputStream class]] == NO
-    && [aStream  streamStatus] != NSStreamStatusOpening)
+  if ([aStream isKindOfClass: [NSOutputStream class]] == NO
+    && status != NSStreamStatusOpening)
     {
       return ET_RDESC;
     }
-  else
-    {
       return ET_WDESC;	
-    }
 #endif
 }
 
@@ -125,10 +118,14 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) removeStream: (NSStream*)aStream mode: (NSString*)mode
 {
+  /* We may have added the stream more than once (eg if the stream -open
+   * method was called more than once, so we need to remove all event
+   * registrations.
+   */
   [self removeEvent: [aStream _loopID]
 	       type: typeForStream(aStream)
 	    forMode: mode
-		all: NO];
+		all: YES];
 }
 @end
 
@@ -410,7 +407,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 {
   NSDebugMLLog(@"NSStream", @"record error: %@ - %@", self, anError);
   ASSIGN(_lastError, anError);
-  _currentStatus = NSStreamStatusError;
+  [self _setStatus: NSStreamStatusError];
 }
 
 - (void) _resetEvents: (NSUInteger)mask
@@ -536,7 +533,22 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) _setStatus: (NSStreamStatus)newStatus
 {
+  if (_currentStatus != newStatus)
+    {
+      if (NSStreamStatusError == newStatus && NSCountMapTable(_loops) > 0)
+        {
+          /* After an error, we are in the run loops only to trigger
+           * errors, not for I/O, sop we must re-schedule in the right mode.
+           */
+          [self _unschedule];
   _currentStatus = newStatus;
+          [self _schedule];
+}
+      else
+        {
+          _currentStatus = newStatus;
+        }
+    }
 }
 
 - (BOOL) _unhandledData
@@ -708,8 +720,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) dealloc
 {
-  if ([self _isOpened])
+  if (_currentStatus != NSStreamStatusNotOpen
+    && _currentStatus != NSStreamStatusClosed)
+    {
     [self close];
+    }
   RELEASE(_data);
   [super dealloc];
 }

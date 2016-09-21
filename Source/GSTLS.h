@@ -116,8 +116,15 @@ extern NSString * const GSTLSVerify;
   unsigned int          count;
 }
 + (GSTLSCertificateList*) listFromFile: (NSString*)f;
+
+/* Return the list of x509 certificates.
+ */
 - (gnutls_x509_crt_t*) certificateList;
+
+/* Return number of certificates in list.
+ */
 - (unsigned int) count;
+
 @end
 
 /* This encapsulates private keys used to unlock certificates
@@ -155,6 +162,8 @@ extern NSString * const GSTLSVerify;
                                    asClient: (BOOL)client
                                       debug: (BOOL)debug;
 - (gnutls_certificate_credentials_t) credentials;
+- (GSTLSPrivateKey*) key;
+- (GSTLSCertificateList*) list;
 - (BOOL) trust;
 @end
 
@@ -198,6 +207,14 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
  * session has not been disconnected), NO otherwise.
  */
 - (BOOL) active;
+
+/* Returns the credentials object ofr this session.
+ */
+- (GSTLSCredentials*) credentials;
+
+/* Return the current debug mode.
+ */
+- (BOOL) debug;
 
 /* Disconnects and closes down the session.<br />
  * The reusable flag specifies whether we intend to reuse the underlying

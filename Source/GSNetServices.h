@@ -134,6 +134,7 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
 
 #else // GS_USE_MDNS
 
+// Testplant-MAL-09162016: patches...
 // Include(s)...
 #import <dns_sd.h>
 
@@ -145,6 +146,7 @@ NSString* GSNetServiceDotTerminatedNSStringFromString(const char* string);
  */
 @interface GSMDNSNetService : NSNetService <NSNetServiceDelegate>
 {
+  // Testplant-MAL-09162016: patches...
   DNSServiceRef _resolverRef;
   DNSServiceRef _queryRef;
   BOOL          _didNotifyOfResolve;

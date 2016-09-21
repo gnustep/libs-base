@@ -57,6 +57,7 @@
  */
 
 @interface	NSURLRequest (Private)
+- (BOOL) _debug;
 - (id) _propertyForKey: (NSString*)key;
 - (void) _setProperty: (id)value forKey: (NSString*)key;
 @end

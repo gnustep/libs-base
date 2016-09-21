@@ -42,6 +42,35 @@
 
 #import "GSPrivate.h"
 
+@interface	NSString(gnutlsFileSystemRepresentation)
+- (const char*) gnutlsFileSystemRepresentation;
+@end
+
+@implementation	NSString(gnutlsFileSystemRepresentation)
+- (const char*) gnutlsFileSystemRepresentation
+{
+#if	defined(_WIN32)
+  const unichar	*buf = (const unichar*)[self fileSystemRepresentation];
+  int		len = 0;
+  NSString	*str;
+  const char	*result;
+
+  while (buf[len] > 0)
+    {
+      len++;
+    }
+  str = [[NSString alloc] initWithBytes: buf 
+				 length: len * 2
+			       encoding: NSUnicodeStringEncoding];
+  result = [str UTF8String];
+  RELEASE(str);
+  return result;   
+#else
+  return [self fileSystemRepresentation];
+#endif
+}
+@end
+
 /* Constants to control TLS/SSL (options).
  */
 NSString * const GSTLSCAFile = @"GSTLSCAFile";
@@ -535,12 +564,26 @@ static NSMutableDictionary      *certificateListCache = nil;
   unsigned int    bits;
   int             i;
 
-  [str appendFormat: @"\n%@", _(@"- Certificate info:\n")];
+  [str appendFormat: _(@"- Certificate version: #%d\n"),
+    gnutls_x509_crt_get_version(cert)];
 
-  expiret = gnutls_x509_crt_get_expiration_time(cert);
+  dn_size = sizeof(dn);
+  gnutls_x509_crt_get_dn(cert, dn, &dn_size);
+  dn[dn_size - 1] = '\0';
+  [str appendFormat: @"- Certificate DN: %@\n",
+    [NSString stringWithUTF8String: dn]];
+
+  dn_size = sizeof(dn);
+  gnutls_x509_crt_get_issuer_dn(cert, dn, &dn_size);
+  dn[dn_size - 1] = '\0';
+  [str appendFormat: _(@"- Certificate Issuer's DN: %@\n"),
+    [NSString stringWithUTF8String: dn]];
+
   activet = gnutls_x509_crt_get_activation_time(cert);
   [str appendFormat: _(@"- Certificate is valid since: %s"),
     ctime(&activet)];
+
+  expiret = gnutls_x509_crt_get_expiration_time(cert);
   [str appendFormat: _(@"- Certificate expires: %s"),
     ctime (&expiret)];
 
@@ -575,33 +618,16 @@ static NSMutableDictionary      *certificateListCache = nil;
   algo = gnutls_x509_crt_get_pk_algorithm(cert, &bits);
   if (GNUTLS_PK_RSA == algo)
     {
-      [str appendString: _(@"RSA\n")];
-      [str appendFormat: _(@"- Modulus: %d bits\n"), bits];
+      [str appendFormat: _(@"RSA - Modulus: %d bits\n"), bits];
     }
   else if (GNUTLS_PK_DSA == algo)
     {
-      [str appendString: _(@"DSA\n")];
-      [str appendFormat: _(@"- Exponent: %d bits\n"), bits];
+      [str appendFormat: _(@"DSA - Exponent: %d bits\n"), bits];
     }
   else
     {
       [str appendString: _(@"UNKNOWN\n")];
     }
-
-  [str appendFormat: _(@"- Certificate version: #%d\n"),
-    gnutls_x509_crt_get_version(cert)];
-
-  dn_size = sizeof(dn);
-  gnutls_x509_crt_get_dn(cert, dn, &dn_size);
-  dn[dn_size - 1] = '\0';
-  [str appendFormat: @"- Certificate DN: %@\n",
-    [NSString stringWithUTF8String: dn]];
-
-  dn_size = sizeof(dn);
-  gnutls_x509_crt_get_issuer_dn(cert, dn, &dn_size);
-  dn[dn_size - 1] = '\0';
-  [str appendFormat: _(@"- Certificate Issuer's DN: %@\n"),
-    [NSString stringWithUTF8String: dn]];
 }
  
 /* Method to purge older lists from cache.
@@ -687,14 +713,15 @@ static NSMutableDictionary      *certificateListCache = nil;
           [l release];
           return nil;
         }
-      l->crts = malloc(sizeof(gnutls_x509_crt_t) * count);
-      memcpy(l->crts, crts, sizeof(gnutls_x509_crt_t) * count);
-      l->count = count;
 
       if (count > 0)
         {
           time_t        now = (time_t)[[NSDate date] timeIntervalSince1970];
-          unsigned int  i;
+          unsigned int  i = count;
+
+          l->crts = malloc(sizeof(gnutls_x509_crt_t) * count);
+          memcpy(l->crts, crts, sizeof(gnutls_x509_crt_t) * count);
+          l->count = count;
 
           for (i = 0; i < count; i++)
             {
@@ -749,9 +776,9 @@ static NSMutableDictionary      *certificateListCache = nil;
         {
           while (count-- > 0)
             {
-              gnutls_x509_crt_deinit(crts[count]);
+              if (crts) gnutls_x509_crt_deinit(crts[count]);
             }
-          free(crts);
+          if (crts) free(crts);
         }
     }
   [super dealloc];
@@ -1045,7 +1072,7 @@ static NSMutableDictionary      *credentialsCache = nil;
           const char    *path;
           int           ret;
 
-          path = [dca fileSystemRepresentation];
+          path = [dca gnutlsFileSystemRepresentation];
           ret = gnutls_certificate_set_x509_trust_file(c->certcred,
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
@@ -1074,7 +1101,7 @@ static NSMutableDictionary      *credentialsCache = nil;
           const char    *path;
           int           ret;
 
-          path = [dca fileSystemRepresentation];
+          path = [dca gnutlsFileSystemRepresentation];
           ret = gnutls_certificate_set_x509_trust_file(c->certcred,
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
@@ -1106,7 +1133,7 @@ static NSMutableDictionary      *credentialsCache = nil;
           const char    *path;
           int           ret;
 
-          path = [drv fileSystemRepresentation];
+          path = [drv gnutlsFileSystemRepresentation];
           ret = gnutls_certificate_set_x509_crl_file(c->certcred,
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
@@ -1130,7 +1157,7 @@ static NSMutableDictionary      *credentialsCache = nil;
           const char    *path;
           int           ret;
 
-          path = [rv fileSystemRepresentation];
+          path = [rv gnutlsFileSystemRepresentation];
           ret = gnutls_certificate_set_x509_crl_file(c->certcred,
             path, GNUTLS_X509_FMT_PEM);
           if (ret < 0)
@@ -1233,6 +1260,16 @@ static NSMutableDictionary      *credentialsCache = nil;
   return certcred;
 }
 
+- (GSTLSPrivateKey*) key
+{
+  return key;
+}
+
+- (GSTLSCertificateList*) list
+{
+  return list;
+}
+
 - (BOOL) trust
 {
   return trust;
@@ -1240,7 +1277,85 @@ static NSMutableDictionary      *credentialsCache = nil;
 @end
 
 
+#if GNUTLS_VERSION_NUMBER >= 0x020C00
+/* Callback used only when debug is enabled, to print the request for a
+ * certificate and the response to that request.
+ * NB. This function always returns the certificate set for the session
+ * even if that certificate does not match the CAs or algorithms requested
+ * by the server.  This differs from the default behavior which is for the
+ * library code to only return a certificate matching the request.
+ * So, the logging of a returned certificate does not guarantee that the
+ * certificate is acceptable to the server.
+ */
+static int
+retrieve_callback(gnutls_session_t session,
+  const gnutls_datum_t *req_ca_rdn,
+  int nreqs,
+  const gnutls_pk_algorithm_t *sign_algos,
+  int sign_algos_length,
+  gnutls_retr2_st *st)
+{
+  GSTLSSession  *s = gnutls_session_get_ptr(session);
+  char          issuer_dn[256];
+  int           i;
+  int           ret;
+  size_t        len;
 
+  /* Print the server's trusted CAs
+   */
+  if (nreqs > 0)
+    NSLog(@"- Server's trusted authorities:");
+  else
+    NSLog(@"- Server did not send us any trusted authorities names.");
+
+  /* print the names (if any) */
+  for (i = 0; i < nreqs; i++)
+    {
+      len = sizeof(issuer_dn);
+      ret = gnutls_x509_rdn_get(&req_ca_rdn[i], issuer_dn, &len);
+      if (ret >= 0)
+        {
+          NSLog(@"   [%d]: %s", i, issuer_dn);
+        }
+    }
+
+  /* Select a certificate and return it.
+   * The certificate must be of any of the "sign algorithms"
+   * supported by the server.
+   */
+  if (gnutls_certificate_type_get(session) == GNUTLS_CRT_X509)
+    {
+      GSTLSCredentials          *credentials = [s credentials];
+      GSTLSPrivateKey           *key = [credentials key];
+      GSTLSCertificateList      *list = [credentials list];
+      int                       count = (int)[list count];
+      gnutls_x509_crt_t         *crts = [list certificateList];
+      NSMutableString           *m;
+
+      m = [NSMutableString stringWithCapacity: 2000];
+      for (i = 0; i < count; i++)
+        {
+          [GSTLSCertificateList certInfo: crts[i]
+                                      to: m];
+        }
+      if (0 == count)
+        {
+          [m appendString: @"None."];
+        }
+      NSLog(@"Certificates retrieved for sending to peer -\n%@", m);
+
+      st->cert_type = GNUTLS_CRT_X509;
+      st->ncerts = count;
+      st->cert.x509 = crts;
+      st->key.x509 = [key key];
+      return 0;
+    }
+  else
+    {
+      return -1;
+    }
+}
+#endif
 
 @implementation GSTLSSession
 
@@ -1265,6 +1380,11 @@ static NSMutableDictionary      *credentialsCache = nil;
   return active;
 }
 
+- (GSTLSCredentials*) credentials
+{
+  return credentials;
+}
+
 - (void) dealloc
 {
   [self finalize];
@@ -1272,6 +1392,11 @@ static NSMutableDictionary      *credentialsCache = nil;
   DESTROY(credentials);
   DESTROY(problem);
   [super dealloc];
+}
+
+- (BOOL) debug
+{
+  return debug;
 }
 
 - (BOOL) disconnect: (BOOL)reusable
@@ -1378,6 +1503,11 @@ static NSMutableDictionary      *credentialsCache = nil;
               gnutls_certificate_server_set_request(session,
                 GNUTLS_CERT_IGNORE);
             }
+          else
+            {
+              gnutls_certificate_server_set_request(session,
+                GNUTLS_CERT_REQUEST);
+        }
         }
       setup = YES;
 
@@ -1418,7 +1548,7 @@ static NSMutableDictionary      *credentialsCache = nil;
             @" the GS_TLS_CA_FILE environment variable, then the system will"
             @" have attempted to use the GSTLS/ca-certificates.crt file in the"
             @" gnustep-base resource bundle.  Unfortunately, it has not been"
-            @" possible to ready any trusted certificate authoritied from"
+            @" possible to read any trusted certificate authorities from"
             @" these locations.");
         }
 
@@ -1468,8 +1598,6 @@ static NSMutableDictionary      *credentialsCache = nil;
             }
           else if ([pri isEqual: NSStreamSocketSecurityLevelSSLv3] == YES)
             {
-              GSOnceMLog(@"NSStreamSocketSecurityLevelSSLv3 is insecure ..."
-                @" please change your code to stop using it");
 #if GNUTLS_VERSION_NUMBER < 0x020C00
               const int proto_prio[2] = {
                 GNUTLS_SSL3,
@@ -1479,6 +1607,8 @@ static NSMutableDictionary      *credentialsCache = nil;
               gnutls_priority_set_direct(session,
                 "NORMAL:-VERS-TLS-ALL:+VERS-SSL3.0", NULL);
 #endif
+              GSOnceMLog(@"NSStreamSocketSecurityLevelSSLv3 is insecure ..."
+                @" please change your code to stop using it");
             }
           else if ([pri isEqual: NSStreamSocketSecurityLevelTLSv1] == YES)
             {
@@ -1509,6 +1639,19 @@ static NSMutableDictionary      *credentialsCache = nil;
       gnutls_credentials_set(session, GNUTLS_CRD_CERTIFICATE,
         [credentials credentials]);
 
+#if GNUTLS_VERSION_NUMBER >= 0x020C00
+      if (YES == outgoing && YES == debug)
+        {
+          /* Set a callback to log handling of a request (from the server)
+           * for the client certificate.  The callback always returns the
+           * certificate set for this session, even if that does not match
+           * the server's request.
+           */
+          gnutls_certificate_set_retrieve_function(
+            [credentials credentials], retrieve_callback);
+        }
+#endif
+      
       /* Set transport layer to use 
        */
 #if GNUTLS_VERSION_NUMBER < 0x020C00
@@ -1517,6 +1660,7 @@ static NSMutableDictionary      *credentialsCache = nil;
       gnutls_transport_set_pull_function(session, pullFunc);
       gnutls_transport_set_push_function(session, pushFunc);
       gnutls_transport_set_ptr(session, (gnutls_transport_ptr_t)handle);
+      gnutls_session_set_ptr(session, (void*)self);
     }
 
   return self;
@@ -1795,11 +1939,6 @@ static NSMutableDictionary      *credentialsCache = nil;
         break;
 
       case GNUTLS_CRD_CERTIFICATE:       /* certificate authentication */
-      {
-        unsigned int            cert_list_size = 0;
-        const gnutls_datum_t    *cert_list;
-        gnutls_x509_crt_t       cert;
-
         /* Check if we have been using ephemeral Diffie-Hellman.
          */
         if (GNUTLS_KX_DHE_RSA == kx || GNUTLS_KX_DHE_DSS == kx)
@@ -1814,35 +1953,12 @@ static NSMutableDictionary      *credentialsCache = nil;
             ecdh = 1;
           }
 #endif
+        tmp = gnutls_certificate_type_get_name(
+          gnutls_certificate_type_get(session));
+        [str appendFormat: _(@"- Authentication using certificate type: %s\n"),
+          tmp];
         
-        /* if the certificate list is available, then
-         * print some information about it.
-         */
-        cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
-        if (cert_list_size > 0
-          && gnutls_certificate_type_get(session) == GNUTLS_CRT_X509)
-          {
-            int cert_num;
-        
-            for (cert_num = 0; cert_num < cert_list_size; cert_num++)
-              {
-                gnutls_x509_crt_init(&cert);
-                /* NB. the list of peer certificate is in memory in native
-                 * format (DER) rather than the normal file format (PEM).
-                 */
-                gnutls_x509_crt_import(cert,
-                  &cert_list[cert_num], GNUTLS_X509_FMT_DER);
-
-                [str appendString: @"\n"];
-                [str appendFormat: _(@"- Certificate %d info:\n"), cert_num];
-
-                [GSTLSCertificateList certInfo: cert to: str];
-
-                gnutls_x509_crt_deinit(cert);
-              }
-          }
-      }
-      break;
+        break;
     }                           /* switch */
 
   if (ecdh != 0)
@@ -1860,16 +1976,51 @@ static NSMutableDictionary      *credentialsCache = nil;
         gnutls_dh_get_prime_bits(session)];
     }
 
-  /* print the protocol's name (ie TLS 1.0) 
-   */
+  /* print the protocol's name (eg TLS 1.0) 
+         */
   tmp = gnutls_protocol_get_name(gnutls_protocol_get_version(session));
   [str appendFormat: _(@"- Protocol: %s\n"), tmp];
 
-  /* print the certificate type of the peer.
-   * ie X.509
+  /* print the certificates of the peer.
    */
-  tmp = gnutls_certificate_type_get_name(gnutls_certificate_type_get(session));
-  [str appendFormat: _(@"- Certificate Type: %s\n"), tmp];
+  if (gnutls_certificate_type_get(session) == GNUTLS_CRT_X509)
+    {
+      unsigned int            cert_list_size = 0;
+      const gnutls_datum_t    *cert_list;
+      gnutls_x509_crt_t       cert;
+
+        cert_list = gnutls_certificate_get_peers(session, &cert_list_size);
+      if (0 == cert_list_size)
+          {
+          [str appendString: _(@"- Peer provided no certificate.\n")];
+        }
+      else
+        {
+            int cert_num;
+        
+            for (cert_num = 0; cert_num < cert_list_size; cert_num++)
+              {
+                gnutls_x509_crt_init(&cert);
+                /* NB. the list of peer certificate is in memory in native
+                 * format (DER) rather than the normal file format (PEM).
+                 */
+                gnutls_x509_crt_import(cert,
+                  &cert_list[cert_num], GNUTLS_X509_FMT_DER);
+
+                [str appendFormat: _(@"- Certificate %d info:\n"), cert_num];
+
+                [GSTLSCertificateList certInfo: cert to: str];
+
+                gnutls_x509_crt_deinit(cert);
+              }
+          }
+      }
+  else
+    {
+      tmp = gnutls_certificate_type_get_name(
+        gnutls_certificate_type_get(session));
+      [str appendFormat: _(@"- Certificate Type: %s\n"), tmp];
+    }
 
   /* print the compression algorithm (if any)
    */
@@ -1877,13 +2028,13 @@ static NSMutableDictionary      *credentialsCache = nil;
   [str appendFormat: _(@"- Compression: %s\n"), tmp];
 
   /* print the name of the cipher used.
-   * ie 3DES.
+   * eg 3DES.
    */
   tmp = gnutls_cipher_get_name(gnutls_cipher_get(session));
   [str appendFormat: _(@"- Cipher: %s\n"), tmp];
 
   /* Print the MAC algorithms name.
-   * ie SHA1
+   * eg SHA1
    */
   tmp = gnutls_mac_get_name(gnutls_mac_get(session));
   [str appendFormat: _(@"- MAC: %s\n"), tmp];
