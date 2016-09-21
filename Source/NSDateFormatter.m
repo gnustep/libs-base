@@ -569,7 +569,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 {
 #if GS_USE_ICU == 1
   NSArray *array = [self _getSymbols: UDAT_WEEKDAYS];
-  // Tetplant
+  // Testplant-MAL-09212016: Keeping change by Doug Simons...
   return ([array count] == 8 ? [array subarrayWithRange:NSMakeRange(1,7)] : array);
 #else
   return nil;
