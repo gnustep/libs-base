@@ -40,7 +40,7 @@
 #import "GNUstepBase/GSLock.h"
 
 
-#if defined(__WIN32)
+#if defined(_WIN32)
 #include <objc/blocks_runtime.h>
 #endif
 
