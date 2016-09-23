@@ -64,13 +64,6 @@
 #define	GSI_MAP_EQUAL(M, X,Y)	((X).ptr == (Y).ptr)
 #define	GSI_MAP_NOCLEAN	1
 
-#if	GS_WITH_GC
-#include	<gc/gc_typed.h>
-static GC_descr	nodeDesc;	// Type descriptor for map node.
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
-#endif
-
 #include "GNUstepBase/GSIMap.h"
 
 /*
@@ -129,6 +122,9 @@ typeToName1(char type)
       case _C_CHARPTR:	return "cstring";
       case _C_ARY_B:	return "array";
       case _C_STRUCT_B:	return "struct";
+#if __GNUC__ > 2 && defined(_C_BOOL)
+      case _C_BOOL:	return "_Bool";
+#endif
       default:
 	{
 	  static char	buf1[32];
@@ -170,6 +166,7 @@ typeToName2(char type)
       case _GSC_ULNG_LNG:	return "unsigned long long";
       case _GSC_FLT:	return "float";
       case _GSC_DBL:	return "double";
+      case _GSC_BOOL:	return "_Bool";
       case _GSC_PTR:	return "pointer";
       case _GSC_CHARPTR:	return "cstring";
       case _GSC_ARY_B:	return "array";
@@ -218,7 +215,11 @@ static char	type_map[32] = {
 #endif
   _C_FLT,
   _C_DBL,
+#if __GNUC__ > 2 && defined(_C_BOOL)
+  _C_BOOL,
+#else
   0,
+#endif
   0,
   0,
   _C_ID,
@@ -361,14 +362,6 @@ static unsigned	encodingVersion;
 
       encodingVersion = [coder systemVersion];
       [coder release];
-#if	GS_WITH_GC
-      /* We create a typed memory descriptor for map nodes.
-       */
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#endif
       connectionClass = [NSConnection class];
       mutableArrayClass = [NSMutableArray class];
       mutableDataClass = [NSMutableDataMalloc class];
@@ -515,6 +508,9 @@ static unsigned	encodingVersion;
 #endif
       case _C_FLT:	info = _GSC_FLT; break;
       case _C_DBL:	info = _GSC_DBL; break;
+#if __GNUC__ > 2 && defined(_C_BOOL)
+      case _C_BOOL:	info = _GSC_BOOL; break;
+#endif
       default:		info = _GSC_NONE; break;
     }
 
@@ -1028,6 +1024,17 @@ static unsigned	encodingVersion;
 	  }
 	return;
 
+#if __GNUC__ != 2
+      case _GSC_BOOL:
+	if (*type != type_map[_GSC_BOOL])
+	  {
+	    [NSException raise: NSInternalInconsistencyException
+		        format: @"expected %s and got %s",
+		    typeToName1(*type), typeToName2(info)];
+	  }
+	(*_dDesImp)(_src, dDesSel, address, type, &_cursor, nil);
+	return;
+#endif
       default:
 	[NSException raise: NSInternalInconsistencyException
 		    format: @"read unknown type info - %d", info];
@@ -1200,6 +1207,9 @@ static unsigned	encodingVersion;
       case _C_ULNG_LNG:	info = _GSC_ULNG_LNG | _GSC_S_LNG_LNG;	break;
       case _C_FLT:	info = _GSC_FLT;	break;
       case _C_DBL:	info = _GSC_DBL;	break;
+#if __GNUC__ > 2 && defined(_C_BOOL)
+      case _C_BOOL:	info = _GSC_BOOL;	break;
+#endif
       default:		info = _GSC_NONE;	break;
     }
 
@@ -1798,6 +1808,13 @@ static unsigned	encodingVersion;
 	(*_eSerImp)(_dst, eSerSel, (void*)buf, @encode(double), nil);
 	return;
 
+#if __GNUC__ > 2 && defined(_C_BOOL)
+      case _C_BOOL:
+	(*_eTagImp)(_dst, eTagSel, _GSC_BOOL);
+	(*_eSerImp)(_dst, eSerSel, (void*)buf, @encode(_Bool), nil);
+	return;
+#endif
+
       case _C_VOID:
 	[NSException raise: NSInvalidArgumentException
 		    format: @"can't encode void item"];
@@ -1864,14 +1881,8 @@ static unsigned	encodingVersion;
 	      /*
 	       *	Set up map tables.
 	       */
-#if	GS_WITH_GC
-	      _clsMap
-		= (GSIMapTable)NSAllocateCollectable(sizeof(GSIMapTable_t)*4,
-		NSScannedOption);
-#else
 	      _clsMap
 		= (GSIMapTable)NSZoneMalloc(_zone, sizeof(GSIMapTable_t)*4);
-#endif
 	      _cIdMap = &_clsMap[1];
 	      _uIdMap = &_clsMap[2];
 	      _ptrMap = &_clsMap[3];
@@ -1963,12 +1974,7 @@ static unsigned	encodingVersion;
 	   */
 	  if (firstTime == YES)
 	    {
-#if	GS_WITH_GC
-	      _clsAry
-		= NSAllocateCollectable(sizeof(GSIArray_t)*3, NSScannedOption);
-#else
 	      _clsAry = NSZoneMalloc(_zone, sizeof(GSIArray_t)*3);
-#endif
 	      _objAry = &_clsAry[1];
 	      _ptrAry = &_clsAry[2];
 	      GSIArrayInitWithZoneAndCapacity(_clsAry, _zone, sizeC);

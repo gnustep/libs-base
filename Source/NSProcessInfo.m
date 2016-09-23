@@ -257,7 +257,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     }
   else
     {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
       unichar	*buffer;
       int	buffer_size = 0;
       int	needed_size = 0;
@@ -301,7 +301,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   /* Getting the process name */
   IF_NO_GC(RELEASE(_gnu_processName));
   _gnu_processName = [arg0 lastPathComponent];
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   /* On windows we remove any .exe extension for consistency with app names
    * under unix
    */
@@ -317,7 +317,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
   IF_NO_GC(RETAIN(_gnu_processName));
 
   /* Copy the argument list */
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 {
   unichar **argvw = CommandLineToArgvW(GetCommandLineW(), &argc);
   NSString *str;
@@ -381,7 +381,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     NSMutableArray	*values = [NSMutableArray new];
     NSStringEncoding	enc = GSPrivateDefaultCStringEncoding();
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
     if (fallbackInitialisation == NO)
       {
 	unichar	*base;
@@ -909,7 +909,7 @@ _gnu_noobjc_free_vars(void)
     {
       if (_gnu_noobjc_argv == 0 || _gnu_noobjc_env == 0)
 	{
-          _NSLog_printf_handler(_GNU_MISSING_MAIN_FUNCTION_CALL);
+          fprintf(stderr, _GNU_MISSING_MAIN_FUNCTION_CALL);
           exit(1);
 	}
       _gnu_process_args(_gnu_noobjc_argc, _gnu_noobjc_argv, _gnu_noobjc_env);
@@ -918,7 +918,7 @@ _gnu_noobjc_free_vars(void)
 }
 #else /*! HAVE_PROCFS !HAVE_LOAD_METHOD !HAVE_KVM_ENV */
 
-#ifdef __MINGW__
+#ifdef _WIN32
 /* For WindowsAPI Library, we know the global variables (argc, etc) */
 + (void) initialize
 {
@@ -981,7 +981,7 @@ int main(int argc, char *argv[], char *env[])
          sizeof(_NSConstantStringClassReference));
 #endif
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
   WSADATA lpWSAData;
 
   // Initialize Windows Sockets
@@ -990,7 +990,7 @@ int main(int argc, char *argv[], char *env[])
       printf("Could not startup Windows Sockets\n");
       exit(1);
     }
-#endif /* __MINGW__ */
+#endif /* _WIN32 */
 
 #ifdef __MS_WIN__
   _MB_init_runtime();
@@ -1002,7 +1002,7 @@ int main(int argc, char *argv[], char *env[])
   return gnustep_base_user_main(argc, argv, env);
 }
 #endif /* !GS_PASS_ARGUMENTS */
-#endif /* __MINGW__ */
+#endif /* _WIN32 */
 
 #endif /* HAS_LOAD_METHOD && HAS_PROCFS */
 
@@ -1012,7 +1012,7 @@ int main(int argc, char *argv[], char *env[])
   // We can't use NSAssert, which calls NSLog, which calls NSProcessInfo...
   if (!(_gnu_processName && _gnu_arguments && _gnu_environment))
     {
-      _NSLog_printf_handler(_GNU_MISSING_MAIN_FUNCTION_CALL);
+      fprintf(stderr, _GNU_MISSING_MAIN_FUNCTION_CALL);
       exit(1);
     }
 
@@ -1043,7 +1043,7 @@ int main(int argc, char *argv[], char *env[])
 {
   if (pid > 0)
     {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
       HANDLE        h = OpenProcess(PROCESS_QUERY_INFORMATION,0,pid);
       if (h == NULL && GetLastError() != ERROR_ACCESS_DENIED)
         {
@@ -1077,8 +1077,8 @@ int main(int argc, char *argv[], char *env[])
   unsigned long		count;
   static NSString	*host = nil;
   NSString              *thost = nil;
-  static int		pid;
-  int                   tpid;
+  static int		pid = 0;
+  int                   tpid = 0;
   static unsigned long	start;
 
   /* We obtain the host name and pid outside the locked region in case
@@ -1123,7 +1123,7 @@ static void determineOperatingSystem()
       NSString	*os = nil;
       BOOL	parseOS = YES;
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
       OSVERSIONINFOW	osver;
 
       osver.dwOSVersionInfoSize = sizeof(osver);
@@ -1165,7 +1165,7 @@ static void determineOperatingSystem()
 	    }
 	}
 #endif	/* HAVE_SYS_UTSNAME_H */
-#endif	/* __MINGW__ */
+#endif	/* _WIN32 */
 
       if (_operatingSystemVersion == nil)
         {
@@ -1283,7 +1283,7 @@ static void determineOperatingSystem()
 {
   int	pid;
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
   pid = (int)GetCurrentProcessId();
 #else
   pid = (int)getpid();
@@ -1313,7 +1313,7 @@ static void determineOperatingSystem()
 
   if (beenHere == NO)
     {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
       SYSTEM_INFO info;
 
       GetSystemInfo(&info);
@@ -1369,7 +1369,7 @@ static void determineOperatingSystem()
 
 - (NSUInteger) activeProcessorCount
 {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   SYSTEM_INFO info;
   int	index;
   int	count = 0;
@@ -1410,7 +1410,7 @@ static void determineOperatingSystem()
 
   if (beenHere == NO)
     {
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
       MEMORYSTATUSEX memory;
 
       memory.dwLength = sizeof(memory);
@@ -1491,7 +1491,7 @@ GSInitializeProcess(int argc, char **argv, char **envp)
   extern int	_NSLogDescriptor;
   int		desc;
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   desc = _wopen((wchar_t*)[path fileSystemRepresentation],
     O_RDWR|O_CREAT|O_APPEND, 0644);
 #else
