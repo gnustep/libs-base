@@ -39,6 +39,12 @@
 #import "Foundation/NSThread.h"
 #import "GNUstepBase/GSLock.h"
 
+
+#if defined(__WIN32)
+#include <objc/blocks_runtime.h>
+#endif
+
+
 static NSZone	*_zone = 0;
 
 /**
