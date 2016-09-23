@@ -588,6 +588,11 @@ static NSRecursiveLock *classLock = nil;
   return AUTORELEASE(result);
 }
 
++ (id) localeWithLocaleIdentifier:(NSString *)string
+{
+  return AUTORELEASE([[NSLocale alloc] initWithLocaleIdentifier: string]);
+}
+
 + (NSString *) localeIdentifierFromComponents: (NSDictionary *) dict
 {
   NSString *result;
@@ -851,8 +856,9 @@ static NSRecursiveLock *classLock = nil;
 - (BOOL) isEqual: (id) obj
 {
   if ([obj isKindOfClass: [self class]])
+    {
     return [_localeId isEqual: [obj localeIdentifier]];
-  
+    }
   return NO;
 }
 
@@ -1052,7 +1058,6 @@ static NSRecursiveLock *classLock = nil;
   [nFor setLocale: self];
   [nFor setNumberStyle: NSNumberFormatterDecimalStyle];
   result = [nFor decimalSeparator];
-  
   RELEASE(nFor);
   return result;
 }
@@ -1066,7 +1071,6 @@ static NSRecursiveLock *classLock = nil;
   [nFor setLocale: self];
   [nFor setNumberStyle: NSNumberFormatterDecimalStyle];
   result = [nFor groupingSeparator];
-  
   RELEASE(nFor);
   return result;
 }

@@ -148,23 +148,6 @@ struct	NCTbl;		/* Notification Center Table structure	*/
  * trivial class instead ... and gets managed by the garbage collector.
  */
 
-#ifdef __OBJC_GC__
-
-@interface	GSObservation : NSObject
-{
-  @public
-  __weak id	observer;	/* Object to receive message.	*/
-  SEL		selector;	/* Method selector.		*/
-  struct Obs	*next;		/* Next item in linked list.	*/
-  struct NCTbl	*link;		/* Pointer back to chunk table	*/
-}
-@end
-@implementation	GSObservation
-@end
-#define	Observation	GSObservation
-
-#else
-
 typedef	struct	Obs {
   id		observer;	/* Object to receive message.	*/
   SEL		selector;	/* Method selector.		*/
@@ -172,8 +155,6 @@ typedef	struct	Obs {
   int		retained;	/* Retain count for structure.	*/
   struct NCTbl	*link;		/* Pointer back to chunk table	*/
 } Observation;
-
-#endif
 
 #define	ENDOBS	((Observation*)-1)
 
@@ -214,34 +195,17 @@ static inline BOOL doEqual(BOOL shouldHash, NSString* key1, NSString* key2)
  */
 static void listFree(Observation *list);
 
-#ifdef __OBJC_GC__
-
-/* Observations are managed by the GC system because they need to be
- * instances of a class in order to implement weak pointer to observer.
- */
-#define	obsRetain(X)
-#define	obsFree(X)
-
-#else
-
 /* Observations have retain/release counts managed explicitly by fast
  * function calls.
  */
 static void obsRetain(Observation *o);
 static void obsFree(Observation *o);
 
-#endif
-
 
 #define GSI_ARRAY_TYPES	0
 #define GSI_ARRAY_TYPE	Observation*
-#ifdef __OBJC_GC__
-#define GSI_ARRAY_NO_RELEASE	1
-#define GSI_ARRAY_NO_RETAIN	1
-#else
 #define GSI_ARRAY_RELEASE(A, X)   obsFree(X.ext)
 #define GSI_ARRAY_RETAIN(A, X)    obsRetain(X.ext)
-#endif
 
 #include "GNUstepBase/GSIArray.h"
 
@@ -256,13 +220,6 @@ static void obsFree(Observation *o);
 #define GSI_MAP_VTYPES GSUNION_PTR
 #define GSI_MAP_VEXTRA Observation*
 #define	GSI_MAP_EXTRA	BOOL
-
-#if	GS_WITH_GC
-#include	<gc/gc_typed.h>
-static GC_descr	nodeDesc;	// Type descriptor for map node.
-#define	GSI_MAP_NODES(M, X) \
-(GSIMapNode)GC_calloc_explicitly_typed(X, sizeof(GSIMapNode_t), nodeDesc)
-#endif
 
 #include "GNUstepBase/GSIMap.h"
 
@@ -314,22 +271,6 @@ obsNew(NCTable *t, SEL s, id o)
 {
   Observation	*obs;
 
-#if __OBJC_GC__
-
-  /* With clang GC, observations are garbage collected and we don't
-   * use a cache.  However, because the reference to the observer must be
-   * weak, the observation has to be an instance of a class ...
-   */
-  static Class observationClass;
-
-  if (0 == observationClass)
-    {
-      observationClass = [GSObservation class];
-    }
-  obs = NSAllocateObject(observationClass, 0, _zone);
-
-#else
-
   /* Generally, observations are cached and we create a 'new' observation
    * by retrieving from the cache or by allocating a block of observations
    * in one go.  This works nicely to both hide observations from the
@@ -367,14 +308,9 @@ obsNew(NCTable *t, SEL s, id o)
   obs->link = (void*)t;
   obs->retained = 0;
   obs->next = 0;
-#endif
 
   obs->selector = s;
-#if	GS_WITH_GC
-  GSAssignZeroingWeakPointer((void**)&obs->observer, (void*)o);
-#else
   obs->observer = o;
-#endif
 
   return obs;
 }
@@ -504,7 +440,6 @@ static inline void unlockNCTable(NCTable* t)
   [t->_lock unlock];
 }
 
-#ifndef __OBJC_GC__
 static void obsFree(Observation *o)
 {
   NSCAssert(o->retained >= 0, NSInternalInconsistencyException);
@@ -512,9 +447,6 @@ static void obsFree(Observation *o)
     {
       NCTable	*t = o->link;
 
-#if	GS_WITH_GC
-      GSAssignZeroingWeakPointer((void**)&o->observer, 0);
-#endif
       o->link = (NCTable*)t->freeList;
       t->freeList = o;
     }
@@ -524,7 +456,6 @@ static void obsRetain(Observation *o)
 {
   o->retained++;
 }
-#endif
 
 static void listFree(Observation *list)
 {
@@ -624,24 +555,8 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
  * purgeCollectedFromMapNode() does the same thing but also handles cleanup
  * of the map node containing the list if necessary.
  */
-#if	GS_WITH_GC
-#define	purgeCollected(X)	listPurge(X, nil)
-static Observation*
-purgeCollectedFromMapNode(GSIMapTable map, GSIMapNode node)
-{
-  Observation	*o;
-
-  o = node->value.ext = purgeCollected((Observation*)(node->value.ext));
-  if (o == ENDOBS)
-    {
-      GSIMapRemoveKey(map, node->key);
-    }
-  return o;
-}
-#else
 #define	purgeCollected(X)	(X)
 #define purgeCollectedFromMapNode(X, Y) ((Observation*)Y->value.ext)
-#endif
 
 
 @interface GSNotificationBlockOperation : NSOperation
@@ -769,16 +684,7 @@ static NSNotificationCenter *default_center = nil;
 {
   if (self == [NSNotificationCenter class])
     {
-#if	GS_WITH_GC
-      /* We create a typed memory descriptor for map nodes.
-       */
-      GC_word	w[GC_BITMAP_SIZE(GSIMapNode_t)] = {0};
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, key));
-      GC_set_bit(w, GC_WORD_OFFSET(GSIMapNode_t, value));
-      nodeDesc = GC_make_descriptor(w, GC_WORD_LEN(GSIMapNode_t));
-#else
       _zone = NSDefaultMallocZone();
-#endif
       if (concrete == 0)
 	{
 	  concrete = [GSNotification class];
@@ -1178,9 +1084,6 @@ static NSNotificationCenter *default_center = nil;
   GSIArrayItem	i[64];
   GSIArray_t	b;
   GSIArray	a = &b;
-#if	GS_WITH_GC
-  NSGarbageCollector	*collector = [NSGarbageCollector defaultCollector];
-#endif
 
   if (name == nil)
     {
@@ -1199,12 +1102,7 @@ static NSNotificationCenter *default_center = nil;
    * We use scanned memory in the array in the case where there are more
    * than the 64 observers we allowed room for on the stack.
    */
-#if	GS_WITH_GC
-  GSIArrayInitWithZoneAndStaticCapacity(a, (NSZone*)1, 64, i);
-  [collector disable];
-#else
   GSIArrayInitWithZoneAndStaticCapacity(a, _zone, 64, i);
-#endif
   lockNCTable(TABLE);
 
   /*
@@ -1282,15 +1180,9 @@ static NSNotificationCenter *default_center = nil;
 	}
     }
 
-  /*
-   * Finished with the table ... we can unlock it and re-enable garbage
-   * collection, safe in the knowledge that the observers we will be
-   * notifying won't get collected prematurely.
+  /* Finished with the table ... we can unlock it,
    */
   unlockNCTable(TABLE);
-#if	GS_WITH_GC
-  [collector enable];
-#endif
 
   /*
    * Now send all the notifications.

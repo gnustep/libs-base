@@ -38,13 +38,8 @@
 /*
  *      Setup for inline operation of arrays.
  */
-#if	GS_WITH_GC
-#define GSI_ARRAY_RETAIN(A, X)
-#define GSI_ARRAY_RELEASE(A, X)
-#else
 #define GSI_ARRAY_RETAIN(A, X)	[(X).obj retain]
 #define GSI_ARRAY_RELEASE(A, X)	[(X).obj release]
-#endif
 #define GSI_ARRAY_TYPES GSUNION_OBJ
 
 
@@ -419,13 +414,13 @@ static NSMapTable	*globalClassMap = 0;
   if (strcmp([o type], type) != 0)
     {
       [NSException raise: NSInvalidUnarchiveOperationException
-		  format: @"[%@ +%@]: type missmatch for %@",
+		  format: @"[%@ +%@]: type mismatch for %@",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd), o];
     }
   if ([o count] != expected)
     {
       [NSException raise: NSInvalidUnarchiveOperationException
-		  format: @"[%@ +%@]: count missmatch for %@",
+		  format: @"[%@ +%@]: count mismatch for %@",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd), o];
     }
   NSGetSizeAndAlignment(type, 0, &size);
@@ -841,12 +836,7 @@ static NSMapTable	*globalClassMap = 0;
 
 	  _objects = [_archive objectForKey: @"$objects"];
 	  _keyMap = [_archive objectForKey: @"$top"];
-
-#if	GS_WITH_GC
-	  _objMap = NSAllocateCollectable(sizeof(GSIArray_t), NSScannedOption);
-#else
 	  _objMap = NSZoneMalloc(_zone, sizeof(GSIArray_t));
-#endif
 	  count = [_objects count];
 	  GSIArrayInitWithZoneAndCapacity(_objMap, _zone, count);
 	  // Add marker for nil object

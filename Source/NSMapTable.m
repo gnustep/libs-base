@@ -139,10 +139,8 @@ static Class	concreteClass = 0;
   o = [self initWithKeyPointerFunctions: k
 		  valuePointerFunctions: v
 			       capacity: initialCapacity];
-#if	!GS_WITH_GC
   [k release];
   [v release];
-#endif
   return o;
 }
 

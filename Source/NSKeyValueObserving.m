@@ -992,16 +992,6 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
 
 
 @implementation	GSKVOObservation
-#if	GS_WITH_GC
-+ (void) initialize
-{
-  GSMakeWeakPointer(self, "observer");
-}
-- (void) finalize
-{
-  GSAssignZeroingWeakPointer((void**)&observer, nil);
-}
-#endif
 @end
 
 @implementation	GSKVOPathInfo
@@ -1165,15 +1155,6 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
           o->options = options;
           observation = o;
         }
-#if	GS_WITH_GC
-      else if (o->observer == nil)
-	{
-	  /* The observer for thsi observation must have been collected.
-	   */
-	  [pathInfo->observations removeObjectAtIndex: count];
-	  continue;
-	}
-#endif
       pathInfo->allOptions |= o->options;
     }
   if (observation == nil)
@@ -1302,16 +1283,8 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
               context = o->context;
               break;
             }
-#if	GS_WITH_GC
-	  else if (o->observer == nil)
-	    {
-	      /* The observer for thsi observation must have been collected.
-	       */
-	      [pathInfo->observations removeObjectAtIndex: count];
 	    }
-#endif
 	}
-    }
   [iLock unlock];
   return context;
 }
