@@ -57,6 +57,20 @@ static Class NSFileHandle_abstract_class = nil;
 static Class NSFileHandle_concrete_class = nil;
 static Class NSFileHandle_ssl_class = nil;
 
+#if     defined(HAVE_GNUTLS) && !defined(_WIN32)
+@interface      GSTLSHandle : GSFileHandle
+{
+@public
+  NSDictionary  *opts;
+  GSTLSSession  *session;
+}
+- (void) sslDisconnect;
+- (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing;
+- (NSString*) sslSetOptions: (NSDictionary*)options;
+@end
+#endif
+
+
 /**
  * <p>
  * <code>NSFileHandle</code> is a class that provides a wrapper for accessing
@@ -78,6 +92,9 @@ static Class NSFileHandle_ssl_class = nil;
     {
       NSFileHandle_abstract_class = self;
       NSFileHandle_concrete_class = [GSFileHandle class];
+#if     defined(HAVE_GNUTLS) && !defined(_WIN32)
+      NSFileHandle_ssl_class = [GSTLSHandle class];
+#endif
     }
 }
 
@@ -726,26 +743,6 @@ NSString * const NSFileHandleOperationException
  */
 + (Class) sslClass
 {
-  if (0 == NSFileHandle_ssl_class)
-    {
-      NSFileHandle_ssl_class = NSClassFromString(@"GSTLSHandle");
-
-      if (0 == NSFileHandle_ssl_class)
-        {
-          NSString      *path;
-          NSBundle      *bundle;
-
-          path = [[NSBundle bundleForClass: [NSObject class]] bundlePath];
-          path = [path stringByAppendingPathComponent: @"SSL.bundle"];
-
-          bundle = [NSBundle bundleWithPath: path];
-          NSFileHandle_ssl_class = [bundle principalClass];
-          if (NSFileHandle_ssl_class == 0 && bundle != nil)
-            {
-              NSLog(@"Failed to load principal class from bundle (%@)", path);
-            }
-        }
-    }
   return NSFileHandle_ssl_class;
 }
 
@@ -885,21 +882,7 @@ NSString * const NSFileHandleOperationException
 
 @end
 
-#if     defined(HAVE_GNUTLS)
-
-#if	!defined(__MINGW__)
-
-@interface      GSTLSHandle : GSFileHandle
-{
-@public
-  NSDictionary  *opts;
-  GSTLSSession  *session;
-}
-- (void) sslDisconnect;
-- (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing;
-- (NSString*) sslSetOptions: (NSDictionary*)options;
-@end
-
+#if     defined(HAVE_GNUTLS) &&	!defined(_WIN32)
 
 /* Callback to allow the TLS code to pull data from the remote system.
  * If the operation fails, this sets the error number.
@@ -1082,7 +1065,6 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 }
 
 @end
-#endif  /* MINGW */
 
-#endif  /* HAVE_GNUTLS */
+#endif  /* defined(HAVE_GNUTLS) && !defined(_WIN32) */
 

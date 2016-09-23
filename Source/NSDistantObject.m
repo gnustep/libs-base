@@ -77,16 +77,19 @@ static Class	distantObjectClass = 0;
 @end
 /*
  * Evil hack ... if a remote system wants to know if we conform
- * to a protocol we usa a local protocol with the same name.
+ * to a protocol we use a local protocol with the same name.
  */
 #ifndef __GNUSTEP_RUNTIME__
+@interface Object (conformsTo)
+- (BOOL) conformsTo: (Protocol*)p;
+@end
 @implementation Object (NSConformsToProtocolNamed)
 - (BOOL) _conformsToProtocolNamed: (const char*)aName
 {
   Protocol	*p;
 
   p = objc_getProtocol(aName);
-  return [self conformsTo: p];
+  return [(id)self conformsTo: p];
 }
 @end
 #endif
@@ -380,13 +383,16 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 @end
 
 @interface NSDistantObject (Debug)
-+ (void) setDebug: (int)val;
++ (int) setDebug: (int)val;
 @end
 
 @implementation NSDistantObject (Debug)
-+ (void) setDebug: (int)val
++ (int) setDebug: (int)val
 {
+  int   old = debug_proxy;
+
   debug_proxy = val;
+  return old;
 }
 @end
 
@@ -605,6 +611,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 
   NS_DURING
   {
+    // Testplant-MAL-09212016: Keeping our branch code...
     // If the forward invocation fails there are times this object
     // is already free'd by the time the exception handler executes...
     AUTORELEASE(RETAIN(self));

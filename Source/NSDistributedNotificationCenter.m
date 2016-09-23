@@ -735,6 +735,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		nil];
 	    }
 #if defined(__MINGW32__)
+    // Testplant-MAL-09212016: Changes to support logging redirect...
     NSTask *task = AUTORELEASE([NSTask new]);
     [task setStandardError:[NSFileHandle fileHandleForWritingAtPath:@"NUL"]];
     [task setStandardOutput:[NSFileHandle fileHandleForWritingAtPath:@"NUL"]];
@@ -780,12 +781,10 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		@"I attempted to start it at '%@'\n", cmd];
 	    }
 	}
-#if	!GS_WITH_GC
       else
         {
           [_remote retain];
         }
-#endif
 
       c = [_remote connectionForProxy];
       [_remote setProtocolForProxy: p];

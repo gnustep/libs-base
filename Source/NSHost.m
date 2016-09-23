@@ -38,16 +38,18 @@
 #import "Foundation/NSSet.h"
 #import "Foundation/NSCoder.h"
 
-#if defined(__MINGW__)
+#if defined(_WIN32)
 #include <winsock2.h>
 #include <ws2tcpip.h>
+extern const char *inet_ntop(int, const void *, char *, size_t);
+extern int inet_pton(int , const char *, void *);
 #else
 #include <netdb.h>
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#endif /* !__MINGW__*/
+#endif /* !_WIN32*/
 
 #ifndef	INADDR_NONE
 #define	INADDR_NONE	-1
