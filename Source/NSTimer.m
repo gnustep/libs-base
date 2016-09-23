@@ -244,9 +244,11 @@ static Class	NSDate_class;
 	  NS_HANDLER
 	    {
 	      NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
-	        @"raised during posting of timer with target %p "
+	        @"raised during posting of timer with target %s(%s) "
 		@"and selector '%@'",
-		[localException name], [localException reason], target,
+		[localException name], [localException reason],
+                GSClassNameFromObject(target),
+                GSObjCIsInstance(target) ? "instance" : "class",
 		NSStringFromSelector([target selector]));
 	    }
 	  NS_ENDHANDLER

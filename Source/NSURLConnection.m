@@ -110,7 +110,6 @@
   _done = YES;
 }
 
-
 - (void) connection: (NSURLConnection *)connection
      didReceiveData: (NSData *)data
 {
@@ -138,13 +137,8 @@ typedef struct
 
   if (o != nil)
     {
-#if	GS_WITH_GC
-      o->_NSURLConnectionInternal
-	= NSAllocateCollectable(sizeof(Internal), NSScannedOption);
-#else
       o->_NSURLConnectionInternal = NSZoneCalloc([self zone],
 	1, sizeof(Internal));
-#endif
     }
   return o;
 }
@@ -264,8 +258,15 @@ typedef struct
 - (void) connection: (NSURLConnection *)connection
   didReceiveAuthenticationChallenge: (NSURLAuthenticationChallenge *)challenge
 {
+  if ([challenge proposedCredential] == nil
+    || [challenge previousFailureCount] > 0)
+    {
+      /* continue without a credential if there is no proposed credential
+       * at all or if an authentication failure has already happened.
+       */
   [[challenge sender]
     continueWithoutCredentialForAuthenticationChallenge: challenge];
+}
 }
 
 - (void) connection: (NSURLConnection *)connection

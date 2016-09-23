@@ -24,9 +24,11 @@
    $Date$ $Revision$
    */
 
-/* define to get system-v functions including inet_aton()
+/* defines to get system-v functions including inet_aton()
+ * The first define is for old versions of glibc, the second for newer ones
  */
 #define _SVID_SOURCE    1
+#define _DEFAULT_SOURCE    1
 
 #import "common.h"
 #define	EXPOSE_NSSocketPortNameServer_IVARS	1
@@ -53,7 +55,7 @@
 
 #import "GSPortPrivate.h"
 
-#ifdef __MINGW__
+#ifdef _WIN32
 #include <winsock2.h>
 #include <wininet.h>
 #else
@@ -183,15 +185,17 @@ typedef enum {
   if (e != nil)
     {
       NSDebugMLLog(@"NSSocketPortNameServer",
-	@"failed connect to gdomap on %@ - %@",
-	[[notification object] socketAddress], e);
+	@"failed connect to gdomap on %@:%@ - %@",
+	[[notification object] socketAddress],
+	[[notification object] socketService],
+        e);
       /*
        * Remove our file handle, then either retry or fail.
        */
       [self close];
       if (launchCmd == nil)
 	{
-	  launchCmd = [NSTask launchPathForTool: @"gdomap"];
+	  launchCmd = RETAIN([NSTask launchPathForTool: @"gdomap"]);
 	}
       if (state == GSPC_LOPEN && launchCmd != nil)
 	{
@@ -251,8 +255,9 @@ typedef enum {
   if (d == nil || [d length] == 0)
     {
       [self fail];
-      NSLog(@"NSSocketPortNameServer lost connection to gdomap on %@",
-	[[notification object] socketAddress]);
+      NSLog(@"NSSocketPortNameServer lost connection to gdomap on %@:%@",
+	[[notification object] socketAddress],
+	[[notification object] socketService]);
     }
   else
     {
@@ -321,8 +326,10 @@ typedef enum {
   if (e != nil)
     {
       [self fail];
-      NSLog(@"NSSocketPortNameServer failed write to gdomap on %@ - %@",
-	[[notification object] socketAddress], e);
+      NSLog(@"NSSocketPortNameServer failed write to gdomap on %@:%@ - %@",
+	[[notification object] socketAddress],
+	[[notification object] socketService],
+        e);
     }
   else
     {

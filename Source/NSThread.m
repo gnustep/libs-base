@@ -73,18 +73,10 @@
 #import "Foundation/NSConnection.h"
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSUserDefaults.h"
-#import "Foundation/NSGarbageCollector.h"
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
 #import "GSRunLoopCtxt.h"
-
-#if	GS_WITH_GC
-#include	<gc/gc.h>
-#endif
-#if __OBJC_GC__
-#include <objc/objc-auto.h>
-#endif
 
 #if defined(HAVE_PTHREAD_NP_H)
 #  include <pthread_np.h>
@@ -115,7 +107,7 @@
 NSUInteger
 GSPrivateThreadID()
 {
-#if defined(__MINGW__)
+#if defined(_WIN32)
   return (NSUInteger)GetCurrentThreadId();
 #elif defined(HAVE_GETTID)
   return (NSUInteger)syscall(SYS_gettid);
@@ -132,7 +124,7 @@ GSPrivateThreadID()
  * FIXME ... This is code for the microsoft compiler;
  * how do we make it work for gcc/clang?
  */
-#if defined(__MINGW__) && defined(HAVE_WINDOWS_H)
+#if defined(_WIN32) && defined(HAVE_WINDOWS_H)
 // Usage: SetThreadName (-1, "MainThread");
 #include <windows.h>
 const DWORD MS_VC_EXCEPTION=0x406D1388;
@@ -263,7 +255,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
       return;
     }
 
-#if     defined(__MINGW__)
+#if     defined(_WIN32)
   /*
    * Avoid integer overflow by breaking up long sleeps.
    */
@@ -299,7 +291,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
       delay = when - GSPrivateTimeNow();
     }
 
-#else   /* __MINGW__ */
+#else   /* _WIN32 */
 
   /*
    * Avoid integer overflow by breaking up long sleeps.
@@ -352,7 +344,7 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
       delay = when - GSPrivateTimeNow();
     }
 #endif	/* !HAVE_NANOSLEEP */
-#endif	/* !__MINGW__ */
+#endif	/* !_WIN32 */
 }
 
 static NSArray *
@@ -411,6 +403,7 @@ static inline NSValue* NSValueCreateFromPthread(pthread_t thread)
  * Conversely, we need to be able to retrieve the pthread_t
  * from an NSValue.
  */
+// Testplant-MAL-09232016: Keeping testplant branch code...
 static inline void
 _getPthreadFromNSValue(NSValue* value, pthread_t *thread_ptr)
 {
@@ -576,6 +569,17 @@ static void exitedThread(void *thread)
     {
       NSValue           *ref;
 
+      if (0 == thread)
+	{
+	  /* On some systems this is called with a null thread pointer,
+	   * so try to ger the NSThread object for the current thread.
+	   */
+	  thread = pthread_getspecific(thread_object_key);
+	  if (0 == thread)
+	    {
+	      return;	// no thread info
+	    }
+	}
       RETAIN((NSThread*)thread);
       ref = NSValueCreateFromPthread(pthread_self());
       _willLateUnregisterThread(ref, (NSThread*)thread);
@@ -664,7 +668,7 @@ GSCurrentThreadDictionary(void)
 }
 
 /*
- * Callback function so send notifications on becoming multi-threaded.
+ * Callback function to send notifications on becoming multi-threaded.
  */
 static void
 gnustep_base_thread_callback(void)
@@ -687,13 +691,6 @@ gnustep_base_thread_callback(void)
 	   * threaded BEFORE sending the notifications.
 	   */
 	  entered_multi_threaded_state = YES;
-#if	GS_WITH_GC && defined(HAVE_GC_ALLOW_REGISTER_THREADS)
-	  /* This function needs to be called before going multi-threaded
-	   * so that the garbage collection library knows to support
-	   * registration of new threads.
-	   */
-	  GS_allow_register_threads();
-#endif
 	  NS_DURING
 	    {
 	      [GSPerformHolder class];	// Force initialization
@@ -737,7 +734,6 @@ gnustep_base_thread_callback(void)
 static void
 setThreadForCurrentThread(NSThread *t)
 {
-  [[NSGarbageCollector defaultCollector] disableCollectorForPointer: t];
   pthread_setspecific(thread_object_key, t);
   gnustep_base_thread_callback();
 }
@@ -767,7 +763,6 @@ unregisterActiveThread(NSThread *thread)
       [(GSRunLoopThreadInfo*)thread->_runLoopInfo invalidate];
       RELEASE(thread);
 
-      [[NSGarbageCollector defaultCollector] enableCollectorForPointer: thread];
       pthread_setspecific(thread_object_key, nil);
     }
 }
@@ -787,9 +782,12 @@ unregisterActiveThread(NSThread *thread)
     {
       t = [self new];
       t->_active = YES;
-      [[NSGarbageCollector defaultCollector] disableCollectorForPointer: t];
       pthread_setspecific(thread_object_key, t);
       GS_CONSUMED(t);
+      if (defaultThread != nil && t != defaultThread)
+        {
+          gnustep_base_thread_callback();
+        }
       return YES;
     }
   return NO;
@@ -1066,25 +1064,65 @@ unregisterActiveThread(NSThread *thread)
 
 - (void) _setName: (NSString *)aName
 {
-  int   result = -1;
-
-  while (result != 0 && [aName length] > 0)
+  if ([aName isKindOfClass: [NSString class]])
     {
-      result =
-        PTHREAD_SETNAME([aName cStringUsingEncoding: NSUTF8StringEncoding]);
-      if (result != 0)
+      int       i;
+      char      buf[200];
+
+      if (YES == [aName getCString: buf
+                         maxLength: sizeof(buf)
+                          encoding: NSUTF8StringEncoding])
+    {
+          i = strlen(buf);
+        }
+      else
         {
+          /* Too much for buffer ... truncate on a character boundary.
+           */
+          i = sizeof(buf) - 1;
+          if (buf[i] & 0x80)
+            {
+              while (i > 0 && (buf[i] & 0x80))
+                {
+                  buf[i--] = '\0';
+                }
+            }
+          else
+            {
+              buf[i--] = '\0';
+            }
+        }
+      while (i > 0)
+        {
+          if (PTHREAD_SETNAME(buf) == 0)
+            {
+              break;    // Success
+            }
+
           if (ERANGE == errno)
             {
               /* Name must be too long ... gnu/linux uses 15 characters
                */
-              if ([aName length] > 15)
+              if (i > 15)
                 {
-                  aName = [aName substringToIndex: 15];
+                  i = 15;
                 }
               else
                 {
-                  aName = [aName substringToIndex: [aName length] - 1];
+                  i--;
+                }
+              /* too long a name ... truncate on a character boundary.
+               */
+              if (buf[i] & 0x80)
+                {
+                  while (i > 0 && (buf[i] & 0x80))
+                    {
+                      buf[i--] = '\0';
+            }
+                }
+          else
+            {
+                  buf[i--] = '\0';
                 }
             }
           else
@@ -1122,33 +1160,12 @@ unregisterActiveThread(NSThread *thread)
 /**
  * Trampoline function called to launch the thread
  */
-static void *nsthreadLauncher(void* thread)
+static void *
+nsthreadLauncher(void *thread)
 {
     NSThread *t = (NSThread*)thread;
+
     setThreadForCurrentThread(t);
-#if __OBJC_GC__
-	objc_registerThreadWithCollector();
-#endif
-#if	GS_WITH_GC && defined(HAVE_GC_REGISTER_MY_THREAD)
-  {
-    struct GC_stack_base	base;
-
-    if (GC_get_stack_base(&base) == GC_SUCCESS)
-      {
-	int	result;
-
-	result = GC_register_my_thread(&base);
-	if (result != GC_SUCCESS && result != GC_DUPLICATE)
-	  {
-	    fprintf(stderr, "Argh ... no thread support in garbage collection library\n");
-	  }
-      }
-    else
-      {
-	fprintf(stderr, "Unable to determine stack base to register new thread for garbage collection\n");
-      }
-  }
-#endif
 
   /*
    * Let observers know a new thread is starting.
@@ -1257,7 +1274,7 @@ static void *nsthreadLauncher(void* thread)
   BOOL  signalled = NO;
 
   [lock lock];
-#if defined(__MINGW__)
+#if defined(_WIN32)
   if (INVALID_HANDLE_VALUE != event)
     {
   if (SetEvent(event) == 0)
@@ -1307,7 +1324,7 @@ static void *nsthreadLauncher(void* thread)
 
 - (id) init
 {
-#ifdef __MINGW__
+#ifdef _WIN32
   if ((event = CreateEvent(NULL, TRUE, FALSE, NULL)) == INVALID_HANDLE_VALUE)
     {
       DESTROY(self);
@@ -1371,7 +1388,7 @@ static void *nsthreadLauncher(void* thread)
   [lock lock];
   p = AUTORELEASE(performers);
   performers = nil;
-#ifdef __MINGW__
+#ifdef _WIN32
   if (event != INVALID_HANDLE_VALUE)
     {
       CloseHandle(event);
@@ -1400,7 +1417,7 @@ static void *nsthreadLauncher(void* thread)
   unsigned int	c;
 
   [lock lock];
-#if defined(__MINGW__)
+#if defined(_WIN32)
   if (event != INVALID_HANDLE_VALUE)
     {
       if (ResetEvent(event) == 0)
@@ -1575,11 +1592,6 @@ GSRunLoopInfoForThread(NSThread *aThread)
 - (NSArray*) modes
 {
   return modes;
-}
-
-- (NSString *) description
-{
-	return [NSString stringWithFormat:@"%@ on %@", NSStringFromSelector(selector), receiver];
 }
 @end
 

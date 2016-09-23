@@ -1026,6 +1026,8 @@
       return;
     }
 
+  // Testplant-MAL-09232016: Paul moved this up in testplant branch code so
+  // local changes...
   _isUndoing = YES;
 
   [[NSNotificationCenter defaultCenter]
@@ -1105,6 +1107,7 @@
 @end
 
 
+// Testplant-MAL-09232016: Paul added to testplant branch - keeping changes...
 @implementation NSCellUndoManager
 
 - (void)dealloc

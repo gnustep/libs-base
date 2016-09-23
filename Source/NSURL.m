@@ -260,11 +260,7 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
       len += strlen(rel->fragment) + 1;		// #fragment
     }
 
-#if	GS_WITH_GC
-  ptr = buf = (char*)NSAllocateCollectable(len, 0);
-#else
   ptr = buf = (char*)NSZoneMalloc(NSDefaultMallocZone(), len);
-#endif
 
   if (rel->scheme != 0)
     {
@@ -849,11 +845,7 @@ static NSUInteger	urlAlign;
       BOOL	canBeGeneric = YES;
 
       size += sizeof(parsedURL) + urlAlign + 1;
-#if	GS_WITH_GC
-      buf = _data = (parsedURL*)NSAllocateCollectable(size, 0);
-#else
       buf = _data = (parsedURL*)NSZoneMalloc(NSDefaultMallocZone(), size);
-#endif
       memset(buf, '\0', size);
       start = end = ptr = (char*)&buf[1];
       [_urlString getCString: start
@@ -1428,6 +1420,7 @@ static NSUInteger	urlAlign;
   return nil == errorStr ? YES : NO;
 }
 
+// Testplant-MAL-09232016: Keeping testplant branch code...
 - (BOOL) getResourceValue:(id*)value forKey:(NSString *)key error:(NSError**)error
 {
   if ([self isFileURL])
@@ -1538,7 +1531,7 @@ static NSUInteger	urlAlign;
       unescape(buf, buf);
     }
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   /* On windows a file URL path may be of the form C:\xxx (ie we should
    * not insert the leading slash).
    * Also the vertical bar symbol may have been used instead of the

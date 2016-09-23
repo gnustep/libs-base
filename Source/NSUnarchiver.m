@@ -78,6 +78,9 @@ typeToName1(char type)
       case _C_ULNG_LNG:	return "unsigned long long";
       case _C_FLT:	return "float";
       case _C_DBL:	return "double";
+#if __GNUC__ > 2 && defined(_C_BOOL)
+      case _C_BOOL:	return "_Bool";
+#endif
       case _C_PTR:	return "pointer";
       case _C_CHARPTR:	return "cstring";
       case _C_ARY_B:	return "array";
@@ -123,6 +126,7 @@ typeToName2(char type)
       case _GSC_ULNG_LNG:	return "unsigned long long";
       case _GSC_FLT:	return "float";
       case _GSC_DBL:	return "double";
+      case _GSC_BOOL:	return "_Bool";
       case _GSC_PTR:	return "pointer";
       case _GSC_CHARPTR:	return "cstring";
       case _GSC_ARY_B:	return "array";
@@ -166,7 +170,11 @@ static char	type_map[32] = {
   _C_ULNG_LNG,
   _C_FLT,
   _C_DBL,
+#if __GNUC__ > 2 && defined(_C_BOOL)
+  _C_BOOL,
+#else
   0,
+#endif
   0,
   0,
   _C_ID,
@@ -608,6 +616,9 @@ static unsigned	encodingVersion;
       case _C_ULNG_LNG:	info = _GSC_ULNG_LNG; break;
       case _C_FLT:	info = _GSC_FLT; break;
       case _C_DBL:	info = _GSC_DBL; break;
+#if __GNUC__ > 2 && defined(_C_BOOL)
+      case _C_BOOL:	info = _GSC_BOOL; break;
+#endif
       default:		info = _GSC_NONE; break;
     }
 
@@ -1257,6 +1268,16 @@ static unsigned	encodingVersion;
 	  }
 	return;
 
+      case _GSC_BOOL:
+	if (*type != type_map[_GSC_BOOL])
+	  {
+	    [NSException raise: NSInternalInconsistencyException
+		        format: @"expected %s and got %s",
+		    typeToName1(*type), typeToName2(info)];
+	  }
+	(*desImp)(src, desSel, address, type, &cursor, nil);
+	return;
+
       default:
 	[NSException raise: NSInternalInconsistencyException
 		    format: @"read unknown type info - %d", info];
@@ -1460,11 +1481,7 @@ static unsigned	encodingVersion;
 	  void		*b;
 	  NSData	*d;
 
-#if	GS_WITH_GC
-	  b = NSAllocateCollectable(l, 0);
-#else
 	  b = NSZoneMalloc(zone, l);
-#endif
 	  [self decodeArrayOfObjCType: @encode(unsigned char)
 				count: l
 				   at: b];
