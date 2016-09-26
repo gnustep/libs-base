@@ -9,6 +9,18 @@ int main(int argc, char **argv)
   NSString *str;
   unichar u;
 
+  u = (unichar)0xfdd0;
+  str = [[NSString alloc] initWithCharacters: &u length: 1];
+  PASS([str length] == 1, "fdd0 codpepoint is permitted in string");
+  PASS([str characterAtIndex: 0] == 0xfdd0, "fdd0 is returned properly");
+  [str release];
+
+  u = (unichar)0xfdef;
+  str = [[NSString alloc] initWithCharacters: &u length: 1];
+  PASS([str length] == 1, "fdef codpepoint is permitted in string");
+  PASS([str characterAtIndex: 0] == 0xfdef, "fdef is returned properly");
+  [str release];
+
   u = (unichar)0xfffd;
   str = [[NSString alloc] initWithCharacters: &u length: 1];
   PASS([str length] == 1, "fffd codpepoint is permitted in string");
