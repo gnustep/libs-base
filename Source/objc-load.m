@@ -87,7 +87,7 @@ static int
 objc_initialize_loading(FILE *errorStream)
 {
   NSString	*path;
-#if     defined(__MINGW__) || defined(__CYGWIN__)
+#if     defined(_WIN32) || defined(__CYGWIN__)
   const unichar *fsPath;
 #else  
   const char *fsPath;
@@ -99,11 +99,7 @@ objc_initialize_loading(FILE *errorStream)
   NSDebugFLLog(@"NSBundle",
     @"Debug (objc-load): initializing dynamic loader for %@", path);
 
-#if     defined(__MINGW__) || defined(__CYGWIN__)
-  fsPath = (const unichar *)[[path stringByDeletingLastPathComponent] fileSystemRepresentation];
-#else
   fsPath = [[path stringByDeletingLastPathComponent] fileSystemRepresentation];
-#endif
   
   if (__objc_dynamic_init(fsPath))
     {
@@ -134,7 +130,7 @@ objc_load_callback(Class class, struct objc_category * category)
     }
 }
 
-#if	defined(__MINGW__) || defined(__CYGWIN__)
+#if	defined(_WIN32) || defined(__CYGWIN__)
 #define	FSCHAR	unichar
 #else
 #define	FSCHAR	char
@@ -151,10 +147,10 @@ GSPrivateLoadModule(NSString *filename, FILE *errorStream,
   return objc_loadModule([filename fileSystemRepresentation],
     loadCallback, &errcode);
 #else
-  typedef void (*void_fn)();
   dl_handle_t handle;
   void __objc_resolve_class_links(void);
 #if !defined(__ELF__) && !defined(CON_AUTOLOAD)
+  typedef void (*void_fn)();
   void_fn *ctor_list;
   int i;
 #endif
@@ -245,7 +241,7 @@ GSPrivateUnloadModule(FILE *errorStream,
 }
 
 
-#if defined(__MINGW__) || defined(__CYGWIN__)
+#if defined(_WIN32) || defined(__CYGWIN__)
 // FIXME: We can probably get rid of this now - MinGW should include a working
 // dladdr() wrapping this function, so we no longer need a Windows-only code
 // path

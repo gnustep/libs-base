@@ -33,6 +33,7 @@
 
 // Testplant-MAL-09142016: does not compile on MINGW32 without this include...
 #if defined(_WIN32) && defined(__clang__)
+#import <windows.h>
 #import <winsock2.h>
 #endif
 

@@ -41,15 +41,18 @@
 NSString * const NSUserNotificationDefaultSoundName = @"NSUserNotificationDefaultSoundName";
 
 @interface NSUserNotification ()
+// Testplant-MAL-09272016: Need to copy this...
 @property (readwrite, copy) NSDate *actualDeliveryDate;
 @property (readwrite, getter=isPresented) BOOL presented;
 @property (readwrite, getter=isRemote) BOOL remote;
 @property (readwrite) NSUserNotificationActivationType activationType;
+// Testplant-MAL-09272016: Need to copy this...
 @property (readwrite, copy) NSAttributedString *response;
 @end
 
 @implementation NSUserNotification
 
+// Testplant-MAL-09272016: Our clang version doens't seem to work without this...
 @synthesize title;
 @synthesize subtitle;
 @synthesize informativeText;
@@ -125,6 +128,7 @@ NSString * const NSUserNotificationDefaultSoundName = @"NSUserNotificationDefaul
 
 static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
+// Testplant-MAL-09272016: Our clang version doens't seem to work without this...
 @synthesize scheduledNotifications = _scheduledNotifications;
 @synthesize deliveredNotifications = _deliveredNotifications;
 @synthesize delegate = _delegate;
@@ -138,6 +142,7 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
   if (bundlePath)
     {
       bundle = [NSBundle bundleWithPath: bundlePath];
+// Testplant-MAL-09272016: Added debug...
 #if defined(DEBUG)
       NSLog(@"%s:bundlePath: %@ bundle: %@", __PRETTY_FUNCTION__, bundlePath, bundle);
 #endif

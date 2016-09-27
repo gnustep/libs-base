@@ -161,8 +161,9 @@ static Class		messagePortClass = 0;
 	  NSDebugMLLog(@"NSMessagePort",
 	    @"unable to access mailslot '%@' for write - %@",
 	    [self name], [NSError _last]);
-    NSLog(@"%s:error creating mailslot (CreateFileW) - name: %@ error: %ld - %@", __PRETTY_FUNCTION__,
-          [self name], (long)GetLastError(), [NSError _last]);
+      // Tetplant-MAL-09272016: Keeping error log message for debugging...
+	  NSLog(@"%s:error creating mailslot (CreateFileW) - name: %@ error: %ld - %@", __PRETTY_FUNCTION__,
+	    [self name], (long)GetLastError(), [NSError _last]);
 	  result = NO;
 	}
       else
@@ -642,13 +643,12 @@ static Class		messagePortClass = 0;
 					 encoding: NSASCIIStringEncoding];
 	      NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%@'", n);
 	      rPort = [messagePortClass newWithName: n];
+	      RELEASE(n);
 	      if (rPort == nil)
 		{
-		  NSLog(@"%@ - unable to decode remote port: %@", self, n);
-      RELEASE(n);
+		  NSLog(@"%@ - unable to decode remote port", self);
 		  break;
 		}
-        RELEASE(n);
 	      rItems = [NSMutableArray alloc];
 	      rItems = [rItems initWithCapacity: nItems];
 	      d = [[NSMutableData alloc] initWithBytes: buf + off
@@ -680,13 +680,12 @@ static Class		messagePortClass = 0;
 					 encoding: NSASCIIStringEncoding];
 	      NSDebugFLLog(@"NSMessagePort", @"Decoded port as '%@'", n);
 	      p = [messagePortClass newWithName: n];
+	      RELEASE(n);
 	      if (p == nil)
 		{
-		  NSLog(@"%@ - unable to decode remote port: %@", self, n);
-      RELEASE(n);
+		  NSLog(@"%@ - unable to decode remote port", self);
 		  break;
 		}
-        RELEASE(n);
 	      [rItems addObject: p];
 	      RELEASE(p);
 	    }

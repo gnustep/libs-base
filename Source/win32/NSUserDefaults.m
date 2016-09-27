@@ -16,6 +16,10 @@
 
 extern void GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
+@interface NSUserDefaults (Private)
+- (id) initWithContentsOfFile: (NSString*)fielName;
+@end
+
 @interface NSUserDefaultsWin32 : NSUserDefaults
 {
   NSString	*registryPrefix;
@@ -24,6 +28,7 @@ extern void GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 @end
 
 @interface NSUserDefaults (Secrets)
+- (id) initWithContentsOfFile: (NSString*)aPath;
 - (BOOL) lockDefaultsFile: (BOOL*)wasLocked;
 - (void) unlockDefaultsFile;
 - (NSMutableDictionary*) readDefaults;
