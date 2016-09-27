@@ -559,9 +559,9 @@ static Class		NSURLHandleClass = 0;
 /* Private method ... subclasses override this to enable debug to be
  * turned off and on.
  */
-- (void) setDebug: (BOOL)aFlag
+- (int) setDebug: (int)aFlag
 {
-  return;
+  return NO;
 }
 
 /**

@@ -36,6 +36,7 @@
 #import "GSTLS.h"
 #import "GSURLPrivate.h"
 #import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSData+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
@@ -45,6 +46,7 @@
 # undef	USE_ZLIB
 #endif
 #define	USE_ZLIB	0
+
 
 #if	USE_ZLIB
 #if	defined(HAVE_ZLIB_H)
@@ -65,6 +67,78 @@ zfree(void *opaque, void *mem)
 # define	USE_ZLIB	0
 #endif
 #endif
+
+static void
+debugRead(id handle, int len, const unsigned char *ptr)
+{
+  int           pos;
+  uint8_t       *hex;
+  NSUInteger    hl;
+
+  hl = ((len + 2) / 3) * 4;
+  hex = malloc(hl + 1);
+  hex[hl] = '\0';
+  GSPrivateEncodeBase64(ptr, (NSUInteger)len, hex);
+
+  for (pos = 0; pos < len; pos++)
+    {
+      if (0 == ptr[pos])
+        {
+          NSData        *data;
+          char          *esc;
+
+          data = [[NSData alloc] initWithBytesNoCopy: (void*)ptr
+                                              length: len
+                                        freeWhenDone: NO];
+          esc = [data escapedRepresentation: 0];
+
+          NSLog(@"Read for %p of %d bytes (escaped) - '%s'\n<[%s]>",
+            handle, len, esc, hex); 
+          free(esc);
+          RELEASE(data);
+          free(hex);
+          return;
+        }
+    }
+  NSLog(@"Read for %p of %d bytes - '%*.*s'\n<[%s]>",
+    handle, len, len, len, ptr, hex); 
+  free(hex);
+}
+static void
+debugWrite(id handle, int len, const unsigned char *ptr)
+{
+  int           pos;
+  uint8_t       *hex;
+  NSUInteger    hl;
+
+  hl = ((len + 2) / 3) * 4;
+  hex = malloc(hl + 1);
+  hex[hl] = '\0';
+  GSPrivateEncodeBase64(ptr, (NSUInteger)len, hex);
+
+  for (pos = 0; pos < len; pos++)
+    {
+      if (0 == ptr[pos])
+        {
+          NSData        *data;
+          char          *esc;
+
+          data = [[NSData alloc] initWithBytesNoCopy: (void*)ptr
+                                              length: len
+                                        freeWhenDone: NO];
+          esc = [data escapedRepresentation: 0];
+          NSLog(@"Write for %p of %d bytes (escaped) - '%s'\n<[%s]>",
+            handle, len, esc, hex); 
+          free(esc);
+          RELEASE(data);
+          free(hex);
+          return;
+        }
+    }
+  NSLog(@"Write for %p of %d bytes - '%*.*s'\n<[%s]>",
+    handle, len, len, len, ptr, hex); 
+  free(hex);
+}
 
 @interface	GSSocketStreamPair : NSObject
 {
@@ -278,7 +352,6 @@ static NSLock		*pairLock = nil;
   NSURLCredential		*_credential;
   NSHTTPURLResponse		*_response;
 }
-- (void) setDebug: (BOOL)flag;
 @end
 
 @interface _NSHTTPSURLProtocol : _NSHTTPURLProtocol
@@ -397,28 +470,6 @@ static NSURLProtocol	*placeholder = nil;
     }
   return NO;
 }
-
-+ (Class) _classToHandleRequest:(NSURLRequest *)request
-{
-  Class protoClass = nil;
-  int count;
-  [regLock lock];
-
-  count = [registered count];
-  while (count-- > 0)
-    {
-      Class	proto = [registered objectAtIndex: count];
-
-      if ([proto canInitWithRequest: request] == YES)
-	{
-	  protoClass = proto;
-	  break;
-	}
-    }
-  [regLock unlock];
-  return protoClass;
-}
-
 
 + (void) setProperty: (id)value
 	      forKey: (NSString *)key
@@ -544,16 +595,32 @@ static NSURLProtocol	*placeholder = nil;
   return this->request;
 }
 
-/* This method is here so that it's safe to set debug on any NSURLProtocol
- * even if the concrete subclass doesn't actually support debug logging.
- */
-- (void) setDebug: (BOOL)flag
+@end
+
+@implementation	NSURLProtocol (Private)
+
++ (Class) _classToHandleRequest:(NSURLRequest *)request
 {
-  return;
+  Class protoClass = nil;
+  int count;
+  [regLock lock];
+
+  count = [registered count];
+  while (count-- > 0)
+    {
+      Class	proto = [registered objectAtIndex: count];
+
+      if ([proto canInitWithRequest: request] == YES)
+	{
+	  protoClass = proto;
+	  break;
+}
+    }
+  [regLock unlock];
+  return protoClass;
 }
 
 @end
-
 
 @implementation	NSURLProtocol (Subclassing)
 
@@ -631,23 +698,12 @@ static NSURLProtocol	*placeholder = nil;
   [super dealloc];
 }
 
-- (id) init
-{
-  if (nil != (self = [super init]))
-    {
-      _debug = GSDebugSet(@"NSURLProtocol");
-    }
-  return self;
-}
-
-- (void) setDebug: (BOOL)flag
-{
-  _debug = flag;
-}
-
 - (void) startLoading
 {
   static NSDictionary *methods = nil;
+
+  _debug = GSDebugSet(@"NSURLProtocol");
+  if (YES == [this->request _debug]) _debug = YES;
 
   if (methods == nil)
     {
@@ -782,10 +838,8 @@ static NSURLProtocol	*placeholder = nil;
 		nil]]];
 	  return;
 	}
-#if	!GS_WITH_GC
       [this->input retain];
       [this->output retain];
-#endif
       if ([[url scheme] isEqualToString: @"https"] == YES)
         {
           static NSArray        *keys;
@@ -887,8 +941,7 @@ static NSURLProtocol	*placeholder = nil;
     }
   if (_debug)
     {
-      NSLog(@"%@ read %d bytes: '%*.*s'",
-	self, readCount, readCount, readCount, buffer);
+      debugRead(self, readCount, buffer);
     }
 
   if (_parser == nil)
@@ -1379,7 +1432,7 @@ static NSURLProtocol	*placeholder = nil;
 	{
 	  case NSStreamEventOpenCompleted: 
 	    {
-	      NSMutableString	*m;
+	      NSMutableData	*m;
 	      NSDictionary	*d;
 	      NSEnumerator	*e;
 	      NSString		*s;
@@ -1406,39 +1459,46 @@ static NSURLProtocol	*placeholder = nil;
 		  _shouldClose = YES;
 		}
 
-	      m = [[NSMutableString alloc] initWithCapacity: 1024];
+	      m = [[NSMutableData alloc] initWithCapacity: 1024];
 
 	      /* The request line is of the form:
 	       * method /path?query HTTP/version
 	       * where the query part may be missing
 	       */
-	      [m appendString: [this->request HTTPMethod]];
-	      [m appendString: @" "];
+	      [m appendData: [[this->request HTTPMethod]
+                dataUsingEncoding: NSASCIIStringEncoding]];
+	      [m appendBytes: " " length: 1];
 	      u = [this->request URL];
 	      s = [[u fullPath] stringByAddingPercentEscapesUsingEncoding:
 		NSUTF8StringEncoding];
 	      if ([s hasPrefix: @"/"] == NO)
 	        {
-		  [m appendString: @"/"];
+		  [m appendBytes: "/" length: 1];
 		}
-	      [m appendString: s];
+	      [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
 	      s = [u query];
 	      if ([s length] > 0)
 	        {
-		  [m appendString: @"?"];
-		  [m appendString: s];
+		  [m appendBytes: "?" length: 1];
+		  [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
 		}
-	      [m appendFormat: @" HTTP/%0.1f\r\n", _version];
+	      s = [NSString stringWithFormat: @" HTTP/%0.1f\r\n", _version];
+	      [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
 
 	      d = [this->request allHTTPHeaderFields];
 	      e = [d keyEnumerator];
 	      while ((s = [e nextObject]) != nil)
 	        {
-		  [m appendString: s];
-		  [m appendString: @": "];
-		  [m appendString: [d objectForKey: s]];
-		  [m appendString: @"\r\n"];
+                  GSMimeHeader      *h;
+
+                  h = [[GSMimeHeader alloc] initWithName: s
+                                                   value: [d objectForKey: s]
+                                              parameters: nil];
+                  [m appendData:
+                    [h rawMimeDataPreservingCase: YES foldedAt: 0]];
+                  RELEASE(h);
 		}
+
 	      /* Use valueForHTTPHeaderField: to check for content-type
 	       * header as that does a case insensitive comparison and
 	       * we therefore won't end up adding a second header by
@@ -1449,8 +1509,9 @@ static NSURLProtocol	*placeholder = nil;
 		  @"Content-Type"] == nil)
 		{
 		  /* On MacOSX, this is automatically added to POST methods */
-		  [m appendString:
-		    @"Content-Type: application/x-www-form-urlencoded\r\n"];
+                  static char   *ct
+                    = "Content-Type: application/x-www-form-urlencoded\r\n";
+		  [m appendBytes: ct length: strlen(ct)];
 		}
 	      if ([this->request valueForHTTPHeaderField: @"Host"] == nil)
 		{
@@ -1474,21 +1535,22 @@ static NSURLProtocol	*placeholder = nil;
                     }
 		  if (nil == p)
 		    {
-		      [m appendFormat: @"Host: %@\r\n", h];
+		      s = [NSString stringWithFormat: @"Host: %@\r\n", h];
 		    }
 		  else
 		    {
-		      [m appendFormat: @"Host: %@:%@\r\n", h, p];
+		      s = [NSString stringWithFormat: @"Host: %@:%@\r\n", h, p];
 		    }
+                  [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
 		}
 	      if (l >= 0 && [this->request
 	        valueForHTTPHeaderField: @"Content-Length"] == nil)
 		{
-		  [m appendFormat: @"Content-Length: %d\r\n", l];
+                  s = [NSString stringWithFormat: @"Content-Length: %d\r\n", l];
+                  [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
 		}
-	      [m appendString: @"\r\n"];	// End of headers
-	      _writeData = RETAIN([m dataUsingEncoding: NSASCIIStringEncoding]);
-	      RELEASE(m);
+	      [m appendBytes: "\r\n" length: 2];	// End of headers
+	      _writeData  = m;
 	    }			// Fall through to do the write
 
 	  case NSStreamEventHasSpaceAvailable: 
@@ -1508,8 +1570,7 @@ static NSURLProtocol	*placeholder = nil;
 		    {
 		      if (_debug == YES)
 		        {
-			  NSLog(@"%@ wrote %d bytes: '%*.*s'", self, written,
-			    written, written, bytes + _writeOffset);
+                          debugWrite(self, written, bytes + _writeOffset);
 			}
 		      _writeOffset += written;
 		      if (_writeOffset >= len)
@@ -1566,8 +1627,7 @@ static NSURLProtocol	*placeholder = nil;
 			    {
 			      if (_debug == YES)
 				{
-				  NSLog(@"%@ wrote %d bytes: '%*.*s'", self,
-				    written, written, written, buffer);
+                                  debugWrite(self, written, buffer);
 				}
 			      len -= written;
 			      if (len > 0)
@@ -1715,10 +1775,8 @@ static NSURLProtocol	*placeholder = nil;
 			    userInfo: nil]];
 	  return;
 	}
-#if	!GS_WITH_GC
       [this->input retain];
       [this->output retain];
-#endif
       if ([[url scheme] isEqualToString: @"https"] == YES)
         {
           [this->input setProperty: NSStreamSocketSecurityLevelNegotiatedSSL
