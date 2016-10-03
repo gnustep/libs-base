@@ -282,7 +282,6 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   int			wait_timeout;
   DWORD			wait_return;
   BOOL			immediate = NO;
-  BOOL			existingMessages = NO;
 
   // Set timeout how much time should wait
   if (milliseconds >= 0)
@@ -382,50 +381,34 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       wait_timeout = 0;
     }
 
-  handleArray[0] = threadInfo->event; // Signal from other thread
-  num_handles = NSCountMapTable(handleMap) + 1;
-  if (num_handles >= MAXIMUM_WAIT_OBJECTS)
-    {
-      NSLog(@"Too many handles to wait for ... only using %d of %d",
-        MAXIMUM_WAIT_OBJECTS-1, num_handles);
-      num_handles = MAXIMUM_WAIT_OBJECTS-1;
-    }
-  count = num_handles - 1;	// Count of handles excluding thread event
-  if (count > 0)
-    {
-      i = 1 + (fairStart++ % count);
+  i = 0;
+  handleArray[i++] = threadInfo->event; // Signal from other thread
   hEnum = NSEnumerateMapTable(handleMap);
-      while (count-- > 0
-	&& NSNextMapEnumeratorPair(&hEnum, &handle, (void**)&watcher))
+  while (NSNextMapEnumeratorPair(&hEnum, &handle, (void**)&watcher))
     {
-	  if (i >= num_handles)
+      if (i < MAXIMUM_WAIT_OBJECTS-1)
 	{
-	      i = 1;
-	    }
 	  handleArray[i++] = (HANDLE)handle;
 	}
-      NSEndMapTableEnumeration(&hEnum);
+      else
+	{
+	  NSLog(@"Too many handles to wait for ... only using %d of %d",
+	    i, num_handles);
 	}
-
-  completed = NO;
+    }
+  NSEndMapTableEnumeration(&hEnum);
+  num_handles = i;
 
   /* Clear all the windows messages first before we wait,
    * since MsgWaitForMultipleObjects only signals on NEW messages
    */
   if ([self processAllWindowsMessages: num_winMsgs within: contexts] == YES)
     {
-      // Processed something ... no need to wait.
-      wait_timeout = 0;
-      num_winMsgs = 0;
-      existingMessages = YES;
+      wait_timeout = 0;	// Processed something ... no need to wait.
     }
 
   if (num_winMsgs > 0)
     {
-      NSDebugMLLog(@"NSRunLoop",
-	@"wait for messages and %d handles for %d milliseconds",
-	num_handles, wait_timeout);
-	
       /*
        * Wait for signalled events or window messages.
        */
@@ -434,9 +417,6 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     }
   else if (num_handles > 0)
     {
-      NSDebugMLLog(@"NSRunLoop",
-	@"wait for %d handles for %d milliseconds", num_handles, wait_timeout);
-
       /*
        * We are not interested in windows messages ... just wait for
        * signalled events.
@@ -446,22 +426,19 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     }
   else
     {
-      NSDebugMLLog(@"NSRunLoop",
-	@"wait for %d milliseconds", wait_timeout);
       SleepEx(wait_timeout, TRUE);
-      wait_return = WAIT_TIMEOUT;
+      wait_return = WAIT_OBJECT_0;
     }
+  NSDebugMLLog(@"NSRunLoop", @"wait returned %d", wait_return);
 
   // check wait errors
-  if (WAIT_FAILED == wait_return
-    || (wait_return >= WAIT_ABANDONED_0 
-      && wait_return < WAIT_ABANDONED_0 + num_handles))
+  if (wait_return == WAIT_FAILED)
     {
       int	i;
       BOOL	found = NO;
 
       NSDebugMLLog(@"NSRunLoop", @"WaitForMultipleObjects() error in "
-	@"-pollUntil:within: %@", [NSError _last]);
+	@"-acceptInputForMode:beforeDate: %@", [NSError _last]);
       /*
        * Check each handle in turn until either we find one which has an
        * event signalled, or we find the one which caused the original
@@ -482,7 +459,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
       if (found == NO)
 	{
 	  NSLog(@"WaitForMultipleObjects() error in "
-	    @"-pollUntil:within: %@", [NSError _last]);
+	    @"-acceptInputForMode:beforeDate: %@", [NSError _last]);
 	  abort ();        
 	}
     }
@@ -522,34 +499,31 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
 	GSPrivateNotifyASAP(mode);
     }
 
-  if (WAIT_TIMEOUT == wait_return)
+  // if there are windows message
+  if (wait_return == WAIT_OBJECT_0 + num_handles)
     {
-      // there is no event to handle
-      if (existingMessages)
-	{
-	  NSDebugMLLog(@"NSRunLoop", @"processed windows messages");
+      NSDebugMLLog(@"NSRunLoop", @"processing windows messages");
+      [self processAllWindowsMessages: num_winMsgs within: contexts];
+      return NO;
     }
-      else
+
+  // if there aren't events
+  if (wait_return == WAIT_TIMEOUT)
     {
       NSDebugMLLog(@"NSRunLoop", @"timeout without events");
       completed = YES;
       return NO;        
     }
-    }
-  else if (WAIT_OBJECT_0 + num_handles == wait_return)
-    {
-      // one or more windows message
-      NSDebugMLLog(@"NSRunLoop", @"processing windows messages");
-      [self processAllWindowsMessages: num_winMsgs within: contexts];
-    }
-  else if ((NSInteger)(i = wait_return - WAIT_OBJECT_0) >= 0 && i < num_handles)
-    {
-      /* Look the event that WaitForMultipleObjects() says is ready;
+  
+  /*
+   * Look the event that WaitForMultipleObjects() says is ready;
    * get the corresponding fd for that handle event and notify
    * the corresponding object for the ready fd.
    */
-      NSDebugMLLog(@"NSRunLoop", @"Handle signalled %d", i);
+  i = wait_return - WAIT_OBJECT_0;
 
+  NSDebugMLLog(@"NSRunLoop", @"Event listen %d", i);
+  
   handle = handleArray[i];
 
   if (handle == threadInfo->event)
@@ -561,7 +535,6 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
   else
     {
       watcher = (GSRunLoopWatcher*)NSMapGet(handleMap, (void*)handle);
-	  NSDebugMLLog(@"NSRunLoop", @"Fire watcher %@", watcher);
     }
   if (watcher != nil && watcher->_invalidated == NO)
     {
@@ -579,21 +552,15 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
        * The watcher is still valid - so call its receivers
        * event handling method.
        */
+      NSDebugMLLog(@"NSRunLoop", @"Event callback found");
       [watcher->receiver receivedEvent: watcher->data
 				  type: watcher->type
 				 extra: (void*)handle
 			       forMode: mode];
     }
-    }
-  else
-    {
-      NSDebugMLLog(@"NSRunLoop", @"unexpected result %d", wait_return);
-      GSPrivateNotifyASAP(mode);
-      completed = NO;
-      return NO;        
-    }
 
   GSPrivateNotifyASAP(mode);
+
   completed = YES;
   return YES;
 }
