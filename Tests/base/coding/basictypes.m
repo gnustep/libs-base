@@ -154,6 +154,7 @@ TEST_DECL(unsigned short, ushort);
 #define VAL_TEST(testx, testy) EQ(testx,testy)
 TEST_DECL(float, float);
 TEST_DECL(double, double);
+TEST_DECL(BOOL, BOOL);
 
 int main()
 {
@@ -184,6 +185,8 @@ int main()
   float f2;
   double d = 1.7976931348623157e+308;
   double d2;
+  BOOL b = YES;
+  BOOL b2;
   
   fm = [NSFileManager defaultManager];
   
@@ -222,6 +225,9 @@ int main()
   
   testWriteBasicType_ushort("ushort", &us);
   testReadBasicType_ushort("ushort", &us, &us2);
+  
+  testWriteBasicType_BOOL("BOOL", &b);
+  testReadBasicType_BOOL("BOOL", &b, &b2);
   
   obj1 = [Model new];
   [obj1 setValues];

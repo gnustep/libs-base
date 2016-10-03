@@ -21,6 +21,9 @@ int main()
   PASS([o length] > 0, "we can get a temporary directory");
   NSLog(@"NSOpenStepRootDirectory() %@", o = NSOpenStepRootDirectory());
   PASS([o length] > 0, "we can get a root directory");
+  NSLog(@"NSHomeDirectoryForUser(@\"non-existent-user\") %@",
+    o = NSHomeDirectoryForUser(@"non-existent-user"));
+  PASS(nil == o, "home directory for non existent user is nil");
 
   /* These functions have been removed in recent OSX but are retained in GNUstep
    */
