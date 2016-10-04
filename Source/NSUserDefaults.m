@@ -1,5 +1,5 @@
 /** Implementation for NSUserDefaults for GNUstep
-   Copyright (C) 1995-2016 Free Software Foundation, Inc.
+   Copyright (C) 1995-2001 Free Software Foundation, Inc.
 
    Written by:  Georg Tuparev <Tuparev@EMBL-Heidelberg.de>
    		EMBL & Academia Naturalis,
@@ -56,7 +56,7 @@
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
-#if	defined(_WIN32)
+#if	defined(__MINGW__)
 @class	NSUserDefaultsWin32;
 #endif
 
@@ -88,10 +88,8 @@ static NSString		*GSPrimaryDomain = @"GSPrimaryDomain";
 static NSString		*defaultsFile = @".GNUstepDefaults";
 
 static NSUserDefaults	*sharedDefaults = nil;
-static NSDictionary     *argumentsDictionary = nil;
-static NSString	        *processName = nil;
+static NSMutableString	*processName = nil;
 static NSRecursiveLock	*classLock = nil;
-static NSLock	        *syncLock = nil;
 
 /* Flag to say whether the sharedDefaults variable has been set up by a
  * call to the +standardUserDefaults method.  If this is YES but the variable
@@ -99,10 +97,10 @@ static NSLock	        *syncLock = nil;
  * have no defaults available.
  */
 static BOOL		hasSharedDefaults = NO;
-
-/* Caching some default flag values.  Until the standard defaults have
- * been loaded, these values are taken from the process arguments.
+/*
+ * Caching some defaults.
  */
+static BOOL     parsingArguments = NO;
 static BOOL	flags[GSUserDefaultMaxFlag] = { 0 };
 
 /* An instance of the GSPersistentDomain class is used to encapsulate
@@ -116,23 +114,19 @@ static BOOL	flags[GSUserDefaultMaxFlag] = { 0 };
 @interface	GSPersistentDomain : NSObject
 {
   NSString		*name;
-  NSString		*path;
   NSUserDefaults	*owner;
+  NSDate		*updated;
+@public
+  BOOL			modified;
   NSMutableDictionary	*contents;
-  NSMutableSet          *added;
-  NSMutableSet          *modified;
-  NSMutableSet          *removed;
-  BOOL                  loaded;
 }
-- (NSDictionary*) contents;
-- (void) empty;
+- (NSMutableDictionary*) contents;
 - (id) initWithName: (NSString*)n
 	      owner: (NSUserDefaults*)o;
 - (NSString*) name;
-- (id) objectForKey: (NSString*)aKey;
-- (BOOL) setObject: (id)anObject forKey: (NSString*)aKey;
-- (BOOL) setContents: (NSDictionary*)domain;
+- (void) setContents: (NSDictionary*)domain;
 - (BOOL) synchronize;
+- (NSDate*) updated;
 @end
 
 static NSString *
@@ -250,8 +244,6 @@ updateCache(NSUserDefaults *self)
 	    }
 	}
 
-      /* NB the following flags are first set up, in the +initialize method.
-       */
       flags[GSMacOSXCompatible]
 	= [self boolForKey: @"GSMacOSXCompatible"];
       flags[GSOldStyleGeometry]
@@ -437,7 +429,7 @@ newLanguages(NSArray *oldNames)
  *** Private method definitions
  *************************************************************************/
 @interface NSUserDefaults (Private)
-+ (void) _createArgumentDictionary: (NSArray*)args;
+- (NSDictionary*) _createArgumentDictionary;
 - (void) _changePersistentDomain: (NSString*)domainName;
 - (NSString*) _directory;
 - (BOOL) _lockDefaultsFile: (BOOL*)wasLocked;
@@ -555,20 +547,13 @@ newLanguages(NSArray *oldNames)
 {
   DESTROY(sharedDefaults);
   DESTROY(processName);
-  DESTROY(argumentsDictionary);
   DESTROY(classLock);
-  DESTROY(syncLock);
 }
 
 + (void) initialize
 {
   if (self == [NSUserDefaults class])
     {
-      CREATE_AUTORELEASE_POOL(pool);
-      NSEnumerator      *enumerator;
-      NSArray           *args;
-      NSString          *key;
-
       nextObjectSel = @selector(nextObject);
       objectForKeySel = @selector(objectForKey:);
       addSel = @selector(addEntriesFromDictionary:);
@@ -582,74 +567,8 @@ newLanguages(NSArray *oldNames)
       NSNumberClass = [NSNumber class];
       NSMutableDictionaryClass = [NSMutableDictionary class];
       NSStringClass = [NSString class];
-      argumentsDictionary = [NSDictionary new];
+      classLock = [GSLazyRecursiveLock new];
       [self registerAtExit];
-
-      processName = [[[NSProcessInfo processInfo] processName] copy];
-
-      /* Initialise the defaults flags to take values from the
-       * process arguments.  These are otherwise set in updateCache()
-       * We do this early on so that the boolean argument settings can
-       * be used while parsing property list values of other args in
-       * the +_createArgumentDictionary: method.
-       */
-      args = [[NSProcessInfo processInfo] arguments];
-      enumerator = [[[NSProcessInfo processInfo] arguments] objectEnumerator];
-      [enumerator nextObject];	// Skip process name.
-      while (nil != (key = [enumerator nextObject]))
-        {
-          if ([key hasPrefix: @"-"] == YES && [key isEqual: @"-"] == NO)
-	    {
-              id        val;
-
-	      /* Anything beginning with a '-' is a defaults key and we
-               * must strip the '-' from it.
-               */
-	      key = [key substringFromIndex: 1];
-	      while (nil != (val = [enumerator nextObject]))
-                {
-                  if ([val hasPrefix: @"-"] == YES && [val isEqual: @"-"] == NO)
-                    {
-                      key = val;
-    }
-                  else if ([key isEqualToString: @"GSMacOSXCompatible"])
-                    {
-                      flags[GSMacOSXCompatible] = [val boolValue];
-}
-                  else if ([key isEqualToString: @"GSOldStyleGeometry"])
-                    {
-                      flags[GSOldStyleGeometry] = [val boolValue];
-                    }
-                  else if ([key isEqualToString: @"GSLogSyslog"])
-                    {
-                      flags[GSLogSyslog] = [val boolValue];
-                    }
-                  else if ([key isEqualToString: @"GSLogThread"])
-                    {
-                      flags[GSLogThread] = [val boolValue];
-                    }
-                  else if ([key isEqualToString: @"GSLogOffset"])
-                    {
-                      flags[GSLogOffset] = [val boolValue];
-                    }
-                  else if ([key isEqual: @"NSWriteOldStylePropertyLists"])
-                    {
-                      flags[NSWriteOldStylePropertyLists] = [val boolValue];
-                    }
-	        }
-	    }
-        }
-      /* The classLock must be created after setting up the flags[] array,
-       * so once it exists we know we can used them safely.
-       */
-      classLock = [NSRecursiveLock new];
-
-      /* This lock protects locking the defaults file.
-       */
-      syncLock = [NSLock new];
-
-      [self _createArgumentDictionary: args];
-      DESTROY(pool);
     }
 }
 
@@ -664,8 +583,8 @@ newLanguages(NSArray *oldNames)
         {
 	  /* Extract the registration domain from the old defaults.
 	   */
-	  regDefs = AUTORELEASE(RETAIN([sharedDefaults->_tempDomains
-	    objectForKey: NSRegistrationDomain]));
+	  regDefs = [[[sharedDefaults->_tempDomains
+	    objectForKey: NSRegistrationDomain] retain] autorelease];
 	  [sharedDefaults->_tempDomains
 	    removeObjectForKey: NSRegistrationDomain];
 
@@ -814,6 +733,7 @@ newLanguages(NSArray *oldNames)
   BOOL		added_lang;
   BOOL		added_locale;
   BOOL		setup;
+  BOOL		flag;
   id		lang;
   NSArray	*nL;
   NSArray	*uL;
@@ -822,12 +742,12 @@ newLanguages(NSArray *oldNames)
   /* If the shared instance is already available ... return it.
    */
   [classLock lock];
-  defs = RETAIN(sharedDefaults);
+  defs = [sharedDefaults retain];
   setup = hasSharedDefaults;
   [classLock unlock];
   if (YES == setup)
     {
-      return AUTORELEASE(defs);
+      return [defs autorelease];
     }
  
   NS_DURING
@@ -841,7 +761,7 @@ newLanguages(NSArray *oldNames)
        * instance locked ourselves at the point when it first becomes
        * visible to other threads.
        */
-#if	defined(_WIN32)
+#if	defined(__MINGW__)
       {
         NSString	*path = GSDefaultsRootForUser(NSUserName());
         NSRange		r = [path rangeOfString: @":REGISTRY:"];
@@ -869,40 +789,91 @@ newLanguages(NSArray *oldNames)
 	  if (NO == hasSharedDefaults)
 	    {
 	      hasSharedDefaults = YES;
-	      ASSIGN(sharedDefaults, defs);
+	      sharedDefaults = [defs retain];
 	    }
           else
 	    {
 	      /* Already set up by another thread.
 	       */
 	      [defs->_lock unlock];
-	      DESTROY(defs);
+	      [defs release];
+	      defs = nil;
 	    }
 	  [classLock unlock];
 	}
 
       if (nil == defs)
 	{
-	  const unsigned        retryCount = 100;
-	  const NSTimeInterval  retryInterval = 0.1;
-	  unsigned              i;
-
-	  for (i = 0; i < retryCount; i++)
-	{
-	      [NSThread sleepForTimeInterval: retryInterval];
-	      [classLock lock];
-	      defs = RETAIN(sharedDefaults);
-	      setup = hasSharedDefaults;
-	      [classLock unlock];
-	      if (YES == setup)
-	    {
-		  NS_VALRETURN(AUTORELEASE(defs));
-		    }
-              RELEASE(defs);
-			    }
 	  NSLog(@"WARNING - unable to create shared user defaults!\n");
 	  NS_VALRETURN(nil);
+	}
+
+      if (NO == [defs _readOnly]
+	&& YES == [defs _lockDefaultsFile: &flag])
+	{
+	  NSFileManager	*mgr = [NSFileManager defaultManager];
+	  NSString	*path;
+
+	  path = [defs _directory];
+	  path = [path stringByAppendingPathComponent: defaultsFile];
+	  if (YES == [mgr isReadableFileAtPath: path])
+	    {
+	      NSString	*bck = [path stringByAppendingPathExtension: @"bck"];
+
+	      if (NO == [mgr isReadableFileAtPath: bck])
+		{
+		  NSData	*data;
+		  NSDictionary	*d = nil;
+
+		  /* An old style defaults file was found,
+		   * and no backup had been made of it, so
+		   * we make a backup and convert it to a
+		   * new style collection of files.
+		   */
+		  data = [NSData dataWithContentsOfFile: path];
+		  if (nil != data)
+		    {
+		      d = [NSPropertyListSerialization
+			propertyListWithData: data
+			options: NSPropertyListImmutable
+			format: 0
+			error: 0];
+		    }
+		  if ([d isKindOfClass: [NSDictionary class]])
+		    {
+		      NSEnumerator	*e;
+		      NSString	*name;
+
+		      [mgr movePath: path toPath: bck handler: nil];
+		      e = [d keyEnumerator];
+		      while (nil != (name = [e nextObject]))
+			{
+			  NSDictionary	*domain = [d objectForKey: name];
+
+			  path = [[defs _directory]
+			    stringByAppendingPathComponent: name];
+			  path = [path
+			    stringByAppendingPathExtension: @"plist"];
+			  if ([domain isKindOfClass: [NSDictionary class]]
+			    && [domain count] > 0
+			    && NO == [mgr fileExistsAtPath: path])
+			    {
+			      writeDictionary(domain, path);
+			    }
 			}
+		    }
+		  else
+		    {
+		      fprintf(stderr, "Found unparseable file at '%s'\n",
+			[path UTF8String]);
+		    }
+		}
+	    }
+	  if (NO == flag)
+	    {
+	      [defs _unlockDefaultsFile];
+	    }
+	}
 
       /*
        * Set up search list (excluding language list, which we don't know yet)
@@ -1080,12 +1051,12 @@ newLanguages(NSArray *oldNames)
       if (nil != defs)
 	{
 	  [defs->_lock unlock];
-	  RELEASE(defs);
+	  [defs release];
 	}
       [localException raise];
     }
   NS_ENDHANDLER
-  return AUTORELEASE(defs);
+  return [defs autorelease];
 }
 
 + (NSArray*) userLanguages
@@ -1115,7 +1086,7 @@ newLanguages(NSArray *oldNames)
     }
   [defs removeVolatileDomainForName: GSPrimaryDomain];
   [defs setVolatileDomain: dict forName: GSPrimaryDomain];
-  RELEASE(dict);
+  [dict release];
 }
 
 - (id) init
@@ -1133,6 +1104,16 @@ newLanguages(NSArray *oldNames)
 
   self = [super init];
 
+  /*
+   * Global variable.
+   */
+  if (processName == nil)
+    {
+      NSString	*s = [[NSProcessInfo processInfo] processName];
+
+      processName = [s copy];
+    }
+
   if (path == nil || [path isEqual: @""] == YES)
     {
       path = [GSDefaultsRootForUser(NSUserName())
@@ -1140,7 +1121,7 @@ newLanguages(NSArray *oldNames)
     }
 
   r = [path rangeOfString: @":INTERNAL:"];
-#if	defined(_WIN32)
+#if	defined(__MINGW__)
   if (r.length == 0)
     {
       r = [path rangeOfString: @":REGISTRY:"];
@@ -1177,7 +1158,8 @@ newLanguages(NSArray *oldNames)
 
   // Create volatile defaults and add the Argument and the Registration domains
   _tempDomains = [[NSMutableDictionaryClass alloc] initWithCapacity: 10];
-  [_tempDomains setObject: argumentsDictionary forKey: NSArgumentDomain];
+  [_tempDomains setObject: [self _createArgumentDictionary]
+		   forKey: NSArgumentDomain];
   [_tempDomains
     setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
     forKey: NSRegistrationDomain];
@@ -1368,13 +1350,13 @@ newLanguages(NSArray *oldNames)
           NSDictionary		*td;
 
           pd = (*pImp)(_persDomains, objectForKeySel, dN);
-          if (pd != nil && (object = [pd objectForKey: defaultName]))
+          if (pd != nil && (object = [pd->contents objectForKey: defaultName]))
 	    break;
           td = (*tImp)(_tempDomains, objectForKeySel, dN);
           if (td != nil && (object = [td objectForKey: defaultName]))
 	    break;
         }
-      RETAIN(object);
+      IF_NO_GC([object retain];)
       [_lock unlock];
     }
   NS_HANDLER
@@ -1395,8 +1377,12 @@ newLanguages(NSArray *oldNames)
 
       if (nil != pd)
 	{
-          if ([pd setObject: nil forKey: defaultName])
+	  id	obj = [pd->contents objectForKey: defaultName];
+
+	  if (nil != obj)
 	    {
+	      pd->modified = YES;
+	      [pd->contents removeObjectForKey: defaultName];
 	      [self _changePersistentDomain: processName];
 	    }
 	}
@@ -1529,12 +1515,11 @@ static BOOL isPlistObject(id o)
 	  pd = [[GSPersistentDomain alloc] initWithName: processName
 						  owner: self];
           [_persDomains setObject: pd forKey: processName];
-	  RELEASE(pd);
+	  [pd release];
 	}
-      if ([pd setObject: value forKey: defaultName])
-        {
+      pd->modified = YES;
+      [pd->contents setObject: value forKey: defaultName];
       [self _changePersistentDomain: processName];
-        }
       [_lock unlock];
     }
   NS_HANDLER
@@ -1682,8 +1667,14 @@ static BOOL isPlistObject(id o)
       pd = [_persDomains objectForKey: domainName];
       if (nil != pd)
         {
-          [pd empty];
-	  if (NO == [domainName isEqualToString: NSGlobalDomain])
+	  if (YES == [domainName isEqualToString: NSGlobalDomain])
+	    {
+	      /* Don't remove the global domain, just its contents.
+	       */
+	      [pd->contents removeAllObjects];
+	      pd->modified = YES;
+	    }
+	  else
 	    {
 	      /* Remove the domain entirely.
 	       */
@@ -1723,7 +1714,7 @@ static BOOL isPlistObject(id o)
 	  pd = [[GSPersistentDomain alloc] initWithName: domainName
 						  owner: self];
           [_persDomains setObject: pd forKey: domainName];
-	  RELEASE(pd);
+	  [pd release];
 	}
       [pd setContents: domain];
       [self _changePersistentDomain: domainName];
@@ -1780,8 +1771,7 @@ static BOOL isPlistObject(id o)
 - (BOOL) synchronize
 {
   NSDate		*saved;
-  BOOL			isLocked = NO;
-  BOOL			wasLocked = NO;
+  BOOL			wasLocked;
   BOOL			result = YES;
   BOOL			haveChange = NO;
 
@@ -1817,7 +1807,6 @@ static BOOL isPlistObject(id o)
 	      NSEnumerator		*enumerator;
 	      NSString			*domainName;
 
-              isLocked = YES;
 	      haveChange = [self _readDefaults];
 	      if (YES == haveChange)
 		{
@@ -1860,9 +1849,8 @@ static BOOL isPlistObject(id o)
 		{
 		  updateCache(self);
 		}
-	      if (YES == isLocked && NO == wasLocked)
+	      if (NO == wasLocked)
 		{
-                  isLocked = NO;
 		  [self _unlockDefaultsFile];
 		}
 	    }
@@ -1870,13 +1858,8 @@ static BOOL isPlistObject(id o)
     }
   NS_HANDLER
     {
-      RELEASE(_lastSync);
+      [_lastSync release];
       _lastSync = saved;
-      if (YES == isLocked && NO == wasLocked)
-        {
-          isLocked = NO;
-          [self _unlockDefaultsFile];
-        }
       [_lock unlock];
       [localException raise];
     }
@@ -1884,11 +1867,11 @@ static BOOL isPlistObject(id o)
   
   if (YES == result)
     {
-      RELEASE(saved);
+      [saved release];
     }
   else
     {
-      RELEASE(_lastSync);
+      [_lastSync release];
       _lastSync = saved;
     }
   // Check and if not existent add the Application and the Global domains
@@ -1899,7 +1882,7 @@ static BOOL isPlistObject(id o)
       pd = [[GSPersistentDomain alloc] initWithName: processName
 					      owner: self];
       [_persDomains setObject: pd forKey: processName];
-      RELEASE(pd);
+      [pd release];
       [self _changePersistentDomain: processName];
     }
   if ([_persDomains objectForKey: NSGlobalDomain] == nil)
@@ -1909,7 +1892,7 @@ static BOOL isPlistObject(id o)
       pd = [[GSPersistentDomain alloc] initWithName: NSGlobalDomain
 					      owner: self];
       [_persDomains setObject: pd forKey: NSGlobalDomain];
-      RELEASE(pd);
+      [pd release];
       [self _changePersistentDomain: NSGlobalDomain];
     }
   [_lock unlock];
@@ -2048,7 +2031,7 @@ static BOOL isPlistObject(id o)
 	      pd = (*pImp)(_persDomains, objectForKeySel, obj);
 	      if (nil != pd)
 		{
-		  dict = [pd contents];
+		  dict = pd->contents;
 		}
 	      else
 		{
@@ -2059,9 +2042,10 @@ static BOOL isPlistObject(id o)
                   (*addImp)(dictRep, addSel, dict);
                 }
 	    }
-          _dictionaryRep = GS_IMMUTABLE(dictRep);
+          [dictRep makeImmutableCopyOnFail: NO];
+          _dictionaryRep = dictRep;
         }
-      rep = AUTORELEASE(RETAIN(_dictionaryRep));
+      rep = [[_dictionaryRep retain] autorelease];
       [_lock unlock];
     }
   NS_HANDLER
@@ -2127,18 +2111,9 @@ static BOOL isPlistObject(id o)
 BOOL
 GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
 {
-  if (nil == classLock)
+  if (nil == sharedDefaults && NO == parsingArguments)
     {
-      /* The order of +initialise of NSUserDefaults is such that our
-       * flags[] array is set up directly from the process arguments
-       * before classLock is created, so once * that variable exists
-       * this function may be used safely.
-       */
-      [NSUserDefaults class];
-      if (NO == hasSharedDefaults)
-        {
       [NSUserDefaults standardUserDefaults];
-    }
     }
   return flags[type];
 }
@@ -2154,7 +2129,7 @@ NSDictionary *GSPrivateDefaultLocale()
   NSDictionary	        *locale = nil;
   NSUserDefaults        *defs = nil;
 
-  if (nil == classLock)
+  if (classLock == nil)
     {
       [NSUserDefaults standardUserDefaults];
     }
@@ -2165,7 +2140,7 @@ NSDictionary *GSPrivateDefaultLocale()
         {
           [NSUserDefaults standardUserDefaults];
         }
-      ASSIGN(defs, sharedDefaults);
+      defs = [sharedDefaults retain];
       [classLock unlock];
     }
   NS_HANDLER
@@ -2175,22 +2150,30 @@ NSDictionary *GSPrivateDefaultLocale()
     }
   NS_ENDHANDLER
   locale = [defs dictionaryRepresentation];
-  RELEASE(defs);
+  [defs release];
   return locale;
 }
 
 @implementation NSUserDefaults (Private)
 
-+ (void) _createArgumentDictionary: (NSArray*)args
+- (NSDictionary*) _createArgumentDictionary
 {
+  NSArray	*args;
   NSEnumerator	*enumerator;
   NSMutableDictionary *argDict = nil;
   BOOL		done;
   id		key, val;
 
-  [classLock lock];
+  [_lock lock];
+  if (YES == parsingArguments)
+    {
+      [_lock unlock];
+      return nil;       // Prevent recursion
+    }
+  parsingArguments = YES;
   NS_DURING
     {
+      args = [[NSProcessInfo processInfo] arguments];
       enumerator = [args objectEnumerator];
       argDict = [NSMutableDictionaryClass dictionaryWithCapacity: 2];
       [enumerator nextObject];	// Skip process name.
@@ -2198,35 +2181,40 @@ NSDictionary *GSPrivateDefaultLocale()
 
       while (done == NO)
         {
-          /* Any value with a leading '-' may be the name of a default
-           * in the argument domain.
-           * NB. Testing on OSX shows that this includes a single '-'
-           * (where the key is an empty string), but GNUstep disallows
-           * en empty string as a key (so it can be a value).
-           */
-          if ([key hasPrefix: @"-"] == YES
-            && [key isEqual: @"-"] == NO)
+          if ([key hasPrefix: @"-"] == YES && [key isEqual: @"-"] == NO)
 	    {
-	      /* Strip the '-' before the defaults key, and get the
-               * corresponding value (the next argument).
+	      NSString	*old = nil;
+
+	      /* anything beginning with a '-' is a defaults key and we
+               * must strip the '-' from it.
+               * As a special case, we leave the '- in place for '-GS...'
+               * and '--GS...' for backward compatibility.
                */
+	      if ([key hasPrefix: @"-GS"] == YES
+                || [key hasPrefix: @"--GS"] == YES)
+	        {
+	          old = key;
+	        }
 	      key = [key substringFromIndex: 1];
 	      val = [enumerator nextObject];
-	      if (nil == val)
+	      if (val == nil)
+	        {            // No more args
+	          [argDict setObject: @"" forKey: key];		// arg is empty.
+	          if (old != nil)
 		    {
-                  /* No more arguments and no value ... arg is not set.
-                   */
+		      [argDict setObject: @"" forKey: old];
+		    }
 	          done = YES;
 	          continue;
 	        }
 	      else if ([val hasPrefix: @"-"] == YES
                 && [val isEqual: @"-"] == NO)
+	        {  // Yet another argument
+	          [argDict setObject: @"" forKey: key];		// arg is empty.
+	          if (old != nil)
 		    {
-                  /* Value is actually an argument key ...
-                   * current key is not used (behavior matches OSX).
-                   * NB. GNUstep allows a '-' as the value for a default,
-                   * but OSX does not.
-                   */
+		      [argDict setObject: @"" forKey: old];
+		    }
 	          key = val;
 	          continue;
 	        }
@@ -2241,19 +2229,8 @@ NSDictionary *GSPrivateDefaultLocale()
 
 	          NS_DURING
 		    {
-                      NSData		        *data;
-
-                      data = [val dataUsingEncoding: NSUTF8StringEncoding];
-                      plist_val = [NSPropertyListSerialization
-                        propertyListFromData: data
-                        mutabilityOption: NSPropertyListMutableContainers
-                        format: 0
-                        errorDescription: 0];
-                      if (nil == plist_val)
-                        {
-                          plist_val = val;
+		      plist_val = [val propertyList];
 		    }
-                    }
 	          NS_HANDLER
 		    {
 		      plist_val = val;
@@ -2268,24 +2245,29 @@ NSDictionary *GSPrivateDefaultLocale()
 		    }
 
 	          [argDict setObject: plist_val  forKey: key];
+	          if (old != nil)
+		    {
+		      [argDict setObject: plist_val  forKey: old];
 		    }
 	        }
+	    }
           done = ((key = [enumerator nextObject]) == nil);
         }
-      ASSIGNCOPY(argumentsDictionary, argDict);
-      [classLock unlock];
+      parsingArguments = NO;
+      [_lock unlock];
     }
   NS_HANDLER
     {
-      [classLock unlock];
+      parsingArguments = NO;
+      [_lock unlock];
       [localException raise];
     }
   NS_ENDHANDLER
+  return argDict;
 }
 
 - (void) _changePersistentDomain: (NSString*)domainName
 {
-  NSAssert(nil != domainName, NSInvalidArgumentException);
   [_lock lock];
   NS_DURING
     {
@@ -2321,71 +2303,65 @@ NSDictionary *GSPrivateDefaultLocale()
 static BOOL isLocked = NO;
 - (BOOL) _lockDefaultsFile: (BOOL*)wasLocked
 {
-  [syncLock lock];
-  NS_DURING
-    {
   *wasLocked = isLocked;
-      if (NO == isLocked && _fileLock != nil)
+  if (isLocked == NO && _fileLock != nil)
     {
       NSDate	*started = [NSDateClass date];
 
       while ([_fileLock tryLock] == NO)
 	{
-              CREATE_AUTORELEASE_POOL(arp);
+	  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+	  NSDate		*when;
 	  NSDate		*lockDate;
+
+	  lockDate = [_fileLock lockDate];
+	  when = [NSDateClass dateWithTimeIntervalSinceNow: 0.1];
 
 	  /*
 	   * In case we have tried and failed to break the lock,
-               * we give up after a while ... 66 seconds should give
-               * us three lock breaks if we do them at 20 second
+	   * we give up after a while ... 16 seconds should give
+	   * us three lock breaks if we do them at 5 second
 	   * intervals.
 	   */
-              if ([started timeIntervalSinceNow] < -66.0)
+	  if ([when timeIntervalSinceDate: started] > 16.0)
 	    {
-                  fprintf(stderr, "Failed to lock user defaults database"
-                    " even after breaking old locks!\n");
-                  RELEASE(arp);
-                  break;
+	      NSLog(@"Failed to lock user defaults database even after "
+		@"breaking old locks!");
+	      [arp drain];
+	      return NO;
 	    }
 
-              /* If lockDate is nil, we should be able to lock again ... but we
+	  /*
+	   * If lockDate is nil, we should be able to lock again ... but we
 	   * wait a little anyway ... so that in the case of a locking
 	   * problem we do an idle wait rather than a busy one.
 	   */
-              if ((lockDate = [_fileLock lockDate]) != nil
-                && [lockDate timeIntervalSinceNow] < -20.0)
+	  if (lockDate != nil && [when timeIntervalSinceDate: lockDate] > 5.0)
 	    {
-                  NSLog(@"NSUserDefaults file lock at %@ is dated %@ ... break",
-                    _fileLock, lockDate);
 	      [_fileLock breakLock];
 	    }
 	  else
 	    {
-                  [NSThread sleepForTimeInterval: 0.1];
+	      [NSThread sleepUntilDate: when];
 	    }
-              RELEASE(arp);
+	  [arp drain];
 	}
       isLocked = YES;
     }
-      [syncLock unlock];
-}
-  NS_HANDLER
-    {
-      [syncLock unlock];
-      [localException raise];
-    }
-  NS_ENDHANDLER
-  return isLocked;
+   return YES;
 }
 
 - (BOOL) _readDefaults
 {
   NSEnumerator		*enumerator;
   NSString		*domainName;
+  NSFileManager		*mgr;
   BOOL			haveChange = NO;
 
-  enumerator = [[[NSFileManager defaultManager]
-    directoryContentsAtPath: _defaultsDatabase] objectEnumerator];
+  mgr = [NSFileManager defaultManager];
+
+  enumerator
+    = [[mgr directoryContentsAtPath: _defaultsDatabase] objectEnumerator];
   while (nil != (domainName = [enumerator nextObject]))
     {
       if (NO == [[domainName pathExtension] isEqual: @"plist"])
@@ -2396,10 +2372,6 @@ static BOOL isLocked = NO;
 	  continue;
 	}
       domainName = [domainName stringByDeletingPathExtension];
-
-      /* We may what to know what domains are being loaded.
-       */
-      NSDebugMLog(@"domain name: %@", domainName);
 
       /* We only look at files which do not represent domains in the
        * _changedDomains list, since our internal information on the
@@ -2420,7 +2392,7 @@ static BOOL isLocked = NO;
 	      pd = [pd initWithName: domainName
 			      owner: self];
 	      [_persDomains setObject: pd forKey: domainName];
-	      RELEASE(pd);
+	      [pd release];
 	      haveChange = YES;
 	    }
 	  if (YES == [_searchList containsObject: domainName])
@@ -2446,32 +2418,27 @@ static BOOL isLocked = NO;
 
 - (void) _unlockDefaultsFile
 {
-  [syncLock lock];
   NS_DURING
     {
-      if (YES == isLocked)
-        {  
       [_fileLock unlock];
-    }
     }
   NS_HANDLER
     {
-      fprintf(stderr, "Warning ... someone broke our lock (%s) ... and may have"
-        " interfered with updating defaults data in file.",
-        [lockPath(_defaultsDatabase, NO) UTF8String]);
+      NSLog(@"Warning ... someone broke our lock (%@) ... and may have"
+        @" interfered with updating defaults data in file.",
+        lockPath(_defaultsDatabase, NO));
     }
   NS_ENDHANDLER
   isLocked = NO;
-  [syncLock unlock];
 }
 
 @end
 
 @implementation	GSPersistentDomain
 
-- (NSDictionary*) contents
+- (NSMutableDictionary*) contents
 {
-  if (NO == loaded)
+  if (nil == updated)
     {
       [self synchronize];
     }
@@ -2480,33 +2447,10 @@ static BOOL isLocked = NO;
 
 - (void) dealloc
 {
-  DESTROY(added);
-  DESTROY(removed);
-  DESTROY(modified);
   DESTROY(contents);
+  DESTROY(updated);
   DESTROY(name);
-  DESTROY(path);
   [super dealloc];
-}
-
-- (void) empty
-{
-  if (NO == loaded)
-    {
-      [self synchronize];
-    }
-  if ([contents count] > 0)
-    {
-      NSEnumerator      *e;
-      NSString          *k;
-
-      e = [[contents allKeys] objectEnumerator];
-      while (nil != (k = [e nextObject]))
-        {
-          [self setObject: nil forKey: k];
-        }
-      [self synchronize];
-    }
 }
 
 - (id) initWithName: (NSString*)n
@@ -2514,14 +2458,9 @@ static BOOL isLocked = NO;
 {
   if (nil != (self = [super init]))
     {
-      owner = o;	// Not retained
       name = [n copy];
-      path = RETAIN([[[owner _directory] stringByAppendingPathComponent: name]
-        stringByAppendingPathExtension: @"plist"]);
+      owner = o;	// Not retained
       contents = [NSMutableDictionary new];
-      added = [NSMutableSet new];
-      removed = [NSMutableSet new];
-      modified = [NSMutableSet new];
     }
   return self;
 }
@@ -2531,120 +2470,80 @@ static BOOL isLocked = NO;
   return name;
 }
 
-- (id) objectForKey: (NSString*)aKey
+- (void) setContents: (NSDictionary*)domain
 {
-  return [contents objectForKey: aKey];
-}
-
-- (BOOL) setContents: (NSDictionary*)domain
-{
-  BOOL  changed = NO;
-
   if (NO == [contents isEqual: domain])
     {
-      NSEnumerator      *e;
-      NSString          *k;
+      NSMutableDictionary	*m = [domain mutableCopy];
 
-      e = [[contents allKeys] objectEnumerator];
-      while (nil != (k = [e nextObject]))
+      if (nil == m)
 	{
-	  if ([domain objectForKey: k] == nil)
-            {
-              [self setObject: nil forKey: k];
+	  m = [NSMutableDictionary new];
 	}
-    }
-      e = [domain keyEnumerator];
-      while (nil != (k = [e nextObject]))
-	{
-          [self setObject: [domain objectForKey: k] forKey: k];
-}
-      changed = YES;
-    }
-  return changed;
-}
-
-- (BOOL) setObject: (id)anObject forKey: (NSString*)aKey
-{
-  if (nil == anObject)
-    {
-      if (nil == [contents objectForKey: aKey])
-        {
-          return NO;
-    }
-      if ([added member: aKey])
-        {
-          [added removeObject: aKey];
-        }
-      else if ([modified member: aKey])
-        {
-          [modified removeObject: aKey];
-          [removed addObject: aKey];
-        }
-  else
-    {
-          [removed addObject: aKey];
-        }
-      [contents removeObjectForKey: aKey];
-      return YES;
-    }
-  else
-	{
-      id        old = [contents objectForKey: aKey];
-
-      if ([anObject isEqual: old])
-	    {
-          return NO;
-	    }
-      if ([removed member: aKey])
-        {
-          [modified addObject: aKey];
-          [removed removeObject: aKey];
-        }
-      else if (nil == [modified member: aKey] && nil == [added member: aKey])
-        {
-          if (nil == old)
-            {
-              [added addObject: aKey];
-            }
-	  else
-	    {
-              [modified addObject: aKey];
-	    }
-        }
-      [contents setObject: anObject forKey: aKey];
-      return YES;
+      [contents release];
+      contents = m;
+      updated = [NSDate new];
+      modified = YES;
     }
 }
 
 - (BOOL) synchronize
-	    {
-  BOOL  isLocked = NO;
-  BOOL  wasLocked = NO;
-  BOOL  shouldLock = NO;
-  BOOL  defaultsChanged = NO;
-  BOOL  hasLocalChanges = NO;
+{
+  BOOL  wasLocked;
+  BOOL	hadChange = NO; // Have we read a change from disk?
 
-  if ([removed count] || [added count] || [modified count])
+  if (NO == [owner _lockDefaultsFile: &wasLocked])
     {
-      hasLocalChanges = YES;
-	    }
-  if (YES == hasLocalChanges && NO == [owner _readOnly])
-    {
-      shouldLock = YES;
-	}
-  if (YES == shouldLock && YES == [owner _lockDefaultsFile: &wasLocked])
-	{
-      isLocked = YES;
+      hadChange = NO;
+      wasLocked = NO;
     }
-  NS_DURING
+  else
     {
-      NSFileManager	        *mgr;
-      NSMutableDictionary       *disk;
-	  
-      mgr = [NSFileManager defaultManager];
-      disk = nil;
-      if (YES == [mgr isReadableFileAtPath: path])
+      NSString	*path;
+
+      path = [[[owner _directory] stringByAppendingPathComponent: name]
+	stringByAppendingPathExtension: @"plist"];
+
+      if (YES == modified && NO == [owner _readOnly])
+	{
+	  NSDate	*mod;
+          BOOL          result;
+
+          mod = [NSDate date];
+	  if (0 == [contents count])
 	    {
+	      /* Remove empty defaults dictionary.
+	       */
+	      result = writeDictionary(nil, path);
+	    }
+	  else
+	    {
+	      /* Write dictionary to file.
+	       */
+	      result = writeDictionary(contents, path);
+	    }
+	  if (YES == result)
+	    {
+	      ASSIGN(updated, mod);
+	      modified = NO;
+	    }
+	}
+      else
+	{
+	  NSFileManager	*mgr = [NSFileManager defaultManager];
+	  NSDate	*mod;
+	  
+	  /* If the database was modified since the last refresh
+	   * we need to read it.
+	   */
+	  mod = [[mgr fileAttributesAtPath: path traverseLink: YES]
+	    objectForKey: NSFileModificationDate];
+	  if (nil == updated
+	    || (nil != mod && [updated laterDate: mod] != updated))
+	    {
+	      ASSIGN(updated, mod);
+	      if (nil != updated)
+		{
 		  NSData	*data;
 
 		  data = [NSData dataWithContentsOfFile: path];
@@ -2659,88 +2558,25 @@ static BOOL isLocked = NO;
 			error: 0];
 		      if ([o isKindOfClass: [NSDictionary class]])
 			{
-                  disk = AUTORELEASE([o mutableCopy]);
+			  [contents release];
+			  contents = [o mutableCopy];
 			}
 		    }
 		}
-      if (nil == disk)
-        {
-          disk = [NSMutableDictionary dictionary];
+              hadChange = YES;
 	    }
-      loaded = YES;
-
-      if (NO == [contents isEqual: disk])
-        {
-          defaultsChanged = YES;
-          if (YES == hasLocalChanges)
-            {
-              NSEnumerator  *e;
-              NSString      *k;
-
-              e = [removed objectEnumerator];
-              while (nil != (k = [e nextObject]))
-                {
-                  [disk removeObjectForKey: k];
 	}
-              e = [added objectEnumerator];
-              while (nil != (k = [e nextObject]))
+      if (NO == wasLocked)
 	{
-                  [disk setObject: [contents objectForKey: k] forKey: k];
+	  [owner _unlockDefaultsFile];
 	}
-              e = [modified objectEnumerator];
-              while (nil != (k = [e nextObject]))
-                {
-                  [disk setObject: [contents objectForKey: k] forKey: k];
     }
+  return hadChange;
 }
-          ASSIGN(contents, disk);
-        }
-      if (YES == hasLocalChanges)
-        {
-          BOOL  written = NO;
 
-          if (NO == [owner _readOnly])
+- (NSDate*) updated
 {
-              if (YES == isLocked)
-                {
-                  if (0 == [contents count])
-                    {
-                      /* Remove empty defaults dictionary.
-                       */
-                      written = writeDictionary(nil, path);
-}
-                  else
-                    {
-                      /* Write dictionary to file.
-                       */
-                      written = writeDictionary(contents, path);
-                    }
-                }
-            }
-          if (YES == written)
-            {
-              [added removeAllObjects];
-              [removed removeAllObjects];
-              [modified removeAllObjects];
-            }
-        }
-      if (YES == isLocked && NO == wasLocked)
-        {
-          isLocked = NO;
-          [owner _unlockDefaultsFile];
-        }
-    }
-  NS_HANDLER
-    {
-      fprintf(stderr, "problem synchronising defaults domain '%s': %s\n",
-        [name UTF8String], [[localException description] UTF8String]);
-      if (YES == isLocked && NO == wasLocked)
-        {
-          [owner _unlockDefaultsFile];
-        }
-    }
-  NS_ENDHANDLER
-  return defaultsChanged;
+  return updated;
 }
 
 @end
