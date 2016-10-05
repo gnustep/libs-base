@@ -1176,7 +1176,6 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
                * a method to perform in this thread.
                */
               [GSRunLoopCtxt awakenedBefore: nil];
-              GSPrivateCheckTasks();
               [self _checkPerformers: context];
               GSPrivateNotifyASAP(_currentMode);
               [_contextStack removeObjectIdenticalTo: context];
@@ -1271,7 +1270,6 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 
   /* Process any pending notifications.
    */
-  GSPrivateCheckTasks();
   GSPrivateNotifyASAP(mode);
 
   /* And process any performers scheduled in the loop (eg something from

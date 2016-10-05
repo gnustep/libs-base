@@ -643,6 +643,8 @@ GSPrivateNotifyASAP(NSString *mode)
 {
   NotificationQueueList	*item;
 
+  GSPrivateCheckTasks();
+
   for (item = currentList(); item; item = item->next)
     {
       if (item->queue)

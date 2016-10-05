@@ -746,11 +746,6 @@ GSUnicode(const unichar *chars, unsigned length,
 		  while (i < length)
 		    {
 		      c = chars[i++];
-		      if (c == 0xfffe || c == 0xffff
-			|| (c >= 0xfdd0 && c <= 0xfdef))
-			{
-			  return i - 1;	// Non-characters.
-			}
 		      if (c >= 0xdc00 && c <= 0xdfff)
 		        {
 			  return i - 1;	// Second half of a surrogate pair.
@@ -972,16 +967,6 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    }
 	          u = u & ~(0xffffffff << ((5 * sle) + 1));
 		  spos += sle;
-
-		  /*
-		   * We discard invalid codepoints here.
-		   */
-		  if (u > 0x10ffff || u == 0xfffe || u == 0xffff
-		    || (u >= 0xfdd0 && u <= 0xfdef))
-		    {
-		      result = NO;	// Invalid character.
-		      goto done;
-		    }
 
 		  if ((u >= 0xd800) && (u <= 0xdfff))
 		    {
@@ -1664,10 +1649,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		    }
 
 		  // 0xfeff is a zero-width-no-break-space inside text
-		  if (u1 == 0xfffe			// unexpected BOM
-		    || u1 == 0xffff			// not a character
-		    || (u1 >= 0xfdd0 && u1 <= 0xfdef)	// invalid character
-		    || (u1 >= 0xdc00 && u1 <= 0xdfff))	// bad pairing
+		  if (u1 >= 0xdc00 && u1 <= 0xdfff)	// bad pairing
 		    {
 		      if (strict)
 			{
@@ -1786,10 +1768,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		    }
 
 		  // 0xfeff is a zero-width-no-break-space inside text
-		  if (u1 == 0xfffe			// unexpected BOM
-		    || u1 == 0xffff			// not a character
-		    || (u1 >= 0xfdd0 && u1 <= 0xfdef)	// invalid character
-		    || (u1 >= 0xdc00 && u1 <= 0xdfff))	// bad pairing
+		  if (u1 >= 0xdc00 && u1 <= 0xdfff)	// bad pairing
 		    {
 		      if (strict)
 			{

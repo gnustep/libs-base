@@ -1,3 +1,10 @@
+2016-10-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Permit noncharacter unicode codepoints
+	* Source/GSString.m: Permit noncharacter unicode codepoints
+	* Source/NSNotificationQueue.m: Call GSPrivateCheckTasks()
+	* Source/NSRunLoop.m: Let GSPrivateNotifyASAP() check for task exit.
+
 2016-09-19  Niels Grewe <niels.grewe@halbordnung.de>>
 
 	* Source/Additions/GSMime.m (charsetForXml):
