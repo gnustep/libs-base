@@ -136,8 +136,7 @@ lengthUTF8(const uint8_t *p, unsigned l, BOOL *ascii, BOOL *latin1)
 	  /*
 	   * We check for invalid codepoints here.
 	   */
-	  if (u > 0x10ffff || u == 0xfffe || u == 0xffff
-	    || (u >= 0xfdd0 && u <= 0xfdef))
+	  if (u > 0x10ffff)
 	    {
 	      [NSException raise: NSInternalInconsistencyException
 			  format: @"Codepoint invalid in constant string"];
@@ -261,8 +260,7 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
 	  /*
 	   * We discard invalid codepoints here.
 	   */
-	  if (u > 0x10ffff || u == 0xfffe || u == 0xffff
-	    || (u >= 0xfdd0 && u <= 0xfdef))
+	  if (u > 0x10ffff)
 	    {
 	      [NSException raise: NSInvalidArgumentException
 			  format: @"invalid unicode codepoint"];
