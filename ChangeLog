@@ -1,5 +1,10 @@
 2016-10-05  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSFileManager.m: Check for modification of source file
+	during copy.
+
+2016-10-05  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/Unicode.m: Permit noncharacter unicode codepoints
 	* Source/GSString.m: Permit noncharacter unicode codepoints
 	* Source/NSNotificationQueue.m: Call GSPrivateCheckTasks()
