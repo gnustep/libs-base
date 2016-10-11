@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 {
   NSString *str;
   unichar u;
-
+  unichar u2[2];
   u = (unichar)0xfdd0;
   str = [[NSString alloc] initWithCharacters: &u length: 1];
   PASS([str length] == 1, "fdd0 codpepoint is permitted in string");
@@ -26,11 +26,14 @@ int main(int argc, char **argv)
   PASS([str length] == 1, "fffd codpepoint is permitted in string");
   PASS([str characterAtIndex: 0] == 0xfffd, "fffd is returned properly");
   [str release];
-
-  u = (unichar)0xfffe;
-  str = [[NSString alloc] initWithCharacters: &u length: 1];
-  PASS([str length] == 1, "fffe codpepoint is permitted in string");
-  PASS([str characterAtIndex: 0] == 0xfffe, "fffe is returned properly");
+  /* eth, so that we don't have the BOM as the first character (it would be
+   * removed) */
+  u2[0] = (unichar)0x00f0;
+  /* BOM as second non-character codepoint should be allowed */
+  u2[1] = (unichar)0xfffe;
+  str = [[NSString alloc] initWithCharacters: u2 length: 2];
+  PASS([str length] == 2, "fffe codpepoint is permitted in string");
+  PASS([str characterAtIndex: 1] == 0xfffe, "fffe is returned properly");
   [str release];
 
   u = (unichar)0xffff;
