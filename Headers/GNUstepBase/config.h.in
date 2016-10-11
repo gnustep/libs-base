@@ -303,6 +303,9 @@
 /* Define to 1 if you have the `gnutls_transport_set_errno' function. */
 #undef HAVE_GNUTLS_TRANSPORT_SET_ERRNO
 
+/* Define to 1 if you have the `gnutls_x509_privkey_import2' function. */
+#undef HAVE_GNUTLS_X509_PRIVKEY_IMPORT2
+
 /* Define to 1 if you have the `grantpt' function. */
 #undef HAVE_GRANTPT
 
@@ -880,11 +883,6 @@
 # ifndef WORDS_BIGENDIAN
 #  undef WORDS_BIGENDIAN
 # endif
-#endif
-
-/* Enable large inode numbers on Mac OS X 10.5.  */
-#ifndef _DARWIN_USE_64_BIT_INODE
-# define _DARWIN_USE_64_BIT_INODE 1
 #endif
 
 /* Number of bits in a file offset, on hosts where this is settable. */
