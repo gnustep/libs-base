@@ -941,8 +941,14 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
         }
       else
         {
+#         ifdef HAVE_GNUTLS_X509_PRIVKEY_IMPORT2
+          ret = gnutls_x509_privkey_import2(k->key, &datum,
+                                            GNUTLS_X509_FMT_PEM,
+                                            [k->password UTF8String], 0);
+#         else
           ret = gnutls_x509_privkey_import_pkcs8(k->key, &datum,
             GNUTLS_X509_FMT_PEM, [k->password UTF8String], 0);
+#         endif
         }
       if (ret < 0)
         {

@@ -3238,6 +3238,7 @@ if test $enable_tls = yes; then
     if test "$ac_cv_func_gnutls_transport_set_errno" = "no"; then
       AC_MSG_WARN([Missing support for thread-safe error handling in GNUTLS.  Please check that you have the most recent version installed (2.0 or later chould be fine).])
     fi
+    AC_CHECK_FUNCS(gnutls_x509_privkey_import2)
   fi
 else
   AC_MSG_WARN([Disabled support for TLS funtionality.])

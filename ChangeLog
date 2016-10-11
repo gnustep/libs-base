@@ -1,3 +1,14 @@
+2016-10-11  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/GSTLS.m
+	* configure.ac
+	* Headers/GNUstepBase/config.h.in:
+	Check for gnutls_x509_privkey_import2() and use it if
+	available.
+	* configure: Regenerate
+	* Tests/base/GSTLS:
+	Test case for loading an OpenSSL encrypted private key.
+
 2016-10-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: Check for modification of source file
