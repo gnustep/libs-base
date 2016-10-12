@@ -82,6 +82,53 @@ int main()
    * which is also the reason for wrapping the previous one in an ARP */
   PASS_RUNS([testObj pattern], "Calling -pattern twice runs");
 
+  // The pattern does not include a capture group $1, so this should return 
+  // nil;
+  NSString *replacement = @"should be unset on return";
+  replacement =  [testObj stringByReplacingMatchesInString: @"ab"
+                                                   options: 0
+                                                     range: NSMakeRange(0,2)
+                                              withTemplate: @"$1c"];
+  PASS(replacement == nil, "Replacement: returns nil on capture group error");
+  replacement = [testObj stringByReplacingMatchesInString: @"ab"
+                                                  options: 0
+                                                    range: NSMakeRange(0, 2)
+                                             withTemplate: @"c"];
+  PASS_EQUAL(replacement, @"cb", "Replacement correct");
+
+  NSString *replMut = [NSMutableString stringWithString: @"ab"];
+  [testObj replaceMatchesInString: replMut
+                          options: 0
+                            range: NSMakeRange(0,2)
+                     withTemplate: @"$1c"];
+  PASS_EQUAL(replMut, @"ab", 
+             "Mutable replacement: Incorrect template does not change string");
+  replMut = [NSMutableString stringWithString: @"ab"];
+  [testObj replaceMatchesInString: replMut
+                          options: 0
+                            range: NSMakeRange(0,2)
+                     withTemplate: @"c"];
+  PASS_EQUAL(replMut, @"cb",
+             "Mutable replacement: Correct replacement for template");
+
+  NSTextCheckingResult *r = [testObj firstMatchInString: @"ab"
+                                                options: 0
+                                                  range: NSMakeRange(0,2)];
+  PASS(r, "Found NSTextCheckingResult");
+  replacement = @"should be unset on return";
+  replacement = [testObj replacementStringForResult: r
+                                           inString: @"ab"
+                                             offset: 0
+                                           template: @"$1c"];
+  PASS(replacement == nil,
+       "Custom replacement: returns nil on capture group error");
+  replacement = nil;
+  replacement = [testObj replacementStringForResult: r
+                                           inString: @"ab"
+                                             offset: 0
+                                           template: @"c"];
+  PASS_EQUAL(replacement, @"c",
+             "Custom replacement: Returns correct replacement");
   /* To test whether we correctly bail out of processing degenerate patterns,
    * we spin up a new thread and evaluate an expression there. The expectation
    * is that the thread should terminate within a few seconds.
