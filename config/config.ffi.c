@@ -8,6 +8,7 @@ typedef struct cls_struct_combined {
   float b;
   float c;
   float d;
+  float e; // Testplant: Work around 64bit libffi bug passing 16byte structs by value
 } cls_struct_combined;
 
 void cls_struct_combined_fn(struct cls_struct_combined arg)
@@ -37,10 +38,10 @@ int main (void)
   ffi_cif cif;
   void *code;
   ffi_closure *pcl = ffi_closure_alloc(sizeof(ffi_closure), &code);
-  ffi_type* cls_struct_fields0[5];
+  ffi_type* cls_struct_fields0[6];
   ffi_type cls_struct_type0;
-  ffi_type* dbl_arg_types[5];
-  struct cls_struct_combined g_dbl = {4.0, 5.0, 1.0, 8.0};
+  ffi_type* dbl_arg_types[6];
+  struct cls_struct_combined g_dbl = {4.0, 5.0, 1.0, 8.0, 6.0};
 
   cls_struct_type0.size = 0;
   cls_struct_type0.alignment = 0;
@@ -51,10 +52,13 @@ int main (void)
   cls_struct_fields0[1] = &ffi_type_float;
   cls_struct_fields0[2] = &ffi_type_float;
   cls_struct_fields0[3] = &ffi_type_float;
-  cls_struct_fields0[4] = NULL;
+  cls_struct_fields0[4] = &ffi_type_float;
+  cls_struct_fields0[5] = NULL;
 
   dbl_arg_types[0] = &cls_struct_type0;
   dbl_arg_types[1] = NULL;
+
+cls_struct_combined_fn(g_dbl);
 
   if (ffi_prep_cif(&cif, FFI_DEFAULT_ABI, 1, &ffi_type_void, dbl_arg_types)
     != FFI_OK) abort();
