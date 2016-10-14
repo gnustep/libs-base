@@ -934,6 +934,13 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
       k->password = [p copy];
       gnutls_x509_privkey_init(&k->key);
 
+#ifdef HAVE_GNUTLS_X509_PRIVKEY_IMPORT2
+      /* This function can read openssl proprietory key format,
+       * and uses the password if supplied.
+       */
+      ret = gnutls_x509_privkey_import2(k->key, &datum,
+        GNUTLS_X509_FMT_PEM, [k->password UTF8String], 0);
+#else
       if (nil == k->password)
         {
           ret = gnutls_x509_privkey_import(k->key, &datum,
@@ -941,15 +948,11 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
         }
       else
         {
-#         ifdef HAVE_GNUTLS_X509_PRIVKEY_IMPORT2
-          ret = gnutls_x509_privkey_import2(k->key, &datum,
-                                            GNUTLS_X509_FMT_PEM,
-                                            [k->password UTF8String], 0);
-#         else
           ret = gnutls_x509_privkey_import_pkcs8(k->key, &datum,
             GNUTLS_X509_FMT_PEM, [k->password UTF8String], 0);
-#         endif
         }
+#endif
+
       if (ret < 0)
         {
           NSLog(@"Unable to parse private key file '%@': %s",
@@ -1095,6 +1098,7 @@ static NSMutableDictionary      *credentialsCache = nil;
       c->when = [NSDate timeIntervalSinceReferenceDate];
 
       gnutls_certificate_allocate_credentials(&c->certcred);
+      c->freeCred = YES;        // Need to free on dealloc
 
       /* Set the default trusted authority certificates.
        */
@@ -1245,6 +1249,7 @@ static NSMutableDictionary      *credentialsCache = nil;
             [c->list certificateList], [c->list count], [c->key key]);
           if (ret < 0)
             {
+              c->freeCred = NO; // Already freed
               NSLog(@"Unable to set certificate for session: %s",
                 gnutls_strerror(ret));
               [c release];
@@ -1277,7 +1282,10 @@ static NSMutableDictionary      *credentialsCache = nil;
 {
   if (nil != name)
     {
-      gnutls_certificate_free_credentials(certcred);
+      if (YES == freeCred)
+        {
+          gnutls_certificate_free_credentials(certcred);
+        }
       DESTROY(key);
       DESTROY(list);
       DESTROY(dhParams);

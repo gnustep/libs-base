@@ -150,6 +150,7 @@ extern NSString * const GSTLSVerify;
   GSTLSCertificateList                  *list;
   GSTLSDHParams                         *dhParams;
   BOOL                                  trust;
+  BOOL                                  freeCred;
   gnutls_certificate_credentials_t      certcred;
 }
 + (GSTLSCredentials*) credentialsFromCAFile: (NSString*)ca
