@@ -1,7 +1,14 @@
+2016-10-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSTLS.h:
+	* Source/GSTLS.m:
+	Fix for double free issues when assigning certificat/key to
+	credentials fails.
+
 2016-10-12  Niels Grewe <niels.grewe@halbordnung.de>
 
-	* Source/NSRegularExpression.m: Fix crashes in libicu due to ignored error
-	codes. Also fix a few memory leaks.
+	* Source/NSRegularExpression.m: Fix crashes in libicu due to
+        * ignored error codes. Also fix a few memory leaks.
 	* Tests/base/NSRegularExpression/basic.m: Test cases for this.
 
 2016-10-11  Niels Grewe <niels.grewe@halbordnung.de>
