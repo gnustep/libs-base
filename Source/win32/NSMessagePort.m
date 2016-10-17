@@ -285,7 +285,7 @@ static Class		messagePortClass = 0;
   [d handlePortMessage: m];
 }
 
-- (unsigned) hash
+- (NSUInteger) hash
 {
   return [PORT(self)->name hash];
 }
@@ -938,7 +938,7 @@ again:
  * the start can be written directly without having to copy data to another
  * buffer etc.
  */
-- (unsigned int) reservedSpaceLength
+- (NSUInteger) reservedSpaceLength
 {
   return sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader);
 }
