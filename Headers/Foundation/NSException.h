@@ -55,11 +55,13 @@
 /* This hack is to deal with the fact that currently (June 2016) the
  * implementation of longjmp in mingw-w64  sometimes crashes in msvcrt.dll
  * but the builtin version provided by gcc seems to work.
- */
+  */
 #ifdef setjmp
 #undef setjmp
 #endif
+// Testplant: also changed declaration of jmp_buf below to line up with the builtins
 #define	setjmp(X)	__builtin_setjmp(X)
+
 #ifdef longjmp
 #undef longjmp
 #endif
@@ -281,7 +283,11 @@ GS_EXPORT NSString* const NSRangeException;
  */
 typedef struct _NSHandler 
 {
+#ifdef __MINGW64__ // other half of hack to use builtins
+    void *jumpState[20];
+#else
     jmp_buf jumpState;			/* place to longjmp to */
+#endif
     struct _NSHandler *next;		/* ptr to next handler */
     __unsafe_unretained NSException *exception;
 } NSHandler;
