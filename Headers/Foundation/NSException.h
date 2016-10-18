@@ -51,6 +51,21 @@
 #include <setjmp.h>
 #include <stdarg.h>
 
+#if	defined(__WIN64__)
+/* This hack is to deal with the fact that currently (June 2016) the
+ * implementation of longjmp in mingw-w64  sometimes crashes in msvcrt.dll
+ * but the builtin version provided by gcc seems to work.
+ */
+#ifdef setjmp
+#undef setjmp
+#endif
+#define	setjmp(X)	__builtin_setjmp(X)
+#ifdef longjmp
+#undef longjmp
+#endif
+#define	longjmp(X,Y)	__builtin_longjmp(X,Y)
+#endif
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
