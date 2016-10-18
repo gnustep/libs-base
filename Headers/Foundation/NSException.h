@@ -59,7 +59,13 @@
  * implementation of longjmp in mingw-w64  sometimes crashes in msvcrt.dll
  * but the builtin version provided by gcc seems to work.
  */
+#ifdef setjmp
+#undef setjmp
+#endif
 #define	setjmp(X)	__builtin_setjmp(X)
+#ifdef longjmp
+#undef longjmp
+#endif
 #define	longjmp(X,Y)	__builtin_longjmp(X,Y)
 #endif
 
