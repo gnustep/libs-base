@@ -732,7 +732,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
     {
       [self currentRunLoop];
       theFuture = RETAIN([NSDate distantFuture]);
-      [[NSObject leakAt: &theFuture] release];
+      RELEASE([NSObject leakAt: &theFuture]);
     }
 }
 
@@ -957,9 +957,8 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	      ti += increment;
 	    }
 	}
-      d = [[NSDate alloc] initWithTimeIntervalSinceReferenceDate: ti];
-      [t setFireDate: d];
-      RELEASE(d);
+      RELEASE(t->_date);
+      t->_date = [[NSDate alloc] initWithTimeIntervalSinceReferenceDate: ti];
     }
   return YES;
 }
@@ -1056,14 +1055,14 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
             }
         }
     }
+  [arp drain];
 
-  /* The earliest date of a valid timeout is copied into 'when'
+  /* The earliest date of a valid timeout is retained in 'when'
    * and used as our limit date.
    */
   if (earliest != nil)
     {
-      [arp drain];
-      when = AUTORELEASE([earliest copy]);
+      when = AUTORELEASE(RETAIN(earliest));
     }
   else
     {
@@ -1083,7 +1082,6 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
         {
           when = theFuture;
         }
-      [arp drain];
     }
 
   return when;
@@ -1165,6 +1163,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 
       while (NO == done)
         {
+          [arp emptyPool];
           when = [self _limitDateForContext: context];
           if (nil == when)
             {
@@ -1303,7 +1302,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
        */
       d = [[d earlierDate: date] copy];
       [self acceptInputForMode: mode beforeDate: d];
-      [d release];
+      RELEASE(d);
     }
 
   [arp drain];

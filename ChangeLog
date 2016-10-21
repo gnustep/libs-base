@@ -1,3 +1,10 @@
+2016-10-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSDate.h: Add documentation
+	* Source/NSDate.m: Tidy up and remove a little redundant code.
+	* Source/NSRunLoop.m: Tidy up and empty autorelease pool more often.
+	* Source/NSTimer.m: Tidy a little and improvde -description
+
 2016-10-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSTLS.h:

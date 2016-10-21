@@ -143,35 +143,25 @@ otherTime(NSDate* other)
 + (id) alloc
 {
   if (self == abstractClass)
-    return NSAllocateObject(concreteClass, 0, NSDefaultMallocZone());
-  else
-    return NSAllocateObject(self, 0, NSDefaultMallocZone());
+    {
+      return NSAllocateObject(concreteClass, 0, NSDefaultMallocZone());
+    }
+  return NSAllocateObject(self, 0, NSDefaultMallocZone());
 }
 
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == abstractClass)
-    return NSAllocateObject(concreteClass, 0, z);
-  else
-    return NSAllocateObject(self, 0, z);
+    {
+      return NSAllocateObject(concreteClass, 0, z);
+    }
+  return NSAllocateObject(self, 0, z);
 }
 
-/**
- * Returns the time interval between the current date and the
- * reference date (1 January 2001, GMT).
- */
-+ (NSTimeInterval) timeIntervalSinceReferenceDate
-{
-  return GSPrivateTimeNow();
-}
-
-/**
- * Returns an autoreleased instance representing the current date/time.
- */
 + (id) date
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-	initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()]);
+    initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()]);
 }
 
 /**
@@ -186,53 +176,6 @@ otherTime(NSDate* other)
 				      locale: nil];
 }
 
-/**
- * <p>Returns an autoreleased instance representing the date and time given
- * by string. The value of string may be a 'natural' specification as
- * specified by the preferences in the user defaults database, allowing
- * phrases like 'last tuesday'
- * </p>
- * The locale contains keys such as -
- * <deflist>
- *   <term>NSDateTimeOrdering</term>
- *   <desc>Controls the use of ambiguous numbers. This is done as a
- *   sequence of the letters D(ay), M(onth), Y(ear), and H(our).
- *   YMDH means that the first number encountered is assumed to be a
- *   year, the second a month, the third a day, and the last an hour.
- *   </desc>
- *   <term>NSEarlierTimeDesignations</term>
- *   <desc>An array of strings for times in the past.<br />
- *   Defaults are <em>ago</em>, <em>last</em>, <em>past</em>, <em>prior</em>
- *   </desc>
- *   <term>NSHourNameDesignations</term>
- *   <desc>An array of arrays of strings identifying the time of day.
- *   Each array has an hour as its first value, and one or more words
- *   as subsequent values.<br />
- *   Defaults are: (0, midnight), (10, morning), (12, noon, lunch),
- *   (14, afternoon), (19, dinner).
- *   </desc>
- *   <term>NSLaterTimeDesignations</term>
- *   <desc>An array of strings for times in the future.<br />
- *   Default is <em>next</em>
- *   </desc>
- *   <term>NSNextDayDesignations</term>
- *   <desc>The day after today. Default is <em>tomorrow.</em>
- *   </desc>
- *   <term>NSNextNextDayDesignations</term>
- *   <desc>The day after tomorrow. Default is <em>nextday.</em>
- *   </desc>
- *   <term>NSPriorDayDesignations</term>
- *   <desc>The day before today. Default is <em>yesterday.</em>
- *   </desc>
- *   <term>NSThisDayDesignations</term>
- *   <desc>Identifies the current day. Default is <em>today.</em>
- *   </desc>
- *   <term>NSYearMonthWeekDesignations</term>
- *   <desc>An array giving the word for year, month, and week.<br />
- *   Defaults are <em>year</em>, <em>month</em> and <em>week</em>.
- *   </desc>
- * </deflist>
- */
 + (id) dateWithNaturalLanguageString: (NSString*)string
                               locale: (NSDictionary*)locale
 {
@@ -940,82 +883,90 @@ otherTime(NSDate* other)
     }
 }
 
-/**
- * Returns an autoreleased instance with the date and time value given
- * by the string using the ISO standard format YYYY-MM-DD HH:MM:SS +/-HHHMM
- * (all the fields of which must be present).
- */
 + (id) dateWithString: (NSString*)description
 {
   return AUTORELEASE([[self alloc] initWithString: description]);
 }
 
-/**
- * Returns an autoreleased instance with the offset from the current
- * date/time given by seconds (which may be fractional).
- */
-+ (id) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds
-{
-  return AUTORELEASE([[self alloc] initWithTimeIntervalSinceNow: seconds]);
-}
-
-/**
- * Returns an autoreleased instance with the offset from the unix system
- * reference date of 1 January 1970, GMT.
- */
-+ (id) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds
-{
-  return AUTORELEASE([[self alloc] initWithTimeIntervalSinceReferenceDate:
-		       -NSTimeIntervalSince1970 + seconds]);
-}
-
-/**
- * Returns an autoreleased instance with the offset from the OpenStep
- * reference date of 1 January 2001, GMT.
- */
-+ (id) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
-{
-  return AUTORELEASE([[self alloc] initWithTimeIntervalSinceReferenceDate:
-    seconds]);
-}
-
-/**
- * Returns an autoreleased instance with the offset from the given date.
- */
 + (id) dateWithTimeInterval: (NSTimeInterval)seconds sinceDate: (NSDate*)date
 {
   return AUTORELEASE([[self alloc] initWithTimeInterval: seconds
                                               sinceDate: date]);
 }
 
-/**
- * Returns an autoreleased instance with th date/time set in the far
- * future.
- */
++ (id) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds
+{
+  return AUTORELEASE([[self alloc] initWithTimeIntervalSinceReferenceDate:
+    seconds - NSTimeIntervalSince1970]);
+}
+
++ (id) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds
+{
+  return AUTORELEASE([[self alloc] initWithTimeIntervalSinceNow: seconds]);
+}
+
++ (id) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
+{
+  return AUTORELEASE([[self alloc] initWithTimeIntervalSinceReferenceDate:
+    seconds]);
+}
+
++ (id) distantPast
+{
+  if (_distantPast == nil)
+    {
+      _distantPast = [GSDatePast allocWithZone: 0];
+    }
+  return _distantPast;
+}
+
 + (id) distantFuture
 {
   if (_distantFuture == nil)
-    _distantFuture = [GSDateFuture allocWithZone: 0];
+    {
+      _distantFuture = [GSDateFuture allocWithZone: 0];
+    }
   return _distantFuture;
 }
 
 /**
- * Returns an autoreleased instance with th date/time set in the far
- * past.
+ * Returns the time interval between the current date and the
+ * reference date (1 January 2001, GMT).
  */
-+ (id) distantPast
++ (NSTimeInterval) timeIntervalSinceReferenceDate
 {
-  if (_distantPast == nil)
-    _distantPast = [GSDatePast allocWithZone: 0];
-  return _distantPast;
+  return GSPrivateTimeNow();
+}
+
+- (id) addTimeInterval: (NSTimeInterval)seconds
+{
+  return [self dateByAddingTimeInterval: seconds];
+}
+
+- (NSComparisonResult) compare: (NSDate*)otherDate
+{
+  if (otherDate == self)
+    {
+      return NSOrderedSame;
+    }
+  if (otherTime(self) > otherTime(otherDate))
+    {
+      return NSOrderedDescending;
+    }
+  if (otherTime(self) < otherTime(otherDate))
+    {
+      return NSOrderedAscending;
+    }
+  return NSOrderedSame;
 }
 
 - (id) copyWithZone: (NSZone*)zone
 {
   if (NSShouldRetainWithZone(self, zone))
-    return RETAIN(self);
-  else
-    return NSCopyObject(self, 0, zone);
+    {
+      return RETAIN(self);
+    }
+  return NSCopyObject(self, 0, zone);
 }
 
 - (Class) classForCoder
@@ -1023,11 +974,81 @@ otherTime(NSDate* other)
   return abstractClass;
 }
 
-- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
+- (id) dateByAddingTimeInterval: (NSTimeInterval)ti
 {
-  if ([aCoder isByref] == NO)
-    return self;
-  return [super replacementObjectForPortCoder: aCoder];
+  return [[self class] dateWithTimeIntervalSinceReferenceDate:
+    otherTime(self) + ti];
+}
+
+- (NSCalendarDate *) dateWithCalendarFormat: (NSString*)formatString
+				   timeZone: (NSTimeZone*)timeZone
+{
+  NSCalendarDate *d = [calendarClass alloc];
+
+  d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
+  [d setCalendarFormat: formatString];
+  [d setTimeZone: timeZone];
+  return AUTORELEASE(d);
+}
+
+- (NSString*) description
+{
+  // Easiest to just have NSCalendarDate do the work for us
+  NSString *s;
+  NSCalendarDate *d = [calendarClass alloc];
+
+  d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
+  s = [d description];
+  RELEASE(d);
+  return s;
+}
+
+- (NSString*) descriptionWithCalendarFormat: (NSString*)format
+				   timeZone: (NSTimeZone*)aTimeZone
+				     locale: (NSDictionary*)l
+{
+  // Easiest to just have NSCalendarDate do the work for us
+  NSString *s;
+  NSCalendarDate *d = [calendarClass alloc];
+  id f;
+
+  d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
+  if (!format)
+    {
+      f = [d calendarFormat];
+    }
+  else
+    {
+      f = format;
+    }
+  if (aTimeZone)
+    {
+      [d setTimeZone: aTimeZone];
+    }
+  s = [d descriptionWithCalendarFormat: f locale: l];
+  RELEASE(d);
+  return s;
+}
+
+- (NSString *) descriptionWithLocale: (id)locale
+{
+  // Easiest to just have NSCalendarDate do the work for us
+  NSString *s;
+  NSCalendarDate *d = [calendarClass alloc];
+
+  d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
+  s = [d descriptionWithLocale: locale];
+  RELEASE(d);
+  return s;
+}
+
+- (NSDate*) earlierDate: (NSDate*)otherDate
+{
+  if (otherTime(self) > otherTime(otherDate))
+    {
+      return otherDate;
+    }
+  return self;
 }
 
 - (void) encodeWithCoder: (NSCoder*)coder
@@ -1035,9 +1056,15 @@ otherTime(NSDate* other)
   NSTimeInterval	interval = [self timeIntervalSinceReferenceDate];
 
   if ([coder allowsKeyedCoding])
-    [coder encodeDouble: interval forKey: @"NS.time"];
-  else
-    [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
+    {
+      [coder encodeDouble: interval forKey: @"NS.time"];
+    }
+  [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
+}
+
+- (NSUInteger) hash
+{
+  return (NSUInteger)[self timeIntervalSinceReferenceDate];
 }
 
 - (id) initWithCoder: (NSCoder*)coder
@@ -1046,9 +1073,13 @@ otherTime(NSDate* other)
   id			o;
 
   if ([coder allowsKeyedCoding])
-    interval = [coder decodeDoubleForKey: @"NS.time"];
+    {
+      interval = [coder decodeDoubleForKey: @"NS.time"];
+    }
   else
-    [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
+    {
+      [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &interval];
+    }
   if (interval == DISTANT_PAST)
     {
       o = RETAIN([abstractClass distantPast]);
@@ -1066,26 +1097,18 @@ otherTime(NSDate* other)
   return o;
 }
 
-/**
- * Returns an instance initialised with the current date/time.
- */
 - (id) init
 {
   return [self initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()];
 }
 
-/**
- * Returns an instance with the date and time value given
- * by the string using the ISO standard format YYYY-MM-DD HH:MM:SS +/-HHHMM
- * (all the fields of which must be present).
- */
 - (id) initWithString: (NSString*)description
 {
   // Easiest to just have NSCalendarDate do the work for us
   NSCalendarDate	*d = [calendarClass alloc];
 
   d = [d initWithString: description];
-  if (d == nil)
+  if (nil == d)
     {
       DESTROY(self);
       return nil;
@@ -1098,9 +1121,6 @@ otherTime(NSDate* other)
     }
 }
 
-/**
- * Returns an instance with the given offset from anotherDate.
- */
 - (id) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
 		  sinceDate: (NSDate*)anotherDate
 {
@@ -1115,9 +1135,12 @@ otherTime(NSDate* other)
     otherTime(anotherDate) + secsToBeAdded];
 }
 
-/**
- * Returns an instance with the offset from the current date/time.
- */
+- (id) initWithTimeIntervalSince1970: (NSTimeInterval)seconds
+{
+  return [self initWithTimeIntervalSinceReferenceDate:
+    seconds - NSTimeIntervalSince1970];
+}
+
 - (id) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded
 {
   // Get the current time, add the secs and init thyself
@@ -1125,254 +1148,78 @@ otherTime(NSDate* other)
     GSPrivateTimeNow() + secsToBeAdded];
 }
 
-/**
- * Returns an instance with the offset from the unix system
- * reference date of 1 January 1970, GMT.
- */
-- (id) initWithTimeIntervalSince1970: (NSTimeInterval)seconds
-{
-  return [self initWithTimeIntervalSinceReferenceDate:
-    -NSTimeIntervalSince1970 + seconds];
-}
-
-/** <init />
- * Returns an instance with the given offset from the OpenStep
- * reference date of 1 January 2001, GMT.
- */
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
   [self subclassResponsibility: _cmd];
   return self;
 }
 
-- (id) dateByAddingTimeInterval: (NSTimeInterval)ti
+- (BOOL) isEqual: (id)other
 {
-  return [[self class] dateWithTimeIntervalSinceReferenceDate:
-    otherTime(self) + ti];
+  if (other != nil
+    && [other isKindOfClass: abstractClass]
+    && otherTime(self) == otherTime(other))
+    {
+      return YES;
+    }
+  return NO;
 }
 
-/**
- * Returns an autoreleased instance of the [NSCalendarDate] class whose
- * date/time value is the same as that of the receiver, and which uses
- * the formatString and timeZone specified.
- */
-- (NSCalendarDate *) dateWithCalendarFormat: (NSString*)formatString
-				   timeZone: (NSTimeZone*)timeZone
+- (BOOL) isEqualToDate: (NSDate*)other
 {
-  NSCalendarDate *d = [calendarClass alloc];
-  d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
-  [d setCalendarFormat: formatString];
-  [d setTimeZone: timeZone];
-  return AUTORELEASE(d);
+  if (other != nil
+    && otherTime(self) == otherTime(other))
+    {
+      return YES;
+    }
+  return NO;
 }
 
-/**
- * Returns a string representation of the receiver formatted according
- * to the default format string, time zone, and locale.
- */
-- (NSString*) description
+- (NSDate*) laterDate: (NSDate*)otherDate
 {
-  // Easiest to just have NSCalendarDate do the work for us
-  NSString *s;
-  NSCalendarDate *d = [calendarClass alloc];
-  d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
-  s = [[d description] retain];
-  RELEASE(d);
-  return [s autorelease];
+  if (otherTime(self) < otherTime(otherDate))
+    {
+      return otherDate;
+    }
+  return self;
 }
 
-/**
- * Returns a string representation of the receiver formatted according
- * to the specified format string, time zone, and locale.
- */
-- (NSString*) descriptionWithCalendarFormat: (NSString*)format
-				   timeZone: (NSTimeZone*)aTimeZone
-				     locale: (NSDictionary*)l
+- (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {
-  // Easiest to just have NSCalendarDate do the work for us
-  NSString *s;
-  NSCalendarDate *d = [calendarClass alloc];
-  id f;
-
-  d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
-  if (!format)
-    f = [d calendarFormat];
-  else
-    f = format;
-  if (aTimeZone)
-    [d setTimeZone: aTimeZone];
-
-  s = [[d descriptionWithCalendarFormat: f locale: l] retain];
-  RELEASE(d);
-  return [s autorelease];
+  if ([aCoder isByref] == NO)
+    {
+      return self;
+    }
+  return [super replacementObjectForPortCoder: aCoder];
 }
 
-/**
- * Returns a string representation of the receiver formatted according
- * to the default format string and time zone, but using the given locale.
- */
-- (NSString *) descriptionWithLocale: (id)locale
-{
-  // Easiest to just have NSCalendarDate do the work for us
-  NSString *s;
-  NSCalendarDate *d = [calendarClass alloc];
-  d = [d initWithTimeIntervalSinceReferenceDate: otherTime(self)];
-  s = [[d descriptionWithLocale: locale] retain];
-  RELEASE(d);
-  return [s autorelease];
-}
-
-- (id) addTimeInterval: (NSTimeInterval)seconds
-{
-  return [self dateByAddingTimeInterval: seconds];
-}
-
-/**
- * Returns the time interval between the receivers value and the
- * unix system reference date of 1 January 1970, GMT.
- */
 - (NSTimeInterval) timeIntervalSince1970
 {
   return otherTime(self) + NSTimeIntervalSince1970;
 }
 
-/**
- * Returns the time interval between the receivers value and that of the
- * otherDate argument.  If otherDate is earlier than the receiver, the
- * returned value will be positive, if it is later it will be negative.<br />
- * For current (2011) OSX compatibility, this method returns NaN if otherDate
- * is nil ... do not write code depending on that behavior.
- */
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
 {
-  if (otherDate == nil)
-#ifndef NAN
-    return nan("");
-#else
-    return NAN;
-#endif
-/*
+  if (nil == otherDate)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for timeIntervalSinceDate:"];
+#ifndef NAN
+      return nan("");
+#else
+      return NAN;
+#endif
     }
-*/
   return otherTime(self) - otherTime(otherDate);
 }
 
-/**
- * Returns the time interval between the receivers value and the
- * current date/time.  If the receiver represents a date/time in
- * the past this will be negative, if it is in the future the
- * returned value will be positive.
- */
 - (NSTimeInterval) timeIntervalSinceNow
 {
   return otherTime(self) - GSPrivateTimeNow();
 }
 
-/**
- * Returns the time interval between the receivers value and the
- * OpenStep reference date of 1 Jan 2001 GMT.
- */
 - (NSTimeInterval) timeIntervalSinceReferenceDate
 {
   [self subclassResponsibility: _cmd];
   return 0;
-}
-
-/**
- * Returns NSOrderedDescending if the receiver is later than otherDate,
- * Returns NSOrderedAscending if the receiver is earlier than otherDate,
- * Otherwise, returns NSOrderedSame.
- */
-- (NSComparisonResult) compare: (NSDate*)otherDate
-{
-  if (otherDate == self)
-    {
-      return NSOrderedSame;
-    }
-  if (otherDate == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for compare:"];
-    }
-  if (otherTime(self) > otherTime(otherDate))
-    {
-      return NSOrderedDescending;
-    }
-  if (otherTime(self) < otherTime(otherDate))
-    {
-      return NSOrderedAscending;
-    }
-  return NSOrderedSame;
-}
-
-/**
- * Returns the earlier of the receiver and otherDate.<br />
- * If the two represent identical date/time values, returns the receiver.
- */
-- (NSDate*) earlierDate: (NSDate*)otherDate
-{
-  if (otherDate == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for earlierDate:"];
-    }
-  if (otherTime(self) > otherTime(otherDate))
-    return otherDate;
-  return self;
-}
-
-- (NSUInteger) hash
-{
-  return (unsigned)[self timeIntervalSinceReferenceDate];
-}
-
-- (BOOL) isEqual: (id)other
-{
-  if (other == nil)
-    return NO;
-  if ([other isKindOfClass: abstractClass]
-    && otherTime(self) == otherTime(other))
-    return YES;
-  return NO;
-}
-
-/**
- *  Returns whether the receiver is exactly equal to other, to the limit
- *  of the NSTimeInterval precision.<br />
- *  This is the behavior of the current MacOS-X system, not that of the
- *  OpenStep specification (which counted two dates within a second of
- *  each other as being equal).<br />
- *  The old behavior meant that two dates equal to a third date were not
- *  necessarily equal to each other (confusing), and meant that there was
- *  no reasonable way to use a date as a dictionary key or store dates
- *  in a set.
- */
-- (BOOL) isEqualToDate: (NSDate*)other
-{
-  if (other == nil)
-    return NO;
-  if (otherTime(self) == otherTime(other))
-    return YES;
-  return NO;
-}
-
-/**
- * Returns the earlier of the receiver and otherDate.<br />
- * If the two represent identical date/time values, returns the receiver.
- */
-- (NSDate*) laterDate: (NSDate*)otherDate
-{
-  if (otherDate == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for laterDate:"];
-    }
-  if (otherTime(self) < otherTime(otherDate))
-    return otherDate;
-  return self;
 }
 
 @end
@@ -1387,20 +1234,71 @@ otherTime(NSDate* other)
     }
 }
 
+- (NSComparisonResult) compare: (NSDate*)otherDate
+{
+  if (otherDate == self)
+    {
+      return NSOrderedSame;
+    }
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for compare:"];
+    }
+  if (_seconds_since_ref > otherTime(otherDate))
+    {
+      return NSOrderedDescending;
+    }
+  if (_seconds_since_ref < otherTime(otherDate))
+    {
+      return NSOrderedAscending;
+    }
+  return NSOrderedSame;
+}
+
+- (NSDate*) earlierDate: (NSDate*)otherDate
+{
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for earlierDate:"];
+    }
+  if (_seconds_since_ref > otherTime(otherDate))
+    {
+      return otherDate;
+    }
+  return self;
+}
+
 - (void) encodeWithCoder: (NSCoder*)coder
 {
   if ([coder allowsKeyedCoding])
-    [coder encodeDouble:_seconds_since_ref forKey:@"NS.time"];
+    {
+      [coder encodeDouble:_seconds_since_ref forKey:@"NS.time"];
+    }
   else
-    [coder encodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
+    {
+      [coder encodeValueOfObjCType: @encode(NSTimeInterval)
+                                at: &_seconds_since_ref];
+    }
+}
+
+- (NSUInteger) hash
+{
+  return (unsigned)_seconds_since_ref;
 }
 
 - (id) initWithCoder: (NSCoder*)coder
 {
   if ([coder allowsKeyedCoding])
-    _seconds_since_ref = [coder decodeDoubleForKey:@"NS.time"];
+    {
+      _seconds_since_ref = [coder decodeDoubleForKey: @"NS.time"];
+    }
   else
-    [coder decodeValueOfObjCType: @encode(NSTimeInterval) at: &_seconds_since_ref];
+    {
+      [coder decodeValueOfObjCType: @encode(NSTimeInterval)
+                                at: &_seconds_since_ref];
+    }
   return self;
 }
 
@@ -1423,13 +1321,44 @@ otherTime(NSDate* other)
       secs = DISTANT_FUTURE;
     }
 #endif
-
   _seconds_since_ref = secs;
   return self;
 }
 
+- (BOOL) isEqual: (id)other
+{
+  if (other != nil
+    && [other isKindOfClass: abstractClass]
+    && _seconds_since_ref == otherTime(other))
+    {
+      return YES;
+    }
+  return NO;
+}
 
-// Adding and getting intervals
+- (BOOL) isEqualToDate: (NSDate*)other
+{
+  if (other != nil
+    && _seconds_since_ref == otherTime(other))
+    {
+      return YES;
+    }
+  return NO;
+}
+
+- (NSDate*) laterDate: (NSDate*)otherDate
+{
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for laterDate:"];
+    }
+  if (_seconds_since_ref < otherTime(otherDate))
+    {
+      return otherDate;
+    }
+  return self;
+}
 
 - (NSTimeInterval) timeIntervalSince1970
 {
@@ -1454,78 +1383,6 @@ otherTime(NSDate* other)
 - (NSTimeInterval) timeIntervalSinceReferenceDate
 {
   return _seconds_since_ref;
-}
-
-// Comparing dates
-
-- (NSComparisonResult) compare: (NSDate*)otherDate
-{
-  if (otherDate == self)
-    {
-      return NSOrderedSame;
-    }
-  if (otherDate == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for compare:"];
-    }
-  if (_seconds_since_ref > otherTime(otherDate))
-    {
-      return NSOrderedDescending;
-    }
-  if (_seconds_since_ref < otherTime(otherDate))
-    {
-      return NSOrderedAscending;
-    }
-  return NSOrderedSame;
-}
-
-- (NSDate*) earlierDate: (NSDate*)otherDate
-{
-  if (otherDate == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for earlierDate:"];
-    }
-  if (_seconds_since_ref > otherTime(otherDate))
-    return otherDate;
-  return self;
-}
-
-- (NSUInteger) hash
-{
-  return (unsigned)_seconds_since_ref;
-}
-
-- (BOOL) isEqual: (id)other
-{
-  if (other == nil)
-    return NO;
-  if ([other isKindOfClass: abstractClass]
-    && _seconds_since_ref == otherTime(other))
-    return YES;
-  return NO;
-}
-
-- (BOOL) isEqualToDate: (NSDate*)other
-{
-  if (other == nil)
-    return NO;
-  if (_seconds_since_ref == otherTime(other))
-    return YES;
-  return NO;
-}
-
-- (NSDate*) laterDate: (NSDate*)otherDate
-{
-  if (otherDate == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for laterDate:"];
-    }
-  if (_seconds_since_ref < otherTime(otherDate))
-    return otherDate;
-  return self;
 }
 
 @end

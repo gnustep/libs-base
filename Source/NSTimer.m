@@ -62,6 +62,29 @@ static Class	NSDate_class;
     }
 }
 
+- (NSString*) description
+{
+  NSString      *s = [super description];
+
+  if ([self isValid])
+    {
+      if (_selector == 0)
+        {
+          return [NSString stringWithFormat: @"%@ at %@ invokes %@",
+            s, [self fireDate], _target];
+        }
+      else
+        {
+          return [NSString stringWithFormat: @"%@ at %@ sends %@ to (%@)",
+            s, [self fireDate], NSStringFromSelector(_selector), _target];
+        }
+    }
+  else
+    {
+      return [NSString stringWithFormat: @"%@ (invalidated)", s];
+    }
+}
+
 /* For MacOS-X compatibility, this returns nil.
  */
 - (id) init
@@ -224,17 +247,17 @@ static Class	NSDate_class;
  */
 - (void) fire
 {
-  id	target;
-
-  /* We retain the target so it won't be deallocated while we are using it
-   * (if this timer gets invalidated while we are firing).
-   */
-  target = [_target retain];
-
   /* We check that we have not been invalidated before we fire.
    */
   if (NO == _invalidated)
     {
+      id	target;
+
+      /* We retain the target so it won't be deallocated while we are using it
+       * (if this timer gets invalidated while we are firing).
+       */
+      target = RETAIN(_target);
+
       if (_selector == 0)
 	{
 	  NS_DURING
@@ -269,12 +292,11 @@ static Class	NSDate_class;
 	    }
 	  NS_ENDHANDLER
 	}
-    }
-  [target release];
-
-  if (_repeats == NO)
-    {
-      [self invalidate];
+      RELEASE(target);
+      if (_repeats == NO)
+        {
+          [self invalidate];
+        }
     }
 }
 
