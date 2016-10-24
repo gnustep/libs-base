@@ -93,15 +93,11 @@
 #include <sys/stropts.h>
 #endif
 
-#ifndef	MAX_OPEN
-#define	MAX_OPEN	64
-#endif
-
 /*
- *	If we don't have NFILE, default to 256 open descriptors.
+ *	If we don't have NOFILE, default to 2048 open descriptors.
  */
 #ifndef	NOFILE
-#define	NOFILE	256
+#define	NOFILE	2048
 #endif
 
 

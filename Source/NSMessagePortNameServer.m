@@ -161,7 +161,13 @@ static NSMapTable *portToNamesMap;
           NSArray       *lines;
           NSString      *line;
           int           opid;
+          BOOL          isDir = NO;
 
+          if ([mgr fileExistsAtPath: old isDirectory: &isDir] == NO
+            || YES == isDir)
+            {
+              continue; // Ignore removed file or lock directory
+            }
 	  lines = [[NSString stringWithContentsOfFile: old]
             componentsSeparatedByString: @"\n"];
           if ([lines count] > 1

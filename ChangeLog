@@ -1,3 +1,12 @@
+2016-10-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: Only atempt to read regular files into NSData,
+	* Source/NSMessagePortNameServer.m: Ignore lock directories in the
+	'names' directory.
+	* Source/NSTask.m Increase files to close from 256 to 2048 to better
+	reflect typical modern system limits.
+	All changes for problems spotted by Wolfgang.
+
 2016-10-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSDate.h: Add documentation
