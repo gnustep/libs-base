@@ -229,8 +229,10 @@ encodebase64(unsigned char **dstRef,
 }
 
 static BOOL
-readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
+readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
 {
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSDictionary	*att;
 #if defined(_WIN32)
   const unichar	*thePath = 0;
 #else
@@ -239,7 +241,7 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
   FILE		*theFile = 0;
   void		*tmp = 0;
   int		c;
-  off_t        fileLength;
+  off_t         fileLength;
 
 #if defined(_WIN32)
   thePath = (const unichar*)[path fileSystemRepresentation];
@@ -249,6 +251,13 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
   if (thePath == 0)
     {
       NSWarnFLog(@"Open (%@) attempt failed - bad path", path);
+      return NO;
+    }
+
+  att = [mgr fileAttributesAtPath: path traverseLink: YES];
+  if ([att fileType] != NSFileTypeRegular)
+    {
+      NSWarnFLog(@"Open (%@) attempt failed - not a regular file", path);
       return NO;
     }
 
@@ -280,10 +289,14 @@ readContentsOfFile(NSString* path, void** buf, off_t* len, NSZone* zone)
    *	file) by calling ftello().
    */
   fileLength = ftello(theFile);
-  if (fileLength == (off_t) -1)
+  if (fileLength == (off_t)-1)
     {
       NSWarnFLog(@"Ftell on %@ failed - %@", path, [NSError _last]);
       goto failure;
+    }
+  if (fileLength >= 2147483647)
+    {
+      fileLength = 0;
     }
 
   /*
