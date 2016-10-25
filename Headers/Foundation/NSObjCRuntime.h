@@ -54,10 +54,12 @@
 /* NONE FOR NOW... */
 #endif
 #if defined(__MINGW64__)
-#if defined(PRIuPTR)
 #undef PRIuPTR
-#endif
 #define PRIuPTR "llu"
+#undef PRIdPTR
+#define PRIdPTR "ld"
+#undef PRIxPTR
+#define PRIxPTR "lx"
 #endif
 
 /* IRIX kludge.  */
