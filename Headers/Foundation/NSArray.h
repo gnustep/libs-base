@@ -404,8 +404,9 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT),
          usingComparator: (NSComparator)comparator;
 #endif
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
-/**
- * Set method called by the compiler with array subscripting.
+/** Set method called by the compiler with array subscripting.<br />
+ * Replaces the object at anIndex or, if anIndex is the length of the array,
+ * this method appends abObject to the array.
  */
 - (void) setObject: (GS_GENERIC_TYPE(ElementT))anObject
 atIndexedSubscript: (NSUInteger)anIndex;
