@@ -1,3 +1,9 @@
+2016-10-27  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSObject.m: Comment out _ARCCompliantRetainRelease for
+	now because the retain count representation in gnustep-base and
+	libobjc2 differs causing space leaks on 64-bit architectures.
+
 2016-10-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: Only atempt to read regular files into NSData,

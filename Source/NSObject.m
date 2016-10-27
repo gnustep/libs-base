@@ -735,7 +735,17 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
  * </p>
  */
 @implementation NSObject
+#if 0
+/* Commented out for now, since the representation of object retain
+ * counts in gnustep-base and libobjc2 currently is not compatible.
+ * While gnustep-base uses int32_t libobjc2 uses intptr_t, which makes
+ * a difference on 64-bit architectures.
+ */
+// FIXME Rewrite retain/release to use objc_retain/objc_release and
+// similarly object allocation to use class_createInstance when we
+// are using libobjc2.
 - (void)_ARCCompliantRetainRelease {}
+#endif
 
 + (void) _becomeMultiThreaded: (NSNotification *)aNotification
 {
