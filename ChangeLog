@@ -1,3 +1,11 @@
+2016-10-28  Niels Grewe <niels.grewe@halbordnung.de>
+
+  * Source/NSObject.m: Re-enable fast-ARC mode when memory layout
+	and atomic operations support permit. This changes the size of the
+	field where the reference count is stored to the size of a pointer
+	in some configurations.
+	The effective maximum reference count is still 2^24 - 1.
+
 2016-10-27  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSObject.m: Comment out _ARCCompliantRetainRelease for
