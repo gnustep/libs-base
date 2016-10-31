@@ -166,7 +166,7 @@ static SECURITY_ATTRIBUTES	security;
 
   translatedName = [[self class] _translate: name];
 
-#if 1
+#if !defined(_WIN64) // OutputDebugString raises exceptions screwing up vectored exception handling
 /* FIXME ... wierd hack.
  * It appears that RegQueryValueExW does not always read from the registry,
  * but will in fact return cached results (even if you close and re-open the

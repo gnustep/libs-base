@@ -151,8 +151,10 @@ _NSLog_standard_printf_handler(NSString* message)
     }
 
 #if	defined(_WIN32)
+#if defined(_WIN64) // OutputDebugString raises exceptions screwing up vectored exception handling
+  write(_NSLogDescriptor, buf, len);
+#else
   null_terminated_buf = UNISTR(message);
-
   OutputDebugStringW(null_terminated_buf);
 
   if ((GSPrivateDefaultsFlag(GSLogSyslog) == YES
@@ -178,6 +180,7 @@ _NSLog_standard_printf_handler(NSString* message)
 	    NULL);			// pointer to data
 	}
     }
+#endif
 #else
 
 #if	defined(HAVE_SYSLOG)
