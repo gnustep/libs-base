@@ -129,7 +129,7 @@
  * or kit defines its own main function (as gnustep-base does).
  */
 #if GS_FAKE_MAIN
-#define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Internal Error:\n\
+#define _GNU_MISSING_MAIN_FUNCTION_CALL "\nGNUSTEP Internal Error:\n\
 The private GNUstep function to establish the argv and environment\n\
 variables was not called.\n\
 Perhaps your program failed to #include <Foundation/NSObject.h> or\n\
@@ -137,12 +137,12 @@ Perhaps your program failed to #include <Foundation/NSObject.h> or\n\
 If that is not the problem, Please report the error to bug-gnustep@gnu.org.\n\n"
 #else
 #ifdef GS_PASS_ARGUMENTS
-#define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Error:\n\
+#define _GNU_MISSING_MAIN_FUNCTION_CALL "\nGNUSTEP Error:\n\
 A call to NSProcessInfo +initializeWithArguments:... must be made\n\
 as the first ObjC statment in main. This function is used to \n\
 establish the argv and environment variables.\n"
 #else
-#define _GNU_MISSING_MAIN_FUNCTION_CALL @"\nGNUSTEP Internal Error:\n\
+#define _GNU_MISSING_MAIN_FUNCTION_CALL "\nGNUSTEP Internal Error:\n\
 The private GNUstep function to establish the argv and environment\n\
 variables was not called.\n\
 \n\
