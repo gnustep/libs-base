@@ -255,6 +255,11 @@ readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
     }
 
   att = [mgr fileAttributesAtPath: path traverseLink: YES];
+  if (nil == att)
+    {
+      return NO;        // No such file ... fail quietly
+    }
+
   if ([att fileType] != NSFileTypeRegular)
     {
       NSWarnFLog(@"Open (%@) attempt failed - not a regular file", path);
