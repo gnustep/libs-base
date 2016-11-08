@@ -1,6 +1,13 @@
+2016-11-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Fix error in last mod ... was calculating opbject
+	layout incorrectly when fast-ARC moce used on 64bit system.
+	Also simplified by removing special case optimising for single-threaded
+	programs and use inline decrement to improve performance of release.
+
 2016-10-28  Niels Grewe <niels.grewe@halbordnung.de>
 
-  * Source/NSObject.m: Re-enable fast-ARC mode when memory layout
+	* Source/NSObject.m: Re-enable fast-ARC mode when memory layout
 	and atomic operations support permit. This changes the size of the
 	field where the reference count is stored to the size of a pointer
 	in some configurations.
