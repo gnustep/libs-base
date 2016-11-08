@@ -113,11 +113,10 @@ GS_ROOT_CLASS @interface	NSZombie
 - (id) initWithObject: (id)anObject;
 @end
 
-/*
- * allocationLock is needed when running multi-threaded for
- * protecting the map table of zombie information.
+/* allocationLock is needed when for protecting the map table of zombie
+ * information and if atomic operations are not available.
  */
-static NSLock *allocationLock;
+static NSLock *allocationLock = nil;
 
 BOOL	NSZombieEnabled = NO;
 BOOL	NSDeallocateZombies = NO;
@@ -187,8 +186,7 @@ static void GSLogZombie(id o, SEL sel)
 #endif
 
 
-/*
- * Traditionally, GNUstep has been using a 32bit reference count in front
+/* Traditionally, GNUstep has been using a 32bit reference count in front
  * of the object. The automatic reference counting implementation in
  * libobjc2 uses an intptr_t instead, so NSObject will only be compatible
  * with ARC if either of the following apply:
@@ -374,8 +372,7 @@ GSAtomicDecrement(gsatomic_t X)
 
 #if	!defined(GSATOMICREAD)
 
-/*
- * Having just one allocationLock for all leads to lock contention
+/* Having just one allocationLock for all leads to lock contention
  * if there are lots of threads doing lots of retain/release calls.
  * To alleviate this, instead of a single
  * allocationLock for all objects, we divide the object space into
@@ -421,7 +418,7 @@ static inline NSLock *GSAllocationLockForObject(id p)
  *	(before the start) in each object.
  */
 typedef struct obj_layout_unpadded {
-  int32_t	retained;
+  gsrefcount_t	retained;
 } unp;
 #define	UNP sizeof(unp)
 
@@ -441,7 +438,7 @@ typedef struct obj_layout_unpadded {
 struct obj_layout {
   char	padding[__BIGGEST_ALIGNMENT__ - ((UNP % __BIGGEST_ALIGNMENT__)
     ? (UNP % __BIGGEST_ALIGNMENT__) : __BIGGEST_ALIGNMENT__)];
-  int32_t	retained;
+  gsrefcount_t	retained;
 };
 typedef	struct obj_layout *obj;
 
@@ -452,7 +449,7 @@ typedef	struct obj_layout *obj;
  * (and hence whether the extra reference count was decremented).<br />
  * This function is used by the [NSObject-release] method.
  */
-BOOL
+inline BOOL
 NSDecrementExtraRefCountWasZero(id anObject)
 {
   if (double_release_check_enabled)
@@ -464,58 +461,45 @@ NSDecrementExtraRefCountWasZero(id anObject)
         [NSException raise: NSGenericException
 		    format: @"Release would release object too many times."];
     }
-  if (allocationLock != 0)
-    {
+  {
 #if	defined(GSATOMICREAD)
-      gsrefcount_t	result;
+    gsrefcount_t	result;
 
-      result = GSAtomicDecrement((gsatomic_t)&(((obj)anObject)[-1].retained));
-      if (result < 0)
-	{
-	  if (result != -1)
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-		format: @"NSDecrementExtraRefCount() decremented too far"];
-	    }
-	  /* The counter has become negative so it must have been zero.
-	   * We reset it and return YES ... in a correctly operating
-	   * process we know we can safely reset back to zero without
-	   * worrying about atomicity, since there can be no other
-	   * thread accessing the object (or its reference count would
-	   * have been greater than zero)
-	   */
-	  (((obj)anObject)[-1].retained) = 0;
-	  return YES;
-	}
+    result = GSAtomicDecrement((gsatomic_t)&(((obj)anObject)[-1].retained));
+    if (result < 0)
+      {
+        if (result != -1)
+          {
+            [NSException raise: NSInternalInconsistencyException
+              format: @"NSDecrementExtraRefCount() decremented too far"];
+          }
+        /* The counter has become negative so it must have been zero.
+         * We reset it and return YES ... in a correctly operating
+         * process we know we can safely reset back to zero without
+         * worrying about atomicity, since there can be no other
+         * thread accessing the object (or its reference count would
+         * have been greater than zero)
+         */
+        (((obj)anObject)[-1].retained) = 0;
+        return YES;
+      }
 #else	/* GSATOMICREAD */
-      NSLock *theLock = GSAllocationLockForObject(anObject);
+    NSLock *theLock = GSAllocationLockForObject(anObject);
 
-      [theLock lock];
-      if (((obj)anObject)[-1].retained == 0)
-	{
-	  [theLock unlock];
-	  return YES;
-	}
-      else
-	{
-	  ((obj)anObject)[-1].retained--;
-	  [theLock unlock];
-	  return NO;
-	}
+    [theLock lock];
+    if (((obj)anObject)[-1].retained == 0)
+      {
+        [theLock unlock];
+        return YES;
+      }
+    else
+      {
+        ((obj)anObject)[-1].retained--;
+        [theLock unlock];
+        return NO;
+      }
 #endif	/* GSATOMICREAD */
-    }
-  else
-    {
-      if (((obj)anObject)[-1].retained == 0)
-	{
-	  return YES;
-	}
-      else
-	{
-	  ((obj)anObject)[-1].retained--;
-	  return NO;
-	}
-    }
+  }
   return NO;
 }
 
@@ -539,42 +523,30 @@ NSExtraRefCount(id anObject)
 inline void
 NSIncrementExtraRefCount(id anObject)
 {
-  if (allocationLock != 0)
-    {
 #if	defined(GSATOMICREAD)
-      /* I've seen comments saying that some platforms only support up to
-       * 24 bits in atomic locking, so raise an exception if we try to
-       * go beyond 0xfffffe.
-       */
-      if (GSAtomicIncrement((gsatomic_t)&(((obj)anObject)[-1].retained))
-        > 0xfffffe)
-	{
-	  [NSException raise: NSInternalInconsistencyException
-	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
-	}
-#else	/* GSATOMICREAD */
-      NSLock *theLock = GSAllocationLockForObject(anObject);
-
-      [theLock lock];
-      if (((obj)anObject)[-1].retained > 0xfffffe)
-	{
-	  [theLock unlock];
-	  [NSException raise: NSInternalInconsistencyException
-	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
-	}
-      ((obj)anObject)[-1].retained++;
-      [theLock unlock];
-#endif	/* GSATOMICREAD */
-    }
-  else
+  /* I've seen comments saying that some platforms only support up to
+   * 24 bits in atomic locking, so raise an exception if we try to
+   * go beyond 0xfffffe.
+   */
+  if (GSAtomicIncrement((gsatomic_t)&(((obj)anObject)[-1].retained))
+    > 0xfffffe)
     {
-      if (((obj)anObject)[-1].retained > 0xfffffe)
-	{
-	  [NSException raise: NSInternalInconsistencyException
-	    format: @"NSIncrementExtraRefCount() asked to increment too far"];
-	}
-      ((obj)anObject)[-1].retained++;
+      [NSException raise: NSInternalInconsistencyException
+        format: @"NSIncrementExtraRefCount() asked to increment too far"];
     }
+#else	/* GSATOMICREAD */
+  NSLock *theLock = GSAllocationLockForObject(anObject);
+
+  [theLock lock];
+  if (((obj)anObject)[-1].retained > 0xfffffe)
+    {
+      [theLock unlock];
+      [NSException raise: NSInternalInconsistencyException
+        format: @"NSIncrementExtraRefCount() asked to increment too far"];
+    }
+  ((obj)anObject)[-1].retained++;
+  [theLock unlock];
+#endif	/* GSATOMICREAD */
 }
 
 #ifndef	NDEBUG
@@ -770,22 +742,6 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
 - (void)_ARCCompliantRetainRelease {}
 #endif
 
-+ (void) _becomeMultiThreaded: (NSNotification *)aNotification
-{
-  if (allocationLock == 0)
-    {
-#if !defined(GSATOMICREAD)
-      NSUInteger	i;
-
-      for (i = 0; i < LOCKCOUNT; i++)
-        {
-	  allocationLocks[i] = [NSLock new];
-	}
-#endif
-      allocationLock = [NSLock new];
-    }
-}
-
 /**
  * Semi-private function in libobjc2 that initialises the classes used for
  * blocks.
@@ -882,6 +838,21 @@ static id gs_weak_load(id obj)
 #  endif
 #endif
 
+      /* Create the lock for NSZombie and for allocation when atomic
+       * operations are not available.
+       */
+      allocationLock = [NSLock new];
+#if !defined(GSATOMICREAD)
+      {
+        NSUInteger	i;
+
+        for (i = 0; i < LOCKCOUNT; i++)
+          {
+            allocationLocks[i] = [NSLock new];
+          }
+      }
+#endif
+
       /* Create the global lock.
        * NB. Ths is one of the first things we do ... setting up a new lock
        * must not call any other Objective-C classes and must not involve
@@ -930,15 +901,6 @@ static id gs_weak_load(id obj)
        * object, and that class hasn't been initialized yet ...
        */
       zombieClass = objc_lookUpClass("NSZombie");
-
-      /* Now that we have a working autorelease system and working string
-       * classes we are able to set up notifications.
-       */
-      [[NSNotificationCenter defaultCenter]
-	addObserver: self
-	   selector: @selector(_becomeMultiThreaded:)
-	       name: NSWillBecomeMultiThreadedNotification
-	     object: nil];
     }
   return;
 }
