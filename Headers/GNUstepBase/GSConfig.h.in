@@ -261,13 +261,35 @@ typedef	struct {
 #if	!defined(WINVER)
 #define WINVER Windows2000
 #ifdef Windows7
+
+/*
+ * __has_extension has slightly different semantics from __has_feature.
+ * It evaluates to true if the feature is supported by by clang for the
+ * current compilation unit (language and -f switches), regardless of
+ * whether it is part of the language standard or just a (non-standard)
+ * extension.
+ */
+#ifndef __has_extension
+#  define __has_extension(x) __has_feature(x)
+#endif
+
+#if defined(_WIN32)
+#if defined(__MINGW64__) && defined(Windows7)
+#define BOOL WINBOOL
+#else
+#define BOOL WinBOOL
+#endif
+#define __OBJC_BOOL 1
+#include <w32api.h>
+#ifndef _WIN32_WINNT
+#if defined(__MINGW64__) && defined(Windows7)
 #define _WIN32_WINNT Windows7    //MinGW64
 #else
 #define _WIN32_WINNT Windows2000 //MinGW32
 #endif
 #endif
 #if	!defined(WINVER)
-#ifdef Windows7
+#if defined(__MINGW64__) && defined(Windows7)
 #define WINVER Windows7    //MinGW64
 #else
 #define WINVER Windows2000 //MinGW32
