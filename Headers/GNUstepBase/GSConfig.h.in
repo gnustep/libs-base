@@ -260,6 +260,18 @@ typedef	struct {
 #endif
 #if	!defined(WINVER)
 #define WINVER Windows2000
+#ifdef Windows7
+#define _WIN32_WINNT Windows7    //MinGW64
+#else
+#define _WIN32_WINNT Windows2000 //MinGW32
+#endif
+#endif
+#if	!defined(WINVER)
+#ifdef Windows7
+#define WINVER Windows7    //MinGW64
+#else
+#define WINVER Windows2000 //MinGW32
+#endif
 #elif (WINVER < Windows2000)
 #undef	WINVER
 #define WINVER Windows2000
