@@ -837,6 +837,26 @@ static unsigned	encodingVersion;
     }
 }
 
+static inline int
+scalarSize(char type)
+{
+  switch (type)
+    {
+      case _C_SHT:
+      case _C_USHT:     return _GSC_S_SHT;
+      case _C_INT:
+      case _C_UINT:	return _GSC_S_INT;
+      case _C_LNG:
+      case _C_ULNG:	return _GSC_S_LNG;
+      case _C_LNG_LNG:
+      case _C_ULNG_LNG:	return _GSC_S_LNG_LNG;
+      default:
+        [NSException raise: NSInvalidArgumentException
+                    format: @"scalarSize() called with non-scalar type"];
+    }
+  return -1;
+}
+
 - (void) decodeValueOfObjCType: (const char*)type
 			    at: (void*)address
 {
@@ -1197,7 +1217,7 @@ static unsigned	encodingVersion;
       case _GSC_SHT:
       case _GSC_USHT:
 	if (YES == typeCheck(*type, info & _GSC_MASK)
-	  && (info & _GSC_SIZE) == _GSC_S_SHT)
+	  && (info & _GSC_SIZE) == scalarSize(*type))
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	    return;
@@ -1207,7 +1227,7 @@ static unsigned	encodingVersion;
       case _GSC_INT:
       case _GSC_UINT:
 	if (YES == typeCheck(*type, info & _GSC_MASK)
-	  &&  (info & _GSC_SIZE) == _GSC_S_INT)
+	  &&  (info & _GSC_SIZE) == scalarSize(*type))
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	    return;
@@ -1217,7 +1237,7 @@ static unsigned	encodingVersion;
       case _GSC_LNG:
       case _GSC_ULNG:
 	if (YES == typeCheck(*type, info & _GSC_MASK)
-	  && (info & _GSC_SIZE) == _GSC_S_LNG)
+	  && (info & _GSC_SIZE) == scalarSize(*type))
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	    return;
@@ -1227,7 +1247,7 @@ static unsigned	encodingVersion;
       case _GSC_LNG_LNG:
       case _GSC_ULNG_LNG:
 	if (YES == typeCheck(*type, info & _GSC_MASK)
-	  && (info & _GSC_SIZE) == _GSC_S_LNG_LNG)
+	  && (info & _GSC_SIZE) == scalarSize(*type))
 	  {
 	    (*desImp)(src, desSel, address, type, &cursor, nil);
 	    return;
