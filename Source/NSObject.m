@@ -392,7 +392,7 @@ static inline NSLock *GSAllocationLockForObject(id p)
  *	(before the start) in each object.
  */
 typedef struct obj_layout_unpadded {
-  int32_t	retained;
+  uintptr_t	retained;
 } unp;
 #define	UNP sizeof(unp)
 
@@ -412,7 +412,7 @@ typedef struct obj_layout_unpadded {
 struct obj_layout {
   char	padding[__BIGGEST_ALIGNMENT__ - ((UNP % __BIGGEST_ALIGNMENT__)
     ? (UNP % __BIGGEST_ALIGNMENT__) : __BIGGEST_ALIGNMENT__)];
-  int32_t	retained;
+  uintptr_t	retained;
 };
 typedef	struct obj_layout *obj;
 
