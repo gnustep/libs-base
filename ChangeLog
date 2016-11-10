@@ -1,3 +1,11 @@
+2016-11-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPortCoder.m:
+	* Source/NSUnarchiver.m:
+	Fix for logic error decoding archives created by a machine with a
+	different word size.  Was checking the size of the encoded scalar
+	item, but not against the *local* size of the same type.
+
 2016-11-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Fix error in last mod ... was calculating opbject
