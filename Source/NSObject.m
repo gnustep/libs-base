@@ -372,6 +372,8 @@ GSAtomicDecrement(gsatomic_t X)
 
 #if	!defined(GSATOMICREAD)
 
+typedef int     gsrefcount_t;   // No atomics, use a simple integer
+
 /* Having just one allocationLock for all leads to lock contention
  * if there are lots of threads doing lots of retain/release calls.
  * To alleviate this, instead of a single
