@@ -1,3 +1,10 @@
+2016-11-28  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/Additions/NSCalendarDate+GNUstepBase.m (weekOfYear): Fix
+	an off by 1 calculation which meant that weekOfYear would return 2
+	for the first week of a year whenever the first Thursday of that
+	year is 7 Jan, for instance 2016.
+
 2016-11-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPortCoder.m:

@@ -89,8 +89,10 @@
   /*
    * Round up to a week boundary, so that when we divide by seven we
    * get a result in the range 1 to 53 as mandated by the ISO standard.
+   * Note that dayOfYear starts at 1, too, and hence we must be careful
+   * to not round up an exact multiple of 7.
    */
-  dayOfYear += (7 - dayOfYear % 7);
+  dayOfYear += (7 - (dayOfYear - 1) % 7);
   return dayOfYear / 7;
 }
 
