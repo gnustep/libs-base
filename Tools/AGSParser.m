@@ -1478,6 +1478,7 @@ recheck:
 
               if (ident != nil)
                 {
+                  foundFieldComment = YES;
                   [fieldComments appendString: @"<term><em>"];
                   [fieldComments appendString: ident];
                   [fieldComments appendString: @"</em></term>"];

@@ -1,3 +1,8 @@
+2016-12-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Fix missing line preventing documentation of
+	enumeration constants.
+
 2016-11-28  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/Additions/NSCalendarDate+GNUstepBase.m (weekOfYear): Fix
