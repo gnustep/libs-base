@@ -1089,6 +1089,11 @@ newLanguages(NSArray *oldNames)
   [dict release];
 }
 
+// Testplant:PGL This is to set the bundleIdentifier after NSBundle loads.
++ (void) setProcessName:(NSString*)pName {
+    processName = [pName copy]; 
+}
+
 - (id) init
 {
   return [self initWithUser: NSUserName()];
@@ -1109,9 +1114,8 @@ newLanguages(NSArray *oldNames)
    */
   if (processName == nil)
     {
-      NSString	*s = [[NSProcessInfo processInfo] processName];
-
-      processName = [s copy];
+      NSString *s = [[NSProcessInfo processInfo] processName];
+      [NSUserDefaults setProcessName:s];
     }
 
   if (path == nil || [path isEqual: @""] == YES)

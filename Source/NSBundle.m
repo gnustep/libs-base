@@ -1479,6 +1479,8 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       /* Please note that _mainBundle should *not* be nil.  */
       _mainBundle = [_mainBundle initWithPath: path];
       NSAssert(_mainBundle != nil, NSInternalInconsistencyException);
+      //Testplant:PGL we want to use the bundleIdentifier as the Application domain
+      [NSUserDefaults setProcessName:[_mainBundle bundleIdentifier]];
     }
 
   [load_lock unlock];

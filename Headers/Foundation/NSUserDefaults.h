@@ -274,6 +274,8 @@ GS_EXPORT NSString* const GSLocale;
 + (void) setUserLanguages: (NSArray*)languages;
 #endif
 
++ (void) setProcessName: (NSString*) processName;
+
 #if OS_API_VERSION(GSAPI_MACOSX, GS_API_LATEST)
 /**
  * Adds the domain names aName to the search list of the receiver.<br />
