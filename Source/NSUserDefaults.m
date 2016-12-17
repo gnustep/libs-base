@@ -436,6 +436,7 @@ newLanguages(NSArray *oldNames)
 - (BOOL) _readDefaults;
 - (BOOL) _readOnly;
 - (void) _unlockDefaultsFile;
++ (void) _setProcessName: (NSString*) processName;
 @end
 
 /**
@@ -1089,11 +1090,6 @@ newLanguages(NSArray *oldNames)
   [dict release];
 }
 
-// Testplant:PGL This is to set the bundleIdentifier after NSBundle loads.
-+ (void) setProcessName:(NSString*)pName {
-    processName = [pName copy]; 
-}
-
 - (id) init
 {
   return [self initWithUser: NSUserName()];
@@ -1115,7 +1111,7 @@ newLanguages(NSArray *oldNames)
   if (processName == nil)
     {
       NSString *s = [[NSProcessInfo processInfo] processName];
-      [NSUserDefaults setProcessName:s];
+      [NSUserDefaults _setProcessName:s];
     }
 
   if (path == nil || [path isEqual: @""] == YES)
@@ -2434,6 +2430,14 @@ static BOOL isLocked = NO;
     }
   NS_ENDHANDLER
   isLocked = NO;
+}
+
+
+// Testplant:PGL This is to set the bundleIdentifier after NSBundle loads.
+// Testplant:MAL Fix per GNUstep standards - _setProcessName should be private
++ (void) _setProcessName:(NSString*)pName
+{
+  processName = [pName copy]; 
 }
 
 @end
