@@ -1370,7 +1370,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   [super dealloc];
 }
 
-- (void) oberveValueForKeyPath: (NSString *)keyPath
+- (void) observeValueForKeyPath: (NSString *)keyPath
                        ofObject: (id)anObject
                          change: (NSDictionary *)change
                         context: (void *)context
