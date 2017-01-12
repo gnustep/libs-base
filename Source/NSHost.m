@@ -163,8 +163,7 @@ static id			null = nil;
 
           memset(&hints, '\0', sizeof(hints));
           hints.ai_flags = AI_CANONNAME;
-	  getaddrinfo([a UTF8String], 0, &hints, &entry);
-	  if (0 == entry)
+	  if (getaddrinfo([a UTF8String], 0, &hints, &entry) != 0)
 	    {
 	      /*
 	       * Can't find a database entry for this IP address, but since
