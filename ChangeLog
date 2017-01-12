@@ -1,3 +1,8 @@
+2017-01-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: Use getaddrinfo rather than gethostbyname if 
+	available (bug #50032).
+
 2016-12-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSParser.m: Fix missing line preventing documentation of

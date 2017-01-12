@@ -3975,7 +3975,6 @@ static int
 nameServer(const char* name, const char* host, int op, int ptype, struct sockaddr_in* addr, int pnum, int max)
 {
   struct sockaddr_in	sin;
-  struct hostent*	hp;
   unsigned short	p;
   unsigned short	port = 0;
   int			len = strlen(name);
@@ -3997,11 +3996,14 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
       return -1;
     }
 
+  memset((char*)&sin, '\0', sizeof(sin));
+  sin.sin_family = AF_INET;
+
 #if	GDOMAP_PORT_OVERRIDE
   p = htons(GDOMAP_PORT_OVERRIDE);
 #else
 {
-  struct servent*	sp;
+  struct servent        *sp;
   /*
    *	Ensure we have port number to connect to name server.
    *	The TCP service name 'gdomap' overrides the default port.
@@ -4016,6 +4018,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
     }
 }
 #endif
+  sin.sin_port = p;
 
   /*
    *	The host name '*' matches any host on the local network.
@@ -4037,30 +4040,56 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
 	}
       host = local_hostname;
     }
-  if ((hp = gethostbyname(host)) == 0 && first_dot != 0)
-    {
-      *first_dot = '.';
-      hp = gethostbyname(host);
-    }
-  if (hp == 0)
-    {
-      snprintf(ebuf, sizeof(ebuf),
-	"gethostbyname('%s') failed: %s", host, strerror(errno));
-      gdomap_log(LOG_ERR);
-      return -1;
-    }
-  if (hp->h_addrtype != AF_INET)
-    {
-      snprintf(ebuf, sizeof(ebuf),
-	"non-internet network not supported for %s", host);
-      gdomap_log(LOG_ERR);
-      return -1;
-    }
 
-  memset((char*)&sin, '\0', sizeof(sin));
-  sin.sin_family = AF_INET;
-  sin.sin_port = p;
-  memcpy(&sin.sin_addr, hp->h_addr, hp->h_length);
+#if     HAVE_GETADDRINFO
+  {
+    struct addrinfo       hints;
+    struct addrinfo       *info;
+    int                   err;
+
+    memset(&hints, '\0', sizeof(hints));
+    hints.ai_family = AF_INET;
+
+    if (getaddrinfo(host, NULL, &hints, &info) != 0 && first_dot != 0)
+      {
+        *first_dot = '.';
+        if ((err = getaddrinfo(host, NULL, &hints, &info)) != 0)
+          {
+            snprintf(ebuf, sizeof(ebuf),
+              "getaddrinfo('%s') failed: %s", host, gai_strerror(err));
+            gdomap_log(LOG_ERR);
+            return -1;
+          }
+      }
+    memcpy(&sin.sin_addr, info->ai_addr, info->ai_addrlen);
+    freeaddrinfo(info);
+  }
+#else
+  {
+    struct hostent        *hp;
+
+    if ((hp = gethostbyname(host)) == 0 && first_dot != 0)
+      {
+        *first_dot = '.';
+        hp = gethostbyname(host);
+      }
+    if (hp == 0)
+      {
+        snprintf(ebuf, sizeof(ebuf),
+          "gethostbyname('%s') failed: %s", host, strerror(errno));
+        gdomap_log(LOG_ERR);
+        return -1;
+      }
+    if (hp->h_addrtype != AF_INET)
+      {
+        snprintf(ebuf, sizeof(ebuf),
+          "non-internet network not supported for %s", host);
+        gdomap_log(LOG_ERR);
+        return -1;
+      }
+    memcpy(&sin.sin_addr, hp->h_addr, hp->h_length);
+  }
+#endif
 
   if (multi)
     {
@@ -4193,32 +4222,11 @@ static void
 donames(const char *host)
 {
   struct sockaddr_in	sin;
-  struct hostent*	hp;
   unsigned short	p;
   unsigned short	num = 0;
   int			rval;
   uptr			b;
   char			*first_dot = 0;
-
-#if	GDOMAP_PORT_OVERRIDE
-  p = htons(GDOMAP_PORT_OVERRIDE);
-#else
-{
-  struct servent*	sp;
-  /*
-   *	Ensure we have port number to connect to name server.
-   *	The TCP service name 'gdomap' overrides the default port.
-   */
-  if ((sp = getservbyname("gdomap", "tcp")) != 0)
-    {
-      p = sp->s_port;		/* Network byte order.	*/
-    }
-  else
-    {
-      p = htons(GDOMAP_PORT);
-    }
-}
-#endif
 
   if (host == 0 || *host == '\0')
     {
@@ -4232,30 +4240,82 @@ donames(const char *host)
 	}
       host = local_hostname;
     }
-  if ((hp = gethostbyname(host)) == 0 && first_dot != 0)
-    {
-      *first_dot = '.';
-      hp = gethostbyname(host);
-    }
-  if (hp == 0)
-    {
-      snprintf(ebuf, sizeof(ebuf),
-	"gethostbyname('%s') failed: %s", host, strerror(errno));
-      gdomap_log(LOG_ERR);
-      return;
-    }
-  if (hp->h_addrtype != AF_INET)
-    {
-      snprintf(ebuf, sizeof(ebuf),
-	"non-internet network not supported for %s", host);
-      gdomap_log(LOG_ERR);
-      return;
-    }
 
   memset((char*)&sin, '\0', sizeof(sin));
   sin.sin_family = AF_INET;
+
+#if	GDOMAP_PORT_OVERRIDE
+  p = htons(GDOMAP_PORT_OVERRIDE);
+#else
+  {
+    struct servent      *sp;
+    /*
+     *	Ensure we have port number to connect to name server.
+     *	The TCP service name 'gdomap' overrides the default port.
+     */
+    if ((sp = getservbyname("gdomap", "tcp")) != 0)
+      {
+        p = sp->s_port;		/* Network byte order.	*/
+      }
+    else
+      {
+        p = htons(GDOMAP_PORT);
+      }
+  }
+#endif
+
   sin.sin_port = p;
-  memcpy(&sin.sin_addr, hp->h_addr, hp->h_length);
+ 
+#if     HAVE_GETADDRINFO
+  {
+    struct addrinfo       hints;
+    struct addrinfo       *info;
+    int                   err;
+
+    memset(&hints, '\0', sizeof(hints));
+    hints.ai_family = AF_INET;
+
+    if (getaddrinfo(host, NULL, &hints, &info) != 0 && first_dot != 0)
+      {
+        *first_dot = '.';
+        if ((err = getaddrinfo(host, NULL, &hints, &info)) != 0)
+          {
+            snprintf(ebuf, sizeof(ebuf),
+              "getaddrinfo('%s') failed: %s", host, gai_strerror(err));
+            gdomap_log(LOG_ERR);
+            return;
+          }
+      }
+    memcpy(&sin.sin_addr, info->ai_addr, info->ai_addrlen);
+    freeaddrinfo(info);
+  }
+#else
+  {
+    struct hostent        *hp;
+
+    if ((hp = gethostbyname(host)) == 0 && first_dot != 0)
+      {
+        *first_dot = '.';
+        hp = gethostbyname(host);
+      }
+    if (hp == 0)
+      {
+        snprintf(ebuf, sizeof(ebuf),
+          "gethostbyname('%s') failed: %s", host, strerror(errno));
+        gdomap_log(LOG_ERR);
+        return;
+      }
+    if (hp->h_addrtype != AF_INET)
+      {
+        snprintf(ebuf, sizeof(ebuf),
+          "non-internet network not supported for %s", host);
+        gdomap_log(LOG_ERR);
+        return;
+      }
+
+    memcpy(&sin.sin_addr, hp->h_addr, hp->h_length);
+  }
+#endif
 
   rval = tryHost(GDO_NAMES, 0, 0, 0, &sin, &num, (uptr*)&b);
   if (rval != 0)
