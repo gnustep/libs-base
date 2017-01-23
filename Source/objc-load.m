@@ -168,8 +168,9 @@ GSPrivateLoadModule(NSString *filename, FILE *errorStream,
 
   /* Link in the object file */
   NSDebugFLLog(@"NSBundle", @"Debug (objc-load): Linking file %@\n", filename);
-  handle = __objc_dynamic_link((FSCHAR*)[filename fileSystemRepresentation],
-    1, (FSCHAR*)[debugFilename fileSystemRepresentation]);
+//  handle = __objc_dynamic_link((FSCHAR*)[filename fileSystemRepresentation],
+//    1, (FSCHAR*)[debugFilename fileSystemRepresentation], LOAD_WITH_ALTERED_SEARCH_PATH);
+  handle = LoadLibraryExW((FSCHAR*)[filename fileSystemRepresentation], 0, LOAD_WITH_ALTERED_SEARCH_PATH);
   if (handle == 0)
     {
       if (errorStream)
