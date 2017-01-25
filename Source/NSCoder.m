@@ -74,6 +74,11 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
     }
 }
 
++ (NSInteger) coderVersion
+{
+  return 0;
+}
+
 - (void) encodeValueOfObjCType: (const char*)type
 			    at: (const void*)address
 {

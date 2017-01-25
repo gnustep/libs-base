@@ -48,6 +48,9 @@ extern "C" {
  *  forward/backward compatibility in the face of class changes.</p>
  */
 @interface NSCoder : NSObject
+
++ (NSInteger) coderVersion;
+
 // Encoding Data
 
 /**
