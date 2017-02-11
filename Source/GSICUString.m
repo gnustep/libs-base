@@ -130,6 +130,7 @@ UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
   [str getCharacters: ut->pExtra range: r];
   ut->chunkNativeLimit = nativeLimit;
   ut->chunkNativeStart = nativeStart;
+  ut->nativeIndexingLimit = r.length;
   ut->chunkLength = r.length;
   return TRUE;
 }
@@ -378,7 +379,6 @@ UTextInitWithNSMutableString(UText *txt, NSMutableString *str)
   txt->p = [str retain];
   txt->pFuncs = &NSMutableStringFuncs;
   txt->chunkContents = txt->pExtra;
-  txt->nativeIndexingLimit = INT32_MAX;
   txt->c = -1;  // Need to fetch length every time
   txt->providerProperties = 1<<UTEXT_PROVIDER_WRITABLE;
 
@@ -399,7 +399,6 @@ UTextInitWithNSString(UText *txt, NSString *str)
   txt->p = [str retain];
   txt->pFuncs = &NSStringFuncs;
   txt->chunkContents = txt->pExtra;
-  txt->nativeIndexingLimit = INT32_MAX;
   txt->c = [str length];
 
   return txt;

@@ -2,6 +2,7 @@
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSRegularExpression.h>
+#import <Foundation/NSTextCheckingResult.h>
 #import <Foundation/NSDate.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSUserDefaults.h>
@@ -129,6 +130,17 @@ int main()
                                            template: @"c"];
   PASS_EQUAL(replacement, @"c",
              "Custom replacement: Returns correct replacement");
+
+  NSRegularExpression *testObj2 =
+    [[NSRegularExpression alloc] initWithPattern: @"bc"
+					 options: 0
+					   error: NULL];
+  r = [testObj2 firstMatchInString: @"abcdeabcde"
+			   options: 0
+			     range: NSMakeRange(5, 5)];
+  PASS(r != nil && NSEqualRanges([r range], NSMakeRange(6, 2)),
+       "Restricting the range for firstMatchInString: works");
+
   /* To test whether we correctly bail out of processing degenerate patterns,
    * we spin up a new thread and evaluate an expression there. The expectation
    * is that the thread should terminate within a few seconds.

@@ -31,7 +31,7 @@
 
 /* FIXME It would be nice to use autoconf for checking whether uregex_openUText
  * is defined.  However the naive check using AC_CHECK_FUNCS(uregex_openUText)
- * wonn't work because libicu internally renames all entry points with some cpp
+ * won't work because libicu internally renames all entry points with some cpp
  * magic.
  */
 #if (U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4))
