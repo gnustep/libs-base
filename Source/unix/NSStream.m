@@ -507,6 +507,11 @@
   return AUTORELEASE([[GSFileInputStream alloc] initWithFileAtPath: path]);
 }
 
++ (id)inputStreamWithURL:(NSURL *)url
+{
+  return [self inputStreamWithFileAtPath:[url path]];
+}
+
 - (BOOL) getBuffer: (uint8_t **)buffer length: (NSUInteger *)len
 {
   [self subclassResponsibility: _cmd];

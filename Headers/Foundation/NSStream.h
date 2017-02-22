@@ -161,6 +161,12 @@ typedef NSUInteger NSStreamEvent;
 + (id) inputStreamWithFileAtPath: (NSString *)path;
  
 /**
+ * Creates and returns an initialized NSInputStream object that reads data from 
+ * the file at the specified URL.
+ */
++ (id)inputStreamWithURL:(NSURL *)url;
+
+/**
  * Returns a pointer to the read buffer in buffer and, by reference, the number 
  * of bytes available in len.
  */

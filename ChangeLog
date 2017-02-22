@@ -1,3 +1,7 @@
+2017-02-22  Doug Simons <doug.simons@testplant.com>
+
+       * NSStream.m: Implement the +inputStreamWithURL: method.
+
 2016-02-18  Doug Simons <doug.simons@testplant.com>
 
        * NSDateFormatter.m: Fixed the weekday names methods. The ICU weekday
