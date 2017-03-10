@@ -56,10 +56,6 @@
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
-#if	defined(__MINGW__)
-@class	NSUserDefaultsWin32;
-#endif
-
 #ifdef HAVE_LOCALE_H
 #include <locale.h>
 #endif
@@ -436,7 +432,6 @@ newLanguages(NSArray *oldNames)
 - (BOOL) _readDefaults;
 - (BOOL) _readOnly;
 - (void) _unlockDefaultsFile;
-+ (void) _setProcessName: (NSString*) processName;
 @end
 
 /**
@@ -549,6 +544,51 @@ newLanguages(NSArray *oldNames)
   DESTROY(sharedDefaults);
   DESTROY(processName);
   DESTROY(classLock);
+}
+
+// Testplant-MAL-03102017: Added...
+/* Due to the circular nature between NSBundle and NSUserDefaults we need to duplicate
+ this code similar to NSBundle in order to properly retrieve the bundle identifier
+ for use as the process name for the user defaults...
+ */
+// FIXME: The Cocoa info file contains substitution variables that we need to address and
+//        replace during this processing...either here or in some pre-processing makefile
+//        change...
++ (NSString*) _processName
+{
+  NSString      *processName = [[NSProcessInfo processInfo] processName];
+  NSString      *rootPath    = [[[[NSProcessInfo processInfo] arguments] objectAtIndex: 0] stringByDeletingLastPathComponent];
+  NSString      *subPath     = nil;
+  NSString      *subFile     = nil;
+  NSString      *infoPath    = nil;
+  NSFileManager *filemgr     = [NSFileManager defaultManager];
+  
+  for (subPath in @[ @"Resources" ])
+  {
+    for (subFile in @[ @"Info-gnustep.plist", @"Info.plist" ])
+    {
+      NSString *fullpath = [rootPath stringByAppendingPathComponent: subPath];
+      fullpath           = [fullpath stringByAppendingPathComponent: subFile];
+      if ([filemgr fileExistsAtPath: fullpath])
+      {
+        infoPath = fullpath;
+        break;
+      }
+    }
+    
+    if (infoPath)
+      break;
+  }
+  
+  if (infoPath)
+  {
+    NSDictionary *infoDict = AUTORELEASE([[NSDictionary alloc] initWithContentsOfFile: infoPath]);
+    
+    if ([infoDict objectForKey: @"CFBundleIdentifier"])
+      processName = [infoDict objectForKey: @"CFBundleIdentifier"];
+  }
+  
+  return processName;
 }
 
 + (void) initialize
@@ -769,7 +809,7 @@ newLanguages(NSArray *oldNames)
 
         if (r.length > 0)
           {
-	    defs = [[NSUserDefaultsWin32 alloc] init];
+	    defs = [[NSClassFromString(@"NSUserDefaultsWin32") alloc] init];
           }
         else
           {
@@ -1110,8 +1150,7 @@ newLanguages(NSArray *oldNames)
    */
   if (processName == nil)
     {
-      NSString *s = [[NSProcessInfo processInfo] processName];
-      [NSUserDefaults _setProcessName:s];
+      ASSIGNCOPY(processName, [[self class] _processName]);
     }
 
   if (path == nil || [path isEqual: @""] == YES)
@@ -2430,14 +2469,6 @@ static BOOL isLocked = NO;
     }
   NS_ENDHANDLER
   isLocked = NO;
-}
-
-
-// Testplant:PGL This is to set the bundleIdentifier after NSBundle loads.
-// Testplant:MAL Fix per GNUstep standards - _setProcessName should be private
-+ (void) _setProcessName:(NSString*)pName
-{
-  processName = [pName copy]; 
 }
 
 @end

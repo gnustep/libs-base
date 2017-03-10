@@ -173,10 +173,6 @@ altLang(NSString *full)
 static NSLock *pathCacheLock = nil;
 static NSMutableDictionary *pathCache = nil;
 
-@interface NSUserDefaults(Private)
-+ (void) _setProcessName: (NSString*) processName;
-@end
-
 @interface NSObject (PrivateFrameworks)
 + (NSString*) frameworkVersion;
 + (NSString**) frameworkClasses;
@@ -1483,8 +1479,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       /* Please note that _mainBundle should *not* be nil.  */
       _mainBundle = [_mainBundle initWithPath: path];
       NSAssert(_mainBundle != nil, NSInternalInconsistencyException);
-      //Testplant:PGL we want to use the bundleIdentifier as the Application domain
-      [NSUserDefaults _setProcessName:[_mainBundle bundleIdentifier]];
     }
 
   [load_lock unlock];
