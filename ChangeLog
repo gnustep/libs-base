@@ -1,5 +1,9 @@
 2017-03-17  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSTimeZones/NSTimeZones.tar: Updated with latest information.
+
+2017-03-17  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/Unicode.m: Implement NSNonLossyASCIIStringEncoding
 	in a manner compatible with OSX.  Added regression tests.
 
