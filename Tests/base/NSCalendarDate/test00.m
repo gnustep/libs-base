@@ -110,26 +110,26 @@ int main()
                           calendarFormat: val2
 				  locale: locale];
   PASS([date1 testDateValues: 1999 : 12 : 31 : 23 : 59 : 59],
-    "date check with %s", [[date1 description] cString]);
+    "date check with %s", [[date1 description] UTF8String]);
   date2 = [date1 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 1];
   PASS([date2 testDateValues: 2000 : 01 : 01 : 00 : 00 : 00],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 1];
   PASS([date2 testDateValues: 2000 : 01 : 01 : 00 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 1 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2000 : 01 : 01 : 01 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: -2 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 1999 : 12 : 31 : 23 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   /* Y2K is a leap year checks */
   date2 = [NSCalendarDate dateWithString: @"2000-2-28 23:59:59"
@@ -137,73 +137,73 @@ int main()
 				  locale: locale];
 
   PASS([date2 testDateValues: 2000 : 02 : 28 : 23 : 59 : 59],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 1];
   PASS([date2 testDateValues: 2000 : 02 : 29 : 00 : 00 : 00],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 1];
   PASS([date2 testDateValues: 2000 : 02 : 29 : 00 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 1 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2000 : 02 : 29 : 01 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: -2 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2000 : 02 : 28 : 23 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 5 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2000 : 02 : 29 : 04 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 1
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2001 : 03 : 01 : 04 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: -1 hours: 0 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2001 : 02 : 28 : 04 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 1
     months: 0 days: 1 hours: 0 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 03 : 01 : 04 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   /* 2004 is a year leap check */
   date2 = [NSCalendarDate dateWithString: @"2004-2-28 23:59:59"
                           calendarFormat: val2
 				  locale: locale];
   PASS([date2 testDateValues: 2004 : 02 : 28 : 23 : 59 : 59],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 1];
   PASS([date2 testDateValues: 2004 : 02 : 29 : 00 : 00 : 00],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 1];
   PASS([date2 testDateValues: 2004 : 02 : 29 : 00 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 1 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2004 : 02 : 29 : 01 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: -2 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2004 : 02 : 28 : 23 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   /* 2100 is not a leap year */
 
@@ -211,25 +211,25 @@ int main()
 			  calendarFormat: val2
 				  locale: locale];
   PASS([date2 testDateValues: 2100 : 02 : 28 : 23 : 59 : 59],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 1];
   PASS([date2 testDateValues: 2100 : 03 : 01 : 00 : 00 : 00],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 1];
   PASS([date2 testDateValues: 2100 : 03 : 01 : 00 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 1 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2100 : 03 : 01 : 01 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: -2 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2100 : 02 : 28 : 23 : 00 : 01],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   /* daylight savings time checks */
   [NSTimeZone setDefaultTimeZone: [NSTimeZone timeZoneWithName: @"GB"]];
@@ -238,31 +238,31 @@ int main()
 			  calendarFormat: val2
 				  locale: locale];
   PASS([date2 testDateValues: 2002 : 03 : 31 : 00 : 30 : 00],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 1 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 03 : 31 : 02 : 30 : 00],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: -1 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 03 : 31 : 00 : 30 : 00],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 2 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 03 : 31 : 02 : 30 : 00],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: -1 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 03 : 31 : 00 : 30 : 00],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: -1 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 03 : 30 : 23 : 30 : 00],
-    "date check with %s", [[date2 description] cString]);
+    "date check with %s", [[date2 description] UTF8String]);
   /* End daylight savings checks */
 
   /* Seconds calculation checks */
@@ -270,94 +270,94 @@ int main()
 			  calendarFormat: val2
 				  locale: locale];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 30 : 00],
-    "date second calculation check with %s", [[date2 description] cString]);
+    "date second calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 0 seconds: -1];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 29 : 59],
-    "date second calculation check with %s", [[date2 description] cString]);
+    "date second calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 1];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 30 : 00],
-    "date second calculation check with %s", [[date2 description] cString]);
+    "date second calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 2];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 30 : 02],
-    "date second calculation check with %s", [[date2 description] cString]);
+    "date second calculation check with %s", [[date2 description] UTF8String]);
 
   /* Minutes calculation checks */
   date2 = [NSCalendarDate dateWithString: @"2002-10-27 00:30:00"
 			  calendarFormat: val2
 				  locale: locale];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 30 : 00],
-    "date minute calculation check with %s", [[date2 description] cString]);
+    "date minute calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: -1 seconds: 0];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 29 : 00],
-    "date minute calculation check with %s", [[date2 description] cString]);
+    "date minute calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 1 seconds: 0];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 30 : 00],
-    "date minute calculation check with %s", [[date2 description] cString]);
+    "date minute calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 1 seconds: 0];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 31 : 00],
-    "date minute calculation check with %s", [[date2 description] cString]);
+    "date minute calculation check with %s", [[date2 description] UTF8String]);
 
   /* Hour calculation checks */
   date2 = [NSCalendarDate dateWithString: @"2002-10-27 00:30:00"
 			  calendarFormat: val2
 				  locale: locale];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 30 : 00],
-    "date hour calculation check with %s", [[date2 description] cString]);
+    "date hour calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: -1 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 10 : 26 : 23 : 30 : 00],
-    "date hour calculation check with %s", [[date2 description] cString]);
+    "date hour calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 1 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 30 : 00],
-    "date hour calculation check with %s", [[date2 description] cString]);
+    "date hour calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 2 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 02 : 30 : 00],
-    "date hour calculation check with %s", [[date2 description] cString]);
+    "date hour calculation check with %s", [[date2 description] UTF8String]);
 
   /* Days calculation checks */
   date2 = [NSCalendarDate dateWithString: @"2002-10-27 00:30:00"
 			  calendarFormat: val2
 				  locale: locale];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 30 : 00],
-    "date day calculation check with %s", [[date2 description] cString]);
+    "date day calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: -1 hours: 0 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 10 : 26 : 00 : 30 : 00],
-    "date day calculation check with %s", [[date2 description] cString]);
+    "date day calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 1 hours: 0 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 30 : 00],
-    "date day calculation check with %s", [[date2 description] cString]);
+    "date day calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 2 hours: 0 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 10 : 29 : 00 : 30 : 00],
-    "date day calculation check with %s", [[date2 description] cString]);
+    "date day calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [NSCalendarDate dateWithString: @"2002-10-27 00:00:00"
 			  calendarFormat: val2
 				  locale: locale];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 00 : 00],
-    "date day calculation check with %s", [[date2 description] cString]);
+    "date day calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [NSCalendarDate dateWithString: @"2002-10-26 24:00:00"
 			  calendarFormat: val2
@@ -370,44 +370,44 @@ int main()
 			  calendarFormat: val2
 				  locale: locale];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 30 : 00],
-    "date month calculation check with %s", [[date2 description] cString]);
+    "date month calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: -1 days: 0 hours: 0 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 9 : 27 : 00 : 30 : 00],
-    "date month calculation check with %s", [[date2 description] cString]);
+    "date month calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 1 days: 0 hours: 0 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 30 : 00],
-    "date month calculation check with %s", [[date2 description] cString]);
+    "date month calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 0
     months: 2 days: 0 hours: 0 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 12 : 27 : 00 : 30 : 00],
-    "date month calculation check with %s", [[date2 description] cString]);
+    "date month calculation check with %s", [[date2 description] UTF8String]);
 
   /* Years calculation checks */
   date2 = [NSCalendarDate dateWithString: @"2002-10-27 00:30:00"
 			  calendarFormat: val2
 				  locale: locale];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 30 : 00],
-    "date year calculation check with %s", [[date2 description] cString]);
+    "date year calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: -1
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2001 : 10 : 27 : 00 : 30 : 00],
-    "date year calculation check with %s", [[date2 description] cString]);
+    "date year calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 1
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2002 : 10 : 27 : 00 : 30 : 00],
-    "date year calculation check with %s", [[date2 description] cString]);
+    "date year calculation check with %s", [[date2 description] UTF8String]);
 
   date2 = [date2 dateByAddingYears: 2
     months: 0 days: 0 hours: 0 minutes: 0 seconds: 0];
   PASS([date2 testDateValues: 2004 : 10 : 27 : 00 : 30 : 00],
-    "date year calculation check with %s", [[date2 description] cString]);
+    "date year calculation check with %s", [[date2 description] UTF8String]);
 
   [NSTimeZone setDefaultTimeZone: [NSTimeZone timeZoneWithName: @"GMT"]];
 
@@ -417,7 +417,7 @@ int main()
   date2 = [date2 dateByAddingYears: 0
     months: 1 days: 0 hours: 2 minutes: 10 seconds: 0];
   PASS([date2 testDateValues: 2006 : 11 : 1 : 2 : 10 : 00],
-    "date year calculation check with %s", [[date2 description] cString]);
+    "date year calculation check with %s", [[date2 description] UTF8String]);
   PASS([[date2 timeZone] isEqual: tz],
     "date year calculation preserves timezone");
 
@@ -427,7 +427,7 @@ int main()
   date2 = [date2 dateByAddingYears: 0
     months: 0 days: 0 hours: 0 minutes: 0 seconds: -3600];
   PASS([date2 testDateValues: 2016 : 1 : 6 : 00 : 00 : 00],
-    "date year calculation check with %s", [[date2 description] cString]);
+    "date year calculation check with %s", [[date2 description] UTF8String]);
 
   [arp release]; arp = nil;
   return 0;
