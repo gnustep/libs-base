@@ -1,3 +1,8 @@
+2017-03-17 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSFileManager.m:(nextObject of Enumerator)
+	Skip file if no valid filename could be retrieved most probably due to Charset mismatches, this is is more a last resort: probably a lossy conversion should be attempted before.
+
 2017-03-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZones/NSTimeZones.tar: Updated with latest information.

@@ -1,7 +1,7 @@
-/**
+ /**
    NSFileManager.m
 
-   Copyright (C) 1997-2015 Free Software Foundation, Inc.
+   Copyright (C) 1997-2017 Free Software Foundation, Inc.
 
    Author: Mircea Oancea <mircea@jupiter.elcom.pub.ro>
    Author: Ovidiu Predescu <ovidiu@net-community.com>
@@ -2505,6 +2505,10 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    stringWithFileSystemRepresentation: dirbuf->d_name
 	    length: strlen(dirbuf->d_name)];
 #endif
+	  /* if we have a null FileName something went wrong (charset?) and we skip it */
+	  if (returnFileName == nil)
+	    continue;
+	  
 	  returnFileName = RETAIN([dir.path stringByAppendingPathComponent:
 	    returnFileName]);
 
