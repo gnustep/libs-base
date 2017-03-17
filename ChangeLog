@@ -1,3 +1,8 @@
+2017-03-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m: Implement NSNonLossyASCIIStringEncoding
+	in a manner compatible with OSX.  Added regression tests.
+
 2017-02-11  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/GSICUString.m (UTextNSStringAccess,

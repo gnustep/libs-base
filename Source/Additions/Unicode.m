@@ -154,7 +154,7 @@ struct _strenc_ {
 					 * iconv perform conversions to/from
 					 * this encoding.
 					 * NB. do not put a null pointer in this
-					 * field in the table, use "" instread.
+					 * field in the table, use "" instead.
 					 */
   BOOL			eightBit;	/* Flag to say whether this encoding
 					 * can be stored in a byte array ...
@@ -193,7 +193,7 @@ static struct _strenc_ str_encoding_table[] = {
   {NSSymbolStringEncoding,
     "NSSymbolStringEncoding","",0,0,0},
   {NSNonLossyASCIIStringEncoding,
-    "NSNonLossyASCIIStringEncoding","",1,1,0},
+    "NSNonLossyASCIIStringEncoding","",0,1,0},
   {NSShiftJISStringEncoding,
     "NSShiftJISStringEncoding","SHIFT-JIS",0,0,0},
   {NSISOLatin2StringEncoding,
@@ -715,6 +715,12 @@ uni_is_decomp(unichar u)
     }
 }
 
+static inline int
+octdigit(int c)
+{
+  return (c >= '0' && c < '8');
+}
+
 /**
  * Function to check a block of data for validity as a unicode string and
  * say whether it contains solely ASCII or solely Latin1 data.<br />
@@ -1012,6 +1018,146 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	break;
 
       case NSNonLossyASCIIStringEncoding:
+        {
+          unsigned int  index = 0;
+          unsigned int  count = 0;
+
+          while (index < slen)
+            {
+              uint8_t	c = (uint8_t)((unc)src[index++]);
+
+              if ('\\' == c)
+                {
+                  if (index < slen)
+                    {
+                      c = (uint8_t)((unc)src[index++]);
+                      if ('\\' == c)
+                        {
+                          count++;      // Escaped backslash
+                        }
+                      else if (octdigit(c)
+                        && (index < slen && octdigit(src[index++]))
+                        && (index < slen && octdigit(src[index++])))
+                        {
+                          count++;  // Octal escape
+                        }
+                      else if (('u' == c)
+                        && (index < slen && isxdigit(src[index++]))
+                        && (index < slen && isxdigit(src[index++]))
+                        && (index < slen && isxdigit(src[index++]))
+                        && (index < slen && isxdigit(src[index++])))
+                        {
+                          count++;      // Hex escape for unicode
+                        }
+                      else
+                        {
+                          result = NO;	// illegal backslash escape
+                          goto done;
+                        }
+                    }
+                  else
+                    {
+                      result = NO;	// unbalanced backslash
+                      goto done;
+                    }
+                }
+              else
+                {
+                  count++;
+                }
+            }
+          
+          if (dst == 0)
+            {
+              /* Just counting bytes.
+               */
+              dpos += count;
+            }
+          else
+            {
+              if (dpos + count + (extra ? 1 : 0) > bsize)
+                {
+                  if (zone == 0)
+                    {
+                      result = NO; /* No buffer growth possible ... fail. */
+                      goto done;
+                    }
+                  else
+                    {
+                      unsigned	grow = (dpos + count) * sizeof(unichar);
+                      unichar	*tmp;
+
+                      tmp = NSZoneMalloc(zone, grow + extra * sizeof(unichar));
+                      if ((ptr == buf || ptr == *dst) && (tmp != 0))
+                        {
+                          memcpy(tmp, ptr, bsize * sizeof(unichar));
+                        }
+                      if (ptr != buf && ptr != *dst)
+                        {
+                          NSZoneFree(zone, ptr);
+                        }
+                      ptr = tmp;
+                      if (ptr == 0)
+                        {
+                          return NO;	/* Not enough memory */
+                        }
+                      bsize = grow / sizeof(unichar);
+                    }
+                }
+              while (spos < slen)
+                {
+                  uint8_t	c = (uint8_t)((unc)src[spos++]);
+
+                  if ('\\' == c)
+                    {
+                      c = (uint8_t)((unc)src[spos++]);
+                      if ('\\' == c)
+                        {
+                          ptr[dpos++] = c;
+                        }
+                      else if ('u' == c)
+                        {
+                          int   i = 0;
+
+                          for (count = 0; count < 4; count++)
+                            {
+                              c = (uint8_t)((unc)src[spos++]);
+                              i *= 16;
+                              if (isdigit(c))
+                                {
+                                  i += c - '0';
+                                }
+                              else if (isupper(c))
+                                {
+                                  i += 10 + c - 'A';
+                                }
+                              else
+                                {
+                                  i += 10 + c - 'a';
+                                }
+                            }
+                          ptr[dpos++] = i;
+                        }
+                      else
+                        {
+                          int   i = c - '0';
+
+                          c = (uint8_t)((unc)src[spos++]);
+                          i = i * 8 + c - '0';
+                          c = (uint8_t)((unc)src[spos++]);
+                          i = i * 8 + c - '0';
+                          ptr[dpos++] = i;
+                        }
+                    }
+                  else
+                    {
+                      ptr[dpos++] = c;
+                    }
+                }
+            }
+          }
+	break;
+
       case NSASCIIStringEncoding:
 	if (dst == 0)
 	  {
@@ -1022,7 +1168,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	  }
         else
 	  {
-	    /* Because we know that each ascii chartacter is exactly
+	    /* Because we know that each ascii character is exactly
 	     * one unicode character, we can check the destination
 	     * buffer size and allocate more space in one go, before
 	     * entering the loop where we deal with each character.
@@ -1039,7 +1185,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    unsigned	grow = (dpos + slen) * sizeof(unichar);
 		    unichar	*tmp;
 
-		    tmp = NSZoneMalloc(zone, grow + extra);
+		    tmp = NSZoneMalloc(zone, grow + extra * sizeof(unichar));
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
@@ -1097,7 +1243,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    unsigned	grow = (dpos + slen) * sizeof(unichar);
 		    unichar	*tmp;
 
-		    tmp = NSZoneMalloc(zone, grow + extra);
+		    tmp = NSZoneMalloc(zone, grow + extra * sizeof(unichar));
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
@@ -1180,7 +1326,7 @@ tables:
 		    unsigned	grow = (dpos + slen) * sizeof(unichar);
 		    unichar	*tmp;
 
-		    tmp = NSZoneMalloc(zone, grow + extra);
+		    tmp = NSZoneMalloc(zone, grow + extra * sizeof(unichar));
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
@@ -1863,6 +2009,137 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
         break;
 
       case NSNonLossyASCIIStringEncoding:
+        {
+          unsigned int  index = 0;
+          unsigned int  count = 0;
+
+          if (YES == swapped)
+            {
+              while (index < slen)
+                {
+                  unichar	u = src[index++];
+
+                  u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
+                  if (u < 256)
+                    {
+                      if ((u >= ' ' && u < 127)
+                        || '\r' == u || '\n' == u || '\t' == u)
+                        {
+                          count++;
+                          if ('\\' == u)
+                            {
+                              count++;
+                            }
+                        }
+                      else
+                        {
+                          count += 4;
+                        }
+                    }
+                  else
+                    {
+                      count += 12;
+                    }
+                }
+            }
+          else
+            {
+              while (index < slen)
+                {
+                  unichar	u = src[index++];
+
+                  if (u < 256)
+                    {
+                      if ((u >= ' ' && u < 127)
+                        || '\r' == u || '\n' == u || '\t' == u)
+                        {
+                          count++;
+                          if ('\\' == u)
+                            {
+                              count++;
+                            }
+                        }
+                      else
+                        {
+                          count += 4;
+                        }
+                    }
+                  else
+                    {
+                      count += 6;
+                    }
+                }
+            }
+          if (dst == 0)
+            {
+              /* Just counting bytes ...
+               */
+              dpos = count;
+            }
+          else
+            {
+              /* We can now check the destination buffer size and allocate
+               * more space in one go, before entering the loop where we
+               * deal with each character.
+               */
+              if (count > bsize)
+                {
+                  if (zone == 0)
+                    {
+                      result = NO; /* No buffer growth possible ... fail. */
+                      goto done;
+                    }
+                  else
+                    {
+                      uint8_t	*tmp;
+
+                      tmp = NSZoneMalloc(zone, count + extra);
+                      if (ptr != buf && ptr != *dst)
+                        {
+                          NSZoneFree(zone, ptr);
+                        }
+                      ptr = tmp;
+                      if (ptr == 0)
+                        {
+                          return NO;	/* Not enough memory */
+                        }
+                      bsize = count;
+                    }
+                }
+              index = 0;
+              while (index < slen)
+                {
+                  unichar	u = src[index++];
+
+                  if (YES == swapped)
+                    {
+                      u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
+                    }
+                  if (u < 256)
+                    {
+                      if ((u >= ' ' && u < 127)
+                        || '\r' == u || '\n' == u || '\t' == u)
+                        {
+                          ptr[dpos++] = (unsigned char)u;
+                          if ('\\' == u)
+                            {
+                              ptr[dpos++] = (unsigned char)u;
+                            }
+                        }
+                      else
+                        {
+                          dpos += sprintf((char*)&ptr[dpos], "\\%03o", u);
+                        }
+                    }
+                  else
+                    {
+                      dpos += sprintf((char*)&ptr[dpos], "\\u%04x", u);
+                    }
+                }
+            }
+          }
+        goto done;
+
       case NSASCIIStringEncoding:
 	base = 128;
 	goto bases;
@@ -1882,7 +2159,7 @@ bases:
 	  }
         else
 	  {
-	    /* Because we know that each ascii chartacter is exactly
+	    /* Because we know that each ascii character is exactly
 	     * one unicode character, we can check the destination
 	     * buffer size and allocate more space in one go, before
 	     * entering the loop where we deal with each character.

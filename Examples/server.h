@@ -14,10 +14,10 @@
 #include <Foundation/NSConnection.h>
 
 @interface	NSConnection (Debug)
-+ (void) setDebug: (BOOL)aFlag;
++ (int) setDebug: (int)aFlag;
 @end
 @interface	NSDistantObject (Debug)
-+ (void) setDebug: (BOOL)aFlag;
++ (int) setDebug: (int)aFlag;
 @end
 
 typedef struct _small_struct {
