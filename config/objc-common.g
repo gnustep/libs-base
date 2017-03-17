@@ -31,13 +31,13 @@
 @end
 #endif
 
-#if     !defined(__APPLE__)
-
 #if HAVE_OBJC_ROOT_CLASS_ATTRIBUTE
 #define GS_OBJC_ROOT_CLASS __attribute__((objc_root_class))
 #else
 #define GS_OBJC_ROOT_CLASS
 #endif
+
+#if     !defined(__APPLE__)
 
 /* Provide dummy implementations for NSObject and NSConstantString
  * for libobjc2 which needs them.
