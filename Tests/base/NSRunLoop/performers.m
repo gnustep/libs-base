@@ -105,7 +105,7 @@ int main()
   [run cancelPerformSelectorsWithTarget: str];
   date = [NSDate dateWithTimeIntervalSinceNow: delay];
   [run runUntilDate: date];
-  PASS([str isEqualToString: @""], "-cancelPerformSelectorsWithTarget: works %s",[str cString]); 
+  PASS([str isEqualToString: @""], "-cancelPerformSelectorsWithTarget: works %s",[str UTF8String]); 
 
   [fh closeFile];
   [fh release];

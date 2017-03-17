@@ -130,11 +130,11 @@ void testReadBasicType_##testName (char *pre, testType *expect, testType *toDeco
 	    [unArch decodeValueOfObjCType:@encode(testType) at:toDecode]; \
 	  NS_HANDLER \
 	    NSLog(@"%@ %@", [localException name], [localException reason]); \
-	    PASS(0, "can unarchive %s from %s", pre, [fileName cString]); \
+	    PASS(0, "can unarchive %s from %s", pre, [fileName UTF8String]); \
 	  NS_ENDHANDLER \
 	  str2 = [unArch decodeObject]; \
 	  PASS((VAL_TEST(*expect,*toDecode) && [str isEqual:str2]), \
-		"can unarchive %s from %s", pre, [fileName cString]); \
+		"can unarchive %s from %s", pre, [fileName UTF8String]); \
 	} \
     } \
 } 

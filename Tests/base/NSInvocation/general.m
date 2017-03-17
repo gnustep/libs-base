@@ -13,35 +13,35 @@
 
 /* these macros should only be used in the scope of main */
 #define TEST_INVOKE(selx) \
- 		{ \
-		  NS_DURING \
-		    NSMethodSignature *sig = nil; \
-		    sig = [tar methodSignatureForSelector:selx]; \
-		    inv = [NSInvocation invocationWithMethodSignature:sig]; \
-		    [inv setSelector:selx]; \
-		    [inv invokeWithTarget:tar]; \
-		    PASS(1,"Invoke %s",[NSStringFromSelector(selx) cString]); \
-		  NS_HANDLER \
-		    PASS(0,"Invoke %s",[NSStringFromSelector(selx) cString]); \
-		    [localException raise]; \
-		  NS_ENDHANDLER \
-		}
+  { \
+    NS_DURING \
+      NSMethodSignature *sig = nil; \
+      sig = [tar methodSignatureForSelector:selx]; \
+      inv = [NSInvocation invocationWithMethodSignature:sig]; \
+      [inv setSelector:selx]; \
+      [inv invokeWithTarget:tar]; \
+      PASS(1,"Invoke %s",[NSStringFromSelector(selx) UTF8String]); \
+    NS_HANDLER \
+      PASS(0,"Invoke %s",[NSStringFromSelector(selx) UTF8String]); \
+      [localException raise]; \
+    NS_ENDHANDLER \
+  }
 
 #define TEST_INVOKE_ARG(selx,argp) \
- 		{ \
-		  NS_DURING \
-		    NSMethodSignature *sig = nil; \
-		    sig = [tar methodSignatureForSelector:selx]; \
-		    inv = [NSInvocation invocationWithMethodSignature:sig]; \
-		    [inv setSelector:selx]; \
-		    [inv setArgument:argp atIndex:2]; \
-		    [inv invokeWithTarget:tar]; \
-		    PASS(1,"Invoke %s",[NSStringFromSelector(selx) cString]); \
-		  NS_HANDLER \
-		    PASS(0,"Invoke %s",[NSStringFromSelector(selx) cString]); \
-		    [localException raise]; \
-		  NS_ENDHANDLER \
-		}
+  { \
+    NS_DURING \
+      NSMethodSignature *sig = nil; \
+      sig = [tar methodSignatureForSelector:selx]; \
+      inv = [NSInvocation invocationWithMethodSignature:sig]; \
+      [inv setSelector:selx]; \
+      [inv setArgument:argp atIndex:2]; \
+      [inv invokeWithTarget:tar]; \
+      PASS(1,"Invoke %s",[NSStringFromSelector(selx) UTF8String]); \
+    NS_HANDLER \
+      PASS(0,"Invoke %s",[NSStringFromSelector(selx) UTF8String]); \
+      [localException raise]; \
+    NS_ENDHANDLER \
+  }
 
 int main()
 { 

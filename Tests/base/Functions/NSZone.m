@@ -33,7 +33,7 @@ int main()
 	}
       NS_HANDLER
        PASS(0, "NSZoneFree() calloc'd buffer %s",
-	[[localException name] cString]); 
+	[[localException name] UTF8String]); 
       NS_ENDHANDLER
       
       NS_DURING
@@ -41,7 +41,7 @@ int main()
 	PASS(0, "NSZoneFree() free'd buffer throws exception"); 
       NS_HANDLER
 	PASS(1, "NSZoneFree() free'd buffer throws exception: %s",
-	  [[localException name] cString]); 
+	  [[localException name] UTF8String]); 
       NS_ENDHANDLER
 
       
@@ -55,7 +55,7 @@ int main()
 	}
       NS_HANDLER
        PASS(0, "NSZoneFree() malloc'd buffer %s",
-	[[localException name] cString]); 
+	[[localException name] UTF8String]); 
       NS_ENDHANDLER
 
       ovp = NSZoneMalloc(aZone, 1000);

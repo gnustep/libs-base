@@ -68,14 +68,14 @@ int main()
   data = [@"Folded\r\n : testing\r\n" dataUsingEncoding:enc];
   PASS([parser parse:data] && [parser isInHeaders], "Folded header is ok");
   
-  PASS([@"<hello>" isEqual: [doc contentID]],"Parsed partial header as expected %s",[[doc contentID] cString]);
+  PASS([@"<hello>" isEqual: [doc contentID]],"Parsed partial header as expected %s",[[doc contentID] UTF8String]);
  
   PASS([doc headerNamed: @"Folded"] == nil,"Folded header not complete until next starts");
 
   data = [@"\r" dataUsingEncoding:enc];
   PASS([parser parse:data] && [parser isInHeaders], "partial end-of-line is ok");
 
-  PASS([[[doc headerNamed:@"Folded"] value] isEqual: @"testing"],"Parsed folded header as expected %s",[[[doc headerNamed:@"Folded"] value] cString]);
+  PASS([[[doc headerNamed:@"Folded"] value] isEqual: @"testing"],"Parsed folded header as expected %s",[[[doc headerNamed:@"Folded"] value] UTF8String]);
 
   data = [@"\n" dataUsingEncoding:enc];
   PASS([parser parse:data] && ![parser isInHeaders], "completing end-of-line is ok");
