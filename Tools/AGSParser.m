@@ -1401,26 +1401,64 @@ recheck:
    */
   if ([s isEqualToString: @"struct"] == YES
     || [s isEqualToString: @"union"] == YES
-    || [s isEqualToString: @"enum"] == YES)
+    || [s isEqualToString: @"enum"] == YES
+    || [s isEqualToString: @"NS_ENUM"] == YES)
     {
-      BOOL isEnum = [s isEqualToString: @"enum"];
+      BOOL      isEnum = NO;
       NSString	*tmp = s;
 
-      s = [self parseIdentifier];
-      if (s == nil)
-	{
-	  s = [NSString stringWithFormat: @"%@ ...", tmp];
-	}
+      if ([s isEqualToString: @"NS_ENUM"])
+        {
+          if ([self skipSpaces] < length && buffer[pos] == '(')
+            {
+              pos++;
+              [self skipSpaces];
+              s = [self parseIdentifier];
+              if (nil != s && [self skipSpaces] < length
+                && buffer[pos] == ',')
+                {
+                  tmp = [@"NS_ENUM" stringByAppendingFormat: @"(%@)", s];
+                  pos++;
+                  [self skipSpaces];
+                  s = [self parseIdentifier];
+                  if (nil != s && [self skipSpaces] < length
+                    && buffer[pos] == ')')
+                    {
+                      isEnum = YES;
+                      pos++;
+                      [d setObject: s forKey: @"Name"];
+                      s = tmp;
+                    }
+                }
+            }
+          if (NO == isEnum)
+            {
+              [self log: @"messed up NS_ENUM declaration"];
+              [arp drain];
+              return nil;
+            }
+        }
       else
-	{
-	  s = [NSString stringWithFormat: @"%@ %@", tmp, s];
-	  /*
-	   * It's possible to declare a struct, union, or enum without
-	   * giving it a name beyond after the declaration, in this case
-	   * we can use something like 'struct foo' as the name.
-	   */
-	  [d setObject: s forKey: @"Name"];
-	}
+        {
+          isEnum = [s isEqualToString: @"enum"];
+
+          s = [self parseIdentifier];
+          if (s == nil)
+            {
+              s = [NSString stringWithFormat: @"%@ ...", tmp];
+            }
+          else
+            {
+              s = [NSString stringWithFormat: @"%@ %@", tmp, s];
+              /*
+               * It's possible to declare a struct, union, or enum without
+               * giving it a name beyond after the declaration, in this case
+               * we can use something like 'struct foo' as the name.
+               */
+              [d setObject: s forKey: @"Name"];
+            }
+        }
+
       /* We parse enum comment of the form:
        * <introComment> enum { <comment1> field1, <comment2> field2 } bla;
        */
@@ -1506,7 +1544,7 @@ recheck:
               ASSIGN(comment, enumComment);
             }
 
-          pos++; /* Skip '}' */
+          pos++; /* Skip closing curly brace */
 	}
       [a addObject: s];
       s = nil;
@@ -3301,7 +3339,7 @@ fail:
     }
 
   /*
-   * Strip trailing sapce ... leading space we never copied in the
+   * Strip trailing space ... leading space we never copied in the
    * first place.
    */
   if (ptr > start && [spacenl characterIsMember: ptr[-1]] == YES)
