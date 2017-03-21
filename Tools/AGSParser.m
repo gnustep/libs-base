@@ -1402,26 +1402,28 @@ recheck:
   if ([s isEqualToString: @"struct"] == YES
     || [s isEqualToString: @"union"] == YES
     || [s isEqualToString: @"enum"] == YES
-    || [s isEqualToString: @"NS_ENUM"] == YES)
+    || [s isEqualToString: @"NS_ENUM"] == YES
+    || [s isEqualToString: @"NS_OPTIONS"] == YES)
     {
       BOOL      isEnum = NO;
       NSString	*tmp = s;
 
-      if ([s isEqualToString: @"NS_ENUM"])
+      if ([s isEqualToString: @"NS_ENUM"]
+        || [s isEqualToString: @"NS_OPTIONS"])
         {
-          if ([self skipSpaces] < length && buffer[pos] == '(')
+          if ([self parseSpace] < length && buffer[pos] == '(')
             {
               pos++;
-              [self skipSpaces];
+              [self parseSpace];
               s = [self parseIdentifier];
-              if (nil != s && [self skipSpaces] < length
+              if (nil != s && [self parseSpace] < length
                 && buffer[pos] == ',')
                 {
-                  tmp = [@"NS_ENUM" stringByAppendingFormat: @"(%@)", s];
+                  tmp = [tmp stringByAppendingFormat: @"(%@)", s];
                   pos++;
-                  [self skipSpaces];
+                  [self parseSpace];
                   s = [self parseIdentifier];
-                  if (nil != s && [self skipSpaces] < length
+                  if (nil != s && [self parseSpace] < length
                     && buffer[pos] == ')')
                     {
                       isEnum = YES;
@@ -1433,7 +1435,7 @@ recheck:
             }
           if (NO == isEnum)
             {
-              [self log: @"messed up NS_ENUM declaration"];
+              [self log: @"messed up NS_ENUM/NS_OPTIONS declaration"];
               [arp drain];
               return nil;
             }
@@ -1459,7 +1461,7 @@ recheck:
             }
         }
 
-      /* We parse enum comment of the form:
+      /* We parse enum and options comment of the form:
        * <introComment> enum { <comment1> field1, <comment2> field2 } bla;
        */
       if (isEnum && [self parseSpace] < length && buffer[pos] == '{')
