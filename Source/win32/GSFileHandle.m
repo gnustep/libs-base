@@ -1085,7 +1085,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (fh_stdout != nil)
     {
-      ASSIGN(fh_stdout, self);
+      ASSIGN(self, fh_stdout);
     }
   else
     {
