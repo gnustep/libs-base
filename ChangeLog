@@ -1,5 +1,9 @@
 2017-03-26  Doug Simons <doug.simons@testplant.com>
 
+       * NSObjCRuntime.h: Fix definition of NSComparisonResult to be NSInteger.
+
+2017-03-26  Doug Simons <doug.simons@testplant.com>
+
        * win32/GSFileHandle.m: Fix reversed assignment of fh_stdout in
 	   initWithStandardOutput method.
 

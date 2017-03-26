@@ -278,11 +278,11 @@ GS_EXPORT void	NSLogv(NSString *format, va_list args) NS_FORMAT_FUNCTION(1,0);
  * <code>NSOrderedDescending</code>, for left hand side equals, less than, or
  * greater than right hand side.
  */
-typedef enum _NSComparisonResult
+enum _NSComparisonResult
 {
   NSOrderedAscending = -1, NSOrderedSame, NSOrderedDescending
-}
-NSComparisonResult;
+};
+typedef NSInteger NSComparisonResult;
 
 enum {NSNotFound = NSIntegerMax};
 
