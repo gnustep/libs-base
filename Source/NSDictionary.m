@@ -920,7 +920,7 @@ static SEL	appSel;
 
 struct foo { NSDictionary *d; SEL s; IMP i; };
 
-static int
+static NSInteger
 compareIt(id o1, id o2, void* context)
 {
   struct foo	*f = (struct foo*)context;
