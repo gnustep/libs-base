@@ -43,6 +43,7 @@
 #import "Foundation/NSValue.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSByteOrder.h"
+#import "Foundation/NSURL.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "../GSPrivate.h"
@@ -507,6 +508,15 @@
   return AUTORELEASE([[GSFileInputStream alloc] initWithFileAtPath: path]);
 }
 
++ (id) inputStreamWithURL: (NSURL *)url
+{
+  if ([url isFileURL])
+    {
+      return [self inputStreamWithFileAtPath: [url path]];
+    }
+  return [self inputStreamWithData: [url resourceDataUsingCache: YES]];
+}
+
 - (BOOL) getBuffer: (uint8_t **)buffer length: (NSUInteger *)len
 {
   [self subclassResponsibility: _cmd];
@@ -529,6 +539,17 @@
 {
   DESTROY(self);
   return [[GSFileInputStream alloc] initWithFileAtPath: path];
+}
+
+- (id) initWithURL: (NSURL *)url
+{
+  DESTROY(self);
+  if ([url isFileURL])
+    {
+      return [[GSFileInputStream alloc] initWithFileAtPath: [url path]];
+    }
+  return [[GSDataInputStream alloc]
+    initWithData: [url resourceDataUsingCache: YES]];
 }
 
 - (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
