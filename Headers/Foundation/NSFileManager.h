@@ -302,6 +302,7 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path;
 - (BOOL) changeFileAttributes: (NSDictionary*)attributes
 		       atPath: (NSString*)path;
+- (BOOL) setAttributes:(NSDictionary *)attributes ofItemAtPath:(NSString *)path error:(NSError **)error;
 - (NSArray*) componentsToDisplayForPath: (NSString*)path;
 - (NSData*) contentsAtPath: (NSString*)path;
 - (BOOL) contentsEqualAtPath: (NSString*)path1

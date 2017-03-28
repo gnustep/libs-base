@@ -590,6 +590,14 @@ static NSStringEncoding	defaultEncoding;
   return allOk;
 }
 
+- (BOOL) setAttributes:(NSDictionary *)attributes ofItemAtPath:(NSString *)path error:(NSError **)error
+{
+  BOOL success = [self changeFileAttributes:attributes atPath:path];
+  if (!success && error != NULL)
+    *error = [NSError _last];
+  return success;
+}
+
 /**
  * Returns an array of path components suitably modified for display
  * to the end user.  This modification may render the returned strings

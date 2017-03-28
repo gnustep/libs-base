@@ -1,3 +1,7 @@
+2017-03-28  Doug Simons <doug.simons@testplant.com>
+
+       * NSFileManager.m: Add basic implementation of setAttributes:ofItemAtPath:error:.
+
 2017-03-26  Doug Simons <doug.simons@testplant.com>
 
        * NSObjCRuntime.h: Fix definition of NSComparisonResult to be NSInteger.
