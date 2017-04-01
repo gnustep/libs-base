@@ -1,3 +1,8 @@
+2017-04-01 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSConnection.m
+	Correct format specifier to char*
+
 2017-03-17 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSFileManager.m:(nextObject of Enumerator)
