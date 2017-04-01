@@ -1,5 +1,5 @@
 /** Implementation of connection object for remote object messaging
-   Copyright (C) 1994-2013 Free Software Foundation, Inc.
+   Copyright (C) 1994-2017 Free Software Foundation, Inc.
 
    Created by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: July 1994
@@ -2049,7 +2049,7 @@ static NSLock	*cached_proxies_gate = nil;
 	  if (is_exception == YES)
 	    NSLog(@"Got exception with %s", name);
 	  else
-	    NSLog(@"Got response with %@", name);
+	    NSLog(@"Got response with %s", name);
 	  [self _doneInRmc: node->value.obj];
 	}
       GSIMapRemoveKey(IreplyMap, (GSIMapKey)(NSUInteger)seq);
