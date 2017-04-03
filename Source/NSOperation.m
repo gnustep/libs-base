@@ -292,6 +292,13 @@ static NSArray	*empty = nil;
 {
   [internal->lock lock];
 
+  /* We only observe isFinished changes, and we can remove self as an
+   * observer once we know the operation has finished since it can never
+   * become unfinished.
+   */
+  [object removeObserver: self
+	      forKeyPath: @"isFinished"];
+
   if (object == self)
     {
       /* We have finished and need to unlock the condition lock so that
@@ -302,13 +309,6 @@ static NSArray	*empty = nil;
       [internal->lock unlock];
       return;
     }
-
-  /* We only observe isFinished changes, and we can remove self as an
-   * observer once we know the operation has finished since it can never
-   * become unfinished.
-   */
-  [object removeObserver: self
-	      forKeyPath: @"isFinished"];
 
   if (NO == internal->ready)
     {
