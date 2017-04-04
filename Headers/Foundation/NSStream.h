@@ -61,6 +61,7 @@ typedef NSUInteger NSStreamEvent;
 @class NSOutputStream;
 @class NSString;
 @class NSRunLoop;
+@class NSURL;
 
 /**
  * NSStream is an abstract class for objects representing streams. 
