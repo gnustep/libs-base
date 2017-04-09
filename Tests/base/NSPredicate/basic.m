@@ -205,6 +205,11 @@ int main()
   p = [NSPredicate predicateWithFormat: @"SELF == 'aaa'"];
   PASS([p evaluateWithObject: @"aaa"], "SELF equality works");
 
+  d = [NSDictionary dictionaryWithObjectsAndKeys: 
+    @"2", @"foo", nil]; 
+  p = [NSPredicate predicateWithFormat: @"SELF.foo <= 2"];
+  PASS([p evaluateWithObject: d], "SELF.foo <= 2");
+
   p = [NSPredicate predicateWithFormat:
     @"%K like %@+$b+$c", @"$single", @"b\""];
   PASS_EQUAL([p predicateFormat], @"$single LIKE (\"b\\\"\" + $b) + $c",

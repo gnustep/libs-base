@@ -1,5 +1,11 @@
 2017-04-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Source/NSPredicate.m:
+        * Tests/base/NSPredicate/basic.m:
+	Fixes for bug #47618.
+
+2017-04-09  Richard Frith-Macdonald <rfm@gnu.org>
+
    	* Headers/Foundation/NSTask.h:
    	* Source/NSTask.m:
 	Apply OSX compatibility fix for NSTask notifications (bug #49021)
