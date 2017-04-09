@@ -1,3 +1,10 @@
+2017-04-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+   	* Headers/Foundation/NSTask.h:
+   	* Source/NSTask.m:
+	Apply OSX compatibility fix for NSTask notifications (bug #49021)
+	by Larry Campbell.
+
 2017-04-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSOperation.m: Fix leak spotted by David Lobron.

@@ -36,6 +36,8 @@
 extern "C" {
 #endif
 
+@class  NSThread;
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
 enum {
   NSTaskTerminationReasonExit = 1,
@@ -61,6 +63,7 @@ typedef NSInteger NSTaskTerminationReason;
   BOOL		_hasTerminated;
   BOOL		_hasCollected;
   BOOL		_hasNotified;
+  NSThread      *_launchingThread;
   NSTaskTerminationReason       _terminationReason;
 #endif
 #if     GS_NONFRAGILE
