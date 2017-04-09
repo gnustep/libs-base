@@ -362,10 +362,10 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 - (BOOL) evaluateWithObject: (id)object
-	  substitutionVariables: (GS_GENERIC_CLASS(NSDictionary, NSString*, id)*)variables
+      substitutionVariables: (GS_GENERIC_CLASS(NSDictionary, NSString*, id)*)variables
 {
   return [[self predicateWithSubstitutionVariables: variables]
-		   evaluateWithObject: object];
+                                evaluateWithObject: object];
 }
 #endif
 - (Class) classForCoder
@@ -898,15 +898,6 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   BOOL leftIsNil;
   BOOL rightIsNil;
 
-  if (leftResult == evaluatedObjectExpression)
-    {
-      leftResult = object;
-    }
-  if (rightResult == evaluatedObjectExpression)
-    {
-      rightResult = object;
-    }
-
   leftIsNil = (leftResult == nil || [leftResult isEqual: [NSNull null]]);
   rightIsNil = (rightResult == nil || [rightResult isEqual: [NSNull null]]);
   if (leftIsNil || rightIsNil)
@@ -949,17 +940,29 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   switch (_type)
     {
       case NSLessThanPredicateOperatorType:
-	return ([leftResult compare: rightResult] == NSOrderedAscending)
-          ? YES : NO;
+        {
+          double ld = [leftResult doubleValue];
+          double rd = [rightResult doubleValue];
+          return (ld < rd) ? YES : NO;
+        }
       case NSLessThanOrEqualToPredicateOperatorType:
-	return ([leftResult compare: rightResult] != NSOrderedDescending)
-          ? YES : NO;
+        {
+          double ld = [leftResult doubleValue];
+          double rd = [rightResult doubleValue];
+          return (ld <= rd) ? YES : NO;
+        }
       case NSGreaterThanPredicateOperatorType:
-	return ([leftResult compare: rightResult] == NSOrderedDescending)
-          ? YES : NO;
+        {
+          double ld = [leftResult doubleValue];
+          double rd = [rightResult doubleValue];
+          return (ld > rd) ? YES : NO;
+        }
       case NSGreaterThanOrEqualToPredicateOperatorType:
-	return ([leftResult compare: rightResult] != NSOrderedAscending)
-          ? YES : NO;
+        {
+          double ld = [leftResult doubleValue];
+          double rd = [rightResult doubleValue];
+          return (ld >= rd) ? YES : NO;
+        }
       case NSEqualToPredicateOperatorType:
 	return [leftResult isEqual: rightResult];
       case NSNotEqualToPredicateOperatorType:
@@ -1069,11 +1072,6 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       BOOL result = (_modifier == NSAllPredicateModifier);
       NSEnumerator *e;
       id value;
-
-      if (leftValue == evaluatedObjectExpression)
-	{
-	  leftValue = object;
-	}
 
       if (![leftValue respondsToSelector: @selector(objectEnumerator)])
         {
@@ -1356,7 +1354,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (id) expressionValueWithObject: (id)object
 			 context: (NSMutableDictionary *)context
 {
-  return self;
+  return object;
 }
 
 - (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables
@@ -1364,6 +1362,10 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return self;
 }
 
+- (NSString *) keyPath
+{
+  return @"SELF";
+}
 @end
 
 @implementation GSVariableExpression
@@ -2525,10 +2527,17 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
                           format: @"Invalid right keypath: %@", left];
             }
 
-          // concatenate
-          left = [NSExpression expressionForKeyPath:
-                    [NSString stringWithFormat: @"%@.%@",
-                              [left keyPath], [right keyPath]]];
+          if (evaluatedObjectExpression != left)
+            {
+              // concatenate
+              left = [NSExpression expressionForKeyPath:
+                        [NSString stringWithFormat: @"%@.%@",
+                                  [left keyPath], [right keyPath]]];
+            }
+          else
+            {
+              left = [NSExpression expressionForKeyPath: [right keyPath]];
+            }
         }
       else
         {
