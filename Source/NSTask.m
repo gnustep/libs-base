@@ -222,6 +222,7 @@ pty_slave(const char* name)
 @interface NSTask (Private)
 - (NSString *) _fullLaunchPath;
 - (void) _collectChild;
+- (void) _notifyOfTermination;
 - (void) _terminatedChild: (int)status reason: (NSTaskTerminationReason)reason;
 @end
 
@@ -317,6 +318,7 @@ pty_slave(const char* name)
   RELEASE(_standardError);
   RELEASE(_standardInput);
   RELEASE(_standardOutput);
+  RELEASE(_launchingThread);
   [super dealloc];
 }
 
@@ -407,10 +409,16 @@ pty_slave(const char* name)
  * Raises an NSInvalidArgumentException if the launch path is not
  * set or if the subtask cannot be started for some reason
  * (eg. the executable does not exist or the task has already been launched).
+ * The actual launching is done in a concrete subclass; this method just
+ * takes care of actions common to all subclasses.
  */
 - (void) launch
 {
-  [self subclassResponsibility: _cmd];
+  if (_launchingThread != [NSThread currentThread])
+    {
+      [_launchingThread release];
+      _launchingThread = [[NSThread currentThread] retain];
+    }
 }
 
 /**
@@ -900,6 +908,22 @@ pty_slave(const char* name)
   [self subclassResponsibility: _cmd];
 }
 
+- (void) _notifyOfTermination
+{
+  NSNotificationQueue   *q;
+  NSNotification        *n;
+
+  n = [NSNotification notificationWithName: NSTaskDidTerminateNotification
+                                    object: self
+                                  userInfo: nil];
+
+  q = [NSNotificationQueue defaultQueue];
+  [q enqueueNotification: n
+            postingStyle: NSPostASAP
+            coalesceMask: NSNotificationNoCoalescing
+                forModes: nil];
+}
+
 - (void) _terminatedChild: (int)status reason: (NSTaskTerminationReason)reason
 {
   [tasksLock lock];
@@ -912,17 +936,18 @@ pty_slave(const char* name)
   _hasTerminated = YES;
   if (_hasNotified == NO)
     {
-      NSNotification	*n;
-
       _hasNotified = YES;
-      n = [NSNotification notificationWithName: NSTaskDidTerminateNotification
-					object: self
-				      userInfo: nil];
-
-      [[NSNotificationQueue defaultQueue] enqueueNotification: n
-		    postingStyle: NSPostASAP
-		    coalesceMask: NSNotificationNoCoalescing
-			forModes: nil];
+      if (_launchingThread != nil)
+	{
+	  [self performSelector: @selector(_notifyOfTermination)
+		       onThread: _launchingThread
+		     withObject: nil
+		  waitUntilDone: NO];
+	}
+      else
+	{
+	  [self _notifyOfTermination];
+	}
     }
 }
 
@@ -1127,6 +1152,8 @@ quotedFromString(NSString *aString)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has already been launched"];
     }
+
+  [super launch];
 
   lpath = [self _fullLaunchPath];
   wexecutable = (const unichar*)[lpath fileSystemRepresentation];
@@ -1454,6 +1481,8 @@ GSPrivateCheckTasks()
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has already been launched"];
     }
+
+  [super launch];
 
   lpath = [self _fullLaunchPath];
   executable = [lpath fileSystemRepresentation];
