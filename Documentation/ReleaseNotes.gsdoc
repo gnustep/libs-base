@@ -40,8 +40,9 @@ notice and this notice are preserved.
         Improved support for 64bit little-endian systems.<br />
         Ported to Debian/Hurd.<br />
         ICU string (regexp in particular) fixes.<br />
-        OSX compatibity changes in NSRunLoop behavior.<br />
-        Alterntive sort algorithms selectable at runtime.<br />
+        OSX compatibity changes in NSRunLoop behavior and NSTask.<br />
+        Alternative sort algorithms selectable at runtime.<br />
+        Many bugfixes and cleanups.<br />
         As usual, this release also contains an update to include the
         most recent international timezone data.
         </p>

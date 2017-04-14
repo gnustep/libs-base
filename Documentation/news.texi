@@ -18,8 +18,9 @@ See the @url{ReleaseNotes.html} document for more information.
 @item OpenSSL bundle removed since it didn't match GNUTLS support
 @item Ported to Debian/Hurd
 @item ICU string (regexp in particular) fixes
-@item OSX compatibity changes in NSRunLoop behavior
-@item Alterntive sort algorithms selectable at runtime
+@item OSX compatibity changes in NSRunLoop and NSTask behavior
+@item Alternative sort algorithms selectable at runtime
+@item Many bugfixes and cleanups.
 @item As usual, this release also contains an update to include the
 most recent international timezone data.
 @end itemize

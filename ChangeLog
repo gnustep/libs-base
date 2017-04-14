@@ -1,3 +1,13 @@
+2017-04-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version: 1.25.0 release
+	* Documentation/ReleaseNotes.gsdoc: update for release
+	* Documentation/news.texi: update for release
+	* ANNOUNCE: regenerate
+	* INSTALL: regenerate
+	* NEWS: regenerate
+	* README: regenerate
+
 2017-04-09  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSPredicate.m:
