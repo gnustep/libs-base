@@ -1,7 +1,7 @@
 1 Announcement
 **************
 
-The GNUstep Base Library, version 1.24.9, is now available.
+The GNUstep Base Library, version 1.25.0, is now available.
 
 1.1 What is the GNUstep Base Library?
 =====================================
@@ -18,20 +18,25 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 'http://www.gnustep.org'.
 
-1.2 Noteworthy changes in version '1.24.9'
+1.2 Noteworthy changes in version '1.25.0'
 ==========================================
 
-   * Niels added support for generics
-   * Support for 'ng' runtime library (latest language features enabled)
-   * Performance optimisations and improved diagnostic messages
-   * Garbage Collection deprecated (support to be removed)
+   * Garbage collection support removed (NSGarbageCollector stub
+     remains)
+   * Support for Debian style multi-architecture installations added
+   * OpenSSL bundle removed since it didn't match GNUTLS support
+   * Ported to Debian/Hurd
+   * ICU string (regexp in particular) fixes
+   * OSX compatibity changes in NSRunLoop and NSTask behavior
+   * Alternative sort algorithms selectable at runtime
+   * Many bugfixes and cleanups.
    * As usual, this release also contains an update to include the most
      recent international timezone data.
 
 1.3 Where can you get it? How can you compile it?
 =================================================
 
-The gnustep-base-1.24.9.tar.gz distribution file has been placed at
+The gnustep-base-1.25.0.tar.gz distribution file has been placed at
 <ftp://ftp.gnustep.org/pub/gnustep/core>.
 
    Please log bug reports on the GNUstep project page
