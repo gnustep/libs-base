@@ -1874,7 +1874,8 @@ static BOOL snuggleStart(NSString *t)
        * If that's all there is, we make a class reference.
        */
       r = [tmp rangeOfString: @"["];
-      if (r.length > 0)
+      if (r.length > 0
+        && (0 == r.location || isspace([tmp characterAtIndex: r.location - 1])))
 	{
 	  unsigned	sPos = NSMaxRange(r);
 

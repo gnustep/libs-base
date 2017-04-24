@@ -1,3 +1,10 @@
+2017-04-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSOutput.m: When generating class/method links, treat '['
+	as the start of a class/method only if it's the start of a comment
+	or is preceded by white space ... allows array syntax like foo[x] to
+	be used in a comment without attempting to link to a class named 'x'.
+
 2017-04-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Version: 1.25.0 release
