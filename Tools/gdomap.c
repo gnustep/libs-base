@@ -4061,7 +4061,7 @@ nameServer(const char* name, const char* host, int op, int ptype, struct sockadd
             return -1;
           }
       }
-    memcpy(&sin.sin_addr, info->ai_addr, info->ai_addrlen);
+    sin.sin_addr = ((struct sockaddr_in *)info->ai_addr)->sin_addr;
     freeaddrinfo(info);
   }
 #else
@@ -4286,7 +4286,7 @@ donames(const char *host)
             return;
           }
       }
-    memcpy(&sin.sin_addr, info->ai_addr, info->ai_addrlen);
+    sin.sin_addr = ((struct sockaddr_in *)info->ai_addr)->sin_addr;
     freeaddrinfo(info);
   }
 #else

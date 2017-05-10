@@ -1,3 +1,8 @@
+2017-05-10  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Tools/gdomap.c (nameServer, donames): Fix incorrect use
+	addresses returned from getaddrinfo.
+
 2017-04-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSOutput.m: When generating class/method links, treat '['
