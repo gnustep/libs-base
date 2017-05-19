@@ -358,8 +358,7 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
   GSTLSSession  *session;
 }
 
-/**
- * Populates the dictionary 'dict', copying in all the properties
+/** Populates the dictionary 'dict', copying in all the properties
  * of the supplied streams. If a property is set for both then
  * the output stream's one has precedence.
  */
@@ -367,6 +366,11 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
             withTLSPriority: (NSString*)pri
             fromInputStream: (NSStream*)i
              orOutputStream: (NSStream*)o;
+
+/** Called on verification of the remote end's certificate to tell the
+ * delegate of the input stream who the certificate issuer and owner are.
+ */
+- (void) stream: (NSStream*)stream issuer: (NSString*)i owner: (NSString*)o;
 
 @end
 
@@ -573,6 +577,18 @@ static NSArray  *keys = nil;
                 }
               [self bye];
             }
+          else
+            {
+              NSString  *issuer = [session issuer];
+              NSString  *owner = [session owner];
+              id        del = [istream delegate];
+
+              if (nil != issuer && nil != owner
+                && [del respondsToSelector: @selector(stream:issuer:owner:)])
+                {
+                  [del stream: istream issuer: issuer owner: owner];
+                }
+            }
         }
     }
 }
@@ -716,6 +732,11 @@ static NSArray  *keys = nil;
             }
         }
     }
+}
+
+- (void) stream: (NSStream*)stream issuer: (NSString*)i owner: (NSString*)o
+{
+  return;
 }
 
 - (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len

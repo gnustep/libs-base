@@ -1,3 +1,13 @@
+2017-05-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSFileHandle.h:
+	* Source/GSSocketStream.m:
+	* Source/GSTLS.h:
+	* Source/GSTLS.m:
+	* Source/NSFileHandle.m:
+	Add code to make the issuer and owner of a client certificate
+	available when we require/verify an incoming certificate.
+
 2017-05-10  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Tools/gdomap.c (nameServer, donames): Fix incorrect use

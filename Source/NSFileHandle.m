@@ -848,6 +848,16 @@ NSString * const NSFileHandleOperationException
   return YES;
 }
 
+- (NSString*) sslIssuer
+{
+  return nil;
+}
+
+- (NSString*) sslOwner
+{
+  return nil;
+}
+
 - (void) sslSetCertificate: (NSString*)certFile
                 privateKey: (NSString*)privateKey
                  PEMpasswd: (NSString*)PEMpasswd
@@ -1043,6 +1053,16 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
       *result = [session active];
       return YES;
     }
+}
+
+- (NSString*) sslIssuer
+{
+  return [session issuer];
+}
+
+- (NSString*) sslOwner
+{
+  return [session owner];
 }
 
 - (NSString*) sslSetOptions: (NSDictionary*)options

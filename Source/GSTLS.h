@@ -184,6 +184,8 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
   NSDictionary                          *opts;
   GSTLSCredentials                      *credentials;
   NSString                              *problem;
+  NSString                              *issuer;
+  NSString                              *owner;
   BOOL                                  outgoing;
   BOOL                                  active;
   BOOL                                  handshake;
@@ -229,6 +231,18 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
  * to try again (would have to wait for the remote end).<br />
  */
 - (BOOL) handshake;
+
+/** If the session verified a certificate from the remote end, returns the
+ * name of the certificate issuer in the form "C=xxxx,O=yyyy,CN=zzzz" as
+ * described in RFC2253.  Otherwise returns nil.
+ */
+- (NSString*) issuer;
+
+/** If the session verified a certificate from the remote end, returns the
+ * name of the certificate owner in the form "C=xxxx,O=yyyy,CN=zzzz" as
+ * described in RFC2253.  Otherwise returns nil.
+ */
+- (NSString*) owner;
 
 /* After a failed handshake, this should contain a description of the
  * failure reason.
