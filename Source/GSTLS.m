@@ -159,7 +159,7 @@ static NSString *caFile = nil;          // GSTLS/ca-certificates.crt
 static NSString *revokeFile = nil;      // GSTLS/revoke.crl
 
 /* The verifyClient variable tells us if connections from a remote server
- * should (by default) require and verify a client certificate against
+ * should (by default) provide a client certificate which we verify against
  * our trusted authorities.
  * The hard-coded value can be overridden by the GS_TLS_VERIFY_C environment
  * variable, which in turn will be overridden by the GSTLSVerifyClient user
@@ -170,7 +170,7 @@ static BOOL     verifyClient = NO;
 
 /* The verifyServer variable tells us if outgoing connections (as a client)
  * to a remote server should (by default) verify that server's certificate
- * against trusted authorities.
+ * against our trusted authorities.
  * The hard-coded value can be overridden by the GS_TLS_VERIFY_S environment
  * variable, which in turn will be overridden by the GSTLSVerifyServer user
  * default string.
@@ -1785,7 +1785,14 @@ retrieve_callback(gnutls_session_t session,
 
       if (globalDebug > 1)
         {
-          NSLog(@"%@ before verify:\n%@", self, [self sessionInfo]);
+          if (YES == shouldVerify)
+            {
+              NSLog(@"%@ before verify:\n%@", self, [self sessionInfo]);
+            }
+          else
+            {
+              NSLog(@"%@ do not verify:\n%@", self, [self sessionInfo]);
+            }
         }
       if (YES == shouldVerify)
         {
