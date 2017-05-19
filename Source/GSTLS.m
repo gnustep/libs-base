@@ -160,7 +160,7 @@ static NSString *revokeFile = nil;      // GSTLS/revoke.crl
 
 /* The verifyClient variable tells us if connections from a remote server
  * should (by default) require and verify a client certificate against
- * trusted authorities.
+ * our trusted authorities.
  * The hard-coded value can be overridden by the GS_TLS_VERIFY_C environment
  * variable, which in turn will be overridden by the GSTLSVerifyClient user
  * default string.
@@ -168,8 +168,9 @@ static NSString *revokeFile = nil;      // GSTLS/revoke.crl
  */
 static BOOL     verifyClient = NO;
 
-/* The verifyServer variable tells us if connections to a remote server should
- * (by default) verify its certificate against trusted authorities.
+/* The verifyServer variable tells us if outgoing connections (as a client)
+ * to a remote server should (by default) verify that server's certificate
+ * against trusted authorities.
  * The hard-coded value can be overridden by the GS_TLS_VERIFY_S environment
  * variable, which in turn will be overridden by the GSTLSVerifyServer user
  * default string.
@@ -1430,6 +1431,8 @@ retrieve_callback(gnutls_session_t session,
   DESTROY(opts);
   DESTROY(credentials);
   DESTROY(problem);
+  DESTROY(issuer);
+  DESTROY(owner);
   [super dealloc];
 }
 
@@ -1803,6 +1806,16 @@ retrieve_callback(gnutls_session_t session,
     }
 }
 
+- (NSString*) issuer
+{
+  return issuer;
+}
+
+- (NSString*) owner
+{
+  return owner;
+}
+
 - (NSString*) problem
 {
   return problem;
@@ -2113,13 +2126,15 @@ retrieve_callback(gnutls_session_t session,
       if (status & GNUTLS_CERT_REVOKED)
         NSLog(@"%@ TLS verification: certificate has been revoked.", self);
 
-    /*
+#if     defined(GNUTLS_CERT_EXPIRED)
       if (status & GNUTLS_CERT_EXPIRED)
         NSLog(@"%@ TLS verification: certificate has expired", self);
+#endif
 
+#if     defined(GNUTLS_CERT_NOT_ACTIVATED)
       if (status & GNUTLS_CERT_NOT_ACTIVATED)
         NSLog(@"%@ TLS verification: certificate is not yet activated", self);
-    */
+#endif
     }
 
   if (status & GNUTLS_CERT_INVALID)
@@ -2165,6 +2180,23 @@ retrieve_callback(gnutls_session_t session,
       gnutls_x509_crt_deinit(cert);
       if (YES == debug) NSLog(@"%@ %@", self, problem);
       return GNUTLS_E_CERTIFICATE_ERROR;
+    }
+  else
+    {
+      char                      dn[1024];
+      size_t                    dn_size;
+
+      /* Get certificate owner and issuer
+       */
+      dn_size = sizeof(dn);
+      gnutls_x509_crt_get_dn(cert, dn, &dn_size);
+      dn[dn_size - 1] = '\0';
+      ASSIGN(owner, [NSString stringWithUTF8String: dn]);
+      
+      dn_size = sizeof(dn);
+      gnutls_x509_crt_get_issuer_dn(cert, dn, &dn_size);
+      dn[dn_size - 1] = '\0';
+      ASSIGN(issuer, [NSString stringWithUTF8String: dn]);
     }
 
   str = [opts objectForKey: GSTLSRemoteHosts];

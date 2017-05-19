@@ -263,6 +263,18 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
  */
 - (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing;
 
+/** If the session verified a certificate from the remote end, returns the
+ * name of the certificate issuer in the form "C=xxxx,O=yyyy,CN=zzzz" as
+ * described in RFC2253.  Otherwise returns nil.
+ */
+- (NSString*) sslIssuer;
+
+/** If the session verified a certificate from the remote end, returns the
+ * name of the certificate owner in the form "C=xxxx,O=yyyy,CN=zzzz" as
+ * described in RFC2253.  Otherwise returns nil.
+ */
+- (NSString*) sslOwner;
+
 /** Deprecated ... use -sslSetOptions: instead
  */
 - (void) sslSetCertificate: (NSString*)certFile
