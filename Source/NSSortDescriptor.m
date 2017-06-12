@@ -261,10 +261,13 @@ static BOOL     initialized = NO;
     {
       if ([decoder allowsKeyedCoding])
         {
+          // Cocoa defaults...
+          _ascending = YES;
+          
           ASSIGN(_key, [decoder decodeObjectForKey: @"NSKey"]);
-          _ascending = [decoder decodeBoolForKey: @"NSAscending"];
-          _selector = NSSelectorFromString([decoder
-            decodeObjectForKey: @"NSSelector"]);
+          if ([decoder containsValueForKey: @"NSAscending"])
+            _ascending = [decoder decodeBoolForKey: @"NSAscending"];
+          _selector = NSSelectorFromString([decoder decodeObjectForKey: @"NSSelector"]);
         }
       else
         {
