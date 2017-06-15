@@ -76,6 +76,50 @@ enum
  */
 typedef NSUInteger NSURLRequestCachePolicy;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST)
+enum
+{
+    NSURLNetworkServiceTypeDefault    = 0,  // Standard internet traffic
+    NSURLNetworkServiceTypeVoIP       = 1,  // Voice over IP control traffic
+    NSURLNetworkServiceTypeVideo      = 2,  // Video traffic
+    NSURLNetworkServiceTypeBackground = 3,  // Background traffic
+    NSURLNetworkServiceTypeVoice      = 4,  // Voice data
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_12,GS_API_LATEST)
+    NSURLNetworkServiceTypeCallSignaling = 11    // Call Signaling - enumeration cases
+#endif
+};
+/**
+ * <deflist>
+ *   <term>NSURLNetworkServiceTypeDefault</term>
+ *   <desc>
+ *     Specifies standard network traffic. Most connections should be made using this service type
+ *     this is the default.
+ *   </desc>
+ *   <term>NSURLNetworkServiceTypeVoIP</term>
+ *   <desc>
+ *     Specifies that the request is for VoIP traffic.
+ *   </desc>
+ *   <term>NSURLNetworkServiceTypeVideo</term>
+ *   <desc>
+ *     Specifies that the request is for video traffic.
+ *   </desc>
+ *   <term>NSURLNetworkServiceTypeBackground</term>
+ *   <desc>
+ *     Specifies that the request is for background traffic.
+ *   </desc>
+ *   <term>NSURLNetworkServiceTypeVoice</term>
+ *   <desc>
+ *     Specifies that the request is for voice traffic.
+ *   </desc>
+ *   <term>NSURLNetworkServiceTypeCallSignaling</term>
+ *   <desc>
+ *     Call Signaling - enumeration cases.
+ *   </desc>
+ * </deflist>
+ */
+typedef NSUInteger NSURLRequestNetworkServiceType;
+#endif
+
 
 /**
  * This class encapsulates information about a request to load a
