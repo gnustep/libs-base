@@ -283,4 +283,15 @@ DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
 }
 #endif
 
+/**
+ * Declare Apple availability macros for compatibility purposes as no-ops.
+ */
+#ifndef NS_CLASS_AVAILABLE
+#define NS_CLASS_AVAILABLE(x, y)
+#endif
+
+#ifndef NS_AVAILABLE
+#define NS_AVAILABLE(x, y)
+#endif
+
 #endif /* __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE */
