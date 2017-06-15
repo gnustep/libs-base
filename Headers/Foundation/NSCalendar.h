@@ -42,6 +42,26 @@
 extern "C" {
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+GS_EXPORT NSString *const NSCalendarIdentifierGregorian;
+GS_EXPORT NSString *const NSCalendarIdentifierBuddhist;
+GS_EXPORT NSString *const NSCalendarIdentifierChinese;
+GS_EXPORT NSString *const NSCalendarIdentifierCoptic;
+GS_EXPORT NSString *const NSCalendarIdentifierEthiopicAmeteMihret;
+GS_EXPORT NSString *const NSCalendarIdentifierEthiopicAmeteAlem;
+GS_EXPORT NSString *const NSCalendarIdentifierHebrew;
+GS_EXPORT NSString *const NSCalendarIdentifierISO8601;
+GS_EXPORT NSString *const NSCalendarIdentifierIndian;
+GS_EXPORT NSString *const NSCalendarIdentifierIslamic;
+GS_EXPORT NSString *const NSCalendarIdentifierIslamicCivil;
+GS_EXPORT NSString *const NSCalendarIdentifierJapanese;
+GS_EXPORT NSString *const NSCalendarIdentifierPersian;
+GS_EXPORT NSString *const NSCalendarIdentifierRepublicOfChina;
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+GS_EXPORT NSString *const NSCalendarIdentifierIslamicTabular;
+GS_EXPORT NSString *const NSCalendarIdentifierIslamicUmmAlQura;
+#endif
 typedef NSUInteger NSCalendarUnit;
 enum
 {

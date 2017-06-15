@@ -84,6 +84,26 @@ NSString * const NSPersianCalendar = @"persian";
 NSString * const NSIndianCalendar = @"indian";
 NSString * const NSISO8601Calendar = @"";
 
+//
+// NSLocale New Calendar ID Keys
+//
+NSString * const NSCalendarIdentifierGregorian = @"gregorian";
+NSString * const NSCalendarIdentifierBuddhist = @"buddhist";
+NSString * const NSCalendarIdentifierChinese = @"chinese";
+NSString * const NSCalendarIdentifierCoptic = @"coptic";
+NSString * const NSCalendarIdentifierEthiopicAmeteMihret = @"ethiopic-amete-mihret";
+NSString * const NSCalendarIdentifierEthiopicAmeteAlem = @"ethiopic-amete-alem";
+NSString * const NSCalendarIdentifierHebrew = @"hebrew";
+NSString * const NSCalendarIdentifierISO8601 = @"";
+NSString * const NSCalendarIdentifierIndian = @"indian";
+NSString * const NSCalendarIdentifierIslamic = @"islamic";
+NSString * const NSCalendarIdentifierIslamicCivil = @"islamic-civil";
+NSString * const NSCalendarIdentifierJapanese = @"japanese";
+NSString * const NSCalendarIdentifierPersian = @"persian";
+NSString * const NSCalendarIdentifierRepublicOfChina = @"roc";
+NSString * const NSCalendarIdentifierIslamicTabular = @"islamic-tabular";
+NSString * const NSCalendarIdentifierIslamicUmmAlQura = @"islamic-umm-al-qura";
+
 #if	defined(HAVE_UNICODE_ULOC_H)
 # include <unicode/uloc.h>
 #endif

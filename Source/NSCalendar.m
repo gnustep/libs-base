@@ -283,6 +283,16 @@ static NSRecursiveLock *classLock = nil;
     my->identifier = NSIndianCalendar;
   else if ([string isEqualToString: NSISO8601Calendar])
     my->identifier = NSISO8601Calendar;
+  else if ([string isEqualToString: NSCalendarIdentifierCoptic])
+    my->identifier = NSGregorianCalendar; // TODO: unimplemented
+  else if ([string isEqualToString: NSCalendarIdentifierEthiopicAmeteMihret])
+    my->identifier = NSGregorianCalendar; // TODO: unimplemented
+  else if ([string isEqualToString: NSCalendarIdentifierEthiopicAmeteAlem])
+    my->identifier = NSGregorianCalendar; // TODO: unimplemented
+  else if ([string isEqualToString: NSCalendarIdentifierIslamicTabular])
+    my->identifier = NSGregorianCalendar; // TODO: unimplemented
+  else if ([string isEqualToString: NSCalendarIdentifierIslamicUmmAlQura])
+    my->identifier = NSGregorianCalendar; // TODO: unimplemented
   else
     {
       RELEASE(self);
