@@ -1,3 +1,15 @@
+2017-06-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedLock.m: Change code to create lock directory
+	directly rather than via the NSFileManager methods since Wolfgang
+	pointed out that those methods consider a pre-existing directory to
+	have been successfully created, but the distributed locking logic
+	supposes that an attempt to create an existing directory will fail.
+	* Tests/base/NSDistributedLock:
+	* Tests/base/NSDistributedLock/TestInfo:
+	* Tests/base/NSDistributedLock/basic.m:
+	Add a few simple testcases for NSDistributedLock.
+
 2017-05-19  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSFileHandle.h:
