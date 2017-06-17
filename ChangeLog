@@ -1,3 +1,8 @@
+2017-06-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSIMap.h: Fix GSI_MAP_NODE_IS_EMPTY macros as
+	suggested by Daniel Ferreira <bnmvco@gmail.com>
+
 2017-06-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistributedLock.m: Change code to create lock directory

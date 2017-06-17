@@ -157,9 +157,12 @@ extern "C" {
 #  define GSI_MAP_WRITE_VAL(M, addr, obj) (*(addr) = obj)
 #endif
 #if	GSI_MAP_HAS_VALUE
-#define GSI_MAP_NODE_IS_EMPTY(M, node) (((GSI_MAP_READ_VALUE(M, &node->key).addr) == 0) || ((GSI_MAP_READ_VALUE(M, &node->value).addr == 0)))
+#define GSI_MAP_NODE_IS_EMPTY(M, node) \
+  (((GSI_MAP_READ_VALUE(M, &node->key).addr) == 0) \
+  || ((GSI_MAP_READ_VALUE(M, &node->value).addr == 0)))
 #else
-#define GSI_MAP_NODE_IS_EMPTY(M, node) (((GSI_MAP_READ_VALUE(M, &node->key).addr) == 0))
+#define GSI_MAP_NODE_IS_EMPTY(M, node) \
+  (((GSI_MAP_READ_KEY(M, &node->key).addr) == 0))
 #endif
 
 /*
