@@ -40,6 +40,18 @@ int main()
   PASS([mgr fileExistsAtPath: dir isDirectory: &isDir] &&
        isDir == YES,
        "exists and is a directory");
+  PASS(NO == [mgr createDirectoryAtPath: dir attributes: nil],
+       "-createDirectoryAtPath:attributes: fails for existing directory");
+  PASS(NO == [mgr createDirectoryAtPath: dir withIntermediateDirectories: NO
+    attributes: nil error: 0],
+   "-createDirectoryAtPath:withIntermediateDirectories:attributes:error:"
+    " fails for existing directory if flag is NO");
+
+  PASS(YES == [mgr createDirectoryAtPath: dir withIntermediateDirectories: YES
+    attributes: nil error: 0],
+   "-createDirectoryAtPath:withIntermediateDirectories:attributes:error:"
+    " succeeds for existing directory if flag is YES");
+
   PASS([mgr fileAttributesAtPath: dir traverseLink: NO] != nil,
     "NSFileManager returns non-nil for attributes of existing file");
   attr = [mgr fileAttributesAtPath: dir traverseLink: NO];
@@ -47,7 +59,7 @@ int main()
     "NSFileManager returns non-nil for attributes of existing file");
   PASS([NSUserName() isEqual: [attr fileOwnerAccountName]],
     "newly created file is owned by current user");
-NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
+//NSLog(@"'%@', '%@'", NSUserName(), [attr fileOwnerAccountName]);
   err = (id)(void*)42;
   attr = [mgr attributesOfItemAtPath: dir error: &err]; 
   PASS(attr != nil && err == (id)(void*)42, 

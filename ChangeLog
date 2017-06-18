@@ -1,3 +1,9 @@
+2017-06-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+ 	* Source/NSFileManager.m: Make directory creation semantics match OSX
+   	* Tests/base/NSFileManager/general.m: Add directory creation testcases
+  	* Tests/base/NSDistributedLock/basic.m: Cleanup lock after tests
+
 2017-06-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSIMap.h: Fix GSI_MAP_NODE_IS_EMPTY macros as

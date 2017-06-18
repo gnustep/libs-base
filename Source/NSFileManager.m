@@ -782,11 +782,12 @@ static NSStringEncoding	defaultEncoding;
 }
 
 /**
- * Creates a new directory and all intermediate directories. if flag is YES.
+ * Creates a new directory (and all intermediate directories if flag is YES).
  * Creates only the last directory in the path if flag is NO.<br />
- * The directory is created with the attributes
- * specified in attributes and any error is returned in error.<br />
- * returns YES on success, NO on failure.
+ * The directory is created with the attributes specified, and any problem
+ * is returned in error.<br />
+ * Returns YES if the directory is created (or flag is YES and the directory
+ * already exists), NO on failure.
  */
 - (BOOL) createDirectoryAtPath: (NSString *)path
    withIntermediateDirectories: (BOOL)flag
@@ -802,7 +803,8 @@ static NSStringEncoding	defaultEncoding;
       NSString          *path = nil;
       NSString          *dir = [NSString string];
 
-      while ((path = (NSString *)[paths nextObject]) != nil)
+      result = YES;
+      while (YES == result && (path = (NSString *)[paths nextObject]) != nil)
 	{
 	  dir = [dir stringByAppendingPathComponent: path];
 	  // create directory only if it doesn't exist
@@ -811,11 +813,6 @@ static NSStringEncoding	defaultEncoding;
 	      result = [self createDirectoryAtPath: dir
 		     			attributes: attributes];
 	    }
-          // an existing not created dir is equivalent to a created one
-          else
-            {
-              result = YES;
-            }
 	}
     }
   else
@@ -848,11 +845,12 @@ static NSStringEncoding	defaultEncoding;
 
 /**
  * Creates a new directory and all intermediate directories in the file URL
- * if flag is YES.
+ * if flag is YES.<br />
  * Creates only the last directory in the URL if flag is NO.<br />
- * The directory is created with the attributes
- * specified in attributes and any error is returned in error.<br />
- * returns YES on success, NO on failure.
+ * The directory is created with the attributes specified and any problem
+ * is returned in error.<br />
+ * Returns YES if the directory is created (or flag is YES and the directory
+ * already exists), NO on failure.
  */
 - (BOOL) createDirectoryAtURL: (NSURL *)url
   withIntermediateDirectories: (BOOL)flag
@@ -868,7 +866,7 @@ static NSStringEncoding	defaultEncoding;
 /**
  * Creates a new directory, and sets its attributes as specified.<br />
  * Fails if directories in the path are missing.<br />
- * Returns YES if the directory was created (or already exists), NO otherwise.
+ * Returns YES if the directory was actually created, NO otherwise.
  */
 - (BOOL) createDirectoryAtPath: (NSString*)path
 		    attributes: (NSDictionary*)attributes
@@ -884,15 +882,20 @@ static NSStringEncoding	defaultEncoding;
 
   if (YES == [self fileExistsAtPath: path isDirectory: &isDir])
     {
+      NSString  *e;
+
       if (NO == isDir)
         {
-          NSString  *e;
-
           e = [NSString stringWithFormat:
             @"path %@ exists, but is not a directory", path];
-          ASSIGN(_lastError, e);
-          return NO;
         }
+      else
+        {
+          e = [NSString stringWithFormat:
+            @"path %@ exists ... cannot create", path];
+        }
+      ASSIGN(_lastError, e);
+      return NO;
     }
   else
     {

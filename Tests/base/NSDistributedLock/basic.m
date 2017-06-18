@@ -26,6 +26,7 @@ int main()
 
   [lock1 unlock];
   PASS(YES == [lock2 tryLock], "unlocking first lock allows second lock");
+  [lock2 unlock];
 
   END_SET("basic")
   return 0;
