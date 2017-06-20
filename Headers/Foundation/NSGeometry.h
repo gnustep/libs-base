@@ -130,12 +130,35 @@ enum
  */
 typedef NSUInteger NSRectEdge;
 
+/**
+<example>{
+  CGFloat top;
+  CGFloat left;
+  CGFloat bottom;
+  CGFloat right;
+}</example>
+
+ <p>A description of the distance between the edges of two rectangles.</p> */
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+typedef struct NSEdgeInsets {
+    CGFloat top;
+    CGFloat left;
+    CGFloat bottom;
+    CGFloat right;
+} NSEdgeInsets;
+#endif
+
 /** Point at 0,0 */
 static const NSPoint NSZeroPoint __attribute__((unused)) = {0.0,0.0};
 /** Zero-size rectangle at 0,0 */
 static const NSRect NSZeroRect __attribute__((unused)) = {{0.0,0.0},{0.0,0.0}};
 /** Zero size */
 static const NSSize NSZeroSize __attribute__((unused)) = {0.0,0.0};
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+/** Zero edge insets **/
+static const NSEdgeInsets NSEdgeInsetsZero __attribute__((unused))  = {0.0,0.0,0.0,0.0};
+#endif
 
 /**** Function Prototypes ****************************************************/
 
@@ -199,6 +222,33 @@ NSMakeRect(CGFloat x, CGFloat y, CGFloat w, CGFloat h)
   rect.size.height = h;
   return rect;
 }
+
+/** Constructs NSEdgeInsets. **/
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+GS_GEOM_SCOPE NSEdgeInsets
+NSEdgeInsetsMake(CGFloat top, CGFloat left,
+                 CGFloat bottom, CGFloat right) GS_GEOM_ATTR;
+
+GS_GEOM_SCOPE NSEdgeInsets
+NSEdgeInsetsMake(CGFloat top, CGFloat left, CGFloat bottom, CGFloat right)
+{
+  NSEdgeInsets edgeInsets;
+
+  edgeInsets.top = top;
+  edgeInsets.left = left;
+  edgeInsets.bottom = bottom;
+  edgeInsets.right = right;
+
+  return edgeInsets;
+}
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+/** Compares two edge insets for equality. **/
+GS_EXPORT BOOL
+NSEdgeInsetsEqual(NSEdgeInsets e1, NSEdgeInsets e2);
+#endif
+
+#endif
 
 /** Get a Rectangle's Coordinates... **/
 

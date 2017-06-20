@@ -21,11 +21,13 @@ geom_string()
   NSPoint p, p2;
   NSRect r, r2;
   NSSize s, s2;
+  NSEdgeInsets ei;
   NSString *sp, *sr, *ss;
   
   p = NSMakePoint(23.45, -3.45);
   r = NSMakeRect(23.45, -3.45, 2044.3, 2033);
   s = NSMakeSize(0.5, 0.22);
+  ei = NSEdgeInsetsMake(23.45, -3.45, 2044.3, 2033);
 
   PASS(NSEqualPoints(p, NSMakePoint(23.45, -3.45)),
     "identical points are equal");
@@ -79,6 +81,21 @@ geom_string()
     "an empty rect does not intersect with one touching it");
   PASS(!NSIntersectsRect(NSMakeRect(1,1,0,0), NSMakeRect(1,1,0,0)),
     "identical empty rects do not intersec");
+  
+  PASS(NSEdgeInsetsEqual(ei, NSEdgeInsetsMake(23.45, -3.45, 2044.3, 2033)),
+    "identical rects are equal");
+  if (sizeof(CGFloat) == sizeof(float))
+    {
+      PASS(NSEdgeInsetsEqual(ei, NSEdgeInsetsMake(23.45, -3.45, 2044.3, 2033.00001)),
+        "near identical rects are equal");
+    }
+  else
+    {
+      PASS(NSEdgeInsetsEqual(ei, NSEdgeInsetsMake(23.45, -3.45, 2044.3, 2033.0000000000001)),
+        "near identical rects are equal");
+    }
+  PASS(!NSEdgeInsetsEqual(ei, NSEdgeInsetsMake(23.45, -3.45, 2044.3, 2033.0001)),
+    "moderately similar rects are not equal");
 
 #if     defined(GNUSTEP_BASE_LIBRARY)
   if (compat_mode == YES)

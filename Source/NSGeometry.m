@@ -499,3 +499,14 @@ NSEqualPoints(NSPoint aPoint, NSPoint bPoint)
     && almostEqual(aPoint.y, bPoint.y)) ? YES : NO;
 }
 
+BOOL
+NSEdgeInsetsEqual(NSEdgeInsets e1, NSEdgeInsets e2)
+{
+  return (
+    almostEqual(e1.top, e2.top)
+    && almostEqual(e1.left, e2.left)
+    && almostEqual(e1.bottom, e2.bottom)
+    && almostEqual(e1.right, e2.right)
+  );
+}
+
