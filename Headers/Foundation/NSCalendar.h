@@ -84,6 +84,8 @@ enum
 #endif
 
 typedef NSUInteger NSCalendarUnit;
+
+/* Old-style NSCalendarUnit declarations, deprecated */
 enum
 {
   NSEraCalendarUnit = (1UL << 1),
@@ -103,6 +105,33 @@ enum
   NSWeekOfMonthCalendarUnit = (1UL << 12),
   NSWeekOfYearCalendarUnit = (1UL << 13),
   NSYearForWeekOfYearCalendarUnit = (1UL << 14),
+#endif
+};
+
+/* New-style NSCalendarUnit declarations */
+enum
+{
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+  NSCalendarUnitEra = (1UL << 1),
+  NSCalendarUnitYear = (1UL << 2),
+  NSCalendarUnitMonth = (1UL << 3),
+  NSCalendarUnitDay = (1UL << 4),
+  NSCalendarUnitHour = (1UL << 5),
+  NSCalendarUnitMinute = (1UL << 6),
+  NSCalendarUnitSecond = (1UL << 7),
+  NSCalendarUnitWeekday = (1UL << 9),
+  NSCalendarUnitWeekdayOrdinal = (1UL << 10),
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+  NSCalendarUnitQuarter = (1UL << 11),
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+  NSCalendarUnitWeekOfMonth = (1UL << 12),
+  NSCalendarUnitWeekOfYear = (1UL << 13),
+  NSCalendarUnitYearForWeekOfYear = (1UL << 14),
+  NSCalendarUnitNanosecond = (1 << 15), // FIXME: unimplemented
+  NSCalendarUnitCalendar = (1 << 20), // FIXME: unimplemented
+  NSCalendarUnitTimeZone = (1 << 21) // FIXME: unimplemented
 #endif
 };
 
