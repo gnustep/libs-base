@@ -62,6 +62,27 @@ GS_EXPORT NSString *const NSCalendarIdentifierRepublicOfChina;
 GS_EXPORT NSString *const NSCalendarIdentifierIslamicTabular;
 GS_EXPORT NSString *const NSCalendarIdentifierIslamicUmmAlQura;
 #endif
+
+// NSCalendarOptions enum
+// These values are currently NOT supported in this NSCalendar implementation.
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+typedef NSUInteger NSCalendarOptions;
+enum
+{
+  NSCalendarWrapComponents = (1UL << 0),
+
+  NSCalendarMatchStrictly = (1ULL << 1),
+  NSCalendarSearchBackwards = (1ULL << 2),
+
+  NSCalendarMatchPreviousTimePreservingSmallerUnits = (1ULL << 8),
+  NSCalendarMatchNextTimePreservingSmallerUnits = (1ULL << 9),
+  NSCalendarMatchNextTime = (1ULL << 10),
+
+  NSCalendarMatchFirst = (1ULL << 12),
+  NSCalendarMatchLast = (1ULL << 13)
+};
+#endif
+
 typedef NSUInteger NSCalendarUnit;
 enum
 {
