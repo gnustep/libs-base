@@ -294,4 +294,13 @@ DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
 #define NS_AVAILABLE(x, y)
 #endif
 
+/* Define root class NS macro */
+#ifndef NS_ROOT_CLASS
+#if __has_attribute(objc_root_class)
+#define NS_ROOT_CLASS __attribute__((objc_root_class))
+#else
+#define NS_ROOT_CLASS
+#endif
+#endif
+
 #endif /* __NSObjCRuntime_h_GNUSTEP_BASE_INCLUDE */
