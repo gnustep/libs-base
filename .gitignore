@@ -1,0 +1,27 @@
+# Build products
+obj
+config.*
+GSConfig.h
+base.make
+Info-gnustep.plist
+dynamic-load.h
+Tests/base/*/GNUmakefile
+*.log
+*.sum
+
+# Test products
+Tests/base/NSBundle/Resources/TestBundle.bundle/
+Tests/base/NSBundle/Resources/TestFramework.framework/
+Tests/base/NSBundle/Resources/derived_src/
+Tests/base/NSConnection/Resources/TestConnection.bundle/
+Tests/base/NSInvocation/Resources/InvokeProxy.bundle/
+Tests/base/NSURL/Capture.dat
+Tests/base/NSURL/KAResponse.dat
+Tests/base/NSURL/SimpleResponse.dat
+Tests/base/NSURLConnection/Helpers/TestConnection.bundle/
+Tests/base/coding/long-8.type
+Tests/base/coding/ulong-8.type
+
+# Editor byproducts
+*.orig
+*.swp
