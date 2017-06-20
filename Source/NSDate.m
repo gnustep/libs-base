@@ -55,6 +55,7 @@
 #endif
 
 const NSTimeInterval NSTimeIntervalSince1970 = 978307200.0;
+NSString *const NSSystemClockDidChangeNotification = @"NSSystemClockDidChangeNotification";
 
 
 
