@@ -29,6 +29,8 @@
 extern "C" {
 #endif
 
+GS_EXPORT NSString * const NSSystemClockDidChangeNotification;
+
 /**
  * Time interval difference between two dates, in seconds.
  */
