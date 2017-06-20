@@ -204,13 +204,21 @@ extern NSString * const NSHTTPCookieVersion; /** Obtain cookie version */
  * Returns whether the receiver should only be sent over
  * secure connections.
  */
+#if GS_HAS_DECLARED_PROPERTIES
+@property (readonly, getter=isSecure) BOOL secure;
+#else
 - (BOOL) isSecure;
+#endif
 
 /**
  * Returns whether the receiver should be destroyed at the end of the
  * session.
  */
+#if GS_HAS_DECLARED_PROPERTIES
+@property (readonly, getter=isSessionOnly) BOOL sessionOnly;
+#else
 - (BOOL) isSessionOnly;
+#endif
 
 /**
  * Returns the name of the receiver.
