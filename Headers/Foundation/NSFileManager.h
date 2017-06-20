@@ -191,6 +191,8 @@ extern "C" {
 @class NSError;
 @class NSURL;
 
+@protocol NSFileManagerDelegate;
+
 /* MacOS-X defines OSType as a 32bit unsigned integer.
  */
 #ifndef OSTYPE_DECLARED
@@ -210,6 +212,7 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
 {
 #if	GS_EXPOSE(NSFileManager)
 @private
+  id<NSFileManagerDelegate> _delegate;
   NSString	*_lastError;
 #endif
 #if     GS_NONFRAGILE
@@ -228,6 +231,15 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
  * application.
  */
 + (NSFileManager*) defaultManager;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+#if GS_HAS_DECLARED_PROPERTIES
+@property (assign) id<NSFileManagerDelegate> delegate;
+#else
+- (id<NSFileManagerDelegate>) delegate;
+- (void) setDelegate: (id<NSFileManagerDelegate>)delegate;
+#endif
+#endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 - (NSDictionary *) attributesOfItemAtPath: (NSString*)path
@@ -444,6 +456,7 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
  * if they wish to deal with copy and move operations performed
  * by NSFileManager.
  */
+
 @interface NSObject (NSFileManagerHandler)
 /**
  * <p>When an error occurs during a copy or move operation, the file manager
@@ -494,7 +507,6 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
 - (void) fileManager: (NSFileManager*)fileManager
      willProcessPath: (NSString*)path;
 @end
-
 
 /**
  *  <p>This is a subclass of <code>NSEnumerator</code> which provides a full
@@ -658,6 +670,77 @@ GS_EXPORT NSString* const NSFileSystemFreeNodes;
 - (NSUInteger) fileSystemNumber;
 - (NSUInteger) fileSystemFileNumber;
 @end
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
+
+@protocol NSFileManagerDelegate <NSObject>
+#if GS_PROTOCOLS_HAVE_OPTIONAL
+@optional
+#else
+@end
+@interface NSObject (NSFileManagerDelegate)
+#endif
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldCopyItemAtPath: (NSString *)srcPath
+                toPath: (NSString *)dstPath;
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldCopyItemAtURL: (NSURL *)srcURL
+                toURL: (NSURL *)dstURL;
+
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldProceedAfterError: (NSError *)error
+        copyingItemAtPath: (NSString *)srcPath
+                   toPath: (NSString *)dstPath;
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldProceedAfterError: (NSError *)error
+         copyingItemAtURL: (NSURL *)srcURL
+                    toURL: (NSURL *)dstURL;
+
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldMoveItemAtPath: (NSString *)srcPath
+                toPath: (NSString *)dstPath;
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldMoveItemAtURL: (NSURL *)srcURL
+                toURL: (NSURL *)dstURL;
+
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldProceedAfterError: (NSError *)error
+         movingItemAtPath: (NSString *)srcPath
+                   toPath: (NSString *)dstPath;
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldProceedAfterError: (NSError *)error
+          movingItemAtURL: (NSURL *)srcURL
+                    toURL: (NSURL *)dstURL;
+
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldLinkItemAtPath: (NSString *)srcPath
+                toPath: (NSString *)dstPath;
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldLinkItemAtURL: (NSURL *)srcURL
+                toURL: (NSURL *)dstURL;
+
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldProceedAfterError: (NSError *)error
+        linkingItemAtPath: (NSString *)srcPath
+                   toPath: (NSString *)dstPath;
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldProceedAfterError: (NSError *)error
+         linkingItemAtURL: (NSURL *)srcURL
+                    toURL: (NSURL *)dstURL;
+
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldRemoveItemAtPath: (NSString *)path;
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldRemoveItemAtURL: (NSURL *)URL;
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldProceedAfterError: (NSError *)error
+       removingItemAtPath: (NSString *)path;
+- (BOOL)fileManager: (NSFileManager *)fileManager
+  shouldProceedAfterError: (NSError *)error
+        removingItemAtURL: (NSURL *)URL;
+@end
+
+#endif
 
 #if	defined(__cplusplus)
 }

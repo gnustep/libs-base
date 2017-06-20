@@ -356,6 +356,15 @@ static NSStringEncoding	defaultEncoding;
   [super dealloc];
 }
 
+- (id<NSFileManagerDelegate>) delegate
+{
+  return _delegate;
+}
+
+- (void) setDelegate: (NSFileManager *)delegate {
+  _delegate = delegate;
+}
+
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path
 {
   static Class	bundleClass = 0;
