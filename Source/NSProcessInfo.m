@@ -1465,6 +1465,43 @@ static void determineOperatingSystem()
   return availMem;
 }
 
+- (NSUInteger) systemUptime
+{
+  NSUInteger uptime = 0;
+
+#if	defined(_WIN32)
+  uptime = GetTickCount64() / 1000;
+#elif	defined(HAVE_SYSCTLBYNAME)
+  struct timeval	tval;
+  size_t		len = sizeof(tval);
+
+  if (sysctlbyname("kern.boottime", &tval, &len, 0, 0) == 0)
+    {
+      uptime = tval.tv_sec;
+    }
+#elif	defined(HAVE_PROCFS)
+  NSFileManager *fileManager = [NSFileManager defaultManager];
+
+  if ([fileManager fileExistsAtPath: @"/proc/uptime"])
+    {
+      NSString *uptimeContent = [NSString
+	stringWithContentsOfFile: @"/proc/uptime"];
+      NSString *uptimeString = [[uptimeContent
+	componentsSeparatedByString:@" "] objectAtIndex:0];
+      uptime = [uptimeString intValue];
+    }
+#else
+#warning	"no known way to determine uptime on this system"
+#endif
+
+  if (uptime == 0)
+    {
+      NSLog(@"Cannot determine uptime.");
+    }
+
+  return uptime;
+}
+
 @end
 
 void
