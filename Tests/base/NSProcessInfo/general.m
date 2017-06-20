@@ -39,8 +39,14 @@ int main()
   PASS((obj != nil && [obj isKindOfClass:[NSString class]] && [obj length] > 0),
     "-operatingSystemName works");
   NSLog(@"operatingSystemName %@", obj);
+  
   val = [info operatingSystem];
   PASS(val != 0, "-operatingSystem works"); 
+  
+  val = [info systemUptime];
+  NSLog(@"systemUptime %lu", val);
+  PASS(val != 0, "-systemUptime works");
+  
   obj = [info hostName];
   PASS((obj != nil && [obj isKindOfClass:[NSString class]] && [obj length] > 0),
     "-hostName works"); 
