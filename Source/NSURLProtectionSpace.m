@@ -41,6 +41,16 @@ NSString * const NSURLAuthenticationMethodHTTPBasic
 NSString * const NSURLAuthenticationMethodHTTPDigest
   = @"NSURLAuthenticationMethodHTTPDigest";
 
+NSString * const NSURLAuthenticationMethodNTLM
+  = @"NSURLAuthenticationMethodNTLM";
+
+NSString * const NSURLAuthenticationMethodNegotiate
+  = @"NSURLAuthenticationMethodNegotiate";
+NSString * const NSURLAuthenticationMethodClientCertificate
+  = @"NSURLAuthenticationMethodClientCertificate";
+NSString * const NSURLAuthenticationMethodServerTrust
+  = @"NSURLAuthenticationMethodServerTrust";
+
 // Internal data storage
 typedef struct {
   NSString	*host;
@@ -146,6 +156,26 @@ authenticationMethod: (NSString *)authenticationMethod
 	NSURLAuthenticationMethodHTTPDigest] == YES)
 	{
 	  this->authenticationMethod = NSURLAuthenticationMethodHTTPDigest;
+	}
+      else if ([authenticationMethod isEqualToString: 
+	NSURLAuthenticationMethodNTLM] == YES)
+	{
+	  this->authenticationMethod = NSURLAuthenticationMethodNTLM;
+	}
+      else if ([authenticationMethod isEqualToString: 
+	NSURLAuthenticationMethodNegotiate] == YES)
+	{
+	  this->authenticationMethod = NSURLAuthenticationMethodNegotiate;
+	}
+      else if ([authenticationMethod isEqualToString: 
+	NSURLAuthenticationMethodClientCertificate] == YES)
+	{
+	  this->authenticationMethod = NSURLAuthenticationMethodClientCertificate;
+	}
+      else if ([authenticationMethod isEqualToString: 
+	NSURLAuthenticationMethodServerTrust] == YES)
+	{
+	  this->authenticationMethod = NSURLAuthenticationMethodServerTrust;
 	}
       else
         {
@@ -292,6 +322,11 @@ authenticationMethod: (NSString *)authenticationMethod
 	}
     }
   return NO;
+}
+
+- (NSArray *) distinguishedNames
+{
+  return nil;
 }
 
 @end
