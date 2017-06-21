@@ -110,6 +110,11 @@ typedef struct {
     }
   if ((self = [super init]) != nil)
     {
+      if (persistence == NSURLCredentialPersistenceSynchronizable)
+	{
+	  persistence = NSURLCredentialPersistencePermanent;
+	}
+      
       this->user = [user copy];
       this->password = [password copy];
       this->persistence = persistence;

@@ -42,7 +42,9 @@ extern "C" {
 typedef enum {
   NSURLCredentialPersistenceNone,	/** Don't save at all */
   NSURLCredentialPersistenceForSession,	/** Save for current session */
-  NSURLCredentialPersistencePermanent	/** Save forever (on disk) */
+  NSURLCredentialPersistencePermanent,	/** Save forever (on disk) */
+  NSURLCredentialPersistenceSynchronizable
+
 } NSURLCredentialPersistence;
 
 
