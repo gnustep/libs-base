@@ -1561,6 +1561,14 @@ static NSUInteger	urlAlign;
   return [[self path] lastPathComponent];
 }
 
+- (BOOL) getResourceValue: (id*)value 
+                   forKey: (NSString *)key 
+                    error: (NSError**)error
+{
+  // TODO: unimplemented
+  return NO;
+}
+
 - (void) loadResourceDataNotifyingClient: (id)client
 			      usingCache: (BOOL)shouldUseCache
 {

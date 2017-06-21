@@ -90,6 +90,127 @@ NSString *NSUndoManagerWillUndoChangeNotification = @"NSUndoManagerWillUndoChang
 /* NSURL constants */
 NSString *NSURLFileScheme = @"file";
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+NSString *NSURLNameKey = @"NSURLNameKey";
+NSString *NSURLLocalizedNameKey = @"NSURLLocalizedNameKey";
+NSString *NSURLIsRegularFileKey = @"NSURLIsRegularFileKey";
+NSString *NSURLIsDirectoryKey = @"NSURLIsDirectoryKey";
+NSString *NSURLIsSymbolicLinkKey = @"NSURLIsSymbolicLinkKey";
+NSString *NSURLIsVolumeKey = @"NSURLIsVolumeKey";
+NSString *NSURLIsPackageKey = @"NSURLIsPackageKey";
+NSString *NSURLIsSystemImmutableKey = @"NSURLIsSystemImmutableKey";
+NSString *NSURLIsUserImmutableKey = @"NSURLIsUserImmutableKey";
+NSString *NSURLIsHiddenKey = @"NSURLIsHiddenKey";
+NSString *NSURLHasHiddenExtensionKey = @"NSURLHasHiddenExtensionKey";
+NSString *NSURLCreationDateKey = @"NSURLCreationDateKey";
+NSString *NSURLContentAccessDateKey = @"NSURLContentAccessDateKey";
+NSString *NSURLContentModificationDateKey = @"NSURLContentModificationDateKey";
+NSString *NSURLAttributeModificationDateKey = @"NSURLAttributeModificationDateKey";
+NSString *NSURLLinkCountKey = @"NSURLLinkCountKey";
+NSString *NSURLParentDirectoryURLKey = @"NSURLParentDirectoryURLKey";
+NSString *NSURLVolumeURLKey = @"NSURLVolumeURLKey";
+NSString *NSURLTypeIdentifierKey = @"NSURLTypeIdentifierKey";
+NSString *NSURLLocalizedTypeDescriptionKey = @"NSURLLocalizedTypeDescriptionKey";
+NSString *NSURLLabelNumberKey = @"NSURLLabelNumberKey";
+NSString *NSURLLabelColorKey = @"NSURLLabelColorKey";
+NSString *NSURLLocalizedLabelKey = @"NSURLLocalizedLabelKey";
+NSString *NSURLEffectiveIconKey = @"NSURLEffectiveIconKey";
+NSString *NSURLCustomIconKey = @"NSURLCustomIconKey";
+NSString *NSURLFileSizeKey = @"NSURLFileSizeKey";
+NSString *NSURLFileAllocatedSizeKey = @"NSURLFileAllocatedSizeKey";
+NSString *NSURLIsAliasFileKey = @"NSURLIsAliasFileKey";
+NSString *NSURLVolumeLocalizedFormatDescriptionKey = @"NSURLVolumeLocalizedFormatDescriptionKey";
+NSString *NSURLVolumeTotalCapacityKey = @"NSURLVolumeTotalCapacityKey";
+NSString *NSURLVolumeAvailableCapacityKey = @"NSURLVolumeAvailableCapacityKey";
+NSString *NSURLVolumeResourceCountKey = @"NSURLVolumeResourceCountKey";
+NSString *NSURLVolumeSupportsPersistentIDsKey = @"NSURLVolumeSupportsPersistentIDsKey";
+NSString *NSURLVolumeSupportsSymbolicLinksKey = @"NSURLVolumeSupportsSymbolicLinksKey";
+NSString *NSURLVolumeSupportsHardLinksKey = @"NSURLVolumeSupportsHardLinksKey";
+NSString *NSURLVolumeSupportsJournalingKey = @"NSURLVolumeSupportsJournalingKey";
+NSString *NSURLVolumeIsJournalingKey = @"NSURLVolumeIsJournalingKey";
+NSString *NSURLVolumeSupportsSparseFilesKey = @"NSURLVolumeSupportsSparseFilesKey";
+NSString *NSURLVolumeSupportsZeroRunsKey = @"NSURLVolumeSupportsZeroRunsKey";
+NSString *NSURLVolumeSupportsCaseSensitiveNamesKey = @"NSURLVolumeSupportsCaseSensitiveNamesKey";
+NSString *NSURLVolumeSupportsCasePreservedNamesKey = @"NSURLVolumeSupportsCasePreservedNamesKey";
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+NSString *NSURLFileResourceIdentifierKey = @"NSURLFileResourceIdentifierKey";
+NSString *NSURLVolumeIdentifierKey = @"NSURLVolumeIdentifierKey";
+NSString *NSURLPreferredIOBlockSizeKey = @"NSURLPreferredIOBlockSizeKey";
+NSString *NSURLIsReadableKey = @"NSURLIsReadableKey";
+NSString *NSURLIsWritableKey = @"NSURLIsWritableKey";
+NSString *NSURLIsExecutableKey = @"NSURLIsExecutableKey";
+NSString *NSURLFileSecurityKey = @"NSURLFileSecurityKey";
+NSString *NSURLIsMountTriggerKey = @"NSURLIsMountTriggerKey";
+NSString *NSURLFileResourceTypeKey = @"NSURLFileResourceTypeKey";
+NSString *NSURLTotalFileSizeKey = @"NSURLTotalFileSizeKey";
+NSString *NSURLTotalFileAllocatedSizeKey = @"NSURLTotalFileAllocatedSizeKey";
+NSString *NSURLVolumeSupportsRootDirectoryDatesKey = @"NSURLVolumeSupportsRootDirectoryDatesKey";
+NSString *NSURLVolumeSupportsVolumeSizesKey = @"NSURLVolumeSupportsVolumeSizesKey";
+NSString *NSURLVolumeSupportsRenamingKey = @"NSURLVolumeSupportsRenamingKey";
+NSString *NSURLVolumeSupportsAdvisoryFileLockingKey = @"NSURLVolumeSupportsAdvisoryFileLockingKey";
+NSString *NSURLVolumeSupportsExtendedSecurityKey = @"NSURLVolumeSupportsExtendedSecurityKey";
+NSString *NSURLVolumeIsBrowsableKey = @"NSURLVolumeIsBrowsableKey";
+NSString *NSURLVolumeMaximumFileSizeKey = @"NSURLVolumeMaximumFileSizeKey";
+NSString *NSURLVolumeIsEjectableKey = @"NSURLVolumeIsEjectableKey";
+NSString *NSURLVolumeIsRemovableKey = @"NSURLVolumeIsRemovableKey";
+NSString *NSURLVolumeIsInternalKey = @"NSURLVolumeIsInternalKey";
+NSString *NSURLVolumeIsAutomountedKey = @"NSURLVolumeIsAutomountedKey";
+NSString *NSURLVolumeIsLocalKey = @"NSURLVolumeIsLocalKey";
+NSString *NSURLVolumeIsReadOnlyKey = @"NSURLVolumeIsReadOnlyKey";
+NSString *NSURLVolumeCreationDateKey = @"NSURLVolumeCreationDateKey";
+NSString *NSURLVolumeURLForRemountingKey = @"NSURLVolumeURLForRemountingKey";
+NSString *NSURLVolumeUUIDStringKey = @"NSURLVolumeUUIDStringKey";
+NSString *NSURLVolumeNameKey = @"NSURLVolumeNameKey";
+NSString *NSURLVolumeLocalizedNameKey = @"NSURLVolumeLocalizedNameKey";
+NSString *NSURLIsUbiquitousItemKey = @"NSURLIsUbiquitousItemKey";
+NSString *NSURLUbiquitousItemHasUnresolvedConflictsKey = @"NSURLUbiquitousItemHasUnresolvedConflictsKey";
+NSString *NSURLUbiquitousItemIsDownloadingKey = @"NSURLUbiquitousItemIsDownloadingKey";
+NSString *NSURLUbiquitousItemIsUploadedKey = @"NSURLUbiquitousItemIsUploadedKey";
+NSString *NSURLUbiquitousItemIsUploadingKey = @"NSURLUbiquitousItemIsUploadingKey";
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
+NSString *NSURLIsExcludedFromBackupKey = @"NSURLIsExcludedFromBackupKey";
+NSString *NSURLPathKey = @"NSURLPathKey";
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+NSString *NSURLTagNamesKey = @"NSURLTagNamesKey";
+NSString *NSURLUbiquitousItemDownloadingStatusKey = @"NSURLUbiquitousItemDownloadingStatusKey";
+NSString *NSURLUbiquitousItemDownloadingErrorKey = @"NSURLUbiquitousItemDownloadingErrorKey";
+NSString *NSURLUbiquitousItemUploadingErrorKey = @"NSURLUbiquitousItemUploadingErrorKey";
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+NSString *NSURLGenerationIdentifierKey = @"NSURLGenerationIdentifierKey";
+NSString *NSURLDocumentIdentifierKey = @"NSURLDocumentIdentifierKey";
+NSString *NSURLAddedToDirectoryDateKey = @"NSURLAddedToDirectoryDateKey";
+NSString *NSURLQuarantinePropertiesKey = @"NSURLQuarantinePropertiesKey";
+NSString *NSThumbnail1024x1024SizeKey = @"NSThumbnail1024x1024SizeKey";
+NSString *NSURLUbiquitousItemDownloadRequestedKey = @"NSURLUbiquitousItemDownloadRequestedKey";
+NSString *NSURLUbiquitousItemContainerDisplayNameKey = @"NSURLUbiquitousItemContainerDisplayNameKey";
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_11, GS_API_LATEST)
+NSString *NSURLIsApplicationKey = @"NSURLIsApplicationKey";
+NSString *NSURLApplicationIsScriptableKey = @"NSURLApplicationIsScriptableKey";
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+NSString *NSURLFileResourceTypeNamedPipe = @"NSURLFileResourceTypeNamedPipe";
+NSString *NSURLFileResourceTypeCharacterSpecial = @"NSURLFileResourceTypeCharacterSpecial";
+NSString *NSURLFileResourceTypeDirectory = @"NSURLFileResourceTypeDirectory";
+NSString *NSURLFileResourceTypeBlockSpecial = @"NSURLFileResourceTypeBlockSpecial";
+NSString *NSURLFileResourceTypeRegular = @"NSURLFileResourceTypeRegular";
+NSString *NSURLFileResourceTypeSymbolicLink = @"NSURLFileResourceTypeSymbolicLink";
+NSString *NSURLFileResourceTypeSocket = @"NSURLFileResourceTypeSocket";
+NSString *NSURLFileResourceTypeUnknown = @"NSURLFileResourceTypeUnknown";
+#endif
+
+/** Possible values for Ubiquitous Item Downloading Key **/
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+NSString *NSURLUbiquitousItemDownloadingStatusNotDownloaded = @"NSURLUbiquitousItemDownloadingStatusNotDownloaded";
+NSString *NSURLUbiquitousItemDownloadingStatusDownloaded = @"NSURLUbiquitousItemDownloadingStatusDownloaded";
+NSString *NSURLUbiquitousItemDownloadingStatusCurrent = @"NSURLUbiquitousItemDownloadingStatusCurrent";
+#endif
+
 /* RunLoop modes */
 NSString *NSConnectionReplyMode = @"NSConnectionReplyMode";
 
