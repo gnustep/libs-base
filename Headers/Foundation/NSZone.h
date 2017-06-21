@@ -320,6 +320,14 @@ NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options);
 
 #endif
 
+static inline id NSMakeCollectable(const void *cf) {
+#if __has_feature(objc_arc)
+    return nil;
+#else
+    return (id)cf; // Unimplemented; garbage collection is deprecated.
+#endif
+}
+
 #if	defined(__cplusplus)
 }
 #endif
