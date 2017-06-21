@@ -47,19 +47,32 @@
   NSComparisonResult result;
   id comparedKey1 = [object1 valueForKeyPath: _key];
   id comparedKey2 = [object2 valueForKeyPath: _key];
+  
+  // Cocoa seems to either capture the exception thrown in the nil parameter case or
+  // do some other type of comparison for it's internal sorting algorithm.  We will
+  // just capture the exception and continue for now...
+  NS_DURING
+  {
+    result = (NSComparisonResult) [comparedKey1 performSelector: _selector
+                                                     withObject: comparedKey2];
+  }
+  NS_HANDLER
+  {
+    // What should we use for the result here???
+    result = NSOrderedSame;
+  }
+  NS_ENDHANDLER
 
-  result = (NSComparisonResult) [comparedKey1 performSelector: _selector
-                                                   withObject: comparedKey2];
   if (_ascending == NO)
     {
       if (result == NSOrderedAscending)
-	{
-	  result = NSOrderedDescending;
-	}
+        {
+          result = NSOrderedDescending;
+        }
       else if (result == NSOrderedDescending)
-	{
-	  result = NSOrderedAscending;
-	}
+        {
+          result = NSOrderedAscending;
+        }
     }
 
   return result;
