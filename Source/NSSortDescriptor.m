@@ -59,7 +59,7 @@
   NS_HANDLER
   {
     // What should we use for the result here???
-    result = NSOrderedSame;
+    result = NSOrderedAscending;
   }
   NS_ENDHANDLER
 
