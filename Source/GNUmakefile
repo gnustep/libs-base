@@ -219,8 +219,10 @@ NSDistributedNotificationCenter.m \
 NSEnumerator.m \
 NSError.m \
 NSException.m \
+NSFileCoordinator.m \
 NSFileHandle.m \
 NSFileManager.m \
+NSFileVersion.m \
 NSFormatter.m \
 NSGarbageCollector.m \
 NSGeometry.m \
@@ -286,6 +288,7 @@ NSTimeZone.m \
 NSUnarchiver.m \
 NSUndoManager.m \
 NSURL.m \
+NSURLSession.m \
 NSURLAuthenticationChallenge.m \
 NSURLCache.m \
 NSURLCredential.m \
@@ -389,8 +392,11 @@ NSError.h \
 NSErrorRecoveryAttempting.h \
 NSException.h \
 NSExpression.h \
+NSFileCoordinator.h \
 NSFileHandle.h \
 NSFileManager.h \
+NSFilePresenter.h \
+NSFileVersion.h \
 NSFormatter.h \
 NSGarbageCollector.h \
 NSGeometry.h \
@@ -461,6 +467,7 @@ NSURLProtectionSpace.h \
 NSURLProtocol.h \
 NSURLRequest.h \
 NSURLResponse.h \
+NSURLSession.h \
 NSUserDefaults.h \
 NSUserNotification.h \
 NSUtilities.h \

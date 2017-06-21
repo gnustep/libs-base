@@ -64,8 +64,11 @@
 #import	<Foundation/NSError.h>
 #import	<Foundation/NSException.h>
 #import	<Foundation/NSExpression.h>
+#import	<Foundation/NSFileCoordinator.h>
 #import	<Foundation/NSFileHandle.h>
 #import	<Foundation/NSFileManager.h>
+#import	<Foundation/NSFilePresenter.h>
+#import	<Foundation/NSFileVersion.h>
 #import	<Foundation/NSFormatter.h>
 #import	<Foundation/NSGarbageCollector.h>
 #import	<Foundation/NSGeometry.h>
@@ -132,6 +135,7 @@
 #import	<Foundation/NSURLProtocol.h>
 #import	<Foundation/NSURLRequest.h>
 #import	<Foundation/NSURLResponse.h>
+#import	<Foundation/NSURLSession.h>
 #import	<Foundation/NSUserDefaults.h>
 #import	<Foundation/NSUserNotification.h>
 #import	<Foundation/NSUUID.h>
