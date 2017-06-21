@@ -76,6 +76,9 @@ GS_EXPORT NSString* const NSURLFileScheme;
 + (NSURL*) fileURLWithPathComponents: (NSArray*)components;
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
++ (id) fileURLWithPath: (NSString*)aPath isDirectory: (BOOL)isDir;
+#endif
 /**
  * Create and return a URL with the supplied string, which should
  * be a string (containing percent escape codes where necessary)
