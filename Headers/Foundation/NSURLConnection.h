@@ -142,7 +142,19 @@ extern "C" {
  *   </item>
  * </list>
  */
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST) && GS_API_VERSION(11300,GS_API_LATEST)
+@protocol NSURLConnectionDelegate <NSObject>
+
+#if GS_PROTOCOLS_HAVE_OPTIONAL
+@optional
+#else
+@end
 @interface NSObject (NSURLConnectionDelegate)
+#endif
+
+#else
+@interface NSObject (NSURLConnectionDelegate)
+#endif
 
 /**
  * Instructs the delegate that authentication for challenge has
@@ -211,10 +223,7 @@ extern "C" {
 - (NSURLRequest *) connection: (NSURLConnection *)connection
 	      willSendRequest: (NSURLRequest *)request
 	     redirectResponse: (NSURLResponse *)response;
-
 @end
-
-
 
 /**
  * An interface to perform synchronous loading of URL requests.
