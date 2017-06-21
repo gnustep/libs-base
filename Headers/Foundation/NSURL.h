@@ -171,6 +171,12 @@ enum
 - (id) initWithString: (NSString*)aUrlString
 	relativeToURL: (NSURL*)aBaseUrl;
 
+#if GS_HAS_DECLARED_PROPERTIES
+@property (readonly, getter=isFileURL) BOOL fileURL;
+#else
+- (BOOL) isFileURL;
+#endif
+
 /**
  * Returns the full string describing the receiver resolved against its base.
  */
@@ -213,11 +219,6 @@ enum
  * required (by RFC2732) in URL strings.
  */
 - (NSString*) host;
-
-/**
- * Returns YES if the receiver is a file URL, NO otherwise.
- */
-- (BOOL) isFileURL;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
 /** Returns the last (rightmost) path component of the receiver.
