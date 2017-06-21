@@ -616,6 +616,12 @@ static NSUInteger	urlAlign;
   return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath]);
 }
 
++ (id) fileURLWithPath: (NSString*)aPath isDirectory: (BOOL)isDir
+{
+  return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath
+					    isDirectory: isDir]);
+}
+
 + (NSURL*) fileURLWithPathComponents: (NSArray*)components
 {
   return [self fileURLWithPath: [NSString pathWithComponents: components]];
