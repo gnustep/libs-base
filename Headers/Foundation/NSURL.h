@@ -406,6 +406,11 @@ enum
 
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+- (BOOL) getResourceValue: (id*)value 
+                   forKey: (NSString *)key 
+                    error: (NSError**)error;
+#endif
 /**
  * Returns an NSURLHandle instance which may be used to write data to the
  * resource represented by the receiver URL, or read data from it.<br />
@@ -452,6 +457,129 @@ enum
 - (void) URL: (NSURL*)sender
   resourceDidFailLoadingWithReason: (NSString*)reason;
 @end
+
+/** URL Resource Value Constants **/
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+GS_EXPORT NSString* const NSURLNameKey;
+GS_EXPORT NSString* const NSURLLocalizedNameKey;
+GS_EXPORT NSString* const NSURLIsRegularFileKey;
+GS_EXPORT NSString* const NSURLIsDirectoryKey;
+GS_EXPORT NSString* const NSURLIsSymbolicLinkKey;
+GS_EXPORT NSString* const NSURLIsVolumeKey;
+GS_EXPORT NSString* const NSURLIsPackageKey;
+GS_EXPORT NSString* const NSURLIsSystemImmutableKey;
+GS_EXPORT NSString* const NSURLIsUserImmutableKey;
+GS_EXPORT NSString* const NSURLIsHiddenKey;
+GS_EXPORT NSString* const NSURLHasHiddenExtensionKey;
+GS_EXPORT NSString* const NSURLCreationDateKey;
+GS_EXPORT NSString* const NSURLContentAccessDateKey;
+GS_EXPORT NSString* const NSURLContentModificationDateKey;
+GS_EXPORT NSString* const NSURLAttributeModificationDateKey;
+GS_EXPORT NSString* const NSURLLinkCountKey;
+GS_EXPORT NSString* const NSURLParentDirectoryURLKey;
+GS_EXPORT NSString* const NSURLVolumeURLKey;
+GS_EXPORT NSString* const NSURLTypeIdentifierKey;
+GS_EXPORT NSString* const NSURLLocalizedTypeDescriptionKey;
+GS_EXPORT NSString* const NSURLLabelNumberKey;
+GS_EXPORT NSString* const NSURLLabelColorKey;
+GS_EXPORT NSString* const NSURLLocalizedLabelKey;
+GS_EXPORT NSString* const NSURLEffectiveIconKey;
+GS_EXPORT NSString* const NSURLCustomIconKey;
+GS_EXPORT NSString* const NSURLFileSizeKey;
+GS_EXPORT NSString* const NSURLFileAllocatedSizeKey;
+GS_EXPORT NSString* const NSURLIsAliasFileKey;
+GS_EXPORT NSString* const NSURLVolumeLocalizedFormatDescriptionKey;
+GS_EXPORT NSString* const NSURLVolumeTotalCapacityKey;
+GS_EXPORT NSString* const NSURLVolumeAvailableCapacityKey;
+GS_EXPORT NSString* const NSURLVolumeResourceCountKey;
+GS_EXPORT NSString* const NSURLVolumeSupportsPersistentIDsKey;
+GS_EXPORT NSString* const NSURLVolumeSupportsSymbolicLinksKey;
+GS_EXPORT NSString* const NSURLVolumeSupportsHardLinksKey;
+GS_EXPORT NSString* const NSURLVolumeSupportsJournalingKey;
+GS_EXPORT NSString* const NSURLVolumeIsJournalingKey;
+GS_EXPORT NSString* const NSURLVolumeSupportsSparseFilesKey;
+GS_EXPORT NSString* const NSURLVolumeSupportsZeroRunsKey;
+GS_EXPORT NSString* const NSURLVolumeSupportsCaseSensitiveNamesKey;
+GS_EXPORT NSString* const NSURLVolumeSupportsCasePreservedNamesKey;
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+GS_EXPORT NSString* const NSURLFileResourceIdentifierKey;
+GS_EXPORT NSString* const NSURLVolumeIdentifierKey;
+GS_EXPORT NSString* const NSURLPreferredIOBlockSizeKey;
+GS_EXPORT NSString* const NSURLIsReadableKey;
+GS_EXPORT NSString* const NSURLIsWritableKey;
+GS_EXPORT NSString* const NSURLIsExecutableKey;
+GS_EXPORT NSString* const NSURLFileSecurityKey;
+GS_EXPORT NSString* const NSURLIsMountTriggerKey;
+GS_EXPORT NSString* const NSURLFileResourceTypeKey;
+GS_EXPORT NSString* const NSURLTotalFileSizeKey;
+GS_EXPORT NSString* const NSURLTotalFileAllocatedSizeKey;
+GS_EXPORT NSString* const NSURLVolumeSupportsRootDirectoryDatesKey;
+GS_EXPORT NSString* const NSURLVolumeSupportsVolumeSizesKey;
+GS_EXPORT NSString* const NSURLVolumeSupportsRenamingKey;
+GS_EXPORT NSString* const NSURLVolumeSupportsAdvisoryFileLockingKey;
+GS_EXPORT NSString* const NSURLVolumeSupportsExtendedSecurityKey;
+GS_EXPORT NSString* const NSURLVolumeIsBrowsableKey;
+GS_EXPORT NSString* const NSURLVolumeMaximumFileSizeKey;
+GS_EXPORT NSString* const NSURLVolumeIsEjectableKey;
+GS_EXPORT NSString* const NSURLVolumeIsRemovableKey;
+GS_EXPORT NSString* const NSURLVolumeIsInternalKey;
+GS_EXPORT NSString* const NSURLVolumeIsAutomountedKey;
+GS_EXPORT NSString* const NSURLVolumeIsLocalKey;
+GS_EXPORT NSString* const NSURLVolumeIsReadOnlyKey;
+GS_EXPORT NSString* const NSURLVolumeCreationDateKey;
+GS_EXPORT NSString* const NSURLVolumeURLForRemountingKey;
+GS_EXPORT NSString* const NSURLVolumeUUIDStringKey;
+GS_EXPORT NSString* const NSURLVolumeNameKey;
+GS_EXPORT NSString* const NSURLVolumeLocalizedNameKey;
+GS_EXPORT NSString* const NSURLIsUbiquitousItemKey;
+GS_EXPORT NSString* const NSURLUbiquitousItemHasUnresolvedConflictsKey;
+GS_EXPORT NSString* const NSURLUbiquitousItemIsDownloadingKey;
+GS_EXPORT NSString* const NSURLUbiquitousItemIsUploadedKey;
+GS_EXPORT NSString* const NSURLUbiquitousItemIsUploadingKey;
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
+GS_EXPORT NSString* const NSURLIsExcludedFromBackupKey;
+GS_EXPORT NSString* const NSURLPathKey;
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+GS_EXPORT NSString* const NSURLTagNamesKey;
+GS_EXPORT NSString* const NSURLUbiquitousItemDownloadingStatusKey;
+GS_EXPORT NSString* const NSURLUbiquitousItemDownloadingErrorKey;
+GS_EXPORT NSString* const NSURLUbiquitousItemUploadingErrorKey;
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+GS_EXPORT NSString* const NSURLGenerationIdentifierKey;
+GS_EXPORT NSString* const NSURLDocumentIdentifierKey;
+GS_EXPORT NSString* const NSURLAddedToDirectoryDateKey;
+GS_EXPORT NSString* const NSURLQuarantinePropertiesKey;
+GS_EXPORT NSString* const NSThumbnail1024x1024SizeKey;
+GS_EXPORT NSString* const NSURLUbiquitousItemDownloadRequestedKey;
+GS_EXPORT NSString* const NSURLUbiquitousItemContainerDisplayNameKey;
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_11, GS_API_LATEST)
+GS_EXPORT NSString* const NSURLIsApplicationKey;
+GS_EXPORT NSString* const NSURLApplicationIsScriptableKey;
+#endif
+
+/** Possible values for File Resource Type Key **/
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+GS_EXPORT NSString* const NSURLFileResourceTypeNamedPipe;
+GS_EXPORT NSString* const NSURLFileResourceTypeCharacterSpecial;
+GS_EXPORT NSString* const NSURLFileResourceTypeDirectory;
+GS_EXPORT NSString* const NSURLFileResourceTypeBlockSpecial;
+GS_EXPORT NSString* const NSURLFileResourceTypeRegular;
+GS_EXPORT NSString* const NSURLFileResourceTypeSymbolicLink;
+GS_EXPORT NSString* const NSURLFileResourceTypeSocket;
+GS_EXPORT NSString* const NSURLFileResourceTypeUnknown;
+#endif
+
+/** Possible values for Ubiquitous Item Downloading Key **/
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+GS_EXPORT NSString* const NSURLUbiquitousItemDownloadingStatusNotDownloaded;
+GS_EXPORT NSString* const NSURLUbiquitousItemDownloadingStatusDownloaded;
+GS_EXPORT NSString* const NSURLUbiquitousItemDownloadingStatusCurrent;
+#endif
 
 #endif	/* GS_API_MACOSX */
 
