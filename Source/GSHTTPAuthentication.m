@@ -179,6 +179,14 @@ static GSMimeParser		*mimeParser = nil;
         {
 	  method = NSURLAuthenticationMethodHTTPDigest;
 	}
+      else if ([key caseInsensitiveCompare: @"NTLM"] == NSOrderedSame)
+        {
+	  method = NSURLAuthenticationMethodNTLM;
+	}
+      else if ([key caseInsensitiveCompare: @"Negotiate"] == NSOrderedSame)
+        {
+	  method = NSURLAuthenticationMethodNegotiate;
+	}
       else
 	{
 	  return nil;	// Unknown authentication
@@ -541,11 +549,31 @@ static GSMimeParser		*mimeParser = nil;
 
       [self->_lock unlock];
     }
-  else
+  else if ([self->_space authenticationMethod]
+    == NSURLAuthenticationMethodHTMLForm)
+    {
+      // This should not generate any authentication header.
+      return nil;
+    }
+  else if ([self->_space authenticationMethod]
+    == NSURLAuthenticationMethodNTLM)
+    {
+      // FIXME: this needs to be implemented
+      return nil;
+    }
+  else if ([self->_space authenticationMethod]
+    == NSURLAuthenticationMethodNegotiate)
+    {
+      // FIXME: this needs to be implemented
+      return nil;
+    }
+  else if ([self->_space authenticationMethod]
+    == NSURLAuthenticationMethodDefault
+    || [self->_space authenticationMethod]
+    == NSURLAuthenticationMethodHTTPBasic)
     {
       NSString	*toEncode;
 
-// FIXME ... should support other methods
       if (authentication != nil)
 	{
 	  NSScanner		*sc;
@@ -571,6 +599,14 @@ static GSMimeParser		*mimeParser = nil;
 	}
       [authorisation appendFormat: @"Basic %@",
 	[GSMimeDocument encodeBase64String: toEncode]];
+    }
+  else
+    {
+      // FIXME: Currently, ClientCertificate and ServerTrust authentication
+      // methods are NOT implemented and will end up here. They should, in fact,
+      // be handled in the SSL connection layer (in GSHTTPURLHandle) rather than
+      // in this method.
+      return nil;
     }
   return authorisation;
 }
