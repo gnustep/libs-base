@@ -649,6 +649,14 @@ static NSUInteger	urlAlign;
 				     relativeToURL: aBaseUrl]);
 }
 
++ (id) URLByResolvingAliasFileAtURL: (NSURL*)url 
+                            options: (NSURLBookmarkResolutionOptions)options 
+                              error: (NSError**)error
+{
+  // TODO: unimplemented
+  return nil;
+}
+
 - (id) initFileURLWithPath: (NSString*)aPath
 {
   NSFileManager	*mgr = [NSFileManager defaultManager];

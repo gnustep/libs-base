@@ -42,6 +42,19 @@ extern "C" {
  */
 GS_EXPORT NSString* const NSURLFileScheme;
 
+/** URL Bookmark Resolution Options **/
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+typedef NSUInteger NSURLBookmarkResolutionOptions;
+enum
+{
+  NSURLBookmarkResolutionWithoutUI = (1 << 8),
+  NSURLBookmarkResolutionWithoutMounting = (1 << 9),
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+  NSURLBookmarkResolutionWithSecurityScope = (1 << 10)
+#endif
+};
+#endif
+
 /**
  * This class permits manipulation of URLs and the resources to which they
  * refer.  They can be used to represent absolute URLs or relative URLs
@@ -86,6 +99,12 @@ GS_EXPORT NSString* const NSURLFileScheme;
  * Calls -initWithString:
  */
 + (id) URLWithString: (NSString*)aUrlString;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
++ (id) URLByResolvingAliasFileAtURL: (NSURL*)url 
+                            options: (NSURLBookmarkResolutionOptions)options 
+                              error: (NSError**)error;
+#endif
 
 /**
  * Create and return a URL with the supplied string, which should
