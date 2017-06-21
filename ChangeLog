@@ -1,3 +1,9 @@
+2017-06-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistributedLock.m: Revert recent changes to use O/S
+	specific system calls, and depend on new behavior of the
+	-createDirectoryAtPath:attributes: method instead.  Add comment.
+
 2017-06-18  Richard Frith-Macdonald <rfm@gnu.org>
 
  	* Source/NSFileManager.m: Make directory creation semantics match OSX
