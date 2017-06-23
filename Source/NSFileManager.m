@@ -2005,23 +2005,8 @@ static NSStringEncoding	defaultEncoding;
   return d;
 }
 
-/**
- * Returns a dictionary containing the filesystem attributes for the
- * specified path (or nil if the path is not valid).<br />
- * <deflist>
- *   <term><code>NSFileSystemSize</code></term>
- *   <desc>NSNumber the size of the filesystem in bytes</desc>
- *   <term><code>NSFileSystemFreeSize</code></term>
- *   <desc>NSNumber the amount of unused space on the filesystem in bytes</desc>
- *   <term><code>NSFileSystemNodes</code></term>
- *   <desc>NSNumber the number of nodes in use to store files</desc>
- *   <term><code>NSFileSystemFreeNodes</code></term>
- *   <desc>NSNumber the number of nodes available to create files</desc>
- *   <term><code>NSFileSystemNumber</code></term>
- *   <desc>NSNumber the identifying number for the filesystem</desc>
- * </deflist>
- */
-- (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path
+- (NSDictionary*) attributesOfFileSystemForPath: (NSString*)path
+		                          error: (NSError**)error
 {
 #if defined(_WIN32)
   unsigned long long totalsize, freesize;
@@ -2041,6 +2026,10 @@ static NSStringEncoding	defaultEncoding;
 
   if (!GetVolumePathNameW(lpath, volumePathName, 128))
     {
+      if (error != NULL)
+	{
+	  *error = [NSError _last];
+	}
       return nil;
     }
   GetVolumeInformationW(volumePathName, NULL, 0, &volumeSerialNumber,
@@ -2049,6 +2038,10 @@ static NSStringEncoding	defaultEncoding;
   if (!GetDiskFreeSpaceW(volumePathName, &SectorsPerCluster,
     &BytesPerSector, &NumberFreeClusters, &TotalNumberClusters))
     {
+      if (error != NULL)
+	{
+	  *error = [NSError _last];
+	}
       return nil;
     }
 
@@ -2091,6 +2084,10 @@ static NSStringEncoding	defaultEncoding;
 
   if (_STAT(lpath, &statbuf) != 0)
     {
+      if (error != NULL)
+	{
+	  *error = [NSError _last];
+	}
       NSDebugMLLog(@"NSFileManager", @"stat failed for '%s' ... %@",
         lpath, [NSError _last]);
       return nil;
@@ -2098,6 +2095,10 @@ static NSStringEncoding	defaultEncoding;
 #ifdef HAVE_STATVFS
   if (statvfs(lpath, &statfsbuf) != 0)
     {
+      if (error != NULL)
+	{
+	  *error = [NSError _last];
+	}
       NSDebugMLLog(@"NSFileManager", @"statvfs failed for '%s' ... %@",
         lpath, [NSError _last]);
       return nil;
@@ -2106,6 +2107,10 @@ static NSStringEncoding	defaultEncoding;
 #else
   if (statfs(lpath, &statfsbuf) != 0)
     {
+      if (error != NULL)
+	{
+	  *error = [NSError _last];
+	}
       NSDebugMLLog(@"NSFileManager", @"statfs failed for '%s' ... %@",
         lpath, [NSError _last]);
       return nil;
@@ -2131,6 +2136,28 @@ static NSStringEncoding	defaultEncoding;
   return nil;
 #endif
 #endif /* _WIN32 */
+}
+
+/**
+ * Returns a dictionary containing the filesystem attributes for the
+ * specified path (or nil if the path is not valid).<br />
+ * <deflist>
+ *   <term><code>NSFileSystemSize</code></term>
+ *   <desc>NSNumber the size of the filesystem in bytes</desc>
+ *   <term><code>NSFileSystemFreeSize</code></term>
+ *   <desc>NSNumber the amount of unused space on the filesystem in bytes</desc>
+ *   <term><code>NSFileSystemNodes</code></term>
+ *   <desc>NSNumber the number of nodes in use to store files</desc>
+ *   <term><code>NSFileSystemFreeNodes</code></term>
+ *   <desc>NSNumber the number of nodes available to create files</desc>
+ *   <term><code>NSFileSystemNumber</code></term>
+ *   <desc>NSNumber the identifying number for the filesystem</desc>
+ * </deflist>
+ */
+- (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path
+{
+  return [self attributesOfFileSystemForPath:path
+				       error:NULL];
 }
 
 /**

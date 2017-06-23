@@ -345,6 +345,9 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
  * it can't be read for some reason).
  */
 - (NSArray*) contentsOfDirectoryAtPath: (NSString*)path error: (NSError**)error;
+
+- (NSDictionary*) attributesOfFileSystemForPath: (NSString*)path
+                                          error: (NSError**)error;
 #endif
 
 - (BOOL) copyPath: (NSString*)source
