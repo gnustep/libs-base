@@ -1502,6 +1502,46 @@ static void determineOperatingSystem()
   return uptime;
 }
 
+- (void) enableSuddenTermination
+{
+  // FIXME: unimplemented
+  return;
+}
+
+- (void) disableSuddenTermination
+{
+  // FIXME: unimplemented
+  return;
+}
+
+- (id) beginActivityWithOptions: (NSActivityOptions)options
+                         reason: (NSString *)reason
+{
+  // FIXME: unimplemented
+  return nil;
+}
+
+- (void) endActivity:(id<NSObject>)activity
+{
+  // FIXME: unimplemented
+  return;
+}
+
+- (void) performActivityWithOptions:(NSActivityOptions)options
+                            reason: (NSString *)reason
+                        usingBlock: (GSPerformActivityBlock)block
+{
+  // FIXME: unimplemented
+  return;
+}
+
+- (void) performExpiringActivityWithReason: (NSString *)reason
+		usingBlock: (GSPerformExpiringActivityBlock)block
+{
+  // FIXME: unimplemented
+  return;
+}
+
 @end
 
 void

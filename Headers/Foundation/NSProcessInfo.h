@@ -40,6 +40,24 @@ extern "C" {
 @class NSData;
 @class NSMutableSet;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST) 
+typedef uint64_t NSActivityOptions;
+enum
+{
+  NSActivityIdleDisplaySleepDisabled = (1ULL << 40),
+  NSActivityIdleSystemSleepDisabled = (1ULL << 20),
+  NSActivitySuddenTerminationDisabled = (1ULL << 14),
+  NSActivityAutomaticTerminationDisabled = (1ULL << 15),
+
+  NSActivityUserInitiated = (0x00FFFFFFULL | NSActivityIdleSystemSleepDisabled),
+  NSActivityUserInitiatedAllowingIdleSystemSleep = (NSActivityUserInitiated & ~NSActivityIdleSystemSleepDisabled),
+
+  NSActivityBackground = 0x000000FFULL,
+
+  NSActivityLatencyCritical = 0xFF00000000ULL,
+};
+#endif
+
 #if OS_API_VERSION(GS_API_MACOSX,GS_API_LATEST)
 
 /**
@@ -204,6 +222,25 @@ enum {
 - (NSUInteger) activeProcessorCount;
 /** Not implemented */
 - (unsigned long long) physicalMemory;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
+- (void) enableSuddenTermination;
+- (void) disableSuddenTermination;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST) 
+DEFINE_BLOCK_TYPE_NO_ARGS(GSPerformActivityBlock, void);
+DEFINE_BLOCK_TYPE(GSPerformExpiringActivityBlock, void, BOOL);
+
+- (id) beginActivityWithOptions: (NSActivityOptions)options
+                         reason: (NSString *)reason;
+- (void) endActivity:(id<NSObject>)activity;
+- (void) performActivityWithOptions:(NSActivityOptions)options
+                            reason: (NSString *)reason
+                        usingBlock: (GSPerformActivityBlock)block;
+- (void) performExpiringActivityWithReason: (NSString *)reason
+            usingBlock: (GSPerformExpiringActivityBlock)block;
 #endif
 @end
 
