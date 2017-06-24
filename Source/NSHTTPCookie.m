@@ -745,7 +745,19 @@ GSPropertyListFromCookieFormat(NSString *string, int version)
 	}
       else
 	{
+	  unsigned int oldpos = pld->pos;
+	  unsigned int keyvalpos = 0;
+	  id keyval = parseUnquotedString(pld, ';');
+	  keyvalpos = pld->pos;
+	  pld->pos = oldpos;
 	  key = parseUnquotedString(pld, '=');
+
+	  // Detect value-less cookies like HTTPOnly; and Secure;
+	  if ([keyval length] < [key length])
+	    {
+	      pld->pos = keyvalpos;
+	      key = keyval;
+	    }
 	}
       if (key == nil)
 	{
