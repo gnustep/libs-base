@@ -53,6 +53,7 @@ int main()
   	   "NSHTTPCookie returns proper value");
   PASS([[cookie domain] isEqual: [url host]], 
   	   "NSHTTPCookie returns proper domain");
+  PASS(![cookie isSecure], "Cookie is not secure");
   PASS(![cookie isHTTPOnly], "Cookie is not http only");
   
   dict = [NSHTTPCookie requestHeaderFieldsWithCookies: cookies];
@@ -61,9 +62,10 @@ int main()
     "NSHTTPCookie can generate proper cookie");
 
   dict = [NSDictionary dictionaryWithObject:
-    @"SessionId=xxx;HttpOnly;" forKey: @"Set-Cookie"];
+    @"SessionId=xxx;HttpOnly;Secure;" forKey: @"Set-Cookie"];
   cookies= [NSHTTPCookie cookiesWithResponseHeaderFields: dict forURL: url];
   cookie = [cookies objectAtIndex:0];
+  PASS([cookie isSecure], "NSHTTPCookie is secure");
   PASS([cookie isHTTPOnly], "NSHTTPCookie is HTTPOnly");
   
   [arp release]; arp = nil;
