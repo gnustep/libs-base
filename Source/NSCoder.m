@@ -35,6 +35,7 @@
 #define	EXPOSE_NSCoder_IVARS	1
 #import "Foundation/NSData.h"
 #import "Foundation/NSCoder.h"
+#import "Foundation/NSSet.h"
 #import "Foundation/NSSerialization.h"
 #import "Foundation/NSUserDefaults.h"
 
@@ -331,6 +332,17 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 
 // Keyed archiving extensions
 
+- (BOOL) requiresSecureCoding
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
+
+- (void) setRequiresSecureCoding: (BOOL)secure
+{
+  [self subclassResponsibility: _cmd];
+}
+
 - (BOOL) allowsKeyedCoding
 {
   return NO;
@@ -392,6 +404,18 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 }
 
 - (id) decodeObjectForKey: (NSString*)aKey
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (id) decodeObjectOfClass: (Class)cls forKey: (NSString *)aKey
+{
+  return [self decodeObjectOfClasses: [NSSet setWithObject:(id)cls]
+			      forKey: aKey];
+}
+
+- (id) decodeObjectOfClasses: (NSSet *)classes forKey: (NSString *)aKey
 {
   [self subclassResponsibility: _cmd];
   return nil;

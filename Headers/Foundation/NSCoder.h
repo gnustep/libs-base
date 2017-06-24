@@ -28,6 +28,7 @@
 
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSGeometry.h>
+#import	<Foundation/NSSet.h>
 #import	<Foundation/NSZone.h>
 
 #if	defined(__cplusplus)
@@ -303,6 +304,8 @@ extern "C" {
  */
 - (id) decodeObjectForKey: (NSString*)aKey;
 
+
+
 /** <override-subclass />
  * Encodes aBool and associates the encoded value with aKey.
  */
@@ -363,6 +366,20 @@ extern "C" {
  * Decodes an NSInteger associated with the key.
  */
 - (NSInteger) decodeIntegerForKey: (NSString *)key;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
+
+#if GS_HAS_DECLARED_PROPERTIES
+@property (nonatomic, assign) BOOL requiresSecureCoding;
+#else
+- (BOOL) requiresSecureCoding;
+- (void) setRequiresSecureCoding: (BOOL)requires;
+#endif
+
+- (id) decodeObjectOfClass: (Class)cls forKey: (NSString *)key;
+- (id) decodeObjectOfClasses: (NSSet *)classes forKey: (NSString *)key;
+
 #endif
 @end
 
