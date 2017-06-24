@@ -53,12 +53,19 @@ int main()
   	   "NSHTTPCookie returns proper value");
   PASS([[cookie domain] isEqual: [url host]], 
   	   "NSHTTPCookie returns proper domain");
+  PASS(![cookie isHTTPOnly], "Cookie is not http only");
   
   dict = [NSHTTPCookie requestHeaderFieldsWithCookies: cookies];
   PASS_EQUAL([dict objectForKey: @"Cookie"],
     @"S=calendar=R7tjDKqNB5L8YTZSvf29Bg",
     "NSHTTPCookie can generate proper cookie");
 
+  dict = [NSDictionary dictionaryWithObject:
+    @"SessionId=xxx;HttpOnly;" forKey: @"Set-Cookie"];
+  cookies= [NSHTTPCookie cookiesWithResponseHeaderFields: dict forURL: url];
+  cookie = [cookies objectAtIndex:0];
+  PASS([cookie isHTTPOnly], "NSHTTPCookie is HTTPOnly");
+  
   [arp release]; arp = nil;
   return 0;
 }
