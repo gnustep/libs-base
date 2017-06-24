@@ -283,6 +283,10 @@ extern "C" {
 - (id) initWithCoder: (NSCoder*)aDecoder;
 @end
 
+@protocol NSSecureCoding <NSCoding>
++ (BOOL)supportsSecureCoding;
+@end
+
 
 GS_ROOT_CLASS @interface NSObject <NSObject>
 {

@@ -365,6 +365,16 @@ static NSMapTable	*globalClassMap = 0;
   return YES;
 }
 
+- (BOOL)requiresSecureCoding
+{
+  return NO;
+}
+
+- (void)setRequiresSecureCoding: (BOOL)secure
+{
+  return;
+}
+
 - (Class) classForClassName: (NSString*)aString
 {
   return _clsMap == 0 ? Nil : (Class)NSMapGet(_clsMap, (void*)aString);
@@ -634,6 +644,11 @@ static NSMapTable	*globalClassMap = 0;
 	}
     }
   return nil;
+}
+
+- (id) decodeObjectOfClasses: (NSSet *)classes forKey: (NSString *)key
+{
+  return [self decodeObjectForKey: key];
 }
 
 - (NSPoint) decodePoint
