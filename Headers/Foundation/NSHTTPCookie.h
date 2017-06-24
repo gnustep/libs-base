@@ -220,6 +220,14 @@ extern NSString * const NSHTTPCookieVersion; /** Obtain cookie version */
 - (BOOL) isSessionOnly;
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
+#if GS_HAS_DECLARED_PROPERTIES
+@property (readonly, getter=isHTTPOnly) BOOL HTTPOnly;
+#else
+- (BOOL) isHTTPOnly;
+#endif
+#endif
+
 /**
  * Returns the name of the receiver.
  */
