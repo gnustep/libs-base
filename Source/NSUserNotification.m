@@ -55,7 +55,7 @@ NSString * const NSUserNotificationDefaultSoundName
 {
   if (nil != (self = [super init]))
     {
-      self.hasActionButton = YES;
+      [self setHasActionButton: YES];
     }
   return self;
 }
@@ -71,20 +71,21 @@ NSString * const NSUserNotificationDefaultSoundName
   return NSCopyObject(self, 0, zone);
 }
 
-- (NSString *)description
+- (NSString *) description
 {
   NSMutableString *d = [NSMutableString stringWithCapacity:80];
-  [d appendFormat:@"<%s:%p< {", object_getClassName(self), self];
-  [d appendFormat:@" title: \"%@\"", self.title];
-  [d appendFormat:@" informativeText: \"%@\"", self.informativeText];
-  [d appendFormat:@" actionButtonTitle: \"%@\"", self.actionButtonTitle];
-  if (self.actualDeliveryDate)
-  {
-    [d appendFormat:@" actualDeliveryDate: %@", self.actualDeliveryDate];
-    [d appendFormat:@" presented: %s", self.presented ? "YES" : "NO"];
-  }
-  [d appendFormat:@" next delivery date: %@", self.deliveryDate];
-  [d appendString:@" }"];
+
+  [d appendFormat: @"<%s:%p< {", object_getClassName(self), self];
+  [d appendFormat: @" title: \"%@\"", [self title]];
+  [d appendFormat: @" informativeText: \"%@\"", [self informativeText]];
+  [d appendFormat: @" actionButtonTitle: \"%@\"", [self actionButtonTitle]];
+  if ([self actualDeliveryDate])
+    {
+      [d appendFormat: @" actualDeliveryDate: %@", [self actualDeliveryDate]];
+      [d appendFormat: @" presented: %s", [self isPresented] ? "YES" : "NO"];
+    }
+  [d appendFormat: @" next delivery date: %@", [self deliveryDate]];
+  [d appendString: @" }"];
   return d;
 }
 
@@ -170,13 +171,13 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
 - (void) scheduleNotification: (NSUserNotification *)un
 {
-  if (!un.deliveryDate)
+  if (![un deliveryDate])
     {
       [self deliverNotification: un];
       return;
     }
   [_scheduledNotifications addObject: un];
-  NSTimeInterval delay = [un.deliveryDate timeIntervalSinceNow];
+  NSTimeInterval delay = [[un deliveryDate] timeIntervalSinceNow];
   [self performSelector: @selector(deliverNotification:)
              withObject: un
              afterDelay: delay];
@@ -192,13 +193,13 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
 - (void) _deliverNotification: (NSUserNotification *)un
 {
-  un.presented = YES;
+  [un setPresented: YES];
   NSLog(@"NOTE: %@", un);
 }
 
 - (NSDate *) nextDeliveryDateForNotification: (NSUserNotification *)un
 {
-  NSDateComponents *repeatInterval = un.deliveryRepeatInterval;
+  NSDateComponents *repeatInterval = [un deliveryRepeatInterval];
   if (!repeatInterval)
     return nil;
 
@@ -210,9 +211,10 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
   if (![cal timeZone])
     [cal setTimeZone:[NSTimeZone localTimeZone]];
 
-  NSDate *nextDeliveryDate = [cal dateByAddingComponents: repeatInterval
-                                                  toDate: un.actualDeliveryDate
-                                                 options: 0];
+  NSDate *nextDeliveryDate
+    = [cal dateByAddingComponents: repeatInterval
+                           toDate: [un actualDeliveryDate]
+                          options: 0];
   RELEASE(cal);
   return nextDeliveryDate;
 }
@@ -222,19 +224,19 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
   [self removeScheduledNotification: un];
   [self _deliverNotification: un];
 
-  NSDate *actualDeliveryDate = un.deliveryDate;
+  NSDate *actualDeliveryDate = [un deliveryDate];
   if (!actualDeliveryDate)
     actualDeliveryDate = [NSDate date];
-  un.actualDeliveryDate = actualDeliveryDate;
+  [un setActualDeliveryDate: actualDeliveryDate];
   [_deliveredNotifications addObject: un];
-  un.deliveryDate = [self nextDeliveryDateForNotification: un];
-  if (un.deliveryDate)
+  [un setDeliveryDate: [self nextDeliveryDateForNotification: un]];
+  if ([un deliveryDate])
     [self scheduleNotification: un];
 
-  if (self.delegate && [self.delegate respondsToSelector:
+  if ([self delegate] && [[self delegate] respondsToSelector:
     @selector(userNotificationCenter:didDeliverNotification:)])
     {
-      [self.delegate userNotificationCenter: self didDeliverNotification: un];
+      [[self delegate] userNotificationCenter: self didDeliverNotification: un];
     }
 }
 
