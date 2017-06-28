@@ -446,4 +446,12 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 #  define GS_PROTOCOLS_HAVE_OPTIONAL 0
 #endif
 
+/* Check if compiler supports declared properties
+ */
+#if defined(__clang__) || GS_GCC_MINREQ(4,6)
+#  define GS_HAS_DECLARED_PROPERTIES 1
+#else
+#  define GS_HAS_DECLARED_PROPERTIES 0
+#endif
+
 #endif /* __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_ */
