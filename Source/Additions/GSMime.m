@@ -128,6 +128,7 @@ static NSString         *Cte7bit = @"7bit";
 static NSString         *Cte8bit = @"8bit";
 static NSString         *CteBase64 = @"base64";
 static NSString         *CteBinary = @"binary";
+static NSString         *CteContentType = @"content-type";
 static NSString         *CteQuotedPrintable = @"quoted-printable";
 static NSString         *CteXuuencode = @"x-uuencode";
 
@@ -1778,7 +1779,7 @@ wordData(NSString *word, BOOL *encoded)
 	}
       [document deleteHeaderNamed: name];	// Should be unique
     }
-  else if ([name isEqualToString: @"content-type"] == YES)
+  else if ([name isEqualToString: CteContentType] == YES)
     {
       NSString	*tmp = [info parameterForKey: @"boundary"];
       NSString	*type;
@@ -2011,7 +2012,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	}
       value = [value lowercaseString];
     }
-  else if ([name isEqualToString: @"content-type"] == YES)
+  else if ([name isEqualToString: CteContentType] == YES)
     {
       NSString	*type;
       NSString	*subtype = nil;
@@ -2434,7 +2435,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       GSMimeHeader	*typeInfo;
       NSString		*type;
 
-      typeInfo = [document headerNamed: @"content-type"];
+      typeInfo = [document headerNamed: CteContentType];
       type = [typeInfo objectForKey: @"Type"];
       if ([type isEqualToString: @"multipart"] == YES)
 	{
@@ -2692,7 +2693,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	       * document, we set it as the default characterset inherited
 	       * by any child documents.
 	       */
-	      cset = [[document headerNamed: @"content-type"]
+	      cset = [[document headerNamed: CteContentType]
 		parameterForKey: @"charset"];
 	      if (cset != nil)
 		{
@@ -3634,10 +3635,9 @@ static NSCharacterSet	*tokenSet = nil;
       n = @"unknown";
     }
   ASSIGN(name, n);
-  if ([@"content-type" caseInsensitiveCompare: name]
-    == NSOrderedSame)
+  if ([CteContentType caseInsensitiveCompare: name] == NSOrderedSame)
     {
-      n = @"content-type";
+      n = CteContentType;
     }
   else if ([@"content-transfer-encoding" caseInsensitiveCompare: name]
     == NSOrderedSame)
@@ -4487,7 +4487,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       s = @"";
     }
   ASSIGNCOPY(value, s);
-  if (@"content-type" == lower)
+  if (CteContentType == lower)
     {
       NSArray   *a;
 
@@ -5474,7 +5474,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   if ([name isEqualToString: @"mime-version"] == YES
     || [name isEqualToString: @"content-disposition"] == YES
     || [name isEqualToString: @"content-transfer-encoding"] == YES
-    || [name isEqualToString: @"content-type"] == YES
+    || [name isEqualToString: CteContentType] == YES
     || [name isEqualToString: @"subject"] == YES)
     {
       NSUInteger	index = [self _indexOfHeaderNamed: name];
@@ -5498,7 +5498,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    {
 	      index = tmp;
 	    }
-	  tmp = [self _indexOfHeaderNamed: @"content-type"];
+	  tmp = [self _indexOfHeaderNamed: CteContentType];
 	  if (tmp != NSNotFound && tmp < index)
 	    {
 	      index = tmp;
@@ -5650,7 +5650,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	{
 	  GSMimeHeader	*hdr;
 
-	  hdr = [d headerNamed: @"content-type"];
+	  hdr = [d headerNamed: CteContentType];
 	  if ([[hdr parameterForKey: @"name"] isEqualToString: key] == YES)
 	    {
 	      return d;
@@ -5705,7 +5705,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (NSString*) contentName
 {
-  GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+  GSMimeHeader	*hdr = [self headerNamed: CteContentType];
 
   return [hdr parameterForKey: @"name"];
 }
@@ -5715,7 +5715,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (NSString*) contentSubtype
 {
-  GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+  GSMimeHeader	*hdr = [self headerNamed: CteContentType];
   NSString	*val = nil;
 
   if (hdr != nil)
@@ -5756,7 +5756,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (NSString*) contentType
 {
-  GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+  GSMimeHeader	*hdr = [self headerNamed: CteContentType];
   NSString	*val = nil;
 
   if (hdr != nil)
@@ -5804,7 +5804,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  GSMimeHeader	*hdr;
 	  BOOL		match = YES;
 
-	  hdr = [d headerNamed: @"content-type"];
+	  hdr = [d headerNamed: CteContentType];
 	  if ([[hdr parameterForKey: @"name"] isEqualToString: key] == NO)
 	    {
 	      hdr = [d headerNamed: @"content-disposition"];
@@ -5858,7 +5858,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
         && ([CteBinary caseInsensitiveCompare: v] == NSOrderedSame
 	  || [Cte8bit caseInsensitiveCompare: v] == NSOrderedSame))
 	{
-          GSMimeHeader  *t = [self headerNamed: @"content-type"];
+          GSMimeHeader  *t = [self headerNamed: CteContentType];
           NSString	*charset = [t parameterForKey: @"charset"];
           BOOL          isText = (nil == charset) ? NO : YES;
 
@@ -5969,7 +5969,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   if ([content isKindOfClass: NSStringClass] == YES)
     {
-      GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+      GSMimeHeader	*hdr = [self headerNamed: CteContentType];
       NSString		*charset = [hdr parameterForKey: @"charset"];
       NSString          *subtype;
       NSStringEncoding	enc;
@@ -6023,7 +6023,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     }
   else if ([content isKindOfClass: NSDataClass] == YES)
     {
-      GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+      GSMimeHeader	*hdr = [self headerNamed: CteContentType];
       NSString		*charset = [hdr parameterForKey: @"charset"];
       NSString          *subtype = [self contentSubtype];
       NSStringEncoding	enc;
@@ -6584,7 +6584,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	}
     }
 
-  type = [self headerNamed: @"content-type"];
+  type = [self headerNamed: CteContentType];
   if (type == nil)
     {
       /*
@@ -6614,7 +6614,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 		      format: @"[%@ -%@] with bad content",
 	    NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
 	}
-      type = [self headerNamed: @"content-type"];
+      type = [self headerNamed: CteContentType];
     }
 
   if (partData != nil)
@@ -6752,7 +6752,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    {
 	      start = [self contentByID: v];
 	    }
-	  hdr = [start headerNamed: @"content-type"];
+	  hdr = [start headerNamed: CteContentType];
 	  v = [hdr value];
 	  /*
 	   * If there is no 'type' parameter, we can fill it in automatically.
@@ -6968,7 +6968,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
         {
 	  NSString	*name;
 
-	  name = [[self headerNamed: @"content-type"] parameterForKey: @"name"];
+	  name = [[self headerNamed: CteContentType] parameterForKey: @"name"];
 	  if (name == nil)
 	    {
 	      name = @"untitled";
@@ -7360,7 +7360,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
    */
   contentIsArray = [content isKindOfClass: NSArrayClass];
 
-  ct = [document headerNamed: @"content-type"];
+  ct = [document headerNamed: CteContentType];
   if (nil == ct)
     {
       /*
@@ -7585,7 +7585,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    {
 	      start = [document contentByID: v];
 	    }
-	  hdr = [start headerNamed: @"content-type"];
+	  hdr = [start headerNamed: CteContentType];
 	  v = [hdr value];
 	  /*
 	   * If there is no 'type' parameter, we can fill it in automatically.
