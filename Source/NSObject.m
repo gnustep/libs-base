@@ -525,6 +525,8 @@ NSExtraRefCount(id anObject)
 inline void
 NSIncrementExtraRefCount(id anObject)
 {
+  BOOL  tooFar = NO;
+
 #if	defined(GSATOMICREAD)
   /* I've seen comments saying that some platforms only support up to
    * 24 bits in atomic locking, so raise an exception if we try to
@@ -533,8 +535,7 @@ NSIncrementExtraRefCount(id anObject)
   if (GSAtomicIncrement((gsatomic_t)&(((obj)anObject)[-1].retained))
     > 0xfffffe)
     {
-      [NSException raise: NSInternalInconsistencyException
-        format: @"NSIncrementExtraRefCount() asked to increment too far"];
+      tooFar = YES;
     }
 #else	/* GSATOMICREAD */
   NSLock *theLock = GSAllocationLockForObject(anObject);
@@ -542,13 +543,49 @@ NSIncrementExtraRefCount(id anObject)
   [theLock lock];
   if (((obj)anObject)[-1].retained > 0xfffffe)
     {
-      [theLock unlock];
-      [NSException raise: NSInternalInconsistencyException
-        format: @"NSIncrementExtraRefCount() asked to increment too far"];
+      tooFar = YES;
     }
-  ((obj)anObject)[-1].retained++;
+  else
+    {
+      ((obj)anObject)[-1].retained++;
+    }
   [theLock unlock];
 #endif	/* GSATOMICREAD */
+  if (YES == tooFar)
+    {
+      static NSHashTable        *overrun = nil;
+
+      /* We store this instance in a hash table so that we will only raise
+       * an exception for it once (and can therefore expect to log the instance
+       * as part of the exception derscription without recursion).
+       * NB. The hash table does not retain the object, so the code in the
+       * lock protected region below should be safe anyway.
+       */
+      [gnustep_global_lock lock];
+      if (nil == overrun)
+        {
+          overrun = NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
+        }
+      if (0 == NSHashGet(overrun, anObject))
+        {
+          NSHashInsert(overrun, anObject);
+        }
+      else
+        {
+          tooFar = NO;
+        }
+      [gnustep_global_lock lock];
+      if (YES == tooFar)
+        {
+          NSString      *base;
+
+          base = [NSString stringWithFormat: @"<%s: %p>",
+            class_getName([anObject class]), anObject];
+          [NSException raise: NSInternalInconsistencyException
+            format: @"NSIncrementExtraRefCount() asked to increment too far"
+            @" for %@ - %@", base, anObject];
+        }
+    }
 }
 
 #ifndef	NDEBUG
@@ -754,7 +791,7 @@ objc_create_block_classes_as_subclasses_of(Class super);
 #ifdef OBJC_CAP_ARC
 static id gs_weak_load(id obj)
 {
-	return [obj retainCount] > 0 ? obj : nil;
+  return [obj retainCount] > 0 ? obj : nil;
 }
 #endif
 
