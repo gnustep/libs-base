@@ -1,3 +1,10 @@
+2017-07-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: When an object's retain count is incremented too
+	far, track it so that we only raise an exception about it once (and
+	make the exception message more informative so we can more easily
+	tell what object has been leaked).
+
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
 	* Headers/Foundation/NSFileManager.h
@@ -71,12 +78,8 @@
 	* Headers/Foundation/NSZone.h:	
 	Implement NSMakeCollectable(), an interface which makes CoreFoundation
 	objects eligible for garbage collection.
-
-	Since garbage collection is a totally deprecated API, its implementation
-	is a no-op, which may cause objects that rely on it to leak. However, it
-	doesn't look like supporting actual garbage collection at this point
-	will bring a gain to the project -- and having this function available
-	will avoid breaking builds that rely on it.
+	Since garbage collection is a totally deprecated API, and support has
+	now been removed from GNUstep, its implementation is a no-op.
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
