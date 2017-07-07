@@ -1,3 +1,8 @@
+2017-07-07 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSProcessInfo.m:
+	Fix GetTickCount()/GetTickCount64() for different Windows versions.
+
 2017-07-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: When an object's retain count is incremented too

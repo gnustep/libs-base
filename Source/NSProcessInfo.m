@@ -1,5 +1,5 @@
 /** Implementation for NSProcessInfo for GNUStep
-   Copyright (C) 1995-2014 Free Software Foundation, Inc.
+   Copyright (C) 1995-2017 Free Software Foundation, Inc.
 
    Written by:  Georg Tuparev <Tuparev@EMBL-Heidelberg.de>
                 Heidelberg, Germany
@@ -1470,7 +1470,13 @@ static void determineOperatingSystem()
   NSUInteger uptime = 0;
 
 #if	defined(_WIN32)
+
+#if _WIN32_WINNT < 0x0600 /* less than Vista */
+  uptime = GetTickCount() / 1000;
+#else
   uptime = GetTickCount64() / 1000;
+#endif
+  
 #elif	defined(HAVE_SYSCTLBYNAME)
   struct timeval	tval;
   size_t		len = sizeof(tval);
