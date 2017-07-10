@@ -8,7 +8,7 @@ int main()
   NSString		*a = @"a";
   NSString              *alpha = @"α"; // @"\u03b1";
   NSString              *rightarrow = @"→"; // @"\u2192";
-  NSString              *smiley = @"🤐"; // @"\u1f910";
+  NSString              *smiley = @"😀"; // @"\U0001f600";
 
   PASS([a length] == 1, "'a' is one character.")
   PASS([alpha length] == 1, "alpha is one character.")
@@ -19,7 +19,7 @@ int main()
   PASS(strcmp([alpha UTF8String], "\xce\xb1") == 0, "UTF8 encoding for alpha.")
   PASS(strcmp([rightarrow UTF8String], "\xe2\x86\x92") == 0,
     "UTF8 encoding for rightarrow.")
-  PASS(strcmp([smiley UTF8String], "\xf0\x9f\xa4\x90") == 0,
+  PASS(strcmp([smiley UTF8String], "\xf0\x9f\x98\x80") == 0,
     "UTF8 encoding for smiley.")
 
   PASS([a canBeConvertedToEncoding: NSISOLatin1StringEncoding] == YES,
