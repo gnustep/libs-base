@@ -22,6 +22,8 @@ int main(void)
   PASS(0x9F == utf8[1], "Smiley UTF8 second byte OK")
   PASS(0x98 == utf8[2], "Smiley UTF8 third byte OK")
   PASS(0x80 == utf8[3], "Smiley UTF8 fourth byte OK")
+  PASS([smiley canBeConvertedToEncoding: NSISOLatin1StringEncoding] == NO,
+    "smiley cannot be converted to ISO Latin-1 encoding")
 
   mutable = AUTORELEASE([smiley mutableCopy]);
   PASS([mutable length] == 2, "Smiley copy is a pair of characters")

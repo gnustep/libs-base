@@ -168,6 +168,7 @@ lengthUTF8(const uint8_t *p, unsigned l, BOOL *ascii, BOOL *latin1)
       else
 	{
 	  l += 2;
+          l1 = NO;
 	}
     }
   if (0 != ascii)

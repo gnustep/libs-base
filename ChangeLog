@@ -1,3 +1,14 @@
+2017-07-10  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/GSString.m (lengthUTF8):
+	Characters outside the BMP cannot be converted to Latin 1 string
+	encoding either.
+
+	* Tests/base/NSString/pairs.m (main):
+	* Tests/base/NSString/unichar_const.m:
+	Add test cases.
+
+
 2017-07-07 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSProcessInfo.m:
@@ -13,7 +24,7 @@
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
 	* Headers/Foundation/NSFileManager.h
-	* Source/NSFileManager.m:	
+	* Source/NSFileManager.m:
 	Implement a method for getting attribytes of a file system path. Reuse
 	the implementation of -fileSystemAttributesAtPath: for this purpose but
 	export the last system errors to the caller. Make
@@ -30,13 +41,13 @@
 	* Source/GNUmakefile
 	* Source/NSFileCoordinator.m
 	* Source/NSFileVersion.m
-	* Source/NSURLSession.m:	
+	* Source/NSURLSession.m:
 	Generate class stubs (without any method definition) for
 	NSFileCoordinator, NSFilePresenter, NSFileVersion and NSURLSession.
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
-	* Headers/Foundation/NSURLConnection.h:	
+	* Headers/Foundation/NSURLConnection.h:
 	Currently, NSURLConnectionDelegate methods were defined as a category of
 	an NSObject. The same definitions were copied over to a new
 	NSURLConnectionDelegate protocol, introduced in OSX 10.7.
@@ -44,7 +55,7 @@
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
 	* Headers/Foundation/NSURLCredential.h
-	* Source/NSURLCredential.m:	
+	* Source/NSURLCredential.m:
 	Declare the NSURLCredentialPersistenceSynchronizable enumeration case to
 	NSURLCredential persistence options. Since GNUstep does not support
 	iCloud synchronization for credentials, this case will default to
@@ -54,7 +65,7 @@
 
 	* Headers/Foundation/NSURLProtectionSpace.h
 	* Source/GSHTTPAuthentication.m
-	* Source/NSURLProtectionSpace.m:	
+	* Source/NSURLProtectionSpace.m:
 	Improve handling of NSURL authentication methods. Make "HTMLForm"
 	authentication a no-op as it should be instead of making it fall back to
 	Basic authentication.
@@ -71,7 +82,7 @@
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
-	* Headers/Foundation/NSURLRequest.h:	
+	* Headers/Foundation/NSURLRequest.h:
 	Add new values for the NSURLCachePolicy enum. Although
 	NSURLRequestReloadIgnoringLocalAndRemoteCacheData and
 	NSURLRequestReloadRevalidatingCacheData have been left unimplemented,
@@ -80,7 +91,7 @@
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
-	* Headers/Foundation/NSZone.h:	
+	* Headers/Foundation/NSZone.h:
 	Implement NSMakeCollectable(), an interface which makes CoreFoundation
 	objects eligible for garbage collection.
 	Since garbage collection is a totally deprecated API, and support has
@@ -89,7 +100,7 @@
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
 	* Headers/Foundation/NSProcessInfo.h
-	* Source/NSProcessInfo.m:	
+	* Source/NSProcessInfo.m:
 	Add stubs for sudden termination APIs and for application activity
 	management methods.
 
@@ -97,14 +108,14 @@
 
 	* Headers/Foundation/NSProcessInfo.h
 	* Source/NSProcessInfo.m
-	* Tests/base/NSProcessInfo/general.m:	
+	* Tests/base/NSProcessInfo/general.m:
 	Introduce the systemUptime property to NSProcessInfo, which can compute
 	platform-independently what is the uptime of the system.
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
 	* Source/NSHTTPCookie.m
-	* Tests/base/NSHTTPCookie/basic.m:	
+	* Tests/base/NSHTTPCookie/basic.m:
 	Fix a bug in NSHTTPCookie's Set-Cookie parser where it would fail to
 	parse more than one key-only cookie (such as "Secure; HTTPOnly;") in a
 	header.
@@ -113,13 +124,13 @@
 
 	* Headers/Foundation/NSHTTPCookie.h
 	* Source/NSHTTPCookie.m
-	* Tests/base/NSHTTPCookie/basic.m:	
+	* Tests/base/NSHTTPCookie/basic.m:
 	Add support for parsing HTTPOnly cookies (those that cannot be accessed
 	by clients). Implement -[NSHTTPCookie isHTTPOnly].
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
-	* Headers/Foundation/NSHTTPCookie.h:	
+	* Headers/Foundation/NSHTTPCookie.h:
 	Make -[NSHTTPCookie isSessionOnly] and -[NSHTTPCookie isSecure] methods
 	become properties if possible, so that they can be also queried as
 	`cookie.sessionOnly` and `cookie.secure`. This increases compatibility
@@ -128,7 +139,7 @@
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
 	* Headers/Foundation/NSFileManager.h
-	* Source/NSFileManager.m:	
+	* Source/NSFileManager.m:
 	Create NSFileManagerDelegate, a more modern manner to verify whether to
 	proceed a file operation after an error or whether an operation should
 	actually be performed by NSFileManager.
@@ -139,7 +150,7 @@
 
 	* Headers/Foundation/NSURL.h
 	* Source/NSURL.m
-	* Source/externs.m:	
+	* Source/externs.m:
 	Create an unimplemented stub for NSURL's -getResourceValue:... method,
 	which can gather a numerous set of information about a URL.
 
@@ -149,14 +160,14 @@
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
-	* Headers/Foundation/NSURL.h:	
+	* Headers/Foundation/NSURL.h:
 	Create the NSURL.fileURL property to increase compatibility with
 	applications that rely on this.
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
 	* Headers/Foundation/NSURL.h
-	* Source/NSURL.m:	
+	* Source/NSURL.m:
 	The OSX filesystem implements "aliases", a species of symlink which
 	tracks its source if it was moved. Create stubs for the NSURL functions
 	which handle these aliases.
@@ -164,7 +175,7 @@
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
 	* Headers/Foundation/NSURL.h
-	* Source/NSURL.m:	
+	* Source/NSURL.m:
 	Implement +[NSURL fileURLWithPath:isDirectory:], a class method added in
 	OSX 10.5, which was missing from the implementation.
 
@@ -173,38 +184,38 @@
 	* Headers/Foundation/NSCoder.h
 	* Headers/Foundation/NSObject.h
 	* Source/NSCoder.m
-	* Source/NSKeyedUnarchiver.m:	
+	* Source/NSKeyedUnarchiver.m:
 	Implement stubs for NSSecureCoding which do not break projects that rely
 	on it.
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
 	* Headers/Foundation/NSDate.h
-	* Source/NSDate.m:	
+	* Source/NSDate.m:
 	Declare a system clock change notification. Base still does not emit
 	this notification, but this allows applications that wait for it not to
 	have their build broken.
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
-	* Headers/Foundation/NSObjCRuntime.h:	
+	* Headers/Foundation/NSObjCRuntime.h:
 	Create the NS_ROOT_CLASS macro, a wrapper around the objc_root_class
 	compiler attribute.
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
-	* Headers/Foundation/NSObjCRuntime.h:	
+	* Headers/Foundation/NSObjCRuntime.h:
 	Make NS_AVAILABLE and NS_CLASS_AVAILABLE macros no-ops so that their
 	absence does not break projects that rely on it.
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
-	* Headers/Foundation/NSCalendar.h:	
+	* Headers/Foundation/NSCalendar.h:
 	Update NSCalendarUnit definitions with a newer specification from Cocoa.
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
-	* Headers/Foundation/NSCalendar.h:	
+	* Headers/Foundation/NSCalendar.h:
 	Add the NSCalendarOptions enum to NSCalendar for compatibility purposes.
 	While NSCalendar does not yet know how to handle them, it will not
 	generate build errors in projects that attempt to use them.
@@ -213,7 +224,7 @@
 
 	* Headers/Foundation/NSCalendar.h
 	* Source/NSCalendar.m
-	* Source/NSLocale.m:	
+	* Source/NSLocale.m:
 	Add new calendar identifier constants to NSCalendar, to add
 	compatibility for newer OSX applications. Some identifiers do not hold
 	parity with the older equivalents and have been left unimplemented, with
@@ -223,7 +234,7 @@
 
 	* Headers/Foundation/NSGeometry.h
 	* Source/NSGeometry.m
-	* Tests/base/Functions/NSGeometry1.m:	
+	* Tests/base/Functions/NSGeometry1.m:
 	Create the NSEdgeInsets struct in NSGeometry, introduced in OSX 10.7.
 	Add helper functions for creating these insets.
 
@@ -232,14 +243,14 @@
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
-	* Headers/Foundation/FoundationErrors.h:	
+	* Headers/Foundation/FoundationErrors.h:
 	Create a no-file-exists error to the FoundationErrors enums. No function
 	is yet implemented to throw this error, but it has been added for
 	compatibility with applications that handle it.
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
-	* Headers/GNUstepBase/GSVersionMacros.h:	
+	* Headers/GNUstepBase/GSVersionMacros.h:
 	To keep compatibility with compilers prior to Objective-C 2.0 support,
 	added in the GCC 4.6 series, we are unable to always declare @property
 	attributes in classes. However, compatibility with dot-syntax
@@ -255,7 +266,7 @@
 
 2017-06-29  Daniel Ferreira <dtf@stanford.edu>
 
-	* .gitignore:	
+	* .gitignore:
 	Create a .gitignore file to ease Base development using the Git version
 	control system. This stops object files, automake products and test
 	files from being accidentally inserted into the tree.
