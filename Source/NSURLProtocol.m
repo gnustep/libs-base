@@ -776,6 +776,8 @@ static NSURLProtocol	*placeholder = nil;
 
 	  request = [[this->request mutableCopy] autorelease];
 	  [request setURL: url];
+          // This invocation may end up detroying us so need to retain/autorelease...
+          [[self retain] autorelease];
 	  [this->client URLProtocol: self
 	     wasRedirectedToRequest: request
 		   redirectResponse: nil];
