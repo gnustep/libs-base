@@ -136,7 +136,13 @@ GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
 	     context: (void*)aContext;
 
 - (void) removeObserver: (NSObject*)anObserver
-	     forKeyPath: (NSString*)aPath;
+             forKeyPath: (NSString*)aPath;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST)
+- (void) removeObserver: (NSObject*)anObserver
+             forKeyPath: (NSString*)aPath
+                context: (void *)context;
+#endif
 
 @end
 
