@@ -1375,6 +1375,13 @@ static NSURLProtocol	*placeholder = nil;
 		  [self _didLoad: d];
 		}
 	    }
+          
+          // Status code 200 with HEAD request is complete at this point...
+          if ((_statusCode == 200) && ([[this->request HTTPMethod] isEqualToString: @"HEAD"]))
+            {
+              _isLoading = NO;
+              [this->client URLProtocolDidFinishLoading: self];
+            }
 	}
 
       if (_complete == NO && readCount == 0 && _isLoading == YES)
