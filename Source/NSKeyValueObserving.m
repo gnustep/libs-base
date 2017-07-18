@@ -1291,12 +1291,10 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
                     }
                 }
             }
-#if 0
           else
             {
               pathInfo->allOptions |= o->options;
             }
-#endif
         }
     }
   [iLock unlock];
