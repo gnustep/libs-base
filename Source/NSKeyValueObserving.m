@@ -1280,15 +1280,13 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
           GSKVOObservation      *o;
           
           o = [pathInfo->observations objectAtIndex: count];
-          if (o->observer == anObserver || o->observer == nil)
+          if ((o->observer == anObserver || o->observer == nil) &&
+              (o->context == context))
             {
-              if (o->context == context)
+              [pathInfo->observations removeObjectAtIndex: count];
+              if ([pathInfo->observations count] == 0)
                 {
-                  [pathInfo->observations removeObjectAtIndex: count];
-                  if ([pathInfo->observations count] == 0)
-                    {
-                      NSMapRemove(paths, (void*)aPath);
-                    }
+                  NSMapRemove(paths, (void*)aPath);
                 }
             }
           else
