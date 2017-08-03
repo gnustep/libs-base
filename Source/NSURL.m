@@ -1661,7 +1661,7 @@ static NSUInteger	urlAlign;
 
 - (NSString*) _pathWithEscapes: (BOOL)withEscapes
 {
-  NSString	*path = nil;
+  NSString	*path = [NSString string];
 
   if (YES == myData->isGeneric || 0 == myData->scheme)
     {
