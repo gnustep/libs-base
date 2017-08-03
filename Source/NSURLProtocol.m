@@ -620,6 +620,47 @@ static NSURLProtocol	*placeholder = nil;
   return protoClass;
 }
 
+- (NSDictionary*) _userInfoForErrorCode: (NSUInteger) errorCode description: (NSString*) description host: (NSHost*)host
+{
+  return [NSDictionary dictionaryWithObjectsAndKeys:
+          [this->request URL],  @"NSErrorFailingURLKey",
+          host,                 @"NSErrorFailingURLStringKey",
+          description,          @"NSLocalizedDescription",
+          nil];
+}
+
+- (NSDictionary*) _userInfoForErrorCode: (NSUInteger) errorCode description: (NSString*) description
+{
+  NSURL   *url  = [this->request URL];
+  NSHost	*host = [NSHost hostWithName: [url host]];
+  //int	port = [[url port] intValue];
+  
+  if (host == nil)
+  {
+    host = [NSHost hostWithAddress: [url host]];	// try dotted notation
+  }
+  if (host == nil)
+  {
+    host = [NSHost hostWithAddress: @"127.0.0.1"];	// final default
+  }
+  
+  if (host)
+    return [self _userInfoForErrorCode: errorCode description: description host: host];
+
+  return [NSDictionary dictionaryWithObjectsAndKeys:
+          [this->request URL],  @"NSErrorFailingURLKey",
+          description,          @"NSLocalizedDescription",
+          nil];
+}
+
+- (NSDictionary*) _userInfoForErrorCode: (NSUInteger) errorCode
+{
+  return [NSDictionary dictionaryWithObjectsAndKeys:
+          [this->request URL],        @"URL",
+          [[this->request URL] path], @"path",
+          nil];
+  
+}
 @end
 
 @implementation	NSURLProtocol (Subclassing)
@@ -725,7 +766,7 @@ static NSURLProtocol	*placeholder = nil;
       [this->client URLProtocol: self didFailWithError:
 	[NSError errorWithDomain: @"Invalid HTTP Method"
 			    code: 0
-			userInfo: nil]];
+                        userInfo: [self _userInfoForErrorCode: 0]]];
       return;
     }
   if (_isLoading == YES)
@@ -765,7 +806,7 @@ static NSURLProtocol	*placeholder = nil;
 
 	  e = [NSError errorWithDomain: @"Invalid redirect request"
 				  code: 0
-			      userInfo: nil];
+			      userInfo: [self _userInfoForErrorCode: 0]];
 	  [self stopLoading];
 	  [this->client URLProtocol: self
 		   didFailWithError: e];
@@ -832,12 +873,8 @@ static NSURLProtocol	*placeholder = nil;
 	    }
 	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError:
-	    [NSError errorWithDomain: @"can't connect" code: 0 userInfo: 
-	      [NSDictionary dictionaryWithObjectsAndKeys: 
-		url, @"NSErrorFailingURLKey",
-		host, @"NSErrorFailingURLStringKey",
-		@"can't find host", @"NSLocalizedDescription",
-		nil]]];
+           [NSError errorWithDomain: @"can't connect" code: 0
+                           userInfo: [self _userInfoForErrorCode: 0 description: @"can't find host" host: host]]];
 	  return;
 	}
       [this->input retain];
@@ -1006,6 +1043,9 @@ static NSURLProtocol	*placeholder = nil;
 	    {
 	      len = [s intValue];
 	    }
+          
+          if (_debug)
+            NSWarnMLog(@"statusCode: %ld len: %ld", (long)_statusCode, (long)len);
 
 	  s = [info objectForKey: NSHTTPPropertyStatusReasonKey];
 
@@ -1037,7 +1077,10 @@ static NSURLProtocol	*placeholder = nil;
 	  [_response _setStatusCode: _statusCode text: s];
 	  [document deleteHeaderNamed: @"http"];
 	  [_response _setHeaders: [document allHeaders]];
-
+          
+          if (_debug)
+            NSWarnMLog(@"[document allHeaders]: %@", [document allHeaders]);
+          
 	  if (_statusCode == 204 || _statusCode == 304)
 	    {
 	      _complete = YES;	// No body expected.
@@ -1053,7 +1096,8 @@ static NSURLProtocol	*placeholder = nil;
 	       * until the challenge is complete, then try to deal with it.
 	       */
 	    }
-	  else if ((s = [[document headerNamed: @"location"] value]) != nil)
+	  else if (((_statusCode >= 300) && (_statusCode <= 310)) && // Redirect status codes...
+                   ((s = [[document headerNamed: @"location"] value]) != nil))
 	    {
 	      NSURL	*url;
 
@@ -1074,7 +1118,12 @@ static NSURLProtocol	*placeholder = nil;
 		  NSMutableURLRequest	*request;
 
 		  request = [[this->request mutableCopy] autorelease];
-		  [request setURL: url];
+                  [request setURL: url];
+
+                  // This invocation may end up detroying us so need to retain/autorelease...
+                  [[self retain] autorelease];
+                  
+                  // Redirect to the new URL...
 		  [this->client URLProtocol: self
 		     wasRedirectedToRequest: request
 			   redirectResponse: _response];
@@ -1098,6 +1147,10 @@ static NSURLProtocol	*placeholder = nil;
 		  hdrs = [_response allHeaderFields];
 		  cookies = [NSHTTPCookie cookiesWithResponseHeaderFields: hdrs
 								   forURL: url];
+                  if (_debug)
+                    NSWarnMLog(@"cookies: %@", cookies);
+                  
+                  // Store the cookie(s)...
 		  [[NSHTTPCookieStorage sharedHTTPCookieStorage]
 		    setCookies: cookies
 		    forURL: url

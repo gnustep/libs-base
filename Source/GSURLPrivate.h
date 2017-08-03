@@ -73,6 +73,9 @@
 
 @interface      NSURLProtocol (Private)
 + (Class) _classToHandleRequest:(NSURLRequest *)request;
+- (NSDictionary*) _userInfoForErrorCode: (NSUInteger) errorCode;
+- (NSDictionary*) _userInfoForErrorCode: (NSUInteger) errorCode description: (NSString*) description;
+- (NSDictionary*) _userInfoForErrorCode: (NSUInteger) errorCode description: (NSString*) description host: (NSHost*)host;
 @end
 
 /*
