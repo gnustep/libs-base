@@ -964,8 +964,18 @@ static NSURLProtocol	*placeholder = nil;
 
   readCount = [(NSInputStream *)stream read: buffer
 				  maxLength: sizeof(buffer)];
+  if (_debug)
+    {
+      NSWarnMLog(@"readCount: %ld", (long)readCount);
+    }
+  
   if (readCount < 0)
     {
+      if (_debug)
+        {
+          NSWarnMLog(@"[stream  streamStatus]: %ld", (long)[stream  streamStatus]);
+        }
+      
       if ([stream  streamStatus] == NSStreamStatusError)
         {
 	  e = [stream streamError];
@@ -976,7 +986,13 @@ static NSURLProtocol	*placeholder = nil;
 	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError: e];
 	}
-      return;
+      
+      // This is to fix the case where the last time through the stream still
+      // indicated there were bytes available (status=401) but there really was
+      // no more data to read...
+      if ([stream  streamStatus] != NSStreamStatusReading)
+        return;
+      readCount = 0;
     }
   if (_debug)
     {
@@ -1010,6 +1026,12 @@ static NSURLProtocol	*placeholder = nil;
       unsigned		bodyLength;
 
       _complete = [_parser isComplete];
+      
+      if (_debug)
+        {
+          NSWarnMLog(@"wasInHeaders: %ld isInHeaders: %ld", (long)wasInHeaders, (long)isInHeaders);
+        }
+      
       if (YES == wasInHeaders && NO == isInHeaders)
         {
 	  GSMimeHeader		*info;
@@ -1045,8 +1067,10 @@ static NSURLProtocol	*placeholder = nil;
 	    }
           
           if (_debug)
-            NSWarnMLog(@"statusCode: %ld len: %ld", (long)_statusCode, (long)len);
-
+            {
+              NSWarnMLog(@"statusCode: %ld len: %ld", (long)_statusCode, (long)len);
+            }
+          
 	  s = [info objectForKey: NSHTTPPropertyStatusReasonKey];
 
 /* Should use this?
@@ -1079,7 +1103,9 @@ static NSURLProtocol	*placeholder = nil;
 	  [_response _setHeaders: [document allHeaders]];
           
           if (_debug)
-            NSWarnMLog(@"[document allHeaders]: %@", [document allHeaders]);
+            {
+              NSWarnMLog(@"[document allHeaders]: %@", [document allHeaders]);
+            }
           
 	  if (_statusCode == 204 || _statusCode == 304)
 	    {
@@ -1095,7 +1121,13 @@ static NSURLProtocol	*placeholder = nil;
 	      /* This is an authentication challenge, so we keep reading
 	       * until the challenge is complete, then try to deal with it.
 	       */
-	    }
+              _complete = ([this->input hasBytesAvailable] == NO);
+              if (_debug)
+                {
+                  NSWarnMLog(@"[this->input hasBytesAvailable]: %ld streamStatus]: %ld",
+                             (long)[this->input hasBytesAvailable], (long)[stream  streamStatus]);
+                }
+            }
 	  else if (((_statusCode >= 300) && (_statusCode <= 310)) && // Redirect status codes...
                    ((s = [[document headerNamed: @"location"] value]) != nil))
 	    {
@@ -1148,7 +1180,9 @@ static NSURLProtocol	*placeholder = nil;
 		  cookies = [NSHTTPCookie cookiesWithResponseHeaderFields: hdrs
 								   forURL: url];
                   if (_debug)
-                    NSWarnMLog(@"cookies: %@", cookies);
+                    {
+                      NSWarnMLog(@"cookies: %@", cookies);
+                    }
                   
                   // Store the cookie(s)...
 		  [[NSHTTPCookieStorage sharedHTTPCookieStorage]
@@ -1198,7 +1232,12 @@ static NSURLProtocol	*placeholder = nil;
 	    }
 #endif
 	}
-
+      
+      if (_debug)
+        {
+          NSWarnMLog(@"complete: %ld d-length: %ld", (long)_complete, (long)[d length]);
+        }
+      
       if (_complete == YES)
 	{
 	  if (_statusCode == 401)
@@ -1430,7 +1469,8 @@ static NSURLProtocol	*placeholder = nil;
 	    }
           
           // Status code 200 with HEAD request is complete at this point...
-          if ((_statusCode == 200) && ([[this->request HTTPMethod] isEqualToString: @"HEAD"]))
+          //if ((_statusCode == 200) && ([[this->request HTTPMethod] isEqualToString: @"HEAD"]))
+          if ([[this->request HTTPMethod] isEqualToString: @"HEAD"])
             {
               _isLoading = NO;
               [this->client URLProtocolDidFinishLoading: self];
@@ -1453,6 +1493,7 @@ static NSURLProtocol	*placeholder = nil;
 	    [NSError errorWithDomain: @"receive incomplete"
 				code: 0
 			    userInfo: nil]];
+          //[self _userInfoForErrorCode: 0 description: @"receive incomplete"]
 	}
     }
 }
@@ -1463,11 +1504,12 @@ static NSURLProtocol	*placeholder = nil;
    */
   IF_NO_GC([[self retain] autorelease];)
 
-#if 0
-  NSLog(@"stream: %@ handleEvent: %x for: %@ (ip %p, op %p)",
-    stream, event, self, this->input, this->output);
-#endif
-
+  if (_debug)
+    {
+      NSLog(@"stream: %@ handleEvent: %x for: %@ (ip %p, op %p)",
+            stream, event, self, this->input, this->output);
+    }
+  
   if (stream == this->input) 
     {
       switch(event)
