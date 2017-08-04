@@ -1,3 +1,9 @@
+2017-08-04  Daniel Ferreira <dtf@stanford.edu>
+
+	* Headers/Foundation/NSObjCRuntime.h:	
+	Add empty definitions for OSX Availability macros for compatibility
+	purposes.
+
 2017-07-10  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/GSString.m (lengthUTF8):
