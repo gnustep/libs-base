@@ -4,6 +4,17 @@
 	Location error was taken to indicate a redirect rather than looking
 	at the HTTP status code for a 3xx value.
 
+2017-08-16  Daniel Ferreira <dtf@stanford.edu>
+
+	* Headers/Foundation/NSURLDownload.h:	
+	As of macOS 10.7, NSURLDownloadDelegate is exposed formally as a
+	protocol. This adds the declaration to make this true for GNUstep.
+
+2017-08-15  Daniel Ferreira <dtf@stanford.edu>
+
+	* Headers/Foundation/NSTextCheckingResult.h:	
+	Define missing constants in the NSTextCheckingResult header.
+
 2017-08-04  Daniel Ferreira <dtf@stanford.edu>
 
 	* Headers/Foundation/NSObjCRuntime.h:	
