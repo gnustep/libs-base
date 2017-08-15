@@ -31,7 +31,35 @@
 @class NSURL;
 
 typedef uint64_t NSTextCheckingType;
-static const NSTextCheckingType NSTextCheckingTypeRegularExpression  = 1ULL<<10;
+enum
+{
+  NSTextCheckingTypeOrthography = 1ULL << 0,
+  NSTextCheckingTypeSpelling = 1ULL << 1,
+  NSTextCheckingTypeGrammar = 1ULL << 2,
+  NSTextCheckingTypeDate = 1ULL << 3,
+  NSTextCheckingTypeAddress = 1ULL << 4,
+  NSTextCheckingTypeLink = 1ULL << 5,
+  NSTextCheckingTypeQuote = 1ULL << 6,
+  NSTextCheckingTypeDash = 1ULL << 7,
+  NSTextCheckingTypeReplacement = 1ULL << 8,
+  NSTextCheckingTypeCorrection = 1ULL << 9,
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+  NSTextCheckingTypeRegularExpression = 1ULL << 10,
+  NSTextCheckingTypePhoneNumber = 1ULL << 11,
+  NSTextCheckingTypeTransitInformation = 1ULL << 12
+#endif
+};
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+typedef uint64_t NSTextCheckingTypes;   // a combination of types
+enum
+{
+  NSTextCheckingAllSystemTypes = 0xffffffffULL,
+  NSTextCheckingAllCustomTypes = 0xffffffffULL << 32,
+  NSTextCheckingAllTypes = (NSTextCheckingAllSystemTypes | NSTextCheckingAllCustomTypes)
+};
+#endif
+
 
 /**
  * NSTextCheckingResult is an abstract class encapsulating the result of some
