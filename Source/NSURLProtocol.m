@@ -815,10 +815,10 @@ static NSURLProtocol	*placeholder = nil;
 	{
 	  NSMutableURLRequest	*request;
 
-	  request = [[this->request mutableCopy] autorelease];
+	  request = AUTORELEASE([this->request mutableCopy]);
 	  [request setURL: url];
           // This invocation may end up detroying us so need to retain/autorelease...
-          [[self retain] autorelease];
+          AUTORELEASE(RETAIN([self retain]));
 	  [this->client URLProtocol: self
 	     wasRedirectedToRequest: request
 		   redirectResponse: nil];
@@ -1149,11 +1149,11 @@ static NSURLProtocol	*placeholder = nil;
 	        {
 		  NSMutableURLRequest	*request;
 
-		  request = [[this->request mutableCopy] autorelease];
+		  request = AUTORELEASE([this->request mutableCopy]);
                   [request setURL: url];
 
                   // This invocation may end up detroying us so need to retain/autorelease...
-                  [[self retain] autorelease];
+                  AUTORELEASE(RETAIN(self));
                   
                   // Redirect to the new URL...
 		  [this->client URLProtocol: self
@@ -1502,7 +1502,7 @@ static NSURLProtocol	*placeholder = nil;
 {
   /* Make sure no action triggered by anything else destroys us prematurely.
    */
-  IF_NO_GC([[self retain] autorelease];)
+  IF_NO_GC(AUTORELEASE(RETAIN(self));)
 
   if (_debug)
     {
@@ -1810,7 +1810,7 @@ static NSURLProtocol	*placeholder = nil;
     }
   if (event == NSStreamEventErrorOccurred)
     {
-      NSError	*error = [[[stream streamError] retain] autorelease];
+      NSError	*error = AUTORELEASE(RETAIN([stream streamError]));
 
       [self stopLoading];
       [this->client URLProtocol: self didFailWithError: error];
