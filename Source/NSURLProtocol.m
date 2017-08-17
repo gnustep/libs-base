@@ -986,13 +986,7 @@ static NSURLProtocol	*placeholder = nil;
 	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError: e];
 	}
-      
-      // This is to fix the case where the last time through the stream still
-      // indicated there were bytes available (status=401) but there really was
-      // no more data to read...
-      if ([stream  streamStatus] != NSStreamStatusReading)
-        return;
-      readCount = 0;
+      return;
     }
   if (_debug)
     {
