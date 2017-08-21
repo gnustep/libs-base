@@ -286,13 +286,20 @@ DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
 /**
  * Declare Apple availability macros for compatibility purposes as no-ops.
  */
-#ifndef NS_CLASS_AVAILABLE
-#define NS_CLASS_AVAILABLE(x, y)
-#endif
-
-#ifndef NS_AVAILABLE
-#define NS_AVAILABLE(x, y)
-#endif
+#define NS_CLASS_AVAILABLE(...)
+#define NS_AVAILABLE(...)
+#define NS_AVAILABLE_MAC(...)
+#define NS_DEPRECATED(...)
+#define NS_DEPRECATED_MAC(...)
+#define NS_ENUM_AVAILABLE(...)
+#define NS_ENUM_AVAILABLE_MAC(...)
+#define NS_ENUM_DEPRECATED(...)
+#define NS_ENUM_DEPRECATED_MAC(...)
+#define NS_CLASS_AVAILABLE(...)
+#define NS_CLASS_DEPRECATED(...)
+#define NS_CLASS_AVAILABLE_MAC(...)
+#define NS_CLASS_DEPRECATED_MAC(...)
+#define NS_UNAVAILABLE
 
 /* Define root class NS macro */
 #ifndef NS_ROOT_CLASS

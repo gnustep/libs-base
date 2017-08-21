@@ -4,6 +4,12 @@
 	Location error was taken to indicate a redirect rather than looking
 	at the HTTP status code for a 3xx value.
 
+2017-08-04  Daniel Ferreira <dtf@stanford.edu>
+
+	* Headers/Foundation/NSObjCRuntime.h:	
+	Add empty definitions for OSX Availability macros for compatibility
+	purposes.
+
 2017-07-10  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/GSString.m (lengthUTF8):
