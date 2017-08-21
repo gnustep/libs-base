@@ -1,3 +1,9 @@
+2017-08-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLProtocol.m: Fixed error where the presence of a
+	Location error was taken to indicate a redirect rather than looking
+	at the HTTP status code for a 3xx value.
+
 2017-07-10  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/GSString.m (lengthUTF8):

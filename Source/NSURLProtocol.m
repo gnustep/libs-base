@@ -1051,11 +1051,17 @@ static NSURLProtocol	*placeholder = nil;
 	       * until the challenge is complete, then try to deal with it.
 	       */
 	    }
-	  else if ((s = [[document headerNamed: @"location"] value]) != nil)
+	  else if (_statusCode >= 300 && _statusCode < 400)
 	    {
 	      NSURL	*url;
 
-	      url = [NSURL URLWithString: s];
+              NS_DURING
+                s = [[document headerNamed: @"location"] value];
+                url = [NSURL URLWithString: s];
+              NS_HANDLER
+                url = nil;
+              NS_ENDHANDLER
+
 	      if (url == nil)
 	        {
 		  NSError	*e;
