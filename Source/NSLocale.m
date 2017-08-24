@@ -505,7 +505,7 @@ static NSRecursiveLock *classLock = nil;
           NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity: 10];
           const char *const *codes = uloc_getISOCountries ();
 
-          while (codes != NULL)
+          while (*codes != NULL)
             {
               [array addObject: [NSString stringWithUTF8String: *codes]];
               ++codes;
@@ -530,9 +530,9 @@ static NSRecursiveLock *classLock = nil;
       if (nil == languages)
         {
           NSMutableArray *array = [[NSMutableArray alloc] initWithCapacity: 10];
-          const char *const *codes = uloc_getISOCountries ();
+          const char *const *codes = uloc_getISOLanguages ();
 
-          while (codes != NULL)
+          while (*codes != NULL)
             {
               [array addObject: [NSString stringWithUTF8String: *codes]];
               ++codes;

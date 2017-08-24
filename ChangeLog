@@ -1,3 +1,7 @@
+2017-08-24  Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSLocale.m: Fix bug in ISO code methods.
+
 2017-08-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLProtocol.m: Fixed error where the presence of a
