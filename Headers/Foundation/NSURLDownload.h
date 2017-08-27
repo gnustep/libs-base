@@ -119,7 +119,18 @@ extern "C" {
 /**
  * Protocol for delegate used to report the progress of the download.
  */
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+@protocol NSURLDownloadDelegate <NSObject>
+#if GS_PROTOCOLS_HAVE_OPTIONAL
+@optional
+#else
+@end
 @interface NSObject (NSURLDownloadDelegate)
+#endif
+#else
+@interface NSObject (NSURLDownloadDelegate)
+#endif
 
 /**
  * Called immediately once the download has started.
