@@ -1125,37 +1125,47 @@ static NSURLProtocol	*placeholder = nil;
     else if (((_statusCode >= 300) && (_statusCode <= 310)) && // Redirect status codes...
              ([@"HEAD" isEqualToString: [this->request HTTPMethod]] == NO) && // Skip if a head request...
              ((s = [[document headerNamed: @"location"] value]) != nil)) // Skip if no location specified...
-	    {
-	      NSURL	*url;
-
-	      url = [NSURL URLWithString: s];
-	      if (url == nil)
-	        {
-		  NSError	*e;
-
-		  e = [NSError errorWithDomain: @"Invalid redirect request"
-					  code: 0
-				      userInfo: nil];
-		  [self stopLoading];
-		  [this->client URLProtocol: self
-			   didFailWithError: e];
-		}
-	      else
-	        {
-		  NSMutableURLRequest	*request;
-
-		  request = AUTORELEASE([this->request mutableCopy]);
-                  [request setURL: url];
-
-                  // This invocation may end up detroying us so need to retain/autorelease...
-                  AUTORELEASE(RETAIN(self));
-                  
-                  // Redirect to the new URL...
-		  [this->client URLProtocol: self
-		     wasRedirectedToRequest: request
-			   redirectResponse: _response];
-		}
-	    }
+      {
+        // Some sites are a bit wierd...
+        // Ensure the scheme is set and default it if not...
+        if ([s hasPrefix: @"//"])
+          {
+            s = [@"http:" stringByAppendingString: s];
+          }
+        else if ([s hasPrefix: @"/"])
+          {
+            s = [@"http:/" stringByAppendingString: s];
+          }
+        
+        // Create the URL...
+        NSURL	*url = [NSURL URLWithString: s];
+        
+        if (url == nil)
+          {
+            NSError	*e;
+            
+            e = [NSError errorWithDomain: @"Invalid redirect request"
+                                    code: 0
+                                userInfo: nil];
+            [self stopLoading];
+            [this->client URLProtocol: self
+                     didFailWithError: e];
+          }
+        else
+          {
+            NSMutableURLRequest	*request = AUTORELEASE([this->request mutableCopy]);
+            
+            [request setURL: url];
+            
+            // This invocation may end up detroying us so need to retain/autorelease...
+            AUTORELEASE(RETAIN(self));
+            
+            // Redirect to the new URL...
+            [this->client URLProtocol: self
+               wasRedirectedToRequest: request
+                     redirectResponse: _response];
+          }
+      }
 	  else
 	    {
 	      NSURLCacheStoragePolicy policy;
