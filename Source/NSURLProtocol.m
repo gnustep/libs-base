@@ -368,6 +368,8 @@ typedef struct {
   NSCachedURLResponse		*cachedResponse;
   id <NSURLProtocolClient>	client;		// Not retained
   NSURLRequest			*request;
+  unsigned char                 *_inputBuffer;
+  unsigned char                 *_outputBuffer;
 #if	USE_ZLIB
   z_stream			z;		// context for decompress
   BOOL				compressing;	// are we compressing?
@@ -376,8 +378,13 @@ typedef struct {
 #endif
 } Internal;
  
-#define	this	((Internal*)(self->_NSURLProtocolInternal))
-#define	inst	((Internal*)(o->_NSURLProtocolInternal))
+#define	this          ((Internal*)(self->_NSURLProtocolInternal))
+#define	inst          ((Internal*)(o->_NSURLProtocolInternal))
+#define READ_BUFFER   (this->_inputBuffer)
+#define WRITE_BUFFER  (this->_outputBuffer)
+
+#define MAX_READ_BUFFER  BUFSIZ*64
+#define MAX_WRITE_BUFFER MAX_READ_BUFFER
 
 static NSMutableArray	*registered = nil;
 static NSLock		*regLock = nil;
@@ -513,6 +520,9 @@ static NSURLProtocol	*placeholder = nil;
           DESTROY(this->input);
           DESTROY(this->output);
 	}
+      NSZoneFree([self zone], READ_BUFFER);
+      NSZoneFree([self zone], WRITE_BUFFER);
+      
       DESTROY(this->cachedResponse);
       DESTROY(this->request);
 #if	USE_ZLIB
@@ -586,6 +596,8 @@ static NSURLProtocol	*placeholder = nil;
       this->request = [request copy];
       this->cachedResponse = RETAIN(cachedResponse);
       this->client = client;	// Not retained
+      READ_BUFFER = NSZoneCalloc([self zone], 1, MAX_READ_BUFFER);
+      WRITE_BUFFER = NSZoneCalloc([self zone], 1, MAX_WRITE_BUFFER);
     }
   return self;
 }
@@ -956,20 +968,28 @@ static NSURLProtocol	*placeholder = nil;
 
 - (void) _got: (NSStream*)stream
 {
-  unsigned char	buffer[BUFSIZ*64];
   int 		readCount;
   NSError	*e;
   NSData	*d;
   BOOL		wasInHeaders = NO;
-
-  readCount = [(NSInputStream *)stream read: buffer
-				  maxLength: sizeof(buffer)];
-  if (_debug)
+  int           totalRead = 0;
+  
+  // Continue reading until we've either filled our buffer or nothing
+  // left to read - as the event for another *may* not happen depending on timing...
+  while ((totalRead < MAX_READ_BUFFER) && [(NSInputStream *)stream hasBytesAvailable])
     {
-      NSWarnMLog(@"readCount: %ld", (long)readCount);
+      readCount = [(NSInputStream *)stream read: &READ_BUFFER[totalRead] maxLength: MAX_READ_BUFFER-totalRead];
+      if (readCount == -1)
+        break;
+      totalRead += readCount;
     }
   
-  if (readCount < 0)
+  if (_debug)
+    {
+      NSWarnMLog(@"readCount: %ld readCount: %ld", (long)readCount, (long)totalRead);
+    }
+  
+  if ((readCount < 0) && (totalRead == 0))
     {
       if (_debug)
         {
@@ -988,9 +1008,11 @@ static NSURLProtocol	*placeholder = nil;
 	}
       return;
     }
+  
+  readCount = totalRead;
   if (_debug)
     {
-      debugRead(self, readCount, buffer);
+      debugRead(self, readCount, READ_BUFFER);
     }
 
   if (_parser == nil)
@@ -999,7 +1021,8 @@ static NSURLProtocol	*placeholder = nil;
       [_parser setIsHttp];
     }
   wasInHeaders = [_parser isInHeaders];
-  d = [NSData dataWithBytes: buffer length: readCount];
+  d = [NSData dataWithBytes: READ_BUFFER length: readCount];
+  
   if ([_parser parse: d] == NO && (_complete = [_parser isComplete]) == NO)
     {
       if (_debug == YES)
@@ -1018,12 +1041,18 @@ static NSURLProtocol	*placeholder = nil;
       BOOL		isInHeaders = [_parser isInHeaders];
       GSMimeDocument	*document = [_parser mimeDocument];
       unsigned		bodyLength;
+      
+      if (_debug)
+        {
+          NSWarnMLog(@"document: %@", document);
+        }
 
       _complete = [_parser isComplete];
       
       if (_debug)
         {
-          NSWarnMLog(@"wasInHeaders: %ld isInHeaders: %ld", (long)wasInHeaders, (long)isInHeaders);
+          NSWarnMLog(@"_complete: %ld wasInHeaders: %ld isInHeaders: %ld", (long)_complete,
+                     (long)wasInHeaders, (long)isInHeaders);
         }
       
       if (YES == wasInHeaders && NO == isInHeaders)
@@ -1115,57 +1144,57 @@ static NSURLProtocol	*placeholder = nil;
 	      /* This is an authentication challenge, so we keep reading
 	       * until the challenge is complete, then try to deal with it.
 	       */
-              _complete = ([this->input hasBytesAvailable] == NO);
+              _complete = _complete || ([this->input hasBytesAvailable] == NO);
               if (_debug)
                 {
                   NSWarnMLog(@"[this->input hasBytesAvailable]: %ld streamStatus]: %ld",
                              (long)[this->input hasBytesAvailable], (long)[stream  streamStatus]);
                 }
             }
-    else if (((_statusCode >= 300) && (_statusCode <= 310)) && // Redirect status codes...
-             ([@"HEAD" isEqualToString: [this->request HTTPMethod]] == NO) && // Skip if a head request...
-             ((s = [[document headerNamed: @"location"] value]) != nil)) // Skip if no location specified...
-      {
-        // Some sites are a bit wierd...with the '//' or '/' prefix the redirect
-        // don't work properly so we need to add/default the scheme if not present...
-        if ([s hasPrefix: @"//"])
-          {
-            s = [@"http:" stringByAppendingString: s];
-          }
-        else if ([s hasPrefix: @"/"])
-          {
-            s = [@"http:/" stringByAppendingString: s];
-          }
-        
-        // Create the URL...
-        NSURL	*url = [NSURL URLWithString: s];
-        
-        if (url == nil)
-          {
-            NSError	*e;
-            
-            e = [NSError errorWithDomain: @"Invalid redirect request"
-                                    code: 0
-                                userInfo: nil];
-            [self stopLoading];
-            [this->client URLProtocol: self
-                     didFailWithError: e];
-          }
-        else
-          {
-            NSMutableURLRequest	*request = AUTORELEASE([this->request mutableCopy]);
-            
-            [request setURL: url];
-            
-            // This invocation may end up detroying us so need to retain/autorelease...
-            AUTORELEASE(RETAIN(self));
-            
-            // Redirect to the new URL...
-            [this->client URLProtocol: self
-               wasRedirectedToRequest: request
-                     redirectResponse: _response];
-          }
-      }
+          else if (((_statusCode >= 300) && (_statusCode <= 310)) && // Redirect status codes...
+                   ([@"HEAD" isEqualToString: [this->request HTTPMethod]] == NO) && // Skip if a head request...
+                   ((s = [[document headerNamed: @"location"] value]) != nil)) // Skip if no location specified...
+            {
+              // Some sites are a bit wierd...with the '//' or '/' prefix the redirect
+              // don't work properly so we need to add/default the scheme if not present...
+              if ([s hasPrefix: @"//"])
+                {
+                  s = [@"http:" stringByAppendingString: s];
+                }
+              else if ([s hasPrefix: @"/"])
+                {
+                  s = [@"http:/" stringByAppendingString: s];
+                }
+              
+              // Create the URL...
+              NSURL	*url = [NSURL URLWithString: s];
+              
+              if (url == nil)
+                {
+                  NSError	*e;
+                  
+                  e = [NSError errorWithDomain: @"Invalid redirect request"
+                                          code: 0
+                                      userInfo: nil];
+                  [self stopLoading];
+                  [this->client URLProtocol: self
+                           didFailWithError: e];
+                }
+              else
+                {
+                  NSMutableURLRequest	*request = AUTORELEASE([this->request mutableCopy]);
+                  
+                  [request setURL: url];
+                  
+                  // This invocation may end up detroying us so need to retain/autorelease...
+                  AUTORELEASE(RETAIN(self));
+                  
+                  // Redirect to the new URL...
+                  [this->client URLProtocol: self
+                     wasRedirectedToRequest: request
+                           redirectResponse: _response];
+                }
+            }
 	  else
 	    {
 	      NSURLCacheStoragePolicy policy;
@@ -1711,10 +1740,10 @@ static NSURLProtocol	*placeholder = nil;
 		{
 		  if ([_body hasBytesAvailable])
 		    {
-		      unsigned char	buffer[BUFSIZ*64];
-		      int		len;
+		      int len;
 
-		      len = [_body read: buffer maxLength: sizeof(buffer)];
+                      // Probably need a read until end here also similar to _got...
+		      len = [_body read: WRITE_BUFFER maxLength: sizeof(WRITE_BUFFER)];
 		      if (len < 0)
 			{
 			  if (_debug == YES)
@@ -1722,21 +1751,21 @@ static NSURLProtocol	*placeholder = nil;
 			      NSLog(@"%@ error reading from HTTPBody stream %@",
 				self, [NSError _last]);
 			    }
-			  [self stopLoading];
-			  [this->client URLProtocol: self didFailWithError:
-			    [NSError errorWithDomain: @"can't read body"
-						code: 0
-					    userInfo: nil]];
+                          [self stopLoading];
+                          [this->client URLProtocol: self didFailWithError:
+                           [NSError errorWithDomain: @"can't read body"
+                                               code: 0
+                                           userInfo: nil]];
 			  return;
 			}
 		      else if (len > 0)
 		        {
-			  written = [this->output write: buffer maxLength: len];
+			  written = [this->output write: WRITE_BUFFER maxLength: len];
 			  if (written > 0)
 			    {
 			      if (_debug == YES)
 				{
-                                  debugWrite(self, written, buffer);
+                                  debugWrite(self, written, WRITE_BUFFER);
 				}
 			      len -= written;
 			      if (len > 0)
@@ -1745,7 +1774,7 @@ static NSURLProtocol	*placeholder = nil;
 				   * again later.
 				   */
 				  _writeData = [[NSData alloc] initWithBytes:
-				    buffer + written length: len];
+				    WRITE_BUFFER + written length: len];
 				  _writeOffset = 0;
 				}
 			      else if (len == 0 && ![_body hasBytesAvailable])
@@ -1758,19 +1787,18 @@ static NSURLProtocol	*placeholder = nil;
 				  [_body close];
 				  DESTROY(_body);
 				  sent = YES;
+                                }
 			    }
-			    }
-                          else if ([this->output streamStatus]
-                            == NSStreamStatusWriting)
-				  {
+                          else if ([this->output streamStatus] == NSStreamStatusWriting)
+                            {
                               /* Couldn't write it all now, save and try
                                * again later.
                                */
                               _writeData = [[NSData alloc] initWithBytes:
-                                buffer length: len];
-						_writeOffset = 0;
-					  }
-					  }
+                                            WRITE_BUFFER length: len];
+                              _writeOffset = 0;
+                            }
+                        }
 		      else
 		        {
 			  [_body close];
@@ -1932,7 +1960,7 @@ static NSURLProtocol	*placeholder = nil;
 	    {
 	    NSLog(@"FTP input stream has bytes available");
 	    // implement FTP protocol
-//			[this->client URLProtocol: self didLoadData: [NSData dataWithBytes: buffer length: len]];	// notify
+            //[this->client URLProtocol: self didLoadData: [NSData dataWithBytes: buffer length: len]];	// notify
 	    return;
 	    }
 	  case NSStreamEventEndEncountered: 	// can this occur in parallel to NSStreamEventHasBytesAvailable???
