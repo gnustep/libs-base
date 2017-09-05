@@ -968,7 +968,7 @@ static NSURLProtocol	*placeholder = nil;
 
 - (void) _got: (NSStream*)stream
 {
-  int 		readCount;
+  int 		readCount = -1;
   NSError	*e;
   NSData	*d;
   BOOL		wasInHeaders = NO;
