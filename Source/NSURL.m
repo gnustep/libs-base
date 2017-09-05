@@ -922,93 +922,6 @@ static NSUInteger	urlAlign;
 
       if (canBeGeneric == YES)
 	{
-         if (usesFragments == YES)
-	    {
-	      /*
-	       * Strip fragment string from end of url.
-	       */
-	      ptr = strchr(start, '#');
-	      if (ptr != 0)
-		{
-		  *ptr++ = '\0';
-		  if (*ptr != 0)
-		    {
-		      buf->fragment = ptr;
-		    }
-		}
-	      if (buf->fragment == 0 && base != 0)
-		{
-		  buf->fragment = base->fragment;
-		}
-	      if (legal(buf->fragment, filepath) == NO)
-		{
-		  [NSException raise: NSInvalidArgumentException
-		    format: @"[%@ %@](%@, %@) "
-		    @"illegal character in fragment part",
-		    NSStringFromClass([self class]),
-		    NSStringFromSelector(_cmd),
-		    aUrlString, aBaseUrl];
-		}
-	    }
-
-	  if (usesQueries == YES)
-	    {
-	      /*
-	       * Strip query string from end of url.
-	       */
-	      ptr = strchr(start, '?');
-	      if (ptr != 0)
-		{
-		  *ptr++ = '\0';
-		  if (*ptr != 0)
-		    {
-		      buf->query = ptr;
-		    }
-		}
-	      if (buf->query == 0 && base != 0)
-		{
-		  buf->query = base->query;
-		}
-	      if (legal(buf->query, filepath) == NO)
-		{
-		  [NSException raise: NSInvalidArgumentException
-		    format: @"[%@ %@](%@, %@) "
-		    @"illegal character in query part",
-		    NSStringFromClass([self class]),
-		    NSStringFromSelector(_cmd),
-		    aUrlString, aBaseUrl];
-		}
-	    }
-
-      if (usesParameters == YES)
-	    {
-	      /*
-	       * Strip parameters string from end of url.
-	       */
-	      ptr = strchr(start, ';');
-	      if (ptr != 0)
-		{
-		  *ptr++ = '\0';
-		  if (*ptr != 0)
-		    {
-		      buf->parameters = ptr;
-		    }
-		}
-	      if (buf->parameters == 0 && base != 0)
-		{
-		  buf->parameters = base->parameters;
-		}
-	      if (legal(buf->parameters, filepath) == NO)
-		{
-		  [NSException raise: NSInvalidArgumentException
-		    format: @"[%@ %@](%@, %@) "
-		    @"illegal character in parameters part",
-		    NSStringFromClass([self class]),
-		    NSStringFromSelector(_cmd),
-		    aUrlString, aBaseUrl];
-		}
-	    }
-
 	  /*
 	   * Parse the 'authority'
 	   * //user:password@host:port
@@ -1205,6 +1118,93 @@ static NSUInteger	urlAlign;
 		{
 		  buf->pathIsAbsolute = YES;
 		  start++;
+		}
+	    }
+
+	  if (usesFragments == YES)
+	    {
+	      /*
+	       * Strip fragment string from end of url.
+	       */
+	      ptr = strchr(start, '#');
+	      if (ptr != 0)
+		{
+		  *ptr++ = '\0';
+		  if (*ptr != 0)
+		    {
+		      buf->fragment = ptr;
+		    }
+		}
+	      if (buf->fragment == 0 && base != 0)
+		{
+		  buf->fragment = base->fragment;
+		}
+	      if (legal(buf->fragment, filepath) == NO)
+		{
+		  [NSException raise: NSInvalidArgumentException
+		    format: @"[%@ %@](%@, %@) "
+		    @"illegal character in fragment part",
+		    NSStringFromClass([self class]),
+		    NSStringFromSelector(_cmd),
+		    aUrlString, aBaseUrl];
+		}
+	    }
+
+	  if (usesQueries == YES)
+	    {
+	      /*
+	       * Strip query string from end of url.
+	       */
+	      ptr = strchr(start, '?');
+	      if (ptr != 0)
+		{
+		  *ptr++ = '\0';
+		  if (*ptr != 0)
+		    {
+		      buf->query = ptr;
+		    }
+		}
+	      if (buf->query == 0 && base != 0)
+		{
+		  buf->query = base->query;
+		}
+	      if (legal(buf->query, filepath) == NO)
+		{
+		  [NSException raise: NSInvalidArgumentException
+		    format: @"[%@ %@](%@, %@) "
+		    @"illegal character in query part",
+		    NSStringFromClass([self class]),
+		    NSStringFromSelector(_cmd),
+		    aUrlString, aBaseUrl];
+		}
+	    }
+
+	  if (usesParameters == YES)
+	    {
+	      /*
+	       * Strip parameters string from end of url.
+	       */
+	      ptr = strchr(start, ';');
+	      if (ptr != 0)
+		{
+		  *ptr++ = '\0';
+		  if (*ptr != 0)
+		    {
+		      buf->parameters = ptr;
+		    }
+		}
+	      if (buf->parameters == 0 && base != 0)
+		{
+		  buf->parameters = base->parameters;
+		}
+	      if (legal(buf->parameters, filepath) == NO)
+		{
+		  [NSException raise: NSInvalidArgumentException
+		    format: @"[%@ %@](%@, %@) "
+		    @"illegal character in parameters part",
+		    NSStringFromClass([self class]),
+		    NSStringFromSelector(_cmd),
+		    aUrlString, aBaseUrl];
 		}
 	    }
 
