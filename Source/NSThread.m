@@ -1286,8 +1286,11 @@ nsthreadLauncher(void *thread)
         }
     }
 #else
+{
+  NSTimeInterval        start = 0.0;
+
   /* The write could concievably fail if the pipe is full.
-   * In that case we need to release the lock teporarily to allow the other
+   * In that case we need to release the lock temporarily to allow the other
    * thread to consume data from the pipe.  It's possible that the thread
    * and its runloop might stop during that ... so we need to check that
    * outputFd is still valid.
@@ -1295,9 +1298,21 @@ nsthreadLauncher(void *thread)
   while (outputFd >= 0
     && NO == (signalled = (write(outputFd, "0", 1) == 1) ? YES : NO))
     {
+      NSTimeInterval    now = [NSDate timeIntervalSinceReferenceDate];
+
+      if (0.0 == start)
+        {
+          start = now;
+        }
+      else if (now - start >= 1.0)
+        {
+          NSLog(@"Unable to signal %@ within a second; blocked?", self);
+          break;
+        }
       [lock unlock];
       [lock lock];
     }
+}
 #endif
   if (YES == signalled)
     {

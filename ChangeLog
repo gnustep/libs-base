@@ -1,3 +1,11 @@
+2017-09-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: Improve handling in case where we try to perform
+	a method in a thread and it can't be woken (the pipe to awaken the run
+	loop is full).  Instead of blocking forever, give up after a second.
+	Typically pipe buffers are from 4KB to 64KB so a full buffer almost
+	certainly indicates that the thread is hung.
+
 2017-08-24  Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/NSLocale.m: Fix bug in ISO code methods.
