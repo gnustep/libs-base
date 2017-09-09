@@ -30,6 +30,8 @@
 #import "Foundation/NSHost.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSRunLoop.h"
+#import "Foundation/NSTimer.h"
+#import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
@@ -368,8 +370,9 @@ typedef struct {
   NSCachedURLResponse		*cachedResponse;
   id <NSURLProtocolClient>	client;		// Not retained
   NSURLRequest			*request;
-  unsigned char                 *_inputBuffer;
-  unsigned char                 *_outputBuffer;
+  unsigned char     *_inputBuffer;
+  unsigned char     *_outputBuffer;
+  NSTimer           *_timer;
 #if	USE_ZLIB
   z_stream			z;		// context for decompress
   BOOL				compressing;	// are we compressing?
@@ -635,9 +638,10 @@ static NSURLProtocol	*placeholder = nil;
 - (NSDictionary*) _userInfoForErrorCode: (NSUInteger) errorCode description: (NSString*) description host: (NSHost*)host
 {
   return [NSDictionary dictionaryWithObjectsAndKeys:
-          [this->request URL],  @"NSErrorFailingURLKey",
-          host,                 @"NSErrorFailingURLStringKey",
-          description,          @"NSLocalizedDescription",
+          [this->request URL],  NSURLErrorFailingURLErrorKey,
+          host,                 NSErrorFailingURLStringKey,
+          description,          NSLocalizedDescriptionKey,
+          description,          NSLocalizedFailureReasonErrorKey,
           nil];
 }
 
@@ -660,18 +664,23 @@ static NSURLProtocol	*placeholder = nil;
     return [self _userInfoForErrorCode: errorCode description: description host: host];
 
   return [NSDictionary dictionaryWithObjectsAndKeys:
-          [this->request URL],  @"NSErrorFailingURLKey",
-          description,          @"NSLocalizedDescription",
+          [this->request URL],                  NSURLErrorFailingURLErrorKey,
+          [[this->request URL] absoluteString], NSErrorFailingURLStringKey,
+          description,                          NSLocalizedDescriptionKey,
+          description,                          NSLocalizedFailureReasonErrorKey,
           nil];
 }
 
 - (NSDictionary*) _userInfoForErrorCode: (NSUInteger) errorCode
 {
   return [NSDictionary dictionaryWithObjectsAndKeys:
-          [this->request URL],        @"URL",
-          [[this->request URL] path], @"path",
+          [this->request URL],                  @"URL",
+          [[this->request URL] path],           @"path",
+          [this->request URL],                  NSURLErrorFailingURLErrorKey,
+          [[this->request URL] absoluteString], NSErrorFailingURLStringKey,
+          @"unknown error occurred",            NSLocalizedDescriptionKey,
+          @"unknown error occurred",            NSLocalizedFailureReasonErrorKey,
           nil];
-  
 }
 @end
 
@@ -935,6 +944,33 @@ static NSURLProtocol	*placeholder = nil;
 			      forMode: NSDefaultRunLoopMode];
       [this->input open];
       [this->output open];
+      
+      // TESTPLANT-MAL-090892017: Start a timer for this operation to avoid hangs...
+      static const NSTimeInterval DefaultConnectionTimeout = 60.0;
+      NSTimeInterval timeout = [this->request timeoutInterval];
+      if (timeout <= 0)
+        {
+          // Check defaults next for a value...
+          if ([[NSUserDefaults standardUserDefaults] objectForKey: @"GSURLProtocolConnectionTimeout"])
+            {
+              timeout = [[NSUserDefaults standardUserDefaults] doubleForKey: @"GSURLProtocolConnectionTimeout"];
+              if (timeout <= 0)
+                {
+                  timeout = DefaultConnectionTimeout;
+                }
+            }
+          else
+            {
+              timeout = DefaultConnectionTimeout;
+            }
+        }
+      if (_debug)
+        NSWarnMLog(@"req: %@ using connection timeout: %f", this->request, timeout);
+      this->_timer = [NSTimer scheduledTimerWithTimeInterval: timeout
+                                                      target: self
+                                                    selector: @selector(_timedout:)
+                                                    userInfo: nil
+                                                     repeats: NO];
     }
 }
 
@@ -958,12 +994,26 @@ static NSURLProtocol	*placeholder = nil;
       [this->output close];
       DESTROY(this->input);
       DESTROY(this->output);
+      [this->_timer invalidate];
+      this->_timer = nil;
     }
 }
 
 - (void) _didLoad: (NSData*)d
 {
   [this->client URLProtocol: self didLoadData: d];
+}
+
+- (void) _timedout: (NSTimer*)timer
+{
+  if (_debug)
+    NSWarnMLog(@"request timed out: %@", this->request);
+  [self stopLoading];
+  NSDictionary *userinfo = [self _userInfoForErrorCode: 0 description: @"timeout waiting on host"];
+  NSError *error = [NSError errorWithDomain: @"Timeout on connection"
+                                       code: 0
+                                   userInfo: userinfo];
+  [this->client URLProtocol: self didFailWithError: error];
 }
 
 - (void) _got: (NSStream*)stream
@@ -1504,7 +1554,7 @@ static NSURLProtocol	*placeholder = nil;
           
           // Status code 200 with HEAD request is complete at this point...
           //if ((_statusCode == 200) && ([[this->request HTTPMethod] isEqualToString: @"HEAD"]))
-          if ([[this->request HTTPMethod] isEqualToString: @"HEAD"])
+          if (([[this->request HTTPMethod] isEqualToString: @"HEAD"]) && (isInHeaders == NO))
             {
               _isLoading = NO;
               [this->client URLProtocolDidFinishLoading: self];
