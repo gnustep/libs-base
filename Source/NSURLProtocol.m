@@ -1007,7 +1007,9 @@ static NSURLProtocol	*placeholder = nil;
 - (void) _timedout: (NSTimer*)timer
 {
   if (_debug)
-    NSWarnMLog(@"request timed out: %@", this->request);
+    {
+      NSWarnMLog(@"request timed out: %@", this->request);
+    }
   [self stopLoading];
   NSDictionary *userinfo = [self _userInfoForErrorCode: 0 description: @"timeout waiting on host"];
   NSError *error = [NSError errorWithDomain: @"Timeout on connection"
@@ -1024,26 +1026,41 @@ static NSURLProtocol	*placeholder = nil;
   BOOL		wasInHeaders = NO;
   int           totalRead = 0;
   
+  if (_debug)
+    {
+      NSWarnMLog(@"streamStatus: %ld hasBytesAvailable: %ld",
+                 (long)[stream  streamStatus], (long)[(NSInputStream *)stream hasBytesAvailable]);
+    }
+
   // Continue reading until we've either filled our buffer or nothing
   // left to read - as the event for another *may* not happen depending on timing...
-  while ((totalRead < MAX_READ_BUFFER) && [(NSInputStream *)stream hasBytesAvailable])
+  while ((totalRead < MAX_READ_BUFFER) && ([(NSInputStream *)stream hasBytesAvailable] || [stream  streamStatus] == NSStreamStatusReading))
     {
       readCount = [(NSInputStream *)stream read: &READ_BUFFER[totalRead] maxLength: MAX_READ_BUFFER-totalRead];
+      
+      if (_debug)
+        {
+          NSWarnMLog(@"-> readCount: %ld totalRead: %ld", (long)readCount, (long)totalRead);
+        }
+      
+      // Break on error...
       if (readCount == -1)
         break;
+      
+      // Otherwise update the total read count...
       totalRead += readCount;
     }
   
   if (_debug)
     {
-      NSWarnMLog(@"readCount: %ld readCount: %ld", (long)readCount, (long)totalRead);
+      NSWarnMLog(@"readCount: %ld totalRead: %ld", (long)readCount, (long)totalRead);
     }
   
   if ((readCount < 0) && (totalRead == 0))
     {
       if (_debug)
         {
-          NSWarnMLog(@"[stream  streamStatus]: %ld", (long)[stream  streamStatus]);
+          NSWarnMLog(@"streamStatus: %ld", (long)[stream  streamStatus]);
         }
       
       if ([stream  streamStatus] == NSStreamStatusError)
@@ -1590,8 +1607,8 @@ static NSURLProtocol	*placeholder = nil;
 
   if (_debug)
     {
-      NSLog(@"stream: %@ handleEvent: %x for: %@ (ip %p, op %p)",
-            stream, event, self, this->input, this->output);
+      NSLog(@"stream: %@ handleEvent: %p for: %@ (ip %p, op %p)",
+            stream, (void*)event, self, this->input, this->output);
     }
   
   if (stream == this->input) 
@@ -1629,7 +1646,7 @@ static NSURLProtocol	*placeholder = nil;
 
 	      if (_debug == YES)
 	        {
-	          NSLog(@"%@ HTTP output stream opened", self);
+	          NSWarnMLog(@"%@ HTTP output stream opened", self);
 	        }
 	      DESTROY(_writeData);
 	      _writeOffset = 0;
@@ -1751,10 +1768,21 @@ static NSURLProtocol	*placeholder = nil;
 		{
 		  const unsigned char	*bytes = [_writeData bytes];
 		  unsigned		len = [_writeData length];
+                  
+                  if (_debug)
+                    {
+                      NSWarnMLog(@"self: %@ writing _writeData len: %ld", self, (long)len);
+                    }
 
 		  written = [this->output write: bytes + _writeOffset
 				      maxLength: len - _writeOffset];
-		  if (written > 0)
+                  
+                  if (_debug)
+                    {
+                      NSWarnMLog(@"self: %@ wrote len: %ld", self, (long)written);
+                    }
+
+                  if (written > 0)
 		    {
 		      if (_debug == YES)
 		        {
@@ -1793,13 +1821,16 @@ static NSURLProtocol	*placeholder = nil;
 		      int len;
 
                       // Probably need a read until end here also similar to _got...
-		      len = [_body read: WRITE_BUFFER maxLength: sizeof(WRITE_BUFFER)];
+		      len = [_body read: WRITE_BUFFER maxLength: MAX_WRITE_BUFFER];
+                      if (_debug)
+                        {
+                          NSWarnMLog(@"self: %@ _body read len: %ld streamStatus: %ld", self, (long)len, (long)[_body streamStatus]);
+                        }
 		      if (len < 0)
 			{
 			  if (_debug == YES)
 			    {
-			      NSLog(@"%@ error reading from HTTPBody stream %@",
-				self, [NSError _last]);
+			      NSWarnMLog(@"%@ error reading from HTTPBody stream %@", self, [NSError _last]);
 			    }
                           [self stopLoading];
                           [this->client URLProtocol: self didFailWithError:
@@ -1844,6 +1875,10 @@ static NSURLProtocol	*placeholder = nil;
                               /* Couldn't write it all now, save and try
                                * again later.
                                */
+                              if (_debug)
+                                {
+                                  NSWarnMLog(@"self: %@ saving _writeData len: %ld", self, (long)len);
+                                }
                               _writeData = [[NSData alloc] initWithBytes:
                                             WRITE_BUFFER length: len];
                               _writeOffset = 0;
@@ -1867,7 +1902,7 @@ static NSURLProtocol	*placeholder = nil;
 		{
 		  if (_debug)
 		    {
-		      NSLog(@"%@ request sent", self);
+		      NSWarnMLog(@"%@ request sent - should close: %ld", self, (long)_shouldClose);
 		    }
 		  if (_shouldClose == YES)
 		    {
