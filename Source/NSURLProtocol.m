@@ -1011,7 +1011,7 @@ static NSURLProtocol	*placeholder = nil;
       NSWarnMLog(@"request timed out: %@ after %f secs", this->request, [[timer userInfo] doubleValue]);
     }
   NSTimeInterval timeInterval = [[timer userInfo] doubleValue]; // the original timeout value used...
-  NSString       *description = [NSString stringWithFormat: @"Timeout: Host failed to respond after %f seconds",timeInterval];
+  NSString       *description = [NSString stringWithFormat: @"Timeout: Host failed to respond after %.3f seconds",timeInterval];
   NSDictionary   *userinfo    = [self _userInfoForErrorCode: 0 description: description];
   NSError        *error       = [NSError errorWithDomain: @"Timeout on connection"
                                                     code: 0
