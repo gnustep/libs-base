@@ -969,7 +969,7 @@ static NSURLProtocol	*placeholder = nil;
       this->_timer = [NSTimer scheduledTimerWithTimeInterval: timeout
                                                       target: self
                                                     selector: @selector(_timedout:)
-                                                    userInfo: nil
+                                                    userInfo: [NSNumber numberWithDouble: timeout]
                                                      repeats: NO];
     }
 }
@@ -1008,14 +1008,15 @@ static NSURLProtocol	*placeholder = nil;
 {
   if (_debug)
     {
-      NSWarnMLog(@"request timed out: %@", this->request);
+      NSWarnMLog(@"request timed out: %@ after %f secs", this->request, [[timer userInfo] doubleValue]);
     }
+  NSTimeInterval timeInterval = [[timer userInfo] doubleValue]; // the original timeout value used...
+  NSString       *description = [NSString stringWithFormat: @"Timeout: Host failed to respond after %f seconds",timeInterval];
+  NSDictionary   *userinfo    = [self _userInfoForErrorCode: 0 description: description];
+  NSError        *error       = [NSError errorWithDomain: @"Timeout on connection"
+                                                    code: 0
+                                                userInfo: userinfo];
   [self stopLoading];
-  NSString      *description = [NSString stringWithFormat: @"Timeout: Host failed to respond after %ld seconds",[timer timeInterval]];
-  NSDictionary  *userinfo    = [self _userInfoForErrorCode: 0 description: description];
-  NSError       *error       = [NSError errorWithDomain: @"Timeout on connection"
-                                                   code: 0
-                                               userInfo: userinfo];
   [this->client URLProtocol: self didFailWithError: error];
 }
 
