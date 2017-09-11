@@ -1011,10 +1011,11 @@ static NSURLProtocol	*placeholder = nil;
       NSWarnMLog(@"request timed out: %@", this->request);
     }
   [self stopLoading];
-  NSDictionary *userinfo = [self _userInfoForErrorCode: 0 description: @"timeout waiting on host"];
-  NSError *error = [NSError errorWithDomain: @"Timeout on connection"
-                                       code: 0
-                                   userInfo: userinfo];
+  NSString      *description = [NSString stringWithFormat: @"Timeout: Host failed to respond after %ld seconds",[timer timeInterval]];
+  NSDictionary  *userinfo    = [self _userInfoForErrorCode: 0 description: description];
+  NSError       *error       = [NSError errorWithDomain: @"Timeout on connection"
+                                                   code: 0
+                                               userInfo: userinfo];
   [this->client URLProtocol: self didFailWithError: error];
 }
 
