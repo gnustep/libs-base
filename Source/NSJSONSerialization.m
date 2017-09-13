@@ -820,10 +820,10 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
         writeComma = YES;
         writeNewline(output, tabs);
         writeTabs(output, tabs);
-        writeObject(o, output, tabs + 1);
+        writeObject(o, output, tabs +  1);
       END_FOR_IN(obj)
       writeNewline(output, tabs);
-      writeTabs(output, tabs);
+      writeTabs(output, tabs-1);
       [output appendString: @"]"];
     }
   else if ([obj isKindOfClass: NSDictionaryClass])
@@ -845,7 +845,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
         writeObject([obj objectForKey: o], output, tabs + 1);
       END_FOR_IN(obj)
       writeNewline(output, tabs);
-      writeTabs(output, tabs);
+      writeTabs(output, tabs -1);
       [output appendString: @"}"];
     }
   else if ([obj isKindOfClass: NSStringClass])
