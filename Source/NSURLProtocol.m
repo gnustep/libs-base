@@ -682,6 +682,7 @@ static NSURLProtocol	*placeholder = nil;
           @"unknown error occurred",            NSLocalizedFailureReasonErrorKey,
           nil];
 }
+
 @end
 
 @implementation	NSURLProtocol (Subclassing)
@@ -758,6 +759,75 @@ static NSURLProtocol	*placeholder = nil;
   [_response release];
   [_credential release];
   [super dealloc];
+}
+
+- (void) _timedout: (NSTimer*)timer
+{
+  if (_debug)
+  {
+    NSWarnMLog(@"request timed out: %@ after %f secs", this->request, [[timer userInfo] doubleValue]);
+  }
+  NSTimeInterval timeInterval = [[timer userInfo] doubleValue]; // the original timeout value used...
+  NSString       *description = [NSString stringWithFormat: @"Timeout: Host failed to respond after %.0f seconds",timeInterval];
+  NSDictionary   *userinfo    = [self _userInfoForErrorCode: 0 description: description];
+  NSError        *error       = [NSError errorWithDomain: @"Timeout on connection"
+                                                    code: 0
+                                                userInfo: userinfo];
+  [self stopLoading];
+  [this->client URLProtocol: self didFailWithError: error];
+}
+
+- (NSTimeInterval) _timeInterval
+{
+  static const NSTimeInterval DefaultConnectionTimeout = 60.0;
+  NSTimeInterval timeout = [this->request timeoutInterval];
+  if (timeout <= 0)
+  {
+    // Check defaults next for a value...
+    if ([[NSUserDefaults standardUserDefaults] objectForKey: @"GSURLProtocolConnectionTimeout"])
+    {
+      timeout = [[NSUserDefaults standardUserDefaults] doubleForKey: @"GSURLProtocolConnectionTimeout"];
+      if (timeout <= 0)
+      {
+        timeout = DefaultConnectionTimeout;
+      }
+    }
+    else
+    {
+      timeout = DefaultConnectionTimeout;
+    }
+  }
+  
+  return timeout;
+}
+
+- (void) _stopTimer
+{
+  if (this->_timer)
+  {
+    [this->_timer invalidate];
+    this->_timer = nil; // We hold a weak reference...
+  }
+}
+
+- (void) _startTimer
+{
+  // First stop any current timer...
+  [self _stopTimer];
+  
+  // TESTPLANT-MAL-090892017: Start a timer for this operation to avoid hangs...
+  NSTimeInterval timeout = [self _timeInterval];
+  
+  // Log the timeout value...
+  if (_debug)
+    NSWarnMLog(@"req: %@ using connection timeout: %f", this->request, timeout);
+  
+  // Start and schedule the timer...weak reference to avoid circular...
+  this->_timer = [NSTimer scheduledTimerWithTimeInterval: timeout
+                                                  target: self
+                                                selector: @selector(_timedout:)
+                                                userInfo: [NSNumber numberWithDouble: timeout]
+                                                 repeats: NO];
 }
 
 - (void) startLoading
@@ -946,31 +1016,7 @@ static NSURLProtocol	*placeholder = nil;
       [this->output open];
       
       // TESTPLANT-MAL-090892017: Start a timer for this operation to avoid hangs...
-      static const NSTimeInterval DefaultConnectionTimeout = 60.0;
-      NSTimeInterval timeout = [this->request timeoutInterval];
-      if (timeout <= 0)
-        {
-          // Check defaults next for a value...
-          if ([[NSUserDefaults standardUserDefaults] objectForKey: @"GSURLProtocolConnectionTimeout"])
-            {
-              timeout = [[NSUserDefaults standardUserDefaults] doubleForKey: @"GSURLProtocolConnectionTimeout"];
-              if (timeout <= 0)
-                {
-                  timeout = DefaultConnectionTimeout;
-                }
-            }
-          else
-            {
-              timeout = DefaultConnectionTimeout;
-            }
-        }
-      if (_debug)
-        NSWarnMLog(@"req: %@ using connection timeout: %f", this->request, timeout);
-      this->_timer = [NSTimer scheduledTimerWithTimeInterval: timeout
-                                                      target: self
-                                                    selector: @selector(_timedout:)
-                                                    userInfo: [NSNumber numberWithDouble: timeout]
-                                                     repeats: NO];
+      [self _startTimer];
     }
 }
 
@@ -978,7 +1024,7 @@ static NSURLProtocol	*placeholder = nil;
 {
   if (_debug == YES)
     {
-      NSLog(@"%@ stopLoading", self);
+      NSWarnMLog(@"%@ stopLoading", self);
     }
   _isLoading = NO;
   DESTROY(_writeData);
@@ -994,30 +1040,13 @@ static NSURLProtocol	*placeholder = nil;
       [this->output close];
       DESTROY(this->input);
       DESTROY(this->output);
-      [this->_timer invalidate];
-      this->_timer = nil;
+      [self _stopTimer];
     }
 }
 
 - (void) _didLoad: (NSData*)d
 {
   [this->client URLProtocol: self didLoadData: d];
-}
-
-- (void) _timedout: (NSTimer*)timer
-{
-  if (_debug)
-    {
-      NSWarnMLog(@"request timed out: %@ after %f secs", this->request, [[timer userInfo] doubleValue]);
-    }
-  NSTimeInterval timeInterval = [[timer userInfo] doubleValue]; // the original timeout value used...
-  NSString       *description = [NSString stringWithFormat: @"Timeout: Host failed to respond after %.0f seconds",timeInterval];
-  NSDictionary   *userinfo    = [self _userInfoForErrorCode: 0 description: description];
-  NSError        *error       = [NSError errorWithDomain: @"Timeout on connection"
-                                                    code: 0
-                                                userInfo: userinfo];
-  [self stopLoading];
-  [this->client URLProtocol: self didFailWithError: error];
 }
 
 - (void) _got: (NSStream*)stream
@@ -1070,7 +1099,7 @@ static NSURLProtocol	*placeholder = nil;
 	  e = [stream streamError];
 	  if (_debug)
 	    {
-	      NSLog(@"%@ receive error %@", self, e);
+	      NSWarnMLog(@"%@ receive error %@", self, e);
 	    }
 	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError: e];
@@ -1096,7 +1125,7 @@ static NSURLProtocol	*placeholder = nil;
     {
       if (_debug == YES)
 	{
-	  NSLog(@"%@ HTTP parse failure - %@", self, _parser);
+	  NSWarnMLog(@"%@ HTTP parse failure - %@", self, _parser);
 	}
       e = [NSError errorWithDomain: @"parse error"
 			      code: 0
@@ -1519,6 +1548,7 @@ static NSURLProtocol	*placeholder = nil;
 	      [this->output close];
 	      DESTROY(this->input);
 	      DESTROY(this->output);
+              [self _stopTimer];
 	    }
 
 	  /*
@@ -1589,7 +1619,7 @@ static NSURLProtocol	*placeholder = nil;
 	   */
 	  if (_debug == YES)
 	    {
-	      NSLog(@"%@ HTTP response not received - %@", self, _parser);
+	      NSWarnMLog(@"%@ HTTP response not received - %@", self, _parser);
 	    }
 	  [self stopLoading];
 	  [this->client URLProtocol: self didFailWithError:
@@ -1609,7 +1639,7 @@ static NSURLProtocol	*placeholder = nil;
 
   if (_debug)
     {
-      NSLog(@"stream: %@ handleEvent: %p for: %@ (ip %p, op %p)",
+      NSWarnMLog(@"stream: %@ handleEvent: %p for: %@ (ip %p, op %p)",
             stream, (void*)event, self, this->input, this->output);
     }
   
@@ -1625,7 +1655,7 @@ static NSURLProtocol	*placeholder = nil;
 	  case NSStreamEventOpenCompleted: 
 	    if (_debug == YES)
 	      {
-		NSLog(@"%@ HTTP input stream opened", self);
+		NSWarnMLog(@"%@ HTTP input stream opened", self);
 	      }
 	    return;
 
