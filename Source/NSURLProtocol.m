@@ -1075,7 +1075,7 @@ static NSURLProtocol	*placeholder = nil;
         }
       
       // Break on error...
-      if (readCount == -1)
+      if (readCount <= 0)
         break;
       
       // Otherwise update the total read count...
@@ -1087,7 +1087,7 @@ static NSURLProtocol	*placeholder = nil;
       NSWarnMLog(@"readCount: %ld totalRead: %ld", (long)readCount, (long)totalRead);
     }
   
-  if ((readCount < 0) && (totalRead == 0))
+  if ((readCount <= 0) && (totalRead == 0))
     {
       if (_debug)
         {
