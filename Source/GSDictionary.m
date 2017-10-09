@@ -408,6 +408,17 @@ static SEL	objSel;
   return self;
 }
 
+- (void) dealloc
+{
+  // TESTPLANT-MAL-10062017: Added dealloc method from GSDictionary
+  // in order to try to debug potential fast enumeration issue(s)
+  // in ePF...by changing _version the enumeration mutation check
+  // might catch the release before a crash...
+  _version = 0xDEADDEAD;
+  GSIMapEmptyMap(&map);
+  [super dealloc];
+}
+
 - (BOOL) makeImmutable
 {
   GSClassSwizzle(self, [GSDictionary class]);
@@ -484,8 +495,10 @@ static SEL	objSel;
 				     count: (NSUInteger)len
 {
   state->mutationsPtr = (unsigned long *)&_version;
-  return GSIMapCountByEnumeratingWithStateObjectsCount
-    (&map, state, stackbuf, len);
+  NSInteger count = GSIMapCountByEnumeratingWithStateObjectsCount(&map, state, stackbuf, len);
+  if (count == -1)
+    objc_enumerationMutation(self);
+  return (NSUInteger)count;
 }
 @end
 

@@ -45,6 +45,9 @@
 extern "C" {
 #endif
 
+// Defined in NSEnumerator.m...
+void objc_enumerationMutation(id);
+  
 /* To easily un-inline functions for debugging */
 #ifndef GS_STATIC_INLINE
 #define GS_STATIC_INLINE static inline
@@ -988,6 +991,7 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
                                               id *stackbuf,
                                               NSUInteger len)
 {
+  NSInteger nodeCount = map->nodeCount; // Cache this in case of object problems...
   NSInteger count;
   NSInteger i;
 
@@ -1017,7 +1021,10 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
       enumerator.bucket = ((struct GSPartMapEnumerator*)(state->extra))->bucket;
     }
   /* Get the next count objects and put them in the stack buffer. */
-  for (i = 0; i < count; i++)
+  // TESTPLANT-MAL-10052017: Added check using stack vars for potential object
+  // release due to threading issues...
+  NSInteger cacheCount = count;
+  for (i = 0; ((i < count) && (count == cacheCount) && (count <= nodeCount)); i++)
     {
       GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
       if (0 != node)
@@ -1029,6 +1036,12 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
           stackbuf[i] = (id)GSI_MAP_READ_KEY(map, &node->key).addr;
         }
     }
+  // TESTPLANT-MAL-10062017: Check for mutation during enumeration...
+  // Theoretically we should have gone for count objects so if we exited
+  // early we're going to assume something bad happened here...
+  if (i < count)
+    return -1;
+  
   /* Store the important bits of the enumerator in the caller. */
   ((struct GSPartMapEnumerator*)(state->extra))->node = enumerator.node;
   ((struct GSPartMapEnumerator*)(state->extra))->bucket = enumerator.bucket;

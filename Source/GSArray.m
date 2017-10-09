@@ -39,6 +39,8 @@
 #import "GSPrivate.h"
 #import "GSSorting.h"
 
+#define USE_IMMUTABLE_FAST_ENUMERATION_CODE
+
 static SEL	eqSel;
 static SEL	oaiSel;
 
@@ -558,6 +560,12 @@ static Class	GSInlineArrayClass;
   return self;
 }
 
+- (void) dealloc
+{
+  _version = 0xDEADDEAD;
+  [super dealloc];
+}
+
 - (void) insertObject: (id)anObject atIndex: (NSUInteger)index
 {
   _version++;
@@ -919,6 +927,14 @@ static Class	GSInlineArrayClass;
    * iteration.   If it changes during the iteration then
    * objc_enumerationMutation() will be called, throwing an exception.
    */
+
+#if defined(USE_IMMUTABLE_FAST_ENUMERATION_CODE)
+  // TESTPLANT-MAL-10052017: Use immutable arrays version...
+  count = _count - state->state;
+  state->mutationsPtr = &_version;
+  state->itemsPtr = _contents_array + state->state;
+  state->state += count;
+#else
   state->mutationsPtr = &_version;
   count = MIN(len, _count - state->state);
   /* If a mutation has occurred then it's possible that we are being asked to
@@ -935,6 +951,8 @@ static Class	GSInlineArrayClass;
       count = 0;
     }
   state->itemsPtr = stackbuf;
+#endif
+  
   return count;
 }
 
