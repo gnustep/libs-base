@@ -563,6 +563,18 @@ static Class	GSInlineArrayClass;
 - (void) dealloc
 {
   _version = 0xDEADDEAD;
+
+  if (_contents_array)
+  {
+    NSUInteger	i;
+    
+    for (i = 0; i < _count; i++)
+    {
+      [_contents_array[i] release];
+    }
+    NSZoneFree([self zone], _contents_array);
+    _contents_array = 0;
+  }
   [super dealloc];
 }
 
