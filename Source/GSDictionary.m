@@ -408,6 +408,9 @@ static SEL	objSel;
   return self;
 }
 
+// TESTPLANT-MAL-10162017: Set comment/code in +initialize
+// ANY method added will REPLACE the swizzling copy from GSArray
+// so THIS MUST be a FULL implementation of the dealloc method...
 - (void) dealloc
 {
   // TESTPLANT-MAL-10062017: Added dealloc method from GSDictionary

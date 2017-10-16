@@ -560,6 +560,9 @@ static Class	GSInlineArrayClass;
   return self;
 }
 
+// TESTPLANT-MAL-10162017: Set comment/code in +initialize
+// ANY method added will REPLACE the swizzling copy from GSArray
+// so THIS MUST be a FULL implementation of the dealloc method...
 - (void) dealloc
 {
   _version = 0xDEADDEAD;
