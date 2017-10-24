@@ -114,35 +114,6 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   
   [self _resetUDateFormat];
   
-/* According to Apple docs, default behavior is NSDateFormatterBehavior10_4 on
- * 10.5 and later. Yeah, go figure.
- */
-#if GS_USE_ICU == 1
-  {
-    int length;
-    unichar *value;
-    NSZone *z = [self zone];
-    UErrorCode err = U_ZERO_ERROR;
-    
-    length = udat_toPattern (internal->_formatter, 0, NULL, 0, &err);
-    value = NSZoneMalloc (z, sizeof(unichar) * length);
-    err = U_ZERO_ERROR;
-    udat_toPattern (internal->_formatter, 0, value, length, &err);
-    if (U_SUCCESS(err))
-      {
-        _dateFormat = [[NSString allocWithZone: z]
-          initWithBytesNoCopy: value
-          length: length * sizeof(unichar)
-          encoding: NSUnicodeStringEncoding
-          freeWhenDone: YES];
-      }
-    else
-      {
-        NSZoneFree (z, value);
-      }
-  }
-#endif
-  
   return self;
 }
 
@@ -410,19 +381,8 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (void) setDateFormat: (NSString *)string
 {
-#if GS_USE_ICU == 1
-  UChar *pattern;
-  int32_t patternLength;
-  
-  patternLength = [string length];
-  pattern = malloc(sizeof(UChar) * patternLength);
-  [string getCharacters: pattern range: NSMakeRange(0, patternLength)];
-  
-  udat_applyPattern (internal->_formatter, 0, pattern, patternLength);
-  
-  free(pattern);
-#endif
   ASSIGNCOPY(_dateFormat, string);
+  [self _resetUDateFormat];
 }
 
 - (NSDateFormatterStyle) dateStyle
@@ -965,10 +925,12 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (void) _resetUDateFormat
 {
 #if GS_USE_ICU == 1
-  UChar *pat;
+  UChar *pat = NULL;
   UChar *tzID;
-  int32_t patLength;
+  int32_t patLength = 0;
   int32_t tzIDLength;
+  UDateFormatStyle timeStyle;
+  UDateFormatStyle dateStyle;
   UErrorCode err = U_ZERO_ERROR;
   
   if (internal->_formatter)
@@ -978,28 +940,21 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   tzID = malloc(sizeof(UChar) * tzIDLength);
   [[internal->_tz name] getCharacters: tzID];
   
-  if (nil == self->_dateFormat)
-    {
-      patLength = 0;
-      pat = 0;
-    }
-  else
+  if (self->_dateFormat)
     {
       patLength = [self->_dateFormat length];
       pat = malloc(sizeof(UChar) * patLength);
       [self->_dateFormat getCharacters: pat];
     }
-  internal->_formatter = udat_open (NSToUDateFormatStyle(internal->_timeStyle),
-                          NSToUDateFormatStyle(internal->_dateStyle),
+  timeStyle = pat ? UDAT_PATTERN : NSToUDateFormatStyle (internal->_timeStyle);
+  dateStyle = pat ? UDAT_PATTERN : NSToUDateFormatStyle (internal->_dateStyle);
+  internal->_formatter = udat_open (timeStyle, dateStyle,
                           [[internal->_locale localeIdentifier] UTF8String],
-                          tzID,
-                          tzIDLength,
-                          pat,
-                          patLength,
-                          &err);
+                          tzID, tzIDLength, pat, patLength, &err);
   if (U_FAILURE(err))
     internal->_formatter = NULL;
-  if (0 != pat) free(pat);
+  if (pat)
+    free(pat);
   free(tzID);
 #else
   return;
