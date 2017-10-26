@@ -1,3 +1,8 @@
+2017-10-26 Stefan Bidigaray <stefanbidi@gmail.com>
+
+	* Source/NSDateFormatter.m: Fix how UDateFormat is created. Fixes
+	bug #52011.
+
 2017-09-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Improve handling in case where we try to perform
