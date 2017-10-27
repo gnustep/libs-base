@@ -881,7 +881,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	i, mode, self);
 	
 	  [[NSNotificationCenter defaultCenter]
-        postNotificationName: @"NSRunLoop_MaxTimers_Exceded"
+        postNotificationName: @"NSRunLoop_MaxTimers_Exceeded"
         object: self
         userInfo: nil];
     }	
