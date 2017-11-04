@@ -1,3 +1,9 @@
+2017-11-04  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/GSLocale.m: Protect against
+	GSPrivateNativeCStringEncoding() corrupting the return value of
+	setlocale(). Bug #52331 reported by Jakub Wilk <jwilk@jwilk.net>.
+
 2017-10-26 Stefan Bidigaray <stefanbidi@gmail.com>
 
 	* Source/NSDateFormatter.m: Fix how UDateFormat is created. Fixes

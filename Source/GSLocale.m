@@ -64,6 +64,10 @@ static NSString *
 privateSetLocale(int category, NSString *locale)
 {
   const char *clocale = NULL;
+  /* Need to get the encoding first as the function call invalidates 
+   * the return value of setlocale()
+   */
+  NSStringEncoding enc = GSPrivateNativeCStringEncoding();
   if (locale != nil)
     {
       clocale = [locale cString];
@@ -72,7 +76,7 @@ privateSetLocale(int category, NSString *locale)
 
   if (clocale != NULL)
     {
-      return ToString(clocale);
+      return [NSString stringWithCString: clocale encoding: enc];
     }
   return nil;
 }
