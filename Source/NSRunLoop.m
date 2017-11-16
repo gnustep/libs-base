@@ -1523,7 +1523,6 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
         postNotificationName: @"NSRunLoop_MaxPerformers_Exceeded"
         object: self
         userInfo: nil];
-	    }
 
 	    }
 	}
