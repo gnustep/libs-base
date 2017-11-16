@@ -1518,6 +1518,13 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
                 @" in mode %@ of %@\n(Latest: [%@ %@])",
                 i, mode, self, NSStringFromClass([target class]),
                 NSStringFromSelector(aSelector));
+
+	  [[NSNotificationCenter defaultCenter]
+        postNotificationName: @"NSRunLoop_MaxPerformers_Exceeded"
+        object: self
+        userInfo: nil];
+	    }
+
 	    }
 	}
       RELEASE(item);
