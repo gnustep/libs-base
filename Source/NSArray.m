@@ -1204,6 +1204,10 @@ compare(id elem1, id elem2, void* context)
               index--;
             }
         }
+      if (index >= NSMaxRange(range))
+        {
+          return NSNotFound;
+        }
       /*
        * For a search from the left, we'd have the correct index anyways. Check
        * whether it's equal to the key and return NSNotFound otherwise
