@@ -3158,10 +3158,6 @@ static NSLock	*cached_proxies_gate = nil;
 	      start_date = [dateClass allocWithZone: NSDefaultMallocZone()];
 	      start_date = [start_date init];
 	      timeout_date = [dateClass allocWithZone: NSDefaultMallocZone()];
-              // Testplant-MAL-2017.11.14...
-              // Fix issue with waiting forever if gpbs crashes within a
-              // certain processing window...need a better place to put this...
-              [self setReplyTimeout: 5.0];
 	      timeout_date = [timeout_date initWithTimeIntervalSinceNow: IreplyTimeout];
 	    }
 	  RELEASE(delay_date);
