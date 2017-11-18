@@ -205,9 +205,9 @@ struct StackBlockClass {
  * increments its retain count.
  */
 void *
-_Block_copy(void *src)
+_Block_copy(const void *src)
 {
-  struct StackBlockClass *self = src;
+  struct StackBlockClass *self = (struct StackBlockClass*)src;
   struct StackBlockClass *ret = self;
   extern void _NSConcreteStackBlock;
     
@@ -230,9 +230,9 @@ _Block_copy(void *src)
 
 // Release a block and frees the memory when the retain count hits zero.
 void
-_Block_release(void *src)
+_Block_release(const void *src)
 {
-  struct StackBlockClass *self = src;
+  struct StackBlockClass *self = (struct StackBlockClass*)src;
   extern void _NSConcreteStackBlock;
 
   if (self->isa == &_NSConcreteStackBlock
@@ -253,8 +253,8 @@ _Block_release(void *src)
 }
 
 const char *
-_Block_get_types(void *blk)
+_Block_get_types(const void *blk)
 {
-  struct psy_block_literal *block = blk;
+  const struct psy_block_literal *block = blk;
   return block->types;
 }
