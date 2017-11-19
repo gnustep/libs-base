@@ -207,7 +207,7 @@ struct StackBlockClass {
 void *
 _Block_copy(const void *src)
 {
-  struct StackBlockClass *self = (struct StackBlockClass*)src;
+  struct StackBlockClass *self = (struct StackBlockClass *)src;
   struct StackBlockClass *ret = self;
   extern void _NSConcreteStackBlock;
     
@@ -232,7 +232,7 @@ _Block_copy(const void *src)
 void
 _Block_release(const void *src)
 {
-  struct StackBlockClass *self = (struct StackBlockClass*)src;
+  struct StackBlockClass *self = (struct StackBlockClass *)src;
   extern void _NSConcreteStackBlock;
 
   if (self->isa == &_NSConcreteStackBlock
