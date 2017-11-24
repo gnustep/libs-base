@@ -8,9 +8,9 @@
 #define BLOCKS_EXPORT extern 
 #endif
 
-BLOCKS_EXPORT void *_Block_copy(void *);
-BLOCKS_EXPORT void _Block_release(void *);
-BLOCKS_EXPORT const char *_Block_get_types(void*);
+BLOCKS_EXPORT void *_Block_copy(const void *);
+BLOCKS_EXPORT void _Block_release(const void *);
+BLOCKS_EXPORT const char *_Block_get_types(const void*);
 
-#define Block_copy(x) ((__typeof(x))_Block_copy((void *)(x)))
-#define Block_release(x) _Block_release((void *)(x))
+#define Block_copy(x) ((__typeof(x))_Block_copy((const void *)(x)))
+#define Block_release(x) _Block_release((const void *)(x))

@@ -22,12 +22,6 @@
 
 #import "Foundation/NSObject.h"
 
-/* Declare the block copy functions ourself so that we don't depend on a
- * specific header location.
- */
-void *_Block_copy(void *);
-void _Block_release(void *);
-
 @interface GSBlock : NSObject
 @end
 
