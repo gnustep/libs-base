@@ -1,3 +1,9 @@
+2017-11-25  Graham Lee  <graham@iamleeg.com>
+
+	* Source/NSJSONSerialization.m: Fix for bug #12 on github. This
+	makes sure that unsigned integer types are written as such,
+	avoiding a potential overflow.
+
 2017-11-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArray.m: Fix for bug reported on github by zneak.

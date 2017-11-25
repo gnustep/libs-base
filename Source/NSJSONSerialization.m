@@ -945,12 +945,17 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
     {
       const char        *t = [obj objCType];
 
-      if (strchr("cCsSiIlLqQ", *t) != 0)
+      if (strchr("csilq", *t) != 0)
         {
           long long     i = [(NSNumber*)obj longLongValue];
 
           [output appendFormat: @"%lld", i];
         }
+      else if (strchr("CSILQ", *t) != 0)
+	{
+	  unsigned long long u = [(NSNumber *)obj unsignedLongLongValue];
+	  [output appendFormat: @"%llu", u];
+	}
       else
         {
           [output appendFormat: @"%.17g", [(NSNumber*)obj doubleValue]];
