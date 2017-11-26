@@ -381,7 +381,7 @@ typedef struct {
 #endif
 } Internal;
  
-#define	this          p
+#define	this          ((Internal*)(self->_NSURLProtocolInternal))
 #define	inst          ((Internal*)(o->_NSURLProtocolInternal))
 #define READ_BUFFER   (this->_inputBuffer)
 #define WRITE_BUFFER  (this->_outputBuffer)
