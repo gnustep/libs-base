@@ -128,6 +128,11 @@ int main()
     PASS([str1 isEqualToString: str2],"NSFileManager moved file contents match");
   }
 
+  PASS(![mgr copyPath: @"NSFMFile"
+	       toPath: @"NSFMDestination"
+	      handler: nil],
+       "NSFileManager does not copy nonexistent file");
+
   if ([[NSProcessInfo processInfo] operatingSystem]
     != NSWindowsNTOperatingSystem)
     {

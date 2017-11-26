@@ -361,7 +361,7 @@ static NSStringEncoding	defaultEncoding;
   return _delegate;
 }
 
-- (void) setDelegate: (NSFileManager *)delegate {
+- (void) setDelegate: (id <NSFileManagerDelegate>)delegate {
   _delegate = delegate;
 }
 
@@ -2821,13 +2821,15 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   int		wbytes;
   char		buffer[bufsize];
 
-  /* Assumes source is a file and exists! */
-  NSAssert1 ([self fileExistsAtPath: source],
-    @"source file '%@' does not exist!", source);
-
   attributes = [self fileAttributesAtPath: source traverseLink: NO];
-  NSAssert1 (attributes, @"could not get the attributes for file '%@'",
-    source);
+  if (attributes == nil)
+    {
+      return [self _proceedAccordingToHandler: handler
+				     forError: @"could not get attributes for source file"
+				       inPath: source
+				     fromPath: source
+				       toPath: destination];
+    }
 
   fileSize = [attributes fileSize];
   fileMode = [attributes filePosixPermissions];

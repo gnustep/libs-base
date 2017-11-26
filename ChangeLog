@@ -1,3 +1,12 @@
+2017-11-26  Graham Lee  <graham@iamleeg.com>
+
+	* Source/NSFileManager.m: on copying a file, when the source file
+	doesn't exist or its attributes can't be read, report an error to
+	the handler instead of triggering an assertion failure. Fixes bug
+	#51592. Additionally fix an incorrect method signature.
+
+	* Tests/base/NSFileManager/general.m: Test for above.
+
 2017-11-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArray.m: Fix for bug reported on github by zneak.
