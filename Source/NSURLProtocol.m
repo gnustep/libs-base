@@ -381,7 +381,7 @@ typedef struct {
 #endif
 } Internal;
  
-#define	this          ((Internal*)(self->_NSURLProtocolInternal))
+#define	this          p
 #define	inst          ((Internal*)(o->_NSURLProtocolInternal))
 #define READ_BUFFER   (this->_inputBuffer)
 #define WRITE_BUFFER  (this->_outputBuffer)
@@ -909,7 +909,7 @@ static NSURLProtocol	*placeholder = nil;
 	  request = AUTORELEASE([this->request mutableCopy]);
 	  [request setURL: url];
           // This invocation may end up detroying us so need to retain/autorelease...
-          AUTORELEASE(RETAIN([self retain]));
+          AUTORELEASE(RETAIN(self));
 	  [this->client URLProtocol: self
 	     wasRedirectedToRequest: request
 		   redirectResponse: nil];
