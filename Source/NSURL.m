@@ -918,6 +918,12 @@ static NSUInteger	urlAlign;
 	      usesParameters = NO;
 	      usesQueries = NO;
 	    }
+          else if (strcmp(buf->scheme, "http") == 0)
+            {
+              // TESTPLANT-MAL-11262017: Patch for issue 16821...
+              // Force generic if HTTP...
+              buf->isGeneric = YES;
+            }
         }
 
       if (canBeGeneric == YES)
