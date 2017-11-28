@@ -27,6 +27,7 @@
 #define	EXPOSE_NSURLConnection_IVARS	1
 #import "Foundation/NSError.h"
 #import "Foundation/NSRunLoop.h"
+#import "Foundation/NSThread.h"
 #import "GSURLPrivate.h"
 
 @interface _NSURLConnectionDataCollector : NSObject
@@ -295,6 +296,34 @@ typedef struct
 
 @implementation NSURLConnection (NSURLConnectionSynchronousLoading)
 
++ (void) synchronousConnectionThread: (NSDictionary*)infodict
+{
+  NSAutoreleasePool             *pool = [NSAutoreleasePool new];
+  NSUInteger                     status = 0;
+  NSURLRequest                  *request = [infodict objectForKey: @"request"];
+  _NSURLConnectionDataCollector *collector = [infodict objectForKey: @"collector"];
+  NSURLConnection               *conn = [[self alloc] initWithRequest: request delegate: collector];
+
+  if (nil != conn)
+    {
+      NSRunLoop	*loop;
+      NSDate	*limit;
+      
+      [collector setConnection: conn];
+      loop = [NSRunLoop currentRunLoop];
+      limit = [[NSDate alloc] initWithTimeIntervalSinceNow: [request timeoutInterval]];
+      
+      while ([collector done] == NO && [limit timeIntervalSinceNow] > 0.0)
+        {
+          [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
+        }
+      RELEASE(limit);
+      [conn release];
+    }
+  
+  [pool drain];
+}
+
 + (NSData *) sendSynchronousRequest: (NSURLRequest *)request
 		  returningResponse: (NSURLResponse **)response
 			      error: (NSError **)error
@@ -311,33 +340,82 @@ typedef struct
     }
   if ([self canHandleRequest: request] == YES)
     {
-      _NSURLConnectionDataCollector	*collector;
-      NSURLConnection			*conn;
-      NSRunLoop				*loop;
+      _NSURLConnectionDataCollector *collector;
 
       collector = [_NSURLConnectionDataCollector new];
-      conn = [[self alloc] initWithRequest: request delegate: collector];
-      [collector release];	// retained by connection
-      [collector setConnection: conn];
-      loop = [NSRunLoop currentRunLoop];
-      while ([collector done] == NO)
+      
+      // Cocoa OSX documentation says this is run asynchronously and this method should BLOCK...
+      NSDictionary  *infodict = @{ @"request" : request, @"collector" : collector };
+      NSThread      *thread   = [[NSThread alloc] initWithTarget: self
+                                                        selector: @selector(synchronousConnectionThread:)
+                                                          object: infodict];
+      
+      // If no thread allocated then...
+      if (thread == nil)
         {
-	  NSDate	*limit;
+          // What to do here???
+          NSLog(@"%s:unable to allocate a thread for the request: %@", __PRETTY_FUNCTION__, request);
+          
+          // Return an error if the user passed an address...
+          if (0 != error)
+            {
+              *error = [NSError errorWithDomain: NSURLErrorDomain
+                                           code: NSURLErrorUnknown
+                                       userInfo: [NSDictionary dictionaryWithObjectsAndKeys:
+                                                  [request URL],                  @"URL",
+                                                  [[request URL] path],           @"path",
+                                                  [request URL],                  NSURLErrorFailingURLErrorKey,
+                                                  [[request URL] absoluteString], NSErrorFailingURLStringKey,
+                                                  @"unable to allocate thread",   NSLocalizedDescriptionKey,
+                                                  @"unable to allocate thread",   NSLocalizedFailureReasonErrorKey,
+                                                  nil]];
+            }
+        }
+      else
+        {
+          // Start the thread...
+          [thread start];
+          
+          // Wait for thread to finish...
+          while ([thread isFinished] == NO)
+            {
+              sleep(1);
+            }
+          
+          // Cleanup...
+          [thread release];
+          
+          // Check and get data...
+          if (NO == [collector done])
+            {
+              data = nil;
+              if (0 != response)
+                {
+                  *response = nil;
+                }
+              if (0 != error)
+                {
+                  *error = [NSError errorWithDomain: NSURLErrorDomain
+                                               code: NSURLErrorTimedOut
+                                           userInfo: nil];
+                }
+            }
+          else
+            {
+              data = [[[collector data] retain] autorelease];
+              if (0 != response)
+                {
+                  *response = [[[collector response] retain] autorelease];
+                }
+              if (0 != error)
+                {
+                  *error = [[[collector error] retain] autorelease];
+                }
+            }
+        }
 
-	  limit = [[NSDate alloc] initWithTimeIntervalSinceNow: 1.0];
-	  [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
-	  RELEASE(limit);
-	}
-      data = [[[collector data] retain] autorelease];
-      if (0 != response)
-	{
-          *response = [[[collector response] retain] autorelease];
-	}
-      if (0 != error)
-	{
-          *error = [[[collector error] retain] autorelease];
-	}
-      [conn release];
+      // Cleanup...
+      [collector release];
     }
   return data;
 }
