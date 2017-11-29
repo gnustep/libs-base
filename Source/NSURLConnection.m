@@ -379,7 +379,7 @@ typedef struct
           // Wait for thread to finish...
           while ([thread isFinished] == NO)
             {
-              sleep(1);
+              [NSThread sleepForTimeInterval: 0.5];
             }
           
           // Cleanup...
