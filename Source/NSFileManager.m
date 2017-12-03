@@ -361,7 +361,7 @@ static NSStringEncoding	defaultEncoding;
   return _delegate;
 }
 
-- (void) setDelegate: (NSFileManager *)delegate {
+- (void) setDelegate: (id<NSFileManagerDelegate>)delegate {
   _delegate = delegate;
 }
 
@@ -1584,6 +1584,26 @@ static NSStringEncoding	defaultEncoding;
 		   error: (NSError**)error
 {
   return [self removeItemAtPath: [url path] error: error];
+}
+
+- (BOOL) createSymbolicLinkAtPath: (NSString*)path
+              withDestinationPath: (NSString*)destPath
+                            error: (NSError**)error
+{
+  BOOL  result;
+
+  DESTROY(_lastError);
+  result = [self createSymbolicLinkAtPath: path pathContent: destPath];
+
+  if (error != NULL)
+    {
+      if (NO == result)
+	{
+	  *error = [self _errorFrom: path to: destPath];
+	}
+    }
+
+  return result;
 }
 
 - (BOOL) fileExistsAtPath: (NSString*)path

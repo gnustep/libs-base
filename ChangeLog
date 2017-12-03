@@ -1,3 +1,9 @@
+2017-12-03  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Headers/Foundation/NSFileManager.h
+	* Source/NSFileManager.m: Correct setting the delegate.
+	Add new symbolic link method.
+
 2017-11-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSArray.m: Fix for bug reported on github by zneak.
