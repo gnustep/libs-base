@@ -58,6 +58,9 @@
  * but is not a subclass of NSObject.</p>
  */
 @implementation NSProxy
+#ifdef OBJC_CAP_ARC
+- (void)_ARCCompliantRetainRelease {}
+#endif
 
 /**
  * Allocates and returns an NSProxy instance in the default zone.
@@ -217,8 +220,12 @@
  */
 - (id) autorelease
 {
+#ifdef OBJC_CAP_ARC
+  return objc_autorelease(self);
+#else
   [NSAutoreleasePool addObject: self];
   return self;
+#endif
 }
 
 /**
@@ -453,13 +460,14 @@
  */
 - (oneway void) release
 {
+#ifdef OBJC_CAP_ARC
+  objc_release(self);
+#else
   if (NSDecrementExtraRefCountWasZero(self))
     {
-#  ifdef OBJC_CAP_ARC
-      objc_delete_weak_refs(self);
-#  endif
       [self dealloc];
     }
+#endif
 }
 
 /**
@@ -521,8 +529,12 @@
  */
 - (id) retain
 {
+#ifdef OBJC_CAP_ARC
+  return objc_retain(self);
+#else
   NSIncrementExtraRefCount(self);
   return self;
+#endif
 }
 
 /**

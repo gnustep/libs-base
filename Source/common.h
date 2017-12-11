@@ -85,4 +85,8 @@
 #  endif
 #endif
 
+#if __has_include(<objc/capabilities.h>)
+#  include <objc/capabilities.h>
+#endif
+
 #endif /* COMMON_H */

@@ -374,6 +374,24 @@ static GSLazyRecursiveLock		*connection_table_gate = nil;
 static NSConnection*
 existingConnection(NSPort *receivePort, NSPort *sendPort)
 {
+#ifdef OBJC_CAP_ARC
+  GS_F_LOCK(connection_table_gate);
+  /*
+   * Fast enumeration here will grab a strong, autoreleased, reference to the
+   * objects, so we don't require an additional retain.
+   */
+  for (NSConnection *c in connection_table)
+    {
+      if ((sendPort == nil || [sendPort isEqual: [c sendPort]])
+        && (receivePort == nil || [receivePort isEqual: [c receivePort]]))
+	{
+	  GS_F_UNLOCK(connection_table_gate);
+	  return c;
+	}
+    }
+  GS_F_UNLOCK(connection_table_gate);
+  return nil;
+#else
   NSHashEnumerator	enumerator;
   NSConnection		*c;
 
@@ -395,6 +413,7 @@ existingConnection(NSPort *receivePort, NSPort *sendPort)
   NSEndHashTableEnumeration(&enumerator);
   GS_F_UNLOCK(connection_table_gate);
   return c;
+#endif
 }
 
 static NSMapTable *root_object_map;
@@ -650,7 +669,11 @@ static NSLock	*cached_proxies_gate = nil;
       [[NSObject leakAt: &dummyObject] release];
 
       connection_table =
+#ifdef OBJC_CAP_ARC
+	[[NSHashTable weakObjectsHashTable] retain];
+#else
 	NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
+#endif
       [[NSObject leakAt: &connection_table] release];
 
       targetToCached =
@@ -1195,7 +1218,7 @@ static NSLock	*cached_proxies_gate = nil;
   /* In order that connections may be deallocated - there is an
      implementation of [-release] to automatically remove the connection
      from this array when it is the only thing retaining it. */
-  NSHashInsert(connection_table, (void*)self);
+  [connection_table addObject: self];
   GSM_UNLOCK(connection_table_gate);
 
   [nCenter postNotificationName: NSConnectionDidInitializeNotification
@@ -1469,6 +1492,7 @@ static NSLock	*cached_proxies_gate = nil;
   return result;
 }
 
+#ifndef OBJC_CAP_ARC
 - (oneway void) release
 {
   /* We lock the connection table while checking, to prevent
@@ -1490,6 +1514,7 @@ static NSLock	*cached_proxies_gate = nil;
       GSM_UNLOCK(connection_table_gate);
     }
 }
+#endif
 
 /**
  * Returns an array of proxies to all the remote objects known to
@@ -3843,10 +3868,6 @@ static NSLock	*cached_proxies_gate = nil;
     }
 }
 
-- (id) retain
-{
-  return [super retain];
-}
 
 - (void) removeProxy: (NSDistantObject*)aProxy
 {

@@ -5,7 +5,9 @@
 #import <Foundation/NSNotification.h>
 #import <Foundation/NSAutoreleasePool.h>
 #import "ObjectTesting.h"
-
+#if __has_include(<objc/capabilities.h>)
+#include <objc/capabilities.h>
+#endif
 
 @interface      ThreadCounter : NSObject
 {
@@ -80,7 +82,7 @@
 {
   return thread;
 }
-
+#ifndef OBJC_CAP_ARC
 - (void) release
 {
   // NSLog(@"Will release %@ at %@", self, [NSThread callStackSymbols]);
@@ -92,6 +94,7 @@
   // NSLog(@"Will retain %@ at %@", self, [NSThread callStackSymbols]);
   return [super retain];
 }
+#endif
 
 @end
 

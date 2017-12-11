@@ -1707,11 +1707,17 @@ static Class		tcpPortClass;
 		   * No known ports with this port number -
 		   * create the map table to add the new port to.
 		   */
+#ifdef OBJC_CAP_ARC
+		  thePorts = [NSMapTable strongToWeakObjectsMapTable];
+		  NSMapInsert(tcpPortMap, (void*)(uintptr_t)port->portNum,
+		    (void*)thePorts);
+#else
 		  thePorts = NSCreateMapTable(NSObjectMapKeyCallBacks,
 		    NSNonOwnedPointerMapValueCallBacks, 0);
 		  NSMapInsert(tcpPortMap, (void*)(uintptr_t)port->portNum,
 		    (void*)thePorts);
                   RELEASE(thePorts);
+#endif
 		}
 	      /*
 	       * Ok - now add the port for the host
@@ -1734,6 +1740,17 @@ static Class		tcpPortClass;
 	       * No known ports within this port number -
 	       * create the map table to add the new port to.
 	       */
+#ifdef OBJC_CAP_ARC
+		thePorts = [NSMapTable strongToWeakObjectsMapTable];
+		NSMapInsert(tcpPortMap, (void*)(uintptr_t)port->portNum,
+		  (void*)thePorts);
+#else
+		thePorts = NSCreateMapTable(NSObjectMapKeyCallBacks,
+		  NSNonOwnedPointerMapValueCallBacks, 0);
+		NSMapInsert(tcpPortMap, (void*)(uintptr_t)port->portNum,
+		  (void*)thePorts);
+                RELEASE(thePorts);
+#endif
 	      thePorts = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 			      NSNonOwnedPointerMapValueCallBacks, 0);
 	      NSMapInsert(tcpPortMap,
@@ -2221,6 +2238,7 @@ static Class		tcpPortClass;
     }
 }
 
+#ifndef OBJC_CAP_ARC
 - (oneway void) release
 {
   M_LOCK(tcpPortLock);
@@ -2241,6 +2259,7 @@ static Class		tcpPortClass;
       M_UNLOCK(tcpPortLock);
     }
 }
+#endif
 
 
 /*

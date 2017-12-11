@@ -408,6 +408,15 @@ static NSURLProtocol	*placeholder = nil;
    */
   return;
 }
+- (id) retain
+{
+  return self;
+}
+
+- (id) autorelease
+{
+  return self;
+}
 @end
 
 @implementation	NSURLProtocol

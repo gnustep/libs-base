@@ -190,6 +190,11 @@ static NSBundle		*_mainBundle = nil;
 static NSMapTable	*_bundles = NULL;
 static NSMapTable	*_byClass = NULL;
 static NSMapTable	*_byIdentifier = NULL;
+/* Any bundle that's loaded needs to stay permanently resident (if the runtime
+ * ever supports unloading classes, then this may change, but it's almost
+ * impossible to make work in such a way that doesn't place too high a burden
+ * on programmers). */
+static NSMutableSet     *loadedBundles;
 
 /* Store the working directory at startup */
 static NSString		*_launchDirectory = nil;
@@ -876,6 +881,7 @@ _find_main_bundle_for_tool(NSString *toolName)
       /* frameworkVersion is something like 'A'.  */
       bundle->_frameworkVersion = RETAIN([frameworkClass frameworkVersion]);
       bundle->_bundleClasses = RETAIN([NSMutableArray arrayWithCapacity: 2]);
+      [loadedBundles addObject: bundle];
 
       /* A NULL terminated list of class names - the classes contained
 	 in the framework.  */
@@ -1048,6 +1054,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       DESTROY(_bundles);
       DESTROY(_byClass);
       DESTROY(_byIdentifier);
+      DESTROY(loadedBundles);
       DESTROY(pathCache);
       DESTROY(pathCacheLock);
       DESTROY(load_lock);
@@ -1137,12 +1144,21 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
       /* Set up tables for bundle lookups
        */
+#ifdef OBJC_CAP_ARC
+      _bundles = [[NSMapTable strongToWeakObjectsMapTable] retain];
+      _byClass = [[NSMapTable alloc] initWithKeyOptions: NSPointerFunctionsOpaqueMemory | NSPointerFunctionsObjectPersonality
+                                           valueOptions: NSPointerFunctionsWeakMemory | NSPointerFunctionsObjectPersonality
+                                               capacity: 64];
+      _byIdentifier = [[NSMapTable strongToWeakObjectsMapTable] retain];
+#else
       _bundles = NSCreateMapTable(NSObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
       _byClass = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
       _byIdentifier = NSCreateMapTable(NSObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
+#endif
+      loadedBundles = [NSMutableSet new];
 
       pathCacheLock = [NSLock new];
       pathCache = [NSMutableDictionary new];
@@ -2004,6 +2020,8 @@ IF_NO_GC(
       NSValue        *class;
       NSBundle       *savedLoadingBundle;
 
+      [loadedBundles addObject: self];
+
       /* Get the binary and set up fraework name if it is a framework.
        */
       object = [self executablePath];
@@ -2084,6 +2102,7 @@ IF_NO_GC(
   return YES;
 }
 
+#ifndef OBJC_CAP_ARC
 - (oneway void) release
 {
   /* We lock during release so that other threads can't grab the
@@ -2096,6 +2115,7 @@ IF_NO_GC(
     }
   [load_lock unlock];
 }
+#endif
 
 /* This method is the backbone of the resource searching for NSBundle. It
    constructs an array of paths, where each path is a possible location

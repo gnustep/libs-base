@@ -56,7 +56,6 @@ int main()
   TEST_FOR_CLASS(@"NSBundle",classBundle,
     "+bundleForClass: makes a bundle for us");
 
-  NSLog(@"%@", [classBundle principalClass]);
   PASS([classBundle principalClass] == [TestClass class], 
     "-principalClass returns TestClass for +bundleForClass:[TestClass class]");
 
@@ -68,6 +67,7 @@ int main()
       stringByAppendingPathComponent: @"TestBundle.bundle"];
 
   bundle = [NSBundle bundleWithPath: path];
+  PASS(bundle != nil, "bundleWithPath: returned non-nil bundle");
   PASS([bundle isKindOfClass:[NSBundle class]],
     "+bundleWithPath returns an NSBundle");
 

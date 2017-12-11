@@ -61,6 +61,10 @@ static	NSIndexPath	*dummy = nil;
   id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   o = [o initWithIndexes: indexes length: length];
+  if (o == empty)
+    {
+      return o;
+    }
   return AUTORELEASE(o);
 }
 
@@ -73,9 +77,13 @@ static	NSIndexPath	*dummy = nil;
       [[NSObject leakAt: &empty] release];
       dummy = (NSIndexPath*)NSAllocateObject(self, 0, NSDefaultMallocZone());
       [[NSObject leakAt: &dummy] release];
+#ifdef OBJC_CAP_ARC
+      shared = [[NSHashTable weakObjectsHashTable] retain];
+#else
       shared = NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 1024);
-      [[NSObject leakAt: &shared] release];
       NSHashInsert(shared, empty);
+#endif
+      [[NSObject leakAt: &shared] release];
       lock = [GSLazyRecursiveLock new];
       [[NSObject leakAt: &lock] release];
     }
@@ -124,6 +132,13 @@ static	NSIndexPath	*dummy = nil;
 
 - (void) dealloc
 {
+#ifdef OBJC_CAP_ARC
+  if (_indexes != 0)
+    {
+      NSZoneFree(NSDefaultMallocZone(), _indexes);
+    }
+  [super dealloc];
+#else
   if (self != empty)
     {
       [lock lock];
@@ -139,6 +154,7 @@ static	NSIndexPath	*dummy = nil;
       [super dealloc];
     }
   GSNOSUPERDEALLOC;
+#endif
 }
 
 - (NSString*) description
@@ -384,9 +400,13 @@ static	NSIndexPath	*dummy = nil;
     {
       if (self == empty)
 	{
-          RELEASE(self);
+          NSIndexPath *old = self;
 	  self = (NSIndexPath*)NSAllocateObject([self class],
 	    0, NSDefaultMallocZone());
+          if (old != empty)
+            {
+              RELEASE(old);
+            }
 	}
       _hash = dummy->_hash;
       _length = dummy->_length;
@@ -397,7 +417,14 @@ static	NSIndexPath	*dummy = nil;
     }
   else
     {
-      ASSIGN(self, found);
+      if (self == empty)
+        {
+          self = RETAIN(found);
+        }
+      else
+        {
+          ASSIGN(self, found);
+        }
     }
   dummy->_indexes = 0;  // Don't want static indexes deallocated atExit
   [lock unlock];
@@ -439,6 +466,7 @@ static	NSIndexPath	*dummy = nil;
   return _length;
 }
 
+#ifndef OBJC_CAP_ARC
 - (oneway void) release
 {
   if (self != empty)
@@ -458,6 +486,7 @@ static	NSIndexPath	*dummy = nil;
       [lock unlock];
     }
 }
+#endif
 
 @end
 

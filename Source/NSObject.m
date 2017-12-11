@@ -1654,6 +1654,9 @@ static id gs_weak_load(id obj)
  */
 - (id) autorelease
 {
+#ifdef OBJC_CAP_ARC
+  return objc_autorelease(self);
+#else
   if (double_release_check_enabled)
     {
       NSUInteger release_count;
@@ -1669,6 +1672,7 @@ static id gs_weak_load(id obj)
 
   (*autorelease_imp)(autorelease_class, autorelease_sel, self);
   return self;
+#endif
 }
 
 /**
@@ -1893,13 +1897,14 @@ static id gs_weak_load(id obj)
  */
 - (oneway void) release
 {
+#  ifdef OBJC_CAP_ARC
+  objc_release(self);
+#  else
   if (NSDecrementExtraRefCountWasZero(self))
     {
-#  ifdef OBJC_CAP_ARC
-      objc_delete_weak_refs(self);
-#  endif
       [self dealloc];
     }
+#  endif
 }
 
 /**
@@ -1958,7 +1963,11 @@ static id gs_weak_load(id obj)
  */
 - (id) retain
 {
+#if OBJC_CAP_ARC
+  objc_retain(self);
+#else
   NSIncrementExtraRefCount(self);
+#endif
   return self;
 }
 

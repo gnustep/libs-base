@@ -173,16 +173,13 @@ static Class	NSPort_concrete_class;
   return 0;
 }
 
-- (id) retain
-{
-  return [super retain];
-}
 
-- (id) autorelease
+#ifdef OBJC_CAP_ARC
+- (void)dealloc
 {
-  return [super autorelease];
+  [self invalidate];
 }
-
+#else
 - (oneway void) release
 {
   if (_is_valid && [self retainCount] == 1)
@@ -198,6 +195,7 @@ static Class	NSPort_concrete_class;
     }
   [super release];
 }
+#endif
 
 - (void) setDelegate: (id) anObject
 {

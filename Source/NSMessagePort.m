@@ -1148,8 +1148,12 @@ typedef	struct {
       NSEnumerator	*files;
 
       messagePortClass = self;
+#ifdef OBJC_CAP_ARC
+      messagePortMap = [[NSMapTable strongToWeakObjectsMapTable] retain];
+#else
       messagePortMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
+#endif
 
       messagePortLock = [GSLazyRecursiveLock new];
 
@@ -1710,6 +1714,7 @@ typedef	struct {
     }
 }
 
+#ifndef OBJC_CAP_ARC
 - (oneway void) release
 {
   M_LOCK(messagePortLock);
@@ -1727,6 +1732,7 @@ typedef	struct {
       M_UNLOCK(messagePortLock);
     }
 }
+#endif
 
 - (void) removeHandle: (GSMessageHandle*)handle
 {
