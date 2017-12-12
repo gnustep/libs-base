@@ -1146,7 +1146,16 @@ static NSURLProtocol	*placeholder = nil;
         }
 
       _complete = [_parser isComplete];
-      
+      if ((_complete == NO) && ([stream  streamStatus] == NSStreamStatusAtEnd))
+        {
+          if (_debug)
+          {
+            NSWarnMLog(@"premature stream status at END (NSStreamStatusAtEnd) complete: %ld", (long)_complete);
+          }
+          // Force to complete...
+          _complete = YES;
+        }
+
       if (_debug)
         {
           NSWarnMLog(@"_complete: %ld wasInHeaders: %ld isInHeaders: %ld", (long)_complete,
