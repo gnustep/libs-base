@@ -1,7 +1,7 @@
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSProxy.h>
-#if __has_include(<objc/capabilities.h>
+#if __has_include(<objc/capabilities.h>)
 #include <objc/capabilities.h>
 #endif
 
