@@ -444,15 +444,8 @@ struct obj_layout {
 };
 typedef	struct obj_layout *obj;
 
-/**
- * Examines the extra reference count for the object and, if non-zero
- * decrements it, otherwise leaves it unchanged.<br />
- * Returns a flag to say whether the count was zero
- * (and hence whether the extra reference count was decremented).<br />
- * This function is used by the [NSObject-release] method.
- */
-inline BOOL
-NSDecrementExtraRefCountWasZero(id anObject)
+__attribute__((weak))
+BOOL objc_release_fast_no_destroy_np(id anObject)
 {
   if (double_release_check_enabled)
     {
@@ -483,6 +476,9 @@ NSDecrementExtraRefCountWasZero(id anObject)
          * have been greater than zero)
          */
         (((obj)anObject)[-1].retained) = 0;
+#  ifdef OBJC_CAP_ARC
+        objc_delete_weak_refs(anObject);
+#  endif
         return YES;
       }
 #else	/* GSATOMICREAD */
@@ -491,6 +487,9 @@ NSDecrementExtraRefCountWasZero(id anObject)
     [theLock lock];
     if (((obj)anObject)[-1].retained == 0)
       {
+#  ifdef OBJC_CAP_ARC
+        objc_delete_weak_refs(anObject);
+#  endif
         [theLock unlock];
         return YES;
       }
@@ -505,6 +504,33 @@ NSDecrementExtraRefCountWasZero(id anObject)
   return NO;
 }
 
+__attribute__((weak))
+void objc_release_fast_np(id anObject)
+{
+  if (objc_release_fast_no_destroy_np(anObject))
+    {
+      [anObject dealloc];
+    }
+}
+
+/**
+ * Examines the extra reference count for the object and, if non-zero
+ * decrements it, otherwise leaves it unchanged.<br />
+ * Returns a flag to say whether the count was zero
+ * (and hence whether the extra reference count was decremented).<br />
+ */
+inline BOOL
+NSDecrementExtraRefCountWasZero(id anObject)
+{
+  return objc_release_fast_no_destroy_np(anObject);
+}
+
+__attribute__((weak))
+size_t object_getRetainCount_np(id anObject)
+{
+  return ((obj)anObject)[-1].retained + 1;
+}
+
 /**
  * Return the extra reference count of anObject (a value in the range
  * from 0 to the maximum unsigned integer value minus one).<br />
@@ -513,7 +539,7 @@ NSDecrementExtraRefCountWasZero(id anObject)
 inline NSUInteger
 NSExtraRefCount(id anObject)
 {
-  return ((obj)anObject)[-1].retained;
+  return object_getRetainCount_np(anObject) - 1;
 }
 
 /**
@@ -522,8 +548,8 @@ NSExtraRefCount(id anObject)
  * would be incremented to too large a value.<br />
  * This is used by the [NSObject-retain] method.
  */
-inline void
-NSIncrementExtraRefCount(id anObject)
+__attribute__((weak))
+id objc_retain_fast_np(id anObject)
 {
   BOOL  tooFar = NO;
 
@@ -586,6 +612,19 @@ NSIncrementExtraRefCount(id anObject)
             @" for %@ - %@", base, anObject];
         }
     }
+  return anObject;
+}
+
+/**
+ * Increments the extra reference count for anObject.<br />
+ * The GNUstep version raises an exception if the reference count
+ * would be incremented to too large a value.<br />
+ * This is used by the [NSObject-retain] method.
+ */
+inline void
+NSIncrementExtraRefCount(id anObject)
+{
+   objc_retain_fast_np(anObject);
 }
 
 #ifndef	NDEBUG
@@ -1893,13 +1932,7 @@ static id gs_weak_load(id obj)
  */
 - (oneway void) release
 {
-  if (NSDecrementExtraRefCountWasZero(self))
-    {
-#  ifdef OBJC_CAP_ARC
-      objc_delete_weak_refs(self);
-#  endif
-      [self dealloc];
-    }
+  objc_release_fast_np(self);
 }
 
 /**
@@ -1958,8 +1991,7 @@ static id gs_weak_load(id obj)
  */
 - (id) retain
 {
-  NSIncrementExtraRefCount(self);
-  return self;
+  return objc_retain_fast_np(self);
 }
 
 /**
@@ -1983,7 +2015,7 @@ static id gs_weak_load(id obj)
  */
 - (NSUInteger) retainCount
 {
-  return NSExtraRefCount(self) + 1;
+  return object_getRetainCount_np(self);
 }
 
 /**
