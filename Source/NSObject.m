@@ -125,6 +125,7 @@ BOOL	NSDeallocateZombies = NO;
 static Class		zombieClass = Nil;
 static NSMapTable	*zombieMap = 0;
 
+#ifndef OBJC_CAP_ARC
 static void GSMakeZombie(NSObject *o, Class c)
 {
   object_setClass(o, zombieClass);
@@ -135,6 +136,7 @@ static void GSMakeZombie(NSObject *o, Class c)
       [allocationLock unlock];
     }
 }
+#endif
 
 static void GSLogZombie(id o, SEL sel)
 {
@@ -635,6 +637,8 @@ NSIncrementExtraRefCount(id anObject)
 #define	AREM(c, o)
 #endif
 
+
+#ifndef OBJC_CAP_ARC
 static SEL cxx_construct, cxx_destruct;
 
 /**
@@ -668,6 +672,7 @@ callCXXConstructors(Class aClass, id anObject)
     }
   return constructor;
 }
+#endif
 
 
 /*
@@ -681,6 +686,9 @@ callCXXConstructors(Class aClass, id anObject)
 inline id
 NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
+#ifdef OBJC_CAP_ARC
+  return class_createInstance(aClass, extraBytes);
+#else
   id	new;
   int	size;
 
@@ -713,17 +721,21 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
   callCXXConstructors(aClass, new);
 
   return new;
+#endif
 }
 
 inline void
 NSDeallocateObject(id anObject)
 {
+
   Class aClass = object_getClass(anObject);
 
   if ((anObject != nil) && !class_isMetaClass(aClass))
     {
+#ifndef OBJC_CAP_ARC
       obj	o = &((obj)anObject)[-1];
       NSZone	*z = NSZoneFromPointer(o);
+#endif
 
       /* Call the default finalizer to handle C++ destructors.
        */
@@ -732,16 +744,37 @@ NSDeallocateObject(id anObject)
       AREM(aClass, (id)anObject);
       if (NSZombieEnabled == YES)
 	{
+#ifdef OBJC_CAP_ARC
+	  if (0 != zombieMap)
+	    {
+	      [allocationLock lock];
+	      NSMapInsert(zombieMap, (void*)anObject, (void*)aClass);
+	      [allocationLock unlock];
+	    }
+	  if (NSDeallocateZombies == YES)
+	    {
+	      object_dispose(anObject);
+	    }
+	  else
+	    {
+	      object_setClass(anObject, zombieClass);
+	    }
+#else
 	  GSMakeZombie(anObject, aClass);
 	  if (NSDeallocateZombies == YES)
 	    {
 	      NSZoneFree(z, o);
 	    }
+#endif
 	}
       else
 	{
+#ifdef OBJC_CAP_ARC
+	  object_dispose(anObject);
+#else
 	  object_setClass((id)anObject, (Class)(void*)0xdeadface);
 	  NSZoneFree(z, o);
+#endif
 	}
     }
   return;
@@ -1236,6 +1269,7 @@ static id gs_weak_load(id obj)
 
 - (void) finalize
 {
+#ifndef OBJC_CAP_ARC
   Class	destructorClass = Nil;
   IMP	  destructor = 0;
   /*
@@ -1290,6 +1324,7 @@ static id gs_weak_load(id obj)
 	}
     }
   return;
+#endif
 }
 
 /**
