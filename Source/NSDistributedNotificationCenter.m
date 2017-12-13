@@ -583,7 +583,7 @@ static NSDistributedNotificationCenter	*netCenter = nil;
  */
 - (void) _connect
 {
-  if (_remote == nil)
+  if ((_remote == nil) && ([[NSUserDefaults standardUserDefaults] boolForKey: @"GSDisableDistributedNotifications"] == NO))
     {
       NSString		*host = nil;
       NSString		*service = nil;
