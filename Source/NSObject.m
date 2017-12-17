@@ -446,8 +446,24 @@ struct obj_layout {
 };
 typedef	struct obj_layout *obj;
 
+/*
+ * These symbols are provided by newer versions of the GNUstep Objective-C
+ * runtime.  When linked against an older version, we will use our internal
+ * versions.
+ */
 __attribute__((weak))
-BOOL objc_release_fast_no_destroy_np(id anObject)
+BOOL objc_release_fast_no_destroy_np(id anObject);
+
+__attribute__((weak))
+void objc_release_fast_np(id anObject);
+
+__attribute__((weak))
+size_t object_getRetainCount_np(id anObject);
+
+__attribute__((weak))
+id objc_retain_fast_np(id anObject);
+
+static BOOL objc_release_fast_no_destroy_internal(id anObject)
 {
   if (double_release_check_enabled)
     {
@@ -506,12 +522,35 @@ BOOL objc_release_fast_no_destroy_np(id anObject)
   return NO;
 }
 
-__attribute__((weak))
-void objc_release_fast_np(id anObject)
+static BOOL release_fast_no_destroy(id anObject)
 {
-  if (objc_release_fast_no_destroy_np(anObject))
+  if (objc_release_fast_no_destroy_np)
+    {
+      return objc_release_fast_no_destroy_np(anObject);
+    }
+  else
+    {
+      return objc_release_fast_no_destroy_internal(anObject);
+    }
+}
+
+static void objc_release_fast_np_internal(id anObject)
+{
+  if (release_fast_no_destroy(anObject))
     {
       [anObject dealloc];
+    }
+}
+
+static void release_fast(id anObject)
+{
+  if (objc_release_fast_np)
+    {
+      objc_release_fast_np(anObject);
+    }
+  else
+    {
+      objc_release_fast_np_internal(anObject);
     }
 }
 
@@ -524,13 +563,24 @@ void objc_release_fast_np(id anObject)
 inline BOOL
 NSDecrementExtraRefCountWasZero(id anObject)
 {
-  return objc_release_fast_no_destroy_np(anObject);
+  return release_fast_no_destroy(anObject);
 }
 
-__attribute__((weak))
-size_t object_getRetainCount_np(id anObject)
+size_t object_getRetainCount_np_internal(id anObject)
 {
   return ((obj)anObject)[-1].retained + 1;
+}
+
+size_t getRetainCount(id anObject)
+{
+  if (object_getRetainCount_np)
+    {
+      return object_getRetainCount_np(anObject);
+    }
+  else
+    {
+      return object_getRetainCount_np_internal(anObject);
+    }
 }
 
 /**
@@ -541,7 +591,7 @@ size_t object_getRetainCount_np(id anObject)
 inline NSUInteger
 NSExtraRefCount(id anObject)
 {
-  return object_getRetainCount_np(anObject) - 1;
+  return getRetainCount(anObject) - 1;
 }
 
 /**
@@ -550,8 +600,7 @@ NSExtraRefCount(id anObject)
  * would be incremented to too large a value.<br />
  * This is used by the [NSObject-retain] method.
  */
-__attribute__((weak))
-id objc_retain_fast_np(id anObject)
+static id objc_retain_fast_np_internal(id anObject)
 {
   BOOL  tooFar = NO;
 
@@ -617,6 +666,18 @@ id objc_retain_fast_np(id anObject)
   return anObject;
 }
 
+static id retain_fast(id anObject)
+{
+  if (objc_retain_fast_np)
+    {
+      return objc_retain_fast_np(anObject);
+    }
+  else
+    {
+      return objc_retain_fast_np_internal(anObject);
+    }
+}
+
 /**
  * Increments the extra reference count for anObject.<br />
  * The GNUstep version raises an exception if the reference count
@@ -626,7 +687,7 @@ id objc_retain_fast_np(id anObject)
 inline void
 NSIncrementExtraRefCount(id anObject)
 {
-   objc_retain_fast_np(anObject);
+   retain_fast(anObject);
 }
 
 #ifndef	NDEBUG
@@ -1967,7 +2028,7 @@ static id gs_weak_load(id obj)
  */
 - (oneway void) release
 {
-  objc_release_fast_np(self);
+  release_fast(self);
 }
 
 /**
@@ -2026,7 +2087,7 @@ static id gs_weak_load(id obj)
  */
 - (id) retain
 {
-  return objc_retain_fast_np(self);
+  return retain_fast(self);
 }
 
 /**
@@ -2050,7 +2111,7 @@ static id gs_weak_load(id obj)
  */
 - (NSUInteger) retainCount
 {
-  return object_getRetainCount_np(self);
+  return getRetainCount(self);
 }
 
 /**
