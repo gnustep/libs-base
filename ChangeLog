@@ -1,3 +1,17 @@
+2017-12-17  David Chisnall <theraven@sucs.org>
+
+	* Source/NSObject.m:      Refactor refcount usage.
+
+	This makes it easier for the runtime to change how reference
+	counts are
+	stored by removing any refcount manipulation from -base when
+	the runtime
+	provides accessors.  This should have no functionality
+	change with
+	existing runtimes, but will let newer runtimes drop in
+	alternative
+	representations easily.
+
 2017-12-03  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Headers/Foundation/NSFileManager.h
