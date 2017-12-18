@@ -107,6 +107,10 @@ typedef retTy(^name)()
 
 #endif /* __has_feature(blocks) */
 
+#if __has_include(<objc/blocks_runtime.h>)
+#  include <objc/blocks_runtime.h>
+#else
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -135,6 +139,8 @@ void _Block_release(const void *) __attribute__((weak));
 #ifndef Block_release
 #  define Block_release(x) _Block_release((const void *)(x))
 #endif
+
+#endif /* __has_include(<objc/blocks_runtime.h>) */
 
 #endif /* __GSBlocks_h_GNUSTEP_BASE_INCLUDE */
 

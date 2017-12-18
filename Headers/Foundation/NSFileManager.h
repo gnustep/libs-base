@@ -302,6 +302,14 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
  */
 - (BOOL) removeItemAtURL: (NSURL*)url
                    error: (NSError**)error;
+/**
+ * Creates a symbolic link at the path
+ * that point to the destination path.<br />
+ * Returns YES on success, otherwise NO.
+ */
+- (BOOL) createSymbolicLinkAtPath: (NSString*)path
+              withDestinationPath: (NSString*)destPath
+                            error: (NSError**)error;
 #endif
 
 /**
