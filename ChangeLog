@@ -1,3 +1,11 @@
+2017-12-18  Graham Lee  <graham@iamleeg.com>
+
+	* Source/NSJSONSerialization.m: Fix for bug #12 on github. This
+	makes sure that unsigned integer types are written as such,
+	avoiding a potential overflow.
+
+	* Tests/base/NSJSONSerialization/tests00.m: Test case for above.
+
 2017-12-17  David Chisnall <theraven@sucs.org>
 
 	* Source/NSObject.m:      Refactor refcount usage.

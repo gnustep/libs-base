@@ -3,6 +3,7 @@
 //
 
 #import <Foundation/Foundation.h>
+
 #import "ObjectTesting.h"
 
 
@@ -322,6 +323,28 @@ static NSString *percentQuoted(NSString *s)
     }
 }
 
+- (void)longLongOverflow
+{
+  NSNumber *big = [NSNumber numberWithUnsignedLongLong: 0xffffffffffffffff];
+  NSNumber *small = [NSNumber numberWithLongLong: 0xffffffffffffffff];
+
+  NSData *data = [NSJSONSerialization dataWithJSONObject: big
+						 options: 0
+						   error: NULL];
+  NSString *string = [[NSString alloc] initWithData: data
+					   encoding: NSUTF8StringEncoding];
+  NSAssert([string isEqualToString:@"18446744073709551615"], @"unsigned long long");
+  [string release];
+
+  data = [NSJSONSerialization dataWithJSONObject: small
+					 options: 0
+					   error: NULL];
+  string = [[NSString alloc] initWithData: data
+				 encoding: NSUTF8StringEncoding];
+  NSAssert([string isEqualToString:@"-1"], @"signed long long");
+  [string release];
+}
+
 @end
 
 
@@ -338,7 +361,7 @@ int main(int argc, char *argv[])
   PASS([gtb performTest: @"cr1524466"], "cr1524466");
   PASS([gtb performTest: @"cr2096767"], "cr2096767");
   PASS([gtb performTest: @"cr2549370"], "cr2549370");
-  
+  PASS([gtb performTest: @"longLongOverflow"], "longLongOverflow");
   [gtb release];
 
   [pool release];
