@@ -30,6 +30,21 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.25.1</heading>
+        <p>A new stable release.<br />
+        Unicode fixes for characters outside the base plane<br />
+        Stubs for some new OSX methods<br />
+        Various new OSX compatibility macro and type definitions<br />
+        NSFileManager fixes and tweaks to match OSX implementation<br />
+        NSDistributedLock bugfix for pre-existing lock directories<br />
+        Alternative sort algorithms selectable at runtime<br />
+        Other morte minor bugfixes and cleanups.<br />
+        As usual, this release also contains an update to include the
+        most recent international timezone data.
+        </p>
+      </section>
+
+      <section>
 	<heading>Version 1.25.0</heading>
         <p>A new stable release.<br />
         Removes garbage collection support (though for now the
