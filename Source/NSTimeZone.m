@@ -564,6 +564,16 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
   return self;
 }
 
+- (id) copy
+{
+  return self;
+}
+
+- (id) copyWithZone: (NSZone*)z
+{
+  return self;
+}
+
 - (NSData*) data
 {
   return [[NSTimeZoneClass defaultTimeZone] data];
