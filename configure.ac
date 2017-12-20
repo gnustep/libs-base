@@ -1984,7 +1984,7 @@ GS_NONFRAGILE=0
 GS_MIXEDABI=0
 if test "$nonfragile" = "yes"; then
   saved_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $OBJCFLAGS -fobjc-nonfragile-abi -x objective-c"
+  CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
   AC_MSG_CHECKING(for non-fragile-abi support)
   AC_RUN_IFELSE([AC_LANG_SOURCE(
     [[#include "$srcdir/config/config.non-fragile-ivars.m"]])],
@@ -1992,7 +1992,6 @@ if test "$nonfragile" = "yes"; then
     non_fragile="$cross_non_fragile")
   CPPFLAGS="$saved_CPPFLAGS"
   if test $non_fragile = yes; then
-    OBJCLIBS="$OBJLIBS -fobjc-nonfragile-abi"
     GS_NONFRAGILE=1
     if test "$OBJC_RUNTIME_LIB" != "ng"; then
       AC_ARG_ENABLE(mixedabi,
