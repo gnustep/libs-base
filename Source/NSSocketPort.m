@@ -425,7 +425,6 @@ static Class	runLoopClass;
   handle->desc = d;
   handle->wMsgs = [NSMutableArray new];
   handle->myLock = [GSLazyRecursiveLock new];
-  handle->valid = YES;
 #if	defined(_WIN32)
   ev = (WSAEVENT)CreateEvent(NULL,NO,NO,NULL);
   if (ev == WSA_INVALID_EVENT)
@@ -440,6 +439,7 @@ static Class	runLoopClass;
   handle->inReplyMode = NO;
   handle->readyToSend = YES;
 #endif
+  handle->valid = YES;
   return AUTORELEASE(handle);
 }
 
@@ -459,6 +459,70 @@ static Class	runLoopClass;
       portMessageClass = [NSPortMessage class];
       runLoopClass = [NSRunLoop class];
     }
+}
+
+- (void) _add: (NSRunLoop*)l
+{
+#if	defined(_WIN32)
+  [l addEvent: (void*)(uintptr_t)event
+	 type: ET_HANDLE
+      watcher: self
+      forMode: NSConnectionReplyMode];
+  [l addEvent: (void*)(uintptr_t)event
+	 type: ET_HANDLE
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
+  inReplyMode = YES;
+#else
+  [l addEvent: (void*)(uintptr_t)desc
+	 type: ET_WDESC
+      watcher: self
+      forMode: NSConnectionReplyMode];
+  [l addEvent: (void*)(uintptr_t)desc
+	 type: ET_EDESC
+      watcher: self
+      forMode: NSConnectionReplyMode];
+  [l addEvent: (void*)(uintptr_t)desc
+	 type: ET_WDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
+  [l addEvent: (void*)(uintptr_t)desc
+	 type: ET_EDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
+#endif
+}
+
+- (void) _rem: (NSRunLoop*)l
+{
+#if	defined(_WIN32)
+  [l removeEvent: (void*)(uintptr_t)event
+	    type: ET_HANDLE
+	 forMode: NSConnectionReplyMode
+	     all: NO];
+  [l removeEvent: (void*)(uintptr_t)event
+	    type: ET_HANDLE
+	 forMode: NSDefaultRunLoopMode
+	     all: NO];
+  inReplyMode = NO;
+#else
+  [l removeEvent: (void*)(uintptr_t)desc
+	    type: ET_WDESC
+	 forMode: NSConnectionReplyMode
+	     all: NO];
+  [l removeEvent: (void*)(uintptr_t)desc
+	    type: ET_EDESC
+	 forMode: NSConnectionReplyMode
+	     all: NO];
+  [l removeEvent: (void*)(uintptr_t)desc
+	    type: ET_WDESC
+	 forMode: NSDefaultRunLoopMode
+	     all: NO];
+  [l removeEvent: (void*)(uintptr_t)desc
+	    type: ET_EDESC
+	 forMode: NSDefaultRunLoopMode
+	     all: NO];
+#endif
 }
 
 - (BOOL) connectToPort: (NSSocketPort*)aPort beforeDate: (NSDate*)when
@@ -564,72 +628,24 @@ static Class	runLoopClass;
 
   state = GS_H_TRYCON;
   l = [NSRunLoop currentRunLoop];
-#if	defined(_WIN32)
-  NSAssert(event != WSA_INVALID_EVENT, @"Socket without win32 event!");
-  [l addEvent: (void*)(uintptr_t)event
-	 type: ET_HANDLE
-      watcher: self
-      forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(uintptr_t)event
-	 type: ET_HANDLE
-      watcher: self
-      forMode: NSDefaultRunLoopMode];
-  inReplyMode = YES;
-#else
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_WDESC
-      watcher: self
-      forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_EDESC
-      watcher: self
-      forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_WDESC
-      watcher: self
-      forMode: NSDefaultRunLoopMode];
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_EDESC
-      watcher: self
-      forMode: NSDefaultRunLoopMode];
-#endif
+  [self _add: l];
 
   while (valid == YES && state == GS_H_TRYCON
     && [when timeIntervalSinceNow] > 0)
     {
       M_UNLOCK(myLock);
-      [l runMode: NSConnectionReplyMode beforeDate: when];
+      NS_DURING
+        [l runMode: NSConnectionReplyMode beforeDate: when];
+      NS_HANDLER
+        M_LOCK(myLock);
+        [self _rem: l];
+        M_UNLOCK(myLock);
+        [localException raise];
+      NS_ENDHANDLER
       M_LOCK(myLock);
     }
 
-#if	defined(_WIN32)
-  [l removeEvent: (void*)(uintptr_t)event
-	    type: ET_HANDLE
-	 forMode: NSConnectionReplyMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)event
-	    type: ET_HANDLE
-	 forMode: NSDefaultRunLoopMode
-	     all: NO];
-  inReplyMode = NO;
-#else
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_WDESC
-	 forMode: NSConnectionReplyMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_EDESC
-	 forMode: NSConnectionReplyMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_WDESC
-	 forMode: NSDefaultRunLoopMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_EDESC
-	 forMode: NSDefaultRunLoopMode
-	     all: NO];
-#endif
+  [self _rem: l];
 
   if (state == GS_H_TRYCON)
     {
@@ -703,8 +719,18 @@ static Class	runLoopClass;
 - (void) finalize
 {
   [self invalidate];
-  (void)close(desc);
-  desc = -1;
+#if	defined(_WIN32)
+  if (event != WSA_INVALID_EVENT)
+    {
+      WSACloseEvent(event);
+      event = WSA_INVALID_EVENT;
+    }
+#endif
+  if (desc >= 0)
+    {
+      (void)close(desc);
+      desc = -1;
+    }
 }
 
 - (void) invalidate
@@ -714,37 +740,11 @@ static Class	runLoopClass;
       M_LOCK(myLock);
       if (valid == YES)
 	{
-	  NSRunLoop	*l;
-
 	  valid = NO;
-	  l = [runLoopClass currentRunLoop];
-#if	defined(_WIN32)
-	  [l removeEvent: (void*)(uintptr_t)event
-		    type: ET_HANDLE
-		 forMode: nil
-		     all: YES];
-#else
-	  [l removeEvent: (void*)(uintptr_t)desc
-		    type: ET_RDESC
-		 forMode: nil
-		     all: YES];
-	  [l removeEvent: (void*)(uintptr_t)desc
-		    type: ET_WDESC
-		 forMode: nil
-		     all: YES];
-	  [l removeEvent: (void*)(uintptr_t)desc
-		    type: ET_EDESC
-		 forMode: nil
-		     all: YES];
-#endif
 	  NSDebugMLLog(@"GSTcpHandle",
 	    @"invalidated 0x%"PRIxPTR, (NSUInteger)self);
 	  [[self recvPort] removeHandle: self];
 	  [[self sendPort] removeHandle: self];
-#if	defined(_WIN32)
-          WSACloseEvent(event);
-          event = WSA_INVALID_EVENT;
-#endif
 	}
       M_UNLOCK(myLock);
     }
@@ -821,7 +821,7 @@ static Class	runLoopClass;
 	  [self invalidate];
 	  return;
 	}
-	res = 0;	/* Interrupted - continue	*/
+      res = 0;	/* Interrupted - continue	*/
     }
   NSDebugMLLog(@"GSTcpHandle",
     @"read %d bytes on 0x%"PRIxPTR, res, (NSUInteger)self);
@@ -1228,17 +1228,15 @@ static Class	runLoopClass;
 #if	defined(_WIN32)
   WSANETWORKEVENTS ocurredEvents;
 
-  /* If we have been invalidated then we should ignore this
-   * event and remove ourself from the runloop.
+  /* If we have been invalidated then we should ignore this event.
    */
-  if (NO == valid || desc == INVALID_SOCKET)
+  if (NO == valid)
     {
-      NSRunLoop	*l = [runLoopClass currentRunLoop];
-
-      [l removeEvent: data
-		type: ET_HANDLE
-	     forMode: mode
-		 all: YES];
+      return;
+    }
+  if (INVALID_SOCKET == desc)
+    {
+      [self invalidate];
       return;
     }
 
@@ -1315,21 +1313,15 @@ static Class	runLoopClass;
 
 #else
 
-  /* If we have been invalidated then we should ignore this
-   * event and remove ourself from the runloop.
+  /* If we have been invalidated then we should ignore this event.
    */
-  if (NO == valid || desc < 0)
+  if (NO == valid)
     {
-      NSRunLoop	*l = [runLoopClass currentRunLoop];
-
-      [l removeEvent: data
-		type: ET_WDESC
-	     forMode: mode
-		 all: YES];
-      [l removeEvent: data
-		type: ET_EDESC
-	     forMode: mode
-		 all: YES];
+      return;
+    }
+  if (desc < 0)
+    {
+      [self invalidate];
       return;
     }
 
@@ -1364,88 +1356,45 @@ static Class	runLoopClass;
 
   IF_NO_GC(RETAIN(self);)
 
-#if	defined(_WIN32)
-  NSAssert(event != WSA_INVALID_EVENT, @"Socket without win32 event!");
-  [l addEvent: (void*)(uintptr_t)event
-	 type: ET_HANDLE
-      watcher: self
-      forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(uintptr_t)event
-	 type: ET_HANDLE
-      watcher: self
-      forMode: NSDefaultRunLoopMode];
-  inReplyMode = YES;
-#else
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_WDESC
-      watcher: self
-      forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_EDESC
-      watcher: self
-      forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_WDESC
-      watcher: self
-      forMode: NSDefaultRunLoopMode];
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_EDESC
-      watcher: self
-      forMode: NSDefaultRunLoopMode];
-#endif
+  [self _add: l];
 
   while (valid == YES
     && [wMsgs indexOfObjectIdenticalTo: components] != NSNotFound
     && [when timeIntervalSinceNow] > 0)
     {
       M_UNLOCK(myLock);
+
+      NS_DURING
 #if	defined(_WIN32)
-      if (readyToSend)
-        {
-          [self receivedEventWrite];
-        }
-      else
-        {
-          [l runMode: NSConnectionReplyMode beforeDate: when];
-        }
+        if (readyToSend)
+          {
+            [self receivedEventWrite];
+          }
+        else
+          {
+            [l runMode: NSConnectionReplyMode beforeDate: when];
+          }
 #else
-      [l runMode: NSConnectionReplyMode beforeDate: when];
+        [l runMode: NSConnectionReplyMode beforeDate: when];
 #endif
+      NS_HANDLER
+        M_LOCK(myLock);
+        [self _rem: l];
+        M_UNLOCK(myLock);
+        [localException raise];
+      NS_ENDHANDLER
       M_LOCK(myLock);
     }
 
-#if	defined(_WIN32)
-  [l removeEvent: (void*)(uintptr_t)event
-	    type: ET_HANDLE
-	 forMode: NSConnectionReplyMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)event
-	    type: ET_HANDLE
-	 forMode: NSDefaultRunLoopMode
-	     all: NO];
-  inReplyMode = NO;
-#else
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_WDESC
-	 forMode: NSConnectionReplyMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_EDESC
-	 forMode: NSConnectionReplyMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_WDESC
-	 forMode: NSDefaultRunLoopMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_EDESC
-	 forMode: NSDefaultRunLoopMode
-	     all: NO];
-#endif
+  [self _rem: l];
 
   if ([wMsgs indexOfObjectIdenticalTo: components] == NSNotFound)
     {
       sent = YES;
+    }
+  else
+    {
+      [wMsgs removeObjectIdenticalTo: components];
     }
   M_UNLOCK(myLock);
   NSDebugMLLog(@"GSTcpHandle",
@@ -2209,10 +2158,6 @@ static Class		tcpPortClass;
 	  else if (type == ET_RPORT) t = "rport";
 	  else t = "unknown";
 	  NSLog(@"No handle for event %s on descriptor %d", t, desc);
-	  [[runLoopClass currentRunLoop] removeEvent: extra
-						type: type
-					     forMode: mode
-						 all: YES];
 	}
       else
 	{

@@ -909,10 +909,6 @@ again:
     {
       NSDebugMLLog(@"NSMessagePort",
 	@"got event on invalidated port 0x%x in mode %@", self, mode);
-      [[NSRunLoop currentRunLoop] removeEvent: data
-					 type: type
-				      forMode: mode
-					  all: YES];
     }
   RELEASE(self);
 }
@@ -1109,7 +1105,21 @@ again:
 	&& [when timeIntervalSinceNow] > 0)
 	{
 	  M_UNLOCK(this->lock);
-	  [loop runMode: NSConnectionReplyMode beforeDate: when];
+          NS_DURING
+	    [loop runMode: NSConnectionReplyMode beforeDate: when];
+          NS_HANDLER
+            M_LOCK(this->lock);
+            [loop removeEvent: (void*)(uintptr_t)this->wEvent
+                         type: ET_HANDLE
+                      forMode: NSConnectionReplyMode
+                          all: NO];
+            [loop removeEvent: (void*)(uintptr_t)this->wEvent
+                         type: ET_HANDLE
+                      forMode: NSDefaultRunLoopMode
+                          all: NO];
+            M_UNLOCK(this->lock);
+            [localException raise];
+          NS_ENDHANDLER
 	  M_LOCK(this->lock);
 	}
 

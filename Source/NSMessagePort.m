@@ -345,6 +345,30 @@ static Class	runLoopClass;
     }
 }
 
+- (void) _add: (NSRunLoop*)l
+{
+  [l addEvent: (void*)(uintptr_t)desc
+	 type: ET_WDESC
+      watcher: self
+      forMode: NSConnectionReplyMode];
+  [l addEvent: (void*)(uintptr_t)desc
+	 type: ET_WDESC
+      watcher: self
+      forMode: NSDefaultRunLoopMode];
+}
+
+- (void) _rem: (NSRunLoop*)l
+{
+  [l removeEvent: (void*)(uintptr_t)desc
+	    type: ET_WDESC
+	 forMode: NSConnectionReplyMode
+	     all: NO];
+  [l removeEvent: (void*)(uintptr_t)desc
+	    type: ET_WDESC
+	 forMode: NSDefaultRunLoopMode
+	     all: NO];
+}
+
 - (BOOL) connectToPort: (NSMessagePort*)aPort beforeDate: (NSDate*)when
 {
   NSRunLoop		*l;
@@ -383,7 +407,6 @@ static Class	runLoopClass;
       return NO;	/* impossible.		*/
     }
 
-
   name = [aPort _name];
   memset(&sockAddr, '\0', sizeof(sockAddr));
   sockAddr.sun_family = AF_LOCAL;
@@ -402,14 +425,7 @@ static Class	runLoopClass;
 
   state = GS_H_TRYCON;
   l = [NSRunLoop currentRunLoop];
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_WDESC
-      watcher: self
-      forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_WDESC
-      watcher: self
-      forMode: NSDefaultRunLoopMode];
+  [self _add: l];
 
   while (valid == YES && state == GS_H_TRYCON
     && [when timeIntervalSinceNow] > 0)
@@ -417,14 +433,7 @@ static Class	runLoopClass;
       [l runMode: NSConnectionReplyMode beforeDate: when];
     }
 
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_WDESC
-	 forMode: NSConnectionReplyMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_WDESC
-	 forMode: NSDefaultRunLoopMode
-	     all: NO];
+  [self _rem: l];
 
   if (state == GS_H_TRYCON)
     {
@@ -1023,14 +1032,7 @@ static Class	runLoopClass;
 
   IF_NO_GC(RETAIN(self);)
 
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_WDESC
-      watcher: self
-      forMode: NSConnectionReplyMode];
-  [l addEvent: (void*)(uintptr_t)desc
-	 type: ET_WDESC
-      watcher: self
-      forMode: NSDefaultRunLoopMode];
+  [self _add: l];
 
   while (valid == YES
     && [wMsgs indexOfObjectIdenticalTo: components] != NSNotFound
@@ -1041,18 +1043,15 @@ static Class	runLoopClass;
       M_LOCK(myLock);
     }
 
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_WDESC
-	 forMode: NSConnectionReplyMode
-	     all: NO];
-  [l removeEvent: (void*)(uintptr_t)desc
-	    type: ET_WDESC
-	 forMode: NSDefaultRunLoopMode
-	     all: NO];
+  [self _rem: l];
 
   if ([wMsgs indexOfObjectIdenticalTo: components] == NSNotFound)
     {
       sent = YES;
+    }
+  else
+    {
+      [wMsgs removeObjectIdenticalTo: components];
     }
   M_UNLOCK(myLock);
   NSDebugMLLog(@"NSMessagePort_details",
@@ -1698,10 +1697,6 @@ typedef	struct {
 	  else if (type == ET_RPORT) t = "rport";
 	  else t = "unknown";
 	  NSLog(@"No handle for event %s on descriptor %d", t, desc);
-	  [[runLoopClass currentRunLoop] removeEvent: extra
-						type: type
-					     forMode: mode
-						 all: YES];
 	}
       else
 	{

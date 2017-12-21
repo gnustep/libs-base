@@ -1,3 +1,37 @@
+2017-12-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSocketPort.m:
+	* Source/NSMessagePort.m:
+	* Source/win32/NSMessagePort.m:
+	There is a possible race condition when attempting to write a message
+	to a port; the port handle is added to the run loop and then the loop
+	is entered, but if an event occurs in the loop which invalidates the
+	handle and causes it to be removed from the loop before the lower
+	level code to wait for I/O is entered, the loop may never receive an
+	event on the handle and could wait indefinitely.
+	The solution is not to remove the handle from the loop when it is
+	invalidated or when an event occurs on an invalidated handle, but
+	only remove it in the method which added it.  Of course, this means
+	we must make certain to remove it when we should, which means that
+	the loop must be run inside an exception handler which makes sure to
+	remove the handle from the loop before re-raising the exception.
+
+2017-12-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Remove obsolete --enable-objc-nonfragile-abi flag
+	when building for ng.
+	* configure: regenerate
+
+2017-12-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version: 1.25.1 release
+	* Documentation/ReleaseNotes.gsdoc: update for release
+	* Documentation/news.texi: update for release
+	* ANNOUNCE: regenerate
+	* INSTALL: regenerate
+	* NEWS: regenerate
+	* README: regenerate
+
 2017-12-18  Graham Lee  <graham@iamleeg.com>
 
 	* Source/NSJSONSerialization.m: Fix for bug #12 on github. This

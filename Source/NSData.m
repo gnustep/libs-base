@@ -1914,8 +1914,9 @@ failure:
 
       if (att != nil)
 	{
-    NSMutableDictionary *mAtt = [att mutableCopy];
-    IF_NO_GC(AUTORELEASE(mAtt));
+          NSMutableDictionary *mAtt = [att mutableCopy];
+
+          IF_NO_GC(AUTORELEASE(mAtt));
 	  /*
 	   * We have created a new file - so we attempt to make it's
 	   * attributes match that of the original.
