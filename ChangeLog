@@ -1,6 +1,11 @@
 2017-12-21  Riccardo Mottola <rm@gnu.org>
 
-	* Source\NSObject.m:
+	* Source/NSObject.m:
+	Cleanup previous commit.
+
+2017-12-21  Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSObject.m:
 	Compatibility for OS/compiler not supporting weak symbols.
 
 2017-12-18  Graham Lee  <graham@iamleeg.com>

@@ -1,5 +1,5 @@
 /** Implementation of NSObject for GNUStep
-   Copyright (C) 1994-2010 Free Software Foundation, Inc.
+   Copyright (C) 1994-2017 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
    Date: August 1994
@@ -77,9 +77,15 @@
 #endif
 #endif
 
-#define SUPPORT_WEAK 1
+
+/* platforms which do not support weak */
 #if (__GNUC__ == 3) && defined (__WIN32)
+#define WEAK_ATTRIBUTE
 #undef SUPPORT_WEAK
+#else
+/* all platforms which support weak */
+#define WEAK_ATTRIBUTE __attribute__((weak))
+#define SUPPORT_WEAK 1
 #endif
 
 /* When this is `YES', every call to release/autorelease, checks to
@@ -456,19 +462,18 @@ typedef	struct obj_layout *obj;
  * runtime.  When linked against an older version, we will use our internal
  * versions.
  */
-#ifdef SUPPORT_WEAK
-__attribute__((weak))
+WEAK_ATTRIBUTE
 BOOL objc_release_fast_no_destroy_np(id anObject);
 
-__attribute__((weak))
+WEAK_ATTRIBUTE
 void objc_release_fast_np(id anObject);
 
-__attribute__((weak))
+WEAK_ATTRIBUTE
 size_t object_getRetainCount_np(id anObject);
 
-__attribute__((weak))
+WEAK_ATTRIBUTE
 id objc_retain_fast_np(id anObject);
-#endif
+
 
 static BOOL objc_release_fast_no_destroy_internal(id anObject)
 {
@@ -533,13 +538,11 @@ static BOOL release_fast_no_destroy(id anObject)
 {
 #ifdef SUPPORT_WEAK
   if (objc_release_fast_no_destroy_np)
-#else
-  if (0)
-#endif
     {
       return objc_release_fast_no_destroy_np(anObject);
     }
   else
+#endif
     {
       return objc_release_fast_no_destroy_internal(anObject);
     }
@@ -547,11 +550,7 @@ static BOOL release_fast_no_destroy(id anObject)
 
 static void objc_release_fast_np_internal(id anObject)
 {
-#ifdef SUPPORT_WEAK
   if (release_fast_no_destroy(anObject))
-#else
-  if (0)
-#endif
     {
       [anObject dealloc];
     }
@@ -561,13 +560,11 @@ static void release_fast(id anObject)
 {
 #ifdef SUPPORT_WEAK
   if (objc_release_fast_np)
-#else
-  if (0)
-#endif
     {
       objc_release_fast_np(anObject);
     }
   else
+#endif
     {
       objc_release_fast_np_internal(anObject);
     }
@@ -594,13 +591,11 @@ size_t getRetainCount(id anObject)
 {
 #ifdef SUPPORT_WEAK
   if (object_getRetainCount_np)
-#else
-  if (0)
-#endif
     {
       return object_getRetainCount_np(anObject);
     }
   else
+#endif
     {
       return object_getRetainCount_np_internal(anObject);
     }
@@ -693,13 +688,11 @@ static id retain_fast(id anObject)
 {
 #ifdef SUPPORT_WEAK
   if (objc_retain_fast_np)
-#else
-  if (0)
-#endif
     {
       return objc_retain_fast_np(anObject);
     }
   else
+#endif
     {
       return objc_retain_fast_np_internal(anObject);
     }
