@@ -77,6 +77,11 @@
 #endif
 #endif
 
+#define SUPPORT_WEAK 1
+#if (__GNUC__ == 3) && defined (__WIN32)
+#undef SUPPORT_WEAK
+#endif
+
 /* When this is `YES', every call to release/autorelease, checks to
    make sure isn't being set up to release itself too many times.
    This does not need mutex protection. */
@@ -451,6 +456,7 @@ typedef	struct obj_layout *obj;
  * runtime.  When linked against an older version, we will use our internal
  * versions.
  */
+#ifdef SUPPORT_WEAK
 __attribute__((weak))
 BOOL objc_release_fast_no_destroy_np(id anObject);
 
@@ -462,6 +468,7 @@ size_t object_getRetainCount_np(id anObject);
 
 __attribute__((weak))
 id objc_retain_fast_np(id anObject);
+#endif
 
 static BOOL objc_release_fast_no_destroy_internal(id anObject)
 {
@@ -524,7 +531,11 @@ static BOOL objc_release_fast_no_destroy_internal(id anObject)
 
 static BOOL release_fast_no_destroy(id anObject)
 {
+#ifdef SUPPORT_WEAK
   if (objc_release_fast_no_destroy_np)
+#else
+  if (0)
+#endif
     {
       return objc_release_fast_no_destroy_np(anObject);
     }
@@ -536,7 +547,11 @@ static BOOL release_fast_no_destroy(id anObject)
 
 static void objc_release_fast_np_internal(id anObject)
 {
+#ifdef SUPPORT_WEAK
   if (release_fast_no_destroy(anObject))
+#else
+  if (0)
+#endif
     {
       [anObject dealloc];
     }
@@ -544,7 +559,11 @@ static void objc_release_fast_np_internal(id anObject)
 
 static void release_fast(id anObject)
 {
+#ifdef SUPPORT_WEAK
   if (objc_release_fast_np)
+#else
+  if (0)
+#endif
     {
       objc_release_fast_np(anObject);
     }
@@ -573,7 +592,11 @@ size_t object_getRetainCount_np_internal(id anObject)
 
 size_t getRetainCount(id anObject)
 {
+#ifdef SUPPORT_WEAK
   if (object_getRetainCount_np)
+#else
+  if (0)
+#endif
     {
       return object_getRetainCount_np(anObject);
     }
@@ -668,7 +691,11 @@ static id objc_retain_fast_np_internal(id anObject)
 
 static id retain_fast(id anObject)
 {
+#ifdef SUPPORT_WEAK
   if (objc_retain_fast_np)
+#else
+  if (0)
+#endif
     {
       return objc_retain_fast_np(anObject);
     }
