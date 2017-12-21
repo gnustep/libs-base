@@ -16,6 +16,16 @@
 	the loop must be run inside an exception handler which makes sure to
 	remove the handle from the loop before re-raising the exception.
 
+2017-12-21  Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSObject.m:
+	Cleanup previous commit.
+
+2017-12-21  Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSObject.m:
+	Compatibility for OS/compiler not supporting weak symbols.
+
 2017-12-20  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Remove obsolete --enable-objc-nonfragile-abi flag
