@@ -19,7 +19,8 @@ See the @url{ReleaseNotes.html} document for more information.
 @item NSFileManager fixes and tweaks to match OSX implementation
 @item NSDistributedLock bugfix for pre-existing lock directories
 @item Alternative sort algorithms selectable at runtime
-@item Other morte minor bugfixes and cleanups.
+@item Compatibility-related changes for environments not supporting weak symbols
+@item Other more minor bugfixes and cleanups.
 @item As usual, this release also contains an update to include the
 most recent international timezone data.
 @end itemize
