@@ -27,7 +27,9 @@ portion of the OpenStep standard (the Foundation library).
    * NSFileManager fixes and tweaks to match OSX implementation
    * NSDistributedLock bugfix for pre-existing lock directories
    * Alternative sort algorithms selectable at runtime
-   * Other morte minor bugfixes and cleanups.
+   * Compatibility-related changes for environments not supporting weak
+     symbols
+   * Other more minor bugfixes and cleanups.
    * As usual, this release also contains an update to include the most
      recent international timezone data.
 

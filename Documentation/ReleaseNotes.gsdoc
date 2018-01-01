@@ -38,7 +38,8 @@ notice and this notice are preserved.
         NSFileManager fixes and tweaks to match OSX implementation<br />
         NSDistributedLock bugfix for pre-existing lock directories<br />
         Alternative sort algorithms selectable at runtime<br />
-        Other morte minor bugfixes and cleanups.<br />
+	Compatibility-related changes for environments not supporting weak symbols<br />
+        Other more minor bugfixes and cleanups.<br />
         As usual, this release also contains an update to include the
         most recent international timezone data.
         </p>
