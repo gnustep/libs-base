@@ -1,3 +1,11 @@
+2018-01-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m:
+	* Tests/base/NSFileManager/general.m:
+	Added <graham@iamleeg.com> Graham Lee's fix for #51592 to not raise
+	an assertion, but rather call the handler if the source file being
+	copied does not exist.
+
 2017-12-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSocketPort.m:

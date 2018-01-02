@@ -1,17 +1,55 @@
 #import "Testing.h"
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
+#import <Foundation/NSError.h>
 #import <Foundation/NSFileManager.h>
 #import <Foundation/NSProcessInfo.h>
 #import <Foundation/NSPathUtilities.h>
 #import <Foundation/NSError.h>
 #import <Foundation/NSURL.h>
 
+@interface      MyHandler : NSObject
+{
+  @public
+  NSString      *path;
+  NSError       *error;
+}
+- (BOOL) fileManager: (NSFileManager*)m shouldProceedAfterError: (NSError*)e;
+- (void) fileManager: (NSFileManager*)m willProcessPath: (NSString*)p;
+- (void) reset;
+@end
+
+@implementation MyHandler
+- (void) dealloc
+{
+  [self reset];
+  [super dealloc];
+}
+
+- (BOOL) fileManager: (NSFileManager*)m shouldProceedAfterError: (NSError*)e
+{
+  ASSIGN(error, e);
+  return NO;
+}
+
+- (void) fileManager: (NSFileManager*)m willProcessPath: (NSString*)p
+{
+  ASSIGN(path, p);
+}
+
+- (void) reset
+{
+  DESTROY(path);
+  DESTROY(error);
+}
+@end
+
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSFileManager *mgr = [NSFileManager defaultManager];
   NSString *dir = @"NSFileManagerTestDir"; 
+  MyHandler *handler = [MyHandler new];
   NSDictionary *attr;
   NSString *dirInDir;
   NSString *str1,*str2;
@@ -30,7 +68,7 @@ int main()
   exists = [mgr fileExistsAtPath: dir isDirectory: &isDir];
   if (exists)
     {
-      [mgr removeFileAtPath: dir handler: nil];
+      [mgr removeFileAtPath: dir handler: handler];
     }
   PASS([mgr fileAttributesAtPath: dir traverseLink: NO] == nil,
     "NSFileManager returns nil for attributes of non-existent file");
@@ -103,9 +141,10 @@ int main()
     PASS([str1 isEqualToString: str2], "NSFileManager file contents match");
   }
   
+  [handler reset];
   PASS([mgr copyPath: @"NSFMFile"
               toPath: @"NSFMCopy"
-	     handler: nil], 
+	     handler: handler], 
        "NSFileManager copies a file");
   PASS([mgr fileExistsAtPath: @"NSFMCopy"],"-fileExistsAtPath: agrees");
   {
@@ -116,7 +155,7 @@ int main()
   
   PASS([mgr movePath: @"NSFMFile"
               toPath: @"NSFMMove"
-	     handler: nil],
+	     handler: handler],
        "NSFileManager moves a file");
   PASS([mgr fileExistsAtPath: @"NSFMMove"], 
        "NSFileManager move destination exists");
@@ -125,8 +164,13 @@ int main()
   {
     NSData *dat1 = [mgr contentsAtPath: @"NSFMMove"];
     str2 = [[NSString alloc] initWithData: dat1 encoding: 1];
-    PASS([str1 isEqualToString: str2],"NSFileManager moved file contents match");
+    PASS([str1 isEqualToString: str2],"NSFileManager moved file contents match")
   }
+
+  PASS(![mgr copyPath: @"NSFMFile"
+               toPath: @"NSFMDestination"
+              handler: handler],
+         "NSFileManager does not copy nonexistent file")
 
   if ([[NSProcessInfo processInfo] operatingSystem]
     != NSWindowsNTOperatingSystem)
@@ -136,7 +180,7 @@ int main()
   
       PASS([mgr fileExistsAtPath: @"NSFMLink"], "link exists");
   
-      PASS([mgr removeFileAtPath: @"NSFMLink" handler: nil], 
+      PASS([mgr removeFileAtPath: @"NSFMLink" handler: handler], 
        "NSFileManager removes a symbolic link");
   
       PASS(![mgr fileExistsAtPath: @"NSFMLink"],
@@ -146,7 +190,7 @@ int main()
        "NSFileManager removed link's target still exists");
     }
   
-  PASS([mgr removeFileAtPath: @"NSFMMove" handler: nil], 
+  PASS([mgr removeFileAtPath: @"NSFMMove" handler: handler], 
        "NSFileManager removes a file"); 
  
   PASS(![mgr fileExistsAtPath: @"NSFMMove"],
@@ -161,7 +205,7 @@ int main()
   PASS(![mgr isExecutableFileAtPath: @"NSFMCopy"],
        "NSFileManager isExecutableFileAtPath: works");
   
-  PASS_EXCEPTION([mgr removeFileAtPath: @"." handler: nil];, 
+  PASS_EXCEPTION([mgr removeFileAtPath: @"." handler: handler];, 
                  NSInvalidArgumentException,
 		 "NSFileManager -removeFileAtPath: @\".\" throws exception");
 
@@ -181,15 +225,15 @@ int main()
              attributes: nil];
   PASS(YES == [mgr contentsEqualAtPath: @"sub1/x" andPath: @"sub2/x"],
     "directories containing identical files are equal");
-  [mgr removeFileAtPath: @"sub2/x" handler: nil],
+  [mgr removeFileAtPath: @"sub2/x" handler: handler],
   [mgr createFileAtPath: @"sub2/x" 
                contents: [@"goodbye" dataUsingEncoding: NSASCIIStringEncoding]
              attributes: nil];
   PASS(NO == [mgr contentsEqualAtPath: @"sub1/x" andPath: @"sub2/x"],
     "directories containing files with different content are not equal");
-  PASS(YES == [mgr removeFileAtPath: @"sub1" handler: nil],
+  PASS(YES == [mgr removeFileAtPath: @"sub1" handler: handler],
     "sub1 removed");
-  PASS(YES == [mgr removeFileAtPath: @"sub2" handler: nil],
+  PASS(YES == [mgr removeFileAtPath: @"sub2" handler: handler],
     "sub2 removed");
 
   err = nil;
@@ -228,7 +272,7 @@ int main()
   if (exists && isDir)
     {
       dir = [dir stringByStandardizingPath];
-      PASS([mgr removeFileAtPath: dir handler: nil], "removed directory");
+      PASS([mgr removeFileAtPath: dir handler: handler], "removed directory");
       PASS(![mgr fileExistsAtPath: dir], "directory no longer exists");
 GSPrintf(stdout, @"%@\n", dir);
 GSPrintf(stderr, @"%@\n", dir);
@@ -285,11 +329,11 @@ GSPrintf(stderr, @"%@\n", dir);
   PASS([mgr fileExistsAtPath: @"sub2" isDirectory: &isDir] == NO,
     "NSFileManager remove item at Path");
   
-  PASS_EXCEPTION([mgr removeFileAtPath: @"." handler: nil];, 
+  PASS_EXCEPTION([mgr removeFileAtPath: @"." handler: handler];, 
     NSInvalidArgumentException,
     "NSFileManager -removeFileAtPath: @\".\" throws exception");
        
-  PASS_EXCEPTION([mgr removeFileAtPath: @".." handler: nil];, 
+  PASS_EXCEPTION([mgr removeFileAtPath: @".." handler: handler];, 
     NSInvalidArgumentException,
     "NSFileManager -removeFileAtPath: @\"..\" throws exception");
 /* clean up */ 
@@ -297,7 +341,7 @@ GSPrintf(stderr, @"%@\n", dir);
   exists = [mgr fileExistsAtPath: dir isDirectory: &isDir];
   if (exists && isDir)
     {
-      PASS([mgr removeFileAtPath: dir handler: nil],
+      PASS([mgr removeFileAtPath: dir handler: handler],
            "NSFileManager removes a directory");
       PASS(![mgr fileExistsAtPath: dir],"directory no longer exists");
     }
