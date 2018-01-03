@@ -83,6 +83,10 @@ int main()
   PASS_EQUAL([url resourceSpecifier], @"//www.w3.org",
     "resourceSpecifier of http://www.w3.org is //www.w3.org");
 
+  url = [url URLByAppendingPathComponent: @"example_path"];
+  PASS_EQUAL([url description], @"http://www.w3.org/example_path",
+    "Append of component to pathless http URL works");
+
 #if	defined(_WIN32)
   url = [NSURL fileURLWithPath: @"C:\\WINDOWS"];
   str = [url path];
