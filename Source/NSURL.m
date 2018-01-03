@@ -176,6 +176,7 @@ typedef struct {
   char	*query;
   char	*fragment;
   BOOL	pathIsAbsolute;
+  BOOL	emptyPath;
   BOOL	hasNoPath;
   BOOL	isGeneric;
   BOOL	isFile;
@@ -685,7 +686,7 @@ static NSUInteger	urlAlign;
 	}
     }
   self = [self initWithScheme: NSURLFileScheme
-			 host: @"localhost"
+			 host: @""
 			 path: aPath];
   return self;
 }
@@ -719,7 +720,7 @@ static NSUInteger	urlAlign;
       aPath = [aPath stringByAppendingString: @"/"];
     }
   self = [self initWithScheme: NSURLFileScheme
-			 host: @"localhost"
+			 host: @""
 			 path: aPath];
   return self;
 }
@@ -728,6 +729,8 @@ static NSUInteger	urlAlign;
 		 host: (NSString*)aHost
 		 path: (NSString*)aPath
 {
+  NSRange	r = NSMakeRange(NSNotFound, 0);
+  NSString	*auth = nil;
   NSString	*aUrlString = [NSString alloc];
 
   if ([aScheme isEqualToString: @"file"])
@@ -739,68 +742,52 @@ static NSUInteger	urlAlign;
       aPath = [aPath
 	stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
     }
-  if ([aHost length] > 0)
+
+  r = [aHost rangeOfString: @"@"];
+
+  /* Allow for authentication (username:password) before actual host.
+   */
+  if (r.length > 0)
     {
-      NSRange	r = [aHost rangeOfString: @"@"];
-      NSString	*auth = nil;
+      auth = [aHost substringToIndex: r.location];
+      aHost = [aHost substringFromIndex: NSMaxRange(r)];
+    }
 
-      /* Allow for authentication (username:password) before actual host.
+  /* Add square brackets around ipv6 address if necessary
+   */
+  if ([[aHost componentsSeparatedByString: @":"] count] > 2
+    && [aHost hasPrefix: @"["] == NO)
+    {
+      aHost = [NSString stringWithFormat: @"[%@]", aHost];
+    }
+
+  if (auth != nil)
+    {
+      aHost = [NSString stringWithFormat: @"%@@%@", auth, aHost];
+    }
+
+  if ([aPath length] > 0)
+    {
+      /*
+       * For MacOS-X compatibility, assume a path component with
+       * a leading slash is intended to have that slash separating
+       * the host from the path as specified in the RFC1738
        */
-      if (r.length > 0)
-	{
-	  auth = [aHost substringToIndex: r.location];
-	  aHost = [aHost substringFromIndex: NSMaxRange(r)];
-	}
-
-      /* Add square brackets around ipv6 address if necessary
-       */
-      if ([[aHost componentsSeparatedByString: @":"] count] > 2
-	&& [aHost hasPrefix: @"["] == NO)
-	{
-	  aHost = [NSString stringWithFormat: @"[%@]", aHost];
-	}
-
-      if (auth != nil)
-	{
-	  aHost = [NSString stringWithFormat: @"%@@%@", auth, aHost];
-	}
-
-      if ([aPath length] > 0)
-	{
-	  /*
-	   * For MacOS-X compatibility, assume a path component with
-	   * a leading slash is intended to have that slash separating
-	   * the host from the path as specified in the RFC1738
-	   */
-	  if ([aPath hasPrefix: @"/"] == YES)
-	    {
-	      aUrlString = [aUrlString initWithFormat: @"%@://%@%@",
-		aScheme, aHost, aPath];
-	    }
-	  else
-	    {
-	      aUrlString = [aUrlString initWithFormat: @"%@://%@/%@",
-		aScheme, aHost, aPath];
-	    }
-	}
+      if ([aPath hasPrefix: @"/"] == YES)
+        {
+          aUrlString = [aUrlString initWithFormat: @"%@://%@%@",
+            aScheme, aHost, aPath];
+        }
       else
-	{
-	  aUrlString = [aUrlString initWithFormat: @"%@://%@/",
-	    aScheme, aHost];
-	}
+        {
+          aUrlString = [aUrlString initWithFormat: @"%@://%@/%@",
+            aScheme, aHost, aPath];
+        }
     }
   else
     {
-      if ([aPath length] > 0)
-	{
-	  aUrlString = [aUrlString initWithFormat: @"%@:%@",
-	    aScheme, aPath];
-	}
-      else
-	{
-	  aUrlString = [aUrlString initWithFormat: @"%@:",
-	    aScheme];
-	}
+      aUrlString = [aUrlString initWithFormat: @"%@://%@/",
+        aScheme, aHost];
     }
   self = [self initWithString: aUrlString relativeToURL: nil];
   RELEASE(aUrlString);
@@ -925,6 +912,11 @@ static NSUInteger	urlAlign;
 	      usesFragments = NO;
 	      usesParameters = NO;
 	      usesQueries = NO;
+	    }
+          else if (strcmp(buf->scheme, "http") == 0
+            || strcmp(buf->scheme, "https") == 0)
+	    {
+	      buf->emptyPath = YES;
 	    }
         }
 
@@ -1681,6 +1673,13 @@ static NSUInteger	urlAlign;
             }
 
           path = [NSString stringWithUTF8String: ptr];
+        }
+      else if (YES == myData->emptyPath)
+        {
+          /* OSX seems to use an empty string for some schemes,
+           * though it normally uses nil.
+           */
+          path = @"";
         }
     }
   return path;
