@@ -767,10 +767,14 @@ callCXXConstructors(Class aClass, id anObject)
 inline id
 NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
-#ifdef OBJC_CAP_ARC
-  return class_createInstance(aClass, extraBytes);
-#else
   id	new;
+
+#ifdef OBJC_CAP_ARC
+  if ((new = class_createInstance(aClass, extraBytes)) != nil)
+    {
+      AADD(aClass, new);
+    }
+#else
   int	size;
 
   NSCAssert((!class_isMetaClass(aClass)), @"Bad class for new object");
@@ -800,15 +804,14 @@ NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
       cxx_destruct = sel_registerName(".cxx_destruct");
     }
   callCXXConstructors(aClass, new);
+#endif
 
   return new;
-#endif
 }
 
 inline void
 NSDeallocateObject(id anObject)
 {
-
   Class aClass = object_getClass(anObject);
 
   if ((anObject != nil) && !class_isMetaClass(aClass))
@@ -1345,7 +1348,7 @@ static id gs_weak_load(id obj)
  */
 - (void) dealloc
 {
-  NSDeallocateObject (self);
+  NSDeallocateObject(self);
 }
 
 - (void) finalize

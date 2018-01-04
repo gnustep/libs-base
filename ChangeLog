@@ -1,3 +1,14 @@
+2018-01-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Fix bug with one path to object allocation
+	failing to record the object for memory debuggin purposes.
+
+2018-01-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m:
+	Tweaks for OSX compatibility ... treat a missinp path in an http URL
+	as an empty string rather than as nil.
+
 2018-01-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m:
