@@ -28,6 +28,7 @@
 #import "Foundation/NSError.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSThread.h"
+#import "Foundation/NSUserDefaults.h"
 #import "GSURLPrivate.h"
 
 @interface _NSURLConnectionDataCollector : NSObject
@@ -377,9 +378,11 @@ typedef struct
           [thread start];
           
           // Wait for thread to finish...
+          NSNumber *delayNumber = [[NSUserDefaults standardUserDefaults] objectForKey:@"GSUrlConnectionDelay"];
+          CGFloat sleepInterval = delayNumber ? [delayNumber doubleValue] : 0.05;
           while ([thread isFinished] == NO)
             {
-              [NSThread sleepForTimeInterval: 0.05];
+              [NSThread sleepForTimeInterval: sleepInterval];
             }
           
           // Cleanup...
