@@ -87,23 +87,23 @@ GSPathHandling("unix");
 #endif
   NSURL *url = [NSURL fileURLWithPath: @"/this#is a Path with % < > ?"];
   PASS_EQUAL([url scheme], @"file", "scheme");
-  PASS_EQUAL([url host], @"localhost", "host");
+  PASS([url host] == nil, "host");
   PASS(nil == [url user], "user");
   PASS(nil == [url password], "password");
   PASS_EQUAL([url resourceSpecifier],
-    @"//localhost/this%23is%20a%20Path%20with%20%25%20%3C%20%3E%20%3F",
+    @"/this%23is%20a%20Path%20with%20%25%20%3C%20%3E%20%3F",
     "resourceSpecifier");
   PASS_EQUAL([url path], @"/this#is a Path with % < > ?", "path");
   PASS(nil == [url query], "query");
   PASS(nil == [url parameterString], "parameterString");
   PASS(nil == [url fragment], "fragment");
   PASS_EQUAL([url absoluteString],
-    @"file://localhost/this%23is%20a%20Path%20with%20%25%20%3C%20%3E%20%3F",
+    @"file:///this%23is%20a%20Path%20with%20%25%20%3C%20%3E%20%3F",
     "absoluteString");
   PASS_EQUAL([url relativePath], @"/this#is a Path with % < > ?",
     "relativePath");
   PASS_EQUAL([url description],
-    @"file://localhost/this%23is%20a%20Path%20with%20%25%20%3C%20%3E%20%3F",
+    @"file:///this%23is%20a%20Path%20with%20%25%20%3C%20%3E%20%3F",
     "description");
   END_SET("test5")
 
