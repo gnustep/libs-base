@@ -230,6 +230,7 @@ extern "C" {
 - (BOOL) parse: (NSData*)data;
 - (NSString*) publicID;
 - (void) saveMessages: (BOOL)yesno;
+- (BOOL) resolveEntities: (BOOL)yesno;
 - (BOOL) substituteEntities: (BOOL)yesno;
 - (NSString*) systemID;
 

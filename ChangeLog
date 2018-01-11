@@ -2,6 +2,15 @@
 
 	* Source/NSXMLParser.m: OSX compatibility tweaks and correction
 	for setting entity resolution flag in sloppy parser.
+	* Headers/GNUstepBase/GSXML.h: new [-resolveEntities:] method to
+	enable resolving of external entities (now off by default).
+	* Source/Additions/GSXML.m: Changes to turn off resolving of
+	external entity references my default (adding a new method to turn
+	the feature back on) as a security fix to prevent xml injection
+	attacks (eg where an attacker gets the local password file substituted
+	into an xml document).
+	* Tests/base/NSXMLParser/parse.m: external entity resolution test.
+	* Tests/base/GSXML/basic.m: external entity resolution test.
 
 2018-01-04  Richard Frith-Macdonald <rfm@gnu.org>
 
