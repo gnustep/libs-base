@@ -211,15 +211,15 @@
 - (void) parser: (NSXMLParser *)parser
   parseErrorOccurred: (NSError *)parseError
 {
-  [s appendFormat: @"%@ %@\n", NSStringFromSelector(_cmd),
-    parseError];
+  [s appendFormat: @"%@ %@ at %ld on %ld\n", NSStringFromSelector(_cmd),
+    parseError, (long)[parser columnNumber], (long)[parser lineNumber]];
 }
 
 - (void) parser: (NSXMLParser *)parser
   validationErrorOccurred: (NSError *)validationError
 {
-  [s appendFormat: @"%@ %@\n", NSStringFromSelector(_cmd),
-    validationError];
+  [s appendFormat: @"%@ %@ at %ld on %ld\n", NSStringFromSelector(_cmd),
+    validationError, (long)[parser columnNumber], (long)[parser lineNumber]];
 }
 
 - (void) reset
@@ -241,8 +241,11 @@ testParse(NSData *xml, NSString *expect)
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   Handler               *handler;
   NSXMLParser           *parser;
+  Class                 c = NSClassFromString(@"GSSloppyXMLParser");
 
-  parser = [[NSXMLParser alloc] initWithData: xml];
+  c = Nil;
+  if (Nil == c) c = [NSXMLParser class];
+  parser = [[c alloc] initWithData: xml];
 
   [parser setShouldProcessNamespaces: setShouldProcessNamespaces];
   [parser setShouldReportNamespacePrefixes: setShouldReportNamespacePrefixes];
@@ -252,7 +255,8 @@ testParse(NSData *xml, NSString *expect)
   [parser setDelegate: handler];
   if (NO == [parser parse])
     {
-      NSLog(@"Parsing failed: %@", [parser parserError]);
+      NSLog(@"Parsing failed: %@ at %ld on %ld", [parser parserError],
+        (long)[parser columnNumber], (long)[parser lineNumber]);
       [arp release];
       return NO;
     }
@@ -284,6 +288,7 @@ int main()
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSFileManager		*mgr = [NSFileManager defaultManager];
   NSDirectoryEnumerator	*dir;
+  NSString	        *str;
   NSString		*xmlName;
   const char            *x1 = "<?xml version=\"1.0\"?><test x = \"1\"></test>";
   const char            *x1e = "<test x=\"1\"></test>";
@@ -301,7 +306,6 @@ int main()
     {
       if ([[xmlName pathExtension] isEqualToString: @"xml"])
 	{
-	  NSString	*str;
 	  NSString	*xmlPath;
           NSData	*xmlData;
           NSString	*result;
@@ -314,6 +318,25 @@ int main()
 	  PASS((testParse(xmlData, result)), "%s", [xmlName UTF8String])
 	}
     }
+
+  {
+    NSString    *exp;
+    NSData      *dat;
+
+     exp = @"parserDidStartDocument:\n\
+parser:didStartElement:namespaceURI:qualifiedName:attributes: file  file {\n}\n\
+&Aparser:didEndElement:namespaceURI:qualifiedName: file  file\n\
+parserDidEndDocument:\n\
+";
+
+    str = [NSString stringWithFormat:
+@"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
+@"<!DOCTYPE file [<!ENTITY foo SYSTEM \"file://%@/GNUmakefile\">]>\n"
+@"<file>&amp;&foo;&#65;</file>", [mgr currentDirectoryPath]];
+
+    dat = [str dataUsingEncoding: NSUTF8StringEncoding];
+    PASS((testParse(dat, exp)), "external entity")
+  }
 
   [arp release]; arp = nil;
   return 0;

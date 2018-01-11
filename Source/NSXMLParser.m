@@ -117,6 +117,11 @@ static  NSNull  *null = nil;
       qName = [NSString stringWithFormat: @"%@:%@", prefix, qName];
     }
 
+  if (elementAttributes == nil)
+    {
+      elementAttributes = [NSMutableDictionary dictionary];
+    }
+
   if ([elementNamespaces count] > 0)
     {
       [_namespaces addObject: [elementNamespaces allKeys]];
@@ -158,10 +163,6 @@ static  NSNull  *null = nil;
           NSEnumerator  *e = [elementNamespaces keyEnumerator];
           NSString      *k;
 
-          if (elementAttributes == nil)
-            {
-              elementAttributes = [NSMutableDictionary dictionary];
-            }
           while ((k = [e nextObject]) != nil)
             {
               NSString  *v = [elementNamespaces objectForKey: k];
@@ -664,6 +665,22 @@ NewUTF8STR(const void *ptr, int len)
 } 
 @end
 @implementation	GSXMLParserIvars
+- (NSString*) description
+{
+  return [[super description] stringByAppendingFormat:
+    @" shouldProcessNamespaces: %d"
+    @" shouldReportNamespacePrefixes: %d"
+    @" shouldResolveExternalEntities: %d"
+    @" acceptHTML: %d"
+    @" hasStarted: %d"
+    @" hasElement: %d",
+    shouldProcessNamespaces,
+    shouldReportNamespacePrefixes,
+    shouldResolveExternalEntities,
+    acceptHTML,
+    hasStarted,
+    hasElement];
+}
 @end
 
 static SEL	didEndElementSel = 0;
@@ -938,7 +955,7 @@ static SEL	foundIgnorableSel;
 }
 
 /* Go up the namespace stack looking for a mapping from p to
- * a URI.  Return the first URI found (or nil if none is found).
+ * a URI.  Return the first URI found (or an empty string if none is found).
  */
 - (NSString*) _uriForPrefix: (NSString*)p
 {
@@ -954,7 +971,7 @@ static SEL	foundIgnorableSel;
           uri = [(NSDictionary*)o objectForKey: p];
         }
     }
-  return uri;
+  return (nil == uri) ? @"" : uri;
 }
 
 - (void) _closeLastTag
@@ -1319,7 +1336,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                 }
               if (prefix != nil)
                 {
-                  if (ns == nil)
+                  if (nil == ns)
                     {
                       ns = [NSMutableDictionary new];
                       if (this->shouldProcessNamespaces)
@@ -1341,11 +1358,16 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 			    didStartMappingPrefixSel, self, prefix, uri);
                         }
                     }
-                  if (attr != nil)
-                    {
-                      attributes = attr;
-                    }
                 }
+            }
+          if ([attr count] > 0)
+            {
+              attributes = attr;
+            }
+          else if (nil == attributes)
+            {
+              attr = [NSMutableArray new];
+              attributes = attr;
             }
 
           [this->tagPath addObject: tag];
@@ -1463,14 +1485,21 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                    code: NSXMLParserInvalidCharacterError];
     }
 
-#if 1
-  NSLog(@"NSXMLParser: unrecognized entity: &%@;", entity);
-#endif
-//  entity=[entitiesTable objectForKey: entity];  // look up string in entity translation table
-
-  if (nil == entity)
+  if (this->shouldResolveExternalEntities)
     {
-      entity = @"&??;";  // unknown entity
+#if 1
+      NSLog(@"NSXMLParser: unrecognized entity: &%@;", entity);
+#endif
+    //  entity=[entitiesTable objectForKey: entity];  // look up string in entity translation table
+
+      if (nil == entity)
+        {
+          entity = @"&??;";  // unknown entity
+        }
+    }
+  else
+    {
+      entity = @"";             // not resolved
     }
   return entity;
 }
@@ -2148,7 +2177,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
 - (void) setShouldResolveExternalEntities: (BOOL)aFlag
 {
-  this->shouldProcessNamespaces = aFlag;
+  this->shouldResolveExternalEntities = aFlag;
 }
 
 - (void) _setAcceptHTML: (BOOL) flag
