@@ -2,10 +2,15 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSXMLDocument.h>
 #import <Foundation/NSXMLElement.h>
+#import "GNUstepBase/GSConfig.h"
 
 int main()
 {
   NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  START_SET("NSXMLDocument")
+#if !GS_USE_LIBXML
+    SKIP("library built without libxml2")
+#else
   NSArray *nodes = nil;
   NSXMLDocument *node;
   NSXMLDocument *node2;
@@ -91,7 +96,9 @@ int main()
 					     error:NULL];
   PASS([node isEqual: node2],
        "Equal documents are equivalent");
+#endif
 
+  END_SET("NSXMLDocument")
   [arp release];
   arp = nil;
 

@@ -164,6 +164,38 @@ int main()
   PASS_EQUAL([[[parser document] root] content], @"&A",
     "external entity is ignored")
 
+  parser = [GSXMLParser parserWithData:
+    [str dataUsingEncoding: NSUTF8StringEncoding]];
+  [parser substituteEntities: YES];
+  [parser resolveEntities: YES];
+  [parser parse];
+  str = [[[parser document] root] content];
+  PASS([str rangeOfString: @"MAKEFILES"].length > 0,
+    "external entity is resolved")
+
+  str = @"<!DOCTYPE plist PUBLIC \"-//GNUstep//DTD plist 0.9//EN\""
+    @" \"http://www.gnustep.org/plist-0_9.xml\">\n"
+    @"<plist></plist>";
+  parser = [GSXMLParser parserWithData:
+    [str dataUsingEncoding: NSUTF8StringEncoding]];
+  [parser substituteEntities: YES];
+  [parser resolveEntities: YES];
+  [parser doValidityChecking: YES];
+  PASS([parser parse] == NO, "empty plist is not valid")
+
+  str = @"<!DOCTYPE plist PUBLIC \"-//GNUstep//DTD plist 0.9//EN\""
+    @" \"http://www.gnustep.org/plist-0_9.xml\">\n"
+    @"<plist><string>xxx</string></plist>";
+  parser = [GSXMLParser parserWithData:
+    [str dataUsingEncoding: NSUTF8StringEncoding]];
+  [parser substituteEntities: YES];
+  [parser resolveEntities: YES];
+  [parser doValidityChecking: YES];
+  PASS([parser parse] == YES, "plist containing string is valid")
+
+  PASS_EQUAL([[[[[parser document] root] firstChild] firstChild] content],
+    @"xxx", "root/plist/string is parsed")
+
   [arp release]; arp = nil;
   return 0;
 }

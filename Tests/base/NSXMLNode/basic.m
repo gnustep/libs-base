@@ -2,10 +2,15 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSXMLNode.h>
 #import <Foundation/NSValue.h>
+#import "GNUstepBase/GSConfig.h"
 
 int main()
 {
   NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  START_SET("NSXMLNode")
+#if !GS_USE_LIBXML
+    SKIP("library built without libxml2")
+#else
   NSXMLNode *node;
   NSXMLNode *other;
   NSXMLNode *text;
@@ -111,7 +116,9 @@ int main()
   [attr setStringValue: @"aString"];
   PASS_EQUAL([attr stringValue], @"aString",
     "setting string value on attr node works");
+#endif
 
+  END_SET("NSXMLNode")
   [arp release];
   arp = nil;
 

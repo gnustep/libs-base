@@ -107,6 +107,8 @@ static Class treeClass;
 static IMP usImp;
 static SEL usSel;
 
+static xmlExternalEntityLoader  originalLoader = NULL;
+
 /*
  * Macro to cast results to correct type for libxml2
  */
@@ -170,8 +172,11 @@ setupCache()
 }
 
 static xmlParserInputPtr
-loadEntityFunction(void *ctx,
-  const unsigned char *eid, const unsigned char *url);
+loadEntityFunction(const unsigned char *url, const unsigned char *eid,
+  void *ctx);
+static xmlParserInputPtr
+resolveEntityFunction(void *ctx, const unsigned char *eid,
+  const unsigned char *url);
 static xmlEntityPtr
 getEntityIgnoreExternal(void *ctx, const xmlChar *name);
 static xmlEntityPtr
@@ -1651,6 +1656,15 @@ static NSString	*endMarker = @"At end of incremental parse";
       beenHere = YES;
       if (cacheDone == NO)
 	setupCache();
+      /* Replace the default external entity loader with our own one which
+       * looks for GNUstep DTDs in the correct location.
+       */
+      if (NULL == originalLoader)
+        {
+          originalLoader = xmlGetExternalEntityLoader();
+          xmlSetExternalEntityLoader(
+            (xmlExternalEntityLoader)loadEntityFunction);
+        }
     }
 }
 
@@ -2120,7 +2134,9 @@ static NSString	*endMarker = @"At end of incremental parse";
 }
 
 /**
- * Parse source. Return YES if parsed, otherwise NO.
+ * Parse source. Return YES if parsed as valid, otherwise NO.
+ * If validation against a DTD is not enabled, the return value simply
+ * indicates whether the xml was well formed.<br />
  * This method should be called once to parse the entire document.
  * <example>
  * GSXMLParser       *p = [GSXMLParser parserWithContentsOfFile:@"macos.xml"];
@@ -2187,10 +2203,13 @@ static NSString	*endMarker = @"At end of incremental parse";
   [self _parseChunk: nil];
   RELEASE(tmp);
 
-  if (((xmlParserCtxtPtr)lib)->wellFormed)
-    return YES;
-  else
-    return NO;
+  if (((xmlParserCtxtPtr)lib)->wellFormed != 0
+    && (0 == ((xmlParserCtxtPtr)lib)->validate
+      || ((xmlParserCtxtPtr)lib)->valid != 0))
+    {
+      return YES;
+    }
+  return NO;
 }
 
 /**
@@ -2201,7 +2220,8 @@ static NSString	*endMarker = @"At end of incremental parse";
  *   document has been parsed, the method should be called with
  *   an empty or nil data object to indicate end of parsing.
  *   On this final call, the return value indicates whether the
- *   document was valid or not.
+ *   document was valid or not.  If validation to a DTD is not enabled,
+ *   the return value simply indicates whether the xml was well formed.
  * </p>
  * <example>
  * GSXMLParser       *p = [GSXMLParser parserWithSAXHandler: nil source: nil];
@@ -2239,10 +2259,13 @@ static NSString	*endMarker = @"At end of incremental parse";
 	{
 	  [self _parseChunk: nil];
 	  src = endMarker;
-	  if (((xmlParserCtxtPtr)lib)->wellFormed)
-	    return YES;
-	  else
-	    return NO;
+          if (((xmlParserCtxtPtr)lib)->wellFormed != 0
+            && (0 == ((xmlParserCtxtPtr)lib)->validate
+              || ((xmlParserCtxtPtr)lib)->valid != 0))
+            {
+              return YES;
+            }
+          return NO;
 	}
       else
 	{
@@ -2375,7 +2398,7 @@ static NSString	*endMarker = @"At end of incremental parse";
       /*
        * Set the entity loading function for this parser to be our one.
        */
-      ((xmlParserCtxtPtr)lib)->sax->resolveEntity = loadEntityFunction;
+      ((xmlParserCtxtPtr)lib)->sax->resolveEntity = resolveEntityFunction;
     }
   return YES;
 }
@@ -2465,9 +2488,24 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 + (void) initialize
 {
-  if (cacheDone == NO)
+  static BOOL	beenHere = NO;
+
+  if (beenHere == NO)
     {
-      setupCache();
+      beenHere = YES;
+      if (cacheDone == NO)
+        {
+          setupCache();
+        }
+      /* Replace the default external entity loader with our own one which
+       * looks for GNUstep DTDs in the correct location.
+       */
+      if (NULL == originalLoader)
+        {
+          originalLoader = xmlGetExternalEntityLoader();
+          xmlSetExternalEntityLoader(
+            (xmlExternalEntityLoader)loadEntityFunction);
+        }
     }
 }
 
@@ -2576,15 +2614,20 @@ getEntityResolveExternal(void *ctx, const xmlChar *name)
 }
 
 /* WARNING ... as far as I can tell libxml2 never uses the resolveEntity
- * callback, so this function is never called.
- * To implement the -resolveEntities method we therefore intercept the
- * getEntity callback, ree-implementing some of the code inside libxml2
- * to avoid attempts to load/parse external entities unless we have
- * specifically enabled that behavior.
+ * callback, so this function is never called via that route.
+ * We therefore also set this as the global default entity loading
+ * function (in [GSXMLParser+initialize] and [GSSAXHandler+initialize]).
+ *
+ * To implement the -resolveEntities method we must permit/deny any attempt
+ * to load an entity (before the function to resolve is even called),
+ * We therefore intercept the getEntity callback (using getEntityDefault()),
+ * re-implementing some of the code inside libxml2 to avoid attempts to
+ * load/parse external entities unless we have specifically enabled it.
  */
 static xmlParserInputPtr
-loadEntityFunction(void *ctx,
-  const unsigned char *eid, const unsigned char *url)
+loadEntityFunction(const unsigned char *url,
+  const unsigned char *eid,
+  void *ctx)
 {
   NSString			*file = nil;
   NSString			*entityId;
@@ -2623,7 +2666,6 @@ loadEntityFunction(void *ctx,
                             options: NSLiteralSearch
                             range: NSMakeRange(0, [local length])];
 
-#ifdef GNUSTEP
   if ([location rangeOfString: @"/DTDs/PropertyList"].length > 0)
     {
       file = [location substringFromIndex: 6];
@@ -2636,9 +2678,8 @@ loadEntityFunction(void *ctx,
 	  file = nil;
 	}
     }
-#endif
 
-  if (file == nil)
+  if (file == nil && ((xmlParserCtxtPtr)ctx)->_private != NULL)
     {
       /*
        * Now ask the SAXHandler callback for the name of a local file
@@ -2784,11 +2825,17 @@ loadEntityFunction(void *ctx,
         UTF8STRING([theURL absoluteString]));
     }
     
-  /*
-   * A local DTD will now be in the catalog: The builtin entity resolver can
+  /* A local DTD will now be in the catalog: The builtin entity resolver can
    * take over.
    */
-  return xmlSAX2ResolveEntity(ctx, eid, url);
+  return (*originalLoader)((const char*)url, (const char*)eid, ctx);
+}
+
+static xmlParserInputPtr
+resolveEntityFunction(void *ctx,
+  const unsigned char *eid, const unsigned char *url)
+{
+  return loadEntityFunction(url, eid, ctx);
 }
 
 
@@ -3584,7 +3631,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       LIB->fatalError             = (void*) fatalErrorFunction;
       LIB->getParameterEntity     = (void*) getParameterEntityFunction;
       LIB->cdataBlock             = (void*) cdataBlockFunction;
-      LIB->resolveEntity          = (void*) loadEntityFunction;
+      LIB->resolveEntity          = (void*) resolveEntityFunction;
 #undef	LIB
       return YES;
     }

@@ -3,11 +3,14 @@
 #import <Foundation/NSXMLNode.h>
 #import <Foundation/NSXMLDocument.h>
 #import <Foundation/NSXMLElement.h>
-
+#import "GNUstepBase/GSConfig.h"
 
 int main()
 {
   START_SET("NSXMLNode - handling children")
+#if !GS_USE_LIBXML
+    SKIP("library built without libxml2")
+#else
   NS_DURING
   {
     NSXMLElement *node = [[NSXMLElement alloc] initWithKind: NSXMLElementKind];
@@ -54,6 +57,7 @@ int main()
     PASS (0 == 1, "NSXML child handling working."); // I don't think this is valid... commenting out for now.
   }
   NS_ENDHANDLER
+#endif
   END_SET("NSXMLNode - handling children")
   return 0;
 }

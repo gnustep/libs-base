@@ -19,6 +19,7 @@
 #import <Foundation/NSXMLNode.h>
 #import <Foundation/NSXMLDocument.h>
 #import <Foundation/NSXMLElement.h>
+#import "GNUstepBase/GSConfig.h"
 
 NSString *kGDataNamespaceGData = @"http://schemas.google.com/g/2005";
 NSString *kGDataNamespaceBatch = @"http://schemas.google.com/gdata/batch";
@@ -29,6 +30,9 @@ NSString *kGDataNamespaceAtomPrefix = @"atom";
 int main()
 {
   START_SET("NSXMLNode namespace handling")
+#if !GS_USE_LIBXML
+    SKIP("library built without libxml2")
+#else
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
 
   // create elements and attributes
@@ -180,6 +184,7 @@ int main()
 
   [arp drain];
   arp = nil;
+#endif
   END_SET("NSXMLNode namespace handling")
   return 0;
 }

@@ -54,6 +54,11 @@
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  START_SET("NSRegularExpression")
+
+#if !(__APPLE__ || GS_USE_ICU)
+  SKIP("NSRegularExpression not built\nThe ICU library was not available when GNUstep-base was built")
+#else
 # ifdef GNUSTEP
     // Ensure that a deterministic limit is set up for this process
     NSUserDefaults *dflts = [NSUserDefaults standardUserDefaults];
@@ -164,6 +169,9 @@ int main()
        beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
     }
   PASS(NO == [thread isExecuting], "Faulty regular expression terminated");
+#endif
+
+  END_SET("NSRegularExpression")
   [arp release]; arp = nil;
   return 0;
 }

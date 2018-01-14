@@ -1,3 +1,40 @@
+
+2018-01-14  Yavor Doganov  <yavor@gnu.org>
+ 
+ 	* Tests/base/NSXMLDocument/basic.m:
+ 	* Tests/base/NSXMLDocument/cdata.m:
+ 	* Tests/base/NSXMLNode/basic.m:
+ 	* Tests/base/NSXMLElement/attributes.m:
+ 	* Tests/base/NSXMLElement/basic.m:
+ 	* Tests/base/NSXMLElement/children.m:
+ 	* Tests/base/NSXMLElement/transfer.m:
+ 	* Tests/base/NSXMLNode/children.m:
+ 	* Tests/base/NSXMLNode/description.m:
+ 	* Tests/base/NSXMLNode/kinds.m:
+ 	* Tests/base/NSXMLNode/namespaces.m: Skip tests if libxml2 is not
+ 	available.
+ 	* Tests/base/NSTimeZone/use.m: Skip one more test if
+ 	NSLOCALE_SUPPORTED is undefined.
+ 	* Tests/base/NSRegularExpression/basic.m: Skip all tests if ICU is
+ 	not available.
+
+2018-01-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+ 	* configure.ac: Remove explicit test for SAX2.h as we now assume
+	it is present based on the version of libxml2.
+	* configure: regenerate
+	* Source/GSXML.m: fix errors in loading/resolving of external entities
+	and fix the parsing methods to correctly return whether the xml was
+	validated against a DTD (when that feature is turned on).
+	* Tests/base/GSXML/basic.m: add a couple of tests for resolving
+	external references and validating against a DTD.
+
+2018-01-14  Yavor Doganov  <yavor@gnu.org>
+ 
+ 	* configure.ac: Use PKG_PROG_PKG_CONFIG instead of AC_PATH_PROG to
+ 	find pkg-config as it supports cross-compilation.
+ 	* configure.ac: Bump ICU requirement to >= 50 for UDAT_PATTERN.
+
 2018-01-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m: OSX compatibility tweaks and correction

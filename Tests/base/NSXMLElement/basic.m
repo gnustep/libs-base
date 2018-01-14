@@ -1,10 +1,15 @@
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSXMLElement.h>
+#import "GNUstepBase/GSConfig.h"
 
 int main()
 {
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  START_SET("NSXMLElement")
+#if !GS_USE_LIBXML
+    SKIP("library built without libxml2")
+#else
   NSXMLElement          *node;
   NSXMLElement          *other;
   NSXMLElement          *xml;
@@ -84,7 +89,8 @@ int main()
 
   [node release];
   [other release];
-
+#endif
+  END_SET("NSXMLElement")
   [arp release];
   arp = nil;
 

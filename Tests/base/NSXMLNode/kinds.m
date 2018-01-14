@@ -5,6 +5,7 @@
 #import <Foundation/NSXMLElement.h>
 #import <Foundation/NSXMLDTD.h>
 #import <Foundation/NSXMLDTDNode.h>
+#import "GNUstepBase/GSConfig.h"
 
 #define NODE_KIND_HAS_CLASS(node, kind, theClass) \
   do \
@@ -18,6 +19,9 @@
 int main()
 {
   START_SET("NSXMLNode -initWithKind: initializer")
+#if !GS_USE_LIBXML
+    SKIP("library built without libxml2")
+#else
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSXMLNode           *node;
   NS_DURING
@@ -39,6 +43,7 @@ int main()
   NS_ENDHANDLER
   [arp release];
   arp = nil;
+#endif
   END_SET("NSXMLNode -initWithKind: initializer")
   return 0;
 }

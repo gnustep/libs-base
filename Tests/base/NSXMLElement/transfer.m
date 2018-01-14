@@ -2,6 +2,7 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSXMLDocument.h>
 #import <Foundation/NSXMLElement.h>
+#import "GNUstepBase/GSConfig.h"
 
 /*
 int main()
@@ -25,6 +26,10 @@ int main()
 int main()
 {
   NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  START_SET("NSXMLElement transfer")
+#if !GS_USE_LIBXML
+    SKIP("library built without libxml2")
+#else
   NSXMLDocument *doc;
   NSXMLElement *elem;
   NSXMLNode *child;
@@ -45,7 +50,9 @@ int main()
   child = [elem childAtIndex: 0];
   
   [doc release];
+#endif
 
+  END_SET("NSXMLElement transfer")
   [arp release];
   arp = nil;
 

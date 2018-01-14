@@ -2,10 +2,15 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSXMLDocument.h>
 #import <Foundation/NSXMLElement.h>
+#import "GNUstepBase/GSConfig.h"
 
 int main()
 {
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  START_SET("NSXMLElement children")
+#if !GS_USE_LIBXML
+    SKIP("library built without libxml2")
+#else
   NSXMLElement          *root1;
   NSXMLElement          *root2;
   NSXMLElement          *child1;
@@ -124,7 +129,8 @@ int main()
   [root2 release];
   [child1 release];
   [child2 release];
-
+#endif
+  END_SET("NSXMLElement children")
   [arp release];
   arp = nil;
 
