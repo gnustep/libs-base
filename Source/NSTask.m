@@ -414,11 +414,7 @@ pty_slave(const char* name)
  */
 - (void) launch
 {
-  if (_launchingThread != [NSThread currentThread])
-    {
-      [_launchingThread release];
-      _launchingThread = [[NSThread currentThread] retain];
-    }
+  ASSIGN(_launchingThread, [NSThread currentThread]);
 }
 
 /**
@@ -937,7 +933,7 @@ pty_slave(const char* name)
   if (_hasNotified == NO)
     {
       _hasNotified = YES;
-      if (_launchingThread != nil)
+      if ([_launchingThread isExecuting] == YES)
 	{
 	  [self performSelector: @selector(_notifyOfTermination)
 		       onThread: _launchingThread

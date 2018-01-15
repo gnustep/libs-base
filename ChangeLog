@@ -2,6 +2,8 @@
 
 	* Source/NSThread.m: Improve exception message when performing a
 	selector on a finished thread.
+	* Source/NSTask.m: Do not try to notify task completion on a thread
+	that is not executing.
 	* configure.ac: Fix for older versions of pkg-config
 	* configure: regenerate
 

@@ -1690,9 +1690,10 @@ GSRunLoopInfoForThread(NSThread *aThread)
       if ([aThread isFinished] == YES)
         {
           [NSException raise: NSInternalInconsistencyException
-            format: @"perform [%@-%@] attempted on finished thread",
+            format: @"perform [%@-%@] attempted on finished thread (%@)",
             NSStringFromClass([self class]),
-            NSStringFromSelector(aSelector)];
+            NSStringFromSelector(aSelector),
+            aThread];
         }
       if (aFlag == YES)
 	{
