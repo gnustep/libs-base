@@ -1690,7 +1690,9 @@ GSRunLoopInfoForThread(NSThread *aThread)
       if ([aThread isFinished] == YES)
         {
           [NSException raise: NSInternalInconsistencyException
-                      format: @"perform on finished thread"];
+            format: @"perform [%@-%@] attempted on finished thread",
+            NSStringFromClass([self class]),
+            NSStringFromSelector(aSelector)];
         }
       if (aFlag == YES)
 	{
@@ -1708,21 +1710,18 @@ GSRunLoopInfoForThread(NSThread *aThread)
           [l lockWhenCondition: 1];
 	  [l unlock];
 	  RELEASE(l);
-          if ([h isInvalidated] == YES)
+          if ([h isInvalidated] == NO)
             {
-              RELEASE(h);
-              [NSException raise: NSInternalInconsistencyException
-                          format: @"perform on finished thread"];
-            }
-          /* If we have an exception passed back from the remote thread,
-           * re-raise it.
-           */
-          if (nil != h->exception)
-            {
-              NSException       *e = AUTORELEASE(RETAIN(h->exception));
+              /* If we have an exception passed back from the remote thread,
+               * re-raise it.
+               */
+              if (nil != h->exception)
+                {
+                  NSException       *e = AUTORELEASE(RETAIN(h->exception));
 
-              RELEASE(h);
-              [e raise];
+                  RELEASE(h);
+                  [e raise];
+                }
             }
 	}
       RELEASE(h);
