@@ -933,7 +933,8 @@ pty_slave(const char* name)
   if (_hasNotified == NO)
     {
       _hasNotified = YES;
-      if ([_launchingThread isExecuting] == YES)
+      if (_launchingThread != [NSThread currentThread]
+        && [_launchingThread isExecuting] == YES)
 	{
 	  [self performSelector: @selector(_notifyOfTermination)
 		       onThread: _launchingThread
