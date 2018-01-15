@@ -71,6 +71,7 @@ builtin(include, config/pathtls.m4)dnl
 builtin(include, config/codeset.m4)dnl
 builtin(include, config/addlibrarypath.m4)dnl
 builtin(include, config/icu.m4)dnl
+builtin(include, config/pkg.m4)dnl
 
 AC_INIT
 AC_PREREQ([2.60])
