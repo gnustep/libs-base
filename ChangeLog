@@ -1,3 +1,7 @@
+2018-01-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: Improve exception message when performing a
+	selector on a finished thread.
 
 2018-01-14  Yavor Doganov  <yavor@gnu.org>
  
