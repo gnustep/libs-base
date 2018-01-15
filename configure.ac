@@ -1211,6 +1211,12 @@ AC_LANG_POP(C)
 
 AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
 PKG_PROG_PKG_CONFIG
+# If the modern mechanism failswe may havew an older pkg-config
+# so try looking it up the old fashioned way.
+if test -z "$PKG_CONFIG"; then
+  AC_PATH_PROG(PKG_CONFIG,pkg-config,,)
+fi
+
 
 #--------------------------------------------------------------------
 # specific target_os options

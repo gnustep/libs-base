@@ -2,6 +2,8 @@
 
 	* Source/NSThread.m: Improve exception message when performing a
 	selector on a finished thread.
+	* configure.ac: Fix for older versions of pkg-config
+	* configure: regenerate
 
 2018-01-14  Yavor Doganov  <yavor@gnu.org>
  
