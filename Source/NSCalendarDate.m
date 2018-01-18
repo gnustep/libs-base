@@ -41,6 +41,9 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSUserDefaults.h"
+#if 1 // DHV-???:
+#import "Foundation/NSValue.h"
+#endif
 #import "GNUstepBase/GSObjCRuntime.h"
 
 #import "GSPrivate.h"
@@ -209,10 +212,21 @@ dayOfCommonEra(NSTimeInterval when)
   return r;
 }
 
+char GNU_TOGGLE = 0;
+
 static void
 gregorianDateFromAbsolute(NSInteger abs,
   NSInteger *day, NSInteger *month, NSInteger *year)
 {
+	if (abs < 0) 
+	  {
+		if (month) *month = 0;
+		if (day) *day = 0;
+		if (year) *year = 0;
+		
+		return;
+	  }
+
   NSInteger     y;
   NSInteger     m;
 
@@ -226,11 +240,12 @@ gregorianDateFromAbsolute(NSInteger abs,
   m = 1;
   while (abs > absoluteGregorianDay(lastDayOfGregorianMonth(m, y), m, y))
     {
-      m++;
+      m++;	  
     }
   *year = y;
   *month = m;
   *day = abs - absoluteGregorianDay(1, m, y) + 1;
+
 }
 
 /**
