@@ -135,13 +135,9 @@ $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h: ../config.status
 	-touch $(GNUSTEP_TARGET_DIR)/GNUstepBase/GSConfig.h
 
 #
-#       Files where optimisation breaks the code!
-#       These have to filter the optimisation flag out.
-#       [You need gnustep-make >= 1.2.0 to compile this code]
+# Files where optimisation breaks the code!
+# These have to filter the optimisation flag out.
 #
-mframe.m_FILE_FILTER_OUT_FLAGS = -O%
-NSConnection.m_FILE_FILTER_OUT_FLAGS = -O%
-NSInvocation.m_FILE_FILTER_OUT_FLAGS = -O%
 libgnustep-base-entry.m_FILE_FILTER_OUT_FLAGS = -O%   # gcc 4.4 on mingw
 
 #

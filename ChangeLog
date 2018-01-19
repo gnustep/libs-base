@@ -1,3 +1,9 @@
+2018-01-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/Makefile.postamble: Restore optimisation flags (remove 18
+	years ago) for NSInvocation and NSConnection (and remove obsolete
+	mframe setting) as suggested by Yavor Doganov.
+		
 2018-01-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Improve exception message when performing a
