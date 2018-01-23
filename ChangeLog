@@ -2,6 +2,7 @@
 
 	* Source/Additions/NSNumber+GNUstepBase.m:
 	* Source/GSValue.m:
+	* Source/NSZone.m:
 	* Tools/gdomap.c:
 	Fix various small issues picked by by automated checker.
 

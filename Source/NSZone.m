@@ -497,18 +497,27 @@ static NSZone	*zone_list = 0;
 static inline void
 destroy_zone(NSZone* zone)
 {
-  if (zone_list == zone)
-    zone_list = zone->next;
-  else
+  if (zone)
     {
-      NSZone *ptr = zone_list;
+      if (zone_list == zone)
+        {
+          zone_list = zone->next;
+        }
+      else
+        {
+          NSZone *ptr = zone_list;
 
-      while (ptr->next != zone)
-	ptr = ptr->next;
-      if (ptr)
-        ptr->next = zone->next;
+          while (ptr != NULL && ptr->next != zone)
+            {
+              ptr = ptr->next;
+            }
+          if (ptr)
+            {
+              ptr->next = zone->next;
+            }
+        }
+      free((void*)zone);
     }
-  free((void*)zone);
 }
 
 /* Search the buffer to see if there is any memory chunks large enough
