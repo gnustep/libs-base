@@ -3717,10 +3717,10 @@ static int
 tryHost(unsigned char op, unsigned char len, const unsigned char *name,
 int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
 {
-  int desc = socket(AF_INET, SOCK_STREAM, 0);
-  int	e = 0;
+  int           desc = socket(AF_INET, SOCK_STREAM, 0);
+  int	        e = 0;
   uint32_t	port = *p;
-  gdo_req		msg;
+  gdo_req	msg;
   struct sockaddr_in sin;
 #if	defined(__MINGW__)
   uint32_t dummy;
@@ -3889,6 +3889,14 @@ int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
       uptr	ptr;
       uptr	b;
 
+      if (len <= 0 || len > 10000000)
+        {
+	  snprintf(ebuf, sizeof(ebuf),
+	    "Insanely large list of registered names");
+	  gdomap_log(LOG_ERR);
+          close(desc);
+          return 5;     // Unreasonable number of registrations
+        }
       b = (uptr)malloc(len);
       if (tryRead(desc, 3, b, len) != len)
 	{
