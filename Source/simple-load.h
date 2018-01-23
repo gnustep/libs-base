@@ -53,7 +53,7 @@ typedef void* dl_symbol_t;
 static int 
 __objc_dynamic_init(const char* exec_path)
 {
-    return 0;
+  return 0;
 }
 
 /* Link in the module given by the name 'module'.  Return a handle which can
@@ -63,18 +63,18 @@ static dl_handle_t
 __objc_dynamic_link(const char* module, int mode, const char* debug_file)
 {
 #ifdef RTLD_NOLOAD
-	/*
-	 * If we've got RTLD_NOLOAD, then ask the dynamic linker first to check if
-	 * the library is already loaded.  If it is, then just return a handle to
-	 * it.  If not, then load it again.
-	 */
-	void *handle = dlopen(module, RTLD_LAZY | RTLD_GLOBAL | RTLD_NOLOAD);
-	if (NULL != handle)
-	{
-		return handle;
-	}
+  /*
+   * If we've got RTLD_NOLOAD, then ask the dynamic linker first to check if
+   * the library is already loaded.  If it is, then just return a handle to
+   * it.  If not, then load it again.
+   */
+  void *handle = dlopen(module, RTLD_LAZY | RTLD_GLOBAL | RTLD_NOLOAD);
+  if (NULL != handle)
+    {
+      return handle;
+    }
 #endif
-    return (dl_handle_t)dlopen(module, RTLD_LAZY | RTLD_GLOBAL);
+  return (dl_handle_t)dlopen(module, RTLD_LAZY | RTLD_GLOBAL);
 }
 
 /* Return the address of a symbol given by the name 'symbol' from the module
@@ -87,14 +87,14 @@ __objc_dynamic_find_symbol(dl_handle_t handle, const char* symbol)
 static dl_symbol_t 
 __objc_dynamic_find_symbol(dl_handle_t handle, const char* symbol)
 {
-    return dlsym(handle, (char*)symbol);
+  return dlsym(handle, (char*)symbol);
 }
 
 /* remove the code from memory associated with the module 'handle' */
 static int 
 __objc_dynamic_unlink(dl_handle_t handle)
 {
-    return dlclose(handle);
+  return dlclose(handle);
 }
 
 /* Print an error message (prefaced by 'error_string') relevant to the
@@ -103,20 +103,20 @@ __objc_dynamic_unlink(dl_handle_t handle)
 static void 
 __objc_dynamic_error(FILE *error_stream, const char *error_string)
 {
-    fprintf(error_stream, "%s:%s\n", error_string, dlerror());
+  fprintf(error_stream, "%s:%s\n", error_string, dlerror());
 }
 
 /* Debugging:  define these if they are available */
 static int 
 __objc_dynamic_undefined_symbol_count(void)
 {
-    return 0;
+  return 0;
 }
 
 static char** 
 __objc_dynamic_list_undefined_symbols(void)
 {
-    return NULL;
+  return NULL;
 }
 
 static inline const char *

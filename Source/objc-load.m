@@ -266,15 +266,17 @@ GSPrivateSymbolPath(Class theClass, Category *theCategory)
 #elif LINKER_GETSYMBOL 
 NSString *GSPrivateSymbolPath(Class theClass, Category *theCategory)
 {
-	void *addr = (NULL == theCategory) ? (void*)theClass : (void*)theCategory;
-	Dl_info info;
-	// This is correct: dladdr() does the opposite thing to all other UNIX
-	// functions.
-	if (0 == dladdr(addr, &info))
-	{
-		return nil;
-	}
-	return [NSString stringWithUTF8String: info.dli_fname];
+  void *addr = (NULL == theCategory) ? (void*)theClass : (void*)theCategory;
+  Dl_info info;
+
+  /* This is correct: dladdr() does the opposite thing to all other UNIX
+   * functions.
+   */
+  if (0 == dladdr(addr, &info))
+    {
+      return nil;
+    }
+  return [NSString stringWithUTF8String: info.dli_fname];
 }
 #else
 NSString *
@@ -299,7 +301,7 @@ GSPrivateSymbolPath(Class theClass, Category *theCategory)
 	}
 
       memcpy(p, "__objc_class_name_", sizeof(char)*18);
-	  memcpy(&p[18*sizeof(char)], className, strlen(className) + 1);
+      memcpy(&p[18*sizeof(char)], className, strlen(className) + 1);
     }
   else
     {
@@ -318,10 +320,10 @@ GSPrivateSymbolPath(Class theClass, Category *theCategory)
 
       memcpy(p, "__objc_category_name_", sizeof(char)*21);
       memcpy(&p[21*sizeof(char)], theCategory->class_name,
-	     strlen(theCategory->class_name) + 1);
+        strlen(theCategory->class_name) + 1);
       memcpy(&p[strlen(p)], "_", 2*sizeof(char));
       memcpy(&p[strlen(p)], theCategory->category_name,
-	     strlen(theCategory->category_name) + 1);
+        strlen(theCategory->category_name) + 1);
     }
 
   ret = __objc_dynamic_get_symbol_path(0, p);

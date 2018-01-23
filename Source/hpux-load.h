@@ -39,7 +39,7 @@ typedef void* dl_symbol_t;
 static int 
 __objc_dynamic_init(const char* exec_path)
 {
-    return 0;
+  return 0;
 }
 
 /* Link in the module given by the name 'module'.  Return a handle which can
@@ -48,7 +48,7 @@ __objc_dynamic_init(const char* exec_path)
 static dl_handle_t
 __objc_dynamic_link(const char* module, int mode, const char* debug_file)
 {
-    return (dl_handle_t)shl_load(module, LINK_FLAGS, 0L);
+  return (dl_handle_t)shl_load(module, LINK_FLAGS, 0L);
 }
 
 /* Return the address of a symbol given by the name 'symbol' from the module
@@ -61,19 +61,19 @@ __objc_dynamic_find_symbol(dl_handle_t handle, const char* symbol)
 static dl_symbol_t 
 __objc_dynamic_find_symbol(dl_handle_t handle, const char* symbol)
 {
-    int ok; 
-    void *value;
-    ok = shl_findsym(&handle, symbol, TYPE_UNDEFINED, value);
-    if (ok != 0)
-	value = 0;
-    return value;
+  int ok; 
+  void *value;
+  ok = shl_findsym(&handle, symbol, TYPE_UNDEFINED, value);
+  if (ok != 0)
+    value = 0;
+  return value;
 }
 
 /* remove the code from memory associated with the module 'handle' */
 static int 
 __objc_dynamic_unlink(dl_handle_t handle)
 {
-    return shl_unload(handle);
+  return shl_unload(handle);
 }
 
 /* Print an error message (prefaced by 'error_string') relevant to the
@@ -82,20 +82,20 @@ __objc_dynamic_unlink(dl_handle_t handle)
 static void 
 __objc_dynamic_error(FILE *error_stream, const char *error_string)
 {
-    fprintf(error_stream, "%s\n", error_string);
+  fprintf(error_stream, "%s\n", error_string);
 }
 
 /* Debugging:  define these if they are available */
 static int 
 __objc_dynamic_undefined_symbol_count(void)
 {
-    return 0;
+  return 0;
 }
 
 static char** 
 __objc_dynamic_list_undefined_symbols(void)
 {
-    return NULL;
+  return NULL;
 }
 
 // TODO: search for an hp-ux equivalent of dladdr() */
