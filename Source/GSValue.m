@@ -41,7 +41,7 @@
 
 @implementation GSValue
 
-static inline int
+static inline unsigned
 typeSize(const char* type)
 {
   switch (*type)
@@ -77,7 +77,7 @@ typeSize(const char* type)
 	  return (int)size;
 	}
       case _C_VOID:	return 0;
-      default:		return -1;
+      default:		return 0;
     }
 }
 
@@ -96,19 +96,19 @@ typeSize(const char* type)
   self = [super init];
   if (self != nil)
     {
-      int	size = typeSize(type);
+      unsigned	size = typeSize(type);
 
-      if (size < 0)
-	{
-	  NSLog(@"Tried to create NSValue with invalid Objective-C type");
-	  DESTROY(self);
-	  return nil;
-	}
       if (size > 0)
 	{
 	  data = (void *)NSZoneMalloc([self zone], size);
 	  memcpy(data, value, size);
 	}
+      else
+        {
+	  NSLog(@"Tried to create NSValue with invalid Objective-C type");
+	  DESTROY(self);
+	  return nil;
+        }
       size = strlen(type);
       objctype = (char *)NSZoneMalloc([self zone], size + 1);
       strncpy(objctype, type, size);
@@ -131,7 +131,7 @@ typeSize(const char* type)
 {
   unsigned	size;
 
-  size = (unsigned)typeSize(objctype);
+  size = typeSize(objctype);
   if (size > 0)
     {
       if (value == 0)
@@ -188,7 +188,7 @@ typeSize(const char* type)
 
 - (id) nonretainedObjectValue
 {
-  unsigned	size = (unsigned)typeSize(objctype);
+  unsigned	size = typeSize(objctype);
 
   if (size != sizeof(void*))
     {
@@ -200,7 +200,7 @@ typeSize(const char* type)
 
 - (NSPoint) pointValue
 {
-  unsigned	size = (unsigned)typeSize(objctype);
+  unsigned	size = typeSize(objctype);
 
   if (size != sizeof(NSPoint))
     {
@@ -212,7 +212,7 @@ typeSize(const char* type)
 
 - (void *) pointerValue
 {
-  unsigned	size = (unsigned)typeSize(objctype);
+  unsigned	size = typeSize(objctype);
 
   if (size != sizeof(void*))
     {
@@ -236,7 +236,7 @@ typeSize(const char* type)
 
 - (NSSize) sizeValue
 {
-  unsigned	size = (unsigned)typeSize(objctype);
+  unsigned	size = typeSize(objctype);
 
   if (size != sizeof(NSSize))
     {
@@ -251,7 +251,7 @@ typeSize(const char* type)
   unsigned	size;
   NSData	*rep;
 
-  size = (unsigned)typeSize(objctype);
+  size = typeSize(objctype);
   rep = [NSData dataWithBytes: data length: size];
   return [NSString stringWithFormat: @"(%s) %@", objctype, [rep description]];
 }

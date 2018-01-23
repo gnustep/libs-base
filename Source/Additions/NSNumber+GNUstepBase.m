@@ -39,14 +39,13 @@
   const char *str;
 
   str = [string UTF8String];
-  if (strchr(str, '.') >= 0 || strchr(str, 'e') >= 0
-      || strchr(str, 'E') >= 0)
+  if (strchr(str, '.') != NULL || strchr(str, 'e') != NULL
+    || strchr(str, 'E') != NULL)
     return [NSNumber numberWithDouble: atof(str)];
   else if (strchr(str, '-') >= 0)
     return [NSNumber numberWithInt: atoi(str)];
   else
     return [NSNumber numberWithUnsignedInt: atoi(str)];
-  return [NSNumber numberWithInt: 0];
 }
 
 @end

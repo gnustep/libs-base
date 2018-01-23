@@ -1,3 +1,10 @@
+2018-01-23  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/NSNumber+GNUstepBase.m:
+	* Source/GSValue.m:
+	* Tools/gdomap.c:
+	Fix various small issues picked by by automated checker.
+
 2018-01-19  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/Makefile.postamble: Restore optimisation flags (remove 18
