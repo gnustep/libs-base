@@ -795,6 +795,13 @@ static Class concreteMutableClass = nil;
 		   number: 12];
 }
 
++ (NSCharacterSet*)URLQueryAllowedCharacterSet
+{
+  NSMutableCharacterSet *set = [NSMutableCharacterSet alphanumericCharacterSet];
+  [set addCharactersInString: @"!$&'()*+,-./:;=?@~_"];
+  return AUTORELEASE([set copy]); // return immutable
+}
+
 + (id) characterSetWithBitmapRepresentation: (NSData*)data
 {
   return AUTORELEASE([[concreteClass alloc] initWithBitmap: data]);
