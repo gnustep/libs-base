@@ -31,6 +31,12 @@
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
 #import "GNUstepBase/NSThread+GNUstepBase.h"
 
+/* This file contains methods which nominally return an id but in fact
+ * always rainse an exception and never return.
+ * We need to suppress the compiler warning about that.
+ */
+#pragma GCC diagnostic ignored "-Wreturn-type"
+
 /**
  * Extension methods for the NSObject class
  */
@@ -42,7 +48,7 @@
     format: @"method %@ not implemented in %@(class)",
     selector ? (id)NSStringFromSelector(selector) : (id)@"(null)",
     NSStringFromClass(self)];
-  return nil;
+  while (0) ;   // Does not return
 }
 
 - (NSComparisonResult) compare: (id)anObject
@@ -106,7 +112,7 @@
     format: @"[%@%c%@] not implemented",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  return self;	// Not reached
+  while (0) ;   // Does not return
 }
 
 - (id) shouldNotImplement: (SEL)aSel
@@ -118,7 +124,7 @@
     format: @"[%@%c%@] should not be implemented",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  return self;	// Not reached
+  while (0) ;   // Does not return
 }
 
 - (id) subclassResponsibility: (SEL)aSel
@@ -129,7 +135,7 @@
     format: @"[%@%c%@] should be overridden by subclass",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  return self;	// Not reached
+  while (0) ;   // Does not return
 }
 
 @end

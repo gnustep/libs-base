@@ -1,3 +1,14 @@
+2018-01-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSException.h:
+	* Source/NSException.m:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	Mark exception raising methods with GS_NORETURN_METHOD.
+	Alter noreturn method implementations so the compiler knows
+	that they really don't return.
+	Use pragma to suppress warnings abnout noreturn methods whose
+	formal declaration says they return an id.
+
 2018-01-23  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/NSNumber+GNUstepBase.m:

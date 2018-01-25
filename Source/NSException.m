@@ -1016,6 +1016,7 @@ callUncaughtHandler(id value)
   [self raise: name format: format arguments: args];
   // This probably doesn't matter, but va_end won't get called
   va_end(args);
+  while (1);    // does not return
 }
 
 + (void) raise: (NSString*)name
@@ -1028,6 +1029,7 @@ callUncaughtHandler(id value)
   reason = [NSString stringWithFormat: format arguments: argList];
   except = [self exceptionWithName: name reason: reason userInfo: nil];
   [except raise];
+  while (1);    // does not return
 }
 
 /* For OSX compatibility -init returns nil.
@@ -1184,6 +1186,7 @@ callUncaughtHandler(id value)
     }
 }
 #endif
+  while (1);    // does not return
 }
 
 - (NSString*) name

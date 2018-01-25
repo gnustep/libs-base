@@ -134,7 +134,8 @@ extern "C" {
  * <em>raised</em> using the -raise method.
  */
 + (void) raise: (NSString*)name
-	format: (NSString*)format,... NS_FORMAT_FUNCTION(2,3);
+	format: (NSString*)format,...
+  NS_FORMAT_FUNCTION(2,3) GS_NORETURN_METHOD;
 
 /**
  * Creates an exception with a name and a reason string using the
@@ -144,7 +145,8 @@ extern "C" {
  */
 + (void) raise: (NSString*)name
 	format: (NSString*)format
-     arguments: (va_list)argList NS_FORMAT_FUNCTION(2,0);
+     arguments: (va_list)argList
+  NS_FORMAT_FUNCTION(2,0) GS_NORETURN_METHOD;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) && GS_API_VERSION( 11501,GS_API_LATEST)
 /** Returns an array of the call stack return addresses at the point when
@@ -189,7 +191,7 @@ extern "C" {
  * NB. all other exception raising methods call this one, so if you
  * want to set a breakpoint when debugging, set it in this method.
  */
-- (void) raise;
+- (void) raise GS_NORETURN_METHOD;
 
 /** Returns the exception reason. */
 - (NSString*) reason;
