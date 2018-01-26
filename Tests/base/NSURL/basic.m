@@ -15,6 +15,8 @@ int main()
   NSString	*str;
   NSNumber      *num;
   unsigned      i;
+  unichar       bad[] = {'h', 't', 't', 'p', ':', '/', '/', 'w', 'w', 'w',
+    '.', 'w', '3', '.', 'o', 'r', 'g', '/', 0x200B};
   unichar	u = 163;
   unichar       buf[256];
   
@@ -27,6 +29,10 @@ int main()
   TEST_FOR_CLASS(@"NSURL", [NSURL URLWithString: @"http://www.w3.org/"],
     "NSURL +URLWithString: returns an NSURL");
   
+  str = [NSString stringWithCharacters: bad length: sizeof(bad)/sizeof(*bad)];
+  url = [NSURL URLWithString: str];
+  PASS(nil == url, "Bad characters result in nil");
+
   str = [NSString stringWithCharacters: &u length: 1];
   url = [NSURL fileURLWithPath: str];
   str = [[[NSFileManager defaultManager] currentDirectoryPath]

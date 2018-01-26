@@ -811,6 +811,11 @@ static NSUInteger	urlAlign;
    */
   static const char *filepath = ";/?:@&=+$,[]#";
 
+  if (nil == aUrlString)
+    {
+      RELEASE(self);
+      return nil;       // OSX behavior is to give up.
+    }
   if ([aUrlString isKindOfClass: [NSString class]] == NO)
     {
       [NSException raise: NSInvalidArgumentException
@@ -843,9 +848,20 @@ static NSUInteger	urlAlign;
       buf = _data = (parsedURL*)NSZoneMalloc(NSDefaultMallocZone(), size);
       memset(buf, '\0', size);
       start = end = ptr = (char*)&buf[1];
-      [_urlString getCString: start
-		   maxLength: size
-		    encoding: NSASCIIStringEncoding];
+      NS_DURING
+        {
+          [_urlString getCString: start
+                       maxLength: size
+                        encoding: NSASCIIStringEncoding];
+        }
+      NS_HANDLER
+        {
+          /* OSX behavior when given non-ascii text is to return nil.
+           */
+          RELEASE(self);
+          return nil;
+        }
+      NS_ENDHANDLER
 
       /*
        * Parse the scheme if possible.
