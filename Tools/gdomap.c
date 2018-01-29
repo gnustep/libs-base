@@ -3852,6 +3852,29 @@ int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
     }
   port = ntohl(port);
 
+  if (port < 0 || port > 0xffff)
+    {
+      if (GDO_NAMES == op)
+        {
+          if (port > 10000000)
+            {
+              snprintf(ebuf, sizeof(ebuf),
+                "Insanely large list of registered names");
+              gdomap_log(LOG_ERR);
+              close(desc);
+              return 5;     // Unreasonable number of registrations
+            }
+        }
+      else
+        {
+          snprintf(ebuf, sizeof(ebuf),
+            "Port number of incoming message is out of range");
+          gdomap_log(LOG_ERR);
+          close(desc);
+          return 5;     // Unreasonable port number
+        }
+    }
+
   /*
    *	Special case for GDO_SERVERS - allocate buffer and read list.
    */
@@ -3889,14 +3912,6 @@ int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
       uptr	ptr;
       uptr	b;
 
-      if (len <= 0 || len > 10000000)
-        {
-	  snprintf(ebuf, sizeof(ebuf),
-	    "Insanely large list of registered names");
-	  gdomap_log(LOG_ERR);
-          close(desc);
-          return 5;     // Unreasonable number of registrations
-        }
       b = (uptr)malloc(len);
       if (tryRead(desc, 3, b, len) != len)
 	{
