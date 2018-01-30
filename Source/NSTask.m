@@ -1611,22 +1611,16 @@ GSPrivateCheckTasks()
 	      exit(1);			/* Failed to open slave!	*/
 	    }
 
-	  /* Set up stdin, stdout and stderr by duplicating descriptors as
-	   * necessary and closing the originals (to ensure we won't have a
-	   * pipe left with two write descriptors etc).
+	  /* Set up stdin, stdout and stderr by duplicating descriptor as
+	   * necessary and closing the original.
 	   */
-	  if (s != 0)
-	    {
-	      dup2(s, 0);
-	    }
-	  if (s != 1)
-	    {
-	      dup2(s, 1);
-	    }
-	  if (s != 2)
-	    {
-	      dup2(s, 2);
-	    }
+          dup2(s, 0);
+          dup2(s, 1);
+          dup2(s, 2);
+          if (s != 0 && s != 1 && s != 2)
+            {
+              close(s);
+            }
 	}
       else
 	{
