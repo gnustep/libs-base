@@ -2413,6 +2413,7 @@ handle_io()
       if (u_queue != 0)
 	{
 	  FD_SET(udp_desc, &wfds);
+	  FD_SET(udp_desc, &write_fds);
 	}
 
       timeout.tv_sec = 10;
@@ -2561,7 +2562,8 @@ handle_io()
               /* Look for a descriptor found to be writeable and which
                * was not closed (due to reading eof etc)
                */
-	      if (FD_ISSET(i, &wfds))
+	      if (FD_ISSET(i, &wfds)
+                && (FD_ISSET(i, &write_fds) || i == udp_desc))
 		{
 		  if (i == udp_desc)
 		    {
@@ -2693,7 +2695,6 @@ handle_recv()
 	    "recvfrom returned %d - %s", r, lastErr());
 	  gdomap_log(LOG_DEBUG);
 	}
-      clear_chan(udp_desc);
     }
 }
 
