@@ -1460,6 +1460,7 @@ tables:
 		  else
 		    {
 		      result = NO;
+                      iconv_close(cd);
 		      goto done;
 		    }
 		}
