@@ -3500,7 +3500,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   if (bytes == MAP_FAILED)
     {
       NSWarnMLog(@"mapping failed for %@ - %@", path, [NSError _last]);
-      close(fd);
       DESTROY(self);
       self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
       self = [self initWithContentsOfFile: path];
