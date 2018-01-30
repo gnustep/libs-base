@@ -1817,6 +1817,7 @@ UTF8String_c(GSStr self)
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't convert to Unicode string."];
 	}
+      r = 0;
       if (GSFromUnicode((unsigned char**)&r, &s, u, l, NSUTF8StringEncoding,
 	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
 	{
