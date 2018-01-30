@@ -2476,6 +2476,7 @@ iconv_start:
 			  if (strict == YES)
 			    {
 			      result = NO;
+                              iconv_close(cd);
 			      goto done;
 			    }
 			  /*
@@ -2493,6 +2494,7 @@ iconv_start:
 		      else
 			{
 			  result = NO;
+                          iconv_close(cd);
 			  goto done;
 			}
 		    }
@@ -2504,6 +2506,7 @@ iconv_start:
 		       * so if we are doing strict conversions we must fail.
 		       */
 		      result = NO;
+                      iconv_close(cd);
 		      goto done;
 		    }
 		}
