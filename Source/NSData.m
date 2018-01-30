@@ -1873,10 +1873,10 @@ failure:
    * in the fwrite() call. */
   c = fwrite([self bytes], sizeof(char), [self length], theFile);
 
-  if (c < (int)[self length])        /* We failed to write everything for
-                                 * some reason. */
+  if (c < (int)[self length])        /* We failed to write everything. */
     {
       NSWarnMLog(@"Fwrite (%s) failed - %@", thePath, [NSError _last]);
+      fclose(theFile);
       goto failure;
     }
 
