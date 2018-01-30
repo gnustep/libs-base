@@ -506,6 +506,7 @@ parseNumber(ParserState *state)
           if (number != numberBuffer)
             {
               free(number);
+              number = numberBuffer;
             }
         }
       BUFFER(c);
