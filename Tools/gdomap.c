@@ -2561,7 +2561,7 @@ handle_io()
               /* Look for a descriptor found to be writeable and which
                * was not closed (due to reading eof etc)
                */
-	      if (FD_ISSET(i, &wfds) && FD_ISSET(i, &write_fds))
+	      if (FD_ISSET(i, &wfds))
 		{
 		  if (i == udp_desc)
 		    {
@@ -3852,7 +3852,7 @@ int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
     }
   port = ntohl(port);
 
-  if (port < 0 || port > 0xffff)
+  if (port > 0xffff)
     {
       if (GDO_NAMES == op)
         {
