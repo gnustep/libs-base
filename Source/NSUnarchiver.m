@@ -736,6 +736,10 @@ static unsigned	encodingVersion;
 		  (*desImp)(src, desSel, &big, @encode(int64_t), &cursor, nil);
 		  break;
 		}
+
+              default:
+                [NSException raise: NSGenericException
+                            format: @"invalid size in archive"];
 	    }
 	  /*
 	   * Now we copy from the big value to the destination location.
@@ -810,6 +814,10 @@ static unsigned	encodingVersion;
 		  (*desImp)(src, desSel, &big, @encode(uint64_t), &cursor, nil);
 		  break;
 		}
+
+              default:
+                [NSException raise: NSGenericException
+                            format: @"invalid size in archive"];
 	    }
 	  /*
 	   * Now we copy from the big value to the destination location.
