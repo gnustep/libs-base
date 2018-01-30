@@ -466,12 +466,12 @@ static NSArray  *keys = nil;
 	    fromInputStream: (NSStream*)i
 	     orOutputStream: (NSStream*)o
 {
-  NSString              *str;
-  NSMutableDictionary   *opts = *dict;
-  NSUInteger            count;
-  
   if (NULL != dict)
     {
+      NSString                  *str;
+      NSMutableDictionary       *opts = *dict;
+      NSUInteger                count;
+      
       if (nil != pri)
 	{
 	  [opts setObject: pri forKey: GSTLSPriority];
