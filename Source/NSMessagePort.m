@@ -410,7 +410,7 @@ static Class	runLoopClass;
   name = [aPort _name];
   memset(&sockAddr, '\0', sizeof(sockAddr));
   sockAddr.sun_family = AF_LOCAL;
-  strncpy(sockAddr.sun_path, (char*)name, sizeof(sockAddr.sun_path));
+  strncpy(sockAddr.sun_path, (char*)name, sizeof(sockAddr.sun_path) - 1);
 
   if (connect(desc, (struct sockaddr*)&sockAddr, SUN_LEN(&sockAddr)) < 0)
     {
