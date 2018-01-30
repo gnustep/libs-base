@@ -1282,7 +1282,7 @@ typedef	struct {
 	  memset(&sockAddr, '\0', sizeof(sockAddr));
 	  sockAddr.sun_family = AF_LOCAL;
 	  strncpy(sockAddr.sun_path, (char*)socketName,
-	    sizeof(sockAddr.sun_path));
+	    sizeof(sockAddr.sun_path) - 1);
 	  if ((desc = socket(PF_LOCAL, SOCK_STREAM, PF_UNSPEC)) < 0)
 	    {
 	      NSLog(@"unable to create socket - %@", [NSError _last]);

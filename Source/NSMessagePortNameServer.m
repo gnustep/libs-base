@@ -375,6 +375,7 @@ static NSMapTable *portToNamesMap;
 	}
       if (connect(desc, (struct sockaddr*)&sockAddr, SUN_LEN(&sockAddr)) < 0)
 	{
+          close(desc);
 	  unlink([path fileSystemRepresentation]);
 	  unlink(socket_path);
 	  NSDebugLLog(@"NSMessagePort", @"not live, can't connect (%m)");
