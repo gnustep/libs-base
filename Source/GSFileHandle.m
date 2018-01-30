@@ -2373,7 +2373,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       return NO;	// Can't both read and write.
     }
-  d = dup(descriptor);
+  d = dup(descriptor);  // d is closed by gzclose() later.
   if (d < 0)
     {
       return NO;	// No descriptor available.
