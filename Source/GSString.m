@@ -1401,7 +1401,12 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
         }
       return (id)@"";
     }
-
+  if (0 == bytes)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"-%@ given NULL pointer",
+        NSStringFromSelector(_cmd)];
+    }
   fixBOM((unsigned char**)&bytes, &length, &flag, encoding);
   if (encoding == NSUnicodeStringEncoding)
     {
