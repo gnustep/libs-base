@@ -1124,7 +1124,6 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 	  return (NSRange){NSNotFound, 0};
 	}
     }
-  return (NSRange){NSNotFound, 0};
 }
 #undef	GSEQ_STRRANGE
 #endif
