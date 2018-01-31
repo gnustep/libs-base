@@ -1147,7 +1147,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	    {
 	      error = @"NSStreamSOCKSProxyUserKey value too long";
 	    }
-	  else if (ul < 1 || ul > 255)
+	  else if (pl < 1 || pl > 255)
 	    {
 	      error = @"NSStreamSOCKSProxyPasswordKey value too long";
 	    }
