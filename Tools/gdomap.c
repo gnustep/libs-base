@@ -2413,7 +2413,6 @@ handle_io()
       if (u_queue != 0)
 	{
 	  FD_SET(udp_desc, &wfds);
-	  FD_SET(udp_desc, &write_fds);
 	}
 
       timeout.tv_sec = 10;
