@@ -775,7 +775,7 @@ ihandler(int sig)
   NSMutableArray	*byName;
   NSMutableArray	*byObject;
   unsigned		pos;
-  GDNCNotification	*notification = nil;
+  GDNCNotification	*notification;
 
   byName = [observersForNames objectForKey: notificationName];
   byObject = [observersForObjects objectForKey: notificationObject];
@@ -806,15 +806,17 @@ ihandler(int sig)
 	}
     }
 
+  if ([observers count] == 0)
+    {
+      return;
+    }
+
   /*
    *	Build notification object to queue for observer.
    */
-  if ([observers count] > 0)
-    {
-      notification = [GDNCNotification notificationWithName: notificationName
-						     object: notificationObject
-						       data: d];
-    }
+  notification = [GDNCNotification notificationWithName: notificationName
+                                                 object: notificationObject
+                                                   data: d];
 
   /*
    *	Add the object to the queue for this observer depending on suspension
