@@ -1939,8 +1939,11 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 			    {
 			      offset = -offset;
 			      offset %= (60 * 60 * 24);
-			      offset = -offset;
-			      offset += (60 * 60 * 24);
+                              if (offset > 0)
+                                {
+                                  offset = -offset;
+                                  offset += (60 * 60 * 24);
+                                }
 			    }
 			  else
 			    {
