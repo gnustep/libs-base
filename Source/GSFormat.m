@@ -1947,6 +1947,9 @@ NSDictionary *locale)
 all_done:
   if (workend_malloced) free(workend);
   /* Unlock the stream.  */
+#ifdef __va_copy
+  va_end(ap);
+#endif
   return;
 }
 
