@@ -35,7 +35,7 @@
     {
       if ([self isKindOfClass: [NSArray class]])
 	{
-	  [(NSArray *)self containsObject: object];
+	  return [(NSArray *)self containsObject: object];
 	}
     }
   return NO;

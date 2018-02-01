@@ -1948,7 +1948,7 @@ all_done:
   if (workend_malloced) free(workend);
   /* Unlock the stream.  */
 #ifdef __va_copy
-  va_end(ap);
+  va_end(ap_save);
 #endif
   return;
 }

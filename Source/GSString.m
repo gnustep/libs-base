@@ -1428,7 +1428,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 	    {
 	      if (encoding == NSASCIIStringEncoding)
 		{
-		  if (flag == YES && chars.c != 0)
+		  if (flag == YES)
 		    {
 		      NSZoneFree(NSZoneFromPointer(chars.c), chars.c);
 		    }
@@ -5350,7 +5350,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	}
       else
 	{
-	  length = (aString == nil) ? 0 : [aString length];
+	  length = [aString length];
 	}
     }
   offset = length - aRange.length;

@@ -222,7 +222,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 	    if (debug_proxy)
 	      {
 		NSLog(@"Local object is %p (%p)\n",
-		  (void*)(uintptr_t)o, (void*)(uintptr_t)o ? o->_object : 0);
+		  (void*)(uintptr_t)o, o->_object);
 	      }
 	    return RETAIN(o->_object);
 	  }

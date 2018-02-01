@@ -1,3 +1,13 @@
+2018-02-01  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/GSFormat.m: Call va_end with the correct parameter.
+	* Source/NSObject+NSComparisonMethods.m: Add missing return.
+	* Source/GSString.m (-replaceCharactersInRange:withString:,
+	-initWithBytesNoCopy:...freeWhenDone:): Remove dead code.
+	* Source/NSDistantObject.m (-initWithCoder:): Remove dead code.
+	* Source/NSPredicate.m (_eval_avg:): Don't devide by zero.
+	Fix issues found by Coverity.
+
 2018-01-26  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSCharacterSets/GNUmakefile:

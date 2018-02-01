@@ -1664,6 +1664,10 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       sum += [o doubleValue];
       count++;
     }
+  if (count == 0)
+    {
+      return [NSNumber numberWithDouble: 0.0];
+    }
   return [NSNumber numberWithDouble: sum / count];
 }
 
