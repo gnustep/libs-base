@@ -37,6 +37,7 @@
 #import "Foundation/NSDate.h"
 #import "Foundation/NSString.h"
 #import "Foundation/NSTimeZone.h"
+#import "Foundation/NSUserDefaults.h"
 
 NSString * const NSUserNotificationDefaultSoundName = @"NSUserNotificationDefaultSoundName";
 
@@ -128,30 +129,33 @@ NSString * const NSUserNotificationDefaultSoundName = @"NSUserNotificationDefaul
 
 static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
-// Testplant-MAL-09272016: Our clang version doens't seem to work without this...
+// Testplant-MAL-09272016: Our clang version doesn't seem to work without this...
 @synthesize scheduledNotifications = _scheduledNotifications;
 @synthesize deliveredNotifications = _deliveredNotifications;
 @synthesize delegate = _delegate;
 
 + (Class) defaultUserNotificationCenterClass
 {
-  NSBundle *bundle = [NSBundle bundleForClass: [self class]];
-  NSString *bundlePath = [bundle pathForResource: @"NSUserNotification"
-                                          ofType: @"bundle"
-                                     inDirectory: nil];
-  if (bundlePath)
+  if ([[NSUserDefaults standardUserDefaults] boolForKey: @"GSDisableUserNotificationCenter"] == NO)
     {
-      bundle = [NSBundle bundleWithPath: bundlePath];
-// Testplant-MAL-09272016: Added debug...
-#if defined(DEBUG)
-      NSLog(@"%s:bundlePath: %@ bundle: %@", __PRETTY_FUNCTION__, bundlePath, bundle);
-#endif
-      if (bundle)
+      NSBundle *bundle = [NSBundle bundleForClass: [self class]];
+      NSString *bundlePath = [bundle pathForResource: @"NSUserNotification"
+                                              ofType: @"bundle"
+                                         inDirectory: nil];
+      if (bundlePath)
         {
+          bundle = [NSBundle bundleWithPath: bundlePath];
+          // Testplant-MAL-09272016: Added debug...
 #if defined(DEBUG)
-          NSLog(@"%s:principal class: %@", __PRETTY_FUNCTION__, [bundle principalClass]);
+          NSLog(@"%s:bundlePath: %@ bundle: %@", __PRETTY_FUNCTION__, bundlePath, bundle);
 #endif
-          return [bundle principalClass];
+          if (bundle)
+            {
+#if defined(DEBUG)
+              NSLog(@"%s:principal class: %@", __PRETTY_FUNCTION__, [bundle principalClass]);
+#endif
+              return [bundle principalClass];
+            }
         }
     }
   return self;
