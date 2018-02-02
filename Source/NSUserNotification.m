@@ -136,7 +136,12 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
 + (Class) defaultUserNotificationCenterClass
 {
-  if ([[NSUserDefaults standardUserDefaults] boolForKey: @"GSDisableUserNotificationCenter"] == NO)
+#if defined(__MINGW__)
+  // TESTPLANT-MAL-02022018: TESTPLANT ONLY:
+  // Avoid loading user notification DLL's on Windows to avoid potential application exit
+  // with bad termination status when running in CLI mode...
+  if ([[NSUserDefaults standardUserDefaults] boolForKey: @"GSEnableUserNotificationCenter"])
+#endif
     {
       NSBundle *bundle = [NSBundle bundleForClass: [self class]];
       NSString *bundlePath = [bundle pathForResource: @"NSUserNotification"
