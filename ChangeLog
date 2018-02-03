@@ -2,6 +2,8 @@
 
 	* Source/GSFTPURLHandle.m: change memcpy to memmove to avoid possible
 	problems with overlapping source and destination areas.
+	* Source/Additions/Unicode.m: ensure iconv handle is closed
+	* Source/NSXMLParser.m: fix incorrect type assignment
 
 2018-02-01  Fred Kiefer <fredkiefer@gmx.de>
 

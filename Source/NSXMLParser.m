@@ -1366,7 +1366,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
             }
           else if (nil == attributes)
             {
-              attr = [NSMutableArray new];
+              attr = [NSMutableDictionary new];
               attributes = attr;
             }
 
