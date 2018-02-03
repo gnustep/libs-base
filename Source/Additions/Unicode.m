@@ -1596,7 +1596,8 @@ else \
       } \
     if (ptr == 0) \
       { \
-	return NO;	/* Not enough memory */ \
+        result = NO; /* No buffer growth possible ... fail. */ \
+	goto done; \
       } \
     bsize = grow; \
   }
@@ -1707,6 +1708,9 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
   unsigned	ltsize = 0;
   BOOL		swapped = NO;
   BOOL		result = YES;
+#ifdef HAVE_ICONV
+  iconv_t	cd = (iconv_t)-1;
+#endif
 
   if (options & GSUniBOM)
     {
@@ -2395,7 +2399,6 @@ tables:
 iconv_start:
 	{
 	  struct _strenc_	*encInfo;
-	  iconv_t	cd;
 	  unsigned char	*inbuf;
 	  unsigned char	*outbuf;
 	  size_t	inbytesleft;
@@ -2476,7 +2479,6 @@ iconv_start:
 			  if (strict == YES)
 			    {
 			      result = NO;
-                              iconv_close(cd);
 			      goto done;
 			    }
 			  /*
@@ -2494,7 +2496,6 @@ iconv_start:
 		      else
 			{
 			  result = NO;
-                          iconv_close(cd);
 			  goto done;
 			}
 		    }
@@ -2506,13 +2507,10 @@ iconv_start:
 		       * so if we are doing strict conversions we must fail.
 		       */
 		      result = NO;
-                      iconv_close(cd);
 		      goto done;
 		    }
 		}
 	    } while (!done || rval != 0);
-	  // close the converter
-	  iconv_close(cd);
 	}
 #else
 	result = NO;
@@ -2521,11 +2519,17 @@ iconv_start:
     }
 
   done:
+#ifdef HAVE_ICONV
+  if (cd != (iconv_t)-1)
+    {
+      iconv_close(cd);
+    }
+#endif
 
   /*
    * Post conversion ... set output values.
    */
-  if (extra != 0)
+  if (extra != 0 && ptr != 0)
     {
       ptr[dpos] = (unsigned char)0;
     }
@@ -2584,7 +2588,7 @@ iconv_start:
 	  *dst = ptr;
 	}
     }
-  else if (ptr != buf && dst != 0 && ptr != *dst)
+  else if (ptr != buf && dst != 0 && ptr != *dst && ptr != 0)
     {
       NSZoneFree(zone, ptr);
     }
