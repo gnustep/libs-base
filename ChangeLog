@@ -1,3 +1,8 @@
+2018-01-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFTPURLHandle.m: change memcpy to memmove to avoid possible
+	problems with overlapping source and destination areas.
+
 2018-02-01  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/GSFormat.m: Call va_end with the correct parameter.

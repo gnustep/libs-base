@@ -321,7 +321,7 @@ NSString * const GSTelnetTextKey = @"GSTelnetTextKey";
 			  len -= 3;
 			  if (len - i > 0)
 			    {
-			      memcpy(ptr, &ptr[3], len - i);
+			      memmove(ptr, &ptr[3], len - i);
 			    }
 			  i--;			// Try again.
 			}
@@ -336,7 +336,7 @@ NSString * const GSTelnetTextKey = @"GSTelnetTextKey";
 		      len--;
 		      if (len - i > 0)
 			{
-			  memcpy(ptr, &ptr[1], len - i);
+			  memmove(ptr, &ptr[1], len - i);
 			}
 		    }
 		  else
@@ -348,7 +348,7 @@ NSString * const GSTelnetTextKey = @"GSTelnetTextKey";
 		      len -= 2;
 		      if (len - i > 0)
 			{
-			  memcpy(ptr, &ptr[2], len - i);
+			  memmove(ptr, &ptr[2], len - i);
 			}
 		      i--;	// Try again from here.
 		    }
@@ -418,7 +418,7 @@ NSString * const GSTelnetTextKey = @"GSTelnetTextKey";
 	      pos -= s;
 	      if (len > 0)
 		{
-		  memcpy(ptr, &ptr[s], len);
+		  memmove(ptr, &ptr[s], len);
 		}
 	    }
 	  [ibuf setLength: len];
