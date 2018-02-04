@@ -2094,10 +2094,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  h = [[[self class] alloc] initWithFileDescriptor: desc
 					    closeOnDealloc: YES];
 	  h->isSocket = YES;
-	  getpeername(desc, &sin, &size);
-	  [h setAddr: &sin];
+	  if (getpeername(desc, &sin, &size) >= 0)
+            {
+              [h setAddr: &sin];
+            }
 	  [readInfo setObject: h
-		   forKey: NSFileHandleNotificationFileHandleItem];
+                       forKey: NSFileHandleNotificationFileHandleItem];
 	  RELEASE(h);
 	}
       [self postReadNotification];
