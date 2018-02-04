@@ -1614,12 +1614,12 @@ GSPrivateCheckTasks()
 	  /* Set up stdin, stdout and stderr by duplicating descriptor as
 	   * necessary and closing the original.
 	   */
-          dup2(s, 0);
-          dup2(s, 1);
-          dup2(s, 2);
+          if (dup2(s, 0) != 0) exit(1);
+          if (dup2(s, 1) != 1) exit(1);
+          if (dup2(s, 2) != 2) exit(1);
           if (s != 0 && s != 1 && s != 2)
             {
-              close(s);
+              (void)close(s);
             }
 	}
       else
@@ -1630,15 +1630,15 @@ GSPrivateCheckTasks()
 	   */
 	  if (idesc != 0)
 	    {
-	      dup2(idesc, 0);
+	      if (dup2(idesc, 0) != 0) exit(1);
 	    }
 	  if (odesc != 1)
 	    {
-	      dup2(odesc, 1);
+	      if (dup2(odesc, 1) != 1) exit(1);
 	    }
 	  if (edesc != 2)
 	    {
-	      dup2(edesc, 2);
+	      if (dup2(edesc, 2) != 2) exit(1);
 	    }
 	}
 
@@ -1650,8 +1650,8 @@ GSPrivateCheckTasks()
 	  (void) close(i);
 	}
 
-      chdir(path);
-      execve(executable, (char**)args, (char**)envl);
+      (void)chdir(path);
+      (void)execve(executable, (char**)args, (char**)envl);
       exit(-1);
     }
   else
@@ -1746,6 +1746,7 @@ GSPrivateCheckTasks()
 
 - (BOOL) usePseudoTerminal
 {
+  int		desc;
   int		master;
   NSFileHandle	*fh;
 
@@ -1762,13 +1763,21 @@ GSPrivateCheckTasks()
 				     closeOnDealloc: YES];
   [self setStandardInput: fh];
   RELEASE(fh);
-  master = dup(master);
-  fh = [[NSFileHandle alloc] initWithFileDescriptor: master
+
+  if ((desc = dup(master)) < 0)
+    {
+      return NO;
+    }
+  fh = [[NSFileHandle alloc] initWithFileDescriptor: desc
 				     closeOnDealloc: YES];
   [self setStandardOutput: fh];
   RELEASE(fh);
-  master = dup(master);
-  fh = [[NSFileHandle alloc] initWithFileDescriptor: master
+
+  if ((desc = dup(master)) < 0)
+    {
+      return NO;
+    }
+  fh = [[NSFileHandle alloc] initWithFileDescriptor: desc
 				     closeOnDealloc: YES];
   [self setStandardError: fh];
   RELEASE(fh);
