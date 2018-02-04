@@ -205,7 +205,11 @@ static int	tuneSBuf = 0;
    * Enable tcp-level tracking of whether connection is alive.
    */
   value = 1;
-  setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char *)&value, sizeof(value));
+  if (setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char *)&value, sizeof(value))
+    < 0)
+    {
+      NSDebugMLLog(@"GSTcpTune", @"setsockopt keepalive failed");
+    }
 
   if (tuneLinger >= 0)
     {
@@ -1016,7 +1020,11 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
    * that multiple processes can serve the same port simultaneously.
    * We don't want that broken behavior!
    */
-  setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char *)&status, sizeof(status));
+  if (setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char*)&status, sizeof(status))
+    < 0)
+    {
+      NSDebugMLLog(@"GSTcpTune", @"setsockopt reuseaddr failed");
+    }
 #endif
 
   if (bind(net, &sin, GSPrivateSockaddrLength(&sin)) == -1)
