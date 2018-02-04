@@ -5,6 +5,7 @@
 	* Source/Additions/Unicode.m: ensure iconv handle is closed
 	* Source/NSLocale.m: localeIdentifierFromComponents should cope with
 	collation alone beng set.
+	* Source/GSString.m: better handling if character conversion fails.
 
 2018-01-26  Richard Frith-Macdonald <rfm@gnu.org>
 

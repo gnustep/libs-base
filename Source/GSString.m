@@ -2120,6 +2120,7 @@ characterAtIndex_c(GSStr self, unsigned index)
       unsigned int	s = 1;
       unichar		*d = &u;
 
+      u = 0;    // If conversion fails we use zero
       GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
     }
   return u;
@@ -3414,6 +3415,7 @@ rangeOfCharacter_c(GSStr self, NSCharacterSet *aSet, unsigned mask,
 	  unsigned int	s = 1;
 	  unichar	*d = &u;
 
+          u = 0;        // If conversion fails, we use zero
 	  GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
 	}
       /* FIXME ... what about UTF-16 sequences of more than one 16bit value
