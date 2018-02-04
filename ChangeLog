@@ -7,6 +7,7 @@
 	collation alone beng set.
 	* Source/GSString.m: better handling if character conversion fails.
 	* Source/NSRunLoop.m: suppress warning using cast.
+	* Source/NSTimeZone.m: check that time zone hour is in range 0 to 23
 
 2018-01-26  Richard Frith-Macdonald <rfm@gnu.org>
 

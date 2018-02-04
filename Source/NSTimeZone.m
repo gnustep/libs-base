@@ -1871,6 +1871,10 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 	    }
 	  while (fscanf(fp, "%d %s", &index, name) == 2)
 	    {
+              if (index < 0)
+                index = 0;
+              else
+                index %= 24;
 	      [temp_array[index]
 		addObject: [NSString stringWithUTF8String: name]];
 	    }
@@ -1895,8 +1899,8 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 		
 		  path = [zonedir stringByAppendingPathComponent: name];
 		  if ([mgr fileExistsAtPath: path isDirectory: &isDir]
-		      && isDir == NO
-		      && [[path pathExtension] isEqual: @"tab"] == NO)
+                    && isDir == NO
+                    && [[path pathExtension] isEqual: @"tab"] == NO)
 		    {
 		      zone = [zoneDictionary objectForKey: name];
 		      if (zone == nil)
