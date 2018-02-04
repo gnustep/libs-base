@@ -6,6 +6,7 @@
 	* Source/NSLocale.m: localeIdentifierFromComponents should cope with
 	collation alone beng set.
 	* Source/GSString.m: better handling if character conversion fails.
+	* Source/NSRunLoop.m: suppress warning using cast.
 
 2018-01-26  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -1203,13 +1203,13 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
           else
             {
               /* Wait until the LIMIT_DATE. */
-              if (ti >= INT_MAX / 1000)
+              if (ti >= INT_MAX / 1000.0)
                 {
                   timeout_ms = INT_MAX;	// Far future.
                 }
               else
                 {
-                  timeout_ms = (ti * 1000.0);
+                  timeout_ms = (int)(ti * 1000.0);
                 }
             }
 
