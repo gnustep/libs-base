@@ -637,7 +637,7 @@ static NSRecursiveLock *classLock = nil;
   
   // I'm not using uloc_setKeywordValue() here because the format is easy
   // enough to reproduce and has the added advatange that we doesn't need ICU.
-  if (calendar || calendar || currency)
+  if (calendar || collation || currency)
     [string appendString: @"@"];
   if (calendar)
     [string appendFormat: @"calendar=%s", calendar];
