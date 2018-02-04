@@ -1481,73 +1481,79 @@ done:
     }
 #endif
 
-  /*
-   * Post conversion ... terminate if needed, and set output values.
-   */
-  if (extra != 0 && dst != 0 && ptr != 0)
+  if (NULL == ptr)
     {
-      ptr[dpos] = (unichar)0;
+      *size = 0;
     }
-  *size = dpos;
-  if (dst != 0 && (result == YES || (options & GSUniShortOk)))
+  else
     {
-      if (options & GSUniTemporary)
-	{
-	  unsigned	bytes = dpos * sizeof(unichar) + extra;
-	  void		*r;
+      /*
+       * Post conversion ... terminate if needed, and set output values.
+       */
+      if (extra != 0 && dst != 0)
+        {
+          ptr[dpos] = (unichar)0;
+        }
+      *size = dpos;
+      if (dst != 0 && (result == YES || (options & GSUniShortOk)))
+        {
+          if (options & GSUniTemporary)
+            {
+              unsigned	bytes = dpos * sizeof(unichar) + extra;
+              void		*r;
 
-	  /*
-	   * Temporary string was requested ... make one.
-	   */
-	  r = GSAutoreleasedBuffer(bytes);
-	  memcpy(r, ptr, bytes);
-	  if (ptr != buf && ptr != *dst)
-	    {
-	      NSZoneFree(zone, ptr);
-	    }
-	  ptr = r;
-	  *dst = ptr;
-	}
-      else if (zone != 0 && (ptr == buf || bsize > dpos))
-	{
-	  unsigned	bytes = dpos * sizeof(unichar) + extra;
+              /*
+               * Temporary string was requested ... make one.
+               */
+              r = GSAutoreleasedBuffer(bytes);
+              memcpy(r, ptr, bytes);
+              if (ptr != buf && ptr != *dst)
+                {
+                  NSZoneFree(zone, ptr);
+                }
+              ptr = r;
+              *dst = ptr;
+            }
+          else if (zone != 0 && (ptr == buf || bsize > dpos))
+            {
+              unsigned	bytes = dpos * sizeof(unichar) + extra;
 
-	  /*
-	   * Resizing is permitted, try ensure we return a buffer which
-	   * is just big enough to hold the converted string.
-	   */
-	  if (ptr == buf || ptr == *dst)
-	    {
-	      unichar	*tmp;
+              /*
+               * Resizing is permitted, try ensure we return a buffer which
+               * is just big enough to hold the converted string.
+               */
+              if (ptr == buf || ptr == *dst)
+                {
+                  unichar	*tmp;
 
-	      tmp = NSZoneMalloc(zone, bytes);
-	      if (tmp != 0)
-		{
-		  memcpy(tmp, ptr, bytes);
-		}
-	      ptr = tmp;
-	    }
-	  else
-	    {
-	      ptr = NSZoneRealloc(zone, ptr, bytes);
-	    }
-	  *dst = ptr;
-	}
-      else if (ptr == buf)
-	{
-	  ptr = NULL;
-	  result = NO;
-	}
-      else
-	{
-	  *dst = ptr;
-	}
+                  tmp = NSZoneMalloc(zone, bytes);
+                  if (tmp != 0)
+                    {
+                      memcpy(tmp, ptr, bytes);
+                    }
+                  ptr = tmp;
+                }
+              else
+                {
+                  ptr = NSZoneRealloc(zone, ptr, bytes);
+                }
+              *dst = ptr;
+            }
+          else if (ptr == buf)
+            {
+              ptr = NULL;
+              result = NO;
+            }
+          else
+            {
+              *dst = ptr;
+            }
+        }
+      else if (ptr != buf && dst != 0 && ptr != *dst)
+        {
+          NSZoneFree(zone, ptr);
+        }
     }
-  else if (ptr != buf && dst != 0 && ptr != *dst && ptr != 0)
-    {
-      NSZoneFree(zone, ptr);
-    }
-
   if (dst)
     NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
 
@@ -2532,71 +2538,78 @@ iconv_start:
     }
 #endif
 
-  /*
-   * Post conversion ... set output values.
-   */
-  if (extra != 0 && ptr != 0)
+  if (NULL == ptr)
     {
-      ptr[dpos] = (unsigned char)0;
+      *size = 0;
     }
-  *size = dpos;
-  if (dst != 0 && (result == YES || (options & GSUniShortOk)))
+  else
     {
-      if (options & GSUniTemporary)
-	{
-	  unsigned	bytes = dpos + extra;
-	  void		*r;
+      /*
+       * Post conversion ... set output values.
+       */
+      if (extra != 0)
+        {
+          ptr[dpos] = (unsigned char)0;
+        }
+      *size = dpos;
+      if (dst != 0 && (result == YES || (options & GSUniShortOk)))
+        {
+          if (options & GSUniTemporary)
+            {
+              unsigned	bytes = dpos + extra;
+              void		*r;
 
-	  /*
-	   * Temporary string was requested ... make one.
-	   */
-	  r = GSAutoreleasedBuffer(bytes);
-	  memcpy(r, ptr, bytes);
-	  if (ptr != buf && ptr != *dst)
-	    {
-	      NSZoneFree(zone, ptr);
-	    }
-	  ptr = r;
-	  *dst = ptr;
-	}
-      else if (zone != 0 && (ptr == buf || bsize > dpos))
-	{
-	  unsigned	bytes = dpos + extra;
+              /*
+               * Temporary string was requested ... make one.
+               */
+              r = GSAutoreleasedBuffer(bytes);
+              memcpy(r, ptr, bytes);
+              if (ptr != buf && ptr != *dst)
+                {
+                  NSZoneFree(zone, ptr);
+                }
+              ptr = r;
+              *dst = ptr;
+            }
+          else if (zone != 0 && (ptr == buf || bsize > dpos))
+            {
+              unsigned	bytes = dpos + extra;
 
-	  /*
-	   * Resizing is permitted - try ensure we return a buffer
-	   * which is just big enough to hold the converted string.
-	   */
-	  if (ptr == buf || ptr == *dst)
-	    {
-	      unsigned char	*tmp;
+              /*
+               * Resizing is permitted - try ensure we return a buffer
+               * which is just big enough to hold the converted string.
+               */
+              if (ptr == buf || ptr == *dst)
+                {
+                  unsigned char	*tmp;
 
-	      tmp = NSZoneMalloc(zone, bytes);
-	      if (tmp != 0)
-		{
-		  memcpy(tmp, ptr, bytes);
-		}
-	      ptr = tmp;
-	    }
-	  else
-	    {
-	      ptr = NSZoneRealloc(zone, ptr, bytes);
-	    }
-	  *dst = ptr;
-	}
-      else if (ptr == buf)
-	{
-	  ptr = NULL;
-	  result = NO;
-	}
-      else
-	{
-	  *dst = ptr;
-	}
-    }
-  else if (ptr != buf && dst != 0 && ptr != *dst && ptr != 0)
-    {
-      NSZoneFree(zone, ptr);
+                  tmp = NSZoneMalloc(zone, bytes);
+                  if (tmp != 0)
+                    {
+                      memcpy(tmp, ptr, bytes);
+                    }
+                  ptr = tmp;
+                }
+              else
+                {
+                  ptr = NSZoneRealloc(zone, ptr, bytes);
+                }
+              *dst = ptr;
+            }
+          else if (ptr == buf)
+            {
+              ptr = NULL;
+              result = NO;
+            }
+          else
+            {
+              *dst = ptr;
+            }
+        }
+      else if (ptr != buf && dst != 0 && ptr != *dst)
+        {
+          NSZoneFree(zone, ptr);
+        }
     }
 
   if (dst)
