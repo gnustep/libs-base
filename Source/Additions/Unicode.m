@@ -825,7 +825,8 @@ else \
       } \
     if (ptr == 0) \
       { \
-	return NO;	/* Not enough memory */ \
+        result = NO; /* No buffer growth possible ... fail. */ \
+        goto done; \
       } \
     bsize = grow / sizeof(unichar); \
   }
@@ -901,6 +902,9 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
   unichar	base = 0;
   unichar	*table = 0;
   BOOL		result = YES;
+#ifdef HAVE_ICONV
+  iconv_t	cd = (iconv_t)-1;
+#endif
 
   /*
    * Ensure we have an initial buffer set up to decode data into.
@@ -1400,7 +1404,6 @@ tables:
 	  size_t	inbytesleft;
 	  size_t	outbytesleft;
 	  size_t	rval;
-	  iconv_t	cd;
 	  const char	*estr = 0;
 	  BOOL		done = NO;
 
@@ -1460,13 +1463,10 @@ tables:
 		  else
 		    {
 		      result = NO;
-                      iconv_close(cd);
 		      goto done;
 		    }
 		}
 	    } while (!done || rval != 0);
-	  // close the converter
-	  iconv_close(cd);
 	}
 #else
 	result = NO;
@@ -1474,11 +1474,17 @@ tables:
     }
 
 done:
+#ifdef HAVE_ICONV
+  if (cd != (iconv_t)-1)
+    {
+      iconv_close(cd);
+    }
+#endif
 
   /*
    * Post conversion ... terminate if needed, and set output values.
    */
-  if (extra != 0 && dst != 0)
+  if (extra != 0 && dst != 0 && ptr != 0)
     {
       ptr[dpos] = (unichar)0;
     }
@@ -1537,7 +1543,7 @@ done:
 	  *dst = ptr;
 	}
     }
-  else if (ptr != buf && dst != 0 && ptr != *dst)
+  else if (ptr != buf && dst != 0 && ptr != *dst && ptr != 0)
     {
       NSZoneFree(zone, ptr);
     }

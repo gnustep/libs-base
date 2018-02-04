@@ -2,6 +2,7 @@
 
 	* Source/GSFileHandle.m: keep checker happy by usingn return value of
 	setsockopt.
+	* Source/Additions/Unicode.m: ensure iconv handle is closed
 
 2018-01-26  Richard Frith-Macdonald <rfm@gnu.org>
 
