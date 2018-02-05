@@ -4,7 +4,8 @@
 	Use cast to mask 64bit values.
 	* Source/NSUnarchiver.m: Remove redundant (always true) conditional.
 	* Source/NSPropertyList.m: Remove dead code
-	* Source/NSDecimal.m: Remove dead code
+	* Source/NSDecimal.m: Remove dead code, tweak underflow settig for
+	negated numbbers.
 	* Tools/gdnc.m: Remove dead code
 
 2018-02-04  Richard Frith-Macdonald <rfm@gnu.org>

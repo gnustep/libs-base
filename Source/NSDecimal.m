@@ -488,7 +488,7 @@ NSDecimalAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
       result->isNegative = YES;
       if (NSCalculationUnderflow == error1)
 	error1 = NSCalculationOverflow;
-      else if (NSCalculationUnderflow == error1)
+      else if (NSCalculationOverflow == error1)
 	error1 = NSCalculationUnderflow;
     }
   else
