@@ -310,15 +310,16 @@ GSDecimalRound(GSDecimal *result, int scale, NSRoundingMode mode)
 	  case NSRoundBankers:
 	    n = result->cMantissa[l];
 	    if (n > 5)
-	      up = YES;
+              {
+	        up = YES;
+              }
 	    else if (n < 5)
-	      up = NO;
+              {
+                up = NO;
+              }
 	    else
 	      {
-		if (0 == l)
-		  c = 0;
-		else
-		  c = result->cMantissa[l-1];
+		c = result->cMantissa[l-1];
 		up = ((c % 2) != 0);
 	      }
 	    break;

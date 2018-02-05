@@ -3,6 +3,7 @@
 	* Source/NSPortCoder.m: Remove redundant (always true) conditional.
 	* Source/NSUnarchiver.m: Remove redundant (always true) conditional.
 	* Source/NSPropertyList.m: Remove dead code
+	* Source/NSDecimal.m: Remove dead code
 
 2018-02-04  Richard Frith-Macdonald <rfm@gnu.org>
 
