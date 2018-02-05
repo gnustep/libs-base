@@ -3547,14 +3547,9 @@ isEqualFunc(const void *item1, const void *item2,
     {
       offset_size = 3;
     }
-  else if (last_offset <= UINT_MAX)
-    {
-      offset_size = 4;
-    }
   else
     {
-      [NSException raise: NSRangeException
-	format: @"Object table offset out of bounds %d.", last_offset];
+      offset_size = 4;
     }
 
   len = [objectList count];
