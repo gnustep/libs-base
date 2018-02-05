@@ -1,4 +1,8 @@
-2018-01-27  Richard Frith-Macdonald <rfm@gnu.org>
+2018-02-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPortCoder.m: Remove redundant (always true) conditional.
+
+2018-02-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFileHandle.m: keep checker happy by usingn return value of
 	setsockopt.
@@ -9,7 +13,7 @@
 	* Source/NSRunLoop.m: suppress warning using cast.
 	* Source/NSTimeZone.m: check that time zone hour is in range 0 to 23
 
-2018-01-26  Richard Frith-Macdonald <rfm@gnu.org>
+2018-02-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFTPURLHandle.m: change memcpy to memmove to avoid possible
 	problems with overlapping source and destination areas.

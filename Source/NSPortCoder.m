@@ -529,12 +529,9 @@ static unsigned	encodingVersion;
       (*_dTagImp)(_src, dTagSel, &ainfo, 0, &_cursor);
       if (info != (ainfo & _GSC_MASK))
         {
-	  if (info != _GSC_ID || (ainfo & _GSC_MASK) != _GSC_CID)
-	    {
-	      [NSException raise: NSInternalInconsistencyException
-			  format: @"expected %s and got %s",
-			    typeToName2(info), typeToName2(ainfo)];
-	    }
+          [NSException raise: NSInternalInconsistencyException
+                      format: @"expected %s and got %s",
+                        typeToName2(info), typeToName2(ainfo)];
         }
 
       for (i = 0; i < count; i++)
