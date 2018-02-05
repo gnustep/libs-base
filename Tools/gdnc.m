@@ -467,17 +467,7 @@ ihandler(int sig)
     {
       service = GDNC_SERVICE;
       ns = [NSSocketPortNameServer sharedInstance];
-      if (isLocal == YES)
-	{
-	  port = (NSPort*)[NSSocketPort portWithNumber: 0
-						onHost: [NSHost localHost]
-					  forceAddress: @"127.0.0.1"
-					      listener: YES];
-	}
-      else
-	{
-	  port = (NSPort*)[NSSocketPort port];
-	}
+      port = (NSPort*)[NSSocketPort port];
     }
   else
     {
