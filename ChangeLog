@@ -1,6 +1,7 @@
 2018-02-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPortCoder.m: Remove redundant (always true) conditional.
+	* Source/NSUnarchiver.m: Remove redundant (always true) conditional.
 
 2018-02-04  Richard Frith-Macdonald <rfm@gnu.org>
 

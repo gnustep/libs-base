@@ -638,7 +638,7 @@ static unsigned	encodingVersion;
   /* If we have a perfect type match or we are coding a class as an ID,
    * we can just decode the array simply.
    */
-  if (info == amask || (info == _GSC_ID && amask == _GSC_CID))
+  if (info == amask)
     {
       for (i = 0; i < count; i++)
 	{
