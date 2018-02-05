@@ -1205,21 +1205,21 @@ scalarSize(char type)
       switch (size)
         {
           case 1:
-            if (big & ~0xff)
+            if (big & (uint64_t)~0xff)
               {
                 NSLog(@"Loss of information converting decoded value to uint8_t");
               }
             *(uint8_t*)address = (uint8_t)big;
             return;
           case 2:
-            if (big & ~0xffff)
+            if (big & (uint64_t)~0xffff)
               {
                 NSLog(@"Loss of information converting decoded value to uint16_t");
               }
             *(uint16_t*)address = (uint16_t)big;
             return;
           case 4:
-            if (big & ~0xffffffff)
+            if (big & (uint64_t)~0xffffffff)
               {
                 NSLog(@"Loss of information converting decoded value to uint32_t");
               }

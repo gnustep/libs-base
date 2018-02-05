@@ -1,6 +1,7 @@
 2018-02-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPortCoder.m: Remove redundant (always true) conditional.
+	Use cast to mask 64bit values.
 	* Source/NSUnarchiver.m: Remove redundant (always true) conditional.
 	* Source/NSPropertyList.m: Remove dead code
 	* Source/NSDecimal.m: Remove dead code
