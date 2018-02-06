@@ -1842,6 +1842,10 @@ static void
 OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
   NSPropertyListFormat x, NSMutableData *dest)
 {
+  if (step > 3)
+    {
+      step = 3;
+    }
   if (NSStringClass == 0)
     {
       [NSPropertyListSerialization class];      // Force initialisation
@@ -2457,7 +2461,7 @@ static BOOL	classInitialized = NO;
   if (aFormat == NSPropertyListXMLFormat_v1_0)
     {
       [dest appendBytes: prefix length: strlen(prefix)];
-      OAppend(aPropertyList, loc, 0, step > 3 ? 3 : step, aFormat, dest);
+      OAppend(aPropertyList, loc, 0, step, aFormat, dest);
       [dest appendBytes: "</plist>" length: 8];
     }
   else if (aFormat == NSPropertyListGNUstepBinaryFormat)
@@ -2470,7 +2474,7 @@ static BOOL	classInitialized = NO;
     }
   else
     {
-      OAppend(aPropertyList, loc, 0, step > 3 ? 3 : step, aFormat, dest);
+      OAppend(aPropertyList, loc, 0, step, aFormat, dest);
     }
   return dest;
 }
@@ -2520,12 +2524,12 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   if (style == NSPropertyListXMLFormat_v1_0)
     {
       [dest appendBytes: prefix length: strlen(prefix)];
-      OAppend(obj, loc, 0, step > 3 ? 3 : step, style, dest);
+      OAppend(obj, loc, 0, step, style, dest);
       [dest appendBytes: "</plist>" length: 8];
     }
   else
     {
-      OAppend(obj, loc, 0, step > 3 ? 3 : step, style, dest);
+      OAppend(obj, loc, 0, step, style, dest);
     }
   tmp = [[NSString alloc] initWithData: dest encoding: NSASCIIStringEncoding];
   [*str appendString: tmp];

@@ -8,6 +8,7 @@
 	* Source/NSMessagePort.m:
 	* Source/NSSocketPort.m: Log if we fail to tuirn on keepalive
 	* Source/NSURL.m: fix possible nul pointer dereference
+	* Source/NSPropertyList.m: check step before use
 
 2018-02-05  Richard Frith-Macdonald <rfm@gnu.org>
 
