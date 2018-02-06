@@ -453,8 +453,11 @@ static Class	runLoopClass;
     {
       int	status = 1;
 
-      setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
-	sizeof(status));
+      if (setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
+	sizeof(status)) < 0)
+        {
+          NSLog(@"failed to turn on keepalive for connected socket %d", desc);
+        }
       addrNum = 0;
       caller = YES;
       [aPort addHandle: self forSend: YES];
@@ -1668,8 +1671,12 @@ typedef	struct {
 	{
 	  int	status = 1;
 
-	  setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
-	    sizeof(status));
+	  if (setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
+	    sizeof(status)) < 0)
+            {
+              NSLog(@"failed to turn on keepalive for accepted socket %d",
+                desc);
+            }
 	  /*
 	   * Create a handle for the socket and set it up so we are its
 	   * receiving port, and it's waiting to get the port name from

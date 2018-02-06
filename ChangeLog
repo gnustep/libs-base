@@ -5,6 +5,7 @@
 	* Documentation/manual/ExceptionHandling.texi:
 	Update NSAssert() and NSCAssert() to handle variable arguments
 	(as OSX has done) and mark the numbered macros as obsolete.
+	* Source/NSMessagePort.m:
 	* Source/NSSocketPort.m: Log if we fail to tuirn on keepalive
 
 2018-02-05  Richard Frith-Macdonald <rfm@gnu.org>
