@@ -347,14 +347,18 @@ static char *buildURL(parsedURL *base, parsedURL *rel, BOOL standardize)
   else
     {
       char	*start = base->path;
-      char	*end = strrchr(start, '/');
 
-      if (end != 0)
-	{
-	  *tmp++ = '/';
-	  memcpy(tmp, start, end - start);
-	  tmp += (end - start);
-	}
+      if (start != 0)
+        {
+          char	*end = strrchr(start, '/');
+
+          if (end != 0)
+            {
+              *tmp++ = '/';
+              memcpy(tmp, start, end - start);
+              tmp += (end - start);
+            }
+        }
       *tmp++ = '/';
       l = strlen(rpath);
       memcpy(tmp, rpath, l);
