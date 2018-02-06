@@ -475,7 +475,7 @@ issue bundled in the documentation with Sun's Java distribution.
 
 Assertions allow the developer to establish that certain conditions hold
 before undertaking an operation.  In GNUstep, the standard means to make an
-assertion is to use one of a collection of @code{NSAssert} macros.  The
+assertion is to use the @code{NSAssert} or @code{NSCAssert} macros.  The
 general form of these macros is:
 
 @example
@@ -485,7 +485,7 @@ NSAssert(<boolean test>, <formatString>, <argumentsToFormat>);
 For instance:
 
 @example
-NSAssert1(x == 10, "X should have been 10, but it was %d.", x);
+NSAssert(x == 10, "X should have been 10, but it was %d.", x);
 @end example
 
 If the test '@code{x == 10}' evaluates to @code{true}, @code{NSLog()} is
@@ -502,15 +502,8 @@ After this is logged, an exception is raised of type
 '@code{NSInternalInconsistencyException}', with this string as its
 description.
 
-In order to provide the method and line number information, the
-@code{NSAssert()} routine must be implemented as a macro, and therefore to
-handle different numbers of arguments to the format string, there are 5
-assertion macros for methods: @code{NSAssert(condition, description)},
-@code{NSAssert1(condition, format, arg1)}, @code{NSAssert2(condition, format,
-arg1, arg2)}, ..., @code{NSAssert5(...)}.
-
 If you need to make an assertion inside a regular C function (not an
-Objective-C method), use the equivalent macros @code{NSCAssert()}, etc..
+Objective-C method), use the equivalent macro @code{NSCAssert()}, etc..
 
 @i{@b{Note}}, you can completely disable assertions (saving the time for the
 boolean test and avoiding the exception if fails) by putting @code{#define

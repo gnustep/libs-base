@@ -1,3 +1,11 @@
+2018-02-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSException.h:
+	* Source/NSAssertionHandler.m:
+	* Documentation/manual/ExceptionHandling.texi:
+	Update NSAssert() and NSCAssert() to handle variable arguments
+	(as OSX has done) and mark the numbered macros as obsolete.
+
 2018-02-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPortCoder.m: Remove redundant (always true) conditional.

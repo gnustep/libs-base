@@ -30,30 +30,6 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSThread.h"
 
-/**
- * <p>NSAssertionHandler objects are used to raise exceptions on behalf of
- * macros implementing assertions.<br />
- * Each thread has its own assertion handler instance.<br />
- * </p>
- * <p>The macros work together with the assertion handler object to
- * produce meaningful exception messages containing the name of the
- * source file, the position within that file, and the name of the
- * ObjC method or C function in which the assertion failed.
- * </p>
- * <p>An NSAssertionHandler instance is created on demand for each thread
- * and is stored in the thread's dictionary under the key NSAssertionHandler.
- * A custom NSAssertionHandler can be used by adding it to the thread
- * dictionary under this key.
- * </p>
- * The assertion macros are:
- * NSAssert(), NSCAssert(),
- * NSAssert1(), NSCAssert1(),
- * NSAssert2(), NSCAssert2(),
- * NSAssert3(), NSCAssert3(),
- * NSAssert4(), NSCAssert4(),
- * NSAssert5(), NSCAssert5(),
- * NSParameterAssert(), NSCParameterAssert()
- */
 @implementation NSAssertionHandler
 
 /* Key for thread dictionary. */
