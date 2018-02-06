@@ -677,8 +677,11 @@ static Class	runLoopClass;
     {
       int	status = 1;
 
-      setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
-	(OPTLEN)sizeof(status));
+      if (setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
+	(OPTLEN)sizeof(status)) < 0)
+        {
+          NSLog(@"failed to turn on keepalive for connected socket %d", desc);
+        }
       addrNum = 0;
       caller = YES;
       [aPort addHandle: self forSend: YES];
@@ -2116,8 +2119,12 @@ static Class		tcpPortClass;
 	{
 	  int	status = 1;
 
-	  setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
-	    (OPTLEN)sizeof(status));
+	  if (setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
+	    (OPTLEN)sizeof(status)) < 0)
+            {
+              NSLog(@"failed to turn on keepalive for accepted socket %d",
+                desc);
+            }
 #if	defined(_WIN32)
 	  // reset associated event with new socket
 	  WSAEventSelect(desc, eventListener, 0);
