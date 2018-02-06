@@ -11,6 +11,7 @@
 	* Source/NSPropertyList.m: check step before use
 	* Source/NSDate.m: add comment that we are ignoring non-digits
 	* Source/NSCache.m: use double division for calcualting averrage
+	* Source/NSPredicate.m: check for termination of quoted strings
 
 2018-02-05  Richard Frith-Macdonald <rfm@gnu.org>
 

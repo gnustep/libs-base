@@ -2404,7 +2404,11 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
                       format: @"Invalid double quoted literal at %u", location];
 	}
       [self setCharactersToBeSkipped: skip];
-      [self scanString: @"\"" intoString: NULL];
+      if (NO == [self scanString: @"\"" intoString: NULL])
+        {
+          [NSException raise: NSInvalidArgumentException 
+            format: @"Unterminated double quoted literal at %u", location];
+        }
       return [NSExpression expressionForConstantValue: str];
     }
 	
@@ -2421,7 +2425,11 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
                       format: @"Invalid single quoted literal at %u", location];
 	}
       [self setCharactersToBeSkipped: skip];
-      [self scanString: @"'" intoString: NULL];
+      if (NO == [self scanString: @"'" intoString: NULL])
+        {
+          [NSException raise: NSInvalidArgumentException 
+            format: @"Unterminated single quoted literal at %u", location];
+        }
       return [NSExpression expressionForConstantValue: str];
     }
 
