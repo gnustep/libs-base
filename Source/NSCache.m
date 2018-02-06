@@ -186,7 +186,7 @@
   _costLimit = lim;
 }
 
-- (NSUInteger)totalCostLimit
+- (NSUInteger) totalCostLimit
 {
   return _costLimit;
 }
@@ -213,7 +213,7 @@
     {
       NSMutableArray *evictedKeys = nil;
       // Round up slightly.
-      NSUInteger averageAccesses = (_totalAccesses / count * 0.2) + 1;
+      NSUInteger averageAccesses = ((_totalAccesses / (double)count) * 0.2) + 1;
       NSEnumerator *e = [_accesses objectEnumerator];
       _GSCachedObject *obj;
 
@@ -275,7 +275,7 @@
 @end
 
 @implementation _GSCachedObject
-- (void)dealloc
+- (void) dealloc
 {
   [object release];
   [key release];
