@@ -2211,8 +2211,8 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   static NSCharacterSet *_identifier;
   NSString      *ident;
 
-  // skip # as prefix (reserved words)
-  [self scanString: @"#" intoString: NULL];
+  // skip # as prefix if present (reserved words)
+  (void)[self scanString: @"#" intoString: NULL];
   if (!_identifier)
     {
       ASSIGN(_identifier, [NSCharacterSet characterSetWithCharactersInString: 
