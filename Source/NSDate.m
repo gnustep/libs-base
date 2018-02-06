@@ -494,7 +494,8 @@ otherTime(NSDate* other)
   dtoIndex = 0;
   scanner = [NSScanner scannerWithString: string];
   [scanner setCaseSensitive: NO];
-  [scanner scanUpToCharactersFromSet: digits intoString: 0];
+  // We don't care if there are non-digit characters ... skip if they are there
+  (void)[scanner scanUpToCharactersFromSet: digits intoString: 0];
   while ([scanner scanCharactersFromSet: digits intoString: &tmp] == YES)
     {
       int	num = [tmp intValue];

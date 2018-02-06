@@ -6,9 +6,10 @@
 	Update NSAssert() and NSCAssert() to handle variable arguments
 	(as OSX has done) and mark the numbered macros as obsolete.
 	* Source/NSMessagePort.m:
-	* Source/NSSocketPort.m: Log if we fail to tuirn on keepalive
+	* Source/NSSocketPort.m: Log if we fail to turn on keepalive
 	* Source/NSURL.m: fix possible nul pointer dereference
 	* Source/NSPropertyList.m: check step before use
+	* Source/NSDate.m: add comment that we are ignoring non-digits
 
 2018-02-05  Richard Frith-Macdonald <rfm@gnu.org>
 
