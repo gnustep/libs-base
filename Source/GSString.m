@@ -3418,8 +3418,11 @@ rangeOfCharacter_c(GSStr self, NSCharacterSet *aSet, unsigned mask,
 	  unsigned int	s = 1;
 	  unichar	*d = &u;
 
-          u = 0;        // If conversion fails, we use zero
-	  GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
+	  if (GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0) == NO)
+            {
+              [NSException raise: NSInternalInconsistencyException
+                          format: @"unable to convert character to unicode"];
+            }
 	}
       /* FIXME ... what about UTF-16 sequences of more than one 16bit value
        * corresponding to a single UCS-32 codepoint?
