@@ -1329,44 +1329,37 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
       //fix up the fractional part
       if (displayFractionalPart)
         {
-          if (0 != decimalPlaces)
-            {
-	      NSMutableString	*ms;
+          NSMutableString	*ms;
 
-              fracPart = [fracPart decimalNumberByMultiplyingByPowerOf10:
-		decimalPlaces];
-              ms = [[fracPart descriptionWithLocale: locale] mutableCopy];
-              if ([fracPad length] > [ms length])
-                {
-                  NSRange fpRange;
-
-                  fpRange = NSMakeRange([ms length],
-		    ([fracPad length] - [ms length]));
-                  [ms insertString:
-		    [fracPad substringWithRange: fpRange] atIndex: 0];
-                  [ms replaceOccurrencesOfString: @"#"
-		    withString: @""
-		    options: (NSBackwardsSearch | NSAnchoredSearch)
-		    range: NSMakeRange(0, [ms length])];
-                  [ms replaceOccurrencesOfString: @"#"
-		    withString: @"0"
-		    options: 0
-		    range: NSMakeRange(0, [ms length])];
-                  [ms replaceOccurrencesOfString: @"_"
-		    withString: @" "
-		    options: 0
-		    range: NSMakeRange(0, [ms length])];
-                }
-              [ms replaceOccurrencesOfString: @"0"
-		withString: @""
-		options: (NSBackwardsSearch | NSAnchoredSearch)
-		range: NSMakeRange(0, [ms length])];
-	      fracPartString = AUTORELEASE(ms);
-            }
-          else
+          fracPart = [fracPart decimalNumberByMultiplyingByPowerOf10:
+            decimalPlaces];
+          ms = [[fracPart descriptionWithLocale: locale] mutableCopy];
+          if ([fracPad length] > [ms length])
             {
-              fracPartString = @"0";
+              NSRange fpRange;
+
+              fpRange = NSMakeRange([ms length],
+                ([fracPad length] - [ms length]));
+              [ms insertString:
+                [fracPad substringWithRange: fpRange] atIndex: 0];
+              [ms replaceOccurrencesOfString: @"#"
+                withString: @""
+                options: (NSBackwardsSearch | NSAnchoredSearch)
+                range: NSMakeRange(0, [ms length])];
+              [ms replaceOccurrencesOfString: @"#"
+                withString: @"0"
+                options: 0
+                range: NSMakeRange(0, [ms length])];
+              [ms replaceOccurrencesOfString: @"_"
+                withString: @" "
+                options: 0
+                range: NSMakeRange(0, [ms length])];
             }
+          [ms replaceOccurrencesOfString: @"0"
+            withString: @""
+            options: (NSBackwardsSearch | NSAnchoredSearch)
+            range: NSMakeRange(0, [ms length])];
+          fracPartString = AUTORELEASE(ms);
           [formattedNumber appendString: [self decimalSeparator]];
           [formattedNumber appendString: fracPartString];
         }

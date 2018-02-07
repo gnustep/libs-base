@@ -4,6 +4,7 @@
 	* Tests/base/NSMutableAttributedString/test00.m: add sanity checks
 	* Tests/base/NSMutableAttributedString/test01.m: add sanity checks
 	* Source/GSString.m: raise exception on character conversion failure
+	* Source/Source/NSNumberFormatter.m: remove dead code
 
 2018-02-07  Yavor Doganov  <yavor@gnu.org>
 
