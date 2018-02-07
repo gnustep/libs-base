@@ -713,19 +713,16 @@ SANITY();
 	afterRangeLoc, &effectiveRange, tmpLength, _infoArray, &arrayIndex);
       if (attrs == attributes)
         {
-          /*
-           * The located range has the same attributes as us - so we can
+          /* The located range has the same attributes as us - so we can
            * extend our range to include it.
            */
           if (effectiveRange.location < beginRangeLoc)
             {
-              range.length += beginRangeLoc - effectiveRange.location;
-              range.location = effectiveRange.location;
-              beginRangeLoc = range.location;
+              beginRangeLoc = effectiveRange.location;
             }
           if (NSMaxRange(effectiveRange) > afterRangeLoc)
             {
-              range.length = NSMaxRange(effectiveRange) - range.location;
+              afterRangeLoc = NSMaxRange(effectiveRange);
             }
         }
       else if (effectiveRange.location > beginRangeLoc)

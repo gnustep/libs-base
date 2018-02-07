@@ -6,9 +6,9 @@
 @interface NSMutableAttributedString(evil)
 -(void) _sanity;
 @end
-#if	defined(GNUSTEP_BASE_LIBRARY)
+#if	!defined(GNUSTEP_BASE_LIBRARY)
 @implementation NSMutableAttributedString(evil)
--(void) _sanity
+- (void) _sanity
 {
 }
 @end

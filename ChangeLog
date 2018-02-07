@@ -1,3 +1,9 @@
+2018-02-07  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSAttributedString.m: remove a little dead code
+	* Tests/base/NSMutableAttributedString/test00.m: add sanity checks
+	* Tests/base/NSMutableAttributedString/test01.m: add sanity checks
+
 2018-02-07  Yavor Doganov  <yavor@gnu.org>
 
 	* Source/NSPortMessage.m (sendBeforeDate:): Invoke
