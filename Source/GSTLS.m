@@ -1923,10 +1923,12 @@ retrieve_callback(gnutls_session_t session,
   const char                    *tmp;
   gnutls_credentials_type_t     cred;
   gnutls_kx_algorithm_t         kx;
-  int                           dhe;
-  int                           ecdh;
+  int                           dhe = 0;
+#if     defined(XXX_ECDH)
+  /* At some point we may want to implement ecdh */
+  int                           ecdh = 0;
+#endif
 
-  dhe = ecdh = 0;
   str = [NSMutableString stringWithCapacity: 2000];
 
   /* get the key exchange's algorithm name
@@ -1970,13 +1972,11 @@ retrieve_callback(gnutls_session_t session,
 
         if (GNUTLS_KX_ECDHE_PSK == kx)
           {
-            dhe = 0;
             ecdh = 1;
           }
         else if (GNUTLS_KX_DHE_PSK == kx)
           {
             dhe = 1;
-            ecdh = 0;
           }
 #endif
         break;
@@ -1986,13 +1986,11 @@ retrieve_callback(gnutls_session_t session,
         [str appendFormat: _(@"- Anonymous authentication.\n")];
         if (GNUTLS_KX_ANON_ECDH == kx)
           {
-            dhe = 0;
             ecdh = 1;
           }
         else if (GNUTLS_KX_ANON_DH == kx)
           {
             dhe = 1;
-            ecdh = 0;
           }
 #endif
         break;
@@ -2003,9 +2001,8 @@ retrieve_callback(gnutls_session_t session,
       if (GNUTLS_KX_DHE_RSA == kx || GNUTLS_KX_DHE_DSS == kx)
         {
           dhe = 1;
-          ecdh = 0;
         }
-#if 0
+#if defined(XXX_ECDH)
       if (GNUTLS_KX_ECDHE_RSA == kx || GNUTLS_KX_ECDHE_ECDSA == kx)
         {
           dhe = 0;
@@ -2020,15 +2017,13 @@ retrieve_callback(gnutls_session_t session,
         break;
     }                           /* switch */
 
+#if     defined(XXXECDH)
   if (ecdh != 0)
     {
       [str appendFormat: _(@"- Ephemeral ECDH using curve %s\n"),
-#if 1
-	"curve not available"];
-#else
         gnutls_ecc_curve_get_name(gnutls_ecc_curve_get(session))];
-#endif
     }
+#endif
   if (dhe != 0)
     {
       [str appendFormat: _(@"- Ephemeral DH using prime of %d bits\n"),
