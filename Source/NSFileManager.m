@@ -448,7 +448,7 @@ static NSStringEncoding	defaultEncoding;
             &pw, buf, sizeof(buf), &p) == 0)
 	    {
 	      ok = (chown(lpath, pw.pw_uid, -1) == 0);
-	      chown(lpath, -1, pw.pw_gid);
+	      (void)chown(lpath, -1, pw.pw_gid);
 	    }
 #else
 #if     defined(HAVE_GETPWNAM)
@@ -459,7 +459,7 @@ static NSStringEncoding	defaultEncoding;
 	  if (pw != 0)
 	    {
 	      ok = (chown(lpath, pw->pw_uid, -1) == 0);
-	      chown(lpath, -1, pw->pw_gid);
+	      (void)chown(lpath, -1, pw->pw_gid);
 	    }
           [gnustep_global_lock unlock];
 #endif
