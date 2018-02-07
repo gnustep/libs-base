@@ -1019,14 +1019,7 @@ static NSString		*mainFont = nil;
 		    }
 		  else if ([[tmp name] isEqual: @"vararg"] == YES)
 		    {
-		      if (hadArg == YES)
-			{
-			  str = [str stringByAppendingString: @"<b>,...</b>"];
-			}
-		      else
-			{
-			  str = [str stringByAppendingString: @"<b>,...</b>"];
-			}
+                      str = [str stringByAppendingString: @"<b>,...</b>"];
 		      children = [tmp nextElement];
 		      break;
 		    }
