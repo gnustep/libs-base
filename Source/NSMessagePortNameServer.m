@@ -323,6 +323,7 @@ static NSMapTable *portToNamesMap;
 {
   FILE	*f;
   char	socket_path[512];
+  int	len;
   int	pid;
   struct stat sb;
 
@@ -331,16 +332,43 @@ static NSMapTable *portToNamesMap;
   f = fopen([path fileSystemRepresentation], "rt");
   if (!f)
     {
-      NSDebugLLog(@"NSMessagePort", @"not live, couldn't open file (%m)");
+      NSDebugLLog(@"NSMessagePort", @"not live, couldn't open %@ (%m)", path);
+      return NO;
+    }
+
+  if (fstat(fileno(f), &sb) < 0)
+    {
+      NSDebugLLog(@"NSMessagePort", @"not live, couldn't stat %@ (%m)", path);
+      fclose(f);
+      return NO;
+    }
+  if (sb.st_uid != getuid() && sb.st_uid != geteuid())
+    {
+      NSDebugLLog(@"NSMessagePort", @"not live, %@ not owned by us", path);
+      fclose(f);
+      return NO;
+    }
+  if ((sb.st_mode & 0777) != 0600)
+    {
+      NSDebugLLog(@"NSMessagePort", @"not live, %@ not correct access", path);
+      fclose(f);
       return NO;
     }
 
   fgets(socket_path, sizeof(socket_path), f);
-  if (strlen(socket_path) > 0) socket_path[strlen(socket_path) - 1] = 0;
+  len = strlen(socket_path);
+  if (len == 0 || socket_path[len - 1] != '\n')
+    {
+      fclose(f);
+      NSDebugLLog(@"NSMessagePort", @"not live, couldn't get file in %@", path);
+      return NO;
+    }
+  socket_path[len - 1] = '\0';
 
   if (fscanf(f, "%i", &pid) != 1)
     {
-      NSDebugLLog(@"NSMessagePort", @"not live, couldn'read PID");
+      fclose(f);
+      NSDebugLLog(@"NSMessagePort", @"not live, couldn't read PID in %@", path);
       return NO;
     }
 

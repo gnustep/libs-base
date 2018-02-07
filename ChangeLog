@@ -6,6 +6,7 @@
 	* Source/GSString.m: raise exception on character conversion failure
 	* Source/NSNumberFormatter.m: remove dead code
 	* Source/NSPropertyList.m: avoid warnings using cast to void
+	* Source/NSMessagePortNameServer.m: added security checks
 	* Tools/AGSHtml.m: remove useless test
 
 2018-02-07  Yavor Doganov  <yavor@gnu.org>
