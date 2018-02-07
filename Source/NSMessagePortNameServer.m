@@ -338,7 +338,11 @@ static NSMapTable *portToNamesMap;
   fgets(socket_path, sizeof(socket_path), f);
   if (strlen(socket_path) > 0) socket_path[strlen(socket_path) - 1] = 0;
 
-  fscanf(f, "%i", &pid);
+  if (fscanf(f, "%i", &pid) != 1)
+    {
+      NSDebugLLog(@"NSMessagePort", @"not live, couldn'read PID");
+      return NO;
+    }
 
   fclose(f);
 
