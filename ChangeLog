@@ -1,3 +1,10 @@
+2018-02-07  Yavor Doganov  <yavor@gnu.org>
+
+	* Source/NSPortMessage.m (sendBeforeDate:): Invoke
+	-sendBeforeDate:msgid:components:from:reserved: so that the value
+	of _msgid is taken into account.
+	(initWithSendPort:receivePort:components:): Set _msgid to 0.
+
 2018-02-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSException.h:

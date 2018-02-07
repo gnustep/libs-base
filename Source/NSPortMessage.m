@@ -71,6 +71,7 @@
   self = [super init];
   if (self != nil)
     {
+      _msgid = 0;
       _send = RETAIN(aPort);
       _recv = RETAIN(anotherPort);
       _components = [[NSMutableArray allocWithZone: [self zone]]
@@ -97,6 +98,7 @@
 - (BOOL) sendBeforeDate: (NSDate*)when
 {
   return [_send sendBeforeDate: when
+			 msgid: _msgid
 		    components: _components
 			  from: _recv
 		      reserved: 0];
