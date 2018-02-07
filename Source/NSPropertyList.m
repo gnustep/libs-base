@@ -1295,7 +1295,8 @@ static id parsePlItem(pldata* pld)
 		return nil;
               }
             buf = NSZoneMalloc(NSDefaultMallocZone(), (len + 1) / 2);
-	    skipSpace(pld);
+            // We permit (but do not require) space before hex octets
+	    (void)skipSpace(pld);
             len = 0;
 	    while (pld->pos < max
 	      && isxdigit(pld->ptr[pld->pos])
@@ -1308,7 +1309,8 @@ static id parsePlItem(pldata* pld)
 		byte |= char2num(pld->ptr[pld->pos]);
 		pld->pos++;
 		buf[len++] = byte;
-		skipSpace(pld);
+                // We permit (but do not require) space between/after hex octets
+		(void)skipSpace(pld);
 	      }
             if (pld->ptr[pld->pos] != '>')
               {
