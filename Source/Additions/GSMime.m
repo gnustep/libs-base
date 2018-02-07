@@ -7780,15 +7780,17 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       foldAt = 78;
       use8bit = NO;
 
+#if 0   // Which is best?
       /* The default content transfer encoding to make 8bit data into
        * 7bit-safe data is 'base64'
        */
       dataEncoding = CteBase64;
-
+#else
       /* The default content transfer encoding to make 8bit text into
        * 7bit-safe data is 'quoted-printable'
        */
       dataEncoding = CteQuotedPrintable;
+#endif
     }
   return self;
 }
