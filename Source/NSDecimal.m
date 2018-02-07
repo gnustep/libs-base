@@ -554,7 +554,7 @@ NSDecimalSubtract(NSDecimal *result, const NSDecimal *left,
 	  result->isNegative = YES;
 	  if (NSCalculationUnderflow == error1)
 	    error1 = NSCalculationOverflow;
-	  else if (NSCalculationUnderflow == error1)
+	  else if (NSCalculationOverflow == error1)
 	    error1 = NSCalculationUnderflow;
 	  return error1;
 	}

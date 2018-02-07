@@ -7,6 +7,7 @@
 	* Source/NSNumberFormatter.m: remove dead code
 	* Source/NSPropertyList.m: avoid warnings using cast to void
 	* Source/NSMessagePortNameServer.m: added security checks
+	* Source/NSDecimal.m: tweak underflow setting for negative numbers
 	* Tools/AGSHtml.m: remove useless test
 
 2018-02-07  Yavor Doganov  <yavor@gnu.org>
@@ -37,7 +38,7 @@
 	Use cast to mask 64bit values.
 	* Source/NSUnarchiver.m: Remove redundant (always true) conditional.
 	* Source/NSPropertyList.m: Remove dead code
-	* Source/NSDecimal.m: Remove dead code, tweak underflow settig for
+	* Source/NSDecimal.m: Remove dead code, tweak underflow setting for
 	negated numbbers.
 	* Tools/gdnc.m: Remove dead code
 
