@@ -2120,8 +2120,11 @@ characterAtIndex_c(GSStr self, unsigned index)
       unsigned int	s = 1;
       unichar		*d = &u;
 
-      u = 0;    // If conversion fails we use zero
-      GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
+      if (GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0) == NO)
+        {
+          [NSException raise: NSInternalInconsistencyException
+                      format: @"unable to convert character to unicode"];
+        }
     }
   return u;
 }
