@@ -2672,8 +2672,11 @@ setNonBlocking(SOCKET fd)
        */
       int	status = 1;
 
-      setsockopt([self _sock], SOL_SOCKET, SO_REUSEADDR,
-        (char *)&status, (OPTLEN)sizeof(status));
+      if (setsockopt([self _sock], SOL_SOCKET, SO_REUSEADDR,
+        (char *)&status, (OPTLEN)sizeof(status)) < 0)
+        {
+          NSDebugMLLog(@"GSTcpTune", @"setsockopt reuseaddr failed");
+        }
     }
 #endif
 
