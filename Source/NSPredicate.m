@@ -2359,7 +2359,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
                   [self nextArg]];
 
               case 'h':
-                [self scanString: @"h" intoString: NULL];
+                (void)[self scanString: @"h" intoString: NULL];
                 if ([self isAtEnd] == NO)
                   {
                     c = [[self string] characterAtIndex: [self scanLocation]];
@@ -2373,7 +2373,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
                 break;
 
               case 'q':
-                [self scanString: @"q" intoString: NULL];
+                (void)[self scanString: @"q" intoString: NULL];
                 if ([self isAtEnd] == NO)
                   {
                     c = [[self string] characterAtIndex: [self scanLocation]];
