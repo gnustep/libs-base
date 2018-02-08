@@ -1,3 +1,8 @@
+2018-02-09  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSXMLElement.m(-addAttribute:): Correct linear list code
+	for name spaces. This fixes the last remaining Coverity issue.
+
 2018-02-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPortCoder.h
@@ -137,7 +142,7 @@
 	* configure: regenerate
 
 2018-01-14  Yavor Doganov  <yavor@gnu.org>
- 
+
  	* Tests/base/NSXMLDocument/basic.m:
  	* Tests/base/NSXMLDocument/cdata.m:
  	* Tests/base/NSXMLNode/basic.m:
@@ -167,7 +172,7 @@
 	external references and validating against a DTD.
 
 2018-01-14  Yavor Doganov  <yavor@gnu.org>
- 
+
  	* configure.ac: Use PKG_PROG_PKG_CONFIG instead of AC_PATH_PROG to
  	find pkg-config as it supports cross-compilation.
  	* configure.ac: Bump ICU requirement to >= 50 for UDAT_PATTERN.

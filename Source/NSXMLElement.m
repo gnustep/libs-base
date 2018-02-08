@@ -285,11 +285,12 @@ extern void ensure_oldNs(xmlNodePtr node);
                     }
                   else
                     {
-                      last->next = ns->next;
+                      last->next = cur->next;
                     }
                   cur->next = NULL;
                   break;
-                } 
+                }
+              last = cur;
               cur = cur->next;
             }
 
