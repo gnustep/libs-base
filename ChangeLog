@@ -1,3 +1,9 @@
+2018-02-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPortCoder.h
+	* Source/NSUnarchiver.h
+	Improve checks for loss of data converting sizes of scalar types.
+
 2018-02-07  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSAttributedString.m: remove a little dead code

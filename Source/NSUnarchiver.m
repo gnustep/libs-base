@@ -760,7 +760,7 @@ static unsigned	encodingVersion;
 	    }
 	  if (big < min || big > max)
 	    {
-	      NSLog(@"Loss of information converting large decoded value");
+	      NSLog(@"Lost information converting large decoded value");
 	    }
 	  offset += size;
 	}
@@ -838,7 +838,7 @@ static unsigned	encodingVersion;
 	    }
 	  if (big > max)
 	    {
-	      NSLog(@"Loss of information converting large decoded value");
+	      NSLog(@"Lost information converting large decoded value");
 	    }
 	  offset += size;
 	}
@@ -1384,32 +1384,23 @@ scalarSize(char type)
         {
           case 1:
             *(int8_t*)address = (int8_t)big;
-            if (big & ~0xff)
+            if (big > 127 || big < -128)
               {
-                if ((int8_t)big >= 0 || (big & ~0xff) != ~0xff)
-                  {
-                    NSLog(@"Loss of information converting decoded value to int8_t");
-                  }
+                NSLog(@"Lost information converting decoded value to int8_t");
               }
             return;
           case 2:
             *(int16_t*)address = (int16_t)big;
-            if (big & ~0xffff)
+            if (big > 32767 || big < -32768)
               {
-                if ((int16_t)big >= 0 || (big & ~0xffff) != ~0xffff)
-                  {
-                    NSLog(@"Loss of information converting decoded value to int16_t");
-                  }
+                NSLog(@"Lost information converting decoded value to int16_t");
               }
             return;
           case 4:
             *(int32_t*)address = (int32_t)big;
-            if (big & ~0xffffffff)
+            if (big > 2147483647 || big < -2147483648)
               {
-                if ((int32_t)big >= 0 || (big & ~0xffffffff) != ~0xffffffff)
-                  {
-                    NSLog(@"Loss of information converting decoded value to int32_t");
-                  }
+                NSLog(@"Lost information converting decoded value to int32_t");
               }
             return;
           case 8:
@@ -1463,23 +1454,23 @@ scalarSize(char type)
       switch (size)
         {
           case 1:
-            if (big & ~0xff)
+            if (big & ~0xffLL)
               {
-                NSLog(@"Loss of information converting decoded value to uint8_t");
+                NSLog(@"Lost information converting decoded value to uint8_t");
               }
             *(uint8_t*)address = (uint8_t)big;
             return;
           case 2:
-            if (big & ~0xffff)
+            if (big & ~0xffffLL)
               {
-                NSLog(@"Loss of information converting decoded value to uint16_t");
+                NSLog(@"Lost information converting decoded value to uint16_t");
               }
             *(uint16_t*)address = (uint16_t)big;
             return;
           case 4:
-            if (big & ~0xffffffff)
+            if (big & ~0xffffffffLL)
               {
-                NSLog(@"Loss of information converting decoded value to uint32_t");
+                NSLog(@"Lost information converting decoded value to uint32_t");
               }
             *(uint32_t*)address = (uint32_t)big;
             return;
