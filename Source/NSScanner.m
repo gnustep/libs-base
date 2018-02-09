@@ -85,7 +85,10 @@ static inline unichar myGetC(unsigned char c)
   unichar       u = 0;
   unichar       *dst = &u;
 
-  GSToUnicode(&dst, &size, &c, 1, internalEncoding, 0, 0);
+  /* If this fails, u is zero (unchanged) ...  return that rather
+   * than raising an exception.
+   */
+  (void)GSToUnicode(&dst, &size, &c, 1, internalEncoding, 0, 0);
   return u;
 }
 /*
