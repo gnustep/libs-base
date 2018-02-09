@@ -2,6 +2,19 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSString.h>
 
+
+static NSString*
+makeFormattedString(NSString *theFormat, ...)
+{
+  NSString *aString;
+  va_list args;
+
+  va_start(args, theFormat);
+  aString = [[NSString alloc] initWithFormat: theFormat  arguments: args];
+  va_end(args);
+  return AUTORELEASE(aString);
+}
+
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
@@ -124,6 +137,9 @@ int main()
                              encoding: NSNonLossyASCIIStringEncoding];
   PASS_EQUAL(s, @"€", "lossy backslassh-u20ac is a euro");
   RELEASE(s);
+
+  s = makeFormattedString(@"%d.%d%s", 10, 20, "hello");
+  PASS_EQUAL(s, @"10.20hello", "simple intWithFormat: works");
 
   [arp release]; arp = nil;
   return 0;
