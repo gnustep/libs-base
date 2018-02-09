@@ -1869,7 +1869,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 		raise: NSInternalInconsistencyException
 		format: @"Failed to open time zone regions array file."];
 	    }
-	  while (fscanf(fp, "%d %s", &index, name) == 2)
+	  while (fscanf(fp, "%d %79s", &index, name) == 2)
 	    {
               if (index < 0)
                 index = 0;
