@@ -82,7 +82,10 @@ typedef struct {
       s = [NSScanner scannerWithString: v];
       p = [GSMimeParser new];
       c = AUTORELEASE([GSMimeHeader new]);
-      [p scanHeaderBody: s into: c];
+      /* We just set the header body, so we know it will scan and don't need
+       * to check the retrurn type.
+       */
+      (void)[p scanHeaderBody: s into: c];
       RELEASE(p);
       ASSIGNCOPY(this->MIMEType, [c value]);
       v = [c parameterForKey: @"charset"];
