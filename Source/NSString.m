@@ -515,10 +515,13 @@ static const unichar byteOrderMarkSwapped = 0xFFFE;
    Apparently GNU libc 2.xx needs this to be 0 also, along with Linux
    libc versions 5.2.xx and higher (including libc6, which is just GNU
    libc). -chung */
-#define PRINTF_ATSIGN_VA_LIST			\
-       (defined(_LINUX_C_LIB_VERSION_MINOR)	\
-	&& _LINUX_C_LIB_VERSION_MAJOR <= 5	\
-	&& _LINUX_C_LIB_VERSION_MINOR < 2)
+#if defined(_LINUX_C_LIB_VERSION_MINOR)	\
+  && _LINUX_C_LIB_VERSION_MAJOR <= 5	\
+  && _LINUX_C_LIB_VERSION_MINOR < 2
+#define PRINTF_ATSIGN_VA_LIST	1
+#else
+#define PRINTF_ATSIGN_VA_LIST	0
+#endif
 
 #if ! PRINTF_ATSIGN_VA_LIST
 static int

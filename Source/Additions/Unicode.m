@@ -2848,7 +2848,7 @@ GSPrivateEncodingName(NSStringEncoding encoding)
 {
   struct _strenc_	*encInfo;
 
-  if ((encInfo = EntrySupported(encoding)) == NO)
+  if ((encInfo = EntrySupported(encoding)) == NULL)
     {
       return @"Unknown encoding";
     }
@@ -2860,7 +2860,7 @@ GSPrivateIsByteEncoding(NSStringEncoding encoding)
 {
   struct _strenc_	*encInfo;
 
-  if ((encInfo = EntrySupported(encoding)) == NO)
+  if ((encInfo = EntrySupported(encoding)) == NULL)
     {
       return NO;
     }
