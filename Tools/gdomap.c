@@ -2151,7 +2151,8 @@ init_probe()
 		      snprintf(ebuf, sizeof(ebuf), "netmask %s will be "
 			"treated as 255.255.255.0 for ",
 			inet_ntoa(mask[iface]));
-		      strncat(ebuf, inet_ntoa(addr[iface]), sizeof(ebuf)-1);
+		      strncat(ebuf, inet_ntoa(addr[iface]),
+			sizeof(ebuf) - strlen(ebuf) - 1);
 		      gdomap_log(LOG_WARNING);
 		      hm |= ~255;
 		    }
@@ -5234,8 +5235,8 @@ queue_probe(struct in_addr* to, struct in_addr* from, int l, struct in_addr* e, 
     {
       snprintf(ebuf, sizeof(ebuf),
 	"Probing for server on '%s' from '", inet_ntoa(*to));
-      strncat(ebuf, inet_ntoa(*from), sizeof(ebuf)-1);
-      strncat(ebuf, "'", sizeof(ebuf)-1);
+      strncat(ebuf, inet_ntoa(*from), sizeof(ebuf) - strlen(ebuf) - 1);
+      strncat(ebuf, "'", sizeof(ebuf) - strlen(ebuf) - 1);
       gdomap_log(LOG_DEBUG);
       if (l > 0)
 	{
