@@ -1716,7 +1716,6 @@ wordData(NSString *word, BOOL *encoded)
   GSMimeHeader		*info;
 
   NSDebugMLLog(@"GSMime", @"Parse header - '%@'", aHeader);
-  info = AUTORELEASE([headerClass new]);
 
   /*
    * Special case - permit web response status line to act like a header.
@@ -6527,12 +6526,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       /*
        * Ensure there is a mime version header.
        */
-      hdr = [self headerNamed: @"mime-version"];
-      if (hdr == nil)
+      if (nil == [self headerNamed: @"mime-version"])
 	{
-          hdr = [self setHeader: @"MIME-Version"
-                          value: @"1.0"
-                     parameters: nil];
+          [self setHeader: @"MIME-Version"
+		    value: @"1.0"
+	       parameters: nil];
 	}
     }
   else
@@ -6540,8 +6538,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       /*
        * Inner documents should not contain the mime version header.
        */
-      hdr = [self headerNamed: @"mime-version"];
-      if (hdr != nil)
+      if (nil != (hdr = [self headerNamed: @"mime-version"]))
 	{
 	  [self deleteHeader: hdr];
 	}
@@ -7328,14 +7325,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   NSUInteger    size = [document estimatedSize];
   NSMutableData *md = [NSMutableData dataWithCapacity: size];
-  GSMimeHeader  *hdr = [document headerNamed: @"mime-version"];
 
-  if (nil == hdr)
+  if (nil == [document headerNamed: @"mime-version"])
     {
-      hdr = [document setHeader: @"MIME-Version"
-                          value: @"1.0"
-                     parameters: nil];
-    }
+      [document setHeader: @"MIME-Version" value: @"1.0" parameters: nil];
+}
   [self encodePart: document to: md];
   return md;
 }
@@ -7345,7 +7339,6 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   CREATE_AUTORELEASE_POOL(arp);
   NSData		*d = nil;
   NSEnumerator		*enumerator;
-  NSString              *type;
   NSString              *subtype;
   NSString              *charset;
   NSString              *enc;
@@ -7363,6 +7356,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   ct = [document headerNamed: CteContentType];
   if (nil == ct)
     {
+      NSString	*type;
+
       /*
        * Attempt to infer the content type from the content.
        */
@@ -7409,7 +7404,6 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     }
   else
     {
-      type = [ct objectForKey: @"Type"];
       subtype = [ct objectForKey: @"Subtype"];
       charset = [ct parameterForKey: @"charset"];
       if (nil == content)
@@ -7681,10 +7675,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
             }
           else
             {
-              cte = [document setHeader: @"Content-Transfer-Encoding"
-                                  value: enc
-                             parameters: nil];
-            }
+              [document setHeader: @"Content-Transfer-Encoding"
+			    value: enc
+		       parameters: nil];
+    }
         }
     }
 
