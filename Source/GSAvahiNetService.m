@@ -292,7 +292,8 @@ NSDataFromAvahiAddressPortAndInterface(const AvahiAddress *addr,
     {
       struct sockaddr_in *s4 = (struct sockaddr_in*)&s;
       // The address is already in network byte-order.
-      struct in_addr a = { a.s_addr = addr->data.ipv4.address };
+      struct in_addr a;
+      a.s_addr = addr->data.ipv4.address;
       s4->sin_family = AF_INET;
       s4->sin_port = htons(port);
       s4->sin_addr = a;
