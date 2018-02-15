@@ -157,14 +157,14 @@ int main()
 
       num = [[[NSNumber alloc] initWithFloat: -1234.56] autorelease];
      
-      /* Different versions of ICU use different formats, so we need to
-       * permit alternative results.
+      /* Different versions of ICU use different formats, so we pick one.
        */
+      [fmt setNegativeFormat: @"-¤*0#,##0"];
       str = [fmt stringFromNumber: num];
-      PASS([str isEqual: @"(R$1.235)"] || [str isEqual: @"_R$1.235"],
-        "negativeFormat used for -ve number");
+      PASS_EQUAL(str, @"(R$1.235)", "negativeFormat used for -ve number");
 
       [fmt setNumberStyle: NSNumberFormatterNoStyle];
+      [fmt setMinusSign: @"_"];
       
       testHopeful = YES;
       PASS_EQUAL([fmt stringFromNumber: num], @"_01235",
