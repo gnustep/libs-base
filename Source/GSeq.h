@@ -637,6 +637,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 {
   GSEQ_ST	s = (GSEQ_ST)ss;
   GSEQ_OT	o = (GSEQ_OT)os;
+  NSUInteger    rangeEnd = NSMaxRange(aRange);
   NSUInteger	myIndex;
   NSUInteger	myEndIndex;
   NSUInteger	strLength;
@@ -703,7 +704,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 	  unichar	strFirstCharacter = GSEQ_OGETC(0);
 
 	  myIndex = aRange.location;
-	  myEndIndex = aRange.location + aRange.length - strLength;
+	  myEndIndex = rangeEnd - strLength;
 
 	  if (mask & NSAnchoredSearch)
 	    myEndIndex = myIndex;
@@ -714,7 +715,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 	      unichar	myCharacter = GSEQ_SGETC(myIndex);
 	      unichar	strCharacter = strFirstCharacter;
 
-	      for (;;)
+              while (myIndex + i < rangeEnd)
 		{
 		  if ((myCharacter != strCharacter) &&
 		      ((uni_tolower(myCharacter) != uni_tolower(strCharacter))))
@@ -737,7 +738,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 	{
 	  unichar	strFirstCharacter = GSEQ_OGETC(0);
 
-	  myIndex = aRange.location + aRange.length - strLength;
+	  myIndex = rangeEnd - strLength;
 	  myEndIndex = aRange.location;
 
 	  if (mask & NSAnchoredSearch)
@@ -749,7 +750,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 	      unichar	myCharacter = GSEQ_SGETC(myIndex);
 	      unichar	strCharacter = strFirstCharacter;
 
-	      for (;;)
+	      while (myIndex + i < rangeEnd)
 		{
 		  if ((myCharacter != strCharacter) &&
 		      ((uni_tolower(myCharacter) != uni_tolower(strCharacter))))
@@ -760,9 +761,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 		  strCharacter = GSEQ_OGETC(i);
 		  i++;
 		}
-	      if (myIndex == myEndIndex)
+	      if (myIndex-- == myEndIndex)
 		break;
-	      myIndex--;
 	    }
 	  return (NSRange){NSNotFound, 0};
 	}
@@ -773,7 +773,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 	  unichar	strFirstCharacter = GSEQ_OGETC(0);
 
 	  myIndex = aRange.location;
-	  myEndIndex = aRange.location + aRange.length - strLength;
+	  myEndIndex = rangeEnd - strLength;
 
 	  if (mask & NSAnchoredSearch)
 	    myEndIndex = myIndex;
@@ -784,7 +784,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 	      unichar	myCharacter = GSEQ_SGETC(myIndex);
 	      unichar	strCharacter = strFirstCharacter;
 
-	      for (;;)
+              while (myIndex  + i < rangeEnd)
 		{
 		  if (myCharacter != strCharacter)
 		    break;
@@ -794,9 +794,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 		  strCharacter = GSEQ_OGETC(i);
 		  i++;
 		}
-	      if (myIndex == myEndIndex)
+	      if (myIndex++ == myEndIndex)
 		break;
-	      myIndex++;
 	    }
 	  return (NSRange){NSNotFound, 0};
 	}
@@ -806,7 +805,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 	{
 	  unichar	strFirstCharacter = GSEQ_OGETC(0);
 
-	  myIndex = aRange.location + aRange.length - strLength;
+	  myIndex = rangeEnd - strLength;
 	  myEndIndex = aRange.location;
 
 	  if (mask & NSAnchoredSearch)
@@ -818,7 +817,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 	      unichar	myCharacter = GSEQ_SGETC(myIndex);
 	      unichar	strCharacter = strFirstCharacter;
 
-	      for (;;)
+	      while (myIndex + i < rangeEnd)
 		{
 		  if (myCharacter != strCharacter)
 		    break;
@@ -828,9 +827,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 		  strCharacter = GSEQ_OGETC(i);
 		  i++;
 		}
-	      if (myIndex == myEndIndex)
+	      if (myIndex-- == myEndIndex)
 		break;
-	      myIndex--;
 	    }
 	  return (NSRange){NSNotFound, 0};
 	}
@@ -838,13 +836,11 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
       case GSEQ_FCS: 
       case GSEQ_FCAS: 
 	{
-	  NSUInteger	strBaseLength;
+	  NSUInteger	strBaseLength = [(NSString*)o _baseLength];
 	  NSRange	iRange;
 
-	  strBaseLength = [(NSString*)o _baseLength];
-
 	  myIndex = aRange.location;
-	  myEndIndex = aRange.location + aRange.length - strBaseLength;
+	  myEndIndex = rangeEnd - strBaseLength;
 
 	  if (mask & NSAnchoredSearch)
 	    myEndIndex = myIndex;
@@ -874,7 +870,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 			{
 			  return (NSRange){myIndex, myCount};
 			}
-		      for (;;)
+                      while (myIndex + myCount < rangeEnd)
 			{
 			  NSRange	r0 = GSEQ_SRANGE(myIndex + myCount);
 			  GSEQ_MAKE(b0, s0, r0.length);
@@ -912,12 +908,10 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
       case GSEQ_BCS: 
       case GSEQ_BCAS: 
 	{
-	  NSUInteger	strBaseLength;
+	  NSUInteger	strBaseLength = [(NSString*)o _baseLength];
 	  NSRange	iRange;
 
-	  strBaseLength = [(NSString*)o _baseLength];
-
-	  myIndex = aRange.location + aRange.length - strBaseLength;
+	  myIndex = rangeEnd - strBaseLength;
 	  myEndIndex = aRange.location;
 
 	  if (mask & NSAnchoredSearch)
@@ -948,7 +942,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 			{
 			  return (NSRange){myIndex, myCount};
 			}
-		      for (;;)
+		      while (myIndex + myCount < rangeEnd)
 			{
 			  NSRange	r0 = GSEQ_SRANGE(myIndex + myCount);
 			  GSEQ_MAKE(b0, s0, r0.length);
@@ -975,9 +969,8 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 			    }
 			}
 		    }
-		  if (myIndex <= myEndIndex)
+		  if (myIndex-- <= myEndIndex)
 		    break;
-		  myIndex--;
 		  while (uni_isnonsp(GSEQ_SGETC(myIndex))
 		    && (myIndex > 0))
 		    myIndex--;
@@ -989,12 +982,10 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
       case GSEQ_BS: 
       case GSEQ_BAS: 
 	{
-	  NSUInteger	strBaseLength;
+	  NSUInteger	strBaseLength = [(NSString*)o _baseLength];
 	  NSRange	iRange;
 
-	  strBaseLength = [(NSString*)o _baseLength];
-
-	  myIndex = aRange.location + aRange.length - strBaseLength;
+	  myIndex = rangeEnd - strBaseLength;
 	  myEndIndex = aRange.location;
 
 	  if (mask & NSAnchoredSearch)
@@ -1023,7 +1014,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 			{
 			  return (NSRange){myIndex, myCount};
 			}
-		      for (;;)
+		      while (myIndex + myCount < rangeEnd)
 			{
 			  NSRange	r0 = GSEQ_SRANGE(myIndex + myCount);
 			  GSEQ_MAKE(b0, s0, r0.length);
@@ -1045,12 +1036,13 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 			    }
 			}
 		    }
-		  if (myIndex <= myEndIndex)
+		  if (myIndex-- <= myEndIndex)
 		    break;
-		  myIndex--;
 		  while (uni_isnonsp(GSEQ_SGETC(myIndex))
 		    && (myIndex > 0))
-		    myIndex--;
+                    {
+                      myIndex--;
+                    }
 		}
 	    }
 	  return (NSRange){NSNotFound, 0};
@@ -1060,13 +1052,11 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
       case GESQ_FAS: 
       default: 
 	{
-	  NSUInteger	strBaseLength;
+	  NSUInteger	strBaseLength = [(NSString*)o _baseLength];
 	  NSRange	iRange;
 
-	  strBaseLength = [(NSString*)o _baseLength];
-
 	  myIndex = aRange.location;
-	  myEndIndex = aRange.location + aRange.length - strBaseLength;
+	  myEndIndex = rangeEnd - strBaseLength;
 
 	  if (mask & NSAnchoredSearch)
 	    myEndIndex = myIndex;
@@ -1078,7 +1068,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 
 	      GSEQ_OGETR(iBuf, iRange);
 
-	      for (;;)
+              for (;;)
 		{
 		  NSRange	sRange = GSEQ_SRANGE(myIndex);
 		  GSEQ_MAKE(sBuf, sSeq, sRange.length);
@@ -1094,7 +1084,7 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 			{
 			  return (NSRange){myIndex, myCount};
 			}
-		      for (;;)
+		      while (myIndex + myCount < rangeEnd)
 			{
 			  NSRange	r0 = GSEQ_SRANGE(myIndex + myCount);
 			  GSEQ_MAKE(b0, s0, r0.length);

@@ -442,6 +442,51 @@ int main()
   PASS(NO == [@"hello" hasSuffix: @"lLo"], "hello does not have lLo as a suffix");
   PASS(NO == [@"hello" hasSuffix: @""], "hello does not have an empty string as a suffix");
 
+{
+  NSString      *indianLong = @"দন্যবাদ ১হ্য";
+  NSString      *indianShort = @"হ্যাঁ";
+  NSString      *ls = [indianLong stringByAppendingString: indianShort];
+  NSString      *sl = [indianShort stringByAppendingString: indianLong];
+  NSString      *lsl = [ls stringByAppendingString: indianLong];
+  NSRange       res;
+
+  res = [indianLong rangeOfString: indianShort options: 0];
+  PASS(NSNotFound == res.location, "unicode not found simple")
+  res = [indianLong rangeOfString: indianShort options: NSCaseInsensitiveSearch];
+  PASS(NSNotFound == res.location, "unicode not found insensitive")
+  res = [indianLong rangeOfString: indianShort options: NSBackwardsSearch];
+  PASS(NSNotFound == res.location, "unicode not found backwards")
+  res = [indianLong rangeOfString: indianShort options: NSCaseInsensitiveSearch|NSBackwardsSearch];
+  PASS(NSNotFound == res.location, "unicode not found backwards insensitive")
+
+  res = [ls rangeOfString: indianLong options: 0];
+  PASS(0 == res.location, "unicode found at start simple")
+  res = [ls rangeOfString: indianLong options: NSCaseInsensitiveSearch];
+  PASS(0 == res.location, "unicode found at start insensitive")
+  res = [ls rangeOfString: indianLong options: NSBackwardsSearch];
+  PASS(0 == res.location, "unicode found at start backwards")
+  res = [ls rangeOfString: indianLong options: NSCaseInsensitiveSearch|NSBackwardsSearch];
+  PASS(0 == res.location, "unicode found at start backwards insensitive")
+
+  res = [sl rangeOfString: indianLong options: 0];
+  PASS([sl length] == NSMaxRange(res), "unicode found at end simple")
+  res = [sl rangeOfString: indianLong options: NSCaseInsensitiveSearch];
+  PASS([sl length] == NSMaxRange(res), "unicode found at end insensitive")
+  res = [sl rangeOfString: indianLong options: NSBackwardsSearch];
+  PASS([sl length] == NSMaxRange(res), "unicode found at end backwards")
+  res = [sl rangeOfString: indianLong options: NSCaseInsensitiveSearch|NSBackwardsSearch];
+  PASS([sl length] == NSMaxRange(res), "unicode found at end backwards insensitive")
+
+  res = [lsl rangeOfString: indianShort options: 0];
+  PASS([indianLong length] == res.location, "unicode found in middle simple")
+  res = [lsl rangeOfString: indianShort options: NSCaseInsensitiveSearch];
+  PASS([indianLong length] == res.location, "unicode found in middle insensitive")
+  res = [lsl rangeOfString: indianShort options: NSBackwardsSearch];
+  PASS([indianLong length] == res.location, "unicode found in middle backwards")
+  res = [lsl rangeOfString: indianShort options: NSCaseInsensitiveSearch|NSBackwardsSearch];
+  PASS([indianLong length] == res.location, "unicode found in middle backwards insensitive")
+
+}
   [arp release]; arp = nil;
   return 0;
 }
