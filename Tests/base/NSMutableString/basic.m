@@ -135,6 +135,27 @@ int main()
   PASS([str1 isEqual: str2],
     "string occurrences replacement works");
   
+  [str1 setString: @"{Message} one"];
+  [str1 replaceOccurrencesOfString: @"{Message}"
+                        withString: @"The quick brown fox"
+                           options: NSLiteralSearch
+                             range: NSMakeRange(0, [str1 length])];
+  PASS_EQUAL(str1, @"The quick brown fox one", "replace at start of string")
+
+  [str1 setString: @"two {Message}"];
+  [str1 replaceOccurrencesOfString: @"{Message}"
+                        withString: @"The quick brown fox"
+                           options: NSLiteralSearch
+                             range: NSMakeRange(0, [str1 length])];
+  PASS_EQUAL(str1, @"two The quick brown fox", "replace at end of string")
+
+  [str1 setString: @"{Message}"];
+  [str1 replaceOccurrencesOfString: @"{Message}"
+                        withString: @"The quick brown fox"
+                           options: NSLiteralSearch
+                             range: NSMakeRange(0, [str1 length])];
+  PASS_EQUAL(str1, @"The quick brown fox", "replace entire string works")
+
   [testObj release];
   [arp release]; arp = nil; 
   return 0;
