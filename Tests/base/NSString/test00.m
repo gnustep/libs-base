@@ -172,6 +172,18 @@ static void strRange(char *s0, char *s1, unsigned int opts,
   us0 = nil; 
   us1 = nil; 
   
+#ifdef  GNUSTEP_BASE_LIBRARY
+  /* The _unicodeString method is a private/hidden method the strings in the
+   * base library provide to return an autorelease copy of themselves which
+   * is guaranteed to use a 16bit internal character representation and be a
+   * subclass of GSUnicodeString.
+   */
+  PASS_RUNS(cs0 = [NSString stringWithCString: s0];
+    us0 = [cs0 _unicodeString];
+    cs1 = [NSString stringWithCString: s1];
+    us1 = [cs1 _unicodeString];,
+    "create strings for range is ok");
+#else
   PASS_RUNS(cs0 = [NSString stringWithCString: s0];
     l = [cs0 length];
     d = [NSMutableData dataWithLength: (l * 2)];
@@ -186,6 +198,7 @@ static void strRange(char *s0, char *s1, unsigned int opts,
     [cs1 getCharacters: b];
     us1 = [NSString stringWithCharacters: b length: l];,
     "create strings for range is ok");
+#endif
   
   res = [cs0 rangeOfString: cs1 options: opts range: range];
   PASS(rangesEqual(res,want), "CCString range for '%s' and '%s' is ok",s0,s1);
@@ -365,6 +378,8 @@ int main()
     NSMakeRange(2,3), NSMakeRange(0,0));
   strRange("hello", "ell", NSLiteralSearch,
     NSMakeRange(0,5), NSMakeRange(1,3));
+  strRange("hello", "o", NSLiteralSearch,
+    NSMakeRange(0,5), NSMakeRange(4,1));
   strRange("hello", "lo", NSLiteralSearch,
     NSMakeRange(2,3), NSMakeRange(3,2));
   strRange("boaboaboa", "abo", NSLiteralSearch,
@@ -450,6 +465,8 @@ int main()
   NSString      *lsl = [ls stringByAppendingString: indianLong];
   NSRange       res;
 
+  res = [indianLong rangeOfString: indianLong options: 0];
+  PASS(0 == res.location, "unicode whole string match")
   res = [indianLong rangeOfString: indianShort options: 0];
   PASS(NSNotFound == res.location, "unicode not found simple")
   res = [indianLong rangeOfString: indianShort options: NSCaseInsensitiveSearch];
