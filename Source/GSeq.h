@@ -715,13 +715,15 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 	      unichar	myCharacter = GSEQ_SGETC(myIndex);
 	      unichar	strCharacter = strFirstCharacter;
 
-              while (myIndex + i < rangeEnd)
+              for (;;)
 		{
 		  if ((myCharacter != strCharacter) &&
 		      ((uni_tolower(myCharacter) != uni_tolower(strCharacter))))
 		    break;
 		  if (i == strLength)
 		    return (NSRange){myIndex, strLength};
+                  if (myIndex + i >= rangeEnd)
+                    break;
 		  myCharacter = GSEQ_SGETC(myIndex + i);
 		  strCharacter = GSEQ_OGETC(i);
 		  i++;
@@ -750,13 +752,15 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 	      unichar	myCharacter = GSEQ_SGETC(myIndex);
 	      unichar	strCharacter = strFirstCharacter;
 
-	      while (myIndex + i < rangeEnd)
+	      for (;;)
 		{
 		  if ((myCharacter != strCharacter) &&
 		      ((uni_tolower(myCharacter) != uni_tolower(strCharacter))))
 		    break;
 		  if (i == strLength)
 		    return (NSRange){myIndex, strLength};
+                  if (myIndex + i >= rangeEnd)
+                    break;
 		  myCharacter = GSEQ_SGETC(myIndex + i);
 		  strCharacter = GSEQ_OGETC(i);
 		  i++;
@@ -784,12 +788,14 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 	      unichar	myCharacter = GSEQ_SGETC(myIndex);
 	      unichar	strCharacter = strFirstCharacter;
 
-              while (myIndex  + i < rangeEnd)
+              for (;;)
 		{
 		  if (myCharacter != strCharacter)
 		    break;
 		  if (i == strLength)
 		    return (NSRange){myIndex, strLength};
+                  if (myIndex + i >= rangeEnd)
+                    break;
 		  myCharacter = GSEQ_SGETC(myIndex + i);
 		  strCharacter = GSEQ_OGETC(i);
 		  i++;
@@ -817,12 +823,14 @@ GSEQ_STRRANGE(NSString *ss, NSString *os, NSUInteger mask, NSRange aRange)
 	      unichar	myCharacter = GSEQ_SGETC(myIndex);
 	      unichar	strCharacter = strFirstCharacter;
 
-	      while (myIndex + i < rangeEnd)
+	      for (;;)
 		{
 		  if (myCharacter != strCharacter)
 		    break;
 		  if (i == strLength)
 		    return (NSRange){myIndex, strLength};
+                  if (myIndex + i >= rangeEnd)
+                    break;
 		  myCharacter = GSEQ_SGETC(myIndex + i);
 		  strCharacter = GSEQ_OGETC(i);
 		  i++;
