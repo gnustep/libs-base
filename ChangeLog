@@ -1,5 +1,13 @@
 2018-02-25  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSeq.h: Fixup error in last modification.
+	* Source/GSString.m: Add method to reliably get a GSUnicodeString
+	* Tests/base/NSString/test00.m: Fix tests to properly check range
+	searches using all combinations of 8bit and 16bit representation
+	strings.
+
+2018-02-25  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSeq.h: Fix boundary checks searching for unicode strings.
 
 2018-02-16  Yavor Doganov  <yavor@gnu.org>
