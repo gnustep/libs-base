@@ -925,9 +925,14 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 
       handshake = NO;
 
+      // Setting the handler(s) to nil can potentially deallocate us...
+      RETAIN(self);
       [is _setHandler: nil];
       [os _setHandler: nil];
-      [GSTLS tryInput: is output: os];
+      
+      // Attempt TLS handler setup...
+      [GSTLSHandler tryInput: is output: os];
+
       if ([is streamStatus] == NSStreamStatusOpen)
         {
 	  [is _resetEvents: NSStreamEventOpenCompleted];
@@ -952,6 +957,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
         }
       RELEASE(is);
       RELEASE(os);
+      RELEASE(self);
     }
 }
 
@@ -1011,10 +1017,16 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
            * to the socks proxy server.
            */
           conf = [istream propertyForKey: NSStreamSOCKSProxyConfigurationKey];
-          host = [conf objectForKey: NSStreamSOCKSProxyHostKey];
-          pnum = [[conf objectForKey: NSStreamSOCKSProxyPortKey] intValue];
-          [istream _setSocketAddress: host port: pnum family: AF_INET];
-          [ostream _setSocketAddress: host port: pnum family: AF_INET];
+
+          if (nil != conf)
+            {
+              host = [conf objectForKey: NSStreamSOCKSProxyHostKey];
+              pnum = [[conf objectForKey: NSStreamSOCKSProxyPortKey] intValue];
+              if (NO == [istream _setSocketAddress: host port: pnum family: AF_INET])
+                ALog(@"error setting SOCKS host:port for input stream");
+              if (NO == [ostream _setSocketAddress: host port: pnum family: AF_INET])
+                ALog(@"error setting SOCKS host:port for output stream");
+            }
 	}
     }
   return self;
