@@ -534,6 +534,8 @@ SUBPROJECTS = ObjectiveC2
 endif
 SUBPROJECTS += Additions
 
+ADDITIONAL_NATIVE_LIBS += winhttp
+
 -include Makefile.preamble
 
 include $(GNUSTEP_MAKEFILES)/aggregate.make
