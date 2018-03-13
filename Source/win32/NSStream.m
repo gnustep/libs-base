@@ -990,7 +990,7 @@
               
               
               // Multiple components setup???
-              if ([string containsString: @";"])
+              if ([string containsString: @";"] || [[string lowercaseString] containsString: @"socks="])
                 {
                   // Split the components using ';'...
                   NSArray   *components = [string componentsSeparatedByString: @";"];

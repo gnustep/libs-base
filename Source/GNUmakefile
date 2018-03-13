@@ -107,6 +107,10 @@ ifeq ($(findstring openbsd, $(GNUSTEP_TARGET_OS)), openbsd)
   OBJC_LIBS += -pthread
 endif
 
+ifeq ($(findstring mingw, $(GNUSTEP_TARGET_OS)), mingw)
+  ADDITIONAL_NATIVE_LIBS += winhttp
+endif
+
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
   GNU_MFILES += libgnustep-base-entry.m
 endif
@@ -533,8 +537,6 @@ ifeq ($(OBJC2RUNTIME),0)
 SUBPROJECTS = ObjectiveC2
 endif
 SUBPROJECTS += Additions
-
-ADDITIONAL_NATIVE_LIBS += winhttp
 
 -include Makefile.preamble
 
