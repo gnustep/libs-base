@@ -368,7 +368,35 @@
 	initToAddr: address port: port]);
 #endif
     }  
-
+  
+#if defined(DEBUG)
+  // Setup proxy information...
+  NSMutableDictionary *proxyDict = [NSMutableDictionary dictionary];
+  {
+    // Obtain the current SOCK proxy setting...
+    {
+      // Proxy host(s) list...
+      NSString *string = @"127.0.0.1:8888";
+      NSArray *components = [string componentsSeparatedByString: @":"];
+      NSWarnMLog(@"component(s): %@", components);
+      NSString *host = [components objectAtIndex: 0];
+      NSNumber *port = ([components count] > 1 ? [components objectAtIndex: 1] : [NSNumber numberWithLong: 8080]);
+      NSWarnMLog(@"host: %@ port: %@", host, port);
+      
+      // Setup the proxy configuration dictionary...
+      [proxyDict setObject: host forKey: NSStreamSOCKSProxyHostKey];
+      [proxyDict setObject: port forKey: NSStreamSOCKSProxyPortKey];
+      [proxyDict setObject: NSStreamSOCKSProxyVersion5 forKey: NSStreamSOCKSProxyVersionKey];
+      
+      // and save in the stream(s)...
+      [ins setProperty: proxyDict forKey: NSStreamSOCKSProxyConfigurationKey];
+      [outs setProperty: proxyDict forKey: NSStreamSOCKSProxyConfigurationKey];
+    }
+    
+    // Cleanup...
+  }
+#endif
+  
   if (inputStream)
     {
       [ins _setSibling: outs];

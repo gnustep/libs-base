@@ -242,6 +242,11 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
   return YES;
 }
 
+@interface GSStream (Private)
+- (BOOL) _delegateValid;
+@end
+
+
 /** The GSStreamHandler abstract class defines the methods used to
  * implement a handler object for a pair of streams.
  * The idea is that the handler is installed once the connection is
@@ -513,7 +518,7 @@ static gnutls_anon_client_credentials_t anoncred;
     {
       [o setProperty: tls forKey: NSStreamSocketSecurityLevelKey];
     }
-
+  
   if (tls != nil)
     {
       GSTLS     *h;
@@ -898,9 +903,9 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
           return;
         }
 
-      if (v == NSStreamSOCKSProxyVersion5)
+      if (v == NSStreamSOCKSProxyVersion4)
         {
-          GSOnceMLog(@"SOCKS 5 not supported yet");
+          GSOnceMLog(@"SOCKS 4 not supported yet");
           return;
         }
       else if (i6 == YES)
@@ -925,14 +930,12 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 
       handshake = NO;
 
-      // Setting the handler(s) to nil can potentially deallocate us...
-      RETAIN(self);
+      // Setting the handler(s) to nil will deallocate us...
+      AUTORELEASE(RETAIN(self));
       [is _setHandler: nil];
       [os _setHandler: nil];
       
-      // Attempt TLS handler setup...
       [GSTLSHandler tryInput: is output: os];
-
       if ([is streamStatus] == NSStreamStatusOpen)
         {
 	  [is _resetEvents: NSStreamEventOpenCompleted];
@@ -957,7 +960,6 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
         }
       RELEASE(is);
       RELEASE(os);
-      RELEASE(self);
     }
 }
 
@@ -1004,6 +1006,9 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
           NSString              *host;
           int                   pnum;
 
+          // TESTPLANT-MAL-03132018: Start state for SOCKS processing...
+          state = GSSOCKSOfferAuth;
+          
           /* Record the host and port that the streams are supposed to be
            * connecting to.
            */ 
@@ -1037,6 +1042,19 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
   return [istream _read: buffer maxLength: len];
 }
 
+- (void)dumpBuffer: (void*)buffer count: (int)count
+{
+#if defined(DEBUG)
+  int index = 0;
+  NSMutableString *string = [NSMutableString string];
+  
+  unsigned char *output = buffer;
+  for ( ; index < count; ++index)
+    [string appendFormat: @"0x%2.2x ", *output++];
+  NSWarnMLog(@"string: %@", string);
+#endif
+}
+
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
 {
   NSString		*error = nil;
@@ -1058,6 +1076,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
   if ([[conf objectForKey: NSStreamSOCKSProxyVersionKey]
     isEqual: NSStreamSOCKSProxyVersion4] == YES)
     {
+      NSWarnMLog(@"SOCKS proxy version 4 NOT implmented:self: %p stream: %p state: %@", self, stream, state);
     }
   else
     {
@@ -1091,7 +1110,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	      want = 3;
 	    }
 
-	  result = [ostream _write: buf + woffset maxLength: 4 - woffset];
+	  result = [ostream _write: buf + woffset maxLength: want - woffset];
 	  if (result > 0)
 	    {
 	      woffset += result;
@@ -1110,7 +1129,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	  result = [istream _read: rbuffer + roffset maxLength: 2 - roffset];
 	  if (result == 0)
 	    {
-	      error = @"SOCKS end-of-file during negotiation";
+	      error = @"SOCKS end-of-file during negotiation (GSSOCKSRecvAuth)";
 	    }
 	  else if (result > 0)
 	    {
@@ -1169,7 +1188,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 			     maxLength: want - woffset];
 	      if (result == 0)
 		{
-		  error = @"SOCKS end-of-file during negotiation";
+		  error = @"SOCKS end-of-file during negotiation (GSSOCKSSendAuth)";
 		}
 	      else if (result > 0)
 		{
@@ -1189,7 +1208,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	  result = [istream _read: rbuffer + roffset maxLength: 2 - roffset];
 	  if (result == 0)
 	    {
-	      error = @"SOCKS end-of-file during negotiation";
+	      error = @"SOCKS end-of-file during negotiation (GSSOCKSAckAuth)";
 	    }
 	  else if (result > 0)
 	    {
@@ -1233,6 +1252,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	  buf[1] = 1;	// Connect command
 	  buf[2] = 0;	// Reserved
 	  buf[3] = 1;	// Address type (IPV4)
+          
 	  ptr = [address UTF8String];
 	  buf[4] = atoi(ptr);
 	  while (isdigit(*ptr))
@@ -1248,20 +1268,20 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	  ptr++;
 	  buf[7] = atoi(ptr);
 	  result = [port intValue];
-	  buf[8] = ((result & 0xff00) >> 8);
-	  buf[9] = (result & 0xff);
-
+          *(unsigned short *)&buf[8] = htons(result);
+          [self dumpBuffer: buf count: want];
+          
 	  result = [ostream _write: buf + woffset maxLength: want - woffset];
 	  if (result == 0)
 	    {
-	      error = @"SOCKS end-of-file during negotiation";
+	      error = @"SOCKS end-of-file during negotiation (GSSOCKSSendConn)";
 	    }
 	  else if (result > 0)
 	    {
 	      woffset += result;
 	      if (woffset == want)
 		{
-		  rwant = 5;
+		  rwant = 4;
 		  state = GSSOCKSAckConn;
 		  goto again;
 		}
@@ -1269,13 +1289,14 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	}
       else if (state == GSSOCKSAckConn)
 	{
-	  int	result;
+	  int	result = -1;
 
 	  result = [istream _read: rbuffer + roffset
                         maxLength: rwant - roffset];
+          [self dumpBuffer: rbuffer count: 16];
 	  if (result == 0)
 	    {
-	      error = @"SOCKS end-of-file during negotiation";
+	      error = @"SOCKS end-of-file during negotiation (GSSOCKSAckConn)";
 	    }
 	  else if (result > 0)
 	    {
@@ -1347,8 +1368,8 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 
 			  if (rbuffer[3] == 1)
 			    {
-			      a = [NSString stringWithFormat: @"%d.%d.%d.%d",
-			        rbuffer[4], rbuffer[5], rbuffer[6], rbuffer[7]];
+                              a = [NSString stringWithFormat: @"%d.%d.%d.%d",
+                                   rbuffer[4], rbuffer[5], rbuffer[6], rbuffer[7]];
 			    }
 			  else if (rbuffer[3] == 3)
 			    {
@@ -1383,8 +1404,9 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 					forKey: GSStreamRemoteAddressKey];
 			  [ostream setProperty: a
 					forKey: GSStreamRemoteAddressKey];
-			  a = [NSString stringWithFormat: @"%d",
-			    rbuffer[rwant-1] * 256 * rbuffer[rwant-2]];
+                          
+                          unsigned short portnum = ntohs((*(unsigned short *)&rbuffer[rwant-2]));
+                          a = [NSString stringWithFormat: @"%d", portnum];
 			  [istream setProperty: a
 					forKey: GSStreamRemotePortKey];
 			  [ostream setProperty: a
@@ -1409,6 +1431,12 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	code: 0
 	userInfo: [NSDictionary dictionaryWithObject: error
 	  forKey: NSLocalizedDescriptionKey]];
+      
+      // TESTPLANT-MAL-03132018: stream(s) potentially going out of scope during
+      // record error invocation(s)...
+      AUTORELEASE(RETAIN(istream));
+      AUTORELEASE(RETAIN(ostream));
+      
       if ([istream streamStatus] != NSStreamStatusError)
 	{
 	  [istream _recordError: theError];
@@ -1419,6 +1447,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	}
       [self bye];
     }
+  return;
 }
 
 - (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
@@ -1556,6 +1585,26 @@ setNonBlocking(SOCKET fd)
   return -1;
 }
 
+// TESTPLANT-MAL-03132018: These methods (delegate and _delegateValid) replace
+// the _sendEvent overidden method usage...
+- (id) delegate
+{
+  if ((_handler != nil) && ([_handler handshake] == YES))
+    if (YES == [_handler respondsToSelector: @selector(stream:handleEvent:)])
+      return _handler;
+  return [super delegate];
+}
+
+- (BOOL) _delegateValid
+{
+  if ((_handler != nil) && ([_handler handshake] == YES))
+    if (YES == [_handler respondsToSelector: @selector(stream:handleEvent:)])
+      YES;
+  return [super _delegateValid];
+}
+
+#if 0 // TESTPLANT-MAL-03132018: This doesn't work due to send event
+      // recursion causing the delegate/handler going out of scope...
 - (void) _sendEvent: (NSStreamEvent)event
 {
   /* If the receiver has a TLS handshake in progress,
@@ -1578,6 +1627,7 @@ setNonBlocking(SOCKET fd)
       [super _sendEvent: event];
     }
 }
+#endif
 
 - (BOOL) _setSocketAddress: (NSString*)address
                       port: (NSInteger)port

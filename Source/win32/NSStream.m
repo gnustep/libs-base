@@ -22,6 +22,7 @@
 
    */
 #include "common.h"
+#include <winhttp.h>
 
 #import "Foundation/NSData.h"
 #import "Foundation/NSArray.h"
@@ -944,10 +945,10 @@
   GSSocketStream *outs = nil;
   int sock;
 
-  ins = AUTORELEASE([[GSInetInputStream alloc]
-    initToAddr: address port: port]);
-  outs = AUTORELEASE([[GSInetOutputStream alloc]
-    initToAddr: address port: port]);
+  ins = (GSSocketStream*)AUTORELEASE([[GSInetInputStream alloc] initToAddr: address port: port]);
+  outs = (GSSocketStream*)AUTORELEASE([[GSInetOutputStream alloc] initToAddr: address port: port]);
+  
+#if 0 // TESTPLANT-MAL-03132018: This bypasses the GSSOCKS processing...
   sock = socket(PF_INET, SOCK_STREAM, 0);
 
   /*
@@ -963,6 +964,107 @@
   NSAssert(sock != INVALID_SOCKET, @"Cannot open socket");
   [ins _setSock: sock];
   [outs _setSock: sock];
+#endif
+  
+  // Setup proxy information...
+  WINHTTP_PROXY_INFO   proxyInfo = { 0 };
+  if (FALSE == WinHttpGetDefaultProxyConfiguration(&proxyInfo))
+    {
+      GSOnceMLog(@"error getting SOCKS proxy information - code: %ld", (long)GetLastError());
+    }
+  else
+    {
+      NSDebugMLLog(@"NSStream", @"accessType: %ld hosts: %S bypass %S",
+                   (long)proxyInfo.dwAccessType, proxyInfo.lpszProxy, proxyInfo.lpszProxyBypass);
+      if (WINHTTP_ACCESS_TYPE_NAMED_PROXY == proxyInfo.dwAccessType)
+        {
+          // Proxy host(s) list...
+          if (NULL != proxyInfo.lpszProxy)
+            {
+              NSMutableDictionary *proxyDict = [NSMutableDictionary dictionary];
+              NSString  *host = nil;
+              NSNumber  *port = nil;
+              NSString  *string = AUTORELEASE([[NSString alloc] initWithBytes: proxyInfo.lpszProxy
+                                                                      length: wcslen(proxyInfo.lpszProxy)*sizeof(wchar_t)
+                                                                    encoding: NSUTF16StringEncoding]);
+              
+              
+              // Multiple components setup???
+              if ([string containsString: @";"])
+                {
+                  // Split the components using ';'...
+                  NSArray   *components = [string componentsSeparatedByString: @";"];
+                  NSString  *proxy = nil;
+                  
+                  // Find the SOCKS proxy setting...
+                  for (proxy in components)
+                    {
+                      if ([[proxy lowercaseString] containsString: @"socks="])
+                        break;
+                    }
+                  
+                  // SOCKS available...
+                  if (nil != proxy)
+                    {
+                      NSInteger index = [proxy rangeOfString: @"="].location + 1;
+                      NSArray *socksProxy = [[proxy substringFromIndex: index] componentsSeparatedByString: @":"];
+                      if (0 == [socksProxy count])
+                        {
+                          NSWarnMLog(@"error processing SOCKS proxy info for (%@)", proxy);
+                        }
+                      else
+                        {
+                          host = [socksProxy objectAtIndex: 0];
+                          port = ([socksProxy count] > 1 ? [socksProxy objectAtIndex: 1] : [NSNumber numberWithLong: 8080]);
+                        }
+                    }
+                }
+              else
+                {
+                  // Split the components using ':'...
+                  NSArray   *components = [string componentsSeparatedByString: @":"];
+                  NSDebugMLLog(@"NSStream", @"component(s): %@", components);
+                  if (0 != [components count])
+                    {
+                      host = [components objectAtIndex: 0];
+                      port = ([components count] > 1 ? [components objectAtIndex: 1] : [NSNumber numberWithLong: 8080]);
+                    }
+                }
+              NSDebugMLLog(@"NSStream", @"host: %@ port: %@", host, port);
+
+              if ((nil != host) && (nil != port))
+                {
+                  // Setup the proxy dictionary information and...
+                  [proxyDict setObject: host forKey: NSStreamSOCKSProxyHostKey];
+                  [proxyDict setObject: port forKey: NSStreamSOCKSProxyPortKey];
+                  [proxyDict setObject: NSStreamSOCKSProxyVersion5 forKey: NSStreamSOCKSProxyVersionKey];
+                  
+                  // store in the streams...
+                  [ins setProperty: proxyDict forKey: NSStreamSOCKSProxyConfigurationKey];
+                  [outs setProperty: proxyDict forKey: NSStreamSOCKSProxyConfigurationKey];
+                }
+            }
+          
+          // Proxy exception(s) list...
+          if (NULL != proxyInfo.lpszProxyBypass)
+          {
+            NSString *bypass  = AUTORELEASE([[NSString alloc] initWithBytes: proxyInfo.lpszProxyBypass
+                                                                     length: wcslen(proxyInfo.lpszProxyBypass)*sizeof(wchar_t)
+                                                                   encoding: NSUTF16StringEncoding]);
+            NSDebugMLLog(@"NSStream", @"bypass %@", bypass);
+          }
+        }
+      
+      // Cleanup...
+      if (NULL != proxyInfo.lpszProxy)
+        {
+          GlobalFree(proxyInfo.lpszProxy);
+        }
+      if (NULL != proxyInfo.lpszProxyBypass)
+        {
+          GlobalFree(proxyInfo.lpszProxyBypass);
+        }
+    }
   
   if (inputStream)
     {
