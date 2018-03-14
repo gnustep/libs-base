@@ -378,33 +378,54 @@
 #endif
     }  
   
-#if defined(DEBUG)
   // Setup proxy information...
   NSMutableDictionary *proxyDict = [NSMutableDictionary dictionary];
   {
     // Obtain the current SOCK proxy setting...
     {
       // Proxy host(s) list...
-      NSString *string = @"127.0.0.1:8888";
-      NSArray *components = [string componentsSeparatedByString: @":"];
-      NSWarnMLog(@"component(s): %@", components);
-      NSString *host = [components objectAtIndex: 0];
-      NSNumber *port = ([components count] > 1 ? [components objectAtIndex: 1] : [NSNumber numberWithLong: 8080]);
-      NSWarnMLog(@"host: %@ port: %@", host, port);
-      
-      // Setup the proxy configuration dictionary...
-      [proxyDict setObject: host forKey: NSStreamSOCKSProxyHostKey];
-      [proxyDict setObject: port forKey: NSStreamSOCKSProxyPortKey];
-      [proxyDict setObject: NSStreamSOCKSProxyVersion5 forKey: NSStreamSOCKSProxyVersionKey];
-      
-      // and save in the stream(s)...
-      [ins setProperty: proxyDict forKey: NSStreamSOCKSProxyConfigurationKey];
-      [outs setProperty: proxyDict forKey: NSStreamSOCKSProxyConfigurationKey];
+      char *socksproxy = getenv("all_proxy");
+      if (socksproxy)
+        {
+          NSString *string = [[NSString stringWithUTF8String: socksproxy] lowercaseString];
+          NSDebugMLLog(@"NSStream", @"proxy: %@", string);
+          
+          // For some reason linux/unix appends the '/' at the end...
+          if ([string hasSuffix: @"/"])
+            {
+              string = [string substringToIndex: [string length]-1];
+            }
+          
+          // all_proxy variable will typically include the 'socks://' prefix...
+          if ([string hasPrefix: @"socks://"])
+            {
+              string = [string substringFromIndex: [@"socks://" length]];
+            }
+          
+          // Get the host/port separated components...
+          NSArray *components = [string componentsSeparatedByString: @":"];
+          NSDebugMLLog(@"NSStream", @"component(s): %@", components);
+          
+          NSString *host = [components objectAtIndex: 0];
+          NSInteger portnum = ([components count] > 1 ? [[components objectAtIndex: 1] integerValue] : 8080);
+          NSNumber *port = [NSNumber numberWithInteger: portnum];
+          NSDebugMLLog(@"NSStream", @"host: %@ port: %@", host, port);
+          
+          // Check the exception proxy list via environment variable 'no-proxy'...
+          
+          // Setup the proxy configuration dictionary...
+          [proxyDict setObject: host forKey: NSStreamSOCKSProxyHostKey];
+          [proxyDict setObject: port forKey: NSStreamSOCKSProxyPortKey];
+          [proxyDict setObject: NSStreamSOCKSProxyVersion5 forKey: NSStreamSOCKSProxyVersionKey];
+          
+          // and save in the stream(s)...
+          [ins setProperty: proxyDict forKey: NSStreamSOCKSProxyConfigurationKey];
+          [outs setProperty: proxyDict forKey: NSStreamSOCKSProxyConfigurationKey];
+        }
     }
     
     // Cleanup...
   }
-#endif
   
   if (inputStream)
     {
