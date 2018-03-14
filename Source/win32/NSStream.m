@@ -1006,16 +1006,17 @@
                   // SOCKS available...
                   if (nil != proxy)
                     {
-                      NSInteger index = [proxy rangeOfString: @"="].location + 1;
-                      NSArray *socksProxy = [[proxy substringFromIndex: index] componentsSeparatedByString: @":"];
+                      NSInteger  index      = [proxy rangeOfString: @"="].location + 1;
+                      NSArray   *socksProxy = [[proxy substringFromIndex: index] componentsSeparatedByString: @":"];
                       if (0 == [socksProxy count])
                         {
                           NSWarnMLog(@"error processing SOCKS proxy info for (%@)", proxy);
                         }
                       else
                         {
-                          host = [socksProxy objectAtIndex: 0];
-                          port = ([socksProxy count] > 1 ? [socksProxy objectAtIndex: 1] : [NSNumber numberWithLong: 8080]);
+                          host              = [socksProxy objectAtIndex: 0];
+                          NSInteger portnum = ([socksProxy count] > 1 ? [[socksProxy objectAtIndex: 1] integerValue] : 8080);
+                          port              = [NSNumber numberWithInteger: portnum];
                         }
                     }
                 }
@@ -1026,8 +1027,9 @@
                   NSDebugMLLog(@"NSStream", @"component(s): %@", components);
                   if (0 != [components count])
                     {
-                      host = [components objectAtIndex: 0];
-                      port = ([components count] > 1 ? [components objectAtIndex: 1] : [NSNumber numberWithLong: 8080]);
+                      host              = [components objectAtIndex: 0];
+                      NSInteger portnum = ([components count] > 1 ? [[components objectAtIndex: 1] integerValue] : 8080);
+                      port              = [NSNumber numberWithInteger: portnum];
                     }
                 }
               NSDebugMLLog(@"NSStream", @"host: %@ port: %@", host, port);
