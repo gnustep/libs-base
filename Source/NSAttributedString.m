@@ -243,7 +243,9 @@ appendUIntData(NSMutableData *d, NSUInteger i)
 
       if (![aDecoder containsValueForKey: @"NSAttributeInfo"])
         {
-          NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
+          NSDictionary *attributes;
+
+          attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
           self = [self initWithString: string attributes: attributes];
         }
       else
@@ -550,7 +552,8 @@ appendUIntData(NSMutableData *d, NSUInteger i)
   if (NSMaxRange(rangeLimit) > [self length])
     {
       [NSException raise: NSRangeException
-		  format: @"RangeError in method -attribute:atIndex:longestEffectiveRange:inRange: in class NSAttributedString"];
+		  format: @"RangeError in method %@ in class %@",
+        NSStringFromSelector(_cmd), NSStringFromClass([self class])];
     }
 
   if (attributeName == nil)
@@ -745,7 +748,9 @@ appendUIntData(NSMutableData *d, NSUInteger i)
 
       if (![aDecoder containsValueForKey: @"NSAttributeInfo"])
         {
-          NSDictionary *attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
+          NSDictionary *attributes;
+
+          attributes = [aDecoder decodeObjectForKey: @"NSAttributes"];
           self = [self initWithString: string attributes: attributes];
         }
       else
