@@ -167,7 +167,7 @@ static NSRange GSRangeOfCookie(NSString *string);
       NSMutableDictionary *dict;
       NSString *onecookie;
       NSRange range = GSRangeOfCookie(field);
-
+      
       if (range.location == NSNotFound)
 	break;
       onecookie = [field substringWithRange: range];
@@ -180,8 +180,8 @@ static NSRange GSRangeOfCookie(NSString *string);
 	{
 	  if ([dict objectForKey: NSHTTPCookiePath] == nil)
 	    [dict setObject: defaultPath forKey: NSHTTPCookiePath];
-	  if ([dict objectForKey: NSHTTPCookieDomain] == nil)
-	    [dict setObject: defaultDomain forKey: NSHTTPCookieDomain];
+          if ([dict objectForKey: NSHTTPCookieDomain] == nil)
+            [dict setObject: defaultDomain forKey: NSHTTPCookieDomain];
 	  cookie = [NSHTTPCookie cookieWithProperties: dict];
 	  if (cookie)
 	    [a addObject: cookie];
@@ -298,7 +298,7 @@ static NSRange GSRangeOfCookie(NSString *string);
       return nil;
     }
 
-  rawProps = [[properties mutableCopy] autorelease];
+  rawProps = AUTORELEASE([properties mutableCopy]);
   if ([rawProps objectForKey: @"Created"] == nil)
     {
       NSInteger seconds;
@@ -379,6 +379,13 @@ static NSRange GSRangeOfCookie(NSString *string);
 - (BOOL) isEqual: (id)other
 {
   return [[other properties] isEqual: [self properties]];
+}
+
+- (BOOL) isHTTPOnly
+{
+  if ([this->_properties objectForKey: @"HttpOnly"])
+    return [[this->_properties objectForKey: @"HttpOnly"] boolValue];
+  return NO;
 }
 
 @end
@@ -693,6 +700,8 @@ _setCookieKey(NSMutableDictionary *dict, NSString *key, NSString *value)
 	     forKey: NSHTTPCookieSecure];
   else if ([[key lowercaseString] isEqual: @"version"])
     [dict setObject: value forKey: NSHTTPCookieVersion];
+  else if ([[key lowercaseString] isEqual: @"httponly"])
+    [dict setObject: @"YES" forKey: @"HttpOnly"];
   return YES;
 }
 
@@ -724,8 +733,7 @@ GSPropertyListFromCookieFormat(NSString *string, int version)
   _pld.key = NO;
   _pld.old = YES;	// OpenStep style
 
-  dict = [[NSMutableDictionary allocWithZone: NSDefaultMallocZone()]
-    initWithCapacity: 0];
+  dict = [[NSMutableDictionary allocWithZone: NSDefaultMallocZone()] initWithCapacity: 0];
   while (skipSpace(pld) == YES)
     {
       id	key;
@@ -857,20 +865,25 @@ GSRangeOfCookie(NSString *string)
   _pld.key = NO;
   _pld.old = YES;	// OpenStep style
 
+  // Check for continuation for multiple cookies...
+  if (pld->ptr[pld->pos] == ',')
+    pld->pos++;
+  NSInteger initpos = pld->pos;
+  
   while (skipSpace(pld) == YES)
     {
       if (pld->ptr[pld->pos] == ',')
 	{
 	  /* Look ahead for something that will tell us if this is a
 	     separate cookie or not */
-          unsigned saved_pos = pld->pos;
+          unsigned saved_pos = pld->pos++;
 	  while (pld->ptr[pld->pos] != '=' && pld->ptr[pld->pos] != ';'
 		&& pld->ptr[pld->pos] != ',' && pld->pos < pld->end )
 	    pld->pos++;
 	  if (pld->ptr[pld->pos] == '=')
 	    {
 	      /* Separate comment */
-	      range = NSMakeRange(0, saved_pos-1);
+	      range = NSMakeRange(initpos, saved_pos-initpos);
 	      break;
 	    }
 	  pld->pos = saved_pos;
@@ -878,7 +891,7 @@ GSRangeOfCookie(NSString *string)
       pld->pos++;
     }
   if (range.location == NSNotFound)
-    range = NSMakeRange(0, [string length]);
+    range = NSMakeRange(initpos, [string length]-initpos);
 
   return range;
 }

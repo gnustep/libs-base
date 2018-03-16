@@ -116,7 +116,17 @@ typedef struct {
 	  NSString	*n = [h namePreservingCase: YES];
 	  NSString	*v = [h fullValue];
 
-	  [self _setValue: v forHTTPHeaderField: n];
+          // If key == "Set-Cookie"/"Set-Cookie2" there could be multiple ones...
+          if ([n containsString: @"Set-Cookie"] && [self _valueForHTTPHeaderField: n])
+            {
+              NSMutableString *c = AUTORELEASE([[self _valueForHTTPHeaderField: n] mutableCopy]);
+              [c appendFormat: @", %@", v];
+              [self _setValue: c forHTTPHeaderField: n];
+            }
+          else // Otherwise just set the header field...
+            {
+              [self _setValue: v forHTTPHeaderField: n];
+            }
 	}
     }
   [self _checkHeaders];

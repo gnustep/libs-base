@@ -247,6 +247,13 @@ extern NSString * const NSHTTPCookieVersion; /** Obtain cookie version */
  */
 - (NSUInteger) version;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
+/**
+ * Returns YES for cookies with HTTPONLY defined
+ **/
+- (BOOL) isHTTPOnly;
+#endif
+
 @end
 
 #if	defined(__cplusplus)
