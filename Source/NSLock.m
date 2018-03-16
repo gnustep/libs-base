@@ -141,7 +141,7 @@
     }\
   if (EDEADLK == err)\
     {\
-      _NSLockError(self, _cmd, YES);\
+      (*_NSLock_error_handler)(self, _cmd, YES);\
     }\
 }
 
@@ -191,8 +191,10 @@ void _NSLockError(id obj, SEL _cmd, BOOL stop)
     NSStringFromSelector(_cmd), obj);
   NSLog(@"*** Break on _NSLockError() to debug.");
   if (YES == stop)
-     pthread_mutex_lock(&deadlock);
+    pthread_mutex_lock(&deadlock);
 }
+
+NSLock_error_handler  *_NSLock_error_handler = _NSLockError;
 
 // Exceptions
 
@@ -269,7 +271,7 @@ MLOCK
 	}
       if (EDEADLK == err)
 	{
-	  _NSLockError(self, _cmd, NO);
+	  (*_NSLock_error_handler)(self, _cmd, NO);
 	}
       sched_yield();
     } while ([limit timeIntervalSinceNow] > 0);

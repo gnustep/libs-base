@@ -319,6 +319,14 @@ extern "C" {
 
 @end
 
+#if !NO_GNUSTEP
+typedef void NSLock_error_handler (id obj, SEL _cmd, BOOL stop);
+/** Code may replace this function pointer in order to intercept the normal
+ * logging of a deadlock.
+ */
+GS_EXPORT NSLock_error_handler  *_NSLock_error_handler;
+#endif
+
 #if  defined(__cplusplus)
 }
 #endif

@@ -37,6 +37,7 @@
 #import "GSURLPrivate.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/NSData+GNUstepBase.h"
+#import "GNUstepBase/NSStream+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
@@ -68,6 +69,12 @@ zfree(void *opaque, void *mem)
 #endif
 #endif
 
+
+@interface	NSURLProtocol (Debug)
+- (NSString*) in;
+- (NSString*) out;
+@end
+
 static void
 debugRead(id handle, int len, const unsigned char *ptr)
 {
@@ -92,16 +99,16 @@ debugRead(id handle, int len, const unsigned char *ptr)
                                         freeWhenDone: NO];
           esc = [data escapedRepresentation: 0];
 
-          NSLog(@"Read for %p of %d bytes (escaped) - '%s'\n<[%s]>",
-            handle, len, esc, hex); 
+          NSLog(@"Read for %p %@ of %d bytes (escaped) - '%s'\n<[%s]>",
+            handle, [handle in], len, esc, hex); 
           free(esc);
           RELEASE(data);
           free(hex);
           return;
         }
     }
-  NSLog(@"Read for %p of %d bytes - '%*.*s'\n<[%s]>",
-    handle, len, len, len, ptr, hex); 
+  NSLog(@"Read for %p %@ of %d bytes - '%*.*s'\n<[%s]>",
+    handle, [handle in], len, len, len, ptr, hex); 
   free(hex);
 }
 static void
@@ -127,16 +134,16 @@ debugWrite(id handle, int len, const unsigned char *ptr)
                                               length: len
                                         freeWhenDone: NO];
           esc = [data escapedRepresentation: 0];
-          NSLog(@"Write for %p of %d bytes (escaped) - '%s'\n<[%s]>",
-            handle, len, esc, hex); 
+          NSLog(@"Write for %p %@ of %d bytes (escaped) - '%s'\n<[%s]>",
+            handle, [handle out], len, esc, hex); 
           free(esc);
           RELEASE(data);
           free(hex);
           return;
         }
     }
-  NSLog(@"Write for %p of %d bytes - '%*.*s'\n<[%s]>",
-    handle, len, len, len, ptr, hex); 
+  NSLog(@"Write for %p %@ of %d bytes - '%*.*s'\n<[%s]>",
+    handle, [handle out], len, len, len, ptr, hex); 
   free(hex);
 }
 
@@ -368,6 +375,8 @@ typedef struct {
   NSCachedURLResponse		*cachedResponse;
   id <NSURLProtocolClient>	client;		// Not retained
   NSURLRequest			*request;
+  NSString                      *in;
+  NSString                      *out;
 #if	USE_ZLIB
   z_stream			z;		// context for decompress
   BOOL				compressing;	// are we compressing?
@@ -512,6 +521,8 @@ static NSURLProtocol	*placeholder = nil;
           [this->output close];
           DESTROY(this->input);
           DESTROY(this->output);
+          DESTROY(this->in);
+          DESTROY(this->out);
 	}
       DESTROY(this->cachedResponse);
       DESTROY(this->request);
@@ -595,6 +606,17 @@ static NSURLProtocol	*placeholder = nil;
   return this->request;
 }
 
+@end
+
+@implementation	NSURLProtocol (Debug)
+- (NSString*) in
+{
+  return (this) ? (this->in) : nil;
+}
+- (NSString*) out
+{
+  return (this) ? (this->out) : nil;
+}
 @end
 
 @implementation	NSURLProtocol (Private)
@@ -1449,6 +1471,18 @@ static NSURLProtocol	*placeholder = nil;
 	        {
 	          NSLog(@"%@ HTTP output stream opened", self);
 	        }
+              this->in = [[NSString alloc]
+                initWithFormat: @"(%@:%@ <-- %@:%@)",
+                [stream propertyForKey: GSStreamLocalAddressKey],
+                [stream propertyForKey: GSStreamLocalPortKey],
+                [stream propertyForKey: GSStreamRemoteAddressKey],
+                [stream propertyForKey: GSStreamRemotePortKey]];
+              this->out = [[NSString alloc]
+                initWithFormat: @"(%@:%@ --> %@:%@)",
+                [stream propertyForKey: GSStreamLocalAddressKey],
+                [stream propertyForKey: GSStreamLocalPortKey],
+                [stream propertyForKey: GSStreamRemoteAddressKey],
+                [stream propertyForKey: GSStreamRemotePortKey]];
 	      DESTROY(_writeData);
 	      _writeOffset = 0;
 	      if ([this->request HTTPBodyStream] == nil)

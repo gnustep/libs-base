@@ -1,3 +1,12 @@
+2018-03-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSLock.h: Expose pointer to function handling
+	logging of deadlocks.
+	* Source/NSLock.m: Indirect via pointer so apps can intercept the
+	logging of deadlocks.
+	* Source/GSHTTPURLHandle.m: Provide more detailed debug logging.
+	* Source/NSURLProtocol.m: Provide more detailed debug logs.
+
 2018-02-25  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSeq.h: Fixup error in last modification.

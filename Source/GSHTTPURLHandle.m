@@ -127,6 +127,9 @@ static NSString	*httpVersion = @"1.1";
     writing,
     reading,
   } connectionState;
+@public
+  NSString      *in;
+  NSString      *out;
 }
 - (int) setDebug: (int)flag;
 - (void) _tryLoadInBackground: (NSURL*)fromURL;
@@ -247,15 +250,15 @@ debugRead(GSHTTPURLHandle *handle, NSData *data)
         {
           char  *esc = [data escapedRepresentation: 0];
 
-          NSLog(@"Read for %p of %d bytes (escaped) - '%s'\n<[%s]>",
-            handle, len, esc, hex); 
+          NSLog(@"Read for %p %@ of %d bytes (escaped) - '%s'\n<[%s]>",
+            handle, handle->in, len, esc, hex); 
           free(esc);
           free(hex);
           return;
         }
     }
-  NSLog(@"Read for %p of %d bytes - '%*.*s'\n<[%s]>",
-    handle, len, len, len, ptr, hex); 
+  NSLog(@"Read for %p %@ of %d bytes - '%*.*s'\n<[%s]>",
+    handle, handle->in, len, len, len, ptr, hex); 
   free(hex);
 }
 static void
@@ -277,15 +280,15 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
         {
           char  *esc = [data escapedRepresentation: 0];
 
-          NSLog(@"Write for %p of %d bytes (escaped) - '%s'\n<[%s]>",
-            handle, len, esc, hex); 
+          NSLog(@"Write for %p %@ of %d bytes (escaped) - '%s'\n<[%s]>",
+            handle, handle->out, len, esc, hex); 
           free(esc);
           free(hex);
           return;
         }
     }
-  NSLog(@"Write for %p of %d bytes - '%*.*s'\n<[%s]>",
-    handle, len, len, len, ptr, hex); 
+  NSLog(@"Write for %p %@ of %d bytes - '%*.*s'\n<[%s]>",
+    handle, handle->out, len, len, len, ptr, hex); 
   free(hex);
 }
 
@@ -338,6 +341,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [sock closeFile];
       DESTROY(sock);
     }
+  DESTROY(out);
+  DESTROY(in);
   DESTROY(u);
   DESTROY(url);
   DESTROY(dat);
@@ -417,7 +422,11 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   IF_NO_GC([self retain];)
   if (debug)
-    NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
+    {
+      NSLog(@"%@ %p %@ %s",
+        NSStringFromSelector(_cmd), self, out,
+        (keepalive ? "re-used connection" : "initial connection"));
+    }
 
   s = [basic mutableCopy];
   if ([[u query] length] > 0)
@@ -883,7 +892,9 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   IF_NO_GC([self retain];)
   if (debug)
-    NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
+    {
+      NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
+    }
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
   if (YES == debug) debugRead(self, d);
 
@@ -958,15 +969,10 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSString		*path;
 
   IF_NO_GC([self retain];)
-  if (debug)
-    NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
-
-  path = [[[u fullPath] stringByTrimmingSpaces]
-    stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
-  if ([path length] == 0)
-    {
-      path = @"/";
-    }
+  
+  [nc removeObserver: self
+                name: GSFileHandleConnectCompletionNotification
+              object: sock];
 
   /*
    * See if the connection attempt caused an error.
@@ -986,13 +992,28 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       return;
     }
 
-  [nc removeObserver: self
-                name: GSFileHandleConnectCompletionNotification
-              object: sock];
+  in = [[NSString alloc] initWithFormat: @"(%@:%@ <-- %@:%@)",
+    [sock socketLocalAddress], [sock socketLocalService],
+    [sock socketAddress], [sock socketService]];
+  out = [[NSString alloc] initWithFormat: @"(%@:%@ --> %@:%@)",
+    [sock socketLocalAddress], [sock socketLocalService],
+    [sock socketAddress], [sock socketService]];
+
+  if (debug)
+    {
+      NSLog(@"%@ %p", NSStringFromSelector(_cmd), self);
+    }
 
   /*
    * Build HTTP request.
    */
+
+  path = [[[u fullPath] stringByTrimmingSpaces]
+    stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
+  if ([path length] == 0)
+    {
+      path = @"/";
+    }
 
   /*
    * If SSL via proxy, set up tunnel first
@@ -1188,6 +1209,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  [nc removeObserver: self name: nil object: sock];
 	  [sock closeFile];
 	  DESTROY(sock);
+          DESTROY(in);
+          DESTROY(out);
 	  connectionState = idle;
 	  if (debug)
 	    NSLog(@"%@ %p restart on new connection",
