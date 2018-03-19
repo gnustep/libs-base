@@ -42,9 +42,13 @@ int main()
     [MyClass testAbc];
   NS_HANDLER
     {
-      NSArray *a = [localException callStackSymbols];
+      NSArray   *addresses = [localException callStackReturnAddresses];
+      NSArray   *a = [localException callStackSymbols];
       NSEnumerator *e = [a objectEnumerator];
       NSString  *s = nil;
+
+      PASS([addresses count] > 0, "call stack addresses is not empty");
+      PASS([addresses count] == [a count], "addresses and symbols match");
 
 NSLog(@"Got %@", a);
       while ((s = [e nextObject]) != nil)
