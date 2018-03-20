@@ -26,7 +26,6 @@
 
 #if defined(HAVE_LIBXML)
 
-#define GS_XMLNODETYPE	xmlEntity
 #define GSInternal	NSXMLDTDNodeInternal
 
 #import	"NSXMLPrivate.h"
@@ -101,12 +100,12 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 
 - (NSString*) notationName
 {
-  return StringFromXMLStringPtr(internal->node->name);
+  return StringFromXMLStringPtr(internal->node.entity->name);
 }
 
 - (NSString*) publicID
 {
- return StringFromXMLStringPtr(internal->node->ExternalID);
+ return StringFromXMLStringPtr(internal->node.entity->ExternalID);
 }
 
 - (void) setDTDKind: (NSXMLDTDNodeKind)nodeKind
@@ -116,22 +115,22 @@ GS_PRIVATE_INTERNAL(NSXMLDTDNode)
 
 - (void) setNotationName: (NSString*)notationName
 {
-  internal->node->name = XMLSTRING(notationName);
+  internal->node.entity->name = XMLSTRING(notationName);
 }
 
 - (void) setPublicID: (NSString*)publicID
 {
-  internal->node->ExternalID = XMLSTRING(publicID);
+  internal->node.entity->ExternalID = XMLSTRING(publicID);
 }
 
 - (void) setSystemID: (NSString*)systemID
 {
-  internal->node->ExternalID = XMLSTRING(systemID);
+  internal->node.entity->ExternalID = XMLSTRING(systemID);
 }
 
 - (NSString*) systemID
 {
-  return StringFromXMLStringPtr(internal->node->SystemID);
+  return StringFromXMLStringPtr(internal->node.entity->SystemID);
 }
 
 @end
