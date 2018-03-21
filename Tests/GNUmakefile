@@ -71,10 +71,10 @@ check::
 	export ADDITIONAL_LIB_DIRS;\
 	export LD_LIBRARY_PATH;\
 	export PATH;\
-	if [ "$(DEBUG)" = "" ]; then \
-	  gnustep-tests base;\
-        else \
+	if [ "$(debug)" = "yes" ]; then \
 	  gnustep-tests --debug base;\
+        else \
+	  gnustep-tests base;\
         fi; \
 	)
 
