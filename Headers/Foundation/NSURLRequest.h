@@ -44,10 +44,15 @@ extern "C" {
 enum
 {
   NSURLRequestUseProtocolCachePolicy,
-  NSURLRequestReloadIgnoringCacheData,
+  NSURLRequestReloadIgnoringLocalCacheData,
   NSURLRequestReturnCacheDataElseLoad,
   NSURLRequestReturnCacheDataDontLoad,
+  NSURLRequestReloadIgnoringLocalAndRemoteCacheData, // Unimplemented per Cocoa docs
+  NSURLRequestReloadRevalidatingCacheData,           // Unimplemented per Cocoa docs  
+  NSURLRequestReloadIgnoringCacheData = NSURLRequestReloadIgnoringLocalCacheData,
+
 };
+  
 /**
  * <deflist>
  *   <term>NSURLRequestUseProtocolCachePolicy</term>
@@ -71,6 +76,18 @@ enum
  *   <desc>
  *     Says to use cached data if any is available, but to
  *     return nil without loading if the cache is empty.
+ *   </desc>
+ *   <term>NSURLRequestReloadIgnoringLocalAndRemoteCacheData</term>
+ *   <desc>
+ *     Says that not only should the local cache data be
+ *     ignored, but that proxies and other intermediates should be
+ *     instructed to disregard their caches so far as the protocol allows.
+ *   </desc>
+ *   <term>NSURLRequestReloadRevalidatingCacheData</term>
+ *   <desc>
+ *     Says that the existing cache data may be used provided
+ *     the origin source confirms its validity, otherwise the
+ *     URL is loaded from the origin source.
  *   </desc>
  * </deflist>
  */
