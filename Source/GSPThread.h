@@ -25,6 +25,12 @@
 
 #include <pthread.h>
 
+#import "Foundation/NSLock.h"
+
+@class  GSStackTrace;
+@class  NSArray;
+@class  NSMapTable;
+
 /*
  * Macro to initialize recursive mutexes in a portable way. Adopted from
  * libobjc2 (lock.h).
@@ -47,5 +53,29 @@ static inline void GSPThreadInitRecursiveMutex(pthread_mutex_t *x)
   pthread_mutexattr_destroy(&recursiveAttributes);
 }
 # endif // PTHREAD_RECURSIVE_MUTEX_INITIALIZER(_NP)
+
+
+/* Class to obtain/encapsulate a stack trace for exception reporting and/or
+ * lock tracing.
+ */
+@interface GSStackTrace : NSObject
+{
+  NSArray	        *symbols;
+  NSArray	        *addresses;
+@public
+  NSUInteger            recursion;      // Recursion count for lock trace
+  void	                **returns;      // The return addresses on the stack
+  int                   numReturns;     // Number of return addresses
+}
+- (NSArray*) addresses;
+- (NSArray*) symbols;
+@end
+
+/* Versions of the lock classes where the locking is never traced
+ */
+@interface      GSUntracedLock : NSLock
+@end
+@interface      GSUntracedRecursiveLock : NSRecursiveLock
+@end
 
 #endif // _GSPThread_h_

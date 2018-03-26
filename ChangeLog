@@ -1,3 +1,13 @@
+2018-03-26  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSPThread.h:
+	* Source/GSException.m:
+	Optimise generation of stack traces to store them in a single simple
+	malloced buffer and only generate an NSArray of return addresses if
+	actually requested.  Also adjust output of stack trace to exclude the
+	top few frames involved in generation of the trace, so we see only
+	the frames of interest.
+
 2018-03-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSLock.h: Expose pointer to function handling

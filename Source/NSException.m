@@ -32,6 +32,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCoder.h"
+#import "Foundation/NSData.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSNull.h"
 #import "Foundation/NSThread.h"
@@ -40,6 +41,7 @@
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
+#import "GSPThread.h"
 
 #ifdef __GNUSTEP_RUNTIME__
 #include <objc/hooks.h>
@@ -107,17 +109,6 @@ static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler = 0;
 #define _e_info (((id*)_reserved)[0])
 #define _e_stack (((id*)_reserved)[1])
 
-/* This is the GNU name for the CTOR list */
-
-@interface GSStackTrace : NSObject
-{
-  NSArray	*symbols;
-  NSArray	*addresses;
-}
-- (NSArray*) addresses;
-- (NSArray*) symbols;
-
-@end
 
 @interface NSException (GSPrivate)
 - (GSStackTrace*) _callStack;
@@ -574,10 +565,6 @@ GSListModules()
 #endif	/* USE_BFD */
 
 
-@implementation GSStackTrace : NSObject
-
-static	NSRecursiveLock	*traceLock = nil;
-
 #if	defined(_WIN32) && !defined(USE_BFD)
 typedef USHORT (WINAPI *CaptureStackBackTraceType)(ULONG,ULONG,PVOID*,PULONG);
 typedef BOOL (WINAPI *SymInitializeType)(HANDLE,char*,BOOL);
@@ -589,20 +576,47 @@ static SymInitializeType initSym = 0;
 static SymSetOptionsType optSym = 0;
 static SymFromAddrType fromSym = 0;
 static HANDLE	hProcess = 0;
+static	NSRecursiveLock	*traceLock = nil;
 #define	MAXFRAMES 62	/* Limitation of windows-xp */
+#else
+#define MAXFRAMES 128   /* 1KB buffer on 64bit machine */
 #endif
 
 
+@implementation GSStackTrace : NSObject
+
+/** Offset from the top of the stack (when we generate a trace) to the
+ * first frame likely to be of interest for debugging.
+ */
+#define FrameOffset     4
+
 + (void) initialize
 {
+#if	defined(_WIN32) && !defined(USE_BFD)
   if (nil == traceLock)
     {
       traceLock = [NSRecursiveLock new];
     }
+#endif
 }
 
 - (NSArray*) addresses
 {
+  if (nil == addresses && numReturns > FrameOffset)
+    {
+      CREATE_AUTORELEASE_POOL(pool);
+      NSInteger         count = numReturns - FrameOffset;
+      NSValue           *objects[count];
+      NSUInteger        index;
+      const void        **ptrs = (const void **)returns;
+
+      for (index = 0; index < count; index++)
+        {
+          objects[index] = [NSValue valueWithPointer: ptrs[FrameOffset+index]];
+        }
+      addresses = [[NSArray alloc] initWithObjects: objects count: count];
+      DESTROY(pool);
+    }
   return addresses;
 }
 
@@ -610,6 +624,11 @@ static HANDLE	hProcess = 0;
 {
   DESTROY(addresses);
   DESTROY(symbols);
+  if (returns != NULL)
+    {
+      free(returns);
+      returns = NULL;
+    }
   [super dealloc];
 }
 
@@ -632,16 +651,25 @@ static HANDLE	hProcess = 0;
   return result;
 }
 
-// grab the current stack 
 - (id) init
 {
-#if	defined(USE_BFD)
-  addresses = [GSPrivateStackAddresses() copy];
-#elif	defined(_WIN32)
-  uint16_t	frames;
+  return [self initWithOffset: 3];
+}
+
+// grab the current stack 
+- (id) initWithOffset: (unsigned)o
+{
+#if HAVE_BACKTRACE
+  void                  *addr[MAXFRAMES*sizeof(void*)];
+
+  numReturns = backtrace(addr, MAXFRAMES*sizeof(void*));
+  if (numReturns > 0)
+    {
+      returns = malloc(numReturns * sizeof(void*));
+      memcpy(returns, addr, numReturns * sizeof(void*));
+   }
+#elif	defined(_WIN32) && !defined(USE_BFD)
   NSUInteger	addr[MAXFRAMES];
-  NSNumber	*vals[MAXFRAMES];
-  NSUInteger 	i;
 
   [traceLock lock];
   if (0 == hProcess)
@@ -723,34 +751,100 @@ static HANDLE	hProcess = 0;
       return self;
     }
 
-  frames = (capture)(0, MAXFRAMES, (void**)addr, NULL);
-  for (i = 0; i < frames; i++)
+  numReturns = (capture)(0, MAXFRAMES, (void**)addr, NULL);
+  if (numReturns > 0)
     {
-      vals[i] = [NSNumber numberWithUnsignedInteger: addr[i]];
+      returns = malloc(numReturns * sizeof(void*));
+      memcpy(returns, addr, numReturns * sizeof(void*));
     }
+  
   [traceLock unlock];
 
-  addresses = [[NSArray alloc] initWithObjects: vals count: frames];
-
-#elif	defined(HAVE_BACKTRACE)
-  void		**addr;
-  id		*vals;
-  int		count;
-  int		i;
-
-  addr = calloc(sizeof(void*),1024);
-  count = backtrace(addr, 1024);
-  addr = realloc(addr, count * sizeof(void*));
-  vals = alloca(count * sizeof(id));
-  for (i = 0; i < count; i++)
-    {
-      vals[i] = [NSNumber numberWithUnsignedInteger:
-	(NSUInteger)addr[i]];
-    }
-  addresses = [[NSArray alloc] initWithObjects: vals count: count];
-  free(addr);
 #else
-  addresses = [GSPrivateStackAddresses() copy];
+  int   n;
+
+  n = NSCountFrames();
+  /* There should be more frame addresses than return addresses.
+   */
+  if (n > 0)
+    {
+      n--;
+    }
+  if (n > 0)
+    {
+      n--;
+    }
+
+  if ((numReturns = n) > 0)
+    {
+      jbuf_type *env;
+
+      returns = malloc(numReturns * sizeof(void*));
+
+      env = jbuf();
+      if (sigsetjmp(env->buf, 1) == 0)
+        {
+          unsigned      i;
+
+          env->segv = signal(SIGSEGV, recover);
+          env->bus = signal(SIGBUS, recover);
+
+          for (i = 0; i < n; i++)
+            {
+              switch (i)
+                {
+                  _NS_RETURN_HACK(0); _NS_RETURN_HACK(1); _NS_RETURN_HACK(2);
+                  _NS_RETURN_HACK(3); _NS_RETURN_HACK(4); _NS_RETURN_HACK(5);
+                  _NS_RETURN_HACK(6); _NS_RETURN_HACK(7); _NS_RETURN_HACK(8);
+                  _NS_RETURN_HACK(9); _NS_RETURN_HACK(10); _NS_RETURN_HACK(11);
+                  _NS_RETURN_HACK(12); _NS_RETURN_HACK(13); _NS_RETURN_HACK(14);
+                  _NS_RETURN_HACK(15); _NS_RETURN_HACK(16); _NS_RETURN_HACK(17);
+                  _NS_RETURN_HACK(18); _NS_RETURN_HACK(19); _NS_RETURN_HACK(20);
+                  _NS_RETURN_HACK(21); _NS_RETURN_HACK(22); _NS_RETURN_HACK(23);
+                  _NS_RETURN_HACK(24); _NS_RETURN_HACK(25); _NS_RETURN_HACK(26);
+                  _NS_RETURN_HACK(27); _NS_RETURN_HACK(28); _NS_RETURN_HACK(29);
+                  _NS_RETURN_HACK(30); _NS_RETURN_HACK(31); _NS_RETURN_HACK(32);
+                  _NS_RETURN_HACK(33); _NS_RETURN_HACK(34); _NS_RETURN_HACK(35);
+                  _NS_RETURN_HACK(36); _NS_RETURN_HACK(37); _NS_RETURN_HACK(38);
+                  _NS_RETURN_HACK(39); _NS_RETURN_HACK(40); _NS_RETURN_HACK(41);
+                  _NS_RETURN_HACK(42); _NS_RETURN_HACK(43); _NS_RETURN_HACK(44);
+                  _NS_RETURN_HACK(45); _NS_RETURN_HACK(46); _NS_RETURN_HACK(47);
+                  _NS_RETURN_HACK(48); _NS_RETURN_HACK(49); _NS_RETURN_HACK(50);
+                  _NS_RETURN_HACK(51); _NS_RETURN_HACK(52); _NS_RETURN_HACK(53);
+                  _NS_RETURN_HACK(54); _NS_RETURN_HACK(55); _NS_RETURN_HACK(56);
+                  _NS_RETURN_HACK(57); _NS_RETURN_HACK(58); _NS_RETURN_HACK(59);
+                  _NS_RETURN_HACK(60); _NS_RETURN_HACK(61); _NS_RETURN_HACK(62);
+                  _NS_RETURN_HACK(63); _NS_RETURN_HACK(64); _NS_RETURN_HACK(65);
+                  _NS_RETURN_HACK(66); _NS_RETURN_HACK(67); _NS_RETURN_HACK(68);
+                  _NS_RETURN_HACK(69); _NS_RETURN_HACK(70); _NS_RETURN_HACK(71);
+                  _NS_RETURN_HACK(72); _NS_RETURN_HACK(73); _NS_RETURN_HACK(74);
+                  _NS_RETURN_HACK(75); _NS_RETURN_HACK(76); _NS_RETURN_HACK(77);
+                  _NS_RETURN_HACK(78); _NS_RETURN_HACK(79); _NS_RETURN_HACK(80);
+                  _NS_RETURN_HACK(81); _NS_RETURN_HACK(82); _NS_RETURN_HACK(83);
+                  _NS_RETURN_HACK(84); _NS_RETURN_HACK(85); _NS_RETURN_HACK(86);
+                  _NS_RETURN_HACK(87); _NS_RETURN_HACK(88); _NS_RETURN_HACK(89);
+                  _NS_RETURN_HACK(90); _NS_RETURN_HACK(91); _NS_RETURN_HACK(92);
+                  _NS_RETURN_HACK(93); _NS_RETURN_HACK(94); _NS_RETURN_HACK(95);
+                  _NS_RETURN_HACK(96); _NS_RETURN_HACK(97); _NS_RETURN_HACK(98);
+                  _NS_RETURN_HACK(99);
+                  default: env->addr = 0; break;
+                }
+              if (env->addr == 0)
+                {
+                  break;
+                }
+              memcpy(&returns[i], env->addr, sizeof(void*));
+            }
+          signal(SIGSEGV, env->segv);
+          signal(SIGBUS, env->bus);
+        }
+      else
+        {
+          env = jbuf();
+          signal(SIGSEGV, env->segv);
+          signal(SIGBUS, env->bus);
+        }
+    }
 #endif
   return self;
 }
@@ -759,7 +853,8 @@ static HANDLE	hProcess = 0;
 {
   if (nil == symbols) 
     {
-      NSUInteger	count = [addresses count];
+      NSInteger	        count = numReturns - FrameOffset;
+      const void        **ptrs = (const void**)&returns[FrameOffset];
 
       if (count > 0)
 	{
@@ -772,12 +867,11 @@ static HANDLE	hProcess = 0;
 	  for (i = 0; i < count; i++)
 	    {
 	      GSFunctionInfo	*aFrame = nil;
-	      void		*address;
+	      void		*address = (void*)*ptrs++;
 	      void		*base;
 	      NSString		*modulePath;
 	      GSBinaryFileInfo	*bfi;
 
-	      address = (void*)[[addresses objectAtIndex: i] pointerValue];
 	      modulePath = GSPrivateBaseAddress(address, &base);
 	      if (modulePath != nil && (bfi = GSLoadModule(modulePath)) != nil)
 		{
@@ -842,9 +936,8 @@ static HANDLE	hProcess = 0;
 	  [traceLock lock];
 	  for (i = 0; i < count; i++)
 	    {
-	      NSUInteger	addr; 
+	      NSUInteger	addr = (NSUInteger)*ptrs++; 
 
-	      addr = (NSUInteger)[[addresses objectAtIndex: i] integerValue];
 	      if ((fromSym)(hProcess, (DWORD64)addr, 0, symbol))
 		{
 		  syms[i] = [NSString stringWithFormat:
@@ -862,18 +955,10 @@ static HANDLE	hProcess = 0;
 	  symbols = [[NSArray alloc] initWithObjects: syms count: count];
 #elif	defined(HAVE_BACKTRACE)
 	  char		**strs;
-	  void		**addr;
 	  NSString	**symbolArray;
 	  NSUInteger 	i;
 
-	  addr = alloca(count * sizeof(void*));
-	  for (i = 0; i < count; i++)
-	    {
-	      addr[i] = (void*)[[addresses objectAtIndex: i]
-		unsignedIntegerValue];
-	    }
-
-	  strs = backtrace_symbols(addr, count);
+	  strs = backtrace_symbols(ptrs, count);
 	  symbolArray = alloca(count * sizeof(NSString*));
 	  for (i = 0; i < count; i++)
 	    {
