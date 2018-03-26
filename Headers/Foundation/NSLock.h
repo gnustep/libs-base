@@ -72,7 +72,7 @@ extern "C" {
 @interface NSLock : NSObject <NSLocking>
 {
 #if	GS_EXPOSE(NSLock)
-@private
+@protected
   gs_mutex_t	_mutex;
   NSString	*_name;
 #endif
@@ -123,7 +123,7 @@ extern "C" {
 @interface NSCondition : NSObject <NSLocking>
 {
 #if	GS_EXPOSE(NSCondition)
-@private
+@protected
   gs_cond_t	_condition;
   gs_mutex_t	_mutex;
   NSString	*_name;
@@ -173,7 +173,7 @@ extern "C" {
 @interface NSConditionLock : NSObject <NSLocking>
 {
 #if	GS_EXPOSE(NSConditionLock)
-@private
+@protected
   NSCondition *_condition;
   int   _condition_value;
   NSString      *_name;
@@ -273,7 +273,7 @@ extern "C" {
 @interface NSRecursiveLock : NSObject <NSLocking>
 {
 #if	GS_EXPOSE(NSRecursiveLock)
-@private
+@protected
   gs_mutex_t	_mutex;
   NSString      *_name;
 #endif
@@ -320,7 +320,7 @@ extern "C" {
 @end
 
 #if !NO_GNUSTEP
-typedef void NSLock_error_handler (id obj, SEL _cmd, BOOL stop);
+typedef void NSLock_error_handler(id obj, SEL _cmd, BOOL stop, NSString *msg);
 /** Code may replace this function pointer in order to intercept the normal
  * logging of a deadlock.
  */

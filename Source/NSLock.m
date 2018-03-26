@@ -23,6 +23,7 @@
 */
 
 #import "common.h"
+
 #include <pthread.h>
 #import "GSPrivate.h"
 #define	gs_cond_t	pthread_cond_t
@@ -38,6 +39,29 @@
 
 #import "Foundation/NSLock.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSThread.h"
+
+#import "GSPThread.h"
+
+static BOOL     traceLocks = NO;
+
+void
+GSPrivateTraceLocks(BOOL aFlag)
+{
+  traceLocks = (aFlag ? YES : NO);
+}
+
+
+#define CHKT(T,X) \
+if (traceLocks) { \
+  NSString *msg = [T mutex ## X: self]; \
+  if (nil != msg) \
+    { \
+      (*_NSLock_error_handler)(self, _cmd, YES, msg); \
+    } \
+};
+
+#define CHK(X) CHKT(GSCurrentThread(), X)
 
 /*
  * Methods shared between NSLock, NSRecursiveLock, and NSCondition
@@ -130,19 +154,46 @@
   return _name;\
 }
 
+#define	MLOCK_TRACED \
+{ \
+  NSThread      *t = GSCurrentThread(); \
+  CHKT(t,Wait) \
+  int err = pthread_mutex_lock(&_mutex);\
+  if (EDEADLK == err)\
+    {\
+      CHKT(t,Drop) \
+      (*_NSLock_error_handler)(self, _cmd, YES, @"deadlock");\
+    }\
+  else if (err != 0)\
+    {\
+      CHKT(t,Drop) \
+      [NSException raise: NSLockException\
+            format: @"failed to lock mutex"];\
+    }\
+  CHKT(t,Hold) \
+}
+
+#define	MLOCK_UNTRACED \
+{ \
+  int err = pthread_mutex_lock(&_mutex);\
+  if (EDEADLK == err)\
+    {\
+      (*_NSLock_error_handler)(self, _cmd, YES, @"deadlock");\
+    }\
+  else if (err != 0)\
+    {\
+      [NSException raise: NSLockException\
+            format: @"failed to lock mutex"];\
+    }\
+}
+
 #define	MLOCK \
 - (void) lock\
 {\
-  int err = pthread_mutex_lock(&_mutex);\
-  if (EINVAL == err)\
-    {\
-      [NSException raise: NSLockException\
-	    format: @"failed to lock mutex"];\
-    }\
-  if (EDEADLK == err)\
-    {\
-      (*_NSLock_error_handler)(self, _cmd, YES);\
-    }\
+  if (traceLocks) \
+    MLOCK_TRACED \
+  else \
+    MLOCK_UNTRACED \
 }
 
 #define	MLOCKBEFOREDATE \
@@ -153,6 +204,7 @@
       int err = pthread_mutex_trylock(&_mutex);\
       if (0 == err)\
 	{\
+          CHK(Hold) \
 	  return YES;\
 	}\
       sched_yield();\
@@ -164,7 +216,15 @@
 - (BOOL) tryLock\
 {\
   int err = pthread_mutex_trylock(&_mutex);\
-  return (0 == err) ? YES : NO;\
+  if (0 == err) \
+    { \
+      CHK(Hold) \
+      return YES; \
+    } \
+  else \
+    { \
+      return NO;\
+    } \
 }
 
 #define	MUNLOCK \
@@ -175,6 +235,7 @@
       [NSException raise: NSLockException\
 	    format: @"failed to unlock mutex"];\
     }\
+  CHK(Drop) \
 }
 
 static pthread_mutex_t deadlock;
@@ -185,10 +246,10 @@ static pthread_mutexattr_t attr_recursive;
 /*
  * OS X 10.5 compatibility function to allow debugging deadlock conditions.
  */
-void _NSLockError(id obj, SEL _cmd, BOOL stop)
+void _NSLockError(id obj, SEL _cmd, BOOL stop, NSString *msg)
 {
-  NSLog(@"*** -[%@ %@]: deadlock (%@)", [obj class],
-    NSStringFromSelector(_cmd), obj);
+  NSLog(@"*** -[%@ %@]: %@ (%@)", [obj class], NSStringFromSelector(_cmd),
+    msg, obj);
   NSLog(@"*** Break on _NSLockError() to debug.");
   if (YES == stop)
     pthread_mutex_lock(&deadlock);
@@ -267,11 +328,12 @@ MLOCK
       int err = pthread_mutex_trylock(&_mutex);
       if (0 == err)
 	{
+          if (traceLocks) CHK(Hold)
 	  return YES;
 	}
       if (EDEADLK == err)
 	{
-	  (*_NSLock_error_handler)(self, _cmd, NO);
+	  (*_NSLock_error_handler)(self, _cmd, NO, @"deadlock");
 	}
       sched_yield();
     } while ([limit timeIntervalSinceNow] > 0);
@@ -367,33 +429,70 @@ MUNLOCK
 
 - (void) wait
 {
-  pthread_cond_wait(&_condition, &_mutex);
+  if (traceLocks)
+    {
+      NSThread      *t = GSCurrentThread();
+      CHKT(t,Drop)
+      CHKT(t,Wait)
+      pthread_cond_wait(&_condition, &_mutex);
+      CHKT(t,Hold)
+    }
+  else
+    {
+      pthread_cond_wait(&_condition, &_mutex);
+    }
 }
 
 - (BOOL) waitUntilDate: (NSDate*)limit
 {
-  NSTimeInterval t = [limit timeIntervalSince1970];
+  NSTimeInterval ti = [limit timeIntervalSince1970];
   double secs, subsecs;
   struct timespec timeout;
   int retVal = 0;
 
   // Split the float into seconds and fractions of a second
-  subsecs = modf(t, &secs);
+  subsecs = modf(ti, &secs);
   timeout.tv_sec = secs;
   // Convert fractions of a second to nanoseconds
   timeout.tv_nsec = subsecs * 1e9;
 
-  retVal = pthread_cond_timedwait(&_condition, &_mutex, &timeout);
+  /* NB. On timeout the lock is still held even through condition is not met
+   */
 
-  if (retVal == 0)
+  if (traceLocks)
     {
-      return YES;
+      NSThread      *t = GSCurrentThread();
+
+      CHKT(t,Drop)
+      retVal = pthread_cond_timedwait(&_condition, &_mutex, &timeout);
+      if (retVal == 0)
+        {
+          CHKT(t,Hold)
+          return YES;
+        }
+      if (retVal == ETIMEDOUT)
+        {
+          CHKT(t,Hold)
+          return NO;
+        }
     }
-  else if (retVal == EINVAL)
+  else
+    {
+      retVal = pthread_cond_timedwait(&_condition, &_mutex, &timeout);
+      if (retVal == 0)
+        {
+          return YES;
+        }
+      if (retVal == ETIMEDOUT)
+        {
+          return NO;
+        }
+    }
+
+  if (retVal == EINVAL)
     {
       NSLog(@"Invalid arguments to pthread_cond_timedwait");
     }
-
   return NO;
 }
 
@@ -434,6 +533,8 @@ MUNLOCK
       else
 	{
           _condition_value = value;
+          [_condition setName:
+            [NSString stringWithFormat: @"condition-for-lock-%p", self]];
 	}
     }
   return self;
@@ -468,21 +569,21 @@ MUNLOCK
 {
   if (NO == [_condition lockBeforeDate: limitDate])
     {
-      return NO;
+      return NO;        // Not locked
     }
   if (condition_to_meet == _condition_value)
     {
-      return YES;
+      return YES;       // Keeping the lock
     }
   while ([_condition waitUntilDate: limitDate])
     {
       if (condition_to_meet == _condition_value)
 	{
-	  return YES; // KEEP THE LOCK
+	  return YES;   // Keeping the lock
 	}
     }
   [_condition unlock];
-  return NO;
+  return NO;            // Not locked
 }
 
 MNAME
@@ -521,3 +622,62 @@ MNAME
 }
 
 @end
+
+
+
+/* Versions of the lock classes where the locking is unconditionally traced
+ */
+@interface      GSTracedRecursiveLock : NSRecursiveLock
+@end
+@interface      GSTracedLock : NSLock
+@end
+
+#undef CHKT
+#define CHKT(T,X) \
+{ \
+  NSString *msg = [T mutex ## X: self]; \
+  if (nil != msg) \
+    { \
+      (*_NSLock_error_handler)(self, _cmd, YES, msg); \
+    } \
+}
+#undef MLOCK
+#define	MLOCK \
+- (void) lock\
+  MLOCK_TRACED
+
+@implementation GSTracedLock
+MLOCK
+MLOCKBEFOREDATE
+MTRYLOCK
+MUNLOCK
+@end
+@implementation GSTracedRecursiveLock
+MLOCK
+MLOCKBEFOREDATE
+MTRYLOCK
+MUNLOCK
+@end
+
+
+/* Versions of the lock classes where the locking is never traced
+ */
+#undef CHKT
+#define CHKT(T,X)       
+#undef MLOCK
+#define	MLOCK \
+- (void) lock\
+  MLOCK_UNTRACED
+@implementation GSUntracedLock
+MLOCK
+MLOCKBEFOREDATE
+MTRYLOCK
+MUNLOCK
+@end
+@implementation GSUntracedRecursiveLock
+MLOCK
+MLOCKBEFOREDATE
+MTRYLOCK
+MUNLOCK
+@end
+

@@ -73,6 +73,9 @@ extern "C" {
   void                  *_runLoopInfo;  // Per-thread runloop related info.
 #endif
 #if     GS_NONFRAGILE
+#  if defined(GS_NSThread_IVARS)
+@public GS_NSThread_IVARS;
+#  endif
 #else
   /* Pointer to private additional data used to avoid breaking ABI
    * when we don't have the non-fragile ABI available.
@@ -367,6 +370,37 @@ GS_EXPORT BOOL GSRegisterCurrentThread (void);
  * this method call is not safe.  Posts an NSThreadWillExit
  * notification.  */
 GS_EXPORT void GSUnregisterCurrentThread (void);
+
+@interface NSThread (GSLockInfo)
+/** Turns on/off tracing of locks for deadlock tracking.  Use of this option
+ * introduces a major overhead processing lock operations, but enables
+ * detection of deadlocks between threads.
+ */
++ (void) setTraceLocks: (BOOL)aFlag;
+
+/** Returns an array containing a snapshot of threads which are active and
+ * waiting for a mutex.
+ */
++ (NSMutableArray *) waitingThreads;
+
+/* Removes the mutex (either as the one we are waiting for or as a held mutex.
+ * For internal use only ... do not call this method.<br />
+ */
+- (NSString *) mutexDrop: (id)mutex;
+
+/* Converts a waiting mutex to a held one (if mutex is nil), or increments
+ * the recursion count of a mutex already held by this thread.<br />
+ * For internal use only ... do not call this method.
+ */
+- (NSString *) mutexHold: (id)mutex;
+
+/* Register the mutex that the thread is waiting for.<br />
+ * For internal use only ... do not call this method.
+ */
+- (NSString *) mutexWait: (id)mutex;
+
+@end
+
 #endif
 
 /*

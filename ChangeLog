@@ -1,5 +1,16 @@
 2018-03-26  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Headers/Foundation/NSLock.h:
+        * Headers/Foundation/NSThread.h:
+        * Source/GSPrivate.h:
+        * Source/NSLock.m:
+        * Source/NSThread.m:
+	Experimental code to add support for tracing locks held by different
+	threads and to report deadlock situations where threads have
+	obtained locks in the wrong order and can never proceed.
+
+2018-03-26  Richard Frith-Macdonald <rfm@gnu.org>
+
 	Source/NSBundle.m:
 	Source/NSOperation.m:
 	Give locks names to ease debugging
