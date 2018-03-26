@@ -1485,6 +1485,7 @@ lockInfoErr(NSString *str)
   if (GS_EXISTS_INTERNAL && traceLocks)
     {
       GSLockInfo        *li = &lockInfo;
+      BOOL              owned = NO;
       int               err;
 
       err = pthread_spin_lock(&li->spin);
@@ -1493,13 +1494,21 @@ lockInfoErr(NSString *str)
       if (nil != li->wait)
         {
           NSString      *msg = [NSString stringWithFormat:
-            @ "-mutexWait: for %@ when already waiting for %@",
+            @ "trying to lock %@ when already trying to lock %@",
             mutex, li->wait];
           pthread_spin_unlock(&li->spin);
           return lockInfoErr(msg);
         }
       li->wait = mutex;
+      if (nil != NSMapGet(li->held, (const void*)mutex))
+        {
+          owned = YES;
+        }
       pthread_spin_unlock(&li->spin);
+      if (YES == owned && [mutex isKindOfClass: [NSRecursiveLock class]])
+        {
+          return nil;   // We can't deadlock on a recursive lock we own
+        }
 
 pthread_mutex_lock(&_activeLock);
 
@@ -1671,7 +1680,7 @@ pthread_mutex_unlock(&_activeLock);
     {
       if (SetEvent(event) == 0)
         {
-          NSLog(@"Set event failed - %@", [NSError _last]);
+          SLog(@"Set event failed - %@", [NSError _last]);
         }
       else
         {
