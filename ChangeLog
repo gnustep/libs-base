@@ -1,5 +1,16 @@
 2018-03-26  Richard Frith-Macdonald <rfm@gnu.org>
 
+	Source/NSBundle.m:
+	Source/NSOperation.m:
+	Give locks names to ease debugging
+
+	Source/NSObject.m:
+	Source/NSZone.m:
+	Updates to use pthread mutexes directly rather than NSLock objects
+	in key places for performance.
+
+2018-03-26  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSPThread.h:
 	* Source/GSException.m:
 	Optimise generation of stack traces to store them in a single simple

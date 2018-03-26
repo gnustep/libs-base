@@ -53,6 +53,8 @@
 #include <locale.h>
 #endif
 
+#import "GSPThread.h"
+
 #if	defined(HAVE_SYS_SIGNAL_H)
 #  include	<sys/signal.h>
 #elif	defined(HAVE_SIGNAL_H)
@@ -127,7 +129,7 @@ GS_ROOT_CLASS @interface	NSZombie
 /* allocationLock is needed when for protecting the map table of zombie
  * information and if atomic operations are not available.
  */
-static NSLock *allocationLock = nil;
+static pthread_mutex_t  allocationLock = PTHREAD_MUTEX_INITIALIZER;
 
 BOOL	NSZombieEnabled = NO;
 BOOL	NSDeallocateZombies = NO;
@@ -142,9 +144,9 @@ static void GSMakeZombie(NSObject *o, Class c)
   object_setClass(o, zombieClass);
   if (0 != zombieMap)
     {
-      [allocationLock lock];
+      pthread_mutex_lock(&allocationLock);
       NSMapInsert(zombieMap, (void*)o, (void*)c);
-      [allocationLock unlock];
+      pthread_mutex_unlock(&allocationLock);
     }
 }
 #endif
@@ -155,9 +157,9 @@ static void GSLogZombie(id o, SEL sel)
 
   if (0 != zombieMap)
     {
-      [allocationLock lock];
+      pthread_mutex_lock(&allocationLock);
       c = NSMapGet(zombieMap, (void*)o);
-      [allocationLock unlock];
+      pthread_mutex_unlock(&allocationLock);
     }
   if (c == 0)
     {
@@ -402,12 +404,12 @@ typedef int     gsrefcount_t;   // No atomics, use a simple integer
 #define LOCKMASK (LOCKCOUNT-1)
 #define ALIGNBITS 3
 
-static NSLock *allocationLocks[LOCKCOUNT] = { 0 };
+static pthread_mutex_t  allocationLocks[LOCKCOUNT];
 
-static inline NSLock *GSAllocationLockForObject(id p)
+static inline pthread_mutex_t   *GSAllocationLockForObject(id p)
 {
   NSUInteger i = ((((NSUInteger)(uintptr_t)p) >> ALIGNBITS) & LOCKMASK);
-  return allocationLocks[i];
+  return &allocationLocks[i];
 }
 
 #endif
@@ -512,21 +514,21 @@ static BOOL objc_release_fast_no_destroy_internal(id anObject)
         return YES;
       }
 #else	/* GSATOMICREAD */
-    NSLock *theLock = GSAllocationLockForObject(anObject);
+    pthread_mutex_t *theLock = GSAllocationLockForObject(anObject);
 
-    [theLock lock];
+    pthread_mutex_lock(theLock);
     if (((obj)anObject)[-1].retained == 0)
       {
 #  ifdef OBJC_CAP_ARC
         objc_delete_weak_refs(anObject);
 #  endif
-        [theLock unlock];
+        pthread_mutex_unlock(theLock);
         return YES;
       }
     else
       {
         ((obj)anObject)[-1].retained--;
-        [theLock unlock];
+        pthread_mutex_unlock(theLock);
         return NO;
       }
 #endif	/* GSATOMICREAD */
@@ -633,9 +635,9 @@ static id objc_retain_fast_np_internal(id anObject)
       tooFar = YES;
     }
 #else	/* GSATOMICREAD */
-  NSLock *theLock = GSAllocationLockForObject(anObject);
+  pthread_mutex_t *theLock = GSAllocationLockForObject(anObject);
 
-  [theLock lock];
+  pthread_mutex_lock(theLock);
   if (((obj)anObject)[-1].retained > 0xfffffe)
     {
       tooFar = YES;
@@ -644,7 +646,7 @@ static id objc_retain_fast_np_internal(id anObject)
     {
       ((obj)anObject)[-1].retained++;
     }
-  [theLock unlock];
+  pthread_mutex_unlock(theLock);
 #endif	/* GSATOMICREAD */
   if (YES == tooFar)
     {
@@ -831,9 +833,9 @@ NSDeallocateObject(id anObject)
 #ifdef OBJC_CAP_ARC
 	  if (0 != zombieMap)
 	    {
-	      [allocationLock lock];
+              pthread_mutex_lock(&allocationLock);
 	      NSMapInsert(zombieMap, (void*)anObject, (void*)aClass);
-	      [allocationLock unlock];
+              pthread_mutex_unlock(&allocationLock);
 	    }
 	  if (NSDeallocateZombies == YES)
 	    {
@@ -1033,17 +1035,16 @@ static id gs_weak_load(id obj)
 #  endif
 #endif
 
-      /* Create the lock for NSZombie and for allocation when atomic
+      /* Initialize the locks for allocation when atomic
        * operations are not available.
        */
-      allocationLock = [NSLock new];
 #if !defined(GSATOMICREAD)
       {
         NSUInteger	i;
 
         for (i = 0; i < LOCKCOUNT; i++)
           {
-            allocationLocks[i] = [NSLock new];
+            allocationLocks[i] = PTHREAD_MUTEX_INITIALIZER;
           }
       }
 #endif
@@ -1054,6 +1055,7 @@ static id gs_weak_load(id obj)
        * any use of the autorelease system.
        */
       gnustep_global_lock = [NSRecursiveLock new];
+      [gnustep_global_lock setName: @"gnustep_global_lock"];
 
       /* Behavior debugging ... enable with environment variable if needed.
        */
@@ -2497,9 +2499,10 @@ static id gs_weak_load(id obj)
     {
       return nil;
     }
-  [allocationLock lock];
+  pthread_mutex_lock(&allocationLock);
   c = zombieMap ? NSMapGet(zombieMap, (void*)self) : Nil;
-  [allocationLock unlock];
+  pthread_mutex_unlock(&allocationLock);
+
   return [c instanceMethodSignatureForSelector: aSelector];
 }
 @end

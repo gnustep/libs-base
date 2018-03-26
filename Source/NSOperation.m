@@ -246,7 +246,11 @@ static NSArray	*empty = nil;
       internal->threadPriority = 0.5;
       internal->ready = YES;
       internal->lock = [NSRecursiveLock new];
+      [internal->lock setName:
+        [NSString stringWithFormat: @"lock-for-opqueue-%p", self]];
       internal->cond = [[NSConditionLock alloc] initWithCondition: 0];
+      [internal->cond setName:
+        [NSString stringWithFormat: @"cond-for-opqueue-%p", self]];
       [self addObserver: self
              forKeyPath: @"isFinished"
                 options: NSKeyValueObservingOptionNew
@@ -751,7 +755,11 @@ static NSOperationQueue *mainQueue = nil;
       internal->starting = [NSMutableArray new];
       internal->waiting = [NSMutableArray new];
       internal->lock = [NSRecursiveLock new];
+      [internal->lock setName:
+        [NSString stringWithFormat: @"lock-for-op-%p", self]];
       internal->cond = [[NSConditionLock alloc] initWithCondition: 0];
+      [internal->cond setName:
+        [NSString stringWithFormat: @"cond-for-op-%p", self]];
     }
   return self;
 }

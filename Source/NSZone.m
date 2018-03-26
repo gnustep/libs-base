@@ -93,6 +93,8 @@
 #import "GSPrivate.h"
 #import "GSPThread.h"
 
+static pthread_mutex_t  zoneLock = PTHREAD_MUTEX_INITIALIZER;
+
 /**
  * Try to get more memory - the normal process has failed.
  * If we can't do anything, just return a null pointer.
@@ -203,12 +205,12 @@ NSSetZoneName (NSZone *zone, NSString *name)
 {
   if (!zone)
     zone = NSDefaultMallocZone();
-  [gnustep_global_lock lock];
+  pthread_mutex_lock(&zoneLock);
   name = [name copy];
   if (zone->name != nil)
     [zone->name release];
   zone->name = name;
-  [gnustep_global_lock unlock];
+  pthread_mutex_unlock(&zoneLock);
 }
 
 NSString*
@@ -758,7 +760,7 @@ frecycle1(NSZone *zone)
 static void
 frecycle (NSZone *zone)
 {
-  [gnustep_global_lock lock];
+  pthread_mutex_lock(&zoneLock);
   if (zone->name != nil)
     {
       NSString *name = zone->name;
@@ -774,17 +776,17 @@ frecycle (NSZone *zone)
       zone->free = rffree;
       zone->recycle = rrecycle;
     }
-  [gnustep_global_lock unlock];
+  pthread_mutex_unlock(&zoneLock);
 }
 
 static void
 rffree (NSZone *zone, void *ptr)
 {
   ffree(zone, ptr);
-  [gnustep_global_lock lock];
+  pthread_mutex_lock(&zoneLock);
   if (frecycle1(zone))
     destroy_zone(zone);
-  [gnustep_global_lock unlock];
+  pthread_mutex_unlock(&zoneLock);
 }
 
 
@@ -1380,7 +1382,7 @@ nrecycle1 (NSZone *zone)
 static void
 nrecycle (NSZone *zone)
 {
-  [gnustep_global_lock lock];
+  pthread_mutex_lock(&zoneLock);
   if (zone->name != nil)
     {
       NSString *name = zone->name;
@@ -1396,7 +1398,7 @@ nrecycle (NSZone *zone)
       zone->free = rnfree;
       zone->recycle = rrecycle;
     }
-  [gnustep_global_lock unlock];
+  pthread_mutex_unlock(&zoneLock);
 }
 
 static void*
@@ -1456,10 +1458,10 @@ rnfree (NSZone *zone, void *ptr)
   nfree(zone, ptr);
   if (zptr->use == 0)
     {
-      [gnustep_global_lock lock];
+      pthread_mutex_lock(&zoneLock);
       nrecycle1(zone);
       destroy_zone(zone);
-      [gnustep_global_lock unlock];
+      pthread_mutex_unlock(&zoneLock);
     }
 }
 
@@ -1583,7 +1585,7 @@ NSZoneFromPointer(void *ptr)
   /*
    *	See if we can find the zone in our list of all zones.
    */
-  [gnustep_global_lock lock];
+  pthread_mutex_lock(&zoneLock);
   for (zone = zone_list; zone != 0; zone = zone->next)
     {
       if ((zone->lookup)(zone, ptr) == YES)
@@ -1591,7 +1593,7 @@ NSZoneFromPointer(void *ptr)
 	  break;
 	}
     }
-  [gnustep_global_lock unlock];
+  pthread_mutex_unlock(&zoneLock);
   return (zone == 0) ? &default_zone : zone;
 }
 
@@ -1702,10 +1704,10 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
       newZone = (NSZone*)zone;
     }
 
-  [gnustep_global_lock lock];
+  pthread_mutex_lock(&zoneLock);
   newZone->next = zone_list;
   zone_list = newZone;
-  [gnustep_global_lock unlock];
+  pthread_mutex_unlock(&zoneLock);
 
   return newZone;
 }

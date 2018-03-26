@@ -1145,12 +1145,14 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
       pathCacheLock = [NSLock new];
+      [pathCacheLock setName: @"pathCacheLock"];
       pathCache = [NSMutableDictionary new];
 
       /* Need to make this recursive since both mainBundle and
        * initWithPath: want to lock the thread.
        */
       load_lock = [NSRecursiveLock new];
+      [load_lock setName: @"load_lock"];
       env = [[NSProcessInfo processInfo] environment];
 
       /* These variables are used when we are running non-flattened.
