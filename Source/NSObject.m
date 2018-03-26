@@ -1054,7 +1054,7 @@ static id gs_weak_load(id obj)
        * must not call any other Objective-C classes and must not involve
        * any use of the autorelease system.
        */
-      gnustep_global_lock = [NSRecursiveLock new];
+      gnustep_global_lock = [GSUntracedRecursiveLock new];
       [gnustep_global_lock setName: @"gnustep_global_lock"];
 
       /* Behavior debugging ... enable with environment variable if needed.

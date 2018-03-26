@@ -30,6 +30,7 @@
 #import "common.h"
 #include <stdio.h>
 #import "GSPrivate.h"
+#import "GSPThread.h"
 #import "GNUstepBase/GSLock.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
@@ -82,11 +83,7 @@ static table_entry*	the_table = 0;
 
 static BOOL	debug_allocation = NO;
 
-static NSRecursiveLock	*uniqueLock = nil;
-static SEL              doLockSel = 0;
-static SEL              unLockSel = 0;
-static IMP              doLockImp = 0;
-static IMP              unLockImp = 0;
+static pthread_mutex_t	uniqueLock;
 
 static void     _GSDebugAllocationFetch(list_entry *items, BOOL difference);
 static void     _GSDebugAllocationFetchAll(list_entry *items);
@@ -99,8 +96,8 @@ static void (*_GSDebugAllocationAddFunc)(Class c, id o)
 static void (*_GSDebugAllocationRemoveFunc)(Class c, id o)
   = _GSDebugAllocationRemove;
 
-#define doLock() (*doLockImp)(uniqueLock, doLockSel)
-#define unLock() (*unLockImp)(uniqueLock, unLockSel)
+#define doLock() pthread_mutex_lock(&uniqueLock)
+#define unLock() pthread_mutex_unlock(&uniqueLock)
 
 @interface GSDebugAlloc : NSObject
 + (void) initialize;
@@ -109,12 +106,7 @@ static void (*_GSDebugAllocationRemoveFunc)(Class c, id o)
 @implementation GSDebugAlloc
 + (void) initialize
 {
-  uniqueLock = [NSRecursiveLock new];
-  doLockSel = @selector(lock);
-  unLockSel = @selector(unlock);
-  doLockImp = [uniqueLock methodForSelector: doLockSel];
-  unLockImp = [uniqueLock methodForSelector: unLockSel];
-  [[NSObject leakAt: &uniqueLock] release];
+  GS_INIT_RECURSIVE_MUTEX(uniqueLock);
 }
 @end
 

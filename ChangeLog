@@ -1,5 +1,13 @@
 2018-03-26  Richard Frith-Macdonald <rfm@gnu.org>
 
+        * Source/NSDebug.m:
+	Avoid recursion in lock tracing when using memory allocation stats.
+	* Source/NSObject.m:
+	Make gnustep_global_lock an untraced lock to avoid recursion issues
+	when tracing.
+
+2018-03-26  Richard Frith-Macdonald <rfm@gnu.org>
+
         * Headers/Foundation/NSLock.h:
         * Headers/Foundation/NSThread.h:
         * Source/GSPrivate.h:
