@@ -37,6 +37,7 @@
 
 @class  NSArray;
 @class	NSDate;
+@class	NSMutableArray;
 @class	NSMutableDictionary;
 
 #if	defined(__cplusplus)
