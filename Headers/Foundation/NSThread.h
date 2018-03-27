@@ -37,7 +37,6 @@
 
 @class  NSArray;
 @class	NSDate;
-@class	NSMutableArray;
 @class	NSMutableDictionary;
 
 #if	defined(__cplusplus)
@@ -378,11 +377,6 @@ GS_EXPORT void GSUnregisterCurrentThread (void);
  * detection of deadlocks between threads.
  */
 + (void) setTraceLocks: (BOOL)aFlag;
-
-/** Returns an array containing a snapshot of threads which are active and
- * waiting for a mutex.
- */
-+ (NSMutableArray *) waitingThreads;
 
 /* Removes the mutex (either as the one we are waiting for or as a held mutex.
  * For internal use only ... do not call this method.<br />

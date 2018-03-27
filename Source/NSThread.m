@@ -1355,39 +1355,10 @@ lockInfoErr(NSString *str)
 {
   if (traceLocks)
     {
+      traceLocks = NO;
       return str;
     }
   return nil;
-}
-
-+ (NSMutableArray *) waitingThreads
-{
-  NSMutableArray	*a;
-
-  pthread_mutex_lock(&_activeLock);
-    {
-      NSHashEnumerator	enumerator;
-      NSUInteger	count = [_activeThreads count];
-      NSUInteger	index;
-      GS_BEGINITEMBUF(objects, count, NSThread*);
-
-      enumerator = NSEnumerateHashTable(_activeThreads);
-      index = 0;
-      while (index < count
-        && (objects[index] = NSNextHashEnumeratorItem(&enumerator)) != nil)
-        {
-          if (YES == objects[index]->_active
-            && nil != GSIVar(objects[index], _lockInfo.wait))
-            {
-              index++;  // Currently active and waiting
-            }
-        }
-      NSEndHashTableEnumeration(&enumerator);
-      a = [[NSMutableArray alloc] initWithObjects: objects count: index];
-      GS_ENDITEMBUF();
-    }
-  pthread_mutex_unlock(&_activeLock);
-  return AUTORELEASE(a);
 }
 
 - (NSString *) mutexDrop: (id)mutex
@@ -1511,16 +1482,22 @@ lockInfoErr(NSString *str)
           return nil;   // We can't deadlock on a recursive lock we own
         }
 
-pthread_mutex_lock(&_activeLock);
+      /* While checking for deadlocks we don't want threads created/destroyed
+       * So we hold the lock to prevent thread activity changes.
+       * This also ensures that no more than one thread can be checking for
+       * deadlocks at a time (no interference between checks).
+       */
+      pthread_mutex_lock(&_activeLock);
 
+      /* As we isolate dependencies (a thread holding the lock another thread
+       * is waiting for) we disable locking in each thread and record the
+       * thread in a hash table.  Once we have determined all the dependencies
+       * we can re-enable locking in each of the threads.
+       */
       if (nil == _activeBlocked)
         {
           _activeBlocked = NSCreateHashTable(
             NSNonRetainedObjectHashCallBacks, 100);
-        }
-      else
-        {
-          NSResetHashTable(_activeBlocked);
         }
 
       NSMutableArray    *dependencies = nil;
@@ -1531,8 +1508,14 @@ pthread_mutex_lock(&_activeLock);
         {
           NSHashEnumerator	enumerator;
           NSThread              *found = nil;
+          BOOL                  foundWasLocked = NO;
           NSThread              *th;
 
+          /* Look for a thread which is holding the mutex we are currently
+           * interested in.  We are only interested in thread which are
+           * themselves waiting for a lock (if they aren't waiting then
+           * they can't be part of a deadlock dependency list).
+           */
           enumerator = NSEnumerateHashTable(_activeThreads);
           while ((th = NSNextHashEnumeratorItem(&enumerator)) != nil)
             {
@@ -1540,13 +1523,33 @@ pthread_mutex_lock(&_activeLock);
 
               if (YES == th->_active && nil != info->wait)
                 {
+                  BOOL          wasLocked;
                   GSStackTrace  *stck;
 
-                  pthread_spin_lock(&info->spin);
+                  if (th == self
+                    || NULL != NSHashGet(_activeBlocked, (const void*)th))
+                    {
+                      /* Don't lock ... this is the current thread or is
+                       * already in the set of blocked threads.
+                       */
+                      wasLocked = YES;
+                    }
+                  else
+                    {
+                      pthread_spin_lock(&info->spin);
+                      wasLocked = NO;
+                    }
                   if (nil != info->wait
                     && nil != (stck = NSMapGet(info->held, (const void*)want)))
                     {
+                      /* This thread holds the lock we are interested in and
+                       * is waiting for another lock.
+                       * We therefore record the details in the dependency list
+                       * and will go on to look for the thread this found one
+                       * depends on.
+                       */
                       found = th;
+                      foundWasLocked = wasLocked;
                       want = info->wait;
                       if (nil == dependencies)
                         {
@@ -1563,7 +1566,13 @@ pthread_mutex_lock(&_activeLock);
                        */
                       break;
                     }
-                  pthread_spin_unlock(&info->spin);
+                  /* This thread did not hold the lock we are interested in,
+                   * so we can unlock it (if necessary) and check another.
+                   */
+                  if (NO == wasLocked)
+                    {
+                      pthread_spin_unlock(&info->spin);
+                    }
                 }
             }
           NSEndHashTableEnumeration(&enumerator);
@@ -1575,22 +1584,19 @@ pthread_mutex_lock(&_activeLock);
               DESTROY(dependencies);
               done = YES;
             }
+          else if (foundWasLocked)
+            {
+              /* The found thread is the current one or in the blocked set
+               * so we have a deadlock.
+               */
+              done = YES;
+            }
           else
             {
-              if (found == self
-                || NULL != NSHashGet(_activeBlocked,(const void*)found))
-                {
-                  /* The found thread is the current one or in the blocked set
-                   * so we have a deadlock.
-                   */
-                  done = YES;
-                }
-              else
-                {
-                  NSHashInsert(_activeBlocked, (const void*)found);
-                  /* Continue to find the next dependency.
-                   */
-                }
+              /* Record the found (and locked) thread and continue
+               * to find the next dependency.
+               */
+              NSHashInsert(_activeBlocked, (const void*)found);
             }
         }
 
@@ -1609,8 +1615,14 @@ pthread_mutex_lock(&_activeLock);
               pthread_spin_unlock(&info->spin);
             }
           NSEndHashTableEnumeration(&enumerator);
+          NSResetHashTable(_activeBlocked);
         }
-pthread_mutex_unlock(&_activeLock);
+
+      /* Finished check ... re-enable thread activity changes.
+       */
+      pthread_mutex_unlock(&_activeLock);
+
+
       if (nil != dependencies)
         {
           NSUInteger            count;
