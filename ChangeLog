@@ -1,3 +1,13 @@
+2018-03-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSPrivate.h:
+	* Source/NSDebug.m:
+	* Source/NSException.m:
+	* Source/NSThread.m:
+	Move stack info code from NSDebug to NSException so its all in one
+	place and.  Make thread call stack addresses method use windows code
+	as well as libbacktrace.
+
 2018-03-26  Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSDebug.m:

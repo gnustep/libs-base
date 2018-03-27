@@ -450,11 +450,6 @@ typedef NSRange (*GSRSFunc)(id, id, unsigned, NSRange);
 GSRSFunc
 GSPrivateRangeOfString(NSString *receiver, NSString *target) GS_ATTRIB_PRIVATE;
 
-/* Function to return the current stack return addresses.
- */
-NSMutableArray *
-GSPrivateStackAddresses(void) GS_ATTRIB_PRIVATE;
-
 /* Function to return the hash value for a small integer (used by NSNumber).
  */
 unsigned

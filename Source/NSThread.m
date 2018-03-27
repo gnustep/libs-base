@@ -825,9 +825,10 @@ unregisterActiveThread(NSThread *thread)
 
 + (NSArray*) callStackReturnAddresses
 {
-  NSMutableArray        *stack = GSPrivateStackAddresses();
-
-  return stack;
+  GSStackTrace          *stack = [GSStackTrace new];
+  NSArray               *addrs = RETAIN([stack addresses]);
+  RELEASE(stack);
+  return AUTORELEASE(addrs);
 }
 
 + (BOOL) _createThreadForCurrentPthread
