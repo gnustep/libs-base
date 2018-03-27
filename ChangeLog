@@ -8,6 +8,9 @@
 	Move stack info code from NSDebug to NSException so its all in one
 	place and.  Make thread call stack addresses method use windows code
 	as well as libbacktrace.  Remove unused method.
+	* Source/NSTimeZone.m:
+	Simplify and optimise locking by using pthread_mutex functions
+	directly.
 
 2018-03-26  Richard Frith-Macdonald <rfm@gnu.org>
 

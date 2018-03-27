@@ -1625,13 +1625,16 @@ lockInfoErr(NSString *str)
 
       if (nil != dependencies)
         {
+          GSStackTrace          *stack = [GSStackTrace new];
           NSUInteger            count;
           NSUInteger            index = 0;
           NSMutableString       *m;
 
           [NSThread setTraceLocks: NO];
           m = [NSMutableString stringWithCapacity: 1000];
-          [m appendFormat: @"Deadlock on %@\n", mutex];
+          [m appendFormat: @"Deadlock on %@ at\n  %@\n",
+            mutex, [stack symbols]];
+          RELEASE(stack);
           count = [dependencies count];
           while (index < count)
             {

@@ -108,6 +108,7 @@
 #import "Foundation/NSLocale.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GSPrivate.h"
+#import "GSPThread.h"
 
 #ifdef HAVE_TZHEAD
 #include <tzfile.h>
@@ -291,7 +292,7 @@ static NSMutableDictionary *abbreviationDictionary = nil;
 static NSMutableDictionary *abbreviationMap = nil;
 
 /* Lock for creating time zones. */
-static NSRecursiveLock *zone_mutex = nil;
+static pthread_mutex_t zone_mutex;
 
 static Class	NSTimeZoneClass;
 static Class	GSPlaceholderTimeZoneClass;
@@ -389,20 +390,14 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
    * Return a cached time zone if possible.
    * NB. if data of cached zone does not match new data ... don't use cache
    */
-  if (zone_mutex != nil)
-    {
-      [zone_mutex lock];
-    }
+  pthread_mutex_lock(&zone_mutex);
   zone = [zoneDictionary objectForKey: name];
   if (data != nil && [data isEqual: [zone data]] == NO)
     {
       zone = nil;
     }
   IF_NO_GC(RETAIN(zone));
-  if (zone_mutex != nil)
-    {
-      [zone_mutex unlock];
-    }
+  pthread_mutex_unlock(&zone_mutex);
 
   if (zone == nil)
     {
@@ -665,11 +660,9 @@ static NSMapTable	*absolutes = 0;
 {
   if (offset != uninitialisedOffset)
     {
-      if (zone_mutex != nil)
-	[zone_mutex lock];
+      pthread_mutex_lock(&zone_mutex);
       NSMapRemove(absolutes, (void*)(uintptr_t)offset);
-      if (zone_mutex != nil)
-	[zone_mutex unlock];
+      pthread_mutex_unlock(&zone_mutex);
     }
   RELEASE(name);
   RELEASE(detail);
@@ -725,10 +718,7 @@ static NSMapTable	*absolutes = 0;
         }
     }
 
-  if (zone_mutex != nil)
-    {
-      [zone_mutex lock];
-    }
+  pthread_mutex_lock(&zone_mutex);
   z = (GSAbsTimeZone*)NSMapGet(absolutes, (void*)(uintptr_t)anOffset);
   if (z != nil)
     {
@@ -779,10 +769,7 @@ static NSMapTable	*absolutes = 0;
           commonAbsolutes[index] = RETAIN(self);
         }
     }
-  if (zone_mutex != nil)
-    {
-      [zone_mutex unlock];
-    }
+  pthread_mutex_unlock(&zone_mutex);
   return z;
 }
 
@@ -1002,10 +989,7 @@ static NSMapTable	*absolutes = 0;
     {
       return abbreviationDictionary;
     }
-  if (zone_mutex != nil)
-    {
-      [zone_mutex lock];
-    }
+  pthread_mutex_lock(&zone_mutex);
   if (abbreviationDictionary == nil)
     {
       NSAutoreleasePool	*pool = [NSAutoreleasePool new];
@@ -1062,10 +1046,7 @@ static NSMapTable	*absolutes = 0;
 	}
       [pool drain];
     }
-  if (zone_mutex != nil)
-    {
-      [zone_mutex unlock];
-    }
+  pthread_mutex_unlock(&zone_mutex);
   return abbreviationDictionary;
 }
 
@@ -1083,10 +1064,7 @@ static NSMapTable	*absolutes = 0;
     {
       return abbreviationMap;
     }
-  if (zone_mutex != nil)
-    {
-      [zone_mutex lock];
-    }
+  pthread_mutex_lock(&zone_mutex);
   if (abbreviationMap == nil)
     {
       NSAutoreleasePool		*pool = [NSAutoreleasePool new];
@@ -1120,10 +1098,7 @@ static NSMapTable	*absolutes = 0;
 #endif
 	  if (file == NULL)
 	    {
-	      if (zone_mutex != nil)
-		{
-		  [zone_mutex unlock];
-		}
+              pthread_mutex_unlock(&zone_mutex);
 	      [NSException
 		raise: NSInternalInconsistencyException
 		format: @"Failed to open time zone abbreviation map."];
@@ -1214,10 +1189,7 @@ static NSMapTable	*absolutes = 0;
         }
       [pool drain];
     }
-  if (zone_mutex != nil)
-    {
-      [zone_mutex unlock];
-    }
+  pthread_mutex_unlock(&zone_mutex);
 
   return abbreviationMap;
 }
@@ -1235,10 +1207,7 @@ static NSMapTable	*absolutes = 0;
       return namesArray;
     }
 
-  if (zone_mutex != nil)
-    {
-      [zone_mutex lock];
-    }
+  pthread_mutex_lock(&zone_mutex);
   if (namesArray == nil)
     {
       unsigned		i;
@@ -1264,10 +1233,7 @@ static NSMapTable	*absolutes = 0;
           RELEASE(ma);
         }
     }
-  if (zone_mutex != nil)
-    {
-      [zone_mutex unlock];
-    }
+  pthread_mutex_unlock(&zone_mutex);
   return namesArray;
 }
 
@@ -1297,10 +1263,7 @@ static NSMapTable	*absolutes = 0;
 	   * locate the correct placeholder in the (lock protected)
 	   * table of placeholders.
 	   */
-	  if (zone_mutex != nil)
-	    {
-	      [zone_mutex lock];
-	    }
+          pthread_mutex_lock(&zone_mutex);
 	  obj = (id)NSMapGet(placeholderMap, (void*)z);
 	  if (obj == nil)
 	    {
@@ -1311,10 +1274,7 @@ static NSMapTable	*absolutes = 0;
 	      obj = (id)NSAllocateObject(GSPlaceholderTimeZoneClass, 0, z);
 	      NSMapInsert(placeholderMap, (void*)z, (void*)obj);
 	    }
-	  if (zone_mutex != nil)
-	    {
-	      [zone_mutex unlock];
-	    }
+          pthread_mutex_unlock(&zone_mutex);
 	  return obj;
 	}
     }
@@ -1331,29 +1291,16 @@ static NSMapTable	*absolutes = 0;
 {
   NSTimeZone	*zone;
 
-  if (zone_mutex != nil)
-    {
-      [zone_mutex lock];
-    }
+  pthread_mutex_lock(&zone_mutex);
   if (defaultTimeZone == nil)
     {
       zone = [self systemTimeZone];
     }
   else
     {
-      if (zone_mutex != nil)
-	{
-	  zone = AUTORELEASE(RETAIN(defaultTimeZone));
-	}
-      else
-	{
-	  zone = defaultTimeZone;
-	}
+      zone = AUTORELEASE(RETAIN(defaultTimeZone));
     }
-  if (zone_mutex != nil)
-    {
-      [zone_mutex unlock];
-    }
+  pthread_mutex_unlock(&zone_mutex);
   return zone;
 }
 
@@ -1362,6 +1309,7 @@ static NSMapTable	*absolutes = 0;
   if (self == [NSTimeZone class])
     {
       NSTimeZoneClass = self;
+      GS_INIT_RECURSIVE_MUTEX(zone_mutex);
       GSPlaceholderTimeZoneClass = [GSPlaceholderTimeZone class];
       zoneDictionary = [[NSMutableDictionary alloc] init];
       [[NSObject leakAt: &zoneDictionary] release];
@@ -1378,9 +1326,6 @@ static NSMapTable	*absolutes = 0;
 
       localTimeZone = [[NSLocalTimeZone alloc] init];
       [[NSObject leakAt: (id*)&localTimeZone] release];
-
-      zone_mutex = [GSLazyRecursiveLock new];
-      [[NSObject leakAt: (id*)&zone_mutex] release];
 
       [[NSObject leakAt: (id*)&defaultTimeZone] release];
       [[NSObject leakAt: (id*)&systemTimeZone] release];
@@ -1409,15 +1354,9 @@ static NSMapTable	*absolutes = 0;
  */
 + (void) resetSystemTimeZone
 {
-  if (zone_mutex != nil)
-    {
-      [zone_mutex lock];
-    }
+  pthread_mutex_lock(&zone_mutex);
   DESTROY(systemTimeZone);
-  if (zone_mutex != nil)
-    {
-      [zone_mutex unlock];
-    }
+  pthread_mutex_unlock(&zone_mutex);
   [[NSNotificationCenter defaultCenter]
     postNotificationName: NSSystemTimeZoneDidChangeNotification
                   object: nil];
@@ -1438,15 +1377,9 @@ static NSMapTable	*absolutes = 0;
 	{
 	  aTimeZone = [self systemTimeZone];
 	}
-      if (zone_mutex != nil)
-	{
-	  [zone_mutex lock];
-	}
+      pthread_mutex_lock(&zone_mutex);
       ASSIGN(defaultTimeZone, aTimeZone);
-      if (zone_mutex != nil)
-	{
-	  [zone_mutex unlock];
-	}
+      pthread_mutex_unlock(&zone_mutex);
     }
 }
 
@@ -1457,10 +1390,7 @@ static NSMapTable	*absolutes = 0;
 {
   NSTimeZone	*zone = nil;
 
-  if (zone_mutex != nil)
-    {
-      [zone_mutex lock];
-    }
+  pthread_mutex_lock(&zone_mutex);
   if (systemTimeZone == nil)
     {
       NSFileManager *dflt = [NSFileManager defaultManager];
@@ -1799,15 +1729,8 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
         }
       ASSIGN(systemTimeZone, zone);
     }
-  if (zone_mutex != nil)
-    {
-      zone = AUTORELEASE(RETAIN(systemTimeZone));
-      [zone_mutex unlock];
-    }
-  else
-    {
-      zone = systemTimeZone;
-    }
+  zone = AUTORELEASE(RETAIN(systemTimeZone));
+  pthread_mutex_unlock(&zone_mutex);
   return zone;
 }
 
@@ -1826,10 +1749,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
     {
       return regionsArray;
     }
-  if (zone_mutex != nil)
-    {
-      [zone_mutex lock];
-    }
+  pthread_mutex_lock(&zone_mutex);
   if (regionsArray == nil)
     {
       NSAutoreleasePool	*pool = [NSAutoreleasePool new];
@@ -1861,10 +1781,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 #endif
 	  if (fp == NULL)
 	    {
-	      if (zone_mutex != nil)
-		{
-		  [zone_mutex unlock];
-		}
+              pthread_mutex_unlock(&zone_mutex);
 	      [NSException
 		raise: NSInternalInconsistencyException
 		format: @"Failed to open time zone regions array file."];
@@ -1964,10 +1881,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
       regionsArray = [[NSArray alloc] initWithObjects: temp_array count: 24];
       [pool drain];
     }
-  if (zone_mutex != nil)
-    {
-      [zone_mutex unlock];
-    }
+  pthread_mutex_unlock(&zone_mutex);
   return regionsArray;
 }
 
@@ -2010,15 +1924,9 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
     }
   else
     {
-      if (zone_mutex != nil)
-        {
-          [zone_mutex lock];
-        }
+      pthread_mutex_lock(&zone_mutex);
       zone = (NSTimeZone*)NSMapGet(absolutes, (void*)(uintptr_t)seconds);
-      if (zone_mutex != nil)
-        {
-          [zone_mutex unlock];
-        }
+      pthread_mutex_unlock(&zone_mutex);
     }
   if (nil == zone)
     {
@@ -2498,10 +2406,7 @@ static NSString *zoneDirs[] = {
 
   if (beenHere == NO && tzdir == nil)
     {
-      if (zone_mutex != nil)
-	{
-	  [zone_mutex lock];
-	}
+      pthread_mutex_lock(&zone_mutex);
       if (beenHere == NO && tzdir == nil)
 	{
 	  NSFileManager	*mgr = [NSFileManager defaultManager];
@@ -2522,10 +2427,7 @@ static NSString *zoneDirs[] = {
 	    }
 	  beenHere = YES;
 	}
-      if (zone_mutex != nil)
-	{
-	  [zone_mutex unlock];
-	}
+      pthread_mutex_unlock(&zone_mutex);
     }
   /* Use the system zone info if possible, otherwise, use our installed
      info.  */
@@ -3246,15 +3148,9 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 	  }
       }
 
-      if (zone_mutex != nil)
-	{
-	  [zone_mutex lock];
-	}
+      pthread_mutex_lock(&zone_mutex);
       [zoneDictionary setObject: self forKey: timeZoneName];
-      if (zone_mutex != nil)
-	{
-	  [zone_mutex unlock];
-	}
+      pthread_mutex_unlock(&zone_mutex);
     }
   NS_HANDLER
     {
