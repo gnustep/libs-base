@@ -483,7 +483,7 @@ static void find_address (bfd *abfd, asection *section,
 
 @end
 
-static NSRecursiveLock		*modLock = nil;
+static pthread_mutex_t	        modLock;
 static NSMutableDictionary	*stackModules = nil;
 
 // initialize stack trace info
@@ -492,7 +492,7 @@ GSLoadModule(NSString *fileName)
 {
   GSBinaryFileInfo	*module = nil;
 
-  [modLock lock];
+  (void)pthread_mutex_lock(&modLock);
 
   if (stackModules == nil)
     {
@@ -541,7 +541,7 @@ GSLoadModule(NSString *fileName)
 	    }
 	}
     }
-  [modLock unlock];
+  (void)pthread_mutex_unlock(&modLock);
 
   if (module == (id)[NSNull null])
     {
@@ -556,9 +556,9 @@ GSListModules()
   NSArray	*result;
 
   GSLoadModule(nil);	// initialise
-  [modLock lock];
+  (void)pthread_mutex_lock(&modLock);
   result = [stackModules allValues];
-  [modLock unlock];
+  (void)pthread_mutex_unlock(&modLock);
   return result;
 }
 
@@ -576,7 +576,7 @@ static SymInitializeType initSym = 0;
 static SymSetOptionsType optSym = 0;
 static SymFromAddrType fromSym = 0;
 static HANDLE	hProcess = 0;
-static	NSRecursiveLock	*traceLock = nil;
+static	pthread_mutex_t	traceLock;
 #define	MAXFRAMES 62	/* Limitation of windows-xp */
 #else
 #define MAXFRAMES 128   /* 1KB buffer on 64bit machine */
@@ -855,10 +855,7 @@ NSReturnAddress(NSUInteger offset)
 + (void) initialize
 {
 #if	defined(_WIN32) && !defined(USE_BFD)
-  if (nil == traceLock)
-    {
-      traceLock = [NSRecursiveLock new];
-    }
+  GS_INIT_RECURSIVE_MUTEX(traceLock);
 #endif
 }
 
@@ -933,7 +930,7 @@ NSReturnAddress(NSUInteger offset)
 #elif	defined(_WIN32) && !defined(USE_BFD)
   NSUInteger	addr[MAXFRAMES];
 
-  [traceLock lock];
+  (void)pthread_mutex_lock(&traceLock);
   if (0 == hProcess)
     {
       hProcess = GetCurrentProcess();
@@ -947,7 +944,7 @@ NSReturnAddress(NSUInteger offset)
 	    {
 	      fprintf(stderr, "Failed to load kernel32.dll with error: %d\n",
 		(int)GetLastError());
-	      [traceLock unlock];
+	      (void)pthread_mutex_unlock(&traceLock);
 	      return self;
 	    }
 	  capture = (CaptureStackBackTraceType)GetProcAddress(
@@ -956,7 +953,7 @@ NSReturnAddress(NSUInteger offset)
 	    {
 	      fprintf(stderr, "Failed to find RtlCaptureStackBackTrace: %d\n",
 		(int)GetLastError());
-	      [traceLock unlock];
+	      (void)pthread_mutex_unlock(&traceLock);
 	      return self;
 	    }
 	  hModule = LoadLibrary("dbghelp.dll");
@@ -964,7 +961,7 @@ NSReturnAddress(NSUInteger offset)
 	    {
 	      fprintf(stderr, "Failed to load dbghelp.dll with error: %d\n",
 		(int)GetLastError());
-	      [traceLock unlock];
+	      (void)pthread_mutex_unlock(&traceLock);
 	      return self;
 	    }
 	  optSym = (SymSetOptionsType)GetProcAddress(
@@ -973,7 +970,7 @@ NSReturnAddress(NSUInteger offset)
 	    {
 	      fprintf(stderr, "Failed to find SymSetOptions: %d\n",
 		(int)GetLastError());
-	      [traceLock unlock];
+	      (void)pthread_mutex_unlock(&traceLock);
 	      return self;
 	    }
 	  initSym = (SymInitializeType)GetProcAddress(
@@ -982,7 +979,7 @@ NSReturnAddress(NSUInteger offset)
 	    {
 	      fprintf(stderr, "Failed to find SymInitialize: %d\n",
 		(int)GetLastError());
-	      [traceLock unlock];
+	      (void)pthread_mutex_unlock(&traceLock);
 	      return self;
 	    }
 	  fromSym = (SymFromAddrType)GetProcAddress(
@@ -991,7 +988,7 @@ NSReturnAddress(NSUInteger offset)
 	    {
 	      fprintf(stderr, "Failed to find SymFromAddr: %d\n",
 		(int)GetLastError());
-	      [traceLock unlock];
+	      (void)pthread_mutex_unlock(&traceLock);
 	      return self;
 	    }
 	}
@@ -1003,13 +1000,13 @@ NSReturnAddress(NSUInteger offset)
 	  fprintf(stderr, "SymInitialize failed with error: %d\n",
 	    (int)GetLastError());
 	  fromSym = 0;
-	  [traceLock unlock];
+	  (void)pthread_mutex_unlock(&traceLock);
 	  return self;
 	}
     }
   if (0 == capture)
     {
-      [traceLock unlock];
+      (void)pthread_mutex_unlock(&traceLock);
       return self;
     }
 
@@ -1020,7 +1017,7 @@ NSReturnAddress(NSUInteger offset)
       memcpy(returns, addr, numReturns * sizeof(void*));
     }
   
-  [traceLock unlock];
+  (void)pthread_mutex_unlock(&traceLock);
 
 #else
   int   n;
@@ -1195,7 +1192,7 @@ NSReturnAddress(NSUInteger offset)
 	  symbol->MaxNameLen = 1024;
 	  symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 
-	  [traceLock lock];
+	  (void)pthread_mutex_lock(&traceLock);
 	  for (i = 0; i < count; i++)
 	    {
 	      NSUInteger	addr = (NSUInteger)*ptrs++; 
@@ -1211,7 +1208,7 @@ NSReturnAddress(NSUInteger offset)
 		    @"unknown - %p", symbol->Name, addr];
 		}
 	    }
-	  [traceLock unlock];
+	  (void)pthread_mutex_unlock(&traceLock);
 	  free(symbol);
 
 	  symbols = [[NSArray alloc] initWithObjects: syms count: count];
@@ -1328,22 +1325,21 @@ callUncaughtHandler(id value)
 
 + (void) initialize
 {
-#if	defined(USE_BFD)
-  if (modLock == nil)
+  if (self == [NSException class])
     {
-      modLock = [NSRecursiveLock new];
-    }
+#if	defined(USE_BFD)
+      GS_INIT_RECURSIVE_MUTEX(modLock);
 #endif	/* USE_BFD */
 #if defined(_NATIVE_OBJC_EXCEPTIONS)
 #  ifdef HAVE_SET_UNCAUGHT_EXCEPTION_HANDLER
-  objc_setUncaughtExceptionHandler(callUncaughtHandler);
+      objc_setUncaughtExceptionHandler(callUncaughtHandler);
 #  elif defined(HAVE_UNEXPECTED)
-  _objc_unexpected_exception = callUncaughtHandler;
+      _objc_unexpected_exception = callUncaughtHandler;
 #  elif defined(HAVE_SET_UNEXPECTED)
-  objc_set_unexpected(callUncaughtHandler);
+      objc_set_unexpected(callUncaughtHandler);
 #  endif
 #endif
-  return;
+    }
 }
 
 + (NSException*) exceptionWithName: (NSString*)name

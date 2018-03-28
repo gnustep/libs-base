@@ -1,3 +1,8 @@
+2018-03-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSException.m: Use pthread mutexes directly to avoid
+	recursive interactions with tracking NSL:ock activity.
+
 2018-03-27  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSPrivate.h:
