@@ -1,3 +1,7 @@
+2018-03-30  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSException.m: Fix second argument to backtrace()
+
 2018-03-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSException.m: Use pthread mutexes directly to avoid

@@ -921,7 +921,7 @@ NSReturnAddress(NSUInteger offset)
 #if HAVE_BACKTRACE
   void                  *addr[MAXFRAMES*sizeof(void*)];
 
-  numReturns = backtrace(addr, MAXFRAMES*sizeof(void*));
+  numReturns = backtrace(addr, MAXFRAMES);
   if (numReturns > 0)
     {
       returns = malloc(numReturns * sizeof(void*));
