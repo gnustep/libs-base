@@ -3030,7 +3030,7 @@ NSAssert(pos + 4 < _length, NSInvalidArgumentException);
     }
   val = (index == 0) ? UINTPTR_MAX : (uintptr_t)(void*)index;
   // NSHashInsertIfAbsent() returns NULL on success
-  return NO == NSHashInsertIfAbsent(_stack, (void*)val);
+  return (NULL == NSHashInsertIfAbsent(_stack, (void*)val) ? YES : NO);
 }
 
 - (void)_popObject: (NSUInteger)index
