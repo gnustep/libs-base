@@ -842,91 +842,19 @@ NSReturnAddress(NSUInteger offset)
   return env->addr;
 }
 
-
-
-
-@implementation GSStackTrace : NSObject
-
-/** Offset from the top of the stack (when we generate a trace) to the
- * first frame likely to be of interest for debugging.
- */
-#define FrameOffset     4
-
-+ (void) initialize
+unsigned
+GSPrivateReturnAddresses(NSUInteger **returns)
 {
-#if	defined(_WIN32) && !defined(USE_BFD)
-  GS_INIT_RECURSIVE_MUTEX(traceLock);
-#endif
-}
-
-- (NSArray*) addresses
-{
-  if (nil == addresses && numReturns > FrameOffset)
-    {
-      CREATE_AUTORELEASE_POOL(pool);
-      NSInteger         count = numReturns - FrameOffset;
-      NSValue           *objects[count];
-      NSUInteger        index;
-      const void        **ptrs = (const void **)returns;
-
-      for (index = 0; index < count; index++)
-        {
-          objects[index] = [NSValue valueWithPointer: ptrs[FrameOffset+index]];
-        }
-      addresses = [[NSArray alloc] initWithObjects: objects count: count];
-      DESTROY(pool);
-    }
-  return addresses;
-}
-
-- (oneway void) dealloc
-{
-  DESTROY(addresses);
-  DESTROY(symbols);
-  if (returns != NULL)
-    {
-      free(returns);
-      returns = NULL;
-    }
-  [super dealloc];
-}
-
-- (NSString*) description
-{
-  NSMutableString *result;
-  NSArray *s;
-  int i;
-  int n;
-
-  result = [NSMutableString string];
-  s = [self symbols];
-  n = [s count];
-  for (i = 0; i < n; i++)
-    {
-      NSString	*line = [s objectAtIndex: i];
-
-      [result appendFormat: @"%3d: %@\n", i, line];
-    }
-  return result;
-}
-
-- (id) init
-{
-  return [self initWithOffset: 3];
-}
-
-// grab the current stack 
-- (id) initWithOffset: (unsigned)o
-{
+  unsigned      numReturns;
 #if HAVE_BACKTRACE
-  void                  *addr[MAXFRAMES*sizeof(void*)];
+  void          *addr[MAXFRAMES*sizeof(void*)];
 
   numReturns = backtrace(addr, MAXFRAMES);
   if (numReturns > 0)
     {
-      returns = malloc(numReturns * sizeof(void*));
-      memcpy(returns, addr, numReturns * sizeof(void*));
-   }
+      *returns = malloc(numReturns * sizeof(void*));
+      memcpy(*returns, addr, numReturns * sizeof(void*));
+    }
 #elif	defined(_WIN32) && !defined(USE_BFD)
   NSUInteger	addr[MAXFRAMES];
 
@@ -945,7 +873,7 @@ NSReturnAddress(NSUInteger offset)
 	      fprintf(stderr, "Failed to load kernel32.dll with error: %d\n",
 		(int)GetLastError());
 	      (void)pthread_mutex_unlock(&traceLock);
-	      return self;
+	      return 0;
 	    }
 	  capture = (CaptureStackBackTraceType)GetProcAddress(
 	    hModule, "RtlCaptureStackBackTrace");
@@ -954,7 +882,7 @@ NSReturnAddress(NSUInteger offset)
 	      fprintf(stderr, "Failed to find RtlCaptureStackBackTrace: %d\n",
 		(int)GetLastError());
 	      (void)pthread_mutex_unlock(&traceLock);
-	      return self;
+	      return 0;
 	    }
 	  hModule = LoadLibrary("dbghelp.dll");
 	  if (0 == hModule)
@@ -962,7 +890,7 @@ NSReturnAddress(NSUInteger offset)
 	      fprintf(stderr, "Failed to load dbghelp.dll with error: %d\n",
 		(int)GetLastError());
 	      (void)pthread_mutex_unlock(&traceLock);
-	      return self;
+	      return 0;
 	    }
 	  optSym = (SymSetOptionsType)GetProcAddress(
 	    hModule, "SymSetOptions");
@@ -971,7 +899,7 @@ NSReturnAddress(NSUInteger offset)
 	      fprintf(stderr, "Failed to find SymSetOptions: %d\n",
 		(int)GetLastError());
 	      (void)pthread_mutex_unlock(&traceLock);
-	      return self;
+	      return 0;
 	    }
 	  initSym = (SymInitializeType)GetProcAddress(
 	    hModule, "SymInitialize");
@@ -980,7 +908,7 @@ NSReturnAddress(NSUInteger offset)
 	      fprintf(stderr, "Failed to find SymInitialize: %d\n",
 		(int)GetLastError());
 	      (void)pthread_mutex_unlock(&traceLock);
-	      return self;
+	      return 0;
 	    }
 	  fromSym = (SymFromAddrType)GetProcAddress(
 	    hModule, "SymFromAddr");
@@ -989,7 +917,7 @@ NSReturnAddress(NSUInteger offset)
 	      fprintf(stderr, "Failed to find SymFromAddr: %d\n",
 		(int)GetLastError());
 	      (void)pthread_mutex_unlock(&traceLock);
-	      return self;
+	      return 0;
 	    }
 	}
 
@@ -1001,20 +929,20 @@ NSReturnAddress(NSUInteger offset)
 	    (int)GetLastError());
 	  fromSym = 0;
 	  (void)pthread_mutex_unlock(&traceLock);
-	  return self;
+	  return 0;
 	}
     }
   if (0 == capture)
     {
       (void)pthread_mutex_unlock(&traceLock);
-      return self;
+      return 0;
     }
 
   numReturns = (capture)(0, MAXFRAMES, (void**)addr, NULL);
   if (numReturns > 0)
     {
-      returns = malloc(numReturns * sizeof(void*));
-      memcpy(returns, addr, numReturns * sizeof(void*));
+      *returns = malloc(numReturns * sizeof(void*));
+      memcpy(*returns, addr, numReturns * sizeof(void*));
     }
   
   (void)pthread_mutex_unlock(&traceLock);
@@ -1092,7 +1020,7 @@ NSReturnAddress(NSUInteger offset)
                 {
                   break;
                 }
-              memcpy(&returns[i], env->addr, sizeof(void*));
+              memcpy(&(*returns)[i], env->addr, sizeof(void*));
             }
           signal(SIGSEGV, env->segv);
           signal(SIGBUS, env->bus);
@@ -1105,6 +1033,80 @@ NSReturnAddress(NSUInteger offset)
         }
     }
 #endif
+  return numReturns;
+}
+
+
+@implementation GSStackTrace : NSObject
+
+/** Offset from the top of the stack (when we generate a trace) to the
+ * first frame likely to be of interest for debugging.
+ */
+#define FrameOffset     4
+
++ (void) initialize
+{
+#if	defined(_WIN32) && !defined(USE_BFD)
+  GS_INIT_RECURSIVE_MUTEX(traceLock);
+#endif
+#if     defined(USE_BFD)
+  GS_INIT_RECURSIVE_MUTEX(modLock);
+#endif
+}
+
+- (NSArray*) addresses
+{
+  if (nil == addresses && numReturns > FrameOffset)
+    {
+      CREATE_AUTORELEASE_POOL(pool);
+      NSInteger         count = numReturns - FrameOffset;
+      NSValue           *objects[count];
+      NSUInteger        index;
+      const void        **ptrs = (const void **)returns;
+
+      for (index = 0; index < count; index++)
+        {
+          objects[index] = [NSValue valueWithPointer: ptrs[FrameOffset+index]];
+        }
+      addresses = [[NSArray alloc] initWithObjects: objects count: count];
+      DESTROY(pool);
+    }
+  return addresses;
+}
+
+- (oneway void) dealloc
+{
+  DESTROY(addresses);
+  DESTROY(symbols);
+  if (returns != NULL)
+    {
+      free(returns);
+      returns = NULL;
+    }
+  [super dealloc];
+}
+
+- (NSString*) description
+{
+  NSMutableString *result;
+  NSArray *s;
+  int i;
+  int n;
+
+  result = [NSMutableString string];
+  s = [self symbols];
+  n = [s count];
+  for (i = 0; i < n; i++)
+    {
+      NSString	*line = [s objectAtIndex: i];
+
+      [result appendFormat: @"%3d: %@\n", i, line];
+    }
+  return result;
+}
+
+- (id) init
+{
   return self;
 }
 
@@ -1235,6 +1237,18 @@ NSReturnAddress(NSUInteger offset)
   return symbols;
 }
 
+- (void) trace
+{
+  DESTROY(addresses);
+  DESTROY(symbols);
+  if (returns != NULL)
+    {
+      free(returns);
+      returns = NULL;
+    }
+  numReturns = GSPrivateReturnAddresses(&returns);
+}
+
 @end
 
 
@@ -1327,9 +1341,6 @@ callUncaughtHandler(id value)
 {
   if (self == [NSException class])
     {
-#if	defined(USE_BFD)
-      GS_INIT_RECURSIVE_MUTEX(modLock);
-#endif	/* USE_BFD */
 #if defined(_NATIVE_OBJC_EXCEPTIONS)
 #  ifdef HAVE_SET_UNCAUGHT_EXCEPTION_HANDLER
       objc_setUncaughtExceptionHandler(callUncaughtHandler);
@@ -1487,6 +1498,7 @@ callUncaughtHandler(id value)
     {
       // Only set the stack when first raised
       _e_stack = [GSStackTrace new];
+      [_e_stack trace];
     }
 
 #if     defined(_NATIVE_OBJC_EXCEPTIONS)
@@ -1635,9 +1647,9 @@ callUncaughtHandler(id value)
 
 + (NSArray *) callStackSymbols
 {
-  GSStackTrace *stackTrace = [[[GSStackTrace alloc] init] autorelease];
-  NSArray *symbols = [stackTrace symbols];
-  return symbols;
+  GSStackTrace *stackTrace = AUTORELEASE([GSStackTrace new]);
+  [stackTrace trace];
+  return [stackTrace symbols];
 }
 
 @end

@@ -64,18 +64,49 @@ static inline void GSPThreadInitRecursiveMutex(pthread_mutex_t *x)
   NSArray	        *addresses;
 @public
   NSUInteger            recursion;      // Recursion count for lock trace
-  void	                **returns;      // The return addresses on the stack
+  NSUInteger	        *returns;       // The return addresses on the stack
   int                   numReturns;     // Number of return addresses
 }
-- (NSArray*) addresses;
-- (NSArray*) symbols;
+- (NSArray*) addresses; // Return addresses from last trace
+- (NSArray*) symbols;   // Return symbols from last trace
+- (void) trace;         // Populate with new stack trace
 @end
 
 /* Versions of the lock classes where the locking is never traced
  */
+@interface      GSUntracedCondition : NSCondition
+@end
+@interface      GSUntracedConditionLock : NSConditionLock
+@end
 @interface      GSUntracedLock : NSLock
 @end
 @interface      GSUntracedRecursiveLock : NSRecursiveLock
+@end
+
+/* Versions of the lock classes where the locking is traced
+ */
+@interface      GSTracedCondition : NSCondition
+{
+  GSStackTrace  *stack;
+}
+- (GSStackTrace*) stack;
+@end
+
+@interface      GSTracedConditionLock : NSConditionLock
+@end
+
+@interface      GSTracedLock : NSLock
+{
+  GSStackTrace  *stack;
+}
+- (GSStackTrace*) stack;
+@end
+
+@interface      GSTracedRecursiveLock : NSRecursiveLock
+{
+  GSStackTrace  *stack;
+}
+- (GSStackTrace*) stack;
 @end
 
 #endif // _GSPThread_h_

@@ -43,6 +43,21 @@
 
 #import "GSPThread.h"
 
+static Class    baseConditionClass = Nil;
+static Class    baseConditionLockClass = Nil;
+static Class    baseLockClass = Nil;
+static Class    baseRecursiveLockClass = Nil;
+
+static Class    tracedConditionClass = Nil;
+static Class    tracedConditionLockClass = Nil;
+static Class    tracedLockClass = Nil;
+static Class    tracedRecursiveLockClass = Nil;
+
+static Class    untracedConditionClass = Nil;
+static Class    untracedConditionLockClass = Nil;
+static Class    untracedLockClass = Nil;
+static Class    untracedRecursiveLockClass = Nil;
+
 static BOOL     traceLocks = NO;
 
 void
@@ -51,17 +66,11 @@ GSPrivateTraceLocks(BOOL aFlag)
   traceLocks = (aFlag ? YES : NO);
 }
 
-
-#define CHKT(T,X) \
-if (traceLocks) { \
-  NSString *msg = [T mutex ## X: self]; \
-  if (nil != msg) \
-    { \
-      (*_NSLock_error_handler)(self, _cmd, YES, msg); \
-    } \
-};
-
-#define CHK(X) CHKT(GSCurrentThread(), X)
+/* In untraced operations these macros do nothing.
+ * When tracing they are defined to perform the trace methods of the thread.
+ */
+#define CHKT(T,X) 
+#define CHK(X)
 
 /*
  * Methods shared between NSLock, NSRecursiveLock, and NSCondition
@@ -144,56 +153,18 @@ if (traceLocks) { \
   pthread_mutex_destroy(&_mutex);\
 }
 
-#define MNAME \
-- (void) setName: (NSString*)newName\
-{\
-  ASSIGNCOPY(_name, newName);\
-}\
-- (NSString*) name\
-{\
-  return _name;\
-}
-
-#define	MLOCK_TRACED \
-{ \
-  NSThread      *t = GSCurrentThread(); \
-  CHKT(t,Wait) \
-  int err = pthread_mutex_lock(&_mutex);\
-  if (EDEADLK == err)\
-    {\
-      CHKT(t,Drop) \
-      (*_NSLock_error_handler)(self, _cmd, YES, @"deadlock");\
-    }\
-  else if (err != 0)\
-    {\
-      CHKT(t,Drop) \
-      [NSException raise: NSLockException\
-            format: @"failed to lock mutex"];\
-    }\
-  CHKT(t,Hold) \
-}
-
-#define	MLOCK_UNTRACED \
-{ \
-  int err = pthread_mutex_lock(&_mutex);\
-  if (EDEADLK == err)\
-    {\
-      (*_NSLock_error_handler)(self, _cmd, YES, @"deadlock");\
-    }\
-  else if (err != 0)\
-    {\
-      [NSException raise: NSLockException\
-            format: @"failed to lock mutex"];\
-    }\
-}
-
 #define	MLOCK \
 - (void) lock\
 {\
-  if (traceLocks) \
-    MLOCK_TRACED \
-  else \
-    MLOCK_UNTRACED \
+  int err = pthread_mutex_lock(&_mutex);\
+  if (EDEADLK == err)\
+    {\
+      (*_NSLock_error_handler)(self, _cmd, YES, @"deadlock");\
+    }\
+  else if (err != 0)\
+    {\
+      [NSException raise: NSLockException format: @"failed to lock mutex"];\
+    }\
 }
 
 #define	MLOCKBEFOREDATE \
@@ -210,6 +181,22 @@ if (traceLocks) { \
       sched_yield();\
     } while ([limit timeIntervalSinceNow] > 0);\
   return NO;\
+}
+
+#define MNAME \
+- (void) setName: (NSString*)newName\
+{\
+  ASSIGNCOPY(_name, newName);\
+}\
+- (NSString*) name\
+{\
+  return _name;\
+}
+
+#define MSTACK \
+- (GSStackTrace*) stack \
+{ \
+  return nil; \
 }
 
 #define	MTRYLOCK \
@@ -263,6 +250,15 @@ NSString *NSLockException = @"NSLockException";
 
 @implementation NSLock
 
++ (id) allocWithZone: (NSZone*)z
+{
+  if (self == baseLockClass && YES == traceLocks)
+    {
+      return class_createInstance(tracedLockClass, 0);
+    }
+  return class_createInstance(self, 0);
+}
+
 + (void) initialize
 {
   static BOOL	beenHere = NO;
@@ -296,6 +292,21 @@ NSString *NSLockException = @"NSLockException";
        */
       pthread_mutex_init(&deadlock, &attr_normal);
       pthread_mutex_lock(&deadlock);
+
+      baseConditionClass = [NSCondition class];
+      baseConditionLockClass = [NSConditionLock class];
+      baseLockClass = [NSLock class];
+      baseRecursiveLockClass = [NSRecursiveLock class];
+
+      tracedConditionClass = [GSTracedCondition class];
+      tracedConditionLockClass = [GSTracedConditionLock class];
+      tracedLockClass = [GSTracedLock class];
+      tracedRecursiveLockClass = [GSTracedRecursiveLock class];
+
+      untracedConditionClass = [GSUntracedCondition class];
+      untracedConditionLockClass = [GSUntracedConditionLock class];
+      untracedLockClass = [GSUntracedLock class];
+      untracedRecursiveLockClass = [GSUntracedRecursiveLock class];
     }
 }
 
@@ -328,7 +339,7 @@ MLOCK
       int err = pthread_mutex_trylock(&_mutex);
       if (0 == err)
 	{
-          if (traceLocks) CHK(Hold)
+          CHK(Hold)
 	  return YES;
 	}
       if (EDEADLK == err)
@@ -341,11 +352,22 @@ MLOCK
 }
 
 MNAME
+MSTACK
 MTRYLOCK
 MUNLOCK
+
 @end
 
 @implementation NSRecursiveLock
+
++ (id) allocWithZone: (NSZone*)z
+{
+  if (self == baseRecursiveLockClass && YES == traceLocks)
+    {
+      return class_createInstance(tracedRecursiveLockClass, 0);
+    }
+  return class_createInstance(self, 0);
+}
 
 + (void) initialize
 {
@@ -372,11 +394,21 @@ MISLOCKED
 MLOCK
 MLOCKBEFOREDATE
 MNAME
+MSTACK
 MTRYLOCK
 MUNLOCK
 @end
 
 @implementation NSCondition
+
++ (id) allocWithZone: (NSZone*)z
+{
+  if (self == baseConditionClass && YES == traceLocks)
+    {
+      return class_createInstance(tracedConditionClass, 0);
+    }
+  return class_createInstance(self, 0);
+}
 
 + (void) initialize
 {
@@ -424,23 +456,13 @@ MNAME
   pthread_cond_signal(&_condition);
 }
 
+MSTACK
 MTRYLOCK
 MUNLOCK
 
 - (void) wait
 {
-  if (traceLocks)
-    {
-      NSThread      *t = GSCurrentThread();
-      CHKT(t,Drop)
-      CHKT(t,Wait)
-      pthread_cond_wait(&_condition, &_mutex);
-      CHKT(t,Hold)
-    }
-  else
-    {
-      pthread_cond_wait(&_condition, &_mutex);
-    }
+  pthread_cond_wait(&_condition, &_mutex);
 }
 
 - (BOOL) waitUntilDate: (NSDate*)limit
@@ -459,36 +481,15 @@ MUNLOCK
   /* NB. On timeout the lock is still held even through condition is not met
    */
 
-  if (traceLocks)
+  retVal = pthread_cond_timedwait(&_condition, &_mutex, &timeout);
+  if (retVal == 0)
     {
-      NSThread      *t = GSCurrentThread();
-
-      CHKT(t,Drop)
-      retVal = pthread_cond_timedwait(&_condition, &_mutex, &timeout);
-      if (retVal == 0)
-        {
-          CHKT(t,Hold)
-          return YES;
-        }
-      if (retVal == ETIMEDOUT)
-        {
-          CHKT(t,Hold)
-          return NO;
-        }
+      return YES;
     }
-  else
+  if (retVal == ETIMEDOUT)
     {
-      retVal = pthread_cond_timedwait(&_condition, &_mutex, &timeout);
-      if (retVal == 0)
-        {
-          return YES;
-        }
-      if (retVal == ETIMEDOUT)
-        {
-          return NO;
-        }
+      return NO;
     }
-
   if (retVal == EINVAL)
     {
       NSLog(@"Invalid arguments to pthread_cond_timedwait");
@@ -499,6 +500,15 @@ MUNLOCK
 @end
 
 @implementation NSConditionLock
+
++ (id) allocWithZone: (NSZone*)z
+{
+  if (self == baseConditionLockClass && YES == traceLocks)
+    {
+      return class_createInstance(tracedConditionLockClass, 0);
+    }
+  return class_createInstance(self, 0);
+}
 
 + (void) initialize
 {
@@ -587,6 +597,7 @@ MUNLOCK
 }
 
 MNAME
+MSTACK
 
 - (BOOL) tryLock
 {
@@ -627,10 +638,6 @@ MNAME
 
 /* Versions of the lock classes where the locking is unconditionally traced
  */
-@interface      GSTracedRecursiveLock : NSRecursiveLock
-@end
-@interface      GSTracedLock : NSLock
-@end
 
 #undef CHKT
 #define CHKT(T,X) \
@@ -641,20 +648,151 @@ MNAME
       (*_NSLock_error_handler)(self, _cmd, YES, msg); \
     } \
 }
+#undef CHK
+#define CHK(X) CHKT(GSCurrentThread(), X)
+
+#undef  MDEALLOC
+#define	MDEALLOC \
+- (void) dealloc \
+{ \
+  DESTROY(stack); \
+  [super dealloc]; \
+}
+
 #undef MLOCK
 #define	MLOCK \
 - (void) lock\
-  MLOCK_TRACED
+{ \
+  NSThread      *t = GSCurrentThread(); \
+  CHKT(t,Wait) \
+  int err = pthread_mutex_lock(&_mutex);\
+  if (EDEADLK == err)\
+    {\
+      CHKT(t,Drop) \
+      (*_NSLock_error_handler)(self, _cmd, YES, @"deadlock");\
+    }\
+  else if (err != 0)\
+    {\
+      CHKT(t,Drop) \
+      [NSException raise: NSLockException format: @"failed to lock mutex"];\
+    }\
+  CHKT(t,Hold) \
+}
 
-@implementation GSTracedLock
+#undef MSTACK
+#define MSTACK \
+- (GSStackTrace*) stack \
+{ \
+  if (nil == stack) \
+    { \
+      stack = [GSStackTrace new]; \
+    } \
+  return stack; \
+}
+
+@implementation GSTracedCondition
++ (id) allocWithZone: (NSZone*)z
+{
+  return class_createInstance(tracedConditionClass, 0);
+}
+MDEALLOC
 MLOCK
 MLOCKBEFOREDATE
+MSTACK
+MTRYLOCK
+
+- (void) wait
+{
+  NSThread      *t = GSCurrentThread();
+  CHKT(t,Drop)
+  CHKT(t,Wait)
+  pthread_cond_wait(&_condition, &_mutex);
+  CHKT(t,Hold)
+}
+
+- (BOOL) waitUntilDate: (NSDate*)limit
+{
+  NSTimeInterval ti = [limit timeIntervalSince1970];
+  NSThread      *t = GSCurrentThread();
+  double secs, subsecs;
+  struct timespec timeout;
+  int retVal = 0;
+
+  // Split the float into seconds and fractions of a second
+  subsecs = modf(ti, &secs);
+  timeout.tv_sec = secs;
+  // Convert fractions of a second to nanoseconds
+  timeout.tv_nsec = subsecs * 1e9;
+
+  /* NB. On timeout the lock is still held even through condition is not met
+   */
+
+  CHKT(t,Drop)
+  retVal = pthread_cond_timedwait(&_condition, &_mutex, &timeout);
+  if (retVal == 0)
+    {
+      CHKT(t,Hold)
+      return YES;
+    }
+  if (retVal == ETIMEDOUT)
+    {
+      CHKT(t,Hold)
+      return NO;
+    }
+
+  if (retVal == EINVAL)
+    {
+      NSLog(@"Invalid arguments to pthread_cond_timedwait");
+    }
+  return NO;
+}
+
+MUNLOCK
+@end
+@implementation GSTracedConditionLock
++ (id) allocWithZone: (NSZone*)z
+{
+  return class_createInstance(tracedConditionLockClass, 0);
+}
+- (id) initWithCondition: (NSInteger)value
+{
+  if (nil != (self = [super init]))
+    {
+      if (nil == (_condition = [GSTracedCondition new]))
+	{
+	  DESTROY(self);
+	}
+      else
+	{
+          _condition_value = value;
+          [_condition setName:
+            [NSString stringWithFormat: @"condition-for-lock-%p", self]];
+	}
+    }
+  return self;
+}
+@end
+@implementation GSTracedLock
++ (id) allocWithZone: (NSZone*)z
+{
+  return class_createInstance(tracedLockClass, 0);
+}
+MDEALLOC
+MLOCK
+MLOCKBEFOREDATE
+MSTACK
 MTRYLOCK
 MUNLOCK
 @end
 @implementation GSTracedRecursiveLock
++ (id) allocWithZone: (NSZone*)z
+{
+  return class_createInstance(tracedRecursiveLockClass, 0);
+}
+MDEALLOC
 MLOCK
 MLOCKBEFOREDATE
+MSTACK
 MTRYLOCK
 MUNLOCK
 @end
@@ -662,22 +800,28 @@ MUNLOCK
 
 /* Versions of the lock classes where the locking is never traced
  */
-#undef CHKT
-#define CHKT(T,X)       
-#undef MLOCK
-#define	MLOCK \
-- (void) lock\
-  MLOCK_UNTRACED
+@implementation GSUntracedCondition
++ (id) allocWithZone: (NSZone*)z
+{
+  return class_createInstance(baseConditionClass, 0);
+}
+@end
+@implementation GSUntracedConditionLock
++ (id) allocWithZone: (NSZone*)z
+{
+  return class_createInstance(baseConditionLockClass, 0);
+}
+@end
 @implementation GSUntracedLock
-MLOCK
-MLOCKBEFOREDATE
-MTRYLOCK
-MUNLOCK
++ (id) allocWithZone: (NSZone*)z
+{
+  return class_createInstance(baseRecursiveLockClass, 0);
+}
 @end
 @implementation GSUntracedRecursiveLock
-MLOCK
-MLOCKBEFOREDATE
-MTRYLOCK
-MUNLOCK
++ (id) allocWithZone: (NSZone*)z
+{
+  return class_createInstance(baseRecursiveLockClass, 0);
+}
 @end
 

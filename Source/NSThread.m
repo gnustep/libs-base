@@ -1363,12 +1363,13 @@ lockInfoErr(NSString *str)
 
 - (NSString *) mutexDrop: (id)mutex
 {
-  if (GS_EXISTS_INTERNAL && traceLocks)
+  if (GS_EXISTS_INTERNAL)
     {
       GSLockInfo        *li = &lockInfo;
       GSStackTrace      *stck;
       int               err;
 
+      if (NO == traceLocks) return nil;
       err = pthread_spin_lock(&li->spin);
       if (EDEADLK == err) return lockInfoErr(@"thread spin lock deadlocked");
       if (EINVAL == err) return lockInfoErr(@"thread spin lock invalid");
@@ -1387,16 +1388,16 @@ lockInfoErr(NSString *str)
           if (stck->recursion-- == 0)
             {
               NSMapRemove(li->held, (void*)mutex);
-//fprintf(stderr, "%lu: Drop %p (final) %lu\n", (unsigned long)_threadID, mutex, [li->held count]);
+fprintf(stderr, "%lu: Drop %p (final) %lu\n", (unsigned long)_threadID, mutex, [li->held count]);
             }
           else
             {
-//fprintf(stderr, "%lu: Drop %p (%lu) %lu\n", (unsigned long)threadID, mutex, (unsigned long)stck->recursion, [li->held count]);
+fprintf(stderr, "%lu: Drop %p (%lu) %lu\n", (unsigned long)threadID, mutex, (unsigned long)stck->recursion, [li->held count]);
             }
         }
       else
         {
-//fprintf(stderr, "%lu: Drop %p (bad) %lu\n", (unsigned long)threadID, mutex, [li->held count]);
+fprintf(stderr, "%lu: Drop %p (bad) %lu\n", (unsigned long)threadID, mutex, [li->held count]);
           pthread_spin_unlock(&li->spin);
           return lockInfoErr(
             @"attempt to unlock mutex not locked by this thread");
@@ -1409,12 +1410,13 @@ lockInfoErr(NSString *str)
 
 - (NSString *) mutexHold: (id)mutex
 {
-  if (GS_EXISTS_INTERNAL && traceLocks)
+  if (GS_EXISTS_INTERNAL)
     {
       GSLockInfo        *li = &lockInfo;
       GSStackTrace      *stck;
       int               err;
 
+      if (NO == traceLocks) return nil;
       err = pthread_spin_lock(&li->spin);
       if (EDEADLK == err) return lockInfoErr(@"thread spin lock deadlocked");
       if (EINVAL == err) return lockInfoErr(@"thread spin lock invalid");
@@ -1435,15 +1437,15 @@ lockInfoErr(NSString *str)
       stck = NSMapGet(li->held, (void*)mutex);
       if (nil == stck)
         {
-          stck = [GSStackTrace new];
+          stck = [GSStackTrace new]; [stck trace];
           NSMapInsert(li->held, (void*)mutex, (void*)stck);
           RELEASE(stck);
-//fprintf(stderr, "%lu: Hold %p (initial) %lu\n", (unsigned long)threadID, mutex, [li->held count]);
+fprintf(stderr, "%lu: Hold %p (initial) %lu\n", (unsigned long)threadID, mutex, [li->held count]);
         }
       else
         {
           stck->recursion++;
-//fprintf(stderr, "%lu: Hold %p (%lu) %lu\n", (unsigned long)threadID, mutex, (unsigned long)stck->recursion, [li->held count]);
+fprintf(stderr, "%lu: Hold %p (%lu) %lu\n", (unsigned long)threadID, mutex, (unsigned long)stck->recursion, [li->held count]);
         }
       li->wait = nil;
       pthread_spin_unlock(&li->spin);
@@ -1454,12 +1456,13 @@ lockInfoErr(NSString *str)
 
 - (NSString *) mutexWait: (id)mutex
 {
-  if (GS_EXISTS_INTERNAL && traceLocks)
+  if (GS_EXISTS_INTERNAL)
     {
       GSLockInfo        *li = &lockInfo;
       BOOL              owned = NO;
       int               err;
 
+      if (NO == traceLocks) return nil;
       err = pthread_spin_lock(&li->spin);
       if (EDEADLK == err) return lockInfoErr(@"thread spin lock deadlocked");
       if (EINVAL == err) return lockInfoErr(@"thread spin lock invalid");
@@ -1477,6 +1480,7 @@ lockInfoErr(NSString *str)
           owned = YES;
         }
       pthread_spin_unlock(&li->spin);
+fprintf(stderr, "%lu: Wait %p\n", (unsigned long)_threadID, mutex);
       if (YES == owned && [mutex isKindOfClass: [NSRecursiveLock class]])
         {
           return nil;   // We can't deadlock on a recursive lock we own
@@ -1625,7 +1629,7 @@ lockInfoErr(NSString *str)
 
       if (nil != dependencies)
         {
-          GSStackTrace          *stack = [GSStackTrace new];
+          GSStackTrace          *stack = [GSStackTrace new]; [stack trace];
           NSUInteger            count;
           NSUInteger            index = 0;
           NSMutableString       *m;
