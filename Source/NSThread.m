@@ -1697,7 +1697,7 @@ lockInfoErr(NSString *str)
     {
       if (SetEvent(event) == 0)
         {
-          SLog(@"Set event failed - %@", [NSError _last]);
+          NSLog(@"Set event failed - %@", [NSError _last]);
         }
       else
         {
