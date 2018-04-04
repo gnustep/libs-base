@@ -371,12 +371,9 @@ GS_EXPORT BOOL GSRegisterCurrentThread (void);
  * notification.  */
 GS_EXPORT void GSUnregisterCurrentThread (void);
 
-@interface NSThread (GSLockInfo)
-/** Turns on/off tracing of locks for deadlock tracking.  Use of this option
- * introduces a major overhead processing lock operations, but enables
- * detection of deadlocks between threads.
+/* Internal API used by traced locks.
  */
-+ (void) setTraceLocks: (BOOL)aFlag;
+@interface NSThread (GSLockInfo)
 
 /* Removes the mutex (either as the one we are waiting for or as a held mutex.
  * For internal use only ... do not call this method.<br />

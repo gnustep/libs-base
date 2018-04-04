@@ -1,3 +1,14 @@
+2018-04-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSLock.h:
+	* Headers/Foundation/NSThread.h:
+	* Source/GSPrivate.h:
+	* Source/NSException.m:
+	* Source/NSLock.m:
+	* Source/NSThread.m:
+	Revised code for efficient stack traces and for tracking the use of
+	locks and detecting deadlocks.
+
 2018-03-30  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSException.m: Fix second argument to backtrace()

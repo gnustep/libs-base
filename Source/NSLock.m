@@ -60,11 +60,37 @@ static Class    untracedRecursiveLockClass = Nil;
 
 static BOOL     traceLocks = NO;
 
-void
-GSPrivateTraceLocks(BOOL aFlag)
+@implementation NSObject (GSTraceLocks)
+
++ (BOOL) shouldCreateTraceableLocks: (BOOL)shouldTrace
 {
-  traceLocks = (aFlag ? YES : NO);
+  BOOL  old = traceLocks;
+
+  traceLocks = shouldTrace ? YES : NO;
+  return old;
 }
+
++ (NSCondition*) tracedCondition
+{
+  return AUTORELEASE([GSTracedCondition new]);
+}
+
++ (NSConditionLock*) tracedConditionLockWithCondition: (NSInteger)value
+{
+  return AUTORELEASE([[GSTracedConditionLock alloc] initWithCondition: value]);
+}
+
++ (NSLock*) tracedLock
+{
+  return AUTORELEASE([GSTracedLock new]);
+}
+
++ (NSRecursiveLock*) tracedRecursiveLock
+{
+  return AUTORELEASE([GSTracedRecursiveLock new]);
+}
+
+@end
 
 /* In untraced operations these macros do nothing.
  * When tracing they are defined to perform the trace methods of the thread.

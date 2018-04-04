@@ -39,7 +39,7 @@
  */
 typedef struct {
   pthread_spinlock_t    spin;   /* protect access to struct members */
-  NSMapTable            *held;  /* all locks/conditions held by thread */
+  NSHashTable           *held;  /* all locks/conditions held by thread */
   id                    wait;   /* the lock/condition we are waiting for */
 } GSLockInfo;
 
@@ -216,7 +216,7 @@ static int SetThreadName(DWORD dwThreadID, const char *threadName)
 
 static Class                    threadClass = Nil;
 static NSNotificationCenter     *nc = nil;
-static BOOL                     traceLocks = NO;
+static BOOL                     disableTraceLocks = NO;
 
 /**
  * This class performs a dual function ...
@@ -825,8 +825,12 @@ unregisterActiveThread(NSThread *thread)
 
 + (NSArray*) callStackReturnAddresses
 {
-  GSStackTrace          *stack = [GSStackTrace new];
-  NSArray               *addrs = RETAIN([stack addresses]);
+  GSStackTrace          *stack;
+  NSArray               *addrs;
+
+  stack = [GSStackTrace new];
+  [stack trace];
+  addrs = RETAIN([stack addresses]);
   RELEASE(stack);
   return AUTORELEASE(addrs);
 }
@@ -1085,8 +1089,7 @@ unregisterActiveThread(NSThread *thread)
 {
   GS_CREATE_INTERNAL(NSThread);
   pthread_spin_init(&lockInfo.spin, 0);
-  lockInfo.held = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
-    NSObjectMapValueCallBacks, 10);
+  lockInfo.held = NSCreateHashTable(NSNonOwnedPointerHashCallBacks, 10);
   init_autorelease_thread_vars(&_autorelease_vars);
   return self;
 }
@@ -1353,12 +1356,11 @@ nsthreadLauncher(void *thread)
 static NSString *
 lockInfoErr(NSString *str)
 {
-  if (traceLocks)
+  if (disableTraceLocks)
     {
-      traceLocks = NO;
-      return str;
+      return nil;
     }
-  return nil;
+  return str;
 }
 
 - (NSString *) mutexDrop: (id)mutex
@@ -1366,10 +1368,9 @@ lockInfoErr(NSString *str)
   if (GS_EXISTS_INTERNAL)
     {
       GSLockInfo        *li = &lockInfo;
-      GSStackTrace      *stck;
       int               err;
 
-      if (NO == traceLocks) return nil;
+      if (YES == disableTraceLocks) return nil;
       err = pthread_spin_lock(&li->spin);
       if (EDEADLK == err) return lockInfoErr(@"thread spin lock deadlocked");
       if (EINVAL == err) return lockInfoErr(@"thread spin lock invalid");
@@ -1380,24 +1381,26 @@ lockInfoErr(NSString *str)
            */
           li->wait = nil;
         }
-      else if ((stck = NSMapGet(li->held, (void*)mutex)) != nil)
+      else if (NSHashGet(li->held, (void*)mutex) == (void*)mutex)
         {
+          GSStackTrace  *stck = [mutex stack];
+
           /* The mutex was being held ... if the recursion count was zero
            * we remove it (otherwise the count is decreased).
            */
           if (stck->recursion-- == 0)
             {
-              NSMapRemove(li->held, (void*)mutex);
-fprintf(stderr, "%lu: Drop %p (final) %lu\n", (unsigned long)_threadID, mutex, [li->held count]);
+              NSHashRemove(li->held, (void*)mutex);
+// fprintf(stderr, "%lu: Drop %p (final) %lu\n", (unsigned long)_threadID, mutex, [li->held count]);
             }
           else
             {
-fprintf(stderr, "%lu: Drop %p (%lu) %lu\n", (unsigned long)threadID, mutex, (unsigned long)stck->recursion, [li->held count]);
+// fprintf(stderr, "%lu: Drop %p (%lu) %lu\n", (unsigned long)threadID, mutex, (unsigned long)stck->recursion, [li->held count]);
             }
         }
       else
         {
-fprintf(stderr, "%lu: Drop %p (bad) %lu\n", (unsigned long)threadID, mutex, [li->held count]);
+// fprintf(stderr, "%lu: Drop %p (bad) %lu\n", (unsigned long)threadID, mutex, [li->held count]);
           pthread_spin_unlock(&li->spin);
           return lockInfoErr(
             @"attempt to unlock mutex not locked by this thread");
@@ -1413,10 +1416,9 @@ fprintf(stderr, "%lu: Drop %p (bad) %lu\n", (unsigned long)threadID, mutex, [li-
   if (GS_EXISTS_INTERNAL)
     {
       GSLockInfo        *li = &lockInfo;
-      GSStackTrace      *stck;
       int               err;
 
-      if (NO == traceLocks) return nil;
+      if (YES == disableTraceLocks) return nil;
       err = pthread_spin_lock(&li->spin);
       if (EDEADLK == err) return lockInfoErr(@"thread spin lock deadlocked");
       if (EINVAL == err) return lockInfoErr(@"thread spin lock invalid");
@@ -1434,18 +1436,18 @@ fprintf(stderr, "%lu: Drop %p (bad) %lu\n", (unsigned long)threadID, mutex, [li-
           pthread_spin_unlock(&li->spin);
           return lockInfoErr(@"attempt to hold mutex without waiting for it");
         }
-      stck = NSMapGet(li->held, (void*)mutex);
-      if (nil == stck)
+      if (NSHashGet(li->held, (void*)mutex) == NULL)
         {
-          stck = [GSStackTrace new]; [stck trace];
-          NSMapInsert(li->held, (void*)mutex, (void*)stck);
-          RELEASE(stck);
-fprintf(stderr, "%lu: Hold %p (initial) %lu\n", (unsigned long)threadID, mutex, [li->held count]);
+          [[mutex stack] trace];                // Get current strack trace
+          NSHashInsert(li->held, (void*)mutex);
+// fprintf(stderr, "%lu: Hold %p (initial) %lu\n", (unsigned long)threadID, mutex, [li->held count]);
         }
       else
         {
+          GSStackTrace  *stck = [mutex stack];
+
           stck->recursion++;
-fprintf(stderr, "%lu: Hold %p (%lu) %lu\n", (unsigned long)threadID, mutex, (unsigned long)stck->recursion, [li->held count]);
+// fprintf(stderr, "%lu: Hold %p (%lu) %lu\n", (unsigned long)threadID, mutex, (unsigned long)stck->recursion, [li->held count]);
         }
       li->wait = nil;
       pthread_spin_unlock(&li->spin);
@@ -1462,7 +1464,7 @@ fprintf(stderr, "%lu: Hold %p (%lu) %lu\n", (unsigned long)threadID, mutex, (uns
       BOOL              owned = NO;
       int               err;
 
-      if (NO == traceLocks) return nil;
+      if (YES == disableTraceLocks) return nil;
       err = pthread_spin_lock(&li->spin);
       if (EDEADLK == err) return lockInfoErr(@"thread spin lock deadlocked");
       if (EINVAL == err) return lockInfoErr(@"thread spin lock invalid");
@@ -1475,12 +1477,12 @@ fprintf(stderr, "%lu: Hold %p (%lu) %lu\n", (unsigned long)threadID, mutex, (uns
           return lockInfoErr(msg);
         }
       li->wait = mutex;
-      if (nil != NSMapGet(li->held, (const void*)mutex))
+      if (nil != NSHashGet(li->held, (const void*)mutex))
         {
           owned = YES;
         }
       pthread_spin_unlock(&li->spin);
-fprintf(stderr, "%lu: Wait %p\n", (unsigned long)_threadID, mutex);
+// fprintf(stderr, "%lu: Wait %p\n", (unsigned long)_threadID, mutex);
       if (YES == owned && [mutex isKindOfClass: [NSRecursiveLock class]])
         {
           return nil;   // We can't deadlock on a recursive lock we own
@@ -1544,7 +1546,7 @@ fprintf(stderr, "%lu: Wait %p\n", (unsigned long)_threadID, mutex);
                       wasLocked = NO;
                     }
                   if (nil != info->wait
-                    && nil != (stck = NSMapGet(info->held, (const void*)want)))
+                    && nil != (stck = NSHashGet(info->held, (const void*)want)))
                     {
                       /* This thread holds the lock we are interested in and
                        * is waiting for another lock.
@@ -1561,7 +1563,6 @@ fprintf(stderr, "%lu: Wait %p\n", (unsigned long)_threadID, mutex);
                         }
                       [dependencies addObject: found];  // thread
                       [dependencies addObject: want];   // mutex
-                      [dependencies addObject: stck];   // stacktrace
                       /* NB. breaking out here holds the spin lock so that
                        * the lock state of each dependency thread is
                        * preserved (if we don't have a deadlock, we get a
@@ -1629,13 +1630,15 @@ fprintf(stderr, "%lu: Wait %p\n", (unsigned long)_threadID, mutex);
 
       if (nil != dependencies)
         {
-          GSStackTrace          *stack = [GSStackTrace new]; [stack trace];
+          GSStackTrace          *stack;
           NSUInteger            count;
           NSUInteger            index = 0;
           NSMutableString       *m;
 
-          [NSThread setTraceLocks: NO];
+          disableTraceLocks = YES;
           m = [NSMutableString stringWithCapacity: 1000];
+          stack = [GSStackTrace new];
+          [stack trace];
           [m appendFormat: @"Deadlock on %@ at\n  %@\n",
             mutex, [stack symbols]];
           RELEASE(stack);
@@ -1646,9 +1649,9 @@ fprintf(stderr, "%lu: Wait %p\n", (unsigned long)_threadID, mutex);
               NSThread          *thread;
               NSUInteger        frameCount;
 
-              mutex = [dependencies objectAtIndex: index++];
               thread = [dependencies objectAtIndex: index++];
-              symbols = [[dependencies objectAtIndex: index++] symbols];
+              mutex = [dependencies objectAtIndex: index++];
+              symbols = [[mutex stack] symbols];
               frameCount = [symbols count];
               if (frameCount > 0)
                 {
@@ -1677,12 +1680,6 @@ fprintf(stderr, "%lu: Wait %p\n", (unsigned long)_threadID, mutex);
       return nil;
     }
   return lockInfoErr(@"thread not active");
-}
-
-+ (void) setTraceLocks: (BOOL)aFlag
-{
-  traceLocks = (aFlag ? YES : NO);      // Update our variable ...
-  GSPrivateTraceLocks(traceLocks);      // and tell NSLock too.
 }
 
 @end

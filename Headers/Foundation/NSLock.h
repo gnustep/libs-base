@@ -325,6 +325,33 @@ typedef void NSLock_error_handler(id obj, SEL _cmd, BOOL stop, NSString *msg);
  * logging of a deadlock.
  */
 GS_EXPORT NSLock_error_handler  *_NSLock_error_handler;
+
+/** Controls tracing of locks for deadlocking.
+ */
+@interface      NSObject (GSTraceLocks)
+/** Sets whether newly created lock objects (NSCondition, NSConditionLock,
+ * NSLock, NSRecursiveLock but NOT NSDistributedLock) should be created so
+ * that their use by threads is traced and deadlocks can be detected.<br />
+ * Returns the old value of the setting.
+ */
++ (BOOL) shouldCreateTraceableLocks: (BOOL)shouldTrace;
+
+/** Creates and returns a single autoreleased traced condition.
+ */
++ (NSCondition*) tracedCondition;
+
+/** Creates and returns a single autoreleased traced condition lock.
+ */
++ (NSConditionLock*) tracedConditionLockWithCondition: (NSInteger)value;
+
+/** Creates and returns a single autoreleased traced lock.
+ */
++ (NSLock*) tracedLock;
+
+/** Creates and returns a single autoreleased traced recursive lock.
+ */
++ (NSRecursiveLock*) tracedRecursiveLock;
+@end
 #endif
 
 #if  defined(__cplusplus)
