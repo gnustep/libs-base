@@ -3523,7 +3523,7 @@ GSPrivateRangeOfString(NSString *receiver, NSString *target)
         return (GSRSFunc)strRangeUsNs;
     }
   else if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 0))
+    || (c == GSMutableStringClass && ((GSStr)receiver)->_flags.wide == 0))
     {
       c = object_getClass(target);
       if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
