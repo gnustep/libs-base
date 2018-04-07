@@ -881,6 +881,12 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 
 @end
 
+#ifdef __OBJC_GNUSTEP_RUNTIME_ABI__
+#  if __OBJC_GNUSTEP_RUNTIME_ABI__ >= 20
+#    define GNUSTEP_NEW_STRING_ABI
+#  endif
+#endif
+
 /**
  * <p>The NXConstantString class is used to hold constant 8-bit character
  * string objects produced by the compiler where it sees @"..." in the
@@ -908,8 +914,16 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 @interface NXConstantString : NSString
 {
 @public
+#ifdef GNUSTEP_NEW_STRING_ABI
+  uint32_t flags;
+  uint32_t nxcslen;
+  uint32_t size;
+  uint32_t hash;
+  const char * const nxcsptr;
+#else
   const char * const nxcsptr;
   const unsigned int nxcslen;
+#endif 
 }
 @end
 
