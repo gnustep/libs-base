@@ -966,7 +966,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
     {
       jbuf_type *env;
 
-      *returns = malloc(numReturns * sizeof(void*));
+      returns = malloc(numReturns * sizeof(void*));
 
       env = jbuf();
       if (sigsetjmp(env->buf, 1) == 0)

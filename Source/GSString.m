@@ -298,32 +298,6 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
 static BOOL
 literalIsEqualInternal(NXConstantString *s, GSStr o)
 {
-#ifdef GNUSTEP_NEW_STRING_ABI
-  if (s->nxcslen != o->_count)
-    {
-      return NO;
-    }
-  size_t end = s->nxcslen;
-  static const int buffer_size = 64;
-  unichar buffer1[buffer_size];
-  unichar buffer2[buffer_size];
-  NSRange r = { 0, buffer_size };
-  do
-    {
-      if (r.location + r.length > end)
-	{
-	  r.length = s->nxcslen - r.location;
-	}
-      [s getCharacters: buffer1 range: r];
-      [o getCharacters: buffer2 range: r];
-      if (memcmp(buffer1, buffer2, r.length * sizeof(unichar)) != 0)
-	{
-	  return NO;
-	}
-      r.location += buffer_size;
-    } while (r.location < end);
-  return YES;
-#else
   unsigned	len = o->_count;
 
   /* Since UTF-8 is a multibyte character set, it must have at least
@@ -476,7 +450,6 @@ literalIsEqualInternal(NXConstantString *s, GSStr o)
 	}
       return YES;
     }
-#endif
 }
 
 
@@ -5818,13 +5791,6 @@ literalIsEqual(NXConstantString *self, id anObject)
   return NO;
 }
 
-#ifdef GNUSTEP_NEW_STRING_ABI
-#  define CONSTANT_STRING_ENCODING() (flags & 3)
-#  define CONSTANT_STRING_HAS_HASH() ((flags & (1<<16)) == (1<<16))
-#  define CONSTANT_STRING_SET_HAS_HASH() do { flags |= (1<<16); } while(0)
-#endif
-
-
 /**
  * <p>The NXConstantString class is used by the compiler for constant
  * strings, as such its ivar layout is determined by the compiler
@@ -5837,57 +5803,17 @@ literalIsEqual(NXConstantString *self, id anObject)
 {
   if (self == [NXConstantString class])
     {
-      NSConstantStringClass = nil;
+      NSConstantStringClass = self;
     }
 }
 
 - (const char*) UTF8String
 {
-#ifdef GNUSTEP_NEW_STRING_ABI
-  switch (CONSTANT_STRING_ENCODING())
-  {
-      case 0: // ASCII
-      case 1: // UTF-8
-	  return nxcsptr;
-      case 2: // UTF-16
-	{
-	  // UTF-8 needs a maximum of 4 bytes per character, plus one for the null terminator
-	  NSMutableData *buffer = [NSMutableData dataWithLength: nxcslen * 4 + 1];
-	  char *buf = [buffer mutableBytes];
-	  if ([self getCString: buf
-		     maxLength: nxcslen * 4
-		      encoding: NSUTF8StringEncoding])
-	  {
-	    return buf;
-	  }
-	  return NULL;
-	}
-  }
-  __builtin_unreachable();
-#else
   return nxcsptr;
-#endif
 }
 
 - (unichar) characterAtIndex: (NSUInteger)index
 {
-#ifdef GNUSTEP_NEW_STRING_ABI
-  if (index >= nxcslen)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"-characterAtIndex: index out of range"];
-    }
-  switch (CONSTANT_STRING_ENCODING())
-  {
-      case 0: // ASCII
-      case 1: // UTF-8
-	  return nxcsptr[index];
-      case 2: // UTF-16
-	  return ((unichar*)(void*)nxcsptr)[index];
-	
-  }
-  __builtin_unreachable();
-#else
   NSUInteger	l = 0;
   unichar	u;
   unichar	n = 0;
@@ -5905,10 +5831,7 @@ literalIsEqual(NXConstantString *self, id anObject)
   [NSException raise: NSInvalidArgumentException
 	      format: @"-characterAtIndex: index out of range"];
   return 0;
-#endif
 }
-
-#ifndef GNUSTEP_NEW_STRING_ABI
 
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding
 {
@@ -6012,8 +5935,6 @@ literalIsEqual(NXConstantString *self, id anObject)
 
   return [super dataUsingEncoding: encoding allowLossyConversion: flag];
 }
-
-#endif
 
 - (void) dealloc
 {
@@ -6124,10 +6045,6 @@ literalIsEqual(NXConstantString *self, id anObject)
  */
 - (NSUInteger) hash
 {
-#ifdef GNUSTEP_NEW_STRING_ABI
-  if (CONSTANT_STRING_HAS_HASH())
-    return hash;
-#endif
   if (nxcslen > 0)
     {
       uint32_t  s0 = 0;
@@ -6164,10 +6081,6 @@ literalIsEqual(NXConstantString *self, id anObject)
 	{
 	  ret = 0x0fffffff;
 	}
-#ifdef GNUSTEP_NEW_STRING_ABI
-      hash = ret;
-      CONSTANT_STRING_SET_HAS_HASH();
-#endif
       return ret;
     }
   else
@@ -6194,16 +6107,6 @@ literalIsEqual(NXConstantString *self, id anObject)
 	      format: @"Attempt to init a constant string"];
   return nil;
 }
-
-#ifdef GNUSTEP_NEW_STRING_ABI
-- (NSUInteger) length
-{
-  // In the new encoding, nxcslen is always the length of the string in UTF-16
-  // codepoints
-  return nxcslen;
-}
-
-#else
 
 - (BOOL) isEqual: (id)anObject
 {
@@ -6353,7 +6256,6 @@ literalIsEqual(NXConstantString *self, id anObject)
     format: @"-rangeOfComposedCharacterSequenceAtIndex: index out of range"];
   return NSMakeRange(NSNotFound, 0);
 }
-#endif // GNUSTEP_NEW_STRING_ABI
 
 - (id) retain
 {
@@ -6382,43 +6284,12 @@ literalIsEqual(NXConstantString *self, id anObject)
 
 - (NSStringEncoding) fastestEncoding
 {
-#ifdef GNUSTEP_NEW_STRING_ABI
-  switch (CONSTANT_STRING_ENCODING())
-  {
-      case 0: // ASCII
-	return NSASCIIStringEncoding;
-      case 1: // UTF-8
-	  return NSUTF8StringEncoding;
-      case 2: // UTF-16
-	  return NSUTF16StringEncoding;
-      case 3: // UTF-32
-	  return NSUTF32StringEncoding;
-  }
-  __builtin_unreachable();
-#else
   return NSUTF8StringEncoding;
-#endif
 }
 
 - (NSStringEncoding) smallestEncoding
 {
-#ifdef GNUSTEP_NEW_STRING_ABI
-  // UTF-16 might not be the smallest encoding for UTF-16 strings, but for now
-  // we'll pretend that it is.
-  switch (CONSTANT_STRING_ENCODING())
-  {
-      case 0: // ASCII
-	return NSASCIIStringEncoding;
-      case 1: // UTF-8
-	  return NSUTF8StringEncoding;
-      case 2: // UTF-16
-      case 3: // UTF-32
-	  return NSUTF16StringEncoding;
-  }
-  __builtin_unreachable();
-#else
   return NSUTF8StringEncoding;
-#endif
 }
 
 /* This method is provided to enable regression tests to ensure they are
