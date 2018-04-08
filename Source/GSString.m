@@ -4136,10 +4136,12 @@ agree, create a new GSCInlineString otherwise.
   return obj;
 }
 
+#if 0
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
 {
   return rangeOfSequence_c((GSStr)self, anIndex);
 }
+#endif
 
 - (NSRange) rangeOfCharacterFromSet: (NSCharacterSet*)aSet
 			    options: (NSUInteger)mask

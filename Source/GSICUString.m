@@ -127,7 +127,7 @@ UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
       r.length = nativeLimit - nativeStart;
       ut->chunkOffset = r.length;
     }
-  [str getCharacters: ut->pExtra range: r];
+  [str getCharacters: (unichar*)ut->chunkContents range: r];
   ut->chunkNativeLimit = nativeLimit;
   ut->chunkNativeStart = nativeStart;
   ut->nativeIndexingLimit = r.length;
@@ -266,6 +266,10 @@ void UTextNSStringCopy(UText *ut,
 static void
 UTextNStringClose(UText *ut)
 {
+  if (ut->chunkContents != ut->pExtra)
+  {
+    free((void*)ut->chunkContents);
+  }
   ut->chunkContents = NULL;
   [(NSString*)ut->p release];
   ut->p = NULL;
@@ -289,7 +293,17 @@ UTextNSStringClone(UText *dest,
     {
       str = [[str copy] autorelease];
     }
-  return UTextInitWithNSString(dest, str);
+  dest = UTextInitWithNSString(dest, str);
+  if (dest != NULL)
+    {
+      dest->chunkNativeLimit = src->chunkNativeLimit;
+      dest->chunkNativeStart = src->chunkNativeStart;
+      dest->nativeIndexingLimit = src->nativeIndexingLimit;
+      dest->chunkLength = src->chunkLength;
+      dest->chunkOffset = src->chunkOffset;
+      memcpy((void*)dest->chunkContents, src->chunkContents, src->chunkLength * sizeof(UChar));
+    }
+  return dest;
 }
 
 /**
@@ -364,12 +378,13 @@ static const UTextFuncs NSMutableStringFuncs =
   0, 0, 0             // Spare
 };
 
+
 UText*
 UTextInitWithNSMutableString(UText *txt, NSMutableString *str)
 {
   UErrorCode status = 0;
-
-  txt = utext_setup(txt, chunkSize * sizeof(unichar), &status);
+  BOOL useInlineSpace = (txt == NULL);
+  txt = utext_setup(txt, useInlineSpace ? chunkSize * sizeof(unichar) : 0, &status);
 
   if (U_FAILURE(status))
     {
@@ -378,7 +393,7 @@ UTextInitWithNSMutableString(UText *txt, NSMutableString *str)
 
   txt->p = [str retain];
   txt->pFuncs = &NSMutableStringFuncs;
-  txt->chunkContents = txt->pExtra;
+  txt->chunkContents = useInlineSpace ? txt->pExtra : calloc(chunkSize, sizeof(unichar));
   txt->c = -1;  // Need to fetch length every time
   txt->providerProperties = 1<<UTEXT_PROVIDER_WRITABLE;
 
@@ -389,7 +404,8 @@ UText*
 UTextInitWithNSString(UText *txt, NSString *str)
 {
   UErrorCode status = 0;
-  txt = utext_setup(txt, 64, &status);
+  BOOL useInlineSpace = (txt == NULL);
+  txt = utext_setup(txt, useInlineSpace ? chunkSize * sizeof(unichar) : 0, &status);
 
   if (U_FAILURE(status))
     {
@@ -398,7 +414,7 @@ UTextInitWithNSString(UText *txt, NSString *str)
 
   txt->p = [str retain];
   txt->pFuncs = &NSStringFuncs;
-  txt->chunkContents = txt->pExtra;
+  txt->chunkContents = useInlineSpace ? txt->pExtra : calloc(chunkSize, sizeof(unichar));
   txt->c = [str length];
 
   return txt;
