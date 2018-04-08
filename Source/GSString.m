@@ -5843,7 +5843,7 @@ literalIsEqual(NXConstantString *self, id anObject)
 {
   if (self == [NXConstantString class])
     {
-      NSConstantStringClass = nil;
+      NSConstantStringClass = self;
     }
 }
 
@@ -5856,6 +5856,18 @@ literalIsEqual(NXConstantString *self, id anObject)
       case 1: // UTF-8
 	  return nxcsptr;
       case 2: // UTF-16
+	{
+	  unsigned int l = 0;
+	  unsigned char *r = 0;
+
+	  if (GSFromUnicode(&r, &l, (const unichar*)(void*)nxcsptr, nxcslen, NSUTF8StringEncoding,
+	    NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
+	    {
+	      [NSException raise: NSCharacterConversionException
+			  format: @"Can't get UTF8 from Unicode string."];
+	    }
+	  return (const char*)r;
+	}
       case 4: // UTF-32
 	return [super UTF8String];
   }
@@ -6072,6 +6084,8 @@ literalIsEqual(NXConstantString *self, id anObject)
 #endif
 }
 
+// This method was deprecated on Mac OS X 10.5, so if we provide an improved
+// version here then we should do it using the newer version.
 #ifndef GNUSTEP_NEW_STRING_ABI
 - (BOOL) getCString: (char*)buffer
 	  maxLength: (NSUInteger)maxLength
