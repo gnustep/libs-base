@@ -2928,16 +2928,21 @@ static BOOL             (*nbImp)(id, SEL, unichar) = 0;
 
   if (len > 0)
     {
-      unichar		buf[64];
-      unichar		*ptr = (len <= 64) ? buf :
-	NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
+      static const int buf_size = 64;
+      unichar		buf[buf_size];
+      int idx = 0;
+      uint32_t s0 = 0;
+      uint32_t s1 = 0;
 
-      [self getCharacters: ptr range: NSMakeRange(0,len)];
-      ret = GSPrivateHash(0, (const void*)ptr, len * sizeof(unichar));
-      if (ptr != buf)
+      while (idx < len)
 	{
-	  NSZoneFree(NSDefaultMallocZone(), ptr);
+	  int l = MIN(len-idx, buf_size);
+	  [self getCharacters: buf range: NSMakeRange(idx,l)];
+	  GSPrivateIncrementalHash(&s0, &s1, buf, l * sizeof(unichar));
+	  idx += l;
 	}
+
+      ret = GSPrivateFinishHash(s0, s1, len * sizeof(unichar));
 
       /*
        * The hash caching in our concrete string classes uses zero to denote
