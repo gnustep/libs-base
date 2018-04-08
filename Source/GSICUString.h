@@ -13,6 +13,18 @@
 UText* UTextInitWithNSString(UText *txt, NSString *str);
 
 /**
+ * Initialises a UText structure with an NSString.  The UText object will use
+ * `buf` for its temporary buffer and will not free this buffer when is
+ * destroyed.  This is intended to be used for creating temporary on-stack
+ * UText objects.
+ *
+ * The returned UText object holds an unsafe unretained reference to the
+ * NSString and accesses its contents directly and expects that the object will
+ * not be mutated.
+ */
+UText* UTextStackInitWithNSString(UText *txt, NSString *str, unichar *buf, size_t size);
+
+/**
  * Initialises a UText structure with an NSMutableString.  If txt is NULL, then
  * this allocates a new structure on the heap, otherwise it fills in the
  * existing one.
@@ -24,6 +36,12 @@ UText* UTextInitWithNSString(UText *txt, NSString *str);
  * reflected in the underlying NSMutableString.
  */
 UText* UTextInitWithNSMutableString(UText *txt, NSMutableString *str);
+
+
+/**
+ * Computes the range of the multi-UTF-16-code-unit sequence at idx.
+ */
+NSRange UTextRangeOfComposedCharacterSequenceAtIndex(UText *txt, NSUInteger idx);
 
 /**
  * GSUTextString is an NSString subclass that is backed by a libicu UText

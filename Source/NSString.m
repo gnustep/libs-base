@@ -74,6 +74,9 @@
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
+#if GS_USE_ICU == 1
+#import "GSICUString.h"
+#endif
 #import "GSPrivate.h"
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -2764,6 +2767,14 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
  */
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
 {
+#if GS_USE_ICU == 1
+  UText txt = UTEXT_INITIALIZER;
+  unichar buf[64];
+  UTextStackInitWithNSString(&txt, self, buf, 64);
+  NSRange r = UTextRangeOfComposedCharacterSequenceAtIndex(&txt, anIndex);
+  utext_close(&txt);
+  return r;
+#else
 static NSCharacterSet	*nonbase = nil;
 static SEL              nbSel;
 static BOOL             (*nbImp)(id, SEL, unichar) = 0;
@@ -2798,6 +2809,7 @@ static BOOL             (*nbImp)(id, SEL, unichar) = 0;
     }
 
   return NSMakeRange(start, end-start);
+#endif
 }
 
 // Identifying and Comparing Strings

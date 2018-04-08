@@ -25,6 +25,8 @@
 #import "common.h"
 #if GS_USE_ICU == 1
 #import "GSICUString.h"
+#include <unicode/ubrk.h>
+#include <pthread.h>
 
 /**
  * The number of characters that we use per chunk when fetching a block of
@@ -84,7 +86,7 @@ UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
        * and to start at the beginning of that buffer.
        */
       nativeStart = nativeIndex;
-      nativeLimit = nativeIndex + chunkSize;
+      nativeLimit = nativeIndex + ut->b;
       if (nativeLimit > length)
         {
           nativeLimit = length;
@@ -118,7 +120,7 @@ UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
         {
           nativeLimit = length;
         }
-      nativeStart = nativeLimit - chunkSize;
+      nativeStart = nativeLimit - ut->b;
       if (nativeStart < 0)
         {
           nativeStart = 0;
@@ -266,12 +268,15 @@ void UTextNSStringCopy(UText *ut,
 static void
 UTextNStringClose(UText *ut)
 {
-  if (ut->chunkContents != ut->pExtra)
+  if (ut->a & 1)
   {
     free((void*)ut->chunkContents);
   }
   ut->chunkContents = NULL;
-  [(NSString*)ut->p release];
+  if (ut->a & 2)
+  {
+    [(NSString*)ut->p release];
+  }
   ut->p = NULL;
 }
 
@@ -393,6 +398,9 @@ UTextInitWithNSMutableString(UText *txt, NSMutableString *str)
 
   txt->p = [str retain];
   txt->pFuncs = &NSMutableStringFuncs;
+  txt->a = !useInlineSpace;
+  txt->a |= 2;
+  txt->b = chunkSize;
   txt->chunkContents = useInlineSpace ? txt->pExtra : calloc(chunkSize, sizeof(unichar));
   txt->c = -1;  // Need to fetch length every time
   txt->providerProperties = 1<<UTEXT_PROVIDER_WRITABLE;
@@ -414,11 +422,82 @@ UTextInitWithNSString(UText *txt, NSString *str)
 
   txt->p = [str retain];
   txt->pFuncs = &NSStringFuncs;
+  txt->a = !useInlineSpace;
+  txt->a |= 2;
+  txt->b = chunkSize;
   txt->chunkContents = useInlineSpace ? txt->pExtra : calloc(chunkSize, sizeof(unichar));
   txt->c = [str length];
 
   return txt;
 }
+
+UText*
+UTextStackInitWithNSString(UText *txt, NSString *str, unichar *buf, size_t size)
+{
+  UErrorCode status = 0;
+  BOOL useInlineSpace = (txt == NULL);
+  txt = utext_setup(txt, useInlineSpace ? chunkSize * sizeof(unichar) : 0, &status);
+
+  if (U_FAILURE(status))
+    {
+      return NULL;
+    }
+
+  txt->p = str;
+  txt->pFuncs = &NSStringFuncs;
+  txt->a = 0;
+  txt->b = size;
+  txt->chunkContents = buf;
+  txt->c = [str length];
+
+  return txt;
+}
+
+static __thread UBreakIterator *charbrk_iterator;
+pthread_once_t once_control = PTHREAD_ONCE_INIT;
+static pthread_key_t iterator_key;
+
+static void init_thread_iterator_key(void)
+{
+  pthread_key_create(&iterator_key, (void(*)(void*))ubrk_close);
+}
+
+static UBreakIterator* get_thread_iterator(UErrorCode *e)
+{
+  if (!charbrk_iterator)
+  {
+    pthread_once(&once_control, init_thread_iterator_key);
+    charbrk_iterator = ubrk_open(UBRK_CHARACTER, NULL, NULL, 0, e);
+    pthread_setspecific(iterator_key, charbrk_iterator);
+  }
+  return charbrk_iterator;
+}
+
+NSRange UTextRangeOfComposedCharacterSequenceAtIndex(UText *txt, NSUInteger idx)
+{
+  UErrorCode e = 0;
+  UBreakIterator *it = get_thread_iterator(&e);
+  ubrk_setUText(it, txt, &e);
+  if (U_FAILURE(e))
+  {
+    [NSException raise: NSInternalInconsistencyException
+                format: @"Unable to construct iterator"];
+  }
+  ubrk_preceding(it, idx);
+  uint32_t origin = ubrk_current(it);
+  uint32_t next = ubrk_next(it);
+  if (next == idx)
+  {
+    origin = next;
+    next = ubrk_next(it);
+  }
+  if (next == UBRK_DONE)
+  {
+    [NSException raise: NSRangeException format:@"Invalid location."];
+  }
+  return NSMakeRange(origin, next - origin);
+}
+
 
 @implementation GSUTextString
 - (id) init
@@ -455,6 +534,11 @@ UTextInitWithNSString(UText *txt, NSString *str)
     {
       _NSRangeExceptionRaise();
     }
+}
+
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
+{
+  return UTextRangeOfComposedCharacterSequenceAtIndex(&txt, anIndex);
 }
 
 - (void) dealloc
@@ -510,6 +594,11 @@ UTextInitWithNSString(UText *txt, NSString *str)
   [aString getCharacters: buffer range: NSMakeRange(0, size)];
 
   utext_replace(&txt, r.location, r.location + r.length, buffer, size, &status);
+}
+
+- (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
+{
+  return UTextRangeOfComposedCharacterSequenceAtIndex(&txt, anIndex);
 }
 
 - (void) dealloc
