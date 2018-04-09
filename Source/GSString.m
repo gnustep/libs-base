@@ -6044,7 +6044,6 @@ literalIsEqual(NXConstantString *self, id anObject)
       case 1: // UTF-8
 	NSAssert(0, @"UTF-8 constant strings not yet supported");
       case 2: // UTF-16
-	fprintf(stderr, "Copying %d bytes from %p\n", (int)(aRange.length * sizeof(unichar)), nxcsptr + (aRange.location * sizeof(unichar)));
 	memcpy(buffer, nxcsptr + (aRange.location * sizeof(unichar)), aRange.length * sizeof(unichar));
 	return;
       case 3:
