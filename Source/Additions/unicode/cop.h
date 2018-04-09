@@ -1,4 +1,7 @@
-/* COP table */
+/* COP table
+ * This records diacriticals and their copmbining class
+ * FIXME ... needs updating to latest unicode
+ */
 /*
   Copyright (C) 2005 Free Software Foundation
 

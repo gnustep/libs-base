@@ -151,7 +151,9 @@ static GSPlaceholderString	*defaultPlaceholderString;
 static NSMapTable		*placeholderMap;
 static NSLock			*placeholderLock;
 
-static SEL	cMemberSel = 0;
+static SEL	                cMemberSel = 0;
+static NSCharacterSet	        *nonBase = nil;
+static BOOL                     (*nonBaseImp)(id, SEL, unichar) = 0;
 
 /* Macro to return the receiver if it is already immutable, but an
  * autoreleased copy otherwise.  Used where we have to return an
@@ -194,6 +196,24 @@ static void setupWhitespace(void)
       whitespaceBitmap = RETAIN([whitespace bitmapRepresentation]);
       whitespaceBitmapRep = [whitespaceBitmap bytes];
     }
+}
+
+/* A non-spacing character is one which is part of a 'user-perceived character'
+ * where the user perceived character consists of a base character followed
+ * by a sequence of non-spacing characters.  Non-spacing characters do not
+ * exist in isolation.
+ * eg. an accented 'a' might be represented as the 'a' followed by the accent.
+ */
+inline BOOL
+uni_isnonsp(unichar u)
+{
+  /* Treating upper surrogates as non-spacing is a convenient solution
+   * to a number of issues with UTF-16
+   */
+  if ((u >= 0xdc00) && (u <= 0xdfff))
+    return YES;
+
+  return (*nonBaseImp)(nonBase, cMemberSel, u);
 }
 
 /*
@@ -777,6 +797,11 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
       caiSel = @selector(characterAtIndex:);
       gcrSel = @selector(getCharacters:range:);
       ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
+
+      nonBase = [NSCharacterSet nonBaseCharacterSet];
+      nonBase = [NSObject leakAt: &nonBase];
+      nonBaseImp
+        = (BOOL(*)(id,SEL,unichar))[nonBase methodForSelector: cMemberSel];
 
       _DefaultStringEncoding = GSPrivateDefaultCStringEncoding();
       _ByteEncodingOk = GSPrivateIsByteEncoding(_DefaultStringEncoding);
@@ -2764,9 +2789,6 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
  */
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
 {
-static NSCharacterSet	*nonbase = nil;
-static SEL              nbSel;
-static BOOL             (*nbImp)(id, SEL, unichar) = 0;
   unsigned	start;
   unsigned	end;
   unsigned	length = [self length];
@@ -2778,22 +2800,16 @@ static BOOL             (*nbImp)(id, SEL, unichar) = 0;
   caiImp = (unichar (*)(NSString*,SEL,NSUInteger))
     [self methodForSelector: caiSel];
 
-  if (nil == nonbase)
-    {
-      nonbase = [[NSCharacterSet nonBaseCharacterSet] retain];
-      nbSel = @selector(characterIsMember:);
-      nbImp = (BOOL(*)(id,SEL,unichar))[nonbase methodForSelector: nbSel];
-    }
   for (start = anIndex; start > 0; start--)
     {
       ch = (*caiImp)(self, caiSel, start);
-      if ((*nbImp)(nonbase, nbSel, ch) == NO)
+      if (uni_isnonsp(ch) == NO)
         break;
     }
   for (end = start+1; end < length; end++)
     {
       ch = (*caiImp)(self, caiSel, end);
-      if ((*nbImp)(nonbase, nbSel, ch) == NO)
+      if (uni_isnonsp(ch) == NO)
         break;
     }
 
