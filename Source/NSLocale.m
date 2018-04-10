@@ -204,7 +204,7 @@ static NSRecursiveLock *classLock = nil;
 {
   if (self == [NSLocale class])
     {
-      classLock = [GSLazyRecursiveLock new];
+      classLock = [NSRecursiveLock new];
       [[NSObject leakAt: &classLock] release];
       allLocales = [[NSMutableDictionary alloc] initWithCapacity: 0];
       [[NSObject leakAt: &allLocales] release];

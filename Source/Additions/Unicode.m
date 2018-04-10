@@ -138,7 +138,7 @@ internal_unicode_enc(void)
 #define UNICODE_UTF32 ""
 #endif
 
-static GSLazyLock *local_lock = nil;
+static NSLock *local_lock = nil;
 
 typedef	unsigned char	unc;
 static NSStringEncoding	defEnc = GSUndefinedEncoding;
@@ -280,7 +280,7 @@ static void GSSetupEncodingTable(void)
 {
   if (encodingTable == 0)
     {
-      [GS_INITIALIZED_LOCK(local_lock, GSLazyLock) lock];
+      [GS_INITIALIZED_LOCK(local_lock, NSLock) lock];
       if (encodingTable == 0)
 	{
 	  static struct _strenc_	**encTable = 0;
@@ -2613,7 +2613,7 @@ GSPrivateAvailableEncodings()
   if (_availableEncodings == 0)
     {
       GSSetupEncodingTable();
-      [GS_INITIALIZED_LOCK(local_lock, GSLazyLock) lock];
+      [GS_INITIALIZED_LOCK(local_lock, NSLock) lock];
       if (_availableEncodings == 0)
 	{
 	  NSStringEncoding	*encodings;
@@ -2776,7 +2776,7 @@ GSPrivateDefaultCStringEncoding()
 
       GSSetupEncodingTable();
 
-      [GS_INITIALIZED_LOCK(local_lock, GSLazyLock) lock];
+      [GS_INITIALIZED_LOCK(local_lock, NSLock) lock];
       if (defEnc != GSUndefinedEncoding)
 	{
 	  [local_lock unlock];

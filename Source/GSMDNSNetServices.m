@@ -74,8 +74,8 @@
         } while (0);
 
 #if defined(_REENTRANT)
-#  define THE_LOCK		GSLazyRecursiveLock	*lock
-#  define CREATELOCK(x)		x->lock = [GSLazyRecursiveLock new]
+#  define THE_LOCK		NSRecursiveLock	*lock
+#  define CREATELOCK(x)		x->lock = [NSRecursiveLock new]
 #  define LOCK(x)		[x->lock lock]
 #  define UNLOCK(x)		[x->lock unlock]
 #  define DESTROYLOCK(x)	DESTROY(x->lock)

@@ -37,7 +37,7 @@
 static NSMutableDictionary	*domainMap = nil;
 static NSMutableSet		*spaces = nil;
 static NSMutableDictionary	*store = nil;
-static GSLazyLock		*storeLock = nil;
+static NSLock		*storeLock = nil;
 static GSMimeParser		*mimeParser = nil;
 
 @interface NSData(GSHTTPDigest)
@@ -89,7 +89,7 @@ static GSMimeParser		*mimeParser = nil;
       [[NSObject leakAt: &domainMap] release];
       store = [NSMutableDictionary new];
       [[NSObject leakAt: &store] release];
-      storeLock = [GSLazyLock new];
+      storeLock = [NSLock new];
       [[NSObject leakAt: &storeLock] release];
     }
 }
@@ -632,7 +632,7 @@ static GSMimeParser		*mimeParser = nil;
 {
   if ((self = [super init]) != nil)
     {
-      self->_lock = [GSLazyLock new];
+      self->_lock = [NSLock new];
       ASSIGN(self->_space, space);
       ASSIGN(self->_credential, credential);
     }

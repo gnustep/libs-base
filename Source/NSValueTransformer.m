@@ -52,7 +52,7 @@
 // non-abstract methods
 
 static NSMutableDictionary *registry = nil;
-static GSLazyLock *lock = nil;
+static NSLock *lock = nil;
 
 + (void) initialize
 {
@@ -60,7 +60,7 @@ static GSLazyLock *lock = nil;
     {
       NSValueTransformer	*t;
 
-      lock = [GSLazyLock new];
+      lock = [NSLock new];
       [[NSObject leakAt: &lock] release];
       registry = [[NSMutableDictionary alloc] init];
       [[NSObject leakAt: &registry] release];

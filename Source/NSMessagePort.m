@@ -329,7 +329,7 @@ static Class	runLoopClass;
   handle = (GSMessageHandle*)NSAllocateObject(self, 0, NSDefaultMallocZone());
   handle->desc = d;
   handle->wMsgs = [NSMutableArray new];
-  handle->myLock = [GSLazyRecursiveLock new];
+  handle->myLock = [NSRecursiveLock new];
   handle->valid = YES;
   return AUTORELEASE(handle);
 }
@@ -1153,7 +1153,7 @@ typedef	struct {
       messagePortMap = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
-      messagePortLock = [GSLazyRecursiveLock new];
+      messagePortLock = [NSRecursiveLock new];
 
       /* It's possible that an old process, with the same process ID as
        * this one, got forcibly killed or crashed so that clean_up_sockets
@@ -1265,7 +1265,7 @@ typedef	struct {
       ((internal*)(port->_internal))->_handles
 	= NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSObjectMapValueCallBacks, 0);
-      ((internal*)(port->_internal))->_myLock = [GSLazyRecursiveLock new];
+      ((internal*)(port->_internal))->_myLock = [NSRecursiveLock new];
       port->_is_valid = YES;
 
       if (shouldListen == YES)

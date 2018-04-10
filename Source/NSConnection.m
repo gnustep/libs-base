@@ -365,7 +365,7 @@ static BOOL cacheCoders = NO;
 static int debug_connection = 0;
 
 static NSHashTable	*connection_table;
-static GSLazyRecursiveLock		*connection_table_gate = nil;
+static NSRecursiveLock		*connection_table_gate = nil;
 
 /*
  * Locate an existing connection with the specified send and receive ports.
@@ -665,17 +665,17 @@ static NSLock	*cached_proxies_gate = nil;
 
       if (connection_table_gate == nil)
 	{
-	  connection_table_gate = [GSLazyRecursiveLock new];
+	  connection_table_gate = [NSRecursiveLock new];
           [[NSObject leakAt: &connection_table_gate] release];
 	}
       if (cached_proxies_gate == nil)
 	{
-	  cached_proxies_gate = [GSLazyLock new];
+	  cached_proxies_gate = [NSLock new];
           [[NSObject leakAt: &cached_proxies_gate] release];
 	}
       if (root_object_map_gate == nil)
 	{
-	  root_object_map_gate = [GSLazyLock new];
+	  root_object_map_gate = [NSLock new];
           [[NSObject leakAt: &root_object_map_gate] release];
 	}
 
@@ -1093,7 +1093,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   IrequestDepth = 0;
   Idelegate = nil;
-  IrefGate = [GSLazyRecursiveLock new];
+  IrefGate = [NSRecursiveLock new];
 
   /*
    * Some attributes are inherited from the parent if possible.

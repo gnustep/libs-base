@@ -424,7 +424,7 @@ static Class	runLoopClass;
   handle = (GSTcpHandle*)NSAllocateObject(self, 0, NSDefaultMallocZone());
   handle->desc = d;
   handle->wMsgs = [NSMutableArray new];
-  handle->myLock = [GSLazyRecursiveLock new];
+  handle->myLock = [NSRecursiveLock new];
 #if	defined(_WIN32)
   ev = (WSAEVENT)CreateEvent(NULL,NO,NO,NULL);
   if (ev == WSA_INVALID_EVENT)
@@ -1452,7 +1452,7 @@ static Class		tcpPortClass;
       tcpPortMap = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSObjectMapValueCallBacks, 0);
       [[NSObject leakAt: &tcpPortMap] release];
-      tcpPortLock = [GSLazyRecursiveLock new];
+      tcpPortLock = [NSRecursiveLock new];
       [[NSObject leakAt: &tcpPortLock] release];
     }
 }
@@ -1554,7 +1554,7 @@ static Class		tcpPortClass;
       port->events = NSCreateMapTable(NSIntegerMapKeyCallBacks,
         NSIntegerMapValueCallBacks, 0);
 #endif
-      port->myLock = [GSLazyRecursiveLock new];
+      port->myLock = [NSRecursiveLock new];
       port->_is_valid = YES;
 
       if (shouldListen == YES && [thisHost isEqual: aHost])

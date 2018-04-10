@@ -42,7 +42,7 @@
 /*
  *	Class variables for uniquing objects;
  */
-static GSLazyRecursiveLock	*uniqueLock = nil;
+static NSRecursiveLock	*uniqueLock = nil;
 static NSCountedSet	*uniqueSet = nil;
 static IMP		uniqueImp = 0;
 static IMP		lockImp = 0;
@@ -72,7 +72,7 @@ static Class NSCountedSet_concrete_class;
     {
       NSCountedSet_abstract_class = self;
       NSCountedSet_concrete_class = [GSCountedSet class];
-      uniqueLock = [GSLazyRecursiveLock new];
+      uniqueLock = [NSRecursiveLock new];
       [[NSObject leakAt: &uniqueLock] release];
       lockImp = [uniqueLock methodForSelector: @selector(lock)];
       unlockImp = [uniqueLock methodForSelector: @selector(unlock)];

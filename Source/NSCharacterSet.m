@@ -649,7 +649,7 @@ static Class concreteMutableClass = nil;
       concreteClass = [NSBitmapCharSet class];
       concreteMutableClass = [NSMutableBitmapCharSet class];
 #endif
-      cache_lock = [GSLazyLock new];
+      cache_lock = [NSLock new];
       [[NSObject leakAt: &cache_lock] release];
       beenHere = YES;
     }

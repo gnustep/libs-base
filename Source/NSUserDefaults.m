@@ -1161,7 +1161,7 @@ newLanguages(NSArray *oldNames)
 	}
     }
 
-  _lock = [GSLazyRecursiveLock new];
+  _lock = [NSRecursiveLock new];
 
   if (YES == [self _readOnly])
     {

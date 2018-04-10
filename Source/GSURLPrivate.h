@@ -78,10 +78,10 @@
 /*
  * Internal class for handling HTTP authentication
  */
-@class	GSLazyLock;
+@class	NSLock;
 @interface GSHTTPAuthentication : NSObject
 {
-  GSLazyLock		*_lock;
+  NSLock		*_lock;
   NSURLCredential	*_credential;
   NSURLProtectionSpace	*_space;
   NSString		*_nonce;

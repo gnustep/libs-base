@@ -34,7 +34,7 @@
 #import	"Foundation/NSLock.h"
 #import	"GNUstepBase/GSLock.h"
 
-static	GSLazyRecursiveLock	*lock = nil;
+static	NSRecursiveLock	*lock = nil;
 static	NSHashTable	*shared = 0;
 static	Class		myClass = 0;
 static	NSIndexPath	*empty = nil;
@@ -76,7 +76,7 @@ static	NSIndexPath	*dummy = nil;
       shared = NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 1024);
       [[NSObject leakAt: &shared] release];
       NSHashInsert(shared, empty);
-      lock = [GSLazyRecursiveLock new];
+      lock = [NSRecursiveLock new];
       [[NSObject leakAt: &lock] release];
     }
 }

@@ -88,7 +88,7 @@ setup()
       [gnustep_global_lock lock];
       if (nil == kvoLock)
 	{
-	  kvoLock = [GSLazyRecursiveLock new];
+	  kvoLock = [NSRecursiveLock new];
 	  null = [[NSNull null] retain];
 	  classTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	    NSNonOwnedPointerMapValueCallBacks, 128);
@@ -177,7 +177,7 @@ setup()
 @interface	GSKVOInfo : NSObject
 {
   NSObject	        *instance;	// Not retained.
-  GSLazyRecursiveLock	        *iLock;
+  NSRecursiveLock	        *iLock;
   NSMapTable	        *paths;
 }
 - (GSKVOPathInfo *) lockReturningPathInfoForKey: (NSString *)key;
@@ -1209,7 +1209,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   instance = i;
   paths = NSCreateMapTable(NSObjectMapKeyCallBacks,
     NSObjectMapValueCallBacks, 8);
-  iLock = [GSLazyRecursiveLock new];
+  iLock = [NSRecursiveLock new];
   return self;
 }
 

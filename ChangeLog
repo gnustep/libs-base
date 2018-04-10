@@ -1,3 +1,30 @@
+2018-04-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m:
+	* Source/GSHTTPAuthentication.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/GSMDNSNetServices.m:
+	* Source/GSURLPrivate.h:
+	* Source/NSCalendar.m:
+	* Source/NSCharacterSet.m:
+	* Source/NSConnection.m:
+	* Source/NSCountedSet.m:
+	* Source/NSIndexPath.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSLocale.m:
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	* Source/NSUserDefaults.m:
+	* Source/NSValueTransformer.m:
+	Replace the obsolete GSLazyLock code with standard NSLocks now that
+	almost all significant software is multithreaded.
+
+2018-04-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: When adding a new thread, set the thread specific
+	memory to point to the object before doing anything else which might
+	attempt to access the thread (causing recursive registration).
+
 2018-04-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/unicode/cop.h: Add comment/fixme

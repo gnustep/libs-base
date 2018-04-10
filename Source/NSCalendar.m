@@ -196,7 +196,7 @@ static NSRecursiveLock *classLock = nil;
 + (void) initialize
 {
   if (self == [NSLocale class])
-    classLock = [GSLazyRecursiveLock new];
+    classLock = [NSRecursiveLock new];
 }
 
 + (void) defaultsDidChange: (NSNotification*)n
