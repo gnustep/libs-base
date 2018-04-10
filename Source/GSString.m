@@ -6027,6 +6027,16 @@ literalIsEqual(NXConstantString *self, id anObject)
 {
   GSNOSUPERDEALLOC;
 }
+#ifdef GNUSTEP_NEW_STRING_ABI
+- (unichar *)_internalUTF16Buffer
+{
+  if (CONSTANT_STRING_ENCODING() == 2)
+    {
+      return (unichar*)(void*)nxcsptr;
+    }
+  return NULL;
+}
+#endif
 
 - (void) getCharacters: (unichar*)buffer
 		 range: (NSRange)aRange
