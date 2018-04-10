@@ -207,7 +207,7 @@ static int SetThreadName(DWORD dwThreadID, const char *threadName)
 
 
 @interface NSThread (Activation)
-- (void) _makeThreadActive;
+- (void) _makeThreadCurrent;
 @end
 
 @interface NSAutoreleasePool (NSThread)
@@ -766,6 +766,11 @@ gnustep_base_thread_callback(void)
 @implementation NSThread (Activation)
 - (void) _makeThreadActive
 {
+  /* NB. We must set up the pointer to the new NSThread instance from
+   * pthread specific memory before we do anything which might need to
+   * check what the current thread is (like getting the ID)!
+   */
+  pthread_setspecific(thread_object_key, self);
   threadID = GSPrivateThreadID();
   pthread_mutex_lock(&_activeLock);
   /* The hash table is created lazily/late so that the NSThread
@@ -790,8 +795,7 @@ gnustep_base_thread_callback(void)
 static void
 setThreadForCurrentThread(NSThread *t)
 {
-  [t _makeThreadActive];
-  pthread_setspecific(thread_object_key, t);
+  [t _makeThreadCurrent];
   gnustep_base_thread_callback();
 }
 
@@ -843,8 +847,7 @@ unregisterActiveThread(NSThread *thread)
     {
       t = [self new];
       t->_active = YES;
-      [t _makeThreadActive];
-      pthread_setspecific(thread_object_key, t);
+      [t _makeThreadCurrent];
       GS_CONSUMED(t);
       if (defaultThread != nil && t != defaultThread)
         {

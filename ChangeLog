@@ -1,5 +1,6 @@
 2018-04-09  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/unicode/cop.h: Add comment/fixme
 	* Source/Additions/Unicode.m:
 	* Source/NSString.m:
 	Move uni_isnonsp() to NSString.m and make it use nonBaseCharacterSet
