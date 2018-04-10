@@ -382,6 +382,12 @@ GSPrivateDefaultsFlag(GSUserDefaultFlagType type) GS_ATTRIB_PRIVATE;
 NSString *
 GSPrivateEncodingName(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
 
+/**
+ * Gets the name to use with iconv for the string encoding as a C string.
+ */
+const char*
+GSPrivateEncodingIConvName(NSStringEncoding encoding) GS_ATTRIB_PRIVATE;
+
 /* get a flag from an environment variable - return def if not defined.
  */
 BOOL

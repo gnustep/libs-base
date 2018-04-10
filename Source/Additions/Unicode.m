@@ -2843,6 +2843,18 @@ GSPrivateDefaultCStringEncoding()
   return defEnc;
 }
 
+const char*
+GSPrivateEncodingIConvName(NSStringEncoding encoding)
+{
+  struct _strenc_	*encInfo;
+
+  if ((encInfo = EntrySupported(encoding)) == NULL)
+    {
+      return NULL;
+    }
+  return encInfo->iconv;
+}
+
 NSString*
 GSPrivateEncodingName(NSStringEncoding encoding)
 {

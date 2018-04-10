@@ -69,6 +69,23 @@ NSRange UTextRangeOfComposedCharacterSequenceAtIndex(UText *txt, NSUInteger idx)
 }
 @end
 
+@interface GSMutableICUUnicodeString : NSMutableString
+#ifdef GSICUSTRING_MM
+{
+  icu::UnicodeString str;
+}
+#endif
+@end
+
+@interface GSICUUnicodeString : NSString
+#ifdef GSICUSTRING_MM
+{
+  icu::UnicodeString str;
+}
+#endif
+@end
+
+
 /**
  * Cleanup function used to fee a unichar buffer.
  */

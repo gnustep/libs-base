@@ -506,6 +506,9 @@ libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
 	$(BASE_MFILES)
 libgnustep-base_C_FILES = $(GNU_CFILES)
 
+libgnustep-base_OBJCC_FILES = GSICUString.mm
+libgnustep-base_OBJCCFLAGS += -std=gnu++11
+
 # Extra DLL exports file
 libgnustep-base_DLL_DEF = libgnustep-base.def
 
