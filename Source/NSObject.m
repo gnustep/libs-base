@@ -1055,7 +1055,6 @@ static id gs_weak_load(id obj)
        * any use of the autorelease system.
        */
       gnustep_global_lock = [GSUntracedRecursiveLock new];
-      [gnustep_global_lock setName: @"gnustep_global_lock"];
 
       /* Behavior debugging ... enable with environment variable if needed.
        */
@@ -1083,6 +1082,11 @@ static id gs_weak_load(id obj)
       NSConstantStringClass = [NSString constantStringClass];
 
       GSPrivateBuildStrings();
+
+      /* Now that the string class (and autorelease) is set up, we can set
+       * the name of the lock to a string value safely.
+       */
+      [gnustep_global_lock setName: @"gnustep_global_lock"];
 
       /* Determine zombie management flags and set up a map to store
        * information about zombie objects.
