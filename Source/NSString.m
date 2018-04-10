@@ -2773,6 +2773,22 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   UTextStackInitWithNSString(&txt, self, buf, 64);
   NSRange r = UTextRangeOfComposedCharacterSequenceAtIndex(&txt, anIndex);
   utext_close(&txt);
+  // The Unicode definition of grapheme cluster boundaries (TR29) explicitly
+  // treats the CR LF sequence as a single grapheme cluster.  This is probably
+  // sensible, because this pair is treated as a single linebreak on most
+  // systems (or a line break plus a nonsense character), but unfortunately
+  // this breaks both Cocoa compatibility and GNUstep's NSURLConnection
+  // handling.  If we've found a range of length 2, check that it's not a CR LF
+  // sequence and if it is then split it back up into two characters.
+  if (r.length == 2)
+    {
+      unichar buf[2];
+      [self getCharacters: buf range: r];
+      if ((buf[0] == 0xd) && (buf[1] == 0xa))
+        {
+          r = NSMakeRange(anIndex, 1);
+        }
+    }
   return r;
 #else
 static NSCharacterSet	*nonbase = nil;
