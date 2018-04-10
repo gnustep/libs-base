@@ -764,7 +764,7 @@ gnustep_base_thread_callback(void)
 }
 
 @implementation NSThread (Activation)
-- (void) _makeThreadActive
+- (void) _makeThreadCurrent
 {
   /* NB. We must set up the pointer to the new NSThread instance from
    * pthread specific memory before we do anything which might need to
