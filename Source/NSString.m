@@ -75,6 +75,7 @@
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 #import "GSPrivate.h"
+#import "GSPThread.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -149,7 +150,8 @@ static Class	GSPlaceholderStringClass;
 
 static GSPlaceholderString	*defaultPlaceholderString;
 static NSMapTable		*placeholderMap;
-static NSLock			*placeholderLock;
+static pthread_mutex_t          placeholderLock = PTHREAD_MUTEX_INITIALIZER;
+
 
 static SEL	                cMemberSel = 0;
 static NSCharacterSet	        *nonBase = nil;
@@ -299,14 +301,14 @@ pathSeps(void)
     {
       if (rPathSeps == nil)
 	{
-	  [placeholderLock lock];
+	  (void)pthread_mutex_lock(&placeholderLock);
 	  if (rPathSeps == nil)
 	    {
 	      rPathSeps
 		= [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
               rPathSeps = [NSObject leakAt: &rPathSeps];
 	    }
-	  [placeholderLock unlock];
+	  (void)pthread_mutex_unlock(&placeholderLock);
 	}
       return rPathSeps;
     }
@@ -314,14 +316,14 @@ pathSeps(void)
     {
       if (uPathSeps == nil)
 	{
-	  [placeholderLock lock];
+	  (void)pthread_mutex_lock(&placeholderLock);
 	  if (uPathSeps == nil)
 	    {
 	      uPathSeps
 		= [NSCharacterSet characterSetWithCharactersInString: @"/"];
               uPathSeps = [NSObject leakAt: &uPathSeps];
 	    }
-	  [placeholderLock unlock];
+	  (void)pthread_mutex_unlock(&placeholderLock);
 	}
       return uPathSeps;
     }
@@ -329,14 +331,14 @@ pathSeps(void)
     {
       if (wPathSeps == nil)
 	{
-	  [placeholderLock lock];
+	  (void)pthread_mutex_lock(&placeholderLock);
 	  if (wPathSeps == nil)
 	    {
 	      wPathSeps
 		= [NSCharacterSet characterSetWithCharactersInString: @"\\"];
               wPathSeps = [NSObject leakAt: &wPathSeps];
 	    }
-	  [placeholderLock unlock];
+	  (void)pthread_mutex_unlock(&placeholderLock);
 	}
       return wPathSeps;
     }
@@ -778,7 +780,6 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
 + (void) atExit
 {
-  DESTROY(placeholderLock);
   DESTROY(placeholderMap);
 }
 
@@ -821,7 +822,6 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	[GSPlaceholderStringClass allocWithZone: NSDefaultMallocZone()];
       placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
-      placeholderLock = [NSLock new];
 
 #if     defined(HAVE_REGISTER_PRINTF_SPECIFIER)
       if (register_printf_specifier ('@', handle_printf_atsign,
@@ -872,7 +872,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	   * locate the correct placeholder in the (lock protected)
 	   * table of placeholders.
 	   */
-	  [placeholderLock lock];
+	  (void)pthread_mutex_lock(&placeholderLock);
 	  obj = (id)NSMapGet(placeholderMap, (void*)z);
 	  if (obj == nil)
 	    {
@@ -883,7 +883,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	      obj = (id)[GSPlaceholderStringClass allocWithZone: z];
 	      NSMapInsert(placeholderMap, (void*)z, (void*)obj);
 	    }
-	  [placeholderLock unlock];
+	  (void)pthread_mutex_unlock(&placeholderLock);
 	  return obj;
 	}
     }

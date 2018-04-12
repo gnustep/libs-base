@@ -1,7 +1,9 @@
 2018-04-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m:
+	* Source/NSArray.m:
 	* Source/NSCharacterSet.m:
+	* Source/NSString.m:
 	Use pthread mutex directly to try to avoid initialising NSLock too
 	early on during process startup.
 

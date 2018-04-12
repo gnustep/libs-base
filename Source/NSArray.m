@@ -50,6 +50,7 @@
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
+#import "GSPThread.h"
 #import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 #import "GSSorting.h"
@@ -85,7 +86,8 @@ static Class GSPlaceholderArrayClass;
 
 static GSPlaceholderArray	*defaultPlaceholderArray;
 static NSMapTable		*placeholderMap;
-static NSLock			*placeholderLock;
+static pthread_mutex_t          placeholderLock = PTHREAD_MUTEX_INITIALIZER;
+
 
 /**
  * A simple, low overhead, ordered container for objects.  All the objects
@@ -105,7 +107,6 @@ static SEL	rlSel;
 + (void) atExit
 {
   DESTROY(defaultPlaceholderArray);
-  DESTROY(placeholderLock);
   DESTROY(placeholderMap);
 }
 
@@ -136,7 +137,6 @@ static SEL	rlSel;
 	NSAllocateObject(GSPlaceholderArrayClass, 0, NSDefaultMallocZone());
       placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
-      placeholderLock = [NSLock new];
       [self registerAtExit];
     }
 }
@@ -167,7 +167,7 @@ static SEL	rlSel;
 	   * locate the correct placeholder in the (lock protected)
 	   * table of placeholders.
 	   */
-	  [placeholderLock lock];
+	  (void)pthread_mutex_lock(&placeholderLock);
 	  obj = (id)NSMapGet(placeholderMap, (void*)z);
 	  if (obj == nil)
 	    {
@@ -178,7 +178,7 @@ static SEL	rlSel;
 	      obj = (id)NSAllocateObject(GSPlaceholderArrayClass, 0, z);
 	      NSMapInsert(placeholderMap, (void*)z, (void*)obj);
 	    }
-	  [placeholderLock unlock];
+	  (void)pthread_mutex_unlock(&placeholderLock);
 	  return obj;
 	}
     }
