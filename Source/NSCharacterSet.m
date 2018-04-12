@@ -27,12 +27,11 @@
 */
 
 #import "common.h"
-#import "GNUstepBase/GSLock.h"
+#import "GSPThread.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSData.h"
-#import "Foundation/NSLock.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSIndexSet.h"
 #import "Foundation/NSThread.h"
@@ -540,7 +539,6 @@
 /* A simple array for caching standard bitmap sets */
 #define MAX_STANDARD_SETS 15
 static NSCharacterSet *cache_set[MAX_STANDARD_SETS];
-static NSLock *cache_lock = nil;
 static Class abstractClass = nil;
 static Class abstractMutableClass = nil;
 static Class concreteClass = nil;
@@ -649,8 +647,6 @@ static Class concreteMutableClass = nil;
       concreteClass = [NSBitmapCharSet class];
       concreteMutableClass = [NSMutableBitmapCharSet class];
 #endif
-      cache_lock = [NSLock new];
-      [[NSObject leakAt: &cache_lock] release];
       beenHere = YES;
     }
 }
@@ -664,7 +660,9 @@ static Class concreteMutableClass = nil;
 			length: (unsigned)length
 			number: (int)number
 {
-  [cache_lock lock];
+  static pthread_mutex_t cache_lock = PTHREAD_MUTEX_INITIALIZER;
+
+  pthread_mutex_lock(&cache_lock);
   if (cache_set[number] == nil && bytes != 0)
     {
       NSData	*bitmap;
@@ -677,7 +675,7 @@ static Class concreteMutableClass = nil;
       [[NSObject leakAt: &cache_set[number]] release];
       RELEASE(bitmap);
     }
-  [cache_lock unlock];
+  pthread_mutex_unlock(&cache_lock);
   return cache_set[number];
 }
 

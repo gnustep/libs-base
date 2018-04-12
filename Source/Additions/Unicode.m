@@ -35,16 +35,15 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSLock.h"
 #import "Foundation/NSPathUtilities.h"
 #endif
 
 #import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/GSMime.h"
-#import "GNUstepBase/NSLock+GNUstepBase.h"
 #import "GNUstepBase/Unicode.h"
 
 #import "../GSPrivate.h"
+#import "../GSPThread.h"
 
 #include <stdio.h>
 
@@ -138,7 +137,7 @@ internal_unicode_enc(void)
 #define UNICODE_UTF32 ""
 #endif
 
-static NSLock *local_lock = nil;
+static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
 
 typedef	unsigned char	unc;
 static NSStringEncoding	defEnc = GSUndefinedEncoding;
@@ -280,7 +279,7 @@ static void GSSetupEncodingTable(void)
 {
   if (encodingTable == 0)
     {
-      [GS_INITIALIZED_LOCK(local_lock, NSLock) lock];
+      (void)pthread_mutex_lock(&local_lock);
       if (encodingTable == 0)
 	{
 	  static struct _strenc_	**encTable = 0;
@@ -356,7 +355,7 @@ static void GSSetupEncodingTable(void)
 	    }
 	  encodingTable = encTable;
 	}
-      [local_lock unlock];
+      (void)pthread_mutex_unlock(&local_lock);
     }
 }
 
@@ -2613,7 +2612,7 @@ GSPrivateAvailableEncodings()
   if (_availableEncodings == 0)
     {
       GSSetupEncodingTable();
-      [GS_INITIALIZED_LOCK(local_lock, NSLock) lock];
+      (void)pthread_mutex_lock(&local_lock);
       if (_availableEncodings == 0)
 	{
 	  NSStringEncoding	*encodings;
@@ -2639,7 +2638,7 @@ GSPrivateAvailableEncodings()
 	  encodings[pos] = 0;
 	  _availableEncodings = encodings;
 	}
-      [local_lock unlock];
+      (void)pthread_mutex_unlock(&local_lock);
     }
   return _availableEncodings;
 }
@@ -2776,10 +2775,10 @@ GSPrivateDefaultCStringEncoding()
 
       GSSetupEncodingTable();
 
-      [GS_INITIALIZED_LOCK(local_lock, NSLock) lock];
+      (void)pthread_mutex_lock(&local_lock);
       if (defEnc != GSUndefinedEncoding)
 	{
-	  [local_lock unlock];
+	  (void)pthread_mutex_unlock(&local_lock);
 	  return defEnc;
 	}
 
@@ -2823,7 +2822,7 @@ GSPrivateDefaultCStringEncoding()
 	  defEnc = NSISOLatin1StringEncoding;
 	}
 
-      [local_lock unlock];
+      (void)pthread_mutex_unlock(&local_lock);
     }
   return defEnc;
 }

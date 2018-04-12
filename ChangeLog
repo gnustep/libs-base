@@ -1,3 +1,10 @@
+2018-04-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m:
+	* Source/NSCharacterSet.m:
+	Use pthread mutex directly to try to avoid initialising NSLock too
+	early on during process startup.
+
 2018-04-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Don't set the name of trhe global lock until
