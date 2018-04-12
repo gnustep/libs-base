@@ -278,11 +278,14 @@ NSString *NSLockException = @"NSLockException";
 
 + (id) allocWithZone: (NSZone*)z
 {
+  return [super allocWithZone: z];
+/*
   if (self == baseLockClass && YES == traceLocks)
     {
       return class_createInstance(tracedLockClass, 0);
     }
   return class_createInstance(self, 0);
+*/
 }
 
 + (void) initialize
@@ -388,11 +391,14 @@ MUNLOCK
 
 + (id) allocWithZone: (NSZone*)z
 {
+  return [super allocWithZone: z];
+/*
   if (self == baseRecursiveLockClass && YES == traceLocks)
     {
       return class_createInstance(tracedRecursiveLockClass, 0);
     }
   return class_createInstance(self, 0);
+*/
 }
 
 + (void) initialize
@@ -429,11 +435,14 @@ MUNLOCK
 
 + (id) allocWithZone: (NSZone*)z
 {
+  return [super allocWithZone: z];
+/*
   if (self == baseConditionClass && YES == traceLocks)
     {
       return class_createInstance(tracedConditionClass, 0);
     }
   return class_createInstance(self, 0);
+*/
 }
 
 + (void) initialize
@@ -529,11 +538,14 @@ MUNLOCK
 
 + (id) allocWithZone: (NSZone*)z
 {
+  return [super allocWithZone: z];
+/*
   if (self == baseConditionLockClass && YES == traceLocks)
     {
       return class_createInstance(tracedConditionLockClass, 0);
     }
   return class_createInstance(self, 0);
+*/
 }
 
 + (void) initialize

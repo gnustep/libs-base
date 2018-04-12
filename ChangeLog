@@ -1,5 +1,11 @@
 2018-04-12  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSLock.m: Using class_createInstance() to allocate locks
+	seems to be causing memory issues and crashes somehow.  Temporarily
+	comment out that code to try to get things working again.
+
+2018-04-12  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/Unicode.m:
 	* Source/NSArray.m:
 	* Source/NSCharacterSet.m:
