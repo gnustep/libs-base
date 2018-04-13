@@ -692,8 +692,9 @@ MSTACK
 - (void) lock\
 { \
   NSThread      *t = GSCurrentThread(); \
+  int		err; \
   CHKT(t,Wait) \
-  int err = pthread_mutex_lock(&_mutex);\
+  err = pthread_mutex_lock(&_mutex);\
   if (EDEADLK == err)\
     {\
       CHKT(t,Drop) \
