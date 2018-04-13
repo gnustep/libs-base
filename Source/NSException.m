@@ -1062,7 +1062,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
       NSInteger         count = numReturns - FrameOffset;
       NSValue           *objects[count];
       NSUInteger        index;
-      const void        **ptrs = (const void **)returns;
+      void              **ptrs = (void **)returns;
 
       for (index = 0; index < count; index++)
         {
@@ -1112,127 +1112,133 @@ GSPrivateReturnAddresses(NSUInteger **returns)
 
 - (NSArray*) symbols
 {
-  if (nil == symbols) 
+  if (nil == symbols && numReturns > FrameOffset)
     {
       NSInteger	        count = numReturns - FrameOffset;
-      const void        **ptrs = (const void**)&returns[FrameOffset];
+      NSUInteger        i;
 
-      if (count > 0)
-	{
 #if	defined(USE_BFD)
-	  NSMutableArray	*a;
-	  NSUInteger 		i;
+      void              **ptrs = (void**)&returns[FrameOffset];
+      NSMutableArray	*a;
 
-	  a = [[NSMutableArray alloc] initWithCapacity: count];
+      a = [[NSMutableArray alloc] initWithCapacity: count];
 
-	  for (i = 0; i < count; i++)
-	    {
-	      GSFunctionInfo	*aFrame = nil;
-	      void		*address = (void*)*ptrs++;
-	      void		*base;
-	      NSString		*modulePath;
-	      GSBinaryFileInfo	*bfi;
+      for (i = 0; i < count; i++)
+        {
+          GSFunctionInfo	*aFrame = nil;
+          void		        *address = (void*)*ptrs++;
+          void		        *base;
+          NSString		*modulePath;
+          GSBinaryFileInfo	*bfi;
 
-	      modulePath = GSPrivateBaseAddress(address, &base);
-	      if (modulePath != nil && (bfi = GSLoadModule(modulePath)) != nil)
-		{
-		  aFrame = [bfi functionForAddress: (void*)(address - base)];
-		  if (aFrame == nil)
-		    {
-		      /* We know we have the right module but function lookup
-		       * failed ... perhaps we need to use the absolute
-		       * address rather than offest by 'base' in this case.
-		       */
-		      aFrame = [bfi functionForAddress: address];
-		    }
-		}
-	      else
-		{
-		  NSArray	*modules;
-		  int		j;
-		  int		m;
+          modulePath = GSPrivateBaseAddress(address, &base);
+          if (modulePath != nil && (bfi = GSLoadModule(modulePath)) != nil)
+            {
+              aFrame = [bfi functionForAddress: (void*)(address - base)];
+              if (aFrame == nil)
+                {
+                  /* We know we have the right module but function lookup
+                   * failed ... perhaps we need to use the absolute
+                   * address rather than offest by 'base' in this case.
+                   */
+                  aFrame = [bfi functionForAddress: address];
+                }
+            }
+          else
+            {
+              NSArray	*modules;
+              int	j;
+              int	m;
 
-		  modules = GSListModules();
-		  m = [modules count];
-		  for (j = 0; j < m; j++)
-		    {
-		      bfi = [modules objectAtIndex: j];
+              modules = GSListModules();
+              m = [modules count];
+              for (j = 0; j < m; j++)
+                {
+                  bfi = [modules objectAtIndex: j];
 
-		      if ((id)bfi != (id)[NSNull null])
-			{
-			  aFrame = [bfi functionForAddress: address];
-			  if (aFrame != nil)
-			    {
-			      break;
-			    }
-			}
-		    }
-		}
+                  if ((id)bfi != (id)[NSNull null])
+                    {
+                      aFrame = [bfi functionForAddress: address];
+                      if (aFrame != nil)
+                        {
+                          break;
+                        }
+                    }
+                }
+            }
 
-	      // not found (?!), add an 'unknown' function
-	      if (aFrame == nil)
-		{
-		  aFrame = [GSFunctionInfo alloc];
-		  [aFrame initWithModule: nil
-				 address: address 
-				    file: nil
-				function: nil
-				    line: 0];
-		  [aFrame autorelease];
-		}
-	      [a addObject: [aFrame description]];
-	    }
-	  symbols = [a copy];
-	  [a release];
+          // not found (?!), add an 'unknown' function
+          if (aFrame == nil)
+            {
+              aFrame = [GSFunctionInfo alloc];
+              [aFrame initWithModule: nil
+                             address: address 
+                                file: nil
+                            function: nil
+                                line: 0];
+              [aFrame autorelease];
+            }
+          [a addObject: [aFrame description]];
+        }
+      symbols = [a copy];
+      [a release];
 #elif	defined(_WIN32)
-	  SYMBOL_INFO	*symbol;
-	  NSString	*syms[MAXFRAMES];
-	  NSUInteger	i;
+      void              **ptrs = (void**)&returns[FrameOffset];
+      SYMBOL_INFO	*symbol;
+      NSString	        *syms[MAXFRAMES];
 
-	  symbol = (SYMBOL_INFO *)calloc(sizeof(SYMBOL_INFO)
-	    + 1024 * sizeof(char), 1);
-	  symbol->MaxNameLen = 1024;
-	  symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
+      symbol = (SYMBOL_INFO *)calloc(sizeof(SYMBOL_INFO)
+        + 1024 * sizeof(char), 1);
+      symbol->MaxNameLen = 1024;
+      symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 
-	  (void)pthread_mutex_lock(&traceLock);
-	  for (i = 0; i < count; i++)
-	    {
-	      NSUInteger	addr = (NSUInteger)*ptrs++; 
+      (void)pthread_mutex_lock(&traceLock);
+      for (i = 0; i < count; i++)
+        {
+          NSUInteger	addr = (NSUInteger)*ptrs++; 
 
-	      if ((fromSym)(hProcess, (DWORD64)addr, 0, symbol))
-		{
-		  syms[i] = [NSString stringWithFormat:
-		    @"%s - %p", symbol->Name, addr];
-		}
-	      else
-		{
-		  syms[i] = [NSString stringWithFormat:
-		    @"unknown - %p", symbol->Name, addr];
-		}
-	    }
-	  (void)pthread_mutex_unlock(&traceLock);
-	  free(symbol);
+          if ((fromSym)(hProcess, (DWORD64)addr, 0, symbol))
+            {
+              syms[i] = [NSString stringWithFormat:
+                @"%s - %p", symbol->Name, addr];
+            }
+          else
+            {
+              syms[i] = [NSString stringWithFormat:
+                @"unknown - %p", symbol->Name, addr];
+            }
+        }
+      (void)pthread_mutex_unlock(&traceLock);
+      free(symbol);
 
-	  symbols = [[NSArray alloc] initWithObjects: syms count: count];
+      symbols = [[NSArray alloc] initWithObjects: syms count: count];
 #elif	defined(HAVE_BACKTRACE)
-	  char		**strs;
-	  NSString	**symbolArray;
-	  NSUInteger 	i;
+      void              **ptrs = (void**)&returns[FrameOffset];
+      char		**strs;
+      NSString	        **symbolArray;
 
-	  strs = backtrace_symbols(ptrs, count);
-	  symbolArray = alloca(count * sizeof(NSString*));
-	  for (i = 0; i < count; i++)
-	    {
-	      symbolArray[i] = [NSString stringWithUTF8String: strs[i]];
-	    }
-	  symbols = [[NSArray alloc] initWithObjects: symbolArray count: count];
-	  free(strs);
+      strs = backtrace_symbols(ptrs, count);
+      symbolArray = alloca(count * sizeof(NSString*));
+      for (i = 0; i < count; i++)
+        {
+          symbolArray[i] = [NSString stringWithUTF8String: strs[i]];
+        }
+      symbols = [[NSArray alloc] initWithObjects: symbolArray count: count];
+      free(strs);
+#else
+      NSMutableArray	*a;
+
+      symbols = a = [[self addresses] mutableCopy];
+      for (i = 0; i < count; i++)
+        {
+          NSString      *s;
+
+          s = [[NSString alloc] initWithFormat: @"%@: symbol not available",
+            [a objectAtIndex: i]];
+          [a replaceObjectAtIndex: i withObject: s];
+          RELEASE(s);
+        }
 #endif
-	}
-      else
-	{
-	  symbols = [NSArray new];
-	}
     }
   return symbols;
 }
