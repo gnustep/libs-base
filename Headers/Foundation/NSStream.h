@@ -25,7 +25,15 @@
 #define __NSStream_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
-#if OS_API_VERSION(100400,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_1,GS_API_LATEST)
+// FIXME: Use this code from Core Foundation framework...
+typedef NSDictionary *CFDictionaryRef;
+// FIXME: Move this code into System Configuration framework...
+typedef NSDictionary *SCDynamicStoreRef;
+extern CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store);
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
 
@@ -269,6 +277,20 @@ GS_EXPORT NSString * const NSStreamSOCKSProxyUserKey;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersion4;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersion5;
 GS_EXPORT NSString * const NSStreamSOCKSProxyVersionKey;
+
+// FIXME: move to Core Foundation - CFHTTPNetwork.h...
+GS_EXPORT NSString * const kCFStreamPropertyHTTPProxy;
+GS_EXPORT NSString * const kCFStreamPropertyHTTPProxyHost;
+GS_EXPORT NSString * const kCFStreamPropertyHTTPProxyPort;
+GS_EXPORT NSString * const kCFStreamPropertyHTTPSProxyHost;
+GS_EXPORT NSString * const kCFStreamPropertyHTTPSProxyPort;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST) && GS_PROTOCOLS_HAVE_OPTIONAL
+@protocol NSStreamDelegate <NSObject> 
+@optional 
+- (void) stream: (NSStream*)sStream handleEvent: (NSStreamEvent)anEvent;
+@end
+#else 
 
 /**
  * Informal protocol for delegates of instance of the [NSStream] class.

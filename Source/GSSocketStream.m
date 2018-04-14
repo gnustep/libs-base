@@ -1267,8 +1267,9 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	    ptr++;
 	  ptr++;
 	  buf[7] = atoi(ptr);
-	  result = [port intValue];
-          *(unsigned short *)&buf[8] = htons(result);
+	  result = htons([port intValue]);
+          buf[8] = ((result & 0xff00) >> 8);
+          buf[9] = (result & 0xff);
           [self dumpBuffer: buf count: want];
           
 	  result = [ostream _write: buf + woffset maxLength: want - woffset];
@@ -1405,7 +1406,8 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 			  [ostream setProperty: a
 					forKey: GSStreamRemoteAddressKey];
                           
-                          unsigned short portnum = ntohs((*(unsigned short *)&rbuffer[rwant-2]));
+                          unsigned short portnum = ((rbuffer[rwant-2] << 8) | rbuffer[rwant-1]);
+                          portnum                = ntohs(portnum);
                           a = [NSString stringWithFormat: @"%d", portnum];
 			  [istream setProperty: a
 					forKey: GSStreamRemotePortKey];
@@ -1445,6 +1447,313 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	{
 	  [ostream _recordError: theError];
 	}
+      [self bye];
+    }
+  return;
+}
+
+- (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
+{
+  return [ostream _write: buffer maxLength: len];
+}
+
+@end
+
+@interface	GSHTTP : GSStreamHandler
+{
+  NSString		*state;		/* Not retained */
+  NSString		*address;
+  NSString		*port;
+  unsigned char		rbuffer[128];
+  BOOL                  connectSent;
+  BOOL                  connected;
+}
+- (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event;
+@end
+
+@implementation	GSHTTP
++ (void) tryInput: (GSSocketInputStream*)i output: (GSSocketOutputStream*)o
+{
+  NSDictionary          *conf;
+  
+  conf = [i propertyForKey: kCFStreamPropertyHTTPProxy];
+  if (conf == nil)
+    {
+      conf = [o propertyForKey: kCFStreamPropertyHTTPProxy];
+      if (conf != nil)
+        {
+          [i setProperty: conf forKey: kCFStreamPropertyHTTPProxy];
+        }
+    }
+  else
+    {
+      [o setProperty: conf forKey: kCFStreamPropertyHTTPProxy];
+    }
+  
+  if (conf != nil)
+    {
+      GSHTTP      *h;
+      struct sockaddr   *sa = [i _address];
+      BOOL              i6 = NO;
+      
+#if defined(AF_INET6)
+      if (sa->sa_family == AF_INET6)
+        {
+          i6 = YES;
+        }
+      else
+#endif
+        if (sa->sa_family != AF_INET)
+          {
+            GSOnceMLog(@"GSHTTP not supported for socket type %d", sa->sa_family);
+            return;
+          }
+      
+      h = [[GSHTTP alloc] initWithInput: i output: o];
+      [i _setHandler: h];
+      [o _setHandler: h];
+      RELEASE(h);
+    }
+}
+
+- (void) bye
+{
+  if (handshake == YES)
+    {
+      GSSocketInputStream	*is = RETAIN(istream);
+      GSSocketOutputStream	*os = RETAIN(ostream);
+      
+      handshake = NO;
+      
+      // Setting the handler(s) to nil will deallocate us...
+      AUTORELEASE(RETAIN(self));
+      [is _setHandler: nil];
+      [os _setHandler: nil];
+
+      [GSTLSHandler tryInput: is output: os];
+      if (([is streamStatus] == NSStreamStatusOpen) ||
+          ([istream streamStatus] == NSStreamStatusReading))
+        {
+          [is _resetEvents: NSStreamEventOpenCompleted];
+          [is _sendEvent: NSStreamEventOpenCompleted];
+        }
+      else
+        {
+          [is _resetEvents: NSStreamEventErrorOccurred];
+          [is _sendEvent: NSStreamEventErrorOccurred];
+        }
+      if ([os streamStatus]  == NSStreamStatusOpen)
+        {
+          [os _resetEvents: NSStreamEventOpenCompleted | NSStreamEventHasSpaceAvailable];
+          [os _sendEvent: NSStreamEventOpenCompleted];
+          [os _sendEvent: NSStreamEventHasSpaceAvailable];
+        }
+      else
+        {
+          [os _resetEvents: NSStreamEventErrorOccurred];
+          [os _sendEvent: NSStreamEventErrorOccurred];
+        }
+      RELEASE(is);
+      RELEASE(os);
+    }
+}
+
+- (void) dealloc
+{
+  RELEASE(address);
+  RELEASE(port);
+  [super dealloc];
+}
+
+- (void) hello
+{
+  if (handshake == NO)
+    {
+      handshake = YES;
+      /* Now send self an event to say we can write, to kick off the
+       * handshake with the SOCKS server.
+       */
+      [self stream: ostream handleEvent: NSStreamEventHasSpaceAvailable];
+    }
+}
+
+- (id) initWithInput: (GSSocketInputStream*)i
+              output: (GSSocketOutputStream*)o
+{
+  if ((self = [super initWithInput: i output: o]) != nil)
+    {
+      if ([istream isKindOfClass: [GSInetInputStream class]] == NO)
+        {
+          NSLog(@"Attempt to use SOCKS with non-INET stream ignored");
+          DESTROY(self);
+        }
+#if defined(AF_INET6)
+      else if ([istream isKindOfClass: [GSInet6InputStream class]] == YES)
+        {
+          GSOnceMLog(@"INET6 not supported with SOCKS yet...");
+          DESTROY(self);
+        }
+#endif	/* AF_INET6 */
+      else if (nil == [istream propertyForKey: kCFStreamPropertyHTTPProxy])
+        {
+          NSLog(@"Attempt to use HTTP proxy without a configuration");
+          DESTROY(self);
+        }
+      else
+        {
+          struct sockaddr_in	*addr;
+          NSDictionary          *conf;
+          NSString              *host;
+          int                   pnum;
+          
+          /* Record the host and port that the streams are supposed to be
+           * connecting to.
+           */
+          addr = (struct sockaddr_in*)(void*)[istream _address];
+          address = [[NSString alloc] initWithUTF8String:
+                     (char*)inet_ntoa(addr->sin_addr)];
+          port = [[NSString alloc] initWithFormat: @"%d",
+                  (int)GSSwapBigI16ToHost(addr->sin_port)];
+          
+          /* Now reconfigure the streams so they will actually connect
+           * to the HTTP proxy server.
+           */
+          conf = [istream propertyForKey: kCFStreamPropertyHTTPProxy];
+          host = [conf objectForKey: kCFStreamPropertyHTTPProxyHost];
+          pnum = [[conf objectForKey: kCFStreamPropertyHTTPProxyPort] intValue];
+          if (NO == [istream _setSocketAddress: host port: pnum family: AF_INET])
+            ALog(@"error setting HTTP host:port for input stream");
+          if (NO == [ostream _setSocketAddress: host port: pnum family: AF_INET])
+            ALog(@"error setting HTTP host:port for output stream");
+        }
+    }
+  return self;
+}
+
+- (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
+{
+  return [istream _read: buffer maxLength: len];
+}
+
+- (void)dumpBuffer: (void*)buffer count: (int)count
+{
+#if defined(DEBUG)
+  int index = 0;
+  NSMutableString *string = [NSMutableString string];
+  
+  unsigned char *output = buffer;
+  for ( ; index < count; ++index)
+    [string appendFormat: @"0x%2.2x ", *output++];
+  NSWarnMLog(@"string: %@", string);
+#endif
+}
+
+- (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
+{
+  NSString      *error  = nil;
+  NSDictionary  *conf;
+  NSInteger      status = 0;
+  NSDebugMLLog(@"GSSocketStream", @"stream: %@ event: %ld", stream, (long)event);
+
+  if ((event == NSStreamEventErrorOccurred) ||
+      ([stream streamStatus] == NSStreamStatusError) ||
+      ([stream streamStatus] == NSStreamStatusClosed))
+    {
+      [self bye];
+      return;
+    }
+  
+  conf = [stream propertyForKey: NSStreamSOCKSProxyConfigurationKey];
+  
+  // If output stream completed open and has space available...
+  if ((NSStreamEventHasSpaceAvailable == event) && (NO == connectSent))
+    {
+      // Send HTTP Connect...
+      NSString *connectMsg = [NSString stringWithFormat: @"CONNECT %@:%@ HTTP/1.1\r\n\r\n",address,port];
+      NSDebugMLLog(@"GSSocketStream", @"connect to: %@", connectMsg);
+      
+      // Send the HTTP connect command...
+      int result = [ostream _write: (const uint8_t *)[connectMsg UTF8String]
+                         maxLength: [connectMsg length]];
+      
+      if (result < [connectMsg length])
+        {
+          error = [NSString stringWithFormat: @"write error sending HTTP proxy connect for: %@",connectMsg];
+        }
+      else
+        {
+          connectSent = YES;
+        }
+    }
+  else if (NSStreamEventHasBytesAvailable == event)
+    {
+      /* Looking for something of these forms...
+       HTTP/1.0 XXX Error
+       HTTP/1.1 200 Connection established
+       */
+      int result = [istream _read: rbuffer maxLength: 128];
+      NSDebugMLLog(@"GSSocketStream", @"result: %ld connected: %ld", (long)result, (long)connected);
+
+      // Check result...
+      if (result == 0)
+        {
+          error = @"end-of-file during HTTP proxy connect";
+        }
+      else if ((result < 0) && connected)
+      {
+        // Terminate our instance to allow the normal stream processing...
+        // Return immediately after calling -bye as it will cause this instance
+        // to be deallocated.
+        [self bye];
+        return;
+      }
+      else if (result > 0)
+        {
+          [self dumpBuffer: rbuffer count: result];
+          
+          NSString *string = AUTORELEASE([[NSString alloc] initWithBytes: rbuffer
+                                                                  length: result
+                                                                encoding: NSUTF8StringEncoding]);
+          NSDebugMLLog(@"GSSocketStream", @"string: %@", string);
+
+          // Check for error...
+          if ([string containsString: @"Error"])
+            {
+              // Get error code...
+              NSArray *components = [string componentsSeparatedByString: @" "];
+              status              = [[components objectAtIndex: 1] intValue];
+              
+              // Terminate with error...
+              NSDebugMLLog(@"GSSocketStream", @"error code: %ld", (long)status);
+              error = [NSString stringWithFormat: @"HTTP proxy connect error: %@",[components objectAtIndex: 1]];
+            }
+          else if ([string containsString: @"200 Connection established"])
+            {
+              connected = YES;
+            }
+        }
+    }
+  
+  if ([error length] > 0)
+    {
+      NSError *theError = [NSError errorWithDomain: NSCocoaErrorDomain
+                                              code: status
+                                          userInfo: [NSDictionary dictionaryWithObject: error
+                                                                                forKey: NSLocalizedDescriptionKey]];
+      
+      // TESTPLANT-MAL-03132018: stream(s) potentially going out of scope during
+      // record error invocation(s)...
+      AUTORELEASE(RETAIN(istream));
+      AUTORELEASE(RETAIN(ostream));
+      
+      if ([istream streamStatus] != NSStreamStatusError)
+        {
+          [istream _recordError: theError];
+        }
+      if ([ostream streamStatus] != NSStreamStatusError)
+        {
+          [ostream _recordError: theError];
+        }
       [self bye];
     }
   return;
@@ -1806,6 +2115,10 @@ setNonBlocking(SOCKET fd)
         {
           SOCKET        s;
 
+          if (_handler == nil)
+            {
+              [GSHTTP tryInput: self output: _sibling];
+            }
           if (_handler == nil)
             {
               [GSSOCKS tryInput: self output: _sibling];
@@ -2277,6 +2590,10 @@ setNonBlocking(SOCKET fd)
         {
           SOCKET        s;
 
+          if (_handler == nil)
+            {
+              [GSHTTP tryInput: _sibling output: self];
+            }
           if (_handler == nil)
             {
               [GSSOCKS tryInput: _sibling output: self];
