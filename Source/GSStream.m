@@ -76,6 +76,12 @@ NSString * const NSStreamSOCKSProxyVersion5
 NSString * const NSStreamSOCKSProxyVersionKey
   = @"NSStreamSOCKSProxyVersionKey";
 
+// FIXME: move to Core Foundation - CFHTTPNetwork.h...
+NSString * const kCFStreamPropertyHTTPProxy       = @"kCFStreamPropertyHTTPProxy";
+NSString * const kCFStreamPropertyHTTPProxyHost   = @"kCFStreamPropertyHTTPProxyHost";
+NSString * const kCFStreamPropertyHTTPProxyPort   = @"kCFStreamPropertyHTTPProxyPort";
+NSString * const kCFStreamPropertyHTTPSProxyHost  = @"kCFStreamPropertyHTTPSProxyHost";
+NSString * const kCFStreamPropertyHTTPSProxyPort  = @"kCFStreamPropertyHTTPSProxyPort";
 
 /*
  * Determine the type of event to use when adding a stream to the run loop.
