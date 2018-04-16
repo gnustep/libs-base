@@ -1,3 +1,8 @@
+2018-04-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSThread.m: ensure that the thread specific memory key is
+	initialised before use.
+
 2018-04-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSException.m: Improve -symbold method on platforms without

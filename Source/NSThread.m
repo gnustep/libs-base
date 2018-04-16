@@ -412,7 +412,8 @@ static BOOL	entered_multi_threaded_state = NO;
 
 static NSThread *defaultThread;
 
-static pthread_key_t thread_object_key;
+static BOOL             keyInitialized = NO;
+static pthread_key_t    thread_object_key;
 
 
 static NSHashTable *_activeBlocked = nil;
@@ -651,8 +652,18 @@ static void exitedThread(void *thread)
 inline NSThread*
 GSCurrentThread(void)
 {
-  NSThread *thr = pthread_getspecific(thread_object_key);
+  NSThread *thr;
 
+  if (NO == keyInitialized)
+    {
+      if (pthread_key_create(&thread_object_key, exitedThread))
+        {
+          [NSException raise: NSInternalInconsistencyException
+                      format: @"Unable to create thread key!"];
+        }
+      keyInitialized = YES;
+    }
+  thr = pthread_getspecific(thread_object_key);
   if (nil == thr)
     {
       NSValue *selfThread = NSValueCreateFromPthread(pthread_self());
@@ -909,11 +920,15 @@ unregisterActiveThread(NSThread *thread)
 {
   if (self == [NSThread class])
     {
-      if (pthread_key_create(&thread_object_key, exitedThread))
-	{
-	  [NSException raise: NSInternalInconsistencyException
-		      format: @"Unable to create thread key!"];
-	}
+      if (NO == keyInitialized)
+        {
+          if (pthread_key_create(&thread_object_key, exitedThread))
+            {
+              [NSException raise: NSInternalInconsistencyException
+                          format: @"Unable to create thread key!"];
+            }
+          keyInitialized = YES;
+        }
       /* Ensure that the default thread exists.
        * It's safe to create a lock here (since [NSObject+initialize]
        * creates locks, and locks don't depend on any other class),
