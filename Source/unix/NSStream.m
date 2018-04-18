@@ -49,7 +49,142 @@
 #import "../GSStream.h"
 #import "../GSSocketStream.h"
 
-/** 
+// FIXME: Move this code into System Configuration framework...
+CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
+{
+  NSMutableDictionary *proxyDict = [NSMutableDictionary dictionary];
+  
+  // Initialize...
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"FTPEnable"];
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"HTTPEnable"];
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"HTTPSEnable"];
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"RTSEnable"];
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"SOCKSEnable"];
+  
+  // FIXME: add the ExceptionsList array section...
+  [proxyDict setObject: [NSArray array] forKey: @"ExceptionsList"];
+  
+  // FIXME: add the per interface __SCOPED__ dictionary section in the code
+  // section(s) below...
+  NSDictionary *scopedProxies = @{ @"ExceptionsList" : [NSArray array],
+                                   @"FTPEnable"      : [NSNumber numberWithBool: NO],
+                                   @"HTTPEnable"     : [NSNumber numberWithBool: NO],
+                                   @"HTTPSEnable"    : [NSNumber numberWithBool: NO],
+                                   @"RTSEnable"      : [NSNumber numberWithBool: NO],
+                                   @"SOCKSEnable"    : [NSNumber numberWithBool: NO] };
+  [proxyDict setObject: scopedProxies forKey: @"__SCOPED__"];
+  
+  // Setup proxy information...
+  NSArray *ProxyEnvStrings = @[ @"socks_proxy", @"http_proxy", @"https_proxy" ];
+  for (NSString *envProxyString in ProxyEnvStrings)
+    {
+      char *envproxy = getenv([envProxyString cStringUsingEncoding: NSUTF8StringEncoding]);
+      if (envproxy)
+        {
+          NSString  *host   = nil;
+          NSNumber  *port   = nil;
+          NSString  *proxy  = [NSString stringWithUTF8String: envproxy];
+          NSInteger  index  = [envProxyString rangeOfString: @"_"].location;
+          NSString  *proto  = [envProxyString substringToIndex: index];
+          NSWarnMLog(@"string: %@ proto: %@", proxy, proto);
+          
+          // Find the SOCKS proxy setting...
+          if ([envProxyString isEqualToString: @"socks_proxy"])
+            {
+              // all_proxy variable will typically include the 'socks://' prefix...
+              if ([proxy hasPrefix: @"socks://"])
+                {
+                  proxy = [proxy substringFromIndex: [@"socks://" length]];
+                }
+              NSWarnMLog(@"proxy: %@", proxy);
+
+              // SOCKS available...
+              NSInteger  index      = [proxy rangeOfString: @"="].location + 1;
+              NSArray   *socksProxy = [proxy componentsSeparatedByString: @":"];
+              if (0 == [socksProxy count])
+                {
+                  NSWarnMLog(@"error processing SOCKS proxy info for (%@)", proxy);
+                }
+              else
+                {
+                  host              = [socksProxy objectAtIndex: 0];
+                  NSInteger portnum = ([socksProxy count] > 1 ? [[socksProxy objectAtIndex: 1] integerValue] : 8080);
+                  port              = [NSNumber numberWithInteger: portnum];
+                  NSWarnMLog(@"SOCKS - host: %@ port: %@", host, port);
+                  
+                  // Setup the proxy dictionary information and...
+                  [proxyDict setObject: host forKey: NSStreamSOCKSProxyHostKey];
+                  [proxyDict setObject: port forKey: NSStreamSOCKSProxyPortKey];
+                  // This key is NOT in the returned dictionary on Cocoa...
+                  [proxyDict setObject: NSStreamSOCKSProxyVersion5 forKey: NSStreamSOCKSProxyVersionKey];
+                  [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"SOCKSEnable"];
+                }
+            }
+          else if ([envProxyString isEqualToString: @"http_proxy"])
+            {
+              // all_proxy variable will typically include the 'socks://' prefix...
+              if ([proxy hasPrefix: @"http://"])
+                {
+                  proxy = [proxy substringFromIndex: [@"http://" length]];
+                }
+              NSWarnMLog(@"proxy: %@", proxy);
+
+              // HTTP available...
+              NSArray   *socksProxy = [proxy componentsSeparatedByString: @":"];
+              if (0 == [socksProxy count])
+                {
+                  NSWarnMLog(@"error processing HTTP proxy info for (%@)", proxy);
+                }
+              else
+                {
+                  host              = [socksProxy objectAtIndex: 0];
+                  NSInteger portnum = ([socksProxy count] > 1 ? [[socksProxy objectAtIndex: 1] integerValue] : 8080);
+                  port              = [NSNumber numberWithInteger: portnum];
+                  NSWarnMLog(@"HTTP - host: %@ port: %@", host, port);
+                  
+                  // Setup the proxy dictionary information and...
+                  [proxyDict setObject: host forKey: kCFStreamPropertyHTTPProxyHost];
+                  [proxyDict setObject: port forKey: kCFStreamPropertyHTTPProxyPort];
+                  [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"HTTPEnable"];
+                }
+            }
+          else if ([envProxyString isEqualToString: @"https_proxy"])
+            {
+              // all_proxy variable will typically include the 'socks://' prefix...
+              if ([proxy containsString: @"https://"])
+                {
+                  proxy = [proxy substringFromIndex: [@"https://" length]];
+                }
+              NSWarnMLog(@"proxy: %@", proxy);
+
+              // HTTPS available...
+              NSArray   *socksProxy = [proxy componentsSeparatedByString: @":"];
+              if (0 == [socksProxy count])
+                {
+                  NSWarnMLog(@"error processing HTTPS proxy info for (%@)", proxy);
+                }
+              else
+                {
+                  host              = [socksProxy objectAtIndex: 0];
+                  NSInteger portnum = ([socksProxy count] > 1 ? [[socksProxy objectAtIndex: 1] integerValue] : 8080);
+                  port              = [NSNumber numberWithInteger: portnum];
+                  NSWarnMLog(@"HTTPS - host: %@ port: %@", host, port);
+                  
+                  // Setup the proxy dictionary information and...
+                  [proxyDict setObject: host forKey: kCFStreamPropertyHTTPSProxyHost];
+                  [proxyDict setObject: port forKey: kCFStreamPropertyHTTPSProxyPort];
+                  [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"HTTPSEnable"];
+                }
+            }
+        }
+  }
+  
+  NSWarnMLog(@"proxies: %@", proxyDict);
+  
+  return [proxyDict copy];
+}
+
+/**
  * The concrete subclass of NSInputStream that reads from a file
  */
 @interface GSFileInputStream : GSInputStream
@@ -379,53 +514,38 @@
     }  
   
   // Setup proxy information...
-  NSMutableDictionary *proxyDict = [NSMutableDictionary dictionary];
-  {
-    // Obtain the current SOCK proxy setting...
+  
+  // Setup proxy information...
+  NSDictionary *proxyDict = SCDynamicStoreCopyProxies(NULL);
+  
+  // and if available...
+  if ([proxyDict count])
     {
-      // Proxy host(s) list...
-      char *socksproxy = getenv("all_proxy");
-      if (socksproxy)
+      // store in the streams...
+      if ([[proxyDict objectForKey: @"SOCKSEnable"] boolValue])
         {
-          NSString *string = [[NSString stringWithUTF8String: socksproxy] lowercaseString];
-          NSDebugMLLog(@"NSStream", @"proxy: %@", string);
+          NSDictionary *proxy = @{ NSStreamSOCKSProxyHostKey : [proxyDict objectForKey: NSStreamSOCKSProxyHostKey],
+                                   NSStreamSOCKSProxyPortKey : [proxyDict objectForKey: NSStreamSOCKSProxyPortKey]};
           
-          // For some reason linux/unix appends the '/' at the end...
-          if ([string hasSuffix: @"/"])
-            {
-              string = [string substringToIndex: [string length]-1];
-            }
+          [ins setProperty: proxy forKey: NSStreamSOCKSProxyConfigurationKey];
+          [outs setProperty: proxy forKey: NSStreamSOCKSProxyConfigurationKey];
+        }
+      if ([[proxyDict objectForKey: @"HTTPEnable"] boolValue])
+        {
+          NSDictionary *proxy = @{ kCFStreamPropertyHTTPProxyHost : [proxyDict objectForKey: kCFStreamPropertyHTTPProxyHost],
+                                   kCFStreamPropertyHTTPProxyPort : [proxyDict objectForKey: kCFStreamPropertyHTTPProxyPort]};
           
-          // all_proxy variable will typically include the 'socks://' prefix...
-          if ([string hasPrefix: @"socks://"])
-            {
-              string = [string substringFromIndex: [@"socks://" length]];
-            }
-          
-          // Get the host/port separated components...
-          NSArray *components = [string componentsSeparatedByString: @":"];
-          NSDebugMLLog(@"NSStream", @"component(s): %@", components);
-          
-          NSString *host = [components objectAtIndex: 0];
-          NSInteger portnum = ([components count] > 1 ? [[components objectAtIndex: 1] integerValue] : 8080);
-          NSNumber *port = [NSNumber numberWithInteger: portnum];
-          NSDebugMLLog(@"NSStream", @"host: %@ port: %@", host, port);
-          
-          // Check the exception proxy list via environment variable 'no-proxy'...
-          
-          // Setup the proxy configuration dictionary...
-          [proxyDict setObject: host forKey: NSStreamSOCKSProxyHostKey];
-          [proxyDict setObject: port forKey: NSStreamSOCKSProxyPortKey];
-          [proxyDict setObject: NSStreamSOCKSProxyVersion5 forKey: NSStreamSOCKSProxyVersionKey];
-          
-          // and save in the stream(s)...
-          [ins setProperty: proxyDict forKey: NSStreamSOCKSProxyConfigurationKey];
-          [outs setProperty: proxyDict forKey: NSStreamSOCKSProxyConfigurationKey];
+          [ins setProperty: proxy forKey: kCFStreamPropertyHTTPProxy];
+          [outs setProperty: proxy forKey: kCFStreamPropertyHTTPProxy];
+        }
+      if ([[proxyDict objectForKey: @"HTTPSEnable"] boolValue])
+        {
+          [ins setProperty: [proxyDict objectForKey: kCFStreamPropertyHTTPSProxyHost] forKey: kCFStreamPropertyHTTPSProxyHost];
+          [ins setProperty: [proxyDict objectForKey: kCFStreamPropertyHTTPSProxyHost] forKey: kCFStreamPropertyHTTPSProxyHost];
+          [outs setProperty: [proxyDict objectForKey: kCFStreamPropertyHTTPSProxyPort] forKey: kCFStreamPropertyHTTPSProxyPort];
+          [outs setProperty: [proxyDict objectForKey: kCFStreamPropertyHTTPSProxyPort] forKey: kCFStreamPropertyHTTPSProxyPort];
         }
     }
-    
-    // Cleanup...
-  }
   
   if (inputStream)
     {
