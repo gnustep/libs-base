@@ -1730,6 +1730,14 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
           else if ([string containsString: @"200 Connection established"])
             {
               connected = YES;
+              
+              // On windows, the istream is still in reading causing problems...
+              // In linux, the otstream is done - causing other problems...
+              if ([istream streamStatus] != NSStreamStatusReading)
+                {
+                  [self bye];
+                  return;
+                }
             }
         }
     }
