@@ -1642,6 +1642,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
   NSDictionary  *conf;
   NSInteger      status = 0;
   NSDebugMLLog(@"GSSocketStream", @"stream: %@ event: %ld", stream, (long)event);
+  NSWarnMLog(@"stream: %@ event: %ld", stream, (long)event);
 
   if ((event == NSStreamEventErrorOccurred) ||
       ([stream streamStatus] == NSStreamStatusError) ||
@@ -1659,6 +1660,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
       // Send HTTP Connect...
       NSString *connectMsg = [NSString stringWithFormat: @"CONNECT %@:%@ HTTP/1.1\r\n\r\n",address,port];
       NSDebugMLLog(@"GSSocketStream", @"connect to: %@", connectMsg);
+      NSWarnMLog(@"connect to: %@", connectMsg);
       
       // Send the HTTP connect command...
       int result = [ostream _write: (const uint8_t *)[connectMsg UTF8String]
@@ -1681,6 +1683,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
        */
       int result = [istream _read: rbuffer maxLength: 128];
       NSDebugMLLog(@"GSSocketStream", @"result: %ld connected: %ld", (long)result, (long)connected);
+      NSWarnMLog(@"result: %ld connected: %ld", (long)result, (long)connected);
 
       // Check result...
       if (result == 0)
@@ -1703,9 +1706,10 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
                                                                   length: result
                                                                 encoding: NSUTF8StringEncoding]);
           NSDebugMLLog(@"GSSocketStream", @"string: %@", string);
+          NSWarnMLog(@"string: %@", string);
 
           // Check for error...
-          if ([string containsString: @"Error"])
+          if ([[string lowercaseString] containsString: @"error"])
             {
               // Get error code...
               NSArray *components = [string componentsSeparatedByString: @" "];
@@ -1713,9 +1717,10 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
               
               // Terminate with error...
               NSDebugMLLog(@"GSSocketStream", @"error code: %ld", (long)status);
+              NSWarnMLog(@"error code: %ld", (long)status);
               error = [NSString stringWithFormat: @"HTTP proxy connect error: %@",[components objectAtIndex: 1]];
             }
-          else if ([string containsString: @"200 Connection established"])
+          else if ([[string lowercaseString] containsString: @"200 connection established"])
             {
               connected = YES;
               
