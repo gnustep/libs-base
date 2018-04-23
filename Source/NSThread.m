@@ -1,5 +1,5 @@
 /** Control of executable units within a shared virtual memory space
-   Copyright (C) 1996-2000 Free Software Foundation, Inc.
+   Copyright (C) 1996-2018 Free Software Foundation, Inc.
 
    Original Author:  Scott Christley <scottc@net-community.com>
    Rewritten by: Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
@@ -34,6 +34,30 @@
 #import "common.h"
 
 #import "GSPThread.h"
+
+// Dummy implementatation
+// cleaner than IFDEF'ing the code everywhere
+#ifndef HAVE_PTHREAD_SPIN_LOCK
+#warning no spin_locks, using dummy versions
+typedef int pthread_spinlock_t;
+int pthread_spin_init(pthread_spinlock_t *lock, int pshared
+{
+  NSDebugLog(@"NSThread.m: Warning this platform does not support spin locks");
+  return 0;
+}
+int pthread_spin_lock(pthread_spinlock_t *lock)
+{
+  return 0;
+}
+int pthread_spin_unlock(pthread_spinlock_t *lock)
+{
+  return 0;c
+}
+int pthread_spin_destroy(pthread_spinlock_t *lock)
+{
+  return 0;
+}
+#endif
 
 /** Structure for holding lock information for a thread.
  */

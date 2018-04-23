@@ -1820,6 +1820,11 @@ case $gs_cv_pthread_setname_np in
 esac
 
 #--------------------------------------------------------------------
+# Check if we have spinlock support
+#--------------------------------------------------------------------
+AC_CHECK_FUNCS(pthread_spin_lock)
+
+#--------------------------------------------------------------------
 # Check whether we can get the system thread ID
 #--------------------------------------------------------------------
 AC_CACHE_CHECK([for gettid()], ac_cv_gettid,

@@ -471,6 +471,9 @@
 /* Define to 1 if you have the <pthread_np.h> header file. */
 #undef HAVE_PTHREAD_NP_H
 
+/* Define to 1 if you have the `pthread_spin_lock' function. */
+#undef HAVE_PTHREAD_SPIN_LOCK
+
 /* Define this if you work on sysv */
 #undef HAVE_PTS_STREAM_MODULES
 
