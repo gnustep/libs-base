@@ -1,7 +1,14 @@
+2018-04-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure: regenerate
+	* NSObject.m: tiny cosmetic whitespace tidyup
+	* NSThread.m: move declarations to avoid compiler warning
+
 2018-04-23  Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSThread.m:
-	Detect if platform is missing spin locks and provide an dummy implementation. Emit warning during compilation and runtime (in debug).
+	Detect if platform is missing spin locks and provide an dummy
+	implementation. Emit warning during compilation and runtime (in debug).
 
 2018-04-16  Richard Frith-Macdonald <rfm@gnu.org>
 

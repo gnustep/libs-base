@@ -767,7 +767,7 @@ callCXXConstructors(Class aClass, id anObject)
 // FIXME rewrite object allocation to use class_createInstance when we
 // are using libobjc2.
 inline id
-NSAllocateObject (Class aClass, NSUInteger extraBytes, NSZone *zone)
+NSAllocateObject(Class aClass, NSUInteger extraBytes, NSZone *zone)
 {
   id	new;
 
@@ -1158,7 +1158,7 @@ static id gs_weak_load(id obj)
  */
 + (id) allocWithZone: (NSZone*)z
 {
-  return NSAllocateObject (self, 0, z);
+  return NSAllocateObject(self, 0, z);
 }
 
 /**

@@ -1502,6 +1502,9 @@ lockInfoErr(NSString *str)
 {
   if (GS_EXISTS_INTERNAL)
     {
+      NSMutableArray    *dependencies;
+      id                want;
+      BOOL              done;
       GSLockInfo        *li = &lockInfo;
       BOOL              owned = NO;
       int               err;
@@ -1548,9 +1551,9 @@ lockInfoErr(NSString *str)
             NSNonRetainedObjectHashCallBacks, 100);
         }
 
-      NSMutableArray    *dependencies = nil;
-      id                want = mutex;
-      BOOL              done = NO;
+      dependencies = nil;
+      want = mutex;
+      done = NO;
 
       while (NO == done)
         {
