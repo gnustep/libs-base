@@ -356,13 +356,15 @@ setupRegex(URegularExpression *regex,
   UErrorCode		s = 0;
   URegularExpression	*r = uregex_clone(regex, &s);
 
+  UTextInitWithNSString(txt, string);
+  uregex_setUText(r, txt, &s);
+  uregex_setRegion(r, range.location, range.location+range.length, &s);
+
   if (options & NSMatchingReportProgress)
     {
       uregex_setMatchCallback(r, callback, block, &s);
     }
-  UTextInitWithNSString(txt, string);
-  uregex_setUText(r, txt, &s);
-  uregex_setRegion(r, range.location, range.location+range.length, &s);
+
   if (options & NSMatchingWithoutAnchoringBounds)
     {
       uregex_useAnchoringBounds(r, FALSE, &s);
