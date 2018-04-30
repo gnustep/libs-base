@@ -1,3 +1,8 @@
+2018-04-30  Graham Lee  <graham@iamleeg.com>
+
+	* Source/NSCalendar.m (calendarWithIdentifier:):
+	New convenience method implemented by Cocoa.
+
 2018-04-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure: regenerate

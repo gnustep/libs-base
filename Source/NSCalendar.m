@@ -252,6 +252,11 @@ static NSRecursiveLock *classLock = nil;
   return self;
 }
 
++ (id) calendarWithIdentifier: (NSString *) string
+{
+  return [[[self alloc] initWithCalendarIdentifier: string] autorelease];
+}
+
 - (id) initWithCalendarIdentifier: (NSString *) string
 {
   NSAssert(0 == _NSCalendarInternal, NSInvalidArgumentException);
