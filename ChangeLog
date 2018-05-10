@@ -1,3 +1,9 @@
+2018-04-10  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Tools/pl2link.m (main): Don't write deprecated fields to desktop
+	link file.
+	Patch by: Josh Freeman <gnustep_lists@twilightedge.com>
+
 2018-04-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure: regenerate
