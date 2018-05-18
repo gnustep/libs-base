@@ -1,3 +1,16 @@
+2018-05-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdnc.m: Remove a little unused code
+	* Headers/Foundation/NSFileHandle.h:
+	* Source/GSHTTPURLHandle.m:
+	* Source/GSSocketStream.m:
+	* Source/GSTLS.h:
+	* Source/GSTLS.m:
+	* Source/NSURLProtocol.m:
+	Add support for TLS SNI (Server Name Indication) and a new option
+	(GSTLSServerName) to control what name (if any) is passed in the TLS
+	handshake.
+
 2018-05-17  Yavor Doganov  <yavor@gnu.org>
 
 	* Tests/base/NSNumberFormatter/basic10_4.m: Avoid test failure on

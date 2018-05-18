@@ -36,6 +36,7 @@ extern NSString * const GSTLSDebug;
 extern NSString * const GSTLSPriority;
 extern NSString * const GSTLSRemoteHosts;
 extern NSString * const GSTLSRevokeFile;
+extern NSString * const GSTLSServerName;
 extern NSString * const GSTLSVerify;
 
 #if     defined(HAVE_GNUTLS)

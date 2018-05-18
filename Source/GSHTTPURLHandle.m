@@ -1112,6 +1112,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
             GSTLSPriority,
             GSTLSRemoteHosts,
             GSTLSRevokeFile,
+            GSTLSServerName,
             GSTLSVerify,
             nil];
         }
@@ -1127,6 +1128,21 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
               [opts setObject: str forKey: key];
             }
         }
+
+      /* If there is no value set for the server name, and the host in the
+       * URL is a domain name rather than an address, we use that.
+       */
+      if (nil == [opts objectForKey: GSTLSServerName])
+        {
+          NSString      *host = [u host];
+          unichar       c = [host length] == 0 ? 0 : [host characterAtIndex: 0];
+
+          if (c != 0 && c != ':' && !isdigit(c))
+            {
+              [opts setObject: host forKey: GSTLSServerName];
+            }
+        }
+
       if (debug) [opts setObject: @"YES" forKey: GSTLSDebug];
       [sock sslSetOptions: opts];
       [opts release];

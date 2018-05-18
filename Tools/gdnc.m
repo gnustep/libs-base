@@ -425,7 +425,6 @@ ihandler(int sig)
   NSString		*service;
   BOOL			isNetwork = NO;
   BOOL			isPublic = NO;
-  BOOL			isLocal = NO;
   NSPort		*port;
   NSPortNameServer	*ns;
   NSUserDefaults	*defs;
@@ -451,11 +450,6 @@ ihandler(int sig)
     {
       isNetwork = YES;
     }
-  else
-    {
-      isLocal = YES;
-    }
-
 
   if (isNetwork)
     {
