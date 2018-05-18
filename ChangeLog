@@ -1,4 +1,9 @@
-2018-04-10  Fred Kiefer <fredkiefer@gmx.de>
+2018-05-17  Yavor Doganov  <yavor@gnu.org>
+
+	* Tests/base/NSNumberFormatter/basic10_4.m: Avoid test failure on
+	big-endian platforms by converting unichar to an NSString.
+
+2018-05-10  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Tools/pl2link.m (main): Don't write deprecated fields to desktop
 	link file.
