@@ -245,6 +245,18 @@
 #endif
 }
 
+#if TYPE_ORDER == 1
+- (NSSize)sizeValue
+{
+  return NSMakeSize(data.x, data.y);
+}
+#elif TYPE_ORDER == 5
+- (NSPoint)pointValue
+{
+  return NSMakePoint(data.width, data.height);
+}
+#endif
+
 // NSCoding
 - (void) encodeWithCoder: (NSCoder*)coder
 {

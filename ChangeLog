@@ -1,3 +1,8 @@
+2018-05-21  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/GSConcreteValueTemplate.m: Add hack to make point and
+	size subclasses for NSValue interchangable.
+
 2018-05-20  Ivan Vucica <ivan@vucica.net>
 
 	* Source/NSThread.m:
