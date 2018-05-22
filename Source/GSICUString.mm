@@ -7,6 +7,7 @@
 #import "GSICUString.h"
 extern "C" {
 #import "GSPrivate.h"
+#import "GNUstepBase/Unicode.h"
 }
 #include "unicode/localpointer.h"
 #include "unicode/ucnv_err.h"
@@ -21,6 +22,7 @@ extern "C" {
 
 using icu::BreakIterator;
 using icu::Collator;
+using icu::UnicodeString;
 
 /**
  * Extra methods to access the underlying storage for an NSString object, if it
@@ -321,6 +323,34 @@ BOOL SetUnicodeStringWithBytesNoCopy(UnicodeString &str,
                                      length/sizeof(unichar),
                                      freeWhenDone);
       return YES;
+    }
+  // This is a weird OpenStep encoding which ICU doesn't know about, so use the
+  // GNUstep code for it.
+  if (encoding == NSNonLossyASCIIStringEncoding)
+    {
+      // Each ASCII character translates to no more than one UTF-16 code point.
+      unichar *buffer = reinterpret_cast<unichar*>(str.getBuffer(length));
+      unsigned int len = length;
+      BOOL result = GSToUnicode(&buffer, &len,
+        reinterpret_cast<unsigned char*>(bytes), length, encoding, nullptr, 0);
+      str.releaseBuffer(len);
+      return result;
+    }
+  // ASCII is trivially conver
+  if (encoding == NSASCIIStringEncoding)
+    {
+      auto *chars = reinterpret_cast<const char*>(bytes);
+      // We're required to reject everything that's not ASCII, so...
+      for (NSUInteger i=0 ; i<length ; i++)
+        {
+          if (!isascii(chars[i]))
+            {
+              return NO;
+            }
+        }
+      UnicodeString tmp(chars, length, US_INV);
+      str = std::move(tmp);
+      return !str.isBogus();
     }
   UErrorCode e = U_ZERO_ERROR;
   const char *converterName = GSPrivateEncodingIConvName(encoding);
