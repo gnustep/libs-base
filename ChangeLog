@@ -1,3 +1,10 @@
+2018-05-27  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Tests/base/NSProcessInfo/general.m: Mark test for -systemUptime
+	as hopeful as it may fail in GNU Hurd.
+	Fixes bug #53941.
+	Based on idea by Yavor Doganov  <yavor@gnu.org>
+
 2018-05-21  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/GSConcreteValueTemplate.m: Add hack to make point and
