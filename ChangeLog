@@ -1,3 +1,9 @@
+2018-05-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: avoid static initialisation macro for allocation
+	locks in case some systems implement it in a way that doesn't work
+	after static initialisation takes place.
+
 2018-05-27  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Tests/base/NSProcessInfo/general.m: Mark test for -systemUptime

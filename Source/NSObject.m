@@ -1044,7 +1044,7 @@ static id gs_weak_load(id obj)
 
         for (i = 0; i < LOCKCOUNT; i++)
           {
-            allocationLocks[i] = PTHREAD_MUTEX_INITIALIZER;
+            pthread_mutex_init(&allocationLocks[i], NULL);
           }
       }
 #endif
