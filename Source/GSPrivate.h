@@ -257,6 +257,7 @@ typedef enum {
   GSLogThread,				// Include thread name in log message.
   GSLogOffset,			        // Include time zone offset in message.
   NSWriteOldStylePropertyLists,		// Control PList output.
+  GSExceptionStackTrace,                // Add trace to exception description.
   GSUserDefaultMaxFlag			// End marker.
 } GSUserDefaultFlagType;
 

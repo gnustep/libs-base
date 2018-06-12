@@ -1,3 +1,14 @@
+2018-06-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/Base.gsdoc:
+	* Source/GSPrivate.h:
+	* Source/NSException.m:
+	* Source/NSUserDefaults.m:
+	Add boolean GSExceptionStackTrace user default to turn on inclusion
+	of stack trace information in the -description of an exception
+	(like the GNUSTEP_STACK_TRACE environment variable). Useful for
+	diagnostic logs of a long running server process.
+
 2018-05-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: avoid static initialisation macro for allocation

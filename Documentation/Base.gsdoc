@@ -135,6 +135,18 @@ notice and this notice are preserved.
 	      to the set given by the [NSProcessInfo-debugSet] method.
               </p>
 	    </desc>
+	    <term>GSExceptionStackTrace</term>
+	    <desc>
+	      <p>
+		Setting the user default <code>GSExceptionStackTrace</code> to
+		<code>YES</code> will cause the stack trace at the point when
+                an exception occurs to be included as part of the text returned
+                by the -description method of the exception.<br />
+                That effect may also be obtained by setting the
+                GNUSTEP_STACK_TRACE environment variable before starting a
+                program.
+              </p>
+            </desc>
 	    <term>GSLogSyslog</term>
 	    <desc>
 	      <p>
@@ -314,6 +326,8 @@ notice and this notice are preserved.
 	        When this is set to <em>YES</em> a human readable stack trace
 		(with function names and line numbers) is added to the output
 		of the description method of a raised exception object.<br />
+                NB. This behavior may also be enabled by setting the
+                GSExceptionStackTrace user default to YES.<br />
 	        This only works if gnustep was built with support for it
 		using libbfd, so it may not be available on all systems.
 	      </p>

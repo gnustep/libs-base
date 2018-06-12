@@ -1311,7 +1311,8 @@ _NSFoundationUncaughtExceptionHandler (NSException *exception)
     GSPrivateArgZero(),
     [[exception name] lossyCString], [[exception reason] lossyCString]);
   fflush(stderr);	/* NEEDED UNDER MINGW */
-  if (GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES)
+  if (GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES
+    || GSPrivateDefaultsFlag(GSExceptionStackTrace) == YES)
     {
       fprintf(stderr, "Stack\n%s\n",
 	[[[exception _callStack] description] lossyCString]);
@@ -1462,7 +1463,8 @@ callUncaughtHandler(id value)
   if (_reserved != 0)
     {
       if (_e_stack != nil
-        && GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES)
+        && (GSPrivateEnvironmentFlag("GNUSTEP_STACK_TRACE", NO) == YES
+          || GSPrivateDefaultsFlag(GSExceptionStackTrace) == YES))
         {
           if (_e_info != nil)
             {

@@ -264,6 +264,8 @@ updateCache(NSUserDefaults *self)
 	= [self boolForKey: @"GSLogOffset"];
       flags[NSWriteOldStylePropertyLists]
 	= [self boolForKey: @"NSWriteOldStylePropertyLists"];
+      flags[GSExceptionStackTrace]
+	= [self boolForKey: @"GSExceptionStackTrace"];
     }
 }
 
@@ -635,6 +637,10 @@ newLanguages(NSArray *oldNames)
                   else if ([key isEqual: @"NSWriteOldStylePropertyLists"])
                     {
                       flags[NSWriteOldStylePropertyLists] = [val boolValue];
+                    }
+                  else if ([key isEqual: @"GSExceptionStackTrace"])
+                    {
+                      flags[GSExceptionStackTrace] = [val boolValue];
                     }
 	        }
 	    }
