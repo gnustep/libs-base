@@ -101,7 +101,7 @@ main(int argc, char** argv, char **env)
 
   fileContents = [NSMutableString stringWithCapacity: 200];
   [fileContents appendString:
-    @"[Desktop Entry]\nEncoding=UTF-8\nType=Application\n"];
+    @"[Desktop Entry]\nType=Application\n"];
   list = [plist objectForKey: @"FreeDesktopCategories"];
   if (list != nil && [list isKindOfClass: [NSArray class]] && [list count] > 0)
     {
@@ -216,7 +216,6 @@ main(int argc, char** argv, char **env)
       execPath = [NSString stringWithCString: line
 			   encoding: NSASCIIStringEncoding];
       [fileContents appendFormat: @"Exec=%@ %@\n", execPath, entry];
-      [fileContents appendFormat: @"FilePattern=%@.app;%@;\n", entry, entry];
     }
 
   list = [plist objectForKey: @"NSTypes"];

@@ -1,6 +1,7 @@
 #import "Testing.h"
 #import <Foundation/NSArray.h>
 #import <Foundation/NSAutoreleasePool.h>
+#import <Foundation/NSDictionary.h>
 #import <Foundation/NSProcessInfo.h>
 #import <Foundation/NSString.h>
 
@@ -43,9 +44,11 @@ int main()
   val = [info operatingSystem];
   PASS(val != 0, "-operatingSystem works"); 
   
+  testHopeful = YES;
   val = [info systemUptime];
   NSLog(@"systemUptime %lu", val);
   PASS(val != 0, "-systemUptime works");
+  testHopeful = NO;
   
   obj = [info hostName];
   PASS((obj != nil && [obj isKindOfClass:[NSString class]] && [obj length] > 0),

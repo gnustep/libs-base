@@ -58,7 +58,8 @@ int main()
     START_SET("NSLocale")
       NSLocale  *sys;
       NSLocale  *en;
-      unichar spc[1] = {0x00a0};
+      const unichar uspc[1] = {0x00a0};
+      NSString *spc = [NSString stringWithCharacters: uspc length: 1];
       if (!NSLOCALE_SUPPORTED)
         SKIP("NSLocale not supported\nThe ICU library was not available when GNUstep-base was built")
       
@@ -159,7 +160,7 @@ int main()
       num = [[[NSNumber alloc] initWithFloat: -1234.56] autorelease];
       str = [fmt stringFromNumber: num];
       PASS(([str isEqual: @"(R$1.235)"] || [str isEqual: @"_R$1.235"]
-        || [str isEqual: [NSString stringWithFormat: @"_R$%s%@",
+        || [str isEqual: [NSString stringWithFormat: @"_R$%@%@",
         spc, @"1.235"]]),
         "negativeFormat used for -ve number");
 

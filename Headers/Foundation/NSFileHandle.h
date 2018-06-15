@@ -287,7 +287,7 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
  * be set.<br />
  * You may use the same options as property settings with the GNUstep
  * implementation of NSStream.<br />
- * Expects key value pairs with the follwing names/meanings:
+ * Expects key value pairs with the following names/meanings:
  * <deflist>
  *   <term>GSTLSCAFile</term>
  *   <desc>A string identifying the full path to the file containing any
@@ -329,6 +329,18 @@ GS_EXPORT NSString * const NSFileHandleOperationException;
  *   <desc>The full path of a file containing certificate revocation
  *   information for certificates issued by our trusted authorites but
  *   no longer valid.
+ *   </desc>
+ *   <term>GSTLSServerName</term>
+ *   <desc>By default the TLS layer when making an HTTPS request sets the
+ *   'Server Name Indication' (SNI) to be the name of the host in the URL
+ *   that is being fetched.<br />
+ *   This option allows the SNI to be set for other connections and permits
+ *   overriding of the default behavior for HTTPS requests.  Setting the
+ *   value of GSTLSServerName to an empty string will prevent the SNI from
+ *   being sent in the TLS handshake (this is sometimes desirable to prevent
+ *   information leakage; the SNI information is sent unencrypted).<br />
+ *   Some web servers require SNI in order to tell what hostname an HTTPS
+ *   request is for and decide which certificate to present to the client.
  *   </desc>
  *   <term>GSTLSVerify</term>
  *   <desc>A boolean specifying whether we should require the remote end to
@@ -385,6 +397,11 @@ GS_EXPORT NSString * const GSTLSRemoteHosts;
  * file.
  */
 GS_EXPORT NSString * const GSTLSRevokeFile;
+
+/** Dictionary key for the value controlling the Server Name Indication
+ * (SNI) sent as part of the TLS handshake.
+ */
+GS_EXPORT NSString * const GSTLSServerName;
 
 /** Dictionary key for a boolean to enable certificate verification.
  */

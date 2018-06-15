@@ -81,6 +81,7 @@ NSString * const GSTLSDebug = @"GSTLSDebug";
 NSString * const GSTLSPriority = @"GSTLSPriority";
 NSString * const GSTLSRemoteHosts = @"GSTLSRemoteHosts";
 NSString * const GSTLSRevokeFile = @"GSTLSRevokeFile";
+NSString * const GSTLSServerName = @"GSTLSServerName";
 NSString * const GSTLSVerify = @"GSTLSVerify";
 
 #if     defined(HAVE_GNUTLS)
@@ -1533,6 +1534,32 @@ retrieve_callback(gnutls_session_t session,
       if (YES == outgoing)
         {
           gnutls_init(&session, GNUTLS_CLIENT);
+
+          str = [opts objectForKey: GSTLSServerName];
+          if ([str length] > 0)
+            {
+              const char        *ptr = [str UTF8String];
+              unsigned          len = strlen(ptr);
+              int               ret;
+
+              ret = gnutls_server_name_set(session, GNUTLS_NAME_DNS, ptr, len);
+              if (YES == debug)
+                {
+                  if (ret < 0)
+                    {
+                      NSLog(@"%@ %@: failed '%s'", self, GSTLSServerName,
+                        gnutls_strerror(ret));
+                    }
+                  else
+                    {
+                      NSLog(@"%@ %@: set to '%s'", self, GSTLSServerName, ptr);
+                    }
+                }
+            }
+          else if (YES == debug)
+            {
+              NSLog(@"%@ %@: not set", self, GSTLSServerName);
+            }
         }
       else
         {

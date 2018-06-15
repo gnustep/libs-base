@@ -882,6 +882,7 @@ static NSURLProtocol	*placeholder = nil;
                 GSTLSPriority,
                 GSTLSRemoteHosts,
                 GSTLSRevokeFile,
+                GSTLSServerName,
                 GSTLSVerify,
                 nil];
             }
@@ -894,6 +895,20 @@ static NSURLProtocol	*placeholder = nil;
               if (nil != str)
                 {
                   [this->output setProperty: str forKey: key];
+                }
+            }
+          /* If there is no value set for the server name, and the host in the
+           * URL is a domain name rather than an address, we use that.
+           */
+          if (nil == [this->output propertyForKey: GSTLSServerName])
+            {
+              NSString  *host = [url host];
+              unichar   c;
+
+              c = [host length] == 0 ? 0 : [host characterAtIndex: 0];
+              if (c != 0 && c != ':' && !isdigit(c))
+                {
+                  [this->output setProperty: host forKey: GSTLSServerName];
                 }
             }
           if (_debug) [this->output setProperty: @"YES" forKey: GSTLSDebug];

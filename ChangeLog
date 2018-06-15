@@ -3,6 +3,55 @@
 	* Source/NSCalendar.m (calendarWithIdentifier:):
 	New convenience method implemented by Cocoa.
 
+2018-05-29  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: avoid static initialisation macro for allocation
+	locks in case some systems implement it in a way that doesn't work
+	after static initialisation takes place.
+
+2018-05-27  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Tests/base/NSProcessInfo/general.m: Mark test for -systemUptime
+	as hopeful as it may fail in GNU Hurd.
+	Fixes bug #53941.
+	Based on idea by Yavor Doganov  <yavor@gnu.org>
+
+2018-05-21  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/GSConcreteValueTemplate.m: Add hack to make point and
+	size subclasses for NSValue interchangable.
+
+2018-05-20  Ivan Vucica <ivan@vucica.net>
+
+	* Source/NSThread.m:
+	Fix typo in code branch for platforms without pthread_spin_lock().
+	Check for value of HAVE_PTHREAD_SPIN_LOCK instead of whether the
+	macro is defined.
+
+2018-05-18  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdnc.m: Remove a little unused code
+	* Headers/Foundation/NSFileHandle.h:
+	* Source/GSHTTPURLHandle.m:
+	* Source/GSSocketStream.m:
+	* Source/GSTLS.h:
+	* Source/GSTLS.m:
+	* Source/NSURLProtocol.m:
+	Add support for TLS SNI (Server Name Indication) and a new option
+	(GSTLSServerName) to control what name (if any) is passed in the TLS
+	handshake.
+
+2018-05-17  Yavor Doganov  <yavor@gnu.org>
+
+	* Tests/base/NSNumberFormatter/basic10_4.m: Avoid test failure on
+	big-endian platforms by converting unichar to an NSString.
+
+2018-05-10  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Tools/pl2link.m (main): Don't write deprecated fields to desktop
+	link file.
+	Patch by: Josh Freeman <gnustep_lists@twilightedge.com>
+
 2018-04-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure: regenerate
