@@ -259,6 +259,7 @@ enum
 }
 
 + (id) currentCalendar;
++ (id) calendarWithIdentifier: (NSString *) string;
 
 - (id) initWithCalendarIdentifier: (NSString *) string;
 - (NSString *) calendarIdentifier;
