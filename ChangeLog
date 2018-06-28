@@ -1,6 +1,8 @@
 2018-06-28  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/NSString.m: Small cleanup for printf registration.
+	* Tests/base/NSString/test00.m: Add David Chisnall's test from
+	newapi branch slightly reformatted.
 
 2018-06-28  Richard Frith-Macdonald <rfm@gnu.org>
 

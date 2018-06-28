@@ -4,6 +4,12 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSCharacterSet.h>
 
+#ifdef  GNUSTEP_BASE_LIBRARY
+@interface NSString (Test)
+- (NSString*) _unicodeString;
+@end
+#endif
+
 static BOOL rangesEqual(NSRange r1, NSRange r2)
 {
   if (&r1 == &r2) 
@@ -464,6 +470,7 @@ int main()
   NSString      *sl = [indianShort stringByAppendingString: indianLong];
   NSString      *lsl = [ls stringByAppendingString: indianLong];
   NSRange       res;
+  int           i, j;
 
   res = [indianLong rangeOfString: indianLong options: 0];
   PASS(0 == res.location, "unicode whole string match")
@@ -475,6 +482,28 @@ int main()
   PASS(NSNotFound == res.location, "unicode not found backwards")
   res = [indianLong rangeOfString: indianShort options: NSCaseInsensitiveSearch|NSBackwardsSearch];
   PASS(NSNotFound == res.location, "unicode not found backwards insensitive")
+
+  for (i = 0; i < [indianLong length]; i++)
+    {
+      unichar buf1[5];
+      unichar buf2[5];
+      NSRange r1;
+      NSRange r2;
+
+      PASS([ls characterAtIndex: i] == [indianLong characterAtIndex: i], "Characters match");
+      r1 = [ls rangeOfComposedCharacterSequenceAtIndex: i];
+      r2 = [indianLong rangeOfComposedCharacterSequenceAtIndex: i];
+      PASS(r1.location == r2.location, "Composed characters start at the same place");
+      PASS(r1.length == r2.length, "Composed characters have the same lengths");
+      assert(r1.length < 5);
+
+      [ls getCharacters: buf1 range: r1];
+      [indianLong getCharacters: buf2 range: r2];
+      for (j = 0; j < r1.length; j++)
+        {
+          PASS(buf1[j] == buf2[j], "Characters match when accessed by range");
+        }
+    }
 
   res = [ls rangeOfString: indianLong options: 0];
   PASS(0 == res.location, "unicode found at start simple")
