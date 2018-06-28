@@ -1,3 +1,8 @@
+2018-06-28  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLParser.m: Fix conversion of numeric entities with large
+	values into UTF-16 surrogate pairs before returning them as string.
+
 2018-06-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/Base.gsdoc:

@@ -1442,15 +1442,26 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
           memcpy(buf, ep + 1, len - 1);
           buf[len - 1] = '\0';
           // &#ddd; or &#xhh;
-          if (sscanf(buf, "x%x;", &val))
+          if (sscanf(buf, "x%x;", &val) || sscanf(buf, "%d;", &val))
             {
-              // &#xhh; hex value
-              return [[NSString alloc] initWithFormat: @"%C", (unichar)val];
-            }
-          else if (sscanf(buf, "%d;", &val))
-            {
-              // &ddd; decimal value
-              return [[NSString alloc] initWithFormat: @"%C", (unichar)val];
+              // &#xhh; hex value or &ddd; decimal value
+              if (val > 0xffff)
+                {
+                  unichar       buf[2];
+
+                  /* Convert codepoint outside base plane to surrogate pair
+                   */
+                  val -= 0x010000;
+                  buf[0] = (val / 0x400) + 0xd800;
+                  buf[1] = (val % 0x400) + 0xdc00;
+                  return [[NSString alloc] initWithCharacters: buf length: 2];
+                }
+              else
+                {
+                  unichar       c = (unichar)val;
+
+                  return [[NSString alloc] initWithCharacters: &c length: 1];
+                }
             }
         }
     }
