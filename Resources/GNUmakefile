@@ -55,7 +55,7 @@ base-resources_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/
 endif
 
 base-resources_LANGUAGES = English German French Italian TraditionalChinese \
-Spanish Esperanto Korean
+Spanish Esperanto Korean Japanese
 base-resources_LOCALIZED_RESOURCE_FILES = Localizable.strings
 base-resources_RESOURCE_DIRS = Languages GSTLS
 base-resources_RESOURCE_FILES = \
@@ -75,7 +75,8 @@ Languages/TraditionalChinese \
 Languages/Slovak \
 Languages/Ukrainian \
 Languages/Esperanto \
-Languages/Korean 
+Languages/Korean \
+Languages/Japanese
 LANGUAGE_INSTALL_FILES = $(LANGUAGE_FILES) Languages/Locale.aliases \
 	Languages/Locale.encodings Languages/Locale.canonical
 

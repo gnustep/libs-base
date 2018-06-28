@@ -14,6 +14,11 @@
 	(like the GNUSTEP_STACK_TRACE environment variable). Useful for
 	diagnostic logs of a long running server process.
 
+2018-04-30  Graham Lee  <graham@iamleeg.com>
+
+	* Source/NSCalendar.m (calendarWithIdentifier:):
+	New convenience method implemented by Cocoa.
+
 2018-05-29  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: avoid static initialisation macro for allocation
