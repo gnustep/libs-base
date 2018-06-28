@@ -1,3 +1,7 @@
+2018-06-28  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSString.m: Small cleanup for printf registration.
+
 2018-06-28  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m: Fix conversion of numeric entities with large

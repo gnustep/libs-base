@@ -621,6 +621,31 @@ handle_printf_atsign (FILE *stream,
 }
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
 
+static void
+register_printf_atsign ()
+{
+#if     defined(HAVE_REGISTER_PRINTF_SPECIFIER)
+      if (register_printf_specifier ('@', handle_printf_atsign,
+#if PRINTF_ATSIGN_VA_LIST
+				    0))
+#else
+	                            arginfo_func))
+#endif
+	[NSException raise: NSGenericException
+		     format: @"register printf handling of %%@ failed"];
+#elif   defined(HAVE_REGISTER_PRINTF_FUNCTION)
+      if (register_printf_function ('@', handle_printf_atsign,
+#if PRINTF_ATSIGN_VA_LIST
+				    0))
+#else
+	                            arginfo_func))
+#endif
+	[NSException raise: NSGenericException
+		     format: @"register printf handling of %%@ failed"];
+#endif
+}
+
+
 #if GS_USE_ICU == 1
 /**
  * Returns an ICU collator for the given locale and options, or returns
@@ -822,26 +847,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	[GSPlaceholderStringClass allocWithZone: NSDefaultMallocZone()];
       placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
-
-#if     defined(HAVE_REGISTER_PRINTF_SPECIFIER)
-      if (register_printf_specifier ('@', handle_printf_atsign,
-#if PRINTF_ATSIGN_VA_LIST
-				    0))
-#else
-	                            arginfo_func))
-#endif
-	[NSException raise: NSGenericException
-		     format: @"register printf handling of %%@ failed"];
-#elif   defined(HAVE_REGISTER_PRINTF_FUNCTION)
-      if (register_printf_function ('@', handle_printf_atsign,
-#if PRINTF_ATSIGN_VA_LIST
-				    0))
-#else
-	                            arginfo_func))
-#endif
-	[NSException raise: NSGenericException
-		     format: @"register printf handling of %%@ failed"];
-#endif
+      register_printf_atsign();
       [self registerAtExit];
     }
 }
@@ -1424,13 +1430,11 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
    * the temporary buffer) for large strings.  For most strings, the
    * on-stack memory will have been used, so we will get better performance.
    */
-#if HAVE_WIDE_PRINTF_FUNCTION
   if (f->_flags.wide == 1)
     {
       self = [self initWithCharacters: f->_contents.u length: f->_count];
     }
   else
-#endif	/* HAVE_WIDE_PRINTF_FUNCTION */
     {
       self = [self initWithCString: (char*)f->_contents.c length: f->_count];
     }
