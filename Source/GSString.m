@@ -1100,23 +1100,6 @@ tsbytes(uintptr_t s, char *buf)
   return 8;
 }
 
-/* This method is provided to enable regression tests to ensure they are
- * using an object whose internal representation is wide (unicode) text,
- * so that all the comparison operations between 8bit and 16bit strings
- * can be tested.
- */
-- (NSString*) _unicodeString
-{
-  GSUInlineString	*o;
-  unsigned		i = [self length];
-
-  o = [newUInline(i, [self zone]) autorelease];
-  while (i-- > 0)
-    {
-      o->_contents.u[i] = [self characterAtIndex: i];
-    }
-  return o;
-}
 @end
 
 /**
@@ -3758,23 +3741,6 @@ transmute(GSStr self, NSString *aString)
   return size;
 }
 
-/* This method is provided to enable regression tests to ensure they are
- * using an object whose internal representation is wide (unicode) text,
- * so that all the comparison operations between 8bit and 16bit strings
- * can be tested.
- */
-- (NSString*) _unicodeString
-{
-  GSUInlineString	*o;
-  unsigned		i = [self length];
-
-  o = [newUInline(i, [self zone]) autorelease];
-  while (i-- > 0)
-    {
-      o->_contents.u[i] = [self characterAtIndex: i];
-    }
-  return o;
-}
 @end
 
 
@@ -4487,15 +4453,6 @@ agree, create a new GSUInlineString otherwise.
     }
 }
 
-/* This method is provided to enable regression tests to ensure they are
- * using an object whose internal representation is wide (unicode) text,
- * so that all the comparison operations between 8bit and 16bit strings
- * can be tested.
- */
-- (NSString*) _unicodeString
-{
-  return self;
-}
 @end
 
 
@@ -6189,23 +6146,6 @@ literalIsEqual(NXConstantString *self, id anObject)
   return NSUTF8StringEncoding;
 }
 
-/* This method is provided to enable regression tests to ensure they are
- * using an object whose internal representation is wide (unicode) text,
- * so that all the comparison operations between 8bit and 16bit strings
- * can be tested.
- */
-- (NSString*) _unicodeString
-{
-  GSUInlineString	*o;
-  unsigned		i = [self length];
-
-  o = [newUInline(i, [self zone]) autorelease];
-  while (i-- > 0)
-    {
-      o->_contents.u[i] = [self characterAtIndex: i];
-    }
-  return o;
-}
 @end
 
 

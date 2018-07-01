@@ -4,6 +4,8 @@
 	* Tests/base/NSString/test00.m: Add David Chisnall's test from
 	newapi branch slightly reformatted.
 	* Source/GSString.m: Remove code that was identical to super class.
+	* Source/GSString.m: Move the method _unicodeString from here...
+	* Tests/base/NSString/test00.m: ...to here.
 
 2018-06-28  Richard Frith-Macdonald <rfm@gnu.org>
 
