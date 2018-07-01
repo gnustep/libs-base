@@ -1542,42 +1542,6 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   return (id)me;
 }
 
-- (id) initWithCharacters: (const unichar*)chars
-		   length: (NSUInteger)length
-{
-  return [self initWithBytes: (const void*)chars
-		      length: length * sizeof(unichar)
-		    encoding: NSUnicodeStringEncoding];
-}
-
-- (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (NSUInteger)length
-		   freeWhenDone: (BOOL)flag
-{
-  return [self initWithBytesNoCopy: (void*)chars
-			    length: length * sizeof(unichar)
-			  encoding: NSUnicodeStringEncoding
-		      freeWhenDone: flag];
-}
-
-- (id) initWithCString: (const char*)chars
-		length: (NSUInteger)length
-{
-  return [self initWithBytes: (const void*)chars
-		      length: length
-		    encoding: externalEncoding];
-}
-
-- (id) initWithCStringNoCopy: (char*)chars
-		      length: (NSUInteger)length
-		freeWhenDone: (BOOL)flag
-{
-  return [self initWithBytesNoCopy: (void*)chars
-			    length: length
-			  encoding: externalEncoding
-		      freeWhenDone: flag];
-}
-
 - (id) initWithFormat: (NSString*)format
                locale: (NSDictionary*)locale
 	    arguments: (va_list)argList
@@ -3760,23 +3724,6 @@ transmute(GSStr self, NSString *aString)
   return self->_flags.hash;
 }
 
-- (id) initWithBytes: (const void*)chars
-	      length: (NSUInteger)length
-	    encoding: (NSStringEncoding)encoding
-{
-  if (length > 0)
-    {
-      void	*tmp = NSZoneMalloc([self zone], length);
-
-      memcpy(tmp, chars, length);
-      chars = tmp;
-    }
-  return [self initWithBytesNoCopy: (void*)chars
-			    length: length
-			  encoding: encoding
-		      freeWhenDone: YES];
-}
-
 - (id) initWithBytesNoCopy: (void*)chars
 		    length: (NSUInteger)length
 		  encoding: (NSStringEncoding)encoding
@@ -3789,57 +3736,6 @@ transmute(GSStr self, NSString *aString)
   [NSException raise: NSInternalInconsistencyException
 	      format: @"[%@-%@] called on string already initialised", c, s];
   return nil;
-}
-
-- (id) initWithCharacters: (const unichar*)chars
-		   length: (NSUInteger)length
-{
-  return [self initWithBytes: chars
-		      length: length * sizeof(unichar)
-		    encoding: NSUnicodeStringEncoding];
-}
-
-- (id) initWithCharactersNoCopy: (unichar*)chars
-			 length: (NSUInteger)length
-		   freeWhenDone: (BOOL)flag
-{
-  return [self initWithBytesNoCopy: chars
-			    length: length * sizeof(unichar)
-			  encoding: NSUnicodeStringEncoding
-		      freeWhenDone: flag];
-}
-
-- (id) initWithCString: (const char*)chars
-{
-  return [self initWithBytes: chars
-		      length: strlen(chars)
-		    encoding: externalEncoding];
-}
-
-- (id) initWithCString: (const char*)chars
-	      encoding: (NSStringEncoding)encoding
-{
-  return [self initWithBytes: chars
-		      length: strlen(chars)
-		    encoding: encoding];
-}
-
-- (id) initWithCString: (const char*)chars
-		length: (NSUInteger)length
-{
-  return [self initWithBytes: chars
-		      length: length
-		    encoding: externalEncoding];
-}
-
-- (id) initWithCStringNoCopy: (char*)chars
-		      length: (NSUInteger)length
-	        freeWhenDone: (BOOL)flag
-{
-  return [self initWithBytesNoCopy: chars
-			    length: length
-			  encoding: externalEncoding
-		      freeWhenDone: flag];
 }
 
 - (BOOL) makeImmutable
@@ -4384,6 +4280,7 @@ agree, create a new GSCInlineString otherwise.
 {
   return getCStringE_u((GSStr)self, buffer, maxLength, encoding);
 }
+
 - (void) getCString: (char*)buffer
 	  maxLength: (NSUInteger)maxLength
 	      range: (NSRange)aRange
