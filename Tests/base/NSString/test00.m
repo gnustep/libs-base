@@ -4,30 +4,11 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSCharacterSet.h>
 
-
+#ifdef  GNUSTEP_BASE_LIBRARY
 @interface NSString (Test)
 - (NSString*) _unicodeString;
 @end
-
-@implementation NSString (Test)
-
-/* This method is provided to enable regression tests to ensure they are
- * using an object whose internal representation is wide (unicode) text,
- * so that all the comparison operations between 8bit and 16bit strings
- * can be tested.
- */
-- (NSString*) _unicodeString
-{
-  int l = [self length];
-  NSMutableData *d = [NSMutableData dataWithLength: (l * 2)];
-  unichar *b = [d mutableBytes];
-
-  [self getCharacters: b];
-  return [NSString stringWithCharacters: b length: l];
-}
-
-@end
-
+#endif
 
 static BOOL rangesEqual(NSRange r1, NSRange r2)
 {
@@ -57,9 +38,18 @@ static void strCompare (char *s0, char *s1, NSComparisonResult ci,
   us1 = nil; 
   
   PASS_RUNS(cs0 = [NSString stringWithCString: s0];
-    us0 = [cs0 _unicodeString];
+    l = [cs0 length];
+    d = [NSMutableData dataWithLength: (l * 2)];
+    b = [d mutableBytes];
+    [cs0 getCharacters: b];
+    us0 = [NSString stringWithCharacters: b length: l];
+
     cs1 = [NSString stringWithCString: s1];
-    us1 = [cs1 _unicodeString];,
+    l = [cs1 length];
+    d = [NSMutableData dataWithLength: (l * 2)];
+    b = [d mutableBytes];
+    [cs1 getCharacters: b];
+    us1 = [NSString stringWithCharacters: b length: l];,
     "create strings for compare is ok");
   opts = NSCaseInsensitiveSearch;
   type =  "case insensitive comparison for";
@@ -188,11 +178,33 @@ static void strRange(char *s0, char *s1, unsigned int opts,
   us0 = nil; 
   us1 = nil; 
   
+#ifdef  GNUSTEP_BASE_LIBRARY
+  /* The _unicodeString method is a private/hidden method the strings in the
+   * base library provide to return an autorelease copy of themselves which
+   * is guaranteed to use a 16bit internal character representation and be a
+   * subclass of GSUnicodeString.
+   */
   PASS_RUNS(cs0 = [NSString stringWithCString: s0];
     us0 = [cs0 _unicodeString];
     cs1 = [NSString stringWithCString: s1];
     us1 = [cs1 _unicodeString];,
     "create strings for range is ok");
+#else
+  PASS_RUNS(cs0 = [NSString stringWithCString: s0];
+    l = [cs0 length];
+    d = [NSMutableData dataWithLength: (l * 2)];
+    b = [d mutableBytes];
+    [cs0 getCharacters: b];
+    us0 = [NSString stringWithCharacters: b length: l];
+
+    cs1 = [NSString stringWithCString: s1];
+    l = [cs1 length];
+    d = [NSMutableData dataWithLength: (l * 2)];
+    b = [d mutableBytes];
+    [cs1 getCharacters: b];
+    us1 = [NSString stringWithCharacters: b length: l];,
+    "create strings for range is ok");
+#endif
   
   res = [cs0 rangeOfString: cs1 options: opts range: range];
   PASS(rangesEqual(res,want), "CCString range for '%s' and '%s' is ok",s0,s1);
@@ -220,9 +232,18 @@ static void strRangeFromSet(char *s, NSCharacterSet *c, unsigned int o, NSRange 
   us0 = nil; 
   us1 = nil; 
   PASS_RUNS(cs0 = [NSString stringWithCString: s];
-    us0 = [cs0 _unicodeString];
+    l = [cs0 length];
+    d = [NSMutableData dataWithLength: (l * 2)];
+    b = [d mutableBytes];
+    [cs0 getCharacters: b];
+    us0 = [NSString stringWithCharacters: b length: l];
+
     cs1 = [NSMutableString stringWithCString: s];
-    us1 = [cs1 _unicodeString];,
+    l = [cs1 length];
+    d = [NSMutableData dataWithLength: (l * 2)];
+    b = [d mutableBytes];
+    [cs1 getCharacters: b];
+    us1 = [NSMutableString stringWithCharacters: b length: l];,
     "create strings for range");
    
   res = [cs0 rangeOfCharacterFromSet: c options: o range: range];

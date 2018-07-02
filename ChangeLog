@@ -1,3 +1,11 @@
+2018-07-02  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tests/base/NSString/test00.m: : Move _unicodeString from here...
+	* Source/GSString.m: ... to here.
+	In order to reliably test the internal 16bit unicode implementation
+	we must have a method guaranteed to produce an instance of the correct
+	class.
+
 2018-07-01  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/NSString.m: Small cleanup for printf registration.

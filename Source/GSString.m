@@ -719,6 +719,26 @@ newUInline(unsigned length, NSZone *zone)
   return me;
 }
 
+@implementation NSString (RegressionTesting)
+/* This method is provided to enable regression tests to ensure they are
+ * using an object whose internal representation is wide (unicode) text,
+ * so that all the comparison operations between 8bit and 16bit strings
+ * can be tested.
+ */
+- (NSString*) _unicodeString
+{
+  GSUInlineString       *o;
+  unsigned              i = [self length];
+
+  o = [newUInline(i, [self zone]) autorelease];
+  while (i-- > 0)
+    {
+      o->_contents.u[i] = [self characterAtIndex: i];
+    }
+  return o;
+}
+@end
+
 /* Predeclare a few functions
  */
 static void GSStrWiden(GSStr s);
