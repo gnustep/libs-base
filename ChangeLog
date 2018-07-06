@@ -1,3 +1,10 @@
+2018-07-06  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/GSString.m: Remove GSString copyWithZone:.
+	* Source/NSString.m: Raise exception when no is provided for the
+	string. This brings our implementation closer to the Cocoa one.
+	* Source/GSString.m: Add similar exceptions.
+
 2018-07-02  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tests/base/NSString/test00.m: : Move _unicodeString from here...

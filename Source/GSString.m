@@ -1556,6 +1556,9 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   size_t	len;
   GSStr		me;
 
+  if (NULL == format)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[GSPlaceholderString-initWithFormat:locale:arguments:]: NULL format"];
   /*
    * First we provide an array of unichar characters containing the
    * format string.  For performance reasons we try to use an on-stack
@@ -1630,7 +1633,7 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
 
   if (string == nil)
     [NSException raise: NSInvalidArgumentException
-		format: @"-initWithString: given nil string"];
+		format: @"GSPlaceholderString-initWithString: given nil string"];
   if (NO == [string isKindOfClass: NSStringClass])	// may be proxy
     [NSException raise: NSInvalidArgumentException
 		format: @"-initWithString: given non-string object"];
@@ -1679,10 +1682,9 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   GSStr		me;
   uint8_t       c;
 
-  if (0 == bytes)
-    {
-      return (id)@"";
-    }
+  if (NULL == bytes)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[GSPlaceholderString-initWithUTF8String:]: NULL cString"];
   /* Skip leading BOM
    */
   if (b[0] == 0xEF && b[1] == 0xBB && b[2] == 0xBF)
@@ -3649,12 +3651,6 @@ transmute(GSStr self, NSString *aString)
   setup(YES);
 }
 
-- (id) copyWithZone: (NSZone*)z
-{
-  [self subclassResponsibility: _cmd];
-  return nil;
-}
-
 /*
  * Return a 28-bit hash value for the string contents - this
  * MUST match the algorithm used by the NSString base class.
@@ -5062,6 +5058,9 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
   unichar	*fmt = fbuf;
   size_t	len;
 
+  if (NULL == format)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[GSMutableString-initWithFormat:locale:arguments:]: NULL format"];
   /*
    * First we provide an array of unichar characters containing the
    * format string.  For performance reasons we try to use an on-stack

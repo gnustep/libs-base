@@ -938,6 +938,9 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 {
   NSString	*obj;
 
+  if (NULL == aString)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString+stringWithString:]: NULL string"];
   obj = [self allocWithZone: NSDefaultMallocZone()];
   obj = [obj initWithString: aString];
   return AUTORELEASE(obj);
@@ -964,10 +967,12 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 + (id) stringWithCString: (const char*)byteString
 {
   NSString	*obj;
-  unsigned	length = byteString ? strlen(byteString) : 0;
 
+  if (NULL == byteString)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString+stringWithCString:]: NULL cString"];
   obj = [self allocWithZone: NSDefaultMallocZone()];
-  obj = [obj initWithCString: byteString length: length];
+  obj = [obj initWithCString: byteString];
   return AUTORELEASE(obj);
 }
 
@@ -1115,16 +1120,16 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 + (id) stringWithFormat: (NSString*)format,...
 {
   va_list ap;
-  id ret;
+  NSString	*obj;
 
+  if (NULL == format)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString+stringWithFormat:]: NULL format"];
   va_start(ap, format);
-  if (format == nil)
-    ret = nil;
-  else
-    ret = AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-      initWithFormat: format arguments: ap]);
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithFormat: format arguments: ap];
   va_end(ap);
-  return ret;
+  return AUTORELEASE(obj);
 }
 
 
@@ -1275,8 +1280,11 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 - (id) initWithCString: (const char*)byteString
 	      encoding: (NSStringEncoding)encoding
 {
+  if (NULL == byteString)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString-initWithCString:encoding:]: NULL cString"];
   return [self initWithBytes: byteString
-		      length: (byteString ? strlen(byteString) : 0)
+		      length: strlen(byteString)
 		    encoding: encoding];
 }
 
@@ -1299,8 +1307,11 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
  */
 - (id) initWithCString: (const char*)byteString
 {
+  if (NULL == byteString)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString-initWithCString:]: NULL cString"];
   return [self initWithBytes: byteString
-		      length: (byteString ? strlen(byteString) : 0)
+		      length: strlen(byteString)
 		    encoding: _DefaultStringEncoding];
 }
 
@@ -1311,6 +1322,9 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 {
   unsigned	length = [string length];
 
+  if (NULL == string)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString-initWithString:]: NULL string"];
   if (length > 0)
     {
       unichar	*s = NSZoneMalloc([self zone], sizeof(unichar)*length);
@@ -1334,8 +1348,11 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
  */
 - (id) initWithUTF8String: (const char *)bytes
 {
+  if (NULL == bytes)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[NSString-initWithUTF8String:]: NULL cString"];
   return [self initWithBytes: bytes
-		      length: (bytes ? strlen(bytes) : 0)
+		      length: strlen(bytes)
 		    encoding: NSUTF8StringEncoding];
 }
 
@@ -1387,6 +1404,9 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   unichar	*fmt = fbuf;
   size_t	len;
 
+  if (NULL == format)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString-initWithFormat:locale:arguments:]: NULL format"];
   /*
    * First we provide an array of unichar characters containing the
    * format string.  For performance reasons we try to use an on-stack
