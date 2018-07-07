@@ -2263,11 +2263,6 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   return range;
 }
 
-- (NSRange) rangeOfComposedCharacterSequencesForRange: (NSRange)range
-{
-  return NSMakeRange(0, 0);     // FIXME
-}
-
 /**
  * Invokes -rangeOfString:options: with no options.
  */
@@ -2838,6 +2833,22 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     }
 
   return NSMakeRange(start, end-start);
+}
+
+- (NSRange) rangeOfComposedCharacterSequencesForRange: (NSRange)range
+{
+  NSRange startRange = [self rangeOfComposedCharacterSequenceAtIndex: range.location];
+
+  if (NSMaxRange(startRange) >= NSMaxRange(range))
+    {
+      return startRange;
+    }
+  else
+    {
+      NSRange endRange = [self rangeOfComposedCharacterSequenceAtIndex: NSMaxRange(range) - 1];
+
+      return NSUnionRange(startRange, endRange);
+    }
 }
 
 // Identifying and Comparing Strings
