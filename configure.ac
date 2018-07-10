@@ -1122,6 +1122,21 @@ AC_PROG_CC
 AC_PROG_CPP
 AC_USE_SYSTEM_EXTENSIONS
 
+AC_MSG_CHECKING(whether the compiler is clang)
+if test ! x"${GCC}" = x"yes" ; then
+  CLANG_CC=no
+  AC_MSG_RESULT(no)
+else
+  if "${CC}" -v 2>&1 | grep -q 'clang version'; then
+    CLANG_CC=yes
+    AC_MSG_RESULT(yes)
+  else
+    CLANG_CC=no
+    AC_MSG_RESULT(no)
+  fi
+fi
+AC_SUBST(CLANG_CC)
+
 
 # Large file support needed by NSData/NSFileHandle.
 # These macros must be called after AC_USE_SYSTEM_EXTENSIONS because
@@ -1246,7 +1261,9 @@ elif test "$OBJC_RUNTIME_LIB" = "ng"; then
   AC_MSG_RESULT(Next Gen)
 else
   AC_MSG_RESULT(GNU)
-  OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
+  if test "$CLANG_CC" = "yes"; then
+    OBJCFLAGS="$OBJCFLAGS -fobjc-runtime=gcc"
+  fi
 fi
 LIBOBJC=`gnustep-config --objc-libs`
 if test "$LIBOBJC" = ""; then

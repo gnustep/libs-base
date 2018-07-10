@@ -1,3 +1,10 @@
+2018-07-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac:
+	* configure:
+	When using clang, we now supply -fobjc-runtime=gcc to target the
+	gnu/gcc runtime ABI.
+
 2018-07-07  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/NSString.m: Add primitive implementation for

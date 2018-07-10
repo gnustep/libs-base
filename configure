@@ -719,6 +719,7 @@ PKG_CONFIG_LIBDIR
 PKG_CONFIG_PATH
 PKG_CONFIG
 WHOAMI
+CLANG_CC
 EGREP
 GREP
 CPP
@@ -5336,6 +5337,25 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
 
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the compiler is clang" >&5
+$as_echo_n "checking whether the compiler is clang... " >&6; }
+if test ! x"${GCC}" = x"yes" ; then
+  CLANG_CC=no
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+else
+  if "${CC}" -v 2>&1 | grep -q 'clang version'; then
+    CLANG_CC=yes
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+  else
+    CLANG_CC=no
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+  fi
+fi
+
+
 
 # Large file support needed by NSData/NSFileHandle.
 # These macros must be called after AC_USE_SYSTEM_EXTENSIONS because
@@ -5996,7 +6016,9 @@ $as_echo "Next Gen" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: GNU" >&5
 $as_echo "GNU" >&6; }
-  OBJCFLAGS="$OBJCFLAGS -fgnu-runtime"
+  if test "$CLANG_CC" = "yes"; then
+    OBJCFLAGS="$OBJCFLAGS -fobjc-runtime=gcc"
+  fi
 fi
 LIBOBJC=`gnustep-config --objc-libs`
 if test "$LIBOBJC" = ""; then
