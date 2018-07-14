@@ -926,6 +926,22 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
                 {
                   int i, sle = 0;
 
+		  /* legal first byte of a multibyte character?
+                   */
+                  if (c <= 0xc1 || c >= 0xf5)
+                    {
+                      /* (0x7f <= c < 0xc0) means this is a continuation
+                       * of a multibyte character without the first byte.
+                       *
+                       * (0xc0 == c || 0xc1 == c) are always illegal because
+                       *
+                       * (c >= 0xf5) would be for a multibyte character
+                       * outside the unicode range.
+                       */
+	              result = NO;
+		      goto done;
+                    }
+
 		  /* calculated the expected sequence length */
                   while (c & 0x80)
                     {
@@ -933,18 +949,11 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
                       sle++;
                     }
 
-		  /* legal ? */
-		  if ((sle < 2) || (sle > 6))
-                    {
-	               result = NO;
-		       goto done;
-	            }
-
 		  /* do we have enough bytes ? */
 		  if ((spos + sle) > slen)
                     {
-	               result = NO;
-		       goto done;
+	              result = NO;
+		      goto done;
 	            }
 
 		  /* get the codepoint */
@@ -962,11 +971,40 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	          u = u & ~(0xffffffff << ((5 * sle) + 1));
 		  spos += sle;
 
+                  /* How many bytes needed to encode this character?
+                   */
+                  if (u < 0x80)
+                    {
+                      i = 1;
+                    }
+                  else if (u < 0x800)
+                    {
+                      i = 2;
+                    }
+                  else if (u < 0x10000)
+                    {
+                      i = 3;
+                    }
+                  else 
+                    {
+                      i = 4;
+                    }
+                  if (0 && i < sle)
+                    {
+		      result = NO;	// Character was not minimally encoded.
+		      goto done;
+                    }
+
 		  if ((u >= 0xd800) && (u <= 0xdfff))
 		    {
 		      result = NO;	// Unmatched half of surrogate pair.
 		      goto done;
 		    }
+                  if (u > 0x10ffff)
+                    {
+		      result = NO;	// Outside the unicode range.
+		      goto done;
+                    }
                 }
               else
 		{
