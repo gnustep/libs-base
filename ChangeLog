@@ -1,3 +1,8 @@
+2018-07-19  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSTimeZones/NSTimeZones.tar: Updated zone info and corrected preferred
+	abbreviation mappings to match OSX.
+
 2018-07-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m: improve utf8 validity checks,
