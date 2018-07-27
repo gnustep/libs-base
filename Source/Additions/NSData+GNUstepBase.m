@@ -425,7 +425,7 @@ randombytes(uint8_t *buf, unsigned len)
   if (self == nil)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"%@: invalid hexadeciaml string data",
+		  format: @"%@: invalid hexadecimal string data",
 	NSStringFromSelector(_cmd)];
     }
   return self;
