@@ -1174,7 +1174,6 @@ newLanguages(NSArray *oldNames)
       // Load read-only defaults.
       ASSIGN(_lastSync, [NSDateClass date]);
       [self _readDefaults];
-      updateCache(self);
     }
 
   // Create an empty search list
@@ -1188,6 +1187,8 @@ newLanguages(NSArray *oldNames)
     setObject: [NSMutableDictionaryClass dictionaryWithCapacity: 10]
     forKey: NSRegistrationDomain];
   [_tempDomains setObject: GNUstepConfig(nil) forKey: GSConfigDomain];
+
+  updateCache(self);
 
   [[NSNotificationCenter defaultCenter] addObserver: self
            selector: @selector(synchronize)
@@ -1262,6 +1263,7 @@ newLanguages(NSArray *oldNames)
       [_searchList insertObject: aName atIndex: index];
       // Ensure that any persistent domain with the specified name is loaded.
       [self persistentDomainForName: aName];
+      updateCache(self);
       [_lock unlock];
     }
   NS_HANDLER
@@ -1611,19 +1613,23 @@ static BOOL isPlistObject(id o)
   [_lock lock];
   NS_DURING
     {
-      NSEnumerator	*e;
-      NSString		*n;
+      if (NO == [_searchList isEqual: newList])
+        {
+          NSEnumerator	*e;
+          NSString	*n;
 
-      DESTROY(_dictionaryRep);
-      RELEASE(_searchList);
-      _searchList = [newList mutableCopy];
-      /* Ensure that any domains we need are loaded.
-       */
-      e = [_searchList objectEnumerator];
-      while (nil != (n = [e nextObject]))
-	{
-	  [self persistentDomainForName:  n];
-	}
+          DESTROY(_dictionaryRep);
+          RELEASE(_searchList);
+          _searchList = [newList mutableCopy];
+          /* Ensure that any domains we need are loaded.
+           */
+          e = [_searchList objectEnumerator];
+          while (nil != (n = [e nextObject]))
+            {
+              [self persistentDomainForName:  n];
+            }
+          updateCache(self);
+        }
       [_lock unlock];
     }
   NS_HANDLER
@@ -1936,6 +1942,10 @@ static BOOL isPlistObject(id o)
     {
       DESTROY(_dictionaryRep);
       [_tempDomains removeObjectForKey: domainName];
+      if ([_searchList containsObject: domainName])
+        {
+          updateCache(self);
+        }
       [_lock unlock];
     }
   NS_HANDLER
@@ -1971,6 +1981,10 @@ static BOOL isPlistObject(id o)
       domain = [domain mutableCopy];
       [_tempDomains setObject: domain forKey: domainName];
       RELEASE(domain);
+      if ([_searchList containsObject: domainName])
+        {
+          updateCache(self);
+        }
       [_lock unlock];
     }
   NS_HANDLER
@@ -2096,6 +2110,7 @@ static BOOL isPlistObject(id o)
         }
       DESTROY(_dictionaryRep);
       [regDefs addEntriesFromDictionary: newVals];
+      updateCache(self);
       [_lock unlock];
     }
   NS_HANDLER
@@ -2118,6 +2133,7 @@ static BOOL isPlistObject(id o)
     {
       DESTROY(_dictionaryRep);
       [_searchList removeObject: aName];
+      updateCache(self);
       [_lock unlock];
     }
   NS_HANDLER
@@ -2300,11 +2316,14 @@ NSDictionary *GSPrivateDefaultLocale()
         {
           _changedDomains = [[NSMutableArray alloc] initWithObjects: &domainName
 							      count: 1];
-          updateCache(self);
         }
       else if ([_changedDomains containsObject: domainName] == NO)
         {
           [_changedDomains addObject: domainName];
+        }
+      if ([_searchList containsObject: domainName])
+        {
+          updateCache(self);
         }
       [[NSNotificationCenter defaultCenter]
 	postNotificationName: NSUserDefaultsDidChangeNotification
