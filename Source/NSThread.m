@@ -42,8 +42,8 @@
 typedef int pthread_spinlock_t;
 int pthread_spin_init(pthread_spinlock_t *lock, int pshared)
 {
-#if !(DEBUG)
-  printf("NSThread.m: Warning this platform does not support spin locks - init.\n");
+#if DEBUG
+  fprintf(stderr,"NSThread.m: Warning this platform does not support spin locks - init.\n");
 #endif
   return 0;
 }
