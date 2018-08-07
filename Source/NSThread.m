@@ -42,7 +42,9 @@
 typedef int pthread_spinlock_t;
 int pthread_spin_init(pthread_spinlock_t *lock, int pshared)
 {
-  NSDebugLog(@"NSThread.m: Warning this platform does not support spin locks");
+#if !(DEBUG)
+  printf("NSThread.m: Warning this platform does not support spin locks - init.\n");
+#endif
   return 0;
 }
 int pthread_spin_lock(pthread_spinlock_t *lock)
