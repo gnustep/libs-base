@@ -7237,13 +7237,29 @@ done
 #--------------------------------------------------------------------
 # Check for pthread.h
 #--------------------------------------------------------------------
-for ac_header in pthread.h pthread_np.h
+for ac_header in pthread.h
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  ac_fn_c_check_header_mongrel "$LINENO" "pthread.h" "ac_cv_header_pthread_h" "$ac_includes_default"
+if test "x$ac_cv_header_pthread_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_PTHREAD_H 1
+_ACEOF
+
+fi
+
+done
+
+for ac_header in pthread_np.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "pthread_np.h" "ac_cv_header_pthread_np_h" "$ac_includes_default
+		  #ifdef HAVE_PTHREAD_H
+		  #include <pthread.h>
+		  #endif
+
+"
+if test "x$ac_cv_header_pthread_np_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_PTHREAD_NP_H 1
 _ACEOF
 
 fi

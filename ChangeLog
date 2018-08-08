@@ -1,3 +1,9 @@
+2018-08-08 Riccardo Mottola <rm@gnu.org>
+
+	* configure.ac
+	* configure:
+	When checking for pthread_np.h include pthread.h if available or it may fail (e.g. OpenBSD).
+
 2018-08-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Update the cache on change of volatile

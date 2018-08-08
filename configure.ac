@@ -1698,7 +1698,12 @@ AC_CHECK_FUNCS(getaddrinfo)
 #--------------------------------------------------------------------
 # Check for pthread.h
 #--------------------------------------------------------------------
-AC_CHECK_HEADERS(pthread.h pthread_np.h)
+AC_CHECK_HEADERS([pthread.h])
+AC_CHECK_HEADERS([pthread_np.h],[],[],[AC_INCLUDES_DEFAULT
+		  #ifdef HAVE_PTHREAD_H
+		  #include <pthread.h>
+		  #endif
+		  ])
 if test $ac_cv_header_pthread_h = yes ; then
   AC_CHECK_SIZEOF(pthread_mutex_t,,[AC_INCLUDES_DEFAULT
 #include <pthread.h>])
