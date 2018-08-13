@@ -1566,16 +1566,20 @@ retrieve_callback(gnutls_session_t session,
           gnutls_init(&session, GNUTLS_SERVER);
           if (NO == verify)
             {
-              /* We don't want to request/verify the client certificate,
-               * so we mustn't ask the other end to send it.
+              /* We don't want to demand/verify the client certificate,
+               * but we still ask the other end to send it so that higher
+               * level code can see what distinguished names are in it.
                */
               gnutls_certificate_server_set_request(session,
-                GNUTLS_CERT_IGNORE);
+                GNUTLS_CERT_REQUEST);
             }
           else
             {
+              /* We request the client certificate and require them client
+               * end to send it (if not, we don't allow the session).
+               */
               gnutls_certificate_server_set_request(session,
-                GNUTLS_CERT_REQUEST);
+                GNUTLS_CERT_REQUIRE);
             }
         }
       setup = YES;

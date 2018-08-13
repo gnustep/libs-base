@@ -235,13 +235,13 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
 
 /** If the session verified a certificate from the remote end, returns the
  * name of the certificate issuer in the form "C=xxxx,O=yyyy,CN=zzzz" as
- * described in RFC2253.  Otherwise returns nil.
+ * described in RFC4514.  Otherwise returns nil.
  */
 - (NSString*) issuer;
 
 /** If the session verified a certificate from the remote end, returns the
  * name of the certificate owner in the form "C=xxxx,O=yyyy,CN=zzzz" as
- * described in RFC2253.  Otherwise returns nil.
+ * described in RFC4514.  Otherwise returns nil.
  */
 - (NSString*) owner;
 
@@ -262,7 +262,7 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
  */
 - (NSInteger) write: (const void*)buf length: (NSUInteger)len;
 
-/* For internal use to verify the remmote system's vertificate.
+/* For internal use to verify the remote system's certificate.
  * Returns 0 on success, negative on failure.
  */
 - (int) verify;

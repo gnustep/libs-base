@@ -1,8 +1,16 @@
+2018-08-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTLS.m: Change behavior so that when acting as a server we
+	always request that the client sends us a certificate (if it doesn't
+	have one, it should ignore the request). The 'verify' setting should
+	control only whether a request without a certificate is rejected.
+
 2018-08-08 Riccardo Mottola <rm@gnu.org>
 
 	* configure.ac
 	* configure:
-	When checking for pthread_np.h include pthread.h if available or it may fail (e.g. OpenBSD).
+	When checking for pthread_np.h include pthread.h if available or
+	it may fail (e.g. OpenBSD).
 
 2018-08-06  Richard Frith-Macdonald <rfm@gnu.org>
 
