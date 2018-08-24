@@ -1816,28 +1816,28 @@ retrieve_callback(gnutls_session_t session,
 
       if (globalDebug > 1)
         {
+          NSLog(@"%@ trying verify:\n%@", self, [self sessionInfo]);
+        }
+      ret = [self verify];
+      if (ret < 0)
+        {
+          if (globalDebug > 1 || (YES == shouldVerify && globalDebug > 0)
+            || YES == [[opts objectForKey: GSTLSDebug] boolValue])
+            {
+              NSLog(@"%@ unable to verify SSL connection - %s",
+                self, gnutls_strerror(ret));
+              NSLog(@"%@ %@", self, [self sessionInfo]);
+            }
           if (YES == shouldVerify)
             {
-              NSLog(@"%@ before verify:\n%@", self, [self sessionInfo]);
-            }
-          else
-            {
-              NSLog(@"%@ do not verify:\n%@", self, [self sessionInfo]);
+              [self disconnect: NO];
             }
         }
-      if (YES == shouldVerify)
+      else
         {
-          ret = [self verify];
-          if (ret < 0)
+          if (globalDebug > 1)
             {
-              if (globalDebug > 0
-                || YES == [[opts objectForKey: GSTLSDebug] boolValue])
-                {
-                  NSLog(@"%@ unable to verify SSL connection - %s",
-                    self, gnutls_strerror(ret));
-                  NSLog(@"%@ %@", self, [self sessionInfo]);
-                }
-              [self disconnect: NO];
+              NSLog(@"%@ succeeded verify:\n%@", self, [self sessionInfo]);
             }
         }
       return YES;       // Handshake complete
@@ -2221,14 +2221,14 @@ retrieve_callback(gnutls_session_t session,
 
       /* Get certificate owner and issuer
        */
-      dn_size = sizeof(dn);
+      dn_size = sizeof(dn)-1;
       gnutls_x509_crt_get_dn(cert, dn, &dn_size);
-      dn[dn_size - 1] = '\0';
+      dn[dn_size] = '\0';
       ASSIGN(owner, [NSString stringWithUTF8String: dn]);
       
-      dn_size = sizeof(dn);
+      dn_size = sizeof(dn)-1;
       gnutls_x509_crt_get_issuer_dn(cert, dn, &dn_size);
-      dn[dn_size - 1] = '\0';
+      dn[dn_size] = '\0';
       ASSIGN(issuer, [NSString stringWithUTF8String: dn]);
     }
 

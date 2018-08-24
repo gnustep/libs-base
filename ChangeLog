@@ -1,3 +1,11 @@
+2018-08-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTLS.m: Fixup for last modification ... still verify the
+	certificate (so we can find out who issued/owns it) even if we do
+	not have verification turned on ... the verification setting controls
+	whether we reject the connection.  Also fixed off by one bug in
+	getting the issuer and owner distinguished names.
+
 2018-08-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTLS.m: Change behavior so that when acting as a server we
