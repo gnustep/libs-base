@@ -49,7 +49,7 @@ TOP_DIR := $(shell dirname $(CURDIR))
 # SUBPROJECTS top-level), which is good as it becomes a recommendation
 # to run 'make check' after 'make'.
 all::
-	@(echo If you want to run the gnustep-base testsuite, please type \'make check\')
+	@(echo If you want to run the gnustep-base testsuite, please type \'${MAKE} check\')
 
 #
 # 'make check' runs the testsuite (Objective-C tests only)
