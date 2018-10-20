@@ -69,6 +69,7 @@ Languages/French  \
 Languages/German  \
 Languages/Hungarian  \
 Languages/Italian \
+Languages/Polish \
 Languages/Russian \
 Languages/Spanish \
 Languages/TraditionalChinese \
