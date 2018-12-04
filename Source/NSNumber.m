@@ -658,16 +658,16 @@ static NSBoolNumber *boolN;		// Boolean NO (integer 0)
   NSFloatNumberClass = [NSFloatNumber class];
   NSDoubleNumberClass = [NSDoubleNumber class];
 
-  boolY = NSAllocateObject (NSBoolNumberClass, 0, 0);
+  boolY = NSAllocateObject(NSBoolNumberClass, 0, 0);
   [[NSObject leakAt: &boolY] release];
   boolY->value = 1;
-  boolN = NSAllocateObject (NSBoolNumberClass, 0, 0);
+  boolN = NSAllocateObject(NSBoolNumberClass, 0, 0);
   boolN->value = 0;
   [[NSObject leakAt: &boolN] release];
 
   for (i = 0; i < 14; i++)
     {
-      NSIntNumber *n = NSAllocateObject (NSIntNumberClass, 0, 0);
+      NSIntNumber *n = NSAllocateObject(NSIntNumberClass, 0, 0);
 
       n->value = i - 1;
       ReusedInstances[i] = n;
@@ -818,7 +818,7 @@ if (aValue >= -1 && aValue <= 12)\
         objCType: @encode(int)] autorelease];
     }
 
-  CHECK_SINGLETON (aValue);
+  CHECK_SINGLETON(aValue);
 #ifdef OBJC_SMALL_OBJECT_SHIFT
   if (useSmallInt
     && (aValue < (INT_MAX>>OBJC_SMALL_OBJECT_SHIFT))
@@ -828,7 +828,7 @@ if (aValue >= -1 && aValue <= 12)\
         | SMALL_INT_MASK);
     }
 #endif
-  n = NSAllocateObject (NSIntNumberClass, 0, 0);
+  n = NSAllocateObject(NSIntNumberClass, 0, 0);
   n->value = aValue;
   return AUTORELEASE(n);
 }
@@ -841,7 +841,7 @@ if (aValue >= -1 && aValue <= 12)\
         objCType: @encode(unsigned int)] autorelease];
     }
 
-  CHECK_SINGLETON (aValue);
+  CHECK_SINGLETON(aValue);
   if (aValue < (unsigned int) INT_MAX)
     {
       return [self numberWithInt: (int)aValue];
@@ -878,12 +878,12 @@ if (aValue >= -1 && aValue <= 12)\
       return [[[self alloc] initWithBytes: (const void *)&aValue
         objCType: @encode(long long)] autorelease];
     }
-  CHECK_SINGLETON (aValue);
+  CHECK_SINGLETON(aValue);
   if (aValue < (long long)INT_MAX && aValue > (long long)INT_MIN)
     {
       return [self numberWithInt: (int) aValue];
     }
-  n = NSAllocateObject (NSLongLongNumberClass, 0, 0);
+  n = NSAllocateObject(NSLongLongNumberClass, 0, 0);
   n->value = aValue;
   return AUTORELEASE(n);
 }
@@ -901,7 +901,7 @@ if (aValue >= -1 && aValue <= 12)\
     {
       return [self numberWithLongLong: (long long) aValue];
     }
-  n = NSAllocateObject (NSUnsignedLongLongNumberClass, 0, 0);
+  n = NSAllocateObject(NSUnsignedLongLongNumberClass, 0, 0);
   n->value = aValue;
   return AUTORELEASE(n);
 }
@@ -921,7 +921,7 @@ if (aValue >= -1 && aValue <= 12)\
       return boxDouble(aValue, SMALL_FLOAT_MASK);
     }
 #endif
-  n = NSAllocateObject (NSFloatNumberClass, 0, 0);
+  n = NSAllocateObject(NSFloatNumberClass, 0, 0);
   n->value = aValue;
   return AUTORELEASE(n);
 }
@@ -945,7 +945,7 @@ if (aValue >= -1 && aValue <= 12)\
       return boxDouble(aValue, SMALL_EXTENDED_DOUBLE_MASK);
     }
 #endif
-  n = NSAllocateObject (NSDoubleNumberClass, 0, 0);
+  n = NSAllocateObject(NSDoubleNumberClass, 0, 0);
   n->value = aValue;
   return AUTORELEASE(n);
 }

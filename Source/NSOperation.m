@@ -206,8 +206,7 @@ static NSArray	*empty = nil;
     {
       NSOperation	*op;
 
-      [self removeObserver: self
-                forKeyPath: @"isFinished"];
+      [self removeObserver: self forKeyPath: @"isFinished"];
       while ((op = [internal->dependencies lastObject]) != nil)
 	{
 	  [self removeDependency: op];
@@ -300,8 +299,7 @@ static NSArray	*empty = nil;
    * observer once we know the operation has finished since it can never
    * become unfinished.
    */
-  [object removeObserver: self
-	      forKeyPath: @"isFinished"];
+  [object removeObserver: self forKeyPath: @"isFinished"];
 
   if (object == self)
     {
@@ -352,8 +350,7 @@ static NSArray	*empty = nil;
     {
       if (NSNotFound != [internal->dependencies indexOfObjectIdenticalTo: op])
 	{
-	  [op removeObserver: self
-	          forKeyPath: @"isFinished"];
+	  [op removeObserver: self forKeyPath: @"isFinished"];
 	  [self willChangeValueForKey: @"dependencies"];
 	  [internal->dependencies removeObject: op];
 	  if (NO == internal->ready)
@@ -436,12 +433,6 @@ static NSArray	*empty = nil;
   [internal->lock lock];
   NS_DURING
     {
-      if (YES == [self isConcurrent])
-	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"[%@-%@] called on concurrent operation",
-	    NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-	}
       if (YES == [self isExecuting])
 	{
 	  [NSException raise: NSInvalidArgumentException
@@ -889,8 +880,7 @@ static NSOperationQueue *mainQueue = nil;
     {
       [internal->lock lock];
       internal->executing--;
-      [object removeObserver: self
-		  forKeyPath: @"isFinished"];
+      [object removeObserver: self forKeyPath: @"isFinished"];
       [internal->lock unlock];
       [self willChangeValueForKey: @"operations"];
       [self willChangeValueForKey: @"operationCount"];
@@ -973,11 +963,8 @@ static NSOperationQueue *mainQueue = nil;
 	    {
 	      NSAutoreleasePool	*opPool = [NSAutoreleasePool new];
 
-	      if (NO == [op isCancelled])
-		{
-		  [NSThread setThreadPriority: [op threadPriority]];
-		  [op main];
-		}
+              [NSThread setThreadPriority: [op threadPriority]];
+              [op start];
 	      RELEASE(opPool);
 	    }
           NS_HANDLER
