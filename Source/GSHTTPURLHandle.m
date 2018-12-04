@@ -1406,7 +1406,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
             }
           ASSIGN(urlKey, k);
         }
-      ASSIGN(url, u);
+      ASSIGN(url, newUrl);
     }
 }
 
