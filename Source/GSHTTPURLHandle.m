@@ -110,6 +110,8 @@ static NSString	*httpVersion = @"1.1";
   BOOL			returnAll;
   unsigned char		challenged;
   NSFileHandle          *sock;
+  NSTimeInterval        cacheAge;
+  NSString              *urlKey;
   NSURL                 *url;
   NSURL                 *u;
   NSMutableData         *dat;
@@ -131,7 +133,10 @@ static NSString	*httpVersion = @"1.1";
   NSString      *in;
   NSString      *out;
 }
++ (void) setMaxCached: (NSUInteger)limit;
 - (int) setDebug: (int)flag;
+- (void) setReturnAll: (BOOL)flag;
+- (void) setURL: (NSURL*)newUrl;
 - (void) _tryLoadInBackground: (NSURL*)fromURL;
 @end
 
@@ -223,11 +228,10 @@ static NSString	*httpVersion = @"1.1";
  */
 @implementation GSHTTPURLHandle
 
-#define	MAX_CACHED	16
-
 static NSMutableDictionary	*urlCache = nil;
 static NSMutableArray		*urlOrder = nil;
 static NSLock			*urlLock = nil;
+static NSUInteger               maxCached = 16;
 
 static Class			sslClass = 0;
 
@@ -295,24 +299,26 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)newUrl
 {
   NSURLHandle	*obj = nil;
+  NSString      *s = [newUrl scheme];
 
-  if ([[newUrl scheme] caseInsensitiveCompare: @"http"] == NSOrderedSame
-    || [[newUrl scheme] caseInsensitiveCompare: @"https"] == NSOrderedSame)
+  if ([s caseInsensitiveCompare: @"http"] == NSOrderedSame
+    || [s caseInsensitiveCompare: @"https"] == NSOrderedSame)
     {
-      NSString	*page = [newUrl absoluteString];
-      //NSLog(@"Lookup for handle for '%@'", page);
+      NSString	*k = [newUrl cacheKey];
+
+      //NSLog(@"Lookup for handle for '%@'", newUrl);
       [urlLock lock];
-      obj = [urlCache objectForKey: page];
+      obj = RETAIN([urlCache objectForKey: k]);
       if (obj != nil)
         {
+          ASSIGN(((GSHTTPURLHandle*)obj)->url, newUrl);
 	  [urlOrder removeObjectIdenticalTo: obj];
 	  [urlOrder addObject: obj];
-          IF_NO_GC([[obj retain] autorelease];)
 	}
       [urlLock unlock];
       //NSLog(@"Found handle %@", obj);
     }
-  return obj;
+  return AUTORELEASE(obj);
 }
 
 + (void) initialize
@@ -331,6 +337,11 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
 }
 
++ (void) setMaxCached: (NSUInteger)limit
+{
+  maxCached = limit;
+}
+
 - (void) dealloc
 {
   if (sock != nil)
@@ -344,6 +355,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   DESTROY(out);
   DESTROY(in);
   DESTROY(u);
+  DESTROY(urlKey);
   DESTROY(url);
   DESTROY(dat);
   DESTROY(parser);
@@ -371,28 +383,29 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       request = [NSMutableDictionary new];
 
       ASSIGN(url, newUrl);
+      ASSIGN(urlKey, [newUrl cacheKey]);
       connectionState = idle;
       if (cached == YES)
         {
-	  NSString		*page = [newUrl absoluteString];
 	  GSHTTPURLHandle	*obj;
 
 	  [urlLock lock];
-	  obj = [urlCache objectForKey: page];
-	  [urlCache setObject: self forKey: page];
+	  obj = [urlCache objectForKey: urlKey];
+	  [urlCache setObject: self forKey: urlKey];
 	  if (obj != nil)
 	    {
 	      [urlOrder removeObjectIdenticalTo: obj];
 	    }
 	  [urlOrder addObject: self];
-	  while ([urlOrder count] > MAX_CACHED)
+	  while ([urlOrder count] > maxCached)
 	    {
 	      obj = [urlOrder objectAtIndex: 0];
-	      [urlCache removeObjectForKey: [obj->url absoluteString]];
+              obj->cacheAge = 0.0;      // Not to be re-cached
+	      [urlCache removeObjectForKey: obj->urlKey];
 	      [urlOrder removeObjectAtIndex: 0];
 	    }
 	  [urlLock unlock];
-	  //NSLog(@"Cache handle %p for '%@'", self, page);
+	  //NSLog(@"Cache handle %p for '%@'", self, newUrl);
 	}
     }
   return self;
@@ -420,7 +433,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSString		*version;
   NSMapEnumerator       enumerator;
 
-  IF_NO_GC([self retain];)
+  RETAIN(self);
   if (debug)
     {
       NSLog(@"%@ %p %@ %s",
@@ -606,7 +619,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSRange		r;
   unsigned		readCount;
 
-  IF_NO_GC([self retain];)
+  RETAIN(self);
 
   if (debug)
     NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
@@ -890,7 +903,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSData		*d;
   GSMimeParser		*p = [GSMimeParser new];
 
-  IF_NO_GC([self retain];)
+  RETAIN(self);
   if (debug)
     {
       NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
@@ -968,8 +981,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSString		*method;
   NSString		*path;
 
-  IF_NO_GC([self retain];)
-  
+  RETAIN(self);
   [nc removeObserver: self
                 name: GSFileHandleConnectCompletionNotification
               object: sock];
@@ -1207,7 +1219,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSDictionary    	*userInfo = [notification userInfo];
   NSString        	*e;
 
-  IF_NO_GC([self retain];)
+  RETAIN(self);
   if (debug)
     NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
   e = [userInfo objectForKey: GSFileHandleNotificationError];
@@ -1359,6 +1371,43 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 - (void) setReturnAll: (BOOL)flag
 {
   returnAll = flag;
+}
+
+- (void) setURL: (NSURL*)newUrl
+{
+  NSAssert(connectionState == idle, NSInternalInconsistencyException);
+  NSAssert([newUrl isKindOfClass: [NSURL class]], NSInvalidArgumentException);
+
+  if (NO == [newUrl isEqual: url])
+    {
+      NSString      *k = [newUrl cacheKey];
+
+      if (NO == [k isEqual: urlKey])
+        {
+          /* Changing the URL of a handle to one that's not cache-compatible
+           * implies that the handle must be removed from the cache and also
+           * that the underlying network connection can no longer be used.
+           */
+          [urlLock lock];
+          if (self == [urlCache objectForKey: urlKey])
+            {
+              [urlCache removeObjectForKey: urlKey];
+              [urlOrder removeObjectIdenticalTo: self];
+            }
+          [urlLock unlock];
+          if (sock != nil)
+            {
+              NSNotificationCenter	*nc;
+
+              nc = [NSNotificationCenter defaultCenter];
+              [nc removeObserver: self name: nil object: sock];
+              [sock closeFile];
+              DESTROY(sock);
+            }
+          ASSIGN(urlKey, k);
+        }
+      ASSIGN(url, u);
+    }
 }
 
 - (void) _tryLoadInBackground: (NSURL*)fromURL
@@ -1596,7 +1645,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    host, port, [NSError _last]]];
 	  return;
 	}
-      IF_NO_GC([sock retain];)
+      RETAIN(sock);
       nc = [NSNotificationCenter defaultCenter];
       [nc addObserver: self
 	     selector: @selector(bgdConnect:)

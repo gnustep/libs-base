@@ -1,3 +1,14 @@
+2018-11-04  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/NSURL+GNUstepBase.h:
+	* Source/NSURL.m:
+	Add [-cacheKey] method to return a key usable for caching HTTP URL
+	connections that go to the same scheme, host and port.
+	* Source/GSHTTPURLHandle.m:
+	New [-setURL:] method to change the URL used by a handle so that
+	a networek connection used by a handle can be re-used if possible
+	(ie if the scheme, host and port parts are unchanged).
+
 2018-08-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTLS.m: Fixup for last modification ... still verify the
