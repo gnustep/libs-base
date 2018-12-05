@@ -211,11 +211,29 @@ typedef NSUInteger NSURLHandleStatus;
 - (id) propertyForKeyIfAvailable: (NSString*)propertyKey;
 - (void) removeClient: (id <NSURLHandleClient>)client;
 - (NSData*) resourceData;
+
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
+
+/** GNUstep extension to turn on debug logging for a handle.  Returns the
+ * previous debug setting for the handle.  Implemented for http/https only.
+ */
+- (int) setDebug: (int)flag;
+
+/** GNUstep extension to turn on returning of complete http/https response
+ * even when the status code is not in the 200 to 299 success range.
+ */
+- (void) setReturnAll: (BOOL)flag;
+
+/** GNUstep extension to change the URL that the handle sends requests to.
+ * Implemented for http/https only.
+ */
+- (void) setURL: (NSURL*)newUrl;
+#endif
+
 - (NSURLHandleStatus) status;
 - (BOOL) writeData: (NSData*)data;
 - (BOOL) writeProperty: (id)propertyValue
 		forKey: (NSString*)propertyKey;
-
 
 @end
 

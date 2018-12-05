@@ -134,9 +134,6 @@ static NSString	*httpVersion = @"1.1";
   NSString      *out;
 }
 + (void) setMaxCached: (NSUInteger)limit;
-- (int) setDebug: (int)flag;
-- (void) setReturnAll: (BOOL)flag;
-- (void) setURL: (NSURL*)newUrl;
 - (void) _tryLoadInBackground: (NSURL*)fromURL;
 @end
 

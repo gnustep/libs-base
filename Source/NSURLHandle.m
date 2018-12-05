@@ -561,7 +561,17 @@ static Class		NSURLHandleClass = 0;
  */
 - (int) setDebug: (int)aFlag
 {
-  return NO;
+  return 0;
+}
+
+- (void) setReturnAll: (BOOL)flag
+{
+  return;
+}
+
+- (void) setURL: (NSURL*)newUrl
+{
+  return;
 }
 
 /**
@@ -817,6 +827,21 @@ static NSLock			*fileLock = nil;
 - (id) propertyForKeyIfAvailable: (NSString*)propertyKey
 {
   return [_attributes objectForKey: propertyKey];
+}
+
+- (int) setDebug: (int)flag
+{
+  return 0;
+}
+
+- (void) setReturnAll: (BOOL)flag
+{
+  return;
+}
+
+- (void) setURL: (NSURL*)newUrl
+{
+  return;
 }
 
 /**

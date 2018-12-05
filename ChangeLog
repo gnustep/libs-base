@@ -1,4 +1,12 @@
-2018-11-04  Richard Frith-Macdonald <rfm@gnu.org>
+2018-12-05  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundartion/NSURLHandle.h:
+	* Source/NSURLHandle.m:
+	* Source/GSHTTPURLHandle.m:
+	Expose GNUstep specific methods for old code that depends on them.
+	Newere code should use the newer HTTP/HTTPS APIs
+
+2018-12-04  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/NSURL+GNUstepBase.h:
 	* Source/NSURL.m:
