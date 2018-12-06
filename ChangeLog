@@ -1,3 +1,9 @@
+2018-12-06  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Headers/Foundation/NSObject.h:
+	Remove reference to the copyWithZone: implementation of NSObject,
+	which was removed ages ago.
+
 2018-12-05  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundartion/NSURLHandle.h:

@@ -463,8 +463,6 @@ NSDeallocateObject(id anObject);
  * memory allocated from zone.  The allocated memory will be extraBytes
  * longer than that necessary to actually store the instance variables
  * of the copied object.<br />
- * This is used by the NSObject implementation of the
- * [(NSCopying)-copyWithZone:] method.
  */
 GS_EXPORT NSObject *
 NSCopyObject(NSObject *anObject, NSUInteger extraBytes, NSZone *zone);
