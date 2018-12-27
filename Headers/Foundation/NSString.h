@@ -881,6 +881,12 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 
 @end
 
+#ifdef __OBJC_GNUSTEP_RUNTIME_ABI__
+#  if __OBJC_GNUSTEP_RUNTIME_ABI__ >= 20
+#    define GNUSTEP_NEW_STRING_ABI
+#  endif
+#endif
+
 /**
  * <p>The NXConstantString class is used to hold constant 8-bit character
  * string objects produced by the compiler where it sees @"..." in the
@@ -908,8 +914,43 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 @interface NXConstantString : NSString
 {
 @public
+#ifdef GNUSTEP_NEW_STRING_ABI
+  /**
+   * Flags.  The low 16 bits are reserved for the compiler, the top 16 for use
+   * by the Foundation Framework.  Currently only the low 2 bits are used, to
+   * indicate the encoding of the string, with the following values:
+   *
+   * 0. ASCII (UTF-8 using only 7-bit characters)
+   * 1. UTF-8
+   * 2. UTF-16
+   * 3. UTF-32
+   *
+   */
+  uint32_t flags;
+  /**
+   * The number of characters (UTF-16 code units) in the string.
+   */
+  uint32_t nxcslen;
+  /**
+   * The number of bytes in the string.  For fixed-length encodings, this is a
+   * fixed multiple of nxcslen, but for UTF-8 it can be different.
+   */
+  uint32_t size;
+  /**
+   * Hash value.
+   */
+  uint32_t hash;
+  /**
+   * Pointer to the byte data of the string.  Note that `char*` is the correct
+   * type only if the low two bits of the flags indicate that this is an ASCII
+   * or UTF-8 string, otherwise it is a pointer to 16- or 32-bit characters in
+   * native byte order.
+   */
+  const char * const nxcsptr;
+#else
   const char * const nxcsptr;
   const unsigned int nxcslen;
+#endif
 }
 @end
 
