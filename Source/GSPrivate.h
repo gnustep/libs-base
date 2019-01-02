@@ -185,8 +185,16 @@ __attribute__((unused)) static void GSFreeTempBuffer(void **b)
  * Yet the optimization of the stored hash value is currently deemed
  * more important.
  */
+#ifndef GNUSTEP_NEW_STRING_ABI
 #define GS_REPLACE_CONSTANT_STRING(ID) [(ID = [NSObject \
   leak: [[NSString alloc] initWithUTF8String: [ID UTF8String]]]) release]
+#else
+/**
+ * In the new constant string ABI, the hash can be stored in the constant
+ * string object, so this is not a problem.
+ */
+#define GS_REPLACE_CONSTANT_STRING(ID)
+#endif
 /* Using cString here is OK here
    because NXConstantString returns a pointer
    to it's internal pointer.  */
