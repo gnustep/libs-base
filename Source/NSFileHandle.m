@@ -982,6 +982,20 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
   return [super read: buf length: len];
 }
 
+- (BOOL) sslAccept
+{
+  /* If a server session is over five minutes old, destroy it so that
+   * we create a new one to accept the incoming connection.  This is
+   * needed in case the certificate files associated with a long running
+   * server have been updated and we need to load/use the new certificate.
+   */
+  if (session != nil && [session age] >= 300.0)
+    {
+      DESTROY(session);
+    }
+  return [super sslAccept];
+}
+
 - (void) sslDisconnect
 {
   [self setNonBlocking: NO];

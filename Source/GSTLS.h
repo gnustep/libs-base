@@ -192,6 +192,7 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
   BOOL                                  handshake;
   BOOL                                  setup;
   BOOL                                  debug;
+  NSTimeInterval                        created;
 @public
   gnutls_session_t                      session;
 }
@@ -211,6 +212,10 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
  * session has not been disconnected), NO otherwise.
  */
 - (BOOL) active;
+
+/** Returns the age of this instance (how long since it was created).
+ */
+- (NSTimeInterval) age;
 
 /* Returns the credentials object ofr this session.
  */

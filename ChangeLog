@@ -1,3 +1,14 @@
+2019-01-03  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTLS.h:
+	* Source/GSTLS.m:
+	* Source/NSFileHandle.m:
+	Track the age of TLS sessions for server connections and, when
+	accepting an incoming connection, replace the current server
+	connection (if the existing one is more than 5 minutes old) so
+	that cached certificate information will be updated from file
+	(eg if a certificate needs to be updated while a server is running).
+
 2018-12-06  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Headers/Foundation/NSObject.h:
@@ -6,7 +17,7 @@
 
 2018-12-05  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Headers/Foundartion/NSURLHandle.h:
+	* Headers/Foundation/NSURLHandle.h:
 	* Source/NSURLHandle.m:
 	* Source/GSHTTPURLHandle.m:
 	Expose GNUstep specific methods for old code that depends on them.

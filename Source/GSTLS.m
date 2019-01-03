@@ -1421,6 +1421,11 @@ retrieve_callback(gnutls_session_t session,
   return active;
 }
 
+- (NSTimeInterval) age
+{
+  return [NSDate timeIntervalSinceReferenceDate] - created;
+}
+
 - (GSTLSCredentials*) credentials
 {
   return credentials;
@@ -1504,6 +1509,7 @@ retrieve_callback(gnutls_session_t session,
       BOOL      trust;
       BOOL      verify;
 
+      created = [NSDate timeIntervalSinceReferenceDate];
       opts = [options copy];
       outgoing = isOutgoing ? YES : NO;
 
