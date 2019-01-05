@@ -36,6 +36,8 @@ int main()
       stringByAppendingPathComponent: @"Resources"]],
       "-resourcePath returns the correct path");
    
+  END_SET("NSBundle resources")
+
 #if	defined(GNUSTEP)
     START_SET("NSBundle GNUstep general")
       NSBundle *gnustepBundle;
@@ -90,7 +92,6 @@ int main()
 
     END_SET("NSBundle GNUstep resources")
 #endif
-  END_SET("NSBundle resources")
 
   return 0;
 }

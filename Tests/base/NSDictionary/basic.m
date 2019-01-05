@@ -29,7 +29,7 @@ int main()
   test_keyed_NSCoding(testObjs);
   test_NSCopying(@"NSDictionary", @"NSMutableDictionary", testObjs, YES, NO);
   test_NSMutableCopying(@"NSDictionary", @"NSMutableDictionary", testObjs);
-  START_SET("NSArray subscripting")
+  START_SET("NSDictionary subscripting")
 # ifndef __has_feature
 # define __has_feature(x) 0
 # endif
