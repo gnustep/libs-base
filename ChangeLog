@@ -1,3 +1,8 @@
+2019-01-06  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Documentation/news.texi: Update release notes for 1.26.0.
+	* ChangeLog: Fix typos in this document.
+
 2019-01-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTLS.h:
@@ -21,7 +26,7 @@
 	* Source/NSURLHandle.m:
 	* Source/GSHTTPURLHandle.m:
 	Expose GNUstep specific methods for old code that depends on them.
-	Newere code should use the newer HTTP/HTTPS APIs
+	Newer code should use the newer HTTP/HTTPS APIs
 
 2018-12-04  Richard Frith-Macdonald <rfm@gnu.org>
 
@@ -88,7 +93,7 @@
 2018-07-06  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/GSString.m: Remove GSString copyWithZone:.
-	* Source/NSString.m: Raise exception when no is provided for the
+	* Source/NSString.m: Raise exception when no data is provided for the
 	string. This brings our implementation closer to the Cocoa one.
 	* Source/GSString.m: Add similar exceptions.
 
@@ -219,8 +224,8 @@
 
 2018-04-10  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/NSObject.m: Don't set the name of trhe global lock until
-	after we have make sure that strings and autorlrease are set up.
+	* Source/NSObject.m: Don't set the name of the global lock until
+	after we have make sure that strings and autorelease are set up.
 
 2018-04-10  Richard Frith-Macdonald <rfm@gnu.org>
 
@@ -315,12 +320,12 @@
 
 2018-03-26  Richard Frith-Macdonald <rfm@gnu.org>
 
-	Source/NSBundle.m:
-	Source/NSOperation.m:
+	* Source/NSBundle.m:
+	* Source/NSOperation.m:
 	Give locks names to ease debugging
 
-	Source/NSObject.m:
-	Source/NSZone.m:
+	* Source/NSObject.m:
+	* Source/NSZone.m:
 	Updates to use pthread mutexes directly rather than NSLock objects
 	in key places for performance.
 
@@ -425,11 +430,11 @@
 
 2018-02-04  Richard Frith-Macdonald <rfm@gnu.org>
 
-	* Source/GSFileHandle.m: keep checker happy by usingn return value of
+	* Source/GSFileHandle.m: keep checker happy by using return value of
 	setsockopt.
 	* Source/Additions/Unicode.m: ensure iconv handle is closed
 	* Source/NSLocale.m: localeIdentifierFromComponents should cope with
-	collation alone beng set.
+	collation alone being set.
 	* Source/GSString.m: better handling if character conversion fails.
 	* Source/NSRunLoop.m: suppress warning using cast.
 	* Source/NSTimeZone.m: check that time zone hour is in range 0 to 23
@@ -485,7 +490,7 @@
 	Mark exception raising methods with GS_NORETURN_METHOD.
 	Alter noreturn method implementations so the compiler knows
 	that they really don't return.
-	Use pragma to suppress warnings abnout noreturn methods whose
+	Use pragma to suppress warnings about noreturn methods whose
 	formal declaration says they return an id.
 
 2018-01-23  Richard Frith-Macdonald <rfm@gnu.org>
@@ -494,14 +499,14 @@
 	* Source/GSValue.m:
 	* Source/NSZone.m:
 	* Tools/gdomap.c:
-	Fix various small issues picked by by automated checker.
+	Fix various small issues picked by automated checker.
 
 2018-01-19  Richard Frith-Macdonald <rfm@gnu.org>
 
-        * Source/Makefile.postamble: Restore optimisation flags (remove 18
+        * Source/Makefile.postamble: Restore optimisation flags (removed 18
 	years ago) for NSInvocation and NSConnection (and remove obsolete
 	mframe setting) as suggested by Yavor Doganov.
-		
+
 2018-01-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSThread.m: Improve exception message when performing a
@@ -513,26 +518,26 @@
 
 2018-01-14  Yavor Doganov  <yavor@gnu.org>
 
- 	* Tests/base/NSXMLDocument/basic.m:
- 	* Tests/base/NSXMLDocument/cdata.m:
- 	* Tests/base/NSXMLNode/basic.m:
- 	* Tests/base/NSXMLElement/attributes.m:
- 	* Tests/base/NSXMLElement/basic.m:
- 	* Tests/base/NSXMLElement/children.m:
- 	* Tests/base/NSXMLElement/transfer.m:
- 	* Tests/base/NSXMLNode/children.m:
- 	* Tests/base/NSXMLNode/description.m:
- 	* Tests/base/NSXMLNode/kinds.m:
- 	* Tests/base/NSXMLNode/namespaces.m: Skip tests if libxml2 is not
+	* Tests/base/NSXMLDocument/basic.m:
+	* Tests/base/NSXMLDocument/cdata.m:
+	* Tests/base/NSXMLNode/basic.m:
+	* Tests/base/NSXMLElement/attributes.m:
+	* Tests/base/NSXMLElement/basic.m:
+	* Tests/base/NSXMLElement/children.m:
+	* Tests/base/NSXMLElement/transfer.m:
+	* Tests/base/NSXMLNode/children.m:
+	* Tests/base/NSXMLNode/description.m:
+	* Tests/base/NSXMLNode/kinds.m:
+	* Tests/base/NSXMLNode/namespaces.m: Skip tests if libxml2 is not
  	available.
- 	* Tests/base/NSTimeZone/use.m: Skip one more test if
+	* Tests/base/NSTimeZone/use.m: Skip one more test if
  	NSLOCALE_SUPPORTED is undefined.
- 	* Tests/base/NSRegularExpression/basic.m: Skip all tests if ICU is
+	* Tests/base/NSRegularExpression/basic.m: Skip all tests if ICU is
  	not available.
 
 2018-01-14  Richard Frith-Macdonald <rfm@gnu.org>
 
- 	* configure.ac: Remove explicit test for SAX2.h as we now assume
+	* configure.ac: Remove explicit test for SAX2.h as we now assume
 	it is present based on the version of libxml2.
 	* configure: regenerate
 	* Source/GSXML.m: fix errors in loading/resolving of external entities
@@ -543,9 +548,9 @@
 
 2018-01-14  Yavor Doganov  <yavor@gnu.org>
 
- 	* configure.ac: Use PKG_PROG_PKG_CONFIG instead of AC_PATH_PROG to
+	* configure.ac: Use PKG_PROG_PKG_CONFIG instead of AC_PATH_PROG to
  	find pkg-config as it supports cross-compilation.
- 	* configure.ac: Bump ICU requirement to >= 50 for UDAT_PATTERN.
+	* configure.ac: Bump ICU requirement to >= 50 for UDAT_PATTERN.
 
 2018-01-11  Richard Frith-Macdonald <rfm@gnu.org>
 
@@ -569,7 +574,7 @@
 2018-01-03  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURL.m:
-	Tweaks for OSX compatibility ... treat a missinp path in an http URL
+	Tweaks for OSX compatibility ... treat a missing path in an http URL
 	as an empty string rather than as nil.
 
 2018-01-02  Richard Frith-Macdonald <rfm@gnu.org>

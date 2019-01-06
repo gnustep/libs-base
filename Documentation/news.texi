@@ -11,6 +11,32 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.26.0}
+@itemize @bullet
+@item Improve utf8 validity checks.
+@item Make point and size subclasses for NSValue interchangable.
+@item Add support for TLS SNI. Always request certificate from client
+and update certificates after 5 minutes.
+@item Don't write deprecated fields to desktop link file.
+@item Use NSLock instead of GSLazyLock and other improvements for
+multithreaded processes.
+@item Clean up of NSString cluster.
+@item Update NSAssert() and NSCAssert() to handle variable arguments
+(as OSX has done) and mark the numbered macros as obsolete.
+@item Various improvements in tests.
+@item Require ICU >= 50.
+@item Improve XML parsing.
+@item OSX compatibility changes to NSURL.
+@item NSFileManager call error handle on missing file.
+@item Improvements for stack traces, exception handling and dead lock detection.
+@item Other more minor bugfixes and cleanups. Many found by Coverity
+scan results.
+@item As usual, this release also contains an update to include the
+most recent international timezone data.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.25.1}
 @itemize @bullet
 @item Unicode fixes for characters outside the base plane
@@ -24,8 +50,6 @@ See the @url{ReleaseNotes.html} document for more information.
 @item As usual, this release also contains an update to include the
 most recent international timezone data.
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.25.0}
 @itemize @bullet
