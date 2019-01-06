@@ -972,12 +972,12 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
     {
       case NSUTF8StringEncoding:
 	{
+          uint32_t  u = 0;
 #if     defined(UTF8DECODE)
           uint32_t      state = 0;
 #endif
 	  while (spos < slen)
 	    {
-	      uint32_t  u;
 
 #if     defined(UTF8DECODE)
               if (decode(&state, &u, src[spos++]))
@@ -1105,6 +1105,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		      GROW();
 		    }
 	          ptr[dpos++] = ul + 0xdc00;
+                  NSLog(@"Adding uh %d ul %d", uh + 0xd800, ul + 0xdc00);
 	        }
 	    }
 #if     defined(UTF8DECODE)
