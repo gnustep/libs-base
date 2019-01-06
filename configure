@@ -636,7 +636,7 @@ HAVE_LIBDISPATCH_RUNLOOP
 HAVE_LIBDISPATCH
 HAVE_ICU
 ICU_LIBS
-ICU_CONFIG
+ICU_CFLAGS
 HAVE_AVAHI
 HAVE_MDNS
 HAVE_GNUTLS
@@ -764,6 +764,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -820,8 +821,6 @@ enable_tlstest
 enable_zeroconf
 with_zeroconf_api
 enable_icu
-enable_icu_config
-with_icu_library
 enable_libdispatch
 with_gmp_include
 with_gmp_library
@@ -839,7 +838,9 @@ CPPFLAGS
 CPP
 PKG_CONFIG
 PKG_CONFIG_PATH
-PKG_CONFIG_LIBDIR'
+PKG_CONFIG_LIBDIR
+ICU_CFLAGS
+ICU_LIBS'
 
 
 # Initialize some variables set by options.
@@ -878,6 +879,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1130,6 +1132,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1267,7 +1278,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1420,6 +1431,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1501,8 +1513,6 @@ Optional Features:
   --disable-tlstest		Do not try to compile and run a test TLS program
   --disable-zeroconf		Disable NSNetServices support
   --disable-icu			Disable International Components for Unicode
-  --disable-icu-config		Do not use the icu-config script to check
-				for ICU.
   --disable-libdispatch		Disable dispatching blocks via libdispatch
 
   --enable-setuid-gdomap        Enable installing gdomap as a setuid
@@ -1574,8 +1584,6 @@ Optional Packages:
   --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
   --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
   --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)
-  --with-icu-library=PATH  	library path for ICU libraries (only checked
-				if not using icu-config)
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
   --with-gdomap-port=PORT  alternative port for gdomap
@@ -1594,6 +1602,8 @@ Some influential environment variables:
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
+  ICU_CFLAGS  C compiler flags for ICU, overriding pkg-config
+  ICU_LIBS    linker flags for ICU, overriding pkg-config
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -5454,7 +5464,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5500,7 +5510,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5524,7 +5534,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5569,7 +5579,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5593,7 +5603,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -12249,155 +12259,99 @@ else
 fi
 
 
-# Check whether --enable-icu-config was given.
-if test "${enable_icu_config+set}" = set; then :
-  enableval=$enable_icu_config;
+if test "$enable_icu" = "yes"; then
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ICU" >&5
+$as_echo_n "checking for ICU... " >&6; }
+
+if test -n "$ICU_CFLAGS"; then
+    pkg_cv_ICU_CFLAGS="$ICU_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"icu-i18n > 4.6\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "icu-i18n > 4.6") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_ICU_CFLAGS=`$PKG_CONFIG --cflags "icu-i18n > 4.6" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
-  enable_icu_config=yes
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$ICU_LIBS"; then
+    pkg_cv_ICU_LIBS="$ICU_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"icu-i18n > 4.6\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "icu-i18n > 4.6") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_ICU_LIBS=`$PKG_CONFIG --libs "icu-i18n > 4.6" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
 fi
 
 
 
-# Check whether --with-icu-library was given.
-if test "${with_icu_library+set}" = set; then :
-  withval=$with_icu_library; icu_libdir="$withval"
-else
-  icu_libdir="no"
-fi
-
-
-if test $enable_icu = yes; then
-  if test "$enable_icu_config" = "yes"; then
-
-  ok=no
-
-  if test -z "$ICU_CONFIG"; then
-    # Extract the first word of "icu-config", so it can be a program name with args.
-set dummy icu-config; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_ICU_CONFIG+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $ICU_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_ICU_CONFIG="$ICU_CONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_ICU_CONFIG="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_ICU_CONFIG" && ac_cv_path_ICU_CONFIG="no"
-  ;;
-esac
-fi
-ICU_CONFIG=$ac_cv_path_ICU_CONFIG
-if test -n "$ICU_CONFIG"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ICU_CONFIG" >&5
-$as_echo "$ICU_CONFIG" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-fi
 
-
-  fi
-
-  if test "$ICU_CONFIG" = "no" ; then
-    echo "Could not find the icu-config script."
-    echo "Please ensure that it is in your path."
-    echo "See http://site.icu-project.org/ for help."
-  else
-    ICU_VERSION=`$ICU_CONFIG --version`
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ICU >= 50" >&5
-$as_echo_n "checking for ICU >= 50... " >&6; }
-      found=`expr $ICU_VERSION \>= 50`
-      if test "$found" = "1" ; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ok=yes
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking ICU_LIBS" >&5
-$as_echo_n "checking ICU_LIBS... " >&6; }
-	ICU_LIBS=`$ICU_CONFIG --ldflags-libsonly`
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ICU_LIBS" >&5
-$as_echo "$ICU_LIBS" >&6; }
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking ICU_LDFLAGS" >&5
-$as_echo_n "checking ICU_LDFLAGS... " >&6; }
-	ICU_LDFLAGS=`$ICU_CONFIG --ldflags-searchpath`
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ICU_LDFLAGS" >&5
-$as_echo "$ICU_LDFLAGS" >&6; }
-      else
-	ICU_LIBS=""
-	ICU_LDFLAGS=""
-	## Either perform custom action or print error message
-
-      fi
-
-
-  fi
-
-  if test $ok = yes; then
-    have_icu=yes
-  else
-    have_icu=no
-  fi
-
-  else
-    have_icu=no;
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libicu (icu-config disabled)..." >&5
-$as_echo "$as_me: checking for libicu (icu-config disabled)..." >&6;}
-    if test "$icu_libdir" != "no"; then
-      ICU_LDFLAGS="-L$icu_libdir";
-    fi
-    saved_LDFLAGS="$LDFLAGS";
-    LDFLAGS="$LDFLAGS $LIBS $ICU_LDFLAGS -licui18n -licuuc -licudata -lm"
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  have_icu="yes"
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
 else
-  have_icu="no"
+        _pkg_short_errors_supported=no
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext;
-    ac_fn_c_check_decl "$LINENO" "UDAT_PATTERN" "ac_cv_have_decl_UDAT_PATTERN" "#include <unicode/udat.h>
-"
-if test "x$ac_cv_have_decl_UDAT_PATTERN" = xyes; then :
-  have_icu=yes
+        if test $_pkg_short_errors_supported = yes; then
+	        ICU_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "icu-i18n > 4.6" 2>&1`
+        else
+	        ICU_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "icu-i18n > 4.6" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$ICU_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (icu-i18n > 4.6) were not met:
+
+$ICU_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables ICU_CFLAGS
+and ICU_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables ICU_CFLAGS
+and ICU_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
 else
-  have_icu=no
-fi
-
-    LDFLAGS="$saved_LDFLAGS";
-    ICU_LIBS="-licui18n -licuuc -licudata -lm"
-  fi
-
-  if test "$have_icu" = "yes"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+	ICU_CFLAGS=$pkg_cv_ICU_CFLAGS
+	ICU_LIBS=$pkg_cv_ICU_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-    for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h
+
+fi
+  for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -12410,20 +12364,8 @@ fi
 
 done
 
-    LIBS="$LIBS $ICU_LIBS"
-    LDFLAGS="$LDFLAGS $ICU_LDFLAGS"
-    LDIR_FLAGS="$LDIR_FLAGS $ICU_LDFLAGS"
-    HAVE_ICU=1
-  else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-    echo
-    echo "You do not appear to have usable ICU headers/libraries."
-    echo "Building without them will disable major functionality."
-    echo "If you really want to build gnustep-base without ICU,"
-    echo "add --disable-icu to the configure arguments."
-    as_fn_error $? "Missing support for International Components for Unicode (ICU)." "$LINENO" 5
-  fi
+  LIBS="$LIBS $ICU_LIBS"
+  HAVE_ICU=1
 fi
 
 

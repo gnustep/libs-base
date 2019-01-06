@@ -1,3 +1,13 @@
+2019-01-06  Ivan Vucica <ivan@vucica.net>
+
+	* config/icu.m4:
+	* configure.ac:
+	Merge the change to use pkg-config to detect ICU. Patch by Hugh
+	McMaster <hugh.mcmaster@outlook.com>.
+	* configure:
+	Regenerated to incorporate the changes from PR #32. Regenerated with
+	autoconf 2.69.
+
 2019-01-06  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Documentation/news.texi: Update release notes for 1.26.0.
