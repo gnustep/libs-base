@@ -25,10 +25,21 @@ multithreaded processes.
 (as OSX has done) and mark the numbered macros as obsolete.
 @item Various improvements in tests.
 @item Require ICU >= 50.
+@item ICU is now detected using pkg-config.
 @item Improve XML parsing.
+@item Make NSXMLNode ivar a union representing different types, instead of
+assuming it will contain different underlying class types in different
+contexts. This is important for the new libobjc2 ABI.
 @item OSX compatibility changes to NSURL.
 @item NSFileManager call error handle on missing file.
-@item Improvements for stack traces, exception handling and dead lock detection.
+@item Dummy spinlock implementation for platforms that don't support it.
+@item Internationalization improvements: Japanese translation, Turkish
+translation, Polish translation.
+@item Various improvements for new libobjc2 "v2 ABI", including things like
+a new NSConstantString implementation, making GS_REPLACE_CONSTANT_STRING
+a noop with the new ABI, etc.
+@item Improvements for stack traces, exception handling and dead lock
+detection.
 @item Other more minor bugfixes and cleanups. Many found by Coverity
 scan results.
 @item As usual, this release also contains an update to include the

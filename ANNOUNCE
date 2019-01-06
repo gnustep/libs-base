@@ -1,7 +1,7 @@
 1 Announcement
 **************
 
-The GNUstep Base Library, version 1.25.1, is now available.
+The GNUstep Base Library, version 1.26.0, is now available.
 
 1.1 What is the GNUstep Base Library?
 =====================================
@@ -18,25 +18,45 @@ portion of the OpenStep standard (the Foundation library).
    There is more information available at the GNUstep homepage at
 'http://www.gnustep.org'.
 
-1.2 Noteworthy changes in version '1.25.1'
+1.2 Noteworthy changes in version '1.26.0'
 ==========================================
 
-   * Unicode fixes for characters outside the base plane
-   * Stubs for some new OSX methods
-   * Various new OSX compatibility macro and type definitions
-   * NSFileManager fixes and tweaks to match OSX implementation
-   * NSDistributedLock bugfix for pre-existing lock directories
-   * Alternative sort algorithms selectable at runtime
-   * Compatibility-related changes for environments not supporting weak
-     symbols
-   * Other more minor bugfixes and cleanups.
+   * Improve utf8 validity checks.
+   * Make point and size subclasses for NSValue interchangable.
+   * Add support for TLS SNI. Always request certificate from client and
+     update certificates after 5 minutes.
+   * Don't write deprecated fields to desktop link file.
+   * Use NSLock instead of GSLazyLock and other improvements for
+     multithreaded processes.
+   * Clean up of NSString cluster.
+   * Update NSAssert() and NSCAssert() to handle variable arguments (as
+     OSX has done) and mark the numbered macros as obsolete.
+   * Various improvements in tests.
+   * Require ICU >= 50.
+   * ICU is now detected using pkg-config.
+   * Improve XML parsing.
+   * Make NSXMLNode ivar a union representing different types, instead
+     of assuming it will contain different underlying class types in
+     different contexts.  This is important for the new libobjc2 ABI.
+   * OSX compatibility changes to NSURL.
+   * NSFileManager call error handle on missing file.
+   * Dummy spinlock implementation for platforms that don't support it.
+   * Internationalization improvements: Japanese translation, Turkish
+     translation, Polish translation.
+   * Various improvements for new libobjc2 "v2 ABI", including things
+     like a new NSConstantString implementation, making
+     GS_REPLACE_CONSTANT_STRING a noop with the new ABI, etc.
+   * Improvements for stack traces, exception handling and dead lock
+     detection.
+   * Other more minor bugfixes and cleanups.  Many found by Coverity
+     scan results.
    * As usual, this release also contains an update to include the most
      recent international timezone data.
 
 1.3 Where can you get it? How can you compile it?
 =================================================
 
-The gnustep-base-1.25.1.tar.gz distribution file has been placed at
+The gnustep-base-1.26.0.tar.gz distribution file has been placed at
 <ftp://ftp.gnustep.org/pub/gnustep/core>.
 
    Please log bug reports on the GNUstep project page

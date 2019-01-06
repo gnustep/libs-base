@@ -1,5 +1,15 @@
 2019-01-06  Ivan Vucica <ivan@vucica.net>
 
+	* ANNOUNCE:
+	* NEWS:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	Update release notes for 1.26.0.
+	* Version:
+	Bump version to 1.26.0.
+
+2019-01-06  Ivan Vucica <ivan@vucica.net>
+
 	* Tests/base/NSBundle/resources.m:
 	Fixed change in 2107c82ca4778e4cf9b8624d1bd1fd60fe104373 which made
 	NSArray *arr become invisible to the "NSBundle GNUstep resources"

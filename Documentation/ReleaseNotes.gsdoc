@@ -30,6 +30,42 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.26.0</heading>
+	<p>A new stable release.<br />
+	Improve utf8 validity checks.<br />
+	Make point and size subclasses for NSValue interchangable.<br />
+	Add support for TLS SNI. Always request certificate from client
+	and update certificates after 5 minutes.<br />
+	Don't write deprecated fields to desktop link file.<br />
+	Use NSLock instead of GSLazyLock and other improvements for
+	multithreaded processes.<br />
+	Clean up of NSString cluster.<br />
+	Update NSAssert() and NSCAssert() to handle variable arguments
+	(as OSX has done) and mark the numbered macros as obsolete.<br />
+	Various improvements in tests.<br />
+	Require ICU >= 50.<br />
+	ICU is now detected using pkg-config.<br />
+	Improve XML parsing.<br />
+	Make NSXMLNode ivar a union representing different types, instead of
+	assuming it will contain different underlying class types in different
+	contexts. This is important for the new libobjc2 ABI.<br />
+	OSX compatibility changes to NSURL.<br />
+	NSFileManager call error handle on missing file.<br />
+	Dummy spinlock implementation for platforms that don't support it.<br />
+	Internationalization improvements: Japanese translation, Turkish
+	translation, Polish translation.<br />
+	Various improvements for new libobjc2 "v2 ABI", including things like
+	a new NSConstantString implementation, making GS_REPLACE_CONSTANT_STRING
+	a noop with the new ABI, etc.<br />
+	Improvements for stack traces, exception handling and dead lock
+	detection.<br />
+	Other more minor bugfixes and cleanups. Many found by Coverity
+	scan results.<br />
+	As usual, this release also contains an update to include the
+	most recent international timezone data.
+	</p>
+      </section>
+      <section>
 	<heading>Version 1.25.1</heading>
         <p>A new stable release.<br />
         Unicode fixes for characters outside the base plane<br />
