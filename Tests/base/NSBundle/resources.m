@@ -41,6 +41,7 @@ int main()
 #if	defined(GNUSTEP)
     START_SET("NSBundle GNUstep general")
       NSBundle *gnustepBundle;
+      NSArray  *arr;
 
       gnustepBundle = [NSBundle bundleForLibrary: @"gnustep-base"];
       if (nil == gnustepBundle)
