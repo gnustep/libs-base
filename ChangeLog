@@ -1,9 +1,9 @@
 2019-01-06  Ivan Vucica <ivan@vucica.net>
 
-        * Tests/base/NSBundle/resources.m:
-        Fixed change in 2107c82ca4778e4cf9b8624d1bd1fd60fe104373 which made
-        NSArray *arr become invisible to the "NSBundle GNUstep resources"
-        test set.
+	* Tests/base/NSBundle/resources.m:
+	Fixed change in 2107c82ca4778e4cf9b8624d1bd1fd60fe104373 which made
+	NSArray *arr become invisible to the "NSBundle GNUstep resources"
+	test set.
 
 2019-01-06  Ivan Vucica <ivan@vucica.net>
 
@@ -11,6 +11,7 @@
 	* configure.ac:
 	Merge the change to use pkg-config to detect ICU. Patch by Hugh
 	McMaster <hugh.mcmaster@outlook.com>.
+	Update PR #32 to require ICU 5.0+ and not 4.6+.
 	* configure:
 	Regenerated to incorporate the changes from PR #32. Regenerated with
 	autoconf 2.69.

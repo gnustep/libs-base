@@ -3336,7 +3336,7 @@ AC_ARG_ENABLE(icu,
   enable_icu=yes)
 
 if test "$enable_icu" = "yes"; then
-  PKG_CHECK_MODULES([ICU], [icu-i18n > 4.6])
+  PKG_CHECK_MODULES([ICU], [icu-i18n > 50.0])
   AC_CHECK_HEADERS(unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h)
   LIBS="$LIBS $ICU_LIBS"
   HAVE_ICU=1
