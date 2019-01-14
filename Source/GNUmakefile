@@ -122,6 +122,7 @@ libgnustep-base.def
 GNUSTEPBASE_HEADERS = \
 GCObject.h \
 GSBlocks.h \
+GSDispatchOperation.h \
 GSVersionMacros.h \
 GSObjCRuntime.h \
 GSUnion.h \
@@ -167,6 +168,7 @@ GSBlocks.m \
 GSConcreteValue.m \
 GSCountedSet.m \
 GSDictionary.m \
+GSDispatchOperation.m \
 GSFTPURLHandle.m \
 GSFormat.m \
 GSHTTPAuthentication.m \
