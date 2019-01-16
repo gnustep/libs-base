@@ -120,18 +120,19 @@ win32-def.top \
 libgnustep-base.def
 
 GNUSTEPBASE_HEADERS = \
+GCObject.h \
 GSBlocks.h \
 GSVersionMacros.h \
 GSObjCRuntime.h \
 GSUnion.h \
 GSIArray.h \
 GSIMap.h \
-GCObject.h \
-GSLock.h \
 GSFunctions.h \
-GSMime.h \
-GSXML.h \
 GSLocale.h \
+GSLock.h \
+GSMime.h \
+GSTLS.h \
+GSXML.h \
 NSArray+GNUstepBase.h \
 NSAttributedString+GNUstepBase.h \
 NSBundle+GNUstepBase.h \

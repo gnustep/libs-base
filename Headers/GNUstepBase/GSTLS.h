@@ -126,6 +126,13 @@ extern NSString * const GSTLSVerify;
  */
 - (unsigned int) count;
 
+/* Return the earliest expiry date of any certificate in the list.
+ */
+- (NSDate*) expiresAt;
+
+/* Return the date when a certificate in the list expires.
+ */
+- (NSDate*) expiresAt: (unsigned int)index;
 @end
 
 /* This encapsulates private keys used to unlock certificates

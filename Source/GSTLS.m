@@ -38,7 +38,7 @@
 #import "Foundation/NSThread.h"
 #import "Foundation/NSUserDefaults.h"
 
-#import "GSTLS.h"
+#import "GNUstepBase/GSTLS.h"
 
 #import "GSPrivate.h"
 
@@ -792,6 +792,61 @@ static NSMutableDictionary      *certificateListCache = nil;
 - (unsigned int) count
 {
   return count;
+}
+
+- (NSDate*) expiresAt
+{
+  unsigned      index = count;
+  time_t        expiret;
+
+  if (index-- == 0)
+    {
+      return nil;
+    }
+
+  expiret = gnutls_x509_crt_get_expiration_time(crts[index]);
+  if (expiret < 0)
+    {
+      return nil;
+    }
+
+  while (index > 0)
+    {
+      time_t    t = gnutls_x509_crt_get_expiration_time(crts[--index]);
+
+      if (t < 0)
+        {
+          return nil;
+        }
+    
+      if (t < expiret)
+        {
+          expiret = t;
+        }
+    }
+
+  return [NSDate dateWithTimeIntervalSince1970: expiret];
+}
+
+- (NSDate*) expiresAt: (unsigned)index
+{
+  time_t        expiret;
+
+  if (count == 0 || index > count - 1)
+    {
+      return nil;
+    }
+
+  expiret = gnutls_x509_crt_get_expiration_time(crts[index]);
+
+  if (expiret < 0)
+    {
+      return nil;
+    }
+  else
+    {
+      return [NSDate dateWithTimeIntervalSince1970: expiret];
+    }
 }
 
 - (void) dealloc

@@ -43,13 +43,13 @@
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/GSTLS.h"
 #import "GNUstepBase/NSData+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 #import "NSCallBacks.h"
 #import "GSURLPrivate.h"
 #import "GSPrivate.h"
-#import "GSTLS.h"
 
 #ifdef	HAVE_SYS_FILE_H
 #  include <sys/file.h>

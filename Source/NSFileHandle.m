@@ -32,10 +32,10 @@
 #import "Foundation/NSHost.h"
 #import "Foundation/NSFileHandle.h"
 #import "Foundation/NSPathUtilities.h"
+#import "GNUstepBase/GSTLS.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSNetwork.h"
-#import "GSTLS.h"
 
 
 #define	EXPOSE_GSFileHandle_IVARS	1

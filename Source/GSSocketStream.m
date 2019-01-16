@@ -41,7 +41,7 @@
 #import "GSStream.h"
 #import "GSSocketStream.h"
 
-#import "GSTLS.h"
+#import "GNUstepBase/GSTLS.h"
 
 #ifndef SHUT_RD
 # ifdef  SD_RECEIVE

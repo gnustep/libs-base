@@ -136,18 +136,19 @@ NSZone.h
 BaseAdditions_AGSDOC_FILES = \
 ../Documentation/BaseAdditions.gsdoc \
 GNUstep.h \
+GCObject.h \
 GSBlocks.h \
 GSVersionMacros.h \
 GSObjCRuntime.h \
 GSUnion.h \
 GSIArray.h \
 GSIMap.h \
-GCObject.h \
+GSLocale.h \
 GSLock.h \
 GSFunctions.h \
 GSMime.h \
+GSTLS.h \
 GSXML.h \
-GSLocale.h \
 NSArray+GNUstepBase.h \
 NSAttributedString+GNUstepBase.h \
 NSBundle+GNUstepBase.h \

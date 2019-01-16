@@ -1,3 +1,17 @@
+2019-01-06  Armando Pesenti Gritti <armando.pesentigritti@theengagehub.com>
+
+	* Headers/GNUstepBase/GSTLS.h: Header moved to provide public
+	exposure of TLS classes giving ObjC interface to GNU TLS.
+	* Source/GSTLS.m: New methods to provide certificate expiry times.
+	* Source/DocMakefile: Make documentation from GSTLS.h
+	* Source/GNUmakefile: Install GSTLS.h
+	* Source/GSHTTPURLHandle.m: Adjust location of GSTLS header
+	* Source/GSSocketStream.m: Adjust location of GSTLS header
+	* Source/NSFileHandle.m: Adjust location of GSTLS header
+	* Source/NSURLProtocol.m: Adjust location of GSTLS header
+	* Tests/base/GSTLS: Add tests for certificate expiry
+	Patch by Armando, adjusted  by RFM.
+
 2019-01-06  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/Additions/Unicode.m: Move variable u to the correct scope

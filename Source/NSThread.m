@@ -2027,9 +2027,10 @@ GSRunLoopInfoForThread(NSThread *aThread)
       if (nil == lock)
         {
           NSLog(@"*** NSRunLoop ignoring exception '%@' (reason '%@') "
-            @"raised during perform in other thread... with receiver %p "
+            @"raised during perform in other thread... with receiver %p (%s) "
             @"and selector '%s'",
             [localException name], [localException reason], receiver,
+            class_getName(object_getClass(receiver)),
             sel_getName(selector));
         }
     }
