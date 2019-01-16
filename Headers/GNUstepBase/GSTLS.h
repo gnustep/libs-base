@@ -39,7 +39,7 @@ extern NSString * const GSTLSRevokeFile;
 extern NSString * const GSTLSServerName;
 extern NSString * const GSTLSVerify;
 
-#if     defined(HAVE_GNUTLS)
+#if     defined(GS_USE_GNUTLS)
 /* Temporarily redefine 'id' in case the headers use the objc reserved word.
  */
 #define	id	GNUTLSID
