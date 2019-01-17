@@ -280,8 +280,18 @@ main(int argc, char** argv, char **env)
 			    }
 			  else
 			    {
-			      snprintf(&c[o], 6, "\\U%04x", u[i]);
-			      o += 6;
+                              unsigned  v = u[i];
+
+                              c[o++] = '\\';
+                              c[o++] = 'U';
+                              c[3] = "0123456789abcdef"[v & 0xf];
+                              v /= 16;
+                              c[2] = "0123456789abcdef"[v & 0xf];
+                              v /= 16;
+                              c[1] = "0123456789abcdef"[v & 0xf];
+                              v /= 16;
+                              c[0] = "0123456789abcdef"[v & 0xf];
+			      o += 4;
 			    }
 			}
 		      NSZoneFree(z, u);
