@@ -733,7 +733,7 @@ static NSMapTable	*absolutes = 0;
 	    {
 	      char	s = (anOffset >= 0) ? '+' : '-';
 	      unsigned	i = (anOffset >= 0) ? anOffset / 60 : -anOffset / 60;
-	      unsigned	h = i / 60;
+	      unsigned	h = (i / 60) % 24;
 	      unsigned	m = i % 60;
 	      char	buf[9];
 
