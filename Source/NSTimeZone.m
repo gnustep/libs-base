@@ -732,12 +732,12 @@ static NSMapTable	*absolutes = 0;
 	  if (anOffset % 60 == 0)
 	    {
 	      char	s = (anOffset >= 0) ? '+' : '-';
-	      int	i = (anOffset >= 0) ? anOffset / 60 : -anOffset / 60;
-	      int	h = i / 60;
-	      int	m = i % 60;
+	      unsigned	i = (anOffset >= 0) ? anOffset / 60 : -anOffset / 60;
+	      unsigned	h = i / 60;
+	      unsigned	m = i % 60;
 	      char	buf[9];
 
-	      snprintf(buf, sizeof(buf), "GMT%c%02d%02d", s, h, m);
+	      snprintf(buf, sizeof(buf), "GMT%c%02u%02u", s, h, m);
 	      name = [[NSString alloc] initWithUTF8String: buf];
 	    }
 	  else
