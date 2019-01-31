@@ -958,8 +958,13 @@ static NSURLProtocol	*placeholder = nil;
 	  [_response _setStatusCode: _statusCode text: s];
 	  [document deleteHeaderNamed: @"http"];
 	  [_response _setHeaders: [document allHeaders]];
-
-	  if (_statusCode == 204 || _statusCode == 304)
+          
+          if (_debug)
+            {
+              NSWarnMLog(@"[document allHeaders]: %@", [document allHeaders]);
+            }
+          
+          if (_statusCode == 204 || _statusCode == 304 || _statusCode == 404)
 	    {
 	      _complete = YES;	// No body expected.
 	    }
