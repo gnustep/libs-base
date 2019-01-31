@@ -1237,7 +1237,7 @@ static NSURLProtocol	*placeholder = nil;
               NSWarnMLog(@"[document allHeaders]: %@", [document allHeaders]);
             }
           
-	  if (_statusCode == 204 || _statusCode == 304)
+          if (_statusCode == 204 || _statusCode == 304 || _statusCode == 404)
 	    {
 	      _complete = YES;	// No body expected.
 	    }
