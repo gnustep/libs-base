@@ -1,3 +1,10 @@
+2019-02-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSObject.m: Improve thread safety with NSZombie particularly
+	on startup/shutdown; be more careful about locking access to the
+	zombieMap and also ensuring we don't raise an exception inside the
+	locked sections (by passing a nil map to the functions).
+
 2019-01-06  Armando Pesenti Gritti <armando.pesentigritti@theengagehub.com>
 
 	* Headers/GNUstepBase/GSTLS.h: Header moved to provide public

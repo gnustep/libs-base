@@ -145,7 +145,10 @@ static void GSMakeZombie(NSObject *o, Class c)
   if (0 != zombieMap)
     {
       pthread_mutex_lock(&allocationLock);
-      NSMapInsert(zombieMap, (void*)o, (void*)c);
+      if (0 != zombieMap)
+        {
+          NSMapInsert(zombieMap, (void*)o, (void*)c);
+        }
       pthread_mutex_unlock(&allocationLock);
     }
 }
@@ -158,7 +161,10 @@ static void GSLogZombie(id o, SEL sel)
   if (0 != zombieMap)
     {
       pthread_mutex_lock(&allocationLock);
-      c = NSMapGet(zombieMap, (void*)o);
+      if (0 != zombieMap)
+        {
+          c = NSMapGet(zombieMap, (void*)o);
+        }
       pthread_mutex_unlock(&allocationLock);
     }
   if (c == 0)
@@ -834,7 +840,10 @@ NSDeallocateObject(id anObject)
 	  if (0 != zombieMap)
 	    {
               pthread_mutex_lock(&allocationLock);
-	      NSMapInsert(zombieMap, (void*)anObject, (void*)aClass);
+              if (0 != zombieMap)
+                {
+                  NSMapInsert(zombieMap, (void*)anObject, (void*)aClass);
+                }
               pthread_mutex_unlock(&allocationLock);
 	    }
 	  if (NSDeallocateZombies == YES)
@@ -1108,7 +1117,9 @@ static id gs_weak_load(id obj)
 
 + (void) _atExit
 {
+  pthread_mutex_lock(&allocationLock);
   DESTROY(zombieMap);
+  pthread_mutex_unlock(&allocationLock);
 }
 
 /**
@@ -2483,7 +2494,18 @@ static id gs_weak_load(id obj)
 }
 - (Class) originalClass
 {
-  return zombieMap ? NSMapGet(zombieMap, (void*)self) : Nil;
+  Class c = Nil;
+
+  if (0 != zombieMap)
+    {
+      pthread_mutex_lock(&allocationLock);
+      if (0 != zombieMap)
+        {
+          c = NSMapGet(zombieMap, (void*)self);
+        }
+      pthread_mutex_unlock(&allocationLock);
+    }
+  return c;
 }
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
