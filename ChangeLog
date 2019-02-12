@@ -1,3 +1,10 @@
+2019-02-12  Doug Simons <doug.simons@eggplant.io>
+
+       * NSCharacterSetData.h: 
+	   Add characters 8232 (Line Separator) and 8233 (Paragraph Separator) to the
+	   newlineCharSet. These were already in the whitespaceAndNlCharSet. I added
+	   these codes directly in this file since I don't know how it is generated.
+	
 2018-04-25  Doug Simons <doug.simons@testplant.com>
 
        * NSRegularExpression.m: Move call to uregex_setMatchCallback after some other
