@@ -1,3 +1,10 @@
+2019-02-12  Ivan Vucica <ivan@vucica.net>
+
+	* Headers/GNUstepBase/GSTLS.h: Change guard to check for value of
+	GS_USE_GNUTLS and not for its defined state. This preprocessor
+	constant might be defined with a zero value indicating desire not to
+	use GnuTLS, which would still pass the old check.
+
 2019-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSObject.m: Improve thread safety with NSZombie particularly
