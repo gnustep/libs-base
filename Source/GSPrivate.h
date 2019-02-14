@@ -501,16 +501,12 @@ GSPrivateStrExternalize(GSStr s) GS_ATTRIB_PRIVATE;
  * argv[0] (which might be something as horrible as './obj/test')
  * for classes in the main executable.
  *
- * If theCategory argument is not NULL, GSPrivateSymbolPath() will return
- * the filesystem path to the module from which the category theCategory
- * of the class theClass was loaded.
- *
  * Currently, the function will return nil if any of the following
  * conditions is satisfied:
  *  - the required functionality is not available on the platform we are
  *    running on;
  *  - memory allocation fails;
- *  - the symbol for that class/category could not be found.
+ *  - the symbol for that class could not be found.
  *
  * In general, if the function returns nil, it means something serious
  * went wrong in the system preventing it from getting the symbol path.
@@ -521,7 +517,7 @@ GSPrivateStrExternalize(GSStr s) GS_ATTRIB_PRIVATE;
  * runtime ... as far as I know.
  */
 NSString *
-GSPrivateSymbolPath (Class theClass, Category *theCategory) GS_ATTRIB_PRIVATE;
+GSPrivateSymbolPath(Class theClass) GS_ATTRIB_PRIVATE;
 
 /* Combining class for composite unichars
  */

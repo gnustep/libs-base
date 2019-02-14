@@ -961,7 +961,7 @@ GNUstepConfig(NSDictionary *newConfig)
 		{
 		  Class		c = [NSProcessInfo class];
 
-		  path = GSPrivateSymbolPath (c, 0);
+		  path = GSPrivateSymbolPath(c);
 		  // Remove library name from path
 		  path = [path stringByDeletingLastPathComponent];
                   if ([file hasPrefix: @"./"] == YES)

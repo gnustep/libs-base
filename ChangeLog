@@ -1,5 +1,15 @@
 2019-02-14  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSPrivate.h:
+	* Source/NSBundle.m:
+	* Source/NSPathUtilities.m:
+	* Source/objc-load.m:
+	GSPrivateSymbolPath() simplified by removing the unused argument
+	and consolidated code so that, if the class lookup via dladdr()
+	fails, we fall back to use __objc_dynamic_get_symbol_path().
+
+2019-02-14  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/GSMime.m: Fix encoded word encoding specifier
 	 to be uppercase ('B' or 'Q') as pere strict RFC specification.
 	* Tests/base/GSMime/build.m: Add testcase for correct encoding.

@@ -724,7 +724,7 @@ _find_main_bundle_for_tool(NSString *toolName)
        * really universal way of getting the framework path ... we can
        * locate the framework no matter where it is on disk!
        */
-      bundlePath = GSPrivateSymbolPath (frameworkClass, NULL);
+      bundlePath = GSPrivateSymbolPath(frameworkClass);
 
       if ([bundlePath isEqualToString: GSPrivateExecutablePath()])
 	{
@@ -1078,7 +1078,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       _emptyTable = [NSDictionary new];
 
       /* Create basic mapping dictionaries for bootstrapping and
-       * for use if the full ductionaries can't be loaded from the
+       * for use if the full dictionaries can't be loaded from the
        * gnustep-base library resource bundle.
        */
       langAliases = [[NSDictionary alloc] initWithObjectsAndKeys:
@@ -1513,7 +1513,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 
   [load_lock lock];
   /* Try lookup ... if not found, make sure that all loaded bundles have
-   * class->bundle mapp entries set up and check again.
+   * class->bundle map entries set up and check again.
    */
   bundle = (NSBundle *)NSMapGet(_byClass, aClass);
   if ((id)bundle == (id)[NSNull null])
@@ -1561,7 +1561,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	   * convert it to the format for a library name as used for
 	   * obtaining a library resource bundle.
 	   */
-	  lib = GSPrivateSymbolPath (aClass, NULL);
+	  lib = GSPrivateSymbolPath(aClass);
 	  if ([lib isEqual: GSPrivateExecutablePath()] == YES)
 	    {
 	      lib = nil;	// In program, not library.
@@ -2707,7 +2707,7 @@ IF_NO_GC(
     }
   if (self->_bundleType == NSBUNDLE_LIBRARY)
     {
-      return GSPrivateSymbolPath ([self principalClass], NULL);
+      return GSPrivateSymbolPath([self principalClass]);
     }
   object = [[self infoDictionary] objectForKey: @"NSExecutable"];
   if (object == nil || [object length] == 0)

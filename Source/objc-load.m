@@ -246,12 +246,11 @@ GSPrivateUnloadModule(FILE *errorStream,
 // dladdr() wrapping this function, so we no longer need a Windows-only code
 // path
 NSString *
-GSPrivateSymbolPath(Class theClass, Category *theCategory)
+GSPrivateSymbolPath(Class theClass)
 {
   unichar buf[MAX_PATH];
   NSString *s = nil;
   MEMORY_BASIC_INFORMATION memInfo;
-  NSCAssert(!theCategory, @"GSPrivateSymbolPath doesn't support categories");
 
   VirtualQueryEx(GetCurrentProcess(), theClass, &memInfo, sizeof(memInfo));
   if (GetModuleFileNameW(memInfo.AllocationBase, buf, sizeof(buf)))
@@ -263,81 +262,57 @@ GSPrivateSymbolPath(Class theClass, Category *theCategory)
     }
   return s;
 }
-#elif LINKER_GETSYMBOL 
-NSString *GSPrivateSymbolPath(Class theClass, Category *theCategory)
+#else
+NSString *GSPrivateSymbolPath(Class theClass)
 {
-  void *addr = (NULL == theCategory) ? (void*)theClass : (void*)theCategory;
+#if LINKER_GETSYMBOL 
   Dl_info info;
 
   /* This is correct: dladdr() does the opposite thing to all other UNIX
    * functions.
+   * On success, return the results, otherwise fall back to use the
+   * __objc_dynamic_get_symbol_path() function.
    */
-  if (0 == dladdr(addr, &info))
+  if (0 != dladdr((void*)theClass, &info))
     {
-      return nil;
+      return [NSString stringWithUTF8String: info.dli_fname];
     }
-  return [NSString stringWithUTF8String: info.dli_fname];
-}
-#else
-NSString *
-GSPrivateSymbolPath(Class theClass, Category *theCategory)
-{
-  const char *ret;
-  char        buf[125], *p = buf;
-  const char *className = class_getName(theClass);
-  int         len = strlen(className);
+#endif
 
-  if (theCategory == NULL)
+  if (theClass != nil)
     {
-      if (len + sizeof(char)*19 > sizeof(buf))
-	{
-	  p = malloc(len + sizeof(char)*19);
+      const char        *ret;
+      char              buf[125];
+      char              *p = buf;
+      const char        *className = class_getName(theClass);
+      int               len = strlen(className);
 
-	  if (p == NULL)
-	    {
-	      fprintf(stderr, "Unable to allocate memory !!");
-	      return nil;
-	    }
-	}
+      if (len + sizeof(char)*19 > sizeof(buf))
+        {
+          p = malloc(len + sizeof(char)*19);
+
+          if (p == NULL)
+            {
+              fprintf(stderr, "Unable to allocate memory !!");
+              return nil;
+            }
+        }
 
       memcpy(p, "__objc_class_name_", sizeof(char)*18);
       memcpy(&p[18*sizeof(char)], className, strlen(className) + 1);
+
+      ret = __objc_dynamic_get_symbol_path(0, p);
+
+      if (p != buf)
+        {
+          free(p);
+        }
+
+      if (ret)
+        {
+          return [NSString stringWithUTF8String: ret];
+        }
     }
-  else
-    {
-      len += strlen(theCategory->category_name);
-
-      if (len + sizeof(char)*23 > sizeof(buf))
-	{
-	  p = malloc(len + sizeof(char)*23);
-
-	  if (p == NULL)
-	    {
-	      fprintf(stderr, "Unable to allocate memory !!");
-	      return nil;
-	    }
-	}
-
-      memcpy(p, "__objc_category_name_", sizeof(char)*21);
-      memcpy(&p[21*sizeof(char)], theCategory->class_name,
-        strlen(theCategory->class_name) + 1);
-      memcpy(&p[strlen(p)], "_", 2*sizeof(char));
-      memcpy(&p[strlen(p)], theCategory->category_name,
-        strlen(theCategory->category_name) + 1);
-    }
-
-  ret = __objc_dynamic_get_symbol_path(0, p);
-
-  if (p != buf)
-    {
-      free(p);
-    }
-
-  if (ret)
-    {
-      return [NSString stringWithUTF8String: ret];
-    }
-
   return nil;
 }
 #endif
