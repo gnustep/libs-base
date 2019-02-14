@@ -2,6 +2,24 @@
 #import <Foundation/Foundation.h>
 #import <GNUstepBase/GSMime.h>
 #import "Testing.h"
+
+static int
+strnstr(const uint8_t *buf, unsigned len, const uint8_t *str)
+{
+  int   l = strlen(str);
+  int   max = len - l;
+  int   i;
+
+  for (i = 0; i < max; i++)
+    {
+      if (strncmp(buf + i, str, l) == 0)
+        {
+          return i;
+        }
+    }
+  return -1;
+}
+
 int main(int argc,char **argv)
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
@@ -40,6 +58,17 @@ int main(int argc,char **argv)
   doc = [GSMimeParser documentFromData: data];
   PASS_EQUAL([[doc headerNamed: @"subject"] value], string,
    "Can restore non-ascii character in subject form serialized document");
+
+  [doc setHeader:
+    [[GSMimeHeader alloc] initWithName: @"subject"
+                                 value: @"€"
+                            parameters: nil]];
+  data = [doc rawMimeData];
+  const char *bytes = "MIME-Version: 1.0\r\n"
+    "Content-Type: text/plain; type=\"my/type\"\r\n"
+    "Subject: =?utf-8?B?4oKs?=\r\n\r\n";
+  PASS(strnstr([data bytes], [data length], "?B?4oKs?=") > 0,
+    "encodes utf-8 euro in subject");
 
   [arp release]; arp = nil;
   return 0;

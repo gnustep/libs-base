@@ -2998,12 +2998,12 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 
 	      src = tmp + 1;
 	      if (src >= end) return nil;
-	      c = tolower(*src);
-	      if (c == 'b')
+	      c = toupper(*src);
+	      if (c == 'B')
 		{
 		  encoding = WE_BASE64;
 		}
-	      else if (c == 'q')
+	      else if (c == 'Q')
 		{
 		  encoding = WE_QUOTED;
 		}
@@ -4153,7 +4153,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
               NSUInteger        existingLength;
               NSUInteger        quotedLength;
               NSUInteger        charLength;
-              uint8_t           style = 'q';
+              uint8_t           style = 'Q';
 
               /* Calculate the number of encoded characters we can
                * fit on the current line.  If there's no room, we
@@ -4178,7 +4178,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                   /* Using base64 is more compact than using quoted
                    * text, so lets do that.
                    */
-                  style = 'b';
+                  style = 'B';
                   charLength = ((fold - offset - overhead) / 4) * 3;
                   if (charLength >= len - pos)
                     {
@@ -4205,7 +4205,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
               *buffer++ = '?';
               *buffer++ = style;
               *buffer++ = '?';
-              if ('q' == style)
+              if ('Q' == style)
                 {
                   quotedWord(ptr + pos, charLength, buffer);
                 }

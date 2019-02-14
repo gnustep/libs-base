@@ -1,3 +1,13 @@
+2019-02-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: Fix encoded word encoding specifier
+	 to be uppercase ('B' or 'Q') as pere strict RFC specification.
+	* Tests/base/GSMime/build.m: Add testcase for correct encoding.
+
+2019-02-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tests/base/GSTLS/basic.m: Update testcase to use correct guard.
+
 2019-02-12  Ivan Vucica <ivan@vucica.net>
 
 	* Headers/GNUstepBase/GSTLS.h: Change guard to check for value of
