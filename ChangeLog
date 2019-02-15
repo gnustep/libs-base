@@ -1,3 +1,10 @@
+2019-02-15  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSMime.m: When encoding quoted words in a header, ensure
+	we don't split multibyte utf-8 characters into separate words.
+	* Tests/base/GSMime/general.m: Add test for encode/decode folded
+	subject line wit a euro symbol at the fold point.
+
 2019-02-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSPrivate.h:

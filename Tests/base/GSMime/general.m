@@ -3,6 +3,14 @@
 #import <GNUstepBase/GSMime.h>
 #import "Testing.h"
 
+@interface GSMimeHeader (Testing)
++ (NSUInteger) appendString: (NSString*)str
+                         to: (NSMutableData*)m
+                         at: (NSUInteger)offset
+                       fold: (NSUInteger)fold
+                         ok: (BOOL*)ok;
+@end
+
 static GSMimeDocument *
 parse(GSMimeParser **parserPointer, NSData *data)
 {
@@ -239,18 +247,27 @@ int main()
   PASS_EQUAL(idoc, doc, "mime12.dat documents are the same");
   data = [idoc rawMimeData];
   doc = [GSMimeParser documentFromData: data];
-  PASS_EQUAL(idoc, doc, "rawMimeData reproduces document with 'q' header");
-  NSLog(@"Made\n%@\nOrig\n%@", data, orig);
+  PASS_EQUAL(idoc, doc, "rawMimeData reproduces document with 'Q' header");
+//  NSLog(@"Made\n%@\nOrig\n%@", data, orig);
 
   if (NO == oldStyleFolding)
     {
       [idoc setHeader: @"Subject" value: @"==répà==" parameters: nil];
       data = [idoc rawMimeData];
-      NSLog(@"Made\n%@", data);
+//      NSLog(@"Made\n%@", data);
       doc = [GSMimeParser documentFromData: data];
-      PASS_EQUAL(doc, idoc, "rawMimeData reproduces document with 'b' header");
+      PASS_EQUAL(doc, idoc, "rawMimeData reproduces document with 'B' header");
+
+      /* Header where Euro character would cross folding boundary */
+      [idoc setHeader: @"Subject" value:
+        @"Benefit from 6.1% APR rate 111111on los over €20,000"
+        parameters: nil];
+      data = [idoc rawMimeData];
+//      NSLog(@"Made\n%@", data);
+      doc = [GSMimeParser documentFromData: data];
+      PASS_EQUAL(doc, idoc, "rawMimeData reproduces document with long header");
     }
-  
+
   [arp release]; arp = nil;
   return 0;
 }
