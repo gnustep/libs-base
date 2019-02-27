@@ -18,15 +18,15 @@
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02111 USA.
 
-   */ 
+   */
 
 #import "Foundation/NSObject.h"
 
 /* Declare the block copy functions ourself so that we don't depend on a
  * specific header location.
  */
-void *_Block_copy(void *);
-void _Block_release(void *);
+void *_Block_copy(const void *);
+void _Block_release(const void *);
 
 @interface GSBlock : NSObject
 @end
@@ -81,4 +81,3 @@ void _Block_release(void *);
   _Block_release(self);
 }
 @end
-

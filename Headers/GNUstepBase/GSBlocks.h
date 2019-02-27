@@ -94,5 +94,33 @@ typedef retTy(^name)()
 
 #endif /* __has_feature(blocks) */
 
-#endif /* __GSBlocks_h_GNUSTEP_BASE_INCLUDE */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
+/**
+ * _Block_copy and _Block_release are weakly imported, but can be assumed
+ * to be available whenever a feature using blocks is accessed
+ * by an application.
+ */
+
+/* weak attributed supported only with ELF, MINGW is COFF */
+#ifndef __MINGW32__
+
+void *_Block_copy(const void *) __attribute__((weak));
+void _Block_release(const void *) __attribute__((weak));
+
+#endif /* __MINGW32__ */
+
+#ifdef __cplusplus
+}
+#endif
+
+#ifndef Block_copy
+#  define Block_copy(x) ((__typeof(x))_Block_copy((const void *)(x)))
+#endif
+#ifndef Block_release
+#  define Block_release(x) _Block_release((const void *)(x))
+#endif
+
+#endif /* __GSBlocks_h_GNUSTEP_BASE_INCLUDE */
