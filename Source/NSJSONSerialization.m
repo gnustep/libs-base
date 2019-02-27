@@ -878,7 +878,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
                 {
                   size += 2;
                 }
-              else if (c < 0x20)
+              else if (c < 0x20 || c > 0x7f)
                 {
                   size += 6;
                 }
@@ -909,7 +909,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
                       default: to[j++] = '"'; break;
                     }
                 }
-              else if (c < 0x20)
+              else if (c < 0x20 || c > 0x7f)
                 {
                   char	buf[5];
 

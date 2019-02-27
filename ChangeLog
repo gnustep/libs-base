@@ -1,3 +1,8 @@
+2019-02-27  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSJSONSerialization.m: escape characters with codepoint
+	greater than 0x7f.
+
 2019-02-15  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSMime.m: When encoding quoted words in a header, ensure
