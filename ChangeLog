@@ -1,5 +1,6 @@
 2019-02-27  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/Unidoce.m: comment-out left-over debug logging.
 	* Source/NSJSONSerialization.m: escape characters with codepoint
 	greater than 0x7f.
 

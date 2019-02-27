@@ -1105,7 +1105,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		      GROW();
 		    }
 	          ptr[dpos++] = ul + 0xdc00;
-                  NSLog(@"Adding uh %d ul %d", uh + 0xd800, ul + 0xdc00);
+//                  NSLog(@"Adding uh %d ul %d", uh + 0xd800, ul + 0xdc00);
 	        }
 	    }
 #if     defined(UTF8DECODE)
