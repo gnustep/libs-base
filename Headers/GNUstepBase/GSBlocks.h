@@ -120,8 +120,8 @@ extern "C" {
 /* weak attributed supported only with ELF, MINGW is COFF */
 #ifndef __MINGW32__
 
-void *_Block_copy(void *) __attribute__((weak));
-void _Block_release(void *) __attribute__((weak));
+void *_Block_copy(const void *) __attribute__((weak));
+void _Block_release(const void *) __attribute__((weak));
 
 #endif /* __MINGW32__ */
 
@@ -130,11 +130,10 @@ void _Block_release(void *) __attribute__((weak));
 #endif
 
 #ifndef Block_copy
-#  define Block_copy(x) ((__typeof(x))_Block_copy((void *)(x)))
+#  define Block_copy(x) ((__typeof(x))_Block_copy((const void *)(x)))
 #endif
 #ifndef Block_release
-#  define Block_release(x) _Block_release((void *)(x))
+#  define Block_release(x) _Block_release((const void *)(x))
 #endif
 
 #endif /* __GSBlocks_h_GNUSTEP_BASE_INCLUDE */
-
