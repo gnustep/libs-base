@@ -56,8 +56,8 @@
 #endif
 
 #ifdef _WIN32
-extern const char *inet_ntop(int, const void *, char *, size_t);
-extern int inet_pton(int , const char *, void *);
+// extern const char *inet_ntop(int, const void *, char *, size_t);
+// extern int inet_pton(int , const char *, void *);
 #define	OPTLEN	int
 #else
 #define	OPTLEN	socklen_t
@@ -470,7 +470,7 @@ static NSArray  *keys = nil;
   NSString              *str;
   NSMutableDictionary   *opts = *dict;
   NSUInteger            count;
-  
+
   if (NULL != dict)
     {
       if (nil != pri)
@@ -510,7 +510,7 @@ static NSArray  *keys = nil;
     {
       [o setProperty: tls forKey: NSStreamSocketSecurityLevelKey];
     }
-  
+
   if (tls != nil)
     {
       GSTLSHandler      *h;
@@ -767,7 +767,7 @@ static NSArray  *keys = nil;
   NSString              *str;
   NSMutableDictionary   *opts = *dict;
   NSUInteger            count;
-  
+
   if (NULL != dict)
     {
       if (nil != pri)
@@ -922,7 +922,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
       AUTORELEASE(RETAIN(self));
       [is _setHandler: nil];
       [os _setHandler: nil];
-      
+
       [GSTLSHandler tryInput: is output: os];
       if ([is streamStatus] == NSStreamStatusOpen)
         {
@@ -996,7 +996,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 
           // TESTPLANT-MAL-03132018: Start state for SOCKS processing...
           state = GSSOCKSOfferAuth;
-          
+
           /* Record the host and port that the streams are supposed to be
            * connecting to.
            */
@@ -1035,7 +1035,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 #if defined(DEBUG)
   int index = 0;
   NSMutableString *string = [NSMutableString string];
-  
+
   unsigned char *output = buffer;
   for ( ; index < count; ++index)
     [string appendFormat: @"0x%2.2x ", *output++];
@@ -1240,7 +1240,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	  buf[1] = 1;	// Connect command
 	  buf[2] = 0;	// Reserved
 	  buf[3] = 1;	// Address type (IPV4)
-          
+
 	  ptr = [address UTF8String];
 	  buf[4] = atoi(ptr);
 	  while (isdigit(*ptr))
@@ -1259,7 +1259,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
           buf[8] = ((result & 0xff00) >> 8);
           buf[9] = (result & 0xff);
           [self dumpBuffer: buf count: want];
-          
+
 	  result = [ostream _write: buf + woffset maxLength: want - woffset];
 	  if (result == 0)
 	    {
@@ -1393,7 +1393,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 					forKey: GSStreamRemoteAddressKey];
 			  [ostream setProperty: a
 					forKey: GSStreamRemoteAddressKey];
-                          
+
                           unsigned short portnum = ((rbuffer[rwant-2] << 8) | rbuffer[rwant-1]);
                           portnum                = ntohs(portnum);
                           a = [NSString stringWithFormat: @"%d", portnum];
@@ -1421,12 +1421,12 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	code: 0
 	userInfo: [NSDictionary dictionaryWithObject: error
 	  forKey: NSLocalizedDescriptionKey]];
-      
+
       // TESTPLANT-MAL-03132018: stream(s) potentially going out of scope during
       // record error invocation(s)...
       AUTORELEASE(RETAIN(istream));
       AUTORELEASE(RETAIN(ostream));
-      
+
       if ([istream streamStatus] != NSStreamStatusError)
 	{
 	  [istream _recordError: theError];
@@ -1463,7 +1463,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 + (void) tryInput: (GSSocketInputStream*)i output: (GSSocketOutputStream*)o
 {
   NSDictionary          *conf;
-  
+
   conf = [i propertyForKey: kCFStreamPropertyHTTPProxy];
   if (conf == nil)
     {
@@ -1477,13 +1477,13 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
     {
       [o setProperty: conf forKey: kCFStreamPropertyHTTPProxy];
     }
-  
+
   if (conf != nil)
     {
       GSHTTP      *h;
       struct sockaddr   *sa = [i _address];
       BOOL              i6 = NO;
-      
+
 #if defined(AF_INET6)
       if (sa->sa_family == AF_INET6)
         {
@@ -1496,7 +1496,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
             GSOnceMLog(@"GSHTTP not supported for socket type %d", sa->sa_family);
             return;
           }
-      
+
       h = [[GSHTTP alloc] initWithInput: i output: o];
       [i _setHandler: h];
       [o _setHandler: h];
@@ -1510,9 +1510,9 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
     {
       GSSocketInputStream	*is = RETAIN(istream);
       GSSocketOutputStream	*os = RETAIN(ostream);
-      
+
       handshake = NO;
-      
+
       // Setting the handler(s) to nil will deallocate us...
       AUTORELEASE(RETAIN(self));
       [is _setHandler: nil];
@@ -1593,7 +1593,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
           NSDictionary          *conf;
           NSString              *host;
           int                   pnum;
-          
+
           /* Record the host and port that the streams are supposed to be
            * connecting to.
            */
@@ -1602,7 +1602,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
                      (char*)inet_ntoa(addr->sin_addr)];
           port = [[NSString alloc] initWithFormat: @"%d",
                   (int)GSSwapBigI16ToHost(addr->sin_port)];
-          
+
           /* Now reconfigure the streams so they will actually connect
            * to the HTTP proxy server.
            */
@@ -1628,7 +1628,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 #if defined(DEBUG)
   int index = 0;
   NSMutableString *string = [NSMutableString string];
-  
+
   unsigned char *output = buffer;
   for ( ; index < count; ++index)
     [string appendFormat: @"0x%2.2x ", *output++];
@@ -1651,9 +1651,9 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
       [self bye];
       return;
     }
-  
+
   conf = [stream propertyForKey: NSStreamSOCKSProxyConfigurationKey];
-  
+
   // If output stream completed open and has space available...
   if ((NSStreamEventHasSpaceAvailable == event) && (NO == connectSent))
     {
@@ -1661,11 +1661,11 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
       NSString *connectMsg = [NSString stringWithFormat: @"CONNECT %@:%@ HTTP/1.1\r\n\r\n",address,port];
       NSDebugMLLog(@"GSSocketStream", @"connect to: %@", connectMsg);
       NSWarnMLog(@"connect to: %@", connectMsg);
-      
+
       // Send the HTTP connect command...
       int result = [ostream _write: (const uint8_t *)[connectMsg UTF8String]
                          maxLength: [connectMsg length]];
-      
+
       if (result < [connectMsg length])
         {
           error = [NSString stringWithFormat: @"write error sending HTTP proxy connect for: %@",connectMsg];
@@ -1701,7 +1701,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
       else if (result > 0)
         {
           [self dumpBuffer: rbuffer count: result];
-          
+
           NSString *string = AUTORELEASE([[NSString alloc] initWithBytes: rbuffer
                                                                   length: result
                                                                 encoding: NSUTF8StringEncoding]);
@@ -1714,7 +1714,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
               // Get error code...
               NSArray *components = [string componentsSeparatedByString: @" "];
               status              = [[components objectAtIndex: 1] intValue];
-              
+
               // Terminate with error...
               NSDebugMLLog(@"GSSocketStream", @"error code: %ld", (long)status);
               NSWarnMLog(@"error code: %ld", (long)status);
@@ -1723,7 +1723,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
           else if ([[string lowercaseString] containsString: @"200 connection established"])
             {
               connected = YES;
-              
+
               // On windows, the istream is still in reading causing problems...
               // In linux, the otstream is done - causing other problems...
               if ([istream streamStatus] != NSStreamStatusReading)
@@ -1734,19 +1734,19 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
             }
         }
     }
-  
+
   if ([error length] > 0)
     {
       NSError *theError = [NSError errorWithDomain: NSCocoaErrorDomain
                                               code: status
                                           userInfo: [NSDictionary dictionaryWithObject: error
                                                                                 forKey: NSLocalizedDescriptionKey]];
-      
+
       // TESTPLANT-MAL-03132018: stream(s) potentially going out of scope during
       // record error invocation(s)...
       AUTORELEASE(RETAIN(istream));
       AUTORELEASE(RETAIN(ostream));
-      
+
       if ([istream streamStatus] != NSStreamStatusError)
         {
           [istream _recordError: theError];
@@ -2782,7 +2782,7 @@ setNonBlocking(SOCKET fd)
        *  write, so care should be taken to ensure that the delegate has a
        *  near constant supply of data to write, or has some mechanism to
        *  detect that no more data is arriving, and shut down.
-       */ 
+       */
       _events &= ~NSStreamEventHasSpaceAvailable;
       return 0;
     }
@@ -3363,4 +3363,3 @@ setNonBlocking(SOCKET fd)
 }
 #endif
 @end
-
