@@ -8,7 +8,6 @@ typedef struct cls_struct_combined {
   float b;
   float c;
   float d;
-  float e; // Testplant: Work around 64bit libffi bug passing 16byte structs by value
 } cls_struct_combined;
 
 void cls_struct_combined_fn(struct cls_struct_combined arg)
