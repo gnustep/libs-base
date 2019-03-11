@@ -41,7 +41,7 @@
 #if defined(_WIN32)
 #include <winsock2.h>
 #include <ws2tcpip.h>
-extern const char *inet_ntop(int, const void *, char *, size_t);
+extern const char *inet_ntop(int, void *, char *, size_t);
 extern int inet_pton(int , const char *, void *);
 #else
 #include <netdb.h>

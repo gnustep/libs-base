@@ -56,7 +56,7 @@
 #endif
 
 #ifdef _WIN32
-extern const char *inet_ntop(int, const void *, char *, size_t);
+extern const char *inet_ntop(int, void *, char *, size_t);
 extern int inet_pton(int , const char *, void *);
 #define	OPTLEN	int
 #else
