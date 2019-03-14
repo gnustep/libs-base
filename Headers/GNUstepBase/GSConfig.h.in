@@ -308,6 +308,7 @@ typedef	struct {
 #endif
 
 #if defined(__WIN64__)
+#define WinBOOL WINBOOL
 #include <winsock2.h>
 #include <windows.h>
 #else
