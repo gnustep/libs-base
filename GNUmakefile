@@ -40,6 +40,7 @@ ifeq ($(GNUSTEP_MAKEFILES),)
   $(error You need to set GNUSTEP_MAKEFILES before compiling!)
 endif
 
+# export GNUSTEP_TARGET_OS=mingw64
 GNUSTEP_CORE_SOFTWARE = YES
 export GNUSTEP_CORE_SOFTWARE
 RPM_DISABLE_RELOCATABLE = YES

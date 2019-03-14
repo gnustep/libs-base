@@ -84,7 +84,7 @@ ifeq ($(GNUSTEP_TARGET_OS), mingw32)
   libgnustep-base_SUBPROJECTS += win32
 else
   ifeq ($(GNUSTEP_TARGET_OS), mingw64)
-    libgnustep-base_SUBPROJECTS += win32
+    libgnustep-base_SUBPROJECTS += win64
   else
     libgnustep-base_SUBPROJECTS += unix
   endif
