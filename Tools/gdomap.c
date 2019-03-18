@@ -4312,17 +4312,18 @@ donames(const char *host)
     memset(&hints, '\0', sizeof(hints));
     hints.ai_family = AF_INET;
 
-    if (getaddrinfo(host, NULL, &hints, &info) != 0 && first_dot != 0)
+    if ((err = getaddrinfo(host, NULL, &hints, &info) != 0) && first_dot != 0)
       {
         *first_dot = '.';
-        if ((err = getaddrinfo(host, NULL, &hints, &info)) != 0)
-          {
-            snprintf(ebuf, sizeof(ebuf),
-              "getaddrinfo('%s') failed: %s", host, gai_strerror(err));
-            gdomap_log(LOG_ERR);
-            return;
-          }
+        err = getaddrinfo(host, NULL, &hints, &info);
       }
+    if (err != 0)
+    {
+        snprintf(ebuf, sizeof(ebuf),
+          "getaddrinfo('%s') failed: %s", host, gai_strerror(err));
+        gdomap_log(LOG_ERR);
+        return;
+    }
     sin.sin_addr = ((struct sockaddr_in *)info->ai_addr)->sin_addr;
     freeaddrinfo(info);
   }
