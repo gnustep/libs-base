@@ -1,21 +1,21 @@
 /* Implementation for NSNetServices for GNUstep
  Copyright (C) 2006 Free Software Foundation, Inc.
- 
+
  Written by:  Chris B. Vetter
  Date: 2006
- 
+
  This file is part of the GNUstep Base Library.
- 
+
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
  version 2 of the License, or (at your option) any later version.
- 
+
  This library is distributed in the hope that it will be useful,
  but WITHOUT ANY WARRANTY; without even the implied warranty of
  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  Library General Public License for more details.
- 
+
  You should have received a copy of the GNU Lesser General Public
  License along with this library; if not, write to the Free
  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
@@ -43,8 +43,8 @@
 #ifdef __MINGW__
 #import <winsock2.h>
 #import <ws2tcpip.h>
-extern const char *inet_ntop(int, const void *, char *, size_t);
-extern int inet_pton(int , const char *, void *);
+// extern char *inet_ntop(int, void *, char *, size_t);
+// extern int inet_pton(int , char *, void *);
 #else
 #import <sys/select.h>
 #import <sys/socket.h>		// AF_INET / AF_INET6
@@ -110,27 +110,27 @@ else { [self doesNotRecognizeSelector: _cmd]; }		\
 typedef struct _Browser		// The actual NSNetServiceBrowser
 {
   THE_LOCK;
-  
+
   NSRunLoop		*runloop;
   NSString		*runloopmode;
   NSTimer		*timer;			// to control the runloop
-  
+
   NSMutableDictionary	*services;
   // List of found services.
   // Key is <_name_type_domain> and value is an initialized NSNetService.
-  
+
   int			 interfaceIndex;
 } Browser;
 
 typedef struct _Service		// The actual NSNetService
 {
   THE_LOCK;
-  
+
   NSRunLoop		*runloop;
   NSString		*runloopmode;
   NSTimer     *timer;     // to control the runloop
   NSTimer     *timeout;		// to time-out the resolve
-  
+
   NSMutableDictionary	*info;
   // The service's information, keys are
   // - Domain (string)
@@ -139,14 +139,14 @@ typedef struct _Service		// The actual NSNetService
   // - Host (string)
   // - Addresses (mutable array)
   // - TXT (data)
-  
+
   NSMutableArray	*foundAddresses;	// array of char*
-  
+
   int			 interfaceIndex,	// should also be in 'info'
   port;			// (in network byte-order) ditto
-  
+
   id			 monitor;		// NSNetServiceMonitor
-  
+
   BOOL			 isPublishing,		// true if publishing service
   isMonitoring;		// true if monitoring
 } Service;
@@ -154,7 +154,7 @@ typedef struct _Service		// The actual NSNetService
 typedef struct _Monitor		// The actual NSNetServiceMonitor
 {
   THE_LOCK;
-  
+
   NSRunLoop		*runloop;
   NSString		*runloopmode;
   NSTimer     *timer;			// to control the runloop
@@ -272,7 +272,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 + (void) initialize
 {
   INTERNALTRACE;
-  
+
   SETVERSION(GSMDNSNetServiceBrowser);
   {
 #ifndef _REENTRANT
@@ -296,11 +296,11 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) cleanup
 {
   Browser	*browser;
-  
+
   INTERNALTRACE;
-  
+
   browser = (Browser *) _reserved;
-  
+
   LOCK(browser);
   {
     if (browser->runloop)
@@ -308,28 +308,28 @@ QueryCallback(DNSServiceRef			 sdRef,
       [self removeFromRunLoop: browser->runloop
                       forMode: browser->runloopmode];
     }
-    
+
     if (browser->timer)
     {
       [browser->timer invalidate];
       DESTROY(browser->timer);
     }
-    
+
     if (_netServiceBrowser)
     {
       DNSServiceRefDeallocate(_netServiceBrowser);
       _netServiceBrowser = NULL;
     }
-    
+
     // Testplant-MAL-09162016: leaks if closing without exiting app...
     {
       id            key;
       NSEnumerator *iter = [browser->services keyEnumerator];
-      
+
       while ((key = [iter nextObject]))
       {
         GSMDNSNetService *service = [browser->services objectForKey: key];
-        
+
         [service stopMonitoring];
         [service stopResolving: self];
         [service stop];
@@ -349,26 +349,26 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) executeWithError: (DNSServiceErrorType) err
 {
   Browser	*browser;
-  
+
   INTERNALTRACE;
-  
+
   browser = (Browser *) _reserved;
-  
+
   LOCK(browser);
   {
     if (kDNSServiceErr_NoError == err)
     {
       [self netServiceBrowserWillSearch: self];
-      
+
       if (! browser->runloop)
       {
         [self scheduleInRunLoop: [NSRunLoop currentRunLoop]
                         forMode: NSDefaultRunLoopMode];
       }
-      
+
       [browser->runloop addTimer: browser->timer
                          forMode: browser->runloopmode];
-      
+
       [browser->timer fire];
     }
     else // notify the delegate of the error
@@ -390,11 +390,11 @@ QueryCallback(DNSServiceRef			 sdRef,
 {
   DNSServiceErrorType	err = kDNSServiceErr_NoError;
   Browser		*browser;
-  
+
   INTERNALTRACE;
-  
+
   browser = (Browser *) _reserved;
-  
+
   LOCK(browser);
   {
     do
@@ -404,13 +404,13 @@ QueryCallback(DNSServiceRef			 sdRef,
         err = NSNetServicesInvalidError;
         break;
       }
-      
+
       if (browser->timer)
       {
         err = NSNetServicesActivityInProgress;
         break;
       }
-      
+
       err = DNSServiceEnumerateDomains((DNSServiceRef *)&_netServiceBrowser,
                                        aFlag,
                                        browser->interfaceIndex,
@@ -420,7 +420,7 @@ QueryCallback(DNSServiceRef			 sdRef,
     while (0);
   }
   UNLOCK(browser);
-  
+
   [self executeWithError: err];
 }
 
@@ -437,40 +437,40 @@ QueryCallback(DNSServiceRef			 sdRef,
                domain: (const char *) replyDomain
 {
   Browser	*browser;
-  
+
   INTERNALTRACE;
-  
+
   browser = (Browser *) _reserved;
-  
+
   LOCK(browser);
-  
+
   if (_netServiceBrowser)
   {
     if (errorCode)
     {
       [self cleanup];
-      
+
       [self netServiceBrowser: self
                  didNotSearch: CreateError(self, errorCode)];
     }
     else
     {
       BOOL	more = NO;
-      
+
       if (replyDomain)
 	    {
 	      NSString	*domain;
-        
+
 	      more = flags & kDNSServiceFlagsMoreComing;
-	      
+
 	      browser->interfaceIndex = interfaceIndex;
-	      
+
 	      domain = [NSString stringWithUTF8String: replyDomain];
-        
+
 	      if (flags & kDNSServiceFlagsAdd)
         {
           LOG(@"Found domain <%s>", replyDomain);
-          
+
           [self netServiceBrowser: self
                     didFindDomain: domain
                        moreComing: more];
@@ -478,7 +478,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 	      else // kDNSServiceFlagsRemove
         {
           LOG(@"Removed domain <%s>", replyDomain);
-          
+
           [self netServiceBrowser: self
                   didRemoveDomain: domain
                        moreComing: more];
@@ -504,19 +504,19 @@ QueryCallback(DNSServiceRef			 sdRef,
                  domain: (const char *) replyDomain
 {
   Browser	*browser;
-  
+
   INTERNALTRACE;
- 
+
   browser = (Browser *) _reserved;
-  
+
   LOCK(browser);
-  
+
   if (_netServiceBrowser)
   {
     if (errorCode)
     {
       [self cleanup];
-      
+
       [self netServiceBrowser: self
                  didNotSearch: CreateError(self, errorCode)];
     }
@@ -528,21 +528,21 @@ QueryCallback(DNSServiceRef			 sdRef,
       NSString	*name = nil;
       NSString	*key = nil;
       BOOL		more = (flags & kDNSServiceFlagsMoreComing);
-      
+
       browser->interfaceIndex = interfaceIndex;
-      
+
       if (nil == browser->services)
 	    {
 	      browser->services
         = [[NSMutableDictionary alloc] initWithCapacity: 1];
 	    }
-      
+
       domain = [NSString stringWithUTF8String: replyDomain];
       type = [NSString stringWithUTF8String: replyType];
       name = [NSString stringWithUTF8String: replyName];
-      
+
       key = [[NSString alloc] initWithFormat: @"%@%@%@", name, type, domain];
-      
+
       if (flags & kDNSServiceFlagsAdd)
 	    {
         // Testplant-MAL-09162016: debug help...
@@ -554,15 +554,15 @@ QueryCallback(DNSServiceRef			 sdRef,
 	      service = [[GSMDNSNetService alloc] initWithDomain: domain
                                                       type: type
                                                       name: name];
-	      
+
 	      if (service)
         {
           LOG(@"Found service <%s>", replyName);
-          
+
           [self netServiceBrowser: self
                    didFindService: service
                        moreComing: more];
-          
+
           [browser->services setObject: service
                                 forKey: key];
 
@@ -579,11 +579,11 @@ QueryCallback(DNSServiceRef			 sdRef,
       else // kDNSServiceFlagsRemove
 	    {
 	      service = [browser->services objectForKey: key];
-	      
+
 	      if (service)
         {
           LOG(@"Removed service <%@>", [service name]);
-          
+
           [self netServiceBrowser: self
                  didRemoveService: service
                        moreComing: more];
@@ -612,20 +612,20 @@ QueryCallback(DNSServiceRef			 sdRef,
   struct timeval	tout = { 0 };
   fd_set		set;
   DNSServiceErrorType	err = kDNSServiceErr_NoError;
-  
+
   sock = DNSServiceRefSockFD(_netServiceBrowser);
-  
+
   if (-1 != sock)
   {
     FD_ZERO(&set);
     FD_SET(sock, &set);
-    
+
     if (1 == select(sock + 1, &set, (fd_set *) NULL, (fd_set *) NULL, &tout))
     {
       err = DNSServiceProcessResult(_netServiceBrowser);
     }
   }
-  
+
   if (kDNSServiceErr_NoError != err)
   {
     [self netServiceBrowser: self
@@ -642,11 +642,11 @@ QueryCallback(DNSServiceRef			 sdRef,
                    forMode: (NSString *) mode
 {
   Browser	*browser;
-  
+
   INTERNALTRACE;
-  
+
   browser = (Browser *) _reserved;
-  
+
   LOCK(browser);
   {
     if (browser->timer)
@@ -655,10 +655,10 @@ QueryCallback(DNSServiceRef			 sdRef,
       [browser->timer invalidate];
       browser->timer = nil;
     }
-    
+
     // Do not release the runloop!
     browser->runloop = nil;
-    
+
     DESTROY(browser->runloopmode);
   }
   UNLOCK(browser);
@@ -674,11 +674,11 @@ QueryCallback(DNSServiceRef			 sdRef,
                    forMode: (NSString *) mode
 {
   Browser	*browser;
-  
+
   INTERNALTRACE;
-  
+
   browser = (Browser *) _reserved;
-  
+
   LOCK(browser);
   {
     if (browser->timer)
@@ -687,16 +687,16 @@ QueryCallback(DNSServiceRef			 sdRef,
       [browser->timer invalidate];
       browser->timer = nil;
     }
-    
+
     browser->timer = [NSTimer timerWithTimeInterval: INTERVAL
                                              target: self
                                            selector: @selector(loop:)
                                            userInfo: nil
                                             repeats: YES];
-    
+
     browser->runloop = aRunLoop;
     browser->runloopmode = mode;
-    
+
     // Testplant-MAL-09162016: if we're going to hang onto the pointer we should retain it...
     [browser->timer retain];
   }
@@ -712,9 +712,9 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) searchForAllDomains
 {
   DNSServiceFlags	flags = 0;
-  
+
   INTERNALTRACE;
-  
+
   flags = kDNSServiceFlagsBrowseDomains|kDNSServiceFlagsRegistrationDomains;
   [self searchForDomain: flags];
 }
@@ -728,7 +728,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) searchForBrowsableDomains
 {
   INTERNALTRACE;
-  
+
   [self searchForDomain: kDNSServiceFlagsBrowseDomains];
 }
 
@@ -741,7 +741,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) searchForRegistrationDomains
 {
   INTERNALTRACE;
-  
+
   [self searchForDomain: kDNSServiceFlagsRegistrationDomains];
 }
 
@@ -757,11 +757,11 @@ QueryCallback(DNSServiceRef			 sdRef,
   Browser		*browser;
   DNSServiceErrorType	err = kDNSServiceErr_NoError;
   DNSServiceFlags	flags = 0;
-  
+
   INTERNALTRACE;
-  
+
   browser = (Browser *) _reserved;
-  
+
   LOCK(browser);
   {
     do
@@ -771,13 +771,13 @@ QueryCallback(DNSServiceRef			 sdRef,
         err = NSNetServicesInvalidError;
         break;
       }
-      
+
       if (browser->timer)
       {
         err = NSNetServicesActivityInProgress;
         break;
       }
-      
+
       err = DNSServiceBrowse((DNSServiceRef *) &_netServiceBrowser,
                              flags,
                              browser->interfaceIndex,
@@ -789,7 +789,7 @@ QueryCallback(DNSServiceRef			 sdRef,
     while (0);
   }
   UNLOCK(browser);
-  
+
   [self executeWithError: err];
 }
 
@@ -802,15 +802,15 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) stop
 {
   Browser	*browser;
-  
+
   INTERNALTRACE;
-  
+
   browser = (Browser *) _reserved;
-  
+
   LOCK(browser);
   {
     [self cleanup];
-    
+
     [self netServiceBrowserDidStopSearch: self];
   }
   UNLOCK(browser);
@@ -826,24 +826,24 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (id) init
 {
   INTERNALTRACE;
-  
+
   if ((self = [super init]))
   {
     Browser	*browser;
-    
+
     browser = malloc(sizeof (struct _Browser));
     memset(browser, 0, sizeof &browser);
-    
+
     CREATELOCK(browser);
-    
+
     browser->runloop = nil;
     browser->runloopmode = nil;
     browser->timer = nil;
-    
+
     browser->services = [[NSMutableDictionary alloc] initWithCapacity: 1];
-    
+
     browser->interfaceIndex = 0;
-    
+
     _netServiceBrowser = NULL;
     [self setDelegate: nil];
     _reserved = browser;
@@ -860,23 +860,23 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) dealloc
 {
   Browser	*browser;
-  
+
   INTERNALTRACE;
-  
+
   browser = (Browser *) _reserved;
   {
     LOCK(browser);
     {
       [self cleanup];
-      
+
       DESTROY(browser->services);
-      
+
       [self setDelegate: nil];
     }
     UNLOCK(browser);
-    
+
     DESTROYLOCK(browser);
-    
+
     free(browser);
   }
   [super dealloc];
@@ -895,7 +895,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 + (void) initialize
 {
   INTERNALTRACE;
-  
+
   SETVERSION(GSMDNSNetService);
   {
 #ifndef _REENTRANT
@@ -913,11 +913,11 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) executeWithError: (DNSServiceErrorType) err
 {
   Service	*service;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   LOCK(service);
   {
     if (kDNSServiceErr_NoError == err)
@@ -930,13 +930,13 @@ QueryCallback(DNSServiceRef			 sdRef,
       {
         [self netServiceWillResolve: self];
       }
-      
+
       if (! service->runloop)
       {
         [self scheduleInRunLoop: [NSRunLoop currentRunLoop]
                         forMode: NSDefaultRunLoopMode];
       }
-      
+
 #if 0
       [service->runloop addTimer: service->timer
                          forMode: service->runloopmode];
@@ -971,11 +971,11 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) cleanup
 {
   Service	*service;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   LOCK(service);
   {
     if (service->runloop)
@@ -983,20 +983,20 @@ QueryCallback(DNSServiceRef			 sdRef,
       [self removeFromRunLoop: service->runloop
                       forMode: service->runloopmode];
     }
-    
+
     if (service->timer)
     {
       [service->timer invalidate];
       DESTROY(service->timer);
     }
-    
+
     // Testplant-MAL-09162016: Cocoa leaves this information intact on stop/cleanup...
     if (_netService)
     {
       DNSServiceRefDeallocate(_netService);
       _netService = NULL;
     }
-    
+
 #if 0
     [service->info removeAllObjects];
     [service->foundAddresses removeAllObjects];
@@ -1031,11 +1031,11 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) stopResolving: (id) sender
 {
   Service	*service;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   LOCK(service);
   if (service->timeout)
   {
@@ -1069,19 +1069,19 @@ QueryCallback(DNSServiceRef			 sdRef,
                    record: (const unsigned char *) txtRecord
 {
   Service	*service;
-  
+
   INTERNALTRACE;
 
   service = (Service *) _reserved;
-  
+
   LOCK(service);
-  
+
   if (_netService)
   {
     if (errorCode)
     {
       [self cleanup];
-      
+
       [self netService: self
          didNotResolve: CreateError(self, errorCode)];
     }
@@ -1089,50 +1089,50 @@ QueryCallback(DNSServiceRef			 sdRef,
     {
       NSData	*txt = nil;
       NSString	*target = nil;
-      
+
       // Add the TXT record
       txt = txtRecord
 	    ? [[NSData alloc] initWithBytes: txtRecord length: txtLen]
 	    : nil;
-      
+
       // Get the host
       target = hosttarget
 	    ? [[NSString alloc] initWithUTF8String: hosttarget]
 	    : nil;
-      
+
       // Add the port
       service->port = port;
-      
+
       // Remove the old TXT entry
       [service->info removeObjectForKey: @"TXT"];
-      
+
       if (txt)
 	    {
 	      [service->info setObject: txt forKey: @"TXT"];
 	      [txt release];
 	    }
-      
+
       // Remove the old host entry
       [service->info removeObjectForKey: @"Host"];
-      
+
       // Add the host if there is one
       if (target)
 	    {
 	      [service->info setObject: target forKey: @"Host"];
 	      [target release];
 	    }
-      
+
       /* Add the interface so all subsequent
        * queries are on the same interface
        */
       service->interfaceIndex = interfaceIndex;
-      
+
       if (service->timer)
       {
         [service->timer invalidate];
         DESTROY(service->timer);
       }
-      
+
       // Prepare query for A and/or AAAA record
       errorCode = DNSServiceQueryRecord((DNSServiceRef *) &_queryRef,
                                         flags,
@@ -1142,7 +1142,7 @@ QueryCallback(DNSServiceRef			 sdRef,
                                         kDNSServiceClass_IN,
                                         QueryCallback,
                                         self);
-      
+
       // No error? Then create a new timer
       if (kDNSServiceErr_NoError != errorCode)
       {
@@ -1159,7 +1159,7 @@ QueryCallback(DNSServiceRef			 sdRef,
                                                 userInfo: nil
                                                  repeats: YES] retain];
         [service->timer fire];
-        
+
         // notify the delegate
         [self netServiceDidResolveAddress: self];
 #else
@@ -1173,13 +1173,13 @@ QueryCallback(DNSServiceRef			 sdRef,
           struct  timeval	tout = { 0, 50 };
           fd_set  set;
           int     sock = DNSServiceRefSockFD(_queryRef);;
-        
+
           if (-1 != sock)
           {
             int selcode = 1;
             FD_ZERO(&set);
             FD_SET(sock, &set);
-            
+
             while ((selcode = select(sock + 1, &set, (fd_set *) NULL, (fd_set *) NULL, &tout)) == 1)
             {
               errorCode = DNSServiceProcessResult(_queryRef);
@@ -1195,7 +1195,7 @@ QueryCallback(DNSServiceRef			 sdRef,
           }
         }
 #endif
-        
+
 #if 0
         if (kDNSServiceErr_NoError != errorCode)
         {
@@ -1236,23 +1236,23 @@ QueryCallback(DNSServiceRef			 sdRef,
   NSString	*string;
 
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   if (nil == service->foundAddresses)
   {
     service->foundAddresses = [[NSMutableArray alloc] init];
   }
-  
+
   string = [NSString stringWithCString: addressString];
   if ([service->foundAddresses containsObject: string])
   {
     // duplicate, didn't add it
     return NO;
   }
-  
+
   [service->foundAddresses addObject: string];
-  
+
   return YES;
 }
 
@@ -1269,11 +1269,11 @@ QueryCallback(DNSServiceRef			 sdRef,
           interface: (uint32_t) interfaceIndex
 {
   Service	*service;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   LOCK(service);
   {
     NSData		*data = nil;
@@ -1282,44 +1282,44 @@ QueryCallback(DNSServiceRef			 sdRef,
     size_t		length = 0;
     const unsigned char	*rd = rdata;
     char		rdb[INET6_ADDRSTRLEN];
-    
+
     memset(rdb, 0, sizeof rdb);
-    
+
     addresses = [service->info objectForKey: @"Addresses"];
-    
+
     if (nil == addresses)
     {
       addresses = [[NSMutableArray alloc] initWithCapacity: 1];
     }
-    
+
     switch(rrtype)
     {
       case kDNSServiceType_A:		// AF_INET
       {
         struct sockaddr_in	ip4;
-        
+
         // oogly
         snprintf(rdb, sizeof(rdb),
                  "%d.%d.%d.%d", rd[0], rd[1], rd[2], rd[3]);
         LOG(@"Found IPv4 <%s> on port %d", rdb, ntohs(service->port));
-        
+
         length = sizeof (struct sockaddr_in);
         memset(&ip4, 0, length);
-        
+
         inet_pton(AF_INET, rdb, &ip4.sin_addr);
         ip4.sin_family = AF_INET;
         ip4.sin_port = service->port;
-        
+
         address = (struct sockaddr *) &ip4;
       }
         break;
-        
+
 #if defined(AF_INET6)
       case kDNSServiceType_AAAA:	// AF_INET6
       case kDNSServiceType_A6:		// deprecates AAAA
       {
         struct sockaddr_in6	ip6;
-        
+
         // Even more oogly
         snprintf(rdb, sizeof(rdb),
                  "%x%x:%x%x:%x%x:%x%x:%x%x:%x%x:%x%x:%x%x",
@@ -1328,10 +1328,10 @@ QueryCallback(DNSServiceRef			 sdRef,
                  rd[8], rd[9], rd[10], rd[11],
                  rd[12], rd[13], rd[14], rd[15]);
         LOG(@"Found IPv6 <%s> on port %d", rdb, ntohs(service->port));
-        
+
         length = sizeof (struct sockaddr_in6);
         memset(&ip6, 0, length);
-        
+
         inet_pton(AF_INET6, rdb, &ip6.sin6_addr);
 #if defined(HAVE_SA_LEN)
         ip6.sin6_len = sizeof ip6;
@@ -1340,28 +1340,28 @@ QueryCallback(DNSServiceRef			 sdRef,
         ip6.sin6_port = service->port;
         ip6.sin6_flowinfo = 0;
         ip6.sin6_scope_id = interfaceIndex;
-        
+
         address = (struct sockaddr *) &ip6;
       }
         break;
 #endif /* AF_INET6 */
-        
+
       default:
         LOG(@"Unkown type of length <%d>", rdlen);
         break;
     }
-    
+
     // check for duplicate entries
     if ([self addAddress: rdb])
     {
       // add it
       data = [NSData dataWithBytes: address
                             length: length];
-      
+
       [addresses addObject: data];
       [service->info setObject: addresses
                         forKey: @"Addresses"];
-      
+
       // got it, so invalidate the timeout
       [service->timeout invalidate];
       DESTROY(service->timeout);
@@ -1388,31 +1388,31 @@ QueryCallback(DNSServiceRef			 sdRef,
                    ttl: (uint32_t) ttl
 {
   Service	*service;
-  
+
   INTERNALTRACE;
 
   NSDebugMLLog(@"MDNS", @":DNSServiceRef: %p", sdRef);
 
   service = (Service *) _reserved;
-  
+
   LOCK(service);
-  
+
   if (_netService)
   {
     if (errorCode)
     {
       [self cleanup];
-      
+
 #if 0 // Duplicate invocation of netService:didNotResolve: causing crashes???
       [self netService: self
          didNotResolve: CreateError(self, errorCode)];
 #endif
-      
+
       UNLOCK(service);
-      
+
       return;
     }
-    
+
     switch(rrtype)
     {
       case kDNSServiceType_A:		// 1 -- AF_INET
@@ -1421,7 +1421,7 @@ QueryCallback(DNSServiceRef			 sdRef,
                     type: rrtype
                interface: interfaceIndex];
         break;
-        
+
       case kDNSServiceType_NS:
       case kDNSServiceType_MD:
       case kDNSServiceType_MF:
@@ -1438,25 +1438,25 @@ QueryCallback(DNSServiceRef			 sdRef,
       case kDNSServiceType_MX:		// 15
         // not handled (yet)
         break;
-        
+
       case kDNSServiceType_TXT:
 	    {
 	      NSData
         *data = nil;
-	      
+
 	      data = [NSData dataWithBytes: rdata
                               length: rdlen];
-	      
+
 	      [service->info removeObjectForKey: @"TXT"];
 	      [service->info setObject: data
                           forKey: @"TXT"];
-	      
+
 	      [self        netService: self
 	       didUpdateTXTRecordData: data];
-        
+
 	    }
         break;
-        
+
       case kDNSServiceType_RP:
       case kDNSServiceType_AFSDB:
       case kDNSServiceType_X25:
@@ -1470,14 +1470,14 @@ QueryCallback(DNSServiceRef			 sdRef,
       case kDNSServiceType_GPOS:
         // not handled (yet)
         break;
-        
+
       case kDNSServiceType_AAAA:	// 28 -- AF_INET6
         [self addAddress: rdata
                   length: rdlen
                     type: rrtype
                interface: interfaceIndex];
         break;
-        
+
       case kDNSServiceType_LOC:
       case kDNSServiceType_NXT:		// 30
       case kDNSServiceType_EID:
@@ -1489,20 +1489,20 @@ QueryCallback(DNSServiceRef			 sdRef,
       case kDNSServiceType_CERT:
         // not handled (yet)
         break;
-        
+
       case kDNSServiceType_A6:	// 38 -- AF_INET6, deprecates AAAA
         [self addAddress: rdata
                   length: rdlen
                     type: rrtype
                interface: interfaceIndex];
         break;
-        
+
       case kDNSServiceType_DNAME:
       case kDNSServiceType_SINK:	// 40
       case kDNSServiceType_OPT:
         // not handled (yet)
         break;
-        
+
       case kDNSServiceType_TKEY:	// 249
       case kDNSServiceType_TSIG:	// 250
       case kDNSServiceType_IXFR:
@@ -1511,11 +1511,11 @@ QueryCallback(DNSServiceRef			 sdRef,
       case kDNSServiceType_MAILA:
         // not handled (yet)
         break;
-        
+
       case kDNSServiceType_ANY:
         LOG(@"Oops, got the wildcard match...");
         break;
-        
+
       default:
         LOG(@"Don't know how to handle rrtype <%d>", rrtype);
         break;
@@ -1538,19 +1538,19 @@ QueryCallback(DNSServiceRef			 sdRef,
                    domain: (const char *) domain
 {
   Service	*service;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   LOCK(service);
-  
+
   if (_netService)
   {
     if (errorCode)
     {
       [self cleanup];
-      
+
       [self netService: self
          didNotPublish: CreateError(self, errorCode)];
     }
@@ -1574,7 +1574,7 @@ QueryCallback(DNSServiceRef			 sdRef,
   struct timeval	tout = { 0 };
   fd_set		set;
   DNSServiceErrorType	err = kDNSServiceErr_NoError;
-  
+
   sock = DNSServiceRefSockFD(_netService);
 
   if (-1 != sock)
@@ -1582,7 +1582,7 @@ QueryCallback(DNSServiceRef			 sdRef,
     int selcode;
     FD_ZERO(&set);
     FD_SET(sock, &set);
-    
+
     selcode = select(sock + 1, &set, (fd_set *) NULL, (fd_set *) NULL, &tout);
     if (1 == selcode)
     {
@@ -1597,9 +1597,9 @@ QueryCallback(DNSServiceRef			 sdRef,
   if (kDNSServiceErr_NoError != err)
   {
     Service	*service;
-    
+
     service = (Service *) _reserved;
-    
+
     if (YES == service->isPublishing)
     {
       [self netService: self
@@ -1625,64 +1625,64 @@ QueryCallback(DNSServiceRef			 sdRef,
   NSArray	*keys = nil;
   NSArray	*values = nil;
   int		count = 0;
-  
+
   INTERNALTRACE;
-  
+
   count = [txtDictionary count];
-  
+
   if (count)
   {
     keys = [txtDictionary allKeys];
     values = [txtDictionary allValues];
-    
+
     if (keys && values)
     {
       TXTRecordRef	txt;
       int		i = 0;
       char		key[256];
-      
+
       TXTRecordCreate(&txt, 0, NULL);
-      
+
       for (; i < count; i++)
 	    {
 	      int			length = 0;
 	      int			used = 0;
 	      DNSServiceErrorType err = kDNSServiceErr_Unknown;
-	      
+
 	      if (! [[keys objectAtIndex: i] isKindOfClass: [NSString class]])
         {
           LOG(@"%@ is not a string", [keys objectAtIndex: i]);
           break;
         }
-	      
+
 	      length = [[keys objectAtIndex: i] length];
 	      [[keys objectAtIndex: i] getCString: key
                                   maxLength: sizeof key];
 	      used = strlen(key);
-	      
+
 	      if (! length || (used >= sizeof key))
         {
           LOG(@"incorrect length %d - %d - %d",
               length, used, sizeof key);
           break;
         }
-	      
+
 	      if ([[values objectAtIndex: i] isKindOfClass: [NSString class]])
         {
           char	value[256];
-          
+
           length = [[values objectAtIndex: i] length];
           [[values objectAtIndex: i] getCString: value
                                       maxLength: sizeof value];
           used = strlen(value);
-          
+
           if (used >= sizeof value)
           {
             LOG(@"incorrect length %d - %d - %d",
                 length, used, sizeof value);
             break;
           }
-          
+
           err = TXTRecordSetValue(&txt,
                                   (const char *) key,
                                   used,
@@ -1709,27 +1709,27 @@ QueryCallback(DNSServiceRef			 sdRef,
           LOG(@"unknown value type");
           break;
         }
-	      
+
 	      if (err != kDNSServiceErr_NoError)
         {
           LOG(@"error creating data type");
           break;
         }
 	    }
-      
+
       if (i == count)
 	    {
 	      result = [NSData dataWithBytes: TXTRecordGetBytesPtr(&txt)
                                 length: TXTRecordGetLength(&txt)];
 	    }
-      
+
       TXTRecordDeallocate(&txt);
     }
     else
     {
       LOG(@"No keys or values");
     }
-    
+
     // both are autorelease'd
     keys = nil;
     values = nil;
@@ -1752,12 +1752,12 @@ QueryCallback(DNSServiceRef			 sdRef,
   NSMutableDictionary	*result = nil;
   int			len = 0;
   const void		*txt = 0;
-  
+
   INTERNALTRACE;
-  
+
   len = [txtData length];
   txt = [txtData bytes];
-  
+
   //
   // A TXT record cannot exceed 65535 bytes, see Chapter 6.1 of
   // http://files.dns-sd.org/draft-cheshire-dnsext-dns-sd.txt
@@ -1766,11 +1766,11 @@ QueryCallback(DNSServiceRef			 sdRef,
   {
     uint16_t	i = 0;
     uint16_t	count = 0;
-    
+
     // get number of keys
     count = TXTRecordGetCount(len, txt);
     result = [NSMutableDictionary dictionaryWithCapacity: 1];
-    
+
     if (result)
     {
       // go through all keys
@@ -1780,25 +1780,25 @@ QueryCallback(DNSServiceRef			 sdRef,
 	      uint8_t			valLen = 0;
 	      const void		*value = NULL;
 	      DNSServiceErrorType	err = kDNSServiceErr_NoError;
-	      
+
 	      err = TXTRecordGetItemAtIndex(len, txt, i,
                                       sizeof key, key,
                                       &valLen, &value);
-	      
+
 	      // only if we can get the key and value...
 	      if (kDNSServiceErr_NoError == err)
         {
           NSData	*data = nil;
           NSString	*str = nil;
-          
+
           str = [NSString stringWithUTF8String: key];
-          
+
           if (value)
           {
             data = [NSData dataWithBytes: value
                                   length: valLen];
           }
-          
+
           if (data && str && [str length]
               && ! [result objectForKey: str])
           {
@@ -1818,7 +1818,7 @@ QueryCallback(DNSServiceRef			 sdRef,
             [result setValue: [NSNull null]
                       forKey: str];
           }
-          
+
           // both are autorelease'd
           data = nil;
           str = nil;
@@ -1852,7 +1852,7 @@ QueryCallback(DNSServiceRef			 sdRef,
                  name: (NSString *) name
 {
   INTERNALTRACE;
-  
+
   return [self initWithDomain: domain
                          type: type
                          name: name
@@ -1871,21 +1871,21 @@ QueryCallback(DNSServiceRef			 sdRef,
                  port: (NSInteger) port
 {
   INTERNALTRACE;
-  
+
   if ((self = [super init]))
   {
     Service	*service;
-    
+
     service = malloc(sizeof (struct _Service));
     memset(service, 0, sizeof &service);
-    
+
     CREATELOCK(service);
-    
+
     service->runloop = nil;
     service->runloopmode = nil;
     service->timer = nil;
     service->timeout = nil;
-    
+
     service->info = [[NSMutableDictionary alloc] initWithCapacity: 3];
     [service->info setObject: [[domain copy] autorelease]
                       forKey: @"Domain"];
@@ -1893,24 +1893,24 @@ QueryCallback(DNSServiceRef			 sdRef,
                       forKey: @"Name"];
     [service->info setObject: [[type copy] autorelease]
                       forKey: @"Type"];
-    
+
     service->foundAddresses = nil;
-    
+
     service->interfaceIndex = 0;
     service->port = htons(port);
-    
+
     service->monitor = nil;
-    
+
     service->isPublishing = (-1 == port) ? NO : YES;
     service->isMonitoring = NO;
-    
+
     _netService = NULL;
     [self setDelegate: nil];
     _reserved = service;
-    
+
     return self;
   }
-  
+
   return nil;
 }
 
@@ -1924,11 +1924,11 @@ QueryCallback(DNSServiceRef			 sdRef,
                    forMode: (NSString *) mode
 {
   Service	*service;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   LOCK(service);
   {
     if (service->timer)
@@ -1936,10 +1936,10 @@ QueryCallback(DNSServiceRef			 sdRef,
       [service->timer invalidate];
       DESTROY(service->timer);
     }
-    
+
     // Do not release the runloop!
     service->runloop = nil;
-    
+
     DESTROY(service->runloopmode);
   }
   UNLOCK(service);
@@ -1955,11 +1955,11 @@ QueryCallback(DNSServiceRef			 sdRef,
                    forMode: (NSString *) mode
 {
   Service	*service;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   LOCK(service);
   {
     if (service->timer)
@@ -1967,13 +1967,13 @@ QueryCallback(DNSServiceRef			 sdRef,
       [service->timer invalidate];
       DESTROY(service->timer);
     }
-    
+
     service->timer = [[NSTimer timerWithTimeInterval: INTERVAL
                                               target: self
                                             selector: @selector(loop:)
                                             userInfo: nil
                                              repeats: YES] retain];
-    
+
     service->runloop = aRunLoop;
     service->runloopmode = mode;
   }
@@ -1990,11 +1990,11 @@ QueryCallback(DNSServiceRef			 sdRef,
 {
   Service		*service;
   DNSServiceErrorType	err = kDNSServiceErr_NoError;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   LOCK(service);
   {
     do
@@ -2005,19 +2005,19 @@ QueryCallback(DNSServiceRef			 sdRef,
         err = NSNetServicesBadArgumentError;
         break;
       }
-      
+
       if (service->timer)
       {
         err = NSNetServicesActivityInProgress;
         break;
       }
-      
+
       if (service->timeout)
       {
         [service->timeout invalidate];
         DESTROY(service->timeout);
       }
-      
+
       err = DNSServiceRegister((DNSServiceRef *) &_netService,
                                flags, service->interfaceIndex,
                                [[service->info objectForKey: @"Name"] UTF8String],
@@ -2029,7 +2029,7 @@ QueryCallback(DNSServiceRef			 sdRef,
     while (0);
   }
   UNLOCK(service);
-  
+
   [self executeWithError: err];
 }
 
@@ -2057,7 +2057,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) resolve
 {
   INTERNALTRACE;
-  
+
   [self resolveWithTimeout: 5];
 }
 
@@ -2072,11 +2072,11 @@ QueryCallback(DNSServiceRef			 sdRef,
   Service		*service;
   DNSServiceErrorType	err = kDNSServiceErr_NoError;
   DNSServiceFlags	flags = 0;
-  
+
   INTERNALTRACE;
 
   service = (Service *) _reserved;
-  
+
   LOCK(service);
   {
     do
@@ -2087,31 +2087,31 @@ QueryCallback(DNSServiceRef			 sdRef,
         err = NSNetServicesBadArgumentError;
         break;
       }
-      
+
       if (! [self delegate])
       {
         err = NSNetServicesInvalidError;
         break;
       }
-      
+
       if (service->timer)
       {
         err = NSNetServicesActivityInProgress;
         break;
       }
-      
+
       if (service->timeout)
       {
         [service->timeout invalidate];
         DESTROY(service->timeout);
       }
-      
+
       service->timeout = [[NSTimer timerWithTimeInterval: timeout + SHORTTIMEOUT
                                                            target: self
                                                          selector: @selector(stopResolving:)
                                                          userInfo: nil
                                                           repeats: NO] retain];
-      
+
       err = DNSServiceResolve((DNSServiceRef *) &_netService,
                               flags,
                               service->interfaceIndex,
@@ -2137,17 +2137,17 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) stop
 {
   Service	*service;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   if (service->timer)
   {
     LOCK(service);
     {
       [self cleanup];
-      
+
       [self netServiceDidStop: self];
     }
     UNLOCK(service);
@@ -2163,11 +2163,11 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) startMonitoring
 {
   Service	*service;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   LOCK(service);
   {
     // Obviously this will only work on a resolver
@@ -2177,11 +2177,11 @@ QueryCallback(DNSServiceRef			 sdRef,
       {
         service->monitor
 	      = [[GSMDNSNetServiceMonitor alloc] initWithDelegate: self];
-        
+
         [service->monitor scheduleInRunLoop: service->runloop
                                     forMode: service->runloopmode];
         [service->monitor start];
-        
+
         service->isMonitoring = YES;
       }
     }
@@ -2198,11 +2198,11 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) stopMonitoring
 {
   Service	*service;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   LOCK(service);
   {
     if (! service->isPublishing)
@@ -2210,7 +2210,7 @@ QueryCallback(DNSServiceRef			 sdRef,
       if (service->isMonitoring)
       {
         [service->monitor stop];
-        
+
         // Probably don't need it anymore, so release it
         DESTROY(service->monitor);
         service->isMonitoring = NO;
@@ -2229,7 +2229,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (NSArray *) addresses
 {
   INTERNALTRACE;
-  
+
   return [((Service*)_reserved)->info objectForKey: @"Addresses"];
 }
 
@@ -2242,7 +2242,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (NSString *) domain
 {
   INTERNALTRACE;
-  
+
   return [((Service*)_reserved)->info objectForKey: @"Domain"];
 }
 
@@ -2255,7 +2255,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (NSString *) hostName
 {
   INTERNALTRACE;
-  
+
   return [((Service*)_reserved)->info objectForKey: @"Host"];
 }
 
@@ -2268,7 +2268,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (NSString *) name
 {
   INTERNALTRACE;
-  
+
   return [((Service*)_reserved)->info objectForKey: @"Name"];
 }
 
@@ -2288,7 +2288,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (NSString *) type
 {
   INTERNALTRACE;
-  
+
   return [((Service*)_reserved)->info objectForKey: @"Type"];
 }
 
@@ -2302,17 +2302,17 @@ QueryCallback(DNSServiceRef			 sdRef,
 {
   NSString	*retVal = nil;
   Service		*service;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   LOCK(service);
   {
     retVal = [super protocolSpecificInformation];
   }
   UNLOCK(service);
-  
+
   return retVal;
 }
 
@@ -2325,11 +2325,11 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) setProtocolSpecificInformation: (NSString *) specificInformation
 {
   Service	*service;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   //
   // Again, the following may not be entirely correct...
   //
@@ -2349,7 +2349,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (NSData *) TXTRecordData
 {
   INTERNALTRACE;
-  
+
   return [((Service*)_reserved)->info objectForKey: @"TXT"];
 }
 
@@ -2363,11 +2363,11 @@ QueryCallback(DNSServiceRef			 sdRef,
 {
   Service	*service;
   BOOL		result = NO;
-  
+
   INTERNALTRACE;
-  
+
   service = (Service *) _reserved;
-  
+
   LOCK(service);
   {
     // Not allowed on a resolver...
@@ -2375,7 +2375,7 @@ QueryCallback(DNSServiceRef			 sdRef,
     {
       DNSServiceErrorType
       err = kDNSServiceErr_NoError;
-      
+
       // Set the value, or remove it if empty
       if (recordData)
       {
@@ -2386,10 +2386,10 @@ QueryCallback(DNSServiceRef			 sdRef,
       {
         [service->info removeObjectForKey: @"TXT"];
       }
-      
+
       // Assume it worked
       result = YES;
-      
+
       // Now update the record so others can pick it up
       err = DNSServiceUpdateRecord(_netService,
                                    NULL,
@@ -2404,7 +2404,7 @@ QueryCallback(DNSServiceRef			 sdRef,
     }
   }
   UNLOCK(service);
-  
+
   return result;
 }
 
@@ -2420,7 +2420,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 {
   id delegate = [self delegate];
   INTERNALTRACE;
-  
+
   if ([delegate respondsToSelector:
        @selector(netService:didUpdateTXTRecordData:)])
   {
@@ -2438,12 +2438,12 @@ QueryCallback(DNSServiceRef			 sdRef,
       didNotMonitor: (NSDictionary *) errorDict
 {
   INTERNALTRACE;
-  
+
   // This method is kind of a misnomer. It's called whenever NSNetMonitor
   // encounters an error while monitoring.
   // All we do is stop monitoring -- which we COULD do from NSNetMonitor
   // directly, but this seems to be much cleaner.
-  
+
   [self stopMonitoring];
 }
 
@@ -2468,7 +2468,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) dealloc
 {
   Service	*service;
- 
+
   INTERNALTRACE;
   service = (Service *) _reserved;
   {
@@ -2477,14 +2477,14 @@ QueryCallback(DNSServiceRef			 sdRef,
       [self stopMonitoring];
       [self stopResolving: self];
       [self cleanup];
-      
+
       DESTROY(service->info);
       DESTROY(service->foundAddresses);
     }
     UNLOCK(service);
-    
+
     DESTROYLOCK(service);
-    
+
     free(service);
   }
   [self setDelegate: nil];
@@ -2504,7 +2504,7 @@ QueryCallback(DNSServiceRef			 sdRef,
 + (void) initialize
 {
   INTERNALTRACE;
-  
+
   SETVERSION(GSMDNSNetServiceMonitor);
 }
 
@@ -2520,24 +2520,24 @@ QueryCallback(DNSServiceRef			 sdRef,
   struct timeval	tout = { 0 };
   fd_set		set;
   DNSServiceErrorType	err = kDNSServiceErr_NoError;
-  
+
   sock = DNSServiceRefSockFD(_netServiceMonitor);
-  
+
   if (-1 != sock)
   {
     FD_ZERO(&set);
     FD_SET(sock, &set);
-    
+
     if (1 == select(sock + 1, &set, (fd_set *) NULL, (fd_set *) NULL, &tout))
     {
       err = DNSServiceProcessResult(_netServiceMonitor);
     }
   }
-  
+
   if (kDNSServiceErr_NoError != err)
   {
     LOG(@"Error <%d> while monitoring", err);
-    
+
     [_delegate netService: _delegate
             didNotMonitor: CreateError(self, err)];
   }
@@ -2561,13 +2561,13 @@ QueryCallback(DNSServiceRef			 sdRef,
                    ttl: (uint32_t) ttl
 {
   Monitor	*monitor;
-  
+
   INTERNALTRACE;
-  
+
   monitor = (Monitor *) _reserved;
-  
+
   LOCK(monitor);
-  
+
   if (_delegate)
   {
     // we are 'monitoring' kDNSServiceType_TXT
@@ -2596,20 +2596,20 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (id) initWithDelegate: (id) delegate
 {
   INTERNALTRACE;
-  
+
   if ((self = [super init]) != nil)
   {
     Monitor	*monitor;
-    
+
     monitor = malloc(sizeof (struct _Monitor));
     memset(monitor, 0, sizeof &monitor);
-    
+
     CREATELOCK(monitor);
-    
+
     monitor->runloop = nil;
     monitor->runloopmode = nil;
     monitor->timer = nil;
-    
+
     _netServiceMonitor = NULL;
     _delegate = [delegate retain];
     _reserved = monitor;
@@ -2627,11 +2627,11 @@ QueryCallback(DNSServiceRef			 sdRef,
                    forMode: (NSString *) mode
 {
   Monitor	*monitor;
-  
+
   INTERNALTRACE;
-  
+
   monitor = (Monitor *) _reserved;
-  
+
   LOCK(monitor);
   {
     if (monitor->timer)
@@ -2640,10 +2640,10 @@ QueryCallback(DNSServiceRef			 sdRef,
       [monitor->timer invalidate];
       monitor->timer = nil;
     }
-    
+
     // Do not release the runloop!
     monitor->runloop = nil;
-    
+
     // [monitor->runloopmode release];
     monitor->runloopmode = nil;
   }
@@ -2660,11 +2660,11 @@ QueryCallback(DNSServiceRef			 sdRef,
                    forMode: (NSString *) mode
 {
   Monitor	*monitor;
-  
+
   INTERNALTRACE;
-  
+
   monitor = (Monitor *) _reserved;
-  
+
   LOCK(monitor);
   {
     if (monitor->timer)
@@ -2673,7 +2673,7 @@ QueryCallback(DNSServiceRef			 sdRef,
       [monitor->timer invalidate];
       monitor->timer = nil;
     }
-    
+
     monitor->runloop = aRunLoop;
     monitor->runloopmode = mode;
   }
@@ -2689,17 +2689,17 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) start
 {
   Monitor	*monitor;
-  
+
   INTERNALTRACE;
-  
+
   monitor = (Monitor *) _reserved;
-  
+
   LOCK(monitor);
   {
     DNSServiceErrorType	err = kDNSServiceErr_NoError;
     DNSServiceFlags	flags = kDNSServiceFlagsLongLivedQuery;
     NSString		*fullname = nil;
-    
+
     do
     {
       if (! _delegate)
@@ -2707,16 +2707,16 @@ QueryCallback(DNSServiceRef			 sdRef,
         err = NSNetServicesInvalidError;
         break;
       }
-      
+
       if (monitor->timer)
       {
         err = NSNetServicesActivityInProgress;
         break;
       }
-      
+
       fullname = [NSString stringWithFormat: @"%@.%@%@",
                   [_delegate name], [_delegate type], [_delegate domain]];
-      
+
       err = DNSServiceQueryRecord((DNSServiceRef *) &_netServiceMonitor,
                                   flags,
                                   0,
@@ -2725,7 +2725,7 @@ QueryCallback(DNSServiceRef			 sdRef,
                                   kDNSServiceClass_IN,
                                   QueryCallback,
                                   self);
-      
+
       if (kDNSServiceErr_NoError == err)
       {
         monitor->timer = [NSTimer timerWithTimeInterval: INTERVAL
@@ -2733,10 +2733,10 @@ QueryCallback(DNSServiceRef			 sdRef,
                                                selector: @selector(loop:)
                                                userInfo: nil
                                                 repeats: YES];
-        
+
         [monitor->runloop addTimer: monitor->timer
                            forMode: monitor->runloopmode];
-        
+
         [monitor->timer fire];
       }
     }
@@ -2754,11 +2754,11 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) stop
 {
   Monitor	*monitor;
-  
+
   INTERNALTRACE;
-  
+
   monitor = (Monitor *) _reserved;
-  
+
   LOCK(monitor);
   {
     if (monitor->runloop)
@@ -2766,13 +2766,13 @@ QueryCallback(DNSServiceRef			 sdRef,
       [self removeFromRunLoop: monitor->runloop
                       forMode: monitor->runloopmode];
     }
-    
+
     if (monitor->timer)
     {
       [monitor->timer invalidate];
       monitor->timer = nil;
     }
-    
+
     if (_netServiceMonitor)
     {
       DNSServiceRefDeallocate(_netServiceMonitor);
@@ -2803,21 +2803,21 @@ QueryCallback(DNSServiceRef			 sdRef,
 - (void) dealloc
 {
   Monitor	*monitor;
-  
+
   INTERNALTRACE;
-  
+
   monitor = (Monitor *) _reserved;
   {
     LOCK(monitor);
     {
       [self stop];
-      
+
       _delegate = nil;
     }
     UNLOCK(monitor);
-    
+
     DESTROYLOCK(monitor);
-    
+
     free(monitor);
   }
   [super dealloc];
@@ -2836,19 +2836,19 @@ CreateError(id sender, int errorCode)
 {
   NSMutableDictionary	*dictionary = nil;
   int			error = 0;
-  
+
   INTERNALTRACE;
-  
+
   dictionary = [NSMutableDictionary dictionary];
   error = ConvertError(errorCode);
-  
+
   LOG(@"%@ says error <%d> - <%d>", [sender description], errorCode, error);
-  
+
   [dictionary setObject: [NSNumber numberWithInt: error]
                  forKey: NSNetServicesErrorCode];
   [dictionary setObject: sender
                  forKey: NSNetServicesErrorDomain];
-  
+
   return dictionary; // autorelease'd
 }
 
@@ -2862,59 +2862,59 @@ static int
 ConvertError(int errorCode)
 {
   INTERNALTRACE;
-  
+
   switch(errorCode)
   {
     case kDNSServiceErr_Unknown:
       return NSNetServicesUnknownError;
-      
+
     case kDNSServiceErr_NoSuchName:
       return NSNetServicesNotFoundError;
-      
+
     case kDNSServiceErr_NoMemory:
       return NSNetServicesUnknownError;
-      
+
     case kDNSServiceErr_BadParam:
     case kDNSServiceErr_BadReference:
     case kDNSServiceErr_BadState:
     case kDNSServiceErr_BadFlags:
       return NSNetServicesBadArgumentError;
-      
+
     case kDNSServiceErr_Unsupported:
       return NSNetServicesUnknownError;
-      
+
     case kDNSServiceErr_NotInitialized:
       return NSNetServicesInvalidError;
-      
+
     case kDNSServiceErr_AlreadyRegistered:
     case kDNSServiceErr_NameConflict:
       return NSNetServicesCollisionError;
-      
+
     case kDNSServiceErr_Invalid:
       return NSNetServicesInvalidError;
-      
+
     case kDNSServiceErr_Firewall:
       return NSNetServicesUnknownError;
-      
+
     case kDNSServiceErr_Incompatible:
       // The client library is incompatible with the daemon
       return NSNetServicesInvalidError;
-      
+
     case kDNSServiceErr_BadInterfaceIndex:
     case kDNSServiceErr_Refused:
       return NSNetServicesUnknownError;
-      
+
     case kDNSServiceErr_NoSuchRecord:
     case kDNSServiceErr_NoAuth:
     case kDNSServiceErr_NoSuchKey:
       return NSNetServicesNotFoundError;
-      
+
     case kDNSServiceErr_NATTraversal:
     case kDNSServiceErr_DoubleNAT:
     case kDNSServiceErr_BadTime:
       return NSNetServicesUnknownError;
   }
-  
+
   return errorCode;
 }
 
@@ -3051,4 +3051,3 @@ QueryCallback(DNSServiceRef sdRef,
                          data: rdata
                           ttl: ttl];
 }
-
