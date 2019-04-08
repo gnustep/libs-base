@@ -833,6 +833,31 @@ static Class concreteMutableClass = nil;
     return nil;
 }
 
++ (id) URLFragmentAllowedCharacterSet;
+{
+  return nil;
+}
+
++ (id) URLPasswordAllowedCharacterSet;
+{
+  return nil;
+}
+
++ (id) URLPathAllowedCharacterSet;
+{
+  return nil;
+}
+
++ (id) URLQueryAllowedCharacterSet;
+{
+  return nil;
+}
+
++ (id) URLUserAllowedCharacterSet
+{
+  return nil;
+}
+
 - (NSData*) bitmapRepresentation
 {
   BOOL		(*imp)(id, SEL, unichar);

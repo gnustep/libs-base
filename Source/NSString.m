@@ -1949,6 +1949,16 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   return s;
 }
 
+- (NSString *) stringByAddingPercentWithAllowedCharacters: (NSCharacterSet *)aSet
+{
+  return nil;
+}
+
+- (NSString *) stringByRemovingEscapeEncoding
+{
+  return nil;
+}
+
 /**
  * Constructs a new string consisting of this instance followed by the string
  * specified by format.

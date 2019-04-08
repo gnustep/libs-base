@@ -98,6 +98,36 @@ extern "C" {
  * 0x000A and 0x000D and nextline 0x0085 character.
  */
 + (id) newlineCharacterSet;
+
+/**
+ * Returns allowed characers for URL fragment component.
+ */
++ (id) URLFragmentAllowedCharacterSet;
+
+/**
+ * Returns allowed characers for URL host component.
+ */
++ (id) URLFragmentAllowedCharacterSet;
+
+/**
+ * Returns allowed characers for URL password component.
+ */
++ (id) URLPasswordAllowedCharacterSet;
+
+/**
+ * Returns allowed characers for URL path component.
+ */
++ (id) URLPathAllowedCharacterSet;
+
+/**
+ * Returns allowed characers for URL query component.
+ */
++ (id) URLQueryAllowedCharacterSet;
+
+/**
+ * Returns allowed characers for URL USER component.
+ */
++ (id) URLUserAllowedCharacterSet;
 #endif
 
 /**

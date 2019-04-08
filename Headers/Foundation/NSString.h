@@ -800,6 +800,8 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 - (NSString*) stringByReplacingPercentEscapesUsingEncoding: (NSStringEncoding)e;
 - (NSString*) stringByTrimmingCharactersInSet: (NSCharacterSet*)aSet;
 - (const char *)UTF8String;
+- (NSString *) stringByAddingPercentWithAllowedCharacters: (NSCharacterSet *)aSet;
+- (NSString *) stringByRemovingEscapeEncoding;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_3,GS_API_LATEST) 
