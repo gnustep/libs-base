@@ -49,6 +49,12 @@
 #undef	GNUSTEP_INDEX_CHARSET
 
 #import "NSCharacterSetData.h"
+#import "CharSets/URLFragmentAllowedCharSet.h"
+#import "CharSets/URLHostAllowedCharSet.h"
+#import "CharSets/URLPasswordAllowedCharSet.h"
+#import "CharSets/URLPathAllowedCharSet.h"
+#import "CharSets/URLQueryAllowedCharSet.h"
+#import "CharSets/URLUserAllowedCharSet.h"
 
 #define GSUNICODE_MAX	1114112
 #define GSBITMAP_SIZE	8192
@@ -835,27 +841,37 @@ static Class concreteMutableClass = nil;
 
 + (id) URLFragmentAllowedCharacterSet;
 {
-  return nil;
+  return [self _staticSet: urlFragmentAllowedCharSet
+		   length: sizeof(urlFragmentAllowedCharSet)
+		   number: 0];
 }
 
 + (id) URLPasswordAllowedCharacterSet;
 {
-  return nil;
+  return [self _staticSet: urlPasswordAllowedCharSet
+		   length: sizeof(urlPasswordAllowedCharSet)
+		   number: 0];
 }
 
 + (id) URLPathAllowedCharacterSet;
 {
-  return nil;
+  return [self _staticSet: urlPathAllowedCharSet
+		   length: sizeof(urlPathAllowedCharSet)
+		   number: 0];
 }
 
 + (id) URLQueryAllowedCharacterSet;
 {
-  return nil;
+  return [self _staticSet: urlQueryAllowedCharSet
+		   length: sizeof(urlQueryAllowedCharSet)
+		   number: 0];
 }
 
 + (id) URLUserAllowedCharacterSet
 {
-  return nil;
+  return [self _staticSet: urlUserAllowedCharSet
+		   length: sizeof(urlUserAllowedCharSet)
+		   number: 0];
 }
 
 - (NSData*) bitmapRepresentation
