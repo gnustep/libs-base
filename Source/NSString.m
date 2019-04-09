@@ -1902,31 +1902,25 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
       dst = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), slen * 3);
       while (spos < slen)
 	{
-	  unsigned char	c = src[spos++];
+	  unichar	c = src[spos++];
 	  unsigned int	hi;
 	  unsigned int	lo;
 
-	  if([aSet characterIsMember: c])
+	  if([aSet characterIsMember: c]) // if the character is in the allowed set, put it in
 	    {
-
-	      if (c <= 32 || c > 126 || c == 34 || c == 35 || c == 37
-		  || c == 60 || c == 62 || c == 91 || c == 92 || c == 93
-		  || c == 94 || c == 96 || c == 123 || c == 124 || c == 125)
-		{
-		  dst[dpos++] = '%';
-		  hi = (c & 0xf0) >> 4;
-		  dst[dpos++] = (hi > 9) ? 'A' + hi - 10 : '0' + hi;
-		  lo = (c & 0x0f);
-		  dst[dpos++] = (lo > 9) ? 'A' + lo - 10 : '0' + lo;
-		}
-	      else
-		{
-		  dst[dpos++] = c;
-		}
+	      dst[dpos++] = c;
+	    }
+	  else // if not, then encode it...
+	    {
+	      dst[dpos++] = '%';
+	      hi = (c & 0xf0) >> 4;
+	      dst[dpos++] = (hi > 9) ? 'A' + hi - 10 : '0' + hi;
+	      lo = (c & 0x0f);
+	      dst[dpos++] = (lo > 9) ? 'A' + lo - 10 : '0' + lo;
 	    }
 	  s = [[NSString alloc] initWithBytes: dst
 				       length: dpos
-				     encoding: NSASCIIStringEncoding];
+				     encoding: NSUTF8StringEncoding];
 	  NSZoneFree(NSDefaultMallocZone(), dst);
 	  IF_NO_GC([s autorelease];)
 	}
