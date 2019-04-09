@@ -276,6 +276,14 @@ GSPathHandling(const char *mode)
     }
 }
 
+inline int ishex(int x)
+{
+  return
+    (x >= '0' && x <= '9')	||
+    (x >= 'a' && x <= 'f')	||
+    (x >= 'A' && x <= 'F');
+}
+
 #define	GSPathHandlingRight()	\
   ((pathHandling == PH_DO_THE_RIGHT_THING) ? YES : NO)
 #define	GSPathHandlingUnix()	\
@@ -1930,7 +1938,28 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
 - (NSString *) stringByRemovingPercentEncoding
 {
-  return nil;
+  NSData *data = [self dataUsingEncoding: NSUTF8StringEncoding];
+  char *s = (char *)[data bytes];
+  char *o;
+  const char *end = s + strlen(s);
+  int c;
+  
+  for (o = 0; s <= end; o++) {
+    c = *s++;
+    if (c == '+')
+      {
+	c = ' ';
+      }
+    else if (c == '%' &&
+	     (!ishex(*s++) ||
+	      !ishex(*s++) ||
+	      !sscanf(s - 2, "%2x", &c)))
+      {
+	return nil;
+      }
+  }
+  
+  return [NSString stringWithCString: o encoding: NSUTF8StringEncoding];
 }
 
 /**
