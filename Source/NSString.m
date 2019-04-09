@@ -1886,7 +1886,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     }
 }
 
-- (NSString *) stringByAddingPercentWithAllowedCharacters: (NSCharacterSet *)aSet
+- (NSString *) stringByAddingPercentEncodingWithAllowedCharacters: (NSCharacterSet *)aSet
 {
   NSData	*data = [self dataUsingEncoding: NSUTF8StringEncoding];
   NSString	*s = nil;
@@ -1934,7 +1934,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   return s;
 }
 
-- (NSString *) stringByRemovingEscapeEncoding
+- (NSString *) stringByRemovingPercentEncoding
 {
   return nil;
 }
