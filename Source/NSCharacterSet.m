@@ -874,6 +874,13 @@ static Class concreteMutableClass = nil;
 		   number: 0];
 }
 
++ (id) URLHostAllowedCharacterSet
+{
+  return [self _staticSet: urlHostAllowedCharSet
+		   length: sizeof(urlHostAllowedCharSet)
+		   number: 0];
+}
+
 - (NSData*) bitmapRepresentation
 {
   BOOL		(*imp)(id, SEL, unichar);

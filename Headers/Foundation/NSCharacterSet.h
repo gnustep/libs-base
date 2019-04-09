@@ -107,7 +107,7 @@ extern "C" {
 /**
  * Returns allowed characers for URL host component.
  */
-+ (id) URLFragmentAllowedCharacterSet;
++ (id) URLHostAllowedCharacterSet;
 
 /**
  * Returns allowed characers for URL password component.
