@@ -1926,12 +1926,12 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	      lo = (c & 0x0f);
 	      dst[dpos++] = (lo > 9) ? 'A' + lo - 10 : '0' + lo;
 	    }
-	  s = [[NSString alloc] initWithBytes: dst
-				       length: dpos
-				     encoding: NSUTF8StringEncoding];
-	  NSZoneFree(NSDefaultMallocZone(), dst);
-	  IF_NO_GC([s autorelease];)
 	}
+      s = [[NSString alloc] initWithBytes: dst
+				   length: dpos
+				 encoding: NSUTF8StringEncoding];
+      NSZoneFree(NSDefaultMallocZone(), dst);
+      IF_NO_GC([s autorelease];)
     }
   return s;
 }

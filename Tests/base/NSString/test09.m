@@ -5,7 +5,9 @@
 
 BOOL testUrlCharacterSetEncoding(NSString* decodedString, NSString* encodedString, NSCharacterSet* allowedCharacterSet)
 {
+  NSLog(@"String by adding percent");
   NSString* testString = [decodedString stringByAddingPercentEncodingWithAllowedCharacters:allowedCharacterSet];
+  NSLog(@"String by adding percent, done. test=%@ decoded=%@", testString, decodedString);
   return [encodedString isEqualToString: testString];
 }
 
