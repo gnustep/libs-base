@@ -88,8 +88,49 @@ int main()
        ![theSet characterIsMember: '#'],
        "Check custom set");
 
-
-  
+  theSet = [NSCharacterSet URLFragmentAllowedCharacterSet];
+  NSString *setString = @"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ?/:@-._~!$&'()*+,=";
+  NSUInteger i = 0;
+  for(i = 0; i < [setString length]; i++)
+    {
+      char c = [setString characterAtIndex: i];
+      if([theSet characterIsMember: c] == NO) // , [msg cStringUsingEncoding: NSUTF8Encoding]);
+	{
+	  NSLog(@"%c is not in set", c);
+	}
+      else
+	{
+	  NSLog(@"Success");
+	}
+    }
+  /*
+      PASS(//[theSet characterIsMember: 'A'] &&
+       //[theSet characterIsMember: 'Z'] &&
+       //[theSet characterIsMember: 'a'] &&
+       //[theSet characterIsMember: 'z'] &&
+       //[theSet characterIsMember: '9'] &&
+       // [theSet characterIsMember: '0'] &&
+       [theSet characterIsMember: '?'] &&
+       [theSet characterIsMember: '/ '] &&
+       [theSet characterIsMember: ':'] &&
+       [theSet characterIsMember: '@ '] &&
+       [theSet characterIsMember: '-'] &&
+       [theSet characterIsMember: '.'] &&
+       [theSet characterIsMember: '_'] &&
+       [theSet characterIsMember: '~'] &&
+       [theSet characterIsMember: '!'] &&
+       [theSet characterIsMember: '$ '] &&
+       [theSet characterIsMember: '&'] &&
+       // [theSet characterIsMember: '\''] &&
+       [theSet characterIsMember: '('] &&
+       [theSet characterIsMember: ')'] &&
+       [theSet characterIsMember: '*'] &&
+       [theSet characterIsMember: '+'] &&
+       [theSet characterIsMember: ','] &&
+       [theSet characterIsMember: ';'] &&
+       [theSet characterIsMember: '='],
+       "Check some characters from URLFramgmentAllowedCharacterSet"); */
+    
   [arp release]; arp = nil;
   return 0;
 }

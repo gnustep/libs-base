@@ -35,6 +35,7 @@ int main (int argc, const char * argv[])
   allowedCharacterSet = [[NSCharacterSet alphanumericCharacterSet] invertedSet];
   PASS(testUrlCharacterSetEncoding(urlDecodedString, urlEncodedString, allowedCharacterSet), "inverted");  
 
+  // NSLog(@"Test4");
   // urlDecodedString = @"Here are some Emojis: \U0001F601 \U0001F602 \U0001F638 Emojis done."; // Multibyte encoded characters
   // urlEncodedString = @"Here%20are%20some%20Emojis:%20%F0%9F%98%81%20%F0%9F%98%82%20%F0%9F%98%B8%20Emojis%20done.";
   // allowedCharacterSet = [NSCharacterSet URLFragmentAllowedCharacterSet];

@@ -841,44 +841,48 @@ static Class concreteMutableClass = nil;
 
 + (id) URLFragmentAllowedCharacterSet;
 {
+  // NSString *charSetString = @"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ?/:@-._~!$&'()*+,=";
+  // NSData *data = [charSetString dataUsingEncoding: NSUTF8StringEncoding]; 
+  // char *bytes = [data bytes];
+
   return [self _staticSet: urlFragmentAllowedCharSet
 		   length: sizeof(urlFragmentAllowedCharSet)
-		   number: 0];
+		   number: 15]; 
 }
 
 + (id) URLPasswordAllowedCharacterSet;
 {
   return [self _staticSet: urlPasswordAllowedCharSet
 		   length: sizeof(urlPasswordAllowedCharSet)
-		   number: 0];
+		   number: 16];
 }
 
 + (id) URLPathAllowedCharacterSet;
 {
   return [self _staticSet: urlPathAllowedCharSet
 		   length: sizeof(urlPathAllowedCharSet)
-		   number: 0];
+		   number: 17];
 }
 
 + (id) URLQueryAllowedCharacterSet;
 {
   return [self _staticSet: urlQueryAllowedCharSet
 		   length: sizeof(urlQueryAllowedCharSet)
-		   number: 0];
+		   number: 18];
 }
 
 + (id) URLUserAllowedCharacterSet
 {
   return [self _staticSet: urlUserAllowedCharSet
 		   length: sizeof(urlUserAllowedCharSet)
-		   number: 0];
+		   number: 19];
 }
 
 + (id) URLHostAllowedCharacterSet
 {
   return [self _staticSet: urlHostAllowedCharSet
 		   length: sizeof(urlHostAllowedCharSet)
-		   number: 0];
+		   number: 20];
 }
 
 - (NSData*) bitmapRepresentation
@@ -1162,6 +1166,36 @@ static Class concreteMutableClass = nil;
 }
 
 + (id) whitespaceCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (id) URLFragmentAllowedCharacterSet;
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (id) URLHostAllowedCharacterSet;
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (id) URLPasswordAllowedCharacterSet;
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (id) URLPathAllowedCharacterSet;
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (id) URLQueryAllowedCharacterSet;
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (id) URLUserAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
