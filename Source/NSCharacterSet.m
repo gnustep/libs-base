@@ -839,28 +839,28 @@ static Class concreteMutableClass = nil;
     return nil;
 }
 
-+ (id) URLFragmentAllowedCharacterSet;
++ (id) URLFragmentAllowedCharacterSet
 {
   return [self _staticSet: urlFragmentAllowedCharSet
 		   length: sizeof(urlFragmentAllowedCharSet)
 		   number: 15]; 
 }
 
-+ (id) URLPasswordAllowedCharacterSet;
++ (id) URLPasswordAllowedCharacterSet
 {
   return [self _staticSet: urlPasswordAllowedCharSet
 		   length: sizeof(urlPasswordAllowedCharSet)
 		   number: 16];
 }
 
-+ (id) URLPathAllowedCharacterSet;
++ (id) URLPathAllowedCharacterSet
 {
   return [self _staticSet: urlPathAllowedCharSet
 		   length: sizeof(urlPathAllowedCharSet)
 		   number: 17];
 }
 
-+ (id) URLQueryAllowedCharacterSet;
++ (id) URLQueryAllowedCharacterSet
 {
   return [self _staticSet: urlQueryAllowedCharSet
 		   length: sizeof(urlQueryAllowedCharSet)
