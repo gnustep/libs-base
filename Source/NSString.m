@@ -276,12 +276,40 @@ GSPathHandling(const char *mode)
     }
 }
 
+// Test if the digit is hex..
 inline int ishex(int x)
 {
   return
     (x >= '0' && x <= '9')	||
     (x >= 'a' && x <= 'f')	||
     (x >= 'A' && x <= 'F');
+}
+
+// URL decoding...
+int urldecode(const char *s, char *dec)
+{
+	char *o;
+	const char *end = s + strlen(s);
+	int c;
+	int cx; 
+	for (o = dec; s <= end; o++)
+	  {
+	    c = *s++;
+	    cx = c;  // preserve original value if we are not to decode
+	    if (c == '%' && (!ishex(*s++)	||
+			     !ishex(*s++)	||
+			     !sscanf(s - 2, "%2x", &c)))
+	      {
+		c = cx; // reset c to original value.
+		s--;
+	      }
+	    if (dec)
+	      {
+		*o = c;
+	      }
+	  }
+	
+	return o - dec;
 }
 
 #define	GSPathHandlingRight()	\
@@ -1939,27 +1967,23 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 - (NSString *) stringByRemovingPercentEncoding
 {
   NSData *data = [self dataUsingEncoding: NSUTF8StringEncoding];
+  NSString *result = nil;
   char *s = (char *)[data bytes];
-  char *o;
-  const char *end = s + strlen(s);
-  int c;
+  NSUInteger slen = 0; 
+  char *o = NULL;
+
+  // Allocate memory...
+  slen = strlen(s);
+  o = (char *)NSZoneMalloc(NSDefaultMallocZone(), slen * 3);
+
+  // Decode...
+  urldecode(s,o);
+
+  // Free up temporary space...
+  result = [NSString stringWithCString: o encoding: NSUTF8StringEncoding];
+  NSZoneFree(NSDefaultMallocZone(), o);
   
-  for (o = 0; s <= end; o++) {
-    c = *s++;
-    if (c == '+')
-      {
-	c = ' ';
-      }
-    else if (c == '%' &&
-	     (!ishex(*s++) ||
-	      !ishex(*s++) ||
-	      !sscanf(s - 2, "%2x", &c)))
-      {
-	return nil;
-      }
-  }
-  
-  return [NSString stringWithCString: o encoding: NSUTF8StringEncoding];
+  return result; 
 }
 
 /**

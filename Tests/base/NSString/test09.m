@@ -46,7 +46,14 @@ int main (int argc, const char * argv[])
   urlEncodedString = @"%01";
   allowedCharacterSet = [NSCharacterSet alphanumericCharacterSet];
   PASS(testUrlCharacterSetEncoding(urlDecodedString, urlEncodedString, allowedCharacterSet), "alphanumericCharacterSet");  
-  
+
+  NSLog(@"Test5");
+  urlDecodedString = @"All alphabetic characters should be encoded. Symbols should not be: !@#$%^&*()_+-=";
+  urlEncodedString = @"%41%6C%6C %61%6C%70%68%61%62%65%74%69%63 %63%68%61%72%61%63%74%65%72%73 %73%68%6F%75%6C%64 %62%65 "
+    @"%65%6E%63%6F%64%65%64. %53%79%6D%62%6F%6C%73 %73%68%6F%75%6C%64 %6E%6F%74 %62%65: !@#$%^&*()_+-=";
+  NSString *result = [urlEncodedString stringByRemovingPercentEncoding];
+  PASS([urlDecodedString isEqualToString: result], "stringByRemovingPercentEncoding");
+  NSLog(@"Result = \"%@\",\ndecodedString = \"%@\",\nencodedString = \"%@\"", result, urlDecodedString, urlEncodedString);
   [pool drain];
   return 0;
 }

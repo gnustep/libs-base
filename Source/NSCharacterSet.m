@@ -543,7 +543,7 @@
 
 
 /* A simple array for caching standard bitmap sets */
-#define MAX_STANDARD_SETS 15
+#define MAX_STANDARD_SETS 20
 static NSCharacterSet *cache_set[MAX_STANDARD_SETS];
 static Class abstractClass = nil;
 static Class abstractMutableClass = nil;
@@ -841,10 +841,6 @@ static Class concreteMutableClass = nil;
 
 + (id) URLFragmentAllowedCharacterSet;
 {
-  // NSString *charSetString = @"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ?/:@-._~!$&'()*+,=";
-  // NSData *data = [charSetString dataUsingEncoding: NSUTF8StringEncoding]; 
-  // char *bytes = [data bytes];
-
   return [self _staticSet: urlFragmentAllowedCharSet
 		   length: sizeof(urlFragmentAllowedCharSet)
 		   number: 15]; 
