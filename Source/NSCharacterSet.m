@@ -543,7 +543,7 @@
 
 
 /* A simple array for caching standard bitmap sets */
-#define MAX_STANDARD_SETS 20
+#define MAX_STANDARD_SETS 21
 static NSCharacterSet *cache_set[MAX_STANDARD_SETS];
 static Class abstractClass = nil;
 static Class abstractMutableClass = nil;

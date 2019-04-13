@@ -1974,7 +1974,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
   // Allocate memory...
   slen = strlen(s);
-  o = (char *)NSZoneMalloc(NSDefaultMallocZone(), slen * 3);
+  o = (char *)NSZoneMalloc(NSDefaultMallocZone(), slen);
 
   // Decode...
   urldecode(s,o);

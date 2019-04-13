@@ -91,17 +91,21 @@ int main()
   theSet = [NSCharacterSet URLFragmentAllowedCharacterSet];
   NSString *setString = @"0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ?/:@-._~!$&'()*+,=";
   NSUInteger i = 0;
+  BOOL p = YES;
   for(i = 0; i < [setString length]; i++)
     {
       char c = [setString characterAtIndex: i];
       if([theSet characterIsMember: c] == NO) // , [msg cStringUsingEncoding: NSUTF8Encoding]);
 	{
 	  NSLog(@"%c is not in set", c);
+	  PASS(NO,"URLFragmentAllowedCharacterSet char not found");
+	  p = NO;
 	}
-      else
-	{
-	  NSLog(@"Success");
-	}
+    }
+
+  if(!p)
+    {
+      PASS(YES, "URLFragmentAllowedCharacterSet passwed");
     }
   /*
       PASS(//[theSet characterIsMember: 'A'] &&
