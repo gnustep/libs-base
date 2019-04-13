@@ -1,4 +1,16 @@
+2019-04-12 Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Source/NSCharacterSet.m: Added declarations/implementations for
+	URL*AllowedCharacterSet.
+	* Headers/NSCharacterSet.h: Added declarations here for
+	URL*AllowedCharacterSet
+	* Source/CharSets/*: Added headers to define new charactersets.
+	* Source/NSString.m: Added methods stringByRemovingPercentEncoding/
+	stringByAddingPercentEncodingWithAllowedCharacterSet:
+	* Header/NSString.h: Added declrations for methods mentioned above.
+
 2019-03-29 Igor Zhukov <fsb4000@yandex.ru>
+
 	* Source/NSDateFormatter.m:
 	* configure:
 	* configure.ac:
