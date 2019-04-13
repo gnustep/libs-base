@@ -49,6 +49,12 @@
 #undef	GNUSTEP_INDEX_CHARSET
 
 #import "NSCharacterSetData.h"
+#import "CharSets/URLFragmentAllowedCharSet.h"
+#import "CharSets/URLHostAllowedCharSet.h"
+#import "CharSets/URLPasswordAllowedCharSet.h"
+#import "CharSets/URLPathAllowedCharSet.h"
+#import "CharSets/URLQueryAllowedCharSet.h"
+#import "CharSets/URLUserAllowedCharSet.h"
 
 #define GSUNICODE_MAX	1114112
 #define GSBITMAP_SIZE	8192
@@ -537,7 +543,7 @@
 
 
 /* A simple array for caching standard bitmap sets */
-#define MAX_STANDARD_SETS 15
+#define MAX_STANDARD_SETS 21
 static NSCharacterSet *cache_set[MAX_STANDARD_SETS];
 static Class abstractClass = nil;
 static Class abstractMutableClass = nil;
@@ -833,6 +839,48 @@ static Class concreteMutableClass = nil;
     return nil;
 }
 
++ (id) URLFragmentAllowedCharacterSet
+{
+  return [self _staticSet: urlFragmentAllowedCharSet
+		   length: sizeof(urlFragmentAllowedCharSet)
+		   number: 15]; 
+}
+
++ (id) URLPasswordAllowedCharacterSet
+{
+  return [self _staticSet: urlPasswordAllowedCharSet
+		   length: sizeof(urlPasswordAllowedCharSet)
+		   number: 16];
+}
+
++ (id) URLPathAllowedCharacterSet
+{
+  return [self _staticSet: urlPathAllowedCharSet
+		   length: sizeof(urlPathAllowedCharSet)
+		   number: 17];
+}
+
++ (id) URLQueryAllowedCharacterSet
+{
+  return [self _staticSet: urlQueryAllowedCharSet
+		   length: sizeof(urlQueryAllowedCharSet)
+		   number: 18];
+}
+
++ (id) URLUserAllowedCharacterSet
+{
+  return [self _staticSet: urlUserAllowedCharSet
+		   length: sizeof(urlUserAllowedCharSet)
+		   number: 19];
+}
+
++ (id) URLHostAllowedCharacterSet
+{
+  return [self _staticSet: urlHostAllowedCharSet
+		   length: sizeof(urlHostAllowedCharSet)
+		   number: 20];
+}
+
 - (NSData*) bitmapRepresentation
 {
   BOOL		(*imp)(id, SEL, unichar);
@@ -1114,6 +1162,36 @@ static Class concreteMutableClass = nil;
 }
 
 + (id) whitespaceCharacterSet
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (id) URLFragmentAllowedCharacterSet;
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (id) URLHostAllowedCharacterSet;
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (id) URLPasswordAllowedCharacterSet;
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (id) URLPathAllowedCharacterSet;
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (id) URLQueryAllowedCharacterSet;
+{
+  return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
+}
+
++ (id) URLUserAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }

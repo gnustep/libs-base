@@ -276,6 +276,42 @@ GSPathHandling(const char *mode)
     }
 }
 
+// Test if the digit is hex..
+inline int ishex(int x)
+{
+  return
+    (x >= '0' && x <= '9')	||
+    (x >= 'a' && x <= 'f')	||
+    (x >= 'A' && x <= 'F');
+}
+
+// URL decoding...
+int urldecode(const char *s, char *dec)
+{
+	char *o;
+	const char *end = s + strlen(s);
+	int c;
+	int cx; 
+	for (o = dec; s <= end; o++)
+	  {
+	    c = *s++;
+	    cx = c;  // preserve original value if we are not to decode
+	    if (c == '%' && (!ishex(*s++)	||
+			     !ishex(*s++)	||
+			     !sscanf(s - 2, "%2x", &c)))
+	      {
+		c = cx; // reset c to original value.
+		s--;
+	      }
+	    if (dec)
+	      {
+		*o = c;
+	      }
+	  }
+	
+	return o - dec;
+}
+
 #define	GSPathHandlingRight()	\
   ((pathHandling == PH_DO_THE_RIGHT_THING) ? YES : NO)
 #define	GSPathHandlingUnix()	\
@@ -1884,6 +1920,70 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     {
       buffer[i] = (*caiImp)(self, caiSel, aRange.location + i);
     }
+}
+
+- (NSString *) stringByAddingPercentEncodingWithAllowedCharacters: (NSCharacterSet *)aSet
+{
+  NSData	*data = [self dataUsingEncoding: NSUTF8StringEncoding];
+  NSString	*s = nil;
+
+  if (data != nil)
+    {
+      unsigned char	*src = (unsigned char*)[data bytes];
+      unsigned int	slen = [data length];
+      unsigned char	*dst;
+      unsigned int	spos = 0;
+      unsigned int	dpos = 0;
+
+      dst = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), slen * 3);
+      while (spos < slen)
+	{
+	  unichar	c = src[spos++];
+	  unsigned int	hi;
+	  unsigned int	lo;
+
+	  if([aSet characterIsMember: c]) // if the character is in the allowed set, put it in
+	    {
+	      dst[dpos++] = c;
+	    }
+	  else // if not, then encode it...
+	    {
+	      dst[dpos++] = '%';
+	      hi = (c & 0xf0) >> 4;
+	      dst[dpos++] = (hi > 9) ? 'A' + hi - 10 : '0' + hi;
+	      lo = (c & 0x0f);
+	      dst[dpos++] = (lo > 9) ? 'A' + lo - 10 : '0' + lo;
+	    }
+	}
+      s = [[NSString alloc] initWithBytes: dst
+				   length: dpos
+				 encoding: NSUTF8StringEncoding];
+      NSZoneFree(NSDefaultMallocZone(), dst);
+      IF_NO_GC([s autorelease];)
+    }
+  return s;
+}
+
+- (NSString *) stringByRemovingPercentEncoding
+{
+  NSData *data = [self dataUsingEncoding: NSUTF8StringEncoding];
+  NSString *result = nil;
+  char *s = (char *)[data bytes];
+  NSUInteger slen = 0; 
+  char *o = NULL;
+
+  // Allocate memory...
+  slen = strlen(s);
+  o = (char *)NSZoneMalloc(NSDefaultMallocZone(), slen);
+
+  // Decode...
+  urldecode(s,o);
+
+  // Free up temporary space...
+  result = [NSString stringWithCString: o encoding: NSUTF8StringEncoding];
+  NSZoneFree(NSDefaultMallocZone(), o);
+  
+  return result; 
 }
 
 /**
