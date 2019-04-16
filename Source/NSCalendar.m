@@ -549,6 +549,20 @@ do \
   [self _resetCalendar];
   ucal_clear (my->cal);
   
+  NSTimeZone *timeZone = [comps timeZone];
+  NSInteger hourOffset = 0;
+  NSInteger minuteOffset = 0;
+  NSInteger secondOffset = 0;
+  if (timeZone)
+    {
+      NSInteger offset = [timeZone secondsFromGMT];
+      secondOffset = offset % 60;
+      offset = (offset - secondOffset) / 60;
+      minuteOffset = offset % 60;
+      offset = (offset - minuteOffset) / 60;
+      hourOffset = offset;
+    }
+  
   if ((amount = [comps era]) != NSDateComponentUndefined)
     {
       ucal_set (my->cal, UCAL_ERA, (int32_t)amount);
@@ -567,14 +581,17 @@ do \
     }
   if ((amount = [comps hour]) != NSDateComponentUndefined)
     {
+      amount -= hourOffset;
       ucal_set (my->cal, UCAL_HOUR_OF_DAY, (int32_t)amount);
     }
   if ((amount = [comps minute]) != NSDateComponentUndefined)
     {
+      amount -= minuteOffset;
       ucal_set (my->cal, UCAL_MINUTE, (int32_t)amount);
     }
   if ((amount = [comps second]) != NSDateComponentUndefined)
     {
+      amount -= secondOffset;
       ucal_set (my->cal, UCAL_SECOND, (int32_t)amount);
     }
   if ((amount = [comps week]) != NSDateComponentUndefined)

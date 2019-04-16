@@ -1065,18 +1065,56 @@ static NSURLProtocol	*placeholder = nil;
 
   // Continue reading until we've either filled our buffer or nothing
   // left to read - as the event for another *may* not happen depending on timing...
-  while ((totalRead < MAX_READ_BUFFER) && ([(NSInputStream *)stream hasBytesAvailable] || [stream  streamStatus] == NSStreamStatusReading))
+
+  NSStreamStatus sstat = [stream streamStatus];
+  while ((totalRead < MAX_READ_BUFFER) && ([(NSInputStream *)stream hasBytesAvailable] || sstat == NSStreamStatusReading))
     {
       readCount = [(NSInputStream *)stream read: &READ_BUFFER[totalRead] maxLength: MAX_READ_BUFFER-totalRead];
+      sstat = [stream streamStatus];
       
       if (_debug)
         {
           NSWarnMLog(@"-> readCount: %ld totalRead: %ld", (long)readCount, (long)totalRead);
         }
-      
+
+#if defined(_WIN32)
+      // If the Tcp-Wait-For-Server-Close header was specfied in the request,
+      // then hold the stream open until the server closes it.
+      if ([[[this->request valueForHTTPHeaderField:@"Tcp-Wait-For-Server-Close"] lowercaseString] isEqualToString:@"true"])
+        {
+          // On Windows, the socket call is non-blocking, so we can't rely
+          // on the readCount alone to tell us whether or not we're done.
+          if (readCount < 0)
+            {
+              if (WSAGetLastError() == WSAEWOULDBLOCK)
+                {
+                  //  Try to read again
+                  sstat = NSStreamStatusReading;
+                  continue;
+                }
+              else
+                {
+                  // Error
+                  break;
+                }
+            }
+          else if (readCount == 0)
+            {
+              // EOF
+              break;
+            }
+        }
+      else
+        {
+          // Break on error...
+          if (readCount <= 0)
+            break;
+        }
+#else
       // Break on error...
       if (readCount <= 0)
         break;
+#endif
       
       // Otherwise update the total read count...
       totalRead += readCount;

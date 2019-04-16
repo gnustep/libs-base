@@ -1,3 +1,13 @@
+2019-04-10  Doug Simons <doug.simons@eggplant.io>
+
+       * NSCalendar.m: 
+	   Fix to use timeZone if supplied in -dateFromComponents: method.
+	
+2019-04-10  Doug Simons <doug.simons@eggplant.io>
+
+       * NSXMLDocument.m: 
+	   Ensure that URI is set in all init methods; otherwise it could start with random value.
+	
 2019-02-12  Doug Simons <doug.simons@eggplant.io>
 
        * NSCharacterSetData.h: 

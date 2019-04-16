@@ -168,7 +168,9 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 {
   if (NSXMLDocumentKind == theKind)
     {
-      return [super initWithKind: theKind options: theOptions];
+      self = [super initWithKind: theKind options: theOptions];
+      [self setURI: @""];
+      return self;
     }
   else
     {
