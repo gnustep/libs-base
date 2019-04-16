@@ -276,42 +276,6 @@ GSPathHandling(const char *mode)
     }
 }
 
-// Test if the digit is hex..
-inline int ishex(int x)
-{
-  return
-    (x >= '0' && x <= '9')	||
-    (x >= 'a' && x <= 'f')	||
-    (x >= 'A' && x <= 'F');
-}
-
-// URL decoding...
-int urldecode(const char *s, char *dec)
-{
-	char *o;
-	const char *end = s + strlen(s);
-	int c;
-	int cx; 
-	for (o = dec; s <= end; o++)
-	  {
-	    c = *s++;
-	    cx = c;  // preserve original value if we are not to decode
-	    if (c == '%' && (!ishex(*s++)	||
-			     !ishex(*s++)	||
-			     !sscanf(s - 2, "%2x", &c)))
-	      {
-		c = cx; // reset c to original value.
-		s--;
-	      }
-	    if (dec)
-	      {
-		*o = c;
-	      }
-	  }
-	
-	return o - dec;
-}
-
 #define	GSPathHandlingRight()	\
   ((pathHandling == PH_DO_THE_RIGHT_THING) ? YES : NO)
 #define	GSPathHandlingUnix()	\
@@ -1966,21 +1930,59 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
 - (NSString *) stringByRemovingPercentEncoding
 {
-  NSData *data = [self dataUsingEncoding: NSUTF8StringEncoding];
-  NSString *result = nil;
-  char *s = (char *)[data bytes];
-  NSUInteger slen = 0; 
-  char *o = NULL;
+  NSData	*data = [self dataUsingEncoding: NSUTF8StringEncoding];
+  const uint8_t	*s = [data bytes];
+  NSUInteger	length = [data length]; 
+  NSUInteger	lastPercent = length - 3;
+  char		*o = (char *)NSZoneMalloc(NSDefaultMallocZone(), length + 1);
+  char		*next = o;
+  NSUInteger	index;
+  NSString	*result;
 
-  // Allocate memory...
-  slen = strlen(s);
-  o = (char *)NSZoneMalloc(NSDefaultMallocZone(), slen);
+  for (index = 0; index < length; index++)
+    {
+      char	c = s[index];
 
-  // Decode...
-  urldecode(s,o);
+      if ('%' == c && index < lastPercent)
+	{
+	  uint8_t	hi = s[index+1];
+	  uint8_t	lo = s[index+2];
 
-  // Free up temporary space...
-  result = [NSString stringWithCString: o encoding: NSUTF8StringEncoding];
+	  if (isdigit(hi) && isxdigit(lo))
+	    {
+	      index += 2;
+              if (hi <= '9')
+                {
+                  c = hi - '0';
+                }
+              else if (hi <= 'F')
+                {
+                  c = hi - 'A' + 10;
+                }
+              else
+                {
+                  c = hi - 'a' + 10;
+                }
+	      c <<= 4;
+              if (lo <= '9')
+                {
+                  c += lo - '0';
+                }
+              else if (lo <= 'F')
+                {
+                  c += lo - 'A' + 10;
+                }
+              else
+                {
+                  c += lo - 'a' + 10;
+                }
+	    }
+	}
+      *next++ = c;
+    }
+  *next = '\0';
+
+  result = [NSString stringWithUTF8String: o];
   NSZoneFree(NSDefaultMallocZone(), o);
   
   return result; 

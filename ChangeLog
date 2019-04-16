@@ -1,3 +1,11 @@
+2019-02-16  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Removed public functions which could conflict
+	with application code.  Rewrote percent unescaping to avoid possible
+	buffer overruns.
+	* Tests/base/NSString/test09.m: avoid excess logging (for readability
+	of test output).
+
 2019-04-12 Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Source/NSCharacterSet.m: Added declarations/implementations for
