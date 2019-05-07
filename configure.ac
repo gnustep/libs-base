@@ -3350,7 +3350,7 @@ AC_SUBST(HAVE_ICU)
 HAVE_LIBDISPATCH=0
 AC_ARG_ENABLE(libdispatch,
   [  --disable-libdispatch		Disable dispatching blocks via libdispatch],
-  enable_libdispatch=no,
+  enable_libdispatch=$enableval,
   enable_libdispatch=yes)
 
 if test $enable_libdispatch = yes; then

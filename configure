@@ -12376,7 +12376,7 @@ fi
 HAVE_LIBDISPATCH=0
 # Check whether --enable-libdispatch was given.
 if test "${enable_libdispatch+set}" = set; then :
-  enableval=$enable_libdispatch; enable_libdispatch=no
+  enableval=$enable_libdispatch; enable_libdispatch=$enableval
 else
   enable_libdispatch=yes
 fi
