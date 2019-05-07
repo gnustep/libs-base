@@ -62,10 +62,12 @@
 #include <math.h>
 #include <time.h>
 
-#if HAVE_DISPATCH_GET_MAIN_QUEUE_HANDLE_NP && HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP
+#if HAVE_LIBDISPATCH_RUNLOOP
 #  define RL_INTEGRATE_DISPATCH 1
 #  ifdef HAVE_DISPATCH_H
 #    include <dispatch.h>
+#  elif HAVE_DISPATCH_PRIVATE_H
+#    include <dispatch/private.h>
 #  elif HAVE_DISPATCH_DISPATCH_H
 #    include <dispatch/dispatch.h>
 #  endif
@@ -398,7 +400,13 @@ static inline BOOL timerInvalidated(NSTimer *t)
 @implementation GSMainQueueDrainer
 + (void*) mainQueueFileDescriptor
 {
+#if HAVE_DISPATCH_GET_MAIN_QUEUE_HANDLE_NP
   return (void*)(uintptr_t)dispatch_get_main_queue_handle_np();
+#elif HAVE__DISPATCH_GET_MAIN_QUEUE_HANDLE_4CF
+  return (void*)_dispatch_get_main_queue_handle_4CF();
+#else
+#error libdispatch missing main queue handle function
+#endif
 }
 
 - (void) receivedEvent: (void*)data
@@ -406,7 +414,13 @@ static inline BOOL timerInvalidated(NSTimer *t)
 		             extra: (void*)extra
 	             forMode: (NSString*)mode
 {
+#if HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP
   dispatch_main_queue_drain_np();
+#elif HAVE__DISPATCH_MAIN_QUEUE_CALLBACK_4CF
+  _dispatch_main_queue_callback_4CF(NULL)
+#else
+#error libdispatch missing main queue callback function
+#endif
 }
 @end
 #endif

@@ -12412,6 +12412,20 @@ fi
 
 done
 
+    # check for private header which includes runloop integration functions in
+    # the Swift corelibs libdispatch release
+    for ac_header in dispatch/private.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "dispatch/private.h" "ac_cv_header_dispatch_private_h" "$ac_includes_default"
+if test "x$ac_cv_header_dispatch_private_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DISPATCH_PRIVATE_H 1
+_ACEOF
+
+fi
+
+done
+
   fi
   if test "$have_dispatch" = "yes"; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dispatch_queue_create in -ldispatch" >&5
@@ -12515,10 +12529,24 @@ _ACEOF
 fi
 done
 
-  if test "$ac_cv_func_dispatch_main_queue_drain_np" = "no"; then
+  if test "$ac_cv_func_dispatch_main_queue_drain_np" = "yes" && test "$ac_cv_func_dispatch_get_main_queue_handle_np" = "yes"; then
     HAVE_LIBDISPATCH_RUNLOOP=1
   fi
-  if test "$ac_cv_func_dispatch_get_main_queue_handle_np" = "no"; then
+  # Check for "_4CF" variants of runloop integration functions provided by the
+  # Swift corelibs libdispatch release
+  for ac_func in _dispatch_main_queue_callback_4CF _dispatch_get_main_queue_handle_4CF
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+  if test "$ac_cv_func__dispatch_main_queue_callback_4CF" = "yes" && test "$ac_cv_func__dispatch_get_main_queue_handle_4CF" = "yes"; then
     HAVE_LIBDISPATCH_RUNLOOP=1
   fi
 fi
