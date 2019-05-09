@@ -943,6 +943,31 @@ extern char **__libc_argv;
     }
 }
 
+#elif defined(__ANDROID__)
+
++ (void) initialize
+{
+  if (nil == procLock) procLock = [NSRecursiveLock new];
+  if (self == [NSProcessInfo class]
+    && !_gnu_processName && !_gnu_arguments && !_gnu_environment)
+    {
+      FILE *f = fopen("/proc/self/cmdline", "r");
+      if (f) {
+        char identifier[BUFSIZ];
+        fgets(identifier, sizeof(identifier), f);
+        fclose(f);
+        
+        // construct fake executable path
+        char *arg0;
+        asprintf(&arg0, "/data/data/%s/exe", identifier);
+
+        char *argv[] = { arg0 };
+        _gnu_process_args(sizeof(argv)/sizeof(char *), argv, NULL);
+      } else {
+        fprintf(stderr, "Failed to read cmdline\n");
+      }
+    }
+}
 
 #else
 + (void) initialize

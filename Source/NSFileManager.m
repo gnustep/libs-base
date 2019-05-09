@@ -1652,6 +1652,24 @@ static NSStringEncoding	defaultEncoding;
 
       if (_STAT(lpath, &statbuf) != 0)
 	{
+#ifdef __ANDROID__
+          // Android: try using asset manager if path is in main bundle resources
+          AAsset *asset = [NSBundle assetForPath:path];
+          if (asset) {
+            AAsset_close(asset);
+            return YES;
+          }
+          
+          AAssetDir *assetDir = [NSBundle assetDirForPath:path];
+          if (assetDir) {
+            AAssetDir_close(assetDir);
+            if (isDirectory) {
+              *isDirectory = YES;
+            }
+            return YES;
+          }
+#endif
+          
 	  return NO;
 	}
 
@@ -1700,6 +1718,16 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  return YES;
 	}
+
+#ifdef __ANDROID__
+        // Android: try using asset manager if path is in main bundle resources
+        AAsset *asset = [NSBundle assetForPath:path];
+        if (asset) {
+          AAsset_close(asset);
+          return YES;
+        }
+#endif
+
       return NO;
     }
 #endif
@@ -2379,6 +2407,9 @@ static NSStringEncoding	defaultEncoding;
 typedef	struct	_GSEnumeratedDirectory {
   NSString *path;
   _DIR *pointer;
+#ifdef __ANDROID__
+  AAssetDir *assetDir;
+#endif
 } GSEnumeratedDirectory;
 
 
@@ -2386,6 +2417,11 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 {
   DESTROY(X.path);
   _CLOSEDIR(X.pointer);
+#ifdef __ANDROID__
+  if (X.assetDir) {
+    AAssetDir_close(X.assetDir);
+  }
+#endif
 }
 
 #define GSI_ARRAY_TYPES	0
@@ -2443,12 +2479,26 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
       localPath = [_mgr fileSystemRepresentationWithPath: path];
       dir_pointer = _OPENDIR(localPath);
+      
+#ifdef __ANDROID__
+      AAssetDir *assetDir = NULL;
+      if (!dir_pointer) {
+        // Android: try using asset manager if path is in main bundle resources
+        assetDir = [NSBundle assetDirForPath:path];
+      }
+      
+      if (dir_pointer || assetDir)
+#else 
       if (dir_pointer)
+#endif
         {
           GSIArrayItem item;
 
           item.ext.path = @"";
           item.ext.pointer = dir_pointer;
+#ifdef __ANDROID__
+          item.ext.assetDir = assetDir;
+#endif
 
           GSIArrayAddItem(_stack, item);
         }
@@ -2535,35 +2585,54 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   while (GSIArrayCount(_stack) > 0)
     {
       GSEnumeratedDirectory dir = GSIArrayLastItem(_stack).ext;
-      struct _DIRENT	*dirbuf;
       struct _STATB	statbuf;
+#if defined(_WIN32)
+      const wchar_t *dirname = NULL;
+#else
+      const char *dirname = NULL;
+#endif
 
-      dirbuf = _READDIR(dir.pointer);
+#ifdef __ANDROID__
+      if (dir.assetDir)
+      {
+        // This will only return files and not directories, which means that
+        // recursion is not supported.
+        // See https://issuetracker.google.com/issues/37002833
+        dirname = AAssetDir_getNextFileName(dir.assetDir);
+      }
+      else if (dir.pointer)
+#endif
+      {
+        struct _DIRENT *dirbuf = _READDIR(dir.pointer);
+        if (dirbuf) {
+          dirname = dirbuf->d_name;
+        }
+      }
 
-      if (dirbuf)
+      if (dirname)
 	{
 #if defined(_WIN32)
 	  /* Skip "." and ".." directory entries */
-	  if (wcscmp(dirbuf->d_name, L".") == 0
-	    || wcscmp(dirbuf->d_name, L"..") == 0)
+	  if (wcscmp(dirname, L".") == 0
+	    || wcscmp(dirname, L"..") == 0)
 	    {
 	      continue;
 	    }
 	  /* Name of file to return  */
 	  returnFileName = [_mgr
-	    stringWithFileSystemRepresentation: dirbuf->d_name
-	    length: wcslen(dirbuf->d_name)];
+	    stringWithFileSystemRepresentation: dirname
+	    length: wcslen(dirname)];
 #else
 	  /* Skip "." and ".." directory entries */
-	  if (strcmp(dirbuf->d_name, ".") == 0
-	    || strcmp(dirbuf->d_name, "..") == 0)
+	  if (strcmp(dirname, ".") == 0
+	    || strcmp(dirname, "..") == 0)
 	    {
 	      continue;
 	    }
 	  /* Name of file to return  */
 	  returnFileName = [_mgr
-	    stringWithFileSystemRepresentation: dirbuf->d_name
-	    length: strlen(dirbuf->d_name)];
+	    stringWithFileSystemRepresentation: dirname
+	    length: strlen(dirname)];
 #endif
 	  /* if we have a null FileName something went wrong (charset?) and we skip it */
 	  if (returnFileName == nil)

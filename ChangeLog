@@ -1,3 +1,32 @@
+2019-05-23  Frederik Seiffert <frederik@algoriddim.com>
+
+	* configure:
+	* configure.ac:
+	Link against libandroid on Android.
+	* Headers/Foundation/NSBundle.h:
+	* Source/NSBundle.m:
+	Added methods for passing Android asset manager from Java to GNUstep
+	and for getting AAsset/AAssetDir for given path in main bundle. Skip
+	app bundle suffix check on Android. Extended bundle resource paths
+	backbone to check for known paths directly on Android as we can't
+	enumerate directories. Extracted path cache cleaning into separate
+	method.
+	* Source/GSFileHandle.h:
+	* Source/GSFileHandle.m:
+	Added file handle support for reading Android assets from main bundle.
+	* Source/NSData.m:
+	Added support for reading Android assets from main bundle in
+	readContentsOfFile(). This is also used by all other
+	-initWithContentsOfFile: and related methods from other classes.
+	* Source/NSFileManager.m:
+	Added support for Android assets from main bundle in
+	fileExistsAtPath:isDirectory:, isReadableFileAtPath:, and
+	NSDirectoryEnumerator.
+	* Source/NSProcessInfo.m:
+	Added +initialize method to auto-initialize NSProcessInfo on Android
+	using fake executable path "/data/data/<app identifier>/exe" (Android
+	apps don't have a real executable path).
+
 2019-05-20  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSLog.m: Have all logs go to syslog on android.

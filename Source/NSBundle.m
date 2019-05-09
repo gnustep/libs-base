@@ -241,6 +241,11 @@ static NSString	*library_combo =
   nil;
 #endif
 
+#ifdef __ANDROID__
+static jobject _jassetManager = NULL;
+static AAssetManager *_assetManager = NULL;
+#endif
+
 
 /*
  * Try to find the absolute path of an executable.
@@ -1382,6 +1387,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  isNonInstalledTool = YES;
 	}
 
+#ifndef __ANDROID__ /* don't check suffix on Android's fake executable path */
       if (isApplication == YES)
 	{
 	  s = [path lastPathComponent];
@@ -1422,6 +1428,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 		}
 	    }
 	}
+#endif /* !__ANDROID__ */
 
       if (isApplication == NO)
 	{
@@ -1805,9 +1812,6 @@ IF_NO_GC(
     {
       NSString		*identifier = [self bundleIdentifier];
       NSUInteger        count;
-      NSUInteger	plen = [_path length];
-      NSEnumerator	*enumerator;
-      NSString		*path;
 
       [load_lock lock];
       if (_bundles != nil)
@@ -1835,38 +1839,7 @@ IF_NO_GC(
 
       /* Clean up path cache for this bundle.
        */
-      [pathCacheLock lock];
-      enumerator = [pathCache keyEnumerator];
-      while (nil != (path = [enumerator nextObject]))
-	{
-	  if (YES == [path hasPrefix: _path])
-	    {
-	      if ([path length] == plen)
-		{
-		  /* Remove the bundle directory path from the cache.
-		   */
-		  [pathCache removeObjectForKey: path];
-		}
-	      else
-		{
-		  unichar	c = [path characterAtIndex: plen];
-
-		  /* if the directory is inside the bundle, remove from cache.
-		   */
-		  if ('/' == c)
-		    {
-		      [pathCache removeObjectForKey: path];
-		    }
-#if defined(_WIN32)
-		  else if ('\\' == c)
-		    {
-		      [pathCache removeObjectForKey: path];
-		    }
-#endif
-		}
-	    }
-	}
-      [pathCacheLock unlock];
+      [self cleanPathCache];
       RELEASE(_path);
     }
   TEST_RELEASE(_frameworkVersion);
@@ -2144,6 +2117,48 @@ IF_NO_GC(
 	  addBundlePath(array, contents, primary, subPath, language);
 	}
     }
+  
+#ifdef __ANDROID__
+  // Android: check subdir and localization directly, as AAssetDir and thereby
+  // NSDirectoryEnumerator doesn't list directories
+  NSString *originalPrimary = primary;
+  if (subPath) {
+    primary = [originalPrimary stringByAppendingPathComponent: subPath];
+    contents = bundle_directory_readable(primary);
+    addBundlePath(array, contents, primary, nil, nil);
+    
+    if (localization) {
+      primary = [primary stringByAppendingPathComponent:
+        [localization stringByAppendingPathExtension:@"lproj"]];
+      contents = bundle_directory_readable(primary);
+      addBundlePath(array, contents, primary, nil, nil);
+    } else {
+      NSString *subPathPrimary = primary;
+      enumerate = [languages objectEnumerator];
+      while ((language = [enumerate nextObject])) {
+        primary = [subPathPrimary stringByAppendingPathComponent:
+          [localization stringByAppendingPathExtension:@"lproj"]];
+        contents = bundle_directory_readable(primary);
+        addBundlePath(array, contents, primary, nil, nil);
+      }
+    }
+  }
+  if (localization) {
+    primary = [originalPrimary stringByAppendingPathComponent:
+      [localization stringByAppendingPathExtension:@"lproj"]];
+    contents = bundle_directory_readable(primary);
+    addBundlePath(array, contents, primary, nil, nil);
+  } else {
+    enumerate = [languages objectEnumerator];
+    while ((language = [enumerate nextObject])) {
+      primary = [originalPrimary stringByAppendingPathComponent:
+        [localization stringByAppendingPathExtension:@"lproj"]];
+      contents = bundle_directory_readable(primary);
+      addBundlePath(array, contents, primary, nil, nil);
+    }
+  }
+#endif /* __ANDROID__ */
+  
   primary = rootPath;
   contents = bundle_directory_readable(primary);
   addBundlePath(array, contents, primary, subPath, nil);
@@ -2525,6 +2540,10 @@ IF_NO_GC(
       locale = [[locale lastPathComponent] stringByDeletingPathExtension];
       [array addObject: locale];
     }
+#ifdef __ANDROID__
+    // TODO: check known languages for existance directly, as AAssetDir and thereby
+    // NSDirectoryEnumerator doesn't list directories
+#endif
   return GS_IMMUTABLE(array);
 }
 
@@ -3201,6 +3220,127 @@ IF_NO_GC(
 
   return path;
 }
+
+- (void)cleanPathCache
+{
+  NSUInteger	plen = [_path length];
+  NSEnumerator	*enumerator;
+  NSString		*path;
+  
+  [pathCacheLock lock];
+  enumerator = [pathCache keyEnumerator];
+  while (nil != (path = [enumerator nextObject]))
+  {
+    if (YES == [path hasPrefix: _path])
+      {
+        if ([path length] == plen)
+        {
+          /* Remove the bundle directory path from the cache.
+           */
+          [pathCache removeObjectForKey: path];
+        }
+        else
+        {
+          unichar	c = [path characterAtIndex: plen];
+
+          /* if the directory is inside the bundle, remove from cache.
+           */
+          if ('/' == c)
+          {
+            [pathCache removeObjectForKey: path];
+          }
+#if defined(_WIN32)
+          else if ('\\' == c)
+          {
+            [pathCache removeObjectForKey: path];
+          }
+#endif
+        }
+      }
+  }
+  [pathCacheLock unlock];
+  
+  /* also destroy cached variables depending on bundle paths */
+  DESTROY(_infoDict);
+  DESTROY(_localizations);
+}
+
+#ifdef __ANDROID__
+
++ (AAssetManager *)assetManager
+{
+    return _assetManager;
+}
+
++ (void)setJavaAssetManager:(jobject)jassetManager withJNIEnv:(JNIEnv *)env
+{ 
+  // create global reference to Java asset manager to prevent garbage
+  // collection
+  _jassetManager = (*env)->NewGlobalRef(env, jassetManager);
+  
+  // get native asset manager (may be shared across multiple threads)
+  _assetManager = AAssetManager_fromJava(env, _jassetManager);
+
+  // clean main bundle path cache in case it was accessed before
+  [_mainBundle cleanPathCache];
+}
+
++ (AAsset *)assetForPath:(NSString *)path
+{
+  AAsset *asset = NULL;
+  
+  if (_assetManager && _mainBundle)
+  {
+    NSString *resourcePath = [_mainBundle resourcePath];
+
+    if ([path hasPrefix:resourcePath] && [path length] > [resourcePath length])
+    {
+      NSString *assetPath = [path substringFromIndex:[resourcePath length]+1];
+
+      asset = AAssetManager_open(_assetManager,
+        [assetPath fileSystemRepresentation], AASSET_MODE_BUFFER);
+    }
+  }
+  
+  return asset;
+}
+
++ (AAssetDir *)assetDirForPath:(NSString *)path
+{
+  AAssetDir *assetDir = NULL;
+  
+  if (_assetManager && _mainBundle)
+  {
+    NSString *resourcePath = [_mainBundle resourcePath];
+
+    if ([path hasPrefix:resourcePath])
+    {
+      NSString *assetPath = @"";
+      if ([path length] > [resourcePath length]) {
+        assetPath = [path substringFromIndex:[resourcePath length] + 1];
+      }
+
+      assetDir = AAssetManager_openDir(_assetManager,
+        [assetPath fileSystemRepresentation]);
+      
+      if (assetDir) {
+        // AAssetManager_openDir() always returns an object, so we check if
+        // the directory exists by ensuring it contains a file
+        BOOL exists = AAssetDir_getNextFileName(assetDir) != NULL;
+        if (exists) {
+          AAssetDir_rewind(assetDir);
+        } else {
+          AAssetDir_close(assetDir);
+          assetDir = NULL;
+        }
+      }
+    }
+  }
+  
+  return assetDir;
+}
+
+#endif /* __ANDROID__ */
 
 @end
 

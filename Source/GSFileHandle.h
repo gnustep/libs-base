@@ -35,6 +35,10 @@
 #include <zlib.h>
 #endif
 
+#ifdef __ANDROID__
+#include <android/asset_manager_jni.h>
+#endif
+
 struct sockaddr_in;
 
 /**
@@ -68,6 +72,9 @@ struct sockaddr_in;
 #endif
 #if	defined(_WIN32)
   WSAEVENT  		event;
+#endif
+#ifdef __ANDROID__
+  AAsset		*asset;
 #endif
 #endif
 }
