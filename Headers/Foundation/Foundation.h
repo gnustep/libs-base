@@ -150,4 +150,13 @@
 #import	<Foundation/NSXMLParser.h>
 #import	<Foundation/NSZone.h>
 
+#ifdef __has_include
+#  if __has_include(<CoreFoundation/CoreFoundation.h>)
+#    include <CoreFoundation/CoreFoundation.h>
+#  endif
+#  if __has_include(<dispatch/dispatch.h>)
+#    include <dispatch/dispatch.h>
+#  endif
+#endif
+
 #endif /* __Foundation_h_GNUSTEP_BASE_INCLUDE */
