@@ -158,3 +158,112 @@ extern "C" {
 - (NSString*) descriptionWithLocale: (id)locale indent: (BOOL)flag;
 
 @end
+
+// Mutable Ordered Set
+@interface GS_GENERIC_CLASS(NSMutableOrderedSet, __covariant ElementT) : NSOrderedSet
+									 /*
+Creating a Mutable Ordered Set
++ orderedSetWithCapacity:
+Creates and returns an mutable ordered set with a given initial capacity.
+
+- initWithCapacity:
+Returns an initialized mutable ordered set with a given initial capacity.
+
+- init
+Initializes a newly allocated mutable ordered set.
+
+Adding, Removing, and Reordering Entries
+- addObject:
+Appends a given object to the end of the mutable ordered set, if it is not already a member.
+
+- addObjects:count:
+Appends the given number of objects from a given C array to the end of the mutable ordered set.
+
+- addObjectsFromArray:
+Appends to the end of the mutable ordered set each object contained in a given array that is not already a member.
+
+- insertObject:atIndex:
+Inserts the given object at the specified index of the mutable ordered set, if it is not already a member.
+
+- setObject:atIndexedSubscript:
+Replaces the given object at the specified index of the mutable ordered set.
+
+- insertObjects:atIndexes:
+Inserts the objects in the array at the specified indexes.
+
+- removeObject:
+Removes a given object from the mutable ordered set.
+
+- removeObjectAtIndex:
+Removes a the object at the specified index from the mutable ordered set.
+
+- removeObjectsAtIndexes:
+Removes the objects at the specified indexes from the mutable ordered set.
+
+- removeObjectsInArray:
+Removes the objects in the array from the mutable ordered set.
+
+- removeObjectsInRange:
+Removes from the mutable ordered set each of the objects within a given range.
+
+- removeAllObjects
+Removes all the objects from the mutable ordered set.
+
+- replaceObjectAtIndex:withObject:
+Replaces the object at the specified index with the new object.
+
+- replaceObjectsAtIndexes:withObjects:
+Replaces the objects at the specified indexes with the new objects.
+
+- replaceObjectsInRange:withObjects:count:
+Replaces the objects in the receiving mutable ordered set at the range with the specified number of objects from a given C array.
+
+- setObject:atIndex:
+Appends or replaces the object at the specified index.
+
+- moveObjectsAtIndexes:toIndex:
+Moves the objects at the specified indexes to the new location.
+
+- exchangeObjectAtIndex:withObjectAtIndex:
+Exchanges the object at the specified index with the object at the other index.
+
+- filterUsingPredicate:
+Evaluates a given predicate against the mutable ordered set’s content and leaves only objects that match.
+
+Sorting Entries
+- sortUsingDescriptors:
+Sorts the receiving ordered set using a given array of sort descriptors.
+
+- sortUsingComparator:
+Sorts the mutable ordered set using the comparison method specified by the comparator block.
+
+- sortWithOptions:usingComparator:
+Sorts the mutable ordered set using the specified options and the comparison method specified by a given comparator block.
+
+- sortRange:options:usingComparator:
+Sorts the specified range of the mutable ordered set using the specified options and the comparison method specified by a given comparator block.
+
+Combining and Recombining Entries
+- intersectOrderedSet:
+Removes from the receiving ordered set each object that isn’t a member of another ordered set.
+
+- intersectSet:
+Removes from the receiving ordered set each object that isn’t a member of another set.
+
+- minusOrderedSet:
+Removes each object in another given ordered set from the receiving mutable ordered set, if present.
+
+- minusSet:
+Removes each object in another given set from the receiving mutable ordered set, if present.
+
+- unionOrderedSet:
+Adds each object in another given ordered set to the receiving mutable ordered set, if not present.
+
+- unionSet:
+Adds each object in another given set to the receiving mutable ordered set, if not present.
+
+Initializers
+- initWithCoder:
+*/
+
+@end
