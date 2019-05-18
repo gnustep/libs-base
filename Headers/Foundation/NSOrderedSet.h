@@ -1,9 +1,9 @@
 
 /** Interface for NSOrderedSet, NSMutableOrderedSet for GNUStep
-   Copyright (C) 1995, 1996, 1998 Free Software Foundation, Inc.
+   Copyright (C) 2019 Free Software Foundation, Inc.
 
-   Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   Created: Sep 1995
+   Written by: Gregory John Casamento <greg.casamento@gmail.com>
+   Created: May 17 2019
 
    This file is part of the GNUstep Base Library.
 
@@ -42,6 +42,7 @@ extern "C" {
 @class GS_GENERIC_CLASS(NSSet, ElementT);
 @class GS_GENERIC_CLASS(NSDictionary, KeyT:id<NSCopying>, ValT);
 @class NSString;
+@class NSPredicate;
 
 @interface GS_GENERIC_CLASS(NSOrderedSet, __covariant ElementT) : NSObject <NSCoding,
   NSCopying,
@@ -77,16 +78,16 @@ extern "C" {
                            count:(NSUInteger)count;
 - (instancetype) initWithOrderedSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet;
 - (instancetype) initWithOrderedSet:(GS_GENERIC_CLASS(NSArray, ElementT)*)objects
-                          copyItems:(BOOL)flag
+                          copyItems:(BOOL)flag;
 - (instancetype) initWithOrderedSet:(GS_GENERIC_CLASS(NSArray, ElementT)*)objects
                               range: (NSRange)range
                           copyItems:(BOOL)flag;
 - (instancetype) initWithSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet;
 - (instancetype) initWithSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet copyItems:(BOOL)flag;
-  - (instancetype) init;
+- (instancetype) init;
 - (NSUInteger) count;
 - (BOOL)containsObject:(GS_GENERIC_TYPE(ElementT))anObject;
-- (void) enumerateObjectsAtIndexes:(NSIndexSet)indexSet
+- (void) enumerateObjectsAtIndexes:(NSIndexSet *)indexSet
                            options:(NSEnumerationOptions)opts
                         usingBlock:(GSEnumeratorBlock)aBlock;
 - (void) enumerateObjectsUsingBlock: (GSEnumeratorBlock)aBlock;
@@ -95,10 +96,9 @@ extern "C" {
 - (GS_GENERIC_TYPE(ElementT)) firstObject;
 - (GS_GENERIC_TYPE(ElementT)) lastObject;
 - (GS_GENERIC_TYPE(ElementT)) objectAtIndex: (NSUInteger)index;
-- (GS_GENERIC_TYPE(ElementT)) objectAtIndexedSubscript:
-- (GS_GENERIC_CLASS(NSArray, ElementT) *) objectsAtIndexes:
-  (NSIndexSet *)indexes;
-- (NSUInteger) indexOfObject:(GS_GENERIC_TYPE(ElementT))
+  - (GS_GENERIC_TYPE(ElementT)) objectAtIndexedSubscript:(NSUInteger)index;
+- (GS_GENERIC_CLASS(NSArray, ElementT)*) objectsAtIndexes:(NSIndexSet *)indexes;
+- (NSUInteger) indexOfObject:(GS_GENERIC_TYPE(ElementT))objects;  
 - (NSUInteger) indexOfObject: (id)key
                inSortedRange: (NSRange)range
                      options: (NSBinarySearchingOptions)options
@@ -119,7 +119,7 @@ extern "C" {
                             passingTest:(GSPredicateBlock)predicate;
 - (GS_GENERIC_CLASS(NSEnumerator, ElementT)*) objectEnumerator;
 - (GS_GENERIC_CLASS(NSEnumerator, ElementT)*) reverseObjectEnumerator;
-- (NSOrderedSet *)reversedOrderedSet
+  - (NSOrderedSet *)reversedOrderedSet;
 - (void) getObjects: (__unsafe_unretained GS_GENERIC_TYPE(ElementT)[])aBuffer
               range: (NSRange)aRange;
 
@@ -128,10 +128,12 @@ extern "C" {
 - (GS_GENERIC_TYPE(ElementT)) valueForKey: (NSString*)key; 
 
 // Key-Value Observing Support
+/*
 - addObserver:forKeyPath:options:context:
 - removeObserver:forKeyPath:
 - removeObserver:forKeyPath:context:
-
+*/
+  
 // Comparing Sets
 - (BOOL) isEqualToOrderedSet: (NSOrderedSet *)aSet;
   
@@ -155,115 +157,52 @@ extern "C" {
 // Describing a set
 - (NSString *) description;
 - (NSString *) descriptionWithLocale: (NSLocale *)locale;
-- (NSString*) descriptionWithLocale: (id)locale indent: (BOOL)flag;
-
+- (NSString *) descriptionWithLocale: (id)locale indent: (BOOL)flag;
 @end
 
 // Mutable Ordered Set
 @interface GS_GENERIC_CLASS(NSMutableOrderedSet, __covariant ElementT) : NSOrderedSet
-									 /*
-Creating a Mutable Ordered Set
-+ orderedSetWithCapacity:
-Creates and returns an mutable ordered set with a given initial capacity.
-
-- initWithCapacity:
-Returns an initialized mutable ordered set with a given initial capacity.
-
-- init
-Initializes a newly allocated mutable ordered set.
-
-Adding, Removing, and Reordering Entries
-- addObject:
-Appends a given object to the end of the mutable ordered set, if it is not already a member.
-
-- addObjects:count:
-Appends the given number of objects from a given C array to the end of the mutable ordered set.
-
-- addObjectsFromArray:
-Appends to the end of the mutable ordered set each object contained in a given array that is not already a member.
-
-- insertObject:atIndex:
-Inserts the given object at the specified index of the mutable ordered set, if it is not already a member.
-
-- setObject:atIndexedSubscript:
-Replaces the given object at the specified index of the mutable ordered set.
-
-- insertObjects:atIndexes:
-Inserts the objects in the array at the specified indexes.
-
-- removeObject:
-Removes a given object from the mutable ordered set.
-
-- removeObjectAtIndex:
-Removes a the object at the specified index from the mutable ordered set.
-
-- removeObjectsAtIndexes:
-Removes the objects at the specified indexes from the mutable ordered set.
-
-- removeObjectsInArray:
-Removes the objects in the array from the mutable ordered set.
-
-- removeObjectsInRange:
-Removes from the mutable ordered set each of the objects within a given range.
-
-- removeAllObjects
-Removes all the objects from the mutable ordered set.
-
-- replaceObjectAtIndex:withObject:
-Replaces the object at the specified index with the new object.
-
-- replaceObjectsAtIndexes:withObjects:
-Replaces the objects at the specified indexes with the new objects.
-
-- replaceObjectsInRange:withObjects:count:
-Replaces the objects in the receiving mutable ordered set at the range with the specified number of objects from a given C array.
-
-- setObject:atIndex:
-Appends or replaces the object at the specified index.
-
-- moveObjectsAtIndexes:toIndex:
-Moves the objects at the specified indexes to the new location.
-
-- exchangeObjectAtIndex:withObjectAtIndex:
-Exchanges the object at the specified index with the object at the other index.
-
-- filterUsingPredicate:
-Evaluates a given predicate against the mutable ordered set’s content and leaves only objects that match.
-
-Sorting Entries
-- sortUsingDescriptors:
-Sorts the receiving ordered set using a given array of sort descriptors.
-
-- sortUsingComparator:
-Sorts the mutable ordered set using the comparison method specified by the comparator block.
-
-- sortWithOptions:usingComparator:
-Sorts the mutable ordered set using the specified options and the comparison method specified by a given comparator block.
-
-- sortRange:options:usingComparator:
-Sorts the specified range of the mutable ordered set using the specified options and the comparison method specified by a given comparator block.
-
-Combining and Recombining Entries
-- intersectOrderedSet:
-Removes from the receiving ordered set each object that isn’t a member of another ordered set.
-
-- intersectSet:
-Removes from the receiving ordered set each object that isn’t a member of another set.
-
-- minusOrderedSet:
-Removes each object in another given ordered set from the receiving mutable ordered set, if present.
-
-- minusSet:
-Removes each object in another given set from the receiving mutable ordered set, if present.
-
-- unionOrderedSet:
-Adds each object in another given ordered set to the receiving mutable ordered set, if not present.
-
-- unionSet:
-Adds each object in another given set to the receiving mutable ordered set, if not present.
-
-Initializers
-- initWithCoder:
-*/
-
+// Creating a Mutable Ordered Set
++ (instancetype)orderedSetWithCapacity: (NSUInteger)capacity;
+- (instancetype)initWithCapacity: (NSUInteger)capacity;
+- (instancetype) init;
+- (void)addObject:(GS_GENERIC_TYPE(ElementT))anObject;
+- (void)addObjects:(const GS_GENERIC_TYPE(ElementT)[])objects count:(NSUInteger)count;
+- (void)addObjectsFromArray:(GS_GENERIC_CLASS(NSArray, ElementT)*)otherArray;
+- (void)insertObject:(GS_GENERIC_TYPE(ElementT))object atIndex:(NSUInteger)index;
+- (void)setObject:(GS_GENERIC_TYPE(ElementT))object atIndexedSubscript:(NSUInteger)index;
+- (void)insertObjects:(GS_GENERIC_CLASS(NSArray, ElementT)*)array atIndexes:(NSIndexSet *)indexes;
+- (void)removeObject:(GS_GENERIC_TYPE(ElementT))object;
+- (void)removeObjectAtIndex:(NSUInteger)integer;
+- (void)removeObjectsAtIndexes:(NSIndexSet *)indexes;
+- (void)removeObjectsInArray:(GS_GENERIC_CLASS(NSArray, ElementT)*)otherArray;
+- (void)removeObjectsInRange:(NSRange *)range;
+- (void)removeAllObjects;
+- (void)replaceObjectAtIndex:(NSUInteger)index
+                  withObject:(GS_GENERIC_TYPE(ElementT))object;
+- (void) replaceObjectsAtIndexes: (NSIndexSet *)indexes
+                     withObjects: (GS_GENERIC_CLASS(NSArray, ElementT)*)objects;
+- (void) replaceObjectsInRange:(NSRange)range
+                   withObjects:(const GS_GENERIC_TYPE(ElementT)[])objects
+                         count: (NSUInteger)count;
+- (void)setObject:(GS_GENERIC_TYPE(ElementT))object atIndex:(NSUInteger)index;
+- (void)moveObjectsAtIndexes:(NSIndexSet *)indexes toIndex:(NSUInteger)index;
+- (void) exchangeObjectAtIndex:(NSUInteger)index withObjectAtIndex:(NSUInteger)otherIndex;
+- (void)filterUsingPredicate:(NSPredicate *)predicate;
+- (void) sortUsingDescriptors:(NSArray *)descriptors;
+- (void) sortUsingComparator: (NSComparator)comparator;
+- (void) sortWithOptions: (NSSortOptions)options
+         usingComparator: (NSComparator)comparator;  
+- (void) sortRange: (NSRange)range
+           options:(NSSortOptions)options
+   usingComparator: (NSComparator)comparator;
+- (void) intersectOrderedSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
+- (void) intersectSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
+- (void) minusOrderedSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
+- (void) minusSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
+- (void) unionOrderedSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
+- (void) unionSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
+- (instancetype) initWithCoder: (NSCoder *)coder;
 @end
+
+#endif
