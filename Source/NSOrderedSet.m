@@ -546,6 +546,15 @@ static Class NSMutableOrderedSet_concrete_class;
 // Mutable Ordered Set
 @implementation NSMutableOrderedSet
 // Creating a Mutable Ordered Set
++ (void) initialize
+{
+  if (self == [NSMutableSet class])
+    {
+      NSMutableOrderedSet_abstract_class = self;
+      NSMutableOrderedSet_concrete_class = [GSMutableOrderedSet class];
+    }
+}
+
 + (instancetype)orderedSetWithCapacity: (NSUInteger)capacity
 {
   return nil;
