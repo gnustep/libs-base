@@ -67,12 +67,12 @@ extern "C" {
                          copyItems:(BOOL)flag;
 
 // instance methods
-- (instancetype) initWithArray:(GS_GENERIC_CLASS(NSArray, ElementT)*)other;
-- (instancetype) initWithArray:(GS_GENERIC_CLASS(NSArray, ElementT)*)other copyItems:(BOOL)flag;
-- (instancetype) initWithArray:(GS_GENERIC_CLASS(NSArray, ElementT)*)other
+- (instancetype) initWithArray:(GS_GENERIC_CLASS(NSArray, ElementT)*)array;
+- (instancetype) initWithArray:(GS_GENERIC_CLASS(NSArray, ElementT)*)array copyItems:(BOOL)flag;
+- (instancetype) initWithArray:(GS_GENERIC_CLASS(NSArray, ElementT)*)array
                          range:(NSRange)range
                      copyItems:(BOOL)flag;
-  - (instancetype) initWithObject:(id)object;
+- (instancetype) initWithObject:(id)object;
 - (instancetype) initWithObjects:(GS_GENERIC_TYPE(ElementT))firstObject, ...;
 - (instancetype) initWithObjects:(const GS_GENERIC_TYPE(ElementT)[])objects
                            count:(NSUInteger)count;
@@ -119,7 +119,7 @@ extern "C" {
                             passingTest:(GSPredicateBlock)predicate;
 - (GS_GENERIC_CLASS(NSEnumerator, ElementT)*) objectEnumerator;
 - (GS_GENERIC_CLASS(NSEnumerator, ElementT)*) reverseObjectEnumerator;
-  - (NSOrderedSet *)reversedOrderedSet;
+- (NSOrderedSet *)reversedOrderedSet;
 - (void) getObjects: (__unsafe_unretained GS_GENERIC_TYPE(ElementT)[])aBuffer
               range: (NSRange)aRange;
 

@@ -39,16 +39,161 @@
 #import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 
+@class	GSOrderedSet;
+@interface GSOrderedSet : NSObject	// Help the compiler
+@end
+@class	GSMutableOrderedSet;
+@interface GSMutableOrderedSet : NSObject	// Help the compiler
+@end
+
 @implementation NSOrderedSet
+
+static Class NSOrderedSet_abstract_class;
+static Class NSMutableOrderedSet_abstract_class;
+static Class NSOrderedSet_concrete_class;
+static Class NSMutableOrderedSet_concrete_class;
+
++ (id) allocWithZone: (NSZone*)z
+{
+  if (self == NSOrderedSet_abstract_class)
+    {
+      return NSAllocateObject(NSOrderedSet_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
+    }
+}
+
++ (void) initialize
+{
+  if (self == [NSOrderedSet class])
+    {
+      NSOrderedSet_abstract_class = self;
+      NSOrderedSet_concrete_class = [GSOrderedSet class];
+      [NSMutableSet class];
+    }
+}
 
 // NSCoding
 - (instancetype) initWithCoder: (NSCoder *)coder
 {
-  return nil;
+  Class		c;
+
+  c = object_getClass(self);
+  if (c == NSOrderedSet_abstract_class)
+    {
+      DESTROY(self);
+      self = [NSOrderedSet_concrete_class allocWithZone: NSDefaultMallocZone()];
+      return [self initWithCoder: coder];
+    }
+  else if (c == NSOrderedSet_abstract_class)
+    {
+      DESTROY(self);
+      self = [NSOrderedSet_concrete_class allocWithZone: NSDefaultMallocZone()];
+      return [self initWithCoder: coder];
+    }
+
+  if ([coder allowsKeyedCoding])
+    {
+      id	array;
+
+      array = [(NSKeyedUnarchiver*)coder _decodeArrayOfObjectsForKey:
+						@"NS.objects"];
+      if (array == nil)
+	{
+	  unsigned	i = 0;
+	  NSString	*key;
+	  id		val;
+
+	  array = [NSMutableArray arrayWithCapacity: 2];
+	  key = [NSString stringWithFormat: @"NS.object.%u", i];
+	  val = [(NSKeyedUnarchiver*)coder decodeObjectForKey: key];
+
+	  while (val != nil)
+	    {
+	      [array addObject: val];
+	      i++;
+	      key = [NSString stringWithFormat: @"NS.object.%u", i];
+	      val = [(NSKeyedUnarchiver*)coder decodeObjectForKey: key];
+	    }
+	}
+      self = [self initWithArray: array];
+    }
+  else
+    {
+      unsigned	count;
+
+      [coder decodeValueOfObjCType: @encode(unsigned) at: &count];
+      if (count > 0)
+        {
+	  unsigned	i;
+	  GS_BEGINIDBUF(objs, count);
+
+	  for (i = 0; i < count; i++)
+	    {
+	      [coder decodeValueOfObjCType: @encode(id) at: &objs[i]];
+	    }
+	  self = [self initWithObjects: objs count: count];
+	  while (count-- > 0)
+	    {
+	      [objs[count] release];
+	    }
+	  GS_ENDIDBUF();
+	}
+    }
+  return self;
 }
 
-- (void) encodeWithCoder: (NSCoder *)coder
+- (void) encodeWithCoder: (NSCoder *)aCoder
 {
+   if ([aCoder allowsKeyedCoding])
+    {
+      NSMutableArray *array = [NSMutableArray array];
+      NSEnumerator *en = [self objectEnumerator];
+      id obj = nil;
+      /* HACK ... MacOS-X seems to code differently if the coder is an
+       * actual instance of NSKeyedArchiver
+       */
+      
+      // Collect all objects...
+      while((obj = [en nextObject]) != nil)
+	{
+	  [array addObject: obj];
+	}
+      
+      if ([aCoder class] == [NSKeyedArchiver class])
+	{
+	  [(NSKeyedArchiver*)aCoder _encodeArrayOfObjects: array
+						   forKey: @"NS.objects"];
+	}
+      else
+	{
+	  unsigned	i = 0;
+	  NSEnumerator	*e = [self objectEnumerator];
+	  id		o;
+
+	  while ((o = [e nextObject]) != nil)
+	    {
+	      NSString	*key;
+
+	      key = [NSString stringWithFormat: @"NS.object.%u", i++];
+	      [(NSKeyedArchiver*)aCoder encodeObject: o forKey: key];
+	    }
+	}
+    }
+  else
+    {
+      unsigned		count = [self count];
+      NSEnumerator	*e = [self objectEnumerator];
+      id		o;
+
+      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
+      while ((o = [e nextObject]) != nil)
+	{
+	  [aCoder encodeValueOfObjCType: @encode(id) at: &o];
+	}
+    } 
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -66,13 +211,14 @@
 				   objects: (__unsafe_unretained id[])stackbuf
 				     count: (NSUInteger)len
 {
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
 // class methods
 + (instancetype) orderedSet
 {
-  return nil;
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()] init]);
 }
 
 + (instancetype) orderedSetWithArray:(NSArray *)objects
