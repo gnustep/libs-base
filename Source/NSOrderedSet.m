@@ -503,7 +503,7 @@ static Class NSMutableOrderedSet_concrete_class;
 
       while ((o = [e nextObject]))
         {
-	  if (![aSet member: o])
+	  if (![aSet containsObject: o])
             {
 	      return NO;
             }
