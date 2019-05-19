@@ -465,7 +465,20 @@ static Class NSMutableOrderedSet_concrete_class;
 
 - (id) valueForKey: (NSString*)key
 {
-  return nil;
+    NSEnumerator *e = [self objectEnumerator];
+  id object = nil;
+  NSMutableSet *results = [NSMutableSet setWithCapacity: [self count]];
+
+  while ((object = [e nextObject]) != nil)
+    {
+      id result = [object valueForKey: key];
+
+      if (result == nil)
+        continue;
+
+      [results addObject: result];
+    }
+  return results;
 }
 
 // Key-Value Observing Support
@@ -474,13 +487,45 @@ static Class NSMutableOrderedSet_concrete_class;
 - removeObserver:forKeyPath:
 - removeObserver:forKeyPath:context:
 */
-  
+- (NSUInteger)_countForObject: (id)object
+{
+  return 1;
+}
+
 // Comparing Sets
 - (BOOL) isEqualToOrderedSet: (NSOrderedSet *)aSet
 {
+  if ([self count] != [aSet count])
+    return NO;
+  else
+    {
+      id	o, e = [self objectEnumerator];
+
+      while ((o = [e nextObject]))
+        {
+	  if (![aSet member: o])
+            {
+	      return NO;
+            }
+         else
+           {
+             if ([self _countForObject: o] != [aSet _countForObject: o])
+               {
+                 return NO;
+               }
+           }
+        }
+    }
+  return YES;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  if ([other isKindOfClass: [NSOrderedSet class]])
+    return [self isEqualToOrderedSet: other];
   return NO;
 }
-  
+
 // Set operations
 - (BOOL) intersectsOrderedSet: (NSOrderedSet *)aSet
 {
@@ -529,17 +574,17 @@ static Class NSMutableOrderedSet_concrete_class;
 // Describing a set
 - (NSString *) description
 {
-  return @"";
+  return [self descriptionWithLocale: nil];
 }
 
 - (NSString *) descriptionWithLocale: (NSLocale *)locale
-{
-  return @"";
+{ 
+  return [[self allObjects] descriptionWithLocale: locale];
 }
 
-- (NSString*) descriptionWithLocale: (id)locale indent: (BOOL)flag
+- (NSString*) descriptionWithLocale: (NSLocale *)locale indent: (BOOL)flag
 {
-  return @"";
+  return [self descriptionWithLocale: locale];
 }
 @end
 
