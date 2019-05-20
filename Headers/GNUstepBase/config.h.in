@@ -216,6 +216,9 @@
 /* Define to 1 if you have the `dispatch_main_queue_drain_np' function. */
 #undef HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP
 
+/* Define to 1 if you have the <dispatch/private.h> header file. */
+#undef HAVE_DISPATCH_PRIVATE_H
+
 /* Define to 1 if you have the `dladdr' function. */
 #undef HAVE_DLADDR
 
@@ -766,6 +769,14 @@
 
 /* Define to 1 if you have the `_Block_copy' function. */
 #undef HAVE__BLOCK_COPY
+
+/* Define to 1 if you have the `_dispatch_get_main_queue_handle_4CF' function.
+   */
+#undef HAVE__DISPATCH_GET_MAIN_QUEUE_HANDLE_4CF
+
+/* Define to 1 if you have the `_dispatch_main_queue_callback_4CF' function.
+   */
+#undef HAVE__DISPATCH_MAIN_QUEUE_CALLBACK_4CF
 
 /* Define to 1 if you have the `__builtin_extract_return_address' function. */
 #undef HAVE___BUILTIN_EXTRACT_RETURN_ADDRESS

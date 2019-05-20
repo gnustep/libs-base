@@ -3357,6 +3357,9 @@ if test $enable_libdispatch = yes; then
   AC_CHECK_HEADERS(dispatch.h, have_dispatch=yes, have_dispatch=no)
   if test "$have_dispatch" = "no"; then
     AC_CHECK_HEADERS(dispatch/dispatch.h, have_dispatch=yes, have_dispatch=no)
+    # check for private header which includes runloop integration functions in
+    # the Swift corelibs libdispatch release
+    AC_CHECK_HEADERS(dispatch/private.h)
   fi
   if test "$have_dispatch" = "yes"; then
     AC_CHECK_LIB(dispatch, dispatch_queue_create, have_dispatch=yes, have_dispatch=no)
@@ -3388,10 +3391,13 @@ if test $HAVE_LIBDISPATCH = 1; then
   # We check whether we have a variant of libdispatch that allows runloop
   # integration
   AC_CHECK_FUNCS(dispatch_main_queue_drain_np dispatch_get_main_queue_handle_np)
-  if test "$ac_cv_func_dispatch_main_queue_drain_np" = "no"; then
+  if test "$ac_cv_func_dispatch_main_queue_drain_np" = "yes" && test "$ac_cv_func_dispatch_get_main_queue_handle_np" = "yes"; then
     HAVE_LIBDISPATCH_RUNLOOP=1
   fi
-  if test "$ac_cv_func_dispatch_get_main_queue_handle_np" = "no"; then
+  # Check for "_4CF" variants of runloop integration functions provided by the
+  # Swift corelibs libdispatch release
+  AC_CHECK_FUNCS(_dispatch_main_queue_callback_4CF _dispatch_get_main_queue_handle_4CF)
+  if test "$ac_cv_func__dispatch_main_queue_callback_4CF" = "yes" && test "$ac_cv_func__dispatch_get_main_queue_handle_4CF" = "yes"; then
     HAVE_LIBDISPATCH_RUNLOOP=1
   fi
 fi
