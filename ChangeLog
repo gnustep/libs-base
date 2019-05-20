@@ -1,3 +1,27 @@
+2019-05-20  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSLog.m: Have all logs go to syslog on android.
+	* Source/NSThread.m: Spinlock implementation using builtins as
+	implemented by David in libobjc2
+	* Source/NSRunLoop.m
+	* Headers/GNUstepBase/config.h.in:
+	* configure.ac:
+	This updates the libdispatch runloop integration to be compatible with
+	the Swift corelibs libdispatch release at
+	(https://github.com/apple/swift-corelibs-libdispatch).
+
+	In that release, the main queue handle and drain functions have been
+	renamed with a "_4CF" (for CoreFoundation) suffix and have moved to
+	private.h, so we now check for the existance of this header and
+	function names.
+
+	Note that libdispatch must be compiled with
+	INSTALL_PRIVATE_HEADERS=YES.
+
+	Also fixes the checks for the HAVE_LIBDISPATCH_RUNLOOP define (was
+	inverted) and ensures that both the handle and drain functions are
+	available.
+
 2019-02-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Removed public functions which could conflict
