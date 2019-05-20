@@ -38,21 +38,40 @@
 // Dummy implementatation
 // cleaner than IFDEF'ing the code everywhere
 #if !(HAVE_PTHREAD_SPIN_LOCK)
-#warning no spin_locks, using dummy versions
-typedef int pthread_spinlock_t;
+typedef volatile int pthread_spinlock_t;
 int pthread_spin_init(pthread_spinlock_t *lock, int pshared)
 {
-#if DEBUG
+#if DEBUG && !__has_builtin(__sync_bool_compare_and_swap)
   fprintf(stderr,"NSThread.m: Warning this platform does not support spin locks - init.\n");
 #endif
   return 0;
 }
 int pthread_spin_lock(pthread_spinlock_t *lock)
 {
+#if __has_builtin(__sync_bool_compare_and_swap)
+  int count = 0;
+  // Set the spin lock value to 1 if it is 0.
+  while(!__sync_bool_compare_and_swap(lock, 0, 1))
+  {
+    count++;
+    if (0 == count % 10)
+    {
+      // If it is already 1, let another thread play with the CPU for a
+      // bit then try again.
+      sleep(0);
+    }
+  }
+#else
+  #warning no spin_locks, using dummy versions
+#endif
   return 0;
 }
 int pthread_spin_unlock(pthread_spinlock_t *lock)
 {
+#if __has_builtin(__sync_bool_compare_and_swap)
+  __sync_synchronize();
+  *lock = 0;
+#endif
   return 0;
 }
 int pthread_spin_destroy(pthread_spinlock_t *lock)
