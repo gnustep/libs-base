@@ -499,7 +499,7 @@ static Class NSMutableOrderedSet_concrete_class;
     return NO;
   else
     {
-      id	o, e = [self objectEnumerator];
+      id o, e = [self objectEnumerator];
 
       while ((o = [e nextObject]))
         {

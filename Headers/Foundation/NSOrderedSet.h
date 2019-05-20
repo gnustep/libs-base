@@ -32,6 +32,13 @@
 #import <Foundation/NSObject.h>
 #import <Foundation/NSEnumerator.h>
 #import <GNUstepBase/GSBlocks.h>
+#import <Foundation/NSIndexSet.h>
+#import <Foundation/NSKeyedArchiver.h>
+#import "GSPrivate.h"
+#import "GSPThread.h"
+#import "GSFastEnumeration.h"
+#import "GSDispatch.h"
+#import "GSSorting.h"
 
 #if	defined(__cplusplus)
 extern "C" {

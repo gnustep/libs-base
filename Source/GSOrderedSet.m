@@ -1,4 +1,4 @@
-/** Concrete implementation of NSSet based on GNU Set class
+/** Concrete implementation of NSOrderedSet based on GNU Set class
    Copyright (C) 2019 Free Software Foundation, Inc.
 
    Written by: Gregory Casamento <greg.casamento@gmail.com>
@@ -23,16 +23,21 @@
    */
 
 #import "common.h"
-#import "Foundation/NSSet.h"
+#import "Foundation/NSOrderedSet.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSPortCoder.h"
+#import "Foundation/NSIndexSet.h"
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
+#import "GSPThread.h"
+#import "GSFastEnumeration.h"
+#import "GSDispatch.h"
+#import "GSSorting.h"
 
 #define	GSI_MAP_HAS_VALUE	0
 #define	GSI_MAP_KTYPES		GSUNION_OBJ
@@ -49,7 +54,7 @@ static SEL      privateCountOfSel;
 }
 @end
 
-@interface GSMutableSet : NSMutableSet
+@interface GSMutableOrderedSet : NSMutableOrderedSet
 {
 @public
   GSIMapTable_t	map;
@@ -58,21 +63,21 @@ static SEL      privateCountOfSel;
 }
 @end
 
-@interface GSSetEnumerator : NSEnumerator
+@interface GSOrderedSetEnumerator : NSEnumerator
 {
-  GSSet			*set;
+  GSOrderedSet			*set;
   GSIMapEnumerator_t	enumerator;
 }
 @end
 
-@implementation GSSetEnumerator
+@implementation GSOrderedSetEnumerator
 
-- (id) initWithSet: (NSSet*)d
+- (id) initWithSet: (NSOrderedSet*)d
 {
   self = [super init];
   if (self != nil)
     {
-      set = (GSSet*)RETAIN(d);
+      set = (GSOrderedSet*)RETAIN(d);
       enumerator = GSIMapEnumeratorForMap(&set->map);
     }
   return self;
@@ -99,7 +104,7 @@ static SEL      privateCountOfSel;
 @end
 
 
-@implementation GSSet
+@implementation GSOrderedSet
 
 static Class	arrayClass;
 static Class	setClass;
@@ -107,11 +112,11 @@ static Class	mutableSetClass;
 
 + (void) initialize
 {
-  if (self == [GSSet class])
+  if (self == [GSOrderedSet class])
     {
       arrayClass = [NSArray class];
-      setClass = [GSSet class];
-      mutableSetClass = [GSMutableSet class];
+      setClass = [GSOrderedSet class];
+      mutableSetClass = [GSMutableOrderedSet class];
       memberSel = @selector(member:);
       privateCountOfSel = @selector(_countForObject:);
     }
@@ -262,7 +267,7 @@ static Class	mutableSetClass;
   return self;
 }
 
-- (BOOL) intersectsSet: (NSSet*) otherSet
+- (BOOL) intersectsSet: (NSOrderedSet*) otherSet
 {
   Class	c;
 
@@ -278,7 +283,7 @@ static Class	mutableSetClass;
   c = object_getClass(otherSet);
   if (c == setClass || c == mutableSetClass)
     {
-      GSIMapTable		m = &((GSSet*)otherSet)->map;
+      GSIMapTable		m = &((GSOrderedSet*)otherSet)->map;
       GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(m);
       GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
 
@@ -310,7 +315,7 @@ static Class	mutableSetClass;
   return NO;
 }
 
-- (BOOL) isSubsetOfSet: (NSSet*) otherSet
+- (BOOL) isSubsetOfSet: (NSOrderedSet*) otherSet
 {
   GSIMapEnumerator_t	enumerator;
   GSIMapNode 		node;
@@ -351,7 +356,7 @@ static Class	mutableSetClass;
   return YES;
 }
 
-- (BOOL) isEqualToSet: (NSSet*)other
+- (BOOL) isEqualToSet: (NSOrderedSet*)other
 {
   if (other == nil)
     {
@@ -367,7 +372,7 @@ static Class	mutableSetClass;
 
       if (c == setClass || c == mutableSetClass)
 	{
-	  if (map.nodeCount != ((GSSet*)other)->map.nodeCount)
+	  if (map.nodeCount != ((GSOrderedSet*)other)->map.nodeCount)
 	    {
 	      return NO;
 	    }
@@ -385,7 +390,7 @@ static Class	mutableSetClass;
 
 	      while (node != 0)
 		{
-		  if (GSIMapNodeForKey(&(((GSSet*)other)->map), node->key) == 0)
+		  if (GSIMapNodeForKey(&(((GSOrderedSet*)other)->map), node->key) == 0)
 		    {
 		      GSIMapEndEnumerator(&enumerator);
 		      return NO;
@@ -428,7 +433,7 @@ static Class	mutableSetClass;
                     {
                       NSUInteger c = (NSUInteger)
                        countImp(other,privateCountOfSel,node->key.obj);
-                      // GSSet does not have duplicate entries
+                      // GSOrderedSet does not have duplicate entries
                       if (c != 1)
                         {
                           return NO;
@@ -516,7 +521,7 @@ static Class	mutableSetClass;
 
 - (NSEnumerator*) objectEnumerator
 {
-  return AUTORELEASE([[GSSetEnumerator alloc] initWithSet: self]);
+  return AUTORELEASE([[GSOrderedSetEnumerator alloc] initWithSet: self]);
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
@@ -550,13 +555,13 @@ static Class	mutableSetClass;
 
 @end
 
-@implementation GSMutableSet
+@implementation GSMutableOrderedSet
 
 + (void) initialize
 {
-  if (self == [GSMutableSet class])
+  if (self == [GSMutableOrderedSet class])
     {
-      GSObjCAddClassBehavior(self, [GSSet class]);
+      GSObjCAddClassBehavior(self, [GSOrderedSet class]);
     }
 }
 
@@ -604,10 +609,10 @@ static Class	mutableSetClass;
     }
 }
 
-/* Override _version from GSSet */
+/* Override _version from GSOrderedSet */
 - (id) copyWithZone: (NSZone*)z
 {
-  NSSet	*copy = [setClass allocWithZone: z];
+  NSOrderedSet	*copy = [setClass allocWithZone: z];
 
   return [copy initWithSet: self copyItems: NO];
 }
@@ -652,7 +657,7 @@ static Class	mutableSetClass;
   return self;
 }
 
-- (void) intersectSet: (NSSet*)other
+- (void) intersectSet: (NSOrderedSet*)other
 {
   if (nil == other)
     {
@@ -683,7 +688,7 @@ static Class	mutableSetClass;
       c = object_getClass(other);
       if (c == setClass || c == mutableSetClass)
         {
-          GSSet *o = (GSSet*)other;
+          GSOrderedSet *o = (GSOrderedSet*)other;
 
           enumerator = GSIMapEnumeratorForMap(&map);
           bucket = GSIMapEnumeratorBucket(&enumerator);
@@ -727,13 +732,13 @@ static Class	mutableSetClass;
 
 - (BOOL) makeImmutable
 {
-  GSClassSwizzle(self, [GSSet class]);
+  GSClassSwizzle(self, [GSOrderedSet class]);
   return YES;
 }
 
 - (id) makeImmutableCopyOnFail: (BOOL)force
 {
-  GSClassSwizzle(self, [GSSet class]);
+  GSClassSwizzle(self, [GSOrderedSet class]);
   return self;
 }
 
@@ -809,27 +814,27 @@ static Class	mutableSetClass;
 }
 @end
 
-@interface	NSGSet : NSSet
+@interface	NSGOrderedSet : NSOrderedSet
 @end
-@implementation	NSGSet
+@implementation	NSGOrderedSet
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
   DESTROY(self);
-  self = (id)NSAllocateObject([GSSet class], 0, NSDefaultMallocZone());
+  self = (id)NSAllocateObject([GSOrderedSet class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;
 }
 @end
 
-@interface	NSGMutableSet : NSMutableSet
+@interface	NSGMutableOrderedSet : NSMutableOrderedSet
 @end
-@implementation	NSGMutableSet
+@implementation	NSGMutableOrderedSet
 - (id) initWithCoder: (NSCoder*)aCoder
 {
   NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
   DESTROY(self);
-  self = (id)NSAllocateObject([GSMutableSet class], 0, NSDefaultMallocZone());
+  self = (id)NSAllocateObject([GSMutableOrderedSet class], 0, NSDefaultMallocZone());
   self = [self initWithCoder: aCoder];
   return self;
 }

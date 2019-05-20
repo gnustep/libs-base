@@ -172,6 +172,7 @@ GSFormat.m \
 GSHTTPAuthentication.m \
 GSHTTPURLHandle.m \
 GSICUString.m \
+GSOrderedSet.m \
 GSPrivateHash.m \
 GSQuickSort.m \
 GSRunLoopWatcher.m \
