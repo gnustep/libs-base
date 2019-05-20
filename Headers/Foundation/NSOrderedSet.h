@@ -66,8 +66,8 @@ extern "C" {
 + (instancetype) orderedSetWithObjects:(GS_GENERIC_TYPE(ElementT))firstObject, ...;
 + (instancetype) orderedSetWithObjects:(const GS_GENERIC_TYPE(ElementT)[])objects
                                  count:(NSUInteger) count;
-+ (instancetype) orderedSetWithOrderedSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet;
-+ (instancetype) orderedSetWithOrderedSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet
++ (instancetype) orderedSetWithOrderedSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
++ (instancetype) orderedSetWithOrderedSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet
                                     count:(NSUInteger) count;
 + (instancetype) orderedSetWithSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet;
 + (instancetype) orderedSetWithSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet
@@ -83,10 +83,10 @@ extern "C" {
 - (instancetype) initWithObjects:(GS_GENERIC_TYPE(ElementT))firstObject, ...;
 - (instancetype) initWithObjects:(const GS_GENERIC_TYPE(ElementT)[])objects
                            count:(NSUInteger)count;
-- (instancetype) initWithOrderedSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet;
-- (instancetype) initWithOrderedSet:(GS_GENERIC_CLASS(NSArray, ElementT)*)objects
+- (instancetype) initWithOrderedSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
+- (instancetype) initWithOrderedSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet
                           copyItems:(BOOL)flag;
-- (instancetype) initWithOrderedSet:(GS_GENERIC_CLASS(NSArray, ElementT)*)objects
+- (instancetype) initWithOrderedSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet
                               range: (NSRange)range
                           copyItems:(BOOL)flag;
 - (instancetype) initWithSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet;
@@ -164,7 +164,7 @@ extern "C" {
 // Describing a set
 - (NSString *) description;
 - (NSString *) descriptionWithLocale: (NSLocale *)locale;
-- (NSString *) descriptionWithLocale: (id)locale indent: (BOOL)flag;
+- (NSString *) descriptionWithLocale: (NSLocale *)locale indent: (BOOL)flag;
 @end
 
 // Mutable Ordered Set
@@ -204,11 +204,11 @@ extern "C" {
            options:(NSSortOptions)options
    usingComparator: (NSComparator)comparator;
 - (void) intersectOrderedSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
-- (void) intersectSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
+- (void) intersectSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet;
 - (void) minusOrderedSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
-- (void) minusSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
+- (void) minusSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet;
 - (void) unionOrderedSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
-- (void) unionSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
+- (void) unionSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet;
 - (instancetype) initWithCoder: (NSCoder *)coder;
 @end
 

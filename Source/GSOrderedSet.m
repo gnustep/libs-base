@@ -521,7 +521,7 @@ static Class	mutableSetClass;
 
 - (NSEnumerator*) objectEnumerator
 {
-  return AUTORELEASE([[GSOrderedSetEnumerator alloc] initWithSet: self]);
+  return AUTORELEASE([[GSOrderedSetEnumerator alloc] initWithOrderedSet: self]);
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
@@ -614,7 +614,7 @@ static Class	mutableSetClass;
 {
   NSOrderedSet	*copy = [setClass allocWithZone: z];
 
-  return [copy initWithSet: self copyItems: NO];
+  return [copy initWithOrderedSet: self copyItems: NO];
 }
 
 - (id) init
@@ -744,20 +744,13 @@ static Class	mutableSetClass;
 
 - (void) minusSet: (NSSet*) other
 {
-  if (other == self)
+  NSEnumerator	*e = [other objectEnumerator];
+  id		anObject;
+  
+  while ((anObject = [e nextObject]) != nil)
     {
-      GSIMapCleanMap(&map);
-    }
-  else
-    {
-      NSEnumerator	*e = [other objectEnumerator];
-      id		anObject;
-
-      while ((anObject = [e nextObject]) != nil)
-	{
-	  GSIMapRemoveKey(&map, (GSIMapKey)anObject);
-	  _version++;
-	}
+      GSIMapRemoveKey(&map, (GSIMapKey)anObject);
+      _version++;
     }
 }
 
@@ -779,26 +772,23 @@ static Class	mutableSetClass;
 
 - (void) unionSet: (NSSet*) other
 {
-  if (other != self)
+  NSEnumerator	*e = [other objectEnumerator];
+  
+  if (e != nil)
     {
-      NSEnumerator	*e = [other objectEnumerator];
-
-      if (e != nil)
+      id	anObject;
+      SEL	sel = @selector(nextObject);
+      IMP	imp = [e methodForSelector: sel];
+      
+      while ((anObject = (*imp)(e, sel)) != nil)
 	{
-	  id	anObject;
-	  SEL	sel = @selector(nextObject);
-	  IMP	imp = [e methodForSelector: sel];
-
-	  while ((anObject = (*imp)(e, sel)) != nil)
+	  GSIMapNode node;
+	  
+	  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
+	  if (node == 0)
 	    {
-	      GSIMapNode node;
-
-	      node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
-	      if (node == 0)
-		{
-		  GSIMapAddKey(&map, (GSIMapKey)anObject);
-		  _version++;
-		}
+	      GSIMapAddKey(&map, (GSIMapKey)anObject);
+	      _version++;
 	    }
 	}
     }

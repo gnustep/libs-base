@@ -33,7 +33,10 @@
 #import "Foundation/NSKeyValueCoding.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSException.h"
+
+// #import "GNUstepBase/GNUstep.h"
 // For private method _decodeArrayOfObjectsForKey:
+
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
 #import "GSFastEnumeration.h"
@@ -73,6 +76,11 @@ static Class NSMutableOrderedSet_concrete_class;
       NSOrderedSet_concrete_class = [GSOrderedSet class];
       [NSMutableSet class];
     }
+}
+
+- (Class) classForCoder
+{
+  return NSOrderedSet_abstract_class;
 }
 
 // NSCoding
@@ -223,49 +231,59 @@ static Class NSMutableOrderedSet_concrete_class;
 
 + (instancetype) orderedSetWithArray:(NSArray *)objects
 {
-  return nil;
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+			 initWithArray: objects]);
 }
 
 + (instancetype) orderedSetWithArray:(NSArray *)objects
-                               range: (NSRange)range
+                               range:(NSRange)range
                            copyItems:(BOOL)flag
 {
-  return nil;
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+			 initWithArray: objects
+				 range: range
+			     copyItems: flag]);
 }
 
-+ (instancetype) orderedSetWithObject:(GS_GENERIC_TYPE(ElementT))anObject
++ (instancetype) orderedSetWithObject:(id)anObject
 {
-  return nil;
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+			 initWithObject: anObject]);
 }
 
-+ (instancetype) orderedSetWithObjects:(GS_GENERIC_TYPE(ElementT))firstObject, ...
++ (instancetype) orderedSetWithObjects:(id)firstObject, ...
 {
-  return nil;
-}
+  id	set;
+  
+  GS_USEIDLIST(firstObject,
+	       set = [[self allocWithZone: NSDefaultMallocZone()]
+		       initWithObjects: __objects count: __count]);
+  return AUTORELEASE(set);
+ }
 
-+ (instancetype) orderedSetWithObjects:(const GS_GENERIC_TYPE(ElementT)[])objects
++ (instancetype) orderedSetWithObjects:(const id [])objects
                                  count:(NSUInteger) count
 {
   return nil;
 }
 
-+ (instancetype) orderedSetWithOrderedSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet
++ (instancetype) orderedSetWithOrderedSet:(NSOrderedSet *)aSet
 {
   return nil;
 }
 
-+ (instancetype) orderedSetWithOrderedSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet
++ (instancetype) orderedSetWithOrderedSet:(NSOrderedSet *)aSet
                                     count:(NSUInteger) count
 {
   return nil;
 }
 
-+ (instancetype) orderedSetWithSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet
++ (instancetype) orderedSetWithSet:(NSSet *)aSet
 {
   return nil;
 }
 
-+ (instancetype) orderedSetWithSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet
++ (instancetype) orderedSetWithSet:(NSSet *)aSet
                          copyItems:(BOOL)flag
 {
   return nil;
@@ -294,41 +312,41 @@ static Class NSMutableOrderedSet_concrete_class;
   return nil;
 }
 
-- (instancetype) initWithObjects:(GS_GENERIC_TYPE(ElementT))firstObject, ...
+- (instancetype) initWithObjects:(id)firstObject, ...
 {
   return nil;
 }
 
-- (instancetype) initWithObjects:(const GS_GENERIC_TYPE(ElementT)[])objects
+- (instancetype) initWithObjects:(const id [])objects
                            count:(NSUInteger)count
 {
   return nil;
 }
 
-- (instancetype) initWithOrderedSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet
+- (instancetype) initWithOrderedSet:(NSOrderedSet *)aSet
 {
   return nil;
 }
 
-- (instancetype) initWithOrderedSet:(NSArray *)objects
+- (instancetype) initWithOrderedSet:(NSOrderedSet *)objects
                           copyItems:(BOOL)flag
 {
   return nil;
 }
 
-- (instancetype) initWithOrderedSet:(NSArray *)objects
-                              range: (NSRange)range
+- (instancetype) initWithOrderedSet:(NSOrderedSet *)objects
+                              range:(NSRange)range
                           copyItems:(BOOL)flag
 {
   return nil;
 }
 
-- (instancetype) initWithSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet
+- (instancetype) initWithSet:(NSSet *)aSet
 {
   return nil;
 }
 
-- (instancetype) initWithSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet copyItems:(BOOL)flag
+- (instancetype) initWithSet:(NSSet *)aSet copyItems:(BOOL)flag
 {
   return nil;
 }
@@ -343,7 +361,7 @@ static Class NSMutableOrderedSet_concrete_class;
   return 0;
 }
 
-- (BOOL)containsObject:(GS_GENERIC_TYPE(ElementT))anObject
+- (BOOL)containsObject:(id)anObject
 {
   return NO;
 }
@@ -354,7 +372,7 @@ static Class NSMutableOrderedSet_concrete_class;
 {
 }
 
-- (void) enumerateObjectsUsingBlock: (GSEnumeratorBlock)aBlock
+- (void) enumerateObjectsUsingBlock:(GSEnumeratorBlock)aBlock
 {
 }
 
@@ -578,8 +596,9 @@ static Class NSMutableOrderedSet_concrete_class;
 }
 
 - (NSString *) descriptionWithLocale: (NSLocale *)locale
-{ 
-  return [[self allObjects] descriptionWithLocale: locale];
+{
+  NSArray *allObjects = [self sortedArrayUsingDescriptors: nil];
+  return [allObjects descriptionWithLocale: locale];
 }
 
 - (NSString*) descriptionWithLocale: (NSLocale *)locale indent: (BOOL)flag
