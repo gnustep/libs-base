@@ -283,7 +283,7 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT),
 - (GS_GENERIC_CLASS(NSArray, ElementT) *)
     sortedArrayWithOptions: (NSSortOptions)options
            usingComparator: (NSComparator)comparator;
-
+  
 /**
  * Performs a binary search of the array within the specified range for the
  * index of an object equal to obj according to cmp.

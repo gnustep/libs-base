@@ -109,6 +109,8 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL,
 #endif
 
 - (GS_GENERIC_CLASS(NSArray,ValT)*) keysSortedByValueUsingSelector: (SEL)comp;
+- (GS_GENERIC_CLASS(NSArray,ValT)*) keysSortedByValueUsingComparator:(NSComparator)cmptr;
+- (GS_GENERIC_CLASS(NSArray,ValT)*) keysSortedByValueWithOptions:(NSSortOptions)opts usingComparator:(NSComparator)cmptr;  
 - (GS_GENERIC_CLASS(NSEnumerator,ValT)*) objectEnumerator;	// Primitive
 - (GS_GENERIC_TYPE(ValT)) objectForKey:
   (GS_GENERIC_TYPE(KeyT))aKey;				// Primitive

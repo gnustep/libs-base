@@ -1219,7 +1219,6 @@ compare(id elem1, id elem2, void* context)
   return NSNotFound;
 }
 
-
 /**
  * Returns a string formed by concatenating the objects in the receiver,
  * with the specified separator string inserted between each part.
