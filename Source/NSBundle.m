@@ -2137,7 +2137,7 @@ IF_NO_GC(
       enumerate = [languages objectEnumerator];
       while ((language = [enumerate nextObject])) {
         primary = [subPathPrimary stringByAppendingPathComponent:
-          [localization stringByAppendingPathExtension:@"lproj"]];
+          [language stringByAppendingPathExtension:@"lproj"]];
         contents = bundle_directory_readable(primary);
         addBundlePath(array, contents, primary, nil, nil);
       }
@@ -2152,7 +2152,7 @@ IF_NO_GC(
     enumerate = [languages objectEnumerator];
     while ((language = [enumerate nextObject])) {
       primary = [originalPrimary stringByAppendingPathComponent:
-        [localization stringByAppendingPathExtension:@"lproj"]];
+        [language stringByAppendingPathExtension:@"lproj"]];
       contents = bundle_directory_readable(primary);
       addBundlePath(array, contents, primary, nil, nil);
     }
