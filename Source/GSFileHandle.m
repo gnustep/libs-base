@@ -1091,7 +1091,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   if (d < 0)
     {
 #ifdef __ANDROID__
-      asset = [NSBundle assetForPath:path];
+      asset = [NSBundle assetForPath:path withMode:AASSET_MODE_RANDOM];
       if (asset) {
         readOK = YES;
         return self;

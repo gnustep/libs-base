@@ -3287,6 +3287,11 @@ IF_NO_GC(
 
 + (AAsset *)assetForPath:(NSString *)path
 {
+  return [self assetForPath:path withMode:AASSET_MODE_UNKNOWN];
+}
+
++ (AAsset *)assetForPath:(NSString *)path withMode:(int)mode
+{
   AAsset *asset = NULL;
   
   if (_assetManager && _mainBundle)
@@ -3298,7 +3303,7 @@ IF_NO_GC(
       NSString *assetPath = [path substringFromIndex:[resourcePath length]+1];
 
       asset = AAssetManager_open(_assetManager,
-        [assetPath fileSystemRepresentation], AASSET_MODE_BUFFER);
+        [assetPath fileSystemRepresentation], mode);
     }
   }
   

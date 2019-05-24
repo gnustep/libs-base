@@ -563,9 +563,18 @@ GS_EXPORT NSString* const NSLoadedClasses;
 /**
  * Returns the Android asset for the given path if path is in main bundle
  * resources and asset exists.
+ * Uses `AASSET_MODE_UNKNOWN` to open the asset if it exists.
  * The returned object must be released using AAsset_close().
  */
 + (AAsset *)assetForPath:(NSString *)path;
+
+/**
+ * Returns the Android asset for the given path if path is in main bundle
+ * resources and asset exists.
+ * Uses the given mode to open the AAsset if it exists.
+ * The returned object must be released using AAsset_close().
+ */
++ (AAsset *)assetForPath:(NSString *)path withMode:(int)mode;
 
 /**
  * Returns the Android asset dir for the given path if path is in main bundle

@@ -245,7 +245,7 @@ readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
   
 #ifdef __ANDROID__
   // Android: try using asset manager if path is in main bundle resources
-  AAsset *asset = [NSBundle assetForPath:path];
+  AAsset *asset = [NSBundle assetForPath:path withMode:AASSET_MODE_BUFFER];
   if (asset) {
     fileLength = AAsset_getLength(asset);
 
