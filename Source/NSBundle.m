@@ -2540,10 +2540,23 @@ IF_NO_GC(
       locale = [[locale lastPathComponent] stringByDeletingPathExtension];
       [array addObject: locale];
     }
+
 #ifdef __ANDROID__
-    // TODO: check known languages for existance directly, as AAssetDir and thereby
-    // NSDirectoryEnumerator doesn't list directories
-#endif
+    // Android: Check known languages for localizations directly, as AAssetDir
+    // and thereby NSDirectoryEnumerator doesn't list directories and the above
+    // call to list lproj resources will therefore come up empty.
+    NSArray *languages = [[NSUserDefaults standardUserDefaults]
+      stringArrayForKey: @"NSLanguages"];
+    
+    for (locale in languages) {
+      NSString *path = [self pathForResource:@"Localizable" ofType:@"strings"
+        inDirectory:nil forLocalization:locale];
+      if (path) {
+        [array addObject: locale];
+      }
+    }
+#endif /* __ANDROID__ */
+
   return GS_IMMUTABLE(array);
 }
 

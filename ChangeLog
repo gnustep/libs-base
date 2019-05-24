@@ -6,11 +6,13 @@
 	* Headers/Foundation/NSBundle.h:
 	* Source/NSBundle.m:
 	Added methods for passing Android asset manager from Java to GNUstep
-	and for getting AAsset/AAssetDir for given path in main bundle. Skip
-	app bundle suffix check on Android. Extended bundle resource paths
-	backbone to check for known paths directly on Android as we can't
-	enumerate directories. Extracted path cache cleaning into separate
-	method.
+	and for getting AAsset/AAssetDir for given path in main bundle.
+	Skip app bundle suffix check on Android. Extended bundle resource
+	paths backbone to check for known paths directly on Android as we
+	can't enumerate directories.
+	Extended -localizations method to check for known localizations
+	directly (requires setting userLanguages in NSUserDefaults).
+	Extracted path cache cleaning into separate method.
 	* Source/GSFileHandle.h:
 	* Source/GSFileHandle.m:
 	Added file handle support for reading Android assets from main bundle.
