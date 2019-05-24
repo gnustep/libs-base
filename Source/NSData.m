@@ -242,17 +242,6 @@ readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
   void		*tmp = 0;
   int		c;
   off_t         fileLength;
-
-#if defined(_WIN32)
-  thePath = (const unichar*)[path fileSystemRepresentation];
-#else
-  thePath = [path fileSystemRepresentation];
-#endif
-  if (thePath == 0)
-    {
-      NSWarnFLog(@"Open (%@) attempt failed - bad path", path);
-      return NO;
-    }
   
 #ifdef __ANDROID__
   // Android: try using asset manager if path is in main bundle resources
@@ -282,6 +271,17 @@ readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
     return YES;
   }
 #endif /* __ANDROID__ */
+
+#if defined(_WIN32)
+  thePath = (const unichar*)[path fileSystemRepresentation];
+#else
+  thePath = [path fileSystemRepresentation];
+#endif
+  if (thePath == 0)
+    {
+      NSWarnFLog(@"Open (%@) attempt failed - bad path", path);
+      return NO;
+    }
 
   att = [mgr fileAttributesAtPath: path traverseLink: YES];
   if (nil == att)
