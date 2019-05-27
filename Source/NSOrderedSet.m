@@ -270,16 +270,9 @@ static Class NSMutableOrderedSet_concrete_class;
 + (instancetype) orderedSetWithOrderedSet:(NSOrderedSet *)aSet
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-		       initWithSet: aSet]);
+		       initWithOrderedSet: aSet]);
 }
 
-+ (instancetype) orderedSetWithOrderedSet:(NSOrderedSet *)aSet
-                                    count:(NSUInteger) count
-{
-  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-		       initWithSet: aSet
-			     count: count]);
-}
 
 + (instancetype) orderedSetWithSet:(NSSet *)aSet
 {
@@ -290,9 +283,9 @@ static Class NSMutableOrderedSet_concrete_class;
 + (instancetype) orderedSetWithSet:(NSSet *)aSet
                          copyItems:(BOOL)flag
 {
-   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-			initWithOrderedSet: aSet
-				 copyItems: flag]);
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+			initWithSet: aSet
+			  copyItems: flag]);
 }
 
 // instance methods
@@ -331,42 +324,110 @@ static Class NSMutableOrderedSet_concrete_class;
 
 - (instancetype) initWithArray:(NSArray *)other copyItems:(BOOL)flag
 {
-  return nil;
+  unsigned	count = [other count];
+  
+  if (count == 0)
+    {
+      return [self init];
+    }
+  else
+    {
+      GS_BEGINIDBUF(objs, count);
+
+      if ([other isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < count; i++)
+	    {
+	      objs[i] = [other objectAtIndex: i];
+	    }
+	}
+      else
+	{
+          [other getObjects: objs];
+	}
+      self = [self initWithObjects: objs count: count];
+      GS_ENDIDBUF();
+      return self;
+    }  
 }
 
 - (instancetype) initWithArray:(NSArray *)other
                          range:(NSRange)range
                      copyItems:(BOOL)flag
 {
-  return nil;
+  unsigned	count = [other count];
+  
+  if (count == 0)
+    {
+      return [self init];
+    }
+  else
+    {
+      GS_BEGINIDBUF(objs, count);
+
+      if ([other isProxy])
+	{
+	  unsigned	i = 0;
+	  unsigned      loc = range.location;
+	  unsigned      len = range.length;
+	  unsigned      j = 0;
+	  
+	  for (i = 0; i < count; i++)
+	    {
+	      if(i >= loc && j < len)
+		{
+		  if(flag == YES)
+		    {		  
+		      objs[i] = [[other objectAtIndex: i] copy];
+		    }
+		  else
+		    {
+		      objs[i] = [other objectAtIndex: i];
+		    }
+		  j++;
+		}
+
+	      if(j >= len)
+		{
+		  break;
+		}
+	    }
+	}
+      else
+	{
+          [other getObjects: objs];
+	}
+      self = [self initWithObjects: objs count: count];
+      GS_ENDIDBUF();
+      return self;
+    }
 }
 
 - (instancetype) initWithObject:(id)object
 {
+  
   return nil;
 }
 
 - (instancetype) initWithObjects:(id)firstObject, ...
 {
-  id	set;
-  
   GS_USEIDLIST(firstObject,
-	       set = [[self allocWithZone: NSDefaultMallocZone()]
-	    initWithObjects: __objects count: __count]);
-  return AUTORELEASE(set);
+    self = [self initWithObjects: __objects count: __count]);
+  return self;
 }
 
+/** <init /> <override-subclass />
+ * Initialize to contain (unique elements of) objects.<br />
+ * Calls -init (which does nothing but maintain MacOS-X compatibility),
+ * and needs to be re-implemented in subclasses in order to have all
+ * other initialisers work.
+ */
 - (instancetype) initWithObjects:(const id [])objects
                            count:(NSUInteger)count
 {
-  self = [self initWithCapacity: count];
-  if (self != nil)
-    {
-      while (count--)
-	{
-	  [self addObject: objects[count]];
-	}
-    }
+  self = [self init];
   return self;
 }
 
@@ -425,7 +486,13 @@ static Class NSMutableOrderedSet_concrete_class;
 	  j++;
 	}
       i++;
+
+      if(j >= len)
+	{
+	  break;
+	}
     }
+  
   self = [self initWithObjects: os count: c];
   if (flag)
     {
@@ -692,7 +759,7 @@ static Class NSMutableOrderedSet_concrete_class;
   return NO;
 }
 
-- (BOOL) intersectsSet: (NSOrderedSet *)aSet
+- (BOOL) intersectsSet: (NSSet *)aSet
 {
   return NO;
 }
@@ -702,7 +769,7 @@ static Class NSMutableOrderedSet_concrete_class;
   return NO;
 }
 
-- (BOOL) isSubsetOfSet:(NSOrderedSet *)aSet
+- (BOOL) isSubsetOfSet:(NSSet *)aSet
 {
   return NO;
 }
@@ -879,7 +946,7 @@ static Class NSMutableOrderedSet_concrete_class;
 {
 }
 
-- (void) intersectSet:(NSOrderedSet *)aSet
+- (void) intersectSet:(NSSet *)aSet
 {
 }
 
@@ -887,7 +954,7 @@ static Class NSMutableOrderedSet_concrete_class;
 {
 }
 
-- (void) minusSet:(NSOrderedSet *)aSet
+- (void) minusSet:(NSSet *)aSet
 {
 }
 
@@ -895,7 +962,7 @@ static Class NSMutableOrderedSet_concrete_class;
 {
 }
 
-- (void) unionSet:(NSOrderedSet *)aSet
+- (void) unionSet:(NSSet *)aSet
 {
 }
 

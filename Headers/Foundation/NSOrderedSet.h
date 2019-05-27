@@ -67,8 +67,6 @@ extern "C" {
 + (instancetype) orderedSetWithObjects:(const GS_GENERIC_TYPE(ElementT)[])objects
                                  count:(NSUInteger) count;
 + (instancetype) orderedSetWithOrderedSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
-+ (instancetype) orderedSetWithOrderedSet:(GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet
-                                    count:(NSUInteger) count;
 + (instancetype) orderedSetWithSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet;
 + (instancetype) orderedSetWithSet:(GS_GENERIC_CLASS(NSSet, ElementT)*)aSet
                          copyItems:(BOOL)flag;
@@ -146,9 +144,9 @@ extern "C" {
   
 // Set operations
 - (BOOL) intersectsOrderedSet: (NSOrderedSet *)aSet;
-- (BOOL) intersectsSet: (NSOrderedSet *)aSet;
+- (BOOL) intersectsSet: (NSSet *)aSet;
 - (BOOL) isSubsetOfOrderedSet: (NSOrderedSet *)aSet;
-- (BOOL) isSubsetOfSet:(NSOrderedSet *)aSet;
+- (BOOL) isSubsetOfSet:(NSSet *)aSet;
 
 // Creating a Sorted Array
 - (GS_GENERIC_CLASS(NSArray, ElementT) *) sortedArrayUsingDescriptors:(NSArray *)sortDescriptors;
