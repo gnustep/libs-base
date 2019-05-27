@@ -403,76 +403,149 @@ static Class NSMutableOrderedSet_concrete_class;
   return self;
 }
 
-- (instancetype) initWithOrderedSet:(NSOrderedSet *)objects
+- (instancetype) initWithOrderedSet:(NSOrderedSet *)other
                               range:(NSRange)range
                           copyItems:(BOOL)flag
 {
-  return nil;
+  unsigned	c = [other count];
+  id		o, e = [other objectEnumerator];
+  unsigned	i = 0, j = 0;
+  unsigned      loc = range.location;
+  unsigned      len = range.length;
+  GS_BEGINIDBUF(os, c);
+
+  while ((o = [e nextObject]))
+    {
+      if(i >= loc && j < len)
+	{
+	  if (flag)
+	    os[i] = [o copy];
+	  else
+	    os[i] = o;
+	  j++;
+	}
+      i++;
+    }
+  self = [self initWithObjects: os count: c];
+  if (flag)
+    {
+      while (i--)
+        {
+          [os[i] release];
+        }
+    }
+  GS_ENDIDBUF();
+  return self;
 }
 
 - (instancetype) initWithSet:(NSSet *)aSet
 {
-  return nil;
+  return [self initWithSet: aSet copyItems: NO];
 }
 
-- (instancetype) initWithSet:(NSSet *)aSet copyItems:(BOOL)flag
+- (instancetype) initWithSet:(NSSet *)other copyItems:(BOOL)flag
 {
-  return nil;
+    unsigned	c = [other count];
+  id		o, e = [other objectEnumerator];
+  unsigned	i = 0;
+  GS_BEGINIDBUF(os, c);
+
+  while ((o = [e nextObject]))
+    {
+      if (flag)
+	os[i] = [o copy];
+      else
+	os[i] = o;
+      i++;
+    }
+  self = [self initWithObjects: os count: c];
+  if (flag)
+    {
+      while (i--)
+        {
+          [os[i] release];
+        }
+    }
+  GS_ENDIDBUF();
+  return self;
 }
 
 - (instancetype) init
 {
-  return nil;
+  self = [super init];
+  if(self == nil)
+    {
+      NSLog(@"NSOrderedSet not allocated.");
+    }
+  return self;
 }
 
 - (NSUInteger) count
 {
+  [self subclassResponsibility: _cmd];
   return 0;
 }
 
-- (BOOL)containsObject:(id)anObject
+- (BOOL)containsObject:(id)anObject // TODO
 {
-  return NO;
+  [self subclassResponsibility: _cmd];
+  return NO; 
 }
 
 - (void) enumerateObjectsAtIndexes:(NSIndexSet *)indexSet
                            options:(NSEnumerationOptions)opts
                         usingBlock:(GSEnumeratorBlock)aBlock
 {
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) enumerateObjectsUsingBlock:(GSEnumeratorBlock)aBlock
 {
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) enumerateObjectsWithOptions:(NSEnumerationOptions)opts
                           usingBlock:(GSEnumeratorBlock)aBlock
 {
+  [self subclassResponsibility: _cmd];
 }
 
 - (id) firstObject
 {
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
 - (id) lastObject
 {
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
 - (id) objectAtIndex: (NSUInteger)index
 {
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
 - (id) objectAtIndexedSubscript: (NSUInteger)index
 {
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
 - (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes
 {
-  return nil;
+  NSMutableArray *group = [NSMutableArray arrayWithCapacity: [indexes count]];
+
+  NSUInteger i = [indexes firstIndex];
+  while (i != NSNotFound)
+    {
+      [group addObject: [self objectAtIndex: i]];
+      i = [indexes indexGreaterThanIndex: i];
+    }
+
+  return GS_IMMUTABLE(group);
 }
 
     
