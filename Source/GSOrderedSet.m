@@ -72,7 +72,7 @@ static SEL      privateCountOfSel;
 
 @implementation GSOrderedSetEnumerator
 
-- (id) initWithSet: (NSOrderedSet*)d
+- (id) initWithOrderedSet: (NSOrderedSet*)d
 {
   self = [super init];
   if (self != nil)
@@ -119,50 +119,6 @@ static Class	mutableSetClass;
       mutableSetClass = [GSMutableOrderedSet class];
       memberSel = @selector(member:);
       privateCountOfSel = @selector(_countForObject:);
-    }
-}
-
-- (NSArray*) allObjects
-{
-  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
-  GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
-  NSUInteger		i = 0;
-  NSArray		*result;
-  GS_BEGINIDBUF(objects, map.nodeCount);
-
-  while (node != 0)
-    {
-      objects[i++] = node->key.obj;
-      node = GSIMapEnumeratorNextNode(&enumerator);
-    }
-  GSIMapEndEnumerator(&enumerator);
-  result = AUTORELEASE([[arrayClass allocWithZone: NSDefaultMallocZone()]
-    initWithObjects: objects count: i]);
-  GS_ENDIDBUF();
-  return result;
-}
-
-- (id) anyObject
-{
-  if (map.nodeCount > 0)
-    {
-      GSIMapBucket bucket = map.buckets;
-
-      while (1)
-	{
-	  if (bucket->firstNode)
-	    {
-	      return bucket->firstNode->key.obj;
-	    }
-	  else
-	    {
-	      bucket++;
-	    }
-	}
-    }
-  else
-    {
-      return nil;
     }
 }
 

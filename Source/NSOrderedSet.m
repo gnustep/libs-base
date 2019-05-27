@@ -254,7 +254,6 @@ static Class NSMutableOrderedSet_concrete_class;
 + (instancetype) orderedSetWithObjects:(id)firstObject, ...
 {
   id	set;
-  
   GS_USEIDLIST(firstObject,
 	       set = [[self allocWithZone: NSDefaultMallocZone()]
 		       initWithObjects: __objects count: __count]);
@@ -264,34 +263,69 @@ static Class NSMutableOrderedSet_concrete_class;
 + (instancetype) orderedSetWithObjects:(const id [])objects
                                  count:(NSUInteger) count
 {
-  return nil;
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+		       initWithObjects: objects count: count]);
 }
 
 + (instancetype) orderedSetWithOrderedSet:(NSOrderedSet *)aSet
 {
-  return nil;
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+		       initWithSet: aSet]);
 }
 
 + (instancetype) orderedSetWithOrderedSet:(NSOrderedSet *)aSet
                                     count:(NSUInteger) count
 {
-  return nil;
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+		       initWithSet: aSet
+			     count: count]);
 }
 
 + (instancetype) orderedSetWithSet:(NSSet *)aSet
 {
-  return nil;
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+		       initWithSet: aSet]);
 }
 
 + (instancetype) orderedSetWithSet:(NSSet *)aSet
                          copyItems:(BOOL)flag
 {
-  return nil;
+   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+			initWithOrderedSet: aSet
+				 copyItems: flag]);
 }
 
 // instance methods
 - (instancetype) initWithArray:(NSArray *)other
 {
+  unsigned	count = [other count];
+
+  if (count == 0)
+    {
+      return [self init];
+    }
+  else
+    {
+      GS_BEGINIDBUF(objs, count);
+
+      if ([other isProxy])
+	{
+	  unsigned	i;
+
+	  for (i = 0; i < count; i++)
+	    {
+	      objs[i] = [other objectAtIndex: i];
+	    }
+	}
+      else
+	{
+          [other getObjects: objs];
+	}
+      self = [self initWithObjects: objs count: count];
+      GS_ENDIDBUF();
+      return self;
+    }
+
   return nil;
 }
 
@@ -314,24 +348,59 @@ static Class NSMutableOrderedSet_concrete_class;
 
 - (instancetype) initWithObjects:(id)firstObject, ...
 {
-  return nil;
+  id	set;
+  
+  GS_USEIDLIST(firstObject,
+	       set = [[self allocWithZone: NSDefaultMallocZone()]
+	    initWithObjects: __objects count: __count]);
+  return AUTORELEASE(set);
 }
 
 - (instancetype) initWithObjects:(const id [])objects
                            count:(NSUInteger)count
 {
-  return nil;
+  self = [self initWithCapacity: count];
+  if (self != nil)
+    {
+      while (count--)
+	{
+	  [self addObject: objects[count]];
+	}
+    }
+  return self;
 }
 
 - (instancetype) initWithOrderedSet:(NSOrderedSet *)aSet
 {
-  return nil;
+  return [self initWithOrderedSet: aSet copyItems: NO];
 }
 
-- (instancetype) initWithOrderedSet:(NSOrderedSet *)objects
+- (instancetype) initWithOrderedSet:(NSOrderedSet *)other
                           copyItems:(BOOL)flag
 {
-  return nil;
+  unsigned	c = [other count];
+  id		o, e = [other objectEnumerator];
+  unsigned	i = 0;
+  GS_BEGINIDBUF(os, c);
+
+  while ((o = [e nextObject]))
+    {
+      if (flag)
+	os[i] = [o copy];
+      else
+	os[i] = o;
+      i++;
+    }
+  self = [self initWithObjects: os count: c];
+  if (flag)
+    {
+      while (i--)
+        {
+          [os[i] release];
+        }
+    }
+  GS_ENDIDBUF();
+  return self;
 }
 
 - (instancetype) initWithOrderedSet:(NSOrderedSet *)objects
