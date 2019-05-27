@@ -942,32 +942,93 @@ static Class NSMutableOrderedSet_concrete_class;
 {
 }
 
-- (void) intersectOrderedSet:(NSOrderedSet *)aSet
+- (void) intersectOrderedSet:(NSOrderedSet *)other
 {
+    if (other != self)
+    {
+      id keys = [self objectEnumerator];
+      id key;
+
+      while ((key = [keys nextObject]))
+	{
+	  if ([other containsObject: key] == NO)
+	    {
+	      [self removeObject: key];
+	    }
+	}
+    }
 }
 
-- (void) intersectSet:(NSSet *)aSet
+- (void) intersectSet:(NSSet *)other
 {
+  id keys = [self objectEnumerator];
+  id key;
+  
+  while ((key = [keys nextObject]))
+    {
+      if ([other containsObject: key] == NO)
+	{
+	  [self removeObject: key];
+	}
+    }
 }
 
-- (void) minusOrderedSet:(NSOrderedSet *)aSet
+- (void) minusOrderedSet:(NSOrderedSet *)other
 {
+  if(other != self)
+    {
+      [self removeAllObjects];
+    }
+  else
+    {
+      id keys = [other objectEnumerator];
+      id key;
+      
+      while ((key = [keys nextObject]))
+	{
+	  [self removeObject: key];
+	}
+    }
 }
 
-- (void) minusSet:(NSSet *)aSet
+- (void) minusSet:(NSSet *)other
 {
+  id keys = [other objectEnumerator];
+  id key;
+  
+  while ((key = [keys nextObject]))
+    {
+      [self removeObject: key];
+    }
 }
 
-- (void) unionOrderedSet:(NSOrderedSet *)aSet
+- (void) unionOrderedSet:(NSOrderedSet *)other
 {
+    if (other != self)
+    {
+      id keys = [other objectEnumerator];
+      id key;
+
+      while ((key = [keys nextObject]))
+	{
+	  [self addObject: key];
+	}
+    }
 }
 
-- (void) unionSet:(NSSet *)aSet
+- (void) unionSet:(NSSet *)other
 {
+  id keys = [other objectEnumerator];
+  id key;
+  
+  while ((key = [keys nextObject]))
+    {
+      [self addObject: key];
+    }
 }
 
 - (instancetype) initWithCoder: (NSCoder *)coder
 {
-  return nil;
+  return [super initWithCoder: coder];
 }
 @end
