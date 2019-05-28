@@ -56,6 +56,14 @@ static Class NSMutableOrderedSet_abstract_class;
 static Class NSOrderedSet_concrete_class;
 static Class NSMutableOrderedSet_concrete_class;
 
+static SEL	addSel;
+static SEL	appSel;
+static SEL	countSel;
+static SEL	eqSel;
+static SEL	oaiSel;
+static SEL	remSel;
+static SEL	rlSel;
+
 + (id) allocWithZone: (NSZone*)z
 {
   if (self == NSOrderedSet_abstract_class)
@@ -72,6 +80,16 @@ static Class NSMutableOrderedSet_concrete_class;
 {
   if (self == [NSOrderedSet class])
     {
+      [self setVersion: 1];
+      
+      addSel = @selector(addObject:);
+      appSel = @selector(appendString:);
+      countSel = @selector(count);
+      eqSel = @selector(isEqual:);
+      oaiSel = @selector(objectAtIndex:);
+      remSel = @selector(removeObjectAtIndex:);
+      rlSel = @selector(removeLastObject);
+
       NSOrderedSet_abstract_class = self;
       NSOrderedSet_concrete_class = [GSOrderedSet class];
       [NSMutableSet class];
@@ -840,39 +858,78 @@ static Class NSMutableOrderedSet_concrete_class;
 
 - (instancetype) init
 {
-  return nil;
+  self = [super init];
+  if(self == nil)
+    {
+      NSLog(@"Could not init class");
+    }
+  return self;
 }
 
 - (void)addObject:(id)anObject
 {
+  [self subclassResponsibility: _cmd];
 }
 
 - (void)addObjects:(const id[])objects count:(NSUInteger)count
 {
+  NSUInteger i = 0;
+  for (i = 0; i < count; i++)
+    {
+      id obj = objects[i];
+      [self addObject: obj];
+    }
 }
 
 - (void)addObjectsFromArray:(NSArray *)otherArray
 {
+  NSEnumerator *en = [otherArray objectEnumerator];
+  id obj = nil;
+  while((obj = [en nextObject]) != nil)
+    {
+      [self addObject: obj];
+    }
 }
 
 - (void)insertObject:(id)object atIndex:(NSUInteger)index
 {
+  [self subclassResponsibility: _cmd];
 }
 
 - (void)setObject:(id)object atIndexedSubscript:(NSUInteger)index
 {
+  if ([self count] == index)
+    {
+      [self addObject: object];
+    }
+  else
+    {
+      [self replaceObjectAtIndex: index withObject: object];
+    }
 }
 
 - (void)insertObjects:(NSArray *)array atIndexes:(NSIndexSet *)indexes
 {
+  NSUInteger	index = [indexes firstIndex];
+  NSEnumerator	*enumerator = [array objectEnumerator];
+  id		object = [enumerator nextObject];
+ 
+  while (object != nil && index != NSNotFound)
+    {
+      [self insertObject: object atIndex: index];
+      object = [enumerator nextObject];
+      index = [indexes indexGreaterThanIndex: index];
+    }
 }
 
 - (void)removeObject:(id)object
 {
+  [self subclassResponsibility: _cmd];
 }
 
 - (void)removeObjectAtIndex:(NSUInteger)integer
 {
+  [self subclassResponsibility: _cmd];
 }
 
 - (void)removeObjectsAtIndexes:(NSIndexSet *)indexes
@@ -889,11 +946,13 @@ static Class NSMutableOrderedSet_concrete_class;
 
 - (void)removeAllObjects
 {
+  
 }
 
 - (void)replaceObjectAtIndex:(NSUInteger)index
                   withObject:(id)object
 {
+  [self subclassResponsibility: _cmd];
 }
 
 - (void) replaceObjectsAtIndexes: (NSIndexSet *)indexes
@@ -917,6 +976,12 @@ static Class NSMutableOrderedSet_concrete_class;
 
 - (void) exchangeObjectAtIndex:(NSUInteger)index withObjectAtIndex:(NSUInteger)otherIndex
 {
+  id	tmp = [self objectAtIndex: index];
+
+  RETAIN(tmp);
+  [self replaceObjectAtIndex: index withObject: [self objectAtIndex: otherIndex]];
+  [self replaceObjectAtIndex: otherIndex withObject: tmp];
+  RELEASE(tmp);
 }
 
 - (void)filterUsingPredicate:(NSPredicate *)predicate
@@ -929,11 +994,65 @@ static Class NSMutableOrderedSet_concrete_class;
 
 - (void) sortUsingComparator: (NSComparator)comparator
 {
+  [self sortWithOptions: 0 usingComparator: comparator];
 }
 
 - (void) sortWithOptions: (NSSortOptions)options
          usingComparator: (NSComparator)comparator
 {
+  NSUInteger count = [self count];
+  
+  if ((1 < count) && (NULL != comparator))
+    {
+      NSArray *res = nil;
+      NSUInteger i, c = [self count];
+      IMP	get = [self methodForSelector: oaiSel];
+      NSEnumerator *en = nil;
+      id obj = nil;
+
+      GS_BEGINIDBUF(objects, count);
+      for (i = 0; i < c; i++)
+	{
+	  objects[i] = (*get)(self, oaiSel, i);
+	}
+      
+      if (options & NSSortStable)
+        {
+          if (options & NSSortConcurrent)
+            {
+              GSSortStableConcurrent(objects, NSMakeRange(0,count),
+                (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+            }
+          else
+            {
+              GSSortStable(objects, NSMakeRange(0,count),
+                (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+            }
+        }
+      else
+        {
+          if (options & NSSortConcurrent)
+            {
+              GSSortUnstableConcurrent(objects, NSMakeRange(0,count),
+                (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+            }
+          else
+            {
+              GSSortUnstable(objects, NSMakeRange(0,count),
+                (id)comparator, GSComparisonTypeComparatorBlock, NULL);
+            }
+        }
+      res = [[NSArray alloc] initWithObjects: objects count: count];
+      [self removeAllObjects];
+      en = [res objectEnumerator];
+      while((obj = [en nextObject]) != nil)
+	{
+	  [self addObject: obj];
+	}
+
+      RELEASE(res);
+      GS_ENDIDBUF();
+    } 
 }
 
 - (void) sortRange: (NSRange)range
