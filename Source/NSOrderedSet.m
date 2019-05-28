@@ -891,8 +891,7 @@ static SEL	rlSel;
     }
 }
 
-// Overridable method...
-- (void)insertObject:(id)object atIndex:(NSUInteger)index
+- (void)insertObject:(id)object atIndex:(NSUInteger)index  // required override
 {
   [self subclassResponsibility: _cmd];
 }
@@ -966,7 +965,7 @@ static SEL	rlSel;
     }
 }
 
-- (void)removeObjectAtIndex:(NSUInteger)integer
+- (void)removeObjectAtIndex:(NSUInteger)integer  // required override
 {
   [self subclassResponsibility: _cmd];
 }
@@ -1100,14 +1099,22 @@ static SEL	rlSel;
 {
 }
 
-- (void) replaceObjectsInRange:(NSRange)range
-                   withObjects:(const id[])objects
+- (void) replaceObjectsInRange: (NSRange)range
+                   withObjects: (const id[])objects
                          count: (NSUInteger)count
 {
 }
 
-- (void)setObject:(id)object atIndex:(NSUInteger)index
+- (void)setObject:(id)anObject atIndex:(NSUInteger)anIndex
 {
+  if ([self count] == anIndex)
+    {
+      [self addObject: anObject];
+    }
+  else
+    {
+      [self replaceObjectAtIndex: anIndex withObject: anObject];
+    }
 }
 
 - (void)moveObjectsAtIndexes:(NSIndexSet *)indexes toIndex:(NSUInteger)index
