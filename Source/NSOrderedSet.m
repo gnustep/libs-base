@@ -971,16 +971,107 @@ static SEL	rlSel;
   [self subclassResponsibility: _cmd];
 }
 
+- (void) _removeObjectsFromIndices: (NSUInteger*)indices
+			numIndices: (NSUInteger)count
+{
+  if (count > 0)
+    {
+      NSUInteger	to = 0;
+      NSUInteger	from = 0;
+      NSUInteger	i;
+      GS_BEGINITEMBUF(sorted, count, NSUInteger);
+
+      while (from < count)
+	{
+	  NSUInteger	val = indices[from++];
+
+	  i = to;
+	  while (i > 0 && sorted[i-1] > val)
+	    {
+	      i--;
+	    }
+	  if (i == to)
+	    {
+	      sorted[to++] = val;
+	    }
+	  else if (sorted[i] != val)
+	    {
+	      NSUInteger	j = to++;
+
+	      if (sorted[i] < val)
+		{
+		  i++;
+		}
+	      while (j > i)
+		{
+		  sorted[j] = sorted[j-1];
+		  j--;
+		}
+	      sorted[i] = val;
+	    }
+	}
+
+      if (to > 0)
+	{
+	  IMP	rem = [self methodForSelector: remSel];
+
+	  while (to--)
+	    {
+	      (*rem)(self, remSel, sorted[to]);
+	    }
+	}
+      GS_ENDITEMBUF();
+    }
+}
+
 - (void)removeObjectsAtIndexes:(NSIndexSet *)indexes
 {
+  NSUInteger count = [indexes count];
+  NSUInteger indexArray[count];
+
+  [indexes getIndexes: indexArray
+             maxCount: count
+         inIndexRange: NULL];
+
+  [self _removeObjectsFromIndices: indexArray
+		       numIndices: count];
 }
 
 - (void)removeObjectsInArray:(NSArray *)otherArray
 {
+  NSUInteger	c = [otherArray count];
+
+  if (c > 0)
+    {
+      NSUInteger	i;
+      IMP	get = [otherArray methodForSelector: oaiSel];
+      IMP	rem = [self methodForSelector: @selector(removeObject:)];
+
+      for (i = 0; i < c; i++)
+	(*rem)(self, @selector(removeObject:), (*get)(otherArray, oaiSel, i));
+    }
 }
 
-- (void)removeObjectsInRange:(NSRange *)range
+- (void)removeObjectsInRange:(NSRange)aRange
 {
+  NSUInteger	i;
+  NSUInteger	s = aRange.location;
+  NSUInteger	c = [self count];
+
+  i = aRange.location + aRange.length;
+
+  if (c < i)
+    i = c;
+
+  if (i > s)
+    {
+      IMP	rem = [self methodForSelector: remSel];
+
+      while (i-- > s)
+	{
+	  (*rem)(self, remSel, i);
+	}
+    }
 }
 
 - (void)removeAllObjects

@@ -181,7 +181,7 @@ extern "C" {
 - (void)removeObjectAtIndex:(NSUInteger)integer;
 - (void)removeObjectsAtIndexes:(NSIndexSet *)indexes;
 - (void)removeObjectsInArray:(GS_GENERIC_CLASS(NSArray, ElementT)*)otherArray;
-- (void)removeObjectsInRange:(NSRange *)range;
+- (void)removeObjectsInRange:(NSRange)range;
 - (void)removeAllObjects;
 - (void)replaceObjectAtIndex:(NSUInteger)index
                   withObject:(GS_GENERIC_TYPE(ElementT))object;
