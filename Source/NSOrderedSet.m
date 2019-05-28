@@ -891,6 +891,7 @@ static SEL	rlSel;
     }
 }
 
+// Overridable method...
 - (void)insertObject:(id)object atIndex:(NSUInteger)index
 {
   [self subclassResponsibility: _cmd];
@@ -922,9 +923,47 @@ static SEL	rlSel;
     }
 }
 
-- (void)removeObject:(id)object
+- (void)removeObject:(id)anObject
 {
-  [self subclassResponsibility: _cmd];
+  NSUInteger	i;
+
+  if (anObject == nil)
+    {
+      NSWarnMLog(@"attempt to remove nil object");
+      return;
+    }
+  i = [self count];
+  if (i > 0)
+    {
+      IMP	rem = 0;
+      IMP	get = [self methodForSelector: oaiSel];
+      BOOL	(*eq)(id, SEL, id)
+	= (BOOL (*)(id, SEL, id))[anObject methodForSelector: eqSel];
+
+      while (i-- > 0)
+	{
+	  id	o = (*get)(self, oaiSel, i);
+
+	  if (o == anObject || (*eq)(anObject, eqSel, o) == YES)
+	    {
+	      if (rem == 0)
+		{
+		  rem = [self methodForSelector: remSel];
+		  /*
+		   * We need to retain the object so that when we remove the
+		   * first equal object we don't get left with a bad object
+		   * pointer for later comparisons.
+		   */
+		  RETAIN(anObject);
+		}
+	      (*rem)(self, remSel, i);
+	    }
+	}
+      if (rem != 0)
+	{
+	  RELEASE(anObject);
+	}
+    }
 }
 
 - (void)removeObjectAtIndex:(NSUInteger)integer
@@ -946,7 +985,17 @@ static SEL	rlSel;
 
 - (void)removeAllObjects
 {
-  
+  NSUInteger	c = [self count];
+
+  if (c > 0)
+    {
+      IMP	remLast = [self methodForSelector: rlSel];
+
+      while (c--)
+	{
+	  (*remLast)(self, rlSel);
+	}
+    }  
 }
 
 - (void)replaceObjectAtIndex:(NSUInteger)index
