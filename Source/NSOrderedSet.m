@@ -33,6 +33,7 @@
 #import "Foundation/NSKeyValueCoding.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSPredicate.h"
 
 // #import "GNUstepBase/GNUstep.h"
 // For private method _decodeArrayOfObjectsForKey:
@@ -224,12 +225,16 @@ static SEL	rlSel;
 
 - (id) copyWithZone: (NSZone*)zone
 {
-  return nil;
+  NSOrderedSet	*copy = [NSOrderedSet_concrete_class allocWithZone: zone];
+  
+  return [copy initWithOrderedSet: self copyItems: YES];
 }
 
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
-  return nil;
+   NSMutableOrderedSet	*copy = [NSMutableOrderedSet_concrete_class allocWithZone: zone];
+
+   return [copy initWithOrderedSet: self copyItems: NO];
 }
 
 // NSFastEnumeration 
@@ -425,8 +430,11 @@ static SEL	rlSel;
 
 - (instancetype) initWithObject:(id)object
 {
-  
-  return nil;
+  self = [super init];
+  if(self != nil)
+    {
+    }
+  return self;
 }
 
 - (instancetype) initWithObjects:(id)firstObject, ...
@@ -442,7 +450,7 @@ static SEL	rlSel;
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (instancetype) initWithObjects:(const id [])objects
+- (instancetype) initWithObjects:(const id [])objects // required override.
                            count:(NSUInteger)count
 {
   self = [self init];
@@ -839,7 +847,7 @@ static SEL	rlSel;
 // Creating a Mutable Ordered Set
 + (void) initialize
 {
-  if (self == [NSMutableSet class])
+  if (self == [NSMutableOrderedSet class])
     {
       NSMutableOrderedSet_abstract_class = self;
       NSMutableOrderedSet_concrete_class = [GSMutableOrderedSet class];
@@ -851,9 +859,15 @@ static SEL	rlSel;
   return nil;
 }
 
+- (Class) classForCoder
+{
+  return NSMutableOrderedSet_abstract_class;
+}
+
 - (instancetype)initWithCapacity: (NSUInteger)capacity
 {
-  return nil;
+  self = [self init];
+  return self;
 }
 
 - (instancetype) init
@@ -1133,6 +1147,17 @@ static SEL	rlSel;
 
 - (void)filterUsingPredicate:(NSPredicate *)predicate
 {
+  unsigned	count = [self count];
+
+  while (count-- > 0)
+    {
+      id	object = [self objectAtIndex: count];
+	
+      if ([predicate evaluateWithObject: object] == NO)
+        {
+          [self removeObjectAtIndex: count];
+        }
+    }
 }
 
 - (void) sortUsingDescriptors:(NSArray *)descriptors
