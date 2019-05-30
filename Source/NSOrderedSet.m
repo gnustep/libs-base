@@ -94,6 +94,7 @@ static SEL	rlSel;
       NSOrderedSet_abstract_class = self;
       NSOrderedSet_concrete_class = [GSOrderedSet class];
       [NSMutableSet class];
+      [self registerAtExit];
     }
 }
 
@@ -589,30 +590,67 @@ static SEL	rlSel;
                            options:(NSEnumerationOptions)opts
                         usingBlock:(GSEnumeratorBlock)aBlock
 {
-  [self subclassResponsibility: _cmd];
+    [[self objectsAtIndexes: indexSet] enumerateObjectsWithOptions: opts
+							usingBlock: aBlock];
 }
 
 - (void) enumerateObjectsUsingBlock:(GSEnumeratorBlock)aBlock
 {
-  [self subclassResponsibility: _cmd];
+  [self enumerateObjectsWithOptions: 0 usingBlock: aBlock];
 }
 
 - (void) enumerateObjectsWithOptions:(NSEnumerationOptions)opts
                           usingBlock:(GSEnumeratorBlock)aBlock
 {
-  [self subclassResponsibility: _cmd];
+  NSUInteger count = 0;
+  BLOCK_SCOPE BOOL shouldStop = NO;
+  BOOL isReverse = (opts & NSEnumerationReverse);
+  id<NSFastEnumeration> enumerator = self;
+
+  /* If we are enumerating in reverse, use the reverse enumerator for fast
+   * enumeration. */
+  if (isReverse)
+    {
+      enumerator = [self reverseObjectEnumerator];
+      count = ([self count] - 1);
+    }
+
+  {
+  GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+  FOR_IN (id, obj, enumerator)
+    GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (YES == shouldStop) {return;}, return, aBlock, obj, count, &shouldStop);
+      if (isReverse)
+        {
+          count--;
+        }
+      else
+        {
+          count++;
+        }
+
+      if (shouldStop)
+        {
+          break;
+        }
+    END_FOR_IN(enumerator)
+    GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+  }
 }
 
 - (id) firstObject
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  NSUInteger count = [self count];
+  if (count == 0)
+    return nil;
+  return [self objectAtIndex: 0];
 }
 
 - (id) lastObject
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+   NSUInteger count = [self count];
+  if (count == 0)
+    return nil;
+  return [self objectAtIndex: 0];
 }
 
 - (id) objectAtIndex: (NSUInteger)index
