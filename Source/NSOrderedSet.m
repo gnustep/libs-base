@@ -243,8 +243,43 @@ static SEL	rlSel;
 				   objects: (__unsafe_unretained id[])stackbuf
 				     count: (NSUInteger)len
 {
-  [self subclassResponsibility: _cmd];
-  return 0;
+  NSInteger count;
+
+  /* In a mutable subclass, the mutationsPtr should be set to point to a
+   * value (unsigned long) which will be changed (incremented) whenever
+   * the container is mutated (content added, removed, re-ordered).
+   * This is cached in the caller at the start and compared at each
+   * iteration.   If it changes during the iteration then
+   * objc_enumerationMutation() will be called, throwing an exception.
+   * The abstract base class implementation points to a fixed value
+   * (the enumeration state pointer should exist and be unchanged for as
+   * long as the enumeration process runs), which is fine for enumerating
+   * an immutable array.
+   */
+  state->mutationsPtr = (unsigned long *)&state->mutationsPtr;
+  count = MIN(len, [self count] - state->state);
+  /* If a mutation has occurred then it's possible that we are being asked to
+   * get objects from after the end of the array.  Don't pass negative values
+   * to memcpy.
+   */
+  if (count > 0)
+    {
+      IMP	imp = [self methodForSelector: @selector(objectAtIndex:)];
+      int	p = state->state;
+      int	i;
+
+      for (i = 0; i < count; i++, p++)
+	{
+	  stackbuf[i] = (*imp)(self, @selector(objectAtIndex:), p);
+	}
+      state->state += count;
+    }
+  else
+    {
+      count = 0;
+    }
+  state->itemsPtr = stackbuf;
+  return count;
 }
 
 // class methods
@@ -574,13 +609,13 @@ static SEL	rlSel;
   return self;
 }
 
-- (NSUInteger) count
+- (NSUInteger) count // required override
 {
   [self subclassResponsibility: _cmd];
   return 0;
 }
 
-- (BOOL)containsObject:(id)anObject // TODO
+- (BOOL)containsObject:(id)anObject // required override
 {
   [self subclassResponsibility: _cmd];
   return NO; 
@@ -590,8 +625,8 @@ static SEL	rlSel;
                            options:(NSEnumerationOptions)opts
                         usingBlock:(GSEnumeratorBlock)aBlock
 {
-    [[self objectsAtIndexes: indexSet] enumerateObjectsWithOptions: opts
-							usingBlock: aBlock];
+  [[self objectsAtIndexes: indexSet] enumerateObjectsWithOptions: opts
+						      usingBlock: aBlock];
 }
 
 - (void) enumerateObjectsUsingBlock:(GSEnumeratorBlock)aBlock
@@ -680,9 +715,22 @@ static SEL	rlSel;
 }
 
     
-- (NSUInteger) indexOfObject:(id)object
+- (NSUInteger) indexOfObject:(id)anObject
 {
-  return 0;
+  NSUInteger	c = [self count];
+  
+  if (c > 0 && anObject != nil)
+    {
+      NSUInteger	i;
+      IMP	get = [self methodForSelector: oaiSel];
+      BOOL	(*eq)(id, SEL, id)
+	= (BOOL (*)(id, SEL, id))[anObject methodForSelector: eqSel];
+      
+      for (i = 0; i < c; i++)
+	if ((*eq)(anObject, eqSel, (*get)(self, oaiSel, i)) == YES)
+	  return i;
+    }
+  return NSNotFound;
 }
 
 - (NSUInteger) indexOfObject: (id)key
