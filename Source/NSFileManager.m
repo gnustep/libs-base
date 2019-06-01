@@ -241,7 +241,7 @@
   struct _STATB	statbuf;
   _CHAR		_path[0];
 }
-+ (NSDictionary*) attributesAt: (const _CHAR*)lpath
++ (NSDictionary*) attributesAt: (NSString *)path
 		  traverseLink: (BOOL)traverse;
 @end
 
@@ -1957,8 +1957,7 @@ static NSStringEncoding	defaultEncoding;
 {
   NSDictionary	*d;
 
-  d = [GSAttrDictionaryClass attributesAt:
-    [self fileSystemRepresentationWithPath: path] traverseLink: flag];
+  d = [GSAttrDictionaryClass attributesAt: path traverseLink: flag];
   return d;
 }
 
@@ -2040,8 +2039,7 @@ static NSStringEncoding	defaultEncoding;
   NSDictionary	*d;
 
   DESTROY(_lastError);
-  d = [GSAttrDictionaryClass attributesAt:
-    [self fileSystemRepresentationWithPath: path] traverseLink: NO];
+  d = [GSAttrDictionaryClass attributesAt: path traverseLink: NO];
   
   if (error != NULL)
     {
@@ -2910,6 +2908,9 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   int		rbytes;
   int		wbytes;
   char		buffer[bufsize];
+#ifdef __ANDROID__
+  AAsset	*asset = NULL;
+#endif
 
   attributes = [self fileAttributesAtPath: source traverseLink: NO];
   if (nil == attributes)
@@ -2928,7 +2929,15 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   /* Open the source file. In case of error call the handler. */
   sourceFd = open([self fileSystemRepresentationWithPath: source],
     GSBINIO|O_RDONLY);
+#ifdef __ANDROID__
+  if (sourceFd < 0) {
+    // Android: try using asset manager if path is in main bundle resources
+    asset = [NSBundle assetForPath:source withMode:AASSET_MODE_STREAMING];
+  }
+  if (sourceFd < 0 && asset == NULL)
+#else
   if (sourceFd < 0)
+#endif
     {
       return [self _proceedAccordingToHandler: handler
 				     forError: @"cannot open file for reading"
@@ -2942,6 +2951,12 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     GSBINIO|O_WRONLY|O_CREAT|O_TRUNC, fileMode);
   if (destFd < 0)
     {
+#ifdef __ANDROID__
+      if (asset) {
+        AAsset_close(asset);
+      }
+      else
+#endif
       close (sourceFd);
 
       return [self _proceedAccordingToHandler: handler
@@ -2955,6 +2970,12 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
      file. In case of errors call the handler and abort the operation. */
   for (i = 0; i < fileSize; i += rbytes)
     {
+#ifdef __ANDROID__
+      if (asset) {
+        rbytes = AAsset_read(asset, buffer, bufsize);
+      }
+      else
+#endif
       rbytes = read (sourceFd, buffer, bufsize);
       if (rbytes <= 0)
 	{
@@ -2962,6 +2983,12 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
             {
               break;    // End of input file
             }
+#ifdef __ANDROID__
+          if (asset) {
+            AAsset_close(asset);
+          }
+          else
+#endif
           close (sourceFd);
           close (destFd);
 
@@ -2975,6 +3002,12 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
       wbytes = write (destFd, buffer, rbytes);
       if (wbytes != rbytes)
 	{
+#ifdef __ANDROID__
+          if (asset) {
+            AAsset_close(asset);
+          }
+          else
+#endif
           close (sourceFd);
           close (destFd);
 
@@ -2985,6 +3018,12 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 					   toPath: destination];
         }
     }
+#ifdef __ANDROID__
+  if (asset) {
+    AAsset_close(asset);
+  }
+  else
+#endif
   close (sourceFd);
   close (destFd);
 
@@ -3321,12 +3360,16 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
 static NSSet	*fileKeys = nil;
 
-+ (NSDictionary*) attributesAt: (const _CHAR*)lpath
++ (NSDictionary*) attributesAt: (NSString *)path
 		  traverseLink: (BOOL)traverse
 {
   GSAttrDictionary	*d;
   unsigned		l = 0;
   unsigned		i;
+  const _CHAR *lpath = [defaultManager fileSystemRepresentationWithPath: path];
+#ifdef __ANDROID__
+  AAsset *asset = NULL;
+#endif
 
   if (lpath == 0 || *lpath == 0)
     {
@@ -3344,6 +3387,11 @@ static NSSet	*fileKeys = nil;
     {
       if (lstat(lpath, &d->statbuf) != 0)
 	{
+#ifdef __ANDROID__
+	  // Android: try using asset manager if path is in main bundle resources
+	  asset = [NSBundle assetForPath:path];
+	  if (asset == NULL)
+#endif
 	  DESTROY(d);
 	}
     }
@@ -3351,6 +3399,11 @@ static NSSet	*fileKeys = nil;
 #endif
   if (_STAT(lpath, &d->statbuf) != 0)
     {
+#ifdef __ANDROID__
+      // Android: try using asset manager if path is in main bundle resources
+      asset = [NSBundle assetForPath:path];
+      if (asset == NULL)
+#endif
       DESTROY(d);
     }
   if (d != nil)
@@ -3359,6 +3412,15 @@ static NSSet	*fileKeys = nil;
 	{
 	  d->_path[i] = lpath[i];
 	}
+#ifdef __ANDROID__
+      if (asset) {
+        // set some basic stat values for Android assets
+        memset(&d->statbuf, 0, sizeof(d->statbuf));
+        d->statbuf.st_mode = S_IRUSR;
+        d->statbuf.st_size = AAsset_getLength(asset);
+        AAsset_close(asset);
+      }
+#endif
     }
   return AUTORELEASE(d);
 }

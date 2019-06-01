@@ -22,8 +22,9 @@
 	-initWithContentsOfFile: and related methods from other classes.
 	* Source/NSFileManager.m:
 	Added support for Android assets from main bundle in
-	fileExistsAtPath:isDirectory:, isReadableFileAtPath:, and
-	NSDirectoryEnumerator.
+	fileExistsAtPath:isDirectory:, isReadableFileAtPath:,
+	NSDirectoryEnumerator, and copying from assets. Extended
+	GSAttrDictionary with basic support for Android assets.
 	* Source/NSProcessInfo.m:
 	Added +initialize method to auto-initialize NSProcessInfo on Android
 	using fake executable path "/data/data/<app identifier>/exe" (Android
