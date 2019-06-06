@@ -627,15 +627,11 @@ descriptorOrComparator: (id)descriptorOrComparator
   while (stackSize > 1)
     {
       NSInteger n = stackSize -2;
-      if (  (n >= 1
-              && runStack[n-1].length <= (runStack[n].length
-                                          + runStack[n+1].length)
-            )
-         || (n >= 2 
-              && runStack[n-2].length <= (runStack[n].length 
-                                          + runStack[n-1].length)
-            )
-         )
+
+      if ((n >= 1 && runStack[n-1].length
+	  <= (runStack[n].length + runStack[n+1].length))
+        || (n >= 2 && runStack[n-2].length
+	  <= (runStack[n].length + runStack[n-1].length)))
         {
           if (runStack[n-1].length < runStack[n+1].length)
             {

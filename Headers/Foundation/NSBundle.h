@@ -553,7 +553,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
  * Sets the Java Android asset manager.
  * The developer can call this method to enable asset loading via NSBundle.
  */
-+ (void) setJavaAssetManager:(jobject)jassetManager withJNIEnv:(JNIEnv *)env;
++ (void) setJavaAssetManager: (jobject)jassetManager withJNIEnv: (JNIEnv *)env;
 
 /**
  * Returns the native Android asset manager.
@@ -566,7 +566,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
  * Uses `AASSET_MODE_UNKNOWN` to open the asset if it exists.
  * The returned object must be released using AAsset_close().
  */
-+ (AAsset *)assetForPath:(NSString *)path;
++ (AAsset *) assetForPath: (NSString *)path;
 
 /**
  * Returns the Android asset for the given path if path is in main bundle
@@ -574,14 +574,14 @@ GS_EXPORT NSString* const NSLoadedClasses;
  * Uses the given mode to open the AAsset if it exists.
  * The returned object must be released using AAsset_close().
  */
-+ (AAsset *)assetForPath:(NSString *)path withMode:(int)mode;
++ (AAsset *) assetForPath: (NSString *)path withMode: (int)mode;
 
 /**
  * Returns the Android asset dir for the given path if path is in main bundle
  * resources and the asset directory exists.
  * The returned object must be released using AAssetDir_close().
  */
-+ (AAssetDir *)assetDirForPath:(NSString *)path;
++ (AAssetDir *) assetDirForPath: (NSString *)path;
 
 #endif /* __ANDROID__ */
 
@@ -648,7 +648,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
  * </p>
  */
 #define NSLocalizedString(key, comment) \
-  [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:nil]
+  [[NSBundle mainBundle] localizedStringForKey: (key) value: @"" table: nil]
 
 /**
  * This function (macro) does the same as
@@ -666,7 +666,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
  * different table.
  */
 #define NSLocalizedStringFromTable(key, tbl, comment) \
-  [[NSBundle mainBundle] localizedStringForKey:(key) value:@"" table:(tbl)]
+  [[NSBundle mainBundle] localizedStringForKey: (key) value: @"" table: (tbl)]
 
 /**
  * This function is the full-blown localization function (it
@@ -682,7 +682,7 @@ GS_EXPORT NSString* const NSLoadedClasses;
  * use when translating the string.
  */
 #define NSLocalizedStringFromTableInBundle(key, tbl, bundle, comment) \
-  [bundle localizedStringForKey:(key) value:@"" table:(tbl)]
+  [bundle localizedStringForKey: (key) value: @"" table: (tbl)]
 
 
 #if	defined(__cplusplus)

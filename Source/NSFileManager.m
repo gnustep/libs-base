@@ -738,7 +738,7 @@ static NSStringEncoding	defaultEncoding;
 
       nxtImp = [direnum methodForSelector: @selector(nextObject)];
 
-      urlArray = [NSMutableArray arrayWithCapacity:128];
+      urlArray = [NSMutableArray arrayWithCapacity: 128];
       while ((tempPath = (*nxtImp)(direnum, @selector(nextObject))) != nil)
 	{
           NSURL         *tempURL;
@@ -749,7 +749,7 @@ static NSStringEncoding	defaultEncoding;
           
           /* we purge files beginning with . */
           if (!((mask & NSDirectoryEnumerationSkipsHiddenFiles)
-            && [lastComponent hasPrefix:@"."]))
+            && [lastComponent hasPrefix: @"."]))
             {
               [urlArray addObject: tempURL];
             }
@@ -1653,21 +1653,26 @@ static NSStringEncoding	defaultEncoding;
       if (_STAT(lpath, &statbuf) != 0)
 	{
 #ifdef __ANDROID__
-          // Android: try using asset manager if path is in main bundle resources
-          AAsset *asset = [NSBundle assetForPath:path];
-          if (asset) {
-            AAsset_close(asset);
-            return YES;
-          }
+          /* Android: try using asset manager if path is in
+	   * main bundle resources
+	   */
+          AAsset *asset = [NSBundle assetForPath: path];
+          if (asset)
+	    {
+	      AAsset_close(asset);
+	      return YES;
+	    }
           
-          AAssetDir *assetDir = [NSBundle assetDirForPath:path];
-          if (assetDir) {
-            AAssetDir_close(assetDir);
-            if (isDirectory) {
-              *isDirectory = YES;
-            }
-            return YES;
-          }
+          AAssetDir *assetDir = [NSBundle assetDirForPath: path];
+          if (assetDir)
+	    {
+	      AAssetDir_close(assetDir);
+	      if (isDirectory)
+		{
+		  *isDirectory = YES;
+		}
+	      return YES;
+	    }
 #endif
           
 	  return NO;
@@ -1721,11 +1726,12 @@ static NSStringEncoding	defaultEncoding;
 
 #ifdef __ANDROID__
         // Android: try using asset manager if path is in main bundle resources
-        AAsset *asset = [NSBundle assetForPath:path];
-        if (asset) {
-          AAsset_close(asset);
-          return YES;
-        }
+        AAsset *asset = [NSBundle assetForPath: path];
+        if (asset)
+	  {
+	    AAsset_close(asset);
+	    return YES;
+	  }
 #endif
 
       return NO;
@@ -2203,8 +2209,8 @@ static NSStringEncoding	defaultEncoding;
  */
 - (NSDictionary*) fileSystemAttributesAtPath: (NSString*)path
 {
-  return [self attributesOfFileSystemForPath:path
-				       error:NULL];
+  return [self attributesOfFileSystemForPath: path
+				       error: NULL];
 }
 
 /**
@@ -2416,9 +2422,10 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   DESTROY(X.path);
   _CLOSEDIR(X.pointer);
 #ifdef __ANDROID__
-  if (X.assetDir) {
-    AAssetDir_close(X.assetDir);
-  }
+  if (X.assetDir)
+    {
+      AAssetDir_close(X.assetDir);
+    }
 #endif
 }
 
@@ -2480,10 +2487,13 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
       
 #ifdef __ANDROID__
       AAssetDir *assetDir = NULL;
-      if (!dir_pointer) {
-        // Android: try using asset manager if path is in main bundle resources
-        assetDir = [NSBundle assetDirForPath:path];
-      }
+      if (!dir_pointer)
+	{
+	  /* Android: try using asset manager if path is in
+	   * main bundle resources
+	   */
+	  assetDir = [NSBundle assetDirForPath: path];
+	}
       
       if (dir_pointer || assetDir)
 #else 
@@ -2592,19 +2602,21 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
 #ifdef __ANDROID__
       if (dir.assetDir)
-      {
-        // This will only return files and not directories, which means that
-        // recursion is not supported.
-        // See https://issuetracker.google.com/issues/37002833
-        dirname = AAssetDir_getNextFileName(dir.assetDir);
-      }
+	{
+	  /* This will only return files and not directories, which means that
+	   * recursion is not supported.
+	   * See https://issuetracker.google.com/issues/37002833
+	   */
+	  dirname = AAssetDir_getNextFileName(dir.assetDir);
+	}
       else if (dir.pointer)
 #endif
       {
         struct _DIRENT *dirbuf = _READDIR(dir.pointer);
-        if (dirbuf) {
-          dirname = dirbuf->d_name;
-        }
+        if (dirbuf)
+	  {
+	    dirname = dirbuf->d_name;
+	  }
       }
 
       if (dirname)
@@ -2930,10 +2942,11 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   sourceFd = open([self fileSystemRepresentationWithPath: source],
     GSBINIO|O_RDONLY);
 #ifdef __ANDROID__
-  if (sourceFd < 0) {
-    // Android: try using asset manager if path is in main bundle resources
-    asset = [NSBundle assetForPath:source withMode:AASSET_MODE_STREAMING];
-  }
+  if (sourceFd < 0)
+    {
+      // Android: try using asset manager if path is in main bundle resources
+      asset = [NSBundle assetForPath: source withMode: AASSET_MODE_STREAMING];
+    }
   if (sourceFd < 0 && asset == NULL)
 #else
   if (sourceFd < 0)
@@ -2952,9 +2965,10 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   if (destFd < 0)
     {
 #ifdef __ANDROID__
-      if (asset) {
-        AAsset_close(asset);
-      }
+      if (asset)
+	{
+	  AAsset_close(asset);
+	}
       else
 #endif
       close (sourceFd);
@@ -2971,9 +2985,10 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   for (i = 0; i < fileSize; i += rbytes)
     {
 #ifdef __ANDROID__
-      if (asset) {
-        rbytes = AAsset_read(asset, buffer, bufsize);
-      }
+      if (asset)
+	{
+	  rbytes = AAsset_read(asset, buffer, bufsize);
+	}
       else
 #endif
       rbytes = read (sourceFd, buffer, bufsize);
@@ -2984,9 +2999,10 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
               break;    // End of input file
             }
 #ifdef __ANDROID__
-          if (asset) {
-            AAsset_close(asset);
-          }
+          if (asset)
+	    {
+	      AAsset_close(asset);
+	    }
           else
 #endif
           close (sourceFd);
@@ -3003,9 +3019,10 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
       if (wbytes != rbytes)
 	{
 #ifdef __ANDROID__
-          if (asset) {
-            AAsset_close(asset);
-          }
+          if (asset)
+	    {
+	      AAsset_close(asset);
+	    }
           else
 #endif
           close (sourceFd);
@@ -3019,9 +3036,10 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
         }
     }
 #ifdef __ANDROID__
-  if (asset) {
-    AAsset_close(asset);
-  }
+  if (asset)
+    {
+      AAsset_close(asset);
+    }
   else
 #endif
   close (sourceFd);
@@ -3388,8 +3406,10 @@ static NSSet	*fileKeys = nil;
       if (lstat(lpath, &d->statbuf) != 0)
 	{
 #ifdef __ANDROID__
-	  // Android: try using asset manager if path is in main bundle resources
-	  asset = [NSBundle assetForPath:path];
+	  /* Android: try using asset manager if path is in
+	   * main bundle resources
+	   */
+	  asset = [NSBundle assetForPath: path];
 	  if (asset == NULL)
 #endif
 	  DESTROY(d);
@@ -3401,7 +3421,7 @@ static NSSet	*fileKeys = nil;
     {
 #ifdef __ANDROID__
       // Android: try using asset manager if path is in main bundle resources
-      asset = [NSBundle assetForPath:path];
+      asset = [NSBundle assetForPath: path];
       if (asset == NULL)
 #endif
       DESTROY(d);
@@ -3413,13 +3433,14 @@ static NSSet	*fileKeys = nil;
 	  d->_path[i] = lpath[i];
 	}
 #ifdef __ANDROID__
-      if (asset) {
-        // set some basic stat values for Android assets
-        memset(&d->statbuf, 0, sizeof(d->statbuf));
-        d->statbuf.st_mode = S_IRUSR;
-        d->statbuf.st_size = AAsset_getLength(asset);
-        AAsset_close(asset);
-      }
+      if (asset)
+	{
+	  // set some basic stat values for Android assets
+	  memset(&d->statbuf, 0, sizeof(d->statbuf));
+	  d->statbuf.st_mode = S_IRUSR;
+	  d->statbuf.st_size = AAsset_getLength(asset);
+	  AAsset_close(asset);
+	}
 #endif
     }
   return AUTORELEASE(d);
