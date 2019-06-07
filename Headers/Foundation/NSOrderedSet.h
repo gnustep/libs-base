@@ -115,7 +115,7 @@ extern "C" {
                           passingTest:(GSPredicateBlock)predicate;
 
 - (NSIndexSet *)indexesOfObjectsPassingTest:(GSPredicateBlock)predicate;
-- (NSIndexSet *) indexesOfObjectWithOptions:(NSEnumerationOptions)opts
+- (NSIndexSet *) indexesOfObjectsWithOptions:(NSEnumerationOptions)opts
                             passingTest:(GSPredicateBlock)predicate;
 - (GS_GENERIC_CLASS(NSEnumerator, ElementT)*) objectEnumerator;
 - (GS_GENERIC_CLASS(NSEnumerator, ElementT)*) reverseObjectEnumerator;

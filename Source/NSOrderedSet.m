@@ -34,6 +34,8 @@
 #import "Foundation/NSValue.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSPredicate.h"
+#import "Foundation/NSLock.h"
+
 #import <GNUstepBase/GSBlocks.h>
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
@@ -465,6 +467,8 @@ static SEL	rlSel;
   self = [super init];
   if(self != nil)
     {
+      // Need proper implementation to happen in subclass since it will define how data
+      // is stored.
     }
   return self;
 }
@@ -486,6 +490,10 @@ static SEL	rlSel;
                            count:(NSUInteger)count
 {
   self = [self init];
+  if(self != nil)
+    {
+      // Need proper implementation in subclass since that is where data will be stored.
+    }
   return self;
 }
 
@@ -734,7 +742,85 @@ static SEL	rlSel;
                      options: (NSBinarySearchingOptions)options
              usingComparator: (NSComparator)comparator
 {
-  return 0;
+    if (range.length == 0)
+    {
+      return options & NSBinarySearchingInsertionIndex
+        ? range.location : NSNotFound;
+    }
+  if (range.length == 1)
+    {
+      switch (CALL_BLOCK(comparator, key, [self objectAtIndex: range.location]))
+        {
+          case NSOrderedSame:
+            return range.location;
+          case NSOrderedAscending:
+            return options & NSBinarySearchingInsertionIndex
+              ? range.location : NSNotFound;
+          case NSOrderedDescending:
+            return options & NSBinarySearchingInsertionIndex
+              ? (range.location + 1) : NSNotFound;
+          default:
+            // Shouldn't happen
+            return NSNotFound;
+        }
+    }
+  else
+    {
+      NSUInteger index = NSNotFound;
+      NSUInteger count = [self count];
+      NSRange range = NSMakeRange(0, [self count]);
+      GS_BEGINIDBUF(objects, count);
+
+      [self getObjects: objects range: range];
+      // We use the timsort galloping to find the insertion index:
+      if (options & NSBinarySearchingLastEqual)
+        {
+          index = GSRightInsertionPointForKeyInSortedRange(key,
+            objects, range, comparator);
+        }
+      else
+        {
+          // Left insertion is our default
+          index = GSLeftInsertionPointForKeyInSortedRange(key,
+            objects, range, comparator);
+        }
+      GS_ENDIDBUF()
+
+      // If we were looking for the insertion point, we are done here
+      if (options & NSBinarySearchingInsertionIndex)
+        {
+          return index;
+        }
+
+      /* Otherwise, we need need another equality check in order to
+       * know whether we need return NSNotFound.
+       */
+
+      if (options & NSBinarySearchingLastEqual)
+        {
+          /* For search from the right, the equal object would be
+           * the one before the index, but only if it's not at the
+           * very beginning of the range (though that might not
+           * actually be possible, it's better to check nonetheless).
+           */
+          if (index > range.location)
+            {
+              index--;
+            }
+        }
+      if (index >= NSMaxRange(range))
+        {
+          return NSNotFound;
+        }
+      /*
+       * For a search from the left, we'd have the correct index anyways. Check
+       * whether it's equal to the key and return NSNotFound otherwise
+       */
+      return (NSOrderedSame == CALL_BLOCK(comparator,
+        key, [self objectAtIndex: index]) ? index : NSNotFound);
+    }
+  // Never reached
+  return NSNotFound;
 }
 
 - (NSUInteger) indexOfObjectAtIndexes:(NSIndexSet *)indexSet
@@ -742,13 +828,13 @@ static SEL	rlSel;
                           passingTest:(GSPredicateBlock)predicate
 {
   return [[self objectsAtIndexes: indexSet]
-	     indexesOfObjectsWithOptions: opts
-			     passingTest: predicate];
+        indexOfObjectWithOptions: 0
+                     passingTest: predicate];
 }
 
 - (NSUInteger) indexOfObjectPassingTest:(GSPredicateBlock)predicate
 {
-  return [self indexesOfObjectsWithOptions: 0 passingTest: predicate];
+  return [self indexOfObjectWithOptions: 0 passingTest: predicate];
 }
 
 - (NSUInteger) indexOfObjectWithOptions:(NSEnumerationOptions)opts
@@ -816,18 +902,71 @@ static SEL	rlSel;
                               options:(NSEnumerationOptions)opts
                           passingTest:(GSPredicateBlock)predicate
 {
-  return nil;
+  return [[self objectsAtIndexes: indexSet]
+	   indexesOfObjectsWithOptions: opts
+			   passingTest: predicate];
 }
 
-- (NSIndexSet *)indexesOfObjectsPassingTest:(GSPredicateBlock)predicate
+- (NSIndexSet *) indexesOfObjectsPassingTest:(GSPredicateBlock)predicate
 {
-  return nil;
+  return [self indexesOfObjectsWithOptions: 0 passingTest: predicate];
 }
 
-- (NSIndexSet *) indexesOfObjectWithOptions:(NSEnumerationOptions)opts
+- (NSIndexSet *) indexesOfObjectsWithOptions:(NSEnumerationOptions)opts
                             passingTest:(GSPredicateBlock)predicate
 {
-  return nil;
+  /* TODO: Concurrency. */
+  NSMutableIndexSet     *set = [NSMutableIndexSet indexSet];
+  BLOCK_SCOPE BOOL      shouldStop = NO;
+  id<NSFastEnumeration> enumerator = self;
+  NSUInteger            count = 0;
+  BLOCK_SCOPE NSLock    *setLock = nil;
+
+  /* If we are enumerating in reverse, use the reverse enumerator for fast
+   * enumeration. */
+  if (opts & NSEnumerationReverse)
+    {
+      enumerator = [self reverseObjectEnumerator];
+    }
+  if (opts & NSEnumerationConcurrent)
+    {
+      setLock = [NSLock new];
+    }
+  {
+    GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+    FOR_IN (id, obj, enumerator)
+#     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
+
+      dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
+        if (shouldStop)
+        {
+	  return;
+        }
+        if (predicate(obj, count, &shouldStop))
+        {
+	  [setLock lock];
+	  [set addIndex: count];
+	  [setLock unlock];
+        }
+      });
+#     else
+      if (CALL_BLOCK(predicate, obj, count, &shouldStop))
+        {
+	  /* TODO: It would be more efficient to collect an NSRange and only
+	   * pass it to the index set when CALL_BLOCK returned NO. */
+	  [set addIndex: count];
+        }
+#     endif
+      if (shouldStop)
+        {
+	  break;
+        }
+      count++;
+    END_FOR_IN(enumerator)
+    GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts);
+  }
+  RELEASE(setLock);
+  return set;
 }
 
 - (NSEnumerator *) objectEnumerator
