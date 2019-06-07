@@ -1166,27 +1166,27 @@ static Class concreteMutableClass = nil;
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) URLFragmentAllowedCharacterSet;
++ (id) URLFragmentAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) URLHostAllowedCharacterSet;
++ (id) URLHostAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) URLPasswordAllowedCharacterSet;
++ (id) URLPasswordAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) URLPathAllowedCharacterSet;
++ (id) URLPathAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) URLQueryAllowedCharacterSet;
++ (id) URLQueryAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
