@@ -34,14 +34,12 @@
 #import "Foundation/NSValue.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSPredicate.h"
-
-// #import "GNUstepBase/GNUstep.h"
-// For private method _decodeArrayOfObjectsForKey:
-
+#import <GNUstepBase/GSBlocks.h>
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
 #import "GSFastEnumeration.h"
 #import "GSDispatch.h"
+#import "GSSorting.h"
 
 @class	GSOrderedSet;
 @interface GSOrderedSet : NSObject	// Help the compiler
