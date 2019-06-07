@@ -1058,24 +1058,76 @@ static SEL	rlSel;
 }
 
 // Set operations
-- (BOOL) intersectsOrderedSet: (NSOrderedSet *)aSet
+- (BOOL) intersectsOrderedSet: (NSOrderedSet *)otherSet
 {
+  id	o = nil, e = nil;
+
+  // -1. If this set is empty, this method should return NO.
+  if ([self count] == 0)
+    return NO;
+
+  // 0. Loop for all members in otherSet
+  e = [otherSet objectEnumerator];
+  while ((o = [e nextObject])) // 1. pick a member from otherSet.
+    {
+      if ([self containsObject: o])    // 2. check the member is in this set(self).
+        return YES;
+    }
   return NO;
 }
 
-- (BOOL) intersectsSet: (NSSet *)aSet
+- (BOOL) intersectsSet: (NSSet *)otherSet
 {
+  id	o = nil, e = nil;
+
+  // -1. If this set is empty, this method should return NO.
+  if ([self count] == 0)
+    return NO;
+
+  // 0. Loop for all members in otherSet
+  e = [otherSet objectEnumerator];
+  while ((o = [e nextObject])) // 1. pick a member from otherSet.
+    {
+      if ([self containsObject: o])    // 2. check the member is in this set(self).
+        return YES;
+    }
   return NO;
 }
 
-- (BOOL) isSubsetOfOrderedSet: (NSOrderedSet *)aSet
+- (BOOL) isSubsetOfOrderedSet: (NSOrderedSet *)otherSet
 {
-  return NO;
+  id	o = nil, e = nil;
+
+  // -1. If this set is empty, this method should return NO.
+  if ([self count] == 0)
+    return NO;
+
+  // 0. Loop for all members in otherSet
+  e = [otherSet objectEnumerator];
+  while ((o = [e nextObject])) // 1. pick a member from otherSet.
+    {
+      if ([self containsObject: o] == NO)    // 2. check the member is in this set(self).
+        return NO;
+    }
+  return YES; // if all members are in set.
 }
 
-- (BOOL) isSubsetOfSet:(NSSet *)aSet
+- (BOOL) isSubsetOfSet:(NSSet *)otherSet
 {
-  return NO;
+    id	o = nil, e = nil;
+
+  // -1. If this set is empty, this method should return NO.
+  if ([self count] == 0)
+    return NO;
+
+  // 0. Loop for all members in otherSet
+  e = [otherSet objectEnumerator];
+  while ((o = [e nextObject])) // 1. pick a member from otherSet.
+    {
+      if ([self containsObject: o] == NO)    // 2. check the member is in this set(self).
+        return NO;
+    }
+  return YES; // if all members are in set.
 }
 
 // Creating a Sorted Array
