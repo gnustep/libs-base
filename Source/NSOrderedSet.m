@@ -692,13 +692,13 @@ static SEL	rlSel;
   return [self objectAtIndex: 0];
 }
 
-- (id) objectAtIndex: (NSUInteger)index
+- (id) objectAtIndex: (NSUInteger)index  // required override...
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
-- (id) objectAtIndexedSubscript: (NSUInteger)index
+- (id) objectAtIndexedSubscript: (NSUInteger)index  // required override...
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -1018,7 +1018,7 @@ static SEL	rlSel;
 - removeObserver:forKeyPath:
 - removeObserver:forKeyPath:context:
 */
-- (NSUInteger)_countForObject: (id)object
+- (NSUInteger)_countForObject: (id)object  // required override...
 {
   return 1;
 }
@@ -1143,7 +1143,7 @@ static SEL	rlSel;
 
 - (NSArray *)
     sortedArrayWithOptions: (NSSortOptions)options
-           usingComparator: (NSComparator)comparator
+           usingComparator: (NSComparator)comparator 
 {
   return nil;
 }
@@ -1151,7 +1151,19 @@ static SEL	rlSel;
 // Filtering Ordered Sets
 - (NSOrderedSet *)filteredOrderedSetUsingPredicate: (NSPredicate *)predicate
 {
-  return nil;
+  NSMutableOrderedSet   *result = nil;
+  NSEnumerator		*e = [self objectEnumerator];
+  id			object = nil;
+
+  result = [NSMutableOrderedSet orderedSetWithCapacity: [self count]];
+  while ((object = [e nextObject]) != nil)
+    {
+      if ([predicate evaluateWithObject: object] == YES)
+        {
+          [result addObject: object];  // passes filter
+        }
+    }
+  return GS_IMMUTABLE(result);
 }
 
 // Describing a set
