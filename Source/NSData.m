@@ -242,6 +242,40 @@ readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
   void		*tmp = 0;
   int		c;
   off_t         fileLength;
+  
+#ifdef __ANDROID__
+  // Android: try using asset manager if path is in main bundle resources
+  AAsset *asset = [NSBundle assetForPath: path withMode: AASSET_MODE_BUFFER];
+  if (asset)
+    {
+      fileLength = AAsset_getLength(asset);
+
+      tmp = NSZoneMalloc(zone, fileLength);
+      if (tmp == 0)
+	{
+	  NSLog(@"Malloc failed for file (%@) of length %jd - %@", path,
+	    (intmax_t)fileLength, [NSError _last]);
+	  AAsset_close(asset);
+	  goto failure;
+	}
+
+      int result = AAsset_read(asset, tmp, fileLength);
+      AAsset_close(asset);
+      
+      if (result < 0)
+	{
+	  NSWarnFLog(@"read of file (%@) contents failed - %@", path,
+	    [NSError errorWithDomain: NSPOSIXErrorDomain
+				code: result
+			    userInfo: nil]);
+	  goto failure;
+	}
+      
+      *buf = tmp;
+      *len = fileLength;
+      return YES;
+    }
+#endif /* __ANDROID__ */
 
 #if defined(_WIN32)
   thePath = (const unichar*)[path fileSystemRepresentation];

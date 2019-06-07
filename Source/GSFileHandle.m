@@ -285,6 +285,13 @@ static GSTcpTune        *tune = nil;
 
   do
     {
+#ifdef __ANDROID__
+      if (asset)
+	{
+	  result = AAsset_read(asset, buf, len);
+	}
+      else
+#endif
 #if	USE_ZLIB
       if (gzDescriptor != 0)
 	{
@@ -379,6 +386,14 @@ static GSTcpTune        *tune = nil;
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
 
+#ifdef __ANDROID__
+  if (asset)
+    {
+      AAsset_close(asset);
+      asset = NULL;
+    }
+  else
+#endif
   if (closeOnDealloc == YES && descriptor != -1)
     {
       [self closeFile];
@@ -1075,6 +1090,15 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (d < 0)
     {
+#ifdef __ANDROID__
+      asset = [NSBundle assetForPath:path withMode:AASSET_MODE_RANDOM];
+      if (asset)
+	{
+	  readOK = YES;
+	  return self;
+	}
+#endif
+      
       DESTROY(self);
       return nil;
     }
@@ -1645,6 +1669,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   off_t	result = -1;
 
+#ifdef __ANDROID__
+  if (asset)
+    {
+      result = AAsset_seek(asset, 0, SEEK_CUR);
+    }
+  else
+#endif
   if (isStandardFile && descriptor >= 0)
     {
 #if	USE_ZLIB
@@ -1669,6 +1700,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   off_t	result = -1;
 
+#ifdef __ANDROID__
+  if (asset)
+    {
+      result = AAsset_seek(asset, 0, SEEK_END);
+    }
+  else
+#endif
   if (isStandardFile && descriptor >= 0)
     {
 #if	USE_ZLIB
@@ -1693,6 +1731,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   off_t	result = -1;
 
+#ifdef __ANDROID__
+  if (asset)
+    {
+      result = AAsset_seek(asset, (off_t)pos, SEEK_SET);
+    }
+  else
+#endif
   if (isStandardFile && descriptor >= 0)
     {
 #if	USE_ZLIB
@@ -1726,6 +1771,15 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   [self ignoreWriteDescriptor];
 
   [self setNonBlocking: NO];
+  
+#ifdef __ANDROID__
+  if (asset)
+    {
+      AAsset_close(asset);
+      asset = NULL;
+    }
+  else
+#endif
 #if	USE_ZLIB
   if (gzDescriptor != 0)
     {

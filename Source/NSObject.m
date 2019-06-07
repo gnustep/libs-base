@@ -2580,12 +2580,56 @@ GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
 }
 
 @implementation	NSObject (MemoryFootprint)
++ (NSUInteger) contentSizeInBytesOf: (NSObject*)instance
+		          excluding: (NSHashTable*)exclude
+{
+  unsigned	count;
+  Ivar		*vars;
+  NSUInteger	size = 0;
+
+  if (0 != (vars = class_copyIvarList(self, &count)))
+    {
+      while (count-- > 0)
+	{
+	  const char	*type = ivar_getTypeEncoding(vars[count]);
+
+          type = GSSkipTypeQualifierAndLayoutInfo(type);
+	  if ('@' == *type)
+	    {
+	      NSObject	*obj = object_getIvar(instance, vars[count]);
+	
+	      if (obj != nil)
+		{
+		  size += [obj sizeInBytesExcluding: exclude];
+		}
+	    }
+	}
+      free(vars);
+    }
+  return size;
+}
 + (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   return 0;
 }
 - (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
-  return GSPrivateMemorySize(self, exclude);
+  if (0 == NSHashGet(exclude, self))
+    {
+      Class             c = object_getClass(self);
+      NSUInteger        size = class_getInstanceSize(c);
+
+      NSHashInsert(exclude, self);
+      if (size > 0)
+        {
+          while (c != Nil)
+            {
+              size += [c contentSizeInBytesOf: self excluding: exclude];
+            }
+          c = class_getSuperclass(c);
+        }
+      return size;
+    }
+  return 0;
 }
 @end
