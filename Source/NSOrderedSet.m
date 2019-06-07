@@ -227,14 +227,12 @@ static SEL	rlSel;
 - (id) copyWithZone: (NSZone*)zone
 {
   NSOrderedSet	*copy = [NSOrderedSet_concrete_class allocWithZone: zone];
-  
   return [copy initWithOrderedSet: self copyItems: YES];
 }
 
 - (id) mutableCopyWithZone: (NSZone*)zone
 {
    NSMutableOrderedSet	*copy = [NSMutableOrderedSet_concrete_class allocWithZone: zone];
-
    return [copy initWithOrderedSet: self copyItems: NO];
 }
 
@@ -745,18 +743,75 @@ static SEL	rlSel;
                               options:(NSEnumerationOptions)opts
                           passingTest:(GSPredicateBlock)predicate
 {
-  return 0;
+  return [[self objectsAtIndexes: indexSet]
+	     indexesOfObjectsWithOptions: opts
+			     passingTest: predicate];
 }
 
 - (NSUInteger) indexOfObjectPassingTest:(GSPredicateBlock)predicate
 {
-  return 0;
+  return [self indexesOfObjectsWithOptions: 0 passingTest: predicate];
 }
 
 - (NSUInteger) indexOfObjectWithOptions:(NSEnumerationOptions)opts
                             passingTest:(GSPredicateBlock)predicate
 {
-  return 0;
+   /* TODO: Concurrency. */
+  id<NSFastEnumeration> enumerator = self;
+  BLOCK_SCOPE BOOL      shouldStop = NO;
+  NSUInteger            count = 0;
+  BLOCK_SCOPE NSUInteger index = NSNotFound;
+  BLOCK_SCOPE NSLock    *indexLock = nil;
+
+  /* If we are enumerating in reverse, use the reverse enumerator for fast
+   * enumeration. */
+  if (opts & NSEnumerationReverse)
+    {
+      enumerator = [self reverseObjectEnumerator];
+    }
+
+  if (opts & NSEnumerationConcurrent)
+    {
+      indexLock = [NSLock new];
+    }
+  {
+    GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+    FOR_IN (id, obj, enumerator)
+#     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
+      dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
+        if (shouldStop)
+        {
+	  return;
+        }
+        if (predicate(obj, count, &shouldStop))
+        {
+	  // FIXME: atomic operation on the shouldStop variable would be nicer,
+	  // but we don't expose the GSAtomic* primitives anywhere.
+	  [indexLock lock];
+	  index =  count;
+	  // Cancel all other predicate evaluations:
+	  shouldStop = YES;
+	  [indexLock unlock];
+        }
+      });
+#     else
+      if (CALL_BLOCK(predicate, obj, count, &shouldStop))
+        {
+
+	  index = count;
+	  shouldStop = YES;
+        }
+#     endif
+      if (shouldStop)
+        {
+	  break;
+        }
+      count++;
+    END_FOR_IN(enumerator)
+    GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts);
+  }
+  RELEASE(indexLock);
+  return index;
 }
 
 - (NSIndexSet *) indexesOfObjectsAtIndexes:(NSIndexSet *)indexSet
