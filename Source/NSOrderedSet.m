@@ -1432,10 +1432,9 @@ static SEL	rlSel;
     }  
 }
 
-- (void)replaceObjectAtIndex:(NSUInteger)index
+- (void)replaceObjectAtIndex:(NSUInteger)index // required override...
                   withObject:(id)object
 {
-  // required override...
   [self subclassResponsibility: _cmd];
 }
 

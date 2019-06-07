@@ -1,26 +1,26 @@
-/** Concrete implementation of NSOrderedSet based on GNU Set class
-   Copyright (C) 2019 Free Software Foundation, Inc.
-
-   Written by: Gregory Casamento <greg.casamento@gmail.com>
-   Created: May 17 2019
-
-   This file is part of the GNUstep Base Library.
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   _version 2 of the License, or (at your option) any later _version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
-   */
+/** Concrete implementation of GSOrderedSet based on GNU Set class
+    Copyright (C) 2019 Free Software Foundation, Inc.
+    
+    Written by: Gregory Casamento <greg.casamento@gmail.com>
+    Created: May 17 2019
+    
+    This file is part of the GNUstep Base Library.
+    
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    _version 2 of the License, or (at your option) any later _version.
+    
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Library General Public License for more details.
+    
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free
+    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+    Boston, MA 02111 USA.
+*/
 
 #import "common.h"
 #import "Foundation/NSOrderedSet.h"
@@ -71,7 +71,6 @@ static SEL      privateCountOfSel;
 @end
 
 @implementation GSOrderedSetEnumerator
-
 - (id) initWithOrderedSet: (NSOrderedSet*)d
 {
   self = [super init];
@@ -86,7 +85,7 @@ static SEL      privateCountOfSel;
 - (id) nextObject
 {
   GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
-
+  
   if (node == 0)
     {
       return nil;
@@ -100,9 +99,7 @@ static SEL      privateCountOfSel;
   RELEASE(set);
   [super dealloc];
 }
-
 @end
-
 
 @implementation GSOrderedSet
 
@@ -223,258 +220,6 @@ static Class	mutableSetClass;
   return self;
 }
 
-- (BOOL) intersectsSet: (NSOrderedSet*) otherSet
-{
-  Class	c;
-
-  /* If this set is empty, or the other is nil/empty,
-   * this method should return NO.
-   */
-  if (0 == map.nodeCount || nil == otherSet || [otherSet count] == 0)
-    {
-      return NO;
-    }
-
-  // Loop for all members in otherSet
-  c = object_getClass(otherSet);
-  if (c == setClass || c == mutableSetClass)
-    {
-      GSIMapTable		m = &((GSOrderedSet*)otherSet)->map;
-      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(m);
-      GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
-
-      while (node != 0)
-	{
-	  if (GSIMapNodeForKey(&map, node->key) != 0)
-	    {
-	      GSIMapEndEnumerator(&enumerator);
-	      return YES;
-	    }
-	  node = GSIMapEnumeratorNextNode(&enumerator);
-	}
-      GSIMapEndEnumerator(&enumerator);
-    }
-  else
-    {
-      NSEnumerator	*e;
-      id		o;
-
-      e = [otherSet objectEnumerator];
-      while ((o = [e nextObject])) // 1. pick a member from otherSet.
-	{
-	  if (GSIMapNodeForKey(&map, (GSIMapKey)o) != 0)
-	    {
-	      return YES;
-	    }
-	}
-    }
-  return NO;
-}
-
-- (BOOL) isSubsetOfSet: (NSOrderedSet*) otherSet
-{
-  GSIMapEnumerator_t	enumerator;
-  GSIMapNode 		node;
-  IMP			imp;
-
-  // -1. members of this set(self) <= that of otherSet
-  if (map.nodeCount > [otherSet count])
-    {
-      return NO;
-    }
-  if (map.nodeCount == 0)
-    {
-      return YES;
-    }
-
-  imp = [otherSet methodForSelector: memberSel];
-  enumerator = GSIMapEnumeratorForMap(&map);
-  node = GSIMapEnumeratorNextNode(&enumerator);
-
-  // 0. Loop for all members in this set(self).
-  while (node != 0)
-    {
-      // 1. check the member is in the otherSet.
-      if ((*imp)(otherSet, memberSel, node->key.obj) != nil)
-	{
-	  // 1.1 if true -> continue, try to check the next member.
-	  node = GSIMapEnumeratorNextNode(&enumerator);
-	}
-      else
-	{
-	  // 1.2 if false -> return NO;
-	  GSIMapEndEnumerator(&enumerator);
-	  return NO;
-	}
-    }
-  GSIMapEndEnumerator(&enumerator);
-  // 2. return YES; all members in this set are also in the otherSet.
-  return YES;
-}
-
-- (BOOL) isEqualToSet: (NSOrderedSet*)other
-{
-  if (other == nil)
-    {
-      return NO;
-    }
-  else if (other == self)
-    {
-      return YES;
-    }
-  else
-    {
-      Class	c = object_getClass(other);
-
-      if (c == setClass || c == mutableSetClass)
-	{
-	  if (map.nodeCount != ((GSOrderedSet*)other)->map.nodeCount)
-	    {
-	      return NO;
-	    }
-	  else if (map.nodeCount == 0)
-	    {
-	      return YES;
-	    }
-	  else
-	    {
-	      GSIMapEnumerator_t	enumerator;
-	      GSIMapNode 		node;
-
-	      enumerator = GSIMapEnumeratorForMap(&map);
-	      node = GSIMapEnumeratorNextNode(&enumerator);
-
-	      while (node != 0)
-		{
-		  if (GSIMapNodeForKey(&(((GSOrderedSet*)other)->map), node->key) == 0)
-		    {
-		      GSIMapEndEnumerator(&enumerator);
-		      return NO;
-		    }
-		  node = GSIMapEnumeratorNextNode(&enumerator);
-		}
-	      GSIMapEndEnumerator(&enumerator);
-	    }
-	}
-      else
-	{
-	  if (map.nodeCount != [other count])
-	    {
-	      return NO;
-	    }
-	  else if (map.nodeCount == 0)
-	    {
-	      return YES;
-	    }
-	  else
-	    {
-	      GSIMapEnumerator_t	enumerator;
-	      GSIMapNode 		node;
-	      IMP			imp;
-              IMP                       countImp;
-
-	      imp = [other methodForSelector: memberSel];
-              countImp = [other methodForSelector: privateCountOfSel];
-	      enumerator = GSIMapEnumeratorForMap(&map);
-	      node = GSIMapEnumeratorNextNode(&enumerator);
-
-	      while (node != 0)
-		{
-		  if ((*imp)(other, memberSel, node->key.obj) == nil)
-		    {
-		      GSIMapEndEnumerator(&enumerator);
-		      return NO;
-		    }
-                  else
-                    {
-                      NSUInteger c = (NSUInteger)
-                       countImp(other,privateCountOfSel,node->key.obj);
-                      // GSOrderedSet does not have duplicate entries
-                      if (c != 1)
-                        {
-                          return NO;
-                        }
-                    }
-		  node = GSIMapEnumeratorNextNode(&enumerator);
-		}
-	      GSIMapEndEnumerator(&enumerator);
-	    }
-	}
-      return YES;
-    }
-}
-
-- (BOOL) makeImmutable
-{
-  return YES;
-}
-
-- (void) makeObjectsPerform: (SEL)aSelector
-{
-  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
-  GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
-
-  while (node != 0)
-    {
-      [node->key.obj performSelector: aSelector];
-      node = GSIMapEnumeratorNextNode(&enumerator);
-    }
-  GSIMapEndEnumerator(&enumerator);
-}
-
-- (void) makeObjectsPerformSelector: (SEL)aSelector
-{
-  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
-  GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
-
-  while (node != 0)
-    {
-      [node->key.obj performSelector: aSelector];
-      node = GSIMapEnumeratorNextNode(&enumerator);
-    }
-  GSIMapEndEnumerator(&enumerator);
-}
-
-- (void) makeObjectsPerformSelector: (SEL)aSelector withObject: argument
-{
-  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
-  GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
-
-  while (node != 0)
-    {
-      [node->key.obj performSelector: aSelector withObject: argument];
-      node = GSIMapEnumeratorNextNode(&enumerator);
-    }
-  GSIMapEndEnumerator(&enumerator);
-}
-
-- (void) makeObjectsPerform: (SEL)aSelector withObject: argument
-{
-  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
-  GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
-
-  while (node != 0)
-    {
-      [node->key.obj performSelector: aSelector withObject: argument];
-      node = GSIMapEnumeratorNextNode(&enumerator);
-    }
-  GSIMapEndEnumerator(&enumerator);
-}
-
-- (id) member: (id)anObject
-{
-  if (anObject != nil)
-    {
-      GSIMapNode node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
-
-      if (node != 0)
-	{
-	  return node->key.obj;
-	}
-    }
-  return nil;
-}
-
 - (NSEnumerator*) objectEnumerator
 {
   return AUTORELEASE([[GSOrderedSetEnumerator alloc] initWithOrderedSet: self]);
@@ -509,6 +254,8 @@ static Class	mutableSetClass;
   return size;
 }
 
+// Put required overrides here...
+
 @end
 
 @implementation GSMutableOrderedSet
@@ -536,41 +283,6 @@ static Class	mutableSetClass;
       GSIMapAddKey(&map, (GSIMapKey)anObject);
       _version++;
     }
-}
-
-- (void) addObjectsFromArray: (NSArray*)array
-{
-  NSUInteger	count = [array count];
-
-  while (count-- > 0)
-    {
-      id	anObject = [array objectAtIndex: count];
-
-      if (anObject == nil)
-	{
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"Tried to add nil to set"];
-	}
-      else
-	{
-	  GSIMapNode node;
-
-	  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
-	  if (node == 0)
-	    {
-	      GSIMapAddKey(&map, (GSIMapKey)anObject);
-	      _version++;
-	    }
-	}
-    }
-}
-
-/* Override _version from GSOrderedSet */
-- (id) copyWithZone: (NSZone*)z
-{
-  NSOrderedSet	*copy = [setClass allocWithZone: z];
-
-  return [copy initWithOrderedSet: self copyItems: NO];
 }
 
 - (id) init
@@ -613,79 +325,6 @@ static Class	mutableSetClass;
   return self;
 }
 
-- (void) intersectSet: (NSOrderedSet*)other
-{
-  if (nil == other)
-    {
-      GSIMapCleanMap(&map);
-    }
-  else if (other != self && map.nodeCount > 0)
-    {
-      GSIMapEnumerator_t	enumerator;
-      GSIMapBucket		bucket;
-      GSIMapNode 		node;
-      Class                     c;
-
-      if (NO == [other isKindOfClass: [NSSet class]])
-        {
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"-intersectSet: other object is not a set"];
-        }
-      if (0 == map.nodeCount)
-        {
-          return;                       // Already empty ... nothing to do
-        }
-      if (0 == [other count])
-        {
-          GSIMapCleanMap(&map);         // Other empty ... no intersection
-          return;
-        }
-
-      c = object_getClass(other);
-      if (c == setClass || c == mutableSetClass)
-        {
-          GSOrderedSet *o = (GSOrderedSet*)other;
-
-          enumerator = GSIMapEnumeratorForMap(&map);
-          bucket = GSIMapEnumeratorBucket(&enumerator);
-          node = GSIMapEnumeratorNextNode(&enumerator);
-
-          while (node != 0)
-            {
-              if (0 == GSIMapNodeForKey(&o->map, node->key))
-                {
-                  GSIMapRemoveNodeFromMap(&map, bucket, node);
-                  GSIMapFreeNode(&map, node);
-                }
-              bucket = GSIMapEnumeratorBucket(&enumerator);
-              node = GSIMapEnumeratorNextNode(&enumerator);
-            }
-          GSIMapEndEnumerator(&enumerator);
-        }
-      else
-        {
-	  SEL	sel = @selector(member:);
-	  IMP	imp = [other methodForSelector: sel];
-
-          enumerator = GSIMapEnumeratorForMap(&map);
-          bucket = GSIMapEnumeratorBucket(&enumerator);
-          node = GSIMapEnumeratorNextNode(&enumerator);
-
-          while (node != 0)
-            {
-              if (nil == (*imp)(other, sel, node->key.obj))
-                {
-                  GSIMapRemoveNodeFromMap(&map, bucket, node);
-                  GSIMapFreeNode(&map, node);
-                }
-              bucket = GSIMapEnumeratorBucket(&enumerator);
-              node = GSIMapEnumeratorNextNode(&enumerator);
-            }
-          GSIMapEndEnumerator(&enumerator);
-        }
-    }
-}
-
 - (BOOL) makeImmutable
 {
   GSClassSwizzle(self, [GSOrderedSet class]);
@@ -698,23 +337,6 @@ static Class	mutableSetClass;
   return self;
 }
 
-- (void) minusSet: (NSSet*) other
-{
-  NSEnumerator	*e = [other objectEnumerator];
-  id		anObject;
-  
-  while ((anObject = [e nextObject]) != nil)
-    {
-      GSIMapRemoveKey(&map, (GSIMapKey)anObject);
-      _version++;
-    }
-}
-
-- (void) removeAllObjects
-{
-  GSIMapCleanMap(&map);
-}
-
 - (void) removeObject: (id)anObject
 {
   if (anObject == nil)
@@ -724,30 +346,6 @@ static Class	mutableSetClass;
     }
   GSIMapRemoveKey(&map, (GSIMapKey)anObject);
   _version++;
-}
-
-- (void) unionSet: (NSSet*) other
-{
-  NSEnumerator	*e = [other objectEnumerator];
-  
-  if (e != nil)
-    {
-      id	anObject;
-      SEL	sel = @selector(nextObject);
-      IMP	imp = [e methodForSelector: sel];
-      
-      while ((anObject = (*imp)(e, sel)) != nil)
-	{
-	  GSIMapNode node;
-	  
-	  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
-	  if (node == 0)
-	    {
-	      GSIMapAddKey(&map, (GSIMapKey)anObject);
-	      _version++;
-	    }
-	}
-    }
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
@@ -762,6 +360,7 @@ static Class	mutableSetClass;
 
 @interface	NSGOrderedSet : NSOrderedSet
 @end
+
 @implementation	NSGOrderedSet
 - (id) initWithCoder: (NSCoder*)aCoder
 {
