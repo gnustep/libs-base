@@ -67,8 +67,7 @@ extern "C" {
 			     indent: (NSUInteger)level;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void,
-  GS_GENERIC_TYPE_F(KeyT,id<NSCopying>), GS_GENERIC_TYPE(ValT), BOOL*);
+DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void, GS_GENERIC_TYPE_F(KeyT,id<NSCopying>), GS_GENERIC_TYPE(ValT), BOOL*);
 - (void) enumerateKeysAndObjectsUsingBlock:
   (GSKeysAndObjectsEnumeratorBlock)aBlock;
 - (void) enumerateKeysAndObjectsWithOptions: (NSEnumerationOptions)opts
@@ -99,8 +98,7 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsEnumeratorBlock, void,
 - (GS_GENERIC_CLASS(NSEnumerator,KeyT)*) keyEnumerator;	// Primitive
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL,
-	GS_GENERIC_TYPE_F(KeyT,id<NSCopying>), GS_GENERIC_TYPE(ValT), BOOL*);
+DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL, GS_GENERIC_TYPE_F(KeyT,id<NSCopying>), GS_GENERIC_TYPE(ValT), BOOL*);
 - (GS_GENERIC_CLASS(NSSet,KeyT)*) keysOfEntriesPassingTest:
     (GSKeysAndObjectsPredicateBlock)aPredicate;
 - (GS_GENERIC_CLASS(NSSet,KeyT)*) keysOfEntriesWithOptions:

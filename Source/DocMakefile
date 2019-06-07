@@ -188,6 +188,8 @@ Base_AGSDOC_FLAGS = \
 	-VariablesTemplate TypesAndConstants \
 	-WordMap '{\
 	GS_PRIVATE_INTERNAL="//";\
+	DEFINE_BLOCK_TYPE="//";\
+	WEAK_ATTRIBUTE="";\
 	WINAPI="";\
 	}' -Up Base
 
