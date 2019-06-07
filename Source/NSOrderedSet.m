@@ -1186,7 +1186,7 @@ static SEL	rlSel;
 
 + (instancetype)orderedSetWithCapacity: (NSUInteger)capacity
 {
-  return nil;
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()] initWithCapacity: capacity]);
 }
 
 - (Class) classForCoder
@@ -1435,18 +1435,41 @@ static SEL	rlSel;
 - (void)replaceObjectAtIndex:(NSUInteger)index
                   withObject:(id)object
 {
+  // required override...
   [self subclassResponsibility: _cmd];
 }
 
 - (void) replaceObjectsAtIndexes: (NSIndexSet *)indexes
                      withObjects: (NSArray *)objects
 {
+  NSUInteger count = [indexes count];
+  NSUInteger indexArray[count];
+
+  [indexes getIndexes: indexArray
+             maxCount: count
+         inIndexRange: NULL];
+
+  [self _removeObjectsFromIndices: indexArray
+		       numIndices: count]; 
 }
 
-- (void) replaceObjectsInRange: (NSRange)range
+- (void) replaceObjectsInRange: (NSRange)aRange
                    withObjects: (const id[])objects
                          count: (NSUInteger)count
 {
+  id o = nil;
+  NSUInteger i = 0;
+  
+  if (count < (aRange.location + aRange.length))
+    [NSException raise: NSRangeException
+		 format: @"Replacing objects beyond end of const[] id."];
+  [self removeObjectsInRange: aRange];
+
+  for(i = 0; i < count; i++)
+    {
+      o = objects[i];
+      [self insertObject: o atIndex: aRange.location]; 
+    }
 }
 
 - (void)setObject:(id)anObject atIndex:(NSUInteger)anIndex
@@ -1463,6 +1486,38 @@ static SEL	rlSel;
 
 - (void)moveObjectsAtIndexes:(NSIndexSet *)indexes toIndex:(NSUInteger)index
 {
+  NSUInteger i = 0;
+  NSUInteger count = [indexes count];
+  NSUInteger indexArray[count];
+  NSMutableArray *tmpArray = [NSMutableArray arrayWithCapacity: count];
+  id o = nil;
+  NSEnumerator *e = nil;
+  
+  [indexes getIndexes: indexArray
+             maxCount: count
+         inIndexRange: NULL];
+
+  // Build the temporary array....
+  for(i = 0; i < count; i++)
+    {
+      NSUInteger index = indexArray[i];
+      id obj = [self objectAtIndex: index];
+      [tmpArray addObject: obj];
+    }
+
+  // Move the objects
+  e = [tmpArray objectEnumerator];
+  while((o = [e nextObject]) != nil)
+    {
+      [self insertObject: o atIndex: index];
+    }
+
+  // Remove the originals...  
+  for(i = 0; i < count; i++)
+    {
+      NSUInteger index = indexArray[i];
+      [self removeObjectAtIndex: index];
+    }
 }
 
 - (void) exchangeObjectAtIndex:(NSUInteger)index withObjectAtIndex:(NSUInteger)otherIndex
