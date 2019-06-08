@@ -124,27 +124,6 @@ static Class	mutableSetClass;
   return RETAIN(self);
 }
 
-- (NSUInteger) count
-{
-  return GSIArrayCount(&array);
-}
-
-- (BOOL) containsObject: (id)anObject
-{
-  NSUInteger i = 0;
-
-  for (i = 0; i < [self count]; i++)
-    {
-      id obj = [self objectAtIndex: i];
-      if([anObject isEqual: obj])
-	{
-	  return YES;
-	}
-    }
-  
-  return NO;
-}
-
 - (void) dealloc
 {
   GSIArrayEmpty(&array);
@@ -159,30 +138,6 @@ static Class	mutableSetClass;
 - (id) init
 {
   return [self initWithObjects: 0 count: 0];
-}
-
-/* Designated initialiser */
-- (id) initWithObjects: (const id*)objs count: (NSUInteger)c
-{
-  NSUInteger i;
-
-  GSIArrayInitWithZoneAndCapacity(&array, [self zone], c);
-  for (i = 0; i < c; i++)
-    {
-      id obj = objs[i];
-      GSIArrayItem item;
-      
-      if (objs[i] == nil)
-	{
-	  DESTROY(self);
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"Tried to init set with nil value"];
-	}
-      
-      item.obj = obj;
-      GSIArrayAddItem(&array, item);
-    }
-  return self;
 }
 
 - (NSEnumerator*) objectEnumerator
@@ -220,6 +175,62 @@ static Class	mutableSetClass;
 }
 
 // Put required overrides here...
+- (NSUInteger) count
+{
+  return GSIArrayCount(&array);
+}
+
+- (id) objectAtIndex: (NSUInteger)index
+{
+  GSIArrayItem item = GSIArrayItemAtIndex(&array, index);
+  return item.obj;
+}
+
+- (id) objectAtIndexedSubscript: (NSUInteger)index
+{
+  return[self objectAtIndex: index];
+}
+
+- (BOOL) containsObject: (id)anObject
+{
+  NSUInteger i = 0;
+
+  for (i = 0; i < [self count]; i++)
+    {
+      id obj = [self objectAtIndex: i];
+      if([anObject isEqual: obj])
+	{
+	  return YES;
+	}
+    }
+  
+  return NO;
+}
+
+/* Designated initialiser */
+- (id) initWithObjects: (const id*)objs count: (NSUInteger)c
+{
+  NSUInteger i;
+
+  GSIArrayInitWithZoneAndCapacity(&array, [self zone], c);
+  for (i = 0; i < c; i++)
+    {
+      id obj = objs[i];
+      GSIArrayItem item;
+      
+      if (objs[i] == nil)
+	{
+	  DESTROY(self);
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Tried to init set with nil value"];
+	}
+      
+      item.obj = obj;
+      GSIArrayAddItem(&array, item);
+    }
+  return self;
+}
+
 
 @end
 
@@ -246,6 +257,25 @@ static Class	mutableSetClass;
   item.obj = anObject;
   GSIArrayAddItem(&array, item);
   _version++;
+}
+
+- (void) insertObject: (id)object atIndex: (NSUInteger)index
+{
+  GSIArrayItem item;
+  item.obj = object;
+  GSIArrayInsertItem(&array, item, index);
+}
+
+- (void) removeObjectAtIndex: (NSUInteger)index
+{
+  GSIArrayRemoveItemAtIndex(&array, index);
+}
+
+- (void) replaceObjectAtIndex: (NSUInteger)index
+		   withObject: (id)obj
+{
+  [self removeObjectAtIndex: index];
+  [self insertObject: obj atIndex: index];
 }
 
 - (id) init
@@ -295,11 +325,6 @@ static Class	mutableSetClass;
 {
   GSClassSwizzle(self, [GSOrderedSet class]);
   return self;
-}
-
-- (void)removeObjectAtIndex:(NSUInteger)index  // required override
-{
-  GSIArrayRemoveItemAtIndex(&array, index);
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
