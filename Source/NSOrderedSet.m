@@ -94,7 +94,7 @@ static SEL	rlSel;
       NSOrderedSet_abstract_class = self;
       NSOrderedSet_concrete_class = [GSOrderedSet class];
       [NSMutableSet class];
-      [self registerAtExit];
+      // [self registerAtExit];
     }
 }
 
@@ -1355,7 +1355,7 @@ static SEL	rlSel;
     }
 }
 
-- (void)removeObjectAtIndex:(NSUInteger)integer  // required override
+- (void)removeObjectAtIndex:(NSUInteger)index  // required override
 {
   [self subclassResponsibility: _cmd];
 }

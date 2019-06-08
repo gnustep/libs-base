@@ -24,40 +24,42 @@
 
 #import "common.h"
 #import "Foundation/NSOrderedSet.h"
-#import "GNUstepBase/GSObjCRuntime.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSPortCoder.h"
 #import "Foundation/NSIndexSet.h"
-// For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 #import "GSPrivate.h"
-#import "GSPThread.h"
 #import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 #import "GSSorting.h"
 
-#define	GSI_MAP_HAS_VALUE	0
-#define	GSI_MAP_KTYPES		GSUNION_OBJ
+#define	GSI_ARRAY_TYPE	NSRange
+#define	GSI_ARRAY_NO_RELEASE	1
+#define	GSI_ARRAY_NO_RETAIN	1
+#define GSI_ARRAY_TYPES       GSUNION_OBJ
 
+#define GSI_ARRAY_RELEASE(A, X)	[(X).obj release]
+#define GSI_ARRAY_RETAIN(A, X)	[(X).obj retain]
 
-#include "GNUstepBase/GSIMap.h"
+#import "GNUstepBase/GSIArray.h"
 
-static SEL	memberSel;
+//  static SEL     memberSel;
 static SEL      privateCountOfSel;
 @interface GSOrderedSet : NSOrderedSet
 {
 @public
-  GSIMapTable_t	map;
+  GSIArray_t array;
 }
 @end
 
 @interface GSMutableOrderedSet : NSMutableOrderedSet
 {
 @public
-  GSIMapTable_t	map;
+  GSIArray_t array;
 @private
   NSUInteger _version;
 }
@@ -65,8 +67,9 @@ static SEL      privateCountOfSel;
 
 @interface GSOrderedSetEnumerator : NSEnumerator
 {
-  GSOrderedSet			*set;
-  GSIMapEnumerator_t	enumerator;
+  GSOrderedSet *set;
+  unsigned      current;
+  unsigned      count;
 }
 @end
 
@@ -77,25 +80,25 @@ static SEL      privateCountOfSel;
   if (self != nil)
     {
       set = (GSOrderedSet*)RETAIN(d);
-      enumerator = GSIMapEnumeratorForMap(&set->map);
+      current = 0;
+      count = GSIArrayCount(&set->array);
     }
   return self;
 }
 
 - (id) nextObject
 {
-  GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
-  
-  if (node == 0)
+  if(current < count)
     {
-      return nil;
+      GSIArrayItem item = GSIArrayItemAtIndex(&set->array, current);
+      current++;
+      return (id)(item.obj);
     }
-  return node->key.obj;
+  return nil;
 }
 
 - (void) dealloc
 {
-  GSIMapEndEnumerator(&enumerator);
   RELEASE(set);
   [super dealloc];
 }
@@ -103,7 +106,6 @@ static SEL      privateCountOfSel;
 
 @implementation GSOrderedSet
 
-static Class	arrayClass;
 static Class	setClass;
 static Class	mutableSetClass;
 
@@ -111,10 +113,8 @@ static Class	mutableSetClass;
 {
   if (self == [GSOrderedSet class])
     {
-      arrayClass = [NSArray class];
       setClass = [GSOrderedSet class];
       mutableSetClass = [GSMutableOrderedSet class];
-      memberSel = @selector(member:);
       privateCountOfSel = @selector(_countForObject:);
     }
 }
@@ -126,42 +126,34 @@ static Class	mutableSetClass;
 
 - (NSUInteger) count
 {
-  return map.nodeCount;
+  return GSIArrayCount(&array);
+}
+
+- (BOOL) containsObject: (id)anObject
+{
+  NSUInteger i = 0;
+
+  for (i = 0; i < [self count]; i++)
+    {
+      id obj = [self objectAtIndex: i];
+      if([anObject isEqual: obj])
+	{
+	  return YES;
+	}
+    }
+  
+  return NO;
 }
 
 - (void) dealloc
 {
-  GSIMapEmptyMap(&map);
+  GSIArrayEmpty(&array);
   [super dealloc];
-}
-
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  if ([aCoder allowsKeyedCoding])
-    {
-      [super encodeWithCoder: aCoder];
-    }
-  else
-    {
-      unsigned		count = map.nodeCount;
-      SEL			sel = @selector(encodeObject:);
-      IMP			imp = [aCoder methodForSelector: sel];
-      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
-      GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
-
-      [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
-      while (node != 0)
-	{
-	  (*imp)(aCoder, sel, node->key.obj);
-	  node = GSIMapEnumeratorNextNode(&enumerator);
-	}
-      GSIMapEndEnumerator(&enumerator);
-    }
 }
 
 - (NSUInteger) hash
 {
-  return map.nodeCount;
+  return [self count];
 }
 
 - (id) init
@@ -169,53 +161,26 @@ static Class	mutableSetClass;
   return [self initWithObjects: 0 count: 0];
 }
 
-- (id) initWithCoder: (NSCoder*)aCoder
-{
-  if ([aCoder allowsKeyedCoding])
-    {
-      self = [super initWithCoder: aCoder];
-    }
-  else
-    {
-      unsigned	count;
-      id		value;
-      SEL		sel = @selector(decodeValueOfObjCType:at:);
-      IMP		imp = [aCoder methodForSelector: sel];
-      const char	*type = @encode(id);
-
-      (*imp)(aCoder, sel, @encode(unsigned), &count);
-
-      GSIMapInitWithZoneAndCapacity(&map, [self zone], count);
-      while (count-- > 0)
-        {
-	  (*imp)(aCoder, sel, type, &value);
-	  GSIMapAddKeyNoRetain(&map, (GSIMapKey)value);
-	}
-    }
-  return self;
-}
-
 /* Designated initialiser */
 - (id) initWithObjects: (const id*)objs count: (NSUInteger)c
 {
   NSUInteger i;
 
-  GSIMapInitWithZoneAndCapacity(&map, [self zone], c);
+  GSIArrayInitWithZoneAndCapacity(&array, [self zone], c);
   for (i = 0; i < c; i++)
     {
-      GSIMapNode     node;
-
+      id obj = objs[i];
+      GSIArrayItem item;
+      
       if (objs[i] == nil)
 	{
 	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init set with nil value"];
 	}
-      node = GSIMapNodeForKey(&map, (GSIMapKey)objs[i]);
-      if (node == 0)
-	{
-	  GSIMapAddKey(&map, (GSIMapKey)objs[i]);
-        }
+      
+      item.obj = obj;
+      GSIArrayAddItem(&array, item);
     }
   return self;
 }
@@ -229,9 +194,11 @@ static Class	mutableSetClass;
                                    objects: (id*)stackbuf
                                      count: (NSUInteger)len
 {
-  state->mutationsPtr = (unsigned long *)self;
-  return GSIMapCountByEnumeratingWithStateObjectsCount
-    (&map, state, stackbuf, len);
+  //state->mutationsPtr = (unsigned long *)self;
+  //return GSIMapCountByEnumeratingWithStateObjectsCount
+  //            (&map, state, stackbuf, len);
+
+  return [self count];
 }
 
 - (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
@@ -240,16 +207,14 @@ static Class	mutableSetClass;
 
   if (size > 0)
     {
-      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
-      GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
+      NSUInteger count = [self count];
+      NSUInteger i = 0;
 
-      size += GSIMapSize(&map) - sizeof(map);
-      while (node != 0)
-        {
-          size += [node->key.obj sizeInBytesExcluding: exclude];
-          node = GSIMapEnumeratorNextNode(&enumerator);
+      for(i = 0; i < count; i++)
+	{
+	  GSIArrayItem item = GSIArrayItemAtIndex(&array, i);
+          size += [item.obj sizeInBytesExcluding: exclude];
         }
-      GSIMapEndEnumerator(&enumerator);
     }
   return size;
 }
@@ -270,19 +235,17 @@ static Class	mutableSetClass;
 
 - (void) addObject: (id)anObject
 {
-  GSIMapNode node;
+  GSIArrayItem item;
 
   if (anObject == nil)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Tried to add nil to set"];
     }
-  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
-  if (node == 0)
-    {
-      GSIMapAddKey(&map, (GSIMapKey)anObject);
-      _version++;
-    }
+  
+  item.obj = anObject;
+  GSIArrayAddItem(&array, item);
+  _version++;
 }
 
 - (id) init
@@ -293,33 +256,30 @@ static Class	mutableSetClass;
 /* Designated initialiser */
 - (id) initWithCapacity: (NSUInteger)cap
 {
-  GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
+  GSIArrayInitWithZoneAndCapacity(&array, [self zone], cap);
   return self;
 }
 
 - (id) initWithObjects: (const id*)objects
 		 count: (NSUInteger)count
 {
+  NSUInteger i = 0;
   self = [self initWithCapacity: count];
 
-  while (count--)
+  for(i = 0; i < count; i++)
     {
-      id	anObject = objects[count];
-
+      id	anObject = objects[i];
+      
       if (anObject == nil)
 	{
-	  NSLog(@"Tried to init a set with a nil object");
+	  NSLog(@"Tried to init an orderedset with a nil object");
 	  continue;
 	}
       else
 	{
-	  GSIMapNode node;
-
-	  node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
-	  if (node == 0)
-	    {
-	      GSIMapAddKey(&map, (GSIMapKey)anObject);
-	    }
+	  GSIArrayItem item;
+	  item.obj = anObject;
+	  GSIArrayAddItem(&array, item);
 	}
     }
   return self;
@@ -337,24 +297,19 @@ static Class	mutableSetClass;
   return self;
 }
 
-- (void) removeObject: (id)anObject
+- (void)removeObjectAtIndex:(NSUInteger)index  // required override
 {
-  if (anObject == nil)
-    {
-      NSWarnMLog(@"attempt to remove nil object");
-      return;
-    }
-  GSIMapRemoveKey(&map, (GSIMapKey)anObject);
-  _version++;
+  GSIArrayRemoveItemAtIndex(&array, index);
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
                                    objects: (id*)stackbuf
                                      count: (NSUInteger)len
 {
-  state->mutationsPtr = (unsigned long *)&_version;
-  return GSIMapCountByEnumeratingWithStateObjectsCount
-    (&map, state, stackbuf, len);
+  //state->mutationsPtr = (unsigned long *)&_version;
+  //return GSIMapCountByEnumeratingWithStateObjectsCount
+  //  (&map, state, stackbuf, len);
+  return [self count];
 }
 @end
 
