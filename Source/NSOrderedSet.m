@@ -1592,6 +1592,9 @@ static SEL	rlSel;
 
 - (void) sortUsingDescriptors:(NSArray *)descriptors
 {
+  NSArray *result = [[self array] sortedArrayUsingDescriptors: descriptors];
+  [self removeAllObjects];
+  [self addObjectsFromArray: result];
 }
 
 - (void) sortUsingComparator: (NSComparator)comparator
@@ -1609,8 +1612,6 @@ static SEL	rlSel;
       NSArray *res = nil;
       NSUInteger i, c = [self count];
       IMP	get = [self methodForSelector: oaiSel];
-      NSEnumerator *en = nil;
-      id obj = nil;
 
       GS_BEGINIDBUF(objects, count);
       for (i = 0; i < c; i++)
@@ -1646,11 +1647,7 @@ static SEL	rlSel;
         }
       res = [[NSArray alloc] initWithObjects: objects count: count];
       [self removeAllObjects];
-      en = [res objectEnumerator];
-      while((obj = [en nextObject]) != nil)
-	{
-	  [self addObject: obj];
-	}
+      [self addObjectsFromArray: res];
 
       RELEASE(res);
       GS_ENDIDBUF();
