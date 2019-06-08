@@ -1142,14 +1142,16 @@ static SEL	rlSel;
 
 - (NSArray *) sortedArrayUsingComparator: (NSComparator)comparator
 {
-  return nil;
+  return [self sortedArrayWithOptions: 0
+		      usingComparator: comparator];
 }
 
 - (NSArray *)
     sortedArrayWithOptions: (NSSortOptions)options
            usingComparator: (NSComparator)comparator 
 {
-  return nil;
+  return [[self array] sortedArrayWithOptions: options
+			      usingComparator: comparator];
 }
 
 // Filtering Ordered Sets
