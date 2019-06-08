@@ -956,11 +956,7 @@ compareIt(id o1, id o2, void* context)
 
 - (NSArray *)keysSortedByValueWithOptions:(NSSortOptions)opts usingComparator:(NSComparator)cmptr
 {
-  //return [[self allKeys] sortedArrayWithOptions:opts
-  //                             usingComparator:^NSComparisonResult(id key1, id key2) {
-  // return cmptr([self objectForKey:key1], [self objectForKey:key2]);
-  //}]
-  return nil;
+  return [[self allKeys] sortedArrayWithOptions: opts usingComparator: cmptr];
 }
 
 /**
