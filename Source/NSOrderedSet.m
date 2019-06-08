@@ -1133,7 +1133,11 @@ static SEL	rlSel;
 // Creating a Sorted Array
 - (NSArray *) sortedArrayUsingDescriptors:(NSArray *)sortDescriptors
 {
-  return nil;
+  NSMutableArray *sortedArray = [GSMutableArray arrayWithArray: [self array]];
+  
+  [sortedArray sortUsingDescriptors: sortDescriptors];
+  
+  return GS_IMMUTABLE(sortedArray);
 }
 
 - (NSArray *) sortedArrayUsingComparator: (NSComparator)comparator
@@ -1181,6 +1185,34 @@ static SEL	rlSel;
 - (NSString*) descriptionWithLocale: (NSLocale *)locale indent: (BOOL)flag
 {
   return [self descriptionWithLocale: locale];
+}
+
+- (NSArray *) array
+{
+  NSEnumerator *en = [self objectEnumerator];
+  NSMutableArray *result = [NSMutableArray arrayWithCapacity: [self count]];
+  id o = nil;
+  
+  while((o = [en nextObject]) != nil)
+    {
+      [result addObject: o];
+    }
+  
+  return GS_IMMUTABLE(result);
+}
+
+- (NSSet *) set
+{
+  NSEnumerator *en = [self objectEnumerator];
+  NSMutableSet *result = [NSMutableSet setWithCapacity: [self count]];
+  id o = nil;
+  
+  while((o = [en nextObject]) != nil)
+    {
+      [result addObject: o];
+    }
+  
+  return GS_IMMUTABLE(result);
 }
 @end
 

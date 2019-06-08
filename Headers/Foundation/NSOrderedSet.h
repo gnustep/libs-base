@@ -158,6 +158,10 @@ extern "C" {
 - (NSString *) description;
 - (NSString *) descriptionWithLocale: (NSLocale *)locale;
 - (NSString *) descriptionWithLocale: (NSLocale *)locale indent: (BOOL)flag;
+
+  // Convert to other types
+- (NSArray *) array;
+- (NSSet *) set;
 @end
 
 // Mutable Ordered Set
