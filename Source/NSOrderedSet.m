@@ -1745,8 +1745,8 @@ static SEL	rlSel;
     }
 }
 
-- (instancetype) initWithCoder: (NSCoder *)coder
+- (instancetype) initWithCoder: (NSCoder *)acoder
 {
-  return [super initWithCoder: coder];
+  return [super initWithCoder: acoder];
 }
 @end

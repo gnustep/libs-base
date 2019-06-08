@@ -226,12 +226,23 @@ static Class	mutableSetClass;
 	}
       
       item.obj = obj;
+      RETAIN(obj);
       GSIArrayAddItem(&array, item);
     }
   return self;
 }
 
-
+- (id) initWithObject: (id)obj
+{
+  id objs[] = {obj};
+  
+  self = [self initWithObjects: objs count: 1];
+  if(self == nil)
+    {
+      NSLog(@"Problem initializing with one element");
+    }
+  return self;
+}
 @end
 
 @implementation GSMutableOrderedSet
