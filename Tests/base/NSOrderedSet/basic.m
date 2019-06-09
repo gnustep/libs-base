@@ -101,6 +101,53 @@ int main()
   [mutableTest1 intersectOrderedSet:mutableTest2];
   PASS(mutableTest1 != nil && mutableTest2 != nil && [mutableTest1 count] == 1,
 	   "mutableSets do intersect");
+
+  id o7 = @"Hello";
+  id o8 = @"World";
+  mutableTest1 = [NSMutableOrderedSet orderedSet];
+  [mutableTest1 addObject:o7];
+  [mutableTest2 addObject:o8];
+  [testObjs addObject: mutableTest1];
+  mutableTest2 = [NSMutableOrderedSet orderedSet];
+  [mutableTest2 addObject:o7];
+  [testObjs addObject: mutableTest2];
+  BOOL isSubset = [mutableTest2 isSubsetOfOrderedSet:mutableTest1];
+  PASS(isSubset,
+       "mutableTest2 is subset of mutableTest1");
+  
+  id o9 = @"Hello";
+  id o10 = @"World";
+  id o11 = @"Ready";
+  mutableTest1 = [NSMutableOrderedSet orderedSet];
+  [mutableTest1 addObject:o9];
+  [mutableTest2 addObject:o10];
+  [mutableTest2 addObject:o11];
+  [testObjs addObject: mutableTest1];
+  mutableTest2 = [NSMutableOrderedSet orderedSet];
+  [mutableTest2 addObject:o10];
+  [mutableTest2 addObject:o9];
+  [testObjs addObject: mutableTest2];
+  isSubset = [mutableTest2 isSubsetOfOrderedSet:mutableTest1];
+  PASS(isSubset == NO,
+       "mutableTest2 is not subset of mutableTest1");
+  
+  o9 = @"Hello";
+  o10 = @"World";
+  o11 = @"Ready";
+  id o12 = @"ToGo";
+  mutableTest1 = [NSMutableOrderedSet orderedSet];
+  [mutableTest1 addObject:o9];
+  [mutableTest2 addObject:o10];
+  [mutableTest2 addObject:o12];
+  [mutableTest2 addObject:o11];
+  [testObjs addObject: mutableTest1];
+  mutableTest2 = [NSMutableOrderedSet orderedSet];
+  [mutableTest2 addObject:o9];
+  [mutableTest2 addObject:o10];
+  [testObjs addObject: mutableTest2];
+  isSubset = [mutableTest2 isSubsetOfOrderedSet:mutableTest1];
+  PASS(isSubset == NO,
+       "mutableTest2 is NOT subset of mutableTest1");
   
   test_NSObject(@"NSOrderedSet", testObjs);
   test_NSCoding(testObjs);
