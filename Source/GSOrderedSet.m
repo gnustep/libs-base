@@ -210,8 +210,16 @@ static Class	mutableSetClass;
 /* Designated initialiser */
 - (id) initWithObjects: (const id*)objs count: (NSUInteger)c
 {
-  NSUInteger i;
+  NSUInteger i = 0;
 
+  // Reduce C if it doesn't match.  This is apparently how
+  // macOS behaves.
+  if(c > sizeof(objs))
+    {
+      c = sizeof(objs);
+    }
+
+  // Initialize and fill the set.
   GSIArrayInitWithZoneAndCapacity(&array, [self zone], c);
   for (i = 0; i < c; i++)
     {
@@ -224,10 +232,13 @@ static Class	mutableSetClass;
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init set with nil value"];
 	}
-      
+
       item.obj = obj;
-      RETAIN(obj);
-      GSIArrayAddItem(&array, item);
+      if(![self containsObject: obj])
+	{
+	  GSIArrayAddItem(&array, item);
+	  RETAIN(obj);
+	}
     }
   return self;
 }
@@ -264,10 +275,14 @@ static Class	mutableSetClass;
       [NSException raise: NSInvalidArgumentException
 		  format: @"Tried to add nil to set"];
     }
-  
-  item.obj = anObject;
-  GSIArrayAddItem(&array, item);
-  _version++;
+
+  if([self containsObject: anObject] == NO)
+    {
+      item.obj = anObject;
+      GSIArrayAddItem(&array, item);
+      RETAIN(anObject);
+      _version++;
+    }
 }
 
 - (void) insertObject: (id)object atIndex: (NSUInteger)index
@@ -305,22 +320,36 @@ static Class	mutableSetClass;
 		 count: (NSUInteger)count
 {
   NSUInteger i = 0;
-  self = [self initWithCapacity: count];
 
-  for(i = 0; i < count; i++)
+  // Reduce count if more then size of list of objects
+  if(sizeof(objects) < count)
     {
-      id	anObject = objects[i];
-      
-      if (anObject == nil)
+      count = sizeof(objects);
+    }
+
+  // Init and fill set
+  self = [self initWithCapacity: count];
+  if(self != nil)
+    {
+      for(i = 0; i < count; i++)
 	{
-	  NSLog(@"Tried to init an orderedset with a nil object");
-	  continue;
-	}
-      else
-	{
-	  GSIArrayItem item;
-	  item.obj = anObject;
-	  GSIArrayAddItem(&array, item);
+	  id	anObject = objects[i];
+	  
+	  if (anObject == nil)
+	    {
+	      NSLog(@"Tried to init an orderedset with a nil object");
+	      continue;
+	    }
+	  else
+	    {
+	      GSIArrayItem item;
+	      if(![self containsObject: anObject])
+		{
+		  item.obj = anObject;
+		  GSIArrayAddItem(&array, item);
+		  RETAIN(anObject);
+		}
+	    }
 	}
     }
   return self;

@@ -94,7 +94,6 @@ static SEL	rlSel;
       NSOrderedSet_abstract_class = self;
       NSOrderedSet_concrete_class = [GSOrderedSet class];
       [NSMutableSet class];
-      // [self registerAtExit];
     }
 }
 
@@ -1227,6 +1226,18 @@ static SEL	rlSel;
     {
       NSMutableOrderedSet_abstract_class = self;
       NSMutableOrderedSet_concrete_class = [GSMutableOrderedSet class];
+    }
+}
+
++ (id) allocWithZone: (NSZone*)z
+{
+  if (self == NSMutableOrderedSet_abstract_class)
+    {
+      return NSAllocateObject(NSMutableOrderedSet_concrete_class, 0, z);
+    }
+  else
+    {
+      return NSAllocateObject(self, 0, z);
     }
 }
 
