@@ -1095,19 +1095,36 @@ static SEL	rlSel;
 
 - (BOOL) isSubsetOfOrderedSet: (NSOrderedSet *)otherSet
 {
-  id	o = nil, e = nil;
-
+  id    f = nil;
+  NSUInteger s = 0, l = [self count], i = 0;
+  
   // -1. If this set is empty, this method should return NO.
-  if ([self count] == 0)
+  if (l == 0)
     return NO;
 
-  // 0. Loop for all members in otherSet
-  e = [otherSet objectEnumerator];
-  while ((o = [e nextObject])) // 1. pick a member from otherSet.
+  // If count of set is more than otherSet it's not a subset
+  if (l > [otherSet count])
+    return NO;
+
+  // Find the first object's index in otherset, if not found
+  // it's not a subset...
+  f = [self firstObject];
+  s = [otherSet indexOfObject: f];
+  if(s == NSNotFound)
+    return NO;
+
+  for(i = 0; i < l; i++)
     {
-      if ([self containsObject: o] == NO)    // 2. check the member is in this set(self).
-        return NO;
+      NSUInteger j = s + i;
+      id oo = [otherSet objectAtIndex: j];
+      id o = [self objectAtIndex: i];
+
+      if([o isEqual: oo] == NO)
+	{
+	  return NO;
+	}
     }
+  
   return YES; // if all members are in set.
 }
 
