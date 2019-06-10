@@ -73,6 +73,9 @@ static SEL      privateCountOfSel;
 }
 @end
 
+@interface GSOrderedSetEnumeratorReverse : GSOrderedSetEnumerator
+@end
+
 @implementation GSOrderedSetEnumerator
 - (id) initWithOrderedSet: (NSOrderedSet*)d
 {
@@ -101,6 +104,30 @@ static SEL      privateCountOfSel;
 {
   RELEASE(set);
   [super dealloc];
+}
+@end
+
+
+@implementation GSOrderedSetEnumeratorReverse
+- (id) initWithOrderedSet: (GSOrderedSet*)d
+{
+  self = [super initWithOrderedSet: d];
+  if(self != nil)
+    {
+      current = GSIArrayCount(&set->array);
+    }
+  return self;
+}
+
+- (id) nextObject
+{
+  GSIArrayItem item;
+
+  if (current == 0)
+    return nil;
+  
+  item = GSIArrayItemAtIndex(&set->array, --current);
+  return (id)(item.obj);
 }
 @end
 
@@ -143,6 +170,11 @@ static Class	mutableSetClass;
 - (NSEnumerator*) objectEnumerator
 {
   return AUTORELEASE([[GSOrderedSetEnumerator alloc] initWithOrderedSet: self]);
+}
+
+- (NSEnumerator*) reverseObjectEnumerator
+{
+  return AUTORELEASE([[GSOrderedSetEnumeratorReverse alloc] initWithOrderedSet: self]);
 }
 
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state

@@ -980,27 +980,56 @@ static SEL	rlSel;
 
 - (NSEnumerator *) objectEnumerator
 {
+  [self subclassResponsibility: _cmd];
   return nil;
 }
 
 - (NSEnumerator *) reverseObjectEnumerator
 {
-  return nil;
+    [self subclassResponsibility: _cmd];
+    return nil;
 }
 
 - (NSOrderedSet *)reversedOrderedSet
 {
-  return nil;
+  NSEnumerator *e = [self reverseObjectEnumerator];
+  NSMutableArray *a = [NSMutableArray arrayWithCapacity: [self count]];
+  id o = nil;
+
+  // Build the reverse array...
+  while ((o = [e nextObject]) != nil)
+    {
+      [a addObject: o];
+    }
+
+  // Create and return reverse ordered set...
+  return [NSOrderedSet orderedSetWithArray: a];
 }
 
-- (void) getObjects: (__unsafe_unretained id[])aBuffer
-              range: (NSRange)aRange
+- (void) getObjects: (__unsafe_unretained id[])aBuffer range: (NSRange)aRange
 {
-}
+  NSUInteger i, j = 0, c = [self count], e = aRange.location + aRange.length;
+  IMP	get = [self methodForSelector: oaiSel];
 
+  GS_RANGE_CHECK(aRange, c);
+
+  for (i = aRange.location; i < e; i++)
+    aBuffer[j++] = (*get)(self, oaiSel, i);
+}
+ 
 // Key value coding support
 - (void) setValue: (id)value forKey: (NSString*)key
 {
+  NSUInteger    i;
+  NSUInteger	count = [self count];
+  volatile id	object = nil;
+
+  for (i = 0; i < count; i++)
+    {
+      object = [self objectAtIndex: i];
+      [object setValue: value
+		forKey: key];
+    }
 }
 
 - (id) valueForKey: (NSString*)key
