@@ -699,7 +699,7 @@ static SEL	rlSel;
    NSUInteger count = [self count];
   if (count == 0)
     return nil;
-  return [self objectAtIndex: 0];
+  return [self objectAtIndex: count - 1];
 }
 
 - (id) objectAtIndex: (NSUInteger)index  // required override...
@@ -708,10 +708,9 @@ static SEL	rlSel;
   return nil;
 }
 
-- (id) objectAtIndexedSubscript: (NSUInteger)index  // required override...
+- (id) objectAtIndexedSubscript: (NSUInteger)index
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return[self objectAtIndex: index];
 }
 
 - (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes
@@ -1129,9 +1128,9 @@ static SEL	rlSel;
   id    f = nil;
   NSUInteger s = 0, l = [self count], i = 0;
   
-  // -1. If this set is empty, this method should return NO.
+  // -1. If this set is empty, this method should return YES.
   if (l == 0)
-    return NO;
+    return YES;
 
   // If count of set is more than otherSet it's not a subset
   if (l > [otherSet count])
@@ -1752,7 +1751,7 @@ static SEL	rlSel;
 
 - (void) minusOrderedSet:(NSOrderedSet *)other
 {
-  if(other != self)
+  if(other == self)
     {
       [self removeAllObjects];
     }
@@ -1804,8 +1803,9 @@ static SEL	rlSel;
     }
 }
 
-- (instancetype) initWithCoder: (NSCoder *)acoder
+// Needed only to satisfy compiler that NSCoding is implemented.
+- (instancetype) initWithCoder: (NSCoder)coder
 {
-  return [super initWithCoder: acoder];
+  return [super initWithCoder: coder];
 }
 @end

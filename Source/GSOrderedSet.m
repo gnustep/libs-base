@@ -164,7 +164,7 @@ static Class	mutableSetClass;
 
 - (id) init
 {
-  return [self initWithObjects: 0 count: 0];
+  return [self initWithObjects: NULL count: 0];
 }
 
 - (NSEnumerator*) objectEnumerator
@@ -216,11 +216,6 @@ static Class	mutableSetClass;
 {
   GSIArrayItem item = GSIArrayItemAtIndex(&array, index);
   return item.obj;
-}
-
-- (id) objectAtIndexedSubscript: (NSUInteger)index
-{
-  return[self objectAtIndex: index];
 }
 
 - (BOOL) containsObject: (id)anObject
