@@ -1804,7 +1804,7 @@ static SEL	rlSel;
 }
 
 // Needed only to satisfy compiler that NSCoding is implemented.
-- (instancetype) initWithCoder: (NSCoder)coder
+- (instancetype) initWithCoder: (NSCoder *)coder
 {
   return [super initWithCoder: coder];
 }
