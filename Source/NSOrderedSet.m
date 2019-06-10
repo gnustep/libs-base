@@ -391,26 +391,22 @@ static SEL	rlSel;
     {
       GS_BEGINIDBUF(objs, count);
 
-      if ([other isProxy])
-	{
-	  unsigned	i;
+      {
+	unsigned	i;
+	
+	for (i = 0; i < count; i++)
+	  {
+	    if (flag == NO)
+	      {
+		objs[i] = [other objectAtIndex: i];
+	      }
+	    else // copy the items.
+	      {
+		objs[i] = [[other objectAtIndex: i] copy];
+	      }
+	  }
+      }
 
-	  for (i = 0; i < count; i++)
-	    {
-	      if (flag == NO)
-		{
-		  objs[i] = [other objectAtIndex: i];
-		}
-	      else // copy the items.
-		{
-		  objs[i] = [[other objectAtIndex: i] copy];
-		}
-	    }
-	}
-      else
-	{
-          [other getObjects: objs];
-	}
       self = [self initWithObjects: objs count: count];
       GS_ENDIDBUF();
       return self;
@@ -427,42 +423,39 @@ static SEL	rlSel;
     {
       return [self init];
     }
-  else
-    {
-      GS_BEGINIDBUF(objs, count);
 
+  GS_BEGINIDBUF(objs, range.length);
+  {
+    unsigned      i = 0;
+    unsigned      loc = range.location;
+    unsigned      len = range.length;
+    unsigned      j = 0;
+    
+    for (i = 0; i < count; i++)
       {
-	unsigned	i = 0;
-	unsigned      loc = range.location;
-	unsigned      len = range.length;
-	unsigned      j = 0;
-	
-	for (i = 0; i < count; i++)
+	if(i >= loc && j < len)
 	  {
-	    if(i >= loc && j < len)
-	      {
-		if(flag == YES)
-		  {		  
-		    objs[i] = [[other objectAtIndex: i] copy];
-		  }
-		else
-		  {
-		    objs[i] = [other objectAtIndex: i];
-		  }
-		j++;
+	    if(flag == YES)
+	      {		  
+		objs[i] = [[other objectAtIndex: i] copy];
 	      }
-	    
-	    if(j >= len)
+	    else
 	      {
-		break;
+		objs[i] = [other objectAtIndex: i];
 	      }
+	    j++;
+	  }
+	
+	if(j >= len)
+	  {
+	    break;
 	  }
       }
-      
-      self = [self initWithObjects: objs count: count];
-      GS_ENDIDBUF();
-      return self;
-    }
+  }
+  self = [self initWithObjects: objs count: count];
+  GS_ENDIDBUF();
+
+  return self;
 }
 
 - (instancetype) initWithObject:(id)object
