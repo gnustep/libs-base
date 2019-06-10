@@ -382,35 +382,41 @@ static SEL	rlSel;
 - (instancetype) initWithArray:(NSArray *)other copyItems:(BOOL)flag
 {
   unsigned	count = [other count];
+  unsigned      j = count;
   
   if (count == 0)
     {
       return [self init];
     }
-  else
-    {
-      GS_BEGINIDBUF(objs, count);
-
+  
+  GS_BEGINIDBUF(objs, count);
+  {
+    unsigned	i;
+    
+    for (i = 0; i < count; i++)
       {
-	unsigned	i;
-	
-	for (i = 0; i < count; i++)
+	if (flag == NO)
 	  {
-	    if (flag == NO)
-	      {
-		objs[i] = [other objectAtIndex: i];
-	      }
-	    else // copy the items.
-	      {
-		objs[i] = [[other objectAtIndex: i] copy];
-	      }
+	    objs[i] = [other objectAtIndex: i];
+	  }
+	else // copy the items.
+	  {
+	    objs[i] = [[other objectAtIndex: i] copy];
 	  }
       }
-
-      self = [self initWithObjects: objs count: count];
-      GS_ENDIDBUF();
-      return self;
-    }  
+  }
+  
+  self = [self initWithObjects: objs count: count];
+  
+  if(flag == YES)
+    {
+      while(j--)
+	{
+	  [objs[j] release];
+	}
+    }
+  GS_ENDIDBUF();
+  return self;
 }
 
 - (instancetype) initWithArray:(NSArray *)other
@@ -418,7 +424,8 @@ static SEL	rlSel;
                      copyItems:(BOOL)flag
 {
   unsigned	count = [other count];
-  
+  unsigned      i = 0, j = 0;
+    
   if (count == 0)
     {
       return [self init];
@@ -426,10 +433,8 @@ static SEL	rlSel;
 
   GS_BEGINIDBUF(objs, range.length);
   {
-    unsigned      i = 0;
     unsigned      loc = range.location;
     unsigned      len = range.length;
-    unsigned      j = 0;
     
     for (i = 0; i < count; i++)
       {
@@ -453,6 +458,14 @@ static SEL	rlSel;
       }
   }
   self = [self initWithObjects: objs count: count];
+
+  if(flag == YES)
+    {
+      while(j--)
+	{
+	  [objs[j] release];
+	}
+    }
   GS_ENDIDBUF();
 
   return self;
