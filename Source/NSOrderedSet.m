@@ -471,13 +471,14 @@ static SEL	rlSel;
   return self;
 }
 
-- (instancetype) initWithObject:(id)object
+- (instancetype) initWithObject: (id)obj
 {
-  self = [super init];
-  if(self != nil)
+  id objs[] = {obj};
+  
+  self = [self initWithObjects: objs count: 1];
+  if(self == nil)
     {
-      // Need proper implementation to happen in subclass since it will define how data
-      // is stored.
+      NSLog(@"Problem initializing with one element");
     }
   return self;
 }

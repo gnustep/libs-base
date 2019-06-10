@@ -268,17 +268,6 @@ static Class	mutableSetClass;
   return self;
 }
 
-- (id) initWithObject: (id)obj
-{
-  id objs[] = {obj};
-  
-  self = [self initWithObjects: objs count: 1];
-  if(self == nil)
-    {
-      NSLog(@"Problem initializing with one element");
-    }
-  return self;
-}
 @end
 
 @implementation GSMutableOrderedSet
@@ -313,8 +302,13 @@ static Class	mutableSetClass;
 - (void) insertObject: (id)object atIndex: (NSUInteger)index
 {
   GSIArrayItem item;
-  item.obj = object;
-  GSIArrayInsertItem(&array, item, index);
+  if([self containsObject: object] == NO)
+    {
+      item.obj = object;
+      GSIArrayInsertItem(&array, item, index);
+      RETAIN(object);
+      _version++;
+    }
 }
 
 - (void) removeObjectAtIndex: (NSUInteger)index
