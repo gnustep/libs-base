@@ -949,14 +949,17 @@ compareIt(id o1, id o2, void* context)
   return k;
 }
 
-- (NSArray *)keysSortedByValueUsingComparator:(NSComparator)cmptr
+- (NSArray *)keysSortedByValueUsingComparator: (NSComparator)cmptr
 {
-  return [self keysSortedByValueWithOptions:0 usingComparator:cmptr];
+  return [self keysSortedByValueWithOptions:0
+			    usingComparator:cmptr];
 }
 
-- (NSArray *)keysSortedByValueWithOptions:(NSSortOptions)opts usingComparator:(NSComparator)cmptr
+- (NSArray *)keysSortedByValueWithOptions: (NSSortOptions)opts
+			  usingComparator: (NSComparator)cmptr
 {
-  return [[self allKeys] sortedArrayWithOptions: opts usingComparator: cmptr];
+  return [[self allKeys] sortedArrayWithOptions: opts
+				usingComparator: cmptr];
 }
 
 /**

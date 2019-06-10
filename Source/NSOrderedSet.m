@@ -105,6 +105,7 @@ static SEL	rlSel;
 // NSCoding
 - (instancetype) initWithCoder: (NSCoder *)coder
 {
+  /*
   Class		c;
 
   c = object_getClass(self);
@@ -114,13 +115,13 @@ static SEL	rlSel;
       self = [NSOrderedSet_concrete_class allocWithZone: NSDefaultMallocZone()];
       return [self initWithCoder: coder];
     }
-  else if (c == NSOrderedSet_abstract_class)
+  else if (c == NSMutableOrderedSet_abstract_class)
     {
       DESTROY(self);
-      self = [NSOrderedSet_concrete_class allocWithZone: NSDefaultMallocZone()];
+      self = [NSMutableOrderedSet_concrete_class allocWithZone: NSDefaultMallocZone()];
       return [self initWithCoder: coder];
     }
-
+  */
   if ([coder allowsKeyedCoding])
     {
       id	array;
@@ -396,7 +397,14 @@ static SEL	rlSel;
 
 	  for (i = 0; i < count; i++)
 	    {
-	      objs[i] = [other objectAtIndex: i];
+	      if (flag == NO)
+		{
+		  objs[i] = [other objectAtIndex: i];
+		}
+	      else // copy the items.
+		{
+		  objs[i] = [[other objectAtIndex: i] copy];
+		}
 	    }
 	}
       else
@@ -423,38 +431,34 @@ static SEL	rlSel;
     {
       GS_BEGINIDBUF(objs, count);
 
-      if ([other isProxy])
-	{
-	  unsigned	i = 0;
-	  unsigned      loc = range.location;
-	  unsigned      len = range.length;
-	  unsigned      j = 0;
-	  
-	  for (i = 0; i < count; i++)
-	    {
-	      if(i >= loc && j < len)
-		{
-		  if(flag == YES)
-		    {		  
-		      objs[i] = [[other objectAtIndex: i] copy];
-		    }
-		  else
-		    {
-		      objs[i] = [other objectAtIndex: i];
-		    }
-		  j++;
-		}
-
-	      if(j >= len)
-		{
-		  break;
-		}
-	    }
-	}
-      else
-	{
-          [other getObjects: objs];
-	}
+      {
+	unsigned	i = 0;
+	unsigned      loc = range.location;
+	unsigned      len = range.length;
+	unsigned      j = 0;
+	
+	for (i = 0; i < count; i++)
+	  {
+	    if(i >= loc && j < len)
+	      {
+		if(flag == YES)
+		  {		  
+		    objs[i] = [[other objectAtIndex: i] copy];
+		  }
+		else
+		  {
+		    objs[i] = [other objectAtIndex: i];
+		  }
+		j++;
+	      }
+	    
+	    if(j >= len)
+	      {
+		break;
+	      }
+	  }
+      }
+      
       self = [self initWithObjects: objs count: count];
       GS_ENDIDBUF();
       return self;
@@ -995,7 +999,7 @@ static SEL	rlSel;
 
 - (id) valueForKey: (NSString*)key
 {
-    NSEnumerator *e = [self objectEnumerator];
+  NSEnumerator *e = [self objectEnumerator];
   id object = nil;
   NSMutableSet *results = [NSMutableSet setWithCapacity: [self count]];
 
@@ -1017,6 +1021,7 @@ static SEL	rlSel;
 - removeObserver:forKeyPath:
 - removeObserver:forKeyPath:context:
 */
+
 - (NSUInteger)_countForObject: (id)object  // required override...
 {
   return 1;
@@ -1025,28 +1030,18 @@ static SEL	rlSel;
 // Comparing Sets
 - (BOOL) isEqualToOrderedSet: (NSOrderedSet *)aSet
 {
+  if ([self count] == 0 &&
+      [aSet count] == 0)
+    return YES;
+  
+  if (self == aSet)
+    return YES;
+  
   if ([self count] != [aSet count])
     return NO;
-  else
-    {
-      id o, e = [self objectEnumerator];
 
-      while ((o = [e nextObject]))
-        {
-	  if (![aSet containsObject: o])
-            {
-	      return NO;
-            }
-         else
-           {
-             if ([self _countForObject: o] != [aSet _countForObject: o])
-               {
-                 return NO;
-               }
-           }
-        }
-    }
-  return YES;
+  // if they are equal, then this set will be a subset of aSet.
+  return [self isSubsetOfOrderedSet: aSet];
 }
 
 - (BOOL) isEqual: (id)other
@@ -1149,7 +1144,7 @@ static SEL	rlSel;
 // Creating a Sorted Array
 - (NSArray *) sortedArrayUsingDescriptors:(NSArray *)sortDescriptors
 {
-  NSMutableArray *sortedArray = [GSMutableArray arrayWithArray: [self array]];
+  NSMutableArray *sortedArray = [NSMutableArray arrayWithArray: [self array]];
   
   [sortedArray sortUsingDescriptors: sortDescriptors];
   
@@ -1196,13 +1191,13 @@ static SEL	rlSel;
 
 - (NSString *) descriptionWithLocale: (NSLocale *)locale
 {
-  NSArray *allObjects = [self sortedArrayUsingDescriptors: nil];
-  return [allObjects descriptionWithLocale: locale];
+  return [self descriptionWithLocale: locale indent: NO];
 }
 
 - (NSString*) descriptionWithLocale: (NSLocale *)locale indent: (BOOL)flag
 {
-  return [self descriptionWithLocale: locale];
+  NSArray *allObjects = [self array];
+  return [NSString stringWithFormat: @"%@", allObjects];
 }
 
 - (NSArray *) array

@@ -6,7 +6,7 @@ int main()
 {
   START_SET("NSOrderedSet base")
     
-    NSOrderedSet *testObj, *testObj2;
+  NSOrderedSet *testObj, *testObj2;
   NSMutableOrderedSet *mutableTest1, *mutableTest2;
   NSMutableArray *testObjs = [NSMutableArray new];
   
@@ -148,6 +148,19 @@ int main()
   isSubset = [mutableTest2 isSubsetOfOrderedSet:mutableTest1];
   PASS(isSubset == NO,
        "mutableTest2 is NOT subset of mutableTest1");
+
+  o9 = @"Hello";
+  o10 = @"World";
+  o11 = @"Ready";
+  o12 = @"ToGo";
+  mutableTest1 = [NSMutableOrderedSet orderedSet];
+  [mutableTest1 addObject:o9];
+  [mutableTest2 addObject:o10];
+  [mutableTest2 addObject:o12];
+  [mutableTest2 addObject:o11];
+  [testObjs addObject: mutableTest1];
+  PASS([mutableTest1 isEqual:mutableTest1],
+       "mutableTest1 is equal to itself");
   
   test_NSObject(@"NSOrderedSet", testObjs);
   test_NSCoding(testObjs);

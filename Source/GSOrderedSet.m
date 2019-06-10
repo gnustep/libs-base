@@ -212,13 +212,6 @@ static Class	mutableSetClass;
 {
   NSUInteger i = 0;
 
-  // Reduce C if it doesn't match.  This is apparently how
-  // macOS behaves.
-  if(c > sizeof(objs))
-    {
-      c = sizeof(objs);
-    }
-
   // Initialize and fill the set.
   GSIArrayInitWithZoneAndCapacity(&array, [self zone], c);
   for (i = 0; i < c; i++)
@@ -321,20 +314,13 @@ static Class	mutableSetClass;
 {
   NSUInteger i = 0;
 
-  // Reduce count if more then size of list of objects
-  if(sizeof(objects) < count)
-    {
-      count = sizeof(objects);
-    }
-
   // Init and fill set
   self = [self initWithCapacity: count];
   if(self != nil)
     {
       for(i = 0; i < count; i++)
 	{
-	  id	anObject = objects[i];
-	  
+	  id	anObject = objects[i];	  
 	  if (anObject == nil)
 	    {
 	      NSLog(@"Tried to init an orderedset with a nil object");
