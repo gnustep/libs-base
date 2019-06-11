@@ -814,6 +814,28 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
 
 @implementation	NSConcreteHashTable
 
++ (NSUInteger) contentSizeOf: (NSObject*)obj
+                  declaredIn: (Class)cls
+                   excluding: (NSHashTable*)exclude
+{
+  GSIMapTable  		map = (GSIMapTable)obj;
+  NSUInteger    	size = GSIMapSize(map) - sizeof(GSIMapTable);
+
+/* If we knew that this table held objects, we could return their size...
+
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(map);
+  GSIMapNode		node = GSIMapEnumeratorNextNode(&enumerator);
+
+  while (node != 0)
+    {
+      size += [node->key.obj sizeInBytesExcluding: exclude];
+      node = GSIMapEnumeratorNextNode(&enumerator);
+    }
+  GSIMapEndEnumerator(&enumerator);
+ */
+  return size;
+}
+
 + (void) initialize
 {
   if (concreteClass == Nil)
@@ -1042,28 +1064,6 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
     }
 }
 
-- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
-{
-  NSUInteger	size = [super sizeInBytesExcluding: exclude];
-
-  if (size > 0)
-    {
-/* If we knew that this table held objects, we could return their size...
- *
- *    GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(self);
- *    GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
- *
- *    while (node != 0)
- *      {
- *        node = GSIMapEnumeratorNextNode(&enumerator);
- *        size += [node->key.obj sizeInBytesExcluding: exclude];
- *      }
- *    GSIMapEndEnumerator(&enumerator);
- */
-      size += GSIMapSize(self) - instanceSize;
-    }
-  return size;
-}
 @end
 
 @implementation NSConcreteHashTableEnumerator

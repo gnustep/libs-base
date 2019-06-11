@@ -509,6 +509,13 @@ failure:
  */
 @implementation NSData
 
++ (NSUInteger) contentSizeOf: (NSObject*)obj
+                  declaredIn: (Class)cls
+                   excluding: (NSHashTable*)exclude
+{
+  return [(NSData*)obj length];
+}
+
 + (void) initialize
 {
   if (self == [NSData class])
@@ -2012,17 +2019,6 @@ failure:
   return NO;
 }
 
-- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
-{
-  NSUInteger    size = [super sizeInBytesExcluding: exclude];
-
-  if (size > 0)
-    {
-      size += [self length];
-    }
-  return size;
-}
-
 @end
 
 /**
@@ -2144,6 +2140,13 @@ failure:
     {
       return NSAllocateObject(self, 0, z);
     }
+}
+
++ (NSUInteger) contentSizeOf: (NSObject*)obj
+                  declaredIn: (Class)cls
+                   excluding: (NSHashTable*)exclude
+{
+  return [(NSMutableData*)obj capacity];
 }
 
 + (id) data
@@ -3325,13 +3328,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     }
 }
 
-- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
-{
-  NSUInteger    size = GSPrivateMemorySize(self, exclude);
-
-  return size;
-}
-
 @end
 
 
@@ -3406,17 +3402,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
   GSClassSwizzle(self, dataBlock);
   ASSIGN(deallocator, (id)deallocBlock);
   return self;
-}
-
-- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
-{
-  NSUInteger    size = GSPrivateMemorySize(self, exclude);
-
-  if (size > 0)
-    {
-      size += length;
-    }
-  return size;
 }
 
 @end
@@ -4266,17 +4251,6 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
       memset(bytes + length, '\0', size - length);
     }
   length = size;
-}
-
-- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
-{
-  NSUInteger    size = GSPrivateMemorySize(self, exclude);
-
-  if (size > 0)
-    {
-      size += capacity;
-    }
-  return size;
 }
 
 @end

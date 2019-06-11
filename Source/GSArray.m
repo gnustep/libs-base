@@ -73,6 +73,21 @@ static Class	GSInlineArrayClass;
 
 @implementation GSArray
 
++ (NSUInteger) contentSizeOf: (NSObject*)obj
+                  declaredIn: (Class)cls
+                   excluding: (NSHashTable*)exclude
+{
+  GSArray	*a = (GSArray*)obj;
+  NSUInteger	size = a->_count * sizeof(id);
+  NSUInteger	index = a->_count;
+
+  while (index-- > 0)
+    {
+      size += [a->_contents_array[index] sizeInBytesExcluding: exclude];
+    }
+  return size;
+}
+
 - (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel
 {
   NSDictionary *info;
@@ -420,6 +435,21 @@ static Class	GSInlineArrayClass;
 @end
 
 @implementation GSMutableArray
+
++ (NSUInteger) contentSizeOf: (NSObject*)obj
+                  declaredIn: (Class)cls
+                   excluding: (NSHashTable*)exclude
+{
+  GSMutableArray	*a = (GSMutableArray*)obj;
+  NSUInteger    	size = a->_capacity * sizeof(id);
+  NSUInteger    	index = a->_count;
+
+  while (index-- > 0)
+    {
+      size += [a->_contents_array[index] sizeInBytesExcluding: exclude];
+    }
+  return size;
+}
 
 + (void) initialize
 {
@@ -938,22 +968,6 @@ static Class	GSInlineArrayClass;
   return count;
 }
 
-- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
-{
-  NSUInteger	size = GSPrivateMemorySize(self, exclude);
-
-  if (size > 0)
-    {
-      NSUInteger	count = _count;
-
-      size += _capacity*sizeof(void*);
-      while (count-- > 0)
-	{
-	  size += [_contents_array[count] sizeInBytesExcluding: exclude];
-	}
-    }
-  return size;
-}
 @end
 
 

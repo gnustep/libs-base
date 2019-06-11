@@ -111,27 +111,80 @@ extern "C" {
 
 @end
 
-/** This is an informal protocol ... classes may implement the method to
- * report how much memory is used by the instance and any objects it acts
- * as a container for.
+/** This is an informal protocol; classes may implement the
+ * +contentSizeOf:declaredIn:excluding: method to report how much memory
+ * is used by any objects/pointers it acts as a container for.<br />
+ * Code may call the -sizeInBytesExcluding: or -sizeinBytes method to
+ * determine how much heap memory an object (and its content) occupies.
  */
 @interface      NSObject(MemoryFootprint)
-/* This method returns the memory usage of the receiver, excluding any
+/** This method returns the size of the memory used by the instance variables
+ * of obj which were declared in the supplied class (excluding those declared
+ * by its superclasses or subclasses).<br />
+ * This is not the memory occupied by obj itself.  Rather, it should be the
+ * memory referenced by any pointers (including objects) in obj.<br />
+ * Subclasses which do not implement this method will have the memory of their
+ * object ivars included in the total but not memory pointed to by non-object
+ * pointers (generic code cannot readily determine the size of blocks of
+ * memory pointed to by a pointer).<br />
+ * When an implementation (other than the NSObject implementation) of this
+ * method is called, cls should be the class in which the implementation
+ * was defined.  However, as a convenience, the implementation may call the
+ * base implementation to get the size of object ivars, and then add in the
+ * size of other memory referenced by pointers the instance is using:
+ * <example>
+ * @interface	foo : bar
+ * {
+ *   id	a;		// Some object
+ *   id b;		// More storage
+ *   unsigned capacity;	// Buffer size
+ *   char *p;		// The buffer
+ * }
+ * @end
+ * @implementation foo
+ * + (NSUInteger) contentSizeOf: (NSObject*)obj
+ *                   declaredIn: (Class)cls
+ *                    excluding: (NSHashTable*)exclude
+ *{ 
+ *  NSUInteger	size;
+ *
+ *  // get the size of the objects (a and b)
+ *  size = [NSObject contentSizeOf: obj
+ *		        declaredIn: self
+ *			 excluding: exclude];
+ *  // add the memory pointed to by p
+ *  size += obj->capacity * sizeof(char);
+ *  return size;
+ *}
+ *@end
+ * </example>
+ */
++ (NSUInteger) contentSizeOf: (NSObject*)obj
+                  declaredIn: (Class)cls
+                   excluding: (NSHashTable*)exclude;
+
+/** This method returns the memory usage of the receiver, excluding any
  * objects already present in the exclude table.<br />
  * The argument is a hash table configured to hold non-retained pointer
  * objects and is used to inform the receiver that its size should not
  * be counted again if it's already in the table.<br />
  * The NSObject implementation returns zero if the receiver is in the
  * table, but otherwise adds itself to the table and returns its memory
- * footprint (the sum of all of its instance variables, but not any
- * memory pointed to by those variables).<br />
- * Subclasses should override this method by calling the superclass
- * implementation, and either return the result (if it was zero) or
- * return that value plus the sizes of any memory owned by the receiver
- * (eg found by calling the same method on objects pointed to by the
- * receiver's instance variables).
+ * footprint (the sum of all of its instance variables, plus the result
+ * of calling +contentSizeOf:declaredIn:excluding: for the class of the
+ * instance and all its superclasses).<br />
+ * Classes should not override this method, instead they should implement
+ * +contentSizeOf:declaredIn:excluding: to return the extra memory usage
+ * of the pointer/object instance variables (heap memory) they add to
+ * their superclass.
  */
 - (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude;
+
+/** Convenience method calling -sizeInBytesExcluding: with a newly created
+ * exclusion hash table, and destroying the table once the size is calculated.
+ */
+- (NSUInteger) sizeInBytes;
+
 @end
 
 /** This is an informal protocol ... classes may implement the method and

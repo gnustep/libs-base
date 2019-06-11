@@ -35,6 +35,7 @@
 #import "Foundation/NSPort.h"
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSHashTable.h"
 #import "Foundation/NSInvocation.h"
 #include <objc/Protocol.h>
 #import "GSInvocation.h"
@@ -829,6 +830,13 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
  */
 @implementation NSDistantObject(GNUstepExtensions)
 
++ (NSUInteger) contentSizeOf: (NSObject*)obj
+                  declaredIn: (Class)cls
+                   excluding: (NSHashTable*)exclude
+{
+  return 0;
+}
+
 /**
  * Used by the garbage collection system to tidy up when a proxy is destroyed.
  */
@@ -912,6 +920,19 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 {
   return self;
 }
+
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  if (0 == NSHashGet(exclude, self))
+    {
+      Class             c = object_getClass(self);
+      NSUInteger        size = class_getInstanceSize(c);
+
+      return size;
+    }
+  return 0;
+}
+
 @end
 
 
