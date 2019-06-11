@@ -2625,8 +2625,8 @@ GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
           while (c != Nil)
             {
               size += [c contentSizeInBytesOf: self excluding: exclude];
+              c = class_getSuperclass(c);
             }
-          c = class_getSuperclass(c);
         }
       return size;
     }
