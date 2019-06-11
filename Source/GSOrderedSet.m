@@ -218,22 +218,6 @@ static Class	mutableSetClass;
   return item.obj;
 }
 
-- (BOOL) containsObject: (id)anObject
-{
-  NSUInteger i = 0;
-
-  for (i = 0; i < [self count]; i++)
-    {
-      id obj = [self objectAtIndex: i];
-      if([anObject isEqual: obj])
-	{
-	  return YES;
-	}
-    }
-  
-  return NO;
-}
-
 /* Designated initialiser */
 - (id) initWithObjects: (const id*)objs count: (NSUInteger)c
 {
@@ -308,6 +292,7 @@ static Class	mutableSetClass;
 
 - (void) removeObjectAtIndex: (NSUInteger)index
 {
+  _version++;
   GSIArrayRemoveItemAtIndex(&array, index);
 }
 

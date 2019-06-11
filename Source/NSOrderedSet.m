@@ -629,12 +629,16 @@ static SEL	rlSel;
   return 0;
 }
 
-- (BOOL)containsObject:(id)anObject // required override
+- (BOOL) containsObject: (id)anObject
 {
-  [self subclassResponsibility: _cmd];
-  return NO; 
+  NSUInteger i = [self indexOfObject: anObject];
+  if (i == NSNotFound)
+    {
+      return NO;
+    }
+  return YES;
 }
-
+    
 - (void) enumerateObjectsAtIndexes:(NSIndexSet *)indexSet
                            options:(NSEnumerationOptions)opts
                         usingBlock:(GSEnumeratorBlock)aBlock
@@ -727,7 +731,6 @@ static SEL	rlSel;
   return GS_IMMUTABLE(group);
 }
 
-    
 - (NSUInteger) indexOfObject:(id)anObject
 {
   NSUInteger	c = [self count];
