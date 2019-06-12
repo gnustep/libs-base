@@ -49,6 +49,7 @@
 
 @class	GSMutableOrderedSet;
 @interface GSMutableOrderedSet : NSObject	// Help the compiler
+- (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel;
 @end
 
 @interface NSMutableOrderedSet (Private)
@@ -1306,6 +1307,28 @@ static SEL	rlSel;
   return NSMutableOrderedSet_abstract_class;
 }
 
+- (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel
+{
+  NSDictionary *info;
+  NSException  *exception;
+  NSString     *reason;
+  NSUInteger    count = [self count];
+  
+  info = [NSDictionary dictionaryWithObjectsAndKeys:
+    [NSNumber numberWithUnsignedInteger: index], @"Index",
+    [NSNumber numberWithUnsignedInteger: count], @"Count",
+    self, @"GSMutableSet", nil, nil];
+
+  reason = [NSString stringWithFormat:
+    @"Index %"PRIuPTR" is out of range %d (in '%@')",
+    index, count, NSStringFromSelector(sel)];
+
+  exception = [NSException exceptionWithName: NSRangeException
+		                      reason: reason
+                                    userInfo: info];
+  [exception raise];
+}
+
 - (instancetype)initWithCapacity: (NSUInteger)capacity
 {
   self = [self init];
@@ -1536,11 +1559,9 @@ static SEL	rlSel;
 
   if (c > 0)
     {
-      IMP	remLast = [self methodForSelector: rlSel];
-
       while (c--)
 	{
-	  (*remLast)(self, rlSel);
+	  [self removeObjectAtIndex: 0];
 	}
     }  
 }
@@ -1632,14 +1653,34 @@ static SEL	rlSel;
     }
 }
 
-- (void) exchangeObjectAtIndex:(NSUInteger)index withObjectAtIndex:(NSUInteger)otherIndex
+- (void) exchangeObjectAtIndex:(NSUInteger)index
+	     withObjectAtIndex:(NSUInteger)otherIndex
 {
-  id	tmp = [self objectAtIndex: index];
-
-  RETAIN(tmp);
-  [self replaceObjectAtIndex: index withObject: [self objectAtIndex: otherIndex]];
-  [self replaceObjectAtIndex: otherIndex withObject: tmp];
-  RELEASE(tmp);
+  NSUInteger count = [self count];
+  
+  GS_BEGINIDBUF(objs, count);
+  if (index >= count)
+    {
+      [self _raiseRangeExceptionWithIndex: index from: _cmd];
+    }
+  if (otherIndex >= count)
+    {
+      [self _raiseRangeExceptionWithIndex: otherIndex from: _cmd];
+    }
+  if (index != otherIndex)
+    {
+      id tmp = nil;
+      NSRange range = NSMakeRange(0,[self count]);
+      
+      [self getObjects: objs range: range]; 
+      tmp = objs[index];
+      objs[index] = objs[otherIndex];
+      objs[otherIndex] = tmp;
+      
+      [self removeAllObjects];
+      [self addObjects: objs count: count];
+    }
+  GS_ENDIDBUF();
 }
 
 - (void)filterUsingPredicate:(NSPredicate *)predicate

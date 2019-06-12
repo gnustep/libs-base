@@ -31,6 +31,8 @@
 #import "Foundation/NSPortCoder.h"
 #import "Foundation/NSIndexSet.h"
 #import "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSDictionary.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GSPrivate.h"
 #import "GSFastEnumeration.h"
@@ -309,8 +311,8 @@ static Class	mutableSetClass;
 - (void) replaceObjectAtIndex: (NSUInteger)index
 		   withObject: (id)obj
 {
+  [self _insertObject: obj atIndex: index];
   [self removeObjectAtIndex: index];
-  [self insertObject: obj atIndex: index];
 }
 
 - (id) init

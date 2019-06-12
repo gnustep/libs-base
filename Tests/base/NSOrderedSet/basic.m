@@ -192,7 +192,16 @@ int main()
   PASS([[mutableTest4 objectAtIndex: 10] isEqual:@"time"] == YES,
        "Move to index moves to correct index");
 
-  NSLog(@"RESULT: %@",mutableTest4);
+  NSMutableOrderedSet *mutableTest5 = [NSMutableOrderedSet orderedSet];
+  [mutableTest5 addObject:@"Now"];
+  [mutableTest5 addObject:@"is"];
+  [mutableTest5 addObject:@"the"];
+  [mutableTest5 exchangeObjectAtIndex:0 withObjectAtIndex:2];
+  [testObjs addObject: mutableTest5];
+  PASS([[mutableTest5 objectAtIndex: 0] isEqual:@"the"] == YES &&
+       [[mutableTest5 objectAtIndex: 2] isEqual:@"Now"] == YES,
+       "Exchanges indexes properly");
+  //NSLog(@"RESULT: %@",mutableTest4);
   
   test_NSObject(@"NSOrderedSet", testObjs);
   test_NSCoding(testObjs);
