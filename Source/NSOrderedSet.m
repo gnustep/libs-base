@@ -46,8 +46,13 @@
 @class	GSOrderedSet;
 @interface GSOrderedSet : NSObject	// Help the compiler
 @end
+
 @class	GSMutableOrderedSet;
 @interface GSMutableOrderedSet : NSObject	// Help the compiler
+@end
+
+@interface NSMutableOrderedSet (Private)
+- (void) _insertObject: (id)object atIndex: (NSUInteger)index;
 @end
 
 @implementation NSOrderedSet
@@ -911,8 +916,8 @@ static SEL	rlSel;
 }
 
 - (NSIndexSet *) indexesOfObjectsAtIndexes:(NSIndexSet *)indexSet
-                              options:(NSEnumerationOptions)opts
-                          passingTest:(GSPredicateBlock)predicate
+				   options:(NSEnumerationOptions)opts
+			       passingTest:(GSPredicateBlock)predicate
 {
   return [[self objectsAtIndexes: indexSet]
 	   indexesOfObjectsWithOptions: opts
@@ -925,7 +930,7 @@ static SEL	rlSel;
 }
 
 - (NSIndexSet *) indexesOfObjectsWithOptions:(NSEnumerationOptions)opts
-                            passingTest:(GSPredicateBlock)predicate
+				 passingTest:(GSPredicateBlock)predicate
 {
   /* TODO: Concurrency. */
   NSMutableIndexSet     *set = [NSMutableIndexSet indexSet];
@@ -1407,6 +1412,7 @@ static SEL	rlSel;
 		  RETAIN(anObject);
 		}
 	      (*rem)(self, remSel, i);
+	      break;  // since this is a set we should only have one copy...
 	    }
 	}
       if (rem != 0)
@@ -1564,14 +1570,14 @@ static SEL	rlSel;
                          count: (NSUInteger)count
 {
   id o = nil;
-  NSUInteger i = 0;
+  NSUInteger i = count;
   
   if (count < (aRange.location + aRange.length))
     [NSException raise: NSRangeException
 		 format: @"Replacing objects beyond end of const[] id."];
   [self removeObjectsInRange: aRange];
 
-  for(i = 0; i < count; i++)
+  while (i-- > 0)
     {
       o = objects[i];
       [self insertObject: o atIndex: aRange.location]; 
@@ -1592,8 +1598,8 @@ static SEL	rlSel;
 
 - (void)moveObjectsAtIndexes:(NSIndexSet *)indexes toIndex:(NSUInteger)index
 {
-  NSUInteger i = 0;
   NSUInteger count = [indexes count];
+  NSUInteger i = count;
   NSUInteger indexArray[count];
   NSMutableArray *tmpArray = [NSMutableArray arrayWithCapacity: count];
   id o = nil;
@@ -1604,25 +1610,25 @@ static SEL	rlSel;
          inIndexRange: NULL];
 
   // Build the temporary array....
-  for(i = 0; i < count; i++)
+  while (i-- > 0)
     {
       NSUInteger index = indexArray[i];
       id obj = [self objectAtIndex: index];
       [tmpArray addObject: obj];
     }
 
-  // Move the objects
-  e = [tmpArray objectEnumerator];
-  while((o = [e nextObject]) != nil)
-    {
-      [self insertObject: o atIndex: index];
-    }
-
-  // Remove the originals...  
+    // Remove the originals...  
   for(i = 0; i < count; i++)
     {
       NSUInteger index = indexArray[i];
       [self removeObjectAtIndex: index];
+    }
+  
+  // Move the objects
+  e = [tmpArray objectEnumerator];
+  while((o = [e nextObject]) != nil)
+    {
+      [self _insertObject: o atIndex: index];
     }
 }
 

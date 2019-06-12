@@ -290,6 +290,16 @@ static Class	mutableSetClass;
     }
 }
 
+- (void) _insertObject: (id)object atIndex: (NSUInteger)index
+{
+  GSIArrayItem item;
+  
+  item.obj = object;
+  GSIArrayInsertItem(&array, item, index);
+  RETAIN(object);
+  _version++;
+}
+
 - (void) removeObjectAtIndex: (NSUInteger)index
 {
   _version++;
