@@ -127,13 +127,6 @@ extern "C" {
 - (void) setValue: (GS_GENERIC_TYPE(ElementT))value forKey: (NSString*)key;
 - (GS_GENERIC_TYPE(ElementT)) valueForKey: (NSString*)key; 
 
-// Key-Value Observing Support
-/*
-- addObserver:forKeyPath:options:context:
-- removeObserver:forKeyPath:
-- removeObserver:forKeyPath:context:
-*/
-  
 // Comparing Sets
 - (BOOL) isEqualToOrderedSet: (NSOrderedSet *)aSet;
   

@@ -35,6 +35,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSPredicate.h"
 #import "Foundation/NSLock.h"
+#import "Foundation/NSKeyValueObserving.h"
 
 #import <GNUstepBase/GSBlocks.h>
 #import "Foundation/NSKeyedArchiver.h"
@@ -1023,7 +1024,45 @@ static SEL	rlSel;
   for (i = aRange.location; i < e; i++)
     aBuffer[j++] = (*get)(self, oaiSel, i);
 }
- 
+
+// Key-Value Observing Support
+
+- (void)addObserver: (NSObject *)observer 
+         forKeyPath: (NSString *)keyPath 
+            options: (NSKeyValueObservingOptions)options 
+            context: (void *)context
+{
+  NSException *exception = nil;
+  NSString *reason = @"NSOrderedSet does not support KVO";
+  exception = [NSException exceptionWithName: NSGenericException
+		                      reason: reason
+                                    userInfo: nil];
+  [exception raise];
+}
+
+- (void)removeObserver: (NSObject *)observer
+	    forKeyPath: (NSString *)keyPath
+{
+  NSException *exception = nil;
+  NSString *reason = @"NSOrderedSet does not support KVO";
+  exception = [NSException exceptionWithName: NSGenericException
+		                      reason: reason
+                                    userInfo: nil];
+  [exception raise];
+}
+
+- (void) removeObserver: (NSObject *)observer 
+	     forKeyPath: (NSString *)keyPath 
+		context: (void *)context
+{
+  NSException *exception = nil;
+  NSString *reason = @"NSOrderedSet does not support KVO";
+  exception = [NSException exceptionWithName: NSGenericException
+		                      reason: reason
+                                    userInfo: nil];
+  [exception raise];
+}
+
 // Key value coding support
 - (void) setValue: (id)value forKey: (NSString*)key
 {
@@ -1056,13 +1095,6 @@ static SEL	rlSel;
     }
   return results;
 }
-
-// Key-Value Observing Support
-/*
-- addObserver:forKeyPath:options:context:
-- removeObserver:forKeyPath:
-- removeObserver:forKeyPath:context:
-*/
 
 - (NSUInteger)_countForObject: (id)object  // required override...
 {
