@@ -49,8 +49,6 @@
 
 #import "GNUstepBase/GSIArray.h"
 
-//  static SEL     memberSel;
-static SEL      privateCountOfSel;
 @interface GSOrderedSet : NSOrderedSet
 {
 @public
@@ -144,7 +142,6 @@ static Class	mutableSetClass;
     {
       setClass = [GSOrderedSet class];
       mutableSetClass = [GSMutableOrderedSet class];
-      privateCountOfSel = @selector(_countForObject:);
     }
 }
 
@@ -379,33 +376,6 @@ static Class	mutableSetClass;
   //return GSIMapCountByEnumeratingWithStateObjectsCount
   //  (&map, state, stackbuf, len);
   return [self count];
-}
-@end
-
-@interface	NSGOrderedSet : NSOrderedSet
-@end
-
-@implementation	NSGOrderedSet
-- (id) initWithCoder: (NSCoder*)aCoder
-{
-  NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  DESTROY(self);
-  self = (id)NSAllocateObject([GSOrderedSet class], 0, NSDefaultMallocZone());
-  self = [self initWithCoder: aCoder];
-  return self;
-}
-@end
-
-@interface	NSGMutableOrderedSet : NSMutableOrderedSet
-@end
-@implementation	NSGMutableOrderedSet
-- (id) initWithCoder: (NSCoder*)aCoder
-{
-  NSLog(@"Warning - decoding archive containing obsolete %@ object - please delete/replace this archive", NSStringFromClass([self class]));
-  DESTROY(self);
-  self = (id)NSAllocateObject([GSMutableOrderedSet class], 0, NSDefaultMallocZone());
-  self = [self initWithCoder: aCoder];
-  return self;
 }
 @end
 

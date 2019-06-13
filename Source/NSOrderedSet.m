@@ -267,14 +267,16 @@ static SEL	rlSel;
    */
   if (count > 0)
     {
-      IMP	imp = [self methodForSelector: @selector(objectAtIndex:)];
-      int	p = state->state;
-      int	i;
+      // IMP	imp = [self methodForSelector: @selector(objectAtIndex:)];
+      // int	i;
+      // int	p = state->state;
+      
 
-      for (i = 0; i < count; i++, p++)
+      [self getObjects: stackbuf range: NSMakeRange(state->state, count)];
+	/*for (i = 0; i < count; i++, p++)
 	{
 	  stackbuf[i] = (*imp)(self, @selector(objectAtIndex:), p);
-	}
+	  }*/
       state->state += count;
     }
   else
@@ -1096,11 +1098,6 @@ static SEL	rlSel;
   return results;
 }
 
-- (NSUInteger)_countForObject: (id)object  // required override...
-{
-  return 1;
-}
-
 // Comparing Sets
 - (BOOL) isEqualToOrderedSet: (NSOrderedSet *)aSet
 {
@@ -1128,7 +1125,8 @@ static SEL	rlSel;
 // Set operations
 - (BOOL) intersectsOrderedSet: (NSOrderedSet *)otherSet
 {
-  id	o = nil, e = nil;
+  id	o = nil;
+  NSEnumerator *e = nil;
 
   // -1. If this set is empty, this method should return NO.
   if ([self count] == 0)
