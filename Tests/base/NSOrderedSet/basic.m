@@ -202,6 +202,28 @@ int main()
        [[mutableTest5 objectAtIndex: 2] isEqual:@"Now"] == YES,
        "Exchanges indexes properly");
   //NSLog(@"RESULT: %@",mutableTest4);
+
+  mutableTest4 = [NSMutableOrderedSet orderedSet];
+  [mutableTest4 addObject:@"Now"];
+  [mutableTest4 addObject:@"is"];
+  [mutableTest4 addObject:@"the"];
+  [mutableTest4 addObject:@"time"];
+  [mutableTest4 addObject:@"for"];
+  [mutableTest4 addObject:@"all"];
+  [mutableTest4 addObject:@"Good"];
+  [mutableTest4 addObject:@"men"];
+  [mutableTest4 addObject:@"to"];
+  [mutableTest4 addObject:@"come to"];
+  [mutableTest4 addObject:@"the aid"];
+  [mutableTest4 addObject:@"of their country"];
+  NSMutableIndexSet *is = [NSMutableIndexSet indexSetWithIndex:6];
+  [is addIndex: 9];
+  NSMutableArray *array = [NSMutableArray arrayWithObjects:@"Horrible", @"Flee From", nil];
+  [mutableTest4 replaceObjectsAtIndexes: is
+			    withObjects: array];
+  [testObjs addObject: mutableTest4];
+  PASS([[mutableTest4 objectAtIndex: 9] isEqual:@"Flee From"] == YES,
+       "replaceObjectsAtIndexes: adds to correct indexes");
   
   test_NSObject(@"NSOrderedSet", testObjs);
   test_NSCoding(testObjs);

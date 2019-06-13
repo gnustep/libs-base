@@ -64,7 +64,6 @@ static Class NSOrderedSet_concrete_class;
 static Class NSMutableOrderedSet_concrete_class;
 
 static SEL	addSel;
-static SEL	appSel;
 static SEL	countSel;
 static SEL	eqSel;
 static SEL	oaiSel;
@@ -90,7 +89,6 @@ static SEL	rlSel;
       [self setVersion: 1];
       
       addSel = @selector(addObject:);
-      appSel = @selector(appendString:);
       countSel = @selector(count);
       eqSel = @selector(isEqual:);
       oaiSel = @selector(objectAtIndex:);
@@ -1575,15 +1573,36 @@ static SEL	rlSel;
 - (void) replaceObjectsAtIndexes: (NSIndexSet *)indexes
                      withObjects: (NSArray *)objects
 {
-  NSUInteger count = [indexes count];
+  NSUInteger count = [indexes count], i = 0;
   NSUInteger indexArray[count];
+  NSUInteger c = [self count];
+  NSRange range = NSMakeRange(0,c);
+  
+  GS_BEGINIDBUF(objs, count);
 
+  // Get the indexes
   [indexes getIndexes: indexArray
-             maxCount: count
-         inIndexRange: NULL];
+	     maxCount: count
+	 inIndexRange: NULL];
 
-  [self _removeObjectsFromIndices: indexArray
-		       numIndices: count]; 
+  // Get the objects from this set
+  [self getObjects: objs range: range];
+
+  // Iterate over the indexes and replace the objs
+  for (i = 0; i < count; i++)
+    {
+      id obj = [objects objectAtIndex: i];
+      NSUInteger indx = indexArray[i];
+      objs[indx] = obj;
+    }
+
+  // Remove all objects in this set...
+  [self removeAllObjects];
+
+  // Rebuild set...
+  [self addObjects: objs count: c];
+
+  GS_ENDIDBUF();
 }
 
 - (void) replaceObjectsInRange: (NSRange)aRange
