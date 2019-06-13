@@ -1144,7 +1144,8 @@ static SEL	rlSel;
 
 - (BOOL) intersectsSet: (NSSet *)otherSet
 {
-  id	o = nil, e = nil;
+  id	o = nil;
+  NSEnumerator *e = nil;
 
   // -1. If this set is empty, this method should return NO.
   if ([self count] == 0)

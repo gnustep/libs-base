@@ -202,4 +202,8 @@ extern "C" {
 - (instancetype) initWithCoder: (NSCoder *)coder;
 @end
 
+#if	defined(__cplusplus)
+}
 #endif
+
+#endif /* _NSOrderedSet_h_GNUSTEP_BASE_INCLUDE */
