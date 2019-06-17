@@ -315,8 +315,8 @@ static Class	mutableSetClass;
 - (void) replaceObjectAtIndex: (NSUInteger)index
 		   withObject: (id)obj
 {
-  [self _insertObject: obj atIndex: index];
   [self removeObjectAtIndex: index];
+  [self _insertObject: obj atIndex: index];
 }
 
 - (id) init
