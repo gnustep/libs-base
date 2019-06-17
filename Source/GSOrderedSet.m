@@ -161,7 +161,7 @@ static Class	mutableSetClass;
   return [self count];
 }
 
-- (id) init
+- (instancetype) init
 {
   return [self initWithObjects: NULL count: 0];
 }
@@ -280,12 +280,19 @@ static Class	mutableSetClass;
 - (void) insertObject: (id)object atIndex: (NSUInteger)index
 {
   GSIArrayItem item;
-  if([self containsObject: object] == NO)
+  if(object == nil)
     {
-      item.obj = object;
-      GSIArrayInsertItem(&array, item, index);
-      RETAIN(object);
-      _version++;
+      NSWarnLog(@"Attempt to insert nil object");
+    }
+  else
+    {
+      if([self containsObject: object] == NO)
+	{
+	  item.obj = object;
+	  GSIArrayInsertItem(&array, item, index);
+	  RETAIN(object);
+	  _version++;
+	}
     }
 }
 

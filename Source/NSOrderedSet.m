@@ -506,12 +506,8 @@ static SEL	rlSel;
 - (instancetype) initWithObjects:(const id [])objects // required override.
                            count:(NSUInteger)count
 {
-  self = [self init];
-  if(self != nil)
-    {
-      // Need proper implementation in subclass since that is where data will be stored.
-    }
-  return self;
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (instancetype) initWithOrderedSet:(NSOrderedSet *)aSet
@@ -622,12 +618,8 @@ static SEL	rlSel;
 
 - (instancetype) init
 {
-  self = [super init];
-  if(self == nil)
-    {
-      NSLog(@"NSOrderedSet not allocated.");
-    }
-  return self;
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (NSUInteger) count // required override
@@ -1068,13 +1060,11 @@ static SEL	rlSel;
 // Key value coding support
 - (void) setValue: (id)value forKey: (NSString*)key
 {
-  NSUInteger    i;
-  NSUInteger	count = [self count];
   volatile id	object = nil;
-
-  for (i = 0; i < count; i++)
+  NSEnumerator *e = [self objectEnumerator];
+  
+  while((object = [e nextObject]) != nil)
     {
-      object = [self objectAtIndex: i];
       [object setValue: value
 		forKey: key];
     }
