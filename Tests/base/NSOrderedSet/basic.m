@@ -2,6 +2,118 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSOrderedSet.h>
 
+static NSString *stringData = @"<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+@"<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">"
+@"<plist version=\"1.0\">"
+@"<dict>"
+@"	<key>$archiver</key>"
+@"	<string>NSKeyedArchiver</string>"
+@"	<key>$objects</key>"
+@"	<array>"
+@"		<string>$null</string>"
+@"		<dict>"
+@"			<key>$class</key>"
+@"			<dict>"
+@"				<key>CF$UID</key>"
+@"				<integer>14</integer>"
+@"			</dict>"
+@"			<key>NS.object.0</key>"
+@"			<dict>"
+@"				<key>CF$UID</key>"
+@"				<integer>2</integer>"
+@"			</dict>"
+@"			<key>NS.object.1</key>"
+@"			<dict>"
+@"				<key>CF$UID</key>"
+@"				<integer>3</integer>"
+@"			</dict>"
+@"			<key>NS.object.10</key>"
+@"			<dict>"
+@"				<key>CF$UID</key>"
+@"				<integer>12</integer>"
+@"			</dict>"
+@"			<key>NS.object.11</key>"
+@"			<dict>"
+@"				<key>CF$UID</key>"
+@"				<integer>13</integer>"
+@"			</dict>"
+@"			<key>NS.object.2</key>"
+@"			<dict>"
+@"				<key>CF$UID</key>"
+@"				<integer>4</integer>"
+@"			</dict>"
+@"			<key>NS.object.3</key>"
+@"			<dict>"
+@"				<key>CF$UID</key>"
+@"				<integer>5</integer>"
+@"			</dict>"
+@"			<key>NS.object.4</key>"
+@"			<dict>"
+@"				<key>CF$UID</key>"
+@"				<integer>6</integer>"
+@"			</dict>"
+@"			<key>NS.object.5</key>"
+@"			<dict>"
+@"				<key>CF$UID</key>"
+@"				<integer>7</integer>"
+@"			</dict>"
+@"			<key>NS.object.6</key>"
+@"			<dict>"
+@"				<key>CF$UID</key>"
+@"				<integer>8</integer>"
+@"			</dict>"
+@"			<key>NS.object.7</key>"
+@"			<dict>"
+@"				<key>CF$UID</key>"
+@"				<integer>9</integer>"
+@"			</dict>"
+@"			<key>NS.object.8</key>"
+@"			<dict>"
+@"				<key>CF$UID</key>"
+@"				<integer>10</integer>"
+@"			</dict>"
+@"			<key>NS.object.9</key>"
+@"			<dict>"
+@"				<key>CF$UID</key>"
+@"				<integer>11</integer>"
+@"			</dict>"
+@"		</dict>"
+@"		<string>Now</string>"
+@"		<string>is</string>"
+@"		<string>the</string>"
+@"		<string>time</string>"
+@"		<string>for</string>"
+@"		<string>all</string>"
+@"		<string>Horrible</string>"
+@"		<string>men</string>"
+@"		<string>to</string>"
+@"		<string>Flee From</string>"
+@"		<string>the aid</string>"
+@"		<string>of their country</string>"
+@"		<dict>"
+@"			<key>$classes</key>"
+@"			<array>"
+@"				<string>NSMutableOrderedSet</string>"
+@"				<string>NSOrderedSet</string>"
+@"				<string>NSObject</string>"
+@"			</array>"
+@"			<key>$classname</key>"
+@"			<string>NSMutableOrderedSet</string>"
+@"		</dict>"
+@"	</array>"
+@"	<key>$top</key>"
+@"	<dict>"
+@"		<key>root</key>"
+@"		<dict>"
+@"			<key>CF$UID</key>"
+@"			<integer>1</integer>"
+@"		</dict>"
+@"	</dict>"
+@"	<key>$version</key>"
+@"	<integer>100000</integer>"
+@"</dict>"
+@"</plist>";
+
 int main()
 {
   START_SET("NSOrderedSet base")
@@ -9,6 +121,7 @@ int main()
   NSOrderedSet *testObj, *testObj2;
   NSMutableOrderedSet *mutableTest1, *mutableTest2;
   NSMutableArray *testObjs = [NSMutableArray new];
+  NSData *data = [stringData dataUsingEncoding: NSUTF8StringEncoding];
   
   testObj = [NSOrderedSet new];
   [testObjs addObject: testObj];
@@ -224,6 +337,13 @@ int main()
   [testObjs addObject: mutableTest4];
   PASS([[mutableTest4 objectAtIndex: 9] isEqual:@"Flee From"] == YES,
        "replaceObjectsAtIndexes: adds to correct indexes");
+
+
+  id uobj = [NSKeyedUnarchiver unarchiveObjectWithData: data];
+  PASS((uobj != nil &&
+	[uobj isKindOfClass: [NSMutableOrderedSet class]] &&
+	[uobj containsObject: @"Now"]),
+       "Object unarchives correctly from macOS archive")
   
   test_NSObject(@"NSOrderedSet", testObjs);
   test_NSCoding(testObjs);

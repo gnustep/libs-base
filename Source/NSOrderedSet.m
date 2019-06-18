@@ -53,10 +53,6 @@
 - (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel;
 @end
 
-@interface NSMutableOrderedSet (Private)
-- (void) _insertObject: (id)object atIndex: (NSUInteger)index;
-@end
-
 @implementation NSOrderedSet
 
 static Class NSOrderedSet_abstract_class;
@@ -1158,19 +1154,25 @@ static SEL	rlSel;
   
   // -1. If this set is empty, this method should return YES.
   if (l == 0)
-    return YES;
-
+    {
+      return YES;
+    }
+  
   // If count of set is more than otherSet it's not a subset
   if (l > [otherSet count])
-    return NO;
-
+    {
+      return NO;
+    }
+  
   // Find the first object's index in otherset, if not found
   // it's not a subset...
   f = [self firstObject];
   s = [otherSet indexOfObject: f];
   if(s == NSNotFound)
-    return NO;
-
+    {
+      return NO;
+    }
+  
   for(i = 0; i < l; i++)
     {
       NSUInteger j = s + i;
@@ -1689,7 +1691,7 @@ static SEL	rlSel;
   e = [tmpArray objectEnumerator];
   while((o = [e nextObject]) != nil)
     {
-      [self _insertObject: o atIndex: index];
+      [self insertObject: o atIndex: index];
     }
 }
 

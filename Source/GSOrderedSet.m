@@ -40,8 +40,8 @@
 #import "GSSorting.h"
 
 #define	GSI_ARRAY_TYPE	NSRange
-#define	GSI_ARRAY_NO_RELEASE	1
-#define	GSI_ARRAY_NO_RETAIN	1
+#define	GSI_ARRAY_NO_RELEASE	0
+#define	GSI_ARRAY_NO_RETAIN	0
 #define GSI_ARRAY_TYPES       GSUNION_OBJ
 
 #define GSI_ARRAY_RELEASE(A, X)	[(X).obj release]
@@ -176,17 +176,6 @@ static Class	mutableSetClass;
   return AUTORELEASE([[GSOrderedSetEnumeratorReverse alloc] initWithOrderedSet: self]);
 }
 
-- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
-                                   objects: (id*)stackbuf
-                                     count: (NSUInteger)len
-{
-  //state->mutationsPtr = (unsigned long *)self;
-  //return GSIMapCountByEnumeratingWithStateObjectsCount
-  //            (&map, state, stackbuf, len);
-
-  return [self count];
-}
-
 - (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   NSUInteger	size = GSPrivateMemorySize(self, exclude);
@@ -296,16 +285,6 @@ static Class	mutableSetClass;
     }
 }
 
-- (void) _insertObject: (id)object atIndex: (NSUInteger)index
-{
-  GSIArrayItem item;
-  
-  item.obj = object;
-  GSIArrayInsertItem(&array, item, index);
-  RETAIN(object);
-  _version++;
-}
-
 - (void) removeObjectAtIndex: (NSUInteger)index
 {
   _version++;
@@ -316,7 +295,7 @@ static Class	mutableSetClass;
 		   withObject: (id)obj
 {
   [self removeObjectAtIndex: index];
-  [self _insertObject: obj atIndex: index];
+  [self insertObject: obj atIndex: index];
 }
 
 - (id) init
@@ -375,14 +354,5 @@ static Class	mutableSetClass;
   return self;
 }
 
-- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
-                                   objects: (id*)stackbuf
-                                     count: (NSUInteger)len
-{
-  //state->mutationsPtr = (unsigned long *)&_version;
-  //return GSIMapCountByEnumeratingWithStateObjectsCount
-  //  (&map, state, stackbuf, len);
-  return [self count];
-}
 @end
 
