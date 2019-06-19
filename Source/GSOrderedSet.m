@@ -309,15 +309,7 @@ static Class	mutableSetClass;
       for(i = 0; i < count; i++)
 	{
 	  id	anObject = objects[i];	  
-	  if (anObject == nil)
-	    {
-	      NSLog(@"Tried to init an orderedset with a nil object");
-	      continue;
-	    }
-	  else
-	    {
-	      [self addObject: anObject];
-	    }
+	  [self addObject: anObject];
 	}
     }
   return self;
