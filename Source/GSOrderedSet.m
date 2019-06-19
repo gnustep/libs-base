@@ -249,21 +249,7 @@ static Class	mutableSetClass;
 
 - (void) addObject: (id)anObject
 {
-  GSIArrayItem item;
-
-  if (anObject == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"Tried to add nil to set"];
-    }
-
-  if([self containsObject: anObject] == NO)
-    {
-      item.obj = anObject;
-      GSIArrayAddItem(&array, item);
-      RETAIN(anObject);
-      _version++;
-    }
+  [self insertObject: anObject atIndex: [self count]];
 }
 
 - (void) insertObject: (id)object atIndex: (NSUInteger)index
@@ -271,7 +257,8 @@ static Class	mutableSetClass;
   GSIArrayItem item;
   if(object == nil)
     {
-      NSWarnLog(@"Attempt to insert nil object");
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Tried to add nil to set"];
     }
   else
     {
@@ -329,13 +316,7 @@ static Class	mutableSetClass;
 	    }
 	  else
 	    {
-	      GSIArrayItem item;
-	      if(![self containsObject: anObject])
-		{
-		  item.obj = anObject;
-		  GSIArrayAddItem(&array, item);
-		  RETAIN(anObject);
-		}
+	      [self addObject: anObject];
 	    }
 	}
     }

@@ -50,6 +50,9 @@
 
 @class	GSMutableOrderedSet;
 @interface GSMutableOrderedSet : NSObject	// Help the compiler
+@end
+
+@interface NSOrderedSet (Private)
 - (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel;
 @end
 
@@ -1453,16 +1456,16 @@ static SEL	rlSel;
 		   * first equal object we don't get left with a bad object
 		   * pointer for later comparisons.
 		   */
-		  RETAIN(anObject);
+		  // RETAIN(anObject);
 		}
 	      (*rem)(self, remSel, i);
 	      break;  // since this is a set we should only have one copy...
 	    }
 	}
-      if (rem != 0)
-	{
-	  RELEASE(anObject);
-	}
+      //if (rem != 0)
+      // {
+      //  RELEASE(anObject);
+      // }
     }
 }
 
@@ -1799,7 +1802,7 @@ static SEL	rlSel;
       [self removeAllObjects];
       [self addObjectsFromArray: res];
 
-      RELEASE(res);
+      // RELEASE(res);
       GS_ENDIDBUF();
     } 
 }

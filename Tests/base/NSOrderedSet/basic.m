@@ -338,7 +338,6 @@ int main()
   PASS([[mutableTest4 objectAtIndex: 9] isEqual:@"Flee From"] == YES,
        "replaceObjectsAtIndexes: adds to correct indexes");
 
-
   id uobj = [NSKeyedUnarchiver unarchiveObjectWithData: data];
   PASS((uobj != nil &&
 	[uobj isKindOfClass: [NSMutableOrderedSet class]] &&
