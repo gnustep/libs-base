@@ -1,4 +1,5 @@
-/** Concrete implementation of GSOrderedSet based on GNU Set class
+/** Concrete implementation of GSOrderedSet and GSMutableOrderedSet
+    based on GNU NSOrderedSet and NSMutableOrderedSet classes
     Copyright (C) 2019 Free Software Foundation, Inc.
     
     Written by: Gregory Casamento <greg.casamento@gmail.com>
