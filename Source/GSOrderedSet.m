@@ -1,22 +1,22 @@
 /** Concrete implementation of GSOrderedSet and GSMutableOrderedSet
     based on GNU NSOrderedSet and NSMutableOrderedSet classes
     Copyright (C) 2019 Free Software Foundation, Inc.
-    
+
     Written by: Gregory Casamento <greg.casamento@gmail.com>
     Created: May 17 2019
-    
+
     This file is part of the GNUstep Base Library.
-    
+
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
     _version 2 of the License, or (at your option) any later _version.
-    
+
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
     Library General Public License for more details.
-    
+
     You should have received a copy of the GNU Lesser General Public
     License along with this library; if not, write to the Free
     Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
@@ -86,7 +86,7 @@
 
 - (id) nextObject
 {
-  if(current < count)
+  if (current < count)
     {
       GSIArrayItem item = GSIArrayItemAtIndex(&set->array, current);
       current++;
@@ -107,7 +107,7 @@
 - (id) initWithOrderedSet: (GSOrderedSet*)d
 {
   self = [super initWithOrderedSet: d];
-  if(self != nil)
+  if (self != nil)
     {
       current = GSIArrayCount(&set->array);
     }
@@ -119,8 +119,10 @@
   GSIArrayItem item;
 
   if (current == 0)
-    return nil;
-  
+    {
+      return nil;
+    }
+
   item = GSIArrayItemAtIndex(&set->array, --current);
   return (id)(item.obj);
 }
@@ -180,7 +182,7 @@ static Class	mutableSetClass;
       NSUInteger count = [self count];
       NSUInteger i = 0;
 
-      for(i = 0; i < count; i++)
+      for (i = 0; i < count; i++)
 	{
 	  GSIArrayItem item = GSIArrayItemAtIndex(&array, i);
           size += [item.obj sizeInBytesExcluding: exclude];
@@ -212,7 +214,7 @@ static Class	mutableSetClass;
     {
       id obj = objs[i];
       GSIArrayItem item;
-      
+
       if (objs[i] == nil)
 	{
 	  DESTROY(self);
@@ -221,7 +223,7 @@ static Class	mutableSetClass;
 	}
 
       item.obj = obj;
-      if(![self containsObject: obj])
+      if (![self containsObject: obj])
 	{
 	  GSIArrayAddItem(&array, item);
 	}
@@ -249,14 +251,14 @@ static Class	mutableSetClass;
 - (void) insertObject: (id)object atIndex: (NSUInteger)index
 {
   GSIArrayItem item;
-  if(object == nil)
+  if (object == nil)
     {
       [NSException raise: NSInvalidArgumentException
 		  format: @"Tried to add nil to set"];
     }
   else
     {
-      if([self containsObject: object] == NO)
+      if ([self containsObject: object] == NO)
 	{
 	  item.obj = object;
 	  GSIArrayInsertItem(&array, item, index);
@@ -297,11 +299,11 @@ static Class	mutableSetClass;
 
   // Init and fill set
   self = [self initWithCapacity: count];
-  if(self != nil)
+  if (self != nil)
     {
-      for(i = 0; i < count; i++)
+      for (i = 0; i < count; i++)
 	{
-	  id	anObject = objects[i];	  
+	  id	anObject = objects[i];
 	  [self addObject: anObject];
 	}
     }
@@ -321,4 +323,3 @@ static Class	mutableSetClass;
 }
 
 @end
-
