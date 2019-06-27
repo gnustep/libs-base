@@ -108,23 +108,6 @@ static SEL	rlSel;
 // NSCoding
 - (instancetype) initWithCoder: (NSCoder *)coder
 {
-  /*
-  Class		c;
-
-  c = object_getClass(self);
-  if (c == NSOrderedSet_abstract_class)
-    {
-      DESTROY(self);
-      self = [NSOrderedSet_concrete_class allocWithZone: NSDefaultMallocZone()];
-      return [self initWithCoder: coder];
-    }
-  else if (c == NSMutableOrderedSet_abstract_class)
-    {
-      DESTROY(self);
-      self = [NSMutableOrderedSet_concrete_class allocWithZone: NSDefaultMallocZone()];
-      return [self initWithCoder: coder];
-    }
-  */
   if ([coder allowsKeyedCoding])
     {
       id	array;
@@ -265,16 +248,7 @@ static SEL	rlSel;
    */
   if (count > 0)
     {
-      // IMP	imp = [self methodForSelector: @selector(objectAtIndex:)];
-      // int	i;
-      // int	p = state->state;
-
-
       [self getObjects: stackbuf range: NSMakeRange(state->state, count)];
-	/*for (i = 0; i < count; i++, p++)
-	{
-	  stackbuf[i] = (*imp)(self, @selector(objectAtIndex:), p);
-	  }*/
       state->state += count;
     }
   else
@@ -1446,7 +1420,6 @@ static SEL	rlSel;
   i = [self count];
   if (i > 0)
     {
-      IMP	rem = 0;
       IMP	get = [self methodForSelector: oaiSel];
       BOOL	(*eq)(id, SEL, id)
 	= (BOOL (*)(id, SEL, id))[anObject methodForSelector: eqSel];
@@ -1457,24 +1430,10 @@ static SEL	rlSel;
 
 	  if (o == anObject || (*eq)(anObject, eqSel, o) == YES)
 	    {
-	      if (rem == 0)
-		{
-		  rem = [self methodForSelector: remSel];
-		  /*
-		   * We need to retain the object so that when we remove the
-		   * first equal object we don't get left with a bad object
-		   * pointer for later comparisons.
-		   */
-		  // RETAIN(anObject);
-		}
-	      (*rem)(self, remSel, i);
+              [self removeObjectAtIndex: i];
 	      break;  // since this is a set we should only have one copy...
 	    }
 	}
-      //if (rem != 0)
-      // {
-      //  RELEASE(anObject);
-      // }
     }
 }
 
@@ -1804,7 +1763,7 @@ static SEL	rlSel;
       [self removeAllObjects];
       [self addObjectsFromArray: res];
 
-      // RELEASE(res);
+      RELEASE(res);
       GS_ENDIDBUF();
     }
 }
@@ -1813,11 +1772,12 @@ static SEL	rlSel;
            options: (NSSortOptions)options
    usingComparator: (NSComparator)comparator
 {
+  // FIXME: Implementation missing
 }
 
 - (void) intersectOrderedSet: (NSOrderedSet *)other
 {
-    if (other != self)
+  if (other != self)
     {
       id keys = [self objectEnumerator];
       id key;
