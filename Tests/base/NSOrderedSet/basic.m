@@ -146,12 +146,6 @@ int main()
   PASS(testObj != nil && [testObj count] == 1,
 	   "cannot create an ordered set with multiple like elements");
 
-  id objs2[] = {@"Hello"};
-  testObj = [NSOrderedSet orderedSetWithObjects: objs2 count: 2];
-  [testObjs addObject: testObj];
-  PASS(testObj != nil && [testObj count] == 1,
-	   "Does not throw exception when count != to number of elements");
-
   NSMutableArray *arr = [NSMutableArray array];
   [arr addObject: @"Hello"];
   [arr addObject: @"World"];
