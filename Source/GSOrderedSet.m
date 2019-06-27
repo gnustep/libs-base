@@ -243,11 +243,6 @@ static Class	mutableSetClass;
     }
 }
 
-- (void) addObject: (id)anObject
-{
-  [self insertObject: anObject atIndex: [self count]];
-}
-
 - (void) insertObject: (id)object atIndex: (NSUInteger)index
 {
   GSIArrayItem item;
@@ -271,13 +266,6 @@ static Class	mutableSetClass;
 {
   _version++;
   GSIArrayRemoveItemAtIndex(&array, index);
-}
-
-- (void) replaceObjectAtIndex: (NSUInteger)index
-		   withObject: (id)obj
-{
-  [self removeObjectAtIndex: index];
-  [self insertObject: obj atIndex: index];
 }
 
 - (id) init
