@@ -1159,7 +1159,7 @@ static SEL	rlSel;
 
 - (BOOL) isSubsetOfOrderedSet: (NSOrderedSet *)otherSet
 {
-  id    so = nil, oo = nil;
+  id    so, oo;
   NSEnumerator *selfEnum = [self objectEnumerator];
   NSEnumerator *otherEnum = [otherSet objectEnumerator];
   NSUInteger l = [self count];
@@ -1177,9 +1177,9 @@ static SEL	rlSel;
     }
 
   so = [selfEnum nextObject]; // get first object in enum...
-  while((oo = [otherEnum nextObject]) != nil)
+  while ((oo = [otherEnum nextObject]) != nil)
     {
-      if([oo isEqual: so])  // if object is equal advance
+      if ([oo isEqual: so])  // if object is equal advance
 	{
 	  so = [selfEnum nextObject];
 	  if(so == nil)
@@ -1194,18 +1194,30 @@ static SEL	rlSel;
 
 - (BOOL) isSubsetOfSet: (NSSet *)otherSet
 {
-    id	o = nil, e = nil;
+  id	o, e;
+  NSUInteger l = [self count];
 
-  // -1. If this set is empty, this method should return NO.
-  if ([self count] == 0)
-    return NO;
-
-  // 0. Loop for all members in otherSet
-  e = [otherSet objectEnumerator];
-  while ((o = [e nextObject])) // 1. pick a member from otherSet.
+  // -1. If this set is empty, this method should return YES.
+  if (l == 0)
     {
-      if ([self containsObject: o] == NO)    // 2. check the member is in this set(self).
-        return NO;
+      return YES;
+    }
+
+  // If count of set is more than otherSet it's not a subset
+  if (l > [otherSet count])
+    {
+      return NO;
+    }
+
+  // 0. Loop for all members in self
+  e = [self objectEnumerator];
+  while ((o = [e nextObject])) // 1. pick a member from self.
+    {
+      if ([otherSet containsObject: o] == NO)    // 2. check the member is in otherset.
+        {
+          NSLog(@"Object not contained %@", o);
+          return NO;
+        }
     }
   return YES; // if all members are in set.
 }

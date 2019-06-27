@@ -122,6 +122,7 @@ int main()
   NSMutableOrderedSet *mutableTest1, *mutableTest2;
   NSMutableArray *testObjs = [NSMutableArray new];
   NSData *data = [stringData dataUsingEncoding: NSUTF8StringEncoding];
+  NSMutableSet *testSet;
 
   testObj = [NSOrderedSet new];
   [testObjs addObject: testObj];
@@ -228,6 +229,13 @@ int main()
   PASS(isSubset,
        "mutableTest2 is subset of mutableTest1");
 
+  testSet = [NSMutableSet set];
+  [testSet addObject: o7];
+  [testSet addObject: o8];
+  isSubset = [mutableTest2 isSubsetOfSet: testSet];
+  PASS(isSubset,
+       "mutableTest2 is subset of testSet");
+
   id o9 = @"Hello";
   id o10 = @"World";
   id o11 = @"Ready";
@@ -241,6 +249,12 @@ int main()
   isSubset = [mutableTest2 isSubsetOfOrderedSet: mutableTest1];
   PASS(isSubset == NO,
        "mutableTest2 is not subset of mutableTest1");
+
+  testSet = [NSMutableSet set];
+  [testSet addObject: o9];
+  isSubset = [mutableTest2 isSubsetOfSet: testSet];
+  PASS(isSubset == NO,
+       "mutableTest2 is not subset of testSet");
 
   o9 = @"Hello";
   o10 = @"World";
@@ -259,6 +273,15 @@ int main()
   isSubset = [mutableTest2 isSubsetOfOrderedSet: mutableTest1];
   PASS(isSubset,
        "mutableTest2 is subset of mutableTest1");
+
+  testSet = [NSMutableSet set];
+  [testSet addObject: o9];
+  [testSet addObject: o10];
+  [testSet addObject: o12];
+  [testSet addObject: o11];
+  isSubset = [mutableTest2 isSubsetOfSet: testSet];
+  PASS(isSubset,
+       "mutableTest2 is subset of testSet");
 
   o9 = @"Hello";
   o10 = @"World";
