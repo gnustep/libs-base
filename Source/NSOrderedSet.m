@@ -1589,34 +1589,22 @@ static SEL	rlSel;
 {
   NSUInteger count = [indexes count], i = 0;
   NSUInteger indexArray[count];
-  NSUInteger c = [self count];
-  NSRange range = NSMakeRange(0,c);
-  
-  GS_BEGINIDBUF(objs, count);
 
+  // Remove the objects
+  [self removeObjectsAtIndexes: indexes];
+  
   // Get the indexes
   [indexes getIndexes: indexArray
 	     maxCount: count
 	 inIndexRange: NULL];
-
-  // Get the objects from this set
-  [self getObjects: objs range: range];
 
   // Iterate over the indexes and replace the objs
   for (i = 0; i < count; i++)
     {
       id obj = [objects objectAtIndex: i];
       NSUInteger indx = indexArray[i];
-      objs[indx] = obj;
+      [self insertObject: obj atIndex: indx];
     }
-
-  // Remove all objects in this set...
-  [self removeAllObjects];
-
-  // Rebuild set...
-  [self addObjects: objs count: c];
-
-  GS_ENDIDBUF();
 }
 
 - (void) replaceObjectsInRange: (NSRange)aRange
