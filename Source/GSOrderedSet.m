@@ -40,13 +40,7 @@
 #import "GSDispatch.h"
 #import "GSSorting.h"
 
-#define	GSI_ARRAY_TYPE	NSRange
-#define	GSI_ARRAY_NO_RELEASE	0
-#define	GSI_ARRAY_NO_RETAIN	0
 #define GSI_ARRAY_TYPES       GSUNION_OBJ
-
-#define GSI_ARRAY_RELEASE(A, X)	[(X).obj release]
-#define GSI_ARRAY_RETAIN(A, X)	[(X).obj retain]
 
 #import "GNUstepBase/GSIArray.h"
 
@@ -230,7 +224,6 @@ static Class	mutableSetClass;
       if(![self containsObject: obj])
 	{
 	  GSIArrayAddItem(&array, item);
-	  RETAIN(obj);
 	}
     }
   return self;
@@ -267,7 +260,6 @@ static Class	mutableSetClass;
 	{
 	  item.obj = object;
 	  GSIArrayInsertItem(&array, item, index);
-	  RETAIN(object);
 	  _version++;
 	}
     }
