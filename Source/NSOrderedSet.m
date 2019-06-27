@@ -62,12 +62,9 @@ static Class NSMutableOrderedSet_abstract_class;
 static Class NSOrderedSet_concrete_class;
 static Class NSMutableOrderedSet_concrete_class;
 
-static SEL	addSel;
-static SEL	countSel;
 static SEL	eqSel;
 static SEL	oaiSel;
 static SEL	remSel;
-static SEL	rlSel;
 
 + (id) allocWithZone: (NSZone*)z
 {
@@ -87,12 +84,9 @@ static SEL	rlSel;
     {
       [self setVersion: 1];
 
-      addSel = @selector(addObject:);
-      countSel = @selector(count);
       eqSel = @selector(isEqual:);
       oaiSel = @selector(objectAtIndex:);
       remSel = @selector(removeObjectAtIndex:);
-      rlSel = @selector(removeLastObject);
 
       NSOrderedSet_abstract_class = self;
       NSOrderedSet_concrete_class = [GSOrderedSet class];
