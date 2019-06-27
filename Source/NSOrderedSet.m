@@ -481,10 +481,6 @@ static SEL	rlSel;
   id objs[] = {obj};
   
   self = [self initWithObjects: objs count: 1];
-  if(self == nil)
-    {
-      NSLog(@"Problem initializing with one element");
-    }
   return self;
 }
 
@@ -616,8 +612,7 @@ static SEL	rlSel;
 
 - (instancetype) init
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return [self initWithObjects: NULL count:0];
 }
 
 - (NSUInteger) count // required override
@@ -1151,9 +1146,11 @@ static SEL	rlSel;
 
 - (BOOL) isSubsetOfOrderedSet: (NSOrderedSet *)otherSet
 {
-  id    f = nil;
-  NSUInteger s = 0, l = [self count], i = 0;
-  
+  id    so = nil, oo = nil;
+  NSEnumerator *selfEnum = [self objectEnumerator];
+  NSEnumerator *otherEnum = [otherSet objectEnumerator];
+  NSUInteger l = [self count];
+ 
   // -1. If this set is empty, this method should return YES.
   if (l == 0)
     {
@@ -1166,28 +1163,20 @@ static SEL	rlSel;
       return NO;
     }
   
-  // Find the first object's index in otherset, if not found
-  // it's not a subset...
-  f = [self firstObject];
-  s = [otherSet indexOfObject: f];
-  if(s == NSNotFound)
+  so = [selfEnum nextObject]; // get first object in enum...
+  while((oo = [otherEnum nextObject]) != nil)
     {
-      return NO;
-    }
-  
-  for(i = 0; i < l; i++)
-    {
-      NSUInteger j = s + i;
-      id oo = [otherSet objectAtIndex: j];
-      id o = [self objectAtIndex: i];
-
-      if([o isEqual: oo] == NO)
+      if([oo isEqual: so])  // if object is equal advance
 	{
-	  return NO;
+	  so = [selfEnum nextObject];
+	  if(so == nil)
+	    {
+	      return YES; // if we are done with iterating self, then it's a subset.
+	    }
 	}
     }
-  
-  return YES; // if all members are in set.
+    
+  return NO; // if all members are in set.
 }
 
 - (BOOL) isSubsetOfSet:(NSSet *)otherSet

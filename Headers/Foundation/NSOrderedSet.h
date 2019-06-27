@@ -27,6 +27,8 @@
 #ifndef _NSOrderedSet_h_GNUSTEP_BASE_INCLUDE
 #define _NSOrderedSet_h_GNUSTEP_BASE_INCLUDE
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST)
+
 #import <GNUstepBase/GSVersionMacros.h>
 #import <GNUstepBase/GSBlocks.h>
 
@@ -205,5 +207,7 @@ extern "C" {
 #if	defined(__cplusplus)
 }
 #endif
+
+#endif /* OS_API_VERSION check */
 
 #endif /* _NSOrderedSet_h_GNUSTEP_BASE_INCLUDE */
