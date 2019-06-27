@@ -1215,7 +1215,6 @@ static SEL	rlSel;
     {
       if ([otherSet containsObject: o] == NO)    // 2. check the member is in otherset.
         {
-          NSLog(@"Object not contained %@", o);
           return NO;
         }
     }
