@@ -1456,15 +1456,8 @@ static SEL	remSel;
              maxCount: count
          inIndexRange: NULL];
 
-  if (count > 0)
-    {
-      IMP	rem = [self methodForSelector: remSel];
-
-      while (count--)
-        {
-          (*rem)(self, remSel, indexArray[count]);
-        }
-    }
+  [self _removeObjectsFromIndices: indexArray
+		       numIndices: count];
 }
 
 - (void) removeObjectsInArray: (NSArray *)otherArray
