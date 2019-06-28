@@ -1462,6 +1462,7 @@ static SEL	rlSel;
   [self subclassResponsibility: _cmd];
 }
 
+/*
 - (void) _removeObjectsFromIndices: (NSUInteger*)indices
 			numIndices: (NSUInteger)count
 {
@@ -1512,6 +1513,23 @@ static SEL	rlSel;
 	    }
 	}
       GS_ENDITEMBUF();
+    }
+}
+*/
+
+- (void) _removeObjectsFromIndices: (NSUInteger*)indices
+			numIndices: (NSUInteger)count
+{
+  if (count > 0)
+    {
+      NSUInteger	i;
+      IMP	rem = [self methodForSelector: remSel];
+      
+      for(i = 0; i < count; i++)
+	{
+	  NSUInteger idx = indices[i];
+	  (*rem)(self, remSel, idx);
+	}
     }
 }
 
@@ -1679,7 +1697,6 @@ static SEL	rlSel;
 {
   NSUInteger count = [self count];
   
-  GS_BEGINIDBUF(objs, count);
   if (index >= count)
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
@@ -1690,18 +1707,29 @@ static SEL	rlSel;
     }
   if (index != otherIndex)
     {
-      id tmp = nil;
-      NSRange range = NSMakeRange(0,[self count]);
-      
-      [self getObjects: objs range: range]; 
-      tmp = objs[index];
-      objs[index] = objs[otherIndex];
-      objs[otherIndex] = tmp;
-      
-      [self removeAllObjects];
-      [self addObjects: objs count: count];
+      NSUInteger min = 0, max = 0;
+      id tmpMax = nil, tmpMin = nil;
+
+      if(index > otherIndex)
+	{
+	  min = otherIndex;
+	  max = index;
+	}
+      else  // since we know they are not equal
+	{
+	  min = index;
+	  max = otherIndex;
+	}
+
+      tmpMax = [self objectAtIndex: max];
+      [self removeObjectAtIndex: max];
+      tmpMin = [self objectAtIndex: min];
+      [self removeObjectAtIndex: min];
+
+      // Exchange objects...
+      [self insertObject: tmpMax atIndex: min];
+      [self insertObject: tmpMin atIndex: max];
     }
-  GS_ENDIDBUF();
 }
 
 - (void)filterUsingPredicate:(NSPredicate *)predicate
