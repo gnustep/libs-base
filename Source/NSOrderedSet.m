@@ -62,12 +62,9 @@ static Class NSMutableOrderedSet_abstract_class;
 static Class NSOrderedSet_concrete_class;
 static Class NSMutableOrderedSet_concrete_class;
 
-static SEL	addSel;
-static SEL	countSel;
 static SEL	eqSel;
 static SEL	oaiSel;
 static SEL	remSel;
-static SEL	rlSel;
 
 + (id) allocWithZone: (NSZone*)z
 {
@@ -86,18 +83,38 @@ static SEL	rlSel;
   if (self == [NSOrderedSet class])
     {
       [self setVersion: 1];
-      
-      addSel = @selector(addObject:);
-      countSel = @selector(count);
+
       eqSel = @selector(isEqual:);
       oaiSel = @selector(objectAtIndex:);
       remSel = @selector(removeObjectAtIndex:);
-      rlSel = @selector(removeLastObject);
 
       NSOrderedSet_abstract_class = self;
       NSOrderedSet_concrete_class = [GSOrderedSet class];
       [NSMutableSet class];
     }
+}
+
+
+- (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel
+{
+  NSDictionary *info;
+  NSException  *exception;
+  NSString     *reason;
+  NSUInteger    count = [self count];
+
+  info = [NSDictionary dictionaryWithObjectsAndKeys:
+    [NSNumber numberWithUnsignedInteger: index], @"Index",
+    [NSNumber numberWithUnsignedInteger: count], @"Count",
+    self, @"GSMutableSet", nil, nil];
+
+  reason = [NSString stringWithFormat:
+    @"Index %"PRIuPTR" is out of range %d (in '%@')",
+    index, count, NSStringFromSelector(sel)];
+
+  exception = [NSException exceptionWithName: NSRangeException
+		                      reason: reason
+                                    userInfo: info];
+  [exception raise];
 }
 
 - (Class) classForCoder
@@ -108,23 +125,6 @@ static SEL	rlSel;
 // NSCoding
 - (instancetype) initWithCoder: (NSCoder *)coder
 {
-  /*
-  Class		c;
-
-  c = object_getClass(self);
-  if (c == NSOrderedSet_abstract_class)
-    {
-      DESTROY(self);
-      self = [NSOrderedSet_concrete_class allocWithZone: NSDefaultMallocZone()];
-      return [self initWithCoder: coder];
-    }
-  else if (c == NSMutableOrderedSet_abstract_class)
-    {
-      DESTROY(self);
-      self = [NSMutableOrderedSet_concrete_class allocWithZone: NSDefaultMallocZone()];
-      return [self initWithCoder: coder];
-    }
-  */
   if ([coder allowsKeyedCoding])
     {
       id	array;
@@ -186,13 +186,13 @@ static SEL	rlSel;
       /* HACK ... MacOS-X seems to code differently if the coder is an
        * actual instance of NSKeyedArchiver
        */
-      
+
       // Collect all objects...
-      while((obj = [en nextObject]) != nil)
+      while ((obj = [en nextObject]) != nil)
 	{
 	  [array addObject: obj];
 	}
-      
+
       if ([aCoder class] == [NSKeyedArchiver class])
 	{
 	  [(NSKeyedArchiver*)aCoder _encodeArrayOfObjects: array
@@ -224,7 +224,7 @@ static SEL	rlSel;
 	{
 	  [aCoder encodeValueOfObjCType: @encode(id) at: &o];
 	}
-    } 
+    }
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -239,7 +239,7 @@ static SEL	rlSel;
    return [copy initWithOrderedSet: self copyItems: NO];
 }
 
-// NSFastEnumeration 
+// NSFastEnumeration
 - (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState *)state
 				   objects: (__unsafe_unretained id[])stackbuf
 				     count: (NSUInteger)len
@@ -265,16 +265,7 @@ static SEL	rlSel;
    */
   if (count > 0)
     {
-      // IMP	imp = [self methodForSelector: @selector(objectAtIndex:)];
-      // int	i;
-      // int	p = state->state;
-      
-
       [self getObjects: stackbuf range: NSMakeRange(state->state, count)];
-	/*for (i = 0; i < count; i++, p++)
-	{
-	  stackbuf[i] = (*imp)(self, @selector(objectAtIndex:), p);
-	  }*/
       state->state += count;
     }
   else
@@ -291,15 +282,15 @@ static SEL	rlSel;
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()] init]);
 }
 
-+ (instancetype) orderedSetWithArray:(NSArray *)objects
++ (instancetype) orderedSetWithArray: (NSArray *)objects
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
 			 initWithArray: objects]);
 }
 
-+ (instancetype) orderedSetWithArray:(NSArray *)objects
-                               range:(NSRange)range
-                           copyItems:(BOOL)flag
++ (instancetype) orderedSetWithArray: (NSArray *)objects
+                               range: (NSRange)range
+                           copyItems: (BOOL)flag
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
 			 initWithArray: objects
@@ -307,13 +298,13 @@ static SEL	rlSel;
 			     copyItems: flag]);
 }
 
-+ (instancetype) orderedSetWithObject:(id)anObject
++ (instancetype) orderedSetWithObject: (id)anObject
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
 			 initWithObject: anObject]);
 }
 
-+ (instancetype) orderedSetWithObjects:(id)firstObject, ...
++ (instancetype) orderedSetWithObjects: (id)firstObject, ...
 {
   id	set;
   GS_USEIDLIST(firstObject,
@@ -322,28 +313,28 @@ static SEL	rlSel;
   return AUTORELEASE(set);
  }
 
-+ (instancetype) orderedSetWithObjects:(const id [])objects
-                                 count:(NSUInteger) count
++ (instancetype) orderedSetWithObjects: (const id [])objects
+                                 count: (NSUInteger) count
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
 		       initWithObjects: objects count: count]);
 }
 
-+ (instancetype) orderedSetWithOrderedSet:(NSOrderedSet *)aSet
++ (instancetype) orderedSetWithOrderedSet: (NSOrderedSet *)aSet
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
 		       initWithOrderedSet: aSet]);
 }
 
 
-+ (instancetype) orderedSetWithSet:(NSSet *)aSet
++ (instancetype) orderedSetWithSet: (NSSet *)aSet
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
 		       initWithSet: aSet]);
 }
 
-+ (instancetype) orderedSetWithSet:(NSSet *)aSet
-                         copyItems:(BOOL)flag
++ (instancetype) orderedSetWithSet: (NSSet *)aSet
+                         copyItems: (BOOL)flag
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
 			initWithSet: aSet
@@ -351,7 +342,7 @@ static SEL	rlSel;
 }
 
 // instance methods
-- (instancetype) initWithArray:(NSArray *)other
+- (instancetype) initWithArray: (NSArray *)other
 {
   unsigned	count = [other count];
 
@@ -384,20 +375,20 @@ static SEL	rlSel;
   return nil;
 }
 
-- (instancetype) initWithArray:(NSArray *)other copyItems:(BOOL)flag
+- (instancetype) initWithArray: (NSArray *)other copyItems: (BOOL)flag
 {
   unsigned	count = [other count];
   unsigned      j = count;
-  
+
   if (count == 0)
     {
       return [self init];
     }
-  
+
   GS_BEGINIDBUF(objs, count);
   {
     unsigned	i;
-    
+
     for (i = 0; i < count; i++)
       {
 	if (flag == NO)
@@ -410,10 +401,10 @@ static SEL	rlSel;
 	  }
       }
   }
-  
+
   self = [self initWithObjects: objs count: count];
-  
-  if(flag == YES)
+
+  if (flag == YES)
     {
       while(j--)
 	{
@@ -424,13 +415,13 @@ static SEL	rlSel;
   return self;
 }
 
-- (instancetype) initWithArray:(NSArray *)other
-                         range:(NSRange)range
-                     copyItems:(BOOL)flag
+- (instancetype) initWithArray: (NSArray *)other
+                         range: (NSRange)range
+                     copyItems: (BOOL)flag
 {
   unsigned	count = [other count];
   unsigned      i = 0, j = 0;
-    
+
   if (count == 0)
     {
       return [self init];
@@ -440,13 +431,13 @@ static SEL	rlSel;
   {
     unsigned      loc = range.location;
     unsigned      len = range.length;
-    
+
     for (i = 0; i < count; i++)
       {
-	if(i >= loc && j < len)
+	if (i >= loc && j < len)
 	  {
-	    if(flag == YES)
-	      {		  
+	    if (flag == YES)
+	      {
 		objs[i] = [[other objectAtIndex: i] copy];
 	      }
 	    else
@@ -455,8 +446,8 @@ static SEL	rlSel;
 	      }
 	    j++;
 	  }
-	
-	if(j >= len)
+
+	if (j >= len)
 	  {
 	    break;
 	  }
@@ -464,7 +455,7 @@ static SEL	rlSel;
   }
   self = [self initWithObjects: objs count: count];
 
-  if(flag == YES)
+  if (flag == YES)
     {
       while(j--)
 	{
@@ -479,12 +470,12 @@ static SEL	rlSel;
 - (instancetype) initWithObject: (id)obj
 {
   id objs[] = {obj};
-  
+
   self = [self initWithObjects: objs count: 1];
   return self;
 }
 
-- (instancetype) initWithObjects:(id)firstObject, ...
+- (instancetype) initWithObjects: (id)firstObject, ...
 {
   GS_USEIDLIST(firstObject,
     self = [self initWithObjects: __objects count: __count]);
@@ -497,20 +488,20 @@ static SEL	rlSel;
  * and needs to be re-implemented in subclasses in order to have all
  * other initialisers work.
  */
-- (instancetype) initWithObjects:(const id [])objects // required override.
-                           count:(NSUInteger)count
+- (instancetype) initWithObjects: (const id [])objects // required override.
+                           count: (NSUInteger)count
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
-- (instancetype) initWithOrderedSet:(NSOrderedSet *)aSet
+- (instancetype) initWithOrderedSet: (NSOrderedSet *)aSet
 {
   return [self initWithOrderedSet: aSet copyItems: NO];
 }
 
-- (instancetype) initWithOrderedSet:(NSOrderedSet *)other
-                          copyItems:(BOOL)flag
+- (instancetype) initWithOrderedSet: (NSOrderedSet *)other
+                          copyItems: (BOOL)flag
 {
   unsigned	c = [other count];
   id		o, e = [other objectEnumerator];
@@ -520,9 +511,13 @@ static SEL	rlSel;
   while ((o = [e nextObject]))
     {
       if (flag)
-	os[i] = [o copy];
+        {
+          os[i] = [o copy];
+        }
       else
-	os[i] = o;
+        {
+          os[i] = o;
+        }
       i++;
     }
   self = [self initWithObjects: os count: c];
@@ -537,9 +532,9 @@ static SEL	rlSel;
   return self;
 }
 
-- (instancetype) initWithOrderedSet:(NSOrderedSet *)other
-                              range:(NSRange)range
-                          copyItems:(BOOL)flag
+- (instancetype) initWithOrderedSet: (NSOrderedSet *)other
+                              range: (NSRange)range
+                          copyItems: (BOOL)flag
 {
   unsigned	c = [other count];
   id		o, e = [other objectEnumerator];
@@ -550,22 +545,26 @@ static SEL	rlSel;
 
   while ((o = [e nextObject]))
     {
-      if(i >= loc && j < len)
+      if (i >= loc && j < len)
 	{
 	  if (flag)
-	    os[i] = [o copy];
+            {
+              os[i] = [o copy];
+            }
 	  else
-	    os[i] = o;
+            {
+              os[i] = o;
+            }
 	  j++;
 	}
       i++;
 
-      if(j >= len)
+      if (j >= len)
 	{
 	  break;
 	}
     }
-  
+
   self = [self initWithObjects: os count: c];
   if (flag)
     {
@@ -578,14 +577,14 @@ static SEL	rlSel;
   return self;
 }
 
-- (instancetype) initWithSet:(NSSet *)aSet
+- (instancetype) initWithSet: (NSSet *)aSet
 {
   return [self initWithSet: aSet copyItems: NO];
 }
 
-- (instancetype) initWithSet:(NSSet *)other copyItems:(BOOL)flag
+- (instancetype) initWithSet: (NSSet *)other copyItems: (BOOL)flag
 {
-    unsigned	c = [other count];
+  unsigned	c = [other count];
   id		o, e = [other objectEnumerator];
   unsigned	i = 0;
   GS_BEGINIDBUF(os, c);
@@ -593,9 +592,13 @@ static SEL	rlSel;
   while ((o = [e nextObject]))
     {
       if (flag)
-	os[i] = [o copy];
+        {
+          os[i] = [o copy];
+        }
       else
-	os[i] = o;
+        {
+          os[i] = o;
+        }
       i++;
     }
   self = [self initWithObjects: os count: c];
@@ -630,22 +633,22 @@ static SEL	rlSel;
     }
   return YES;
 }
-    
-- (void) enumerateObjectsAtIndexes:(NSIndexSet *)indexSet
-                           options:(NSEnumerationOptions)opts
-                        usingBlock:(GSEnumeratorBlock)aBlock
+
+- (void) enumerateObjectsAtIndexes: (NSIndexSet *)indexSet
+                           options: (NSEnumerationOptions)opts
+                        usingBlock: (GSEnumeratorBlock)aBlock
 {
   [[self objectsAtIndexes: indexSet] enumerateObjectsWithOptions: opts
 						      usingBlock: aBlock];
 }
 
-- (void) enumerateObjectsUsingBlock:(GSEnumeratorBlock)aBlock
+- (void) enumerateObjectsUsingBlock: (GSEnumeratorBlock)aBlock
 {
   [self enumerateObjectsWithOptions: 0 usingBlock: aBlock];
 }
 
-- (void) enumerateObjectsWithOptions:(NSEnumerationOptions)opts
-                          usingBlock:(GSEnumeratorBlock)aBlock
+- (void) enumerateObjectsWithOptions: (NSEnumerationOptions)opts
+                          usingBlock: (GSEnumeratorBlock)aBlock
 {
   NSUInteger count = 0;
   BLOCK_SCOPE BOOL shouldStop = NO;
@@ -686,7 +689,9 @@ static SEL	rlSel;
 {
   NSUInteger count = [self count];
   if (count == 0)
-    return nil;
+    {
+      return nil;
+    }
   return [self objectAtIndex: 0];
 }
 
@@ -694,7 +699,9 @@ static SEL	rlSel;
 {
    NSUInteger count = [self count];
   if (count == 0)
-    return nil;
+    {
+      return nil;
+    }
   return [self objectAtIndex: count - 1];
 }
 
@@ -706,7 +713,7 @@ static SEL	rlSel;
 
 - (id) objectAtIndexedSubscript: (NSUInteger)index
 {
-  return[self objectAtIndex: index];
+  return [self objectAtIndex: index];
 }
 
 - (NSArray *) objectsAtIndexes: (NSIndexSet *)indexes
@@ -723,17 +730,17 @@ static SEL	rlSel;
   return GS_IMMUTABLE(group);
 }
 
-- (NSUInteger) indexOfObject:(id)anObject
+- (NSUInteger) indexOfObject: (id)anObject
 {
   NSUInteger	c = [self count];
-  
+
   if (c > 0 && anObject != nil)
     {
       NSUInteger	i;
       IMP	get = [self methodForSelector: oaiSel];
       BOOL	(*eq)(id, SEL, id)
 	= (BOOL (*)(id, SEL, id))[anObject methodForSelector: eqSel];
-      
+
       for (i = 0; i < c; i++)
 	if ((*eq)(anObject, eqSel, (*get)(self, oaiSel, i)) == YES)
 	  return i;
@@ -827,22 +834,22 @@ static SEL	rlSel;
   return NSNotFound;
 }
 
-- (NSUInteger) indexOfObjectAtIndexes:(NSIndexSet *)indexSet
-                              options:(NSEnumerationOptions)opts
-                          passingTest:(GSPredicateBlock)predicate
+- (NSUInteger) indexOfObjectAtIndexes: (NSIndexSet *)indexSet
+                              options: (NSEnumerationOptions)opts
+                          passingTest: (GSPredicateBlock)predicate
 {
   return [[self objectsAtIndexes: indexSet]
         indexOfObjectWithOptions: 0
                      passingTest: predicate];
 }
 
-- (NSUInteger) indexOfObjectPassingTest:(GSPredicateBlock)predicate
+- (NSUInteger) indexOfObjectPassingTest: (GSPredicateBlock)predicate
 {
   return [self indexOfObjectWithOptions: 0 passingTest: predicate];
 }
 
-- (NSUInteger) indexOfObjectWithOptions:(NSEnumerationOptions)opts
-                            passingTest:(GSPredicateBlock)predicate
+- (NSUInteger) indexOfObjectWithOptions: (NSEnumerationOptions)opts
+                            passingTest: (GSPredicateBlock)predicate
 {
    /* TODO: Concurrency. */
   id<NSFastEnumeration> enumerator = self;
@@ -902,22 +909,22 @@ static SEL	rlSel;
   return index;
 }
 
-- (NSIndexSet *) indexesOfObjectsAtIndexes:(NSIndexSet *)indexSet
-				   options:(NSEnumerationOptions)opts
-			       passingTest:(GSPredicateBlock)predicate
+- (NSIndexSet *) indexesOfObjectsAtIndexes: (NSIndexSet *)indexSet
+				   options: (NSEnumerationOptions)opts
+			       passingTest: (GSPredicateBlock)predicate
 {
   return [[self objectsAtIndexes: indexSet]
 	   indexesOfObjectsWithOptions: opts
 			   passingTest: predicate];
 }
 
-- (NSIndexSet *) indexesOfObjectsPassingTest:(GSPredicateBlock)predicate
+- (NSIndexSet *) indexesOfObjectsPassingTest: (GSPredicateBlock)predicate
 {
   return [self indexesOfObjectsWithOptions: 0 passingTest: predicate];
 }
 
-- (NSIndexSet *) indexesOfObjectsWithOptions:(NSEnumerationOptions)opts
-				 passingTest:(GSPredicateBlock)predicate
+- (NSIndexSet *) indexesOfObjectsWithOptions: (NSEnumerationOptions)opts
+				 passingTest: (GSPredicateBlock)predicate
 {
   /* TODO: Concurrency. */
   NSMutableIndexSet     *set = [NSMutableIndexSet indexSet];
@@ -981,11 +988,11 @@ static SEL	rlSel;
 
 - (NSEnumerator *) reverseObjectEnumerator
 {
-    [self subclassResponsibility: _cmd];
-    return nil;
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
-- (NSOrderedSet *)reversedOrderedSet
+- (NSOrderedSet *) reversedOrderedSet
 {
   NSEnumerator *e = [self reverseObjectEnumerator];
   NSMutableArray *a = [NSMutableArray arrayWithCapacity: [self count]];
@@ -1003,60 +1010,55 @@ static SEL	rlSel;
 
 - (void) getObjects: (__unsafe_unretained id[])aBuffer range: (NSRange)aRange
 {
-  NSUInteger i, j = 0, c = [self count], e = aRange.location + aRange.length;
+  NSUInteger i, j = 0;
+  NSUInteger c = [self count];
+  NSUInteger e = aRange.location + aRange.length;
   IMP	get = [self methodForSelector: oaiSel];
 
   GS_RANGE_CHECK(aRange, c);
 
   for (i = aRange.location; i < e; i++)
-    aBuffer[j++] = (*get)(self, oaiSel, i);
+    {
+      aBuffer[j++] = (*get)(self, oaiSel, i);
+    }
 }
 
 // Key-Value Observing Support
 
-- (void)addObserver: (NSObject *)observer 
-         forKeyPath: (NSString *)keyPath 
-            options: (NSKeyValueObservingOptions)options 
-            context: (void *)context
+- (void) addObserver: (NSObject *)observer
+          forKeyPath: (NSString *)keyPath
+             options: (NSKeyValueObservingOptions)options
+             context: (void *)context
 {
-  NSException *exception = nil;
-  NSString *reason = @"NSOrderedSet does not support KVO";
-  exception = [NSException exceptionWithName: NSGenericException
-		                      reason: reason
-                                    userInfo: nil];
-  [exception raise];
+  [[NSException exceptionWithName: NSGenericException
+                           reason: @"NSOrderedSet does not support KVO"
+                         userInfo: nil] raise];
 }
 
-- (void)removeObserver: (NSObject *)observer
-	    forKeyPath: (NSString *)keyPath
+- (void) removeObserver: (NSObject *)observer
+             forKeyPath: (NSString *)keyPath
 {
-  NSException *exception = nil;
-  NSString *reason = @"NSOrderedSet does not support KVO";
-  exception = [NSException exceptionWithName: NSGenericException
-		                      reason: reason
-                                    userInfo: nil];
-  [exception raise];
+  [[NSException exceptionWithName: NSGenericException
+                           reason: @"NSOrderedSet does not support KVO"
+                         userInfo: nil] raise];
 }
 
-- (void) removeObserver: (NSObject *)observer 
-	     forKeyPath: (NSString *)keyPath 
+- (void) removeObserver: (NSObject *)observer
+	     forKeyPath: (NSString *)keyPath
 		context: (void *)context
 {
-  NSException *exception = nil;
-  NSString *reason = @"NSOrderedSet does not support KVO";
-  exception = [NSException exceptionWithName: NSGenericException
-		                      reason: reason
-                                    userInfo: nil];
-  [exception raise];
+  [[NSException exceptionWithName: NSGenericException
+                           reason: @"NSOrderedSet does not support KVO"
+                         userInfo: nil] raise];
 }
 
 // Key value coding support
 - (void) setValue: (id)value forKey: (NSString*)key
 {
-  volatile id	object = nil;
+  id	object;
   NSEnumerator *e = [self objectEnumerator];
-  
-  while((object = [e nextObject]) != nil)
+
+  while ((object = [e nextObject]) != nil)
     {
       [object setValue: value
 		forKey: key];
@@ -1066,7 +1068,7 @@ static SEL	rlSel;
 - (id) valueForKey: (NSString*)key
 {
   NSEnumerator *e = [self objectEnumerator];
-  id object = nil;
+  id object;
   NSMutableSet *results = [NSMutableSet setWithCapacity: [self count]];
 
   while ((object = [e nextObject]) != nil)
@@ -1074,7 +1076,9 @@ static SEL	rlSel;
       id result = [object valueForKey: key];
 
       if (result == nil)
-        continue;
+        {
+          continue;
+        }
 
       [results addObject: result];
     }
@@ -1087,10 +1091,10 @@ static SEL	rlSel;
   if ([self count] == 0 &&
       [aSet count] == 0)
     return YES;
-  
+
   if (self == aSet)
     return YES;
-  
+
   if ([self count] != [aSet count])
     return NO;
 
@@ -1101,15 +1105,18 @@ static SEL	rlSel;
 - (BOOL) isEqual: (id)other
 {
   if ([other isKindOfClass: [NSOrderedSet class]])
-    return [self isEqualToOrderedSet: other];
+    {
+      return [self isEqualToOrderedSet: other];
+    }
+
   return NO;
 }
 
 // Set operations
 - (BOOL) intersectsOrderedSet: (NSOrderedSet *)otherSet
 {
-  id	o = nil;
-  NSEnumerator *e = nil;
+  id	o;
+  NSEnumerator *e;
 
   // -1. If this set is empty, this method should return NO.
   if ([self count] == 0)
@@ -1146,27 +1153,27 @@ static SEL	rlSel;
 
 - (BOOL) isSubsetOfOrderedSet: (NSOrderedSet *)otherSet
 {
-  id    so = nil, oo = nil;
+  id    so, oo;
   NSEnumerator *selfEnum = [self objectEnumerator];
   NSEnumerator *otherEnum = [otherSet objectEnumerator];
   NSUInteger l = [self count];
- 
+
   // -1. If this set is empty, this method should return YES.
   if (l == 0)
     {
       return YES;
     }
-  
+
   // If count of set is more than otherSet it's not a subset
   if (l > [otherSet count])
     {
       return NO;
     }
-  
+
   so = [selfEnum nextObject]; // get first object in enum...
-  while((oo = [otherEnum nextObject]) != nil)
+  while ((oo = [otherEnum nextObject]) != nil)
     {
-      if([oo isEqual: so])  // if object is equal advance
+      if ([oo isEqual: so])  // if object is equal advance
 	{
 	  so = [selfEnum nextObject];
 	  if(so == nil)
@@ -1175,35 +1182,46 @@ static SEL	rlSel;
 	    }
 	}
     }
-    
+
   return NO; // if all members are in set.
 }
 
-- (BOOL) isSubsetOfSet:(NSSet *)otherSet
+- (BOOL) isSubsetOfSet: (NSSet *)otherSet
 {
-    id	o = nil, e = nil;
+  id	o, e;
+  NSUInteger l = [self count];
 
-  // -1. If this set is empty, this method should return NO.
-  if ([self count] == 0)
-    return NO;
-
-  // 0. Loop for all members in otherSet
-  e = [otherSet objectEnumerator];
-  while ((o = [e nextObject])) // 1. pick a member from otherSet.
+  // -1. If this set is empty, this method should return YES.
+  if (l == 0)
     {
-      if ([self containsObject: o] == NO)    // 2. check the member is in this set(self).
-        return NO;
+      return YES;
+    }
+
+  // If count of set is more than otherSet it's not a subset
+  if (l > [otherSet count])
+    {
+      return NO;
+    }
+
+  // 0. Loop for all members in self
+  e = [self objectEnumerator];
+  while ((o = [e nextObject])) // 1. pick a member from self.
+    {
+      if ([otherSet containsObject: o] == NO)    // 2. check the member is in otherset.
+        {
+          return NO;
+        }
     }
   return YES; // if all members are in set.
 }
 
 // Creating a Sorted Array
-- (NSArray *) sortedArrayUsingDescriptors:(NSArray *)sortDescriptors
+- (NSArray *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors
 {
   NSMutableArray *sortedArray = [NSMutableArray arrayWithArray: [self array]];
-  
+
   [sortedArray sortUsingDescriptors: sortDescriptors];
-  
+
   return GS_IMMUTABLE(sortedArray);
 }
 
@@ -1215,14 +1233,14 @@ static SEL	rlSel;
 
 - (NSArray *)
     sortedArrayWithOptions: (NSSortOptions)options
-           usingComparator: (NSComparator)comparator 
+           usingComparator: (NSComparator)comparator
 {
   return [[self array] sortedArrayWithOptions: options
 			      usingComparator: comparator];
 }
 
 // Filtering Ordered Sets
-- (NSOrderedSet *)filteredOrderedSetUsingPredicate: (NSPredicate *)predicate
+- (NSOrderedSet *) filteredOrderedSetUsingPredicate: (NSPredicate *)predicate
 {
   NSMutableOrderedSet   *result = nil;
   NSEnumerator		*e = [self objectEnumerator];
@@ -1261,12 +1279,12 @@ static SEL	rlSel;
   NSEnumerator *en = [self objectEnumerator];
   NSMutableArray *result = [NSMutableArray arrayWithCapacity: [self count]];
   id o = nil;
-  
+
   while((o = [en nextObject]) != nil)
     {
       [result addObject: o];
     }
-  
+
   return GS_IMMUTABLE(result);
 }
 
@@ -1275,12 +1293,12 @@ static SEL	rlSel;
   NSEnumerator *en = [self objectEnumerator];
   NSMutableSet *result = [NSMutableSet setWithCapacity: [self count]];
   id o = nil;
-  
-  while((o = [en nextObject]) != nil)
+
+  while ((o = [en nextObject]) != nil)
     {
       [result addObject: o];
     }
-  
+
   return GS_IMMUTABLE(result);
 }
 @end
@@ -1309,7 +1327,7 @@ static SEL	rlSel;
     }
 }
 
-+ (instancetype)orderedSetWithCapacity: (NSUInteger)capacity
++ (instancetype) orderedSetWithCapacity: (NSUInteger)capacity
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()] initWithCapacity: capacity]);
 }
@@ -1319,29 +1337,7 @@ static SEL	rlSel;
   return NSMutableOrderedSet_abstract_class;
 }
 
-- (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel
-{
-  NSDictionary *info;
-  NSException  *exception;
-  NSString     *reason;
-  NSUInteger    count = [self count];
-  
-  info = [NSDictionary dictionaryWithObjectsAndKeys:
-    [NSNumber numberWithUnsignedInteger: index], @"Index",
-    [NSNumber numberWithUnsignedInteger: count], @"Count",
-    self, @"GSMutableSet", nil, nil];
-
-  reason = [NSString stringWithFormat:
-    @"Index %"PRIuPTR" is out of range %d (in '%@')",
-    index, count, NSStringFromSelector(sel)];
-
-  exception = [NSException exceptionWithName: NSRangeException
-		                      reason: reason
-                                    userInfo: info];
-  [exception raise];
-}
-
-- (instancetype)initWithCapacity: (NSUInteger)capacity
+- (instancetype) initWithCapacity: (NSUInteger)capacity
 {
   self = [self init];
   return self;
@@ -1357,12 +1353,12 @@ static SEL	rlSel;
   return self;
 }
 
-- (void)addObject:(id)anObject
+- (void) addObject: (id)anObject
 {
-  [self subclassResponsibility: _cmd];
+  [self insertObject: anObject atIndex: [self count]];
 }
 
-- (void)addObjects:(const id[])objects count:(NSUInteger)count
+- (void) addObjects: (const id[])objects count: (NSUInteger)count
 {
   NSUInteger i = 0;
   for (i = 0; i < count; i++)
@@ -1372,7 +1368,7 @@ static SEL	rlSel;
     }
 }
 
-- (void)addObjectsFromArray:(NSArray *)otherArray
+- (void) addObjectsFromArray: (NSArray *)otherArray
 {
   NSEnumerator *en = [otherArray objectEnumerator];
   id obj = nil;
@@ -1382,12 +1378,12 @@ static SEL	rlSel;
     }
 }
 
-- (void)insertObject:(id)object atIndex:(NSUInteger)index  // required override
+- (void) insertObject: (id)object atIndex: (NSUInteger)index  // required override
 {
   [self subclassResponsibility: _cmd];
 }
 
-- (void)setObject:(id)object atIndexedSubscript:(NSUInteger)index
+- (void) setObject: (id)object atIndexedSubscript: (NSUInteger)index
 {
   if ([self count] == index)
     {
@@ -1399,12 +1395,12 @@ static SEL	rlSel;
     }
 }
 
-- (void)insertObjects:(NSArray *)array atIndexes:(NSIndexSet *)indexes
+- (void) insertObjects: (NSArray *)array atIndexes: (NSIndexSet *)indexes
 {
   NSUInteger	index = [indexes firstIndex];
   NSEnumerator	*enumerator = [array objectEnumerator];
   id		object = [enumerator nextObject];
- 
+
   while (object != nil && index != NSNotFound)
     {
       [self insertObject: object atIndex: index];
@@ -1413,109 +1409,27 @@ static SEL	rlSel;
     }
 }
 
-- (void)removeObject:(id)anObject
+- (void) removeObject: (id)anObject
 {
-  NSUInteger	i;
+  NSUInteger index;
 
   if (anObject == nil)
     {
       NSWarnMLog(@"attempt to remove nil object");
       return;
     }
-  i = [self count];
-  if (i > 0)
+
+  index = [self indexOfObject: anObject];
+  if (NSNotFound != index)
     {
-      IMP	rem = 0;
-      IMP	get = [self methodForSelector: oaiSel];
-      BOOL	(*eq)(id, SEL, id)
-	= (BOOL (*)(id, SEL, id))[anObject methodForSelector: eqSel];
-
-      while (i-- > 0)
-	{
-	  id	o = (*get)(self, oaiSel, i);
-
-	  if (o == anObject || (*eq)(anObject, eqSel, o) == YES)
-	    {
-	      if (rem == 0)
-		{
-		  rem = [self methodForSelector: remSel];
-		  /*
-		   * We need to retain the object so that when we remove the
-		   * first equal object we don't get left with a bad object
-		   * pointer for later comparisons.
-		   */
-		  // RETAIN(anObject);
-		}
-	      (*rem)(self, remSel, i);
-	      break;  // since this is a set we should only have one copy...
-	    }
-	}
-      //if (rem != 0)
-      // {
-      //  RELEASE(anObject);
-      // }
+      [self removeObjectAtIndex: index];
     }
 }
 
-- (void)removeObjectAtIndex:(NSUInteger)index  // required override
+- (void) removeObjectAtIndex: (NSUInteger)index  // required override
 {
   [self subclassResponsibility: _cmd];
 }
-
-/*
-- (void) _removeObjectsFromIndices: (NSUInteger*)indices
-			numIndices: (NSUInteger)count
-{
-  if (count > 0)
-    {
-      NSUInteger	to = 0;
-      NSUInteger	from = 0;
-      NSUInteger	i;
-      GS_BEGINITEMBUF(sorted, count, NSUInteger);
-
-      while (from < count)
-	{
-	  NSUInteger	val = indices[from++];
-
-	  i = to;
-	  while (i > 0 && sorted[i-1] > val)
-	    {
-	      i--;
-	    }
-	  if (i == to)
-	    {
-	      sorted[to++] = val;
-	    }
-	  else if (sorted[i] != val)
-	    {
-	      NSUInteger	j = to++;
-
-	      if (sorted[i] < val)
-		{
-		  i++;
-		}
-	      while (j > i)
-		{
-		  sorted[j] = sorted[j-1];
-		  j--;
-		}
-	      sorted[i] = val;
-	    }
-	}
-
-      if (to > 0)
-	{
-	  IMP	rem = [self methodForSelector: remSel];
-
-	  while (to--)
-	    {
-	      (*rem)(self, remSel, sorted[to]);
-	    }
-	}
-      GS_ENDITEMBUF();
-    }
-}
-*/
 
 - (void) _removeObjectsFromIndices: (NSUInteger*)indices
 			numIndices: (NSUInteger)count
@@ -1533,7 +1447,7 @@ static SEL	rlSel;
     }
 }
 
-- (void)removeObjectsAtIndexes:(NSIndexSet *)indexes
+- (void) removeObjectsAtIndexes: (NSIndexSet *)indexes
 {
   NSUInteger count = [indexes count];
   NSUInteger indexArray[count];
@@ -1542,11 +1456,18 @@ static SEL	rlSel;
              maxCount: count
          inIndexRange: NULL];
 
-  [self _removeObjectsFromIndices: indexArray
-		       numIndices: count];
+  if (count > 0)
+    {
+      IMP	rem = [self methodForSelector: remSel];
+
+      while (count--)
+        {
+          (*rem)(self, remSel, indexArray[count]);
+        }
+    }
 }
 
-- (void)removeObjectsInArray:(NSArray *)otherArray
+- (void) removeObjectsInArray: (NSArray *)otherArray
 {
   NSUInteger	c = [otherArray count];
 
@@ -1561,7 +1482,7 @@ static SEL	rlSel;
     }
 }
 
-- (void)removeObjectsInRange:(NSRange)aRange
+- (void) removeObjectsInRange: (NSRange)aRange
 {
   NSUInteger	i;
   NSUInteger	s = aRange.location;
@@ -1570,7 +1491,9 @@ static SEL	rlSel;
   i = aRange.location + aRange.length;
 
   if (c < i)
-    i = c;
+    {
+      i = c;
+    }
 
   if (i > s)
     {
@@ -1583,7 +1506,7 @@ static SEL	rlSel;
     }
 }
 
-- (void)removeAllObjects
+- (void) removeAllObjects
 {
   NSUInteger	c = [self count];
 
@@ -1593,13 +1516,14 @@ static SEL	rlSel;
 	{
 	  [self removeObjectAtIndex: 0];
 	}
-    }  
+    }
 }
 
-- (void)replaceObjectAtIndex:(NSUInteger)index // required override...
-                  withObject:(id)object
+- (void) replaceObjectAtIndex: (NSUInteger)index
+                  withObject: (id)object
 {
-  [self subclassResponsibility: _cmd];
+  [self removeObjectAtIndex: index];
+  [self insertObject: object atIndex: index];
 }
 
 - (void) replaceObjectsAtIndexes: (NSIndexSet *)indexes
@@ -1610,7 +1534,7 @@ static SEL	rlSel;
 
   // Remove the objects
   [self removeObjectsAtIndexes: indexes];
-  
+
   // Get the indexes
   [indexes getIndexes: indexArray
 	     maxCount: count
@@ -1631,20 +1555,23 @@ static SEL	rlSel;
 {
   id o = nil;
   NSUInteger i = count;
-  
+
   if (count < (aRange.location + aRange.length))
-    [NSException raise: NSRangeException
-		 format: @"Replacing objects beyond end of const[] id."];
+    {
+      [NSException raise: NSRangeException
+                  format: @"Replacing objects beyond end of const[] id."];
+    }
+
   [self removeObjectsInRange: aRange];
 
   while (i-- > 0)
     {
       o = objects[i];
-      [self insertObject: o atIndex: aRange.location]; 
+      [self insertObject: o atIndex: aRange.location];
     }
 }
 
-- (void)setObject:(id)anObject atIndex:(NSUInteger)anIndex
+- (void) setObject: (id)anObject atIndex: (NSUInteger)anIndex
 {
   if ([self count] == anIndex)
     {
@@ -1656,7 +1583,7 @@ static SEL	rlSel;
     }
 }
 
-- (void)moveObjectsAtIndexes:(NSIndexSet *)indexes toIndex:(NSUInteger)index
+- (void) moveObjectsAtIndexes: (NSIndexSet *)indexes toIndex: (NSUInteger)index
 {
   NSUInteger count = [indexes count];
   NSUInteger i = count;
@@ -1664,7 +1591,7 @@ static SEL	rlSel;
   NSMutableArray *tmpArray = [NSMutableArray arrayWithCapacity: count];
   id o = nil;
   NSEnumerator *e = nil;
-  
+
   [indexes getIndexes: indexArray
              maxCount: count
          inIndexRange: NULL];
@@ -1677,26 +1604,25 @@ static SEL	rlSel;
       [tmpArray addObject: obj];
     }
 
-    // Remove the originals...  
-  for(i = 0; i < count; i++)
+  // Remove the originals...
+  for (i = 0; i < count; i++)
     {
       NSUInteger index = indexArray[i];
       [self removeObjectAtIndex: index];
     }
-  
+
   // Move the objects
   e = [tmpArray objectEnumerator];
-  while((o = [e nextObject]) != nil)
+  while ((o = [e nextObject]) != nil)
     {
       [self insertObject: o atIndex: index];
     }
 }
 
-- (void) exchangeObjectAtIndex:(NSUInteger)index
-	     withObjectAtIndex:(NSUInteger)otherIndex
+- (void) exchangeObjectAtIndex: (NSUInteger)index
+	     withObjectAtIndex: (NSUInteger)otherIndex
 {
   NSUInteger count = [self count];
-  
   if (index >= count)
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
@@ -1707,39 +1633,37 @@ static SEL	rlSel;
     }
   if (index != otherIndex)
     {
-      NSUInteger min = 0, max = 0;
-      id tmpMax = nil, tmpMin = nil;
+      NSUInteger low, high;
+      id obj1, obj2;
 
-      if(index > otherIndex)
-	{
-	  min = otherIndex;
-	  max = index;
-	}
-      else  // since we know they are not equal
-	{
-	  min = index;
-	  max = otherIndex;
-	}
+      if (index > otherIndex)
+        {
+          high = index;
+          low = otherIndex;
+        }
+      else
+        {
+          high = otherIndex;
+          low = index;
+        }
 
-      tmpMax = [self objectAtIndex: max];
-      [self removeObjectAtIndex: max];
-      tmpMin = [self objectAtIndex: min];
-      [self removeObjectAtIndex: min];
-
-      // Exchange objects...
-      [self insertObject: tmpMax atIndex: min];
-      [self insertObject: tmpMin atIndex: max];
+      obj1 = [self objectAtIndex: low];
+      obj2 = [self objectAtIndex: high];
+      [self removeObjectAtIndex: high];
+      [self removeObjectAtIndex: low];
+      [self insertObject: obj2 atIndex: low];
+      [self insertObject: obj1 atIndex: high];
     }
 }
 
-- (void)filterUsingPredicate:(NSPredicate *)predicate
+- (void) filterUsingPredicate: (NSPredicate *)predicate
 {
   unsigned	count = [self count];
 
   while (count-- > 0)
     {
       id	object = [self objectAtIndex: count];
-	
+
       if ([predicate evaluateWithObject: object] == NO)
         {
           [self removeObjectAtIndex: count];
@@ -1747,7 +1671,7 @@ static SEL	rlSel;
     }
 }
 
-- (void) sortUsingDescriptors:(NSArray *)descriptors
+- (void) sortUsingDescriptors: (NSArray *)descriptors
 {
   NSArray *result = [[self array] sortedArrayUsingDescriptors: descriptors];
   [self removeAllObjects];
@@ -1763,7 +1687,7 @@ static SEL	rlSel;
          usingComparator: (NSComparator)comparator
 {
   NSUInteger count = [self count];
-  
+
   if ((1 < count) && (NULL != comparator))
     {
       NSArray *res = nil;
@@ -1775,7 +1699,7 @@ static SEL	rlSel;
 	{
 	  objects[i] = (*get)(self, oaiSel, i);
 	}
-      
+
       if (options & NSSortStable)
         {
           if (options & NSSortConcurrent)
@@ -1806,20 +1730,21 @@ static SEL	rlSel;
       [self removeAllObjects];
       [self addObjectsFromArray: res];
 
-      // RELEASE(res);
+      RELEASE(res);
       GS_ENDIDBUF();
-    } 
+    }
 }
 
 - (void) sortRange: (NSRange)range
-           options:(NSSortOptions)options
+           options: (NSSortOptions)options
    usingComparator: (NSComparator)comparator
 {
+  // FIXME: Implementation missing
 }
 
-- (void) intersectOrderedSet:(NSOrderedSet *)other
+- (void) intersectOrderedSet: (NSOrderedSet *)other
 {
-    if (other != self)
+  if (other != self)
     {
       id keys = [self objectEnumerator];
       id key;
@@ -1834,11 +1759,11 @@ static SEL	rlSel;
     }
 }
 
-- (void) intersectSet:(NSSet *)other
+- (void) intersectSet: (NSSet *)other
 {
   id keys = [self objectEnumerator];
   id key;
-  
+
   while ((key = [keys nextObject]))
     {
       if ([other containsObject: key] == NO)
@@ -1848,9 +1773,9 @@ static SEL	rlSel;
     }
 }
 
-- (void) minusOrderedSet:(NSOrderedSet *)other
+- (void) minusOrderedSet: (NSOrderedSet *)other
 {
-  if(other == self)
+  if (other == self)
     {
       [self removeAllObjects];
     }
@@ -1858,7 +1783,7 @@ static SEL	rlSel;
     {
       id keys = [other objectEnumerator];
       id key;
-      
+
       while ((key = [keys nextObject]))
 	{
 	  [self removeObject: key];
@@ -1866,18 +1791,18 @@ static SEL	rlSel;
     }
 }
 
-- (void) minusSet:(NSSet *)other
+- (void) minusSet: (NSSet *)other
 {
   id keys = [other objectEnumerator];
   id key;
-  
+
   while ((key = [keys nextObject]))
     {
       [self removeObject: key];
     }
 }
 
-- (void) unionOrderedSet:(NSOrderedSet *)other
+- (void) unionOrderedSet: (NSOrderedSet *)other
 {
     if (other != self)
     {
@@ -1891,11 +1816,11 @@ static SEL	rlSel;
     }
 }
 
-- (void) unionSet:(NSSet *)other
+- (void) unionSet: (NSSet *)other
 {
   id keys = [other objectEnumerator];
   id key;
-  
+
   while ((key = [keys nextObject]))
     {
       [self addObject: key];
