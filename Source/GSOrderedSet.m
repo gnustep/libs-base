@@ -44,10 +44,18 @@
 
 #import "GNUstepBase/GSIArray.h"
 
+#define GSI_MAP_HAS_VALUE 0
+#define GSI_MAP_KTYPES GSUNION_OBJ
+#define GSI_MAP_RETAIN_KEY(M, X)
+#define GSI_MAP_RELEASE_KEY(M, X)
+
+#include "GNUstepBase/GSIMap.h"
+
 @interface GSOrderedSet : NSOrderedSet
 {
 @public
   GSIArray_t array;
+  GSIMapTable_t	map;
 }
 @end
 
@@ -55,6 +63,7 @@
 {
 @public
   GSIArray_t array;
+  GSIMapTable_t	map;
 @private
   NSUInteger _version;
 }
@@ -150,6 +159,7 @@ static Class	mutableSetClass;
 - (void) dealloc
 {
   GSIArrayEmpty(&array);
+  GSIMapEmptyMap(&map);
   [super dealloc];
 }
 
@@ -192,6 +202,20 @@ static Class	mutableSetClass;
 }
 
 // Put required overrides here...
+- (BOOL) containsObject: (id)anObject
+{
+  if (anObject != nil)
+    {
+      GSIMapNode node = GSIMapNodeForKey(&map, (GSIMapKey)anObject);
+
+      if (node != 0)
+	{
+	  return YES;
+	}
+    }
+  return NO;
+}
+
 - (NSUInteger) count
 {
   return GSIArrayCount(&array);
@@ -210,24 +234,27 @@ static Class	mutableSetClass;
 
   // Initialize and fill the set.
   GSIArrayInitWithZoneAndCapacity(&array, [self zone], c);
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], c);
   for (i = 0; i < c; i++)
     {
       id obj = objs[i];
-      GSIArrayItem item;
 
-      if (objs[i] == nil)
+      if (obj == nil)
 	{
 	  DESTROY(self);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Tried to init set with nil value"];
 	}
 
-      item.obj = obj;
       if (![self containsObject: obj])
 	{
+          GSIArrayItem item;
+
+          item.obj = obj;
 	  GSIArrayAddItem(&array, item);
+	  GSIMapAddKey(&map, (GSIMapKey)obj);
 	}
-    }
+     }
   return self;
 }
 
@@ -245,7 +272,6 @@ static Class	mutableSetClass;
 
 - (void) insertObject: (id)object atIndex: (NSUInteger)index
 {
-  GSIArrayItem item;
   if (object == nil)
     {
       [NSException raise: NSInvalidArgumentException
@@ -255,8 +281,12 @@ static Class	mutableSetClass;
     {
       if ([self containsObject: object] == NO)
 	{
+          GSIArrayItem item;
+
+	  _version++;
 	  item.obj = object;
 	  GSIArrayInsertItem(&array, item, index);
+          GSIMapAddKey(&map, (GSIMapKey)object);
 	  _version++;
 	}
     }
@@ -264,8 +294,12 @@ static Class	mutableSetClass;
 
 - (void) removeObjectAtIndex: (NSUInteger)index
 {
+  GSIArrayItem item = GSIArrayItemAtIndex(&array, index);
+
   _version++;
   GSIArrayRemoveItemAtIndex(&array, index);
+  GSIMapRemoveKey(&map, (GSIMapKey)item.obj);
+  _version++;
 }
 
 - (id) init
@@ -277,6 +311,7 @@ static Class	mutableSetClass;
 - (id) initWithCapacity: (NSUInteger)cap
 {
   GSIArrayInitWithZoneAndCapacity(&array, [self zone], cap);
+  GSIMapInitWithZoneAndCapacity(&map, [self zone], cap);
   return self;
 }
 
