@@ -1,4 +1,4 @@
-/** Interface for NSOrderedSet, NSMutableOrderedSet for GNUStep
+/** Implementation for NSOrderedSet, NSMutableOrderedSet for GNUStep
    Copyright (C) 2019 Free Software Foundation, Inc.
 
    Written by: Gregory John Casamento <greg.casamento@gmail.com>
@@ -25,19 +25,18 @@
 #import "common.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
-#import "Foundation/NSOrderedSet.h"
 #import "Foundation/NSCoder.h"
-#import "Foundation/NSArray.h"
 #import "Foundation/NSEnumerator.h"
-#import "Foundation/NSKeyValueCoding.h"
-#import "Foundation/NSValue.h"
 #import "Foundation/NSException.h"
-#import "Foundation/NSPredicate.h"
-#import "Foundation/NSLock.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSKeyValueCoding.h"
 #import "Foundation/NSKeyValueObserving.h"
+#import "Foundation/NSLock.h"
+#import "Foundation/NSOrderedSet.h"
+#import "Foundation/NSPredicate.h"
+#import "Foundation/NSValue.h"
 
 #import <GNUstepBase/GSBlocks.h>
-#import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
 #import "GSFastEnumeration.h"
 #import "GSDispatch.h"
@@ -180,21 +179,13 @@ static SEL	remSel;
 {
    if ([aCoder allowsKeyedCoding])
     {
-      NSMutableArray *array = [NSMutableArray array];
-      NSEnumerator *en = [self objectEnumerator];
-      id obj = nil;
-      /* HACK ... MacOS-X seems to code differently if the coder is an
-       * actual instance of NSKeyedArchiver
-       */
-
-      // Collect all objects...
-      while ((obj = [en nextObject]) != nil)
-	{
-	  [array addObject: obj];
-	}
-
       if ([aCoder class] == [NSKeyedArchiver class])
 	{
+          /* HACK ... MacOS-X seems to code differently if the coder is an
+           * actual instance of NSKeyedArchiver
+           */
+          NSArray *array = [self array];
+
 	  [(NSKeyedArchiver*)aCoder _encodeArrayOfObjects: array
 						   forKey: @"NS.objects"];
 	}
@@ -753,7 +744,7 @@ static SEL	remSel;
                      options: (NSBinarySearchingOptions)options
              usingComparator: (NSComparator)comparator
 {
-    if (range.length == 0)
+  if (range.length == 0)
     {
       return options & NSBinarySearchingInsertionIndex
         ? range.location : NSNotFound;
@@ -1176,14 +1167,14 @@ static SEL	remSel;
       if ([oo isEqual: so])  // if object is equal advance
 	{
 	  so = [selfEnum nextObject];
-	  if(so == nil)
+	  if (so == nil)
 	    {
 	      return YES; // if we are done with iterating self, then it's a subset.
 	    }
 	}
     }
 
-  return NO; // if all members are in set.
+  return NO;
 }
 
 - (BOOL) isSubsetOfSet: (NSSet *)otherSet
@@ -1218,11 +1209,7 @@ static SEL	remSel;
 // Creating a Sorted Array
 - (NSArray *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors
 {
-  NSMutableArray *sortedArray = [NSMutableArray arrayWithArray: [self array]];
-
-  [sortedArray sortUsingDescriptors: sortDescriptors];
-
-  return GS_IMMUTABLE(sortedArray);
+  return [[self array] sortedArrayUsingDescriptors: sortDescriptors];
 }
 
 - (NSArray *) sortedArrayUsingComparator: (NSComparator)comparator
@@ -1270,8 +1257,8 @@ static SEL	remSel;
 
 - (NSString*) descriptionWithLocale: (NSLocale *)locale indent: (BOOL)flag
 {
-  NSArray *allObjects = [self array];
-  return [NSString stringWithFormat: @"%@", allObjects];
+  return [[self array] descriptionWithLocale: locale
+                                      indent: flag];
 }
 
 - (NSArray *) array
@@ -1346,7 +1333,7 @@ static SEL	remSel;
 - (instancetype) init
 {
   self = [super init];
-  if(self == nil)
+  if (self == nil)
     {
       NSLog(@"Could not init class");
     }
@@ -1372,7 +1359,7 @@ static SEL	remSel;
 {
   NSEnumerator *en = [otherArray objectEnumerator];
   id obj = nil;
-  while((obj = [en nextObject]) != nil)
+  while ((obj = [en nextObject]) != nil)
     {
       [self addObject: obj];
     }
@@ -1431,22 +1418,6 @@ static SEL	remSel;
   [self subclassResponsibility: _cmd];
 }
 
-- (void) _removeObjectsFromIndices: (NSUInteger*)indices
-			numIndices: (NSUInteger)count
-{
-  if (count > 0)
-    {
-      NSUInteger	i;
-      IMP	rem = [self methodForSelector: remSel];
-      
-      for(i = 0; i < count; i++)
-	{
-	  NSUInteger idx = indices[i];
-	  (*rem)(self, remSel, idx);
-	}
-    }
-}
-
 - (void) removeObjectsAtIndexes: (NSIndexSet *)indexes
 {
   NSUInteger count = [indexes count];
@@ -1456,8 +1427,17 @@ static SEL	remSel;
              maxCount: count
          inIndexRange: NULL];
 
-  [self _removeObjectsFromIndices: indexArray
-		       numIndices: count];
+  if (count > 0)
+    {
+      NSUInteger	i;
+      IMP	rem = [self methodForSelector: remSel];
+      
+      for (i = 0; i < count; i++)
+	{
+	  NSUInteger idx = indexArray[i];
+	  (*rem)(self, remSel, idx);
+	}
+    }
 }
 
 - (void) removeObjectsInArray: (NSArray *)otherArray
@@ -1507,7 +1487,7 @@ static SEL	remSel;
     {
       while (c--)
 	{
-	  [self removeObjectAtIndex: 0];
+	  [self removeObjectAtIndex: c];
 	}
     }
 }
@@ -1548,12 +1528,6 @@ static SEL	remSel;
 {
   id o = nil;
   NSUInteger i = count;
-
-  if (count < (aRange.location + aRange.length))
-    {
-      [NSException raise: NSRangeException
-                  format: @"Replacing objects beyond end of const[] id."];
-    }
 
   [self removeObjectsInRange: aRange];
 
@@ -1681,28 +1655,33 @@ static SEL	remSel;
 {
   NSUInteger count = [self count];
 
+  [self sortRange: NSMakeRange(0, count)
+          options: options
+        usingComparator: comparator];
+}
+
+- (void) sortRange: (NSRange)range
+           options: (NSSortOptions)options
+   usingComparator: (NSComparator)comparator
+{
+  NSUInteger count = range.length;
+
   if ((1 < count) && (NULL != comparator))
     {
-      NSArray *res = nil;
-      NSUInteger i, c = [self count];
-      IMP	get = [self methodForSelector: oaiSel];
-
       GS_BEGINIDBUF(objects, count);
-      for (i = 0; i < c; i++)
-	{
-	  objects[i] = (*get)(self, oaiSel, i);
-	}
+
+      [self getObjects: objects range: range];
 
       if (options & NSSortStable)
         {
           if (options & NSSortConcurrent)
             {
-              GSSortStableConcurrent(objects, NSMakeRange(0,count),
+              GSSortStableConcurrent(objects, NSMakeRange(0, count),
                 (id)comparator, GSComparisonTypeComparatorBlock, NULL);
             }
           else
             {
-              GSSortStable(objects, NSMakeRange(0,count),
+              GSSortStable(objects, NSMakeRange(0, count),
                 (id)comparator, GSComparisonTypeComparatorBlock, NULL);
             }
         }
@@ -1710,29 +1689,19 @@ static SEL	remSel;
         {
           if (options & NSSortConcurrent)
             {
-              GSSortUnstableConcurrent(objects, NSMakeRange(0,count),
+              GSSortUnstableConcurrent(objects, NSMakeRange(0, count),
                 (id)comparator, GSComparisonTypeComparatorBlock, NULL);
             }
           else
             {
-              GSSortUnstable(objects, NSMakeRange(0,count),
+              GSSortUnstable(objects, NSMakeRange(0, count),
                 (id)comparator, GSComparisonTypeComparatorBlock, NULL);
             }
         }
-      res = [[NSArray alloc] initWithObjects: objects count: count];
-      [self removeAllObjects];
-      [self addObjectsFromArray: res];
+      [self replaceObjectsInRange: range withObjects: objects count: count];
 
-      RELEASE(res);
       GS_ENDIDBUF();
     }
-}
-
-- (void) sortRange: (NSRange)range
-           options: (NSSortOptions)options
-   usingComparator: (NSComparator)comparator
-{
-  // FIXME: Implementation missing
 }
 
 - (void) intersectOrderedSet: (NSOrderedSet *)other
