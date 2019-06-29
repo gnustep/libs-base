@@ -1263,14 +1263,12 @@ static SEL	remSel;
 
 - (NSArray *) array
 {
-  NSEnumerator *en = [self objectEnumerator];
   NSMutableArray *result = [NSMutableArray arrayWithCapacity: [self count]];
-  id o = nil;
+  id<NSFastEnumeration> enumerator = self;
 
-  while((o = [en nextObject]) != nil)
-    {
+  FOR_IN(id, o, enumerator)
       [result addObject: o];
-    }
+  END_FOR_IN(enumerator)
 
   return GS_IMMUTABLE(result);
 }
