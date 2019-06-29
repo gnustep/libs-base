@@ -329,12 +329,12 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 /**
- * Returns an array of NSURL of the contents of the specified directory. <br>
+ * Returns an array of NSURL of the contents of the specified directory. <br />
  * The listing is shallow and does not recurse into subdirectories.
  * The special files '.' and '..' are excluded but it can return
- * hidden files.<br>
+ * hidden files.<br />
  * The only mask option supported is
- * NSDirectoryEnumerationSkipsHiddenFiles.<br>
+ * NSDirectoryEnumerationSkipsHiddenFiles.<br />
  * The current implementation handles only files and property keys are ignored.
  */
 - (NSArray*) contentsOfDirectoryAtURL: (NSURL*)url
@@ -391,6 +391,11 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
  * </p>
  */
 - (NSDirectoryEnumerator*) enumeratorAtPath: (NSString*)path;
+
+/** Returns the attributes dictionary for the file at the specified path.
+ * If that file is a symbolic link, the flag determines whether the attributes
+ * returned are those of the link or those of the destination file.
+ */
 - (NSDictionary*) fileAttributesAtPath: (NSString*)path
 			  traverseLink: (BOOL)flag;
 

@@ -31,6 +31,7 @@
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSHashTable.h"
 #import "Foundation/NSDistantObject.h"
 #import "Foundation/NSPortCoder.h"
 
@@ -82,6 +83,13 @@
 + (id) autorelease
 {
   return self;
+}
+
++ (NSUInteger) contentSizeOf: (NSObject*)obj
+                  declaredIn: (Class)cls
+                   excluding: (NSHashTable*)exclude
+{
+  return 0;
 }
 
 /**
@@ -547,6 +555,34 @@
 - (Class) superclass
 {
   return class_getSuperclass(object_getClass(self));
+}
+
++ (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  return 0;
+}
+
+- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  if (0 == NSHashGet(exclude, self))
+    {
+      Class             c = object_getClass(self);
+      NSUInteger        size = class_getInstanceSize(c);
+
+      NSHashInsert(exclude, self);
+      if (size > 0)
+        {
+          while (c != Nil)
+            {
+              size += [c contentSizeOf: (NSObject*)self
+			    declaredIn: c
+			     excluding: exclude];
+	      c = class_getSuperclass(c);
+            }
+        }
+      return size;
+    }
+  return 0;
 }
 
 /**

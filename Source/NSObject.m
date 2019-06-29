@@ -2580,14 +2580,16 @@ GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
 }
 
 @implementation	NSObject (MemoryFootprint)
-+ (NSUInteger) contentSizeInBytesOf: (NSObject*)instance
-		          excluding: (NSHashTable*)exclude
+
++ (NSUInteger) contentSizeOf: (NSObject*)obj
+		  declaredIn: (Class)cls
+		   excluding: (NSHashTable*)exclude
 {
   unsigned	count;
   Ivar		*vars;
   NSUInteger	size = 0;
 
-  if (0 != (vars = class_copyIvarList(self, &count)))
+  if (0 != (vars = class_copyIvarList(cls, &count)))
     {
       while (count-- > 0)
 	{
@@ -2596,11 +2598,11 @@ GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
           type = GSSkipTypeQualifierAndLayoutInfo(type);
 	  if ('@' == *type)
 	    {
-	      NSObject	*obj = object_getIvar(instance, vars[count]);
+	      NSObject	*content = object_getIvar(obj, vars[count]);
 	
-	      if (obj != nil)
+	      if (content != nil)
 		{
-		  size += [obj sizeInBytesExcluding: exclude];
+		  size += [content sizeInBytesExcluding: exclude];
 		}
 	    }
 	}
@@ -2608,9 +2610,23 @@ GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
     }
   return size;
 }
++ (NSUInteger) sizeInBytes
+{
+  return 0;
+}
 + (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   return 0;
+}
+- (NSUInteger) sizeInBytes
+{
+  NSUInteger	bytes;
+  NSHashTable	*exclude;
+ 
+  exclude = NSCreateHashTable(NSNonOwnedPointerHashCallBacks, 0);
+  bytes = [self sizeInBytesExcluding: exclude];
+  NSFreeHashTable(exclude);
+  return bytes;
 }
 - (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
@@ -2624,9 +2640,11 @@ GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
         {
           while (c != Nil)
             {
-              size += [c contentSizeInBytesOf: self excluding: exclude];
+              size += [c contentSizeOf: self
+			    declaredIn: c
+			     excluding: exclude];
+	      c = class_getSuperclass(c);
             }
-          c = class_getSuperclass(c);
         }
       return size;
     }

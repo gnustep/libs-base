@@ -1242,31 +1242,6 @@ compareIt(id o1, id o2, void* context)
   return 0;
 }
 
-- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
-{
-  NSUInteger	size = [super sizeInBytesExcluding: exclude];
-
-  if (size > 0)
-    {
-      NSUInteger	count = [self count];
-
-      size += 3 * sizeof(void*) * count;
-      if (count > 0)
-        {
-	  NSEnumerator  *enumerator = [self keyEnumerator];
-	  NSObject<NSCopying>	*k = nil;
-
-	  while ((k = [enumerator nextObject]) != nil)
-	    {
-	      NSObject	*o = [self objectForKey: k];
-
-	      size += [k sizeInBytesExcluding: exclude];
-	      size += [o sizeInBytesExcluding: exclude];
-	    }
-	}
-    }
-  return size;
-}
 @end
 
 

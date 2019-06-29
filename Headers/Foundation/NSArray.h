@@ -172,10 +172,8 @@ typedef NSUInteger NSBinarySearchingOptions;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 
-DEFINE_BLOCK_TYPE(GSEnumeratorBlock, void, GS_GENERIC_TYPE(ElementT),
-  NSUInteger, BOOL*);
-DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT),
-  NSUInteger, BOOL*);
+DEFINE_BLOCK_TYPE(GSEnumeratorBlock, void, GS_GENERIC_TYPE(ElementT), NSUInteger, BOOL*);
+DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger, BOOL*);
 /**
  * Enumerate over the collection using the given block.  The first argument is
  * the object and the second is the index in the array.  The final argument is

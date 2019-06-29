@@ -90,6 +90,24 @@
 
 @implementation GSCountedSet
 
++ (NSUInteger) contentSizeOf: (NSObject*)obj
+                  declaredIn: (Class)cls
+                   excluding: (NSHashTable*)exclude
+{
+  GSIMapTable  		map = &((GSCountedSet*)obj)->map;
+  NSUInteger    	size = GSIMapSize(map) - sizeof(GSIMapTable);
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(map);
+  GSIMapNode		node = GSIMapEnumeratorNextNode(&enumerator);
+
+  while (node != 0)
+    {
+      size += [node->key.obj sizeInBytesExcluding: exclude];
+      node = GSIMapEnumeratorNextNode(&enumerator);
+    }
+  GSIMapEndEnumerator(&enumerator);
+  return size;
+}
+
 + (void) initialize
 {
   if (self == [GSCountedSet class])
@@ -376,26 +394,6 @@
   state->mutationsPtr = (unsigned long *)&_version;
   return GSIMapCountByEnumeratingWithStateObjectsCount
     (&map, state, stackbuf, len);
-}
-
-- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
-{
-  NSUInteger	size = GSPrivateMemorySize(self, exclude);
-
-  if (size > 0)
-    {
-      GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
-      GSIMapNode 		node = GSIMapEnumeratorNextNode(&enumerator);
-
-      size += GSIMapSize(&map) - sizeof(map);
-      while (node != 0)
-        {
-          size += [node->key.obj sizeInBytesExcluding: exclude];
-          node = GSIMapEnumeratorNextNode(&enumerator);
-        }
-      GSIMapEndEnumerator(&enumerator);
-    }
-  return size;
 }
 
 @end

@@ -1,3 +1,27 @@
+2019-06-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSIArray.h:
+	* Headers/GNUstepBase/NSObject+GNUstepBase.h:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	* Source/GSArray.m:
+	* Source/GSCountedSet.m:
+	* Source/GSDictionary.m:
+	* Source/GSSet.m:
+	* Source/NSArray.m:
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/NSData.m:
+	* Source/NSDictionary.m:
+	* Source/NSDistantObject.m:
+	* Source/NSObject.m:
+	* Source/NSProxy.m:
+	* Source/NSSet.m:
+	* Source/NSString.m:
+	Revise mechanism for extention to report memory usage of individual
+	objects. This makes the inclusion of size of objects in ivars a
+	default, while allowing easy extension to include other heap memory.
+	API change not final.
+
 2019-05-23  Frederik Seiffert <frederik@algoriddim.com>
 
 	* configure:

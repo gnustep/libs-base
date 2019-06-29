@@ -999,29 +999,6 @@ static Class NSMutableSet_concrete_class;
     return 0;
 }
 
-- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
-{
-  NSUInteger    size = [super sizeInBytesExcluding: exclude];
-
-  if (size > 0)
-    {
-      NSUInteger        count = [self count];
-
-      size += 3 * sizeof(void*) * count;
-      if (count > 0)
-        {
-          NSEnumerator          *enumerator = [self objectEnumerator];
-          NSObject              *o;
-
-          while ((o = [enumerator nextObject]) != nil)
-            {
-              size += [o sizeInBytesExcluding: exclude];
-            }
-        }
-    }
-  return size;
-}
-
 @end
 
 

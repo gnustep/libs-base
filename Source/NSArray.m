@@ -1963,25 +1963,6 @@ compare(id elem1, id elem2, void* context)
                      passingTest: predicate];
 }
 
-- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
-{
-  NSUInteger	size = [super sizeInBytesExcluding: exclude];
-
-  if (size > 0)
-    {
-      NSUInteger	count = [self count];
-      GS_BEGINIDBUF(objects, count);
-
-      size += count*sizeof(void*);
-      [self getObjects: objects];
-      while (count-- > 0)
-	{
-	  size += [objects[count] sizeInBytesExcluding: exclude];
-	}
-      GS_ENDIDBUF();
-    }
-  return size;
-}
 @end
 
 
