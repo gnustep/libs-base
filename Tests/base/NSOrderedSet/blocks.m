@@ -42,6 +42,13 @@ int main()
     }];
   // NSLog(@"Index = %d", index);
   PASS(index == 6, "Found correct index using indexOfObjectPassingTest:");
+
+  NSIndexSet *indexes = [mutableTest4 indexesOfObjectsPassingTest: ^BOOL(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+      return [obj isEqualToString:@"Horrible"] ||
+             [obj isEqualToString: @"Flee From"];
+    }];
+  
+  PASS([indexes containsIndex: 6] && [indexes containsIndex: 9], "Returns correct indexes");
     
 # else
   SKIP("No Blocks support in the compiler.")
