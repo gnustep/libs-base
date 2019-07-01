@@ -227,6 +227,21 @@ static Class	mutableSetClass;
   return item.obj;
 }
 
+- (void) getObjects: (__unsafe_unretained id[])aBuffer range: (NSRange)aRange
+{
+  NSUInteger i, j = 0;
+  NSUInteger c = GSIArrayCount(&array);
+  NSUInteger e = NSMaxRange(aRange);
+
+  GS_RANGE_CHECK(aRange, c);
+
+  for (i = aRange.location; i < e; i++)
+    {
+      GSIArrayItem item = GSIArrayItemAtIndex(&array, i);
+      aBuffer[j++] = item.obj;
+    }
+}
+
 /* Designated initialiser */
 - (id) initWithObjects: (const id*)objs count: (NSUInteger)c
 {
@@ -343,6 +358,35 @@ static Class	mutableSetClass;
 {
   GSClassSwizzle(self, [GSOrderedSet class]);
   return self;
+}
+
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState *)state
+				   objects: (__unsafe_unretained id[])stackbuf
+				     count: (NSUInteger)len
+{
+  NSInteger count;
+
+  /* This is cached in the caller at the start and compared at each
+   * iteration.   If it changes during the iteration then
+   * objc_enumerationMutation() will be called, throwing an exception.
+   */
+  state->mutationsPtr = &_version;
+  count = MIN(len, [self count] - state->state);
+  /* If a mutation has occurred then it's possible that we are being asked to
+   * get objects from after the end of the array.  Don't pass negative values
+   * to memcpy.
+   */
+  if (count > 0)
+    {
+      [self getObjects: stackbuf range: NSMakeRange(state->state, count)];
+      state->state += count;
+    }
+  else
+    {
+      count = 0;
+    }
+  state->itemsPtr = stackbuf;
+  return count;
 }
 
 @end
