@@ -829,9 +829,10 @@ static SEL	remSel;
                               options: (NSEnumerationOptions)opts
                           passingTest: (GSPredicateBlock)predicate
 {
-  return [[self objectsAtIndexes: indexSet]
-        indexOfObjectWithOptions: 0
-                     passingTest: predicate];
+  return [[self array]
+           indexOfObjectAtIndexes: indexSet
+                          options: opts
+                      passingTest: predicate];
 }
 
 - (NSUInteger) indexOfObjectPassingTest: (GSPredicateBlock)predicate
@@ -904,9 +905,10 @@ static SEL	remSel;
 				   options: (NSEnumerationOptions)opts
 			       passingTest: (GSPredicateBlock)predicate
 {
-  return [[self objectsAtIndexes: indexSet]
-	   indexesOfObjectsWithOptions: opts
-			   passingTest: predicate];
+  return [[self array]
+           indexesOfObjectsAtIndexes: indexSet
+                             options: opts
+                         passingTest: predicate];
 }
 
 - (NSIndexSet *) indexesOfObjectsPassingTest: (GSPredicateBlock)predicate
@@ -1003,7 +1005,7 @@ static SEL	remSel;
 {
   NSUInteger i, j = 0;
   NSUInteger c = [self count];
-  NSUInteger e = aRange.location + aRange.length;
+  NSUInteger e = NSMaxRange(aRange);
   IMP	get = [self methodForSelector: oaiSel];
 
   GS_RANGE_CHECK(aRange, c);
@@ -1267,7 +1269,7 @@ static SEL	remSel;
   id<NSFastEnumeration> enumerator = self;
 
   FOR_IN(id, o, enumerator)
-      [result addObject: o];
+    [result addObject: o];
   END_FOR_IN(enumerator)
 
   return GS_IMMUTABLE(result);
@@ -1275,14 +1277,12 @@ static SEL	remSel;
 
 - (NSSet *) set
 {
-  NSEnumerator *en = [self objectEnumerator];
   NSMutableSet *result = [NSMutableSet setWithCapacity: [self count]];
-  id o = nil;
+  id<NSFastEnumeration> enumerator = self;
 
-  while ((o = [en nextObject]) != nil)
-    {
-      [result addObject: o];
-    }
+  FOR_IN(id, o, enumerator)
+    [result addObject: o];
+  END_FOR_IN(enumerator)
 
   return GS_IMMUTABLE(result);
 }
