@@ -58,6 +58,13 @@ int main()
   PASS([indexes containsIndex:6] && [indexes containsIndex:9],
        "indexesOfObjectsWithOptions:passingTest: returns correct indexes");
   
+  index = [mutableTest4 indexOfObjectAtIndexes:[NSIndexSet indexSetWithIndex: 6]
+				       options:0
+				   passingTest:^BOOL(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+      return [obj isEqualToString:@"Horrible"];
+    }];
+  PASS(index == 6, "indexOfObjectAtIndexes:... Returns correct index")
+
 # else
   SKIP("No Blocks support in the compiler.")
 # endif
