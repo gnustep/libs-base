@@ -1000,6 +1000,7 @@ static NSOperationQueue *mainQueue = nil;
       max = maxConcurrent;
     }
 
+  NS_DURING
   while (NO == [self isSuspended]
     && max > internal->executing
     && [internal->waiting count] > 0)
@@ -1047,6 +1048,12 @@ static NSOperationQueue *mainQueue = nil;
 	  [internal->cond unlockWithCondition: 1];
 	}
     }
+  NS_HANDLER
+    {
+      [internal->lock unlock];
+      [localException raise];
+    }
+  NS_ENDHANDLER
   [internal->lock unlock];
 }
 

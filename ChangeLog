@@ -1,3 +1,10 @@
+2019-01-07  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/GSXML.m (fatalErrorFunction): Use correct function to get
+	line number.
+	* Source/NSOperation.m (_execute): Surround with NS_DURING to free
+	lock on error.
+
 2019-06-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSIArray.h:

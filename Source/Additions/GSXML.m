@@ -3177,7 +3177,7 @@ warningFunction(void *ctx, const unsigned char *msg, ...)
   va_end(args);
 
   NSCAssert(ctx,@"No Context");
-  lineNumber = getLineNumber(ctx);
+  lineNumber = xmlSAX2GetLineNumber(ctx);
   colNumber = xmlSAX2GetColumnNumber(ctx);
   [HANDLER warning: estr
 	 colNumber: colNumber
