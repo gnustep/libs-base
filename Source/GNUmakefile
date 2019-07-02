@@ -172,6 +172,7 @@ GSFormat.m \
 GSHTTPAuthentication.m \
 GSHTTPURLHandle.m \
 GSICUString.m \
+GSOrderedSet.m \
 GSPrivateHash.m \
 GSQuickSort.m \
 GSRunLoopWatcher.m \
@@ -256,6 +257,7 @@ NSObjCRuntime.m \
 NSObject.m \
 NSObject+NSComparisonMethods.m \
 NSOperation.m \
+NSOrderedSet.m \
 NSPage.m \
 NSPathUtilities.m \
 NSPipe.m \
@@ -426,6 +428,7 @@ NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
 NSOperation.h \
+NSOrderedSet.h \
 NSPathUtilities.h \
 NSPointerArray.h \
 NSPointerFunctions.h \

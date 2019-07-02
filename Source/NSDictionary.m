@@ -949,6 +949,19 @@ compareIt(id o1, id o2, void* context)
   return k;
 }
 
+- (NSArray *)keysSortedByValueUsingComparator: (NSComparator)cmptr
+{
+  return [self keysSortedByValueWithOptions:0
+			    usingComparator:cmptr];
+}
+
+- (NSArray *)keysSortedByValueWithOptions: (NSSortOptions)opts
+			  usingComparator: (NSComparator)cmptr
+{
+  return [[self allKeys] sortedArrayWithOptions: opts
+				usingComparator: cmptr];
+}
+
 /**
  *  Multiple version of [-objectForKey:].  Objects for each key in keys are
  *  looked up and placed into return array in same order.  For each key that

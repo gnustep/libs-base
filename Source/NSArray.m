@@ -1219,7 +1219,6 @@ compare(id elem1, id elem2, void* context)
   return NSNotFound;
 }
 
-
 /**
  * Returns a string formed by concatenating the objects in the receiver,
  * with the specified separator string inserted between each part.
@@ -1884,9 +1883,32 @@ compare(id elem1, id elem2, void* context)
 				  options: (NSEnumerationOptions)opts
 			      passingTest: (GSPredicateBlock)predicate
 {
-  return [[self objectsAtIndexes: indexSet]
-    indexesOfObjectsWithOptions: opts
-    passingTest: predicate];
+  NSIndexSet *rindexes =[[self objectsAtIndexes: indexSet]
+			 indexesOfObjectsWithOptions: opts
+					 passingTest: predicate];
+  NSUInteger count = [indexSet count];
+  NSUInteger resultCount = [rindexes count];
+  NSUInteger indexArray[count], resultIndexArray[resultCount];
+  NSMutableIndexSet *resultSet = [NSMutableIndexSet indexSet];
+  NSUInteger i = 0;
+  
+  [indexSet getIndexes: indexArray
+	      maxCount: count
+	  inIndexRange: NULL];
+
+  [rindexes getIndexes: resultIndexArray
+	      maxCount: resultCount
+	  inIndexRange: NULL];
+
+  // interate over indexes and collect the matching ones..
+  for(i = 0; i < resultCount; i++)
+    {
+      NSUInteger rindx = resultIndexArray[i];
+      NSUInteger indx = indexArray[rindx];
+      [resultSet addIndex: indx];
+    }
+
+  return resultSet;
 }
 
 - (NSUInteger) indexOfObjectWithOptions: (NSEnumerationOptions)opts
@@ -1959,9 +1981,17 @@ compare(id elem1, id elem2, void* context)
 			      options: (NSEnumerationOptions)opts
 			  passingTest: (GSPredicateBlock)predicate
 {
-  return [[self objectsAtIndexes: indexSet]
-        indexOfObjectWithOptions: 0
-                     passingTest: predicate];
+  NSUInteger index = [[self objectsAtIndexes: indexSet]
+		       indexOfObjectWithOptions: 0
+				    passingTest: predicate];
+  NSUInteger count = [indexSet count];
+  NSUInteger indexArray[count];
+
+  [indexSet getIndexes: indexArray
+	      maxCount: count
+	  inIndexRange: NULL];
+
+  return indexArray[index];
 }
 
 @end

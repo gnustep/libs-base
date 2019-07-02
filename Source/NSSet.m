@@ -197,7 +197,7 @@ static Class NSMutableSet_concrete_class;
   else
     {
       unsigned		count = [self count];
-      NSEnumerator	*e = [self objectEnumerator];
+      NSEnumerator     *e = [self objectEnumerator];
       id		o;
 
       [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
