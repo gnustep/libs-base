@@ -26,8 +26,9 @@ START_SET("TLS support")
   PASS([c expiresAt: 2] == nil, "Return nil for invalid index");
   expiresAt = [c expiresAt: 0];
   dateFormatter = [[NSDateFormatter alloc] init];
-  [dateFormatter setDateFormat: @"yyyy-MM-dd HH:mm:ss"];
-  PASS_EQUAL(expiresAt, [dateFormatter dateFromString: @"2118-12-14 15:35:11"],
+  [dateFormatter setDateFormat: @"yyyy-MM-dd HH:mm:ss zzz"];
+  PASS_EQUAL(expiresAt,
+    [dateFormatter dateFromString: @"2118-12-14 15:35:11 +0000"],
     "Expiration date can be retrieved");
   [dateFormatter release];
   PASS_EQUAL([c expiresAt], expiresAt,
