@@ -63,8 +63,19 @@ int main()
 				   passingTest:^BOOL(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
       return [obj isEqualToString:@"Horrible"];
     }];
-  PASS(index == 6, "indexOfObjectAtIndexes:... Returns correct index")
+  PASS(index == 6, "indexOfObjectAtIndexes:... Returns correct index");
 
+
+  NSMutableIndexSet *iset = [NSMutableIndexSet indexSetWithIndex: 6];
+  [iset addIndex: 9];
+  indexes = [mutableTest4 indexesOfObjectsAtIndexes: iset
+					    options:0
+					passingTest:^BOOL(id  _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+      return [obj isEqualToString:@"Horrible"] || [obj isEqualToString:@"Flee From"];
+    }];
+  NSLog(@"indexes = %@",indexes);
+  PASS([indexes containsIndex:6] && [indexes containsIndex:9], "indexesOfObjectsAtIndexes... returns correct indexes");
+  
 # else
   SKIP("No Blocks support in the compiler.")
 # endif
