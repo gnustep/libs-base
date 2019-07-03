@@ -22,10 +22,15 @@
    Boston, MA 02111 USA.
 
 */
-
+#import "common.h"
+#import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSEnumerator.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSKeyedArchiver.h"
 #import <Foundation/NSUbiquitousKeyValueStore.h>
 #import <Foundation/NSArray.h>
-#import <Foundation/NSDictionary>
+#import <Foundation/NSDictionary.h>
 #import <Foundation/NSData.h>
 #import <Foundation/NSString.h>
 
@@ -143,6 +148,7 @@
 // A dictionary containing all of the key-value pairs in the key-value store.
 - (NSDictionary *) dictionaryRepresentation
 {
+  return nil;
 }
 
 // Notifications & constants
