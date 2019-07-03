@@ -25,7 +25,6 @@ Missing headers:
 	<NSHFSFileTypes.h>
 	<NSLinguisticTagger.h>
 	<NSObjectScripting.h>
-	<NSOrderedSet.h>
 	<NSOrthography.h>
 	<NSScriptClassDescription.h>
 	<NSScriptCoercionHandler.h>
@@ -42,10 +41,7 @@ Missing headers:
 	<NSXPCConnection.h>
 -------------------------------------------------------------
 Foundation:
-	<NSOrderedSet.h>
 	<NSOrthography.h>
-	<NSPort.h>
-	<NSPropertyList.h>
 	<NSByteCountFormatter.h>
 	<NSFileCoordinator.h>
 	<NSFilePresenter.h>
@@ -222,11 +218,6 @@ NSDecimalNumber:
 	@interface NSScanner (NSDecimalNumberScanning)
 -------------------------------------------------------------
 NSDictionary:
-	- keysSortedByValueUsingComparator:
-	- keysSortedByValueWithOptions:usingComparator:
-	+ dictionaryWithObjects:forKeys:(const id <NSCopying> [])keys count:
-	- initWithObjects:forKeys:(const id <NSCopying> [])keys count:
-
 	@interface NSDictionary (NSSharedKeySetDictionary)
 	@interface NSMutableDictionary (NSSharedKeySetDictionary)
 -------------------------------------------------------------
