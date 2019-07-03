@@ -86,6 +86,11 @@ NSString *NSUndoManagerWillRedoChangeNotification = @"NSUndoManagerWillRedoChang
 
 NSString *NSUndoManagerWillUndoChangeNotification = @"NSUndoManagerWillUndoChangeNotification";
 
+/*
+ * NSUbiquitousKeyValueStore notifications
+ */
+NSString *NSUbiquitousKeyValueStoreDidChangeExternallyNotification = @"NSUbiquitousKeyValueStoreDidChangeExternallyNotification";
+NSString *NSUbiquitousKeyValueStoreChangeReasonKey = @"NSUbiquitousKeyValueStoreChangeReasonKey";
 
 /* NSURL constants */
 NSString *NSURLFileScheme = @"file";
