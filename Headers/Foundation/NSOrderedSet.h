@@ -1,4 +1,3 @@
-
 /** Interface for NSOrderedSet, NSMutableOrderedSet for GNUStep
    Copyright (C) 2019 Free Software Foundation, Inc.
 
