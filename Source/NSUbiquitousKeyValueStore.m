@@ -343,5 +343,5 @@ GS_EXPORT NSString* const NSUbiquitousKeyValueStoreChangeReasonKey;
 }
 @end
 
-@implementation GSAWSUbiquitousKeyValueStore 
+@implementation GSAWSUbiquitousKeyValueStore
 @end
