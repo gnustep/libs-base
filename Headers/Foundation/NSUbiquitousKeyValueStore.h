@@ -43,7 +43,7 @@ extern "C" {
 @interface NSUbiquitousKeyValueStore : NSObject
 
 // Getting the Shared Instance
-- (NSUbiquitousKeyValueStore *) defaultStore;
++ (NSUbiquitousKeyValueStore *) defaultStore;
   
 // Getting Values
 // Returns the array associated with the specified key.

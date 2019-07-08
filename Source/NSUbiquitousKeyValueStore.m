@@ -34,7 +34,7 @@
 #import <Foundation/NSData.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSValue.h>
-#import <Foundation/NSUserDefaults.h>
+#import <Foundation/NSUserDefaults.h> 
 
 static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
 
@@ -47,13 +47,17 @@ static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
   return nil;
 }
 
-- (NSUbiquitousKeyValueStore *) defaultStore
++ (NSUbiquitousKeyValueStore *) defaultStore
 {
   if(_sharedUbiquitousKeyValueStore == nil)
     {
       NSString *storeClassName = [[NSUserDefaults standardUserDefaults]
 				   stringForKey: @"GSUbiquitousKeyValueStoreClass"];
       Class klass = NSClassFromString(storeClassName);
+      if(klass == NULL)
+	{
+	  klass = NSClassFromString(@"GSSimpleUbiquitousKeyValueStore"); 
+	}
       _sharedUbiquitousKeyValueStore = [[klass alloc] init];
       if(_sharedUbiquitousKeyValueStore == nil)
 	{
