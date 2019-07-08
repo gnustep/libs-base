@@ -319,7 +319,6 @@ GS_EXPORT NSString* const NSUbiquitousKeyValueStoreChangeReasonKey;
 // Explicitly synchronizes in-memory keys and values with those stored on disk.
 - (void) synchronize
 {
-  [self subclassResponsibility: _cmd];
 }
 
 // Removing Keys
