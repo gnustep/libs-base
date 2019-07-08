@@ -43,7 +43,9 @@ static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
 // Getting the Shared Instance
 - (id) init
 {
-  [self subclassResponsibility: _cmd];
+  if((self = [super init]) != nil)
+    {
+    }
   return nil;
 }
 
