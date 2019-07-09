@@ -1499,6 +1499,7 @@ static NSMapTable	*absolutes = 0;
       /*
        * Try to get timezone from windows system call.
        */
+      if (localZoneString == nil)
       {
       	TIME_ZONE_INFORMATION tz;
       	DWORD DST = GetTimeZoneInformation(&tz);

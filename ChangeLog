@@ -1,3 +1,46 @@
+2019-05-14  Doug Simons <doug.simons@eggplant.io>
+
+       * NSDateFormatter.m: 
+	   Add check for ICU version to fix problem with UDAT_PATTERN
+	   not being defined on older versions.
+	   
+2019-05-13  Doug Simons <doug.simons@eggplant.io>
+
+       * NSDateFormatter.m: 
+	   Fix stringFromDate: to ensure we always have a time zone.
+	   
+2019-05-12  Doug Simons <doug.simons@eggplant.io>
+
+       * NSCalendar.m: 
+       Fix my earlier change to -dateFromComponents: method.
+	   Similarly fix -getEra:year:month:day:fromDate: and
+	   -getHour:minute:second:nanosecond:fromDate: to use
+	   the timeZone that is set.
+
+2019-05-09  Doug Simons <doug.simons@eggplant.io>
+
+       * NSCalendar.h:
+       * NSCalendar.m: 
+       Add some missing NSCalendarUnit enum constants.
+	   Add +calendarWithIdentifier: method.
+	   Add -getEra:(out NSInteger *)eraValuePointer
+          year:(out NSInteger *)yearValuePointer
+		  month:(out NSInteger *)monthValuePointer
+		  day:(out NSInteger *)dayValuePointer
+		  fromDate:(NSDate *)date method.
+	   Add -getHour:(out NSInteger *)hourValuePointer
+         minute:(out NSInteger *)minuteValuePointer
+		 second:(out NSInteger *)secondValuePointer
+		 nanosecond:(out NSInteger *)nanosecondValuePointer
+		 fromDate: method.
+		 
+       * NSDateFormatter.h:
+	   Fix _resetUDateFormat to actually use the format that was set!!!
+	   
+       * NSTimeZone.m: 
+	   Fix +systemTimeZone method to honor defaults, environment variable,
+	   or local file override of system time zone setting.
+	   
 2019-04-10  Doug Simons <doug.simons@eggplant.io>
 
        * NSCalendar.m: 

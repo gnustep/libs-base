@@ -382,6 +382,8 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   unichar *string;
   UDate udate = [date timeIntervalSince1970] * 1000.0;
   UErrorCode err = U_ZERO_ERROR;
+  if (!internal->_tz)
+    [self setTimeZone:[NSTimeZone defaultTimeZone]];
   
   length = udat_format (internal->_formatter, udate, NULL, 0, NULL, &err);
   string = malloc(sizeof(UChar) * (length + 1));
@@ -983,13 +985,17 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   int32_t patLength;
   int32_t tzIDLength;
   UErrorCode err = U_ZERO_ERROR;
+  NSInteger uDateStyle = NSToUDateFormatStyle(internal->_dateStyle);
+  NSInteger uTimeStyle = NSToUDateFormatStyle(internal->_timeStyle);
   
   if (internal->_formatter)
     udat_close (internal->_formatter);
-  
-  tzIDLength = [[internal->_tz name] length];
+	
+  NSTimeZone *zone = internal->_tz;
+  NSString *zoneName = [zone name];
+  tzIDLength = [zoneName length];
   tzID = malloc(sizeof(UChar) * tzIDLength);
-  [[internal->_tz name] getCharacters: tzID];
+  [zoneName getCharacters: tzID];
   
   if (nil == self->_dateFormat)
     {
@@ -1001,9 +1007,13 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
       patLength = [self->_dateFormat length];
       pat = malloc(sizeof(UChar) * patLength);
       [self->_dateFormat getCharacters: pat];
+#if U_ICU_VERSION_MAJOR_NUM >= 50
+      uDateStyle = UDAT_PATTERN; // Windows is using a more recent ICU library
+      uTimeStyle = UDAT_PATTERN;
+#endif
     }
-  internal->_formatter = udat_open (NSToUDateFormatStyle(internal->_timeStyle),
-                          NSToUDateFormatStyle(internal->_dateStyle),
+  internal->_formatter = udat_open (uTimeStyle,
+                          uDateStyle,
                           [[internal->_locale localeIdentifier] UTF8String],
                           tzID,
                           tzIDLength,
