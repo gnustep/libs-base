@@ -159,7 +159,7 @@ extern "C" {
 @end
 
 // Mutable Ordered Set
-@interface GS_GENERIC_CLASS(NSMutableOrderedSet, __covariant ElementT) : NSOrderedSet
+@interface GS_GENERIC_CLASS(NSMutableOrderedSet, ElementT) : GS_GENERIC_CLASS(NSOrderedSet, ElementT)
 // Creating a Mutable Ordered Set
 + (instancetype)orderedSetWithCapacity: (NSUInteger)capacity;
 - (instancetype)initWithCapacity: (NSUInteger)capacity;

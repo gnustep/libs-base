@@ -301,7 +301,7 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger,
 @end
 
 
-@interface GS_GENERIC_CLASS(NSMutableArray, ElementT) : NSArray
+@interface GS_GENERIC_CLASS(NSMutableArray, ElementT) : GS_GENERIC_CLASS(NSArray, ElementT)
 
 + (instancetype) arrayWithCapacity: (NSUInteger)numItems;
 
