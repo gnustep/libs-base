@@ -288,6 +288,7 @@ NSTask.m \
 NSThread.m \
 NSTimer.m \
 NSTimeZone.m \
+NSUbiquitousKeyValueStore.m \
 NSUnarchiver.m \
 NSUndoManager.m \
 NSURL.m \
@@ -457,6 +458,7 @@ NSTextCheckingResult.h\
 NSThread.h \
 NSTimer.h \
 NSTimeZone.h \
+NSUbiquitousKeyValueStore.h \
 NSUndoManager.h \
 NSURLAuthenticationChallenge.h \
 NSURLCache.h \
