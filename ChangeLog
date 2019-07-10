@@ -1,3 +1,10 @@
+2019-07-10  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSArray.h:
+	* Headers/Foundation/NSOrderedSet.h:
+	Fix generics definition of NSMutableArray and NSMutableOrderedSet.
+	Fix NSArray and NSOrderedSet KVC method types to not use generic type.
+
 2019-07-02  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Tests/base/GSTLS/basic.m: Use fixed time zone.
