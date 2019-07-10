@@ -46,7 +46,7 @@ static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
   if((self = [super init]) != nil)
     {
     }
-  return nil;
+  return self;
 }
 
 + (NSUbiquitousKeyValueStore *) defaultStore
@@ -55,15 +55,12 @@ static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
     {
       NSString *storeClassName = [[NSUserDefaults standardUserDefaults]
 				   stringForKey: @"GSUbiquitousKeyValueStoreClass"];
-      Class klass = NSClassFromString(storeClassName);
-      if(klass == NULL)
-	{
-	  klass = NSClassFromString(@"GSSimpleUbiquitousKeyValueStore"); 
-	}
+      Class klass = (storeClassName != nil) ? NSClassFromString(storeClassName) :
+	NSClassFromString(@"GSSimpleUbiquitousKeyValueStore"); 
       _sharedUbiquitousKeyValueStore = [[klass alloc] init];
       if(_sharedUbiquitousKeyValueStore == nil)
 	{
-	  NSLog(@"Cannot instantiate class named %@ for shared key store",storeClassName);
+	  NSLog(@"Cannot instantiate class shared key store");
 	}
     }
   return _sharedUbiquitousKeyValueStore;
