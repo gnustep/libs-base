@@ -35,6 +35,23 @@
 #if	defined(__cplusplus)
 extern "C" {
 #endif
+  
+enum {  
+  NSFormattingContextUnknown = 0,
+  NSFormattingContextDynamic,
+  NSFormattingContextStandalone,
+  NSFormattingContextListItem,
+  NSFormattingContextBeginningOfSentence,  
+  NSFormattingContextMiddleOfSentence,    
+};
+typedef NSInteger NSFormattingContext;
+
+enum { 
+    NSFormattingUnitStyleShort = 1,
+    NSFormattingUnitStyleMedium,
+    NSFormattingUnitStyleLong,
+};
+typedef NSInteger NSFormattingUnitStyle;
 
 @class	NSString, NSAttributedString, NSDictionary;
 

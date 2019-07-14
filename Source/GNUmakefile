@@ -195,6 +195,7 @@ NSAssertionHandler.m \
 NSAttributedString.m \
 NSAutoreleasePool.m \
 NSBundle.m \
+NSByteCountFormatter.m \
 NSCache.m \
 NSCachedURLResponse.m \
 NSCalendar.m \
@@ -371,6 +372,7 @@ NSArray.h \
 NSAttributedString.h \
 NSAutoreleasePool.h \
 NSBundle.h \
+NSByteCountFormatter.h \
 NSByteOrder.h \
 NSCache.h\
 NSCalendar.h \
