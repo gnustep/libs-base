@@ -34,7 +34,7 @@
 #import <Foundation/NSData.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSValue.h>
-#import <Foundation/NSUserDefaults.h> 
+#import <Foundation/NSUserDefaults.h>
 
 static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
 
@@ -43,7 +43,7 @@ static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
 // Getting the Shared Instance
 - (id) init
 {
-  if((self = [super init]) != nil)
+  if ((self = [super init]) != nil)
     {
     }
   return self;
@@ -51,62 +51,56 @@ static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
 
 + (NSUbiquitousKeyValueStore *) defaultStore
 {
-  if(_sharedUbiquitousKeyValueStore == nil)
+  if (_sharedUbiquitousKeyValueStore == nil)
     {
       NSString *storeClassName = [[NSUserDefaults standardUserDefaults]
 				   stringForKey: @"GSUbiquitousKeyValueStoreClass"];
       Class klass = (storeClassName != nil) ? NSClassFromString(storeClassName) :
-	NSClassFromString(@"GSSimpleUbiquitousKeyValueStore"); 
+	NSClassFromString(@"GSSimpleUbiquitousKeyValueStore");
       _sharedUbiquitousKeyValueStore = [[klass alloc] init];
-      if(_sharedUbiquitousKeyValueStore == nil)
+      if (_sharedUbiquitousKeyValueStore == nil)
 	{
 	  NSLog(@"Cannot instantiate class shared key store");
 	}
     }
   return _sharedUbiquitousKeyValueStore;
 }
-  
+
 // Getting Values
 // Returns the array associated with the specified key.
 - (NSArray *) arrayForKey: (NSString *)key
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return (NSArray *)[self objectForKey: key];
 }
-  
+
 // Returns the Boolean value associated with the specified key.
 - (BOOL) boolForKey: (NSString *)key
 {
-  [self subclassResponsibility: _cmd];
-  return NO;
+  return (BOOL)([[self objectForKey: key] boolValue] == 1);
 }
 
 // Returns the data object associated with the specified key.
 - (NSData*) dataForKey: (NSString *)key
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return (NSData *)[self objectForKey: key];
 }
 
 // Returns the dictionary object associated with the specified key.
 - (NSDictionary *) dictionaryForKey: (NSString *)key
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return (NSDictionary *)[self objectForKey: key];
 }
 
 // Returns the double value associated with the specified key.
 - (double) doubleForKey: (NSString *)key
 {
-  [self subclassResponsibility: _cmd];
-  return 0.0;
+  return [[self objectForKey: key] doubleValue];
 }
 
 // Returns the long long value associated with the specified key.
 - (long long) longLongForKey: (NSString *)key
 {
-  [self subclassResponsibility: _cmd];
-  return 0.0;
+  return [[self objectForKey: key] longLongValue];
 }
 
 // Returns the object associated with the specified key.
@@ -119,44 +113,47 @@ static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
 //  Returns the string associated with the specified key.
 - (NSString *) stringForKey: (NSString *)key
 {
-  [self subclassResponsibility: _cmd];
-  return nil;
+  return (NSString *)[self objectForKey: key];
 }
 
 // Setting Values
 // Sets an array object for the specified key in the key-value store.
 - (void) setArray: (NSArray *)array forKey: (NSString *)key
 {
+  [self setObject: array forKey: key];
 }
 
 // Sets a Boolean value for the specified key in the key-value store.
 - (void) setBool: (BOOL)flag forKey: (NSString *)key
 {
-  [self subclassResponsibility: _cmd];
+  NSNumber *num = [NSNumber numberWithBool: flag];
+  [self setObject: num forKey: key];
 }
 
 // Sets a data object for the specified key in the key-value store.
 - (void) setData: (NSData *)data forKey: (NSString *)key
 {
-  [self subclassResponsibility: _cmd];
+  [self setObject: data forKey: key];
 }
 
 // Sets a dictionary object for the specified key in the key-value store.
 - (void) setDictionary: (NSDictionary *)dict forKey: (NSString *)key
 {
-  [self subclassResponsibility: _cmd];
+  [self setObject: dict forKey: key];
 }
 
 // Sets a double value for the specified key in the key-value store.
 - (void) setDouble: (double)val forKey: (NSString *)key
 {
-  [self subclassResponsibility: _cmd];
+  NSNumber *num = [NSNumber numberWithDouble: val];
+  [self setObject: num forKey: key];
 }
 
 // Sets a long long value for the specified key in the key-value store.
 - (void) setLongLong: (long long)val forKey: (NSString *)key
 {
-  [self subclassResponsibility: _cmd];
+  NSNumber *num = [NSNumber numberWithLongLong: val];
+  [self setObject: num forKey: key];
 }
 
 // Sets an object for the specified key in the key-value store.
@@ -168,7 +165,7 @@ static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
 // Sets a string object for the specified key in the key-value store.
 - (void) setString: (NSString *)string forKey: (NSString *)key
 {
-  [self subclassResponsibility: _cmd];
+  [self setObject: string forKey: key];
 }
 
 // Explicitly Synchronizing In-Memory Key-Value Data to Disk
@@ -193,10 +190,6 @@ static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
   return nil;
 }
 
-// Notifications & constants
-GS_EXPORT NSString* const NSUbiquitousKeyValueStoreDidChangeExternallyNotification;
-GS_EXPORT NSString* const NSUbiquitousKeyValueStoreChangeReasonKey;
-
 @end
 
 @interface GSSimpleUbiquitousKeyValueStore : NSUbiquitousKeyValueStore
@@ -205,7 +198,7 @@ GS_EXPORT NSString* const NSUbiquitousKeyValueStoreChangeReasonKey;
 }
 @end
 
-@implementation GSSimpleUbiquitousKeyValueStore 
+@implementation GSSimpleUbiquitousKeyValueStore
 
 - (id) init
 {
@@ -217,105 +210,16 @@ GS_EXPORT NSString* const NSUbiquitousKeyValueStoreChangeReasonKey;
   return self;
 }
 
-// Getting Values
-// Returns the array associated with the specified key.
-- (NSArray *) arrayForKey: (NSString *)key
-{
-  return (NSArray *)[_dict objectForKey: key];
-}
-  
-// Returns the Boolean value associated with the specified key.
-- (BOOL) boolForKey: (NSString *)key
-{
-  return (BOOL)([[_dict objectForKey: key] boolValue] == 1);
-}
-
-// Returns the data object associated with the specified key.
-- (NSData*) dataForKey: (NSString *)key
-{
-  return (NSData *)[_dict objectForKey: key];
-}
-
-// Returns the dictionary object associated with the specified key.
-- (NSDictionary *) dictionaryForKey: (NSString *)key
-{
-  return (NSDictionary *)[_dict objectForKey: key];
-}
-
-// Returns the double value associated with the specified key.
-- (double) doubleForKey: (NSString *)key
-{
-  return (double)[[_dict objectForKey: key] doubleValue];
-}
-
-// Returns the long long value associated with the specified key.
-- (long long) longLongForKey: (NSString *)key
-{
-  return (long long)[[_dict objectForKey: key] longValue];
-}
-
 // Returns the object associated with the specified key.
 - (id) objectForKey: (NSString *)key
 {
   return [_dict objectForKey: key];
 }
 
-//  Returns the string associated with the specified key.
-- (NSString *) stringForKey: (NSString *)key
-{
-  return (NSString *)[_dict objectForKey: key];
-}
-
-// Setting Values
-// Sets an array object for the specified key in the key-value store.
-- (void) setArray: (NSArray *)array forKey: (NSString *)key
-{
-  [_dict setObject: array forKey: key];
-}
-
-// Sets a Boolean value for the specified key in the key-value store.
-- (void) setBool: (BOOL)flag forKey: (NSString *)key
-{
-  NSNumber *num = [NSNumber numberWithBool: flag];
-  [_dict setObject: num forKey: key];
-}
-
-// Sets a data object for the specified key in the key-value store.
-- (void) setData: (NSData *)data forKey: (NSString *)key
-{
-  [_dict setObject: data forKey: key];
-}
-
-// Sets a dictionary object for the specified key in the key-value store.
-- (void) setDictionary: (NSDictionary *)dict forKey: (NSString *)key
-{
-  [_dict setObject: dict forKey: key];
-}
-
-// Sets a double value for the specified key in the key-value store.
-- (void) setDouble: (double)val forKey: (NSString *)key
-{
-  NSNumber *num = [NSNumber numberWithDouble: val];
-  [_dict setObject: num forKey: key];
-}
-
-// Sets a long long value for the specified key in the key-value store.
-- (void) setLongLong: (long long)val forKey: (NSString *)key
-{
-  NSNumber *num = [NSNumber numberWithLong: val];
-  [_dict setObject: num forKey: key];
-}
-
 // Sets an object for the specified key in the key-value store.
 - (void) setObject: (id) obj forKey: (NSString *)key
 {
   [_dict setObject: obj forKey: key];
-}
-
-// Sets a string object for the specified key in the key-value store.
-- (void) setString: (NSString *)string forKey: (NSString *)key
-{
-  [_dict setObject: string forKey: key];
 }
 
 // Explicitly Synchronizing In-Memory Key-Value Data to Disk
