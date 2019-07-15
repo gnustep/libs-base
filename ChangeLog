@@ -5,9 +5,29 @@
 	Fix generics definition of NSMutableArray and NSMutableOrderedSet.
 	Fix NSArray and NSOrderedSet KVC method types to not use generic type.
 
+2019-07-14  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSUbiquitousKeyValueStore.m: Change to use GNUstep
+	formatting. Move simple methods into base class. Correct the usage
+	of long long NSNumber.
+
+2019-07-10  Gregory Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSUbiquitousKeyValueStore.h
+	* Source/NSUbiquitousKeyValueStore.m: Implementation of
+	skeletal version of this class for compilation.  Also put in
+	place a way to make concrete subclasses for various services.
+
 2019-07-02  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Tests/base/GSTLS/basic.m: Use fixed time zone.
+
+2019-07-02  Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSOrderedSet.h: Added header for class cluster
+	implementation of NSOrderedSet.
+	* Source/NSOrderedSet.m: Implementation of NSOrderedSet and NSMutableOrderedSet
+	* Source/GSOrderedSet.m: Implementation of concrete class.
 
 2019-07-01  Fred Kiefer <fredkiefer@gmx.de>
 
@@ -15,6 +35,7 @@
 	line number.
 	* Source/NSOperation.m (_execute): Surround with NS_DURING to free
 	lock on error.
+
 2019-06-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSIArray.h:
