@@ -166,8 +166,8 @@ typedef NSUInteger NSBinarySearchingOptions;
 - (BOOL) writeToFile: (NSString*)path atomically: (BOOL)useAuxiliaryFile;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (BOOL) writeToURL: (NSURL*)url atomically: (BOOL)useAuxiliaryFile;
-- (GS_GENERIC_TYPE(ElementT)) valueForKey: (NSString*)key;
-- (void) setValue: (GS_GENERIC_TYPE(ElementT))value forKey: (NSString*)key;
+- (id) valueForKey: (NSString*)key;
+- (void) setValue: (id)value forKey: (NSString*)key;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
