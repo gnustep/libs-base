@@ -1,3 +1,11 @@
+2019-07-19  Gregory Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSByteCountFormatter.h
+	* Source/NSByteCountFormatter.m
+	Implementation of NSByteCountFormatter as documented.
+	* Tests/base/NSByteCountFormatter
+	Add test for this class.
+
 2019-07-10  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/Foundation/NSArray.h:
