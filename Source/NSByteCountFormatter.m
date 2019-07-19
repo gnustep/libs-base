@@ -46,6 +46,15 @@
 #include	"GSInternal.h"
 GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 
+// Unit definitions...
+#define KB (double)1024
+#define MB (double)(1024 * 1024)
+#define GB (double)(1024 * 1024 * 1024)
+#define TB (double)(1024 * 1024 * 1024 * 1024)
+#define PB (double)(1024 * 1024 * 1024 * 1024 * 1024)
+#define EB (double)(1024 * 1024 * 1024 * 1024 * 1024 * 1024)
+#define ZB (double)(1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024)
+#define YB (double)(1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024)
 
 @implementation NSByteCountFormatter
   
@@ -59,8 +68,78 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 
 - (NSString *)stringFromByteCount: (long long)byteCount
 {
+  NSString *result = nil;
+  double bc = (double)byteCount;
+  double count = 0;
+  NSString *outputFormat = @"";
+  NSString *unitName = @"";
+  NSByteCountFormatterUnits allowed = internal->_allowedUnits;
+
+  if (allowed == NSByteCountFormatterUseDefault)
+    {
+      allowed = NSByteCountFormatterUseMB;
+    }
+    
+  if (allowed & NSByteCountFormatterUseYBOrHigher)
+    {
+      count = bc / YB;
+      unitName = @"YB";
+    }
+  if (allowed & NSByteCountFormatterUseEB)
+    {
+      count = bc / EB;
+      unitName = @"EB";
+    }
+  if (allowed & NSByteCountFormatterUsePB)
+    {
+      count = bc / PB;
+      unitName = @"PB";
+    }
+  if (allowed & NSByteCountFormatterUseTB)
+    {
+      count = bc / TB;
+      unitName = @"TB";
+    }
+  if (allowed & NSByteCountFormatterUseGB)
+    {
+      count = bc / GB;
+      unitName = @"GB";
+    }
+  if (allowed & NSByteCountFormatterUseMB)
+    {
+      count = bc / MB;	    
+      unitName = @"MB";
+    }
+  if (allowed & NSByteCountFormatterUseKB)
+    {
+      count = bc / KB;
+      unitName = @"KB";      
+    }
+  if (allowed & NSByteCountFormatterUseBytes)
+    {
+      count = bc;
+      unitName = @"bytes";
+    }
+
+  if(internal->_zeroPadsFractionDigits)
+    {
+      outputFormat = [outputFormat stringByAppendingString: @"%01.08f"];
+    }
+  else
+    {
+      outputFormat = [outputFormat stringByAppendingString: @"%01f"];      
+    }
   
-  return nil;
+  if(internal->_includesUnit)
+    {
+      NSString *paddedUnit = [NSString stringWithFormat: @" %@",unitName];
+      outputFormat = [outputFormat stringByAppendingString: paddedUnit];
+    }
+
+  // Do the formatting...
+  result = [NSString stringWithFormat: outputFormat, count];
+  
+  return result;
 }
 
 - (id) init
@@ -74,7 +153,10 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
   GS_CREATE_INTERNAL(NSByteCountFormatter);
 
   internal->_countStyle = NSByteCountFormatterCountStyleFile;
-  internal->_allowedUnits |= NSByteCountFormatterUseMB;
+  internal->_allowedUnits = NSByteCountFormatterUseDefault;
+  internal->_adaptive = YES;
+  internal->_formattingContext = NSFormattingContextUnknown;
+  internal->_allowsNonnumericFormatting = YES;
 
   return self;
 }
@@ -119,7 +201,7 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
   _includesActualByteCount = flag;
 }
 
-- (BOOL) adaptive
+- (BOOL) isAdaptive
 {
   return _adaptive;
 }

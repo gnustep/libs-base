@@ -92,7 +92,7 @@ GS_NSByteCountFormatter_IVARS;
 - (BOOL) includesActualByteCount;
 - (void) setIncludesActualByteCount: (BOOL)flag;
 
-- (BOOL) adaptive;
+- (BOOL) isAdaptive;
 - (void) setAdaptive: (BOOL)flag;
 
 - (NSByteCountFormatterUnits) allowedUnits;
