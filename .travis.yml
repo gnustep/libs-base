@@ -18,7 +18,7 @@ matrix:
 sudo: required
 before_install:
     - sudo apt-get -qq update
-    - sudo apt-get install -y cmake pkg-config libgnutls28-dev libgmp-dev libffi-dev libicu-dev libxml2-dev libxslt1-dev libssl-dev libavahi-client-dev zlib1g-dev
+    - sudo apt-get install -y cmake pkg-config libgnutls28-dev libgmp-dev libffi-dev libicu-dev libxml2-dev libxslt1-dev libssl-dev libavahi-client-dev zlib1g-dev libblocksruntime-dev
     - >
         if [ $LIBRARY_COMBO = 'gnu-gnu-gnu' ];
         then

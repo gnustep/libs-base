@@ -125,8 +125,8 @@ extern "C" {
               range: (NSRange)aRange;
 
 // Key value coding support
-- (void) setValue: (GS_GENERIC_TYPE(ElementT))value forKey: (NSString*)key;
-- (GS_GENERIC_TYPE(ElementT)) valueForKey: (NSString*)key; 
+- (void) setValue: (id)value forKey: (NSString*)key;
+- (id) valueForKey: (NSString*)key; 
 
 // Comparing Sets
 - (BOOL) isEqualToOrderedSet: (NSOrderedSet *)aSet;
