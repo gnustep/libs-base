@@ -47,14 +47,14 @@
 GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 
 // Unit definitions...
-#define KB (double)1024
-#define MB (double)(1024 * 1024)
-#define GB (double)(1024 * 1024 * 1024)
-#define TB (double)(1024 * 1024 * 1024 * 1024)
-#define PB (double)(1024 * 1024 * 1024 * 1024 * 1024)
-#define EB (double)(1024 * 1024 * 1024 * 1024 * 1024 * 1024)
-#define ZB (double)(1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024)
-#define YB (double)(1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024 * 1024)
+#define KB (double)1024.0
+#define MB (double)(1024.0 * 1024.0)
+#define GB (double)(1024.0 * 1024.0 * 1024.0)
+#define TB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0)
+#define PB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)
+#define EB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)
+#define ZB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)
+#define YB (double)(1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0 * 1024.0)
 
 @implementation NSByteCountFormatter
   
@@ -66,6 +66,42 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
   return [formatter stringFromByteCount: byteCount];
 }
 
+- (NSByteCountFormatterUnits) _adaptiveSettings: (double)byteCount
+{
+  NSByteCountFormatterUnits units = NSByteCountFormatterUseDefault;
+  
+  if (byteCount >= KB) 
+    {
+      units = NSByteCountFormatterUseKB;
+    }
+  if (byteCount >= MB) 
+    {
+      units = NSByteCountFormatterUseMB;
+    }
+  if (byteCount >= GB) 
+    {
+      units = NSByteCountFormatterUseGB;
+    }
+  if (byteCount >= TB) 
+    {
+      units = NSByteCountFormatterUseTB;
+    }
+  if (byteCount >= PB) 
+    {
+      units = NSByteCountFormatterUsePB;
+    }
+  if (byteCount >= EB) 
+    {
+      units = NSByteCountFormatterUseEB;
+    }
+  if (byteCount >= YB) 
+    {
+      units = NSByteCountFormatterUseYBOrHigher;
+    }
+  
+  return units;
+}
+
 - (NSString *)stringFromByteCount: (long long)byteCount
 {
   NSString *result = nil;
@@ -75,11 +111,15 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
   NSString *unitName = @"";
   NSByteCountFormatterUnits allowed = internal->_allowedUnits;
 
-  if (allowed == NSByteCountFormatterUseDefault)
+  if(internal->_adaptive)
+    {
+      allowed = [self _adaptiveSettings: bc];
+    }
+  else if (allowed == NSByteCountFormatterUseDefault)
     {
       allowed = NSByteCountFormatterUseMB;
     }
-    
+
   if (allowed & NSByteCountFormatterUseYBOrHigher)
     {
       count = bc / YB;
@@ -127,7 +167,14 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
     }
   else
     {
-      outputFormat = [outputFormat stringByAppendingString: @"%01f"];      
+      NSInteger whole = (NSInteger)(count / 1);
+      double frac = (double)count - (double)whole;
+      if(frac > 0.0)
+	{
+	  whole += 1;
+	}
+      count = (double)whole;
+      outputFormat = [outputFormat stringByAppendingString: @"%01.0f"];      
     }
   
   if(internal->_includesUnit)
@@ -157,6 +204,7 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
   internal->_adaptive = YES;
   internal->_formattingContext = NSFormattingContextUnknown;
   internal->_allowsNonnumericFormatting = YES;
+  internal->_includesUnit = YES;
 
   return self;
 }
