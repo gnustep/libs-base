@@ -111,6 +111,12 @@ GS_NSByteCountFormatter_IVARS;
 - (NSString *)stringForObjectValue: (id)obj;
 - (NSString *)stringFromMeasurement
 */
+  
+- (NSString *)stringFromByteCount: (long long)byteCount;
+  
++ (NSString *)stringFromByteCount: (long long)byteCount
+                       countStyle: (NSByteCountFormatterCountStyle)countStyle;
+
 @end
 
 #if	defined(__cplusplus)

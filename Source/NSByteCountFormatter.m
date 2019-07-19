@@ -48,6 +48,20 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 
 
 @implementation NSByteCountFormatter
+  
++ (NSString *)stringFromByteCount: (long long)byteCount
+                       countStyle: (NSByteCountFormatterCountStyle)countStyle
+{
+  NSByteCountFormatter *formatter = [[NSByteCountFormatter alloc] init];
+  [formatter setCountStyle: countStyle];
+  return [formatter stringFromByteCount: byteCount];
+}
+
+- (NSString *)stringFromByteCount: (long long)byteCount
+{
+  
+  return nil;
+}
 
 - (id) init
 {
@@ -58,6 +72,9 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
     }
 
   GS_CREATE_INTERNAL(NSByteCountFormatter);
+
+  internal->_countStyle = NSByteCountFormatterCountStyleFile;
+  internal->_allowedUnits |= NSByteCountFormatterUseMB;
 
   return self;
 }
