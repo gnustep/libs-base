@@ -70,7 +70,7 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 {
   NSByteCountFormatterUnits units = NSByteCountFormatterUseDefault;
   
-  if (byteCount >= KB) 
+  if (byteCount >= KB || byteCount == 0.0) 
     {
       units = NSByteCountFormatterUseKB;
     }
@@ -161,20 +161,27 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
       unitName = @"bytes";
     }
 
-  if(internal->_zeroPadsFractionDigits)
+  if(internal->_allowsNonnumericFormatting && count == 0.0)
     {
-      outputFormat = [outputFormat stringByAppendingString: @"%01.08f"];
+      outputFormat = [outputFormat stringByAppendingString: @"Zero"];
     }
   else
     {
-      NSInteger whole = (NSInteger)(count / 1);
-      double frac = (double)count - (double)whole;
-      if(frac > 0.0)
+      if(internal->_zeroPadsFractionDigits)
 	{
-	  whole += 1;
+	  outputFormat = [outputFormat stringByAppendingString: @"%01.08f"];
 	}
-      count = (double)whole;
-      outputFormat = [outputFormat stringByAppendingString: @"%01.0f"];      
+      else
+	{
+	  NSInteger whole = (NSInteger)(count / 1);
+	  double frac = (double)count - (double)whole;
+	  if(frac > 0.0)
+	    {
+	      whole += 1;
+	    }
+	  count = (double)whole;
+	  outputFormat = [outputFormat stringByAppendingString: @"%01.0f"];
+	}
     }
   
   if(internal->_includesUnit)
