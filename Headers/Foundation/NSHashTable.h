@@ -31,6 +31,7 @@
 
 /**** Included Headers *******************************************************/
 
+#import <Foundation/NSObject.h>
 #import <Foundation/NSEnumerator.h>
 #import <Foundation/NSPointerFunctions.h>
 #import	<Foundation/NSString.h>
@@ -40,7 +41,8 @@ extern "C" {
 #endif
 
 
-@class NSArray, NSSet, NSHashTable;
+@class GS_GENERIC_CLASS(NSArray, ElementT);
+@class GS_GENERIC_CLASS(NSSet, ElementT);
 
 /**** Type, Constant, and Macro Definitions **********************************/
 
@@ -59,7 +61,7 @@ enum {
 
 typedef NSUInteger NSHashTableOptions;
 
-@interface NSHashTable : NSObject <NSCopying, NSCoding, NSFastEnumeration>
+@interface GS_GENERIC_CLASS(NSHashTable, ElementT) : NSObject <NSCopying, NSCoding, NSFastEnumeration>
 
 + (id) hashTableWithOptions: (NSPointerFunctionsOptions)options;
 
@@ -81,21 +83,21 @@ typedef NSUInteger NSHashTableOptions;
 
 /** Adds the object to the receiver.
  */
-- (void) addObject: (id)object;
+- (void) addObject: (GS_GENERIC_TYPE(ElementT))object;
 
 /** Returns an array containing all objects in the receiver.
  */
-- (NSArray*) allObjects;
+- (GS_GENERIC_CLASS(NSArray, ElementT)*) allObjects;
 
 /** Returns any objct from the receiver, or nil if the receiver contains no
  * objects.
  */
-- (id) anyObject;
+- (GS_GENERIC_TYPE(ElementT)) anyObject;
 
 /** Returns YES if the receiver contains an item equal to anObject, or NO
  * otherwise.
  */
-- (BOOL) containsObject: (id)anObject;
+- (BOOL) containsObject: (GS_GENERIC_TYPE(ElementT))anObject;
 
 /** Return the number of items atored in the receiver.
  */
@@ -103,33 +105,33 @@ typedef NSUInteger NSHashTableOptions;
 
 /** Removes from the receiver any items which are not also present in 'other'.
  */
-- (void) intersectHashTable: (NSHashTable*)other;
+- (void) intersectHashTable: (GS_GENERIC_CLASS(NSHashTable, ElementT)*)other;
 
 /** Returns YES if the receiver and 'other' contain any items in common.
  */
-- (BOOL) intersectsHashTable: (NSHashTable*)other;
+- (BOOL) intersectsHashTable: (GS_GENERIC_CLASS(NSHashTable, ElementT)*)other;
 
 /** Returns YES if the receiver and 'other' contain equal sets of items.
  */
-- (BOOL) isEqualToHashTable: (NSHashTable*)other;
+- (BOOL) isEqualToHashTable: (GS_GENERIC_CLASS(NSHashTable, ElementT)*)other;
 
 /** Returns YES fi all the items in the receiver are also present in 'other'
  */
-- (BOOL) isSubsetOfHashTable: (NSHashTable*)other;
+- (BOOL) isSubsetOfHashTable: (GS_GENERIC_CLASS(NSHashTable, ElementT)*)other;
 
 /** Returns an item stored in the receiver which is equal to the supplied
  * object argument, or nil if no matchi is found.
  */
-- (id) member: (id)object;
+- (GS_GENERIC_TYPE(ElementT)) member: (GS_GENERIC_TYPE(ElementT))object;
 
 /** Removes from the receivr all those items which are prsent in both
  * the receiver and in 'other'.
  */
-- (void) minusHashTable: (NSHashTable*)other;
+- (void) minusHashTable: (GS_GENERIC_CLASS(NSHashTable, ElementT)*)other;
 
 /** Return an enumerator for the receiver.
  */
-- (NSEnumerator*) objectEnumerator;
+- (GS_GENERIC_CLASS(NSEnumerator, ElementT)*) objectEnumerator;
 
 /** Return an NSPointerFunctions value describing the functions used by the
  * receiver to handle its contents.
@@ -142,16 +144,16 @@ typedef NSUInteger NSHashTableOptions;
 
 /** Remove the object (or any equal object) from the receiver.
  */
-- (void) removeObject: (id)object;
+- (void) removeObject: (GS_GENERIC_TYPE(ElementT))object;
 
 /** Returns a set containing all the objects in the receiver.
  */
-- (NSSet*) setRepresentation; 
+- (GS_GENERIC_CLASS(NSSet, ElementT)*) setRepresentation; 
 
 /** Adds to the receiver thse items present in 'other' which were
  * not present in the receiver.
  */
-- (void) unionHashTable: (NSHashTable*)other;
+- (void) unionHashTable: (GS_GENERIC_CLASS(NSHashTable, ElementT)*)other;
 
 
 @end
