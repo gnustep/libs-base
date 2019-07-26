@@ -1,4 +1,4 @@
-/* Definition of class NSByteCountFormatter
+/* Definition of class NSScriptClassDescription
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    Written by: 	Gregory Casamento <greg.casamento@gmail.com>
@@ -22,13 +22,12 @@
    Boston, MA 02111 USA.
 */
 
-#ifndef _NSByteCountFormatter_h_GNUSTEP_BASE_INCLUDE
-#define _NSByteCountFormatter_h_GNUSTEP_BASE_INCLUDE
+#ifndef _NSScriptClassDescription_h_GNUSTEP_BASE_INCLUDE
+#define _NSScriptClassDescription_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
 
 #import	<Foundation/NSObject.h>
-#import	<Foundation/NSFormatter.h>
-#import	<Foundation/NSDecimalNumber.h>
+#import	<Foundation/NSClassDescription.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -37,38 +36,14 @@ extern "C" {
 @class	NSString, NSAttributedString, NSDictionary,
         NSError, NSLocale, NSNumber;
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
-enum {
-  NSByteCountFormatterUseDefault = 0,
-  NSByteCountFormatterUseBytes = 1UL << 0,
-  NSByteCountFormatterUseKB = 1UL << 1,
-  NSByteCountFormatterUseMB = 1UL << 2,
-  NSByteCountFormatterUseGB = 1UL << 3,
-  NSByteCountFormatterUseTB = 1UL << 4,
-  NSByteCountFormatterUsePB = 1UL << 5,
-  NSByteCountFormatterUseEB = 1UL << 6,
-  NSByteCountFormatterUseZB = 1UL << 7,
-  NSByteCountFormatterUseYBOrHigher = 0x0FFUL << 8,
-  NSByteCountFormatterUseAll = 0x0FFFFUL
-};
-typedef NSInteger NSByteCountFormatterUnits;
-
-enum {
-  NSByteCountFormatterCountStyleFile = 0,
-  NSByteCountFormatterCountStyleMemory = 1,
-  NSByteCountFormatterCountStyleDecimal = 2,
-  NSByteCountFormatterCountStyleBinary = 3,
-};
-typedef NSInteger NSByteCountFormatterCountStyle;
-  
-@interface NSByteCountFormatter : NSFormatter
+@interface NSScriptClassDescription : NSFormatter
 {
-#if	GS_EXPOSE(NSByteCountFormatter)
+#if	GS_EXPOSE(NSScriptClassDescription)
 #endif
 #if     GS_NONFRAGILE
-#  if	defined(GS_NSByteCountFormatter_IVARS)
+#  if	defined(GS_NSScriptClassDescription_IVARS)
 @public
-GS_NSByteCountFormatter_IVARS;
+GS_NSScriptClassDescription_IVARS;
 #  endif
 #else
   /* Pointer to private additional data used to avoid breaking ABI
@@ -79,44 +54,11 @@ GS_NSByteCountFormatter_IVARS;
   @private id _internal GS_UNUSED_IVAR;
 #endif
 }
-
-- (NSFormattingContext) formattingContext;
-- (void) setFormattingContext: (NSFormattingContext)ctx;
-
-- (NSByteCountFormatterCountStyle) countStyle;
-- (void) setCountStyle: (NSByteCountFormatterCountStyle)style;
-
-- (BOOL) allowsNonnumericFormatting;
-- (void) setAllowsNonnumericFormatting: (BOOL)flag;
-
-- (BOOL) includesActualByteCount;
-- (void) setIncludesActualByteCount: (BOOL)flag;
-
-- (BOOL) isAdaptive;
-- (void) setAdaptive: (BOOL)flag;
-
-- (NSByteCountFormatterUnits) allowedUnits;
-- (void) setAllowedUnits: (NSByteCountFormatterUnits)units;
-
-- (BOOL) includesCount;
-- (void) setIncludesCount: (BOOL)flag;
-
-- (BOOL) includesUnit;
-- (void) setIncludesUnit: (BOOL)flag;
   
-- (BOOL) zeroPadsFractionDigits;
-- (void) setZeroPadsFractionDigits: (BOOL)flag;
-
-/* Beta methods... not yet implemented.
-- (NSString *)stringForObjectValue: (id)obj;
-- (NSString *)stringFromMeasurement
-*/
-  
-- (NSString *)stringFromByteCount: (long long)byteCount;
-  
-+ (NSString *)stringFromByteCount: (long long)byteCount
-                       countStyle: (NSByteCountFormatterCountStyle)countStyle;
-
+- (instancetype) initWithSuiteName: (NSString *)suiteName 
+                         className: (NSString *)className 
+                        dictionary: (NSDictionary *)classDeclaration;
++ (NSScriptClassDescription *) classDescriptionForClass: (Class)aClass;
 @end
 
 #if	defined(__cplusplus)
