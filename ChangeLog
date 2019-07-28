@@ -1,3 +1,7 @@
+2019-07-28  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSByteCountFormatter.m: Fix to work in non fragile settings.
+
 2019-07-19  Gregory Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSByteCountFormatter.h

@@ -219,92 +219,92 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 
 - (NSFormattingContext) formattingContext
 {
-  return _formattingContext;
+  return internal->_formattingContext;
 }
 
 - (void) setFormattingContext: (NSFormattingContext)ctx
 {
-  _formattingContext = ctx;
+  internal->_formattingContext = ctx;
 }
 
 - (NSByteCountFormatterCountStyle) countStyle
 {
-  return _countStyle;
+  return internal->_countStyle;
 }
 
 - (void) setCountStyle: (NSByteCountFormatterCountStyle)style
 {
-  _countStyle = style;
+  internal->_countStyle = style;
 }
 
 - (BOOL) allowsNonnumericFormatting
 {
-  return _allowsNonnumericFormatting;
+  return internal->_allowsNonnumericFormatting;
 }
 
 - (void) setAllowsNonnumericFormatting: (BOOL)flag
 {
-  _allowsNonnumericFormatting = flag;
+  internal->_allowsNonnumericFormatting = flag;
 }
 
 - (BOOL) includesActualByteCount
 {
-  return _includesActualByteCount;
+  return internal->_includesActualByteCount;
 }
 
 - (void) setIncludesActualByteCount: (BOOL)flag
 {
-  _includesActualByteCount = flag;
+  internal->_includesActualByteCount = flag;
 }
 
 - (BOOL) isAdaptive
 {
-  return _adaptive;
+  return internal->_adaptive;
 }
 
 - (void) setAdaptive: (BOOL)flag
 {
-  _adaptive = flag;
+  internal->_adaptive = flag;
 }
 
 - (NSByteCountFormatterUnits) allowedUnits
 {
-  return _allowedUnits;
+  return internal->_allowedUnits;
 }
 
 - (void) setAllowedUnits: (NSByteCountFormatterUnits)units
 {
-  _allowedUnits = units;
+  internal->_allowedUnits = units;
 }
 
 - (BOOL) includesCount
 {
-  return _includesCount;
+  return internal->_includesCount;
 }
 
 - (void) setIncludesCount: (BOOL)flag
 {
-  _includesCount = flag;
+  internal->_includesCount = flag;
 }
 
 - (BOOL) includesUnit
 {
-  return _includesUnit;
+  return internal->_includesUnit;
 }
 
 - (void) setIncludesUnit: (BOOL)flag
 {
-  _includesUnit = flag;
+  internal->_includesUnit = flag;
 }
   
 - (BOOL) zeroPadsFractionDigits
 {
-  return _zeroPadsFractionDigits;
+  return internal->_zeroPadsFractionDigits;
 }
 
 - (void) setZeroPadsFractionDigits: (BOOL)flag
 {
-  _zeroPadsFractionDigits = flag;
+  internal->_zeroPadsFractionDigits = flag;
 }
 
 @end
