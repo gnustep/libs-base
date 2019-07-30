@@ -95,6 +95,12 @@ GS_PRIVATE_INTERNAL(NSProgress)
   return self;
 }
 
+- (void) dealloc
+{
+  RELEASE(internal->_userInfo);
+  [super dealloc];
+}
+
 + (NSProgress *)discreteProgressWithTotalUnitCount:(int64_t)unitCount
 {
   return nil;
