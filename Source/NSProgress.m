@@ -64,7 +64,35 @@ GS_PRIVATE_INTERNAL(NSProgress)
 - (instancetype)initWithParent: (NSProgress *)parent 
                       userInfo: (NSDictionary *)userInfo
 {
-  return nil;
+  self = [super init];
+  if (self == nil)
+    {
+      return nil;
+    }
+
+  GS_CREATE_INTERNAL(NSProgress);
+  internal->_kind = nil;
+  internal->_fileOperationKind = nil;
+  internal->_fileUrl = nil;
+  internal->_isFinished = NO;
+  internal->_old = NO;
+  internal->_estimatedTimeRemaining = nil;
+  internal->_fileCompletedCount = nil;
+  internal->_fileTotalCount = nil;
+  internal->_throughput = nil;
+  internal->_totalUnitCount = 0;
+  internal->_completedUnitCount = 0;
+  internal->_userInfo = [[NSMutableDictionary alloc] initWithCapacity: 10];
+  internal->_cancelled = NO;
+  internal->_cancellable = NO;
+  internal->_paused = NO;
+  internal->_pausable = NO;
+  internal->_indeterminate = NO;
+  internal->_finished = NO;
+  internal->_fractionCompleted = 0.0;
+  internal->_parent = nil;
+
+  return self;
 }
 
 + (NSProgress *)discreteProgressWithTotalUnitCount:(int64_t)unitCount
