@@ -271,6 +271,7 @@ NSPortMessage.m \
 NSPortNameServer.m \
 NSPredicate.m \
 NSProcessInfo.m \
+NSProgress.m \
 NSPropertyList.m \
 NSProtocolChecker.m \
 NSProxy.m \
@@ -441,6 +442,7 @@ NSPortMessage.h \
 NSPortNameServer.h \
 NSPredicate.h \
 NSProcessInfo.h \
+NSProgress.h \
 NSPropertyList.h \
 NSProtocolChecker.h \
 NSProxy.h \

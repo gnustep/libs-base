@@ -32,16 +32,13 @@
 extern "C" {
 #endif
 
-@class	NSString, NSDictionary, NSArray;
+@class	NSString, NSDictionary, NSArray, NSNumber;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
 
 typedef NSString* NSProgressKind;
 typedef NSString* NSProgressUserInfoKey;
 typedef NSString* NSProgressFileOperationKind;  
-
-DEFINE_BLOCK_TYPE(NSProgressPublishingHandler, void, NSProgress*);
-DEFINE_BLOCK_TYPE(NSProgressUnpublishingHandler, void, void);
 
 @interface NSProgress : NSObject
 {
@@ -62,6 +59,9 @@ GS_NSProgress_IVARS;
 #endif
 }
 
+DEFINE_BLOCK_TYPE(NSProgressPublishingHandler, void, NSProgress*);
+DEFINE_BLOCK_TYPE(NSProgressUnpublishingHandler, void, void);
+  
 // Creating progress objects...
 - (instancetype)initWithParent: (NSProgress *)parent 
                       userInfo: (NSDictionary *)userInfo;
@@ -116,10 +116,10 @@ DEFINE_BLOCK_TYPE(GSProgressResumingHandler, void, void);
                    forKey: (NSProgressUserInfoKey)key;
 
 // Instance property accessors...
-- (void) setFileOperationKind: (NSFileOperationKind)k;
-- (NSFileOperationKind) fileOperationKind;
+- (void) setFileOperationKind: (NSProgressFileOperationKind)k;
+- (NSProgressFileOperationKind) fileOperationKind;
 - (void) setFileUrl: (NSURL *)u;
-- (NSURL *)fileUrl
+- (NSURL *)fileUrl;
 - (BOOL) isFinished;
 - (BOOL) isOld;
 - (void) setEstimatedTimeRemaining: (NSNumber *)n;
@@ -143,6 +143,13 @@ DEFINE_BLOCK_TYPE(GSProgressPendingUnitCountBlock, void, void);
         withPublishingHandler: (NSProgressPublishingHandler)publishingHandler;
 + (void)removeSubscriber: (id)subscriber;
   
+@end
+
+
+@protocol NSProgressReporting
+
+- (NSProgress *) progress;
+
 @end
 
 #if	defined(__cplusplus)
