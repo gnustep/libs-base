@@ -42,6 +42,7 @@
   BOOL _indeterminate; \
   BOOL _finished; \
   double _fractionCompleted; \
+  GSProgressCancellationHandler _cancellationHandler; \
   NSProgress *_parent;
 
 #define	EXPOSE_NSProgress_IVARS
@@ -49,14 +50,17 @@
 #import <Foundation/NSObject.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSArray.h>
-#import	<Foundation/NSProgress.h>
 #import <Foundation/NSValue.h>
 #import <Foundation/NSURL.h>
 #import <Foundation/NSString.h>
+#import	<Foundation/NSProgress.h>
 
 #define	GSInternal NSProgressInternal
 #include "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSProgress)
+
+// NSProgress for current thread....
+static NSProgress *__currentProgress = nil;
 
 @implementation NSProgress
 
@@ -90,7 +94,7 @@ GS_PRIVATE_INTERNAL(NSProgress)
   internal->_indeterminate = NO;
   internal->_finished = NO;
   internal->_fractionCompleted = 0.0;
-  internal->_parent = parent;
+  internal->_parent = parent;  // this is a weak reference and not retained.
 
   return self;
 }
@@ -98,6 +102,13 @@ GS_PRIVATE_INTERNAL(NSProgress)
 - (void) dealloc
 {
   RELEASE(internal->_userInfo);
+  RELEASE(internal->_fileOperationKind);
+  RELEASE(internal->_kind);
+  RELEASE(internal->_estimatedTimeRemaining);
+  RELEASE(internal->_fileCompletedCount);
+  RELEASE(internal->_fileTotalCount);
+  RELEASE(internal->_throughput);
+
   [super dealloc];
 }
 
@@ -127,23 +138,38 @@ GS_PRIVATE_INTERNAL(NSProgress)
   return AUTORELEASE(p);
 }
 
+// Private methods
+- (void) _setParent: (NSProgress *)p
+{
+  internal->_parent = p; // Not retained since this is defined in docs as a weak reference
+}
+
+- (NSProgress *) _parent
+{
+  return internal->_parent;
+}
 
 // Current progress
 + (NSProgress *)currentProgress
 {
-  return nil;
+  return __currentProgress;
 }
 
 - (void)becomeCurrentWithPendingUnitCount:(int64_t)unitCount
 {
+  [self setTotalUnitCount: unitCount];
+  __currentProgress = self;
 }
 
 - (void)addChild:(NSProgress *)child withPendingUnitCount: (int64_t)inUnitCount
 {
+  [child _setParent: self];
+  [child setTotalUnitCount: inUnitCount];
 }
 
 - (void)resignCurrent
 {
+  __currentProgress = nil;
 }
 
 // Reporting progress
@@ -288,7 +314,7 @@ GS_PRIVATE_INTERNAL(NSProgress)
 
 - (void) setEstimatedTimeRemaining: (NSNumber *)n
 {
-  ASSIGN(internal->_estimatedTimeRemaining, n);
+  ASSIGNCOPY(internal->_estimatedTimeRemaining, n);
 }
 
 - (NSNumber *) estimatedTimeRemaining
@@ -298,29 +324,32 @@ GS_PRIVATE_INTERNAL(NSProgress)
 
 - (void) setFileCompletedCount: (NSNumber *)n
 {
+  ASSIGNCOPY(internal->_fileCompletedCount, n);
 }
 
 - (NSNumber *) fileCompletedCount
 {
-  return nil;
+  return internal->_fileCompletedCount;
 }
 
 - (void) setFileTotalCount: (NSNumber *)n
 {
+  ASSIGNCOPY(internal->_fileTotalCount, n);
 }
 
 - (NSNumber *) fileTotalCount
 {
-  return nil;
+  return internal->_fileTotalCount;
 }
 
 - (void) setThroughput: (NSNumber *)n
 {
+  ASSIGNCOPY(internal->_throughput, n);
 }
 
 - (NSNumber *) throughtput
 {
-  return nil;
+  return internal->_throughput;
 }
 
 // Instance methods

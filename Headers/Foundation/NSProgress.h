@@ -40,6 +40,9 @@ typedef NSString* NSProgressKind;
 typedef NSString* NSProgressUserInfoKey;
 typedef NSString* NSProgressFileOperationKind;  
 
+DEFINE_BLOCK_TYPE(GSProgressCancellationHandler, void, void);
+DEFINE_BLOCK_TYPE(GSProgressPausingHandler, void, void);
+
 @interface NSProgress : NSObject
 {
 #if	GS_EXPOSE(NSProgress)
@@ -58,9 +61,10 @@ GS_NSProgress_IVARS;
   @private id _internal GS_UNUSED_IVAR;
 #endif
 }
-
+  
 DEFINE_BLOCK_TYPE(NSProgressPublishingHandler, void, NSProgress*);
 DEFINE_BLOCK_TYPE(NSProgressUnpublishingHandler, void, void);
+DEFINE_BLOCK_TYPE(GSProgressPendingUnitCountBlock, void, void);
   
 // Creating progress objects...
 - (instancetype)initWithParent: (NSProgress *)parent 
@@ -94,13 +98,11 @@ DEFINE_BLOCK_TYPE(NSProgressUnpublishingHandler, void, void);
 - (BOOL) isCancellable;
 - (BOOL) isCancelled;
 - (void) cancel;
-DEFINE_BLOCK_TYPE(GSProgressCancellationHandler, void, void);
 - (void) setCancellationHandler: (GSProgressCancellationHandler) handler;
 
 - (BOOL) isPausable;
 - (BOOL) isPaused;
 - (void) pause;
-DEFINE_BLOCK_TYPE(GSProgressPausingHandler, void, void);
 - (void) setPausingHandler: (GSProgressPausingHandler) handler;
 
 - (void) resume;
@@ -134,7 +136,6 @@ DEFINE_BLOCK_TYPE(GSProgressResumingHandler, void, void);
 // Instance methods
 - (void) publish;
 - (void) unpublish;
-DEFINE_BLOCK_TYPE(GSProgressPendingUnitCountBlock, void, void);
 - (void)performAsCurrentWithPendingUnitCount: (int64_t)unitCount 
                                   usingBlock: (GSProgressPendingUnitCountBlock)work;
 
