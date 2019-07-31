@@ -82,7 +82,7 @@ GS_PRIVATE_INTERNAL(NSProgress)
   internal->_throughput = nil;
   internal->_totalUnitCount = 0;
   internal->_completedUnitCount = 0;
-  internal->_userInfo = [[NSMutableDictionary alloc] initWithCapacity: 10];
+  internal->_userInfo = [userInfo mutableCopy];
   internal->_cancelled = NO;
   internal->_cancellable = NO;
   internal->_paused = NO;
@@ -90,7 +90,7 @@ GS_PRIVATE_INTERNAL(NSProgress)
   internal->_indeterminate = NO;
   internal->_finished = NO;
   internal->_fractionCompleted = 0.0;
-  internal->_parent = nil;
+  internal->_parent = parent;
 
   return self;
 }
@@ -103,19 +103,28 @@ GS_PRIVATE_INTERNAL(NSProgress)
 
 + (NSProgress *)discreteProgressWithTotalUnitCount:(int64_t)unitCount
 {
-  return nil;
+  NSProgress *p = [[NSProgress alloc] initWithParent: nil
+					    userInfo: [NSDictionary dictionary]];
+  [p setTotalUnitCount: unitCount];
+  return AUTORELEASE(p);
 }
 
 + (NSProgress *)progressWithTotalUnitCount:(int64_t)unitCount
 {
-  return nil;
+  NSProgress *p = [[NSProgress alloc] initWithParent: nil
+					    userInfo: [NSDictionary dictionary]];
+  [p setTotalUnitCount: unitCount];
+  return AUTORELEASE(p);
 }
 
 + (NSProgress *)progressWithTotalUnitCount:(int64_t)unitCount 
                                     parent:(NSProgress *)parent 
                           pendingUnitCount:(int64_t)portionOfParentTotalUnitCount
 {
-  return nil;
+  NSProgress *p = [[NSProgress alloc] initWithParent: parent
+					    userInfo: [NSDictionary dictionary]];
+  [p setTotalUnitCount: portionOfParentTotalUnitCount];
+  return AUTORELEASE(p);
 }
 
 
