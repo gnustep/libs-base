@@ -2133,3 +2133,295 @@ static NSUInteger	urlAlign;
 }
 @end
 
+@implementation NSURLQueryItem
+
+// Creating query items.
++ (instancetype)queryItemWithName:(NSString *)name 
+                            value:(NSString *)value
+{
+  return nil;
+}
+
+- (instancetype)initWithName:(NSString *)name 
+                       value:(NSString *)value
+{
+  return nil;
+}
+
+// Reading a name and value from a query
+- (NSString *) name
+{
+  return nil;
+}
+
+- (NSString *) value
+{
+  return nil;
+}
+
+@end
+
+@implementation NSURLComponents 
+// Creating URL components...
++ (instancetype) componentsWithString:(NSString *)URLString
+{
+  return nil;
+}
+
++ (instancetype) componentsWithURL:(NSURL *)url 
+           resolvingAgainstBaseURL:(BOOL)resolve
+{
+  return nil;
+}
+
+- (instancetype) init
+{
+  return nil;
+}
+
+- (instancetype)initWithString:(NSString *)URLString
+{
+  return nil;
+}
+
+- (instancetype)initWithURL:(NSURL *)url 
+    resolvingAgainstBaseURL:(BOOL)resolve
+{
+  return nil;
+}
+
+// Getting the URL
+- (NSString *) string
+{
+  return nil;
+}
+
+- (void) setString: (NSString *)urlString
+{
+}
+
+- (NSURL *) URL
+{
+  return nil;
+}
+
+- (void) setURL: (NSURL *)url
+{
+}
+
+- (NSURL *)URLRelativeToURL: (NSURL *)baseURL
+{
+  return nil;
+}
+
+// Accessing Components in Native Format
+- (NSString *) fragment
+{
+  return nil;
+}
+
+- (void) setFragment: (NSString *)fragment
+{
+}
+
+- (NSString *) host
+{
+  return nil;
+}
+
+- (void) setHost: (NSString *)host
+{
+}
+
+- (NSString *) password
+{
+  return nil;
+}
+
+- (void) setPassword: (NSString *)password
+{
+}
+
+- (NSString *) path
+{
+  return nil;
+}
+
+- (void) setPath: (NSString *)path
+{
+}
+
+- (NSString *) port
+{
+  return nil;
+}
+
+- (void) setPort: (NSString *)port
+{
+}
+
+- (NSString *) query
+{
+  return nil;
+}
+
+- (void) setQuery: (NSString *)query
+{
+}
+
+- (NSArray *) queryItems
+{
+  return nil;
+}
+
+- (void) setQueryItems: (NSArray *)queryItems
+{
+}
+
+- (NSString *) scheme
+{
+  return nil;
+}
+
+- (void) setScheme: (NSString *)scheme
+{
+}
+
+- (NSString *) user
+{
+  return nil;
+}
+
+- (void) setUser: (NSString *)user
+{
+}
+
+// Accessing Components in PercentEncoded Format
+- (NSString *) percentEncodedFragment
+{
+  return nil;
+}
+
+- (void) setPercentEncodedFragment: (NSString *)fragment
+{
+}
+
+- (NSString *) percentEncodedHost
+{
+  return nil;
+}
+
+- (void) setPercentEncodedHost: (NSString *)host
+{
+}
+
+- (NSString *) percentEncodedPassword
+{
+  return nil;
+}
+
+- (void) setPercentEncodedPassword: (NSString *)password
+{
+}
+
+- (NSString *) percentEncodedPath
+{
+  return nil;
+}
+
+- (void) setPercentEncodedPath: (NSString *)path
+{
+}
+
+- (NSString *) percentEncodedPort
+{
+  return nil;
+}
+
+- (void) setPercentEncodedPort: (NSString *)port
+{
+}
+
+- (NSString *) percentEncodedQuery
+{
+  return nil;
+}
+
+- (void) setPercentEncodedQuery: (NSString *)query
+{
+}
+
+- (NSArray *) percentEncodedQueryItems
+{
+  return nil;
+}
+
+- (void) setPercentEncodedQueryItems: (NSArray *)queryItems
+{
+}
+
+- (NSString *) percentEncodedScheme
+{
+  return nil;
+}
+
+- (void) setPercentEncodedScheme: (NSString *)scheme
+{
+}
+
+- (NSString *) percentEncodedUser
+{
+  return nil;
+}
+
+- (void) setPercentEncodedUser: (NSString *)user
+{
+}
+
+// Locating components of the URL string representation
+- (NSRange) rangeOfFragment
+{
+  return NSMakeRange(0,0);
+}
+
+- (NSRange) rangeOfHost
+{
+  return NSMakeRange(0,0);
+}
+
+- (NSRange) rangeOfPassword
+{
+  return NSMakeRange(0,0);
+}
+
+- (NSRange) rangeOfPath
+{
+  return NSMakeRange(0,0);
+}
+
+- (NSRange) rangeOfPort
+{
+  return NSMakeRange(0,0);
+}
+
+- (NSRange) rangeOfQuery
+{
+  return NSMakeRange(0,0);
+}
+
+- (NSRange) rangeOfQueryItems
+{
+  return NSMakeRange(0,0);
+}
+
+- (NSRange) rangeOfScheme
+{
+  return NSMakeRange(0,0);
+}
+
+- (NSRange) rangeOfUser
+{
+  return NSMakeRange(0,0);
+}
+  
+@end

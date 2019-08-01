@@ -36,7 +36,7 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
   
-@interface NSURLComponents : NSObject
+@interface NSURLComponents : NSObject <NSCopying>
 {
 #if	GS_EXPOSE(NSURLComponents)
 #endif
@@ -54,7 +54,54 @@ GS_NSURLComponents_IVARS;
   @private id _internal GS_UNUSED_IVAR;
 #endif
 }
+  // Creating URL components...
++ (instancetype) componentsWithString:(NSString *)URLString;
++ (instancetype) componentsWithURL:(NSURL *)url 
+           resolvingAgainstBaseURL:(BOOL)resolve;
+- (instancetype) init;
+- (instancetype)initWithString:(NSString *)URLString;
 
+- (instancetype)initWithURL:(NSURL *)url 
+    resolvingAgainstBaseURL:(BOOL)resolve;
+
+// Getting the URL
+- (NSString *) string;
+- (void) setString: (NSString *)urlString;
+- (NSURL *) URL;
+- (void) setURL: (NSURL *)url;
+- (NSURL *)URLRelativeToURL: (NSURL *)baseURL;
+
+// Accessing Components in Native Format
+- (NSString *) fragment;
+- (void) setFragment: (NSString *)fragment;
+- (NSString *) host;
+- (void) setHost: (NSString *)host;
+- (NSString *) password;
+- (void) setPassword: (NSString *)password;
+- (NSString *) path;
+- (void) setPath: (NSString *)path;
+- (NSString *) port;
+- (void) setPort: (NSString *)port;
+- (NSString *) query;
+- (void) setQuery: (NSString *)query;
+- (NSArray *) queryItems;
+- (void) setQueryItems: (NSArray *)queryItems;
+- (NSString *) scheme;
+- (void) setScheme: (NSString *)scheme;
+- (NSString *) user;
+- (void) setUser: (NSString *)user;
+
+// Locating components of the URL string representation
+- (NSRange) rangeOfFragment;
+- (NSRange) rangeOfHost;
+- (NSRange) rangeOfPassword;
+- (NSRange) rangeOfPath;
+- (NSRange) rangeOfPort;
+- (NSRange) rangeOfQuery;
+- (NSRange) rangeOfQueryItems;
+- (NSRange) rangeOfScheme;
+- (NSRange) rangeOfUser;
+  
 @end
 
 #if defined(__cplusplus)
