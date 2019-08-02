@@ -107,7 +107,7 @@ static SEL	remSel;
     self, @"GSMutableSet", nil, nil];
 
   reason = [NSString stringWithFormat:
-    @"Index %"PRIuPTR" is out of range %d (in '%@')",
+    @"Index %"PRIuPTR" is out of range %lu (in '%@')",
     index, count, NSStringFromSelector(sel)];
 
   exception = [NSException exceptionWithName: NSRangeException
