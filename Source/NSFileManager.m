@@ -773,6 +773,23 @@ static NSStringEncoding	defaultEncoding;
   return result;  
 }
 
+- (NSURL *)URLForDirectory: (NSSearchPathDirectory)directory 
+                  inDomain: (NSSearchPathDomainMask)domain 
+         appropriateForURL: (NSURL *)url 
+                    create: (BOOL)shouldCreate 
+                     error: (NSError **)error
+{
+  return nil;
+}
+
+- (NSDirectoryEnumerator *)enumeratorAtURL: (NSURL *)url
+                includingPropertiesForKeys: (NSArray *)keys 
+                                   options: (NSDirectoryEnumerationOptions)mask 
+                              errorHandler: (GSDirEnumErrorHandler)handler
+{
+  return nil;
+}
+
 - (NSArray*) contentsOfDirectoryAtPath: (NSString*)path error: (NSError**)error
 {
   NSArray       *result;

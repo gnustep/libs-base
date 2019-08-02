@@ -352,6 +352,9 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
                     create: (BOOL)shouldCreate 
                      error: (NSError **)error;
 
+/**
+ * Enumerate over the contents of a directory.
+ */
 DEFINE_BLOCK_TYPE(GSDirEnumErrorHandler, BOOL, NSURL*, NSError*);
 - (NSDirectoryEnumerator *)enumeratorAtURL: (NSURL *)url
                 includingPropertiesForKeys: (NSArray *)keys 
