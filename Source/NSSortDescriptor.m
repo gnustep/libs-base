@@ -113,8 +113,16 @@ static BOOL     initialized = NO;
   id comparedKey1 = [object1 valueForKeyPath: _key];
   id comparedKey2 = [object2 valueForKeyPath: _key];
 
-  result = (NSComparisonResult) [comparedKey1 performSelector: _selector
-                                                   withObject: comparedKey2];
+  if(_comparator != NULL)
+    {
+      result = CALL_BLOCK(((NSComparator)_comparator), comparedKey1, comparedKey2);
+    }
+  else
+    {
+      result = (NSComparisonResult) [comparedKey1 performSelector: _selector
+                                                       withObject: comparedKey2];
+    }
+  
   if (_ascending == NO)
     {
       if (result == NSOrderedAscending)
@@ -132,12 +140,23 @@ static BOOL     initialized = NO;
 
 - (id) copyWithZone: (NSZone*)zone
 {
+  NSSortDescriptor *copy = nil;
   if (NSShouldRetainWithZone(self, zone))
     {
       return RETAIN(self);
     }
-  return [[NSSortDescriptor allocWithZone: zone]
-    initWithKey: _key ascending: _ascending selector: _selector];
+
+  if(_comparator == NULL)
+    {
+      copy = [[NSSortDescriptor allocWithZone: zone]
+               initWithKey: _key ascending: _ascending selector: _selector];
+    }
+  else
+    {
+      copy = [[NSSortDescriptor allocWithZone: zone]
+               initWithKey: _key ascending: _ascending comparator: _comparator];
+    }
+  return copy;
 }
 
 - (void) dealloc
@@ -171,12 +190,46 @@ static BOOL     initialized = NO;
                   ascending: (BOOL)ascending 
                  comparator: (NSComparator)cmptr
 {
-  return nil;
+  return AUTORELEASE([[self alloc] initWithKey: key
+                                     ascending: ascending
+                                    comparator: cmptr]);
+  
 }
 
 - (id) initWithKey: (NSString *) key ascending: (BOOL) ascending
 {
   return [self initWithKey: key ascending: ascending selector: NULL];
+}
+
+- (id) initWithKey: (NSString *) key
+         ascending: (BOOL) ascending
+        comparator: (NSComparator) cmptr
+{
+  if ([self init])
+    {
+      if (key == nil)
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"%@", _(@"Passed nil key when initializing "
+                                       @"an NSSortDescriptor.")];
+        }
+      if (cmptr == NULL)
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"%@", _(@"Passed NULL comparator when initializing "
+                                       @"an NSSortDescriptor.")];
+        }
+
+      ASSIGN(_key, key);
+      _ascending = ascending;
+      _comparator = cmptr;
+
+      return self;
+    }
+  else
+    {
+      return nil;
+    }
 }
 
 - (id) initWithKey: (NSString *) key
