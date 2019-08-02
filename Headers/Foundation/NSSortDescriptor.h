@@ -92,6 +92,16 @@ extern "C" {
 + (id) sortDescriptorWithKey: (NSString *)aKey 
                    ascending: (BOOL)ascending 
                     selector: (SEL)aSelector;
+
+/** <p>Returns an autoreleased sort descriptor initialized to perform 
+ * comparisons in the specified order using the comparator to compare 
+ * the property aKey of each object.</p>
+ *
+ * <p>See also -initWithKey:ascending:selector:.</p>
+ */
++ (id)sortDescriptorWithKey: (NSString *)key 
+                  ascending: (BOOL)ascending 
+                 comparator: (NSComparator)cmptr;
 #endif
 
 /** Initialises the receiver for comparisons using the 'compare:' selector
