@@ -282,7 +282,6 @@ NSFileManager:
 	- mountedVolumeURLsIncludingResourceValuesForKeys:options:
 	- contentsOfDirectoryAtURL:includingPropertiesForKeys:options:error:
 	- URLsForDirectory:inDomains:
-	- URLForDirectory:inDomain:appropriateForURL:create:error:
 	- createDirectoryAtURL:withIntermediateDirectories:attributes:error:
 	- createSymbolicLinkAtURL:withDestinationURL:error:
 	- setDelegate:
@@ -298,7 +297,6 @@ NSFileManager:
 	- linkItemAtURL:toURL:error:
 	- removeItemAtURL:error:
 	- trashItemAtURL:resultingItemURL:error:
-	- enumeratorAtURL:includingPropertiesForKeys:options:errorHandler:
 	- (__strong const char *)fileSystemRepresentationWithPath:
 	- replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error:
 	- setUbiquitous:itemAtURL:destinationURL:error:
