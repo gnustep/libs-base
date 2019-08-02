@@ -199,6 +199,24 @@ typedef NSInteger NSOperationQueuePriority;
 
 @end
 
+@interface NSBlockOperation : NSOperation
+{
+#if GS_NONFRAGILE
+#  if	defined(GS_NSBlockOperation_IVARS)
+@public GS_NSBlockOperation_IVARS
+#  endif
+#else
+@private id _internal;
+#endif
+}
+
+// Managing the blocks in the Operation
+DEFINE_BLOCK_TYPE(GSBlockOperationBlock, void, void);
++ (instancetype)blockOperationWithBlock: (GSBlockOperationBlock)block;
+- (void)addExecutionBlock: (GSBlockOperationBlock)block;
+- (NSArray *) executionBlocks;
+
+@end
 
 /**
  * NSOperationQueue
@@ -294,6 +312,8 @@ enum {
  */
 - (void) waitUntilAllOperationsAreFinished;
 @end
+
+
 
 #if	defined(__cplusplus)
 }
