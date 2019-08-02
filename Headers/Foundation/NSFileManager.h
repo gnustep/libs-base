@@ -175,7 +175,7 @@
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 #import	<Foundation/NSDictionary.h>
 #import	<Foundation/NSEnumerator.h>
-
+#import <Foundation/NSPathUtilities.h>
 #if	defined(__cplusplus)
 extern "C" {
 #endif
@@ -341,6 +341,22 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
            includingPropertiesForKeys: (NSArray*)keys
                               options: (NSDirectoryEnumerationOptions)mask
                                 error: (NSError **)error;
+
+/**
+ * Locates and, optionally, creates the specified common directory in
+ * domain
+ */
+- (NSURL *)URLForDirectory: (NSSearchPathDirectory)directory 
+                  inDomain: (NSSearchPathDomainMask)domain 
+         appropriateForURL: (NSURL *)url 
+                    create: (BOOL)shouldCreate 
+                     error: (NSError **)error;
+
+DEFINE_BLOCK_TYPE(GSDirEnumErrorHandler, BOOL, NSURL*, NSError*);
+- (NSDirectoryEnumerator *)enumeratorAtURL: (NSURL *)url
+                includingPropertiesForKeys: (NSArray *)keys 
+                                   options: (NSDirectoryEnumerationOptions)mask 
+                              errorHandler: (GSDirEnumErrorHandler)handler;
 #endif
   
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
