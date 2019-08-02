@@ -37,7 +37,8 @@ extern "C" {
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 #import <GNUstepBase/GSBlocks.h>
 DEFINE_BLOCK_TYPE_NO_ARGS(GSOperationCompletionBlock, void);
-#endif
+DEFINE_BLOCK_TYPE(GSBlockOperationBlock, void, void);
+#endif  
 
 @class NSMutableArray;
 
@@ -211,7 +212,6 @@ typedef NSInteger NSOperationQueuePriority;
 }
 
 // Managing the blocks in the Operation
-DEFINE_BLOCK_TYPE(GSBlockOperationBlock, void, void);
 + (instancetype)blockOperationWithBlock: (GSBlockOperationBlock)block;
 - (void)addExecutionBlock: (GSBlockOperationBlock)block;
 - (NSArray *) executionBlocks;
@@ -259,6 +259,10 @@ enum {
  */
 - (void) addOperations: (NSArray *)ops
      waitUntilFinished: (BOOL)shouldWait;
+  
+/** This method wraps a block in an operation and adds it to the queue.
+ */
+- (void) addOperationWithBlock: (GSBlockOperationBlock)block;
 #endif
 
 /** Cancels all outstanding operations in the queue.

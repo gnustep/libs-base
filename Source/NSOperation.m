@@ -674,6 +674,13 @@ static NSOperationQueue *mainQueue = nil;
   [internal->lock unlock];
 }
 
+- (void) addOperationWithBlock: (GSBlockOperationBlock)block
+{
+  NSBlockOperation *bop = [NSBlockOperation blockOperationWithBlock: block];
+  [self addOperation: bop];
+}
+
+
 - (void) addOperations: (NSArray *)ops
      waitUntilFinished: (BOOL)shouldWait
 {
