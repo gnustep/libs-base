@@ -167,6 +167,13 @@ static BOOL     initialized = NO;
                                       selector: aSelector]);
 }
 
++ (id)sortDescriptorWithKey: (NSString *)key 
+                  ascending: (BOOL)ascending 
+                 comparator: (NSComparator)cmptr
+{
+  return nil;
+}
+
 - (id) initWithKey: (NSString *) key ascending: (BOOL) ascending
 {
   return [self initWithKey: key ascending: ascending selector: NULL];
