@@ -50,6 +50,7 @@ extern "C" {
   NSString *_key;
   BOOL	_ascending;
   SEL	_selector;
+  NSComparator _comparator;
 #endif
 #if     GS_NONFRAGILE
 #else
