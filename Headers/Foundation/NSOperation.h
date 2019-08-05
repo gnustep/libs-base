@@ -206,8 +206,6 @@ typedef NSInteger NSOperationQueuePriority;
 #  if	defined(GS_NSBlockOperation_IVARS)
 @public GS_NSBlockOperation_IVARS
 #  endif
-#else
-@private id _internal;
 #endif
 }
 
