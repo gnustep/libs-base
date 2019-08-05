@@ -2698,7 +2698,11 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 #else
       const char *dirname = NULL;
 #endif
-
+      // Skip it if it is hidden and flag is yes...
+      if ([[dir.path lastPathComponent] hasPrefix: @"."] && _flags.skipHidden == YES)
+        {
+          continue;
+        }
 #ifdef __ANDROID__
       if (dir.assetDir)
 	{
