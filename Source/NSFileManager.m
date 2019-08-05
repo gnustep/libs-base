@@ -780,43 +780,27 @@ static NSStringEncoding	defaultEncoding;
                      error: (NSError **)error
 {
   NSURL *result = nil;
-  if((domain == NSUserDomainMask ||
-      domain == NSLocalDomainMask ||
-      domain == NSNetworkDomainMask ||
-      domain == NSSystemDomainMask ) &&
-     domain != NSAllDomainsMask)
+  NSArray *urlArray = NSSearchPathForDirectoriesInDomains(directory, domain, YES);
+
+  // Find out the URL exists...
+  if ([urlArray count] > 0)
     {
-      NSArray *urlArray = NSSearchPathForDirectoriesInDomains(directory, domain, YES);
-      switch(directory)
-        {
-        case NSApplicationDirectory:
-        case NSDemoApplicationDirectory:
-        case NSDeveloperApplicationDirectory:
-        case NSAdminApplicationDirectory:
-        case NSLibraryDirectory:
-        case NSDeveloperDirectory:
-        case NSUserDirectory:
-        case NSDocumentationDirectory:
-        case NSDocumentDirectory:
-        case NSCoreServicesDirectory:
-        case NSDesktopDirectory:
-        case NSCachesDirectory:
-        case NSApplicationSupportDirectory:
-        case NSAllApplicationsDirectory:
-        case NSAllLibrariesDirectory:
-          break;
-        case NSItemReplacementDirectory:
-          result = [NSURL URLWithString: NSTemporaryDirectory()];
-          break;
-        case GSLibrariesDirectory:
-        case GSToolsDirectory:
-        case GSAdminToolsDirectory:
-        case GSFontsDirectory:
-        case GSFrameworksDirectory:
-        case GSWebApplicationsDirectory:         
-          break;
-        }
+      result = [NSURL URLWithString: [urlArray objectAtIndex: 0]];
     }
+  else if(directory == NSItemReplacementDirectory)
+    {
+      result = [NSURL URLWithString: NSTemporaryDirectory()];
+    }
+
+  // If we should created it, create it...
+  if (shouldCreate)
+    {
+      [self       createDirectoryAtPath: [result absoluteString]
+            withIntermediateDirectories: YES
+                             attributes: nil
+                                  error: NULL];
+    }
+  
   return result;
 }
 
