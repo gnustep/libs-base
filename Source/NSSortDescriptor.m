@@ -113,14 +113,14 @@ static BOOL     initialized = NO;
   id comparedKey1 = [object1 valueForKeyPath: _key];
   id comparedKey2 = [object2 valueForKeyPath: _key];
 
-  if(_comparator != NULL)
-    {
-      result = CALL_BLOCK(((NSComparator)_comparator), comparedKey1, comparedKey2);
-    }
-  else
+  if (_comparator == NULL)
     {
       result = (NSComparisonResult) [comparedKey1 performSelector: _selector
                                                        withObject: comparedKey2];
+    }
+  else
+    {
+      result = CALL_BLOCK(((NSComparator)_comparator), comparedKey1, comparedKey2);
     }
   
   if (_ascending == NO)
@@ -146,7 +146,7 @@ static BOOL     initialized = NO;
       return RETAIN(self);
     }
 
-  if(_comparator == NULL)
+  if (_comparator == NULL)
     {
       copy = [[NSSortDescriptor allocWithZone: zone]
                initWithKey: _key ascending: _ascending selector: _selector];
