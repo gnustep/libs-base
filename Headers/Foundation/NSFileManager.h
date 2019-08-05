@@ -200,6 +200,8 @@ typedef	uint32_t	OSType;
 #define OSTYPE_DECLARED
 #endif
 
+DEFINE_BLOCK_TYPE(GSDirEnumErrorHandler, BOOL, NSURL*, NSError*);
+  
 enum _NSDirectoryEnumerationOptions
   {
     NSDirectoryEnumerationSkipsSubdirectoryDescendants = 1L << 0,
@@ -355,7 +357,6 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
 /**
  * Enumerate over the contents of a directory.
  */
-DEFINE_BLOCK_TYPE(GSDirEnumErrorHandler, BOOL, NSURL*, NSError*);
 - (NSDirectoryEnumerator *)enumeratorAtURL: (NSURL *)url
                 includingPropertiesForKeys: (NSArray *)keys 
                                    options: (NSDirectoryEnumerationOptions)mask 
@@ -564,11 +565,13 @@ DEFINE_BLOCK_TYPE(GSDirEnumErrorHandler, BOOL, NSURL*, NSError*);
   NSString *_topPath;
   NSString *_currentFilePath;
   NSFileManager *_mgr;
+  GSDirEnumErrorHandler _errorHandler; 
   struct _NSDirectoryEnumeratorFlags      // tag for objc++ w/gcc 4.6 
   {
     BOOL isRecursive: 1;
     BOOL isFollowing: 1;
     BOOL justContents: 1;
+    BOOL skipHidden: 1;
   } _flags;
 #endif
 #if     GS_NONFRAGILE
