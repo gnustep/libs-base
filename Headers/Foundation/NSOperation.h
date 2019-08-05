@@ -59,7 +59,7 @@ typedef NSInteger NSOperationQueuePriority;
 @public GS_NSOperation_IVARS
 #  endif
 #else
-@private id _internal;
+@protected id _internal;
 #endif
 }
 
