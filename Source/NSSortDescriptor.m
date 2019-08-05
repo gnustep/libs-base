@@ -162,6 +162,7 @@ static BOOL     initialized = NO;
 - (void) dealloc
 {
   TEST_RELEASE(_key);
+  TEST_RELEASE(_comparator);
   [super dealloc];
 }
 
@@ -222,7 +223,7 @@ static BOOL     initialized = NO;
 
       ASSIGN(_key, key);
       _ascending = ascending;
-      _comparator = cmptr;
+      ASSIGN(_comparator, cmptr);
 
       return self;
     }
