@@ -779,7 +779,45 @@ static NSStringEncoding	defaultEncoding;
                     create: (BOOL)shouldCreate 
                      error: (NSError **)error
 {
-  return nil;
+  NSURL *result = nil;
+  if((domain == NSUserDomainMask ||
+      domain == NSLocalDomainMask ||
+      domain == NSNetworkDomainMask ||
+      domain == NSSystemDomainMask ) &&
+     domain != NSAllDomainsMask)
+    {
+      NSArray *urlArray = NSSearchPathForDirectoriesInDomains(directory, domain, YES);
+      switch(directory)
+        {
+        case NSApplicationDirectory:
+        case NSDemoApplicationDirectory:
+        case NSDeveloperApplicationDirectory:
+        case NSAdminApplicationDirectory:
+        case NSLibraryDirectory:
+        case NSDeveloperDirectory:
+        case NSUserDirectory:
+        case NSDocumentationDirectory:
+        case NSDocumentDirectory:
+        case NSCoreServicesDirectory:
+        case NSDesktopDirectory:
+        case NSCachesDirectory:
+        case NSApplicationSupportDirectory:
+        case NSAllApplicationsDirectory:
+        case NSAllLibrariesDirectory:
+          break;
+        case NSItemReplacementDirectory:
+          result = [NSURL URLWithString: NSTemporaryDirectory()];
+          break;
+        case GSLibrariesDirectory:
+        case GSToolsDirectory:
+        case GSAdminToolsDirectory:
+        case GSFontsDirectory:
+        case GSFrameworksDirectory:
+        case GSWebApplicationsDirectory:         
+          break;
+        }
+    }
+  return result;
 }
 
 - (NSDirectoryEnumerator *)enumeratorAtURL: (NSURL *)url
