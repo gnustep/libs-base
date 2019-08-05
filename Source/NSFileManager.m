@@ -798,19 +798,23 @@ static NSStringEncoding	defaultEncoding;
     {
       result = [NSURL URLWithString: [urlArray objectAtIndex: 0]];
     }
-  else if(directory == NSItemReplacementDirectory)
+
+  if (directory == NSItemReplacementDirectory)
     {
       result = [NSURL URLWithString: NSTemporaryDirectory()];
     }
 
-  // If we should created it, create it...
-  if (shouldCreate)
-    {
-      [self       createDirectoryAtPath: [result absoluteString]
-            withIntermediateDirectories: YES
-                             attributes: nil
-                                  error: NULL];
-    }
+  if (![self fileExistsAtPath: [result absoluteString]])
+      {
+        // If we should created it, create it...
+        if (shouldCreate)
+          {
+            [self       createDirectoryAtPath: [result absoluteString]
+                  withIntermediateDirectories: YES
+                                   attributes: nil
+                                        error: error];
+          }
+      }
   
   return result;
 }
