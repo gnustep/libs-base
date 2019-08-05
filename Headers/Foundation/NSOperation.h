@@ -37,7 +37,7 @@ extern "C" {
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 #import <GNUstepBase/GSBlocks.h>
 DEFINE_BLOCK_TYPE_NO_ARGS(GSOperationCompletionBlock, void);
-DEFINE_BLOCK_TYPE(GSBlockOperationBlock, void, void);
+DEFINE_BLOCK_TYPE_NO_ARGS(GSBlockOperationBlock, void);
 #endif  
 
 @class NSMutableArray;
