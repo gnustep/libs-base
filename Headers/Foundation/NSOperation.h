@@ -59,7 +59,7 @@ typedef NSInteger NSOperationQueuePriority;
 @public GS_NSOperation_IVARS
 #  endif
 #else
-@protected id _internal;
+@private id _internal;
 #endif
 }
 
@@ -202,11 +202,9 @@ typedef NSInteger NSOperationQueuePriority;
 
 @interface NSBlockOperation : NSOperation
 {
-#if GS_NONFRAGILE
-#  if	defined(GS_NSBlockOperation_IVARS)
-@public GS_NSBlockOperation_IVARS
-#  endif
-#endif
+  @private
+    NSMutableArray *_executionBlocks;
+    void *_reserved;
 }
 
 // Managing the blocks in the Operation

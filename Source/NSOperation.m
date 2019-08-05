@@ -44,9 +44,6 @@
   NSMutableArray *dependencies; \
   GSOperationCompletionBlock completionBlock;
 
-#define	GS_NSBlockOperation_IVARS \
-  NSMutableArray *executionBlocks; 
-
 #define	GS_NSOperationQueue_IVARS \
   NSRecursiveLock	*lock; \
   NSConditionLock	*cond; \
@@ -545,15 +542,14 @@ static NSArray	*empty = nil;
   self = [super init];
   if(self != nil)
     {
-      GS_CREATE_INTERNAL(NSBlockOperation);
-      internal->executionBlocks = [[NSMutableArray alloc] initWithCapacity: 10];
+      _executionBlocks = [[NSMutableArray alloc] initWithCapacity: 10];
     }
   return self;
 }
 
 - (void) dealloc
 {
-  RELEASE(internal->executionBlocks);
+  RELEASE(_executionBlocks);
   [super dealloc];
 }
 
@@ -567,12 +563,12 @@ static NSArray	*empty = nil;
 
 - (void)addExecutionBlock: (GSBlockOperationBlock)block
 {
-  [internal->executionBlocks addObject: block];
+  [_executionBlocks addObject: block];
 }
 
 - (NSArray *) executionBlocks
 {
-  return internal->executionBlocks;
+  return _executionBlocks;
 }
 
 - (void) main
