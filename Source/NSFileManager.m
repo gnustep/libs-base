@@ -2698,11 +2698,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 #else
       const char *dirname = NULL;
 #endif
-      // Skip it if it is hidden and flag is yes...
-      if ([[dir.path lastPathComponent] hasPrefix: @"."] && _flags.skipHidden == YES)
-        {
-          continue;
-        }
+
 #ifdef __ANDROID__
       if (dir.assetDir)
 	{
@@ -2724,6 +2720,12 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
       if (dirname)
 	{
+          // Skip it if it is hidden and flag is yes...
+          if ([[dir.path lastPathComponent] hasPrefix: @"."] && _flags.skipHidden == YES)
+            {
+              continue;
+            }
+          
 #if defined(_WIN32)
 	  /* Skip "." and ".." directory entries */
 	  if (wcscmp(dirname, L".") == 0
@@ -2731,6 +2733,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    {
 	      continue;
 	    }
+          
 	  /* Name of file to return  */
 	  returnFileName = [_mgr
 	    stringWithFileSystemRepresentation: dirname
@@ -2742,7 +2745,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    {
 	      continue;
 	    }
-	  /* Name of file to return  */
+
+          /* Name of file to return  */
 	  returnFileName = [_mgr
 	    stringWithFileSystemRepresentation: dirname
 	    length: strlen(dirname)];
@@ -2807,9 +2811,18 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		    }
 		  else
 		    {
+                      BOOL flag = YES;
 		      NSDebugLog(@"Failed to recurse into directory '%@' - %@",
 			_currentFilePath, [NSError _last]);
-		    }
+                      if(_errorHandler != NULL)
+                        {
+                          flag = CALL_BLOCK(_errorHandler, [NSURL URLWithString: _currentFilePath], [NSError _last]);
+                        }
+                      if(flag == NO)
+                        {
+                          return nil; // Stop enumeration...
+                        }
+                    }
 		}
 	    }
 	  break;	// Got a file name - break out of loop
