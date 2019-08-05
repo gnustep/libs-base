@@ -579,7 +579,7 @@ static NSArray	*empty = nil;
 {
   NSEnumerator *en = [[self executionBlocks] objectEnumerator];
   GSBlockOperationBlock theBlock;
-  while((theBlock = [en nextObject]) != nil)
+  while((theBlock = [en nextObject]) != NULL)
     {
       CALL_BLOCK_NO_ARGS(theBlock);
     }
