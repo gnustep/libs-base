@@ -27,6 +27,7 @@
 #import	<GNUstepBase/GSVersionMacros.h>
 
 #import	<Foundation/NSURLHandle.h>
+#import <Foundation/NSRange.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -36,6 +37,9 @@ extern "C" {
 
 @class NSError;
 @class NSNumber;
+@class NSString;
+@class NSDictionary;
+@class NSArray;
 
 /**
  *  URL scheme constant for use with [NSURL-initWithScheme:host:path:].
@@ -583,13 +587,143 @@ GS_EXPORT NSString* const NSURLUbiquitousItemDownloadingStatusCurrent;
 
 #endif	/* GS_API_MACOSX */
 
-#if	defined(__cplusplus)
-}
-#endif
-
 #if     !NO_GNUSTEP && !defined(GNUSTEP_BASE_INTERNAL)
 #import <GNUstepBase/NSURL+GNUstepBase.h>
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+
+@interface NSURLQueryItem : NSObject <NSCopying, NSCoding>
+{
+#if	GS_EXPOSE(NSURLQueryItem)
+#endif
+#if     GS_NONFRAGILE
+#  if	defined(GS_NSURLQueryItem_IVARS)
+@public
+GS_NSURLQueryItem_IVARS;
+#  endif
+#else
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
+   */
+  @private id _internal GS_UNUSED_IVAR;
+#endif
+}
+
+// Creating query items.
++ (instancetype)queryItemWithName:(NSString *)name 
+                            value:(NSString *)value;
+- (instancetype)initWithName:(NSString *)name 
+                       value:(NSString *)value;
+
+// Reading a name and value from a query
+- (NSString *) name;  
+- (NSString *) value;
+@end
+
+#endif // OS_API_VERSION
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+  
+@interface NSURLComponents : NSObject <NSCopying>
+{
+#if	GS_EXPOSE(NSURLComponents)
+#endif
+#if     GS_NONFRAGILE
+#  if	defined(GS_NSURLComponents_IVARS)
+@public
+GS_NSURLComponents_IVARS;
+#  endif
+#else
+  /* Pointer to private additional data used to avoid breaking ABI
+   * when we don't have the non-fragile ABI available.
+   * Use this mechanism rather than changing the instance variable
+   * layout (see Source/GSInternal.h for details).
+   */
+  @private id _internal GS_UNUSED_IVAR;
+#endif
+}
+  // Creating URL components...
++ (instancetype) componentsWithString:(NSString *)URLString;
++ (instancetype) componentsWithURL:(NSURL *)url 
+           resolvingAgainstBaseURL:(BOOL)resolve;
+- (instancetype) init;
+- (instancetype)initWithString:(NSString *)URLString;
+
+- (instancetype)initWithURL:(NSURL *)url 
+    resolvingAgainstBaseURL:(BOOL)resolve;
+
+// Getting the URL
+- (NSString *) string;
+- (void) setString: (NSString *)urlString;
+- (NSURL *) URL;
+- (void) setURL: (NSURL *)url;
+- (NSURL *)URLRelativeToURL: (NSURL *)baseURL;
+
+// Accessing Components in Native Format
+- (NSString *) fragment;
+- (void) setFragment: (NSString *)fragment;
+- (NSString *) host;
+- (void) setHost: (NSString *)host;
+- (NSString *) password;
+- (void) setPassword: (NSString *)password;
+- (NSString *) path;
+- (void) setPath: (NSString *)path;
+- (NSNumber *) port;
+- (void) setPort: (NSNumber *)port;
+- (NSString *) query;
+- (void) setQuery: (NSString *)query;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+- (NSArray *) queryItems;
+- (void) setQueryItems: (NSArray *)queryItems;
+#endif
+- (NSString *) scheme;
+- (void) setScheme: (NSString *)scheme;
+- (NSString *) user;
+- (void) setUser: (NSString *)user;
+
+// Accessing Components in PercentEncoded Format
+- (NSString *) percentEncodedFragment; 
+- (void) setPercentEncodedFragment: (NSString *)fragment;
+- (NSString *) percentEncodedHost;
+- (void) setPercentEncodedHost: (NSString *)host;
+- (NSString *) percentEncodedPassword;
+- (void) setPercentEncodedPassword: (NSString *)password;
+- (NSString *) percentEncodedPath;
+- (void) setPercentEncodedPath: (NSString *)path;
+- (NSString *) percentEncodedQuery;
+- (void) setPercentEncodedQuery: (NSString *)query;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+- (NSArray *) percentEncodedQueryItems;
+- (void) setPercentEncodedQueryItems: (NSArray *)queryItems;
+#endif
+- (NSString *) percentEncodedScheme;
+- (void) setPercentEncodedScheme: (NSString *)scheme;
+- (NSString *) percentEncodedUser;
+- (void) setPercentEncodedUser: (NSString *)user;
+
+// Locating components of the URL string representation
+- (NSRange) rangeOfFragment;
+- (NSRange) rangeOfHost;
+- (NSRange) rangeOfPassword;
+- (NSRange) rangeOfPath;
+- (NSRange) rangeOfPort;
+- (NSRange) rangeOfQuery;
+- (NSRange) rangeOfScheme;
+- (NSRange) rangeOfUser;
+  
+@end
+
+#if defined(__cplusplus)
+}
+#endif
+
+#endif	/* GS_API_MACOSX */
+
 #endif	/* __NSURL_h_GNUSTEP_BASE_INCLUDE */
+
+
+
 
