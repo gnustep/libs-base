@@ -41,7 +41,6 @@
   BOOL _pausable; \
   BOOL _indeterminate; \
   BOOL _finished; \
-  double _fractionCompleted; \
   GSProgressCancellationHandler _cancellationHandler; \
   GSProgressPausingHandler _pausingHandler; \
   NSProgressPublishingHandler _publishingHandler; \
@@ -104,7 +103,6 @@ static NSMutableDictionary *__subscribers = nil;
       internal->_pausable = NO;
       internal->_indeterminate = NO;
       internal->_finished = NO;
-      internal->_fractionCompleted = 0.0;
       internal->_parent = parent;  // this is a weak reference and not retained.
       internal->_userInfo = [[NSMutableDictionary alloc] initWithCapacity: 10];
     }
@@ -210,18 +208,18 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (NSString *) localizedDescription
 {
-  return nil;
+  return [NSString stringWithFormat: @"%f percent complete", [self fractionCompleted]];
 }
 
 - (NSString *) localizedAddtionalDescription
 {
-  return nil;
+  return [NSString stringWithFormat: @"%@ minute(s) remaining", [self estimatedTimeRemaining]]; 
 }
 
 // Observing progress
 - (double) fractionCompleted
 {
-  return internal->_fractionCompleted;
+  return (double)((double)internal->_completedUnitCount / (double)internal->_totalUnitCount); 
 }
 
 // Controlling progress
@@ -302,7 +300,6 @@ static NSMutableDictionary *__subscribers = nil;
 {
   [_userInfo setObject: obj forKey: key];
 }
-
 
 // Instance property accessors...
 - (void) setFileOperationKind: (NSProgressFileOperationKind)k;
