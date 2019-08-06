@@ -36,6 +36,41 @@ function may be incorrect
 * I've put 2 functions to make tests. You can add your own tests
 * Some functions are not implemented
 */
+
+#define	GS_NSURLQueryItem_IVARS \
+  NSString *_name; \
+  NSString *_value; 
+
+#define	GS_NSURLComponents_IVARS \
+  NSURL    *_url; \
+  NSString *_fragment; \
+  NSString *_host; \
+  NSString *_password; \
+  NSString *_path; \
+  NSNumber *_port; \
+  NSString *_query; \
+  NSArray  *_queryItems; \
+  NSString *_scheme; \
+  NSString *_user; \
+  NSString *_percentEncodedFragment; \
+  NSString *_percentEncodedHost; \
+  NSString *_percentEncodedPassword; \
+  NSString *_percentEncodedPath; \
+  NSNumber *_percentEncodedPort; \
+  NSString *_percentEncodedQuery; \
+  NSArray  *_percentEncodedQueryItems; \
+  NSString *_percentEncodedScheme; \
+  NSString *_percentEncodedUser; \
+  NSRange   _rangeOfFragment; \
+  NSRange   _rangeOfHost; \
+  NSRange   _rangeOfPassword; \
+  NSRange   _rangeOfPath; \
+  NSRange   _rangeOfPort; \
+  NSRange   _rangeOfQuery; \
+  NSRange   _rangeOfQueryItems; \
+  NSRange   _rangeOfScheme; \
+  NSRange   _rangeOfUser;
+
 #import "common.h"
 #define	EXPOSE_NSURL_IVARS	1
 #import "Foundation/NSArray.h"
@@ -52,9 +87,14 @@ function may be incorrect
 #import "Foundation/NSURL.h"
 #import "Foundation/NSURLHandle.h"
 #import "Foundation/NSValue.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSString.h"
 
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
+#define	GSInternal NSURLComponentsInternal
+#include "GSInternal.h"
+GS_PRIVATE_INTERNAL(NSURLComponents)
 
 NSString * const NSURLErrorDomain = @"NSURLErrorDomain";
 NSString * const NSErrorFailingURLStringKey = @"NSErrorFailingURLStringKey";
@@ -2159,54 +2199,167 @@ static NSUInteger	urlAlign;
   return nil;
 }
 
+- (id) initWithCoder: (NSCoder *)acoder
+{
+  return nil;
+}
+
+- (void) encodeWithCoder: (NSCoder *)acoder
+{
+}
+
+- (id) copyWithZone: (NSZone *)zone
+{
+  return nil;
+}
+
 @end
 
 @implementation NSURLComponents 
+
 // Creating URL components...
-+ (instancetype) componentsWithString:(NSString *)URLString
++ (instancetype) componentsWithString:(NSString *)urlString
 {
-  return nil;
+  return [[NSURLComponents alloc] initWithString: urlString];
 }
 
 + (instancetype) componentsWithURL:(NSURL *)url 
            resolvingAgainstBaseURL:(BOOL)resolve
 {
-  return nil;
+  return [[NSURLComponents alloc] initWithURL: url
+                      resolvingAgainstBaseURL: resolve];
 }
 
 - (instancetype) init
 {
-  return nil;
+  self = [super init];
+  if (self != nil)
+    {
+      GS_CREATE_INTERNAL(NSURLComponents);
+    }
+  return self;
 }
 
 - (instancetype)initWithString:(NSString *)URLString
 {
-  return nil;
+  self = [self init];
+  if (self != nil)
+    {
+      [self setString: URLString];
+    }
+  return self;
 }
 
 - (instancetype)initWithURL:(NSURL *)url 
     resolvingAgainstBaseURL:(BOOL)resolve
 {
-  return nil;
+  NSURL *tempURL = url;
+  self = [self init];
+  if (self != nil)
+    {
+      if (resolve)
+        {
+          tempURL = [url absoluteURL];
+        }
+      [self setURL: tempURL];
+    }
+  return self;
+}
+
+- (void) dealloc
+{
+  RELEASE(internal->_url);
+  RELEASE(internal->_fragment);
+  RELEASE(internal->_host);
+  RELEASE(internal->_password);
+  RELEASE(internal->_path);
+  RELEASE(internal->_port);
+  RELEASE(internal->_query);
+  RELEASE(internal->_queryItems);
+  RELEASE(internal->_scheme);
+  RELEASE(internal->_user);
+  RELEASE(internal->_percentEncodedFragment);
+  RELEASE(internal->_percentEncodedHost);
+  RELEASE(internal->_percentEncodedPassword);
+  RELEASE(internal->_percentEncodedPath);
+  RELEASE(internal->_percentEncodedPort);
+  RELEASE(internal->_percentEncodedQuery);
+  RELEASE(internal->_percentEncodedQueryItems);
+  RELEASE(internal->_percentEncodedScheme);
+  RELEASE(internal->_percentEncodedUser);
+
+  [super dealloc];
+}
+
+- (id) copyWithZone: (NSZone *)zone
+{
+  return [[NSURLComponents allocWithZone: zone] initWithURL: [self URL]
+                                    resolvingAgainstBaseURL: NO];
 }
 
 // Getting the URL
 - (NSString *) string
 {
-  return nil;
+  return [internal->_url absoluteString];
 }
 
 - (void) setString: (NSString *)urlString
 {
+  NSURL *url = [NSURL URLWithString: urlString];
+  [self setURL: url];
 }
 
 - (NSURL *) URL
 {
-  return nil;
+  return internal->_url;
 }
 
 - (void) setURL: (NSURL *)url
 {
+  ASSIGN(_url, url);
+
+  // components...
+  [self setFragment: [url fragment]];
+  [self setHost: [url host]];
+  [self setPassword: [url password]];
+  [self setPath: [url path]];
+  [self setPort: [url port]];
+  [self setQuery: [url query]];
+  [self setScheme: [url scheme]];
+  [self setUser: [url user]];
+
+  // Percent encoded portions...
+  [self setPercentEncodedFragment:
+          [[url fragment] stringByAddingPercentEncodingWithAllowedCharacters:
+                            [NSCharacterSet URLFragmentAllowedCharacterSet]]];
+  [self setPercentEncodedHost:
+          [[url host] stringByAddingPercentEncodingWithAllowedCharacters:
+                        [NSCharacterSet URLHostAllowedCharacterSet]]];
+  [self setPercentEncodedPassword:
+          [[url password] stringByAddingPercentEncodingWithAllowedCharacters:
+                            [NSCharacterSet URLPasswordAllowedCharacterSet]]];;
+  [self setPercentEncodedPath:
+          [[url path] stringByAddingPercentEncodingWithAllowedCharacters:
+                        [NSCharacterSet URLPathAllowedCharacterSet]]];
+  [self setPercentEncodedQuery:
+          [[url query] stringByAddingPercentEncodingWithAllowedCharacters:
+                         [NSCharacterSet URLQueryAllowedCharacterSet]]];
+  [self setPercentEncodedScheme:
+          [[url scheme] stringByAddingPercentEncodingWithAllowedCharacters:
+                           [NSCharacterSet URLPathAllowedCharacterSet]]];
+  [self setPercentEncodedUser:
+          [[url user] stringByAddingPercentEncodingWithAllowedCharacters:
+                         [NSCharacterSet URLUserAllowedCharacterSet]]];;
+
+  // Find ranges
+  _rangeOfFragment   = [[url absoluteString] rangeOfString: internal->_fragment];
+  _rangeOfHost       = [[url absoluteString] rangeOfString: internal->_host];
+  _rangeOfPassword   = [[url absoluteString] rangeOfString: internal->_password];
+  _rangeOfPath       = [[url absoluteString] rangeOfString: internal->_path];
+  _rangeOfPort       = [[url absoluteString] rangeOfString: [internal->_port stringValue]];
+  _rangeOfQuery      = [[url absoluteString] rangeOfString: internal->_query];
+  _rangeOfScheme     = [[url absoluteString] rangeOfString: internal->_scheme];
+  _rangeOfUser       = [[url absoluteString] rangeOfString: internal->_user];
 }
 
 - (NSURL *)URLRelativeToURL: (NSURL *)baseURL
@@ -2217,211 +2370,214 @@ static NSUInteger	urlAlign;
 // Accessing Components in Native Format
 - (NSString *) fragment
 {
-  return nil;
+  return internal->_fragment;
 }
 
 - (void) setFragment: (NSString *)fragment
 {
+  ASSIGN(internal->_fragment, fragment);
 }
 
 - (NSString *) host
 {
-  return nil;
+  return internal->_host;
 }
 
 - (void) setHost: (NSString *)host
 {
+  ASSIGN(internal->_host, host);
 }
 
 - (NSString *) password
 {
-  return nil;
+  return internal->_password;
 }
 
 - (void) setPassword: (NSString *)password
 {
+  ASSIGN(internal->_password, password);
 }
 
 - (NSString *) path
 {
-  return nil;
+  return internal->_path;
 }
 
 - (void) setPath: (NSString *)path
 {
+  ASSIGN(internal->_path, path);
 }
 
-- (NSString *) port
+- (NSNumber *) port
 {
-  return nil;
+  return internal->_port;
 }
 
-- (void) setPort: (NSString *)port
+- (void) setPort: (NSNumber *)port
 {
+  ASSIGN(internal->_port, port);
 }
 
 - (NSString *) query
 {
-  return nil;
+  return internal->_query;
 }
 
 - (void) setQuery: (NSString *)query
 {
+  ASSIGN(internal->_query, query);
 }
 
 - (NSArray *) queryItems
 {
-  return nil;
+  return internal->_queryItems;
 }
 
 - (void) setQueryItems: (NSArray *)queryItems
 {
+  ASSIGN(internal->_queryItems, queryItems);
 }
 
 - (NSString *) scheme
 {
-  return nil;
+  return internal->_scheme;
 }
 
 - (void) setScheme: (NSString *)scheme
 {
+  ASSIGN(internal->_scheme, scheme);
 }
 
 - (NSString *) user
 {
-  return nil;
+  return internal->_user;
 }
 
 - (void) setUser: (NSString *)user
 {
+  ASSIGN(internal->_user, user);
 }
 
 // Accessing Components in PercentEncoded Format
 - (NSString *) percentEncodedFragment
 {
-  return nil;
+  return internal->_percentEncodedFragment;
 }
 
 - (void) setPercentEncodedFragment: (NSString *)fragment
 {
+  ASSIGN(internal->_percentEncodedFragment, fragment);
 }
 
 - (NSString *) percentEncodedHost
 {
-  return nil;
+  return internal->_percentEncodedHost;
 }
 
 - (void) setPercentEncodedHost: (NSString *)host
 {
+  ASSIGN(internal->_percentEncodedHost, host);
 }
 
 - (NSString *) percentEncodedPassword
 {
-  return nil;
+  return internal->_percentEncodedPassword;
 }
 
 - (void) setPercentEncodedPassword: (NSString *)password
 {
+  ASSIGN(internal->_percentEncodedPassword, password);
 }
 
 - (NSString *) percentEncodedPath
 {
-  return nil;
+  return internal->_percentEncodedPath;
 }
 
 - (void) setPercentEncodedPath: (NSString *)path
 {
-}
-
-- (NSString *) percentEncodedPort
-{
-  return nil;
-}
-
-- (void) setPercentEncodedPort: (NSString *)port
-{
+  ASSIGN(internal->_percentEncodedPath, path);
 }
 
 - (NSString *) percentEncodedQuery
 {
-  return nil;
+  return internal->_percentEncodedQuery;
 }
 
 - (void) setPercentEncodedQuery: (NSString *)query
 {
+  ASSIGN(internal->_percentEncodedQuery, query);
 }
 
 - (NSArray *) percentEncodedQueryItems
 {
-  return nil;
+  return internal->_percentEncodedQueryItems;
 }
 
 - (void) setPercentEncodedQueryItems: (NSArray *)queryItems
 {
+  ASSIGN(internal->_percentEncodedQueryItems, queryItems);
 }
 
 - (NSString *) percentEncodedScheme
 {
-  return nil;
+  return internal->_percentEncodedScheme;
 }
 
 - (void) setPercentEncodedScheme: (NSString *)scheme
 {
+  ASSIGN(internal->_percentEncodedScheme, scheme);
 }
 
 - (NSString *) percentEncodedUser
 {
-  return nil;
+  return internal->_percentEncodedUser;;
 }
 
 - (void) setPercentEncodedUser: (NSString *)user
 {
+  ASSIGN(internal->_percentEncodedUser, user);
 }
 
 // Locating components of the URL string representation
 - (NSRange) rangeOfFragment
 {
-  return NSMakeRange(0,0);
+  return internal->_rangeOfFragment;
 }
 
 - (NSRange) rangeOfHost
 {
-  return NSMakeRange(0,0);
+  return internal->_rangeOfHost;
 }
 
 - (NSRange) rangeOfPassword
 {
-  return NSMakeRange(0,0);
+  return internal->_rangeOfPassword;
 }
 
 - (NSRange) rangeOfPath
 {
-  return NSMakeRange(0,0);
+  return internal->_rangeOfPath;
 }
 
 - (NSRange) rangeOfPort
 {
-  return NSMakeRange(0,0);
+  return internal->_rangeOfPort;
 }
 
 - (NSRange) rangeOfQuery
 {
-  return NSMakeRange(0,0);
-}
-
-- (NSRange) rangeOfQueryItems
-{
-  return NSMakeRange(0,0);
+  return internal->_rangeOfQuery;
 }
 
 - (NSRange) rangeOfScheme
 {
-  return NSMakeRange(0,0);
+  return internal->_rangeOfScheme;
 }
 
 - (NSRange) rangeOfUser
 {
-  return NSMakeRange(0,0);
+  return internal->_rangeOfUser;
 }
   
 @end

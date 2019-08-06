@@ -670,8 +670,8 @@ GS_NSURLComponents_IVARS;
 - (void) setPassword: (NSString *)password;
 - (NSString *) path;
 - (void) setPath: (NSString *)path;
-- (NSString *) port;
-- (void) setPort: (NSString *)port;
+- (NSNumber *) port;
+- (void) setPort: (NSNumber *)port;
 - (NSString *) query;
 - (void) setQuery: (NSString *)query;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
@@ -692,8 +692,6 @@ GS_NSURLComponents_IVARS;
 - (void) setPercentEncodedPassword: (NSString *)password;
 - (NSString *) percentEncodedPath;
 - (void) setPercentEncodedPath: (NSString *)path;
-- (NSString *) percentEncodedPort;
-- (void) setPercentEncodedPort: (NSString *)port;
 - (NSString *) percentEncodedQuery;
 - (void) setPercentEncodedQuery: (NSString *)query;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
@@ -712,9 +710,6 @@ GS_NSURLComponents_IVARS;
 - (NSRange) rangeOfPath;
 - (NSRange) rangeOfPort;
 - (NSRange) rangeOfQuery;
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
-- (NSRange) rangeOfQueryItems;
-#endif
 - (NSRange) rangeOfScheme;
 - (NSRange) rangeOfUser;
   
