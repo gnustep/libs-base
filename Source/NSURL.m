@@ -2316,7 +2316,7 @@ static NSUInteger	urlAlign;
 
 - (void) setURL: (NSURL *)url
 {
-  ASSIGN(_url, url);
+  ASSIGN(internal->_url, url);
 
   // components...
   [self setFragment: [url fragment]];
@@ -2349,17 +2349,17 @@ static NSUInteger	urlAlign;
                            [NSCharacterSet URLPathAllowedCharacterSet]]];
   [self setPercentEncodedUser:
           [[url user] stringByAddingPercentEncodingWithAllowedCharacters:
-                         [NSCharacterSet URLUserAllowedCharacterSet]]];;
+                         [NSCharacterSet URLUserAllowedCharacterSet]]];
 
   // Find ranges
-  _rangeOfFragment   = [[url absoluteString] rangeOfString: internal->_fragment];
-  _rangeOfHost       = [[url absoluteString] rangeOfString: internal->_host];
-  _rangeOfPassword   = [[url absoluteString] rangeOfString: internal->_password];
-  _rangeOfPath       = [[url absoluteString] rangeOfString: internal->_path];
-  _rangeOfPort       = [[url absoluteString] rangeOfString: [internal->_port stringValue]];
-  _rangeOfQuery      = [[url absoluteString] rangeOfString: internal->_query];
-  _rangeOfScheme     = [[url absoluteString] rangeOfString: internal->_scheme];
-  _rangeOfUser       = [[url absoluteString] rangeOfString: internal->_user];
+  internal->_rangeOfFragment   = [[url absoluteString] rangeOfString: internal->_fragment];
+  internal->_rangeOfHost       = [[url absoluteString] rangeOfString: internal->_host];
+  internal->_rangeOfPassword   = [[url absoluteString] rangeOfString: internal->_password];
+  internal->_rangeOfPath       = [[url absoluteString] rangeOfString: internal->_path];
+  internal->_rangeOfPort       = [[url absoluteString] rangeOfString: [internal->_port stringValue]];
+  internal->_rangeOfQuery      = [[url absoluteString] rangeOfString: internal->_query];
+  internal->_rangeOfScheme     = [[url absoluteString] rangeOfString: internal->_scheme];
+  internal->_rangeOfUser       = [[url absoluteString] rangeOfString: internal->_user];
 }
 
 - (NSURL *)URLRelativeToURL: (NSURL *)baseURL
