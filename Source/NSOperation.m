@@ -542,7 +542,7 @@ static NSArray	*empty = nil;
   self = [super init];
   if(self != nil)
     {
-      _executionBlocks = [[NSMutableArray alloc] initWithCapacity: 10];
+      _executionBlocks = [[NSMutableArray alloc] initWithCapacity: 1];
     }
   return self;
 }
@@ -556,7 +556,7 @@ static NSArray	*empty = nil;
 // Managing the blocks in the Operation
 + (instancetype)blockOperationWithBlock: (GSBlockOperationBlock)block
 {
-  NSBlockOperation *op = [[NSBlockOperation alloc] init];
+  NSBlockOperation *op = [[self alloc] init];
   [op addExecutionBlock: block];
   return op;
 }
