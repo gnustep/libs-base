@@ -169,6 +169,8 @@ static NSProgress *__currentProgress = nil;
 
 - (void)resignCurrent
 {
+  int64_t completed = [__currentProgress completedUnitCount];
+  [__currentProgress setCompletedUnitCount: completed + [self totalUnitCount]];
   __currentProgress = nil;
 }
 

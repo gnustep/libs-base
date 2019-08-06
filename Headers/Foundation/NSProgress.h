@@ -63,8 +63,9 @@ GS_NSProgress_IVARS;
 }
   
 DEFINE_BLOCK_TYPE(NSProgressPublishingHandler, void, NSProgress*);
-DEFINE_BLOCK_TYPE(NSProgressUnpublishingHandler, void, void);
-DEFINE_BLOCK_TYPE(GSProgressPendingUnitCountBlock, void, void);
+DEFINE_BLOCK_NO_ARGS(NSProgressUnpublishingHandler); 
+DEFINE_BLOCK_NO_ARGS(GSProgressPendingUnitCountBlock); 
+DEFINE_BLOCK_NO_ARGS(GSProgressResumingHandler); 
   
 // Creating progress objects...
 - (instancetype)initWithParent: (NSProgress *)parent 
@@ -106,7 +107,6 @@ DEFINE_BLOCK_TYPE(GSProgressPendingUnitCountBlock, void, void);
 - (void) setPausingHandler: (GSProgressPausingHandler) handler;
 
 - (void) resume;
-DEFINE_BLOCK_TYPE(GSProgressResumingHandler, void, void);
 - (void) setResumingHandler: (GSProgressResumingHandler) handler;
 
 // Progress Information
