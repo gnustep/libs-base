@@ -240,7 +240,7 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setCancellationHandler: (GSProgressCancellationHandler) handler
 {
-  ASSIGN(internal->_cancellationHandler, handler);
+  internal->_cancellationHandler = handler;
 }
 
 - (BOOL) isPausable
@@ -261,7 +261,7 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setPausingHandler: (GSProgressPausingHandler) handler
 {
-  ASSIGN(internal->_pausingHandler, handler);
+  internal->_pausingHandler = handler;
 }
 
 - (void) resume
@@ -271,7 +271,7 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setResumingHandler: (GSProgressResumingHandler) handler
 {
-  ASSIGN(internal->_resumingHandler, handler);
+  internal->_resumingHandler = handler;
 }
 
 // Progress Information
