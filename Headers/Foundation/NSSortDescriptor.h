@@ -50,6 +50,7 @@ extern "C" {
   NSString *_key;
   BOOL	_ascending;
   SEL	_selector;
+  NSComparator _comparator;
 #endif
 #if     GS_NONFRAGILE
 #else
@@ -92,6 +93,24 @@ extern "C" {
 + (id) sortDescriptorWithKey: (NSString *)aKey 
                    ascending: (BOOL)ascending 
                     selector: (SEL)aSelector;
+
+/** <p>Returns an autoreleased sort descriptor initialized to perform 
+ * comparisons in the specified order using the comparator to compare 
+ * the property aKey of each object.</p>
+ *
+ * <p>See also -initWithKey:ascending:selector:.</p>
+ */
++ (id)sortDescriptorWithKey: (NSString *)key 
+                  ascending: (BOOL)ascending 
+                 comparator: (NSComparator)cmptr;
+
+/** <init />
+ * Initialises the receiver to perform comparisons in the specified order
+ * using the comparator to compare the property key of each object.
+ */
+- (id) initWithKey: (NSString *)key
+         ascending: (BOOL)ascending
+        comparator: (NSComparator)cmptr;
 #endif
 
 /** Initialises the receiver for comparisons using the 'compare:' selector
@@ -102,11 +121,12 @@ extern "C" {
 
 /** <init />
  * Initialises the receiver to perform comparisons in the specified order
- * using selector to compar the property key of each object.
+ * using selector to compare the property key of each object.
  */
 - (id) initWithKey: (NSString *)key
          ascending: (BOOL)ascending
           selector: (SEL)selector;
+
 
 /** Returns the key used to obtain the property on which comparisons are based.
  */
