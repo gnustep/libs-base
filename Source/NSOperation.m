@@ -533,6 +533,56 @@ static NSArray	*empty = nil;
 
 @end
 
+	  
+@implementation NSBlockOperation
+
+// Initialize
+- (id) init
+{
+  self = [super init];
+  if(self != nil)
+    {
+      _executionBlocks = [[NSMutableArray alloc] initWithCapacity: 1];
+    }
+  return self;
+}
+
+- (void) dealloc
+{
+  RELEASE(_executionBlocks);
+  [super dealloc];
+}
+
+// Managing the blocks in the Operation
++ (instancetype)blockOperationWithBlock: (GSBlockOperationBlock)block
+{
+  NSBlockOperation *op = [[self alloc] init];
+  [op addExecutionBlock: block];
+  return op;
+}
+
+- (void)addExecutionBlock: (GSBlockOperationBlock)block
+{
+  [_executionBlocks addObject: block];
+}
+
+- (NSArray *) executionBlocks
+{
+  return _executionBlocks;
+}
+
+- (void) main
+{
+  NSEnumerator *en = [[self executionBlocks] objectEnumerator];
+  GSBlockOperationBlock theBlock;
+  while((theBlock = [en nextObject]) != NULL)
+    {
+      CALL_BLOCK_NO_ARGS(theBlock);
+    }
+}
+@end
+
+
 #undef	GSInternal
 #define	GSInternal	NSOperationQueueInternal
 #include	"GSInternal.h"
@@ -619,6 +669,13 @@ static NSOperationQueue *mainQueue = nil;
     }
   [internal->lock unlock];
 }
+
+- (void) addOperationWithBlock: (GSBlockOperationBlock)block
+{
+  NSBlockOperation *bop = [NSBlockOperation blockOperationWithBlock: block];
+  [self addOperation: bop];
+}
+
 
 - (void) addOperations: (NSArray *)ops
      waitUntilFinished: (BOOL)shouldWait
