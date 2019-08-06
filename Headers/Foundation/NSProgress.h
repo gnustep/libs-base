@@ -27,12 +27,13 @@
 
 #import	<GNUstepBase/GSVersionMacros.h>
 #import	<Foundation/NSObject.h>
+#import <GNUstepBase/GSBlocks.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-@class	NSString, NSDictionary, NSArray, NSNumber;
+  @class	NSString, NSDictionary, NSArray, NSNumber, NSProgress;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
 
@@ -40,12 +41,12 @@ typedef NSString* NSProgressKind;
 typedef NSString* NSProgressUserInfoKey;
 typedef NSString* NSProgressFileOperationKind;  
 
-DEFINE_BLOCK_NO_ARGS(GSProgressCancellationHandlerK);
-DEFINE_BLOCK_NO_ARGS(GSProgressPausingHandler);
+DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressCancellationHandler, void);
+DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressPausingHandler, void);
 DEFINE_BLOCK_TYPE(NSProgressPublishingHandler, void, NSProgress*);
-DEFINE_BLOCK_NO_ARGS(NSProgressUnpublishingHandler); 
-DEFINE_BLOCK_NO_ARGS(GSProgressPendingUnitCountBlock); 
-DEFINE_BLOCK_NO_ARGS(GSProgressResumingHandler); 
+DEFINE_BLOCK_TYPE_NO_ARGS(NSProgressUnpublishingHandler, void); 
+DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressPendingUnitCountBlock, void); 
+DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressResumingHandler, void); 
   
 @interface NSProgress : NSObject
 {

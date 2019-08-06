@@ -66,7 +66,7 @@ GS_PRIVATE_INTERNAL(NSProgress)
 
 // NSProgress for current thread....
 static NSProgress *__currentProgress = nil;
-static NSMutableDictionary *__subscribers = nil; \ 
+static NSMutableDictionary *__subscribers = nil; 
 
 @implementation NSProgress
 
@@ -83,34 +83,31 @@ static NSMutableDictionary *__subscribers = nil; \
                       userInfo: (NSDictionary *)userInfo
 {
   self = [super init];
-  if (self == nil)
+  if (self != nil)
     {
-      return nil;
+      GS_CREATE_INTERNAL(NSProgress);
+      internal->_kind = nil;
+      internal->_fileOperationKind = nil;
+      internal->_fileUrl = nil;
+      internal->_isFinished = NO;
+      internal->_old = NO;
+      internal->_estimatedTimeRemaining = nil;
+      internal->_fileCompletedCount = nil;
+      internal->_fileTotalCount = nil;
+      internal->_throughput = nil;
+      internal->_totalUnitCount = 0;
+      internal->_completedUnitCount = 0;
+      internal->_userInfo = [userInfo mutableCopy];
+      internal->_cancelled = NO;
+      internal->_cancellable = NO;
+      internal->_paused = NO;
+      internal->_pausable = NO;
+      internal->_indeterminate = NO;
+      internal->_finished = NO;
+      internal->_fractionCompleted = 0.0;
+      internal->_parent = parent;  // this is a weak reference and not retained.
+      internal->_userInfo = [[NSMutableDictionary alloc] initWithCapacity: 10];
     }
-
-  GS_CREATE_INTERNAL(NSProgress);
-  internal->_kind = nil;
-  internal->_fileOperationKind = nil;
-  internal->_fileUrl = nil;
-  internal->_isFinished = NO;
-  internal->_old = NO;
-  internal->_estimatedTimeRemaining = nil;
-  internal->_fileCompletedCount = nil;
-  internal->_fileTotalCount = nil;
-  internal->_throughput = nil;
-  internal->_totalUnitCount = 0;
-  internal->_completedUnitCount = 0;
-  internal->_userInfo = [userInfo mutableCopy];
-  internal->_cancelled = NO;
-  internal->_cancellable = NO;
-  internal->_paused = NO;
-  internal->_pausable = NO;
-  internal->_indeterminate = NO;
-  internal->_finished = NO;
-  internal->_fractionCompleted = 0.0;
-  internal->_parent = parent;  // this is a weak reference and not retained.
-  internal->_userInfo = [[NSMutableDictionary alloc] initWithCapacity: 10];
-
   return self;
 }
 
@@ -240,12 +237,12 @@ static NSMutableDictionary *__subscribers = nil; \
 
 - (void) cancel
 {
-  CALL_BLOCK_NO_ARGS(GSProgressCancellationHandler);
+  CALL_BLOCK_NO_ARGS(internal->_cancellationHandler);
 }
 
 - (void) setCancellationHandler: (GSProgressCancellationHandler) handler
 {
-  ASSIGN
+  ASSIGN(internal->_cancellationHandler, handler);
 }
 
 - (BOOL) isPausable
@@ -260,23 +257,23 @@ static NSMutableDictionary *__subscribers = nil; \
 
 - (void) pause
 {
-    CALL_BLOCK_NO_ARGS(_pausingHandler);
+    CALL_BLOCK_NO_ARGS(internal->_pausingHandler);
     internal->_paused = YES;
 }
 
 - (void) setPausingHandler: (GSProgressPausingHandler) handler
 {
-  ASSIGN(_pausingHandler, handler);
+  ASSIGN(internal->_pausingHandler, handler);
 }
 
 - (void) resume
 {
-  CALL_BLOCK_NO_ARGS(_resumingHandler);
+  CALL_BLOCK_NO_ARGS(internal->_resumingHandler);
 }
 
 - (void) setResumingHandler: (GSProgressResumingHandler) handler
 {
-  ASSIGN(_resumingHandler, handler);
+  ASSIGN(internal->_resumingHandler, handler);
 }
 
 // Progress Information
@@ -381,12 +378,12 @@ static NSMutableDictionary *__subscribers = nil; \
 // Instance methods
 - (void) publish
 {
-  CALL_BLOCK(_publishingHandler, self);
+  CALL_BLOCK(internal->_publishingHandler, self);
 }
 
 - (void) unpublish
 {
-  CALL_BLOCK(_unpublishingHandler);
+  CALL_BLOCK_NO_ARGS(internal->_unpublishingHandler);
 }
 
 - (void)performAsCurrentWithPendingUnitCount: (int64_t)unitCount 
@@ -394,7 +391,7 @@ static NSMutableDictionary *__subscribers = nil; \
 {
   
   int64_t completed = [__currentProgress completedUnitCount];
-  CALL_BLOCK(work); // Do pending work...
+  CALL_BLOCK_NO_ARGS(work); // Do pending work...
   [self setCompletedUnitCount: completed + unitCount];  // Update completion count...
 }
 
@@ -402,11 +399,13 @@ static NSMutableDictionary *__subscribers = nil; \
 + (id)addSubscriberForFileURL: (NSURL *)url 
         withPublishingHandler: (NSProgressPublishingHandler)publishingHandler
 {
+  // There is no acceptable description of this method in the documentation.
   return nil;
 }
 
 + (void)removeSubscriber: (id)subscriber
 {
+  // There is no acceptable description of this method in the documentation.
 }
   
 @end
