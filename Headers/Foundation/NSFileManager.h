@@ -175,7 +175,7 @@
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 #import	<Foundation/NSDictionary.h>
 #import	<Foundation/NSEnumerator.h>
-
+#import <Foundation/NSPathUtilities.h>
 #if	defined(__cplusplus)
 extern "C" {
 #endif
@@ -200,6 +200,8 @@ typedef	uint32_t	OSType;
 #define OSTYPE_DECLARED
 #endif
 
+DEFINE_BLOCK_TYPE(GSDirEnumErrorHandler, BOOL, NSURL*, NSError*);
+  
 enum _NSDirectoryEnumerationOptions
   {
     NSDirectoryEnumerationSkipsSubdirectoryDescendants = 1L << 0,
@@ -341,6 +343,24 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
            includingPropertiesForKeys: (NSArray*)keys
                               options: (NSDirectoryEnumerationOptions)mask
                                 error: (NSError **)error;
+
+/**
+ * Locates and, optionally, creates the specified common directory in
+ * domain
+ */
+- (NSURL *)URLForDirectory: (NSSearchPathDirectory)directory 
+                  inDomain: (NSSearchPathDomainMask)domain 
+         appropriateForURL: (NSURL *)url 
+                    create: (BOOL)shouldCreate 
+                     error: (NSError **)error;
+
+/**
+ * Enumerate over the contents of a directory.
+ */
+- (NSDirectoryEnumerator *)enumeratorAtURL: (NSURL *)url
+                includingPropertiesForKeys: (NSArray *)keys 
+                                   options: (NSDirectoryEnumerationOptions)mask 
+                              errorHandler: (GSDirEnumErrorHandler)handler;
 #endif
   
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
@@ -545,11 +565,13 @@ typedef NSUInteger NSDirectoryEnumerationOptions;
   NSString *_topPath;
   NSString *_currentFilePath;
   NSFileManager *_mgr;
+  GSDirEnumErrorHandler _errorHandler; 
   struct _NSDirectoryEnumeratorFlags      // tag for objc++ w/gcc 4.6 
   {
     BOOL isRecursive: 1;
     BOOL isFollowing: 1;
     BOOL justContents: 1;
+    BOOL skipHidden: 1;
   } _flags;
 #endif
 #if     GS_NONFRAGILE

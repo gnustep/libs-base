@@ -179,6 +179,17 @@
               followSymlinks: (BOOL)follow
                 justContents: (BOOL)justContents
 			 for: (NSFileManager*)mgr;
+
+- (id) initWithDirectoryPath: (NSString*)path
+   recurseIntoSubdirectories: (BOOL)recurse
+	      followSymlinks: (BOOL)follow
+		justContents: (BOOL)justContents
+                  skipHidden: (BOOL)skipHidden
+                errorHandler: (GSDirEnumErrorHandler) handler
+			 for: (NSFileManager*)mgr;
+
+- (void) _setSkipHidden: (BOOL)flag;
+- (void) _setErrorHandler: (GSDirEnumErrorHandler) handler;
 @end
 
 /*
@@ -771,6 +782,69 @@ static NSStringEncoding	defaultEncoding;
     }
 
   return result;  
+}
+
+- (NSURL *)URLForDirectory: (NSSearchPathDirectory)directory 
+                  inDomain: (NSSearchPathDomainMask)domain 
+         appropriateForURL: (NSURL *)url 
+                    create: (BOOL)shouldCreate 
+                     error: (NSError **)error
+{
+  NSURL *result = nil;
+  NSArray *urlArray = NSSearchPathForDirectoriesInDomains(directory, domain, YES);
+
+  // Find out the URL exists...
+  if ([urlArray count] > 0)
+    {
+      result = [NSURL URLWithString: [urlArray objectAtIndex: 0]];
+    }
+
+  if (directory == NSItemReplacementDirectory)
+    {
+      result = [NSURL URLWithString: NSTemporaryDirectory()];
+    }
+
+  if (![self fileExistsAtPath: [result absoluteString]])
+      {
+        // If we should created it, create it...
+        if (shouldCreate)
+          {
+            [self       createDirectoryAtPath: [result absoluteString]
+                  withIntermediateDirectories: YES
+                                   attributes: nil
+                                        error: error];
+          }
+      }
+  
+  return result;
+}
+
+- (NSDirectoryEnumerator *)enumeratorAtURL: (NSURL *)url
+                includingPropertiesForKeys: (NSArray *)keys 
+                                   options: (NSDirectoryEnumerationOptions)mask 
+                              errorHandler: (GSDirEnumErrorHandler)handler
+{
+  NSDirectoryEnumerator *direnum;
+  NSString              *path;
+  
+  DESTROY(_lastError);
+
+  if (![[url scheme] isEqualToString: @"file"])
+    {
+      return nil;
+    }
+  path = [url path];
+  
+  direnum = [[NSDirectoryEnumerator alloc]
+		       initWithDirectoryPath: path
+                   recurseIntoSubdirectories: !(mask & NSDirectoryEnumerationSkipsSubdirectoryDescendants) 
+                              followSymlinks: NO
+                                justContents: NO
+                                  skipHidden: (mask & NSDirectoryEnumerationSkipsHiddenFiles)
+                                errorHandler: handler
+                                         for: self];
+
+  return direnum;  
 }
 
 - (NSArray*) contentsOfDirectoryAtPath: (NSString*)path error: (NSError**)error
@@ -2451,18 +2525,22 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     }
 }
 
-/**
- *  Initialize instance to enumerate contents at path, which should be a
- *  directory and can be specified in relative or absolute, and may include
- *  Unix conventions like '<code>~</code>' for user home directory, which will
- *  be appropriately converted on Windoze systems.  The justContents flag, if
- *  set, is equivalent to recurseIntoSubdirectories = NO and followSymlinks =
- *  NO, but the implementation will be made more efficient.
- */
+- (void) _setSkipHidden: (BOOL)flag
+{
+  _flags.skipHidden = flag;
+}
+
+- (void) _setErrorHandler: (GSDirEnumErrorHandler) handler
+{
+  _errorHandler = handler;
+}
+
 - (id) initWithDirectoryPath: (NSString*)path
    recurseIntoSubdirectories: (BOOL)recurse
 	      followSymlinks: (BOOL)follow
 		justContents: (BOOL)justContents
+                  skipHidden: (BOOL)skipHidden
+                errorHandler: (GSDirEnumErrorHandler) handler
 			 for: (NSFileManager*)mgr
 {
   if (nil != (self = [super init]))
@@ -2479,7 +2557,9 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
       _flags.isRecursive = recurse;
       _flags.isFollowing = follow;
       _flags.justContents = justContents;
-
+      _flags.skipHidden = skipHidden;
+      _errorHandler = handler;
+      
       _topPath = [[NSString alloc] initWithString: path];
 
       localPath = [_mgr fileSystemRepresentationWithPath: path];
@@ -2517,6 +2597,29 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
         }
     }
   return self;
+}
+
+/**
+ *  Initialize instance to enumerate contents at path, which should be a
+ *  directory and can be specified in relative or absolute, and may include
+ *  Unix conventions like '<code>~</code>' for user home directory, which will
+ *  be appropriately converted on Windoze systems.  The justContents flag, if
+ *  set, is equivalent to recurseIntoSubdirectories = NO and followSymlinks =
+ *  NO, but the implementation will be made more efficient.
+ */
+- (id) initWithDirectoryPath: (NSString*)path
+   recurseIntoSubdirectories: (BOOL)recurse
+	      followSymlinks: (BOOL)follow
+		justContents: (BOOL)justContents
+			 for: (NSFileManager*)mgr
+{
+  return [self initWithDirectoryPath: path
+           recurseIntoSubdirectories: recurse
+                      followSymlinks: follow
+                        justContents: justContents
+                          skipHidden: NO
+                        errorHandler: NULL
+                                 for: mgr];
 }
 
 - (void) dealloc
@@ -2621,6 +2724,12 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
       if (dirname)
 	{
+          // Skip it if it is hidden and flag is yes...
+          if ([[dir.path lastPathComponent] hasPrefix: @"."] && _flags.skipHidden == YES)
+            {
+              continue;
+            }
+          
 #if defined(_WIN32)
 	  /* Skip "." and ".." directory entries */
 	  if (wcscmp(dirname, L".") == 0
@@ -2628,6 +2737,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    {
 	      continue;
 	    }
+          
 	  /* Name of file to return  */
 	  returnFileName = [_mgr
 	    stringWithFileSystemRepresentation: dirname
@@ -2639,7 +2749,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    {
 	      continue;
 	    }
-	  /* Name of file to return  */
+
+          /* Name of file to return  */
 	  returnFileName = [_mgr
 	    stringWithFileSystemRepresentation: dirname
 	    length: strlen(dirname)];
@@ -2704,9 +2815,18 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		    }
 		  else
 		    {
+                      BOOL flag = YES;
 		      NSDebugLog(@"Failed to recurse into directory '%@' - %@",
 			_currentFilePath, [NSError _last]);
-		    }
+                      if(_errorHandler != NULL)
+                        {
+                          flag = CALL_BLOCK(_errorHandler, [NSURL URLWithString: _currentFilePath], [NSError _last]);
+                        }
+                      if(flag == NO)
+                        {
+                          return nil; // Stop enumeration...
+                        }
+                    }
 		}
 	    }
 	  break;	// Got a file name - break out of loop
