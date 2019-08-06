@@ -27,6 +27,7 @@
 #import	<GNUstepBase/GSVersionMacros.h>
 
 #import	<Foundation/NSURLHandle.h>
+#import <Foundation/NSRange.h>
 
 #if	defined(__cplusplus)
 extern "C" {
