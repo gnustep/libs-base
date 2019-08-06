@@ -298,7 +298,7 @@ static NSMutableDictionary *__subscribers = nil;
 - (void)setUserInfoObject: (id)obj
                    forKey: (NSProgressUserInfoKey)key
 {
-  [_userInfo setObject: obj forKey: key];
+  [internal->_userInfo setObject: obj forKey: key];
 }
 
 // Instance property accessors...
