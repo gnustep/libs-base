@@ -43,6 +43,11 @@
   BOOL _finished; \
   double _fractionCompleted; \
   GSProgressCancellationHandler _cancellationHandler; \
+  GSProgressPausingHandler _pausingHandler; \
+  NSProgressPublishingHandler _publishingHandler; \
+  NSProgressUnpublishingHandler _unpublishingHandler; \
+  GSProgressPendingUnitCountBlock _pendingUnitCountHandler; \
+  GSProgressResumingHandler _resumingHandler;              \
   NSProgress *_parent;
 
 #define	EXPOSE_NSProgress_IVARS
@@ -61,8 +66,17 @@ GS_PRIVATE_INTERNAL(NSProgress)
 
 // NSProgress for current thread....
 static NSProgress *__currentProgress = nil;
+static NSMutableDictionary *__subscribers = nil; \ 
 
 @implementation NSProgress
+
++ (void) initialize
+{
+  if (self == [NSProgress class])
+    {
+      __subscribers = [[NSMutableDictionary alloc] initWithCapacity: 10];
+    }
+}
 
 // Creating progress objects...
 - (instancetype)initWithParent: (NSProgress *)parent 
@@ -95,6 +109,7 @@ static NSProgress *__currentProgress = nil;
   internal->_finished = NO;
   internal->_fractionCompleted = 0.0;
   internal->_parent = parent;  // this is a weak reference and not retained.
+  internal->_userInfo = [[NSMutableDictionary alloc] initWithCapacity: 10];
 
   return self;
 }
@@ -108,7 +123,8 @@ static NSProgress *__currentProgress = nil;
   RELEASE(internal->_fileCompletedCount);
   RELEASE(internal->_fileTotalCount);
   RELEASE(internal->_throughput);
-
+  RELEASE(internal->_userInfo);
+  
   [super dealloc];
 }
 
@@ -224,10 +240,12 @@ static NSProgress *__currentProgress = nil;
 
 - (void) cancel
 {
+  CALL_BLOCK_NO_ARGS(GSProgressCancellationHandler);
 }
 
 - (void) setCancellationHandler: (GSProgressCancellationHandler) handler
 {
+  ASSIGN
 }
 
 - (BOOL) isPausable
@@ -242,18 +260,23 @@ static NSProgress *__currentProgress = nil;
 
 - (void) pause
 {
+    CALL_BLOCK_NO_ARGS(_pausingHandler);
+    internal->_paused = YES;
 }
 
 - (void) setPausingHandler: (GSProgressPausingHandler) handler
 {
+  ASSIGN(_pausingHandler, handler);
 }
 
 - (void) resume
 {
+  CALL_BLOCK_NO_ARGS(_resumingHandler);
 }
 
 - (void) setResumingHandler: (GSProgressResumingHandler) handler
 {
+  ASSIGN(_resumingHandler, handler);
 }
 
 // Progress Information
@@ -274,12 +297,13 @@ static NSProgress *__currentProgress = nil;
 
 - (void) setKind: (NSProgressKind)k
 {
+  ASSIGN(internal->_kind, k);
 }
 
 - (void)setUserInfoObject: (id)obj
                    forKey: (NSProgressUserInfoKey)key
 {
-                
+  [_userInfo setObject: obj forKey: key];
 }
 
 
@@ -357,15 +381,21 @@ static NSProgress *__currentProgress = nil;
 // Instance methods
 - (void) publish
 {
+  CALL_BLOCK(_publishingHandler, self);
 }
 
 - (void) unpublish
 {
+  CALL_BLOCK(_unpublishingHandler);
 }
 
 - (void)performAsCurrentWithPendingUnitCount: (int64_t)unitCount 
                                   usingBlock: (GSProgressPendingUnitCountBlock)work
 {
+  
+  int64_t completed = [__currentProgress completedUnitCount];
+  CALL_BLOCK(work); // Do pending work...
+  [self setCompletedUnitCount: completed + unitCount];  // Update completion count...
 }
 
 // Type methods

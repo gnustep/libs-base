@@ -40,9 +40,13 @@ typedef NSString* NSProgressKind;
 typedef NSString* NSProgressUserInfoKey;
 typedef NSString* NSProgressFileOperationKind;  
 
-DEFINE_BLOCK_TYPE(GSProgressCancellationHandler, void, void);
-DEFINE_BLOCK_TYPE(GSProgressPausingHandler, void, void);
-
+DEFINE_BLOCK_NO_ARGS(GSProgressCancellationHandlerK);
+DEFINE_BLOCK_NO_ARGS(GSProgressPausingHandler);
+DEFINE_BLOCK_TYPE(NSProgressPublishingHandler, void, NSProgress*);
+DEFINE_BLOCK_NO_ARGS(NSProgressUnpublishingHandler); 
+DEFINE_BLOCK_NO_ARGS(GSProgressPendingUnitCountBlock); 
+DEFINE_BLOCK_NO_ARGS(GSProgressResumingHandler); 
+  
 @interface NSProgress : NSObject
 {
 #if	GS_EXPOSE(NSProgress)
@@ -61,11 +65,6 @@ GS_NSProgress_IVARS;
   @private id _internal GS_UNUSED_IVAR;
 #endif
 }
-  
-DEFINE_BLOCK_TYPE(NSProgressPublishingHandler, void, NSProgress*);
-DEFINE_BLOCK_NO_ARGS(NSProgressUnpublishingHandler); 
-DEFINE_BLOCK_NO_ARGS(GSProgressPendingUnitCountBlock); 
-DEFINE_BLOCK_NO_ARGS(GSProgressResumingHandler); 
   
 // Creating progress objects...
 - (instancetype)initWithParent: (NSProgress *)parent 
