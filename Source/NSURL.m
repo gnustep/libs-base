@@ -2426,6 +2426,24 @@ static NSUInteger	urlAlign;
 - (void) setQuery: (NSString *)query
 {
   ASSIGN(internal->_query, query);
+  if (query != nil)
+    {
+      NSMutableArray *result = [NSMutableArray arrayWithCapacity: 5];
+      NSArray *items = [query componentsSeparatedByString: @"&"];
+      NSEnumerator *en = [items objectEnumerator];
+      id item = nil;
+
+      while ((item = [en nextObject]) != nil)
+        {
+          NSArray *query = [item componentsSeparatedByString: @"="];
+          NSString *name = [query objectAtIndex: 0];
+          NSString *value = [query objectAtIndex: 1];
+          NSURLQueryItem *qitem = [NSURLQueryItem queryItemWithName: name
+                                                              value: value];
+          [result addObject: qitem];
+        }
+      [self setQueryItems: result];
+    }
 }
 
 - (NSArray *) queryItems
