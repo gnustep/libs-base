@@ -2178,6 +2178,19 @@ failure:
   return AUTORELEASE(d);
 }
 
++ (id) dataWithBytesNoCopy: (void*)aBuffer
+		    length: (NSUInteger)bufferSize
+	      freeWhenDone: (BOOL)shouldFree
+{
+  NSData	*d;
+
+  d = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
+  d = [d initWithBytesNoCopy: aBuffer
+		      length: bufferSize
+		freeWhenDone: shouldFree];
+  return AUTORELEASE(d);
+}
+
 /**
  *  New instance with buffer of given numBytes with length of valid data set
  *  to zero.  Note that capacity will be automatically increased as necessary.
@@ -3703,8 +3716,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       if (bufferSize > 0)
 	{
-	  [NSException raise: NSInvalidArgumentException
-	    format: @"[%@-initWithBytesNoCopy:length:freeWhenDone:] called with "
+	  [NSException raise: NSInvalidArgumentException format:
+	    @"[%@-initWithBytesNoCopy:length:freeWhenDone:] called with "
 	    @"length but null bytes", NSStringFromClass([self class])];
 	}
       self = [self initWithCapacity: bufferSize];
