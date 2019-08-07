@@ -78,8 +78,8 @@ static NSMutableDictionary *__subscribers = nil;
 }
 
 // Creating progress objects...
-- (instancetype)initWithParent: (NSProgress *)parent 
-                      userInfo: (NSDictionary *)userInfo
+- (instancetype) initWithParent: (NSProgress *)parent 
+                       userInfo: (NSDictionary *)userInfo
 {
   self = [super init];
   if (self != nil)
@@ -123,28 +123,28 @@ static NSMutableDictionary *__subscribers = nil;
   [super dealloc];
 }
 
-+ (NSProgress *)discreteProgressWithTotalUnitCount:(int64_t)unitCount
++ (NSProgress *) discreteProgressWithTotalUnitCount: (int64_t)unitCount
 {
   NSProgress *p = [[NSProgress alloc] initWithParent: nil
-					    userInfo: [NSDictionary dictionary]];
+    userInfo: [NSDictionary dictionary]];
   [p setTotalUnitCount: unitCount];
   return AUTORELEASE(p);
 }
 
-+ (NSProgress *)progressWithTotalUnitCount:(int64_t)unitCount
++ (NSProgress *) progressWithTotalUnitCount: (int64_t)unitCount
 {
   NSProgress *p = [[NSProgress alloc] initWithParent: nil
-					    userInfo: [NSDictionary dictionary]];
+    userInfo: [NSDictionary dictionary]];
   [p setTotalUnitCount: unitCount];
   return AUTORELEASE(p);
 }
 
-+ (NSProgress *)progressWithTotalUnitCount:(int64_t)unitCount 
-                                    parent:(NSProgress *)parent 
-                          pendingUnitCount:(int64_t)portionOfParentTotalUnitCount
++ (NSProgress *)progressWithTotalUnitCount: (int64_t)unitCount 
+  parent: (NSProgress *)parent 
+  pendingUnitCount: (int64_t)portionOfParentTotalUnitCount
 {
   NSProgress *p = [[NSProgress alloc] initWithParent: parent
-					    userInfo: [NSDictionary dictionary]];
+    userInfo: [NSDictionary dictionary]];
   [p setTotalUnitCount: portionOfParentTotalUnitCount];
   return AUTORELEASE(p);
 }
@@ -161,24 +161,25 @@ static NSMutableDictionary *__subscribers = nil;
 }
 
 // Current progress
-+ (NSProgress *)currentProgress
++ (NSProgress *) currentProgress
 {
   return __currentProgress;
 }
 
-- (void)becomeCurrentWithPendingUnitCount:(int64_t)unitCount
+- (void) becomeCurrentWithPendingUnitCount: (int64_t)unitCount
 {
   [self setTotalUnitCount: unitCount];
   __currentProgress = self;
 }
 
-- (void)addChild:(NSProgress *)child withPendingUnitCount: (int64_t)inUnitCount
+- (void) addChild: (NSProgress *)child
+  withPendingUnitCount: (int64_t)inUnitCount
 {
   [child _setParent: self];
   [child setTotalUnitCount: inUnitCount];
 }
 
-- (void)resignCurrent
+- (void) resignCurrent
 {
   int64_t completed = [__currentProgress completedUnitCount];
   [__currentProgress setCompletedUnitCount: completed + [self totalUnitCount]];
@@ -208,18 +209,21 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (NSString *) localizedDescription
 {
-  return [NSString stringWithFormat: @"%f percent complete", [self fractionCompleted]];
+  return [NSString stringWithFormat: @"%f percent complete",
+    [self fractionCompleted]];
 }
 
 - (NSString *) localizedAddtionalDescription
 {
-  return [NSString stringWithFormat: @"%@ minute(s) remaining", [self estimatedTimeRemaining]]; 
+  return [NSString stringWithFormat: @"%@ minute(s) remaining",
+    [self estimatedTimeRemaining]]; 
 }
 
 // Observing progress
 - (double) fractionCompleted
 {
-  return (double)((double)internal->_completedUnitCount / (double)internal->_totalUnitCount); 
+  return (double)((double)internal->_completedUnitCount
+    / (double)internal->_totalUnitCount); 
 }
 
 // Controlling progress
@@ -255,8 +259,8 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) pause
 {
-    CALL_BLOCK_NO_ARGS(internal->_pausingHandler);
-    internal->_paused = YES;
+  CALL_BLOCK_NO_ARGS(internal->_pausingHandler);
+  internal->_paused = YES;
 }
 
 - (void) setPausingHandler: (GSProgressPausingHandler) handler
@@ -317,7 +321,7 @@ static NSMutableDictionary *__subscribers = nil;
   ASSIGN(internal->_fileUrl, u);
 }
 
-- (NSURL *)fileUrl
+- (NSURL*) fileUrl
 {
   return internal->_fileUrl;
 }
@@ -383,13 +387,15 @@ static NSMutableDictionary *__subscribers = nil;
   CALL_BLOCK_NO_ARGS(internal->_unpublishingHandler);
 }
 
-- (void)performAsCurrentWithPendingUnitCount: (int64_t)unitCount 
-                                  usingBlock: (GSProgressPendingUnitCountBlock)work
+- (void) performAsCurrentWithPendingUnitCount: (int64_t)unitCount 
+  usingBlock: (GSProgressPendingUnitCountBlock)work
 {
   
   int64_t completed = [__currentProgress completedUnitCount];
-  CALL_BLOCK_NO_ARGS(work); // Do pending work...
-  [self setCompletedUnitCount: completed + unitCount];  // Update completion count...
+  // Do pending work...
+  CALL_BLOCK_NO_ARGS(work);
+  // Update completion count...
+  [self setCompletedUnitCount: completed + unitCount];
 }
 
 // Type methods
@@ -400,9 +406,10 @@ static NSMutableDictionary *__subscribers = nil;
   return nil;
 }
 
-+ (void)removeSubscriber: (id)subscriber
++ (void) removeSubscriber: (id)subscriber
 {
   // There is no acceptable description of this method in the documentation.
+  return;
 }
   
 @end

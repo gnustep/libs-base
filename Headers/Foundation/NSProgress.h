@@ -68,19 +68,20 @@ GS_NSProgress_IVARS;
 }
   
 // Creating progress objects...
-- (instancetype)initWithParent: (NSProgress *)parent 
-                      userInfo: (NSDictionary *)userInfo;
-+ (NSProgress *)discreteProgressWithTotalUnitCount:(int64_t)unitCount;
-+ (NSProgress *)progressWithTotalUnitCount:(int64_t)unitCount;
-+ (NSProgress *)progressWithTotalUnitCount:(int64_t)unitCount 
-                                    parent:(NSProgress *)parent 
-                          pendingUnitCount:(int64_t)portionOfParentTotalUnitCount;
+- (instancetype) initWithParent: (NSProgress *)parent 
+                       userInfo: (NSDictionary *)userInfo;
++ (NSProgress *) discreteProgressWithTotalUnitCount: (int64_t)unitCount;
++ (NSProgress *) progressWithTotalUnitCount: (int64_t)unitCount;
++ (NSProgress *) progressWithTotalUnitCount: (int64_t)unitCount 
+  parent: (NSProgress *)parent 
+  pendingUnitCount: (int64_t)portionOfParentTotalUnitCount;
 
 // Current progress
-+ (NSProgress *)currentProgress;
-- (void)becomeCurrentWithPendingUnitCount:(int64_t)unitCount;
-- (void)addChild:(NSProgress *)child withPendingUnitCount: (int64_t)inUnitCount;
-- (void)resignCurrent;
++ (NSProgress *) currentProgress;
+- (void) becomeCurrentWithPendingUnitCount: (int64_t)unitCount;
+- (void) addChild: (NSProgress *)child
+  withPendingUnitCount: (int64_t)inUnitCount;
+- (void) resignCurrent;
 
 // Reporting progress
 - (int64_t) totalUnitCount;
@@ -114,14 +115,14 @@ GS_NSProgress_IVARS;
 - (void) setIndeterminate: (BOOL)flag;
 - (NSProgressKind) kind;
 - (void) setKind: (NSProgressKind)k;
-- (void)setUserInfoObject: (id)obj
-                   forKey: (NSProgressUserInfoKey)key;
+- (void) setUserInfoObject: (id)obj
+                    forKey: (NSProgressUserInfoKey)key;
 
 // Instance property accessors...
 - (void) setFileOperationKind: (NSProgressFileOperationKind)k;
 - (NSProgressFileOperationKind) fileOperationKind;
 - (void) setFileUrl: (NSURL *)u;
-- (NSURL *)fileUrl;
+- (NSURL *) fileUrl;
 - (BOOL) isFinished;
 - (BOOL) isOld;
 - (void) setEstimatedTimeRemaining: (NSNumber *)n;
@@ -136,13 +137,13 @@ GS_NSProgress_IVARS;
 // Instance methods
 - (void) publish;
 - (void) unpublish;
-- (void)performAsCurrentWithPendingUnitCount: (int64_t)unitCount 
-                                  usingBlock: (GSProgressPendingUnitCountBlock)work;
+- (void) performAsCurrentWithPendingUnitCount: (int64_t)unitCount 
+  usingBlock: (GSProgressPendingUnitCountBlock)work;
 
 // Type methods
-+ (id)addSubscriberForFileURL: (NSURL *)url 
-        withPublishingHandler: (NSProgressPublishingHandler)publishingHandler;
-+ (void)removeSubscriber: (id)subscriber;
++ (id) addSubscriberForFileURL: (NSURL *)url 
+         withPublishingHandler: (NSProgressPublishingHandler)publishingHandler;
++ (void) removeSubscriber: (id)subscriber;
   
 @end
 
