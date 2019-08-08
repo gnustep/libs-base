@@ -410,9 +410,9 @@ static inline BOOL timerInvalidated(NSTimer *t)
 }
 
 - (void) receivedEvent: (void*)data
-		              type: (RunLoopEventType)type
-		             extra: (void*)extra
-	             forMode: (NSString*)mode
+		  type: (RunLoopEventType)type
+		 extra: (void*)extra
+	       forMode: (NSString*)mode
 {
 #if HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP
   dispatch_main_queue_drain_np();
@@ -527,7 +527,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
 	    }
 	  NSEndMapTableEnumeration(&enumerator);
 
-	  /* Finally, fire the requests ands release them.
+	  /* Finally, fire the requests and release them.
 	   */
 	  for (i = 0; i < count; i++)
 	    {
@@ -955,7 +955,7 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	{
 	  NSTimeInterval	add;
 
-	  /* Just incrementing the date was insufficieint to bring it to
+	  /* Just incrementing the date was insufficient to bring it to
 	   * the current time, so we must have missed one or more fire
 	   * opportunities, or the fire date has been set on the timer.
 	   * If a fire date long ago has been set and the increment value

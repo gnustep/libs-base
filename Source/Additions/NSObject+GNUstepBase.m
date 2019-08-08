@@ -31,6 +31,8 @@
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
 #import "GNUstepBase/NSThread+GNUstepBase.h"
 
+#include	<malloc.h>
+
 /* This file contains methods which nominally return an id but in fact
  * always rainse an exception and never return.
  * We need to suppress the compiler warning about that.
@@ -325,31 +327,36 @@ handleExit()
 
 @implementation NSObject (MemoryFootprint)
 + (NSUInteger) contentSizeOf: (NSObject*)obj
-		  declaredIn: (Class)cls
 		   excluding: (NSHashTable*)exclude
 {
-  unsigned	count;
-  Ivar		*vars;
+  Class		cls = object_getClass(obj);
   NSUInteger	size = 0;
 
-  if (0 != (vars = class_copyIvarList(cls, &count)))
+  while (cls != Nil)
     {
-      while (count-- > 0)
-	{
-	  const char	*type = ivar_getTypeEncoding(vars[count]);
+      unsigned	count;
+      Ivar	*vars;
 
-          type = GSSkipTypeQualifierAndLayoutInfo(type);
-	  if ('@' == *type)
+      if (0 != (vars = class_copyIvarList(cls, &count)))
+	{
+	  while (count-- > 0)
 	    {
-	      NSObject	*content = object_getIvar(obj, vars[count]);
-	
-	      if (content != nil)
+	      const char	*type = ivar_getTypeEncoding(vars[count]);
+
+	      type = GSSkipTypeQualifierAndLayoutInfo(type);
+	      if ('@' == *type)
 		{
-		  size += [content sizeInBytesExcluding: exclude];
+		  NSObject	*content = object_getIvar(obj, vars[count]);
+	    
+		  if (content != nil)
+		    {
+		      size += [content sizeInBytesExcluding: exclude];
+		    }
 		}
 	    }
+	  free(vars);
 	}
-      free(vars);
+      cls = class_getSuperclass(cls);
     }
   return size;
 }
@@ -358,6 +365,14 @@ handleExit()
   return 0;
 }
 + (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  return 0;
+}
++ (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;
+}
++ (NSUInteger) sizeOfInstance
 {
   return 0;
 }
@@ -375,24 +390,41 @@ handleExit()
 {
   if (0 == NSHashGet(exclude, self))
     {
-      Class             c = object_getClass(self);
-      NSUInteger        size = class_getInstanceSize(c);
+      NSUInteger        size = [self sizeOfInstance];
 
       NSHashInsert(exclude, self);
       if (size > 0)
         {
-          while (c != Nil)
-            {
-              size += [c contentSizeOf: self
-			    declaredIn: c
-			     excluding: exclude];
-	      c = class_getSuperclass(c);
-            }
+	  size += [self sizeOfContentExcluding: exclude];
         }
       return size;
     }
   return 0;
 }
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;
+}
+- (NSUInteger) sizeOfInstance
+{
+  NSUInteger    size;
+
+#if     GS_SIZEOF_VOIDP > 4
+  if ((((NSUInteger)void*)self) & 0x07)
+    {
+      return 0; // Small object has no size
+    }
+#endif
+
+#if 	HAVE_MALLOC_USABLE_SIZE
+  size = malloc_usable_size((void*)self - sizeof(intptr_t));
+#else
+  size = class_getInstanceSize(object_getClass(self));
+#endif
+
+  return size;
+}
+
 @end
 
 /* Dummy implementation

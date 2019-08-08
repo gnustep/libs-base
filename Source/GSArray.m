@@ -73,19 +73,16 @@ static Class	GSInlineArrayClass;
 
 @implementation GSArray
 
-+ (NSUInteger) contentSizeOf: (NSObject*)obj
-                  declaredIn: (Class)cls
-                   excluding: (NSHashTable*)exclude
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
 {
-  GSArray	*a = (GSArray*)obj;
-  NSUInteger	size = a->_count * sizeof(id);
-  NSUInteger	index = a->_count;
+  NSUInteger	size = _count * sizeof(id);
+  NSUInteger	index = _count;
 
   while (index-- > 0)
     {
-      size += [a->_contents_array[index] sizeInBytesExcluding: exclude];
+      size += [_contents_array[index] sizeInBytesExcluding: exclude];
     }
-  return size;
+  return size + [super sizeOfContentExcluding: exclude];
 }
 
 - (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel
@@ -436,19 +433,11 @@ static Class	GSInlineArrayClass;
 
 @implementation GSMutableArray
 
-+ (NSUInteger) contentSizeOf: (NSObject*)obj
-                  declaredIn: (Class)cls
-                   excluding: (NSHashTable*)exclude
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
 {
-  GSMutableArray	*a = (GSMutableArray*)obj;
-  NSUInteger    	size = a->_capacity * sizeof(id);
-  NSUInteger    	index = a->_count;
-
-  while (index-- > 0)
-    {
-      size += [a->_contents_array[index] sizeInBytesExcluding: exclude];
-    }
-  return size;
+  /* Can't safely calculate for mutable object; just buffer size
+   */
+  return _capacity * sizeof(void*);
 }
 
 + (void) initialize

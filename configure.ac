@@ -2240,7 +2240,7 @@ AC_CHECK_HEADERS([sys/mount.h], [], [],
 AC_CHECK_HEADERS(sys/types.h windows.h locale.h langinfo.h)
 saved_LIBS="$LIBS"
 AC_CHECK_LIB(m, main)
-AC_CHECK_FUNCS(statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt)
+AC_CHECK_FUNCS(statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt malloc_usable_size)
 LIBS="$saved_LIBS"
 
 AC_CACHE_CHECK([for pw_gecos field in struct passwd],

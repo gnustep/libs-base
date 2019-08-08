@@ -1082,6 +1082,16 @@ tsbytes(uintptr_t s, char *buf)
   return NSMakeRange(anIndex, 1);
 }
 
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;	// Tiny string uses no heap
+}
+
+- (NSUInteger) sizeOfInstance
+{
+  return 0;	// Tiny string uses no heap
+}
+
 - (const char*) UTF8String
 {
   char  *buf = GSAutoreleasedBuffer(9);
@@ -4107,6 +4117,22 @@ agree, create a new GSCInlineString otherwise.
 
 
 @implementation	GSCInlineString
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;	// Inline string content uses no heap
+}
+- (NSUInteger) sizeOfInstance
+{
+  NSUInteger    size;
+
+#if     HAVE_MALLOC_USABLE_SIZE
+  size = malloc_usable_size((void*)self - sizeof(intptr_t));
+#else
+  size = class_getInstanceSize(GSCInlineStringClass);
+  size += _count;
+#endif
+  return size;
+}
 @end
 
 
@@ -4518,6 +4544,22 @@ agree, create a new GSUInlineString otherwise.
 
 
 @implementation	GSUInlineString
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;	// Inline string content uses no heap
+}
+- (NSUInteger) sizeOfInstance
+{
+  NSUInteger    size;
+
+#if     HAVE_MALLOC_USABLE_SIZE
+  size = malloc_usable_size((void*)self - sizeof(intptr_t));
+#else
+  size = class_getInstanceSize(GSUInlineStringClass);
+  size += _count * sizeof(unichar);
+#endif
+  return size;
+}
 @end
 
 
@@ -6318,6 +6360,16 @@ literalIsEqual(NXConstantString *self, id anObject)
 #else
   return NSUTF8StringEncoding;
 #endif
+}
+
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;	// Constant string uses no heap
+}
+
+- (NSUInteger) sizeOfInstance
+{
+  return 0;	// Constant string uses no heap
 }
 
 @end

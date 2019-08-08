@@ -830,9 +830,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
  */
 @implementation NSDistantObject(GNUstepExtensions)
 
-+ (NSUInteger) contentSizeOf: (NSObject*)obj
-                  declaredIn: (Class)cls
-                   excluding: (NSHashTable*)exclude
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
 {
   return 0;
 }

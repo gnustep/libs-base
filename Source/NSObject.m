@@ -53,6 +53,8 @@
 #include <locale.h>
 #endif
 
+#include	<malloc.h>
+
 #import "GSPThread.h"
 
 #if	defined(HAVE_SYS_SIGNAL_H)
@@ -2582,31 +2584,36 @@ GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
 @implementation	NSObject (MemoryFootprint)
 
 + (NSUInteger) contentSizeOf: (NSObject*)obj
-		  declaredIn: (Class)cls
 		   excluding: (NSHashTable*)exclude
 {
-  unsigned	count;
-  Ivar		*vars;
+  Class		cls = object_getClass(obj);
   NSUInteger	size = 0;
 
-  if (0 != (vars = class_copyIvarList(cls, &count)))
+  while (cls != Nil)
     {
-      while (count-- > 0)
-	{
-	  const char	*type = ivar_getTypeEncoding(vars[count]);
+      unsigned	count;
+      Ivar	*vars;
 
-          type = GSSkipTypeQualifierAndLayoutInfo(type);
-	  if ('@' == *type)
+      if (0 != (vars = class_copyIvarList(cls, &count)))
+	{
+	  while (count-- > 0)
 	    {
-	      NSObject	*content = object_getIvar(obj, vars[count]);
-	
-	      if (content != nil)
+	      const char	*type = ivar_getTypeEncoding(vars[count]);
+
+	      type = GSSkipTypeQualifierAndLayoutInfo(type);
+	      if ('@' == *type)
 		{
-		  size += [content sizeInBytesExcluding: exclude];
+		  NSObject	*content = object_getIvar(obj, vars[count]);
+	    
+		  if (content != nil)
+		    {
+		      size += [content sizeInBytesExcluding: exclude];
+		    }
 		}
 	    }
+	  free(vars);
 	}
-      free(vars);
+      cls = class_getSuperclass(cls);
     }
   return size;
 }
@@ -2615,6 +2622,10 @@ GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
   return 0;
 }
 + (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
+{
+  return 0;
+}
++ (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
 {
   return 0;
 }
@@ -2632,22 +2643,40 @@ GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
 {
   if (0 == NSHashGet(exclude, self))
     {
-      Class             c = object_getClass(self);
-      NSUInteger        size = class_getInstanceSize(c);
+      NSUInteger        size = [self sizeOfInstance];
 
       NSHashInsert(exclude, self);
       if (size > 0)
         {
-          while (c != Nil)
-            {
-              size += [c contentSizeOf: self
-			    declaredIn: c
-			     excluding: exclude];
-	      c = class_getSuperclass(c);
-            }
+	  size += [self sizeOfContentExcluding: exclude];
         }
       return size;
     }
   return 0;
 }
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;
+}
+- (NSUInteger) sizeOfInstance
+{
+  NSUInteger    size;
+
+#if	GS_SIZEOF_VOIDP > 4
+  NSUInteger    u = (NSUInteger)self;
+  if (u & 0x07)
+    {
+      return 0;	// Small object has no size
+    }
+#endif
+
+#if 	HAVE_MALLOC_USABLE_SIZE
+  size = malloc_usable_size((void*)self - sizeof(intptr_t));
+#else
+  size = class_getInstanceSize(object_getClass(self));
+#endif
+
+  return size;
+}
+
 @end

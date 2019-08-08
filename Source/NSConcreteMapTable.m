@@ -1170,26 +1170,11 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 
 @implementation	NSConcreteMapTable
 
-+ (NSUInteger) contentSizeOf: (NSObject*)obj
-                  declaredIn: (Class)cls
-                   excluding: (NSHashTable*)exclude
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
 {
-  GSIMapTable  		map = (GSIMapTable)obj;
-  NSUInteger    	size = GSIMapSize(map) - sizeof(GSIMapTable);
-
-/* If we knew that this table held objects, we could return their size...
-  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(map);
-  GSIMapNode		node = GSIMapEnumeratorNextNode(&enumerator);
-
-  while (node != 0)
-    {
-      size += [node->key.obj sizeInBytesExcluding: exclude];
-      size += [node->value.obj sizeInBytesExcluding: exclude];
-      node = GSIMapEnumeratorNextNode(&enumerator);
-    }
-  GSIMapEndEnumerator(&enumerator);
-  */
-  return size;
+  /* Can't safely calculate for mutable object; just buffer size
+   */
+  return nodeCount * sizeof(GSIMapNode);
 }
 
 + (void) initialize

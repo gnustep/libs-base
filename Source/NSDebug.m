@@ -48,24 +48,31 @@
 #include        <execinfo.h>
 #endif
 
+#include        <malloc.h>
+
 typedef struct {
-  Class	class;
+  Class		class;
   /* The following are used for statistical info */
-  unsigned int	count;
-  unsigned int	lastc;
-  unsigned int	total;
-  unsigned int   peak;
+  uint32_t	count;
+  uint32_t	lastc;
+  uint32_t	totalc;
+  uint32_t   	peak;
+  uint64_t	bytes;
+  uint64_t	totalb;
+  uint64_t	lastb;
+  uint32_t	nominal_size;
   /* The following are used to record actual objects */
-  BOOL  is_recording;
-  id    *recorded_objects;
-  id    *recorded_tags;
-  unsigned int   num_recorded_objects;
-  unsigned int   stack_size;
+  BOOL  	is_recording;
+  id    	*recorded_objects;
+  id    	*recorded_tags;
+  uint32_t   	num_recorded_objects;
+  uint32_t   	stack_size;
 } table_entry;
 
 typedef struct {
   const char    *name;
   int           count;
+  long		bytes;
 } list_entry;
 
 static NSInteger itemComp(id v0, id v1, void *ctxt)
@@ -82,6 +89,7 @@ static	unsigned int	table_size = 0;
 static table_entry*	the_table = 0;
 
 static BOOL	debug_allocation = NO;
+static BOOL	debug_byte_size = NO;
 
 static pthread_mutex_t	uniqueLock;
 
@@ -138,6 +146,15 @@ GSDebugAllocationActive(BOOL active)
 
   [GSDebugAlloc class];		/* Ensure thread support is working */
   debug_allocation = active ? YES : NO;
+  return old;
+}
+
+BOOL
+GSDebugAllocationBytes(BOOL active)
+{
+  BOOL	old = debug_byte_size;
+
+  debug_byte_size = active ? YES : NO;
   return old;
 }
 
@@ -205,8 +222,12 @@ GSDebugAllocationRecordObjects(Class c, BOOL newState)
       the_table[num_classes].class = c;
       the_table[num_classes].count = 0;
       the_table[num_classes].lastc = 0;
-      the_table[num_classes].total = 0;
+      the_table[num_classes].totalc = 0;
       the_table[num_classes].peak = 0;
+      the_table[num_classes].bytes = 0;
+      the_table[num_classes].lastb = 0;
+      the_table[num_classes].totalb = 0;
+      the_table[num_classes].nominal_size = class_getInstanceSize(c);
       the_table[num_classes].is_recording = YES;
       the_table[num_classes].recorded_objects = NULL;
       the_table[num_classes].recorded_tags = NULL;
@@ -236,6 +257,7 @@ _GSDebugAllocationAdd(Class c, id o)
   if (debug_allocation == YES)
     {
       unsigned int	i;
+      unsigned		bytes;
 
       for (i = 0; i < num_classes; i++)
 	{
@@ -243,7 +265,17 @@ _GSDebugAllocationAdd(Class c, id o)
 	    {
 	      doLock();
 	      the_table[i].count++;
-	      the_table[i].total++;
+	      the_table[i].totalc++;
+	      if (YES == debug_byte_size)
+		{
+		  bytes = [o sizeOfInstance];
+		}
+	      else
+		{
+		  bytes = the_table[i].nominal_size;
+		}
+	      the_table[i].bytes += bytes;
+	      the_table[i].totalb += bytes;
 	      if (the_table[i].count > the_table[i].peak)
 		{
 		  the_table[i].peak = the_table[i].count;
@@ -326,8 +358,20 @@ _GSDebugAllocationAdd(Class c, id o)
 	}
       the_table[num_classes].class = c;
       the_table[num_classes].count = 1;
+      the_table[num_classes].nominal_size = class_getInstanceSize(c);
+      if (YES == debug_byte_size)
+	{
+	  bytes = [o sizeOfInstance];
+	}
+      else
+	{
+	  bytes = the_table[num_classes].nominal_size;
+	}
+      the_table[num_classes].bytes += bytes;
+      the_table[num_classes].totalb += bytes;
+      the_table[num_classes].lastb = 0;
       the_table[num_classes].lastc = 0;
-      the_table[num_classes].total = 1;
+      the_table[num_classes].totalc = 1;
       the_table[num_classes].peak = 1;
       the_table[num_classes].is_recording = NO;
       the_table[num_classes].recorded_objects = NULL;
@@ -363,7 +407,7 @@ GSDebugAllocationTotal(Class c)
     {
       if (the_table[i].class == c)
 	{
-	  return the_table[i].total;
+	  return the_table[i].totalc;
 	}
     }
   return 0;
@@ -468,7 +512,15 @@ GSDebugAllocationList(BOOL changeFlag)
         {
           list_entry    *item = (list_entry*)order[index];
 
-          [result appendFormat: @"%d\t%s\n", item->count, item->name];
+	  if (YES == debug_byte_size)
+	    {
+	      [result appendFormat: @"%d\t%-32s\t%ld\n",
+		item->count, item->name, item->bytes];
+	    }
+	  else
+	    {
+	      [result appendFormat: @"%d\t%s\n", item->count, item->name];
+	    }
         }
       free(items);
       return [result UTF8String];
@@ -521,7 +573,15 @@ GSDebugAllocationListAll()
         {
           list_entry    *item = (list_entry*)order[index];
 
-          [result appendFormat: @"%d\t%s\n", item->count, item->name];
+	  if (YES == debug_byte_size)
+	    {
+	      [result appendFormat: @"%d\t%-32s\t%ld\n",
+		item->count, item->name, item->bytes];
+	    }
+	  else
+	    {
+	      [result appendFormat: @"%d\t%s\n", item->count, item->name];
+	    }
         }
       free(items);
       return [result UTF8String];
@@ -536,17 +596,21 @@ _GSDebugAllocationFetch(list_entry *items, BOOL difference)
 
   for (i = pos = 0; i < num_classes; i++)
     {
-      int	val = the_table[i].count;
+      int	count = the_table[i].count;
+      long	bytes = the_table[i].bytes;
 
       if (difference)
 	{
-	  val -= the_table[i].lastc;
+	  count -= the_table[i].lastc;
+	  bytes -= the_table[i].lastb;
           the_table[i].lastc = the_table[i].count;
+          the_table[i].lastb = the_table[i].bytes;
 	}
-      if (val)
+      if (count || (bytes && debug_byte_size))
         {
           items[pos].name = class_getName(the_table[i].class);
-          items[pos].count = val;
+          items[pos].count = count;
+          items[pos].bytes = bytes;
           pos++;
         }
     }
@@ -554,6 +618,7 @@ _GSDebugAllocationFetch(list_entry *items, BOOL difference)
     {
       items[pos].name = 0;
       items[pos].count = 0;
+      items[pos].bytes = 0;
       pos++;
     }
 }
@@ -566,7 +631,8 @@ _GSDebugAllocationFetchAll(list_entry *items)
   for (i = 0; i < num_classes; i++)
     {
       items[i].name = class_getName(the_table[i].class);
-      items[i].count = the_table[i].total;
+      items[i].count = the_table[i].totalc;
+      items[i].bytes = the_table[i].totalb;
     }
 }
 
@@ -588,9 +654,19 @@ _GSDebugAllocationRemove(Class c, id o)
 	  if (the_table[i].class == c)
 	    {
 	      id	tag = nil;
+	      unsigned	bytes;
 
 	      doLock();
+	      if (YES == debug_byte_size)
+		{
+		  bytes = [o sizeOfInstance];
+		}
+	      else
+		{
+		  bytes = the_table[i].nominal_size;
+		}
 	      the_table[i].count--;
+	      the_table[i].bytes -= bytes;
 	      if (the_table[i].is_recording)
 		{
 		  unsigned j, k;

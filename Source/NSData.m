@@ -509,11 +509,9 @@ failure:
  */
 @implementation NSData
 
-+ (NSUInteger) contentSizeOf: (NSObject*)obj
-                  declaredIn: (Class)cls
-                   excluding: (NSHashTable*)exclude
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
 {
-  return [(NSData*)obj length];
+  return [self length];
 }
 
 + (void) initialize
@@ -2142,11 +2140,9 @@ failure:
     }
 }
 
-+ (NSUInteger) contentSizeOf: (NSObject*)obj
-                  declaredIn: (Class)cls
-                   excluding: (NSHashTable*)exclude
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
 {
-  return [(NSMutableData*)obj capacity];
+  return [self capacity];
 }
 
 + (id) data

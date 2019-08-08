@@ -1,3 +1,34 @@
+2019-08-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: check for malloc_usable_sizer()
+	* configure: regenerate
+	* Headers/GNUstepBase/config.h.in: regenerate
+	* Headers/Foundation/NSDebug.h: Add GSMemoryBytes()
+	* Headers/GNUstepBase/NSObject+GNUstepBase.h: Rework memory usage
+	reporting extensions API.
+	* Source/Additions/NSMutableString+GNUstepBase.m:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	* Source/GSArray.m:
+	* Source/GSCountedSet.m:
+	* Source/GSDictionary.m:
+	* Source/GSSet.m:
+	* Source/GSString.m:
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/NSData.m:
+	* Source/NSDebug.m:
+	* Source/NSDistantObject.m:
+	* Source/NSObject.m:
+	* Source/NSProxy.m:
+	* Source/NSRunLoop.m:
+	Updates for new memory reporting extensions API.  The parts of this
+	dealing with the size of the contents of an object are now off by
+	default (trying to calculate the size of an object is problematic if
+	it is mutated while you are doing it) but classes can implement
+	-sizeOfContentExcluding: to turn it on if they are thread-safe.
+	Implementations provided for immutable container objects and for all
+	strings.
+
 2019-08-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: Implement

@@ -85,13 +85,6 @@
   return self;
 }
 
-+ (NSUInteger) contentSizeOf: (NSObject*)obj
-                  declaredIn: (Class)cls
-                   excluding: (NSHashTable*)exclude
-{
-  return 0;
-}
-
 /**
  * Returns the receiver.
  */
@@ -561,6 +554,15 @@
 {
   return 0;
 }
++ (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;
+}
++ (NSUInteger) sizeOfInstance
+{
+  return 0;
+}
+
 
 - (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
@@ -570,19 +572,17 @@
       NSUInteger        size = class_getInstanceSize(c);
 
       NSHashInsert(exclude, self);
-      if (size > 0)
-        {
-          while (c != Nil)
-            {
-              size += [c contentSizeOf: (NSObject*)self
-			    declaredIn: c
-			     excluding: exclude];
-	      c = class_getSuperclass(c);
-            }
-        }
       return size;
     }
   return 0;
+}
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;
+}
+- (NSUInteger) sizeOfInstance
+{
+  return class_getInstanceSize(object_getClass(self));
 }
 
 /**

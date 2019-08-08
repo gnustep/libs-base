@@ -106,13 +106,10 @@ static Class	arrayClass;
 static Class	setClass;
 static Class	mutableSetClass;
 
-+ (NSUInteger) contentSizeOf: (NSObject*)obj
-                  declaredIn: (Class)cls
-                   excluding: (NSHashTable*)exclude
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
 {
-  GSIMapTable  		map = &((GSSet*)obj)->map;
-  NSUInteger    	size = GSIMapSize(map) - sizeof(GSIMapTable);
-  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(map);
+  NSUInteger    	size = GSIMapSize(&map) - sizeof(GSIMapTable);
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
   GSIMapNode		node = GSIMapEnumeratorNextNode(&enumerator);
 
   while (node != 0)
@@ -550,6 +547,13 @@ static Class	mutableSetClass;
 @end
 
 @implementation GSMutableSet
+
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  /* Can't safely calculate for mutable object; just buffer size
+   */
+  return map.nodeCount * sizeof(GSIMapNode);
+}
 
 + (void) initialize
 {

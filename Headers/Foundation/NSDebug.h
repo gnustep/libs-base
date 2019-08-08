@@ -53,6 +53,7 @@ extern "C" {
  *
  *	Public functions:
  *	GSDebugAllocationActive()	
+ *	GSDebugAllocationBytes()	
  *	GSDebugAllocationCount()	
  *      GSDebugAllocationTotal()
  *      GSDebugAllocationPeak()
@@ -99,6 +100,16 @@ GS_EXPORT void		GSDebugAllocationRemove(Class c, id o);
  * your application has allocated.
  */
 GS_EXPORT BOOL		GSDebugAllocationActive(BOOL active);
+
+/**
+ * This function activates or deactivates byte counting for allocation.<br />
+ * Returns the previous state.<br />
+ * You may call this function to activate additional checks to see how
+ * much memory is allocated to hold each object allocated.  When this is
+ * enabled, listing the allocated objects will also list the number of bytes
+ * of heap memory allocated to hold the objects.<br />
+ */
+GS_EXPORT BOOL		GSDebugAllocationBytes(BOOL active);
 
 /**
  * <p>

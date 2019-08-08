@@ -80,13 +80,10 @@
 static SEL	nxtSel;
 static SEL	objSel;
 
-+ (NSUInteger) contentSizeOf: (NSObject*)obj
-                  declaredIn: (Class)cls
-                   excluding: (NSHashTable*)exclude
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
 {
-  GSIMapTable  		map = &((GSDictionary*)obj)->map;
-  NSUInteger    	size = GSIMapSize(map) - sizeof(GSIMapTable);
-  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(map);
+  NSUInteger    	size = GSIMapSize(&map) - sizeof(GSIMapTable);
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
   GSIMapNode		node = GSIMapEnumeratorNextNode(&enumerator);
 
   while (node != 0)
@@ -96,7 +93,7 @@ static SEL	objSel;
       node = GSIMapEnumeratorNextNode(&enumerator);
     }
   GSIMapEndEnumerator(&enumerator);
-  return size;
+  return size + [super sizeOfContentExcluding: exclude];
 }
 
 + (void) initialize
@@ -379,23 +376,11 @@ static SEL	objSel;
 
 @implementation GSMutableDictionary
 
-+ (NSUInteger) contentSizeOf: (NSObject*)obj
-                  declaredIn: (Class)cls
-                   excluding: (NSHashTable*)exclude
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
 {
-  GSIMapTable  		map = &((GSDictionary*)obj)->map;
-  NSUInteger    	size = GSIMapSize(map) - sizeof(GSIMapTable);
-  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(map);
-  GSIMapNode		node = GSIMapEnumeratorNextNode(&enumerator);
-
-  while (node != 0)
-    {
-      size += [node->key.obj sizeInBytesExcluding: exclude];
-      size += [node->value.obj sizeInBytesExcluding: exclude];
-      node = GSIMapEnumeratorNextNode(&enumerator);
-    }
-  GSIMapEndEnumerator(&enumerator);
-  return size;
+  /* Can't safely calculate for mutable object; just buffer size
+   */
+  return map.nodeCount * sizeof(GSIMapNode);
 }
 
 + (void) initialize
