@@ -2026,6 +2026,12 @@ GSRunLoopInfoForThread(NSThread *aThread)
   GSNOSUPERDEALLOC;
 }
 
+- (NSString*) description
+{
+  return [[super description] stringByAppendingFormat: @" [%s %s]",
+    class_getName(object_getClass(receiver)), sel_getName(selector)];
+}
+
 - (void) fire
 {
   GSRunLoopThreadInfo   *threadInfo;

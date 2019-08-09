@@ -1537,10 +1537,19 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
 	  if (i % 1000 == 0 && i > context->maxPerformers)
 	    {
 	      context->maxPerformers = i;
-              NSLog(@"WARNING ... there are %u performers scheduled"
-                @" in mode %@ of %@\n(Latest: [%@ %@])",
-                i, mode, self, NSStringFromClass([target class]),
-                NSStringFromSelector(aSelector));
+	      if (sel_isEqual(aSelector, @selector(fire)))
+		{
+		  NSLog(@"WARNING ... there are %u performers scheduled"
+		    @" in mode %@ of %@\n(Latest: fires %@)",
+		    i, mode, self, target);
+		}
+	      else
+		{
+		  NSLog(@"WARNING ... there are %u performers scheduled"
+		    @" in mode %@ of %@\n(Latest: [%@ %@])",
+		    i, mode, self, NSStringFromClass([target class]),
+		    NSStringFromSelector(aSelector));
+		}
 	    }
 	}
       RELEASE(item);
