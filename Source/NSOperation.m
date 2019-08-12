@@ -206,7 +206,10 @@ static NSArray	*empty = nil;
     {
       NSOperation	*op;
 
-      [self removeObserver: self forKeyPath: @"isFinished"];
+      if (!internal->finished)
+        {
+          [self removeObserver: self forKeyPath: @"isFinished"];
+        }
       while ((op = [internal->dependencies lastObject]) != nil)
 	{
 	  [self removeDependency: op];
