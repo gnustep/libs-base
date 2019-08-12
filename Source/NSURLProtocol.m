@@ -1733,18 +1733,22 @@ static NSURLProtocol	*placeholder = nil;
 		}
 	      if (sent == YES)
 		{
-		  if (_debug)
-		    {
-		      NSLog(@"%@ request sent", self);
-		    }
 		  if (_shouldClose == YES)
 		    {
+		      if (_debug)
+			{
+			  NSLog(@"%@ request sent ... closing", self);
+			}
 		      [this->output setDelegate: nil];
 		      [this->output removeFromRunLoop:
 			[NSRunLoop currentRunLoop]
 			forMode: NSDefaultRunLoopMode];
 		      [this->output close];
 		      DESTROY(this->output);
+		    }
+		  else if (_debug)
+		    {
+		      NSLog(@"%@ request sent", self);
 		    }
 		}
 	      return;  // done

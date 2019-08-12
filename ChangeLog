@@ -1,3 +1,14 @@
+2019-08-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSSocketStream.m: Fix for hang when writing large https
+	requests.
+	* Source/GSStream.h: improve diagnostics
+	* Source/GSStream.m: improve diagnostics
+	* Source/NSURLProtocol.m: improve diagnostics
+	* Tests/base/NSURLConnection/Helpers/NSURLConnectionTest.m:
+	* Tests/base/NSURLConnection/test05.m:
+	Bugfix and new testcase for https request with large (over 64KB) body.
+
 2019-08-09  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSRunLoop.m:

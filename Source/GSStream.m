@@ -110,20 +110,32 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 @implementation	NSRunLoop (NSStream)
 - (void) addStream: (NSStream*)aStream mode: (NSString*)mode
 {
-  [self addEvent: [aStream _loopID]
-	    type: typeForStream(aStream)
+  RunLoopEventType 	type = typeForStream(aStream);
+  void			*event = [aStream _loopID];
+
+  NSDebugMLLog(@"NSStream",
+    @"-addStream:mode: %@ (desc %d,%d) to %@ mode %@",
+    aStream, (int)(intptr_t)event, type, self, mode);
+  [self addEvent: event
+	    type: type
 	 watcher: (id<RunLoopEvents>)aStream
 	 forMode: mode];
 }
 
 - (void) removeStream: (NSStream*)aStream mode: (NSString*)mode
 {
+  RunLoopEventType 	type = typeForStream(aStream);
+  void			*event = [aStream _loopID];
+
+  NSDebugMLLog(@"NSStream",
+    @"-removeStream:mode: %@ (desc %d,%d) from %@ mode %@",
+    aStream, (int)(intptr_t)event, type, self, mode);
   /* We may have added the stream more than once (eg if the stream -open
    * method was called more than once, so we need to remove all event
    * registrations.
    */
-  [self removeEvent: [aStream _loopID]
-	       type: typeForStream(aStream)
+  [self removeEvent: event
+	       type: type
 	    forMode: mode
 		all: YES];
 }
@@ -215,6 +227,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
+//  NSDebugMLLog(@"NSStream", @"receivedEvent for %@ - %d", self, type);
   [self _dispatch];
 }
 
@@ -321,6 +334,23 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return _currentStatus;
 }
 
+- (NSString*) _stringFromEvents
+{
+  NSMutableString	*s = [NSMutableString stringWithCapacity: 100];
+
+  if (_events & NSStreamEventOpenCompleted)
+    [s appendString: @"|NSStreamEventOpenCompleted"];
+  if (_events & NSStreamEventHasBytesAvailable)
+    [s appendString: @"|NSStreamEventHasBytesAvailable"];
+  if (_events & NSStreamEventHasSpaceAvailable)
+    [s appendString: @"|NSStreamEventHasSpaceAvailable"];
+  if (_events & NSStreamEventErrorOccurred)
+    [s appendString: @"|NSStreamEventErrorOccurred"];
+  if (_events & NSStreamEventEndEncountered)
+    [s appendString: @"|NSStreamEventEndEncountered"];
+  return s;
+}
+
 @end
 
 
@@ -377,6 +407,46 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) _unschedule
 {
+}
+
+- (NSString*) stringFromEvent: (NSStreamEvent)e
+{
+  switch (e)
+    {
+      case NSStreamEventNone:
+	return @"NSStreamEventNone";
+      case NSStreamEventOpenCompleted:
+	return @"NSStreamEventOpenCompleted";
+      case NSStreamEventHasBytesAvailable:
+	return @"NSStreamEventHasBytesAvailable";
+      case NSStreamEventHasSpaceAvailable:
+	return @"NSStreamEventHasSpaceAvailable";
+      case NSStreamEventErrorOccurred:
+	return @"NSStreamEventErrorOccurred";
+      case NSStreamEventEndEncountered:
+	return @"NSStreamEventEndEncountered";
+      default:
+	return [NSString stringWithFormat:
+	  @"NSStreamEventValue%ld", (long)e];
+    }
+}
+
+- (NSString*) stringFromStatus: (NSStreamStatus)s
+{
+  switch (s)
+    {
+      case NSStreamStatusNotOpen: return @"NSStreamStatusNotOpen";
+      case NSStreamStatusOpening: return @"NSStreamStatusOpening";
+      case NSStreamStatusOpen: return @"NSStreamStatusOpen";
+      case NSStreamStatusReading: return @"NSStreamStatusReading";
+      case NSStreamStatusWriting: return @"NSStreamStatusWriting";
+      case NSStreamStatusAtEnd: return @"NSStreamStatusAtEnd";
+      case NSStreamStatusClosed: return @"NSStreamStatusClosed";
+      case NSStreamStatusError: return @"NSStreamStatusError";
+      default:
+	return [NSString stringWithFormat:
+	  @"NSStreamStatusValue%ld", (long)s];
+    }
 }
 
 @end

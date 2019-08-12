@@ -90,6 +90,9 @@
  */
 @interface GSStream : NSStream
 IVARS
+/** Return description of current event mask.
+ */
+- (NSString*) _stringFromEvents;
 @end
 
 @interface GSAbstractServerStream : GSServerStream
@@ -153,6 +156,14 @@ IVARS
  * Remove the stream from all the scheduled runloops.
  */
 - (void) _unschedule;
+
+/** Return name of event
+ */
+- (NSString*) stringFromEvent: (NSStreamEvent)e;
+
+/** Return name of status
+ */
+- (NSString*) stringFromStatus: (NSStreamStatus)s;
 
 @end
 

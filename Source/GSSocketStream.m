@@ -434,6 +434,8 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 #endif
 
     }
+  NSDebugFLLog(@"NSStream", @"GSTLSPush write %p of %u on %u",
+    [tls ostream], (unsigned)result, (unsigned)len);
   return result;
 }
 
@@ -675,7 +677,7 @@ static NSArray  *keys = nil;
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
 {
   NSDebugMLLog(@"NSStream",
-    @"GSTLSHandler got %"PRIdPTR" on %p", event, stream);
+    @"GSTLSHandler got %@ on %p", [stream stringFromEvent: event], stream);
 
   if (handshake == YES)
     {
@@ -742,7 +744,26 @@ static NSArray  *keys = nil;
 
 - (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
-  return [session write: buffer length: len];
+  NSInteger	offset = 0;
+
+  /* The low level code to perform the TLS session write may return a
+   * partial write even though the output stream is still writable.
+   * That means we wouldn't get an event to say there's more space and
+   * our overall write (for a large amount of data) could hang.  
+   * To avoid that, we try writing more data as long as the stream
+   * still has space available.
+   */
+  while ([ostream hasSpaceAvailable] && offset < len)
+    {
+      NSInteger	written;
+
+      written = [session write: buffer + offset length: len - offset];
+      if (written > 0)
+	{
+	  offset += written;
+	}
+    }
+  return offset;
 }
 
 @end

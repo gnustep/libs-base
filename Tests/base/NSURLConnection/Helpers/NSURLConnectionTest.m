@@ -33,7 +33,7 @@
 
 @implementation NSURLConnectionTest
 
-+ (Class)testWebServerClass
++ (Class) testWebServerClass
 {
   return [TestWebServer class];
 }
@@ -101,6 +101,12 @@ static NSMapTable *_flagMap = nil;
     {
       NSLog(@"%@: started with request:\n%@", self, _request);
       [self logFlags];
+
+      NSMutableSet	*s = [[NSProcessInfo processInfo] debugSet];
+      [s addObject: @"NSURLConnection"];
+      [s addObject: @"NSURLProtocol"];
+      [s addObject: @"NSStream"];
+      [s addObject: @"NSRunLoop"];
     }
 
   _conn = [[NSURLConnection alloc] initWithRequest: _request
@@ -226,7 +232,7 @@ static NSMapTable *_flagMap = nil;
   NSEndMapTableEnumeration(&en);  
 }
 
-- (NSError *)error
+- (NSError*) error
 {
   return _error;
 }
