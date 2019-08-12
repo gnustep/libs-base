@@ -1,3 +1,11 @@
+2019-08-09  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSRunLoop.m:
+	* Source/NSThread.m:
+	Improve reporting of excess performers so that, when one thread
+	performs selectors in another, you can see the class of the receiver
+	and the selector involved.
+
 2019-08-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: check for malloc_usable_sizer()
