@@ -30,6 +30,7 @@ int main(int argc, char **argv, char **env)
       NSMutableString		*payload;
       NSURLConnectionTest 	*testCase;
       BOOL 			debug = NO;
+      int			i;
 
       testClass = [bundle principalClass]; // NSURLConnectionTest
 
@@ -64,7 +65,7 @@ int main(int argc, char **argv, char **env)
 
       // the extra dictionary with test case's parameters
       payload = [NSMutableString stringWithCapacity: 1024 * 128];
-      for (int i = 0; i < 2000; i++)
+      for (i = 0; i < 2000; i++)
 	{
 	  [payload appendFormat:
 	    @"%09daaaaaaaaaabbbbbbbbbbcccccccccccdddddddddd\n",
