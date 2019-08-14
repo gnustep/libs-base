@@ -90,17 +90,9 @@ NSAttributedString:
 	- enumerateAttribute:inRange:options:usingBlock:
 -------------------------------------------------------------
 NSBundle:
-	- bundleURL
-	- resourceURL
-	- executableURL
-	- URLForAuxiliaryExecutable:
-	- privateFrameworksURL
 	- sharedFrameworksURL
 	- sharedSupportURL
-	- builtInPlugInsURL
 	- appStoreReceiptURL
-	- pathForAuxiliaryExecutable:
-	- privateFrameworksPath
 	- sharedFrameworksPath
 	- sharedSupportPath
 	+ URLsForResourcesWithExtension:subdirectory:inBundleWithURL:

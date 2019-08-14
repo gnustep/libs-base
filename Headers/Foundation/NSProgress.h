@@ -33,7 +33,7 @@
 extern "C" {
 #endif
 
-  @class	NSString, NSDictionary, NSArray, NSNumber, NSProgress;
+@class NSString, NSDictionary, NSArray, NSNumber, NSURL, NSProgress;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
 
@@ -91,7 +91,7 @@ GS_NSProgress_IVARS;
 - (void) setCompletedUnitCount: (int64_t)unitCount;
 
 - (NSString *) localizedDescription;
-- (NSString *) localizedAddtionalDescription;
+- (NSString *) localizedAdditionalDescription;
 
 // Observing progress
 - (double) fractionCompleted;

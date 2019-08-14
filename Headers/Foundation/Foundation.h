@@ -104,6 +104,7 @@
 #import	<Foundation/NSPortNameServer.h>
 #import	<Foundation/NSPredicate.h>
 #import	<Foundation/NSProcessInfo.h>
+#import <Foundation/NSProgress.h>
 #import	<Foundation/NSProtocolChecker.h>
 #import	<Foundation/NSProxy.h>
 #import	<Foundation/NSRange.h>
