@@ -47,6 +47,8 @@
   NSProgressUnpublishingHandler _unpublishingHandler; \
   GSProgressPendingUnitCountBlock _pendingUnitCountHandler; \
   GSProgressResumingHandler _resumingHandler;              \
+  NSString *_localizedDescription; \
+  NSString *_localizedAdditionalDescription; \
   NSProgress *_parent;
 
 #define	EXPOSE_NSProgress_IVARS
@@ -58,6 +60,7 @@
 #import <Foundation/NSURL.h>
 #import <Foundation/NSString.h>
 #import	<Foundation/NSProgress.h>
+#import <Foundation/NSKeyValueObserving.h>
 
 #define	GSInternal NSProgressInternal
 #include "GSInternal.h"
@@ -103,6 +106,8 @@ static NSMutableDictionary *__subscribers = nil;
       internal->_pausable = NO;
       internal->_indeterminate = NO;
       internal->_finished = NO;
+      internal->_localizedDescription = nil;
+      internal->_localizedAdditionalDescription = nil;
       internal->_parent = parent;  // this is a weak reference and not retained.
     }
   return self;
@@ -118,6 +123,8 @@ static NSMutableDictionary *__subscribers = nil;
   RELEASE(internal->_fileTotalCount);
   RELEASE(internal->_throughput);
   RELEASE(internal->_userInfo);
+  RELEASE(internal->_localizedDescription);
+  RELEASE(internal->_localizedAdditionalDescription);
   
   [super dealloc];
 }
@@ -208,23 +215,22 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (NSString *) localizedDescription
 {
-  return _localizedDescription;
+  return internal->_localizedDescription;
 }
 
 - (void) setLocalizedDescription: (NSString *)localDescription
 {
-  ASSIGNCOPY(_localizedDescription, localDescription);
+  ASSIGNCOPY(internal->_localizedDescription, localDescription);
 }
 
-- (NSString *) localizedAddtionalDescription
+- (NSString *) localizedAdditionalDescription
 {
-  return [NSString stringWithFormat: @"%@ minute(s) remaining",
-    [self estimatedTimeRemaining]]; 
+  return internal->_localizedAdditionalDescription;
 }
 
 - (void) setLocalizedAdditionalDescription: (NSString *)localDescription
 {
-  ASSIGNCOPY(_localizedAdditionalDescription, localDescription);
+  ASSIGNCOPY(internal->_localizedAdditionalDescription, localDescription);
 }
 
 // Observing progress
@@ -245,9 +251,17 @@ static NSMutableDictionary *__subscribers = nil;
   return internal->_cancelled;
 }
 
+- (BOOL) cancelled
+{
+  return internal->_cancelled;
+}
+
 - (void) cancel
 {
+  [self willChangeValueForKey: @"cancelled"];
   CALL_BLOCK_NO_ARGS(internal->_cancellationHandler);
+  internal->_cancelled = YES;
+  [self didChangeValueForKey: @"cancelled"];
 }
 
 - (void) setCancellationHandler: (GSProgressCancellationHandler) handler
@@ -267,8 +281,10 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) pause
 {
+  [self willChangeValueForKey: @"paused"];
   CALL_BLOCK_NO_ARGS(internal->_pausingHandler);
   internal->_paused = YES;
+  [self didChangeValueForKey: @"paused"];
 }
 
 - (void) setPausingHandler: (GSProgressPausingHandler) handler
@@ -292,9 +308,16 @@ static NSMutableDictionary *__subscribers = nil;
   return internal->_indeterminate;
 }
 
+- (BOOL) indeterminate
+{
+  return internal->_indeterminate;
+}
+
 - (void) setIndeterminate: (BOOL)flag
 {
+  [self willChangeValueForKey: @"indeterminate"];
   internal->_indeterminate = flag;
+  [self didChangeValueForKey: @"indeterminate"];
 }
 
 - (NSProgressKind) kind
@@ -304,7 +327,9 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setKind: (NSProgressKind)k
 {
+  [self willChangeValueForKey: @"kind"];
   ASSIGN(internal->_kind, k);
+  [self didChangeValueForKey: @"kind"];
 }
 
 - (void)setUserInfoObject: (id)obj
@@ -316,7 +341,9 @@ static NSMutableDictionary *__subscribers = nil;
 // Instance property accessors...
 - (void) setFileOperationKind: (NSProgressFileOperationKind)k;
 {
+  [self willChangeValueForKey: @"fileOperationKind"];
   ASSIGN(internal->_fileOperationKind, k);
+  [self didChangeValueForKey: @"fileOperationKind"];
 }
 
 - (NSProgressFileOperationKind) fileOperationKind
@@ -326,7 +353,9 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setFileUrl: (NSURL *)u
 {
+  [self willChangeValueForKey: @"fileUrl"];
   ASSIGN(internal->_fileUrl, u);
+  [self didChangeValueForKey: @"fileUrl"];
 }
 
 - (NSURL*) fileUrl
@@ -339,14 +368,26 @@ static NSMutableDictionary *__subscribers = nil;
   return internal->_finished;
 }
 
+- (BOOL) finished
+{
+  return internal->_finished;
+}
+
 - (BOOL) isOld
+{
+  return internal->_old;
+}
+
+- (BOOL) old
 {
   return internal->_old;
 }
 
 - (void) setEstimatedTimeRemaining: (NSNumber *)n
 {
+  [self willChangeValueForKey: @"estimatedTimeRemaining"];
   ASSIGNCOPY(internal->_estimatedTimeRemaining, n);
+  [self didChangeValueForKey: @"estimatedTimeRemaining"];
 }
 
 - (NSNumber *) estimatedTimeRemaining
@@ -366,7 +407,9 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setFileTotalCount: (NSNumber *)n
 {
+  [self willChangeValueForKey: @"fileTotalCount"];
   ASSIGNCOPY(internal->_fileTotalCount, n);
+  [self didChangeValueForKey: @"fileTotalCount"];
 }
 
 - (NSNumber *) fileTotalCount
@@ -376,7 +419,9 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setThroughput: (NSNumber *)n
 {
+  [self willChangeValueForKey: @"throughput"];
   ASSIGNCOPY(internal->_throughput, n);
+  [self didChangeValueForKey: @"throughput"];
 }
 
 - (NSNumber *) throughtput

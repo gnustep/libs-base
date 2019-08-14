@@ -91,7 +91,7 @@ GS_NSProgress_IVARS;
 - (void) setCompletedUnitCount: (int64_t)unitCount;
 
 - (NSString *) localizedDescription;
-- (NSString *) localizedAddtionalDescription;
+- (NSString *) localizedAdditionalDescription;
 
 // Observing progress
 - (double) fractionCompleted;
