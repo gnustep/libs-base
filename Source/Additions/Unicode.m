@@ -2865,7 +2865,12 @@ GSPrivateCStringEncoding(const char *encoding)
 
   if (enc == GSUndefinedEncoding)
     {
+#ifdef __ANDROID__
+      // Android uses UTF-8 as default encoding (e.g. for file paths)
+      enc = NSUTF8StringEncoding;
+#else
       enc = NSISOLatin1StringEncoding;
+#endif
     }
   else if (GSPrivateIsEncodingSupported(enc) == NO)
     {
