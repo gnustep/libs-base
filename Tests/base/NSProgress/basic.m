@@ -5,9 +5,6 @@
 
 int main()
 {
-  id                    obj1;
-  id                    obj2;
-  NSMutableArray        *testObjs = [[NSMutableArray alloc] init];
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSDictionary *dict = [NSDictionary dictionary];
   NSProgress *progress = [[NSProgress alloc] initWithParent: nil

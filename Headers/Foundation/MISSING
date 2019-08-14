@@ -92,10 +92,7 @@ NSAttributedString:
 NSBundle:
 	- sharedFrameworksURL
 	- sharedSupportURL
-	- builtInPlugInsURL
 	- appStoreReceiptURL
-	- pathForAuxiliaryExecutable:
-	- privateFrameworksPath
 	- sharedFrameworksPath
 	- sharedSupportPath
 	+ URLsForResourcesWithExtension:subdirectory:inBundleWithURL:

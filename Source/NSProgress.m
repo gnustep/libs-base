@@ -96,7 +96,7 @@ static NSMutableDictionary *__subscribers = nil;
       internal->_throughput = nil;
       internal->_totalUnitCount = 0;
       internal->_completedUnitCount = 0;
-      internal->_userInfo = [userInfo mutableCopy];
+      internal->_userInfo = RETAIN([userInfo mutableCopy]);
       internal->_cancelled = NO;
       internal->_cancellable = NO;
       internal->_paused = NO;
@@ -104,7 +104,6 @@ static NSMutableDictionary *__subscribers = nil;
       internal->_indeterminate = NO;
       internal->_finished = NO;
       internal->_parent = parent;  // this is a weak reference and not retained.
-      internal->_userInfo = [[NSMutableDictionary alloc] initWithCapacity: 10];
     }
   return self;
 }
@@ -209,14 +208,23 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (NSString *) localizedDescription
 {
-  return [NSString stringWithFormat: @"%f percent complete",
-    [self fractionCompleted]];
+  return _localizedDescription;
+}
+
+- (void) setLocalizedDescription: (NSString *)localDescription
+{
+  ASSIGNCOPY(_localizedDescription, localDescription);
 }
 
 - (NSString *) localizedAddtionalDescription
 {
   return [NSString stringWithFormat: @"%@ minute(s) remaining",
     [self estimatedTimeRemaining]]; 
+}
+
+- (void) setLocalizedAdditionalDescription: (NSString *)localDescription
+{
+  ASSIGNCOPY(_localizedAdditionalDescription, localDescription);
 }
 
 // Observing progress
