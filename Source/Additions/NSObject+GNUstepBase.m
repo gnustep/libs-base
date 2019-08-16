@@ -31,7 +31,9 @@
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
 #import "GNUstepBase/NSThread+GNUstepBase.h"
 
+#ifdef HAVE_MALLOC_H
 #include	<malloc.h>
+#endif
 
 /* This file contains methods which nominally return an id but in fact
  * always rainse an exception and never return.

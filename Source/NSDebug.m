@@ -48,7 +48,9 @@
 #include        <execinfo.h>
 #endif
 
+#ifdef HAVE_MALLOC_H
 #include        <malloc.h>
+#endif
 
 typedef struct {
   Class		class;
