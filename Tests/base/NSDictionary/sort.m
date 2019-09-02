@@ -2,6 +2,8 @@
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSDictionary.h>
+#import <Foundation/NSValue.h>
+#import <Foundation/NSString.h>
 
 int main()
 {
