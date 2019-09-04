@@ -29,6 +29,8 @@
 #import "common.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArray.h"
+#import "Foundation/NSMutableArray.h"
+#import "Foundation/NSOrderedSet.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSAutoreleasePool.h"
@@ -958,8 +960,13 @@ compareIt(id o1, id o2, void* context)
 - (NSArray *)keysSortedByValueWithOptions: (NSSortOptions)opts
 			  usingComparator: (NSComparator)cmptr
 {
-  return [[self allKeys] sortedArrayWithOptions: opts
-				usingComparator: cmptr];
+  NSArray* sortedValues = [[self allValues] sortedArrayWithOptions: opts usingComparator: cmptr];
+  NSArray* noDuplicates = [[NSOrderedSet orderedSetWithArray:sortedValues] array];
+  NSMutableArray* result = [[NSMutableArray alloc] initWithCapacity:[sortedValues length]];
+  for (NSObject* value in noDuplicates) {
+      [result addObjectsFromArray:[self allKeysForObject:value]];
+  }
+  return result;
 }
 
 /**
