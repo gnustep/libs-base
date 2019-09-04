@@ -961,7 +961,7 @@ compareIt(id o1, id o2, void* context)
 {
   NSArray* sortedValues = [[self allValues] sortedArrayWithOptions: opts usingComparator: cmptr];
   NSArray* noDuplicates = [[NSOrderedSet orderedSetWithArray:sortedValues] array];
-  NSMutableArray* result = [[NSMutableArray alloc] initWithCapacity:[sortedValues length]];
+  NSMutableArray* result = [[NSMutableArray alloc] initWithCapacity:[sortedValues count]];
   for (NSObject* value in noDuplicates) {
       [result addObjectsFromArray:[self allKeysForObject:value]];
   }
