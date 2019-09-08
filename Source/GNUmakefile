@@ -226,6 +226,7 @@ NSFileCoordinator.m \
 NSFileHandle.m \
 NSFileManager.m \
 NSFileVersion.m \
+NSFileWrapper.m \
 NSFormatter.m \
 NSGarbageCollector.m \
 NSGeometry.m \
@@ -404,6 +405,7 @@ NSFileHandle.h \
 NSFileManager.h \
 NSFilePresenter.h \
 NSFileVersion.h \
+NSFileWrapper.h \
 NSFormatter.h \
 NSGarbageCollector.h \
 NSGeometry.h \
