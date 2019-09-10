@@ -9,7 +9,7 @@
    Author: Jonathan Gapen <jagapen@whitewater.chem.wisc.edu>
    Date: Dec 1999
    
-   This file is part of the GNUstep GUI Library.
+   This file is part of the GNUstep BASE Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -39,10 +39,7 @@
 #import <Foundation/NSFileManager.h>
 #import <Foundation/NSURL.h>
 #import <Foundation/NSValue.h>
-#import "AppKit/NSFileWrapper.h"
-#import "AppKit/NSFont.h"
-#import "AppKit/NSImage.h"
-#import "AppKit/NSWorkspace.h"
+#import <Foundation/NSFileWrapper.h>
 
 @implementation NSFileWrapper
 
@@ -364,23 +361,6 @@
     }
 }
 
-- (void) setIcon: (NSImage*)icon
-{
-  ASSIGN(_iconImage, icon);
-}
-
-- (NSImage*) icon
-{
-  if (_iconImage == nil && [self filename])
-    {
-      return [[NSWorkspace sharedWorkspace] iconForFile: [self filename]];
-    }
-  else
-    {
-      return _iconImage;
-    }
-}
-
 - (BOOL) needsToBeUpdatedFromPath: (NSString*)path
 {
   NSFileManager *fm = [NSFileManager defaultManager];
@@ -697,6 +677,11 @@ originalContentsURL: (NSURL*)originalContentsURL
            updateFilenames: options & NSFileWrapperWritingWithNameUpdating];
 }
 
+// Simple foundation implementation to avoid issues when unarchiving.
+- (void) setIcon: (id)icon
+{
+  ASSIGN(_icon, icon);
+}
 
 //								
 // Archiving 				  
@@ -732,7 +717,7 @@ originalContentsURL: (NSURL*)originalContentsURL
       NSString *preferredFilename;
       NSDictionary *fileAttributes;
       id wrapperData;
-      NSImage *iconImage;
+      id iconImage;
       
       [aDecoder decodeValueOfObjCType: @encode(int) at: &wrapperType];
       // Dont restore the file name
