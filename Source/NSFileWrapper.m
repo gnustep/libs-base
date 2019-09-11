@@ -201,7 +201,7 @@
   TEST_RELEASE(_fileAttributes);
   TEST_RELEASE(_preferredFilename);
   TEST_RELEASE(_wrapperData);
-  TEST_RELEASE(_iconImage);
+  TEST_RELEASE(_icon);
   [super dealloc];
 }
 
@@ -679,16 +679,14 @@ originalContentsURL: (NSURL*)originalContentsURL
            updateFilenames: options & NSFileWrapperWritingWithNameUpdating];
 }
 
-// Simple foundation implementation to avoid issues when unarchiving.
-// Will be category smashed by GUI implementation...
-- (void) setIcon: (id)icon
+- (void) setIcon: (id)image
 {
+  // this method is here to quell compiler warnings.
 }
 
 //								
 // Archiving 				  
 //
-
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   if ([aCoder allowsKeyedCoding])
@@ -702,7 +700,7 @@ originalContentsURL: (NSURL*)originalContentsURL
       [aCoder encodeObject: _preferredFilename];
       [aCoder encodeObject: _fileAttributes];
       [aCoder encodeObject: _wrapperData];
-      [aCoder encodeObject: _iconImage];
+      [aCoder encodeObject: _icon];
     }
 }
 
@@ -719,14 +717,14 @@ originalContentsURL: (NSURL*)originalContentsURL
       NSString *preferredFilename;
       NSDictionary *fileAttributes;
       id wrapperData;
-      id iconImage;
+      id icon;
       
       [aDecoder decodeValueOfObjCType: @encode(int) at: &wrapperType];
       // Dont restore the file name
       preferredFilename = [aDecoder decodeObject];
       fileAttributes = [aDecoder decodeObject];
       wrapperData = [aDecoder decodeObject];
-      iconImage = [aDecoder decodeObject];
+      icon = [aDecoder decodeObject];
       
       switch (wrapperType)
         {
@@ -755,9 +753,12 @@ originalContentsURL: (NSURL*)originalContentsURL
         {
           [self setFileAttributes: fileAttributes];
         }
-      if (iconImage != nil)
+      if (icon != nil)
         {
-          [self setIcon: iconImage];
+          if([self respondsToSelector: @selector(setIcon:)])
+            {
+              [self setIcon: icon];
+            }
         }
     }
   return self;

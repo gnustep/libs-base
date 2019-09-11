@@ -68,7 +68,7 @@ typedef NSUInteger NSFileWrapperWritingOptions;
   NSMutableDictionary	*_fileAttributes;
   GSFileWrapperType	_wrapperType;
   id			_wrapperData;
-  id		        _iconImage;
+  id		        _icon;
 }
 
 //
