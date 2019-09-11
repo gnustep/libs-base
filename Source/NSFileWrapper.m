@@ -8,7 +8,9 @@
    Date: Sept 1998
    Author: Jonathan Gapen <jagapen@whitewater.chem.wisc.edu>
    Date: Dec 1999
-   
+   Moved to BASE by Gregory Casamento <greg.casamento@gmail.com>
+   Date: Sep 2019
+
    This file is part of the GNUstep BASE Library.
 
    This library is free software; you can redistribute it and/or
@@ -678,9 +680,9 @@ originalContentsURL: (NSURL*)originalContentsURL
 }
 
 // Simple foundation implementation to avoid issues when unarchiving.
+// Will be category smashed by GUI implementation...
 - (void) setIcon: (id)icon
 {
-  ASSIGN(_icon, icon);
 }
 
 //								
