@@ -6,7 +6,7 @@ GCC_VERSION=4.0.0
 
 # The version number of this release.
 MAJOR_VERSION=1
-MINOR_VERSION=26
+MINOR_VERSION=27
 SUBMINOR_VERSION=0
 # numeric value should match above
 VERSION_NUMBER=126.0

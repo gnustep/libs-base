@@ -69,6 +69,7 @@
 #import	<Foundation/NSFileManager.h>
 #import	<Foundation/NSFilePresenter.h>
 #import	<Foundation/NSFileVersion.h>
+#import <Foundation/NSFileWrapper.h>
 #import	<Foundation/NSFormatter.h>
 #import	<Foundation/NSGarbageCollector.h>
 #import	<Foundation/NSGeometry.h>
