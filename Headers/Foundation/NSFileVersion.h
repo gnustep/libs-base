@@ -1,4 +1,4 @@
-/* Definition of class NSFilePresenter
+/* Definition of class NSFileVersion
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    Implemented by: 	Gregory Casamento <greg.casamento@gmail.com>
@@ -32,6 +32,11 @@
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST)
 
+enum {
+    NSFileVersionReplacingByMoving = 1 << 0
+};
+typedef NSUInteger NSFileVersionReplacingOptions;
+
 @interface NSFileVersion : NSObject
 {
 @private
@@ -43,10 +48,10 @@
     BOOL _isDiscardable;
     BOOL _hasThumbnail;
     BOOL _hasLocalContents;
+    BOOL _conflict;
     NSString *_localizedName;
-    NSString *_localizedComputerName;
+    NSString *_localizedNameOfSavingComputer;
     NSDate *_modificationDate;
-    NSString *_name;
 }
 
 - (BOOL) isDiscardable;
@@ -63,8 +68,8 @@
 - (BOOL) conflict;
 - (id<NSCoding>) persistentIdentifier;
 
-- (BOOL)removeAndReturnError: (NSError **)outError;
-- (NSURL *)replaceItemAtURL: (NSURL *)url options:(NSFileVersionReplacingOptions)options error:(NSError **)error;
+- (BOOL) removeAndReturnError: (NSError **)outError;
+- (NSURL *) replaceItemAtURL: (NSURL *)url options:(NSFileVersionReplacingOptions)options error:(NSError **)error;
 
 @end
 
