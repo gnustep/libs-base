@@ -262,6 +262,7 @@ NSOperation.m \
 NSOrderedSet.m \
 NSPage.m \
 NSPathUtilities.m \
+NSPersonNameComponents.m \
 NSPipe.m \
 NSPointerArray.m \
 NSPointerFunctions.m \
@@ -436,6 +437,7 @@ NSObject.h \
 NSOperation.h \
 NSOrderedSet.h \
 NSPathUtilities.h \
+NSPersonNameComponents.h \
 NSPointerArray.h \
 NSPointerFunctions.h \
 NSPortCoder.h \

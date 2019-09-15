@@ -69,7 +69,9 @@ typedef NSUInteger NSFileVersionReplacingOptions;
 - (id<NSCoding>) persistentIdentifier;
 
 - (BOOL) removeAndReturnError: (NSError **)outError;
-- (NSURL *) replaceItemAtURL: (NSURL *)url options:(NSFileVersionReplacingOptions)options error:(NSError **)error;
+- (NSURL *) replaceItemAtURL: (NSURL *)url
+                     options: (NSFileVersionReplacingOptions)options
+                       error: (NSError **)error;
 
 @end
 

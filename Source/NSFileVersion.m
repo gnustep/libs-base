@@ -72,7 +72,9 @@
   return NO;
 }
 
-- (NSURL *) replaceItemAtURL: (NSURL *)url options:(NSFileVersionReplacingOptions)options error:(NSError **)error
+- (NSURL *) replaceItemAtURL: (NSURL *)url
+                     options: (NSFileVersionReplacingOptions)options
+                       error: (NSError **)error
 {
   return nil;
 }
