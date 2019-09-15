@@ -1,9 +1,8 @@
 /* Definition of class NSPersonNameComponents
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   Implemented by: 	Gregory Casamento <greg.casamento@gmail.com>
-   Date: 	Sep 2019
-   Original File by: Daniel Ferreira
+   Implemented by: Gregory Casamento <greg.casamento@gmail.com>
+   Date: Sep 2019
 
    This file is part of the GNUstep Library.
    
