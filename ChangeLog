@@ -1,3 +1,15 @@
+2019-09-16  Alan Jenkins <alan.christopher.jenkins@gmail.com>
+
+	* Tools/gdompa.c:
+	A couple of is_local_net() tests were wrong: they used "&&"
+	with masks, but that is the logical shortcut operator.
+	The correct bitwise operator is "&".  The result was that
+	is_local_net() was always returning true!
+	Only allow local processes to send GDO_SERVERS requests.
+ 	This request is only useful locally.  Do not allow remote
+	requests for the server list.  Our response can be large,
+	so it would make a great UDP amplification attack.
+
 2019-08-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSSocketStream.m: Fix for hang when writing large https

@@ -419,7 +419,7 @@ is_local_net(struct in_addr a)
 
   for (i = 0; i < interfaces; i++)
     {
-      if ((mask[i].s_addr && addr[i].s_addr) == (mask[i].s_addr && a.s_addr))
+      if ((mask[i].s_addr & addr[i].s_addr) == (mask[i].s_addr & a.s_addr))
 	{
 	  return 1;
 	}
@@ -3100,6 +3100,21 @@ handle_request(int desc)
       unsigned int	i;
       unsigned int	j;
 
+      /*
+       *	See if this is a request from a local process.
+       *
+       *	This request is only useful locally.  Do not allow remote
+       *	requests for the server list.  Our response can be large,
+       *	so it would make a great UDP amplification attack.
+       */
+      if (is_local_host(ri->addr.sin_addr) == 0)
+	{
+	  snprintf(ebuf, sizeof(ebuf), "Illegal attempt to list servers!");
+	  gdomap_log(LOG_ERR);
+	  clear_chan(desc);
+	  return;
+	}
+
       free(wi->buf);
       wi->buf = (char*)calloc(sizeof(uint32_t)
 	+ (prb_used+1)*IASIZE, 1);
@@ -3260,8 +3275,8 @@ handle_request(int desc)
 		    {
 		      continue;
 		    }
-		  if ((mask[i].s_addr && addr[i].s_addr) ==
-			(mask[i].s_addr && ri->addr.sin_addr.s_addr))
+		  if ((mask[i].s_addr & addr[i].s_addr) ==
+			(mask[i].s_addr & ri->addr.sin_addr.s_addr))
 		    {
 		      laddr = addr[i];
 		      memcpy(wbuf, &laddr, IASIZE);
