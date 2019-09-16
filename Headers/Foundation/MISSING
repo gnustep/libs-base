@@ -17,9 +17,6 @@ Missing headers:
 	<NSAppleEventDescriptor.h>
 	<NSAppleEventManager.h>
 	<NSAppleScript.h>
-	<NSFileCoordinator.h>*
-	<NSFilePresenter.h>*
-	<NSFileVersion.h>*
 	<NSHFSFileTypes.h>
 	<NSLinguisticTagger.h>
 	<NSObjectScripting.h>
@@ -39,9 +36,6 @@ Missing headers:
 -------------------------------------------------------------
 Foundation:
 	<NSOrthography.h>
-	<NSFileCoordinator.h>
-	<NSFilePresenter.h>
-	<NSFileVersion.h>
 	<NSLinguisticTagger.h>
 	<NSAppleEventDescriptor.h>
 	<NSAppleEventManager.h>

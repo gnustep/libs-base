@@ -24,6 +24,7 @@
 
 #ifndef __NSPersonNameComponents_h_GNUSTEP_BASE_INCLUDE
 #define __NSPersonNameComponents_h_GNUSTEP_BASE_INCLUDE
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST)
 
 #import <Foundation/NSObject.h>

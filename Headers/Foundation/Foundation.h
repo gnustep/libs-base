@@ -99,6 +99,7 @@
 #import <Foundation/NSOrderedSet.h>
 #import	<Foundation/NSPathUtilities.h>
 #import <Foundation/NSPersonNameComponents.h>
+#import <Foundation/NSPersonNameComponentsFormatter.h>
 #import	<Foundation/NSPointerArray.h>
 #import	<Foundation/NSPointerFunctions.h>
 #import	<Foundation/NSPortCoder.h>
