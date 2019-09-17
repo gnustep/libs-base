@@ -92,8 +92,9 @@
 
 - (NSAttributedString *) annotatedStringFromPersonNameComponents: (NSPersonNameComponents *)components
 {
-  return AUTORELEASE([[NSAttributedString alloc] initWithString:
-                           [self stringFromPersonNameComponents: components]]);
+  NSAttributedString *result =  AUTORELEASE([[NSAttributedString alloc] initWithString:
+                                                  [self stringFromPersonNameComponents: components]]);
+  return result;
 }
 
 - (NSPersonNameComponents *) personNameComponentsFromString: (NSString *)string
