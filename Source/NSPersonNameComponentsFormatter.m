@@ -22,9 +22,10 @@
    Boston, MA 02111 USA.
 */
 
-#import "Foundation/NSPersonNameComponentsFormatter.h"
 #import "Foundation/NSString.h"
+#import "Foundation/NSAttributedString.h"
 #import "Foundation/NSPersonNameComponents.h"
+#import "Foundation/NSPersonNameComponentsFormatter.h"
 
 @implementation NSPersonNameComponentsFormatter
 
@@ -35,8 +36,14 @@
     {
       _phonetic = NO;
       _style = NSPersonNameComponentsFormatterStyleDefault;
+      _nameOptions = 0L;
     }
   return self;
+}
+
+- (void) _setNameOptions: (NSPersonNameComponentsFormatterOptions)opts
+{
+  _nameOptions = opts;
 }
 
 // Designated init...
@@ -44,15 +51,10 @@
                                                  style: (NSPersonNameComponentsFormatterStyle)nameFormatStyle
                                                options: (NSPersonNameComponentsFormatterOptions)nameOptions
 {
-  return nil;
-}
-
-- (NSString *)stringForObjectValue: (id)obj
-{
-  NSPersonNameComponents *pnc = (NSPersonNameComponents *)obj;
-  return [[self class] localizedStringFromPersonNameComponents: pnc
-                                                         style: NSPersonNameComponentsFormatterStyleDefault 
-                                                       options: 0L]; 
+  NSPersonNameComponentsFormatter *fmt = [[NSPersonNameComponentsFormatter alloc] init];
+  [fmt setStyle: nameFormatStyle];
+  [fmt _setNameOptions: nameOptions];
+  return [fmt stringForObjectValue: components] ;
 }
 
 // Setters
@@ -90,20 +92,28 @@
 
 - (NSAttributedString *) annotatedStringFromPersonNameComponents: (NSPersonNameComponents *)components
 {
-  return nil;
+  return AUTORELEASE([[NSAttributedString alloc] initWithString:
+                           [self stringFromPersonNameComponents: components]]);
 }
 
 - (NSPersonNameComponents *) personNameComponentsFromString: (NSString *)string
 {
+  NSPersonNameComponents *pnc = AUTORELEASE([[NSPersonNameComponents alloc] init]);
   
-  return nil;
+  return pnc;
 }
 
-- (BOOL)getObjectValue: (id *)obj
-             forString: (NSString *)string
-      errorDescription: (NSString **)error
+- (BOOL) getObjectValue: (id *)obj
+              forString: (NSString *)string
+       errorDescription: (NSString **)error
 {
   return NO;
+}
+
+- (NSString *)stringForObjectValue: (id)obj
+{
+  NSPersonNameComponents *pnc = (NSPersonNameComponents *)obj;
+  return [self stringFromPersonNameComponents: pnc];
 }
 
 @end
