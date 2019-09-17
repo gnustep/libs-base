@@ -51,7 +51,7 @@ typedef NSUInteger NSPersonNameComponentsFormatterOptions;
 {
   @private
     BOOL _phonetic;
-    NSPersonNameComponentsFormatterStyle style;
+    NSPersonNameComponentsFormatterStyle _style;
 }
 
 // Designated init...

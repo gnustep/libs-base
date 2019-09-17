@@ -28,6 +28,17 @@
 
 @implementation NSPersonNameComponentsFormatter
 
+- (instancetype) init
+{
+  self = [super init];
+  if(self != nil)
+    {
+      _phonetic = NO;
+      _style = NSPersonNameComponentsFormatterStyleDefault;
+    }
+  return self;
+}
+
 // Designated init...
 + (NSString *) localizedStringFromPersonNameComponents: (NSPersonNameComponents *)components
                                                  style: (NSPersonNameComponentsFormatterStyle)nameFormatStyle
@@ -36,29 +47,45 @@
   return nil;
 }
 
+- (NSString *)stringForObjectValue: (id)obj
+{
+  NSPersonNameComponents *pnc = (NSPersonNameComponents *)obj;
+  return [[self class] localizedStringFromPersonNameComponents: pnc
+                                                         style: NSPersonNameComponentsFormatterStyleDefault 
+                                                       options: 0L]; 
+}
+
 // Setters
 - (NSPersonNameComponentsFormatterStyle) style
 {
-  return 0;
+  return _style;
 }
 
 - (void) setStyle: (NSPersonNameComponentsFormatterStyle)style
 {
+  _style = style;
 }
 
 - (BOOL) isPhonetic
 {
-  return NO;
+  return _phonetic;
 }
 
 - (void) setPhonetic: (BOOL)flag
 {
+  _phonetic = flag;
 }
 
 // Convenience methods...
 - (NSString *) stringFromPersonNameComponents: (NSPersonNameComponents *)components
 {
-  return nil;
+  NSString *result = nil;
+  
+  switch (_style)
+    {
+    }
+  
+  return result;
 }
 
 - (NSAttributedString *) annotatedStringFromPersonNameComponents: (NSPersonNameComponents *)components
@@ -68,6 +95,7 @@
 
 - (NSPersonNameComponents *) personNameComponentsFromString: (NSString *)string
 {
+  
   return nil;
 }
 
