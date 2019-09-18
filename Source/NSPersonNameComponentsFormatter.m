@@ -1,4 +1,4 @@
-/* Definition of class NSPersonNameComponents
+/* Definition of class NSPersonNameComponentsFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    Implemented by: Gregory Casamento <greg.casamento@gmail.com>
@@ -122,7 +122,64 @@
 - (NSPersonNameComponents *) personNameComponentsFromString: (NSString *)string
 {
   NSPersonNameComponents *pnc = AUTORELEASE([[NSPersonNameComponents alloc] init]);
-  
+  NSArray *nameArray = [string componentsSeparatedByString: @" "];
+  NSUInteger count = [nameArray count];
+
+  switch(count)
+    {
+    case 1:
+      [pnc setNickname: [nameArray objectAtIndex: 0]];
+    case 2:
+      [pnc setGivenName: [nameArray objectAtIndex: 0]];
+      [pnc setFamilyName: [nameArray objectAtIndex: 1]];
+      break;
+    case 3:
+      {
+        NSString *first = [[nameArray objectAtIndex: 0] lowercaseString];
+        if([first isEqualToString: @"mr"] ||
+           [first isEqualToString: @"ms"] ||
+           [first isEqualToString: @"mrs"] ||
+           [first isEqualToString: @"dr"])
+          {
+            [pnc setNamePrefix: [nameArray objectAtIndex: 0]];
+            [pnc setGivenName: [nameArray objectAtIndex: 1]];
+            [pnc setFamilyName: [nameArray objectAtIndex: 2]];
+          }
+        else
+          {
+            [pnc setGivenName: [nameArray objectAtIndex: 0]];
+            [pnc setFamilyName: [nameArray objectAtIndex: 1]];
+            [pnc setNameSuffix: [nameArray objectAtIndex: 2]];
+          }
+      }
+      break;
+    case 4:
+      {
+        NSString *first = [[nameArray objectAtIndex: 0] lowercaseString];
+        if([first isEqualToString: @"mr"] ||
+           [first isEqualToString: @"ms"] ||
+           [first isEqualToString: @"mrs"] ||
+           [first isEqualToString: @"dr"])
+          {
+            [pnc setNamePrefix: [nameArray objectAtIndex: 0]];
+            [pnc setGivenName: [nameArray objectAtIndex: 1]];
+            [pnc setMiddleName: [nameArray objectAtIndex: 2]];
+            [pnc setFamilyName: [nameArray objectAtIndex: 3]];
+          }
+        else
+          {
+            [pnc setGivenName: [nameArray objectAtIndex: 0]];
+            [pnc setFamilyName: [nameArray objectAtIndex: 1]];
+            [pnc setMiddleName: [nameArray objectAtIndex: 2]];
+            [pnc setNameSuffix: [nameArray objectAtIndex: 3]];
+          }
+      }
+      break;
+    default:
+      NSLog(@"Not sure how to parse %@", string);
+      pnc = nil;
+      break;
+    }
   return pnc;
 }
 
@@ -130,6 +187,17 @@
               forString: (NSString *)string
        errorDescription: (NSString **)error
 {
+  NSPersonNameComponents *pnc = [self personNameComponentsFromString: string];
+  if(pnc != nil)
+    {
+      *obj = pnc;
+      *error = nil;
+    }
+  else
+    {
+      *obj = nil;
+      *error = @"Could not parse string into NSPersonNameComponents object";
+    }
   return NO;
 }
 
