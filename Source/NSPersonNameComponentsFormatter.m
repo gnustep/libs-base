@@ -81,10 +81,32 @@
 // Convenience methods...
 - (NSString *) stringFromPersonNameComponents: (NSPersonNameComponents *)components
 {
-  NSString *result = nil;
+  NSString *result = @"";
   
   switch (_style)
     {
+    case NSPersonNameComponentsFormatterStyleDefault:
+    case NSPersonNameComponentsFormatterStyleMedium:
+      result = [result stringByAppendingString: [components givenName]];
+      result = [result stringByAppendingString: @" "];
+      result = [result stringByAppendingString: [components familyName]];
+      break;
+    case NSPersonNameComponentsFormatterStyleShort:
+      result = [result stringByAppendingString: [components givenName]];
+      break;
+    case NSPersonNameComponentsFormatterStyleLong:      
+      result = [result stringByAppendingString: [components namePrefix]];
+      result = [result stringByAppendingString: @" "];
+      result = [result stringByAppendingString: [components givenName]];
+      result = [result stringByAppendingString: @" "];
+      result = [result stringByAppendingString: [components familyName]];
+      result = [result stringByAppendingString: @" "];
+      result = [result stringByAppendingString: [components nameSuffix]];
+      break;
+    case NSPersonNameComponentsFormatterStyleAbbreviated:
+      result = [result stringByAppendingString: [[components givenName] substringToIndex: 1]];
+      result = [result stringByAppendingString: [[components familyName] substringToIndex: 1]];
+      break;
     }
   
   return result;
