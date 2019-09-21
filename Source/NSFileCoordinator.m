@@ -28,9 +28,24 @@
 #import <Foundation/NSArray.h>
 
 @implementation NSFileAccessIntent
+- (instancetype) init
+{
+  self = [super init];
+  if(self != nil)
+    {
+      _url = nil;
+      _isRead = NO;
+      _options = 0L;
+    }
+  return self;
+}
+
 + (instancetype) readingIntentWithURL: (NSURL *)url
                               options: (NSFileCoordinatorReadingOptions)options
 {
+  NSFileAccessIntent *result = [[self alloc] init];
+  ASSIGNCOPY(result->_url, url);
+  result->_options = options;
   return nil;
 }
 
@@ -47,6 +62,10 @@
 @end
 
 @implementation NSFileCoordinator
+
++ (void) initialize
+{
+}
 
 + (NSArray *) filePresenters
 {

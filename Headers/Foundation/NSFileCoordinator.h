@@ -35,6 +35,8 @@
 
 @protocol NSFilePresenter;
 
+const static NSArray *__presenters = nil;
+
 enum {
     NSFileCoordinatorReadingWithoutChanges = 1 << 0,
     NSFileCoordinatorReadingResolvesSymbolicLink = 1 << 1,
@@ -54,10 +56,9 @@ typedef NSUInteger NSFileCoordinatorWritingOptions;
 
 @interface NSFileAccessIntent : NSObject
 {
-  @private
-    NSURL *_url;
-    BOOL _isRead;
-    NSInteger _options;
+  NSURL *_url;
+  BOOL _isRead;
+  NSInteger _options;
 }
 + (instancetype) readingIntentWithURL: (NSURL *)url
                               options: (NSFileCoordinatorReadingOptions)options;
@@ -75,14 +76,13 @@ DEFINE_BLOCK_TYPE(GSAccessorHandlerBlock, void, GSBatchAccessorHandler);
 
 @interface NSFileCoordinator : NSObject
 {
-  @private
-    id _accessArbiter;
-    id _fileReactor;
-    id _purposeID;
-    NSURL *_recentFilePresenterURL;
-    id _accessClaimIDOrIDs;
-    BOOL _isCancelled;
-    NSMutableDictionary *_movedItems;
+  id _accessArbiter;
+  id _fileReactor;
+  id _purposeID;
+  NSURL *_recentFilePresenterURL;
+  id _accessClaimIDOrIDs;
+  BOOL _isCancelled;
+  NSMutableDictionary *_movedItems;
 }
 
 + (NSArray *) filePresenters;
