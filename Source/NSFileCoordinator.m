@@ -65,6 +65,10 @@
 
 + (void) initialize
 {
+  if(self == [NSFileCoordinator class])
+    {
+      __presenters = [[NSMutableArray alloc] init];
+    }
 }
 
 + (NSArray *) filePresenters
