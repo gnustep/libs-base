@@ -1,7 +1,9 @@
 2019-09-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTLS.m: Re-order code to avoid setting session priority
-	twice (avoids bug where server downgrades from TLS1.3 to TLS1.2).
+	twice.
+	* Source/NSFileHandle.m: Fux so that setting certificate information
+	does not discard any other options already set.
 
 2019-09-16  Alan Jenkins <alan.christopher.jenkins@gmail.com>
 

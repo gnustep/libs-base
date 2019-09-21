@@ -66,6 +66,7 @@ static Class NSFileHandle_ssl_class = nil;
 }
 - (void) sslDisconnect;
 - (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing;
+- (NSDictionary*) sslOptions;
 - (NSString*) sslSetOptions: (NSDictionary*)options;
 @end
 #endif
@@ -853,6 +854,11 @@ NSString * const NSFileHandleOperationException
   return nil;
 }
 
+- (NSDictionary*) sslOptions
+{
+  return nil;
+}
+
 - (NSString*) sslOwner
 {
   return nil;
@@ -865,7 +871,11 @@ NSString * const NSFileHandleOperationException
   NSMutableDictionary   *opts;
   NSString              *err;
 
-  opts = [NSMutableDictionary dictionaryWithCapacity: 3];
+  opts = AUTORELEASE([[self sslOptions] mutableCopy]);
+  if (nil == opts)
+    {
+      opts = [NSMutableDictionary dictionaryWithCapacity: 3];
+    }
   if (nil != certFile)
     {
       [opts setObject: certFile forKey: GSTLSCertificateFile];
@@ -1072,6 +1082,11 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 - (NSString*) sslIssuer
 {
   return [session issuer];
+}
+
+- (NSDictionary*) sslOptions
+{
+  return opts;
 }
 
 - (NSString*) sslOwner
