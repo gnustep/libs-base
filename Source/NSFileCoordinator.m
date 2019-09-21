@@ -46,18 +46,23 @@
   NSFileAccessIntent *result = [[self alloc] init];
   ASSIGNCOPY(result->_url, url);
   result->_options = options;
-  return nil;
+  result->_isRead = YES;
+  return result;
 }
 
 + (instancetype) writingIntentWithURL: (NSURL *)url
                               options: (NSFileCoordinatorWritingOptions)options
 {
-  return nil;
+  NSFileAccessIntent *result = [[self alloc] init];
+  ASSIGNCOPY(result->_url, url);
+  result->_options = options;
+  result->_isRead = NO;
+  return result;
 }
 
 - (NSURL *) URL
 {
-  return nil;
+  return _url;
 }
 @end
 
