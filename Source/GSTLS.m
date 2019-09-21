@@ -1703,15 +1703,6 @@ retrieve_callback(gnutls_session_t session,
           str = nil;
         }
 
-#if GNUTLS_VERSION_NUMBER < 0x020C00
-      gnutls_set_default_priority(session);
-#else
-      /* By default we disable SSL3.0 as the 'POODLE' attack (Oct 2014)
-       * renders it insecure.
-       */
-      gnutls_priority_set_direct(session, "NORMAL:-VERS-SSL3.0", NULL);
-#endif
-
       if (nil == str)
         {
           if ([pri isEqual: NSStreamSocketSecurityLevelNone] == YES)
@@ -1760,13 +1751,26 @@ retrieve_callback(gnutls_session_t session,
                 "NORMAL:-VERS-SSL3.0:+VERS-TLS-ALL", NULL);
 #endif
             }
+          else
+            {
+#if GNUTLS_VERSION_NUMBER < 0x020C00
+              gnutls_set_default_priority(session);
+#else
+              /* By default we disable SSL3.0 as the 'POODLE' attack (Oct 2014)
+               * renders it insecure.
+               */
+              gnutls_priority_set_direct(session, "NORMAL:-VERS-SSL3.0", NULL);
+#endif
+            }
         }
-#if GNUTLS_VERSION_NUMBER >= 0x020C00
       else
         {
+#if GNUTLS_VERSION_NUMBER >= 0x020C00
           gnutls_priority_set_direct(session, [str UTF8String], NULL);
-        }
+#else
+          gnutls_set_default_priority(session);
 #endif
+        }
 
       /* Set certificate credentials for this session.
        */

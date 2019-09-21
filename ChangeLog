@@ -1,6 +1,11 @@
+2019-09-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTLS.m: Re-order code to avoid setting session priority
+	twice (avoids bug where server downgrades from TLS1.3 to TLS1.2).
+
 2019-09-16  Alan Jenkins <alan.christopher.jenkins@gmail.com>
 
-	* Tools/gdompa.c:
+	* Tools/gdomap.c:
 	A couple of is_local_net() tests were wrong: they used "&&"
 	with masks, but that is the logical shortcut operator.
 	The correct bitwise operator is "&".  The result was that
