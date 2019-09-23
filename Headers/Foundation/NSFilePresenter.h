@@ -40,30 +40,30 @@ DEFINE_BLOCK_TYPE(GSFilePresentedItemChangesWithCompletionHandler, void, NSError
 @protocol NSFilePresenter <NSObject>
 
 @required
-- (NSURL *)presentedItemURL;
-- (NSOperationQueue *)presentedItemOperationQueue;
+- (NSURL *) presentedItemURL;
+- (NSOperationQueue *) presentedItemOperationQueue;
 
 @optional
 - (NSURL *) primaryPresentedItemURL;
 - (NSString *) observedPresentedItemUbiquityAttributes;
 
-- (void)accommodatePresentedItemDeletionWithCompletionHandler:(GSFilePresenterCompletionHandler)completionHandler;
-- (void)accommodatePresentedSubitemDeletionAtURL:(NSURL *)url completionHandler:(GSFilePresenterSubitemDeletionHandler)completionHandler;
-- (void)presentedItemDidChange;
-- (void)presentedItemDidChangeUbiquityAttributes:(NSSet *)attributes; // 10.13
-- (void)presentedItemDidGainVersion:(NSFileVersion *)version;
-- (void)presentedItemDidLoseVersion:(NSFileVersion *)version;
-- (void)presentedItemDidMoveToURL:(NSURL *)newURL;
-- (void)presentedItemDidResolveConflictVersion:(NSFileVersion *)version;
-- (void)presentedSubitemAtURL:(NSURL *)oldURL didMoveToURL:(NSURL *)newURL;
-- (void)presentedSubitemAtURL:(NSURL *)url didGainVersion:(NSFileVersion *)version;
-- (void)presentedSubitemAtURL:(NSURL *)url didLoseVersion:(NSFileVersion *)version;
-- (void)presentedSubitemAtURL:(NSURL *)url didResolveConflictVersion:(NSFileVersion *)version;
-- (void)presentedSubitemDidAppearAtURL:(NSURL *)url;
-- (void)presentedSubitemDidChangeAtURL:(NSURL *)url;
-- (void)relinquishPresentedItemToReader:(GSFilePresenterReacquirer)reader;
-- (void)relinquishPresentedItemToWriter:(GSFilePresenterReacquirer)writer;
-- (void)savePresentedItemChangesWithCompletionHandler:(GSFilePresentedItemChangesWithCompletionHandler)completionHandler;
+- (void) accommodatePresentedItemDeletionWithCompletionHandler: (GSFilePresenterCompletionHandler)completionHandler;
+- (void) accommodatePresentedSubitemDeletionAtURL:(NSURL *)url completionHandler: (GSFilePresenterSubitemDeletionHandler)completionHandler;
+- (void) presentedItemDidChange;
+- (void) presentedItemDidChangeUbiquityAttributes: (NSSet *)attributes; // 10.13
+- (void) presentedItemDidGainVersion: (NSFileVersion *)version;
+- (void) presentedItemDidLoseVersion: (NSFileVersion *)version;
+- (void) presentedItemDidMoveToURL: (NSURL *)newURL;
+- (void) presentedItemDidResolveConflictVersion: (NSFileVersion *)version;
+- (void) presentedSubitemAtURL: (NSURL *)oldURL didMoveToURL: (NSURL *)newURL;
+- (void) presentedSubitemAtURL: (NSURL *)url didGainVersion: (NSFileVersion *)version;
+- (void) presentedSubitemAtURL: (NSURL *)url didLoseVersion: (NSFileVersion *)version;
+- (void) presentedSubitemAtURL: (NSURL *)url didResolveConflictVersion: (NSFileVersion *)version;
+- (void) presentedSubitemDidAppearAtURL: (NSURL *)url;
+- (void) presentedSubitemDidChangeAtURL: (NSURL *)url;
+- (void) relinquishPresentedItemToReader: (GSFilePresenterReacquirer)reader;
+- (void) relinquishPresentedItemToWriter: (GSFilePresenterReacquirer)writer;
+- (void) savePresentedItemChangesWithCompletionHandler: (GSFilePresentedItemChangesWithCompletionHandler)completionHandler;
 
 @end
 
