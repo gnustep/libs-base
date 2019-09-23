@@ -121,7 +121,13 @@ static NSMutableArray *__presenters = nil;
                               queue: (NSOperationQueue *)queue
                          byAccessor: (GSAccessorCallbackHandler)accessor
 {
-  
+  NSEnumerator *en = [intents objectEnumerator];
+  id obj = nil;
+  while((obj = [en nextObject]) != nil)
+    {
+      NSBlockOperation *op = [NSBlockOperation blockOperationWithBlock: accessor];
+      [queue addOperation: op];
+    }
 }
 
 - (void)coordinateReadingItemAtURL: (NSURL *)readingURL
