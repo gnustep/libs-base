@@ -23,8 +23,8 @@
    Boston, MA 02111 USA.
 */
 
-#ifndef __NSFileCoordinator_h_GNUSTEP_BASE_INCLUDE
-#define __NSFileCoordinator_h_GNUSTEP_BASE_INCLUDE
+#ifndef __NSFilePresenter_h_GNUSTEP_BASE_INCLUDE
+#define __NSFilePresenter_h_GNUSTEP_BASE_INCLUDE
 
 #import <Foundation/NSObject.h>
 
@@ -44,7 +44,7 @@ DEFINE_BLOCK_TYPE(GSFilePresentedItemChangesWithCompletionHandler, void, NSError
 - (NSOperationQueue *)presentedItemOperationQueue;
 
 @optional
-- (NSURL *) primaryPresentedItemURL 
+- (NSURL *) primaryPresentedItemURL;
 - (NSString *) observedPresentedItemUbiquityAttributes;
 
 - (void)accommodatePresentedItemDeletionWithCompletionHandler:(GSFilePresenterCompletionHandler)completionHandler;
