@@ -37,12 +37,17 @@ enum {
 };
 typedef NSUInteger NSFileVersionReplacingOptions;
 
+enum {
+    NSFileVersionAddingByMoving = 1 << 0
+};
+typedef NSUInteger NSFileVersionAddingOptions;
+
 @interface NSFileVersion : NSObject
 {
 @private
     NSURL *_fileURL;
     NSURL *_contentsURL;
-    id _oersistentIdentifier;
+    id _persistentIdentifier;
     id _nonLocalVersion;
     BOOL _isResolved;
     BOOL _isDiscardable;
@@ -54,6 +59,21 @@ typedef NSUInteger NSFileVersionReplacingOptions;
     NSDate *_modificationDate;
 }
 
+// Initializers
++ (NSFileVersion *)currentVersionOfItemAtURL: (NSURL *)url;
++ (NSArray *)otherVersionsOfItemAtURL: (NSURL *)url;
++ (NSFileVersion *)versionOfItemAtURL: (NSURL *)url 
+              forPersistentIdentifier: (id)persistentIdentifier;
++ (NSURL *)temporaryDirectoryURLForNewVersionOfItemAtURL: (NSURL *)url;
++ (NSFileVersion *)addVersionOfItemAtURL: (NSURL *)url 
+                       withContentsOfURL: (NSURL *)contentsURL 
+                                 options: (NSFileVersionAddingOptions)options 
+                                   error: (NSError * _Nullable *)outError;
++ (NSArray *)unresolvedConflictVersionsOfItemAtURL: (NSURL *)url;
++ (BOOL)removeOtherVersionsOfItemAtURL: (NSURL *)url 
+                                 error: (NSError **)outError;
+
+// instance methods...
 - (BOOL) isDiscardable;
 - (void) setDiscardable: (BOOL)flag;
 - (BOOL) isResolved;

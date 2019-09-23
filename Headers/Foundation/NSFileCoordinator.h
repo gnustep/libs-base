@@ -118,11 +118,11 @@ DEFINE_BLOCK_TYPE(GSAccessorHandlerBlock, void, GSBatchAccessorHandler);
                              error: (NSError **)outError
                         byAccessor: (GSDualWriteURLCallbackHandler)writer;
 
-- (void)itemAtURL:(NSURL *)oldURL didMoveToURL: (NSURL *)newURL;
+- (void)itemAtURL: (NSURL *)oldURL didMoveToURL: (NSURL *)newURL;
 
-- (void)itemAtURL:(NSURL *)oldURL willMoveToURL: (NSURL *)newURL; 
+- (void)itemAtURL: (NSURL *)oldURL willMoveToURL: (NSURL *)newURL; 
 
-- (void)itemAtURL:(NSURL *)url didChangeUbiquityAttributes: (NSSet *)attributes;
+- (void)itemAtURL: (NSURL *)url didChangeUbiquityAttributes: (NSSet *)attributes;
 
 - (void)prepareForReadingItemsAtURLs: (NSArray *)readingURLs
                              options: (NSFileCoordinatorReadingOptions)readingOptions

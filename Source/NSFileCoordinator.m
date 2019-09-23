@@ -152,7 +152,10 @@ static NSMutableDictionary *__presenterMap = nil;
   if(options == 0L)
     {
       id<NSFilePresenter> p = [__presenterMap objectForKey: url];
-      [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+      if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
+        {
+          [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+        }
     }
   CALL_BLOCK(reader, url);
 }
@@ -165,7 +168,10 @@ static NSMutableDictionary *__presenterMap = nil;
   if(options == 0L)
     {
       id<NSFilePresenter> p = [__presenterMap objectForKey: url];
-      [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+      if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
+         {
+           [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+         }
     }
   CALL_BLOCK(writer, url);
 }
@@ -179,15 +185,15 @@ static NSMutableDictionary *__presenterMap = nil;
 {
 }
 
-- (void)itemAtURL:(NSURL *)oldURL didMoveToURL: (NSURL *)newURL
+- (void)itemAtURL: (NSURL *)oldURL didMoveToURL: (NSURL *)newURL
 {
 }
 
-- (void)itemAtURL:(NSURL *)oldURL willMoveToURL: (NSURL *)newURL 
+- (void)itemAtURL: (NSURL *)oldURL willMoveToURL: (NSURL *)newURL 
 {
 }
 
-- (void)itemAtURL:(NSURL *)url didChangeUbiquityAttributes: (NSSet *)attributes
+- (void)itemAtURL: (NSURL *)url didChangeUbiquityAttributes: (NSSet *)attributes
 {
 }
 
