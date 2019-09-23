@@ -26,10 +26,12 @@
 #import <Foundation/NSFileCoordinator.h>
 #import <Foundation/NSURL.h>
 #import <Foundation/NSArray.h>
+#import <Foundation/NSDictionary.h>
 #import <Foundation/NSFilePresenter.h>
 #import <Foundation/NSOperation.h>
 
 static NSMutableArray *__presenters = nil;
+static NSMutableDictionary *__presenterMap = nil;
 
 @implementation NSFileAccessIntent
 - (instancetype) init
@@ -77,6 +79,7 @@ static NSMutableArray *__presenters = nil;
   if(self == [NSFileCoordinator class])
     {
       __presenters = [[NSMutableArray alloc] init];
+      __presenterMap = [[NSMutableDictionary alloc] init];
     }
 }
 
@@ -88,6 +91,7 @@ static NSMutableArray *__presenters = nil;
 + (void) addFilePresenter: (id)presenter
 {
   [__presenters addObject: presenter];
+  [__presenterMap setObject: presenter forKey: [presenter presentedItemURL]];
 }
 
 + (void) removeFilePresenter: (id)presenter
@@ -123,6 +127,7 @@ static NSMutableArray *__presenters = nil;
 {
   NSEnumerator *en = [intents objectEnumerator];
   id obj = nil;
+  
   while((obj = [en nextObject]) != nil)
     {
       NSBlockOperation *op = [NSBlockOperation blockOperationWithBlock: accessor];
@@ -144,12 +149,25 @@ static NSMutableArray *__presenters = nil;
                              error: (NSError **)outError
                         byAccessor: (GSNoEscapeNewURLHandler)reader
 {
+  if(options == 0L)
+    {
+      id<NSFilePresenter> p = [__presenterMap objectForKey: url];
+      [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+    }
+  CALL_BLOCK(reader, url);
 }
                  
 - (void)coordinateWritingItemAtURL: (NSURL *)url
-                           options: (NSFileCoordinatorWritingOptions)options error:(NSError **)outError
+                           options: (NSFileCoordinatorWritingOptions)options
+                             error: (NSError **)outError
                         byAccessor: (GSNoEscapeNewURLHandler)writer
 {
+  if(options == 0L)
+    {
+      id<NSFilePresenter> p = [__presenterMap objectForKey: url];
+      [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+    }
+  CALL_BLOCK(writer, url);
 }
 
 - (void)coordinateWritingItemAtURL: (NSURL *)url1
