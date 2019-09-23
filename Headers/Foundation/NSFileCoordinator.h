@@ -35,8 +35,6 @@
 
 @protocol NSFilePresenter;
 
-const static NSArray *__presenters = nil;
-
 enum {
     NSFileCoordinatorReadingWithoutChanges = 1 << 0,
     NSFileCoordinatorReadingResolvesSymbolicLink = 1 << 1,
@@ -78,7 +76,7 @@ DEFINE_BLOCK_TYPE(GSAccessorHandlerBlock, void, GSBatchAccessorHandler);
 {
   id _accessArbiter;
   id _fileReactor;
-  id _purposeID;
+  id _purposeIdentifier;
   NSURL *_recentFilePresenterURL;
   id _accessClaimIDOrIDs;
   BOOL _isCancelled;

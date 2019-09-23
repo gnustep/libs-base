@@ -26,6 +26,10 @@
 #import <Foundation/NSFileCoordinator.h>
 #import <Foundation/NSURL.h>
 #import <Foundation/NSArray.h>
+#import <Foundation/NSFilePresenter.h>
+#import <Foundation/NSOperation.h>
+
+static NSMutableArray *__presenters = nil;
 
 @implementation NSFileAccessIntent
 - (instancetype) init
@@ -78,26 +82,46 @@
 
 + (NSArray *) filePresenters
 {
-  return nil;
+  return __presenters;
+}
+
++ (void) addFilePresenter: (id)presenter
+{
+  [__presenters addObject: presenter];
+}
+
++ (void) removeFilePresenter: (id)presenter
+{
+  [__presenters removeObject: presenter];
 }
 
 - (NSString *) purposeIdentifier
 {
-  return nil;
+  return _purposeIdentifier;
 }
 
 - (void) setPurposeIdentifier: (NSString *)ident  // copy
 {
+  ASSIGNCOPY(_purposeIdentifier, ident);
 }
 
 - (void)cancel
 {
+  NSEnumerator *en = [__presenters objectEnumerator];
+  id obj = nil;
+  while((obj = [en nextObject]) != nil)
+    {
+      id<NSFilePresenter> o = (id<NSFilePresenter>)obj;
+      NSOperationQueue *q = [o presentedItemOperationQueue];
+      [q cancelAllOperations];
+    }
 }
 
 - (void)coordinateAccessWithIntents: (NSArray *)intents
                               queue: (NSOperationQueue *)queue
                          byAccessor: (GSAccessorCallbackHandler)accessor
 {
+  
 }
 
 - (void)coordinateReadingItemAtURL: (NSURL *)readingURL

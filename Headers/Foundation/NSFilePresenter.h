@@ -50,7 +50,7 @@ DEFINE_BLOCK_TYPE(GSFilePresentedItemChangesWithCompletionHandler, void, NSError
 - (void)accommodatePresentedItemDeletionWithCompletionHandler:(GSFilePresenterCompletionHandler)completionHandler;
 - (void)accommodatePresentedSubitemDeletionAtURL:(NSURL *)url completionHandler:(GSFilePresenterSubitemDeletionHandler)completionHandler;
 - (void)presentedItemDidChange;
-- (void)presentedItemDidChangeUbiquityAttributes:(NSSet *)attributes; //  API_AVAILABLE(macos(10.13), ios(11.0)) API_UNAVAILABLE(watchos, tvos);
+- (void)presentedItemDidChangeUbiquityAttributes:(NSSet *)attributes; // 10.13
 - (void)presentedItemDidGainVersion:(NSFileVersion *)version;
 - (void)presentedItemDidLoseVersion:(NSFileVersion *)version;
 - (void)presentedItemDidMoveToURL:(NSURL *)newURL;
