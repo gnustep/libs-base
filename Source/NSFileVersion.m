@@ -34,6 +34,8 @@
 
 @interface NSFileVersion (Private)
 - (void) _setURL: (NSURL *)u;
+- (void) _setContentsURL: (NSURL *)u;
+- (void) _setConflict: (BOOL)f;
 @end
 
 @implementation NSFileVersion (Private)
@@ -46,6 +48,11 @@
 {
   ASSIGNCOPY(_contentsURL, u);
 }
+
+- (void) _setConflict: (BOOL)f
+{
+  _conflict = f;
+}
 @end
 
 @implementation NSFileVersion
@@ -56,9 +63,11 @@
   NSFileVersion *fileVersion = AUTORELEASE([[NSFileVersion alloc] init]);
   if (fileVersion != nil)
     {
-      [fileVersion setURL: url];
-      [fileVersion setContentsURL: url];
-      
+      [fileVersion _setURL: url];
+      [fileVersion _setContentsURL: url];
+      [fileVersion _setConflict: NO];
+      [fileVersion setDiscardable: NO];
+      [fileVersion setResolved: YES];
     }
   return fileVersion;
 }
