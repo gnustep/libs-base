@@ -32,14 +32,35 @@
 #include <Foundation/NSURL.h>
 #include <Foundation/NSPersonNameComponents.h>
 
+@interface NSFileVersion (Private)
+- (void) _setURL: (NSURL *)u;
+@end
+
+@implementation NSFileVersion (Private)
+- (void) _setURL: (NSURL *)u
+{
+  ASSIGNCOPY(_fileURL, u);
+}
+
+- (void) _setContentsURL: (NSURL *)u
+{
+  ASSIGNCOPY(_contentsURL, u);
+}
+@end
 
 @implementation NSFileVersion
 
 // Initializers
 + (NSFileVersion *)currentVersionOfItemAtURL: (NSURL *)url
 {
-  
-  return nil;
+  NSFileVersion *fileVersion = AUTORELEASE([[NSFileVersion alloc] init]);
+  if (fileVersion != nil)
+    {
+      [fileVersion setURL: url];
+      [fileVersion setContentsURL: url];
+      
+    }
+  return fileVersion;
 }
 
 + (NSArray *)otherVersionsOfItemAtURL: (NSURL *)url

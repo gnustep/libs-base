@@ -30,7 +30,6 @@ Missing headers:
 	<NSScriptObjectSpecifiers.h>
 	<NSScriptStandardSuiteCommands.h>
 	<NSScriptSuiteRegistry.h>>
-	<NSUserNotification.h>
 	<NSUserScriptTask.h>
 	<NSXPCConnection.h>
 -------------------------------------------------------------
