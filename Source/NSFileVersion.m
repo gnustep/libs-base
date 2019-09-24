@@ -204,8 +204,9 @@
 
 - (BOOL) removeAndReturnError: (NSError **)outError
 {
-  outError = NULL;
-  return NO;
+  NSURL *url = [self URL];
+  NSFileManager *mgr = [NSFileManager defaultManager];
+  return [mgr removeItemAtPath: [url path] error: outError];
 }
 
 - (NSURL *) replaceItemAtURL: (NSURL *)url
