@@ -38,6 +38,7 @@
 // Initializers
 + (NSFileVersion *)currentVersionOfItemAtURL: (NSURL *)url
 {
+  
   return nil;
 }
 
@@ -77,6 +78,27 @@
 }
 
 // Instance methods...
+- (instancetype) init
+{
+  self = [super init];
+  if(self != nil)
+    {
+      _isDiscardable = NO;
+      _isResolved = NO;
+      _modificationDate = [[NSDate alloc] init];
+      _fileURL = nil;
+      _contentsURL = nil;
+      _persistentIdentifier = nil;
+      _nonLocalVersion = nil;
+      _hasThumbnail = NO;
+      _hasLocalContents = YES;
+      _conflict = NO;
+      _localizedName = nil;
+      _localizedNameOfSavingComputer = nil;      
+    }
+  return self;
+}
+
 - (BOOL) isDiscardable
 {
   return _isDiscardable;

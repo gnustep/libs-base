@@ -68,7 +68,7 @@ typedef NSUInteger NSFileVersionAddingOptions;
 + (NSFileVersion *)addVersionOfItemAtURL: (NSURL *)url 
                        withContentsOfURL: (NSURL *)contentsURL 
                                  options: (NSFileVersionAddingOptions)options 
-                                   error: (NSError * _Nullable *)outError;
+                                   error: (NSError **)outError;
 + (NSArray *)unresolvedConflictVersionsOfItemAtURL: (NSURL *)url;
 + (BOOL)removeOtherVersionsOfItemAtURL: (NSURL *)url 
                                  error: (NSError **)outError;
