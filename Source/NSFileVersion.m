@@ -32,6 +32,7 @@
 #include <Foundation/NSURL.h>
 #include <Foundation/NSPersonNameComponents.h>
 #include <Foundation/NSFileManager.h>
+#include <Foundation/NSData.h>
 
 @interface NSFileVersion (Private)
 - (void) _setURL: (NSURL *)u;
@@ -101,7 +102,25 @@
                                  options: (NSFileVersionAddingOptions)options 
                                    error: (NSError **)outError
 {
-  return nil;
+  NSFileVersion *fileVersion = AUTORELEASE([[NSFileVersion alloc] init]);
+  if (fileVersion != nil)
+    {
+      NSData *data = [NSData dataWithContentsOfURL: contentsURL];
+      NSFileManager *mgr = [NSFileManager defaultManager];
+      
+      [fileVersion _setURL: url];
+      [fileVersion _setContentsURL: url];
+      [fileVersion _setConflict: NO];
+      [fileVersion _setLocalizedName: [url path]];
+      [fileVersion setDiscardable: NO];
+      [fileVersion setResolved: YES];
+
+      // Create new file...
+      [mgr createFileAtPath: [url path]
+                   contents: data
+                 attributes: nil];
+    } 
+  return fileVersion;
 }
 
 + (NSArray *)unresolvedConflictVersionsOfItemAtURL: (NSURL *)url
