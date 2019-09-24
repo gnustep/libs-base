@@ -31,11 +31,13 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSURL.h>
 #include <Foundation/NSPersonNameComponents.h>
+#include <Foundation/NSFileManager.h>
 
 @interface NSFileVersion (Private)
 - (void) _setURL: (NSURL *)u;
 - (void) _setContentsURL: (NSURL *)u;
 - (void) _setConflict: (BOOL)f;
+- (void) _setLocalizedName: (NSString *)name;
 @end
 
 @implementation NSFileVersion (Private)
@@ -53,6 +55,11 @@
 {
   _conflict = f;
 }
+
+- (void) _setLocalizedName: (NSString *)name
+{
+  ASSIGNCOPY(_localizedName, name);
+}
 @end
 
 @implementation NSFileVersion
@@ -66,6 +73,7 @@
       [fileVersion _setURL: url];
       [fileVersion _setContentsURL: url];
       [fileVersion _setConflict: NO];
+      [fileVersion _setLocalizedName: [url path]];
       [fileVersion setDiscardable: NO];
       [fileVersion setResolved: YES];
     }
@@ -80,7 +88,7 @@
 + (NSFileVersion *)versionOfItemAtURL: (NSURL *)url
               forPersistentIdentifier: (id)persistentIdentifier
 {
-  return nil;
+  return [NSFileVersion currentVersionOfItemAtURL: url];
 }
 
 + (NSURL *)temporaryDirectoryURLForNewVersionOfItemAtURL: (NSURL *)url
@@ -104,7 +112,8 @@
 + (BOOL)removeOtherVersionsOfItemAtURL: (NSURL *)url 
                                  error: (NSError **)outError
 {
-  return NO;
+  NSFileManager *mgr = [NSFileManager defaultManager];
+  return [mgr removeItemAtPath: [url path] error: outError];
 }
 
 // Instance methods...
