@@ -142,6 +142,24 @@ static NSMutableDictionary *__presenterMap = nil;
                              error: (NSError **)outError
                         byAccessor: (GSNoEscapeReadWriteHandler)readerWriter
 {
+  if(readingOptions == 0L)
+    {
+      id<NSFilePresenter> p = [__presenterMap objectForKey: readingURL];
+      if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
+        {
+          [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+        }
+    }
+  
+  if(writingOptions == 0L)
+    {
+      id<NSFilePresenter> p = [__presenterMap objectForKey: writingURL];
+      if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
+        {
+          [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+        }
+    }
+  CALL_BLOCK(readerWriter, readingURL, writingURL);
 }
                  
 - (void)coordinateReadingItemAtURL: (NSURL *)url
@@ -183,6 +201,24 @@ static NSMutableDictionary *__presenterMap = nil;
                              error: (NSError **)outError
                         byAccessor: (GSDualWriteURLCallbackHandler)writer
 {
+  if(options1 == 0L)
+    {
+      id<NSFilePresenter> p = [__presenterMap objectForKey: url1];
+      if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
+         {
+           [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+         }
+    }
+
+  if(options2 == 0L)
+    {
+      id<NSFilePresenter> p = [__presenterMap objectForKey: url2];
+      if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
+         {
+           [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+         }
+    }
+  CALL_BLOCK(writer, url1, url2);  
 }
 
 - (void)itemAtURL: (NSURL *)oldURL didMoveToURL: (NSURL *)newURL
