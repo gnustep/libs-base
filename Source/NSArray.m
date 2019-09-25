@@ -2503,16 +2503,38 @@ compare(id elem1, id elem2, void* context)
  */
 - (void) removeObjectsInArray: (NSArray*)otherArray
 {
-  NSUInteger	c = [otherArray count];
-
-  if (c > 0)
+  if (otherArray == self)
     {
-      NSUInteger	i;
-      IMP	get = [otherArray methodForSelector: oaiSel];
-      IMP	rem = [self methodForSelector: @selector(removeObject:)];
+      [self removeAllObjects];
+    }
+  else if (otherArray != nil)
+    {
+      NSUInteger	c;
 
-      for (i = 0; i < c; i++)
-	(*rem)(self, @selector(removeObject:), (*get)(otherArray, oaiSel, i));
+      if (NO == [otherArray isKindOfClass: NSArrayClass])
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"-removeObjectsInArray: non-array argument"];
+	}
+      if ((c = [otherArray count]) > 0)
+	{
+	  NSUInteger	i;
+	  IMP	get = [otherArray methodForSelector: oaiSel];
+	  IMP	rem = [self methodForSelector: @selector(removeObject:)];
+
+	  /* Guard otherArray in case it's a subclass which does not
+	   * retain its contents; in that case it would be possible
+	   * for otherArray to be contained by the receiver and be
+	   * deallocated during the loop below.
+	   */
+	  RETAIN(otherArray);
+	  for (i = 0; i < c; i++)
+	    {
+	      (*rem)(self, @selector(removeObject:),
+		(*get)(otherArray, oaiSel, i));
+	    }
+	  RELEASE(otherArray);
+	}
     }
 }
 

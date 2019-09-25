@@ -1,3 +1,9 @@
+2019-09-25  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSArray.m: [-removeObjectsInArray:] add checks to prevent
+	possible crashes, particulary if the method argument is the receiver;
+	crash seen by Wolfgang.
+
 2019-09-21  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTLS.m: Re-order code to avoid setting session priority
