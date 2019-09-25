@@ -39,6 +39,7 @@
 - (void) _setContentsURL: (NSURL *)u;
 - (void) _setConflict: (BOOL)f;
 - (void) _setLocalizedName: (NSString *)name;
+- (void) _initWithURL: (NSURL *)url;
 @end
 
 @implementation NSFileVersion (Private)
@@ -61,6 +62,16 @@
 {
   ASSIGNCOPY(_localizedName, name);
 }
+
+- (void) _initWithURL: (NSURL *)url
+{
+  [self _setURL: url];
+  [self _setContentsURL: url];
+  [self _setConflict: NO];
+  [self _setLocalizedName: [url path]];
+  [self setDiscardable: NO];
+  [self setResolved: YES];
+}
 @end
 
 @implementation NSFileVersion
@@ -71,19 +82,15 @@
   NSFileVersion *fileVersion = AUTORELEASE([[NSFileVersion alloc] init]);
   if (fileVersion != nil)
     {
-      [fileVersion _setURL: url];
-      [fileVersion _setContentsURL: url];
-      [fileVersion _setConflict: NO];
-      [fileVersion _setLocalizedName: [url path]];
-      [fileVersion setDiscardable: NO];
-      [fileVersion setResolved: YES];
+      [fileVersion _initWithURL: url];
     }
   return fileVersion;
 }
 
 + (NSArray *)otherVersionsOfItemAtURL: (NSURL *)url
 {
-  return nil;
+  NSArray *array = AUTORELEASE([[NSArray alloc] init]);
+  return array; 
 }
 
 + (NSFileVersion *)versionOfItemAtURL: (NSURL *)url
@@ -108,12 +115,7 @@
       NSData *data = [NSData dataWithContentsOfURL: contentsURL];
       NSFileManager *mgr = [NSFileManager defaultManager];
       
-      [fileVersion _setURL: url];
-      [fileVersion _setContentsURL: url];
-      [fileVersion _setConflict: NO];
-      [fileVersion _setLocalizedName: [url path]];
-      [fileVersion setDiscardable: NO];
-      [fileVersion setResolved: YES];
+      [fileVersion _initWithURL: url];
 
       // Create new file...
       [mgr createFileAtPath: [url path]
@@ -161,6 +163,7 @@
 {
   return _isDiscardable;
 }
+
 - (void) setDiscardable: (BOOL)flag
 {
   _isDiscardable = flag;
@@ -232,7 +235,19 @@
                      options: (NSFileVersionReplacingOptions)options
                        error: (NSError **)error
 {
-  return nil;
+  NSFileManager *mgr = [NSFileManager defaultManager];
+  if([mgr removeItemAtPath: [url path] error: error])
+    {
+      NSData *data = [NSData dataWithContentsOfURL: _contentsURL];
+      NSFileManager *mgr = [NSFileManager defaultManager];
+      
+      // Create new file...
+      [mgr createFileAtPath: [url path]
+                   contents: data
+                 attributes: nil];
+
+    }  
+  return url;
 }
 
 @end
