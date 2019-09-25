@@ -363,7 +363,7 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
  * the output stream's one has precedence.
  */
 + (void) populateProperties: (NSMutableDictionary**)dict
-            withTLSPriority: (NSString*)pri
+          withSecurityLevel: (NSString*)l
             fromInputStream: (NSStream*)i
              orOutputStream: (NSStream*)o;
 
@@ -465,7 +465,7 @@ static NSArray  *keys = nil;
 }
 
 + (void) populateProperties: (NSMutableDictionary**)dict
-	    withTLSPriority: (NSString*)pri
+	  withSecurityLevel: (NSString*)l
 	    fromInputStream: (NSStream*)i
 	     orOutputStream: (NSStream*)o
 {
@@ -475,9 +475,9 @@ static NSArray  *keys = nil;
       NSMutableDictionary       *opts = *dict;
       NSUInteger                count;
       
-      if (nil != pri)
+      if (nil != l)
 	{
-	  [opts setObject: pri forKey: GSTLSPriority];
+	  [opts setObject: l forKey: NSStreamSocketSecurityLevelKey];
 	}
       count = [keys count];
       while (count-- > 0)
@@ -645,7 +645,7 @@ static NSArray  *keys = nil;
    */
   opts = [NSMutableDictionary new];
   [[self class] populateProperties: &opts
-		   withTLSPriority: str
+		 withSecurityLevel: str
 		   fromInputStream: i
 		    orOutputStream: o];
   
@@ -798,7 +798,7 @@ static NSArray  *keys = nil;
 }
 
 + (void) populateProperties: (NSMutableDictionary**)dict
-	    withTLSPriority: (NSString*)pri
+	  withSecurityLevel: (NSString*)l
 	    fromInputStream: (NSStream*)i
 	     orOutputStream: (NSStream*)o
 {
@@ -808,9 +808,9 @@ static NSArray  *keys = nil;
   
   if (NULL != dict)
     {
-      if (nil != pri)
+      if (nil != l)
 	{
-	  [opts setObject: pri forKey: GSTLSPriority];
+	  [opts setObject: l forKey: NSStreamSocketSecurityLevelKey];
 	}
       count = [keys count];
       while (count-- > 0)
@@ -2804,7 +2804,7 @@ setNonBlocking(SOCKET fd)
 	  [opts setObject: str forKey: NSStreamSocketSecurityLevelKey];
 	  // copy the properties in the 'opts'
 	  [GSTLSHandler populateProperties: &opts
-			   withTLSPriority: str
+			 withSecurityLevel: str
 			   fromInputStream: self
 			    orOutputStream: nil];
 	  // and set the input/output streams's properties from the 'opts'

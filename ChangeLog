@@ -3,6 +3,8 @@
 	* Source/NSArray.m: [-removeObjectsInArray:] add checks to prevent
 	possible crashes, particulary if the method argument is the receiver;
 	crash seen by Wolfgang.
+	* Source/GSSocketStream.m: Fix incorrect key when setting old security
+	level.  Change internal API name to avoid confusion.
 
 2019-09-21  Richard Frith-Macdonald <rfm@gnu.org>
 

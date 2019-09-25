@@ -1765,10 +1765,13 @@ retrieve_callback(gnutls_session_t session,
         }
       else
         {
-#if GNUTLS_VERSION_NUMBER >= 0x020C00
-          gnutls_priority_set_direct(session, [str UTF8String], NULL);
+#if GNUTLS_VERSION_NUMBER < 0x020C00
+	  gnutls_set_default_priority(session);
 #else
-          gnutls_set_default_priority(session);
+	  /* By default we disable SSL3.0 as the 'POODLE' attack (Oct 2014)
+	   * renders it insecure.
+	   */
+          gnutls_priority_set_direct(session, [str UTF8String], NULL);
 #endif
         }
 
