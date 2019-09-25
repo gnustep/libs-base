@@ -1,3 +1,14 @@
+2019-10-17  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/GSDispatch.h:
+	* Source/NSArray.m:
+	* Source/NSDictionary.m:
+	* Source/NSIndexSet.m:
+	* Source/NSOrderedSet.m:
+	* Source/NSSet.m:
+	Perform non-concurrent block enumeration calls in place instead
+	of using serial queue to match Apple platforms.
+
 2019-10-02  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSDictionary.m: fixed mutable dictionary keyed subscript
