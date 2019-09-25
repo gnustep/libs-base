@@ -230,6 +230,12 @@ static NSString		*_operatingSystemVersion = nil;
 static BOOL	fallbackInitialisation = NO;
 
 static NSMutableSet	*mySet = nil;
+
+#ifdef __ANDROID__
+static jobject _androidContext = NULL;
+static NSString *_androidFilesDir = nil;
+#endif
+
 /*************************************************************************
  *** Implementing the gnustep_base_user_main function
  *************************************************************************/
@@ -943,36 +949,6 @@ extern char **__libc_argv;
     }
 }
 
-#elif defined(__ANDROID__)
-
-+ (void) initialize
-{
-  if (nil == procLock) procLock = [NSRecursiveLock new];
-  if (self == [NSProcessInfo class]
-    && !_gnu_processName && !_gnu_arguments && !_gnu_environment)
-    {
-      FILE *f = fopen("/proc/self/cmdline", "r");
-
-      if (f)
-	{
-	  char identifier[BUFSIZ];
-	  fgets(identifier, sizeof(identifier), f);
-	  fclose(f);
-	  
-	  // construct fake executable path
-	  char *arg0;
-	  asprintf(&arg0, "/data/data/%s/exe", identifier);
-
-	  char *argv[] = { arg0 };
-	  _gnu_process_args(sizeof(argv)/sizeof(char *), argv, NULL);
-	}
-      else
-	{
-	  fprintf(stderr, "Failed to read cmdline\n");
-	}
-    }
-}
-
 #else
 + (void) initialize
 {
@@ -1589,6 +1565,66 @@ GSInitializeProcess(int argc, char **argv, char **envp)
   [procLock unlock];
 }
 
+#ifdef __ANDROID__
+void
+GSInitializeProcessAndroid(JNIEnv *env, jobject context)
+{
+  [NSProcessInfo class];
+
+  // create global reference to to prevent garbage collection
+  _androidContext = (*env)->NewGlobalRef(env, context);
+
+  // get package code path (path to APK)
+  jclass cls = (*env)->GetObjectClass(env, context);
+  jmethodID packageCodePathMethod = (*env)->GetMethodID(env, cls, "getPackageCodePath", "()Ljava/lang/String;");
+  jstring packageCodePathJava = (*env)->CallObjectMethod(env, context, packageCodePathMethod);
+  const char *packageCodePath = (*env)->GetStringUTFChars(env, packageCodePathJava, NULL);
+
+  // get package name
+  jmethodID packageNameMethod = (*env)->GetMethodID(env, cls, "getPackageName", "()Ljava/lang/String;");
+  jstring packageNameJava = (*env)->CallObjectMethod(env, context, packageNameMethod);
+  const char *packageName = (*env)->GetStringUTFChars(env, packageNameJava, NULL);
+
+  // create fake executable path consisting of package code path (without .apk)
+  // and package name as executable
+  char *lastSlash = strrchr(packageCodePath, '/');
+  if (lastSlash == NULL)
+    {
+      lastSlash = (char *)packageCodePath + strlen(packageCodePath);
+    }
+  char *arg0;
+  asprintf(&arg0, "%.*s/%s", (int)(lastSlash - packageCodePath), packageCodePath, packageName);
+
+  (*env)->ReleaseStringUTFChars(env, packageCodePathJava, packageCodePath);
+  (*env)->ReleaseStringUTFChars(env, packageNameJava, packageName);
+
+  // initialize process
+  [procLock lock];
+  fallbackInitialisation = YES;
+  char *argv[] = { arg0 };
+  _gnu_process_args(sizeof(argv)/sizeof(char *), argv, NULL);
+  [procLock unlock];
+
+  free(arg0);
+
+  // get Android files dir
+  jmethodID filesDirMethod = (*env)->GetMethodID(env, cls, "getFilesDir", "()Ljava/io/File;");
+  jobject filesDirObj = (*env)->CallObjectMethod(env, context, filesDirMethod);
+  jclass filesDirCls = (*env)->GetObjectClass(env, filesDirObj);
+  jmethodID getStoragePath = (*env)->GetMethodID(env, filesDirCls, "getAbsolutePath", "()Ljava/lang/String;");
+  jstring filesDirJava = (*env)->CallObjectMethod(env, filesDirObj, getStoragePath);
+	const jchar *unichars = (*env)->GetStringChars(env, filesDirJava, NULL);
+  jsize length = (*env)->GetStringLength(env, filesDirJava);
+  _androidFilesDir = [NSString stringWithCharacters:unichars length:length];
+  (*env)->ReleaseStringChars(env, filesDirJava, unichars);
+
+  // get asset manager and initialize NSBundle
+  jmethodID assetManagerMethod = (*env)->GetMethodID(env, cls, "getAssets", "()Landroid/content/res/AssetManager;");
+  jstring assetManagerJava = (*env)->CallObjectMethod(env, context, assetManagerMethod);
+  [NSBundle setJavaAssetManager:assetManagerJava withJNIEnv:env];
+}
+#endif
+
 @implementation	NSProcessInfo (GNUstep)
 
 + (void) initializeWithArguments: (char**)argv
@@ -1620,6 +1656,19 @@ GSInitializeProcess(int argc, char **argv, char **envp)
     }
   return NO;
 }
+
+#ifdef __ANDROID__
+- (jobject) androidContext
+{
+  return _androidContext;
+}
+
+- (NSString *) androidFilesDir
+{
+  return _androidFilesDir;
+}
+#endif
+
 @end
 
 BOOL
