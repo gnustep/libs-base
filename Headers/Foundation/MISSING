@@ -21,15 +21,6 @@ Missing headers:
 	<NSLinguisticTagger.h>
 	<NSObjectScripting.h>
 	<NSOrthography.h>
-	<NSScriptClassDescription.h>
-	<NSScriptCoercionHandler.h>
-	<NSScriptCommand.h>
-	<NSScriptCommandDescription.h>
-	<NSScriptExecutionContext.h>
-	<NSScriptKeyValueCoding.h>
-	<NSScriptObjectSpecifiers.h>
-	<NSScriptStandardSuiteCommands.h>
-	<NSScriptSuiteRegistry.h>>
 	<NSUserScriptTask.h>
 	<NSXPCConnection.h>
 -------------------------------------------------------------
@@ -41,15 +32,6 @@ Foundation:
 	<NSAppleScript.h>
 	<NSHFSFileTypes.h>
 	<NSObjectScripting.h>
-	<NSScriptClassDescription.h>
-	<NSScriptCoercionHandler.h>
-	<NSScriptCommand.h>
-	<NSScriptCommandDescription.h>
-	<NSScriptExecutionContext.h>
-	<NSScriptKeyValueCoding.h>
-	<NSScriptObjectSpecifiers.h>
-	<NSScriptStandardSuiteCommands.h>
-	<NSScriptSuiteRegistry.h>
 	<NSUserScriptTask.h>
 	<NSXPCConnection.h>
 -------------------------------------------------------------
