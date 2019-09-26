@@ -282,6 +282,16 @@ NSRange.m \
 NSRegularExpression.m\
 NSRunLoop.m \
 NSScanner.m \
+NSScriptClassDescription.m \
+NSScriptCoercionHandler.m \
+NSScriptCommand.m \
+NSScriptCommandDescription.m \
+NSScriptExecutionContext.m \
+NSScriptKeyValueCoding.m \
+NSScriptObjectSpecifiers.m \
+NSScriptStandardSuiteCommands.m \
+NSScriptSuiteRegistry.m \
+NSUserScriptTask.m \
 NSSerializer.m \
 NSSet.m \
 NSSocketPort.m \
@@ -456,6 +466,16 @@ NSRange.h \
 NSRegularExpression.h\
 NSRunLoop.h \
 NSScanner.h \
+NSScriptClassDescription.h \
+NSScriptCoercionHandler.h \
+NSScriptCommand.h \
+NSScriptCommandDescription.h \
+NSScriptExecutionContext.h \
+NSScriptKeyValueCoding.h \
+NSScriptObjectSpecifiers.h \
+NSScriptStandardSuiteCommands.h \
+NSScriptSuiteRegistry.h \
+NSUserScriptTask.h \
 NSScriptWhoseTests.h \
 NSSerialization.h \
 NSSet.h \

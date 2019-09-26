@@ -114,6 +114,15 @@
 #import	<Foundation/NSRegularExpression.h>
 #import	<Foundation/NSRunLoop.h>
 #import	<Foundation/NSScanner.h>
+#import <Foundatioh/NSScriptClassDescription.h>
+#import <Foundatioh/NSScriptCoercionHandler.h>
+#import <Foundatioh/NSScriptCommand.h>
+#import <Foundatioh/NSScriptCommandDescription.h>
+#import <Foundatioh/NSScriptExecutionContext.h>
+#import <Foundatioh/NSScriptKeyValueCoding.h>
+#import <Foundatioh/NSScriptObjectSpecifiers.h>
+#import <Foundatioh/NSScriptStandardSuiteCommands.h>
+#import <Foundatioh/NSScriptSuiteRegistry.h>
 #import	<Foundation/NSScriptWhoseTests.h>
 #import	<Foundation/NSSerialization.h>
 #import	<Foundation/NSSet.h>
