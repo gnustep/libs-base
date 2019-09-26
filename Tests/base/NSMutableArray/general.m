@@ -104,7 +104,9 @@ int main()
     NSString	*s[5] = { @"1",@"2",@"3",@"4",@"5" };
     NSUInteger	before;
     NSUInteger	after;
-    for (int i = 0; i < 5; i++)
+    inr		i;
+
+    for (i = 0; i < 5; i++)
       {
 	[ma addObject: s[i]];
       }
