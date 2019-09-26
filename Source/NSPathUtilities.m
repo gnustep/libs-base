@@ -1740,7 +1740,9 @@ NSHomeDirectoryForUser(NSString *loginName)
 {
   NSString	*s = nil;
 
-#if !defined(_WIN32)
+#ifdef __ANDROID__
+  s = [[NSProcessInfo processInfo] androidFilesDir];
+#elif !defined(_WIN32)
 #if     defined(HAVE_GETPWNAM_R)
   struct passwd pw;
   struct passwd *p;

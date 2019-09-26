@@ -30,6 +30,10 @@
 
 #import	<Foundation/NSObject.h>
 
+#ifdef __ANDROID__
+#include <jni.h>
+#endif
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
@@ -265,6 +269,12 @@ DEFINE_BLOCK_TYPE(GSPerformExpiringActivityBlock, void, BOOL);
 + (void) initializeWithArguments: (char**)argv
                            count: (int)argc
                      environment: (char**)env;
+
+#ifdef __ANDROID__
+- (jobject) androidContext;
+- (NSString *) androidFilesDir;
+#endif
+
 @end
 
 /**
@@ -277,6 +287,16 @@ DEFINE_BLOCK_TYPE(GSPerformExpiringActivityBlock, void, BOOL);
  * to do when using GNUstep libraries embedded within other frameworks.
  */
 GS_EXPORT void GSInitializeProcess(int argc, char **argv, char **envp);
+
+#ifdef __ANDROID__
+/**
+ * Android process initialization function.
+ * This should be called on Android to initialize GNUstep with the JNI
+ * environment and application context, which is used to set up support
+ * for the Android data directory and asset loading via NSBundle.
+ */
+GS_EXPORT void GSInitializeProcessAndroid(JNIEnv *env, jobject context);
+#endif
 
 /**
  * Function for rapid testing to see if a debug level is set.<br />
