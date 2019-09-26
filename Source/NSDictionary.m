@@ -177,7 +177,8 @@ static SEL	appSel;
    GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
    FOR_IN(id, key, enumerator)
      obj = (*objectForKey)(self, objectForKeySelector, key);
-     GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (shouldStop){return;};, return;, aBlock, key, obj, &shouldStop);
+     GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue,
+     if (shouldStop){return;};, return;, aBlock, key, obj, &shouldStop);
      if (YES == shouldStop)
        {
 	 break;
@@ -861,10 +862,10 @@ static SEL	appSel;
     }
 }
 
-- (void)getObjects: (__unsafe_unretained id[])objects
-           andKeys: (__unsafe_unretained id<NSCopying>[])keys
+- (void) getObjects: (__unsafe_unretained id[])objects
+            andKeys: (__unsafe_unretained id<NSCopying>[])keys
 {
-  NSUInteger i=0;
+  NSUInteger i = 0;
   FOR_IN(id, key, self)
     if (keys != NULL) keys[i] = key;
     if (objects != NULL) objects[i] = [self objectForKey: key];
@@ -950,22 +951,29 @@ compareIt(id o1, id o2, void* context)
   return k;
 }
 
-- (NSArray *)keysSortedByValueUsingComparator: (NSComparator)cmptr
+- (NSArray *) keysSortedByValueUsingComparator: (NSComparator)cmptr
 {
-  return [self keysSortedByValueWithOptions:0
-			    usingComparator:cmptr];
+  return [self keysSortedByValueWithOptions: 0
+			    usingComparator: cmptr];
 }
 
-- (NSArray *)keysSortedByValueWithOptions: (NSSortOptions)opts
-			  usingComparator: (NSComparator)cmptr
+- (NSArray *) keysSortedByValueWithOptions: (NSSortOptions)opts
+			   usingComparator: (NSComparator)cmptr
 {
-  NSArray* sortedValues = [[self allValues] sortedArrayWithOptions: opts usingComparator: cmptr];
-  NSArray* noDuplicates = [[NSOrderedSet orderedSetWithArray:sortedValues] array];
-  NSMutableArray* result = [[NSMutableArray alloc] initWithCapacity:[sortedValues count]];
-  for (NSObject* value in noDuplicates) {
-      [result addObjectsFromArray:[self allKeysForObject:value]];
-  }
-  return result;
+  CREATE_AUTORELEASE_POOL(arp);
+  NSArray		*sortedValues;
+  NSArray		*noDuplicates;
+  NSMutableArray	*result;
+
+  sortedValues = [[self allValues] sortedArrayWithOptions: opts
+					  usingComparator: cmptr];
+  noDuplicates = [[NSOrderedSet orderedSetWithArray: sortedValues] array];
+  result = [[NSMutableArray alloc] initWithCapacity: [sortedValues count]];
+  FOR_IN(NSObject*, value, noDuplicates)
+    [result addObjectsFromArray: [self allKeysForObject: value]];
+  END_FOR_IN(noDuplicates)
+  RELEASE(arp);
+  return AUTORELEASE(result);
 }
 
 /**
