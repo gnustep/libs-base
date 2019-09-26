@@ -25,8 +25,20 @@ int main()
   PASS([[pnc nameSuffix] isEqualToString:
                            [pnc2 nameSuffix]], "Suffix name matches");
   PASS([[pnc namePrefix] isEqualToString:
-                           [pnc2 namePrefix]], "Prefix name matches"); 
+                           [pnc2 namePrefix]], "Prefix name matches");
   
+  fmt = [[NSPersonNameComponentsFormatter alloc] init];
+  pnc2 = [fmt personNameComponentsFromString:
+                @"Gregory John Casamento PhD"];
+  PASS([[pnc givenName] isEqualToString:
+                          [pnc2 givenName]], "First name matches");
+  PASS([[pnc middleName] isEqualToString:
+                           [pnc2 middleName]], "Middle name matches");
+  PASS([[pnc familyName] isEqualToString:
+                           [pnc2 familyName]], "Family name matches");
+  PASS([[pnc nameSuffix] isEqualToString:
+                           [pnc2 nameSuffix]], "Suffix name matches");
+
   END_SET("NSPersonNameComponentsFormatter base");
   return 0;
 }
