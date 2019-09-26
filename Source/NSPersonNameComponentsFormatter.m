@@ -175,6 +175,22 @@
           }
       }
       break;
+    case 5:
+      {
+        NSString *first = [[nameArray objectAtIndex: 0] lowercaseString];
+        if([first isEqualToString: @"mr."] ||
+           [first isEqualToString: @"ms."] ||
+           [first isEqualToString: @"mrs."] ||
+           [first isEqualToString: @"dr."])
+          {
+            [pnc setNamePrefix: [nameArray objectAtIndex: 0]];
+            [pnc setGivenName:  [nameArray objectAtIndex: 1]];
+            [pnc setMiddleName: [nameArray objectAtIndex: 2]];
+            [pnc setFamilyName: [nameArray objectAtIndex: 3]];
+            [pnc setNameSuffix: [nameArray objectAtIndex: 4]];
+          }
+      }
+      break;
     default:
       NSLog(@"Not sure how to parse %@", string);
       pnc = nil;
