@@ -189,6 +189,7 @@ GSSocksParser/GSSocksParserPrivate.m \
 GSSocksParser/GSSocks4Parser.m \
 GSSocksParser/GSSocks5Parser.m \
 NSAffineTransform.m \
+NSAppleScript.m \
 NSArchiver.m \
 NSArray.m \
 NSAssertionHandler.m \
@@ -381,6 +382,7 @@ FOUNDATION_HEADERS = \
 Foundation.h \
 FoundationErrors.h \
 NSAffineTransform.h \
+NSAppleScript.h \
 NSArchiver.h \
 NSArray.h \
 NSAttributedString.h \
