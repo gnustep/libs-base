@@ -156,10 +156,10 @@
     case 4:
       {
         NSString *first = [[nameArray objectAtIndex: 0] lowercaseString];
-        if([first isEqualToString: @"mr"] ||
-           [first isEqualToString: @"ms"] ||
-           [first isEqualToString: @"mrs"] ||
-           [first isEqualToString: @"dr"])
+        if([first isEqualToString: @"mr."] ||
+           [first isEqualToString: @"ms."] ||
+           [first isEqualToString: @"mrs."] ||
+           [first isEqualToString: @"dr."])
           {
             [pnc setNamePrefix: [nameArray objectAtIndex: 0]];
             [pnc setGivenName: [nameArray objectAtIndex: 1]];
@@ -169,8 +169,8 @@
         else
           {
             [pnc setGivenName: [nameArray objectAtIndex: 0]];
-            [pnc setFamilyName: [nameArray objectAtIndex: 1]];
-            [pnc setMiddleName: [nameArray objectAtIndex: 2]];
+            [pnc setMiddleName: [nameArray objectAtIndex: 1]];
+            [pnc setFamilyName: [nameArray objectAtIndex: 2]];
             [pnc setNameSuffix: [nameArray objectAtIndex: 3]];
           }
       }
