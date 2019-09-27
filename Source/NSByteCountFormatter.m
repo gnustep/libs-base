@@ -70,8 +70,7 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 - (NSString *)stringForObjectValue: (id)obj
 {
   long long byteCount = [obj longLongValue];
-  return [[self class] stringFromByteCount: byteCount
-                                countStyle: NSByteCountFormatterUseDefault];
+  return [self stringFromByteCount: byteCount];
 }
 
 - (NSByteCountFormatterUnits) _adaptiveSettings: (double)byteCount
