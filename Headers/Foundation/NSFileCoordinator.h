@@ -74,13 +74,8 @@ DEFINE_BLOCK_TYPE(GSBatchAccessorCompositeBlock, void, GSBatchAccessorCompletion
 
 @interface NSFileCoordinator : NSObject
 {
-  id _accessArbiter;
-  id _fileReactor;
   id _purposeIdentifier;
-  NSURL *_recentFilePresenterURL;
-  id _accessClaimIDOrIDs;
   BOOL _isCancelled;
-  NSMutableDictionary *_movedItems;
 }
 
 + (NSArray *) filePresenters;

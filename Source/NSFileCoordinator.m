@@ -29,9 +29,12 @@
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSFilePresenter.h>
 #import <Foundation/NSOperation.h>
+#import <Foundation/NSString.h>
 
 static NSMutableArray *__presenters = nil;
 static NSMutableDictionary *__presenterMap = nil;
+static unsigned int __pid = 0;
+static NSMutableDictionary *__presenterIdDict = nil;
 
 @implementation NSFileAccessIntent
 - (instancetype) init
@@ -80,6 +83,7 @@ static NSMutableDictionary *__presenterMap = nil;
     {
       __presenters = [[NSMutableArray alloc] init];
       __presenterMap = [[NSMutableDictionary alloc] init];
+      __presenterIdDict = [[NSMutableDictionary alloc] init];
     }
 }
 
@@ -92,12 +96,29 @@ static NSMutableDictionary *__presenterMap = nil;
 {
   [__presenters addObject: presenter];
   [__presenterMap setObject: presenter forKey: [presenter presentedItemURL]];
+  [__presenterIdDict setObject: presenter forKey: [presenter purposeIdentifier]];
 }
 
 + (void) removeFilePresenter: (id)presenter
 {
   [__presenters removeObject: presenter];
   [__presenterMap removeObjectForKey: [presenter presentedItemURL]];
+  [__presenterIdDict removeObjectForKey: [presenter purposeIdentifier]];
+}
+
+- (instancetype) init
+{
+  self = [super init];
+  if(self != nil)
+    {
+      NSString *p = nil;
+
+      __pid++;
+      p = [NSString stringWithFormat: @"%d",__pid];
+      _purposeIdentifier = RETAIN(p);
+      _isCancelled = NO;
+    }
+  return self;
 }
 
 - (NSString *) purposeIdentifier
@@ -120,6 +141,7 @@ static NSMutableDictionary *__presenterMap = nil;
       NSOperationQueue *q = [o presentedItemOperationQueue];
       [q cancelAllOperations];
     }
+  _isCancelled = YES;
 }
 
 - (void)coordinateAccessWithIntents: (NSArray *)intents
