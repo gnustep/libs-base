@@ -224,14 +224,20 @@ static NSMutableDictionary *__presenterMap = nil;
 
 - (void)itemAtURL: (NSURL *)oldURL didMoveToURL: (NSURL *)newURL
 {
+  id<NSFilePresenter> presenter = [__presenterMap objectForKey: oldURL];
+  [presenter presentedItemDidMoveToURL: newURL];
 }
 
 - (void)itemAtURL: (NSURL *)oldURL willMoveToURL: (NSURL *)newURL 
 {
+  id<NSFilePresenter> presenter = [__presenterMap objectForKey: oldURL];
+  [presenter presentedItemDidChange];
 }
 
 - (void)itemAtURL: (NSURL *)url didChangeUbiquityAttributes: (NSSet *)attributes
 {
+  id<NSFilePresenter> presenter = [__presenterMap objectForKey: url];
+  [presenter presentedItemDidChangeUbiquityAttributes: attributes];
 }
 
 - (void)prepareForReadingItemsAtURLs: (NSArray *)readingURLs
