@@ -142,14 +142,14 @@
            [first isEqualToString: @"dr"])
           {
             [pnc setNamePrefix: [nameArray objectAtIndex: 0]];
-            [pnc setGivenName: [nameArray objectAtIndex: 1]];
+            [pnc setGivenName:  [nameArray objectAtIndex: 1]];
             [pnc setFamilyName: [nameArray objectAtIndex: 2]];
           }
         else
           {
-            [pnc setGivenName: [nameArray objectAtIndex: 0]];
-            [pnc setFamilyName: [nameArray objectAtIndex: 1]];
-            [pnc setNameSuffix: [nameArray objectAtIndex: 2]];
+            [pnc setGivenName:  [nameArray objectAtIndex: 0]];
+            [pnc setMiddleName: [nameArray objectAtIndex: 1]];
+            [pnc setFamilyName: [nameArray objectAtIndex: 2]];
           }
       }
       break;
@@ -162,13 +162,13 @@
            [first isEqualToString: @"dr."])
           {
             [pnc setNamePrefix: [nameArray objectAtIndex: 0]];
-            [pnc setGivenName: [nameArray objectAtIndex: 1]];
+            [pnc setGivenName:  [nameArray objectAtIndex: 1]];
             [pnc setMiddleName: [nameArray objectAtIndex: 2]];
             [pnc setFamilyName: [nameArray objectAtIndex: 3]];
           }
         else
           {
-            [pnc setGivenName: [nameArray objectAtIndex: 0]];
+            [pnc setGivenName:  [nameArray objectAtIndex: 0]];
             [pnc setMiddleName: [nameArray objectAtIndex: 1]];
             [pnc setFamilyName: [nameArray objectAtIndex: 2]];
             [pnc setNameSuffix: [nameArray objectAtIndex: 3]];
