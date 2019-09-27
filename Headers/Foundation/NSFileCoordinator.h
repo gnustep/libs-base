@@ -69,8 +69,8 @@ DEFINE_BLOCK_TYPE(GSNoEscapeReadWriteHandler, void, NSURL*, NSURL*);
 DEFINE_BLOCK_TYPE(GSNoEscapeNewURLHandler, void, NSURL*);
 DEFINE_BLOCK_TYPE(GSAccessorCallbackHandler, void, NSError*);
 DEFINE_BLOCK_TYPE(GSDualWriteURLCallbackHandler, void, NSURL*, NSURL*);
-DEFINE_BLOCK_TYPE_NO_ARGS(GSBatchAccessorHandler, void);
-DEFINE_BLOCK_TYPE(GSAccessorHandlerBlock, void, GSBatchAccessorHandler);
+DEFINE_BLOCK_TYPE_NO_ARGS(GSBatchAccessorCompletionHandler, void);
+DEFINE_BLOCK_TYPE(GSBatchAccessorCompositeBlock, void, GSBatchAccessorCompletionHandler);
 
 @interface NSFileCoordinator : NSObject
 {
@@ -129,7 +129,7 @@ DEFINE_BLOCK_TYPE(GSAccessorHandlerBlock, void, GSBatchAccessorHandler);
                   writingItemsAtURLs: (NSArray *)writingURLs
                              options: (NSFileCoordinatorWritingOptions)writingOptions
                                error: (NSError **)outError
-                          byAccessor: (GSAccessorHandlerBlock)batchAccessor;                 
+                          byAccessor: (GSBatchAccessorCompositeBlock)batchAccessor;                 
 @end
  
 #endif

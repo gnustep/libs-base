@@ -231,7 +231,7 @@ static NSMutableDictionary *__presenterMap = nil;
 - (void)itemAtURL: (NSURL *)oldURL willMoveToURL: (NSURL *)newURL 
 {
   id<NSFilePresenter> presenter = [__presenterMap objectForKey: oldURL];
-  [presenter presentedItemDidChange];
+  [presenter presentedItemDidChange]; // there is no "Will" method for this, so I am a bit perplexed.
 }
 
 - (void)itemAtURL: (NSURL *)url didChangeUbiquityAttributes: (NSSet *)attributes
@@ -245,8 +245,22 @@ static NSMutableDictionary *__presenterMap = nil;
                   writingItemsAtURLs: (NSArray *)writingURLs
                              options: (NSFileCoordinatorWritingOptions)writingOptions
                                error: (NSError **)outError
-                          byAccessor: (GSAccessorHandlerBlock)batchAccessor
+                          byAccessor: (GSBatchAccessorCompositeBlock)batchAccessor
 {
+   if(readingOptions == 0L)
+    {
+      NSEnumerator *en = [readingURLs objectEnumerator];
+      NSURL *aurl = nil;
+      while((aurl = [en nextObject]) != nil)
+        { 
+          id<NSFilePresenter> p = [__presenterMap objectForKey: aurl];
+          if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
+            {
+              [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+            }
+        }
+    }
+   // CALL_BLOCK(batchAccessor, batchAccessor.argTys[0]); // NOT SURE HOW TO CALL COMPOSITE BLOCK
 }
 
 @end
