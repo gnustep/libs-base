@@ -97,6 +97,7 @@ static NSMutableDictionary *__presenterMap = nil;
 + (void) removeFilePresenter: (id)presenter
 {
   [__presenters removeObject: presenter];
+  [__presenterMap removeObjectForKey: [presenter presentedItemURL]];
 }
 
 - (NSString *) purposeIdentifier
