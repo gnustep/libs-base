@@ -451,14 +451,13 @@ static NSMutableDictionary *__subscribers = nil;
 + (id)addSubscriberForFileURL: (NSURL *)url 
         withPublishingHandler: (NSProgressPublishingHandler)publishingHandler
 {
-  // There is no acceptable description of this method in the documentation.
+  // [__subscribers addObject: publishingHandler forObject: url];
   return nil;
 }
 
 + (void) removeSubscriber: (id)subscriber
 {
-  // There is no acceptable description of this method in the documentation.
-  return;
+  // [__subscribers removeObject: subscriber];
 }
   
 @end
