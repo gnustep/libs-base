@@ -17,46 +17,21 @@ Missing headers:
 	<NSAppleEventDescriptor.h>
 	<NSAppleEventManager.h>
 	<NSAppleScript.h>
-	<NSFileCoordinator.h>
-	<NSFilePresenter.h>
-	<NSFileVersion.h>
 	<NSHFSFileTypes.h>
 	<NSLinguisticTagger.h>
 	<NSObjectScripting.h>
 	<NSOrthography.h>
-	<NSScriptClassDescription.h>
-	<NSScriptCoercionHandler.h>
-	<NSScriptCommand.h>
-	<NSScriptCommandDescription.h>
-	<NSScriptExecutionContext.h>
-	<NSScriptKeyValueCoding.h>
-	<NSScriptObjectSpecifiers.h>
-	<NSScriptStandardSuiteCommands.h>
-	<NSScriptSuiteRegistry.h>>
-	<NSUserNotification.h>
 	<NSUserScriptTask.h>
 	<NSXPCConnection.h>
 -------------------------------------------------------------
 Foundation:
 	<NSOrthography.h>
-	<NSFileCoordinator.h>
-	<NSFilePresenter.h>
-	<NSFileVersion.h>
 	<NSLinguisticTagger.h>
 	<NSAppleEventDescriptor.h>
 	<NSAppleEventManager.h>
 	<NSAppleScript.h>
 	<NSHFSFileTypes.h>
 	<NSObjectScripting.h>
-	<NSScriptClassDescription.h>
-	<NSScriptCoercionHandler.h>
-	<NSScriptCommand.h>
-	<NSScriptCommandDescription.h>
-	<NSScriptExecutionContext.h>
-	<NSScriptKeyValueCoding.h>
-	<NSScriptObjectSpecifiers.h>
-	<NSScriptStandardSuiteCommands.h>
-	<NSScriptSuiteRegistry.h>
 	<NSUserScriptTask.h>
 	<NSXPCConnection.h>
 -------------------------------------------------------------

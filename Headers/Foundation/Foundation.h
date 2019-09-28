@@ -37,6 +37,7 @@
 #import	<Foundation/NSObject.h>
 
 #import	<Foundation/NSAffineTransform.h>
+#import <Foundation/NSAppleScript.h>
 #import	<Foundation/NSArchiver.h>
 #import	<Foundation/NSArray.h>
 #import	<Foundation/NSAttributedString.h>
@@ -98,6 +99,8 @@
 #import	<Foundation/NSOperation.h>
 #import <Foundation/NSOrderedSet.h>
 #import	<Foundation/NSPathUtilities.h>
+#import <Foundation/NSPersonNameComponents.h>
+#import <Foundation/NSPersonNameComponentsFormatter.h>
 #import	<Foundation/NSPointerArray.h>
 #import	<Foundation/NSPointerFunctions.h>
 #import	<Foundation/NSPortCoder.h>
@@ -112,6 +115,15 @@
 #import	<Foundation/NSRegularExpression.h>
 #import	<Foundation/NSRunLoop.h>
 #import	<Foundation/NSScanner.h>
+#import <Foundation/NSScriptClassDescription.h>
+#import <Foundation/NSScriptCoercionHandler.h>
+#import <Foundation/NSScriptCommand.h>
+#import <Foundation/NSScriptCommandDescription.h>
+#import <Foundation/NSScriptExecutionContext.h>
+#import <Foundation/NSScriptKeyValueCoding.h>
+#import <Foundation/NSScriptObjectSpecifiers.h>
+#import <Foundation/NSScriptStandardSuiteCommands.h>
+#import <Foundation/NSScriptSuiteRegistry.h>
 #import	<Foundation/NSScriptWhoseTests.h>
 #import	<Foundation/NSSerialization.h>
 #import	<Foundation/NSSet.h>

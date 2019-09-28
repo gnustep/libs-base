@@ -189,6 +189,7 @@ GSSocksParser/GSSocksParserPrivate.m \
 GSSocksParser/GSSocks4Parser.m \
 GSSocksParser/GSSocks5Parser.m \
 NSAffineTransform.m \
+NSAppleScript.m \
 NSArchiver.m \
 NSArray.m \
 NSAssertionHandler.m \
@@ -262,6 +263,8 @@ NSOperation.m \
 NSOrderedSet.m \
 NSPage.m \
 NSPathUtilities.m \
+NSPersonNameComponents.m \
+NSPersonNameComponentsFormatter.m \
 NSPipe.m \
 NSPointerArray.m \
 NSPointerFunctions.m \
@@ -280,6 +283,16 @@ NSRange.m \
 NSRegularExpression.m\
 NSRunLoop.m \
 NSScanner.m \
+NSScriptClassDescription.m \
+NSScriptCoercionHandler.m \
+NSScriptCommand.m \
+NSScriptCommandDescription.m \
+NSScriptExecutionContext.m \
+NSScriptKeyValueCoding.m \
+NSScriptObjectSpecifiers.m \
+NSScriptStandardSuiteCommands.m \
+NSScriptSuiteRegistry.m \
+NSUserScriptTask.m \
 NSSerializer.m \
 NSSet.m \
 NSSocketPort.m \
@@ -369,6 +382,7 @@ FOUNDATION_HEADERS = \
 Foundation.h \
 FoundationErrors.h \
 NSAffineTransform.h \
+NSAppleScript.h \
 NSArchiver.h \
 NSArray.h \
 NSAttributedString.h \
@@ -436,6 +450,8 @@ NSObject.h \
 NSOperation.h \
 NSOrderedSet.h \
 NSPathUtilities.h \
+NSPersonNameComponents.h \
+NSPersonNameComponentsFormatter.h \
 NSPointerArray.h \
 NSPointerFunctions.h \
 NSPortCoder.h \
@@ -452,6 +468,16 @@ NSRange.h \
 NSRegularExpression.h\
 NSRunLoop.h \
 NSScanner.h \
+NSScriptClassDescription.h \
+NSScriptCoercionHandler.h \
+NSScriptCommand.h \
+NSScriptCommandDescription.h \
+NSScriptExecutionContext.h \
+NSScriptKeyValueCoding.h \
+NSScriptObjectSpecifiers.h \
+NSScriptStandardSuiteCommands.h \
+NSScriptSuiteRegistry.h \
+NSUserScriptTask.h \
 NSScriptWhoseTests.h \
 NSSerialization.h \
 NSSet.h \
