@@ -16,12 +16,10 @@ Missing macros:
 Missing headers:
 	<NSAppleEventDescriptor.h>
 	<NSAppleEventManager.h>
-	<NSAppleScript.h>
 	<NSHFSFileTypes.h>
 	<NSLinguisticTagger.h>
 	<NSObjectScripting.h>
 	<NSOrthography.h>
-	<NSUserScriptTask.h>
 	<NSXPCConnection.h>
 -------------------------------------------------------------
 Foundation:
@@ -29,10 +27,8 @@ Foundation:
 	<NSLinguisticTagger.h>
 	<NSAppleEventDescriptor.h>
 	<NSAppleEventManager.h>
-	<NSAppleScript.h>
 	<NSHFSFileTypes.h>
 	<NSObjectScripting.h>
-	<NSUserScriptTask.h>
 	<NSXPCConnection.h>
 -------------------------------------------------------------
 FoundationErrors:
@@ -50,10 +46,6 @@ FoundationErrors:
     NSXPCConnectionReplyInvalid
     NSXPCConnectionErrorMinimum
     NSXPCConnectionErrorMaximum
--------------------------------------------------------------
-NSArchiver:
-	- encodeRootObject:
-	- encodeConditionalObject:
 -------------------------------------------------------------
 NSAttributedString:
 	NSAttributedStringEnumerationReverse
