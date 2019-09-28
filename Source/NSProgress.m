@@ -34,6 +34,7 @@
   NSNumber *_throughput; \
   int64_t _totalUnitCount; \
   int64_t _completedUnitCount; \
+  double _fractionCompleted; \
   NSMutableDictionary *_userInfo; \
   BOOL _cancelled; \
   BOOL _paused; \
@@ -189,7 +190,6 @@ static NSMutableDictionary *__subscribers = nil;
 {
   int64_t completed = [__currentProgress completedUnitCount];
   [__currentProgress setCompletedUnitCount: completed + [self totalUnitCount]];
-  __currentProgress = nil;
 }
 
 // Reporting progress
@@ -211,6 +211,16 @@ static NSMutableDictionary *__subscribers = nil;
 - (void) setCompletedUnitCount: (int64_t)count
 {
   internal->_completedUnitCount = count;
+  [self willChangeValueForKey: @"fractionCompleted"];
+  internal->_fractionCompleted = (double)((double)internal->_completedUnitCount
+                                         / (double)internal->_totalUnitCount);
+  if(internal->_fractionCompleted >= 1)
+    {
+      internal->_finished = YES;
+    }
+  [self didChangeValueForKey: @"fractionCompleted"];
+
+  __currentProgress = nil;
 }
 
 - (NSString *) localizedDescription
