@@ -325,9 +325,7 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setIndeterminate: (BOOL)flag
 {
-  [self willChangeValueForKey: @"indeterminate"];
   internal->_indeterminate = flag;
-  [self didChangeValueForKey: @"indeterminate"];
 }
 
 - (NSProgressKind) kind
@@ -337,9 +335,7 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setKind: (NSProgressKind)k
 {
-  [self willChangeValueForKey: @"kind"];
   ASSIGN(internal->_kind, k);
-  [self didChangeValueForKey: @"kind"];
 }
 
 - (void)setUserInfoObject: (id)obj
@@ -351,9 +347,7 @@ static NSMutableDictionary *__subscribers = nil;
 // Instance property accessors...
 - (void) setFileOperationKind: (NSProgressFileOperationKind)k;
 {
-  [self willChangeValueForKey: @"fileOperationKind"];
   ASSIGN(internal->_fileOperationKind, k);
-  [self didChangeValueForKey: @"fileOperationKind"];
 }
 
 - (NSProgressFileOperationKind) fileOperationKind
@@ -363,9 +357,7 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setFileUrl: (NSURL *)u
 {
-  [self willChangeValueForKey: @"fileUrl"];
   ASSIGN(internal->_fileUrl, u);
-  [self didChangeValueForKey: @"fileUrl"];
 }
 
 - (NSURL*) fileUrl
@@ -395,9 +387,7 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setEstimatedTimeRemaining: (NSNumber *)n
 {
-  [self willChangeValueForKey: @"estimatedTimeRemaining"];
   ASSIGNCOPY(internal->_estimatedTimeRemaining, n);
-  [self didChangeValueForKey: @"estimatedTimeRemaining"];
 }
 
 - (NSNumber *) estimatedTimeRemaining
@@ -417,9 +407,7 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setFileTotalCount: (NSNumber *)n
 {
-  [self willChangeValueForKey: @"fileTotalCount"];
   ASSIGNCOPY(internal->_fileTotalCount, n);
-  [self didChangeValueForKey: @"fileTotalCount"];
 }
 
 - (NSNumber *) fileTotalCount
@@ -429,9 +417,7 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setThroughput: (NSNumber *)n
 {
-  [self willChangeValueForKey: @"throughput"];
   ASSIGNCOPY(internal->_throughput, n);
-  [self didChangeValueForKey: @"throughput"];
 }
 
 - (NSNumber *) throughtput
