@@ -14,22 +14,63 @@ Missing macros:
 	NS_AVAILABLE_IOS
 
 Missing headers:
-	<NSAppleEventDescriptor.h>
-	<NSAppleEventManager.h>
-	<NSHFSFileTypes.h>
-	<NSLinguisticTagger.h>
-	<NSObjectScripting.h>
-	<NSOrthography.h>
-	<NSXPCConnection.h>
+==
+FoundationLegacySwiftCompatibility.h
+NSAppleEventDescriptor.h
+NSAppleEventManager.h
+NSBackgroundActivityScheduler.h
+NSDateComponentsFormatter.h
+NSDateIntervalFormatter.h
+NSDateInterval.h
+NSEnergyFormatter.h
+NSExtensionContext.h
+NSExtensionItem.h
+NSExtensionRequestHandling.h
+NSHFSFileTypes.h
+NSISO8601DateFormatter.h
+NSItemProvider.h
+NSItemProviderReadingWriting.h
+NSLengthFormatter.h
+NSLinguisticTagger.h
+NSMassFormatter.h
+NSMeasurementFormatter.h
+NSMeasurement.h
+NSMetadataAttributes.h
+NSObjectScripting.h
+NSOrthography.h
+NSUnit.h
+NSUserActivity.h
+NSXPCConnection.h
 -------------------------------------------------------------
 Foundation:
-	<NSOrthography.h>
-	<NSLinguisticTagger.h>
-	<NSAppleEventDescriptor.h>
-	<NSAppleEventManager.h>
-	<NSHFSFileTypes.h>
-	<NSObjectScripting.h>
-	<NSXPCConnection.h>
+==
+FoundationLegacySwiftCompatibility.h
+NSAppleEventDescriptor.h
+NSAppleEventManager.h
+NSBackgroundActivityScheduler.h
+NSDateComponentsFormatter.h
+NSDateIntervalFormatter.h
+NSDateInterval.h
+NSEnergyFormatter.h
+NSExtensionContext.h
+NSExtensionItem.h
+NSExtensionRequestHandling.h
+NSHFSFileTypes.h
+NSISO8601DateFormatter.h
+NSItemProvider.h
+NSItemProviderReadingWriting.h
+NSLengthFormatter.h
+NSLinguisticTagger.h
+NSMassFormatter.h
+NSMeasurementFormatter.h
+NSMeasurement.h
+NSMetadataAttributes.h
+NSObjectScripting.h
+NSOrthography.h
+NSUnit.h
+NSUserActivity.h
+NSXPCConnection.h
+
 -------------------------------------------------------------
 FoundationErrors:
 	NSFileWriteFileExistsError
