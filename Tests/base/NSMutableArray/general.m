@@ -104,7 +104,7 @@ int main()
     NSString	*s[5] = { @"1",@"2",@"3",@"4",@"5" };
     NSUInteger	before;
     NSUInteger	after;
-    inr		i;
+    int		i;
 
     for (i = 0; i < 5; i++)
       {
