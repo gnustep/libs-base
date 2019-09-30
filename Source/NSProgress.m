@@ -216,7 +216,9 @@ static NSMutableDictionary *__subscribers = nil;
                                          / (double)internal->_totalUnitCount);
   if(internal->_fractionCompleted >= 1)
     {
+      [self willChangeValueForKey: @"finished"];
       internal->_finished = YES;
+      [self didChangeValueForKey: @"finished"];
     }
   [self didChangeValueForKey: @"fractionCompleted"];
 
@@ -246,8 +248,7 @@ static NSMutableDictionary *__subscribers = nil;
 // Observing progress
 - (double) fractionCompleted
 {
-  return (double)((double)internal->_completedUnitCount
-    / (double)internal->_totalUnitCount); 
+  return internal->_fractionCompleted;
 }
 
 // Controlling progress
