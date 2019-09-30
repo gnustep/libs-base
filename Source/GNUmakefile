@@ -248,6 +248,9 @@ NSLocale.m \
 NSLock.m \
 NSLog.m \
 NSMapTable.m \
+NSMassFormatter.m \
+NSMeasurementFormatter.m \
+NSMeasurement.m \
 NSMetadata.m \
 NSMethodSignature.m \
 NSNotification.m \
@@ -292,6 +295,7 @@ NSScriptKeyValueCoding.m \
 NSScriptObjectSpecifiers.m \
 NSScriptStandardSuiteCommands.m \
 NSScriptSuiteRegistry.m \
+NSUnit.m \
 NSUserScriptTask.m \
 NSSerializer.m \
 NSSet.m \
@@ -438,6 +442,9 @@ NSKeyValueObserving.h \
 NSLocale.h \
 NSLock.h \
 NSMapTable.h \
+NSMassFormatter.h \
+NSMeasurementFormatter.h \
+NSMeasurement.h \
 NSMetadata.h \
 NSMethodSignature.h \
 NSNetServices.h \
@@ -477,6 +484,7 @@ NSScriptKeyValueCoding.h \
 NSScriptObjectSpecifiers.h \
 NSScriptStandardSuiteCommands.h \
 NSScriptSuiteRegistry.h \
+NSUnit.h \
 NSUserScriptTask.h \
 NSScriptWhoseTests.h \
 NSSerialization.h \
