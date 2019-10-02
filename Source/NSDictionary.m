@@ -1350,7 +1350,14 @@ compareIt(id o1, id o2, void* context)
 
 - (void) setObject: (id)anObject forKeyedSubscript: (id)aKey
 {
-  [self setObject: anObject forKey: aKey];
+  if (anObject == nil)
+    {
+      [self removeObjectForKey: aKey];
+    }
+  else
+    {
+      [self setObject: anObject forKey: aKey]; 
+    }
 }
 
 /**
