@@ -66,11 +66,28 @@
 
 - (id) initWithCoder: (NSCoder *)coder
 {
-  return nil;
+  if([coder allowsKeyedCoding])
+    {
+      _coefficient = [coder decodeDoubleForKey: @"coefficient"];
+      _constant = [coder decodeDoubleForKey: @"constant"];      
+    }
+  else
+    {
+      [coder decodeValueOfObjCType: @encode(double) at: &_coefficient];
+      [coder decodeValueOfObjCType: @encode(double) at: &_constant];
+    }
+  return self;
 }
 
 - (void) encodeWithCoder: (NSCoder *)coder
 {
+  if([coder allowsKeyedCoding])
+    {
+
+    }
+  else
+    {
+    }
 }
 
 - (double) coefficient
@@ -146,5 +163,26 @@
 {
   return _symbol;
 }
+@end
+
+
+// Dimension using units....
+@implementation NSDimension
+
+- (NSUnitConverter *) converter
+{
+  return _converter;
+}
+
+- (instancetype) initWithSymbol: (NSString *)symbol converter: (NSUnitConverter *) converter
+{
+  return nil;
+}
+
++ (instancetype) baseUnit
+{
+  return nil;
+}
+
 @end
 

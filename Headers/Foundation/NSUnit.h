@@ -34,25 +34,26 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
 
+// Unit converter
 @interface NSUnitConverter : NSObject
 - (double)baseUnitValueFromValue:(double)value;
 - (double)valueFromBaseUnitValue:(double)baseUnitValue;
 @end
 
+// Linea converter... for things like C <-> F conversion...
 @interface NSUnitConverterLinear : NSUnitConverter <NSCoding>
 {
   double _coefficient;
   double _constant;
 }
-
 - (instancetype) initWithCoefficient: (double)coefficient;
 - (instancetype) initWithCoefficient: (double)coefficient
                             constant: (double)constant;
-
 - (double) coefficient;
 - (double) constant;
 @end
 
+// Units...  abstract...
 @interface NSUnit : NSObject <NSCopying, NSCoding>
 {
   NSString *_symbol;
@@ -65,6 +66,18 @@ extern "C" {
 
 @end
 
+// Dimension using units....
+@interface NSDimension : NSUnit <NSCoding>
+{
+    NSUInteger _reserved;
+    NSUnitConverter *_converter;
+}
+
+- (NSUnitConverter *) converter;
+- (instancetype) initWithSymbol: (NSString *)symbol converter: (NSUnitConverter *) converter ;
++ (instancetype) baseUnit;
+
+@end
 
 
 #if	defined(__cplusplus)
