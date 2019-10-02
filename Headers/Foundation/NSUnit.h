@@ -39,7 +39,20 @@ extern "C" {
 - (double)valueFromBaseUnitValue:(double)baseUnitValue;
 @end
 
-  
+@interface NSUnitConverterLinear : NSUnitConverter <NSCoding>
+{
+  double _coefficient;
+  double _constant;
+}
+
+- (instancetype) initWithCoefficient: (double)coefficient;
+- (instancetype) initWithCoefficient: (double)coefficient
+                            constant: (double)constant;
+
+- (double) coefficient;
+- (double) constant;
+@end
+
 @interface NSUnit : NSObject <NSCopying, NSCoding>
 {
   NSString *_symbol;

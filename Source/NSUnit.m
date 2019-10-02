@@ -38,8 +38,54 @@
 }
 @end
 
+
+@implementation NSUnitConverterLinear 
+
+- (instancetype) initWithCoefficient: (double)coefficient
+{
+  self = [super init];
+  if(self != nil)
+    {
+      _coefficient = coefficient;
+      _constant = 0.0;
+    }
+  return self;
+}
+
+- (instancetype) initWithCoefficient: (double)coefficient
+                            constant: (double)constant
+{
+  self = [super init];
+  if(self != nil)
+    {
+      _coefficient = coefficient;
+      _constant = constant;
+    }
+  return self;
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  return nil;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+}
+
+- (double) coefficient
+{
+  return _coefficient;
+}
+
+- (double) constant
+{
+  return _constant;
+}
+@end
+
+
 @implementation NSUnit
-  
 + (instancetype)new
 {
   return [[self alloc] init];
@@ -100,6 +146,5 @@
 {
   return _symbol;
 }
-
 @end
 
