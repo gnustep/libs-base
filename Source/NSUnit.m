@@ -24,7 +24,9 @@
 
 #include <Foundation/NSUnit.h>
 #include <Foundation/NSArchiver.h>
+#include <Foundation/NSKeyedArchiver.h>
 
+// Abstract conversion...
 @implementation NSUnitConverter
 - (double)baseUnitValueFromValue:(double)value
 {
@@ -37,9 +39,8 @@
 }
 @end
 
-
+// Linear conversion...
 @implementation NSUnitConverterLinear 
-
 - (instancetype) initWithCoefficient: (double)coefficient
 {
   self = [super init];
@@ -103,7 +104,7 @@
 }
 @end
 
-
+// Abstract unit...
 @implementation NSUnit
 + (instancetype)new
 {
@@ -170,7 +171,6 @@
 
 // Dimension using units....
 @implementation NSDimension
-
 - (NSUnitConverter *) converter
 {
   return _converter;
@@ -185,6 +185,5 @@
 {
   return nil;
 }
-
 @end
 
