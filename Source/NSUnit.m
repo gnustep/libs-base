@@ -27,5 +27,67 @@
 
 @implementation NSUnit
 
+  
++ (instancetype)new
+{
+  return [[self alloc] init];
+}
+           
+- (instancetype)init
+{
+  self = [super init];
+  if(self != nil)
+    {
+      ASSIGNCOPY(_symbol, @"");
+    }
+  return self;
+}
+          
+- (instancetype)initWithSymbol:(NSString *)symbol
+{
+  self = [super init];
+  if(self != nil)
+    {
+      ASSIGNCOPY(_symbol, symbol);
+    }
+  return self;
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  if([coder allowsKeyedCoding])
+    {
+      _symbol = [coder decodeObjectRorKey: @"symbol"];
+    }
+  else
+    {
+      _symbol = [coder decodeObject];
+    }
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if([coder allowsKeyedCoding])
+    {
+      [coder encodeObject: _symbol forKey: @"coder"];
+    }
+  else
+    {
+      [coder encodeObject: _symbol];
+    }
+}
+
+- (instancetype) copyWithZone: (NSZone *)zone
+{
+  NSUnit *u = [[NSUnit allocWithZone: zone] initWithSymbol: [self symbol]];
+  return u;
+}
+
+- (NSString *)symbol
+{
+  return _symbol;
+}
+
 @end
 

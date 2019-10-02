@@ -32,11 +32,21 @@
 extern "C" {
 #endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
 
-@interface NSUnit : NSObject
+@interface NSUnit : NSObject <NSCopying, NSCoding>
+{
+  NSString *_symbol;
+}
+  
++ (instancetype)new;
+- (instancetype)init;
+- (instancetype)initWithSymbol:(NSString *)symbol;
+- (NSString *)symbol;
 
 @end
+
+
 
 #if	defined(__cplusplus)
 }
