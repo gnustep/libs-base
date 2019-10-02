@@ -24,9 +24,21 @@
 */
 
 #include <Foundation/NSUnit.h>
+#include <Foundation/NSArchiver.h>
+
+@implementation NSUnitConverter
+- (double)baseUnitValueFromValue:(double)value
+{
+  return 0.0;
+}
+
+- (double)valueFromBaseUnitValue:(double)baseUnitValue
+{
+  return 0.0;
+}
+@end
 
 @implementation NSUnit
-
   
 + (instancetype)new
 {
@@ -57,7 +69,7 @@
 {
   if([coder allowsKeyedCoding])
     {
-      _symbol = [coder decodeObjectRorKey: @"symbol"];
+      _symbol = [coder decodeObjectForKey: @"symbol"];
     }
   else
     {

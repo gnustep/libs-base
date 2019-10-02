@@ -34,6 +34,12 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
 
+@interface NSUnitConverter : NSObject
+- (double)baseUnitValueFromValue:(double)value;
+- (double)valueFromBaseUnitValue:(double)baseUnitValue;
+@end
+
+  
 @interface NSUnit : NSObject <NSCopying, NSCoding>
 {
   NSString *_symbol;
