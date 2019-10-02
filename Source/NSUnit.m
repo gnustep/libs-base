@@ -1,4 +1,3 @@
-
 /* Implementation of class NSUnit
    Copyright (C) 2019 Free Software Foundation, Inc.
    
@@ -83,10 +82,13 @@
 {
   if([coder allowsKeyedCoding])
     {
-
+      [coder encodeDouble: _coefficient forKey: @"coefficient"];
+      [coder encodeDouble: _constant forKey: @"constant"];
     }
   else
     {
+      [coder encodeValueOfObjCType: @encode(double) at: &_coefficient];
+      [coder encodeValueOfObjCType: @encode(double) at: &_constant];
     }
 }
 
