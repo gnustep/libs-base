@@ -28,6 +28,12 @@
 
 // Abstract conversion...
 @implementation NSUnitConverter
+- (instancetype) init
+{
+  self = [super init];
+  return self;
+}
+
 - (double)baseUnitValueFromValue:(double)value
 {
   return 0.0;
@@ -178,7 +184,12 @@
 
 - (instancetype) initWithSymbol: (NSString *)symbol converter: (NSUnitConverter *) converter
 {
-  return nil;
+  self = [super initWithSymbol: symbol];
+  if(self != nil)
+    {
+      ASSIGN(_converter, converter);
+    }
+  return self;
 }
 
 + (instancetype) baseUnit
