@@ -200,20 +200,17 @@
 
 
 // Predefined....
-@implementation NSUnitAcceleration 
-/*
- Base unit - metersPerSecondSquared
- */
+@implementation NSUnitAcceleration
 
-
+// Base unit - metersPerSecondSquared
 - (NSUnitAcceleration *) metersPerSecondSquared { return nil; }
 - (NSUnitAcceleration *) gravity { return nil; }
 
 @end
 
 @implementation NSUnitAngle 
-// Base unit - degrees 
 
+// Base unit - degrees 
 - (NSUnitAngle *) degrees { return nil; }
 - (NSUnitAngle *) arcMinutes { return nil; }
 - (NSUnitAngle *) arcSeconds { return nil; }
@@ -224,10 +221,8 @@
 @end
 
 @implementation NSUnitArea 
-/*
- Base unit - squareMeters
- */
 
+// Base unit - squareMeters
 - (NSUnitArea *) squareMegameters { return nil; }
 - (NSUnitArea *) squareKilometers { return nil; }
 - (NSUnitArea *) squareMeters { return nil; }
@@ -246,10 +241,8 @@
 @end
 
 @implementation NSUnitConcentrationMass 
-/*
- Base unit - gramsPerLiter
- */
 
+// Base unit - gramsPerLiter
 - (NSUnitConcentrationMass *) gramsPerLiter { return nil; }
 - (NSUnitConcentrationMass *) milligramsPerDeciliter { return nil; }
 
@@ -258,18 +251,15 @@
 @end
 
 @implementation NSUnitDispersion 
-/*
- Base unit - partsPerMillion
- */
+
+// Base unit - partsPerMillion
 - (NSUnitDispersion *) partsPerMillion { return nil; }
 
 @end
 
 @implementation NSUnitDuration   
-/*
- Base unit - seconds
- */
 
+// Base unit - seconds
 - (NSUnitDuration *) seconds { return nil; }
 - (NSUnitDuration *) minutes { return nil; }
 - (NSUnitDuration *) hours { return nil; }
@@ -277,10 +267,8 @@
 @end
 
 @implementation NSUnitElectricCharge 
-/*
- Base unit - coulombs
- */
 
+// Base unit - coulombs
 - (NSUnitElectricCharge *) coulombs { return nil; }
 - (NSUnitElectricCharge *) megaampereHours { return nil; }
 - (NSUnitElectricCharge *) kiloampereHours { return nil; }
@@ -291,10 +279,8 @@
 @end
 
 @implementation NSUnitElectricCurrent 
-/*
- Base unit - amperes
- */
 
+// Base unit - amperes
 - (NSUnitElectricCurrent *) megaamperes { return nil; }
 - (NSUnitElectricCurrent *) kiloamperes { return nil; }
 - (NSUnitElectricCurrent *) amperes { return nil; }
@@ -304,10 +290,8 @@
 @end
 
 @implementation NSUnitElectricPotentialDifference 
-/*
- Base unit - volts
- */
 
+// Base unit - volts
 - (NSUnitElectricPotentialDifference *) megavolts { return nil; }
 - (NSUnitElectricPotentialDifference *) kilovolts { return nil; }
 - (NSUnitElectricPotentialDifference *) volts { return nil; }
@@ -317,10 +301,8 @@
 @end
 
 @implementation NSUnitElectricResistance 
-/*
- Base unit - ohms
- */
 
+// Base unit - ohms
 - (NSUnitElectricResistance *) megaohms { return nil; }
 - (NSUnitElectricResistance *) kiloohms { return nil; }
 - (NSUnitElectricResistance *) ohms { return nil; }
@@ -330,10 +312,8 @@
 @end
 
 @implementation NSUnitEnergy 
-/*
- Base unit - joules
- */
 
+// Base unit - joules
 - (NSUnitEnergy *) kilojoules { return nil; }
 - (NSUnitEnergy *) joules { return nil; }
 - (NSUnitEnergy *) kilocalories { return nil; }
@@ -343,9 +323,8 @@
 @end
 
 @implementation NSUnitFrequency 
-/*
- Base unit - hertz
- */
+
+// Base unit - hertz
 
 - (NSUnitFrequency *) terahertz { return nil; }
 - (NSUnitFrequency *) gigahertz { return nil; }
@@ -359,9 +338,8 @@
 @end
 
 @implementation NSUnitFuelEfficiency 
-/*
- Base unit - litersPer100Kilometers
- */
+
+// Base unit - litersPer100Kilometers
 
 - (NSUnitFuelEfficiency *) litersPer100Kilometers { return nil; }
 - (NSUnitFuelEfficiency *) milesPerImperialGallon { return nil; }
@@ -370,9 +348,8 @@
 @end
 
 @implementation NSUnitLength 
-/*
- Base unit - meters
- */
+
+// Base unit - meters
 
 - (NSUnitLength *) megameters { return nil; }
 - (NSUnitLength *) kilometers { return nil; }
@@ -400,18 +377,16 @@
 @end
 
 @implementation NSUnitIlluminance 
-/*
- Base unit - lux
- */
+
+// Base unit - lux
 
 - (NSUnitIlluminance *) lux { return nil; }
 
 @end
 
 @implementation NSUnitMass 
-/*
- Base unit - kilograms
- */
+
+// Base unit - kilograms
 
 - (NSUnitMass *) kilograms { return nil; }
 - (NSUnitMass *) grams { return nil; }
@@ -433,9 +408,8 @@
 @end
 
 @implementation NSUnitPower 
-/*
- Base unit - watts
- */
+
+// Base unit - watts
 
 - (NSUnitPower *) terawatts { return nil; }
 - (NSUnitPower *) gigawatts { return nil; }
@@ -451,10 +425,9 @@
 
 @end
 
-@implementation NSUnitPressure 
-/*
- Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
- */
+@implementation NSUnitPressure
+
+// Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
 
 - (NSUnitPressure *) newtonsPerMetersSquared { return nil; }
 - (NSUnitPressure *) gigapascals { return nil; }
@@ -470,10 +443,8 @@
 @end
 
 @implementation NSUnitSpeed 
-/*
- Base unit - metersPerSecond
- */
 
+// Base unit - metersPerSecond
 - (NSUnitSpeed *) metersPerSecond { return nil; }
 - (NSUnitSpeed *) kilometersPerHour { return nil; }
 - (NSUnitSpeed *) milesPerHour { return nil; }
@@ -481,22 +452,18 @@
 
 @end
 
-@implementation NSUnitTemperature 
-/*
- Base unit - kelvin
- */
+@implementation NSUnitTemperature
+
+// Base unit - kelvin
 - (NSUnitTemperature *) kelvin { return nil; }
 - (NSUnitTemperature *) celsius { return nil; } 
 - (NSUnitTemperature *) fahrenheit { return nil; }
 
-
 @end
 
 @implementation NSUnitVolume
-/*
- Base unit - liters
- */
 
+// Base unit - liters
 - (NSUnitVolume *) megaliters { return nil; }
 - (NSUnitVolume *) kiloliters { return nil; }
 - (NSUnitVolume *) liters { return nil; }
