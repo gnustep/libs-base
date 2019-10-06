@@ -84,8 +84,8 @@ extern "C" {
  Base unit - metersPerSecondSquared
  */
 
-- (NSUnitAcceleration *) metersPerSecondSquared;
-- (NSUnitAcceleration *) gravity;
++ (NSUnitAcceleration *) metersPerSecondSquared;
++ (NSUnitAcceleration *) gravity;
 
 @end
 
@@ -94,12 +94,12 @@ extern "C" {
  Base unit - degrees
  */
 
-- (NSUnitAngle *) degrees;
-- (NSUnitAngle *) arcMinutes;
-- (NSUnitAngle *) arcSeconds;
-- (NSUnitAngle *) radians;
-- (NSUnitAngle *) gradians;
-- (NSUnitAngle *) revolutions;
++ (NSUnitAngle *) degrees;
++ (NSUnitAngle *) arcMinutes;
++ (NSUnitAngle *) arcSeconds;
++ (NSUnitAngle *) radians;
++ (NSUnitAngle *) gradians;
++ (NSUnitAngle *) revolutions;
 
 @end
 
@@ -108,20 +108,20 @@ extern "C" {
  Base unit - squareMeters
  */
 
-- (NSUnitArea *) squareMegameters;
-- (NSUnitArea *) squareKilometers;
-- (NSUnitArea *) squareMeters;
-- (NSUnitArea *) squareCentimeters;
-- (NSUnitArea *) squareMillimeters;
-- (NSUnitArea *) squareMicrometers;
-- (NSUnitArea *) squareNanometers;
-- (NSUnitArea *) squareInches;
-- (NSUnitArea *) squareFeet;
-- (NSUnitArea *) squareYards;
-- (NSUnitArea *) squareMiles;
-- (NSUnitArea *) acres;
-- (NSUnitArea *) ares;
-- (NSUnitArea *) hectares;
++ (NSUnitArea *) squareMegameters;
++ (NSUnitArea *) squareKilometers;
++ (NSUnitArea *) squareMeters;
++ (NSUnitArea *) squareCentimeters;
++ (NSUnitArea *) squareMillimeters;
++ (NSUnitArea *) squareMicrometers;
++ (NSUnitArea *) squareNanometers;
++ (NSUnitArea *) squareInches;
++ (NSUnitArea *) squareFeet;
++ (NSUnitArea *) squareYards;
++ (NSUnitArea *) squareMiles;
++ (NSUnitArea *) acres;
++ (NSUnitArea *) ares;
++ (NSUnitArea *) hectares;
 
 @end
 
@@ -130,8 +130,8 @@ extern "C" {
  Base unit - gramsPerLiter
  */
 
-- (NSUnitConcentrationMass *) gramsPerLiter;
-- (NSUnitConcentrationMass *) milligramsPerDeciliter;
++ (NSUnitConcentrationMass *) gramsPerLiter;
++ (NSUnitConcentrationMass *) milligramsPerDeciliter;
 
 + (NSUnitConcentrationMass *) millimolesPerLiterWithGramsPerMole:(double)gramsPerMole;
 
@@ -141,7 +141,7 @@ extern "C" {
 /*
  Base unit - partsPerMillion
  */
-- (NSUnitDispersion *) partsPerMillion;
++ (NSUnitDispersion *) partsPerMillion;
 
 @end
 
@@ -150,9 +150,9 @@ extern "C" {
  Base unit - seconds
  */
 
-- (NSUnitDuration *) seconds;
-- (NSUnitDuration *) minutes;
-- (NSUnitDuration *) hours;
++ (NSUnitDuration *) seconds;
++ (NSUnitDuration *) minutes;
++ (NSUnitDuration *) hours;
 
 @end
 
@@ -161,12 +161,12 @@ extern "C" {
  Base unit - coulombs
  */
 
-- (NSUnitElectricCharge *) coulombs;
-- (NSUnitElectricCharge *) megaampereHours;
-- (NSUnitElectricCharge *) kiloampereHours;
-- (NSUnitElectricCharge *) ampereHours;
-- (NSUnitElectricCharge *) milliampereHours;
-- (NSUnitElectricCharge *) microampereHours;
++ (NSUnitElectricCharge *) coulombs;
++ (NSUnitElectricCharge *) megaampereHours;
++ (NSUnitElectricCharge *) kiloampereHours;
++ (NSUnitElectricCharge *) ampereHours;
++ (NSUnitElectricCharge *) milliampereHours;
++ (NSUnitElectricCharge *) microampereHours;
 
 @end
 
@@ -175,11 +175,11 @@ extern "C" {
  Base unit - amperes
  */
 
-- (NSUnitElectricCurrent *) megaamperes;
-- (NSUnitElectricCurrent *) kiloamperes;
-- (NSUnitElectricCurrent *) amperes;
-- (NSUnitElectricCurrent *) milliamperes;
-- (NSUnitElectricCurrent *) microamperes;
++ (NSUnitElectricCurrent *) megaamperes;
++ (NSUnitElectricCurrent *) kiloamperes;
++ (NSUnitElectricCurrent *) amperes;
++ (NSUnitElectricCurrent *) milliamperes;
++ (NSUnitElectricCurrent *) microamperes;
 
 @end
 
@@ -188,11 +188,11 @@ extern "C" {
  Base unit - volts
  */
 
-- (NSUnitElectricPotentialDifference *) megavolts;
-- (NSUnitElectricPotentialDifference *) kilovolts;
-- (NSUnitElectricPotentialDifference *) volts;
-- (NSUnitElectricPotentialDifference *) millivolts;
-- (NSUnitElectricPotentialDifference *) microvolts;
++ (NSUnitElectricPotentialDifference *) megavolts;
++ (NSUnitElectricPotentialDifference *) kilovolts;
++ (NSUnitElectricPotentialDifference *) volts;
++ (NSUnitElectricPotentialDifference *) millivolts;
++ (NSUnitElectricPotentialDifference *) microvolts;
 
 @end
 
@@ -201,11 +201,11 @@ extern "C" {
  Base unit - ohms
  */
 
-- (NSUnitElectricResistance *) megaohms;
-- (NSUnitElectricResistance *) kiloohms;
-- (NSUnitElectricResistance *) ohms;
-- (NSUnitElectricResistance *) milliohms;
-- (NSUnitElectricResistance *) microohms;
++ (NSUnitElectricResistance *) megaohms;
++ (NSUnitElectricResistance *) kiloohms;
++ (NSUnitElectricResistance *) ohms;
++ (NSUnitElectricResistance *) milliohms;
++ (NSUnitElectricResistance *) microohms;
 
 @end
 
@@ -214,11 +214,11 @@ extern "C" {
  Base unit - joules
  */
 
-- (NSUnitEnergy *) kilojoules;
-- (NSUnitEnergy *) joules;
-- (NSUnitEnergy *) kilocalories;
-- (NSUnitEnergy *) calories;
-- (NSUnitEnergy *) kilowattHours;
++ (NSUnitEnergy *) kilojoules;
++ (NSUnitEnergy *) joules;
++ (NSUnitEnergy *) kilocalories;
++ (NSUnitEnergy *) calories;
++ (NSUnitEnergy *) kilowattHours;
 
 @end
 
@@ -227,14 +227,14 @@ extern "C" {
  Base unit - hertz
  */
 
-- (NSUnitFrequency *) terahertz;
-- (NSUnitFrequency *) gigahertz;
-- (NSUnitFrequency *) megahertz;
-- (NSUnitFrequency *) kilohertz;
-- (NSUnitFrequency *) hertz;
-- (NSUnitFrequency *) millihertz;
-- (NSUnitFrequency *) microhertz;
-- (NSUnitFrequency *) nanohertz;
++ (NSUnitFrequency *) terahertz;
++ (NSUnitFrequency *) gigahertz;
++ (NSUnitFrequency *) megahertz;
++ (NSUnitFrequency *) kilohertz;
++ (NSUnitFrequency *) hertz;
++ (NSUnitFrequency *) millihertz;
++ (NSUnitFrequency *) microhertz;
++ (NSUnitFrequency *) nanohertz;
 
 @end
 
@@ -243,9 +243,9 @@ extern "C" {
  Base unit - litersPer100Kilometers
  */
 
-- (NSUnitFuelEfficiency *) litersPer100Kilometers;
-- (NSUnitFuelEfficiency *) milesPerImperialGallon;
-- (NSUnitFuelEfficiency *) milesPerGallon;
++ (NSUnitFuelEfficiency *) litersPer100Kilometers;
++ (NSUnitFuelEfficiency *) milesPerImperialGallon;
++ (NSUnitFuelEfficiency *) milesPerGallon;
 
 @end
 
@@ -254,28 +254,28 @@ extern "C" {
  Base unit - meters
  */
 
-- (NSUnitLength *) megameters;
-- (NSUnitLength *) kilometers;
-- (NSUnitLength *) hectometers;
-- (NSUnitLength *) decameters;
-- (NSUnitLength *) meters;
-- (NSUnitLength *) decimeters;
-- (NSUnitLength *) centimeters;
-- (NSUnitLength *) millimeters;
-- (NSUnitLength *) micrometers;
-- (NSUnitLength *) nanometers;
-- (NSUnitLength *) picometers;
-- (NSUnitLength *) inches;
-- (NSUnitLength *) feet;
-- (NSUnitLength *) yards;
-- (NSUnitLength *) miles;
-- (NSUnitLength *) scandinavianMiles;
-- (NSUnitLength *) lightyears;
-- (NSUnitLength *) nauticalMiles;
-- (NSUnitLength *) fathoms;
-- (NSUnitLength *) furlongs;
-- (NSUnitLength *) astronomicalUnits;
-- (NSUnitLength *) parsecs;
++ (NSUnitLength *) megameters;
++ (NSUnitLength *) kilometers;
++ (NSUnitLength *) hectometers;
++ (NSUnitLength *) decameters;
++ (NSUnitLength *) meters;
++ (NSUnitLength *) decimeters;
++ (NSUnitLength *) centimeters;
++ (NSUnitLength *) millimeters;
++ (NSUnitLength *) micrometers;
++ (NSUnitLength *) nanometers;
++ (NSUnitLength *) picometers;
++ (NSUnitLength *) inches;
++ (NSUnitLength *) feet;
++ (NSUnitLength *) yards;
++ (NSUnitLength *) miles;
++ (NSUnitLength *) scandinavianMiles;
++ (NSUnitLength *) lightyears;
++ (NSUnitLength *) nauticalMiles;
++ (NSUnitLength *) fathoms;
++ (NSUnitLength *) furlongs;
++ (NSUnitLength *) astronomicalUnits;
++ (NSUnitLength *) parsecs;
 
 @end
 
@@ -284,7 +284,7 @@ extern "C" {
  Base unit - lux
  */
 
-- (NSUnitIlluminance *) lux;
++ (NSUnitIlluminance *) lux;
 
 @end
 
@@ -293,22 +293,22 @@ extern "C" {
  Base unit - kilograms
  */
 
-- (NSUnitMass *) kilograms;
-- (NSUnitMass *) grams;
-- (NSUnitMass *) decigrams;
-- (NSUnitMass *) centigrams;
-- (NSUnitMass *) milligrams;
-- (NSUnitMass *) micrograms;
-- (NSUnitMass *) nanograms;
-- (NSUnitMass *) picograms;
-- (NSUnitMass *) ounces;
-- (NSUnitMass *) poundsMass;
-- (NSUnitMass *) stones;
-- (NSUnitMass *) metricTons;
-- (NSUnitMass *) shortTons;
-- (NSUnitMass *) carats;
-- (NSUnitMass *) ouncesTroy;
-- (NSUnitMass *) slugs;
++ (NSUnitMass *) kilograms;
++ (NSUnitMass *) grams;
++ (NSUnitMass *) decigrams;
++ (NSUnitMass *) centigrams;
++ (NSUnitMass *) milligrams;
++ (NSUnitMass *) micrograms;
++ (NSUnitMass *) nanograms;
++ (NSUnitMass *) picograms;
++ (NSUnitMass *) ounces;
++ (NSUnitMass *) poundsMass;
++ (NSUnitMass *) stones;
++ (NSUnitMass *) metricTons;
++ (NSUnitMass *) shortTons;
++ (NSUnitMass *) carats;
++ (NSUnitMass *) ouncesTroy;
++ (NSUnitMass *) slugs;
 
 @end
 
@@ -317,17 +317,17 @@ extern "C" {
  Base unit - watts
  */
 
-- (NSUnitPower *) terawatts;
-- (NSUnitPower *) gigawatts;
-- (NSUnitPower *) megawatts;
-- (NSUnitPower *) kilowatts;
-- (NSUnitPower *) watts;
-- (NSUnitPower *) milliwatts;
-- (NSUnitPower *) microwatts;
-- (NSUnitPower *) nanowatts;
-- (NSUnitPower *) picowatts;
-- (NSUnitPower *) femtowatts;
-- (NSUnitPower *) horsepower;
++ (NSUnitPower *) terawatts;
++ (NSUnitPower *) gigawatts;
++ (NSUnitPower *) megawatts;
++ (NSUnitPower *) kilowatts;
++ (NSUnitPower *) watts;
++ (NSUnitPower *) milliwatts;
++ (NSUnitPower *) microwatts;
++ (NSUnitPower *) nanowatts;
++ (NSUnitPower *) picowatts;
++ (NSUnitPower *) femtowatts;
++ (NSUnitPower *) horsepower;
 
 @end
 
@@ -336,16 +336,16 @@ extern "C" {
  Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
  */
 
-- (NSUnitPressure *) newtonsPerMetersSquared;
-- (NSUnitPressure *) gigapascals;
-- (NSUnitPressure *) megapascals;
-- (NSUnitPressure *) kilopascals;
-- (NSUnitPressure *) hectopascals;
-- (NSUnitPressure *) inchesOfMercury;
-- (NSUnitPressure *) bars;
-- (NSUnitPressure *) millibars;
-- (NSUnitPressure *) millimetersOfMercury;
-- (NSUnitPressure *) poundsForcePerSquareInch;
++ (NSUnitPressure *) newtonsPerMetersSquared;
++ (NSUnitPressure *) gigapascals;
++ (NSUnitPressure *) megapascals;
++ (NSUnitPressure *) kilopascals;
++ (NSUnitPressure *) hectopascals;
++ (NSUnitPressure *) inchesOfMercury;
++ (NSUnitPressure *) bars;
++ (NSUnitPressure *) millibars;
++ (NSUnitPressure *) millimetersOfMercury;
++ (NSUnitPressure *) poundsForcePerSquareInch;
 
 @end
 
@@ -354,10 +354,10 @@ extern "C" {
  Base unit - metersPerSecond
  */
 
-- (NSUnitSpeed *) metersPerSecond;
-- (NSUnitSpeed *) kilometersPerHour;
-- (NSUnitSpeed *) milesPerHour;
-- (NSUnitSpeed *) knots;
++ (NSUnitSpeed *) metersPerSecond;
++ (NSUnitSpeed *) kilometersPerHour;
++ (NSUnitSpeed *) milesPerHour;
++ (NSUnitSpeed *) knots;
 
 @end
 
@@ -365,9 +365,9 @@ extern "C" {
 /*
  Base unit - kelvin
  */
-- (NSUnitTemperature *) kelvin;
-- (NSUnitTemperature *) celsius; 
-- (NSUnitTemperature *) fahrenheit;
++ (NSUnitTemperature *) kelvin;
++ (NSUnitTemperature *) celsius; 
++ (NSUnitTemperature *) fahrenheit;
 
 
 @end
@@ -377,37 +377,37 @@ extern "C" {
  Base unit - liters
  */
 
-- (NSUnitVolume *) megaliters;
-- (NSUnitVolume *) kiloliters;
-- (NSUnitVolume *) liters;
-- (NSUnitVolume *) deciliters;
-- (NSUnitVolume *) centiliters;
-- (NSUnitVolume *) milliliters;
-- (NSUnitVolume *) cubicKilometers;
-- (NSUnitVolume *) cubicMeters;
-- (NSUnitVolume *) cubicDecimeters;
-- (NSUnitVolume *) cubicCentimeters;
-- (NSUnitVolume *) cubicMillimeters;
-- (NSUnitVolume *) cubicInches;
-- (NSUnitVolume *) cubicFeet;
-- (NSUnitVolume *) cubicYards;
-- (NSUnitVolume *) cubicMiles;
-- (NSUnitVolume *) acreFeet;
-- (NSUnitVolume *) bushels;
-- (NSUnitVolume *) teaspoons;
-- (NSUnitVolume *) tablespoons;
-- (NSUnitVolume *) fluidOunces;
-- (NSUnitVolume *) cups;
-- (NSUnitVolume *) pints;
-- (NSUnitVolume *) quarts;
-- (NSUnitVolume *) gallons;
-- (NSUnitVolume *) imperialTeaspoons;
-- (NSUnitVolume *) imperialTablespoons;
-- (NSUnitVolume *) imperialFluidOunces;
-- (NSUnitVolume *) imperialPints;
-- (NSUnitVolume *) imperialQuarts;
-- (NSUnitVolume *) imperialGallons;
-- (NSUnitVolume *) metricCups;
++ (NSUnitVolume *) megaliters;
++ (NSUnitVolume *) kiloliters;
++ (NSUnitVolume *) liters;
++ (NSUnitVolume *) deciliters;
++ (NSUnitVolume *) centiliters;
++ (NSUnitVolume *) milliliters;
++ (NSUnitVolume *) cubicKilometers;
++ (NSUnitVolume *) cubicMeters;
++ (NSUnitVolume *) cubicDecimeters;
++ (NSUnitVolume *) cubicCentimeters;
++ (NSUnitVolume *) cubicMillimeters;
++ (NSUnitVolume *) cubicInches;
++ (NSUnitVolume *) cubicFeet;
++ (NSUnitVolume *) cubicYards;
++ (NSUnitVolume *) cubicMiles;
++ (NSUnitVolume *) acreFeet;
++ (NSUnitVolume *) bushels;
++ (NSUnitVolume *) teaspoons;
++ (NSUnitVolume *) tablespoons;
++ (NSUnitVolume *) fluidOunces;
++ (NSUnitVolume *) cups;
++ (NSUnitVolume *) pints;
++ (NSUnitVolume *) quarts;
++ (NSUnitVolume *) gallons;
++ (NSUnitVolume *) imperialTeaspoons;
++ (NSUnitVolume *) imperialTablespoons;
++ (NSUnitVolume *) imperialFluidOunces;
++ (NSUnitVolume *) imperialPints;
++ (NSUnitVolume *) imperialQuarts;
++ (NSUnitVolume *) imperialGallons;
++ (NSUnitVolume *) metricCups;
 
 @end
 
