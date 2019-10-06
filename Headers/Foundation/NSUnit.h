@@ -68,7 +68,7 @@ extern "C" {
 // Dimension using units....
 @interface NSDimension : NSUnit <NSCoding>
 {
-    NSUInteger _reserved;
+    double _value;
     NSUnitConverter *_converter;
 }
 

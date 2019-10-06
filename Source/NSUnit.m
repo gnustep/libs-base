@@ -205,15 +205,14 @@
  Base unit - metersPerSecondSquared
  */
 
+
 - (NSUnitAcceleration *) metersPerSecondSquared { return nil; }
 - (NSUnitAcceleration *) gravity { return nil; }
 
 @end
 
 @implementation NSUnitAngle 
-/*
- Base unit - degrees
- */
+// Base unit - degrees 
 
 - (NSUnitAngle *) degrees { return nil; }
 - (NSUnitAngle *) arcMinutes { return nil; }
