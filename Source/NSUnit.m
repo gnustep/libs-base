@@ -221,7 +221,7 @@
 {
   NSUnitConverterLinear *converter = [[NSUnitConverterLinear alloc] initWithCoefficient: 1.0
                                                                                constant: 9.81];
-  NSUnitAcceleration *result = [[NSUnitAcceleration alloc] initWithSymbol: @"m/s^2"
+  NSUnitAcceleration *result = [[NSUnitAcceleration alloc] initWithSymbol: @"g"
                                                                 converter: converter];
   return result;
 }
