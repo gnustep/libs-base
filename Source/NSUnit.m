@@ -990,17 +990,94 @@
 
 // Base unit - watts
 
-+ (NSUnitPower *) terawatts { return nil; }
-+ (NSUnitPower *) gigawatts { return nil; }
-+ (NSUnitPower *) megawatts { return nil; }
-+ (NSUnitPower *) kilowatts { return nil; }
-+ (NSUnitPower *) watts { return nil; }
-+ (NSUnitPower *) milliwatts { return nil; }
-+ (NSUnitPower *) microwatts { return nil; }
-+ (NSUnitPower *) nanowatts { return nil; }
-+ (NSUnitPower *) picowatts { return nil; }
-+ (NSUnitPower *) femtowatts { return nil; }
-+ (NSUnitPower *) horsepower { return nil; }
++ (NSUnitPower *) terawatts 
+{
+  NSUnitPower *result = [[NSUnitPower alloc] initWithSymbol: @"TW"
+                                              coefficient: 1e12
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitPower *) gigawatts 
+{
+  NSUnitPower *result = [[NSUnitPower alloc] initWithSymbol: @"GW"
+                                                coefficient: 1e9
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPower *) megawatts 
+{
+  NSUnitPower *result = [[NSUnitPower alloc] initWithSymbol: @"MW"
+                                                coefficient: 1000000.0
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPower *) kilowatts 
+{
+  NSUnitPower *result = [[NSUnitPower alloc] initWithSymbol: @"kW"
+                                                coefficient: 1000.0
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPower *) watts 
+{
+  NSUnitPower *result = [[NSUnitPower alloc] initWithSymbol: @"W"
+                                                coefficient: 1.0
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPower *) milliwatts 
+{
+  NSUnitPower *result = [[NSUnitPower alloc] initWithSymbol: @"mW"
+                                                coefficient: 0.001
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPower *) microwatts 
+{
+  NSUnitPower *result = [[NSUnitPower alloc] initWithSymbol: @"uW"
+                                                coefficient: 0.000001
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPower *) nanowatts 
+{
+  NSUnitPower *result = [[NSUnitPower alloc] initWithSymbol: @"nW"
+                                                coefficient: 1e-9
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPower *) picowatts 
+{
+  NSUnitPower *result = [[NSUnitPower alloc] initWithSymbol: @"pW"
+                                                coefficient: 1e-12
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPower *) femtowatts 
+{
+  NSUnitPower *result = [[NSUnitPower alloc] initWithSymbol: @"fW"
+                                                coefficient: 1e-15
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPower *) horsepower 
+{
+  NSUnitPower *result = [[NSUnitPower alloc] initWithSymbol: @"hp"
+                                                coefficient: 745.7
+                                                   constant: 0.0];
+  return result;
+}
+
 
 @end
 
