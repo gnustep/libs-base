@@ -688,11 +688,45 @@
 @implementation NSUnitEnergy 
 
 // Base unit - joules
-+ (NSUnitEnergy *) kilojoules { return nil; }
-+ (NSUnitEnergy *) joules { return nil; }
-+ (NSUnitEnergy *) kilocalories { return nil; }
-+ (NSUnitEnergy *) calories { return nil; }
-+ (NSUnitEnergy *) kilowattHours { return nil; }
++ (NSUnitEnergy *) kilojoules
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"kJ"
+                                              coefficient: 1000.0
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitEnergy *) joules 
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"J"
+                                              coefficient: 1.0
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitEnergy *) kilocalories 
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"kCal"
+                                              coefficient: 4184.0
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitEnergy *) calories 
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"cal"
+                                              coefficient: 4.184
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitEnergy *) kilowattHours 
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"kWh"
+                                              coefficient: 3600000.0
+                                                 constant: 0.0];
+  return result;
+}
 
 @end
 
