@@ -542,11 +542,45 @@
 @implementation NSUnitElectricCurrent 
 
 // Base unit - amperes
-+ (NSUnitElectricCurrent *) megaamperes { return nil; }
-+ (NSUnitElectricCurrent *) kiloamperes { return nil; }
-+ (NSUnitElectricCurrent *) amperes { return nil; }
-+ (NSUnitElectricCurrent *) milliamperes { return nil; }
-+ (NSUnitElectricCurrent *) microamperes { return nil; }
++ (NSUnitElectricCurrent *) megaamperes 
+{
+  NSUnitElectricCurrent *result = [[NSUnitElectricCurrent alloc] initWithSymbol: @"MA"
+                                                                    coefficient: 1000000.0
+                                                                       constant: 0.0];
+  return result;
+}
+
++ (NSUnitElectricCurrent *) kiloamperes 
+{
+  NSUnitElectricCurrent *result = [[NSUnitElectricCurrent alloc] initWithSymbol: @"kA"
+                                                                    coefficient: 1000.0
+                                                                       constant: 0.0];
+  return result;
+}
+
++ (NSUnitElectricCurrent *) amperes 
+{
+  NSUnitElectricCurrent *result = [[NSUnitElectricCurrent alloc] initWithSymbol: @"A"
+                                                                    coefficient: 1.0
+                                                                       constant: 0.0];
+  return result;
+}
+
++ (NSUnitElectricCurrent *) milliamperes
+{
+  NSUnitElectricCurrent *result = [[NSUnitElectricCurrent alloc] initWithSymbol: @"mA"
+                                                                    coefficient: 0.001
+                                                                       constant: 0.0];
+  return result;
+}
+
++ (NSUnitElectricCurrent *) microamperes
+{
+  NSUnitElectricCurrent *result = [[NSUnitElectricCurrent alloc] initWithSymbol: @"uA"
+                                                                    coefficient: 0.0036
+                                                                       constant: 0.000001];
+  return result;
+}
 
 @end
 
