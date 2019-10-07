@@ -303,17 +303,17 @@
 // Base unit - squareMeters
 + (NSUnitArea *) squareMegameters
 {
-  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
-                                               coefficient: 360.0
-                                                  constant: 0.0];
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"Mm^2"
+                                              coefficient: 1e12
+                                                 constant: 0.0];
   return result;
 }
 
 + (NSUnitArea *) squareKilometers 
 {
-  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
-                                               coefficient: 360.0
-                                                  constant: 0.0];
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"km^2"
+                                              coefficient: 1000000.0
+                                                 constant: 0.0];
   return result;
 }
 
@@ -327,88 +327,88 @@
 
 + (NSUnitArea *) squareCentimeters 
 {
-  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
-                                               coefficient: 360.0
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"cm^2"
+                                               coefficient: 0.0001
                                                   constant: 0.0];
   return result;
 }
 
 + (NSUnitArea *) squareMillimeters 
 {
-  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
-                                               coefficient: 360.0
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"mm^2"
+                                               coefficient: 0.000001
                                                   constant: 0.0];
   return result;
 }
 
 + (NSUnitArea *) squareMicrometers 
 {
-  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
-                                               coefficient: 360.0
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"um^2"
+                                               coefficient: 1e-12
                                                   constant: 0.0];
   return result;
 }
 
 + (NSUnitArea *) squareNanometers 
 {
-  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
-                                               coefficient: 360.0
-                                                  constant: 0.0];
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"nm^2"
+                                              coefficient: 1e-18
+                                                 constant: 0.0];
   return result;
 }
 
 + (NSUnitArea *) squareInches 
 {
-  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
-                                               coefficient: 360.0
-                                                  constant: 0.0];
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"in^2"
+                                              coefficient: 0.00064516
+                                                 constant: 0.0];
   return result;
 }
 
 + (NSUnitArea *) squareFeet 
 {
-  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
-                                               coefficient: 360.0
-                                                  constant: 0.0];
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"ft^2"
+                                              coefficient: 0.092903
+                                                 constant: 0.0];
   return result;
 }
 
 + (NSUnitArea *) squareYards 
 {
-  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
-                                               coefficient: 360.0
-                                                  constant: 0.0];
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"yd^2"
+                                              coefficient: 0.836127
+                                                 constant: 0.0];
   return result;
 }
 
 + (NSUnitArea *) squareMiles 
 {
-  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
-                                               coefficient: 360.0
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"mi^2"
+                                               coefficient: 2.59e+6
                                                   constant: 0.0];
   return result;
 }
 
 + (NSUnitArea *) acres 
 {
-  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
-                                               coefficient: 360.0
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"acres"
+                                               coefficient: 4046.86
                                                   constant: 0.0];
   return result;
 }
 
 + (NSUnitArea *) ares 
 {
-  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
-                                               coefficient: 360.0
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"ares"
+                                               coefficient: 100.0
                                                   constant: 0.0];
   return result;
 }
 
 + (NSUnitArea *) hectares 
 {
-  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
-                                               coefficient: 360.0
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"hectares"
+                                               coefficient: 10000.0
                                                   constant: 0.0];
   return result;
 }
