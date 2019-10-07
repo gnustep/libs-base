@@ -649,7 +649,6 @@
   return result;
 }
 
-
 @end
 
 @implementation NSUnitMass 
