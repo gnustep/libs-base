@@ -795,10 +795,29 @@
 @implementation NSUnitTemperature
 
 // Base unit - kelvin
-+ (NSUnitTemperature *) kelvin { return nil; }
-+ (NSUnitTemperature *) celsius { return nil; } 
-+ (NSUnitTemperature *) fahrenheit { return nil; }
++ (NSUnitTemperature *) kelvin
+{
+  NSUnitTemperature *result = [[NSUnitIlluminance alloc] initWithSymbol: @"K"
+                                                            coefficient: 1.0
+                                                               constant: 0.0];
+  return result;
+}
 
++ (NSUnitTemperature *) celsius
+{
+  NSUnitTerperature *result = [[NSUnitIlluminance alloc] initWithSymbol: @"C"
+                                                            coefficient: 1.0
+                                                               constant: 273.15];
+  return result;
+}
+
++ (NSUnitTemperature *) fahrenheit
+{
+  NSUnitTemperature *result = [[NSUnitIlluminance alloc] initWithSymbol: @"F"
+                                                            coefficient: 0.55555555555556
+                                                               constant: 255.37222222222427];
+  return result;
+}
 @end
 
 @implementation NSUnitVolume
