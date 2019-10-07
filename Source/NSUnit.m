@@ -690,7 +690,7 @@
 // Base unit - joules
 + (NSUnitEnergy *) kilojoules
 {
-  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"kJ"
+  NSUnitEnergy *result = [[NSUnitEnergy alloc] initWithSymbol: @"kJ"
                                               coefficient: 1000.0
                                                  constant: 0.0];
   return result;
@@ -698,7 +698,7 @@
 
 + (NSUnitEnergy *) joules 
 {
-  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"J"
+  NSUnitEnergy *result = [[NSUnitEnergy alloc] initWithSymbol: @"J"
                                               coefficient: 1.0
                                                  constant: 0.0];
   return result;
@@ -706,7 +706,7 @@
 
 + (NSUnitEnergy *) kilocalories 
 {
-  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"kCal"
+  NSUnitEnergy *result = [[NSUnitEnergy alloc] initWithSymbol: @"kCal"
                                               coefficient: 4184.0
                                                  constant: 0.0];
   return result;
@@ -714,7 +714,7 @@
 
 + (NSUnitEnergy *) calories 
 {
-  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"cal"
+  NSUnitEnergy *result = [[NSUnitEnergy alloc] initWithSymbol: @"cal"
                                               coefficient: 4.184
                                                  constant: 0.0];
   return result;
@@ -722,7 +722,7 @@
 
 + (NSUnitEnergy *) kilowattHours 
 {
-  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"kWh"
+  NSUnitEnergy *result = [[NSUnitEnergy alloc] initWithSymbol: @"kWh"
                                               coefficient: 3600000.0
                                                  constant: 0.0];
   return result;
@@ -734,14 +734,69 @@
 
 // Base unit - hertz
 
-+ (NSUnitFrequency *) terahertz { return nil; }
-+ (NSUnitFrequency *) gigahertz { return nil; }
-+ (NSUnitFrequency *) megahertz { return nil; }
-+ (NSUnitFrequency *) kilohertz { return nil; }
-+ (NSUnitFrequency *) hertz { return nil; }
-+ (NSUnitFrequency *) millihertz { return nil; }
-+ (NSUnitFrequency *) microhertz { return nil; }
-+ (NSUnitFrequency *) nanohertz { return nil; }
++ (NSUnitFrequency *) terahertz 
+{
+  NSUnitFrequency *result = [[NSUnitFrequency alloc] initWithSymbol: @"thz"
+                                              coefficient: 1e12
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitFrequency *) gigahertz 
+{
+  NSUnitFrequency *result = [[NSUnitFrequency alloc] initWithSymbol: @"ghz"
+                                              coefficient: 1e9
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitFrequency *) megahertz 
+{
+  NSUnitFrequency *result = [[NSUnitFrequency alloc] initWithSymbol: @"GHz"
+                                              coefficient: 1000000.0
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitFrequency *) kilohertz 
+{
+  NSUnitFrequency *result = [[NSUnitFrequency alloc] initWithSymbol: @"KHz"
+                                              coefficient: 1000.0
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitFrequency *) hertz 
+{
+  NSUnitFrequency *result = [[NSUnitFrequency alloc] initWithSymbol: @"Hz"
+                                              coefficient: 1.0
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitFrequency *) millihertz 
+{
+  NSUnitFrequency *result = [[NSUnitFrequency alloc] initWithSymbol: @"mHz"
+                                              coefficient: 0.001
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitFrequency *) microhertz 
+{
+  NSUnitFrequency *result = [[NSUnitFrequency alloc] initWithSymbol: @"uHz"
+                                              coefficient: 0.000001
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitFrequency *) nanohertz 
+{
+  NSUnitFrequency *result = [[NSUnitFrequency alloc] initWithSymbol: @"nHz"
+                                              coefficient: 1e-9
+                                                 constant: 0.0];
+  return result;
+}
 
 @end
 
