@@ -455,15 +455,34 @@
   return result;
 }
 
-
 @end
 
 @implementation NSUnitDuration   
 
 // Base unit - seconds
-+ (NSUnitDuration *) seconds { return nil; }
-+ (NSUnitDuration *) minutes { return nil; }
-+ (NSUnitDuration *) hours { return nil; }
++ (NSUnitDuration *) seconds 
+{
+  NSUnitDuration *result = [[NSUnitDuration alloc] initWithSymbol: @"sec"
+                                                      coefficient: 1.0
+                                                         constant: 0.0];
+  return result;
+}
+
++ (NSUnitDuration *) minutes 
+{
+  NSUnitDuration *result = [[NSUnitDuration alloc] initWithSymbol: @"min"
+                                                      coefficient: 60.0
+                                                         constant: 0.0];
+  return result;
+}
+
++ (NSUnitDuration *) hours 
+{
+  NSUnitDuration *result = [[NSUnitDuration alloc] initWithSymbol: @"hr"
+                                                      coefficient: 3600.0
+                                                         constant: 0.0];
+  return result;
+}
 
 @end
 
