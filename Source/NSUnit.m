@@ -537,7 +537,6 @@
   return result;
 }
 
-
 @end
 
 @implementation NSUnitElectricCurrent 
@@ -642,7 +641,14 @@
 
 // Base unit - lux
 
-+ (NSUnitIlluminance *) lux { return nil; }
++ (NSUnitIlluminance *) lux
+{
+  NSUnitIlluminance *result = [[NSUnitIlluminance alloc] initWithSymbol: @"lux"
+                                                            coefficient: 1.0
+                                                               constant: 0.0];
+  return result;
+}
+
 
 @end
 
