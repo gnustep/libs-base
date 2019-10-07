@@ -301,20 +301,117 @@
 @implementation NSUnitArea 
 
 // Base unit - squareMeters
-+ (NSUnitArea *) squareMegameters { return nil; }
-+ (NSUnitArea *) squareKilometers { return nil; }
-+ (NSUnitArea *) squareMeters { return nil; }
-+ (NSUnitArea *) squareCentimeters { return nil; }
-+ (NSUnitArea *) squareMillimeters { return nil; }
-+ (NSUnitArea *) squareMicrometers { return nil; }
-+ (NSUnitArea *) squareNanometers { return nil; }
-+ (NSUnitArea *) squareInches { return nil; }
-+ (NSUnitArea *) squareFeet { return nil; }
-+ (NSUnitArea *) squareYards { return nil; }
-+ (NSUnitArea *) squareMiles { return nil; }
-+ (NSUnitArea *) acres { return nil; }
-+ (NSUnitArea *) ares { return nil; }
-+ (NSUnitArea *) hectares { return nil; }
++ (NSUnitArea *) squareMegameters
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
+                                               coefficient: 360.0
+                                                  constant: 0.0];
+  return result;
+}
+
++ (NSUnitArea *) squareKilometers 
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
+                                               coefficient: 360.0
+                                                  constant: 0.0];
+  return result;
+}
+
++ (NSUnitArea *) squareMeters 
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"m^2"
+                                              coefficient: 1.0
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitArea *) squareCentimeters 
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
+                                               coefficient: 360.0
+                                                  constant: 0.0];
+  return result;
+}
+
++ (NSUnitArea *) squareMillimeters 
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
+                                               coefficient: 360.0
+                                                  constant: 0.0];
+  return result;
+}
+
++ (NSUnitArea *) squareMicrometers 
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
+                                               coefficient: 360.0
+                                                  constant: 0.0];
+  return result;
+}
+
++ (NSUnitArea *) squareNanometers 
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
+                                               coefficient: 360.0
+                                                  constant: 0.0];
+  return result;
+}
+
++ (NSUnitArea *) squareInches 
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
+                                               coefficient: 360.0
+                                                  constant: 0.0];
+  return result;
+}
+
++ (NSUnitArea *) squareFeet 
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
+                                               coefficient: 360.0
+                                                  constant: 0.0];
+  return result;
+}
+
++ (NSUnitArea *) squareYards 
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
+                                               coefficient: 360.0
+                                                  constant: 0.0];
+  return result;
+}
+
++ (NSUnitArea *) squareMiles 
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
+                                               coefficient: 360.0
+                                                  constant: 0.0];
+  return result;
+}
+
++ (NSUnitArea *) acres 
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
+                                               coefficient: 360.0
+                                                  constant: 0.0];
+  return result;
+}
+
++ (NSUnitArea *) ares 
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
+                                               coefficient: 360.0
+                                                  constant: 0.0];
+  return result;
+}
+
++ (NSUnitArea *) hectares 
+{
+  NSUnitArea *result = [[NSUnitArea alloc] initWithSymbol: @"rev"
+                                               coefficient: 360.0
+                                                  constant: 0.0];
+  return result;
+}
 
 @end
 
