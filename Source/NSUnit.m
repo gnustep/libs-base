@@ -767,22 +767,133 @@
 
 // Base unit - kilograms
 
-+ (NSUnitMass *) kilograms { return nil; }
-+ (NSUnitMass *) grams { return nil; }
-+ (NSUnitMass *) decigrams { return nil; }
-+ (NSUnitMass *) centigrams { return nil; }
-+ (NSUnitMass *) milligrams { return nil; }
-+ (NSUnitMass *) micrograms { return nil; }
-+ (NSUnitMass *) nanograms { return nil; }
-+ (NSUnitMass *) picograms { return nil; }
-+ (NSUnitMass *) ounces { return nil; }
-+ (NSUnitMass *) poundsMass { return nil; }
-+ (NSUnitMass *) stones { return nil; }
-+ (NSUnitMass *) metricTons { return nil; }
-+ (NSUnitMass *) shortTons { return nil; }
-+ (NSUnitMass *) carats { return nil; }
-+ (NSUnitMass *) ouncesTroy { return nil; }
-+ (NSUnitMass *) slugs { return nil; }
++ (NSUnitMass *) kilograms 
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"kg"
+                                              coefficient: 1.0
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) grams 
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"g"
+                                              coefficient: 0.001
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) decigrams
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"dg"
+                                              coefficient: 0.0001
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) centigrams
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"cg"
+                                              coefficient: 0.00001
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) milligrams
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"mg"
+                                              coefficient: 0.000001
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) micrograms
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"ug"
+                                              coefficient: 1e9 
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) nanograms 
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"ng"
+                                              coefficient: 1e-12
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) picograms 
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"pg"
+                                              coefficient: 1e-15
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) ounces 
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"oz"
+                                              coefficient: 0.0283495
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) poundsMass
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"lb"
+                                              coefficient: 0.453592
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) stones 
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"st"
+                                              coefficient: 0.157473
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) metricTons
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"t"
+                                              coefficient: 1000
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) shortTons 
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"ton"
+                                              coefficient: 907.185
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) carats
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"ct"
+                                              coefficient: 0.0002 
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) ouncesTroy
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"oz t"
+                                              coefficient: 0.03110348
+                                                 constant: 0.0];
+  return result;
+}
+
++ (NSUnitMass *) slugs
+{
+  NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"slug"
+                                              coefficient: 14.5939
+                                                 constant: 0.0];
+  return result;
+}
 
 @end
 
