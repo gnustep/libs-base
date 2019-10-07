@@ -637,7 +637,7 @@
 @implementation NSUnitElectricResistance 
 
 // Base unit - ohms
-+ (NSUnitElectricResistance *) megaohms { return nil; }
++ (NSUnitElectricResistance *) megaohms 
 {
   NSUnitElectricResistance *result =
     [[NSUnitElectricResistance alloc] initWithSymbol: @"MOhm"
@@ -646,7 +646,7 @@
   return result;
 }
 
-+ (NSUnitElectricResistance *) kiloohms { return nil; }
++ (NSUnitElectricResistance *) kiloohms 
 {
   NSUnitElectricResistance *result =
     [[NSUnitElectricResistance alloc] initWithSymbol: @"kOhm"
@@ -655,7 +655,7 @@
   return result;
 }
 
-+ (NSUnitElectricResistance *) ohms { return nil; }
++ (NSUnitElectricResistance *) ohms 
 {
   NSUnitElectricResistance *result =
     [[NSUnitElectricResistance alloc] initWithSymbol: @"Ohm"
@@ -664,7 +664,7 @@
   return result;
 }
 
-+ (NSUnitElectricResistance *) milliohms { return nil; }
++ (NSUnitElectricResistance *) milliohms 
 {
   NSUnitElectricResistance *result =
     [[NSUnitElectricResistance alloc] initWithSymbol: @"mOhm"
@@ -673,7 +673,7 @@
   return result;
 }
 
-+ (NSUnitElectricResistance *) microohms { return nil; }
++ (NSUnitElectricResistance *) microohms 
 {
   NSUnitElectricResistance *result =
     [[NSUnitElectricResistance alloc] initWithSymbol: @"uOhm"
@@ -753,7 +753,6 @@
 @implementation NSUnitIlluminance 
 
 // Base unit - lux
-
 + (NSUnitIlluminance *) lux
 {
   NSUnitIlluminance *result = [[NSUnitIlluminance alloc] initWithSymbol: @"lux"
@@ -837,7 +836,7 @@
 // Base unit - kelvin
 + (NSUnitTemperature *) kelvin
 {
-  NSUnitTemperature *result = [[NSUnitIlluminance alloc] initWithSymbol: @"K"
+  NSUnitTemperature *result = [[NSUnitTemperature alloc] initWithSymbol: @"K"
                                                             coefficient: 1.0
                                                                constant: 0.0];
   return result;
@@ -845,7 +844,7 @@
 
 + (NSUnitTemperature *) celsius
 {
-  NSUnitTerperature *result = [[NSUnitIlluminance alloc] initWithSymbol: @"C"
+  NSUnitTemperature *result = [[NSUnitTemperature alloc] initWithSymbol: @"C"
                                                             coefficient: 1.0
                                                                constant: 273.15];
   return result;
@@ -853,7 +852,7 @@
 
 + (NSUnitTemperature *) fahrenheit
 {
-  NSUnitTemperature *result = [[NSUnitIlluminance alloc] initWithSymbol: @"F"
+  NSUnitTemperature *result = [[NSUnitTemperature alloc] initWithSymbol: @"F"
                                                             coefficient: 0.55555555555556
                                                                constant: 255.37222222222427];
   return result;
