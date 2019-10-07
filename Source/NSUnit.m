@@ -418,10 +418,29 @@
 @implementation NSUnitConcentrationMass 
 
 // Base unit - gramsPerLiter
-+ (NSUnitConcentrationMass *) gramsPerLiter { return nil; }
-+ (NSUnitConcentrationMass *) milligramsPerDeciliter { return nil; }
++ (NSUnitConcentrationMass *) gramsPerLiter
+{
+  NSUnitConcentrationMass *result = [[NSUnitConcentrationMass alloc] initWithSymbol: @"g/L"
+                                                                        coefficient: 1.0
+                                                                           constant: 0.0];
+  return result;
+}
 
-+ (NSUnitConcentrationMass *) millimolesPerLiterWithGramsPerMole:(double)gramsPerMole { return nil; }
++ (NSUnitConcentrationMass *) milligramsPerDeciliter 
+{
+  NSUnitConcentrationMass *result = [[NSUnitConcentrationMass alloc] initWithSymbol: @"mg/dL"
+                                                                        coefficient: 0.01
+                                                                           constant: 0.0];
+  return result;
+}
+
++ (NSUnitConcentrationMass *) millimolesPerLiterWithGramsPerMole:(double)gramsPerMole 
+{
+  NSUnitConcentrationMass *result = [[NSUnitConcentrationMass alloc] initWithSymbol: @"mmol/L"
+                                                                        coefficient: 18.0 * gramsPerMole
+                                                                           constant: 0.0];
+  return result;
+}
 
 @end
 
