@@ -577,8 +577,8 @@
 + (NSUnitElectricCurrent *) microamperes
 {
   NSUnitElectricCurrent *result = [[NSUnitElectricCurrent alloc] initWithSymbol: @"uA"
-                                                                    coefficient: 0.0036
-                                                                       constant: 0.000001];
+                                                                    coefficient: 0.000001                
+                                                                       constant: 0.0];
   return result;
 }
 
@@ -587,11 +587,50 @@
 @implementation NSUnitElectricPotentialDifference 
 
 // Base unit - volts
-+ (NSUnitElectricPotentialDifference *) megavolts { return nil; }
-+ (NSUnitElectricPotentialDifference *) kilovolts { return nil; }
-+ (NSUnitElectricPotentialDifference *) volts { return nil; }
-+ (NSUnitElectricPotentialDifference *) millivolts { return nil; }
-+ (NSUnitElectricPotentialDifference *) microvolts { return nil; }
++ (NSUnitElectricPotentialDifference *) megavolts 
+{
+  NSUnitElectricPotentialDifference *result =
+    [[NSUnitElectricPotentialDifference alloc] initWithSymbol: @"MV"
+                                                  coefficient: 0.0
+                                                     constant: 1000000.0];
+  return result;
+}
+
++ (NSUnitElectricPotentialDifference *) kilovolts 
+{
+  NSUnitElectricPotentialDifference *result =
+    [[NSUnitElectricPotentialDifference alloc] initWithSymbol: @"kV"
+                                                  coefficient: 0.0
+                                                     constant: 1000.0];
+  return result;
+}
+
++ (NSUnitElectricPotentialDifference *) volts 
+{
+  NSUnitElectricPotentialDifference *result =
+    [[NSUnitElectricPotentialDifference alloc] initWithSymbol: @"V"
+                                                  coefficient: 0.0
+                                                     constant: 1.0];
+  return result;
+}
+
++ (NSUnitElectricPotentialDifference *) millivolts 
+{
+  NSUnitElectricPotentialDifference *result =
+    [[NSUnitElectricPotentialDifference alloc] initWithSymbol: @"mV"
+                                                  coefficient: 0.0
+                                                     constant: 0.001];
+  return result;
+}
+
++ (NSUnitElectricPotentialDifference *) microvolts 
+{
+  NSUnitElectricPotentialDifference *result =
+    [[NSUnitElectricPotentialDifference alloc] initWithSymbol: @"uV"
+                                                  coefficient: 0.0
+                                                     constant: 0.000001];
+  return result;
+}
 
 @end
 
