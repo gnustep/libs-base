@@ -26,6 +26,13 @@
 #include <Foundation/NSArchiver.h>
 #include <Foundation/NSKeyedArchiver.h>
 
+// Private methods...
+@interface NSDimension (Private)
+- (instancetype) initWithSymbol: (NSString *)symbol
+                    coefficient: (double)coefficient
+                       constant: (double)constant;
+@end
+
 // Abstract conversion...
 @implementation NSUnitConverter
 - (instancetype) init
@@ -192,6 +199,18 @@
   return self;
 }
 
+- (instancetype) initWithSymbol: (NSString *)symbol
+                    coefficient: (double)coefficient
+                       constant: (double)constant
+{
+  NSUnitConverterLinear *converter = [[NSUnitConverterLinear alloc] initWithCoefficient: coefficient
+                                                                               constant: constant];
+  NSDimension *result = [[[self class] alloc] initWithSymbol: symbol
+                                                   converter: converter];
+  return result;
+}
+
+
 + (instancetype) baseUnit
 {
   return nil;
@@ -210,19 +229,17 @@
 // Base unit - metersPerSecondSquared
 + (NSUnitAcceleration *) metersPerSecondSquared
 {
-  NSUnitConverterLinear *converter = [[NSUnitConverterLinear alloc] initWithCoefficient: 1.0
-                                                                               constant: 0.0];
   NSUnitAcceleration *result = [[NSUnitAcceleration alloc] initWithSymbol: @"m/s^2"
-                                                                converter: converter];
+                                                              coefficient: 1.0
+                                                                 constant: 0.0];
   return result;
 }
 
 + (NSUnitAcceleration *) gravity
 {
-  NSUnitConverterLinear *converter = [[NSUnitConverterLinear alloc] initWithCoefficient: 1.0
-                                                                               constant: 9.81];
   NSUnitAcceleration *result = [[NSUnitAcceleration alloc] initWithSymbol: @"g"
-                                                                converter: converter];
+                                                              coefficient: 9.81
+                                                                 constant: 0];
   return result;
 }
 
@@ -231,12 +248,53 @@
 @implementation NSUnitAngle 
 
 // Base unit - degrees 
-+ (NSUnitAngle *) degrees { return nil; }
-+ (NSUnitAngle *) arcMinutes { return nil; }
-+ (NSUnitAngle *) arcSeconds { return nil; }
-+ (NSUnitAngle *) radians { return nil; }
-+ (NSUnitAngle *) gradians { return nil; }
-+ (NSUnitAngle *) revolutions { return nil; }
++ (NSUnitAngle *) degrees
+{
+  NSUnitAngle *result = [[NSUnitAngle alloc] initWithSymbol: @"deg"
+                                                coefficient: 1.0
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitAngle *) arcMinutes
+{
+  NSUnitAngle *result = [[NSUnitAngle alloc] initWithSymbol: @"'"
+                                                coefficient: 0.016667
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitAngle *) arcSeconds
+{
+  NSUnitAngle *result = [[NSUnitAngle alloc] initWithSymbol: @"\""
+                                                coefficient: 0.00027778
+                                                   constant: 9.81];
+  return result;
+}
+
++ (NSUnitAngle *) radians 
+{
+  NSUnitAngle *result = [[NSUnitAngle alloc] initWithSymbol: @"rad"
+                                                coefficient: 57.2958
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitAngle *) gradians
+{
+  NSUnitAngle *result = [[NSUnitAngle alloc] initWithSymbol: @"grad"
+                                                coefficient: 0.9
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitAngle *) revolutions
+{
+  NSUnitAngle *result = [[NSUnitAngle alloc] initWithSymbol: @"rev"
+                                                coefficient: 360.0
+                                                   constant: 0.0];
+  return result;
+}
 
 @end
 
