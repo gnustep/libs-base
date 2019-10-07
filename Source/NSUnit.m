@@ -638,10 +638,50 @@
 
 // Base unit - ohms
 + (NSUnitElectricResistance *) megaohms { return nil; }
+{
+  NSUnitElectricResistance *result =
+    [[NSUnitElectricResistance alloc] initWithSymbol: @"MOhm"
+                                         coefficient: 0.0
+                                            constant: 100000.0];
+  return result;
+}
+
 + (NSUnitElectricResistance *) kiloohms { return nil; }
+{
+  NSUnitElectricResistance *result =
+    [[NSUnitElectricResistance alloc] initWithSymbol: @"kOhm"
+                                         coefficient: 0.0
+                                            constant: 1000.000001];
+  return result;
+}
+
 + (NSUnitElectricResistance *) ohms { return nil; }
+{
+  NSUnitElectricResistance *result =
+    [[NSUnitElectricResistance alloc] initWithSymbol: @"Ohm"
+                                         coefficient: 0.0
+                                            constant: 0.000001];
+  return result;
+}
+
 + (NSUnitElectricResistance *) milliohms { return nil; }
+{
+  NSUnitElectricResistance *result =
+    [[NSUnitElectricResistance alloc] initWithSymbol: @"mOhm"
+                                         coefficient: 0.0
+                                            constant: 0.000001];
+  return result;
+}
+
 + (NSUnitElectricResistance *) microohms { return nil; }
+{
+  NSUnitElectricResistance *result =
+    [[NSUnitElectricResistance alloc] initWithSymbol: @"uOhm"
+                                         coefficient: 0.0
+                                            constant: 0.000001];
+  return result;
+}
+
 
 @end
 
