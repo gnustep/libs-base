@@ -447,7 +447,14 @@
 @implementation NSUnitDispersion 
 
 // Base unit - partsPerMillion
-+ (NSUnitDispersion *) partsPerMillion { return nil; }
++ (NSUnitDispersion *) partsPerMillion 
+{
+  NSUnitDispersion *result = [[NSUnitDispersion alloc] initWithSymbol: @"ppm"
+                                                          coefficient: 1.0
+                                                             constant: 0.0];
+  return result;
+}
+
 
 @end
 
