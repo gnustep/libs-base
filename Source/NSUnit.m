@@ -489,12 +489,54 @@
 @implementation NSUnitElectricCharge 
 
 // Base unit - coulombs
-+ (NSUnitElectricCharge *) coulombs { return nil; }
-+ (NSUnitElectricCharge *) megaampereHours { return nil; }
-+ (NSUnitElectricCharge *) kiloampereHours { return nil; }
-+ (NSUnitElectricCharge *) ampereHours { return nil; }
-+ (NSUnitElectricCharge *) milliampereHours { return nil; }
-+ (NSUnitElectricCharge *) microampereHours { return nil; }
++ (NSUnitElectricCharge *) coulombs 
+{
+  NSUnitElectricCharge *result = [[NSUnitElectricCharge alloc] initWithSymbol: @"C"
+                                                                  coefficient: 1.0
+                                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitElectricCharge *) megaampereHours 
+{
+  NSUnitElectricCharge *result = [[NSUnitElectricCharge alloc] initWithSymbol: @"MAh"
+                                                                  coefficient: 3.6e9
+                                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitElectricCharge *) kiloampereHours 
+{
+  NSUnitElectricCharge *result = [[NSUnitElectricCharge alloc] initWithSymbol: @"kAh"
+                                                                  coefficient: 3600000.0
+                                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitElectricCharge *) ampereHours 
+{
+  NSUnitElectricCharge *result = [[NSUnitElectricCharge alloc] initWithSymbol: @"mAh"
+                                                                  coefficient: 3600.0
+                                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitElectricCharge *) milliampereHours 
+{
+  NSUnitElectricCharge *result = [[NSUnitElectricCharge alloc] initWithSymbol: @"hr"
+                                                                  coefficient: 3.6
+                                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitElectricCharge *) microampereHours 
+{
+  NSUnitElectricCharge *result = [[NSUnitElectricCharge alloc] initWithSymbol: @"uAh"
+                                                                  coefficient: 0.0036
+                                                                     constant: 0.0];
+  return result;
+}
+
 
 @end
 
