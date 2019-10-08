@@ -2,7 +2,7 @@
 /* Definition of class NSMeasurement
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Mon Sep 30 15:58:21 EDT 2019
 
    This file is part of the GNUstep Library.
@@ -27,6 +27,7 @@
 #define _NSMeasurement_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSObject.h>
+#include <Foundation/NSUnit.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -34,7 +35,27 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 
-@interface NSMeasurement : NSObject
+@interface NSMeasurement : NSObject <NSCopying, NSCoding>
+
+// Creating Measurements
+- (instancetype)initWithDoubleValue: (double)doubleValue 
+                               unit: (NSUnit *)unit;
+
+
+// Accessing unit and value
+- (NSUnit *) unit;
+
+- (double) doubleValue;
+
+// Conversion
+- (BOOL) canBeConvertedToUnit: (NSUnit *)unit;
+
+- (NSMeasurement *)measurementByConvertingToUnit:(NSUnit *)unit;
+
+// Operating
+- (NSMeasurement *)measurementByAddingMeasurement:(NSMeasurement *)measurement;
+
+- (NSMeasurement *)measurementBySubtractingMeasurement:(NSMeasurement *)measurement;
 
 @end
 

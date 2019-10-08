@@ -26,6 +26,43 @@
 #include <Foundation/NSMeasurement.h>
 
 @implementation NSMeasurement
+// Creating Measurements
+- (instancetype)initWithDoubleValue: (double)doubleValue 
+                               unit: (NSUnit *)unit
+{
+  return nil;
+}
 
+// Accessing unit and value
+- (NSUnit *) unit
+{
+  return nil;
+}
+
+- (double) doubleValue
+{
+}
+
+// Conversion
+- (BOOL) canBeConvertedToUnit: (NSUnit *)unit
+{
+  return NO;
+}
+
+- (NSMeasurement *)measurementByConvertingToUnit:(NSUnit *)unit
+{
+  return nil;
+}
+
+// Operating
+- (NSMeasurement *)measurementByAddingMeasurement:(NSMeasurement *)measurement
+{
+  return nil;
+}
+
+- (NSMeasurement *)measurementBySubtractingMeasurement:(NSMeasurement *)measurement
+{
+  return nil;
+}
 @end
 
