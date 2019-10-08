@@ -804,9 +804,29 @@
 
 // Base unit - litersPer100Kilometers
 
-+ (NSUnitFuelEfficiency *) litersPer100Kilometers { return nil; }
-+ (NSUnitFuelEfficiency *) milesPerImperialGallon { return nil; }
-+ (NSUnitFuelEfficiency *) milesPerGallon { return nil; }
++ (NSUnitFuelEfficiency *) litersPer100Kilometers
+{
+  NSUnitFuelEfficiency *result = [[NSUnitFuelEfficiency alloc] initWithSymbol: @"L/100km"
+                                                                  coefficient: 0.0
+                                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitFuelEfficiency *) milesPerImperialGallon
+{
+  NSUnitFuelEfficiency *result = [[NSUnitFuelEfficiency alloc] initWithSymbol: @"mpg"
+                                                                  coefficient: 0.0
+                                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitFuelEfficiency *) milesPerGallon
+{
+  NSUnitFuelEfficiency *result = [[NSUnitFuelEfficiency alloc] initWithSymbol: @"mpg"
+                                                                  coefficient: 0.0
+                                                                     constant: 0.0];
+  return result;
+}
 
 @end
 
