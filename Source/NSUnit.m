@@ -1230,61 +1230,282 @@
 + (NSUnitTemperature *) kelvin
 {
   NSUnitTemperature *result = [[NSUnitTemperature alloc] initWithSymbol: @"K"
-                                                            coefficient: 1.0
-                                                               constant: 0.0];
+							    coefficient: 1.0
+							       constant: 0.0];
   return result;
 }
 
 + (NSUnitTemperature *) celsius
 {
   NSUnitTemperature *result = [[NSUnitTemperature alloc] initWithSymbol: @"C"
-                                                            coefficient: 1.0
-                                                               constant: 273.15];
+							    coefficient: 1.0
+							       constant: 273.15];
   return result;
 }
 
 + (NSUnitTemperature *) fahrenheit
 {
   NSUnitTemperature *result = [[NSUnitTemperature alloc] initWithSymbol: @"F"
-                                                            coefficient: 0.55555555555556
-                                                               constant: 255.37222222222427];
+							    coefficient: 0.55555555555556
+							       constant: 255.37222222222427];
   return result;
 }
 @end
 
 @implementation NSUnitVolume
++ (instancetype) baseUnit
+{
+  return [self liters];
+}
 
 // Base unit - liters
-+ (NSUnitVolume *) megaliters { return nil; }
-+ (NSUnitVolume *) kiloliters { return nil; }
-+ (NSUnitVolume *) liters { return nil; }
-+ (NSUnitVolume *) deciliters { return nil; }
-+ (NSUnitVolume *) centiliters { return nil; }
-+ (NSUnitVolume *) milliliters { return nil; }
-+ (NSUnitVolume *) cubicKilometers { return nil; }
-+ (NSUnitVolume *) cubicMeters { return nil; }
-+ (NSUnitVolume *) cubicDecimeters { return nil; }
-+ (NSUnitVolume *) cubicCentimeters { return nil; }
-+ (NSUnitVolume *) cubicMillimeters { return nil; }
-+ (NSUnitVolume *) cubicInches { return nil; }
-+ (NSUnitVolume *) cubicFeet { return nil; }
-+ (NSUnitVolume *) cubicYards { return nil; }
-+ (NSUnitVolume *) cubicMiles { return nil; }
-+ (NSUnitVolume *) acreFeet { return nil; }
-+ (NSUnitVolume *) bushels { return nil; }
-+ (NSUnitVolume *) teaspoons { return nil; }
-+ (NSUnitVolume *) tablespoons { return nil; }
-+ (NSUnitVolume *) fluidOunces { return nil; }
-+ (NSUnitVolume *) cups { return nil; }
-+ (NSUnitVolume *) pints { return nil; }
-+ (NSUnitVolume *) quarts { return nil; }
-+ (NSUnitVolume *) gallons { return nil; }
-+ (NSUnitVolume *) imperialTeaspoons { return nil; }
-+ (NSUnitVolume *) imperialTablespoons { return nil; }
-+ (NSUnitVolume *) imperialFluidOunces { return nil; }
-+ (NSUnitVolume *) imperialPints { return nil; }
-+ (NSUnitVolume *) imperialQuarts { return nil; }
-+ (NSUnitVolume *) imperialGallons { return nil; }
-+ (NSUnitVolume *) metricCups { return nil; } 
++ (NSUnitVolume *) megaliters 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"ML"
+                                                  coefficient: 1000000.0
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) kiloliters 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"kL"
+                                                  coefficient: 1000.0
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) liters 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"L"
+                                                  coefficient: 1.0
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) deciliters 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"dL"
+                                                  coefficient: 0.1
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) centiliters 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"cL"
+                                                  coefficient: 0.01
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) milliliters 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"mL"
+                                                  coefficient: 0.001
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) cubicKilometers 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"km^3"
+                                                  coefficient: 1e12
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) cubicMeters 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"m^3"
+                                                  coefficient: 1000.0
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) cubicDecimeters 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"dm^3"
+                                                  coefficient: 1.0
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) cubicCentimeters 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"cm^3"
+                                                  coefficient: 0.0001
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) cubicMillimeters 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"mm^3"
+                                                  coefficient: 0.000001
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) cubicInches 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"in^3"
+                                                  coefficient: 0.0163871
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) cubicFeet 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"ft^3"
+                                                  coefficient: 28.3168
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) cubicYards 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"yd^3"
+                                                  coefficient: 764.555
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) cubicMiles 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"mi^3"
+                                                  coefficient: 4.168e+12
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) acreFeet 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"af"
+                                                  coefficient: 1.233e+6
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) bushels 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"bsh"
+                                                  coefficient: 32.2391
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) teaspoons 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"tsp"
+                                                  coefficient: 0.00492892
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) tablespoons 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"tbsp"
+                                                  coefficient: 0.0147868
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) fluidOunces 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"fl oz"
+                                                  coefficient: 0.295735
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) cups 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"cups"
+                                                  coefficient: 0.24
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) pints 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"pt"
+                                                  coefficient: 0.473176
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) quarts 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"qt"
+                                                  coefficient: 0.946353
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) gallons 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"gal"
+                                                  coefficient: 3.78541
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) imperialTeaspoons 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"tsp"
+                                                  coefficient: 0.00591939
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) imperialTablespoons 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"tbsp"
+                                                  coefficient: 0.0177582
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) imperialFluidOunces 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"fl oz"
+                                                  coefficient: 0.0284131
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) imperialPints 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"pt"
+                                                  coefficient: 0.568261
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) imperialQuarts 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"qt"
+                                                  coefficient: 1.13652
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) imperialGallons 
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"gal"
+                                                  coefficient: 4.54609
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitVolume *) metricCups  
+{
+  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"metric cup"
+                                                  coefficient: 0.25
+                                                     constant: 0.0];
+  return result;
+}
+
 
 @end
