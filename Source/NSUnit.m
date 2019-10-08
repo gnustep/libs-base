@@ -38,6 +38,9 @@
 - (instancetype) init
 {
   self = [super init];
+  if (self != nil)
+    {
+    }
   return self;
 }
 
@@ -114,6 +117,16 @@
 - (double) constant
 {
   return _constant;
+}
+
+- (double)baseUnitValueFromValue:(double)value
+{
+  return ((_coefficient * value) + _constant); 
+}
+
+- (double)valueFromBaseUnitValue:(double)baseUnitValue
+{
+  return ((baseUnitValue / _coefficient) - _constant);
 }
 @end
 
