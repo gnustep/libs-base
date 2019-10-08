@@ -1,7 +1,7 @@
 /* Implementation of class NSUnit
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Mon Sep 30 15:58:21 EDT 2019
 
    This file is part of the GNUstep Library.
@@ -1098,23 +1098,92 @@
   return result;
 }
 
-
 @end
 
 @implementation NSUnitPressure
 
 // Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
 
-+ (NSUnitPressure *) newtonsPerMetersSquared { return nil; }
-+ (NSUnitPressure *) gigapascals { return nil; }
-+ (NSUnitPressure *) megapascals { return nil; }
-+ (NSUnitPressure *) kilopascals { return nil; }
-+ (NSUnitPressure *) hectopascals { return nil; }
-+ (NSUnitPressure *) inchesOfMercury { return nil; }
-+ (NSUnitPressure *) bars { return nil; }
-+ (NSUnitPressure *) millibars { return nil; }
-+ (NSUnitPressure *) millimetersOfMercury { return nil; }
-+ (NSUnitPressure *) poundsForcePerSquareInch { return nil; }
++ (NSUnitPressure *) newtonsPerMetersSquared 
+{
+  NSUnitPressure *result = [[NSUnitPressure alloc] initWithSymbol: @"N/m^2"
+                                                coefficient: 0.0
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPressure *) gigapascals 
+{
+  NSUnitPressure *result = [[NSUnitPressure alloc] initWithSymbol: @"GPa"
+                                                coefficient: 1e9
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPressure *) megapascals 
+{
+  NSUnitPressure *result = [[NSUnitPressure alloc] initWithSymbol: @"MPa"
+                                                coefficient: 1000000.0
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPressure *) kilopascals 
+{
+  NSUnitPressure *result = [[NSUnitPressure alloc] initWithSymbol: @"kPa"
+                                                coefficient: 1000.0
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPressure *) hectopascals 
+{
+  NSUnitPressure *result = [[NSUnitPressure alloc] initWithSymbol: @"hPa"
+                                                coefficient: 100.0
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPressure *) inchesOfMercury 
+{
+  NSUnitPressure *result = [[NSUnitPressure alloc] initWithSymbol: @"inHg"
+                                                coefficient: 3386.0
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPressure *) bars 
+{
+  NSUnitPressure *result = [[NSUnitPressure alloc] initWithSymbol: @"bars"
+                                                coefficient: 100000.0
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPressure *) millibars 
+{
+  NSUnitPressure *result = [[NSUnitPressure alloc] initWithSymbol: @"mbars"
+                                                coefficient: 100.0
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPressure *) millimetersOfMercury 
+{
+  NSUnitPressure *result = [[NSUnitPressure alloc] initWithSymbol: @"mmHg"
+                                                coefficient: 133.322 
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitPressure *) poundsForcePerSquareInch 
+{
+  NSUnitPressure *result = [[NSUnitPressure alloc] initWithSymbol: @"psi"
+                                                coefficient: 6894.76
+                                                   constant: 0.0];
+  return result;
+}
+
 
 @end
 
