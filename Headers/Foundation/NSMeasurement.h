@@ -35,8 +35,14 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 
+@class NSUnit;
+  
 @interface NSMeasurement : NSObject <NSCopying, NSCoding>
-
+{
+  NSUnit *_unit;
+  double _doubleValue;
+}
+  
 // Creating Measurements
 - (instancetype)initWithDoubleValue: (double)doubleValue 
                                unit: (NSUnit *)unit;

@@ -2,7 +2,7 @@
 /* Implementation of class NSMeasurement
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Mon Sep 30 15:58:21 EDT 2019
 
    This file is part of the GNUstep Library.
@@ -24,34 +24,59 @@
 */
 
 #include <Foundation/NSMeasurement.h>
+#include <Foundation/NSUnit.h>
+#include <Foundation/NSException.h>
 
 @implementation NSMeasurement
 // Creating Measurements
 - (instancetype)initWithDoubleValue: (double)doubleValue 
                                unit: (NSUnit *)unit
 {
-  return nil;
+  self = [super init];
+  if(self != nil)
+    {
+      ASSIGNCOPY(_unit, unit);
+      _doubleValue = doubleValue;
+    }
+  return self;
+}
+
+- (void) dealloc
+{
+  RELEASE(_unit);
+  [super dealloc];
 }
 
 // Accessing unit and value
 - (NSUnit *) unit
 {
-  return nil;
+  return _unit;
 }
 
 - (double) doubleValue
 {
+  return _doubleValue;
 }
 
 // Conversion
 - (BOOL) canBeConvertedToUnit: (NSUnit *)unit
 {
-  return NO;
+  return [unit isKindOfClass: [_unit class]];
 }
 
 - (NSMeasurement *)measurementByConvertingToUnit:(NSUnit *)unit
 {
-  return nil;
+  NSMeasurement *result = nil;
+  if([self canBeConvertedToUnit: unit])
+    {
+      // Do conversion...
+    }
+  else
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Cannot convert from %@ to %@", _unit, unit];
+    }
+  return result;
 }
 
 // Operating
@@ -63,6 +88,23 @@
 - (NSMeasurement *)measurementBySubtractingMeasurement:(NSMeasurement *)measurement
 {
   return nil;
+}
+
+// NSCopying
+- (id) copyWithZone: (NSZone *)zone
+{
+  return [[[self class] allocWithZone: zone] initWithDoubleValue: _doubleValue
+                                                            unit: _unit];
+}
+
+// NSCoding
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+}
+
+- (id) initWithCoder: (NSCoder *)coder
+{
+  return self;
 }
 @end
 
