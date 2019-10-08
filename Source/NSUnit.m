@@ -1101,10 +1101,37 @@
 @implementation NSUnitSpeed 
 
 // Base unit - metersPerSecond
-+ (NSUnitSpeed *) metersPerSecond { return nil; }
-+ (NSUnitSpeed *) kilometersPerHour { return nil; }
-+ (NSUnitSpeed *) milesPerHour { return nil; }
-+ (NSUnitSpeed *) knots { return nil; }
++ (NSUnitSpeed *) metersPerSecond
+{
+  NSUnitSpeed *result = [[NSUnitSpeed alloc] initWithSymbol: @"m/s"
+                                                coefficient: 1.0
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitSpeed *) kilometersPerHour
+{
+  NSUnitSpeed *result = [[NSUnitSpeed alloc] initWithSymbol: @"km/h"
+                                                coefficient: 0.277778
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitSpeed *) milesPerHour
+{
+  NSUnitSpeed *result = [[NSUnitSpeed alloc] initWithSymbol: @"mph"
+                                                coefficient: 0.44704
+                                                   constant: 0.0];
+  return result;
+}
+
++ (NSUnitSpeed *) knots
+{
+  NSUnitSpeed *result = [[NSUnitSpeed alloc] initWithSymbol: @"kn"
+                                                coefficient: 0.51444
+                                                   constant: 0.0];
+  return result;
+}
 
 @end
 
