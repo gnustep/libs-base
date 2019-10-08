@@ -247,6 +247,11 @@
 
 @implementation NSUnitAngle 
 
++ (instancetype) baseUnit
+{
+  return [self degrees];
+}
+
 // Base unit - degrees 
 + (NSUnitAngle *) degrees
 {
@@ -299,6 +304,11 @@
 @end
 
 @implementation NSUnitArea 
+
++ (instancetype) baseUnit
+{
+  return [self squareMeters];
+}
 
 // Base unit - squareMeters
 + (NSUnitArea *) squareMegameters
@@ -417,6 +427,11 @@
 
 @implementation NSUnitConcentrationMass 
 
++ (instancetype) baseUnit
+{
+  return [self gramsPerLiter];
+}
+
 // Base unit - gramsPerLiter
 + (NSUnitConcentrationMass *) gramsPerLiter
 {
@@ -446,6 +461,11 @@
 
 @implementation NSUnitDispersion 
 
++ (instancetype) baseUnit
+{
+  return [self partsPerMillion];
+}
+
 // Base unit - partsPerMillion
 + (NSUnitDispersion *) partsPerMillion 
 {
@@ -458,6 +478,11 @@
 @end
 
 @implementation NSUnitDuration   
+
++ (instancetype) baseUnit
+{
+  return [self seconds];
+}
 
 // Base unit - seconds
 + (NSUnitDuration *) seconds 
@@ -487,6 +512,11 @@
 @end
 
 @implementation NSUnitElectricCharge 
+
++ (instancetype) baseUnit
+{
+  return [self coulombs];
+}
 
 // Base unit - coulombs
 + (NSUnitElectricCharge *) coulombs 
@@ -541,6 +571,11 @@
 
 @implementation NSUnitElectricCurrent 
 
++ (instancetype) baseUnit
+{
+  return [self amperes];
+}
+
 // Base unit - amperes
 + (NSUnitElectricCurrent *) megaamperes 
 {
@@ -585,6 +620,11 @@
 @end
 
 @implementation NSUnitElectricPotentialDifference 
+
++ (instancetype) baseUnit
+{
+  return [self volts];
+}
 
 // Base unit - volts
 + (NSUnitElectricPotentialDifference *) megavolts 
@@ -635,6 +675,11 @@
 @end
 
 @implementation NSUnitElectricResistance 
+
++ (instancetype) baseUnit
+{
+  return [self ohms];
+}
 
 // Base unit - ohms
 + (NSUnitElectricResistance *) megaohms 
@@ -687,6 +732,11 @@
 
 @implementation NSUnitEnergy 
 
++ (instancetype) baseUnit
+{
+  return [self joules];
+}
+
 // Base unit - joules
 + (NSUnitEnergy *) kilojoules
 {
@@ -731,6 +781,11 @@
 @end
 
 @implementation NSUnitFrequency 
+
++ (instancetype) baseUnit
+{
+  return [self hertz];
+}
 
 // Base unit - hertz
 
@@ -802,6 +857,11 @@
 
 @implementation NSUnitFuelEfficiency 
 
++ (instancetype) baseUnit
+{
+  return [self litersPer100Kilometers];
+}
+
 // Base unit - litersPer100Kilometers
 
 + (NSUnitFuelEfficiency *) litersPer100Kilometers
@@ -832,34 +892,197 @@
 
 @implementation NSUnitLength 
 
++ (instancetype) baseUnit
+{
+  return [self meters];
+}
+
 // Base unit - meters
 
-+ (NSUnitLength *) megameters { return nil; }
-+ (NSUnitLength *) kilometers { return nil; }
-+ (NSUnitLength *) hectometers { return nil; }
-+ (NSUnitLength *) decameters { return nil; }
-+ (NSUnitLength *) meters { return nil; }
-+ (NSUnitLength *) decimeters { return nil; }
-+ (NSUnitLength *) centimeters { return nil; }
-+ (NSUnitLength *) millimeters { return nil; }
-+ (NSUnitLength *) micrometers { return nil; }
-+ (NSUnitLength *) nanometers { return nil; }
-+ (NSUnitLength *) picometers { return nil; }
-+ (NSUnitLength *) inches { return nil; }
-+ (NSUnitLength *) feet { return nil; }
-+ (NSUnitLength *) yards { return nil; }
-+ (NSUnitLength *) miles { return nil; }
-+ (NSUnitLength *) scandinavianMiles { return nil; }
-+ (NSUnitLength *) lightyears { return nil; }
-+ (NSUnitLength *) nauticalMiles { return nil; }
-+ (NSUnitLength *) fathoms { return nil; }
-+ (NSUnitLength *) furlongs { return nil; }
-+ (NSUnitLength *) astronomicalUnits { return nil; }
-+ (NSUnitLength *) parsecs { return nil; }
++ (NSUnitLength *) megameters 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"Mm"
+                                                  coefficient: 1000000.0
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) kilometers 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"kM"
+                                                  coefficient: 1000.0
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) hectometers 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"hm"
+                                                  coefficient: 100.0
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) decameters 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"dam"
+                                                  coefficient: 10
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) meters 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"meters"
+                                                  coefficient: 1.0
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) decimeters 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"dm"
+                                                  coefficient: 0.1
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) centimeters 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"cm"
+                                                  coefficient: 0.01
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) millimeters 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"mm"
+                                                  coefficient: 0.001
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) micrometers 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"um"
+                                                  coefficient: 0.000001
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) nanometers 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"nm"
+                                                  coefficient: 1e-9
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) picometers 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"pm"
+                                                  coefficient: 1e-12
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) inches 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"in"
+                                                  coefficient: 0.254
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) feet 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"ft"
+                                                  coefficient: 0.3048
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) yards 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"yd"
+                                                  coefficient: 0.9144
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) miles 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"mi"
+                                                  coefficient: 1609.34
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) scandinavianMiles 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"smi"
+                                                  coefficient: 10000
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) lightyears 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"ly"
+                                                  coefficient: 9.461e+15
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) nauticalMiles 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"NM"
+                                                  coefficient: 1852.0
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) fathoms 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"ftm"
+                                                  coefficient: 1.8288
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) furlongs 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"fur"
+                                                  coefficient: 0.0
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) astronomicalUnits 
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"ua"
+                                                  coefficient: 1.496e+11
+                                                     constant: 0.0];
+  return result;
+}
+
++ (NSUnitLength *) parsecs
+{
+  NSUnitLength *result = [[NSUnitLength alloc] initWithSymbol: @"pc"
+                                                  coefficient: 3.086e+16
+                                                     constant: 0.0];
+  return result;
+}
 
 @end
 
 @implementation NSUnitIlluminance 
+
++ (instancetype) baseUnit
+{
+  return [self lux];
+}
 
 // Base unit - lux
 + (NSUnitIlluminance *) lux
@@ -873,6 +1096,11 @@
 @end
 
 @implementation NSUnitMass 
+
++ (instancetype) baseUnit
+{
+  return [self kilograms];
+}
 
 // Base unit - kilograms
 
@@ -1008,6 +1236,11 @@
 
 @implementation NSUnitPower 
 
++ (instancetype) baseUnit
+{
+  return [self watts];
+}
+
 // Base unit - watts
 
 + (NSUnitPower *) terawatts 
@@ -1102,6 +1335,11 @@
 
 @implementation NSUnitPressure
 
++ (instancetype) baseUnit
+{
+  return [self newtonsPerMetersSquared];
+}
+
 // Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
 
 + (NSUnitPressure *) newtonsPerMetersSquared 
@@ -1188,6 +1426,10 @@
 @end
 
 @implementation NSUnitSpeed 
++ (instancetype) baseUnit
+{
+  return [self metersPerSecond];
+}
 
 // Base unit - metersPerSecond
 + (NSUnitSpeed *) metersPerSecond
@@ -1225,6 +1467,10 @@
 @end
 
 @implementation NSUnitTemperature
++ (instancetype) baseUnit
+{
+  return [self kelvin];
+}
 
 // Base unit - kelvin
 + (NSUnitTemperature *) kelvin
