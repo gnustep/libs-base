@@ -22,7 +22,6 @@ NSBackgroundActivityScheduler.h
 NSDateComponentsFormatter.h
 NSDateIntervalFormatter.h
 NSDateInterval.h
-NSEnergyFormatter.h
 NSExtensionContext.h
 NSExtensionItem.h
 NSExtensionRequestHandling.h
@@ -30,15 +29,10 @@ NSHFSFileTypes.h
 NSISO8601DateFormatter.h
 NSItemProvider.h
 NSItemProviderReadingWriting.h
-NSLengthFormatter.h
 NSLinguisticTagger.h
-NSMassFormatter.h
-NSMeasurementFormatter.h
-NSMeasurement.h
 NSMetadataAttributes.h
 NSObjectScripting.h
 NSOrthography.h
-NSUnit.h
 NSUserActivity.h
 NSXPCConnection.h
 -------------------------------------------------------------

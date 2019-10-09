@@ -61,6 +61,7 @@
 #import	<Foundation/NSDistantObject.h>
 #import	<Foundation/NSDistributedLock.h>
 #import	<Foundation/NSDistributedNotificationCenter.h>
+#import	<Foundation/NSEnergyFormatter.h>
 #import	<Foundation/NSEnumerator.h>
 #import	<Foundation/NSError.h>
 #import	<Foundation/NSException.h>
@@ -86,6 +87,7 @@
 #import	<Foundation/NSKeyedArchiver.h>
 #import	<Foundation/NSKeyValueCoding.h>
 #import	<Foundation/NSKeyValueObserving.h>
+#import <Foundation/NSLengthFormatter.h>
 #import	<Foundation/NSLock.h>
 #import	<Foundation/NSLocale.h>
 #import	<Foundation/NSMapTable.h>
@@ -138,6 +140,7 @@
 #import	<Foundation/NSTimeZone.h>
 #import <Foundation/NSUbiquitousKeyValueStore.h>
 #import	<Foundation/NSUndoManager.h>
+#import <Foundation/NSUnit.h>
 #import	<Foundation/NSURLAuthenticationChallenge.h>
 #import	<Foundation/NSURLCache.h>
 #import	<Foundation/NSURLConnection.h>
