@@ -61,15 +61,21 @@
 // Conversion
 - (BOOL) canBeConvertedToUnit: (NSUnit *)unit
 {
-  return [unit isKindOfClass: [_unit class]];
+  return ([unit isKindOfClass: [_unit class]] &&
+          [unit respondsToSelector: @selector(converter)]);
 }
 
 - (NSMeasurement *)measurementByConvertingToUnit:(NSUnit *)unit
 {
   NSMeasurement *result = nil;
+  double val = 0.0;
   if([self canBeConvertedToUnit: unit])
     {
       // Do conversion...
+      NSUnitConverter *c = [(NSDimension *)unit converter];
+      val = [c baseUnitValueFromValue: _doubleValue];
+      result = [[NSMeasurement alloc] initWithDoubleValue: val unit: unit];
+      AUTORELEASE(result);
     }
   else
     {
@@ -82,12 +88,28 @@
 // Operating
 - (NSMeasurement *)measurementByAddingMeasurement:(NSMeasurement *)measurement
 {
-  return nil;
+  NSMeasurement *newMeasurement = [measurement measurementByConvertingToUnit: _unit];
+  NSMeasurement *result = nil;
+  double v = 0.0;
+
+  v = _doubleValue + [newMeasurement doubleValue];
+  result = [[NSMeasurement alloc] initWithDoubleValue: v unit: _unit];
+  AUTORELEASE(result);
+  
+  return result;
 }
 
 - (NSMeasurement *)measurementBySubtractingMeasurement:(NSMeasurement *)measurement
 {
-  return nil;
+  NSMeasurement *newMeasurement = [measurement measurementByConvertingToUnit: _unit];
+  NSMeasurement *result = nil;
+  double v = 0.0;
+
+  v = _doubleValue + [newMeasurement doubleValue];
+  result = [[NSMeasurement alloc] initWithDoubleValue: v unit: _unit];
+  AUTORELEASE(result);
+  
+  return result;
 }
 
 // NSCopying

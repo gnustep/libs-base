@@ -20,8 +20,6 @@ NSAppleEventDescriptor.h
 NSAppleEventManager.h
 NSBackgroundActivityScheduler.h
 NSDateComponentsFormatter.h
-NSDateIntervalFormatter.h
-NSDateInterval.h
 NSExtensionContext.h
 NSExtensionItem.h
 NSExtensionRequestHandling.h
