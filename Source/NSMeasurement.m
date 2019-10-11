@@ -105,7 +105,7 @@
   NSMeasurement *result = nil;
   double v = 0.0;
 
-  v = _doubleValue + [newMeasurement doubleValue];
+  v = _doubleValue - [newMeasurement doubleValue];
   result = [[NSMeasurement alloc] initWithDoubleValue: v unit: _unit];
   AUTORELEASE(result);
   
