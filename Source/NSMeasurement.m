@@ -26,6 +26,8 @@
 #include <Foundation/NSMeasurement.h>
 #include <Foundation/NSUnit.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSArchiver.h>
+#include <Foundation/NSKeyedArchiver.h>
 
 @implementation NSMeasurement
 // Creating Measurements
@@ -122,10 +124,33 @@
 // NSCoding
 - (void) encodeWithCoder: (NSCoder *)coder
 {
+  if([coder allowsKeyedCoding])
+    {
+      [coder encodeObject: _unit forKey: @"unit"];
+      [coder encodeDouble: _doubleValue forKey: @"doubleValue"];
+    }
+  else
+    {
+      [coder encodeObject: _unit];
+      [coder encodeValueOfObjCType: @encode(double) at: &_doubleValue];
+    }
 }
 
 - (id) initWithCoder: (NSCoder *)coder
 {
+  if((self = [super init]) != nil)
+    {
+      if([coder allowsKeyedCoding])
+        {
+          _unit = [coder decodeObjectForKey: @"unit"];
+          _doubleValue = [coder decodeDoubleForKey: @"doubleValue"];
+        }
+      else
+        {
+          _unit = [coder decodeObject];
+          [coder decodeValueOfObjCType: @encode(double) at: &_doubleValue];
+        }
+    }
   return self;
 }
 @end
