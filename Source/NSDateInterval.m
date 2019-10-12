@@ -2,7 +2,7 @@
 /* Implementation of class NSDateInterval
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory Casamento <greg.casamento@gmail.com>
    Date: Wed Oct  9 16:24:13 EDT 2019
 
    This file is part of the GNUstep Library.
