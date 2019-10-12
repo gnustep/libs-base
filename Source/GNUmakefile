@@ -213,6 +213,7 @@ NSConnection.m \
 NSData.m \
 NSDate.m \
 NSDateFormatter.m \
+NSDateInterval.m \
 NSDebug.m \
 NSDecimal.m \
 NSDecimalNumber.m \
@@ -407,6 +408,7 @@ NSCompoundPredicate.h \
 NSConnection.h \
 NSData.h \
 NSDateFormatter.h \
+NSDateInterval.h \
 NSDate.h \
 NSDebug.h \
 NSDecimal.h \

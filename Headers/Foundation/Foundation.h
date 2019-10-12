@@ -55,6 +55,7 @@
 #import	<Foundation/NSConnection.h>
 #import	<Foundation/NSData.h>
 #import	<Foundation/NSDateFormatter.h>
+#import <Foundation/NSDateInterval.h>
 #import	<Foundation/NSDate.h>
 #import	<Foundation/NSDecimalNumber.h>
 #import	<Foundation/NSDictionary.h>
