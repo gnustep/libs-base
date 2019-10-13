@@ -36,7 +36,12 @@ extern "C" {
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
 
 @interface NSDateInterval : NSObject <NSCoding, NSCopying>
-
+{
+  NSTimeInterval _duration;
+  NSDate *_startDate;
+  NSDate *_endDate;
+}
+  
 // Init
 - (instancetype) init;
 

@@ -24,26 +24,51 @@
 */
 
 #include <Foundation/NSDateInterval.h>
+#include <Foundation/NSDate.h>
 
 @implementation NSDateInterval
 
 // Init
 - (instancetype)init
 {
+  self = [super init];
+  if(self != nil)
+    {
+      _startDate = nil;
+      _duration = 0.0;
+    }
+  return self;
 }
 
 - (instancetype)initWithStartDate:(NSDate *)startDate 
                          duration:(NSTimeInterval)duration
 {
+  self = [super init];
+  if(self != nil)
+    {
+      ASSIGNCOPY(_startDate, startDate);
+      ASSIGNCOPY(_endDate, [startDate dateByAddingTimeInterval: duration]);
+      _duration = duration;
+    }
+  return self;
 }
 
 - (instancetype)initWithStartDate:(NSDate *)startDate 
                           endDate:(NSDate *)endDate
 {
+  self = [super init];
+  if(self != nil)
+    {
+      ASSIGNCOPY(_startDate, startDate);
+      ASSIGNCOPY(_endDate, endDate);
+      _duration = [endDate timeIntervalSinceDate: startDate];
+    }
+  return self;  
 }
 
 - (instancetype) initWithCoder: (NSCoder *)coder
 {
+  return nil;
 }
 
 - (void) encodeWithCoder: (NSCoder *)coder
@@ -52,54 +77,99 @@
 
 - (id) copyWithZone: (NSZone *)zone
 {
+  return [[[self class] allocWithZone: zone]
+           initWithStartDate: _startDate
+                    duration: _duration];
+}
+
+- (void) dealloc
+{
+  RELEASE(_startDate);
+  [super dealloc];
 }
 
 // Access
 - (NSDate *) startDate
 {
+  return _startDate;
 }
 
 - (void) setStartDate: (NSDate *)startDate
 {
+  ASSIGNCOPY(_startDate, startDate);
 }
 
 - (NSDate *) endDate
 {
+  return _endDate;
 }
 
 - (void) setEndDate: (NSDate *)endDate
 {
+  ASSIGNCOPY(_endDate, endDate);
+  _duration = [endDate timeIntervalSinceDate: _startDate];
 }
 
 - (NSTimeInterval) duration
 {
+  return _duration;
 }
 
 - (void) setDuration: (NSTimeInterval)duration
 {
+  NSDate *newEndDate = [_startDate dateByAddingTimeInterval: duration];
+  _duration = duration;
+  [self setEndDate: newEndDate];
 }
 
 // Compare
 - (NSComparisonResult) compare: (NSDateInterval *)dateInterval
 {
+  // NSOrderedAscending
+  if([_startDate isEqualToDate: [dateInterval startDate]] &&
+     _duration < [dateInterval duration])
+    return NSOrderedAscending;
+  if([_startDate compare: [dateInterval startDate]] == NSOrderedAscending)
+    return NSOrderedAscending;
+
+  // NSOrderedSame
+  if([self isEqualToDateInterval: dateInterval])
+    return NSOrderedSame;
+
+  if([_startDate isEqualToDate: [dateInterval startDate]] &&
+     _duration > [dateInterval duration])
+    return NSOrderedDescending;
+  if([_startDate compare: [dateInterval startDate]] == NSOrderedDescending)
+    return NSOrderedDescending;
+
+  return 0;
 }
 
 - (BOOL) isEqualToDateInterval: (NSDateInterval *)dateInterval
 {
+  return ([_startDate isEqualToDate: [dateInterval startDate]] &&
+          _duration == [dateInterval duration]);
 }
 
 // Determine
 - (BOOL) intersectsDateInterval: (NSDateInterval *)dateInterval
 {
+  return [self intersectionWithDateInterval: dateInterval] != nil;
 }
 
 - (NSDateInterval *) intersectionWithDateInterval: (NSDateInterval *)dateInterval
 {
+  return nil;
 }
 
 // Contain
 - (BOOL) containsDate: (NSDate *)date
 {
+  return ([_startDate compare: date] == NSOrderedSame ||
+          [_endDate compare: date] == NSOrderedSame ||
+          ([_startDate compare: date] == NSOrderedAscending &&
+           [_endDate compare: date] == NSOrderedDescending));
+    
 }
 
 @end
