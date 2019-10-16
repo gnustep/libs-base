@@ -25,6 +25,7 @@
 
 #include <Foundation/NSDateInterval.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSArray.h>
 
 @implementation NSDateInterval
 
@@ -129,16 +130,19 @@
   if([_startDate isEqualToDate: [dateInterval startDate]] &&
      _duration < [dateInterval duration])
     return NSOrderedAscending;
+  
   if([_startDate compare: [dateInterval startDate]] == NSOrderedAscending)
     return NSOrderedAscending;
 
-  // NSOrderedSame
+  // NSOrderedSame 
   if([self isEqualToDateInterval: dateInterval])
     return NSOrderedSame;
 
+  // NSOrderedDescending
   if([_startDate isEqualToDate: [dateInterval startDate]] &&
      _duration > [dateInterval duration])
     return NSOrderedDescending;
+  
   if([_startDate compare: [dateInterval startDate]] == NSOrderedDescending)
     return NSOrderedDescending;
 
@@ -159,7 +163,44 @@
 
 - (NSDateInterval *) intersectionWithDateInterval: (NSDateInterval *)dateInterval
 {
-  return nil;
+  NSDateInterval *result = nil;
+  NSArray *array = [NSArray arrayWithObjects: self, dateInterval, nil];
+  NSArray *sortedArray = [array sortedArrayUsingSelector: @selector(compare:)];
+  NSDateInterval *first = [sortedArray firstObject];
+  NSDateInterval *last = [sortedArray lastObject];
+  NSDate *intersectStartDate = nil;
+  NSDate *intersectEndDate = nil;
+
+  // Max of start date....
+  if([[first startDate] compare: [last startDate]] == NSOrderedAscending ||
+     [[first startDate] isEqualToDate: [last startDate]])
+    {
+      intersectStartDate = [last startDate];
+    }
+  if([[first startDate] compare: [last startDate]] == NSOrderedDescending)
+    {
+      intersectStartDate = [first startDate];
+    }
+
+  // Min of end date...
+  if([[first endDate] compare: [last endDate]] == NSOrderedDescending ||
+     [[first endDate] isEqualToDate: [last endDate]])
+    {
+      intersectEndDate = [last endDate];
+    }
+  if([[first endDate] compare: [last endDate]] == NSOrderedAscending)
+    {
+      intersectEndDate = [first endDate];
+    }
+
+  if([intersectStartDate compare: intersectEndDate] == NSOrderedAscending)
+    {
+      result = [[NSDateInterval alloc] initWithStartDate: intersectStartDate
+                                                 endDate: intersectEndDate];
+      AUTORELEASE(result);
+    }
+
+  return result;
 }
 
 // Contain
