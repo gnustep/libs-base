@@ -1,3 +1,9 @@
+2019-10-02  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSDictionary.m: fixed mutable dictionary keyed subscript
+	behavior: assigning nil value via keyed subscript now correctly
+	removes object for key.
+
 2019-09-25  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/Foundation/NSProcessInfo.h:
