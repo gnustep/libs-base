@@ -24,8 +24,53 @@
 */
 
 #include <Foundation/NSMeasurementFormatter.h>
+#include <Foundation/NSLocale.h>
+#include <Foundation/NSMeasurement.h>
+#include <Foundation/NSNumberFormatter.h>
+#include <Foundation/NSUnit.h>
 
 @implementation NSMeasurementFormatter
+
+- (NSMeasurementFormatterUnitOptions) unitOptions
+{
+}
+
+- (void) setUnitOptions: (NSMeasurementFormatterUnitOptions) unitOptions
+{
+}
+  
+- (NSFormattingUnitStyle) unitStyle
+{
+}
+
+- (void) setUnitStyle: (NSFormattingUnitStyle)style
+{
+}
+
+- (NSLocale *) locale
+{
+}
+
+- (void) setLocale: (NSLocale *)locale
+{
+}
+
+- (NSNumberFormatter *) numberFormatter
+{
+}
+
+- (void) setNumberFormatter: (NSNumberFormatter *)numberFormatter
+{
+}
+  
+- (NSString *)stringFromMeasurement: (NSMeasurement *)measurement
+{
+}
+
+- (NSString *)stringFromUnit: (NSUnit *)unit
+{
+}
+
 
 @end
 

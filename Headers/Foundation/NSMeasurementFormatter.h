@@ -26,15 +26,47 @@
 #ifndef _NSMeasurementFormatter_h_GNUSTEP_BASE_INCLUDE
 #define _NSMeasurementFormatter_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSObject.h>
-
 #if	defined(__cplusplus)
 extern "C" {
 #endif
+  
+#include <Foundation/NSObject.h>
+#include <Foundation/NSFormatter.h>
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
+  @class NSLocale, NSMeasurement, NSNumberFormatter, NSUnit;
+  
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
 
-@interface NSMeasurementFormatter : NSObject
+enum {
+    NSMeasurementFormatterUnitOptionsProvidedUnit = (1UL << 0),
+    NSMeasurementFormatterUnitOptionsNaturalScale = (1UL << 1),
+    NSMeasurementFormatterUnitOptionsTemperatureWithoutUnit = (1UL << 2),   
+};
+typedef NSUInteger NSMeasurementFormatterUnitOptions;
+  
+@interface NSMeasurementFormatter : NSFormatter <NSCoding>
+{
+  NSMeasurementFormatterUnitOptions _unitOptions;
+  NSFormattingUnitStyle _unitStyle;
+  NSLocale *_locale;
+  NSNumberFormatter *_numberFormatter;  
+}
+
+- (NSMeasurementFormatterUnitOptions) unitOptions;
+- (void) setUnitOptions: (NSMeasurementFormatterUnitOptions) unitOptions;
+  
+- (NSFormattingUnitStyle) unitStyle;
+- (void) setUnitStyle: (NSFormattingUnitStyle)style;
+
+- (NSLocale *) locale;
+- (void) setLocale: (NSLocale *)locale;
+
+- (NSNumberFormatter *) numberFormatter;
+- (void) setNumberFormatter: (NSNumberFormatter *)numberFormatter;  
+  
+- (NSString *)stringFromMeasurement: (NSMeasurement *)measurement;
+
+- (NSString *)stringFromUnit: (NSUnit *)unit;
 
 @end
 
