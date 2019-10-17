@@ -33,42 +33,52 @@
 
 - (NSMeasurementFormatterUnitOptions) unitOptions
 {
+  return _unitOptions;
 }
 
 - (void) setUnitOptions: (NSMeasurementFormatterUnitOptions) unitOptions
 {
+  _unitOptions = unitOptions;
 }
   
 - (NSFormattingUnitStyle) unitStyle
 {
+  return _unitStyle;
 }
 
 - (void) setUnitStyle: (NSFormattingUnitStyle)style
 {
+  _unitStyle = style;
 }
 
 - (NSLocale *) locale
 {
+  return _locale;
 }
 
 - (void) setLocale: (NSLocale *)locale
 {
+  ASSIGNCOPY(_locale, locale);
 }
 
 - (NSNumberFormatter *) numberFormatter
 {
+  return _numberFormatter;
 }
 
 - (void) setNumberFormatter: (NSNumberFormatter *)numberFormatter
 {
+  ASSIGNCOPY(_numberFormatter, numberFormatter);
 }
   
 - (NSString *)stringFromMeasurement: (NSMeasurement *)measurement
 {
+  return nil;
 }
 
 - (NSString *)stringFromUnit: (NSUnit *)unit
 {
+  return nil;
 }
 
 
