@@ -99,10 +99,14 @@ ifeq ($(_have_makefiles),yes)
 config.mak: config.status config.mak.in
 	@./$< $@
 
-base.make: config.status base.make.in Version
 # If Version is newer than the target, configure must be rerun so that
 # its variables get AC_SUBST'ed and actually updated in base.make.
-	@if [ Version -nt $@ ]; then ./configure; else ./$< $@; fi
+base.make:: Version
+	@./configure
+
+# Normally (Version unchanged) config.status can regenerate base.make.
+base.make:: config.status base.make.in
+	@./$< $@
 
 config.status: configure
 	@if [ -f $@ ]; then ./$@ --recheck; else ./$<; fi
