@@ -31,6 +31,24 @@
 
 @implementation NSMeasurementFormatter
 
+- (instancetype) init
+{
+  self = [super init];
+  if(self != nil)
+    {
+      _unitOptions = NSMeasurementFormatterUnitOptionsProvidedUnit;
+      _unitStyle = NSFormattingUnitStyleMedium;
+      _locale = RETAIN([NSLocale currentLocale]);
+    }
+  return self;
+}
+
+- (void) dealloc
+{
+  RELEASE(_locale);
+  [super dealloc];
+}
+
 - (NSMeasurementFormatterUnitOptions) unitOptions
 {
   return _unitOptions;

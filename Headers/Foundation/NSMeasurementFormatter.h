@@ -33,9 +33,9 @@ extern "C" {
 #include <Foundation/NSObject.h>
 #include <Foundation/NSFormatter.h>
 
-  @class NSLocale, NSMeasurement, NSNumberFormatter, NSUnit;
+@class NSLocale, NSMeasurement, NSNumberFormatter, NSUnit;
   
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
 
 enum {
     NSMeasurementFormatterUnitOptionsProvidedUnit = (1UL << 0),
