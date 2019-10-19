@@ -91,14 +91,41 @@
   
 - (NSString *)stringFromMeasurement: (NSMeasurement *)measurement
 {
-  return nil;
+  NSString *result = nil;
+  NSNumber *num = [NSNumber numberWithDouble: [measurement doubleValue]];
+  NSUnit *u = [measurement unit];
+  
+  result = [_numberFormatter stringForObjectValue: num];
+  switch(_unitStyle)
+    {
+    case NSFormattingUnitStyleShort:
+    case NSFormattingUnitStyleMedium:
+    case NSFormattingUnitStyleLong:
+      result = [result stringByAppendingString: [self stringFromUnit: u]];
+      break;
+    }
+
+  return result;
 }
 
 - (NSString *)stringFromUnit: (NSUnit *)unit
 {
-  return nil;
+  return [unit symbol];
 }
 
+- (NSString *)stringForObjectValue: (id)obj
+{
+  NSString *result = nil;
+  if([obj isKindOfClass: [NSMeasurement class]])
+    {
+      result = [self stringFromMeasurement: obj];
+    }
+  else if([obj isKindOfClass: [NSUnit class]])
+    {
+      result = [self stringFromUnit: obj];
+    }
+  return result;
+}
 
 @end
 
