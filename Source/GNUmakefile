@@ -213,6 +213,7 @@ NSConnection.m \
 NSData.m \
 NSDate.m \
 NSDateFormatter.m \
+NSDateInterval.m \
 NSDebug.m \
 NSDecimal.m \
 NSDecimalNumber.m \
@@ -220,6 +221,7 @@ NSDictionary.m \
 NSDistantObject.m \
 NSDistributedLock.m \
 NSDistributedNotificationCenter.m \
+NSEnergyFormatter.m \
 NSEnumerator.m \
 NSError.m \
 NSException.m \
@@ -244,6 +246,7 @@ NSKeyedArchiver.m \
 NSKeyedUnarchiver.m \
 NSKeyValueCoding.m \
 NSKeyValueObserving.m \
+NSLengthFormatter.m \
 NSLocale.m \
 NSLock.m \
 NSLog.m \
@@ -405,6 +408,7 @@ NSCompoundPredicate.h \
 NSConnection.h \
 NSData.h \
 NSDateFormatter.h \
+NSDateInterval.h \
 NSDate.h \
 NSDebug.h \
 NSDecimal.h \
@@ -413,6 +417,7 @@ NSDictionary.h \
 NSDistantObject.h \
 NSDistributedLock.h \
 NSDistributedNotificationCenter.h \
+NSEnergyFormatter.h \
 NSEnumerator.h \
 NSError.h \
 NSErrorRecoveryAttempting.h \
@@ -439,6 +444,7 @@ NSJSONSerialization.h \
 NSKeyedArchiver.h \
 NSKeyValueCoding.h \
 NSKeyValueObserving.h \
+NSLengthFormtter.h \
 NSLocale.h \
 NSLock.h \
 NSMapTable.h \

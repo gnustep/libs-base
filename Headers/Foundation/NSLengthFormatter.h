@@ -1,9 +1,9 @@
 
-/* Definition of class NSMeasurement
+/* Definition of class NSLengthFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: Gregory John Casamento <greg.casamento@gmail.com>
-   Date: Mon Sep 30 15:58:21 EDT 2019
+   By: heron
+   Date: Tue Oct  8 13:30:33 EDT 2019
 
    This file is part of the GNUstep Library.
    
@@ -23,11 +23,10 @@
    Boston, MA 02111 USA.
 */
 
-#ifndef _NSMeasurement_h_GNUSTEP_BASE_INCLUDE
-#define _NSMeasurement_h_GNUSTEP_BASE_INCLUDE
+#ifndef _NSLengthFormatter_h_GNUSTEP_BASE_INCLUDE
+#define _NSLengthFormatter_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSUnit.h>
+#include <Foundation/NSFormatter.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -35,33 +34,7 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 
-@class NSUnit;
-  
-@interface NSMeasurement : NSObject <NSCopying, NSCoding>
-{
-  NSUnit *_unit;
-  double _doubleValue;
-}
-  
-// Creating Measurements
-- (instancetype)initWithDoubleValue: (double)doubleValue 
-                               unit: (NSUnit *)unit;
-
-
-// Accessing unit and value
-- (NSUnit *) unit;
-
-- (double) doubleValue;
-
-// Conversion
-- (BOOL) canBeConvertedToUnit: (NSUnit *)unit;
-
-- (NSMeasurement *)measurementByConvertingToUnit:(NSUnit *)unit;
-
-// Operating
-- (NSMeasurement *)measurementByAddingMeasurement:(NSMeasurement *)measurement;
-
-- (NSMeasurement *)measurementBySubtractingMeasurement:(NSMeasurement *)measurement;
+@interface NSLengthFormatter : NSFormatter
 
 @end
 
@@ -71,5 +44,5 @@ extern "C" {
 
 #endif	/* GS_API_MACOSX */
 
-#endif	/* _NSMeasurement_h_GNUSTEP_BASE_INCLUDE */
+#endif	/* _NSLengthFormatter_h_GNUSTEP_BASE_INCLUDE */
 
