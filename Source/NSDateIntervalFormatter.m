@@ -24,8 +24,93 @@
 */
 
 #include <Foundation/NSDateIntervalFormatter.h>
+#include <Foundation/NSLocale.h>
+#include <Foundation/NSCalendar.h>
+#include <Foundation/NSTimeZone.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSDate.h>
+#include <Foundation/NSDateInterval.h>
 
 @implementation NSDateIntervalFormatter
+// Properties
+- (NSLocale *) locale
+{
+  return _locale;
+}
+
+- (void) setLocale: (NSLocale *)locale
+{
+  ASSIGNCOPY(_locale, locale);
+}
+
+- (NSCalendar *) calendar
+{
+  return _calendar;
+}
+
+- (void) setCalendar: (NSCalendar *)calendar
+{
+  ASSIGNCOPY(_calendar, calendar);
+}
+
+- (NSTimeZone *) timeZone
+{
+  return _timeZone;
+}
+
+- (void) setTimeZone: (NSTimeZone *)timeZone
+{
+  ASSIGNCOPY(_timeZone, timeZone);
+}
+
+- (NSString *) dateTemplate
+{
+  return _dateTemplate;
+}
+
+- (void) setDateTemplate: (NSString *)dateTemplate
+{
+  ASSIGNCOPY(_dateTemplate, dateTemplate);
+}
+
+- (NSDateIntervalFormatterStyle) dateStyle
+{
+  return _dateStyle;
+}
+
+- (void) setDateStyle: (NSDateIntervalFormatterStyle)dateStyle
+{
+  _dateStyle = dateStyle;
+}
+  
+- (NSDateIntervalFormatterStyle) timeStyle
+{
+  return _timeStyle;
+}
+
+- (void) setTimeStyle: (NSDateIntervalFormatterStyle)timeStyle
+{
+  _timeStyle = timeStyle;
+}
+
+// Create strings
+- (NSString *)stringFromDate:(NSDate *)fromDate toDate:(NSDate *)toDate
+{
+  NSDateInterval *interval = [[NSDateInterval alloc] initWithStartDate: fromDate
+                                                               endDate: toDate];
+  AUTORELEASE(interval);
+  return [self stringFromDateInterval: interval];
+}
+
+- (NSString *)stringFromDateInterval:(NSDateInterval *)dateInterval
+{
+  NSString *result = nil;
+  NSDate *fromDate = [dateInterval startDate];
+  NSDate *toDate = [dateInterval endDate];
+  
+  result = [NSString stringWithFormat: @"%@ - %@", fromDate, toDate];
+  return result;
+}
 
 @end
 
