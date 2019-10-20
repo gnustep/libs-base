@@ -32,9 +32,52 @@
 extern "C" {
 #endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
 
+enum {
+  NSDateIntervalFormatterNoStyle = 0,
+  NSDateIntervalFormatterShortStyle = 1,
+  NSDateIntervalFormatterMediumStyle = 2,
+  NSDateIntervalFormatterLongStyle = 3,
+  NSDateIntervalFormatterFullStyle = 4
+};
+typedef NSUInteger NSDateIntervalFormatterStyle;
+
+@class NSCalendar, NSLocale, NSDateInterval;
+  
 @interface NSDateIntervalFormatter : NSFormatter
+{
+    NSLocale *_locale;
+    NSCalendar *_calendar;
+    NSTimeZone *_timeZone;
+    NSString *_dateTemplate;
+    NSDateIntervalFormatterStyle _dateStyle;
+    NSDateIntervalFormatterStyle _timeStyle;
+}
+
+// Properties
+- (NSLocale *) locale;
+- (void) setLocale: (NSLocale *)locale;
+
+- (NSCalendar *) calendar;
+- (void) setCalendar: (NSCalendar *)calendar;
+
+- (NSTimeZone *) timeZone;
+- (void) setTimeZone: (NSTimeZone *)timeZone;
+
+- (NSString *) dateTemplate;
+- (void) setDateTemplate: (NSString *)dateTemplate;
+
+- (NSDateIntervalFormatterStyle) dateStyle;
+- (void) setDateStyle: (NSDateIntervalFormatterStyle)dateStyle;
+  
+- (NSDateIntervalFormatterStyle) timeStyle;
+- (void) setTimeStyle: (NSDateIntervalFormatterStyle)timeStyle;
+
+// Create strings
+- (NSString *)stringFromDate:(NSDate *)fromDate toDate:(NSDate *)toDate;
+
+- (NSString *)stringFromDateInterval:(NSDateInterval *)dateInterval;
 
 @end
 

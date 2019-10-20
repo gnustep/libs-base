@@ -214,6 +214,7 @@ NSData.m \
 NSDate.m \
 NSDateFormatter.m \
 NSDateInterval.m \
+NSDateIntervalFormatter.m \
 NSDebug.m \
 NSDecimal.m \
 NSDecimalNumber.m \
@@ -409,6 +410,7 @@ NSConnection.h \
 NSData.h \
 NSDateFormatter.h \
 NSDateInterval.h \
+NSDateIntervalFormatter.h \
 NSDate.h \
 NSDebug.h \
 NSDecimal.h \

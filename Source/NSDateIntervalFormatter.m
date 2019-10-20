@@ -2,7 +2,7 @@
 /* Implementation of class NSDateIntervalFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Wed Oct  9 16:23:55 EDT 2019
 
    This file is part of the GNUstep Library.

@@ -56,6 +56,7 @@
 #import	<Foundation/NSData.h>
 #import	<Foundation/NSDateFormatter.h>
 #import <Foundation/NSDateInterval.h>
+#import <Foundation/NSDateIntervalFormatter.h>
 #import	<Foundation/NSDate.h>
 #import	<Foundation/NSDecimalNumber.h>
 #import	<Foundation/NSDictionary.h>
@@ -92,6 +93,8 @@
 #import	<Foundation/NSLock.h>
 #import	<Foundation/NSLocale.h>
 #import	<Foundation/NSMapTable.h>
+#import <Foundation/NSMeasurement.h>
+#import <Foundation/NSMeasurementFormatter.h>
 #import <Foundation/NSMetadata.h>
 #import	<Foundation/NSMethodSignature.h>
 #import	<Foundation/NSNotification.h>
