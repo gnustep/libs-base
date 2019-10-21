@@ -220,6 +220,8 @@
                                                                                constant: constant];
   NSDimension *result = [[[self class] alloc] initWithSymbol: symbol
                                                    converter: converter];
+  AUTORELEASE(converter);
+  AUTORELEASE(result);
   return result;
 }
 

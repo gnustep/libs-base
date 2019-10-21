@@ -48,7 +48,6 @@
   if(self != nil)
     {
       ASSIGNCOPY(_startDate, startDate);
-      ASSIGNCOPY(_endDate, [startDate dateByAddingTimeInterval: duration]);
       _duration = duration;
     }
   return self;
@@ -102,12 +101,11 @@
 
 - (NSDate *) endDate
 {
-  return _endDate;
+  return [_startDate dateByAddingTimeInterval: _duration];
 }
 
 - (void) setEndDate: (NSDate *)endDate
 {
-  ASSIGNCOPY(_endDate, endDate);
   _duration = [endDate timeIntervalSinceDate: _startDate];
 }
 
@@ -118,9 +116,7 @@
 
 - (void) setDuration: (NSTimeInterval)duration
 {
-  NSDate *newEndDate = [_startDate dateByAddingTimeInterval: duration];
   _duration = duration;
-  [self setEndDate: newEndDate];
 }
 
 // Compare
@@ -206,10 +202,11 @@
 // Contain
 - (BOOL) containsDate: (NSDate *)date
 {
+  NSDate *endDate = [self endDate];
   return ([_startDate compare: date] == NSOrderedSame ||
-          [_endDate compare: date] == NSOrderedSame ||
+          [endDate compare: date] == NSOrderedSame ||
           ([_startDate compare: date] == NSOrderedAscending &&
-           [_endDate compare: date] == NSOrderedDescending));
+           [endDate compare: date] == NSOrderedDescending));
     
 }
 
