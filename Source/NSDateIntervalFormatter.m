@@ -94,7 +94,7 @@
 }
 
 // Create strings
-- (NSString *)stringFromDate:(NSDate *)fromDate toDate:(NSDate *)toDate
+- (NSString *) stringFromDate: (NSDate *)fromDate toDate: (NSDate *)toDate
 {
   NSDateInterval *interval = [[NSDateInterval alloc] initWithStartDate: fromDate
                                                                endDate: toDate];
@@ -102,7 +102,7 @@
   return [self stringFromDateInterval: interval];
 }
 
-- (NSString *)stringFromDateInterval:(NSDateInterval *)dateInterval
+- (NSString *) stringFromDateInterval: (NSDateInterval *)dateInterval
 {
   NSString *result = nil;
   NSDate *fromDate = [dateInterval startDate];
