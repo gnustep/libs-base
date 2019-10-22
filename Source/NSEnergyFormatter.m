@@ -1,8 +1,7 @@
-
 /* Implementation of class NSEnergyFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Tue Oct  8 13:30:10 EDT 2019
 
    This file is part of the GNUstep Library.
@@ -26,6 +25,61 @@
 #include <Foundation/NSEnergyFormatter.h>
 
 @implementation NSEnergyFormatter
+
+- (NSNumberFormatter *) numberFormatter
+{
+  return _numberFormatter;
+}
+
+- (void) setNumberFormatter: (NSNumberFormatter *)formatter
+{
+  ASSIGN(_numberFormatter, formatter);
+}
+  
+- (NSFormattingUnitStyle) unitStyle
+{
+  return _unitStyle;
+}
+
+- (void) setUnitStyle: (NSFormattingUnitStyle)style
+{
+  _unitStyle = style;
+}
+  
+- (BOOL) isForFoodEnergyUse
+{
+  return _isForFoodEnergyUse;
+}
+
+- (void) setForFoodEnergyUse: (BOOL)flag
+{
+  _isForFoodEnergyUse = flag;
+}
+  
+- (NSString *) stringFromValue: (double)value unit: (NSEnergyFormatterUnit)unit
+{
+  return nil;
+}
+
+- (NSString *) stringFromJoules: (double)numberInJoules
+{
+  return nil;
+}
+
+- (NSString *) unitStringFromValue: (double)value unit: (NSEnergyFormatterUnit)unit
+{
+  return nil;
+}
+
+- (NSString *) unitStringFromJoules: (double)numberInJoules usedUnit: (NSEnergyFormatterUnit *)unitp
+{
+  return nil;
+}
+
+- (BOOL) getObjectValue:(id *)obj forString: (NSString *)string errorDescription: (NSString **)error
+{
+  return NO;
+}
 
 @end
 

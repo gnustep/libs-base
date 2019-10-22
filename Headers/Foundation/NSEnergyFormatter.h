@@ -32,10 +32,44 @@
 extern "C" {
 #endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+
+@class NSNumberFormatter, NSString;  
+  
+enum {
+    NSEnergyFormatterUnitJoule = 11,
+    NSEnergyFormatterUnitKilojoule = 14,
+    NSEnergyFormatterUnitCalorie = (7 << 8) + 1,       
+    NSEnergyFormatterUnitKilocalorie = (7 << 8) + 2,   
+};
+typedef NSInteger NSEnergyFormatterUnit;
 
 @interface NSEnergyFormatter : NSFormatter
+{
+  BOOL _isForFoodEnergyUse;
+  NSNumberFormatter *_numberFormatter;
+  NSFormattingUnitStyle _unitStyle;
+}
 
+- (NSNumberFormatter *) numberFormatter;
+- (void) setNumberFormatter: (NSNumberFormatter *)formatter;
+  
+- (NSFormattingUnitStyle) unitStyle;
+- (void) setUnitStyle: (NSFormattingUnitStyle)style;
+  
+- (BOOL) isForFoodEnergyUse;
+- (void) setForFoodEnergyUse: (BOOL)flag;
+  
+- (NSString *) stringFromValue: (double)value unit: (NSEnergyFormatterUnit)unit;
+
+- (NSString *) stringFromJoules: (double)numberInJoules;
+
+- (NSString *) unitStringFromValue: (double)value unit: (NSEnergyFormatterUnit)unit;
+
+- (NSString *) unitStringFromJoules: (double)numberInJoules usedUnit: (NSEnergyFormatterUnit *)unitp;
+
+- (BOOL) getObjectValue:(id *)obj forString: (NSString *)string errorDescription: (NSString **)error;
+  
 @end
 
 #if	defined(__cplusplus)
