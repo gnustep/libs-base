@@ -288,7 +288,7 @@
 {
   NSUnitAngle *result = [[NSUnitAngle alloc] initWithSymbol: @"\""
                                                 coefficient: 0.00027778
-                                                   constant: 9.81];
+                                                   constant: 0.0];
   return result;
 }
 
