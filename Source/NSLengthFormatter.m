@@ -27,5 +27,50 @@
 
 @implementation NSLengthFormatter
 
+- (NSNumberFormatter *) numberFormatter
+{
+}
+
+- (void) setNumberFormatter: (NSNumberFormatter *)formatter
+{
+}
+
+- (NSFormattingUnitStyle) unitStyle
+{
+}
+
+- (void) setUnitStyle: (NSFormattingUnitStyle)style
+{
+}
+  
+- (BOOL) isForPersonHeightUse
+{
+}
+
+- (void) setForPersonHeightUse: (BOOL)flag
+{
+}
+  
+- (NSString *) stringFromValue: (double)value unit: (NSLengthFormatterUnit)unit
+{
+}
+
+- (NSString *) stringFromMeters: (double)numberInMeters
+{
+}
+
+- (NSString *) unitStringFromValue: (double)value unit: (NSLengthFormatterUnit)unit
+{
+}
+
+- (NSString *) unitStringFromMeters: (double)numberInMeters usedUnit: (NSLengthFormatterUnit *)unit
+{
+}
+
+- (BOOL)getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error
+{
+  return NO;
+}
+
 @end
 

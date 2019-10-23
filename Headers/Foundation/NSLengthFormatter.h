@@ -1,8 +1,7 @@
-
 /* Definition of class NSLengthFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Tue Oct  8 13:30:33 EDT 2019
 
    This file is part of the GNUstep Library.
@@ -32,9 +31,45 @@
 extern "C" {
 #endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+enum {
+  NSLengthFormatterUnitMillimeter = 8,
+  NSLengthFormatterUnitCentimeter = 9,
+  NSLengthFormatterUnitMeter = 11,
+  NSLengthFormatterUnitKilometer = 14,
+  NSLengthFormatterUnitInch = (5 << 8) + 1,
+  NSLengthFormatterUnitFoot = (5 << 8) + 2,
+  NSLengthFormatterUnitYard = (5 << 8) + 3,
+  NSLengthFormatterUnitMile = (5 << 8) + 4,
+}; 
+typedef NSInteger NSLengthFormatterUnit;
 
+@class NSNumberFormatter, NSString;
+  
 @interface NSLengthFormatter : NSFormatter
+{
+  BOOL _isForPersonHeightUse;
+  NSNumberFormatter *_numberFormatter;
+}
+
+- (NSNumberFormatter *) numberFormatter;
+- (void) setNumberFormatter: (NSNumberFormatter *)formatter;
+
+- (NSFormattingUnitStyle) unitStyle;
+- (void) setUnitStyle: (NSFormattingUnitStyle)style;
+  
+- (BOOL) isForPersonHeightUse;
+- (void) setForPersonHeightUse: (BOOL)flag;
+  
+- (NSString *) stringFromValue: (double)value unit: (NSLengthFormatterUnit)unit;
+
+- (NSString *) stringFromMeters: (double)numberInMeters;
+
+- (NSString *) unitStringFromValue: (double)value unit: (NSLengthFormatterUnit)unit;
+
+- (NSString *) unitStringFromMeters: (double)numberInMeters usedUnit: (NSLengthFormatterUnit *)unit;
+
+- (BOOL)getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error;
 
 @end
 
