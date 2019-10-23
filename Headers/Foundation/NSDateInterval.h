@@ -39,7 +39,6 @@ extern "C" {
 {
   NSTimeInterval _duration;
   NSDate *_startDate;
-  NSDate *_endDate;
 }
   
 // Init

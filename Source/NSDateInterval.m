@@ -1,4 +1,3 @@
-
 /* Implementation of class NSDateInterval
    Copyright (C) 2019 Free Software Foundation, Inc.
    
@@ -60,7 +59,6 @@
   if(self != nil)
     {
       ASSIGNCOPY(_startDate, startDate);
-      ASSIGNCOPY(_endDate, endDate);
       _duration = [endDate timeIntervalSinceDate: startDate];
     }
   return self;  
