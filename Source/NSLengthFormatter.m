@@ -29,42 +29,52 @@
 
 - (NSNumberFormatter *) numberFormatter
 {
+  return _numberFormatter;
 }
 
 - (void) setNumberFormatter: (NSNumberFormatter *)formatter
 {
+  ASSIGN(_numberFormatter, formatter);
 }
 
 - (NSFormattingUnitStyle) unitStyle
 {
+  return _unitStyle;
 }
 
 - (void) setUnitStyle: (NSFormattingUnitStyle)style
 {
+  _unitStyle = style;
 }
   
 - (BOOL) isForPersonHeightUse
 {
+  return _isForPersonHeightUse;
 }
 
 - (void) setForPersonHeightUse: (BOOL)flag
 {
+  _isForPersonHeightUse = flag;
 }
   
 - (NSString *) stringFromValue: (double)value unit: (NSLengthFormatterUnit)unit
 {
+  return nil;
 }
 
 - (NSString *) stringFromMeters: (double)numberInMeters
 {
+  return nil;
 }
 
 - (NSString *) unitStringFromValue: (double)value unit: (NSLengthFormatterUnit)unit
 {
+  return nil;
 }
 
 - (NSString *) unitStringFromMeters: (double)numberInMeters usedUnit: (NSLengthFormatterUnit *)unit
 {
+  return nil;
 }
 
 - (BOOL)getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error

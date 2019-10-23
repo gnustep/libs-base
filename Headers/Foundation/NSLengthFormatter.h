@@ -50,6 +50,7 @@ typedef NSInteger NSLengthFormatterUnit;
 {
   BOOL _isForPersonHeightUse;
   NSNumberFormatter *_numberFormatter;
+  NSFormattingUnitStyle _unitStyle;
 }
 
 - (NSNumberFormatter *) numberFormatter;
