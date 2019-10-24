@@ -25,6 +25,7 @@
 #include <Foundation/NSDateInterval.h>
 #include <Foundation/NSDate.h>
 #include <Foundation/NSArray.h>
+#include <Foundation/NSException.h>
 
 @implementation NSDateInterval
 
@@ -48,7 +49,13 @@
   if(self != nil)
     {
       ASSIGNCOPY(_startDate, startDate);
+      if(duration < 0)
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"Duration %f is less than zero", duration];
+        }
       _duration = duration;
+      
     }
   return self;
 }
@@ -61,6 +68,12 @@
     {
       ASSIGNCOPY(_startDate, startDate);
       _duration = [endDate timeIntervalSinceDate: startDate];
+      if(_duration < 0)
+        {
+          [NSException raise: NSInvalidArgumentException
+                      format: @"Duration %f is less than zero", _duration];
+        }
+
     }
   return self;  
 }
