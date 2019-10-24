@@ -103,7 +103,6 @@
 
 - (NSString *) stringFromDateInterval: (NSDateInterval *)dateInterval
 {
-  NSString *result = nil;
   NSDate *fromDate = [dateInterval startDate];
   NSDate *toDate = [dateInterval endDate];
 

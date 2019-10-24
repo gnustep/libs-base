@@ -167,12 +167,12 @@
 - (NSDateInterval *) intersectionWithDateInterval: (NSDateInterval *)dateInterval
 {
   NSDateInterval *result = nil;
-  NSArray *array = [NSArray arrayWithObjects: self, dateInterval, nil];
-  NSArray *sortedArray = [array sortedArrayUsingSelector: @selector(compare:)];
-  NSDateInterval *first = [sortedArray firstObject];
-  NSDateInterval *last = [sortedArray lastObject];
+  NSDateInterval *first = self; //[sortedArray firstObject];
+  NSDateInterval *last = dateInterval; // [sortedArray lastObject];
   NSDate *intersectStartDate = nil;
   NSDate *intersectEndDate = nil;
+  // NSArray *array = [NSArray arrayWithObjects: self, dateInterval, nil];
+  // NSArray *sortedArray = [array sortedArrayUsingSelector: @selector(compare:)];
 
   // Max of start date....
   if([[first startDate] compare: [last startDate]] == NSOrderedAscending ||
