@@ -34,8 +34,9 @@
   self = [super init];
   if(self != nil)
     {
-      _startDate = nil;
+      _startDate = [NSDate date];
       _duration = 0.0;
+      RETAIN(_startDate);
     }
   return self;
 }

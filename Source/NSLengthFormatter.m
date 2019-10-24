@@ -24,6 +24,9 @@
 */
 
 #include <Foundation/NSLengthFormatter.h>
+#include <Foundation/NSUnit.h>
+#include <Foundation/NSMeasurement.h>
+#include <Foundation/NSMeasurementFormatter.h>
 
 @implementation NSLengthFormatter
 
@@ -77,25 +80,78 @@
   
 - (NSString *) stringFromValue: (double)value unit: (NSLengthFormatterUnit)unit
 {
-  return nil;
+  NSUnit *u = nil;
+  NSMeasurement *m = nil;
+  NSMeasurementFormatter *mf = nil;
+
+  switch(unit)
+    {
+    case NSLengthFormatterUnitMillimeter:
+      u = [NSUnitLength millimeters];
+      break;
+    case NSLengthFormatterUnitCentimeter:
+      u = [NSUnitLength centimeters];
+      break;
+    case NSLengthFormatterUnitMeter:
+      u = [NSUnitLength meters];
+      break;
+    case NSLengthFormatterUnitKilometer:
+      u = [NSUnitLength kilometers];
+      break;
+    case NSLengthFormatterUnitInch:
+      u = [NSUnitLength inches];
+      break;
+    case NSLengthFormatterUnitFoot:
+      u = [NSUnitLength feet];
+      break;
+    case NSLengthFormatterUnitYard:
+      u = [NSUnitLength yards];
+      break;
+    case NSLengthFormatterUnitMile:
+      u = [NSUnitLength miles];
+      break;
+    }
+
+  m = [[NSMeasurement alloc] initWithDoubleValue: value
+                                            unit: u];
+  AUTORELEASE(m);
+  mf = [[NSMeasurementFormatter alloc] init];
+  AUTORELEASE(mf);
+  [mf setUnitStyle: _unitStyle];
+  [mf setNumberFormatter: _numberFormatter];
+  
+  return [mf stringFromMeasurement: m];
 }
 
 - (NSString *) stringFromMeters: (double)numberInMeters
 {
-  return nil;
+  NSUnit *u = nil;
+  NSMeasurement *m = nil;
+  NSMeasurementFormatter *mf = nil;
+
+  u = [NSUnitLength meters];
+  m = [[NSMeasurement alloc] initWithDoubleValue: numberInMeters
+                                            unit: u];
+  AUTORELEASE(m);
+  mf = [[NSMeasurementFormatter alloc] init];
+  AUTORELEASE(mf);
+  [mf setUnitStyle: _unitStyle];
+  [mf setNumberFormatter: _numberFormatter];
+  
+  return [mf stringFromMeasurement: m];
 }
 
 - (NSString *) unitStringFromValue: (double)value unit: (NSLengthFormatterUnit)unit
 {
-  return nil;
+  return [self stringFromValue: value unit: unit];
 }
 
 - (NSString *) unitStringFromMeters: (double)numberInMeters usedUnit: (NSLengthFormatterUnit *)unit
 {
-  return nil;
+  return [self stringFromValue: numberInMeters unit: NSLengthFormatterUnitMeter];
 }
 
-- (BOOL)getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error
+- (BOOL)getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error
 {
   return NO;
 }

@@ -70,7 +70,7 @@ typedef NSInteger NSLengthFormatterUnit;
 
 - (NSString *) unitStringFromMeters: (double)numberInMeters usedUnit: (NSLengthFormatterUnit *)unit;
 
-- (BOOL)getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error;
+- (BOOL)getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error;
 
 @end
 
