@@ -27,6 +27,18 @@
 
 @implementation NSMassFormatter
 
+- (instancetype) init
+{
+  self = [super init];
+  if(self != nil)
+    {
+      _numberFormatter = nil;
+      _unitStyle = NSFormattingUnitStyleMedium;
+      _isForPersonMassUse = NO;
+    }
+  return self;
+}
+
 - (NSNumberFormatter *) numberFormatter
 {
   return _numberFormatter;

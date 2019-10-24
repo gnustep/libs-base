@@ -27,6 +27,18 @@
 
 @implementation NSLengthFormatter
 
+- (instancetype) init
+{
+  self = [super init];
+  if(self != nil)
+    {
+      _numberFormatter = nil;
+      _unitStyle = NSFormattingUnitStyleMedium;
+      _isForPersonHeightUse = NO;
+    }
+  return self;
+}
+
 - (NSNumberFormatter *) numberFormatter
 {
   return _numberFormatter;

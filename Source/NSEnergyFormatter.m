@@ -26,6 +26,18 @@
 
 @implementation NSEnergyFormatter
 
+- (instancetype) init
+{
+  self = [super init];
+  if(self != nil)
+    {
+      _numberFormatter = nil;
+      _unitStyle = NSFormattingUnitStyleMedium;
+      _isForFoodEnergyUse = NO;
+    }
+  return self;
+}
+
 - (NSNumberFormatter *) numberFormatter
 {
   return _numberFormatter;
