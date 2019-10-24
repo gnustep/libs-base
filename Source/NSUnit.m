@@ -218,13 +218,12 @@
 {
   NSUnitConverterLinear *converter = [[NSUnitConverterLinear alloc] initWithCoefficient: coefficient
                                                                                constant: constant];
-  NSDimension *result = [[[self class] alloc] initWithSymbol: symbol
-                                                   converter: converter];
-  AUTORELEASE(converter);
-  AUTORELEASE(result);
-  return result;
-}
+  self = [self initWithSymbol: symbol
+                    converter: converter];
 
+  AUTORELEASE(converter);
+  return self;
+}
 
 + (instancetype) baseUnit
 {
