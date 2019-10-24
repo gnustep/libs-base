@@ -39,6 +39,12 @@
   return self;
 }
 
+- (void) dealloc
+{
+  RELEASE(_numberFormatter);
+  [super dealloc];
+}
+
 - (NSNumberFormatter *) numberFormatter
 {
   return _numberFormatter;
