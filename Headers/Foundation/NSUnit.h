@@ -35,8 +35,8 @@ extern "C" {
 
 // Unit converter
 @interface NSUnitConverter : NSObject
-- (double)baseUnitValueFromValue:(double)value;
-- (double)valueFromBaseUnitValue:(double)baseUnitValue;
+- (double) baseUnitValueFromValue: (double)value;
+- (double) valueFromBaseUnitValue: (double)baseUnitValue;
 @end
 
 // Linea converter... for things like C <-> F conversion...
@@ -58,8 +58,8 @@ extern "C" {
   NSString *_symbol;
 }
   
-- (instancetype)init;
-- (instancetype)initWithSymbol:(NSString *) symbol;
+- (instancetype) init;
+- (instancetype) initWithSymbol: (NSString *)symbol;
 - (NSString *) symbol;
 
 @end
@@ -72,7 +72,7 @@ extern "C" {
 }
 
 - (NSUnitConverter *) converter;
-- (instancetype) initWithSymbol: (NSString *) symbol converter: (NSUnitConverter *) converter ;
+- (instancetype) initWithSymbol: (NSString *)symbol converter: (NSUnitConverter *)converter ;
 + (instancetype) baseUnit;
 
 @end
