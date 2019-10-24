@@ -132,7 +132,7 @@ extern "C" {
 + (NSUnitConcentrationMass *) gramsPerLiter;
 + (NSUnitConcentrationMass *) milligramsPerDeciliter;
 
-+ (NSUnitConcentrationMass *) millimolesPerLiterWithGramsPerMole:(double)gramsPerMole;
++ (NSUnitConcentrationMass *) millimolesPerLiterWithGramsPerMole: (double)gramsPerMole;
 
 @end
 
