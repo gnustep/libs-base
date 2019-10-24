@@ -63,23 +63,13 @@
 - (instancetype)initWithStartDate:(NSDate *)startDate 
                           endDate:(NSDate *)endDate
 {
-  self = [super init];
-  if(self != nil)
-    {
-      ASSIGNCOPY(_startDate, startDate);
-      _duration = [endDate timeIntervalSinceDate: startDate];
-      if(_duration < 0)
-        {
-          [NSException raise: NSInvalidArgumentException
-                      format: @"Duration %f is less than zero", _duration];
-        }
-
-    }
-  return self;  
+  return [self initWithStartDate: startDate
+                        duration: [endDate timeIntervalSinceDate: startDate]];
 }
 
 - (instancetype) initWithCoder: (NSCoder *)coder
 {
+  // TODO: Implement encoding
   return nil;
 }
 

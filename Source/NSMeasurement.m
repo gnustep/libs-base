@@ -125,7 +125,7 @@
 {
   if([coder allowsKeyedCoding])
     {
-      // Verify that this is the correct encoding...
+      // TODO: Verify that this is the correct encoding...
       [coder encodeObject: _unit forKey: @"unit"];
       [coder encodeDouble: _doubleValue forKey: @"doubleValue"];
     }
