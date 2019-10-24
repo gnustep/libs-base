@@ -106,9 +106,10 @@
   NSString *result = nil;
   NSDate *fromDate = [dateInterval startDate];
   NSDate *toDate = [dateInterval endDate];
+
+  // Add formatting of NSDate here.
   
-  result = [NSString stringWithFormat: @"%@ - %@", fromDate, toDate];
-  return result;
+  return [NSString stringWithFormat: @"%@ - %@", fromDate, toDate];
 }
 
 @end
