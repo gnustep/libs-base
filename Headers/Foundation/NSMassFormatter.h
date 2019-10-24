@@ -26,16 +26,51 @@
 #ifndef _NSMassFormatter_h_GNUSTEP_BASE_INCLUDE
 #define _NSMassFormatter_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSObject.h>
+#include <Foundation/NSFormatter.h>
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
 
+enum {
+    NSMassFormatterUnitGram = 11,
+    NSMassFormatterUnitKilogram = 14,
+    NSMassFormatterUnitOunce = (6 << 8) + 1,
+    NSMassFormatterUnitPound = (6 << 8) + 2,
+    NSMassFormatterUnitStone = (6 << 8) + 3,
+};  
+typedef NSInteger NSMassFormatterUnit;  
+
+@class NSNumberFormatter;
+  
 @interface NSMassFormatter : NSObject
+{
+  NSNumberFormatter *_numberFormatter;
+  BOOL _isForPersonMassUse;
+  NSFormattingUnitStyle _unitStyle;
+}
 
+- (NSNumberFormatter *) numberFormatter;
+- (void) setNumberFormatter: (NSNumberFormatter *)formatter;
+  
+- (NSFormattingUnitStyle) unitStyle;
+- (void) setUnitStyle: (NSFormattingUnitStyle)style;
+
+- (BOOL) isForPersonMassUse;
+- (void) setForPersonMassUse: (BOOL)flag;
+  
+- (NSString *)stringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
+
+- (NSString *)stringFromKilograms: (double)numberInKilograms;
+
+- (NSString *)unitStringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
+
+- (NSString *)unitStringFromKilograms: (double)numberInKilograms usedUnit: (NSMassFormatterUnit *)unitp;
+
+- (BOOL)getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error;
+  
 @end
 
 #if	defined(__cplusplus)

@@ -27,5 +27,60 @@
 
 @implementation NSMassFormatter
 
+- (NSNumberFormatter *) numberFormatter
+{
+  return _numberFormatter;
+}
+
+- (void) setNumberFormatter: (NSNumberFormatter *)formatter
+{
+  ASSIGN(_numberFormatter, formatter);
+}
+  
+- (NSFormattingUnitStyle) unitStyle
+{
+  return _unitStyle;
+}
+
+- (void) setUnitStyle: (NSFormattingUnitStyle)style;
+{
+  _unitStyle = style;
+}
+
+- (BOOL) isForPersonMassUse;
+{
+  return _isForPersonMassUse;
+}
+
+- (void) setForPersonMassUse: (BOOL)flag;
+{
+  _isForPersonMassUse = flag;
+}
+
+- (NSString *)stringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
+{
+  return nil;
+}
+
+- (NSString *)stringFromKilograms: (double)numberInKilograms;
+{
+  return nil;
+}
+
+- (NSString *)unitStringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
+{
+  return nil;
+}
+
+- (NSString *)unitStringFromKilograms: (double)numberInKilograms usedUnit: (NSMassFormatterUnit *)unit
+{
+  return nil;
+}
+
+- (BOOL)getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error
+{
+  return NO;
+}
+
 @end
 
