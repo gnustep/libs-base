@@ -1,4 +1,3 @@
-
 /* Definition of class NSDateInterval
    Copyright (C) 2019 Free Software Foundation, Inc.
    

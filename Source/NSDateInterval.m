@@ -134,27 +134,32 @@
 // Compare
 - (NSComparisonResult) compare: (NSDateInterval *)dateInterval
 {
-  // NSOrderedAscending
+  NSComparisonResult result = NSOrderedSame;
+  
   if([_startDate isEqualToDate: [dateInterval startDate]] &&
      _duration < [dateInterval duration])
-    return NSOrderedAscending;
+    {
+      result = NSOrderedAscending;
+    }
+  else if([_startDate compare: [dateInterval startDate]] == NSOrderedAscending)
+    {
+      result = NSOrderedAscending;
+    }
+  else if([self isEqualToDateInterval: dateInterval])
+    {
+      result = NSOrderedSame;
+    }
+  else if([_startDate isEqualToDate: [dateInterval startDate]] &&
+          _duration > [dateInterval duration])
+    {
+      result = NSOrderedDescending;
+    }
+  else if([_startDate compare: [dateInterval startDate]] == NSOrderedDescending)
+    {
+      result = NSOrderedDescending;
+    }
   
-  if([_startDate compare: [dateInterval startDate]] == NSOrderedAscending)
-    return NSOrderedAscending;
-
-  // NSOrderedSame 
-  if([self isEqualToDateInterval: dateInterval])
-    return NSOrderedSame;
-
-  // NSOrderedDescending
-  if([_startDate isEqualToDate: [dateInterval startDate]] &&
-     _duration > [dateInterval duration])
-    return NSOrderedDescending;
-  
-  if([_startDate compare: [dateInterval startDate]] == NSOrderedDescending)
-    return NSOrderedDescending;
-
-  return 0;
+  return result;
 }
 
 - (BOOL) isEqualToDateInterval: (NSDateInterval *)dateInterval
