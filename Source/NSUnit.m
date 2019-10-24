@@ -126,7 +126,7 @@
 
 - (double)valueFromBaseUnitValue:(double)baseUnitValue
 {
-  return ((baseUnitValue / _coefficient) - _constant);
+  return (baseUnitValue - _constant) * _coefficient; //((baseUnitValue / _coefficient) - _constant);
 }
 @end
 
