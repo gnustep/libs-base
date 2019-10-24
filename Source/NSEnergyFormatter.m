@@ -23,6 +23,9 @@
 */
 
 #include <Foundation/NSEnergyFormatter.h>
+#include <Foundation/NSMeasurement.h>
+#include <Foundation/NSMeasurementFormatter.h>
+#include <Foundation/NSUnit.h>
 
 @implementation NSEnergyFormatter
 
@@ -67,28 +70,56 @@
 {
   _isForFoodEnergyUse = flag;
 }
-  
 - (NSString *) stringFromValue: (double)value unit: (NSEnergyFormatterUnit)unit
 {
-  return nil;
+  NSUnit *u = nil;
+  NSMeasurement *m = nil;
+  NSMeasurementFormatter *mf = nil;
+
+  switch(unit)
+    {
+    case NSEnergyFormatterUnitJoule:
+      u = [NSUnitEnergy joules];
+      break;
+    case NSEnergyFormatterUnitKilojoule:
+      u = [NSUnitEnergy kilojoules];
+      break;
+    case NSEnergyFormatterUnitCalorie:
+      u = [NSUnitEnergy calories];
+      break;
+    case NSEnergyFormatterUnitKilocalorie:
+      u = [NSUnitEnergy kilocalories];
+      break;
+    }
+
+  m = [[NSMeasurement alloc] initWithDoubleValue: value
+                                            unit: u];
+  AUTORELEASE(m);
+  mf = [[NSMeasurementFormatter alloc] init];
+  AUTORELEASE(mf);
+  [mf setUnitStyle: _unitStyle];
+  [mf setNumberFormatter: _numberFormatter];
+  
+  return [mf stringFromMeasurement: m];
 }
 
 - (NSString *) stringFromJoules: (double)numberInJoules
 {
-  return nil;
+  return [self stringFromValue: numberInJoules unit: NSEnergyFormatterUnitJoule];
 }
 
 - (NSString *) unitStringFromValue: (double)value unit: (NSEnergyFormatterUnit)unit
 {
-  return nil;
+  return [self stringFromValue: value unit: unit];
 }
 
-- (NSString *) unitStringFromJoules: (double)numberInJoules usedUnit: (NSEnergyFormatterUnit *)unitp
+- (NSString *) unitStringFromJoules: (double)numberInJoules usedUnit: (NSEnergyFormatterUnit *)unit
 {
-  return nil;
+  *unit = NSEnergyFormatterUnitJoule;
+  return [self stringFromValue: numberInJoules unit: *unit];
 }
 
-- (BOOL) getObjectValue:(id *)obj forString: (NSString *)string errorDescription: (NSString **)error
+- (BOOL)getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error
 {
   return NO;
 }

@@ -1190,7 +1190,7 @@
   return result;
 }
 
-+ (NSUnitMass *) poundsMass
++ (NSUnitMass *) pounds
 {
   NSUnitMass *result = [[NSUnitMass alloc] initWithSymbol: @"lb"
                                               coefficient: 0.453592

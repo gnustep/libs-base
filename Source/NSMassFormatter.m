@@ -24,6 +24,9 @@
 */
 
 #include <Foundation/NSMassFormatter.h>
+#include <Foundation/NSMeasurement.h>
+#include <Foundation/NSMeasurementFormatter.h>
+#include <Foundation/NSUnit.h>
 
 @implementation NSMassFormatter
 
@@ -71,22 +74,54 @@
 
 - (NSString *)stringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
 {
-  return nil;
+  NSUnit *u = nil;
+  NSMeasurement *m = nil;
+  NSMeasurementFormatter *mf = nil;
+
+  switch(unit)
+    {
+    case NSMassFormatterUnitGram:
+      u = [NSUnitMass grams];
+      break;
+    case NSMassFormatterUnitKilogram:
+      u = [NSUnitMass kilograms];
+      break;
+    case NSMassFormatterUnitOunce:
+      u = [NSUnitMass ounces];
+      break;
+    case NSMassFormatterUnitPound:
+      u = [NSUnitMass pounds];
+      break;
+    case NSMassFormatterUnitStone:
+      u = [NSUnitMass stones];
+      break;
+    }
+
+  m = [[NSMeasurement alloc] initWithDoubleValue: value
+                                            unit: u];
+  AUTORELEASE(m);
+  mf = [[NSMeasurementFormatter alloc] init];
+  AUTORELEASE(mf);
+  [mf setUnitStyle: _unitStyle];
+  [mf setNumberFormatter: _numberFormatter];
+  
+  return [mf stringFromMeasurement: m];
 }
 
 - (NSString *)stringFromKilograms: (double)numberInKilograms;
 {
-  return nil;
+  return [self stringFromValue: numberInKilograms unit: NSMassFormatterUnitKilogram];
 }
 
 - (NSString *)unitStringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
 {
-  return nil;
+  return [self stringFromValue: value unit: unit];
 }
 
 - (NSString *)unitStringFromKilograms: (double)numberInKilograms usedUnit: (NSMassFormatterUnit *)unit
 {
-  return nil;
+  *unit = NSMassFormatterUnitKilogram;
+  return [self stringFromValue: numberInKilograms unit: *unit];
 }
 
 - (BOOL)getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error

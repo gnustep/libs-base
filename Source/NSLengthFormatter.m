@@ -125,20 +125,7 @@
 
 - (NSString *) stringFromMeters: (double)numberInMeters
 {
-  NSUnit *u = nil;
-  NSMeasurement *m = nil;
-  NSMeasurementFormatter *mf = nil;
-
-  u = [NSUnitLength meters];
-  m = [[NSMeasurement alloc] initWithDoubleValue: numberInMeters
-                                            unit: u];
-  AUTORELEASE(m);
-  mf = [[NSMeasurementFormatter alloc] init];
-  AUTORELEASE(mf);
-  [mf setUnitStyle: _unitStyle];
-  [mf setNumberFormatter: _numberFormatter];
-  
-  return [mf stringFromMeasurement: m];
+  return [self stringFromValue: numberInMeters unit: NSLengthFormatterUnitMeter];
 }
 
 - (NSString *) unitStringFromValue: (double)value unit: (NSLengthFormatterUnit)unit
@@ -148,7 +135,8 @@
 
 - (NSString *) unitStringFromMeters: (double)numberInMeters usedUnit: (NSLengthFormatterUnit *)unit
 {
-  return [self stringFromValue: numberInMeters unit: NSLengthFormatterUnitMeter];
+  *unit = NSLengthFormatterUnitMeter;
+  return [self stringFromValue: numberInMeters unit: *unit];
 }
 
 - (BOOL)getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error

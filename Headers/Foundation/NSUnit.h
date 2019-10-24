@@ -301,7 +301,7 @@ extern "C" {
 + (NSUnitMass *) nanograms;
 + (NSUnitMass *) picograms;
 + (NSUnitMass *) ounces;
-+ (NSUnitMass *) poundsMass;
++ (NSUnitMass *) pounds;
 + (NSUnitMass *) stones;
 + (NSUnitMass *) metricTons;
 + (NSUnitMass *) shortTons;
