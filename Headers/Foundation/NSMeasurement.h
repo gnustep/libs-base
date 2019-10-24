@@ -1,4 +1,3 @@
-
 /* Definition of class NSMeasurement
    Copyright (C) 2019 Free Software Foundation, Inc.
    
@@ -44,8 +43,8 @@ extern "C" {
 }
   
 // Creating Measurements
-- (instancetype)initWithDoubleValue: (double)doubleValue 
-                               unit: (NSUnit *)unit;
+- (instancetype) initWithDoubleValue: (double)doubleValue 
+                                unit: (NSUnit *)unit;
 
 
 // Accessing unit and value
@@ -56,12 +55,12 @@ extern "C" {
 // Conversion
 - (BOOL) canBeConvertedToUnit: (NSUnit *)unit;
 
-- (NSMeasurement *)measurementByConvertingToUnit:(NSUnit *)unit;
+- (NSMeasurement *) measurementByConvertingToUnit: (NSUnit *)unit;
 
 // Operating
-- (NSMeasurement *)measurementByAddingMeasurement:(NSMeasurement *)measurement;
+- (NSMeasurement *) measurementByAddingMeasurement: (NSMeasurement *)measurement;
 
-- (NSMeasurement *)measurementBySubtractingMeasurement:(NSMeasurement *)measurement;
+- (NSMeasurement *) measurementBySubtractingMeasurement: (NSMeasurement *)measurement;
 
 @end
 

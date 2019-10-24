@@ -78,7 +78,7 @@ extern "C" {
 @end
 
 // Predefined....
-@interface NSUnitAcceleration : NSDimension <NSCoding>
+@interface NSUnitAcceleration : NSDimension 
 /*
  Base unit - metersPerSecondSquared
  */
@@ -88,7 +88,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitAngle : NSDimension <NSCoding>
+@interface NSUnitAngle : NSDimension 
 /*
  Base unit - degrees
  */
@@ -102,7 +102,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitArea : NSDimension <NSCoding>
+@interface NSUnitArea : NSDimension 
 /*
  Base unit - squareMeters
  */
@@ -124,7 +124,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitConcentrationMass : NSDimension <NSCoding>
+@interface NSUnitConcentrationMass : NSDimension 
 /*
  Base unit - gramsPerLiter
  */
@@ -136,7 +136,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitDispersion : NSDimension <NSCoding>
+@interface NSUnitDispersion : NSDimension 
 /*
  Base unit - partsPerMillion
  */
@@ -144,7 +144,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitDuration : NSDimension <NSCoding>  
+@interface NSUnitDuration : NSDimension   
 /*
  Base unit - seconds
  */
@@ -155,7 +155,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitElectricCharge : NSDimension <NSCoding>
+@interface NSUnitElectricCharge : NSDimension 
 /*
  Base unit - coulombs
  */
@@ -169,7 +169,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitElectricCurrent : NSDimension <NSCoding>
+@interface NSUnitElectricCurrent : NSDimension 
 /*
  Base unit - amperes
  */
@@ -182,7 +182,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitElectricPotentialDifference : NSDimension <NSCoding>
+@interface NSUnitElectricPotentialDifference : NSDimension 
 /*
  Base unit - volts
  */
@@ -195,7 +195,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitElectricResistance : NSDimension <NSCoding>
+@interface NSUnitElectricResistance : NSDimension 
 /*
  Base unit - ohms
  */
@@ -208,7 +208,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitEnergy : NSDimension <NSCoding>
+@interface NSUnitEnergy : NSDimension 
 /*
  Base unit - joules
  */
@@ -221,7 +221,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitFrequency : NSDimension <NSCoding>
+@interface NSUnitFrequency : NSDimension 
 /*
  Base unit - hertz
  */
@@ -237,7 +237,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitFuelEfficiency : NSDimension <NSCoding>
+@interface NSUnitFuelEfficiency : NSDimension 
 /*
  Base unit - litersPer100Kilometers
  */
@@ -248,7 +248,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitLength : NSDimension <NSCoding>
+@interface NSUnitLength : NSDimension 
 /*
  Base unit - meters
  */
@@ -278,7 +278,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitIlluminance : NSDimension <NSCoding>
+@interface NSUnitIlluminance : NSDimension 
 /*
  Base unit - lux
  */
@@ -287,7 +287,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitMass : NSDimension <NSCoding>
+@interface NSUnitMass : NSDimension 
 /*
  Base unit - kilograms
  */
@@ -311,7 +311,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitPower : NSDimension <NSCoding>
+@interface NSUnitPower : NSDimension 
 /*
  Base unit - watts
  */
@@ -330,7 +330,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitPressure : NSDimension <NSCoding>
+@interface NSUnitPressure : NSDimension 
 /*
  Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
  */
@@ -348,7 +348,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitSpeed : NSDimension <NSCoding>
+@interface NSUnitSpeed : NSDimension 
 /*
  Base unit - metersPerSecond
  */
@@ -360,7 +360,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitTemperature : NSDimension <NSCoding>
+@interface NSUnitTemperature : NSDimension 
 /*
  Base unit - kelvin
  */
@@ -371,7 +371,7 @@ extern "C" {
 
 @end
 
-@interface NSUnitVolume : NSDimension <NSCoding>
+@interface NSUnitVolume : NSDimension 
 /*
  Base unit - liters
  */

@@ -1,4 +1,3 @@
-
 /* Implementation of class NSMeasurement
    Copyright (C) 2019 Free Software Foundation, Inc.
    
@@ -67,7 +66,7 @@
           [unit respondsToSelector: @selector(converter)]);
 }
 
-- (NSMeasurement *)measurementByConvertingToUnit:(NSUnit *)unit
+- (NSMeasurement *) measurementByConvertingToUnit: (NSUnit *)unit
 {
   NSMeasurement *result = nil;
   double val = 0.0;
@@ -88,7 +87,7 @@
 }
 
 // Operating
-- (NSMeasurement *)measurementByAddingMeasurement:(NSMeasurement *)measurement
+- (NSMeasurement *) measurementByAddingMeasurement: (NSMeasurement *)measurement
 {
   NSMeasurement *newMeasurement = [measurement measurementByConvertingToUnit: _unit];
   NSMeasurement *result = nil;
@@ -101,7 +100,7 @@
   return result;
 }
 
-- (NSMeasurement *)measurementBySubtractingMeasurement:(NSMeasurement *)measurement
+- (NSMeasurement *) measurementBySubtractingMeasurement: (NSMeasurement *)measurement
 {
   NSMeasurement *newMeasurement = [measurement measurementByConvertingToUnit: _unit];
   NSMeasurement *result = nil;
@@ -126,6 +125,7 @@
 {
   if([coder allowsKeyedCoding])
     {
+      // Verify that this is the correct encoding...
       [coder encodeObject: _unit forKey: @"unit"];
       [coder encodeDouble: _doubleValue forKey: @"doubleValue"];
     }
