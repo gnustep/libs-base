@@ -9,6 +9,13 @@
 	Perform non-concurrent block enumeration calls in place instead
 	of using serial queue to match Apple platforms.
 
+2019-10-25  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSMapTable.h:
+	* Headers/Foundation/NSHashTable.h:
+	Added generics support to NSMapTable and updated NSMapTable and
+	NSHashTable to use "instancetype".
+
 2019-10-02  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSDictionary.m: fixed mutable dictionary keyed subscript

@@ -159,7 +159,7 @@ otherTime(NSDate* other)
   return NSAllocateObject(self, 0, z);
 }
 
-+ (id) date
++ (instancetype) date
 {
   return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
     initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()]);
@@ -171,14 +171,14 @@ otherTime(NSDate* other)
  * specified by the preferences in the user defaults database, allowing
  * phrases like 'last tuesday'
  */
-+ (id) dateWithNaturalLanguageString: (NSString*)string
++ (instancetype) dateWithNaturalLanguageString: (NSString*)string
 {
   return [self dateWithNaturalLanguageString: string
 				      locale: nil];
 }
 
-+ (id) dateWithNaturalLanguageString: (NSString*)string
-                              locale: (NSDictionary*)locale
++ (instancetype) dateWithNaturalLanguageString: (NSString*)string
+                                        locale: (NSDictionary*)locale
 {
   NSCharacterSet	*ws;
   NSCharacterSet	*digits;
@@ -885,35 +885,36 @@ otherTime(NSDate* other)
     }
 }
 
-+ (id) dateWithString: (NSString*)description
++ (instancetype) dateWithString: (NSString*)description
 {
   return AUTORELEASE([[self alloc] initWithString: description]);
 }
 
-+ (id) dateWithTimeInterval: (NSTimeInterval)seconds sinceDate: (NSDate*)date
++ (instancetype) dateWithTimeInterval: (NSTimeInterval)seconds
+                            sinceDate: (NSDate*)date
 {
   return AUTORELEASE([[self alloc] initWithTimeInterval: seconds
                                               sinceDate: date]);
 }
 
-+ (id) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds
++ (instancetype) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds
 {
   return AUTORELEASE([[self alloc] initWithTimeIntervalSinceReferenceDate:
     seconds - NSTimeIntervalSince1970]);
 }
 
-+ (id) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds
++ (instancetype) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds
 {
   return AUTORELEASE([[self alloc] initWithTimeIntervalSinceNow: seconds]);
 }
 
-+ (id) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
++ (instancetype) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
 {
   return AUTORELEASE([[self alloc] initWithTimeIntervalSinceReferenceDate:
     seconds]);
 }
 
-+ (id) distantPast
++ (instancetype) distantPast
 {
   if (_distantPast == nil)
     {
@@ -922,7 +923,7 @@ otherTime(NSDate* other)
   return _distantPast;
 }
 
-+ (id) distantFuture
++ (instancetype) distantFuture
 {
   if (_distantFuture == nil)
     {
@@ -940,7 +941,7 @@ otherTime(NSDate* other)
   return GSPrivateTimeNow();
 }
 
-- (id) addTimeInterval: (NSTimeInterval)seconds
+- (instancetype) addTimeInterval: (NSTimeInterval)seconds
 {
   return [self dateByAddingTimeInterval: seconds];
 }
@@ -976,7 +977,7 @@ otherTime(NSDate* other)
   return abstractClass;
 }
 
-- (id) dateByAddingTimeInterval: (NSTimeInterval)ti
+- (instancetype) dateByAddingTimeInterval: (NSTimeInterval)ti
 {
   return [[self class] dateWithTimeIntervalSinceReferenceDate:
     otherTime(self) + ti];
@@ -1069,7 +1070,7 @@ otherTime(NSDate* other)
   return (NSUInteger)[self timeIntervalSinceReferenceDate];
 }
 
-- (id) initWithCoder: (NSCoder*)coder
+- (instancetype) initWithCoder: (NSCoder*)coder
 {
   NSTimeInterval	interval;
   id			o;
@@ -1099,12 +1100,12 @@ otherTime(NSDate* other)
   return o;
 }
 
-- (id) init
+- (instancetype) init
 {
   return [self initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()];
 }
 
-- (id) initWithString: (NSString*)description
+- (instancetype) initWithString: (NSString*)description
 {
   // Easiest to just have NSCalendarDate do the work for us
   NSCalendarDate	*d = [calendarClass alloc];
@@ -1123,8 +1124,8 @@ otherTime(NSDate* other)
     }
 }
 
-- (id) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
-		  sinceDate: (NSDate*)anotherDate
+- (instancetype) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
+                            sinceDate: (NSDate*)anotherDate
 {
   if (anotherDate == nil)
     {
@@ -1137,20 +1138,20 @@ otherTime(NSDate* other)
     otherTime(anotherDate) + secsToBeAdded];
 }
 
-- (id) initWithTimeIntervalSince1970: (NSTimeInterval)seconds
+- (instancetype) initWithTimeIntervalSince1970: (NSTimeInterval)seconds
 {
   return [self initWithTimeIntervalSinceReferenceDate:
     seconds - NSTimeIntervalSince1970];
 }
 
-- (id) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded
+- (instancetype) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded
 {
   // Get the current time, add the secs and init thyself
   return [self initWithTimeIntervalSinceReferenceDate:
     GSPrivateTimeNow() + secsToBeAdded];
 }
 
-- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
+- (instancetype) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
 {
   [self subclassResponsibility: _cmd];
   return self;
