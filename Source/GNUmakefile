@@ -446,7 +446,7 @@ NSJSONSerialization.h \
 NSKeyedArchiver.h \
 NSKeyValueCoding.h \
 NSKeyValueObserving.h \
-NSLengthFormtter.h \
+NSLengthFormatter.h \
 NSLocale.h \
 NSLock.h \
 NSMapTable.h \
