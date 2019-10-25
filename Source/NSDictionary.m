@@ -178,7 +178,7 @@ static SEL	appSel;
    FOR_IN(id, key, enumerator)
      obj = (*objectForKey)(self, objectForKeySelector, key);
      GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue,
-     if (shouldStop){return;};, return;, aBlock, key, obj, &shouldStop);
+     if (shouldStop == NO) {, }, aBlock, key, obj, &shouldStop);
      if (YES == shouldStop)
        {
 	 break;
@@ -1054,28 +1054,30 @@ compareIt(id o1, id o2, void* context)
   FOR_IN(id, key, enumerator)
     obj = (*objectForKey)(self, objectForKeySelector, key);
 #if (__has_feature(blocks) && (GS_USE_LIBDISPATCH == 1))
-      dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
-        if (shouldStop)
-          {
-	    return;
-          }
-        if (aPredicate(key, obj, &shouldStop))
-          {
-	    [setLock lock];
-	    addObject(buildSet, addObjectSelector, key);
-	    [setLock unlock];
-          }
-    });
-#else
+    if (enumQueue != NULL)
+      {
+        dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
+          if (shouldStop)
+            {
+              return;
+            }
+          if (aPredicate(key, obj, &shouldStop))
+            {
+              [setLock lock];
+              addObject(buildSet, addObjectSelector, key);
+              [setLock unlock];
+            }
+        });
+      }
+    else // call block directly
+#endif
     if (CALL_BLOCK(aPredicate, key, obj, &shouldStop))
       {
         addObject(buildSet, addObjectSelector, key);
       }
-#endif
-
-    if (YES == shouldStop)
+    if (shouldStop)
       {
-	break;
+        break;
       }
   END_FOR_IN(enumerator)
   GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)

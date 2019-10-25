@@ -917,7 +917,7 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
           if ((innerI <= lastInRange) && (innerI >= range.location))
             {
               GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue,
-                if (shouldStop) {return;}, return;,
+                if (shouldStop == NO) {, },
                 aBlock, innerI, &shouldStop);
             }
           if (shouldStop)
