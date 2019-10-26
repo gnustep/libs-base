@@ -26,6 +26,7 @@
 #define _NSBackgroundActivityScheduler_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSObject.h>
+#include <Foundation/NSDate.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -33,8 +34,60 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
 
-@interface NSBackgroundActivityScheduler : NSObject
+// is the activity finished?
+enum {
+  NSBackgroundActivityResultFinished = 1,
+  NSBackgroundActivityResultDeferred = 2,
+};
+typedef NSInteger NSBackgroundActivityResult;
 
+// How the activity will be treated... this is declared in NSObjCRuntime on macOS.
+enum {
+  NSQualityOfServiceUserInteractive = 0x21,
+  NSQualityOfServiceUserInitiated = 0x19,
+  NSQualityOfServiceUtility = 0x11,
+  NSQualityOfServiceBackground = 0x09,
+  NSQualityOfServiceDefault = -1
+};
+typedef NSInteger NSQualityOfService;
+  
+@class NSString;
+
+DEFINE_BLOCK_TYPE(NSBackgroundActivityCompletionHandler, void, NSBackgroundActivityResult);
+DEFINE_BLOCK_TYPE(GSScheduledBlock, void, NSBackgroundActivityCompletionHandler);  
+
+@interface NSBackgroundActivityScheduler : NSObject
+{
+  NSString *_identifier;
+  NSString *_qualityOfService;
+  BOOL _repeats;
+  BOOL _shouldDefer;
+}
+  
+- (instancetype) initWithIdentifier: (NSString *)identifier;
+
+- (NSString *) identifier;
+- (void) setIdentifier: (NSString *)identifier;
+
+- (NSQualityOfService) qualityOfService;
+- (void) setQualityOfService: (NSQualityOfService)qualityOfService;
+
+- (BOOL) repeats;
+- (void) setRepeats: (BOOL)flag;
+
+- (NSTimeInterval) interval;
+- (void) setInterval: (NSTimeInterval)interval;
+
+- (NSTimeInterval) tolerance;
+- (void) setTolerance: (NSTimeInterval)interval;
+
+- (BOOL) shouldDefer;
+- (void) setShouldDefer: (BOOL)flag;
+
+- (void) scheduleWithBlock: (GSScheduledBlock)block;
+
+- (void) invalidate;
+  
 @end
 
 #if	defined(__cplusplus)
