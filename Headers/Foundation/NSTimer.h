@@ -28,6 +28,9 @@
 
 #import	<Foundation/NSDate.h>
 
+@class NSTimer;
+DEFINE_BLOCK_TYPE(GSTimerBlock, void, NSTimer*);
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
@@ -43,13 +46,14 @@ extern "C" {
 {
 #if	GS_EXPOSE(NSTimer)
 @public
-  NSDate 	*_date;		/* Must be first - for NSRunLoop optimisation */
-  BOOL		_invalidated;	/* Must be 2nd - for NSRunLoop optimisation */
-  BOOL		_repeats;
+  NSDate 	 *_date;	/* Must be 1st - for NSRunLoop optimisation */
+  BOOL		 _invalidated;	/* Must be 2nd - for NSRunLoop optimisation */
+  BOOL		 _repeats;
   NSTimeInterval _interval;
-  id		_target;
-  SEL		_selector;
-  id		_info;
+  id		 _target;
+  SEL		 _selector;
+  id		 _info;
+  GSTimerBlock   _block;
 #endif
 #if     GS_NONFRAGILE
 #else
@@ -67,15 +71,21 @@ extern "C" {
 + (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
 				 invocation: (NSInvocation*)invocation
 				    repeats: (BOOL)f;
+  
 + (NSTimer*) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
 				     target: (id)object
 				   selector: (SEL)selector
 				   userInfo: (id)info
 				    repeats: (BOOL)f;
-
+  
++ (NSTimer *) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
+                                     repeats: (BOOL)f
+                                       block: (GSTimerBlock)block;
+  
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
 		        invocation: (NSInvocation*)invocation
 			   repeats: (BOOL)f;
+
 + (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
 			    target: (id)object
 			  selector: (SEL)selector
@@ -102,6 +112,13 @@ extern "C" {
 - (void) setFireDate: (NSDate*)fireDate;
 #endif
 
+#if	OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)  
+- (instancetype)initWithFireDate:(NSDate *)date 
+                        interval:(NSTimeInterval)interval 
+                         repeats:(BOOL)repeats 
+                           block:(GSTimerBlock)block;
+#endif
+  
 @end
 
 #if	defined(__cplusplus)

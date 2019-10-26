@@ -145,6 +145,20 @@ static Class	NSDate_class;
   return self;
 }
 
+- (instancetype)initWithFireDate:(NSDate *)date 
+                        interval:(NSTimeInterval)interval 
+                         repeats:(BOOL)repeats 
+                           block:(GSTimerBlock)block
+{
+  return [self initWithFireDate: date
+                       interval: interval
+                         target: nil
+                       selector: NULL
+                       userInfo: nil
+                        repeats: repeats];
+  ASSIGN(_block, block);
+}
+
 /**
  * Create a timer which will fire after ti seconds and, if f is YES,
  * every ti seconds thereafter. On firing, invocation will be performed.<br />
@@ -229,6 +243,19 @@ static Class	NSDate_class;
   return t;
 }
 
++ (NSTimer *) scheduledTimerWithTimeInterval: (NSTimeInterval)ti
+                                     repeats: (BOOL)f
+                                       block: (GSTimerBlock)block
+{
+  id t = [[self alloc] initWithFireDate: nil
+                               interval: ti
+                                repeats: f
+                                  block: block];
+  [[NSRunLoop currentRunLoop] addTimer: t forMode: NSDefaultRunLoopMode];
+  RELEASE(t);
+  return t;  
+}
+
 - (void) dealloc
 {
   if (_invalidated == NO)
@@ -251,48 +278,56 @@ static Class	NSDate_class;
    */
   if (NO == _invalidated)
     {
-      id	target;
-
-      /* We retain the target so it won't be deallocated while we are using it
-       * (if this timer gets invalidated while we are firing).
-       */
-      target = RETAIN(_target);
-
-      if (_selector == 0)
-	{
-	  NS_DURING
-	    {
-	      [(NSInvocation*)target invoke];
-	    }
-	  NS_HANDLER
-	    {
-	      NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
-	        @"raised during posting of timer with target %s(%s) "
-		@"and selector '%@'",
-		[localException name], [localException reason],
-                GSClassNameFromObject(target),
-                GSObjCIsInstance(target) ? "instance" : "class",
-		NSStringFromSelector([target selector]));
-	    }
-	  NS_ENDHANDLER
-	}
+      if(_block != nil)
+        {
+          CALL_BLOCK(_block, self);
+        }
       else
-	{
-	  NS_DURING
-	    {
-	      [target performSelector: _selector withObject: self];
-	    }
-	  NS_HANDLER
-	    {
-	      NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
-		@"raised during posting of timer with target %p and "
-		@"selector '%@'",
-		[localException name], [localException reason], target,
-		NSStringFromSelector(_selector));
-	    }
-	  NS_ENDHANDLER
-	}
-      RELEASE(target);
+        {
+          id	target;
+          
+          /* We retain the target so it won't be deallocated while we are using it
+           * (if this timer gets invalidated while we are firing).
+           */
+          target = RETAIN(_target);
+          
+          if (_selector == 0)
+            {
+              NS_DURING
+                {
+                  [(NSInvocation*)target invoke];
+                }
+              NS_HANDLER
+                {
+                  NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
+                        @"raised during posting of timer with target %s(%s) "
+                        @"and selector '%@'",
+                        [localException name], [localException reason],
+                        GSClassNameFromObject(target),
+                        GSObjCIsInstance(target) ? "instance" : "class",
+                        NSStringFromSelector([target selector]));
+                }
+              NS_ENDHANDLER
+                }
+          else
+            {
+              NS_DURING
+                {
+                  [target performSelector: _selector withObject: self];
+                }
+              NS_HANDLER
+                {
+                  NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
+                        @"raised during posting of timer with target %p and "
+                        @"selector '%@'",
+                        [localException name], [localException reason], target,
+                        NSStringFromSelector(_selector));
+                }
+              NS_ENDHANDLER
+                }
+          RELEASE(target);
+        }
+      
       if (_repeats == NO)
         {
           [self invalidate];

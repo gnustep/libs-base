@@ -51,7 +51,7 @@ enum {
 };
 typedef NSInteger NSQualityOfService;
   
-@class NSString;
+@class NSString, NSTimer;
 
 DEFINE_BLOCK_TYPE(NSBackgroundActivityCompletionHandler, void, NSBackgroundActivityResult);
 DEFINE_BLOCK_TYPE(GSScheduledBlock, void, NSBackgroundActivityCompletionHandler);  
@@ -64,6 +64,7 @@ DEFINE_BLOCK_TYPE(GSScheduledBlock, void, NSBackgroundActivityCompletionHandler)
   NSTimeInterval _tolerance;
   BOOL _repeats;
   BOOL _shouldDefer;
+  NSTimer *_timer; 
 }
   
 - (instancetype) initWithIdentifier: (NSString *)identifier;
@@ -81,7 +82,7 @@ DEFINE_BLOCK_TYPE(GSScheduledBlock, void, NSBackgroundActivityCompletionHandler)
 - (void) setInterval: (NSTimeInterval)interval;
 
 - (NSTimeInterval) tolerance;
-- (void) setTolerance: (NSTimeInterval)interval;
+- (void) setTolerance: (NSTimeInterval)tolerance;
 
 - (BOOL) shouldDefer;
 - (void) setShouldDefer: (BOOL)flag;

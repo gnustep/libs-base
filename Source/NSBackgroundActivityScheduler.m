@@ -37,6 +37,7 @@
       _interval = 0;
       _tolerance = 0;
       _shouldDefer = NO;
+      _timer = nil;
     }
   return self;
 }
@@ -103,6 +104,30 @@
 
 - (void) scheduleWithBlock: (GSScheduledBlock)block
 {
+  NSProcessInfo *pinfo = [NSProcessInfo processInfo];
+  id token = nil;
+  NSActivityOptions opts = 0;
+ 
+  switch(qualityOfService)
+    {
+    case NSQualityOfServiceUserInteractive:
+      opts = NSActivityUserInitiated | NSActivityIdleDisplaySleepDisabled;
+      break;
+    case NSQualityOfServiceUserInitiated:
+      opts = NSActivityUserInitiated;
+      break;
+    case NSQualityOfServiceUtility:
+      opts = NSActivityUserInitiated | NSActivityIdleDisplaySleepDisabled;
+      break;
+    case NSQualityOfServiceBackground:
+      opts = NSActivityBackground;
+      break;
+    case NSQualityOfServiceDefault:
+      opts = NSActivityLatencyCritical;
+      break;
+    }
+
+  token = [pinfo beginActivityWithOptions: 
 }
 
 - (void) invalidate
