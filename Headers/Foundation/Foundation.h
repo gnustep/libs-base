@@ -42,6 +42,7 @@
 #import	<Foundation/NSArray.h>
 #import	<Foundation/NSAttributedString.h>
 #import	<Foundation/NSAutoreleasePool.h>
+#import <Foundation/NSBackgroundActivityScheduler.h>
 #import	<Foundation/NSBundle.h>
 #import	<Foundation/NSByteOrder.h>
 #import	<Foundation/NSCache.h>

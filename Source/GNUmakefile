@@ -195,6 +195,7 @@ NSArray.m \
 NSAssertionHandler.m \
 NSAttributedString.m \
 NSAutoreleasePool.m \
+NSBackgroundActivityScheduler.m \
 NSBundle.m \
 NSByteCountFormatter.m \
 NSCache.m \
@@ -395,6 +396,7 @@ NSArchiver.h \
 NSArray.h \
 NSAttributedString.h \
 NSAutoreleasePool.h \
+NSBackgroundActivityScheduler.h \
 NSBundle.h \
 NSByteCountFormatter.h \
 NSByteOrder.h \

@@ -18,7 +18,6 @@ Missing headers:
 FoundationLegacySwiftCompatibility.h
 NSAppleEventDescriptor.h
 NSAppleEventManager.h
-NSBackgroundActivityScheduler.h
 NSDateComponentsFormatter.h
 NSExtensionContext.h
 NSExtensionItem.h
