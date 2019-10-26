@@ -26,5 +26,65 @@
 
 @implementation NSBackgroundActivityScheduler
 
+- (instancetype) initWithIdentifier: (NSString *)identifier
+{
+}
+
+- (NSString *) identifier
+{
+}
+
+- (void) setIdentifier: (NSString *)identifier
+{
+}
+
+- (NSQualityOfService) qualityOfService
+{
+}
+
+- (void) setQualityOfService: (NSQualityOfService)qualityOfService
+{
+}
+
+- (BOOL) repeats
+{
+}
+
+- (void) setRepeats: (BOOL)flag
+{
+}
+
+- (NSTimeInterval) interval
+{
+}
+
+- (void) setInterval: (NSTimeInterval)interval
+{
+}
+
+- (NSTimeInterval) tolerance
+{
+}
+
+- (void) setTolerance: (NSTimeInterval)interval
+{
+}
+
+- (BOOL) shouldDefer
+{
+}
+
+- (void) setShouldDefer: (BOOL)flag
+{
+}
+
+- (void) scheduleWithBlock: (GSScheduledBlock)block
+{
+}
+
+- (void) invalidate
+{
+}
+
 @end
 
