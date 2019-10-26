@@ -28,54 +28,77 @@
 
 - (instancetype) initWithIdentifier: (NSString *)identifier
 {
+  self = [super init];
+  if(self != nil)
+    {
+      _identifier = identifier;
+      _qualityOfService = NSQualityOfServiceDefault;
+      _repeats = NO;
+      _interval = 0;
+      _tolerance = 0;
+      _shouldDefer = NO;
+    }
+  return self;
 }
 
 - (NSString *) identifier
 {
+  return _identifier;
 }
 
 - (void) setIdentifier: (NSString *)identifier
 {
+  ASSIGNCOPY(_identifier, identifier);
 }
 
 - (NSQualityOfService) qualityOfService
 {
+  return _qualityOfService;
 }
 
 - (void) setQualityOfService: (NSQualityOfService)qualityOfService
 {
+  _qualityOfService = qualityOfService;
 }
 
 - (BOOL) repeats
 {
+  return _repeats;
 }
 
 - (void) setRepeats: (BOOL)flag
 {
+  _repeats = flag;
 }
 
 - (NSTimeInterval) interval
 {
+  return _interval;
 }
 
 - (void) setInterval: (NSTimeInterval)interval
 {
+  _interval = interval;
 }
 
 - (NSTimeInterval) tolerance
 {
+  return _tolerance;
 }
 
-- (void) setTolerance: (NSTimeInterval)interval
+- (void) setTolerance: (NSTimeInterval)tolerance
 {
+  _tolerance = tolerance;
 }
 
 - (BOOL) shouldDefer
 {
+  return _shouldDefer;
 }
 
 - (void) setShouldDefer: (BOOL)flag
 {
+  _shouldDefer = flag;
 }
 
 - (void) scheduleWithBlock: (GSScheduledBlock)block

@@ -59,7 +59,9 @@ DEFINE_BLOCK_TYPE(GSScheduledBlock, void, NSBackgroundActivityCompletionHandler)
 @interface NSBackgroundActivityScheduler : NSObject
 {
   NSString *_identifier;
-  NSString *_qualityOfService;
+  NSQualityOfService _qualityOfService;
+  NSTimeInterval _interval;
+  NSTimeInterval _tolerance;
   BOOL _repeats;
   BOOL _shouldDefer;
 }
