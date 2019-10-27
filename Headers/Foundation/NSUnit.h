@@ -72,7 +72,7 @@ extern "C" {
 }
 
 - (NSUnitConverter *) converter;
-- (instancetype) initWithSymbol: (NSString *)symbol converter: (NSUnitConverter *)converter ;
+- (instancetype) initWithSymbol: (NSString *)symbol converter: (NSUnitConverter *)converter;
 + (instancetype) baseUnit;
 
 @end
