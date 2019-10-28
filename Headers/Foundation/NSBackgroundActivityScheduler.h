@@ -27,6 +27,7 @@
 
 #include <Foundation/NSObject.h>
 #include <Foundation/NSDate.h>
+#include <Foundation/NSProcessInfo.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -53,8 +54,16 @@ typedef NSInteger NSQualityOfService;
   
 @class NSString, NSTimer;
 
-DEFINE_BLOCK_TYPE(NSBackgroundActivityCompletionHandler, void, NSBackgroundActivityResult);
-DEFINE_BLOCK_TYPE(GSScheduledBlock, void, NSBackgroundActivityCompletionHandler);  
+# ifndef __has_feature
+# define __has_feature(x) 0
+# endif
+
+//# if __has_feature(blocks)
+//typedef void(^NSBackgroundActivityCompletionHandler)(NSBackgroundActivityResult result) GSScheduledBlock;  
+//# else
+  DEFINE_BLOCK_TYPE(NSBackgroundActivityCompletionHandler, void, NSBackgroundActivityResult);
+  DEFINE_BLOCK_TYPE(GSScheduledBlock, void, NSBackgroundActivityCompletionHandler);  
+//# endif
 
 @interface NSBackgroundActivityScheduler : NSObject
 {
@@ -64,7 +73,11 @@ DEFINE_BLOCK_TYPE(GSScheduledBlock, void, NSBackgroundActivityCompletionHandler)
   NSTimeInterval _tolerance;
   BOOL _repeats;
   BOOL _shouldDefer;
-  NSTimer *_timer; 
+  NSTimer *_timer;
+  NSActivityOptions _opts;
+  id _token;
+  NSString *_reason;
+  BLOCK_SCOPE GSScheduledBlock _block;
 }
   
 - (instancetype) initWithIdentifier: (NSString *)identifier;
@@ -86,9 +99,9 @@ DEFINE_BLOCK_TYPE(GSScheduledBlock, void, NSBackgroundActivityCompletionHandler)
 
 - (BOOL) shouldDefer;
 - (void) setShouldDefer: (BOOL)flag;
-
+  
 - (void) scheduleWithBlock: (GSScheduledBlock)block;
-
+  
 - (void) invalidate;
   
 @end

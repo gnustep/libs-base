@@ -23,6 +23,8 @@
 */
 
 #include <Foundation/NSBackgroundActivityScheduler.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSTimer.h>
 
 @implementation NSBackgroundActivityScheduler
 
@@ -38,8 +40,19 @@
       _tolerance = 0;
       _shouldDefer = NO;
       _timer = nil;
+      _opts = 0;
+      _token = nil;
+      _reason = [NSString stringWithFormat: @"Reason-%@", self];
     }
   return self;
+}
+
+- (void) dealloc
+{
+  RELEASE(_identifier);
+  RELEASE(_token);
+  RELEASE(_reason);
+  [super dealloc];
 }
 
 - (NSString *) identifier
@@ -102,36 +115,61 @@
   _shouldDefer = flag;
 }
 
+- (void) _performActivity
+{
+  NSProcessInfo *pinfo = [NSProcessInfo processInfo];
+
+# if __has_feature(blocks)
+  [pinfo performActivityWithOptions: _opts
+                             reason: _reason
+                         usingBlock: ^{
+      // CALL_BLOCK(_block);
+    }];
+# else
+  NSLog(@"No block support, so not running background activity....");
+# endif
+}
+
 - (void) scheduleWithBlock: (GSScheduledBlock)block
 {
   NSProcessInfo *pinfo = [NSProcessInfo processInfo];
-  id token = nil;
-  NSActivityOptions opts = 0;
- 
-  switch(qualityOfService)
+
+  ASSIGN(_block, block);
+  switch(_qualityOfService)
     {
     case NSQualityOfServiceUserInteractive:
-      opts = NSActivityUserInitiated | NSActivityIdleDisplaySleepDisabled;
+      _opts = NSActivityUserInitiated | NSActivityIdleDisplaySleepDisabled;
       break;
     case NSQualityOfServiceUserInitiated:
-      opts = NSActivityUserInitiated;
+      _opts = NSActivityUserInitiated;
       break;
     case NSQualityOfServiceUtility:
-      opts = NSActivityUserInitiated | NSActivityIdleDisplaySleepDisabled;
+      _opts = NSActivityUserInitiated | NSActivityIdleDisplaySleepDisabled;
       break;
     case NSQualityOfServiceBackground:
-      opts = NSActivityBackground;
+      _opts = NSActivityBackground;
       break;
     case NSQualityOfServiceDefault:
-      opts = NSActivityLatencyCritical;
+      _opts = NSActivityLatencyCritical;
       break;
     }
 
-  token = [pinfo beginActivityWithOptions: 
+  _token = [pinfo beginActivityWithOptions: _opts
+                                    reason: _reason];
+
+  _timer = [NSTimer scheduledTimerWithTimeInterval: _interval
+                                            target: self
+                                          selector: @selector(_performActivity)
+                                          userInfo: nil
+                                           repeats: _repeats];
+  
 }
 
 - (void) invalidate
 {
+  NSProcessInfo *pinfo = [NSProcessInfo processInfo];
+  [_timer invalidate];
+  [pinfo endActivity: _token]; 
 }
 
 @end
