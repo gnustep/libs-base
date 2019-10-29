@@ -243,6 +243,7 @@ NSIndexPath.m \
 NSIndexSet.m \
 NSInvocation.m \
 NSInvocationOperation.m \
+NSISO8601DateFormatter.m \
 NSJSONSerialization.m \
 NSKeyedArchiver.m \
 NSKeyedUnarchiver.m \
@@ -445,6 +446,7 @@ NSIndexPath.h \
 NSIndexSet.h \
 NSInvocation.h \
 NSInvocationOperation.h \
+NSISO8601DateFormatter.h \
 NSJSONSerialization.h \
 NSKeyedArchiver.h \
 NSKeyValueCoding.h \
