@@ -392,6 +392,10 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 {
 }
 
+- (void) _sendEvent: (NSStreamEvent)event delegate: (id)delegate
+{
+}
+
 - (void) _setLoopID: (void *)ref
 {
 }
@@ -506,6 +510,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) _sendEvent: (NSStreamEvent)event
 {
+  [self _sendEvent: event delegate: _delegateValid == YES ? _delegate : nil];
+}
+
+- (void) _sendEvent: (NSStreamEvent)event delegate: (id)delegate
+{
   if (event == NSStreamEventNone)
     {
       return;
@@ -515,10 +524,10 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       if ((_events & event) == 0)
 	{
 	  _events |= NSStreamEventOpenCompleted;
-	  if (_delegateValid == YES)
+	  if (delegate != nil)
 	    {
-	      [_delegate stream: self
-		    handleEvent: NSStreamEventOpenCompleted];
+	      [delegate stream: self
+                   handleEvent: NSStreamEventOpenCompleted];
 	    }
 	}
     }
@@ -527,19 +536,19 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       if ((_events & NSStreamEventOpenCompleted) == 0)
 	{
 	  _events |= NSStreamEventOpenCompleted;
-	  if (_delegateValid == YES)
+	  if (delegate != nil)
 	    {
-	      [_delegate stream: self
-		    handleEvent: NSStreamEventOpenCompleted];
+	      [delegate stream: self
+                   handleEvent: NSStreamEventOpenCompleted];
 	    }
 	}
       if ((_events & NSStreamEventHasBytesAvailable) == 0)
 	{
 	  _events |= NSStreamEventHasBytesAvailable;
-	  if (_delegateValid == YES)
+	  if (delegate != nil)
 	    {
-	      [_delegate stream: self
-		    handleEvent: NSStreamEventHasBytesAvailable];
+	      [delegate stream: self
+                   handleEvent: NSStreamEventHasBytesAvailable];
 	    }
 	}
     }
@@ -548,19 +557,19 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       if ((_events & NSStreamEventOpenCompleted) == 0)
 	{
 	  _events |= NSStreamEventOpenCompleted;
-	  if (_delegateValid == YES)
+	  if (delegate != nil)
 	    {
-	      [_delegate stream: self
-		    handleEvent: NSStreamEventOpenCompleted];
+	      [delegate stream: self
+                   handleEvent: NSStreamEventOpenCompleted];
 	    }
 	}
       if ((_events & NSStreamEventHasSpaceAvailable) == 0)
 	{
 	  _events |= NSStreamEventHasSpaceAvailable;
-	  if (_delegateValid == YES)
+	  if (delegate != nil)
 	    {
-	      [_delegate stream: self
-		    handleEvent: NSStreamEventHasSpaceAvailable];
+	      [delegate stream: self
+                   handleEvent: NSStreamEventHasSpaceAvailable];
 	    }
 	}
     }
@@ -569,10 +578,10 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       if ((_events & NSStreamEventErrorOccurred) == 0)
 	{
 	  _events |= NSStreamEventErrorOccurred;
-	  if (_delegateValid == YES)
+	  if (delegate != nil)
 	    {
-	      [_delegate stream: self
-		    handleEvent: NSStreamEventErrorOccurred];
+	      [delegate stream: self
+                   handleEvent: NSStreamEventErrorOccurred];
 	    }
 	}
     }
@@ -581,10 +590,10 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       if ((_events & NSStreamEventEndEncountered) == 0)
 	{
 	  _events |= NSStreamEventEndEncountered;
-	  if (_delegateValid == YES)
+	  if (delegate != nil)
 	    {
-	      [_delegate stream: self
-		    handleEvent: NSStreamEventEndEncountered];
+	      [delegate stream: self
+                   handleEvent: NSStreamEventEndEncountered];
 	    }
 	}
     }

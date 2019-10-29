@@ -1584,26 +1584,7 @@ setNonBlocking(SOCKET fd)
    */
   if (_handler != nil && [_handler handshake] == YES)
     {
-      id        hdl = _handler;
-      id        del = _delegate;
-      BOOL      val = _delegateValid;
-
-      /* Retain self to prevent a dangling pointer the handler closes and
-       * releases this socket. Also, do not restore the old delegate if it
-       * was changed directly or indirectly by the handler.
-       * FIXME We leave the socket an inconsistent state if any exception
-       * is raised in _sendEvent:.
-       */
-      RETAIN(self);
-      _delegate = hdl;
-      _delegateValid = YES;
-      [super _sendEvent: event];
-      if (_delegate == hdl)
-        {
-          _delegate = del;
-          _delegateValid = val;
-        }
-      RELEASE(self);
+      [super _sendEvent: event delegate: _handler];
     }
   else
     {
