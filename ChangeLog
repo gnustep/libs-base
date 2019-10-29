@@ -1,3 +1,14 @@
+2019-10-29  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/GSStream.h,
+	* Source/GSStream.m,
+	* Source/GSSocketStream.m:
+	Use a more sane implementation to redirect event handling to the
+	TLS handler while in a handshake.
+
+	* Source/GSTLS.m:
+	Fall back to a sane default if the TLS priority setting is invalid.
+
 2019-10-28  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/GSSocketStream.m:

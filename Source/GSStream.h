@@ -131,6 +131,11 @@ IVARS
 - (void) _sendEvent: (NSStreamEvent)event;
 
 /**
+ * send an event to delegate
+ */
+- (void) _sendEvent: (NSStreamEvent)event delegate: (id)delegate;
+
+/**
  * setter for IO event reference (file descriptor, file handle etc )
  */
 - (void) _setLoopID: (void *)ref;
