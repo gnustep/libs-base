@@ -97,6 +97,7 @@
 #import <Foundation/NSMeasurement.h>
 #import <Foundation/NSMeasurementFormatter.h>
 #import <Foundation/NSMetadata.h>
+#import <Foundation/NSMetadataAttributes.h>
 #import	<Foundation/NSMethodSignature.h>
 #import	<Foundation/NSNotification.h>
 #import	<Foundation/NSNotificationQueue.h>

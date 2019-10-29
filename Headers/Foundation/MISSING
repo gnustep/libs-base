@@ -27,7 +27,6 @@ NSISO8601DateFormatter.h
 NSItemProvider.h
 NSItemProviderReadingWriting.h
 NSLinguisticTagger.h
-NSMetadataAttributes.h
 NSObjectScripting.h
 NSOrthography.h
 NSUserActivity.h

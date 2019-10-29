@@ -257,6 +257,7 @@ NSMassFormatter.m \
 NSMeasurementFormatter.m \
 NSMeasurement.m \
 NSMetadata.m \
+NSMetadataAttributes.m \
 NSMethodSignature.m \
 NSNotification.m \
 NSNotificationCenter.m \
@@ -456,6 +457,7 @@ NSMassFormatter.h \
 NSMeasurementFormatter.h \
 NSMeasurement.h \
 NSMetadata.h \
+NSMetadataAttributes.h \
 NSMethodSignature.h \
 NSNetServices.h \
 NSNotification.h \
