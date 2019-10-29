@@ -1,8 +1,7 @@
-
 /* Definition of class NSMeasurementFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By:Gregory John Casamento <greg.casamento@gmail.com>
    Date: Mon Sep 30 15:58:21 EDT 2019
 
    This file is part of the GNUstep Library.

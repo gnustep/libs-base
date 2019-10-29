@@ -29,11 +29,11 @@
 #include <Foundation/NSDate.h>
 #include <Foundation/NSProcessInfo.h>
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
-
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
 
 // is the activity finished?
 enum {
