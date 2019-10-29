@@ -70,13 +70,21 @@
  * Release an dispatch object.
  */
 #define GS_DISPATCH_RELEASE(x) dispatch_release(x)
+
 /**
- * Allows an arbitrary block to be submitted to the queue. Since dispatch blocks
- * return nothing and take no arguments, the caller can use the before and after
- * arguments to set up and tear down the block as required.
+ * Allows an arbitrary block to be submitted to the queue (if available) or run
+ * in place. Since dispatch blocks return nothing and take no arguments, the
+ * caller can use the before and after arguments to guard calling the block as
+ * required.
  */
 #define GS_DISPATCH_SUBMIT_BLOCK(group, queue, before, after, block, args, ...) \
-  dispatch_group_async(group, queue, ^(void){before; block(args, ## __VA_ARGS__); after;})
+  if (queue != NULL) {\
+    dispatch_group_async(group, queue, ^(void){before block(args, ## __VA_ARGS__); after});\
+  } else {\
+    before\
+    block(args, ## __VA_ARGS__);\
+    after\
+  }
 
 /**
  * Submits a block without special provisions.
@@ -85,32 +93,30 @@
 
 
 /**
- * Convenience macro to create serial or concurrent dispatch queues for the
- * various -enumerateUsingBlock: methods.
+ * Convenience macro to create concurrent dispatch queues for the various
+ * -enumerateUsingBlock: methods. Non-concurrent will be run in place.
  */
 #define GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(queue, opts)\
-  dispatch_queue_t queue;\
-  dispatch_group_t queue ## Group;\
+  dispatch_queue_t queue = NULL;\
+  dispatch_group_t queue ## Group = NULL;\
   if (opts & NSEnumerationConcurrent)\
   {\
     queue = GS_DISPATCH_GET_DEFAULT_CONCURRENT_QUEUE();\
-  }\
-  else\
-  {\
-    queue = GS_DISPATCH_QUEUE_CREATE(DISPATCH_QUEUE_SERIAL);\
-  }\
-  queue ## Group = GS_DISPATCH_GROUP_CREATE();
+    queue ## Group = GS_DISPATCH_GROUP_CREATE();\
+  }
 
 /**
- * Convenience macro to destroy serial or concurrent dispatch queues for the
- * various -enumerateUsingBlock: methods.
+ * Convenience macro to destroy concurrent dispatch queues for the various
+ * -enumerateUsingBlock: methods.
  */
 #define GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(queue, opts)\
-  GS_DISPATCH_GROUP_FINISH(queue ## Group);\
-  GS_DISPATCH_RELEASE(enumQueueGroup);\
-  if (NO == (opts & NSEnumerationConcurrent))\
-  {\
-    GS_DISPATCH_RELEASE(enumQueue);\
+  if (queue != NULL) { \
+    GS_DISPATCH_GROUP_FINISH(queue ## Group);\
+    GS_DISPATCH_RELEASE(queue ## Group);\
+    if (NO == (opts & NSEnumerationConcurrent))\
+    {\
+      GS_DISPATCH_RELEASE(queue);\
+    }\
   }
 
 

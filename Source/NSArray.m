@@ -1790,7 +1790,7 @@ compare(id elem1, id elem2, void* context)
   {
   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
   FOR_IN (id, obj, enumerator)
-    GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (YES == shouldStop) {return;}, return, aBlock, obj, count, &shouldStop);
+    GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (shouldStop == NO) {, }, aBlock, obj, count, &shouldStop);
       if (isReverse)
         {
           count--;
@@ -1841,30 +1841,32 @@ compare(id elem1, id elem2, void* context)
     GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
     FOR_IN (id, obj, enumerator)
 #     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
-
-      dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
-        if (shouldStop)
+      if (enumQueue != NULL)
         {
-	  return;
+          dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
+            if (shouldStop)
+            {
+              return;
+            }
+            if (predicate(obj, count, &shouldStop))
+            {
+              [setLock lock];
+              [set addIndex: count];
+              [setLock unlock];
+            }
+          });
         }
-        if (predicate(obj, count, &shouldStop))
-        {
-	  [setLock lock];
-	  [set addIndex: count];
-	  [setLock unlock];
-        }
-      });
-#     else
+      else // call block directly
+#     endif
       if (CALL_BLOCK(predicate, obj, count, &shouldStop))
         {
-	  /* TODO: It would be more efficient to collect an NSRange and only
-	   * pass it to the index set when CALL_BLOCK returned NO. */
-	  [set addIndex: count];
+          /* TODO: It would be more efficient to collect an NSRange and only
+           * pass it to the index set when CALL_BLOCK returned NO. */
+          [set addIndex: count];
         }
-#     endif
       if (shouldStop)
         {
-	  break;
+          break;
         }
       count++;
     END_FOR_IN(enumerator)
@@ -1936,33 +1938,35 @@ compare(id elem1, id elem2, void* context)
     GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
     FOR_IN (id, obj, enumerator)
 #     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
-      dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
-        if (shouldStop)
+      if (enumQueue != NULL)
         {
-	  return;
+          dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
+            if (shouldStop)
+            {
+              return;
+            }
+            if (predicate(obj, count, &shouldStop))
+            {
+              // FIXME: atomic operation on the shouldStop variable would be nicer,
+              // but we don't expose the GSAtomic* primitives anywhere.
+              [indexLock lock];
+              index =  count;
+              // Cancel all other predicate evaluations:
+              shouldStop = YES;
+              [indexLock unlock];
+            }
+          });
         }
-        if (predicate(obj, count, &shouldStop))
-        {
-	  // FIXME: atomic operation on the shouldStop variable would be nicer,
-	  // but we don't expose the GSAtomic* primitives anywhere.
-	  [indexLock lock];
-	  index =  count;
-	  // Cancel all other predicate evaluations:
-	  shouldStop = YES;
-	  [indexLock unlock];
-        }
-      });
-#     else
+      else // call block directly
+#     endif
       if (CALL_BLOCK(predicate, obj, count, &shouldStop))
         {
-
-	  index = count;
-	  shouldStop = YES;
+          index = count;
+          shouldStop = YES;
         }
-#     endif
       if (shouldStop)
         {
-	  break;
+          break;
         }
       count++;
     END_FOR_IN(enumerator)

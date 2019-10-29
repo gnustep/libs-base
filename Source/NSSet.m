@@ -907,7 +907,7 @@ static Class NSMutableSet_concrete_class;
   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
   FOR_IN (id, obj, enumerator)
   {
-    GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup,enumQueue, if (shouldStop) {return;}, return;, aBlock, obj, &shouldStop);
+    GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup,enumQueue, if (shouldStop == NO) {, }, aBlock, obj, &shouldStop);
     if (shouldStop)
       {
 	break;

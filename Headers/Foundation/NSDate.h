@@ -62,7 +62,7 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
 
 /** Returns an autoreleased instance with the current date/time.
  */
-+ (id) date;
++ (instancetype) date;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Returns an autoreleased instance representing the date and time given
@@ -70,7 +70,7 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
  * specified by the preferences in the user defaults database, allowing
  * phrases like 'last tuesday'
  */
-+ (id) dateWithNaturalLanguageString: (NSString*)string;
++ (instancetype) dateWithNaturalLanguageString: (NSString*)string;
 
 /**
  * <p>Returns an autoreleased instance representing the date and time given
@@ -119,47 +119,48 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
  *   </desc>
  * </deflist>
  */
-+ (id) dateWithNaturalLanguageString: (NSString*)string
-                              locale: (NSDictionary*)locale;
++ (instancetype) dateWithNaturalLanguageString: (NSString*)string
+                                        locale: (NSDictionary*)locale;
 #endif
 
 /** Returns an autoreleased instance with the date and time value given
  * by the string using the ISO standard format YYYY-MM-DD HH:MM:SS +/-HHHMM
  * (all the fields of which must be present).
  */
-+ (id) dateWithString: (NSString*)description;
++ (instancetype) dateWithString: (NSString*)description;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
 /** Returns an autoreleased NSDate instance whose value is offset from
  * that of the given date by the specified interval in seconds.
  */
-+ (id) dateWithTimeInterval: (NSTimeInterval)seconds sinceDate: (NSDate*)date;
++ (instancetype) dateWithTimeInterval: (NSTimeInterval)seconds
+                            sinceDate: (NSDate*)date;
 #endif
 
 /** Returns an autoreleased instance with the offset from the unix system
  * reference date of 1 January 1970, GMT.
  */
-+ (id) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds;
++ (instancetype) dateWithTimeIntervalSince1970: (NSTimeInterval)seconds;
 
 /** Returns an autoreleased instance with the offset from the current
  * date/time given by seconds (which may be fractional).
  */
-+ (id) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds;
++ (instancetype) dateWithTimeIntervalSinceNow: (NSTimeInterval)seconds;
 
 /** Returns an autoreleased instance with the offset from the OpenStep
  * reference date of 1 January 2001, GMT.
  */
-+ (id) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds;
++ (instancetype) dateWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds;
 
 /** Returns an autoreleased instance with the date/time set in the far
  * past.
  */
-+ (id) distantPast;
++ (instancetype) distantPast;
 
 /** Returns an autoreleased instance with the date/time set in the far
  * future.
  */
-+ (id) distantFuture;
++ (instancetype) distantFuture;
 
 /** Returns the time interval between the reference date and the current
  * time.
@@ -169,7 +170,7 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
 /** Returns an autorelease date instance formed by adding the specified
  * time interval in seconds to the receiver's time interval.
  */
-- (id) addTimeInterval: (NSTimeInterval)seconds;
+- (instancetype) addTimeInterval: (NSTimeInterval)seconds;
 
 /** Returns the time interval between the receivers value and the
  * OpenStep reference date of 1 Jan 2001 GMT.
@@ -180,7 +181,7 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
 /** Returns an autoreleased NSDate instance whose value is offset from
  * that of the receiver by the specified interval.
  */
-- (id) dateByAddingTimeInterval: (NSTimeInterval)ti;
+- (instancetype) dateByAddingTimeInterval: (NSTimeInterval)ti;
 #endif
 
 /** Returns an autoreleased instance of the [NSCalendarDate] class whose
@@ -214,35 +215,35 @@ GS_EXPORT const NSTimeInterval NSTimeIntervalSince1970;
 
 /** Returns an instance initialised with the current date/time.
  */
-- (id) init;
+- (instancetype) init;
 
 /** Returns an instance with the date and time value given
  * by the string using the ISO standard format YYYY-MM-DD HH:MM:SS +/-HHHMM
  * (all the fields of which must be present).
  */
-- (id) initWithString: (NSString*)description;
+- (instancetype) initWithString: (NSString*)description;
 
 /** Returns an instance with the given offset from anotherDate.
  */
-- (id) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
-		  sinceDate: (NSDate*)anotherDate;
+- (instancetype) initWithTimeInterval: (NSTimeInterval)secsToBeAdded
+                            sinceDate: (NSDate*)anotherDate;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Returns an instance with the offset from the unix system
  * reference date of 1 January 1970, GMT.
  */
-- (id) initWithTimeIntervalSince1970: (NSTimeInterval)seconds;
+- (instancetype) initWithTimeIntervalSince1970: (NSTimeInterval)seconds;
 #endif
 
 /** Returns an instance with the offset from the current date/time.
  */
-- (id) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded;
+- (instancetype) initWithTimeIntervalSinceNow: (NSTimeInterval)secsToBeAdded;
 
 /** <init />
  * Returns an instance with the given offset from the OpenStep
  * reference date of 1 January 2001, GMT.
  */
-- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs;
+- (instancetype) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs;
 
 /** Returns NO if other is not a date, otherwise returns the result of
  * calling the -isEqualtoDate: method.

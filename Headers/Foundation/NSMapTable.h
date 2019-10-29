@@ -59,67 +59,68 @@ enum {
 
 typedef NSUInteger NSMapTableOptions;
 
-@interface NSMapTable : NSObject <NSCopying, NSCoding, NSFastEnumeration>
+@interface GS_GENERIC_CLASS(NSMapTable, KeyT, ValT)
+  : NSObject <NSCopying, NSCoding, NSFastEnumeration>
 
 /** Return a map table initialised using the specified options for
  * keys and values.
  */
-+ (id) mapTableWithKeyOptions: (NSPointerFunctionsOptions)keyOptions
-		 valueOptions: (NSPointerFunctionsOptions)valueOptions;
++ (instancetype) mapTableWithKeyOptions: (NSPointerFunctionsOptions)keyOptions
+                           valueOptions: (NSPointerFunctionsOptions)valueOptions;
 
 /** Convenience method for creating a map table to store object values
  * using object keys.
  */
-+ (id) mapTableWithStrongToStrongObjects;
++ (instancetype) mapTableWithStrongToStrongObjects;
 
 /** Convenience method for creating a map table to store non-retained
  * object values with retained object keys.
  */
-+ (id) mapTableWithStrongToWeakObjects;
++ (instancetype) mapTableWithStrongToWeakObjects;
 
 /** Convenience method for creating a map table to store retained
  * object values with non-retained object keys.
  */
-+ (id) mapTableWithWeakToStrongObjects;
++ (instancetype) mapTableWithWeakToStrongObjects;
 
 /** Convenience method for creating a map table to store non-retained
  * object values with non-retained object keys.
  */
-+ (id) mapTableWithWeakToWeakObjects;
++ (instancetype) mapTableWithWeakToWeakObjects;
 
 /** Convenience method for creating a map table to store object values
  * using object keys.  The collection will retain both the key and the value.
  */
-+ (id) strongToStrongObjectsMapTable;
++ (instancetype) strongToStrongObjectsMapTable;
 /** Convenience method for creating a map table to store object values
  * using object keys.  The collection will retain the key, the value will be a
  * zeroing weak reference.
  */
-+ (id) strongToWeakObjectsMapTable;
++ (instancetype) strongToWeakObjectsMapTable;
 /** Convenience method for creating a map table to store object values
  * using object keys.  The collection will retain the value, the key will be a
  * zeroing weak reference.
  */
-+ (id) weakToStrongObjectsMapTable;
++ (instancetype) weakToStrongObjectsMapTable;
 /** Convenience method for creating a map table to store object values
  * using object keys.  The collection will use zeroing weak references for both
  * the key and the value.
  */
-+ (id) weakToWeakObjectsMapTable;
++ (instancetype) weakToWeakObjectsMapTable;
 
 
 /** Initialiser using option bitmasks to describe the keys and values.
  */
-- (id) initWithKeyOptions: (NSPointerFunctionsOptions)keyOptions
-	     valueOptions: (NSPointerFunctionsOptions)valueOptions
-	         capacity: (NSUInteger)initialCapacity;
+- (instancetype) initWithKeyOptions: (NSPointerFunctionsOptions)keyOptions
+                       valueOptions: (NSPointerFunctionsOptions)valueOptions
+                           capacity: (NSUInteger)initialCapacity;
 
 /** Initialiser using full pointer function information to describe
  * the keys and values.
  */
-- (id) initWithKeyPointerFunctions: (NSPointerFunctions*)keyFunctions
-	     valuePointerFunctions: (NSPointerFunctions*)valueFunctions
-			  capacity: (NSUInteger)initialCapacity;
+- (instancetype) initWithKeyPointerFunctions: (NSPointerFunctions*)keyFunctions
+                       valuePointerFunctions: (NSPointerFunctions*)valueFunctions
+                                    capacity: (NSUInteger)initialCapacity;
 
 /** Return the number of items stored in the map.
  */
@@ -131,7 +132,7 @@ typedef NSUInteger NSMapTableOptions;
 
 /** Return an enumerator able to enumerate the keys in the receiver.
  */
-- (NSEnumerator*) keyEnumerator;
+- (GS_GENERIC_CLASS(NSEnumerator, KeyT)*) keyEnumerator;
 
 /** Return an NSPointerFunctions value describind the functions used by the
  * receiver to handle keys.
@@ -140,11 +141,11 @@ typedef NSUInteger NSMapTableOptions;
 
 /** Return an enumerator able to enumerate the values in the receiver.
  */
-- (NSEnumerator*) objectEnumerator;
+- (GS_GENERIC_CLASS(NSEnumerator, ValT)*) objectEnumerator;
 
 /** Return the object stored under the specified key.
  */
-- (id) objectForKey: (id)aKey;
+- (GS_GENERIC_TYPE(ValT)) objectForKey: (GS_GENERIC_TYPE(KeyT))aKey;
 
 /** Empty the receiver of all stored values.
  */
@@ -152,12 +153,12 @@ typedef NSUInteger NSMapTableOptions;
 
 /** Remove the object stored under the specified key.
  */
-- (void) removeObjectForKey: (id)aKey;
+- (void) removeObjectForKey: (GS_GENERIC_TYPE(KeyT))aKey;
 
 /** Store the object under the specified key, replacing any object which
  * was previously stored under that key.
  */
-- (void) setObject: (id)anObject forKey: (id)aKey;
+- (void) setObject: (GS_GENERIC_TYPE(ValT))anObject forKey: (GS_GENERIC_TYPE(KeyT))aKey;
 
 /** Return an NSPointerFunctions value describind the functions used by the
  * receiver to handle values.
