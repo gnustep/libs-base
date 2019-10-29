@@ -1771,7 +1771,13 @@ retrieve_callback(gnutls_session_t session,
 	  /* By default we disable SSL3.0 as the 'POODLE' attack (Oct 2014)
 	   * renders it insecure.
 	   */
-          gnutls_priority_set_direct(session, [str UTF8String], NULL);
+          const char *err_pos;
+          if (gnutls_priority_set_direct(session, [str UTF8String], &err_pos))
+            {
+              NSLog(@"Invalid GSTLSPriority: %s", err_pos);
+              NSLog(@"Falling back to NORMAL:-VERS-SSL3.0");
+              gnutls_priority_set_direct(session, "NORMAL:-VERS-SSL3.0", NULL);
+            }
 #endif
         }
 
