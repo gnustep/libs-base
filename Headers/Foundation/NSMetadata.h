@@ -30,18 +30,10 @@
 
 #import <Foundation/NSObject.h>
 #import <Foundation/NSTimer.h>
+#import <Foundation/NSMetadataAttributes.h>
 
 @class NSPredicate, NSMutableDictionary, NSDictionary, NSMutableArray;
 @protocol NSMetadataQueryDelegate;
-
-// Metadata item constants...
-GS_EXPORT NSString * const NSMetadataItemFSNameKey;
-GS_EXPORT NSString * const NSMetadataItemDisplayNameKey;
-GS_EXPORT NSString * const NSMetadataItemURLKey;
-GS_EXPORT NSString * const NSMetadataItemPathKey;
-GS_EXPORT NSString * const NSMetadataItemFSSizeKey;
-GS_EXPORT NSString * const NSMetadataItemFSCreationDateKey;
-GS_EXPORT NSString * const NSMetadataItemFSContentChangeDateKey;
 
 @interface NSMetadataItem : NSObject
 {

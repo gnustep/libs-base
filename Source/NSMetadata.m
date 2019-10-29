@@ -39,15 +39,6 @@
 #import "Foundation/NSString.h"
 #import "Foundation/NSTimer.h"
 
-// Metadata item constants...
-NSString * const NSMetadataItemFSNameKey = @"NSMetadataItemFSNameKey";
-NSString * const NSMetadataItemDisplayNameKey = @"NSMetadataItemDisplayNameKey";
-NSString * const NSMetadataItemURLKey = @"NSMetadataItemURLKey";
-NSString * const NSMetadataItemPathKey = @"NSMetadataItemPathKey";
-NSString * const NSMetadataItemFSSizeKey = @"NSMetadataItemFSSizeKey";
-NSString * const NSMetadataItemFSCreationDateKey = @"NSMetadataItemFSCreationDateKey";
-NSString * const NSMetadataItemFSContentChangeDateKey = @"NSMetadataItemFSContentChangeDateKey";
-
 @implementation NSMetadataItem
 
 #define	myAttributes	((NSMutableDictionary*)_NSMetadataItemInternal)
