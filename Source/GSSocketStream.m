@@ -1584,7 +1584,12 @@ setNonBlocking(SOCKET fd)
    */
   if (_handler != nil && [_handler handshake] == YES)
     {
+      /* Must retain self here to avoid premature deallocation of input
+       * and/or output stream in case of an error during TLS handshake.
+       */
+      RETAIN(self);
       [super _sendEvent: event delegate: _handler];
+      RELEASE(self);
     }
   else
     {
