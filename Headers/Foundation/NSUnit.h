@@ -25,13 +25,13 @@
 #ifndef _NSUnit_h_GNUSTEP_BASE_INCLUDE
 #define _NSUnit_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSObject.h>
+#import <Foundation/NSObject.h>
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
-
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
 
 // Unit converter
 @interface NSUnitConverter : NSObject

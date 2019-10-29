@@ -2,7 +2,7 @@
 /* Implementation of class NSMassFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Mon Sep 30 15:58:21 EDT 2019
 
    This file is part of the GNUstep Library.
@@ -23,17 +23,18 @@
    Boston, MA 02111 USA.
 */
 
-#include <Foundation/NSMassFormatter.h>
-#include <Foundation/NSMeasurement.h>
-#include <Foundation/NSMeasurementFormatter.h>
-#include <Foundation/NSUnit.h>
+#import "Foundation/NSMassFormatter.h"
+#import "Foundation/NSMeasurement.h"
+#import "Foundation/NSMeasurementFormatter.h"
+#import "Foundation/NSNumberFormatter.h"
+#import "Foundation/NSUnit.h"
 
 @implementation NSMassFormatter
 
 - (instancetype) init
 {
   self = [super init];
-  if(self != nil)
+  if (self != nil)
     {
       _numberFormatter = nil;
       _unitStyle = NSFormattingUnitStyleMedium;
@@ -72,7 +73,7 @@
   _isForPersonMassUse = flag;
 }
 
-- (NSString *)stringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
+- (NSString *) stringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
 {
   NSUnit *u = nil;
   NSMeasurement *m = nil;
@@ -108,26 +109,25 @@
   return [mf stringFromMeasurement: m];
 }
 
-- (NSString *)stringFromKilograms: (double)numberInKilograms;
+- (NSString *) stringFromKilograms: (double)numberInKilograms;
 {
   return [self stringFromValue: numberInKilograms unit: NSMassFormatterUnitKilogram];
 }
 
-- (NSString *)unitStringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
+- (NSString *) unitStringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
 {
   return [self stringFromValue: value unit: unit];
 }
 
-- (NSString *)unitStringFromKilograms: (double)numberInKilograms usedUnit: (NSMassFormatterUnit *)unit
+- (NSString *) unitStringFromKilograms: (double)numberInKilograms usedUnit: (NSMassFormatterUnit *)unit
 {
   *unit = NSMassFormatterUnitKilogram;
   return [self stringFromValue: numberInKilograms unit: *unit];
 }
 
-- (BOOL)getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error
+- (BOOL) getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error
 {
   return NO;
 }
 
 @end
-

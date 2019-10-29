@@ -22,18 +22,18 @@
    Boston, MA 02111 USA.
 */
 
-#include <Foundation/NSMeasurementFormatter.h>
-#include <Foundation/NSLocale.h>
-#include <Foundation/NSMeasurement.h>
-#include <Foundation/NSNumberFormatter.h>
-#include <Foundation/NSUnit.h>
+#import "Foundation/NSLocale.h"
+#import "Foundation/NSMeasurement.h"
+#import "Foundation/NSMeasurementFormatter.h"
+#import "Foundation/NSNumberFormatter.h"
+#import "Foundation/NSUnit.h"
 
 @implementation NSMeasurementFormatter
 
 - (instancetype) init
 {
   self = [super init];
-  if(self != nil)
+  if (self != nil)
     {
       _unitOptions = NSMeasurementFormatterUnitOptionsProvidedUnit;
       _unitStyle = NSFormattingUnitStyleMedium;
@@ -88,14 +88,14 @@
   ASSIGNCOPY(_numberFormatter, numberFormatter);
 }
   
-- (NSString *)stringFromMeasurement: (NSMeasurement *)measurement
+- (NSString *) stringFromMeasurement: (NSMeasurement *)measurement
 {
   NSString *result = nil;
   NSNumber *num = [NSNumber numberWithDouble: [measurement doubleValue]];
   NSUnit *u = [measurement unit];
   
   result = [_numberFormatter stringForObjectValue: num];
-  switch(_unitStyle)
+  switch (_unitStyle)
     {
     case NSFormattingUnitStyleShort:
     case NSFormattingUnitStyleMedium:
@@ -107,24 +107,34 @@
   return result;
 }
 
-- (NSString *)stringFromUnit: (NSUnit *)unit
+- (NSString *) stringFromUnit: (NSUnit *)unit
 {
   return [unit symbol];
 }
 
-- (NSString *)stringForObjectValue: (id)obj
+- (NSString *) stringForObjectValue: (id)obj
 {
   NSString *result = nil;
-  if([obj isKindOfClass: [NSMeasurement class]])
+  if ([obj isKindOfClass: [NSMeasurement class]])
     {
       result = [self stringFromMeasurement: obj];
     }
-  else if([obj isKindOfClass: [NSUnit class]])
+  else if ([obj isKindOfClass: [NSUnit class]])
     {
       result = [self stringFromUnit: obj];
     }
   return result;
 }
 
+- (id) initWithCoder: (NSCoder*)decoder
+{
+  self = [super initWithCoder: decoder];
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder*)encoder
+{
+  [super encodeWithCoder: encoder];
+}
 @end
 

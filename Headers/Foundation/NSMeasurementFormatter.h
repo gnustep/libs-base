@@ -1,7 +1,7 @@
 /* Definition of class NSMeasurementFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By:Gregory John Casamento <greg.casamento@gmail.com>
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Mon Sep 30 15:58:21 EDT 2019
 
    This file is part of the GNUstep Library.
@@ -25,16 +25,15 @@
 #ifndef _NSMeasurementFormatter_h_GNUSTEP_BASE_INCLUDE
 #define _NSMeasurementFormatter_h_GNUSTEP_BASE_INCLUDE
 
+#import <Foundation/NSFormatter.h>
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
+
 #if	defined(__cplusplus)
 extern "C" {
 #endif
-  
-#include <Foundation/NSObject.h>
-#include <Foundation/NSFormatter.h>
 
 @class NSLocale, NSMeasurement, NSNumberFormatter, NSUnit;
-  
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
 
 enum {
     NSMeasurementFormatterUnitOptionsProvidedUnit = (1UL << 0),

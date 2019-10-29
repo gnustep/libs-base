@@ -22,9 +22,9 @@
    Boston, MA 02111 USA.
 */
 
-#include <Foundation/NSUnit.h>
-#include <Foundation/NSArchiver.h>
-#include <Foundation/NSKeyedArchiver.h>
+#import "Foundation/NSArchiver.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSUnit.h"
 
 // Private methods...
 @interface NSDimension (Private)
@@ -69,8 +69,8 @@
 {
   if ([coder allowsKeyedCoding])
     {
-      _coefficient = [coder decodeDoubleForKey: @"coefficient"];
-      _constant = [coder decodeDoubleForKey: @"constant"];
+      _coefficient = [coder decodeDoubleForKey: @"NS.coefficient"];
+      _constant = [coder decodeDoubleForKey: @"NS.constant"];
     }
   else
     {
@@ -84,8 +84,8 @@
 {
   if([coder allowsKeyedCoding])
     {
-      [coder encodeDouble: _coefficient forKey: @"coefficient"];
-      [coder encodeDouble: _constant forKey: @"constant"];
+      [coder encodeDouble: _coefficient forKey: @"NS.coefficient"];
+      [coder encodeDouble: _constant forKey: @"NS.constant"];
     }
   else
     {
@@ -136,7 +136,7 @@
 {
   if ([coder allowsKeyedCoding])
     {
-      _symbol = [coder decodeObjectForKey: @"symbol"];
+      _symbol = [coder decodeObjectForKey: @"NS.symbol"];
     }
   else
     {
@@ -149,7 +149,7 @@
 {
   if ([coder allowsKeyedCoding])
     {
-      [coder encodeObject: _symbol forKey: @"symbol"];
+      [coder encodeObject: _symbol forKey: @"NS.symbol"];
     }
   else
     {
@@ -209,7 +209,7 @@
   self = [super initWithCoder: coder];
   if ([coder allowsKeyedCoding])
     {
-      _converter = [coder decodeObjectForKey: @"converter"];
+      _converter = [coder decodeObjectForKey: @"NS.converter"];
     }
   else
     {
@@ -223,7 +223,7 @@
   [super encodeWithCoder: coder];
   if ([coder allowsKeyedCoding])
     {
-      [coder encodeObject: _converter forKey: @"converter"];
+      [coder encodeObject: _converter forKey: @"NS.converter"];
     }
   else
     {

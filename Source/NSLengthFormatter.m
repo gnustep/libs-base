@@ -2,7 +2,7 @@
 /* Implementation of class NSLengthFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Tue Oct  8 13:30:33 EDT 2019
 
    This file is part of the GNUstep Library.
@@ -23,10 +23,11 @@
    Boston, MA 02111 USA.
 */
 
-#include <Foundation/NSLengthFormatter.h>
-#include <Foundation/NSUnit.h>
-#include <Foundation/NSMeasurement.h>
-#include <Foundation/NSMeasurementFormatter.h>
+#import "Foundation/NSLengthFormatter.h"
+#import "Foundation/NSMeasurement.h"
+#import "Foundation/NSMeasurementFormatter.h"
+#import "Foundation/NSNumberFormatter.h"
+#import "Foundation/NSUnit.h"
 
 @implementation NSLengthFormatter
 
@@ -139,7 +140,7 @@
   return [self stringFromValue: numberInMeters unit: *unit];
 }
 
-- (BOOL)getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error
+- (BOOL) getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error
 {
   return NO;
 }

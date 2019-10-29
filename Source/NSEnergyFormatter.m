@@ -22,17 +22,18 @@
    Boston, MA 02111 USA.
 */
 
-#include <Foundation/NSEnergyFormatter.h>
-#include <Foundation/NSMeasurement.h>
-#include <Foundation/NSMeasurementFormatter.h>
-#include <Foundation/NSUnit.h>
+#import "Foundation/NSEnergyFormatter.h"
+#import "Foundation/NSMeasurement.h"
+#import "Foundation/NSMeasurementFormatter.h"
+#import "Foundation/NSNumberFormatter.h"
+#import "Foundation/NSUnit.h"
 
 @implementation NSEnergyFormatter
 
 - (instancetype) init
 {
   self = [super init];
-  if(self != nil)
+  if (self != nil)
     {
       _numberFormatter = nil;
       _unitStyle = NSFormattingUnitStyleMedium;
@@ -70,13 +71,14 @@
 {
   _isForFoodEnergyUse = flag;
 }
+
 - (NSString *) stringFromValue: (double)value unit: (NSEnergyFormatterUnit)unit
 {
   NSUnit *u = nil;
   NSMeasurement *m = nil;
   NSMeasurementFormatter *mf = nil;
 
-  switch(unit)
+  switch (unit)
     {
     case NSEnergyFormatterUnitJoule:
       u = [NSUnitEnergy joules];
@@ -119,7 +121,7 @@
   return [self stringFromValue: numberInJoules unit: *unit];
 }
 
-- (BOOL)getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error
+- (BOOL) getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error
 {
   return NO;
 }

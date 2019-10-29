@@ -1,3 +1,19 @@
+2019-10-27  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Headers/Foundation/NSUnit.h,
+	* Headers/Foundation/NSMeasurement.h,
+	* Headers/Foundation/NSMeasurementFormatter.h,
+	* Headers/Foundation/NSEnergyFormatter.h,
+	* Headers/Foundation/NSLengthFormatter.h,
+	* Headers/Foundation/NSMassFormatter.h,
+	* Source/NSUnit.m,
+	* Source/NSMeasurement.m,
+	* Source/NSMeasurementFormatter.m,
+	* Source/NSEnergyFormatter.m,
+	* Source/NSLengthFormatter.m,
+	* Source/NSMassFormatter.m,
+	* Source/NSUnit.m: More cleanup on the measurement code.
+
 2019-10-29  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/GSStream.h,

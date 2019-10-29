@@ -2,7 +2,7 @@
 /* Definition of class NSMassFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Mon Sep 30 15:58:21 EDT 2019
 
    This file is part of the GNUstep Library.
@@ -26,13 +26,13 @@
 #ifndef _NSMassFormatter_h_GNUSTEP_BASE_INCLUDE
 #define _NSMassFormatter_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSFormatter.h>
+#import <Foundation/NSFormatter.h>
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
-
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
 
 enum {
     NSMassFormatterUnitGram = 11,
@@ -69,7 +69,7 @@ typedef NSInteger NSMassFormatterUnit;
 
 - (NSString *)unitStringFromKilograms: (double)numberInKilograms usedUnit: (NSMassFormatterUnit *)unitp;
 
-- (BOOL)getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error;
+- (BOOL) getObjectValue: (id*)obj forString: (NSString *)string errorDescription: (NSString **)error;
   
 @end
 

@@ -22,19 +22,19 @@
    Boston, MA 02111 USA.
 */
 
-#include <Foundation/NSMeasurement.h>
-#include <Foundation/NSUnit.h>
-#include <Foundation/NSException.h>
-#include <Foundation/NSArchiver.h>
-#include <Foundation/NSKeyedArchiver.h>
+#import "Foundation/NSArchiver.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSKeyedArchiver.h"
+#import "Foundation/NSMeasurement.h"
+#import "Foundation/NSUnit.h"
 
 @implementation NSMeasurement
 // Creating Measurements
-- (instancetype)initWithDoubleValue: (double)doubleValue 
-                               unit: (NSUnit *)unit
+- (instancetype) initWithDoubleValue: (double)doubleValue 
+                                unit: (NSUnit *)unit
 {
   self = [super init];
-  if(self != nil)
+  if (self != nil)
     {
       ASSIGNCOPY(_unit, unit);
       _doubleValue = doubleValue;
@@ -68,49 +68,44 @@
 
 - (NSMeasurement *) measurementByConvertingToUnit: (NSUnit *)unit
 {
-  NSMeasurement *result = nil;
-  double val = 0.0;
-  if([self canBeConvertedToUnit: unit])
+  if ([self canBeConvertedToUnit: unit])
     {
+      NSMeasurement *result = nil;
+      double val = 0.0;
+
       // Do conversion...
-      NSUnitConverter *c = [(NSDimension *)unit converter];
+      NSUnitConverter *c = [(NSDimension *)_unit converter];
       val = [c baseUnitValueFromValue: _doubleValue];
+      c = [(NSDimension *)unit converter];
+      val = [c valueFromBaseUnitValue: val];
       result = [[NSMeasurement alloc] initWithDoubleValue: val unit: unit];
-      AUTORELEASE(result);
+      return AUTORELEASE(result);
     }
   else
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"Cannot convert from %@ to %@", _unit, unit];
     }
-  return result;
+  return nil;
 }
 
 // Operating
 - (NSMeasurement *) measurementByAddingMeasurement: (NSMeasurement *)measurement
 {
   NSMeasurement *newMeasurement = [measurement measurementByConvertingToUnit: _unit];
-  NSMeasurement *result = nil;
-  double v = 0.0;
+  double v = _doubleValue + [newMeasurement doubleValue];
+  NSMeasurement *result = [[NSMeasurement alloc] initWithDoubleValue: v unit: _unit];
 
-  v = _doubleValue + [newMeasurement doubleValue];
-  result = [[NSMeasurement alloc] initWithDoubleValue: v unit: _unit];
-  AUTORELEASE(result);
-  
-  return result;
+  return AUTORELEASE(result);
 }
 
 - (NSMeasurement *) measurementBySubtractingMeasurement: (NSMeasurement *)measurement
 {
   NSMeasurement *newMeasurement = [measurement measurementByConvertingToUnit: _unit];
-  NSMeasurement *result = nil;
-  double v = 0.0;
+  double v = _doubleValue - [newMeasurement doubleValue];
+  NSMeasurement *result = [[NSMeasurement alloc] initWithDoubleValue: v unit: _unit];
 
-  v = _doubleValue - [newMeasurement doubleValue];
-  result = [[NSMeasurement alloc] initWithDoubleValue: v unit: _unit];
-  AUTORELEASE(result);
-  
-  return result;
+  return AUTORELEASE(result);
 }
 
 // NSCopying
@@ -123,11 +118,10 @@
 // NSCoding
 - (void) encodeWithCoder: (NSCoder *)coder
 {
-  if([coder allowsKeyedCoding])
+  if ([coder allowsKeyedCoding])
     {
-      // TODO: Verify that this is the correct encoding...
-      [coder encodeObject: _unit forKey: @"unit"];
-      [coder encodeDouble: _doubleValue forKey: @"doubleValue"];
+      [coder encodeObject: _unit forKey: @"NS.unit"];
+      [coder encodeDouble: _doubleValue forKey: @"NS.value"];
     }
   else
     {
@@ -138,12 +132,12 @@
 
 - (id) initWithCoder: (NSCoder *)coder
 {
-  if((self = [super init]) != nil)
+  if ((self = [super init]) != nil)
     {
-      if([coder allowsKeyedCoding])
+      if ([coder allowsKeyedCoding])
         {
-          _unit = [coder decodeObjectForKey: @"unit"];
-          _doubleValue = [coder decodeDoubleForKey: @"doubleValue"];
+          _unit = [coder decodeObjectForKey: @"NS.unit"];
+          _doubleValue = [coder decodeDoubleForKey: @"NS.value"];
         }
       else
         {

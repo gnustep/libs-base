@@ -25,8 +25,7 @@
 #ifndef _NSMeasurement_h_GNUSTEP_BASE_INCLUDE
 #define _NSMeasurement_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSObject.h>
-#include <Foundation/NSUnit.h>
+#import <Foundation/NSObject.h>
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 

@@ -25,13 +25,14 @@
 #ifndef _NSLengthFormatter_h_GNUSTEP_BASE_INCLUDE
 #define _NSLengthFormatter_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSFormatter.h>
+#import <Foundation/NSFormatter.h>
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
 enum {
   NSLengthFormatterUnitMillimeter = 8,
   NSLengthFormatterUnitCentimeter = 9,
@@ -70,7 +71,7 @@ typedef NSInteger NSLengthFormatterUnit;
 
 - (NSString *) unitStringFromMeters: (double)numberInMeters usedUnit: (NSLengthFormatterUnit *)unit;
 
-- (BOOL)getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error;
+- (BOOL) getObjectValue: (id *)obj forString: (NSString *)string errorDescription: (NSString **)error;
 
 @end
 
