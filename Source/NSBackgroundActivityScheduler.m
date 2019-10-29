@@ -123,7 +123,7 @@
   [pinfo performActivityWithOptions: _opts
                              reason: _reason
                          usingBlock: ^{
-      // CALL_BLOCK(_block);
+      // TODO: Need to implement the NSProcessInfo performActivity... methods.
     }];
 # else
   NSLog(@"No block support, so not running background activity....");
