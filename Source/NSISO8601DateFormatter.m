@@ -23,6 +23,8 @@
 */
 
 #include <Foundation/NSISO8601DateFormatter.h>
+#include <Foundation/NSDateFormatter.h>
+#include <Foundation/NSTimeZone.h>
 
 @implementation NSISO8601DateFormatter
 
