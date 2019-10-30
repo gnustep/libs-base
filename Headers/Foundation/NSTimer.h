@@ -113,10 +113,10 @@ extern "C" {
 #endif
 
 #if	OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)  
-- (instancetype)initWithFireDate:(NSDate *)date 
-                        interval:(NSTimeInterval)interval 
-                         repeats:(BOOL)repeats 
-                           block:(GSTimerBlock)block;
+- (instancetype) initWithFireDate: (NSDate *)date 
+                         interval: (NSTimeInterval)interval 
+                          repeats: (BOOL)repeats 
+                            block: (GSTimerBlock)block;
 #endif
   
 @end

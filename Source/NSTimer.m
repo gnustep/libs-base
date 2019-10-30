@@ -146,10 +146,10 @@ static Class	NSDate_class;
   return self;
 }
 
-- (instancetype)initWithFireDate:(NSDate *)date 
-                        interval:(NSTimeInterval)interval 
-                         repeats:(BOOL)repeats 
-                           block:(GSTimerBlock)block
+- (instancetype) initWithFireDate: (NSDate *)date 
+                         interval: (NSTimeInterval)interval 
+                          repeats: (BOOL)repeats 
+                            block: (GSTimerBlock)block
 {
   return [self initWithFireDate: date
                        interval: interval
@@ -279,7 +279,7 @@ static Class	NSDate_class;
    */
   if (NO == _invalidated)
     {
-      if(_block != nil)
+      if ((id)_block != nil)
         {
           CALL_BLOCK(_block, self);
         }
@@ -287,8 +287,8 @@ static Class	NSDate_class;
         {
           id	target;
           
-          /* We retain the target so it won't be deallocated while we are using it
-           * (if this timer gets invalidated while we are firing).
+          /* We retain the target so it won't be deallocated while we are using
+           * it (if this timer gets invalidated while we are firing).
            */
           target = RETAIN(_target);
           
@@ -301,15 +301,15 @@ static Class	NSDate_class;
               NS_HANDLER
                 {
                   NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
-                        @"raised during posting of timer with target %s(%s) "
-                        @"and selector '%@'",
-                        [localException name], [localException reason],
-                        GSClassNameFromObject(target),
-                        GSObjCIsInstance(target) ? "instance" : "class",
-                        NSStringFromSelector([target selector]));
+		    @"raised during posting of timer with target %s(%s) "
+		    @"and selector '%@'",
+		    [localException name], [localException reason],
+		    GSClassNameFromObject(target),
+		    GSObjCIsInstance(target) ? "instance" : "class",
+		    NSStringFromSelector([target selector]));
                 }
               NS_ENDHANDLER
-                }
+	    }
           else
             {
               NS_DURING
@@ -319,13 +319,13 @@ static Class	NSDate_class;
               NS_HANDLER
                 {
                   NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
-                        @"raised during posting of timer with target %p and "
-                        @"selector '%@'",
-                        [localException name], [localException reason], target,
-                        NSStringFromSelector(_selector));
+		    @"raised during posting of timer with target %p and "
+		    @"selector '%@'",
+		    [localException name], [localException reason], target,
+		    NSStringFromSelector(_selector));
                 }
               NS_ENDHANDLER
-                }
+	    }
           RELEASE(target);
         }
       
