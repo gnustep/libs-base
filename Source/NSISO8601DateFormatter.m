@@ -31,10 +31,20 @@
   self = [super init];
   if(self != nil)
     {
+      _timeZone = RETAIN([NSTimeZone localTimeZone]);
+      _formatOptions = NSISO8601DateFormatWithFullDate;
+      _formatter = RETAIN([[NSDateFormatter alloc] init]);
     }
   return self;
 }
-  
+
+- (void) dealloc
+{
+  RELEASE(_timeZone);
+  RELEASE(_formatter);
+  [super dealloc];
+}
+
 - (NSTimeZone *) timeZone
 {
   return _timeZone;

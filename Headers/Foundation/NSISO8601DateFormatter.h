@@ -58,10 +58,11 @@ enum
 };
 typedef NSUInteger NSISO8601DateFormatOptions;
 
-@class NSTimeZone, NSString, NSDate;
+@class NSTimeZone, NSString, NSDate, NSDateFormatter;
   
 @interface NSISO8601DateFormatter : NSFormatter <NSCoding>
 {
+  NSDateFormatter *_formatter;
   NSTimeZone *_timeZone;
   NSISO8601DateFormatOptions _formatOptions;
 }
