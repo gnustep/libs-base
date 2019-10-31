@@ -1,7 +1,7 @@
 /* Definition of class NSISO8601DateFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Tue Oct 29 04:43:13 EDT 2019
 
    This file is part of the GNUstep Library.
@@ -43,7 +43,7 @@ enum
   NSISO8601DateFormatWithTimeZone  = (1UL << 6),
   NSISO8601DateFormatWithSpaceBetweenDateAndTime = (1UL << 7), 
   NSISO8601DateFormatWithDashSeparatorInDate  = (1UL << 8),
-  NSISO8601DateFormatWithColonSeparatorInTime  = (1UL << 9),
+  NSISO8601DateFormatWithColonSeparatorInTime   = (1UL << 9),
   NSISO8601DateFormatWithColonSeparatorInTimeZone = (1UL << 10), 
   NSISO8601DateFormatWithFractionalSeconds  = (1UL << 11),
   NSISO8601DateFormatWithFullDate = NSISO8601DateFormatWithYear |
@@ -58,12 +58,13 @@ enum
 };
 typedef NSUInteger NSISO8601DateFormatOptions;
 
-@class NSTimeZone, NSString, NSDate;
+@class NSTimeZone, NSString, NSDate, NSDateFormatter;
   
 @interface NSISO8601DateFormatter : NSFormatter <NSCoding>
 {
   NSTimeZone *_timeZone;
   NSISO8601DateFormatOptions _formatOptions;
+  NSDateFormatter *_formatter; 
 }
   
 - (NSTimeZone *) timeZone;
