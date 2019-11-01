@@ -37,6 +37,8 @@
 #import	<Foundation/NSObject.h>
 
 #import	<Foundation/NSAffineTransform.h>
+#import <Foundation/NSAppleEventDescriptor.h>
+#import <Foundation/NSAppleEventManager.h>
 #import <Foundation/NSAppleScript.h>
 #import	<Foundation/NSArchiver.h>
 #import	<Foundation/NSArray.h>
@@ -79,6 +81,7 @@
 #import	<Foundation/NSGarbageCollector.h>
 #import	<Foundation/NSGeometry.h>
 #import	<Foundation/NSHashTable.h>
+#import <Foundation/NSHFSFileTypes.h>
 #import	<Foundation/NSHost.h>
 #import	<Foundation/NSHTTPCookie.h>
 #import	<Foundation/NSHTTPCookieStorage.h>
@@ -105,6 +108,7 @@
 #import	<Foundation/NSNetServices.h>
 #import	<Foundation/NSNull.h>
 #import	<Foundation/NSNumberFormatter.h>
+#import <Foundation/NSObjectScripting.h>
 #import	<Foundation/NSOperation.h>
 #import <Foundation/NSOrderedSet.h>
 #import	<Foundation/NSPathUtilities.h>
@@ -148,6 +152,7 @@
 #import <Foundation/NSUbiquitousKeyValueStore.h>
 #import	<Foundation/NSUndoManager.h>
 #import <Foundation/NSUnit.h>
+#import <Foundation/NSUserActivity.h>
 #import	<Foundation/NSURLAuthenticationChallenge.h>
 #import	<Foundation/NSURLCache.h>
 #import	<Foundation/NSURLConnection.h>

@@ -189,6 +189,8 @@ GSSocksParser/GSSocksParserPrivate.m \
 GSSocksParser/GSSocks4Parser.m \
 GSSocksParser/GSSocks5Parser.m \
 NSAffineTransform.m \
+NSAppleEventDescriptor.m \
+NSAppleEventManager.m \
 NSAppleScript.m \
 NSArchiver.m \
 NSArray.m \
@@ -236,6 +238,7 @@ NSFormatter.m \
 NSGarbageCollector.m \
 NSGeometry.m \
 NSHashTable.m \
+NSHFSFileTypes.m \
 NSHost.m \
 NSHTTPCookie.m \
 NSHTTPCookieStorage.m \
@@ -268,6 +271,7 @@ NSNumber.m \
 NSNumberFormatter.m \
 NSObjCRuntime.m \
 NSObject.m \
+NSObjectScripting.m \
 NSObject+NSComparisonMethods.m \
 NSOperation.m \
 NSOrderedSet.m \
@@ -303,6 +307,7 @@ NSScriptObjectSpecifiers.m \
 NSScriptStandardSuiteCommands.m \
 NSScriptSuiteRegistry.m \
 NSUnit.m \
+NSUserActivity.m \
 NSUserScriptTask.m \
 NSSerializer.m \
 NSSet.m \
@@ -393,6 +398,8 @@ FOUNDATION_HEADERS = \
 Foundation.h \
 FoundationErrors.h \
 NSAffineTransform.h \
+NSAppleEventDescriptor.h \
+NSAppleEventManager.h \
 NSAppleScript.h \
 NSArchiver.h \
 NSArray.h \
@@ -439,6 +446,7 @@ NSFormatter.h \
 NSGarbageCollector.h \
 NSGeometry.h \
 NSHashTable.h \
+NSHFSFileTypes.h \
 NSHost.h \
 NSHTTPCookie.h \
 NSHTTPCookieStorage.h \
@@ -468,6 +476,7 @@ NSNull.h \
 NSNumberFormatter.h \
 NSObjCRuntime.h \
 NSObject.h \
+NSObjectScripting.h \
 NSOperation.h \
 NSOrderedSet.h \
 NSPathUtilities.h \
@@ -499,6 +508,7 @@ NSScriptObjectSpecifiers.h \
 NSScriptStandardSuiteCommands.h \
 NSScriptSuiteRegistry.h \
 NSUnit.h \
+NSUserActivity.h \
 NSUserScriptTask.h \
 NSScriptWhoseTests.h \
 NSSerialization.h \
