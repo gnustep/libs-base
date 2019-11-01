@@ -16,19 +16,14 @@ Missing macros:
 Missing headers:
 ==
 FoundationLegacySwiftCompatibility.h
-NSAppleEventDescriptor.h
-NSAppleEventManager.h
 NSDateComponentsFormatter.h
 NSExtensionContext.h
 NSExtensionItem.h
 NSExtensionRequestHandling.h
-NSHFSFileTypes.h
 NSItemProvider.h
 NSItemProviderReadingWriting.h
 NSLinguisticTagger.h
-NSObjectScripting.h
 NSOrthography.h
-NSUserActivity.h
 NSXPCConnection.h
 
 -------------------------------------------------------------
