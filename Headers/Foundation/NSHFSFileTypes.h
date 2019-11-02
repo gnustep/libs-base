@@ -32,10 +32,14 @@
 #if	defined(__cplusplus)
 extern "C" {
 #endif
+  
+@class NSString;
 
-@interface NSHFSFileTypes : NSObject
+GS_EXPORT NSString *NSFileTypeForHFSTypeCode(NSUInteger hfsFileTypeCode);
 
-@end
+GS_EXPORT NSUInteger NSHFSTypeCodeFromFileType(NSString *fileTypeString);
+
+GS_EXPORT NSString *NSHFSTypeOfFile(NSString *fullFilePath);
 
 #if	defined(__cplusplus)
 }
