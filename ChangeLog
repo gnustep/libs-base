@@ -1,3 +1,10 @@
+2019-10-17  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Tests/base/NSHashTable/weakObjects.m:
+	* Tests/base/NSMapTable/weakObjects.m:
+	Added tests for [NSHashTable weakObjectsHashTable] and
+	[NSMapTable strongToWeakObjectsMapTable].
+
 2019-10-27  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Headers/Foundation/NSUnit.h,
