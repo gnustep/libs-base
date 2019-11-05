@@ -94,6 +94,11 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
 
 - (void) dealloc
 {
+  RELEASE(_schemes);
+  RELEASE(_string);
+  RELEASE(_dominantLanguage);
+  RELEASE(_tokenArray);
+  RELEASE(_orthographyArray);
   [super dealloc];
 }
 
