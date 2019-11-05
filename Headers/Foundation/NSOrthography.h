@@ -33,6 +33,8 @@
 extern "C" {
 #endif
 
+@class NSDictionary, NSString, NSArray;
+  
 @interface NSOrthography : NSObject <NSCopying, NSCoding>
 
 - (instancetype) initWithDominantScript: (NSString *)script
