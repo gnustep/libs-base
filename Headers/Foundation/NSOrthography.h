@@ -27,13 +27,29 @@
 
 #include <Foundation/NSObject.h>
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-@interface NSOrthography : NSObject
+@interface NSOrthography : NSObject <NSCopying, NSCoding>
+
+- (instancetype) initWithDominantScript: (NSString *)script
+                            languageMap: (NSDictionary *)map;
+
+- (NSString *) dominantScript;
+- (NSDictionary *) languationMap;
+
+- (NSArray *) languagesForScript: (NSString *)script; 
+- (NSString *) dominantLanguageForScript: (NSString *)script;
+
+- (NSString *) dominantLanguage;
+- (NSArray *) allScripts;
+- (NSArray *) allLanguages;
+  
++ (instancetype) defaultOrthographyForLanguage: (NSString *)language;
++ (instancetype) orthographyWithDominantScript: (NSString *)script languageMap: (NSDictionary *)map;
 
 @end
 
