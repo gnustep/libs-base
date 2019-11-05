@@ -79,21 +79,37 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
 - (instancetype) initWithTagSchemes: (NSArray *)tagSchemes
                             options: (NSUInteger)opts
 {
-  return nil; 
+  self = [super init];
+  if(self != nil)
+    {
+      ASSIGNCOPY(_schemes, tagSchemes);
+      _options = opts;
+      _string = nil;
+      _dominantLanguage = nil;
+      _tokenArray = nil;
+      _orthographyArray = nil;
+    }
+  return self; 
+}
+
+- (void) dealloc
+{
+  [super dealloc];
 }
 
 - (NSArray *) tagSchemes
 {
-  return nil;
+  return _schemes;
 }
 
 - (NSString *) string
 {
-  return nil;
+  return _string;
 }
 
 - (void) setString: (NSString *)string
 {
+  ASSIGNCOPY(_string, string);
 }
   
 + (NSArray *) availableTagSchemesForUnit: (NSLinguisticTaggerUnit)unit

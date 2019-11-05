@@ -109,7 +109,15 @@ DEFINE_BLOCK_TYPE(GSLinguisticTagRangeBoolBlock, void, NSLinguisticTag, NSRange,
 DEFINE_BLOCK_TYPE(GSLinguisticTagRangeRangeBoolBlock, void, NSLinguisticTag, NSRange, NSRange, BOOL);
   
 @interface NSLinguisticTagger : NSObject
-
+{
+  NSArray *_schemes;
+  NSString *_string;
+  NSString *_dominantLanguage;
+  NSArray *_tokenArray;
+  NSArray *_orthographyArray;
+  NSUInteger _options;
+}
+  
 - (instancetype) initWithTagSchemes: (NSArray *)tagSchemes
                             options: (NSUInteger)opts;
 
