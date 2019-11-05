@@ -1,7 +1,7 @@
 /* Implementation of class NSOrthography
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Tue Nov  5 03:43:39 EST 2019
 
    This file is part of the GNUstep Library.
@@ -77,5 +77,18 @@
   return nil;
 }
 
+- (instancetype) initWithCoder: (NSCoder *)coder
+{
+  return nil;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+}
+
+- (instancetype) copyWithZone: (NSZone *)zone
+{
+  return nil;
+}
 @end
 
