@@ -234,6 +234,7 @@ static NSMutableSet	*mySet = nil;
 #ifdef __ANDROID__
 static jobject _androidContext = NULL;
 static NSString *_androidFilesDir = nil;
+static NSString *_androidCacheDir = nil;
 #endif
 
 /*************************************************************************
@@ -1607,21 +1608,36 @@ GSInitializeProcessAndroid(JNIEnv *env, jobject context)
 
   free(arg0);
 
+  // get File class and path method
+  jclass fileCls = (*env)->FindClass(env, "java/io/File");
+  jmethodID getAbsolutePathMethod = (*env)->GetMethodID(env, fileCls, "getAbsolutePath", "()Ljava/lang/String;");
+
   // get Android files dir
   jmethodID filesDirMethod = (*env)->GetMethodID(env, cls, "getFilesDir", "()Ljava/io/File;");
   jobject filesDirObj = (*env)->CallObjectMethod(env, context, filesDirMethod);
-  jclass filesDirCls = (*env)->GetObjectClass(env, filesDirObj);
-  jmethodID getStoragePath = (*env)->GetMethodID(env, filesDirCls, "getAbsolutePath", "()Ljava/lang/String;");
-  jstring filesDirJava = (*env)->CallObjectMethod(env, filesDirObj, getStoragePath);
-	const jchar *unichars = (*env)->GetStringChars(env, filesDirJava, NULL);
-  jsize length = (*env)->GetStringLength(env, filesDirJava);
-  _androidFilesDir = [NSString stringWithCharacters:unichars length:length];
-  (*env)->ReleaseStringChars(env, filesDirJava, unichars);
+  jstring filesDirJava = (*env)->CallObjectMethod(env, filesDirObj, getAbsolutePathMethod);
+	const jchar *filesDirUnichars = (*env)->GetStringChars(env, filesDirJava, NULL);
+  jsize filesDirLength = (*env)->GetStringLength(env, filesDirJava);
+  _androidFilesDir = [NSString stringWithCharacters:filesDirUnichars length:filesDirLength];
+  (*env)->ReleaseStringChars(env, filesDirJava, filesDirUnichars);
+
+  // get Android cache dir
+  jmethodID cacheDirMethod = (*env)->GetMethodID(env, cls, "getCacheDir", "()Ljava/io/File;");
+  jobject cacheDirObj = (*env)->CallObjectMethod(env, context, cacheDirMethod);
+  jstring cacheDirJava = (*env)->CallObjectMethod(env, cacheDirObj, getAbsolutePathMethod);
+	const jchar *cacheDirUnichars = (*env)->GetStringChars(env, cacheDirJava, NULL);
+  jsize cacheDirLength = (*env)->GetStringLength(env, cacheDirJava);
+  _androidCacheDir = [NSString stringWithCharacters:cacheDirUnichars length:cacheDirLength];
+  (*env)->ReleaseStringChars(env, cacheDirJava, cacheDirUnichars);
 
   // get asset manager and initialize NSBundle
   jmethodID assetManagerMethod = (*env)->GetMethodID(env, cls, "getAssets", "()Landroid/content/res/AssetManager;");
   jstring assetManagerJava = (*env)->CallObjectMethod(env, context, assetManagerMethod);
   [NSBundle setJavaAssetManager:assetManagerJava withJNIEnv:env];
+
+  // clean up our NSTemporaryDirectory() if it exists
+  NSString *tempDirName = [_androidCacheDir stringByAppendingPathComponent: @"tmp"];
+  [[NSFileManager defaultManager] removeItemAtPath:tempDirName error:NULL];
 }
 #endif
 
@@ -1666,6 +1682,11 @@ GSInitializeProcessAndroid(JNIEnv *env, jobject context)
 - (NSString *) androidFilesDir
 {
   return _androidFilesDir;
+}
+
+- (NSString *) androidCacheDir
+{
+  return _androidCacheDir;
 }
 #endif
 
