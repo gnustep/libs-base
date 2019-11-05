@@ -26,5 +26,56 @@
 
 @implementation NSOrthography
 
+- (instancetype) initWithDominantScript: (NSString *)script
+                            languageMap: (NSDictionary *)map
+{
+  return nil;
+}
+
+- (NSString *) dominantScript
+{
+  return nil;
+}
+
+- (NSDictionary *) languationMap
+{
+  return nil;
+}
+
+- (NSArray *) languagesForScript: (NSString *)script
+{
+  return nil;
+}
+
+- (NSString *) dominantLanguageForScript: (NSString *)script
+{
+  return nil;
+}
+
+- (NSString *) dominantLanguage
+{
+  return nil;
+}
+
+- (NSArray *) allScripts
+{
+  return nil;
+}
+
+- (NSArray *) allLanguages
+{
+  return nil;
+}  
+
++ (instancetype) defaultOrthographyForLanguage: (NSString *)language
+{
+  return nil;
+}
+
++ (instancetype) orthographyWithDominantScript: (NSString *)script languageMap: (NSDictionary *)map
+{
+  return nil;
+}
+
 @end
 
