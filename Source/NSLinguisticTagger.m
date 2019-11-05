@@ -29,12 +29,57 @@
 #include <Foundation/NSArray.h>
 #include <Foundation/NSOrthography.h>
 
+NSLinguisticTagScheme const NSLinguisticTagSchemeTokenType = @"NSLinguisticTagSchemeTokenType";
+NSLinguisticTagScheme const NSLinguisticTagSchemeLexicalClass = @"NSLinguisticTagSchemeLexicalClass";
+NSLinguisticTagScheme const NSLinguisticTagSchemeNameType = @"NSLinguisticTagSchemeNameType";
+NSLinguisticTagScheme const NSLinguisticTagSchemeNameTypeOrLexicalClass = @"NSLinguisticTagSchemeNameTypeOrLexicalClass";
+NSLinguisticTagScheme const NSLinguisticTagSchemeLemma = @"NSLinguisticTagSchemeLemma";
+NSLinguisticTagScheme const NSLinguisticTagSchemeLanguage = @"NSLinguisticTagSchemeLanguage";
+NSLinguisticTagScheme const NSLinguisticTagSchemeScript = @"NSLinguisticTagSchemeScript";
+
+/* Tags for NSLinguisticTagSchemeTokenType */
+NSLinguisticTag const NSLinguisticTagWord = @"NSLinguisticTagWord";                          
+NSLinguisticTag const NSLinguisticTagPunctuation = @"NSLinguisticTagPunctuation";                   
+NSLinguisticTag const NSLinguisticTagWhitespace = @"NSLinguisticTagWhitespae";                    
+NSLinguisticTag const NSLinguisticTagOther = @"NSLinguisticTagOther";
+
+/* Tags for NSLinguisticTagSchemeLexicalClass */
+NSLinguisticTag const NSLinguisticTagNoun = @"NSLinguisticTagNoun";
+NSLinguisticTag const NSLinguisticTagVerb = @"NSLinguisticTagVerb";  
+NSLinguisticTag const NSLinguisticTagAdjective = @"NSLinguisticTagAdjective";  
+NSLinguisticTag const NSLinguisticTagAdverb  = @"NSLinguisticTagAdverb";  
+NSLinguisticTag const NSLinguisticTagPronoun = @"NSLinguisticTagPronoun";  
+NSLinguisticTag const NSLinguisticTagDeterminer  = @"NSLinguisticTagDeterminer";  
+NSLinguisticTag const NSLinguisticTagParticle  = @"NSLinguisticTagParticle";  
+NSLinguisticTag const NSLinguisticTagPreposition  = @"NSLinguisticTagPrepostion";  
+NSLinguisticTag const NSLinguisticTagNumber  = @"NSLinguisticTagNumber";  
+NSLinguisticTag const NSLinguisticTagConjunction  = @"NSLinguisticTagConjunction";  
+NSLinguisticTag const NSLinguisticTagInterjection  = @"NSLinguisticTagInterjection";  
+NSLinguisticTag const NSLinguisticTagClassifier  = @"NSLinguisticTagClassifier";  
+NSLinguisticTag const NSLinguisticTagIdiom = @"NSLinguisticTagIdiom";  
+NSLinguisticTag const NSLinguisticTagOtherWord = @"NSLinguisticTagOtherWord";  
+NSLinguisticTag const NSLinguisticTagSentenceTerminator = @"NSLinguisticTagSentenceTerminator";  
+NSLinguisticTag const NSLinguisticTagOpenQuote = @"NSLinguisticTagOpenQuote";  
+NSLinguisticTag const NSLinguisticTagCloseQuote = @"NSLinguisticTagCloseQuote";  
+NSLinguisticTag const NSLinguisticTagOpenParenthesis = @"NSLinguisticTagOpenParenthesis";  
+NSLinguisticTag const NSLinguisticTagCloseParenthesis = @"NSLinguisticTagCloseParenthesis";  
+NSLinguisticTag const NSLinguisticTagWordJoiner = @"NSLinguisticTagWordJoiner";  
+NSLinguisticTag const NSLinguisticTagDash = @"NSLinguisticTagDash";  
+NSLinguisticTag const NSLinguisticTagOtherPunctuation = @"NSLinguisticTagOtherPunctuation";  
+NSLinguisticTag const NSLinguisticTagParagraphBreak = @"NSLinguisticTagParagraphBreak";  
+NSLinguisticTag const NSLinguisticTagOtherWhitespace = @"NSLinguisticTagOtherWhitespace";  
+
+/* Tags for NSLinguisticTagSchemeNameType */
+NSLinguisticTag const NSLinguisticTagPersonalName = @"NSLinguisticTagPersonalName";  
+NSLinguisticTag const NSLinguisticTagPlaceName = @"NSLinguisticTagPlaceName";  
+NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganizationName";  
+
 @implementation NSLinguisticTagger
 
 - (instancetype) initWithTagSchemes: (NSArray *)tagSchemes
                             options: (NSUInteger)opts
 {
-  return nil;
+  return nil; 
 }
 
 - (NSArray *) tagSchemes
