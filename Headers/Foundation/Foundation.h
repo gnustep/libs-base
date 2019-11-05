@@ -95,6 +95,7 @@
 #import	<Foundation/NSKeyValueCoding.h>
 #import	<Foundation/NSKeyValueObserving.h>
 #import <Foundation/NSLengthFormatter.h>
+#import <Foundation/NSLinguisticTagger.h>
 #import	<Foundation/NSLock.h>
 #import	<Foundation/NSLocale.h>
 #import	<Foundation/NSMapTable.h>
@@ -111,6 +112,7 @@
 #import <Foundation/NSObjectScripting.h>
 #import	<Foundation/NSOperation.h>
 #import <Foundation/NSOrderedSet.h>
+#import <Foundation/NSOrthography.h>
 #import	<Foundation/NSPathUtilities.h>
 #import <Foundation/NSPersonNameComponents.h>
 #import <Foundation/NSPersonNameComponentsFormatter.h>
