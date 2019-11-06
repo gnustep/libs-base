@@ -26,7 +26,7 @@
 
 NSString *NSFileTypeForHFSTypeCode(NSUInteger hfsFileTypeCode)
 {
-  return @"";
+  return nil;
 }
 
 NSUInteger NSHFSTypeCodeFromFileType(NSString *fileTypeString)
@@ -36,6 +36,6 @@ NSUInteger NSHFSTypeCodeFromFileType(NSString *fileTypeString)
 
 NSString *NSHFSTypeOfFile(NSString *fullFilePath)
 {
-  return @"";
+  return nil;
 }
 
