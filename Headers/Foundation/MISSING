@@ -22,8 +22,6 @@ NSExtensionItem.h
 NSExtensionRequestHandling.h
 NSItemProvider.h
 NSItemProviderReadingWriting.h
-NSLinguisticTagger.h
-NSOrthography.h
 NSXPCConnection.h
 
 -------------------------------------------------------------
