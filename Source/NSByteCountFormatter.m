@@ -69,7 +69,13 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 
 - (NSString *)stringForObjectValue: (id)obj
 {
-  long long byteCount = [obj longLongValue];
+  long long byteCount = 0;
+  
+  if([obj respondsToSelector: @selector(longLongValue)])
+    {
+      byteCount = [obj longLongValue];
+    }
+
   return [self stringFromByteCount: byteCount];
 }
 

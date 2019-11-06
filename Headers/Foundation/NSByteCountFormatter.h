@@ -107,11 +107,12 @@ GS_NSByteCountFormatter_IVARS;
 - (BOOL) zeroPadsFractionDigits;
 - (void) setZeroPadsFractionDigits: (BOOL)flag;
 
-/* Beta methods... not yet implemented.
-- (NSString *)stringForObjectValue: (id)obj;
-- (NSString *)stringFromMeasurement
-*/
-  
+- (NSString *) stringForObjectValue: (id)obj;
+
+  /* Beta methods... 
+- (NSString *) stringFromMeasurement: (NSMeasurement *)measurement;
+   End beta methods. */
+
 - (NSString *)stringFromByteCount: (long long)byteCount;
   
 + (NSString *)stringFromByteCount: (long long)byteCount
