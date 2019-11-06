@@ -253,6 +253,7 @@ NSKeyedUnarchiver.m \
 NSKeyValueCoding.m \
 NSKeyValueObserving.m \
 NSLengthFormatter.m \
+NSLinguisticTagger.m \
 NSLocale.m \
 NSLock.m \
 NSLog.m \
@@ -275,6 +276,7 @@ NSObjectScripting.m \
 NSObject+NSComparisonMethods.m \
 NSOperation.m \
 NSOrderedSet.m \
+NSOrthography.m \
 NSPage.m \
 NSPathUtilities.m \
 NSPersonNameComponents.m \
@@ -460,6 +462,7 @@ NSKeyedArchiver.h \
 NSKeyValueCoding.h \
 NSKeyValueObserving.h \
 NSLengthFormatter.h \
+NSLinguisticTagger.h \
 NSLocale.h \
 NSLock.h \
 NSMapTable.h \
@@ -479,6 +482,7 @@ NSObject.h \
 NSObjectScripting.h \
 NSOperation.h \
 NSOrderedSet.h \
+NSOrthography.h \
 NSPathUtilities.h \
 NSPersonNameComponents.h \
 NSPersonNameComponentsFormatter.h \
