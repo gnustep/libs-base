@@ -29,17 +29,30 @@
 - (instancetype) initWithDominantScript: (NSString *)script
                             languageMap: (NSDictionary *)map
 {
-  return nil;
+  self = [super init];
+  if(self != nil)
+    {
+      ASSIGNCOPY(_dominantScript, script);
+      ASSIGNCOPY(_languageMap, map);
+    }
+  return self;
+}
+
+- (oneway void) release
+{
+  RELEASE(_dominantScript);
+  RELEASE(_languageMap);
+  [super release];
 }
 
 - (NSString *) dominantScript
 {
-  return nil;
+  return _dominantScript;
 }
 
 - (NSDictionary *) languationMap
 {
-  return nil;
+  return _languageMap;
 }
 
 - (NSArray *) languagesForScript: (NSString *)script
@@ -74,7 +87,10 @@
 
 + (instancetype) orthographyWithDominantScript: (NSString *)script languageMap: (NSDictionary *)map
 {
-  return nil;
+  NSOrthography *result = [[NSOrthography alloc] initWithDominantScript: script
+                                                            languageMap: map];
+  AUTORELEASE(result);
+  return result;
 }
 
 - (instancetype) initWithCoder: (NSCoder *)coder
@@ -88,7 +104,9 @@
 
 - (instancetype) copyWithZone: (NSZone *)zone
 {
-  return nil;
+  return [[[self class] allocWithZone: zone]
+           initWithDominantScript: _dominantScript
+                      languageMap: _languageMap];  
 }
 @end
 

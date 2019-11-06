@@ -36,7 +36,11 @@ extern "C" {
 @class NSDictionary, NSString, NSArray;
   
 @interface NSOrthography : NSObject <NSCopying, NSCoding>
-
+{
+  NSDictionary *_languageMap;
+  NSString *_dominantScript;
+}
+  
 - (instancetype) initWithDominantScript: (NSString *)script
                             languageMap: (NSDictionary *)map;
 
