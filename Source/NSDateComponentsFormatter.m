@@ -23,27 +23,107 @@
 */
 
 #include <Foundation/NSDateComponentsFormatter.h>
+#include <Foundation/NSDate.h>
+#include <Foundation/NSString.h>
+#include <Foundation/NSValue.h>
+#include <Foundation/NSException.h>
 
 @implementation NSDateComponentsFormatter
-  
+
+- (instancetype) init
+{
+  self = [super init];
+  if(self != nil)
+    {
+      _calendar = nil;
+      _referenceDate = nil;
+      _allowsFractionalUnits = NO;
+      _collapsesLargestUnit = NO;
+      _includesApproximationPhrase = NO;
+      _formattingContext = NSFormattingContextUnknown;
+      _maximumUnitCount = 0;
+      _zeroFormattingBehavior = NSDateComponentsFormatterZeroFormattingBehaviorNone;
+      _allowedUnits = NSCalendarUnitYear |
+        NSCalendarUnitMonth |
+        NSCalendarUnitDay |
+        NSCalendarUnitHour |
+        NSCalendarUnitMinute |
+        NSCalendarUnitSecond;
+      _unitsStyle = NSDateComponentsFormatterUnitsStylePositional;
+    }
+  return self;
+}
+
+- (void) dealloc
+{
+  RELEASE(_calendar);
+  RELEASE(_referenceDate);
+  [super dealloc];
+}
+
 - (NSString *) stringForObjectValue: (id)obj
 {
-  return nil;
+  NSString *result = nil;
+  
+  if([obj isKindOfClass: [NSDateComponents class]])
+    {
+      result = [self stringFromDateComponents: obj];
+    }
+  else if([obj isKindOfClass: [NSNumber class]])
+    {
+      NSTimeInterval ti = [obj longLongValue];
+      result = [self stringFromTimeInterval: ti];
+    }
+    
+  return result;
 }
 
 - (NSString *) stringFromDateComponents: (NSDateComponents *)components
 {
-  return nil;
+  NSString *result = @"";
+
+  if(_allowedUnits | NSCalendarUnitYear)
+    {
+    }
+  if(_allowedUnits | NSCalendarUnitMonth)
+    {
+    }
+  if(_allowedUnits | NSCalendarUnitDay)
+    {
+    }
+  if(_allowedUnits | NSCalendarUnitHour)
+    {
+    }
+  if(_allowedUnits | NSCalendarUnitMinute)
+    {
+    }
+  if(_allowedUnits | NSCalendarUnitSecond)
+    {
+    }
+  if(_allowedUnits | NSCalendarUnitWeekOfMonth)
+    {
+    }
+  
+  return result;
 }
 
-- (NSString *) stringFromDate: (NSDate *)startDate toDate:(NSDate *)endDate
+- (NSString *) stringFromDate: (NSDate *)startDate
+                       toDate: (NSDate *)endDate
 {
-  return nil;
+  NSDateComponents *dc = nil;
+  NSCalendar *calendar = ( _calendar != nil ) ? _calendar : [NSCalendar currentCalendar];
+  dc = [calendar components: _allowedUnits
+                   fromDate: startDate
+                     toDate: endDate
+                    options: NSCalendarMatchStrictly];
+  return [self stringFromDateComponents: dc];
 }
 
 - (NSString *) stringFromTimeInterval: (NSTimeInterval)ti
 {
-  return nil;
+  NSDate *startDate = [NSDate date];
+  NSDate *endDate = [startDate dateByAddingTimeInterval: (ti > 0) ? ti : -ti];
+  return [self stringFromDate: startDate toDate: endDate];
 }
 
 - (NSDateComponentsFormatterUnitsStyle) unitsStyle
@@ -63,6 +143,17 @@
 
 - (void) setAllowedUnits: (NSCalendarUnit)units
 {
+  if(units | NSCalendarUnitYear &&
+     units | NSCalendarUnitMonth &&
+     units | NSCalendarUnitDay &&
+     units | NSCalendarUnitHour &&
+     units | NSCalendarUnitMinute &&
+     units | NSCalendarUnitSecond &&
+     units | NSCalendarUnitWeekOfMonth)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"Passed invalid unit into allowedUnits"];
+    }
   _allowedUnits = units;
 }
 
@@ -154,7 +245,10 @@
 + (NSString *) localizedStringFromDateComponents: (NSDateComponents *)components
                                       unitsStyle: (NSDateComponentsFormatterUnitsStyle)unitsStyle
 {
-  return nil;
+  NSDateComponentsFormatter *fmt = [[NSDateComponentsFormatter alloc] init];
+  [fmt setUnitsStyle: unitsStyle];
+  AUTORELEASE(fmt);
+  return [fmt stringFromDateComponents: components];
 }
   
 @end

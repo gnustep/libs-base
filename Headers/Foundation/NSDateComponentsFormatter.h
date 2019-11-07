@@ -91,7 +91,7 @@ typedef NSUInteger NSDateComponentsFormatterZeroFormattingBehavior;
 
 - (NSString *) stringFromDateComponents: (NSDateComponents *)components;
 
-- (NSString *) stringFromDate: (NSDate *)startDate toDate:(NSDate *)endDate;
+- (NSString *) stringFromDate: (NSDate *)startDate toDate: (NSDate *)endDate;
 
 - (NSString *) stringFromTimeInterval: (NSTimeInterval)ti;
 
