@@ -215,6 +215,7 @@ NSConcreteMapTable.m \
 NSConnection.m \
 NSData.m \
 NSDate.m \
+NSDateComponentsFormatter.m \
 NSDateFormatter.m \
 NSDateInterval.m \
 NSDateIntervalFormatter.m \
@@ -421,6 +422,7 @@ NSComparisonPredicate.h \
 NSCompoundPredicate.h \
 NSConnection.h \
 NSData.h \
+NSDateComponentsFormatter.h \
 NSDateFormatter.h \
 NSDateInterval.h \
 NSDateIntervalFormatter.h \

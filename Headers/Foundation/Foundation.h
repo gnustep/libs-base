@@ -57,6 +57,7 @@
 #import	<Foundation/NSCompoundPredicate.h>
 #import	<Foundation/NSConnection.h>
 #import	<Foundation/NSData.h>
+#import <Foundation/NSDateComponentsFormatter.h>
 #import	<Foundation/NSDateFormatter.h>
 #import <Foundation/NSDateInterval.h>
 #import <Foundation/NSDateIntervalFormatter.h>
