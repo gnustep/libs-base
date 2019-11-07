@@ -78,10 +78,13 @@ typedef NSUInteger NSDateComponentsFormatterZeroFormattingBehavior;
   NSCalendar *_calendar;
   NSDate *_referenceDate;
   BOOL _allowsFractionalUnits;
-  BOOL _maximumUnitCount;
   BOOL _collapsesLargestUnit;
-  BOOL _includesAppoximatePhrase;
+  BOOL _includesApproximationPhrase;
   NSFormattingContext _formattingContext;
+  NSInteger _maximumUnitCount;
+  NSDateComponentsFormatterZeroFormattingBehavior _zeroFormattingBehavior;
+  NSCalendarUnit _allowedUnits;
+  NSDateComponentsFormatterUnitsStyle _unitsStyle;
 }
   
 - (NSString *) stringForObjectValue: (id)obj;
