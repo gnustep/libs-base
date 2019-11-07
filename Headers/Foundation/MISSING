@@ -16,7 +16,6 @@ Missing macros:
 Missing headers:
 ==
 FoundationLegacySwiftCompatibility.h
-NSDateComponentsFormatter.h
 NSExtensionContext.h
 NSExtensionItem.h
 NSExtensionRequestHandling.h
