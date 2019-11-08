@@ -42,7 +42,7 @@
       _includesApproximationPhrase = NO;
       _formattingContext = NSFormattingContextUnknown;
       _maximumUnitCount = 0;
-      _zeroFormattingBehavior = NSDateComponentsFormatterZeroFormattingBehaviorNone;
+      _zeroFormattingBehavior = NSDateComponentsFormatterZeroFormattingBehaviorDefault;
       _allowedUnits = NSCalendarUnitYear |
         NSCalendarUnitMonth |
         NSCalendarUnitDay |
@@ -84,24 +84,59 @@
 
   if(_allowedUnits | NSCalendarUnitYear)
     {
+      if(_zeroFormattingBehavior | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+        {
+          NSString *yr = [NSString stringWithFormat: @"%4ld", [components year]];
+          result = [result stringByAppendingString: yr];
+        }
     }
   if(_allowedUnits | NSCalendarUnitMonth)
     {
+      if(_zeroFormattingBehavior | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+        {
+          NSString *s = [NSString stringWithFormat: @"%2ld", [components month]];
+          result = [result stringByAppendingString: s];
+        }
     }
   if(_allowedUnits | NSCalendarUnitDay)
     {
+      if(_zeroFormattingBehavior | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+        {
+          NSString *s = [NSString stringWithFormat: @"%2ld", [components day]];
+          result = [result stringByAppendingString: s];
+        }
     }
   if(_allowedUnits | NSCalendarUnitHour)
     {
+      if(_zeroFormattingBehavior | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+        {
+          NSString *s = [NSString stringWithFormat: @"%2ld", [components hour]];
+          result = [result stringByAppendingString: s];
+        }
     }
   if(_allowedUnits | NSCalendarUnitMinute)
     {
+      if(_zeroFormattingBehavior | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+        {
+          NSString *s = [NSString stringWithFormat: @"%2ld", [components minute]];
+          result = [result stringByAppendingString: s];
+        }
     }
   if(_allowedUnits | NSCalendarUnitSecond)
     {
+      if(_zeroFormattingBehavior | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+        {
+          NSString *s = [NSString stringWithFormat: @"%2ld", [components second]];
+          result = [result stringByAppendingString: s];
+        }
     }
   if(_allowedUnits | NSCalendarUnitWeekOfMonth)
     {
+      if(_zeroFormattingBehavior | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+        {
+          NSString *s = [NSString stringWithFormat: @"%1ld", [components weekOfMonth]];
+          result = [result stringByAppendingString: s];
+        }
     }
   
   return result;
