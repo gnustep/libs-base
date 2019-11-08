@@ -27,6 +27,7 @@
 #include <Foundation/NSString.h>
 #include <Foundation/NSValue.h>
 #include <Foundation/NSException.h>
+#include <Foundation/NSNumberFormatter.h>
 
 @implementation NSDateComponentsFormatter
 
@@ -84,10 +85,37 @@
 
   if(_allowedUnits | NSCalendarUnitYear)
     {
-      if(_zeroFormattingBehavior | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+      if(_unitsStyle == NSDateComponentsFormatterUnitsStyleSpellOut)
         {
-          NSString *yr = [NSString stringWithFormat: @"%4ld", [components year]];
-          result = [result stringByAppendingString: yr];
+          NSNumberFormatter *fmt = [[NSNumberFormatter alloc] init];
+          NSNumber *num = [NSNumber numberWithInteger: [components year]];
+          AUTORELEASE(fmt);
+          [fmt setNumberStyle: NSNumberFormatterSpellOutStyle];
+          result = [result stringByAppendingString: [fmt stringFromNumber: num]];
+        }
+      else
+        {
+          if(_zeroFormattingBehavior | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+            {
+              NSString *yr = [NSString stringWithFormat: @"%4ld", [components year]];
+              result = [result stringByAppendingString: yr];
+            }
+          if(_unitsStyle == NSDateComponentsFormatterUnitsStylePositional)
+            {
+              result = [result stringByAppendingString: @":"];
+            }
+          if(_unitsStyle == NSDateComponentsFormatterUnitsStyleAbbreviated)
+            {
+              result = [result stringByAppendingString: @"y "];
+            }
+          if(_unitsStyle == NSDateComponentsFormatterUnitsStyleShort)
+            {
+              result = [result stringByAppendingString: @"yr "];
+            }
+          if(_unitsStyle == NSDateComponentsFormatterUnitsStyleFull)
+            {
+              result = [result stringByAppendingString: @"years "];
+            }
         }
     }
   if(_allowedUnits | NSCalendarUnitMonth)
