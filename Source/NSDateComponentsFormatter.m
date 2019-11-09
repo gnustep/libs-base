@@ -55,6 +55,22 @@
   return self;
 }
 
+- (instancetype) initWithCoder: (NSCoder *)coder
+{
+  self = [super initWithCoder: coder];
+  if(self != nil)
+    {
+      // TODO: Implement coding...
+    }
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  [super encodeWithCoder: coder];
+  // TODO: Implement coding...
+}
+
 - (void) dealloc
 {
   RELEASE(_calendar);
