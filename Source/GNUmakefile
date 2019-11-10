@@ -230,6 +230,9 @@ NSEnergyFormatter.m \
 NSEnumerator.m \
 NSError.m \
 NSException.m \
+NSExtensionContext.m \
+NSExtensionItem.m \
+NSExtensionRequestHandling.m \
 NSFileCoordinator.m \
 NSFileHandle.m \
 NSFileManager.m \
@@ -248,6 +251,8 @@ NSIndexSet.m \
 NSInvocation.m \
 NSInvocationOperation.m \
 NSISO8601DateFormatter.m \
+NSItemProvider.m \
+NSItemProviderReadingWriting.m \
 NSJSONSerialization.m \
 NSKeyedArchiver.m \
 NSKeyedUnarchiver.m \
@@ -439,6 +444,9 @@ NSEnumerator.h \
 NSError.h \
 NSErrorRecoveryAttempting.h \
 NSException.h \
+NSExtensionContext.h \
+NSExtensionItem.h \
+NSExtensionRequestHandling.h \
 NSExpression.h \
 NSFileCoordinator.h \
 NSFileHandle.h \
@@ -459,6 +467,8 @@ NSIndexSet.h \
 NSInvocation.h \
 NSInvocationOperation.h \
 NSISO8601DateFormatter.h \
+NSItemProvider.h \
+NSItemProviderReadingWriting.h \
 NSJSONSerialization.h \
 NSKeyedArchiver.h \
 NSKeyValueCoding.h \

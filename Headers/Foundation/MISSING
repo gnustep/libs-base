@@ -16,11 +16,6 @@ Missing macros:
 Missing headers:
 ==
 FoundationLegacySwiftCompatibility.h
-NSExtensionContext.h
-NSExtensionItem.h
-NSExtensionRequestHandling.h
-NSItemProvider.h
-NSItemProviderReadingWriting.h
 NSXPCConnection.h
 
 -------------------------------------------------------------
