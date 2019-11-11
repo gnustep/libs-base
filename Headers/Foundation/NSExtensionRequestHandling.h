@@ -33,7 +33,11 @@
 extern "C" {
 #endif
 
-@interface NSExtensionRequestHandling : NSObject
+@class NSExtensionContext;
+
+@protocol NSExtensionRequestHandling <NSObject>
+
+- (void) beginRequestWithExtensionContext: (NSExtensionContext *)context;
 
 @end
 

@@ -232,7 +232,6 @@ NSError.m \
 NSException.m \
 NSExtensionContext.m \
 NSExtensionItem.m \
-NSExtensionRequestHandling.m \
 NSFileCoordinator.m \
 NSFileHandle.m \
 NSFileManager.m \

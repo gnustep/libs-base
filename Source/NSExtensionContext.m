@@ -1,7 +1,7 @@
 /* Implementation of class NSExtensionContext
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory Casamento <greg.casamento@gmail.com>
    Date: Sun Nov 10 03:59:38 EST 2019
 
    This file is part of the GNUstep Library.
