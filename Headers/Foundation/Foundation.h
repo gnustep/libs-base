@@ -72,6 +72,9 @@
 #import	<Foundation/NSError.h>
 #import	<Foundation/NSException.h>
 #import	<Foundation/NSExpression.h>
+#import <Foundation/NSExtensionContext.h>
+#import <Foundation/NSExtensionItem.h>
+#import <Foundation/NSExtensionRequestHandling.h>
 #import	<Foundation/NSFileCoordinator.h>
 #import	<Foundation/NSFileHandle.h>
 #import	<Foundation/NSFileManager.h>
@@ -91,6 +94,8 @@
 #import	<Foundation/NSInvocation.h>
 #import <Foundation/NSInvocationOperation.h>
 #import <Foundation/NSISO8601DateFormatter.h>
+#import <Foundation/NSItemProvider.h>
+#import <Foundation/NSItemProviderReadingWriting.h>
 #import	<Foundation/NSJSONSerialization.h>
 #import	<Foundation/NSKeyedArchiver.h>
 #import	<Foundation/NSKeyValueCoding.h>
