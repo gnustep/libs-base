@@ -16,7 +16,6 @@ Missing macros:
 Missing headers:
 ==
 FoundationLegacySwiftCompatibility.h
-NSXPCConnection.h
 
 -------------------------------------------------------------
 FoundationErrors:
