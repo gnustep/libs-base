@@ -31,6 +31,7 @@
 #import	<objc/objc.h>
 
 #import	<Foundation/FoundationErrors.h>
+#import <Foundation/FoundationLegacySwiftCompatibility.h>
 #import	<Foundation/NSObjCRuntime.h>
 #import <GNUstepBase/GSConfig.h>
 #import	<Foundation/NSDebug.h>
@@ -187,6 +188,7 @@
 #import <Foundation/NSXMLNode.h>
 #import <Foundation/NSXMLNodeOptions.h>
 #import	<Foundation/NSXMLParser.h>
+#import <Foundation/NSXPCConnection.h>
 #import	<Foundation/NSZone.h>
 
 #ifdef __has_include

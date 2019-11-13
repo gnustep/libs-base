@@ -355,6 +355,7 @@ NSXMLDTDNode.m \
 NSXMLElement.m \
 NSXMLNode.m \
 NSXMLParser.m \
+NSXPCConnection.m \
 NSZone.m \
 externs.m \
 objc-load.m 
@@ -566,6 +567,7 @@ NSXMLElement.h \
 NSXMLNode.h \
 NSXMLNodeOptions.h \
 NSXMLParser.h \
+NSXPCConnection.h \
 NSZone.h
 
 HEADERS_INSTALL = \

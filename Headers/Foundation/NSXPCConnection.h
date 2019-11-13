@@ -27,14 +27,131 @@
 
 #include <Foundation/NSObject.h>
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_Nov 12 2019, GS_API_LATEST)
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
 
 #if	defined(__cplusplus)
 extern "C" {
 #endif
 
-@interface NSXPCConnection : NSObject
+@class NSMutableDictionary, NSString, NSOperationQueue, NSSet<ObjectType>, NSLock, NSError;
+@class NSXPCConnection, NSXPCListener, NSXPCInterface, NSXPCListenerEndpoint;
+@protocol NSXPCListenerDelegate;
 
+DEFINE_BLOCK_TYPE(GSXPCProxyErrorHandler, void, NSError *);
+DEFINE_BLOCK_TYPE(GSXPCInterruptionHandler, void, void);
+DEFINE_BLOCK_TYPE(GSXPCInvalidationHandler, void, void);
+
+
+@protocol NSXPCProxyCreating
+
+- (id) remoteObjectProxy;
+
+- (id) remoteObjectProxyWithErrorHandler: (GSXPCProxyErrorHandler)handler;
+
+- (id) synchronousRemoteObjectProxyWithErrorHandler: (GSXPCProxyErrorHandler)handler;
+
+@end
+
+enum
+{
+    NSXPCConnectionPrivileged = (1 << 12UL)
+};
+typedef NSUInteger NSXPCConnectionOptions; 
+  
+@interface NSXPCConnection : NSObject <NSXPCProxyCreating>
+
+- (instancetype)initWithServiceName:(NSString *)serviceName;
+  
+- (NSString *) serviceName;
+- (void) setServiceName: (NSString *)serviceName;
+  
+- (instancetype)initWithMachServiceName:(NSString *)name options:(NSXPCConnectionOptions)options;
+
+- (instancetype)initWithListenerEndpoint:(NSXPCListenerEndpoint *)endpoint;
+
+- (NSXPCListenerEndpoint *) endpoint;
+- (void) setEndpoint: (NSXPCListenerEndpoint *) endpoint;
+  
+- (NSXPCInterface *) exportedInterface;
+- (void) setExportInterface: (NSXPCInterface *)exportedInterface;
+  
+- (NSXPCInterface *) remoteObjectInterface;
+- (void) setRemoteObjectInterface: (NSXPCInterface *)remoteObjectInterface;
+
+
+- (id) remoteObjectProxy;
+- (void) setRemoteObjectProxy: (id)remoteObjectProxy;
+
+- (id) remoteObjectProxyWithErrorHandler:(void (^)(NSError *error))handler;
+
+- (id) synchronousRemoteObjectProxyWithErrorHandler:(void (^)(NSError *error))handler;
+
+- (GSXPCInterruptionHandler) interruptionHandler; 
+- (void) setInterruptionHandler: (GSXPCInterruptionHandler)handler;
+  
+- (GSXPCInvalidationHandler) invalidationHandler; 
+- (void) setInvalidationHandler: (GSXPCInvalidationHandler)handler;
+  
+- (void) resume;
+
+- (void) suspend;
+
+- (void) invalidate;
+
+- (NSUInteger) auditSessionIdentifier;
+- (NSUInteger) processIdentifier;
+- (NSUInteger) effectiveUserIdentifier;
+- (NSUInteger) effectiveGroupIdentifier;
+
+@end
+
+
+@interface NSXPCListener : NSObject
+
++ (NSXPCListener *) serviceListener;
+
++ (NSXPCListener *) anonymousListener;
+
+- (instancetype) initWithMachServiceName:(NSString *)name;
+
+- (id <NSXPCListenerDelegate>) delegate;
+- (void) setDelegate: (id <NSXPCListenerDelegate>) delegate;
+
+- (NSXPCListenerEndpoint *) endpoint;
+- (void) setEndpoint: (NSXPCListenerEndpoint *)endpoint;
+  
+- (void) resume;
+
+- (void) suspend;
+
+- (void) invalidate;
+
+@end
+
+@protocol NSXPCListenerDelegate <NSObject>
+
+- (BOOL) listener: (NSXPCListener *)listener shouldAcceptNewConnection: (NSXPCConnection *)newConnection;
+
+@end
+
+@interface NSXPCInterface : NSObject
+
++ (NSXPCInterface *) interfaceWithProtocol: (Protocol *)protocol;
+
+- (Protocol *) protocol;
+- (void) setProtocol: (Protocol *)protocol;
+
+- (void) setClasses: (NSSet *)classes forSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply;
+
+- (NSSet *) classesForSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply;
+
+- (void) setInterface: (NSXPCInterface *)ifc forSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply;
+
+- (NSXPCInterface *) interfaceForSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply;
+
+@end
+
+@interface NSXPCListenerEndpoint : NSObject <NSCoding>  // NSSecureCoding
 @end
 
 #if	defined(__cplusplus)

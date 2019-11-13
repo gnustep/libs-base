@@ -23,8 +23,223 @@
 */
 
 #include <Foundation/NSXPCConnection.h>
-
+  
 @implementation NSXPCConnection
+
+- (instancetype)initWithServiceName:(NSString *)serviceName
+{
+  return nil;
+}
+
+- (NSString *) serviceName
+{
+  return nil;
+}
+
+- (void) setServiceName: (NSString *)serviceName
+{
+}
+
+- (instancetype)initWithMachServiceName:(NSString *)name options:(NSXPCConnectionOptions)options
+{
+  return nil;
+}
+
+- (instancetype)initWithListenerEndpoint:(NSXPCListenerEndpoint *)endpoint
+{
+  return nil;
+}
+
+
+- (NSXPCListenerEndpoint *) endpoint
+{
+  return nil;
+}
+
+- (void) setEndpoint: (NSXPCListenerEndpoint *) endpoint
+{
+}
+
+- (NSXPCInterface *) exportedInterface
+{
+  return nil;
+}
+
+- (void) setExportInterface: (NSXPCInterface *)exportedInterface
+{
+}
+
+- (NSXPCInterface *) remoteObjectInterface
+{
+  return nil;
+}
+
+- (void) setRemoteObjectInterface: (NSXPCInterface *)remoteObjectInterface
+{
+}
+
+- (id) remoteObjectProxy
+{
+  return nil;
+}
+
+- (void) setRemoteObjectProxy: (id)remoteObjectProxy
+{
+}
+
+- (id) remoteObjectProxyWithErrorHandler:(void (^)(NSError *error))handler
+{
+  return nil;
+}
+
+- (id) synchronousRemoteObjectProxyWithErrorHandler:(void (^)(NSError *error))handler
+{
+  return nil;
+}
+
+- (GSXPCInterruptionHandler) interruptionHandler 
+{
+  return NULL;
+}
+
+- (void) setInterruptionHandler: (GSXPCInterruptionHandler)handler
+{
+}
+
+- (GSXPCInvalidationHandler) invalidationHandler 
+{
+  return NULL;
+}
+
+- (void) setInvalidationHandler: (GSXPCInvalidationHandler)handler
+{
+}
+
+- (void) resume
+{
+}
+
+- (void) suspend
+{
+}
+
+- (void) invalidate
+{
+}
+
+- (NSUInteger) auditSessionIdentifier
+{
+  return 0;
+}
+- (NSUInteger) processIdentifier
+{
+  return 0;
+}
+- (NSUInteger) effectiveUserIdentifier
+{
+  return 0;
+}
+- (NSUInteger) effectiveGroupIdentifier
+{
+  return 0;
+}
+@end
+
+@implementation NSXPCListener
+
++ (NSXPCListener *) serviceListener
+{
+  return nil;
+}
+
++ (NSXPCListener *) anonymousListener
+{
+  return nil;
+}
+
+- (instancetype) initWithMachServiceName:(NSString *)name
+{
+  return nil;
+}
+
+- (id <NSXPCListenerDelegate>) delegate
+{
+  return nil;
+}
+
+- (void) setDelegate: (id <NSXPCListenerDelegate>) delegate
+{
+}
+
+- (NSXPCListenerEndpoint *) endpoint
+{
+  return nil;
+}
+
+- (void) setEndpoint: (NSXPCListenerEndpoint *)endpoint
+{
+}
+
+- (void) resume
+{
+}
+
+- (void) suspend
+{
+}
+
+- (void) invalidate
+{
+}
+
+@end
+
+@implementation NSXPCInterface
+
++ (NSXPCInterface *) interfaceWithProtocol: (Protocol *)protocol
+{
+  return nil;
+}
+
+- (Protocol *) protocol
+{
+  return nil;
+}
+
+- (void) setProtocol: (Protocol *)protocol
+{
+}
+
+- (void) setClasses: (NSSet *)classes forSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply
+{
+}
+
+- (NSSet *) classesForSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply
+{
+  return nil;
+}
+
+- (void) setInterface: (NSXPCInterface *)ifc forSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply
+{
+}
+
+- (NSXPCInterface *) interfaceForSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply
+{
+  return nil;
+}
+
+@end
+
+@implementation NSXPCListenerEndpoint
+
+- (instancetype) initWithCoder: (NSCoder *)coder
+{
+  return nil;
+}
+
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+}
 
 @end
 
