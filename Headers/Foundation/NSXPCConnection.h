@@ -34,13 +34,13 @@
 extern "C" {
 #endif
 
-@class NSMutableDictionary, NSString, NSOperationQueue, NSSet<ObjectType>, NSLock, NSError;
+@class NSMutableDictionary, NSString, NSOperationQueue, NSSet, NSLock, NSError;
 @class NSXPCConnection, NSXPCListener, NSXPCInterface, NSXPCListenerEndpoint;
 @protocol NSXPCListenerDelegate;
 
 DEFINE_BLOCK_TYPE(GSXPCProxyErrorHandler, void, NSError *);
-DEFINE_BLOCK_TYPE(GSXPCInterruptionHandler, void, void);
-DEFINE_BLOCK_TYPE(GSXPCInvalidationHandler, void, void);
+DEFINE_BLOCK_TYPE_NO_ARGS(GSXPCInterruptionHandler, void);
+DEFINE_BLOCK_TYPE_NO_ARGS(GSXPCInvalidationHandler, void);
 
 
 @protocol NSXPCProxyCreating
@@ -83,9 +83,9 @@ typedef NSUInteger NSXPCConnectionOptions;
 - (id) remoteObjectProxy;
 - (void) setRemoteObjectProxy: (id)remoteObjectProxy;
 
-- (id) remoteObjectProxyWithErrorHandler:(void (^)(NSError *error))handler;
+- (id) remoteObjectProxyWithErrorHandler:(GSXPCProxyErrorHandler)handler;
 
-- (id) synchronousRemoteObjectProxyWithErrorHandler:(void (^)(NSError *error))handler;
+- (id) synchronousRemoteObjectProxyWithErrorHandler:(GSXPCProxyErrorHandler)handler;
 
 - (GSXPCInterruptionHandler) interruptionHandler; 
 - (void) setInterruptionHandler: (GSXPCInterruptionHandler)handler;

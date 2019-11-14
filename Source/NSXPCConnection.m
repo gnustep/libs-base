@@ -87,12 +87,12 @@
 {
 }
 
-- (id) remoteObjectProxyWithErrorHandler:(void (^)(NSError *error))handler
+- (id) remoteObjectProxyWithErrorHandler:(GSXPCProxyErrorHandler)handler
 {
   return nil;
 }
 
-- (id) synchronousRemoteObjectProxyWithErrorHandler:(void (^)(NSError *error))handler
+- (id) synchronousRemoteObjectProxyWithErrorHandler:(GSXPCProxyErrorHandler)handler
 {
   return nil;
 }

@@ -1,3 +1,8 @@
+2019-11-14  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Headers/Foundation/NSXPCConnection.h,
+	* Source/NSXPCConnection.m: Fix broken compilation on gcc.
+
 2019-11-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSTimeZones/NSTimeZones.tar: updated to latest info
