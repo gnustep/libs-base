@@ -26,6 +26,7 @@
 #define _NSXPCConnection_h_GNUSTEP_BASE_INCLUDE
 
 #include <Foundation/NSObject.h>
+#include <Foundation/NSError.h>
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
 
