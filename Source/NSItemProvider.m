@@ -23,6 +23,7 @@
 */
 
 #include <Foundation/NSItemProvider.h>
+#include <Foundation/NSString.h>
 
 @implementation NSItemProvider
 
