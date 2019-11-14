@@ -26,6 +26,7 @@
 #include <Foundation/NSError.h>
 #include <Foundation/NSArray.h>
 #include <Foundation/NSURL.h>
+#include <Foundation/NSString.h>
 
 @implementation NSExtensionContext
 
