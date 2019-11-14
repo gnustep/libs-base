@@ -405,6 +405,7 @@ tzfile.h
 FOUNDATION_HEADERS = \
 Foundation.h \
 FoundationErrors.h \
+FoundationLegacySwiftCompatibility.h \
 NSAffineTransform.h \
 NSAppleEventDescriptor.h \
 NSAppleEventManager.h \
