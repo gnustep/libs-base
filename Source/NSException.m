@@ -565,6 +565,35 @@ GSListModules()
 #endif	/* USE_BFD */
 
 
+#if defined(HAVE_UNWIND_H) && !defined(HAVE_BACKTRACE)
+
+#include <unwind.h>
+#include <dlfcn.h>
+
+struct GSBacktraceState
+{
+  void **current;
+  void **end;
+};
+
+static _Unwind_Reason_Code
+GSUnwindCallback(struct _Unwind_Context* context, void* arg)
+{
+    struct GSBacktraceState *state = (struct GSBacktraceState*)arg;
+    uintptr_t pc = _Unwind_GetIP(context);
+    if (pc) {
+      if (state->current == state->end) {
+        return _URC_END_OF_STACK;
+      } else {
+        *state->current++ = (void*)pc;
+      }
+    }
+    return 0; //_URC_OK/_URC_NO_REASON
+}
+
+#endif	/* HAVE_UNWIND_H && !HAVE_BACKTRACE */
+
+
 #if	defined(_WIN32) && !defined(USE_BFD)
 typedef USHORT (WINAPI *CaptureStackBackTraceType)(ULONG,ULONG,PVOID*,PULONG);
 typedef BOOL (WINAPI *SymInitializeType)(HANDLE,char*,BOOL);
@@ -846,10 +875,22 @@ unsigned
 GSPrivateReturnAddresses(NSUInteger **returns)
 {
   unsigned      numReturns;
-#if HAVE_BACKTRACE
+#if	defined(HAVE_BACKTRACE)
   void          *addr[MAXFRAMES*sizeof(void*)];
 
   numReturns = backtrace(addr, MAXFRAMES);
+  if (numReturns > 0)
+    {
+      *returns = malloc(numReturns * sizeof(void*));
+      memcpy(*returns, addr, numReturns * sizeof(void*));
+    }
+#elif	defined(HAVE_UNWIND_H)
+  void          *addr[MAXFRAMES];
+  
+  struct GSBacktraceState state = {addr, addr + MAXFRAMES};
+  _Unwind_Backtrace(GSUnwindCallback, &state);
+
+  numReturns = state.current - addr;
   if (numReturns > 0)
     {
       *returns = malloc(numReturns * sizeof(void*));
@@ -1225,6 +1266,36 @@ GSPrivateReturnAddresses(NSUInteger **returns)
         }
       symbols = [[NSArray alloc] initWithObjects: symbolArray count: count];
       free(strs);
+#elif	defined(HAVE_UNWIND_H)
+      void              **ptrs = (void**)&returns[FrameOffset];
+      NSString	        **symbolArray;
+
+      symbolArray = alloca(count * sizeof(NSString*));
+      for (i = 0; i < count; i++)
+        {
+          const void *addr = ptrs[i];
+          Dl_info info;
+          if (dladdr(addr, &info)) {
+            const char *libname = "unknown";
+            if (info.dli_fname) {
+              // strip library path
+              char *delim = strrchr(info.dli_fname, '/');
+              libname = delim ? delim + 1 : info.dli_fname;
+            }
+            if (info.dli_sname) {
+              symbolArray[i] = [NSString stringWithFormat:
+                @"%lu: %p %s %s + %d", (unsigned long)i, addr, libname,
+                info.dli_sname, (int)(addr - info.dli_saddr)];
+            } else {
+              symbolArray[i] = [NSString stringWithFormat:
+                @"%lu: %p %s unknown", (unsigned long)i, addr, libname];
+            }
+          } else {
+            symbolArray[i] = [NSString stringWithFormat:
+              @"%lu: %p unknown", (unsigned long)i, addr];
+          }
+        }
+      symbols = [[NSArray alloc] initWithObjects: symbolArray count: count];
 #else
       NSMutableArray	*a;
 
@@ -1233,8 +1304,8 @@ GSPrivateReturnAddresses(NSUInteger **returns)
         {
           NSString      *s;
 
-          s = [[NSString alloc] initWithFormat: @"%@: symbol not available",
-            [a objectAtIndex: i]];
+          s = [[NSString alloc] initWithFormat: @"%p: symbol not available",
+            [[a objectAtIndex: i] pointerValue]];
           [a replaceObjectAtIndex: i withObject: s];
           RELEASE(s);
         }
