@@ -450,7 +450,7 @@ GSIMapAddNodeToMap(GSIMapTable map, GSIMapNode node)
 {
   GSIMapBucket	bucket;
 
-  bucket = GSIMapBucketForKey(map, node->key);
+  bucket = GSIMapBucketForKey(map, GSI_MAP_READ_KEY(map, &node->key));
   GSIMapAddNodeToBucket(bucket, node);
   map->nodeCount++;
 }
@@ -543,7 +543,7 @@ GSIMapRemangleBuckets(GSIMapTable map,
 		  GSIMapBucket	bkt;
 
 		  GSIMapRemoveNodeFromBucket(old_buckets, node);
-		  bkt = GSIMapPickBucket(GSI_MAP_HASH(map, node->key),
+		  bkt = GSIMapPickBucket(GSI_MAP_HASH(map, GSI_MAP_READ_KEY(map, &node->key)),
 		    new_buckets, new_bucketCount);
 		  GSIMapAddNodeToBucket(bkt, node);
 		}
@@ -561,7 +561,7 @@ GSIMapRemangleBuckets(GSIMapTable map,
 	  GSIMapBucket	bkt;
 
 	  GSIMapRemoveNodeFromBucket(old_buckets, node);
-	  bkt = GSIMapPickBucket(GSI_MAP_HASH(map, node->key),
+	  bkt = GSIMapPickBucket(GSI_MAP_HASH(map, GSI_MAP_READ_KEY(map, &node->key)),
 	    new_buckets, new_bucketCount);
 	  GSIMapAddNodeToBucket(bkt, node);
 	}

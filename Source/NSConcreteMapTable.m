@@ -89,16 +89,16 @@ typedef GSIMapNode_t *GSIMapNode;
  : pointerFunctionsEqual(&M->cb.pf.k, X.ptr, Y.ptr))
 #define GSI_MAP_RELEASE_KEY(M, X)\
  (M->legacy ? M->cb.old.k.release(M, X.ptr) \
- : pointerFunctionsRelinquish(&M->cb.pf.k, &X.ptr))
+  : IS_WEAK_KEY(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf.k, &X.ptr))
 #define GSI_MAP_RETAIN_KEY(M, X)\
  (M->legacy ? M->cb.old.k.retain(M, X.ptr) \
- : pointerFunctionsAcquire(&M->cb.pf.k, &X.ptr, X.ptr))
+  : IS_WEAK_KEY(M) ? nil : pointerFunctionsAcquire(&M->cb.pf.k, &X.ptr, X.ptr))
 #define GSI_MAP_RELEASE_VAL(M, X)\
  (M->legacy ? M->cb.old.v.release(M, X.ptr) \
- : pointerFunctionsRelinquish(&M->cb.pf.v, &X.ptr))
+  : IS_WEAK_VALUE(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf.v, &X.ptr))
 #define GSI_MAP_RETAIN_VAL(M, X)\
  (M->legacy ? M->cb.old.v.retain(M, X.ptr) \
- : pointerFunctionsAcquire(&M->cb.pf.v, &X.ptr, X.ptr))
+  : IS_WEAK_VALUE(M) ? nil : pointerFunctionsAcquire(&M->cb.pf.v, &X.ptr, X.ptr))
 
 /* 2013-05-25 Here are the macros originally added for GC/ARC ...
  * but they caused map table entries to be doubly retained :-(
@@ -116,16 +116,20 @@ typedef GSIMapNode_t *GSIMapNode;
 	else\
 	  pointerFunctionsAssign(&M->cb.pf.v, (void**)addr, (x).obj);
 */
+#define IS_WEAK_KEY(M) \
+  M->cb.pf.k.options & (NSPointerFunctionsZeroingWeakMemory | NSPointerFunctionsWeakMemory)
+#define IS_WEAK_VALUE(M) \
+  M->cb.pf.v.options & (NSPointerFunctionsZeroingWeakMemory | NSPointerFunctionsWeakMemory)
 #define GSI_MAP_WRITE_KEY(M, addr, x) \
 	if (M->legacy) \
           *(addr) = x;\
 	else\
-	  *(id*)(addr) = (x).obj;
+	  (IS_WEAK_KEY(M) ? pointerFunctionsAssign(&M->cb.pf.k, (void**)addr, (x).obj) : (*(id*)(addr) = (x).obj));
 #define GSI_MAP_WRITE_VAL(M, addr, x) \
 	if (M->legacy) \
           *(addr) = x;\
 	else\
-	  *(id*)(addr) = (x).obj;
+	  (IS_WEAK_VALUE(M) ? pointerFunctionsAssign(&M->cb.pf.v, (void**)addr, (x).obj) : (*(id*)(addr) = (x).obj));
 #define GSI_MAP_READ_KEY(M,addr) \
 	(M->legacy ? *(addr)\
 	  : (typeof(*addr))pointerFunctionsRead(&M->cb.pf.k, (void**)addr))
@@ -134,8 +138,7 @@ typedef GSIMapNode_t *GSIMapNode;
 	  : (typeof(*addr))pointerFunctionsRead(&M->cb.pf.v, (void**)addr))
 #define GSI_MAP_ZEROED(M)\
         (M->legacy ? 0\
-          : (((M->cb.pf.k.options | M->cb.pf.v.options)\
-            & NSPointerFunctionsZeroingWeakMemory) ? YES : NO))
+	  : (IS_WEAK_KEY(M) || IS_WEAK_VALUE(M)) ? YES : NO)
 
 #define	GSI_MAP_ENUMERATOR	NSMapEnumerator
 
@@ -879,23 +882,17 @@ NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
 	}
       else
 	{
-	  if (key != 0)
+	  NSConcreteMapTable *map = enumerator->map;
+	  GSIMapKey k = GSI_MAP_READ_KEY(map, &n->key);
+	  GSIMapVal v = GSI_MAP_READ_VALUE(map, &n->value);
+	  if (k.ptr == NULL || v.ptr == NULL)
 	    {
-	      *key = n->key.ptr;
-	    }
-	  else
-	    {
-	      NSWarnFLog(@"Null key return address");
+	      return NSNextMapEnumeratorPair(enumerator, key, value);
 	    }
 
-	  if (value != 0)
-	    {
-	      *value = n->value.ptr;
-	    }
-	  else
-	    {
-	      NSWarnFLog(@"Null value return address");
-	    }
+	  *key = k.ptr;
+	  *value = v.ptr;
+
 	  return YES;
 	}
     }
@@ -1332,7 +1329,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 
       if (node)
 	{
-	  return node->value.obj;
+	  return GSI_MAP_READ_VALUE(self, &node->value).obj;
 	}
     }
   return nil;
@@ -1384,7 +1381,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
   node = GSIMapNodeForKey(self, (GSIMapKey)aKey);
   if (node)
     {
-      if (node->value.obj != anObject)
+      if (GSI_MAP_READ_VALUE(self, &node->value).obj != anObject)
 	{
           GSI_MAP_RELEASE_VAL(self, node->value);
           node->value.obj = anObject;
