@@ -21,10 +21,16 @@ install_gnustep_make() {
 install_ng_runtime() {
     cd $DEP_SRC
     git clone https://github.com/gnustep/libobjc2.git
+    cd libobjc2
+    git submodule init
+    git submodule sync
+    git submodule update
+    cd ..
     mkdir libobjc2/build
     cd libobjc2/build
     export CC="clang"
     export CXX="clang++"
+    export CXXFLAGS="-std=c++11"
     cmake -DTESTS=off -DCMAKE_BUILD_TYPE=RelWithDebInfo -DGNUSTEP_INSTALL_TYPE=NONE -DCMAKE_INSTALL_PREFIX:PATH=$HOME/staging ../
     make install
 }
