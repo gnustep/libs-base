@@ -81,6 +81,10 @@ typedef GSIMapNode_t *GSIMapNode;
 
 #define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ
 #define	GSI_MAP_VTYPES	GSUNION_PTR | GSUNION_OBJ
+#define IS_WEAK_KEY(M) \
+  M->cb.pf.k.options & (NSPointerFunctionsZeroingWeakMemory | NSPointerFunctionsWeakMemory)
+#define IS_WEAK_VALUE(M) \
+  M->cb.pf.v.options & (NSPointerFunctionsZeroingWeakMemory | NSPointerFunctionsWeakMemory)
 #define GSI_MAP_HASH(M, X)\
  (M->legacy ? M->cb.old.k.hash(M, X.ptr) \
  : pointerFunctionsHash(&M->cb.pf.k, X.ptr))
@@ -116,10 +120,6 @@ typedef GSIMapNode_t *GSIMapNode;
 	else\
 	  pointerFunctionsAssign(&M->cb.pf.v, (void**)addr, (x).obj);
 */
-#define IS_WEAK_KEY(M) \
-  M->cb.pf.k.options & (NSPointerFunctionsZeroingWeakMemory | NSPointerFunctionsWeakMemory)
-#define IS_WEAK_VALUE(M) \
-  M->cb.pf.v.options & (NSPointerFunctionsZeroingWeakMemory | NSPointerFunctionsWeakMemory)
 #define GSI_MAP_WRITE_KEY(M, addr, x) \
 	if (M->legacy) \
           *(addr) = x;\
