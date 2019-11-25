@@ -14,6 +14,17 @@
 
 	* NSTimeZones/NSTimeZones.tar: updated to latest info
 
+2019-11-05  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSProcessInfo.h:
+	* Source/NSPathUtilities.m:
+	* Source/NSProcessInfo.m:
+	Added support for NSTemporaryDirectory() on Android using subfolder
+	in folder returned by Context.getCacheDir(), as there is no official
+	temp dir prior to API level 26. Clean up temp dir on launch in
+	GSInitializeProcessAndroid(). Also use Context.getCacheDir()
+	as NSCachesDirectory (with NSUserDomainMask) on Android.
+
 2019-10-27  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Headers/Foundation/NSUnit.h,
