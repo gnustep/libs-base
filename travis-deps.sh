@@ -8,7 +8,11 @@ install_gnustep_make() {
     cd $DEP_SRC
     git clone https://github.com/gnustep/tools-make.git
     cd tools-make
-    ./configure --prefix=$HOME/staging --with-library-combo=$LIBRARY_COMBO
+    if [ -n "$RUNTIME_VERSION" ]
+    then
+        echo "RUNTIME_VERSION=$RUNTIME_VERSION" > GNUstep.conf
+    fi
+    ./configure --prefix=$HOME/staging --with-library-combo=$LIBRARY_COMBO --with-user-config-file=$PWD/GNUstep.conf
 	make install
 }
 
