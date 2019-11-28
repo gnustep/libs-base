@@ -6,16 +6,15 @@ DEP_SRC=$HOME/dependency_source/
 
 install_gnustep_make() {
     cd $DEP_SRC
-    git clone https://github.com/gnustep/make.git
-    cd make
-    if [ $LIBRARY_COMBO = 'ng-gnu-gnu' ]
+    git clone https://github.com/gnustep/tools-make.git
+    cd tools-make
+    if [ -n "$RUNTIME_VERSION" ]
     then
-        ADDITIONAL_FLAGS="--enable-objc-nonfragile-abi"
-    else
-        ADDITIONAL_FLAGS=""
+        echo "RUNTIME_VERSION=$RUNTIME_VERSION" > GNUstep.conf
     fi
-    ./configure --prefix=$HOME/staging --with-library-combo=$LIBRARY_COMBO $ADDITIONAL_FLAGS
+    ./configure --prefix=$HOME/staging --with-library-combo=$LIBRARY_COMBO --with-user-config-file=$PWD/GNUstep.conf
 	make install
+    echo Objective-C build flags: `$HOME/staging/bin/gnustep-config --objc-flags`
 }
 
 install_ng_runtime() {
