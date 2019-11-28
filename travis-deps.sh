@@ -6,15 +6,9 @@ DEP_SRC=$HOME/dependency_source/
 
 install_gnustep_make() {
     cd $DEP_SRC
-    git clone https://github.com/gnustep/make.git
-    cd make
-    if [ $LIBRARY_COMBO = 'ng-gnu-gnu' ]
-    then
-        ADDITIONAL_FLAGS="--enable-objc-nonfragile-abi"
-    else
-        ADDITIONAL_FLAGS=""
-    fi
-    ./configure --prefix=$HOME/staging --with-library-combo=$LIBRARY_COMBO $ADDITIONAL_FLAGS
+    git clone https://github.com/gnustep/tools-make.git
+    cd tools-make
+    ./configure --prefix=$HOME/staging --with-library-combo=$LIBRARY_COMBO
 	make install
 }
 

@@ -6,13 +6,13 @@ compiler:
 env:
     - LIBRARY_COMBO=gnu-gnu-gnu
     - LIBRARY_COMBO=ng-gnu-gnu
-    - LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixed-abi
+    - LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixedabi
 matrix:
     exclude:
         - compiler: gcc
           env: LIBRARY_COMBO=ng-gnu-gnu
         - compiler: gcc
-          env: LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixed-abi
+          env: LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixedabi
         - compiler: clang
           env: LIBRARY_COMBO=gnu-gnu-gnu
 sudo: required
