@@ -41,6 +41,10 @@ before_install:
           sudo update-alternatives   --install /usr/bin/clang   clang   /usr/bin/clang-9   10 \
                                      --slave   /usr/bin/clang++ clang++ /usr/bin/clang++-9;
           export PATH=$(echo "$PATH" | sed -e 's/:\/usr\/local\/clang-7.0.0\/bin//');
+          if [ "$RUNTIME_VERSION" = "gnustep-2.0" ];
+          then
+             sudo update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.gold" 10;
+          fi;
         fi;
 install: ./travis-deps.sh
 before_script: >
