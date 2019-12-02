@@ -439,6 +439,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (void) setDateStyle: (NSDateFormatterStyle) style
 {
   internal->_dateStyle = style;
+  DESTROY(_dateFormat);
   [self _resetUDateFormat];
 }
 
@@ -450,6 +451,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (void) setTimeStyle: (NSDateFormatterStyle) style
 {
   internal->_timeStyle = style;
+  DESTROY(_dateFormat);
   [self _resetUDateFormat];
 }
 
@@ -992,7 +994,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
     udat_close (internal->_formatter);
 	
   NSTimeZone *zone = internal->_tz;
-  NSString *zoneName = [zone name];
+  NSString *zoneName = [zone standardName];
   tzIDLength = [zoneName length];
   tzID = malloc(sizeof(UChar) * tzIDLength);
   [zoneName getCharacters: tzID];

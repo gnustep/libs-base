@@ -111,7 +111,7 @@ typedef struct {
   
   cLocaleId = [my->localeID UTF8String];
   NSTimeZone *zone = (specificTimeZone ? specificTimeZone : my->tz);
-  tzName = [zone name];
+  tzName = [zone standardName];
   tzLen = [tzName length];
   if (tzLen > TZ_NAME_LENGTH)
     tzLen = TZ_NAME_LENGTH;
