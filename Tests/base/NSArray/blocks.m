@@ -4,10 +4,12 @@
 #import <Foundation/NSIndexSet.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSEnumerator.h>
+#import <Foundation/NSLock.h>
 #import <Foundation/NSValue.h>
 
 static NSUInteger fooCount = 0;
 static NSUInteger lastIndex = NSNotFound;
+static BOOL reverse = NO;
 int main()
 {
   START_SET("NSArray Blocks")
@@ -16,10 +18,20 @@ int main()
 # endif
 # if __has_feature(blocks)
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-
+  NSLock *lock = [[[NSLock alloc] init] autorelease];
   NSArray *array = [NSArray arrayWithObjects: @"foo", @"bar", @"foo", nil];
-  void(^enumBlock)(id,NSUInteger,BOOL*) =  ^(id obj, NSUInteger index, BOOL *stop){
-    if ([obj isEqual: @"foo"]){ fooCount++;} lastIndex = index;};
+  void(^enumBlock)(id,NSUInteger,BOOL*) =  ^(id obj, NSUInteger index, BOOL *stop) {
+   [lock lock];
+   if ([obj isEqual: @"foo"]) {
+      fooCount++;
+    }
+    if (lastIndex == NSNotFound) {
+      lastIndex = index;
+    } else {
+      lastIndex = reverse ? MIN(lastIndex, index) : MAX(lastIndex, index);
+    }
+    [lock unlock];
+  };
   [array enumerateObjectsUsingBlock: enumBlock];
   PASS((2 == fooCount) && (lastIndex == 2),
        "Can forward enumerate array using a block");
@@ -31,9 +43,11 @@ int main()
        "Can forward enumerate array concurrently using a block");
   fooCount = 0;
   lastIndex = NSNotFound;
+  reverse = YES;
   [array enumerateObjectsWithOptions: NSEnumerationReverse
                           usingBlock: enumBlock];
   PASS((0 == lastIndex), "Can enumerate array in reverse using a block");
+  reverse = NO;
   fooCount = 0;
   lastIndex = NSNotFound;
   enumBlock = ^(id obj, NSUInteger index, BOOL *stop){if ([obj isEqual: @"foo"]){
