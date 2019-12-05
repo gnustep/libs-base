@@ -568,7 +568,9 @@ GSListModules()
 #if defined(HAVE_UNWIND_H) && !defined(HAVE_BACKTRACE)
 
 #include <unwind.h>
+#if	!defined(_WIN32)
 #include <dlfcn.h>
+#endif
 
 struct GSBacktraceState
 {
