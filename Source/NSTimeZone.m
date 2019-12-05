@@ -3096,13 +3096,23 @@ GSBreakTime(NSTimeInterval when,
 			}
 	    }
 	  
+	  if (!standardName)
+	    {
+		  // Fall back to "Etc/GMT+X" based on the offset if the name couldn't be resolved
+		  NSInteger theOffset = [self secondsFromGMT];
+		  BOOL isNegative = theOffset < 0;
+		  if (isNegative)
+		    theOffset = -theOffset;
+		  int hours = theOffset / 3600;
+		  standardName = [NSString stringWithFormat:@"Etc/GMT%@%d", (isNegative ? @"+" : @"-"), hours]; // note: sign is reversed in these identifiers
+		}
 	  if (standardName)
 	    {
 		  standardZoneIdentifier = [standardName copy];
           NSDebugLLog(@"NSTimeZone",@"Found translation '%@' for zone '%@'", standardName, [self name]);
 		}
 	  else
-	    {
+	    {		  
 		  standardZoneIdentifier = [identifier copy];
           NSDebugLLog(@"NSTimeZone",@"No translation for zone '%@'", [self name]);
 		}
