@@ -1,3 +1,12 @@
+2019-11-26  Niels Grewe <niels.grewe@halbordnung.de>
+
+	* Source/NSRunLoop.m:
+	* Tests/base/NSRunLoop/dispatch.m:
+	Fix runloop integration for libdispatch from swift-corelibs
+	* .travis.yml:
+	* travis-deps.yml:
+	Fix CI related to libdispatch.
+
 2019-11-15  Frederik Seiffert <frederik@algoriddim.com>
 
 	* configure.ac: check for unwind.h
