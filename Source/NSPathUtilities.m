@@ -1950,9 +1950,7 @@ NSTemporaryDirectory(void)
   int		perm;
   int		owner;
   BOOL		flag;
-#if	!defined(_WIN32)
-  int		uid;
-#else
+#if defined(_WIN32)
   unichar buffer[1024];
 
   if (GetTempPathW(1024, buffer))
@@ -1960,6 +1958,20 @@ NSTemporaryDirectory(void)
       baseTempDirName = [NSString stringWithCharacters: buffer
 						length: wcslen(buffer)];
     }
+#elif defined(__ANDROID__)
+  /*
+   * Use subfolder of cache directory as temp dir on Android, as there
+   * is no official temp dir prior to API level 26, and the cache dir
+   * is at least auto-purged by the system if disk space is needed.
+   * We also clean it up on launch in GSInitializeProcessAndroid().
+   */
+  NSString *cacheDir = [[NSProcessInfo processInfo] androidCacheDir];
+  if (cacheDir)
+    {
+      baseTempDirName = [cacheDir stringByAppendingPathComponent: @"tmp"];
+    }
+#else
+  int		uid;
 #endif
 
   /*
@@ -2004,9 +2016,30 @@ NSTemporaryDirectory(void)
   if ([manager fileExistsAtPath: tempDirName isDirectory: &flag] == NO
     || flag == NO)
     {
+#ifdef __ANDROID__
+      /*
+       * Create our own temp dir on Android. We can disregard attributes
+       * since they are not supported.
+       */
+      if ([manager createDirectoryAtPath: tempDirName
+             withIntermediateDirectories: YES
+                              attributes: nil
+                                   error: NULL] == NO)
+        {
+          NSWarnFLog(@"Attempt to create temporary directory (%@)"
+            @" failed.", tempDirName);
+          return nil;
+        }
+#else
       NSWarnFLog(@"Temporary directory (%@) does not exist", tempDirName);
       return nil;
+#endif
     }
+
+// Mateu Batle: secure temporary directories don't work in MinGW
+// Ivan Vucica: there are also problems with Cygwin
+//              probable cause: http://stackoverflow.com/q/9561759/39974
+#if !defined(_WIN32) && !defined(__CYGWIN__) && !defined(__ANDROID__)
 
   /*
    * Check that we are the directory owner, and that we, and nobody else,
@@ -2018,20 +2051,11 @@ NSTemporaryDirectory(void)
   perm = [[attr objectForKey: NSFilePosixPermissions] intValue];
   perm = perm & 0777;
 
-// Mateu Batle: secure temporary directories don't work in MinGW
-// Ivan Vucica: there are also problems with Cygwin
-//              probable cause: http://stackoverflow.com/q/9561759/39974
-#if !defined(_WIN32) && !defined(__CYGWIN__)
-
-#if	defined(_WIN32)
-  uid = owner;
-#else
 #ifdef HAVE_GETEUID
   uid = geteuid();
 #else
   uid = getuid();
 #endif /* HAVE_GETEUID */
-#endif
   if ((perm != 0700 && perm != 0600) || owner != uid)
     {
       NSString	*secure;
@@ -2472,12 +2496,17 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 
       case NSCachesDirectory:
 	{
+#ifdef __ANDROID__
+	  /* Use system-provided cache directory on Android */
+	  ADD_PATH(NSUserDomainMask, [[NSProcessInfo processInfo] androidCacheDir], @"");
+#else
 	  /* Uff - at the moment the only place to put Caches seems to
 	   * be Library.  Unfortunately under GNU/Linux Library will
 	   * end up in /usr/lib/GNUstep which could be mounted
 	   * read-only!
 	   */
 	  ADD_PATH(NSUserDomainMask, gnustepUserLibrary, @"Caches");
+#endif
 	  ADD_PATH(NSLocalDomainMask, gnustepLocalLibrary, @"Caches");
 	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibrary, @"Caches");
 	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary, @"Caches");

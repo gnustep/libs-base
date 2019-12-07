@@ -8,14 +8,12 @@
 
 const NSTimeInterval kDelay = 0.01;
 
-#if HAVE_LIBDISPATCH_RUNLOOP && __has_feature(blocks)
+#if GS_USE_LIBDISPATCH_RUNLOOP && __has_feature(blocks)
 #  define DISPATCH_RL_INTEGRATION 1
-#  ifdef HAVE_DISPATCH_H
+#  if __has_include(<dispatch.h>)
 #    include <dispatch.h>
 #  else
-#    ifdef HAVE_DISPATCH_DISPATCH_H
-#      include <dispatch/dispatch.h>
-#    endif
+#    include <dispatch/dispatch.h>
 #  endif
 #endif
 

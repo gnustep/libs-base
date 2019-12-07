@@ -215,6 +215,7 @@ NSConcreteMapTable.m \
 NSConnection.m \
 NSData.m \
 NSDate.m \
+NSDateComponentsFormatter.m \
 NSDateFormatter.m \
 NSDateInterval.m \
 NSDateIntervalFormatter.m \
@@ -229,6 +230,8 @@ NSEnergyFormatter.m \
 NSEnumerator.m \
 NSError.m \
 NSException.m \
+NSExtensionContext.m \
+NSExtensionItem.m \
 NSFileCoordinator.m \
 NSFileHandle.m \
 NSFileManager.m \
@@ -247,12 +250,15 @@ NSIndexSet.m \
 NSInvocation.m \
 NSInvocationOperation.m \
 NSISO8601DateFormatter.m \
+NSItemProvider.m \
+NSItemProviderReadingWriting.m \
 NSJSONSerialization.m \
 NSKeyedArchiver.m \
 NSKeyedUnarchiver.m \
 NSKeyValueCoding.m \
 NSKeyValueObserving.m \
 NSLengthFormatter.m \
+NSLinguisticTagger.m \
 NSLocale.m \
 NSLock.m \
 NSLog.m \
@@ -275,6 +281,7 @@ NSObjectScripting.m \
 NSObject+NSComparisonMethods.m \
 NSOperation.m \
 NSOrderedSet.m \
+NSOrthography.m \
 NSPage.m \
 NSPathUtilities.m \
 NSPersonNameComponents.m \
@@ -348,6 +355,7 @@ NSXMLDTDNode.m \
 NSXMLElement.m \
 NSXMLNode.m \
 NSXMLParser.m \
+NSXPCConnection.m \
 NSZone.m \
 externs.m \
 objc-load.m 
@@ -397,6 +405,7 @@ tzfile.h
 FOUNDATION_HEADERS = \
 Foundation.h \
 FoundationErrors.h \
+FoundationLegacySwiftCompatibility.h \
 NSAffineTransform.h \
 NSAppleEventDescriptor.h \
 NSAppleEventManager.h \
@@ -419,6 +428,7 @@ NSComparisonPredicate.h \
 NSCompoundPredicate.h \
 NSConnection.h \
 NSData.h \
+NSDateComponentsFormatter.h \
 NSDateFormatter.h \
 NSDateInterval.h \
 NSDateIntervalFormatter.h \
@@ -435,6 +445,9 @@ NSEnumerator.h \
 NSError.h \
 NSErrorRecoveryAttempting.h \
 NSException.h \
+NSExtensionContext.h \
+NSExtensionItem.h \
+NSExtensionRequestHandling.h \
 NSExpression.h \
 NSFileCoordinator.h \
 NSFileHandle.h \
@@ -455,11 +468,14 @@ NSIndexSet.h \
 NSInvocation.h \
 NSInvocationOperation.h \
 NSISO8601DateFormatter.h \
+NSItemProvider.h \
+NSItemProviderReadingWriting.h \
 NSJSONSerialization.h \
 NSKeyedArchiver.h \
 NSKeyValueCoding.h \
 NSKeyValueObserving.h \
 NSLengthFormatter.h \
+NSLinguisticTagger.h \
 NSLocale.h \
 NSLock.h \
 NSMapTable.h \
@@ -479,6 +495,7 @@ NSObject.h \
 NSObjectScripting.h \
 NSOperation.h \
 NSOrderedSet.h \
+NSOrthography.h \
 NSPathUtilities.h \
 NSPersonNameComponents.h \
 NSPersonNameComponentsFormatter.h \
@@ -551,6 +568,7 @@ NSXMLElement.h \
 NSXMLNode.h \
 NSXMLNodeOptions.h \
 NSXMLParser.h \
+NSXPCConnection.h \
 NSZone.h
 
 HEADERS_INSTALL = \

@@ -75,7 +75,9 @@ typedef GSIMapNode_t *GSIMapNode;
 #define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ
 #define	GSI_MAP_TABLE_T	NSConcreteHashTable
 #define	GSI_MAP_TABLE_S	instanceSize
-
+  
+#define IS_WEAK(M) \
+      M->cb.pf.options & (NSPointerFunctionsZeroingWeakMemory | NSPointerFunctionsWeakMemory)
 #define GSI_MAP_HASH(M, X)\
  (M->legacy ? M->cb.old.hash(M, X.ptr) \
  : pointerFunctionsHash(&M->cb.pf, X.ptr))
@@ -84,13 +86,13 @@ typedef GSIMapNode_t *GSIMapNode;
  : pointerFunctionsEqual(&M->cb.pf, X.ptr, Y.ptr))
 #define GSI_MAP_RELEASE_KEY(M, X)\
  (M->legacy ? M->cb.old.release(M, X.ptr) \
- : pointerFunctionsRelinquish(&M->cb.pf, &X.ptr))
+  : IS_WEAK(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf, &X.ptr))
 #define GSI_MAP_RETAIN_KEY(M, X)\
  (M->legacy ? M->cb.old.retain(M, X.ptr) \
- : pointerFunctionsAcquire(&M->cb.pf, &X.ptr, X.ptr))
+  : IS_WEAK(M) ? nil : pointerFunctionsAcquire(&M->cb.pf, &X.ptr, X.ptr))
 #define GSI_MAP_ZEROED(M)\
  (M->legacy ? 0 \
- : ((M->cb.pf.options & NSPointerFunctionsZeroingWeakMemory) ? YES : NO))
+ : (IS_WEAK(M) ? YES : NO))
 
 #define GSI_MAP_WRITE_KEY(M, addr, x) \
 	if (M->legacy) \
@@ -100,9 +102,6 @@ typedef GSIMapNode_t *GSIMapNode;
 #define GSI_MAP_READ_KEY(M,addr) \
 	(M->legacy ? *(addr) :\
 	 (typeof(*addr))pointerFunctionsRead(&M->cb.pf, (void**)addr))
-#define GSI_MAP_ZEROED(M)\
- (M->legacy ? 0 \
- : ((M->cb.pf.options & NSPointerFunctionsZeroingWeakMemory) ? YES : NO))
 
 #define	GSI_MAP_ENUMERATOR	NSHashEnumerator
 
@@ -628,7 +627,13 @@ NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
 	}
       else
 	{
-	  return n->key.ptr;
+	  NSConcreteHashTable *map = enumerator->map;
+	  GSIMapKey k = GSI_MAP_READ_KEY(map, &n->key);
+	  if (k.ptr == NULL)
+	    {
+		return NSNextHashEnumeratorItem(enumerator);
+	    }
+	  return k.ptr;
 	}
     }
   else if (enumerator->node != 0)	// Got an enumerator object

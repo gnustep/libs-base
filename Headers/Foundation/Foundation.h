@@ -31,6 +31,7 @@
 #import	<objc/objc.h>
 
 #import	<Foundation/FoundationErrors.h>
+#import <Foundation/FoundationLegacySwiftCompatibility.h>
 #import	<Foundation/NSObjCRuntime.h>
 #import <GNUstepBase/GSConfig.h>
 #import	<Foundation/NSDebug.h>
@@ -57,6 +58,7 @@
 #import	<Foundation/NSCompoundPredicate.h>
 #import	<Foundation/NSConnection.h>
 #import	<Foundation/NSData.h>
+#import <Foundation/NSDateComponentsFormatter.h>
 #import	<Foundation/NSDateFormatter.h>
 #import <Foundation/NSDateInterval.h>
 #import <Foundation/NSDateIntervalFormatter.h>
@@ -71,6 +73,9 @@
 #import	<Foundation/NSError.h>
 #import	<Foundation/NSException.h>
 #import	<Foundation/NSExpression.h>
+#import <Foundation/NSExtensionContext.h>
+#import <Foundation/NSExtensionItem.h>
+#import <Foundation/NSExtensionRequestHandling.h>
 #import	<Foundation/NSFileCoordinator.h>
 #import	<Foundation/NSFileHandle.h>
 #import	<Foundation/NSFileManager.h>
@@ -90,11 +95,14 @@
 #import	<Foundation/NSInvocation.h>
 #import <Foundation/NSInvocationOperation.h>
 #import <Foundation/NSISO8601DateFormatter.h>
+#import <Foundation/NSItemProvider.h>
+#import <Foundation/NSItemProviderReadingWriting.h>
 #import	<Foundation/NSJSONSerialization.h>
 #import	<Foundation/NSKeyedArchiver.h>
 #import	<Foundation/NSKeyValueCoding.h>
 #import	<Foundation/NSKeyValueObserving.h>
 #import <Foundation/NSLengthFormatter.h>
+#import <Foundation/NSLinguisticTagger.h>
 #import	<Foundation/NSLock.h>
 #import	<Foundation/NSLocale.h>
 #import	<Foundation/NSMapTable.h>
@@ -111,6 +119,7 @@
 #import <Foundation/NSObjectScripting.h>
 #import	<Foundation/NSOperation.h>
 #import <Foundation/NSOrderedSet.h>
+#import <Foundation/NSOrthography.h>
 #import	<Foundation/NSPathUtilities.h>
 #import <Foundation/NSPersonNameComponents.h>
 #import <Foundation/NSPersonNameComponentsFormatter.h>
@@ -179,6 +188,7 @@
 #import <Foundation/NSXMLNode.h>
 #import <Foundation/NSXMLNodeOptions.h>
 #import	<Foundation/NSXMLParser.h>
+#import <Foundation/NSXPCConnection.h>
 #import	<Foundation/NSZone.h>
 
 #ifdef __has_include

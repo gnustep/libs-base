@@ -15,16 +15,7 @@ Missing macros:
 
 Missing headers:
 ==
-FoundationLegacySwiftCompatibility.h
-NSDateComponentsFormatter.h
-NSExtensionContext.h
-NSExtensionItem.h
-NSExtensionRequestHandling.h
-NSItemProvider.h
-NSItemProviderReadingWriting.h
-NSLinguisticTagger.h
-NSOrthography.h
-NSXPCConnection.h
+NONE
 
 -------------------------------------------------------------
 FoundationErrors:

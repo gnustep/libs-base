@@ -2321,6 +2321,8 @@ fi
 
 AC_CHECK_FUNCS(__builtin_extract_return_address)
 
+AC_CHECK_HEADERS(unwind.h)
+
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
 #--------------------------------------------------------------------

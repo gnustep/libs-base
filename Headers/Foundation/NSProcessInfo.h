@@ -273,6 +273,7 @@ DEFINE_BLOCK_TYPE(GSPerformExpiringActivityBlock, void, BOOL);
 #ifdef __ANDROID__
 - (jobject) androidContext;
 - (NSString *) androidFilesDir;
+- (NSString *) androidCacheDir;
 #endif
 
 @end

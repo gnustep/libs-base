@@ -9079,6 +9079,19 @@ fi
 done
 
 
+for ac_header in unwind.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "unwind.h" "ac_cv_header_unwind_h" "$ac_includes_default"
+if test "x$ac_cv_header_unwind_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_UNWIND_H 1
+_ACEOF
+
+fi
+
+done
+
+
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
 #--------------------------------------------------------------------
