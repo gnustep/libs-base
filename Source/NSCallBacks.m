@@ -17,7 +17,7 @@
  * This library is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
+ * Lesser General Public License for more details.
  *
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free
@@ -25,7 +25,7 @@
    <title>NSCallBacks class reference</title>
    $Date$ $Revision$
  * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02111 USA. */
+ * Boston, MA 02110 USA. */
 
 /**** Included Headers *******************************************************/
 
