@@ -627,7 +627,9 @@ NSNextHashEnumeratorItem(NSHashEnumerator *enumerator)
 	}
       else
 	{
-	  return n->key.ptr;
+          NSConcreteHashTable *map = enumerator->map;
+
+          return GSI_MAP_READ_KEY(map, &n->key).ptr;
 	}
     }
   else if (enumerator->node != 0)	// Got an enumerator object

@@ -882,9 +882,11 @@ NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
 	}
       else
 	{
+          NSConcreteMapTable *map = enumerator->map;
+
           if (key != 0)
             {
-	      *key = n->key.ptr;
+	      *key = GSI_MAP_READ_KEY(map, &n->key).ptr;
 	    }
 	  else
 	    {
@@ -893,7 +895,7 @@ NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
 
 	  if (value != 0)
 	    {
-	      *value = n->value.ptr;
+	      *value = GSI_MAP_READ_VALUE(map, &n->value).ptr;
 	    }
 	  else
 	    {
