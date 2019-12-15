@@ -1,3 +1,10 @@
+2019-12-15  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Headers/GNUstepBase/GSIMap.h: Use GSI_MAP_NODE_IS_EMPTY macros
+	when checking in enumerator.
+	* Source/NSConcreteHashTable.m,
+	* Source/NSConcreteMapTable.m: Revert part of the weak pointer change.
+
 2019-10-17  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Tests/base/NSHashTable/weakObjects.m:

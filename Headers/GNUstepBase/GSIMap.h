@@ -945,7 +945,7 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 	{
 	  uintptr_t	bucket = ((_GSIE)enumerator)->bucket;
 
-	  while (next != 0 && next->key.addr == 0)
+	  while (next != 0 && GSI_MAP_NODE_IS_EMPTY(map, next))
 	    {
 	      next = GSIMapRemoveAndFreeNode(map, bucket, next);
 	    }
@@ -961,7 +961,7 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 	      while (next == 0 && ++bucket < bucketCount)
 		{
 		  next = (map->buckets[bucket]).firstNode;
-		  while (next != 0 && next->key.addr == 0)
+		  while (next != 0 && GSI_MAP_NODE_IS_EMPTY(map, next))
 		    {
 		      next = GSIMapRemoveAndFreeNode(map, bucket, next);
 		    }

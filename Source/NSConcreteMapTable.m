@@ -882,17 +882,23 @@ NSNextMapEnumeratorPair(NSMapEnumerator *enumerator,
 	}
       else
 	{
-	  NSConcreteMapTable *map = enumerator->map;
-	  GSIMapKey k = GSI_MAP_READ_KEY(map, &n->key);
-	  GSIMapVal v = GSI_MAP_READ_VALUE(map, &n->value);
-	  if (k.ptr == NULL || v.ptr == NULL)
-	    {
-	      return NSNextMapEnumeratorPair(enumerator, key, value);
+          if (key != 0)
+            {
+	      *key = n->key.ptr;
 	    }
+	  else
+	    {
+	      NSWarnFLog(@"Null key return address");
+            }
 
-	  *key = k.ptr;
-	  *value = v.ptr;
-
+	  if (value != 0)
+	    {
+	      *value = n->value.ptr;
+	    }
+	  else
+	    {
+	      NSWarnFLog(@"Null value return address");
+	    }
 	  return YES;
 	}
     }
