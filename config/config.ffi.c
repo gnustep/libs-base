@@ -8,7 +8,14 @@ typedef struct cls_struct_combined {
   float b;
   float c;
   float d;
-  float e; // Testplant: Work around 64bit libffi bug passing 16byte structs by value
+
+#ifndef __MINGW64__
+  // Testplant: Work around 64bit libffi bug passing 16byte structs by value.
+  // Note that this workaround was removed for Windows when we moved from
+  // clang 3 to clang 7, so this can probably be removed for Linux as well
+  // when we get those toolchains up to 7.
+  float e;
+#endif
 } cls_struct_combined;
 
 void cls_struct_combined_fn(struct cls_struct_combined arg)
