@@ -25,8 +25,8 @@
 /* Declare the block copy functions ourself so that we don't depend on a
  * specific header location.
  */
-void *_Block_copy(const void *);
-void _Block_release(const void *);
+void *_Block_copy(void *);
+void _Block_release(void *);
 
 @interface GSBlock : NSObject
 @end

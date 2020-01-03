@@ -205,7 +205,7 @@ struct StackBlockClass {
  * increments its retain count.
  */
 void *
-_Block_copy(const void *src)
+_Block_copy(void *src)
 {
   struct StackBlockClass *self = src;
   struct StackBlockClass *ret = self;
