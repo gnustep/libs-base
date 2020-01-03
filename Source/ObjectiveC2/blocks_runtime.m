@@ -211,7 +211,7 @@ _Block_copy(void *src)
 #else
 // Testplant -- keep this part when moving to newer libobjc on linux.
 _Block_copy(const void *src)
-#endif
+#endif // __MINGW32__
 {
   struct StackBlockClass *self = src;
   struct StackBlockClass *ret = self;

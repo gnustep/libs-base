@@ -145,6 +145,6 @@ void _Block_release(void *) __attribute__((weak));
 #ifndef Block_release
 #  define Block_release(x) _Block_release((const void *)(x))
 #endif
-#endif __MINGW32__
+#endif // __MINGW32__
 
 #endif /* __GSBlocks_h_GNUSTEP_BASE_INCLUDE */
