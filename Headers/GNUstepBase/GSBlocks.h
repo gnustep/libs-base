@@ -129,11 +129,22 @@ void _Block_release(void *) __attribute__((weak));
 }
 #endif
 
+// Testplant -- this workaround is temporary until we move to a newer libobjc on linux.
+#ifndef __MINGW32__
 #ifndef Block_copy
 #  define Block_copy(x) ((__typeof(x))_Block_copy((void *)(x)))
 #endif
 #ifndef Block_release
 #  define Block_release(x) _Block_release((void *)(x))
 #endif
+#else
+// Testplant -- keep this part when moving to newer libobjc on linux.
+#ifndef Block_copy
+#  define Block_copy(x) ((__typeof(x))_Block_copy((const void *)(x)))
+#endif
+#ifndef Block_release
+#  define Block_release(x) _Block_release((const void *)(x))
+#endif
+#endif __MINGW32__
 
 #endif /* __GSBlocks_h_GNUSTEP_BASE_INCLUDE */

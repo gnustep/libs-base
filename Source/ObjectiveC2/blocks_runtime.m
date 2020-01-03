@@ -205,7 +205,13 @@ struct StackBlockClass {
  * increments its retain count.
  */
 void *
+// Testplant -- this workaround is temporary until we move to a newer libobjc on linux.
+#ifndef __MINGW32__
 _Block_copy(void *src)
+#else
+// Testplant -- keep this part when moving to newer libobjc on linux.
+_Block_copy(const void *src)
+#endif
 {
   struct StackBlockClass *self = src;
   struct StackBlockClass *ret = self;

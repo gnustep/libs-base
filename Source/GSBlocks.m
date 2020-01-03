@@ -25,8 +25,15 @@
 /* Declare the block copy functions ourself so that we don't depend on a
  * specific header location.
  */
+// Testplant -- this workaround is temporary until we move to a newer libobjc on linux.
+#ifndef __MINGW32__
 void *_Block_copy(void *);
 void _Block_release(void *);
+#else
+// Testplant -- keep this part when moving to newer libobjc on linux.
+void *_Block_copy(const void *);
+void _Block_release(const void *);
+#endif // __MINGW32__
 
 @interface GSBlock : NSObject
 @end
