@@ -52,7 +52,7 @@
     format: @"method %@ not implemented in %@(class)",
     selector ? (id)NSStringFromSelector(selector) : (id)@"(null)",
     NSStringFromClass(self)];
-  while (0) ;   // Does not return
+  while (1) ;   // Does not return
 }
 
 - (NSComparisonResult) compare: (id)anObject
@@ -116,7 +116,7 @@
     format: @"[%@%c%@] not implemented",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  while (0) ;   // Does not return
+  while (1) ;   // Does not return
 }
 
 - (id) shouldNotImplement: (SEL)aSel
@@ -128,7 +128,7 @@
     format: @"[%@%c%@] should not be implemented",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  while (0) ;   // Does not return
+  while (1) ;   // Does not return
 }
 
 - (id) subclassResponsibility: (SEL)aSel
@@ -139,7 +139,7 @@
     format: @"[%@%c%@] should be overridden by subclass",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  while (0) ;   // Does not return
+  while (1) ;   // Does not return
 }
 
 @end
