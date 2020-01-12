@@ -1,5 +1,9 @@
 2020-01-12  Fred Kiefer <fredkiefer@gmx.de>
 
+	* Source/NSPredicate.m: Add support for NSDate constants.
+
+2020-01-12  Fred Kiefer <fredkiefer@gmx.de>
+
 	* Source/NSKeyValueObserving.m: Implement two missing KVO methods
 	on NSArray.
 

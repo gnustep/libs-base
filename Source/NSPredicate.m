@@ -38,6 +38,7 @@
 #import "Foundation/NSPredicate.h"
 
 #import "Foundation/NSArray.h"
+#import "Foundation/NSDate.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
@@ -1313,6 +1314,11 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       GSPropertyListMake(_obj, nil, NO, YES, 2, &result);
       return result;
     }
+  else if ([_obj isKindOfClass: [NSDate class]])
+    {
+      return [NSString stringWithFormat: @"CAST(%15.6f, \"NSDate\")",
+                       [(NSDate*)_obj timeIntervalSinceReferenceDate]];
+    }
   return [_obj description];
 }
 
@@ -1718,6 +1724,20 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       sum += [o doubleValue];
     }
   return [NSNumber numberWithDouble: sum];
+}
+
+- (id) _eval_CAST: (NSArray *)expressions
+{
+  id left = [expressions objectAtIndex: 0];
+  id right = [expressions objectAtIndex: 1];
+
+  if ([right isEqualToString: @"NSDate"])
+    {
+      return [[NSDate alloc] initWithTimeIntervalSinceReferenceDate: [left doubleValue]];
+    }
+
+  NSLog(@"Cast to unknown type %@", right);
+  return nil;
 }
 
 // add arithmetic functions: average, median, mode, stddev, sqrt, log, ln, exp, floor, ceiling, abs, trunc, random, randomn, now
