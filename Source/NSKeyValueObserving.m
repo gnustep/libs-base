@@ -30,6 +30,7 @@
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSHashTable.h"
+#import "Foundation/NSIndexSet.h"
 #import "Foundation/NSKeyValueCoding.h"
 #import "Foundation/NSKeyValueObserving.h"
 #import "Foundation/NSLock.h"
@@ -1579,7 +1580,19 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
 	     options: (NSKeyValueObservingOptions)options
 	     context: (void*)aContext
 {
-  [self notImplemented: _cmd];
+  NSUInteger i = [indexes firstIndex];
+
+  while (i != NSNotFound)
+    {
+      NSObject *elem = [self objectAtIndex: i];
+
+      [elem addObserver: anObserver
+             forKeyPath: aPath
+                options: options
+                context: aContext];
+
+      i = [indexes indexGreaterThanIndex: i];
+    }
 }
 
 - (void) removeObserver: (NSObject*)anObserver forKeyPath: (NSString*)aPath
@@ -1593,7 +1606,17 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
    fromObjectsAtIndexes: (NSIndexSet*)indexes
 	     forKeyPath: (NSString*)aPath
 {
-  [self notImplemented: _cmd];
+  NSUInteger i = [indexes firstIndex];
+
+  while (i != NSNotFound)
+    {
+      NSObject *elem = [self objectAtIndex: i];
+
+      [elem removeObserver: anObserver
+                forKeyPath: aPath];
+
+      i = [indexes indexGreaterThanIndex: i];
+    }
 }
 
 @end

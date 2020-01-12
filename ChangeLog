@@ -1,3 +1,8 @@
+2020-01-12  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSKeyValueObserving.m: Implement two missing KVO methods
+	on NSArray.
+
 2019-12-15  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Headers/GNUstepBase/GSIMap.h: Use GSI_MAP_NODE_IS_EMPTY macros
