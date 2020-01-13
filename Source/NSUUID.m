@@ -43,7 +43,7 @@ static const int kUUIDByteCount = 16;
  */
 @implementation NSUUID
 
-+ (id) UUID
++ (instancetype) UUID
 {
   id    u;
 
@@ -51,7 +51,7 @@ static const int kUUIDByteCount = 16;
   return AUTORELEASE(u);
 }
 
-- (id) init
+- (instancetype) init
 {
   gsuuid_t      localUUID;
   int           result;
@@ -65,7 +65,7 @@ static const int kUUIDByteCount = 16;
   return [self initWithUUIDBytes: localUUID];
 }
 
-- (id) initWithUUIDString: (NSString *)string
+- (instancetype) initWithUUIDString: (NSString *)string
 {
   gsuuid_t      localUUID;
   const char    *cString;
@@ -81,7 +81,7 @@ static const int kUUIDByteCount = 16;
   return [self initWithUUIDBytes: localUUID];
 }
 
-- (id) initWithUUIDBytes: (gsuuid_t)bytes
+- (instancetype) initWithUUIDBytes: (gsuuid_t)bytes
 {
   if (nil != (self = [super init]))
     {
