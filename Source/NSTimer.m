@@ -146,18 +146,18 @@ static Class	NSDate_class;
   return self;
 }
 
-- (instancetype) initWithFireDate: (NSDate *)date 
-                         interval: (NSTimeInterval)interval 
-                          repeats: (BOOL)repeats 
+- (instancetype) initWithFireDate: (NSDate *)date
+                         interval: (NSTimeInterval)interval
+                          repeats: (BOOL)repeats
                             block: (GSTimerBlock)block
 {
+  ASSIGN(_block, block);
   return [self initWithFireDate: date
                        interval: interval
                          target: nil
                        selector: NULL
                        userInfo: nil
                         repeats: repeats];
-  ASSIGN(_block, block);
 }
 
 /**
@@ -254,7 +254,7 @@ static Class	NSDate_class;
                                   block: block];
   [[NSRunLoop currentRunLoop] addTimer: t forMode: NSDefaultRunLoopMode];
   RELEASE(t);
-  return t;  
+  return t;
 }
 
 - (void) dealloc
@@ -286,12 +286,12 @@ static Class	NSDate_class;
       else
         {
           id	target;
-          
+
           /* We retain the target so it won't be deallocated while we are using
            * it (if this timer gets invalidated while we are firing).
            */
           target = RETAIN(_target);
-          
+
           if (_selector == 0)
             {
               NS_DURING
@@ -328,7 +328,7 @@ static Class	NSDate_class;
 	    }
           RELEASE(target);
         }
-      
+
       if (_repeats == NO)
         {
           [self invalidate];
