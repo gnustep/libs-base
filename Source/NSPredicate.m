@@ -891,6 +891,18 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 }
 #endif
 
+- (double) doubleValueFor: (id)value
+{
+  if ([value isKindOfClass: [NSDate class]])
+    {
+      return [(NSDate*)value timeIntervalSinceReferenceDate];
+    }
+  else
+    {
+      return [value doubleValue];
+    }
+}
+
 - (BOOL) _evaluateLeftValue: (id)leftResult
 		 rightValue: (id)rightResult
 		     object: (id)object
@@ -942,26 +954,26 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
     {
       case NSLessThanPredicateOperatorType:
         {
-          double ld = [leftResult doubleValue];
-          double rd = [rightResult doubleValue];
+          double ld = [self doubleValueFor: leftResult];
+          double rd = [self doubleValueFor: rightResult];
           return (ld < rd) ? YES : NO;
         }
       case NSLessThanOrEqualToPredicateOperatorType:
         {
-          double ld = [leftResult doubleValue];
-          double rd = [rightResult doubleValue];
+          double ld = [self doubleValueFor: leftResult];
+          double rd = [self doubleValueFor: rightResult];
           return (ld <= rd) ? YES : NO;
         }
       case NSGreaterThanPredicateOperatorType:
         {
-          double ld = [leftResult doubleValue];
-          double rd = [rightResult doubleValue];
+          double ld = [self doubleValueFor: leftResult];
+          double rd = [self doubleValueFor: rightResult];
           return (ld > rd) ? YES : NO;
         }
       case NSGreaterThanOrEqualToPredicateOperatorType:
         {
-          double ld = [leftResult doubleValue];
-          double rd = [rightResult doubleValue];
+          double ld = [self doubleValueFor: leftResult];
+          double rd = [self doubleValueFor: rightResult];
           return (ld >= rd) ? YES : NO;
         }
       case NSEqualToPredicateOperatorType:
