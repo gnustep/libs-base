@@ -9,7 +9,7 @@ any classes used by a new thread have already been used in the main thread
 before the new thread starts.
 
 If you are worried, please build/run GNUstep with a runtime which supports
-the +initialize method. The GNUstep stable runtime (libobjc) and experimental
+the +initialize method. The GNUstep stable runtime (libobjc) and clang
 runtime (libobjc2), available from the GNUstep website and subversion
 repository, should both work.
 
