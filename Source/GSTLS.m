@@ -1117,7 +1117,8 @@ static NSMutableDictionary      *credentialsCache = nil;
   NSMutableString       *k;
 
   /* Build a unique key for the credentials based on all the
-   * information (file names and password) used to build them.
+   * information used to build them (apart from password used
+   * to load the key).
    */
   k = [NSMutableString stringWithCapacity: 1024];
   ca = standardizedPath(ca);
@@ -1133,8 +1134,6 @@ static NSMutableDictionary      *credentialsCache = nil;
   if (nil != cf) [k appendString: cf];
   [k appendString: @":"];
   if (nil != ck) [k appendString: ck];
-  [k appendString: @":"];
-  if (nil != cp) [k appendString: cp];
 
   [credentialsLock lock];
   c = [credentialsCache objectForKey: k];

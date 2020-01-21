@@ -1,3 +1,23 @@
+2020-01-20  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSPredicate.m: Allow simple predicates on NSDate.
+
+2020-01-20  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTLS.m: remove certificate key password from hash key of
+	credentials since it's unnecessary there and we don't want it to be
+	logged when debug is on (for security, passwords shouldn't appear
+	in logs).
+
+2020-01-12  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSPredicate.m: Add support for NSDate constants.
+
+2020-01-12  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSKeyValueObserving.m: Implement two missing KVO methods
+	on NSArray.
+
 2019-12-15  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Headers/GNUstepBase/GSIMap.h: Use GSI_MAP_NODE_IS_EMPTY macros
