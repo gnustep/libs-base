@@ -64,8 +64,15 @@
   NSMutableString	*urlString;
   NSString		*s;
 
-  urlString = [scheme mutableCopy];
-  [urlString appendString: @"://"];
+  if (scheme != nil)
+    {
+      urlString = [scheme mutableCopy];
+      [urlString appendString: @"://"];
+    }
+  else
+    {
+      urlString = [[NSMutableString alloc] init];
+    }
   if ([user length] > 0 || [password length] > 0)
     {
       if (nil == (s = user)) s = @"";
