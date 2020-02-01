@@ -3146,13 +3146,13 @@ AC_ARG_ENABLE(xml,
   [  --disable-xml			Build even if XML-dependencies are not met],,
   enable_xml=yes)
 
-if test $enable_xml = yes; then
-  # Save CFLAGS and LIBS as AM_PATH_XML clobbers these variables regardless
-  # of the success of the macro.
-  saved_LIBS="$LIBS"
-  saved_CFLAGS="$CFLAGS"
+HAVE_LIBXML=0
 
-  AM_PATH_XML(2.3.0, enable_libxml=yes, enable_libxml=no)
+if test $enable_xml = yes; then
+  PKG_CHECK_MODULES([XML], [libxml-2.0 >= 2.3.0], [enable_libxml=yes], [
+    AM_PATH_XML(2.3.0, enable_libxml=yes, enable_libxml=no)
+  ])
+
   if test $enable_libxml = yes; then
     CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
     INCLUDE_FLAGS="$INCLUDE_FLAGS $XML_CFLAGS"
@@ -3160,6 +3160,7 @@ if test $enable_xml = yes; then
     HAVE_LIBXML=1
     AC_DEFINE(HAVE_LIBXML,1,[Define if libxml available])
     AC_CHECK_HEADERS(libxml/SAX2.h)
+
     #--------------------------------------------------------------------
     # Check for (optional) libxslt
     #--------------------------------------------------------------------
@@ -3193,10 +3194,6 @@ if test $enable_xml = yes; then
     fi
     AC_SUBST(HAVE_LIBXSLT)
   else
-    HAVE_LIBXML=0
-    # Restore the CFLAGS and LIBS because AM_PATH_XML messes them
-    LIBS="$saved_LIBS"
-    CFLAGS="$saved_CFLAGS"
     echo
     echo "You do not appear to have usable libxml2 headers/library."
     echo "Building without them will disable the GSXML and NSXMLNode."
@@ -3206,8 +3203,7 @@ if test $enable_xml = yes; then
     AC_MSG_ERROR([Missing support for XML DOM functionality.])
   fi
 else
-  AC_MSG_WARN([Disabled support for XML funtionality.])
-  HAVE_LIBXML=0
+  AC_MSG_WARN([XML functionality disabled.])
 fi
 AC_SUBST(HAVE_LIBXML)
 
