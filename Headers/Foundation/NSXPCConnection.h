@@ -28,7 +28,18 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSError.h>
 
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h> // for gid_t and uid_t
+#endif
+
+#include <unistd.h>    // for gid_t and uid_t
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
+
+#if defined (__MINGW__)
+typedef unsigned gid_t;
+typedef unsigned uid_t;
+#endif
 
 #if	defined(__cplusplus)
 extern "C" {
