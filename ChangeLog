@@ -1,3 +1,8 @@
+2020-02-05  Fred Kiefer <fredkiefer@gmx.de>
+
+	* configure.ac: Use pkg-config to check for libxml.
+	* configure: regenerate
+
 2020-01-23  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/Additions/NSURL+GNUstepBase.m: Handle case where scheme
