@@ -19,7 +19,8 @@ int
 main()
 {
   NSMutableDictionary	*d;
-  CREATE_AUTORELEASE_POOL(pool);
+
+  ENTER_POOL
 
   /* Create a Dictionary object. */
   d = [[NSMutableDictionary alloc] initWithCapacity: 32];
@@ -42,6 +43,6 @@ main()
 
   NSLog(@"Now there are %u elements stored in the dictionary\n", [d count]);
 
-  DESTROY(pool);
+  LEAVE_POOL
   exit(0);
 }

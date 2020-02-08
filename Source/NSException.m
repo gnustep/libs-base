@@ -1101,7 +1101,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
 {
   if (nil == addresses && numReturns > FrameOffset)
     {
-      CREATE_AUTORELEASE_POOL(pool);
+      ENTER_POOL
       NSInteger         count = numReturns - FrameOffset;
       NSValue           *objects[count];
       NSUInteger        index;
@@ -1112,7 +1112,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
           objects[index] = [NSValue valueWithPointer: ptrs[FrameOffset+index]];
         }
       addresses = [[NSArray alloc] initWithObjects: objects count: count];
-      DESTROY(pool);
+      LEAVE_POOL
     }
   return addresses;
 }

@@ -1,5 +1,24 @@
 2020-02-08  Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Examples/dictionary.m:
+	* Examples/nsconnection_client.m:
+	* Headers/GNUstepBase/GNUstep.h:
+	* Source/Additions/GSMime.m:
+	* Source/NSConnection.m:
+	* Source/NSDictionary.m:
+	* Source/NSException.m:
+	* Source/NSFileManager.m:
+	* Source/NSFileWrapper.m:
+	* Source/NSTask.m:
+	* Source/NSUserDefaults.m:
+	* Tools/AGSIndex.m:
+	* Tools/AGSOutput.m:
+	* Tools/cvtenc.m:
+	Switch various places away from deprecated CREATE_AUTORELEASE_POOL()
+	to use the ARC-compatible ENTER_POOL and LEAVE_POOL macros.
+
+2020-02-08  Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSXPCConnection.h: Workaround for clash between
 	unistd.h and clang's reserved word __block
 

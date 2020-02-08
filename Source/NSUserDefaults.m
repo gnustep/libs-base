@@ -566,7 +566,7 @@ newLanguages(NSArray *oldNames)
 {
   if (self == [NSUserDefaults class])
     {
-      CREATE_AUTORELEASE_POOL(pool);
+      ENTER_POOL
       NSEnumerator      *enumerator;
       NSArray           *args;
       NSString          *key;
@@ -655,7 +655,7 @@ newLanguages(NSArray *oldNames)
       syncLock = [NSLock new];
 
       [self _createArgumentDictionary: args];
-      DESTROY(pool);
+      LEAVE_POOL
     }
 }
 
@@ -2356,7 +2356,6 @@ static BOOL isLocked = NO;
 
           while ([_fileLock tryLock] == NO)
             {
-              CREATE_AUTORELEASE_POOL(arp);
               NSDate		*lockDate;
 
               /*
@@ -2369,9 +2368,10 @@ static BOOL isLocked = NO;
                 {
                   fprintf(stderr, "Failed to lock user defaults database"
                     " even after breaking old locks!\n");
-                  RELEASE(arp);
                   break;
                 }
+
+              ENTER_POOL
 
               /* If lockDate is nil, we should be able to lock again ... but we
                * wait a little anyway ... so that in the case of a locking
@@ -2388,7 +2388,7 @@ static BOOL isLocked = NO;
                 {
                   [NSThread sleepForTimeInterval: 0.1];
                 }
-              RELEASE(arp);
+              LEAVE_POOL;
             }
           isLocked = YES;
         }

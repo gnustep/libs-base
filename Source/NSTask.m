@@ -845,7 +845,7 @@ pty_slave(const char* name)
  */
 - (void) waitUntilExit
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  ENTER_POOL
   NSRunLoop     *loop = [NSRunLoop currentRunLoop];
   NSTimer	*timer = nil;
   NSDate	*limit = nil;
@@ -874,7 +874,7 @@ pty_slave(const char* name)
    */
   limit = [NSDate dateWithTimeIntervalSinceNow: 0.0];
   [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
-  IF_NO_GC([arp release];)
+  LEAVE_POOL
 }
 @end
 

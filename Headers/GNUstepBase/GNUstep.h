@@ -103,8 +103,7 @@
 #ifndef	RETAIN
 /**
  *	Basic retain operation ... calls [NSObject-retain]<br />
- *	Deprecated ... pointless on modern processors.
- *	Simply call the -retain method.
+ *	Does nothing when ARC is in use.
  */
 #define	RETAIN(object)		[(object) retain]
 #endif
@@ -112,8 +111,7 @@
 #ifndef	RELEASE
 /**
  *	Basic release operation ... calls [NSObject-release]<br />
- *	Deprecated ... pointless on modern processors.
- *	Simply call the -release method.
+ *	Does nothing when ARC is in use.
  */
 #define	RELEASE(object)		[(object) release]
 #endif
@@ -121,8 +119,7 @@
 #ifndef	AUTORELEASE
 /**
  *	Basic autorelease operation ... calls [NSObject-autorelease]<br />
- *	Deprecated ... pointless on modern processors.
- *	Simply call the -autorelease method.
+ *	Does nothing when ARC is in use.
  */
 #define	AUTORELEASE(object)	[(object) autorelease]
 #endif
@@ -131,8 +128,7 @@
 /**
  *	Tested retain - only invoke the
  *	objective-c method if the receiver is not nil.<br />
- *	Deprecated ... pointless on modern processors.
- *	Simply call the -retain method.
+ *	Does nothing when ARC is in use.
  */
 #define	TEST_RETAIN(object)	({\
 id __object = (object); (__object != nil) ? [__object retain] : nil; })
@@ -142,8 +138,7 @@ id __object = (object); (__object != nil) ? [__object retain] : nil; })
 /**
  *	Tested release - only invoke the
  *	objective-c method if the receiver is not nil.<br />
- *	Deprecated ... pointless on modern processors.
- *	Simply call the -release method.
+ *	Does nothing when ARC is in use.
  */
 #define	TEST_RELEASE(object)	({\
 id __object = (object); if (__object != nil) [__object release]; })
@@ -153,8 +148,7 @@ id __object = (object); if (__object != nil) [__object release]; })
 /**
  *	Tested autorelease - only invoke the
  *	objective-c method if the receiver is not nil.<br />
- *	Deprecated ... pointless on modern processors.
- *	Simply call the -autorelease method.
+ *	Does nothing when ARC is in use.
  */
 #define	TEST_AUTORELEASE(object)	({\
 id __object = (object); (__object != nil) ? [__object autorelease] : nil; })

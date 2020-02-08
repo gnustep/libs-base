@@ -317,12 +317,12 @@ main(int argc, char** argv, char **env)
 		  else
 		    {
 		      NSFileHandle	*out;
-		      CREATE_AUTORELEASE_POOL(arp);
 
+		      ENTER_POOL
 		      out = [NSFileHandle fileHandleWithStandardOutput];
 		      [out writeData: myData];
 		      [out synchronizeFile];
-		      RELEASE(arp);
+		      LEAVE_POOL
 		    }
 		}
 	    }

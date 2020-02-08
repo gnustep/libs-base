@@ -6268,14 +6268,14 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 - (NSString*) description
 {
-  CREATE_AUTORELEASE_POOL(arp);
-  NSMutableString       *m;
   NSString              *s;
 
-  m = [NSMutableString stringWithCapacity: 1000];
+  ENTER_POOL
+  NSMutableString       *m = [NSMutableString stringWithCapacity: 1000];
   [self _descriptionTo: m level: 0];
   s = RETAIN(m);
-  RELEASE(arp);
+  LEAVE_POOL
+
   return AUTORELEASE(s);  
 }
 
@@ -7390,7 +7390,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 - (void) encodePart: (GSMimeDocument*)document to: (NSMutableData*)md
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  ENTER_POOL
   NSData		*d = nil;
   NSEnumerator		*enumerator;
   NSString              *subtype;
@@ -7813,7 +7813,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  [md appendData: d];
 	}
     }
-  RELEASE(arp);
+  LEAVE_POOL
 }
 
 - (NSUInteger) foldAt

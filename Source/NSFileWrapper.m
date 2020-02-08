@@ -114,10 +114,10 @@
  */
 - (id) initWithPath: (NSString*)path
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  ENTER_POOL
   NSFileManager	*fm = [NSFileManager defaultManager];
-  NSDictionary *fileAttributes;
-  NSString *fileType;
+  NSDictionary	*fileAttributes;
+  NSString	*fileType;
 
   NSDebugLLog(@"NSFileWrapper", @"initWithPath: %@", path);
 
@@ -158,7 +158,7 @@
   [self setPreferredFilename: [path lastPathComponent]];
   [self setFileAttributes: fileAttributes];
 
-  [arp drain];
+  LEAVE_POOL
   return self;
 }
 
