@@ -28,11 +28,17 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSError.h>
 
-#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h> // for gid_t and uid_t
+/* Some versions of unistd.h use __block, but that's a reserved word
+ * for Clang so we temporarily redefine it while including the file.
+ */
+#ifdef __block
+#undef __block
 #endif
-
+#define __block __gs_unistd_block
 #include <unistd.h>    // for gid_t and uid_t
+#undef __block
+
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
 

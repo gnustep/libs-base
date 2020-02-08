@@ -1,3 +1,8 @@
+2020-02-08  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSXPCConnection.h: Workaround for clash between
+	unistd.h and clang's reserved word __block
+
 2020-02-05  Fred Kiefer <fredkiefer@gmx.de>
 
 	* configure.ac: Use pkg-config to check for libxml.
