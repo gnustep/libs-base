@@ -1,3 +1,9 @@
+2020-02-11  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSXPCConnection.h: remove unistd.h since
+	workaround broke blocks code.  I guess we have to hope that
+	sys/types.h has gid_t, pid_t, and uid_t on all systems we target.
+
 2020-02-08  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Examples/dictionary.m:
