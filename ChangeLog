@@ -1,3 +1,11 @@
+2020-02-17  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/gdomap.c: When building the list of hosts to be probed to see
+	if they have gdomap servers, fix code to include those explicitly
+	defined in the config file.  Add -S option to list the addresses of
+	the known gdomap servers.
+	* Tools/gdomap.8: Document the new command line option.
+
 2020-02-11  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSXPCConnection.h: remove unistd.h since
