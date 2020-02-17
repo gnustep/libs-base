@@ -117,11 +117,15 @@ typedef NSUInteger NSPropertyListFormat;
  *   </desc>
  *   <term>[NSData]</term>
  *   <desc>
- *     An array is represented as a series of pairs of hexadecimal characters
- *     (each pair representing a byte of data) enclosed in angle brackets.
- *     Spaces are ignored).
+ *     A data object is represented as a series of pairs of hexadecimal
+ *     characters (each pair representing a byte of data) enclosed in angle
+ *     brackets. (Spaces are ignored).
  *     <example>
  *       &lt; 54637374 696D67 &gt;
+ *     </example>
+ *     Base64 can be used since Base 1.24.9:
+ *     <example>
+ *       &lt;[VGNzdGltZw==]&gt;
  *     </example>
  *     In XML format, a data object is an element whose name is
  *     <code>data</code> and whose content is a stream of base64 encoded bytes.
