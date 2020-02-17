@@ -164,13 +164,13 @@ typedef NSUInteger NSPropertyListFormat;
  *       }
  *     </example>
  *     In XML format, a dictionary is an element whose name is
- *     <code>dictionary</code> and whose content consists of pairs of
- *     strings and other <em>property list</em> objects.
+ *     <code>dict</code> and whose content consists of pairs of
+ *     string <code>key</code> and other <em>property list</em> objects.
  *     <example>
- *       &lt;dictionary&gt;
- *         &lt;string&gt;key1&lt;/string&gt;
+ *       &lt;dict&gt;
+ *         &lt;key&gt;key1&lt;/key&gt;
  *         &lt;string&gt;value1&lt;/string&gt;
- *       &lt;/dictionary&gt;
+ *       &lt;/dict&gt;
  *     </example>
  *   </desc>
  *   <term>[NSNumber]</term>
