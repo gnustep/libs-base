@@ -399,11 +399,11 @@ plCmdReplace(id obj, NSPropertyListFormat fmt, NSArray *cmdargs,
 static void
 print_help(FILE *f)
 {
-  GSPrintf(f, "Property list utility\n");
-  GSPrintf(f, "Usage: plutil [command] [options] file\n\n");
-  GSPrintf(f, "Accepted commands:\n");
-  GSPrintf(f, "-p\tPrints the plists in a human-readable form.");
-  GSPrintf(f, "Accepted options:\n");
+  GSPrintf(f, @"Property list utility\n");
+  GSPrintf(f, @"Usage: plutil [command] [options] file\n\n");
+  GSPrintf(f, @"Accepted commands:\n");
+  GSPrintf(f, @"-p\tPrints the plists in a human-readable form.");
+  GSPrintf(f, @"Accepted options:\n");
 }
 
 typedef enum _Action
@@ -533,7 +533,7 @@ main(int argc, char **argv, char **env)
 	if (dot.length == 0)
 	  dot.location = [inpath length];
 	outpath = [NSString
-	  stringWithFormat:@"%s.%s", [inpath substringToIndex:dot.location],
+	  stringWithFormat:@"%@.%@", [inpath substringToIndex:dot.location],
 			   outext];
       }
 
