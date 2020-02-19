@@ -1,5 +1,5 @@
 /** Interface for NSPropertyList for GNUstep
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004-2020 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: January 2004
