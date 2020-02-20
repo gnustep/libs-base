@@ -345,7 +345,7 @@ foundIgnorableWhitespace: (NSString *)string
     }
   else if ([elementName isEqualToString: @"real"])
     {
-      ASSIGN(plist, [NSNumber numberWithDouble: [value doubleValue]]);
+      ASSIGN(plist, [NSNumber numberWithDouble: strtod([value cString], 0)]);
     }
   else if ([elementName isEqualToString: @"true"])
     {
@@ -1170,11 +1170,11 @@ static id parsePlItem(pldata* pld)
 		else if (type == 'R')
 		  {
 		    unichar	buf[len];
-		    double	d = 0.0;
 
 		    for (i = 0; i < len; i++) buf[i] = ptr[i];
-		    GSScanDouble(buf, len, &d);
-		    result = [[NSNumber alloc] initWithDouble: d];
+		    buf[len] = '\0';
+		    result = [[NSNumber alloc]
+		      initWithDouble: strtod(buf, 0)]];
 		  }
 		else
 		  {
