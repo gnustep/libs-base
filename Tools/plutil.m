@@ -33,6 +33,10 @@
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSValue.h"
 
+// From NSPropertyList.m
+extern void
+GSPropertyListMake(id, NSDictionary *, BOOL, BOOL, unsigned, id *);
+
 // We don't have @[] on gcc
 #define NARRAY(...) [NSArray arrayWithObjects:__VA_ARGS__, nil]
 // And no @() or @123
@@ -402,7 +406,7 @@ print_help(FILE *f)
   GSPrintf(f, @"Property list utility\n");
   GSPrintf(f, @"Usage: plutil [command] [options] file\n\n");
   GSPrintf(f, @"Accepted commands:\n");
-  GSPrintf(f, @"-p\tPrints the plists in a human-readable form.");
+  GSPrintf(f, @"-p\tPrints the plists in a human-readable form (GNUstep ASCII).");
   GSPrintf(f, @"Accepted options:\n");
 }
 
@@ -466,9 +470,9 @@ main(int argc, char **argv, char **env)
 				 NARRAY(NINT(ACTION_LINT), NINT(0)), @"-lint",
 				 NARRAY(NINT(ACTION_CONVERT), NINT(1)),
 				 @"-convert",
-				 NARRAY(NINT(ACTION_INSERT), NINT(2)),
+				 NARRAY(NINT(ACTION_INSERT), NINT(3)),
 				 @"-insert",
-				 NARRAY(NINT(ACTION_REPLACE), NINT(2)),
+				 NARRAY(NINT(ACTION_REPLACE), NINT(3)),
 				 @"-replace",
 				 NARRAY(NINT(ACTION_REMOVE), NINT(1)),
 				 @"-remove",
@@ -480,6 +484,8 @@ main(int argc, char **argv, char **env)
     NSPropertyListFormat aFormat;
     NSError *		 anError;
     id			 result;
+    NSMutableString *    outStr = nil;
+    NSDictionary *       locale;
 
     arg = [args objectAtIndex:i];
     if (![arg hasPrefix:@"-"])
@@ -494,7 +500,7 @@ main(int argc, char **argv, char **env)
 	action = [[command_rhs objectAtIndex:0] intValue];
 	iwant = [[command_rhs objectAtIndex:1] intValue];
 
-	argrange.location = i;
+	argrange.location = i + 1;
 	argrange.length = iwant;
 	cmdargs = [args subarrayWithRange:argrange];
 
@@ -563,12 +569,11 @@ main(int argc, char **argv, char **env)
       case ACTION_LINT:
 	break;
       case ACTION_PRINT:
-	// Why use an ad-hoc format when description gives pretty plists?
-	GSPrintf(stdout, @"%@\n",
-		 [result
-		   descriptionWithLocale:[[NSUserDefaults standardUserDefaults]
-					   dictionaryRepresentation]
-				  indent:0]);
+	// Not using description because we can GS it
+	locale =
+	  [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+	GSPropertyListMake(result, locale, NO, NO, 2, &outStr);
+	GSPrintf(stdout, @"%@\n", outStr);
 	break;
       case ACTION_CONVERT:
 	status = plCmdConvert(result, cmdargs, outpath);

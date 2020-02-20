@@ -2481,6 +2481,18 @@ static BOOL	classInitialized = NO;
   return dest;
 }
 
+/**
+ * <p>Make <var>obj</var> into a plist in <var>str</var>, using the locale <var>loc</var>.</p>
+ *
+ * <p>If <var>*str</var> is <code>nil</code>, create a <ref>GSMutableString</ref>.
+ * Otherwise <var>*str</var> must be a GSMutableString.</p>
+ * 
+ * <p>Options:</p><ul>
+ * <li><var>step</var> is the indent level.</li>
+ * <li><var>forDescription</var> enables OpenStep formatting.</li>
+ * <li><var>xml</var> enables XML formatting.</li>
+ * </ul>
+ */
 void
 GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   BOOL forDescription, unsigned step, id *str)
@@ -2757,7 +2769,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   // not the other way round,
   NSData *data = [self dataWithPropertyList: aPropertyList
                                      format: aFormat
-                                    options: 0
+                                    options: anOption
                                       error: error];
 
   return [stream write: [data bytes] maxLength: [data length]];
