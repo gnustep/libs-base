@@ -11,10 +11,12 @@ install_gnustep_make() {
     cd tools-make
     if [ -n "$RUNTIME_VERSION" ]
     then
-        echo "RUNTIME_VERSION=$RUNTIME_VERSION" > GNUstep.conf
+        WITH_RUNTIME_ABI="--with-runtime-abi=${RUNTIME_VERSION}"
+    else
+        WITH_RUNTIME_ABI=""
     fi
-    ./configure --prefix=$DEP_ROOT --with-library-combo=$LIBRARY_COMBO --with-user-config-file=$PWD/GNUstep.conf
-	make install
+    ./configure --prefix=$DEP_ROOT --with-library-combo=$LIBRARY_COMBO $WITH_RUNTIME_ABI
+    make install
     echo Objective-C build flags: `$HOME/staging/bin/gnustep-config --objc-flags`
 }
 

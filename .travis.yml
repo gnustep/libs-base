@@ -5,16 +5,16 @@ compiler:
     - gcc
 env:
     - LIBRARY_COMBO=gnu-gnu-gnu
-    - LIBRARY_COMBO=ng-gnu-gnu
-    - LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixedabi
+    - LIBRARY_COMBO=ng-gnu-gnu RUNTIME_VERSION=gnustep-1.9
+    - LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixedabi RUNTIME_VERSION=gnustep-1.9
     - LIBRARY_COMBO=ng-gnu-gnu RUNTIME_VERSION=gnustep-2.0
     - LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixedabi RUNTIME_VERSION=gnustep-2.0
 matrix:
     exclude:
         - compiler: gcc
-          env: LIBRARY_COMBO=ng-gnu-gnu
+          env: LIBRARY_COMBO=ng-gnu-gnu RUNTIME_VERSION=gnustep-1.9
         - compiler: gcc
-          env: LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixedabi
+          env: LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixedabi RUNTIME_VERSION=gnustep-1.9
         - compiler: gcc
           env: LIBRARY_COMBO=ng-gnu-gnu RUNTIME_VERSION=gnustep-2.0
         - compiler: gcc
