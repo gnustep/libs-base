@@ -1,3 +1,10 @@
+2020-02-24  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/objc-load.m: update GSPrivateSymbolPath() so that, on the
+	path where LINKER_GETSYMBOL os not available, we attempt to lookup
+	classes using the prefix ._OBJC_CLASS_ for the 2.0 ABI (earlier
+	ABIs use a prefix of __objc_class_name_ for the class definition.
+
 2020-02-17  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/gdomap.c: When building the list of hosts to be probed to see
