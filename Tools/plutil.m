@@ -32,6 +32,7 @@
 #import "Foundation/NSString.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSValue.h"
+#import "NSPropertyList+PLutil.h"
 
 // From NSPropertyList.m
 extern void
@@ -296,6 +297,7 @@ plFormatFromName(NSString *name)
     NINT(NSPropertyListOpenStepFormat), @"openstep",
     NINT(NSPropertyListGNUstepFormat), @"gnustep",
     NINT(NSPropertyListGNUstepBinaryFormat), @"gsbinary",
+    NINT(NSPropertyListJSONFormat), @"json",
     SELFMAP(NSPropertyListOpenStepFormat),
     SELFMAP(NSPropertyListXMLFormat_v1_0),
     SELFMAP(NSPropertyListBinaryFormat_v1_0),
@@ -406,7 +408,8 @@ print_help(FILE *f)
   GSPrintf(f, @"Property list utility\n");
   GSPrintf(f, @"Usage: plutil [command] [options] file\n\n");
   GSPrintf(f, @"Accepted commands:\n");
-  GSPrintf(f, @"-p\tPrints the plists in a human-readable form (GNUstep ASCII).");
+  GSPrintf(
+    f, @"  -p\tPrints the plists in a human-readable form (GNUstep ASCII).\n");
   GSPrintf(f, @"Accepted options:\n");
 }
 
@@ -465,19 +468,17 @@ main(int argc, char **argv, char **env)
 
   // Parse the COMMAND.
   // Maps number of args to commands.
-  commands = [NSDictionary
-    dictionaryWithObjectsAndKeys:NARRAY(NINT(ACTION_PRINT), NINT(0)), @"-p",
-				 NARRAY(NINT(ACTION_LINT), NINT(0)), @"-lint",
-				 NARRAY(NINT(ACTION_CONVERT), NINT(1)),
-				 @"-convert",
-				 NARRAY(NINT(ACTION_INSERT), NINT(3)),
-				 @"-insert",
-				 NARRAY(NINT(ACTION_REPLACE), NINT(3)),
-				 @"-replace",
-				 NARRAY(NINT(ACTION_REMOVE), NINT(1)),
-				 @"-remove",
-				 NARRAY(NINT(ACTION_EXTRACT), NINT(2)),
-				 @"-extract", nil];
+  // clang-format off
+  commands = [NSDictionary dictionaryWithObjectsAndKeys:
+    NARRAY(NINT(ACTION_PRINT), NINT(0)), @"-p",
+		NARRAY(NINT(ACTION_LINT), NINT(0)), @"-lint",
+		NARRAY(NINT(ACTION_CONVERT), NINT(1)), @"-convert",
+		NARRAY(NINT(ACTION_INSERT), NINT(3)), @"-insert",
+		NARRAY(NINT(ACTION_REPLACE), NINT(3)), @"-replace",
+		NARRAY(NINT(ACTION_REMOVE), NINT(1)), @"-remove",
+		NARRAY(NINT(ACTION_EXTRACT), NINT(2)), @"-extract",
+    nil];
+  // clang-format on
   NS_DURING
   {
     NSData *		 fileData;
