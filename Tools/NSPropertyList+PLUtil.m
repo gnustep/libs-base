@@ -54,12 +54,14 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
   NSError *     myError = nil;
   NSData *      dest;
   NSDictionary *loc;
+  loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
   switch (aFormat)
     {
     case NSPropertyListJSONFormat:
-      dest = [NSJSONSerialization dataWithJSONObject:aPropertyList
-					     options:NSJSONWritingPrettyPrinted
-					       error:&myError];
+      dest = [NSJSONSerialization
+	dataWithJSONObject:aPropertyList
+		   options:loc != nil ? NSJSONWritingPrettyPrinted : 0
+		     error:&myError];
       if (myError != nil && anErrorString != NULL)
 	{
 	  *anErrorString = [myError description];
@@ -67,7 +69,6 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       return dest;
     case NSPropertyListObjectiveCFormat:
     case NSPropertyListSwiftFormat:
-      loc = [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
       dest = [NSMutableData dataWithCapacity:1024];
       OAppend(aPropertyList, loc, 0, 2, aFormat, dest);
       return dest;

@@ -318,15 +318,17 @@ plFormatFromName(NSString *name)
 int
 dumpToFile(id obj, NSPropertyListFormat fmt, NSString *outfile)
 {
-  NSError *     anError;
+  NSString *    errorString = nil;
   NSFileHandle *fh;
-  NSData *      outdata = [NSPropertyListSerialization dataWithPropertyList:obj
-								     format:fmt
-								    options:0
-								      error:&anError];
+  NSData *      outdata =
+    [NSPropertyListSerialization dataFromPropertyList:obj
+					       format:fmt
+					      options:0
+				     errorDescription:&errorString];
   if (anError)
     {
-      GSPrintf(stderr, @"Dumping %@ as format %@ - %@\n", obj, fmt, anError);
+      GSPrintf(stderr, @"Dumping %@ as format %@ - %@\n", obj, fmt,
+	       errorString);
       return EXIT_FAILURE;
     }
 
