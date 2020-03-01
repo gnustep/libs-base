@@ -11,15 +11,11 @@
 @end
 
 
-static void _testBundle(NSString* name, NSString* className)
+static void _testBundle(NSBundle* bundle, NSString* path, NSString* className)
 {
-  NSBundle *bundle;
   NSArray  *arr, *carr;
-  NSString *path, *localPath;
-  path = [[[[[NSFileManager defaultManager] currentDirectoryPath]
-    stringByStandardizingPath] stringByAppendingPathComponent: @"Resources"]
-      stringByAppendingPathComponent: name];
-  bundle = [NSBundle bundleWithPath: path];
+  NSString *localPath;
+
   arr = [bundle pathsForResourcesOfType: @"txt" inDirectory: nil];
   PASS((arr && [arr count]),
     "-pathsForResourcesOfType:inDirectory: returns an array");
@@ -89,12 +85,24 @@ static void _testBundle(NSString* name, NSString* className)
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  NSString *path;
+  NSBundle *bundle;
+
   START_SET("Bundle")
-  _testBundle(@"TestBundle.bundle", @"TestBundle");
+  path = [[[[[NSFileManager defaultManager] currentDirectoryPath]
+    stringByStandardizingPath] stringByAppendingPathComponent: @"Resources"]
+      stringByAppendingPathComponent: @"TestBundle.bundle"];
+  bundle = [NSBundle bundleWithPath: path];
+  _testBundle(bundle, path, @"TestBundle");
   END_SET("Bundle")
+
   START_SET("Framework")
-  _testBundle(@"TestFramework.framework", @"TestFramework");
+  bundle = [NSBundle bundleForClass: NSClassFromString(@"TestFramework")];
+  path = [bundle bundlePath];
+  _testBundle(bundle, path, @"TestFramework");
+  PASS(0 == [bundle bundleVersion], "bundleVersion is zero");
   END_SET("Framework");
+
   [arp release]; arp = nil;
   return 0;
 }
