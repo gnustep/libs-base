@@ -345,7 +345,7 @@ foundIgnorableWhitespace: (NSString *)string
     }
   else if ([elementName isEqualToString: @"real"])
     {
-      ASSIGN(plist, [NSNumber numberWithDouble: strtod([value cString], 0)]);
+      ASSIGN(plist, [NSNumber numberWithDouble: strtod([value cString], NULL)]);
     }
   else if ([elementName isEqualToString: @"true"])
     {
@@ -1135,7 +1135,7 @@ static id parsePlItem(pldata* pld)
                     else
                       {
                         result = [[NSNumber alloc]
-                          initWithUnsignedLongLong: strtoull(buf, 0, 10)];
+                          initWithUnsignedLongLong: strtoull(buf, NULL, 10)];
                       }
 		  }
 		else if (type == 'B')
@@ -1169,12 +1169,12 @@ static id parsePlItem(pldata* pld)
 		  }
 		else if (type == 'R')
 		  {
-		    unichar	buf[len];
+		    char	buf[len+1];
 
 		    for (i = 0; i < len; i++) buf[i] = ptr[i];
 		    buf[len] = '\0';
 		    result = [[NSNumber alloc]
-		      initWithDouble: strtod(buf, 0)]];
+		      initWithDouble: strtod(buf, NULL)];
 		  }
 		else
 		  {
