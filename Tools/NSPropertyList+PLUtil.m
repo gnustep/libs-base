@@ -73,7 +73,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       OAppend(aPropertyList, loc, 0, 2, aFormat, dest);
       return dest;
     default:
-      return (*originalImp)(self, _cmd, aPropertyList, aFormat, anErrorString);
+      return (*originalWrite)(self, _cmd, aPropertyList, aFormat, anErrorString);
     }
 }
 
@@ -85,7 +85,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
   NSError *	    myError = nil;
   NSPropertyListFormat format;
   NSJSONReadingOptions jsonOptions = NSJSONReadingAllowFragments;
-  id prop = (*originalImp)(self, _cmd, data, anOption, &format, &myError);
+  id prop = (*originalRead)(self, _cmd, data, anOption, &format, &myError);
   if (prop == nil)
     if (format == NSPropertyListOpenStepFormat
 	|| format == NSPropertyListGNUstepFormat)
@@ -105,7 +105,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 						 error:&myError];
       }
   if (error != nil)
-    *error = *myError;
+    *error = myError;
   if (*aFormat != nil)
     *aFormat = format;
   return prop;
