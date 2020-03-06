@@ -2,7 +2,7 @@ The file Locale.aliases is used to map common language specifications to
 old-style long names.
 
 The file Locale.canonical is used to map old style names and three letter
-ISO-639-2 names to the preferred tewo letter ISO-639-1 names.
+ISO-639-2 names to the preferred two letter ISO-639-1 names.
 
 Language files which contain non-ascii characters should either be properly
 marked unicode files (UTF-8 with a leading Byte Order Mark or UTF-16 with a
