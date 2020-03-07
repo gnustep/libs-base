@@ -16,6 +16,10 @@ static void _testBundle(NSBundle* bundle, NSString* path, NSString* className)
   NSArray  *arr, *carr;
   NSString *localPath;
 
+  PASS((bundle != nil),
+    "bundle was found");
+  PASS((path != nil),
+    "path of bundle was found");
   arr = [bundle pathsForResourcesOfType: @"txt" inDirectory: nil];
   PASS((arr && [arr count]),
     "-pathsForResourcesOfType:inDirectory: returns an array");
