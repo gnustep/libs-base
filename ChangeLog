@@ -5,6 +5,12 @@
 	* Tests/base/NSBundle/resources2.m: Extend test to check for
 	framework resource loading.
 
+2020-03-06  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Resources/Languages/Locale.canonical:
+	Backward compatibility fix for ICU 65 by Fred Kiefer
+	* Resources/Languages/README: Fix trivial typo
+
 2020-02-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/objc-load.m: update GSPrivateSymbolPath() so that, on the
