@@ -1,3 +1,8 @@
+2020-03-07  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSString.m: Attempt to make calls to GSICUCollatorOpen()
+	more consistent and correct for ICU 65.
+
 2020-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Resources/Languages/Locale.canonical:
