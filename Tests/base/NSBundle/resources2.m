@@ -10,6 +10,8 @@
 - (NSString*)test;
 @end
 
+@interface TestFramework: NSObject
+@end
 
 static void _testBundle(NSBundle* bundle, NSString* path, NSString* className)
 {
@@ -101,6 +103,10 @@ int main()
   END_SET("Bundle")
 
   START_SET("Framework")
+  /* This method call is required to ensure that the linker does not decide to
+   * elide the framework linkage.
+   */
+  [TestFramework class];
   bundle = [NSBundle bundleForClass: NSClassFromString(@"TestFramework")];
   path = [bundle bundlePath];
   _testBundle(bundle, path, @"TestFramework");
