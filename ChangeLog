@@ -1,3 +1,10 @@
+2020-03-01  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Tests/base/NSBundle/TestInfo,
+	* Tests/base/NSBundle/GNUmakefile.preamble,
+	* Tests/base/NSBundle/resources2.m: Extend test to check for
+	framework resource loading.
+
 2020-03-06  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Resources/Languages/Locale.canonical:
