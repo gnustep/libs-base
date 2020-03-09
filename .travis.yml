@@ -1,3 +1,5 @@
+---
+os: linux
 language: cpp
 dist: xenial
 compiler:
@@ -9,7 +11,7 @@ env:
     - LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixedabi RUNTIME_VERSION=gnustep-1.9
     - LIBRARY_COMBO=ng-gnu-gnu RUNTIME_VERSION=gnustep-2.0
     - LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixedabi RUNTIME_VERSION=gnustep-2.0
-matrix:
+jobs:
     exclude:
         - compiler: gcc
           env: LIBRARY_COMBO=ng-gnu-gnu RUNTIME_VERSION=gnustep-1.9
@@ -21,7 +23,6 @@ matrix:
           env: LIBRARY_COMBO=ng-gnu-gnu BASE_ABI=--disable-mixedabi RUNTIME_VERSION=gnustep-2.0
         - compiler: clang
           env: LIBRARY_COMBO=gnu-gnu-gnu
-sudo: required
 before_install:
     - sudo apt-get -qq update
     - sudo apt-get install -y cmake pkg-config libgnutls28-dev libgmp-dev libffi-dev libicu-dev libxml2-dev libxslt1-dev libssl-dev libavahi-client-dev zlib1g-dev
