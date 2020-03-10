@@ -1,3 +1,8 @@
+2020-03-10  Frederik Seiffert <frederik@algoriddim.com>
+
+    * Source/NSURL.m: fix –[NSURLComponents setURL:] throwing
+    exception for URLs that don't have all parts.
+
 2020-03-01  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Tests/base/NSBundle/TestInfo,
