@@ -683,6 +683,7 @@ SANITY();
   unsigned	tmpLength;
   unsigned	arrayIndex = 0;
   unsigned	arraySize;
+  // Initial value unused; set by _attributesAtIndexEffectiveRange
   NSRange	effectiveRange = NSMakeRange(0, NSNotFound);
   unsigned	afterRangeLoc, beginRangeLoc;
   NSDictionary	*attrs;
@@ -795,6 +796,7 @@ SANITY();
   unsigned	tmpLength;
   unsigned	arrayIndex = 0;
   unsigned	arraySize;
+  // Initial value unused; set by _attributesAtIndexEffectiveRange
   NSRange	effectiveRange = NSMakeRange(0, NSNotFound);
   GSAttrInfo	*info;
   int		moveLocations;
