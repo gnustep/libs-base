@@ -2179,38 +2179,77 @@ static NSUInteger	urlAlign;
 + (instancetype)queryItemWithName:(NSString *)name 
                             value:(NSString *)value
 {
-  return nil;
+  NSURLQueryItem *newQueryItem = [[NSURLQueryItem alloc] initWithName: name
+                                                                value: value];
+  return AUTORELEASE(newQueryItem);
 }
 
-- (instancetype)initWithName:(NSString *)name 
+- (instancetype)initWithName:(NSString *)name
                        value:(NSString *)value
 {
-  return nil;
+  self = [super init];
+  if (self != nil)
+    {
+      ASSIGNCOPY(_name, name);
+      ASSIGNCOPY(_value, value);
+    }
+  return self;
+}
+
+- (void) dealloc
+{
+  RELEASE(_name);
+  RELEASE(_value);
+  [super dealloc];
 }
 
 // Reading a name and value from a query
 - (NSString *) name
 {
-  return nil;
+  return _name;
 }
 
 - (NSString *) value
 {
-  return nil;
+  return _value;
 }
 
 - (id) initWithCoder: (NSCoder *)acoder
 {
-  return nil;
+  if ((self = [super init]) != nil)
+    {
+      if ([acoder allowsKeyedCoding])
+        {
+          _name = [acoder decodeObjectForKey: @"NS.name"];
+          _value = [acoder decodeObjectForKey: @"NS.value"];
+        }
+      else
+        {
+          _name = [acoder decodeObject];
+          _value = [acoder decodeObject];
+        }
+    }
+  return self;
 }
 
 - (void) encodeWithCoder: (NSCoder *)acoder
 {
+  if ([acoder allowsKeyedCoding])
+    {
+      [acoder encodeObject: _name forKey: @"NS.name"];
+      [acoder encodeObject: _value forKey: @"NS.value"];
+    }
+  else
+    {
+      [acoder encodeObject: _name];
+      [acoder encodeObject: _value];
+    }
 }
 
 - (id) copyWithZone: (NSZone *)zone
 {
-  return nil;
+    return [[[self class] allocWithZone: zone] initWithName: _name
+                                                      value: _value];
 }
 
 @end
