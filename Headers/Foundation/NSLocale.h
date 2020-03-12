@@ -37,6 +37,7 @@ extern "C" {
 
 @class NSMutableDictionary;
 @class NSString;
+@class NSCharacterSet;
 
 typedef NSUInteger NSLocaleLanguageDirection;
 enum
@@ -231,6 +232,16 @@ GS_EXPORT NSString * const NSISO8601Calendar;
 /** Returns the named object from the receiver locale.
  */
 - (id) objectForKey: (id)key;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
+- (NSString *) languageCode;
+- (NSString *) countryCode;
+- (NSString *) scriptCode;
+- (NSString *) variantCode;
+- (NSCharacterSet *) exemplarCharacterSet;
+- (NSString *) collationIdentifier;
+- (NSString *) collatorIdentifier;
+#endif
 
 @end
 
