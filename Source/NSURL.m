@@ -667,7 +667,7 @@ static NSUInteger	urlAlign;
 					    isDirectory: isDir]);
 }
 
-+ (NSURL*) fileURLWithPathComponents: (NSArray*)components
++ (id) fileURLWithPathComponents: (NSArray*)components
 {
   return [self fileURLWithPath: [NSString pathWithComponents: components]];
 }
@@ -2399,19 +2399,21 @@ static NSUInteger	urlAlign;
           [[url user] stringByAddingPercentEncodingWithAllowedCharacters:
                          [NSCharacterSet URLUserAllowedCharacterSet]]];
 
-  // Find ranges
-  NSString *urlString = [url absoluteString];
+  {
+    // Find ranges
+    NSString *urlString = [url absoluteString];
 #define URL_COMPONENT_RANGE(part) \
-  (part ? [urlString rangeOfString:part] : NSMakeRange(NSNotFound, 0))
-  internal->_rangeOfFragment = URL_COMPONENT_RANGE(internal->_fragment);
-  internal->_rangeOfHost     = URL_COMPONENT_RANGE(internal->_host);
-  internal->_rangeOfPassword = URL_COMPONENT_RANGE(internal->_password);
-  internal->_rangeOfPath     = URL_COMPONENT_RANGE(internal->_path);
-  internal->_rangeOfPort     = URL_COMPONENT_RANGE([internal->_port stringValue]);
-  internal->_rangeOfQuery    = URL_COMPONENT_RANGE(internal->_query);
-  internal->_rangeOfScheme   = URL_COMPONENT_RANGE(internal->_scheme);
-  internal->_rangeOfUser     = URL_COMPONENT_RANGE(internal->_user);
+    (part ? [urlString rangeOfString:part] : NSMakeRange(NSNotFound, 0))
+    internal->_rangeOfFragment = URL_COMPONENT_RANGE(internal->_fragment);
+    internal->_rangeOfHost     = URL_COMPONENT_RANGE(internal->_host);
+    internal->_rangeOfPassword = URL_COMPONENT_RANGE(internal->_password);
+    internal->_rangeOfPath     = URL_COMPONENT_RANGE(internal->_path);
+    internal->_rangeOfPort     = URL_COMPONENT_RANGE([internal->_port stringValue]);
+    internal->_rangeOfQuery    = URL_COMPONENT_RANGE(internal->_query);
+    internal->_rangeOfScheme   = URL_COMPONENT_RANGE(internal->_scheme);
+    internal->_rangeOfUser     = URL_COMPONENT_RANGE(internal->_user);
 #undef URL_COMPONENT_RANGE
+  }
 }
 
 - (NSURL *)URLRelativeToURL: (NSURL *)baseURL
