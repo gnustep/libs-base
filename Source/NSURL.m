@@ -92,10 +92,6 @@ function may be incorrect
 
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
-#define	GSInternal NSURLComponentsInternal
-#include "GSInternal.h"
-GS_PRIVATE_INTERNAL(NSURLComponents)
-
 NSString * const NSURLErrorDomain = @"NSURLErrorDomain";
 NSString * const NSErrorFailingURLStringKey = @"NSErrorFailingURLStringKey";
 
@@ -2174,7 +2170,6 @@ static NSUInteger	urlAlign;
 @end
 
 
-#undef	GSInternal
 #define	GSInternal	NSURLQueryItemInternal
 #include	"GSInternal.h"
 GS_PRIVATE_INTERNAL(NSURLQueryItem)
@@ -2209,6 +2204,7 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
 {
   RELEASE(internal->_name);
   RELEASE(internal->_value);
+  GS_DESTROY_INTERNAL(NSURLQueryItem);
   [super dealloc];
 }
 
@@ -2262,6 +2258,13 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
 }
 
 @end
+
+
+#undef	GSInternal
+#define	GSInternal NSURLComponentsInternal
+#include "GSInternal.h"
+GS_PRIVATE_INTERNAL(NSURLComponents)
+
 
 @implementation NSURLComponents 
 
@@ -2344,7 +2347,7 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
   RELEASE(internal->_percentEncodedQueryItems);
   RELEASE(internal->_percentEncodedScheme);
   RELEASE(internal->_percentEncodedUser);
-
+  GS_DESTROY_INTERNAL(NSURLComponents);
   [super dealloc];
 }
 
