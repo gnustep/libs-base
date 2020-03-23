@@ -2173,6 +2173,13 @@ static NSUInteger	urlAlign;
 }
 @end
 
+
+#undef	GSInternal
+#define	GSInternal	NSURLQueryItemInternal
+#include	"GSInternal.h"
+GS_PRIVATE_INTERNAL(NSURLQueryItem)
+
+
 @implementation NSURLQueryItem
 
 // Creating query items.
