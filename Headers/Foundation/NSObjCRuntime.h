@@ -284,6 +284,11 @@ DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
 #endif
 
 /**
+ * Declare NSExceptionName
+ */
+typedef NSString* NSExceptionName;
+
+/**
  * Declare Apple availability macros for compatibility purposes as no-ops.
  */
 #define NS_CLASS_AVAILABLE(...)
