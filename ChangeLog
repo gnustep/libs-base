@@ -1,3 +1,8 @@
+2020-03-26  Frederik Seiffert <frederik@algoriddim.com>
+
+    * Headers/Foundation/NSError.h,
+    * Source/NSError.m: Added NSErrorDomain typedef.
+
 2020-03-12  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/NSURL.m: Fix compiler warnigns.
