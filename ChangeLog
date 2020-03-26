@@ -3,10 +3,16 @@
     * Source/NSURLResponse.m: Fix parsing of NSURLResponse content type
     header.
 
+2020-03-12  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSURL.m: Fix compiler warnigns.
+	* Headers/Foundation/NSLocale.h,
+	* Source/NSLocale.m: Add a few convenience methods from MacOS 10.12.
+
 2020-03-10  Frederik Seiffert <frederik@algoriddim.com>
 
-    * Source/NSURL.m: fix –[NSURLComponents setURL:] throwing
-    exception for URLs that don't have all parts.
+	* Source/NSURL.m: fix –[NSURLComponents setURL:] throwing
+	exception for URLs that don't have all parts.
 
 2020-03-01  Fred Kiefer <fredkiefer@gmx.de>
 
