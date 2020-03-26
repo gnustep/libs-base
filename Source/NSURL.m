@@ -92,10 +92,6 @@ function may be incorrect
 
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
-#define	GSInternal NSURLComponentsInternal
-#include "GSInternal.h"
-GS_PRIVATE_INTERNAL(NSURLComponents)
-
 NSString * const NSURLErrorDomain = @"NSURLErrorDomain";
 NSString * const NSErrorFailingURLStringKey = @"NSErrorFailingURLStringKey";
 
@@ -2173,6 +2169,12 @@ static NSUInteger	urlAlign;
 }
 @end
 
+
+#define	GSInternal	NSURLQueryItemInternal
+#include	"GSInternal.h"
+GS_PRIVATE_INTERNAL(NSURLQueryItem)
+
+
 @implementation NSURLQueryItem
 
 // Creating query items.
@@ -2190,28 +2192,31 @@ static NSUInteger	urlAlign;
   self = [super init];
   if (self != nil)
     {
-      ASSIGNCOPY(_name, name);
-      ASSIGNCOPY(_value, value);
+      GS_CREATE_INTERNAL(NSURLQueryItem);
+      
+      ASSIGNCOPY(internal->_name, name);
+      ASSIGNCOPY(internal->_value, value);
     }
   return self;
 }
 
 - (void) dealloc
 {
-  RELEASE(_name);
-  RELEASE(_value);
+  RELEASE(internal->_name);
+  RELEASE(internal->_value);
+  GS_DESTROY_INTERNAL(NSURLQueryItem);
   [super dealloc];
 }
 
 // Reading a name and value from a query
 - (NSString *) name
 {
-  return _name;
+  return internal->_name;
 }
 
 - (NSString *) value
 {
-  return _value;
+  return internal->_value;
 }
 
 - (id) initWithCoder: (NSCoder *)acoder
@@ -2220,13 +2225,13 @@ static NSUInteger	urlAlign;
     {
       if ([acoder allowsKeyedCoding])
         {
-          _name = [acoder decodeObjectForKey: @"NS.name"];
-          _value = [acoder decodeObjectForKey: @"NS.value"];
+          internal->_name = [acoder decodeObjectForKey: @"NS.name"];
+          internal->_value = [acoder decodeObjectForKey: @"NS.value"];
         }
       else
         {
-          _name = [acoder decodeObject];
-          _value = [acoder decodeObject];
+          internal->_name = [acoder decodeObject];
+          internal->_value = [acoder decodeObject];
         }
     }
   return self;
@@ -2236,23 +2241,30 @@ static NSUInteger	urlAlign;
 {
   if ([acoder allowsKeyedCoding])
     {
-      [acoder encodeObject: _name forKey: @"NS.name"];
-      [acoder encodeObject: _value forKey: @"NS.value"];
+      [acoder encodeObject: internal->_name forKey: @"NS.name"];
+      [acoder encodeObject: internal->_value forKey: @"NS.value"];
     }
   else
     {
-      [acoder encodeObject: _name];
-      [acoder encodeObject: _value];
+      [acoder encodeObject: internal->_name];
+      [acoder encodeObject: internal->_value];
     }
 }
 
 - (id) copyWithZone: (NSZone *)zone
 {
-    return [[[self class] allocWithZone: zone] initWithName: _name
-                                                      value: _value];
+    return [[[self class] allocWithZone: zone] initWithName: internal->_name
+                                                      value: internal->_value];
 }
 
 @end
+
+
+#undef	GSInternal
+#define	GSInternal NSURLComponentsInternal
+#include "GSInternal.h"
+GS_PRIVATE_INTERNAL(NSURLComponents)
+
 
 @implementation NSURLComponents 
 
@@ -2335,7 +2347,7 @@ static NSUInteger	urlAlign;
   RELEASE(internal->_percentEncodedQueryItems);
   RELEASE(internal->_percentEncodedScheme);
   RELEASE(internal->_percentEncodedUser);
-
+  GS_DESTROY_INTERNAL(NSURLComponents);
   [super dealloc];
 }
 
