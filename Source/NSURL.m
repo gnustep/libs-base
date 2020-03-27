@@ -2581,7 +2581,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 - (void) setPercentEncodedFragment: (NSString *)fragment
 {
   ASSIGNCOPY(internal->_percentEncodedFragment, fragment);
-  [self _regenerateURL];
 }
 
 - (NSString *) percentEncodedHost
