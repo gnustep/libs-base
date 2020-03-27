@@ -279,6 +279,11 @@ DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
  */
 #define FOUNDATION_EXPORT GS_EXPORT
 
+/**
+ * Declare NSExceptionName
+ */
+typedef NSString* NSExceptionName;
+  
 #if	defined(__cplusplus)
 }
 #endif
