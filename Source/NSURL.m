@@ -69,8 +69,7 @@ function may be incorrect
   NSRange   _rangeOfQuery; \
   NSRange   _rangeOfQueryItems; \
   NSRange   _rangeOfScheme; \
-  NSRange   _rangeOfUser; \
-  BOOL      _regenerating;
+  NSRange   _rangeOfUser; 
 
 #import "common.h"
 #define	EXPOSE_NSURL_IVARS	1
