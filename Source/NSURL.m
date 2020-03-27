@@ -2389,27 +2389,27 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   ASSIGNCOPY(internal->_user, [url user]);
 
   // Percent encoded portions...
-  [self setPercentEncodedFragment:
-          [[url fragment] stringByAddingPercentEncodingWithAllowedCharacters:
-                            [NSCharacterSet URLFragmentAllowedCharacterSet]]];
-  [self setPercentEncodedHost:
-          [[url host] stringByAddingPercentEncodingWithAllowedCharacters:
-                        [NSCharacterSet URLHostAllowedCharacterSet]]];
-  [self setPercentEncodedPassword:
-          [[url password] stringByAddingPercentEncodingWithAllowedCharacters:
-                            [NSCharacterSet URLPasswordAllowedCharacterSet]]];;
-  [self setPercentEncodedPath:
-          [[url path] stringByAddingPercentEncodingWithAllowedCharacters:
-                        [NSCharacterSet URLPathAllowedCharacterSet]]];
-  [self setPercentEncodedQuery:
-          [[url query] stringByAddingPercentEncodingWithAllowedCharacters:
-                         [NSCharacterSet URLQueryAllowedCharacterSet]]];
-  [self setPercentEncodedScheme:
-          [[url scheme] stringByAddingPercentEncodingWithAllowedCharacters:
-                           [NSCharacterSet URLPathAllowedCharacterSet]]];
-  [self setPercentEncodedUser:
-          [[url user] stringByAddingPercentEncodingWithAllowedCharacters:
-                         [NSCharacterSet URLUserAllowedCharacterSet]]];
+  ASSIGNCOPY(internal->_percentEncodedFragment,
+             [[url fragment] stringByAddingPercentEncodingWithAllowedCharacters:
+                               [NSCharacterSet URLFragmentAllowedCharacterSet]]);
+  ASSIGNCOPY(internal->_percentEncodedHost,
+             [[url host] stringByAddingPercentEncodingWithAllowedCharacters:
+                           [NSCharacterSet URLHostAllowedCharacterSet]]);
+  ASSIGNCOPY(internal->_percentEncodedPassword,
+             [[url password] stringByAddingPercentEncodingWithAllowedCharacters:
+                               [NSCharacterSet URLPasswordAllowedCharacterSet]]);;
+  ASSIGNCOPY(internal->_percentEncodedPath,
+             [[url path] stringByAddingPercentEncodingWithAllowedCharacters:
+                           [NSCharacterSet URLPathAllowedCharacterSet]]);
+  ASSIGNCOPY(internal->_percentEncodedQuery,
+             [[url query] stringByAddingPercentEncodingWithAllowedCharacters:
+                            [NSCharacterSet URLQueryAllowedCharacterSet]]);
+  ASSIGNCOPY(internal->_percentEncodedScheme,
+             [[url scheme] stringByAddingPercentEncodingWithAllowedCharacters:
+                             [NSCharacterSet URLPathAllowedCharacterSet]]);
+  ASSIGNCOPY(internal->_percentEncodedUser,
+             [[url user] stringByAddingPercentEncodingWithAllowedCharacters:
+                           [NSCharacterSet URLUserAllowedCharacterSet]]);
 
   {
     // Find ranges
