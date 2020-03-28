@@ -2376,7 +2376,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (void) setURL: (NSURL *)url
 {
-  ASSIGN(internal->_url, url);
+  ASSIGNCOPY(internal->_url, url);
 
   // components...
   ASSIGNCOPY(internal->_fragment, [url fragment]);
