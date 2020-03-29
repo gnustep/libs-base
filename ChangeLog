@@ -1,4 +1,8 @@
-2020-03-29  Fred Kiefer <fredkiefer@gmx.de>
+2020-03-29  Frederik Seiffert <frederik@algoriddim.com>
+
+    * Source/NSURLResponse.m: Fix parsing of NSURLResponse content type
+    header.
+ 2020-03-29  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/NSString.m: Attempt to make calls to GSICUCollatorOpen()
 	more consistent and correct for ICU 65.
