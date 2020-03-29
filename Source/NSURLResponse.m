@@ -81,7 +81,8 @@ typedef struct {
 	}
       s = [NSScanner scannerWithString: v];
       p = [GSMimeParser new];
-      c = AUTORELEASE([GSMimeHeader new]);
+      c = AUTORELEASE([[GSMimeHeader alloc] initWithName: @"content-type"
+                                                   value: nil]);
       /* We just set the header body, so we know it will scan and don't need
        * to check the retrurn type.
        */
