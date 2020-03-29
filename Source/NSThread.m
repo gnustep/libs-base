@@ -1241,12 +1241,7 @@ unregisterActiveThread(NSThread *thread)
         }
       while (i > 0)
         {
-          if (PTHREAD_SETNAME(buf) == 0)
-            {
-              break;    // Success
-            }
-
-          if (ERANGE == errno)
+          if (PTHREAD_SETNAME(buf) == ERANGE)
             {
               /* Name must be too long ... gnu/linux uses 15 characters
                */
@@ -1274,7 +1269,7 @@ unregisterActiveThread(NSThread *thread)
             }
           else
             {
-              break;    // Some other error
+              break;    // Success or some other error
             }
         }
     }

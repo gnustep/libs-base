@@ -1,7 +1,26 @@
+2020-03-29  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSThread.m: Use pthread_setname_np result instead of errno,
+	which fixes setting thread name on platforms where errno is not set.
+
+2020-03-29  Frederik Seiffert <frederik@algoriddim.com>
+
+    * Source/NSURLResponse.m: Fix parsing of NSURLResponse content type
+    header.
+ 2020-03-29  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSString.m: Attempt to make calls to GSICUCollatorOpen()
+	more consistent and correct for ICU 65.
+
+2020-03-26  Frederik Seiffert <frederik@algoriddim.com>
+
+  * Headers/Foundation/NSError.h:
+  * Source/NSError.m: Added NSErrorDomain typedef.
+
 2020-03-12  Fred Kiefer <fredkiefer@gmx.de>
 
-	* Source/NSURL.m: Fix compiler warnigns.
-	* Headers/Foundation/NSLocale.h,
+	* Source/NSURL.m: Fix compiler warnings.
+	* Headers/Foundation/NSLocale.h:
 	* Source/NSLocale.m: Add a few convenience methods from MacOS 10.12.
 
 2020-03-10  Frederik Seiffert <frederik@algoriddim.com>

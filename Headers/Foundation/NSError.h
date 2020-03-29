@@ -38,6 +38,8 @@ extern "C" {
 
 @class NSArray, NSDictionary, NSString;
 
+typedef NSString* NSErrorDomain;
+
 /**
  * Key for user info dictionary component which describes the error in
  * a human readable format.
@@ -103,20 +105,20 @@ GS_EXPORT NSString* const NSURLErrorFailingURLStringErrorKey;
 /**
  * Domain for system errors (on MACH).
  */
-GS_EXPORT NSString* const NSMACHErrorDomain;
+GS_EXPORT NSErrorDomain const NSMACHErrorDomain;
 /**
  * Domain for system errors.
  */
-GS_EXPORT NSString* const NSOSStatusErrorDomain;
+GS_EXPORT NSErrorDomain const NSOSStatusErrorDomain;
 /**
  * Domain for system and system library errors.
  */
-GS_EXPORT NSString* const NSPOSIXErrorDomain;
+GS_EXPORT NSErrorDomain const NSPOSIXErrorDomain;
 #if	OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST)
 /**
  * Domain for Foundation and AppKit (base and gui) errors.
  */
-GS_EXPORT NSString* const NSCocoaErrorDomain;
+GS_EXPORT NSErrorDomain const NSCocoaErrorDomain;
 #endif
 
 /**
@@ -150,7 +152,7 @@ GS_EXPORT NSString* const NSCocoaErrorDomain;
  * Creates and returns an autoreleased NSError instance by calling
  * -initWithDomain:code:userInfo:
  */
-+ (id) errorWithDomain: (NSString*)aDomain
++ (id) errorWithDomain: (NSErrorDomain)aDomain
 		  code: (NSInteger)aCode
 	      userInfo: (NSDictionary*)aDictionary;
 
@@ -163,13 +165,13 @@ GS_EXPORT NSString* const NSCocoaErrorDomain;
 /**
  * Return the domain for this instance.
  */
-- (NSString*) domain;
+- (NSErrorDomain) domain;
 
 /** <init />
  * Initialises the receiver using the supplied domain, code, and info.<br />
  * The domain must be non-nil.
  */
-- (id) initWithDomain: (NSString*)aDomain
+- (id) initWithDomain: (NSErrorDomain)aDomain
 		 code: (NSInteger)aCode
 	     userInfo: (NSDictionary*)aDictionary;
 
