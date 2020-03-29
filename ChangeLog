@@ -1,5 +1,10 @@
 2020-03-29  Frederik Seiffert <frederik@algoriddim.com>
 
+	* Source/NSThread.m: Use pthread_setname_np result instead of errno,
+	which fixes setting thread name on platforms where errno is not set.
+
+2020-03-29  Frederik Seiffert <frederik@algoriddim.com>
+
     * Source/NSURLResponse.m: Fix parsing of NSURLResponse content type
     header.
  2020-03-29  Fred Kiefer <fredkiefer@gmx.de>
