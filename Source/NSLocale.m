@@ -868,6 +868,41 @@ static NSRecursiveLock *classLock = nil;
   return result;
 }
 
+- (NSString *) languageCode
+{
+  return [self objectForKey: NSLocaleLanguageCode];
+}
+
+- (NSString *) countryCode
+{
+  return [self objectForKey: NSLocaleLanguageCode];
+}
+
+- (NSString *) scriptCode
+{
+  return [self objectForKey: NSLocaleScriptCode];
+}
+
+- (NSString *) variantCode
+{
+  return [self objectForKey: NSLocaleVariantCode];
+}
+
+- (NSCharacterSet *) exemplarCharacterSet
+{
+  return [self objectForKey: NSLocaleExemplarCharacterSet];
+}
+
+- (NSString *) collationIdentifier
+{
+  return [self objectForKey: NSLocaleCollationIdentifier];
+}
+
+- (NSString *) collatorIdentifier
+{
+  return [self objectForKey: NSLocaleCollatorIdentifier];
+}
+
 - (NSString *) description
 {
   return _localeId;

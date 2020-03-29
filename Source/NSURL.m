@@ -667,7 +667,7 @@ static NSUInteger	urlAlign;
 					    isDirectory: isDir]);
 }
 
-+ (NSURL*) fileURLWithPathComponents: (NSArray*)components
++ (id) fileURLWithPathComponents: (NSArray*)components
 {
   return [self fileURLWithPath: [NSString pathWithComponents: components]];
 }
@@ -2236,6 +2236,15 @@ static NSUInteger	urlAlign;
   if (self != nil)
     {
       GS_CREATE_INTERNAL(NSURLComponents);
+      
+      internal->_rangeOfFragment = NSMakeRange(NSNotFound, 0);
+      internal->_rangeOfHost     = NSMakeRange(NSNotFound, 0);
+      internal->_rangeOfPassword = NSMakeRange(NSNotFound, 0);
+      internal->_rangeOfPath     = NSMakeRange(NSNotFound, 0);
+      internal->_rangeOfPort     = NSMakeRange(NSNotFound, 0);
+      internal->_rangeOfQuery    = NSMakeRange(NSNotFound, 0);
+      internal->_rangeOfScheme   = NSMakeRange(NSNotFound, 0);
+      internal->_rangeOfUser     = NSMakeRange(NSNotFound, 0);
     }
   return self;
 }
@@ -2351,15 +2360,21 @@ static NSUInteger	urlAlign;
           [[url user] stringByAddingPercentEncodingWithAllowedCharacters:
                          [NSCharacterSet URLUserAllowedCharacterSet]]];
 
-  // Find ranges
-  internal->_rangeOfFragment   = [[url absoluteString] rangeOfString: internal->_fragment];
-  internal->_rangeOfHost       = [[url absoluteString] rangeOfString: internal->_host];
-  internal->_rangeOfPassword   = [[url absoluteString] rangeOfString: internal->_password];
-  internal->_rangeOfPath       = [[url absoluteString] rangeOfString: internal->_path];
-  internal->_rangeOfPort       = [[url absoluteString] rangeOfString: [internal->_port stringValue]];
-  internal->_rangeOfQuery      = [[url absoluteString] rangeOfString: internal->_query];
-  internal->_rangeOfScheme     = [[url absoluteString] rangeOfString: internal->_scheme];
-  internal->_rangeOfUser       = [[url absoluteString] rangeOfString: internal->_user];
+  {
+    // Find ranges
+    NSString *urlString = [url absoluteString];
+#define URL_COMPONENT_RANGE(part) \
+    (part ? [urlString rangeOfString:part] : NSMakeRange(NSNotFound, 0))
+    internal->_rangeOfFragment = URL_COMPONENT_RANGE(internal->_fragment);
+    internal->_rangeOfHost     = URL_COMPONENT_RANGE(internal->_host);
+    internal->_rangeOfPassword = URL_COMPONENT_RANGE(internal->_password);
+    internal->_rangeOfPath     = URL_COMPONENT_RANGE(internal->_path);
+    internal->_rangeOfPort     = URL_COMPONENT_RANGE([internal->_port stringValue]);
+    internal->_rangeOfQuery    = URL_COMPONENT_RANGE(internal->_query);
+    internal->_rangeOfScheme   = URL_COMPONENT_RANGE(internal->_scheme);
+    internal->_rangeOfUser     = URL_COMPONENT_RANGE(internal->_user);
+#undef URL_COMPONENT_RANGE
+  }
 }
 
 - (NSURL *)URLRelativeToURL: (NSURL *)baseURL
