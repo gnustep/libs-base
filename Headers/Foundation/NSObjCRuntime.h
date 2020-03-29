@@ -279,14 +279,14 @@ DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
  */
 #define FOUNDATION_EXPORT GS_EXPORT
 
-#if	defined(__cplusplus)
-}
-#endif
-
 /**
  * Declare NSExceptionName
  */
 typedef NSString* NSExceptionName;
+  
+#if	defined(__cplusplus)
+}
+#endif
 
 /**
  * Declare Apple availability macros for compatibility purposes as no-ops.

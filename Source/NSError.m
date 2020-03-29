@@ -46,14 +46,14 @@ NSString* const NSRecoveryAttempterErrorKey
 NSString* const NSURLErrorFailingURLErrorKey = @"NSErrorFailingURLKey";
 NSString* const NSURLErrorFailingURLStringErrorKey = @"NSErrorFailingURLStringKey";
 
-NSString* const NSMACHErrorDomain = @"NSMACHErrorDomain";
-NSString* const NSOSStatusErrorDomain = @"NSOSStatusErrorDomain";
-NSString* const NSPOSIXErrorDomain = @"NSPOSIXErrorDomain";
-NSString* const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
+NSErrorDomain const NSMACHErrorDomain = @"NSMACHErrorDomain";
+NSErrorDomain const NSOSStatusErrorDomain = @"NSOSStatusErrorDomain";
+NSErrorDomain const NSPOSIXErrorDomain = @"NSPOSIXErrorDomain";
+NSErrorDomain const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
 
 @implementation	NSError
 
-+ (id) errorWithDomain: (NSString*)aDomain
++ (id) errorWithDomain: (NSErrorDomain)aDomain
 		  code: (NSInteger)aCode
 	      userInfo: (NSDictionary*)aDictionary
 {
@@ -88,7 +88,7 @@ NSString* const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
   return [self localizedDescription];
 }
 
-- (NSString*) domain
+- (NSErrorDomain) domain
 {
   return _domain;
 }
@@ -136,7 +136,7 @@ NSString* const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
   return self;
 }
 
-- (id) initWithDomain: (NSString*)aDomain
+- (id) initWithDomain: (NSErrorDomain)aDomain
 		 code: (NSInteger)aCode
 	     userInfo: (NSDictionary*)aDictionary
 {
