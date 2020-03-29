@@ -663,28 +663,43 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     {
       return NULL;
     }
-  
-  if (locale == nil)
-    {
-      /* A nil locale should trigger POSIX collation (i.e. 'A'-'Z' sort
-       * before 'a'), and support for this was added in ICU 4.6 under the
-       * locale name en_US_POSIX, but it doesn't fit our requirements
-       * (e.g. 'e' and 'E' don't compare as equal with case insensitive
-       * comparison.) - so return NULL to indicate that the GNUstep
-       * comparison code should be used.
-       */
-      return NULL;
-    }
-  else
-    {
-      localeCString = [[locale localeIdentifier] UTF8String];
 
-      if (localeCString == NULL || strcmp("", localeCString) == 0)
-	{
-	  return NULL;
-	}
+  if (NO == [locale isKindOfClass: [NSLocale class]])
+    {
+      if (nil == locale)
+        {
+          /* See comments below about the posix locale.
+           * It's bad for case insensitive search, but needed for numeric
+           */
+          if (mask & NSNumericSearch)
+            {
+              locale = [NSLocale systemLocale];
+            }
+          else
+            {
+              /* A nil locale should trigger POSIX collation (i.e. 'A'-'Z' sort
+               * before 'a'), and support for this was added in ICU 4.6 under the
+               * locale name en_US_POSIX, but it doesn't fit our requirements
+               * (e.g. 'e' and 'E' don't compare as equal with case insensitive
+               * comparison.) - so return NULL to indicate that the GNUstep
+               * comparison code should be used.
+               */
+              return NULL;
+            }
+        }
+      else
+        {
+          locale = [NSLocale currentLocale];
+        }
     }
-	  
+
+  localeCString = [[locale localeIdentifier] UTF8String];
+
+  if (localeCString != NULL && strcmp("", localeCString) == 0)
+    {
+      localeCString = NULL;
+    }
+
   coll = ucol_open(localeCString, &status);
 
   if (U_SUCCESS(status))
@@ -2804,10 +2819,6 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     }
 
 #if GS_USE_ICU == 1
-  if (nil != locale && NO == [locale isKindOfClass: [NSLocale class]])
-    {
-      locale = [NSLocale currentLocale];
-    }
     {
       UCollator *coll = GSICUCollatorOpen(mask, locale);
 
@@ -5784,23 +5795,6 @@ static NSFileManager *fm = nil;
     [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
 
 #if GS_USE_ICU == 1
-  if (NO == [locale isKindOfClass: [NSLocale class]])
-    {
-      if (nil == locale)
-        {
-          /* See comments in GSICUCollatorOpen about the posix locale.
-           * It's bad for case insensitive search, but needed for numeric    
-           */
-          if (mask & NSNumericSearch)
-            {
-              locale = [NSLocale systemLocale];
-            }
-        }
-      else
-        {
-          locale = [NSLocale currentLocale];
-        }
-    }
     {
       UCollator *coll = GSICUCollatorOpen(mask, locale);
 
