@@ -2535,7 +2535,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
   if (internal->_path != nil)
     {
-      urlString = [urlString stringByAppendingFormat: @"/%@", internal->_path];
+      urlString = [urlString stringByAppendingFormat: @"%@", internal->_path];
     }
 
   if ([internal->_queryItems count] > 0) // if query items is nil, this will also return 0
