@@ -217,6 +217,7 @@ static NSArray	*empty = nil;
       RELEASE(internal->dependencies);
       RELEASE(internal->cond);
       RELEASE(internal->lock);
+      RELEASE(internal->completionBlock);
       GS_DESTROY_INTERNAL(NSOperation);
     }
   [super dealloc];
@@ -381,7 +382,7 @@ static NSArray	*empty = nil;
 
 - (void) setCompletionBlock: (GSOperationCompletionBlock)aBlock
 {
-  internal->completionBlock = aBlock;
+  ASSIGNCOPY(internal->completionBlock, aBlock);
 }
 
 - (void) setQueuePriority: (NSOperationQueuePriority)pri
