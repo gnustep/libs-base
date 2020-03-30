@@ -2485,7 +2485,8 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
         {
           NSString *n = [qi name];
           NSString *v = [qi value];
-          urlString = [urlString stringByAppendingFormat: @"%@=%@", n, v];
+          NSString *item = [[NSString stringWithFormat: @"%@=%@", n, v] _stringByAddingPercentEscapes];
+          urlString = [urlString stringByAppendingString: item];
           if (qi != [internal->_queryItems lastObject])
             {
               urlString = [urlString stringByAppendingString: @"&"];
