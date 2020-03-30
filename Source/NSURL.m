@@ -2447,10 +2447,17 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
       urlString = [urlString stringByAppendingFormat: @"%@://", internal->_scheme];
     }
 
-  if (internal->_user != nil && internal->_password)
+  if (internal->_user != nil) 
     {
-      urlString = [urlString stringByAppendingFormat: @"%@:%@@", internal->_user,
-                             internal->_password];
+      if (internal->_password != nil)
+        {
+          urlString = [urlString stringByAppendingFormat: @"%@:%@@", internal->_user,
+                                 internal->_password];
+        }
+      else
+        {
+          urlString = [urlString stringByAppendingFormat: @"%@@", internal->_user];
+        }
     }
 
   if (internal->_host != nil)
