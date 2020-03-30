@@ -24,6 +24,8 @@
 */
 #import "NSPropertyList+PLUtil.h"
 #import "GNUstepBase/GSObjCRuntime.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSJSONSerialization.h"
 
 static IMP originalRead = 0;
@@ -104,9 +106,9 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
 					       options:jsonOptions
 						 error:&myError];
       }
-  if (error != nil)
+  if (error != NULL)
     *error = myError;
-  if (*aFormat != nil)
+  if (*aFormat != NULL)
     *aFormat = format;
   return prop;
 }
