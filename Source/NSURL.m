@@ -7,6 +7,9 @@
    Rewrite by: 	Richard Frith-Macdonald <rfm@gnu.org>
    Date: 	Jun 2002
 
+   Add'l by:    Gregory John Casamento <greg.casamento@gmail.com>  
+   Date: 	Jan 2020
+
    This file is part of the GNUstep Library.
 
    This library is free software; you can redistribute it and/or
@@ -2436,19 +2439,52 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 // Regenerate URL when components are changed...
 - (void) _regenerateURL
 {
-  NSString *urlString = (internal->_user != nil && internal->_password != nil) ?
-    [NSString stringWithFormat: @"%@://%@:%@@%@:%@/%@",
-              internal->_scheme,
-              internal->_user,
-              internal->_password,
-              internal->_host,
-              internal->_port,
-             internal->_path] :
-    [NSString stringWithFormat: @"%@://%@:%@/%@",
-              internal->_scheme,
-              internal->_host,
-              internal->_port,
-              internal->_path];
+  NSString *urlString = @"";
+
+  // Build up the URL from components...
+  if (internal->_scheme != nil)
+    {
+      urlString = [urlString stringByAppendingFormat: @"%@://", internal->_scheme];
+    }
+
+  if (internal->_user != nil && internal->_password)
+    {
+      urlString = [urlString stringByAppendingFormat: @"%@:%@@", internal->_user,
+                             internal->_password];
+    }
+
+  if (internal->_host != nil)
+    {
+      urlString = [urlString stringByAppendingFormat: @"%@", internal->_host];
+    }
+
+  if (internal->_port != nil)
+    {
+      urlString = [urlString stringByAppendingFormat: @":%@", internal->_port];
+    }
+
+  if (internal->_path != nil)
+    {
+      urlString = [urlString stringByAppendingFormat: @"/%@", internal->_path];
+    }
+
+  if ([internal->_queryItems count] > 0) // if query items is nil, this will also return 0
+    {
+      NSEnumerator *en = [internal->_queryItems objectEnumerator];
+      NSURLQueryItem *qi = nil;
+
+      urlString = [urlString stringByAppendingString: @"?"];
+      while((qi = [en nextObject]) != nil)
+        {
+          NSString *n = [qi name];
+          NSString *v = [qi value];
+          urlString = [urlString stringByAppendingFormat: @"%@=%@", n, v];
+          if (qi != [internal->_queryItems lastObject])
+            {
+              urlString = [urlString stringByAppendingString: @"&"];
+            }
+        }
+    }
   
   NSURL *url = [NSURL URLWithString: urlString];
   [self setURL: url];
