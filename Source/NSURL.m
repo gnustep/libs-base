@@ -2428,6 +2428,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 // Getting the URL
 - (NSString *) string
 {
+  [self _regenerateURL];
   return [internal->_url absoluteString];
 }
 
@@ -2439,6 +2440,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (NSURL *) URL
 {
+  [self _regenerateURL];
   return internal->_url;
 }
 
@@ -2641,7 +2643,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   
   ASSIGNCOPY(internal->_query, query); // add query string...
   ASSIGNCOPY(internal->_queryItems, queryItems);
-  [self _regenerateURL];
 }
 
 - (NSString *) scheme
@@ -2652,7 +2653,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 - (void) setScheme: (NSString *)scheme
 {
   ASSIGNCOPY(internal->_scheme, scheme);
-  [self _regenerateURL];
 }
 
 - (NSString *) user
@@ -2666,7 +2666,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   ASSIGNCOPY(internal->_percentEncodedUser,
              [user stringByAddingPercentEncodingWithAllowedCharacters:
                      [NSCharacterSet URLUserAllowedCharacterSet]]);
-  [self _regenerateURL];
 }
 
 // Accessing Components in PercentEncoded Format
@@ -2679,7 +2678,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 {
   ASSIGNCOPY(internal->_percentEncodedFragment, fragment);
   ASSIGNCOPY(internal->_fragment, [fragment stringByRemovingPercentEncoding]);
-  [self _regenerateURL];
 }
 
 - (NSString *) percentEncodedHost
@@ -2691,7 +2689,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 {
   ASSIGNCOPY(internal->_percentEncodedHost, host);
   ASSIGNCOPY(internal->_host, [host stringByRemovingPercentEncoding]);
-  [self _regenerateURL];
 }
 
 - (NSString *) percentEncodedPassword
@@ -2703,7 +2700,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 {
   ASSIGNCOPY(internal->_percentEncodedPassword, password);
   ASSIGNCOPY(internal->_password, [password stringByRemovingPercentEncoding]);
-  [self _regenerateURL];
 }
 
 - (NSString *) percentEncodedPath
@@ -2715,7 +2711,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 {
   ASSIGNCOPY(internal->_percentEncodedPath, path);
   ASSIGNCOPY(internal->_path, [path stringByRemovingPercentEncoding]);
-  [self _regenerateURL];
 }
 
 - (NSString *) percentEncodedQuery
@@ -2727,7 +2722,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 {
   ASSIGNCOPY(internal->_percentEncodedQuery, query);
   ASSIGNCOPY(internal->_query, [query stringByRemovingPercentEncoding]);
-  [self _regenerateURL];
 }
 
 - (NSArray *) percentEncodedQueryItems
@@ -2738,7 +2732,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 - (void) setPercentEncodedQueryItems: (NSArray *)queryItems
 {
   ASSIGNCOPY(internal->_percentEncodedQueryItems, queryItems);
-  [self _regenerateURL];
 }
 
 - (NSString *) percentEncodedScheme
@@ -2749,7 +2742,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 - (void) setPercentEncodedScheme: (NSString *)scheme
 {
   ASSIGNCOPY(internal->_percentEncodedScheme, scheme);
-  [self _regenerateURL];
 }
 
 - (NSString *) percentEncodedUser
@@ -2761,7 +2753,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 {
   ASSIGNCOPY(internal->_percentEncodedUser, user);
   ASSIGNCOPY(internal->_user, [user stringByRemovingPercentEncoding]);
-  [self _regenerateURL];
 }
 
 // Locating components of the URL string representation
