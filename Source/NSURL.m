@@ -2504,65 +2504,17 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 // Regenerate URL when components are changed...
 - (void) _regenerateURL
 {
-  NSString *urlString = @"";
-
-  // Build up the URL from components...
-  if (internal->_scheme != nil)
-    {
-      urlString = [urlString stringByAppendingFormat: @"%@://", internal->_scheme];
-    }
-
-  if (internal->_user != nil) 
-    {
-      if (internal->_password != nil)
-        {
-          urlString = [urlString stringByAppendingFormat: @"%@:%@@", internal->_user,
-                                 internal->_password];
-        }
-      else
-        {
-          urlString = [urlString stringByAppendingFormat: @"%@@", internal->_user];
-        }
-    }
-
-  if (internal->_host != nil)
-    {
-      urlString = [urlString stringByAppendingFormat: @"%@", internal->_host];
-    }
-
-  if (internal->_port != nil)
-    {
-      urlString = [urlString stringByAppendingFormat: @":%@", internal->_port];
-    }
-
-  if (internal->_path != nil)
-    {
-      urlString = [urlString stringByAppendingFormat: @"%@", internal->_path];
-    }
-
-  if ([internal->_queryItems count] > 0) // if query items is nil, this will also return 0
-    {
-      NSEnumerator *en = [internal->_queryItems objectEnumerator];
-      NSURLQueryItem *qi = nil;
-
-      urlString = [urlString stringByAppendingString: @"?"];
-      while((qi = [en nextObject]) != nil)
-        {
-          NSString *n = [[qi name] _stringByAddingPercentEscapesForQuery];
-          NSString *v = [[qi value] _stringByAddingPercentEscapesForQuery];
-          NSString *item = [NSString stringWithFormat: @"%@=%@", n, v];
-          urlString = [urlString stringByAppendingString: item];
-          if (qi != [internal->_queryItems lastObject])
-            {
-              urlString = [urlString stringByAppendingString: @"&"];
-            }
-        }
-    }
-
-  NSLog(@"URLSTRING = %@", urlString);
-  
-  NSURL *url = [NSURL URLWithString: urlString];
-  ASSIGNCOPY(internal->_url, url);
+  NSURL	*u;
+  u = [[NSURL alloc] initWithScheme: internal->_scheme
+                               user: internal->_user
+                           password: internal->_password
+                               host: internal->_host
+                               port: internal->_port
+                           fullPath: internal->_path
+                    parameterString: nil
+                              query: internal->_query
+                           fragment: internal->_fragment];
+  ASSIGNCOPY(internal->_url, u);
  }
 
 // Accessing Components in Native Format
@@ -2671,6 +2623,23 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (void) setQueryItems: (NSArray *)queryItems
 {
+  NSString *query = @"";
+  NSEnumerator *en = [queryItems objectEnumerator];
+  NSURLQueryItem *item = nil;
+
+  while ((item = (NSURLQueryItem *)[en nextObject]) != nil)
+    {
+      NSString *name = [item name];
+      NSString *value = [item value];
+      NSString *itemString = [NSString stringWithFormat: @"%@=%@",name,value];
+      query = [query stringByAppendingString: itemString];
+      if (item != [queryItems lastObject])
+        {
+          query = [query stringByAppendingString: @"&"];
+        }
+    }
+  
+  ASSIGNCOPY(internal->_query, query); // add query string...
   ASSIGNCOPY(internal->_queryItems, queryItems);
   [self _regenerateURL];
 }
