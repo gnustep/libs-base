@@ -72,8 +72,7 @@ function may be incorrect
   NSRange   _rangeOfQuery; \
   NSRange   _rangeOfQueryItems; \
   NSRange   _rangeOfScheme; \
-  NSRange   _rangeOfUser; \
-  BOOL      _update;
+  NSRange   _rangeOfUser;
 
 #import "common.h"
 #define	EXPOSE_NSURL_IVARS	1
@@ -2363,7 +2362,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
       internal->_rangeOfQuery    = NSMakeRange(NSNotFound, 0);
       internal->_rangeOfScheme   = NSMakeRange(NSNotFound, 0);
       internal->_rangeOfUser     = NSMakeRange(NSNotFound, 0);
-      internal->_update          = NO;
     }
   return self;
 }
@@ -2595,9 +2593,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 - (void) setQuery: (NSString *)query
 {
   ASSIGNCOPY(internal->_query, query);
-  ASSIGNCOPY(internal->_percentEncodedQuery,
-             [query stringByAddingPercentEncodingWithAllowedCharacters:
-                      [NSCharacterSet URLQueryAllowedCharacterSet]]);
   if (query != nil)
     {
       NSMutableArray *result = [NSMutableArray arrayWithCapacity: 5];
@@ -2632,7 +2627,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   while ((item = (NSURLQueryItem *)[en nextObject]) != nil)
     {
       NSString *name = [item name];
-      NSString *value = [item value];
+      NSString *value = [[item value] _stringByAddingPercentEscapesForQuery];
       NSString *itemString = [NSString stringWithFormat: @"%@=%@",name,value];
       query = [query stringByAppendingString: itemString];
       if (item != [queryItems lastObject])
@@ -2642,6 +2637,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
     }
   
   ASSIGNCOPY(internal->_query, query); // add query string...
+  ASSIGNCOPY(internal->_percentEncodedQuery, query);
   ASSIGNCOPY(internal->_queryItems, queryItems);
 }
 
