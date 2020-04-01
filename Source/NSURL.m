@@ -72,7 +72,8 @@ function may be incorrect
   NSRange   _rangeOfQuery; \
   NSRange   _rangeOfQueryItems; \
   NSRange   _rangeOfScheme; \
-  NSRange   _rangeOfUser;
+  NSRange   _rangeOfUser; \
+  BOOL      _update;
 
 #import "common.h"
 #define	EXPOSE_NSURL_IVARS	1
@@ -2362,6 +2363,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
       internal->_rangeOfQuery    = NSMakeRange(NSNotFound, 0);
       internal->_rangeOfScheme   = NSMakeRange(NSNotFound, 0);
       internal->_rangeOfUser     = NSMakeRange(NSNotFound, 0);
+      internal->_update          = NO;
     }
   return self;
 }
@@ -2437,7 +2439,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (NSURL *) URL
 {
-  [self _regenerateURL];
   return internal->_url;
 }
 
@@ -2457,27 +2458,27 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
   // Percent encoded portions...
   ASSIGNCOPY(internal->_percentEncodedFragment,
-             [[url fragment] stringByAddingPercentEncodingWithAllowedCharacters:
-                               [NSCharacterSet URLFragmentAllowedCharacterSet]]);
+             [internal->_fragment stringByAddingPercentEncodingWithAllowedCharacters:
+                        [NSCharacterSet URLFragmentAllowedCharacterSet]]);
   ASSIGNCOPY(internal->_percentEncodedHost,
-             [[url host] stringByAddingPercentEncodingWithAllowedCharacters:
-                           [NSCharacterSet URLHostAllowedCharacterSet]]);
+             [internal->_host stringByAddingPercentEncodingWithAllowedCharacters:
+                        [NSCharacterSet URLHostAllowedCharacterSet]]);
   ASSIGNCOPY(internal->_percentEncodedPassword,
-             [[url password] stringByAddingPercentEncodingWithAllowedCharacters:
-                               [NSCharacterSet URLPasswordAllowedCharacterSet]]);
+             [internal->_password stringByAddingPercentEncodingWithAllowedCharacters:
+                        [NSCharacterSet URLPasswordAllowedCharacterSet]]);
   ASSIGNCOPY(internal->_percentEncodedPath,
-             [[url path] stringByAddingPercentEncodingWithAllowedCharacters:
-                           [NSCharacterSet URLPathAllowedCharacterSet]]);
+             [internal->_path stringByAddingPercentEncodingWithAllowedCharacters:
+                        [NSCharacterSet URLPathAllowedCharacterSet]]);
   ASSIGNCOPY(internal->_percentEncodedQuery,
-             [[url query] stringByAddingPercentEncodingWithAllowedCharacters:
-                            [NSCharacterSet URLQueryAllowedCharacterSet]]);
+             [internal->_query stringByAddingPercentEncodingWithAllowedCharacters:
+                        [NSCharacterSet URLQueryAllowedCharacterSet]]);
   ASSIGNCOPY(internal->_percentEncodedScheme,
-             [[url scheme] stringByAddingPercentEncodingWithAllowedCharacters:
-                             [NSCharacterSet URLPathAllowedCharacterSet]]);
+             [internal->_scheme stringByAddingPercentEncodingWithAllowedCharacters:
+                        [NSCharacterSet URLPathAllowedCharacterSet]]);
   ASSIGNCOPY(internal->_percentEncodedUser,
-             [[url user] stringByAddingPercentEncodingWithAllowedCharacters:
-                           [NSCharacterSet URLUserAllowedCharacterSet]]);
-
+             [internal->_user stringByAddingPercentEncodingWithAllowedCharacters:
+                        [NSCharacterSet URLUserAllowedCharacterSet]]);
+  
   {
     // Find ranges
     NSString *urlString = [url absoluteString];
@@ -2557,10 +2558,12 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
             }
         }
     }
+
+  NSLog(@"URLSTRING = %@", urlString);
   
   NSURL *url = [NSURL URLWithString: urlString];
-  [self setURL: url];
-}
+  ASSIGNCOPY(internal->_url, url);
+ }
 
 // Accessing Components in Native Format
 - (NSString *) fragment
@@ -2574,6 +2577,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   ASSIGNCOPY(internal->_percentEncodedFragment,
              [fragment stringByAddingPercentEncodingWithAllowedCharacters:
                          [NSCharacterSet URLFragmentAllowedCharacterSet]]);
+  [self _regenerateURL];
 }
 
 - (NSString *) host
@@ -2587,6 +2591,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   ASSIGNCOPY(internal->_percentEncodedHost,
              [host stringByAddingPercentEncodingWithAllowedCharacters:
                      [NSCharacterSet URLHostAllowedCharacterSet]]);
+  [self _regenerateURL];
 }
 
 - (NSString *) password
@@ -2600,6 +2605,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   ASSIGNCOPY(internal->_percentEncodedPassword,
              [password stringByAddingPercentEncodingWithAllowedCharacters:
                          [NSCharacterSet URLPasswordAllowedCharacterSet]]);
+  [self _regenerateURL];
 }
 
 - (NSString *) path
@@ -2613,6 +2619,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   ASSIGNCOPY(internal->_percentEncodedPath,
              [path stringByAddingPercentEncodingWithAllowedCharacters:
                      [NSCharacterSet URLPathAllowedCharacterSet]]);
+  [self _regenerateURL];
 }
 
 - (NSNumber *) port
@@ -2623,6 +2630,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 - (void) setPort: (NSNumber *)port
 {
   ASSIGNCOPY(internal->_port, port);
+  [self _regenerateURL];
 }
 
 - (NSString *) query
@@ -2664,6 +2672,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 - (void) setQueryItems: (NSArray *)queryItems
 {
   ASSIGNCOPY(internal->_queryItems, queryItems);
+  [self _regenerateURL];
 }
 
 - (NSString *) scheme
@@ -2674,6 +2683,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 - (void) setScheme: (NSString *)scheme
 {
   ASSIGNCOPY(internal->_scheme, scheme);
+  [self _regenerateURL];
 }
 
 - (NSString *) user
@@ -2687,6 +2697,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   ASSIGNCOPY(internal->_percentEncodedUser,
              [user stringByAddingPercentEncodingWithAllowedCharacters:
                      [NSCharacterSet URLUserAllowedCharacterSet]]);
+  [self _regenerateURL];
 }
 
 // Accessing Components in PercentEncoded Format
@@ -2699,6 +2710,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 {
   ASSIGNCOPY(internal->_percentEncodedFragment, fragment);
   ASSIGNCOPY(internal->_fragment, [fragment stringByRemovingPercentEncoding]);
+  [self _regenerateURL];
 }
 
 - (NSString *) percentEncodedHost
@@ -2710,6 +2722,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 {
   ASSIGNCOPY(internal->_percentEncodedHost, host);
   ASSIGNCOPY(internal->_host, [host stringByRemovingPercentEncoding]);
+  [self _regenerateURL];
 }
 
 - (NSString *) percentEncodedPassword
@@ -2721,6 +2734,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 {
   ASSIGNCOPY(internal->_percentEncodedPassword, password);
   ASSIGNCOPY(internal->_password, [password stringByRemovingPercentEncoding]);
+  [self _regenerateURL];
 }
 
 - (NSString *) percentEncodedPath
@@ -2732,6 +2746,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 {
   ASSIGNCOPY(internal->_percentEncodedPath, path);
   ASSIGNCOPY(internal->_path, [path stringByRemovingPercentEncoding]);
+  [self _regenerateURL];
 }
 
 - (NSString *) percentEncodedQuery
@@ -2743,6 +2758,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 {
   ASSIGNCOPY(internal->_percentEncodedQuery, query);
   ASSIGNCOPY(internal->_query, [query stringByRemovingPercentEncoding]);
+  [self _regenerateURL];
 }
 
 - (NSArray *) percentEncodedQueryItems
@@ -2753,6 +2769,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 - (void) setPercentEncodedQueryItems: (NSArray *)queryItems
 {
   ASSIGNCOPY(internal->_percentEncodedQueryItems, queryItems);
+  [self _regenerateURL];
 }
 
 - (NSString *) percentEncodedScheme
@@ -2763,6 +2780,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 - (void) setPercentEncodedScheme: (NSString *)scheme
 {
   ASSIGNCOPY(internal->_percentEncodedScheme, scheme);
+  [self _regenerateURL];
 }
 
 - (NSString *) percentEncodedUser
@@ -2774,6 +2792,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 {
   ASSIGNCOPY(internal->_percentEncodedUser, user);
   ASSIGNCOPY(internal->_user, [user stringByRemovingPercentEncoding]);
+  [self _regenerateURL];
 }
 
 // Locating components of the URL string representation
