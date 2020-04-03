@@ -51,7 +51,6 @@ function may be incorrect
   NSString *_password; \
   NSString *_path; \
   NSNumber *_port; \
-  NSString *_query; \
   NSArray  *_queryItems; \
   NSString *_scheme; \
   NSString *_user; \
@@ -2393,7 +2392,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   RELEASE(internal->_password);
   RELEASE(internal->_path);
   RELEASE(internal->_port);
-  RELEASE(internal->_query);
   RELEASE(internal->_queryItems);
   RELEASE(internal->_scheme);
   RELEASE(internal->_user);
@@ -2416,6 +2414,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
     }
   else
     {
+      // FIXME
       NSURL *u;
       u = [[NSURL alloc] initWithScheme: internal->_scheme
                                    user: internal->_user
@@ -2450,14 +2449,13 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 // Getting the URL
 - (NSString *) string
 {
-  [self _regenerateURL];
-  return [internal->_url absoluteString];
+  return [[self url] absoluteString];
 }
 
 - (void) setString: (NSString *)urlString
 {
   NSURL *url = [NSURL URLWithString: urlString];
-  [self setURL : url];
+  [self setURL: url];
 }
 
 - (NSURL *) URL
@@ -2549,13 +2547,13 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   while ((item = (NSURLQueryItem *)[en nextObject]) != nil)
     {
       NSString *name = [item name];
-      NSString *value = [[item value] _stringByAddingPercentEscapesForQuery];
+      NSString *value = [item value];
       NSString *itemString = [NSString stringWithFormat: @"%@=%@",name,value];
-      query = [query stringByAppendingString: itemString];
-      if (item != [internal->_queryItems lastObject])
+      if ([query length] > 0)
         {
           query = [query stringByAppendingString: @"&"];
         }
+      query = [query stringByAppendingString: itemString];
     }
   return query;
 }
@@ -2629,8 +2627,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (void) setPercentEncodedFragment: (NSString *)fragment
 {
-  ASSIGNCOPY(internal->_fragment, [fragment stringByRemovingPercentEncoding]);
-  internal->_dirty = YES;
+  [self setFragment: [fragment stringByRemovingPercentEncoding]];
 }
 
 - (NSString *) percentEncodedHost
@@ -2641,8 +2638,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (void) setPercentEncodedHost: (NSString *)host
 {
-  ASSIGNCOPY(internal->_host, [host stringByRemovingPercentEncoding]);
-  internal->_dirty = YES;
+  [self setHost: [host stringByRemovingPercentEncoding]];
 }
 
 - (NSString *) percentEncodedPassword
@@ -2653,8 +2649,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (void) setPercentEncodedPassword: (NSString *)password
 {
-  ASSIGNCOPY(internal->_password, [password stringByRemovingPercentEncoding]);
-  internal->_dirty = YES;
+  [self setPassword: [password stringByRemovingPercentEncoding]];
 }
 
 - (NSString *) percentEncodedPath
@@ -2665,41 +2660,55 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (void) setPercentEncodedPath: (NSString *)path
 {
-  ASSIGNCOPY(internal->_path, [path stringByRemovingPercentEncoding]);
-  internal->_dirty = YES;
+  [self setPath: [path stringByRemovingPercentEncoding]];
 }
 
 - (NSString *) percentEncodedQuery
 {
-  return internal->_query;
+  NSString *query = @"";
+  NSEnumerator *en = [internal->_queryItems objectEnumerator];
+  NSURLQueryItem *item = nil;
+
+  while ((item = (NSURLQueryItem *)[en nextObject]) != nil)
+    {
+      NSString *name = [[item name] _stringByAddingPercentEscapesForQuery];
+      NSString *value = [[item value] _stringByAddingPercentEscapesForQuery];
+      NSString *itemString = [NSString stringWithFormat: @"%@=%@",name,value];
+      if ([query length] > 0)
+        {
+          query = [query stringByAppendingString: @"&"];
+        }
+      query = [query stringByAppendingString: itemString];
+    }
+  return query;
 }
 
 - (void) setPercentEncodedQuery: (NSString *)query
 {
-  ASSIGNCOPY(internal->_query, [query stringByRemovingPercentEncoding]);
-  internal->_dirty = YES;
+  [self setQuery: [query stringByRemovingPercentEncoding]];
 }
 
 - (NSArray *) percentEncodedQueryItems
 {
+  // FIXME
   return internal->_queryItems;
 }
 
 - (void) setPercentEncodedQueryItems: (NSArray *)queryItems
 {
+  // FIXME
   [self setQueryItems: queryItems];
 }
 
 - (NSString *) percentEncodedScheme
 {
-  return [internal->_path stringByAddingPercentEncodingWithAllowedCharacters:
+  return [internal->_scheme stringByAddingPercentEncodingWithAllowedCharacters:
                     [NSCharacterSet URLPathAllowedCharacterSet]];
 }
 
 - (void) setPercentEncodedScheme: (NSString *)scheme
 {
-  ASSIGNCOPY(internal->_scheme, scheme);
-  internal->_dirty = YES;
+  [self setScheme: [scheme stringByRemovingPercentEncoding]];
 }
 
 - (NSString *) percentEncodedUser
@@ -2710,8 +2719,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (void) setPercentEncodedUser: (NSString *)user
 {
-  ASSIGNCOPY(internal->_user, [user stringByRemovingPercentEncoding]);
-  internal->_dirty = YES;
+  [self setUser: [user stringByRemovingPercentEncoding]];
 }
 
 // Locating components of the URL string representation
