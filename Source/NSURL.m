@@ -45,7 +45,6 @@ function may be incorrect
   NSString *_value; 
 
 #define	GS_NSURLComponents_IVARS \
-  NSURL    *_url; \
   NSString *_fragment; \
   NSString *_host; \
   NSString *_password; \
@@ -2392,7 +2391,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   RELEASE(internal->_password);
   RELEASE(internal->_path);
   RELEASE(internal->_port);
-  RELEASE(internal->_query);
   RELEASE(internal->_queryItems);
   RELEASE(internal->_scheme);
   RELEASE(internal->_user);
@@ -2409,8 +2407,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 // Getting the URL
 - (NSString *) string
 {
-  [self _regenerateURL];
-  return [internal->_url absoluteString];
+  return [[self _regenerateURL] absoluteString];
 }
 
 - (void) setString: (NSString *)urlString
@@ -2421,14 +2418,11 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (NSURL *) URL
 {
-  [self _regenerateURL];
-  return internal->_url;
+  return [self _regenerateURL];
 }
 
 - (void) setURL: (NSURL *)url
 {
-  ASSIGNCOPY(internal->_url, url);
-
   // components...
   ASSIGNCOPY(internal->_fragment, [url fragment]);
   ASSIGNCOPY(internal->_host, [url host]);
@@ -2448,11 +2442,11 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 }
 
 // Regenerate URL when components are changed...
-- (void) _regenerateURL
+- (NSURL *) _regenerateURL
 {
   if (_dirty == NO)
     {
-      return;
+      return nil;
     }
   else
     {
@@ -2464,9 +2458,8 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
                                    port: internal->_port
                                fullPath: internal->_path
                         parameterString: nil
-                                  query: internal->_query
+                                  query: [self query]
                                fragment: internal->_fragment];
-      ASSIGNCOPY(internal->_url, u);
       
       {
         // Find ranges
@@ -2484,6 +2477,8 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 #undef URL_COMPONENT_RANGE
       }
       _dirty = NO;
+
+      return u;
     }
  }
 
