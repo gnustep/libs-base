@@ -2449,7 +2449,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 // Getting the URL
 - (NSString *) string
 {
-  return [[self url] absoluteString];
+  return [[self URL] absoluteString];
 }
 
 - (void) setString: (NSString *)urlString
