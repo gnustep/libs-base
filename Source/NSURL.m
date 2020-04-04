@@ -2629,23 +2629,39 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (NSString *) query
 {
-  NSString *query = @"";
-  NSEnumerator *en = [internal->_queryItems objectEnumerator];
-  NSURLQueryItem *item = nil;
+  NSString	*result = nil;
 
-  while ((item = (NSURLQueryItem *)[en nextObject]) != nil)
+  if (internal->_queryItems != nil)
     {
-      NSString *name = [item name];
-      NSString *value = [item value];
-      NSString *itemString = [NSString stringWithFormat: @"%@=%@",name,value];
+      NSMutableString	*query = nil;
+      NSURLQueryItem	*item = nil;
+      NSEnumerator	*en;
 
-      if ([query length] > 0)
-        {
-          query = [query stringByAppendingString: @"&"];
-        }
-      query = [query stringByAppendingString: itemString];
+      en = [internal->_queryItems objectEnumerator];
+      while ((item = (NSURLQueryItem *)[en nextObject]) != nil)
+	{
+	  NSString	*name = [item name];
+	  NSString	*value = [item value];
+
+	  if (nil == query)
+	    {
+	      query = [[NSMutableString alloc] initWithCapacity: 1000];
+	    }
+	  else
+	    {
+	      [query appendString: @"&"];
+	    }
+	  [query appendString: name];
+	  if (value != nil)
+	    {
+	      [query appendString: @"="];
+	      [query appendString: value];
+	    }
+	}
+      result = AUTORELEASE([query copy]);
+      RELEASE(query);
     }
-  return query;
+  return result;
 }
 
 - (void) _setQuery: (NSString *)query fromPercentEncodedString: (BOOL)encoded
@@ -2848,7 +2864,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 	  name = [name _stringByAddingPercentEscapesForQuery];
 	  value = [value _stringByAddingPercentEscapesForQuery];
 	  ni = [NSURLQueryItem queryItemWithName: name
-					   value: name];
+					   value: value];
 	  [items addObject: ni];
 	}
       result = AUTORELEASE([items copy]);
