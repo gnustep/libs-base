@@ -2408,6 +2408,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 // Regenerate URL when components are changed...
 - (void) _regenerateURL
 {
+  NSURL	                *u;
   NSMutableString	*urlString;
   NSString		*component;
   NSUInteger 	 	location;
@@ -2516,8 +2517,20 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
       internal->_rangeOfFragment = NSMakeRange(location, len);
       location += len;
     }
+    
+  u = [[NSURL alloc] initWithScheme: [self scheme]
+                               user: [self user]
+                           password: [self password]
+                               host: [self host]
+                               port: [self port]
+                           fullPath: [self path]
+                    parameterString: nil
+                              query: [self percentEncodedQuery]
+                           fragment: [self fragment]];
+  ASSIGNCOPY(internal->_url, u);
+  RELEASE(u);
 
-  ASSIGNCOPY(internal->_url, [NSURL URLWithString: urlString]);
+  // ASSIGNCOPY(internal->_url, [NSURL URLWithString: urlString]);
   internal->_dirty = NO;
   RELEASE(urlString);
 }
@@ -2623,7 +2636,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   while ((item = (NSURLQueryItem *)[en nextObject]) != nil)
     {
       NSString *name = [item name];
-      NSString *value = [[item value] _stringByAddingPercentEscapesForQuery];
+      NSString *value = [item value];
       NSString *itemString = [NSString stringWithFormat: @"%@=%@",name,value];
 
       if ([query length] > 0)
