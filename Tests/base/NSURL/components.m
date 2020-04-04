@@ -5,18 +5,19 @@
 
 int main()
 {
+  NSURLComponents *components = nil;
+
   START_SET("components");
 
-  NSURLComponents *components = [NSURLComponents componentsWithURL:[NSURL URLWithString:@"https://user:password@some.host.com"] resolvingAgainstBaseURL:NO];
+  components = [NSURLComponents componentsWithURL:[NSURL URLWithString:@"https://user:password@some.host.com"] resolvingAgainstBaseURL:NO];
   
   [components setQueryItems: [NSArray arrayWithObjects:
-                                     [NSURLQueryItem queryItemWithName:@"lang" value:@"en"],
-                                   [NSURLQueryItem queryItemWithName:@"response_type" value:@"code"],
-                                   [NSURLQueryItem queryItemWithName:@"uri" value:[NSURL URLWithString:@"https://some.url.com/path?param1=one&param2=two"].absoluteString],
-                                   nil]];
+                                        [NSURLQueryItem queryItemWithName:@"lang" value:@"en"],
+                                      [NSURLQueryItem queryItemWithName:@"response_type" value:@"code"],
+                                      [NSURLQueryItem queryItemWithName:@"uri" value:[[NSURL URLWithString:@"https://some.url.com/path?param1=one&param2=two"] absoluteString]], nil]];
   // URL
   PASS([[components string] isEqualToString:
-     @"https://user:password@some.host.com/?lang=en&response_type=code&uri=https://some.url.com/path?param1%3Done%26param2%3Dtwo"],
+                                    @"https://user:password@some.host.com/?lang=en&response_type=code&uri=https://some.url.com/path?param1%3Done%26param2%3Dtwo"],
        "URL string is correct");
   // NOTE: The slash behind the .com is strictly legal, but this is NOT what is produced by macOS.  I would like to correct this in a
   // future release.
