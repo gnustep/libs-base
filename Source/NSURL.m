@@ -2691,7 +2691,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
   while((i = [en nextObject]) != nil)
     {
-      NSURLQueryItem *ni = [NSURLQueryItem queryItemWithName: [i name]
+      NSURLQueryItem *ni = [NSURLQueryItem queryItemWithName: [[i name] _stringByAddingPercentEscapesForQuery]
                                                        value: [[i value] _stringByAddingPercentEscapesForQuery]];
       [items addObject: ni];
     }
@@ -2707,7 +2707,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
   while((i = [en nextObject]) != nil)
     {
-      NSURLQueryItem *ni = [NSURLQueryItem queryItemWithName: [i name]
+      NSURLQueryItem *ni = [NSURLQueryItem queryItemWithName: [[i name] stringByRemovingPercentEncoding]
                                                        value: [[i value] stringByRemovingPercentEncoding]];
       [items addObject: ni];
     }
