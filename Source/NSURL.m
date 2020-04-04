@@ -2456,6 +2456,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (NSURL *) URL
 {
+  internal->_dirty = YES;
   return [self _regenerateURL];
 }
 
