@@ -45,7 +45,7 @@ function may be incorrect
   NSString *_value; 
 
 #define	GS_NSURLComponents_IVARS \
-  NSURL    *_url; \
+  NSString *_string; \
   NSString *_fragment; \
   NSString *_host; \
   NSString *_password; \
@@ -2386,7 +2386,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (void) dealloc
 {
-  RELEASE(internal->_url);
+  RELEASE(internal->_string);
   RELEASE(internal->_fragment);
   RELEASE(internal->_host);
   RELEASE(internal->_password);
@@ -2408,7 +2408,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 // Regenerate URL when components are changed...
 - (void) _regenerateURL
 {
-  NSURL	                *u;
   NSMutableString	*urlString;
   NSString		*component;
   NSUInteger 	 	location;
@@ -2518,27 +2517,16 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
       location += len;
     }
     
-  u = [[NSURL alloc] initWithScheme: [self scheme]
-                               user: [self user]
-                           password: [self password]
-                               host: [self host]
-                               port: [self port]
-                           fullPath: [self path]
-                    parameterString: nil
-                              query: [self percentEncodedQuery]
-                           fragment: [self fragment]];
-  ASSIGNCOPY(internal->_url, u);
-  RELEASE(u);
-
-  // ASSIGNCOPY(internal->_url, [NSURL URLWithString: urlString]);
-  internal->_dirty = NO;
+  ASSIGNCOPY(internal->_string, urlString);
   RELEASE(urlString);
+  internal->_dirty = NO;
 }
 
 // Getting the URL
 - (NSString *) string
 {
-  return [[self URL] absoluteString];
+  [self _regenerateURL];
+  return internal->_string;
 }
 
 - (void) setString: (NSString *)urlString
@@ -2549,8 +2537,15 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (NSURL *) URL
 {
-  [self _regenerateURL];
-  return internal->_url;
+  return AUTORELEASE([[NSURL alloc] initWithScheme: [self scheme]
+                                              user: [self user]
+                                          password: [self password]
+                                              host: [self host]
+                                              port: [self port]
+                                          fullPath: [self path]
+                                   parameterString: nil
+                                             query: [self percentEncodedQuery]
+                                          fragment: [self fragment]]);
 }
 
 - (void) setURL: (NSURL *)url
