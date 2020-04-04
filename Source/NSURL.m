@@ -45,6 +45,7 @@ function may be incorrect
   NSString *_value; 
 
 #define	GS_NSURLComponents_IVARS \
+  NSURL    *_url; \
   NSString *_fragment; \
   NSString *_host; \
   NSString *_password; \
@@ -2385,6 +2386,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (void) dealloc
 {
+  RELEASE(internal->_url);
   RELEASE(internal->_fragment);
   RELEASE(internal->_host);
   RELEASE(internal->_password);
@@ -2404,42 +2406,104 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 }
 
 // Regenerate URL when components are changed...
-- (NSURL *) _regenerateURL
+- (void) _regenerateURL
 {
-  NSURL *u = nil;
+  NSString *urlString = @"";
+  NSInteger location = 0;
+  
   if (internal->_dirty == NO)
     {
-      return nil;
+      return;
     }
 
-  u = [[NSURL alloc] initWithScheme: internal->_scheme
-                               user: internal->_user
-                           password: internal->_password
-                               host: internal->_host
-                               port: internal->_port
-                           fullPath: internal->_path
-                    parameterString: nil
-                              query: [self query]
-                           fragment: internal->_fragment];
-  
-  {
-    // Find ranges
-    NSString *urlString = [u absoluteString];
-#define URL_COMPONENT_RANGE(part)                                       \
-    (part ? [urlString rangeOfString:part] : NSMakeRange(NSNotFound, 0))
-    internal->_rangeOfFragment = URL_COMPONENT_RANGE(internal->_fragment);
-    internal->_rangeOfHost     = URL_COMPONENT_RANGE(internal->_host);
-    internal->_rangeOfPassword = URL_COMPONENT_RANGE(internal->_password);
-    internal->_rangeOfPath     = URL_COMPONENT_RANGE(internal->_path);
-    internal->_rangeOfPort     = URL_COMPONENT_RANGE([internal->_port stringValue]);
-    internal->_rangeOfQuery    = URL_COMPONENT_RANGE([self query]);
-    internal->_rangeOfScheme   = URL_COMPONENT_RANGE(internal->_scheme);
-    internal->_rangeOfUser     = URL_COMPONENT_RANGE(internal->_user);
-#undef URL_COMPONENT_RANGE
-  }
+  // Build up the URL from components...
+  if (internal->_scheme != nil)
+    {
+      NSString *comp = [self percentEncodedScheme];
+      NSInteger len = [comp length];
+      urlString = [urlString stringByAppendingFormat: @"%@://", comp];
+      internal->_rangeOfScheme = NSMakeRange(location, len);
+      location += len + 3;
+    }
+  else
+    {
+      internal->_rangeOfScheme = NSMakeRange(NSNotFound, 0);
+    }
 
+  if (internal->_user != nil) 
+    {
+      if (internal->_password != nil)
+        {
+          NSString *comp1 = [self percentEncodedUser];
+          NSInteger len1 = [comp1 length];
+          NSString *comp2 = [self percentEncodedPassword];
+          NSInteger len2 = [comp2 length];
+          urlString = [urlString stringByAppendingFormat: @"%@:%@@", comp1, comp2];
+          internal->_rangeOfUser = NSMakeRange(location, len1);
+          location += len1 + 1;
+          internal->_rangeOfPassword = NSMakeRange(location, len2);
+          location += len2 + 1;
+        }
+      else
+        {
+          NSString *comp = [self percentEncodedUser];
+          NSInteger len = [comp length];
+          urlString = [urlString stringByAppendingFormat: @"%@@", comp];
+          internal->_rangeOfUser = NSMakeRange(location, len);
+          location += len + 1;
+        }
+    }
+
+  if (internal->_host != nil)
+    {
+      NSString *comp = [self percentEncodedHost];
+      NSInteger len = [comp length];
+      urlString = [urlString stringByAppendingFormat: @"%@", comp];
+      internal->_rangeOfHost = NSMakeRange(location, len);
+      location += len;
+    }
+
+  if (internal->_port != nil)
+    {
+      NSString *comp = [[self port] stringValue];
+      NSInteger len = [comp length];
+      urlString = [urlString stringByAppendingFormat: @":%@", comp];
+      location += 1;
+      internal->_rangeOfPort = NSMakeRange(location, len);
+      location += len;
+    }
+
+  if (internal->_path != nil)
+    {
+      NSString *comp = [self percentEncodedPath];
+      NSInteger len = [comp length];
+      urlString = [urlString stringByAppendingFormat: @"%@", comp];
+      internal->_rangeOfPath = NSMakeRange(location, len);
+      location += len;
+    }
+
+  if ([internal->_queryItems count] > 0) // if query items is nil, this will also return 0
+    {
+      NSString *comp = [self percentEncodedQuery];
+      NSInteger len = [comp length];
+      urlString = [urlString stringByAppendingFormat: @"?%@", comp];
+      location += 1;
+      internal->_rangeOfQuery = NSMakeRange(location, len);
+      location += len;
+    }
+
+  if (internal->_fragment != nil)
+    {
+      NSString *comp = [self percentEncodedFragment];
+      NSInteger len = [comp length];
+      urlString = [urlString stringByAppendingFormat: @"#%@", comp];
+      location += 1;
+      internal->_rangeOfFragment = NSMakeRange(location, len);
+      location += len;
+    }
+
+  ASSIGNCOPY(internal->_url, [NSURL URLWithString: urlString]);
   internal->_dirty = NO;
-  return u;
 }
 
 // Getting the URL
@@ -2456,8 +2520,8 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (NSURL *) URL
 {
-  internal->_dirty = YES;
-  return [self _regenerateURL];
+  [self _regenerateURL];
+  return internal->_url;
 }
 
 - (void) setURL: (NSURL *)url
@@ -2661,13 +2725,13 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 - (NSString *) percentEncodedQuery
 {
   NSString *query = @"";
-  NSEnumerator *en = [internal->_queryItems objectEnumerator];
+  NSEnumerator *en = [[self percentEncodedQueryItems] objectEnumerator];
   NSURLQueryItem *item = nil;
 
   while ((item = (NSURLQueryItem *)[en nextObject]) != nil)
     {
-      NSString *name = [[item name] _stringByAddingPercentEscapesForQuery];
-      NSString *value = [[item value] _stringByAddingPercentEscapesForQuery];
+      NSString *name = [item name];
+      NSString *value = [item value];
       NSString *itemString = [NSString stringWithFormat: @"%@=%@",name,value];
       if ([query length] > 0)
         {
