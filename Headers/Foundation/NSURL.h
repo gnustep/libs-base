@@ -700,8 +700,6 @@ GS_NSURLComponents_IVARS;
 - (NSArray *) percentEncodedQueryItems;
 - (void) setPercentEncodedQueryItems: (NSArray *)queryItems;
 #endif
-- (NSString *) percentEncodedScheme;
-- (void) setPercentEncodedScheme: (NSString *)scheme;
 - (NSString *) percentEncodedUser;
 - (void) setPercentEncodedUser: (NSString *)user;
 

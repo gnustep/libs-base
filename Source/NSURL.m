@@ -2419,7 +2419,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   // Build up the URL from components...
   if (internal->_scheme != nil)
     {
-      NSString *comp = [self percentEncodedScheme];
+      NSString *comp = [self scheme];
       NSInteger len = [comp length];
       urlString = [urlString stringByAppendingFormat: @"%@://", comp];
       internal->_rangeOfScheme = NSMakeRange(location, len);
@@ -2777,17 +2777,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
     }
 
   [self setQueryItems: items];
-}
-
-- (NSString *) percentEncodedScheme
-{
-  return [internal->_scheme stringByAddingPercentEncodingWithAllowedCharacters:
-                    [NSCharacterSet URLPathAllowedCharacterSet]];
-}
-
-- (void) setPercentEncodedScheme: (NSString *)scheme
-{
-  [self setScheme: [scheme stringByRemovingPercentEncoding]];
 }
 
 - (NSString *) percentEncodedUser
