@@ -2408,21 +2408,26 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 // Regenerate URL when components are changed...
 - (void) _regenerateURL
 {
-  NSString *urlString = @"";
-  NSInteger location = 0;
+  NSMutableString	*urlString;
+  NSString		*component;
+  NSUInteger 	 	location;
+  NSUInteger 		len;
   
   if (internal->_dirty == NO)
     {
       return;
     }
 
+  urlString = [[NSMutableString alloc] initWithCapacity: 1000];
+  location = 0;
   // Build up the URL from components...
   if (internal->_scheme != nil)
     {
-      NSString *comp = [self scheme];
-      NSInteger len = [comp length];
-      urlString = [urlString stringByAppendingFormat: @"%@://", comp];
+      component = [self scheme];
+      [urlString appendString: component];
+      len = [component length];
       internal->_rangeOfScheme = NSMakeRange(location, len);
+      [urlString appendString: @"://"];
       location += len + 3;
     }
   else
@@ -2434,76 +2439,87 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
     {
       if (internal->_password != nil)
         {
-          NSString *comp1 = [self percentEncodedUser];
-          NSInteger len1 = [comp1 length];
-          NSString *comp2 = [self percentEncodedPassword];
-          NSInteger len2 = [comp2 length];
-          urlString = [urlString stringByAppendingFormat: @"%@:%@@", comp1, comp2];
-          internal->_rangeOfUser = NSMakeRange(location, len1);
-          location += len1 + 1;
-          internal->_rangeOfPassword = NSMakeRange(location, len2);
-          location += len2 + 1;
+          component = [self percentEncodedUser];
+	  len = [component length];
+          [urlString appendString: component];
+          internal->_rangeOfUser = NSMakeRange(location, len);
+          [urlString appendString: @":"];
+          location += len + 1;
+
+          component = [self percentEncodedPassword];
+	  len = [component length];
+          [urlString appendString: component];
+          internal->_rangeOfUser = NSMakeRange(location, len);
+          [urlString appendString: @"@"];
+          location += len + 1;
         }
       else
         {
-          NSString *comp = [self percentEncodedUser];
-          NSInteger len = [comp length];
-          urlString = [urlString stringByAppendingFormat: @"%@@", comp];
+          component = [self percentEncodedUser];
+	  len = [component length];
+          [urlString appendString: component];
           internal->_rangeOfUser = NSMakeRange(location, len);
+          [urlString appendString: @"@"];
           location += len + 1;
         }
     }
 
   if (internal->_host != nil)
     {
-      NSString *comp = [self percentEncodedHost];
-      NSInteger len = [comp length];
-      urlString = [urlString stringByAppendingFormat: @"%@", comp];
+      component = [self percentEncodedHost];
+      len = [component length];
+      [urlString appendString: component];
       internal->_rangeOfHost = NSMakeRange(location, len);
       location += len;
     }
 
   if (internal->_port != nil)
     {
-      NSString *comp = [[self port] stringValue];
-      NSInteger len = [comp length];
-      urlString = [urlString stringByAppendingFormat: @":%@", comp];
+      component = [[self port] stringValue];
+      len = [component length];
+      [urlString appendString: @":"];
       location += 1;
+      [urlString appendString: component];
       internal->_rangeOfPort = NSMakeRange(location, len);
       location += len;
     }
 
+  /* FIXME ... if the path is empty we still need a '/' do we not?
+   */
   if (internal->_path != nil)
     {
-      NSString *comp = [self percentEncodedPath];
-      NSInteger len = [comp length];
-      urlString = [urlString stringByAppendingFormat: @"%@", comp];
+      component = [self percentEncodedPath];
+      len = [component length];
+      [urlString appendString: component];
       internal->_rangeOfPath = NSMakeRange(location, len);
       location += len;
     }
 
-  if ([internal->_queryItems count] > 0) // if query items is nil, this will also return 0
+  if ([internal->_queryItems count] > 0)
     {
-      NSString *comp = [self percentEncodedQuery];
-      NSInteger len = [comp length];
-      urlString = [urlString stringByAppendingFormat: @"?%@", comp];
+      component = [self percentEncodedQuery];
+      len = [component length];
+      [urlString appendString: @"?"];
       location += 1;
+      [urlString appendString: component];
       internal->_rangeOfQuery = NSMakeRange(location, len);
       location += len;
     }
 
   if (internal->_fragment != nil)
     {
-      NSString *comp = [self percentEncodedFragment];
-      NSInteger len = [comp length];
-      urlString = [urlString stringByAppendingFormat: @"#%@", comp];
+      component = [self percentEncodedFragment];
+      len = [component length];
+      [urlString appendString: @"#"];
       location += 1;
+      [urlString appendString: component];
       internal->_rangeOfFragment = NSMakeRange(location, len);
       location += len;
     }
 
   ASSIGNCOPY(internal->_url, [NSURL URLWithString: urlString]);
   internal->_dirty = NO;
+  RELEASE(urlString);
 }
 
 // Getting the URL
@@ -2609,6 +2625,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
       NSString *name = [item name];
       NSString *value = [[item value] _stringByAddingPercentEscapesForQuery];
       NSString *itemString = [NSString stringWithFormat: @"%@=%@",name,value];
+
       if ([query length] > 0)
         {
           query = [query stringByAppendingString: @"&"];
