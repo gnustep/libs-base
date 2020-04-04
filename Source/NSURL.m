@@ -2542,7 +2542,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
   while ((item = (NSURLQueryItem *)[en nextObject]) != nil)
     {
       NSString *name = [item name];
-      NSString *value = [item value];
+      NSString *value = [[item value] _stringByAddingPercentEscapesForQuery];
       NSString *itemString = [NSString stringWithFormat: @"%@=%@",name,value];
       if ([query length] > 0)
         {
@@ -2585,8 +2585,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 }
 
 - (void) setQueryItems: (NSArray *)queryItems
-{
- 
+{ 
   ASSIGNCOPY(internal->_queryItems, queryItems);
   internal->_dirty = YES;
 }
@@ -2685,14 +2684,34 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (NSArray *) percentEncodedQueryItems
 {
-  // FIXME
-  return internal->_queryItems;
+  NSMutableArray *items = [NSMutableArray arrayWithCapacity: [internal->_queryItems count]];
+  NSEnumerator *en = [internal->_queryItems objectEnumerator];
+  NSURLQueryItem *i = nil;
+
+  while((i = [en nextObject]) != nil)
+    {
+      NSURLQueryItem *ni = [NSURLQueryItem queryItemWithName: [i name]
+                                                       value: [[i value] _stringByAddingPercentEscapesForQuery]];
+      [items addObject: ni];
+    }
+
+  return items;
 }
 
 - (void) setPercentEncodedQueryItems: (NSArray *)queryItems
 {
-  // FIXME
-  [self setQueryItems: queryItems];
+  NSMutableArray *items = [NSMutableArray arrayWithCapacity: [queryItems count]];
+  NSEnumerator *en = [queryItems objectEnumerator];
+  NSURLQueryItem *i = nil;
+
+  while((i = [en nextObject]) != nil)
+    {
+      NSURLQueryItem *ni = [NSURLQueryItem queryItemWithName: [i name]
+                                                       value: [[i value] stringByRemovingPercentEncoding]];
+      [items addObject: ni];
+    }
+
+  [self setQueryItems: items];
 }
 
 - (NSString *) percentEncodedScheme
