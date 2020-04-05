@@ -1958,7 +1958,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     {
       char	c = s[index];
 
-      if ('%' == c && index < lastPercent)
+      if ('%' == c && index <= lastPercent)
 	{
 	  uint8_t	hi = s[index+1];
 	  uint8_t	lo = s[index+2];
