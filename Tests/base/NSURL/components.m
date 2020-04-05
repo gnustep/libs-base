@@ -9,45 +9,66 @@ int main()
 
   START_SET("components");
 
-  components = [NSURLComponents componentsWithURL:[NSURL URLWithString:@"https://user:password@some.host.com"] resolvingAgainstBaseURL:NO];
+  components = [NSURLComponents componentsWithURL:
+    [NSURL URLWithString: @"https://user:password@some.host.com"]
+      resolvingAgainstBaseURL: NO];
   
   [components setQueryItems: [NSArray arrayWithObjects:
-                                        [NSURLQueryItem queryItemWithName:@"lang" value:@"en"],
-                                      [NSURLQueryItem queryItemWithName:@"response_type" value:@"code"],
-                                      [NSURLQueryItem queryItemWithName:@"uri" value:[[NSURL URLWithString:@"https://some.url.com/path?param1=one&param2=two"] absoluteString]], nil]];
+    [NSURLQueryItem queryItemWithName: @"lang" value: @"en"],
+    [NSURLQueryItem queryItemWithName: @"response_type" value: @"code"],
+    [NSURLQueryItem queryItemWithName: @"uri" value:
+      [[NSURL URLWithString: @"https://some.url.com/path?param1=one&param2=two"]
+	absoluteString]], nil]];
   // URL
-  PASS([[components string] isEqualToString:
-                                    @"https://user:password@some.host.com?lang=en&response_type=code&uri=https://some.url.com/path?param1%3Done%26param2%3Dtwo"],
-       "URL string is correct");
+  PASS_EQUAL([components string],
+    @"https://user:password@some.host.com?lang=en&response_type=code"
+    @"&uri=https://some.url.com/path?param1%3Done%26param2%3Dtwo",
+    "URL string is correct")
   
   // encoded...
-  PASS([[components percentEncodedQuery] isEqualToString:
-                  @"lang=en&response_type=code&uri=https://some.url.com/path?param1%3Done%26param2%3Dtwo"],
-       "percentEncodedQuery is correct");
-  PASS([[components percentEncodedHost] isEqualToString:
-                                          @"some.host.com"],
-       "percentEncodedHost is correct");
-  PASS([[components percentEncodedUser] isEqualToString:
-                                          @"user"],
-       "percentEncodedUser is correct");
-  PASS([[components percentEncodedPassword] isEqualToString:
-                                              @"password"],
-       "percentEncodedPassword is correct");
+  PASS_EQUAL([components percentEncodedQuery],
+    @"lang=en&response_type=code&uri=https://some.url.com/path"
+    @"?param1%3Done%26param2%3Dtwo",
+    "percentEncodedQuery is correct")
+  PASS_EQUAL([components percentEncodedHost], @"some.host.com",
+    "percentEncodedHost is correct")
+  PASS_EQUAL([components percentEncodedUser], @"user",
+    "percentEncodedUser is correct")
+  PASS_EQUAL([components percentEncodedPassword], @"password",
+    "percentEncodedPassword is correct")
   
   // unencoded...
-  PASS([[components query] isEqualToString:
-                             @"lang=en&response_type=code&uri=https://some.url.com/path?param1=one&param2=two"],
-       "query is correct");
-  PASS([[components host] isEqualToString:
-                            @"some.host.com"],
-       "host is correct");
-  PASS([[components user] isEqualToString:
-                            @"user"],
-       "user is correct");
-  PASS([[components password] isEqualToString:
-                                @"password"],
-       "password is correct");
+  PASS_EQUAL([components query],
+    @"lang=en&response_type=code&uri=https://some.url.com/path?"
+    @"param1=one&param2=two",
+    "query is correct")
+  PASS_EQUAL([components host], @"some.host.com",
+    "host is correct")
+  PASS_EQUAL([components user], @"user",
+    "user is correct")
+  PASS_EQUAL([components password], @"password",
+    "password is correct")
     
+  [components setQuery: nil];
+  PASS_EQUAL([components query], nil,
+    "set query to nil")
+  PASS_EQUAL([components percentEncodedQuery], nil,
+    "percent encoded query is nil")
+  PASS_EQUAL([components queryItems], nil,
+    "query items is nil")
+  PASS_EQUAL([components percentEncodedQueryItems], nil,
+    "percent encoded query items is nil")
+ 
+  [components setQuery: @""];
+  NSArray *emptyArray = [NSArray array];
+  PASS_EQUAL([components query], @"",
+    "set query to empty")
+  PASS_EQUAL([components percentEncodedQuery], @"",
+    "percent encoded query is empty")
+  PASS_EQUAL([components queryItems], emptyArray,
+    "query items is empty")
+  PASS_EQUAL([components percentEncodedQueryItems], emptyArray,
+    "percent encoded query items is empty")
 
   END_SET("components")
 

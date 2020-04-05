@@ -2653,8 +2653,15 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 	      [query appendString: value];
 	    }
 	}
-      result = AUTORELEASE([query copy]);
-      RELEASE(query);
+      if (nil == query)
+	{
+	  result = @"";
+	}
+      else
+	{
+	  result = AUTORELEASE([query copy]);
+	  RELEASE(query);
+	}
     }
   return result;
 }
@@ -2667,6 +2674,10 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
     {
       [self setQueryItems: nil];
     }
+  else if ([query length] == 0)
+    {
+      [self setQueryItems: [NSArray array]];
+    }
   else
     {
       NSMutableArray	*result = [NSMutableArray arrayWithCapacity: 5];
@@ -2674,6 +2685,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
       NSEnumerator	*en = [items objectEnumerator];
       id		item = nil;
 
+      items = [query componentsSeparatedByString: @"&"];
       while ((item = [en nextObject]) != nil)
         {
           NSURLQueryItem	*qitem;
@@ -2827,8 +2839,15 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 	      [query appendString: value];
 	    }
 	}
-      result = AUTORELEASE([query copy]);
-      RELEASE(query);
+      if (nil == query)
+	{
+	  result = @"";
+	}
+      else
+	{
+	  result = AUTORELEASE([query copy]);
+	  RELEASE(query);
+	}
     }
   return result;
 }
