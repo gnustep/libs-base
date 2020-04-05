@@ -5,17 +5,18 @@
 
 2020-03-29  Frederik Seiffert <frederik@algoriddim.com>
 
-    * Source/NSURLResponse.m: Fix parsing of NSURLResponse content type
-    header.
- 2020-03-29  Fred Kiefer <fredkiefer@gmx.de>
+	* Source/NSURLResponse.m: Fix parsing of NSURLResponse content type
+	header.
+
+2020-03-29  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/NSString.m: Attempt to make calls to GSICUCollatorOpen()
 	more consistent and correct for ICU 65.
 
 2020-03-26  Frederik Seiffert <frederik@algoriddim.com>
 
-  * Headers/Foundation/NSError.h:
-  * Source/NSError.m: Added NSErrorDomain typedef.
+	* Headers/Foundation/NSError.h:
+	* Source/NSError.m: Added NSErrorDomain typedef.
 
 2020-03-12  Fred Kiefer <fredkiefer@gmx.de>
 
@@ -44,7 +45,7 @@
 2020-02-24  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/objc-load.m: update GSPrivateSymbolPath() so that, on the
-	path where LINKER_GETSYMBOL os not available, we attempt to lookup
+	path where LINKER_GETSYMBOL is not available, we attempt to lookup
 	classes using the prefix ._OBJC_CLASS_ for the 2.0 ABI (earlier
 	ABIs use a prefix of __objc_class_name_ for the class definition.
 
@@ -251,7 +252,7 @@
 
 	* Source/GSTLS.m: Re-order code to avoid setting session priority
 	twice.
-	* Source/NSFileHandle.m: Fux so that setting certificate information
+	* Source/NSFileHandle.m: Fix so that setting certificate information
 	does not discard any other options already set.
 
 2019-09-16  Alan Jenkins <alan.christopher.jenkins@gmail.com>
@@ -451,7 +452,7 @@
 	inverted) and ensures that both the handle and drain functions are
 	available.
 
-2019-02-16  Richard Frith-Macdonald <rfm@gnu.org>
+2019-04-16  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Removed public functions which could conflict
 	with application code.  Rewrote percent unescaping to avoid possible
