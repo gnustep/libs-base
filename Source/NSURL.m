@@ -2685,7 +2685,6 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
       NSEnumerator	*en = [items objectEnumerator];
       id		item = nil;
 
-      items = [query componentsSeparatedByString: @"&"];
       while ((item = [en nextObject]) != nil)
         {
           NSURLQueryItem	*qitem;
