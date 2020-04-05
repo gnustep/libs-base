@@ -70,6 +70,18 @@ int main()
   PASS_EQUAL([components percentEncodedQueryItems], emptyArray,
     "percent encoded query items is empty")
 
+  [components setQuery: @"&"];
+  PASS_EQUAL([components query], @"&",
+    "set query to ampersand")
+  PASS_EQUAL([components percentEncodedQuery], @"&",
+    "percent encoded ampersand query is still ampersand")
+
+  [components setPercentEncodedQuery: @"%26"];
+  PASS_EQUAL([components query], @"&",
+    "set query to item containing ampersand")
+  PASS_EQUAL([components percentEncodedQuery], @"%26",
+    "percent encoded query item encodes ampersand")
+
   END_SET("components")
 
   return 0;

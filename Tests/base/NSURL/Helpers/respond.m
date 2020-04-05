@@ -86,7 +86,7 @@
 {
   NSRunLoop	*rl = [NSRunLoop currentRunLoop];
 
-NSLog(@"Server %p %d", theStream, streamEvent);
+NSLog(@"Server %p %u", theStream, (unsigned)streamEvent);
   switch (streamEvent) 
     {
     case NSStreamEventHasBytesAvailable: 
@@ -249,7 +249,7 @@ NSLog(@"Server %p %d", theStream, streamEvent);
       break;
 
     default: 
-      NSLog(@"Unexpected event %d on %p", streamEvent, theStream);
+      NSLog(@"Unexpected event %u on %p", (unsigned)streamEvent, theStream);
       break;
     }
 } 
