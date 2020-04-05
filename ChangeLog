@@ -1,3 +1,11 @@
+2020-04-05  Ivan Vucica <ivan@vucica.net>
+
+	* ANNOUNCE:
+	* NEWS:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	Update release notes for 1.27.0.
+
 2020-03-29  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSThread.m: Use pthread_setname_np result instead of errno,
