@@ -1,7 +1,7 @@
  /**
    NSFileManager.m
 
-   Copyright (C) 1997-2017 Free Software Foundation, Inc.
+   Copyright (C) 1997-2020 Free Software Foundation, Inc.
 
    Author: Mircea Oancea <mircea@jupiter.elcom.pub.ro>
    Author: Ovidiu Predescu <ovidiu@net-community.com>
@@ -596,6 +596,61 @@ static NSStringEncoding	defaultEncoding;
 	  ub[0] = sb.st_atime;
 	  ub[1] = [date timeIntervalSince1970];
 	  ok = (_UTIME(lpath, ub) == 0);
+#endif
+	}
+      if (ok == NO)
+	{
+	  allOk = NO;
+	  str = [NSString stringWithFormat:
+	    @"Unable to change NSFileModificationDate to '%@' - %@",
+	    date, [NSError _last]];
+	  ASSIGN(_lastError, str);
+	}
+    }
+
+  date = [attributes fileCreationDate];
+  if (date != nil && NO == [date isEqual: [old fileCreationDate]])
+    {
+      BOOL		ok = NO;
+      struct _STATB	sb;
+#if  defined(_WIN32)
+      const _CHAR *lpath;
+#else
+      const char  *lpath;
+#endif
+
+      lpath = [self fileSystemRepresentationWithPath: path];
+      if (_STAT(lpath, &sb) != 0)
+	{
+	  ok = NO;
+	}
+#if  defined(_WIN32)
+      else if (sb.st_mode & _S_IFDIR)
+	{
+	  ok = YES;	// Directories don't have modification times.
+	}
+#endif
+      else
+	{
+#if  defined(_WIN32)
+          FILETIME ctime;
+	  HANDLE fh;
+          ULONGLONG nanosecs = ((ULONGLONG)([date timeIntervalSince1970]*10000000)+116444736000000000ULL);
+          fh = CreateFileW(lpath, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL );
+          if (fh == INVALID_HANDLE_VALUE)
+            {
+              ok = NO;
+            }
+	  else
+            {
+	      ctime.dwLowDateTime  = (DWORD) (nanosecs & 0xFFFFFFFF );
+              ctime.dwHighDateTime = (DWORD) (nanosecs >> 32 );
+	      ok = SetFileTime(fh, &ctime, NULL, NULL);
+              CloseHandle(fh);
+	    }
+#else
+	  /* not implemented */
+	  ok = YES;
 #endif
 	}
       if (ok == NO)
@@ -3603,6 +3658,9 @@ static NSSet	*fileKeys = nil;
 
 - (NSDate*) fileCreationDate
 {
+#if defined(_WIN32)
+  return [NSDate dateWithTimeIntervalSince1970: statbuf.st_ctime];
+#else /* we don't know better */
   /*
    * FIXME ... not sure there is any way to get a creation date :-(
    * Use the earlier of ctime or mtime
@@ -3611,6 +3669,7 @@ static NSSet	*fileKeys = nil;
     return [NSDate dateWithTimeIntervalSince1970: statbuf.st_ctime];
   else
     return [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
+#endif
 }
 
 - (BOOL) fileExtensionHidden
