@@ -1,3 +1,9 @@
+2020-04-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GNUstep.h:
+	Add ASSIGNMUTABLECOPY() macro for consistency with ASSIGNCOPY()
+	Wolfgang pointed out that the lack of this macro was uninutitive.
+
 2020-04-07  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSOperation.m: Fix completion block memory management.
