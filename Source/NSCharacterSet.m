@@ -49,12 +49,6 @@
 #undef	GNUSTEP_INDEX_CHARSET
 
 #import "NSCharacterSetData.h"
-#import "CharSets/URLFragmentAllowedCharSet.h"
-#import "CharSets/URLHostAllowedCharSet.h"
-#import "CharSets/URLPasswordAllowedCharSet.h"
-#import "CharSets/URLPathAllowedCharSet.h"
-#import "CharSets/URLQueryAllowedCharSet.h"
-#import "CharSets/URLUserAllowedCharSet.h"
 
 #define GSUNICODE_MAX	1114112
 #define GSBITMAP_SIZE	8192
@@ -122,6 +116,20 @@
       i--;
     }
   i *= GSBITMAP_SIZE;
+  if (GSBITMAP_SIZE == i)
+    {
+      /* In the base plane, find the number of used bytes, so we don't
+       * produce a bitmap that is longer than necessary.
+       */
+      if (_length < i)
+	{
+	  i = _length;
+	}
+      while (i > 0 && 0 == _data[i - 1])
+	{
+	  i--;
+	}
+    }
   if (i < _length)
     {
       return [NSData dataWithBytes: _data length: i];
@@ -206,7 +214,7 @@
 {
   unsigned	length = [bitmap length];
 
-  if ((length % GSBITMAP_SIZE) != 0 || length > GSBITMAP_MAX)
+  if (length > GSBITMAP_MAX)
     {
       NSLog(@"attempt to initialize character set with invalid bitmap");
       [self dealloc];
@@ -280,13 +288,22 @@
     }
 
   /* Make space if needed.
+   * Use exact size if we have nothing beyond the base plane,
+   * otherwise round up to a plane boundary.
    */
   b = (m - 1) / 8;
   if (b >= _length)
     {
-      while (b >= _length)
+      if (b < GSBITMAP_SIZE)
 	{
-	  _length += GSBITMAP_SIZE;
+	  _length = b + 1;
+	}
+      else
+	{
+	  while (b >= _length)
+	    {
+	      _length += GSBITMAP_SIZE;
+	    }
 	}
       [_obj setLength: _length];
       _data = [_obj mutableBytes];
@@ -337,10 +354,14 @@
   if (length > 0)
     {
       NSUInteger i;
+      unsigned	max = _length;
       unichar	(*get)(id, SEL, NSUInteger);
 
       get = (unichar (*)(id, SEL, NSUInteger))
 	[aString methodForSelector: @selector(characterAtIndex:)];
+
+      /* Determine size of bitmap needed.
+       */
       for (i = 0; i < length; i++)
 	{
 	  unichar	letter;
@@ -358,15 +379,49 @@
 		+ (second - 0xdc00) + 0x0010000;
 	    }
 	  byte = letter/8;
-	  if (byte >= _length)
+	  if (byte >= max)
 	    {
-	      while (byte >= _length)
+	      max = byte;
+	    }
+	}
+      /* Make space if needed.
+       * Use exact size if we have nothing beyond the base plane,
+       * otherwise round up to a plane boundary.
+       */
+      if (max >= _length)
+	{
+	  if (max < GSBITMAP_SIZE)
+	    {
+	      _length = max + 1;
+	    }
+	  else
+	    {
+	      while (max >= _length)
 		{
 		  _length += GSBITMAP_SIZE;
 		}
-	      [_obj setLength: _length];
-	      _data = [_obj mutableBytes];
 	    }
+	  [_obj setLength: _length];
+	  _data = [_obj mutableBytes];
+	}
+
+      for (i = 0; i < length; i++)
+	{
+	  unichar	letter;
+	  unichar	second;
+	  unsigned	byte;
+
+	  letter = (*get)(aString, @selector(characterAtIndex:), i);
+	  // Convert a surrogate pair if necessary
+	  if (letter >= 0xd800 && letter <= 0xdbff && i < length-1
+	    && (second = (*get)(aString, @selector(characterAtIndex:), i+1))
+	    >= 0xdc00 && second <= 0xdfff)
+	    {
+	      i++;
+	      letter = ((letter - 0xd800) << 10)
+		+ (second - 0xdc00) + 0x0010000;
+	    }
+	  byte = letter/8;
 	  GSSETBIT(_data[byte], letter % 8);
 	}
     }
@@ -382,6 +437,20 @@
       i--;
     }
   i *= GSBITMAP_SIZE;
+  if (GSBITMAP_SIZE == i)
+    {
+      /* In the base plane, find the number of used bytes, so we don't
+       * produce a bitmap that is longer than necessary.
+       */
+      if (_length < i)
+	{
+	  i = _length;
+	}
+      while (i > 0 && 0 == _data[i - 1])
+	{
+	  i--;
+	}
+    }
   return [NSData dataWithBytes: _data length: i];
 }
 
@@ -430,7 +499,7 @@
   unsigned	length = [bitmap length];
   id		tmp;
 
-  if ((length % GSBITMAP_SIZE) != 0 || length > GSBITMAP_MAX)
+  if (length > GSBITMAP_MAX)
     {
       NSLog(@"attempt to initialize character set with invalid bitmap");
       [self dealloc];
@@ -623,7 +692,8 @@ static Class concreteMutableClass = nil;
 
 - (id) initWithBitmap: (NSData*)bitmap number: (int)number
 {
-  if ((self = (_GSStaticCharSet*)[(NSBitmapCharSet*)self initWithBitmap: bitmap]) != nil)
+  if ((self = (_GSStaticCharSet*)[(NSBitmapCharSet*)self
+    initWithBitmap: bitmap]) != nil)
     {
       _index = number;
     }
@@ -841,56 +911,66 @@ static Class concreteMutableClass = nil;
 
 + (id) URLFragmentAllowedCharacterSet
 {
-  return [self _staticSet: urlFragmentAllowedCharSet
-		   length: sizeof(urlFragmentAllowedCharSet)
+  return [self _staticSet: URLFragmentAllowedCharSet
+		   length: sizeof(URLFragmentAllowedCharSet)
 		   number: 15]; 
 }
 
 + (id) URLPasswordAllowedCharacterSet
 {
-  return [self _staticSet: urlPasswordAllowedCharSet
-		   length: sizeof(urlPasswordAllowedCharSet)
+  return [self _staticSet: URLPasswordAllowedCharSet
+		   length: sizeof(URLPasswordAllowedCharSet)
 		   number: 16];
 }
 
 + (id) URLPathAllowedCharacterSet
 {
-  return [self _staticSet: urlPathAllowedCharSet
-		   length: sizeof(urlPathAllowedCharSet)
+  return [self _staticSet: URLPathAllowedCharSet
+		   length: sizeof(URLPathAllowedCharSet)
 		   number: 17];
 }
 
 + (id) URLQueryAllowedCharacterSet
 {
-  return [self _staticSet: urlQueryAllowedCharSet
-		   length: sizeof(urlQueryAllowedCharSet)
+  return [self _staticSet: URLQueryAllowedCharSet
+		   length: sizeof(URLQueryAllowedCharSet)
 		   number: 18];
 }
 
 + (id) URLUserAllowedCharacterSet
 {
-  return [self _staticSet: urlUserAllowedCharSet
-		   length: sizeof(urlUserAllowedCharSet)
+  return [self _staticSet: URLUserAllowedCharSet
+		   length: sizeof(URLUserAllowedCharSet)
 		   number: 19];
 }
 
 + (id) URLHostAllowedCharacterSet
 {
-  return [self _staticSet: urlHostAllowedCharSet
-		   length: sizeof(urlHostAllowedCharSet)
+  return [self _staticSet: URLHostAllowedCharSet
+		   length: sizeof(URLHostAllowedCharSet)
 		   number: 20];
 }
 
 - (NSData*) bitmapRepresentation
 {
   BOOL		(*imp)(id, SEL, unichar);
-  NSMutableData	*m = [NSMutableData dataWithLength: 8192];
-  unsigned char	*p = (unsigned char*)[m mutableBytes];
+  NSMutableData	*m;
+  unsigned char	*p;
+  unsigned	end;
   unsigned	i;
 
   imp = (BOOL (*)(id,SEL,unichar))
     [self methodForSelector: @selector(characterIsMember:)];
-  for (i = 0; i <= 0xffff; i++)
+  for (end = 0xffff; end > 0; end--)
+    {
+      if (imp(self, @selector(characterIsMember:), end) == YES)
+	{
+	  break;
+	}
+    }
+  m = [NSMutableData dataWithLength: end / 8 + 1];
+  p = (unsigned char*)[m mutableBytes];
+  for (i = 0; i <= end; i++)
     {
       if (imp(self, @selector(characterIsMember:), i) == YES)
 	{

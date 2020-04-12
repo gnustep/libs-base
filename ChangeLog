@@ -1,3 +1,21 @@
+2020-04-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* CharSets/URLFragmentAllowedCharSet.h:
+	* CharSets/URLHostAllowedCharSet.h:
+	* CharSets/URLPasswordAllowedCharSet.h:
+	* CharSets/URLPathAllowedCharSet.h:
+	* CharSets/URLQueryAllowedCharSet.h:
+	* CharSets/URLUserAllowedCharSet.h:
+	Removed character set data headers from non-standard location.
+	* NSCharacterSet.m: 
+	Fixed to load URL characterset data from standard file.
+	Changed bitmap representation to use much less space for charsets
+	residing wholly in the base plane (in particular the URL charsets
+	which are purely ASCII characters).
+	* NSCharacterSetData.h:
+	Regenerated to contain the URL charactersets and to contain the
+	latest Unicode data (3rd Oct 2019).
+
 2020-04-10  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GNUstep.h:
