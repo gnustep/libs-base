@@ -9,6 +9,13 @@
 	nonfragile ABI (true for modern apple systems we may be interested in
 	using). Regenerate configure script.
 
+2020-04-13  Ivan Vucica <ivan@vucica.net>
+
+	* Documentation/announce.texi:
+	* ANNOUNCE:
+	Normalize the accompanying text for the release announcement across
+	core packages: standardize chapter name and GPG information.
+
 2020-04-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSURLProtocol.h:
