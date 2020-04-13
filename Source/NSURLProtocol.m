@@ -373,7 +373,7 @@ typedef struct {
   NSInputStream			*input;
   NSOutputStream		*output;
   NSCachedURLResponse		*cachedResponse;
-  id <NSURLProtocolClient>	client;		// Not retained
+  id <NSURLProtocolClient>	client;
   NSURLRequest			*request;
   NSString                      *in;
   NSString                      *out;
@@ -526,6 +526,7 @@ static NSURLProtocol	*placeholder = nil;
 	}
       DESTROY(this->cachedResponse);
       DESTROY(this->request);
+      DESTROY(this->client);
 #if	USE_ZLIB
       if (this->compressing == YES)
 	{

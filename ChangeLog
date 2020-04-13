@@ -1,3 +1,10 @@
+2020-04-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSURLProtocol.h:
+	* Source/NSURLProtocol.m:
+	Fix [NSURLProtocol -initWithRequest:cachedResponse:client:] to retain
+	the client (up until the last message is sent to it) as OSX does.
+
 2020-04-12  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* CharSets/URLFragmentAllowedCharSet.h:
