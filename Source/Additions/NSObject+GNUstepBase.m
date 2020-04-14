@@ -327,6 +327,10 @@ handleExit()
 
 #else
 
+#if __has_include(<objc/runtime.h>)
+#  include <objc/runtime.h>
+#endif
+
 @implementation NSObject (MemoryFootprint)
 + (NSUInteger) contentSizeOf: (NSObject*)obj
 		   excluding: (NSHashTable*)exclude
@@ -412,7 +416,9 @@ handleExit()
   NSUInteger    size;
 
 #if     GS_SIZEOF_VOIDP > 4
-  if ((((NSUInteger)void*)self) & 0x07)
+  NSUInteger	xxx = (NSUInteger)(void*)self;
+
+  if (xxx & 0x07)
     {
       return 0; // Small object has no size
     }
