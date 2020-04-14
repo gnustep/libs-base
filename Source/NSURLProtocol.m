@@ -597,7 +597,7 @@ static NSURLProtocol	*placeholder = nil;
     {
       this->request = [request copy];
       this->cachedResponse = RETAIN(cachedResponse);
-      this->client = client;	// Not retained
+      this->client = RETAIN(client);
     }
   return self;
 }
