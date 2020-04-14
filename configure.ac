@@ -90,7 +90,7 @@ if test -z "$LIBRARY_COMBO"; then
   LIBRARY_COMBO=`gnustep-config --variable=LIBRARY_COMBO 2>&5`
 fi
 
-if test "$OBJC_RUNTIME_LIB" = "ng"; then
+if test "$OBJC_RUNTIME_LIB" = "ng" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   nonfragile=yes
   BASE_NONFRAGILE_ABI=1
 else
@@ -2017,7 +2017,6 @@ AC_SUBST(HAVE_BLOCKS)
 # Don't revert any Objective-C flags as they are used in the next test
 
 GS_NONFRAGILE=0
-GS_MIXEDABI=0
 if test "$nonfragile" = "yes"; then
   saved_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
@@ -2029,21 +2028,10 @@ if test "$nonfragile" = "yes"; then
   CPPFLAGS="$saved_CPPFLAGS"
   if test $non_fragile = yes; then
     GS_NONFRAGILE=1
-    if test "$OBJC_RUNTIME_LIB" != "ng"; then
-      AC_ARG_ENABLE(mixedabi,
-        [  --disable-mixedabi
-	    Disables the combined use of fragile and nonfragile ABI so that base
-	    can be built taking full advantage of the nonfragile ABI.],,
-        enable_mixedabi=yes)
-      if test $enable_mixedabi = yes; then
-        GS_MIXEDABI=1
-      fi
-    fi
   fi
   AC_MSG_RESULT($non_fragile)
 fi
 AC_SUBST(GS_NONFRAGILE)
-AC_SUBST(GS_MIXEDABI)
 
 
 # Don't revert any Objective-C flags as they are used in the next test

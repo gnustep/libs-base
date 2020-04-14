@@ -670,7 +670,6 @@ HAVE_PTS_STREAM_MODULES
 OBJCFLAGS
 HAVE_OBJC_SYNC_ENTER
 BASE_NATIVE_OBJC_EXCEPTIONS
-GS_MIXEDABI
 GS_NONFRAGILE
 HAVE_BLOCKS
 OBJC2RUNTIME
@@ -794,7 +793,6 @@ with_default_config
 with_installation_domain
 enable_largefile
 enable_nxconstantstring
-enable_mixedabi
 enable_bfd
 enable_procfs
 enable_procfs_psinfo
@@ -1477,9 +1475,6 @@ Optional Features:
   --disable-largefile     omit support for large files
   --enable-nxconstantstring
 	    Enables the use of the NXConstantString class for old compilers.
-  --disable-mixedabi
-	    Disables the combined use of fragile and nonfragile ABI so that base
-	    can be built taking full advantage of the nonfragile ABI.
   --enable-bfd
 	Enables the use of libbfd to provide symbolic stack traces.
 	Enabling this option provides support for symbolic stack traces
@@ -2733,7 +2728,7 @@ if test -z "$LIBRARY_COMBO"; then
   LIBRARY_COMBO=`gnustep-config --variable=LIBRARY_COMBO 2>&5`
 fi
 
-if test "$OBJC_RUNTIME_LIB" = "ng"; then
+if test "$OBJC_RUNTIME_LIB" = "ng" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   nonfragile=yes
   BASE_NONFRAGILE_ABI=1
 else
@@ -8101,7 +8096,6 @@ fi
 # Don't revert any Objective-C flags as they are used in the next test
 
 GS_NONFRAGILE=0
-GS_MIXEDABI=0
 if test "$nonfragile" = "yes"; then
   saved_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
@@ -8126,23 +8120,10 @@ fi
   CPPFLAGS="$saved_CPPFLAGS"
   if test $non_fragile = yes; then
     GS_NONFRAGILE=1
-    if test "$OBJC_RUNTIME_LIB" != "ng"; then
-      # Check whether --enable-mixedabi was given.
-if test "${enable_mixedabi+set}" = set; then :
-  enableval=$enable_mixedabi;
-else
-  enable_mixedabi=yes
-fi
-
-      if test $enable_mixedabi = yes; then
-        GS_MIXEDABI=1
-      fi
-    fi
   fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $non_fragile" >&5
 $as_echo "$non_fragile" >&6; }
 fi
-
 
 
 

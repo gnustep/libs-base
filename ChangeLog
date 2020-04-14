@@ -1,3 +1,14 @@
+2020-04-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSConfig.h.in:
+	* Headers/GNUstepBase/GSVersionMacros.h:
+	* configure.ac:
+	* configure:
+	Remove last vestiges of MIXED ABI support (it didn't really work), and
+	change code to assume that use of the apple runtime means we have the
+	nonfragile ABI (true for modern apple systems we may be interested in
+	using). Regenerate configure script.
+
 2020-04-13  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSURLProtocol.h:
