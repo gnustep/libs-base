@@ -27,6 +27,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSHashTable.h"
 #import "Foundation/NSLock.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
 #import "GNUstepBase/NSThread+GNUstepBase.h"
@@ -326,10 +327,6 @@ handleExit()
 @end
 
 #else
-
-#if __has_include(<objc/runtime.h>)
-#  include <objc/runtime.h>
-#endif
 
 @implementation NSObject (MemoryFootprint)
 + (NSUInteger) contentSizeOf: (NSObject*)obj

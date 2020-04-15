@@ -39,7 +39,7 @@ static BOOL     debugTemporarilyDisabled = NO;
 
 BOOL GSDebugSet(NSString *level)
 {
-  static IMP debugImp = 0;
+  static id (*debugImp)(id,SEL,id) = 0;
   static SEL debugSel;
 
   if (debugTemporarilyDisabled == YES)

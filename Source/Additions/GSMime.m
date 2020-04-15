@@ -132,6 +132,7 @@ static NSString         *CteContentType = @"content-type";
 static NSString         *CteQuotedPrintable = @"quoted-printable";
 static NSString         *CteXuuencode = @"x-uuencode";
 
+typedef id (*oaiIMP)(id, SEL, NSUInteger);
 typedef BOOL (*boolIMP)(id, SEL, id);
 
 static char	*hex = "0123456789ABCDEF";
@@ -6184,12 +6185,12 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   if (count > 0)
     {
-      IMP	imp1;
+      oaiIMP	imp1;
       boolIMP	imp2;
 
       name = [name lowercaseString];
 
-      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp1 = (oaiIMP)[headers methodForSelector: @selector(objectAtIndex:)];
       imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       while (count-- > 0)
 	{
@@ -6330,11 +6331,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   if (count > 0)
     {
       NSUInteger	index;
-      IMP		imp1;
+      oaiIMP		imp1;
       boolIMP		imp2;
 
       name = [headerClass makeToken: name preservingCase: NO];
-      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp1 = (oaiIMP)[headers methodForSelector: @selector(objectAtIndex:)];
       imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       for (index = 0; index < count; index++)
 	{
@@ -6364,10 +6365,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       NSUInteger	index;
       NSMutableArray	*array;
-      IMP		imp1;
+      oaiIMP		imp1;
       boolIMP		imp2;
 
-      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp1 = (oaiIMP)[headers methodForSelector: @selector(objectAtIndex:)];
       imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       array = [NSMutableArray array];
 
@@ -7285,10 +7286,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   if (count > 0)
     {
       NSUInteger	index;
-      IMP	        imp1;
+      oaiIMP	        imp1;
       boolIMP	        imp2;
 
-      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp1 = (oaiIMP)[headers methodForSelector: @selector(objectAtIndex:)];
       imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       for (index = 0; index < count; index++)
 	{
@@ -7310,10 +7311,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   if (count > 0)
     {
-      IMP	imp1;
+      oaiIMP	imp1;
       boolIMP	imp2;
 
-      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp1 = (oaiIMP)[headers methodForSelector: @selector(objectAtIndex:)];
       imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       while (count-- > 0)
 	{

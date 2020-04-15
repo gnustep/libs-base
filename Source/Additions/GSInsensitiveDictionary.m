@@ -115,7 +115,7 @@ static SEL	objSel;
     {
       NSUInteger	count = map.nodeCount;
       SEL		sel = @selector(encodeObject:);
-      IMP		imp = [aCoder methodForSelector: sel];
+      id (*imp)(id,SEL,id) = [aCoder methodForSelector: sel];
       GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
       GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
 
@@ -152,7 +152,7 @@ static SEL	objSel;
       id		key;
       id		value;
       SEL		sel = @selector(decodeValueOfObjCType:at:);
-      IMP		imp = [aCoder methodForSelector: sel];
+      void (*imp)(id,SEL,const char*,void*) = [aCoder methodForSelector: sel];
       const char	*type = @encode(id);
 
       [aCoder decodeValueOfObjCType: @encode(NSUInteger)
@@ -220,8 +220,8 @@ static SEL	objSel;
   if (c > 0)
     {
       NSEnumerator	*e = [other keyEnumerator];
-      IMP		nxtObj = [e methodForSelector: nxtSel];
-      IMP		otherObj = [other methodForSelector: objSel];
+      id (*nxtObj)(id, SEL) = [e methodForSelector: nxtSel];
+      id (*otherObj)(id, SEL, id) = [other methodForSelector: objSel];
       BOOL		isProxy = [other isProxy];
       NSUInteger	i;
 
@@ -293,7 +293,7 @@ static SEL	objSel;
 	{
 	  GSIMapEnumerator_t	enumerator;
 	  GSIMapNode		node;
-	  IMP			otherObj = [other methodForSelector: objSel];
+	  id (*otherObj)(id, SEL, id) = [other methodForSelector: objSel];
 
 	  enumerator = GSIMapEnumeratorForMap(&map);
 	  while ((node = GSIMapEnumeratorNextNode(&enumerator)) != 0)
