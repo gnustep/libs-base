@@ -53,7 +53,7 @@ BOOL GSDebugSet(NSString *level)
 	{
 	  [[NSProcessInfo processInfo] debugSet];
 	}
-      debugImp = [_debug_set methodForSelector: debugSel];
+      debugImp = (id (*)(id,SEL,id))[_debug_set methodForSelector: debugSel];
       if (debugImp == 0)
 	{
 	  fprintf(stderr, "Unable to set up with [NSProcessInfo-debugSet]\n");

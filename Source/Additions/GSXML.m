@@ -104,7 +104,7 @@
  */
 static Class NSString_class;
 static Class treeClass;
-static id (*usImp)(id, SEL, const char*);
+static id (*usImp)(id, SEL, const unsigned char*);
 static SEL usSel;
 
 static xmlExternalEntityLoader  originalLoader = NULL;
@@ -166,8 +166,8 @@ setupCache()
       xmlDefaultSAXHandlerInit();
       NSString_class = [NSString class];
       usSel = @selector(stringWithUTF8String:);
-      usImp = (id (*)(id, SEL, const char*))
-    [NSString_class methodForSelector: usSel];
+      usImp = (id (*)(id, SEL, const unsigned char*))
+	[NSString_class methodForSelector: usSel];
       treeClass = [GSTreeSAXHandler class];
     }
 }
