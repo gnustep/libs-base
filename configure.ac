@@ -89,6 +89,7 @@ fi
 if test -z "$LIBRARY_COMBO"; then
   LIBRARY_COMBO=`gnustep-config --variable=LIBRARY_COMBO 2>&5`
 fi
+OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 
 if test "$OBJC_RUNTIME_LIB" = "ng" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   nonfragile=yes
@@ -1254,7 +1255,6 @@ esac
 #--------------------------------------------------------------------
 # Set Apple/Darwin/OSX/NeXT information for other tests
 #--------------------------------------------------------------------
-OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 AC_MSG_CHECKING(the Objective-C runtime)
 if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   AC_MSG_RESULT(NeXT)
