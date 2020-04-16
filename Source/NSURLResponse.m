@@ -114,12 +114,29 @@ typedef struct {
     {
       GSMimeHeader	*h;
 
+      /* Remove existing headers matching the ones we are setting.
+       */
+      e = [(NSArray*)headers objectEnumerator];
+      while ((h = [e nextObject]) != nil)
+	{
+	  NSString	*n = [h namePreservingCase: YES];
+
+	  [this->headers removeObjectForKey: n];
+	}
+      /* Set new headers, joining values where we have multiple headers
+       * with the same name.
+       */
       e = [(NSArray*)headers objectEnumerator];
       while ((h = [e nextObject]) != nil)
         {
 	  NSString	*n = [h namePreservingCase: YES];
+	  NSString	*o = [this->headers objectForKey: n];
 	  NSString	*v = [h fullValue];
 
+	  if (nil != o)
+	    {
+	      n = [NSString stringWithFormat: @"%@, %@", o, n];
+	    }
 	  [self _setValue: v forHTTPHeaderField: n];
 	}
     }
