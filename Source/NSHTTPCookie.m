@@ -902,7 +902,7 @@ GSCookieStrings(NSString *string)
 	       * separate cookie or not.  We look for something of the form
 	       * ' token =' where a space represents any optional whitespace. 
 	       */
-	      saved = pos;
+	      saved = pos++;
 	      while (pos < end && isspace(ptr[pos]))
 		{
 		  pos++;
@@ -939,11 +939,13 @@ GSCookieStrings(NSString *string)
 			}
 		      if (saved > start)
 			{
-			  const char	*utf8 = (const char*)(ptr + start);
+			  NSString	*str = [NSString alloc];
 
-			  ptr[saved] = '\0';
-			  [cookies addObject:
-			    [NSString stringWithUTF8String: utf8]];
+			  str = [str initWithBytes: ptr + start
+					    length: saved - start
+					  encoding: NSUTF8StringEncoding];
+			  [cookies addObject: str];
+			  RELEASE(str);
 			}
 		      start = saved = pos;
 		    }
@@ -966,14 +968,14 @@ GSCookieStrings(NSString *string)
 	}
       if (saved > start)
 	{
-	  NSString	*str;
+	  NSString	*str = [NSString alloc];
 
 	  /* There may not be room to add a nul terminator, so we use an
 	   * initialiser which doesn't need one.
 	   */
-	  str = [[NSString alloc] initWithBytes: ptr + start
-					 length: saved - start
-				       encoding: NSUTF8StringEncoding];
+	  str = [str initWithBytes: ptr + start
+			    length: saved - start
+			  encoding: NSUTF8StringEncoding];
 	  [cookies addObject: str];
 	  RELEASE(str);
 	}
