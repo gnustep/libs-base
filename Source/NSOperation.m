@@ -1100,9 +1100,18 @@ static NSOperationQueue *mainQueue = nil;
 	    || (pending > 0 && internal->threadCount < POOL))
 	    {
 	      internal->threadCount++;
-	      [NSThread detachNewThreadSelector: @selector(_thread)
-				       toTarget: self
-				     withObject: nil];
+	      NS_DURING
+		{
+		  [NSThread detachNewThreadSelector: @selector(_thread)
+					   toTarget: self
+					 withObject: nil];
+		}
+	      NS_HANDLER
+		{
+		  NSLog(@"Failed to create thread for %@: %@",
+		    self, localException);
+		}
+	      NS_ENDHANDLER
 	    }
 	  /* Tell the thread pool that there is an operation to start.
 	   */
