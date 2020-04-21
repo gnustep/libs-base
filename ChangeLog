@@ -1,3 +1,9 @@
+2020-04-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotification.m:
+	Override -hash and -isEqual: so that notifications with the name name,
+	object, and userInfo are considered equal. This is the OSX behavior.
+
 2020-04-14  Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSConfig.h.in:
