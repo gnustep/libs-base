@@ -460,6 +460,28 @@ static NSDictionary *makeReference(unsigned ref)
   return AUTORELEASE(d);
 }
 
++ (NSData *) archivedDataWithRootObject: (id)anObject
+                  requiringSecureCoding: (BOOL)requiresSecureCoding
+                                  error: (NSError **)error
+{
+  NSData *data = nil;
+  if (requiresSecureCoding == YES)
+    {
+      *error = [NSError errorWithDomain: @"NSKeyedArchiver"
+                                   code: 0
+                               userInfo: [NSDictionary dictionaryWithObjectsAndKeys:
+                                                         @"Could not create secure keyed archive",
+                                                       NSLocalizedDescriptionKey, nil]];
+    }
+  else
+    {
+      error = NULL;
+      data = [self archivedDataWithRootObject: anObject];
+    }
+  return data;
+}
+
+
 + (BOOL) archiveRootObject: (id)anObject toFile: (NSString*)aPath
 {
   NSAutoreleasePool	*pool = [NSAutoreleasePool new];

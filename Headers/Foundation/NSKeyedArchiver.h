@@ -87,6 +87,16 @@ extern "C" {
  */
 + (NSData*) archivedDataWithRootObject: (id)anObject;
 
+  
+/**
+ * Encodes anObject and returns the resulting data object.  Allows
+ * secure coding if specified.  Returns an error if an object 
+ * violates secure coding rules.
+ */
++ (NSData *) archivedDataWithRootObject: (id)anObject
+                  requiringSecureCoding: (BOOL)requiresSecureCoding
+                                  error: (NSError **)error;
+
 /**
  * Encodes anObject and writes the resulting data ti aPath.
  */
