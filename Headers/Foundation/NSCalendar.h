@@ -129,7 +129,7 @@ enum
   NSCalendarUnitWeekOfMonth = (1UL << 12),
   NSCalendarUnitWeekOfYear = (1UL << 13),
   NSCalendarUnitYearForWeekOfYear = (1UL << 14),
-  NSCalendarUnitNanosecond = (1 << 15), // FIXME: unimplemented
+  NSCalendarUnitNanosecond = (1 << 15),
   NSCalendarUnitCalendar = (1 << 20), // FIXME: unimplemented
   NSCalendarUnitTimeZone = (1 << 21) // FIXME: unimplemented
 #endif
@@ -227,6 +227,7 @@ enum
  * yearForWeekOfYear is 2013, since it's already week 1 in 2013.
  */
 - (NSInteger) yearForWeekOfYear;
+- (NSInteger) nanosecond;
 
 /** Sets the number of the week in this month. */
 - (void) setWeekOfMonth: (NSInteger) v;
@@ -241,7 +242,21 @@ enum
  * See the explanation at <code>-yearForWeekOfYear</code>.
  */
 - (void) setYearForWeekOfYear: (NSInteger) v;
+- (void) setNanosecond: (NSInteger) v;
 
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
+- (BOOL) leapMonth;
+- (void) setLeapMonth: (BOOL) v;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+- (BOOL) isValidDate;
+- (BOOL) isValidDateInCalendar: (NSCalendar *) calendar;
+- (NSInteger) valueForComponent: (NSCalendarUnit) unit;
+- (void) setValue: (NSInteger) value
+     forComponent: (NSCalendarUnit) unit;
 #endif
 @end
 

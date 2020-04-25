@@ -843,6 +843,8 @@ typedef struct {
   NSInteger quarter;
   NSInteger weekOfMonth;
   NSInteger yearForWeekOfYear;
+  BOOL leapMonth;
+  NSInteger nanosecond;
   NSCalendar *cal;
   NSTimeZone *tz;
 } DateComp;
@@ -880,6 +882,8 @@ typedef struct {
       my->quarter = NSDateComponentUndefined;
       my->weekOfMonth = NSDateComponentUndefined;
       my->yearForWeekOfYear = NSDateComponentUndefined;
+      my->leapMonth = NO;
+      my->nanosecond = NSDateComponentUndefined;
       my->cal = NULL;
       my->tz = NULL;
      } 
@@ -921,6 +925,11 @@ typedef struct {
   return my->second;
 }
 
+- (NSInteger) nanosecond
+{
+  return my->nanosecond;
+}
+
 - (NSInteger) week
 {
   return my->week;
@@ -954,6 +963,11 @@ typedef struct {
 - (NSInteger) yearForWeekOfYear
 {
   return my->yearForWeekOfYear;
+}
+
+- (BOOL) leapMonth
+{
+  return my->leapMonth;
 }
 
 - (NSCalendar *) calendar
@@ -1013,6 +1027,11 @@ typedef struct {
   my->second = v;
 }
 
+- (void) setNanosecond: (NSInteger) v
+{
+  my->nanosecond = v;
+}
+
 - (void) setWeek: (NSInteger) v
 {
   my->week = v;
@@ -1048,6 +1067,11 @@ typedef struct {
   my->yearForWeekOfYear = v;
 }
 
+- (void) setLeapMonth: (BOOL) v
+{
+  my->leapMonth = v;
+}
+
 - (void) setCalendar: (NSCalendar *) cal
 {
   ASSIGN(my->cal, cal);
@@ -1056,6 +1080,94 @@ typedef struct {
 - (void) setTimeZone: (NSTimeZone *) tz
 {
   ASSIGN(my->tz, tz);
+}
+
+- (BOOL) isValidDate
+{
+  if (my->cal == nil)
+    {
+      return NO;
+    }
+  return [self isValidDateInCalendar: my->cal];
+}
+
+- (BOOL) isValidDateInCalendar: (NSCalendar *) calendar
+{
+  return [calendar dateFromComponents: self] != nil;
+}
+
+- (NSInteger) valueForComponent: (NSCalendarUnit) unit
+{
+  switch (unit)
+    {
+      case NSCalendarUnitEra: return my->era;
+      case NSCalendarUnitYear: return my->year;
+      case NSCalendarUnitMonth: return my->month;
+      case NSCalendarUnitDay: return my->day;
+      case NSCalendarUnitHour: return my->hour;
+      case NSCalendarUnitMinute: return my->minute;
+      case NSCalendarUnitSecond: return my->second;
+      case NSCalendarUnitWeekday: return my->weekday;
+      case NSCalendarUnitWeekdayOrdinal: return my->weekdayOrdinal;
+      case NSCalendarUnitQuarter: return my->quarter;
+      case NSCalendarUnitWeekOfMonth: return my->weekOfMonth;
+      case NSCalendarUnitWeekOfYear: return my->week;
+      case NSCalendarUnitYearForWeekOfYear: return my->yearForWeekOfYear;
+      case NSCalendarUnitNanosecond: return my->nanosecond;
+      default: return 0;
+    }
+}
+
+- (void) setValue: (NSInteger) value
+     forComponent: (NSCalendarUnit) unit
+{
+  switch (unit)
+    {
+      case NSCalendarUnitEra:
+        my->era = value;
+        break;
+      case NSCalendarUnitYear:
+        my->year = value;
+        break;
+      case NSCalendarUnitMonth:
+        my->month = value;
+        break;
+      case NSCalendarUnitDay:
+          my->day = value;
+        break;
+      case NSCalendarUnitHour:
+        my->hour = value;
+        break;
+      case NSCalendarUnitMinute:
+        my->minute = value;
+        break;
+      case NSCalendarUnitSecond:
+        my->second = value;
+        break;
+      case NSCalendarUnitWeekday:
+        my->weekday = value;
+        break;
+      case NSCalendarUnitWeekdayOrdinal:
+        my->weekdayOrdinal = value;
+        break;
+      case NSCalendarUnitQuarter:
+        my->quarter = value;
+        break;
+      case NSCalendarUnitWeekOfMonth:
+        my->weekOfMonth = value;
+        break;
+      case NSCalendarUnitWeekOfYear:
+        my->week = value;
+        break;
+      case NSCalendarUnitYearForWeekOfYear:
+        my->yearForWeekOfYear = value;
+        break;
+      case NSCalendarUnitNanosecond:
+        my->nanosecond = value;
+        break;
+      default:
+        break;
+    }
 }
 
 - (id) copyWithZone: (NSZone*)zone
