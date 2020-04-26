@@ -627,6 +627,11 @@ static NSRecursiveLock *classLock = nil;
     [[dict objectForKey: NSLocaleCollationIdentifier] UTF8String];
   const char *currency = [[dict objectForKey: NSLocaleCurrencyCode] UTF8String];
   
+  if (!calendar)
+    {
+      calendar = [[dict objectForKey: NSLocaleCalendarIdentifier] UTF8String];
+    }
+
   // A locale cannot be constructed without a language.
   if (language == NULL)
     return nil;

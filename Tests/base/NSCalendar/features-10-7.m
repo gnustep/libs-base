@@ -17,6 +17,8 @@ int main()
   NSCalendar *cal;
   NSDate *date;
   NSDate *date2;
+  NSDate *date3;
+  NSDate *date4;
   
   START_SET("NSCalendar 10.7 features")
   if (!NSCALENDAR_SUPPORTED)
@@ -48,7 +50,13 @@ int main()
   date2 = [comps date];
   
   PASS_EQUAL(date, date2, "-[NSDateComponents date] returns the correct date");
-  
+
+  date3 = [NSDate dateWithString: @"2012-12-31 13:57:00 +0200"];
+  [comps setTimeZone: [NSTimeZone timeZoneForSecondsFromGMT: 7200]];
+  date4 = [cal dateFromComponents: comps];
+
+  PASS_EQUAL(date3, date4, "-[NSCalendar dateFromComponents:] respects the time zone");
+
   RELEASE(comps);
   RELEASE(cal);
   
