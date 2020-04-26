@@ -1948,7 +1948,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	  uint8_t	hi = s[index+1];
 	  uint8_t	lo = s[index+2];
 
-	  if (isdigit(hi) && isxdigit(lo))
+	  if (isxdigit(hi) && isxdigit(lo))
 	    {
 	      index += 2;
               if (hi <= '9')
