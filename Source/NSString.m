@@ -1901,7 +1901,8 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     }
 }
 
-- (NSString *) stringByAddingPercentEncodingWithAllowedCharacters: (NSCharacterSet *)aSet
+- (NSString *) stringByAddingPercentEncodingWithAllowedCharacters:
+  (NSCharacterSet *)aSet
 {
   NSData	*data = [self dataUsingEncoding: NSUTF8StringEncoding];
   NSString	*s = nil;
@@ -1921,7 +1922,10 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	  unsigned int	hi;
 	  unsigned int	lo;
 
-	  if([aSet characterIsMember: c]) // if the character is in the allowed set, put it in
+	  /* If the character is in the allowed set *and* is in the
+	   * 7-bit ASCII range, it can be added unchanged.
+	   */
+	  if (c < 128 && [aSet characterIsMember: c])
 	    {
 	      dst[dpos++] = c;
 	    }
@@ -1936,7 +1940,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	}
       s = [[NSString alloc] initWithBytes: dst
 				   length: dpos
-				 encoding: NSUTF8StringEncoding];
+				 encoding: NSASCIIStringEncoding];
       NSZoneFree(NSDefaultMallocZone(), dst);
       IF_NO_GC([s autorelease];)
     }
