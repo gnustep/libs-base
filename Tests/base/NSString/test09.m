@@ -7,9 +7,12 @@ void testEncodeDecode(NSString* encoded, NSString* decoded, NSCharacterSet* char
     
     NSString* encodeTest = [decoded stringByAddingPercentEncodingWithAllowedCharacters:charset];
     NSString* decodeTest = [encoded stringByRemovingPercentEncoding];
+
+    const char* encodeMsg  =  [[NSString stringWithFormat:@"Percent-Encode: %@", description] UTF8String];
+    const char* decodeMsg  =  [[NSString stringWithFormat:@"Percent-Decode: %@", description] UTF8String];
      
-    PASS_EQUAL(encodeTest, encoded, ([[NSString stringWithFormat:@"Percent-Encode: %@", description] UTF8String]));
-    PASS_EQUAL(decodeTest, decoded, ([[NSString stringWithFormat:@"Percent-Decode: %@", description] UTF8String]));
+    PASS_EQUAL(encodeTest, encoded, "%s", encodeMsg);
+    PASS_EQUAL(decodeTest, decoded, "%s", decodeMsg);
 }
 
 int main (int argc, const char * argv[])
@@ -71,7 +74,7 @@ int main (int argc, const char * argv[])
   urlDecodedString = @"0123456789 AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz _-~`!#$%&'()*+,/:;=?@[]™…©®£ƒ‰¥§";
   urlEncodedString  = @"%30%31%32%33%34%35%36%37%38%39%20%41%61%42%62%43%63%44%64%45%65%46%66%47%67%48%68%49%69%4A%6A%4B%6B%4C%6C%4D%6D%4E%6E%4F%6F%50%70%51%71%52%72%53%73%54%74%55%75%56%76%57%77%58%78%59%79%5A%7A%20%5F%2D%7E%60%21%23%24%25%26%27%28%29%2A%2B%2C%2F%3A%3B%3D%3F%40%5B%5D%E2%84%A2%E2%80%A6%C2%A9%C2%AE%C2%A3%C6%92%E2%80%B0%C2%A5%C2%A7";
   testEncodeDecode(urlEncodedString, urlDecodedString, [[NSCharacterSet characterSetWithCharactersInString:urlDecodedString] invertedSet],
-                   @"All characters int string 09");
+                   @"All characters in string 09");
 
 
   //check decoding of string with an unencoded part at the beginning
