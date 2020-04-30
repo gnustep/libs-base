@@ -217,6 +217,7 @@ static NSArray	*empty = nil;
       RELEASE(internal->dependencies);
       RELEASE(internal->cond);
       RELEASE(internal->lock);
+      RELEASE(internal->completionBlock);
       GS_DESTROY_INTERNAL(NSOperation);
     }
   [super dealloc];
@@ -381,7 +382,7 @@ static NSArray	*empty = nil;
 
 - (void) setCompletionBlock: (GSOperationCompletionBlock)aBlock
 {
-  internal->completionBlock = aBlock;
+  ASSIGNCOPY(internal->completionBlock, aBlock);
 }
 
 - (void) setQueuePriority: (NSOperationQueuePriority)pri
@@ -1099,9 +1100,18 @@ static NSOperationQueue *mainQueue = nil;
 	    || (pending > 0 && internal->threadCount < POOL))
 	    {
 	      internal->threadCount++;
-	      [NSThread detachNewThreadSelector: @selector(_thread)
-				       toTarget: self
-				     withObject: nil];
+	      NS_DURING
+		{
+		  [NSThread detachNewThreadSelector: @selector(_thread)
+					   toTarget: self
+					 withObject: nil];
+		}
+	      NS_HANDLER
+		{
+		  NSLog(@"Failed to create thread for %@: %@",
+		    self, localException);
+		}
+	      NS_ENDHANDLER
 	    }
 	  /* Tell the thread pool that there is an operation to start.
 	   */

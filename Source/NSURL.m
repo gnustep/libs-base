@@ -68,6 +68,7 @@ function may be incorrect
 #import "common.h"
 #define	EXPOSE_NSURL_IVARS	1
 #import "Foundation/NSArray.h"
+#import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
@@ -88,138 +89,6 @@ function may be incorrect
 
 NSString * const NSURLErrorDomain = @"NSURLErrorDomain";
 NSString * const NSErrorFailingURLStringKey = @"NSErrorFailingURLStringKey";
-
-@interface	NSString (NSURLPrivate)
-- (NSString*) _stringByAddingPercentEscapes;
-- (NSString*) _stringByAddingPercentEscapesForQuery;
-@end
-
-@implementation	NSString (NSURLPrivate)
-
-/* Like the normal percent escape method, but with additional characters
- * escaped (for use by file scheme URLs).
- */
-- (NSString*) _stringByAddingPercentEscapes
-{
-  NSData	*data = [self dataUsingEncoding: NSUTF8StringEncoding];
-  NSString	*s = nil;
-
-  if (data != nil)
-    {
-      unsigned char	*src = (unsigned char*)[data bytes];
-      unsigned int	slen = [data length];
-      unsigned char	*dst;
-      unsigned int	spos = 0;
-      unsigned int	dpos = 0;
-
-      dst = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), slen * 3);
-      while (spos < slen)
-	{
-	  unsigned char	c = src[spos++];
-	  unsigned int	hi;
-	  unsigned int	lo;
-
-	  if (c <= 32
-              || c > 126
-              || c == 34
-              || c == 35
-              || c == 37
-              || c == 59
-              || c == 60
-              || c == 62
-              || c == 63
-              || c == 91
-              || c == 92
-              || c == 93
-              || c == 94
-              || c == 96
-              || c == 123
-              || c == 124
-              || c == 125)
-	    {
-	      dst[dpos++] = '%';
-	      hi = (c & 0xf0) >> 4;
-	      dst[dpos++] = (hi > 9) ? 'A' + hi - 10 : '0' + hi;
-	      lo = (c & 0x0f);
-	      dst[dpos++] = (lo > 9) ? 'A' + lo - 10 : '0' + lo;
-	    }
-	  else
-	    {
-	      dst[dpos++] = c;
-	    }
-	}
-      s = [[NSString alloc] initWithBytes: dst
-				   length: dpos
-				 encoding: NSASCIIStringEncoding];
-      NSZoneFree(NSDefaultMallocZone(), dst);
-      IF_NO_GC([s autorelease];)
-    }
-  return s;
-}
-
-/* 
- * Encode query
- */
-- (NSString*) _stringByAddingPercentEscapesForQuery
-{
-  NSData	*data = [self dataUsingEncoding: NSUTF8StringEncoding];
-  NSString	*s = nil;
-
-  if (data != nil)
-    {
-      unsigned char	*src = (unsigned char*)[data bytes];
-      unsigned int	slen = [data length];
-      unsigned char	*dst;
-      unsigned int	spos = 0;
-      unsigned int	dpos = 0;
-
-      dst = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), slen * 3);
-      while (spos < slen)
-	{
-	  unsigned char	c = src[spos++];
-	  unsigned int	hi;
-	  unsigned int	lo;
-
-	  if (c <= 32
-              || c > 126
-              || c == 34
-              || c == 35
-              || c == 37
-              || c == 38
-              || c == 59
-              || c == 60
-              || c == 61
-              || c == 62
-              || c == 91
-              || c == 92
-              || c == 93
-              || c == 94
-              || c == 96
-              || c == 123
-              || c == 124
-              || c == 125)
-	    {
-	      dst[dpos++] = '%';
-	      hi = (c & 0xf0) >> 4;
-	      dst[dpos++] = (hi > 9) ? 'A' + hi - 10 : '0' + hi;
-	      lo = (c & 0x0f);
-	      dst[dpos++] = (lo > 9) ? 'A' + lo - 10 : '0' + lo;
-	    }
-	  else
-	    {
-	      dst[dpos++] = c;
-	    }
-	}
-      s = [[NSString alloc] initWithBytes: dst
-				   length: dpos
-				 encoding: NSASCIIStringEncoding];
-      NSZoneFree(NSDefaultMallocZone(), dst);
-      IF_NO_GC([s autorelease];)
-    }
-  return s;
-}
-
-@end
 
 @interface	NSURL (GSPrivate)
 - (NSURL*) _URLBySettingPath: (NSString*)newPath; 
@@ -707,6 +576,7 @@ static char *unescape(const char *from, char * to)
 
 @implementation NSURL
 
+static NSCharacterSet	*fileCharSet = nil;
 static NSUInteger	urlAlign;
 
 + (id) fileURLWithPath: (NSString*)aPath
@@ -732,6 +602,8 @@ static NSUInteger	urlAlign;
       NSGetSizeAndAlignment(@encode(parsedURL), &urlAlign, 0);
       clientsLock = [NSLock new];
       [[NSObject leakAt: &clientsLock] release];
+      ASSIGN(fileCharSet, [NSCharacterSet characterSetWithCharactersInString:
+        @"!$&'()*+,-./0123456789:=@ABCDEFGHIJKLMNOPQRSTUVWXYZ_abcdefghijklmnopqrstuvwxyz~"]);
     }
 }
 
@@ -832,7 +704,8 @@ static NSUInteger	urlAlign;
 
   if ([aScheme isEqualToString: @"file"])
     {
-      aPath = [aPath _stringByAddingPercentEscapes];
+      aPath = [aPath stringByAddingPercentEncodingWithAllowedCharacters:
+	fileCharSet];
     }
   else
     {
@@ -2325,6 +2198,30 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 @implementation NSURLComponents 
 
+static NSCharacterSet	*queryItemCharSet = nil;
+
++ (void) initialize
+{
+  if (nil == queryItemCharSet)
+    {
+      ENTER_POOL
+      NSMutableCharacterSet	*m;
+
+      m = [[NSCharacterSet URLQueryAllowedCharacterSet] mutableCopy];
+
+      /* Rationale: if a query item contained an ampersand we would not be
+       * able to tell where one name/value pair ends and the next starts,
+       * so we cannot permit that character in an item.  Similarly, if a
+       * query item contained an equals sign we would not be able to tell
+       * where the name ends and the value starts, so we cannot permit that
+       * character either.
+       */
+      [m removeCharactersInString: @"&="];
+      queryItemCharSet = [m copy];
+      LEAVE_POOL
+    }
+}
+
 // Creating URL components...
 + (instancetype) componentsWithString: (NSString *)urlString
 {
@@ -2765,8 +2662,9 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 // Accessing Components in PercentEncoded Format
 - (NSString *) percentEncodedFragment
 {
-  return [internal->_fragment stringByAddingPercentEncodingWithAllowedCharacters:
-                    [NSCharacterSet URLFragmentAllowedCharacterSet]];
+  return [internal->_fragment
+    stringByAddingPercentEncodingWithAllowedCharacters:
+    [NSCharacterSet URLFragmentAllowedCharacterSet]];
 }
 
 - (void) setPercentEncodedFragment: (NSString *)fragment
@@ -2776,8 +2674,9 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (NSString *) percentEncodedHost
 {
-  return [internal->_host stringByAddingPercentEncodingWithAllowedCharacters:
-                    [NSCharacterSet URLHostAllowedCharacterSet]];
+  return [internal->_host
+    stringByAddingPercentEncodingWithAllowedCharacters:
+    [NSCharacterSet URLHostAllowedCharacterSet]];
 }
 
 - (void) setPercentEncodedHost: (NSString *)host
@@ -2787,8 +2686,9 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (NSString *) percentEncodedPassword
 {
-  return [internal->_password stringByAddingPercentEncodingWithAllowedCharacters:
-                    [NSCharacterSet URLPasswordAllowedCharacterSet]];
+  return [internal->_password
+    stringByAddingPercentEncodingWithAllowedCharacters:
+    [NSCharacterSet URLPasswordAllowedCharacterSet]];
 }
 
 - (void) setPercentEncodedPassword: (NSString *)password
@@ -2798,8 +2698,9 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 
 - (NSString *) percentEncodedPath
 {
-  return [internal->_path stringByAddingPercentEncodingWithAllowedCharacters:
-                    [NSCharacterSet URLPathAllowedCharacterSet]];
+  return [internal->_path
+    stringByAddingPercentEncodingWithAllowedCharacters:
+    [NSCharacterSet URLPathAllowedCharacterSet]];
 }
 
 - (void) setPercentEncodedPath: (NSString *)path
@@ -2874,8 +2775,10 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 	  NSString		*name = [i name];
 	  NSString		*value = [i value];
 
-	  name = [name _stringByAddingPercentEscapesForQuery];
-	  value = [value _stringByAddingPercentEscapesForQuery];
+	  name = [name stringByAddingPercentEncodingWithAllowedCharacters:
+	    queryItemCharSet];
+	  value = [value stringByAddingPercentEncodingWithAllowedCharacters:
+	    queryItemCharSet];
 	  ni = [NSURLQueryItem queryItemWithName: name
 					   value: value];
 	  [items addObject: ni];
@@ -2915,7 +2818,7 @@ GS_PRIVATE_INTERNAL(NSURLComponents)
 - (NSString *) percentEncodedUser
 {
   return [internal->_user stringByAddingPercentEncodingWithAllowedCharacters:
-                    [NSCharacterSet URLUserAllowedCharacterSet]];
+    [NSCharacterSet URLUserAllowedCharacterSet]];
 }
 
 - (void) setPercentEncodedUser: (NSString *)user

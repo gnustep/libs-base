@@ -29,9 +29,12 @@ int main()
   TEST_FOR_CLASS(@"NSURL", [NSURL URLWithString: @"http://www.w3.org/"],
     "NSURL +URLWithString: returns an NSURL");
   
+  url = [NSURL URLWithString: nil];
+  PASS(nil == url, "A nil string result in nil URL");
+
   str = [NSString stringWithCharacters: bad length: sizeof(bad)/sizeof(*bad)];
   url = [NSURL URLWithString: str];
-  PASS(nil == url, "Bad characters result in nil");
+  PASS(nil == url, "Bad characters result in nil URL");
 
   str = [NSString stringWithCharacters: &u length: 1];
   url = [NSURL fileURLWithPath: str];
@@ -292,17 +295,20 @@ GSPathHandling("right");
   PASS(nil == [url host], "host");
   PASS(nil == [url user], "user");
   PASS(nil == [url password], "password");
-  PASS([@"/pathtofile;parameters?query#anchor"
-    isEqual: [url resourceSpecifier]], "resourceSpecifier");
-  PASS([@"/pathtofile" isEqual: [url path]], "path");
-  PASS([@"query" isEqual: [url query]], "query");
-  PASS([@"parameters" isEqual: [url parameterString]], "parameterString");
-  PASS([@"anchor" isEqual: [url fragment]], "fragment");
-  PASS([@"file:///pathtofile;parameters?query#anchor"
-    isEqual: [url absoluteString]], "absoluteString");
-  PASS([@"/pathtofile" isEqual: [url relativePath]], "relativePath");
-  PASS([@"file:///pathtofile;parameters?query#anchor"
-    isEqual: [url description]], "description");
+  PASS_EQUAL([url resourceSpecifier],
+    @"/pathtofile;parameters?query#anchor",
+    "resourceSpecifier");
+  PASS_EQUAL([url path], @"/pathtofile", "path");
+  PASS_EQUAL([url query], @"query", "query");
+  PASS_EQUAL([url parameterString], @"parameters", "parameterString");
+  PASS_EQUAL([url fragment], @"anchor", "fragment");
+  PASS_EQUAL([url absoluteString],
+    @"file:///pathtofile;parameters?query#anchor",
+    "absoluteString");
+  PASS_EQUAL([url relativePath], @"/pathtofile", "relativePath");
+  PASS_EQUAL([url description],
+    @"file:///pathtofile;parameters?query#anchor",
+    "description");
 
   url = [NSURL URLWithString: @"file:///pathtofile; parameters? query #anchor"];     // can't initialize with spaces (must be %20)
   PASS(nil == url, "url with spaces");

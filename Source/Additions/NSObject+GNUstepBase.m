@@ -27,6 +27,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSHashTable.h"
 #import "Foundation/NSLock.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
 #import "GNUstepBase/NSThread+GNUstepBase.h"
@@ -412,7 +413,9 @@ handleExit()
   NSUInteger    size;
 
 #if     GS_SIZEOF_VOIDP > 4
-  if ((((NSUInteger)void*)self) & 0x07)
+  NSUInteger	xxx = (NSUInteger)(void*)self;
+
+  if (xxx & 0x07)
     {
       return 0; // Small object has no size
     }

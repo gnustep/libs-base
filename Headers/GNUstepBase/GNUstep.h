@@ -80,6 +80,9 @@
 #ifndef	ASSIGNCOPY
 #define	ASSIGNCOPY(object,value)	object = [(value) copy]
 #endif
+#ifndef	ASSIGNMUTABLECOPY
+#define	ASSIGNMUTABLECOPY(object,value)	object = [(value) mutableCopy]
+#endif
 #ifndef	DESTROY
 #define	DESTROY(object) 	        object = nil
 #endif
@@ -176,6 +179,19 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
 #define	ASSIGNCOPY(object,value)	({\
   id __object = object; \
   object = [(value) copy];\
+  [__object release]; \
+})
+#endif
+
+#ifndef	ASSIGNMUTABLECOPY
+/**
+ *	ASSIGNMUTABLECOPY(object,value) assigns a mutable copy of the value
+ *	to the object with release of the original.<br />
+ *	Use this to avoid retain/release errors.
+ */
+#define	ASSIGNMUTABLECOPY(object,value)	({\
+  id __object = object; \
+  object = [(value) mutableCopy];\
   [__object release]; \
 })
 #endif

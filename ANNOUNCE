@@ -169,7 +169,29 @@ methods.
 The gnustep-base-1.27.0.tar.gz distribution file has been placed at
 <ftp://ftp.gnustep.org/pub/gnustep/core>.
 
-   Please log bug reports on the GNUstep project page
+   It is accompanied by gnustep-base-1.27.0.tar.gz.sig, a PGP signature
+which you can validate by putting both files in the same directory and
+using:
+
+     gpg --verify gnustep-base-1.27.0.tar.gz.sig
+
+   Signature has been created using the key with the following
+fingerprint:
+
+     83AA E47C E829 A414 6EF8  3420 CA86 8D4C 9914 9679
+
+   Read the INSTALL file or the GNUstep-HOWTO for installation
+instructions.
+
+1.4 Where do I send bug reports?
+================================
+
+Please log bug reports on the GNUstep project page
 <http://savannah.gnu.org/bugs/?group=gnustep> or send bug reports to
 <bug-gnustep@gnu.org>.
 
+1.5 Obtaining GNUstep Software
+==============================
+
+Check out the GNUstep web site.  (<http://www.gnustep.org/>) and the GNU
+web site.  (<http://www.gnu.org/>)

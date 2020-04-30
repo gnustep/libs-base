@@ -1,3 +1,72 @@
+2020-04-26  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSLocale.m: Respect NSLocaleCalendarIdentifier if
+	NSLocaleCalendar isn't set.
+	* Headers/Foundation/NSCalendar.h,
+	* Source/NSCalendar.m: Add newer features for NSDateComponents and
+	started to clean up NSCalendar implementation.
+        * Tests/base/NSCalendar/features-10-7.m: Add test for different
+	time zone.
+
+2020-04-21  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotification.m:
+	Override -hash and -isEqual: so that notifications with the name name,
+	object, and userInfo are considered equal. This is the OSX behavior.
+
+2020-04-14  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSConfig.h.in:
+	* Headers/GNUstepBase/GSVersionMacros.h:
+	* configure.ac:
+	* configure:
+	Remove last vestiges of MIXED ABI support (it didn't really work), and
+	change code to assume that use of the apple runtime means we have the
+	nonfragile ABI (true for modern apple systems we may be interested in
+	using). Regenerate configure script.
+
+2020-04-13  Ivan Vucica <ivan@vucica.net>
+
+	* Documentation/announce.texi:
+	* ANNOUNCE:
+	Normalize the accompanying text for the release announcement across
+	core packages: standardize chapter name and GPG information.
+
+2020-04-13  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSURLProtocol.h:
+	* Source/NSURLProtocol.m:
+	Fix [NSURLProtocol -initWithRequest:cachedResponse:client:] to retain
+	the client (up until the last message is sent to it) as OSX does.
+
+2020-04-12  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* CharSets/URLFragmentAllowedCharSet.h:
+	* CharSets/URLHostAllowedCharSet.h:
+	* CharSets/URLPasswordAllowedCharSet.h:
+	* CharSets/URLPathAllowedCharSet.h:
+	* CharSets/URLQueryAllowedCharSet.h:
+	* CharSets/URLUserAllowedCharSet.h:
+	Removed character set data headers from non-standard location.
+	* NSCharacterSet.m: 
+	Fixed to load URL characterset data from standard file.
+	Changed bitmap representation to use much less space for charsets
+	residing wholly in the base plane (in particular the URL charsets
+	which are purely ASCII characters).
+	* NSCharacterSetData.h:
+	Regenerated to contain the URL charactersets and to contain the
+	latest Unicode data (3rd Oct 2019).
+
+2020-04-10  Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GNUstep.h:
+	Add ASSIGNMUTABLECOPY() macro for consistency with ASSIGNCOPY()
+	Wolfgang pointed out that the lack of this macro was uninutitive.
+
+2020-04-07  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSOperation.m: Fix completion block memory management.
+
 2020-04-05  Ivan Vucica <ivan@vucica.net>
 
 	* ANNOUNCE:
