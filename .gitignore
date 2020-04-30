@@ -26,6 +26,9 @@ Tests/base/coding/ulong-8.type
 *.orig
 *.swp
 
+# MacOS Desktop Services Store
+.DS_Store
+
 # Created by https://www.gitignore.io/api/xcode
 # Edit at https://www.gitignore.io/?templates=xcode
 

@@ -51,6 +51,9 @@ TOP_DIR := $(shell dirname $(CURDIR))
 all::
 	@(echo If you want to run the gnustep-base testsuite, please type \'${MAKE} check\')
 
+# To run tests for a separate group please, use 'make check testobj=NSString'
+# or 'make check testobj=NSDate/general.m' to run an individual test file
+#
 #
 # 'make check' runs the testsuite (Objective-C tests only)
 #
@@ -72,9 +75,9 @@ check::
 	export LD_LIBRARY_PATH;\
 	export PATH;\
 	if [ "$(debug)" = "yes" ]; then \
-	  gnustep-tests --debug base;\
+	  gnustep-tests --debug 'base/$(testobj)';\
         else \
-	  gnustep-tests base;\
+	  gnustep-tests 'base/$(testobj)';\
         fi; \
 	)
 
