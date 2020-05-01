@@ -1,3 +1,13 @@
+2010-05-01 Riccardo Mottola <rm@gnu.org>
+
+	* configure
+	* configure.ac
+	* Headers/GNUstepBase/config.h.in
+	Check for utimensat()
+
+	* Source/NSFileManager.m: (changeFileAttributes:)
+	Use utimensat() to set file modification date, if available.
+
 2020-04-26  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/NSLocale.m: Respect NSLocaleCalendarIdentifier if

@@ -569,8 +569,9 @@ static NSStringEncoding	defaultEncoding;
     {
       BOOL		ok = NO;
       struct _STATB	sb;
-
-#if  defined(_WIN32) || defined(_POSIX_VERSION)
+#if defined (HAVE_UTIMENSAT)
+      struct timespec ub[2];
+#elif  defined(_WIN32) || defined(_POSIX_VERSION)
       struct _UTIMB ub;
 #else
       time_t ub[2];
@@ -588,13 +589,21 @@ static NSStringEncoding	defaultEncoding;
 #endif
       else
 	{
-#if  defined(_WIN32) || defined(_POSIX_VERSION)
+	  NSTimeInterval ti = [date timeIntervalSince1970];
+#if defined (HAVE_UTIMENSAT)
+	  ub[0].tv_sec = 0;
+	  ub[0].tv_nsec = UTIME_OMIT; // we don't touch access time
+	  ub[1].tv_sec = truncl(ti);
+	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
+
+	  ok = (utimensat(0, lpath, ub, 0) == 0);
+#elif  defined(_WIN32) || defined(_POSIX_VERSION)
 	  ub.actime = sb.st_atime;
-	  ub.modtime = [date timeIntervalSince1970];
+	  ub.modtime = ti;
 	  ok = (_UTIME(lpath, &ub) == 0);
 #else
 	  ub[0] = sb.st_atime;
-	  ub[1] = [date timeIntervalSince1970];
+	  ub[1] = ti;
 	  ok = (_UTIME(lpath, ub) == 0);
 #endif
 	}
