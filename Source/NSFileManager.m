@@ -666,7 +666,7 @@ static NSStringEncoding	defaultEncoding;
 	{
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileModificationDate to '%@' - %@",
+	    @"Unable to change NSFileCreationDate to '%@' - %@",
 	    date, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
