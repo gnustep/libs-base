@@ -2225,14 +2225,14 @@ static NSCharacterSet	*queryItemCharSet = nil;
 // Creating URL components...
 + (instancetype) componentsWithString: (NSString *)urlString
 {
-  return [[NSURLComponents alloc] initWithString: urlString];
+  return  AUTORELEASE([[NSURLComponents alloc] initWithString: urlString]);
 }
 
 + (instancetype) componentsWithURL: (NSURL *)url 
            resolvingAgainstBaseURL: (BOOL)resolve
 {
-  return [[NSURLComponents alloc] initWithURL: url
-                      resolvingAgainstBaseURL: resolve];
+  return  AUTORELEASE([[NSURLComponents alloc] initWithURL: url
+                      resolvingAgainstBaseURL: resolve]);
 }
 
 - (instancetype) init
