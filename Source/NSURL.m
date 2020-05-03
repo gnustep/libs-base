@@ -2116,17 +2116,26 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
   return AUTORELEASE(newQueryItem);
 }
 
-- (instancetype)initWithName:(NSString *)name
-                       value:(NSString *)value
+- (instancetype) init
 {
   self = [super init];
-  if (self != nil)
-    {
-      GS_CREATE_INTERNAL(NSURLQueryItem);
-      
-      ASSIGNCOPY(internal->_name, name);
-      ASSIGNCOPY(internal->_value, value);
-    }
+  if(self != nil)
+  {
+    GS_CREATE_INTERNAL(NSURLQueryItem);
+    ASSIGN(internal->_name, @""); //OSX behaviour is to set an empty string for the name property
+  }
+  return self;
+}
+
+- (instancetype)initWithName:(NSString *)name 
+                       value:(NSString *)value
+{
+  self = [self init];
+  if(self != nil)
+  {
+    if(name)ASSIGNCOPY(internal->_name, name);
+    ASSIGNCOPY(internal->_value, value);
+  }
   return self;
 }
 
