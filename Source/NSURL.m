@@ -2256,12 +2256,10 @@ static NSCharacterSet	*queryItemCharSet = nil;
 
 - (instancetype) initWithString: (NSString *)URLString
 {
-  self = [self init];
-  if (self != nil)
-    {
-      [self setString: URLString];
-    }
-  return self;
+  //OSX behavior is to return nil for a string which cannot be used to initialize valid NSURL object
+  NSURL* url = [NSURL URLWithString:URLString];
+  if(url) return [self initWithURL:url resolvingAgainstBaseURL:NO];
+  else return nil;
 }
 
 - (instancetype) initWithURL: (NSURL *)url 
@@ -2454,7 +2452,7 @@ static NSCharacterSet	*queryItemCharSet = nil;
   [self setUser: [url user]];
   [self setPassword: [url password]];
   [self setPath: [url path]];
-  [self setQuery: [url query]];
+  [self setPercentEncodedQuery:[url query]];
   [self setFragment: [url fragment]];
 }
 
