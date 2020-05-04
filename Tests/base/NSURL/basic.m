@@ -353,7 +353,7 @@ GSPathHandling("right");
     
   item = [[NSURLQueryItem alloc] initWithName:@"myName" value:@"myValue"];
   PASS_EQUAL(item.name,  @"myName", "NSURLQueryItem.name should not be nil");
-  PASS_EQUAL(item.value, @"myValue", "NSURLQueryItem.value should be nil");
+  PASS_EQUAL(item.value, @"myValue", "NSURLQueryItem.value should not be nil");
 
     
   [arp release]; arp = nil;

@@ -2118,22 +2118,29 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
 
 - (instancetype) init
 {
-  self = [super init];
+  self = [self initWithName:nil value:nil];
   if(self != nil)
-  {
-    GS_CREATE_INTERNAL(NSURLQueryItem);
-    ASSIGN(internal->_name, @""); //OSX behaviour is to set an empty string for the name property
-  }
+    {
+    
+    }
   return self;
 }
 
 - (instancetype)initWithName:(NSString *)name 
                        value:(NSString *)value
 {
-  self = [self init];
+  self = [super init];
   if(self != nil)
   {
-    if(name)ASSIGNCOPY(internal->_name, name);
+    GS_CREATE_INTERNAL(NSURLQueryItem);
+    if(name)
+      {
+        ASSIGNCOPY(internal->_name, name);
+      }
+    else
+      {
+        ASSIGN(internal->_name, @""); //OSX behaviour is to set an empty string for nil name property
+      }
     ASSIGNCOPY(internal->_value, value);
   }
   return self;
@@ -2267,8 +2274,14 @@ static NSCharacterSet	*queryItemCharSet = nil;
 {
   //OSX behavior is to return nil for a string which cannot be used to initialize valid NSURL object
   NSURL* url = [NSURL URLWithString:URLString];
-  if(url) return [self initWithURL:url resolvingAgainstBaseURL:NO];
-  else return nil;
+  if(url)
+    {
+      return [self initWithURL:url resolvingAgainstBaseURL:NO];
+    }
+  else
+    {
+      return nil;
+    }
 }
 
 - (instancetype) initWithURL: (NSURL *)url 
