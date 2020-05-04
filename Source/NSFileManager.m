@@ -564,58 +564,6 @@ static NSStringEncoding	defaultEncoding;
 	}
     }
 
-  date = [attributes fileModificationDate];
-  if (date != nil && NO == [date isEqual: [old fileModificationDate]])
-    {
-      BOOL		ok = NO;
-      struct _STATB	sb;
-#if defined (HAVE_UTIMENSAT)
-      struct timespec ub[2];
-#elif  defined(_WIN32) || defined(_POSIX_VERSION)
-      struct _UTIMB ub;
-#else
-      time_t ub[2];
-#endif
-
-      if (_STAT(lpath, &sb) != 0)
-	{
-	  ok = NO;
-	}
-#if  defined(_WIN32)
-      else if (sb.st_mode & _S_IFDIR)
-	{
-	  ok = YES;	// Directories don't have modification times.
-	}
-#endif
-      else
-	{
-	  NSTimeInterval ti = [date timeIntervalSince1970];
-#if defined (HAVE_UTIMENSAT)
-	  ub[0].tv_sec = 0;
-	  ub[0].tv_nsec = UTIME_OMIT; // we don't touch access time
-	  ub[1].tv_sec = truncl(ti);
-	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
-
-	  ok = (utimensat(0, lpath, ub, 0) == 0);
-#elif  defined(_WIN32) || defined(_POSIX_VERSION)
-	  ub.actime = sb.st_atime;
-	  ub.modtime = ti;
-	  ok = (_UTIME(lpath, &ub) == 0);
-#else
-	  ub[0] = sb.st_atime;
-	  ub[1] = ti;
-	  ok = (_UTIME(lpath, ub) == 0);
-#endif
-	}
-      if (ok == NO)
-	{
-	  allOk = NO;
-	  str = [NSString stringWithFormat:
-	    @"Unable to change NSFileModificationDate to '%@' - %@",
-	    date, [NSError _last]];
-	  ASSIGN(_lastError, str);
-	}
-    }
 
   date = [attributes fileCreationDate];
   if (date != nil && NO == [date isEqual: [old fileCreationDate]])
@@ -636,11 +584,12 @@ static NSStringEncoding	defaultEncoding;
 #if  defined(_WIN32)
       else if (sb.st_mode & _S_IFDIR)
 	{
-	  ok = YES;	// Directories don't have modification times.
+	  ok = YES;	// Directories don't have creation times.
 	}
 #endif
       else
 	{
+	  NSTimeInterval ti = [date timeIntervalSince1970];
 #if  defined(_WIN32)
           FILETIME ctime;
 	  HANDLE fh;
@@ -657,9 +606,25 @@ static NSStringEncoding	defaultEncoding;
 	      ok = SetFileTime(fh, &ctime, NULL, NULL);
               CloseHandle(fh);
 	    }
+/* on Unix we try setting the creation date by setting the modification date earlier than the current one */
+#elif defined (HAVE_UTIMENSAT)
+          struct timespec ub[2];
+	  ub[0].tv_sec = 0;
+	  ub[0].tv_nsec = UTIME_OMIT; // we don't touch access time
+	  ub[1].tv_sec = truncl(ti);
+	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
+
+	  ok = (utimensat(0, lpath, ub, 0) == 0);
+#elif  defined(_POSIX_VERSION)
+          struct _UTIMB ub;
+	  ub.actime = sb.st_atime;
+	  ub.modtime = ti;
+	  ok = (_UTIME(lpath, &ub) == 0);
 #else
-	  /* not implemented */
-	  ok = YES;
+          time_t ub[2];
+	  ub[0] = sb.st_atime;
+	  ub[1] = ti;
+	  ok = (_UTIME(lpath, ub) == 0);
 #endif
 	}
       if (ok == NO)
@@ -667,6 +632,55 @@ static NSStringEncoding	defaultEncoding;
 	  allOk = NO;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileCreationDate to '%@' - %@",
+	    date, [NSError _last]];
+	  ASSIGN(_lastError, str);
+	}
+    }
+
+  date = [attributes fileModificationDate];
+  if (date != nil && NO == [date isEqual: [old fileModificationDate]])
+    {
+      BOOL		ok = NO;
+      struct _STATB	sb;
+
+      if (_STAT(lpath, &sb) != 0)
+	{
+	  ok = NO;
+	}
+#if  defined(_WIN32)
+      else if (sb.st_mode & _S_IFDIR)
+	{
+	  ok = YES;	// Directories don't have modification times.
+	}
+#endif
+      else
+	{
+	  NSTimeInterval ti = [date timeIntervalSince1970];
+#if defined (HAVE_UTIMENSAT)
+          struct timespec ub[2];
+	  ub[0].tv_sec = 0;
+	  ub[0].tv_nsec = UTIME_OMIT; // we don't touch access time
+	  ub[1].tv_sec = truncl(ti);
+	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
+
+	  ok = (utimensat(0, lpath, ub, 0) == 0);
+#elif  defined(_WIN32) || defined(_POSIX_VERSION)
+          struct _UTIMB ub;
+	  ub.actime = sb.st_atime;
+	  ub.modtime = ti;
+	  ok = (_UTIME(lpath, &ub) == 0);
+#else
+          time_t ub[2];
+	  ub[0] = sb.st_atime;
+	  ub[1] = ti;
+	  ok = (_UTIME(lpath, ub) == 0);
+#endif
+	}
+      if (ok == NO)
+	{
+	  allOk = NO;
+	  str = [NSString stringWithFormat:
+	    @"Unable to change NSFileModificationDate to '%@' - %@",
 	    date, [NSError _last]];
 	  ASSIGN(_lastError, str);
 	}
@@ -3669,9 +3683,18 @@ static NSSet	*fileKeys = nil;
 {
 #if defined(_WIN32)
   return [NSDate dateWithTimeIntervalSince1970: statbuf.st_ctime];
-#else /* we don't know better */
-  /*
-   * FIXME ... not sure there is any way to get a creation date :-(
+#elif defined (HAVE_STRUCT_STAT_ST_BIRTHTIM)
+  NSTimeInterval ti;
+  ti = statbuf.st_birthtim.tv_sec + (double)statbuf.st_birthtim.tv_nsec / 1.0e9;
+  return [NSDate dateWithTimeIntervalSince1970: ti];
+#elif defined (HAVE_STRUCT_STAT_ST_BIRTHTIME)
+  return [NSDate dateWithTimeIntervalSince1970: statbuf.st_birthtime];
+#elif defined (HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC) || defined (HAVE_STRUCT_STAT64_ST_BIRTHTIMESPEC)
+  NSTimeInterval ti;
+  ti = statbuf.st_birthtimespec.tv_sec + (double)statbuf.st_birthtimespec.tv_nsec / 1.0e9;
+  return [NSDate dateWithTimeIntervalSince1970: ti];
+#else
+  /* We don't know a better way to get creation date, it is not defined in POSIX
    * Use the earlier of ctime or mtime
    */
   if (statbuf.st_ctime < statbuf.st_mtime)

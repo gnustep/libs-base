@@ -1,3 +1,11 @@
+2010-05-04 Riccardo Mottola <rm@gnu.org>
+
+	* Source/NSFileManager.m:
+	In changeFileAttributes implement setting of creation date also for
+	Unix, which needs to be done before setting the modification date.
+	Also, implement reading the creation (birth time) date if a supported
+	method was detected.
+
 2010-05-01 Riccardo Mottola <rm@gnu.org>
 
 	* configure
