@@ -1050,25 +1050,21 @@ static Class concreteMutableClass = nil;
 
 - (NSCharacterSet*) invertedSet
 {
-  unsigned	i;
-  unsigned	length;
-  unsigned char	*bytes;
-  NSMutableData	*bitmap;
+  NSMutableCharacterSet	*m = [self mutableCopy];
+  NSCharacterSet	*c;
 
-  bitmap = AUTORELEASE([[self bitmapRepresentation] mutableCopy]);
-  length = [bitmap length];
-  bytes = [bitmap mutableBytes];
-  for (i = 0; i < length; i++)
-    {
-      bytes[i] = ~bytes[i];
-    }
-  return [[self class] characterSetWithBitmapRepresentation: bitmap];
+  [m invert];
+  c = [m copy];
+  RELEASE(m);
+  return AUTORELEASE(c);
 }
 
 - (BOOL) isEqual: (id)anObject
 {
   if (anObject == self)
-    return YES;
+    {
+      return YES;
+    }
   if ([anObject isKindOfClass: abstractClass])
     {
       unsigned	i;
