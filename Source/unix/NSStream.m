@@ -33,6 +33,10 @@
 #  include	<sys/fcntl.h>
 #endif
 
+#ifdef __ANDROID__
+#  include <android/asset_manager_jni.h>
+#endif
+
 #import "Foundation/NSData.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSDictionary.h"
@@ -57,6 +61,9 @@
 {
 @private
   NSString *_path;
+#ifdef __ANDROID__
+  AAsset *_asset;
+#endif
 }
 @end
 
@@ -133,7 +140,16 @@
       return 0;
     }
 
-  readLen = read((intptr_t)_loopID, buffer, len);
+#ifdef __ANDROID__
+  if (_asset)
+  {
+    readLen = AAsset_read(_asset, buffer, len);
+  }
+  else
+#endif
+  {
+    readLen = read((intptr_t)_loopID, buffer, len);
+  }
   if (readLen < 0 && errno != EAGAIN && errno != EINTR)
     {
       [self _recordError];
@@ -165,7 +181,18 @@
       off_t offset = 0;
 
       if ([self _isOpened])
-        offset = lseek((intptr_t)_loopID, 0, SEEK_CUR);
+        {
+#ifdef __ANDROID__
+          if (_asset)
+            {
+              offset = AAsset_seek(_asset, 0, SEEK_CUR);
+            }
+          else
+#endif
+            {
+              offset = lseek((intptr_t)_loopID, 0, SEEK_CUR);
+            }
+        }
       return [NSNumber numberWithLong: offset];
     }
   return [super propertyForKey: key];
@@ -177,9 +204,15 @@
 
   fd = open([_path fileSystemRepresentation], O_RDONLY|O_NONBLOCK);
   if (fd < 0)
-    {  
-      [self _recordError];
-      return;
+    {
+#ifdef __ANDROID__
+      _asset = [NSBundle assetForPath:_path withMode:AASSET_MODE_STREAMING];
+      if (!_asset)
+#endif
+        {
+          [self _recordError];
+          return;
+        }
     }
   _loopID = (void*)(intptr_t)fd;
   [super open];
@@ -187,10 +220,19 @@
 
 - (void) close
 {
-  int closeReturn = close((intptr_t)_loopID);
+#ifdef __ANDROID__
+  if (_asset)
+    {
+      AAsset_close(_asset);
+    }
+  else
+#endif
+    {
+      int closeReturn = close((intptr_t)_loopID);
 
-  if (closeReturn < 0)
-    [self _recordError];
+      if (closeReturn < 0)
+        [self _recordError];
+    }
   [super close];
 }
 
