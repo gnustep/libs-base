@@ -480,16 +480,11 @@ static  NSNull  *null = nil;
 
 - (id) initWithContentsOfURL: (NSURL*)anURL
 {
-  NSData	*d = [NSData dataWithContentsOfURL: anURL];
-
-  if (d == nil)
-    {
-      DESTROY(self);
-    }
-  else
-    {
-      self = [self initWithData: d];
-    }
+  _handler = [NSXMLSAXHandler new];
+  [myHandler _setOwner: self];
+  _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
+                                  withContentsOfURL: anURL];
+  [(GSXMLParser*)_parser substituteEntities: YES];
   return self;
 }
 
@@ -497,7 +492,18 @@ static  NSNull  *null = nil;
 {
   _handler = [NSXMLSAXHandler new];
   [myHandler _setOwner: self];
-  _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler withData: data];
+  _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
+                                           withData: data];
+  [(GSXMLParser*)_parser substituteEntities: YES];
+  return self;
+}
+
+- (id) initWithStream: (NSInputStream*)stream
+{
+  _handler = [NSXMLSAXHandler new];
+  [myHandler _setOwner: self];
+  _parser = [[GSXMLParser alloc] initWithSAXHandler: myHandler
+                                    withInputStream: stream];
   [(GSXMLParser*)_parser substituteEntities: YES];
   return self;
 }

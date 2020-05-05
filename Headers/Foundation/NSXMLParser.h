@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-@class NSData, NSDictionary, NSError, NSString, NSURL;
+@class NSData, NSDictionary, NSError, NSInputStream, NSString, NSURL;
 
 /**
  * Domain for errors
@@ -100,12 +100,17 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
 /**
  * Convenience method fetching data from anURL.<br />
  */
-- (id) initWithContentsOfURL: (NSURL*)anURL;
+- (instancetype) initWithContentsOfURL: (NSURL*)anURL;
 
 /** <init />
  * Initialises the parser with the specified xml data.
  */
-- (id) initWithData: (NSData*)data;
+- (instancetype) initWithData: (NSData*)data;
+
+/**
+ * Initialises the parser with the specified input stream.
+ */
+- (instancetype) initWithStream: (NSInputStream*)stream;
 
 /**
  * Parses the supplied data and returns YES on success, NO otherwise.

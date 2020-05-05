@@ -172,6 +172,19 @@ setupCache()
     }
 }
 
+static int xmlNSInputStreamReadCallback(void *context, char *buffer, int len)
+{
+  NSInputStream *stream = (NSInputStream *)context;
+  return [stream read: (uint8_t *)buffer maxLength: len];
+}
+
+static int xmlNSInputStreamCloseCallback (void *context)
+{
+  NSInputStream *stream = (NSInputStream *)context;
+  [stream close];
+  return 0;
+}
+
 static xmlParserInputPtr
 loadEntityFunction(const unsigned char *url, const unsigned char *eid,
   void *ctx);
@@ -2103,6 +2116,31 @@ static NSString	*endMarker = @"At end of incremental parse";
 }
 
 /**
+ * <p>
+ *   Initialisation of a new Parser with SAX handler (if not nil)
+ *   by calling -initWithSAXHandler:
+ * </p>
+ * <p>
+ *   Sets the input source for the parser to be the specified input stream,
+ *   so parsing of the entire document will be performed rather than
+ *   incremental parsing.
+ * </p>
+ */
+- (id) initWithSAXHandler: (GSSAXHandler*)handler
+	 withInputStream: (NSInputStream*)stream
+{
+  if (stream == nil || [stream isKindOfClass: [NSInputStream class]] == NO)
+    {
+      NSLog(@"Bad NSInputStream passed to initialize GSXMLParser");
+      DESTROY(self);
+      return nil;
+    }
+  src = RETAIN(stream);
+  self = [self initWithSAXHandler: handler];
+  return self;
+}
+
+/**
  * Set and return the previous value for blank text nodes support.
  * ignorableWhitespace nodes are only generated when running
  * the parser in validating mode and when the current element
@@ -2167,7 +2205,8 @@ static NSString	*endMarker = @"At end of incremental parse";
       return NO;
     }
 
-  if ([src isKindOfClass: [NSData class]])
+  if ([src isKindOfClass: [NSData class]]
+      || [src isKindOfClass: [NSInputStream class]])
     {
     }
   else if ([src isKindOfClass: NSString_class])
@@ -2194,14 +2233,22 @@ static NSString	*endMarker = @"At end of incremental parse";
     }
   else
     {
-       NSLog(@"source for [-parse] must be NSString, NSData or NSURL type");
+       NSLog(@"Source for [-parse] must be NSString, NSData, NSInputStream, or"
+         @" NSURL type");
        return NO;
     }
 
   tmp = RETAIN(src);
   ASSIGN(src, endMarker);
-  [self _parseChunk: tmp];
-  [self _parseChunk: nil];
+  if ([tmp isKindOfClass: [NSInputStream class]])
+    {
+      xmlParseDocument(lib);
+    }
+  else
+    {
+      [self _parseChunk: tmp];
+      [self _parseChunk: nil];
+    }
   RELEASE(tmp);
 
   if (((xmlParserCtxtPtr)lib)->wellFormed != 0
@@ -2382,7 +2429,19 @@ static NSString	*endMarker = @"At end of incremental parse";
     {
       file = ".";
     }
-  lib = (void*)xmlCreatePushParserCtxt([saxHandler lib], NULL, 0, 0, file);
+
+  if ([src isKindOfClass: [NSInputStream class]])
+    {
+      [(NSInputStream*)src open];
+      lib = (void*)xmlCreateIOParserCtxt([saxHandler lib], NULL,
+        xmlNSInputStreamReadCallback, xmlNSInputStreamCloseCallback,
+        (void*)src, XML_CHAR_ENCODING_NONE);
+    }
+  else
+    {
+      lib = (void*)xmlCreatePushParserCtxt([saxHandler lib], NULL, 0, 0, file);
+    }
+
   if (lib == NULL)
     {
       NSLog(@"Failed to create libxml parser context");
