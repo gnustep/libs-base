@@ -81,6 +81,23 @@ int main()
     "set query to item containing ampersand")
   PASS_EQUAL([components percentEncodedQuery], @"%26",
     "percent encoded query item encodes ampersand")
+    
+  //NSURLQueryItem percent encoding/decoding test
+  NSString* urlString = @"http://domain/?%D0%90%D0%B0%D0%91%D0%B1=%D0%90%D0%B0%D0%91%D0%B1";
+  NSString* cyrillicStr = @"\U00000410\U00000430\U00000411\U00000431";
+  NSURLComponents* components = [NSURLComponents componentsWithString:urlString];
+  NSURLQueryItem* item = [[components queryItems] lastObject];
+  PASS_EQUAL(item.name, cyrillicStr,  "Should return decoded query item name from url");
+  PASS_EQUAL(item.value, cyrillicStr, "Should return decoded query item value from url");
+  
+  item = [NSURLQueryItem queryItemWithName:cyrillicStr value:cyrillicStr];
+  [components setQueryItems:[NSArray arrayWithObject:item]];
+  PASS_EQUAL([components string], urlString, "Encoded url string from unencoded item");
+  PASS_EQUAL([components URL], [NSURL URLWithString:urlString], "Encoded url query part from unencoded item");
+    
+  NSString* invalidUrlString = @"\U00000410\U00000430\U00000411\U00000431";
+  PASS_EQUAL([NSURL URLWithString:invalidUrlString], nil, "nil NSURL from invalid string")
+  PASS_EQUAL([NSURLComponents componentsWithString:invalidUrlString], nil, "nil NSComponents from invalid string")
 
   END_SET("components")
 
