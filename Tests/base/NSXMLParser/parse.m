@@ -1,6 +1,7 @@
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSFileManager.h>
+#import <Foundation/NSStream.h>
 #import <Foundation/NSUserDefaults.h>
 #import <Foundation/NSXMLParser.h>
 #include <string.h>
@@ -236,17 +237,10 @@ static BOOL     setShouldReportNamespacePrefixes = YES;
 static BOOL     setShouldResolveExternalEntities = NO;
 
 static BOOL
-testParse(NSData *xml, NSString *expect)
+testParser(NSXMLParser *parser, NSString *expect)
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
-  Handler               *handler;
-  NSXMLParser           *parser;
-  Class                 c = NSClassFromString(@"GSSloppyXMLParser");
-
-  c = Nil;
-  if (Nil == c) c = [NSXMLParser class];
-  parser = [[c alloc] initWithData: xml];
-
+  Handler *handler;
+  
   [parser setShouldProcessNamespaces: setShouldProcessNamespaces];
   [parser setShouldReportNamespacePrefixes: setShouldReportNamespacePrefixes];
   [parser setShouldResolveExternalEntities: setShouldResolveExternalEntities];
@@ -257,7 +251,6 @@ testParse(NSData *xml, NSString *expect)
     {
       NSLog(@"Parsing failed: %@ at %ld on %ld", [parser parserError],
         (long)[parser columnNumber], (long)[parser lineNumber]);
-      [arp release];
       return NO;
     }
   else
@@ -265,13 +258,29 @@ testParse(NSData *xml, NSString *expect)
       if (NO == [[handler description] isEqual: expect]) 
         {
           NSLog(@"######## Expected:\n%@\n######## Parsed:\n%@\n########\n",
-	    expect, [handler description]);
-          [arp release];
+            expect, [handler description]);
           return NO;
         }
     }
-  [arp release];
+
   return YES;
+}
+
+static BOOL
+testParseData(NSData *xml, NSString *expect)
+{
+  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  NSXMLParser           *parser;
+  Class                 c = NSClassFromString(@"GSSloppyXMLParser");
+  BOOL                  result;
+
+  c = Nil;
+  if (Nil == c) c = [NSXMLParser class];
+  parser = [[c alloc] initWithData: xml];
+  result = testParser(parser, expect);
+
+  [arp release];
+  return result;
 }
 
 static BOOL
@@ -280,7 +289,24 @@ testParseCString(const char *xmlBytes, NSString *expect)
   NSData	*xml;
 
   xml = [NSData dataWithBytes: xmlBytes length: strlen(xmlBytes)];
-  return testParse(xml, expect);
+  return testParseData(xml, expect);
+}
+
+static BOOL
+testParseStream(NSInputStream *stream, NSString *expect)
+{
+  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  NSXMLParser           *parser;
+  Class                 c = NSClassFromString(@"GSSloppyXMLParser");
+  BOOL                  result;
+
+  c = Nil;
+  if (Nil == c) c = [NSXMLParser class];
+  parser = [[c alloc] initWithStream: stream];
+  result = testParser(parser, expect);
+
+  [arp release];
+  return YES;
 }
 
 int main()
@@ -305,18 +331,22 @@ int main()
   while ((xmlName = [dir nextObject]) != nil)
     {
       if ([[xmlName pathExtension] isEqualToString: @"xml"])
-	{
-	  NSString	*xmlPath;
+        {
+          NSString	*xmlPath;
           NSData	*xmlData;
           NSString	*result;
+          NSInputStream *stream;
 
-	  xmlPath = [@"ParseData" stringByAppendingPathComponent: xmlName];
-	  str = [xmlPath stringByDeletingPathExtension];
-	  str = [str stringByAppendingPathExtension: @"result"];
+          xmlPath = [@"ParseData" stringByAppendingPathComponent: xmlName];
+          str = [xmlPath stringByDeletingPathExtension];
+          str = [str stringByAppendingPathExtension: @"result"];
           xmlData = [NSData dataWithContentsOfFile: xmlPath];
           result = [NSString stringWithContentsOfFile: str];
-	  PASS((testParse(xmlData, result)), "%s", [xmlName UTF8String])
-	}
+          PASS((testParseData(xmlData, result)), "parse data: %s", [xmlName UTF8String])
+          
+          stream = [NSInputStream inputStreamWithFileAtPath:xmlPath];
+          PASS((testParseStream(stream, result)), "parse stream: %s", [xmlName UTF8String])
+      }
     }
 
   {
@@ -335,7 +365,7 @@ parserDidEndDocument:\n\
 @"<file>&amp;&foo;&#65;</file>", [mgr currentDirectoryPath]];
 
     dat = [str dataUsingEncoding: NSUTF8StringEncoding];
-    PASS((testParse(dat, exp)), "external entity")
+    PASS((testParseData(dat, exp)), "external entity")
   }
 
   [arp release]; arp = nil;

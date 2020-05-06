@@ -910,7 +910,6 @@ NSXMLNodeOptions:
 NSXMLParser:
 	@class NSInputStream
 
-	- initWithStream:
 	- parseError
 -------------------------------------------------------------
 NSZone:

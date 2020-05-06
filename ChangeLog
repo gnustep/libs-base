@@ -1,3 +1,12 @@
+2020-04-07  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSXMLParser.h:
+	* Headers/GNUstepBase/GSXML.h:
+	* Source/Additions/GSXML.m:
+	* Source/NSXMLParser.m:
+	* Tests/base/NSXMLParser/parse.m:
+	Implement -[NSXMLParser initWithStream:].
+
 2020-04-26  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/NSLocale.m: Respect NSLocaleCalendarIdentifier if
