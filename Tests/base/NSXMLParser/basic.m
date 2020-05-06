@@ -5,10 +5,16 @@ int main()
 {
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSXMLParser           *parser;
+  Class                 c = NSClassFromString(@"GSSloppyXMLParser");
+
+  parser = [c new];
+  test_alloc(@"GSSloppyXMLParser");
+  test_NSObject(@"GSSloppyXMLParser", [NSArray arrayWithObject: parser]);
 
   parser = [NSXMLParser new];
   test_alloc(@"NSXMLParser");
   test_NSObject(@"NSXMLParser", [NSArray arrayWithObject: parser]);
+
   [arp release]; arp = nil;
 
 /* Don't release the parser ... it appears that on OSX there is a bug in

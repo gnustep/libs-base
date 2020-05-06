@@ -267,14 +267,14 @@ testParser(NSXMLParser *parser, NSString *expect)
 }
 
 static BOOL
-testParseData(NSData *xml, NSString *expect)
+testParseData(NSData *xml, NSString *expect, BOOL strict)
 {
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSXMLParser           *parser;
   Class                 c = NSClassFromString(@"GSSloppyXMLParser");
   BOOL                  result;
 
-  c = Nil;
+  if (strict) c = Nil;
   if (Nil == c) c = [NSXMLParser class];
   parser = [[c alloc] initWithData: xml];
   result = testParser(parser, expect);
@@ -284,29 +284,29 @@ testParseData(NSData *xml, NSString *expect)
 }
 
 static BOOL
-testParseCString(const char *xmlBytes, NSString *expect)
+testParseCString(const char *xmlBytes, NSString *expect, BOOL strict)
 {
   NSData	*xml;
 
   xml = [NSData dataWithBytes: xmlBytes length: strlen(xmlBytes)];
-  return testParseData(xml, expect);
+  return testParseData(xml, expect, strict);
 }
 
 static BOOL
-testParseStream(NSInputStream *stream, NSString *expect)
+testParseStream(NSInputStream *stream, NSString *expect, BOOL strict)
 {
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSXMLParser           *parser;
   Class                 c = NSClassFromString(@"GSSloppyXMLParser");
   BOOL                  result;
 
-  c = Nil;
+  if (strict) c = Nil;
   if (Nil == c) c = [NSXMLParser class];
   parser = [[c alloc] initWithStream: stream];
   result = testParser(parser, expect);
 
   [arp release];
-  return YES;
+  return result;
 }
 
 int main()
@@ -321,8 +321,12 @@ int main()
   NSString              *e1 =
 @"parserDidStartDocument:\nparser:didStartElement:namespaceURI:qualifiedName:attributes: test  test {\n    x = 1;\n}\nparser:didEndElement:namespaceURI:qualifiedName: test  test\nparserDidEndDocument:\n";
 
-  PASS((testParseCString(x1, e1)), "simple document 1")
-  PASS((testParseCString(x1e, e1)), "simple document 1 without header")
+  PASS((testParseCString(x1, e1, YES)), "simple document 1 (strict)")
+  PASS((testParseCString(x1, e1, NO)), "simple document 1 (sloppy)")
+  PASS((testParseCString(x1e, e1, YES)),
+    "simple document 1 (strict) without header")
+  PASS((testParseCString(x1e, e1, NO)),
+    "simple document 1 (sloppy) without header")
 
   /* Now perform any tests using .xml and .result pairs of files in
    * the ParseData subdirectory.
@@ -341,11 +345,22 @@ int main()
           str = [xmlPath stringByDeletingPathExtension];
           str = [str stringByAppendingPathExtension: @"result"];
           xmlData = [NSData dataWithContentsOfFile: xmlPath];
+
           result = [NSString stringWithContentsOfFile: str];
-          PASS((testParseData(xmlData, result)), "parse data: %s", [xmlName UTF8String])
+          PASS((testParseData(xmlData, result, YES)),
+	    "parse data (strict): %s", [xmlName UTF8String])
+
+          result = [NSString stringWithContentsOfFile: str];
+          PASS((testParseData(xmlData, result, NO)),
+	    "parse data (sloppy): %s", [xmlName UTF8String])
           
           stream = [NSInputStream inputStreamWithFileAtPath:xmlPath];
-          PASS((testParseStream(stream, result)), "parse stream: %s", [xmlName UTF8String])
+          PASS((testParseStream(stream, result, YES)),
+	    "parse stream (strict): %s", [xmlName UTF8String])
+
+          stream = [NSInputStream inputStreamWithFileAtPath:xmlPath];
+          PASS((testParseStream(stream, result, NO)),
+	    "parse stream (sloppy): %s", [xmlName UTF8String])
       }
     }
 
@@ -365,7 +380,8 @@ parserDidEndDocument:\n\
 @"<file>&amp;&foo;&#65;</file>", [mgr currentDirectoryPath]];
 
     dat = [str dataUsingEncoding: NSUTF8StringEncoding];
-    PASS((testParseData(dat, exp)), "external entity")
+    PASS((testParseData(dat, exp, YES)), "external entity (strict)")
+    PASS((testParseData(dat, exp, YES)), "external entity (sloppy)")
   }
 
   [arp release]; arp = nil;
