@@ -1,3 +1,10 @@
+2020-05-07  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSLocale.h:
+	* Source/NSLocale.m:
+	Use "instancetype" for instance-returning methods. Fix method
+	signature of -displayNameForKey:value:.
+
 2020-05-05  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/Foundation/NSXMLParser.h:
