@@ -1,3 +1,9 @@
+2020-05-08  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSXMLParser.m: Fix small bug in last commit that broke
+	all gui applications when there was a commented out section in the
+	user default XML file.
+
 2020-05-07  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/Foundation/NSLocale.h:

@@ -1428,7 +1428,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                   this->cp += 3;
 		  tp = this->cp;
                   while (this->cp < this->cend-3
-                    && strncmp((char *)this->cp, "-->", 3) != 0)
+                         && strncmp((char *)addr(this->cp), "-->", 3) != 0)
                     {
                       this->cp++;  // search
                     }
