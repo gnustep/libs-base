@@ -358,9 +358,11 @@ int main()
           PASS((testParseStream(stream, result, YES)),
 	    "parse stream (strict): %s", [xmlName UTF8String])
 
+          testHopeful = YES;
           stream = [NSInputStream inputStreamWithFileAtPath:xmlPath];
           PASS((testParseStream(stream, result, NO)),
 	    "parse stream (sloppy): %s", [xmlName UTF8String])
+          testHopeful = NO;
       }
     }
 
