@@ -1,3 +1,8 @@
+2020-05-10  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSISO8601DateFormatter.m,
+	* Source/NSOrthography.m: Clean up some compiler warnings.
+
 2020-05-09  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Tests/base/NSLocale/general.m: Mark more tests that depend on
