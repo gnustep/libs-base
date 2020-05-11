@@ -22,6 +22,7 @@ int main(void)
 
   // These tests don't really work all that well.  I need to come up with
   // something better.  Most of the ones that fail are because nil is returned.
+  testHopeful = YES;
   locale = [[NSLocale alloc] initWithLocaleIdentifier: @"es_ES_PREEURO"];
   PASS_EQUAL([locale objectForKey: NSLocaleIdentifier],
     @"es_ES@currency=ESP",
@@ -64,7 +65,6 @@ int main(void)
     "NSLocaleCurrencyCode key returns 'ESP'");
   PASS_EQUAL([locale objectForKey: NSLocaleCollatorIdentifier],
     @"es_ES@currency=ESP", "NSLocaleCollatorIdentifier for Spain");
-  testHopeful = YES;
   PASS_EQUAL([locale objectForKey: NSLocaleGroupingSeparator],
     @".",
     "NSLocaleGroupingSeparator key returns '.'");

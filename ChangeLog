@@ -1,3 +1,28 @@
+2020-05-05  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/unix/NSStream.m: Add NSInputStream support for reading
+	Android assets from main bundle.
+
+2020-05-10  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSISO8601DateFormatter.m,
+	* Source/NSOrthography.m: Clean up some compiler warnings.
+
+2020-05-09  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Tests/base/NSLocale/general.m: Mark more tests that depend on
+	locale setting as hopes.
+	* Tests/base/NSXMLParser/parse.m: Mark stream test as hopeful as
+	this isn't implemented at the moment.
+	* Tests/base/NSURL/basic.m: Use PASS_EQUAL in the downlaod test
+	to get the actual http status reported.
+
+2020-05-08  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSXMLParser.m: Fix small bug in last commit that broke
+	all gui applications when there was a commented out section in the
+	user default XML file.
+
 2020-05-07  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/Foundation/NSLocale.h:
