@@ -513,6 +513,8 @@ parseNumber(ParserState *state)
               free(number);
               number = numberBuffer;
             }
+            parseError(state);
+            return nil;
         }
       BUFFER(c);
       while (isdigit(c = consumeChar(state)))
