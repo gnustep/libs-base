@@ -22,7 +22,10 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSOrthography.h>
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSOrthography.h"
+#import "Foundation/NSString.h"
 
 @implementation NSOrthography
 
@@ -30,7 +33,7 @@
                             languageMap: (NSDictionary *)map
 {
   self = [super init];
-  if(self != nil)
+  if (self != nil)
     {
       ASSIGNCOPY(_dominantScript, script);
       ASSIGNCOPY(_languageMap, map);
@@ -38,11 +41,11 @@
   return self;
 }
 
-- (oneway void) release
+- (oneway void) dealloc
 {
   RELEASE(_dominantScript);
   RELEASE(_languageMap);
-  [super release];
+  [super dealloc];
 }
 
 - (NSString *) dominantScript

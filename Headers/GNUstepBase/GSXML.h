@@ -42,6 +42,7 @@
 #import <Foundation/NSObject.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSDictionary.h>
+#import <Foundation/NSStream.h>
 #else
 #import <Foundation/Foundation.h>
 #endif
@@ -222,6 +223,8 @@ extern "C" {
 	withContentsOfURL: (NSURL*)url;
 - (id) initWithSAXHandler: (GSSAXHandler*)handler
 		 withData: (NSData*)data;
+- (id) initWithSAXHandler: (GSSAXHandler*)handler
+	 withInputStream: (NSInputStream*)stream;
 
 - (BOOL) keepBlanks: (BOOL)yesno;
 - (NSInteger) lineNumber;

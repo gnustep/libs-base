@@ -691,7 +691,7 @@ static NSRecursiveLock *classLock = nil;
 #endif
 }
 
-- (NSString *) displayNameForKey: (id) key value: (id) value
+- (NSString *) displayNameForKey: (NSString *) key value: (id) value
 {
 #if	GS_USE_ICU == 1
   int32_t length = 0;

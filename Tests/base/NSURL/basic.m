@@ -59,7 +59,7 @@ int main()
   url = [NSURL URLWithString: @"http://www.w3.org/silly-file-name"];
   data = [url resourceDataUsingCache: NO];
   num = [url propertyForKey: NSHTTPPropertyStatusCodeKey];
-  PASS([num isKindOfClass: [NSNumber class]] && [num intValue] == 404,
+  PASS_EQUAL(num, [NSNumber numberWithInt: 404],
     "Status of load is 404 for www.w3.org/silly-file-name");
   str = [url scheme];
   PASS([str isEqual: @"http"],
@@ -339,6 +339,23 @@ GSPathHandling("right");
   PASS_EQUAL([rel absoluteString], @"data:,$2A", "relative data URL works");
   PASS_EQUAL([rel baseURL], nil, "Base URL of relative data URL is nil");
 
+  ///NSURLQueryItem
+  
+  //OSX behavior is to return query item with an empty string name
+  NSURLQueryItem* item = [[NSURLQueryItem alloc] init];
+  PASS_EQUAL(item.name, @"", "NSURLQueryItem.name should not be nil");
+  PASS_EQUAL(item.value, nil, "NSURLQueryItem.value should be nil");
+    
+  //OSX behavior is to return query item with an empty string name
+  item = [[NSURLQueryItem alloc] initWithName:nil value:nil];
+  PASS_EQUAL(item.name, @"", "NSURLQueryItem.name should not be nil");
+  PASS_EQUAL(item.value, nil, "NSURLQueryItem.value should be nil");
+    
+  item = [[NSURLQueryItem alloc] initWithName:@"myName" value:@"myValue"];
+  PASS_EQUAL(item.name,  @"myName", "NSURLQueryItem.name should not be nil");
+  PASS_EQUAL(item.value, @"myValue", "NSURLQueryItem.value should not be nil");
+
+    
   [arp release]; arp = nil;
   return 0;
 }
