@@ -469,9 +469,7 @@ static NSDictionary *makeReference(unsigned ref)
     {
       *error = [NSError errorWithDomain: @"NSKeyedArchiver"
                                    code: 0
-                               userInfo: [NSDictionary dictionaryWithObjectsAndKeys:
-                                                         @"Could not create secure keyed archive",
-                                                       NSLocalizedDescriptionKey, nil]];
+                               userInfo: nil];
     }
   else
     {
