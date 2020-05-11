@@ -1,3 +1,8 @@
+2020-05-05  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/unix/NSStream.m: Add NSInputStream support for reading
+	Android assets from main bundle.
+
 2020-05-10  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/NSISO8601DateFormatter.m,
