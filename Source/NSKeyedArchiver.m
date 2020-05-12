@@ -436,16 +436,7 @@ static NSDictionary *makeReference(unsigned ref)
 {
   NSData *d = nil;
 
-  if (requiresSecureCoding == YES)
-    {
-      if (error != NULL)
-        {
-          *error = [NSError errorWithDomain: @"NSKeyedArchiver"
-                                       code: 0
-                                   userInfo: nil];
-        }
-    }
-  else
+  if (requiresSecureCoding == NO)
     {
       NSMutableData	*m = nil;
       NSKeyedArchiver	*a = nil;
