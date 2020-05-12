@@ -2228,7 +2228,7 @@ AC_CHECK_HEADERS([sys/mount.h], [], [],
 AC_CHECK_HEADERS(sys/types.h windows.h locale.h langinfo.h)
 saved_LIBS="$LIBS"
 AC_CHECK_LIB(m, main)
-AC_CHECK_FUNCS(statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt malloc_usable_size)
+AC_CHECK_FUNCS(utimensat statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt malloc_usable_size)
 LIBS="$saved_LIBS"
 
 AC_CACHE_CHECK([for pw_gecos field in struct passwd],
@@ -2376,6 +2376,10 @@ fi
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(getcwd)
 AC_HEADER_DIRENT
+
+# Look for file creation date on NetBSD, FreeBSD, Darwin
+AC_CHECK_MEMBERS([struct stat.st_birthtime, struct stat.st_birthtimespec, struct stat.st_birthtim, struct stat64.st_birthtimespec],
+		 ,,[#include <sys/stat.h>])
 
 #--------------------------------------------------------------------
 # This function needed by gdomap.c
