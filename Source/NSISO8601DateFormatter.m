@@ -22,17 +22,18 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSISO8601DateFormatter.h>
-#include <Foundation/NSDateFormatter.h>
-#include <Foundation/NSTimeZone.h>
-#include <Foundation/NSString.h>
+#import "Foundation/NSCoder.h"
+#import "Foundation/NSDateFormatter.h"
+#import "Foundation/NSISO8601DateFormatter.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSTimeZone.h"
 
 @implementation NSISO8601DateFormatter
 
 - (instancetype) init
 {
   self = [super init];
-  if(self != nil)
+  if (self != nil)
     {
       _formatter = [[NSDateFormatter alloc] init];
       _timeZone = RETAIN([NSTimeZone localTimeZone]);
@@ -41,11 +42,11 @@
   return self;
 }
 
-- (oneway void) release
+- (oneway void) dealloc
 {
   RELEASE(_formatter);
   RELEASE(_timeZone);
-  [super release];
+  [super dealloc];
 }
   
 - (NSTimeZone *) timeZone
@@ -68,32 +69,32 @@
   NSString *result = @"";
 
   // Build date...
-  if(_formatOptions & NSISO8601DateFormatWithYear)
+  if (_formatOptions & NSISO8601DateFormatWithYear)
     {
       result = [result stringByAppendingString: @"yyyy"];
     }
-  if(_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate &&
-     _formatOptions & NSISO8601DateFormatWithMonth)
+  if (_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate &&
+      _formatOptions & NSISO8601DateFormatWithMonth)
     {
       result = [result stringByAppendingString: @"-"];
     }
-  if(_formatOptions & NSISO8601DateFormatWithMonth)
+  if (_formatOptions & NSISO8601DateFormatWithMonth)
     {
       result = [result stringByAppendingString: @"MM"];
     }
-  if(_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate &&
-     _formatOptions & NSISO8601DateFormatWithDay)
+  if (_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate &&
+      _formatOptions & NSISO8601DateFormatWithDay)
     {
       result = [result stringByAppendingString: @"-"];
     }
-  if(_formatOptions & NSISO8601DateFormatWithDay)
+  if (_formatOptions & NSISO8601DateFormatWithDay)
     {
       result = [result stringByAppendingString: @"dd"];
     }
   
   // Build time...
-  if(_formatOptions & NSISO8601DateFormatWithSpaceBetweenDateAndTime &&
-     _formatOptions & NSISO8601DateFormatWithTime)
+  if (_formatOptions & NSISO8601DateFormatWithSpaceBetweenDateAndTime &&
+      _formatOptions & NSISO8601DateFormatWithTime)
     {
       result = [result stringByAppendingString: @" "];
     }
@@ -102,9 +103,9 @@
       // Add T in format if we have a time component...
       result = [result stringByAppendingString: @"'T'"];
     }
-  if(_formatOptions & NSISO8601DateFormatWithTime)
+  if (_formatOptions & NSISO8601DateFormatWithTime)
     {
-      if(_formatOptions & NSISO8601DateFormatWithColonSeparatorInTime)
+      if (_formatOptions & NSISO8601DateFormatWithColonSeparatorInTime)
         {
           result = [result stringByAppendingString: @"HH:mm:ss"];
         }
@@ -113,13 +114,13 @@
           result = [result stringByAppendingString: @"HHmmss"];
         }
     }
-  if(_formatOptions & NSISO8601DateFormatWithFractionalSeconds)
+  if (_formatOptions & NSISO8601DateFormatWithFractionalSeconds)
     {
       result = [result stringByAppendingString: @".SSSSSS"];
     }
-  if(_formatOptions & NSISO8601DateFormatWithTimeZone)
+  if (_formatOptions & NSISO8601DateFormatWithTimeZone)
     {
-      if(_formatOptions & NSISO8601DateFormatWithColonSeparatorInTimeZone)
+      if (_formatOptions & NSISO8601DateFormatWithColonSeparatorInTimeZone)
         {
           result = [result stringByAppendingString: @"ZZ:ZZ"];
         }
@@ -164,5 +165,36 @@
   return [formatter stringFromDate: date];
 }
 
+- (void) encodeWithCoder: (NSCoder *)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeObject: _timeZone forKey: @"NS.timeZone"];
+      [coder encodeInteger: _formatOptions forKey: @"NS.formatOptions"];
+    }
+  else
+    {
+      [coder encodeObject: _timeZone];
+      [coder encodeValueOfObjCType: @encode(NSUInteger) at: &_formatOptions];
+    }
+}
+
+- (id) initWithCoder: (NSCoder *)decoder
+{
+  if ((self = [super init]) != nil)
+    {
+      if ([decoder allowsKeyedCoding])
+        {
+          ASSIGN(_timeZone, [decoder decodeObjectForKey: @"NS.timeZone"]);
+          _formatOptions = [decoder decodeIntegerForKey: @"NS.formatOptions"];
+        }
+      else
+        {
+          ASSIGN(_timeZone, [decoder decodeObject]);
+          [decoder decodeValueOfObjCType: @encode(NSUInteger) at: &_formatOptions];
+        }
+    }
+  return self;
+}
 @end
 

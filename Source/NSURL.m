@@ -2116,17 +2116,33 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
   return AUTORELEASE(newQueryItem);
 }
 
-- (instancetype)initWithName:(NSString *)name
+- (instancetype) init
+{
+  self = [self initWithName:nil value:nil];
+  if(self != nil)
+    {
+    
+    }
+  return self;
+}
+
+- (instancetype)initWithName:(NSString *)name 
                        value:(NSString *)value
 {
   self = [super init];
-  if (self != nil)
-    {
-      GS_CREATE_INTERNAL(NSURLQueryItem);
-      
-      ASSIGNCOPY(internal->_name, name);
-      ASSIGNCOPY(internal->_value, value);
-    }
+  if(self != nil)
+  {
+    GS_CREATE_INTERNAL(NSURLQueryItem);
+    if(name)
+      {
+        ASSIGNCOPY(internal->_name, name);
+      }
+    else
+      {
+        ASSIGN(internal->_name, @""); //OSX behaviour is to set an empty string for nil name property
+      }
+    ASSIGNCOPY(internal->_value, value);
+  }
   return self;
 }
 
@@ -2225,14 +2241,14 @@ static NSCharacterSet	*queryItemCharSet = nil;
 // Creating URL components...
 + (instancetype) componentsWithString: (NSString *)urlString
 {
-  return [[NSURLComponents alloc] initWithString: urlString];
+  return  AUTORELEASE([[NSURLComponents alloc] initWithString: urlString]);
 }
 
 + (instancetype) componentsWithURL: (NSURL *)url 
            resolvingAgainstBaseURL: (BOOL)resolve
 {
-  return [[NSURLComponents alloc] initWithURL: url
-                      resolvingAgainstBaseURL: resolve];
+  return  AUTORELEASE([[NSURLComponents alloc] initWithURL: url
+                      resolvingAgainstBaseURL: resolve]);
 }
 
 - (instancetype) init
@@ -2256,12 +2272,16 @@ static NSCharacterSet	*queryItemCharSet = nil;
 
 - (instancetype) initWithString: (NSString *)URLString
 {
-  self = [self init];
-  if (self != nil)
+  //OSX behavior is to return nil for a string which cannot be used to initialize valid NSURL object
+  NSURL* url = [NSURL URLWithString:URLString];
+  if(url)
     {
-      [self setString: URLString];
+      return [self initWithURL:url resolvingAgainstBaseURL:NO];
     }
-  return self;
+  else
+    {
+      return nil;
+    }
 }
 
 - (instancetype) initWithURL: (NSURL *)url 
@@ -2454,7 +2474,7 @@ static NSCharacterSet	*queryItemCharSet = nil;
   [self setUser: [url user]];
   [self setPassword: [url password]];
   [self setPath: [url path]];
-  [self setQuery: [url query]];
+  [self setPercentEncodedQuery:[url query]];
   [self setFragment: [url fragment]];
 }
 
