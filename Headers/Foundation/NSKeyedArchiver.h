@@ -87,6 +87,18 @@ extern "C" {
  */
 + (NSData*) archivedDataWithRootObject: (id)anObject;
 
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_13,GS_API_LATEST)
+/**
+ * Encodes anObject and returns the resulting data object.  Allows
+ * secure coding if specified.  Returns an error if an object 
+ * violates secure coding rules.
+ */
++ (NSData *) archivedDataWithRootObject: (id)anObject
+                  requiringSecureCoding: (BOOL)requiresSecureCoding
+                                  error: (NSError **)error;
+#endif
+
 /**
  * Encodes anObject and writes the resulting data ti aPath.
  */

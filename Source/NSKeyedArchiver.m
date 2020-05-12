@@ -430,34 +430,49 @@ static NSDictionary *makeReference(unsigned ref)
 
 @implementation	NSKeyedArchiver
 
++ (NSData *) archivedDataWithRootObject: (id)anObject
+                  requiringSecureCoding: (BOOL)requiresSecureCoding
+                                  error: (NSError **)error
+{
+  NSData *d = nil;
+
+  if (requiresSecureCoding == NO)
+    {
+      NSMutableData	*m = nil;
+      NSKeyedArchiver	*a = nil;
+
+      error = NULL;
+      NS_DURING
+        {
+          m = [[NSMutableData alloc] initWithCapacity: 10240];
+          a = [[NSKeyedArchiver alloc] initForWritingWithMutableData: m];
+          [a encodeObject: anObject forKey: @"root"];
+          [a finishEncoding];
+          d = [m copy];
+          DESTROY(m);
+          DESTROY(a);
+        }
+      NS_HANDLER
+        {
+          DESTROY(m);
+          DESTROY(a);
+          [localException raise];
+        }
+      NS_ENDHANDLER;
+    }
+
+  return AUTORELEASE(d);
+}
+
 /*
  * When I tried this on MacOS 10.3 it encoded the object with the key 'root',
  * so this implementation does the same.
  */
 + (NSData*) archivedDataWithRootObject: (id)anObject
 {
-  NSMutableData		*m = nil;
-  NSKeyedArchiver	*a = nil;
-  NSData		*d = nil;
-
-  NS_DURING
-    {
-      m = [[NSMutableData alloc] initWithCapacity: 10240];
-      a = [[NSKeyedArchiver alloc] initForWritingWithMutableData: m];
-      [a encodeObject: anObject forKey: @"root"];
-      [a finishEncoding];
-      d = [m copy];
-      DESTROY(m);
-      DESTROY(a);
-    }
-  NS_HANDLER
-    {
-      DESTROY(m);
-      DESTROY(a);
-      [localException raise];
-    }
-  NS_ENDHANDLER
-  return AUTORELEASE(d);
+  return [self archivedDataWithRootObject: anObject
+                    requiringSecureCoding: NO
+                                    error: NULL];
 }
 
 + (BOOL) archiveRootObject: (id)anObject toFile: (NSString*)aPath
