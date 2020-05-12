@@ -44,7 +44,7 @@
 
 
 #if GS_USE_ICU == 1
-static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
+static UCalendarDateFields _NSCalendarUnitToDateField(NSCalendarUnit unit)
 {
   if (unit & NSCalendarUnitEra)
     return UCAL_ERA;
@@ -66,7 +66,7 @@ static UCalendarDateFields _NSCalendarUnitToDateField (NSCalendarUnit unit)
     return UCAL_DAY_OF_WEEK;
   if (unit & NSCalendarUnitWeekdayOrdinal)
     return UCAL_DAY_OF_WEEK_IN_MONTH;
-  return -1;
+  return (UCalendarDateFields)-1;
 }
 #endif /* GS_USE_ICU */
 
@@ -753,7 +753,7 @@ do \
 
   [self _resetCalendar];
   dateField = _NSCalendarUnitToDateField(unit);
-  if (dateField != -1)
+  if (dateField != (UCalendarDateFields)-1)
     {
       // We really don't care if there are any errors...
       result.location =
@@ -781,7 +781,7 @@ do \
 
   [self _resetCalendar];
   dateField = _NSCalendarUnitToDateField(unit);
-  if (dateField != -1)
+  if (dateField != (UCalendarDateFields)-1)
     {
       // We really don't care if there are any errors...
       result.location =
