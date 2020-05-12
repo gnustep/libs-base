@@ -1,7 +1,7 @@
  /**
    NSFileManager.m
 
-   Copyright (C) 1997-2017 Free Software Foundation, Inc.
+   Copyright (C) 1997-2020 Free Software Foundation, Inc.
 
    Author: Mircea Oancea <mircea@jupiter.elcom.pub.ro>
    Author: Ovidiu Predescu <ovidiu@net-community.com>
@@ -564,17 +564,84 @@ static NSStringEncoding	defaultEncoding;
 	}
     }
 
+
+  date = [attributes fileCreationDate];
+  if (date != nil && NO == [date isEqual: [old fileCreationDate]])
+    {
+      BOOL		ok = NO;
+      struct _STATB	sb;
+#if  defined(_WIN32)
+      const _CHAR *lpath;
+#else
+      const char  *lpath;
+#endif
+
+      lpath = [self fileSystemRepresentationWithPath: path];
+      if (_STAT(lpath, &sb) != 0)
+	{
+	  ok = NO;
+	}
+#if  defined(_WIN32)
+      else if (sb.st_mode & _S_IFDIR)
+	{
+	  ok = YES;	// Directories don't have creation times.
+	}
+#endif
+      else
+	{
+	  NSTimeInterval ti = [date timeIntervalSince1970];
+#if  defined(_WIN32)
+          FILETIME ctime;
+	  HANDLE fh;
+          ULONGLONG nanosecs = ((ULONGLONG)([date timeIntervalSince1970]*10000000)+116444736000000000ULL);
+          fh = CreateFileW(lpath, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL );
+          if (fh == INVALID_HANDLE_VALUE)
+            {
+              ok = NO;
+            }
+	  else
+            {
+	      ctime.dwLowDateTime  = (DWORD) (nanosecs & 0xFFFFFFFF );
+              ctime.dwHighDateTime = (DWORD) (nanosecs >> 32 );
+	      ok = SetFileTime(fh, &ctime, NULL, NULL);
+              CloseHandle(fh);
+	    }
+/* on Unix we try setting the creation date by setting the modification date earlier than the current one */
+#elif defined (HAVE_UTIMENSAT)
+          struct timespec ub[2];
+	  ub[0].tv_sec = 0;
+	  ub[0].tv_nsec = UTIME_OMIT; // we don't touch access time
+	  ub[1].tv_sec = truncl(ti);
+	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
+
+	  ok = (utimensat(0, lpath, ub, 0) == 0);
+#elif  defined(_POSIX_VERSION)
+          struct _UTIMB ub;
+	  ub.actime = sb.st_atime;
+	  ub.modtime = ti;
+	  ok = (_UTIME(lpath, &ub) == 0);
+#else
+          time_t ub[2];
+	  ub[0] = sb.st_atime;
+	  ub[1] = ti;
+	  ok = (_UTIME(lpath, ub) == 0);
+#endif
+	}
+      if (ok == NO)
+	{
+	  allOk = NO;
+	  str = [NSString stringWithFormat:
+	    @"Unable to change NSFileCreationDate to '%@' - %@",
+	    date, [NSError _last]];
+	  ASSIGN(_lastError, str);
+	}
+    }
+
   date = [attributes fileModificationDate];
   if (date != nil && NO == [date isEqual: [old fileModificationDate]])
     {
       BOOL		ok = NO;
       struct _STATB	sb;
-
-#if  defined(_WIN32) || defined(_POSIX_VERSION)
-      struct _UTIMB ub;
-#else
-      time_t ub[2];
-#endif
 
       if (_STAT(lpath, &sb) != 0)
 	{
@@ -588,13 +655,24 @@ static NSStringEncoding	defaultEncoding;
 #endif
       else
 	{
-#if  defined(_WIN32) || defined(_POSIX_VERSION)
+	  NSTimeInterval ti = [date timeIntervalSince1970];
+#if defined (HAVE_UTIMENSAT)
+          struct timespec ub[2];
+	  ub[0].tv_sec = 0;
+	  ub[0].tv_nsec = UTIME_OMIT; // we don't touch access time
+	  ub[1].tv_sec = truncl(ti);
+	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
+
+	  ok = (utimensat(0, lpath, ub, 0) == 0);
+#elif  defined(_WIN32) || defined(_POSIX_VERSION)
+          struct _UTIMB ub;
 	  ub.actime = sb.st_atime;
-	  ub.modtime = [date timeIntervalSince1970];
+	  ub.modtime = ti;
 	  ok = (_UTIME(lpath, &ub) == 0);
 #else
+          time_t ub[2];
 	  ub[0] = sb.st_atime;
-	  ub[1] = [date timeIntervalSince1970];
+	  ub[1] = ti;
 	  ok = (_UTIME(lpath, ub) == 0);
 #endif
 	}
@@ -3603,14 +3681,27 @@ static NSSet	*fileKeys = nil;
 
 - (NSDate*) fileCreationDate
 {
-  /*
-   * FIXME ... not sure there is any way to get a creation date :-(
+#if defined(_WIN32)
+  return [NSDate dateWithTimeIntervalSince1970: statbuf.st_ctime];
+#elif defined (HAVE_STRUCT_STAT_ST_BIRTHTIM)
+  NSTimeInterval ti;
+  ti = statbuf.st_birthtim.tv_sec + (double)statbuf.st_birthtim.tv_nsec / 1.0e9;
+  return [NSDate dateWithTimeIntervalSince1970: ti];
+#elif defined (HAVE_STRUCT_STAT_ST_BIRTHTIME)
+  return [NSDate dateWithTimeIntervalSince1970: statbuf.st_birthtime];
+#elif defined (HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC) || defined (HAVE_STRUCT_STAT64_ST_BIRTHTIMESPEC)
+  NSTimeInterval ti;
+  ti = statbuf.st_birthtimespec.tv_sec + (double)statbuf.st_birthtimespec.tv_nsec / 1.0e9;
+  return [NSDate dateWithTimeIntervalSince1970: ti];
+#else
+  /* We don't know a better way to get creation date, it is not defined in POSIX
    * Use the earlier of ctime or mtime
    */
   if (statbuf.st_ctime < statbuf.st_mtime)
     return [NSDate dateWithTimeIntervalSince1970: statbuf.st_ctime];
   else
     return [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
+#endif
 }
 
 - (BOOL) fileExtensionHidden

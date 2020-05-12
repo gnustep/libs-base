@@ -8692,7 +8692,7 @@ _ACEOF
 
 fi
 
-for ac_func in statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt malloc_usable_size
+for ac_func in utimensat statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt malloc_usable_size
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -9431,6 +9431,49 @@ if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 fi
+
+fi
+
+
+# Look for file creation date on NetBSD, FreeBSD, Darwin
+ac_fn_c_check_member "$LINENO" "struct stat" "st_birthtime" "ac_cv_member_struct_stat_st_birthtime" "#include <sys/stat.h>
+"
+if test "x$ac_cv_member_struct_stat_st_birthtime" = xyes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_STAT_ST_BIRTHTIME 1
+_ACEOF
+
+
+fi
+ac_fn_c_check_member "$LINENO" "struct stat" "st_birthtimespec" "ac_cv_member_struct_stat_st_birthtimespec" "#include <sys/stat.h>
+"
+if test "x$ac_cv_member_struct_stat_st_birthtimespec" = xyes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC 1
+_ACEOF
+
+
+fi
+ac_fn_c_check_member "$LINENO" "struct stat" "st_birthtim" "ac_cv_member_struct_stat_st_birthtim" "#include <sys/stat.h>
+"
+if test "x$ac_cv_member_struct_stat_st_birthtim" = xyes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_STAT_ST_BIRTHTIM 1
+_ACEOF
+
+
+fi
+ac_fn_c_check_member "$LINENO" "struct stat64" "st_birthtimespec" "ac_cv_member_struct_stat64_st_birthtimespec" "#include <sys/stat.h>
+"
+if test "x$ac_cv_member_struct_stat64_st_birthtimespec" = xyes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_STAT64_ST_BIRTHTIMESPEC 1
+_ACEOF
+
 
 fi
 
