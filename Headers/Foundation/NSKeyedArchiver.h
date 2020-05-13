@@ -70,6 +70,7 @@ extern "C" {
   NSMutableDictionary	*_enc;	/* Object being encoded.	*/
   NSMutableArray	*_obj;	/* Array of objects.		*/
   NSPropertyListFormat	_format;
+  BOOL _requiresSecureCoding;
 #endif
 #if     GS_NONFRAGILE
 #else
@@ -121,6 +122,18 @@ extern "C" {
  */
 + (void) setClassName: (NSString*)aString forClass: (Class)aClass;
 
+/**
+ * Returns whether the current instance of the archiver needs secure
+ * coding.
+ */
+- (BOOL) requiresSecureCoding;
+
+/**
+ * Sets whether the current instance of the archiver needs secure
+ * coding.
+ */
+- (void) setRequiresSecureCoding: (BOOL)flag;
+  
 /**
  * Returns any mapping for the name of aClass which was previously set
  * for the receiver using the -setClassName:forClass: method.<br />
