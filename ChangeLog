@@ -1,3 +1,9 @@
+2020-05-13  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/win32/GSFileHandle.m:
+	* Source/win32/NSMessagePort.m:
+	Fix building Win32 classes with nonfragile ABI.
+
 2010-05-12 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSFileManager.m:

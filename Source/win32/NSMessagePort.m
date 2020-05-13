@@ -22,6 +22,8 @@
    */
 
 #include "common.h"
+#define	EXPOSE_NSPort_IVARS	1
+#define	EXPOSE_NSMessagePort_IVARS	1
 #include "GNUstepBase/GSLock.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSNotification.h"

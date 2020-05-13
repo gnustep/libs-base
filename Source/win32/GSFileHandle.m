@@ -32,7 +32,8 @@
 #endif
 
 #include "common.h"
-
+#define	EXPOSE_NSFileHandle_IVARS	1
+#define	EXPOSE_GSFileHandle_IVARS	1
 #import "Foundation/NSObject.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSArray.h"
