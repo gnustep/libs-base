@@ -1,3 +1,14 @@
+2020-05-14  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSException.h:
+	Fix BASE_NATIVE_OBJC_EXCEPTIONS check with OBJC_ZEROCOST_EXCEPTIONS.
+
+2020-05-13  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/win32/GSFileHandle.m:
+	* Source/win32/NSMessagePort.m:
+	Fix building Win32 classes with nonfragile ABI.
+
 2010-05-12 Riccardo Mottola <rm@gnu.org>
 
 	* Source/NSFileManager.m:
