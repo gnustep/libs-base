@@ -31,7 +31,7 @@
 /* Test for ASCII whitespace which is safe for unicode characters */
 #define	space(C)	((C) > 127 ? NO : isspace(C))
 
-/* This private cass is used for the -immutableProxy method in the category
+/* This private class is used for the -immutableProxy method in the category
  * on NSMutableString.
  * It is needed for [NSAttributedString-string] and [NSTextStorage-string]
  */

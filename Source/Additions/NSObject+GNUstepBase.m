@@ -27,9 +27,20 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSHashTable.h"
 #import "Foundation/NSLock.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
 #import "GNUstepBase/NSThread+GNUstepBase.h"
+
+#ifdef HAVE_MALLOC_H
+#include	<malloc.h>
+#endif
+
+/* This file contains methods which nominally return an id but in fact
+ * always rainse an exception and never return.
+ * We need to suppress the compiler warning about that.
+ */
+#pragma GCC diagnostic ignored "-Wreturn-type"
 
 /**
  * Extension methods for the NSObject class
@@ -42,14 +53,12 @@
     format: @"method %@ not implemented in %@(class)",
     selector ? (id)NSStringFromSelector(selector) : (id)@"(null)",
     NSStringFromClass(self)];
-  return nil;
+  while (1) ;   // Does not return
 }
 
 - (NSComparisonResult) compare: (id)anObject
 {
   GSOnceMLog(@"WARNING: The -compare: method for NSObject is deprecated.");
-
-  //NSLog(@"WARNING: The -compare: method for NSObject is deprecated.");
 
   if (anObject == self)
     {
@@ -108,7 +117,7 @@
     format: @"[%@%c%@] not implemented",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  return self;	// Not reached
+  while (1) ;   // Does not return
 }
 
 - (id) shouldNotImplement: (SEL)aSel
@@ -120,7 +129,7 @@
     format: @"[%@%c%@] should not be implemented",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  return self;	// Not reached
+  while (1) ;   // Does not return
 }
 
 - (id) subclassResponsibility: (SEL)aSel
@@ -131,7 +140,7 @@
     format: @"[%@%c%@] should be overridden by subclass",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  return self;	// Not reached
+  while (1) ;   // Does not return
 }
 
 @end
@@ -319,31 +328,108 @@ handleExit()
 
 #else
 
-NSUInteger
-GSPrivateMemorySize(NSObject *self, NSHashTable *exclude)
+@implementation NSObject (MemoryFootprint)
++ (NSUInteger) contentSizeOf: (NSObject*)obj
+		   excluding: (NSHashTable*)exclude
 {
-  if (0 == NSHashGet(exclude, self))
+  Class		cls = object_getClass(obj);
+  NSUInteger	size = 0;
+
+  while (cls != Nil)
     {
-      NSHashInsert(exclude, self);
-      return class_getInstanceSize(object_getClass(self));
+      unsigned	count;
+      Ivar	*vars;
+
+      if (0 != (vars = class_copyIvarList(cls, &count)))
+	{
+	  while (count-- > 0)
+	    {
+	      const char	*type = ivar_getTypeEncoding(vars[count]);
+
+	      type = GSSkipTypeQualifierAndLayoutInfo(type);
+	      if ('@' == *type)
+		{
+		  NSObject	*content = object_getIvar(obj, vars[count]);
+
+		  if (content != nil)
+		    {
+		      size += [content sizeInBytesExcluding: exclude];
+		    }
+		}
+	    }
+	  free(vars);
+	}
+      cls = class_getSuperclass(cls);
     }
+  return size;
+}
++ (NSUInteger) sizeInBytes
+{
   return 0;
 }
-
-@interface      NSObject (MemoryFootprint)
 + (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   return 0;
+}
++ (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;
+}
++ (NSUInteger) sizeOfInstance
+{
+  return 0;
+}
+- (NSUInteger) sizeInBytes
+{
+  NSUInteger	bytes;
+  NSHashTable	*exclude;
+ 
+  exclude = NSCreateHashTable(NSNonOwnedPointerHashCallBacks, 0);
+  bytes = [self sizeInBytesExcluding: exclude];
+  NSFreeHashTable(exclude);
+  return bytes;
 }
 - (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
 {
   if (0 == NSHashGet(exclude, self))
     {
+      NSUInteger        size = [self sizeOfInstance];
+
       NSHashInsert(exclude, self);
-      return class_getInstanceSize(object_getClass(self));
+      if (size > 0)
+        {
+	  size += [self sizeOfContentExcluding: exclude];
+        }
+      return size;
     }
   return 0;
 }
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;
+}
+- (NSUInteger) sizeOfInstance
+{
+  NSUInteger    size;
+
+#if     GS_SIZEOF_VOIDP > 4
+  NSUInteger	xxx = (NSUInteger)(void*)self;
+
+  if (xxx & 0x07)
+    {
+      return 0; // Small object has no size
+    }
+#endif
+
+#if 	HAVE_MALLOC_USABLE_SIZE
+  size = malloc_usable_size((void*)self - sizeof(intptr_t));
+#else
+  size = class_getInstanceSize(object_getClass(self));
+#endif
+
+  return size;
+}
+
 @end
 
 /* Dummy implementation

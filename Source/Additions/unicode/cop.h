@@ -1,4 +1,7 @@
-/* COP table */
+/* COP table
+ * This records diacriticals and their copmbining class
+ * FIXME ... needs updating to latest unicode
+ */
 /*
   Copyright (C) 2005 Free Software Foundation
 
@@ -10,7 +13,6 @@
 
 struct _cop_ {unichar code; unsigned char cop;};
 
-static const unsigned int uni_cop_table_size = 355;
 static struct _cop_ uni_cop_table[]=
 {
   {0x0300,230},
@@ -370,3 +372,5 @@ static struct _cop_ uni_cop_table[]=
   {0xFE22,230},
   {0xFE23,230},
 };
+static const unsigned int
+uni_cop_table_size = sizeof(uni_cop_table) / sizeof(struct _cop_);
