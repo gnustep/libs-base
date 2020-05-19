@@ -2228,6 +2228,22 @@ IF_NO_GC(
 	}
     }
 
+#ifdef __ANDROID__
+  /* Android: check for directory resources by passing file path as subpath,
+   * as AAssetDir and thereby NSDirectoryEnumerator doesn't list directories
+   */
+  subPath = subPath ? [subPath stringByAppendingPathComponent: file] : file;
+  pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
+    subPath: subPath localization: nil] objectEnumerator];
+  while ((path = [pathlist nextObject]) != nil)
+    {
+      if (YES == [mgr isReadableFileAtPath: path])
+        {
+          return path;
+        }
+    }
+#endif /* __ANDROID__ */
+
   return nil;
 }
 
