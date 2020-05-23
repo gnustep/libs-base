@@ -3,6 +3,14 @@
 	* Source/NSUserDefaults.m:
 	Store NSNumber instead of NSString for NSUserDefaults -setBool:forKey:.
 
+2020-05-23  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/GNUstepBase/GSConfig.h.in,
+	* Source/GSNetwork.h,
+	* Source/win32/GSFileHandle.m,
+	* config/config.reuseaddr.c:
+	Include winsock2.h before windows.h, as required by MSYS2/MinGW-w64.
+
 2020-05-14  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/Foundation/NSException.h:

@@ -306,13 +306,8 @@ typedef	struct {
 #define WINVER Windows2000
 #endif
 
-#if defined(__WIN64__)
 #include <winsock2.h>
 #include <windows.h>
-#else
-#include <windows.h>
-#include <winsock2.h>
-#endif
 
 #undef __OBJC_BOOL
 #undef  BOOL
