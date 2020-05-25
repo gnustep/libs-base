@@ -1420,14 +1420,9 @@ newLanguages(NSArray *oldNames)
 
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName
 {
-  if (value == YES)
-    {
-      [self setObject: @"YES" forKey: defaultName];
-    }
-  else
-    {
-      [self setObject: @"NO" forKey: defaultName];
-    }
+  NSNumber	*n = [NSNumberClass numberWithBool: value];
+
+  [self setObject: n forKey: defaultName];
 }
 
 - (void) setDouble: (double)value forKey: (NSString*)defaultName
