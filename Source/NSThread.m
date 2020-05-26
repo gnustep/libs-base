@@ -860,14 +860,7 @@ unregisterActiveThread(NSThread *thread)
 {
   if (thread->_active == YES)
     {
-      /*
-       * Set the thread to be inactive to avoid any possibility of recursion.
-       */
-      thread->_active = NO;
-      thread->_finished = YES;
-
-      /*
-       * Let observers know this thread is exiting.
+      /* Let observers know this thread is exiting.
        */
       if (nc == nil)
 	{
@@ -876,6 +869,12 @@ unregisterActiveThread(NSThread *thread)
       [nc postNotificationName: NSThreadWillExitNotification
 			object: thread
 		      userInfo: nil];
+
+      /* Set the thread to be finished *after* notification it will exit.
+       * This is the order OSX 10.15.4 does it (May 2020).
+       */
+      thread->_active = NO;
+      thread->_finished = YES;
 
       [(GSRunLoopThreadInfo*)thread->_runLoopInfo invalidate];
       RELEASE(thread);
