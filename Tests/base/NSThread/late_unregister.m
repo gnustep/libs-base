@@ -76,22 +76,22 @@
   return done;
 }
 
-- (void)waitUntilDate: (NSDate*)date
+- (void) waitUntilDate: (NSDate*)date
 {
   [condition waitUntilDate: date];
 }
 
-- (void)lock
+- (void) lock
 {
   [condition lock];
 }
 
-- (void)unlock
+- (void) unlock
 {
   [condition unlock];
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   DESTROY(condition);
   [super dealloc];
@@ -118,7 +118,6 @@ int main(void)
 {
   pthread_t thr;
   pthread_attr_t attr;
-  void *ret;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   NSAutoreleasePool *arp = [NSAutoreleasePool new];
