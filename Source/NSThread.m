@@ -763,6 +763,7 @@ GSCurrentThreadDictionary(void)
 static void
 gnustep_base_thread_callback(void)
 {
+  static pthread_mutex_t  threadLock = PTHREAD_MUTEX_INITIALIZER;
   /*
    * Protect this function with locking ... to avoid any possibility
    * of multiple threads registering with the system simultaneously,
@@ -771,9 +772,10 @@ gnustep_base_thread_callback(void)
    */
   if (entered_multi_threaded_state == NO)
     {
-      [gnustep_global_lock lock];
+      pthread_mutex_lock(&threadLock);
       if (entered_multi_threaded_state == NO)
 	{
+	  ENTER_POOL
 	  /*
 	   * For apple compatibility ... and to make things easier for
 	   * code called indirectly within a will-become-multi-threaded
@@ -814,8 +816,9 @@ gnustep_base_thread_callback(void)
 	      fflush(stderr);
 	    }
 	  NS_ENDHANDLER
+	  LEAVE_POOL
 	}
-      [gnustep_global_lock unlock];
+      pthread_mutex_unlock(&threadLock);
     }
 }
 
@@ -862,6 +865,7 @@ unregisterActiveThread(NSThread *thread)
     {
       /* Let observers know this thread is exiting.
        */
+      ENTER_POOL
       if (nc == nil)
 	{
 	  nc = RETAIN([NSNotificationCenter defaultCenter]);
@@ -877,6 +881,7 @@ unregisterActiveThread(NSThread *thread)
       thread->_finished = YES;
 
       [(GSRunLoopThreadInfo*)thread->_runLoopInfo invalidate];
+      LEAVE_POOL
       RELEASE(thread);
       pthread_setspecific(thread_object_key, nil);
     }
