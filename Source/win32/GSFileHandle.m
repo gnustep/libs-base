@@ -22,14 +22,8 @@
    Boston, MA 02111 USA.
    */
 
-#if	defined(__WIN64__)
 #include <winsock2.h>
 #include <windows.h>
-#else
-/* mingw32 wants winsock2.h before windows.h */
-#include <windows.h>
-#include <winsock2.h>
-#endif
 
 #include "common.h"
 #define	EXPOSE_NSFileHandle_IVARS	1
