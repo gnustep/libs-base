@@ -35,15 +35,16 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSLock.h"
 #import "Foundation/NSPathUtilities.h"
 #endif
 
 #import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/NSLock+GNUstepBase.h"
 #import "GNUstepBase/Unicode.h"
 
 #import "../GSPrivate.h"
-#import "../GSPThread.h"
 
 #include <stdio.h>
 
@@ -96,6 +97,11 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 
 #define UNICODE_ENC ((unicode_enc) ? unicode_enc : internal_unicode_enc())
 
+
+/* Prototypes... */
+NSStringEncoding GSPrivateICUCStringEncoding();
+
+
 static const char *unicode_enc = NULL;
 
 /* Check to see what type of internal unicode format the library supports */
@@ -137,7 +143,7 @@ internal_unicode_enc(void)
 #define UNICODE_UTF32 ""
 #endif
 
-static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
+static GSLazyLock *local_lock = nil;
 
 typedef	unsigned char	unc;
 static NSStringEncoding	defEnc = GSUndefinedEncoding;
@@ -153,7 +159,7 @@ struct _strenc_ {
 					 * iconv perform conversions to/from
 					 * this encoding.
 					 * NB. do not put a null pointer in this
-					 * field in the table, use "" instead.
+					 * field in the table, use "" instread.
 					 */
   BOOL			eightBit;	/* Flag to say whether this encoding
 					 * can be stored in a byte array ...
@@ -192,7 +198,7 @@ static struct _strenc_ str_encoding_table[] = {
   {NSSymbolStringEncoding,
     "NSSymbolStringEncoding","",0,0,0},
   {NSNonLossyASCIIStringEncoding,
-    "NSNonLossyASCIIStringEncoding","",0,1,0},
+    "NSNonLossyASCIIStringEncoding","",1,1,0},
   {NSShiftJISStringEncoding,
     "NSShiftJISStringEncoding","SHIFT-JIS",0,0,0},
   {NSISOLatin2StringEncoding,
@@ -279,7 +285,7 @@ static void GSSetupEncodingTable(void)
 {
   if (encodingTable == 0)
     {
-      (void)pthread_mutex_lock(&local_lock);
+      [GS_INITIALIZED_LOCK(local_lock, GSLazyLock) lock];
       if (encodingTable == 0)
 	{
 	  static struct _strenc_	**encTable = 0;
@@ -355,7 +361,7 @@ static void GSSetupEncodingTable(void)
 	    }
 	  encodingTable = encTable;
 	}
-      (void)pthread_mutex_unlock(&local_lock);
+      [local_lock unlock];
     }
 }
 
@@ -611,7 +617,7 @@ GSPrivateUniCop(unichar u)
       unichar	code;
       unichar	count = 0;
       unichar	first = 0;
-      unichar	last = uni_cop_table_size - 1;
+      unichar	last = uni_cop_table_size;
 
       while (first <= last)
 	{
@@ -651,7 +657,22 @@ uni_cop(unichar u)
   return GSPrivateUniCop(u);
 }
 
-// uni_isnonsp(unichar u) now implemented in NSString.m
+BOOL
+uni_isnonsp(unichar u)
+{
+  /*
+   * Treating upper surrogates as non-spacing is a convenient solution
+   * to a number of issues with UTF-16
+   */
+  if ((u >= 0xdc00) && (u <= 0xdfff))
+    return YES;
+
+// FIXME check is uni_cop good for this
+  if (GSPrivateUniCop(u))
+    return YES;
+  else
+    return NO;
+}
 
 unichar*
 uni_is_decomp(unichar u)
@@ -665,7 +686,7 @@ uni_is_decomp(unichar u)
       unichar	code;
       unichar	count = 0;
       unichar	first = 0;
-      unichar	last = uni_dec_table_size - 1;
+      unichar	last = uni_dec_table_size;
 
       while (first <= last)
 	{
@@ -699,12 +720,6 @@ uni_is_decomp(unichar u)
     }
 }
 
-static inline int
-octdigit(int c)
-{
-  return (c >= '0' && c < '8');
-}
-
 /**
  * Function to check a block of data for validity as a unicode string and
  * say whether it contains solely ASCII or solely Latin1 data.<br />
@@ -736,6 +751,11 @@ GSUnicode(const unichar *chars, unsigned length,
 		  while (i < length)
 		    {
 		      c = chars[i++];
+		      if (c == 0xfffe || c == 0xffff
+			|| (c >= 0xfdd0 && c <= 0xfdef))
+			{
+			  return i - 1;	// Non-characters.
+			}
 		      if (c >= 0xdc00 && c <= 0xdfff)
 		        {
 			  return i - 1;	// Second half of a surrogate pair.
@@ -809,66 +829,10 @@ else \
       } \
     if (ptr == 0) \
       { \
-        result = NO; /* No buffer growth possible ... fail. */ \
-        goto done; \
+	return NO;	/* Not enough memory */ \
       } \
     bsize = grow / sizeof(unichar); \
   }
-
-#define UTF8DECODE      1
-
-#if     defined(UTF8DECODE)
-/* This next data (utf8d) and function (decode()) copyright ...
-Copyright (c) 2008-2009 Bjoern Hoehrmann <bjoern@hoehrmann.de>
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-#define UTF8_ACCEPT 0
-#define UTF8_REJECT 12
-
-static const uint8_t utf8d[] = {
-  // The first part of the table maps bytes to character classes that
-  // to reduce the size of the transition table and create bitmasks.
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
-   7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-   8,8,2,2,2,2,2,2,2,2,2,2,2,2,2,2,  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-  10,3,3,3,3,3,3,3,3,3,3,3,3,4,3,3, 11,6,6,6,5,8,8,8,8,8,8,8,8,8,8,8,
-
-  // The second part is a transition table that maps a combination
-  // of a state of the automaton and a character class to a state.
-   0,12,24,36,60,96,84,12,12,12,48,72, 12,12,12,12,12,12,12,12,12,12,12,12,
-  12, 0,12,12,12,12,12, 0,12, 0,12,12, 12,24,12,12,12,12,12,24,12,24,12,12,
-  12,12,12,12,12,12,12,24,12,12,12,12, 12,24,12,12,12,12,12,12,12,24,12,12,
-  12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
-  12,36,12,12,12,12,12,12,12,12,12,12, 
-};
-
-static uint32_t inline
-decode(uint32_t* state, uint32_t* codep, uint32_t byte)
-{
-  uint32_t type = utf8d[byte];
-
-  *codep = (*state != UTF8_ACCEPT)
-    ?  (byte & 0x3fu) | (*codep << 6)
-    : (0xff >> type) & (byte);
-
-  *state = utf8d[256 + *state + type];
-  return *state;
-}
-
-/* End of separately copyrighted section.
- */
-#endif
-
 
 /**
  * Function to convert from 8-bit data to 16-bit unicode characters.
@@ -941,9 +905,6 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
   unichar	base = 0;
   unichar	*table = 0;
   BOOL		result = YES;
-#ifdef HAVE_ICONV
-  iconv_t	cd = (iconv_t)-1;
-#endif
 
   /*
    * Ensure we have an initial buffer set up to decode data into.
@@ -972,41 +933,14 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
     {
       case NSUTF8StringEncoding:
 	{
-          uint32_t  u = 0;
-#if     defined(UTF8DECODE)
-          uint32_t      state = 0;
-#endif
 	  while (spos < slen)
 	    {
+	      unsigned char	c = src[spos];
+	      unsigned long	u = c;
 
-#if     defined(UTF8DECODE)
-              if (decode(&state, &u, src[spos++]))
-                {
-                  continue;
-                }
-#else
-	      uint8_t   c = src[spos];
-
-	      u = c;
 	      if (c > 0x7f)
                 {
                   int i, sle = 0;
-
-		  /* legal first byte of a multibyte character?
-                   */
-                  if (c <= 0xc1 || c >= 0xf5)
-                    {
-                      /* (0x7f <= c < 0xc0) means this is a continuation
-                       * of a multibyte character without the first byte.
-                       *
-                       * (0xc0 == c || 0xc1 == c) are always illegal because
-                       *
-                       * (c >= 0xf5) would be for a multibyte character
-                       * outside the unicode range.
-                       */
-	              result = NO;
-		      goto done;
-                    }
 
 		  /* calculated the expected sequence length */
                   while (c & 0x80)
@@ -1014,6 +948,13 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
                       c = c << 1;
                       sle++;
                     }
+
+		  /* legal ? */
+		  if ((sle < 2) || (sle > 6))
+                    {
+	               result = NO;
+		       goto done;
+	            }
 
 		  /* do we have enough bytes ? */
 		  if ((spos + sle) > slen)
@@ -1037,27 +978,13 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	          u = u & ~(0xffffffff << ((5 * sle) + 1));
 		  spos += sle;
 
-                  /* How many bytes needed to encode this character?
+		  /*
+		   * We discard invalid codepoints here.
 		   */
-                  if (u < 0x80)
-                    {
-                      i = 1;
-                    }
-                  else if (u < 0x800)
-                    {
-                      i = 2;
-                    }
-                  else if (u < 0x10000)
-                    {
-                      i = 3;
-                    }
-                  else 
-                    {
-                      i = 4;
-                    }
-                  if (0 && i < sle)
+		  if (u > 0x10ffff || u == 0xfffe || u == 0xffff
+		    || (u >= 0xfdd0 && u <= 0xfdef))
 		    {
-		      result = NO;	// Character was not minimally encoded.
+		      result = NO;	// Invalid character.
 		      goto done;
 		    }
 
@@ -1066,17 +993,11 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		      result = NO;	// Unmatched half of surrogate pair.
 		      goto done;
 		    }
-                  if (u > 0x10ffff)
-                    {
-		      result = NO;	// Outside the unicode range.
-		      goto done;
-                    }
                 }
               else
 		{
 		  spos++;
 		}
-#endif
 
 	      /*
 	       * Add codepoint as either a single unichar for BMP
@@ -1105,160 +1026,12 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		      GROW();
 		    }
 	          ptr[dpos++] = ul + 0xdc00;
-//                  NSLog(@"Adding uh %d ul %d", uh + 0xd800, ul + 0xdc00);
 	        }
 	    }
-#if     defined(UTF8DECODE)
-          if (state != UTF8_ACCEPT)
-            {
-              result = NO;	// Parse failure
-              goto done;
-            }
-#endif
 	}
 	break;
 
       case NSNonLossyASCIIStringEncoding:
-        {
-          unsigned int  index = 0;
-          unsigned int  count = 0;
-
-          while (index < slen)
-            {
-              uint8_t	c = (uint8_t)((unc)src[index++]);
-
-              if ('\\' == c)
-                {
-                  if (index < slen)
-                    {
-                      c = (uint8_t)((unc)src[index++]);
-                      if ('\\' == c)
-                        {
-                          count++;      // Escaped backslash
-                        }
-                      else if (octdigit(c)
-                        && (index < slen && octdigit(src[index++]))
-                        && (index < slen && octdigit(src[index++])))
-                        {
-                          count++;  // Octal escape
-                        }
-                      else if (('u' == c)
-                        && (index < slen && isxdigit(src[index++]))
-                        && (index < slen && isxdigit(src[index++]))
-                        && (index < slen && isxdigit(src[index++]))
-                        && (index < slen && isxdigit(src[index++])))
-                        {
-                          count++;      // Hex escape for unicode
-                        }
-                      else
-                        {
-                          result = NO;	// illegal backslash escape
-                          goto done;
-                        }
-                    }
-                  else
-                    {
-                      result = NO;	// unbalanced backslash
-                      goto done;
-                    }
-                }
-              else
-                {
-                  count++;
-                }
-            }
-          
-          if (dst == 0)
-            {
-              /* Just counting bytes.
-               */
-              dpos += count;
-            }
-          else
-            {
-              if (dpos + count + (extra ? 1 : 0) > bsize)
-                {
-                  if (zone == 0)
-                    {
-                      result = NO; /* No buffer growth possible ... fail. */
-                      goto done;
-                    }
-                  else
-                    {
-                      unsigned	grow = (dpos + count) * sizeof(unichar);
-                      unichar	*tmp;
-
-                      tmp = NSZoneMalloc(zone, grow + extra * sizeof(unichar));
-                      if ((ptr == buf || ptr == *dst) && (tmp != 0))
-                        {
-                          memcpy(tmp, ptr, bsize * sizeof(unichar));
-                        }
-                      if (ptr != buf && ptr != *dst)
-                        {
-                          NSZoneFree(zone, ptr);
-                        }
-                      ptr = tmp;
-                      if (ptr == 0)
-                        {
-                          return NO;	/* Not enough memory */
-                        }
-                      bsize = grow / sizeof(unichar);
-                    }
-                }
-              while (spos < slen)
-                {
-                  uint8_t	c = (uint8_t)((unc)src[spos++]);
-
-                  if ('\\' == c)
-                    {
-                      c = (uint8_t)((unc)src[spos++]);
-                      if ('\\' == c)
-                        {
-                          ptr[dpos++] = c;
-                        }
-                      else if ('u' == c)
-                        {
-                          int   i = 0;
-
-                          for (count = 0; count < 4; count++)
-                            {
-                              c = (uint8_t)((unc)src[spos++]);
-                              i *= 16;
-                              if (isdigit(c))
-                                {
-                                  i += c - '0';
-                                }
-                              else if (isupper(c))
-                                {
-                                  i += 10 + c - 'A';
-                                }
-                              else
-                                {
-                                  i += 10 + c - 'a';
-                                }
-                            }
-                          ptr[dpos++] = i;
-                        }
-                      else
-                        {
-                          int   i = c - '0';
-
-                          c = (uint8_t)((unc)src[spos++]);
-                          i = i * 8 + c - '0';
-                          c = (uint8_t)((unc)src[spos++]);
-                          i = i * 8 + c - '0';
-                          ptr[dpos++] = i;
-                        }
-                    }
-                  else
-                    {
-                      ptr[dpos++] = c;
-                    }
-                }
-            }
-          }
-	break;
-
       case NSASCIIStringEncoding:
 	if (dst == 0)
 	  {
@@ -1269,7 +1042,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	  }
         else
 	  {
-	    /* Because we know that each ascii character is exactly
+	    /* Because we know that each ascii chartacter is exactly
 	     * one unicode character, we can check the destination
 	     * buffer size and allocate more space in one go, before
 	     * entering the loop where we deal with each character.
@@ -1286,7 +1059,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    unsigned	grow = (dpos + slen) * sizeof(unichar);
 		    unichar	*tmp;
 
-		    tmp = NSZoneMalloc(zone, grow + extra * sizeof(unichar));
+		    tmp = NSZoneMalloc(zone, grow + extra);
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
@@ -1344,7 +1117,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 		    unsigned	grow = (dpos + slen) * sizeof(unichar);
 		    unichar	*tmp;
 
-		    tmp = NSZoneMalloc(zone, grow + extra * sizeof(unichar));
+		    tmp = NSZoneMalloc(zone, grow + extra);
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
@@ -1427,7 +1200,7 @@ tables:
 		    unsigned	grow = (dpos + slen) * sizeof(unichar);
 		    unichar	*tmp;
 
-		    tmp = NSZoneMalloc(zone, grow + extra * sizeof(unichar));
+		    tmp = NSZoneMalloc(zone, grow + extra);
 		    if ((ptr == buf || ptr == *dst) && (tmp != 0))
 		      {
 			memcpy(tmp, ptr, bsize * sizeof(unichar));
@@ -1501,6 +1274,7 @@ tables:
 	  size_t	inbytesleft;
 	  size_t	outbytesleft;
 	  size_t	rval;
+	  iconv_t	cd;
 	  const char	*estr = 0;
 	  BOOL		done = NO;
 
@@ -1564,6 +1338,8 @@ tables:
 		    }
 		}
 	    } while (!done || rval != 0);
+	  // close the converter
+	  iconv_close(cd);
 	}
 #else
 	result = NO;
@@ -1571,19 +1347,7 @@ tables:
     }
 
 done:
-#ifdef HAVE_ICONV
-  if (cd != (iconv_t)-1)
-    {
-      iconv_close(cd);
-    }
-#endif
 
-  if (NULL == ptr)
-    {
-      *size = 0;
-    }
-  else
-    {
   /*
    * Post conversion ... terminate if needed, and set output values.
    */
@@ -1650,7 +1414,7 @@ done:
     {
       NSZoneFree(zone, ptr);
     }
-    }
+
   if (dst)
     NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
 
@@ -1705,8 +1469,7 @@ else \
       } \
     if (ptr == 0) \
       { \
-        result = NO; /* No buffer growth possible ... fail. */ \
-	goto done; \
+	return NO;	/* Not enough memory */ \
       } \
     bsize = grow; \
   }
@@ -1817,9 +1580,6 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
   unsigned	ltsize = 0;
   BOOL		swapped = NO;
   BOOL		result = YES;
-#ifdef HAVE_ICONV
-  iconv_t	cd = (iconv_t)-1;
-#endif
 
   if (options & GSUniBOM)
     {
@@ -1909,7 +1669,10 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		    }
 
 		  // 0xfeff is a zero-width-no-break-space inside text
-		  if (u1 >= 0xdc00 && u1 <= 0xdfff)	// bad pairing
+		  if (u1 == 0xfffe			// unexpected BOM
+		    || u1 == 0xffff			// not a character
+		    || (u1 >= 0xfdd0 && u1 <= 0xfdef)	// invalid character
+		    || (u1 >= 0xdc00 && u1 <= 0xdfff))	// bad pairing
 		    {
 		      if (strict)
 			{
@@ -2028,7 +1791,10 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		    }
 
 		  // 0xfeff is a zero-width-no-break-space inside text
-		  if (u1 >= 0xdc00 && u1 <= 0xdfff)	// bad pairing
+		  if (u1 == 0xfffe			// unexpected BOM
+		    || u1 == 0xffff			// not a character
+		    || (u1 >= 0xfdd0 && u1 <= 0xfdef)	// invalid character
+		    || (u1 >= 0xdc00 && u1 <= 0xdfff))	// bad pairing
 		    {
 		      if (strict)
 			{
@@ -2123,137 +1889,6 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
         break;
 
       case NSNonLossyASCIIStringEncoding:
-        {
-          unsigned int  index = 0;
-          unsigned int  count = 0;
-
-          if (YES == swapped)
-            {
-              while (index < slen)
-                {
-                  unichar	u = src[index++];
-
-                  u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
-                  if (u < 256)
-                    {
-                      if ((u >= ' ' && u < 127)
-                        || '\r' == u || '\n' == u || '\t' == u)
-                        {
-                          count++;
-                          if ('\\' == u)
-                            {
-                              count++;
-                            }
-                        }
-                      else
-                        {
-                          count += 4;
-                        }
-                    }
-                  else
-                    {
-                      count += 12;
-                    }
-                }
-            }
-          else
-            {
-              while (index < slen)
-                {
-                  unichar	u = src[index++];
-
-                  if (u < 256)
-                    {
-                      if ((u >= ' ' && u < 127)
-                        || '\r' == u || '\n' == u || '\t' == u)
-                        {
-                          count++;
-                          if ('\\' == u)
-                            {
-                              count++;
-                            }
-                        }
-                      else
-                        {
-                          count += 4;
-                        }
-                    }
-                  else
-                    {
-                      count += 6;
-                    }
-                }
-            }
-          if (dst == 0)
-            {
-              /* Just counting bytes ...
-               */
-              dpos = count;
-            }
-          else
-            {
-              /* We can now check the destination buffer size and allocate
-               * more space in one go, before entering the loop where we
-               * deal with each character.
-               */
-              if (count > bsize)
-                {
-                  if (zone == 0)
-                    {
-                      result = NO; /* No buffer growth possible ... fail. */
-                      goto done;
-                    }
-                  else
-                    {
-                      uint8_t	*tmp;
-
-                      tmp = NSZoneMalloc(zone, count + extra);
-                      if (ptr != buf && ptr != *dst)
-                        {
-                          NSZoneFree(zone, ptr);
-                        }
-                      ptr = tmp;
-                      if (ptr == 0)
-                        {
-                          return NO;	/* Not enough memory */
-                        }
-                      bsize = count;
-                    }
-                }
-              index = 0;
-              while (index < slen)
-                {
-                  unichar	u = src[index++];
-
-                  if (YES == swapped)
-                    {
-                      u = (((u & 0xff00) >> 8) + ((u & 0x00ff) << 8));
-                    }
-                  if (u < 256)
-                    {
-                      if ((u >= ' ' && u < 127)
-                        || '\r' == u || '\n' == u || '\t' == u)
-                        {
-                          ptr[dpos++] = (unsigned char)u;
-                          if ('\\' == u)
-                            {
-                              ptr[dpos++] = (unsigned char)u;
-                            }
-                        }
-                      else
-                        {
-                          dpos += sprintf((char*)&ptr[dpos], "\\%03o", u);
-                        }
-                    }
-                  else
-                    {
-                      dpos += sprintf((char*)&ptr[dpos], "\\u%04x", u);
-                    }
-                }
-            }
-          }
-        goto done;
-
       case NSASCIIStringEncoding:
 	base = 128;
 	goto bases;
@@ -2273,7 +1908,7 @@ bases:
 	  }
         else
 	  {
-	    /* Because we know that each ascii character is exactly
+	    /* Because we know that each ascii chartacter is exactly
 	     * one unicode character, we can check the destination
 	     * buffer size and allocate more space in one go, before
 	     * entering the loop where we deal with each character.
@@ -2508,6 +2143,7 @@ tables:
 iconv_start:
 	{
 	  struct _strenc_	*encInfo;
+	  iconv_t	cd;
 	  unsigned char	*inbuf;
 	  unsigned char	*outbuf;
 	  size_t	inbytesleft;
@@ -2620,6 +2256,8 @@ iconv_start:
 		    }
 		}
 	    } while (!done || rval != 0);
+	  // close the converter
+	  iconv_close(cd);
 	}
 #else
 	result = NO;
@@ -2628,19 +2266,7 @@ iconv_start:
     }
 
   done:
-#ifdef HAVE_ICONV
-  if (cd != (iconv_t)-1)
-    {
-      iconv_close(cd);
-    }
-#endif
 
-  if (NULL == ptr)
-    {
-      *size = 0;
-    }
-  else
-    {
   /*
    * Post conversion ... set output values.
    */
@@ -2707,7 +2333,6 @@ iconv_start:
     {
       NSZoneFree(zone, ptr);
     }
-    }
 
   if (dst)
     NSCAssert(*dst != buf, @"attempted to pass out pointer to internal buffer");
@@ -2725,7 +2350,7 @@ GSPrivateAvailableEncodings()
   if (_availableEncodings == 0)
     {
       GSSetupEncodingTable();
-      (void)pthread_mutex_lock(&local_lock);
+      [GS_INITIALIZED_LOCK(local_lock, GSLazyLock) lock];
       if (_availableEncodings == 0)
 	{
 	  NSStringEncoding	*encodings;
@@ -2751,7 +2376,7 @@ GSPrivateAvailableEncodings()
 	  encodings[pos] = 0;
 	  _availableEncodings = encodings;
 	}
-      (void)pthread_mutex_unlock(&local_lock);
+      [local_lock unlock];
     }
   return _availableEncodings;
 }
@@ -2865,12 +2490,7 @@ GSPrivateCStringEncoding(const char *encoding)
 
   if (enc == GSUndefinedEncoding)
     {
-#ifdef __ANDROID__
-      // Android uses UTF-8 as default encoding (e.g. for file paths)
-      enc = NSUTF8StringEncoding;
-#else
       enc = NSISOLatin1StringEncoding;
-#endif
     }
   else if (GSPrivateIsEncodingSupported(enc) == NO)
     {
@@ -2893,10 +2513,10 @@ GSPrivateDefaultCStringEncoding()
 
       GSSetupEncodingTable();
 
-      (void)pthread_mutex_lock(&local_lock);
+      [GS_INITIALIZED_LOCK(local_lock, GSLazyLock) lock];
       if (defEnc != GSUndefinedEncoding)
 	{
-	  (void)pthread_mutex_unlock(&local_lock);
+	  [local_lock unlock];
 	  return defEnc;
 	}
 
@@ -2940,7 +2560,7 @@ GSPrivateDefaultCStringEncoding()
 	  defEnc = NSISOLatin1StringEncoding;
 	}
 
-      (void)pthread_mutex_unlock(&local_lock);
+      [local_lock unlock];
     }
   return defEnc;
 }
@@ -2950,7 +2570,7 @@ GSPrivateEncodingName(NSStringEncoding encoding)
 {
   struct _strenc_	*encInfo;
 
-  if ((encInfo = EntrySupported(encoding)) == NULL)
+  if ((encInfo = EntrySupported(encoding)) == NO)
     {
       return @"Unknown encoding";
     }
@@ -2962,7 +2582,7 @@ GSPrivateIsByteEncoding(NSStringEncoding encoding)
 {
   struct _strenc_	*encInfo;
 
-  if ((encInfo = EntrySupported(encoding)) == NULL)
+  if ((encInfo = EntrySupported(encoding)) == NO)
     {
       return NO;
     }
