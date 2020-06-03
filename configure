@@ -10985,7 +10985,15 @@ if test $enable_iconv = yes; then
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking iconv support" >&5
 $as_echo_n "checking iconv support... " >&6; }
 if test "$cross_compiling" = yes; then :
-  found_iconv="$cross_found_iconv_libc"
+  found_iconv="$cross_found_iconv_libc";
+  if test "$found_iconv" = "yes"; then
+
+$as_echo "#define HAVE_ICONV 1" >>confdefs.h
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, in libc (via cross.config)" >&5
+$as_echo "yes, in libc (via cross.config)" >&6; }
+  fi
+
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -11041,7 +11049,13 @@ esac
   LIBS="-liconv $LIBS"
   if test "$cross_compiling" = yes; then :
   found_iconv="$cross_found_iconv_liconv";
-    if test "$found_iconv" = "no"; then
+    if test "$found_iconv" = "yes"; then
+
+$as_echo "#define HAVE_ICONV 1" >>confdefs.h
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, -liconv (via cross.config)" >&5
+$as_echo "yes, -liconv (via cross.config)" >&6; }
+    else
       LIBS="$old_LIBS"
     fi
 
@@ -11080,7 +11094,16 @@ if test $found_iconv = no ; then
   LIBS="-lgiconv $LIBS"
   if test "$cross_compiling" = yes; then :
   found_iconv="$cross_found_iconv_lgiconv";
-    if test "$found_iconv" = "no"; then
+    if test "$found_iconv" = "yes"; then
+
+$as_echo "#define HAVE_ICONV 1" >>confdefs.h
+
+
+$as_echo "#define HAVE_GICONV 1" >>confdefs.h
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, -lgiconv (via cross.config)" >&5
+$as_echo "yes, -lgiconv (via cross.config)" >&6; }
+    else
       LIBS="$old_LIBS"
     fi
 
