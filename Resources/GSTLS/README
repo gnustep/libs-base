@@ -1,11 +1,20 @@
 
-Files here are for TLS/SSL certificate verification.
+Files here are the fallbacks for TLS/SSL certificate verification.
+
+To find the certificate authority certificates the system looks in:
+The path specified by GSTLSCAFile (if that user default is defined),
+otherwise the path specified in the GS_TLS_CA_FILE environment variable
+if it is defined, otherwise the file GSTLS/ca-certificates.crt in the
+base library resource bundle.
+
+Similarly to find the revoke file, the order of precedence of configuration
+is GSTLSRevokeFile, GS_TLS_REVOKE_FILE, GSTLS/revoke.crl
 
 ca-certificates.crt
         a list of PEM encoded certificates of trusted authorities
 
         NB. This is just the list of trusted authorities from my personal
-        machine, it may bot be suitable for you ... please replace/remove
+        machine, it may not be suitable for you ... please replace/remove
         to meet your own needs.
 
 revoke.crl
