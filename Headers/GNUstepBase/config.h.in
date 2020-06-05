@@ -216,6 +216,9 @@
 /* Define to 1 if you have the `dispatch_main_queue_drain_np' function. */
 #undef HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP
 
+/* Define to 1 if you have the <dispatch/private.h> header file. */
+#undef HAVE_DISPATCH_PRIVATE_H
+
 /* Define to 1 if you have the `dladdr' function. */
 #undef HAVE_DLADDR
 
@@ -302,6 +305,9 @@
 
 /* Define to 1 if you have the `gnutls_transport_set_errno' function. */
 #undef HAVE_GNUTLS_TRANSPORT_SET_ERRNO
+
+/* Define to 1 if you have the `gnutls_x509_privkey_import2' function. */
+#undef HAVE_GNUTLS_X509_PRIVKEY_IMPORT2
 
 /* Define to 1 if you have the `grantpt' function. */
 #undef HAVE_GRANTPT
@@ -390,6 +396,9 @@
 /* Define to 1 if you have the <malloc.h> header file. */
 #undef HAVE_MALLOC_H
 
+/* Define to 1 if you have the `malloc_usable_size' function. */
+#undef HAVE_MALLOC_USABLE_SIZE
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
@@ -467,6 +476,9 @@
 
 /* Define to 1 if you have the <pthread_np.h> header file. */
 #undef HAVE_PTHREAD_NP_H
+
+/* Define to 1 if you have the `pthread_spin_lock' function. */
+#undef HAVE_PTHREAD_SPIN_LOCK
 
 /* Define this if you work on sysv */
 #undef HAVE_PTS_STREAM_MODULES
@@ -557,6 +569,18 @@
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if `st_birthtimespec' is a member of `struct stat64'. */
+#undef HAVE_STRUCT_STAT64_ST_BIRTHTIMESPEC
+
+/* Define to 1 if `st_birthtim' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_BIRTHTIM
+
+/* Define to 1 if `st_birthtime' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_BIRTHTIME
+
+/* Define to 1 if `st_birthtimespec' is a member of `struct stat'. */
+#undef HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC
 
 /* Define to 1 if you have the `symlink' function. */
 #undef HAVE_SYMLINK
@@ -725,8 +749,14 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
+/* Define to 1 if you have the <unwind.h> header file. */
+#undef HAVE_UNWIND_H
+
 /* Define to 1 if you have the `usleep' function. */
 #undef HAVE_USLEEP
+
+/* Define to 1 if you have the `utimensat' function. */
+#undef HAVE_UTIMENSAT
 
 /* Define to 1 if you have the <utime.h> header file. */
 #undef HAVE_UTIME_H
@@ -760,6 +790,14 @@
 
 /* Define to 1 if you have the `_Block_copy' function. */
 #undef HAVE__BLOCK_COPY
+
+/* Define to 1 if you have the `_dispatch_get_main_queue_handle_4CF' function.
+   */
+#undef HAVE__DISPATCH_GET_MAIN_QUEUE_HANDLE_4CF
+
+/* Define to 1 if you have the `_dispatch_main_queue_callback_4CF' function.
+   */
+#undef HAVE__DISPATCH_MAIN_QUEUE_CALLBACK_4CF
 
 /* Define to 1 if you have the `__builtin_extract_return_address' function. */
 #undef HAVE___BUILTIN_EXTRACT_RETURN_ADDRESS
