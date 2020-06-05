@@ -15,12 +15,12 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
 
    $Date$ $Revision$
    */
@@ -74,6 +74,18 @@ static Class	GSInlineArrayClass;
 @end
 
 @implementation GSArray
+
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  NSUInteger	size = _count * sizeof(id);
+  NSUInteger	index = _count;
+
+  while (index-- > 0)
+    {
+      size += [_contents_array[index] sizeInBytesExcluding: exclude];
+    }
+  return size + [super sizeOfContentExcluding: exclude];
+}
 
 - (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel
 {
@@ -422,6 +434,13 @@ static Class	GSInlineArrayClass;
 @end
 
 @implementation GSMutableArray
+
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  /* Can't safely calculate for mutable object; just buffer size
+   */
+  return _capacity * sizeof(void*);
+}
 
 + (void) initialize
 {
@@ -942,14 +961,6 @@ static Class	GSInlineArrayClass;
    * iteration.   If it changes during the iteration then
    * objc_enumerationMutation() will be called, throwing an exception.
    */
-
-#if defined(USE_IMMUTABLE_FAST_ENUMERATION_CODE)
-  // TESTPLANT-MAL-10052017: Use immutable arrays version...
-  count = _count - state->state;
-  state->mutationsPtr = &_version;
-  state->itemsPtr = _contents_array + state->state;
-  state->state += count;
-#else
   state->mutationsPtr = &_version;
   count = MIN(len, _count - state->state);
   /* If a mutation has occurred then it's possible that we are being asked to
@@ -966,8 +977,6 @@ static Class	GSInlineArrayClass;
       count = 0;
     }
   state->itemsPtr = stackbuf;
-#endif
-  
   return count;
 }
 

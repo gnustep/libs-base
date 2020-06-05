@@ -14,12 +14,12 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
    */
 
 #import "GSNetServices.h"
@@ -292,7 +292,8 @@ NSDataFromAvahiAddressPortAndInterface(const AvahiAddress *addr,
     {
       struct sockaddr_in *s4 = (struct sockaddr_in*)&s;
       // The address is already in network byte-order.
-      struct in_addr a = { a.s_addr = addr->data.ipv4.address };
+      struct in_addr a;
+      a.s_addr = addr->data.ipv4.address;
       s4->sin_family = AF_INET;
       s4->sin_port = htons(port);
       s4->sin_addr = a;
