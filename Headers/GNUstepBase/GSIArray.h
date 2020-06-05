@@ -188,6 +188,15 @@ GSIArrayCount(GSIArray array)
   return array->count;
 }
 
+GS_STATIC_INLINE NSUInteger
+GSIArraySize(GSIArray array)
+{
+  NSUInteger	size = sizeof(GSIArray);
+
+  size += array->cap * sizeof(GSIArrayItem);
+  return size;
+}
+
 GS_STATIC_INLINE void
 GSIArrayGrow(GSIArray array)
 {
