@@ -15,13 +15,13 @@
   BOOL deallocated;
 }
 
-- (void)onThreadExit: (NSNotification*)n;
-- (BOOL)isDone;
+- (void) onThreadExit: (NSNotification*)n;
+- (BOOL) isDone;
 @end
 
 @implementation ThreadExpectation
 
-- (id)init
+- (id) init
 {
   if (nil == (self = [super init]))
     {
@@ -33,26 +33,36 @@
 
 
 
-- (void)inThread: (NSThread*)thread
+- (void) inThread: (NSThread*)thread
 {
+  NSNotificationCenter  *nc = [NSNotificationCenter defaultCenter];
+
   /* We explicitly don't retain this so that we can check that it actually says
    * alive until the notification is sent. That check is implicit since
    * PASS_EQUAL in the -onThreadExit method will throw or crash if that isn't
    * the case.
    */
   origThread = thread;
-  [[NSNotificationCenter defaultCenter] addObserver: self
-                                           selector: @selector(onThreadExit:)
-                                               name: NSThreadWillExitNotification
-                                             object: thread];
+  [nc addObserver: self
+         selector: @selector(onThreadExit:)
+             name: NSThreadWillExitNotification
+           object: thread];
 }
 
-- (void)onThreadExit: (NSNotification*)thr
+- (void) onThreadExit: (NSNotification*)thr
 {
-  NSThread *current = [NSThread currentThread];
+  NSThread      *current = [NSThread currentThread];
+  NSThread      *passed = [thr object];
 
-  PASS_EQUAL(origThread,current,
-    "Correct thread reference can be obtained on exit");
+  PASS_EQUAL(passed, origThread,
+    "NSThreadWillExitNotification passes expected thread")
+  PASS_EQUAL(origThread, current,
+    "Correct thread reference can be obtained on exit")
+  PASS([passed isExecuting],
+    "exiting thread is still executing at point of notification")
+  PASS(![passed isFinished],
+    "exiting thread is not finished at point of notification")
+
   [[NSNotificationCenter defaultCenter] removeObserver: self];
   origThread = nil;
   [condition lock];
@@ -61,27 +71,27 @@
   [condition unlock];
 }
 
-- (BOOL)isDone
+- (BOOL) isDone
 {
   return done;
 }
 
-- (void)waitUntilDate: (NSDate*)date
+- (void) waitUntilDate: (NSDate*)date
 {
   [condition waitUntilDate: date];
 }
 
-- (void)lock
+- (void) lock
 {
   [condition lock];
 }
 
-- (void)unlock
+- (void) unlock
 {
   [condition unlock];
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   DESTROY(condition);
   [super dealloc];
@@ -108,7 +118,6 @@ int main(void)
 {
   pthread_t thr;
   pthread_attr_t attr;
-  void *ret;
   pthread_attr_init(&attr);
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
   NSAutoreleasePool *arp = [NSAutoreleasePool new];

@@ -39,11 +39,16 @@ DEFINE_BLOCK_TYPE(GSFilePresentedItemChangesWithCompletionHandler, void, NSError
 
 @protocol NSFilePresenter <NSObject>
 
-// @required
 - (NSURL *) presentedItemURL;
 - (NSOperationQueue *) presentedItemOperationQueue;
 
-// @optional
+#if GS_PROTOCOLS_HAVE_OPTIONAL
+@optional
+#else
+@end
+@interface NSObject (NSFilePresenter)
+#endif
+
 - (NSURL *) primaryPresentedItemURL;
 - (NSString *) observedPresentedItemUbiquityAttributes;
 

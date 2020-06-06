@@ -1354,24 +1354,23 @@ newLanguages(NSArray *oldNames)
 
 - (id) objectForKey: (NSString*)defaultName
 {
-  NSEnumerator	*enumerator;
-  IMP		nImp;
-  id		object = nil;
-  id		dN;
-  IMP		pImp;
-  IMP		tImp;
+  id	object = nil;
 
   [_lock lock];
   NS_DURING
     {
-      enumerator = [_searchList objectEnumerator];
-      nImp = [enumerator methodForSelector: nextObjectSel];
-      object = nil;
+      NSUInteger	count = [_searchList count];
+      IMP		pImp;
+      IMP		tImp;
+      NSUInteger	index;
+      GS_BEGINITEMBUF(items, count, NSObject*)
+
       pImp = [_persDomains methodForSelector: objectForKeySel];
       tImp = [_tempDomains methodForSelector: objectForKeySel];
-
-      while ((dN = (*nImp)(enumerator, nextObjectSel)) != nil)
-        {
+      [_searchList getObjects: items];
+      for (index = 0; index < count; index++)
+	{
+	  NSObject		*dN = items[index];
 	  GSPersistentDomain	*pd;
           NSDictionary		*td;
 
@@ -1383,6 +1382,7 @@ newLanguages(NSArray *oldNames)
 	    break;
         }
       RETAIN(object);
+      GS_ENDITEMBUF();
       [_lock unlock];
     }
   NS_HANDLER
@@ -1420,14 +1420,9 @@ newLanguages(NSArray *oldNames)
 
 - (void) setBool: (BOOL)value forKey: (NSString*)defaultName
 {
-  if (value == YES)
-    {
-      [self setObject: @"YES" forKey: defaultName];
-    }
-  else
-    {
-      [self setObject: @"NO" forKey: defaultName];
-    }
+  NSNumber	*n = [NSNumberClass numberWithBool: value];
+
+  [self setObject: n forKey: defaultName];
 }
 
 - (void) setDouble: (double)value forKey: (NSString*)defaultName

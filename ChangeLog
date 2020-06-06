@@ -1,9 +1,29 @@
-2020-05-20  Frederik Seiffert <frederik@algoriddim.com>
+2020-06-06  Frederik Seiffert <frederik@algoriddim.com>
 
-	* Source/NSBundle.m: Extend NSBundle resources support to handle
-	directories in Android assets.
-	* Source/NSFileManager.m: Fix NSFileManager -isReadableFileAtPath:
-	to also support directories in Android assets.
+    * Source/NSBundle.m: Extend NSBundle resources support to handle
+    directories in Android assets.
+    * Source/NSFileManager.m: Fix NSFileManager -isReadableFileAtPath:
+    to also support directories in Android assets.
+
+2020-06-05  Frederik Seiffert <frederik@algoriddim.com>
+
+        * Tests/base/NSMapTable/weakObjects.m,
+        * Source/NSConcreteMapTable.m:
+        Add test for and fix replacing an existing value in a weak objects map
+        table.
+
+2020-05-25  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSUserDefaults.m:
+	Store NSNumber instead of NSString for NSUserDefaults -setBool:forKey:.
+
+2020-05-23  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/GNUstepBase/GSConfig.h.in,
+	* Source/GSNetwork.h,
+	* Source/win32/GSFileHandle.m,
+	* config/config.reuseaddr.c:
+	Include winsock2.h before windows.h, as required by MSYS2/MinGW-w64.
 
 2020-05-14  Frederik Seiffert <frederik@algoriddim.com>
 
