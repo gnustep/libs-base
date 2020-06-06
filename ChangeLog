@@ -1,3 +1,10 @@
+2020-06-06  Frederik Seiffert <frederik@algoriddim.com>
+
+    * Source/NSBundle.m: Extend NSBundle resources support to handle
+    directories in Android assets.
+    * Source/NSFileManager.m: Fix NSFileManager -isReadableFileAtPath:
+    to also support directories in Android assets.
+
 2020-06-05  Frederik Seiffert <frederik@algoriddim.com>
 
         * Tests/base/NSMapTable/weakObjects.m,
