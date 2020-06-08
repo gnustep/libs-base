@@ -22,9 +22,6 @@
    Boston, MA 02111 USA.
    */
 
-#include <winsock2.h>
-#include <windows.h>
-
 #include "common.h"
 #define	EXPOSE_NSFileHandle_IVARS	1
 #define	EXPOSE_GSFileHandle_IVARS	1

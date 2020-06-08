@@ -2996,7 +2996,11 @@ int main(int argc,char **argv)
 ,
   found_iconv=no
 ,
-  found_iconv="$cross_found_iconv_libc",
+  found_iconv="$cross_found_iconv_libc";
+  if test "$found_iconv" = "yes"; then
+    AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
+    AC_MSG_RESULT([[yes, in libc (via cross.config)]])
+  fi
 )
 
 if test $found_iconv = no ; then
@@ -3025,7 +3029,10 @@ if test $found_iconv = no ; then
     LIBS="$old_LIBS"
   ,
     found_iconv="$cross_found_iconv_liconv";
-    if test "$found_iconv" = "no"; then
+    if test "$found_iconv" = "yes"; then
+      AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
+      AC_MSG_RESULT([[yes, -liconv (via cross.config)]])
+    else
       LIBS="$old_LIBS"
     fi
   )
@@ -3049,7 +3056,11 @@ if test $found_iconv = no ; then
     LIBS="$old_LIBS"
   ,
     found_iconv="$cross_found_iconv_lgiconv";
-    if test "$found_iconv" = "no"; then
+    if test "$found_iconv" = "yes"; then
+      AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
+      AC_DEFINE(HAVE_GICONV,1, [Define if you have this function])
+      AC_MSG_RESULT([[yes, -lgiconv (via cross.config)]])
+    else
       LIBS="$old_LIBS"
     fi
   )

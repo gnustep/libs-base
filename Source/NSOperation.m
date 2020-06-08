@@ -97,7 +97,7 @@ static NSArray	*empty = nil;
 + (void) initialize
 {
   empty = [NSArray new];
-  [[NSObject leakAt: &empty] release];
+  RELEASE([NSObject leakAt: &empty]);
 }
 
 - (void) addDependency: (NSOperation *)op
@@ -430,8 +430,9 @@ static NSArray	*empty = nil;
 
 - (void) start
 {
-  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
-  double		prio = [NSThread  threadPriority];
+  ENTER_POOL
+
+  double	prio = [NSThread  threadPriority];
 
   AUTORELEASE(RETAIN(self));	// Make sure we exist while running.
   [internal->lock lock];
@@ -486,7 +487,7 @@ static NSArray	*empty = nil;
   NS_ENDHANDLER;
 
   [self _finish];
-  [pool release];
+  LEAVE_POOL
 }
 
 - (double) threadPriority
@@ -507,7 +508,7 @@ static NSArray	*empty = nil;
   /* retain while finishing so that we don't get deallocated when our
    * queue removes and releases us.
    */
-  [self retain];
+  RETAIN(self);
   [internal->lock lock];
   if (NO == internal->finished)
     {
@@ -532,7 +533,7 @@ static NSArray	*empty = nil;
 	}
     }
   [internal->lock unlock];
-  [self release];
+  RELEASE(self);
 }
 
 @end
@@ -540,15 +541,20 @@ static NSArray	*empty = nil;
 	  
 @implementation NSBlockOperation
 
-// Initialize
-- (id) init
++ (instancetype) blockOperationWithBlock: (GSBlockOperationBlock)block
 {
-  self = [super init];
-  if(self != nil)
-    {
-      _executionBlocks = [[NSMutableArray alloc] initWithCapacity: 1];
-    }
-  return self;
+  NSBlockOperation *op = [[self alloc] init];
+
+  [op addExecutionBlock: block];
+  return AUTORELEASE(op);
+}
+
+- (void) addExecutionBlock: (GSBlockOperationBlock)block
+{
+  GSBlockOperationBlock	blockCopy = [block copy];
+
+  [_executionBlocks addObject: blockCopy];
+  RELEASE(blockCopy);
 }
 
 - (void) dealloc
@@ -557,29 +563,27 @@ static NSArray	*empty = nil;
   [super dealloc];
 }
 
-// Managing the blocks in the Operation
-+ (instancetype)blockOperationWithBlock: (GSBlockOperationBlock)block
-{
-  NSBlockOperation *op = [[self alloc] init];
-  [op addExecutionBlock: block];
-  return op;
-}
-
-- (void)addExecutionBlock: (GSBlockOperationBlock)block
-{
-  [_executionBlocks addObject: block];
-}
-
 - (NSArray *) executionBlocks
 {
   return _executionBlocks;
 }
 
+- (id) init
+{
+  self = [super init];
+  if (self != nil)
+    {
+      _executionBlocks = [[NSMutableArray alloc] initWithCapacity: 1];
+    }
+  return self;
+}
+
 - (void) main
 {
-  NSEnumerator *en = [[self executionBlocks] objectEnumerator];
+  NSEnumerator 		*en = [[self executionBlocks] objectEnumerator];
   GSBlockOperationBlock theBlock;
-  while((theBlock = [en nextObject]) != NULL)
+
+  while ((theBlock = [en nextObject]) != NULL)
     {
       CALL_BLOCK_NO_ARGS(theBlock);
     }
@@ -836,9 +840,9 @@ static NSOperationQueue *mainQueue = nil;
       internal->name
 	= [[NSString alloc] initWithFormat: @"NSOperation %p", self];
     }
-  s = [internal->name retain];
+  s = RETAIN(internal->name);
   [internal->lock unlock];
-  return [s autorelease];
+  return AUTORELEASE(s);
 }
 
 - (NSUInteger) operationCount
@@ -888,7 +892,7 @@ static NSOperationQueue *mainQueue = nil;
   if (NO == [internal->name isEqual: s])
     {
       [self willChangeValueForKey: @"name"];
-      [internal->name release];
+      RELEASE(internal->name);
       internal->name = [s copy];
       [self didChangeValueForKey: @"name"];
     }
@@ -915,10 +919,10 @@ static NSOperationQueue *mainQueue = nil;
   [internal->lock lock];
   while ((op = [internal->operations lastObject]) != nil)
     {
-      [op retain];
+      RETAIN(op);
       [internal->lock unlock];
       [op waitUntilFinished];
-      [op release];
+      RELEASE(op);
       [internal->lock lock];
     }
   [internal->lock unlock];
@@ -979,7 +983,7 @@ static NSOperationQueue *mainQueue = nil;
 
 - (void) _thread
 {
-  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+  ENTER_POOL
 
   [[[NSThread currentThread] threadDictionary] setObject: self
                                                   forKey: threadKey];
@@ -1022,11 +1026,10 @@ static NSOperationQueue *mainQueue = nil;
 	{
           NS_DURING
 	    {
-	      NSAutoreleasePool	*opPool = [NSAutoreleasePool new];
-
+	      ENTER_POOL
               [NSThread setThreadPriority: [op threadPriority]];
               [op start];
-	      RELEASE(opPool);
+	      LEAVE_POOL
 	    }
           NS_HANDLER
 	    {
@@ -1043,7 +1046,7 @@ static NSOperationQueue *mainQueue = nil;
   [internal->lock lock];
   internal->threadCount--;
   [internal->lock unlock];
-  RELEASE(pool);
+  LEAVE_POOL
   [NSThread exit];
 }
 

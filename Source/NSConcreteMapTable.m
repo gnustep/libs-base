@@ -1392,7 +1392,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
       if (GSI_MAP_READ_VALUE(self, &node->value).obj != anObject)
 	{
           GSI_MAP_RELEASE_VAL(self, node->value);
-          node->value.obj = anObject;
+          GSI_MAP_WRITE_VAL(self, &node->value, (GSIMapVal)anObject);
           GSI_MAP_RETAIN_VAL(self, node->value);
 	  version++;
 	}

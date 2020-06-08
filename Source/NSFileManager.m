@@ -1806,8 +1806,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 #ifdef __ANDROID__
           /* Android: try using asset manager if path is in
-	   * main bundle resources
-	   */
+           * main bundle resources
+           */
           AAsset *asset = [NSBundle assetForPath: path];
           if (asset)
 	    {
@@ -1877,11 +1877,20 @@ static NSStringEncoding	defaultEncoding;
 	}
 
 #ifdef __ANDROID__
-        // Android: try using asset manager if path is in main bundle resources
+        /* Android: try using asset manager if path is in
+         * main bundle resources
+         */
         AAsset *asset = [NSBundle assetForPath: path];
         if (asset)
 	  {
 	    AAsset_close(asset);
+	    return YES;
+	  }
+
+        AAssetDir *assetDir = [NSBundle assetDirForPath: path];
+        if (assetDir)
+	  {
+	    AAssetDir_close(assetDir);
 	    return YES;
 	  }
 #endif
