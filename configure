@@ -9721,6 +9721,18 @@ fi
 # These used by GSFileHandle.m and distributed objects
 # On some systems we need -lnsl ... so check for that case.
 #--------------------------------------------------------------------
+for ac_header in ws2tcpip.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "ws2tcpip.h" "ac_cv_header_ws2tcpip_h" "$ac_includes_default"
+if test "x$ac_cv_header_ws2tcpip_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_WS2TCPIP_H 1
+_ACEOF
+
+fi
+
+done
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing inet_ntop" >&5
 $as_echo_n "checking for library containing inet_ntop... " >&6; }
 if ${ac_cv_search_inet_ntop+:} false; then :
@@ -9745,7 +9757,7 @@ return inet_ntop ();
   return 0;
 }
 _ACEOF
-for ac_lib in '' nsl; do
+for ac_lib in '' nsl Ws2_32; do
   if test -z "$ac_lib"; then
     ac_res="none required"
   else

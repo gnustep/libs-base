@@ -2497,7 +2497,8 @@ AC_SUBST(DEFINE_UINTPTR_T)
 # These used by GSFileHandle.m and distributed objects
 # On some systems we need -lnsl ... so check for that case.
 #--------------------------------------------------------------------
-AC_SEARCH_LIBS([inet_ntop],[nsl])
+AC_CHECK_HEADERS(ws2tcpip.h)
+AC_SEARCH_LIBS([inet_ntop],[nsl Ws2_32])
 AC_CHECK_FUNCS(gethostbyaddr_r inet_aton inet_pton inet_ntop sigaction)
 
 USE_ZLIB=0
