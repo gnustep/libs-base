@@ -1,3 +1,9 @@
+2020-06-09 Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSKeyedArchiver.h
+	* Source/NSKeyedArchiver.m
+	* Source/NSKeyedUnarchiver.m: Add setter for requiresSecureCoding.
+
 2020-06-06  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSBundle.m: Extend NSBundle resources support to handle
