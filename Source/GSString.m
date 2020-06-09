@@ -25,12 +25,12 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
 */
 
 #import "common.h"
@@ -169,6 +169,7 @@ lengthUTF8(const uint8_t *p, unsigned l, BOOL *ascii, BOOL *latin1)
       else
 	{
 	  l += 2;
+          l1 = NO;
 	}
     }
   if (0 != ascii)
@@ -299,6 +300,32 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
 static BOOL
 literalIsEqualInternal(NXConstantString *s, GSStr o)
 {
+#ifdef GNUSTEP_NEW_STRING_ABI
+  if (s->nxcslen != o->_count)
+    {
+      return NO;
+    }
+  size_t end = s->nxcslen;
+  static const int buffer_size = 64;
+  unichar buffer1[buffer_size];
+  unichar buffer2[buffer_size];
+  NSRange r = { 0, buffer_size };
+  do
+    {
+      if (r.location + r.length > end)
+	{
+	  r.length = s->nxcslen - r.location;
+	}
+      [s getCharacters: buffer1 range: r];
+      [o getCharacters: buffer2 range: r];
+      if (memcmp(buffer1, buffer2, r.length * sizeof(unichar)) != 0)
+{
+	  return NO;
+	}
+      r.location += buffer_size;
+    } while (r.location < end);
+  return YES;
+#else
   unsigned	len = o->_count;
 
   /* Since UTF-8 is a multibyte character set, it must have at least
@@ -451,6 +478,7 @@ literalIsEqualInternal(NXConstantString *s, GSStr o)
 	}
       return YES;
     }
+#endif
 }
 
 
@@ -719,6 +747,26 @@ newUInline(unsigned length, NSZone *zone)
   me->_flags.owned = 1;	// Ignored on dealloc, but means we own buffer
   return me;
 }
+
+@implementation NSString (RegressionTesting)
+/* This method is provided to enable regression tests to ensure they are
+ * using an object whose internal representation is wide (unicode) text,
+ * so that all the comparison operations between 8bit and 16bit strings
+ * can be tested.
+ */
+- (NSString*) _unicodeString
+{
+  GSUInlineString       *o;
+  unsigned              i = [self length];
+
+  o = [newUInline(i, [self zone]) autorelease];
+  while (i-- > 0)
+    {
+      o->_contents.u[i] = [self characterAtIndex: i];
+    }
+  return o;
+}
+@end
 
 /* Predeclare a few functions
  */
@@ -1034,6 +1082,16 @@ tsbytes(uintptr_t s, char *buf)
   if (anIndex >= l)
     [NSException raise: NSRangeException format:@"Invalid location."];
   return NSMakeRange(anIndex, 1);
+}
+
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;	// Tiny string uses no heap
+}
+
+- (NSUInteger) sizeOfInstance
+{
+  return 0;	// Tiny string uses no heap
 }
 
 - (const char*) UTF8String
@@ -1402,7 +1460,12 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
         }
       return (id)@"";
     }
-
+  if (0 == bytes)
+    {
+      [NSException raise: NSInvalidArgumentException
+                  format: @"-%@ given NULL pointer",
+        NSStringFromSelector(_cmd)];
+    }
   fixBOM((unsigned char**)&bytes, &length, &flag, encoding);
   if (encoding == NSUnicodeStringEncoding)
     {
@@ -1568,6 +1631,9 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   size_t	len;
   GSStr		me;
 
+  if (NULL == format)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[GSPlaceholderString-initWithFormat:locale:arguments:]: NULL format"];
   /*
    * First we provide an array of unichar characters containing the
    * format string.  For performance reasons we try to use an on-stack
@@ -1691,10 +1757,9 @@ fixBOM(unsigned char **bytes, NSUInteger*length, BOOL *owned,
   GSStr		me;
   uint8_t       c;
 
-  if (0 == bytes)
-    {
-      return (id)@"";
-    }
+  if (NULL == bytes)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[GSPlaceholderString-initWithUTF8String:]: NULL cString"];
   /* Skip leading BOM
    */
   if (b[0] == 0xEF && b[1] == 0xBB && b[2] == 0xBF)
@@ -1818,6 +1883,7 @@ UTF8String_c(GSStr self)
 	  [NSException raise: NSCharacterConversionException
 		      format: @"Can't convert to Unicode string."];
 	}
+      r = 0;
       if (GSFromUnicode((unsigned char**)&r, &s, u, l, NSUTF8StringEncoding,
 	NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
 	{
@@ -2115,7 +2181,11 @@ characterAtIndex_c(GSStr self, unsigned index)
       unsigned int	s = 1;
       unichar		*d = &u;
 
-      GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
+      if (GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0) == NO)
+        {
+          [NSException raise: NSInternalInconsistencyException
+                      format: @"unable to convert character to unicode"];
+        }
     }
   return u;
 }
@@ -3409,7 +3479,11 @@ rangeOfCharacter_c(GSStr self, NSCharacterSet *aSet, unsigned mask,
 	  unsigned int	s = 1;
 	  unichar	*d = &u;
 
-	  GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0);
+	  if (GSToUnicode(&d, &s, &c, 1, internalEncoding, 0, 0) == NO)
+            {
+              [NSException raise: NSInternalInconsistencyException
+                          format: @"unable to convert character to unicode"];
+            }
 	}
       /* FIXME ... what about UTF-16 sequences of more than one 16bit value
        * corresponding to a single UCS-32 codepoint?
@@ -3493,7 +3567,7 @@ GSPrivateRangeOfString(NSString *receiver, NSString *target)
         return (GSRSFunc)strRangeUsNs;
     }
   else if (GSObjCIsKindOf(c, GSCStringClass) == YES
-    || (c == GSMutableStringClass && ((GSStr)target)->_flags.wide == 0))
+    || (c == GSMutableStringClass && ((GSStr)receiver)->_flags.wide == 0))
     {
       c = object_getClass(target);
       if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES
@@ -4155,6 +4229,22 @@ agree, create a new GSCInlineString otherwise.
 
 
 @implementation	GSCInlineString
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;	// Inline string content uses no heap
+}
+- (NSUInteger) sizeOfInstance
+{
+  NSUInteger    size;
+
+#if     HAVE_MALLOC_USABLE_SIZE
+  size = malloc_usable_size((void*)self - sizeof(intptr_t));
+#else
+  size = class_getInstanceSize(GSCInlineStringClass);
+  size += _count;
+#endif
+  return size;
+}
 @end
 
 
@@ -4337,6 +4427,7 @@ agree, create a new GSCInlineString otherwise.
 {
   return getCStringE_u((GSStr)self, buffer, maxLength, encoding);
 }
+
 - (void) getCString: (char*)buffer
 	  maxLength: (NSUInteger)maxLength
 	      range: (NSRange)aRange
@@ -4565,6 +4656,22 @@ agree, create a new GSUInlineString otherwise.
 
 
 @implementation	GSUInlineString
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;	// Inline string content uses no heap
+}
+- (NSUInteger) sizeOfInstance
+{
+  NSUInteger    size;
+
+#if     HAVE_MALLOC_USABLE_SIZE
+  size = malloc_usable_size((void*)self - sizeof(intptr_t));
+#else
+  size = class_getInstanceSize(GSUInlineStringClass);
+  size += _count * sizeof(unichar);
+#endif
+  return size;
+}
 @end
 
 
@@ -5132,6 +5239,9 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
   unichar	*fmt = fbuf;
   size_t	len;
 
+  if (NULL == format)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[GSMutableString-initWithFormat:locale:arguments:]: NULL format"];
   /*
    * First we provide an array of unichar characters containing the
    * format string.  For performance reasons we try to use an on-stack
@@ -5345,7 +5455,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	}
       else
 	{
-	  length = (aString == nil) ? 0 : [aString length];
+	  length = [aString length];
 	}
     }
   offset = length - aRange.length;
@@ -5735,6 +5845,13 @@ literalIsEqual(NXConstantString *self, id anObject)
   return NO;
 }
 
+#ifdef GNUSTEP_NEW_STRING_ABI
+#  define CONSTANT_STRING_ENCODING() (flags & 3)
+#  define CONSTANT_STRING_HAS_HASH() ((flags & (1<<16)) == (1<<16))
+#  define CONSTANT_STRING_SET_HAS_HASH() do { flags |= (1<<16); } while(0)
+#endif
+
+
 /**
  * <p>The NXConstantString class is used by the compiler for constant
  * strings, as such its ivar layout is determined by the compiler
@@ -5753,11 +5870,52 @@ literalIsEqual(NXConstantString *self, id anObject)
 
 - (const char*) UTF8String
 {
+#ifdef GNUSTEP_NEW_STRING_ABI
+  switch (CONSTANT_STRING_ENCODING())
+  {
+      case 0: // ASCII
+      case 1: // UTF-8
+	  return nxcsptr;
+      case 2: // UTF-16
+	{
+	  unsigned int l = 0;
+	  unsigned char *r = 0;
+
+	  if (GSFromUnicode(&r, &l, (const unichar*)(void*)nxcsptr, nxcslen, NSUTF8StringEncoding,
+	    NSDefaultMallocZone(), GSUniTerminate|GSUniTemporary|GSUniStrict) == NO)
+	    {
+	      [NSException raise: NSCharacterConversionException
+			  format: @"Can't get UTF8 from Unicode string."];
+	    }
+	  return (const char*)r;
+	}
+      case 4: // UTF-32
+	return [super UTF8String];
+  }
+  GS_UNREACHABLE();
+#else
   return nxcsptr;
+#endif
 }
 
 - (unichar) characterAtIndex: (NSUInteger)index
 {
+#ifdef GNUSTEP_NEW_STRING_ABI
+  if (index >= nxcslen)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"-characterAtIndex: index out of range"];
+    }
+  switch (CONSTANT_STRING_ENCODING())
+{
+      case 0: // ASCII
+      case 1: // UTF-8
+	  return nxcsptr[index];
+      case 2: // UTF-16
+	  return ((unichar*)(void*)nxcsptr)[index];
+  }
+  GS_UNREACHABLE();
+#else
   NSUInteger	l = 0;
   unichar	u;
   unichar	n = 0;
@@ -5775,7 +5933,10 @@ literalIsEqual(NXConstantString *self, id anObject)
   [NSException raise: NSInvalidArgumentException
 	      format: @"-characterAtIndex: index out of range"];
   return 0;
+#endif
 }
+
+#ifndef GNUSTEP_NEW_STRING_ABI
 
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding
 {
@@ -5880,6 +6041,8 @@ literalIsEqual(NXConstantString *self, id anObject)
   return [super dataUsingEncoding: encoding allowLossyConversion: flag];
 }
 
+#endif
+
 - (void) dealloc
 {
   GSNOSUPERDEALLOC;
@@ -5888,6 +6051,26 @@ literalIsEqual(NXConstantString *self, id anObject)
 - (void) getCharacters: (unichar*)buffer
 		 range: (NSRange)aRange
 {
+#ifdef GNUSTEP_NEW_STRING_ABI
+  GS_RANGE_CHECK(aRange, nxcslen);
+  switch (CONSTANT_STRING_ENCODING())
+  {
+      case 0: // ASCII
+	for (int i=0 ; i<aRange.length ; i++)
+{
+	    buffer[i] = (unichar)nxcsptr[aRange.location + i];
+	  }
+	return;
+      case 1: // UTF-8
+	NSAssert(0, @"UTF-8 constant strings not yet supported");
+      case 2: // UTF-16
+	memcpy(buffer, nxcsptr + (aRange.location * sizeof(unichar)), aRange.length * sizeof(unichar));
+	return;
+      case 3:
+	NSAssert(0, @"UTF-32 constant strings not yet supported");
+  }
+  GS_UNREACHABLE();
+#else
   unichar	n = 0;
   unsigned	i = 0;
   NSUInteger	max = NSMaxRange(aRange);
@@ -5917,8 +6100,12 @@ literalIsEqual(NXConstantString *self, id anObject)
 	@"in %s, range { %"PRIuPTR", %"PRIuPTR" } extends beyond string",
         GSNameFromSelector(_cmd), aRange.location, aRange.length];
     }
+#endif
 }
 
+// This method was deprecated on Mac OS X 10.5, so if we provide an improved
+// version here then we should do it using the newer version.
+#ifndef GNUSTEP_NEW_STRING_ABI
 - (BOOL) getCString: (char*)buffer
 	  maxLength: (NSUInteger)maxLength
 	   encoding: (NSStringEncoding)encoding
@@ -5983,12 +6170,20 @@ literalIsEqual(NXConstantString *self, id anObject)
     }
   return [super getCString: buffer maxLength: maxLength encoding: encoding];
 }
+#endif
 
 /* Must match the implementation in NSString
  * To avoid allocating memory, we build the hash incrementally.
  */
 - (NSUInteger) hash
 {
+#ifdef GNUSTEP_NEW_STRING_ABI
+  if (CONSTANT_STRING_HAS_HASH())
+    return hash;
+  hash = [super hash];
+  CONSTANT_STRING_SET_HAS_HASH();
+  return hash;
+#else
   if (nxcslen > 0)
     {
       uint32_t  s0 = 0;
@@ -6031,6 +6226,7 @@ literalIsEqual(NXConstantString *self, id anObject)
     {
       return 0x0ffffffe;	/* Hash for an empty string.	*/
     }
+#endif
 }
 
 - (id) initWithBytes: (const void*)bytes
@@ -6051,6 +6247,16 @@ literalIsEqual(NXConstantString *self, id anObject)
 	      format: @"Attempt to init a constant string"];
   return nil;
 }
+
+#ifdef GNUSTEP_NEW_STRING_ABI
+- (NSUInteger) length
+{
+  // In the new encoding, nxcslen is always the length of the string in UTF-16
+  // codepoints
+  return nxcslen;
+}
+
+#else
 
 - (BOOL) isEqual: (id)anObject
 {
@@ -6200,6 +6406,7 @@ literalIsEqual(NXConstantString *self, id anObject)
     format: @"-rangeOfComposedCharacterSequenceAtIndex: index out of range"];
   return NSMakeRange(NSNotFound, 0);
 }
+#endif // GNUSTEP_NEW_STRING_ABI
 
 - (id) retain
 {
@@ -6228,12 +6435,53 @@ literalIsEqual(NXConstantString *self, id anObject)
 
 - (NSStringEncoding) fastestEncoding
 {
+#ifdef GNUSTEP_NEW_STRING_ABI
+  switch (CONSTANT_STRING_ENCODING())
+  {
+      case 0: // ASCII
+	return NSASCIIStringEncoding;
+      case 1: // UTF-8
+	  return NSUTF8StringEncoding;
+      case 2: // UTF-16
+	  return NSUTF16StringEncoding;
+      case 3: // UTF-32
+	  return NSUTF32StringEncoding;
+  }
+  GS_UNREACHABLE();
+#else
   return NSUTF8StringEncoding;
+#endif
 }
 
 - (NSStringEncoding) smallestEncoding
 {
+#ifdef GNUSTEP_NEW_STRING_ABI
+  // UTF-16 might not be the smallest encoding for UTF-16 strings, but for now
+  // we'll pretend that it is.
+  switch (CONSTANT_STRING_ENCODING())
+  {
+      case 0: // ASCII
+	return NSASCIIStringEncoding;
+      case 1: // UTF-8
+	  return NSUTF8StringEncoding;
+      case 2: // UTF-16
+      case 3: // UTF-32
+	  return NSUTF16StringEncoding;
+  }
+  GS_UNREACHABLE();
+#else
   return NSUTF8StringEncoding;
+#endif
+}
+
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  return 0;	// Constant string uses no heap
+}
+
+- (NSUInteger) sizeOfInstance
+{
+  return 0;	// Constant string uses no heap
 }
 
 @end

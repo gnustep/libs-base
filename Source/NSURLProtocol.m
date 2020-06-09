@@ -15,12 +15,12 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
    */ 
 
 #import "common.h"
@@ -35,10 +35,11 @@
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
-#import "GSTLS.h"
 #import "GSURLPrivate.h"
 #import "GNUstepBase/GSMime.h"
+#import "GNUstepBase/GSTLS.h"
 #import "GNUstepBase/NSData+GNUstepBase.h"
+#import "GNUstepBase/NSStream+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
@@ -70,6 +71,7 @@ zfree(void *opaque, void *mem)
 #endif
 #endif
 
+
 static void
 debugRead(id handle, int len, const unsigned char *ptr)
 {
@@ -94,16 +96,16 @@ debugRead(id handle, int len, const unsigned char *ptr)
                                         freeWhenDone: NO];
           esc = [data escapedRepresentation: 0];
 
-          NSLog(@"Read for %p of %d bytes (escaped) - '%s'\n<[%s]>",
-            handle, len, esc, hex); 
+          NSLog(@"Read for %p %@ of %d bytes (escaped) - '%s'\n<[%s]>",
+            handle, [handle in], len, esc, hex); 
           free(esc);
           RELEASE(data);
           free(hex);
           return;
         }
     }
-  NSLog(@"Read for %p of %d bytes - '%*.*s'\n<[%s]>",
-    handle, len, len, len, ptr, hex); 
+  NSLog(@"Read for %p %@ of %d bytes - '%*.*s'\n<[%s]>",
+    handle, [handle in], len, len, len, ptr, hex); 
   free(hex);
 }
 static void
@@ -129,16 +131,16 @@ debugWrite(id handle, int len, const unsigned char *ptr)
                                               length: len
                                         freeWhenDone: NO];
           esc = [data escapedRepresentation: 0];
-          NSLog(@"Write for %p of %d bytes (escaped) - '%s'\n<[%s]>",
-            handle, len, esc, hex); 
+          NSLog(@"Write for %p %@ of %d bytes (escaped) - '%s'\n<[%s]>",
+            handle, [handle out], len, esc, hex); 
           free(esc);
           RELEASE(data);
           free(hex);
           return;
         }
     }
-  NSLog(@"Write for %p of %d bytes - '%*.*s'\n<[%s]>",
-    handle, len, len, len, ptr, hex); 
+  NSLog(@"Write for %p %@ of %d bytes - '%*.*s'\n<[%s]>",
+    handle, [handle out], len, len, len, ptr, hex); 
   free(hex);
 }
 
@@ -368,7 +370,7 @@ typedef struct {
   NSInputStream			*input;
   NSOutputStream		*output;
   NSCachedURLResponse		*cachedResponse;
-  id <NSURLProtocolClient>	client;		// Not retained
+  id <NSURLProtocolClient>	client;
   NSURLRequest			*request;
   unsigned char     *_inputBuffer;
   unsigned char     *_outputBuffer;
@@ -528,6 +530,7 @@ static NSURLProtocol	*placeholder = nil;
       
       DESTROY(this->cachedResponse);
       DESTROY(this->request);
+      DESTROY(this->client);
 #if	USE_ZLIB
       if (this->compressing == YES)
 	{
@@ -598,6 +601,7 @@ static NSURLProtocol	*placeholder = nil;
     {
       this->request = [request copy];
       this->cachedResponse = RETAIN(cachedResponse);
+      this->client = RETAIN(client);
       this->client = client;	// Not retained
       READ_BUFFER = NSZoneCalloc([self zone], 1, MAX_READ_BUFFER);
       WRITE_BUFFER = NSZoneCalloc([self zone], 1, MAX_WRITE_BUFFER);
@@ -990,6 +994,7 @@ static NSURLProtocol	*placeholder = nil;
                 GSTLSPriority,
                 GSTLSRemoteHosts,
                 GSTLSRevokeFile,
+                GSTLSServerName,
                 GSTLSVerify,
                 nil];
             }
@@ -1002,6 +1007,20 @@ static NSURLProtocol	*placeholder = nil;
               if (nil != str)
                 {
                   [this->output setProperty: str forKey: key];
+                }
+            }
+          /* If there is no value set for the server name, and the host in the
+           * URL is a domain name rather than an address, we use that.
+           */
+          if (nil == [this->output propertyForKey: GSTLSServerName])
+            {
+              NSString  *host = [url host];
+              unichar   c;
+
+              c = [host length] == 0 ? 0 : [host characterAtIndex: 0];
+              if (c != 0 && c != ':' && !isdigit(c))
+                {
+                  [this->output setProperty: host forKey: GSTLSServerName];
                 }
             }
           if (_debug) [this->output setProperty: @"YES" forKey: GSTLSDebug];
@@ -1682,7 +1701,7 @@ static NSURLProtocol	*placeholder = nil;
 {
   /* Make sure no action triggered by anything else destroys us prematurely.
    */
-  IF_NO_GC(AUTORELEASE(RETAIN(self));)
+  IF_NO_GC([[self retain] autorelease];)
 
   if (_debug)
     {
