@@ -714,6 +714,9 @@ SANITY();
 	afterRangeLoc, &effectiveRange, tmpLength, _infoArray, &arrayIndex);
       if (attrs == attributes)
         {
+          /* TESTPLANT-MAL-06092020: Unsure whether the merge version from
+           * master would break something here
+          */
           /*
            * The located range has the same attributes as us - so we can
            * extend our range to include it.
