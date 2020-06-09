@@ -79,7 +79,7 @@
  */
 #define GS_DISPATCH_SUBMIT_BLOCK(group, queue, before, after, block, args, ...) \
   if (queue != NULL) {\
-    dispatch_group_async(group, queue, ^(void){before block(args, ## __VA_ARGS__); after});\
+    dispatch_group_async(group, queue, ^(void){before; block(args, ## __VA_ARGS__); after});\
   } else {\
     before\
     block(args, ## __VA_ARGS__);\
