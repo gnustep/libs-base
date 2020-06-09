@@ -511,8 +511,8 @@ delRInfo(int s)
   if (i == _rInfoCount)
     {
       snprintf(ebuf, sizeof(ebuf),
-	"%s requested unallocated RInfo struct (socket %d)",
-	__FUNCTION__, s);
+	"%s requested unallocated RInfo struct (socket %ld)",
+	__FUNCTION__, (long int)s);
       gdomap_log(LOG_ERR);
       return;
     }
@@ -585,8 +585,8 @@ delWInfo(int s)
   if (i == _wInfoCount)
     {
       snprintf(ebuf, sizeof(ebuf),
-	"%s requested unallocated WInfo struct (socket %d)",
-	__FUNCTION__, s);
+	"%s requested unallocated WInfo struct (socket %ld)",
+	__FUNCTION__, (long int)s);
       gdomap_log(LOG_ERR);
       return;
     }
