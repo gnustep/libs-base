@@ -2237,7 +2237,9 @@ IF_NO_GC(
     subPath: subPath localization: nil] objectEnumerator];
   while ((path = [pathlist nextObject]) != nil)
     {
-      if (YES == [mgr isReadableFileAtPath: path])
+      NSString *lastPathComponent = [path lastPathComponent];
+      if ([lastPathComponent isEqualToString:file]
+        && [mgr isReadableFileAtPath: path])
         {
           return path;
         }
