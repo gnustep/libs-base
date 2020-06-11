@@ -126,7 +126,7 @@ before_script: |
 script:
     # configure and make need to be executed via MinGW shell on Windows ($mingw is undefined on Linux)
     - $mingw ./configure $BASE_ABI $CONFIGURE_OPTS || (cat config.log && false)
-    - $mingw make && $mingw make install && $mingw make check || (cat Tests/tests.log && false)
+    - ($mingw make || (cat config.log && false)) && $mingw make install && $mingw make check || (cat Tests/tests.log && false)
 
 # set up packages cache (currently used on Windows only)
 before_cache: |
