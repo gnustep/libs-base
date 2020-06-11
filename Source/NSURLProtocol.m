@@ -843,6 +843,7 @@ static NSURLProtocol	*placeholder = nil;
 	self, @"HEAD",
 	self, @"GET",
 	self, @"POST",
+	self, @"PATCH",
 	self, @"PUT",
 	self, @"DELETE",
 	self, @"TRACE",
