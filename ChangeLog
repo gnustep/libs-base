@@ -1,3 +1,10 @@
+2020-06-11  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSValueTransformer.m:
+	Fix recursive creation of value transformers.
+	* Tests/base/NSValueTransformer/basic.m:
+	Add tests for NSValueTransformer.
+
 2020-06-06  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSBundle.m: Extend NSBundle resources support to handle
