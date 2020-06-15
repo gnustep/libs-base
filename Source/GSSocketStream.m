@@ -61,10 +61,10 @@
   #endif // HAVE_WS2TCPIP_H
 
   #if !defined(HAVE_INET_NTOP)
-  extern const char *inet_ntop(int, const void *, char *, size_t);
+  extern const char* WSAAPI inet_ntop(int, const void *, char *, size_t);
   #endif
   #if !defined(HAVE_INET_NTOP)
-  extern int inet_pton(int , const char *, void *);
+  extern int WSAAPI inet_pton(int , const char *, void *);
   #endif
 
   #define	OPTLEN	int

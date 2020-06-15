@@ -56,11 +56,8 @@ static  __attribute__((unused)) const char *inet_ntop6(const u_char *src, char *
  *      Paul Vixie, 1996.
  */
 const char *
-inet_ntop(af, src, dst, size)
-        int af;
-        const void *src;
-        char *dst;
-        size_t size;
+WSAAPI
+inet_ntop(int af, const void *src, char *dst, size_t size)
 {
         switch (af) {
         case AF_INET:

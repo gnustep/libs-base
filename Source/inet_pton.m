@@ -63,6 +63,7 @@ static int	inet_pton6(const char *src, uint8_t *dst);
  *	Paul Vixie, 1996.
  */
 int
+WSAAPI
 inet_pton(int af, const char *src, void *dst)
 {
 
