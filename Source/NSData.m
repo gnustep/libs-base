@@ -1787,9 +1787,11 @@ failure:
 	{
 	  /*
 	   * We have created a new file - so we attempt to make it's
-	   * attributes match that of the original.
+	   * attributes match that of the original (except for those
+	   * we can't reasonably set).
 	   */
 	  [att removeObjectForKey: NSFileSize];
+	  [att removeObjectForKey: NSFileCreationDate];
 	  [att removeObjectForKey: NSFileModificationDate];
 	  [att removeObjectForKey: NSFileReferenceCount];
 	  [att removeObjectForKey: NSFileSystemNumber];
