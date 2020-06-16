@@ -19,12 +19,12 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
 
    <title>NSArray class reference</title>
    $Date$ $Revision$
@@ -50,6 +50,7 @@
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
+#import "GSPThread.h"
 #import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 #import "GSSorting.h"
@@ -85,7 +86,8 @@ static Class GSPlaceholderArrayClass;
 
 static GSPlaceholderArray	*defaultPlaceholderArray;
 static NSMapTable		*placeholderMap;
-static NSLock			*placeholderLock;
+static pthread_mutex_t          placeholderLock = PTHREAD_MUTEX_INITIALIZER;
+
 
 /**
  * A simple, low overhead, ordered container for objects.  All the objects
@@ -105,7 +107,6 @@ static SEL	rlSel;
 + (void) atExit
 {
   DESTROY(defaultPlaceholderArray);
-  DESTROY(placeholderLock);
   DESTROY(placeholderMap);
 }
 
@@ -136,7 +137,6 @@ static SEL	rlSel;
 	NSAllocateObject(GSPlaceholderArrayClass, 0, NSDefaultMallocZone());
       placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
-      placeholderLock = [NSLock new];
       [self registerAtExit];
     }
 }
@@ -167,7 +167,7 @@ static SEL	rlSel;
 	   * locate the correct placeholder in the (lock protected)
 	   * table of placeholders.
 	   */
-	  [placeholderLock lock];
+	  (void)pthread_mutex_lock(&placeholderLock);
 	  obj = (id)NSMapGet(placeholderMap, (void*)z);
 	  if (obj == nil)
 	    {
@@ -178,7 +178,7 @@ static SEL	rlSel;
 	      obj = (id)NSAllocateObject(GSPlaceholderArrayClass, 0, z);
 	      NSMapInsert(placeholderMap, (void*)z, (void*)obj);
 	    }
-	  [placeholderLock unlock];
+	  (void)pthread_mutex_unlock(&placeholderLock);
 	  return obj;
 	}
     }
@@ -1204,6 +1204,10 @@ compare(id elem1, id elem2, void* context)
               index--;
             }
         }
+      if (index >= NSMaxRange(range))
+        {
+          return NSNotFound;
+        }
       /*
        * For a search from the left, we'd have the correct index anyways. Check
        * whether it's equal to the key and return NSNotFound otherwise
@@ -1214,7 +1218,6 @@ compare(id elem1, id elem2, void* context)
   // Never reached
   return NSNotFound;
 }
-
 
 /**
  * Returns a string formed by concatenating the objects in the receiver,
@@ -1787,7 +1790,7 @@ compare(id elem1, id elem2, void* context)
   {
   GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
   FOR_IN (id, obj, enumerator)
-    GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (YES == shouldStop) {return;}, return, aBlock, obj, count, &shouldStop);
+    GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue, if (shouldStop == NO) {, }, aBlock, obj, count, &shouldStop);
       if (isReverse)
         {
           count--;
@@ -1838,7 +1841,8 @@ compare(id elem1, id elem2, void* context)
     GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
     FOR_IN (id, obj, enumerator)
 #     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
-
+      if (enumQueue != NULL)
+        {
       dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
         if (shouldStop)
         {
@@ -1851,14 +1855,15 @@ compare(id elem1, id elem2, void* context)
 	  [setLock unlock];
         }
       });
-#     else
+        }
+      else // call block directly
+#     endif
       if (CALL_BLOCK(predicate, obj, count, &shouldStop))
         {
 	  /* TODO: It would be more efficient to collect an NSRange and only
 	   * pass it to the index set when CALL_BLOCK returned NO. */
 	  [set addIndex: count];
         }
-#     endif
       if (shouldStop)
         {
 	  break;
@@ -1880,9 +1885,32 @@ compare(id elem1, id elem2, void* context)
 				  options: (NSEnumerationOptions)opts
 			      passingTest: (GSPredicateBlock)predicate
 {
-  return [[self objectsAtIndexes: indexSet]
+  NSIndexSet *rindexes =[[self objectsAtIndexes: indexSet]
     indexesOfObjectsWithOptions: opts
     passingTest: predicate];
+  NSUInteger count = [indexSet count];
+  NSUInteger resultCount = [rindexes count];
+  NSUInteger indexArray[count], resultIndexArray[resultCount];
+  NSMutableIndexSet *resultSet = [NSMutableIndexSet indexSet];
+  NSUInteger i = 0;
+  
+  [indexSet getIndexes: indexArray
+	      maxCount: count
+	  inIndexRange: NULL];
+
+  [rindexes getIndexes: resultIndexArray
+	      maxCount: resultCount
+	  inIndexRange: NULL];
+
+  // interate over indexes and collect the matching ones..
+  for(i = 0; i < resultCount; i++)
+    {
+      NSUInteger rindx = resultIndexArray[i];
+      NSUInteger indx = indexArray[rindx];
+      [resultSet addIndex: indx];
+    }
+
+  return resultSet;
 }
 
 - (NSUInteger) indexOfObjectWithOptions: (NSEnumerationOptions)opts
@@ -1910,6 +1938,8 @@ compare(id elem1, id elem2, void* context)
     GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
     FOR_IN (id, obj, enumerator)
 #     if __has_feature(blocks) && (GS_USE_LIBDISPATCH == 1)
+      if (enumQueue != NULL)
+        {
       dispatch_group_async(enumQueueGroup, enumQueue, ^(void){
         if (shouldStop)
         {
@@ -1926,14 +1956,14 @@ compare(id elem1, id elem2, void* context)
 	  [indexLock unlock];
         }
       });
-#     else
+        }
+      else // call block directly
+#     endif
       if (CALL_BLOCK(predicate, obj, count, &shouldStop))
         {
-
 	  index = count;
 	  shouldStop = YES;
         }
-#     endif
       if (shouldStop)
         {
 	  break;
@@ -1955,9 +1985,17 @@ compare(id elem1, id elem2, void* context)
 			      options: (NSEnumerationOptions)opts
 			  passingTest: (GSPredicateBlock)predicate
 {
-  return [[self objectsAtIndexes: indexSet]
+  NSUInteger index = [[self objectsAtIndexes: indexSet]
         indexOfObjectWithOptions: 0
                      passingTest: predicate];
+  NSUInteger count = [indexSet count];
+  NSUInteger indexArray[count];
+
+  [indexSet getIndexes: indexArray
+	      maxCount: count
+	  inIndexRange: NULL];
+
+  return indexArray[index];
 }
 
 - (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
@@ -2488,16 +2526,38 @@ compare(id elem1, id elem2, void* context)
  */
 - (void) removeObjectsInArray: (NSArray*)otherArray
 {
-  NSUInteger	c = [otherArray count];
+  if (otherArray == self)
+    {
+      [self removeAllObjects];
+    }
+  else if (otherArray != nil)
+{
+      NSUInteger	c;
 
-  if (c > 0)
+      if (NO == [otherArray isKindOfClass: NSArrayClass])
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"-removeObjectsInArray: non-array argument"];
+	}
+      if ((c = [otherArray count]) > 0)
     {
       NSUInteger	i;
       IMP	get = [otherArray methodForSelector: oaiSel];
       IMP	rem = [self methodForSelector: @selector(removeObject:)];
 
+	  /* Guard otherArray in case it's a subclass which does not
+	   * retain its contents; in that case it would be possible
+	   * for otherArray to be contained by the receiver and be
+	   * deallocated during the loop below.
+	   */
+	  RETAIN(otherArray);
       for (i = 0; i < c; i++)
-	(*rem)(self, @selector(removeObject:), (*get)(otherArray, oaiSel, i));
+	    {
+	      (*rem)(self, @selector(removeObject:),
+		(*get)(otherArray, oaiSel, i));
+	    }
+	  RELEASE(otherArray);
+	}
     }
 }
 

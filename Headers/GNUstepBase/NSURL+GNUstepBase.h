@@ -38,6 +38,12 @@ extern "C" {
 
 @interface NSURL (GNUstepBaseAdditions)
 
+/** Returns a string (encapsulating the scheme, host and port of the receiver)
+ * suitable for use as a key to store the receiver in a cache of objects used
+ * to access resources using the same network connection.
+ */
+- (NSString*) cacheKey;
+
 /** Builds a URL from components as returned by the methods of the same names.
  */
 - (id) initWithScheme: (NSString*)scheme

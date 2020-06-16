@@ -2065,7 +2065,9 @@ GSPrintf (FILE *fptr, NSString* format, ...)
 #   define	AADD(c, o) 
 #   define	AREM(c, o) 
 # endif
-
+#else
+# define	AADD(c, o) 
+# define	AREM(c, o) 
 #endif	/* defined(GNUSTEP_BASE_LIBRARY) */
 
 void

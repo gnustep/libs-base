@@ -14,12 +14,12 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
    */
 
 
@@ -79,6 +79,22 @@
 
 static SEL	nxtSel;
 static SEL	objSel;
+
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  NSUInteger    	size = GSIMapSize(&map) - sizeof(GSIMapTable);
+  GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
+  GSIMapNode		node = GSIMapEnumeratorNextNode(&enumerator);
+
+  while (node != 0)
+    {
+      size += [node->key.obj sizeInBytesExcluding: exclude];
+      size += [node->value.obj sizeInBytesExcluding: exclude];
+      node = GSIMapEnumeratorNextNode(&enumerator);
+    }
+  GSIMapEndEnumerator(&enumerator);
+  return size + [super sizeOfContentExcluding: exclude];
+}
 
 + (void) initialize
 {
@@ -381,6 +397,13 @@ static SEL	objSel;
 
 @implementation GSMutableDictionary
 
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  /* Can't safely calculate for mutable object; just buffer size
+   */
+  return map.nodeCount * sizeof(GSIMapNode);
+}
+
 + (void) initialize
 {
   if (self == [GSMutableDictionary class])
@@ -498,10 +521,8 @@ static SEL	objSel;
 				     count: (NSUInteger)len
 {
   state->mutationsPtr = (unsigned long *)&_version;
-  NSInteger count = GSIMapCountByEnumeratingWithStateObjectsCount(&map, state, stackbuf, len);
-  if (count == -1)
-    objc_enumerationMutation(self);
-  return (NSUInteger)count;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
 }
 @end
 

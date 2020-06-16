@@ -14,12 +14,12 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
 
    <title>NSFileHandle class reference</title>
    $Date$ $Revision$
@@ -32,10 +32,10 @@
 #import "Foundation/NSHost.h"
 #import "Foundation/NSFileHandle.h"
 #import "Foundation/NSPathUtilities.h"
+#import "GNUstepBase/GSTLS.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSNetwork.h"
-#import "GSTLS.h"
 
 
 #define	EXPOSE_GSFileHandle_IVARS	1
@@ -66,6 +66,7 @@ static Class NSFileHandle_ssl_class = nil;
 }
 - (void) sslDisconnect;
 - (BOOL) sslHandshakeEstablished: (BOOL*)result outgoing: (BOOL)isOutgoing;
+- (NSDictionary*) sslOptions;
 - (NSString*) sslSetOptions: (NSDictionary*)options;
 @end
 #endif
@@ -848,6 +849,21 @@ NSString * const NSFileHandleOperationException
   return YES;
 }
 
+- (NSString*) sslIssuer
+{
+  return nil;
+}
+
+- (NSDictionary*) sslOptions
+{
+  return nil;
+}
+
+- (NSString*) sslOwner
+{
+  return nil;
+}
+
 - (void) sslSetCertificate: (NSString*)certFile
                 privateKey: (NSString*)privateKey
                  PEMpasswd: (NSString*)PEMpasswd
@@ -855,7 +871,11 @@ NSString * const NSFileHandleOperationException
   NSMutableDictionary   *opts;
   NSString              *err;
 
+  opts = AUTORELEASE([[self sslOptions] mutableCopy]);
+  if (nil == opts)
+    {
   opts = [NSMutableDictionary dictionaryWithCapacity: 3];
+    }
   if (nil != certFile)
     {
       [opts setObject: certFile forKey: GSTLSCertificateFile];
@@ -972,6 +992,20 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
   return [super read: buf length: len];
 }
 
+- (BOOL) sslAccept
+{
+  /* If a server session is over five minutes old, destroy it so that
+   * we create a new one to accept the incoming connection.  This is
+   * needed in case the certificate files associated with a long running
+   * server have been updated and we need to load/use the new certificate.
+   */
+  if (session != nil && [session age] >= 300.0)
+    {
+      DESTROY(session);
+    }
+  return [super sslAccept];
+}
+
 - (void) sslDisconnect
 {
   [self setNonBlocking: NO];
@@ -1043,6 +1077,21 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
       *result = [session active];
       return YES;
     }
+}
+
+- (NSString*) sslIssuer
+{
+  return [session issuer];
+}
+
+- (NSDictionary*) sslOptions
+{
+  return opts;
+}
+
+- (NSString*) sslOwner
+{
+  return [session owner];
 }
 
 - (NSString*) sslSetOptions: (NSDictionary*)options

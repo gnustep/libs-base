@@ -14,12 +14,12 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
    */ 
 
 #import "common.h"
@@ -37,7 +37,7 @@
 static NSMutableDictionary	*domainMap = nil;
 static NSMutableSet		*spaces = nil;
 static NSMutableDictionary	*store = nil;
-static GSLazyLock		*storeLock = nil;
+static NSLock		*storeLock = nil;
 static GSMimeParser		*mimeParser = nil;
 
 @interface NSData(GSHTTPDigest)
@@ -89,7 +89,7 @@ static GSMimeParser		*mimeParser = nil;
       [[NSObject leakAt: &domainMap] release];
       store = [NSMutableDictionary new];
       [[NSObject leakAt: &store] release];
-      storeLock = [GSLazyLock new];
+      storeLock = [NSLock new];
       [[NSObject leakAt: &storeLock] release];
     }
 }
@@ -178,6 +178,14 @@ static GSMimeParser		*mimeParser = nil;
       else if ([key caseInsensitiveCompare: @"Digest"] == NSOrderedSame)
         {
 	  method = NSURLAuthenticationMethodHTTPDigest;
+	}
+      else if ([key caseInsensitiveCompare: @"NTLM"] == NSOrderedSame)
+        {
+	  method = NSURLAuthenticationMethodNTLM;
+	}
+      else if ([key caseInsensitiveCompare: @"Negotiate"] == NSOrderedSame)
+        {
+	  method = NSURLAuthenticationMethodNegotiate;
 	}
       else
 	{
@@ -541,11 +549,31 @@ static GSMimeParser		*mimeParser = nil;
 
       [self->_lock unlock];
     }
-  else
+  else if ([self->_space authenticationMethod]
+    == NSURLAuthenticationMethodHTMLForm)
+    {
+      // This should not generate any authentication header.
+      return nil;
+    }
+  else if ([self->_space authenticationMethod]
+    == NSURLAuthenticationMethodNTLM)
+    {
+      // FIXME: this needs to be implemented
+      return nil;
+    }
+  else if ([self->_space authenticationMethod]
+    == NSURLAuthenticationMethodNegotiate)
+    {
+      // FIXME: this needs to be implemented
+      return nil;
+    }
+  else if ([self->_space authenticationMethod]
+    == NSURLAuthenticationMethodDefault
+    || [self->_space authenticationMethod]
+    == NSURLAuthenticationMethodHTTPBasic)
     {
       NSString	*toEncode;
 
-// FIXME ... should support other methods
       if (authentication != nil)
 	{
 	  NSScanner		*sc;
@@ -572,6 +600,14 @@ static GSMimeParser		*mimeParser = nil;
       [authorisation appendFormat: @"Basic %@",
 	[GSMimeDocument encodeBase64String: toEncode]];
     }
+  else
+    {
+      // FIXME: Currently, ClientCertificate and ServerTrust authentication
+      // methods are NOT implemented and will end up here. They should, in fact,
+      // be handled in the SSL connection layer (in GSHTTPURLHandle) rather than
+      // in this method.
+      return nil;
+    }
   return authorisation;
 }
 
@@ -596,7 +632,7 @@ static GSMimeParser		*mimeParser = nil;
 {
   if ((self = [super init]) != nil)
     {
-      self->_lock = [GSLazyLock new];
+      self->_lock = [NSLock new];
       ASSIGN(self->_space, space);
       ASSIGN(self->_credential, credential);
     }

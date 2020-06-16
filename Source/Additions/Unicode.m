@@ -657,22 +657,7 @@ uni_cop(unichar u)
   return GSPrivateUniCop(u);
 }
 
-BOOL
-uni_isnonsp(unichar u)
-{
-  /*
-   * Treating upper surrogates as non-spacing is a convenient solution
-   * to a number of issues with UTF-16
-   */
-  if ((u >= 0xdc00) && (u <= 0xdfff))
-    return YES;
-
-// FIXME check is uni_cop good for this
-  if (GSPrivateUniCop(u))
-    return YES;
-  else
-    return NO;
-}
+// uni_isnonsp(unichar u) now implemented in NSString.m
 
 unichar*
 uni_is_decomp(unichar u)

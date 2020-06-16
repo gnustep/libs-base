@@ -14,12 +14,12 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
    */
 
 #import "common.h"
@@ -205,7 +205,11 @@ static int	tuneSBuf = 0;
    * Enable tcp-level tracking of whether connection is alive.
    */
   value = 1;
-  setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char *)&value, sizeof(value));
+  if (setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char *)&value, sizeof(value))
+    < 0)
+    {
+      NSDebugMLLog(@"GSTcpTune", @"setsockopt keepalive failed");
+    }
 
   if (tuneLinger >= 0)
     {
@@ -281,6 +285,13 @@ static GSTcpTune        *tune = nil;
 
   do
     {
+#ifdef __ANDROID__
+      if (asset)
+	{
+	  result = AAsset_read(asset, buf, len);
+	}
+      else
+#endif
 #if	USE_ZLIB
       if (gzDescriptor != 0)
 	{
@@ -375,6 +386,14 @@ static GSTcpTune        *tune = nil;
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
 
+#ifdef __ANDROID__
+  if (asset)
+    {
+      AAsset_close(asset);
+      asset = NULL;
+    }
+  else
+#endif
   if (closeOnDealloc == YES && descriptor != -1)
     {
       [self closeFile];
@@ -1016,7 +1035,11 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
    * that multiple processes can serve the same port simultaneously.
    * We don't want that broken behavior!
    */
-  setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char *)&status, sizeof(status));
+  if (setsockopt(net, SOL_SOCKET, SO_REUSEADDR, (char*)&status, sizeof(status))
+    < 0)
+    {
+      NSDebugMLLog(@"GSTcpTune", @"setsockopt reuseaddr failed");
+    }
 #endif
 
   if (bind(net, &sin, GSPrivateSockaddrLength(&sin)) == -1)
@@ -1067,6 +1090,15 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
   if (d < 0)
     {
+#ifdef __ANDROID__
+      asset = [NSBundle assetForPath:path withMode:AASSET_MODE_RANDOM];
+      if (asset)
+	{
+	  readOK = YES;
+	  return self;
+	}
+#endif
+      
       DESTROY(self);
       return nil;
     }
@@ -1637,6 +1669,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   off_t	result = -1;
 
+#ifdef __ANDROID__
+  if (asset)
+    {
+      result = AAsset_seek(asset, 0, SEEK_CUR);
+    }
+  else
+#endif
   if (isStandardFile && descriptor >= 0)
     {
 #if	USE_ZLIB
@@ -1661,6 +1700,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   off_t	result = -1;
 
+#ifdef __ANDROID__
+  if (asset)
+    {
+      result = AAsset_seek(asset, 0, SEEK_END);
+    }
+  else
+#endif
   if (isStandardFile && descriptor >= 0)
     {
 #if	USE_ZLIB
@@ -1685,6 +1731,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   off_t	result = -1;
 
+#ifdef __ANDROID__
+  if (asset)
+    {
+      result = AAsset_seek(asset, (off_t)pos, SEEK_SET);
+    }
+  else
+#endif
   if (isStandardFile && descriptor >= 0)
     {
 #if	USE_ZLIB
@@ -1718,6 +1771,15 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   [self ignoreWriteDescriptor];
 
   [self setNonBlocking: NO];
+  
+#ifdef __ANDROID__
+  if (asset)
+    {
+      AAsset_close(asset);
+      asset = NULL;
+    }
+  else
+#endif
 #if	USE_ZLIB
   if (gzDescriptor != 0)
     {
@@ -2086,8 +2148,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  h = [[[self class] alloc] initWithFileDescriptor: desc
 					    closeOnDealloc: YES];
 	  h->isSocket = YES;
-	  getpeername(desc, &sin, &size);
+	  if (getpeername(desc, &sin, &size) >= 0)
+            {
 	  [h setAddr: &sin];
+            }
 	  [readInfo setObject: h
 		   forKey: NSFileHandleNotificationFileHandleItem];
 	  RELEASE(h);
@@ -2373,7 +2437,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       return NO;	// Can't both read and write.
     }
-  d = dup(descriptor);
+  d = dup(descriptor);  // d is closed by gzclose() later.
   if (d < 0)
     {
       return NO;	// No descriptor available.

@@ -13,7 +13,7 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
@@ -24,6 +24,12 @@
 #define _GSPThread_h_
 
 #include <pthread.h>
+
+#import "Foundation/NSLock.h"
+
+@class  GSStackTrace;
+@class  NSArray;
+@class  NSMapTable;
 
 /*
  * Macro to initialize recursive mutexes in a portable way. Adopted from
@@ -47,5 +53,60 @@ static inline void GSPThreadInitRecursiveMutex(pthread_mutex_t *x)
   pthread_mutexattr_destroy(&recursiveAttributes);
 }
 # endif // PTHREAD_RECURSIVE_MUTEX_INITIALIZER(_NP)
+
+
+/* Class to obtain/encapsulate a stack trace for exception reporting and/or
+ * lock tracing.
+ */
+@interface GSStackTrace : NSObject
+{
+  NSArray	        *symbols;
+  NSArray	        *addresses;
+@public
+  NSUInteger            recursion;      // Recursion count for lock trace
+  NSUInteger	        *returns;       // The return addresses on the stack
+  int                   numReturns;     // Number of return addresses
+}
+- (NSArray*) addresses; // Return addresses from last trace
+- (NSArray*) symbols;   // Return symbols from last trace
+- (void) trace;         // Populate with new stack trace
+@end
+
+/* Versions of the lock classes where the locking is never traced
+ */
+@interface      GSUntracedCondition : NSCondition
+@end
+@interface      GSUntracedConditionLock : NSConditionLock
+@end
+@interface      GSUntracedLock : NSLock
+@end
+@interface      GSUntracedRecursiveLock : NSRecursiveLock
+@end
+
+/* Versions of the lock classes where the locking is traced
+ */
+@interface      GSTracedCondition : NSCondition
+{
+  GSStackTrace  *stack;
+}
+- (GSStackTrace*) stack;
+@end
+
+@interface      GSTracedConditionLock : NSConditionLock
+@end
+
+@interface      GSTracedLock : NSLock
+{
+  GSStackTrace  *stack;
+}
+- (GSStackTrace*) stack;
+@end
+
+@interface      GSTracedRecursiveLock : NSRecursiveLock
+{
+  GSStackTrace  *stack;
+}
+- (GSStackTrace*) stack;
+@end
 
 #endif // _GSPThread_h_

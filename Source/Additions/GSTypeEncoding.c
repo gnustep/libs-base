@@ -394,7 +394,7 @@ GSObjCParseTypeSpecification (const char *cursor,
         switch (*cursor)
           {
             case GSObjCTypeUnionEnd:
-              --suppressionDepth;
+              --suppressionDepth;       /* FALLTHROUGH */
             case GSObjCTypeArrayEnd:
               {
                 if (element->count)
@@ -414,7 +414,7 @@ GSObjCParseTypeSpecification (const char *cursor,
                         break;
                       }
                   }
-              }
+              }         /* FALLTHROUGH */
             case GSObjCTypeStructureEnd:
               {
                 info.qualifiers = element->qualifiers;

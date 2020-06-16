@@ -28,6 +28,7 @@
 
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSError.h"
+#import "Foundation/NSLock.h"
 #import "GSPrivate.h"
 
 /**

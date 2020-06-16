@@ -15,12 +15,12 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
 */
 
 
@@ -244,6 +244,18 @@
   return NSStringFromSize(data);
 #endif
 }
+
+#if TYPE_ORDER == 1
+- (NSSize)sizeValue
+{
+  return NSMakeSize(data.x, data.y);
+}
+#elif TYPE_ORDER == 5
+- (NSPoint)pointValue
+{
+  return NSMakePoint(data.width, data.height);
+}
+#endif
 
 // NSCoding
 - (void) encodeWithCoder: (NSCoder*)coder

@@ -20,7 +20,7 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
    If you are interested in a warranty or support for this source code,
    contact Scott Christley <scottc@net-community.com> for more information.
@@ -28,7 +28,7 @@
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
 */
 
 /* Warning -	[-initWithString:attributes:] is the designated initialiser,
@@ -683,7 +683,8 @@ SANITY();
   unsigned	tmpLength;
   unsigned	arrayIndex = 0;
   unsigned	arraySize;
-  NSRange	effectiveRange = NSMakeRange(0, NSNotFound);
+  // Initial value unused; set by _attributesAtIndexEffectiveRange
+  NSRange	effectiveRange = NSMakeRange(NSNotFound, 0);
   unsigned	afterRangeLoc, beginRangeLoc;
   NSDictionary	*attrs;
   NSZone	*z = [self zone];
@@ -713,6 +714,9 @@ SANITY();
 	afterRangeLoc, &effectiveRange, tmpLength, _infoArray, &arrayIndex);
       if (attrs == attributes)
         {
+          /* TESTPLANT-MAL-06092020: Unsure whether the merge version from
+           * master would break something here
+          */
           /*
            * The located range has the same attributes as us - so we can
            * extend our range to include it.
@@ -798,7 +802,8 @@ SANITY();
   unsigned	tmpLength;
   unsigned	arrayIndex = 0;
   unsigned	arraySize;
-  NSRange	effectiveRange = NSMakeRange(0, NSNotFound);
+  // Initial value unused; set by _attributesAtIndexEffectiveRange
+  NSRange	effectiveRange = NSMakeRange(NSNotFound, 0);
   GSAttrInfo	*info;
   int		moveLocations;
   unsigned	start;

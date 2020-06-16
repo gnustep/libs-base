@@ -45,9 +45,6 @@
 extern "C" {
 #endif
 
-// Defined in NSEnumerator.m...
-void objc_enumerationMutation(id);
-  
 /* To easily un-inline functions for debugging */
 #ifndef GS_STATIC_INLINE
 #define GS_STATIC_INLINE static inline
@@ -160,9 +157,12 @@ void objc_enumerationMutation(id);
 #  define GSI_MAP_WRITE_VAL(M, addr, obj) (*(addr) = obj)
 #endif
 #if	GSI_MAP_HAS_VALUE
-#define GSI_MAP_NODE_IS_EMPTY(M, node) (((GSI_MAP_READ_VALUE(M, &node->key).addr) == 0) || ((GSI_MAP_READ_VALUE(M, &node->value).addr == 0)))
+#define GSI_MAP_NODE_IS_EMPTY(M, node) \
+  (((GSI_MAP_READ_KEY(M, &node->key).addr) == 0) \
+  || ((GSI_MAP_READ_VALUE(M, &node->value).addr == 0)))
 #else
-#define GSI_MAP_NODE_IS_EMPTY(M, node) (((GSI_MAP_READ_VALUE(M, &node->key).addr) == 0))
+#define GSI_MAP_NODE_IS_EMPTY(M, node) \
+  (((GSI_MAP_READ_KEY(M, &node->key).addr) == 0))
 #endif
 
 /*
@@ -450,7 +450,7 @@ GSIMapAddNodeToMap(GSIMapTable map, GSIMapNode node)
 {
   GSIMapBucket	bucket;
 
-  bucket = GSIMapBucketForKey(map, node->key);
+  bucket = GSIMapBucketForKey(map, GSI_MAP_READ_KEY(map, &node->key));
   GSIMapAddNodeToBucket(bucket, node);
   map->nodeCount++;
 }
@@ -543,7 +543,8 @@ GSIMapRemangleBuckets(GSIMapTable map,
 		  GSIMapBucket	bkt;
 
 		  GSIMapRemoveNodeFromBucket(old_buckets, node);
-		  bkt = GSIMapPickBucket(GSI_MAP_HASH(map, node->key),
+		  bkt = GSIMapPickBucket(GSI_MAP_HASH(map,
+		    GSI_MAP_READ_KEY(map, &node->key)),
 		    new_buckets, new_bucketCount);
 		  GSIMapAddNodeToBucket(bkt, node);
 		}
@@ -561,7 +562,8 @@ GSIMapRemangleBuckets(GSIMapTable map,
 	  GSIMapBucket	bkt;
 
 	  GSIMapRemoveNodeFromBucket(old_buckets, node);
-	  bkt = GSIMapPickBucket(GSI_MAP_HASH(map, node->key),
+	  bkt = GSIMapPickBucket(GSI_MAP_HASH(map,
+	    GSI_MAP_READ_KEY(map, &node->key)),
 	    new_buckets, new_bucketCount);
 	  GSIMapAddNodeToBucket(bkt, node);
 	}
@@ -945,7 +947,7 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 	{
 	  uintptr_t	bucket = ((_GSIE)enumerator)->bucket;
 
-	  while (next != 0 && next->key.addr == 0)
+	  while (next != 0 && GSI_MAP_NODE_IS_EMPTY(map, next))
 	    {
 	      next = GSIMapRemoveAndFreeNode(map, bucket, next);
 	    }
@@ -961,7 +963,7 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 	      while (next == 0 && ++bucket < bucketCount)
 		{
 		  next = (map->buckets[bucket]).firstNode;
-		  while (next != 0 && next->key.addr == 0)
+		  while (next != 0 && GSI_MAP_NODE_IS_EMPTY(map, next))
 		    {
 		      next = GSIMapRemoveAndFreeNode(map, bucket, next);
 		    }
@@ -987,11 +989,8 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
  */
 GS_STATIC_INLINE NSUInteger 
 GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
-                                              NSFastEnumerationState *state,
-                                              id *stackbuf,
-                                              NSUInteger len)
+  NSFastEnumerationState *state, id *stackbuf, NSUInteger len)
 {
-  NSInteger nodeCount = map->nodeCount; // Cache this in case of object problems...
   NSInteger count;
   NSInteger i;
 
@@ -1021,10 +1020,7 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
       enumerator.bucket = ((struct GSPartMapEnumerator*)(state->extra))->bucket;
     }
   /* Get the next count objects and put them in the stack buffer. */
-  // TESTPLANT-MAL-10052017: Added check using stack vars for potential object
-  // release due to threading issues...
-  NSInteger cacheCount = count;
-  for (i = 0; ((i < count) && (count == cacheCount) && (count <= nodeCount)); i++)
+  for (i = 0; i < count; i++)
     {
       GSIMapNode node = GSIMapEnumeratorNextNode(&enumerator);
       if (0 != node)
@@ -1036,12 +1032,6 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
           stackbuf[i] = (id)GSI_MAP_READ_KEY(map, &node->key).addr;
         }
     }
-  // TESTPLANT-MAL-10062017: Check for mutation during enumeration...
-  // Theoretically we should have gone for count objects so if we exited
-  // early we're going to assume something bad happened here...
-  if (i < count)
-    return -1;
-  
   /* Store the important bits of the enumerator in the caller. */
   ((struct GSPartMapEnumerator*)(state->extra))->node = enumerator.node;
   ((struct GSPartMapEnumerator*)(state->extra))->bucket = enumerator.bucket;

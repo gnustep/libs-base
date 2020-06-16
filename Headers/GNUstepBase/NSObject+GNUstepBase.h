@@ -111,27 +111,89 @@ extern "C" {
 
 @end
 
-/** This is an informal protocol ... classes may implement the method to
- * report how much memory is used by the instance and any objects it acts
- * as a container for.
+/** This is an informal protocol; classes may implement the
+ * +contentSizeOf:declaredIn:excluding: method to report how much memory
+ * is used by any objects/pointers it acts as a container for.<br />
+ * Code may call the -sizeInBytesExcluding: or -sizeinBytes method to
+ * determine how much heap memory an object (and its content) occupies.
  */
 @interface      NSObject(MemoryFootprint)
-/* This method returns the memory usage of the receiver, excluding any
+/** This method returns the size of the memory used by the object instance
+ * variables of the target object (excluding any in the specified set).<br />
+ * This is not the memory occupied by instance variable pointers.
+ * It is the memory referenced by any objects inside the target.<br />
+ * This method is not intended to be overridden, rather it is provided for
+ * use as a helper for the -sizeOfContentExcluding: method.<br />
+ * This method must not be called for a mutable object unless it is protected
+ * by a locking mechanism to prevent mutation while it is examining the 
+ * instance variables of the object.
+ * <example>
+ * @interface	foo : bar
+ * {
+ *   id	a;		// Some object
+ *   id b;		// More storage
+ *   unsigned capacity;	// Buffer size
+ *   char *p;		// The buffer
+ * }
+ * @end
+ * @implementation foo
+ * - (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+ *{ 
+ *  NSUInteger	size;
+ *
+ *  // get the size of the objects (a and b)
+ *  size = [NSObject contentSizeOf: self
+ *			 excluding: exclude];
+ *  // add the memory pointed to by p
+ *  size += capacity * sizeof(char);
+ *  return size;
+ *}
+ *@end
+ * </example>
+ */
++ (NSUInteger) contentSizeOf: (NSObject*)obj
+                   excluding: (NSHashTable*)exclude;
+
+/** This method returns the memory usage of the receiver, excluding any
  * objects already present in the exclude table.<br />
  * The argument is a hash table configured to hold non-retained pointer
  * objects and is used to inform the receiver that its size should not
  * be counted again if it's already in the table.<br />
  * The NSObject implementation returns zero if the receiver is in the
  * table, but otherwise adds itself to the table and returns its memory
- * footprint (the sum of all of its instance variables, but not any
- * memory pointed to by those variables).<br />
- * Subclasses should override this method by calling the superclass
- * implementation, and either return the result (if it was zero) or
- * return that value plus the sizes of any memory owned by the receiver
- * (eg found by calling the same method on objects pointed to by the
- * receiver's instance variables).
+ * footprint (the sum of all of its instance variables, plus the result
+ * of calling -sizeOfContentExcluding: for the instance).<br />
+ * Classes should not override this method, instead they should implement
+ * -sizeOfContentExcluding: to return the extra memory usage
+ * of the pointer/object instance variables (heap memory) they add to
+ * their superclass.<br />
+ * NB. mutable objects must either prevent mutation while calculating
+ * their content size, or must override -sizeOfContentExcluding: to refrain
+ * from dealing with content which might change.
  */
 - (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude;
+
+/** Convenience method calling -sizeInBytesExcluding: with a newly created
+ * exclusion hash table, and destroying the table once the size is calculated.
+ */
+- (NSUInteger) sizeInBytes;
+
+/** This method is called by -sizeInBytesExcluding: to calculate the size of
+ * any objects or heap memory contained by the receiver.<br />
+ * The base class implementation simply returns zero (as it is not possible
+ * to safely calculate content sizes of mutable objects), but subclasses should
+ * override it to provide correct information where possible (eg if the object
+ * is immutable or if locking is used to prevent mutation while calculating
+ * content size).<br />
+ * Subclasses may use the +contentSizeOf:excluding: method as a convenience
+ * to provide the sizes of object instnce variables.
+ */
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude;
+
+/** Helper method called by -sizeInBytesExcluding: to return the size of
+ * the instance excluding any contents (things referenced by pointers).
+ */
+- (NSUInteger) sizeOfInstance;
 @end
 
 /** This is an informal protocol ... classes may implement the method and

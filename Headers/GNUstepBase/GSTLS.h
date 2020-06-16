@@ -36,9 +36,10 @@ extern NSString * const GSTLSDebug;
 extern NSString * const GSTLSPriority;
 extern NSString * const GSTLSRemoteHosts;
 extern NSString * const GSTLSRevokeFile;
+extern NSString * const GSTLSServerName;
 extern NSString * const GSTLSVerify;
 
-#if     defined(HAVE_GNUTLS)
+#if GS_USE_GNUTLS
 /* Temporarily redefine 'id' in case the headers use the objc reserved word.
  */
 #define	id	GNUTLSID
@@ -125,6 +126,13 @@ extern NSString * const GSTLSVerify;
  */
 - (unsigned int) count;
 
+/* Return the earliest expiry date of any certificate in the list.
+ */
+- (NSDate*) expiresAt;
+
+/* Return the date when a certificate in the list expires.
+ */
+- (NSDate*) expiresAt: (unsigned int)index;
 @end
 
 /* This encapsulates private keys used to unlock certificates
@@ -150,6 +158,7 @@ extern NSString * const GSTLSVerify;
   GSTLSCertificateList                  *list;
   GSTLSDHParams                         *dhParams;
   BOOL                                  trust;
+  BOOL                                  freeCred;
   gnutls_certificate_credentials_t      certcred;
 }
 + (GSTLSCredentials*) credentialsFromCAFile: (NSString*)ca
@@ -183,11 +192,14 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
   NSDictionary                          *opts;
   GSTLSCredentials                      *credentials;
   NSString                              *problem;
+  NSString                              *issuer;
+  NSString                              *owner;
   BOOL                                  outgoing;
   BOOL                                  active;
   BOOL                                  handshake;
   BOOL                                  setup;
   BOOL                                  debug;
+  NSTimeInterval                        created;
 @public
   gnutls_session_t                      session;
 }
@@ -207,6 +219,10 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
  * session has not been disconnected), NO otherwise.
  */
 - (BOOL) active;
+
+/** Returns the age of this instance (how long since it was created).
+ */
+- (NSTimeInterval) age;
 
 /* Returns the credentials object ofr this session.
  */
@@ -229,6 +245,18 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
  */
 - (BOOL) handshake;
 
+/** If the session verified a certificate from the remote end, returns the
+ * name of the certificate issuer in the form "C=xxxx,O=yyyy,CN=zzzz" as
+ * described in RFC4514.  Otherwise returns nil.
+ */
+- (NSString*) issuer;
+
+/** If the session verified a certificate from the remote end, returns the
+ * name of the certificate owner in the form "C=xxxx,O=yyyy,CN=zzzz" as
+ * described in RFC4514.  Otherwise returns nil.
+ */
+- (NSString*) owner;
+
 /* After a failed handshake, this should contain a description of the
  * failure reason.
  */
@@ -246,7 +274,7 @@ typedef ssize_t (*GSTLSIOW)(gnutls_transport_ptr_t, const void *, size_t);
  */
 - (NSInteger) write: (const void*)buf length: (NSUInteger)len;
 
-/* For internal use to verify the remmote system's vertificate.
+/* For internal use to verify the remote system's certificate.
  * Returns 0 on success, negative on failure.
  */
 - (int) verify;

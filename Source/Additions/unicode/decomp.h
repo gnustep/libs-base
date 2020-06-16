@@ -10,7 +10,6 @@
 
 struct _dec_ {unichar code; unichar decomp[5];};
 
-static const unsigned int uni_dec_table_size = 1052;
 static struct _dec_ uni_dec_table[]=
 {
 {0x00C0, {0x0041, 0x0300, 0}},
@@ -1066,3 +1065,5 @@ static struct _dec_ uni_dec_table[]=
 {0xFB4D, {0x05DB, 0x05BF, 0}},
 {0xFB4E, {0x05E4, 0x05BF, 0}}
 };
+static const unsigned int
+uni_dec_table_size = sizeof(uni_dec_table) / sizeof(struct _dec_);

@@ -13,12 +13,12 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
 
    */
 
@@ -41,7 +41,7 @@
 #import "GSStream.h"
 #import "GSSocketStream.h"
 
-#import "GSTLS.h"
+#import "GNUstepBase/GSTLS.h"
 
 #ifndef SHUT_RD
 # ifdef  SD_RECEIVE
@@ -363,15 +363,19 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
   GSTLSSession  *session;
 }
 
-/**
- * Populates the dictionary 'dict', copying in all the properties
+/** Populates the dictionary 'dict', copying in all the properties
  * of the supplied streams. If a property is set for both then
  * the output stream's one has precedence.
  */
 + (void) populateProperties: (NSMutableDictionary**)dict
-            withTLSPriority: (NSString*)pri
+          withSecurityLevel: (NSString*)l
             fromInputStream: (NSStream*)i
              orOutputStream: (NSStream*)o;
+
+/** Called on verification of the remote end's certificate to tell the
+ * delegate of the input stream who the certificate issuer and owner are.
+ */
+- (void) stream: (NSStream*)stream issuer: (NSString*)i owner: (NSString*)o;
 
 @end
 
@@ -435,6 +439,8 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 #endif
 
     }
+  NSDebugFLLog(@"NSStream", @"GSTLSPush write %p of %u on %u",
+    [tls ostream], (unsigned)result, (unsigned)len);
   return result;
 }
 
@@ -456,6 +462,7 @@ static NSArray  *keys = nil;
         GSTLSPriority,
         GSTLSRemoteHosts,
         GSTLSRevokeFile,
+        GSTLSServerName,
         GSTLSVerify,
         nil];
       [[NSObject leakAt: &keys] release];
@@ -463,19 +470,19 @@ static NSArray  *keys = nil;
 }
 
 + (void) populateProperties: (NSMutableDictionary**)dict
-	    withTLSPriority: (NSString*)pri
+	  withSecurityLevel: (NSString*)l
 	    fromInputStream: (NSStream*)i
 	     orOutputStream: (NSStream*)o
 {
+  if (NULL != dict)
+    {
   NSString              *str;
   NSMutableDictionary   *opts = *dict;
   NSUInteger            count;
 
-  if (NULL != dict)
-    {
-      if (nil != pri)
+      if (nil != l)
 	{
-	  [opts setObject: pri forKey: GSTLSPriority];
+	  [opts setObject: l forKey: NSStreamSocketSecurityLevelKey];
 	}
       count = [keys count];
       while (count-- > 0)
@@ -578,6 +585,18 @@ static NSArray  *keys = nil;
 }
               [self bye];
             }
+          else
+            {
+              NSString  *issuer = [session issuer];
+              NSString  *owner = [session owner];
+              id        del = [istream delegate];
+
+              if (nil != issuer && nil != owner
+                && [del respondsToSelector: @selector(stream:issuer:owner:)])
+                {
+                  [del stream: istream issuer: issuer owner: owner];
+                }
+            }
         }
     }
 }
@@ -631,7 +650,7 @@ static NSArray  *keys = nil;
    */
   opts = [NSMutableDictionary new];
   [[self class] populateProperties: &opts
-		   withTLSPriority: str
+		 withSecurityLevel: str
 		   fromInputStream: i
 		    orOutputStream: o];
 
@@ -663,7 +682,7 @@ static NSArray  *keys = nil;
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
 {
   NSDebugMLLog(@"NSStream",
-    @"GSTLSHandler got %"PRIdPTR" on %p", event, stream);
+    @"GSTLSHandler got %@ on %p", [stream stringFromEvent: event], stream);
 
   if (handshake == YES)
     {
@@ -723,9 +742,33 @@ static NSArray  *keys = nil;
         }
     }
 
+- (void) stream: (NSStream*)stream issuer: (NSString*)i owner: (NSString*)o
+{
+  return;
+}
+
 - (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
-  return [session write: buffer length: len];
+  NSInteger	offset = 0;
+
+  /* The low level code to perform the TLS session write may return a
+   * partial write even though the output stream is still writable.
+   * That means we wouldn't get an event to say there's more space and
+   * our overall write (for a large amount of data) could hang.  
+   * To avoid that, we try writing more data as long as the stream
+   * still has space available.
+   */
+  while ([ostream hasSpaceAvailable] && offset < len)
+    {
+      NSInteger	written;
+
+      written = [session write: buffer + offset length: len - offset];
+      if (written > 0)
+{
+	  offset += written;
+	}
+    }
+  return offset;
 }
 
 @end
@@ -760,7 +803,7 @@ static NSArray  *keys = nil;
 }
 
 + (void) populateProperties: (NSMutableDictionary**)dict
-	    withTLSPriority: (NSString*)pri
+	  withSecurityLevel: (NSString*)l
 	    fromInputStream: (NSStream*)i
 	     orOutputStream: (NSStream*)o
 {
@@ -770,9 +813,9 @@ static NSArray  *keys = nil;
 
   if (NULL != dict)
     {
-      if (nil != pri)
+      if (nil != l)
 	{
-	  [opts setObject: pri forKey: GSTLSPriority];
+	  [opts setObject: l forKey: NSStreamSocketSecurityLevelKey];
 	}
       count = [keys count];
       while (count-- > 0)
@@ -1157,7 +1200,7 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	    {
 	      error = @"NSStreamSOCKSProxyUserKey value too long";
 	    }
-	  else if (ul < 1 || ul > 255)
+	  else if (pl < 1 || pl > 255)
 	    {
 	      error = @"NSStreamSOCKSProxyPasswordKey value too long";
 	    }
@@ -1240,7 +1283,6 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
 	  buf[1] = 1;	// Connect command
 	  buf[2] = 0;	// Reserved
 	  buf[3] = 1;	// Address type (IPV4)
-
 	  ptr = [address UTF8String];
 	  buf[4] = atoi(ptr);
 	  while (isdigit(*ptr))
@@ -3043,8 +3085,11 @@ setNonBlocking(SOCKET fd)
        */
       int	status = 1;
 
-      setsockopt([self _sock], SOL_SOCKET, SO_REUSEADDR,
-        (char *)&status, (OPTLEN)sizeof(status));
+      if (setsockopt([self _sock], SOL_SOCKET, SO_REUSEADDR,
+        (char *)&status, (OPTLEN)sizeof(status)) < 0)
+        {
+          NSDebugMLLog(@"GSTcpTune", @"setsockopt reuseaddr failed");
+        }
     }
 #endif
 
@@ -3150,7 +3195,7 @@ setNonBlocking(SOCKET fd)
 	  [opts setObject: str forKey: NSStreamSocketSecurityLevelKey];
 	  // copy the properties in the 'opts'
 	  [GSTLSHandler populateProperties: &opts
-			   withTLSPriority: str
+			 withSecurityLevel: str
 			   fromInputStream: self
 			    orOutputStream: nil];
 	  // and set the input/output streams's properties from the 'opts'
@@ -3363,3 +3408,4 @@ setNonBlocking(SOCKET fd)
 }
 #endif
 @end
+
