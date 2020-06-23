@@ -141,6 +141,9 @@ int main()
   s = makeFormattedString(@"%d.%d%s", 10, 20, "hello");
   PASS_EQUAL(s, @"10.20hello", "simple intWithFormat: works");
 
+  PASS([@"" isEqual: nil] == NO, "an empty string is not null");
+  PASS([@"" isEqualToString: nil] == NO, "an empty string is not null");
+
   [arp release]; arp = nil;
   return 0;
 }

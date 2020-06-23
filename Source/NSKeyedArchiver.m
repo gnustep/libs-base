@@ -517,6 +517,16 @@ static NSDictionary *makeReference(unsigned ref)
     }
 }
 
+- (BOOL) requiresSecureCoding
+{
+  return _requiresSecureCoding;
+}
+
+- (void) setRequiresSecureCoding: (BOOL)flag
+{
+  _requiresSecureCoding = flag;
+}
+
 - (BOOL) allowsKeyedCoding
 {
   return YES;

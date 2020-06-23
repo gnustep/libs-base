@@ -367,12 +367,12 @@ static NSMapTable	*globalClassMap = 0;
 
 - (BOOL)requiresSecureCoding
 {
-  return NO;
+  return _requiresSecureCoding;
 }
 
 - (void)setRequiresSecureCoding: (BOOL)secure
 {
-  return;
+  _requiresSecureCoding = secure;
 }
 
 - (Class) classForClassName: (NSString*)aString

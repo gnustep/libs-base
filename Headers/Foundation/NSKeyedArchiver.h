@@ -70,6 +70,7 @@ extern "C" {
   NSMutableDictionary	*_enc;	/* Object being encoded.	*/
   NSMutableArray	*_obj;	/* Array of objects.		*/
   NSPropertyListFormat	_format;
+  BOOL _requiresSecureCoding;
 #endif
 #if     GS_NONFRAGILE
 #else
@@ -121,6 +122,18 @@ extern "C" {
  */
 + (void) setClassName: (NSString*)aString forClass: (Class)aClass;
 
+/**
+ * Returns whether the current instance of the archiver needs secure
+ * coding.
+ */
+- (BOOL) requiresSecureCoding;
+
+/**
+ * Sets whether the current instance of the archiver needs secure
+ * coding.
+ */
+- (void) setRequiresSecureCoding: (BOOL)flag;
+  
 /**
  * Returns any mapping for the name of aClass which was previously set
  * for the receiver using the -setClassName:forClass: method.<br />
@@ -257,6 +270,7 @@ extern "C" {
 #undef	GSIArray
 #endif
   NSZone	*_zone;		/* Zone for allocating objs.	*/
+  BOOL          _requiresSecureCoding;
 #endif
 #if     GS_NONFRAGILE
 #else
@@ -296,13 +310,25 @@ extern "C" {
 + (id) unarchiveObjectWithFile: (NSString*)aPath;
 
 /**
+ * Returns whether the current instance of the archiver needs secure
+ * coding.
+ */
+- (BOOL) requiresSecureCoding;
+
+/**
+ * Sets whether the current instance of the archiver needs secure
+ * coding.
+ */
+- (void) setRequiresSecureCoding: (BOOL)flag;
+  
+/**
  * Returns class substituted for class name specified by aString when
  * encountered in the archive being decoded from, or nil if there is no
  * specific translation mapping.  The class as a whole also maintains a
  * translation map, which is searched on decoding if no match found here.
  */
 - (Class) classForClassName: (NSString*)aString;
-
+  
 /**
  * Sets class substituted for class name specified by aString when
  * encountered in the archive being decoded from, or nil if there is no
