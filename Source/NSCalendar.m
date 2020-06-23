@@ -210,7 +210,7 @@ static NSRecursiveLock *classLock = nil;
 
 - (void) _setLocaleIdentifier: (NSString *) identifier
 {
-  if ([identifier isEqualToString: my->localeID])
+  if (my->cal != NULL && [identifier isEqualToString: my->localeID])
     {
       return;
     }
