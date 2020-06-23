@@ -807,6 +807,10 @@ tinyEqualToString(uintptr_t s, NSString *aString)
     {
       return YES;
     }
+  if (nil == aString)
+    {
+      return NO;
+    }
   
   l = (s >> TINY_STRING_LENGTH_SHIFT) & TINY_STRING_LENGTH_MASK;
   if ([aString length] != l)

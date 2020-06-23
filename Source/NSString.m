@@ -3072,7 +3072,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     {
       return YES;
     }
-  if ([self hash] != [aString hash])
+  if (nil == aString || [self hash] != [aString hash])
     {
       return NO;
     }
