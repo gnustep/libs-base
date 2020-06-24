@@ -164,39 +164,30 @@ static BOOL                     (*nonBaseImp)(id, SEL, unichar) = 0;
  */
 #define	IMMUTABLE(S)	AUTORELEASE([(S) copyWithZone: NSDefaultMallocZone()])
 
-#define IS_BIT_SET(a,i) ((((a) & (1<<(i)))) > 0)
-
+static const char	*whitespace = 0;
 static NSCharacterSet	*nonspace = nil;
-static NSData           *whitespaceBitmap;
-static unsigned const char *whitespaceBitmapRep = NULL;
-#define GS_IS_WHITESPACE(X) IS_BIT_SET(whitespaceBitmapRep[(X)/8], (X) % 8)
+#define GS_IS_WHITESPACE(X) strchr(whitespace, X)
 
 static void setupNonspace(void)
 {
   if (nil == nonspace)
     {
-      NSCharacterSet *whitespace;
+      NSCharacterSet *w;
 
-      whitespace = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-      nonspace = [[whitespace invertedSet] retain];
+      w = [NSCharacterSet whitespaceAndNewlineCharacterSet];
+      nonspace = [[w invertedSet] retain];
     }
 }
 
 static void setupWhitespace(void)
 {
-  if (whitespaceBitmapRep == NULL)
-    {
-      NSCharacterSet *whitespace;
-
 /*
   We can not use whitespaceAndNewlineCharacterSet here as this would lead
   to a recursion, as this also reads in a property list.
-      whitespace = [NSCharacterSet whitespaceAndNewlineCharacterSet];
 */
-      whitespace = [NSCharacterSet characterSetWithCharactersInString:
-				    @" \t\r\n\f\b"];
-      whitespaceBitmap = RETAIN([whitespace bitmapRepresentation]);
-      whitespaceBitmapRep = [whitespaceBitmap bytes];
+  if (0 == whitespace)
+    {
+      whitespace = " \t\r\n\f\b";
     }
 }
 
@@ -3504,7 +3495,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
   if (len == 0)
     return IMMUTABLE(self);
-  if (whitespaceBitmapRep == NULL)
+  if (NULL == whitespace)
     setupWhitespace();
 
   s = NSZoneMalloc([self zone], sizeof(unichar)*len);
