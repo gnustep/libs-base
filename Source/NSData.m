@@ -1800,8 +1800,17 @@ failure:
 	  [att removeObjectForKey: NSFileType];
 	  if ([mgr changeFileAttributes: att atPath: path] == NO)
 	    {
-	      NSWarnMLog(@"Unable to correctly set all attributes for '%@'",
-		path);
+	      NSWarnMLog(@"Unable to correctly set attributes for '%@' to %@",
+		path, att);
+	    }
+	}
+      else if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
+	{
+	  att = [NSDictionary dictionaryWithObjectsAndKeys:
+	    NSFileOwnerAccountName, NSUserName(), nil];
+	  if ([mgr changeFileAttributes: att atPath: path] == NO)
+	    {
+	      NSWarnMLog(@"Unable to correctly set ownership for '%@'", path);
 	    }
 	}
     }
@@ -1963,6 +1972,7 @@ failure:
 	   * attributes match that of the original.
 	   */
 	  [mAtt removeObjectForKey: NSFileSize];
+	  [mAtt removeObjectForKey: NSFileCreationDate];
 	  [mAtt removeObjectForKey: NSFileModificationDate];
 	  [mAtt removeObjectForKey: NSFileReferenceCount];
 	  [mAtt removeObjectForKey: NSFileSystemNumber];
@@ -1971,14 +1981,14 @@ failure:
 	  [mAtt removeObjectForKey: NSFileType];
 	  if ([mgr changeFileAttributes: mAtt atPath: path] == NO)
 	    {
-	      NSWarnMLog(@"Unable to correctly set all attributes for '%@'",
-		path);
+	      NSWarnMLog(@"Unable to correctly set attributes for '%@' to %@",
+		path, mAtt);
 	    }
 	}
       else if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
 	{
 	  att = [NSDictionary dictionaryWithObjectsAndKeys:
-			NSFileOwnerAccountName, NSUserName(), nil];
+	    NSFileOwnerAccountName, NSUserName(), nil];
 	  if ([mgr changeFileAttributes: att atPath: path] == NO)
 	    {
 	      NSWarnMLog(@"Unable to correctly set ownership for '%@'", path);
