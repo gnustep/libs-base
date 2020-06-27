@@ -164,9 +164,43 @@ static BOOL                     (*nonBaseImp)(id, SEL, unichar) = 0;
  */
 #define	IMMUTABLE(S)	AUTORELEASE([(S) copyWithZone: NSDefaultMallocZone()])
 
-static const char	*whitespace = 0;
+static inline BOOL  isWhiteSpace(unichar c)
+{
+  /* We can not use whitespaceAndNewlineCharacterSet here as this would lead
+   * to a recursion, as this also reads in a property list.
+   *
+   * Copied whitespace and newline index set from  NSCharacterSetData.h
+   */
+  static const NSRange whitespace[] = {{9,5},{32,1},{133,1},{160,1},{5760,1},{8192,12},{8232,2},{8239,1},{8287,1},{12288,1}};
+  unsigned	upper = sizeof(whitespace)/sizeof(*whitespace);
+  unsigned	lower = 0;
+  unsigned	pos;
+  NSRange	r;
+
+  /* Binary search for a range containing the character to be checked
+   */
+  for (pos = upper/2; upper != lower; pos = (upper+lower)/2)
+    {
+      r = whitespace[pos];
+      if (c < r.location)
+        {
+          upper = pos;
+        }
+      else if (c >= NSMaxRange(r))
+        {
+          lower = pos + 1;
+        }
+      else
+        {
+          break;
+        }
+    }
+  return (c >= r.location && c < NSMaxRange(r)) ? YES : NO;
+}
+
+#define GS_IS_WHITESPACE(X) isWhiteSpace(X)
+
 static NSCharacterSet	*nonspace = nil;
-#define GS_IS_WHITESPACE(X) strchr(whitespace, X)
 
 static void setupNonspace(void)
 {
@@ -179,17 +213,6 @@ static void setupNonspace(void)
     }
 }
 
-static void setupWhitespace(void)
-{
-/*
-  We can not use whitespaceAndNewlineCharacterSet here as this would lead
-  to a recursion, as this also reads in a property list.
-*/
-  if (0 == whitespace)
-    {
-      whitespace = " \t\r\n\f\b";
-    }
-}
 
 /* A non-spacing character is one which is part of a 'user-perceived character'
  * where the user perceived character consists of a base character followed
@@ -3495,8 +3518,6 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
   if (len == 0)
     return IMMUTABLE(self);
-  if (NULL == whitespace)
-    setupWhitespace();
 
   s = NSZoneMalloc([self zone], sizeof(unichar)*len);
   [self getCharacters: s range: ((NSRange){0, len})];
