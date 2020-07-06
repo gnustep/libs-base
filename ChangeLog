@@ -1,3 +1,8 @@
+2020-07-06  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSThread.m: Fix possible deadlock when becoming multi-
+	threaded.
+
 2020-06-14 Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSKeyedArchiver.h
