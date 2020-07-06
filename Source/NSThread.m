@@ -775,7 +775,6 @@ gnustep_base_thread_callback(void)
       pthread_mutex_lock(&threadLock);
       if (entered_multi_threaded_state == NO)
 	{
-	  ENTER_POOL
 	  /*
 	   * For apple compatibility ... and to make things easier for
 	   * code called indirectly within a will-become-multi-threaded
@@ -783,6 +782,12 @@ gnustep_base_thread_callback(void)
 	   * threaded BEFORE sending the notifications.
 	   */
 	  entered_multi_threaded_state = YES;
+	  /*
+	   * Enter pool after setting flag, because -[NSAutoreleasePool
+	   * allocWithZone:] calls GSCurrentThread(), which may end up
+	   * calling this function, which would cause a deadlock.
+	   */
+	  ENTER_POOL
 	  NS_DURING
 	    {
 	      [GSPerformHolder class];	// Force initialization
