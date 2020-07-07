@@ -1804,6 +1804,7 @@ failure:
 		path, att);
 	    }
 	}
+#ifdef HAVE_GETEUID
       else if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
 	{
 	  att = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -1813,6 +1814,7 @@ failure:
 	      NSWarnMLog(@"Unable to correctly set ownership for '%@'", path);
 	    }
 	}
+#endif
     }
 
   /* success: */
@@ -1985,6 +1987,7 @@ failure:
 		path, mAtt);
 	    }
 	}
+#ifdef HAVE_GETEUID
       else if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
 	{
 	  att = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -1994,6 +1997,7 @@ failure:
 	      NSWarnMLog(@"Unable to correctly set ownership for '%@'", path);
 	    }
 	}
+#endif
     }
 
   /* success: */
