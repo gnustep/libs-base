@@ -181,10 +181,8 @@ _NSLog_standard_printf_handler(NSString* message)
 #else
 
 #if	defined(HAVE_SYSLOG)
-#ifndef __ANDROID__ // always use syslog on Android (no stdout/stderr)
   if (GSPrivateDefaultsFlag(GSLogSyslog) == YES
     || write(_NSLogDescriptor, buf, len) != (int)len)
-#endif
     {
       null_terminated_buf = malloc(sizeof (char) * (len + 1));
       strncpy (null_terminated_buf, buf, len);
