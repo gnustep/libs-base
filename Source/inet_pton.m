@@ -41,6 +41,11 @@
 #include <arpa/nameser.h>
 #endif
 
+#ifndef WSAAPI
+#define WSAAPI
+#endif
+
+
 /*
  * WARNING: Don't even consider trying to compile this on a system where
  * sizeof(int) < 4.  sizeof(int) > 4 is fine; all the world's not a VAX.
@@ -63,6 +68,7 @@ static int	inet_pton6(const char *src, uint8_t *dst);
  *	Paul Vixie, 1996.
  */
 int
+WSAAPI
 inet_pton(int af, const char *src, void *dst)
 {
 
