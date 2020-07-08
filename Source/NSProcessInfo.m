@@ -1602,7 +1602,10 @@ GSInitializeProcessAndroid(JNIEnv *env, jobject context)
   // initialize process
   [procLock lock];
   fallbackInitialisation = YES;
-  char *argv[] = { arg0 };
+  char *argv[] = {
+    arg0,
+    "-GSLogSyslog", "YES" // use syslog (available via logcat) instead of stdout/stderr (not available on Android)
+  };
   _gnu_process_args(sizeof(argv)/sizeof(char *), argv, NULL);
   [procLock unlock];
 
