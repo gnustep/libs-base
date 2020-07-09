@@ -335,6 +335,10 @@ NSLogv(NSString* format, va_list args)
   NSString              *message;
   NSString              *threadName = nil;
   NSThread              *t = nil;
+  /* NB. On systems like Android where there is no operating system thread
+   * ID available, the value returned by GSPrivateThreadID() should actually
+   * be the pointer to the NSThread object.  We will check for that later.
+   */
   NSUInteger            tid = GSPrivateThreadID();
   static int		pid = 0;
 
@@ -366,7 +370,7 @@ NSLogv(NSString* format, va_list args)
 #ifdef	HAVE_SYSLOG
   if (GSPrivateDefaultsFlag(GSLogSyslog) == YES)
     {
-      if (nil == t || (tid == t && nil == threadName))
+      if (nil == t || ((NSThread*)tid == t && nil == threadName))
         {
           [prefix appendFormat: @"[thread:%"PRIuPTR"] ",
             tid];
@@ -401,7 +405,7 @@ NSLogv(NSString* format, va_list args)
       [prefix appendString: cal];
       [prefix appendString: @" "];
       [prefix appendString: [[NSProcessInfo processInfo] processName]];
-      if (nil == t || (tid == t && nil == threadName))
+      if (nil == t || ((NSThread*)tid == t && nil == threadName))
         {
           [prefix appendFormat: @"[%d:%"PRIuPTR"] ",
             pid, tid];
