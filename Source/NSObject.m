@@ -1121,9 +1121,12 @@ static id gs_weak_load(id obj)
 
 + (void) _atExit
 {
+  NSMapTable	*m = nil;
   pthread_mutex_lock(&allocationLock);
-  DESTROY(zombieMap);
+  m = zombieMap;
+  zombieMap = nil;
   pthread_mutex_unlock(&allocationLock);
+  DESTROY(m);
 }
 
 /**
