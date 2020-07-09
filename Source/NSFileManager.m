@@ -564,7 +564,6 @@ static NSStringEncoding	defaultEncoding;
 	}
     }
 
-
   date = [attributes fileCreationDate];
   if (date != nil && NO == [date isEqual: [old fileCreationDate]])
     {
@@ -1281,9 +1280,10 @@ static NSStringEncoding	defaultEncoding;
     }
   fileType = [attrs fileType];
 
-  /*
-   * Don't attempt to retain ownership of copy ... we want the copy
+  /* Don't attempt to retain ownership of copy ... we want the copy
    * to be owned by the current user.
+   * Also, the new copy should not have the creation/modification
+   * date of the original.
    */
   attrs = AUTORELEASE([attrs mutableCopy]);
   [(NSMutableDictionary*)attrs removeObjectForKey: NSFileOwnerAccountID];
@@ -1292,11 +1292,15 @@ static NSStringEncoding	defaultEncoding;
   [(NSMutableDictionary*)attrs setObject: NSUserName()
                                   forKey: NSFileOwnerAccountName];
 
+  [(NSMutableDictionary*)attrs removeObjectForKey: NSFileCreationDate];
+  [(NSMutableDictionary*)attrs removeObjectForKey: NSFileModificationDate];
+
   if ([fileType isEqualToString: NSFileTypeDirectory] == YES)
     {
 
       /* If destination directory is a descendant of source directory copying
-	  isn't possible. */
+       * isn't possible.
+       */
       if ([[destination stringByAppendingString: @"/"]
 	hasPrefix: [source stringByAppendingString: @"/"]])
 	{
