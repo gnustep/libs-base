@@ -68,16 +68,16 @@ typedef struct {
   return o;
 }
 
-+ (id) requestWithURL: (NSURL *)URL
++ (instancetype) requestWithURL: (NSURL *)URL
 {
   return [self requestWithURL: URL
 		  cachePolicy: NSURLRequestUseProtocolCachePolicy
 	      timeoutInterval: 60.0];
 }
 
-+ (id) requestWithURL: (NSURL *)URL
-	  cachePolicy: (NSURLRequestCachePolicy)cachePolicy
-      timeoutInterval: (NSTimeInterval)timeoutInterval
++ (instancetype) requestWithURL: (NSURL *)URL
+                    cachePolicy: (NSURLRequestCachePolicy)cachePolicy
+                timeoutInterval: (NSTimeInterval)timeoutInterval
 {
   NSURLRequest	*o = [[self class] allocWithZone: NSDefaultMallocZone()];
 
@@ -177,16 +177,16 @@ typedef struct {
   return [self initWithURL: nil];
 }
 
-- (id) initWithURL: (NSURL *)URL
+- (instancetype) initWithURL: (NSURL *)URL
 {
   return [self initWithURL: URL
 	       cachePolicy: NSURLRequestUseProtocolCachePolicy
 	   timeoutInterval: 60.0];
 }
 
-- (id) initWithURL: (NSURL *)URL
-       cachePolicy: (NSURLRequestCachePolicy)cachePolicy
-   timeoutInterval: (NSTimeInterval)timeoutInterval
+- (instancetype) initWithURL: (NSURL *)URL
+                 cachePolicy: (NSURLRequestCachePolicy)cachePolicy
+             timeoutInterval: (NSTimeInterval)timeoutInterval
 {
   if ([URL isKindOfClass: [NSURL class]] == NO)
     {
