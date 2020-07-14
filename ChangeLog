@@ -1,3 +1,9 @@
+2020-07-13  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSURLRequest.h:
+	* Source/NSURLRequest.m:
+	Update NSURLRequest header to use "instancetype".
+
 2020-07-08  Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSLog.m:

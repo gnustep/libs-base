@@ -99,15 +99,15 @@ typedef NSUInteger NSURLRequestCachePolicy;
  * and with the default cache policy (NSURLRequestUseProtocolCachePolicy)
  * and a sixty second timeout.
  */
-+ (id) requestWithURL: (NSURL *)URL;
++ (instancetype) requestWithURL: (NSURL *)URL;
 
 /**
  * Returns an autoreleased instance initialised with the specified URL,
  * cachePolicy, and timeoutInterval.
  */
-+ (id) requestWithURL: (NSURL *)URL
-	  cachePolicy: (NSURLRequestCachePolicy)cachePolicy
-      timeoutInterval: (NSTimeInterval)timeoutInterval;
++ (instancetype) requestWithURL: (NSURL *)URL
+                    cachePolicy: (NSURLRequestCachePolicy)cachePolicy
+                timeoutInterval: (NSTimeInterval)timeoutInterval;
 
 /**
  * Returns the cache policy associated with the receiver.
@@ -119,15 +119,15 @@ typedef NSUInteger NSURLRequestCachePolicy;
  * and with the default cache policy (NSURLRequestUseProtocolCachePolicy)
  * and a sixty second timeout.
  */
-- (id) initWithURL: (NSURL *)URL;
+- (instancetype) initWithURL: (NSURL *)URL;
 
 /**
  * Initialises the receiver with the specified URL,
  * cachePolicy, and timeoutInterval.
  */
-- (id) initWithURL: (NSURL *)URL
-       cachePolicy: (NSURLRequestCachePolicy)cachePolicy
-   timeoutInterval: (NSTimeInterval)timeoutInterval;
+- (instancetype) initWithURL: (NSURL *)URL
+                 cachePolicy: (NSURLRequestCachePolicy)cachePolicy
+             timeoutInterval: (NSTimeInterval)timeoutInterval;
 
 /**
  * Returns the main document URL for the receiver.<br />
