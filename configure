@@ -794,6 +794,7 @@ with_installation_domain
 enable_largefile
 enable_nxconstantstring
 enable_bfd
+with_unwind
 enable_procfs
 enable_procfs_psinfo
 enable_pass_arguments
@@ -1561,6 +1562,7 @@ Optional Packages:
 				If this is not specified, the output of
 				gnustep-config --installation-domain-for=gnustep-base
 				(which should normally be LOCAL) is used.
+  --without-unwind        Ignore unwind if found and disable it
   --with-include-flags=FLAGS    Specify all include flags at once
   --with-library-flags=FLAGS    Specify all library flags at once
   --with-ffi-include=PATH       Include path for ffi headers
@@ -9064,7 +9066,16 @@ fi
 done
 
 
-for ac_header in unwind.h
+# Enable unwind if found by default
+
+# Check whether --with-unwind was given.
+if test "${with_unwind+set}" = set; then :
+  withval=$with_unwind;
+fi
+
+
+if test "x$with_unwind" != "xno"; then :
+  for ac_header in unwind.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "unwind.h" "ac_cv_header_unwind_h" "$ac_includes_default"
 if test "x$ac_cv_header_unwind_h" = xyes; then :
@@ -9075,7 +9086,38 @@ _ACEOF
 fi
 
 done
+ for ac_func in _Unwind_GetIP
+do :
+  ac_fn_c_check_func "$LINENO" "_Unwind_GetIP" "ac_cv_func__Unwind_GetIP"
+if test "x$ac_cv_func__Unwind_GetIP" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE__UNWIND_GETIP 1
+_ACEOF
 
+fi
+done
+
+else
+  have_unwind=no
+fi
+
+if test "x$ac_cv_func__Unwind_GetIP" = "xyes"; then :
+  have_unwind=yes
+else
+  have_unwind=no
+fi
+
+if test "x$have_unwind" = "xyes"; then :
+
+$as_echo "#define WITH_UNWIND 1" >>confdefs.h
+
+else
+  if test "x$with_unwind" = "xyes"; then :
+  as_fn_error $? "unwind requested but not found" "$LINENO" 5
+
+fi
+
+fi
 
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
