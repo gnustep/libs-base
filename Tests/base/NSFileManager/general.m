@@ -152,7 +152,13 @@ int main()
     str2 = [[NSString alloc] initWithData: dat1 encoding: 1];
     PASS([str1 isEqual: str2],"NSFileManager copied file contents match");
   }
-  
+  NSDictionary *oa = [mgr fileAttributesAtPath: @"NSFMFile" traverseLink: NO];
+  NSDictionary *na = [mgr fileAttributesAtPath: @"NSFMCopy" traverseLink: NO];
+  PASS(![[oa fileCreationDate] isEqual: [na fileCreationDate]],
+    "copy creation date differs from that of original")
+  PASS(![[oa fileModificationDate] isEqual: [na fileModificationDate]],
+    "copy modification date differs from that of original")
+
   PASS([mgr movePath: @"NSFMFile"
               toPath: @"NSFMMove"
 	     handler: handler],
