@@ -802,6 +802,9 @@
    */
 #undef HAVE__DISPATCH_MAIN_QUEUE_CALLBACK_4CF
 
+/* Define to 1 if you have the `_Unwind_GetIP' function. */
+#undef HAVE__UNWIND_GETIP
+
 /* Define to 1 if you have the `__builtin_extract_return_address' function. */
 #undef HAVE___BUILTIN_EXTRACT_RETURN_ADDRESS
 
@@ -910,6 +913,9 @@
 
 /* Define if vsprintf returns the length printed */
 #undef VSPRINTF_RETURNS_LENGTH
+
+/* Have and use Unwind library */
+#undef WITH_UNWIND
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */

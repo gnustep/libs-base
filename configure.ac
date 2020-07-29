@@ -2309,7 +2309,24 @@ fi
 
 AC_CHECK_FUNCS(__builtin_extract_return_address)
 
-AC_CHECK_HEADERS(unwind.h)
+# Enable unwind if found by default
+AC_ARG_WITH(unwind,
+  AS_HELP_STRING([--without-unwind], [Ignore unwind if found and disable it]))
+
+AS_IF([test "x$with_unwind" != "xno"],
+  [AC_CHECK_HEADERS(unwind.h)] [AC_CHECK_FUNCS(_Unwind_GetIP)],
+  [have_unwind=no])
+
+AS_IF([test "x$ac_cv_func__Unwind_GetIP" = "xyes"],
+  [have_unwind=yes],
+  [have_unwind=no])
+
+AS_IF([test "x$have_unwind" = "xyes"],
+  [AC_DEFINE([WITH_UNWIND], [1], [Have and use Unwind library])],
+  [AS_IF([test "x$with_unwind" = "xyes"],
+         [AC_MSG_ERROR([unwind requested but not found])
+  ])
+])
 
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
