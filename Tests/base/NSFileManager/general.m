@@ -154,10 +154,8 @@ int main()
   }
   NSDictionary *oa = [mgr fileAttributesAtPath: @"NSFMFile" traverseLink: NO];
   NSDictionary *na = [mgr fileAttributesAtPath: @"NSFMCopy" traverseLink: NO];
-  PASS(![[oa fileCreationDate] isEqual: [na fileCreationDate]],
-    "copy creation date differs from that of original")
-  PASS(![[oa fileModificationDate] isEqual: [na fileModificationDate]],
-    "copy modification date differs from that of original")
+  PASS(EQ([[oa fileCreationDate] timeIntervalSinceReferenceDate], [[na fileCreationDate] timeIntervalSinceReferenceDate]), "copy creation date equals original")
+  PASS(EQ([[oa fileModificationDate] timeIntervalSinceReferenceDate], [[na fileModificationDate] timeIntervalSinceReferenceDate]), "copy modification date equals original")
 
   PASS([mgr movePath: @"NSFMFile"
               toPath: @"NSFMMove"
