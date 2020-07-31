@@ -613,7 +613,7 @@ static NSStringEncoding	defaultEncoding;
 	  ub[1].tv_sec = truncl(ti);
 	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
 
-	  ok = (utimensat(0, lpath, ub, 0) == 0);
+	  ok = (utimensat(AT_FDCWD, lpath, ub, 0) == 0);
 #elif  defined(_POSIX_VERSION)
           struct _UTIMB ub;
 	  ub.actime = sb.st_atime;
@@ -662,7 +662,7 @@ static NSStringEncoding	defaultEncoding;
 	  ub[1].tv_sec = truncl(ti);
 	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
 
-	  ok = (utimensat(0, lpath, ub, 0) == 0);
+	  ok = (utimensat(AT_FDCWD, lpath, ub, 0) == 0);
 #elif  defined(_WIN32) || defined(_POSIX_VERSION)
           struct _UTIMB ub;
 	  ub.actime = sb.st_atime;
