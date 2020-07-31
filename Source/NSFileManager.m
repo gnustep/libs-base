@@ -1282,8 +1282,8 @@ static NSStringEncoding	defaultEncoding;
 
   /* Don't attempt to retain ownership of copy ... we want the copy
    * to be owned by the current user.
-   * Also, the new copy should not have the creation/modification
-   * date of the original.
+   * However, the new copy should have the creation/modification date
+   * of the original (unlike Posix semantics).
    */
   attrs = AUTORELEASE([attrs mutableCopy]);
   [(NSMutableDictionary*)attrs removeObjectForKey: NSFileOwnerAccountID];
@@ -1291,9 +1291,6 @@ static NSStringEncoding	defaultEncoding;
   [(NSMutableDictionary*)attrs removeObjectForKey: NSFileGroupOwnerAccountName];
   [(NSMutableDictionary*)attrs setObject: NSUserName()
                                   forKey: NSFileOwnerAccountName];
-
-  [(NSMutableDictionary*)attrs removeObjectForKey: NSFileCreationDate];
-  [(NSMutableDictionary*)attrs removeObjectForKey: NSFileModificationDate];
 
   if ([fileType isEqualToString: NSFileTypeDirectory] == YES)
     {
