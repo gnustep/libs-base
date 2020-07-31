@@ -9,6 +9,18 @@
 #import <Foundation/NSThread.h>
 #import <Foundation/NSURL.h>
 
+@implementation NSDate (Testing)
+- (BOOL) isEqualForTestcase: (id)otherObject
+{
+  if (NO == [otherObject isKindOfClass: [NSDate class]])
+    {
+      return NO;
+    }
+  return EQ([self timeIntervalSinceReferenceDate],
+    [(NSDate*)otherObject timeIntervalSinceReferenceDate]) ? YES: NO;
+}
+@end
+
 @interface      MyHandler : NSObject
 {
   @public
@@ -155,8 +167,26 @@ int main()
   }
   NSDictionary *oa = [mgr fileAttributesAtPath: @"NSFMFile" traverseLink: NO];
   NSDictionary *na = [mgr fileAttributesAtPath: @"NSFMCopy" traverseLink: NO];
-  PASS(EQ([[oa fileCreationDate] timeIntervalSinceReferenceDate], [[na fileCreationDate] timeIntervalSinceReferenceDate]), "copy creation date equals original")
-  PASS(EQ([[oa fileModificationDate] timeIntervalSinceReferenceDate], [[na fileModificationDate] timeIntervalSinceReferenceDate]), "copy modification date equals original")
+  PASS_EQUAL([oa fileCreationDate], [na fileCreationDate],
+    "copy creation date equals original")
+  PASS_EQUAL([oa fileModificationDate], [na fileModificationDate],
+    "copy modification date equals original")
+  {
+    NSData *dat1 = [mgr contentsAtPath: @"NSFMFile"];
+    NSError *err;
+    BOOL ok;
+
+    ok = [dat1 writeToFile: @"NSFMFile"
+                   options: NSDataWritingAtomic
+                     error: &err];
+    PASS(ok, "can rewrite data file")
+    if (NO == ok) NSLog(@"Problem: %@ with %@", err, dat1);
+    na = [mgr fileAttributesAtPath: @"NSFMMove" traverseLink: NO];
+    PASS(![[oa fileCreationDate] isEqualForTestcase: [na fileCreationDate]],
+      "rewritten file creation date changed")
+    PASS(![[oa fileModificationDate] isEqualForTestcase:
+      [na fileModificationDate]], "rewritten file modification date changed")
+  }
 
   PASS([mgr movePath: @"NSFMFile"
               toPath: @"NSFMMove"
