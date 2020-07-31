@@ -6,6 +6,7 @@
 #import <Foundation/NSProcessInfo.h>
 #import <Foundation/NSPathUtilities.h>
 #import <Foundation/NSError.h>
+#import <Foundation/NSThread.h>
 #import <Foundation/NSURL.h>
 
 @interface      MyHandler : NSObject
@@ -140,7 +141,7 @@ int main()
     str2 = [[NSString alloc] initWithData: dat1 encoding: 1];
     PASS([str1 isEqualToString: str2], "NSFileManager file contents match");
   }
-  
+  [NSThread sleepForTimeInterval: 1.0]; // So date of file is clearly in past
   [handler reset];
   PASS([mgr copyPath: @"NSFMFile"
               toPath: @"NSFMCopy"
