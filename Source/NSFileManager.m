@@ -613,7 +613,7 @@ static NSStringEncoding	defaultEncoding;
 	  ub[1].tv_sec = truncl(ti);
 	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
 
-	  ok = (utimensat(0, lpath, ub, 0) == 0);
+	  ok = (utimensat(AT_FDCWD, lpath, ub, 0) == 0);
 #elif  defined(_POSIX_VERSION)
           struct _UTIMB ub;
 	  ub.actime = sb.st_atime;
@@ -662,7 +662,7 @@ static NSStringEncoding	defaultEncoding;
 	  ub[1].tv_sec = truncl(ti);
 	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
 
-	  ok = (utimensat(0, lpath, ub, 0) == 0);
+	  ok = (utimensat(AT_FDCWD, lpath, ub, 0) == 0);
 #elif  defined(_WIN32) || defined(_POSIX_VERSION)
           struct _UTIMB ub;
 	  ub.actime = sb.st_atime;
@@ -1282,8 +1282,8 @@ static NSStringEncoding	defaultEncoding;
 
   /* Don't attempt to retain ownership of copy ... we want the copy
    * to be owned by the current user.
-   * Also, the new copy should not have the creation/modification
-   * date of the original.
+   * However, the new copy should have the creation/modification date
+   * of the original (unlike Posix semantics).
    */
   attrs = AUTORELEASE([attrs mutableCopy]);
   [(NSMutableDictionary*)attrs removeObjectForKey: NSFileOwnerAccountID];
@@ -1291,9 +1291,6 @@ static NSStringEncoding	defaultEncoding;
   [(NSMutableDictionary*)attrs removeObjectForKey: NSFileGroupOwnerAccountName];
   [(NSMutableDictionary*)attrs setObject: NSUserName()
                                   forKey: NSFileOwnerAccountName];
-
-  [(NSMutableDictionary*)attrs removeObjectForKey: NSFileCreationDate];
-  [(NSMutableDictionary*)attrs removeObjectForKey: NSFileModificationDate];
 
   if ([fileType isEqualToString: NSFileTypeDirectory] == YES)
     {
