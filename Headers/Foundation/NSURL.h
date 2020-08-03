@@ -411,7 +411,23 @@ enum
 
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST) 
+/** Returns a URL formed by adding a path component to the path of the
+ * receiver, along with a trailing slash if the component is designated a
+ * directory.<br />
+ * See [NSString-stringByAppendingPathComponent:].
+ */
+- (NSURL *) URLByAppendingPathComponent:(NSString *)pathComponent
+                            isDirectory:(BOOL)isDirectory;
+#endif
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+- (BOOL) isFileReferenceURL;
+
+- (NSURL *) fileReferenceURL;
+
+- (NSURL *) filePathURL;
+
 - (BOOL) getResourceValue: (id*)value 
                    forKey: (NSString *)key 
                     error: (NSError**)error;
