@@ -133,6 +133,8 @@ extern "C" {
 
 @end //NSMutableAttributedString
 
+typedef NSString* NSAttributedStringKey;
+
 #endif /* GS_API_MACOSX */
 
 #if	defined(__cplusplus)
