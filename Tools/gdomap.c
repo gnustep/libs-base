@@ -1557,7 +1557,7 @@ load_iface(const char* from)
 	}
       if (ptr != buf)
 	{
-	  strcpy(buf, ptr);
+	  memmove(buf, ptr, strlen(ptr) + 1);
 	}
       /*
        *	Strip comments.
@@ -1629,7 +1629,7 @@ load_iface(const char* from)
 	}
       if (ptr != buf)
 	{
-	  strcpy(buf, ptr);
+	  memmove(buf, ptr, strlen(ptr) + 1);
 	}
       /*
        *	Strip comments.
@@ -4968,7 +4968,7 @@ printf(
 		    }
 		  if (ptr != buf)
 		    {
-		      strcpy(buf, ptr);
+		      memmove(buf, ptr, strlen(ptr) + 1);
 		    }
 		  /*
 		   *	Strip comments.
