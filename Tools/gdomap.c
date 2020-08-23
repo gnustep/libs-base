@@ -3968,7 +3968,7 @@ int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
        */
       ptr = b;
       port = 0;
-      while (ptr < &b[len])
+      while (ptr < (b + len))
 	{
 	  ptr += 2 + ptr[0];
 	  port++;
