@@ -100,7 +100,7 @@
 {
   NSString *result = @"";
 
-  if (_allowedUnits | NSCalendarUnitYear)
+  if (_allowedUnits & NSCalendarUnitYear)
     {
       if (_unitsStyle == NSDateComponentsFormatterUnitsStyleSpellOut)
         {
@@ -115,7 +115,7 @@
       else
         {
           if (_zeroFormattingBehavior
-	    | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+	    & NSDateComponentsFormatterZeroFormattingBehaviorDefault)
             {
               NSString *s;
 
@@ -142,7 +142,7 @@
             }
         }
     }
-  if (_allowedUnits | NSCalendarUnitMonth)
+  if (_allowedUnits & NSCalendarUnitMonth)
     {
       if (_unitsStyle == NSDateComponentsFormatterUnitsStyleSpellOut)
         {
@@ -157,7 +157,7 @@
       else
         {
           if (_zeroFormattingBehavior
-	    | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+	    & NSDateComponentsFormatterZeroFormattingBehaviorDefault)
             {
               NSString *s;
 
@@ -184,7 +184,7 @@
             }
         }
     }
-  if (_allowedUnits | NSCalendarUnitDay)
+  if (_allowedUnits & NSCalendarUnitDay)
     {
       if (_unitsStyle == NSDateComponentsFormatterUnitsStyleSpellOut)
         {
@@ -199,7 +199,7 @@
       else
         {
           if (_zeroFormattingBehavior
-	    | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+	    & NSDateComponentsFormatterZeroFormattingBehaviorDefault)
             {
               NSString *s;
 
@@ -226,7 +226,7 @@
             }
         }
     }
-  if (_allowedUnits | NSCalendarUnitHour)
+  if (_allowedUnits & NSCalendarUnitHour)
     {
       if (_unitsStyle == NSDateComponentsFormatterUnitsStyleSpellOut)
         {
@@ -241,7 +241,7 @@
       else
         {
           if (_zeroFormattingBehavior
-	    | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+	    & NSDateComponentsFormatterZeroFormattingBehaviorDefault)
             {
               NSString *s;
 
@@ -268,7 +268,7 @@
             }
         }
     }
-  if (_allowedUnits | NSCalendarUnitMinute)
+  if (_allowedUnits & NSCalendarUnitMinute)
     {
       if (_unitsStyle == NSDateComponentsFormatterUnitsStyleSpellOut)
         {
@@ -283,7 +283,7 @@
       else
         {
           if (_zeroFormattingBehavior
-	    | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+	    & NSDateComponentsFormatterZeroFormattingBehaviorDefault)
             {
               NSString *s;
 
@@ -310,7 +310,7 @@
             }
         }
     }
-  if (_allowedUnits | NSCalendarUnitSecond)
+  if (_allowedUnits & NSCalendarUnitSecond)
     {
       if (_unitsStyle == NSDateComponentsFormatterUnitsStyleSpellOut)
         {
@@ -325,7 +325,7 @@
       else
         {
           if (_zeroFormattingBehavior
-	    | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+	    & NSDateComponentsFormatterZeroFormattingBehaviorDefault)
             {
               NSString *s;
 
@@ -352,7 +352,7 @@
             }
         }
     }
-  if (_allowedUnits | NSCalendarUnitWeekOfMonth)
+  if (_allowedUnits & NSCalendarUnitWeekOfMonth)
     {
       if (_unitsStyle == NSDateComponentsFormatterUnitsStyleSpellOut)
         {
@@ -369,7 +369,7 @@
       else
         {
           if (_zeroFormattingBehavior
-	    | NSDateComponentsFormatterZeroFormattingBehaviorDefault)
+	    & NSDateComponentsFormatterZeroFormattingBehaviorDefault)
             {
 	      long	wom = (long)[components weekOfMonth];
               NSString *s = [NSString stringWithFormat: @"%2ld", wom];
@@ -437,13 +437,13 @@
 
 - (void) setAllowedUnits: (NSCalendarUnit)units
 {
-  if (units | NSCalendarUnitYear
-    && units | NSCalendarUnitMonth
-    && units | NSCalendarUnitDay
-    && units | NSCalendarUnitHour
-    && units | NSCalendarUnitMinute
-    && units | NSCalendarUnitSecond
-    && units | NSCalendarUnitWeekOfMonth)
+  if (units & NSCalendarUnitYear
+    && units & NSCalendarUnitMonth
+    && units & NSCalendarUnitDay
+    && units & NSCalendarUnitHour
+    && units & NSCalendarUnitMinute
+    && units & NSCalendarUnitSecond
+    && units & NSCalendarUnitWeekOfMonth)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"Passed invalid unit into allowedUnits"];

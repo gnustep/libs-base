@@ -1,3 +1,7 @@
+2020-08-30  Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/NSDateComponentsFormatter.m: Fix use of wrong operator.
+
 2020-08-02 Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSNotification.h: Add NSNotificatioName typedef
