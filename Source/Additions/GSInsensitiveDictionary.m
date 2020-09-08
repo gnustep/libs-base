@@ -61,6 +61,7 @@
 {
 @public
   GSIMapTable_t	map;
+  NSUInteger _version;
 }
 @end
 
@@ -349,6 +350,15 @@ static SEL	objSel;
   return nil;
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+                                   objects: (__unsafe_unretained id[])stackbuf
+                                     count: (NSUInteger)len
+{
+  state->mutationsPtr = (unsigned long *)self;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
+}
+
 @end
 
 @implementation _GSMutableInsensitiveDictionary
@@ -396,6 +406,7 @@ static SEL	objSel;
 {
   GSIMapNode	node;
 
+  _version++;
   if (aKey == nil)
     {
       NSException	*e;
@@ -425,11 +436,14 @@ static SEL	objSel;
     {
       GSIMapAddPair(&map, (GSIMapKey)aKey, (GSIMapVal)anObject);
     }
+  _version++;
 }
 
 - (void) removeAllObjects
 {
+  _version++;
   GSIMapCleanMap(&map);
+  _version++;
 }
 
 - (void) removeObjectForKey: (id)aKey
@@ -439,7 +453,18 @@ static SEL	objSel;
       NSWarnMLog(@"attempt to remove nil key from dictionary %@", self);
       return;
     }
+  _version++;
   GSIMapRemoveKey(&map, (GSIMapKey)aKey);
+  _version++;
+}
+
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+                                   objects: (__unsafe_unretained id[])stackbuf
+                                     count: (NSUInteger)len
+{
+  state->mutationsPtr = (unsigned long *)&_version;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
 }
 
 @end
