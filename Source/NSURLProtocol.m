@@ -602,7 +602,6 @@ static NSURLProtocol	*placeholder = nil;
       this->request = [request copy];
       this->cachedResponse = RETAIN(cachedResponse);
       this->client = RETAIN(client);
-      this->client = client;	// Not retained
       READ_BUFFER = NSZoneCalloc([self zone], 1, MAX_READ_BUFFER);
       WRITE_BUFFER = NSZoneCalloc([self zone], 1, MAX_WRITE_BUFFER);
     }
@@ -758,10 +757,10 @@ static NSURLProtocol	*placeholder = nil;
 
 - (void) dealloc
 {
-  [_parser release];			// received headers
-  [_body release];			// for sending the body
-  [_response release];
-  [_credential release];
+  RELEASE(_parser);     // received headers
+  RELEASE(_body);       // for sending the body
+  RELEASE(_response);
+  RELEASE(_credential);
   [super dealloc];
 }
 
@@ -779,6 +778,7 @@ static NSURLProtocol	*placeholder = nil;
                                                 userInfo: userinfo];
   [self stopLoading];
   [this->client URLProtocol: self didFailWithError: error];
+  DESTROY(this->client);
 }
 
 - (NSTimeInterval) _timeInterval
@@ -807,7 +807,7 @@ static NSURLProtocol	*placeholder = nil;
 
 - (void) _stopTimer
 {
-  if (this->_timer)
+  if ((NULL != this) && (this->_timer))
   {
     [this->_timer invalidate];
     this->_timer = nil; // We hold a weak reference...
@@ -860,9 +860,10 @@ static NSURLProtocol	*placeholder = nil;
       NSLog(@"Invalid HTTP Method: %@", this->request);
       [self stopLoading];
       [this->client URLProtocol: self didFailWithError:
-	[NSError errorWithDomain: @"Invalid HTTP Method"
-			    code: 0
-                        userInfo: [self _userInfoForErrorCode: 0]]];
+       [NSError errorWithDomain: @"Invalid HTTP Method"
+                           code: 0
+                       userInfo: [self _userInfoForErrorCode: 0]]];
+      DESTROY(this->client);
       return;
     }
   if (_isLoading == YES)
@@ -904,8 +905,8 @@ static NSURLProtocol	*placeholder = nil;
 				  code: 0
 			      userInfo: [self _userInfoForErrorCode: 0]];
 	  [self stopLoading];
-	  [this->client URLProtocol: self
-		   didFailWithError: e];
+	  [this->client URLProtocol: self didFailWithError: e];
+    DESTROY(this->client);
 	}
       else
 	{
@@ -915,9 +916,9 @@ static NSURLProtocol	*placeholder = nil;
 	  [request setURL: url];
           // This invocation may end up detroying us so need to retain/autorelease...
           AUTORELEASE(RETAIN(self));
-	  [this->client URLProtocol: self
-	     wasRedirectedToRequest: request
-		   redirectResponse: nil];
+    [this->client URLProtocol: self
+       wasRedirectedToRequest: request
+             redirectResponse: nil];
 	}
       if (NO == _isLoading)
         {
@@ -971,6 +972,7 @@ static NSURLProtocol	*placeholder = nil;
 	  [this->client URLProtocol: self didFailWithError:
            [NSError errorWithDomain: @"can't connect" code: 0
                            userInfo: [self _userInfoForErrorCode: 0 description: @"can't find host" host: host]]];
+    DESTROY(this->client);
 	  return;
 	}
       [this->input retain];
@@ -1159,8 +1161,9 @@ static NSURLProtocol	*placeholder = nil;
 	    {
 	      NSWarnMLog(@"%@ receive error %@", self, e);
 	    }
-	  [self stopLoading];
-	  [this->client URLProtocol: self didFailWithError: e];
+          [self stopLoading];
+          [this->client URLProtocol: self didFailWithError: e];
+          DESTROY(this->client);
 	}
       return;
     }
@@ -1190,6 +1193,7 @@ static NSURLProtocol	*placeholder = nil;
 			  userInfo: nil];
       [self stopLoading];
       [this->client URLProtocol: self didFailWithError: e];
+      DESTROY(this->client);
       return;
     }
   else
@@ -1344,6 +1348,7 @@ static NSURLProtocol	*placeholder = nil;
                   [self stopLoading];
                   [this->client URLProtocol: self
                            didFailWithError: e];
+                  DESTROY(this->client);
                 }
               else
                 {
@@ -1519,8 +1524,8 @@ static NSURLProtocol	*placeholder = nil;
 					  code: 0
 				      userInfo: nil];
 		  [self stopLoading];
-		  [this->client URLProtocol: self
-			   didFailWithError: e];
+		  [this->client URLProtocol: self didFailWithError: e];
+      DESTROY(this->client);
 		}
 	      else
 		{
@@ -1644,6 +1649,7 @@ static NSURLProtocol	*placeholder = nil;
 	        {
 		  _isLoading = NO;
 	          [this->client URLProtocolDidFinishLoading: self];
+            DESTROY(this->client);
 		}
 	    }
 	}
@@ -1674,6 +1680,7 @@ static NSURLProtocol	*placeholder = nil;
             {
               _isLoading = NO;
               [this->client URLProtocolDidFinishLoading: self];
+              DESTROY(this->client);
             }
 	}
 
@@ -1689,11 +1696,10 @@ static NSURLProtocol	*placeholder = nil;
 	      NSWarnMLog(@"%@ HTTP response not received - %@", self, _parser);
 	    }
 	  [self stopLoading];
-	  [this->client URLProtocol: self didFailWithError:
-	    [NSError errorWithDomain: @"receive incomplete"
-				code: 0
-			    userInfo: nil]];
-          //[self _userInfoForErrorCode: 0 description: @"receive incomplete"]
+    NSError *error = [NSError errorWithDomain: @"receive incomplete" code: 0 userInfo: nil];
+    [this->client URLProtocol: self didFailWithError:error];
+    //[self _userInfoForErrorCode: 0 description: @"receive incomplete"]
+    DESTROY(this->client);
 	}
     }
 }
@@ -1931,11 +1937,10 @@ static NSURLProtocol	*placeholder = nil;
 			    {
 			      NSWarnMLog(@"%@ error reading from HTTPBody stream %@", self, [NSError _last]);
 			    }
-                          [self stopLoading];
-                          [this->client URLProtocol: self didFailWithError:
-                           [NSError errorWithDomain: @"can't read body"
-                                               code: 0
-                                           userInfo: nil]];
+        [self stopLoading];
+        NSError *error = [NSError errorWithDomain: @"can't read body" code: 0 userInfo: nil];
+        [this->client URLProtocol: self didFailWithError: error];
+        DESTROY(this->client);
 			  return;
 			}
 		      else if (len > 0)
@@ -2031,6 +2036,7 @@ static NSURLProtocol	*placeholder = nil;
 
       [self stopLoading];
       [this->client URLProtocol: self didFailWithError: error];
+      DESTROY(this->client);
     }
   else
     {
@@ -2090,10 +2096,9 @@ static NSURLProtocol	*placeholder = nil;
 		    outputStream: &this->output];
       if (this->input == nil || this->output == nil)
 	{
-	  [this->client URLProtocol: self didFailWithError:
-	    [NSError errorWithDomain: @"can't connect"
-				code: 0
-			    userInfo: nil]];
+    NSError *error = [NSError errorWithDomain: @"can't connect" code: 0 userInfo: nil];
+	  [this->client URLProtocol: self didFailWithError: error];
+    DESTROY(this->client);
 	  return;
 	}
       [this->input retain];
@@ -2143,13 +2148,14 @@ static NSURLProtocol	*placeholder = nil;
 	  case NSStreamEventHasBytesAvailable: 
 	    {
 	    NSLog(@"FTP input stream has bytes available");
-	    // implement FTP protocol
-            //[this->client URLProtocol: self didLoadData: [NSData dataWithBytes: buffer length: len]];	// notify
+      // implement FTP protocol
+      //[this->client URLProtocol: self didLoadData: [NSData dataWithBytes: buffer length: len]];	// notify
 	    return;
 	    }
 	  case NSStreamEventEndEncountered: 	// can this occur in parallel to NSStreamEventHasBytesAvailable???
 		  NSLog(@"FTP input stream did end");
 		  [this->client URLProtocolDidFinishLoading: self];
+      DESTROY(this->client);
 		  return;
 	  case NSStreamEventOpenCompleted: 
 		  // prepare to receive header
@@ -2173,9 +2179,10 @@ static NSURLProtocol	*placeholder = nil;
   if (event == NSStreamEventErrorOccurred)
     {
       NSLog(@"An error %@ occurred on stream %@ of %@",
-	[stream streamError], stream, self);
+            [stream streamError], stream, self);
       [self stopLoading];
       [this->client URLProtocol: self didFailWithError: [stream streamError]];
+      DESTROY(this->client);
     }
   else
     {
@@ -2208,12 +2215,13 @@ static NSURLProtocol	*placeholder = nil;
   /* options: error: - don't use that because it is based on self */];
   if (data == nil)
     {
-      [this->client URLProtocol: self didFailWithError:
-	[NSError errorWithDomain: @"can't load file" code: 0 userInfo:
-	  [NSDictionary dictionaryWithObjectsAndKeys: 
-	    [this->request URL], @"URL",
-	    [[this->request URL] path], @"path",
-	    nil]]];
+      NSDictionary *errorinfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                                 [this->request URL], @"URL",
+                                 [[this->request URL] path], @"path",
+                                 nil];
+      NSError      *error = [NSError errorWithDomain: @"can't load file" code: 0 userInfo: errorinfo];
+      [this->client URLProtocol: self didFailWithError: error];
+      DESTROY(this->client);
       return;
     }
 
@@ -2228,6 +2236,7 @@ static NSURLProtocol	*placeholder = nil;
     cacheStoragePolicy: NSURLRequestUseProtocolCachePolicy];
   [this->client URLProtocol: self didLoadData: data];
   [this->client URLProtocolDidFinishLoading: self];
+  DESTROY(this->client);
   RELEASE(r);
 }
 
@@ -2275,6 +2284,7 @@ static NSURLProtocol	*placeholder = nil;
                                   code: 0
                               userInfo: ui];
       [this->client URLProtocol: self didFailWithError: error];
+      DESTROY(this->client);
       return;
     }
   types = [[[spec substringToIndex: comma.location]
@@ -2315,6 +2325,7 @@ static NSURLProtocol	*placeholder = nil;
 	 cacheStoragePolicy: NSURLRequestUseProtocolCachePolicy];
   [this->client URLProtocol: self didLoadData: data];
   [this->client URLProtocolDidFinishLoading: self];
+  DESTROY(this->client);
   RELEASE(r);
 }
 
@@ -2352,6 +2363,7 @@ static NSURLProtocol	*placeholder = nil;
     cacheStoragePolicy: NSURLRequestUseProtocolCachePolicy];
   [this->client URLProtocol: self didLoadData: data];
   [this->client URLProtocolDidFinishLoading: self];
+  DESTROY(this->client);
   RELEASE(r);
 }
 

@@ -87,6 +87,20 @@ extern "C" {
  */
 - (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
+/**
+ * Start the asynchronous load for this connection.
+ */
+- (void) start;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,MAC_OS_X_VERSION_10_11)
+/**
+ * Same as previous init but starts the connection based on the input flag
+ */
+- (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate startImmediately: (BOOL)startImmediately;
+#endif
+
 @end
 
 
