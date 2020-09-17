@@ -85,7 +85,7 @@
 
 
 /* platforms which do not support weak */
-#if (__GNUC__ == 3) && defined (__WIN32)
+#if defined (__WIN32)
 #define WEAK_ATTRIBUTE
 #undef SUPPORT_WEAK
 #else
