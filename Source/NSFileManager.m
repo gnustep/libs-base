@@ -2813,7 +2813,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
       if (dirname)
 	{
           // Skip it if it is hidden and flag is yes...
-          if ([[dir.path lastPathComponent] hasPrefix: @"."] && _flags.skipHidden == YES)
+          if ([[dir.path lastPathComponent] hasPrefix: @"."]
+	    && _flags.skipHidden == YES)
             {
               continue;
             }
@@ -2843,14 +2844,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    stringWithFileSystemRepresentation: dirname
 	    length: strlen(dirname)];
 #endif
-	  /* if we have a null FileName something went wrong (charset?) and we skip it */
+	  /* if we have a null FileName something went wrong (charset?)
+	   * and we skip it */
 	  if (returnFileName == nil)
 	    continue;
 	  
 	  returnFileName = RETAIN([dir.path stringByAppendingPathComponent:
 	    returnFileName]);
 
-	  /* TODO - can this one can be removed ? */
 	  if (!_flags.justContents)
 	    _currentFilePath = RETAIN([_topPath stringByAppendingPathComponent:
 	      returnFileName]);
@@ -2904,13 +2905,16 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		  else
 		    {
                       BOOL flag = YES;
+
 		      NSDebugLog(@"Failed to recurse into directory '%@' - %@",
 			_currentFilePath, [NSError _last]);
-                      if(_errorHandler != NULL)
+                      if (_errorHandler != NULL)
                         {
-                          flag = CALL_BLOCK(_errorHandler, [NSURL URLWithString: _currentFilePath], [NSError _last]);
+                          flag = CALL_BLOCK(_errorHandler,
+			    [NSURL URLWithString: _currentFilePath],
+			    [NSError _last]);
                         }
-                      if(flag == NO)
+                      if (flag == NO)
                         {
                           return nil; // Stop enumeration...
                         }
