@@ -31,23 +31,6 @@
 static IMP originalRead = 0;
 static IMP originalWrite = 0;
 
-// The whole PAppend and indent table thing again.  Later?
-static void
-OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
-	NSPropertyListFormat x, NSMutableData *dest)
-{
-  // Generate declaration w/ type
-  if (lev == 0)
-    ;
-
-  // Main loop
-
-  // Add semicolon
-  if (lev == 0 && x == NSPropertyListObjectiveCFormat)
-    [dest appendBytes:";" length:1];
-  [dest appendBytes:"\n" length:1];
-}
-
 @implementation NSPropertyListSerialization (PLUtilAdditions)
 + (NSData *)_pdataFromPropertyList:(id)aPropertyList
 			    format:(NSPropertyListFormat)aFormat
@@ -71,9 +54,8 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       return dest;
     case NSPropertyListObjectiveCFormat:
     case NSPropertyListSwiftFormat:
-      dest = [NSMutableData dataWithCapacity:1024];
-      OAppend(aPropertyList, loc, 0, 2, aFormat, dest);
-      return dest;
+      *anErrorString = @"Not implemented";
+      return nil;
     default:
       return (*originalWrite)(self, _cmd, aPropertyList, aFormat, anErrorString);
     }

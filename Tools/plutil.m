@@ -32,7 +32,7 @@
 #import "Foundation/NSString.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSValue.h"
-#import "NSPropertyList+PLutil.h"
+#import "NSPropertyList+PLUtil.h"
 
 // From NSPropertyList.m
 extern void
@@ -325,7 +325,7 @@ dumpToFile(id obj, NSPropertyListFormat fmt, NSString *outfile)
 					       format:fmt
 					      options:0
 				     errorDescription:&errorString];
-  if (anError)
+  if (errorString)
     {
       GSPrintf(stderr, @"Dumping %@ as format %@ - %@\n", obj, fmt,
 	       errorString);
