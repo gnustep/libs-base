@@ -503,12 +503,11 @@ static NSArray	*empty = nil;
 @end
 
 @implementation	NSOperation (Private)
+/* NB code calling this method must ensure that the receiver is retained
+ * until after the method returns.
+ */
 - (void) _finish
 {
-  /* retain while finishing so that we don't get deallocated when our
-   * queue removes and releases us.
-   */
-  RETAIN(self);
   [internal->lock lock];
   if (NO == internal->finished)
     {
@@ -533,7 +532,6 @@ static NSArray	*empty = nil;
 	}
     }
   [internal->lock unlock];
-  RELEASE(self);
 }
 
 @end
