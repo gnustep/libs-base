@@ -93,7 +93,7 @@ typedef NSInteger NSOperationQueuePriority;
 /** Returns all the dependencies of the receiver in the order in which they
  * were added.
  */
-- (NSArray *)dependencies;
+- (NSArray *) dependencies;
 
 /** This method should return YES if the -cancel method has been called.<br />
  * NB. a cancelled operation may still be executing.
@@ -208,8 +208,8 @@ typedef NSInteger NSOperationQueuePriority;
 }
 
 // Managing the blocks in the Operation
-+ (instancetype)blockOperationWithBlock: (GSBlockOperationBlock)block;
-- (void)addExecutionBlock: (GSBlockOperationBlock)block;
++ (instancetype) blockOperationWithBlock: (GSBlockOperationBlock)block;
+- (void) addExecutionBlock: (GSBlockOperationBlock)block;
 - (NSArray *) executionBlocks;
 
 @end
