@@ -538,7 +538,7 @@ static NSArray	*empty = nil;
 
 @end
 
-	  
+
 @implementation NSBlockOperation
 
 + (instancetype) blockOperationWithBlock: (GSBlockOperationBlock)block
@@ -989,6 +989,11 @@ static NSOperationQueue *mainQueue = nil;
                                                   forKey: threadKey];
   for (;;)
     {
+      /* We use a pool for each operation in case releasing the operation
+       * causes it to be deallocated, and the deallocation of the operation
+       * autoreleases something which needs to be cleaned up.
+       */
+      ENTER_POOL
       NSOperation	*op;
       NSDate		*when;
       BOOL		found;
@@ -1040,6 +1045,7 @@ static NSOperationQueue *mainQueue = nil;
 	  [op _finish];
           RELEASE(op);
 	}
+      LEAVE_POOL
     }
 
   [[[NSThread currentThread] threadDictionary] removeObjectForKey: threadKey];
