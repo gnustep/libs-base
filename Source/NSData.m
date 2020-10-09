@@ -1032,18 +1032,15 @@ failure:
                 options: (NSDataSearchOptions)mask
                   range: (NSRange)searchRange
 {
-  NSUInteger length = [self length];
-  void*      bytesSelf = [self bytes];
-  NSUInteger countOther;
-  void*      bytesOther;
-  NSRange    result;
+  NSUInteger  length = [self length];
+  NSUInteger  countOther = [dataToFind length];
+  const void* bytesSelf = [self bytes];
+  const void* bytesOther = [dataToFind bytes];
+  NSRange     result;
 
   GS_RANGE_CHECK(searchRange, length);
   if (dataToFind == nil)
     [NSException raise: NSInvalidArgumentException format: @"range of nil"];
-
-  countOther = [dataToFind length];
-  bytesOther = [dataToFind bytes];
 
   /* Zero length data is always found at the start of the given range.
    */
