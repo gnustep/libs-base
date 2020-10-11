@@ -981,7 +981,7 @@ static NSOperationQueue *mainQueue = nil;
 
 - (void) _thread
 {
-  ENTER_POOL
+  CREATE_AUTORELEASE_POOL(arp);
 
   [[[NSThread currentThread] threadDictionary] setObject: self
                                                   forKey: threadKey];
@@ -991,7 +991,7 @@ static NSOperationQueue *mainQueue = nil;
        * causes it to be deallocated, and the deallocation of the operation
        * autoreleases something which needs to be cleaned up.
        */
-      ENTER_POOL
+      RECREATE_AUTORELEASE_POOL(arp);
       NSOperation	*op;
       NSDate		*when;
       BOOL		found;
@@ -1043,14 +1043,13 @@ static NSOperationQueue *mainQueue = nil;
 	  [op _finish];
           RELEASE(op);
 	}
-      LEAVE_POOL
     }
 
   [[[NSThread currentThread] threadDictionary] removeObjectForKey: threadKey];
   [internal->lock lock];
   internal->threadCount--;
   [internal->lock unlock];
-  LEAVE_POOL
+  DESTROY(arp);
   [NSThread exit];
 }
 
