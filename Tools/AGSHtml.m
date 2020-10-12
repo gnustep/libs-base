@@ -1078,28 +1078,30 @@ static NSString		*mainFont = nil;
 	}
       else if ([name isEqual: @"gsdoc"] == YES)
 	{
-          NSString	*stylesheetURL = [prop objectForKey: @"stylesheeturl"];
-
 	  base = [prop objectForKey: @"base"];
 	  if (base == nil)
 	    {
 	      NSLog(@"No 'base' document name supplied in gsdoc element");
-	      break;
 	    }
-	  nextFile = [prop objectForKey: @"next"];
-	  nextFile = [nextFile stringByAppendingPathExtension: @"html"];
-	  prevFile = [prop objectForKey: @"prev"];
-	  prevFile = [prevFile stringByAppendingPathExtension: @"html"];
-	  upFile = [prop objectForKey: @"up"];
-	  upFile = [upFile stringByAppendingPathExtension: @"html"];
+	  else
+	    {
+	      NSString	*stylesheetURL = [prop objectForKey: @"stylesheeturl"];
 
-          // special formatting for table-of-contents frames; ultimately
-          // this should be moved to stylesheet
-          isContentsDoc = ((stylesheetURL != nil) &&
-            ([stylesheetURL rangeOfString: @"gsdoc_contents"].length > 0)) ?
-            YES : NO;
+	      nextFile = [prop objectForKey: @"next"];
+	      nextFile = [nextFile stringByAppendingPathExtension: @"html"];
+	      prevFile = [prop objectForKey: @"prev"];
+	      prevFile = [prevFile stringByAppendingPathExtension: @"html"];
+	      upFile = [prop objectForKey: @"up"];
+	      upFile = [upFile stringByAppendingPathExtension: @"html"];
 
-	  [self outputNodeList: children to: buf];
+	      // special formatting for table-of-contents frames; ultimately
+	      // this should be moved to stylesheet
+	      isContentsDoc = ((stylesheetURL != nil) &&
+		([stylesheetURL rangeOfString: @"gsdoc_contents"].length > 0))
+		? YES : NO;
+
+	      [self outputNodeList: children to: buf];
+	    }
 	}
       else if ([name isEqual: @"head"] == YES)
 	{
