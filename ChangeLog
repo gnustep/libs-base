@@ -1,3 +1,7 @@
+2020-10-11  Adam Fox <adam.fox@eggplantsoftware.com>
+
+       * NSData.m: Implement rangeOfData:options:range
+
 2019-12-03  Doug Simons <doug.simons@eggplant.io>
 
        * NSTimeZone.m: 
