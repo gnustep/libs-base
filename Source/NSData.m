@@ -1046,7 +1046,7 @@ failure:
    */
   if (0 == countOther)
     {
-      if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+      if ((mask & NSDataSearchBackwards) == NSDataSearchBackwards)
         {
           searchRange.location += searchRange.length;
         }
@@ -1062,12 +1062,12 @@ failure:
     }
   else
     {
-      if ((mask & NSAnchoredSearch) == NSAnchoredSearch
+      if ((mask & NSDataSearchAnchored) == NSDataSearchAnchored
         || searchRange.length == countOther)
         {
           /* Range to search is same size as data to look for.
            */
-          if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+          if ((mask & NSDataSearchBackwards) == NSDataSearchBackwards)
             {
               searchRange.location = NSMaxRange(searchRange) - countOther;
               searchRange.length = countOther;
@@ -1094,7 +1094,7 @@ failure:
           NSUInteger end;
 
           end = searchRange.length - countOther + 1;
-          if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+          if ((mask & NSDataSearchBackwards) == NSDataSearchBackwards)
             {
               pos = end;
             }
@@ -1103,12 +1103,11 @@ failure:
               pos = 0;
             }
 
-          if ((mask & NSBackwardsSearch) == NSBackwardsSearch)
+          if ((mask & NSDataSearchBackwards) == NSDataSearchBackwards)
             {
               while (pos-- > 0)
                 {
-                  if (memcmp(&bytesSelf[pos], bytesOther,
-                    countOther * sizeof(unichar)) == 0)
+                  if (memcmp(&bytesSelf[searchRange.location + pos], bytesOther, countOther) == 0)
                     {
                       break;
                     }
@@ -1118,8 +1117,7 @@ failure:
             {
               while (pos < end)
                 {
-                  if (memcmp(&bytesSelf[pos], bytesOther,
-                    countOther * sizeof(unichar)) == 0)
+                  if (memcmp(&bytesSelf[searchRange.location + pos], bytesOther, countOther) == 0)
                     {
                       break;
                     }
