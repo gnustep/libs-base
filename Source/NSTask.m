@@ -845,7 +845,7 @@ pty_slave(const char* name)
  */
 - (void) waitUntilExit
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  ENTER_POOL
   NSRunLoop     *loop = [NSRunLoop currentRunLoop];
   NSTimer	*timer = nil;
   NSDate	*limit = nil;
@@ -874,7 +874,7 @@ pty_slave(const char* name)
    */
   limit = [NSDate dateWithTimeIntervalSinceNow: 0.0];
   [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
-  IF_NO_GC([arp release];)
+  LEAVE_POOL
 }
 @end
 
@@ -1292,16 +1292,16 @@ quotedFromString(NSString *aString)
     NULL,      			/* thread attrs */
     1,         			/* inherit handles */
     0
-    |CREATE_NO_WINDOW
-/* One would have thought the the CREATE_NO_WINDOW flag should be used,
- * but apparently this breaks for old 16bit applications/tools on XP.
- * So maybe we want to leave it out?
+/* We don't want a subtask to be run min a window since that would prevent
+ * startup of background tasks.  If a subtask wants a window, it should
+ * create it itself.
  */
-//    |DETACHED_PROCESS
+    |CREATE_NO_WINDOW
 /* We don't set the DETACHED_PROCESS flag as it actually means that the
  * child task should get a new Console allocated ... and that means it
  * will pop up a console window ... which looks really bad.
  */
+//    |DETACHED_PROCESS
     |CREATE_UNICODE_ENVIRONMENT,
     envp,			/* env block */
     (const unichar*)[[self currentDirectoryPath] fileSystemRepresentation],

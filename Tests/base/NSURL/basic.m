@@ -29,9 +29,12 @@ int main()
   TEST_FOR_CLASS(@"NSURL", [NSURL URLWithString: @"http://www.w3.org/"],
     "NSURL +URLWithString: returns an NSURL");
   
+  url = [NSURL URLWithString: nil];
+  PASS(nil == url, "A nil string result in nil URL");
+
   str = [NSString stringWithCharacters: bad length: sizeof(bad)/sizeof(*bad)];
   url = [NSURL URLWithString: str];
-  PASS(nil == url, "Bad characters result in nil");
+  PASS(nil == url, "Bad characters result in nil URL");
 
   str = [NSString stringWithCharacters: &u length: 1];
   url = [NSURL fileURLWithPath: str];
@@ -56,7 +59,7 @@ int main()
   url = [NSURL URLWithString: @"http://www.w3.org/silly-file-name"];
   data = [url resourceDataUsingCache: NO];
   num = [url propertyForKey: NSHTTPPropertyStatusCodeKey];
-  PASS([num isKindOfClass: [NSNumber class]] && [num intValue] == 404,
+  PASS_EQUAL(num, [NSNumber numberWithInt: 404],
     "Status of load is 404 for www.w3.org/silly-file-name");
   str = [url scheme];
   PASS([str isEqual: @"http"],
@@ -292,17 +295,20 @@ GSPathHandling("right");
   PASS(nil == [url host], "host");
   PASS(nil == [url user], "user");
   PASS(nil == [url password], "password");
-  PASS([@"/pathtofile;parameters?query#anchor"
-    isEqual: [url resourceSpecifier]], "resourceSpecifier");
-  PASS([@"/pathtofile" isEqual: [url path]], "path");
-  PASS([@"query" isEqual: [url query]], "query");
-  PASS([@"parameters" isEqual: [url parameterString]], "parameterString");
-  PASS([@"anchor" isEqual: [url fragment]], "fragment");
-  PASS([@"file:///pathtofile;parameters?query#anchor"
-    isEqual: [url absoluteString]], "absoluteString");
-  PASS([@"/pathtofile" isEqual: [url relativePath]], "relativePath");
-  PASS([@"file:///pathtofile;parameters?query#anchor"
-    isEqual: [url description]], "description");
+  PASS_EQUAL([url resourceSpecifier],
+    @"/pathtofile;parameters?query#anchor",
+    "resourceSpecifier");
+  PASS_EQUAL([url path], @"/pathtofile", "path");
+  PASS_EQUAL([url query], @"query", "query");
+  PASS_EQUAL([url parameterString], @"parameters", "parameterString");
+  PASS_EQUAL([url fragment], @"anchor", "fragment");
+  PASS_EQUAL([url absoluteString],
+    @"file:///pathtofile;parameters?query#anchor",
+    "absoluteString");
+  PASS_EQUAL([url relativePath], @"/pathtofile", "relativePath");
+  PASS_EQUAL([url description],
+    @"file:///pathtofile;parameters?query#anchor",
+    "description");
 
   url = [NSURL URLWithString: @"file:///pathtofile; parameters? query #anchor"];     // can't initialize with spaces (must be %20)
   PASS(nil == url, "url with spaces");
@@ -333,6 +339,23 @@ GSPathHandling("right");
   PASS_EQUAL([rel absoluteString], @"data:,$2A", "relative data URL works");
   PASS_EQUAL([rel baseURL], nil, "Base URL of relative data URL is nil");
 
+  ///NSURLQueryItem
+  
+  //OSX behavior is to return query item with an empty string name
+  NSURLQueryItem* item = [[NSURLQueryItem alloc] init];
+  PASS_EQUAL(item.name, @"", "NSURLQueryItem.name should not be nil");
+  PASS_EQUAL(item.value, nil, "NSURLQueryItem.value should be nil");
+    
+  //OSX behavior is to return query item with an empty string name
+  item = [[NSURLQueryItem alloc] initWithName:nil value:nil];
+  PASS_EQUAL(item.name, @"", "NSURLQueryItem.name should not be nil");
+  PASS_EQUAL(item.value, nil, "NSURLQueryItem.value should be nil");
+    
+  item = [[NSURLQueryItem alloc] initWithName:@"myName" value:@"myValue"];
+  PASS_EQUAL(item.name,  @"myName", "NSURLQueryItem.name should not be nil");
+  PASS_EQUAL(item.value, @"myValue", "NSURLQueryItem.value should not be nil");
+
+    
   [arp release]; arp = nil;
   return 0;
 }

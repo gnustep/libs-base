@@ -1,5 +1,5 @@
 /** Interface for NSPropertyList for GNUstep
-   Copyright (C) 2004 Free Software Foundation, Inc.
+   Copyright (C) 2004-2020 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: January 2004
@@ -117,11 +117,15 @@ typedef NSUInteger NSPropertyListFormat;
  *   </desc>
  *   <term>[NSData]</term>
  *   <desc>
- *     An array is represented as a series of pairs of hexadecimal characters
- *     (each pair representing a byte of data) enclosed in angle brackets.
- *     Spaces are ignored).
+ *     A data object is represented as a series of pairs of hexadecimal
+ *     characters (each pair representing a byte of data) enclosed in angle
+ *     brackets. (Spaces are ignored).
  *     <example>
  *       &lt; 54637374 696D67 &gt;
+ *     </example>
+ *     Base64 can be used since Base 1.24.9:
+ *     <example>
+ *       &lt;[VGNzdGltZw==]&gt;
  *     </example>
  *     In XML format, a data object is an element whose name is
  *     <code>data</code> and whose content is a stream of base64 encoded bytes.
@@ -160,13 +164,13 @@ typedef NSUInteger NSPropertyListFormat;
  *       }
  *     </example>
  *     In XML format, a dictionary is an element whose name is
- *     <code>dictionary</code> and whose content consists of pairs of
- *     strings and other <em>property list</em> objects.
+ *     <code>dict</code> and whose content consists of pairs of
+ *     string <code>key</code> and other <em>property list</em> objects.
  *     <example>
- *       &lt;dictionary&gt;
- *         &lt;string&gt;key1&lt;/string&gt;
+ *       &lt;dict&gt;
+ *         &lt;key&gt;key1&lt;/key&gt;
  *         &lt;string&gt;value1&lt;/string&gt;
- *       &lt;/dictionary&gt;
+ *       &lt;/dict&gt;
  *     </example>
  *   </desc>
  *   <term>[NSNumber]</term>

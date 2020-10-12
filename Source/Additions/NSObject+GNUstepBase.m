@@ -27,6 +27,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSHashTable.h"
 #import "Foundation/NSLock.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
 #import "GNUstepBase/NSThread+GNUstepBase.h"
@@ -52,7 +53,7 @@
     format: @"method %@ not implemented in %@(class)",
     selector ? (id)NSStringFromSelector(selector) : (id)@"(null)",
     NSStringFromClass(self)];
-  while (0) ;   // Does not return
+  while (1) ;   // Does not return
 }
 
 - (NSComparisonResult) compare: (id)anObject
@@ -116,7 +117,7 @@
     format: @"[%@%c%@] not implemented",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  while (0) ;   // Does not return
+  while (1) ;   // Does not return
 }
 
 - (id) shouldNotImplement: (SEL)aSel
@@ -128,7 +129,7 @@
     format: @"[%@%c%@] should not be implemented",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  while (0) ;   // Does not return
+  while (1) ;   // Does not return
 }
 
 - (id) subclassResponsibility: (SEL)aSel
@@ -139,7 +140,7 @@
     format: @"[%@%c%@] should be overridden by subclass",
     NSStringFromClass([self class]), c,
     aSel ? (id)NSStringFromSelector(aSel) : (id)@"(null)"];
-  while (0) ;   // Does not return
+  while (1) ;   // Does not return
 }
 
 @end
@@ -412,7 +413,9 @@ handleExit()
   NSUInteger    size;
 
 #if     GS_SIZEOF_VOIDP > 4
-  if ((((NSUInteger)void*)self) & 0x07)
+  NSUInteger	xxx = (NSUInteger)(void*)self;
+
+  if (xxx & 0x07)
     {
       return 0; // Small object has no size
     }

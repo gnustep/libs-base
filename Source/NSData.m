@@ -1787,9 +1787,11 @@ failure:
 	{
 	  /*
 	   * We have created a new file - so we attempt to make it's
-	   * attributes match that of the original.
+	   * attributes match that of the original (except for those
+	   * we can't reasonably set).
 	   */
 	  [att removeObjectForKey: NSFileSize];
+	  [att removeObjectForKey: NSFileCreationDate];
 	  [att removeObjectForKey: NSFileModificationDate];
 	  [att removeObjectForKey: NSFileReferenceCount];
 	  [att removeObjectForKey: NSFileSystemNumber];
@@ -1798,10 +1800,21 @@ failure:
 	  [att removeObjectForKey: NSFileType];
 	  if ([mgr changeFileAttributes: att atPath: path] == NO)
 	    {
-	      NSWarnMLog(@"Unable to correctly set all attributes for '%@'",
-		path);
+	      NSWarnMLog(@"Unable to correctly set attributes for '%@' to %@",
+		path, att);
 	    }
 	}
+#ifdef HAVE_GETEUID
+      else if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
+	{
+	  att = [NSDictionary dictionaryWithObjectsAndKeys:
+	    NSFileOwnerAccountName, NSUserName(), nil];
+	  if ([mgr changeFileAttributes: att atPath: path] == NO)
+	    {
+	      NSWarnMLog(@"Unable to correctly set ownership for '%@'", path);
+	    }
+	}
+#endif
     }
 
   /* success: */
@@ -1961,6 +1974,7 @@ failure:
 	   * attributes match that of the original.
 	   */
 	  [mAtt removeObjectForKey: NSFileSize];
+	  [mAtt removeObjectForKey: NSFileCreationDate];
 	  [mAtt removeObjectForKey: NSFileModificationDate];
 	  [mAtt removeObjectForKey: NSFileReferenceCount];
 	  [mAtt removeObjectForKey: NSFileSystemNumber];
@@ -1969,19 +1983,21 @@ failure:
 	  [mAtt removeObjectForKey: NSFileType];
 	  if ([mgr changeFileAttributes: mAtt atPath: path] == NO)
 	    {
-	      NSWarnMLog(@"Unable to correctly set all attributes for '%@'",
-		path);
+	      NSWarnMLog(@"Unable to correctly set attributes for '%@' to %@",
+		path, mAtt);
 	    }
 	}
+#ifdef HAVE_GETEUID
       else if (geteuid() == 0 && [@"root" isEqualToString: NSUserName()] == NO)
 	{
 	  att = [NSDictionary dictionaryWithObjectsAndKeys:
-			NSFileOwnerAccountName, NSUserName(), nil];
+	    NSFileOwnerAccountName, NSUserName(), nil];
 	  if ([mgr changeFileAttributes: att atPath: path] == NO)
 	    {
 	      NSWarnMLog(@"Unable to correctly set ownership for '%@'", path);
 	    }
 	}
+#endif
     }
 
   /* success: */

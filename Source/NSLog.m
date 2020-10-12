@@ -181,10 +181,8 @@ _NSLog_standard_printf_handler(NSString* message)
 #else
 
 #if	defined(HAVE_SYSLOG)
-#ifndef __ANDROID__ // always use syslog on Android (no stdout/stderr)
   if (GSPrivateDefaultsFlag(GSLogSyslog) == YES
     || write(_NSLogDescriptor, buf, len) != (int)len)
-#endif
     {
       null_terminated_buf = malloc(sizeof (char) * (len + 1));
       strncpy (null_terminated_buf, buf, len);
@@ -337,6 +335,11 @@ NSLogv(NSString* format, va_list args)
   NSString              *message;
   NSString              *threadName = nil;
   NSThread              *t = nil;
+  /* NB. On systems like Android where there is no operating system thread
+   * ID available, the value returned by GSPrivateThreadID() should actually
+   * be the pointer to the NSThread object.  We will check for that later.
+   */
+  NSUInteger            tid = GSPrivateThreadID();
   static int		pid = 0;
 
   if (_NSLog_printf_handler == NULL)
@@ -367,20 +370,20 @@ NSLogv(NSString* format, va_list args)
 #ifdef	HAVE_SYSLOG
   if (GSPrivateDefaultsFlag(GSLogSyslog) == YES)
     {
-      if (nil == t)
+      if (nil == t || ((NSThread*)tid == t && nil == threadName))
         {
           [prefix appendFormat: @"[thread:%"PRIuPTR"] ",
-            GSPrivateThreadID()];
+            tid];
         }
       else if (nil == threadName)
         {
           [prefix appendFormat: @"[thread:%"PRIuPTR",%p] ",
-            GSPrivateThreadID(), t];
+            tid, t];
         }
       else
         {
           [prefix appendFormat: @"[thread:%"PRIuPTR",%@] ",
-            GSPrivateThreadID(), threadName];
+            tid, threadName];
         }
     }
   else
@@ -402,20 +405,20 @@ NSLogv(NSString* format, va_list args)
       [prefix appendString: cal];
       [prefix appendString: @" "];
       [prefix appendString: [[NSProcessInfo processInfo] processName]];
-      if (nil == t)
+      if (nil == t || ((NSThread*)tid == t && nil == threadName))
         {
           [prefix appendFormat: @"[%d:%"PRIuPTR"] ",
-            pid, GSPrivateThreadID()];
+            pid, tid];
         }
       else if (nil == threadName)
         {
           [prefix appendFormat: @"[%d:%"PRIuPTR",%p] ",
-            pid, GSPrivateThreadID(), t];
+            pid, tid, t];
         }
       else
         {
           [prefix appendFormat: @"[%d:%"PRIuPTR",%@] ",
-            pid, GSPrivateThreadID(), threadName];
+            pid, tid, threadName];
         }
     }
 

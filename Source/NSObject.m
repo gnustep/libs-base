@@ -85,7 +85,7 @@
 
 
 /* platforms which do not support weak */
-#if (__GNUC__ == 3) && defined (__WIN32)
+#if defined (__WIN32)
 #define WEAK_ATTRIBUTE
 #undef SUPPORT_WEAK
 #else
@@ -1121,9 +1121,12 @@ static id gs_weak_load(id obj)
 
 + (void) _atExit
 {
+  NSMapTable	*m = nil;
   pthread_mutex_lock(&allocationLock);
-  DESTROY(zombieMap);
+  m = zombieMap;
+  zombieMap = nil;
   pthread_mutex_unlock(&allocationLock);
+  DESTROY(m);
 }
 
 /**

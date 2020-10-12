@@ -465,13 +465,13 @@ con_callback (id prx)
   k = 1000;
   for (j = 0; j < k; j++)
     {
-      CREATE_AUTORELEASE_POOL(arp);
+      ENTER_POOL
       [prx unregisterClient: localObj];
       [prx registerClient: localObj];
       [prx tryClientCallback];
       if (j < 10 || j %10 == 0)
 	printf("repeated client registration and callback %d\n", j);
-      RELEASE(arp);
+      LEAVE_POOL
     }
   printf("repeated client registration and callback %d\n", j);
   RELEASE(localObj);

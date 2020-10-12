@@ -11,6 +11,137 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.27.0}
+
+Aside from an assortment of bugfixes, this release includes a lot of
+improvements for Android support as well as numerous new classes and methods.
+
+@itemize @bullet
+@item Expose GNU TLS wrappers and add methods to get certificate expiry.
+@item Improve thread safety when using zombies, particularly on statup/shutdown.
+@item Improvements for Ukrainian localization.
+@item Decreased ICU requirements to 49 to support Windows 2000.
+@item Simplifications and fixes in GSPrivateSymbolPath().
+@item GSMime improvements (word encoding specifier, utf-8 improvements encoding
+quoted words with multibyte characters)
+@item NSJSONSerialization fixes for codepoints over 0x7f.
+@item NSCharacterSet support for URL*AllowedCharacterSet and declarations for
+new character sets.
+@item NSString implementations for new methods stringByRemovingPercentEncoding/
+stringByAddingPercentEncodingWithAllowedCharacterSet:.
+@item Fixed a crash in gdomap when an invalid hostname is given for the -M
+option.
+@item In NSString.m, removed functions urldecode() and ishex() which were
+mistakenly neither namespaced nor declared static and thus could have conflicted
+with non-library code.
+@item Fixed libdispatch configuration switch so --enable-libdispatch works
+correctly; correctly checking for HAVE_LIBDISPATCH_RUNLOOP.
+@item Updated libdispatch runloop integration so it is compatible with Swift's
+corelibs libdispatch release (from github.com/apple/swift-corelibs-libdispatch).
+The libdispatch must be compiled with INSTALL_PRIVATE_HEADERS=YES.
+@item In NSThread, spinlocks implemented using builtins to be able to target
+platforms without pthread_spin_lock(), such as Android targeting API level < 24.
+@item In NSLog on Android, send logs to syslog.
+@item Implementation of NSOrderedSet.
+@item When ./configuring, link against libandroid on Android.
+@item In NSBundle, allow integrating with Android asset manager using +[NSBundle
+setJavaAssetManager:withJNIEnv:], enabling use of mainBundle's
+pathForResource:ofType:, -URLForResource:ofType: and similar; referencing
+Info.plist if it exists in Android assets; use of NSFileManager's
+fileExistsAtPath: et al and isReadableFileAtPath:; reading files using
+NSFileHandle APIs; use of NSDirectoryEnumerator to enumerate Android assets from
+the main bundle.
+@item In NSBundle, localization support on Android.
+@item In NSProcessInfo, automatic initialization on Android using a fake
+executable path (/data/data/<app identifier>/Resources).
+@item In NSData, improvements in reading Android assets.
+@item Various improvements in the mechanism to report memory usage of individual
+objects.
+@item Skeletal implementation of NSUbiquitousKeyValueStore.
+@item Implementation of NSByteCountFormatter.
+@item Fixes to writing large HTTPS requests (GSSocketStream, NSURLProtocol).
+@item In gdomap.c, fix detection of local networks.
+@item In NSArray's -removeObjectsInArray:, prevent some crashes.
+@item In GSTLS, avoid setting session priority twice.
+@item In NSFileHandle, fix so that setting certificate information does not
+discard any other options already set.
+@item In GSXML's -fatalErrorFunction, use the correct function to get the line
+number.
+@item In NSOperation's _execute, ensure lock gets released on an error by
+surrounding with NS_DURING.
+@item Generics support in NSHashTable.
+@item Implementation of NSProgress.
+@item Skeleton implementation of NSURLComponents.
+@item In NSSortDescriptor, added -sortDescriptorWithKey:ascending:descending:.
+@item In NSOperationQueue, added -addOperationWithBlock.
+@item In NSFileManager, added
+-URLForDirectory:inDomain:appropriateForURL:create:error: and
+-enumeratorAtURL:includingPropertiesForKeys:options:errorHandler:. Also added
+NSItemReplacementDirectory constant, and updated stub implementation for
+-URLForDirectory:shouldCreate:error:. Added -initWithDirectoryPath:... with
+additional parameters skipHidden and errorHandler.
+@item In NSDictionary, fixed keysSortedByValueUsingComparator:.
+@item Moved NSFileWrapper from -gui to -base.
+@item Added NSFilePresenter, NSFileVersion and NSFileCoordinator.
+@item Added NSPersonComponents and NSPersonNameComponentsFormatter.
+@item Added units of measurement classes such as NSUnit, NSMeasurement,
+NSMeasurementFormatter, NSEnergyFormatter, NSLengthFormatter,
+NSMassFormatter.
+@item In NSUnit, support for NSUnitArea, NSUnitConcentrationMass,
+NSUnitDispersion, NSUnitElectricCharge, NSUnitIlluminance,
+NSUnitElectricCurrent, NSUnitElectricPotentionDifference, NSElectricResistance,
+NSUnitMass, NSUnitEnergy, NSUnitFrequency, NSUnitPower, NSUnitSpeed,
+NSUnitFuelEfficiency, NSUnitPressure, NSUnitVolume, NSUnitLength.
+@item Support for data directory on Android introduces
+GSInitializeProcessAndroid and makes use of the path returned by
+Context.getFilesDir() as the basis for storing data (e.g. NSUserDefaults) and
+when querying for directory paths (NSLibraryDirectory,
+NSApplicationSupportDirectory, etc.).
+@item Placeholder NSScript* classes. Added NSUserActivity, NSObjectScripting,
+NSHFSFileTypes, NSAppleEventManager and NSAppleEventDescriptor.
+@item Added NSDateInterval intersectionWithDateInterval:.
+@item Added NSBackgroundActivityScheduler.
+@item Added NSISO8601DateFormatter and NSMetadataAttributes.
+@item Added NSOrtogrpahy and NSLinguisticTagger.
+@item Added NSExtensionItem, NSExtensionContext, NSExtensionRequestHandling, and
+NSItemProvider and NSItemProviderReadingWriting.
+@item Updated timezone info for NSTimeZones.
+@item On Android, support for NSTemporaryDirectory to use Context.getCacheDir(),
+and cleaning it up in GSInitializeProcessAndroid() given there is no support for
+temp directory before Android API 26. Also used with NSCachesDirectory +
+NSUserDomainMask.
+@item NSXPCConnection fixes.
+@item NSException symbolication support using libunwind (used when backtrace()
+is unavailable).
+@item Travis build improvements to use new runloop integration and gnustep-2.0
+runtime.
+@item In NSKeyValueObserving, implement two missing methods for NSArray:
+-addObserver:options:context: and
+-removeObserver:fromObjectsAtIndexes:forKeyPath:.
+@item Updated NSUUID to use instancetype.
+@item Added support for NSDate constants in NSPredicate.
+@item Fixed a NSTimer bug with blocks.
+@item In GSTLS, do not put password in the hash key of the credentials, and to
+avoid logging it when debugging is on.
+@item Improvements in NSConcreteHashTable and NSConcreteMapTable.
+@item In various places, switch away from deprecated CREATE_AUTORELEASE_POOL()
+to use the ARC-compatible ENTER_POOL and LEAVE_POOL macros.
+@item When building the list of hosts to be probed to see if they have gdomap
+servers, fix code to include those explicitly defined in the config file.
+Add -S option to list the addresses of the known gdomap servers.
+@item Backward compatibility fix for ICU 65.
+@item Update GSPrivateSymbolPath() so that, on the path where LINKER_GETSYMBOL
+is not available, we attempt to lookup classes using the prefix ._OBJC_CLASS_
+for the 2.0 ABI (earlier ABIs use a prefix of __objc_class_name_ for the class
+definition.
+@item Fix parsing of NSURLResponse content type header.
+@item Fix for class lookup when using the 2.0 ABI.
+@item Fixed NSURLComponents setURL: throwing exceptions when URL didn't have
+all expected parts caused by rangeOfString: throwing for nil values.
+@item Added NSURLQueryItem implementation.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
 @section Noteworthy changes in version @samp{1.26.0}
 @itemize @bullet
 @item Improve utf8 validity checks.
@@ -45,8 +176,6 @@ scan results.
 @item As usual, this release also contains an update to include the
 most recent international timezone data.
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.25.1}
 @itemize @bullet

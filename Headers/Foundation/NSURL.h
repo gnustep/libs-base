@@ -85,16 +85,16 @@ enum
  * Calls -initFileURLWithPath: which escapes characters in the
  * path where necessary.
  */
-+ (id) fileURLWithPath: (NSString*)aPath;
++ (instancetype) fileURLWithPath: (NSString*)aPath;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
 /** Creates a file URL using a path built from components.
  */
-+ (NSURL*) fileURLWithPathComponents: (NSArray*)components;
++ (instancetype) fileURLWithPathComponents: (NSArray*)components;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
-+ (id) fileURLWithPath: (NSString*)aPath isDirectory: (BOOL)isDir;
++ (instancetype) fileURLWithPath: (NSString*)aPath isDirectory: (BOOL)isDir;
 #endif
 /**
  * Create and return a URL with the supplied string, which should
@@ -102,12 +102,12 @@ enum
  * conforming to the description (in RFC2396) of an absolute URL.<br />
  * Calls -initWithString:
  */
-+ (id) URLWithString: (NSString*)aUrlString;
++ (instancetype) URLWithString: (NSString*)aUrlString;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
-+ (id) URLByResolvingAliasFileAtURL: (NSURL*)url 
-                            options: (NSURLBookmarkResolutionOptions)options 
-                              error: (NSError**)error;
++ (instancetype) URLByResolvingAliasFileAtURL: (NSURL*)url
+                                      options: (NSURLBookmarkResolutionOptions)options
+                                        error: (NSError**)error;
 #endif
 
 /**
@@ -116,8 +116,8 @@ enum
  * conforming to the description (in RFC2396) of a relative URL.<br />
  * Calls -initWithString:relativeToURL:
  */
-+ (id) URLWithString: (NSString*)aUrlString
-       relativeToURL: (NSURL*)aBaseUrl;
++ (instancetype) URLWithString: (NSString*)aUrlString
+                 relativeToURL: (NSURL*)aBaseUrl;
 
 /**
  * Initialise as a file URL with the specified path (which must
@@ -128,7 +128,7 @@ enum
  * specifies a directory.<br />
  * Calls -initWithScheme:host:path:
  */
-- (id) initFileURLWithPath: (NSString*)aPath;
+- (instancetype) initFileURLWithPath: (NSString*)aPath;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
 /**
@@ -140,7 +140,8 @@ enum
  * specifies a directory.<br />
  * Calls -initWithScheme:host:path:
  */
-- (id) initFileURLWithPath: (NSString*)aPath isDirectory: (BOOL)isDir;
+- (instancetype) initFileURLWithPath: (NSString*)aPath
+                         isDirectory: (BOOL)isDir;
 #endif
 
 /**
@@ -154,15 +155,15 @@ enum
  * Permits the 'aHost' part to contain 'username:password@host:port' or
  * 'host:port' in addition to a simple host name or address.
  */
-- (id) initWithScheme: (NSString*)aScheme
-		 host: (NSString*)aHost
-		 path: (NSString*)aPath;
+- (instancetype) initWithScheme: (NSString*)aScheme
+                           host: (NSString*)aHost
+                           path: (NSString*)aPath;
 
 /**
  * Initialise as an absolute URL.<br />
  * Calls -initWithString:relativeToURL:
  */
-- (id) initWithString: (NSString*)aUrlString;
+- (instancetype) initWithString: (NSString*)aUrlString;
 
 /** <init />
  * Initialised using aUrlString and aBaseUrl.  The value of aBaseUrl
@@ -172,8 +173,8 @@ enum
  * Parses an empty string as an empty path.<br />
  * If the string cannot be parsed the method returns nil.
  */
-- (id) initWithString: (NSString*)aUrlString
-	relativeToURL: (NSURL*)aBaseUrl;
+- (instancetype) initWithString: (NSString*)aUrlString
+                  relativeToURL: (NSURL*)aBaseUrl;
 
 #if GS_HAS_DECLARED_PROPERTIES
 @property (readonly, getter=isFileURL) BOOL fileURL;
@@ -699,8 +700,6 @@ GS_NSURLComponents_IVARS;
 - (NSArray *) percentEncodedQueryItems;
 - (void) setPercentEncodedQueryItems: (NSArray *)queryItems;
 #endif
-- (NSString *) percentEncodedScheme;
-- (void) setPercentEncodedScheme: (NSString *)scheme;
 - (NSString *) percentEncodedUser;
 - (void) setPercentEncodedUser: (NSString *)user;
 

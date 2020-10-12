@@ -540,9 +540,9 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 {
   if (path != nil)
     {
-      CREATE_AUTORELEASE_POOL(pool);
+      ENTER_POOL
       setDirectory(refs, path);
-      [pool drain];
+      LEAVE_POOL
     }
 }
 

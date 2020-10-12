@@ -110,6 +110,11 @@ static Class	concreteClass = 0;
     [self name], [self object], [self userInfo]];
 }
 
+- (NSUInteger) hash
+{
+  return [[self name] hash] ^ [[self object] hash];
+}
+
 - (id) init
 {
   if ([self class] == abstractClass)
@@ -120,6 +125,22 @@ static Class	concreteClass = 0;
       self = (id)NSAllocateObject (concreteClass, 0, z);
     }
   return self;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  NSNotification	*o;
+  NSObject		*v1;
+  NSObject		*v2;
+
+  if (NO == [(o = other) isKindOfClass: [NSNotification class]]
+    || ((v1 = [self name]) != (v2 = [o name]) && ![v1 isEqual: v2])
+    || ((v1 = [self object]) != (v2 = [o object]) && ![v1 isEqual: v2])
+    || ((v1 = [self userInfo]) != (v2 = [o userInfo]) && ![v1 isEqual: v2]))
+    {
+      return NO;
+    }
+  return YES;
 }
 
 /**

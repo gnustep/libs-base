@@ -147,7 +147,7 @@ GSDecimalCompare(NSDecimal left,NSDecimal right)
 - (void) dealloc
 {
   [_remote release];
-  [super dealloc];
+  DEALLOC
 }
 -(void) setRemote:(id)remote
 {

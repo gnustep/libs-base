@@ -6,7 +6,14 @@
 #import <Foundation/NSProcessInfo.h>
 #import <Foundation/NSPathUtilities.h>
 #import <Foundation/NSError.h>
+#import <Foundation/NSThread.h>
 #import <Foundation/NSURL.h>
+
+#ifdef  EQ
+#undef  EQ
+#endif
+#define EPSILON (FLT_EPSILON*100)
+#define EQ(x,y) ((x >= y - EPSILON) && (x <= y + EPSILON))
 
 @interface      MyHandler : NSObject
 {
@@ -140,7 +147,7 @@ int main()
     str2 = [[NSString alloc] initWithData: dat1 encoding: 1];
     PASS([str1 isEqualToString: str2], "NSFileManager file contents match");
   }
-  
+  [NSThread sleepForTimeInterval: 1.0]; // So date of file is clearly in past
   [handler reset];
   PASS([mgr copyPath: @"NSFMFile"
               toPath: @"NSFMCopy"
@@ -152,7 +159,35 @@ int main()
     str2 = [[NSString alloc] initWithData: dat1 encoding: 1];
     PASS([str1 isEqual: str2],"NSFileManager copied file contents match");
   }
-  
+  NSDictionary *oa = [mgr fileAttributesAtPath: @"NSFMFile" traverseLink: NO];
+  NSDictionary *na = [mgr fileAttributesAtPath: @"NSFMCopy" traverseLink: NO];
+  NSTimeInterval        ot, nt;
+  ot = [[oa fileCreationDate] timeIntervalSinceReferenceDate];
+  nt = [[na fileCreationDate] timeIntervalSinceReferenceDate];
+  PASS(EQ(ot, nt), "copy creation date equals original")
+  ot = [[oa fileModificationDate] timeIntervalSinceReferenceDate];
+  nt = [[na fileModificationDate] timeIntervalSinceReferenceDate];
+  PASS(EQ(ot, nt), "copy modification date equals original")
+  {
+    NSData *dat1 = [mgr contentsAtPath: @"NSFMFile"];
+    NSError *err;
+    BOOL ok;
+
+    ok = [dat1 writeToFile: @"NSFMFile"
+                   options: NSDataWritingAtomic
+                     error: &err];
+    PASS(ok, "can rewrite data file")
+    if (NO == ok) NSLog(@"Problem: %@ with %@", err, dat1);
+    na = [mgr fileAttributesAtPath: @"NSFMFile" traverseLink: NO];
+NSLog(@"%@\n%@", oa, na);
+    ot = [[oa fileCreationDate] timeIntervalSinceReferenceDate];
+    nt = [[na fileCreationDate] timeIntervalSinceReferenceDate];
+    PASS(!EQ(ot, nt), "rewritten file creation date changed")
+    ot = [[oa fileModificationDate] timeIntervalSinceReferenceDate];
+    nt = [[na fileModificationDate] timeIntervalSinceReferenceDate];
+    PASS(!EQ(ot, nt), "rewritten file modification date changed")
+  }
+
   PASS([mgr movePath: @"NSFMFile"
               toPath: @"NSFMMove"
 	     handler: handler],

@@ -426,7 +426,6 @@ static SEL	objSel;
 {
   GSIMapNode	node;
 
-  _version++;
   if (aKey == nil)
     {
       NSException	*e;
@@ -448,6 +447,7 @@ static SEL	objSel;
 				userInfo: self];
       [e raise];
     }
+  _version++;
   node = GSIMapNodeForKey(&map, (GSIMapKey)aKey);
   if (node)
     {

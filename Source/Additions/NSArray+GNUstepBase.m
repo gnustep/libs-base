@@ -38,7 +38,7 @@
   NSUInteger	lower = 0;
   NSUInteger	index;
   SEL		oaiSel;
-  IMP		oai;
+  id		(*oai)(id,SEL,NSUInteger);
 
   if (item == nil)
     {
@@ -52,7 +52,7 @@
     }
 
   oaiSel = @selector(objectAtIndex:);
-  oai = [self methodForSelector: oaiSel];
+  oai = (id(*)(id,SEL,NSUInteger))[self methodForSelector: oaiSel];
   /*
    *	Binary search for an item equal to the one to be inserted.
    */
@@ -95,7 +95,7 @@
   NSUInteger	index;
   NSComparisonResult	(*imp)(id, SEL, id);
   SEL		oaiSel;
-  IMP		oai;
+  id		(*oai)(id,SEL,NSUInteger);
 
   if (item == nil)
     {
@@ -115,7 +115,7 @@
     }
 
   oaiSel = @selector(objectAtIndex:);
-  oai = [self methodForSelector: oaiSel];
+  oai = (id(*)(id,SEL,NSUInteger))[self methodForSelector: oaiSel];
   /*
    *	Binary search for an item equal to the one to be inserted.
    */

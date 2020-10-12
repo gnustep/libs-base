@@ -645,10 +645,10 @@ TLS_CFLAGS
 TLS_CONFIG
 HAVE_LIBXML
 HAVE_LIBXSLT
-XML_LIBS
-XML_CFLAGS
 XML_CONFIG
 XML2_CONFIG
+XML_LIBS
+XML_CFLAGS
 WITH_FFI
 GS_FAKE_MAIN
 GS_PASS_ARGUMENTS
@@ -670,7 +670,6 @@ HAVE_PTS_STREAM_MODULES
 OBJCFLAGS
 HAVE_OBJC_SYNC_ENTER
 BASE_NATIVE_OBJC_EXCEPTIONS
-GS_MIXEDABI
 GS_NONFRAGILE
 HAVE_BLOCKS
 OBJC2RUNTIME
@@ -794,8 +793,8 @@ with_default_config
 with_installation_domain
 enable_largefile
 enable_nxconstantstring
-enable_mixedabi
 enable_bfd
+with_unwind
 enable_procfs
 enable_procfs_psinfo
 enable_pass_arguments
@@ -838,6 +837,8 @@ CPP
 PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
+XML_CFLAGS
+XML_LIBS
 ICU_CFLAGS
 ICU_LIBS'
 
@@ -1475,9 +1476,6 @@ Optional Features:
   --disable-largefile     omit support for large files
   --enable-nxconstantstring
 	    Enables the use of the NXConstantString class for old compilers.
-  --disable-mixedabi
-	    Disables the combined use of fragile and nonfragile ABI so that base
-	    can be built taking full advantage of the nonfragile ABI.
   --enable-bfd
 	Enables the use of libbfd to provide symbolic stack traces.
 	Enabling this option provides support for symbolic stack traces
@@ -1564,6 +1562,7 @@ Optional Packages:
 				If this is not specified, the output of
 				gnustep-config --installation-domain-for=gnustep-base
 				(which should normally be LOCAL) is used.
+  --without-unwind        Ignore unwind if found and disable it
   --with-include-flags=FLAGS    Specify all include flags at once
   --with-library-flags=FLAGS    Specify all library flags at once
   --with-ffi-include=PATH       Include path for ffi headers
@@ -1590,6 +1589,8 @@ Some influential environment variables:
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
+  XML_CFLAGS  C compiler flags for XML, overriding pkg-config
+  XML_LIBS    linker flags for XML, overriding pkg-config
   ICU_CFLAGS  C compiler flags for ICU, overriding pkg-config
   ICU_LIBS    linker flags for ICU, overriding pkg-config
 
@@ -2728,8 +2729,9 @@ fi
 if test -z "$LIBRARY_COMBO"; then
   LIBRARY_COMBO=`gnustep-config --variable=LIBRARY_COMBO 2>&5`
 fi
+OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 
-if test "$OBJC_RUNTIME_LIB" = "ng"; then
+if test "$OBJC_RUNTIME_LIB" = "ng" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   nonfragile=yes
   BASE_NONFRAGILE_ABI=1
 else
@@ -6004,7 +6006,6 @@ esac
 #--------------------------------------------------------------------
 # Set Apple/Darwin/OSX/NeXT information for other tests
 #--------------------------------------------------------------------
-OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking the Objective-C runtime" >&5
 $as_echo_n "checking the Objective-C runtime... " >&6; }
 if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
@@ -8097,7 +8098,6 @@ fi
 # Don't revert any Objective-C flags as they are used in the next test
 
 GS_NONFRAGILE=0
-GS_MIXEDABI=0
 if test "$nonfragile" = "yes"; then
   saved_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
@@ -8122,23 +8122,10 @@ fi
   CPPFLAGS="$saved_CPPFLAGS"
   if test $non_fragile = yes; then
     GS_NONFRAGILE=1
-    if test "$OBJC_RUNTIME_LIB" != "ng"; then
-      # Check whether --enable-mixedabi was given.
-if test "${enable_mixedabi+set}" = set; then :
-  enableval=$enable_mixedabi;
-else
-  enable_mixedabi=yes
-fi
-
-      if test $enable_mixedabi = yes; then
-        GS_MIXEDABI=1
-      fi
-    fi
   fi
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: $non_fragile" >&5
 $as_echo "$non_fragile" >&6; }
 fi
-
 
 
 
@@ -8707,7 +8694,7 @@ _ACEOF
 
 fi
 
-for ac_func in statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt malloc_usable_size
+for ac_func in utimensat statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt malloc_usable_size
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -9079,7 +9066,16 @@ fi
 done
 
 
-for ac_header in unwind.h
+# Enable unwind if found by default
+
+# Check whether --with-unwind was given.
+if test "${with_unwind+set}" = set; then :
+  withval=$with_unwind;
+fi
+
+
+if test "x$with_unwind" != "xno"; then :
+  for ac_header in unwind.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "unwind.h" "ac_cv_header_unwind_h" "$ac_includes_default"
 if test "x$ac_cv_header_unwind_h" = xyes; then :
@@ -9090,7 +9086,38 @@ _ACEOF
 fi
 
 done
+ for ac_func in _Unwind_GetIP
+do :
+  ac_fn_c_check_func "$LINENO" "_Unwind_GetIP" "ac_cv_func__Unwind_GetIP"
+if test "x$ac_cv_func__Unwind_GetIP" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE__UNWIND_GETIP 1
+_ACEOF
 
+fi
+done
+
+else
+  have_unwind=no
+fi
+
+if test "x$ac_cv_func__Unwind_GetIP" = "xyes"; then :
+  have_unwind=yes
+else
+  have_unwind=no
+fi
+
+if test "x$have_unwind" = "xyes"; then :
+
+$as_echo "#define WITH_UNWIND 1" >>confdefs.h
+
+else
+  if test "x$with_unwind" = "xyes"; then :
+  as_fn_error $? "unwind requested but not found" "$LINENO" 5
+
+fi
+
+fi
 
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
@@ -9450,6 +9477,49 @@ fi
 fi
 
 
+# Look for file creation date on NetBSD, FreeBSD, Darwin
+ac_fn_c_check_member "$LINENO" "struct stat" "st_birthtime" "ac_cv_member_struct_stat_st_birthtime" "#include <sys/stat.h>
+"
+if test "x$ac_cv_member_struct_stat_st_birthtime" = xyes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_STAT_ST_BIRTHTIME 1
+_ACEOF
+
+
+fi
+ac_fn_c_check_member "$LINENO" "struct stat" "st_birthtimespec" "ac_cv_member_struct_stat_st_birthtimespec" "#include <sys/stat.h>
+"
+if test "x$ac_cv_member_struct_stat_st_birthtimespec" = xyes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC 1
+_ACEOF
+
+
+fi
+ac_fn_c_check_member "$LINENO" "struct stat" "st_birthtim" "ac_cv_member_struct_stat_st_birthtim" "#include <sys/stat.h>
+"
+if test "x$ac_cv_member_struct_stat_st_birthtim" = xyes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_STAT_ST_BIRTHTIM 1
+_ACEOF
+
+
+fi
+ac_fn_c_check_member "$LINENO" "struct stat64" "st_birthtimespec" "ac_cv_member_struct_stat64_st_birthtimespec" "#include <sys/stat.h>
+"
+if test "x$ac_cv_member_struct_stat64_st_birthtimespec" = xyes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_STAT64_ST_BIRTHTIMESPEC 1
+_ACEOF
+
+
+fi
+
+
 #--------------------------------------------------------------------
 # This function needed by gdomap.c
 #--------------------------------------------------------------------
@@ -9693,6 +9763,18 @@ fi
 # These used by GSFileHandle.m and distributed objects
 # On some systems we need -lnsl ... so check for that case.
 #--------------------------------------------------------------------
+for ac_header in ws2tcpip.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "ws2tcpip.h" "ac_cv_header_ws2tcpip_h" "$ac_includes_default"
+if test "x$ac_cv_header_ws2tcpip_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_WS2TCPIP_H 1
+_ACEOF
+
+fi
+
+done
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing inet_ntop" >&5
 $as_echo_n "checking for library containing inet_ntop... " >&6; }
 if ${ac_cv_search_inet_ntop+:} false; then :
@@ -9717,7 +9799,7 @@ return inet_ntop ();
   return 0;
 }
 _ACEOF
-for ac_lib in '' nsl; do
+for ac_lib in '' nsl Ws2_32; do
   if test -z "$ac_lib"; then
     ac_res="none required"
   else
@@ -10957,7 +11039,15 @@ if test $enable_iconv = yes; then
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking iconv support" >&5
 $as_echo_n "checking iconv support... " >&6; }
 if test "$cross_compiling" = yes; then :
-  found_iconv="$cross_found_iconv_libc"
+  found_iconv="$cross_found_iconv_libc";
+  if test "$found_iconv" = "yes"; then
+
+$as_echo "#define HAVE_ICONV 1" >>confdefs.h
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, in libc (via cross.config)" >&5
+$as_echo "yes, in libc (via cross.config)" >&6; }
+  fi
+
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -11013,7 +11103,13 @@ esac
   LIBS="-liconv $LIBS"
   if test "$cross_compiling" = yes; then :
   found_iconv="$cross_found_iconv_liconv";
-    if test "$found_iconv" = "no"; then
+    if test "$found_iconv" = "yes"; then
+
+$as_echo "#define HAVE_ICONV 1" >>confdefs.h
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, -liconv (via cross.config)" >&5
+$as_echo "yes, -liconv (via cross.config)" >&6; }
+    else
       LIBS="$old_LIBS"
     fi
 
@@ -11052,7 +11148,16 @@ if test $found_iconv = no ; then
   LIBS="-lgiconv $LIBS"
   if test "$cross_compiling" = yes; then :
   found_iconv="$cross_found_iconv_lgiconv";
-    if test "$found_iconv" = "no"; then
+    if test "$found_iconv" = "yes"; then
+
+$as_echo "#define HAVE_ICONV 1" >>confdefs.h
+
+
+$as_echo "#define HAVE_GICONV 1" >>confdefs.h
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, -lgiconv (via cross.config)" >&5
+$as_echo "yes, -lgiconv (via cross.config)" >&6; }
+    else
       LIBS="$old_LIBS"
     fi
 
@@ -11252,11 +11357,68 @@ else
 fi
 
 
+HAVE_LIBXML=0
+
 if test $enable_xml = yes; then
-  # Save CFLAGS and LIBS as AM_PATH_XML clobbers these variables regardless
-  # of the success of the macro.
-  saved_LIBS="$LIBS"
-  saved_CFLAGS="$CFLAGS"
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for XML" >&5
+$as_echo_n "checking for XML... " >&6; }
+
+if test -n "$XML_CFLAGS"; then
+    pkg_cv_XML_CFLAGS="$XML_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libxml-2.0 >= 2.3.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libxml-2.0 >= 2.3.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_XML_CFLAGS=`$PKG_CONFIG --cflags "libxml-2.0 >= 2.3.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$XML_LIBS"; then
+    pkg_cv_XML_LIBS="$XML_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libxml-2.0 >= 2.3.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libxml-2.0 >= 2.3.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_XML_LIBS=`$PKG_CONFIG --libs "libxml-2.0 >= 2.3.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        XML_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libxml-2.0 >= 2.3.0" 2>&1`
+        else
+	        XML_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libxml-2.0 >= 2.3.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$XML_PKG_ERRORS" >&5
+
 
 
 
@@ -11594,6 +11756,356 @@ $as_echo "no" >&6; }
 
   rm -f conf.xmltest
 
+
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+
+
+# Check whether --with-xml-prefix was given.
+if test "${with_xml_prefix+set}" = set; then :
+  withval=$with_xml_prefix; xml_config_prefix="$withval"
+else
+  xml_config_prefix=""
+fi
+
+# Check whether --enable-xmltest was given.
+if test "${enable_xmltest+set}" = set; then :
+  enableval=$enable_xmltest;
+else
+  enable_xmltest=yes
+fi
+
+
+  if test x$xml_config_prefix != x ; then
+    xml_config_args="$xml_config_args --prefix=$xml_config_prefix"
+    if test x${XML2_CONFIG+set} != xset ; then
+      XML2_CONFIG=$xml_config_prefix/bin/xml2-config
+    fi
+    if test x${XML_CONFIG+set} != xset ; then
+      XML_CONFIG=$xml_config_prefix/bin/xml-config
+    fi
+  fi
+
+  # Extract the first word of "xml2-config", so it can be a program name with args.
+set dummy xml2-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_XML2_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $XML2_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_XML2_CONFIG="$XML2_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_XML2_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_XML2_CONFIG" && ac_cv_path_XML2_CONFIG="no"
+  ;;
+esac
+fi
+XML2_CONFIG=$ac_cv_path_XML2_CONFIG
+if test -n "$XML2_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $XML2_CONFIG" >&5
+$as_echo "$XML2_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  if test "$XML2_CONFIG" = "no" ; then
+    # Extract the first word of "xml-config", so it can be a program name with args.
+set dummy xml-config; ac_word=$2
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+$as_echo_n "checking for $ac_word... " >&6; }
+if ${ac_cv_path_XML_CONFIG+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  case $XML_CONFIG in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_XML_CONFIG="$XML_CONFIG" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
+    ac_cv_path_XML_CONFIG="$as_dir/$ac_word$ac_exec_ext"
+    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  test -z "$ac_cv_path_XML_CONFIG" && ac_cv_path_XML_CONFIG="no"
+  ;;
+esac
+fi
+XML_CONFIG=$ac_cv_path_XML_CONFIG
+if test -n "$XML_CONFIG"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $XML_CONFIG" >&5
+$as_echo "$XML_CONFIG" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+
+
+  else
+    XML_CONFIG=$XML2_CONFIG
+  fi
+  min_xml_version=2.3.0
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml - version >= $min_xml_version" >&5
+$as_echo_n "checking for libxml - version >= $min_xml_version... " >&6; }
+  no_xml=""
+  if test "$XML_CONFIG" = "no" ; then
+    XML_CFLAGS=""
+    XML_LIBS="-lxml2"
+
+    ac_save_CFLAGS="$CFLAGS"
+    ac_save_LIBS="$LIBS"
+    CFLAGS="$CFLAGS $XML_CFLAGS"
+    LIBS="$XML_LIBS $LIBS"
+    rm -f conf.xmltest
+    if test "$cross_compiling" = yes; then :
+  echo $ac_n "cross compiling; assumed OK... $ac_c"
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <libxml/xmlversion.h>
+#include <libxml/parser.h>
+
+int
+main()
+{
+  int xml_major_version, xml_minor_version, xml_micro_version;
+  int major, minor, micro;
+  char *tmp_version;
+
+  system("touch conf.xmltest");
+
+  tmp_version = xmlStrdup("$min_xml_version");
+  if(sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
+    printf("%s, bad version string\n", "$min_xml_version");
+    exit(1);
+  }
+
+  tmp_version = xmlStrdup(LIBXML_DOTTED_VERSION);
+  if(sscanf(tmp_version, "%d.%d.%d", &xml_major_version, &xml_minor_version, &xml_micro_version) != 3) {
+    printf("%s, bad version string\n", "$min_xml_version");
+    exit(1);
+  }
+
+  if ((xml_major_version > major) ||
+      ((xml_major_version == major) && (xml_minor_version > minor)) ||
+      ((xml_major_version == major) && (xml_minor_version == minor) &&
+       (xml_micro_version >= micro)))
+    {
+      return 0;
+    }
+  else
+    {
+      printf("\n*** An old version of libxml (%d.%d.%d) was found.\n",
+	xml_major_version, xml_minor_version, xml_micro_version);
+      printf("*** You need a version of libxml newer than %d.%d.%d. The latest version of\n",
+	major, minor, micro);
+      printf("*** libxml is always available from ftp://ftp.gnome.org.\n");
+      printf("***\n");
+      printf("*** If you have already installed a sufficiently new version, this error\n");
+      printf("*** probably means that the wrong copy of the xml-config shell script is\n");
+      printf("*** being found. The easiest way to fix this is to remove the old version\n");
+      printf("*** of libxml, but you can also set the XML_CONFIG environment to point to the\n");
+      printf("*** correct copy of xml-config. (In this case, you will have to\n");
+      printf("*** modify your LD_LIBRARY_PATH enviroment variable, or edit /etc/ld.so.conf\n");
+      printf("*** so that the correct libraries are found at run-time))\n");
+    }
+  return 1;
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+
+else
+  no_xml=yes
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+    CFLAGS="$ac_save_CFLAGS"
+    LIBS="$ac_save_LIBS"
+  else
+    XML_CFLAGS=`$XML_CONFIG $xml_config_args --cflags`
+    XML_LIBS=`$XML_CONFIG $xml_config_args --libs`
+    xml_config_major_version=`$XML_CONFIG $xml_config_args --version | \
+      sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\1/'`
+    xml_config_minor_version=`$XML_CONFIG $xml_config_args --version | \
+      sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\2/'`
+    xml_config_micro_version=`$XML_CONFIG $xml_config_args --version | \
+      sed 's/\([0-9]*\).\([0-9]*\).\([0-9]*\)/\3/'`
+
+    if test "x$enable_xmltest" = "xyes" ; then
+      ac_save_CFLAGS="$CFLAGS"
+      ac_save_LIBS="$LIBS"
+      CFLAGS="$CFLAGS $XML_CFLAGS"
+      LIBS="$XML_LIBS $LIBS"
+      rm -f conf.xmltest
+      if test "$cross_compiling" = yes; then :
+  echo $ac_n "cross compiling; assumed OK... $ac_c"
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <libxml/xmlversion.h>
+#include <libxml/parser.h>
+
+int
+main()
+{
+  int xml_major_version, xml_minor_version, xml_micro_version;
+  int major, minor, micro;
+  char *tmp_version;
+
+  system("touch conf.xmltest");
+
+  tmp_version = xmlStrdup("$min_xml_version");
+  if(sscanf(tmp_version, "%d.%d.%d", &major, &minor, &micro) != 3) {
+    printf("%s, bad version string\n", "$min_xml_version");
+    exit(1);
+  }
+
+  tmp_version = xmlStrdup(LIBXML_DOTTED_VERSION);
+  if(sscanf(tmp_version, "%d.%d.%d", &xml_major_version, &xml_minor_version, &xml_micro_version) != 3) {
+    printf("%s, bad version string\n", "$min_xml_version");
+    exit(1);
+  }
+
+  if((xml_major_version != $xml_config_major_version) ||
+     (xml_minor_version != $xml_config_minor_version) ||
+     (xml_micro_version != $xml_config_micro_version))
+    {
+      printf("\n*** 'xml-config --version' returned %d.%d.%d, but libxml (%d.%d.%d)\n",
+             $xml_config_major_version, $xml_config_minor_version, $xml_config_micro_version,
+             xml_major_version, xml_minor_version, xml_micro_version);
+      printf("*** was found! If xml-config was correct, then it is best\n");
+      printf("*** to remove the old version of libxml. You may also be able to fix the error\n");
+      printf("*** by modifying your LD_LIBRARY_PATH enviroment variable, or by editing\n");
+      printf("*** /etc/ld.so.conf. Make sure you have run ldconfig if that is\n");
+      printf("*** required on your system.\n");
+      printf("*** If xml-config was wrong, set the environment variable XML_CONFIG\n");
+      printf("*** to point to the correct copy of xml-config, and remove the file config.cache\n");
+      printf("*** before re-running configure\n");
+    }
+  else
+    {
+      if ((xml_major_version > major) ||
+          ((xml_major_version == major) && (xml_minor_version > minor)) ||
+          ((xml_major_version == major) && (xml_minor_version == minor) &&
+           (xml_micro_version >= micro)))
+        {
+          return 0;
+        }
+      else
+        {
+          printf("\n*** An old version of libxml (%d.%d.%d) was found.\n",
+            xml_major_version, xml_minor_version, xml_micro_version);
+          printf("*** You need a version of libxml newer than %d.%d.%d. The latest version of\n",
+            major, minor, micro);
+          printf("*** libxml is always available from ftp://ftp.gnome.org.\n");
+          printf("***\n");
+          printf("*** If you have already installed a sufficiently new version, this error\n");
+          printf("*** probably means that the wrong copy of the xml-config shell script is\n");
+          printf("*** being found. The easiest way to fix this is to remove the old version\n");
+          printf("*** of libxml, but you can also set the XML_CONFIG environment to point to the\n");
+          printf("*** correct copy of xml-config. (In this case, you will have to\n");
+          printf("*** modify your LD_LIBRARY_PATH enviroment variable, or edit /etc/ld.so.conf\n");
+          printf("*** so that the correct libraries are found at run-time))\n");
+        }
+    }
+  return 1;
+}
+
+_ACEOF
+if ac_fn_c_try_run "$LINENO"; then :
+
+else
+  no_xml=yes
+fi
+rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
+  conftest.$ac_objext conftest.beam conftest.$ac_ext
+fi
+
+
+      CFLAGS="$ac_save_CFLAGS"
+      LIBS="$ac_save_LIBS"
+    fi
+  fi
+
+  if test "x$no_xml" = x ; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+    enable_libxml=yes
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+    if test "$XML_CONFIG" = "no" ; then
+      echo "*** The xml-config script installed by libxml could not be found"
+      echo "*** If libxml was installed in PREFIX, make sure PREFIX/bin is in"
+      echo "*** your path, or set the XML_CONFIG environment variable to the"
+      echo "*** full path to xml-config."
+    else
+      if test -f conf.xmltest ; then
+        :
+      else
+        echo "*** Could not run libxml test program, checking why..."
+        CFLAGS="$CFLAGS $XML_CFLAGS"
+        LIBS="$LIBS $XML_LIBS"
+              fi
+    fi
+
+    XML_CFLAGS=""
+    XML_LIBS=""
+    enable_libxml=no
+  fi
+
+
+  rm -f conf.xmltest
+
+
+else
+	XML_CFLAGS=$pkg_cv_XML_CFLAGS
+	XML_LIBS=$pkg_cv_XML_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	enable_libxml=yes
+fi
+
   if test $enable_libxml = yes; then
     CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
     INCLUDE_FLAGS="$INCLUDE_FLAGS $XML_CFLAGS"
@@ -11613,6 +12125,7 @@ _ACEOF
 fi
 
 done
+
 
     #--------------------------------------------------------------------
     # Check for (optional) libxslt
@@ -11703,10 +12216,6 @@ $as_echo "$as_me: WARNING: Disabled support for XSLT funtionality." >&2;}
     fi
 
   else
-    HAVE_LIBXML=0
-    # Restore the CFLAGS and LIBS because AM_PATH_XML messes them
-    LIBS="$saved_LIBS"
-    CFLAGS="$saved_CFLAGS"
     echo
     echo "You do not appear to have usable libxml2 headers/library."
     echo "Building without them will disable the GSXML and NSXMLNode."
@@ -11716,9 +12225,8 @@ $as_echo "$as_me: WARNING: Disabled support for XSLT funtionality." >&2;}
     as_fn_error $? "Missing support for XML DOM functionality." "$LINENO" 5
   fi
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Disabled support for XML funtionality." >&5
-$as_echo "$as_me: WARNING: Disabled support for XML funtionality." >&2;}
-  HAVE_LIBXML=0
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: XML functionality disabled." >&5
+$as_echo "$as_me: WARNING: XML functionality disabled." >&2;}
 fi
 
 

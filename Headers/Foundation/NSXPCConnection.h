@@ -28,7 +28,14 @@
 #include <Foundation/NSObject.h>
 #include <Foundation/NSError.h>
 
+#include <sys/types.h> // for gid_t and uid_t
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
+
+#if defined (__MINGW__)
+typedef unsigned gid_t;
+typedef unsigned uid_t;
+#endif
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -61,15 +68,13 @@ typedef NSUInteger NSXPCConnectionOptions;
   
 @interface NSXPCConnection : NSObject <NSXPCProxyCreating>
 
-- (instancetype)initWithServiceName:(NSString *)serviceName;
-  
-- (NSString *) serviceName;
-- (void) setServiceName: (NSString *)serviceName;
-  
-- (instancetype)initWithMachServiceName:(NSString *)name options:(NSXPCConnectionOptions)options;
+- (instancetype) initWithListenerEndpoint: (NSXPCListenerEndpoint *)endpoint;
 
-- (instancetype)initWithListenerEndpoint:(NSXPCListenerEndpoint *)endpoint;
+- (instancetype) initWithMachServiceName: (NSString *)name
+				 options: (NSXPCConnectionOptions)options;
 
+- (instancetype) initWithServiceName:(NSString *)serviceName;
+  
 - (NSXPCListenerEndpoint *) endpoint;
 - (void) setEndpoint: (NSXPCListenerEndpoint *) endpoint;
   
@@ -85,7 +90,11 @@ typedef NSUInteger NSXPCConnectionOptions;
 
 - (id) remoteObjectProxyWithErrorHandler:(GSXPCProxyErrorHandler)handler;
 
-- (id) synchronousRemoteObjectProxyWithErrorHandler:(GSXPCProxyErrorHandler)handler;
+- (NSString *) serviceName;
+- (void) setServiceName: (NSString *)serviceName;
+  
+- (id) synchronousRemoteObjectProxyWithErrorHandler:
+  (GSXPCProxyErrorHandler)handler;
 
 - (GSXPCInterruptionHandler) interruptionHandler; 
 - (void) setInterruptionHandler: (GSXPCInterruptionHandler)handler;
@@ -100,9 +109,9 @@ typedef NSUInteger NSXPCConnectionOptions;
 - (void) invalidate;
 
 - (NSUInteger) auditSessionIdentifier;
-- (NSUInteger) processIdentifier;
-- (NSUInteger) effectiveUserIdentifier;
-- (NSUInteger) effectiveGroupIdentifier;
+- (pid_t) processIdentifier;
+- (uid_t) effectiveUserIdentifier;
+- (gid_t) effectiveGroupIdentifier;
 
 @end
 
@@ -131,7 +140,8 @@ typedef NSUInteger NSXPCConnectionOptions;
 
 @protocol NSXPCListenerDelegate <NSObject>
 
-- (BOOL) listener: (NSXPCListener *)listener shouldAcceptNewConnection: (NSXPCConnection *)newConnection;
+- (BOOL) listener: (NSXPCListener *)listener
+  shouldAcceptNewConnection: (NSXPCConnection *)newConnection;
 
 @end
 
@@ -142,13 +152,23 @@ typedef NSUInteger NSXPCConnectionOptions;
 - (Protocol *) protocol;
 - (void) setProtocol: (Protocol *)protocol;
 
-- (void) setClasses: (NSSet *)classes forSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply;
+- (void) setClasses: (NSSet *)classes
+	forSelector: (SEL)sel
+      argumentIndex: (NSUInteger)arg
+	    ofReply: (BOOL)ofReply;
 
-- (NSSet *) classesForSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply;
+- (NSSet *) classesForSelector: (SEL)sel
+		 argumentIndex: (NSUInteger)arg
+		       ofReply: (BOOL)ofReply;
 
-- (void) setInterface: (NSXPCInterface *)ifc forSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply;
+- (void) setInterface: (NSXPCInterface *)ifc
+	  forSelector: (SEL)sel
+	argumentIndex: (NSUInteger)arg
+	      ofReply: (BOOL)ofReply;
 
-- (NSXPCInterface *) interfaceForSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply;
+- (NSXPCInterface *) interfaceForSelector: (SEL)sel
+			    argumentIndex: (NSUInteger)arg
+				  ofReply: (BOOL)ofReply;
 
 @end
 

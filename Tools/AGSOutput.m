@@ -1354,7 +1354,7 @@ static BOOL snuggleStart(NSString *t)
 	   withIndent: (unsigned)ind
 		   to: (NSMutableString*)buf
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  ENTER_POOL
   unsigned	l = [str length];
   NSRange	r = [str rangeOfString: @"<example"];
   unsigned	i = 0;
@@ -1472,7 +1472,7 @@ static BOOL snuggleStart(NSString *t)
 	  [buf appendString: @"\n"];
 	}
     }
-  [arp drain];
+  LEAVE_POOL
   return ind;
 }
 

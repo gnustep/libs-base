@@ -132,6 +132,7 @@ static NSString         *CteContentType = @"content-type";
 static NSString         *CteQuotedPrintable = @"quoted-printable";
 static NSString         *CteXuuencode = @"x-uuencode";
 
+typedef id (*oaiIMP)(id, SEL, NSUInteger);
 typedef BOOL (*boolIMP)(id, SEL, id);
 
 static char	*hex = "0123456789ABCDEF";
@@ -5723,14 +5724,20 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   return nil;
 }
 
-/**
- * Convenience method to fetch the content file name from the header.
+/** Convenience method to fetch the content file name from the content-type
+ * or content-disposition header.
  */
 - (NSString*) contentFile
 {
-  GSMimeHeader	*hdr = [self headerNamed: @"content-disposition"];
+  GSMimeHeader	*hdr = [self headerNamed: CteContentType];
+  NSString	*str = [hdr parameterForKey: @"name"];
 
-  return [hdr parameterForKey: @"filename"];
+  if (nil == str)
+    {
+      hdr = [self headerNamed: @"content-disposition"];
+      str = [hdr parameterForKey: @"filename"];
+    }
+  return str;
 }
 
 /**
@@ -6184,12 +6191,12 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   if (count > 0)
     {
-      IMP	imp1;
+      oaiIMP	imp1;
       boolIMP	imp2;
 
       name = [name lowercaseString];
 
-      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp1 = (oaiIMP)[headers methodForSelector: @selector(objectAtIndex:)];
       imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       while (count-- > 0)
 	{
@@ -6268,14 +6275,14 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 - (NSString*) description
 {
-  CREATE_AUTORELEASE_POOL(arp);
-  NSMutableString       *m;
   NSString              *s;
 
-  m = [NSMutableString stringWithCapacity: 1000];
+  ENTER_POOL
+  NSMutableString       *m = [NSMutableString stringWithCapacity: 1000];
   [self _descriptionTo: m level: 0];
   s = RETAIN(m);
-  RELEASE(arp);
+  LEAVE_POOL
+
   return AUTORELEASE(s);  
 }
 
@@ -6330,11 +6337,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   if (count > 0)
     {
       NSUInteger	index;
-      IMP		imp1;
+      oaiIMP		imp1;
       boolIMP		imp2;
 
       name = [headerClass makeToken: name preservingCase: NO];
-      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp1 = (oaiIMP)[headers methodForSelector: @selector(objectAtIndex:)];
       imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       for (index = 0; index < count; index++)
 	{
@@ -6364,10 +6371,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       NSUInteger	index;
       NSMutableArray	*array;
-      IMP		imp1;
+      oaiIMP		imp1;
       boolIMP		imp2;
 
-      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp1 = (oaiIMP)[headers methodForSelector: @selector(objectAtIndex:)];
       imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       array = [NSMutableArray array];
 
@@ -7285,10 +7292,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   if (count > 0)
     {
       NSUInteger	index;
-      IMP	        imp1;
+      oaiIMP	        imp1;
       boolIMP	        imp2;
 
-      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp1 = (oaiIMP)[headers methodForSelector: @selector(objectAtIndex:)];
       imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       for (index = 0; index < count; index++)
 	{
@@ -7310,10 +7317,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   if (count > 0)
     {
-      IMP	imp1;
+      oaiIMP	imp1;
       boolIMP	imp2;
 
-      imp1 = [headers methodForSelector: @selector(objectAtIndex:)];
+      imp1 = (oaiIMP)[headers methodForSelector: @selector(objectAtIndex:)];
       imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       while (count-- > 0)
 	{
@@ -7390,7 +7397,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 - (void) encodePart: (GSMimeDocument*)document to: (NSMutableData*)md
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  ENTER_POOL
   NSData		*d = nil;
   NSEnumerator		*enumerator;
   NSString              *subtype;
@@ -7813,7 +7820,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  [md appendData: d];
 	}
     }
-  RELEASE(arp);
+  LEAVE_POOL
 }
 
 - (NSUInteger) foldAt

@@ -543,8 +543,9 @@ GSIMapRemangleBuckets(GSIMapTable map,
 		  GSIMapBucket	bkt;
 
 		  GSIMapRemoveNodeFromBucket(old_buckets, node);
-		  bkt = GSIMapPickBucket(GSI_MAP_HASH(map, GSI_MAP_READ_KEY(map, &node->key)),
-		    new_buckets, new_bucketCount);
+		  bkt = GSIMapPickBucket(GSI_MAP_HASH(map,
+		    GSI_MAP_READ_KEY(map, &node->key)),
+		      new_buckets, new_bucketCount);
 		  GSIMapAddNodeToBucket(bkt, node);
 		}
 	    }
@@ -561,8 +562,9 @@ GSIMapRemangleBuckets(GSIMapTable map,
 	  GSIMapBucket	bkt;
 
 	  GSIMapRemoveNodeFromBucket(old_buckets, node);
-	  bkt = GSIMapPickBucket(GSI_MAP_HASH(map, GSI_MAP_READ_KEY(map, &node->key)),
-	    new_buckets, new_bucketCount);
+	  bkt = GSIMapPickBucket(GSI_MAP_HASH(map,
+	    GSI_MAP_READ_KEY(map, &node->key)),
+	      new_buckets, new_bucketCount);
 	  GSIMapAddNodeToBucket(bkt, node);
 	}
       old_buckets++;
@@ -987,9 +989,7 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
  */
 GS_STATIC_INLINE NSUInteger 
 GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
-                                              NSFastEnumerationState *state,
-                                              id *stackbuf,
-                                              NSUInteger len)
+  NSFastEnumerationState *state, id *stackbuf, NSUInteger len)
 {
   NSInteger count;
   NSInteger i;
@@ -1011,7 +1011,7 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
   /* Construct the real enumerator */
   if (0 == state->state)
     {
-        enumerator = GSIMapEnumeratorForMap(map);
+      enumerator = GSIMapEnumeratorForMap(map);
     }
   else
     {

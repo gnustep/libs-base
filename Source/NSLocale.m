@@ -627,6 +627,11 @@ static NSRecursiveLock *classLock = nil;
     [[dict objectForKey: NSLocaleCollationIdentifier] UTF8String];
   const char *currency = [[dict objectForKey: NSLocaleCurrencyCode] UTF8String];
   
+  if (!calendar)
+    {
+      calendar = [[dict objectForKey: NSLocaleCalendarIdentifier] UTF8String];
+    }
+
   // A locale cannot be constructed without a language.
   if (language == NULL)
     return nil;
@@ -686,7 +691,7 @@ static NSRecursiveLock *classLock = nil;
 #endif
 }
 
-- (NSString *) displayNameForKey: (id) key value: (id) value
+- (NSString *) displayNameForKey: (NSString *) key value: (id) value
 {
 #if	GS_USE_ICU == 1
   int32_t length = 0;
@@ -866,6 +871,41 @@ static NSRecursiveLock *classLock = nil;
   [_components setValue: result forKey: key];
 #endif
   return result;
+}
+
+- (NSString *) languageCode
+{
+  return [self objectForKey: NSLocaleLanguageCode];
+}
+
+- (NSString *) countryCode
+{
+  return [self objectForKey: NSLocaleLanguageCode];
+}
+
+- (NSString *) scriptCode
+{
+  return [self objectForKey: NSLocaleScriptCode];
+}
+
+- (NSString *) variantCode
+{
+  return [self objectForKey: NSLocaleVariantCode];
+}
+
+- (NSCharacterSet *) exemplarCharacterSet
+{
+  return [self objectForKey: NSLocaleExemplarCharacterSet];
+}
+
+- (NSString *) collationIdentifier
+{
+  return [self objectForKey: NSLocaleCollationIdentifier];
+}
+
+- (NSString *) collatorIdentifier
+{
+  return [self objectForKey: NSLocaleCollatorIdentifier];
 }
 
 - (NSString *) description

@@ -960,11 +960,11 @@ compareIt(id o1, id o2, void* context)
 - (NSArray *) keysSortedByValueWithOptions: (NSSortOptions)opts
 			   usingComparator: (NSComparator)cmptr
 {
-  CREATE_AUTORELEASE_POOL(arp);
   NSArray		*sortedValues;
   NSArray		*noDuplicates;
   NSMutableArray	*result;
 
+  ENTER_POOL
   sortedValues = [[self allValues] sortedArrayWithOptions: opts
 					  usingComparator: cmptr];
   noDuplicates = [[NSOrderedSet orderedSetWithArray: sortedValues] array];
@@ -972,7 +972,7 @@ compareIt(id o1, id o2, void* context)
   FOR_IN(NSObject*, value, noDuplicates)
     [result addObjectsFromArray: [self allKeysForObject: value]];
   END_FOR_IN(noDuplicates)
-  RELEASE(arp);
+  LEAVE_POOL
   return AUTORELEASE(result);
 }
 

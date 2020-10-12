@@ -43,6 +43,8 @@ extern "C" {
 @class NSLock;
 @class NSOperationQueue;
 
+typedef NSString* NSNotificationName;
+  
 @interface NSNotification : NSObject <NSCopying, NSCoding>
 
 /* Creating a Notification Object */

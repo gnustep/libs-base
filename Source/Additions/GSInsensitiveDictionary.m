@@ -61,6 +61,7 @@
 {
 @public
   GSIMapTable_t	map;
+  NSUInteger _version;
 }
 @end
 
@@ -115,7 +116,8 @@ static SEL	objSel;
     {
       NSUInteger	count = map.nodeCount;
       SEL		sel = @selector(encodeObject:);
-      IMP		imp = [aCoder methodForSelector: sel];
+      id (*imp)(id,SEL,id)
+	= (id (*)(id,SEL,id))[aCoder methodForSelector: sel];
       GSIMapEnumerator_t	enumerator = GSIMapEnumeratorForMap(&map);
       GSIMapNode	node = GSIMapEnumeratorNextNode(&enumerator);
 
@@ -152,7 +154,8 @@ static SEL	objSel;
       id		key;
       id		value;
       SEL		sel = @selector(decodeValueOfObjCType:at:);
-      IMP		imp = [aCoder methodForSelector: sel];
+      void (*imp)(id,SEL,const char*,void*)
+	= (void (*)(id,SEL,const char*,void*))[aCoder methodForSelector: sel];
       const char	*type = @encode(id);
 
       [aCoder decodeValueOfObjCType: @encode(NSUInteger)
@@ -220,8 +223,9 @@ static SEL	objSel;
   if (c > 0)
     {
       NSEnumerator	*e = [other keyEnumerator];
-      IMP		nxtObj = [e methodForSelector: nxtSel];
-      IMP		otherObj = [other methodForSelector: objSel];
+      id (*nxtObj)(id, SEL) = (id (*)(id,SEL))[e methodForSelector: nxtSel];
+      id (*otherObj)(id, SEL, id)
+	= (id (*)(id,SEL,id))[other methodForSelector: objSel];
       BOOL		isProxy = [other isProxy];
       NSUInteger	i;
 
@@ -293,7 +297,8 @@ static SEL	objSel;
 	{
 	  GSIMapEnumerator_t	enumerator;
 	  GSIMapNode		node;
-	  IMP			otherObj = [other methodForSelector: objSel];
+	  id (*otherObj)(id, SEL, id)
+	    = (id (*)(id,SEL,id))[other methodForSelector: objSel];
 
 	  enumerator = GSIMapEnumeratorForMap(&map);
 	  while ((node = GSIMapEnumeratorNextNode(&enumerator)) != 0)
@@ -345,6 +350,15 @@ static SEL	objSel;
   return nil;
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+                                   objects: (__unsafe_unretained id[])stackbuf
+                                     count: (NSUInteger)len
+{
+  state->mutationsPtr = (unsigned long *)self;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
+}
+
 @end
 
 @implementation _GSMutableInsensitiveDictionary
@@ -392,6 +406,7 @@ static SEL	objSel;
 {
   GSIMapNode	node;
 
+  _version++;
   if (aKey == nil)
     {
       NSException	*e;
@@ -421,11 +436,14 @@ static SEL	objSel;
     {
       GSIMapAddPair(&map, (GSIMapKey)aKey, (GSIMapVal)anObject);
     }
+  _version++;
 }
 
 - (void) removeAllObjects
 {
+  _version++;
   GSIMapCleanMap(&map);
+  _version++;
 }
 
 - (void) removeObjectForKey: (id)aKey
@@ -435,7 +453,18 @@ static SEL	objSel;
       NSWarnMLog(@"attempt to remove nil key from dictionary %@", self);
       return;
     }
+  _version++;
   GSIMapRemoveKey(&map, (GSIMapKey)aKey);
+  _version++;
+}
+
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+                                   objects: (__unsafe_unretained id[])stackbuf
+                                     count: (NSUInteger)len
+{
+  state->mutationsPtr = (unsigned long *)&_version;
+  return GSIMapCountByEnumeratingWithStateObjectsCount
+    (&map, state, stackbuf, len);
 }
 
 @end

@@ -22,79 +22,87 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSXPCConnection.h>
-  
+#import "Foundation/NSXPCConnection.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+
 @implementation NSXPCConnection
 
-- (instancetype)initWithServiceName:(NSString *)serviceName
+- (instancetype) initWithServiceName:(NSString *)serviceName
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (NSString *) serviceName
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) setServiceName: (NSString *)serviceName
 {
+  [self notImplemented: _cmd];
 }
 
-- (instancetype)initWithMachServiceName:(NSString *)name options:(NSXPCConnectionOptions)options
+- (instancetype) initWithMachServiceName: (NSString *)name
+				 options: (NSXPCConnectionOptions)options
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
-- (instancetype)initWithListenerEndpoint:(NSXPCListenerEndpoint *)endpoint
+- (instancetype) initWithListenerEndpoint: (NSXPCListenerEndpoint *)endpoint
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 
 - (NSXPCListenerEndpoint *) endpoint
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) setEndpoint: (NSXPCListenerEndpoint *) endpoint
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSXPCInterface *) exportedInterface
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) setExportInterface: (NSXPCInterface *)exportedInterface
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSXPCInterface *) remoteObjectInterface
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) setRemoteObjectInterface: (NSXPCInterface *)remoteObjectInterface
 {
+  [self notImplemented: _cmd];
 }
 
 - (id) remoteObjectProxy
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) setRemoteObjectProxy: (id)remoteObjectProxy
 {
+  [self notImplemented: _cmd];
 }
 
 - (id) remoteObjectProxyWithErrorHandler:(GSXPCProxyErrorHandler)handler
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
-- (id) synchronousRemoteObjectProxyWithErrorHandler:(GSXPCProxyErrorHandler)handler
+- (id) synchronousRemoteObjectProxyWithErrorHandler:
+  (GSXPCProxyErrorHandler)handler
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (GSXPCInterruptionHandler) interruptionHandler 
@@ -104,6 +112,7 @@
 
 - (void) setInterruptionHandler: (GSXPCInterruptionHandler)handler
 {
+  [self notImplemented: _cmd];
 }
 
 - (GSXPCInvalidationHandler) invalidationHandler 
@@ -113,35 +122,39 @@
 
 - (void) setInvalidationHandler: (GSXPCInvalidationHandler)handler
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) resume
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) suspend
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) invalidate
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSUInteger) auditSessionIdentifier
 {
-  return 0;
+  return (NSUInteger)[self notImplemented: _cmd];
 }
-- (NSUInteger) processIdentifier
+- (pid_t) processIdentifier
 {
-  return 0;
+  return (pid_t)[self notImplemented: _cmd];
 }
-- (NSUInteger) effectiveUserIdentifier
+- (uid_t) effectiveUserIdentifier
 {
-  return 0;
+  return (uid_t)[self notImplemented: _cmd];
 }
-- (NSUInteger) effectiveGroupIdentifier
+- (gid_t) effectiveGroupIdentifier
 {
-  return 0;
+  return (gid_t)[self notImplemented: _cmd];
 }
 @end
 
@@ -149,47 +162,52 @@
 
 + (NSXPCListener *) serviceListener
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 + (NSXPCListener *) anonymousListener
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (instancetype) initWithMachServiceName:(NSString *)name
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (id <NSXPCListenerDelegate>) delegate
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) setDelegate: (id <NSXPCListenerDelegate>) delegate
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSXPCListenerEndpoint *) endpoint
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) setEndpoint: (NSXPCListenerEndpoint *)endpoint
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) resume
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) suspend
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) invalidate
 {
+  [self notImplemented: _cmd];
 }
 
 @end
@@ -198,34 +216,47 @@
 
 + (NSXPCInterface *) interfaceWithProtocol: (Protocol *)protocol
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (Protocol *) protocol
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) setProtocol: (Protocol *)protocol
 {
+  [self notImplemented: _cmd];
 }
 
-- (void) setClasses: (NSSet *)classes forSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply
+- (void) setClasses: (NSSet *)classes
+	forSelector: (SEL)sel
+      argumentIndex: (NSUInteger)arg
+	    ofReply: (BOOL)ofReply
 {
+  [self notImplemented: _cmd];
 }
 
-- (NSSet *) classesForSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply
+- (NSSet *) classesForSelector: (SEL)sel
+		 argumentIndex: (NSUInteger)arg
+		       ofReply: (BOOL)ofReply
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
-- (void) setInterface: (NSXPCInterface *)ifc forSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply
+- (void) setInterface: (NSXPCInterface *)ifc
+	  forSelector: (SEL)sel
+	argumentIndex: (NSUInteger)arg
+	      ofReply: (BOOL)ofReply
 {
+  [self notImplemented: _cmd];
 }
 
-- (NSXPCInterface *) interfaceForSelector: (SEL)sel argumentIndex: (NSUInteger)arg ofReply: (BOOL)ofReply
+- (NSXPCInterface *) interfaceForSelector: (SEL)sel
+			    argumentIndex: (NSUInteger)arg
+				  ofReply: (BOOL)ofReply
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 @end
@@ -234,11 +265,12 @@
 
 - (instancetype) initWithCoder: (NSCoder *)coder
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) encodeWithCoder: (NSCoder *)coder
 {
+  [self notImplemented: _cmd];
 }
 
 @end

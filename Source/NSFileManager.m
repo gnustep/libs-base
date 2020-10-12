@@ -1,7 +1,7 @@
  /**
    NSFileManager.m
 
-   Copyright (C) 1997-2017 Free Software Foundation, Inc.
+   Copyright (C) 1997-2020 Free Software Foundation, Inc.
 
    Author: Mircea Oancea <mircea@jupiter.elcom.pub.ro>
    Author: Ovidiu Predescu <ovidiu@net-community.com>
@@ -564,17 +564,83 @@ static NSStringEncoding	defaultEncoding;
 	}
     }
 
+  date = [attributes fileCreationDate];
+  if (date != nil && NO == [date isEqual: [old fileCreationDate]])
+    {
+      BOOL		ok = NO;
+      struct _STATB	sb;
+#if  defined(_WIN32)
+      const _CHAR *lpath;
+#else
+      const char  *lpath;
+#endif
+
+      lpath = [self fileSystemRepresentationWithPath: path];
+      if (_STAT(lpath, &sb) != 0)
+	{
+	  ok = NO;
+	}
+#if  defined(_WIN32)
+      else if (sb.st_mode & _S_IFDIR)
+	{
+	  ok = YES;	// Directories don't have creation times.
+	}
+#endif
+      else
+	{
+	  NSTimeInterval ti = [date timeIntervalSince1970];
+#if  defined(_WIN32)
+          FILETIME ctime;
+	  HANDLE fh;
+          ULONGLONG nanosecs = ((ULONGLONG)([date timeIntervalSince1970]*10000000)+116444736000000000ULL);
+          fh = CreateFileW(lpath, GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL );
+          if (fh == INVALID_HANDLE_VALUE)
+            {
+              ok = NO;
+            }
+	  else
+            {
+	      ctime.dwLowDateTime  = (DWORD) (nanosecs & 0xFFFFFFFF );
+              ctime.dwHighDateTime = (DWORD) (nanosecs >> 32 );
+	      ok = SetFileTime(fh, &ctime, NULL, NULL);
+              CloseHandle(fh);
+	    }
+/* on Unix we try setting the creation date by setting the modification date earlier than the current one */
+#elif defined (HAVE_UTIMENSAT)
+          struct timespec ub[2];
+	  ub[0].tv_sec = 0;
+	  ub[0].tv_nsec = UTIME_OMIT; // we don't touch access time
+	  ub[1].tv_sec = truncl(ti);
+	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
+
+	  ok = (utimensat(AT_FDCWD, lpath, ub, 0) == 0);
+#elif  defined(_POSIX_VERSION)
+          struct _UTIMB ub;
+	  ub.actime = sb.st_atime;
+	  ub.modtime = ti;
+	  ok = (_UTIME(lpath, &ub) == 0);
+#else
+          time_t ub[2];
+	  ub[0] = sb.st_atime;
+	  ub[1] = ti;
+	  ok = (_UTIME(lpath, ub) == 0);
+#endif
+	}
+      if (ok == NO)
+	{
+	  allOk = NO;
+	  str = [NSString stringWithFormat:
+	    @"Unable to change NSFileCreationDate to '%@' - %@",
+	    date, [NSError _last]];
+	  ASSIGN(_lastError, str);
+	}
+    }
+
   date = [attributes fileModificationDate];
   if (date != nil && NO == [date isEqual: [old fileModificationDate]])
     {
       BOOL		ok = NO;
       struct _STATB	sb;
-
-#if  defined(_WIN32) || defined(_POSIX_VERSION)
-      struct _UTIMB ub;
-#else
-      time_t ub[2];
-#endif
 
       if (_STAT(lpath, &sb) != 0)
 	{
@@ -588,13 +654,24 @@ static NSStringEncoding	defaultEncoding;
 #endif
       else
 	{
-#if  defined(_WIN32) || defined(_POSIX_VERSION)
+	  NSTimeInterval ti = [date timeIntervalSince1970];
+#if defined (HAVE_UTIMENSAT)
+          struct timespec ub[2];
+	  ub[0].tv_sec = 0;
+	  ub[0].tv_nsec = UTIME_OMIT; // we don't touch access time
+	  ub[1].tv_sec = truncl(ti);
+	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
+
+	  ok = (utimensat(AT_FDCWD, lpath, ub, 0) == 0);
+#elif  defined(_WIN32) || defined(_POSIX_VERSION)
+          struct _UTIMB ub;
 	  ub.actime = sb.st_atime;
-	  ub.modtime = [date timeIntervalSince1970];
+	  ub.modtime = ti;
 	  ok = (_UTIME(lpath, &ub) == 0);
 #else
+          time_t ub[2];
 	  ub[0] = sb.st_atime;
-	  ub[1] = [date timeIntervalSince1970];
+	  ub[1] = ti;
 	  ok = (_UTIME(lpath, ub) == 0);
 #endif
 	}
@@ -688,7 +765,7 @@ static NSStringEncoding	defaultEncoding;
 	  NSString	*n = [a1 objectAtIndex: index];
 	  NSString	*p1;
 	  NSString	*p2;
-	  CREATE_AUTORELEASE_POOL(pool);
+	  ENTER_POOL
 
 	  p1 = [path1 stringByAppendingPathComponent: n];
 	  p2 = [path2 stringByAppendingPathComponent: n];
@@ -704,7 +781,7 @@ static NSStringEncoding	defaultEncoding;
 	    {
 	      ok = [self contentsEqualAtPath: p1 andPath: p2];
 	    }
-	  RELEASE(pool);
+	  LEAVE_POOL
 	}
       return ok;
     }
@@ -1203,9 +1280,10 @@ static NSStringEncoding	defaultEncoding;
     }
   fileType = [attrs fileType];
 
-  /*
-   * Don't attempt to retain ownership of copy ... we want the copy
+  /* Don't attempt to retain ownership of copy ... we want the copy
    * to be owned by the current user.
+   * However, the new copy should have the creation/modification date
+   * of the original (unlike Posix semantics).
    */
   attrs = AUTORELEASE([attrs mutableCopy]);
   [(NSMutableDictionary*)attrs removeObjectForKey: NSFileOwnerAccountID];
@@ -1218,7 +1296,8 @@ static NSStringEncoding	defaultEncoding;
     {
 
       /* If destination directory is a descendant of source directory copying
-	  isn't possible. */
+       * isn't possible.
+       */
       if ([[destination stringByAppendingString: @"/"]
 	hasPrefix: [source stringByAppendingString: @"/"]])
 	{
@@ -1609,12 +1688,12 @@ static NSStringEncoding	defaultEncoding;
 	  NSString		*item;
 	  NSString		*next;
 	  BOOL			result;
-	  CREATE_AUTORELEASE_POOL(pool);
+	  ENTER_POOL
 
 	  item = [contents objectAtIndex: i];
 	  next = [path stringByAppendingPathComponent: item];
 	  result = [self removeFileAtPath: next handler: handler];
-	  RELEASE(pool);
+	  LEAVE_POOL
 	  if (result == NO)
 	    {
 	      return NO;
@@ -1728,8 +1807,8 @@ static NSStringEncoding	defaultEncoding;
 	{
 #ifdef __ANDROID__
           /* Android: try using asset manager if path is in
-	   * main bundle resources
-	   */
+           * main bundle resources
+           */
           AAsset *asset = [NSBundle assetForPath: path];
           if (asset)
 	    {
@@ -1799,11 +1878,20 @@ static NSStringEncoding	defaultEncoding;
 	}
 
 #ifdef __ANDROID__
-        // Android: try using asset manager if path is in main bundle resources
+        /* Android: try using asset manager if path is in
+         * main bundle resources
+         */
         AAsset *asset = [NSBundle assetForPath: path];
         if (asset)
 	  {
 	    AAsset_close(asset);
+	    return YES;
+	  }
+
+        AAssetDir *assetDir = [NSBundle assetDirForPath: path];
+        if (assetDir)
+	  {
+	    AAssetDir_close(assetDir);
 	    return YES;
 	  }
 #endif
@@ -2725,7 +2813,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
       if (dirname)
 	{
           // Skip it if it is hidden and flag is yes...
-          if ([[dir.path lastPathComponent] hasPrefix: @"."] && _flags.skipHidden == YES)
+          if ([[dir.path lastPathComponent] hasPrefix: @"."]
+	    && _flags.skipHidden == YES)
             {
               continue;
             }
@@ -2755,14 +2844,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    stringWithFileSystemRepresentation: dirname
 	    length: strlen(dirname)];
 #endif
-	  /* if we have a null FileName something went wrong (charset?) and we skip it */
+	  /* if we have a null FileName something went wrong (charset?)
+	   * and we skip it */
 	  if (returnFileName == nil)
 	    continue;
 	  
 	  returnFileName = RETAIN([dir.path stringByAppendingPathComponent:
 	    returnFileName]);
 
-	  /* TODO - can this one can be removed ? */
 	  if (!_flags.justContents)
 	    _currentFilePath = RETAIN([_topPath stringByAppendingPathComponent:
 	      returnFileName]);
@@ -2816,13 +2905,16 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		  else
 		    {
                       BOOL flag = YES;
+
 		      NSDebugLog(@"Failed to recurse into directory '%@' - %@",
 			_currentFilePath, [NSError _last]);
-                      if(_errorHandler != NULL)
+                      if (_errorHandler != NULL)
                         {
-                          flag = CALL_BLOCK(_errorHandler, [NSURL URLWithString: _currentFilePath], [NSError _last]);
+                          flag = CALL_BLOCK(_errorHandler,
+			    [NSURL URLWithString: _currentFilePath],
+			    [NSError _last]);
                         }
-                      if(flag == NO)
+                      if (flag == NO)
                         {
                           return nil; // Stop enumeration...
                         }
@@ -3187,7 +3279,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 {
   NSDirectoryEnumerator	*enumerator;
   NSString		*dirEntry;
-  CREATE_AUTORELEASE_POOL(pool);
+  BOOL			result = YES;
+  ENTER_POOL
 
   enumerator = [self enumeratorAtPath: source];
   while ((dirEntry = [enumerator nextObject]))
@@ -3227,8 +3320,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 					   fromPath: sourceFile
 					     toPath: destinationFile])
                 {
-                  RELEASE(pool);
-                  return NO;
+                  result = NO;
+		  break;
                 }
 	      /*
 	       * We may have managed to create the directory but not set
@@ -3246,8 +3339,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
                             toPath: destinationFile
                            handler: handler])
                 {
-                  RELEASE(pool);
-                  return NO;
+                  result = NO;
+                  break;
                 }
 	    }
 	}
@@ -3257,8 +3350,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 			toFile: destinationFile
 		       handler: handler])
             {
-              RELEASE(pool);
-              return NO;
+              result = NO;
+              break;
             }
 	}
       else if ([fileType isEqual: NSFileTypeSymbolicLink])
@@ -3275,8 +3368,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		fromPath: sourceFile
 		toPath: destinationFile])
                 {
-                  RELEASE(pool);
-                  return NO;
+                  result = NO;
+		  break;
                 }
 	    }
 	}
@@ -3292,9 +3385,9 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	}
       [self changeFileAttributes: attributes atPath: destinationFile];
     }
-  RELEASE(pool);
+  LEAVE_POOL
 
-  return YES;
+  return result;
 }
 
 - (BOOL) _linkPath: (NSString*)source
@@ -3304,7 +3397,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 #ifdef HAVE_LINK
   NSDirectoryEnumerator	*enumerator;
   NSString		*dirEntry;
-  CREATE_AUTORELEASE_POOL(pool);
+  BOOL			result = YES;
+  ENTER_POOL
 
   enumerator = [self enumeratorAtPath: source];
   while ((dirEntry = [enumerator nextObject]))
@@ -3333,8 +3427,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 					  fromPath: sourceFile
 					    toPath: destinationFile] == NO)
                 {
-                  RELEASE(pool);
-                  return NO;
+                  result = NO;
+		  break;
                 }
 	    }
 	  else
@@ -3344,8 +3438,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 			   toPath: destinationFile
 			  handler: handler] == NO)
 		{
-                  RELEASE(pool);
-		  return NO;
+		  result = NO;
+		  break;
 		}
 	    }
 	}
@@ -3363,8 +3457,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		fromPath: sourceFile
 		toPath: destinationFile] == NO)
                 {
-                  RELEASE(pool);
-                  return NO;
+                  result = NO;
+		  break;
                 }
 	    }
 	}
@@ -3379,15 +3473,15 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 		fromPath: sourceFile
 		toPath: destinationFile] == NO)
                 {
-                  RELEASE(pool);
-                  return NO;
+                  result = NO;
+		  break;
                 }
 	    }
 	}
       [self changeFileAttributes: attributes atPath: destinationFile];
     }
-  RELEASE(pool);
-  return YES;
+  LEAVE_POOL
+  return result;
 #else
   ASSIGN(_lastError, @"Links not supported on this platform");
   return NO;
@@ -3601,14 +3695,27 @@ static NSSet	*fileKeys = nil;
 
 - (NSDate*) fileCreationDate
 {
-  /*
-   * FIXME ... not sure there is any way to get a creation date :-(
+#if defined(_WIN32)
+  return [NSDate dateWithTimeIntervalSince1970: statbuf.st_ctime];
+#elif defined (HAVE_STRUCT_STAT_ST_BIRTHTIM)
+  NSTimeInterval ti;
+  ti = statbuf.st_birthtim.tv_sec + (double)statbuf.st_birthtim.tv_nsec / 1.0e9;
+  return [NSDate dateWithTimeIntervalSince1970: ti];
+#elif defined (HAVE_STRUCT_STAT_ST_BIRTHTIME)
+  return [NSDate dateWithTimeIntervalSince1970: statbuf.st_birthtime];
+#elif defined (HAVE_STRUCT_STAT_ST_BIRTHTIMESPEC) || defined (HAVE_STRUCT_STAT64_ST_BIRTHTIMESPEC)
+  NSTimeInterval ti;
+  ti = statbuf.st_birthtimespec.tv_sec + (double)statbuf.st_birthtimespec.tv_nsec / 1.0e9;
+  return [NSDate dateWithTimeIntervalSince1970: ti];
+#else
+  /* We don't know a better way to get creation date, it is not defined in POSIX
    * Use the earlier of ctime or mtime
    */
   if (statbuf.st_ctime < statbuf.st_mtime)
     return [NSDate dateWithTimeIntervalSince1970: statbuf.st_ctime];
   else
     return [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
+#endif
 }
 
 - (BOOL) fileExtensionHidden

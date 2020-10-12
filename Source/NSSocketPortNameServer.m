@@ -859,9 +859,9 @@ typedef enum {
 
 	  host = [NSHost hostWithAddress: addr];
 	  return (NSPort*)[NSSocketPort portWithNumber: portNum
-					     onHost: host
-				       forceAddress: addr
-					   listener: NO];
+						onHost: host
+					  forceAddress: addr
+					      listener: NO];
 	}
       else
 	{

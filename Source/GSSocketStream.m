@@ -56,12 +56,21 @@
 #endif
 
 #ifdef _WIN32
-extern const char *inet_ntop(int, const void *, char *, size_t);
-extern int inet_pton(int , const char *, void *);
-#define	OPTLEN	int
-#else
-#define	OPTLEN	socklen_t
-#endif
+  #ifdef HAVE_WS2TCPIP_H
+  #include <ws2tcpip.h>
+  #endif // HAVE_WS2TCPIP_H
+
+  #if !defined(HAVE_INET_NTOP)
+  extern const char* WSAAPI inet_ntop(int, const void *, char *, size_t);
+  #endif
+  #if !defined(HAVE_INET_NTOP)
+  extern int WSAAPI inet_pton(int , const char *, void *);
+  #endif
+
+  #define	OPTLEN	int
+#else  // _WIN32
+  #define	OPTLEN	socklen_t
+#endif // _WIN32
 
 unsigned
 GSPrivateSockaddrLength(struct sockaddr *addr)

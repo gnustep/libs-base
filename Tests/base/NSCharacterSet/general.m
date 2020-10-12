@@ -33,6 +33,33 @@ int main()
        ![theSet characterIsMember: '\n'],
        "Check some characters from lowercaseLetterCharacterSet");
   
+  theSet = [NSCharacterSet newlineCharacterSet];
+  PASS(![theSet characterIsMember: 'A'] &&
+       ![theSet characterIsMember: 'Z'] &&
+       ![theSet characterIsMember: 'a'] &&
+       ![theSet characterIsMember: 'z'] &&
+       ![theSet characterIsMember: '9'] &&
+       ![theSet characterIsMember: '0'] &&
+       ![theSet characterIsMember: '#'] &&
+       ![theSet characterIsMember: ' '] &&
+       [theSet characterIsMember: '\n'] &&
+       ![theSet characterIsMember: '\t'],
+       "Check some characters from newlineCharacterSet");
+  
+  theSet = [theSet invertedSet];
+  PASS([theSet characterIsMember: 'A'] &&
+       [theSet characterIsMember: 'Z'] &&
+       [theSet characterIsMember: 'a'] &&
+       [theSet characterIsMember: 'z'] &&
+       [theSet characterIsMember: '9'] &&
+       [theSet characterIsMember: '0'] &&
+       [theSet characterIsMember: '#'] &&
+       [theSet characterIsMember: ' '] &&
+       ![theSet characterIsMember: '\n'] &&
+       [theSet characterIsMember: '\t'] &&
+       [theSet characterIsMember: 0xf6],
+       "Check some characters from inverted newlineCharacterSet");
+
   theSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
   PASS(![theSet characterIsMember: 'A'] &&
        ![theSet characterIsMember: 'Z'] &&

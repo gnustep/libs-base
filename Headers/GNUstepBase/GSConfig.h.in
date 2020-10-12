@@ -262,7 +262,6 @@ typedef	struct {
 #define	OBJC2RUNTIME @OBJC2RUNTIME@
 #define BASE_NATIVE_OBJC_EXCEPTIONS     @BASE_NATIVE_OBJC_EXCEPTIONS@
 #define GS_NONFRAGILE     @GS_NONFRAGILE@
-#define GS_MIXEDABI     @GS_MIXEDABI@
 #define GS_USE_LIBXML @HAVE_LIBXML@
 #define GS_USE_GNUTLS @HAVE_GNUTLS@
 #define GS_USE_AVAHI @HAVE_AVAHI@
@@ -307,12 +306,17 @@ typedef	struct {
 #define WINVER Windows2000
 #endif
 
-#if defined(__WIN64__)
-#include <winsock2.h>
+// Trick to distinguish between MSYS/MinGW and MSYS2/MinGW32, the latter defines
+// __MINGW32_MAJOR_VERSION and __MINGW32_MINOR_VERSION for compatibility
+// but to a lower version than older MSYS/MinGW, but not the compound version
+//
+#if defined(__MINGW32_VERSION)
+#define __USE_W32_SOCKETS
 #include <windows.h>
+#include <winsock2.h>
 #else
-#include <windows.h>
 #include <winsock2.h>
+#include <windows.h>
 #endif
 
 #undef __OBJC_BOOL

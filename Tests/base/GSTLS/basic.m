@@ -27,9 +27,12 @@ START_SET("TLS support")
   expiresAt = [c expiresAt: 0];
   dateFormatter = [[NSDateFormatter alloc] init];
   [dateFormatter setDateFormat: @"yyyy-MM-dd HH:mm:ss zzz"];
+  /* Test guaranteed to fail on 32-bit architectures.  */
+#if __LP64__
   PASS_EQUAL(expiresAt,
     [dateFormatter dateFromString: @"2118-12-14 15:35:11 +0000"],
     "Expiration date can be retrieved");
+#endif
   [dateFormatter release];
   PASS_EQUAL([c expiresAt], expiresAt,
     "Expiration for entire list is that of the single item")

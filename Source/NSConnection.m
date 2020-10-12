@@ -335,7 +335,7 @@ GS_PRIVATE_INTERNAL(NSConnection)
 - (void) removeLocalObject: (NSDistantObject*)anObj;
 
 - (void) _doneInReply: (NSPortCoder*)c;
-- (void) _doneInRmc: (NSPortCoder*)c;
+- (void) _doneInRmc: (NSPortCoder*) NS_CONSUMED c;
 - (void) _failInRmc: (NSPortCoder*)c;
 - (void) _failOutRmc: (NSPortCoder*)c;
 - (NSPortCoder*) _getReplyRmc: (int)sn for: (const char*)request;

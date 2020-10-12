@@ -252,10 +252,42 @@ void test_return_self_optimizations(void)
   string = [[stringClass alloc] initWithCharacters: NULL
 	  length: 0];
   returnValue = [string capitalizedString];
-  [string release];
+  RELEASE(string);
   PASS((IS_VALID_OBJECT(returnValue) && [@"" isEqual: returnValue]), 
        "-capitalizedString returns a valid instance");
   DESTROY(arp);
+
+  ENTER_POOL
+  string = [[stringClass alloc] initWithCString: "helvetica"
+	  length: 9];
+  returnValue = [string capitalizedString];
+  RELEASE(string);
+  PASS_EQUAL(returnValue, @"Helvetica", "-capitalizedString for helvetica")
+  LEAVE_POOL
+
+  ENTER_POOL
+  string = [[stringClass alloc] initWithCString: "HeLveTica"
+	  length: 9];
+  returnValue = [string capitalizedString];
+  RELEASE(string);
+  PASS_EQUAL(returnValue, @"Helvetica", "-capitalizedString for HeLveTica")
+  LEAVE_POOL
+
+  ENTER_POOL
+  string = [[stringClass alloc] initWithCString: "HELVETICA"
+	  length: 9];
+  returnValue = [string capitalizedString];
+  RELEASE(string);
+  PASS_EQUAL(returnValue, @"Helvetica", "-capitalizedString for HELVETICA")
+  LEAVE_POOL
+
+  ENTER_POOL
+  string = [[stringClass alloc] initWithCString: "HeLLO worLd"
+	  length: 11];
+  returnValue = [string capitalizedString];
+  RELEASE(string);
+  PASS_EQUAL(returnValue, @"Hello World", "-capitalizedString for HeLLO worLd")
+  LEAVE_POOL
 
   arp = [NSAutoreleasePool new];
   string = [[stringClass alloc] initWithCharacters: NULL

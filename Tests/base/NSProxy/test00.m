@@ -25,6 +25,7 @@
 - (void) dealloc
 {
   [_remote release];
+  DEALLOC
 }
 - (unichar) characterAtIndex: (NSUInteger)i
 {
@@ -53,6 +54,7 @@
 - (void) dealloc
 {
   [_remote release];
+  DEALLOC
 }
 - (NSUInteger) hash
 {

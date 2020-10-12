@@ -763,6 +763,7 @@ GSCurrentThreadDictionary(void)
 static void
 gnustep_base_thread_callback(void)
 {
+  static pthread_mutex_t  threadLock = PTHREAD_MUTEX_INITIALIZER;
   /*
    * Protect this function with locking ... to avoid any possibility
    * of multiple threads registering with the system simultaneously,
@@ -771,7 +772,7 @@ gnustep_base_thread_callback(void)
    */
   if (entered_multi_threaded_state == NO)
     {
-      [gnustep_global_lock lock];
+      pthread_mutex_lock(&threadLock);
       if (entered_multi_threaded_state == NO)
 	{
 	  /*
@@ -781,6 +782,12 @@ gnustep_base_thread_callback(void)
 	   * threaded BEFORE sending the notifications.
 	   */
 	  entered_multi_threaded_state = YES;
+	  /*
+	   * Enter pool after setting flag, because -[NSAutoreleasePool
+	   * allocWithZone:] calls GSCurrentThread(), which may end up
+	   * calling this function, which would cause a deadlock.
+	   */
+	  ENTER_POOL
 	  NS_DURING
 	    {
 	      [GSPerformHolder class];	// Force initialization
@@ -814,8 +821,9 @@ gnustep_base_thread_callback(void)
 	      fflush(stderr);
 	    }
 	  NS_ENDHANDLER
+	  LEAVE_POOL
 	}
-      [gnustep_global_lock unlock];
+      pthread_mutex_unlock(&threadLock);
     }
 }
 
@@ -860,15 +868,9 @@ unregisterActiveThread(NSThread *thread)
 {
   if (thread->_active == YES)
     {
-      /*
-       * Set the thread to be inactive to avoid any possibility of recursion.
+      /* Let observers know this thread is exiting.
        */
-      thread->_active = NO;
-      thread->_finished = YES;
-
-      /*
-       * Let observers know this thread is exiting.
-       */
+      ENTER_POOL
       if (nc == nil)
 	{
 	  nc = RETAIN([NSNotificationCenter defaultCenter]);
@@ -877,7 +879,14 @@ unregisterActiveThread(NSThread *thread)
 			object: thread
 		      userInfo: nil];
 
+      /* Set the thread to be finished *after* notification it will exit.
+       * This is the order OSX 10.15.4 does it (May 2020).
+       */
+      thread->_active = NO;
+      thread->_finished = YES;
+
       [(GSRunLoopThreadInfo*)thread->_runLoopInfo invalidate];
+      LEAVE_POOL
       RELEASE(thread);
       pthread_setspecific(thread_object_key, nil);
     }
@@ -1241,12 +1250,7 @@ unregisterActiveThread(NSThread *thread)
         }
       while (i > 0)
         {
-          if (PTHREAD_SETNAME(buf) == 0)
-            {
-              break;    // Success
-            }
-
-          if (ERANGE == errno)
+          if (PTHREAD_SETNAME(buf) == ERANGE)
             {
               /* Name must be too long ... gnu/linux uses 15 characters
                */
@@ -1274,7 +1278,7 @@ unregisterActiveThread(NSThread *thread)
             }
           else
             {
-              break;    // Some other error
+              break;    // Success or some other error
             }
         }
     }

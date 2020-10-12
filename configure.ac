@@ -89,8 +89,9 @@ fi
 if test -z "$LIBRARY_COMBO"; then
   LIBRARY_COMBO=`gnustep-config --variable=LIBRARY_COMBO 2>&5`
 fi
+OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 
-if test "$OBJC_RUNTIME_LIB" = "ng"; then
+if test "$OBJC_RUNTIME_LIB" = "ng" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   nonfragile=yes
   BASE_NONFRAGILE_ABI=1
 else
@@ -1254,7 +1255,6 @@ esac
 #--------------------------------------------------------------------
 # Set Apple/Darwin/OSX/NeXT information for other tests
 #--------------------------------------------------------------------
-OBJC_RUNTIME_LIB=`echo $LIBRARY_COMBO | tr '-' ' ' | awk '{print $1}'`
 AC_MSG_CHECKING(the Objective-C runtime)
 if test "$OBJC_RUNTIME_LIB" = "nx" -o "$OBJC_RUNTIME_LIB" = "apple"; then
   AC_MSG_RESULT(NeXT)
@@ -2017,7 +2017,6 @@ AC_SUBST(HAVE_BLOCKS)
 # Don't revert any Objective-C flags as they are used in the next test
 
 GS_NONFRAGILE=0
-GS_MIXEDABI=0
 if test "$nonfragile" = "yes"; then
   saved_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
@@ -2029,21 +2028,10 @@ if test "$nonfragile" = "yes"; then
   CPPFLAGS="$saved_CPPFLAGS"
   if test $non_fragile = yes; then
     GS_NONFRAGILE=1
-    if test "$OBJC_RUNTIME_LIB" != "ng"; then
-      AC_ARG_ENABLE(mixedabi,
-        [  --disable-mixedabi
-	    Disables the combined use of fragile and nonfragile ABI so that base
-	    can be built taking full advantage of the nonfragile ABI.],,
-        enable_mixedabi=yes)
-      if test $enable_mixedabi = yes; then
-        GS_MIXEDABI=1
-      fi
-    fi
   fi
   AC_MSG_RESULT($non_fragile)
 fi
 AC_SUBST(GS_NONFRAGILE)
-AC_SUBST(GS_MIXEDABI)
 
 
 # Don't revert any Objective-C flags as they are used in the next test
@@ -2240,7 +2228,7 @@ AC_CHECK_HEADERS([sys/mount.h], [], [],
 AC_CHECK_HEADERS(sys/types.h windows.h locale.h langinfo.h)
 saved_LIBS="$LIBS"
 AC_CHECK_LIB(m, main)
-AC_CHECK_FUNCS(statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt malloc_usable_size)
+AC_CHECK_FUNCS(utimensat statvfs link symlink readlink geteuid getlogin getpwnam getpwnam_r getpwuid getpwuid_r getgrgid getgrgid_r getgrnam getgrnam_r rint getopt malloc_usable_size)
 LIBS="$saved_LIBS"
 
 AC_CACHE_CHECK([for pw_gecos field in struct passwd],
@@ -2321,7 +2309,24 @@ fi
 
 AC_CHECK_FUNCS(__builtin_extract_return_address)
 
-AC_CHECK_HEADERS(unwind.h)
+# Enable unwind if found by default
+AC_ARG_WITH(unwind,
+  AS_HELP_STRING([--without-unwind], [Ignore unwind if found and disable it]))
+
+AS_IF([test "x$with_unwind" != "xno"],
+  [AC_CHECK_HEADERS(unwind.h)] [AC_CHECK_FUNCS(_Unwind_GetIP)],
+  [have_unwind=no])
+
+AS_IF([test "x$ac_cv_func__Unwind_GetIP" = "xyes"],
+  [have_unwind=yes],
+  [have_unwind=no])
+
+AS_IF([test "x$have_unwind" = "xyes"],
+  [AC_DEFINE([WITH_UNWIND], [1], [Have and use Unwind library])],
+  [AS_IF([test "x$with_unwind" = "xyes"],
+         [AC_MSG_ERROR([unwind requested but not found])
+  ])
+])
 
 #--------------------------------------------------------------------
 # These headers/functions needed by NSLog.m
@@ -2388,6 +2393,10 @@ fi
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(getcwd)
 AC_HEADER_DIRENT
+
+# Look for file creation date on NetBSD, FreeBSD, Darwin
+AC_CHECK_MEMBERS([struct stat.st_birthtime, struct stat.st_birthtimespec, struct stat.st_birthtim, struct stat64.st_birthtimespec],
+		 ,,[#include <sys/stat.h>])
 
 #--------------------------------------------------------------------
 # This function needed by gdomap.c
@@ -2505,7 +2514,8 @@ AC_SUBST(DEFINE_UINTPTR_T)
 # These used by GSFileHandle.m and distributed objects
 # On some systems we need -lnsl ... so check for that case.
 #--------------------------------------------------------------------
-AC_SEARCH_LIBS([inet_ntop],[nsl])
+AC_CHECK_HEADERS(ws2tcpip.h)
+AC_SEARCH_LIBS([inet_ntop],[nsl Ws2_32])
 AC_CHECK_FUNCS(gethostbyaddr_r inet_aton inet_pton inet_ntop sigaction)
 
 USE_ZLIB=0
@@ -3004,7 +3014,11 @@ int main(int argc,char **argv)
 ,
   found_iconv=no
 ,
-  found_iconv="$cross_found_iconv_libc",
+  found_iconv="$cross_found_iconv_libc";
+  if test "$found_iconv" = "yes"; then
+    AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
+    AC_MSG_RESULT([[yes, in libc (via cross.config)]])
+  fi
 )
 
 if test $found_iconv = no ; then
@@ -3033,7 +3047,10 @@ if test $found_iconv = no ; then
     LIBS="$old_LIBS"
   ,
     found_iconv="$cross_found_iconv_liconv";
-    if test "$found_iconv" = "no"; then
+    if test "$found_iconv" = "yes"; then
+      AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
+      AC_MSG_RESULT([[yes, -liconv (via cross.config)]])
+    else
       LIBS="$old_LIBS"
     fi
   )
@@ -3057,7 +3074,11 @@ if test $found_iconv = no ; then
     LIBS="$old_LIBS"
   ,
     found_iconv="$cross_found_iconv_lgiconv";
-    if test "$found_iconv" = "no"; then
+    if test "$found_iconv" = "yes"; then
+      AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
+      AC_DEFINE(HAVE_GICONV,1, [Define if you have this function])
+      AC_MSG_RESULT([[yes, -lgiconv (via cross.config)]])
+    else
       LIBS="$old_LIBS"
     fi
   )
@@ -3146,13 +3167,13 @@ AC_ARG_ENABLE(xml,
   [  --disable-xml			Build even if XML-dependencies are not met],,
   enable_xml=yes)
 
-if test $enable_xml = yes; then
-  # Save CFLAGS and LIBS as AM_PATH_XML clobbers these variables regardless
-  # of the success of the macro.
-  saved_LIBS="$LIBS"
-  saved_CFLAGS="$CFLAGS"
+HAVE_LIBXML=0
 
-  AM_PATH_XML(2.3.0, enable_libxml=yes, enable_libxml=no)
+if test $enable_xml = yes; then
+  PKG_CHECK_MODULES([XML], [libxml-2.0 >= 2.3.0], [enable_libxml=yes], [
+    AM_PATH_XML(2.3.0, enable_libxml=yes, enable_libxml=no)
+  ])
+
   if test $enable_libxml = yes; then
     CPPFLAGS="$CPPFLAGS $XML_CFLAGS"
     INCLUDE_FLAGS="$INCLUDE_FLAGS $XML_CFLAGS"
@@ -3160,6 +3181,7 @@ if test $enable_xml = yes; then
     HAVE_LIBXML=1
     AC_DEFINE(HAVE_LIBXML,1,[Define if libxml available])
     AC_CHECK_HEADERS(libxml/SAX2.h)
+
     #--------------------------------------------------------------------
     # Check for (optional) libxslt
     #--------------------------------------------------------------------
@@ -3193,10 +3215,6 @@ if test $enable_xml = yes; then
     fi
     AC_SUBST(HAVE_LIBXSLT)
   else
-    HAVE_LIBXML=0
-    # Restore the CFLAGS and LIBS because AM_PATH_XML messes them
-    LIBS="$saved_LIBS"
-    CFLAGS="$saved_CFLAGS"
     echo
     echo "You do not appear to have usable libxml2 headers/library."
     echo "Building without them will disable the GSXML and NSXMLNode."
@@ -3206,8 +3224,7 @@ if test $enable_xml = yes; then
     AC_MSG_ERROR([Missing support for XML DOM functionality.])
   fi
 else
-  AC_MSG_WARN([Disabled support for XML funtionality.])
-  HAVE_LIBXML=0
+  AC_MSG_WARN([XML functionality disabled.])
 fi
 AC_SUBST(HAVE_LIBXML)
 

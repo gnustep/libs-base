@@ -281,15 +281,22 @@ NSString *GSPrivateSymbolPath(Class theClass)
 
   if (theClass != nil)
     {
+      const char        *prefix
+#if __OBJC_GNUSTEP_RUNTIME_ABI__ >= 20
+        = "._OBJC_CLASS_";
+#else
+        = "__objc_class_name_";
+#endif
       const char        *ret;
       char              buf[125];
       char              *p = buf;
       const char        *className = class_getName(theClass);
       int               len = strlen(className);
+      int               plen = strlen(prefix);
 
-      if (len + sizeof(char)*19 > sizeof(buf))
+      if (len + plen + 1 > sizeof(buf))
         {
-          p = malloc(len + sizeof(char)*19);
+          p = malloc(len + plen + 1);
 
           if (p == NULL)
             {
@@ -298,8 +305,8 @@ NSString *GSPrivateSymbolPath(Class theClass)
             }
         }
 
-      memcpy(p, "__objc_class_name_", sizeof(char)*18);
-      memcpy(&p[18*sizeof(char)], className, strlen(className) + 1);
+      memcpy(p, prefix, plen);
+      memcpy(&p[plen], className, len + 1);
 
       ret = __objc_dynamic_get_symbol_path(0, p);
 

@@ -565,7 +565,7 @@ GSListModules()
 #endif	/* USE_BFD */
 
 
-#if defined(HAVE_UNWIND_H) && !defined(HAVE_BACKTRACE)
+#if defined(WITH_UNWIND) && !defined(HAVE_BACKTRACE)
 
 #include <unwind.h>
 #if	!defined(_WIN32)
@@ -593,7 +593,7 @@ GSUnwindCallback(struct _Unwind_Context* context, void* arg)
     return 0; //_URC_OK/_URC_NO_REASON
 }
 
-#endif	/* HAVE_UNWIND_H && !HAVE_BACKTRACE */
+#endif	/* WITH_UNWIND && !HAVE_BACKTRACE */
 
 
 #if	defined(_WIN32) && !defined(USE_BFD)
@@ -1101,7 +1101,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
 {
   if (nil == addresses && numReturns > FrameOffset)
     {
-      CREATE_AUTORELEASE_POOL(pool);
+      ENTER_POOL
       NSInteger         count = numReturns - FrameOffset;
       NSValue           *objects[count];
       NSUInteger        index;
@@ -1112,7 +1112,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
           objects[index] = [NSValue valueWithPointer: ptrs[FrameOffset+index]];
         }
       addresses = [[NSArray alloc] initWithObjects: objects count: count];
-      DESTROY(pool);
+      LEAVE_POOL
     }
   return addresses;
 }

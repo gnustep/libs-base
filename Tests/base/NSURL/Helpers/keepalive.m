@@ -65,8 +65,8 @@
     }
   else
     {
-      lengthHeader = [NSString stringWithFormat: @"Content-Length: %d\r\n",
-	[bodyData length]];
+      lengthHeader = [NSString stringWithFormat: @"Content-Length: %u\r\n",
+	(unsigned)[bodyData length]];
       headers = [[NSArray alloc] initWithObjects: @"HTTP/1.1 200 OK\r\n",
 	@"Content-type: text/plain\r\n", lengthHeader, nil];
     }
@@ -232,7 +232,7 @@
     case NSStreamEventOpenCompleted:
       break;
     default:
-      NSLog(@"Unknown event %d on stream %p", streamEvent, theStream);
+      NSLog(@"Unknown event %u on stream %p", (unsigned)streamEvent, theStream);
       break;
     }
 }

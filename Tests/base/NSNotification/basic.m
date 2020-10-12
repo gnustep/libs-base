@@ -26,7 +26,19 @@ int main()
   NSMutableArray *testObjs = [[NSMutableArray alloc] init];
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
 
+  NSDictionary          *info = [NSDictionary dictionaryWithObjectsAndKeys:
+    @"obj", @"key", nil];
+  NSNotification        *o1 = [NSNotification notificationWithName: @"hello"
+                                                            object: @"there"
+                                                          userInfo: info]; 
+  NSNotification        *o2 = [NSNotification notificationWithName: @"hello"
+                                                            object: @"there"
+                                                          userInfo: info]; 
+  PASS([o1 hash] == [o2 hash], "equal notification hashes")
+  PASS_EQUAL(o1, o2, "equal notifications")
+
   test_alloc(@"NSNotification"); 
+
   obj = [NSNotification new];
   [testObjs addObject: obj];
   test_NSObject(@"NSNotification", testObjs);

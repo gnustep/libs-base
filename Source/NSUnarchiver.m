@@ -1398,7 +1398,7 @@ scalarSize(char type)
             return;
           case 4:
             *(int32_t*)address = (int32_t)big;
-            if (big > 2147483647 || big < -2147483648)
+            if (big > 2147483647 || big + 2147483648 < 0)
               {
                 NSLog(@"Lost information converting decoded value to int32_t");
               }

@@ -39,14 +39,15 @@ int main()
   PASS(cookie == nil, "cookie without path returns nil");
 
   dict = [NSDictionary dictionaryWithObject:
-    @"S=calendar=R7tjDKqNB5L8YTZSvf29Bg;Expires=Wed, 09-Mar-2011 23:00:35 GMT"
+    @"S=calendar=R7tjDKqNB5L8YTZSvf29Bg;Expires=Wed, 09-Mar-2011 23:00:35 GMT, "
+    @"S=xxxxxxxx=R7tjDKqNB5L8YTZSvf29Bg;Expires=Thu, 10-Mar-2011 23:00:35 GMT"
  	                             forKey: @"Set-Cookie"];
 
   url = [NSURL URLWithString: @"http://www.google.com/calendar/feeds/default/"];
   cookies= [NSHTTPCookie cookiesWithResponseHeaderFields: dict forURL: url];
   TEST_FOR_CLASS(@"NSArray", cookies,
     "NSHTTPCookie +cookiesWithResponseHeaderFields: returns an NSArray");
-  PASS([cookies count ] == 1, "cookies array contains a cookie");
+  PASS([cookies count ] == 2, "cookies array contains two cookies");
   cookie = [cookies objectAtIndex: 0];
   PASS([[cookie name] isEqual: @"S"], "NSHTTPCookie returns proper name");
   PASS([[cookie value] isEqual: @"calendar=R7tjDKqNB5L8YTZSvf29Bg"],
@@ -56,6 +57,7 @@ int main()
   PASS(![cookie isSecure], "Cookie is not secure");
   PASS(![cookie isHTTPOnly], "Cookie is not http only");
   
+  cookies = [cookies subarrayWithRange: NSMakeRange(0, 1)];
   dict = [NSHTTPCookie requestHeaderFieldsWithCookies: cookies];
   PASS_EQUAL([dict objectForKey: @"Cookie"],
     @"S=calendar=R7tjDKqNB5L8YTZSvf29Bg",

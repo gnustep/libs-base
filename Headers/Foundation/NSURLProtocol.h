@@ -171,7 +171,8 @@ extern "C" {
  * The cachedResponse may be the result of a previous load of the
  * request (in which case the protocol may validate and use it).<br />
  * The client is the object which receives messages about the progress
- * of the load.
+ * of the load.  This is retained by the protocl instance and is released
+ * once the last message has been sent to it.
  */
 - (id) initWithRequest: (NSURLRequest *)request
 	cachedResponse: (NSCachedURLResponse *)cachedResponse
