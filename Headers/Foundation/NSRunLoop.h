@@ -43,9 +43,6 @@ typedef NSString* NSRunLoopMode;
  */
 GS_EXPORT NSRunLoopMode const NSDefaultRunLoopMode;
 GS_EXPORT NSRunLoopMode const NSRunLoopCommonModes;
-GS_EXPORT NSRunLoopMode const NSEventTrackingRunLoopMode;
-GS_EXPORT NSRunLoopMode const NSModalPanelRunLoopMode;
-GS_EXPORT NSRunLoopMode const UITrackingRunLoopMode;
 
 @interface NSRunLoop : NSObject
 {

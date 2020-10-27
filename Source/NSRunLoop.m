@@ -76,9 +76,6 @@
 
 NSRunLoopMode const NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
 NSRunLoopMode const NSRunLoopCommonModes = @"NSRunLoopCommonModes";
-NSRunLoopMode const NSEventTrackingRunLoopMode = @"NSEventTrackingRunLoopMode";
-NSRunLoopMode const NSModalPanelRunLoopMode = @"NSModalPanelRunLoopMode";
-NSRunLoopMode const UITrackingRunLoopMode = @"UITrackingRunLoopMode";
 
 static NSDate	*theFuture = nil;
 
