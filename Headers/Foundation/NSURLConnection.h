@@ -67,23 +67,27 @@ extern "C" {
 + (NSURLConnection *) connectionWithRequest: (NSURLRequest *)request
 				   delegate: (id)delegate;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 /**
  * Start the asynchronous load.  This method is only needed if NO is passed 
  * into startImmediately when calling initWithRequest: delegate: startImmediately.
  */ 
 - (void) start;
+#endif
   
 /**
  * Cancel the asynchronous load in progress (if any) for this connection.
  */
 - (void) cancel;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 - (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop 
                    forMode: (NSRunLoopMode)mode;
 
 - (void) unscheduleFromRunLoop: (NSRunLoop *)aRunLoop 
                        forMode: (NSRunLoopMode)mode;
-
+#endif
+  
 /** <init />
  * Initialises the receiver with the specified request (performing
  * a deep copy so that the request does not change during loading)
@@ -99,6 +103,7 @@ extern "C" {
  */
 - (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 /** <init />
  * Initialises the receiver with the specified request (performing
  * a deep copy so that the request does not change during loading)
@@ -114,7 +119,8 @@ extern "C" {
  * releasing it when the connection finished loading, fails, or is cancelled.
  */
 - (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate startImmediately: (BOOL)startImmediately;
-
+#endif
+  
 @end
 
 
