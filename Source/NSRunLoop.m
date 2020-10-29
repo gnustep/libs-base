@@ -74,7 +74,8 @@
 #endif
 
 
-NSString * const NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
+NSRunLoopMode const NSDefaultRunLoopMode = @"NSDefaultRunLoopMode";
+NSRunLoopMode const NSRunLoopCommonModes = @"NSRunLoopCommonModes";
 
 static NSDate	*theFuture = nil;
 
