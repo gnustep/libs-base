@@ -1539,6 +1539,29 @@ static NSUInteger	urlAlign;
   return [[self path] lastPathComponent];
 }
 
+- (BOOL) isFileReferenceURL
+{
+  return NO;
+}
+
+- (NSURL *) fileReferenceURL
+{
+  if ([self isFileURL]) 
+    {
+      return self;
+    }
+  return nil;
+}
+
+- (NSURL *) filePathURL
+{
+  if ([self isFileURL]) 
+    {
+      return self;
+    }
+  return nil;
+}
+
 - (BOOL) getResourceValue: (id*)value 
                    forKey: (NSString *)key 
                     error: (NSError**)error
@@ -1949,6 +1972,17 @@ static NSUInteger	urlAlign;
       return [NSURL fileURLWithPath: [[self path] stringByStandardizingPath]];
     }
   return self;
+}
+
+- (NSURL *) URLByAppendingPathComponent:(NSString *)pathComponent
+                            isDirectory:(BOOL)isDirectory
+{
+  NSString *path = [[self path] stringByAppendingPathComponent: pathComponent];
+  if (isDirectory)
+    {
+      path = [path stringByAppendingString: @"/"];
+    }
+  return [self _URLBySettingPath: path];
 }
 
 - (void) URLHandle: (NSURLHandle*)sender

@@ -774,7 +774,6 @@ NSURL:
 	- stopAccessingSecurityScopedResource
 	- stringByAddingPercentEscapesUsingEncoding:
 	- stringByReplacingPercentEscapesUsingEncoding:
-	- URLByAppendingPathComponent:isDirectory:
 -------------------------------------------------------------
 NSURLAuthenticationChallenge:
 	- performDefaultHandlingForAuthenticationChallenge:

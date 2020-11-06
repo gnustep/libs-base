@@ -1,3 +1,12 @@
+2020-10-06-03  Frederik Seiffert <frederik@algoriddim.com>
+
+  * Headers/Foundation/NSURL.h,
+  * Source/NSURL.h: Add NSURL methods:
+  - URLByAppendingPathComponent:isDirectory:
+  - isFileReferenceURL (always returns NO)
+  - fileReferenceURL
+  - filePathURL
+
 2020-08-30  Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/NSDateComponentsFormatter.m: Fix use of wrong operator.
