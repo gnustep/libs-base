@@ -39,11 +39,11 @@ extern void
 GSPropertyListMake(id, NSDictionary *, BOOL, BOOL, unsigned, id *);
 
 // We don't have @[] on gcc
-#define NARRAY(...) [NSArray arrayWithObjects:__VA_ARGS__, nil]
+#define NARRAY(...) [NSArray arrayWithObjects: __VA_ARGS__, nil]
 // And no @() or @123
-#define NINT(Num) [NSNumber numberWithInt:Num]
+#define NINT(Num) [NSNumber numberWithInt: Num]
 // Unfortunately we have to define @() for @"" too because a macro later
-#define NSTR(Str) [NSString stringWithCString:Str]
+#define NSTR(Str) [NSString stringWithCString: Str]
 
 /* Bitmap of 'quotable' characters ... those characters which must be
  * inside a quoted string if written to an old style property list.
@@ -68,25 +68,25 @@ plIndex(id obj, NSString *key)
   char *      endptr = NULL;
   NSInteger   res;
 
-  if ([obj isKindOfClass:[NSDictionary class]])
+  if ([obj isKindOfClass: [NSDictionary class]])
     {
-      return [(NSDictionary *) obj objectForKey:key];
+      return [(NSDictionary *) obj objectForKey: key];
     }
-  else if ([obj isKindOfClass:[NSArray class]])
+  else if ([obj isKindOfClass: [NSArray class]])
     {
-      ckey = [key cStringUsingEncoding:[NSString defaultCStringEncoding]];
+      ckey = [key cStringUsingEncoding: [NSString defaultCStringEncoding]];
       res = strtoll(ckey, &endptr, 10);
       if (endptr && *endptr != '\0')
 	{
-	  [NSException raise:NSInvalidArgumentException
-		      format:@"%@ is not a valid integer", key];
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"%@ is not a valid integer", key];
 	}
-      return [(NSArray *) obj objectAtIndex:res];
+      return [(NSArray *) obj objectAtIndex: res];
     }
   else
     {
-      [NSException raise:NSInvalidArgumentException
-		  format:@"%@ is not indexible", obj];
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@ is not indexible", obj];
       return nil;
     }
 }
@@ -106,33 +106,33 @@ mutate(id obj, NSString *key, id leaf, BOOL replace)
   char *      endptr = NULL;
   NSInteger   res;
 
-  if ([obj isKindOfClass:[NSMutableDictionary class]])
+  if ([obj isKindOfClass: [NSMutableDictionary class]])
     {
       if (!leaf)
-	[(NSMutableDictionary *) obj removeObjectForKey:key];
+	[(NSMutableDictionary *) obj removeObjectForKey: key];
       else
-	[(NSMutableDictionary *) obj setObject:leaf forKey:key];
+	[(NSMutableDictionary *) obj setObject: leaf forKey: key];
     }
-  else if ([obj isKindOfClass:[NSMutableArray class]])
+  else if ([obj isKindOfClass: [NSMutableArray class]])
     {
-      ckey = [key cStringUsingEncoding:[NSString defaultCStringEncoding]];
+      ckey = [key cStringUsingEncoding: [NSString defaultCStringEncoding]];
       res = strtoll(ckey, &endptr, 10);
       if (endptr && *endptr != '\0')
 	{
-	  [NSException raise:NSInvalidArgumentException
-		      format:@"%@ is not a valid integer", key];
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"%@ is not a valid integer", key];
 	}
       if (!leaf)
-	[(NSMutableArray *) obj removeObjectAtIndex:res];
+	[(NSMutableArray *) obj removeObjectAtIndex: res];
       else if (replace)
-	[(NSMutableArray *) obj replaceObjectAtIndex:res withObject:leaf];
+	[(NSMutableArray *) obj replaceObjectAtIndex: res withObject: leaf];
       else
-	[(NSMutableArray *) obj insertObject:leaf atIndex:res];
+	[(NSMutableArray *) obj insertObject: leaf atIndex: res];
     }
   else
     {
-      [NSException raise:NSInvalidArgumentException
-		  format:@"%@ is not indexible", obj];
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@ is not indexible", obj];
     }
 }
 
@@ -160,7 +160,7 @@ parseKeyPath(const char *keypath)
     switch (keypath[i])
       {
       case KEYPATH_SEP:
-	[res addObject:key];
+	[res addObject: key];
 	key = nil;
 	break;
       case '"':
@@ -171,7 +171,7 @@ parseKeyPath(const char *keypath)
 		    && keypath[j] != KEYPATH_SEP;
 	     j++)
 	  ;
-	key = [NSString stringWithCString:&keypath[i] length:(j - i)];
+	key = [NSString stringWithCString: &keypath[i] length: (j - i)];
 	i = j - 1;
 	break;
       }
@@ -195,16 +195,16 @@ parseQuotedString(const char *keypath, size_t *i)
 	if (end[1])
 	  end += 1;
 	else
-	  [NSException raise:NSInvalidArgumentException
-		      format:@"Premature EOF in keypath"];
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Premature EOF in keypath"];
       }
 
   if (!end)
-    [NSException raise:NSInvalidArgumentException
-		format:@"Premature EOF in keypath"];
+    [NSException raise: NSInvalidArgumentException
+		format: @"Premature EOF in keypath"];
 
   *i = end - keypath + 1;
-  parsed = [[NSString stringWithCString:begin length:end - begin] propertyList];
+  parsed = [[NSString stringWithCString: begin length: end - begin] propertyList];
   return (NSString *) parsed;
 }
 
@@ -219,7 +219,7 @@ plIndexKeypath(id obj, NSString *keypath, int depthOffset)
   int      i;
 
   for (i = 0; i < count - depthOffset; i++)
-    obj = plIndex(obj, [parsedPath objectAtIndex:i]);
+    obj = plIndex(obj, [parsedPath objectAtIndex: i]);
 
   return obj;
 }
@@ -232,51 +232,51 @@ plIndexKeypath(id obj, NSString *keypath, int depthOffset)
 id
 parseValue(NSString *type, NSString *value)
 {
-  if ([type isEqual:@"-plist"])
+  if ([type isEqual: @"-plist"])
     return [value propertyList];
-  else if ([type isEqual:@"-xml"] || [type isEqual:@"-date"])
+  else if ([type isEqual: @"-xml"] || [type isEqual: @"-date"])
     {
       NSData *mydata =
-	[value dataUsingEncoding:[NSString defaultCStringEncoding]];
+	[value dataUsingEncoding: [NSString defaultCStringEncoding]];
       NSPropertyListFormat aFormat;
       NSError *		   anError;
       id		   result = [NSPropertyListSerialization
-	propertyListWithData:mydata
-		       options:NSPropertyListMutableContainersAndLeaves
-			format:&aFormat
-			 error:&anError];
+	propertyListWithData: mydata
+		       options: NSPropertyListMutableContainersAndLeaves
+			format: &aFormat
+			 error: &anError];
       if (result == nil)
 	{
 	  GSPrintf(stderr, @"Parsing plist %@: %@\n", value, anError);
 	  return nil;
 	}
-      else if ([type isEqual:@"-xml"]
+      else if ([type isEqual: @"-xml"]
 	       && aFormat != NSPropertyListXMLFormat_v1_0)
 	GSPrintf(stderr,
 		 @"Warning: parsing XML plist %@: Not an XML (fmt %d)\n", value,
 		 aFormat);
-      else if ([type isEqual:@"-date"]
-	       && ![result isKindOfClass:[NSDate class]])
+      else if ([type isEqual: @"-date"]
+	       && ![result isKindOfClass: [NSDate class]])
 	GSPrintf(stderr, @"Warning: parsing date %@: Not a date (got %@)\n",
 		 value, result);
       return result;
     }
-  else if ([type isEqual:@"-bool"])
+  else if ([type isEqual: @"-bool"])
     return [NSNumber
-      numberWithBool:([value isEqual:@"YES"] || [value isEqual:@"true"])];
-  else if ([type isEqual:@"-integer"])
-    return [[NSNumber alloc] initWithLongLong:[value longLongValue]];
-  else if ([type isEqual:@"-float"])
+      numberWithBool: ([value isEqual: @"YES"] || [value isEqual: @"true"])];
+  else if ([type isEqual: @"-integer"])
+    return [[NSNumber alloc] initWithLongLong: [value longLongValue]];
+  else if ([type isEqual: @"-float"])
     // We do a step further than NSPropertyList.m and probably Apple,
     // since notsupporting inf and nan is a bad look
     // (No hex literals for now unless someone really wants it)
-    return [[NSNumber alloc] initWithDouble:strtod([value cString], 0)];
-  else if ([type isEqual:@"-data"])
+    return [[NSNumber alloc] initWithDouble: strtod([value cString], 0)];
+  else if ([type isEqual: @"-data"])
     return [[NSData alloc]
-      initWithBase64EncodedData:[value
-				  dataUsingEncoding:[NSString
+      initWithBase64EncodedData: [value
+				  dataUsingEncoding: [NSString
 						      defaultCStringEncoding]]
-			options:NSDataBase64DecodingIgnoreUnknownCharacters];
+			options: NSDataBase64DecodingIgnoreUnknownCharacters];
   else
     GSPrintf(stderr, @"Unrecognized type %@\n", type);
 
@@ -304,11 +304,11 @@ plFormatFromName(NSString *name)
     SELFMAP(NSPropertyListGNUstepFormat),
     SELFMAP(NSPropertyListGNUstepBinaryFormat),
     nil];
-  id res = [nameMap objectForKey:name];
+  id res = [nameMap objectForKey: name];
   // clang-format on
   if (!res)
-    [NSException raise:NSInvalidArgumentException
-		format:@"Invalid fmt %@", name];
+    [NSException raise: NSInvalidArgumentException
+		format: @"Invalid fmt %@", name];
   return [res intValue];
 }
 
@@ -318,13 +318,12 @@ plFormatFromName(NSString *name)
 int
 dumpToFile(id obj, NSPropertyListFormat fmt, NSString *outfile)
 {
-  NSString *    errorString = nil;
-  NSFileHandle *fh;
-  NSData *      outdata =
-    [NSPropertyListSerialization dataFromPropertyList:obj
-					       format:fmt
-					      options:0
-				     errorDescription:&errorString];
+  NSString 	*errorString = nil;
+  NSFileHandle 	*fh;
+  NSData 	*outdata =
+    [NSPropertyListSerialization dataFromPropertyList: obj
+					       format: fmt
+				     errorDescription: &errorString];
   if (errorString)
     {
       GSPrintf(stderr, @"Dumping %@ as format %@ - %@\n", obj, fmt,
@@ -332,11 +331,11 @@ dumpToFile(id obj, NSPropertyListFormat fmt, NSString *outfile)
       return EXIT_FAILURE;
     }
 
-  if ([outfile isEqual:@"-"])
+  if ([outfile isEqual: @"-"])
     fh = [NSFileHandle fileHandleWithStandardOutput];
   else
-    fh = [NSFileHandle fileHandleForWritingAtPath:outfile];
-  [fh writeData:outdata];
+    fh = [NSFileHandle fileHandleForWritingAtPath: outfile];
+  [fh writeData: outdata];
   [fh synchronizeFile];
   return EXIT_SUCCESS;
 }
@@ -344,15 +343,15 @@ dumpToFile(id obj, NSPropertyListFormat fmt, NSString *outfile)
 int
 plCmdConvert(id obj, NSArray *cmdargs, NSString *outfile)
 {
-  NSString *fmt = [cmdargs objectAtIndex:0];
+  NSString *fmt = [cmdargs objectAtIndex: 0];
   return dumpToFile(obj, plFormatFromName(fmt), outfile);
 }
 
 int
 plCmdExtract(id obj, NSArray *cmdargs, NSString *outfile)
 {
-  NSString *keypath = [cmdargs objectAtIndex:0];
-  NSString *fmt = [cmdargs objectAtIndex:1];
+  NSString *keypath = [cmdargs objectAtIndex: 0];
+  NSString *fmt = [cmdargs objectAtIndex: 1];
   obj = plIndexKeypath(obj, keypath, 0);
   return dumpToFile(obj, plFormatFromName(fmt), outfile);
 }
@@ -361,7 +360,7 @@ int
 plCmdRemove(id obj, NSPropertyListFormat fmt, NSArray *cmdargs,
 	    NSString *outfile)
 {
-  NSString *keypath = [cmdargs objectAtIndex:0];
+  NSString *keypath = [cmdargs objectAtIndex: 0];
 
   NSArray *parsedPath = parseKeyPath([keypath cString]);
   id       leaf = plIndexKeypath(obj, keypath, 1);
@@ -374,8 +373,8 @@ int
 plCmdInsert(id obj, NSPropertyListFormat fmt, NSArray *cmdargs,
 	    NSString *outfile)
 {
-  NSString *keypath = [cmdargs objectAtIndex:0];
-  id newleaf = parseValue([cmdargs objectAtIndex:1], [cmdargs objectAtIndex:2]);
+  NSString *keypath = [cmdargs objectAtIndex: 0];
+  id newleaf = parseValue([cmdargs objectAtIndex: 1], [cmdargs objectAtIndex: 2]);
 
   NSArray *parsedPath = parseKeyPath([keypath cString]);
   id       leaf = plIndexKeypath(obj, keypath, 1);
@@ -391,8 +390,8 @@ int
 plCmdReplace(id obj, NSPropertyListFormat fmt, NSArray *cmdargs,
 	     NSString *outfile)
 {
-  NSString *keypath = [cmdargs objectAtIndex:0];
-  id newleaf = parseValue([cmdargs objectAtIndex:1], [cmdargs objectAtIndex:2]);
+  NSString *keypath = [cmdargs objectAtIndex: 0];
+  id newleaf = parseValue([cmdargs objectAtIndex: 1], [cmdargs objectAtIndex: 2]);
 
   NSArray *parsedPath = parseKeyPath([keypath cString]);
   id       leaf = plIndexKeypath(obj, keypath, 1);
@@ -434,179 +433,198 @@ main(int argc, char **argv, char **env)
 {
   int status = EXIT_SUCCESS;
 
-  ENTER_POOL
-  NSProcessInfo *proc;
-  NSArray *      args;
-  NSString *     arg;
-  NSString *     inpath;
-  NSArray *      cmdargs = nil;
-  NSDictionary * commands = nil;
-  NSArray *      command_rhs;
-  NSString *     outpath = nil;
-  NSString *     outext = nil;
-
-  Action action = ACTION_LINT;
-  int    count = 0;
-  int    i = 1;
+  do
+    {
+      ENTER_POOL
+      NSProcessInfo	*proc;
+      NSArray 		*args;
+      NSString		*arg;
+      NSString 		*inpath;
+      NSArray 		*cmdargs = nil;
+      NSDictionary 	*commands = nil;
+      NSArray 		*command_rhs;
+      NSString 		*outpath = nil;
+      NSString 		*outext = nil;
+      Action 		action = ACTION_LINT;
+      int    		count = 0;
+      int    		i = 1;
 
 #ifdef GS_PASS_ARGUMENTS
-  GSInitializeProcess(argc, argv, env);
+      GSInitializeProcess(argc, argv, env);
 #endif
-  proc = [NSProcessInfo processInfo];
-  if (proc == nil)
-    {
-      NSLog(@"plutil: unable to get process information.");
-      status = EXIT_FAILURE;
-      break;
-    }
+      proc = [NSProcessInfo processInfo];
+      if (proc == nil)
+	{
+	  NSLog(@"plutil: unable to get process information.");
+	  status = EXIT_FAILURE;
+	  break;
+	}
 
-  args = [proc arguments];
-  if ((count = [args count]) <= 1)
-    {
-      NSLog(@"plutil: no files given.");
-      status = EXIT_FAILURE;
-      break;
-    }
+      args = [proc arguments];
+      if ((count = [args count]) <= 1)
+	{
+	  NSLog(@"plutil: no files given.");
+	  status = EXIT_FAILURE;
+	  break;
+	}
 
-  // Parse the COMMAND.
-  // Maps number of args to commands.
-  // clang-format off
-  commands = [NSDictionary dictionaryWithObjectsAndKeys:
-    NARRAY(NINT(ACTION_PRINT), NINT(0)), @"-p",
-		NARRAY(NINT(ACTION_LINT), NINT(0)), @"-lint",
-		NARRAY(NINT(ACTION_CONVERT), NINT(1)), @"-convert",
-		NARRAY(NINT(ACTION_INSERT), NINT(3)), @"-insert",
-		NARRAY(NINT(ACTION_REPLACE), NINT(3)), @"-replace",
-		NARRAY(NINT(ACTION_REMOVE), NINT(1)), @"-remove",
-		NARRAY(NINT(ACTION_EXTRACT), NINT(2)), @"-extract",
-    nil];
-  // clang-format on
-  NS_DURING
-  {
-    NSData *		 fileData;
-    NSPropertyListFormat aFormat;
-    NSError *		 anError;
-    id			 result;
-    NSMutableString *    outStr = nil;
-    NSDictionary *       locale;
-
-    arg = [args objectAtIndex:i];
-    if (![arg hasPrefix:@"-"])
-      goto parse_file;
-
-    command_rhs = [commands objectForKey:arg];
-    if (command_rhs)
+      // Parse the COMMAND.
+      // Maps number of args to commands.
+      // clang-format off
+      commands = [NSDictionary dictionaryWithObjectsAndKeys:
+	NARRAY(NINT(ACTION_PRINT), NINT(0)), @"-p",
+		    NARRAY(NINT(ACTION_LINT), NINT(0)), @"-lint",
+		    NARRAY(NINT(ACTION_CONVERT), NINT(1)), @"-convert",
+		    NARRAY(NINT(ACTION_INSERT), NINT(3)), @"-insert",
+		    NARRAY(NINT(ACTION_REPLACE), NINT(3)), @"-replace",
+		    NARRAY(NINT(ACTION_REMOVE), NINT(1)), @"-remove",
+		    NARRAY(NINT(ACTION_EXTRACT), NINT(2)), @"-extract",
+	nil];
+      // clang-format on
+      NS_DURING
       {
-	int     iwant;
-	NSRange argrange;
+	NSData *		 fileData;
+	NSPropertyListFormat aFormat;
+	NSError *		 anError;
+	id			 result;
+	NSMutableString *    outStr = nil;
+	NSDictionary *       locale;
 
-	action = [[command_rhs objectAtIndex:0] intValue];
-	iwant = [[command_rhs objectAtIndex:1] intValue];
-
-	argrange.location = i + 1;
-	argrange.length = iwant;
-	cmdargs = [args subarrayWithRange:argrange];
-
-	i += 1 + iwant;
-      }
-
-    // Parse options
-    for (; i < count; i++)
-      {
-	arg = [args objectAtIndex:i];
-	if (![arg hasPrefix:@"-"] || [arg isEqual:@"-"] || [arg isEqual:@"--"])
+	arg = [args objectAtIndex: i];
+	if (![arg hasPrefix: @"-"])
 	  goto parse_file;
-	else if ([arg isEqual:@"-help"])
+
+	command_rhs = [commands objectForKey: arg];
+	if (command_rhs)
 	  {
-	    print_help(stdout);
+	    int     iwant;
+	    NSRange argrange;
+
+	    action = [[command_rhs objectAtIndex: 0] intValue];
+	    iwant = [[command_rhs objectAtIndex: 1] intValue];
+
+	    argrange.location = i + 1;
+	    argrange.length = iwant;
+	    cmdargs = [args subarrayWithRange: argrange];
+
+	    i += 1 + iwant;
+	  }
+
+	// Parse options
+	for (; i < count; i++)
+	  {
+	    arg = [args objectAtIndex: i];
+	    if (![arg hasPrefix: @"-"]
+	      || [arg isEqual: @"-"]
+	      || [arg isEqual: @"--"])
+	      {
+		goto parse_file;
+	      }
+	    else if ([arg isEqual: @"-help"])
+	      {
+		print_help(stdout);
+		break;
+	      }
+	    else if ([arg isEqual: @"-s"])
+	      {
+	      /* NOOP: What the heck is being quiet? */;
+	      }
+	    else if ([arg isEqual: @"-o"])
+	      {
+		outpath = [args objectAtIndex: ++i];
+	      }
+	    else if ([arg isEqual: @"-e"])
+	      {
+		outext = [args objectAtIndex: ++i];
+	      }
+	    else
+	      {
+		[NSException raise: NSInvalidArgumentException
+			    format: @"Invalid option %@", arg];
+	      }
+	  }
+
+      parse_file:
+	inpath = [args objectAtIndex: i];
+	if (!outpath && !outext && action != ACTION_EXTRACT)
+	  {
+	    outpath = inpath;
+	  }
+	else if (outext)
+	  {
+	    NSRange	dot;
+
+	    dot = [inpath rangeOfString: @"." options: NSBackwardsSearch];
+	    if (dot.length == 0)
+	      {
+		dot.location = [inpath length];
+	      }
+	    outpath = [NSString stringWithFormat: @"%@.%@",
+	      [inpath substringToIndex: dot.location], outext];
+	  }
+
+	// Open, read, do things.
+	if ([inpath isEqual: @"-"])
+	  {
+	    NSFileHandle *fh = [NSFileHandle fileHandleWithStandardInput];
+	    fileData = [fh readDataToEndOfFile];
+	  }
+	else
+	  fileData = [NSData dataWithContentsOfFile: inpath];
+
+	result = [NSPropertyListSerialization
+	  propertyListWithData: fileData
+		       options: NSPropertyListMutableContainersAndLeaves
+			format: &aFormat
+			 error: &anError];
+	if (result == nil)
+	  {
+	    GSPrintf(stderr, @"Loading '%@' - %@\n", inpath, anError);
+	    status = EXIT_FAILURE;
 	    break;
 	  }
-	else if ([arg isEqual:@"-s"])
-	  /* NOOP: What the heck is being quiet? */;
-	else if ([arg isEqual:@"-o"])
-	  outpath = [args objectAtIndex:++i];
-	else if ([arg isEqual:@"-e"])
-	  outext = [args objectAtIndex:++i];
-	else
-	  [NSException raise:NSInvalidArgumentException
-		      format:@"Invalid option %@", arg];
-      }
 
-  parse_file:
-    inpath = [args objectAtIndex:i];
-    if (!outpath && !outext && action != ACTION_EXTRACT)
-      outpath = inpath;
-    else if (outext)
-      {
-	NSRange dot = [inpath rangeOfString:@"." options:NSBackwardsSearch];
-	if (dot.length == 0)
-	  dot.location = [inpath length];
-	outpath = [NSString
-	  stringWithFormat:@"%@.%@", [inpath substringToIndex:dot.location],
-			   outext];
+	switch (action)
+	  {
+	  case ACTION_LINT:
+	    break;
+	  case ACTION_PRINT:
+	    // Not using description because we can GS it
+	    locale =
+	      [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
+	    GSPropertyListMake(result, locale, NO, NO, 2, &outStr);
+	    GSPrintf(stdout, @"%@\n", outStr);
+	    break;
+	  case ACTION_CONVERT:
+	    status = plCmdConvert(result, cmdargs, outpath);
+	    break;
+	  case ACTION_REPLACE:
+	    status = plCmdReplace(result, aFormat, cmdargs, outpath);
+	    break;
+	  case ACTION_INSERT:
+	    status = plCmdInsert(result, aFormat, cmdargs, outpath);
+	    break;
+	  case ACTION_REMOVE:
+	    status = plCmdRemove(result, aFormat, cmdargs, outpath);
+	    break;
+	  case ACTION_EXTRACT:
+	    if (!outpath)
+	      outpath = @"-";
+	    status = plCmdExtract(result, cmdargs, outpath);
+	    break;
+	  }
       }
-
-    // Open, read, do things.
-    if ([inpath isEqual:@"-"])
+      NS_HANDLER
       {
-	NSFileHandle *fh = [NSFileHandle fileHandleWithStandardInput];
-	fileData = [fh readDataToEndOfFile];
-      }
-    else
-      fileData = [NSData dataWithContentsOfFile:inpath];
-
-    result = [NSPropertyListSerialization
-      propertyListWithData:fileData
-		   options:NSPropertyListMutableContainersAndLeaves
-		    format:&aFormat
-		     error:&anError];
-    if (result == nil)
-      {
-	GSPrintf(stderr, @"Loading '%@' - %@\n", inpath, anError);
+	NSLog(@"Problem: %@", localException);
+	if ([[localException name] isEqual: NSInvalidArgumentException])
+	  print_help(stderr);
 	status = EXIT_FAILURE;
 	break;
       }
+      NS_ENDHANDLER
 
-    switch (action)
-      {
-      case ACTION_LINT:
-	break;
-      case ACTION_PRINT:
-	// Not using description because we can GS it
-	locale =
-	  [[NSUserDefaults standardUserDefaults] dictionaryRepresentation];
-	GSPropertyListMake(result, locale, NO, NO, 2, &outStr);
-	GSPrintf(stdout, @"%@\n", outStr);
-	break;
-      case ACTION_CONVERT:
-	status = plCmdConvert(result, cmdargs, outpath);
-	break;
-      case ACTION_REPLACE:
-	status = plCmdReplace(result, aFormat, cmdargs, outpath);
-	break;
-      case ACTION_INSERT:
-	status = plCmdInsert(result, aFormat, cmdargs, outpath);
-	break;
-      case ACTION_REMOVE:
-	status = plCmdRemove(result, aFormat, cmdargs, outpath);
-	break;
-      case ACTION_EXTRACT:
-	if (!outpath)
-	  outpath = @"-";
-	status = plCmdExtract(result, cmdargs, outpath);
-	break;
-      }
-  }
-  NS_HANDLER
-  {
-    NSLog(@"Problem: %@", localException);
-    if ([[localException name] isEqual:NSInvalidArgumentException])
-      print_help(stderr);
-    status = EXIT_FAILURE;
-    break;
-  }
-  NS_ENDHANDLER
-
-  LEAVE_POOL
+      LEAVE_POOL
+    } while (0);
   return status;
 }
