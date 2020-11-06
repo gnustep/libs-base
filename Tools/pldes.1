@@ -17,7 +17,7 @@ pl, pldes, plser, plmerge, plparse, pl2link	\- property list tools
 .nf
 .BI "plget " "key" [ more keys ]
 .nf
-.BI "plser " "filename(s)"
+.BI "plser [ " "-format" "fmt" " ] filename(s)"
 .nf
 .BI "plmerge [ " "destination-file" " ] [ " "input-file(s)" " ]"
 .nf
@@ -49,9 +49,9 @@ Reads a text representation of a dictionary in property list format as
 standard input, extracts the string value held in that dictionary with
 the specified key, and writes the result to standard output.
 Multiple keys may be used to extract values from nested dictionaries.
-.IP "\fBplser\fR \fIfilename(s)\fR" 4
+.IP "\fBplser\fR [ \fI-format format\fR ] \fIfilename(s)\fR" 4
 Converts a text representation of a property list to a binary serialized
-representation.
+representation, or to another selected format.
 .IP "\fBplmerge\fR [ \fIdestination-file\fR ] [ \fIinput-file(s)\fR ]" 4
 Merges text property lists into a single property list
 .IP "\fBplparse\fR \fIfilename(s)\fR" 4

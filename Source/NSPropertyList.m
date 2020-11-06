@@ -345,7 +345,7 @@ foundIgnorableWhitespace: (NSString *)string
     }
   else if ([elementName isEqualToString: @"real"])
     {
-      ASSIGN(plist, [NSNumber numberWithDouble: [value doubleValue]]);
+      ASSIGN(plist, [NSNumber numberWithDouble: strtod([value cString], NULL)]);
     }
   else if ([elementName isEqualToString: @"true"])
     {
@@ -1135,7 +1135,7 @@ static id parsePlItem(pldata* pld)
                     else
                       {
                         result = [[NSNumber alloc]
-                          initWithUnsignedLongLong: strtoull(buf, 0, 10)];
+                          initWithUnsignedLongLong: strtoull(buf, NULL, 10)];
                       }
 		  }
 		else if (type == 'B')
@@ -1169,12 +1169,12 @@ static id parsePlItem(pldata* pld)
 		  }
 		else if (type == 'R')
 		  {
-		    unichar	buf[len];
-		    double	d = 0.0;
+		    char	buf[len+1];
 
 		    for (i = 0; i < len; i++) buf[i] = ptr[i];
-		    GSScanDouble(buf, len, &d);
-		    result = [[NSNumber alloc] initWithDouble: d];
+		    buf[len] = '\0';
+		    result = [[NSNumber alloc]
+		      initWithDouble: strtod(buf, NULL)];
 		  }
 		else
 		  {
@@ -2481,6 +2481,18 @@ static BOOL	classInitialized = NO;
   return dest;
 }
 
+/**
+ * <p>Make <var>obj</var> into a plist in <var>str</var>, using the locale <var>loc</var>.</p>
+ *
+ * <p>If <var>*str</var> is <code>nil</code>, create a <ref>GSMutableString</ref>.
+ * Otherwise <var>*str</var> must be a GSMutableString.</p>
+ * 
+ * <p>Options:</p><ul>
+ * <li><var>step</var> is the indent level.</li>
+ * <li><var>forDescription</var> enables OpenStep formatting.</li>
+ * <li><var>xml</var> enables XML formatting.</li>
+ * </ul>
+ */
 void
 GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   BOOL forDescription, unsigned step, id *str)
@@ -2757,7 +2769,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   // not the other way round,
   NSData *data = [self dataWithPropertyList: aPropertyList
                                      format: aFormat
-                                    options: 0
+                                    options: anOption
                                       error: error];
 
   return [stream write: [data bytes] maxLength: [data length]];

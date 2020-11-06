@@ -72,7 +72,7 @@ MAN8_PAGES = gdomap.8
 ifeq ($(add),yes)
 TOOL_NAME = autogsdoc cvtenc plmerge sfparse xmlparse
 else
-TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults pl plmerge \
+TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults pl plmerge plutil \
 		plparse sfparse pldes plget plser pl2link xmlparse HTMLLinker
 CTOOL_NAME = gdomap
 
@@ -97,6 +97,7 @@ plget_OBJC_FILES = plget.m
 plser_OBJC_FILES = plser.m
 plmerge_OBJC_FILES = plmerge.m
 plparse_OBJC_FILES = plparse.m
+plutil_OBJC_FILES = NSPropertyList+PLUtil.m plutil.m
 sfparse_OBJC_FILES = sfparse.m
 pl2link_OBJC_FILES = pl2link.m
 locale_alias_OBJC_FILES = locale_alias.m
