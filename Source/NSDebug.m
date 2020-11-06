@@ -369,8 +369,8 @@ _GSDebugAllocationAdd(Class c, id o)
 	{
 	  bytes = the_table[num_classes].nominal_size;
 	}
-      the_table[num_classes].bytes += bytes;
-      the_table[num_classes].totalb += bytes;
+      the_table[num_classes].bytes = bytes;
+      the_table[num_classes].totalb = bytes;
       the_table[num_classes].lastb = 0;
       the_table[num_classes].lastc = 0;
       the_table[num_classes].totalc = 1;

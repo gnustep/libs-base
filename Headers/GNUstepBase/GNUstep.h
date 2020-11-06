@@ -90,11 +90,11 @@
 #define	IF_NO_GC(X)	
 
 #ifndef ENTER_POOL
-#define ENTER_POOL                      @autoreleasepool{do{
+#define ENTER_POOL                      @autoreleasepool{
 #endif
 
 #ifndef LEAVE_POOL
-#define LEAVE_POOL                      }while(0);}
+#define LEAVE_POOL                      }
 #endif
 
 #ifndef DEALLOC
@@ -216,22 +216,23 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
 #ifndef ENTER_POOL
 /**
  *	ENTER_POOL creates an autorelease pool and places subsequent code
- *	in a do/while loop (executed only once) which can be broken out of
- *	to reach the point when the pool is drained.<br />
+ *	in a block.<br />
  *	The block must be terminated with a corresponding LEAVE_POOL.<br />
- *	You should not return from such a block of code (to do so could
- *	leak an autorelease pool and give objects a longer lifetime than
- *	they ought to have.  If you wish to leave the block of code early,
- *	you may do so using a 'break' statement.
+ *	You should not break, continue, or return from such a block of code
+ *	(to do so could leak an autorelease pool and give objects a longer
+ *	lifetime than they ought to have.  If you wish to leave the block of
+ *	code early, you should ensure that doing so causes the autorelease
+ *	pool outside the block to be released promptly (since that will
+ *	implicitly release the pool created at the start of the block too).
  */
-#define ENTER_POOL      {NSAutoreleasePool *_lARP=[NSAutoreleasePool new];do{
+#define ENTER_POOL      {NSAutoreleasePool *_lARP=[NSAutoreleasePool new];
 #endif
 
 #ifndef LEAVE_POOL
 /**
  *	LEAVE_POOL terminates a block of code started with ENTER_POOL.
  */
-#define LEAVE_POOL      }while(0);[_lARP drain];}
+#define LEAVE_POOL      [_lARP drain];}
 #endif
 
 #ifndef DEALLOC
@@ -244,14 +245,16 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
 #endif
 
 #ifndef	CREATE_AUTORELEASE_POOL
-/** DEPRECATED ... use ENTER_POOL and LEAVE_POOL
+/** DEPRECATED ... use ENTER_POOL and LEAVE_POOL and make sure your
+ * code does not break/continue/return out of the section of code.
  */
 #define	CREATE_AUTORELEASE_POOL(X)	\
   NSAutoreleasePool *X = [NSAutoreleasePool new]
 #endif
 
 #ifndef RECREATE_AUTORELEASE_POOL
-/** DEPRECATED ... use ENTER_POOL and LEAVE_POOL
+/** DEPRECATED ... use ENTER_POOL and LEAVE_POOL and make sure your
+ * code does not break/continue/return out of the section of code.
  */
 #define RECREATE_AUTORELEASE_POOL(X)  \
   DESTROY(X);\

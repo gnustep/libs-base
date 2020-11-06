@@ -29,6 +29,7 @@
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
 
 #import	<Foundation/NSObject.h>
+#import <Foundation/NSRunLoop.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -66,11 +67,27 @@ extern "C" {
 + (NSURLConnection *) connectionWithRequest: (NSURLRequest *)request
 				   delegate: (id)delegate;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+/**
+ * Start the asynchronous load.  This method is only needed if NO is passed 
+ * into startImmediately when calling initWithRequest: delegate: startImmediately.
+ */ 
+- (void) start;
+#endif
+  
 /**
  * Cancel the asynchronous load in progress (if any) for this connection.
  */
 - (void) cancel;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+- (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop 
+                   forMode: (NSRunLoopMode)mode;
+
+- (void) unscheduleFromRunLoop: (NSRunLoop *)aRunLoop 
+                       forMode: (NSRunLoopMode)mode;
+#endif
+  
 /** <init />
  * Initialises the receiver with the specified request (performing
  * a deep copy so that the request does not change during loading)
@@ -86,6 +103,24 @@ extern "C" {
  */
 - (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+/** <init />
+ * Initialises the receiver with the specified request (performing
+ * a deep copy so that the request does not change during loading)
+ * and delegate.<br />
+ * This automatically initiates an asynchronous load for the request 
+ * if and only if startImmediately is set to YES.<br />
+ * Processing of the request is done in the thread which calls this
+ * method, so the thread must run its current run loop
+ * (in NSDefaultRunLoopMode) for processing to continue/complete.<br />
+ * The delegate will receive callbacks informing it of the progress
+ * of the load.<br />
+ * This method breaks with convention and retains the delegate object,
+ * releasing it when the connection finished loading, fails, or is cancelled.
+ */
+- (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate startImmediately: (BOOL)startImmediately;
+#endif
+  
 @end
 
 

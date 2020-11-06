@@ -1200,7 +1200,22 @@ static NSNotificationCenter *default_center = nil;
             }
           NS_HANDLER
             {
-              NSLog(@"Problem posting notification: %@", localException);
+	      BOOL	logged;
+
+	      /* Try to report the notification along with the exception,
+	       * but if there's a problem with the notification itself,
+	       * we just log the exception.
+	       */
+	      NS_DURING
+		NSLog(@"Problem posting %@: %@", notification, localException);
+		logged = YES;
+	      NS_HANDLER
+		logged = NO;
+	      NS_ENDHANDLER
+  	      if (NO == logged)
+		{ 
+		  NSLog(@"Problem posting notification: %@", localException);
+		}  
             }
           NS_ENDHANDLER
 	}

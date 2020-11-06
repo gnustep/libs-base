@@ -157,11 +157,35 @@ typedef struct
   return AUTORELEASE(o);
 }
 
+- (void) start
+{
+  [this->_protocol startLoading];
+}
+
 - (void) cancel
 {
   [this->_protocol stopLoading];
   DESTROY(this->_protocol);
   DESTROY(this->_delegate);
+}
+
+- (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop 
+                   forMode: (NSRunLoopMode)mode
+{
+  NSArray *modes = [NSArray arrayWithObject: mode];
+  [aRunLoop performSelector: @selector(start)
+                     target: self
+                   argument: nil
+                      order: 0
+                      modes: modes];
+}
+
+- (void) unscheduleFromRunLoop: (NSRunLoop *)aRunLoop 
+                       forMode: (NSRunLoopMode)mode
+{
+  [aRunLoop cancelPerformSelector: @selector(start)
+                           target: self
+                         argument: nil];
 }
 
 - (void) dealloc
@@ -185,7 +209,7 @@ typedef struct
     }
 }
 
-- (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate
+- (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate startImmediately: (BOOL)startImmediately
 {
   if ((self = [super init]) != nil)
     {
@@ -226,10 +250,20 @@ typedef struct
 	initWithRequest: this->_request
 	cachedResponse: nil
 	client: (id<NSURLProtocolClient>)self];
-      [this->_protocol startLoading];
+      if (startImmediately == YES)
+        {
+          [this->_protocol startLoading];
+        }
       this->_debug = GSDebugSet(@"NSURLConnection");
     }
   return self;
+}
+
+- (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate
+{
+  return [self initWithRequest: request
+                      delegate: delegate
+              startImmediately: YES];
 }
 
 @end

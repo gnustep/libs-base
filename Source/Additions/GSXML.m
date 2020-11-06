@@ -52,6 +52,7 @@
 #ifdef	HAVE_LIBXML
 
 #import "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/NSDebug+GNUstepBase.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/GSXML.h"
@@ -997,7 +998,10 @@ static NSMapTable	*nodeNames = 0;
 	1,
 	1,
 	"utf-8");
-      xmlOutputBufferFlush(buf);
+      if (xmlOutputBufferFlush(buf) < 0)
+	{
+	  NSDebugMLog(@"Failed to flush XML description");
+	}
 #if LIBXML_VERSION < 20900
       string = UTF8StrLen(buf->buffer->content, buf->buffer->use);
 #else

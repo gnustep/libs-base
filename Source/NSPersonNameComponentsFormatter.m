@@ -129,6 +129,7 @@
     {
     case 1:
       [pnc setNickname: [nameArray objectAtIndex: 0]];
+      break;
     case 2:
       [pnc setGivenName: [nameArray objectAtIndex: 0]];
       [pnc setFamilyName: [nameArray objectAtIndex: 1]];

@@ -1557,7 +1557,7 @@ load_iface(const char* from)
 	}
       if (ptr != buf)
 	{
-	  strcpy(buf, ptr);
+	  memmove(buf, ptr, strlen(ptr) + 1);
 	}
       /*
        *	Strip comments.
@@ -1629,7 +1629,7 @@ load_iface(const char* from)
 	}
       if (ptr != buf)
 	{
-	  strcpy(buf, ptr);
+	  memmove(buf, ptr, strlen(ptr) + 1);
 	}
       /*
        *	Strip comments.
@@ -3968,7 +3968,7 @@ int ptype, struct sockaddr_in *addr, unsigned short *p, uptr *v)
        */
       ptr = b;
       port = 0;
-      while (ptr < &b[len])
+      while (ptr < (b + len))
 	{
 	  ptr += 2 + ptr[0];
 	  port++;
@@ -4968,7 +4968,7 @@ printf(
 		    }
 		  if (ptr != buf)
 		    {
-		      strcpy(buf, ptr);
+		      memmove(buf, ptr, strlen(ptr) + 1);
 		    }
 		  /*
 		   *	Strip comments.

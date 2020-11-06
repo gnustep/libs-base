@@ -108,6 +108,7 @@ before_script: |
     windows)
         DEP_ROOT=/c/staging
         setx -m PATH "C:\staging;%PATH%"
+        CONFIGURE_OPTS=--without-unwind
         ;;
     esac
     export LIBRARY_PATH=$DEP_ROOT/lib:$DEP_ROOT/lib64:$LIBRARY_PATH
@@ -124,7 +125,7 @@ before_script: |
     . $GNUSTEP_MAKEFILES/GNUstep.sh
 script:
     # configure and make need to be executed via MinGW shell on Windows ($mingw is undefined on Linux)
-    - $mingw ./configure $BASE_ABI || (cat config.log && false)
+    - $mingw ./configure $BASE_ABI $CONFIGURE_OPTS || (cat config.log && false)
     - $mingw make && $mingw make install && $mingw make check || (cat Tests/tests.log && false)
 
 # set up packages cache (currently used on Windows only)

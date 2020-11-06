@@ -503,12 +503,11 @@ static NSArray	*empty = nil;
 @end
 
 @implementation	NSOperation (Private)
+/* NB code calling this method must ensure that the receiver is retained
+ * until after the method returns.
+ */
 - (void) _finish
 {
-  /* retain while finishing so that we don't get deallocated when our
-   * queue removes and releases us.
-   */
-  RETAIN(self);
   [internal->lock lock];
   if (NO == internal->finished)
     {
@@ -533,12 +532,11 @@ static NSArray	*empty = nil;
 	}
     }
   [internal->lock unlock];
-  RELEASE(self);
 }
 
 @end
 
-	  
+
 @implementation NSBlockOperation
 
 + (instancetype) blockOperationWithBlock: (GSBlockOperationBlock)block
@@ -983,12 +981,17 @@ static NSOperationQueue *mainQueue = nil;
 
 - (void) _thread
 {
-  ENTER_POOL
+  CREATE_AUTORELEASE_POOL(arp);
 
   [[[NSThread currentThread] threadDictionary] setObject: self
                                                   forKey: threadKey];
   for (;;)
     {
+      /* We use a pool for each operation in case releasing the operation
+       * causes it to be deallocated, and the deallocation of the operation
+       * autoreleases something which needs to be cleaned up.
+       */
+      RECREATE_AUTORELEASE_POOL(arp);
       NSOperation	*op;
       NSDate		*when;
       BOOL		found;
@@ -1046,7 +1049,7 @@ static NSOperationQueue *mainQueue = nil;
   [internal->lock lock];
   internal->threadCount--;
   [internal->lock unlock];
-  LEAVE_POOL
+  DESTROY(arp);
   [NSThread exit];
 }
 

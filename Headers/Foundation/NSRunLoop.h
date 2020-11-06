@@ -34,12 +34,15 @@ extern "C" {
 
 @class NSTimer, NSDate, NSPort;
 
+typedef NSString* NSRunLoopMode;
+  
 /**
  * Run loop mode used to deal with input sources other than NSConnections or
  * dialog windows.  Most commonly used. Defined in
  * <code>Foundation/NSRunLoop.h</code>.
  */
-GS_EXPORT NSString * const NSDefaultRunLoopMode;
+GS_EXPORT NSRunLoopMode const NSDefaultRunLoopMode;
+GS_EXPORT NSRunLoopMode const NSRunLoopCommonModes;
 
 @interface NSRunLoop : NSObject
 {

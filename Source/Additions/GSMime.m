@@ -5724,14 +5724,20 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   return nil;
 }
 
-/**
- * Convenience method to fetch the content file name from the header.
+/** Convenience method to fetch the content file name from the content-type
+ * or content-disposition header.
  */
 - (NSString*) contentFile
 {
-  GSMimeHeader	*hdr = [self headerNamed: @"content-disposition"];
+  GSMimeHeader	*hdr = [self headerNamed: CteContentType];
+  NSString	*str = [hdr parameterForKey: @"name"];
 
-  return [hdr parameterForKey: @"filename"];
+  if (nil == str)
+    {
+      hdr = [self headerNamed: @"content-disposition"];
+      str = [hdr parameterForKey: @"filename"];
+    }
+  return str;
 }
 
 /**

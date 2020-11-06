@@ -258,6 +258,11 @@ int main()
        "data/number/data are ok in serialized property-list");
 #endif
 
+  NSArray	*a = [NSArray array];
+  NSDictionary	*d = [NSDictionary dictionaryWithObjectsAndKeys:
+    @"val", a, @"val2", @"key2", nil];
+  PASS_EQUAL([d objectForKey: a], @"val", "array as dictionary key works")
+
   [arp release]; arp = nil;
   return 0;
 }
