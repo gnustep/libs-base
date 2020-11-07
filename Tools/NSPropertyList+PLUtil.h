@@ -36,12 +36,12 @@ enum _PLUExtentedFormats
 };
 
 @interface NSPropertyListSerialization (PLUtilAdditions)
-+ (NSData *)_pdataFromPropertyList:(id)aPropertyList
-			    format:(NSPropertyListFormat)aFormat
-		  errorDescription:(NSString **)anErrorString;
-+ (id)_ppropertyListWithData:(NSData *)data
-		     options:(NSPropertyListReadOptions)anOption
-		      format:(NSPropertyListFormat *)aFormat
-		       error:(out NSError **)error;
-+ (void)load;
++ (NSData *) _pdataFromPropertyList: (id)aPropertyList
+			     format: (NSPropertyListFormat)aFormat
+		   errorDescription: (NSString **)anErrorString;
++ (id) _ppropertyListWithData: (NSData *)data
+		      options: (NSPropertyListReadOptions)anOption
+		       format: (NSPropertyListFormat *)aFormat
+		        error: (out NSError **)error;
++ (void) load;
 @end
