@@ -64,9 +64,9 @@ static const unsigned char quotables[32] = {
 id
 plIndex(id obj, NSString *key)
 {
-  const char *ckey;
-  char *      endptr = NULL;
-  NSInteger   res;
+  const char	*ckey;
+  char 		*endptr = NULL;
+  NSInteger   	res;
 
   if ([obj isKindOfClass: [NSDictionary class]])
     {
@@ -102,9 +102,9 @@ plIndex(id obj, NSString *key)
 void
 mutate(id obj, NSString *key, id leaf, BOOL replace)
 {
-  const char *ckey;
-  char *      endptr = NULL;
-  NSInteger   res;
+  const char	*ckey;
+  char 		*endptr = NULL;
+  NSInteger   	res;
 
   if ([obj isKindOfClass: [NSMutableDictionary class]])
     {
