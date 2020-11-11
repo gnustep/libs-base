@@ -76,6 +76,17 @@ static BOOL isByteEncoding(NSStringEncoding enc)
 struct objc_class _NSConstantStringClassReference;
 #endif
 
+/* Count the number of bytes that make up this UTF-8 code point.
+   This to keep in mind:
+      * This macro doesn't return anything larger than '4'
+      * Legal UTF-8 cannot be larger than 4 bytes long (0x10FFFF)
+      * It will return 0 for anything illegal
+ */
+#define UTF8_BYTE_COUNT(c) \
+  (((c) < 0xf8) ? 1 + ((c) >= 0xc0) + ((c) >= 0xe0) + ((c) >= 0xf0) : 0)
+
+
+#ifndef GNUSTEP_NEW_STRING_ABI
 /* Determine the length of the UTF-8 string as a unicode (UTF-16) string.
  * sets the ascii flag according to the content found.
  */
@@ -182,15 +193,6 @@ lengthUTF8(const uint8_t *p, unsigned l, BOOL *ascii, BOOL *latin1)
   return l;
 }
 
-/* Count the number of bytes that make up this UTF-8 code point.
-   This to keep in mind:
-      * This macro doesn't return anything larger than '4'
-      * Legal UTF-8 cannot be larger than 4 bytes long (0x10FFFF)
-      * It will return 0 for anything illegal
- */
-#define UTF8_BYTE_COUNT(c) \
-  (((c) < 0xf8) ? 1 + ((c) >= 0xc0) + ((c) >= 0xe0) + ((c) >= 0xf0) : 0)
-
 /* Sequentially extracts characters from UTF-8 string
  * p = pointer to the utf-8 data
  * l = length (bytes) of the utf-8 data
@@ -294,6 +296,7 @@ nextUTF8(const uint8_t *p, unsigned l, unsigned *o, unichar *n)
 	      format: @"no more data in UTF-8 string"];
   return 0;
 }
+#endif
 
 static BOOL
 literalIsEqualInternal(NXConstantString *s, GSStr o)
@@ -5651,6 +5654,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 
 
 
+#ifndef GNUSTEP_NEW_STRING_ABI
 static BOOL
 literalIsEqual(NXConstantString *self, id anObject)
 {
@@ -5736,6 +5740,7 @@ literalIsEqual(NXConstantString *self, id anObject)
     }
   return NO;
 }
+#endif
 
 #ifdef GNUSTEP_NEW_STRING_ABI
 #  define CONSTANT_STRING_ENCODING() (flags & 3)
