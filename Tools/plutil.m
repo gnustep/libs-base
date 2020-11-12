@@ -491,22 +491,22 @@ main(int argc, char **argv, char **env)
       // clang-format off
       commands = [NSDictionary dictionaryWithObjectsAndKeys:
 	NARRAY(NINT(ACTION_PRINT), NINT(0)), @"-p",
-		    NARRAY(NINT(ACTION_LINT), NINT(0)), @"-lint",
-		    NARRAY(NINT(ACTION_CONVERT), NINT(1)), @"-convert",
-		    NARRAY(NINT(ACTION_INSERT), NINT(3)), @"-insert",
-		    NARRAY(NINT(ACTION_REPLACE), NINT(3)), @"-replace",
-		    NARRAY(NINT(ACTION_REMOVE), NINT(1)), @"-remove",
-		    NARRAY(NINT(ACTION_EXTRACT), NINT(2)), @"-extract",
+	NARRAY(NINT(ACTION_LINT), NINT(0)), @"-lint",
+	NARRAY(NINT(ACTION_CONVERT), NINT(1)), @"-convert",
+	NARRAY(NINT(ACTION_INSERT), NINT(3)), @"-insert",
+	NARRAY(NINT(ACTION_REPLACE), NINT(3)), @"-replace",
+	NARRAY(NINT(ACTION_REMOVE), NINT(1)), @"-remove",
+	NARRAY(NINT(ACTION_EXTRACT), NINT(2)), @"-extract",
 	nil];
       // clang-format on
       NS_DURING
       {
-	NSData *		 fileData;
-	NSPropertyListFormat aFormat;
-	NSError *		 anError;
-	id			 result;
-	NSMutableString *    outStr = nil;
-	NSDictionary *       locale;
+	NSData 			*fileData;
+	NSPropertyListFormat 	aFormat;
+	NSError 		*anError;
+	id			result;
+	NSMutableString 	*outStr = nil;
+	NSDictionary 		*locale;
 
 	arg = [args objectAtIndex: i];
 	if (![arg hasPrefix: @"-"])
@@ -538,7 +538,9 @@ main(int argc, char **argv, char **env)
 	      {
 		goto parse_file;
 	      }
-	    else if ([arg isEqual: @"-help"])
+	    else if ([arg caseInsensitiveCompare: @"-help"] == NSOrderedSame
+	      || [arg caseInsensitiveCompare: @"--help"] == NSOrderedSame
+	      || [arg caseInsensitiveCompare: @"-h"] == NSOrderedSame)
 	      {
 		print_help(stdout);
 		break;
@@ -557,8 +559,8 @@ main(int argc, char **argv, char **env)
 	      }
 	    else
 	      {
-		[NSException raise: NSInvalidArgumentException
-			    format: @"Invalid option %@", arg];
+		GSPrintf(stderr, @"unrecognized option: %@\n", arg);
+		return EXIT_FAILURE;
 	      }
 	  }
 
