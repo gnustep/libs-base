@@ -411,7 +411,25 @@ print_help(FILE *f)
   GSPrintf(f, @"Accepted commands:\n");
   GSPrintf(
     f, @"  -p\tPrints the plists in a human-readable form (GNUstep ASCII).\n");
+    GSPrintf(
+    f, @"  -lint\tVerifies the plist can be parsed.\n");
+    GSPrintf(
+    f, @"  -convert FMT\tConverts the plist to another format.\n");
+    GSPrintf(
+    f, @"  -insert PATH KEY VALUE\tInsert KEY=VALUE to the object at PATH.\n");
+    GSPrintf(
+    f, @"  -replace PATH KEY VALUE\tReplace KEY=VALUE for the object at PATH.\n");
+    GSPrintf(
+    f, @"  -remove PATH KEY\tRemove KEY from the object at PATH.\n");
+    GSPrintf(
+    f, @"  -extract PATH KEY\tExtract the KEY from the object at PATH.\n");
   GSPrintf(f, @"Accepted options:\n");
+  GSPrintf(
+    f, @"  -s\t(No effect.)\n");
+  GSPrintf(
+    f, @"  -o OUTFILE\tOutput to the file given.\n");
+  GSPrintf(
+    f, @"  -e OUTEXT\tOutput to a file with the given extension.\n")
 }
 
 typedef enum _Action
