@@ -429,7 +429,7 @@ print_help(FILE *f)
   GSPrintf(
     f, @"  -o OUTFILE\tOutput to the file given.\n");
   GSPrintf(
-    f, @"  -e OUTEXT\tOutput to a file with the given extension.\n")
+    f, @"  -e OUTEXT\tOutput to a file with the given extension.\n");
 }
 
 typedef enum _Action
