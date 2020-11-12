@@ -2,6 +2,17 @@
 #import <Foundation/NSException.h>
 #include <unicode/utext.h>
 
+/*
+ * Define TRUE/FALSE to be used with UBool parameters, as these are no longer
+ * defined in ICU as of ICU 68.
+ */
+#ifndef TRUE
+#define TRUE 1
+#endif
+#ifndef FALSE
+#define FALSE 0
+#endif
+
 /**
  * Initialises a UText structure with an NSString.  If txt is NULL, then this
  * allocates a new structure on the heap, otherwise it fills in the existing
