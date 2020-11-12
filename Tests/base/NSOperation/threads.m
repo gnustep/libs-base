@@ -138,6 +138,7 @@ static NSMutableArray *list = nil;
 int main()
 {
   ThreadCounter         *cnt;
+  int			tries;
   id			old;
   id                    obj;
   NSMutableArray        *a;
@@ -208,9 +209,18 @@ int main()
 
   PASS(([cnt count] == 0), "thread did not exit immediately");
   [obj release];
-  /* Observer behavior on OSX 10.6 is that the thread exits after five seconds ... but who knows what that might change to. */
-  [NSThread sleepForTimeInterval: 6.0];
-  PASS(([cnt count] == 1), "thread exit occurs after six seconds");
+  /* Observed behavior on OSX 10.6 is that the thread exits after five seconds
+   * and the base library copies that 5 second lifetime... but who knows what
+   * that might change to in future?
+   */
+  [NSThread sleepForTimeInterval: 5.0];
+  /* Allow some extra time in case the machine is slow etc.
+   */
+  for (tries = 0; [cnt count] == 0 && tries < 50; tries++)
+    {
+      [NSThread sleepForTimeInterval: 0.1];
+    }
+  PASS(([cnt count] == 1), "thread exit occurs withing ten seconds");
 
   PASS(([NSOperationQueue currentQueue] == [NSOperationQueue mainQueue]), "current queue outside -main is main queue");
   PASS(([NSOperationQueue mainQueue] != nil), "main queue is not nil");
