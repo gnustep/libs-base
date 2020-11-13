@@ -40,6 +40,14 @@ extern "C" {
 @class	NSURL;
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
+enum {
+  NSDataSearchBackwards = (1UL << 0),
+  NSDataSearchAnchored = (1UL << 1),
+};
+typedef NSUInteger NSDataSearchOptions;
+#endif
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
 enum {
   NSDataBase64DecodingIgnoreUnknownCharacters = (1UL << 0)
@@ -135,6 +143,12 @@ DEFINE_BLOCK_TYPE(GSDataDeallocatorBlock, void, void*, NSUInteger);
 - (void) getBytes: (void*)buffer
 	    range: (NSRange)aRange;
 - (NSData*) subdataWithRange: (NSRange)aRange;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
+- (NSRange) rangeOfData: (NSData *)dataToFind
+                options: (NSDataSearchOptions)mask
+                  range: (NSRange)searchRange;
+#endif
 
 // base64
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
