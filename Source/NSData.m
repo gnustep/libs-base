@@ -1133,7 +1133,8 @@ failure:
             {
               searchRange.length = countOther;
             }
-          if (memcmp(&bytesSelf[0], &bytesOther[0], countOther) == 0)
+          if (memcmp(&bytesSelf[searchRange.location], &bytesOther[0],
+	    countOther) == 0)
             {
               result = searchRange;
             }
