@@ -434,6 +434,10 @@ GS_GSMimeSMTPClient_IVARS;
  */
 - (NSError*) lastError;
 
+/** Returns the number of messages currently in the queue.
+ */ 
+- (NSUInteger) queueSize;
+
 /** Add the message to the queue of emails to be sent by the receiver.
  */
 - (void) send: (GSMimeDocument*)message;
@@ -464,6 +468,13 @@ GS_GSMimeSMTPClient_IVARS;
  */
 - (void) setIdentity: (NSString*)s;
 
+/** Sets the maximum number of messages which may remain in the queue.
+ * If this is exceeded then any unsuccessful send attempt results in
+ * excess queued messages discarded as unsent.<br />
+ * The method returns the previous setting.
+ */
+- (NSUInteger) setMaximum: (NSUInteger)m;
+ 
 /** Set the originator for any emails sent by the SMTP client.<br />
  * This overrides the value in the 'from' header of an email.<br />
  * If this is not set (or is set to nil) then the GSMimeSMTPClientOriginator
