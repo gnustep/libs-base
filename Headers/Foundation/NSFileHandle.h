@@ -38,18 +38,25 @@ extern "C" {
 
 @class NSData;
 @class NSString;
+@class NSError;
 
 @interface NSFileHandle : NSObject
 
 // Allocating and Initializing a FileHandle Object
 
-+ (id) fileHandleForReadingAtPath: (NSString*)path;
-+ (id) fileHandleForWritingAtPath: (NSString*)path;
-+ (id) fileHandleForUpdatingAtPath: (NSString*)path;
-+ (id) fileHandleWithStandardError;
-+ (id) fileHandleWithStandardInput;
-+ (id) fileHandleWithStandardOutput;
-+ (id) fileHandleWithNullDevice;
++ (instancetype) fileHandleForReadingAtPath: (NSString*)path;
++ (instancetype) fileHandleForWritingAtPath: (NSString*)path;
++ (instancetype) fileHandleForUpdatingAtPath: (NSString*)path;
++ (instancetype) fileHandleWithStandardError;
++ (instancetype) fileHandleWithStandardInput;
++ (instancetype) fileHandleWithStandardOutput;
++ (instancetype) fileHandleWithNullDevice;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
++ (instancetype) fileHandleForReadingFromURL: (NSURL*)url error:(NSError**)error;
++ (instancetype) fileHandleForWritingToURL: (NSURL*)url error:(NSError**)error;
++ (instancetype) fileHandleForUpdatingURL: (NSURL*)url error:(NSError**)error;
+#endif
 
 - (id) initWithFileDescriptor: (int)desc;
 - (id) initWithFileDescriptor: (int)desc closeOnDealloc: (BOOL)flag;

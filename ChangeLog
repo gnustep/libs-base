@@ -1,3 +1,12 @@
+2020-11-17  Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSFileHandle.h,
+	* Source/NSFileHandle.h: Add NSFileHandle URL initializers:
+	-fileHandleForReadingFromURL:error:
+	-fileHandleForWritingToURL:error:
+	-fileHandleForUpdatingURL:error:
+	Also use "instancetype" for all initializers.
+
 2020-10-11  Adam Fox <adam.fox@eggplantsoftware.com>
 
 	* Source/NSData.m: Implement rangeOfData:options:range.

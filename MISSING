@@ -200,14 +200,8 @@ NSExpression:
 	- rightExpression
 	- expressionBlock
 -------------------------------------------------------------
-NSFileHandler:
+NSFileHandle:
 	<NSArray.h>
-
-	@class NSError
-
-	+ fileHandleForReadingFromURL:error:
-	+ fileHandleForWritingToURL:error:
-	+ fileHandleForUpdatingURL:error:
 
 	@property (copy) void (^readabilityHandler)(NSFileHandle *)
 	@property (copy) void (^writeabilityHandler)(NSFileHandle *)
