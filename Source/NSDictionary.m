@@ -1240,7 +1240,7 @@ compareIt(id o1, id o2, void* context)
 {
   id	o;
 
-  if ([key hasPrefix: @"@"] == YES)
+  if ([key isKindOfClass: [NSString class]] && [key hasPrefix: @"@"])
     {
       o = [super valueForKey: [key substringFromIndex: 1]];
     }
