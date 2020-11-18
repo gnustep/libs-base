@@ -37,8 +37,9 @@ extern "C" {
 #endif
 
 @class NSData;
-@class NSString;
 @class NSError;
+@class NSString;
+@class NSURL;
 
 @interface NSFileHandle : NSObject
 
