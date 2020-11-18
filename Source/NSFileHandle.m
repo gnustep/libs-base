@@ -32,6 +32,7 @@
 #import "Foundation/NSHost.h"
 #import "Foundation/NSFileHandle.h"
 #import "Foundation/NSPathUtilities.h"
+#import "Foundation/NSURL.h"
 #import "GNUstepBase/GSTLS.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GSPrivate.h"
@@ -196,6 +197,36 @@ static Class NSFileHandle_ssl_class = nil;
   id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   return AUTORELEASE([o initWithNullDevice]);
+}
+
++ (id) fileHandleForReadingFromURL: (NSURL*)url error:(NSError**)error
+{
+  id	o = [self fileHandleForReadingAtPath: [url path]];
+  if (!o && error)
+    {
+      *error = [NSError _last];
+    }
+  return o;
+}
+
++ (id) fileHandleForWritingToURL: (NSURL*)url error:(NSError**)error
+{
+  id	o = [self fileHandleForWritingAtPath: [url path]];
+  if (!o && error)
+    {
+      *error = [NSError _last];
+    }
+  return o;
+}
+
++ (id) fileHandleForUpdatingURL: (NSURL*)url error:(NSError**)error
+{
+  id	o = [self fileHandleForUpdatingAtPath: [url path]];
+  if (!o && error)
+    {
+      *error = [NSError _last];
+    }
+  return o;
 }
 
 /**
