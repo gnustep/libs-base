@@ -1936,7 +1936,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		      u2 = src[spos++];
 		      u2 = (((u2 & 0xff00) >> 8) + ((u2 & 0x00ff) << 8));
 
-		      if ((u2 < 0xdc00) && (u2 > 0xdfff))
+		      if ((u2 < 0xdc00) || (u2 > 0xdfff))
 			{
 			  spos--;
 			  if (strict)
@@ -2054,7 +2054,7 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
 		      /* get second unichar */
 		      u2 = src[spos++];
 
-		      if ((u2 < 0xdc00) && (u2 > 0xdfff))
+		      if ((u2 < 0xdc00) || (u2 > 0xdfff))
 			{
 			  spos--;
 			  if (strict)
