@@ -5807,8 +5807,11 @@ static NSFileManager *fm = nil;
 			locale: (id)locale
 {
   GS_RANGE_CHECK(compareRange, [self length]);
-  if (string == nil)
-    [NSException raise: NSInvalidArgumentException format: @"compare with nil"];
+  if (nil == string)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"compare with nil"];
+    }
 
 #if GS_USE_ICU == 1
     {
