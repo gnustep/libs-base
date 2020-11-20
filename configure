@@ -632,6 +632,7 @@ WARN_FLAGS
 LDIR_FLAGS
 INCLUDE_FLAGS
 USE_GMP
+HAVE_LIBCURL
 HAVE_LIBDISPATCH_RUNLOOP
 HAVE_LIBDISPATCH
 HAVE_ICU
@@ -763,6 +764,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -820,6 +822,8 @@ enable_zeroconf
 with_zeroconf_api
 enable_icu
 enable_libdispatch
+with_curl
+enable_nsurlsession
 with_gmp_include
 with_gmp_library
 with_gdomap_port
@@ -879,6 +883,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE}'
@@ -1131,6 +1136,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1268,7 +1282,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1421,6 +1435,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1500,6 +1515,7 @@ Optional Features:
   --disable-zeroconf		Disable NSNetServices support
   --disable-icu			Disable International Components for Unicode
   --disable-libdispatch		Disable dispatching blocks via libdispatch
+  --disable-nsurlsession  		Disable support for NSURLSession
 
   --enable-setuid-gdomap        Enable installing gdomap as a setuid
                                 executable.  By default, it is installed
@@ -1571,6 +1587,7 @@ Optional Packages:
   --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
   --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
   --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)
+  --with-curl=<DIR>       use curl installed in directory <DIR>
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
   --with-gdomap-port=PORT  alternative port for gdomap
@@ -5454,7 +5471,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5500,7 +5517,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5524,7 +5541,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5569,7 +5586,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5593,7 +5610,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -13063,6 +13080,187 @@ done
   fi
 fi
 
+
+
+#--------------------------------------------------------------------
+# Check for libcurl
+# See DEPENDENCIES POLICY at the start of this file.
+#--------------------------------------------------------------------
+CURL_CONFIG="curl-config"
+
+# Check whether --with-curl was given.
+if test "${with_curl+set}" = set; then :
+  withval=$with_curl;
+fi
+
+if test "$with_curl" != ""; then
+  CURL_CONFIG="$with_curl/bin/curl-config"
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libcurl" >&5
+$as_echo_n "checking for libcurl... " >&6; }
+if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
+  curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
+  curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
+  curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
+  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 65 \); then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
+$as_echo "FAILED (version too old to use" >&6; }
+    curl_ok=no
+  else
+    CURLCFLAGS=`$CURL_CONFIG --cflags`
+    CURLLIBS=`$CURL_CONFIG --libs`
+    CFLAGS="$CFLAGS $CURLCFLAGS"
+    LIBS="$LIBS $CURLLIBS"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes ... version $curl_ver" >&5
+$as_echo "yes ... version $curl_ver" >&6; }
+    curl_ok=yes
+  fi
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: FAILED (curl-config not found)" >&5
+$as_echo "FAILED (curl-config not found)" >&6; }
+  curl_ok=no
+fi
+
+if test $curl_ok = yes; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libcurl TLS support with gnutls" >&5
+$as_echo_n "checking for libcurl TLS support with gnutls... " >&6; }
+  if $CURL_CONFIG --configure | grep -q with-gnutls; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found libcurl not usable (lacks gnutls support)." >&5
+$as_echo "Found libcurl not usable (lacks gnutls support)." >&6; }
+    curl_ok=no
+  fi
+fi
+
+if test $curl_ok = yes; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for curl_multi_perform in -lcurl" >&5
+$as_echo_n "checking for curl_multi_perform in -lcurl... " >&6; }
+if ${ac_cv_lib_curl_curl_multi_perform+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcurl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char curl_multi_perform ();
+int
+main ()
+{
+return curl_multi_perform ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_curl_curl_multi_perform=yes
+else
+  ac_cv_lib_curl_curl_multi_perform=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_curl_curl_multi_perform" >&5
+$as_echo "$ac_cv_lib_curl_curl_multi_perform" >&6; }
+if test "x$ac_cv_lib_curl_curl_multi_perform" = xyes; then :
+  curl_ok=yes
+else
+  curl_ok=no
+fi
+
+fi
+if test $curl_ok = yes; then
+  for ac_header in curl/curl.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "curl/curl.h" "ac_cv_header_curl_curl_h" "$ac_includes_default"
+if test "x$ac_cv_header_curl_curl_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CURL_CURL_H 1
+_ACEOF
+ curl_ok=yes
+else
+  curl_ok=no
+fi
+
+done
+
+fi
+if test $curl_ok = yes; then
+  ac_fn_c_check_decl "$LINENO" "CURLOPT_CONNECT_TO" "ac_cv_have_decl_CURLOPT_CONNECT_TO" "#include <curl/curl.h>
+"
+if test "x$ac_cv_have_decl_CURLOPT_CONNECT_TO" = xyes; then :
+  curl_ok=yes
+else
+  curl_ok=no
+fi
+
+fi
+if test $curl_ok = yes; then
+  # If curl supports runtime selection of the TLS module we will need
+  # to use curl_global_sslset to pick GNUTLS
+  for ac_func in curl_global_sslset
+do :
+  ac_fn_c_check_func "$LINENO" "curl_global_sslset" "ac_cv_func_curl_global_sslset"
+if test "x$ac_cv_func_curl_global_sslset" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CURL_GLOBAL_SSLSET 1
+_ACEOF
+
+fi
+done
+
+  HAVE_LIBCURL=1
+else
+  HAVE_LIBCURL=0
+fi
+
+
+#--------------------------------------------------------------------
+# Check dependencies of NSURLSession API
+#--------------------------------------------------------------------
+# Check whether --enable-nsurlsession was given.
+if test "${enable_nsurlsession+set}" = set; then :
+  enableval=$enable_nsurlsession;
+else
+  enable_nsurlsession=yes
+fi
+
+if test $enable_nsurlsession = yes; then
+  if test "$OBJC_RUNTIME_LIB" != "ng"; then
+    as_fn_error $? "Missing ng runtime (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
+  fi
+  if test $HAVE_BLOCKS = 0; then
+    as_fn_error $? "Missing blocks support (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
+  fi
+  if test $HAVE_LIBDISPATCH = 0; then
+    as_fn_error $? "Missing libdispatch (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
+   fi
+  # Check for dispatch_queue_create_with_target needed for NSURLSession
+  for ac_func in dispatch_queue_create_with_target
+do :
+  ac_fn_c_check_func "$LINENO" "dispatch_queue_create_with_target" "ac_cv_func_dispatch_queue_create_with_target"
+if test "x$ac_cv_func_dispatch_queue_create_with_target" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DISPATCH_QUEUE_CREATE_WITH_TARGET 1
+_ACEOF
+
+fi
+done
+
+  if test $HAVE_LIBCURL = 0; then
+    as_fn_error $? "Missing libcurl (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
+  fi
+fi
 
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal

@@ -67,4 +67,4 @@ ifeq ($(FOUNDATION_LIB),gnu)
 endif
 
 # Additional LDFLAGS to pass to the linker
-ADDITIONAL_LDFLAGS = 
+ADDITIONAL_LDFLAGS = -fuse-ld=gold

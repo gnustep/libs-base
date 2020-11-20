@@ -1469,7 +1469,7 @@ static Class		tcpPortClass;
  * Look up an existing NSSocketPort given a host and number
  */
 + (NSSocketPort*) existingPortWithNumber: (uint16_t)number
-			       onHost: (NSHost*)aHost
+                                  onHost: (NSHost*)aHost
 {
   NSSocketPort	*port = nil;
   NSMapTable	*thePorts;
@@ -1763,6 +1763,9 @@ static Class		tcpPortClass;
 {
   NSDebugMLLog(@"NSPort",
     @"NSSocketPort 0x%"PRIxPTR" finalized", (NSUInteger)self);
+  M_LOCK(tcpPortLock);
+  NSMapRemove(tcpPortMap, (void*)(uintptr_t)portNum);
+  M_UNLOCK(tcpPortLock);
   [self invalidate];
   if (handles != 0)
     {

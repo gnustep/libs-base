@@ -2091,3 +2091,253 @@ GSClassSwizzle(id instance, Class newClass)
     }
 }
 
+void
+GSObjCPrint(void *base, void *item)
+{
+  FILE	*fptr = stdout;
+  Class	c;
+  id	o;
+
+  if (NULL == base)
+    {
+      fprintf(fptr, "null\n");
+      return;
+    }
+  if (GSObjCIsClass((Class)base))
+    {
+      o = nil;
+      c = (Class)base;
+      if (NULL == item)
+	{
+	  fprintf(fptr, "%p is class %s {\n", base, GSNameFromClass(c));
+	}
+    }
+  else if (GSObjCIsInstance((id)base))
+    {
+      o = (id)base;
+      c = GSObjCClass(o);
+      if (NULL == item)
+	{
+	  fprintf(fptr, "%p is instance of class %s (%p) {\n",
+	    base, GSNameFromClass(c), c);
+	}
+    }
+  else
+    {
+      fprintf(fptr, "%p is not a class or instance\n", base);
+      return;
+    }
+
+  while (c != Nil)
+    {
+      unsigned	count;
+      Ivar	*ivars = class_copyIvarList(c, &count);
+
+      while (count-- > 0)
+	{
+	  Ivar		ivar = ivars[count];
+	  const char	*name = ivar_getName(ivar);
+	  const char	*type = ivar_getTypeEncoding(ivar);
+	  ptrdiff_t	offset = ivar_getOffset(ivar);
+	  const char	*t;
+
+	  if (NULL == item)
+	    {
+	      fprintf(fptr, "  (%ld) %s", (long)offset, name);
+	    }
+	  else if (strcmp(item, name) == 0)
+	    {
+	      continue;	// not a match
+	    }
+	  else
+	    {
+	      fprintf(fptr, "(%ld) %s", (long)offset, name);
+	    }
+
+	  if (nil == o)
+	    {
+	      /* We have no instance ... display offset to ivar
+	       */
+	      fprintf(fptr, "\n");
+	      continue;
+	    }
+
+	  fprintf(fptr, " = ");
+
+	  t = GSSkipTypeQualifierAndLayoutInfo(type);
+	  switch (*t)
+	    {
+	      case _C_ID:
+		{
+		  id	v = *(id *)((char *)o + offset);
+
+		  if (nil == v)
+		    {
+		      fprintf(fptr, "nil\n");
+		    }
+		  else
+		    {
+		      fprintf(fptr, "%s instance %p\n",
+			GSNameFromClass(GSObjCClass(v)), v);
+		    }
+		}
+		break;
+
+	      case _C_CLASS:
+		{
+		  Class	v = *(Class *)((char *)o + offset);
+
+		  if (Nil == v)
+		    {
+		      fprintf(fptr, "Nil\n");
+		    }
+		  else
+		    {
+		      fprintf(fptr, "%s class %p\n", GSNameFromClass(v), v);
+		    }
+		}
+		break;
+
+	      case _C_CHR:
+		{
+		  signed char	v = *(char *)((char *)o + offset);
+
+		  fprintf(fptr, "%c %d\n", v, (int)v);
+		}
+		break;
+
+	      case _C_UCHR:
+		{
+		  unsigned char	v = *(unsigned char *)((char *)o + offset);
+
+		  fprintf(fptr, "%c %u\n", v, (unsigned)v);
+		}
+		break;
+
+#if __GNUC__ > 2 && defined(_C_BOOL)
+	      case _C_BOOL:
+		{
+		  _Bool     v = *(_Bool *)((char *)o + offset);
+
+		  fprintf(fptr, "%s %u\n", (v ? "YES" : "NO"), (unsigned)v);
+		}
+		break;
+#endif
+
+	      case _C_SHT:
+		{
+		  short	v = *(short *)((char *)o + offset);
+
+		  fprintf(fptr, "%hd\n", v);
+		}
+		break;
+
+	      case _C_USHT:
+		{
+		  unsigned short	v;
+
+		  v = *(unsigned short *)((char *)o + offset);
+		  fprintf(fptr, "%hu\n", v);
+		}
+		break;
+
+	      case _C_INT:
+		{
+		  int	v = *(int *)((char *)o + offset);
+
+		  fprintf(fptr, "%d\n", v);
+		}
+		break;
+
+	      case _C_UINT:
+		{
+		  unsigned int	v = *(unsigned int *)((char *)o + offset);
+
+		  fprintf(fptr, "%u\n", v);
+		}
+		break;
+
+	      case _C_LNG:
+		{
+		  long	v = *(long *)((char *)o + offset);
+
+		  fprintf(fptr, "%ld\n", v);
+		}
+		break;
+
+	      case _C_ULNG:
+		{
+		  unsigned long	v = *(unsigned long *)((char *)o + offset);
+
+		  fprintf(fptr, "%lu\n", v);
+		}
+		break;
+
+#ifdef	_C_LNG_LNG
+	      case _C_LNG_LNG:
+		{
+		  long long	v = *(long long *)((char *)o + offset);
+
+		  fprintf(fptr, "%lld\n", v);
+		}
+		break;
+#endif
+
+#ifdef	_C_ULNG_LNG
+	      case _C_ULNG_LNG:
+		{
+		  unsigned long long	v;
+
+		  v = *(unsigned long long *)((char *)o + offset);
+		  fprintf(fptr, "%llu\n", v);
+		}
+		break;
+#endif
+
+	      case _C_FLT:
+		{
+		  float	v = *(float *)((char *)o + offset);
+
+		  fprintf(fptr, "%g\n", v);
+		}
+		break;
+
+	      case _C_DBL:
+		{
+		  double	v = *(double *)((char *)o + offset);
+
+		  fprintf(fptr, "%g\n", v);
+		}
+		break;
+
+	      case _C_VOID:
+		{
+		  fprintf(fptr, "void ???\n");
+		}
+		break;
+
+	      case _C_STRUCT_B:
+		{
+		  fprintf(fptr, "struct not supported\n");
+		}
+		break;
+
+	      default:
+		{
+		  fprintf(fptr, "type %s not supported\n", type);
+		}
+		break;
+	    }
+	}
+      if (ivars != NULL)
+	{
+          free(ivars);
+	}
+      c = class_getSuperclass(c);
+    }
+  if (NULL == item)
+    {
+      fprintf(fptr, "}\n");
+    }
+}
+

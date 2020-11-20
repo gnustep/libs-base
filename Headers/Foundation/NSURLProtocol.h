@@ -44,6 +44,7 @@ extern "C" {
 @class NSURLProtocol;
 @class NSURLRequest;
 @class NSURLResponse;
+@class NSURLSessionTask;
 
 
 /**
@@ -178,10 +179,19 @@ extern "C" {
 	cachedResponse: (NSCachedURLResponse *)cachedResponse
 		client: (id <NSURLProtocolClient>)client;
 
+- (instancetype) initWithTask: (NSURLSessionTask*)task 
+               cachedResponse: (NSCachedURLResponse*)cachedResponse 
+                       client: (id<NSURLProtocolClient>)client;
+
 /**
  * Returns the request handled by the receiver.
  */
 - (NSURLRequest *) request;
+
+/**
+ * Returns the task handled by the receiver.
+ */
+- (NSURLSessionTask *) task;
 
 @end
 

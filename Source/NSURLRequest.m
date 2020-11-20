@@ -39,6 +39,7 @@ typedef struct {
   NSMutableDictionary		*headers;
   BOOL				shouldHandleCookies;
   BOOL                          debug;
+  id<GSLogDelegate>             ioDelegate;
   NSURL				*URL;
   NSURL				*mainDocumentURL;
   NSURLRequestCachePolicy	cachePolicy;
@@ -116,6 +117,7 @@ typedef struct {
 	  ASSIGN(inst->method, this->method);
 	  inst->shouldHandleCookies = this->shouldHandleCookies;
 	  inst->debug = this->debug;
+	  inst->ioDelegate = this->ioDelegate;
           inst->headers = [this->headers mutableCopy];
 	}
     }
@@ -284,6 +286,16 @@ typedef struct {
   return old;
 }
 
+- (id<GSLogDelegate>) setDebugLogDelegate: (id<GSLogDelegate>)d
+{
+  id<GSLogDelegate>     old = this->ioDelegate;
+
+  NSAssert(nil == d || [d conformsToProtocol: @protocol(GSLogDelegate)],
+    NSInvalidArgumentException);
+  this->ioDelegate = d;
+  return old;
+}
+
 - (NSTimeInterval) timeoutInterval
 {
   return this->timeoutInterval;
@@ -442,6 +454,11 @@ typedef struct {
 - (BOOL) _debug
 {
   return this->debug;
+}
+
+- (id<GSLogDelegate>) _debugLogDelegate
+{
+  return this->ioDelegate;
 }
 
 - (id) _propertyForKey: (NSString*)key

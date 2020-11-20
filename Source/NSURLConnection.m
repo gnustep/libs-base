@@ -169,6 +169,11 @@ typedef struct
   DESTROY(this->_delegate);
 }
 
+- (id) delegate
+{
+  return this->_delegate;
+}
+
 - (void) scheduleInRunLoop: (NSRunLoop *)aRunLoop 
                    forMode: (NSRunLoopMode)mode
 {
@@ -209,7 +214,9 @@ typedef struct
     }
 }
 
-- (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate startImmediately: (BOOL)startImmediately
+- (id) initWithRequest: (NSURLRequest *)request
+              delegate: (id)delegate
+      startImmediately: (BOOL)startImmediately
 {
   if ((self = [super init]) != nil)
     {

@@ -23,6 +23,7 @@
    */ 
 
 #import "common.h"
+#import <Foundation/NSURLSession.h>
 
 #define	EXPOSE_NSURLCache_IVARS	1
 #import "GSURLPrivate.h"
@@ -215,3 +216,23 @@ static NSURLCache	*shared = nil;
 
 @end
 
+@implementation NSURLCache (NSURLSessionTaskAdditions)
+
+- (void) storeCachedResponse: (NSCachedURLResponse*)cachedResponse 
+                 forDataTask: (NSURLSessionDataTask*)dataTask
+{
+  [self storeCachedResponse: cachedResponse 
+                 forRequest: [dataTask currentRequest]];
+}
+
+- (NSCachedURLResponse*) cachedResponseForDataTask: (NSURLSessionDataTask*)dataTask 
+{
+  return [self cachedResponseForRequest: [dataTask currentRequest]];
+}
+
+- (void) removeCachedResponseForDataTask: (NSURLSessionDataTask*)dataTask
+{
+  [self removeCachedResponseForRequest: [dataTask currentRequest]];
+}
+
+@end

@@ -108,6 +108,7 @@ static NSString	*httpVersion = @"1.1";
   BOOL			debug;
   BOOL			keepalive;
   BOOL			returnAll;
+  id<GSLogDelegate>     ioDelegate;
   unsigned char		challenged;
   NSFileHandle          *sock;
   NSTimeInterval        cacheAge;
@@ -135,6 +136,7 @@ static NSString	*httpVersion = @"1.1";
 }
 + (void) setMaxCached: (NSUInteger)limit;
 - (void) _tryLoadInBackground: (NSURL*)fromURL;
+- (id<GSLogDelegate>) setDebugLogDelegate: (id<GSLogDelegate>)d;
 @end
 
 /**
@@ -601,7 +603,15 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   /*
    * Send request to server.
    */
-  if (YES == debug) debugWrite(self, buf);
+  if (debug)
+    {
+      if (NO == [ioDelegate putBytes: [buf bytes]
+                            ofLength: [buf length]
+                            byHandle: self])
+        {
+          debugWrite(self, buf);
+        }
+    }
   [sock writeInBackgroundAndNotify: buf];
   RELEASE(buf);
   RELEASE(s);
@@ -621,8 +631,16 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (debug)
     NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
-  if (YES == debug) debugRead(self, d);
   readCount = [d length];
+  if (debug)
+    {
+      if (NO == [ioDelegate getBytes: [d bytes]
+                            ofLength: readCount
+                            byHandle: self])
+        {
+          debugRead(self, d);
+        }
+    }
 
   if (connectionState == idle)
     {
@@ -631,11 +649,32 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
        * it should just be the connection being closed by the other
        * end because of a timeout etc.
        */
-      if (YES == debug && [d length] != 0)
+      if (debug)
 	{
-	  NSLog(@"%@ %p %s Unexpected data (%*.*s) from remote!",
-	    NSStringFromSelector(_cmd), self, keepalive?"K":"",
-	    (int)[d length], (int)[d length], [d bytes]);
+          NSUInteger    length = [d length];
+
+          if (length > 0)
+            {
+              if (nil == ioDelegate)
+                {
+                  NSLog(@"%@ %p %s Unexpected data (%*.*s) from remote!",
+                    NSStringFromSelector(_cmd), self, keepalive?"K":"",
+                    (int)[d length], (int)[d length], [d bytes]);
+                }
+              else
+                {
+                  NSLog(@"%@ %p %s Unexpected data from remote!",
+                    NSStringFromSelector(_cmd), self, keepalive?"K":"");
+                  if (NO == [ioDelegate getBytes: [d bytes]
+                                        ofLength: length
+                                        byHandle: self])
+                    {
+                      NSLog(@"%@ %p %s (%*.*s)",
+                        NSStringFromSelector(_cmd), self, keepalive?"K":"",
+                        (int)[d length], (int)[d length], [d bytes]);
+                    }
+                }
+            }
 	}
       [nc removeObserver: self name: nil object: sock];
       [sock closeFile];
@@ -643,7 +682,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
   else if ([parser parse: d] == NO && [parser isComplete] == NO)
     {
-      if (YES == debug)
+      if (debug)
 	{
 	  NSLog(@"HTTP parse failure - %@", parser);
 	}
@@ -874,7 +913,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   * lost in the network or the remote end received it and
 	   * the response was lost.
 	   */
-	  if (YES == debug)
+	  if (debug)
 	    {
 	      NSLog(@"HTTP response not received - %@", parser);
 	    }
@@ -906,7 +945,15 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
     }
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
-  if (YES == debug) debugRead(self, d);
+  if (debug)
+    {
+      if (NO == [ioDelegate getBytes: [d bytes]
+                            ofLength: [d length]
+                            byHandle: self])
+        {
+          debugRead(self, d);
+        }
+    }
 
   if ([d length] > 0)
     {
@@ -1071,7 +1118,15 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
                object: sock];
 
       buf = [cmd dataUsingEncoding: NSASCIIStringEncoding];
-      if (YES == debug) debugWrite(self, buf);
+      if (debug)
+        {
+          if (NO == [ioDelegate putBytes: [buf bytes]
+                                ofLength: [buf length]
+                                byHandle: self])
+            {
+              debugWrite(self, buf);
+            }
+        }
       [sock writeInBackgroundAndNotify: buf];
 
       when = [NSDate alloc];
@@ -1362,6 +1417,16 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   int   old = debug;
 
   debug = flag ? YES : NO;
+  return old;
+}
+
+- (id<GSLogDelegate>) setDebugLogDelegate: (id<GSLogDelegate>)d
+{
+  id<GSLogDelegate>     old = ioDelegate;
+
+  NSAssert(nil == d || [d conformsToProtocol: @protocol(GSLogDelegate)],
+    NSInvalidArgumentException);
+  ioDelegate  = d;
   return old;
 }
 
