@@ -1527,7 +1527,7 @@ wordData(NSString *word, BOOL *encoded)
     }
 
   NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'",
-    (unsigned)l, (unsigned)l, (unsigned)l, [d bytes]);
+    (unsigned)l, (unsigned)l, (unsigned)l, (char*)[d bytes]);
 
   r = [self _endOfHeaders: d];
   if (r.location == NSNotFound)
@@ -2417,7 +2417,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
     }
 
   NSDebugMLLog(@"GSMime", @"Parse %u bytes - '%*.*s'",
-    (unsigned)l, (unsigned)l, (unsigned)l, [d bytes]);
+    (unsigned)l, (unsigned)l, (unsigned)l, (char*)[d bytes]);
   // NSDebugMLLog(@"GSMime", @"Boundary - '%*.*s'", [boundary length], [boundary length], [boundary bytes]);
 
   if ([context atEnd] == YES)
@@ -2427,7 +2427,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       if ([d length] > 0)
 	{
 	  NSLog(@"Additional data (%*.*s) ignored after parse complete",
-	    (unsigned)[d length], (unsigned)[d length], [d bytes]);
+	    (unsigned)[d length], (unsigned)[d length], (char*)[d bytes]);
 	}
       needsMore = NO;	/* Nothing more to do	*/
     }
@@ -5060,11 +5060,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   if (charset != nil)
     {
-      enc = (NSStringEncoding)NSMapGet(charsets, charset);
+      enc = (NSStringEncoding)(intptr_t)NSMapGet(charsets, charset);
       if (enc == 0)
 	{
 	  charset = [charset lowercaseString];
-	  enc = (NSStringEncoding)NSMapGet(charsets, charset);
+	  enc = (NSStringEncoding)(intptr_t)NSMapGet(charsets, charset);
 	}
     }
   return enc;
