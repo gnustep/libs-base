@@ -5,8 +5,6 @@
 #import <Foundation/NSURLRequest.h>
 #import <Foundation/NSHTTPCookieStorage.h>
 
-#import <dispatch/dispatch.h>
-
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
 @protocol NSURLSessionDelegate;
 @protocol NSURLSessionTaskDelegate;
@@ -169,7 +167,7 @@ typedef NS_ENUM(NSUInteger, NSURLSessionTaskState) {
 
   /** a description of the current task for diagnostic purposes
    */
-  NSString      *_taskDescription;
+  NSString              *_taskDescription;
 
   /** The current state of the task within the session.
    */
@@ -178,13 +176,15 @@ typedef NS_ENUM(NSUInteger, NSURLSessionTaskState) {
   /** The error, if any, delivered via -URLSession:task:didCompleteWithError:
    * This is nil until an error has occured.
    */
-  NSError       *_error;
+  NSError               *_error;
 
   /** The dispatch queue used to handle this request/response.
+   * This is actualy a libdispatch queue of type dispatch_queue_t, but on all
+   * known implementations this is a pointer, so void* is the correct size.
    */
-  dispatch_queue_t  _workQueue;
+  void                  *_workQueue;
 
-  NSUInteger        _suspendCount;
+  NSUInteger            _suspendCount;
 
   GSURLSessionTaskBody  *_knownBody;
 }
