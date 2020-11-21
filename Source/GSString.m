@@ -5401,6 +5401,9 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	       * saving and restoring the character which would be
 	       * overwritten by the nul, or by getting a character less,
 	       * and fetching the last character separately.
+	       * NB. There is a possibility that aString may be an immutable
+	       * proxy to the receiver, so we must take care to save the
+	       * character before making any changes.
 	       */
 	      if (aRange.location + length  < _count)
 		{
@@ -5415,7 +5418,7 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 		{
 		  unsigned int	l = length - 1;
 		  unsigned int  size = 1;
-		  unichar	u;
+		  unichar	u = [aString characterAtIndex: l];
 		  unsigned char *dst = &_contents.c[aRange.location + l];
 
 		  if (l > 0)
@@ -5424,7 +5427,6 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 				maxLength: l+1
 				 encoding: internalEncoding];
 		    }
-		  u = [aString characterAtIndex: l];
 		  GSFromUnicode(&dst, &size, &u, 1,
 		    internalEncoding, 0, GSUniStrict);
 		}
