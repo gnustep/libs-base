@@ -3402,8 +3402,13 @@ if test $enable_libdispatch = yes; then
       fi
     fi
   else
-  HAVE_LIBDISPATCH=0;
-  # just ignore libdispatch if it's not there
+    AC_CHECK_HEADERS(objc/toydispatch.h, have_toydispatch=yes, have_toydispatch=no)
+    if test "$have_toydispatch" = "yes"; then
+      HAVE_LIBDISPATCH=1;
+    else
+      HAVE_LIBDISPATCH=0;
+      # just ignore libdispatch if it's not there
+    fi
   fi
 fi
 AC_SUBST(HAVE_LIBDISPATCH)
@@ -3459,12 +3464,19 @@ else
 fi
 
 if test $curl_ok = yes; then
-  AC_MSG_CHECKING([for libcurl TLS support with gnutls])
-  if $CURL_CONFIG --configure | grep -q with-gnutls; then
-    AC_MSG_RESULT(yes)
+  AC_ARG_ENABLE(curlgnutls,
+    [  --disable-curlgnutls  		Disable requirement for tls in curl],,
+    enable_curlgnutls=yes)
+  if test $enable_curlgnutls = yes; then
+    AC_MSG_CHECKING([for libcurl TLS support with gnutls])
+    if $CURL_CONFIG --configure | grep -q with-gnutls; then
+      AC_MSG_RESULT(yes)
+    else
+      AC_MSG_RESULT([Found libcurl not usable (lacks gnutls support).  If you wish to build the NSURLSession class without HTTPS support, or with limited support using OpenSSL rather than GNUTLS, use the --disable-curlgnutls option.])
+      curl_ok=no
+    fi
   else
-    AC_MSG_RESULT([Found libcurl not usable (lacks gnutls support).])
-    curl_ok=no
+    AC_MSG_WARN([You are running configure with the test for GNUTLS support in CURL disabled.  This will result in NSURLSession either not supporting TLS/HTTPS or supporting it using a different library (such as OpenSSL) which will not have all the standard options/behaviors])
   fi
 fi
 
@@ -3491,9 +3503,15 @@ AC_SUBST(HAVE_LIBCURL)
 #--------------------------------------------------------------------
 # Check dependencies of NSURLSession API
 #--------------------------------------------------------------------
+nsurlsessiondefault=no
+if test "$OBJC_RUNTIME_LIB" != "ng"; then
+  nsurlsessiondefault=yes
+fi
+
+GS_HAVE_NSURLSESSION=0
 AC_ARG_ENABLE(nsurlsession,
   [  --disable-nsurlsession  		Disable support for NSURLSession],,
-  enable_nsurlsession=yes)
+  enable_nsurlsession=$nsurlsessiondefault)
 if test $enable_nsurlsession = yes; then
   if test "$OBJC_RUNTIME_LIB" != "ng"; then
     AC_MSG_ERROR([Missing ng runtime (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
@@ -3509,7 +3527,9 @@ if test $enable_nsurlsession = yes; then
   if test $HAVE_LIBCURL = 0; then
     AC_MSG_ERROR([Missing libcurl (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
   fi
+  GS_HAVE_NSURLSESSION=0
 fi
+AC_SUBST(GS_HAVE_NSURLSESSION)
 
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal
