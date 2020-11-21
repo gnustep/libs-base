@@ -2837,7 +2837,7 @@ AC_ARG_WITH(ffi-library,
 [  --with-ffi-library=PATH       Library path for ffi libs],
     ffi_libdir="$withval", ffi_libdir="no")
 if test ${ffi_libdir} != "no"; then
-GS_ADD_LIBRARY_PATH([${ffi_libdir}])
+  GS_ADD_LIBRARY_PATH([${ffi_libdir}])
 fi
 
 if test "$do_broken_libffi" = "no"; then
@@ -3369,6 +3369,7 @@ AC_SUBST(HAVE_ICU)
 # Check for libdispatch
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
+
 HAVE_LIBDISPATCH=0
 AC_ARG_ENABLE(libdispatch,
   [  --disable-libdispatch		Disable dispatching blocks via libdispatch],
@@ -3376,6 +3377,21 @@ AC_ARG_ENABLE(libdispatch,
   enable_libdispatch=yes)
 
 if test $enable_libdispatch = yes; then
+  AC_ARG_WITH(dispatch-include,
+  [  --with-dispatch-include=PATH       Include path for dispatch header],
+      dispatch_incdir="$withval", dispatch_incdir="no")
+  if test ${dispatch_incdir} != "no"; then
+      CPPFLAGS="$CPPFLAGS -I${dispatch_incdir}"
+      INCLUDE_FLAGS="$INCLUDE_FLAGS -I${dispatch_incdir}"
+  fi
+
+  AC_ARG_WITH(dispatch-library,
+  [  --with-dispatch-library=PATH       Library path for dispatch lib],
+      dispatch_libdir="$withval", dispatch_libdir="no")
+  if test ${dispatch_libdir} != "no"; then
+    GS_ADD_LIBRARY_PATH([${dispatch_libdir}])
+  fi
+
   AC_CHECK_HEADERS(dispatch.h, have_dispatch=yes, have_dispatch=no)
   if test "$have_dispatch" = "no"; then
     AC_CHECK_HEADERS(dispatch/dispatch.h, have_dispatch=yes, have_dispatch=no)
@@ -3402,13 +3418,8 @@ if test $enable_libdispatch = yes; then
       fi
     fi
   else
-    AC_CHECK_HEADERS(objc/toydispatch.h, have_toydispatch=yes, have_toydispatch=no)
-    if test "$have_toydispatch" = "yes"; then
-      HAVE_LIBDISPATCH=1;
-    else
-      HAVE_LIBDISPATCH=0;
-      # just ignore libdispatch if it's not there
-    fi
+    HAVE_LIBDISPATCH=0;
+    # just ignore libdispatch if it's not there
   fi
 fi
 AC_SUBST(HAVE_LIBDISPATCH)
@@ -3504,7 +3515,7 @@ AC_SUBST(HAVE_LIBCURL)
 # Check dependencies of NSURLSession API
 #--------------------------------------------------------------------
 nsurlsessiondefault=no
-if test "$OBJC_RUNTIME_LIB" != "ng"; then
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
   nsurlsessiondefault=yes
 fi
 
@@ -3527,7 +3538,7 @@ if test $enable_nsurlsession = yes; then
   if test $HAVE_LIBCURL = 0; then
     AC_MSG_ERROR([Missing libcurl (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
   fi
-  GS_HAVE_NSURLSESSION=0
+  GS_HAVE_NSURLSESSION=1
 fi
 AC_SUBST(GS_HAVE_NSURLSESSION)
 

@@ -822,6 +822,8 @@ enable_zeroconf
 with_zeroconf_api
 enable_icu
 enable_libdispatch
+with_dispatch_include
+with_dispatch_library
 with_curl
 enable_curlgnutls
 enable_nsurlsession
@@ -1578,6 +1580,8 @@ Optional Packages:
   --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
   --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
   --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)
+  --with-dispatch-include=PATH       Include path for dispatch header
+  --with-dispatch-library=PATH       Library path for dispatch lib
   --with-curl=<DIR>       use curl installed in directory <DIR>
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
@@ -10770,8 +10774,8 @@ case "$target_os" in
 		LDFLAGS="$LDFLAGS -L${ffi_libdir} -Wl,-R${ffi_libdir}"
 		LDIR_FLAGS="$LDIR_FLAGS -Wl,-R${ffi_libdir} -L${ffi_libdir}";;
 	*)
-		LDFLAGS="$LDFLAGS -L${ffi_libdir}"
-		LDIR_FLAGS="$LDIR_FLAGS -L${ffi_libdir}";;
+		LDFLAGS="$LDFLAGS -Wl,-rpath,${ffi_libdir} -L${ffi_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-rpath,${ffi_libdir} -L${ffi_libdir}";;
 esac
 
 fi
@@ -11101,8 +11105,8 @@ case "$target_os" in
 		LDFLAGS="$LDFLAGS -L${libiconv_libdir} -Wl,-R${libiconv_libdir}"
 		LDIR_FLAGS="$LDIR_FLAGS -Wl,-R${libiconv_libdir} -L${libiconv_libdir}";;
 	*)
-		LDFLAGS="$LDFLAGS -L${libiconv_libdir}"
-		LDIR_FLAGS="$LDIR_FLAGS -L${libiconv_libdir}";;
+		LDFLAGS="$LDFLAGS -Wl,-rpath,${libiconv_libdir} -L${libiconv_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-rpath,${libiconv_libdir} -L${libiconv_libdir}";;
 esac
 
   fi
@@ -11259,8 +11263,8 @@ case "$target_os" in
 		LDFLAGS="$LDFLAGS -L${libiconv_libdir} -Wl,-R${libiconv_libdir}"
 		LDIR_FLAGS="$LDIR_FLAGS -Wl,-R${libiconv_libdir} -L${libiconv_libdir}";;
 	*)
-		LDFLAGS="$LDFLAGS -L${libiconv_libdir}"
-		LDIR_FLAGS="$LDIR_FLAGS -L${libiconv_libdir}";;
+		LDFLAGS="$LDFLAGS -Wl,-rpath,${libiconv_libdir} -L${libiconv_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-rpath,${libiconv_libdir} -L${libiconv_libdir}";;
 esac
 
   fi
@@ -12893,6 +12897,7 @@ fi
 # Check for libdispatch
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
+
 HAVE_LIBDISPATCH=0
 # Check whether --enable-libdispatch was given.
 if test "${enable_libdispatch+set}" = set; then :
@@ -12903,6 +12908,40 @@ fi
 
 
 if test $enable_libdispatch = yes; then
+
+# Check whether --with-dispatch-include was given.
+if test "${with_dispatch_include+set}" = set; then :
+  withval=$with_dispatch_include; dispatch_incdir="$withval"
+else
+  dispatch_incdir="no"
+fi
+
+  if test ${dispatch_incdir} != "no"; then
+      CPPFLAGS="$CPPFLAGS -I${dispatch_incdir}"
+      INCLUDE_FLAGS="$INCLUDE_FLAGS -I${dispatch_incdir}"
+  fi
+
+
+# Check whether --with-dispatch-library was given.
+if test "${with_dispatch_library+set}" = set; then :
+  withval=$with_dispatch_library; dispatch_libdir="$withval"
+else
+  dispatch_libdir="no"
+fi
+
+  if test ${dispatch_libdir} != "no"; then
+
+case "$target_os" in
+	netbsd*)
+		LDFLAGS="$LDFLAGS -L${dispatch_libdir} -Wl,-R${dispatch_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-R${dispatch_libdir} -L${dispatch_libdir}";;
+	*)
+		LDFLAGS="$LDFLAGS -Wl,-rpath,${dispatch_libdir} -L${dispatch_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-rpath,${dispatch_libdir} -L${dispatch_libdir}";;
+esac
+
+  fi
+
   for ac_header in dispatch.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "dispatch.h" "ac_cv_header_dispatch_h" "$ac_includes_default"
@@ -13027,26 +13066,8 @@ $as_echo "no" >&6; };
       fi
     fi
   else
-    for ac_header in objc/toydispatch.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "objc/toydispatch.h" "ac_cv_header_objc_toydispatch_h" "$ac_includes_default"
-if test "x$ac_cv_header_objc_toydispatch_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_OBJC_TOYDISPATCH_H 1
-_ACEOF
- have_toydispatch=yes
-else
-  have_toydispatch=no
-fi
-
-done
-
-    if test "$have_toydispatch" = "yes"; then
-      HAVE_LIBDISPATCH=1;
-    else
-      HAVE_LIBDISPATCH=0;
-      # just ignore libdispatch if it's not there
-    fi
+    HAVE_LIBDISPATCH=0;
+    # just ignore libdispatch if it's not there
   fi
 fi
 
@@ -13250,7 +13271,7 @@ fi
 # Check dependencies of NSURLSession API
 #--------------------------------------------------------------------
 nsurlsessiondefault=no
-if test "$OBJC_RUNTIME_LIB" != "ng"; then
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
   nsurlsessiondefault=yes
 fi
 
@@ -13287,7 +13308,7 @@ done
   if test $HAVE_LIBCURL = 0; then
     as_fn_error $? "Missing libcurl (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
   fi
-  GS_HAVE_NSURLSESSION=0
+  GS_HAVE_NSURLSESSION=1
 fi
 
 
@@ -13325,8 +13346,8 @@ case "$target_os" in
 		LDFLAGS="$LDFLAGS -L${gmp_libdir} -Wl,-R${gmp_libdir}"
 		LDIR_FLAGS="$LDIR_FLAGS -Wl,-R${gmp_libdir} -L${gmp_libdir}";;
 	*)
-		LDFLAGS="$LDFLAGS -L${gmp_libdir}"
-		LDIR_FLAGS="$LDIR_FLAGS -L${gmp_libdir}";;
+		LDFLAGS="$LDFLAGS -Wl,-rpath,${gmp_libdir} -L${gmp_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-rpath,${gmp_libdir} -L${gmp_libdir}";;
 esac
 
 fi
