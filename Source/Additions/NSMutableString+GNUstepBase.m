@@ -168,6 +168,11 @@
   return [_parent isEqualToString: anObject];
 }
 
+- (BOOL) isProxy
+{
+  return YES;
+}
+
 - (NSUInteger) length
 {
   return [_parent length];
