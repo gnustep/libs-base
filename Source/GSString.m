@@ -641,6 +641,7 @@ static Class GSUnicodeStringClass = 0;
 static Class GSUnicodeBufferStringClass = 0;
 static Class GSUnicodeSubStringClass = 0;
 static Class GSUInlineStringClass = 0;
+static Class GSImmutableStringClass = 0;
 static Class GSMutableStringClass = 0;
 static Class NSConstantStringClass = 0;
 
@@ -651,6 +652,7 @@ static SEL	equalSel;
 static BOOL	(*equalImp)(id, SEL, id);
 static SEL	hashSel;
 static NSUInteger (*hashImp)(id, SEL);
+static Ivar	immutableIvar;
 
 /*
  * The setup() function is called when any concrete string class is
@@ -696,6 +698,14 @@ setup(BOOL rerun)
       GSUnicodeSubStringClass = [GSUnicodeSubString class];
       GSMutableStringClass = [GSMutableString class];
       NSConstantStringClass = [NXConstantString class];
+
+      /* This comes from the base additions library.  The instance variable
+       * pointing to the original mutable string is not public, but we want
+       * to use it efficiently.
+       */
+      GSImmutableStringClass = NSClassFromString(@"GSImmutableString");
+      immutableIvar
+	= class_getInstanceVariable(GSImmutableStringClass, "_parent");
 
       /*
        * Cache some selectors and method implementations for
@@ -3605,6 +3615,16 @@ transmute(GSStr self, NSString *aString)
   BOOL	transmute = YES;
   Class	c = object_getClass(aString);	// NB aString must not be nil
 
+  /* If the string is an immutable proxy to a mutable string, we want to
+   * access the original (which we won't modify) for better performance.
+   */
+  if (c == GSImmutableStringClass)
+    {
+      aString = object_getIvar(aString, immutableIvar);
+      other = (GSStr)aString;
+      c = object_getClass(aString);
+    }
+
   if (self->_flags.wide == 1)
     {
       /* This is already a unicode string, so we don't need to transmute,
@@ -5357,6 +5377,37 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
        */
       other = transmute((GSStr)self, aString);
 
+      if (other == self)
+	{
+	  if (aRange.length == _count)
+	    {
+	      // NSLog(@"replace all characters with self ... nothing to do");
+	      return;
+	    }
+	  else if (aRange.length == 0
+	    && (aRange.location == _count || aRange.location == 0))
+	    {
+	      /* We are appending self at the end of self, or we are
+	       * prepending self at the start of the self.
+	       * Either way in effect we double the string, so we can
+	       * do an efficient size extension and copy.
+	       */
+	      makeHole((GSStr)self, length, length);
+	      if (_flags.wide)
+		{
+		  memcpy(&_contents.u[length], _contents.u,
+		    length * sizeof(unichar));
+		}
+	      else
+		{
+		  memcpy(&_contents.c[length], _contents.c,
+		    length * sizeof(char));
+		}
+	      _flags.hash = 0;
+	      return;
+	    }
+	  // NSLog(@"replace characters in range with self");
+	}
       if (0 == other || other == self)
 	{
 	  /* Either we couldn't get access to the internal of the string
