@@ -1,4 +1,9 @@
 #import "GSURLSessionTaskBody.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSStream.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSValue.h"
 
 @implementation GSURLSessionTaskBody
 

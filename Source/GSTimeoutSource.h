@@ -1,7 +1,8 @@
 #ifndef	INCLUDED_GSTIMEOUTSOURCE_H
 #define	INCLUDED_GSTIMEOUTSOURCE_H
 
-#import <Foundation/Foundation.h>
+#import "common.h"
+#import "GSDispatch.h"
 
 /*
  * A helper class that wraps a libdispatch timer.

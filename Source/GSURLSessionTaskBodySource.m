@@ -1,4 +1,6 @@
 #import "GSURLSessionTaskBodySource.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSStream.h"
 
 
 @implementation GSBodyStreamSource

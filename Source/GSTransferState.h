@@ -1,12 +1,16 @@
 #ifndef	INCLUDED_GSTRANSFERTSTATE_H
 #define	INCLUDED_GSTRANSFERTSTATE_H
 
-#import <Foundation/Foundation.h>
-
 #import "GSURLSessionTaskBodySource.h"
 
 
 @class GSURLSessionTaskBodySource;
+@class NSArray;
+@class NSData;
+@class NSFileHandle;
+@class NSHTTPURLResponse;
+@class NSURL;
+@class NSURLResponse;
 
 typedef NS_ENUM(NSUInteger, GSParsedResponseHeaderType) {
     GSParsedResponseHeaderTypePartial,

@@ -4,6 +4,18 @@
 #import "GSURLSessionTaskBody.h"
 #import "GSTimeoutSource.h"
 
+#import "Foundation/FoundationErrors.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSDateFormatter.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSOperation.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSStream.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSURLError.h"
+#import "Foundation/NSURLSession.h"
+#import "Foundation/NSValue.h"
+
 
 @interface NSURLSessionTask (Internal)
 

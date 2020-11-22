@@ -1,9 +1,8 @@
 #ifndef	INCLUDED_GSNATIVEPROTOCOL_H
 #define	INCLUDED_GSNATIVEPROTOCOL_H
 
-#import <Foundation/Foundation.h>
-
 #import "GSEasyHandle.h"
+#import "Foundation/NSURLProtocol.h"
 
 @class GSTransferState;
 

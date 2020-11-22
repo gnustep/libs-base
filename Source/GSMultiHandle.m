@@ -1,8 +1,13 @@
 #import "GSMultiHandle.h"
 #import "GSTimeoutSource.h"
 #import "GSEasyHandle.h"
-#import "GSDispatch.h"
 
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSURLError.h"
+#import "Foundation/NSURLSession.h"
 
 @interface GSMultiHandle ()
 - (void) performActionForSocket: (int)socket;

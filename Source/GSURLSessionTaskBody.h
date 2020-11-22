@@ -1,8 +1,13 @@
 #ifndef	INCLUDED_GSURLSESSIONTASKBODY_H
 #define	INCLUDED_GSURLSESSIONTASKBODY_H
 
-#import <Foundation/Foundation.h>
+#import "common.h"
 
+@class	NSData;
+@class	NSError;
+@class	NSInputStream;
+@class	NSNumber;
+@class	NSURL;
 
 typedef NS_ENUM(NSUInteger, GSURLSessionTaskBodyType) {
     GSURLSessionTaskBodyTypeNone,

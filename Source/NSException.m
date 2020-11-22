@@ -687,6 +687,14 @@ recover(int sig)
   siglongjmp(jbuf()->buf, 1);
 }
 
+#ifdef	__clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wframe-address"
+#else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wframe-address"
+#endif
+
 void *
 NSFrameAddress(NSUInteger offset)
 {
@@ -872,6 +880,12 @@ NSReturnAddress(NSUInteger offset)
 
   return env->addr;
 }
+
+#ifdef	__clang__
+#pragma clang diagnostic pop
+#else
+#pragma GCC diagnostic pop
+#endif
 
 unsigned
 GSPrivateReturnAddresses(NSUInteger **returns)

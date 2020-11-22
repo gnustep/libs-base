@@ -1,9 +1,12 @@
 #ifndef	INCLUDED_GSEASYHANDLE_H
 #define	INCLUDED_GSEASYHANDLE_H
 
-#import <Foundation/Foundation.h>
+#import "common.h"
 #import <curl/curl.h>
 
+@class NSData;
+@class NSError;
+@class NSURL;
 @class NSURLSessionConfiguration;
 @class NSURLSessionTask;
 @class GSTimeoutSource;

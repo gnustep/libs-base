@@ -1,18 +1,20 @@
 #import "GSURLPrivate.h"
-#import "Foundation/NSURLSession.h"
-#import "Foundation/NSURLRequest.h"
-#import "Foundation/Foundation.h"
-
 #import <curl/curl.h>
 
-#import <dispatch/dispatch.h>
-
+#import "GSDispatch.h"
 #import "GSMultiHandle.h"
 #import "GSEasyHandle.h"
 #import "GSTaskRegistry.h"
 #import "GSHTTPURLProtocol.h"
 #import "GSURLSessionTaskBody.h"
-#import "GSDispatch.h"
+
+#import "Foundation/NSError.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSOperation.h"
+#import "Foundation/NSURLError.h"
+#import "Foundation/NSURLSession.h"
+#import "Foundation/NSURLRequest.h"
+#import "Foundation/NSValue.h"
 
 
 /* NSURLSession API implementation overview

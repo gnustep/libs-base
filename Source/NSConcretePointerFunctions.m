@@ -62,7 +62,7 @@ acquireExistingMemory(const void *item,
 static NSString*
 describeString(const void *item)
 {
-  return [NSString stringWithFormat: @"%s", item];
+  return [NSString stringWithFormat: @"%s", (char*)item];
 }
 
 static NSString*

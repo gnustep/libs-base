@@ -1,5 +1,15 @@
 #import "GSTransferState.h"
 #import "GSURLSessionTaskBodySource.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSFileHandle.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSURLError.h"
+#import "Foundation/NSURLResponse.h"
+#import "Foundation/NSURLSession.h"
 
 #define GS_DELIMITERS_CR 0x0d
 #define GS_DELIMITERS_LR 0x0a

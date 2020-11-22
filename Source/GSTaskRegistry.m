@@ -1,4 +1,7 @@
 #import "GSTaskRegistry.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSURLSession.h"
 
 
 @implementation GSTaskRegistry

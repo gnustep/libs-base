@@ -1,6 +1,8 @@
 #import "GSURLPrivate.h"
 #import "GSEasyHandle.h"
 #import "GSTimeoutSource.h"
+#import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSURLSession.h"
 
 typedef NS_OPTIONS(NSUInteger, GSEasyHandlePauseState) {
   GSEasyHandlePauseStateReceive = 1 << 0,
@@ -29,7 +31,8 @@ typedef NS_OPTIONS(NSUInteger, GSEasyHandlePauseState) {
 
 @end
 
-static void handleEasyCode(int code)
+static void
+handleEasyCode(int code)
 {
   if (CURLE_OK != code)
     {
@@ -45,7 +48,8 @@ static void handleEasyCode(int code)
     }
 }
 
-static size_t curl_write_function(char *data, size_t size, size_t nmemb, void *userdata) 
+static size_t
+curl_write_function(char *data, size_t size, size_t nmemb, void *userdata) 
 {
   if (!userdata)
     {
@@ -59,7 +63,8 @@ static size_t curl_write_function(char *data, size_t size, size_t nmemb, void *u
   return [handle didReceiveData:data size:size nmemb:nmemb];
 }
 
-static size_t curl_read_function(char *data, size_t size, size_t nmemb, void *userdata) 
+static size_t
+curl_read_function(char *data, size_t size, size_t nmemb, void *userdata) 
 {
   if (!userdata)
     {

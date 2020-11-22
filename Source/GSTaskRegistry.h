@@ -1,8 +1,9 @@
 #ifndef	INCLUDED_GSTASKREGISTRY_H
 #define	INCLUDED_GSTASKREGISTRY_H
 
-#import <Foundation/Foundation.h>
+#import "common.h"
 
+@class NSArray;
 @class NSURLSessionTask;
 
 /*

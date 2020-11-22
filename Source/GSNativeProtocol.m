@@ -1,6 +1,14 @@
 #import "GSNativeProtocol.h"
 #import "GSTransferState.h"
 #import "GSURLSessionTaskBody.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSException.h"
+#import "Foundation/NSOperation.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSURLError.h"
+#import "Foundation/NSURLSession.h"
 
 
 static BOOL isEasyHandlePaused(GSNativeProtocolInternalState state) 

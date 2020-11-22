@@ -1,8 +1,9 @@
 #ifndef	INCLUDED_GSMULTIHANDLE_H
 #define	INCLUDED_GSMULTIHANDLE_H
 
-#import <Foundation/Foundation.h>
+#import "common.h"
 #import <curl/curl.h>
+#import "GSDispatch.h"
 
 @class NSURLSessionConfiguration;
 @class GSEasyHandle;

@@ -1,7 +1,11 @@
 #ifndef	INCLUDED_GSURLSESSIONTASKBODYSOURCE_H
 #define	INCLUDED_GSURLSESSIONTASKBODYSOURCE_H
 
-#import <Foundation/Foundation.h>
+#import "common.h"
+#import "GSDispatch.h"
+
+@class	NSFileHandle;
+@class	NSInputStream;
 
 typedef NS_ENUM(NSUInteger, GSBodySourceDataChunk) {
     GSBodySourceDataChunkData,

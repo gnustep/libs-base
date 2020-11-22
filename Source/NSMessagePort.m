@@ -1412,7 +1412,7 @@ typedef	struct {
 
   desc = [NSString stringWithFormat:
     @"<%s %p file name %s>",
-    GSClassNameFromObject(self), self, [name bytes]];
+    GSClassNameFromObject(self), self, (char*)[name bytes]];
   return desc;
 }
 

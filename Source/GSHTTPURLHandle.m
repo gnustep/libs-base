@@ -659,7 +659,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
                 {
                   NSLog(@"%@ %p %s Unexpected data (%*.*s) from remote!",
                     NSStringFromSelector(_cmd), self, keepalive?"K":"",
-                    (int)[d length], (int)[d length], [d bytes]);
+                    (int)[d length], (int)[d length], (char*)[d bytes]);
                 }
               else
                 {
@@ -671,7 +671,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
                     {
                       NSLog(@"%@ %p %s (%*.*s)",
                         NSStringFromSelector(_cmd), self, keepalive?"K":"",
-                        (int)[d length], (int)[d length], [d bytes]);
+                        (int)[d length], (int)[d length], (char*)[d bytes]);
                     }
                 }
             }
