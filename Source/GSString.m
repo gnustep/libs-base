@@ -3592,8 +3592,7 @@ substring_u(GSStr self, NSRange aRange)
   return AUTORELEASE((id)o);
 }
 
-/*
- * Function to examine the given string and see if it is one of our concrete
+/* Function to examine the given string and see if it is one of our concrete
  * string classes.  Converts the mutable string (self) from 8-bit to 16-bit
  * representation if necessary in order to contain the data in aString.
  * Returns a pointer to aStrings GSStr if aString is a concrete class
@@ -3608,8 +3607,7 @@ transmute(GSStr self, NSString *aString)
 
   if (self->_flags.wide == 1)
     {
-      /*
-       * This is already a unicode string, so we don't need to transmute,
+      /* This is already a unicode string, so we don't need to transmute,
        * but we still need to know if the other string is a unicode
        * string whose GSStr we can access directly.
        */
@@ -3622,22 +3620,19 @@ transmute(GSStr self, NSString *aString)
     }
   else
     {
-      /*
-       * This is a string held in the internal 8-bit encoding.
+      /* This is a string held in the internal 8-bit encoding.
        */
       if (GSObjCIsKindOf(c, GSCStringClass)
 	|| (c == GSMutableStringClass && other->_flags.wide == 0))
 	{
-	  /*
-	   * The other string is also held in the internal 8-bit encoding,
+	  /* The other string is also held in the internal 8-bit encoding,
 	   * so we don't need to transmute, and we can use its GSStr.
 	   */
 	  transmute = NO;
 	}
       else if ([aString canBeConvertedToEncoding: internalEncoding] == YES)
 	{
-	  /*
-	   * The other string can be converted to the internal 8-bit encoding,
+	  /* The other string can be converted to the internal 8-bit encoding,
 	   * so we don't need to transmute, but we can *not* use its GSStr.
 	   */
 	  transmute = NO;
@@ -3646,8 +3641,7 @@ transmute(GSStr self, NSString *aString)
       else if ((c == GSMutableStringClass && other->_flags.wide == 1)
 	|| GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
 	{
-	  /*
-	   * The other string can not be converted to the internal 8-bit
+	  /* The other string can not be converted to the internal 8-bit
 	   * encoding, so we need to transmute, and will then be able to
 	   * use its GSStr.
 	   */
@@ -3655,8 +3649,7 @@ transmute(GSStr self, NSString *aString)
 	}
       else
 	{
-	  /*
-	   * The other string can not be converted to the internal 8-bit
+	  /* The other string can not be converted to the internal 8-bit
 	   * character string, so we need to transmute, but even then we
 	   * will not be able to use the other strings GSStr because that
 	   * string is not a known GSString subclass.
@@ -5336,8 +5329,6 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 - (void) replaceCharactersInRange: (NSRange)aRange
 		       withString: (NSString*)aString
 {
-  GSStr		other = 0;
-  int		offset;
   unsigned	length = 0;
 
   GS_RANGE_CHECK(aRange, _count);
@@ -5348,97 +5339,93 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"replace characters with non-string"];
 	}
-      else
-	{
-	  length = [aString length];
-	}
+      length = [aString length];
     }
-  offset = length - aRange.length;
 
-  /*
-   * We must change into a unicode string (if necessary) *before*
-   * adjusting length and capacity, so that the transmute doesn't
-   * mess up due to any hole in the string etc.
+  /* Either we have data to copy into the string (possibly requiring
+   * length adjustment first), or we have no data but possibly a gap
+   * (the range specified) needing to be closed.
    */
   if (length > 0)
     {
+      int	offset = length - aRange.length;
+      GSStr	other = 0;
+
+      /* We must change into a unicode string (if necessary) *before*
+       * adjusting length and capacity, so that the transmute doesn't
+       * mess up due to any hole in the string etc.
+       */
       other = transmute((GSStr)self, aString);
-    }
 
-  if (offset < 0)
-    {
-      fillHole((GSStr)self, NSMaxRange(aRange) + offset, -offset);
-    }
-  else if (offset > 0)
-    {
-      makeHole((GSStr)self, NSMaxRange(aRange), (NSUInteger)offset);
-    }
-
-  if (length > 0)
-    {
-      if (_flags.wide == 1)
+      if (0 == other || other == self)
 	{
-	  if (other == 0)
+	  /* Either we couldn't get access to the internal of the string
+	   * to be copied, or we are copying from ourself and need to
+           * use an intermediate buffer to prevent overwriting.
+	   */
+	  if (_flags.wide)
 	    {
-	      /*
-	       * Not a cString class - use standard method to get characters.
-	       */
-	      [aString getCharacters: &_contents.u[aRange.location]];
+	      GS_BEGINITEMBUF(buf, (length * sizeof(unichar)), unichar);
+
+	      [aString getCharacters: buf];
+	      if (offset < 0)
+		{
+		  fillHole((GSStr)self, NSMaxRange(aRange) + offset, -offset);
+		}
+	      else if (offset > 0)
+		{
+		  makeHole((GSStr)self, NSMaxRange(aRange), (NSUInteger)offset);
+		}
+	      memcpy(&_contents.u[aRange.location], buf,
+		length * sizeof(unichar));
+	      GS_ENDITEMBUF()
 	    }
 	  else
+	    {
+	      GS_BEGINITEMBUF(buf, ((length+1) * sizeof(char)), char);
+
+	      [aString getCString: buf
+			maxLength: length+1
+			 encoding: internalEncoding];
+	      if (offset < 0)
+		{
+		  fillHole((GSStr)self, NSMaxRange(aRange) + offset, -offset);
+		}
+	      else if (offset > 0)
+		{
+		  makeHole((GSStr)self, NSMaxRange(aRange), (NSUInteger)offset);
+		}
+	      memcpy(&_contents.c[aRange.location], buf,
+		length * sizeof(char));
+	      GS_ENDITEMBUF()
+	    }
+	}
+      else
+	{
+	  if (offset < 0)
+	    {
+	      fillHole((GSStr)self, NSMaxRange(aRange) + offset, -offset);
+	    }
+	  else if (offset > 0)
+	    {
+	      makeHole((GSStr)self, NSMaxRange(aRange), (NSUInteger)offset);
+	    }
+	  if (_flags.wide == 1)
 	    {
 	      memcpy(&_contents.u[aRange.location], other->_contents.u,
 		length * sizeof(unichar));
 	    }
-	}
-      else
-	{
-	  if (other == 0)
-	    {
-	      /*
-	       * Since getCString appends a '\0' terminator, we must handle
-	       * that problem in copying data into our buffer.  Either by
-	       * saving and restoring the character which would be
-	       * overwritten by the nul, or by getting a character less,
-	       * and fetching the last character separately.
-	       * NB. There is a possibility that aString may be an immutable
-	       * proxy to the receiver, so we must take care to save the
-	       * character before making any changes.
-	       */
-	      if (aRange.location + length  < _count)
-		{
-		  unsigned char	tmp = _contents.c[aRange.location + length];
-
-		  [aString getCString: (char*)&_contents.c[aRange.location]
-			    maxLength: length+1
-			     encoding: internalEncoding];
-		  _contents.c[aRange.location + length] = tmp;
-		}
-	      else
-		{
-		  unsigned int	l = length - 1;
-		  unsigned int  size = 1;
-		  unichar	u = [aString characterAtIndex: l];
-		  unsigned char *dst = &_contents.c[aRange.location + l];
-
-		  if (l > 0)
-		    {
-		      [aString getCString: (char*)&_contents.c[aRange.location]
-				maxLength: l+1
-				 encoding: internalEncoding];
-		    }
-		  GSFromUnicode(&dst, &size, &u, 1,
-		    internalEncoding, 0, GSUniStrict);
-		}
-	    }
 	  else
 	    {
-	      /*
-	       * Simply copy cString data from other string into self.
-	       */
-	      memcpy(&_contents.c[aRange.location], other->_contents.c, length);
+	      memcpy(&_contents.c[aRange.location], other->_contents.c,
+		length * sizeof(char));
 	    }
 	}
+      _flags.hash = 0;
+    }
+  else if (aRange.length > 0)
+    {
+      fillHole((GSStr)self, aRange.location, aRange.length);
       _flags.hash = 0;
     }
 }
