@@ -1,6 +1,6 @@
 ---
 language: cpp
-dist: xenial
+dist: focal
 jobs:
     include:
         - name: "Linux GCC"
