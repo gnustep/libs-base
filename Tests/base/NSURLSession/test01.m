@@ -2,6 +2,7 @@
 #import "Testing.h"
 #import "ObjectTesting.h"
 
+#if GS_HAVE_NSURLSESSION
 @interface      MyDelegate : NSObject <NSURLSessionDelegate>
 {
 @public
@@ -71,11 +72,15 @@ didCompleteWithError: (NSError*)error
   ASSIGN(taskError, error);
 }
 @end
+#endif
 
 int main()
 {
   START_SET("NSURLSession test01")
 
+#if !GS_HAVE_NSURLSESSION
+    SKIP("library built without NSURLSession support")
+#else
   NSURLSessionConfiguration     *defaultConfigObject;
   NSURLSession                  *defaultSession;
   NSURLSessionDataTask          *dataTask;
@@ -121,6 +126,7 @@ int main()
   PASS([object->taskError code] == NSURLErrorCannotConnectToHost,
     "unable to connect to host")
 
+#endif
   END_SET("NSURLSession test01")
   return 0;
 }

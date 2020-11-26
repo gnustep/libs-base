@@ -2,11 +2,17 @@
 #import "Testing.h"
 #import "ObjectTesting.h"
 
+#if GS_HAVE_NSURLSESSION
 #import "delegate.g"
+#endif
 
 int main()
 {
   START_SET("NSURLSession basic")
+
+#if !GS_HAVE_NSURLSESSION
+    SKIP("library built without NSURLSession support")
+#else
 
   NSURLSessionConfiguration     *defaultConfigObject;
   NSURLSession                  *defaultSession;
@@ -55,6 +61,7 @@ int main()
   NSString *expect = @"Data from server: {\"name\":\"Ravi\",\"loc\":\"India\",\"age\":\"31\",\"submit\":\"true\"}<br>";
   PASS_EQUAL([object taskText], expect, "request returned text")
 
+#endif
   END_SET("NSURLSession basic")
   return 0;
 }
