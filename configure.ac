@@ -3460,7 +3460,7 @@ if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
   curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
   curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
   curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
-  if test $curl_maj -lt 7; then
+  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 49 \); then
     AC_MSG_RESULT([FAILED (version too old to use])
   else
     CURLCFLAGS=`$CURL_CONFIG --cflags`
@@ -3470,10 +3470,7 @@ if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
     AC_MSG_RESULT(yes ... version $curl_ver)
     HAVE_LIBCURL=1
     curl_all=yes
-    if test \( $curl_maj -eq 7 -a $curl_min -lt 33 \); then
-      AC_MSG_WARN([LOSS OF FUNCTIONALITY (version too old for HTTP/2 support)])
-      curl_all=no
-    elif test \( $curl_maj -eq 7 -a $curl_min -lt 56 \); then
+    if test \( $curl_maj -eq 7 -a $curl_min -lt 56 \); then
       AC_MSG_WARN([LOSS OF FUNCTIONALITY (version too old for SSL backend control)])
       curl_all=no
     elif test \( $curl_maj -eq 7 -a $curl_min -lt 65 \); then
@@ -3526,9 +3523,6 @@ AC_ARG_ENABLE(nsurlsession,
   [  --disable-nsurlsession  		Disable support for NSURLSession],,
   enable_nsurlsession=$nsurlsessiondefault)
 if test $enable_nsurlsession = yes; then
-  if test "$OBJC_RUNTIME_LIB" != "ng"; then
-    AC_MSG_ERROR([Missing ng runtime (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
-  fi
   if test $HAVE_BLOCKS = 0; then
     AC_MSG_ERROR([Missing blocks support (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option.])
   fi

@@ -13133,7 +13133,7 @@ if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
   curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
   curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
   curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
-  if test $curl_maj -lt 7; then
+  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 49 \); then
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
 $as_echo "FAILED (version too old to use" >&6; }
   else
@@ -13145,11 +13145,7 @@ $as_echo "FAILED (version too old to use" >&6; }
 $as_echo "yes ... version $curl_ver" >&6; }
     HAVE_LIBCURL=1
     curl_all=yes
-    if test \( $curl_maj -eq 7 -a $curl_min -lt 33 \); then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: LOSS OF FUNCTIONALITY (version too old for HTTP/2 support)" >&5
-$as_echo "$as_me: WARNING: LOSS OF FUNCTIONALITY (version too old for HTTP/2 support)" >&2;}
-      curl_all=no
-    elif test \( $curl_maj -eq 7 -a $curl_min -lt 56 \); then
+    if test \( $curl_maj -eq 7 -a $curl_min -lt 56 \); then
       { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: LOSS OF FUNCTIONALITY (version too old for SSL backend control)" >&5
 $as_echo "$as_me: WARNING: LOSS OF FUNCTIONALITY (version too old for SSL backend control)" >&2;}
       curl_all=no
@@ -13283,9 +13279,6 @@ else
 fi
 
 if test $enable_nsurlsession = yes; then
-  if test "$OBJC_RUNTIME_LIB" != "ng"; then
-    as_fn_error $? "Missing ng runtime (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
-  fi
   if test $HAVE_BLOCKS = 0; then
     as_fn_error $? "Missing blocks support (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
   fi
