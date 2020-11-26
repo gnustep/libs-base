@@ -44,7 +44,7 @@ before_install: |
             if [ $CC = 'gcc' ]; then
                 sudo apt-get install -y gobjc
             fi
-            sudo apt-get install -y libobjc-4.8-dev libblocksruntime-dev
+            sudo apt-get install -y libblocksruntime-dev
             ;;
         ng-gnu-gnu)
             curl -s -o - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
