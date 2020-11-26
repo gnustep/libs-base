@@ -31,7 +31,12 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSValue.h"
+
+#if     GS_HAVE_NSURLSESSION
 #import "Foundation/NSURLSession.h"
+#else
+@class	NSURLSessionTask;
+#endif
 
 #import "GSPrivate.h"
 #import "GSURLPrivate.h"
@@ -542,7 +547,9 @@ typedef struct {
 	}
       DESTROY(this->cachedResponse);
       DESTROY(this->request);
+#if     GS_HAVE_NSURLSESSION
       DESTROY(this->task);
+#endif
       DESTROY(this->client);
 
 #if	USE_ZLIB
@@ -632,13 +639,16 @@ typedef struct {
                cachedResponse: (NSCachedURLResponse*)_cachedResponse 
                        client: (id<NSURLProtocolClient>)_client
 {
+#if     GS_HAVE_NSURLSESSION
   if (nil != (self = [self initWithRequest: [_task currentRequest] 
                             cachedResponse: _cachedResponse 
                                     client: _client]))
     {
       ASSIGN(this->task, _task);
     }
-
+#else
+  DESTROY(self);
+#endif
   return self;
 }
 
