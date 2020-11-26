@@ -5,6 +5,7 @@
 #import <Foundation/NSURLRequest.h>
 #import <Foundation/NSHTTPCookieStorage.h>
 
+#if GS_HAVE_NSURLSESSION
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
 @protocol NSURLSessionDelegate;
 @protocol NSURLSessionTaskDelegate;
@@ -422,5 +423,6 @@ didReceiveChallenge: (NSURLAuthenticationChallenge*)challenge
 
 @end
 
+#endif
 #endif
 #endif
