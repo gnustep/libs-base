@@ -125,6 +125,9 @@ static int nextSessionIdentifier()
       char	label[30];
 
       _taskRegistry = [[GSTaskRegistry alloc] init];
+#if	defined(CURLSSLBACKEND_GNUTLS)
+      curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, NULL)l 
+#endif
       curl_global_init(CURL_GLOBAL_SSL);
       _identifier = nextSessionIdentifier();
       sprintf(label, "NSURLSession %d", _identifier);
@@ -1172,6 +1175,12 @@ static NSURLSessionConfiguration	*def = nil;
 
 - (void) setHTTPMaximumConnectionLifetime: (NSInteger)n
 {
+#if	!defined(CURLOPT_MAXAGE_CONN)
+  [NSException raise: NSInternalInconsistencyException
+    format: @"-[%@ %@] not supported by the version of Curl"
+    @" this library was built with",
+    NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+#endif
   _HTTPMaximumConnectionLifetime = n;
 }
 

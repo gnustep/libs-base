@@ -825,7 +825,6 @@ enable_libdispatch
 with_dispatch_include
 with_dispatch_library
 with_curl
-enable_curlgnutls
 enable_nsurlsession
 with_gmp_include
 with_gmp_library
@@ -1507,7 +1506,6 @@ Optional Features:
   --disable-zeroconf		Disable NSNetServices support
   --disable-icu			Disable International Components for Unicode
   --disable-libdispatch		Disable dispatching blocks via libdispatch
-  --disable-curlgnutls  		Disable requirement for tls in curl
   --disable-nsurlsession  		Disable support for NSURLSession
 
   --enable-setuid-gdomap        Enable installing gdomap as a setuid
@@ -13127,16 +13125,17 @@ if test "$with_curl" != ""; then
   CURL_CONFIG="$with_curl/bin/curl-config"
 fi
 
+HAVE_LIBCURL=0
+curl_all=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libcurl" >&5
 $as_echo_n "checking for libcurl... " >&6; }
 if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
   curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
   curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
   curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
-  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 65 \); then
+  if test $curl_maj -lt 7; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
 $as_echo "FAILED (version too old to use" >&6; }
-    curl_ok=no
   else
     CURLCFLAGS=`$CURL_CONFIG --cflags`
     CURLLIBS=`$CURL_CONFIG --libs`
@@ -13144,40 +13143,43 @@ $as_echo "FAILED (version too old to use" >&6; }
     LIBS="$LIBS $CURLLIBS"
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes ... version $curl_ver" >&5
 $as_echo "yes ... version $curl_ver" >&6; }
-    curl_ok=yes
+    HAVE_LIBCURL=1
+    curl_all=yes
+    if test \( $curl_maj -eq 7 -a $curl_min -lt 33 \); then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: LOSS OF FUNCTIONALITY (version too old for HTTP/2 support)" >&5
+$as_echo "$as_me: WARNING: LOSS OF FUNCTIONALITY (version too old for HTTP/2 support)" >&2;}
+      curl_all=no
+    elif test \( $curl_maj -eq 7 -a $curl_min -lt 56 \); then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: LOSS OF FUNCTIONALITY (version too old for SSL backend control)" >&5
+$as_echo "$as_me: WARNING: LOSS OF FUNCTIONALITY (version too old for SSL backend control)" >&2;}
+      curl_all=no
+    elif test \( $curl_maj -eq 7 -a $curl_min -lt 65 \); then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: LOSS OF FUNCTIONALITY (version too old for connection lifetime control)" >&5
+$as_echo "$as_me: WARNING: LOSS OF FUNCTIONALITY (version too old for connection lifetime control)" >&2;}
+      curl_all=no
+    fi
   fi
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: FAILED (curl-config not found)" >&5
 $as_echo "FAILED (curl-config not found)" >&6; }
-  curl_ok=no
 fi
 
-if test $curl_ok = yes; then
-  # Check whether --enable-curlgnutls was given.
-if test "${enable_curlgnutls+set}" = set; then :
-  enableval=$enable_curlgnutls;
-else
-  enable_curlgnutls=yes
-fi
-
-  if test $enable_curlgnutls = yes; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libcurl TLS support with gnutls" >&5
+if test $HAVE_LIBCURL = 1; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libcurl TLS support with gnutls" >&5
 $as_echo_n "checking for libcurl TLS support with gnutls... " >&6; }
-    if $CURL_CONFIG --configure | grep -q with-gnutls; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+  if $CURL_CONFIG --configure | grep -q with-gnutls; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-    else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: Found libcurl not usable (lacks gnutls support).  If you wish to build the NSURLSession class without HTTPS support, or with limited support using OpenSSL rather than GNUTLS, use the --disable-curlgnutls option." >&5
-$as_echo "Found libcurl not usable (lacks gnutls support).  If you wish to build the NSURLSession class without HTTPS support, or with limited support using OpenSSL rather than GNUTLS, use the --disable-curlgnutls option." >&6; }
-      curl_ok=no
-    fi
   else
-    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: You are running configure with the test for GNUTLS support in CURL disabled.  This will result in NSURLSession either not supporting TLS/HTTPS or supporting it using a different library (such as OpenSSL) which will not have all the standard options/behaviors" >&5
-$as_echo "$as_me: WARNING: You are running configure with the test for GNUTLS support in CURL disabled.  This will result in NSURLSession either not supporting TLS/HTTPS or supporting it using a different library (such as OpenSSL) which will not have all the standard options/behaviors" >&2;}
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+    curl_all=no
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: LOSS OF FUNCTIONALITY (curl lacks gnutls support)" >&5
+$as_echo "$as_me: WARNING: LOSS OF FUNCTIONALITY (curl lacks gnutls support)" >&2;}
   fi
 fi
 
-if test $curl_ok = yes; then
+if test $HAVE_LIBCURL = 1; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for curl_multi_perform in -lcurl" >&5
 $as_echo_n "checking for curl_multi_perform in -lcurl... " >&6; }
 if ${ac_cv_lib_curl_curl_multi_perform+:} false; then :
@@ -13221,7 +13223,7 @@ else
 fi
 
 fi
-if test $curl_ok = yes; then
+if test $HAVE_LIBCURL = 1; then
   for ac_header in curl/curl.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "curl/curl.h" "ac_cv_header_curl_curl_h" "$ac_includes_default"
@@ -13237,7 +13239,7 @@ fi
 done
 
 fi
-if test $curl_ok = yes; then
+if test $HAVE_LIBCURL = 1; then
   ac_fn_c_check_decl "$LINENO" "CURLOPT_CONNECT_TO" "ac_cv_have_decl_CURLOPT_CONNECT_TO" "#include <curl/curl.h>
 "
 if test "x$ac_cv_have_decl_CURLOPT_CONNECT_TO" = xyes; then :
@@ -13247,7 +13249,7 @@ else
 fi
 
 fi
-if test $curl_ok = yes; then
+if test $HAVE_LIBCURL = 1; then
   # If curl supports runtime selection of the TLS module we will need
   # to use curl_global_sslset to pick GNUTLS
   for ac_func in curl_global_sslset
@@ -13261,9 +13263,6 @@ _ACEOF
 fi
 done
 
-  HAVE_LIBCURL=1
-else
-  HAVE_LIBCURL=0
 fi
 
 

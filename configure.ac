@@ -3453,61 +3453,63 @@ if test "$with_curl" != ""; then
   CURL_CONFIG="$with_curl/bin/curl-config"
 fi
 
+HAVE_LIBCURL=0
+curl_all=no
 AC_MSG_CHECKING([for libcurl])
 if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
   curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
   curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
   curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
-  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 65 \); then
+  if test $curl_maj -lt 7; then
     AC_MSG_RESULT([FAILED (version too old to use])
-    curl_ok=no
   else
     CURLCFLAGS=`$CURL_CONFIG --cflags`
     CURLLIBS=`$CURL_CONFIG --libs`
     CFLAGS="$CFLAGS $CURLCFLAGS"
     LIBS="$LIBS $CURLLIBS"
     AC_MSG_RESULT(yes ... version $curl_ver)
-    curl_ok=yes
+    HAVE_LIBCURL=1
+    curl_all=yes
+    if test \( $curl_maj -eq 7 -a $curl_min -lt 33 \); then
+      AC_MSG_WARN([LOSS OF FUNCTIONALITY (version too old for HTTP/2 support)])
+      curl_all=no
+    elif test \( $curl_maj -eq 7 -a $curl_min -lt 56 \); then
+      AC_MSG_WARN([LOSS OF FUNCTIONALITY (version too old for SSL backend control)])
+      curl_all=no
+    elif test \( $curl_maj -eq 7 -a $curl_min -lt 65 \); then
+      AC_MSG_WARN([LOSS OF FUNCTIONALITY (version too old for connection lifetime control)])
+      curl_all=no
+    fi
   fi
 else
   AC_MSG_RESULT([FAILED (curl-config not found)])
-  curl_ok=no
 fi
 
-if test $curl_ok = yes; then
-  AC_ARG_ENABLE(curlgnutls,
-    [  --disable-curlgnutls  		Disable requirement for tls in curl],,
-    enable_curlgnutls=yes)
-  if test $enable_curlgnutls = yes; then
-    AC_MSG_CHECKING([for libcurl TLS support with gnutls])
-    if $CURL_CONFIG --configure | grep -q with-gnutls; then
-      AC_MSG_RESULT(yes)
-    else
-      AC_MSG_RESULT([Found libcurl not usable (lacks gnutls support).  If you wish to build the NSURLSession class without HTTPS support, or with limited support using OpenSSL rather than GNUTLS, use the --disable-curlgnutls option.])
-      curl_ok=no
-    fi
+if test $HAVE_LIBCURL = 1; then
+  AC_MSG_CHECKING([for libcurl TLS support with gnutls])
+  if $CURL_CONFIG --configure | grep -q with-gnutls; then
+    AC_MSG_RESULT(yes)
   else
-    AC_MSG_WARN([You are running configure with the test for GNUTLS support in CURL disabled.  This will result in NSURLSession either not supporting TLS/HTTPS or supporting it using a different library (such as OpenSSL) which will not have all the standard options/behaviors])
+    AC_MSG_RESULT(no)
+    curl_all=no
+    AC_MSG_WARN([LOSS OF FUNCTIONALITY (curl lacks gnutls support)])
   fi
 fi
 
-if test $curl_ok = yes; then
+if test $HAVE_LIBCURL = 1; then
   AC_CHECK_LIB(curl, curl_multi_perform, curl_ok=yes, curl_ok=no)
 fi
-if test $curl_ok = yes; then
+if test $HAVE_LIBCURL = 1; then
   AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
 fi
-if test $curl_ok = yes; then
+if test $HAVE_LIBCURL = 1; then
   AC_CHECK_DECL(CURLOPT_CONNECT_TO, curl_ok=yes, curl_ok=no,
     [#include <curl/curl.h>])
 fi
-if test $curl_ok = yes; then
+if test $HAVE_LIBCURL = 1; then
   # If curl supports runtime selection of the TLS module we will need
   # to use curl_global_sslset to pick GNUTLS
   AC_CHECK_FUNCS(curl_global_sslset)
-  HAVE_LIBCURL=1
-else
-  HAVE_LIBCURL=0
 fi
 AC_SUBST(HAVE_LIBCURL)
 

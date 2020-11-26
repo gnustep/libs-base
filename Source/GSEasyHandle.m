@@ -421,7 +421,7 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
 - (void) setSessionConfig: (NSURLSessionConfiguration*)config 
 {
   ASSIGN(_config, config);
-
+#if	defined(CURLOPT_MAXAGE_CONN)
   /* This specifies the maximum age of a connection if it is to be considered
    * a candidate for re-use.  By default curl currently uses 118 seconds, so
    * this is what we will get if the configuration does not contain a positive
@@ -432,6 +432,7 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
       handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_MAXAGE_CONN,
 	(long)[config HTTPMaximumConnectionLifetime]));
     }
+#endif
 }
 
 - (void) setAllowedProtocolsToHTTPAndHTTPS 
