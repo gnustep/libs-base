@@ -13266,7 +13266,7 @@ fi
 # Check dependencies of NSURLSession API
 #--------------------------------------------------------------------
 nsurlsessiondefault=no
-if test "$OBJC_RUNTIME_LIB" = "ng"; then
+if test "$OBJC_RUNTIME_LIB" = "ng" -a $HAVE_BLOCKS = 1 -a $HAVE_LIBDISPATCH = 1 -a $HAVE_LIBCURL = 1; then
   nsurlsessiondefault=yes
 fi
 
@@ -13279,6 +13279,9 @@ else
 fi
 
 if test $enable_nsurlsession = yes; then
+  if test "$OBJC_RUNTIME_LIB" != "ng"; then
+    as_fn_error $? "Missing ng runtime (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
+  fi
   if test $HAVE_BLOCKS = 0; then
     as_fn_error $? "Missing blocks support (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
   fi
