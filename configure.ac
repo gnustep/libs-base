@@ -3392,12 +3392,13 @@ if test $enable_libdispatch = yes; then
     GS_ADD_LIBRARY_PATH([${dispatch_libdir}])
   fi
 
-  AC_CHECK_HEADERS(dispatch.h, have_dispatch=yes, have_dispatch=no)
-  if test "$have_dispatch" = "no"; then
-    AC_CHECK_HEADERS(dispatch/dispatch.h, have_dispatch=yes, have_dispatch=no)
+  AC_CHECK_HEADERS(dispatch/dispatch.h, have_dispatch=yes, have_dispatch=no)
+  if test "$have_dispatch" = "yes"; then
     # check for private header which includes runloop integration functions in
     # the Swift corelibs libdispatch release
     AC_CHECK_HEADERS(dispatch/private.h)
+  else
+    AC_CHECK_HEADERS(dispatch.h, have_dispatch=yes, have_dispatch=no)
   fi
   if test "$have_dispatch" = "yes"; then
     AC_CHECK_LIB(dispatch, dispatch_queue_create, have_dispatch=yes, have_dispatch=no)
