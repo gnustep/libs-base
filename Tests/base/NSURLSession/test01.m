@@ -97,7 +97,7 @@ int main()
                                                  delegate: object
                                             delegateQueue: mainQueue];
   url = [NSURL URLWithString:
-    @"http://127.0.0.1:12345/not-here"];
+    @"http://localhost:12345/not-here"];
   urlRequest = [NSMutableURLRequest requestWithURL: url];
   [urlRequest setHTTPMethod: @"POST"];
   params = @"name=Ravi&loc=India&age=31&submit=true";
