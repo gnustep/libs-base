@@ -26,7 +26,7 @@
 @end 
 
 /* default 'constants' */
-#define DEFAULTADDRESS @"127.0.0.1"
+#define DEFAULTADDRESS @"localhost"
 #define DEFAULTPORT @"1234"
 #define DEFAULTMODE NO
 #define DEFAULTLOGIN @"login"
@@ -288,7 +288,7 @@
 	}
       else if ([handler isKindOfClass: [Handler301 class]])
 	{
-	  // by default http://127.0.0.1:1235/
+	  // by default http://localhost:1235/
 	  NSString *port = [NSString stringWithFormat: @"%u", [_port intValue] + 1]; // the TestWebServer's port + 1
 	  NSString *urlString = [NSString stringWithFormat: @"%@://%@:%@/",
 				     _isSecure ? @"https" : @"http",

@@ -44,7 +44,7 @@ int main(int argc, char **argv, char **env)
 	mode: NO
         extra: d];
       [server setDebug: debug];
-      [server start: d]; // 127.0.0.1:1234 HTTPS
+      [server start: d]; // localhost:1234 HTTPS
 
       /* Simple GET via HTTPS without authorization with empty response's
        * body and the response's status code 204 (by default)

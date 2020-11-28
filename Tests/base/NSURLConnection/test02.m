@@ -35,7 +35,7 @@ int main(int argc, char **argv, char **env)
       // create a shared TestWebServer instance for performance
       server = [[testClass testWebServerClass] new];
       [server setDebug: debug];
-      [server start: nil]; // 127.0.0.1:1234 HTTP
+      [server start: nil]; // localhost:1234 HTTP
 
       /*
        *  Simple GET via HTTP with empty response's body and

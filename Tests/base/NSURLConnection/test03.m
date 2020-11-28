@@ -40,12 +40,12 @@ int main(int argc, char **argv, char **env)
         nil];
       // create a shared TestWebServer instance for performance
       server = [[[testClass testWebServerClass] alloc]
-        initWithAddress: @"127.0.0.1"
+        initWithAddress: @"localhost"
                    port: @"1234"
                    mode: NO
                   extra: d];
       [server setDebug: debug];
-      [server start: d]; // 127.0.0.1:1234 HTTPS
+      [server start: d]; // localhost:1234 HTTPS
 
       /*
        *  Simple GET via HTTPS with empty response's body and
@@ -59,7 +59,7 @@ int main(int argc, char **argv, char **env)
         nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... GET https://127.0.0.1:1234/");
+      PASS([testCase isSuccess], "HTTPS... GET https://localhost:1234/");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
