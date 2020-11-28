@@ -43,7 +43,7 @@ int main()
 
       // Pause to allow server subtask to set up.
       [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.5]];
-      u = [NSURL URLWithString: @"http://127.0.0.1:1234/chunked"];
+      u = [NSURL URLWithString: @"http://localhost:1234/chunked"];
       // Talk to server.
       data = [u resourceDataUsingCache: NO];
       // Get status code
@@ -74,7 +74,7 @@ int main()
 
       // Pause to allow server subtask to set up.
       [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.5]];
-      u = [NSURL URLWithString: @"http://127.0.0.1:1234/chunked"];
+      u = [NSURL URLWithString: @"http://localhost:1234/chunked"];
 
       request = [NSURLRequest requestWithURL: u];
       response = nil;
@@ -91,7 +91,7 @@ int main()
       [t waitUntilExit];
     }
 
-  url = [NSURL URLWithString: @"http://127.0.0.1:1234/"];
+  url = [NSURL URLWithString: @"http://localhost:1234/"];
 
   /* Ask the 'respond' helper to send back a response containing
    * 'hello' and to shrink the write buffer size it uses on each
@@ -134,7 +134,7 @@ int main()
 	   * that loads work when handles are flushed from the cache.
 	   */
 	  u = [NSURL URLWithString: [NSString stringWithFormat:
-	    @"http://127.0.0.1:1234/%d", i % 18]];
+	    @"http://localhost:1234/%d", i % 18]];
           // Talk to server.
           data = [u resourceDataUsingCache: NO];
           // Get status code
