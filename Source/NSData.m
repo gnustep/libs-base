@@ -1133,7 +1133,7 @@ failure:
             {
               searchRange.length = countOther;
             }
-          if (memcmp(&bytesSelf[searchRange.location], &bytesOther[0],
+          if (memcmp(bytesSelf + searchRange.location, bytesOther,
 	    countOther) == 0)
             {
               result = searchRange;
@@ -1165,7 +1165,8 @@ failure:
             {
               while (pos-- > 0)
                 {
-                  if (memcmp(&bytesSelf[searchRange.location + pos], bytesOther, countOther) == 0)
+                  if (memcmp(bytesSelf + (searchRange.location + pos),
+		    bytesOther, countOther) == 0)
                     {
                       break;
                     }
@@ -1175,7 +1176,8 @@ failure:
             {
               while (pos < end)
                 {
-                  if (memcmp(&bytesSelf[searchRange.location + pos], bytesOther, countOther) == 0)
+                  if (memcmp(bytesSelf + (searchRange.location + pos),
+		    bytesOther, countOther) == 0)
                     {
                       break;
                     }
@@ -1981,9 +1983,9 @@ failure:
       int	desc;
       int	mask;
 
-      strncpy(thePath, theRealPath, sizeof(thePath) - 1);
-      thePath[sizeof(thePath) - 1] = '\0';
-      strncat(thePath, "XXXXXX", 6);
+      strncpy(thePath, theRealPath, sizeof(thePath) - 7);
+      thePath[sizeof(thePath) - 7] = '\0';
+      strcat(thePath, "XXXXXX");
       if ((desc = mkstemp(thePath)) < 0)
 	{
           NSWarnMLog(@"mkstemp (%s) failed - %@", thePath, [NSError _last]);
