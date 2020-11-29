@@ -55,11 +55,11 @@
 {
   return _response;
 }
-- (NSString*) taskData
+- (NSData*) taskData
 {
   return _taskData;
 }
-- (NSString*) taskError
+- (NSError*) taskError
 {
   return _taskError;
 }
