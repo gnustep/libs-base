@@ -381,8 +381,10 @@
   [_server setDelegate: self];
   if (_isSecure)
     {
-      if ([_address isEqualToString: @"127.0.0.1"] ||
-	 [_address isEqualToString: @"localhost"])
+      NSHost *h = [NSHost hostWithAddress: _address];
+      NSHost *l = [NSHost hostWithName: @"localhost"];
+
+      if ([h isEqual: l])
 	{
 	  certPath = [[NSBundle bundleForClass: [self class]]
 		       pathForResource: @"testCert"
