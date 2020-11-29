@@ -338,8 +338,8 @@ static void GSSetupEncodingTable(void)
 		   */
 		  l = strlen(entry->iconv);
 		  lossy = malloc(l + 11);
-		  strncpy(lossy, entry->iconv, l);
-		  strncpy(lossy + l, "//TRANSLIT", 11);
+		  memcpy(lossy, entry->iconv, l);
+		  memcpy(lossy + l, "//TRANSLIT", 11);
 		  c = iconv_open(lossy, UNICODE_ENC);
 		  if (c == (iconv_t)-1)
 		    {
