@@ -25,6 +25,7 @@
 #import "NSPropertyList+PLUtil.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "Foundation/NSData.h"
+#import "Foundation/NSError.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSJSONSerialization.h"
 
