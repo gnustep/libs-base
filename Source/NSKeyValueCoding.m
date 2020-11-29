@@ -91,7 +91,7 @@ SetValueForKey(NSObject *self, id anObject, const char *key, unsigned size)
       char		lo;
       char		hi;
 
-      strncpy(buf, "_set", 4);
+      memcpy(buf, "_set", 4);
       strncpy(&buf[4], key, size);
       lo = buf[4];
       hi = islower(lo) ? toupper(lo) : lo;
@@ -163,7 +163,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       char		lo;
       char		hi;
 
-      strncpy(buf, "_get", 4);
+      memcpy(buf, "_get", 4);
       strncpy(&buf[4], key, size);
       buf[size + 4] = '\0';
       lo = buf[4];
@@ -474,12 +474,12 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       SEL		sel;
       BOOL		(*imp)(id,SEL,id*,id*);
 
-      strncpy(name, "validate", 8);
+      memcpy(name, "validate", 8);
       [aKey getCString: &name[8]
 	     maxLength: size + 1
 	      encoding: NSUTF8StringEncoding];
       size = strlen(&name[8]);
-      strncpy(&name[size + 8], ":error:", 7);
+      memcpy(&name[size + 8], ":error:", 7);
       name[size + 15] = '\0';
       if (islower(name[8]))
 	{
@@ -611,7 +611,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       char		lo;
       char		hi;
 
-      strncpy(buf, "_get", 4);
+      memcpy(buf, "_get", 4);
       [aKey getCString: key
 	     maxLength: size + 1
 	      encoding: NSUTF8StringEncoding];
@@ -696,7 +696,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       char		lo;
       char		hi;
 
-      strncpy(buf, "_set", 4);
+      memcpy(buf, "_set", 4);
       [aKey getCString: key
 	     maxLength: size + 1
 	      encoding: NSUTF8StringEncoding];
@@ -819,7 +819,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
       char		lo;
       char		hi;
 
-      strncpy(buf, "_set", 4);
+      memcpy(buf, "_set", 4);
       strncpy(&buf[4], key, size);
       lo = buf[4];
       hi = islower(lo) ? toupper(lo) : lo;
