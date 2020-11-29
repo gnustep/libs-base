@@ -36,7 +36,7 @@
   NSRunLoop      *runLoop = [NSRunLoop currentRunLoop];
   NSString       *file,
                  *lengthHeader;
-  NSHost         *host = [NSHost hostWithAddress: @"127.0.0.1"];
+  NSHost         *host = [NSHost hostWithName: @"localhost"];
   NSStream       *serverStream;
   int            port = [[defs stringForKey: @"Port"] intValue];
   int            lifetime = [[defs stringForKey: @"Lifetime"] intValue];

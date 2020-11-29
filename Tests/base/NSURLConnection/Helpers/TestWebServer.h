@@ -13,7 +13,7 @@
  *  It is designed to call the delegate's callbacks (if implemented) of
  *  the TestWebServerDelegate protocol for every request made to
  *  the SimpleWebServer's assigned address on the SimpleWebServer's assigned port
- *  (by default 127.0.0.1 and 1234 respectively). However it currently doesn't
+ *  (by default localhost and 1234 respectively). However it currently doesn't
  *  handle any request on it's own. Instead the class uses a collection of
  *  handlers. Every handler makes a custom response. So the TestWebServer only
  *  has to dispatch a request to a corresponding handler and then to send back
@@ -29,7 +29,7 @@
  *  NSDictionary *extra = [NSDictionary dictionaryWithObjectsAndKeys:
  *                                      @"https", @"Protocol",
  *                                      nil];
- *  TestWebServer *server = [[TestWebServer alloc] initWithAddress: @"127.0.0.1"
+ *  TestWebServer *server = [[TestWebServer alloc] initWithAddress: @"localhost"
  *                                                            port: @"1234"
  *                                                            mode: NO
  *                                                           extra: extra];
@@ -72,7 +72,7 @@
  *              301 "Redirect to <URL>"
  *                  Returns in the header 'Location' a new <URL> which by default
  *                  has the same protocol, address but the port is incremented by
- *                  1 (e.g. http://127.0.0.1:1235/ with other parameters set to
+ *                  1 (e.g. http://localhost:1235/ with other parameters set to
  *                  their default values).
  *              400 "You have issued a request with invalid data"
  *              401 "Invalid login or password"

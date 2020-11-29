@@ -632,6 +632,8 @@ WARN_FLAGS
 LDIR_FLAGS
 INCLUDE_FLAGS
 USE_GMP
+GS_HAVE_NSURLSESSION
+HAVE_LIBCURL
 HAVE_LIBDISPATCH_RUNLOOP
 HAVE_LIBDISPATCH
 HAVE_ICU
@@ -820,6 +822,10 @@ enable_zeroconf
 with_zeroconf_api
 enable_icu
 enable_libdispatch
+with_dispatch_include
+with_dispatch_library
+with_curl
+enable_nsurlsession
 with_gmp_include
 with_gmp_library
 with_gdomap_port
@@ -1500,6 +1506,7 @@ Optional Features:
   --disable-zeroconf		Disable NSNetServices support
   --disable-icu			Disable International Components for Unicode
   --disable-libdispatch		Disable dispatching blocks via libdispatch
+  --disable-nsurlsession  		Disable support for NSURLSession
 
   --enable-setuid-gdomap        Enable installing gdomap as a setuid
                                 executable.  By default, it is installed
@@ -1571,6 +1578,9 @@ Optional Packages:
   --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
   --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
   --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)
+  --with-dispatch-include=PATH       Include path for dispatch header
+  --with-dispatch-library=PATH       Library path for dispatch lib
+  --with-curl=<DIR>       use curl installed in directory <DIR>
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
   --with-gdomap-port=PORT  alternative port for gdomap
@@ -10762,8 +10772,8 @@ case "$target_os" in
 		LDFLAGS="$LDFLAGS -L${ffi_libdir} -Wl,-R${ffi_libdir}"
 		LDIR_FLAGS="$LDIR_FLAGS -Wl,-R${ffi_libdir} -L${ffi_libdir}";;
 	*)
-		LDFLAGS="$LDFLAGS -L${ffi_libdir}"
-		LDIR_FLAGS="$LDIR_FLAGS -L${ffi_libdir}";;
+		LDFLAGS="$LDFLAGS -Wl,-rpath,${ffi_libdir} -L${ffi_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-rpath,${ffi_libdir} -L${ffi_libdir}";;
 esac
 
 fi
@@ -11093,8 +11103,8 @@ case "$target_os" in
 		LDFLAGS="$LDFLAGS -L${libiconv_libdir} -Wl,-R${libiconv_libdir}"
 		LDIR_FLAGS="$LDIR_FLAGS -Wl,-R${libiconv_libdir} -L${libiconv_libdir}";;
 	*)
-		LDFLAGS="$LDFLAGS -L${libiconv_libdir}"
-		LDIR_FLAGS="$LDIR_FLAGS -L${libiconv_libdir}";;
+		LDFLAGS="$LDFLAGS -Wl,-rpath,${libiconv_libdir} -L${libiconv_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-rpath,${libiconv_libdir} -L${libiconv_libdir}";;
 esac
 
   fi
@@ -11251,8 +11261,8 @@ case "$target_os" in
 		LDFLAGS="$LDFLAGS -L${libiconv_libdir} -Wl,-R${libiconv_libdir}"
 		LDIR_FLAGS="$LDIR_FLAGS -Wl,-R${libiconv_libdir} -L${libiconv_libdir}";;
 	*)
-		LDFLAGS="$LDFLAGS -L${libiconv_libdir}"
-		LDIR_FLAGS="$LDIR_FLAGS -L${libiconv_libdir}";;
+		LDFLAGS="$LDFLAGS -Wl,-rpath,${libiconv_libdir} -L${libiconv_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-rpath,${libiconv_libdir} -L${libiconv_libdir}";;
 esac
 
   fi
@@ -12885,6 +12895,7 @@ fi
 # Check for libdispatch
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
+
 HAVE_LIBDISPATCH=0
 # Check whether --enable-libdispatch was given.
 if test "${enable_libdispatch+set}" = set; then :
@@ -12895,6 +12906,40 @@ fi
 
 
 if test $enable_libdispatch = yes; then
+
+# Check whether --with-dispatch-include was given.
+if test "${with_dispatch_include+set}" = set; then :
+  withval=$with_dispatch_include; dispatch_incdir="$withval"
+else
+  dispatch_incdir="no"
+fi
+
+  if test ${dispatch_incdir} != "no"; then
+      CPPFLAGS="$CPPFLAGS -I${dispatch_incdir}"
+      INCLUDE_FLAGS="$INCLUDE_FLAGS -I${dispatch_incdir}"
+  fi
+
+
+# Check whether --with-dispatch-library was given.
+if test "${with_dispatch_library+set}" = set; then :
+  withval=$with_dispatch_library; dispatch_libdir="$withval"
+else
+  dispatch_libdir="no"
+fi
+
+  if test ${dispatch_libdir} != "no"; then
+
+case "$target_os" in
+	netbsd*)
+		LDFLAGS="$LDFLAGS -L${dispatch_libdir} -Wl,-R${dispatch_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-R${dispatch_libdir} -L${dispatch_libdir}";;
+	*)
+		LDFLAGS="$LDFLAGS -Wl,-rpath,${dispatch_libdir} -L${dispatch_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-rpath,${dispatch_libdir} -L${dispatch_libdir}";;
+esac
+
+  fi
+
   for ac_header in dispatch.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "dispatch.h" "ac_cv_header_dispatch_h" "$ac_includes_default"
@@ -13019,8 +13064,8 @@ $as_echo "no" >&6; };
       fi
     fi
   else
-  HAVE_LIBDISPATCH=0;
-  # just ignore libdispatch if it's not there
+    HAVE_LIBDISPATCH=0;
+    # just ignore libdispatch if it's not there
   fi
 fi
 
@@ -13064,6 +13109,204 @@ done
 fi
 
 
+
+#--------------------------------------------------------------------
+# Check for libcurl
+# See DEPENDENCIES POLICY at the start of this file.
+#--------------------------------------------------------------------
+CURL_CONFIG="curl-config"
+
+# Check whether --with-curl was given.
+if test "${with_curl+set}" = set; then :
+  withval=$with_curl;
+fi
+
+if test "$with_curl" != ""; then
+  CURL_CONFIG="$with_curl/bin/curl-config"
+fi
+
+HAVE_LIBCURL=0
+curl_all=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libcurl" >&5
+$as_echo_n "checking for libcurl... " >&6; }
+if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
+  curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
+  curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
+  curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
+  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 49 \); then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
+$as_echo "FAILED (version too old to use" >&6; }
+  else
+    CURLCFLAGS=`$CURL_CONFIG --cflags`
+    CURLLIBS=`$CURL_CONFIG --libs`
+    CFLAGS="$CFLAGS $CURLCFLAGS"
+    LIBS="$LIBS $CURLLIBS"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes ... version $curl_ver" >&5
+$as_echo "yes ... version $curl_ver" >&6; }
+    HAVE_LIBCURL=1
+    curl_all=yes
+    if test \( $curl_maj -eq 7 -a $curl_min -lt 56 \); then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: LOSS OF FUNCTIONALITY (version too old for SSL backend control)" >&5
+$as_echo "$as_me: WARNING: LOSS OF FUNCTIONALITY (version too old for SSL backend control)" >&2;}
+      curl_all=no
+    elif test \( $curl_maj -eq 7 -a $curl_min -lt 65 \); then
+      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: LOSS OF FUNCTIONALITY (version too old for connection lifetime control)" >&5
+$as_echo "$as_me: WARNING: LOSS OF FUNCTIONALITY (version too old for connection lifetime control)" >&2;}
+      curl_all=no
+    fi
+  fi
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: FAILED (curl-config not found)" >&5
+$as_echo "FAILED (curl-config not found)" >&6; }
+fi
+
+if test $HAVE_LIBCURL = 1; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libcurl TLS support with gnutls" >&5
+$as_echo_n "checking for libcurl TLS support with gnutls... " >&6; }
+  if $CURL_CONFIG --configure | grep -q with-gnutls; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+    curl_all=no
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: LOSS OF FUNCTIONALITY (curl lacks gnutls support)" >&5
+$as_echo "$as_me: WARNING: LOSS OF FUNCTIONALITY (curl lacks gnutls support)" >&2;}
+  fi
+fi
+
+if test $HAVE_LIBCURL = 1; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for curl_multi_perform in -lcurl" >&5
+$as_echo_n "checking for curl_multi_perform in -lcurl... " >&6; }
+if ${ac_cv_lib_curl_curl_multi_perform+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lcurl  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char curl_multi_perform ();
+int
+main ()
+{
+return curl_multi_perform ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_curl_curl_multi_perform=yes
+else
+  ac_cv_lib_curl_curl_multi_perform=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_curl_curl_multi_perform" >&5
+$as_echo "$ac_cv_lib_curl_curl_multi_perform" >&6; }
+if test "x$ac_cv_lib_curl_curl_multi_perform" = xyes; then :
+  curl_ok=yes
+else
+  curl_ok=no
+fi
+
+fi
+if test $HAVE_LIBCURL = 1; then
+  for ac_header in curl/curl.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "curl/curl.h" "ac_cv_header_curl_curl_h" "$ac_includes_default"
+if test "x$ac_cv_header_curl_curl_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CURL_CURL_H 1
+_ACEOF
+ curl_ok=yes
+else
+  curl_ok=no
+fi
+
+done
+
+fi
+if test $HAVE_LIBCURL = 1; then
+  ac_fn_c_check_decl "$LINENO" "CURLOPT_CONNECT_TO" "ac_cv_have_decl_CURLOPT_CONNECT_TO" "#include <curl/curl.h>
+"
+if test "x$ac_cv_have_decl_CURLOPT_CONNECT_TO" = xyes; then :
+  curl_ok=yes
+else
+  curl_ok=no
+fi
+
+fi
+if test $HAVE_LIBCURL = 1; then
+  # If curl supports runtime selection of the TLS module we will need
+  # to use curl_global_sslset to pick GNUTLS
+  for ac_func in curl_global_sslset
+do :
+  ac_fn_c_check_func "$LINENO" "curl_global_sslset" "ac_cv_func_curl_global_sslset"
+if test "x$ac_cv_func_curl_global_sslset" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CURL_GLOBAL_SSLSET 1
+_ACEOF
+
+fi
+done
+
+fi
+
+
+#--------------------------------------------------------------------
+# Check dependencies of NSURLSession API
+#--------------------------------------------------------------------
+nsurlsessiondefault=no
+if test "$OBJC_RUNTIME_LIB" = "ng" -a $HAVE_BLOCKS = 1 -a $HAVE_LIBDISPATCH = 1 -a $HAVE_LIBCURL = 1; then
+  nsurlsessiondefault=yes
+fi
+
+GS_HAVE_NSURLSESSION=0
+# Check whether --enable-nsurlsession was given.
+if test "${enable_nsurlsession+set}" = set; then :
+  enableval=$enable_nsurlsession;
+else
+  enable_nsurlsession=$nsurlsessiondefault
+fi
+
+if test $enable_nsurlsession = yes; then
+  if test "$OBJC_RUNTIME_LIB" != "ng"; then
+    as_fn_error $? "Missing ng runtime (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
+  fi
+  if test $HAVE_BLOCKS = 0; then
+    as_fn_error $? "Missing blocks support (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
+  fi
+  if test $HAVE_LIBDISPATCH = 0; then
+    as_fn_error $? "Missing libdispatch (needed for NSURLSession).  To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
+   fi
+  # Check for dispatch_queue_create_with_target needed for NSURLSession
+  for ac_func in dispatch_queue_create_with_target
+do :
+  ac_fn_c_check_func "$LINENO" "dispatch_queue_create_with_target" "ac_cv_func_dispatch_queue_create_with_target"
+if test "x$ac_cv_func_dispatch_queue_create_with_target" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DISPATCH_QUEUE_CREATE_WITH_TARGET 1
+_ACEOF
+
+fi
+done
+
+  if test $HAVE_LIBCURL = 0; then
+    as_fn_error $? "Missing libcurl (needed for NSURLSession). To build without NSURLSession support, please run configure again with the --disable-nsurlsession option." "$LINENO" 5
+  fi
+  GS_HAVE_NSURLSESSION=1
+fi
+
+
 #--------------------------------------------------------------------
 # Check GMP for NSDecimal
 #--------------------------------------------------------------------
@@ -13098,8 +13341,8 @@ case "$target_os" in
 		LDFLAGS="$LDFLAGS -L${gmp_libdir} -Wl,-R${gmp_libdir}"
 		LDIR_FLAGS="$LDIR_FLAGS -Wl,-R${gmp_libdir} -L${gmp_libdir}";;
 	*)
-		LDFLAGS="$LDFLAGS -L${gmp_libdir}"
-		LDIR_FLAGS="$LDIR_FLAGS -L${gmp_libdir}";;
+		LDFLAGS="$LDFLAGS -Wl,-rpath,${gmp_libdir} -L${gmp_libdir}"
+		LDIR_FLAGS="$LDIR_FLAGS -Wl,-rpath,${gmp_libdir} -L${gmp_libdir}";;
 esac
 
 fi

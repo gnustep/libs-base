@@ -59,7 +59,7 @@ int main(int argc, char **argv, char **env)
 
   duration = 0.0;
   timing = 0.1;
-  urlString = @"http://127.0.0.1:19750";
+  urlString = @"http://localhost:19750";
   req = [NSURLRequest requestWithURL: [NSURL URLWithString: urlString]];
   del = [[Delegate new] autorelease];
   [NSURLConnection connectionWithRequest: req
@@ -76,7 +76,7 @@ int main(int argc, char **argv, char **env)
   [del reset];
 
   duration = 0.0;
-  urlString = @"https://127.0.0.1:19750";
+  urlString = @"https://localhost:19750";
   req = [NSURLRequest requestWithURL: [NSURL URLWithString: urlString]];
   [NSURLConnection connectionWithRequest: req
 				delegate: del];

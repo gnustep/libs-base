@@ -2180,11 +2180,6 @@ retrieve_callback(gnutls_session_t session,
       [str appendFormat: _(@"- Certificate Type: %s\n"), tmp];
     }
 
-  /* print the compression algorithm (if any)
-   */
-  tmp = gnutls_compression_get_name(gnutls_compression_get(session));
-  [str appendFormat: _(@"- Compression: %s\n"), tmp];
-
   /* print the name of the cipher used.
    * eg 3DES.
    */

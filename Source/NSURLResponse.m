@@ -221,6 +221,11 @@ typedef struct {
   [super dealloc];
 }
 
+- (NSString*) description
+{
+  return [NSString stringWithFormat: @"%@ { URL: %@ } { Status Code: %d, Headers %@ }", [super description], this->URL, this->statusCode, this->headers];
+}
+
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
 // FIXME

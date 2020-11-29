@@ -196,6 +196,19 @@ typedef enum
 
 @end
 
+@class NSURLSessionDataTask;
+
+@interface NSURLCache (NSURLSessionTaskAdditions)
+
+- (void) storeCachedResponse: (NSCachedURLResponse*)cachedResponse 
+                 forDataTask: (NSURLSessionDataTask*)dataTask;
+
+- (NSCachedURLResponse*) cachedResponseForDataTask: (NSURLSessionDataTask*)dataTask;
+
+- (void) removeCachedResponseForDataTask: (NSURLSessionDataTask*)dataTask;
+
+@end
+
 #if	defined(__cplusplus)
 }
 #endif

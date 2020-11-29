@@ -61,7 +61,7 @@ ifeq ($(BASE_MAKE_LOADED),)
   endif
 
   # Now we have definitions to show whether important dependencies have
-  # been met ... if thse are 0 then some core functi0nailyt is missing.
+  # been met ... if thse are 0 then some core functionality is missing.
 
   # Has GNUTLS been found (for TLS/SSL support throughout)?
   GNUSTEP_BASE_HAVE_GNUTLS=@HAVE_GNUTLS@

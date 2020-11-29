@@ -6,9 +6,9 @@
 
 @implementation TestCase
 
-- (id)init
+- (id) init
 {
-  if((self = [super init]) != nil)
+  if ((self = [super init]) != nil)
     {
       [self resetFlags];
       [self setReferenceFlags: NORESULTS];
@@ -19,7 +19,7 @@
   return self;
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   [self tearDownTest: _extra];
 
@@ -27,47 +27,47 @@
 }
 
 /* TestProgress */
-- (void)resetFlags
+- (void) resetFlags
 {
   _flags = NORESULTS;
 }
 
-- (void)setFlags:(NSUInteger)mask
+- (void) setFlags:(NSUInteger)mask
 {
   _flags = _flags | mask;
 }
 
-- (void)unsetFlags:(NSUInteger)mask
+- (void) unsetFlags:(NSUInteger)mask
 {
   _flags = _flags & ~mask;
 }
 
-- (BOOL)isFlagSet:(NSUInteger)mask
+- (BOOL) isFlagSet:(NSUInteger)mask
 {
   return ((_flags & mask) == mask);
 }
 
-- (void)resetReferenceFlags
+- (void) resetReferenceFlags
 {
   _refFlags = NORESULTS;
 }
 
-- (void)setReferenceFlags:(NSUInteger)mask
+- (void) setReferenceFlags:(NSUInteger)mask
 {
   _refFlags = _refFlags | mask;
 }
 
-- (void)unsetReferenceFlags:(NSUInteger)mask
+- (void) unsetReferenceFlags:(NSUInteger)mask
 {
   _refFlags = _refFlags & ~mask;
 }
 
-- (BOOL)isReferenceFlagSet:(NSUInteger)mask
+- (BOOL) isReferenceFlagSet:(NSUInteger)mask
 {
   return ((_refFlags & mask) == mask);
 }
 
-- (BOOL)isSuccess
+- (BOOL) isSuccess
 {
   if(!_failed && (_flags == _refFlags))
     {

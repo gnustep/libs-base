@@ -3,15 +3,15 @@
  *  Author: Sergei Golovin <Golovin.SV@gmail.com>
  *
  *  Runs two TestWebServer instances to check how the class TestWebServer
- *  behaves. Visit http://127.0.0.1:1234/index to see all supported resources.
+ *  behaves. Visit http://localhost:1234/index to see all supported resources.
  *  
  *  If you visit the main TestWebServer instance with the following command:
  *
- *       wget  -O - --user=login --password=password http://127.0.0.1:1234/301 2>&1
+ *       wget  -O - --user=login --password=password http://localhost:1234/301 2>&1
  *
  *  you should get a session log like this:
  *
- *       --2014-08-13 12:08:01--  http://127.0.0.1:1234/301
+ *       --2014-08-13 12:08:01--  http://localhost:1234/301
  *       Resolving 127.0.0.1 (localhost)... 127.0.0.1
  *       Connecting to 127.0.0.1 (localhost)|127.0.0.1|:1234... connected.
  *       HTTP request sent, awaiting response... 401 Unauthorized
@@ -64,20 +64,20 @@ int main(int argc, char **argv, char **env)
         //			  @"https", @"Protocol",
         nil];
       server1 = [[[testClass testWebServerClass] alloc]
-        initWithAddress: @"127.0.0.1"
+        initWithAddress: @"localhost"
         port: @"1234"
         mode: NO
         extra: d];
       [server1 setDebug: debug];
-      [server1 start: d]; // 127.0.0.1:1234 HTTP
+      [server1 start: d]; // localhost:1234 HTTP
 
       server2 = [[[testClass testWebServerClass] alloc]
-        initWithAddress: @"127.0.0.1"
+        initWithAddress: @"localhost"
         port: @"1235"
         mode: NO
         extra: d];
       [server2 setDebug: debug];
-      [server2 start: d]; // 127.0.0.1:1235 HTTP
+      [server2 start: d]; // localhost:1235 HTTP
       
       while (YES)
 	{

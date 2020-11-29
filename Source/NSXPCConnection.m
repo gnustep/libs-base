@@ -146,15 +146,15 @@
 }
 - (pid_t) processIdentifier
 {
-  return (pid_t)[self notImplemented: _cmd];
+  return (pid_t)(uintptr_t)[self notImplemented: _cmd];
 }
 - (uid_t) effectiveUserIdentifier
 {
-  return (uid_t)[self notImplemented: _cmd];
+  return (uid_t)(uintptr_t)[self notImplemented: _cmd];
 }
 - (gid_t) effectiveGroupIdentifier
 {
-  return (gid_t)[self notImplemented: _cmd];
+  return (gid_t)(uintptr_t)[self notImplemented: _cmd];
 }
 @end
 

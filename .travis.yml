@@ -1,6 +1,6 @@
 ---
 language: cpp
-dist: xenial
+dist: focal
 jobs:
     include:
         - name: "Linux GCC"
@@ -44,7 +44,7 @@ before_install: |
             if [ $CC = 'gcc' ]; then
                 sudo apt-get install -y gobjc
             fi
-            sudo apt-get install -y libobjc-4.8-dev libblocksruntime-dev
+            sudo apt-get install -y libobjc-9-dev libblocksruntime-dev
             ;;
         ng-gnu-gnu)
             curl -s -o - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
@@ -115,7 +115,7 @@ before_script: |
     export LD_LIBRARY_PATH=$DEP_ROOT/lib:$DEP_ROOT/lib64:$LD_LIBRARY_PATH
     case $LIBRARY_COMBO in
     gnu-gnu-gnu)
-        export CPATH=/usr/lib/gcc/x86_64-linux-gnu/4.8/include
+        export CPATH=/usr/lib/gcc/x86_64-linux-gnu/9/include
         ;;
     ng-gnu-gnu)
         export CPATH=$DEP_ROOT/include

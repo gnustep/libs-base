@@ -48,7 +48,7 @@ int main()
       data = [u resourceDataUsingCache: NO];
       // Get status code
       str = [u propertyForKey: NSHTTPPropertyStatusCodeKey];
-      PASS([data isEqual: cont], "NSURL chunked test OK");
+      PASS_EQUAL(data, cont, "NSURL chunked test OK");
       // Wait for server termination
       [t terminate];
       [t waitUntilExit];

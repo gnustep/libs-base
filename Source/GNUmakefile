@@ -331,7 +331,6 @@ NSUbiquitousKeyValueStore.m \
 NSUnarchiver.m \
 NSUndoManager.m \
 NSURL.m \
-NSURLSession.m \
 NSURLAuthenticationChallenge.m \
 NSURLCache.m \
 NSURLCredential.m \
@@ -362,33 +361,53 @@ objc-load.m
 
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   ifneq ($(GNUSTEP_TARGET_OS), mingw64)
-BASE_MFILES += \
-GSFileHandle.m \
-NSMessagePort.m \
-NSMessagePortNameServer.m
+    BASE_MFILES += \
+	GSFileHandle.m \
+	NSMessagePort.m \
+	NSMessagePortNameServer.m
   endif
 endif
 
+ifeq ($(HAVE_BLOCKS), 1)
+ifeq ($(GNUSTEP_BASE_HAVE_LIBDISPATCH), 1)
+ifeq ($(GNUSTEP_BASE_HAVE_LIBCURL), 1)
+  BASE_MFILES += \
+	GSEasyHandle.m \
+	GSHTTPURLProtocol.m \
+	GSMultiHandle.m \
+	GSNativeProtocol.m \
+	GSTaskRegistry.m \
+	GSTimeoutSource.m \
+	GSTransferState.m \
+	GSURLSessionTaskBody.m \
+	GSURLSessionTaskBodySource.m \
+	NSURLSession.m
+endif
+endif
+endif
+
 ifeq ($(GNUSTEP_BASE_HAVE_MDNS), 1)
-  BASE_MFILES += NSNetServices.m \
-                 GSMDNSNetServices.m
+  BASE_MFILES += \
+	GSMDNSNetServices.m \
+	NSNetServices.m
 endif
 
 ifeq ($(GNUSTEP_BASE_HAVE_AVAHI), 1)
-  BASE_MFILES += NSNetServices.m \
-                 GSAvahiNetService.m \
-                 GSAvahiNetServiceBrowser.m \
-                 GSAvahiClient.m \
-                 GSAvahiRunLoopIntegration.m
+  BASE_MFILES += \
+	GSAvahiNetService.m \
+	GSAvahiNetServiceBrowser.m \
+	GSAvahiClient.m \
+	GSAvahiRunLoopIntegration.m \
+	NSNetServices.m
 endif
 
 ifeq ($(WITH_FFI),libffi)
-GNU_MFILES += cifframe.m
-BASE_MFILES += GSFFIInvocation.m
+  GNU_MFILES += cifframe.m
+  BASE_MFILES += GSFFIInvocation.m
 endif
 ifeq ($(WITH_FFI),ffcall)
-GNU_MFILES += callframe.m
-BASE_MFILES += GSFFCallInvocation.m
+  GNU_MFILES += callframe.m
+  BASE_MFILES += GSFFCallInvocation.m
 endif
 
 BASE_OTHER_SRCFILES = \

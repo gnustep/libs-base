@@ -590,7 +590,7 @@ didReceiveResponse:(NSURLResponse *)response
 	}
       if (nil == address)
 	{
-	  address = @"127.0.0.1";
+	  address = @"localhost";
 	}
       if (nil == port)
 	{
