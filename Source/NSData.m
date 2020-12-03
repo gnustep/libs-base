@@ -1982,10 +1982,16 @@ failure:
     {
       int	desc;
       int	mask;
+      int	length;
 
-      strncpy(thePath, theRealPath, sizeof(thePath) - 7);
-      thePath[sizeof(thePath) - 7] = '\0';
-      strncat(thePath, "XXXXXX", 6);
+      length = strlen(theRealPath);
+      if (length > sizeof(thePath) - 7)
+	{
+	  length = sizeof(thePath) - 7;
+	} 
+      memcpy(thePath, theRealPath, length);
+      memcpy(thePath + length, "XXXXXX", 6);
+      thePath[length + 6] = '\0';
       if ((desc = mkstemp(thePath)) < 0)
 	{
           NSWarnMLog(@"mkstemp (%s) failed - %@", thePath, [NSError _last]);
