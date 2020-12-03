@@ -117,9 +117,9 @@
 
 - (void) _performActivity
 {
+# if __has_feature(blocks)
   NSProcessInfo *pinfo = [NSProcessInfo processInfo];
 
-# if __has_feature(blocks)
   [pinfo performActivityWithOptions: _opts
                              reason: _reason
                          usingBlock: ^{

@@ -111,7 +111,7 @@ typeSize(const char* type)
         }
       size = strlen(type);
       objctype = (char *)NSZoneMalloc([self zone], size + 1);
-      strncpy(objctype, type, size);
+      memcpy(objctype, type, size);
       objctype[size] = '\0';
     }
   return self;
