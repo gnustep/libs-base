@@ -78,6 +78,8 @@ debugRead(id handle, int len, const unsigned char *ptr)
   int           pos;
   uint8_t       *hex;
   NSUInteger    hl;
+  id            handlein = ((NO == [handle respondsToSelector:@selector(in)]) ?
+				nil : [handle in]);
 
   hl = ((len + 2) / 3) * 4;
   hex = malloc(hl + 1);
@@ -97,7 +99,7 @@ debugRead(id handle, int len, const unsigned char *ptr)
           esc = [data escapedRepresentation: 0];
 
           NSLog(@"Read for %p %@ of %d bytes (escaped) - '%s'\n<[%s]>",
-            handle, [handle in], len, esc, hex); 
+            handle, handlein, len, esc, hex); 
           free(esc);
           RELEASE(data);
           free(hex);
@@ -105,7 +107,7 @@ debugRead(id handle, int len, const unsigned char *ptr)
         }
     }
   NSLog(@"Read for %p %@ of %d bytes - '%*.*s'\n<[%s]>",
-    handle, [handle in], len, len, len, ptr, hex); 
+    handle, handlein, len, len, len, ptr, hex); 
   free(hex);
 }
 static void
@@ -114,6 +116,8 @@ debugWrite(id handle, int len, const unsigned char *ptr)
   int           pos;
   uint8_t       *hex;
   NSUInteger    hl;
+  id            handleout = ((NO == [handle respondsToSelector:@selector(out)]) ?
+				nil : [handle out]);
 
   hl = ((len + 2) / 3) * 4;
   hex = malloc(hl + 1);
@@ -132,7 +136,7 @@ debugWrite(id handle, int len, const unsigned char *ptr)
                                         freeWhenDone: NO];
           esc = [data escapedRepresentation: 0];
           NSLog(@"Write for %p %@ of %d bytes (escaped) - '%s'\n<[%s]>",
-            handle, [handle out], len, esc, hex); 
+            handle, handleout, len, esc, hex); 
           free(esc);
           RELEASE(data);
           free(hex);
@@ -140,7 +144,7 @@ debugWrite(id handle, int len, const unsigned char *ptr)
         }
     }
   NSLog(@"Write for %p %@ of %d bytes - '%*.*s'\n<[%s]>",
-    handle, [handle out], len, len, len, ptr, hex); 
+    handle, handleout, len, len, len, ptr, hex); 
   free(hex);
 }
 
@@ -1915,6 +1919,14 @@ static NSURLProtocol	*placeholder = nil;
 				      sent = YES;
 				    }
 				}
+			      else //if ([_body streamStatus] == NSStreamStatusNotOpen)
+				{
+				    // TESTPLANT-MAL-20201203:
+				    // Ensure that the body stream we get is open...
+				    // NOTE: invoking streamStatus in the if above makes
+				    // this fail for some reason...
+				    [_body open];
+				}
 			    }
 			}
 		    }
@@ -1937,10 +1949,10 @@ static NSURLProtocol	*placeholder = nil;
 			    {
 			      NSWarnMLog(@"%@ error reading from HTTPBody stream %@", self, [NSError _last]);
 			    }
-        [self stopLoading];
-        NSError *error = [NSError errorWithDomain: @"can't read body" code: 0 userInfo: nil];
-        [this->client URLProtocol: self didFailWithError: error];
-        DESTROY(this->client);
+			  [self stopLoading];
+			  NSError *error = [NSError errorWithDomain: @"can't read body" code: 0 userInfo: nil];
+			  [this->client URLProtocol: self didFailWithError: error];
+			  DESTROY(this->client);
 			  return;
 			}
 		      else if (len > 0)
