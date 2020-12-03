@@ -6062,7 +6062,7 @@ else
 fi
 
 if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
-  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib" -o -f "$GNUSTEP_LDIR/objc.lib"; then
     gs_cv_objc_libdir="$GNUSTEP_LDIR"
     gs_cv_objc_incdir="$GNUSTEP_HDIR"
   fi
@@ -6079,7 +6079,7 @@ else
 fi
 
 if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
-  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib" -o -f "$GNUSTEP_LDIR/libobjc_gc.a" -o -f "$GNUSTEP_LDIR/libobjc_gc.so" -o -f "$GNUSTEP_LDIR/libobjc_gc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc_gc-gnu.dylib"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib" -o -f "$GNUSTEP_LDIR/objc.lib"; then
     gs_cv_objc_libdir="$GNUSTEP_LDIR"
     gs_cv_objc_incdir="$GNUSTEP_HDIR"
   fi
@@ -6096,7 +6096,7 @@ else
 fi
 
 if test -f "$GNUSTEP_HDIR/objc/objc.h"; then
-  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib" -o -f "$GNUSTEP_LDIR/libobjc_gc.a" -o -f "$GNUSTEP_LDIR/libobjc_gc.so" -o -f "$GNUSTEP_LDIR/libobjc_gc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc_gc-gnu.dylib"; then
+  if test -f "$GNUSTEP_LDIR/libobjc.a" -o -f "$GNUSTEP_LDIR/libobjc.so" -o -f "$GNUSTEP_LDIR/libobjc.dll.a" -o -f "$GNUSTEP_LDIR/libobjc-gnu.dylib" -o -f "$GNUSTEP_LDIR/objc.lib"; then
     gs_cv_objc_libdir="$GNUSTEP_LDIR"
     gs_cv_objc_incdir="$GNUSTEP_HDIR"
   fi
@@ -6116,6 +6116,11 @@ if test "$gs_cv_objc_libdir" != "NONE"; then
   LDIR_FLAGS="$LDIR_FLAGS -L$gs_cv_objc_libdir/$LIBRARY_COMBO -L$gs_cv_objc_libdir"
   CPPFLAGS="$CPPFLAGS -I$gs_cv_objc_incdir"
   LDFLAGS="$LDFLAGS -L$gs_cv_objc_libdir"
+
+  # add to path on Windows for config checks to find DLL at runtime
+  case $host_os in
+    mingw*) PATH=$PATH:$gs_cv_objc_libdir;;
+  esac
 fi
 
 #--------------------------------------------------------------------
@@ -12940,22 +12945,7 @@ esac
 
   fi
 
-  for ac_header in dispatch.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "dispatch.h" "ac_cv_header_dispatch_h" "$ac_includes_default"
-if test "x$ac_cv_header_dispatch_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_DISPATCH_H 1
-_ACEOF
- have_dispatch=yes
-else
-  have_dispatch=no
-fi
-
-done
-
-  if test "$have_dispatch" = "no"; then
-    for ac_header in dispatch/dispatch.h
+  for ac_header in dispatch/dispatch.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "dispatch/dispatch.h" "ac_cv_header_dispatch_dispatch_h" "$ac_includes_default"
 if test "x$ac_cv_header_dispatch_dispatch_h" = xyes; then :
@@ -12969,6 +12959,7 @@ fi
 
 done
 
+  if test "$have_dispatch" = "yes"; then
     # check for private header which includes runloop integration functions in
     # the Swift corelibs libdispatch release
     for ac_header in dispatch/private.h
@@ -12979,6 +12970,21 @@ if test "x$ac_cv_header_dispatch_private_h" = xyes; then :
 #define HAVE_DISPATCH_PRIVATE_H 1
 _ACEOF
 
+fi
+
+done
+
+  else
+    for ac_header in dispatch.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "dispatch.h" "ac_cv_header_dispatch_h" "$ac_includes_default"
+if test "x$ac_cv_header_dispatch_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DISPATCH_H 1
+_ACEOF
+ have_dispatch=yes
+else
+  have_dispatch=no
 fi
 
 done
