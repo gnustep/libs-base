@@ -211,21 +211,20 @@ static int uuid_from_string(const char *string, unsigned char *uuid)
 	    }
 	}
     }
-  strncpy(unformatted, string, 8);
-  strncpy(unformatted+8, string+9, 4);
-  strncpy(unformatted+12, string+14, 4);
-  strncpy(unformatted+16, string+19, 4);
-  strncpy(unformatted+20, string+24, 12);
+  memcpy(unformatted, string, 8);
+  memcpy(unformatted+8, string+9, 4);
+  memcpy(unformatted+12, string+14, 4);
+  memcpy(unformatted+16, string+19, 4);
+  memcpy(unformatted+20, string+24, 12);
 
   for (i = 0; i < kUUIDByteCount; i++)
     {
-      {
-	char thisDigit[3];
-	thisDigit[0] = unformatted[2*i];
-	thisDigit[1] = unformatted[2*i+1];
-	thisDigit[2] = 0;
-	uuid[i] = strtoul(thisDigit, NULL, kUUIDByteCount);
-      }
+      char thisDigit[3];
+
+      thisDigit[0] = unformatted[2*i];
+      thisDigit[1] = unformatted[2*i+1];
+      thisDigit[2] = 0;
+      uuid[i] = strtoul(thisDigit, NULL, kUUIDByteCount);
     }
   return 0;
 }
@@ -240,17 +239,17 @@ static void string_from_uuid(const unsigned char *uuid, char *string)
       unsigned char byte = uuid[i];
       char thisPair[3];
       snprintf(thisPair, 3, "%02X", byte);
-      strncpy(unformatted + 2*i, thisPair, 2);
+      memcpy(unformatted + 2*i, thisPair, 2);
     }
-  strncpy(string, unformatted, 8);
+  memcpy(string, unformatted, 8);
   string[8] = '-';
-  strncpy(string + 9, unformatted + 8, 4);
+  memcpy(string + 9, unformatted + 8, 4);
   string[13] = '-';
-  strncpy(string + 14, unformatted + 12, 4);
+  memcpy(string + 14, unformatted + 12, 4);
   string[18] = '-';
-  strncpy(string + 19, unformatted + 16, 4);
+  memcpy(string + 19, unformatted + 16, 4);
   string[23] = '-';
-  strncpy(string + 24, unformatted + 20, 12);
+  memcpy(string + 24, unformatted + 20, 12);
   string[kUUIDStringLength] = '\0';
 }
 
