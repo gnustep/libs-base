@@ -1206,7 +1206,7 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 				   objects: (id*)stackbuf
 				     count: (NSUInteger)len
 {
-  state->mutationsPtr = (unsigned long *)&version;
+  state->mutationsPtr = &version;
   return GSIMapCountByEnumeratingWithStateObjectsCount
     (self, state, stackbuf, len);
 }

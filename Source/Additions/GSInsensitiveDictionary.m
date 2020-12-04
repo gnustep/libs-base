@@ -61,7 +61,7 @@
 {
 @public
   GSIMapTable_t	map;
-  NSUInteger _version;
+  unsigned long	_version;
 }
 @end
 
@@ -462,7 +462,7 @@ static SEL	objSel;
                                    objects: (__unsafe_unretained id[])stackbuf
                                      count: (NSUInteger)len
 {
-  state->mutationsPtr = (unsigned long *)&_version;
+  state->mutationsPtr = &_version;
   return GSIMapCountByEnumeratingWithStateObjectsCount
     (&map, state, stackbuf, len);
 }

@@ -55,7 +55,7 @@ static SEL      privateCountOfSel;
 @public
   GSIMapTable_t	map;
 @private
-  NSUInteger _version;
+  unsigned long	_version;
 }
 @end
 
@@ -806,7 +806,7 @@ static Class	mutableSetClass;
                                    objects: (id*)stackbuf
                                      count: (NSUInteger)len
 {
-  state->mutationsPtr = (unsigned long *)&_version;
+  state->mutationsPtr = &_version;
   return GSIMapCountByEnumeratingWithStateObjectsCount
     (&map, state, stackbuf, len);
 }
