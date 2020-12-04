@@ -5,7 +5,10 @@
   {
 #define END_FOR_IN(collection) }
 #else
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
 void objc_enumerationMutation(id);
+#pragma GCC diagnostic pop
 #define FOR_IN(type, var, c) \
 do\
 {\
