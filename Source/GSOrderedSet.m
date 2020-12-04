@@ -65,7 +65,7 @@
   GSIArray_t array;
   GSIMapTable_t	map;
 @private
-  NSUInteger _version;
+  unsigned long	_version;
 }
 @end
 
