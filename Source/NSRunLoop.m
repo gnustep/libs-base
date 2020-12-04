@@ -394,6 +394,14 @@ static inline BOOL timerInvalidated(NSTimer *t)
 @end
 
 #ifdef RL_INTEGRATE_DISPATCH
+
+#pragma clang diagnostic push
+/* We have no declarations for libdispatch private functions, so we ignore
+ * warnings here, knowing that we are using an undocumented feature which
+ * may go away in later releases (in which case we will use another library)
+ */
+#pragma clang diagnostic ignored "-Wimplicit-function-declaration"
+
 @interface GSMainQueueDrainer : NSObject <RunLoopEvents>
 + (void*) mainQueueFileDescriptor;
 @end
@@ -424,6 +432,9 @@ static inline BOOL timerInvalidated(NSTimer *t)
 #endif
 }
 @end
+
+#pragma clang diagnostic pop
+
 #endif
 
 @interface NSRunLoop (Private)
