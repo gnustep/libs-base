@@ -43,7 +43,7 @@
 @public
   GSIMapTable_t	map;
 @private
-  unsigned longd	_version;
+  unsigned long	_version;
 }
 @end
 
