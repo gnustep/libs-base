@@ -2079,9 +2079,12 @@ setNonBlocking(SOCKET fd)
 	{
 	  errno = error;
 	  [self _recordError];
-	  [_sibling _recordError];
 	  [self _sendEvent: NSStreamEventErrorOccurred];
-	  [_sibling _sendEvent: NSStreamEventErrorOccurred];
+	  if ([_sibling streamStatus] == NSStreamStatusOpening)
+	    {
+	      [_sibling _recordError];
+	      [_sibling _sendEvent: NSStreamEventErrorOccurred];
+	    }
 	}
       else
 	{
@@ -2525,9 +2528,12 @@ setNonBlocking(SOCKET fd)
 	{
 	  errno = error;
 	  [self _recordError];
-	  [_sibling _recordError];
 	  [self _sendEvent: NSStreamEventErrorOccurred];
-	  [_sibling _sendEvent: NSStreamEventErrorOccurred];
+	  if ([_sibling streamStatus] == NSStreamStatusOpening)
+	    {
+	      [_sibling _recordError];
+	      [_sibling _sendEvent: NSStreamEventErrorOccurred];
+	    }
 	}
       else
 	{
