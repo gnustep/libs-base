@@ -42,7 +42,7 @@
   BOOL blocked; \
   BOOL ready; \
   NSMutableArray *dependencies; \
-  GSOperationCompletionBlock completionBlock;
+  id completionBlock;
 
 #define	GS_NSOperationQueue_IVARS \
   NSRecursiveLock	*lock; \
@@ -197,7 +197,7 @@ static NSArray	*empty = nil;
 
 - (GSOperationCompletionBlock) completionBlock
 {
-  return internal->completionBlock;
+  return (GSOperationCompletionBlock)internal->completionBlock;
 }
 
 - (void) dealloc
@@ -382,7 +382,7 @@ static NSArray	*empty = nil;
 
 - (void) setCompletionBlock: (GSOperationCompletionBlock)aBlock
 {
-  ASSIGNCOPY(internal->completionBlock, aBlock);
+  ASSIGNCOPY(internal->completionBlock, (id)aBlock);
 }
 
 - (void) setQueuePriority: (NSOperationQueuePriority)pri
@@ -528,7 +528,8 @@ static NSArray	*empty = nil;
 	}
       if (NULL != internal->completionBlock)
 	{
-	  CALL_BLOCK_NO_ARGS(internal->completionBlock);
+	  CALL_BLOCK_NO_ARGS(
+	    ((GSOperationCompletionBlock)internal->completionBlock));
 	}
     }
   [internal->lock unlock];
@@ -549,7 +550,7 @@ static NSArray	*empty = nil;
 
 - (void) addExecutionBlock: (GSBlockOperationBlock)block
 {
-  GSBlockOperationBlock	blockCopy = [block copy];
+  id	blockCopy = (id)Block_copy(block);
 
   [_executionBlocks addObject: blockCopy];
   RELEASE(blockCopy);
@@ -581,7 +582,7 @@ static NSArray	*empty = nil;
   NSEnumerator 		*en = [[self executionBlocks] objectEnumerator];
   GSBlockOperationBlock theBlock;
 
-  while ((theBlock = [en nextObject]) != NULL)
+  while ((theBlock = (GSBlockOperationBlock)[en nextObject]) != NULL)
     {
       CALL_BLOCK_NO_ARGS(theBlock);
     }
@@ -987,14 +988,14 @@ static NSOperationQueue *mainQueue = nil;
                                                   forKey: threadKey];
   for (;;)
     {
+      NSOperation	*op;
+      NSDate		*when;
+      BOOL		found;
       /* We use a pool for each operation in case releasing the operation
        * causes it to be deallocated, and the deallocation of the operation
        * autoreleases something which needs to be cleaned up.
        */
       RECREATE_AUTORELEASE_POOL(arp);
-      NSOperation	*op;
-      NSDate		*when;
-      BOOL		found;
 
       when = [[NSDate alloc] initWithTimeIntervalSinceNow: 5.0];
       found = [internal->cond lockWhenCondition: 1 beforeDate: when];
