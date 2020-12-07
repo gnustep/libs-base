@@ -90,7 +90,7 @@ static const int kUUIDByteCount = 16;
   return self;
 }
 
-- (NSString *)UUIDString
+- (NSString *) UUIDString
 {
   char           uuidChars[kUUIDStringLength + 1];
   NSString      *string;
@@ -259,7 +259,7 @@ static int random_uuid(unsigned char *uuid)
   unsigned char timeByte;
   unsigned char sequenceByte;
 
-  /* Only supporting Version 4 UUIDs (see RFC4412, section 4.4),
+  /* Only supporting Version 4 UUIDs (see RFC4122, section 4.4),
    * consistent with Apple.  Other variants suffer from privacy
    * problems (and are more work...)
    */
