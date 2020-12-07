@@ -108,7 +108,7 @@
  *	Basic retain operation ... calls [NSObject-retain]<br />
  *	Does nothing when ARC is in use.
  */
-#define	RETAIN(object)		[(object) retain]
+#define	RETAIN(object)		[(id)(object) retain]
 #endif
 
 #ifndef	RELEASE
@@ -116,7 +116,7 @@
  *	Basic release operation ... calls [NSObject-release]<br />
  *	Does nothing when ARC is in use.
  */
-#define	RELEASE(object)		[(object) release]
+#define	RELEASE(object)		[(id)(object) release]
 #endif
 
 #ifndef	AUTORELEASE
@@ -124,7 +124,7 @@
  *	Basic autorelease operation ... calls [NSObject-autorelease]<br />
  *	Does nothing when ARC is in use.
  */
-#define	AUTORELEASE(object)	[(object) autorelease]
+#define	AUTORELEASE(object)	[(id)(object) autorelease]
 #endif
 
 #ifndef	TEST_RETAIN
@@ -134,7 +134,8 @@
  *	Does nothing when ARC is in use.
  */
 #define	TEST_RETAIN(object)	({\
-id __object = (object); (__object != nil) ? [__object retain] : nil; })
+void *__object = (void*)(object);\
+(__object != 0) ? [(id)__object retain] : nil; })
 #endif
 
 #ifndef	TEST_RELEASE
@@ -144,7 +145,8 @@ id __object = (object); (__object != nil) ? [__object retain] : nil; })
  *	Does nothing when ARC is in use.
  */
 #define	TEST_RELEASE(object)	({\
-id __object = (object); if (__object != nil) [__object release]; })
+void *__object = (void*)(object);\
+if (__object != 0) [(id)__object release]; })
 #endif
 
 #ifndef	TEST_AUTORELEASE
@@ -154,7 +156,8 @@ id __object = (object); if (__object != nil) [__object release]; })
  *	Does nothing when ARC is in use.
  */
 #define	TEST_AUTORELEASE(object)	({\
-id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
+void *__object = (void*)(object);\
+(__object != 0) ? [(id)__object autorelease] : nil; })
 #endif
 
 #ifndef	ASSIGN
@@ -164,9 +167,9 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
  *	Use this to avoid retain/release errors.
  */
 #define	ASSIGN(object,value)	({\
-  id __object = object; \
-  object = [(value) retain]; \
-  [__object release]; \
+  void *__object = (void*)object; \
+  object = (typeof(object))[(value) retain]; \
+  [(id)__object release]; \
 })
 #endif
 
@@ -177,9 +180,9 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
  *	Use this to avoid retain/release errors.
  */
 #define	ASSIGNCOPY(object,value)	({\
-  id __object = object; \
-  object = [(value) copy];\
-  [__object release]; \
+  void *__object = (void*)object; \
+  object = (typeof(object))[(value) copy];\
+  [(id)__object release]; \
 })
 #endif
 
@@ -190,9 +193,9 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
  *	Use this to avoid retain/release errors.
  */
 #define	ASSIGNMUTABLECOPY(object,value)	({\
-  id __object = object; \
-  object = [(value) mutableCopy];\
-  [__object release]; \
+  void *__object = (void*)object; \
+  object = (typeof(object))[(value) mutableCopy];\
+  [(id)__object release]; \
 })
 #endif
 
@@ -205,9 +208,9 @@ id __object = (object); (__object != nil) ? [__object autorelease] : nil; })
  *	to reference the object being released through the variable.
  */
 #define	DESTROY(object) 	({ \
-  id __o = object; \
+  void *__o = (void*)object; \
   object = nil; \
-  [__o release]; \
+  [(id)__o release]; \
 })
 #endif
 
