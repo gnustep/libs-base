@@ -1511,7 +1511,7 @@ setNonBlocking(SOCKET fd)
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"%@ sock %d loopID %d",
+  return [NSString stringWithFormat: @"%@ sock %d loopID %p",
     [super description], _sock, _loopID];
 }
 
