@@ -686,7 +686,7 @@ static NSArray  *keys = nil;
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
 {
   NSDebugMLLog(@"NSStream",
-    @"GSTLSHandler got %@ on %p", [stream stringFromEvent: event], stream);
+    @"GSTLSHandler got %@ on %@", [stream stringFromEvent: event], stream);
 
   if (handshake == YES)
     {
@@ -713,7 +713,7 @@ static NSArray  *keys = nil;
       if (NO == handshake)
         {
           NSDebugMLLog(@"NSStream",
-            @"GSTLSHandler completed on %p", stream);
+            @"GSTLSHandler completed on %@", stream);
 
           /* Make sure that, if ostream gets released as a result of
            * the event we send to istream, it doesn't get deallocated
@@ -1509,6 +1509,12 @@ setNonBlocking(SOCKET fd)
   [super dealloc];
 }
 
+- (NSString*) description
+{
+  return [NSString stringWithFormat: @"%@ sock %d loopID %d",
+    [super description], _sock, _loopID];
+}
+
 - (id) init
 {
   if ((self = [super init]) != nil)
@@ -1903,9 +1909,15 @@ setNonBlocking(SOCKET fd)
        * closed, we must call WSAEventSelect to ensure that the event handle
        * of the sibling is used to signal events from now on.
        */
-      WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
       shutdown(_sock, SHUT_RD);
-      WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
+      [_sibling _unschedule];
+      if (WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS)
+	== SOCKET_ERROR)
+	{
+          NSDebugMLLog(@"NSStream", @"%@ Error %d transferring to %@",
+	    self, WSAGetLastError(), _sibling);
+	}
+      [_sibling _schedule];
     }
   else
     {
@@ -2046,8 +2058,15 @@ setNonBlocking(SOCKET fd)
       if (WSAEnumNetworkEvents(_sock, _loopID, &events) == SOCKET_ERROR)
 	{
 	  error = WSAGetLastError();
+          NSDebugMLLog(@"NSStream", @"%@ Error %d", self, error);
 	}
-// else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
+#ifndef	NDEBUG
+      else
+	{
+	  NSDebugMLLog(@"NSStream", @"%@ EVENTS 0x%x",
+	    self, events.lNetworkEvents);
+	}
+#endif
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
@@ -2402,9 +2421,16 @@ setNonBlocking(SOCKET fd)
        * closed, we must call WSAEventSelect to ensure that the event handle
        * of the sibling is used to signal events from now on.
        */
-      WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
       shutdown(_sock, SHUT_WR);
-      WSAEventSelect(_sock, [_sibling _loopID], FD_ALL_EVENTS);
+      _sock = INVALID_SOCKET;
+      [_sibling _unschedule];
+      if (WSAEventSelect([_sibling _sock], [_sibling _loopID], FD_ALL_EVENTS)
+	== SOCKET_ERROR)
+	{
+          NSDebugMLLog(@"NSStream", @"%@ Error %d transferring to %@",
+	    self, WSAGetLastError(), _sibling);
+	}
+      [_sibling _schedule];
     }
   else
     {
@@ -2494,8 +2520,15 @@ setNonBlocking(SOCKET fd)
       if (WSAEnumNetworkEvents(_sock, _loopID, &events) == SOCKET_ERROR)
 	{
 	  error = WSAGetLastError();
+          NSDebugMLLog(@"NSStream", @"%@ Error %d", self, error);
 	}
-// else NSLog(@"EVENTS 0x%x on %p", events.lNetworkEvents, self);
+#ifndef	NDEBUG
+      else
+	{
+	  NSDebugMLLog(@"NSStream", @"%@ EVENTS 0x%x",
+	    self, events.lNetworkEvents);
+	}
+#endif
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
@@ -2731,7 +2764,10 @@ setNonBlocking(SOCKET fd)
       return;
     }
 #if	defined(_WIN32)
-  WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
+  if (_loopID != WSA_INVALID_EVENT)
+    {
+      WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
+    }
 #endif
   [super open];
 }

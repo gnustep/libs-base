@@ -114,8 +114,8 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   void			*event = [aStream _loopID];
 
   NSDebugMLLog(@"NSStream",
-    @"-addStream:mode: %@ (desc %d,%d) to %@ mode %@",
-    aStream, (int)(intptr_t)event, type, self, mode);
+    @"-addStream:mode: %@ (type %d) to %@ mode %@",
+    aStream, type, self, mode);
   [self addEvent: event
 	    type: type
 	 watcher: (id<RunLoopEvents>)aStream
@@ -211,6 +211,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     && _currentStatus != NSStreamStatusOpening)
     {
       NSDebugMLLog(@"NSStream", @"Attempt to re-open stream %@", self);
+      return;
     }
   [self _setStatus: NSStreamStatusOpen];
   [self _schedule];
@@ -479,7 +480,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) _recordError: (NSError*)anError
 {
-  NSDebugMLLog(@"NSStream", @"record error: %@ - %@", self, anError);
+  NSDebugMLLog(@"NSStream", @"%@ - %@", self, anError);
   ASSIGN(_lastError, anError);
   [self _setStatus: NSStreamStatusError];
 }
