@@ -22,9 +22,9 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSBackgroundActivityScheduler.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSTimer.h>
+#import "Foundation/NSBackgroundActivityScheduler.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSTimer.h"
 
 @implementation NSBackgroundActivityScheduler
 
@@ -134,7 +134,7 @@
 {
   NSProcessInfo *pinfo = [NSProcessInfo processInfo];
 
-  ASSIGN(_block, block);
+  ASSIGN(_block, (id)block);
   switch(_qualityOfService)
     {
     case NSQualityOfServiceUserInteractive:
