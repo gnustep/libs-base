@@ -152,7 +152,7 @@ NSString * const NSItemProviderPreferredImageSizeKey = @"NSItemProviderPreferred
 
 - (NSItemProviderLoadHandler) previewImageHandler
 {
-  return nil;
+  return (NSItemProviderLoadHandler)0;
 }
 
 - (void) setPreviewImageHandler: (NSItemProviderLoadHandler) previewImageHandler

@@ -153,7 +153,10 @@ static NSMutableDictionary *__presenterIdDict = nil;
   
   while((obj = [en nextObject]) != nil)
     {
-      NSBlockOperation *op = [NSBlockOperation blockOperationWithBlock: accessor];
+      NSBlockOperation *op;
+
+      op = [NSBlockOperation
+	blockOperationWithBlock: (GSBlockOperationBlock)accessor];
       [queue addOperation: op];
     }
 }

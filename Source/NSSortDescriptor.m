@@ -223,7 +223,7 @@ static BOOL     initialized = NO;
 
       ASSIGN(_key, key);
       _ascending = ascending;
-      ASSIGN(_comparator, cmptr);
+      ASSIGN(_comparator, (id)cmptr);
 
       return self;
     }
