@@ -1946,13 +1946,18 @@ NSTemporaryDirectory(void)
   NSFileManager	*manager;
   NSString	*tempDirName;
   NSString	*baseTempDirName = nil;
+  BOOL		flag;
+#if !defined(_WIN32)
   NSDictionary	*attr;
   int		perm;
   int		owner;
-  BOOL		flag;
+#if !defined(__ANDROID__)
+  int		uid;
+#endif
+#endif
+
 #if defined(_WIN32)
   unichar buffer[1024];
-
   if (GetTempPathW(1024, buffer))
     {
       baseTempDirName = [NSString stringWithCharacters: buffer
@@ -1970,8 +1975,6 @@ NSTemporaryDirectory(void)
     {
       baseTempDirName = [cacheDir stringByAppendingPathComponent: @"tmp"];
     }
-#else
-  int		uid;
 #endif
 
   /*
