@@ -588,7 +588,6 @@ static NSStringEncoding	defaultEncoding;
 #endif
       else
 	{
-	  NSTimeInterval ti = [date timeIntervalSince1970];
 #if  defined(_WIN32)
           FILETIME ctime;
 	  HANDLE fh;
@@ -605,8 +604,10 @@ static NSStringEncoding	defaultEncoding;
 	      ok = SetFileTime(fh, &ctime, NULL, NULL);
               CloseHandle(fh);
 	    }
+#else
+	  NSTimeInterval ti = [date timeIntervalSince1970];
 /* on Unix we try setting the creation date by setting the modification date earlier than the current one */
-#elif defined (HAVE_UTIMENSAT)
+#if defined (HAVE_UTIMENSAT)
           struct timespec ub[2];
 	  ub[0].tv_sec = 0;
 	  ub[0].tv_nsec = UTIME_OMIT; // we don't touch access time
@@ -624,6 +625,7 @@ static NSStringEncoding	defaultEncoding;
 	  ub[0] = sb.st_atime;
 	  ub[1] = ti;
 	  ok = (_UTIME(lpath, ub) == 0);
+#endif
 #endif
 	}
       if (ok == NO)
