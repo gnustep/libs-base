@@ -57,7 +57,10 @@
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
 #if	defined(_WIN32)
-@class	NSUserDefaultsWin32;
+/* Fake interface to avoid compiler warnings
+ */
+@interface	NSUserDefaultsWin32 : NSUserDefaults
+@end
 #endif
 
 #ifdef HAVE_LOCALE_H
