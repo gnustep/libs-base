@@ -1770,7 +1770,9 @@ static NSURLProtocol	*placeholder = nil;
 		  // Stream and close
 		  l = -1;
 	          _version = 1.0;
-		  _shouldClose = YES;
+		  // TESTPLANT-MAL-20201209: This closes the stream before it completely
+		  // is able to finish writing out the data...
+		  //_shouldClose = YES;
 		}
 
 	      m = [[NSMutableData alloc] initWithCapacity: 1024];
