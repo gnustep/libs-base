@@ -76,6 +76,7 @@
   id		         _delegate;	/* Delegate controls operation.	*/\
   NSMutableDictionary	*_properties;	/* storage for properties	*/\
   BOOL                  _delegateValid; /* whether the delegate responds*/\
+  BOOL			_scheduled;	/* Are the loops sceduled?      */\
   NSError               *_lastError;    /* last error occured           */\
   NSStreamStatus         _currentStatus;/* current status               */\
   NSMapTable		*_loops;	/* Run loops and their modes.	*/\
@@ -125,6 +126,15 @@ IVARS
  */
 - (void) _schedule;
 
+/** Return YES if the stream is *actually* scheduled in one or more loops.
+ */
+- (BOOL) _scheduled;
+
+/** Low level method to place the stream in the scheduled runloop.
+ * Must only be called by -_schedule and -scheduleInRunLoop:forMode:
+ */
+- (void) _scheduleInRunLoop: (NSRunLoop*)aRunLoop forMode: (NSString*)mode;
+
 /**
  * send an event to delegate
  */
@@ -151,6 +161,11 @@ IVARS
  */
 - (void) _recordError; 
 - (void) _recordError: (NSError*)anError; 
+
+/** Low level method to remove the stream from the scheduled runloop.
+ * Must only be called by -_sunchedule and -removeFromRunLoop:forMode:
+ */
+- (void) _removeFromRunLoop: (NSRunLoop*)aRunLoop forMode: (NSString*)mode;
 
 /**
  * say whether there is unhandled data for the stream.

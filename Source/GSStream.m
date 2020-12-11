@@ -113,8 +113,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   RunLoopEventType 	type = typeForStream(aStream);
   void			*event = [aStream _loopID];
 
-  NSDebugMLLog(@"NSStream",
-    @"-addStream:mode: %@ (type %d) to %@ mode %@",
+  NSDebugMLLog(@"NSStream", @"%@ (type %d) to %@ mode %@",
     aStream, type, self, mode);
   [self addEvent: event
 	    type: type
@@ -241,12 +240,16 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       modes = (NSMutableArray*)NSMapGet(_loops, (void*)aRunLoop);
       if ([modes containsObject: mode])
 	{
-	  [aRunLoop removeStream: self mode: mode];
+	  [self _removeFromRunLoop: aRunLoop forMode: mode];
 	  [modes removeObject: mode];
 	  if ([modes count] == 0)
 	    {
 	      NSMapRemove(_loops, (void*)aRunLoop);
 	    }
+	}
+      if (NSCountMapTable(_loops) == 0)
+	{
+	  _scheduled = NO;
 	}
     }
 }
@@ -275,7 +278,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 	   */
 	  if ([self _isOpened])
 	    {
-	      [aRunLoop addStream: self mode: mode];
+	      [self _scheduleInRunLoop: aRunLoop forMode: mode];
 	    }
 	}
     }
@@ -485,6 +488,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   [self _setStatus: NSStreamStatusError];
 }
 
+- (void) _removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
+{
+  [aRunLoop removeStream: self mode: mode];
+}
+
 - (void) _resetEvents: (NSUInteger)mask
 {
   _events &= ~mask;
@@ -503,10 +511,21 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
       while (i-- > 0)
 	{
-	  [k addStream: self mode: [v objectAtIndex: i]];
+          [self _scheduleInRunLoop: k forMode: [v objectAtIndex: i]];
 	}
     }
   NSEndMapTableEnumeration(&enumerator);
+}
+
+- (BOOL) _scheduled
+{
+  return _scheduled;
+}
+
+- (void) _scheduleInRunLoop: (NSRunLoop*)loop forMode: (NSString*)mode
+{
+  [loop addStream: self mode: mode];
+  _scheduled = YES;
 }
 
 - (void) _sendEvent: (NSStreamEvent)event
@@ -516,6 +535,8 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) _sendEvent: (NSStreamEvent)event delegate: (id)delegate
 {
+  NSDebugMLLog(@"NSStream",
+    @"%@ sendEvent %@", self, [self stringFromEvent:event]);
   if (event == NSStreamEventNone)
     {
       return;
@@ -658,6 +679,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 	}
     }
   NSEndMapTableEnumeration(&enumerator);
+  _scheduled = NO;
 }
 
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
