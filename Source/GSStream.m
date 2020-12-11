@@ -383,6 +383,11 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   return;
 }
 
+- (void) _removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
+{
+  [aRunLoop removeStream: self mode: mode];
+}
+
 - (void) _resetEvents: (NSUInteger)mask
 {
   return;
@@ -390,6 +395,16 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 
 - (void) _schedule
 {
+}
+
+- (BOOL) _scheduled
+{
+  return NO;
+}
+
+- (void) _scheduleInRunLoop: (NSRunLoop*)loop forMode: (NSString*)mode
+{
+  [loop addStream: self mode: mode];
 }
 
 - (void) _sendEvent: (NSStreamEvent)event
@@ -486,11 +501,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   NSDebugMLLog(@"NSStream", @"%@ - %@", self, anError);
   ASSIGN(_lastError, anError);
   [self _setStatus: NSStreamStatusError];
-}
-
-- (void) _removeFromRunLoop: (NSRunLoop *)aRunLoop forMode: (NSString *)mode
-{
-  [aRunLoop removeStream: self mode: mode];
 }
 
 - (void) _resetEvents: (NSUInteger)mask
