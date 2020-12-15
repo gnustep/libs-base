@@ -192,7 +192,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
   NSAssert(decoder_connection, NSInternalInconsistencyException);
 
   /* First get the tag, so we know what values need to be decoded. */
-  [aCoder decodeValueOfObjCType: @encode(typeof(proxy_tag))
+  [aCoder decodeValueOfObjCType: @encode(__typeof__(proxy_tag))
 			     at: &proxy_tag];
 
   switch (proxy_tag)
@@ -204,7 +204,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 	 *	Lookup the target handle to ensure that it exists here.
 	 *	Return a retained copy of the local target object.
 	 */
-	[aCoder decodeValueOfObjCType: @encode(typeof(target))
+	[aCoder decodeValueOfObjCType: @encode(__typeof__(target))
 				   at: &target];
 
         if (debug_proxy)
@@ -236,7 +236,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 	 *	return the proxy object we already created for this target, or
 	 *	create a new proxy object if necessary.
 	 */
-	[aCoder decodeValueOfObjCType: @encode(typeof(target))
+	[aCoder decodeValueOfObjCType: @encode(__typeof__(target))
 				   at: &target];
 	if (debug_proxy)
 	  NSLog(@"Receiving a proxy, was local 0x%x connection %p\n",
@@ -273,7 +273,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 	   *	time we will have obtained our own proxy for the original
 	   *	object ...
 	   */
-	  [aCoder decodeValueOfObjCType: @encode(typeof(intermediary))
+	  [aCoder decodeValueOfObjCType: @encode(__typeof__(intermediary))
 				     at: &intermediary];
 	  AUTORELEASE([self initWithTarget: intermediary
 				connection: decoder_connection]);
@@ -283,7 +283,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 	   *	and (if necessary) get the originating process to retain the
 	   *	object for us.
 	   */
-	  [aCoder decodeValueOfObjCType: @encode(typeof(target))
+	  [aCoder decodeValueOfObjCType: @encode(__typeof__(target))
 				     at: &target];
 
 	  [aCoder decodeValueOfObjCType: @encode(id)
@@ -513,10 +513,10 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 	    NSLog(@"Sending a proxy, will be remote 0x%x connection %p\n",
 			proxy_target, _connection);
 
-	  [aRmc encodeValueOfObjCType: @encode(typeof(proxy_tag))
+	  [aRmc encodeValueOfObjCType: @encode(__typeof__(proxy_tag))
 				   at: &proxy_tag];
 
-	  [aRmc encodeValueOfObjCType: @encode(typeof(proxy_target))
+	  [aRmc encodeValueOfObjCType: @encode(__typeof__(proxy_target))
 				   at: &proxy_target];
 	  /*
 	   * Tell connection this object is being vended.
@@ -534,10 +534,10 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 	    NSLog(@"Sending a proxy, will be local 0x%x connection %p\n",
 			proxy_target, _connection);
 
-	  [aRmc encodeValueOfObjCType: @encode(typeof(proxy_tag))
+	  [aRmc encodeValueOfObjCType: @encode(__typeof__(proxy_tag))
 				   at: &proxy_tag];
 
-	  [aRmc encodeValueOfObjCType: @encode(typeof(proxy_target))
+	  [aRmc encodeValueOfObjCType: @encode(__typeof__(proxy_target))
 				   at: &proxy_target];
 	}
     }
@@ -577,13 +577,13 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
        * It's remote here, so we need to tell other side where to form
        * triangle connection to
        */
-      [aRmc encodeValueOfObjCType: @encode(typeof(proxy_tag))
+      [aRmc encodeValueOfObjCType: @encode(__typeof__(proxy_tag))
 			       at: &proxy_tag];
 
-      [aRmc encodeValueOfObjCType: @encode(typeof(localProxy->_handle))
+      [aRmc encodeValueOfObjCType: @encode(__typeof__(localProxy->_handle))
 			       at: &localProxy->_handle];
 
-      [aRmc encodeValueOfObjCType: @encode(typeof(proxy_target))
+      [aRmc encodeValueOfObjCType: @encode(__typeof__(proxy_target))
 			       at: &proxy_target];
 
       [aRmc encodeBycopyObject: proxy_connection_out_port];

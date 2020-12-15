@@ -10,7 +10,7 @@
 }
 - (const char *) objCType
 {
-  return @encode(typeof(VALUE));
+  return @encode(__typeof__(VALUE));
 }
 - (NSString*) descriptionWithLocale: (id)aLocale
 {
@@ -19,7 +19,7 @@
 }
 - (void) getValue: (void*)buffer
 {
-  typeof(VALUE) *ptr = buffer;
+  __typeof__(VALUE) *ptr = buffer;
   *ptr = VALUE;
 }
 #undef FORMAT

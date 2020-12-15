@@ -3573,7 +3573,7 @@ substring_c(GSStr self, NSRange aRange)
     {
       return @"";
     }
-  o = (typeof(o))NSAllocateObject(GSCSubStringClass,
+  o = (__typeof__(o))NSAllocateObject(GSCSubStringClass,
     0, NSDefaultMallocZone());
   o->_contents.c = self->_contents.c + aRange.location;
   o->_count = aRange.length;
@@ -3592,7 +3592,7 @@ substring_u(GSStr self, NSRange aRange)
     {
       return @"";
     }
-  o = (typeof(o))NSAllocateObject(GSUnicodeSubStringClass,
+  o = (__typeof__(o))NSAllocateObject(GSUnicodeSubStringClass,
     0, NSDefaultMallocZone());
   o->_contents.u = self->_contents.u + aRange.location;
   o->_count = aRange.length;

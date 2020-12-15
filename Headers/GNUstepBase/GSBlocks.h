@@ -134,7 +134,7 @@ void _Block_release(const void *) __attribute__((weak));
 #endif
 
 #ifndef Block_copy
-#  define Block_copy(x) ((__typeof(x))_Block_copy((const void *)(x)))
+#  define Block_copy(x) ((__typeof__(x))_Block_copy((const void *)(x)))
 #endif
 #ifndef Block_release
 #  define Block_release(x) _Block_release((const void *)(x))

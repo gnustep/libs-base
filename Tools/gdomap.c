@@ -153,7 +153,7 @@ static	errbuf[BUFSIZ];
 #define	MAX_EXTRA	((GDO_NAME_MAX_LEN - 2 * IASIZE)/IASIZE)
 
 #define ROUND(V, A) \
-  ({ typeof(V) __v=(V); typeof(A) __a=(A); \
+  ({ __typeof__(V) __v=(V); __typeof__(A) __a=(A); \
 	 __a*((__v+__a-1)/__a); })
 
 typedef	unsigned char	*uptr;

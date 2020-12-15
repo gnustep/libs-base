@@ -2923,14 +2923,14 @@ static NSLock	*cached_proxies_gate = nil;
   NSParameterAssert (IisValid);
 
   [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
-  [rmc decodeValueOfObjCType: @encode(typeof(count)) at: &count];
+  [rmc decodeValueOfObjCType: @encode(__typeof__(count)) at: &count];
 
   for (pos = 0; pos < count; pos++)
     {
       unsigned		target;
       NSDistantObject	*prox;
 
-      [rmc decodeValueOfObjCType: @encode(typeof(target)) at: &target];
+      [rmc decodeValueOfObjCType: @encode(__typeof__(target)) at: &target];
 
       prox = [self includesLocalTarget: target];
       if (prox != 0)
@@ -2985,7 +2985,7 @@ static NSLock	*cached_proxies_gate = nil;
   [rmc decodeValueOfObjCType: @encode(int) at: &sequence];
   op = [self _newOutRmc: sequence generate: 0 reply: NO];
 
-  [rmc decodeValueOfObjCType: @encode(typeof(target)) at: &target];
+  [rmc decodeValueOfObjCType: @encode(__typeof__(target)) at: &target];
   [self _doneInRmc: rmc];
 
   if (debug_connection > 3)
@@ -3823,7 +3823,7 @@ static NSLock	*cached_proxies_gate = nil;
 	      int	seq_num;
 
 	      op = [self _newOutRmc: 0 generate: &seq_num reply: YES];
-	      [op encodeValueOfObjCType: @encode(typeof(target)) at: &target];
+	      [op encodeValueOfObjCType: @encode(__typeof__(target)) at: &target];
 	      [self _sendOutRmc: op type: PROXY_RETAIN sequence: seq_num];
 
 	      ip = [self _getReplyRmc: seq_num for: "retain"];

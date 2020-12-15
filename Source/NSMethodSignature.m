@@ -63,7 +63,7 @@ skip_offset(const char *ptr)
 }
 
 #define ROUND(V, A) \
-  ({ typeof(V) __v=(V); typeof(A) __a=(A); \
+  ({ __typeof__(V) __v=(V); __typeof__(A) __a=(A); \
      __a*((__v+__a-1)/__a); })
 
 /* Step through method encoding information extracting details.

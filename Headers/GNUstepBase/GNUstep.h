@@ -168,7 +168,7 @@ void *__object = (void*)(object);\
  */
 #define	ASSIGN(object,value)	({\
   void *__object = (void*)object; \
-  object = (typeof(object))[(value) retain]; \
+  object = (__typeof__(object))[(value) retain]; \
   [(id)__object release]; \
 })
 #endif
@@ -181,7 +181,7 @@ void *__object = (void*)(object);\
  */
 #define	ASSIGNCOPY(object,value)	({\
   void *__object = (void*)object; \
-  object = (typeof(object))[(value) copy];\
+  object = (__typeof__(object))[(value) copy];\
   [(id)__object release]; \
 })
 #endif
@@ -194,7 +194,7 @@ void *__object = (void*)(object);\
  */
 #define	ASSIGNMUTABLECOPY(object,value)	({\
   void *__object = (void*)object; \
-  object = (typeof(object))[(value) mutableCopy];\
+  object = (__typeof__(object))[(value) mutableCopy];\
   [(id)__object release]; \
 })
 #endif
