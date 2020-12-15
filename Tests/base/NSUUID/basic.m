@@ -22,7 +22,7 @@ int main(int argc, char **argv)
   uuid1 = [[NSUUID alloc] initWithUUIDString:@"test"];
   PASS(uuid1 == nil, "Don't create a UUID from an invalid string");
 
-  uuid1 = [[NSUUID alloc] initWithUUIDString:uuidString];
+  uuid1 = [[NSUUID alloc] initWithUUIDString:uuidStringLow];
   PASS(uuid1 != nil, "Create a UUID from a valid lowercase string");
 
   uuid1 = [[NSUUID alloc] initWithUUIDString:uuidString];
