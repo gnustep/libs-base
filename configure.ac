@@ -3469,19 +3469,22 @@ if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
   if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 49 \); then
     AC_MSG_RESULT([FAILED (version too old to use])
   else
-    CURLCFLAGS=`$CURL_CONFIG --cflags`
-    CURLLIBS=`$CURL_CONFIG --libs`
-    CFLAGS="$CFLAGS $CURLCFLAGS"
-    LIBS="$LIBS $CURLLIBS"
     AC_MSG_RESULT(yes ... version $curl_ver)
-    HAVE_LIBCURL=1
-    curl_all=yes
-    if test \( $curl_maj -eq 7 -a $curl_min -lt 56 \); then
-      AC_MSG_WARN([LOSS OF FUNCTIONALITY (version too old for SSL backend control)])
-      curl_all=no
-    elif test \( $curl_maj -eq 7 -a $curl_min -lt 65 \); then
-      AC_MSG_WARN([LOSS OF FUNCTIONALITY (version too old for connection lifetime control)])
-      curl_all=no
+    AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
+    if test "$curl_ok" = yes; then
+      HAVE_LIBCURL=1
+      CURLCFLAGS=`$CURL_CONFIG --cflags`
+      CURLLIBS=`$CURL_CONFIG --libs`
+      CFLAGS="$CFLAGS $CURLCFLAGS"
+      LIBS="$LIBS $CURLLIBS"
+      curl_all=yes
+      if test \( $curl_maj -eq 7 -a $curl_min -lt 56 \); then
+        AC_MSG_WARN([LOSS OF FUNCTIONALITY (version too old for SSL backend control)])
+        curl_all=no
+      elif test \( $curl_maj -eq 7 -a $curl_min -lt 65 \); then
+        AC_MSG_WARN([LOSS OF FUNCTIONALITY (version too old for connection lifetime control)])
+        curl_all=no
+      fi
     fi
   fi
 else
@@ -3501,9 +3504,6 @@ fi
 
 if test $HAVE_LIBCURL = 1; then
   AC_CHECK_LIB(curl, curl_multi_perform, curl_ok=yes, curl_ok=no)
-fi
-if test $HAVE_LIBCURL = 1; then
-  AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
 fi
 if test $HAVE_LIBCURL = 1; then
   AC_CHECK_DECL(CURLOPT_CONNECT_TO, curl_ok=yes, curl_ok=no,

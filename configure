@@ -13143,22 +13143,38 @@ if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
 $as_echo "FAILED (version too old to use" >&6; }
   else
-    CURLCFLAGS=`$CURL_CONFIG --cflags`
-    CURLLIBS=`$CURL_CONFIG --libs`
-    CFLAGS="$CFLAGS $CURLCFLAGS"
-    LIBS="$LIBS $CURLLIBS"
     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes ... version $curl_ver" >&5
 $as_echo "yes ... version $curl_ver" >&6; }
-    HAVE_LIBCURL=1
-    curl_all=yes
-    if test \( $curl_maj -eq 7 -a $curl_min -lt 56 \); then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: LOSS OF FUNCTIONALITY (version too old for SSL backend control)" >&5
+    for ac_header in curl/curl.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "curl/curl.h" "ac_cv_header_curl_curl_h" "$ac_includes_default"
+if test "x$ac_cv_header_curl_curl_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CURL_CURL_H 1
+_ACEOF
+ curl_ok=yes
+else
+  curl_ok=no
+fi
+
+done
+
+    if test "$curl_ok" = yes; then
+      HAVE_LIBCURL=1
+      CURLCFLAGS=`$CURL_CONFIG --cflags`
+      CURLLIBS=`$CURL_CONFIG --libs`
+      CFLAGS="$CFLAGS $CURLCFLAGS"
+      LIBS="$LIBS $CURLLIBS"
+      curl_all=yes
+      if test \( $curl_maj -eq 7 -a $curl_min -lt 56 \); then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: LOSS OF FUNCTIONALITY (version too old for SSL backend control)" >&5
 $as_echo "$as_me: WARNING: LOSS OF FUNCTIONALITY (version too old for SSL backend control)" >&2;}
-      curl_all=no
-    elif test \( $curl_maj -eq 7 -a $curl_min -lt 65 \); then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: LOSS OF FUNCTIONALITY (version too old for connection lifetime control)" >&5
+        curl_all=no
+      elif test \( $curl_maj -eq 7 -a $curl_min -lt 65 \); then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: LOSS OF FUNCTIONALITY (version too old for connection lifetime control)" >&5
 $as_echo "$as_me: WARNING: LOSS OF FUNCTIONALITY (version too old for connection lifetime control)" >&2;}
-      curl_all=no
+        curl_all=no
+      fi
     fi
   fi
 else
@@ -13223,22 +13239,6 @@ if test "x$ac_cv_lib_curl_curl_multi_perform" = xyes; then :
 else
   curl_ok=no
 fi
-
-fi
-if test $HAVE_LIBCURL = 1; then
-  for ac_header in curl/curl.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "curl/curl.h" "ac_cv_header_curl_curl_h" "$ac_includes_default"
-if test "x$ac_cv_header_curl_curl_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_CURL_CURL_H 1
-_ACEOF
- curl_ok=yes
-else
-  curl_ok=no
-fi
-
-done
 
 fi
 if test $HAVE_LIBCURL = 1; then
