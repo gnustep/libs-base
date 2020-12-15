@@ -219,12 +219,34 @@ static int uuid_from_string(const char *string, unsigned char *uuid)
 
   for (i = 0; i < kUUIDByteCount; i++)
     {
-      char thisDigit[3];
+      int	hi = unformatted[2*i];
+      int	lo = unformatted[2*i+1];
 
-      thisDigit[0] = unformatted[2*i];
-      thisDigit[1] = unformatted[2*i+1];
-      thisDigit[2] = 0;
-      uuid[i] = strtoul(thisDigit, NULL, kUUIDByteCount);
+      if (isdigit(hi))
+	{
+	  hi -= '0';
+	}
+      else if (isupper(hi))
+	{
+	  hi = hi - 'A' + 10;
+	}
+      else
+	{
+	  hi = hi - 'a' + 10;
+	}
+      if (isdigit(lo))
+	{
+	  lo -= '0';
+	}
+      else if (isupper(lo))
+	{
+	  lo = lo - 'A' + 10;
+	}
+      else
+	{
+	  lo = lo - 'a' + 10;
+	}
+      uuid[i] = (hi << 4) | lo;
     }
   return 0;
 }

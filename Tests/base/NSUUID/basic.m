@@ -9,8 +9,9 @@ int main(int argc, char **argv)
   NSAutoreleasePool *arp = [NSAutoreleasePool new];
   NSUUID *uuid1, *uuid2;
   NSString *uuidString = @"2139CD2E-15E6-4C37-84DA-1E18EEBFAB4A";
+  NSString *uuidStringLow = @"2139cd2e-15e6-4c37-84da-1e18eebfab4a";
 
-  gsuuid_t uuidBytes = { 0x80, 0x1f, 0x3a, 0x01, 0x95, 0x7c, 0x45, 0x0f,
+  uint8_t uuidBytes[] = { 0x80, 0x1f, 0x3a, 0x01, 0x95, 0x7c, 0x45, 0x0f,
 		       0xaf, 0xf2, 0x1b, 0xe9, 0x59, 0xf5, 0x89, 0x54 };
 
   TEST_FOR_CLASS(@"NSUUID", [NSUUID alloc],
@@ -22,7 +23,10 @@ int main(int argc, char **argv)
   PASS(uuid1 == nil, "Don't create a UUID from an invalid string");
 
   uuid1 = [[NSUUID alloc] initWithUUIDString:uuidString];
-  PASS(uuid1 != nil, "Create a UUID from a valid string");
+  PASS(uuid1 != nil, "Create a UUID from a valid lowercase string");
+
+  uuid1 = [[NSUUID alloc] initWithUUIDString:uuidString];
+  PASS(uuid1 != nil, "Create a UUID from a valid uppercase string");
   PASS_EQUAL([uuid1 UUIDString], uuidString,
 	     "Derive a stable UUID string value");
 
