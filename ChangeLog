@@ -1,3 +1,8 @@
+2020-12-23  Doug Simons <doug.simons@eggplant.io>
+
+       * NSDateFormatter.m: 
+	   Round to nearest millisecond when formatting.
+
 2020-10-11  Adam Fox <adam.fox@eggplantsoftware.com>
 
        * NSData.m: Implement rangeOfData:options:range

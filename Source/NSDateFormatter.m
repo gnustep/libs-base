@@ -380,7 +380,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
   NSString *result;
   int32_t length;
   unichar *string;
-  UDate udate = [date timeIntervalSince1970] * 1000.0;
+  UDate udate = trunc([date timeIntervalSince1970] * 1000.0 + 0.5);
   UErrorCode err = U_ZERO_ERROR;
   if (!internal->_tz)
     [self setTimeZone:[NSTimeZone defaultTimeZone]];
