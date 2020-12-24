@@ -108,6 +108,11 @@ IVARS
 - (void) _dispatch;
 
 /**
+ * Return YES if the stream is not yet connected, NO otherwise.
+ */
+- (BOOL) _isConnecting;
+
+/**
  * Return YES if the stream is opened, NO otherwise.
  */
 - (BOOL) _isOpened;
@@ -141,11 +146,6 @@ IVARS
 - (void) _sendEvent: (NSStreamEvent)event;
 
 /**
- * send an event to delegate
- */
-- (void) _sendEvent: (NSStreamEvent)event delegate: (id)delegate;
-
-/**
  * setter for IO event reference (file descriptor, file handle etc )
  */
 - (void) _setLoopID: (void *)ref;
@@ -155,6 +155,11 @@ IVARS
  * be overwriten by closed
  */
 - (void) _setStatus: (NSStreamStatus)newStatus;
+
+/**
+ * getter for the current status without making any changes.
+ */ 
+- (NSStreamStatus) _status;
 
 /**
  * record an error based on errno

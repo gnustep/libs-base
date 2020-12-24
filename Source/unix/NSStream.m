@@ -472,8 +472,8 @@
   [ins _setLoopID: (void*)(intptr_t)fds[0]];
   [outs _setLoopID: (void*)(intptr_t)fds[1]];
   // no need to connect
-  [ins _setPassive: YES];
-  [outs _setPassive: YES];
+  [ins _setConnected: YES];
+  [outs _setConnected: YES];
   if (inputStream)
     *inputStream = (NSInputStream*)ins;
   if (outputStream)

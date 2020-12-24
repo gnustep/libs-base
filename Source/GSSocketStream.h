@@ -42,8 +42,9 @@ typedef	union {
 
 #define	SOCKIVARS \
 { \
-  id            _sibling;       /* For bidirectional traffic.  	*/\
-  BOOL          _passive;       /* YES means already connected. */\
+  GSSocketStream *_sibling;    	/* For bidirectional traffic.  	*/\
+  BOOL          _connected;     /* YES means already connected. */\
+  BOOL          _opened;     	/* YES means open completed.	*/\
   BOOL		_closing;	/* Must close on next failure.	*/\
   SOCKET        _sock;          /* Needed for ms-windows.       */\
   id            _handler;       /* TLS/SOCKS handler.           */\
@@ -82,7 +83,7 @@ SOCKIVARS
  * setter for passive (the underlying socket connection is already open and
  * doesw not need to be re-opened).
  */
-- (void) _setPassive: (BOOL)passive;
+- (void) _setConnected: (BOOL)passive;
 
 /**
  * setter for sibling
@@ -121,7 +122,7 @@ SOCKIVARS
 - (NSInteger) _read: (uint8_t *)buffer maxLength: (NSUInteger)len;
 - (void) _setClosing: (BOOL)passive;
 - (void) _setHandler: (id)h;
-- (void) _setPassive: (BOOL)passive;
+- (void) _setConnected: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
 - (BOOL) _setSocketAddress: (NSString*)address
@@ -162,7 +163,7 @@ SOCKIVARS
 - (void) _setAddress: (struct sockaddr*)address;
 - (void) _setClosing: (BOOL)passive;
 - (void) _setHandler: (id)h;
-- (void) _setPassive: (BOOL)passive;
+- (void) _setConnected: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
 - (BOOL) _setSocketAddress: (NSString*)address
@@ -218,7 +219,7 @@ SOCKIVARS
 - (void) _setAddress: (struct sockaddr*)address;
 - (void) _setClosing: (BOOL)passive;
 - (void) _setHandler: (id)h;
-- (void) _setPassive: (BOOL)passive;
+- (void) _setConnected: (BOOL)passive;
 - (void) _setSibling: (GSSocketStream*)sibling;
 - (void) _setSock: (SOCKET)sock;
 - (BOOL) _setSocketAddress: (NSString*)address
