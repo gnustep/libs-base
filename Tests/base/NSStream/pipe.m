@@ -85,6 +85,12 @@ int main()
       [rl runMode: NSDefaultRunLoopMode beforeDate: end];
     }
   PASS([goldData isEqualToData:testData], "Local pipe");
+  [defaultInput close];
+  [defaultOutput close];
+  [defaultInput removeFromRunLoop: rl forMode: NSDefaultRunLoopMode];
+  [defaultOutput removeFromRunLoop: rl forMode: NSDefaultRunLoopMode];
+  [defaultInput setDelegate: nil];
+  [defaultOutput setDelegate: nil];
   [arp release];
   return 0;
 }
