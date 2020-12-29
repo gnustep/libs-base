@@ -113,6 +113,8 @@ typedef GSString	*ivars;
   (_scanLocation >= myLength()) ? NO : YES;\
 })
 
+BOOL GSScanDouble(unichar *buf, unsigned length, double *result);
+
 /**
  * <p>
  *   The <code>NSScanner</code> class cluster (currently a single class in
@@ -787,12 +789,11 @@ typedef GSString	*ivars;
  */
 - (BOOL) scanDouble: (double *)value
 {
+  unichar	buf[2000];
+  unsigned	pos = 0;
   unichar	c = 0;
-  double	num = 0.0;
-  long int	exponent = 0;
-  BOOL		negative = NO;
   BOOL		got_dot = NO;
-  BOOL		got_digit = NO;
+  BOOL		digits = 0;
   unsigned int	saveScanLocation = _scanLocation;
 
   /* Skip whitespace */
@@ -811,37 +812,24 @@ typedef GSString	*ivars;
 	    _scanLocation++;
 	    break;
 	  case '-':
-	    negative = YES;
 	    _scanLocation++;
+	    buf[pos++] = '-';
 	    break;
 	}
     }
 
-    /* Process number */
-  while (_scanLocation < myLength())
+  while (_scanLocation < myLength() && pos < 1050)
     {
       c = myCharacter(_scanLocation);
       if ((c >= '0') && (c <= '9'))
 	{
-	  /* Ensure that the number being accumulated will not overflow. */
-	  if (num >= (DBL_MAX / 10.000000001))
-	    {
-	      ++exponent;
-	    }
-	  else
-	    {
-	      num = (num * 10.0) + (c - '0');
-	      got_digit = YES;
-	    }
-            /* Keep track of the number of digits after the decimal point.
-	       If we just divided by 10 here, we would lose precision. */
-	  if (got_dot)
-	    --exponent;
+	  digits++;
+	  buf[pos++] = c;
         }
       else if (!got_dot && (c == _decimal))
 	{
-	  /* Note that we have found the decimal point. */
 	  got_dot = YES;
+	  buf[pos++] = '.';
         }
       else
 	{
@@ -850,7 +838,7 @@ typedef GSString	*ivars;
         }
       _scanLocation++;
     }
-  if (!got_digit)
+  if (0 == digits)
     {
       _scanLocation = saveScanLocation;
       return NO;
@@ -859,38 +847,49 @@ typedef GSString	*ivars;
   /* Check for trailing exponent */
   if ((_scanLocation < myLength()) && ((c == 'e') || (c == 'E')))
     {
-      unsigned int	expScanLocation = _scanLocation;
-      int expval;
-      
+      unsigned	saveExpLoc = _scanLocation;
+      unsigned	saveExpPos = pos;
+      BOOL	got_exp = NO;
 
+      buf[pos++] = c;
       _scanLocation++;
-      if ([self _scanInt: &expval])
+      if (_scanLocation < myLength())
 	{
-        /* Check for exponent overflow */
-          if (num)
-            {
-              if ((exponent > 0) && (expval > (LONG_MAX - exponent)))
-                exponent = LONG_MAX;
-              else if ((exponent < 0) && (expval < (LONG_MIN - exponent)))
-                exponent = LONG_MIN;
-              else
-                exponent += expval;
-            }
+	  switch (myCharacter(_scanLocation))
+	    {
+	      case '+':
+		_scanLocation++;
+		break;
+	      case '-':
+		_scanLocation++;
+		buf[pos++] = '-';
+		break;
+	    }
 	}
-      else
+      while (_scanLocation < myLength() && pos < 1060)
 	{
-	  /* Numbers like 1.23eFOO are accepted (as 1.23). */
-	  _scanLocation = expScanLocation;
+	  c = myCharacter(_scanLocation);
+	  if ((c < '0') || (c > '9'))
+	    {
+	      break;
+	    }
+	  got_exp = YES;
+	  _scanLocation++;
+	  buf[pos++] = c;
+	}
+      if (!got_exp)
+	{
+	  /* No exponent found: the e/E terminated the number
+	   */
+	  _scanLocation = saveExpLoc;
+	  pos = saveExpPos;
 	}
     }
-  if (value)
+ 
+  if (NO == GSScanDouble(buf, pos, value))
     {
-      if (num && exponent)
-	num *= pow(10.0, (double) exponent);
-      if (negative)
-	*value = -num;
-      else
-	*value = num;
+      _scanLocation = saveScanLocation;
+      return NO;
     }
   return YES;
 }
@@ -1375,6 +1374,7 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
   int	        exponent = 0;
   BOOL	        negativeMantissa = NO;
   BOOL		negativeExponent = NO;
+  unsigned	shift = 0;
   unsigned	pos = 0;
   int           mantissaLength;
   int           dotPos = -1;
@@ -1423,6 +1423,21 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
       else
 	{
           mantissaLength++;
+	}
+      if (19 == mantissaLength)
+	{
+	  if (dotPos > 0 && '0' == mantissa[0])
+	    {
+	      dotPos--;
+	      mantissaLength--;
+	      memmove(mantissa, mantissa + 1, 18);
+	    }
+	  else if (0 == dotPos && '0' == mantissa[1])
+	    {
+	      mantissaLength--;
+	      shift++;
+	      memmove(mantissa + 1, mantissa + 2, 17);
+	    }
 	}
     }
   if (0 == mantissaLength)
@@ -1506,6 +1521,7 @@ GSScanDouble(unichar *buf, unsigned length, double *result)
     {
       exponent = dotPos + exponent;
     }
+  exponent -= shift;
   if (exponent < 0)
     {
       negativeExponent = YES;
