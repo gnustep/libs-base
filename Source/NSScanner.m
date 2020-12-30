@@ -201,6 +201,7 @@ typedef GSString	*ivars;
 - (void) _setString: (NSString*)aString
 {
   _scanLocation = 0;
+  _isUnicode = NO;
   if (nil == aString)
     {
       aString = _empty;
