@@ -901,11 +901,23 @@ typedef GSString	*ivars;
       c = mySevenBit(_scanLocation);
       if (c < '0' || c > '9')
         {
-          if (_decimal != c || dotPos >= 0)
+          if (dotPos >= 0)
             {
-              break;    // End of mantissa
+              break;    // Already found dot; must be end of mantissa
             }
-          dotPos = mantissaLength;
+	  /* The decimal separator can in theory be outside the ascii range,
+	   * and if it is we must fetch the current unicode character in order
+	   * to perform the comparison.
+	   */
+	  if (_decimal == c
+	    || (_decimal > 127 && _decimal == myCharacter(_scanLocation)))
+	    {
+	      dotPos = mantissaLength;
+	    }
+	  else
+	    {
+              break;    // Not a dot; must be end of mantissa
+	    }
         }
       else
         {
