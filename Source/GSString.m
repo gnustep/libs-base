@@ -2506,65 +2506,6 @@ dataUsingEncoding_u(GSStr self, NSStringEncoding encoding, BOOL lossy)
     }
 }
 
-extern BOOL GSScanDouble(unichar*, unsigned, double*);
-
-static inline double
-doubleValue_c(GSStr self)
-{
-  const char	*ptr = (const char*)self->_contents.c;
-  const char	*end = ptr + self->_count;
-
-  while (ptr < end && isspace(*ptr))
-    {
-      ptr++;
-    }
-  if (ptr == end)
-    {
-      return 0.0;
-    }
-  else
-    {
-      unsigned	s = 99;
-      unichar	b[100];
-      unichar	*u = b;
-      double	d = 0.0;
-
-      /* use static buffer unless string is really long, in which case
-       * we use the stack to allocate a bigger one.
-       */
-      if (GSToUnicode(&u, &s, (const uint8_t*)ptr, end - ptr,
-	internalEncoding, NSDefaultMallocZone(), GSUniTerminate) == NO)
-	{
-	  return 0.0;
-	}
-      if (GSScanDouble(u, end - ptr, &d) == NO)
-	{
-	  d = 0.0;
-	}
-      if (u != b)
-	{
-	  NSZoneFree(NSDefaultMallocZone(), u);
-	}
-      return d;
-    }
-}
-
-static inline double
-doubleValue_u(GSStr self)
-{
-  if (self->_count == 0)
-    {
-      return 0.0;
-    }
-  else
-    {
-      double	d = 0.0;
-
-      GSScanDouble(self->_contents.u, self->_count, &d);
-      return d;
-    }
-}
-
 static inline void
 fillHole(GSStr self, unsigned index, unsigned size)
 {
@@ -3895,11 +3836,6 @@ agree, create a new GSCInlineString otherwise.
   return dataUsingEncoding_c((GSStr)self, encoding, flag);
 }
 
-- (double) doubleValue
-{
-  return doubleValue_c((GSStr)self);
-}
-
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   if ([aCoder allowsKeyedCoding])
@@ -3922,11 +3858,6 @@ agree, create a new GSCInlineString otherwise.
 - (NSStringEncoding) fastestEncoding
 {
   return internalEncoding;
-}
-
-- (float) floatValue
-{
-  return doubleValue_c((GSStr)self);
 }
 
 - (void) getCharacters: (unichar*)buffer
@@ -4271,11 +4202,6 @@ agree, create a new GSCInlineString otherwise.
   return dataUsingEncoding_u((GSStr)self, encoding, flag);
 }
 
-- (double) doubleValue
-{
-  return doubleValue_u((GSStr)self);
-}
-
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   if ([aCoder allowsKeyedCoding])
@@ -4299,11 +4225,6 @@ agree, create a new GSCInlineString otherwise.
 - (NSStringEncoding) fastestEncoding
 {
   return NSUnicodeStringEncoding;
-}
-
-- (float) floatValue
-{
-  return doubleValue_u((GSStr)self);
 }
 
 - (void) getCharacters: (unichar*)buffer
@@ -4799,14 +4720,6 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     }
 }
 
-- (double) doubleValue
-{
-  if (_flags.wide == 1)
-    return doubleValue_u((GSStr)self);
-  else
-    return doubleValue_c((GSStr)self);
-}
-
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   if ([aCoder allowsKeyedCoding])
@@ -4844,14 +4757,6 @@ NSAssert(_flags.owned == 1 && _zone != 0, NSInternalInconsistencyException);
     return NSUnicodeStringEncoding;
   else
     return internalEncoding;
-}
-
-- (float) floatValue
-{
-  if (_flags.wide == 1)
-    return doubleValue_u((GSStr)self);
-  else
-    return doubleValue_c((GSStr)self);
 }
 
 - (void) getCharacters: (unichar*)buffer
