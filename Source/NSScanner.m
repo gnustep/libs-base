@@ -77,6 +77,7 @@ static Class		GSUnicodeStringClass;
 static Class		GSMutableStringClass;
 static Class		GSPlaceholderStringClass;
 static id		_holder;
+static NSString		*_empty;
 static NSCharacterSet	*defaultSkipSet;
 static SEL		memSel;
 static NSStringEncoding internalEncoding = NSISOLatin1StringEncoding;
@@ -159,6 +160,7 @@ typedef GSString	*ivars;
       GSMutableStringClass = [GSMutableString class];
       GSPlaceholderStringClass = [GSPlaceholderString class];
       _holder = (id)NSAllocateObject(GSPlaceholderStringClass, 0, 0);
+      _empty = [_holder initWithString: @""];
       externalEncoding = [NSString defaultCStringEncoding];
       if (GSPrivateIsByteEncoding(externalEncoding) == YES)
 	{
@@ -196,9 +198,13 @@ typedef GSString	*ivars;
   return scanner;
 }
 
-- (BOOL) _setString: (NSString*)aString
+- (void) _setString: (NSString*)aString
 {
   _scanLocation = 0;
+  if (nil == aString)
+    {
+      aString = _empty;
+    }
   if (aString != _string)
     {
       Class	c = object_getClass(aString);
@@ -216,14 +222,13 @@ typedef GSString	*ivars;
 	{
 	  _string = RETAIN(aString);
 	}
-      else if ([aString isKindOfClass: NSStringClass])
+      else if (GSObjCIsKindOf(c, NSStringClass) == YES)
 	{
 	  _string = [_holder initWithString: aString];
 	}
       else
 	{
-	  NSLog(@"Scanner initialised with something not a string");
-	  return NO;
+	  _string = [_holder initWithString: [aString description]];
 	}
       c = object_getClass(_string);
       if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
@@ -231,11 +236,12 @@ typedef GSString	*ivars;
 	  _isUnicode = YES;
 	}
     }
-  return YES;
 }
 
 /** Used by NSString/GSString to avoid creating/destroying a new scanner
  * every time we want to scan a double.
+ * Since this is a private method, we trust that the caller supplies a
+ * valid string argument.
  */
 + (BOOL) _scanDouble: (double*)value from: (NSString*)str
 {
@@ -246,12 +252,11 @@ typedef GSString	*ivars;
   pthread_mutex_lock(&myLock);
   if (nil == doubleScanner)
     {
-      doubleScanner = [[self alloc] initWithString: @""];
+      doubleScanner = [[self alloc] initWithString: _empty];
     }
-  if ([doubleScanner _setString: str])
-    {
-      ok = [doubleScanner scanDouble: value];
-    }
+  [doubleScanner _setString: str];
+  ok = [doubleScanner scanDouble: value];
+  [doubleScanner _setString: _empty];		// Release scanned string
   pthread_mutex_unlock(&myLock);
   return ok;
 }
@@ -275,15 +280,19 @@ typedef GSString	*ivars;
       if (aString == nil)
 	{
 	  NSLog(@"Scanner initialised with nil string");
-	  aString = @"";
+	  aString = _empty;
 	}
-      if (NO == [self _setString: aString])
+      if ([aString isKindOfClass: NSStringClass] == NO)
 	{
+	  NSLog(@"Scanner initialised with something not a string");
 	  DESTROY(self);
-	  return nil;
 	}
-      [self setCharactersToBeSkipped: defaultSkipSet];
-      _decimal = '.';
+      else
+	{
+	  [self _setString: aString];
+	  [self setCharactersToBeSkipped: defaultSkipSet];
+	  _decimal = '.';
+	}
     }
   return self;
 }

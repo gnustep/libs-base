@@ -67,6 +67,7 @@
 #import "Foundation/NSLocale.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSNotification.h"
+#import "Foundation/NSScanner.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/FoundationErrors.h"
 // For private method _decodePropertyListForKey:
@@ -127,7 +128,9 @@ uni_tolower(unichar ch)
 
 #import "GNUstepBase/Unicode.h"
 
-extern BOOL GSScanDouble(unichar*, unsigned, double*);
+@interface	NSScanner (Double)
++ (BOOL) _scanDouble: (double*)value from: (NSString*)str;
+@end
 
 @class	GSString;
 @class	GSMutableString;
@@ -199,19 +202,6 @@ static inline BOOL  isWhiteSpace(unichar c)
 }
 
 #define GS_IS_WHITESPACE(X) isWhiteSpace(X)
-
-static NSCharacterSet	*nonspace = nil;
-
-static void setupNonspace(void)
-{
-  if (nil == nonspace)
-    {
-      NSCharacterSet *w;
-
-      w = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-      nonspace = [[w invertedSet] retain];
-    }
-}
 
 
 /* A non-spacing character is one which is part of a 'user-perceived character'
@@ -3967,17 +3957,8 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
  */
 - (double) doubleValue
 {
-  unichar	buf[32];
   double	d = 0.0;
-  NSRange	r;
-
-  setupNonspace();
-  r = [self rangeOfCharacterFromSet: nonspace];
-  if (NSNotFound == r.location) return 0.0;
-  r.length = [self length] - r.location;
-  if (r.length > 32) r.length = 32;
-  [self getCharacters: buf range: r];
-  GSScanDouble(buf, r.length, &d);
+  [NSScanner _scanDouble: &d from: self];
   return d;
 }
 
@@ -3988,17 +3969,8 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
  */
 - (float) floatValue
 {
-  unichar	buf[32];
   double	d = 0.0;
-  NSRange	r;
-
-  setupNonspace();
-  r = [self rangeOfCharacterFromSet: nonspace];
-  if (NSNotFound == r.location) return 0.0;
-  r.length = [self length] - r.location;
-  if (r.length > 32) r.length = 32;
-  [self getCharacters: buf range: r];
-  GSScanDouble(buf, r.length, &d);
+  [NSScanner _scanDouble: &d from: self];
   return (float)d;
 }
 
