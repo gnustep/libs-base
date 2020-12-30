@@ -55,6 +55,8 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSUserDefaults.h"
 
+#import "GSPThread.h"
+
 #import "GSPrivate.h"
 
 
@@ -79,6 +81,13 @@ static NSCharacterSet	*defaultSkipSet;
 static SEL		memSel;
 static NSStringEncoding internalEncoding = NSISOLatin1StringEncoding;
 
+/* Table of binary powers of 10 represented by bits in a byte.
+ * Used to convert decimal integer exponents to doubles.
+ */
+static double powersOf10[] = {
+  1.0e1, 1.0e2, 1.0e4, 1.0e8, 1.0e16, 1.0e32, 1.0e64, 1.0e128, 1.0e256
+};
+
 static inline unichar myGetC(unsigned char c)
 {
   unsigned int  size = 1;
@@ -96,9 +105,14 @@ static inline unichar myGetC(unsigned char c)
  */
 typedef GSString	*ivars;
 #define	myLength()	(((ivars)_string)->_count)
-#define	myUnicode(I)	(((ivars)_string)->_contents.u[I])
+#define	myByte(I)	(((ivars)_string)->_contents.c[I])
+#define	myUnichar(I)	(((ivars)_string)->_contents.u[I])
 #define	myChar(I)	myGetC((((ivars)_string)->_contents.c[I]))
-#define	myCharacter(I)	(_isUnicode ? myUnicode(I) : myChar(I))
+#define	myCharacter(I)	(_isUnicode ? myUnichar(I) : myChar(I))
+/* Macro for getting character values when we do not care about values
+ * outside the ASCII range (other than to know they are outside the range).
+ */
+#define	mySevenBit(I)	(_isUnicode ? myUnichar(I) : myByte(I))
 
 /*
  * Scan characters to be skipped.
@@ -113,7 +127,6 @@ typedef GSString	*ivars;
   (_scanLocation >= myLength()) ? NO : YES;\
 })
 
-BOOL GSScanDouble(unichar *buf, unsigned length, double *result);
 
 /**
  * <p>
@@ -183,6 +196,66 @@ BOOL GSScanDouble(unichar *buf, unsigned length, double *result);
   return scanner;
 }
 
+- (BOOL) _setString: (NSString*)aString
+{
+  _scanLocation = 0;
+  if (aString != _string)
+    {
+      Class	c = object_getClass(aString);
+
+      DESTROY(_string);
+      if (GSObjCIsKindOf(c, GSMutableStringClass) == YES)
+	{
+	  _string = [_holder initWithString: aString];
+	}
+      else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
+	{
+	  _string = RETAIN(aString);
+	}
+      else if (GSObjCIsKindOf(c, GSCStringClass) == YES)
+	{
+	  _string = RETAIN(aString);
+	}
+      else if ([aString isKindOfClass: NSStringClass])
+	{
+	  _string = [_holder initWithString: aString];
+	}
+      else
+	{
+	  NSLog(@"Scanner initialised with something not a string");
+	  return NO;
+	}
+      c = object_getClass(_string);
+      if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
+	{
+	  _isUnicode = YES;
+	}
+    }
+  return YES;
+}
+
+/** Used by NSString/GSString to avoid creating/destroying a new scanner
+ * every time we want to scan a double.
+ */
++ (BOOL) _scanDouble: (double*)value from: (NSString*)str
+{
+  static pthread_mutex_t myLock = PTHREAD_MUTEX_INITIALIZER;
+  static NSScanner	*doubleScanner = nil;
+  BOOL	ok = NO;
+
+  pthread_mutex_lock(&myLock);
+  if (nil == doubleScanner)
+    {
+      doubleScanner = [[self alloc] initWithString: @""];
+    }
+  if ([doubleScanner _setString: str])
+    {
+      ok = [doubleScanner scanDouble: value];
+    }
+  pthread_mutex_unlock(&myLock);
+  return ok;
+}
+
 /**
  * Initialises the scanner to scan aString.  The GNUstep
  * implementation may make an internal copy of the original
@@ -194,49 +267,24 @@ BOOL GSScanDouble(unichar *buf, unsigned length, double *result);
  */
 - (id) initWithString: (NSString *)aString
 {
-  Class	c;
-
-  if ((self = [super init]) == nil)
-    return nil;
-  /*
-   * Ensure that we have a known string so we can access its internals directly.
-   */
-  if (aString == nil)
+  if ((self = [super init]) != nil)
     {
-      NSLog(@"Scanner initialised with nil string");
-      aString = @"";
+      /* Ensure that we have a known string so we can access
+       * its internals directly.
+       */
+      if (aString == nil)
+	{
+	  NSLog(@"Scanner initialised with nil string");
+	  aString = @"";
+	}
+      if (NO == [self _setString: aString])
+	{
+	  DESTROY(self);
+	  return nil;
+	}
+      [self setCharactersToBeSkipped: defaultSkipSet];
+      _decimal = '.';
     }
-
-  c = object_getClass(aString);
-  if (GSObjCIsKindOf(c, GSMutableStringClass) == YES)
-    {
-      _string = [_holder initWithString: aString];
-    }
-  else if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
-    {
-      _string = RETAIN(aString);
-    }
-  else if (GSObjCIsKindOf(c, GSCStringClass) == YES)
-    {
-      _string = RETAIN(aString);
-    }
-  else if ([aString isKindOfClass: NSStringClass])
-    {
-      _string = [_holder initWithString: aString];
-    }
-  else
-    {
-      DESTROY(self);
-      NSLog(@"Scanner initialised with something not a string");
-      return nil;
-    }
-  c = object_getClass(_string);
-  if (GSObjCIsKindOf(c, GSUnicodeStringClass) == YES)
-    {
-      _isUnicode = YES;
-    }
-  [self setCharactersToBeSkipped: defaultSkipSet];
-  _decimal = '.';
   return self;
 }
 
@@ -789,11 +837,21 @@ BOOL GSScanDouble(unichar *buf, unsigned length, double *result);
  */
 - (BOOL) scanDouble: (double *)value
 {
-  unichar	buf[2000];
-  unsigned	pos = 0;
   unichar	c = 0;
-  BOOL		got_dot = NO;
-  BOOL		digits = 0;
+  char          mantissa[20];
+  char		*ptr;
+  double        *d;
+  double        result;
+  double        e;
+  int		exponent = 0;
+  BOOL          negativeMantissa = NO;
+  BOOL          negativeExponent = NO;
+  unsigned      shift = 0;
+  int           mantissaLength;
+  int           dotPos = -1;
+  int           hi = 0;
+  int           lo = 0;
+  BOOL		mantissaDigit = NO;
   unsigned int	saveScanLocation = _scanLocation;
 
   /* Skip whitespace */
@@ -806,90 +864,190 @@ BOOL GSScanDouble(unichar *buf, unsigned length, double *result);
   /* Check for sign */
   if (_scanLocation < myLength())
     {
-      switch (myCharacter(_scanLocation))
+      switch (mySevenBit(_scanLocation))
 	{
 	  case '+':
 	    _scanLocation++;
 	    break;
 	  case '-':
 	    _scanLocation++;
-	    buf[pos++] = '-';
+	    negativeMantissa = YES;
 	    break;
 	}
     }
-
-  while (_scanLocation < myLength() && pos < 1050)
-    {
-      c = myCharacter(_scanLocation);
-      if ((c >= '0') && (c <= '9'))
-	{
-	  digits++;
-	  buf[pos++] = c;
-        }
-      else if (!got_dot && (c == _decimal))
-	{
-	  got_dot = YES;
-	  buf[pos++] = '.';
-        }
-      else
-	{
-	  /* Any other character terminates the number. */
-	  break;
-        }
-      _scanLocation++;
-    }
-  if (0 == digits)
+  if (_scanLocation >= myLength())
     {
       _scanLocation = saveScanLocation;
       return NO;
     }
 
-  /* Check for trailing exponent */
-  if ((_scanLocation < myLength()) && ((c == 'e') || (c == 'E')))
+  /* Now we build up the mantissa digits.  Leading zeros are ignored, but
+   * those after the decimal point are counted in order to adjust the
+   * exponent later.
+   * Excess digits are also ignored ... a double can only handle up to 18
+   * digits of precision.
+   */
+  for (mantissaLength = 0; _scanLocation < myLength(); _scanLocation++)
+    {
+      c = mySevenBit(_scanLocation);
+      if (c < '0' || c > '9')
+        {
+          if (_decimal != c || dotPos >= 0)
+            {
+              break;    // End of mantissa
+            }
+          dotPos = mantissaLength;
+        }
+      else
+        {
+	  mantissaDigit = YES;
+	  if (0 == mantissaLength && '0' == c)
+	    {
+	      if (dotPos >= 0)
+		{
+		  shift++;	// Leading zero after decimal place
+		}
+	    }
+	  else if (mantissaLength < 19)
+	    {
+	      mantissa[mantissaLength++] = c;
+	    }
+        }
+    }
+  if (NO == mantissaDigit)
+    {
+      _scanLocation = saveScanLocation;
+      return NO;
+    }
+  if (mantissaLength > 18)
+    {
+      /* Mantissa too long ... ignore excess.
+       */
+      mantissaLength = 18;
+    }
+  if (dotPos < 0)
+    {
+      dotPos = mantissaLength;
+    }
+  dotPos -= mantissaLength;
+ 
+  /* Convert mantissa characters to a double value
+   */
+  for (ptr = mantissa; mantissaLength > 9; mantissaLength -= 1)
+    {
+      c = *ptr;
+      ptr += 1;
+      hi = hi * 10 + (c - '0');
+    }
+  for (; mantissaLength > 0; mantissaLength -= 1)
+    {
+      c = *ptr;
+      ptr += 1;
+      lo = lo * 10 + (c - '0');
+    }
+  result = (1.0e9 * hi) + lo;
+
+  /* Scan the exponent (if any)
+   */
+  if (_scanLocation < myLength()
+    && ((c = mySevenBit(_scanLocation)) == 'e' || c == 'E'))
     {
       unsigned	saveExpLoc = _scanLocation;
-      unsigned	saveExpPos = pos;
-      BOOL	got_exp = NO;
 
-      buf[pos++] = c;
-      _scanLocation++;
-      if (_scanLocation < myLength())
+      _scanLocation++;			// Step past E/e
+      if (_scanLocation >= myLength())
 	{
-	  switch (myCharacter(_scanLocation))
+	  _scanLocation = saveExpLoc;	// No exponent
+	}
+      else
+	{
+	  switch (mySevenBit(_scanLocation))
 	    {
 	      case '+':
 		_scanLocation++;
 		break;
 	      case '-':
 		_scanLocation++;
-		buf[pos++] = '-';
+		negativeExponent = YES;
 		break;
 	    }
-	}
-      while (_scanLocation < myLength() && pos < 1060)
-	{
-	  c = myCharacter(_scanLocation);
-	  if ((c < '0') || (c > '9'))
+	  if (_scanLocation >= myLength()
+	    || (c = mySevenBit(_scanLocation)) < '0' || c > '9')
 	    {
-	      break;
+	      _scanLocation = saveExpLoc;	// No exponent
 	    }
-	  got_exp = YES;
-	  _scanLocation++;
-	  buf[pos++] = c;
-	}
-      if (!got_exp)
-	{
-	  /* No exponent found: the e/E terminated the number
-	   */
-	  _scanLocation = saveExpLoc;
-	  pos = saveExpPos;
+	  else
+	    {
+	      exponent = c - '0';
+	      _scanLocation++;
+	      while (_scanLocation < myLength()
+		&& (c = mySevenBit(_scanLocation)) >= '0' && c <= '9')
+		{
+		  exponent = exponent * 10 + (c - '0');
+		  _scanLocation++;
+		}
+	    }
 	}
     }
  
-  if (NO == GSScanDouble(buf, pos, value))
+  /* Add in the amount to shift the exponent depending on the position
+   * of the decimal point in the mantissa and check the adjusted sign
+   * of the exponent.
+   */
+  if (YES == negativeExponent)
+    {
+      exponent = dotPos - exponent;
+    }
+  else
+    {
+      exponent = dotPos + exponent;
+    }
+  exponent -= shift;
+  if (exponent < 0)
+    {
+      negativeExponent = YES;
+      exponent = -exponent;
+    }
+  else
+    {
+      negativeExponent = NO;
+    }
+  if (exponent > 511)
     {
       _scanLocation = saveScanLocation;
-      return NO;
+      return NO;        // Maximum exponent exceeded
+    }
+
+  /* Convert the exponent to a double then apply it to the value from
+   * the mantissa.
+   */
+  e = 1.0;
+  for (d = powersOf10; exponent != 0; exponent >>= 1, d += 1)
+    {
+      if (exponent & 1)
+        {
+          e *= *d;
+        }
+    }
+  if (YES == negativeExponent)
+    {
+      result /= e;
+    }
+  else
+    {
+      result *= e;
+    }
+
+  if (0 != result)
+    {
+      if (YES == negativeMantissa)
+        {
+          *value = -result;
+        }
+      else
+        {
+          *value = result;
+        }
     }
   return YES;
 }
@@ -948,7 +1106,7 @@ BOOL GSScanDouble(unichar *buf, unsigned length, double *result);
 	{
 	  while (_scanLocation < myLength())
 	    {
-	      if ((*memImp)(aSet, memSel, myUnicode(_scanLocation)) == NO)
+	      if ((*memImp)(aSet, memSel, myUnichar(_scanLocation)) == NO)
 		break;
 	      _scanLocation++;
 	    }
@@ -1007,7 +1165,7 @@ BOOL GSScanDouble(unichar *buf, unsigned length, double *result);
     {
       while (_scanLocation < myLength())
 	{
-	  if ((*memImp)(aSet, memSel, myUnicode(_scanLocation)) == YES)
+	  if ((*memImp)(aSet, memSel, myUnichar(_scanLocation)) == YES)
 	    break;
 	  _scanLocation++;
 	}
@@ -1285,287 +1443,3 @@ BOOL GSScanDouble(unichar *buf, unsigned length, double *result);
 }
 @end
 
-/*
- * Some utilities
- */
-BOOL
-GSScanInt(unichar *buf, unsigned length, int *result)
-{
-  unsigned int num = 0;
-  const unsigned int limit = UINT_MAX / 10;
-  BOOL negative = NO;
-  BOOL overflow = NO;
-  BOOL got_digits = NO;
-  unsigned int pos = 0;
-
-  /* Check for sign */
-  if (pos < length)
-    {
-      switch (buf[pos])
-	{
-	  case '+':
-	    pos++;
-	    break;
-	  case '-':
-	    negative = YES;
-	    pos++;
-	    break;
-	}
-    }
-
-  /* Process digits */
-  while (pos < length)
-    {
-      unichar digit = buf[pos];
-
-      if ((digit < '0') || (digit > '9'))
-	break;
-      if (!overflow)
-	{
-	  if (num >= limit)
-	    overflow = YES;
-	  else
-	    num = num * 10 + (digit - '0');
-	}
-      pos++;
-      got_digits = YES;
-    }
-
-  /* Save result */
-  if (!got_digits)
-    {
-      return NO;
-    }
-  if (result)
-    {
-      if (overflow
-	|| (num > (negative ? (NSUInteger)INT_MIN : (NSUInteger)INT_MAX)))
-	*result = negative ? INT_MIN: INT_MAX;
-      else if (negative)
-	*result = -num;
-      else
-	*result = num;
-    }
-  return YES;
-}
-
-/* Table of binary powers of 10 represented by bits in a byte.
- * Used to convert decimal integer exponents to doubles.
- */
-static double powersOf10[] = {
-  1.0e1, 1.0e2, 1.0e4, 1.0e8, 1.0e16, 1.0e32, 1.0e64, 1.0e128, 1.0e256
-};
-
-/**
- * Scan in a double value in the standard locale ('.' as decimal point).<br />
- * Return YES on success, NO on failure.<br />
- * The value pointed to by result is unmodified on failure.<br />
- * No value is returned in result if it is a null pointer.
- */
-BOOL
-GSScanDouble(unichar *buf, unsigned length, double *result)
-{
-  unichar	c = 0;
-  char          mantissa[20];
-  const char    *ptr;
-  double        *d;
-  double        value;
-  double        e;
-  int	        exponent = 0;
-  BOOL	        negativeMantissa = NO;
-  BOOL		negativeExponent = NO;
-  unsigned	shift = 0;
-  unsigned	pos = 0;
-  int           mantissaLength;
-  int           dotPos = -1;
-  int           hi = 0;
-  int           lo = 0;
-
-  /* Skip whitespace */
-  while (pos < length && isspace((int)buf[pos]))
-    {
-      pos++;
-    }
-  if (pos >= length)
-    {
-      return NO;
-    }
-
-  /* Check for sign */
-  switch (buf[pos])
-    {
-      case '+':
-	pos++;
-	break;
-      case '-':
-	negativeMantissa = YES;
-	pos++;
-	break;
-    }
-  if (pos >= length)
-    {
-      return NO;
-    }
-
-  /* Scan the mantissa ... at most 18 digits and a decimal point.
-   */
-  for (mantissaLength = 0; pos < length && mantissaLength < 19; pos++)
-    {
-      mantissa[mantissaLength] = c = buf[pos];
-      if (!isdigit(c))
-        {
-          if ('.' != c || dotPos >= 0)
-            {
-              break;    // End of mantissa
-            }
-          dotPos = mantissaLength;
-        }
-      else
-	{
-          mantissaLength++;
-	}
-      if (19 == mantissaLength)
-	{
-	  if (dotPos > 0 && '0' == mantissa[0])
-	    {
-	      dotPos--;
-	      mantissaLength--;
-	      memmove(mantissa, mantissa + 1, 18);
-	    }
-	  else if (0 == dotPos && '0' == mantissa[1])
-	    {
-	      mantissaLength--;
-	      shift++;
-	      memmove(mantissa + 1, mantissa + 2, 17);
-	    }
-	}
-    }
-  if (0 == mantissaLength)
-    {
-      return NO;        // No mantissa ... not a double
-    }
-  if (mantissaLength > 18)
-    {
-      /* Mantissa too long ... ignore excess.
-       */
-      mantissaLength = 18;
-    }
-  if (dotPos < 0)
-    {
-      dotPos = mantissaLength;
-    }
-  dotPos -= mantissaLength;      // Exponent offset for decimal point
-
-  /* Convert mantissa characters to a double value
-   */
-  for (ptr = mantissa; mantissaLength > 9; mantissaLength -= 1)
-    {
-      c = *ptr;
-      ptr += 1;
-      hi = hi * 10 + (c - '0');
-    }
-  for (; mantissaLength > 0; mantissaLength -= 1)
-    {
-      c = *ptr;
-      ptr += 1;
-      lo = lo * 10 + (c - '0');
-    }
-  value = (1.0e9 * hi) + lo;
-
-  /* Scan the exponent (if any)
-   */
-  if (pos < length && ('E' == (c = buf[pos]) || 'e' == c))
-    {
-      if (++pos >= length)
-        {
-          return NO;    // Missing exponent
-        }
-      c = buf[pos];
-      if ('-' == c)
-        {
-          negativeExponent = YES;
-          if (++pos >= length)
-            {
-              return NO;    // Missing exponent
-            }
-          c = buf[pos];
-        }
-      else if ('+' == c)
-        {
-          if (++pos >= length)
-            {
-              return NO;    // Missing exponent
-            }
-          c = buf[pos];
-        }
-      while (isdigit(c))
-        {
-          exponent = exponent * 10 + (c - '0');
-          if (++pos >= length)
-            {
-              break;
-            }
-          c = buf[pos];
-        }
-    }
-
-  /* Add in the amount to shift the exponent depending on the position
-   * of the decimal point in the mantissa and check the adjusted sign
-   * of the exponent.
-   */
-  if (YES == negativeExponent)
-    {
-      exponent = dotPos - exponent;
-    }
-  else
-    {
-      exponent = dotPos + exponent;
-    }
-  exponent -= shift;
-  if (exponent < 0)
-    {
-      negativeExponent = YES;
-      exponent = -exponent;
-    }
-  else
-    {
-      negativeExponent = NO;
-    }
-  if (exponent > 511)
-    {
-      return NO;        // Maximum exponent exceeded
-    }
-
-  /* Convert the exponent to a double then apply it to the value from
-   * the mantissa.
-   */
-  e = 1.0;
-  for (d = powersOf10; exponent != 0; exponent >>= 1, d += 1)
-    {
-      if (exponent & 1)
-        {
-          e *= *d;
-        }
-    }
-  if (YES == negativeExponent)
-    {
-      value /= e;
-    }
-  else
-    {
-      value *= e;
-    }
-
-  if (0 != result)
-    {
-      if (YES == negativeMantissa)
-        {
-          *result = -value;
-        }
-      else
-        {
-          *result = value;
-        }
-    }
-  return YES;
-}
