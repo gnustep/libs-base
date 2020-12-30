@@ -82,8 +82,6 @@ static Class	NSMutableStringClass;
 static Class	GSStringClass;
 static Class	GSMutableStringClass;
 
-extern BOOL GSScanDouble(unichar*, unsigned, double*);
-
 @class	GSMutableDictionary;
 @interface GSMutableDictionary : NSObject	// Help the compiler
 @end
