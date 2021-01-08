@@ -121,6 +121,22 @@ extern "C" {
 - (void) encodeSize: (NSSize)size;
 
 /**
+ *  Encodes a Bool.
+ */
+- (void) encodeBool: (BOOL)aBool;
+
+/**
+ *  Encodes a NSInteger.
+ */
+- (void) encodeInteger: (NSInteger)anInteger;
+
+/**
+ *  Encodes a NSUInteger.
+ */
+- (void) encodeUInteger: (NSUInteger)anUInteger;
+
+
+/**
  *  Encodes structure or object of given type, which may be obtained
  *  through the '<code>@encode(...)</code>' compile-time operator.  Usually
  *  this is used for primitives though it can be used for objects as well.
@@ -182,6 +198,23 @@ extern "C" {
  *  Decodes a size structure.
  */
 - (NSSize) decodeSize;
+
+/**
+ *  Decodes a Bool.
+ */
+- (BOOL) decodeBool;
+
+/**
+ *  Decodes a NSInteger.
+ */
+- (NSInteger) decodeInteger;
+
+/**
+ *  Decodes a NSUInteger.
+ */
+- (NSUInteger) decodeUInteger;
+
+
 
 /**
  *  Decodes structure or object of given type, which may be obtained

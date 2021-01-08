@@ -183,6 +183,21 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
   [self encodeValueOfObjCType: @encode(NSSize) at: &size];
 }
 
+- (void) encodeBool: (BOOL)aBool
+{
+  [self encodeValueOfObjCType: @encode(BOOL) at: &aBool];
+}
+
+- (void) encodeInteger: (NSInteger)anInteger
+{
+  [self encodeValueOfObjCType: @encode(NSInteger) at: &anInteger];
+}
+
+- (void) encodeUInteger: (NSInteger)anUInteger
+{
+  [self encodeValueOfObjCType: @encode(NSUInteger) at: &anUInteger];
+}
+
 - (void) encodeValuesOfObjCTypes: (const char*)types,...
 {
   va_list	ap;
@@ -291,6 +306,30 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 
   [self decodeValueOfObjCType: @encode(NSSize) at: &size];
   return size;
+}
+
+- (BOOL) decodeBool
+{
+  BOOL	aBool;
+
+  [self decodeValueOfObjCType: @encode(BOOL) at: &aBool];
+  return aBool;
+}
+
+- (NSInteger) decodeInteger
+{
+  NSInteger	integer;
+
+  [self decodeValueOfObjCType: @encode(NSInteger) at: &integer];
+  return integer;
+}
+
+- (NSUInteger) decodeUInteger
+{
+  NSUInteger	uinteger;
+
+  [self decodeValueOfObjCType: @encode(NSUInteger) at: &uinteger];
+  return uinteger;
 }
 
 - (void) decodeValuesOfObjCTypes: (const char*)types,...
