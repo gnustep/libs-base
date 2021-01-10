@@ -193,10 +193,16 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
   [self encodeValueOfObjCType: @encode(NSInteger) at: &anInteger];
 }
 
-- (void) encodeUInteger: (NSInteger)anUInteger
+- (void) encodeUInteger: (NSUInteger)anUInteger
 {
   [self encodeValueOfObjCType: @encode(NSUInteger) at: &anUInteger];
 }
+
+- (void) encodeFloat: (float)aFloat
+{
+  [self encodeValueOfObjCType: @encode(float) at: &aFloat];
+}
+
 
 - (void) encodeValuesOfObjCTypes: (const char*)types,...
 {
@@ -330,6 +336,14 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 
   [self decodeValueOfObjCType: @encode(NSUInteger) at: &uinteger];
   return uinteger;
+}
+
+- (float) decodeFloat
+{
+  float	f;
+
+  [self decodeValueOfObjCType: @encode(float) at: &f];
+  return f;
 }
 
 - (void) decodeValuesOfObjCTypes: (const char*)types,...

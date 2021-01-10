@@ -135,6 +135,12 @@ extern "C" {
  */
 - (void) encodeUInteger: (NSUInteger)anUInteger;
 
+/**
+ *  Encodes a float.
+ */
+- (void) encodeFloat: (float)aFloat;
+
+
 
 /**
  *  Encodes structure or object of given type, which may be obtained
@@ -214,7 +220,10 @@ extern "C" {
  */
 - (NSUInteger) decodeUInteger;
 
-
+/**
+ *  Decodes a float.
+ */
+- (float) decodeFloat;
 
 /**
  *  Decodes structure or object of given type, which may be obtained
