@@ -288,6 +288,7 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 - (BOOL) handshake;     /* A handshake/hello is in progress. */
 - (void) hello;         /* Start up the session handshake.   */
 - (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len;
+- (void) remove: (NSStream*)stream;	/* Stream no longer available */
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event;
 - (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len;
 @end
@@ -344,6 +345,18 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 {
   [self subclassResponsibility: _cmd];
   return 0;
+}
+
+- (void) remove: (NSStream*)stream
+{
+  if ((id)stream == (id)istream)
+    {
+      istream = nil;
+    }
+  if ((id)stream == (id)ostream)
+    {
+      ostream = nil;
+    }
 }
 
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
@@ -1505,6 +1518,7 @@ setNonBlocking(SOCKET fd)
     }
   [_sibling _setSibling: nil];
   _sibling = nil;
+  [_handler remove: self];
   DESTROY(_handler);
   [super dealloc];
 }
