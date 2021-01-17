@@ -58,6 +58,11 @@ statusString(NSStreamStatus status)
  * In fact it seems that OSX doesn't send events in that case.
  */
 @interface Logger : NSObject <NSStreamDelegate>
+{
+  NSInputStream		*ip;
+  NSOutputStream	*op;
+  int   		stage;
+}
 
 /* Sets up an intercept for -stream:event: if the stream implements it.
  */
@@ -73,15 +78,20 @@ statusString(NSStreamStatus status)
 
 /* Sets up a pair of streams for logging.
  */
-+ (void) setIn: (NSInputStream*)i andOut: (NSOutputStream*)o;
++ (instancetype) loggerForIn: (NSInputStream*)i andOut: (NSOutputStream*)o;
 
-/* Returns the text of the logged messages.
+/** Return current stage count.
  */
-+ (NSString*) text;
+- (int) stage;
 
 /* The intercept to log events
  */
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event;
+
+/* Returns the text of the logged messages.
+ */
+- (NSString*) text;
+
 @end
 
 @implementation Logger
@@ -90,6 +100,27 @@ static NSMapTable       *eventHandlers = nil;
 static NSMutableArray   *eventLogs = nil;
 static NSInputStream    *sIn = nil;
 static NSOutputStream   *sOut = nil;
+
+- (void) dealloc
+{
+  [ip removeFromRunLoop: [NSRunLoop currentRunLoop]
+                forMode: NSDefaultRunLoopMode];
+  [op removeFromRunLoop: [NSRunLoop currentRunLoop]
+                forMode: NSDefaultRunLoopMode];
+  [ip setDelegate: nil];
+  [op setDelegate: nil];
+  if (sIn == ip)
+    {
+      sIn = nil;
+    }
+  if (sOut == op)
+    {
+      sOut = nil;
+    }
+  DESTROY(ip);
+  DESTROY(op);
+  [super dealloc];
+}
 
 + (void) initialize
 {
@@ -142,6 +173,7 @@ static NSOutputStream   *sOut = nil;
   msg = [NSString stringWithFormat: @"%@ (%@): %@",
     name, statusString([stream streamStatus]), msg];
   [eventLogs addObject: msg];
+  NSLog(@"%@", msg);
   RELEASE(arp);
 }
 
@@ -150,15 +182,41 @@ static NSOutputStream   *sOut = nil;
   return eventLogs;
 }
 
-+ (void) setIn: (NSInputStream*)i andOut: (NSOutputStream*)o
++ (instancetype) loggerForIn: (NSInputStream*)i andOut: (NSOutputStream*)o
 {
+  Logger        *l = [self new];
+
+  ASSIGN(l->ip, i);
+  ASSIGN(l->op, o);
   [self intercept: i];
   sIn = i;
   [self intercept: o];
   sOut = o;
+  [i setDelegate: l];
+  [o setDelegate: l];
+  [eventLogs removeAllObjects];
+  return AUTORELEASE(l);
 }
 
-+ (NSString*) text
+- (int) stage
+{
+  return stage;
+}
+
+- (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
+{
+  void                  (*efunc)(id, SEL, NSStream*, NSStreamEvent);
+  Class                 c = object_getClass(stream);
+
+  efunc = (void (*)(id, SEL, NSStream*, NSStreamEvent))
+    NSMapGet(eventHandlers, (void*)c);
+
+  [Logger log: stream msg: @"before event %@", eventString(stream, event)];
+  (*efunc)(self, _cmd, stream, event);
+  [Logger log: stream msg: @"after event"];
+}
+
+- (NSString*) text
 {
   NSMutableString	*s = [NSMutableString stringWithCapacity: 1024];
   NSUInteger		count = [eventLogs count];
@@ -173,19 +231,6 @@ static NSOutputStream   *sOut = nil;
     }
   [s appendString: @"\n)"];
   return s;
-}
-
-- (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
-{
-  void                  (*efunc)(id, SEL, NSStream*, NSStreamEvent);
-  Class                 c = object_getClass(stream);
-
-  efunc = (void (*)(id, SEL, NSStream*, NSStreamEvent))
-    NSMapGet(eventHandlers, (void*)c);
-
-  [Logger log: stream msg: @"before event %@", eventString(stream, event)];
-  (*efunc)(self, _cmd, stream, event);
-  [Logger log: stream msg: @"after event"];
 }
 
 @end
@@ -258,6 +303,7 @@ static NSOutputStream   *sOut = nil;
 {
   BOOL  closed = NO;
 
+  NSLog(@"-close called");
 #if     GNUSTEP
   if (acceptedIn != nil)
     {
@@ -280,7 +326,11 @@ static NSOutputStream   *sOut = nil;
 #endif
   if (closed)
     {
-      NSLog(@"Closing connection");
+      NSLog(@"-close complete");
+    }
+  else
+    {
+      NSLog(@"-close ignored");
     }
 }
 
@@ -304,10 +354,15 @@ static NSOutputStream   *sOut = nil;
 
 - (void) end
 {
+  NSLog(@"-end");
   [endThread lockWhenCondition: 0];     // Get lock
+  NSLog(@"-end obtained lock");
   [endThread unlockWithCondition: 1];   // Tell thread it can end
+  NSLog(@"-end unlocked to signal server to end");
   [endThread lockWhenCondition: 0];     // Wait for thread to end
+  NSLog(@"-end obtained lock after server end");
   [endThread unlockWithCondition: 0];
+  NSLog(@"-end restored lock");
 }
 
 - (id) init: (BOOL)gnustepServer
@@ -385,6 +440,14 @@ static NSOutputStream   *sOut = nil;
   return self;
 }
 
+- (void) mayRead
+{
+}
+
+- (void) mayWrite
+{
+}
+
 - (void) run
 {
   CREATE_AUTORELEASE_POOL(arp);
@@ -392,8 +455,36 @@ static NSOutputStream   *sOut = nil;
 
   if ([self accept])
     {
+      while (NO == [endThread tryLockWhenCondition: 1])
+        {
+#ifndef _WIN32
+          fd_set            rf, wf, ef;
+          struct timeval    tv = { 0, 10000 };  /* 10000 microseconds */
+          int               result;
+
+          FD_ZERO(&rf);
+          FD_ZERO(&wf);
+          FD_ZERO(&ef);
+          FD_SET(accepted, &rf);
+          FD_SET(accepted, &wf);
+          if ((result = select(accepted + 1, &rf, &wf, &ef, &tv)) != 0)
+            {
+              if (FD_ISSET(accepted, &wf))
+                {
+                  [self mayWrite];
+                }
+              if (FD_ISSET(accepted, &rf))
+                {
+                  [self mayRead];
+                }
+            }
+#endif
+        }
     }
-  [endThread lockWhenCondition: 1];     // Wait until thread is told to end
+  else
+    {
+      [endThread lockWhenCondition: 1];     // Wait until thread is told to end
+    }
   [self close];
   t = thread;
   thread = nil;
@@ -414,25 +505,11 @@ static NSOutputStream   *sOut = nil;
 
 
 @interface      Logger1 : Logger
-{
-  int   stage;
-}
 @end
 @implementation Logger1
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
 {
-  NSInputStream         *i = nil;
-  NSOutputStream        *o = nil;
-
   [Logger log: stream msg: @"before event %@", eventString(stream, event)];
-  if ([stream isKindOfClass: [NSInputStream class]])
-    {
-      i = (NSInputStream*)stream;
-    }
-  else
-    {
-      o = (NSOutputStream*)stream;
-    }
 
   switch (event)
     {
@@ -440,32 +517,32 @@ static NSOutputStream   *sOut = nil;
         if (0 == stage)
           {
             int total = 0;
-            int len = [o write: (uint8_t*)"hello" maxLength: 5]; 
+            int len = [sOut write: (uint8_t*)"hello" maxLength: 5]; 
             PASS(5 == len, "can write 'hello' to stream")
-            PASS([o hasSpaceAvailable],
+            PASS([sOut hasSpaceAvailable],
               "after write, stream still has space available")
             if (testPassed)
               {
                 total += len;
-                len = [o write: (uint8_t*)" world\n" maxLength: 7];
+                len = [sOut write: (uint8_t*)" world\n" maxLength: 7];
                 PASS(7 == len, "can write more to stream")
-                PASS([o hasSpaceAvailable],
+                PASS([sOut hasSpaceAvailable],
                   "after second write, client output still has space available")
               }
             if (testPassed)
               {
                 uint8_t       buf[BUFSIZ];
                 total += len;
-                len = [o write: buf maxLength: 1024];
+                len = [sOut write: buf maxLength: 1024];
                 PASS(1024 == len, "can write 1024 bytes to stream")
-                PASS([o hasSpaceAvailable],
+                PASS([sOut hasSpaceAvailable],
                   "after 1KB write, client output still has space available")
                 if (testPassed)
                   {
                     total += len;
-                    while ([o hasSpaceAvailable])
+                    while ([sOut hasSpaceAvailable])
                       {
-                        len = [o write: buf maxLength: 1024];
+                        len = [sOut write: buf maxLength: 1024];
                         if (len > 0)
                           {
                             total += len;
@@ -478,22 +555,71 @@ static NSOutputStream   *sOut = nil;
         break;
 
       case NSStreamEventOpenCompleted:
-        if (i)
+        if (stream == sIn)
           {
-            [Logger log: i msg: @"Bytes available: %@",
-              [i hasBytesAvailable] ? @"yes" : @"no"];
+            [Logger log: sIn msg: @"Bytes available: %@",
+              [sIn hasBytesAvailable] ? @"yes" : @"no"];
           }
         else
           {
-            [Logger log: o msg: @"Space available: %@",
-              [o hasSpaceAvailable] ? @"yes" : @"no"];
+            [Logger log: sOut msg: @"Space available: %@",
+              [sOut hasSpaceAvailable] ? @"yes" : @"no"];
           }
+        break;
+
+      default:
         break;
     }
   [Logger log: stream msg: @"after event"];
 }
-
 @end
+
+
+@interface      Logger2 : Logger
+@end
+@implementation Logger2
+- (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
+{
+  int   len;
+
+  [Logger log: stream msg: @"before event %@", eventString(stream, event)];
+
+  switch (event)
+    {
+      case NSStreamEventHasSpaceAvailable:
+        switch (stage)
+          {
+            case 0:
+              len = [sOut write: (uint8_t*)"hello" maxLength: 5]; 
+              PASS(5 == len, "can write 'hello' to stream before returning")
+              stage++;
+              break;
+
+            case 1:
+              len = [sOut write: (uint8_t*)" there\n" maxLength: 7]; 
+              PASS(7 == len, "can write ' there\\n' to stream also")
+              stage++;
+              break;
+
+            case 2:
+              PASS(1, "do nothing on third space event")
+              stage++;
+              break;
+
+            case 3:
+              PASS(1, "do nothing on fourth space event")
+              stage++;
+              break;
+          }
+        break;
+
+      default:
+        break;
+    }
+  [Logger log: stream msg: @"after event"];
+}
+@end
+
 
 int main()
 {
@@ -504,6 +630,7 @@ int main()
   NSInputStream         *clientInput;
   NSOutputStream        *clientOutput;
   BOOL                  gnustepServer = NO;
+  NSRunLoop             *rl = [NSRunLoop currentRunLoop];
 
   PASS((server = [[Server alloc] init: gnustepServer]) != nil,
     "can bind to address")
@@ -545,14 +672,15 @@ int main()
   PASS_EQUAL([clientOutput delegate], nil,
     "output stream delegate after setting is nil, not self")
 
-  [Logger setIn: clientInput andOut: clientOutput];
+  Logger        *logger = [Logger loggerForIn: clientInput
+                                       andOut: clientOutput];
 
   PASS(NO == [clientInput hasBytesAvailable],
     "before open, client input does not have bytes available")
   PASS(NO == [clientOutput hasSpaceAvailable],
     "before open, client output does not have space available")
 
-  /* Start the serve thread which will accept connection.
+  /* Start the server thread which will accept connection.
    */
   [server start];
 
@@ -669,7 +797,7 @@ int main()
     statusString(NSStreamStatusError),
     "after output close, client output is still in error state")
 
-  NSLog(@"logs: %@", [Logger text]);
+  NSLog(@"logs: %@", [logger text]);
   END_SET("NSStream connect to server which does no I/O")
 
   START_SET("NSStream connect to server which does no I/O - async")
@@ -688,27 +816,54 @@ int main()
     statusString(NSStreamStatusNotOpen),
     "after connect, client output is initially not open")
 
-  [Logger setIn: clientInput andOut: clientOutput];
-  Logger        *logger = AUTORELEASE([Logger1 new]);
-  NSRunLoop     *rl = [NSRunLoop currentRunLoop];
+  Logger        *logger = [Logger1 loggerForIn: clientInput
+                                        andOut: clientOutput];
 
-  [clientInput setDelegate: logger];
-  [clientOutput setDelegate: logger];
-    
   PASS([clientInput delegate] == logger && [clientOutput delegate] == logger
     && logger != nil, "delegates are set up")
  
   [clientInput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
   [clientOutput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
-  NSLog(@"Opening");
+  NSLog(@"Opening Logger1");
+  [server start];
   [clientInput open];
   [clientOutput open];
-  [rl runMode: NSDefaultRunLoopMode
-   beforeDate: [NSDate dateWithTimeIntervalSinceNow: 5.5]];
-  NSLog(@"%@", [Logger text]);
+  [rl runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.5]];
+  [server end];
+  [clientInput close];
+  [clientOutput close];
+  [clientInput removeFromRunLoop: rl forMode: NSDefaultRunLoopMode];
+  [clientOutput removeFromRunLoop: rl forMode: NSDefaultRunLoopMode];
+  [NSThread sleepForTimeInterval: 0.1];
+  NSLog(@"logs: %@", [logger text]);
 
 
   END_SET("NSStream connect to server which does no I/O - async")
+
+  START_SET("NSStream connect to server which does no I/O - async 2")
+
+  [NSStream getStreamsToHost: host
+                        port: port
+                 inputStream: &clientInput
+                outputStream: &clientOutput];
+  Logger        *logger = [Logger2 loggerForIn: clientInput
+                                        andOut: clientOutput];
+
+  [clientInput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
+  [clientOutput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
+  NSLog(@"Opening Logger2");
+  [server start];
+  [clientInput open];
+  [clientOutput open];
+  [rl runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
+  [server end];
+  PASS([logger stage] == 3,
+    "space notifications stop after event without write")
+  [NSThread sleepForTimeInterval: 0.1];
+  NSLog(@"logs: %@", [logger text]);
+
+
+  END_SET("NSStream connect to server which does no I/O - async 2")
 
   RELEASE(arp);
   return 0;

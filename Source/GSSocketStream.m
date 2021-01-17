@@ -561,11 +561,14 @@ static NSArray  *keys = nil;
           /* Set flag to say we are now doing a handshake.
            */
           handshake = YES;
+	  NSDebugMLLog(@"GSTLSHandler", @"Handshake started for %@", istream);
         }
       if ([session handshake] == YES)
         {
           handshake = NO;               // Handshake is now complete.
           active = [session active];    // Is the TLS session now active?
+	  NSDebugMLLog(@"GSTLSHandler", @"Handshake finished (%@) for %@",
+	    (active ? @"success" : @"failure"), istream);
           if (NO == active)
             {
               NSString  *problem = [session problem];
@@ -2058,6 +2061,8 @@ setNonBlocking(SOCKET fd)
 		  format: @"zero byte read requested"];
     }
 
+  _events &= ~NSStreamEventHasBytesAvailable;
+
   if (_handler == nil)
     return [self _read: buffer maxLength: len];
   else
@@ -2067,8 +2072,6 @@ setNonBlocking(SOCKET fd)
 - (NSInteger) _read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   int readLen;
-
-  _events &= ~NSStreamEventHasBytesAvailable;
 
   if (_currentStatus == NSStreamStatusClosed)
     {

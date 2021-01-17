@@ -120,6 +120,7 @@ NSLog(@"%@ Client %p %@", prefix, theStream, eventString(theStream, streamEvent)
     default: 
       break;
     }
+NSLog(@"%@ Client %p event handled", prefix, theStream);
 }
 
 @end
@@ -286,6 +287,7 @@ NSLog(@"%@ Server %p accept failed (no connection)", prefix, theStream);
 	    }
 	}
     }
+NSLog(@"%@ Server %p event handled", prefix, theStream);
 } 
 
 @end
@@ -306,6 +308,7 @@ int main()
   goldData = [NSData dataWithContentsOfFile: path];
   testData = [NSMutableData dataWithCapacity: 4096];
 
+#if 0
 {
   CREATE_AUTORELEASE_POOL(inner);
 
@@ -430,6 +433,7 @@ int main()
   RELEASE(inner);
 }
 
+#endif
 {
   CREATE_AUTORELEASE_POOL(inner);
 

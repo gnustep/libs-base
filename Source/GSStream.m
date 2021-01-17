@@ -598,14 +598,24 @@ static RunLoopEventType typeForStream(NSStream *aStream)
     {
       id	del;
 
-      _events |= event;
       del = (_delegateValid ? _delegate : nil);
       if (nil == del)
 	{
-	  NSDebugMLLog(@"NSStream", @"%@ sendEvent %@ noted: no delegate set",
+	  NSDebugMLLog(@"NSStream", @"%@ sendEvent %@ ignored: no delegate set",
 	    self, [self stringFromEvent: event]);
 	  return;
 	}
+      if (NSCountMapTable(_loops) == 0)
+	{
+	  NSDebugMLLog(@"NSStream", @"%@ sendEvent %@ ignored: not scheduled",
+	    self, [self stringFromEvent: event]);
+	  return;
+	}
+      /* The stream is operating in asynchronous mode rather than polling mode
+       * so we need to note that the event has been signalled to the delegate
+       * preventing repeated event delivery.
+       */
+      _events |= event;
       NSDebugMLLog(@"NSStream", @"%@ sendEvent %@ noted: passing to %@",
 	self, [self stringFromEvent: event], del);
       [del stream: self handleEvent: event];
