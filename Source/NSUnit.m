@@ -777,10 +777,9 @@
 
 + (NSUnitFrequency *) millihertz
 {
-  NSUnitFrequency *result = [[NSUnitFrequency alloc] initWithSymbol: @"mHz"
-                                              coefficient: 0.001
-                                                 constant: 0.0];
-  return result;
+  return AUTORELEASE([[NSUnitFrequency alloc] initWithSymbol: @"mHz"
+						 coefficient: 0.001
+						    constant: 0.0]);
 }
 
 + (NSUnitFrequency *) microhertz
@@ -1460,10 +1459,9 @@
 
 + (NSUnitVolume *) cubicInches
 {
-  NSUnitVolume *result = [[NSUnitVolume alloc] initWithSymbol: @"in^3"
-                                                  coefficient: 0.0163871
-                                                     constant: 0.0];
-  return result;
+  return AUTORELEASE([[NSUnitVolume alloc] initWithSymbol: @"in^3"
+					      coefficient: 0.0163871
+						 constant: 0.0]);
 }
 
 + (NSUnitVolume *) cubicFeet
