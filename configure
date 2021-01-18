@@ -3008,7 +3008,7 @@ then
 fi
 if test x"$GNUSTEP_TARGET_CONFIG_FILE" = x""; then
   case "$target_os" in
-    mingw*)
+    mingw*|windows*)
       GNUSTEP_TARGET_CONFIG_FILE=./GNUstep.conf ;;
     *)
       GNUSTEP_TARGET_CONFIG_FILE="$GNUSTEP_MAKE_CONFIG" ;;
@@ -3026,7 +3026,7 @@ $as_echo "$GNUSTEP_TARGET_CONFIG_FILE" >&6; }
 # location (used by gnustep-make when building).
 #-----------------------------------------------------------------
 case "$target_os" in
-    mingw*)	enable_env_config=no;;
+    mingw*|windows*)	enable_env_config=no;;
     *)		enable_env_config=yes;;
 esac
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the GNUstep.conf file path can be set in the environment" >&5
@@ -3306,7 +3306,7 @@ GNUSTEP_BASE_DOMAIN=$result
 # paths (relative to libgnustep-base.dll).
 #
 case "$target_os" in
-  mingw*)
+  mingw*|windows*)
     # TODO: Improve this hack.
     # According to Wikipedia, this is the default for Windows 2000,
     # Windows XP and Windows Server 2003.  For Windows Vista this will
@@ -6119,7 +6119,7 @@ if test "$gs_cv_objc_libdir" != "NONE"; then
 
   # add to path on Windows for config checks to find DLL at runtime
   case $host_os in
-    mingw*) PATH=$PATH:$gs_cv_objc_libdir;;
+    mingw*|windows*) PATH=$PATH:$gs_cv_objc_libdir;;
   esac
 fi
 
@@ -8033,7 +8033,15 @@ fi
 #--------------------------------------------------------------------
 # Check for thread synchronisation support in runtime
 #--------------------------------------------------------------------
-for ac_func in objc_sync_enter
+if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  { $as_echo "$as_me:${as_lineno-$LINENO}: assuming objc_sync_enter() on Windows MSVC" >&5
+$as_echo "$as_me: assuming objc_sync_enter() on Windows MSVC" >&6;}
+  OBJCSYNC=1
+else
+  for ac_func in objc_sync_enter
 do :
   ac_fn_c_check_func "$LINENO" "objc_sync_enter" "ac_cv_func_objc_sync_enter"
 if test "x$ac_cv_func_objc_sync_enter" = xyes; then :
@@ -8044,12 +8052,13 @@ _ACEOF
 fi
 done
 
-if test $ac_cv_func_objc_sync_enter = yes ; then
-  OBJCSYNC=1
-else
-  OBJCSYNC=0
-  if test "$OBJC_RUNTIME_LIB" = "ng"; then
-    as_fn_error $? "The objc runtime library does not appear to have synchronisation support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option." "$LINENO" 5
+  if test $ac_cv_func_objc_sync_enter = yes ; then
+    OBJCSYNC=1
+  else
+    OBJCSYNC=0
+    if test "$OBJC_RUNTIME_LIB" = "ng"; then
+      as_fn_error $? "The objc runtime library does not appear to have synchronisation support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option." "$LINENO" 5
+    fi
   fi
 fi
 
@@ -8063,6 +8072,13 @@ if test "$cross_compiling" = "yes"; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: \"Cross compiling! Using predefined OBJC2RUNTIME variable\"" >&5
 $as_echo "$as_me: \"Cross compiling! Using predefined OBJC2RUNTIME variable\"" >&6;}
   OBJC2RUNTIME="$cross_objc2_runtime"
+elif test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  { $as_echo "$as_me:${as_lineno-$LINENO}: assuming objc_setProperty() on Windows MSVC" >&5
+$as_echo "$as_me: assuming objc_setProperty() on Windows MSVC" >&6;}
+  OBJC2RUNTIME=1
 else
   for ac_func in objc_setProperty
 do :
@@ -8089,7 +8105,15 @@ fi
 #--------------------------------------------------------------------
 # Check for blocks support in runtime
 #--------------------------------------------------------------------
-for ac_func in _Block_copy
+if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  { $as_echo "$as_me:${as_lineno-$LINENO}: assuming _Block_copy() on Windows MSVC" >&5
+$as_echo "$as_me: assuming _Block_copy() on Windows MSVC" >&6;}
+  HAVE_BLOCKS=1
+else
+  for ac_func in _Block_copy
 do :
   ac_fn_c_check_func "$LINENO" "_Block_copy" "ac_cv_func__Block_copy"
 if test "x$ac_cv_func__Block_copy" = xyes; then :
@@ -8100,12 +8124,13 @@ _ACEOF
 fi
 done
 
-if test $ac_cv_func__Block_copy = yes ; then
-  HAVE_BLOCKS=1
-else
-  HAVE_BLOCKS=0
-  if test "$OBJC_RUNTIME_LIB" = "ng"; then
-    as_fn_error $? "The objc runtime library does not appear to have blocks support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option." "$LINENO" 5
+  if test $ac_cv_func__Block_copy = yes ; then
+    HAVE_BLOCKS=1
+  else
+    HAVE_BLOCKS=0
+    if test "$OBJC_RUNTIME_LIB" = "ng"; then
+      as_fn_error $? "The objc runtime library does not appear to have blocks support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option." "$LINENO" 5
+    fi
   fi
 fi
 
@@ -8114,11 +8139,19 @@ fi
 
 GS_NONFRAGILE=0
 if test "$nonfragile" = "yes"; then
-  saved_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for non-fragile-abi support" >&5
+  if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+    # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+    # against symbol in discarded section") as the file won't contain any actual
+    # ObjC code, so we just assume the function is there.
+    { $as_echo "$as_me:${as_lineno-$LINENO}: assuming non-fragile-abi support on Windows MSVC" >&5
+$as_echo "$as_me: assuming non-fragile-abi support on Windows MSVC" >&6;}
+    GS_NONFRAGILE=1
+  else
+    saved_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for non-fragile-abi support" >&5
 $as_echo_n "checking for non-fragile-abi support... " >&6; }
-  if test "$cross_compiling" = yes; then :
+    if test "$cross_compiling" = yes; then :
   non_fragile="$cross_non_fragile"
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -8134,12 +8167,13 @@ rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
   conftest.$ac_objext conftest.beam conftest.$ac_ext
 fi
 
-  CPPFLAGS="$saved_CPPFLAGS"
-  if test $non_fragile = yes; then
-    GS_NONFRAGILE=1
-  fi
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $non_fragile" >&5
+    CPPFLAGS="$saved_CPPFLAGS"
+    if test $non_fragile = yes; then
+      GS_NONFRAGILE=1
+    fi
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: $non_fragile" >&5
 $as_echo "$non_fragile" >&6; }
+  fi
 fi
 
 
@@ -8251,7 +8285,15 @@ $as_echo "$have_set_unexpected" >&6; }
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for _objc_unexpected_exception in runtime" >&5
 $as_echo_n "checking for _objc_unexpected_exception in runtime... " >&6; }
-if test "$cross_compiling" = yes; then :
+if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  { $as_echo "$as_me:${as_lineno-$LINENO}: assuming _objc_unexpected_exception() on Windows MSVC" >&5
+$as_echo "$as_me: assuming _objc_unexpected_exception() on Windows MSVC" >&6;}
+  have_unexpected=yes
+else
+  if test "$cross_compiling" = yes; then :
   have_unexpected="$cross_have_unexpected"
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -8267,6 +8309,7 @@ rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
   conftest.$ac_objext conftest.beam conftest.$ac_ext
 fi
 
+fi
 if test $have_unexpected = yes; then
 
 $as_echo "#define HAVE_UNEXPECTED 1" >>confdefs.h
@@ -8312,7 +8355,16 @@ fi
 #--------------------------------------------------------------------
 # Function needed by @synchronize directive
 #--------------------------------------------------------------------
-for ac_func in objc_sync_enter
+HAVE_OBJC_SYNC_ENTER=no
+if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  { $as_echo "$as_me:${as_lineno-$LINENO}: assuming objc_sync_enter() on Windows MSVC" >&5
+$as_echo "$as_me: assuming objc_sync_enter() on Windows MSVC" >&6;}
+  HAVE_OBJC_SYNC_ENTER=yes
+else
+  for ac_func in objc_sync_enter
 do :
   ac_fn_c_check_func "$LINENO" "objc_sync_enter" "ac_cv_func_objc_sync_enter"
 if test "x$ac_cv_func_objc_sync_enter" = xyes; then :
@@ -8323,10 +8375,9 @@ _ACEOF
 fi
 done
 
-
-HAVE_OBJC_SYNC_ENTER=no
-if test $ac_cv_func_objc_sync_enter = yes ; then
-  HAVE_OBJC_SYNC_ENTER=yes
+  if test $ac_cv_func_objc_sync_enter = yes ; then
+    HAVE_OBJC_SYNC_ENTER=yes
+  fi
 fi
 
 
@@ -10663,7 +10714,7 @@ $as_echo "$as_me: WARNING: Using libkvm which is known to be buggy on some syste
   fi
 fi
 case "$target_os" in
-    mingw*)	enable_fake_main=no; GS_FAKE_MAIN=0;;
+    mingw*|windows*)	enable_fake_main=no; GS_FAKE_MAIN=0;;
 esac
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_fake_main" >&5

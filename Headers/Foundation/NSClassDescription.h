@@ -47,6 +47,7 @@ extern "C" {
  */
 GS_EXPORT NSString* const NSClassDescriptionNeededForClassNotification;
 
+GS_EXPORT_CLASS
 @interface NSClassDescription : NSObject
 
 + (NSClassDescription*) classDescriptionForClass: (Class)aClass;

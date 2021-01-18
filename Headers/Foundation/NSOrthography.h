@@ -34,7 +34,8 @@ extern "C" {
 #endif
 
 @class NSDictionary, NSString, NSArray;
-  
+
+GS_EXPORT_CLASS
 @interface NSOrthography : NSObject <NSCopying, NSCoding>
 {
   NSDictionary *_languageMap;

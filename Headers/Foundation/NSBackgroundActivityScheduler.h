@@ -65,6 +65,7 @@ typedef NSInteger NSQualityOfService;
   DEFINE_BLOCK_TYPE(GSScheduledBlock, void, NSBackgroundActivityCompletionHandler);  
 //# endif
 
+GS_EXPORT_CLASS
 @interface NSBackgroundActivityScheduler : NSObject
 {
   NSString *_identifier;

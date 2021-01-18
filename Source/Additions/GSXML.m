@@ -4427,20 +4427,34 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 /*
  * Build dummy implementations of the classes if libxml is not available
  */
+GS_EXPORT_CLASS
 @interface GSXMLDummy : NSObject
 @end
+
+GS_EXPORT_CLASS
 @interface GSXMLDocument : GSXMLDummy
 @end
+
+GS_EXPORT_CLASS
 @interface GSXMLNamespace : GSXMLDummy
 @end
+
+GS_EXPORT_CLASS
 @interface GSXMLNode : GSXMLDummy
 @end
+
+GS_EXPORT_CLASS
 @interface GSSAXHandler : GSXMLDummy
 @end
+
+GS_EXPORT_CLASS
 @interface GSXMLParser : GSXMLDummy
 @end
+
+GS_EXPORT_CLASS
 @interface GSXMLAttribute : GSXMLNode
 @end
+
 @implementation GSXMLDummy
 + (id) allocWithZone: (NSZone*)z
 {
@@ -4470,16 +4484,28 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
   return nil;
 }
 @end
+
+GS_EXPORT_CLASS
 @implementation GSXMLDocument
 @end
+
+GS_EXPORT_CLASS
 @implementation GSXMLNamespace
 @end
+
+GS_EXPORT_CLASS
 @implementation GSXMLNode
 @end
+
+GS_EXPORT_CLASS
 @implementation GSSAXHandler
 @end
+
+GS_EXPORT_CLASS
 @implementation GSXMLParser
 @end
+
+GS_EXPORT_CLASS
 @implementation GSXMLAttribute
 @end
 

@@ -48,6 +48,7 @@ extern "C" {
 //FIXME: the above is what Apple's docs say, but looking at the code the
 // NSConnection is actually created by this class rather than the other way
 // around, so maybe the docs should be changed..
+GS_EXPORT_CLASS
 @interface NSPortCoder : NSCoder
 {
 #if	GS_EXPOSE(NSPortCoder)

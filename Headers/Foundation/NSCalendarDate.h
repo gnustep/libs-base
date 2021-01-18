@@ -32,6 +32,7 @@ extern "C" {
 @class	NSTimeZone;
 @class	NSTimeZoneDetail;
 
+GS_EXPORT_CLASS
 @interface NSCalendarDate : NSDate
 {
 #if	GS_EXPOSE(NSCalendarDate)

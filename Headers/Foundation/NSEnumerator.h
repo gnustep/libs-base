@@ -51,6 +51,7 @@ typedef struct
 				     count: (NSUInteger)len;
 @end
 
+GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSEnumerator, IterT) : NSObject <NSFastEnumeration>
 - (GS_GENERIC_CLASS(NSArray, IterT) *) allObjects;
 - (GS_GENERIC_TYPE(IterT)) nextObject;

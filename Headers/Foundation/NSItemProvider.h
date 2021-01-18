@@ -90,6 +90,7 @@ typedef NSInteger NSItemProviderFileOptions;
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSItemProvider : NSObject <NSCopying>
 
 - (instancetype) init;

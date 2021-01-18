@@ -44,12 +44,25 @@
 #import "../GSPrivate.h"
 #import "../GSNetwork.h"
 
-#include <fcntl.h>
-#include <sys/file.h>
+#if	defined(HAVE_SYS_FCNTL_H)
+#  include <sys/fcntl.h>
+#elif	defined(HAVE_FCNTL_H)
+#  include <fcntl.h>
+#endif
+
+#if	defined(HAVE_SYS_FILE_H)
+#  include	<sys/file.h>
+#endif
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <io.h>
 #include <stdio.h>
+
+// S_ISREG is not defined in Windows headers
+#if !defined(S_ISREG) && defined(S_IFMT) && defined(S_IFREG)
+#define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
+#endif
 
 #ifndef	O_BINARY
 #ifdef	_O_BINARY

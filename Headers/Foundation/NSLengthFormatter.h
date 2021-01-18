@@ -46,7 +46,8 @@ enum {
 typedef NSInteger NSLengthFormatterUnit;
 
 @class NSNumberFormatter, NSString;
-  
+
+GS_EXPORT_CLASS
 @interface NSLengthFormatter : NSFormatter
 {
   BOOL _isForPersonHeightUse;

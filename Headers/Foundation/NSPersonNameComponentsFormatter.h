@@ -47,6 +47,7 @@ typedef NSUInteger NSPersonNameComponentsFormatterOptions;
 
 @class NSString;
 
+GS_EXPORT_CLASS
 @interface NSPersonNameComponentsFormatter : NSFormatter
 {
   @private

@@ -148,6 +148,7 @@ enum
 
 
 
+GS_EXPORT_CLASS
 @interface NSDateComponents : NSObject <NSCopying>
 {
 @private
@@ -262,6 +263,7 @@ enum
 
 
 
+GS_EXPORT_CLASS
 @interface NSCalendar : NSObject <NSCoding, NSCopying>
 {
 @private

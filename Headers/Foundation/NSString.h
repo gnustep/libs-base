@@ -279,6 +279,8 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  *   that of the receiver which returned them.
  * </p>
  */
+
+GS_EXPORT_CLASS
 @interface NSString :NSObject <NSCoding, NSCopying, NSMutableCopying>
 
 + (id) string;
@@ -855,6 +857,7 @@ typedef NSUInteger NSStringEncodingConversionOptions;
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSMutableString : NSString
 
 // Creating Temporary Strings
@@ -916,6 +919,8 @@ typedef NSUInteger NSStringEncodingConversionOptions;
  * What follows is a dummy declaration of the class to keep the compiler
  * happy.
  */
+
+GS_EXPORT_CLASS
 @interface NXConstantString : NSString
 {
 @public

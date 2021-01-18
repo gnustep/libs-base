@@ -34,6 +34,7 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_0, GS_API_LATEST)
 
+GS_EXPORT_CLASS
 @interface NSScriptObjectSpecifiers : NSObject
 
 @end

@@ -44,7 +44,8 @@ extern "C" {
 @class NSOperationQueue;
 
 typedef NSString* NSNotificationName;
-  
+
+GS_EXPORT_CLASS
 @interface NSNotification : NSObject <NSCopying, NSCoding>
 
 /* Creating a Notification Object */
@@ -68,6 +69,7 @@ typedef NSString* NSNotificationName;
 DEFINE_BLOCK_TYPE(GSNotificationBlock, void, NSNotification *);
 #endif
 
+GS_EXPORT_CLASS
 @interface NSNotificationCenter : NSObject
 {
 #if	GS_EXPOSE(NSNotificationCenter)

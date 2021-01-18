@@ -37,7 +37,8 @@ DEFINE_BLOCK_TYPE(GSExtensionContextReturningItemsCompletionHandler, void, BOOL)
 DEFINE_BLOCK_TYPE(GSOpenURLCompletionHandler, void, BOOL);
 
 @class NSError, NSArray, NSURL;
-  
+
+GS_EXPORT_CLASS
 @interface NSExtensionContext : NSObject
 {
   NSArray *_inputItems;

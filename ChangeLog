@@ -8,6 +8,195 @@
 	Use statbuf.st_mtim to get nanosecond precision in modification
 	date, also fix conversion of nanoseconds in creation date.
 
+2021-01-29 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSAffineTransform.h:
+	* Headers/Foundation/NSAppleEventDescriptor.h:
+	* Headers/Foundation/NSAppleEventManager.h:
+	* Headers/Foundation/NSAppleScript.h:
+	* Headers/Foundation/NSArchiver.h:
+	* Headers/Foundation/NSArray.h:
+	* Headers/Foundation/NSAttributedString.h:
+	* Headers/Foundation/NSAutoreleasePool.h:
+	* Headers/Foundation/NSBackgroundActivityScheduler.h:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/NSByteCountFormatter.h:
+	* Headers/Foundation/NSCache.h:
+	* Headers/Foundation/NSCalendar.h:
+	* Headers/Foundation/NSCalendarDate.h:
+	* Headers/Foundation/NSCharacterSet.h:
+	* Headers/Foundation/NSClassDescription.h:
+	* Headers/Foundation/NSCoder.h:
+	* Headers/Foundation/NSComparisonPredicate.h:
+	* Headers/Foundation/NSCompoundPredicate.h:
+	* Headers/Foundation/NSConnection.h:
+	* Headers/Foundation/NSData.h:
+	* Headers/Foundation/NSDate.h:
+	* Headers/Foundation/NSDateComponentsFormatter.h:
+	* Headers/Foundation/NSDateFormatter.h:
+	* Headers/Foundation/NSDateInterval.h:
+	* Headers/Foundation/NSDateIntervalFormatter.h:
+	* Headers/Foundation/NSDictionary.h:
+	* Headers/Foundation/NSDistantObject.h:
+	* Headers/Foundation/NSDistributedLock.h:
+	* Headers/Foundation/NSEnergyFormatter.h:
+	* Headers/Foundation/NSEnumerator.h:
+	* Headers/Foundation/NSError.h:
+	* Headers/Foundation/NSException.h:
+	* Headers/Foundation/NSExpression.h:
+	* Headers/Foundation/NSExtensionContext.h:
+	* Headers/Foundation/NSExtensionItem.h:
+	* Headers/Foundation/NSFileCoordinator.h:
+	* Headers/Foundation/NSFileHandle.h:
+	* Headers/Foundation/NSFileManager.h:
+	* Headers/Foundation/NSFileVersion.h:
+	* Headers/Foundation/NSFileWrapper.h:
+	* Headers/Foundation/NSGarbageCollector.h:
+	* Headers/Foundation/NSHTTPCookie.h:
+	* Headers/Foundation/NSHTTPCookieStorage.h:
+	* Headers/Foundation/NSHashTable.h:
+	* Headers/Foundation/NSHost.h:
+	* Headers/Foundation/NSISO8601DateFormatter.h:
+	* Headers/Foundation/NSInvocation.h:
+	* Headers/Foundation/NSInvocationOperation.h:
+	* Headers/Foundation/NSItemProvider.h:
+	* Headers/Foundation/NSItemProviderReadingWriting.h:
+	* Headers/Foundation/NSJSONSerialization.h:
+	* Headers/Foundation/NSKeyedArchiver.h:
+	* Headers/Foundation/NSLengthFormatter.h:
+	* Headers/Foundation/NSLinguisticTagger.h:
+	* Headers/Foundation/NSLocale.h:
+	* Headers/Foundation/NSLock.h:
+	* Headers/Foundation/NSMapTable.h:
+	* Headers/Foundation/NSMassFormatter.h:
+	* Headers/Foundation/NSMeasurement.h:
+	* Headers/Foundation/NSMeasurementFormatter.h:
+	* Headers/Foundation/NSMetadata.h:
+	* Headers/Foundation/NSMethodSignature.h:
+	* Headers/Foundation/NSNetServices.h:
+	* Headers/Foundation/NSNotification.h:
+	* Headers/Foundation/NSNotificationQueue.h:
+	* Headers/Foundation/NSNumberFormatter.h:
+	* Headers/Foundation/NSObjCRuntime.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSObjectScripting.h:
+	* Headers/Foundation/NSOperation.h:
+	* Headers/Foundation/NSOrderedSet.h:
+	* Headers/Foundation/NSOrthography.h:
+	* Headers/Foundation/NSPersonNameComponents.h:
+	* Headers/Foundation/NSPersonNameComponentsFormatter.h:
+	* Headers/Foundation/NSPointerArray.h:
+	* Headers/Foundation/NSPointerFunctions.h:
+	* Headers/Foundation/NSPort.h:
+	* Headers/Foundation/NSPortCoder.h:
+	* Headers/Foundation/NSPortNameServer.h:
+	* Headers/Foundation/NSPredicate.h:
+	* Headers/Foundation/NSProcessInfo.h:
+	* Headers/Foundation/NSProgress.h:
+	* Headers/Foundation/NSPropertyList.h:
+	* Headers/Foundation/NSProtocolChecker.h:
+	* Headers/Foundation/NSProxy.h:
+	* Headers/Foundation/NSRegularExpression.h:
+	* Headers/Foundation/NSRunLoop.h:
+	* Headers/Foundation/NSScanner.h:
+	* Headers/Foundation/NSScriptClassDescription.h:
+	* Headers/Foundation/NSScriptCoercionHandler.h:
+	* Headers/Foundation/NSScriptCommand.h:
+	* Headers/Foundation/NSScriptCommandDescription.h:
+	* Headers/Foundation/NSScriptExecutionContext.h:
+	* Headers/Foundation/NSScriptKeyValueCoding.h:
+	* Headers/Foundation/NSScriptObjectSpecifiers.h:
+	* Headers/Foundation/NSScriptStandardSuiteCommands.h:
+	* Headers/Foundation/NSScriptSuiteRegistry.h:
+	* Headers/Foundation/NSSerialization.h:
+	* Headers/Foundation/NSSet.h:
+	* Headers/Foundation/NSSortDescriptor.h:
+	* Headers/Foundation/NSSpellServer.h:
+	* Headers/Foundation/NSStream.h:
+	* Headers/Foundation/NSString.h:
+	* Headers/Foundation/NSTask.h:
+	* Headers/Foundation/NSTextCheckingResult.h:
+	* Headers/Foundation/NSThread.h:
+	* Headers/Foundation/NSTimeZone.h:
+	* Headers/Foundation/NSTimer.h:
+	* Headers/Foundation/NSURL.h:
+	* Headers/Foundation/NSURLAuthenticationChallenge.h:
+	* Headers/Foundation/NSURLCache.h:
+	* Headers/Foundation/NSURLConnection.h:
+	* Headers/Foundation/NSURLCredential.h:
+	* Headers/Foundation/NSURLCredentialStorage.h:
+	* Headers/Foundation/NSURLDownload.h:
+	* Headers/Foundation/NSURLHandle.h:
+	* Headers/Foundation/NSURLProtectionSpace.h:
+	* Headers/Foundation/NSURLProtocol.h:
+	* Headers/Foundation/NSURLRequest.h:
+	* Headers/Foundation/NSURLResponse.h:
+	* Headers/Foundation/NSURLSession.h:
+	* Headers/Foundation/NSUUID.h:
+	* Headers/Foundation/NSUbiquitousKeyValueStore.h:
+	* Headers/Foundation/NSUndoManager.h:
+	* Headers/Foundation/NSUnit.h:
+	* Headers/Foundation/NSUserActivity.h:
+	* Headers/Foundation/NSUserDefaults.h:
+	* Headers/Foundation/NSUserNotification.h:
+	* Headers/Foundation/NSUserScriptTask.h:
+	* Headers/Foundation/NSValue.h:
+	* Headers/Foundation/NSValueTransformer.h:
+	* Headers/Foundation/NSXMLDTD.h:
+	* Headers/Foundation/NSXMLDTDNode.h:
+	* Headers/Foundation/NSXMLDocument.h:
+	* Headers/Foundation/NSXMLElement.h:
+	* Headers/Foundation/NSXMLNode.h:
+	* Headers/Foundation/NSXMLParser.h:
+	* Headers/Foundation/NSXPCConnection.h:
+	* Headers/GNUstepBase/CXXException.h:
+	* Headers/GNUstepBase/GCObject.h:
+	* Headers/GNUstepBase/GSConfig.h.in:
+	* Headers/GNUstepBase/GSMime.h:
+	* Headers/GNUstepBase/GSTLS.h:
+	* Headers/GNUstepBase/GSVersionMacros.h:
+	* Headers/GNUstepBase/GSXML.h:
+	* Headers/GNUstepBase/NSStream+GNUstepBase.h:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/Makefile.preamble:
+	* Source/CXXException.m:
+	* Source/GNUmakefile:
+	* Source/NSException.m:
+	* Source/NSFileManager.m:
+	* Source/NSPropertyList.m:
+	* Source/NSSocketPort.m:
+	* Source/ObjectiveC2/Makefile.preamble:
+	* Source/common.h:
+	* Source/externs.m:
+	* Source/inet_ntop.m:
+	* Source/inet_pton.m:
+	* Source/libgnustep-base-entry.m:
+	* Source/unix/Makefile.preamble:
+	* Source/win32/GSFileHandle.m:
+	* Source/win32/Makefile.preamble:
+	* Tools/GNUmakefile:
+	* Tools/Makefile.preamble:
+	* Tools/gdnc.m:
+	* Tools/make_strings/make_strings.m:
+	* Tools/pl2link.m:
+	* Tools/plutil.m:
+	* config/config.initialize.m:
+	* configure:
+	* configure.ac:
+	Added support for building on Windows with Clang MSVC target and
+	libobjc2. This requires using a standard (non-MinGW) Clang build that
+	e.g. comes with Visual Studio or is available as pre-built binary from
+	the LLVM website, and requires passing a host to configure like
+	--host=x86_64-pc-windows.
+	The build is best done in an MSYS2 shell that does not have any
+	additional *-devel packages installed that might get picked up by
+	configure. Alternatively --disable-xxx flags can be used to prevent
+	these dependencies to be picked up.
+	Annotates all ObjC class interfaces with GS_EXPORT_CLASS for DLL
+	export/import declarations, and adds missing GS_DECLARE annotations
+	in externs.m, in order for these symbols to be correctly exported
+	in the DLL.
+
 2021-01-21 Fred Kiefer <fredkiefer@gmx.de>
 
 	* Tools/pl2link.m (main): Set key StartupWMClass and allow file

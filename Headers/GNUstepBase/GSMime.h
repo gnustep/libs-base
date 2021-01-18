@@ -56,6 +56,7 @@ extern "C" {
  * A trivial class for mantaining state while decoding/encoding data.
  * Each encoding type requires its own subclass.
  */
+GS_EXPORT_CLASS
 @interface	GSMimeCodingContext : NSObject
 {
   BOOL		atEnd;	/* Flag to say that data has ended.	*/
@@ -67,6 +68,7 @@ extern "C" {
 - (void) setAtEnd: (BOOL)flag;
 @end
 
+GS_EXPORT_CLASS
 @interface      GSMimeHeader : NSObject <NSCopying>
 {
 #if	GS_EXPOSE(GSMimeHeader)
@@ -124,7 +126,7 @@ extern "C" {
 - (NSString*) value;
 @end
 
-
+GS_EXPORT_CLASS
 @interface	GSMimeDocument : NSObject <NSCopying>
 {
 #if	GS_EXPOSE(GSMimeDocument)
@@ -216,6 +218,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface	GSMimeParser : NSObject
 {
 #if	GS_EXPOSE(GSMimeParser)
@@ -297,6 +300,7 @@ extern "C" {
  * in a form suitable for sending as an Email over the SMTP protocol
  * or in other forms.
  */
+GS_EXPORT_CLASS
 @interface GSMimeSerializer : NSObject <NSCopying>
 {
   NSUInteger    foldAt;         /** Fold long lines at this position */
@@ -402,6 +406,7 @@ typedef enum {
 /** The GSMimeSMTPClient class provides the ability to send EMails
  * ([GSMimeDocument] instances) via an SMTP server.
  */
+GS_EXPORT_CLASS
 @interface	GSMimeSMTPClient : NSObject
 {
 #if	GS_NONFRAGILE

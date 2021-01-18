@@ -34,12 +34,14 @@ extern "C" {
 #endif
 
 // Unit converter
+GS_EXPORT_CLASS
 @interface NSUnitConverter : NSObject
 - (double) baseUnitValueFromValue: (double)value;
 - (double) valueFromBaseUnitValue: (double)baseUnitValue;
 @end
 
 // Linea converter... for things like C <-> F conversion...
+GS_EXPORT_CLASS
 @interface NSUnitConverterLinear : NSUnitConverter <NSCoding>
 {
   double _coefficient;
@@ -53,6 +55,7 @@ extern "C" {
 @end
 
 // Units...  abstract...
+GS_EXPORT_CLASS
 @interface NSUnit : NSObject <NSCopying, NSCoding>
 {
   NSString *_symbol;
@@ -65,6 +68,7 @@ extern "C" {
 @end
 
 // Dimension using units....
+GS_EXPORT_CLASS
 @interface NSDimension : NSUnit <NSCoding>
 {
     double _value;
@@ -78,6 +82,7 @@ extern "C" {
 @end
 
 // Predefined....
+GS_EXPORT_CLASS
 @interface NSUnitAcceleration : NSDimension 
 /*
  Base unit - metersPerSecondSquared
@@ -88,6 +93,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitAngle : NSDimension 
 /*
  Base unit - degrees
@@ -102,6 +108,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitArea : NSDimension 
 /*
  Base unit - squareMeters
@@ -124,6 +131,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitConcentrationMass : NSDimension 
 /*
  Base unit - gramsPerLiter
@@ -136,6 +144,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitDispersion : NSDimension 
 /*
  Base unit - partsPerMillion
@@ -144,6 +153,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitDuration : NSDimension   
 /*
  Base unit - seconds
@@ -155,6 +165,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitElectricCharge : NSDimension 
 /*
  Base unit - coulombs
@@ -169,6 +180,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitElectricCurrent : NSDimension 
 /*
  Base unit - amperes
@@ -182,6 +194,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitElectricPotentialDifference : NSDimension 
 /*
  Base unit - volts
@@ -195,6 +208,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitElectricResistance : NSDimension 
 /*
  Base unit - ohms
@@ -208,6 +222,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitEnergy : NSDimension 
 /*
  Base unit - joules
@@ -221,6 +236,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitFrequency : NSDimension 
 /*
  Base unit - hertz
@@ -237,6 +253,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitFuelEfficiency : NSDimension 
 /*
  Base unit - litersPer100Kilometers
@@ -248,6 +265,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitLength : NSDimension 
 /*
  Base unit - meters
@@ -278,6 +296,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitIlluminance : NSDimension 
 /*
  Base unit - lux
@@ -287,6 +306,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitMass : NSDimension 
 /*
  Base unit - kilograms
@@ -311,6 +331,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitPower : NSDimension 
 /*
  Base unit - watts
@@ -330,6 +351,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitPressure : NSDimension 
 /*
  Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
@@ -348,6 +370,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitSpeed : NSDimension 
 /*
  Base unit - metersPerSecond
@@ -360,6 +383,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitTemperature : NSDimension 
 /*
  Base unit - kelvin
@@ -371,6 +395,7 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSUnitVolume : NSDimension 
 /*
  Base unit - liters

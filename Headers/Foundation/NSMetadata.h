@@ -35,6 +35,7 @@
 @class NSPredicate, NSMutableDictionary, NSDictionary, NSMutableArray;
 @protocol NSMetadataQueryDelegate;
 
+GS_EXPORT_CLASS
 @interface NSMetadataItem : NSObject
 {
 #if	GS_EXPOSE(NSMetadataItem)
@@ -61,6 +62,7 @@ GS_EXPORT NSString * const NSMetadataQueryDidUpdateNotification;
 GS_EXPORT NSString * const NSMetadataQueryGatheringProgressNotification;
 
 /* Abstract interface for metadata query... */
+GS_EXPORT_CLASS
 @interface NSMetadataQuery : NSObject
 {
 #if	GS_EXPOSE(NSMetadataQuery)
@@ -135,6 +137,7 @@ GS_EXPORT NSString * const NSMetadataQueryGatheringProgressNotification;
   value: (id)attributeValue;
 @end
 
+GS_EXPORT_CLASS
 @interface NSMetadataQueryAttributeValueTuple : NSObject
 {
 #if	GS_EXPOSE(NSMetadataQueryAttributeValueTuple)
@@ -150,6 +153,7 @@ GS_EXPORT NSString * const NSMetadataQueryGatheringProgressNotification;
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSMetadataQueryResultGroup : NSObject
 {
 #if	GS_EXPOSE(NSMetadataQueryResultGroup)

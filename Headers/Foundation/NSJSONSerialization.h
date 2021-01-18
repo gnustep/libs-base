@@ -45,6 +45,7 @@ typedef NSUInteger NSJSONReadingOptions;
  * NSJSONSerialization implements serializing and deserializing acyclic object
  * graphs in JSON.
  */
+GS_EXPORT_CLASS
 @interface NSJSONSerialization : NSObject
  + (NSData *)dataWithJSONObject:(id)obj
                         options:(NSJSONWritingOptions)opt

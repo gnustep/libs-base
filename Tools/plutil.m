@@ -35,7 +35,7 @@
 #import "NSPropertyList+PLUtil.h"
 
 // From NSPropertyList.m
-extern void
+GS_EXPORT void
 GSPropertyListMake(id, NSDictionary *, BOOL, BOOL, unsigned, id *);
 
 // We don't have @[] on gcc

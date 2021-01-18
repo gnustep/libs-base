@@ -196,7 +196,28 @@
  * Macros to handle unichar filesystem support.
  */
 
-#if	defined(_WIN32)
+#if defined(_MSC_VER)
+
+#warning NSFileManager is currently unsupported on Windows MSVC
+
+#define	_CHMOD(A,B)	0
+#define	_CLOSEDIR(A)
+#define	_OPENDIR(A)	NULL
+#define	_READDIR(A)	NULL
+#define	_RENAME(A,B)	-1
+#define	_RMDIR(A)	-1
+#define	_STAT(A,B)	-1
+#define	_UTIME(A,B)	-1
+
+#define	_CHAR		unichar
+#define	_DIR		void
+#define	_DIRENT		{const char *d_name;}
+#define	_STATB		{int st_ctime; int st_gid; int st_atime; int st_mtime; int st_mode; int st_uid; int st_size; int st_ino; int st_dev; int st_nlink;}
+#define	_UTIMB		{int actime; int modtime;}
+
+#define	_NUL		L'\0'
+
+#elif	defined(_WIN32)
 
 #define	_CHMOD(A,B)	_wchmod(A,B)
 #define	_CLOSEDIR(A)	_wclosedir(A)
@@ -4050,11 +4071,15 @@ static NSSet	*fileKeys = nil;
       case S_IFREG: return NSFileTypeRegular;
       case S_IFDIR: return NSFileTypeDirectory;
       case S_IFCHR: return NSFileTypeCharacterSpecial;
+#ifdef S_IFBLK
       case S_IFBLK: return NSFileTypeBlockSpecial;
+#endif
 #ifdef S_IFLNK
       case S_IFLNK: return NSFileTypeSymbolicLink;
 #endif
+#ifdef S_IFIFO
       case S_IFIFO: return NSFileTypeFifo;
+#endif
 #ifdef S_IFSOCK
       case S_IFSOCK: return NSFileTypeSocket;
 #endif

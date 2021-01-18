@@ -82,12 +82,12 @@ libgnustep-baseadd_SUBPROJECTS += Additions
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
   libgnustep-base_SUBPROJECTS += win32
+else ifeq ($(GNUSTEP_TARGET_OS), mingw64)
+  libgnustep-base_SUBPROJECTS += win32
+else ifeq ($(GNUSTEP_TARGET_OS), windows)
+  libgnustep-base_SUBPROJECTS += win32
 else
-  ifeq ($(GNUSTEP_TARGET_OS), mingw64)
-    libgnustep-base_SUBPROJECTS += win32
-  else
-    libgnustep-base_SUBPROJECTS += unix
-  endif
+  libgnustep-base_SUBPROJECTS += unix
 endif
 
 DEFS+= -DGNUSTEP_TARGET_DIR=\"$(GNUSTEP_TARGET_DIR)\" \
@@ -109,8 +109,9 @@ endif
 
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
   GNU_MFILES += libgnustep-base-entry.m
-endif
-ifeq ($(GNUSTEP_TARGET_OS), mingw64)
+else ifeq ($(GNUSTEP_TARGET_OS), mingw64)
+  GNU_MFILES += libgnustep-base-entry.m
+else ifeq ($(GNUSTEP_TARGET_OS), windows)
   GNU_MFILES += libgnustep-base-entry.m
 endif
 
@@ -361,10 +362,12 @@ objc-load.m
 
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   ifneq ($(GNUSTEP_TARGET_OS), mingw64)
-    BASE_MFILES += \
+    ifneq ($(GNUSTEP_TARGET_OS), windows)
+      BASE_MFILES += \
 	GSFileHandle.m \
 	NSMessagePort.m \
 	NSMessagePortNameServer.m
+    endif
   endif
 endif
 

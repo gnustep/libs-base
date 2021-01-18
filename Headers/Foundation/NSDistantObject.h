@@ -35,6 +35,7 @@ extern "C" {
 
 @class	NSConnection;
 
+GS_EXPORT_CLASS
 @interface NSDistantObject : NSProxy <NSCoding>
 {
 #if	GS_EXPOSE(NSDistantObject)

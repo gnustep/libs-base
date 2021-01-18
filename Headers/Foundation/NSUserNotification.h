@@ -54,6 +54,7 @@ enum
 typedef NSInteger NSUserNotificationActivationType;
 
 
+GS_EXPORT_CLASS
 @interface NSUserNotification : NSObject <NSCopying>
 {
 #if	GS_EXPOSE(NSUserNotification)
@@ -93,6 +94,7 @@ typedef NSInteger NSUserNotificationActivationType;
 
 GS_EXPORT NSString * const NSUserNotificationDefaultSoundName;
 
+GS_EXPORT_CLASS
 @interface NSUserNotificationCenter : NSObject
 {
 #if	GS_EXPOSE(NSUserNotificationCenter)

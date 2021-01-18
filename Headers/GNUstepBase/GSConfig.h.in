@@ -295,34 +295,42 @@ typedef	struct {
 #endif
 
 #if defined(_WIN32)
-#define BOOL WinBOOL
-#define __OBJC_BOOL 1
-#include <w32api.h>
-#ifndef _WIN32_WINNT
-#define _WIN32_WINNT Windows2000
-#endif
-#if	!defined(WINVER)
-#define WINVER Windows2000
-#elif (WINVER < Windows2000)
-#undef	WINVER
-#define WINVER Windows2000
-#endif
+#  define BOOL WinBOOL
+#  define __OBJC_BOOL 1
+
+#  if defined(__MINGW__)
+#    include <w32api.h>
+#    define GS_WINVER Windows2000
+#  elif defined(_MSC_VER)
+#    include <WinSDKVer.h>
+#    define GS_WINVER _WIN32_WINNT_WIN10
+#  endif
+
+#  ifndef _WIN32_WINNT
+#    define _WIN32_WINNT GS_WINVER
+#  endif
+#  if	!defined(WINVER)
+#    define WINVER GS_WINVER
+#  elif (WINVER < GS_WINVER)
+#    undef	WINVER
+#    define WINVER GS_WINVER
+#  endif
 
 // Trick to distinguish between MSYS/MinGW and MSYS2/MinGW32, the latter defines
 // __MINGW32_MAJOR_VERSION and __MINGW32_MINOR_VERSION for compatibility
 // but to a lower version than older MSYS/MinGW, but not the compound version
 //
-#if defined(__MINGW32_VERSION)
-#define __USE_W32_SOCKETS
-#include <windows.h>
-#include <winsock2.h>
-#else
-#include <winsock2.h>
-#include <windows.h>
-#endif
+#  if defined(__MINGW32_VERSION)
+#    define __USE_W32_SOCKETS
+#    include <windows.h>
+#    include <winsock2.h>
+#  else
+#    include <winsock2.h>
+#    include <windows.h>
+#  endif
 
-#undef __OBJC_BOOL
-#undef  BOOL
+#  undef __OBJC_BOOL
+#  undef  BOOL
 #endif
 
 /* Include the blocks runtime header if it's available (It shouldn't matter

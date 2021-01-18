@@ -56,7 +56,9 @@ ifeq ($(FOUNDATION_LIB),gnu)
 endif
 
 # Additional LDFLAGS to pass to the linker
-#ADDITIONAL_LDFLAGS += 
+ifeq ($(GNUSTEP_TARGET_OS),windows)
+  ADDITIONAL_LDFLAGS += -Wl,/subsystem:console
+endif
 
 # Additional library directories the linker should search
 ADDITIONAL_LIB_DIRS += -L../Source/$(GNUSTEP_OBJ_DIR)

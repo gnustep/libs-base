@@ -48,6 +48,7 @@ DEFINE_BLOCK_TYPE_NO_ARGS(NSProgressUnpublishingHandler, void);
 DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressPendingUnitCountBlock, void); 
 DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressResumingHandler, void); 
   
+GS_EXPORT_CLASS
 @interface NSProgress : NSObject
 {
 #if	GS_EXPOSE(NSProgress)

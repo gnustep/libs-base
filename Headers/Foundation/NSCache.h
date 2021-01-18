@@ -38,6 +38,7 @@ extern "C" {
 @class NSMapTable;
 @class GS_GENERIC_CLASS(NSMutableArray, ElementT);
 
+GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSCache, KeyT, ValT) : NSObject
 {
 #if GS_EXPOSE(NSCache)

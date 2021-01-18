@@ -24,6 +24,10 @@
 
 #import "common.h"
 
+#ifdef _MSC_VER
+#define WINBOOL WinBOOL
+#endif
+
 /* Only if using Microsoft's tools and libraries */
 #ifdef __MS_WIN32__
 #include <stdio.h>
@@ -97,8 +101,10 @@ DllMain(HANDLE hInst, ULONG ul_reason_for_call,	LPVOID lpReserved)
   return TRUE;
 }
 
+#ifndef __clang__
 /*
   This section terminates the list of imports under GCC. If you do not
   include this then you will have problems when linking with DLLs.
   */
 asm (".section .idata$3\n" ".long 0,0,0,0,0,0,0,0");
+#endif

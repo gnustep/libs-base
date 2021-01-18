@@ -34,7 +34,8 @@ extern "C" {
 #endif
 
 @class NSUnit;
-  
+
+GS_EXPORT_CLASS
 @interface NSMeasurement : NSObject <NSCopying, NSCoding>
 {
   NSUnit *_unit;

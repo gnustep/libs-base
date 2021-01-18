@@ -37,6 +37,7 @@ extern "C" {
 /**
  * Represents an XML element.<br />
  */
+GS_EXPORT_CLASS
 @interface NSXMLElement : NSXMLNode
 {
 #if     GS_NONFRAGILE

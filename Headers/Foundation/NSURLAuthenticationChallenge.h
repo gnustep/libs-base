@@ -77,6 +77,7 @@ extern "C" {
  * Class to represent an authentication challenge and indicate when the
  * challenge is complete.
  */
+GS_EXPORT_CLASS
 @interface NSURLAuthenticationChallenge : NSObject
 {
 #if	GS_EXPOSE(NSURLAuthenticationChallenge)

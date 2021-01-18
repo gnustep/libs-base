@@ -67,6 +67,7 @@ extern NSString * const NSURLAuthenticationMethodServerTrust;
  * Class to encapsulate a protection space ... where authentication is
  * required.
  */
+GS_EXPORT_CLASS
 @interface NSURLProtectionSpace : NSObject <NSCopying>
 {
 #if	GS_EXPOSE(NSURLProtectionSpace)

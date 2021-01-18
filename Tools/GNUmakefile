@@ -74,7 +74,9 @@ TOOL_NAME = autogsdoc cvtenc plmerge sfparse xmlparse
 else
 TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults pl plmerge plutil \
 		plparse sfparse pldes plget plser pl2link xmlparse HTMLLinker
+ifneq ($(GNUSTEP_TARGET_OS), windows)
 CTOOL_NAME = gdomap
+endif
 
 SUBPROJECTS = make_strings
 endif

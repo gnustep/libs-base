@@ -39,6 +39,7 @@ extern "C" {
  *  Represents a set of unicode characters.  Used by [NSScanner] and [NSString]
  *  for parsing-related methods.
  */
+GS_EXPORT_CLASS
 @interface NSCharacterSet : NSObject <NSCoding, NSCopying, NSMutableCopying>
 
 /**
@@ -238,6 +239,7 @@ extern "C" {
 /**
  *  An [NSCharacterSet] that can be modified.
  */
+GS_EXPORT_CLASS
 @interface NSMutableCharacterSet : NSCharacterSet
 
 /**

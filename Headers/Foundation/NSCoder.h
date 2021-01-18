@@ -48,6 +48,7 @@ extern "C" {
  *  preferred for new implementations, since they provide greater
  *  forward/backward compatibility in the face of class changes.</p>
  */
+GS_EXPORT_CLASS
 @interface NSCoder : NSObject
 // Encoding Data
 

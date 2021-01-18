@@ -61,6 +61,7 @@ extern "C" {
 #import	<Foundation/NSArray.h>
 #import	<Foundation/NSCoder.h>
 
+GS_EXPORT_CLASS
 @interface NSAttributedString : NSObject <NSCoding, NSCopying, NSMutableCopying>
 {
 }
@@ -100,6 +101,7 @@ extern "C" {
 @end //NSAttributedString
 
 
+GS_EXPORT_CLASS
 @interface NSMutableAttributedString : NSAttributedString
 {
 }

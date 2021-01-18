@@ -47,6 +47,7 @@ extern "C" {
  * <code><em>self</em></code> (type <code>id</code>, at position 0) and
  * <code><em>_cmd</em></code> (type <code>SEL</code>, at position 1).</p>
  */
+GS_EXPORT_CLASS
 @interface NSMethodSignature : NSObject
 {
 #if	GS_EXPOSE(NSMethodSignature)

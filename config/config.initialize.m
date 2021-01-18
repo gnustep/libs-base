@@ -11,6 +11,21 @@
 # define	mySleep(X)	sleep(X)
 #endif
 
+#if _MSC_VER
+// Windows MSVC does not have usleep() (only MinGW does), so we use our own
+#include <windows.h>
+#ifdef interface
+#undef interface // this is defined in windows.h but will break @interface
+#endif
+void usleep(__int64 usec) {
+  LARGE_INTEGER ft = {.QuadPart = -(10*usec)}; // convert to 100ns interval
+  HANDLE timer = CreateWaitableTimer(NULL, TRUE, NULL); 
+  SetWaitableTimer(timer, &ft, 0, NULL, NULL, 0); 
+  WaitForSingleObject(timer, INFINITE); 
+  CloseHandle(timer); 
+}
+#endif
+
 /* Use volatile variables so compiler optimisation won't prevent one thread
  * from seeing changes made by another.
  */

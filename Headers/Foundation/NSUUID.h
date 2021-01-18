@@ -44,6 +44,7 @@ typedef uint8_t gsuuid_t[16];
 
 @class NSString;
 
+GS_EXPORT_CLASS
 @interface NSUUID : NSObject <NSCopying, NSCoding>
 {
   @private

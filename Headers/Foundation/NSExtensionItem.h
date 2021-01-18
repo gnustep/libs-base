@@ -34,7 +34,8 @@ extern "C" {
 #endif
 
 @class NSAttributedString, NSArray, NSDictionary;
-  
+
+GS_EXPORT_CLASS
 @interface NSExtensionItem : NSObject
 {
   NSAttributedString *_attributedTitle;

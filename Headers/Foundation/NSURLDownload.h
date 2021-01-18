@@ -44,6 +44,7 @@ extern "C" {
 /**
  * Handles download to file.
  */
+GS_EXPORT_CLASS
 @interface NSURLDownload : NSObject
 {
 #if	GS_EXPOSE(NSURLDownload)

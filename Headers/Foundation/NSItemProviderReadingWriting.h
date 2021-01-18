@@ -33,6 +33,7 @@
 extern "C" {
 #endif
 
+GS_EXPORT_CLASS
 @interface NSItemProviderReadingWriting : NSObject
 
 @end
@@ -44,4 +45,3 @@ extern "C" {
 #endif	/* GS_API_MACOSX */
 
 #endif	/* _NSItemProviderReadingWriting_h_GNUSTEP_BASE_INCLUDE */
-

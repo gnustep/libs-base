@@ -52,6 +52,7 @@ enum {
 };
 typedef NSUInteger NSFileCoordinatorWritingOptions;
 
+GS_EXPORT_CLASS
 @interface NSFileAccessIntent : NSObject
 {
   NSURL *_url;
@@ -72,6 +73,7 @@ DEFINE_BLOCK_TYPE(GSDualWriteURLCallbackHandler, void, NSURL*, NSURL*);
 DEFINE_BLOCK_TYPE_NO_ARGS(GSBatchAccessorCompletionHandler, void);
 DEFINE_BLOCK_TYPE(GSBatchAccessorCompositeBlock, void, GSBatchAccessorCompletionHandler);
 
+GS_EXPORT_CLASS
 @interface NSFileCoordinator : NSObject
 {
   id _purposeIdentifier;

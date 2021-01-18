@@ -39,6 +39,7 @@ extern "C" {
 /**
  * Encapsulates document type definition data.
  */
+GS_EXPORT_CLASS
 @interface NSXMLDTD : NSXMLNode
 {
 #if     GS_NONFRAGILE

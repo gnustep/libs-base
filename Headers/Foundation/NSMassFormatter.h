@@ -44,7 +44,8 @@ enum {
 typedef NSInteger NSMassFormatterUnit;  
 
 @class NSNumberFormatter;
-  
+
+GS_EXPORT_CLASS
 @interface NSMassFormatter : NSObject
 {
   NSNumberFormatter *_numberFormatter;
