@@ -92,6 +92,7 @@ GS_EXPORT NSString* const NSConnectionProxyCount;	/* Objects received */
  *
  *	A few methods are in the specification but not yet implemented.
  */
+GS_EXPORT_CLASS
 @interface NSConnection : NSObject
 {
 #if	GS_NONFRAGILE

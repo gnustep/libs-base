@@ -46,6 +46,7 @@ typedef NSInteger NSTimeZoneNameStyle;
 GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
 #endif
 
+GS_EXPORT_CLASS
 @interface NSTimeZone : NSObject
 
 //Creating and Initializing an NSTimeZone
@@ -116,6 +117,7 @@ GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
 @end
 
 #if	OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
+GS_EXPORT_CLASS
 @interface NSTimeZoneDetail : NSTimeZone
 - (BOOL) isDaylightSavingTimeZone;
 - (NSString*) timeZoneAbbreviation;

@@ -67,7 +67,7 @@ extern NSString * const NSHTTPCookieManagerCookiesChangedNotification;
  * The NSHTTPCookieStorage class provides a shared instance which handles
  * the shared cookie store.<br />
  */
-
+GS_EXPORT_CLASS
 @interface NSHTTPCookieStorage :  NSObject
 {
 #if	GS_EXPOSE(NSHTTPCookieStorage)

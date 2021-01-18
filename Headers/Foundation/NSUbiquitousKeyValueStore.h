@@ -40,6 +40,7 @@
 extern "C" {
 #endif
 
+GS_EXPORT_CLASS
 @interface NSUbiquitousKeyValueStore : NSObject
 
 // Getting the Shared Instance
@@ -107,11 +108,11 @@ extern "C" {
 // A dictionary containing all of the key-value pairs in the key-value store.
 - (NSDictionary *) dictionaryRepresentation;
 
+@end
+
 // Notifications & constants
 GS_EXPORT NSString* const NSUbiquitousKeyValueStoreDidChangeExternallyNotification;
 GS_EXPORT NSString* const NSUbiquitousKeyValueStoreChangeReasonKey;
-
-@end
 
 #if	defined(__cplusplus)
 }

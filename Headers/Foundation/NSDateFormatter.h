@@ -122,6 +122,7 @@ typedef NSUInteger NSDateFormatterBehavior;
  *  <desc>time zone offset in hours and minutes from GMT (HHMM)</desc>
  * </deflist>
  */
+GS_EXPORT_CLASS
 @interface NSDateFormatter : NSFormatter <NSCoding, NSCopying>
 {
 #if	GS_EXPOSE(NSDateFormatter)

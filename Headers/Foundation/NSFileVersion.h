@@ -42,6 +42,7 @@ enum {
 };
 typedef NSUInteger NSFileVersionAddingOptions;
 
+GS_EXPORT_CLASS
 @interface NSFileVersion : NSObject
 {
 @private

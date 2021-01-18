@@ -44,6 +44,7 @@ extern "C" {
 
 @class	NSPort, NSString, NSMutableArray;
 
+GS_EXPORT_CLASS
 @interface	NSPortNameServer : NSObject
 + (id) systemDefaultPortNameServer;
 - (NSPort*) portForName: (NSString*)name;
@@ -54,6 +55,7 @@ extern "C" {
 - (BOOL) removePortForName: (NSString*)name;
 @end
 
+GS_EXPORT_CLASS
 @interface NSSocketPortNameServer : NSPortNameServer
 {
 #if	GS_EXPOSE(NSSocketPortNameServer)
@@ -79,6 +81,7 @@ extern "C" {
 @end
 
 
+GS_EXPORT_CLASS
 @interface NSMessagePortNameServer : NSPortNameServer
 + (id) sharedInstance;
 

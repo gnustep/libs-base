@@ -67,6 +67,7 @@ GS_EXPORT NSString* const NSXMLParserErrorDomain;
  *   to handle the parsing process.
  * </p>
  */
+GS_EXPORT_CLASS
 @interface NSXMLParser : NSObject
 {
 #if	GS_EXPOSE(NSXMLParser)

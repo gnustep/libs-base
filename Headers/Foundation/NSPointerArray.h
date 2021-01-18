@@ -42,7 +42,7 @@ extern "C" {
  * The count can also be set causing the array to shrink (discarding items)
  * or grow (adding nil/zero items).
  */
-
+GS_EXPORT_CLASS
 @interface NSPointerArray : NSObject <NSCopying, NSCoding>
 
 /** Allocate an instance, initialise using initWithOptions: and

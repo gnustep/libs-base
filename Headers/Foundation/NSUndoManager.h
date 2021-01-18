@@ -82,6 +82,7 @@ GS_EXPORT NSString* const NSUndoManagerWillRedoChangeNotification;
  */
 GS_EXPORT NSString* const NSUndoManagerWillUndoChangeNotification;
 
+GS_EXPORT_CLASS
 @interface NSUndoManager : NSObject
 {
 #if	GS_EXPOSE(NSUndoManager)

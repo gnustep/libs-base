@@ -229,6 +229,7 @@ typedef NSUInteger NSPropertyListFormat;
  *   </desc>
  * </deflist>
  */
+GS_EXPORT_CLASS
 @interface NSPropertyListSerialization : NSObject
 {
 }

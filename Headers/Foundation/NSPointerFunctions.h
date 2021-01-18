@@ -102,6 +102,7 @@ enum {
  */
 typedef	NSUInteger NSPointerFunctionsOptions;
 
+GS_EXPORT_CLASS
 @interface NSPointerFunctions : NSObject <NSCopying>
 
 + (id) pointerFunctionsWithOptions: (NSPointerFunctionsOptions)options;

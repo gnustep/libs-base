@@ -60,7 +60,8 @@ enum {
   NSByteCountFormatterCountStyleBinary = 3,
 };
 typedef NSInteger NSByteCountFormatterCountStyle;
-  
+
+GS_EXPORT_CLASS
 @interface NSByteCountFormatter : NSFormatter
 {
 #if	GS_EXPOSE(NSByteCountFormatter)

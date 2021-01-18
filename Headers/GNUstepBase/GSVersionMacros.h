@@ -384,19 +384,28 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
   /* On Mingw, the compiler will export all symbols automatically, so
    * __declspec(dllexport) is not needed.
    */
+#  define GS_EXPORT_CLASS
 #  define GS_EXPORT  extern
 #  define GS_DECLARE
 # else
-#  define GS_EXPORT  __declspec(dllexport)
+#  define GS_EXPORT_CLASS  __declspec(dllexport)
+#  define GS_EXPORT  extern __declspec(dllexport)
 #  define GS_DECLARE __declspec(dllexport)
 # endif
 #else
+# if defined(__MINGW__)
+   /* MinGW does not need dllimport on ObjC classes and produces warnings. */
+#  define GS_EXPORT_CLASS
+# else
+#  define GS_EXPORT_CLASS  __declspec(dllimport)
+# endif
 #  define GS_EXPORT  extern __declspec(dllimport)
 #  define GS_DECLARE __declspec(dllimport)
 #endif
 
 #else /* GNUSTEP_WITH[OUT]_DLL */
 
+#  define GS_EXPORT_CLASS
 #  define GS_EXPORT extern
 #  define GS_DECLARE
 

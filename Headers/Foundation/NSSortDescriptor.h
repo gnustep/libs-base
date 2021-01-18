@@ -43,6 +43,7 @@ extern "C" {
  * arrays containging collections or other objects whose properties
  * can be obtained using key names.
  */
+GS_EXPORT_CLASS
 @interface NSSortDescriptor : NSObject <NSCopying, NSCoding>
 {
 #if	GS_EXPOSE(NSSortDescriptor)

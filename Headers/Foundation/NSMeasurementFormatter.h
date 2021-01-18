@@ -41,7 +41,8 @@ enum {
     NSMeasurementFormatterUnitOptionsTemperatureWithoutUnit = (1UL << 2),   
 };
 typedef NSUInteger NSMeasurementFormatterUnitOptions;
-  
+
+GS_EXPORT_CLASS
 @interface NSMeasurementFormatter : NSFormatter <NSCoding>
 {
   NSMeasurementFormatterUnitOptions _unitOptions;

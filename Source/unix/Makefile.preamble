@@ -51,6 +51,8 @@ else ifeq ($(GNUSTEP_TARGET_OS),mingw64)
   ADDITIONAL_OBJCFLAGS += -DBUILD_libgnustep_base_DLL=1
 else ifeq ($(GNUSTEP_TARGET_OS),cygwin)
   ADDITIONAL_OBJCFLAGS += -DBUILD_libgnustep_base_DLL=1
+else ifeq ($(GNUSTEP_TARGET_OS),windows)
+  ADDITIONAL_OBJCFLAGS += -DBUILD_libgnustep_base_DLL=1
 endif
 
 # Additional flags to pass to the C compiler

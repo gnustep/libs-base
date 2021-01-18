@@ -54,6 +54,7 @@ extern "C" {
  * without threading.  Non-threaded applications are more efficient
  * (no locking is required) and are easier to debug during development.
  */
+GS_EXPORT_CLASS
 @interface NSThread : NSObject
 {
 #if	GS_EXPOSE(NSThread)

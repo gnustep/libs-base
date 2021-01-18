@@ -98,6 +98,7 @@ enum {
 #endif	/* OS_API_VERSION(GS_API_MACOSX,GS_API_LATEST) */
 
 
+GS_EXPORT_CLASS
 @interface NSProcessInfo: NSObject
 
 /**

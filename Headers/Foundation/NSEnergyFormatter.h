@@ -43,6 +43,7 @@ enum {
 };
 typedef NSInteger NSEnergyFormatterUnit;
 
+GS_EXPORT_CLASS
 @interface NSEnergyFormatter : NSFormatter
 {
   BOOL _isForFoodEnergyUse;

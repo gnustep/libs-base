@@ -44,7 +44,8 @@ enum {
 typedef NSUInteger NSDateIntervalFormatterStyle;
 
 @class NSCalendar, NSLocale, NSDateInterval;
-  
+
+GS_EXPORT_CLASS
 @interface NSDateIntervalFormatter : NSFormatter
 {
     NSLocale *_locale;

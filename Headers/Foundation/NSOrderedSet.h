@@ -47,6 +47,7 @@ extern "C" {
 @class NSString;
 @class NSPredicate;
 
+GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSOrderedSet, __covariant ElementT) : NSObject <NSCoding,
   NSCopying,
   NSMutableCopying,
@@ -159,6 +160,7 @@ extern "C" {
 @end
 
 // Mutable Ordered Set
+GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSMutableOrderedSet, ElementT) : GS_GENERIC_CLASS(NSOrderedSet, ElementT)
 // Creating a Mutable Ordered Set
 + (instancetype)orderedSetWithCapacity: (NSUInteger)capacity;

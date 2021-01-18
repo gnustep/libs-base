@@ -33,6 +33,10 @@
 #include "SourceEntry.h"
 #include "StringsEntry.h"
 
+#ifdef _MSC_VER
+#define strdup _strdup
+#endif
+
 
 int verbose, aggressive_import, aggressive_match, aggressive_remove;
 

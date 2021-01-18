@@ -59,7 +59,8 @@ enum
 typedef NSUInteger NSISO8601DateFormatOptions;
 
 @class NSTimeZone, NSString, NSDate, NSDateFormatter;
-  
+
+GS_EXPORT_CLASS
 @interface NSISO8601DateFormatter : NSFormatter <NSCoding>
 {
   NSTimeZone *_timeZone;

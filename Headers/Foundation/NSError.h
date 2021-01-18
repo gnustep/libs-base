@@ -129,6 +129,7 @@ GS_EXPORT NSErrorDomain const NSCocoaErrorDomain;
  * by external factors (such as a resource file not being present)
  * rather than a programming error (where NSException should be used).
  */
+GS_EXPORT_CLASS
 @interface NSError : NSObject <NSCopying, NSCoding>
 {
 #if	GS_EXPOSE(NSError)

@@ -118,6 +118,7 @@ typedef NSUInteger NSNumberFormatterRoundingMode;
  * of attributes for positive and negative numbers, and for specific cases
  * including 0, NaN, and nil... </p>
  */
+GS_EXPORT_CLASS
 @interface NSNumberFormatter : NSFormatter
 {
 #if	GS_EXPOSE(NSNumberFormatter)

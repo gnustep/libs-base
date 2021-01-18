@@ -40,6 +40,7 @@ extern "C" {
 
 #if	OS_API_VERSION(GS_API_OSSPEC,GS_API_LATEST)
 
+GS_EXPORT_CLASS
 @interface NSArchiver : NSCoder
 {
 #if	GS_EXPOSE(NSArchiver)
@@ -157,8 +158,9 @@ extern "C" {
 @end
 #endif
 
-
 
+
+GS_EXPORT_CLASS
 @interface NSUnarchiver : NSCoder
 {
 #if	GS_EXPOSE(NSUnarchiver)

@@ -117,6 +117,7 @@ extern "C" {
  * ever be done by other classes within the URL loading system.
  * </p>
  */
+GS_EXPORT_CLASS
 @interface NSURLProtocol : NSObject
 {
 #if	GS_EXPOSE(NSURLProtocol)

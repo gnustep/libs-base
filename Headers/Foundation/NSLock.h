@@ -69,6 +69,7 @@ extern "C" {
  * [NSRecursiveLock], have different restrictions.
  * </p>
  */
+GS_EXPORT_CLASS
 @interface NSLock : NSObject <NSLocking>
 {
 #if	GS_EXPOSE(NSLock)

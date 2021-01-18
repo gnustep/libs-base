@@ -36,6 +36,7 @@
 extern "C" {
 #endif
 
+GS_EXPORT_CLASS
 @interface NSDistributedLock : NSObject
 {
 #if	GS_EXPOSE(NSDistributedLock)

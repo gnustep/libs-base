@@ -68,6 +68,7 @@ extern "C" {
  * Currently NOT implemented when using the Apple Foundation!<br />
  * Please contribute an Apple implementation.
  */
+GS_EXPORT_CLASS
 @interface GSServerStream : NSStream
 
 /**

@@ -107,7 +107,8 @@ typedef NSUInteger NSLinguisticTaggerOptions;
 
 DEFINE_BLOCK_TYPE(GSLinguisticTagRangeBoolBlock, void, NSLinguisticTag, NSRange, BOOL);
 DEFINE_BLOCK_TYPE(GSLinguisticTagRangeRangeBoolBlock, void, NSLinguisticTag, NSRange, NSRange, BOOL);
-  
+
+GS_EXPORT_CLASS
 @interface NSLinguisticTagger : NSObject
 {
   NSArray *_schemes;

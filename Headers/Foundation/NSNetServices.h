@@ -355,7 +355,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  *   superclass for concrete implementations of its functionality.
  * </p>
  */
-
+GS_EXPORT_CLASS
 @interface NSNetService : NSObject
 {
 #if	GS_EXPOSE(NSNetService)
@@ -441,7 +441,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  *   functionality.
  * </p>
  */
-
+GS_EXPORT_CLASS
 @interface NSNetServiceBrowser : NSObject
 {
 #if	GS_EXPOSE(NSNetServiceBrowser)

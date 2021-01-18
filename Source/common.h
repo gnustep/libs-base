@@ -85,4 +85,13 @@
 #  endif
 #endif
 
+/* Redefine some function names when using the MSVC ABI on Windows.
+ */
+#ifdef _MSC_VER
+#  define strncasecmp _strnicmp
+#  define strcasecmp _stricmp
+#  define write(fd, buffer, count) _write(fd, buffer, count)
+#  define close(fd) _close(fd)
+#endif
+
 #endif /* COMMON_H */

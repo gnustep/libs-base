@@ -87,6 +87,7 @@ typedef NSUInteger NSURLRequestCachePolicy;
  * URL, how to cache the results, and when to deal with a slow/hung
  * load process by timing out.
  */
+GS_EXPORT_CLASS
 @interface NSURLRequest : NSObject <NSCoding, NSCopying, NSMutableCopying>
 {
 #if	GS_EXPOSE(NSURLRequest)
@@ -155,6 +156,7 @@ typedef NSUInteger NSURLRequestCachePolicy;
 
 /**
  */
+GS_EXPORT_CLASS
 @interface NSMutableURLRequest : NSURLRequest
 
 /**

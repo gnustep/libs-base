@@ -85,6 +85,7 @@ extern "C" {
 - (NSString*) stringByUnescapingXML;
 @end
 
+GS_EXPORT_CLASS
 @interface GSXMLDocument : NSObject <NSCopying>
 {
   void	*lib;	// pointer to xmllib pointer of xmlDoc struct
@@ -114,6 +115,7 @@ extern "C" {
 
 
 
+GS_EXPORT_CLASS
 @interface GSXMLNamespace : NSObject <NSCopying>
 {
   void	*lib;          /* pointer to struct xmlNs in the gnome xmllib */
@@ -135,6 +137,7 @@ extern "C" {
 
 /* XML Node */
 
+GS_EXPORT_CLASS
 @interface GSXMLNode : NSObject <NSCopying>
 {
   void  *lib;      /* pointer to struct xmlNode from libxml */
@@ -184,10 +187,12 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface GSXMLAttribute : GSXMLNode
 - (NSString*) value;
 @end
 
+GS_EXPORT_CLASS
 @interface GSXMLParser : NSObject
 {
    id			src;		/* source for parsing	*/
@@ -239,11 +244,13 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface GSHTMLParser : GSXMLParser
 {
 }
 @end
 
+GS_EXPORT_CLASS
 @interface GSSAXHandler : NSObject
 {
   void		*lib;	// xmlSAXHandlerPtr
@@ -350,9 +357,11 @@ extern "C" {
 
 @end
 
+GS_EXPORT_CLASS
 @interface GSTreeSAXHandler : GSSAXHandler
 @end
 
+GS_EXPORT_CLASS
 @interface GSHTMLSAXHandler : GSSAXHandler
 @end
 
@@ -384,6 +393,7 @@ extern "C" {
  * NSLog (@"Got %@", [result stringValue]);
  *
  */
+GS_EXPORT_CLASS
 @interface GSXPathContext : NSObject
 {
   void		*_lib;		// xmlXPathContext
@@ -405,6 +415,7 @@ extern "C" {
  * the returned type of each GSXPath query to make sure it's what you
  * meant it to be.
  */
+GS_EXPORT_CLASS
 @interface GSXPathObject : NSObject
 {
   void		*_lib;		// xmlXPathObject
@@ -415,6 +426,7 @@ extern "C" {
 /**
  * For XPath queries returning true/false.
  */
+GS_EXPORT_CLASS
 @interface GSXPathBoolean : GSXPathObject
 - (BOOL) booleanValue;
 @end
@@ -422,6 +434,7 @@ extern "C" {
 /**
  * For XPath queries returning a number.
  */
+GS_EXPORT_CLASS
 @interface GSXPathNumber : GSXPathObject
 - (double) doubleValue;
 @end
@@ -429,6 +442,7 @@ extern "C" {
 /**
  * For XPath queries returning a string.
  */
+GS_EXPORT_CLASS
 @interface GSXPathString : GSXPathObject
 - (NSString *) stringValue;
 @end
@@ -436,6 +450,7 @@ extern "C" {
 /**
  * For XPath queries returning a node set.
  */
+GS_EXPORT_CLASS
 @interface GSXPathNodeSet : GSXPathObject
 - (NSUInteger) count;
 - (NSUInteger) length;

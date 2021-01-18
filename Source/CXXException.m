@@ -85,10 +85,12 @@ static Class boxClass(int64_t foo)
 }
 - (void) rethrow
 {
+#if defined(WITH_UNWIND)
   struct _Unwind_Exception *re = ex;
   // We aren't allowed to hold onto the exception if it's been rethrown.
   ex = 0;
   _Unwind_Resume_or_Rethrow(re);
+#endif
 }
 - (void) dealloc
 {

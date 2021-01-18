@@ -33,7 +33,7 @@
 #import	<Foundation/NSObject.h>
 #import	<Foundation/NSMapTable.h>
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 #include	<winsock2.h>
 #include	<wininet.h>
 #else
@@ -72,6 +72,7 @@ extern "C" {
  * <p>This class also implements the functionality of the
  * <code><em>NSMachPort</em></code> class on OS X.</p>
  */
+GS_EXPORT_CLASS
 @interface NSPort : NSObject <NSCoding, NSCopying>
 {
 #if	GS_EXPOSE(NSPort)
@@ -197,6 +198,7 @@ typedef SOCKET NSSocketNativeHandle;
  *
  *  <p>Note that this class is incompatible with the latest OS X version.</p>
  */
+GS_EXPORT_CLASS
 @interface NSSocketPort : NSPort
 {
 #if	GS_EXPOSE(NSSocketPort)
@@ -206,7 +208,7 @@ typedef SOCKET NSSocketNativeHandle;
   uint16_t		portNum;	/* TCP port in host byte order.	*/
   SOCKET		listener;
   NSMapTable		*handles;	/* Handles indexed by socket.	*/
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
   WSAEVENT              eventListener;
   NSMapTable            *events;
 #endif
@@ -279,6 +281,7 @@ typedef SOCKET NSSocketNativeHandle;
  *  which can be used for interthread/interprocess communications
  *  on the same host, but not between different hosts.
  */
+GS_EXPORT_CLASS
 @interface NSMessagePort : NSPort
 {
 #if	GS_EXPOSE(NSMessagePort)

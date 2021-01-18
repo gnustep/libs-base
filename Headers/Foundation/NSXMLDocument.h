@@ -72,6 +72,7 @@ typedef NSUInteger NSXMLDocumentContentKind;
  * An XMLDocument encapsulates an entire document.
  * This must contain a single element node.
  */
+GS_EXPORT_CLASS
 @interface NSXMLDocument : NSXMLNode
 {
 #if     GS_NONFRAGILE

@@ -69,6 +69,7 @@ typedef enum _NSPredicateOperatorType
 #endif
 } NSPredicateOperatorType;
 
+GS_EXPORT_CLASS
 @interface NSComparisonPredicate : NSPredicate
 {
 #if	GS_EXPOSE(NSComparisonPredicate)

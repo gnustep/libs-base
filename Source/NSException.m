@@ -900,7 +900,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
       *returns = malloc(numReturns * sizeof(void*));
       memcpy(*returns, addr, numReturns * sizeof(void*));
     }
-#elif	defined(HAVE_UNWIND_H)
+#elif defined(WITH_UNWIND)
   void          *addr[MAXFRAMES];
   
   struct GSBacktraceState state = {addr, addr + MAXFRAMES};
@@ -1282,7 +1282,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
         }
       symbols = [[NSArray alloc] initWithObjects: symbolArray count: count];
       free(strs);
-#elif	defined(HAVE_UNWIND_H)
+#elif defined(WITH_UNWIND)
       void              **ptrs = (void**)&returns[FrameOffset];
       NSString	        **symbolArray;
 
@@ -1345,28 +1345,28 @@ GSPrivateReturnAddresses(NSUInteger **returns)
 @end
 
 
-NSString* const NSCharacterConversionException
+GS_DECLARE NSString* const NSCharacterConversionException
   = @"NSCharacterConversionException";
 
-NSString* const NSGenericException
+GS_DECLARE NSString* const NSGenericException
   = @"NSGenericException";
 
-NSString* const NSInternalInconsistencyException
+GS_DECLARE NSString* const NSInternalInconsistencyException
   = @"NSInternalInconsistencyException";
 
-NSString* const NSInvalidArgumentException
+GS_DECLARE NSString* const NSInvalidArgumentException
   = @"NSInvalidArgumentException";
 
-NSString* const NSMallocException
+GS_DECLARE NSString* const NSMallocException
   = @"NSMallocException";
 
-NSString* const NSOldStyleException
+GS_DECLARE NSString* const NSOldStyleException
   = @"NSOldStyleException";
 
-NSString* const NSParseErrorException
+GS_DECLARE NSString* const NSParseErrorException
   = @"NSParseErrorException";
 
-NSString* const NSRangeException
+GS_DECLARE NSString* const NSRangeException
  = @"NSRangeException";
 
 static void _terminate()

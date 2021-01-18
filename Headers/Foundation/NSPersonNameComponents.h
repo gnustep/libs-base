@@ -31,6 +31,7 @@
 
 @class NSString;
 
+GS_EXPORT_CLASS
 @interface NSPersonNameComponents : NSObject <NSCopying, NSCoding>
 {
 @private

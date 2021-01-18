@@ -72,7 +72,8 @@ enum
 typedef NSUInteger NSDateComponentsFormatterZeroFormattingBehavior;
 
 @class NSString, NSDate;
-  
+
+GS_EXPORT_CLASS
 @interface NSDateComponentsFormatter : NSFormatter
 {
   NSCalendar *_calendar;

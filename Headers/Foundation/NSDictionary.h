@@ -37,6 +37,7 @@ extern "C" {
 @class GS_GENERIC_CLASS(NSSet, ElementT);
 @class NSString, NSURL;
 
+GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSDictionary,
   __covariant KeyT:id<NSCopying>, __covariant ValT)
   : NSObject <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
@@ -132,6 +133,7 @@ DEFINE_BLOCK_TYPE(GSKeysAndObjectsPredicateBlock, BOOL, GS_GENERIC_TYPE_F(KeyT,i
   (GS_GENERIC_TYPE(KeyT))aKey;
 @end
 
+GS_EXPORT_CLASS
 @interface  GS_GENERIC_CLASS(NSMutableDictionary, KeyT:id<NSCopying>, ValT) :
   GS_GENERIC_CLASS(NSDictionary, KeyT, ValT)
 

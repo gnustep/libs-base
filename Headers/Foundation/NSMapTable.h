@@ -59,6 +59,7 @@ enum {
 
 typedef NSUInteger NSMapTableOptions;
 
+GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSMapTable, KeyT, ValT)
   : NSObject <NSCopying, NSCoding, NSFastEnumeration>
 

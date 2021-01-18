@@ -86,6 +86,7 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*,
  * pattern, but it usually in the order of milliseconds. The preset 1500,
  * setting value to 0 disables the work limit.
  */
+GS_EXPORT_CLASS
 @interface NSRegularExpression : NSObject <NSCoding, NSCopying>
 {
 #if	GS_EXPOSE(NSRegularExpression)

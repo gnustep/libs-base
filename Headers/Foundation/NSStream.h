@@ -66,6 +66,7 @@ typedef NSUInteger NSStreamEvent;
 /**
  * NSStream is an abstract class for objects representing streams. 
  */
+GS_EXPORT_CLASS
 @interface NSStream : NSObject
 
 /**

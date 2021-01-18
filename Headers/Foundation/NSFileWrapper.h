@@ -61,6 +61,7 @@ enum {
 typedef NSUInteger NSFileWrapperWritingOptions;
 #endif
 
+GS_EXPORT_CLASS
 @interface NSFileWrapper : NSObject 
 {
   NSString		*_filename;

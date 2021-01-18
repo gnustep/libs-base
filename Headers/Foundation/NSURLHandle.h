@@ -177,6 +177,7 @@ typedef NSUInteger NSURLHandleStatus;
 - (void) URLHandleResourceDidFinishLoading: (NSURLHandle*)sender;
 @end
 
+GS_EXPORT_CLASS
 @interface NSURLHandle : NSObject
 {
 #if	GS_EXPOSE(NSURLHandle)

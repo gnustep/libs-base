@@ -37,6 +37,7 @@ extern "C" {
  *  Instances of this class encapsulate host information.  Constructors based
  *  on host name or numeric address are provided.
  */
+GS_EXPORT_CLASS
 @interface NSHost : NSObject
 {
 #if	GS_EXPOSE(NSHost)

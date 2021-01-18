@@ -42,6 +42,7 @@ enum
 };
 typedef NSUInteger NSCompoundPredicateType;
 
+GS_EXPORT_CLASS
 @interface NSCompoundPredicate : NSPredicate
 {
 #if	GS_EXPOSE(NSCompoundPredicate)

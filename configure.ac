@@ -235,7 +235,7 @@ then
 fi
 if test x"$GNUSTEP_TARGET_CONFIG_FILE" = x""; then
   case "$target_os" in
-    mingw*)
+    mingw*|windows*)
       GNUSTEP_TARGET_CONFIG_FILE=./GNUstep.conf ;;
     *)
       GNUSTEP_TARGET_CONFIG_FILE="$GNUSTEP_MAKE_CONFIG" ;;
@@ -252,7 +252,7 @@ AC_MSG_RESULT($GNUSTEP_TARGET_CONFIG_FILE)
 # location (used by gnustep-make when building).
 #-----------------------------------------------------------------
 case "$target_os" in
-    mingw*)	enable_env_config=no;;
+    mingw*|windows*)	enable_env_config=no;;
     *)		enable_env_config=yes;;
 esac
 AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
@@ -534,7 +534,7 @@ AC_SUBST(GNUSTEP_BASE_DOMAIN)
 # paths (relative to libgnustep-base.dll).
 #
 case "$target_os" in
-  mingw*)
+  mingw*|windows*)
     # TODO: Improve this hack.
     # According to Wikipedia, this is the default for Windows 2000,
     # Windows XP and Windows Server 2003.  For Windows Vista this will
@@ -1349,7 +1349,7 @@ if test "$gs_cv_objc_libdir" != "NONE"; then
 
   # add to path on Windows for config checks to find DLL at runtime
   case $host_os in
-    mingw*) PATH=$PATH:$gs_cv_objc_libdir;;
+    mingw*|windows*) PATH=$PATH:$gs_cv_objc_libdir;;
   esac
 fi
 
@@ -1973,13 +1973,21 @@ fi
 #--------------------------------------------------------------------
 # Check for thread synchronisation support in runtime
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(objc_sync_enter)
-if test $ac_cv_func_objc_sync_enter = yes ; then
+if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  AC_MSG_NOTICE([assuming objc_sync_enter() on Windows MSVC])
   OBJCSYNC=1
 else
-  OBJCSYNC=0
-  if test "$OBJC_RUNTIME_LIB" = "ng"; then
-    AC_MSG_ERROR([The objc runtime library does not appear to have synchronisation support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option.])
+  AC_CHECK_FUNCS(objc_sync_enter)
+  if test $ac_cv_func_objc_sync_enter = yes ; then
+    OBJCSYNC=1
+  else
+    OBJCSYNC=0
+    if test "$OBJC_RUNTIME_LIB" = "ng"; then
+      AC_MSG_ERROR([The objc runtime library does not appear to have synchronisation support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option.])
+    fi
   fi
 fi
 AC_SUBST(OBJCSYNC)
@@ -1992,6 +2000,12 @@ AC_SUBST(OBJCSYNC)
 if test "$cross_compiling" = "yes"; then
   AC_MSG_NOTICE(["Cross compiling! Using predefined OBJC2RUNTIME variable"])
   OBJC2RUNTIME="$cross_objc2_runtime"
+elif test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  AC_MSG_NOTICE([assuming objc_setProperty() on Windows MSVC])
+  OBJC2RUNTIME=1
 else
   AC_CHECK_FUNCS(objc_setProperty)
   if test $ac_cv_func_objc_setProperty = yes ; then
@@ -2008,13 +2022,21 @@ AC_SUBST(OBJC2RUNTIME)
 #--------------------------------------------------------------------
 # Check for blocks support in runtime
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(_Block_copy)
-if test $ac_cv_func__Block_copy = yes ; then
+if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  AC_MSG_NOTICE([assuming _Block_copy() on Windows MSVC])
   HAVE_BLOCKS=1
 else
-  HAVE_BLOCKS=0
-  if test "$OBJC_RUNTIME_LIB" = "ng"; then
-    AC_MSG_ERROR([The objc runtime library does not appear to have blocks support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option.])
+  AC_CHECK_FUNCS(_Block_copy)
+  if test $ac_cv_func__Block_copy = yes ; then
+    HAVE_BLOCKS=1
+  else
+    HAVE_BLOCKS=0
+    if test "$OBJC_RUNTIME_LIB" = "ng"; then
+      AC_MSG_ERROR([The objc runtime library does not appear to have blocks support.  Try re-configuring gnustep-make with a CPPFLAGS variable containing a -L point to specify the directory containing the correct libobjc, or using the --with-objc-lib-flag=... option.])
+    fi
   fi
 fi
 AC_SUBST(HAVE_BLOCKS)
@@ -2023,18 +2045,26 @@ AC_SUBST(HAVE_BLOCKS)
 
 GS_NONFRAGILE=0
 if test "$nonfragile" = "yes"; then
-  saved_CPPFLAGS="$CPPFLAGS"
-  CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
-  AC_MSG_CHECKING(for non-fragile-abi support)
-  AC_RUN_IFELSE([AC_LANG_SOURCE(
-    [[#include "$srcdir/config/config.non-fragile-ivars.m"]])],
-    non_fragile=yes, non_fragile=no,
-    non_fragile="$cross_non_fragile")
-  CPPFLAGS="$saved_CPPFLAGS"
-  if test $non_fragile = yes; then
+  if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+    # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+    # against symbol in discarded section") as the file won't contain any actual
+    # ObjC code, so we just assume the function is there.
+    AC_MSG_NOTICE([assuming non-fragile-abi support on Windows MSVC])
     GS_NONFRAGILE=1
+  else
+    saved_CPPFLAGS="$CPPFLAGS"
+    CPPFLAGS="$CPPFLAGS $OBJCFLAGS -x objective-c"
+    AC_MSG_CHECKING(for non-fragile-abi support)
+    AC_RUN_IFELSE([AC_LANG_SOURCE(
+      [[#include "$srcdir/config/config.non-fragile-ivars.m"]])],
+      non_fragile=yes, non_fragile=no,
+      non_fragile="$cross_non_fragile")
+    CPPFLAGS="$saved_CPPFLAGS"
+    if test $non_fragile = yes; then
+      GS_NONFRAGILE=1
+    fi
+    AC_MSG_RESULT($non_fragile)
   fi
-  AC_MSG_RESULT($non_fragile)
 fi
 AC_SUBST(GS_NONFRAGILE)
 
@@ -2113,11 +2143,19 @@ AC_MSG_RESULT($have_set_unexpected)
 # Don't revert any Objective-C flags as they are used in the next test
 
 AC_MSG_CHECKING(for _objc_unexpected_exception in runtime)
-AC_RUN_IFELSE(
-  [AC_LANG_SOURCE([[#include "$srcdir/config/config.unexpected.m"]])],
-    have_unexpected=yes,
-    have_unexpected=no,
-    have_unexpected="$cross_have_unexpected")
+if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  AC_MSG_NOTICE([assuming _objc_unexpected_exception() on Windows MSVC])
+  have_unexpected=yes
+else
+  AC_RUN_IFELSE(
+    [AC_LANG_SOURCE([[#include "$srcdir/config/config.unexpected.m"]])],
+      have_unexpected=yes,
+      have_unexpected=no,
+      have_unexpected="$cross_have_unexpected")
+fi
 if test $have_unexpected = yes; then
   AC_DEFINE(HAVE_UNEXPECTED,1,
 	    [Define if libobjc has the _objc_unexpected_exception callback])
@@ -2155,11 +2193,18 @@ AC_SUBST(BASE_NATIVE_OBJC_EXCEPTIONS)
 #--------------------------------------------------------------------
 # Function needed by @synchronize directive
 #--------------------------------------------------------------------
-AC_CHECK_FUNCS(objc_sync_enter)
-
 HAVE_OBJC_SYNC_ENTER=no
-if test $ac_cv_func_objc_sync_enter = yes ; then
+if test "$host_os" = windows -a "$OBJC_RUNTIME_LIB" = "ng"; then
+  # On Windows MSVC, AC_CHECK_FUNCS() will throw linker errors ("relocation
+  # against symbol in discarded section") as the file won't contain any actual
+  # ObjC code, so we just assume the function is there.
+  AC_MSG_NOTICE([assuming objc_sync_enter() on Windows MSVC])
   HAVE_OBJC_SYNC_ENTER=yes
+else
+  AC_CHECK_FUNCS(objc_sync_enter)
+  if test $ac_cv_func_objc_sync_enter = yes ; then
+    HAVE_OBJC_SYNC_ENTER=yes
+  fi
 fi
 AC_SUBST(HAVE_OBJC_SYNC_ENTER)
 
@@ -2758,7 +2803,7 @@ elif test "$enable_pass_arguments" = "no"; then
   fi
 fi
 case "$target_os" in
-    mingw*)	enable_fake_main=no; GS_FAKE_MAIN=0;;
+    mingw*|windows*)	enable_fake_main=no; GS_FAKE_MAIN=0;;
 esac
 AC_SUBST(GS_FAKE_MAIN)
 AC_MSG_RESULT($enable_fake_main)

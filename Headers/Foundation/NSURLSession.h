@@ -51,6 +51,7 @@
  * task most commonly associated with retrieving objects for immediate parsing
  * by the consumer.
  */
+GS_EXPORT_CLASS
 @interface NSURLSession : NSObject
 {
   NSOperationQueue           *_delegateQueue;
@@ -127,6 +128,7 @@ typedef NS_ENUM(NSUInteger, NSURLSessionTaskState) {
  * NSURLSessionTask - a cancelable object that refers to the lifetime
  * of processing a given request.
  */
+GS_EXPORT_CLASS
 @interface NSURLSessionTask : NSObject <NSCopying>
 {
   /** An identifier for this task, assigned by and unique
@@ -238,16 +240,20 @@ typedef NS_ENUM(NSUInteger, NSURLSessionTaskState) {
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSURLSessionDataTask : NSURLSessionTask
 @end
 
+GS_EXPORT_CLASS
 @interface NSURLSessionUploadTask : NSURLSessionDataTask
 @end
 
+GS_EXPORT_CLASS
 @interface NSURLSessionDownloadTask : NSURLSessionTask
 @end
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_11,GS_API_LATEST)
+GS_EXPORT_CLASS
 @interface NSURLSessionStreamTask : NSURLSessionTask
 @end
 #endif
@@ -257,6 +263,7 @@ typedef NS_ENUM(NSUInteger, NSURLSessionTaskState) {
  * created, a copy of the configuration object is made - you cannot
  * modify the configuration of a session after it has been created.
  */
+GS_EXPORT_CLASS
 @interface NSURLSessionConfiguration : NSObject <NSCopying>
 {
   NSURLCache               *_URLCache;

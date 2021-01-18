@@ -62,6 +62,7 @@ GS_EXPORT NSString* const NSUnarchiveFromDataTransformerName;
  * abstract and its methods must be overridden by subclasses to do
  * the actual work.
  */
+GS_EXPORT_CLASS
 @interface NSValueTransformer : NSObject
 
 /** <override-subclass />

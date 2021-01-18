@@ -41,6 +41,7 @@ typedef	struct {
   CGFloat	tY;
 } NSAffineTransformStruct;
 
+GS_EXPORT_CLASS
 @interface NSAffineTransform : NSObject <NSCopying, NSCoding>
 {
 #if GS_EXPOSE(NSAffineTransform)

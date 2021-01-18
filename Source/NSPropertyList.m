@@ -2491,7 +2491,7 @@ static BOOL	classInitialized = NO;
  * <li><var>xml</var> enables XML formatting.</li>
  * </ul>
  */
-void
+GS_DECLARE void
 GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   BOOL forDescription, unsigned step, id *str)
 {

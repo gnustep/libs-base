@@ -56,6 +56,7 @@ typedef struct {
   } flags;
 } gcInfo;
 
+GS_EXPORT_CLASS
 @interface GCObject : NSObject
 {
   gcInfo	gc;
@@ -81,6 +82,7 @@ typedef struct {
 - (void) gcSetVisited: (BOOL)flag;
 @end
 
+GS_EXPORT_CLASS
 @interface GCArray : NSArray
 {
   gcInfo	gc;
@@ -90,7 +92,7 @@ typedef struct {
 }
 @end
 
-
+GS_EXPORT_CLASS
 @interface GCMutableArray : NSMutableArray
 {
   gcInfo	gc;
@@ -101,6 +103,7 @@ typedef struct {
 }
 @end
 
+GS_EXPORT_CLASS
 @interface GCDictionary : NSDictionary
 {
   gcInfo	gc;
@@ -108,6 +111,7 @@ typedef struct {
 }
 @end
 
+GS_EXPORT_CLASS
 @interface GCMutableDictionary : NSMutableDictionary
 {
   gcInfo	gc;

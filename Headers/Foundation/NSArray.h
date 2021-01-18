@@ -57,6 +57,7 @@ enum
 typedef NSUInteger NSBinarySearchingOptions;
 #endif
 
+GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSArray, __covariant ElementT) : NSObject
   <NSCoding, NSCopying, NSMutableCopying, NSFastEnumeration>
 
@@ -300,7 +301,8 @@ DEFINE_BLOCK_TYPE(GSPredicateBlock, BOOL, GS_GENERIC_TYPE(ElementT), NSUInteger,
 - (GS_GENERIC_TYPE(ElementT)) objectAtIndexedSubscript: (NSUInteger)anIndex;
 @end
 
-
+
+GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSMutableArray, ElementT) : GS_GENERIC_CLASS(NSArray, ElementT)
 
 + (instancetype) arrayWithCapacity: (NSUInteger)numItems;

@@ -68,13 +68,15 @@
 #  include	<fcntl.h>
 #endif
 
+#ifdef HAVE_SYS_TIME_H
+#  include <sys/time.h>
+#endif
+
 #ifdef _WIN32
 #include <winsock2.h>
 #include <wininet.h>
 #include <process.h>
-#include <sys/time.h>
 #else
-#include <sys/time.h>
 #include <sys/resource.h>
 #include <netdb.h>
 #include <sys/socket.h>

@@ -50,6 +50,7 @@ extern "C" {
  *  <code>...forKey:</code> [NSCoder] methods, which provide for more robust
  *  forwards and backwards compatibility.
  */
+GS_EXPORT_CLASS
 @interface NSKeyedArchiver : NSCoder
 {
 #if	GS_EXPOSE(NSKeyedArchiver)
@@ -250,6 +251,7 @@ extern "C" {
  *  <code>...forKey:</code> [NSCoder] methods, which provide for more robust
  *  forwards and backwards compatibility.
  */
+GS_EXPORT_CLASS
 @interface NSKeyedUnarchiver : NSCoder
 {
 #if	GS_EXPOSE(NSKeyedUnarchiver)

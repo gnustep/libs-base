@@ -32,7 +32,10 @@
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
 
-#if defined (__MINGW__)
+#if defined(_WIN32)
+#if defined(_MSC_VER)
+typedef unsigned pid_t;
+#endif
 typedef unsigned gid_t;
 typedef unsigned uid_t;
 #endif
@@ -66,6 +69,7 @@ enum
 };
 typedef NSUInteger NSXPCConnectionOptions; 
   
+GS_EXPORT_CLASS
 @interface NSXPCConnection : NSObject <NSXPCProxyCreating>
 
 - (instancetype) initWithListenerEndpoint: (NSXPCListenerEndpoint *)endpoint;
@@ -172,6 +176,7 @@ typedef NSUInteger NSXPCConnectionOptions;
 
 @end
 
+GS_EXPORT_CLASS
 @interface NSXPCListenerEndpoint : NSObject <NSCoding>  // NSSecureCoding
 @end
 
@@ -182,4 +187,3 @@ typedef NSUInteger NSXPCConnectionOptions;
 #endif	/* GS_API_MACOSX */
 
 #endif	/* _NSXPCConnection_h_GNUSTEP_BASE_INCLUDE */
-

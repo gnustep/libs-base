@@ -33,6 +33,7 @@
 extern "C" {
 #endif
 
+GS_EXPORT_CLASS
 @interface NSObjectScripting : NSObject
 
 @end
