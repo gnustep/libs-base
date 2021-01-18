@@ -1745,7 +1745,8 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
   if ([right isEqualToString: @"NSDate"])
     {
-      return [[NSDate alloc] initWithTimeIntervalSinceReferenceDate: [left doubleValue]];
+      return [NSDate dateWithTimeIntervalSinceReferenceDate:
+	[left doubleValue]];
     }
 
   NSLog(@"Cast to unknown type %@", right);
