@@ -695,6 +695,7 @@ failure:
   unsigned char	*dst;
   unsigned char	buf[4];
   unsigned	pos = 0;
+  NSZone	*zone = [self zone];
 
   if (nil == base64Data)
     {
@@ -713,7 +714,7 @@ failure:
   src = (const unsigned char*)[base64Data bytes];
   end = &src[length];
 
-  result = (unsigned char*)malloc(declen);
+  result = NSZoneMalloc(zone, declen);
   dst = result;
 
   while (src != end)
@@ -818,7 +819,7 @@ failure:
        */
       if ((((declen - length) * 100) / declen) > 5)
         {
-          result = realloc(result, length);
+	  result = NSZoneRealloc(zone, result, length);
         }
     }
   return [self initWithBytesNoCopy: result length: length freeWhenDone: YES];
