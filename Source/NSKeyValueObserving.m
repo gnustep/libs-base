@@ -444,6 +444,11 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   NSString		*superName;
   NSString		*name;
 
+  if (nil == (self = [super init]))
+    {
+      return nil;
+    }
+
   if ([aClass instanceMethodForSelector: @selector(takeValue:forKey:)]
     != [NSObject instanceMethodForSelector: @selector(takeValue:forKey:)])
     {
@@ -1298,8 +1303,13 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
             withTarget: (id)aTarget
                context: (void *)context
 {
-  NSString * remainingKeyPath;
-  NSRange dot;
+  NSString	*remainingKeyPath;
+  NSRange 	dot;
+
+  if (nil == (self = [super init]))
+    {
+      return nil;
+    }
 
   target = aTarget;
   keyPathToForward = [keyPath copy];
@@ -1485,6 +1495,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   NSRange               dot;
 
   setup();
+
   [kvoLock lock];
 
   // Use the original class
@@ -1891,7 +1902,9 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
             {
               set = [self valueForKey: aKey];
             }
-          [pathInfo->change setValue: [set mutableCopy] forKey: @"oldSet"];
+	  set = [set mutableCopy];
+          [pathInfo->change setValue: set forKey: @"oldSet"];
+	  RELEASE(set);
           [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: YES];
         }
       [info unlock];
@@ -1921,7 +1934,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
           NSMutableSet  *oldSet;
           id            set = objects;
 
-          oldSet = [pathInfo->change valueForKey: @"oldSet"];
+          oldSet = RETAIN([pathInfo->change valueForKey: @"oldSet"]);
           if (nil == set)
             {
               set = [self valueForKey: aKey];
@@ -1937,6 +1950,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
                         forKey: NSKeyValueChangeKindKey];
               [pathInfo->change setValue: set
                                   forKey: NSKeyValueChangeNewKey];
+	      RELEASE(set);
             }
           else if (mutationKind == NSKeyValueMinusSetMutation
             || mutationKind == NSKeyValueIntersectSetMutation)
@@ -1964,8 +1978,10 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
                                   forKey: NSKeyValueChangeOldKey];
               [pathInfo->change setValue: new
                                   forKey: NSKeyValueChangeNewKey];
+	      RELEASE(old);
+	      RELEASE(new);
             }
-
+	  RELEASE(oldSet);
           [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: NO];
         }
       if (pathInfo->recursion > 0)
