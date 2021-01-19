@@ -1,3 +1,12 @@
+2021-01-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSKeyValueObserving.m: Fix leak of set
+        * Source/NSPredicate.m: Fix leak evaluating a cast
+        * Source/NSUnit.m: Fix memory leaks
+	* Source/NSData.m: Use NSZoneMalloc and NSZoneRealloc for memory
+	to ensure it is in the correct zone for the instance (and to avoid
+	complaints from static analyser).
+
 2021-01-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSSocketStream.m:
