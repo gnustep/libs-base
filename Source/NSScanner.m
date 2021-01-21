@@ -1060,7 +1060,7 @@ typedef GSString	*ivars;
       result *= e;
     }
 
-  if (0 != result)
+  if (0 != value)
     {
       if (YES == negativeMantissa)
         {
