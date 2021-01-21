@@ -1,3 +1,9 @@
+2021-01-21 Fred Kiefer <fredkiefer@gmx.de>
+
+	* Tools/pl2link.m (main): Set key StartupWMClass and allow file
+	parameters of the Exec key.
+	Idea by: Josh Freeman <gnustep_lists@twilightedge.com>
+
 2021-01-21 Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSScanner.m: Fix scanning of zero values.
@@ -601,7 +607,7 @@
 	* Source/GSDictionary.m:
         Implement fast enumeration for insensitive dictionary
 
-2020-09-05 fredkiefer <fredkiefer@gmx.de>
+2020-09-05 Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/NSPersonNameComponentsFormatter.m:
         Add missing break
@@ -617,7 +623,7 @@
 	* Source/Additions/GSXML.m:
         Avoid coverity warning
 
-2020-08-30 fredkiefer <fredkiefer@gmx.de>
+2020-08-30 Fred Kiefer <fredkiefer@gmx.de>
 
         * Source/NSDateComponentsFormatter.m: Fix use of wrong operator.
 
@@ -1020,13 +1026,13 @@
 	* Source/NSJSONSerialization.m:
         Fix exponent validation
 
-2020-05-10 fredkiefer <fredkiefer@gmx.de>
+2020-05-10 Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/NSISO8601DateFormatter.m:
 	* Source/NSOrthography.m:
         Clean up some compiler warnings.
 
-2020-05-09 fredkiefer <fredkiefer@gmx.de>
+2020-05-09 Fred Kiefer <fredkiefer@gmx.de>
 
 	* Tests/base/NSLocale/general.m:
         Mark more tests that depend on locale setting as hopes.
@@ -1035,7 +1041,7 @@
 	* Tests/base/NSXMLParser/parse.m: Mark stream test as hopeful
 	as this isn't implemented at the moment.
 
-2020-05-08 fredkiefer <fredkiefer@gmx.de>
+2020-05-08 Fred Kiefer <fredkiefer@gmx.de>
 
         * Source/NSXMLParser.m: Fix small bug in last commit that broke
 	all gui applications when there was a commented out section in
@@ -1183,7 +1189,7 @@
 	* Source/NSString.m:
         Fix typo spotted by 'alotrev'
 
-2020-04-26 fredkiefer <fredkiefer@gmx.de>
+2020-04-26 Fred Kiefer <fredkiefer@gmx.de>
 
         * Source/NSLocale.m: Respect NSLocaleCalendarIdentifier if
         NSLocaleCalendar isn't set.
@@ -1193,7 +1199,7 @@
         * Tests/base/NSCalendar/features-10-7.m: Add test for different
         time zone.
 
-2020-04-25 fredkiefer <fredkiefer@gmx.de>
+2020-04-25 Fred Kiefer <fredkiefer@gmx.de>
 
 	* Headers/Foundation/NSCalendar.h:
 	* Source/NSCalendar.m:

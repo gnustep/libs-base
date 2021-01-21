@@ -119,6 +119,7 @@ main(int argc, char** argv, char **env)
     {
       appName = entry;
       [fileContents appendFormat: @"Name=%@\n", entry];
+      [fileContents appendFormat: @"StartupWMClass=%@\n", entry];
       if (destName == nil)
 	destName = [entry stringByAppendingString: @".desktop"];
     }
@@ -215,7 +216,7 @@ main(int argc, char** argv, char **env)
       // Build the string to execute the application...
       execPath = [NSString stringWithCString: line
 			   encoding: NSASCIIStringEncoding];
-      [fileContents appendFormat: @"Exec=%@ %@\n", execPath, entry];
+      [fileContents appendFormat: @"Exec=%@ %@ %F\n", execPath, entry];
     }
 
   list = [plist objectForKey: @"NSTypes"];
