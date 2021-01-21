@@ -1,3 +1,8 @@
+2021-01-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Source/NSScanner.m: Fix scanning of zero values.
+	Was checking incorrect variable to avoid assignment to nul pointer.
+
 2021-01-19 Richard Frith-Macdonald <rfm@gnu.org>
 
         * Source/NSKeyValueObserving.m: Fix leak of set
