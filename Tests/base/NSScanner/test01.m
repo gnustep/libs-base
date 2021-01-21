@@ -186,6 +186,24 @@ int main()
   PASS([scn scanLocation] == 5u, "all scanned");
   PASS([scn isAtEnd], "is at end");
 
+  scn = [NSScanner scannerWithString: @"0.0"];
+  flt = 1.0;
+  [scn scanFloat: &flt];
+  PASS(flt == 0.0, "flt = 0.0");
+  PASS([scn isAtEnd], "is at end");
+
+  double	r, g, b;
+  NSScanner	*scanner;
+  BOOL		ok = NO;
+      
+  scanner = [NSScanner scannerWithString: @"0 0 0"];
+  PASS([scanner scanDouble: &r]
+    && [scanner scanDouble: &g]
+    && [scanner scanDouble: &b]
+    && [scanner isAtEnd]
+    && 0.0 == r && 0.0 == g && 0.0 == b,
+    "scan three space separated zeros as doubles")
+
   [arp release]; arp = nil;
   return 0;
 }
