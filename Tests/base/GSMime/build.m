@@ -4,7 +4,7 @@
 #import "Testing.h"
 
 static int
-strnstr(const uint8_t *buf, unsigned len, const uint8_t *str)
+find(const char *buf, unsigned len, const char *str)
 {
   int   l = strlen(str);
   int   max = len - l;
@@ -67,7 +67,7 @@ int main(int argc,char **argv)
   const char *bytes = "MIME-Version: 1.0\r\n"
     "Content-Type: text/plain; type=\"my/type\"\r\n"
     "Subject: =?utf-8?B?4oKs?=\r\n\r\n";
-  PASS(strnstr([data bytes], [data length], "?B?4oKs?=") > 0,
+  PASS(find((char*)[data bytes], (unsigned)[data length], "?B?4oKs?=") > 0,
     "encodes utf-8 euro in subject");
 
   [arp release]; arp = nil;
