@@ -3,6 +3,7 @@
 #import <GNUstepBase/GSMime.h>
 #import "Testing.h"
 
+#if !defined(__NetBSD__)
 static int
 strnstr(const uint8_t *buf, unsigned len, const uint8_t *str)
 {
@@ -19,6 +20,7 @@ strnstr(const uint8_t *buf, unsigned len, const uint8_t *str)
     }
   return -1;
 }
+#endif
 
 int main(int argc,char **argv)
 {
