@@ -99,6 +99,13 @@ int main()
   PASS(date1 != nil,
     "+dateWithString:calendarFormat:locale: handles GMT-0100 timezone");
 
+  date1 = [NSCalendarDate dateWithString: @"1970-01-01 00:00:00 GMT+1000"
+                          calendarFormat: @"%Y-%m-%d %H:%M:%S %Z"
+				  locale: locale];
+  [date1 setTimeZone: [NSTimeZone timeZoneWithName: @"GMT"]];
+  PASS_EQUAL([date1 description], @"1969-12-31 14:00:00 GMT+0000",
+    "+dateWithString:calendarFormat:locale: handles GMT+1000 timezone");
+
   date1 = [NSCalendarDate dateWithString:
     @"1999-12-31 00:00:00 Africa/Addis_Ababa"
                           calendarFormat: @"%Y-%m-%d %H:%M:%S %Z"
