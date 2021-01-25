@@ -3179,8 +3179,8 @@ lossyCString_u(GSStr self)
   unsigned	l = 0;
   unsigned char	*r = 0;
 
-  GSFromUnicode(&r, &l, self->_contents.u, self->_count, externalEncoding,
-    NSDefaultMallocZone(), GSUniTemporary|GSUniTerminate);
+  (void)GSFromUnicode(&r, &l, self->_contents.u, self->_count,
+    externalEncoding, NSDefaultMallocZone(), GSUniTemporary|GSUniTerminate);
   return (const char*)r;
 }
 
