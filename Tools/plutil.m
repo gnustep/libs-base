@@ -190,22 +190,29 @@ parseQuotedString(const char *keypath, size_t *i)
 
   // Select the part of the quoted string that looks like a plist string
   for (end = begin + 1; *end && *end != '"'; end++)
-    if (*end == '\\')
-      {
-	if (end[1])
-	  end += 1;
-	else
-	  [NSException raise: NSInvalidArgumentException
-		      format: @"Premature EOF in keypath"];
-      }
+    {
+      if (*end == '\\')
+	{
+	  if (end[1])
+	    {
+	      end += 1;
+	    }
+	  else
+	    {
+	      [NSException raise: NSInvalidArgumentException
+			  format: @"Premature EOF in keypath"];
+	    }
+	}
+    }
 
-  if (!end)
-    [NSException raise: NSInvalidArgumentException
-		format: @"Premature EOF in keypath"];
-
+  if (!*end)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"Premature EOF in keypath"];
+    }
   *i = end - keypath + 1;
-  parsed = [[NSString stringWithCString: begin length: end - begin] propertyList];
-  return (NSString *) parsed;
+  parsed = [[NSString stringWithCString: begin length: end-begin] propertyList];
+  return (NSString *)parsed;
 }
 
 /**
