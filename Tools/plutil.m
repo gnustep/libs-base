@@ -151,30 +151,40 @@ parseQuotedString(const char *, size_t *);
 NSArray *
 parseKeyPath(const char *keypath)
 {
-  NSMutableArray *res = [[NSMutableArray alloc] init];
-  NSString *      key = nil;
-  size_t	  i;
-  size_t	  j;
+  NSMutableArray	*res = [[NSMutableArray alloc] init];
+  NSString		*key = nil;
+  size_t	  	i;
+  size_t	  	j;
 
   for (i = 0; keypath[i]; i++)
-    switch (keypath[i])
-      {
-      case KEYPATH_SEP:
-	[res addObject: key];
-	key = nil;
-	break;
-      case '"':
-	key = parseQuotedString(keypath, &i);
-	break;
-      default:
-	for (j = i; keypath[j] && !GS_IS_QUOTABLE(keypath[j])
-		    && keypath[j] != KEYPATH_SEP;
-	     j++)
-	  ;
-	key = [NSString stringWithCString: &keypath[i] length: (j - i)];
-	i = j - 1;
-	break;
-      }
+    {
+      switch (keypath[i])
+	{
+	  case KEYPATH_SEP:
+	    if (key != nil)
+	      {
+		[res addObject: key];
+		key = nil;
+	      }
+	    break;
+
+	  case '"':
+	    key = parseQuotedString(keypath, &i);
+	    break;
+
+	  default:
+	    j = i;
+	    while (keypath[j]
+	      && !GS_IS_QUOTABLE(keypath[j])
+	      && keypath[j] != KEYPATH_SEP)
+	      {
+		j++;
+	      }
+	    key = [NSString stringWithCString: &keypath[i] length: (j - i)];
+	    i = j - 1;
+	    break;
+	}
+    }
   return [res copy];
 }
 
