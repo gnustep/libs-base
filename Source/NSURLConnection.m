@@ -403,6 +403,9 @@ typedef struct
                   *error = [[[collector error] retain] autorelease];
                 }
             }
+	  /* Cancel to prevent the NSURLProtocol instance retaining us.
+	   */
+	  [conn cancel];
           [conn release];
         }
       [collector release];
