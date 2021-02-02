@@ -1,3 +1,13 @@
+2021-02-02 Riccardo Mottola <rm@gnu.org>
+
+	* configure
+	* configure.ac
+	Add check for statbuf.st_mtim if available
+
+	* Source/NSFileManager.m
+	Use statbuf.st_mtim to get nanosecond precision in modification
+	date, also fix conversion of nanoseconds in creation date.
+
 2021-01-21 Fred Kiefer <fredkiefer@gmx.de>
 
 	* Tools/pl2link.m (main): Set key StartupWMClass and allow file

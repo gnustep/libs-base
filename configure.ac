@@ -2399,8 +2399,8 @@ fi
 AC_CHECK_FUNCS(getcwd)
 AC_HEADER_DIRENT
 
-# Look for file creation date on NetBSD, FreeBSD, Darwin
-AC_CHECK_MEMBERS([struct stat.st_birthtime, struct stat.st_birthtimespec, struct stat.st_birthtim, struct stat64.st_birthtimespec],
+# Look for file creation and modification date on NetBSD, FreeBSD, Darwin
+AC_CHECK_MEMBERS([struct stat.st_mtim, struct stat.st_birthtime, struct stat.st_birthtimespec, struct stat.st_birthtim, struct stat64.st_birthtimespec],
 		 ,,[#include <sys/stat.h>])
 
 #--------------------------------------------------------------------

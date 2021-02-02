@@ -611,8 +611,8 @@ static NSStringEncoding	defaultEncoding;
           struct timespec ub[2];
 	  ub[0].tv_sec = 0;
 	  ub[0].tv_nsec = UTIME_OMIT; // we don't touch access time
-	  ub[1].tv_sec = truncl(ti);
-	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
+	  ub[1].tv_sec = (time_t)trunc(ti);
+	  ub[1].tv_nsec = (long)trunc((ti - trunc(ti)) * 1.0e9);
 
 	  ok = (utimensat(AT_FDCWD, lpath, ub, 0) == 0);
 #elif  defined(_POSIX_VERSION)
@@ -661,8 +661,8 @@ static NSStringEncoding	defaultEncoding;
           struct timespec ub[2];
 	  ub[0].tv_sec = 0;
 	  ub[0].tv_nsec = UTIME_OMIT; // we don't touch access time
-	  ub[1].tv_sec = truncl(ti);
-	  ub[1].tv_nsec = (ti - (double)ub[1].tv_sec) * 1.0e6;
+	  ub[1].tv_sec = (time_t)trunc(ti);
+	  ub[1].tv_nsec = (long)trunc((ti - trunc(ti)) * 1.0e9);
 
 	  ok = (utimensat(AT_FDCWD, lpath, ub, 0) == 0);
 #elif  defined(_WIN32) || defined(_POSIX_VERSION)
@@ -3874,7 +3874,15 @@ static NSSet	*fileKeys = nil;
 
 - (NSDate*) fileModificationDate
 {
-  return [NSDate dateWithTimeIntervalSince1970: statbuf.st_mtime];
+  NSTimeInterval ti;
+
+#if defined (HAVE_STRUCT_STAT_ST_MTIM)
+  ti = statbuf.st_mtim.tv_sec + (double)statbuf.st_mtim.tv_nsec / 1.0e9;
+#else
+  ti = (double)statbuf.st_mtime;
+#endif
+
+  return [NSDate dateWithTimeIntervalSince1970: ti];
 }
 
 - (NSUInteger) filePosixPermissions
