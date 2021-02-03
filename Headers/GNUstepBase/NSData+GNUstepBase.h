@@ -107,7 +107,8 @@ extern "C" {
  * If the string does not contain one or more pairs of hexadecimal digits
  * then an exception is raised. 
  */
-- (id) initWithHexadecimalRepresentation: (NSString*)string;
+- (id) initWithHexadecimalRepresentation: (NSString*)string
+  NS_CONSUMES_SELF NS_RETURNS_RETAINED;
 
 /**
  * Creates an MD5 digest of the information stored in the receiver and
