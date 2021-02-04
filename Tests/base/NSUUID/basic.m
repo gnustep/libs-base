@@ -9,37 +9,37 @@ int main(int argc, char **argv)
   NSAutoreleasePool *arp = [NSAutoreleasePool new];
   NSUUID *uuid1, *uuid2;
   NSString *uuidString = @"2139CD2E-15E6-4C37-84DA-1E18EEBFAB4A";
-  NSString *uuidStringLow = @"2139cd2e-15e6-4c37-84da-1e18eebfab4a";
 
-  uint8_t uuidBytes[] = { 0x80, 0x1f, 0x3a, 0x01, 0x95, 0x7c, 0x45, 0x0f,
-		       0xaf, 0xf2, 0x1b, 0xe9, 0x59, 0xf5, 0x89, 0x54 };
+  unsigned char uuidBytes[16] = {
+    0x80, 0x1f, 0x3a, 0x01, 0x95, 0x7c, 0x45, 0x0f,
+    0xaf, 0xf2, 0x1b, 0xe9, 0x59, 0xf5, 0x89, 0x54 };
 
   TEST_FOR_CLASS(@"NSUUID", [NSUUID alloc],
 		 "+[NSUUID alloc] returns a NSUUID");
   TEST_FOR_CLASS(@"NSUUID", [NSUUID UUID],
 		 "+[NSUUID UUID] returns a UUID");
 
-  uuid1 = [[NSUUID alloc] initWithUUIDString:@"test"];
+  uuid1 = [[NSUUID alloc] initWithUUIDString: nil];
+  PASS(uuid1 == nil, "Don't create a UUID from a nil string");
+
+  uuid1 = [[NSUUID alloc] initWithUUIDString: @"test"];
   PASS(uuid1 == nil, "Don't create a UUID from an invalid string");
 
-  uuid1 = [[NSUUID alloc] initWithUUIDString:uuidStringLow];
-  PASS(uuid1 != nil, "Create a UUID from a valid lowercase string");
-
-  uuid1 = [[NSUUID alloc] initWithUUIDString:uuidString];
-  PASS(uuid1 != nil, "Create a UUID from a valid uppercase string");
+  uuid1 = [[NSUUID alloc] initWithUUIDString: uuidString];
+  PASS(uuid1 != nil, "Create a UUID from a valid string");
   PASS_EQUAL([uuid1 UUIDString], uuidString,
 	     "Derive a stable UUID string value");
 
-  uuid2 = [[NSUUID alloc] initWithUUIDString:uuidString];
+  uuid2 = [[NSUUID alloc] initWithUUIDString: uuidString];
   PASS_EQUAL(uuid1, uuid2, "UUIDs representing the same value are considered equal");
   PASS([uuid1 hash] == [uuid2 hash], "Equal objects have equal hashes");
 
   DESTROY(uuid2);
-  uuid2 = [[NSUUID alloc] initWithUUIDBytes:uuidBytes];
-  PASS(![uuid1 isEqual:uuid2], "UUIDs representing different values should not be considered equal");
+  uuid2 = [[NSUUID alloc] initWithUUIDBytes: uuidBytes];
+  PASS(![uuid1 isEqual: uuid2], "UUIDs representing different values should not be considered equal");
 
   uuid_t otherBytes = {0};
-  [uuid2 getUUIDBytes:otherBytes];
+  [uuid2 getUUIDBytes: otherBytes];
 
   int comparison = memcmp(uuidBytes, otherBytes, 16);
   PASS(comparison == 0, "Get a stable value for the UUID bytes");
@@ -49,8 +49,8 @@ int main(int argc, char **argv)
   PASS_EQUAL(uuid1, uuid2, "-[NSUUID copy] returns an identical object");
   DESTROY(uuid2);
   
-  NSData *coded = [NSKeyedArchiver archivedDataWithRootObject:uuid1];
-  uuid2 = [NSKeyedUnarchiver unarchiveObjectWithData:coded];
+  NSData *coded = [NSKeyedArchiver archivedDataWithRootObject: uuid1];
+  uuid2 = [NSKeyedUnarchiver unarchiveObjectWithData: coded];
   PASS_EQUAL(uuid1, uuid2, "UUID survives a round-trip through archiver");
   DESTROY(uuid1);
 
