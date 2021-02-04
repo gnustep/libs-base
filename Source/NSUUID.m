@@ -188,7 +188,7 @@ static int uuid_from_string(const char *string, unsigned char *uuid)
   char	unformatted[kUnformattedUUIDStringLength];
   int	i;
 
-  if (strlen(string) != kUUIDStringLength)
+  if (NULL == string || strlen(string) != kUUIDStringLength)
     {
       return -1;
     }
