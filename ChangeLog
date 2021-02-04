@@ -1,3 +1,7 @@
+2021-02-03 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Tools/GNUmakefile: disable gdomap on Android (unsupported).
+
 2021-02-02 Riccardo Mottola <rm@gnu.org>
 
 	* configure

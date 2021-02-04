@@ -75,7 +75,9 @@ else
 TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults pl plmerge plutil \
 		plparse sfparse pldes plget plser pl2link xmlparse HTMLLinker
 ifneq ($(GNUSTEP_TARGET_OS), windows)
+ifneq ($(GNUSTEP_TARGET_OS), linux-android)
 CTOOL_NAME = gdomap
+endif
 endif
 
 SUBPROJECTS = make_strings
