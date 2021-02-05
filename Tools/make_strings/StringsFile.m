@@ -23,6 +23,7 @@
 #import "Foundation/NSString.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSFileManager.h"
+#import "Foundation/NSData.h"
 #import "Foundation/NSDate.h"
 
 #include "StringsFile.h"
@@ -373,6 +374,42 @@ static NSString *parse_string(NSString **ptr)
   return NO;
 }
 
+- (BOOL) _writeString: (NSString *)str toFile: (NSString *)filename
+{
+  BOOL isAscii = YES;
+  NSUInteger len = [str length];
+  NSUInteger i;
+
+  for (i = 0; i < len; i++)
+    {
+      unichar u = [str characterAtIndex: i];
+      if (u > 127)
+        {
+          isAscii = NO;
+          break;
+        }
+    }
+
+  if (isAscii)
+    {
+      return [str writeToFile: filename atomically: YES];
+    }
+  else
+    {
+      NSData *d = [str dataUsingEncoding: NSUTF8StringEncoding];
+      NSMutableData *md = [[NSMutableData alloc] initWithCapacity: [d length] + 3];
+      // Add BOM at the beginning of the file
+      char bytes[] = {0xEF, 0xBB, 0xBF};
+      BOOL result;
+
+      [md appendBytes: bytes length: 3];
+      [md appendData: d];
+      result = [md writeToFile: filename atomically: YES];
+      [md release];
+      return result;
+    }
+}
+
 - (BOOL) writeToFile: (NSString *)filename
 {
   unsigned int i,c;
@@ -528,7 +565,7 @@ static NSString *parse_string(NSString **ptr)
     [[NSFileManager defaultManager] movePath: filename
                                       toPath: backupname
                                      handler: nil];
-    result = [str writeToFile: filename atomically: YES];
+    result = [self _writeString: str toFile: filename];
 
     if (!result)
       fprintf(stderr,"Error saving '%s'!\n",[filename cString]);

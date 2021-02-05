@@ -1,3 +1,8 @@
+2021-02-05 Fred Kiefer <fredkiefer@gmx.de>
+
+        * Tools/make_strings/StringsFile.m: Write the file in UTF8 format
+	if the string contains any non ASCII character.
+
 2021-02-03 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Tools/GNUmakefile: disable gdomap on Android (unsupported).
