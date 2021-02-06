@@ -1513,7 +1513,166 @@ typedef struct {
     }
 }
 
-- (void) stream: (NSStream*) stream handleEvent: (NSStreamEvent) event
+- (void) _put
+{
+  BOOL	sent = NO;
+
+  while ((_writeData || _body) && [this->output hasSpaceAvailable])
+    {
+      int	written;
+
+      // FIXME: should also send out relevant Cookies
+      if (_writeData != nil)
+	{
+	  const unsigned char	*bytes = [_writeData bytes];
+	  unsigned		len = [_writeData length];
+
+	  written = [this->output write: bytes + _writeOffset
+			      maxLength: len - _writeOffset];
+	  if (written > 0)
+	    {
+	      if (_debug)
+		{
+		  if (NO == [_logDelegate putBytes: bytes + _writeOffset
+					  ofLength: written
+					  byHandle: self])
+		    {
+		      debugWrite(self, written, bytes + _writeOffset);
+		    }
+		}
+	      _writeOffset += written;
+	      if (_writeOffset >= len)
+		{
+		  DESTROY(_writeData);
+		  if (_body == nil)
+		    {
+		      _body = RETAIN([this->request HTTPBodyStream]);
+		      if (_body == nil)
+			{
+			  NSData	*d = [this->request HTTPBody];
+
+			  if (d != nil)
+			    {
+			      _body = [NSInputStream alloc];
+			      _body = [_body initWithData: d];
+			      [_body open];
+			    }
+			  else
+			    {
+			      sent = YES;
+			    }
+			}
+		    }
+		}
+	    }
+	}
+      else if (_body != nil)
+	{
+	  if ([_body hasBytesAvailable])
+	    {
+	      unsigned char	buffer[BUFSIZ*64];
+	      int		len;
+
+	      len = [_body read: buffer maxLength: sizeof(buffer)];
+	      if (len < 0)
+		{
+		  if (_debug)
+		    {
+		      NSLog(@"%@ error reading from HTTPBody stream %@",
+			self, [NSError _last]);
+		    }
+		  [self stopLoading];
+		  [this->client URLProtocol: self didFailWithError:
+		    [NSError errorWithDomain: @"can't read body"
+					code: 0
+				    userInfo: nil]];
+		  return;
+		}
+	      else if (len > 0)
+		{
+		  written = [this->output write: buffer maxLength: len];
+		  if (written > 0)
+		    {
+		      if (_debug)
+			{
+			  if (NO == [_logDelegate putBytes: buffer
+						  ofLength: written
+						  byHandle: self])
+			    {
+			      debugWrite(self, written, buffer);
+			    }
+			}
+		      len -= written;
+		      if (len > 0)
+			{
+			  /* Couldn't write it all now, save and try
+			   * again later.
+			   */
+			  _writeData = [[NSData alloc] initWithBytes:
+			    buffer + written length: len];
+			  _writeOffset = 0;
+			}
+		      else if (len == 0 && ![_body hasBytesAvailable])
+			{
+			  /* all _body's bytes are read and written
+			   * so we shouldn't wait for another
+			   * opportunity to close _body and set
+			   * the flag 'sent'.
+			   */
+			  [_body close];
+			  DESTROY(_body);
+			  sent = YES;
+			}
+		    }
+		  else if ([this->output streamStatus]
+		    == NSStreamStatusWriting)
+		    {
+		      /* Couldn't write it all now, save and try
+		       * again later.
+		       */
+		      _writeData = [[NSData alloc] initWithBytes:
+			buffer length: len];
+		      _writeOffset = 0;
+		    }
+		}
+	      else
+		{
+		  [_body close];
+		  DESTROY(_body);
+		  sent = YES;
+		}
+	    }
+	  else
+	    {
+	      [_body close];
+	      DESTROY(_body);
+	      sent = YES;
+	    }
+	}
+    }
+  if (sent)
+    {
+      if (_shouldClose)
+	{
+	  if (_debug)
+	    {
+	      NSLog(@"%@ request sent ... closing", self);
+	    }
+	  [this->output setDelegate: nil];
+	  [this->output removeFromRunLoop:
+	    [NSRunLoop currentRunLoop]
+	    forMode: NSDefaultRunLoopMode];
+	  [this->output close];
+	  DESTROY(this->output);
+	}
+      else if (_debug)
+	{
+	  NSLog(@"%@ request sent", self);
+	}
+    }
+}
+
+- (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event
 {
   /* Make sure no action triggered by anything else destroys us prematurely.
    */
@@ -1684,160 +1843,9 @@ typedef struct {
 	    }			// Fall through to do the write
 
 	  case NSStreamEventHasSpaceAvailable: 
-	    {
-	      int	written;
-	      BOOL	sent = NO;
+	    [self _put];
+	    return;
 
-	      // FIXME: should also send out relevant Cookies
-	      if (_writeData != nil)
-		{
-		  const unsigned char	*bytes = [_writeData bytes];
-		  unsigned		len = [_writeData length];
-
-		  written = [this->output write: bytes + _writeOffset
-				      maxLength: len - _writeOffset];
-		  if (written > 0)
-		    {
-		      if (_debug)
-		        {
-                          if (NO == [_logDelegate putBytes: bytes + _writeOffset
-                                                  ofLength: written
-                                                  byHandle: self])
-                            {
-                              debugWrite(self, written, bytes + _writeOffset);
-                            }
-			}
-		      _writeOffset += written;
-		      if (_writeOffset >= len)
-		        {
-			  DESTROY(_writeData);
-			  if (_body == nil)
-			    {
-			      _body = RETAIN([this->request HTTPBodyStream]);
-			      if (_body == nil)
-				{
-				  NSData	*d = [this->request HTTPBody];
-
-				  if (d != nil)
-				    {
-				      _body = [NSInputStream alloc];
-				      _body = [_body initWithData: d];
-				      [_body open];
-				    }
-				  else
-				    {
-				      sent = YES;
-				    }
-				}
-			    }
-			}
-		    }
-		}
-	      else if (_body != nil)
-		{
-		  if ([_body hasBytesAvailable])
-		    {
-		      unsigned char	buffer[BUFSIZ*64];
-		      int		len;
-
-		      len = [_body read: buffer maxLength: sizeof(buffer)];
-		      if (len < 0)
-			{
-			  if (_debug)
-			    {
-			      NSLog(@"%@ error reading from HTTPBody stream %@",
-				self, [NSError _last]);
-			    }
-			  [self stopLoading];
-			  [this->client URLProtocol: self didFailWithError:
-			    [NSError errorWithDomain: @"can't read body"
-						code: 0
-					    userInfo: nil]];
-			  return;
-			}
-		      else if (len > 0)
-		        {
-			  written = [this->output write: buffer maxLength: len];
-			  if (written > 0)
-			    {
-			      if (_debug)
-				{
-                                  if (NO == [_logDelegate putBytes: buffer
-                                                          ofLength: written
-                                                          byHandle: self])
-                                    {
-                                      debugWrite(self, written, buffer);
-                                    }
-				}
-			      len -= written;
-			      if (len > 0)
-			        {
-				  /* Couldn't write it all now, save and try
-				   * again later.
-				   */
-				  _writeData = [[NSData alloc] initWithBytes:
-				    buffer + written length: len];
-				  _writeOffset = 0;
-				}
-			      else if (len == 0 && ![_body hasBytesAvailable])
-				{
-				  /* all _body's bytes are read and written
-                                   * so we shouldn't wait for another
-                                   * opportunity to close _body and set
-				   * the flag 'sent'.
-				   */
-				  [_body close];
-				  DESTROY(_body);
-				  sent = YES;
-				}
-			    }
-                          else if ([this->output streamStatus]
-                            == NSStreamStatusWriting)
-                            {
-                              /* Couldn't write it all now, save and try
-                               * again later.
-                               */
-                              _writeData = [[NSData alloc] initWithBytes:
-                                buffer length: len];
-                              _writeOffset = 0;
-                            }
-			}
-		      else
-		        {
-			  [_body close];
-			  DESTROY(_body);
-			  sent = YES;
-			}
-		    }
-		  else
-		    {
-		      [_body close];
-		      DESTROY(_body);
-		      sent = YES;
-		    }
-		}
-	      if (sent == YES)
-		{
-		  if (_shouldClose == YES)
-		    {
-		      if (_debug)
-			{
-			  NSLog(@"%@ request sent ... closing", self);
-			}
-		      [this->output setDelegate: nil];
-		      [this->output removeFromRunLoop:
-			[NSRunLoop currentRunLoop]
-			forMode: NSDefaultRunLoopMode];
-		      [this->output close];
-		      DESTROY(this->output);
-		    }
-		  else if (_debug)
-		    {
-		      NSLog(@"%@ request sent", self);
-		    }
-		}
-	      return;  // done
-	    }
 	  default: 
 	    break;
 	}
