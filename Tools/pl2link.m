@@ -220,7 +220,7 @@ main(int argc, char** argv, char **env)
       // Build the string to execute the application...
       execPath = [NSString stringWithCString: line
 			   encoding: NSASCIIStringEncoding];
-      [fileContents appendFormat: @"Exec=%@ %@ %F\n", execPath, entry];
+      [fileContents appendFormat: @"Exec=%@ %@\n", execPath, entry];
     }
 
   list = [plist objectForKey: @"NSTypes"];
