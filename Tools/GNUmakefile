@@ -74,8 +74,10 @@ TOOL_NAME = autogsdoc cvtenc plmerge sfparse xmlparse
 else
 TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults pl plmerge plutil \
 		plparse sfparse pldes plget plser pl2link xmlparse HTMLLinker
+# gdomap is currently not supported on Windows MSVC or Android (which
+# can be either "linux-android" or "linux-androideabi")
 ifneq ($(GNUSTEP_TARGET_OS), windows)
-ifneq ($(GNUSTEP_TARGET_OS), linux-android)
+ifneq ($(findstring android, $(GNUSTEP_TARGET_OS)), android)
 CTOOL_NAME = gdomap
 endif
 endif
