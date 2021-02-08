@@ -1,6 +1,10 @@
 #import <Foundation/Foundation.h>
 #import "Testing.h"
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846264338327950288
+#endif
+
 int main()
 { 
   NSAutoreleasePool   *pool = [NSAutoreleasePool new];

@@ -1349,7 +1349,7 @@ if test "$gs_cv_objc_libdir" != "NONE"; then
 
   # add to path on Windows for config checks to find DLL at runtime
   case $host_os in
-    mingw*|windows*) PATH=$PATH:$gs_cv_objc_libdir;;
+    mingw*|windows) PATH=$PATH:$gs_cv_objc_libdir;;
   esac
 fi
 
@@ -1757,6 +1757,7 @@ ismingw=no
 checkinlibc=no
 case "$target_os" in
   mingw*)	ismingw=yes;;
+  windows) iswindows=yes;;
   nto*)		checkinlibc=yes;;
   qnx*)		checkinlibc=yes;;
   *android*)   checkinlibc=yes;;
@@ -1768,6 +1769,12 @@ else
     AC_CHECK_LIB(pthreadGC2, pthread_join, pthread_ok=yes, pthread_ok=no)
     if test $pthread_ok = yes ; then
       LIBS="$LIBS -lpthreadGC2"
+    fi
+  fi
+  if test $iswindows = yes ; then
+    AC_CHECK_LIB(pthreadVC2, pthread_join, pthread_ok=yes, pthread_ok=no)
+    if test $pthread_ok = yes ; then
+      LIBS="$LIBS -lpthreadVC2"
     fi
   fi
   # Android and QNX have pthread in libc instead of libpthread
