@@ -37,6 +37,7 @@ extern "C" {
 /*
  * An object to use as a placeholder - in collections for instance.
  */
+GS_EXPORT_CLASS
 @interface	NSNull : NSObject <NSCoding, NSCopying>
 + (NSNull*) null;
 @end

@@ -1,3 +1,11 @@
+2021-02-12 Frederik Seiffert <frederik@algoriddim.com>
+
+  * Headers/Foundation/NSNull.h: Add missing GS_EXPORT_CLASS.
+  * Tests/base/Functions/NSByteSwapping.m: Define M_PI if needed.
+  * configure:
+  * configure.ac: Add support for pthreadVC2 library variant and
+  tweak host OS check for Windows to be more specific.
+
 2021-02-05 Fred Kiefer <fredkiefer@gmx.de>
 
         * Tools/make_strings/StringsFile.m: Write the file in UTF8 format
