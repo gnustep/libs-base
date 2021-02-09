@@ -249,8 +249,9 @@ testParser(NSXMLParser *parser, NSString *expect)
   [parser setDelegate: handler];
   if (NO == [parser parse])
     {
-      NSLog(@"Parsing failed: %@ at %ld on %ld", [parser parserError],
-        (long)[parser columnNumber], (long)[parser lineNumber]);
+      NSLog(@"Parsing failed: %@ at %ld on %ld with %@", [parser parserError],
+        (long)[parser columnNumber], (long)[parser lineNumber],
+        [handler description]);
       return NO;
     }
   else
@@ -359,6 +360,7 @@ int main()
 	    "parse stream (strict): %s", [xmlName UTF8String])
 
           testHopeful = YES;
+	  // Stream parse not yet supported
           stream = [NSInputStream inputStreamWithFileAtPath:xmlPath];
           PASS((testParseStream(stream, result, NO)),
 	    "parse stream (sloppy): %s", [xmlName UTF8String])
