@@ -295,14 +295,25 @@ NSLog(@"Developer: %@", NSSearchPathForDirectoriesInDomains(NSDeveloperDirectory
   NSString *tmpdst = [tmpdir stringByAppendingPathComponent: @"bar"];
   NSString *tmpsrc = [tmpdir stringByAppendingPathComponent: @"foo"];
 
+  /* On OSX the relative path in this test cannot be resolved,
+   * while on other systems the symbolic link is resolved as expected.
+   * The documentation for OSX says that the link is not necessarily
+   * resolvable when it is relative, so this test is allowed to be dashed.
+   */
   [fm createDirectoryAtPath: tmpdst attributes: nil];
   [fm createSymbolicLinkAtPath: tmpsrc pathContent: @"bar"];
 
   [fm changeCurrentDirectoryPath: tmpdir];
   testHopeful = YES;
-  PASS_EQUAL([@"foo" stringByResolvingSymlinksInPath], @"foo",
-    "foo->bar relative symlink not expanded by stringByResolvingSymlinksInPath")
+  NSString *expanded = [@"foo" stringByResolvingSymlinksInPath];
+  PASS_EQUAL(expanded, tmpdst,
+    "foo->bar relative symlink is expanded by stringByResolvingSymlinksInPath")
   testHopeful = NO;
+  if (!testPassed)
+    {
+      PASS_EQUAL(expanded, @"foo",
+	"foo->bar relative symlink expansion failure returns original")
+    }
   [fm changeCurrentDirectoryPath: cwd];
 
   [fm removeFileAtPath: tmpsrc handler: nil];
