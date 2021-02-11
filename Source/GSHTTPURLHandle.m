@@ -330,9 +330,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [[NSObject leakAt: &urlOrder] release];
       urlLock = [NSLock new];
       [[NSObject leakAt: &urlLock] release];
-#if	!defined(_WIN32)
       sslClass = [NSFileHandle sslClass];
-#endif
     }
 }
 

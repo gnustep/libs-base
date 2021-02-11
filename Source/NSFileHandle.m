@@ -58,7 +58,7 @@ static Class NSFileHandle_abstract_class = nil;
 static Class NSFileHandle_concrete_class = nil;
 static Class NSFileHandle_ssl_class = nil;
 
-#if     defined(HAVE_GNUTLS) && !defined(_WIN32)
+#if     defined(HAVE_GNUTLS)
 @interface      GSTLSHandle : GSFileHandle
 {
 @public
@@ -94,7 +94,7 @@ static Class NSFileHandle_ssl_class = nil;
     {
       NSFileHandle_abstract_class = self;
       NSFileHandle_concrete_class = [GSFileHandle class];
-#if     defined(HAVE_GNUTLS) && !defined(_WIN32)
+#if     defined(HAVE_GNUTLS) 
       NSFileHandle_ssl_class = [GSTLSHandle class];
 #endif
     }
@@ -933,7 +933,7 @@ NSString * const NSFileHandleOperationException
 
 @end
 
-#if     defined(HAVE_GNUTLS) &&	!defined(_WIN32)
+#if     defined(HAVE_GNUTLS)
 
 /* Callback to allow the TLS code to pull data from the remote system.
  * If the operation fails, this sets the error number.
