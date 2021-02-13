@@ -1629,8 +1629,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
 	      if (sslClass == 0)
 		{
-		  [self backgroundLoadDidFailWithReason:
-		    @"https not supported ... needs SSL bundle"];
+		  [self backgroundLoadDidFailWithReason: @"https not supported"
+		    @" ... needs gnustep-base built with GNUTLS"];
 		  return;
 		}
 	      sock = [sslClass fileHandleAsClientInBackgroundAtAddress: host
@@ -1675,8 +1675,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    {
 	      if (sslClass == 0)
 		{
-		  [self backgroundLoadDidFailWithReason:
-		    @"https not supported ... needs SSL bundle"];
+		  [self backgroundLoadDidFailWithReason: @"https not supported"
+		    @" ... needs gnustep-base built with GNUTLS"];
 		  return;
 		}
 	      host = [request objectForKey: GSHTTPPropertyProxyHostKey];

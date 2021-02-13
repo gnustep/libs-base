@@ -1936,6 +1936,7 @@ retrieve_callback(gnutls_session_t session,
 {
   int   result = gnutls_record_recv(session, buf, len);
 
+  NSLog(@"TLS session read %d", result);
   if (result < 0)
     {
       NSString  *p;
@@ -1975,6 +1976,17 @@ retrieve_callback(gnutls_session_t session,
           errno = EAGAIN;       // Need to retry.
         }
       result = -1;
+#if	defined(_WIN32)
+      /* Windows specific code expects to use winsock functions for error
+       * codes rather than looking at errno, so we must tyranslate a few.
+       */
+      if (EAGAIN == errno)
+	WSASetLastError(WSAEWOULDBLOCK);
+      else if (EINTR == errno)
+	WSASetLastError(WSAEINTR);
+      else
+	WSASetLastError(errno);
+#endif
     }
   return result;
 }
@@ -2013,6 +2025,17 @@ retrieve_callback(gnutls_session_t session,
           errno = EAGAIN;       // Need to retry.
         }
       result = -1;
+#if	defined(_WIN32)
+      /* Windows specific code expects to use winsock functions for error
+       * codes rather than looking at errno, so we must tyranslate a few.
+       */
+      if (EAGAIN == errno)
+	WSASetLastError(WSAEWOULDBLOCK);
+      else if (EINTR == errno)
+	WSASetLastError(WSAEINTR);
+      else
+	WSASetLastError(errno);
+#endif
     }
   return result;
 }

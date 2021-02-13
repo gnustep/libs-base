@@ -943,15 +943,33 @@ GSTLSHandlePull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
 {
   ssize_t       result = 0;
   GSTLSHandle   *tls = (GSTLSHandle*)handle;
-  int           descriptor = [tls fileDescriptor];
+  int           descriptor = (int)(intptr_t)[tls nativeHandle];
 
-  result = read(descriptor, buffer, len);
+  result = recv(descriptor, buffer, len, 0);
   if (result < 0)
     {
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
       if (tls->session && tls->session->session)
         {
-          gnutls_transport_set_errno (tls->session->session, errno);
+	  int	e;
+
+#if  defined(_WIN32)
+	  /* For windows, we need to map winsock errors to unix ones that
+	   * gnutls understands.
+	   */
+	  e = WSAGetLastError();
+	  if (WSAEWOULDBLOCK == e)
+	    {
+	      e = EAGAIN;
+	    }
+	  else if (WSAEINTR == e)
+	    {
+	      e = EINTR;
+	    }
+#else
+	  e = errno;
+#endif
+          gnutls_transport_set_errno (tls->session->session, e);
         }
 #endif
     }
@@ -966,15 +984,33 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 {
   ssize_t       result = 0;
   GSTLSHandle   *tls = (GSTLSHandle*)handle;
-  int           descriptor = [tls fileDescriptor];
+  int           descriptor = (int)(intptr_t)[tls nativeHandle];
 
-  result = write(descriptor, buffer, len);
+  result = send(descriptor, buffer, len, 0);
   if (result < 0)
     {
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
       if (tls->session && tls->session->session)
         {
-          gnutls_transport_set_errno (tls->session->session, errno);
+	  int	e;
+
+#if  defined(_WIN32)
+	  /* For windows, we need to map winsock errors to unix ones that
+	   * gnutls understands.
+	   */
+	  e = WSAGetLastError();
+	  if (WSAEWOULDBLOCK == e)
+	    {
+	      e = EAGAIN;
+	    }
+	  else if (WSAEINTR == e)
+	    {
+	      e = EINTR;
+	    }
+#else
+	  e = errno;
+#endif
+          gnutls_transport_set_errno(tls->session->session, e);
         }
 #endif
     }
@@ -1146,5 +1182,5 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
 @end
 
-#endif  /* defined(HAVE_GNUTLS) && !defined(_WIN32) */
+#endif  /* defined(HAVE_GNUTLS) */
 
