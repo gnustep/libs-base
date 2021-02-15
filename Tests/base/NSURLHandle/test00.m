@@ -98,7 +98,7 @@ resourceDidFailLoadingWithReason: (NSString *)reason
   NSURL *url;
   Class cls;
 
-  url = [NSURL URLWithString: @"http://www.gnustep.org/"];
+  url = [NSURL URLWithString: @"https://www.w3.org/"];
   cls = [NSURLHandle URLHandleClassForURL: url];
   handle = [[cls alloc] initWithURL: url cached: NO];
 
@@ -116,9 +116,17 @@ resourceDidFailLoadingWithReason: (NSString *)reason
   /* Don't get client messages in the foreground, so load in
    * background and wait a bit
    */
+  [handle writeProperty: @"POST" forKey: GSHTTPPropertyMethodKey];
+  [handle writeData: [@"Hello" dataUsingEncoding: NSASCIIStringEncoding]];
+
   [handle loadInBackground];
   PASS([self status] == URLHandleClientDidBeginLoading,
     "URLHandleResourceDidBeginLoading called");
+
+  [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
+    beforeDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
+  PASS([self status] == URLHandleClientDidBeginLoading,
+    "URLHandleResourceDidFinishLoading called");
 
   [handle release];
   return 0;
