@@ -67,7 +67,7 @@ resourceDataDidBecomeAvailable: (NSData *)newBytes
     {
       [_receivedData release];
     }
-  _receivedData = newBytes;
+  _receivedData = [newBytes retain];
 }
 
 - (void) URLHandle: (NSURLHandle *)sender
@@ -108,7 +108,7 @@ resourceDidFailLoadingWithReason: (NSString *)reason
   [handle beginLoadInBackground];
   [handle cancelLoadInBackground];
   PASS([self status] == URLHandleClientDidCancelLoading,
-    "URLHandleResourceDidCancelLoading called");
+    "URLHandleClientDidCancelLoading called");
   [handle release];
 
   handle = [[cls alloc] initWithURL: url cached: NO];
@@ -118,16 +118,22 @@ resourceDidFailLoadingWithReason: (NSString *)reason
    */
   [handle writeProperty: @"POST" forKey: GSHTTPPropertyMethodKey];
   [handle writeData: [@"Hello" dataUsingEncoding: NSASCIIStringEncoding]];
-
+  [handle setReturnAll: YES];
   [handle loadInBackground];
   PASS([self status] == URLHandleClientDidBeginLoading,
-    "URLHandleResourceDidBeginLoading called");
+    "URLHandleClientDidBeginLoading called");
 
-  [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
-    beforeDate: [NSDate dateWithTimeIntervalSinceNow: 1.0]];
-  PASS([self status] == URLHandleClientDidBeginLoading,
-    "URLHandleResourceDidFinishLoading called");
+  NSDate *limit = [NSDate dateWithTimeIntervalSinceNow: 5.0];
+  while ([limit timeIntervalSinceNow] > 0.0
+    && [self status] != URLHandleClientDidFinishLoading)
+    {
+      [[NSRunLoop currentRunLoop] runMode: NSDefaultRunLoopMode
+        beforeDate: limit];
+    }
+  PASS([self status] == URLHandleClientDidFinishLoading,
+    "URLHandleClientDidFinishLoading called");
 
+  NSLog(@"Data %@", [handle availableResourceData]);
   [handle release];
   return 0;
 }
