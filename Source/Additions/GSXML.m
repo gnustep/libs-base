@@ -67,6 +67,7 @@
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSString.h"
+#import "Foundation/NSThread.h"
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSURL.h"
@@ -156,20 +157,32 @@ static char * xml_strdup(const char *from)
   return to;
 }
 
+@implementation	NSObject (SetupForGSXML)
++ (void) _setupForGSXML
+{
+  xmlInitParser();
+  xmlMemSetup(free, malloc, realloc, xml_strdup);
+  xmlInitializeCatalog();
+  xmlDefaultSAXHandlerInit();
+  NSString_class = [NSString class];
+  usSel = @selector(stringWithUTF8String:);
+  usImp = (id (*)(id, SEL, const unsigned char*))
+    [NSString_class methodForSelector: usSel];
+  treeClass = [GSTreeSAXHandler class];
+  cacheDone = YES;
+}
+@end
+
 static void
 setupCache()
 {
   if (cacheDone == NO)
     {
-      cacheDone = YES;
-      xmlMemSetup(free, malloc, realloc, xml_strdup);
-      xmlInitializeCatalog();
-      xmlDefaultSAXHandlerInit();
-      NSString_class = [NSString class];
-      usSel = @selector(stringWithUTF8String:);
-      usImp = (id (*)(id, SEL, const unsigned char*))
-	[NSString_class methodForSelector: usSel];
-      treeClass = [GSTreeSAXHandler class];
+      /* Setup of libxml2 must be done on main thread.
+       */
+      [NSObject performSelectorOnMainThread: @selector(_setupForGSXML)
+				 withObject: nil
+			      waitUntilDone: YES];
     }
 }
 
@@ -3660,7 +3673,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
     }
   else
     {
-      memcpy(lib, &xmlDefaultSAXHandler, sizeof(xmlSAXHandler));
+      xmlSAX2InitDefaultSAXHandler(lib, 0);
 
 #define	LIB	((xmlSAXHandlerPtr)lib)
       /*
@@ -3779,7 +3792,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
     }
   else
     {
-      memcpy(lib, &xmlDefaultSAXHandler, sizeof(xmlSAXHandler));
+      xmlSAX2InitDefaultSAXHandler(lib, 0);
 
 #define	LIB	((xmlSAXHandlerPtr)lib)
 #define	SETCB(NAME,SEL) if ([self methodForSelector: @selector(SEL)] != [treeClass instanceMethodForSelector: @selector(SEL)]) LIB->NAME = (void*)NAME ## Function
