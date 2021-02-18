@@ -160,16 +160,19 @@ static char * xml_strdup(const char *from)
 @implementation	NSObject (SetupForGSXML)
 + (void) _setupForGSXML
 {
-  xmlInitParser();
-  xmlMemSetup(free, malloc, realloc, xml_strdup);
-  xmlInitializeCatalog();
-  xmlDefaultSAXHandlerInit();
-  NSString_class = [NSString class];
-  usSel = @selector(stringWithUTF8String:);
-  usImp = (id (*)(id, SEL, const unsigned char*))
-    [NSString_class methodForSelector: usSel];
-  treeClass = [GSTreeSAXHandler class];
-  cacheDone = YES;
+  if (NO == cacheDone)
+    {
+      xmlInitParser();
+      xmlMemSetup(free, malloc, realloc, xml_strdup);
+      xmlInitializeCatalog();
+      xmlDefaultSAXHandlerInit();
+      NSString_class = [NSString class];
+      usSel = @selector(stringWithUTF8String:);
+      usImp = (id (*)(id, SEL, const unsigned char*))
+	[NSString_class methodForSelector: usSel];
+      treeClass = [GSTreeSAXHandler class];
+      cacheDone = YES;
+    }
 }
 @end
 
