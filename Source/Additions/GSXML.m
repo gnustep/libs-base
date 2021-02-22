@@ -105,7 +105,6 @@
  *
  */
 static Class NSString_class;
-static Class treeClass;
 static id (*usImp)(id, SEL, const unsigned char*);
 static SEL usSel;
 
@@ -170,7 +169,6 @@ static char * xml_strdup(const char *from)
       usSel = @selector(stringWithUTF8String:);
       usImp = (id (*)(id, SEL, const unsigned char*))
 	[NSString_class methodForSelector: usSel];
-      treeClass = [GSTreeSAXHandler class];
       cacheDone = YES;
     }
 }
@@ -2930,7 +2928,7 @@ resolveEntityFunction(void *ctx,
   if (treeImp == 0) \
     { \
       sel = @selector(SELNAME); \
-      treeImp = (RET (*)ARGS)[treeClass instanceMethodForSelector: sel];\
+      treeImp = (RET (*)ARGS)[GSTreeSAXHandler instanceMethodForSelector: sel];\
     } \
   imp = (RET (*)ARGS)[HANDLER methodForSelector: sel]
 
@@ -3798,7 +3796,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       xmlSAX2InitDefaultSAXHandler(lib, 0);
 
 #define	LIB	((xmlSAXHandlerPtr)lib)
-#define	SETCB(NAME,SEL) if ([self methodForSelector: @selector(SEL)] != [treeClass instanceMethodForSelector: @selector(SEL)]) LIB->NAME = (void*)NAME ## Function
+#define	SETCB(NAME,SEL) if ([self methodForSelector: @selector(SEL)] != [GSTreeSAXHandler instanceMethodForSelector: @selector(SEL)]) LIB->NAME = (void*)NAME ## Function
       /*
        * We must call xmlSAXVersion() BEFORE setting any functions as it
        * sets up default values and would trash our settings.
