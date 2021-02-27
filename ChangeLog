@@ -1,10 +1,38 @@
+2021-02-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m:
+        Fix potential deadlock found by Wolfgang
+
+2021-02-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m:
+        Initialise XMLParser in main thread
+
+2021-02-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m:
+	* Source/GSTLS.m:
+	* Source/NSFileHandle.m:
+        Fixes for SSL/TLS support using GNUTLS under MinGW.
+	Use send/recv rather than read/write in TLS push/pull functions
+	(works with winsock and unix) and perform mappings between winsock
+	error codes and unix/gnutls error codes so that we correctly repeat
+	operations whe they fail in non-blocking mode.
+
 2021-02-12 Frederik Seiffert <frederik@algoriddim.com>
 
-  * Headers/Foundation/NSNull.h: Add missing GS_EXPORT_CLASS.
-  * Tests/base/Functions/NSByteSwapping.m: Define M_PI if needed.
-  * configure:
-  * configure.ac: Add support for pthreadVC2 library variant and
-  tweak host OS check for Windows to be more specific.
+  	* Headers/Foundation/NSNull.h: Add missing GS_EXPORT_CLASS.
+  	* Tests/base/Functions/NSByteSwapping.m: Define M_PI if needed.
+  	* configure:
+  	* configure.ac: Add support for pthreadVC2 library variant and
+  	tweak host OS check for Windows to be more specific.
+
+2021-02-06 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLProtocol.m:
+        Fix failure to send large requests, when the write operation succeeds
+	but we have not written all the data we need to, we should write more
+	as long as the stream has space available.
 
 2021-02-05 Fred Kiefer <fredkiefer@gmx.de>
 
