@@ -93,6 +93,10 @@ GS_EXPORT_CLASS
 			  userInfo: (id)info
 			   repeats: (BOOL)f;
 
++ (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
+			   repeats: (BOOL)f
+			     block: (GSTimerBlock)block;
+
 - (void) fire;
 - (NSDate*) fireDate;
 - (void) invalidate;
