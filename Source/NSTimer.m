@@ -197,6 +197,16 @@ static Class	NSDate_class;
 					    repeats: f]);
 }
 
++ (NSTimer*) timerWithTimeInterval: (NSTimeInterval)ti
+			   repeats: (BOOL)f
+			     block: (GSTimerBlock)block
+{
+  return AUTORELEASE([[self alloc] initWithFireDate: nil
+					   interval: ti
+					    repeats: f
+					      block: block]);
+}
+
 /**
  * Create a timer which will fire after ti seconds and, if f is YES,
  * every ti seconds thereafter. On firing, invocation will be performed.<br />

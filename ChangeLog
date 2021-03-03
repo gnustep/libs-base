@@ -1,3 +1,8 @@
+2021-03-03 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSTimer.h:
+	* Source/NSTimer.m: add unscheduled NSTimer block initializer
+
 2021-02-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m:
