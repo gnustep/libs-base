@@ -1014,16 +1014,67 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   [super endLoadInBackground];
 }
 
+
+- (void) _apply
+{
+  NSString	*method;
+  NSString	*path;
+  NSString	*s;
+
+  /*
+   * Set up request - differs for proxy version unless tunneling via ssl.
+   */
+  path = [[[u fullPath] stringByTrimmingSpaces]
+    stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
+  if ([path length] == 0)
+    {
+      path = @"/";
+    }
+
+  method = [request objectForKey: GSHTTPPropertyMethodKey];
+  if (method == nil)
+    {
+      if ([wData length] > 0)
+	{
+	  method = @"POST";
+	}
+      else
+	{
+	  method = @"GET";
+	}
+    }
+
+  if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] > 0
+    && [[u scheme] isEqualToString: @"https"] == NO)
+    {
+      if ([u port] == nil)
+	{
+	  s = [[NSString alloc] initWithFormat: @"%@ http://%@%@",
+	    method, [u host], path];
+	}
+      else
+	{
+	  s = [[NSString alloc] initWithFormat: @"%@ http://%@:%@%@",
+	    method, [u host], [u port], path];
+	}
+    }
+  else    // no proxy
+    {
+      s = [[NSString alloc] initWithFormat: @"%@ %@",
+	method, path];
+    }
+
+  [self bgdApply: s];
+  RELEASE(s);
+}
+
+
 - (void) bgdConnect: (NSNotification*)notification
 {
   NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
   NSDictionary          *userInfo = [notification userInfo];
-  NSMutableString	*s;
   NSString		*e;
-  NSString		*method;
-  NSString		*path;
 
-  RETAIN(self);
   [nc removeObserver: self
                 name: GSFileHandleConnectCompletionNotification
               object: sock];
@@ -1042,7 +1093,6 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [self endLoadInBackground];
       [self backgroundLoadDidFailWithReason:
 	[NSString stringWithFormat: @"Failed to connect: %@", e]];
-      DESTROY(self);
       return;
     }
 
@@ -1056,17 +1106,6 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (debug)
     {
       NSLog(@"%@ %p", NSStringFromSelector(_cmd), self);
-    }
-
-  /*
-   * Build HTTP request.
-   */
-
-  path = [[[u fullPath] stringByTrimmingSpaces]
-    stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
-  if ([path length] == 0)
-    {
-      path = @"/";
     }
 
   /*
@@ -1147,7 +1186,6 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	{
 	  [self endLoadInBackground];
 	  [self backgroundLoadDidFailWithReason: @"Failed proxy tunneling"];
-	  DESTROY(self);
 	  return;
 	}
     }
@@ -1156,6 +1194,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       static NSArray            *keys = nil;
       NSMutableDictionary       *opts;
       NSUInteger                count;
+      BOOL			success = NO;
 
       /* If we are an https connection, negotiate secure connection.
        * Make sure we are not an observer of the file handle while
@@ -1207,60 +1246,64 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
       if (debug) [opts setObject: @"YES" forKey: GSTLSDebug];
       [sock sslSetOptions: opts];
-      [opts release];
-      if ([sock sslConnect] == NO)
+      RELEASE(opts);
+      if ([sock sslHandshakeEstablished: &success outgoing: YES])
 	{
-	  if (debug)
-	    NSLog(@"%@ %p %s Failed to make ssl connect",
-	      NSStringFromSelector(_cmd), self, keepalive?"K":"");
-          [sock closeFile];
-          DESTROY(sock);
-	  [self endLoadInBackground];
-	  [self backgroundLoadDidFailWithReason:
-	    @"Failed to make ssl connect"];
-	  DESTROY(self);
+	  if (NO == success)
+	    {
+	      if (debug)
+		NSLog(@"%@ %p %s Failed to make ssl connect",
+		  NSStringFromSelector(_cmd), self, keepalive?"K":"");
+	      [self endLoadInBackground];
+	      [self backgroundLoadDidFailWithReason:
+		@"Failed to make ssl connect"];
+	      return;
+	    }
+	}
+      else
+	{
+	  [nc addObserver: self
+	         selector: @selector(bgdHandshake:)
+		     name: NSFileHandleDataAvailableNotification
+	           object: sock];
+	  [sock waitForDataInBackgroundAndNotify];
 	  return;
 	}
     }
 
-  /*
-   * Set up request - differs for proxy version unless tunneling via ssl.
-   */
-  method = [request objectForKey: GSHTTPPropertyMethodKey];
-  if (method == nil)
-    {
-      if ([wData length] > 0)
-	{
-	  method = @"POST";
-	}
-      else
-	{
-	  method = @"GET";
-	}
-    }
-  if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] > 0
-    && [[u scheme] isEqualToString: @"https"] == NO)
-    {
-      if ([u port] == nil)
-	{
-	  s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@%@",
-	    method, [u host], path];
-	}
-      else
-	{
-	  s = [[NSMutableString alloc] initWithFormat: @"%@ http://%@:%@%@",
-	    method, [u host], [u port], path];
-	}
-    }
-  else    // no proxy
-    {
-      s = [[NSMutableString alloc] initWithFormat: @"%@ %@",
-	method, path];
-    }
+  [self _apply];
 
-  [self bgdApply: s];
-  RELEASE(s);
-  DESTROY(self);
+}
+
+- (void) bgdHandshake: (NSNotification*)notification
+{
+  BOOL	success = NO;
+
+  if ([sock sslHandshakeEstablished: &success outgoing: YES])
+    { 
+      if (success)
+	{
+	  NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
+
+	  [nc removeObserver: self
+			name: NSFileHandleDataAvailableNotification
+		      object: sock];
+	  [self _apply];
+	}
+      else
+	{ 
+	  if (debug)
+	    NSLog(@"%@ %p %s Failed to make ssl connect",
+	      NSStringFromSelector(_cmd), self, keepalive?"K":"");
+	  [self endLoadInBackground];
+	  [self backgroundLoadDidFailWithReason:
+	    @"Failed to make ssl connect"];
+	}
+    }
+  else
+    {
+      [sock waitForDataInBackgroundAndNotify];
+    }
 }
 
 - (void) bgdWrite: (NSNotification*)notification
