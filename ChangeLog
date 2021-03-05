@@ -1,3 +1,12 @@
+2021-03-05 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m:
+	Rewrite handling of tls handshake to operate asynchronously,
+	attempting continuation of the handshake when the socket becomes
+	readable.  The point of this is to prevent recursive entry into the
+	runloop (and possible stack overflow) if the remote end fails to send
+	anything for a while.
+
 2021-03-03 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/Foundation/NSTimer.h:
