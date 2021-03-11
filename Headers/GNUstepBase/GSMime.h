@@ -138,6 +138,10 @@ GS_EXPORT_CLASS
 #endif
 }
 
+/* Examine xml data/string to find out the characterset encoding specified
+ */
++ (NSString*) charsetForXml: (id)xml;
+
 + (NSString*) charsetFromEncoding: (NSStringEncoding)enc;
 
 /**
