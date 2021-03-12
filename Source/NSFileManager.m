@@ -75,6 +75,9 @@
 # include <sys/ndir.h>
 #elif defined(HAVE_NDIR_H)
 # include <ndir.h>
+#elif defined(_MSC_VER)
+// we provide our own version of dirent.h on Windows MSVC
+# include <win32/dirent.h>
 #endif
 
 #ifdef HAVE_WINDOWS_H
@@ -196,28 +199,7 @@
  * Macros to handle unichar filesystem support.
  */
 
-#if defined(_MSC_VER)
-
-#warning NSFileManager is currently unsupported on Windows MSVC
-
-#define	_CHMOD(A,B)	0
-#define	_CLOSEDIR(A)
-#define	_OPENDIR(A)	NULL
-#define	_READDIR(A)	NULL
-#define	_RENAME(A,B)	-1
-#define	_RMDIR(A)	-1
-#define	_STAT(A,B)	-1
-#define	_UTIME(A,B)	-1
-
-#define	_CHAR		unichar
-#define	_DIR		void
-#define	_DIRENT		{const char *d_name;}
-#define	_STATB		{int st_ctime; int st_gid; int st_atime; int st_mtime; int st_mode; int st_uid; int st_size; int st_ino; int st_dev; int st_nlink;}
-#define	_UTIMB		{int actime; int modtime;}
-
-#define	_NUL		L'\0'
-
-#elif	defined(_WIN32)
+#if	defined(_WIN32)
 
 #define	_CHMOD(A,B)	_wchmod(A,B)
 #define	_CLOSEDIR(A)	_wclosedir(A)
@@ -228,7 +210,6 @@
 #define	_STAT(A,B)	_wstat(A,B)
 #define	_UTIME(A,B)	_wutime(A,B)
 
-#define	_CHAR		unichar
 #define	_DIR		_WDIR
 #define	_DIRENT		_wdirent
 #define	_STATB		_stat
@@ -247,7 +228,6 @@
 #define	_STAT(A,B)	stat(A,B)
 #define	_UTIME(A,B)	utime(A,B)
 
-#define	_CHAR		char
 #define	_DIR		DIR
 #define	_DIRENT		dirent
 #define	_STATB		stat
@@ -257,6 +237,7 @@
 
 #endif
 
+#define	_CHAR		GSNativeChar
 #define	_CCP		const _CHAR*
 
 
@@ -590,11 +571,7 @@ static NSStringEncoding	defaultEncoding;
     {
       BOOL		ok = NO;
       struct _STATB	sb;
-#if  defined(_WIN32)
       const _CHAR *lpath;
-#else
-      const char  *lpath;
-#endif
 
       lpath = [self fileSystemRepresentationWithPath: path];
       if (_STAT(lpath, &sb) != 0)
@@ -1083,15 +1060,11 @@ static NSStringEncoding	defaultEncoding;
     }
   else
     {
-#if defined(_WIN32)
       const _CHAR   *lpath;
-          
       lpath = [self fileSystemRepresentationWithPath: path];
+#if defined(_WIN32)
       isDir = (CreateDirectoryW(lpath, 0) != FALSE) ? YES : NO;
 #else
-      const char    *lpath;
-
-      lpath = [self fileSystemRepresentationWithPath: path];
       isDir = (mkdir(lpath, 0777) == 0) ? YES : NO;
       if (YES == isDir)
         {
@@ -1145,12 +1118,12 @@ static NSStringEncoding	defaultEncoding;
 	       attributes: (NSDictionary*)attributes
 {
 #if	defined(_WIN32)
-  const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
+  const _CHAR	*lpath = [self fileSystemRepresentationWithPath: path];
   HANDLE fh;
   DWORD	written = 0;
   DWORD	len = [contents length];
 #else
-  const char	*lpath;
+  const _CHAR	*lpath;
   int	fd;
   int	len;
   int	written;
@@ -1262,7 +1235,7 @@ static NSStringEncoding	defaultEncoding;
 	}
     }
 #else
-  char path[PATH_MAX];
+  _CHAR path[PATH_MAX];
 #ifdef HAVE_GETCWD
   if (getcwd(path, PATH_MAX-1) == 0)
     return nil;
@@ -2309,7 +2282,7 @@ static NSStringEncoding	defaultEncoding;
 #endif
   unsigned long long totalsize, freesize;
   unsigned long blocksize;
-  const char* lpath = [self fileSystemRepresentationWithPath: path];
+  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
 
   id  values[5];
   id	keys[5] = {
@@ -2516,8 +2489,8 @@ static NSStringEncoding	defaultEncoding;
 		      pathContent: (NSString*)otherPath
 {
 #ifdef HAVE_SYMLINK
-  const char* newpath = [self fileSystemRepresentationWithPath: path];
-  const char* oldpath = [self fileSystemRepresentationWithPath: otherPath];
+  const _CHAR* newpath = [self fileSystemRepresentationWithPath: path];
+  const _CHAR* oldpath = [self fileSystemRepresentationWithPath: otherPath];
 
   return (symlink(oldpath, newpath) == 0);
 #else
@@ -2534,7 +2507,7 @@ static NSStringEncoding	defaultEncoding;
 {
 #ifdef HAVE_READLINK
   char  buf[PATH_MAX];
-  const char* lpath = [self fileSystemRepresentationWithPath: path];
+  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
   int   llen = readlink(lpath, buf, PATH_MAX-1);
 
   if (llen > 0)
@@ -2808,11 +2781,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     {
       GSEnumeratedDirectory dir = GSIArrayLastItem(_stack).ext;
       struct _STATB	statbuf;
-#if defined(_WIN32)
-      const wchar_t *dirname = NULL;
-#else
-      const char *dirname = NULL;
-#endif
+      const _CHAR *dirname = NULL;
 
 #ifdef __ANDROID__
       if (dir.assetDir)
@@ -4071,10 +4040,10 @@ static NSSet	*fileKeys = nil;
       case S_IFREG: return NSFileTypeRegular;
       case S_IFDIR: return NSFileTypeDirectory;
       case S_IFCHR: return NSFileTypeCharacterSpecial;
-#ifdef S_IFBLK
+#if defined(S_IFBLK) && !defined(_WIN32)
       case S_IFBLK: return NSFileTypeBlockSpecial;
 #endif
-#ifdef S_IFLNK
+#if defined(S_IFLNK) && !defined(_WIN32)
       case S_IFLNK: return NSFileTypeSymbolicLink;
 #endif
 #ifdef S_IFIFO

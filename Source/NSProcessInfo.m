@@ -1194,7 +1194,8 @@ static void determineOperatingSystem()
 	      _operatingSystemName = @"GSGNULinuxOperatingSystem";
 	      _operatingSystem = GSGNULinuxOperatingSystem;
 	    }
-	  else if ([os hasPrefix: @"mingw"] == YES)
+	  else if ([os hasPrefix: @"mingw"] == YES
+	    || [os isEqualToString: @"windows"] == YES)
 	    {
 	      _operatingSystemName = @"NSWindowsNTOperatingSystem";
 	      _operatingSystem = NSWindowsNTOperatingSystem;

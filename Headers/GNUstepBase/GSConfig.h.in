@@ -240,7 +240,7 @@ typedef	gsuaddr gsaddr;
  * Native character type for use in systemcalls etc.
  */
 
-#if	defined(__MINGW__)
+#if	defined(_WIN32)
 #  define	GSNativeChar	uint16_t
 #else
 #  define	GSNativeChar	char
