@@ -1,3 +1,13 @@
+2021-03-12 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSFileManager.m:
+	* Source/NSProcessInfo.m:
+	* Source/win32/dirent.h:
+	Add NSFileManager support on Windows MSVC using dirent.h from:
+	https://github.com/tronkko/dirent/blob/master/include/dirent.h
+	Also unifies _CHAR in NSFileManager with GSNativeChar, as they are
+	internally required to be the same.
+
 2021-03-09 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSRunLoop.m:
