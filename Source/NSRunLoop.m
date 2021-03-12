@@ -807,7 +807,11 @@ static inline BOOL timerInvalidated(NSTimer *t)
           GSMainQueueDrainer *drain =
             [NSObject leak: [[GSMainQueueDrainer new] autorelease]];
           [current addEvent: [GSMainQueueDrainer mainQueueFileDescriptor]
+#ifdef _WIN32
+                       type: ET_HANDLE
+#else
                        type: ET_RDESC
+#endif
                     watcher: drain
                     forMode: NSDefaultRunLoopMode];
 

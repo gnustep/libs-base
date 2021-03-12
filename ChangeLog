@@ -1,3 +1,8 @@
+2021-03-09 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSRunLoop.m:
+	Fix libdispatch integration compilation error on Windows.
+
 2021-03-05 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m:
