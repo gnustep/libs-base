@@ -183,6 +183,9 @@
 /* Define to 1 if you have the <bfd.h> header file. */
 #undef HAVE_BFD_H
 
+/* Have bfd_section_vma */
+#undef HAVE_BFD_SECTION_VMA
+
 /* Define to 1 if you have the <callback.h> header file. */
 #undef HAVE_CALLBACK_H
 

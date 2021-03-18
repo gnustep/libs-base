@@ -416,25 +416,33 @@ static void find_address (bfd *abfd, asection *section,
     {
       return;
     }
-  if (!(bfd_get_section_flags (abfd, section) & SEC_ALLOC))
+  address = (bfd_vma) (uintptr_t)info->theAddress;
+
+  /* bfd_get_section_vma() was changed to bfd_section_vma() together with
+   * changes to a couple of other inline functions.
+   */
+#if     defined(HAVE_BFD_SECTION_VMA)
+  if (!(bfd_section_flags(section) & SEC_ALLOC))
     {
       return;	// Only debug in this section
     }
-  if (bfd_get_section_flags (abfd, section) & SEC_DATA)
+  if (bfd_section_flags(section) & SEC_DATA)
     {
       return;	// Only data in this section
     }
-
-  address = (bfd_vma) (uintptr_t)info->theAddress;
-
-  vma = bfd_get_section_vma (abfd, section);
-
-#if     defined(bfd_get_section_size_before_reloc)
-  size = bfd_get_section_size_before_reloc (section);        // recent
-#elif     defined(bfd_get_section_size)
-  size = bfd_get_section_size (section);        // less recent
+  vma = bfd_section_vma(section);
+  size = bfd_section_size(section);
 #else                                
-  size = bfd_section_size (abfd, section);      // older version
+  if (!(bfd_get_section_flags(abfd, section) & SEC_ALLOC))
+    {
+      return;	// Only debug in this section
+    }
+  if (bfd_get_section_flags(abfd, section) & SEC_DATA)
+    {
+      return;	// Only data in this section
+    }
+  vma = bfd_get_section_vma(abfd, section);
+  size = bfd_section_size(abfd, section);
 #endif                               
 
   if (address < vma || address >= vma + size)

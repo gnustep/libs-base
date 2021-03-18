@@ -9129,6 +9129,35 @@ _ACEOF
 
 fi
 
+
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+  #include <bfd.h>
+
+int
+main ()
+{
+bfd_section_vma(0);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  bfd_section_vma=1
+else
+  bfd_section_vma=0
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+if test $bfd_section_vma = 1; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: bfd_section_vma found" >&5
+$as_echo "bfd_section_vma found" >&6; }
+
+$as_echo "#define HAVE_BFD_SECTION_VMA 1" >>confdefs.h
+
+fi
+
+
 if test $ismingw = yes ; then
   for ac_header in dbghelp.h
 do :

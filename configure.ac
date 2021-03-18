@@ -2357,6 +2357,18 @@ AC_CHECK_HEADERS(bfd.h)
 AC_CHECK_LIB(intl, libintl_fprintf)
 AC_CHECK_LIB(iberty, dyn_string_append)
 AC_CHECK_LIB(bfd, bfd_openr)
+
+AC_TRY_COMPILE([
+  #include <bfd.h>
+  ],
+  [bfd_section_vma(0);],
+  bfd_section_vma=1, bfd_section_vma=0)
+if test $bfd_section_vma = 1; then
+  AC_MSG_RESULT([bfd_section_vma found])
+  AC_DEFINE([HAVE_BFD_SECTION_VMA], [1], [Have bfd_section_vma])
+fi
+
+
 if test $ismingw = yes ; then
   AC_CHECK_HEADERS(dbghelp.h)
 else
