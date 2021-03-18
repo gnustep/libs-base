@@ -313,6 +313,7 @@ static NSMutableDictionary      *fileMap = nil;
   NS_HANDLER
     {
       [fileLock unlock];
+      result = nil;
       [localException raise];
     }
   NS_ENDHANDLER
