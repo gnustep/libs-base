@@ -891,28 +891,7 @@ unsigned
 GSPrivateReturnAddresses(NSUInteger **returns)
 {
   unsigned      numReturns;
-#if	defined(HAVE_BACKTRACE)
-  void          *addr[MAXFRAMES*sizeof(void*)];
-
-  numReturns = backtrace(addr, MAXFRAMES);
-  if (numReturns > 0)
-    {
-      *returns = malloc(numReturns * sizeof(void*));
-      memcpy(*returns, addr, numReturns * sizeof(void*));
-    }
-#elif defined(WITH_UNWIND)
-  void          *addr[MAXFRAMES];
-  
-  struct GSBacktraceState state = {addr, addr + MAXFRAMES};
-  _Unwind_Backtrace(GSUnwindCallback, &state);
-
-  numReturns = state.current - addr;
-  if (numReturns > 0)
-    {
-      *returns = malloc(numReturns * sizeof(void*));
-      memcpy(*returns, addr, numReturns * sizeof(void*));
-    }
-#elif	defined(_WIN32) && !defined(USE_BFD)
+#if	defined(_WIN32) && !defined(USE_BFD)
   NSUInteger	addr[MAXFRAMES];
 
   (void)pthread_mutex_lock(&traceLock);
@@ -1004,6 +983,27 @@ GSPrivateReturnAddresses(NSUInteger **returns)
   
   (void)pthread_mutex_unlock(&traceLock);
 
+#elif	defined(HAVE_BACKTRACE)
+  void          *addr[MAXFRAMES*sizeof(void*)];
+
+  numReturns = backtrace(addr, MAXFRAMES);
+  if (numReturns > 0)
+    {
+      *returns = malloc(numReturns * sizeof(void*));
+      memcpy(*returns, addr, numReturns * sizeof(void*));
+    }
+#elif defined(WITH_UNWIND)
+  void          *addr[MAXFRAMES];
+  
+  struct GSBacktraceState state = {addr, addr + MAXFRAMES};
+  _Unwind_Backtrace(GSUnwindCallback, &state);
+
+  numReturns = state.current - addr;
+  if (numReturns > 0)
+    {
+      *returns = malloc(numReturns * sizeof(void*));
+      memcpy(*returns, addr, numReturns * sizeof(void*));
+    }
 #else
   int   n;
 
