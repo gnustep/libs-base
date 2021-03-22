@@ -121,6 +121,7 @@ GS_EXPORT_CLASS
 /**
  * NSCondition provides an interface to POSIX condition variables.
  */
+GS_EXPORT_CLASS
 @interface NSCondition : NSObject <NSLocking>
 {
 #if	GS_EXPOSE(NSCondition)
@@ -171,6 +172,7 @@ GS_EXPORT_CLASS
  *  condition is equal to a particular value.  The condition is set on
  *  initialization and whenever the lock is relinquished.
  */
+GS_EXPORT_CLASS
 @interface NSConditionLock : NSObject <NSLocking>
 {
 #if	GS_EXPOSE(NSConditionLock)
@@ -271,6 +273,7 @@ GS_EXPORT_CLASS
  * thread must also unlock it (n) times before another thread 
  * can acquire the lock.
  */
+GS_EXPORT_CLASS
 @interface NSRecursiveLock : NSObject <NSLocking>
 {
 #if	GS_EXPOSE(NSRecursiveLock)

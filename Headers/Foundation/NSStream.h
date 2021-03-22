@@ -148,6 +148,7 @@ GS_EXPORT_CLASS
  * NSInputStream is a subclass of NSStream that provides read-only
  * stream functionality.
  */
+GS_EXPORT_CLASS
 @interface NSInputStream : NSStream
 
 /**
@@ -209,6 +210,7 @@ GS_EXPORT_CLASS
  * NSOutputStream is a subclass of NSStream that provides
  * write-only stream functionality.
  */
+GS_EXPORT_CLASS
 @interface NSOutputStream : NSStream
 
 /**
