@@ -34,7 +34,7 @@
 
 #if defined(_WIN32)
 #if defined(_MSC_VER)
-typedef unsigned pid_t;
+typedef int pid_t;
 #endif
 typedef unsigned gid_t;
 typedef unsigned uid_t;
