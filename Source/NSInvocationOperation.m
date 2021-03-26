@@ -136,7 +136,7 @@
 
 @end
 
-const NSString * NSInvocationOperationVoidResultException
+NSString* const NSInvocationOperationVoidResultException
   = @"NSInvocationOperationVoidResultException";
-const NSString * NSInvocationOperationCancelledException
+NSString* const NSInvocationOperationCancelledException
   = @"NSInvcationOperationCancelledException";

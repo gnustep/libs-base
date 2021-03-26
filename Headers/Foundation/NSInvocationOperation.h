@@ -53,8 +53,8 @@ GS_EXPORT_CLASS
 
 @end
 
-extern const NSString * NSInvocationOperationVoidResultException;
-extern const NSString * NSInvocationOperationCancelledException;
+GS_EXPORT NSString* const NSInvocationOperationVoidResultException;
+GS_EXPORT NSString* const NSInvocationOperationCancelledException;
 
 #if	defined(__cplusplus)
 }
