@@ -42,7 +42,7 @@ extern "C" {
 /**
  * Notification sent when the set of stored credentials changes.
  */
-extern NSString *const NSURLCredentialStorageChangedNotification;
+GS_EXPORT NSString *const NSURLCredentialStorageChangedNotification;
 
 /**
  * Provides shared storage of credentials.

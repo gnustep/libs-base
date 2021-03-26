@@ -28,16 +28,16 @@
 @class  NSHost;
 @class  NSString;
 
-extern NSString * const GSTLSCAFile;
-extern NSString * const GSTLSCertificateFile;
-extern NSString * const GSTLSCertificateKeyFile;
-extern NSString * const GSTLSCertificateKeyPassword;
-extern NSString * const GSTLSDebug;
-extern NSString * const GSTLSPriority;
-extern NSString * const GSTLSRemoteHosts;
-extern NSString * const GSTLSRevokeFile;
-extern NSString * const GSTLSServerName;
-extern NSString * const GSTLSVerify;
+GS_EXPORT NSString * const GSTLSCAFile;
+GS_EXPORT NSString * const GSTLSCertificateFile;
+GS_EXPORT NSString * const GSTLSCertificateKeyFile;
+GS_EXPORT NSString * const GSTLSCertificateKeyPassword;
+GS_EXPORT NSString * const GSTLSDebug;
+GS_EXPORT NSString * const GSTLSPriority;
+GS_EXPORT NSString * const GSTLSRemoteHosts;
+GS_EXPORT NSString * const GSTLSRevokeFile;
+GS_EXPORT NSString * const GSTLSServerName;
+GS_EXPORT NSString * const GSTLSVerify;
 
 #if GS_USE_GNUTLS
 /* Temporarily redefine 'id' in case the headers use the objc reserved word.

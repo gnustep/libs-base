@@ -438,7 +438,8 @@ GS_EXPORT_CLASS
 		   description: (NSString*)format,... GS_NORETURN_METHOD;
 
 @end
-extern NSString *const NSAssertionHandlerKey;
+
+GS_EXPORT NSString *const NSAssertionHandlerKey;
 
 #ifdef	NS_BLOCK_ASSERTIONS
 #define NSAssert(condition, desc, args...)		

@@ -39,12 +39,12 @@ extern "C" {
 /**
  * The domain for a URL error.
  */
-extern NSString * const NSURLErrorDomain;
+GS_EXPORT NSString * const NSURLErrorDomain;
 
 /**
  * Obtain the URL which caused the failure
  */
-extern NSString * const NSErrorFailingURLStringKey;
+GS_EXPORT NSString * const NSErrorFailingURLStringKey;
 
 /**
  * Error codes for URL errors

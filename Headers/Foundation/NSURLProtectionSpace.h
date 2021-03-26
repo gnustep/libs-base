@@ -36,31 +36,31 @@ extern "C" {
 
 @class NSString;
 
-extern NSString * const NSURLProtectionSpaceFTPProxy;	/** An FTP proxy */
-extern NSString * const NSURLProtectionSpaceHTTPProxy;	/** An HTTP proxy */
-extern NSString * const NSURLProtectionSpaceHTTPSProxy;	/** An HTTPS proxy */
-extern NSString * const NSURLProtectionSpaceSOCKSProxy;	/** A SOCKS proxy */
+GS_EXPORT NSString * const NSURLProtectionSpaceFTPProxy;	/** An FTP proxy */
+GS_EXPORT NSString * const NSURLProtectionSpaceHTTPProxy;	/** An HTTP proxy */
+GS_EXPORT NSString * const NSURLProtectionSpaceHTTPSProxy;	/** An HTTPS proxy */
+GS_EXPORT NSString * const NSURLProtectionSpaceSOCKSProxy;	/** A SOCKS proxy */
 
 /** Default authentication (Basic) */
-extern NSString * const NSURLAuthenticationMethodDefault;
+GS_EXPORT NSString * const NSURLAuthenticationMethodDefault;
 
 /** HTML form authentication */
-extern NSString * const NSURLAuthenticationMethodHTMLForm;
+GS_EXPORT NSString * const NSURLAuthenticationMethodHTMLForm;
 
 /** HTTP Basic authentication */
-extern NSString * const NSURLAuthenticationMethodHTTPBasic;
+GS_EXPORT NSString * const NSURLAuthenticationMethodHTTPBasic;
 
 /** HTTP Digest authentication */
-extern NSString * const NSURLAuthenticationMethodHTTPDigest;
+GS_EXPORT NSString * const NSURLAuthenticationMethodHTTPDigest;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
-extern NSString * const NSURLAuthenticationMethodNTLM;
-extern NSString * const NSURLAuthenticationMethodNegotiate;
+GS_EXPORT NSString * const NSURLAuthenticationMethodNTLM;
+GS_EXPORT NSString * const NSURLAuthenticationMethodNegotiate;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) && GS_API_VERSION( 11300,GS_API_LATEST)
-extern NSString * const NSURLAuthenticationMethodClientCertificate;
-extern NSString * const NSURLAuthenticationMethodServerTrust;
+GS_EXPORT NSString * const NSURLAuthenticationMethodClientCertificate;
+GS_EXPORT NSString * const NSURLAuthenticationMethodServerTrust;
 #endif
 
 /**
