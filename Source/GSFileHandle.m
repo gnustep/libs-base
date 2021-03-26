@@ -351,19 +351,19 @@ static GSTcpTune        *tune = nil;
 {
   if (self == fh_stdin)
     {
-      RETAIN(self);
+      fh_stdin = nil;
       [NSException raise: NSGenericException
                   format: @"Attempt to deallocate standard input handle"];
     }
   if (self == fh_stdout)
     {
-      RETAIN(self);
+      fh_stdout = nil;
       [NSException raise: NSGenericException
                   format: @"Attempt to deallocate standard output handle"];
     }
   if (self == fh_stderr)
     {
-      RETAIN(self);
+      fh_stderr = nil;
       [NSException raise: NSGenericException
                   format: @"Attempt to deallocate standard error handle"];
     }
