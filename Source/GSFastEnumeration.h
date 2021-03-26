@@ -1,14 +1,15 @@
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+GS_EXPORT void objc_enumerationMutation(id);
+#pragma GCC diagnostic pop
+
 #ifdef __clang__
 #define FOR_IN(type, var, collection) \
   for (type var in collection)\
   {
 #define END_FOR_IN(collection) }
 #else
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wattributes"
-void objc_enumerationMutation(id);
-#pragma GCC diagnostic pop
 #define FOR_IN(type, var, c) \
 do\
 {\
