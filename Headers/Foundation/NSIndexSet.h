@@ -44,6 +44,7 @@ extern "C" {
  * range 0 to NSNotFound-1.<br />
  * Each integer can appear in a collection only once.
  */
+GS_EXPORT_CLASS
 @interface	NSIndexSet : NSObject <NSCopying, NSMutableCopying, NSCoding>
 {
 #if	GS_EXPOSE(NSIndexSet)
@@ -191,6 +192,7 @@ DEFINE_BLOCK_TYPE(GSIndexSetEnumerationBlock, void, NSUInteger, BOOL*);
 @end
 
 
+GS_EXPORT_CLASS
 @interface	NSMutableIndexSet : NSIndexSet
 
 /**

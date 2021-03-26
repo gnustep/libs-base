@@ -119,6 +119,7 @@ extern "C" {
  *  passing an instance as an argument to any [NSDecimalNumber] method ending
  *  with <code>...Behavior:</code>.
  */
+GS_EXPORT_CLASS
 @interface	NSDecimalNumberHandler : NSObject <NSDecimalNumberBehaviors>
 {
 #if	GS_EXPOSE(NSDecimalNumberHandler)
@@ -187,6 +188,7 @@ extern "C" {
  *
  *  <p>Note that instances of <code>NSDecimalNumber</code> are immutable.</p>
  */
+GS_EXPORT_CLASS
 @interface	NSDecimalNumber : NSNumber <NSDecimalNumberBehaviors>
 {
 #if	GS_EXPOSE(NSDecimalNumber)

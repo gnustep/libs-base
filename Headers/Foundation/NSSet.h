@@ -164,6 +164,7 @@ GS_EXPORT_CLASS
 /**
  * Utility methods for using a counted set to handle uniquing of objects.
  */
+GS_EXPORT_CLASS
 @interface GS_GENERIC_CLASS(NSCountedSet, ElementT) (GNU_Uniquing)
 /**
  * <p>

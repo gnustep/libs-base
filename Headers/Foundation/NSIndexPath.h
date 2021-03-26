@@ -42,6 +42,7 @@ extern "C" {
  * of arrays.<br />
  * Each instance is a unique shared object.
  */
+GS_EXPORT_CLASS
 @interface	NSIndexPath : NSObject <NSCopying, NSCoding>
 {
 #if	GS_EXPOSE(NSIndexPath)

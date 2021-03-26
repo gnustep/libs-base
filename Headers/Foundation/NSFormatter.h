@@ -62,6 +62,7 @@ typedef NSInteger NSFormattingUnitStyle;
  *  and [NSNumberFormatter].  Others may be implemented for specialized
  *  applications.
  */
+GS_EXPORT_CLASS
 @interface	NSFormatter : NSObject <NSCopying, NSCoding>
 
 /**
