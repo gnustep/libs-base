@@ -57,11 +57,6 @@
 
 #import "GSPrivate.h"
 
-/* Constants */
-NSString * const NSBundleDidLoadNotification = @"NSBundleDidLoadNotification";
-NSString * const NSShowNonLocalizedStrings = @"NSShowNonLocalizedStrings";
-NSString * const NSLoadedClasses = @"NSLoadedClasses";
-
 static NSFileManager	*
 manager()
 {

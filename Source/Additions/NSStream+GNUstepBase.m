@@ -27,18 +27,6 @@
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/NSStream+GNUstepBase.h"
 
-/* Code used in GNUstepBase
- */
-NSString * const GSStreamLocalAddressKey
-  = @"GSStreamLocalAddressKey";
-NSString * const GSStreamLocalPortKey
-  = @"GSStreamLocalPortKey";
-NSString * const GSStreamRemoteAddressKey
-  = @"GSStreamRemoteAddressKey";
-NSString * const GSStreamRemotePortKey
-  = @"GSStreamRemotePortKey";
-
-
 /* The remaining code is specific to the Apple Foundation
  */
 #if	!defined(GNUSTEP)

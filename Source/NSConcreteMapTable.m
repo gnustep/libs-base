@@ -974,7 +974,7 @@ NSResetMapTable(NSMapTable *table)
  * is appended.  The appropriate describe functions are used to generate
  * the strings for each key and value.
  */
-NSString *
+GS_DECLARE NSString *
 NSStringFromMapTable(NSMapTable *table)
 {
   if (table == nil)

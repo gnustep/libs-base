@@ -109,7 +109,7 @@ static NSDecimal one = {0, NO, YES, 1, {1}};
 #endif
 
 
-void
+GS_DECLARE void
 NSDecimalCopy(NSDecimal *destination, const NSDecimal *source)
 {
   memcpy(destination, source, sizeof(NSDecimal));
@@ -416,7 +416,7 @@ static NSCalculationError
 GSSimpleAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
 	    NSRoundingMode mode);
 
-NSCalculationError
+GS_DECLARE NSCalculationError
 NSDecimalAdd(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
 	     NSRoundingMode mode)
 {
@@ -515,7 +515,7 @@ static NSCalculationError
 GSSimpleSubtract(NSDecimal *result, const NSDecimal *left,
 		 const NSDecimal *right, NSRoundingMode mode);
 
-NSCalculationError
+GS_DECLARE NSCalculationError
 NSDecimalSubtract(NSDecimal *result, const NSDecimal *left,
 		  const NSDecimal *right, NSRoundingMode mode)
 {
@@ -624,7 +624,7 @@ static NSCalculationError
 GSSimpleMultiply(NSDecimal *result, NSDecimal *l, NSDecimal *r,
 		 NSRoundingMode mode);
 
-NSCalculationError
+GS_DECLARE NSCalculationError
 NSDecimalMultiply(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
 		  NSRoundingMode mode)
 {
@@ -706,7 +706,7 @@ static NSCalculationError
 GSSimpleDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
   NSRoundingMode mode);
 
-NSCalculationError
+GS_DECLARE NSCalculationError
 NSDecimalDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *rr,
   NSRoundingMode mode)
 {
@@ -773,7 +773,7 @@ NSDecimalDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *rr,
   return error;
 }
 
-NSCalculationError
+GS_DECLARE NSCalculationError
 NSDecimalPower(NSDecimal *result, const NSDecimal *n, NSUInteger power, NSRoundingMode mode)
 {
   NSCalculationError error = NSCalculationNoError;
@@ -813,7 +813,7 @@ NSDecimalPower(NSDecimal *result, const NSDecimal *n, NSUInteger power, NSRoundi
   return error;
 }
 
-NSCalculationError
+GS_DECLARE NSCalculationError
 NSDecimalMultiplyByPowerOf10(NSDecimal *result, const NSDecimal *n, short power, NSRoundingMode mode)
 {
   int p;
@@ -923,7 +923,7 @@ GSDecimalString(const GSDecimal *number, NSDictionary *locale)
 // independent for NSDecimals internal representation
 
 // Give back the biggest NSDecimal
-void
+GS_DECLARE void
 NSDecimalMax(NSDecimal *result)
 {
   // FIXME: this is too small
@@ -931,7 +931,7 @@ NSDecimalMax(NSDecimal *result)
 }
 
 // Give back the smallest NSDecimal
-void
+GS_DECLARE void
 NSDecimalMin(NSDecimal *result)
 {
   // This is the smallest possible not the smallest positive number
@@ -1113,7 +1113,7 @@ static void DecimalToCharvec(const NSDecimal *n, GSDecimal *m)
     }
 }
 
-void
+GS_DECLARE void
 NSDecimalCompact(NSDecimal *number)
 {
   GSDecimal m;
@@ -1127,7 +1127,7 @@ NSDecimalCompact(NSDecimal *number)
   CharvecToDecimal(&m, number);
 }
 
-NSComparisonResult
+GS_DECLARE NSComparisonResult
 NSDecimalCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand)
 {
   GSDecimal m1;
@@ -1161,7 +1161,7 @@ NSDecimalRound(NSDecimal *result, const NSDecimal *number, NSInteger scale,
   CharvecToDecimal(&m, result);
 }
 
-NSCalculationError
+GS_DECLARE NSCalculationError
 NSDecimalNormalize(NSDecimal *n1, NSDecimal *n2, NSRoundingMode mode)
 {
   NSCalculationError error;
@@ -1290,7 +1290,7 @@ GSSimpleDivide(NSDecimal *result, const NSDecimal *left, const NSDecimal *right,
   return error;
 }
 
-NSString*
+GS_DECLARE NSString*
 NSDecimalString(const NSDecimal *decimal, NSDictionary *locale)
 {
   GSDecimal n;
@@ -1299,7 +1299,7 @@ NSDecimalString(const NSDecimal *decimal, NSDictionary *locale)
   return GSDecimalString(&n, locale);
 }
 
-double
+GS_DECLARE double
 NSDecimalDouble(NSDecimal *number)
 {
   GSDecimal n;
@@ -1308,7 +1308,7 @@ NSDecimalDouble(NSDecimal *number)
   return GSDecimalDouble(&n);
 }
 
-void
+GS_DECLARE void
 NSDecimalFromComponents(NSDecimal *result, unsigned long long mantissa,
 			short exponent, BOOL negative)
 {
@@ -1324,7 +1324,7 @@ NSDecimalFromComponents(NSDecimal *result, unsigned long long mantissa,
   //NSLog(@"NSDecimal 2: %@", NSDecimalString(result, nil));
 }
 
-void
+GS_DECLARE void
 NSDecimalFromString(NSDecimal *result, NSString *numberValue,
 		    NSDictionary *locale)
 {
@@ -1338,19 +1338,19 @@ NSDecimalFromString(NSDecimal *result, NSString *numberValue,
 
 // First implementations of the functions defined in NSDecimal.h
 
-void
+GS_DECLARE void
 NSDecimalCompact(NSDecimal *number)
 {
   GSDecimalCompact(number);
 }
 
-NSComparisonResult
+GS_DECLARE NSComparisonResult
 NSDecimalCompare(const NSDecimal *leftOperand, const NSDecimal *rightOperand)
 {
   return GSDecimalCompare(leftOperand, rightOperand);
 }
 
-void
+GS_DECLARE void
 NSDecimalRound(NSDecimal *result, const NSDecimal *number, NSInteger scale,
 	       NSRoundingMode mode)
 {
@@ -1359,7 +1359,7 @@ NSDecimalRound(NSDecimal *result, const NSDecimal *number, NSInteger scale,
   GSDecimalRound(result, scale, mode);
 }
 
-NSCalculationError
+GS_DECLARE NSCalculationError
 NSDecimalNormalize(NSDecimal *n1, NSDecimal *n2, NSRoundingMode mode)
 {
   if (!n1->validNumber || !n2->validNumber)
@@ -1647,7 +1647,7 @@ GSSimpleDivide(NSDecimal *result, const NSDecimal *l, const NSDecimal *r,
   return error;
 }
 
-NSString*
+GS_DECLARE NSString*
 NSDecimalString(const NSDecimal *decimal, NSDictionary *locale)
 {
   return GSDecimalString(decimal, locale);
@@ -1656,20 +1656,20 @@ NSDecimalString(const NSDecimal *decimal, NSDictionary *locale)
 // GNUstep extensions to make the implementation of NSDecimalNumber totaly
 // independent for NSDecimals internal representation
 
-double
+GS_DECLARE double
 NSDecimalDouble(NSDecimal *number)
 {
   return GSDecimalDouble(number);
 }
 
-void
+GS_DECLARE void
 NSDecimalFromComponents(NSDecimal *result, unsigned long long mantissa,
 		      short exponent, BOOL negative)
 {
   GSDecimalFromComponents(result, mantissa, exponent, negative);
 }
 
-void
+GS_DECLARE void
 NSDecimalFromString(NSDecimal *result, NSString *numberValue,
 		    NSDictionary *locale)
 {

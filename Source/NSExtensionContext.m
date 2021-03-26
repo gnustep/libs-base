@@ -53,14 +53,3 @@
 }
 
 @end
-
-NSString* const NSExtensionItemsAndErrorsKey = @"NSExtensionItemsAndErrorsKey";
-
-NSString* const NSExtensionHostWillEnterForegroundNotification = @"NSExtensionHostWillEnterForegroundNotification";
-
-NSString* const NSExtensionHostDidEnterBackgroundNotification = @"NSExtensionHostDidEnterBackgroundNotification";
-
-NSString* const NSExtensionHostWillResignActiveNotification = @"NSExtensionHostWillResignActiveNotification";
-
-NSString* const NSExtensionHostDidBecomeActiveNotification = @"NSExtensionHostDidBecomeActiveNotification";
-

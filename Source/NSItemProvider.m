@@ -146,7 +146,6 @@
 @end
 
 // Preview support
-NSString * const NSItemProviderPreferredImageSizeKey = @"NSItemProviderPreferredImageSizeKey";
 
 @implementation NSItemProvider (NSPreviewSupport)
 
@@ -165,11 +164,3 @@ NSString * const NSItemProviderPreferredImageSizeKey = @"NSItemProviderPreferred
 }
 
 @end
-
-NSString * const NSExtensionJavaScriptPreprocessingResultsKey = @"NSExtensionJavaScriptPreprocessingResultsKey"; 
-
-NSString * const NSExtensionJavaScriptFinalizeArgumentKey = @"NSExtensionJavaScriptFinalizeArgumentKey";
-
-NSString * const NSItemProviderErrorDomain = @"NSItemProviderErrorDomain" ;
-
-

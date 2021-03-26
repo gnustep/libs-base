@@ -24,17 +24,17 @@
 
 #include <Foundation/NSHFSFileTypes.h>
 
-NSString *NSFileTypeForHFSTypeCode(NSUInteger hfsFileTypeCode)
+GS_DECLARE NSString *NSFileTypeForHFSTypeCode(NSUInteger hfsFileTypeCode)
 {
   return nil;
 }
 
-NSUInteger NSHFSTypeCodeFromFileType(NSString *fileTypeString)
+GS_DECLARE NSUInteger NSHFSTypeCodeFromFileType(NSString *fileTypeString)
 {
   return 0;
 }
 
-NSString *NSHFSTypeOfFile(NSString *fullFilePath)
+GS_DECLARE NSString *NSHFSTypeOfFile(NSString *fullFilePath)
 {
   return nil;
 }

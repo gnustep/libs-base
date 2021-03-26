@@ -7932,7 +7932,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 @end
 
 
-NSString* const GSMimeErrorDomain = @"GSMimeErrorDomain";
+GS_DECLARE NSString* const GSMimeErrorDomain = @"GSMimeErrorDomain";
 
 typedef	enum	{
   TP_IDLE,

@@ -225,13 +225,3 @@
 }
 
 @end
-
-// components for attributed strings;
-NSString * const NSPersonNameComponentKey = @"NSPersonNameComponentKey";
-NSString * const NSPersonNameComponentGivenName = @"NSPersonNameComponentGivenName";
-NSString * const NSPersonNameComponentFamilyName = @"NSPersonNameComponentFamilyName";
-NSString * const NSPersonNameComponentMiddleName = @"NSPersonNameComponentMiddleName";
-NSString * const NSPersonNameComponentPrefix = @"NSPersonNameComponentPrefix";
-NSString * const NSPersonNameComponentSuffix = @"NSPersonNameComponentSuffix";
-NSString * const NSPersonNameComponentNickname = @"NSPersonNameComponentNickname";
-NSString * const NSPersonNameComponentDelimiter = @"NSPersonNameComponentDelimiter";

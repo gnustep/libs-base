@@ -87,9 +87,6 @@ function may be incorrect
 
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
-NSString * const NSURLErrorDomain = @"NSURLErrorDomain";
-NSString * const NSErrorFailingURLStringKey = @"NSErrorFailingURLStringKey";
-
 @interface	NSURL (GSPrivate)
 - (NSURL*) _URLBySettingPath: (NSString*)newPath; 
 @end

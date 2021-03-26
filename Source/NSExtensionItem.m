@@ -70,12 +70,3 @@
 }
   
 @end
-
-NSString * const NSExtensionItemAttributedTitleKey = @"NSExtensionItemAttributedTitleKey";
-
-NSString * const NSExtensionItemAttributedContentTextKey = @"NSExtensionItemAttributedContentTextKey";
-
-NSString * const NSExtensionItemAttachmentsKey = @"NSExtensionItemAttachmentsKey";
-
-
-

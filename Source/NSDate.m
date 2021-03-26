@@ -54,8 +54,7 @@
 #define NAN 0x7fffffffffffffff
 #endif
 
-const NSTimeInterval NSTimeIntervalSince1970 = 978307200.0;
-NSString *const NSSystemClockDidChangeNotification = @"NSSystemClockDidChangeNotification";
+GS_DECLARE const NSTimeInterval NSTimeIntervalSince1970 = 978307200.0;
 
 
 

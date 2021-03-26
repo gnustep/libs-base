@@ -41,8 +41,6 @@
 + (NSString*) charsetForXml: (NSData*)xml;
 @end
 
-NSString* const NSXMLParserErrorDomain = @"NSXMLParserErrorDomain";
-
 static  NSNull  *null = nil;
 
 /* We always have the native (sloppy) parser, and can get that behavior

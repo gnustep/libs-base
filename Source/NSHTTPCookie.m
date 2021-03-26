@@ -46,19 +46,6 @@
 #import "Foundation/NSCalendarDate.h"
 #import "GNUstepBase/Unicode.h"
 
-NSString * const NSHTTPCookieComment = @"Comment";
-NSString * const NSHTTPCookieCommentURL = @"CommentURL";
-NSString * const NSHTTPCookieDiscard = @"Discard";
-NSString * const NSHTTPCookieDomain = @"Domain";
-NSString * const NSHTTPCookieExpires = @"Expires";
-NSString * const NSHTTPCookieMaximumAge = @"MaximumAge";
-NSString * const NSHTTPCookieName = @"Name";
-NSString * const NSHTTPCookieOriginURL = @"OriginURL";
-NSString * const NSHTTPCookiePath = @"Path";
-NSString * const NSHTTPCookiePort = @"Port";
-NSString * const NSHTTPCookieSecure = @"Secure";
-NSString * const NSHTTPCookieValue = @"Value";
-NSString * const NSHTTPCookieVersion = @"Version";
 static NSString * const HTTPCookieHTTPOnly = @"HTTPOnly";
 
 // Internal data storage

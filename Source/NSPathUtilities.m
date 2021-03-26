@@ -902,7 +902,7 @@ addDefaults(NSString *defs, NSMutableDictionary *conf)
     }
 }
 
-NSMutableDictionary*
+GS_DECLARE NSMutableDictionary*
 GNUstepConfig(NSDictionary *newConfig)
 {
   static NSDictionary	*config = nil;
@@ -1087,7 +1087,7 @@ GNUstepConfig(NSDictionary *newConfig)
   return AUTORELEASE([config mutableCopy]);
 }
 
-void
+GS_DECLARE void
 GNUstepUserConfig(NSMutableDictionary *config, NSString *userName)
 {
 #ifdef HAVE_GETEUID
@@ -1592,7 +1592,7 @@ ParseConfigurationFile(NSString *fileName, NSMutableDictionary *dict,
 
 
 /* See NSPathUtilities.h for description */
-void
+GS_DECLARE void
 GSSetUserName(NSString *aName)
 {
   NSCParameterAssert([aName length] > 0);
@@ -1634,7 +1634,7 @@ GSSetUserName(NSString *aName)
  * If you change the behavior of this method you must also change
  * user_home.c in the makefiles package to match.
  */
-NSString *
+GS_DECLARE NSString *
 NSUserName(void)
 {
 #if defined(_WIN32)
@@ -1716,7 +1716,7 @@ NSUserName(void)
  * Return the caller's home directory as an NSString object.
  * Calls NSHomeDirectoryForUser() to do this.
  */
-NSString *
+GS_DECLARE NSString *
 NSHomeDirectory(void)
 {
   return NSHomeDirectoryForUser(NSUserName());
@@ -1735,7 +1735,7 @@ NSHomeDirectory(void)
  * If you change the behavior of this method you must also change
  * user_home.c in the makefiles package to match.
  */
-NSString *
+GS_DECLARE NSString *
 NSHomeDirectoryForUser(NSString *loginName)
 {
   NSString	*s = nil;
@@ -1820,7 +1820,7 @@ NSHomeDirectoryForUser(NSString *loginName)
   return s;
 }
 
-NSString *
+GS_DECLARE NSString *
 NSFullUserName(void)
 {
   if (theFullUserName == nil)
@@ -1884,7 +1884,7 @@ NSFullUserName(void)
  * This examines the GNUSTEP_USER_CONFIG_FILE for the specified user,
  * with settings in it over-riding those in the main GNUstep.conf.
  */
-NSString *
+GS_DECLARE NSString *
 GSDefaultsRootForUser(NSString *userName)
 {
   NSString *defaultsDir;
@@ -1926,21 +1926,21 @@ GSDefaultsRootForUser(NSString *userName)
   return defaultsDir;
 }
 
-NSArray *
+GS_DECLARE NSArray *
 NSStandardApplicationPaths(void)
 {
   return NSSearchPathForDirectoriesInDomains(NSAllApplicationsDirectory,
                                              NSAllDomainsMask, YES);
 }
 
-NSArray *
+GS_DECLARE NSArray *
 NSStandardLibraryPaths(void)
 {
   return NSSearchPathForDirectoriesInDomains(NSAllLibrariesDirectory,
                                              NSAllDomainsMask, YES);
 }
 
-NSString *
+GS_DECLARE NSString *
 NSTemporaryDirectory(void)
 {
   NSFileManager	*manager;
@@ -2119,7 +2119,7 @@ NSTemporaryDirectory(void)
   return tempDirName;
 }
 
-NSString *
+GS_DECLARE NSString *
 NSOpenStepRootDirectory(void)
 {
   NSString	*root;
@@ -2184,7 +2184,7 @@ devroot(NSFileManager *manager, NSString *path)
 }
 #endif
 
-NSArray *
+GS_DECLARE NSArray *
 NSSearchPathForDirectoriesInDomains(NSSearchPathDirectory directoryKey,
   NSSearchPathDomainMask domainMask, BOOL expandTilde)
 {

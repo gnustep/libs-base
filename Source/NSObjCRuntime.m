@@ -37,7 +37,7 @@
  * Returns a string object containing the name for
  * aProtocol.  If aProtocol is 0, returns nil.
  */
-NSString *
+GS_DECLARE NSString *
 NSStringFromProtocol(Protocol *aProtocol)
 {
   if (aProtocol != (Protocol*)0)
@@ -49,7 +49,7 @@ NSStringFromProtocol(Protocol *aProtocol)
  * Returns the protocol whose name is supplied in the
  * aProtocolName argument, or 0 if a nil string is supplied.
  */
-Protocol *   
+GS_DECLARE Protocol *
 NSProtocolFromString(NSString *aProtocolName)
 {
   if (aProtocolName != nil)
@@ -69,7 +69,7 @@ NSProtocolFromString(NSString *aProtocolName)
  * Returns a string object containing the name for
  * aSelector.  If aSelector is 0, returns nil.
  */
-NSString *
+GS_DECLARE NSString *
 NSStringFromSelector(SEL aSelector)
 {
   if (aSelector != (SEL)0)
@@ -81,7 +81,7 @@ NSStringFromSelector(SEL aSelector)
  * Returns (creating if necessary) the selector whose name is supplied in the
  * aSelectorName argument, or 0 if a nil string is supplied.
  */
-SEL
+GS_DECLARE SEL
 NSSelectorFromString(NSString *aSelectorName)
 {
   if (aSelectorName != nil)
@@ -102,7 +102,7 @@ NSSelectorFromString(NSString *aSelectorName)
  * aClassName argument, or Nil if a nil string is supplied.
  * If no such class has been loaded, the function returns Nil.
  */
-Class
+GS_DECLARE Class
 NSClassFromString(NSString *aClassName)
 {
   if (aClassName != nil)
@@ -122,7 +122,7 @@ NSClassFromString(NSString *aClassName)
  * Returns an [NSString] object containing the class name for
  * aClass.  If aClass is 0, returns nil.
  */
-NSString *
+GS_DECLARE NSString *
 NSStringFromClass(Class aClass)
 {
   if (aClass != (Class)0)
@@ -139,7 +139,7 @@ NSStringFromClass(Class aClass)
  * The function returns a pointer into the type information C string
  * immediately after the decoded information.
  */
-const char *
+GS_DECLARE const char *
 NSGetSizeAndAlignment(const char *typePtr,
   NSUInteger *sizep, NSUInteger *alignp)
 {

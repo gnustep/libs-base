@@ -56,14 +56,6 @@
 #import "Foundation/NSKeyedArchiver.h"
 #undef	_IN_NSKEYEDARCHIVER_M
 
-/* Exceptions */
-
-/**
- * An archiving error has occurred.
- */
-NSString * const NSInvalidArchiveOperationException
-= @"NSInvalidArchiveOperationException";
-
 static NSMapTable	*globalClassMap = 0;
 
 static Class	NSStringClass = 0;

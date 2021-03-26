@@ -40,10 +40,6 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSSet.h"
 
-NSString *const NSGrammarRange = @"NSGrammarRange";
-NSString *const NSGrammarUserDescription = @"NSGrammarUserDescription";
-NSString *const NSGrammarCorrections = @"NSGrammarCorrections";
-
 static NSConnection *spellServerConnection = nil;
 
 /* User dictionary location */

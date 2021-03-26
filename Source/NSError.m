@@ -28,29 +28,6 @@
 #import	"Foundation/NSError.h"
 #import	"Foundation/NSCoder.h"
 
-NSString* const NSFilePathErrorKey = @"NSFilePath";
-NSString* const NSLocalizedDescriptionKey = @"NSLocalizedDescriptionKey";
-NSString* const NSStringEncodingErrorKey = @"NSStringEncodingErrorKey";
-NSString* const NSURLErrorKey = @"NSURLErrorKey";
-NSString* const NSUnderlyingErrorKey = @"NSUnderlyingErrorKey";
-
-NSString* const NSLocalizedFailureReasonErrorKey
-  = @"NSLocalizedFailureReasonErrorKey";
-NSString* const NSLocalizedRecoveryOptionsErrorKey
-  = @"NSLocalizedRecoveryOptionsErrorKey";
-NSString* const NSLocalizedRecoverySuggestionErrorKey
-  = @"NSLocalizedRecoverySuggestionErrorKey";
-NSString* const NSRecoveryAttempterErrorKey
-  = @"NSRecoveryAttempterErrorKey";
-
-NSString* const NSURLErrorFailingURLErrorKey = @"NSErrorFailingURLKey";
-NSString* const NSURLErrorFailingURLStringErrorKey = @"NSErrorFailingURLStringKey";
-
-NSErrorDomain const NSMACHErrorDomain = @"NSMACHErrorDomain";
-NSErrorDomain const NSOSStatusErrorDomain = @"NSOSStatusErrorDomain";
-NSErrorDomain const NSPOSIXErrorDomain = @"NSPOSIXErrorDomain";
-NSErrorDomain const NSCocoaErrorDomain = @"NSCocoaErrorDomain";
-
 @implementation	NSError
 
 + (id) errorWithDomain: (NSErrorDomain)aDomain

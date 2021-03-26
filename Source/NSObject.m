@@ -1089,12 +1089,9 @@ static id gs_weak_load(id obj)
       autorelease_sel = @selector(addObject:);
       autorelease_imp = [autorelease_class methodForSelector: autorelease_sel];
 
-      /* Make sure the constant string class works and set up well-known
-       * string constants etc.
+      /* Make sure the constant string class works.
        */
       NSConstantStringClass = [NSString constantStringClass];
-
-      GSPrivateBuildStrings();
 
       /* Now that the string class (and autorelease) is set up, we can set
        * the name of the lock to a string value safely.

@@ -360,11 +360,6 @@ GSPrivateArgZero() GS_ATTRIB_PRIVATE;
 NSStringEncoding *
 GSPrivateAvailableEncodings() GS_ATTRIB_PRIVATE;
 
-/* Initialise constant strings
- */
-void
-GSPrivateBuildStrings(void) GS_ATTRIB_PRIVATE;
-
 /* Used to check for termination of background tasks.
  */
 BOOL
