@@ -57,6 +57,11 @@ GS_EXPORT_CLASS
 - (GS_GENERIC_TYPE(IterT)) nextObject;
 @end
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wattributes"
+GS_EXPORT void objc_enumerationMutation(id);
+#pragma GCC diagnostic pop
+
 #if	defined(__cplusplus)
 }
 #endif

@@ -102,6 +102,7 @@
  * objc_enumerationMutation() is called whenever a collection mutates in the
  * middle of fast enumeration.
  */
+GS_DECLARE
 void objc_enumerationMutation(id obj)
 {
   [NSException raise: NSGenericException 
