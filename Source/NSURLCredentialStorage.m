@@ -27,9 +27,6 @@
 #define	EXPOSE_NSURLCredentialStorage_IVARS	1
 #import "GSURLPrivate.h"
 
-NSString *const NSURLCredentialStorageChangedNotification
-  = @"NSURLCredentialStorageChangedNotification";
-
 // Internal data storage
 typedef struct {
   NSMutableDictionary	*credentials;

@@ -1,3 +1,55 @@
+2021-03-27 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSConnection.h:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/NSDebug+GNUstepBase.m:
+	* Source/Additions/NSStream+GNUstepBase.m:
+	* Source/GSPrivate.h:
+	* Source/GSTLS.m:
+	* Source/NSArchiver.m:
+	* Source/NSBundle.m:
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/NSConnection.m:
+	* Source/NSDate.m:
+	* Source/NSDecimal.m:
+	* Source/NSError.m:
+	* Source/NSExtensionContext.m:
+	* Source/NSExtensionItem.m:
+	* Source/NSFileHandle.m:
+	* Source/NSFileManager.m:
+	* Source/NSHFSFileTypes.m:
+	* Source/NSHTTPCookie.m:
+	* Source/NSHTTPCookieStorage.m:
+	* Source/NSInvocationOperation.m:
+	* Source/NSItemProvider.m:
+	* Source/NSKeyValueCoding.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSKeyedArchiver.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSLocale.m:
+	* Source/NSMetadata.m:
+	* Source/NSMetadataAttributes.m:
+	* Source/NSNetServices.m:
+	* Source/NSObjCRuntime.m:
+	* Source/NSObject.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSPersonNameComponentsFormatter.m:
+	* Source/NSPort.m:
+	* Source/NSSpellServer.m:
+	* Source/NSTimeZone.m:
+	* Source/NSURL.m:
+	* Source/NSURLCredentialStorage.m:
+	* Source/NSURLHandle.m:
+	* Source/NSURLProtectionSpace.m:
+	* Source/NSUserNotification.m:
+	* Source/NSXMLParser.m:
+	* Source/NSZone.m:
+	* Source/externs.m:
+	Export string constants and annotate exported function implementations.
+	Moves scattered string constants to externs.m, and removes obsolete
+	code replacing constant strings.
+
 2021-03-12 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSFileManager.m:

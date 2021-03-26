@@ -71,19 +71,6 @@
 }
 @end
 
-/* Constants to control TLS/SSL (options).
- */
-NSString * const GSTLSCAFile = @"GSTLSCAFile";
-NSString * const GSTLSCertificateFile = @"GSTLSCertificateFile";
-NSString * const GSTLSCertificateKeyFile = @"GSTLSCertificateKeyFile";
-NSString * const GSTLSCertificateKeyPassword = @"GSTLSCertificateKeyPassword";
-NSString * const GSTLSDebug = @"GSTLSDebug";
-NSString * const GSTLSPriority = @"GSTLSPriority";
-NSString * const GSTLSRemoteHosts = @"GSTLSRemoteHosts";
-NSString * const GSTLSRevokeFile = @"GSTLSRevokeFile";
-NSString * const GSTLSServerName = @"GSTLSServerName";
-NSString * const GSTLSVerify = @"GSTLSVerify";
-
 #if     defined(HAVE_GNUTLS)
 
 static NSString *

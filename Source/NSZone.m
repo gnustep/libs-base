@@ -200,7 +200,7 @@ NSZone	*__nszone_private_hidden_default_zone = &default_zone;
 
 
 
-void
+GS_DECLARE void
 NSSetZoneName (NSZone *zone, NSString *name)
 {
   if (!zone)
@@ -213,7 +213,7 @@ NSSetZoneName (NSZone *zone, NSString *name)
   pthread_mutex_unlock(&zoneLock);
 }
 
-NSString*
+GS_DECLARE NSString*
 NSZoneName (NSZone *zone)
 {
   if (!zone)
@@ -1597,7 +1597,7 @@ NSZoneFromPointer(void *ptr)
   return (zone == 0) ? &default_zone : zone;
 }
 
-NSZone*
+GS_DECLARE NSZone*
 NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
 {
   size_t i, startsize, granularity;
@@ -1712,7 +1712,7 @@ NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree)
   return newZone;
 }
 
-void*
+GS_DECLARE void*
 NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
 {
   void *mem;
@@ -1730,19 +1730,19 @@ NSZoneCalloc (NSZone *zone, NSUInteger elems, NSUInteger bytes)
   return memset(NSZoneMalloc(zone, elems*bytes), 0, elems*bytes);
 }
 
-void *
+GS_DECLARE void*
 NSAllocateCollectable(NSUInteger size, NSUInteger options)
 {
   return NSZoneCalloc(NSDefaultMallocZone(), 1, size);
 }
 
-void *
+GS_DECLARE void*
 NSReallocateCollectable(void *ptr, NSUInteger size, NSUInteger options)
 {
   return NSZoneRealloc(0, ptr, size);
 }
 
-NSZone*
+GS_DECLARE NSZone*
 NSDefaultMallocZone (void)
 {
   return &default_zone;
@@ -1754,13 +1754,13 @@ GSAtomicMallocZone (void)
   return &default_zone;
 }
 
-void
+GS_DECLARE void
 GSMakeWeakPointer(Class theClass, const char *iVarName)
 {
   return;
 }
 
-BOOL
+GS_DECLARE BOOL
 GSAssignZeroingWeakPointer(void **destination, void *source)
 {
   if (destination == 0)
@@ -1771,7 +1771,7 @@ GSAssignZeroingWeakPointer(void **destination, void *source)
   return YES;
 }
 
-void*
+GS_DECLARE void*
 NSZoneMalloc (NSZone *zone, NSUInteger size)
 {
   if (!zone)
@@ -1779,7 +1779,7 @@ NSZoneMalloc (NSZone *zone, NSUInteger size)
   return (zone->malloc)(zone, size);
 }
 
-void* 
+GS_DECLARE void*
 NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size)
 {
   if (!zone)
@@ -1787,7 +1787,7 @@ NSZoneRealloc (NSZone *zone, void *ptr, NSUInteger size)
   return (zone->realloc)(zone, ptr, size);
 }
 
-void
+GS_DECLARE void
 NSRecycleZone (NSZone *zone)
 {
   if (!zone)
@@ -1795,7 +1795,7 @@ NSRecycleZone (NSZone *zone)
   (zone->recycle)(zone);
 }
 
-void
+GS_DECLARE void
 NSZoneFree (NSZone *zone, void *ptr)
 {
   if (!zone)

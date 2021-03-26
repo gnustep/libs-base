@@ -68,12 +68,6 @@
  * with a another generic setter.
  */
 
-NSString *const NSKeyValueChangeIndexesKey = @"indexes";
-NSString *const NSKeyValueChangeKindKey = @"kind";
-NSString *const NSKeyValueChangeNewKey = @"new";
-NSString *const NSKeyValueChangeOldKey = @"old";
-NSString *const NSKeyValueChangeNotificationIsPriorKey = @"notificationIsPrior";
-
 static NSRecursiveLock	*kvoLock = nil;
 static NSMapTable	*classTable = 0;
 static NSMapTable	*infoTable = 0;

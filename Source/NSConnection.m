@@ -181,15 +181,6 @@ GSRunLoopForThread(NSThread *aThread)
 #define GSM_UNLOCK(X) \
 {NSDebugMLLog(@"GSConnection",@"Unlock %@",X);[X unlock];}
 
-NSString * const NSDestinationInvalidException =
-  @"NSDestinationInvalidException";
-NSString * const NSFailedAuthenticationException =
-  @"NSFailedAuthenticationExceptions";
-NSString * const NSObjectInaccessibleException =
-  @"NSObjectInaccessibleException";
-NSString * const NSObjectNotAvailableException =
-  @"NSObjectNotAvailableException";
-
 /*
  * Cache various class pointers.
  */

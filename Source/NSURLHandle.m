@@ -51,47 +51,6 @@
 }
 @end
 
-/*
- * Keys for NSURLHandle
- */
-NSString * const NSHTTPPropertyStatusCodeKey
-  = @"NSHTTPPropertyStatusCodeKey";
-
-NSString * const NSHTTPPropertyStatusReasonKey
-  = @"NSHTTPPropertyStatusReasonKey";
-
-NSString * const NSHTTPPropertyServerHTTPVersionKey
-  = @"NSHTTPPropertyServerHTTPVersionKey";
-
-NSString * const NSHTTPPropertyRedirectionHeadersKey
-  = @"NSHTTPPropertyRedirectionHeadersKey";
-
-NSString * const NSHTTPPropertyErrorPageDataKey
-  = @"NSHTTPPropertyErrorPageDataKey";
-
-/* These are GNUstep extras */
-NSString * const GSHTTPPropertyMethodKey
-  = @"GSHTTPPropertyMethodKey";
-
-NSString * const GSHTTPPropertyLocalHostKey
-  = @"GSHTTPPropertyLocalHostKey";
-
-NSString * const GSHTTPPropertyProxyHostKey
-  = @"GSHTTPPropertyProxyHostKey";
-
-NSString * const GSHTTPPropertyProxyPortKey
-  = @"GSHTTPPropertyProxyPortKey";
-
-NSString * const GSHTTPPropertyCertificateFileKey
-  = @"GSHTTPPropertyCertificateFileKey";
-
-NSString * const GSHTTPPropertyKeyFileKey
-  = @"GSHTTPPropertyKeyFileKey";
-
-NSString * const GSHTTPPropertyPasswordKey
-  = @"GSHTTPPropertyPasswordKey";
-
-
 /**
  * <p>
  *   An NSURLHandle instance is used to manage the resource data

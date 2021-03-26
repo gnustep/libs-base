@@ -29,7 +29,7 @@
 #import "common.h"
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
 
-NSString*
+GS_DECLARE NSString*
 GSDebugFunctionMsg(const char *func, const char *file, int line, NSString *fmt)
 {
   NSString *message;
@@ -39,7 +39,7 @@ GSDebugFunctionMsg(const char *func, const char *file, int line, NSString *fmt)
   return message;
 }
 
-NSString*
+GS_DECLARE NSString*
 GSDebugMethodMsg(id obj, SEL sel, const char *file, int line, NSString *fmt)
 {
   NSString	*message;

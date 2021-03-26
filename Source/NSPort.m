@@ -49,17 +49,6 @@
 
 @implementation NSPort
 
-NSString * const NSInvalidReceivePortException
-  = @"NSInvalidReceivePortException";
-NSString * const NSInvalidSendPortException
-  = @"NSInvalidSendPortException";
-NSString * const NSPortReceiveException
-  = @"NSPortReceiveException";
-NSString * const NSPortSendException
-  = @"NSPortSendException";
-NSString * const NSPortTimeoutException
-  = @"NSPortTimeoutException";
-
 static Class	NSPort_abstract_class;
 static Class	NSPort_concrete_class;
 

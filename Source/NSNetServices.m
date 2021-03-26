@@ -34,15 +34,6 @@
 #import "Foundation/NSHost.h"
 #import "Foundation/NSStream.h"
 #import "Foundation/NSString.h"
-/**
- * This key identifies the most recent error.
- */
-NSString * const NSNetServicesErrorCode = @"NSNetServicesErrorCode";
-
-/**
- * This key identifies the originator of the error.
- */
-NSString * const NSNetServicesErrorDomain = @"NSNetServicesErrorDomain";
 
 static Class abstractServiceClass;
 static Class concreteServiceClass;

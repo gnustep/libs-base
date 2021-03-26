@@ -4157,36 +4157,3 @@ static NSSet	*fileKeys = nil;
   return val;
 }
 @end
-
-NSString * const NSFileAppendOnly = @"NSFileAppendOnly";
-NSString * const NSFileCreationDate = @"NSFileCreationDate";
-NSString * const NSFileDeviceIdentifier = @"NSFileDeviceIdentifier";
-NSString * const NSFileExtensionHidden = @"NSFileExtensionHidden";
-NSString * const NSFileGroupOwnerAccountID = @"NSFileGroupOwnerAccountID";
-NSString * const NSFileGroupOwnerAccountName = @"NSFileGroupOwnerAccountName";
-NSString * const NSFileHFSCreatorCode = @"NSFileHFSCreatorCode";
-NSString * const NSFileHFSTypeCode = @"NSFileHFSTypeCode";
-NSString * const NSFileImmutable = @"NSFileImmutable";
-NSString * const NSFileModificationDate = @"NSFileModificationDate";
-NSString * const NSFileOwnerAccountID = @"NSFileOwnerAccountID";
-NSString * const NSFileOwnerAccountName = @"NSFileOwnerAccountName";
-NSString * const NSFilePosixPermissions = @"NSFilePosixPermissions";
-NSString * const NSFileReferenceCount = @"NSFileReferenceCount";
-NSString * const NSFileSize = @"NSFileSize";
-NSString * const NSFileSystemFileNumber = @"NSFileSystemFileNumber";
-NSString * const NSFileSystemFreeNodes = @"NSFileSystemFreeNodes";
-NSString * const NSFileSystemFreeSize = @"NSFileSystemFreeSize";
-NSString * const NSFileSystemNodes = @"NSFileSystemNodes";
-NSString * const NSFileSystemNumber = @"NSFileSystemNumber";
-NSString * const NSFileSystemSize = @"NSFileSystemSize";
-NSString * const NSFileType = @"NSFileType";
-NSString * const NSFileTypeBlockSpecial = @"NSFileTypeBlockSpecial";
-NSString * const NSFileTypeCharacterSpecial = @"NSFileTypeCharacterSpecial";
-NSString * const NSFileTypeDirectory = @"NSFileTypeDirectory";
-NSString * const NSFileTypeFifo = @"NSFileTypeFifo";
-NSString * const NSFileTypeRegular = @"NSFileTypeRegular";
-NSString * const NSFileTypeSocket = @"NSFileTypeSocket";
-NSString * const NSFileTypeSymbolicLink = @"NSFileTypeSymbolicLink";
-NSString * const NSFileTypeUnknown = @"NSFileTypeUnknown";
-
-

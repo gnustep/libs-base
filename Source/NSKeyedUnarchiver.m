@@ -54,12 +54,6 @@
 @implementation NilMarker
 @end
 
-/**
- * An unarchiving error has occurred.
- */
-NSString * const NSInvalidUnarchiveOperationException
-  = @"NSInvalidUnarchiveOperationException";
-
 static NSMapTable	*globalClassMap = 0;
 
 #define	GETVAL \

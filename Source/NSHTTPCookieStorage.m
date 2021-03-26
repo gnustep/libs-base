@@ -32,12 +32,6 @@
 #import "Foundation/NSString.h"
 #import "Foundation/NSDistributedNotificationCenter.h"
 
-NSString * const NSHTTPCookieManagerAcceptPolicyChangedNotification
-  = @"NSHTTPCookieManagerAcceptPolicyChangedNotification";
-
-NSString * const NSHTTPCookieManagerCookiesChangedNotification
-  = @"NSHTTPCookieManagerCookiesChangedNotification";
-
 NSString *objectObserver = @"org.GNUstep.NSHTTPCookieStorage";
 
 // Internal data storage

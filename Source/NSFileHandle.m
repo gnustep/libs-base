@@ -42,18 +42,6 @@
 #define	EXPOSE_GSFileHandle_IVARS	1
 #import "GSFileHandle.h"
 
-// GNUstep Notification names
-
-NSString * const GSFileHandleConnectCompletionNotification
-  = @"GSFileHandleConnectCompletionNotification";
-NSString * const GSFileHandleWriteCompletionNotification
-  = @"GSFileHandleWriteCompletionNotification";
-
-// GNUstep key for getting error message.
-
-NSString * const GSFileHandleNotificationError
-  = @"GSFileHandleNotificationError";
-
 static Class NSFileHandle_abstract_class = nil;
 static Class NSFileHandle_concrete_class = nil;
 static Class NSFileHandle_ssl_class = nil;
@@ -483,35 +471,6 @@ static Class NSFileHandle_ssl_class = nil;
 
 @end
 
-// Keys for accessing userInfo dictionary in notification handlers.
-
-NSString * const NSFileHandleNotificationDataItem
-  = @"NSFileHandleNotificationDataItem";
-NSString * const NSFileHandleNotificationFileHandleItem
-  = @"NSFileHandleNotificationFileHandleItem";
-NSString * const NSFileHandleNotificationMonitorModes
-  = @"NSFileHandleNotificationMonitorModes";
-
-// Notification names
-
-NSString * const NSFileHandleConnectionAcceptedNotification
-  = @"NSFileHandleConnectionAcceptedNotification";
-NSString * const NSFileHandleDataAvailableNotification
-  = @"NSFileHandleDataAvailableNotification";
-NSString * const NSFileHandleReadCompletionNotification
-  = @"NSFileHandleReadCompletionNotification";
-NSString * const NSFileHandleReadToEndOfFileCompletionNotification
-  = @"NSFileHandleReadToEndOfFileCompletionNotification";
-
-// Exceptions
-
-/**
- * An exception used when a file error occurs.
- */
-NSString * const NSFileHandleOperationException
-  = @"NSFileHandleOperationException";
-
-
 // GNUstep class extensions
 
 /**

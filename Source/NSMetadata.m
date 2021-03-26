@@ -86,27 +86,6 @@
 
 @end
 
-// Metdata Query Constants...
-NSString * const NSMetadataQueryUserHomeScope
-  = @"NSMetadataQueryUserHomeScope";
-NSString * const NSMetadataQueryLocalComputerScope
-  = @"NSMetadataQueryLocalComputerScope";
-NSString * const NSMetadataQueryNetworkScope
-  = @"NSMetadataQueryNetworkScope";
-NSString * const NSMetadataQueryUbiquitousDocumentsScope
-  = @"NSMetadataQueryUbiquitousDocumentsScope";
-NSString * const NSMetadataQueryUbiquitousDataScope
-  = @"NSMetadataQueryUbiquitousDataScope";
-
-NSString * const NSMetadataQueryDidFinishGatheringNotification
-  = @"NSMetadataQueryDidFinishGatheringNotification";
-NSString * const NSMetadataQueryDidStartGatheringNotification
-  = @"NSMetadataQueryDidStartGatheringNotification";
-NSString * const NSMetadataQueryDidUpdateNotification
-  = @"NSMetadataQueryDidUpdateNotification";
-NSString * const NSMetadataQueryGatheringProgressNotification
-  = @"NSMetadataQueryGatheringProgressNotification";
-
 @interface	NSMetadataQueryInternal : NSObject
 {
 @public

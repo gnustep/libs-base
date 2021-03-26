@@ -122,9 +122,6 @@
 #undef id
 #endif
 
-NSString * const NSSystemTimeZoneDidChangeNotification
-  = @"NSSystemTimeZoneDidChangeNotification";
-
 /* Key for local time zone in user defaults. */
 #define LOCALDBKEY @"Local Time Zone"
 

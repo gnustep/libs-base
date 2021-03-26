@@ -28,29 +28,6 @@
 #import "GSURLPrivate.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
-NSString * const NSURLProtectionSpaceFTPProxy = @"ftp";	
-NSString * const NSURLProtectionSpaceHTTPProxy = @"http";
-NSString * const NSURLProtectionSpaceHTTPSProxy = @"https";
-NSString * const NSURLProtectionSpaceSOCKSProxy = @"SOCKS";
-NSString * const NSURLAuthenticationMethodDefault
-  = @"NSURLAuthenticationMethodDefault";
-NSString * const NSURLAuthenticationMethodHTMLForm
-  = @"NSURLAuthenticationMethodHTMLForm";
-NSString * const NSURLAuthenticationMethodHTTPBasic
-  = @"NSURLAuthenticationMethodHTTPBasic";
-NSString * const NSURLAuthenticationMethodHTTPDigest
-  = @"NSURLAuthenticationMethodHTTPDigest";
-
-NSString * const NSURLAuthenticationMethodNTLM
-  = @"NSURLAuthenticationMethodNTLM";
-
-NSString * const NSURLAuthenticationMethodNegotiate
-  = @"NSURLAuthenticationMethodNegotiate";
-NSString * const NSURLAuthenticationMethodClientCertificate
-  = @"NSURLAuthenticationMethodClientCertificate";
-NSString * const NSURLAuthenticationMethodServerTrust
-  = @"NSURLAuthenticationMethodServerTrust";
-
 // Internal data storage
 typedef struct {
   NSString	*host;

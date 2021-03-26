@@ -41,12 +41,6 @@
 #include "NSKeyValueMutableArray.m"
 #include "NSKeyValueMutableSet.m"
 
-/* For backward compatibility NSUndefinedKeyException is actually the same
- * as the older NSUnknownKeyException
- */
-NSString* const NSUnknownKeyException = @"NSUnknownKeyException";
-NSString* const NSUndefinedKeyException = @"NSUnknownKeyException";
-
 
 /* this should move into autoconf once it's accepted */
 #define WANT_DEPRECATED_KVC_COMPAT 1
