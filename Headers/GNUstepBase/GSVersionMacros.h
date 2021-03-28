@@ -386,10 +386,12 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
    */
 #  define GS_EXPORT_CLASS
 #  define GS_EXPORT  extern
+#  define GS_IMPORT  __declspec(dllimport)
 #  define GS_DECLARE
 # else
 #  define GS_EXPORT_CLASS  __declspec(dllexport)
 #  define GS_EXPORT  extern __declspec(dllexport)
+#  define GS_IMPORT  __declspec(dllimport)
 #  define GS_DECLARE __declspec(dllexport)
 # endif
 #else
@@ -399,6 +401,7 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 # else
 #  define GS_EXPORT_CLASS  __declspec(dllimport)
 # endif
+#  define GS_IMPORT  __declspec(dllimport)
 #  define GS_EXPORT  extern __declspec(dllimport)
 #  define GS_DECLARE __declspec(dllimport)
 #endif
@@ -407,6 +410,7 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 
 #  define GS_EXPORT_CLASS
 #  define GS_EXPORT extern
+#  define GS_IMPORT
 #  define GS_DECLARE
 
 #endif
