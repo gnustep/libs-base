@@ -1,5 +1,12 @@
 2021-03-27 Frederik Seiffert <frederik@algoriddim.com>
 
+	* Headers/GNUstepBase/GSVersionMacros.h:
+	Add GS_IMPORT macro resolving to dllimport annonation on Windows.
+	* Source/NSObject.m:
+	Add support for libobjc2 runtime on Windows.
+
+2021-03-27 Frederik Seiffert <frederik@algoriddim.com>
+
 	* Headers/Foundation/NSConnection.h:
 	* Source/Additions/GSMime.m:
 	* Source/Additions/NSDebug+GNUstepBase.m:

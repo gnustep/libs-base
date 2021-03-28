@@ -87,11 +87,9 @@
 /* platforms which do not support weak */
 #if defined (__WIN32)
 #define WEAK_ATTRIBUTE
-#undef SUPPORT_WEAK
 #else
 /* all platforms which support weak */
 #define WEAK_ATTRIBUTE __attribute__((weak))
-#define SUPPORT_WEAK 1
 #endif
 
 /* When this is `YES', every call to release/autorelease, checks to
@@ -474,16 +472,16 @@ typedef	struct obj_layout *obj;
  * runtime.  When linked against an older version, we will use our internal
  * versions.
  */
-WEAK_ATTRIBUTE
+GS_IMPORT WEAK_ATTRIBUTE
 BOOL objc_release_fast_no_destroy_np(id anObject);
 
-WEAK_ATTRIBUTE
+GS_IMPORT WEAK_ATTRIBUTE
 void objc_release_fast_np(id anObject);
 
-WEAK_ATTRIBUTE
+GS_IMPORT WEAK_ATTRIBUTE
 size_t object_getRetainCount_np(id anObject);
 
-WEAK_ATTRIBUTE
+GS_IMPORT WEAK_ATTRIBUTE
 id objc_retain_fast_np(id anObject);
 
 
@@ -548,7 +546,7 @@ static BOOL objc_release_fast_no_destroy_internal(id anObject)
 
 static BOOL release_fast_no_destroy(id anObject)
 {
-#ifdef SUPPORT_WEAK
+#ifdef __GNUSTEP_RUNTIME__
   if (objc_release_fast_no_destroy_np)
     {
       return objc_release_fast_no_destroy_np(anObject);
@@ -570,7 +568,7 @@ static void objc_release_fast_np_internal(id anObject)
 
 static void release_fast(id anObject)
 {
-#ifdef SUPPORT_WEAK
+#ifdef __GNUSTEP_RUNTIME__
   if (objc_release_fast_np)
     {
       objc_release_fast_np(anObject);
@@ -601,7 +599,7 @@ size_t object_getRetainCount_np_internal(id anObject)
 
 size_t getRetainCount(id anObject)
 {
-#ifdef SUPPORT_WEAK
+#ifdef __GNUSTEP_RUNTIME__
   if (object_getRetainCount_np)
     {
       return object_getRetainCount_np(anObject);
@@ -698,7 +696,7 @@ static id objc_retain_fast_np_internal(id anObject)
 
 static id retain_fast(id anObject)
 {
-#ifdef SUPPORT_WEAK
+#ifdef __GNUSTEP_RUNTIME__
   if (objc_retain_fast_np)
     {
       return objc_retain_fast_np(anObject);
