@@ -37,11 +37,22 @@ int main(int argc, char **argv)
   NSData *data;
 
   contents = [NSString stringWithContentsOfFile: file];
-  PASS([contents hasPrefix:@"This"], "stringWithContentsOfFile: UTF-8 BOM");
+  PASS([contents hasPrefix: @"This"], "stringWithContentsOfFile: UTF-8 BOM");
 
   data = [NSData dataWithContentsOfFile: file];
   contents = [[[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding] autorelease];
-  PASS([contents hasPrefix:@"This"], "initWithData:encoding: UTF-8 BOM");
+  PASS([contents hasPrefix: @"This"], "initWithData:encoding: UTF-8 BOM");
+
+  data = [@"a" dataUsingEncoding: NSUTF8StringEncoding];
+  PASS([data length] == 1, "utf8 data no bom")
+  data = [@"a" dataUsingEncoding: NSUnicodeStringEncoding];
+  PASS([data length] == 4, "unicode data has bom")
+  data = [@"a" dataUsingEncoding: NSUTF16BigEndianStringEncoding];
+  PASS([data length] == 2, "utf16 big endian data no bom")
+  data = [@"a" dataUsingEncoding: NSUTF16LittleEndianStringEncoding];
+  PASS([data length] == 2, "utf16 little endian data no bom")
+  data = [@"a" dataUsingEncoding: NSUTF16StringEncoding];
+  PASS([data length] == 4, "utf16 data has bom")
 
   [pool release];
   return 0;
