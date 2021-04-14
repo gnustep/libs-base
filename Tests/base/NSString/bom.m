@@ -44,15 +44,38 @@ int main(int argc, char **argv)
   PASS([contents hasPrefix: @"This"], "initWithData:encoding: UTF-8 BOM");
 
   data = [@"a" dataUsingEncoding: NSUTF8StringEncoding];
-  PASS([data length] == 1, "utf8 data no bom")
+  PASS([data length] == 1, "utf8 no bom")
   data = [@"a" dataUsingEncoding: NSUnicodeStringEncoding];
-  PASS([data length] == 4, "unicode data has bom")
+  PASS([data length] == 4, "unicode has bom")
   data = [@"a" dataUsingEncoding: NSUTF16BigEndianStringEncoding];
-  PASS([data length] == 2, "utf16 big endian data no bom")
+  PASS([data length] == 2, "utf16 big endian no bom")
   data = [@"a" dataUsingEncoding: NSUTF16LittleEndianStringEncoding];
-  PASS([data length] == 2, "utf16 little endian data no bom")
+  PASS([data length] == 2, "utf16 little endian no bom")
   data = [@"a" dataUsingEncoding: NSUTF16StringEncoding];
-  PASS([data length] == 4, "utf16 data has bom")
+  PASS([data length] == 4, "utf16 has bom")
+  data = [@"a" dataUsingEncoding: NSUTF32BigEndianStringEncoding];
+  PASS([data length] == 4, "utf32 big endian no bom")
+  data = [@"a" dataUsingEncoding: NSUTF32LittleEndianStringEncoding];
+  PASS([data length] == 4, "utf32 little endian no bom")
+  data = [@"a" dataUsingEncoding: NSUTF32StringEncoding];
+  PASS([data length] == 8, "utf32 has bom")
+
+  data = [@"" dataUsingEncoding: NSUTF8StringEncoding];
+  PASS([data length] == 0, "utf8 empty no bom")
+  data = [@"" dataUsingEncoding: NSUnicodeStringEncoding];
+  PASS([data length] == 2, "unicode empty has bom")
+  data = [@"" dataUsingEncoding: NSUTF16BigEndianStringEncoding];
+  PASS([data length] == 0, "utf16 big endian empty no bom")
+  data = [@"" dataUsingEncoding: NSUTF16LittleEndianStringEncoding];
+  PASS([data length] == 0, "utf16 little endian empty no bom")
+  data = [@"" dataUsingEncoding: NSUTF16StringEncoding];
+  PASS([data length] == 2, "utf16 empty has bom")
+  data = [@"" dataUsingEncoding: NSUTF32BigEndianStringEncoding];
+  PASS([data length] == 0, "utf32 big endian empty no bom")
+  data = [@"" dataUsingEncoding: NSUTF32LittleEndianStringEncoding];
+  PASS([data length] == 0, "utf32 little endian empty no bom")
+  data = [@"" dataUsingEncoding: NSUTF32StringEncoding];
+  PASS([data length] == 4, "utf32 empty has bom")
 
   [pool release];
   return 0;
