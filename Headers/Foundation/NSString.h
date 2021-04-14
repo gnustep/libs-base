@@ -482,6 +482,10 @@ GS_EXPORT_CLASS
 // Working With Encodings
 - (BOOL) canBeConvertedToEncoding: (NSStringEncoding)encoding;
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding;
+/** Conversion to an encoding where byte order matters but is not specified
+ * (NSUnicodeStringEncoding, NSUTF16StringEncoding, NSUTF32StringEncoding)
+ * produces data with a Byte Order Marker (BOM) at the start of the data.
+ */
 - (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
 	 allowLossyConversion: (BOOL)flag;
 + (NSStringEncoding) defaultCStringEncoding;

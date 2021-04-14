@@ -2379,133 +2379,6 @@ cStringLength_u(GSStr self, NSStringEncoding enc)
     }
 }
 
-static inline NSData*
-dataUsingEncoding_c(GSStr self, NSStringEncoding encoding, BOOL lossy)
-{
-  unsigned	len = self->_count;
-
-  if (len == 0)
-    {
-      return [NSDataClass data];
-    }
-
-  if ((encoding == internalEncoding)
-    || ((internalEncoding == NSASCIIStringEncoding)
-      && (encoding == NSUTF8StringEncoding || isByteEncoding(encoding))))
-    {
-      unsigned char *buff;
-
-      buff = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), len);
-      memcpy(buff, self->_contents.c, len);
-      return [NSDataClass dataWithBytesNoCopy: buff length: len];
-    }
-  else if (encoding == NSUnicodeStringEncoding)
-    {
-      unsigned int	l = 0;
-      unichar		*r = 0;
-      unsigned int	options = GSUniBOM;
-
-      if (lossy == NO)
-	{
-	  options |= GSUniStrict;
-	}
-
-      if (GSToUnicode(&r, &l, self->_contents.c, self->_count, internalEncoding,
-	NSDefaultMallocZone(), options) == NO)
-	{
-	  return nil;
-	}
-      return [NSDataClass dataWithBytesNoCopy: r length: l * sizeof(unichar)];
-    }
-  else
-    {
-      unichar		*u = 0;
-      unsigned		l = 0;
-      unsigned char	*r = 0;
-      unsigned		s = 0;
-
-      if (GSToUnicode(&u, &l, self->_contents.c, self->_count, internalEncoding,
-	NSDefaultMallocZone(), 0) == NO)
-	{
-	  [NSException raise: NSCharacterConversionException
-		      format: @"Can't convert to Unicode string."];
-	}
-      if (GSFromUnicode(&r, &s, u, l, encoding, NSDefaultMallocZone(),
-	(lossy == NO) ? GSUniStrict : 0) == NO)
-	{
-	  NSZoneFree(NSDefaultMallocZone(), u);
-	  return nil;
-	}
-      NSZoneFree(NSDefaultMallocZone(), u);
-      return [NSDataClass dataWithBytesNoCopy: r length: s];
-    }
-}
-
-static inline NSData*
-dataUsingEncoding_u(GSStr self, NSStringEncoding encoding, BOOL lossy)
-{
-  unsigned	len = self->_count;
-
-  if (len == 0)
-    {
-      return [NSDataClass data];
-    }
-
-  if (encoding == NSUnicodeStringEncoding)
-    {
-      unichar	*buff;
-      unsigned	l;
-      unsigned	from = 0;
-      unsigned	to = 1;
-
-      if ((l = GSUnicode(self->_contents.u, len, 0, 0)) != len)
-        {
-	  if (lossy == NO)
-	    {
-	      return nil;
-	    }
-	}
-      buff = (unichar*)NSZoneMalloc(NSDefaultMallocZone(),
-	sizeof(unichar)*(len+1));
-      buff[0] = 0xFEFF;
-
-      while (len > 0)
-        {
-	  if (l > 0)
-	    {
-	      memcpy(buff + to, self->_contents.u + from, sizeof(unichar)*l);
-	      from += l;
-	      to += l;
-	      len -= l;
-	    }
-	  if (len > 0)
-	    {
-	      // A bad character in the string ... skip it.
-	      if (--len > 0)
-		{
-		  // Not at end ... try another batch.
-		  from++;
-		  l = GSUnicode(self->_contents.u + from, len, 0, 0);
-		}
-	    }
-	}
-      return [NSDataClass dataWithBytesNoCopy: buff
-				       length: sizeof(unichar)*to];
-    }
-  else
-    {
-      unsigned char	*r = 0;
-      unsigned int	l = 0;
-
-      if (GSFromUnicode(&r, &l, self->_contents.u, self->_count, encoding,
-	NSDefaultMallocZone(), (lossy == NO) ? GSUniStrict : 0) == NO)
-	{
-	  return nil;
-	}
-      return [NSDataClass dataWithBytesNoCopy: r length: l];
-    }
-}
-
 static inline void
 fillHole(GSStr self, unsigned index, unsigned size)
 {
@@ -3830,12 +3703,6 @@ agree, create a new GSCInlineString otherwise.
   return cStringLength_c((GSStr)self, externalEncoding);
 }
 
-- (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
-	 allowLossyConversion: (BOOL)flag
-{
-  return dataUsingEncoding_c((GSStr)self, encoding, flag);
-}
-
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   if ([aCoder allowsKeyedCoding])
@@ -4194,12 +4061,6 @@ agree, create a new GSCInlineString otherwise.
 - (NSUInteger) cStringLength
 {
   return cStringLength_u((GSStr)self, externalEncoding);
-}
-
-- (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
-	 allowLossyConversion: (BOOL)flag
-{
-  return dataUsingEncoding_u((GSStr)self, encoding, flag);
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -4688,15 +4549,6 @@ agree, create a new GSUInlineString otherwise.
     return cStringLength_u((GSStr)self, externalEncoding);
   else
     return cStringLength_c((GSStr)self, externalEncoding);
-}
-
-- (NSData*) dataUsingEncoding: (NSStringEncoding)encoding
-	 allowLossyConversion: (BOOL)flag
-{
-  if (_flags.wide == 1)
-    return dataUsingEncoding_u((GSStr)self, encoding, flag);
-  else
-    return dataUsingEncoding_c((GSStr)self, encoding, flag);
 }
 
 - (void) dealloc
@@ -5828,11 +5680,6 @@ literalIsEqual(NXConstantString *self, id anObject)
   BOOL	        ascii;
   BOOL	        latin1;
   unsigned	length;
-
-  if (0 == nxcslen)
-    {
-      return [NSDataClass data];
-    }
 
   /* Check what is actually in this string ... if it's corrupt an exception
    * is raised.

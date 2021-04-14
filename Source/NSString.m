@@ -4126,30 +4126,22 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   unsigned	len = [self length];
   NSData	*d;
 
-  if (len == 0)
-    {
-      d = [NSDataClass data];
-    }
-  else if (encoding == NSUnicodeStringEncoding)
+  if (NSUnicodeStringEncoding == encoding)
     {
       unichar	*u;
       unsigned	l;
 
+      /* Fast path for Unicode (UTF16) without a specific byte order,
+       * where we must prepend a byte order mark.
+       * The case for UTF32 is handled in the slower branch.
+       */
       u = (unichar*)NSZoneMalloc(NSDefaultMallocZone(),
 	(len + 1) * sizeof(unichar));
       *u = byteOrderMark;
       [self getCharacters: u + 1];
       l = GSUnicode(u, len, 0, 0);
-      if (l == len || flag == YES)
-	{
-	  d = [NSDataClass dataWithBytesNoCopy: u
-					length: (l + 1) * sizeof(unichar)];
-	}
-      else
-	{
-	  d = nil;
-	  NSZoneFree(NSDefaultMallocZone(), u);
-	}
+      d = [NSDataClass dataWithBytesNoCopy: u
+				    length: (l + 1) * sizeof(unichar)];
     }
   else
     {
@@ -4164,11 +4156,28 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
        * We can then use our concrete subclass implementation to do the
        * work of converting to the desired encoding.
        */
-      if (len >= 4096)
+      if (NSUTF32StringEncoding == encoding)
 	{
-	  u = NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
+	  /* For UTF32 without byte order specified, we must include a
+	   * BOM at the start of the data.
+	   */
+	  len++;
+	  if (len >= 4096)
+	    {
+	      u = NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
+	    }
+	  *u = byteOrderMark;
+	  [self getCharacters: u+1];
 	}
-      [self getCharacters: u];
+      else
+	{
+	  if (len >= 4096)
+	    {
+	      u = NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
+	    }
+	  [self getCharacters: u];
+	}
+
       if (flag == NO)
         {
 	  options = GSUniStrict;
