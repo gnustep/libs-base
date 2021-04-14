@@ -12,6 +12,32 @@
 #define	NSLOCALE_SUPPORTED	1 /* Assume Apple support */
 #endif
 
+static NSDateComponents *
+timeFromString(NSString *s)
+{
+  NSDateFormatter   *dateFormatter;
+  NSDate            *date;
+  NSCalendar        *calendar;
+  NSDateComponents  *time;
+
+  dateFormatter = [[NSDateFormatter alloc] init];
+  [dateFormatter setDateFormat: @"HH:mm:ss"];
+
+  date = [dateFormatter dateFromString: s];
+
+  calendar = [[NSCalendar alloc] 
+    initWithCalendarIdentifier: NSGregorianCalendar];
+
+  time = [calendar components: (NSCalendarUnitHour | NSCalendarUnitMinute
+                               | NSCalendarUnitSecond) 
+                     fromDate: date];
+
+  RELEASE(calendar);
+  RELEASE(dateFormatter);
+
+  return time;
+}
+
 int main(void)
 {
   NSDateFormatter *inFmt;
@@ -76,6 +102,14 @@ int main(void)
     PASS_EQUAL(str, @"dd MMM", "Convert date format as Cocoa.");
     RELEASE(locale);
   
+  NSDateComponents	*d = timeFromString(@"23:24:25");
+  PASS(d != nil && [d hour] == 23 && [d minute] == 24 && [d second] == 25,
+    "parsing 23:24:25 is OK")
+
+  d = timeFromString(@"24:00:00");
+  PASS(d != nil && [d hour] == 0 && [d minute] == 0 && [d second] == 0,
+    "parsing 24:00:00 gives zero hour, minute and second")
+
   END_SET("NSDateFormatter")
 
   return 0;
