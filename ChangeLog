@@ -1,3 +1,18 @@
+2021-04-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSString.h:
+	* Source/NSString.m:
+	* Source/NSString.m:
+	Fixes for BOM insertion when generating data from a string using one
+	of the unicode encodings.  The BOM is inserted in the case where the
+	byte order is important in the specified encoding, but the encoding
+	does not specify which byte order is used.  This is the case for
+	NSUnicodeStringEncoding, NSUTF16StringEncoding (which is a synonym
+	for NSUnicodeStringEncoding), and NSUTF32StringEncoding.
+	The bit of this that might impact existing code is that the BOM is
+	now placed at the start of the data even in the string is empty (as
+	on OSX).
+
 2021-03-27 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/GNUstepBase/GSVersionMacros.h:
