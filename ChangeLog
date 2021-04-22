@@ -914,11 +914,11 @@
 	* Headers/Foundation/NSOperation.h:
         whitespace tidyups
 
-2020-09-23 root <root@Arisu.localdomain>
+2020-09-23 Mingye Wang <arthur200126@gmail.com>:
 
 	* Tools/NSPropertyList+PLUtil.m:
 	* Tools/plutil.m:
-        plutil: make it build
+        plutil: Add plutil utility.
 
 2020-09-23 Richard Frith-Macdonald <rfm@gnu.org>
 
