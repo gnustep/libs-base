@@ -11,6 +11,97 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.28.0}
+
+Aside from an assortment of bugfixes, this release includes a lot of
+improvements for Windows support as well as numerous new classes and methods.
+
+Not every bugfix, improvement or a new feature will be listed here.
+
+@itemize @bullet
+@item Reading and setting File Creation Date attribute on Windows.
+@item Added new @code{ASSIGNMUTABLECOPY()} macro for consistency with
+@code{ASSIGNCOPY()}.
+@item Replaced character set data headers for URLs with loading these from a
+standard data source, and updated bitmap representation to use much less space
+for character sets residing wholly in the base plane, such as the URL charsets
+(given they are purely ASCII).
+@item Updated character set data with newer Unicode data set.
+@item @code{[NSURLProtocol -initWithRequest:cachedResponse:client:]} will now
+retain the client up until the last message is sent to it, which improves
+compatibility with OS X.
+@item Percent-escaping code in @code{NSURL} simplified.
+@item Removed mixed ABI support.
+@item Use of Apple runtime now assumes non-fragile ABI (which is true on modern
+systems).
+@item Improve typing on method implementation pointers in some classes.
+@item In @code{NSHTTPCookie}, rewritten code for extracting individual cookies
+from the HTTP header.
+@item In @code{NSKeyedArchiver}, implement secure coding methods.
+@item New methods in @code{NSDateComponents}.
+@item Improvements in @code{NSCalendar} and @code{NSLocale} for calendar locale
+and @code{NSDateComponents}.
+@item In @code{NSFileManager}, use @code{utimensat()} to set file modification
+date, if available.
+@item Correctly stop parsing number being decoded in @code{NSJSONSerialization}
+when encountering a number with an invalid exponent.
+@item Improve OS X compatibility for @code{NSURLQueryItem} initializers.
+@item For @code{NSFileManager}, in @code{changeFileAttributes}, implement
+setting creation date for Unix-like systems. Implement reading the creation
+date if a supported method was detected.
+@item Support reading Android assets from the main bundle in
+@code{NSInputStream}.
+@item Support Android assets directories in @code{NSBundle} and @code{NSFileManager}.
+@item Implement @code{-[NSXMLParser initWithStream:]}.
+@item Allow clearer choice between 'sloppy' @code{GSSloppyXMLParser} used in
+@code{NSXMLParser} and the libxml2-based @code{GSStrictXMLParser}.
+@item Fix building Win32 implementations for @code{GSFileHandle} and
+@code{NSMessagePort} with nonfragile ABI.
+@item Use @code{NSNumber} and not @code{NSString} in
+@code{-[NSUserDefaults setBool:forKey:]}.
+@item Posting notification before @code{NSThread} exit.
+@item Actually declare optional @code{NSFilePresenter} methods as optional.
+@item In @code{NSConcreteMapTable}, fix replacing existing values in a weak
+objects map table.
+@item Fix leaks in @code{NSOperation}.
+@item Various compat fixes for various MSYS systems, particularly around
+sockets code.
+@item In @code{NSData}, @code{NSFileManager} and more, various improvements when
+overwriting and creating files with respect to file attributes (owners, creation
+timestamp, etc).
+@item Improve @code{NSLog} output on Android.
+@item Use @code{instancetype} in @code{NSURLRequest} header.
+@item Define @code{NSAttributedStringKey} and @code{NSNotificationName}.
+@item Add new @code{NSURL} methods.
+@item In @code{GSMime}, have @code{-contentFile} check the @code{Content-Type}
+header before checking @code{Content-Disposition}.
+@item Fix a bug linking with WEAK symbols where binutils 2.3.5 would fail to
+link due to not all expected symbols being exported.
+@item New @code{plutil} utility.
+@item Implementation of @code{[NSData rangeOfData:options:range:]} which finds
+the @code{NSRange} in which the passed data occurs.
+@item Change @code{ENTER_POOL}/@code{LEAVE_POOL} so they no longer wrap the
+enclosed code in a loop, enabling use in some loops.
+@item New 10.5 methods in @code{NSRunLoop}/@code{NSURLConnection}.
+@item Improve compatibility when building with ICU 68.
+@item Fix compiling libdispatch integration of @code{NSRunLoop} on Windows.
+@item Add support for building on Windows with MSVC's Clang by passing the
+@code{configure} flag @code{--host=x86_64-pc-windows}. Use of an MSYS2 shell
+without @code{-devel} packages is recommended.
+@item Implementation of @code{NSURLSession} and related classes. This adds some
+dependencies on more recent versions of @code{libcurl}, @code{libdispatch} etc.
+@item Fix initializing @code{NSUUID} from a string.
+@item Disable use of @code{libcurl} if its headers are not found.
+@item In @code{NSURLProtocol}, continue writing data if not all of it was
+written.
+@item Fix use of GnuTLS under MinGW by using @code{send/recv} rather than
+@code{read/write}.
+@item Add support for libobjc2 runtime on Windows.
+@item Fix BOM insertion when generating data from a string using one of the
+Unicode encodings.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
 @section Noteworthy changes in version @samp{1.27.0}
 
 Aside from an assortment of bugfixes, this release includes a lot of
@@ -141,7 +232,6 @@ all expected parts caused by rangeOfString: throwing for nil values.
 @item Added NSURLQueryItem implementation.
 @end itemize
 
-@ifclear ANNOUNCE-ONLY
 @section Noteworthy changes in version @samp{1.26.0}
 @itemize @bullet
 @item Improve utf8 validity checks.

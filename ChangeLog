@@ -1,3 +1,15 @@
+2021-04-22 Ivan Vucica <ivan@vucica.net>
+
+	* ChangeLog:
+	Formatting and email address fixes.
+	* ANNOUNCE:
+	* NEWS:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	Update release notes for a future 1.28.0 release.
+	* Version:
+	Bump version to 1.28.0.
+
 2021-04-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSString.h:
