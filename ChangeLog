@@ -1494,12 +1494,12 @@
 
 2020-05-01 Riccardo Mottola <rm@gnu.org>
 
-        Use utimensat() to set file modification date, if available.
 	* ChangeLog:
 	* Headers/GNUstepBase/config.h.in:
 	* Source/NSFileManager.m:
 	* configure:
 	* configure.ac:
+        Use utimensat() to set file modification date, if available.
 
 2020-04-30 Artem Lotorev <artem@lotoriev.com>
 
