@@ -612,7 +612,7 @@
 	* configure.ac:
         Prefer dispatch/dispatch.h over dispatch.h.
 
-2020-11-29 Richard Frith-Macdonald <richard@localhost.localdomain>
+2020-11-29 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* .travis.yml:
 	* Headers/Foundation/NSDebug.h:
@@ -692,14 +692,14 @@
 	libdispatch) as well as the latest objective-c runtime and the use
 	of blocks (only available when built using clang and the ng runtime).
 
-2020-11-28 Richard Frith-Macdonald <richard@localhost.localdomain>
+2020-11-28 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure:
 	* configure.ac:
         Remove obsolete checks for garbage collecting runtime
 	(no longer supported)
 
-2020-11-22 Richard Frith-Macdonald <richard@localhost.localdomain>
+2020-11-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/NSMutableString+GNUstepBase.m:
 	* Source/GSString.m:
@@ -707,14 +707,14 @@
 	can make use of the layout of the underlying mutable string
 	that the GSImmutableString is a proxy for.
 
-2020-11-22 Richard Frith-Macdonald <richard@localhost.localdomain>
+2020-11-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSString.m:
         Rewrite -replaceCharactersInRange:withString: to cope with the
 	case where the string argument is the receiver (or some proxy
 	to the receiver etc).
 
-2020-11-22 Richard Frith-Macdonald <richard@localhost.localdomain>
+2020-11-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/NSMutableString+GNUstepBase.m:
         Report YES for GSImmutableString being a proxy
@@ -725,17 +725,17 @@
         Fix for text storage objects setting their content to their
 	own immutable proxy.
 
-2020-11-20 Richard Frith-Macdonald <richard@localhost.localdomain>
+2020-11-20 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m:
         Add casts to avoid compiler warnings
 
-2020-11-19 Richard Frith-Macdonald <richard@localhost.localdomain>
+2020-11-19 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m:
         Minor tidyup for clearer indentation
 
-2020-11-19 Richard Frith-Macdonald <richard@localhost.localdomain>
+2020-11-19 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m:
         Correct checks for validity of the second UTF16 value
@@ -1679,7 +1679,7 @@
 	* CharSets/URLQueryAllowedCharSet.h:
 	* CharSets/URLUserAllowedCharSet.h:
 	Removed character set data headers from non-standard location.
-	* NSCharacterSet.m: 
+	* NSCharacterSet.m:
 	Fixed to load URL characterset data from standard file.
 	Changed bitmap representation to use much less space for charsets
 	residing wholly in the base plane (in particular the URL charsets
