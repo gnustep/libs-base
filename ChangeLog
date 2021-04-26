@@ -1,3 +1,14 @@
+2021-04-26 Ivan Vucica <ivan@vucica.net>
+
+	* ChangeLog:
+	Update ChangeLog to release 1.28.0.
+
+2021-04-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/DocMakefile:
+	Ignore GS_EXPORT_CLASS when generating documentation for
+	base/additions.
+
 2021-04-22 Ivan Vucica <ivan@vucica.net>
 
 	* ChangeLog:
