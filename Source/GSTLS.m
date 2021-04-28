@@ -582,15 +582,15 @@ static NSMutableDictionary      *certificateListCache = nil;
   [str appendFormat: _(@"- Certificate version: #%d\n"),
     gnutls_x509_crt_get_version(cert)];
 
-  dn_size = sizeof(dn);
+  dn_size = sizeof(dn) - 1;
   gnutls_x509_crt_get_dn(cert, dn, &dn_size);
-  dn[dn_size - 1] = '\0';
+  dn[dn_size] = '\0';
   [str appendFormat: @"- Certificate DN: %@\n",
     [NSString stringWithUTF8String: dn]];
 
-  dn_size = sizeof(dn);
+  dn_size = sizeof(dn) - 1;
   gnutls_x509_crt_get_issuer_dn(cert, dn, &dn_size);
-  dn[dn_size - 1] = '\0';
+  dn[dn_size] = '\0';
   [str appendFormat: _(@"- Certificate Issuer's DN: %@\n"),
     [NSString stringWithUTF8String: dn]];
 
