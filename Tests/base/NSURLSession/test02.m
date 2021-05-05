@@ -37,7 +37,7 @@ int main()
   [server start: nil]; // localhost:1234 HTTP
 
 
-  NSURLSessionConfiguration     *defaultConfigObject;
+  NSURLSessionConfiguration     *configuration;
   NSURLSession                  *defaultSession;
   NSURLSessionDataTask          *dataTask;
   NSMutableURLRequest           *urlRequest;
@@ -46,12 +46,23 @@ int main()
   NSString                      *params;
   MyDelegate                    *object;
 
+  configuration = [[NSURLSessionConfiguration alloc] init];
+  [configuration setHTTPShouldUsePipelining: YES];
+
+  testHopeful=YES;
+  PASS_RUNS([configuration setHTTPMaximumConnectionLifetime: 42];,
+    "-setHTTPMaximumConnectionLifetime: support available in CURL")
+  testHopeful=NO;
+
+  [configuration setHTTPMaximumConnectionsPerHost: 1];
+  [configuration setRequestCachePolicy: NSURLCacheStorageNotAllowed];
+
   object = AUTORELEASE([MyDelegate new]);
   mainQueue = [NSOperationQueue mainQueue];
-  defaultConfigObject = [NSURLSessionConfiguration defaultSessionConfiguration];
-  defaultSession = [NSURLSession sessionWithConfiguration: defaultConfigObject
+  defaultSession = [NSURLSession sessionWithConfiguration: configuration
                                                  delegate: object
                                             delegateQueue: mainQueue];
+  RELEASE(configuration);
   url = [NSURL URLWithString: @"http://localhost:1234/xxx"];
   params = @"dummy=true";
   urlRequest = [NSMutableURLRequest requestWithURL: url];

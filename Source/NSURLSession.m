@@ -1175,13 +1175,14 @@ static NSURLSessionConfiguration	*def = nil;
 
 - (void) setHTTPMaximumConnectionLifetime: (NSInteger)n
 {
-#if	!defined(CURLOPT_MAXAGE_CONN)
+#if     HAVE_DECL_CURLOPT_MAXAGE_CONN
+  _HTTPMaximumConnectionLifetime = n;
+#else
   [NSException raise: NSInternalInconsistencyException
     format: @"-[%@ %@] not supported by the version of Curl"
     @" this library was built with",
     NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
 #endif
-  _HTTPMaximumConnectionLifetime = n;
 }
 
 - (BOOL) HTTPShouldUsePipelining

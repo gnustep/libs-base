@@ -3574,6 +3574,9 @@ if test $HAVE_LIBCURL = 1; then
     [#include <curl/curl.h>])
 fi
 if test $HAVE_LIBCURL = 1; then
+  # Check for Curl capabilities we may use in NSURLSession
+  AC_CHECK_DECLS(CURLOPT_MAXAGE_CONN,,, [#include <curl/curl.h>])
+
   # If curl supports runtime selection of the TLS module we will need
   # to use curl_global_sslset to pick GNUTLS
   AC_CHECK_FUNCS(curl_global_sslset)

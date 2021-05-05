@@ -204,6 +204,10 @@
 /* Define to 1 if you have the <dbghelp.h> header file. */
 #undef HAVE_DBGHELP_H
 
+/* Define to 1 if you have the declaration of `CURLOPT_MAXAGE_CONN', and to 0
+   if you don't. */
+#undef HAVE_DECL_CURLOPT_MAXAGE_CONN
+
 /* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
    don't. */
 #undef HAVE_DECL_STRERROR_R

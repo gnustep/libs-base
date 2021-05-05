@@ -13390,6 +13390,20 @@ fi
 
 fi
 if test $HAVE_LIBCURL = 1; then
+  # Check for Curl capabilities we may use in NSURLSession
+  ac_fn_c_check_decl "$LINENO" "CURLOPT_MAXAGE_CONN" "ac_cv_have_decl_CURLOPT_MAXAGE_CONN" "#include <curl/curl.h>
+"
+if test "x$ac_cv_have_decl_CURLOPT_MAXAGE_CONN" = xyes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_CURLOPT_MAXAGE_CONN $ac_have_decl
+_ACEOF
+
+
   # If curl supports runtime selection of the TLS module we will need
   # to use curl_global_sslset to pick GNUTLS
   for ac_func in curl_global_sslset

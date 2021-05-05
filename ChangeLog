@@ -1,3 +1,13 @@
+2021-05-05 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for declaration of CURLOPT_MAXAGE_CONN
+	* configure: regenerate
+	* Headers/GNUstepBase/config.h.in: regenerate
+	* Source/NSURLSession.m: Use HAVE_DECL_CURLOPT_MAXAGE_CONN to tell
+	whether -setHTTPMaximumConnectionLifetime: can be implemented.
+	* Tests/base/NSURLSession/test02.m: Add a testcase (hope) to see if
+	-setHTTPMaximumConnectionLifetime: is supported.
+
 2021-04-26 Ivan Vucica <ivan@vucica.net>
 
 	* ChangeLog:
