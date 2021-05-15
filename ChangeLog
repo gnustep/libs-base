@@ -1,3 +1,12 @@
+2021-05-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m:
+	* Source/win32/GSFileHandle.m:
+	When we receive an event telling us the handle is writable, repeatedly
+	write until either all the data we have is written or until the write
+	attempt doesn't write anything.  On mswindows this copes with the case
+	of the gnutls write only writing 16KB chunks at a time.
+
 2021-05-05 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Check for declaration of CURLOPT_MAXAGE_CONN

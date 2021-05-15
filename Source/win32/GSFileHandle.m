@@ -2220,7 +2220,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       item = [info objectForKey: NSFileHandleNotificationDataItem];
       length = [item length];
       ptr = [item bytes];
-      if (writePos < length)
+      while (writePos < length)
         {
           int	written;
 
