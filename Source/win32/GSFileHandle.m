@@ -2228,7 +2228,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     		     length: length-writePos];
           if (written <= 0)
             {
-              if (written < 0 && WSAGetLastError()!= WSAEINTR
+              if (WSAGetLastError()!= WSAEINTR
 		&& WSAGetLastError()!= WSAEWOULDBLOCK)
 	        {
 	          NSString	*s;
@@ -2238,6 +2238,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	          [info setObject: s forKey: GSFileHandleNotificationError];
 	          [self postWriteNotification];
 	        }
+	      break;
 	    }
 	  else
             {
