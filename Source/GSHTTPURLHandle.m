@@ -1572,38 +1572,14 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
 
   /* An existing socket with keepalive may have been closed by the other
-   * end.  The portable way to detect it is to run the runloop once to
-   * allow us to be sent a notification about end-of-file.
-   * On unix systems (google told me it is not reliable on windows) we can
-   * simply peek on the file descriptor for a much more efficient check.
+   * end.
+   * On unix systems we can simply peek on the file descriptor for a much
+   * more efficient check.
+   * On windows we use the same system, it is noted to be inefficient but
+   * we don't care because we peek rare enough at each HTTP request.
    */
   if (sock != nil)
     {
-#if	defined(_WIN32)
-      NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
-      NSRunLoop			*loop = [NSRunLoop currentRunLoop];
-      NSFileHandle		*test = RETAIN(sock);
-      
-      if (debug)
-        {
-	  NSLog(@"%@ %p check for reusable socket",
-	    NSStringFromSelector(_cmd), self);
-	}
-      [nc addObserver: self
-	     selector: @selector(bgdRead:)
-		 name: NSFileHandleReadCompletionNotification
-	       object: test];
-      if ([test readInProgress] == NO)
-	{
-	  [test readInBackgroundAndNotify];
-	}
-      [loop acceptInputForMode: NSDefaultRunLoopMode
-		    beforeDate: nil];
-      [nc removeObserver: self
-		    name: nil
-		  object: test];
-      RELEASE(test);
-#else
       int fd = [sock fileDescriptor];
 
       if (debug)
@@ -1619,7 +1595,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 #if     !defined(MSG_DONTWAIT)
 #define MSG_DONTWAIT    0
 #endif
-	  result = recv(fd, &c, 1, MSG_PEEK | MSG_DONTWAIT);
+	  result = recv(fd, (void *)&c, 1, MSG_PEEK | MSG_DONTWAIT);
 	  if (result == 0 || (result < 0 && errno != EAGAIN && errno != EINTR))
 	    {
 	      DESTROY(sock);
@@ -1629,7 +1605,6 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
         {
 	  DESTROY(sock);
 	}
-#endif
       if (debug)
 	{
 	  if (sock == nil)
