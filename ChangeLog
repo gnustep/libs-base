@@ -1,3 +1,9 @@
+2021-05-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/win32/GSFileHandle.m:
+	Fixed bug preventing write of long data (failing to watch for write
+	completion when only part of the data is written).  Added some debug
+
 2021-05-15 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFileHandle.m:
