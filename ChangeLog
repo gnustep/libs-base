@@ -13,7 +13,9 @@
 	* configure: regenerate
 	* Headers/GNUstepBase/config.h.in: regenerate
 	* Source/NSURLSession.m: Use HAVE_DECL_CURLOPT_MAXAGE_CONN to tell
-	whether -setHTTPMaximumConnectionLifetime: can be implemented.
+	whether -setHTTPMaximumConnectionLifetime: can be implemented. This
+	fixes a bug where the method was not implemented even though the
+	version of Curl available supported it.
 	* Tests/base/NSURLSession/test02.m: Add a testcase (hope) to see if
 	-setHTTPMaximumConnectionLifetime: is supported.
 
