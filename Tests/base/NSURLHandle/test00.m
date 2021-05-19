@@ -117,7 +117,15 @@ resourceDidFailLoadingWithReason: (NSString *)reason
    * background and wait a bit
    */
   [handle writeProperty: @"POST" forKey: GSHTTPPropertyMethodKey];
-  [handle writeData: [@"Hello" dataUsingEncoding: NSASCIIStringEncoding]];
+ NSData *d = [@"1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+   dataUsingEncoding: NSUTF8StringEncoding];
+ NSMutableData *m = AUTORELEASE([d mutableCopy]);
+ while ([m length] < 64 * 1024)
+   {
+     [m appendData: d];
+   }
+
+  [handle writeData: m];
   [handle setReturnAll: YES];
   [handle loadInBackground];
   PASS([self status] == URLHandleClientDidBeginLoading,
