@@ -2218,7 +2218,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (void) receivedEventWrite
 {
-  NSString	*operation;
+  NSString		*operation;
   NSMutableDictionary	*info;
 
   info = [writeInfo objectAtIndex: 0];
@@ -2257,7 +2257,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
-      NSData	*item;
+      NSData		*item;
       int		length;
       const void	*ptr;
 
