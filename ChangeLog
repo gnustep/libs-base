@@ -1,3 +1,12 @@
+2021-05-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSStream.m:
+	When we get an event saying that there is space available, we should
+	change the stream status from writing to open (because the write
+	operation completed).  This makes the -hasSpaceAvailable method return
+	the correct value when a callback routine is checking to see if it
+	can write.
+
 2021-05-19 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/win32/GSFileHandle.m:
