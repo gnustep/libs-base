@@ -598,6 +598,10 @@ static RunLoopEventType typeForStream(NSStream *aStream)
       if ((_events & NSStreamEventHasSpaceAvailable) == 0)
 	{
 	  _events |= NSStreamEventHasSpaceAvailable;
+	  if (_currentStatus == NSStreamStatusWriting)
+	    {
+	      [self _setStatus: NSStreamStatusOpen];
+	    }
 	  if (delegate != nil)
 	    {
 	      [delegate stream: self
