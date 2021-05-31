@@ -1,3 +1,17 @@
+2021-05-31 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSTLS.h: ([GSTLSCredentials selfSigned:])
+	* Source/GSTLS.m: Add new method to use certtool to generate a
+	key and a self-signed certificate.  Use the new method to set up
+	server sessions if no certificate/key is configured.
+	* Headers/Foundation/NSPort.h: ([NSSocketPost setOptionsForTLS:])
+	* Source/NSSocketPort.m: New methods to configure socket ports to
+	use TLS so that inter-host distributed object connections can be
+	securely encrypted.  The class method should turn on encryption
+	for all subsequent connections using socket ports (the instance
+	method can be used to override the effects of the class method
+	for an individual instance).
+
 2021-05-23 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSStream.m:

@@ -26,6 +26,7 @@
 #define	EXPOSE_NSPort_IVARS	1
 #define	EXPOSE_NSSocketPort_IVARS	1
 #import "GNUstepBase/GSLock.h"
+#import "GNUstepBase/GSTLS.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSNotificationQueue.h"
@@ -122,6 +123,10 @@
  */
 static uint32_t	maxDataLength = 32 * 1024 * 1024;
 
+/* Options for TLS encryption of connections
+ */
+static NSDictionary     *tlsOptions;
+
 #if 0
 #define	M_LOCK(X) {NSDebugMLLog(@"GSTcpHandleLock",@"lock %@ in %@",X,[NSThread currentThread]); [X lock];}
 #define	M_UNLOCK(X) {NSDebugMLLog(@"GSTcpHandleLock",@"unlock %@ in %@",X,[NSThread currentThread]); [X unlock];}
@@ -200,9 +205,15 @@ typedef enum {
   GS_H_CONNECTED	// Currently connected.
 } GSHandleState;
 
+@interface NSSocketPort (GSTcpHandle)
+- (NSDictionary*) optionsForTLS;
+@end
+
 @interface GSTcpHandle : NSObject <RunLoopEvents>
 {
   SOCKET		desc;		/* File descriptor for I/O.	*/
+  NSData		*cData;		/* Connection data.		*/
+  unsigned		cLength;	/* Connection data written.	*/
   unsigned		wItem;		/* Index of item being written.	*/
   NSMutableData		*wData;		/* Data object being written.	*/
   unsigned		wLength;	/* Ammount written so far.	*/
@@ -223,7 +234,6 @@ typedef enum {
   BOOL                  inReplyMode;    /* Indicate when have addEvent self */
   BOOL                  readyToSend;    /* Indicate when send */
 #endif
-
 @public
   NSRecursiveLock	*myLock;	/* Lock for this handle.	*/
   BOOL			caller;		/* Did we connect to other end?	*/
@@ -232,6 +242,7 @@ typedef enum {
   NSSocketPort		*sendPort;
   struct sockaddr	sockAddr;	/* Far end of connection.	*/
   NSString		*defaultAddress;
+  GSTLSSession		*session;	/* Session for encryption.	*/
 }
 
 + (GSTcpHandle*) handleWithDescriptor: (SOCKET)d;
@@ -253,8 +264,94 @@ typedef enum {
 - (NSSocketPort*) sendPort;
 - (void) setState: (GSHandleState)s;
 - (GSHandleState) state;
+- (void) setupTLS: (NSSocketPort*)opts asClient: (BOOL)outgoing;
 @end
 
+
+#if     defined(HAVE_GNUTLS)
+
+/* Callback to allow the TLS code to pull data from the remote system.
+ * If the operation fails, this sets the error number.
+ */
+static ssize_t
+GSTLSHandlePull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
+{
+  ssize_t       result = 0;
+  GSTcpHandle   *tls = (GSTcpHandle*)handle;
+  int           descriptor = [tls descriptor];
+
+  result = recv(descriptor, buffer, len, 0);
+  if (result < 0)
+    {
+#if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
+      if (tls->session && tls->session->session)
+        {
+	  int	e;
+
+#if  defined(_WIN32)
+	  /* For windows, we need to map winsock errors to unix ones that
+	   * gnutls understands.
+	   */
+	  e = WSAGetLastError();
+	  if (WSAEWOULDBLOCK == e)
+	    {
+	      e = EAGAIN;
+	    }
+	  else if (WSAEINTR == e)
+	    {
+	      e = EINTR;
+	    }
+#else
+	  e = errno;
+#endif
+          gnutls_transport_set_errno (tls->session->session, e);
+        }
+#endif
+    }
+  return result;
+}
+
+/* Callback to allow the TLS code to push data to the remote system.
+ * If the operation fails, this sets the error number.
+ */
+static ssize_t
+GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
+{
+  ssize_t       result = 0;
+  GSTcpHandle   *tls = (GSTcpHandle*)handle;
+  int           descriptor = [tls descriptor];
+
+  result = send(descriptor, buffer, len, 0);
+  if (result < 0)
+    {
+#if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
+      if (tls->session && tls->session->session)
+        {
+	  int	e;
+
+#if  defined(_WIN32)
+	  /* For windows, we need to map winsock errors to unix ones that
+	   * gnutls understands.
+	   */
+	  e = WSAGetLastError();
+	  if (WSAEWOULDBLOCK == e)
+	    {
+	      e = EAGAIN;
+	    }
+	  else if (WSAEINTR == e)
+	    {
+	      e = EINTR;
+	    }
+#else
+	  e = errno;
+#endif
+          gnutls_transport_set_errno(tls->session->session, e);
+        }
+#endif
+    }
+  return result;
+}
+#endif
 
 /*
  * Utility functions for encoding and decoding ports.
@@ -696,6 +793,7 @@ static Class	runLoopClass;
 {
   [self finalize];
   DESTROY(defaultAddress);
+  DESTROY(cData);
   DESTROY(rData);
   DESTROY(rItems);
   DESTROY(wMsgs);
@@ -724,6 +822,11 @@ static Class	runLoopClass;
 - (void) finalize
 {
   [self invalidate];
+  if (session)
+    {
+      [session disconnect: NO];
+      DESTROY(session);
+    }
 #if	defined(_WIN32)
   if (event != WSA_INVALID_EVENT)
     {
@@ -804,7 +907,21 @@ static Class	runLoopClass;
    * Now try to fill the buffer with data.
    */
   bytes = [rData mutableBytes];
-  res = recv(desc, bytes + rLength, want - rLength, 0);
+  if (session)
+    {
+      if ([session handshake])
+	{
+	  res = [session read: bytes + rLength length: want - rLength];
+	}
+      else
+	{
+	  res = -1;
+	}
+    }
+  else
+    {
+      res = recv(desc, bytes + rLength, want - rLength, 0);
+    }
   if (res <= 0)
     {
       if (res == 0)
@@ -1070,7 +1187,7 @@ static Class	runLoopClass;
       if (shouldDispatch == YES)
         {
           NSPortMessage	*pm;
-          NSSocketPort		*rp = [self recvPort];
+          NSSocketPort	*rp = [self recvPort];
 
           pm = [portMessageClass allocWithZone: NSDefaultMallocZone()];
           pm = [pm initWithSendPort: [self sendPort]
@@ -1123,29 +1240,72 @@ static Class	runLoopClass;
         }
       else
         {
-          NSData	*d = newDataWithEncodedPort([self recvPort]);
+	  unsigned	l;
+	  const void	*b;
 
-          len = send(desc, [d bytes], [d length], 0);
-          if (len == (int)[d length])
-            {
-	      ASSIGN(defaultAddress, GSPrivateSockaddrHost(&sockAddr));
-	      NSDebugMLLog(@"GSTcpHandle",
-	        @"wrote %d bytes on 0x%"PRIxPTR, len, (NSUInteger)self);
-	      state = GS_H_CONNECTED;
+	  if (nil == cData)
+	    {
+	      ASSIGN(cData, newDataWithEncodedPort([self recvPort]));
+	      cLength = 0;
+	    }
+	  b = [cData bytes];
+	  l = [cData length];
+
+	  if (session)
+	    {
+	      if ([session handshake])
+		{
+		  len = [session write: b + cLength length: l - cLength];
+		}
+	      else
+		{
+		  len = -1;
+		}
 	    }
 	  else
 	    {
-	      state = GS_H_UNCON;
-	      NSLog(@"connect write attempt failed - %@",
-	        [NSError _last]);
+	      len = send(desc, b + cLength, l - cLength, 0);
 	    }
-	  RELEASE(d);
+	  if (len <= 0)
+	    {
+#ifdef _WIN32
+	      if (WSAGetLastError() != WSAEINTR
+		&& WSAGetLastError() != WSAEWOULDBLOCK)
+#else
+	      if (errno != EINTR && errno != EAGAIN)
+#endif /* !_WIN32 */
+		{
+		  DESTROY(cData);
+		  state = GS_H_UNCON;
+		  NSLog(@"connect write attempt failed - %@",
+		    [NSError _last]);
+		  return;
+		}
+#ifdef _WIN32
+	      if (WSAGetLastError() == WSAEWOULDBLOCK)
+		{
+		  readyToSend = NO;
+		}
+#endif /* !_WIN32 */
+	    }
+	  else
+	    {
+	      cLength += len;
+	      if (cLength >= l)
+		{
+		  DESTROY(cData);
+		  ASSIGN(defaultAddress, GSPrivateSockaddrHost(&sockAddr));
+		  NSDebugMLLog(@"GSTcpHandle",
+		    @"wrote %d bytes on 0x%"PRIxPTR, len, (NSUInteger)self);
+		  state = GS_H_CONNECTED;
+		}
+	    }
 	}
     }
   else
     {
       int		res;
-      unsigned	l;
+      unsigned		l;
       const void	*b;
 
       if (wData == nil)
@@ -1165,7 +1325,21 @@ static Class	runLoopClass;
 	}
       b = [wData bytes];
       l = [wData length];
-      res = send(desc, b + wLength,  l - wLength, 0);
+      if (session)
+	{
+	  if ([session handshake])
+	    {
+	      res = [session write: b + wLength length:  l - wLength];
+	    }
+	  else
+	    {
+	      res = -1;
+	    }
+	}
+      else
+	{
+	  res = send(desc, b + wLength,  l - wLength, 0);
+	}
       if (res < 0)
         {
 #ifdef _WIN32
@@ -1422,6 +1596,20 @@ static Class	runLoopClass;
 - (void) setState: (GSHandleState)s
 {
   state = s;
+}
+
+- (void) setupTLS: (NSSocketPort*)port asClient: (BOOL)outgoing
+{
+  NSDictionary	*opts;
+
+  if (nil == session && (opts = [port optionsForTLS]) != nil)
+    {
+      session = [[GSTLSSession alloc] initWithOptions: opts
+                                            direction: outgoing
+                                            transport: (void*)self
+                                                 push: GSTLSHandlePush
+                                                 pull: GSTLSHandlePull];
+    }
 }
 
 - (GSHandleState) state
@@ -1700,6 +1888,7 @@ static Class		tcpPortClass;
 	  NSMapInsert(thePorts, (void*)aHost, (void*)port);
 	  NSDebugMLLog(@"NSPort", @"Created speaking port: %@", port);
 	}
+      [port setOptionsForTLS: tlsOptions];
     }
   else
     {
@@ -1710,6 +1899,11 @@ static Class		tcpPortClass;
 
   M_UNLOCK(tcpPortLock);
   return port;
+}
+
++ (void) setOptionsForTLS: (NSDictionary*)options
+{
+  ASSIGNCOPY(tlsOptions, options);
 }
 
 - (void) addHandle: (GSTcpHandle*)handle forSend: (BOOL)send
@@ -1774,6 +1968,7 @@ static Class		tcpPortClass;
       NSFreeMapTable(handles);
       handles = 0;
     }
+  DESTROY(tlsopts);
   DESTROY(host);
   TEST_RELEASE(address);
   DESTROY(myLock);
@@ -1959,6 +2154,7 @@ static Class		tcpPortClass;
     }
   else
     {
+      [handle setupTLS: self asClient: YES];
       [recvPort addHandle: handle forSend: NO];
     }
   M_UNLOCK(myLock);
@@ -2085,6 +2281,16 @@ static Class		tcpPortClass;
   return NO;
 }
 
+- (NSDictionary*) optionsForTLS
+{
+  NSDictionary	*opts;
+
+  M_LOCK(myLock);
+  opts = RETAIN(tlsopts);
+  M_UNLOCK(myLock);
+  return AUTORELEASE(opts);
+}
+
 - (uint16_t) portNumber
 {
   return portNum;
@@ -2142,8 +2348,8 @@ static Class		tcpPortClass;
 	  handle = [GSTcpHandle handleWithDescriptor: desc];
 	  memcpy(&handle->sockAddr, &sockAddr, sizeof(sockAddr));
 	  ASSIGN(handle->defaultAddress, GSPrivateSockaddrHost(&sockAddr));
-
 	  [handle setState: GS_H_ACCEPT];
+	  [handle setupTLS: self asClient: NO];
 	  [self addHandle: handle forSend: NO];
 	}
     }
@@ -2435,6 +2641,15 @@ static Class		tcpPortClass;
       sent = [h sendMessage: components beforeDate: when];
     }
   return sent;
+}
+
+/** Sets the TLS options for network connections created by this port.
+ */
+- (void) setOptionsForTLS: (NSDictionary*)options
+{
+  M_LOCK(myLock);
+  ASSIGNCOPY(tlsopts, options);
+  M_UNLOCK(myLock);
 }
 
 @end

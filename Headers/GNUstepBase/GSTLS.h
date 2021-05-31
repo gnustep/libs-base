@@ -175,6 +175,7 @@ GS_EXPORT_CLASS
                      certificateKeyPassword: (NSString*)cp
                                    asClient: (BOOL)client
                                       debug: (BOOL)debug;
++ (GSTLSCredentials*) selfSigned: (BOOL)debug;
 - (gnutls_certificate_credentials_t) credentials;
 - (GSTLSPrivateKey*) key;
 - (GSTLSCertificateList*) list;

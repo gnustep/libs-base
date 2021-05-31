@@ -208,6 +208,7 @@ GS_EXPORT_CLASS
   uint16_t		portNum;	/* TCP port in host byte order.	*/
   SOCKET		listener;
   NSMapTable		*handles;	/* Handles indexed by socket.	*/
+  NSDictionary		*tlsopts;	/* TLS options */
 #if	defined(_WIN32)
   WSAEVENT              eventListener;
   NSMapTable            *events;
@@ -273,6 +274,21 @@ GS_EXPORT_CLASS
  *  Returns port number of underlying socket.
  */
 - (uint16_t) portNumber;
+
+#if	!NO_GNUSTEP
+/** Sets the default options for use of TLS by socket ports.<br />
+ * Setting nil (the default) means that TLS is not used.<br />
+ * Setting an empty dictionary means that TLS is used with normal options.
+ */
++ (void) setOptionsForTLS: (NSDictionary*)opts;
+
+/** Overrides the default options for use of TLS by the receiver.<br />
+ * Setting nil (the default) means that TLS is not used.<br />
+ * Setting an empty dictionary means that TLS is used with normal options.<br />
+ * This method has no effect on network sessions which are already established.
+ */
+- (void) setOptionsForTLS: (NSDictionary*)opts;
+#endif
 @end
 
 

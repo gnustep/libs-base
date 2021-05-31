@@ -35,8 +35,10 @@
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSStream.h"
+#import "Foundation/NSTask.h"
 #import "Foundation/NSThread.h"
 #import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSUUID.h"
 
 #import "GNUstepBase/GSTLS.h"
 
@@ -1091,6 +1093,89 @@ static NSMutableDictionary      *credentialsCache = nil;
     }
 }
 
++ (GSTLSCredentials*) selfSigned: (BOOL)debug
+{
+  NSString	*crtPath = standardizedPath(@"self-signed-crt");
+  NSString	*keyPath = standardizedPath(@"self-signed-key");
+  NSData	*crt = [self dataForTLSFile: crtPath];
+  NSData	*key = [self dataForTLSFile: keyPath];
+
+  if (nil == crt || nil == key)
+    {
+      static NSString *tmp = @"organization = SelfSigned\n"
+	@"state = Example\n"
+	@"country = EX\n"
+	@"cn = SelfSigned\n"
+	@"serial = 007\n"
+	@"expiration_days = 730\n"
+	@"dns_name = server.selfsigned.com\n"
+	@"tls_www_server\n"
+	@"encryption_key\n";
+      NSFileManager	*mgr = [NSFileManager defaultManager];
+      NSString		*path = NSTemporaryDirectory();
+      NSTask		*task;
+      NSString		*tmpPath;
+
+      path = [path stringByAppendingPathComponent: [[NSUUID UUID] UUIDString]];
+      keyPath = [path stringByAppendingPathExtension: @"key"];
+      tmpPath = [path stringByAppendingPathExtension: @"tmp"];
+      crtPath = [path stringByAppendingPathExtension: @"crt"];
+      [tmp writeToFile: tmpPath atomically: NO];
+
+      task = [NSTask new];
+      [task setLaunchPath: @"certtool"];
+      [task setArguments: [NSArray arrayWithObjects:
+	@"--generate-privkey", @"--sec-param", @"high", @"--outfile", keyPath,
+	nil]];
+      [task setStandardOutput: [NSFileHandle fileHandleWithNullDevice]];
+      [task setStandardError: [NSFileHandle fileHandleWithNullDevice]];
+      [task launch];
+      [task waitUntilExit];
+      RELEASE(task);
+      key = [NSData dataWithContentsOfFile: keyPath];
+
+      task = [NSTask new];
+      [task setLaunchPath: @"certtool"];
+      [task setArguments: [NSArray arrayWithObjects:
+	@"--generate-self-signed", @"--load-privkey", keyPath,
+	@"--template", tmpPath, @"--outfile", crtPath,
+	nil]];
+      [task setStandardOutput: [NSFileHandle fileHandleWithNullDevice]];
+      [task setStandardError: [NSFileHandle fileHandleWithNullDevice]];
+      [task launch];
+      [task waitUntilExit];
+      crt = [NSData dataWithContentsOfFile: crtPath];
+
+      [mgr removeFileAtPath: keyPath handler: nil];
+      [mgr removeFileAtPath: tmpPath handler: nil];
+      [mgr removeFileAtPath: crtPath handler: nil];
+      if (nil == key)
+	{
+	  NSLog(@"Failed to make self-signed certificate key using 'certtool'");
+	  return nil;
+	}
+      if (nil == crt)
+	{
+	  NSLog(@"Failed to make self-signed certificate using 'certtool'");
+	  return nil;
+	}
+      keyPath = standardizedPath(@"self-signed-key");
+      [self setData: key forTLSFile: keyPath];
+      crtPath = standardizedPath(@"self-signed-crt-");
+      [self setData: crt forTLSFile: crtPath];
+    }
+
+  return [self credentialsFromCAFile: nil
+		       defaultCAFile: nil
+			  revokeFile: nil
+		   defaultRevokeFile: nil
+		     certificateFile: crtPath
+		  certificateKeyFile: keyPath
+	      certificateKeyPassword: nil
+			    asClient: NO
+			       debug: debug];
+}
+
 + (GSTLSCredentials*) credentialsFromCAFile: (NSString*)ca
                               defaultCAFile: (NSString*)dca
                                  revokeFile: (NSString*)rv
@@ -1322,6 +1407,7 @@ static NSMutableDictionary      *credentialsCache = nil;
   return [c autorelease];
 }
 
+
 - (void) dealloc
 {
   if (nil != name)
@@ -1539,17 +1625,18 @@ retrieve_callback(gnutls_session_t session,
 {
   if (nil != (self = [super init]))
     {
-      NSString  *ca;
-      NSString  *dca;
-      NSString  *rv;
-      NSString  *drv;
-      NSString  *cf;
-      NSString  *ck;
-      NSString  *cp;
-      NSString  *pri;
-      NSString  *str;
-      BOOL      trust;
-      BOOL      verify;
+      GSTLSCredentials	*cr;
+      NSString  	*ca;
+      NSString  	*dca;
+      NSString  	*rv;
+      NSString  	*drv;
+      NSString  	*cf;
+      NSString  	*ck;
+      NSString  	*cp;
+      NSString  	*pri;
+      NSString  	*str;
+      BOOL      	trust;
+      BOOL      	verify;
 
       created = [NSDate timeIntervalSinceReferenceDate];
       opts = [options copy];
@@ -1632,28 +1719,41 @@ retrieve_callback(gnutls_session_t session,
         }
       setup = YES;
 
-      ca = [opts objectForKey: GSTLSCAFile];
-      dca = caFile;
-      rv = [opts objectForKey: GSTLSRevokeFile];
-      drv = revokeFile;
       cf = [opts objectForKey: GSTLSCertificateFile];
-      ck = [opts objectForKey: GSTLSCertificateKeyFile];
-      cp =  [opts objectForKey: GSTLSCertificateKeyPassword];
 
-      credentials = [[GSTLSCredentials credentialsFromCAFile: ca
-                                               defaultCAFile: dca
-                                                  revokeFile: rv
-                                           defaultRevokeFile: drv
-                                             certificateFile: cf
-                                          certificateKeyFile: ck
-                                      certificateKeyPassword: cp
-                                                    asClient: outgoing
-                                                       debug: debug] retain];
+      if (nil == cf && NO == outgoing)
+	{
+	  /* Server with no certiticate supplied: generate self signed one.
+	   */
+	  cr = [GSTLSCredentials selfSigned: debug];
+	}
+      else
+	{
+	  ca = [opts objectForKey: GSTLSCAFile];
+	  dca = caFile;
+	  rv = [opts objectForKey: GSTLSRevokeFile];
+	  drv = revokeFile;
+	  ck = [opts objectForKey: GSTLSCertificateKeyFile];
+	  cp =  [opts objectForKey: GSTLSCertificateKeyPassword];
 
+	  cr = [GSTLSCredentials credentialsFromCAFile: ca
+					 defaultCAFile: dca
+					    revokeFile: rv
+				     defaultRevokeFile: drv
+				       certificateFile: cf
+				    certificateKeyFile: ck
+				certificateKeyPassword: cp
+					      asClient: outgoing
+						 debug: debug];
+	}
 
-      if (nil == credentials)
+      if (cr)
         {
-          [self release];
+	  ASSIGN(credentials, cr);
+	}
+      else
+	{
+          RELEASE(self);
           return nil;
         }
 
