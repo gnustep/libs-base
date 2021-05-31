@@ -126,6 +126,7 @@ static uint32_t	maxDataLength = 32 * 1024 * 1024;
 /* Options for TLS encryption of connections
  */
 static NSDictionary     *tlsOptions;
+static NSLock		*tlsLock;
 
 #if 0
 #define	M_LOCK(X) {NSDebugMLLog(@"GSTcpHandleLock",@"lock %@ in %@",X,[NSThread currentThread]); [X lock];}
@@ -546,6 +547,8 @@ static Class	runLoopClass;
 {
   if (self == [GSTcpHandle class])
     {
+      tlsLock = [NSLock new];
+      [[NSObject leakAt: &tlsLock] release];
 #ifdef _WIN32
       WORD wVersionRequested;
       WSADATA wsaData;
@@ -1888,7 +1891,12 @@ static Class		tcpPortClass;
 	  NSMapInsert(thePorts, (void*)aHost, (void*)port);
 	  NSDebugMLLog(@"NSPort", @"Created speaking port: %@", port);
 	}
-      [port setOptionsForTLS: tlsOptions];
+      if (tlsOptions != nil)
+	{
+	  [tlsLock lock];
+	  [port setOptionsForTLS: tlsOptions];
+	  [tlsLock unlock];
+	}
     }
   else
     {
@@ -1903,7 +1911,12 @@ static Class		tcpPortClass;
 
 + (void) setOptionsForTLS: (NSDictionary*)options
 {
-  ASSIGNCOPY(tlsOptions, options);
+  if (options != tlsOptions)
+    {
+      [tlsLock lock];
+      ASSIGNCOPY(tlsOptions, options);
+      [tlsLock unlock];
+    }
 }
 
 - (void) addHandle: (GSTcpHandle*)handle forSend: (BOOL)send
