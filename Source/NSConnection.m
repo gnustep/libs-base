@@ -2017,8 +2017,7 @@ static NSLock	*cached_proxies_gate = nil;
 
   [self _sendOutRmc: op type: METHOD_REQUEST sequence: seq];
   name = sel_getName([inv selector]);
-  NSDebugMLLog(@"NSConnection", @"Sent message %s RMC %d to 0x%"PRIxPTR,
-    name, seq, (NSUInteger)self);
+  NSDebugMLLog(@"RMC", @"Sent message %s RMC %d to %p", name, seq, self);
 
   if (needsResponse == NO)
     {
@@ -3134,8 +3133,8 @@ static NSLock	*cached_proxies_gate = nil;
     {
       BOOL	warned = NO;
 
-      if (debug_connection > 5)
-	NSLog(@"Waiting for reply %d (%s) on %@", sn, request, self);
+      NSDebugMLLog(@"RMC", @"Waiting for reply RMC %d (%s) on %@",
+        sn, request, self);
       GS_M_LOCK(IrefGate); isLocked = YES;
       while (IisValid == YES
 	&& (node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)(NSUInteger)sn)) != 0
@@ -3244,8 +3243,8 @@ static NSLock	*cached_proxies_gate = nil;
     }
   NS_ENDHANDLER
 
-  NSDebugMLLog(@"NSConnection", @"Consuming reply %d (%s) on %"PRIxPTR,
-    sn, request, (NSUInteger)self);
+  NSDebugMLLog(@"RMC", @"Consuming reply RMC %d (%s) on %p",
+    sn, request, self);
   return rmc;
 }
 
