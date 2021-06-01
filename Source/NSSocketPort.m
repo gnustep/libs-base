@@ -243,7 +243,9 @@ typedef enum {
   NSSocketPort		*sendPort;
   struct sockaddr	sockAddr;	/* Far end of connection.	*/
   NSString		*defaultAddress;
+#if     defined(HAVE_GNUTLS)
   GSTLSSession		*session;	/* Session for encryption.	*/
+#endif
 }
 
 + (GSTcpHandle*) handleWithDescriptor: (SOCKET)d;
@@ -352,7 +354,7 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
     }
   return result;
 }
-#endif
+#endif // HAVE_GNUTLS
 
 /*
  * Utility functions for encoding and decoding ports.
@@ -825,11 +827,13 @@ static Class	runLoopClass;
 - (void) finalize
 {
   [self invalidate];
+#if     defined(HAVE_GNUTLS)
   if (session)
     {
       [session disconnect: NO];
       DESTROY(session);
     }
+#endif
 #if	defined(_WIN32)
   if (event != WSA_INVALID_EVENT)
     {
@@ -910,6 +914,7 @@ static Class	runLoopClass;
    * Now try to fill the buffer with data.
    */
   bytes = [rData mutableBytes];
+#if     defined(HAVE_GNUTLS)
   if (session)
     {
       if ([session handshake])
@@ -922,6 +927,7 @@ static Class	runLoopClass;
 	}
     }
   else
+#endif
     {
       res = recv(desc, bytes + rLength, want - rLength, 0);
     }
@@ -1254,6 +1260,7 @@ static Class	runLoopClass;
 	  b = [cData bytes];
 	  l = [cData length];
 
+#if     defined(HAVE_GNUTLS)
 	  if (session)
 	    {
 	      if ([session handshake])
@@ -1266,6 +1273,7 @@ static Class	runLoopClass;
 		}
 	    }
 	  else
+#endif
 	    {
 	      len = send(desc, b + cLength, l - cLength, 0);
 	    }
@@ -1328,6 +1336,7 @@ static Class	runLoopClass;
 	}
       b = [wData bytes];
       l = [wData length];
+#if     defined(HAVE_GNUTLS)
       if (session)
 	{
 	  if ([session handshake])
@@ -1340,6 +1349,7 @@ static Class	runLoopClass;
 	    }
 	}
       else
+#endif
 	{
 	  res = send(desc, b + wLength,  l - wLength, 0);
 	}
@@ -1603,6 +1613,7 @@ static Class	runLoopClass;
 
 - (void) setupTLS: (NSSocketPort*)port asClient: (BOOL)outgoing
 {
+#if     defined(HAVE_GNUTLS)
   NSDictionary	*opts;
 
   if (nil == session && (opts = [port optionsForTLS]) != nil)
@@ -1613,6 +1624,7 @@ static Class	runLoopClass;
                                                  push: GSTLSHandlePush
                                                  pull: GSTLSHandlePull];
     }
+#endif
 }
 
 - (GSHandleState) state
