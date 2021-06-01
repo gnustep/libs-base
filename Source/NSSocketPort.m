@@ -265,7 +265,6 @@ typedef enum {
 - (NSSocketPort*) sendPort;
 - (void) setState: (GSHandleState)s;
 - (GSHandleState) state;
-- (void) setupTLS: (NSSocketPort*)opts asClient: (BOOL)outgoing;
 @end
 
 
@@ -634,8 +633,7 @@ static Class	runLoopClass;
   NSRunLoop		*l;
 
   M_LOCK(myLock);
-  NSDebugMLLog(@"GSTcpHandle",
-    @"Connecting on 0x%"PRIxPTR" before %@", (NSUInteger)self, when);
+  NSDebugMLLog(@"GSTcpHandle", @"Connecting on %p before %@", self, when);
   if (state != GS_H_UNCON)
     {
       BOOL	result;
@@ -852,8 +850,7 @@ static Class	runLoopClass;
       if (valid == YES)
 	{
 	  valid = NO;
-	  NSDebugMLLog(@"GSTcpHandle",
-	    @"invalidated 0x%"PRIxPTR, (NSUInteger)self);
+	  NSDebugMLLog(@"GSTcpHandle", @"invalidated %p", self);
 	  [[self recvPort] removeHandle: self];
 	  [[self sendPort] removeHandle: self];
 	}
@@ -929,8 +926,7 @@ static Class	runLoopClass;
     {
       if (res == 0)
         {
-          NSDebugMLLog(@"GSTcpHandle",
-	    @"read eof on 0x%"PRIxPTR, (NSUInteger)self);
+          NSDebugMLLog(@"GSTcpHandle", @"read eof on %p", self);
           [self invalidate];
           return;
         }
@@ -948,8 +944,7 @@ static Class	runLoopClass;
 	}
       res = 0;	/* Interrupted - continue	*/
     }
-  NSDebugMLLog(@"GSTcpHandle",
-    @"read %d bytes on 0x%"PRIxPTR, res, (NSUInteger)self);
+  NSDebugMLLog(@"GSTcpHandle", @"read %d bytes on %p", res, self);
   rLength += res;
 
   while (valid == YES && rLength >= rWant)
@@ -1199,8 +1194,7 @@ static Class	runLoopClass;
           [pm setMsgid: rId];
           rId = 0;
           DESTROY(rItems);
-          NSDebugMLLog(@"GSTcpHandle",
-	    @"got message %@ on 0x%"PRIxPTR, pm, (NSUInteger)self);
+          NSDebugMLLog(@"GSTcpHandle", @"got message %@ on %p", pm, self);
           IF_NO_GC(RETAIN(rp);)
           M_UNLOCK(myLock);
           NS_DURING
@@ -1246,10 +1240,27 @@ static Class	runLoopClass;
 	  unsigned	l;
 	  const void	*b;
 
+	  /* We have established a new network (TCP/IP) connection and the
+	   * first thing to do is send out port information (after setting
+	   * up a TLS session if necessary).
+	   */
 	  if (nil == cData)
 	    {
-	      ASSIGN(cData, newDataWithEncodedPort([self recvPort]));
+	      NSSocketPort	*p = [self recvPort];
+	      NSDictionary	*t = [p optionsForTLS];
+
+	      ASSIGN(cData, newDataWithEncodedPort(p));
 	      cLength = 0;
+	      DESTROY(session);
+	      if (t)
+		{
+		  session = [[GSTLSSession alloc]
+		    initWithOptions: t
+			  direction: YES	// as client
+			  transport: self
+			       push: GSTLSHandlePush
+			       pull: GSTLSHandlePull];
+		}
 	    }
 	  b = [cData bytes];
 	  l = [cData length];
@@ -1299,7 +1310,7 @@ static Class	runLoopClass;
 		  DESTROY(cData);
 		  ASSIGN(defaultAddress, GSPrivateSockaddrHost(&sockAddr));
 		  NSDebugMLLog(@"GSTcpHandle",
-		    @"wrote %d bytes on 0x%"PRIxPTR, len, (NSUInteger)self);
+		    @"wrote %d bytes on %p", len, self);
 		  state = GS_H_CONNECTED;
 		}
 	    }
@@ -1322,7 +1333,7 @@ static Class	runLoopClass;
 	    }
 	  else
 	    {
-// NSLog(@"No messages to write on 0x%"PRIxPTR".", (NSUInteger)self);
+// NSLog(@"No messages to write on %p.", self);
 	      return;
 	    }
 	}
@@ -1365,8 +1376,7 @@ static Class	runLoopClass;
 	}
       else
         {
-          NSDebugMLLog(@"GSTcpHandle",
-            @"wrote %d bytes on 0x%"PRIxPTR, res, (NSUInteger)self);
+          NSDebugMLLog(@"GSTcpHandle", @"wrote %d bytes on %p", res, self);
 	  wLength += res;
           if (wLength == l)
             {
@@ -1391,8 +1401,8 @@ static Class	runLoopClass;
 	           * message completed - remove from list.
 	           */
 	          NSDebugMLLog(@"GSTcpHandle",
-	            @"completed 0x%"PRIxPTR" on 0x%"PRIxPTR,
-		    (NSUInteger)components, (NSUInteger)self);
+	            @"completed %p on %p",
+		    components, self);
 		  wData = nil;
 	          wItem = 0;
 	          [wMsgs removeObjectAtIndex: 0];
@@ -1529,8 +1539,8 @@ static Class	runLoopClass;
 
   NSAssert([components count] > 0, NSInternalInconsistencyException);
   NSDebugMLLog(@"GSTcpHandle",
-    @"Sending message 0x%"PRIxPTR" %@ on 0x%"PRIxPTR"(%d) before %@",
-    (NSUInteger)components, components, (NSUInteger)self, desc, when);
+    @"Sending message %p %@ on %p(%d) before %@",
+    components, components, self, desc, when);
   M_LOCK(myLock);
   [wMsgs addObject: components];
 
@@ -1580,8 +1590,8 @@ static Class	runLoopClass;
     }
   M_UNLOCK(myLock);
   NSDebugMLLog(@"GSTcpHandle",
-    @"Message send 0x%"PRIxPTR" on 0x%"PRIxPTR" status %d",
-    (NSUInteger)components, (NSUInteger)self, sent);
+    @"Message send %p on %p status %d",
+    components, self, sent);
   RELEASE(self);
   return sent;
 }
@@ -1599,20 +1609,6 @@ static Class	runLoopClass;
 - (void) setState: (GSHandleState)s
 {
   state = s;
-}
-
-- (void) setupTLS: (NSSocketPort*)port asClient: (BOOL)outgoing
-{
-  NSDictionary	*opts;
-
-  if (nil == session && (opts = [port optionsForTLS]) != nil)
-    {
-      session = [[GSTLSSession alloc] initWithOptions: opts
-                                            direction: outgoing
-                                            transport: (void*)self
-                                                 push: GSTLSHandlePush
-                                                 pull: GSTLSHandlePull];
-    }
 }
 
 - (GSHandleState) state
@@ -1970,8 +1966,7 @@ static Class		tcpPortClass;
 
 - (void) finalize
 {
-  NSDebugMLLog(@"NSPort",
-    @"NSSocketPort 0x%"PRIxPTR" finalized", (NSUInteger)self);
+  NSDebugMLLog(@"NSPort", @"NSSocketPort %p finalized", self);
   M_LOCK(tcpPortLock);
   NSMapRemove(tcpPortMap, (void*)(uintptr_t)portNum);
   M_UNLOCK(tcpPortLock);
@@ -2167,7 +2162,6 @@ static Class		tcpPortClass;
     }
   else
     {
-      [handle setupTLS: self asClient: YES];
       [recvPort addHandle: handle forSend: NO];
     }
   M_UNLOCK(myLock);
@@ -2322,8 +2316,8 @@ static Class		tcpPortClass;
 #endif
   GSTcpHandle	*handle;
 
-  NSDebugMLLog(@"NSPort", @"received %s event %p on 0x%"PRIxPTR,
-    type == ET_RPORT ? "read" : "write", extra, (NSUInteger)self);
+  NSDebugMLLog(@"NSPort", @"received %s event %p on %p",
+    type == ET_RPORT ? "read" : "write", extra, self);
 
 #if	defined(_WIN32)
   if (event == eventListener)
@@ -2341,7 +2335,8 @@ static Class		tcpPortClass;
         }
       else
 	{
-	  int	status = 1;
+	  int		status = 1;
+	  NSDictionary	*o;
 
 	  if (setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
 	    (OPTLEN)sizeof(status)) < 0)
@@ -2362,7 +2357,15 @@ static Class		tcpPortClass;
 	  memcpy(&handle->sockAddr, &sockAddr, sizeof(sockAddr));
 	  ASSIGN(handle->defaultAddress, GSPrivateSockaddrHost(&sockAddr));
 	  [handle setState: GS_H_ACCEPT];
-	  [handle setupTLS: self asClient: NO];
+	  if ((o = [self optionsForTLS]) != nil)
+	    {
+	      handle->session = [[GSTLSSession alloc]
+		initWithOptions: o
+		      direction: NO	// as server
+		      transport: handle
+			   push: GSTLSHandlePush
+			   pull: GSTLSHandlePull];
+	    }
 	  [self addHandle: handle forSend: NO];
 	}
     }
