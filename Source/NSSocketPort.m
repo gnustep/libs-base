@@ -243,7 +243,9 @@ typedef enum {
   NSSocketPort		*sendPort;
   struct sockaddr	sockAddr;	/* Far end of connection.	*/
   NSString		*defaultAddress;
+#if	defined(HAVE_GNUTLS)
   GSTLSSession		*session;	/* Session for encryption.	*/
+#endif
 }
 
 + (GSTcpHandle*) handleWithDescriptor: (SOCKET)d;
@@ -823,11 +825,13 @@ static Class	runLoopClass;
 - (void) finalize
 {
   [self invalidate];
+#if	defined(HAVE_GNUTLS)
   if (session)
     {
       [session disconnect: NO];
       DESTROY(session);
     }
+#endif
 #if	defined(_WIN32)
   if (event != WSA_INVALID_EVENT)
     {
@@ -907,6 +911,7 @@ static Class	runLoopClass;
    * Now try to fill the buffer with data.
    */
   bytes = [rData mutableBytes];
+#if	defined(HAVE_GNUTLS)
   if (session)
     {
       if ([session handshake])
@@ -922,6 +927,10 @@ static Class	runLoopClass;
     {
       res = recv(desc, bytes + rLength, want - rLength, 0);
     }
+#else
+  res = recv(desc, bytes + rLength, want - rLength, 0);
+#endif
+
   if (res <= 0)
     {
       if (res == 0)
@@ -1248,24 +1257,28 @@ static Class	runLoopClass;
 	  if (nil == cData)
 	    {
 	      NSSocketPort	*p = [self recvPort];
-	      NSDictionary	*t = [p optionsForTLS];
 
 	      ASSIGN(cData, newDataWithEncodedPort(p));
 	      cLength = 0;
+
+#if	defined(HAVE_GNUTLS)
+	      NSDictionary	*opts = [p optionsForTLS];
 	      DESTROY(session);
-	      if (t)
+	      if (opts)
 		{
 		  session = [[GSTLSSession alloc]
-		    initWithOptions: t
+		    initWithOptions: opts
 			  direction: YES	// as client
 			  transport: self
 			       push: GSTLSHandlePush
 			       pull: GSTLSHandlePull];
 		}
+#endif
 	    }
 	  b = [cData bytes];
 	  l = [cData length];
 
+#if	defined(HAVE_GNUTLS)
 	  if (session)
 	    {
 	      if ([session handshake])
@@ -1281,6 +1294,10 @@ static Class	runLoopClass;
 	    {
 	      len = send(desc, b + cLength, l - cLength, 0);
 	    }
+#else
+	  len = send(desc, b + cLength, l - cLength, 0);
+#endif
+
 	  if (len <= 0)
 	    {
 #ifdef _WIN32
@@ -1340,6 +1357,7 @@ static Class	runLoopClass;
 	}
       b = [wData bytes];
       l = [wData length];
+#if	defined(HAVE_GNUTLS)
       if (session)
 	{
 	  if ([session handshake])
@@ -1355,6 +1373,9 @@ static Class	runLoopClass;
 	{
 	  res = send(desc, b + wLength,  l - wLength, 0);
 	}
+#else
+      res = send(desc, b + wLength,  l - wLength, 0);
+#endif
       if (res < 0)
         {
 #ifdef _WIN32
@@ -2336,7 +2357,6 @@ static Class		tcpPortClass;
       else
 	{
 	  int		status = 1;
-	  NSDictionary	*o;
 
 	  if (setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
 	    (OPTLEN)sizeof(status)) < 0)
@@ -2357,6 +2377,8 @@ static Class		tcpPortClass;
 	  memcpy(&handle->sockAddr, &sockAddr, sizeof(sockAddr));
 	  ASSIGN(handle->defaultAddress, GSPrivateSockaddrHost(&sockAddr));
 	  [handle setState: GS_H_ACCEPT];
+#if	defined(HAVE_GNUTLS)
+	  NSDictionary	*o;
 	  if ((o = [self optionsForTLS]) != nil)
 	    {
 	      handle->session = [[GSTLSSession alloc]
@@ -2366,6 +2388,7 @@ static Class		tcpPortClass;
 			   push: GSTLSHandlePush
 			   pull: GSTLSHandlePull];
 	    }
+#endif
 	  [self addHandle: handle forSend: NO];
 	}
     }
