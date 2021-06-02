@@ -1159,12 +1159,13 @@ static Class	runLoopClass;
 
 	      if (state == GS_H_ACCEPT)
 	        {
-	          /*
-	           * This is the initial port information on a new
+	          /* This is the initial port information on a new
 	           * connection - set up port relationships.
 	           */
 	          state = GS_H_CONNECTED;
 	          [p addHandle: self forSend: YES];
+                  NSDebugMLLog(@"GSTcpHandle",
+                    @"accepted connection from %@ on %p", p, self);
 	        }
 	      else
 	        {
@@ -1310,7 +1311,7 @@ static Class	runLoopClass;
 		  DESTROY(cData);
 		  ASSIGN(defaultAddress, GSPrivateSockaddrHost(&sockAddr));
 		  NSDebugMLLog(@"GSTcpHandle",
-		    @"wrote %d bytes on %p", len, self);
+		    @"connect wrote %d bytes on %p", len, self);
 		  state = GS_H_CONNECTED;
 		}
 	    }
@@ -1401,8 +1402,7 @@ static Class	runLoopClass;
 	           * message completed - remove from list.
 	           */
 	          NSDebugMLLog(@"GSTcpHandle",
-	            @"completed %p on %p",
-		    components, self);
+	            @"completed %p on %p", components, self);
 		  wData = nil;
 	          wItem = 0;
 	          [wMsgs removeObjectAtIndex: 0];
