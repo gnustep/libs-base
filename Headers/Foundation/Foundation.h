@@ -47,6 +47,7 @@
 #import	<Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSBackgroundActivityScheduler.h>
 #import	<Foundation/NSBundle.h>
+#import <Foundation/NSByteCountFormatter.h>
 #import	<Foundation/NSByteOrder.h>
 #import	<Foundation/NSCache.h>
 #import	<Foundation/NSCalendar.h>
