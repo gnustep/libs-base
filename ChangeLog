@@ -1,7 +1,31 @@
+
 2021-06-02 Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/Foundation.h: Add missing import for
         NSByteCountFormatter.
+
+2021-05-31 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSTLS.h: ([GSTLSCredentials selfSigned:])
+	* Source/GSTLS.m: Add new method to use certtool to generate a
+	key and a self-signed certificate.  Use the new method to set up
+	server sessions if no certificate/key is configured.
+	* Headers/Foundation/NSPort.h: ([NSSocketPost setOptionsForTLS:])
+	* Source/NSSocketPort.m: New methods to configure socket ports to
+	use TLS so that inter-host distributed object connections can be
+	securely encrypted.  The class method should turn on encryption
+	for all subsequent connections using socket ports (the instance
+	method can be used to override the effects of the class method
+	for an individual instance).
+
+2021-05-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSStream.m:
+	When we get an event saying that there is space available, we should
+	change the stream status from writing to open (because the write
+	operation completed).  This makes the -hasSpaceAvailable method return
+	the correct value when a callback routine is checking to see if it
+	can write.
 
 2021-05-19 Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -11,10 +11,11 @@ START_SET("TLS support")
 #ifndef HAVE_GNUTLS_X509_PRIVKEY_IMPORT2
  testHopeful = YES;
 #endif
-  GSTLSPrivateKey        *k;
-  GSTLSCertificateList   *c;
-  NSDateFormatter        *dateFormatter;
-  NSDate                 *expiresAt;
+  GSTLSPrivateKey       *k;
+  GSTLSCertificateList  *c;
+  GSTLSCredentials	*cred;
+  NSDateFormatter       *dateFormatter;
+  NSDate                *expiresAt;
 
   k = [GSTLSPrivateKey keyFromFile: @"test.key" withPassword: @"asdf"]; 
   PASS(k != nil, "OpenSSL encrypted key can be loaded");
@@ -39,6 +40,12 @@ START_SET("TLS support")
 #else
   SKIP("TLS support disabled");
 #endif
+
+  
+  cred = [GSTLSCredentials selfSigned: YES];
+  NSLog(@"%@", cred);
+  PASS(cred != nil, "generates self signed certificate");
+
   END_SET("TLS support");
   DESTROY(arp);
   return 0;
