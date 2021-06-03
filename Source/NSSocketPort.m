@@ -806,8 +806,8 @@ static Class	runLoopClass;
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"Handle (%d) to %@",
-    desc, GSPrivateSockaddrName(&sockAddr)];
+  return [NSString stringWithFormat: @"<Handle %p (%d) to %@>",
+    self, desc, GSPrivateSockaddrName(&sockAddr)];
 }
 
 - (int) descriptor
@@ -951,7 +951,8 @@ static Class	runLoopClass;
 	  [self invalidate];
 	  return;
 	}
-      res = 0;	/* Interrupted - continue	*/
+      NSDebugMLLog(@"GSTcpHandle", @"read would block on %p", self);
+      return;	/* Interrupted - continue	*/
     }
   NSDebugMLLog(@"GSTcpHandle", @"read %d bytes on %p", res, self);
   rLength += res;
@@ -1229,35 +1230,34 @@ static Class	runLoopClass;
 
 - (void) receivedEventWrite
 {
-  if (state == GS_H_TRYCON)	/* Connection attempt.	*/
+  if (GS_H_TRYCON == state)	/* Connection attempt.	*/
     {
       int	res = 0;
-      socklen_t len = sizeof(res);
 
-      if (getsockopt(desc, SOL_SOCKET, SO_ERROR, (char*)&res,
-	(OPTLEN*)&len) != 0)
+      if (nil == cData)
         {
-          state = GS_H_UNCON;
-          NSLog(@"connect attempt failed - %@", [NSError _last]);
-        }
-      else if (res != 0)
-        {
-          state = GS_H_UNCON;
-          NSLog(@"connect attempt failed - %@", [NSError _systemError: res]);
-        }
-      else
-        {
-	  unsigned	l;
-	  const void	*b;
+          socklen_t     len = sizeof(res);
 
-	  /* We have established a new network (TCP/IP) connection and the
-	   * first thing to do is send out port information (after setting
-	   * up a TLS session if necessary).
-	   */
-	  if (nil == cData)
-	    {
+          if (getsockopt(desc, SOL_SOCKET, SO_ERROR, (char*)&res,
+            (OPTLEN*)&len) != 0)
+            {
+              state = GS_H_UNCON;
+              NSLog(@"connect attempt failed - %@", [NSError _last]);
+            }
+          else if (res != 0)
+            {
+              state = GS_H_UNCON;
+              NSLog(@"connect attempt failed - %@",
+                [NSError _systemError: res]);
+            }
+          else
+            {
 	      NSSocketPort	*p = [self recvPort];
 
+              /* We have established a new network (TCP/IP) connection and the
+               * first thing to do is send out port information (after setting
+               * up a TLS session if necessary).
+               */
 	      ASSIGN(cData, newDataWithEncodedPort(p));
 	      cLength = 0;
 
@@ -1266,17 +1266,23 @@ static Class	runLoopClass;
 	      DESTROY(session);
 	      if (opts)
 		{
-		  session = [[GSTLSSession alloc]
-		    initWithOptions: opts
+		  session = [[GSTLSSession alloc] initWithOptions: opts
 			  direction: YES	// as client
 			  transport: self
 			       push: GSTLSHandlePush
 			       pull: GSTLSHandlePull];
+		  NSDebugMLLog(@"GSTcpHandle",
+		    @"%@ is connecting using %@", self, session);
 		}
 #endif
-	    }
-	  b = [cData bytes];
-	  l = [cData length];
+            }
+        }
+
+      if (GS_H_TRYCON == state)
+        {
+	  unsigned	l = [cData length];
+	  const void	*b = [cData bytes];
+          int           len;
 
 #if	defined(HAVE_GNUTLS)
 	  if (session)
@@ -2387,6 +2393,8 @@ static Class		tcpPortClass;
 		      transport: handle
 			   push: GSTLSHandlePush
 			   pull: GSTLSHandlePull];
+              NSDebugMLLog(@"GSTcpHandle",
+                @"%@ is accepting using %@", handle, handle->session);
 	    }
 #endif
 	  [self addHandle: handle forSend: NO];

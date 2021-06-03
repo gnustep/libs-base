@@ -1,3 +1,12 @@
+2021-06-03 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSTLS.h: New session ivar for I/O handle.
+	* Source/GSTLS.m: Report the I/O handle in debug logs so we can
+	more easily track which logs refer apply to the objects using a
+	session.
+	* Source/NSSocketPort.m: debug improvements plus fixes to the code
+	for initiating connections so that the initial port information is
+	reliably written to the handle.
 
 2021-06-02 Gregory John Casamento <greg.casamento@gmail.com>
 
