@@ -207,18 +207,19 @@ GS_EXPORT_CLASS
   BOOL                                  setup;
   BOOL                                  debug;
   NSTimeInterval                        created;
+  void                                  *handle;
 @public
   gnutls_session_t                      session;
 }
 + (GSTLSSession*) sessionWithOptions: (NSDictionary*)options
                            direction: (BOOL)isOutgoing
-                           transport: (void*)handle
+                           transport: (void*)ioHandle
                                 push: (GSTLSIOW)pushFunc
                                 pull: (GSTLSIOR)pullFunc;
 
 - (id) initWithOptions: (NSDictionary*)options
              direction: (BOOL)isOutgoing
-             transport: (void*)handle
+             transport: (void*)ioHandle
                   push: (GSTLSIOW)pushFunc
                   pull: (GSTLSIOR)pullFunc;
 
