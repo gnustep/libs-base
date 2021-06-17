@@ -1161,7 +1161,7 @@ static NSMutableDictionary      *credentialsCache = nil;
 	}
       keyPath = standardizedPath(@"self-signed-key");
       [self setData: key forTLSFile: keyPath];
-      crtPath = standardizedPath(@"self-signed-crt-");
+      crtPath = standardizedPath(@"self-signed-crt");
       [self setData: crt forTLSFile: crtPath];
     }
 
