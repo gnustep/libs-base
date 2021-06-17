@@ -364,10 +364,10 @@ EntryForEncoding(NSStringEncoding enc)
 {
   struct _strenc_ *entry = 0;
 
-  if (enc > 0)
+  if (enc != 0)
     {
       GSSetupEncodingTable();
-      if (enc <= encTableSize)
+      if (enc > 0 && enc <= encTableSize)
 	{
 	  entry = encodingTable[enc];
 	}
