@@ -1159,9 +1159,7 @@ static NSMutableDictionary      *credentialsCache = nil;
 	  NSLog(@"Failed to make self-signed certificate using 'certtool'");
 	  return nil;
 	}
-      keyPath = standardizedPath(@"self-signed-key");
       [self setData: key forTLSFile: keyPath];
-      crtPath = standardizedPath(@"self-signed-crt");
       [self setData: crt forTLSFile: crtPath];
     }
 
