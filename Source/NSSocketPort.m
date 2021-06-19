@@ -74,10 +74,24 @@
 #endif
 
 #ifdef _WIN32
+
 #include <winsock2.h>
 #include <wininet.h>
 #include <process.h>
-#else
+
+static int socketError()
+{
+  int	e = WSAGetLastError();
+
+  switch (e)
+    case WSAEWOULDBLOCK: return EAGAIN;
+    case WSAEINTR: return EINTR;
+    default: return e; 
+  }
+}
+
+#else	/* _WIN32 */
+
 #include <sys/resource.h>
 #include <netdb.h>
 #include <sys/socket.h>
@@ -116,6 +130,10 @@
 #define	SOCKET_ERROR	-1
 #define	INVALID_SOCKET	-1
 
+static int socketError()
+{
+  return errno;
+}
 #endif /* !_WIN32 */
 
 /*
@@ -288,25 +306,9 @@ GSTLSHandlePull(gnutls_transport_ptr_t handle, void *buffer, size_t len)
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
       if (tls->session && tls->session->session)
         {
-	  int	e;
+	  int	e = socketError();	// Get unix style EINTR/EAGAIN
 
-#if  defined(_WIN32)
-	  /* For windows, we need to map winsock errors to unix ones that
-	   * gnutls understands.
-	   */
-	  e = WSAGetLastError();
-	  if (WSAEWOULDBLOCK == e)
-	    {
-	      e = EAGAIN;
-	    }
-	  else if (WSAEINTR == e)
-	    {
-	      e = EINTR;
-	    }
-#else
-	  e = errno;
-#endif
-          gnutls_transport_set_errno (tls->session->session, e);
+          gnutls_transport_set_errno(tls->session->session, e);
         }
 #endif
     }
@@ -329,24 +331,8 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
       if (tls->session && tls->session->session)
         {
-	  int	e;
+	  int	e = socketError();	// Get unix style EINTR/EAGAIN
 
-#if  defined(_WIN32)
-	  /* For windows, we need to map winsock errors to unix ones that
-	   * gnutls understands.
-	   */
-	  e = WSAGetLastError();
-	  if (WSAEWOULDBLOCK == e)
-	    {
-	      e = EAGAIN;
-	    }
-	  else if (WSAEINTR == e)
-	    {
-	      e = EINTR;
-	    }
-#else
-	  e = errno;
-#endif
           gnutls_transport_set_errno(tls->session->session, e);
         }
 #endif
@@ -825,13 +811,6 @@ static Class	runLoopClass;
 - (void) finalize
 {
   [self invalidate];
-#if	defined(HAVE_GNUTLS)
-  if (session)
-    {
-      [session disconnect: NO];
-      DESTROY(session);
-    }
-#endif
 #if	defined(_WIN32)
   if (event != WSA_INVALID_EVENT)
     {
@@ -860,6 +839,13 @@ static Class	runLoopClass;
 	}
       M_UNLOCK(myLock);
     }
+#if	defined(HAVE_GNUTLS)
+  if (session)
+    {
+      [session disconnect: NO];
+      DESTROY(session);
+    }
+#endif
 }
 
 - (BOOL) isValid
@@ -916,10 +902,21 @@ static Class	runLoopClass;
     {
       if ([session handshake])
 	{
-	  res = [session read: bytes + rLength length: want - rLength];
+	  if (![session active])
+	    {
+	      NSDebugMLLog(@"GSTcpHandle",
+		@"TLS handshake failed on %p - %@", self, [session problem]);
+	      [self invalidate];
+	      return;
+	    }
+	  else
+	    {
+	      res = [session read: bytes + rLength length: want - rLength];
+	    }
 	}
       else
 	{
+	  errno = EAGAIN;
 	  res = -1;
 	}
     }
@@ -933,18 +930,15 @@ static Class	runLoopClass;
 
   if (res <= 0)
     {
+      int	e = socketError();
+
       if (res == 0)
         {
           NSDebugMLLog(@"GSTcpHandle", @"read eof on %p", self);
           [self invalidate];
           return;
         }
-#ifdef _WIN32
-      else if (WSAGetLastError()!= WSAEINTR
-	&& WSAGetLastError()!= WSAEWOULDBLOCK)
-#else
-      else if (errno != EINTR && errno != EAGAIN)
-#endif /* !_WIN32 */
+      else if (e != EINTR && e != EAGAIN)
 	{
 	  NSDebugMLLog(@"GSTcpHandle",
 	      @"read failed - %@ on 0x%p", [NSError _last], self);
@@ -1289,10 +1283,19 @@ static Class	runLoopClass;
 	    {
 	      if ([session handshake])
 		{
+		  if (![session active])
+		    {
+		      DESTROY(cData);
+		      NSLog(@"connect TLS handshake failed on %p - %@",
+			self, [session problem]);
+		      state = GS_H_UNCON;
+		      return;
+		    }
 		  len = [session write: b + cLength length: l - cLength];
 		}
 	      else
 		{
+		  errno = EAGAIN;
 		  len = -1;
 		}
 	    }
@@ -1306,12 +1309,9 @@ static Class	runLoopClass;
 
 	  if (len <= 0)
 	    {
-#ifdef _WIN32
-	      if (WSAGetLastError() != WSAEINTR
-		&& WSAGetLastError() != WSAEWOULDBLOCK)
-#else
-	      if (errno != EINTR && errno != EAGAIN)
-#endif /* !_WIN32 */
+	      int	e = socketError();
+
+	      if (e != EINTR && e != EAGAIN)
 		{
 		  DESTROY(cData);
 		  state = GS_H_UNCON;
@@ -1319,8 +1319,8 @@ static Class	runLoopClass;
 		    [NSError _last]);
 		  return;
 		}
-#ifdef _WIN32
-	      if (WSAGetLastError() == WSAEWOULDBLOCK)
+#if	_WIN32
+	      else
 		{
 		  readyToSend = NO;
 		}
@@ -1368,10 +1368,18 @@ static Class	runLoopClass;
 	{
 	  if ([session handshake])
 	    {
+	      if (![session active])
+		{
+		  NSLog(@"accept TLS handshake failed on %p - %@",
+		    self, [session problem]);
+		  [self invalidate];
+		  return;
+		}
 	      res = [session write: b + wLength length:  l - wLength];
 	    }
 	  else
 	    {
+	      errno = EAGAIN;
 	      res = -1;
 	    }
 	}
@@ -1384,19 +1392,16 @@ static Class	runLoopClass;
 #endif
       if (res < 0)
         {
-#ifdef _WIN32
-          if (WSAGetLastError()!= WSAEINTR
-	    && WSAGetLastError()!= WSAEWOULDBLOCK)
-#else
-	  if (errno != EINTR && errno != EAGAIN)
-#endif /* !_WIN32 */
+	  int	e = socketError();
+
+	  if (e != EINTR && e != EAGAIN)
 	    {
 	      NSLog(@"write attempt failed - %@", [NSError _last]);
 	      [self invalidate];
 	      return;
 	    }
-#ifdef _WIN32
-	  if (WSAGetLastError()== WSAEWOULDBLOCK)
+#if	_WIN32
+	  else
 	    {
 	      readyToSend = NO;
 	    }

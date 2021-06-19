@@ -1,3 +1,10 @@
+2021-06-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTLS.m:
+	* Source/NSSocketPort.m:
+	Improve reporting of TLS handshake errors, fix a few leaks and
+	generally make encryption of DO connections better.
+
 2021-06-17 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/Additions/Unicode.m:
