@@ -83,7 +83,7 @@ static int socketError()
 {
   int	e = WSAGetLastError();
 
-  switch (e)
+  switch (e) {
     case WSAEWOULDBLOCK: return EAGAIN;
     case WSAEINTR: return EINTR;
     default: return e; 
