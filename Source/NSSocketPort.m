@@ -143,7 +143,8 @@ static uint32_t	maxDataLength = 32 * 1024 * 1024;
 
 /* Options for TLS encryption of connections
  */
-static NSDictionary     *tlsOptions;
+static NSDictionary     *tlsClientOptions;
+static NSDictionary     *tlsServerOptions;
 static NSLock		*tlsLock;
 
 #if 0
@@ -225,7 +226,8 @@ typedef enum {
 } GSHandleState;
 
 @interface NSSocketPort (GSTcpHandle)
-- (NSDictionary*) optionsForTLS;
+- (NSDictionary*) clientOptionsForTLS;
+- (NSDictionary*) serverOptionsForTLS;
 @end
 
 @interface GSTcpHandle : NSObject <RunLoopEvents>
@@ -1256,7 +1258,7 @@ static Class	runLoopClass;
 	      cLength = 0;
 
 #if	defined(HAVE_GNUTLS)
-	      NSDictionary	*opts = [p optionsForTLS];
+	      NSDictionary	*opts = [p clientOptionsForTLS];
 	      DESTROY(session);
 	      if (opts)
 		{
@@ -1777,6 +1779,10 @@ static Class		tcpPortClass;
 #endif
       port->myLock = [NSRecursiveLock new];
       port->_is_valid = YES;
+      [tlsLock lock];
+      [port setClientOptionsForTLS: tlsClientOptions];
+      [port setServerOptionsForTLS: tlsServerOptions];
+      [tlsLock unlock];
 
       if (shouldListen == YES && [thisHost isEqual: aHost])
 	{
@@ -1919,12 +1925,6 @@ static Class		tcpPortClass;
 	  NSMapInsert(thePorts, (void*)aHost, (void*)port);
 	  NSDebugMLLog(@"NSPort", @"Created speaking port: %@", port);
 	}
-      if (tlsOptions != nil)
-	{
-	  [tlsLock lock];
-	  [port setOptionsForTLS: tlsOptions];
-	  [tlsLock unlock];
-	}
     }
   else
     {
@@ -1937,12 +1937,22 @@ static Class		tcpPortClass;
   return port;
 }
 
-+ (void) setOptionsForTLS: (NSDictionary*)options
++ (void) setClientOptionsForTLS: (NSDictionary*)options
 {
-  if (options != tlsOptions)
+  if (options != tlsClientOptions)
     {
       [tlsLock lock];
-      ASSIGNCOPY(tlsOptions, options);
+      ASSIGNCOPY(tlsClientOptions, options);
+      [tlsLock unlock];
+    }
+}
+
++ (void) setServerOptionsForTLS: (NSDictionary*)options
+{
+  if (options != tlsServerOptions)
+    {
+      [tlsLock lock];
+      ASSIGNCOPY(tlsServerOptions, options);
       [tlsLock unlock];
     }
 }
@@ -1972,6 +1982,42 @@ static Class		tcpPortClass;
 - (NSString*) address
 {
   return address;
+}
+
+- (NSDictionary*) clientOptionsForTLS
+{
+  NSDictionary	*opts;
+
+  M_LOCK(myLock);
+  opts = RETAIN(tlscopts);
+  M_UNLOCK(myLock);
+  return AUTORELEASE(opts);
+}
+
+- (id) conversation: (NSPort*)recvPort
+{
+  NSMapEnumerator	me;
+  void			*dummy;
+  GSTcpHandle		*handle = nil;
+
+  M_LOCK(myLock);
+  /*
+   * Enumerate all our socket handles, and look for one with port.
+   */
+  me = NSEnumerateMapTable(handles);
+  while (NSNextMapEnumeratorPair(&me, &dummy, (void**)&handle))
+    {
+      if ((NSPort*) [handle recvPort] == recvPort)
+	{
+	  IF_NO_GC(RETAIN(handle);)
+	  NSEndMapTableEnumeration(&me);
+	  M_UNLOCK(myLock);
+	  return AUTORELEASE(handle);
+	}
+    }
+  NSEndMapTableEnumeration(&me);
+  M_UNLOCK(myLock);
+  return nil;
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -2008,7 +2054,8 @@ static Class		tcpPortClass;
       NSFreeMapTable(handles);
       handles = 0;
     }
-  DESTROY(tlsopts);
+  DESTROY(tlscopts);
+  DESTROY(tlssopts);
   DESTROY(host);
   TEST_RELEASE(address);
   DESTROY(myLock);
@@ -2111,32 +2158,6 @@ static Class		tcpPortClass;
   *count = pos;
 }
 #endif
-
-- (id) conversation: (NSPort*)recvPort
-{
-  NSMapEnumerator	me;
-  void			*dummy;
-  GSTcpHandle		*handle = nil;
-
-  M_LOCK(myLock);
-  /*
-   * Enumerate all our socket handles, and look for one with port.
-   */
-  me = NSEnumerateMapTable(handles);
-  while (NSNextMapEnumeratorPair(&me, &dummy, (void**)&handle))
-    {
-      if ((NSPort*) [handle recvPort] == recvPort)
-	{
-	  IF_NO_GC(RETAIN(handle);)
-	  NSEndMapTableEnumeration(&me);
-	  M_UNLOCK(myLock);
-	  return AUTORELEASE(handle);
-	}
-    }
-  NSEndMapTableEnumeration(&me);
-  M_UNLOCK(myLock);
-  return nil;
-}
 
 - (GSTcpHandle*) handleForPort: (NSSocketPort*)recvPort
 		    beforeDate: (NSDate*)when
@@ -2320,16 +2341,6 @@ static Class		tcpPortClass;
   return NO;
 }
 
-- (NSDictionary*) optionsForTLS
-{
-  NSDictionary	*opts;
-
-  M_LOCK(myLock);
-  opts = RETAIN(tlsopts);
-  M_UNLOCK(myLock);
-  return AUTORELEASE(opts);
-}
-
 - (uint16_t) portNumber
 {
   return portNum;
@@ -2390,7 +2401,7 @@ static Class		tcpPortClass;
 	  [handle setState: GS_H_ACCEPT];
 #if	defined(HAVE_GNUTLS)
 	  NSDictionary	*o;
-	  if ((o = [self optionsForTLS]) != nil)
+	  if ((o = [self serverOptionsForTLS]) != nil)
 	    {
 	      handle->session = [[GSTLSSession alloc]
 		initWithOptions: o
@@ -2695,12 +2706,33 @@ static Class		tcpPortClass;
   return sent;
 }
 
-/** Sets the TLS options for network connections created by this port.
+- (NSDictionary*) serverOptionsForTLS
+{
+  NSDictionary	*opts;
+
+  M_LOCK(myLock);
+  opts = RETAIN(tlssopts);
+  M_UNLOCK(myLock);
+  return AUTORELEASE(opts);
+}
+
+/** Sets the TLS options for network connections created by this port
+ * acting as a network client.
  */
-- (void) setOptionsForTLS: (NSDictionary*)options
+- (void) setClientOptionsForTLS: (NSDictionary*)options
 {
   M_LOCK(myLock);
-  ASSIGNCOPY(tlsopts, options);
+  ASSIGNCOPY(tlscopts, options);
+  M_UNLOCK(myLock);
+}
+
+/** Sets the TLS options for network connections created by this port
+ * acting as a network server.
+ */
+- (void) setServerOptionsForTLS: (NSDictionary*)options
+{
+  M_LOCK(myLock);
+  ASSIGNCOPY(tlssopts, options);
   M_UNLOCK(myLock);
 }
 

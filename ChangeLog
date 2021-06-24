@@ -1,5 +1,13 @@
 2021-06-19 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/Port.h:
+	* Source/NSSocketPort.m:
+	Extend the API for TLS support in Distributed Objects so that we have
+	separate settings for whether the port is acting as a client or
+	server.
+
+2021-06-19 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSTLS.m:
 	* Source/NSSocketPort.m:
 	Improve reporting of TLS handshake errors, fix a few leaks and
