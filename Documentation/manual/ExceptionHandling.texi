@@ -385,12 +385,12 @@ behaviors:
 Basic debug log function already discussed.
 @item NSDebugLog(format, args,...)
 Equivalent to @code{NSDebugLLog} with key ``dflt'' (for default).
-@item NSDebugMLLog(level, format, args,...)
+@item NSDebugMLLog(key, format, args,...)
 Equivalent to @code{NSDebugLLog} but includes information on which method the
 logging call was made from in the message.
 @item NSDebugMLog(format, args,...)
 Same, but use 'dflt' log key.
-@item NSDebugFLLog(level, format, args,...)
+@item NSDebugFLLog(key, format, args,...)
 As @code{NSDebugMLLog} but includes information on a function rather than a
 method.
 @item NSDebugFLog(format, args,...)
