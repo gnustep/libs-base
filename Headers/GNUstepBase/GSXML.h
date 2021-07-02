@@ -543,6 +543,7 @@ GS_EXPORT_CLASS
  * containing the fault details.
  * </p>
  */
+GS_EXPORT_CLASS
 @interface	GSXMLRPC : NSObject <NSURLHandleClient>
 {
 @private
