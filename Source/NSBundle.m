@@ -1066,7 +1066,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   if (self == [NSBundle class])
     {
-      extern const char	*GSPathHandling(const char *);
       NSAutoreleasePool *pool = [NSAutoreleasePool new];
       NSString          *file;
       const char	*mode;

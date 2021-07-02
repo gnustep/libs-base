@@ -34,6 +34,12 @@
 extern "C" {
 #endif
 
+/**
+ * See "Portable path handling" in NSString.h.
+ */
+GS_EXPORT const char*
+GSPathHandling(const char *mode);
+
 #if	OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
 
 /**

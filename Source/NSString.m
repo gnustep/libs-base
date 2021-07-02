@@ -252,7 +252,7 @@ static enum {
  * Any other none-null string sets do-the-right-thing mode.<br />
  * The function returns a C String describing the old mode.
  */
-const char*
+GS_DECLARE const char*
 GSPathHandling(const char *mode)
 {
   int	old = pathHandling;
