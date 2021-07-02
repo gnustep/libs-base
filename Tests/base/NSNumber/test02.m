@@ -2,6 +2,7 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSPropertyList.h>
 #import <Foundation/NSValue.h>
+#import <Foundation/NSLocale.h>
 #import <Foundation/NSDecimalNumber.h>
 
 #include <stdlib.h>
