@@ -181,7 +181,7 @@ typedef struct _MySmallStruct MySmallStruct;
 
 -(const char *)runtimeSignatureForSelector:(SEL)selector
 {
-  GSMethod meth = GSGetMethod(isa, selector, YES, YES);
+  GSMethod meth = GSGetMethod(object_getClass(self), selector, YES, YES);
   return method_getTypeEncoding (meth);
 }
 
