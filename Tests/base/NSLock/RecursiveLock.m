@@ -1,4 +1,5 @@
 #import <Foundation/Foundation.h>
+#import "../../../Headers/GNUstepBase/config.h"
 #import "Testing.h"
 
 int main()
@@ -31,8 +32,8 @@ int main()
 
 #if     defined(GNUSTEP_BASE_LIBRARY)
   START_SET("mutex ownership extension")
-#if     defined(_WIN32)
-  SKIP("mutex ownership feature not available on windows")
+#if     !defined(HAVE_PTHREAD_MUTEX_OWNER)
+  SKIP("mutex ownership feature not available")
 #endif
   NS_DURING
     {
