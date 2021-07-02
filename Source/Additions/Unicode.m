@@ -2242,12 +2242,22 @@ GSFromUnicode(unsigned char **dst, unsigned int *size, const unichar *src,
                         }
                       else
                         {
-                          dpos += sprintf((char*)&ptr[dpos], "\\%03o", u);
+                          char octchars[] = "01234567";
+                          ptr[dpos++] = '\\';
+                          ptr[dpos++] = octchars[(u >> 6) & 7];
+                          ptr[dpos++] = octchars[(u >> 3) & 7];
+                          ptr[dpos++] = octchars[u & 7];
                         }
                     }
                   else
                     {
-                      dpos += sprintf((char*)&ptr[dpos], "\\u%04x", u);
+                      char hexchars[] = "0123456789abcdef";
+                      ptr[dpos++] = '\\';
+                      ptr[dpos++] = 'u';
+                      ptr[dpos++] = hexchars[(u >> 12) & 0xF];
+                      ptr[dpos++] = hexchars[(u >> 8) & 0xF];
+                      ptr[dpos++] = hexchars[(u >> 4) & 0xF];
+                      ptr[dpos++] = hexchars[u & 0xF];
                     }
                 }
             }
