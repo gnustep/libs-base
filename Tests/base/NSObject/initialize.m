@@ -1,7 +1,7 @@
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSThread.h>
 #import <Foundation/NSLock.h>
-#include <unistd.h>
+#include <signal.h>
 #import "Testing.h"
 
 @interface Init0 : NSObject
