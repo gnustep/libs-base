@@ -1,5 +1,5 @@
 #include	<Foundation/Foundation.h>
-#if	!defined(__MINGW32__)
+#if	!defined(_WIN32)
 #include	<sys/file.h>
 #include        <sys/fcntl.h>
 #include        <unistd.h>
@@ -14,7 +14,7 @@ main(int argc, char **argv)
   int	i = 0;
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
 
-#if	!defined(__MINGW32__)
+#if	!defined(_WIN32)
 /*
   printf("argc %d\n", argc);
   for (i = 0; i < argc; i++)
