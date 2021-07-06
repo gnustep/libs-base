@@ -332,7 +332,7 @@ static NSString *percentQuoted(NSString *s)
 - (void)longLongOverflow
 {
   NSNumber *big = [NSNumber numberWithUnsignedLongLong: 0xffffffffffffffff];
-  NSNumber *small = [NSNumber numberWithLongLong: 0xffffffffffffffff];
+  NSNumber *sml = [NSNumber numberWithLongLong: 0xffffffffffffffff];
 
   NSData *data = [NSJSONSerialization dataWithJSONObject: big
 						 options: 0
@@ -342,7 +342,7 @@ static NSString *percentQuoted(NSString *s)
   NSAssert([string isEqualToString:@"18446744073709551615"], @"unsigned long long");
   [string release];
 
-  data = [NSJSONSerialization dataWithJSONObject: small
+  data = [NSJSONSerialization dataWithJSONObject: sml
 					 options: 0
 					   error: NULL];
   string = [[NSString alloc] initWithData: data
