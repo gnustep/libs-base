@@ -24,24 +24,24 @@
 
 #import "common.h"
 
-#include <pthread.h>
-#import "GSPrivate.h"
-#define	gs_cond_t	pthread_cond_t
-#define	gs_mutex_t	pthread_mutex_t
-#include <math.h>
-
 #define	EXPOSE_NSLock_IVARS	1
 #define	EXPOSE_NSRecursiveLock_IVARS	1
 #define	EXPOSE_NSCondition_IVARS	1
 #define	EXPOSE_NSConditionLock_IVARS	1
+
+#define	gs_cond_ivar_t	gs_cond_t
+#define	gs_mutex_ivar_t	gs_mutex_t
+#define gs_recursive_mutex_ivar_t	gs_recursive_mutex_t
+
+#import "GSPrivate.h"
+#import "GSPThread.h"
+#include <math.h>
 
 #import "common.h"
 
 #import "Foundation/NSLock.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSThread.h"
-
-#import "GSPThread.h"
 
 #define class_createInstance(C,E) NSAllocateObject(C,E,NSDefaultMallocZone())
 
@@ -175,11 +175,51 @@ static BOOL     traceLocks = NO;
 
 #endif
 
-#define MFINALIZE \
-- (void) finalize\
+#if defined(_WIN32)
+
+#define	MLOCK \
+- (void) lock\
 {\
-  pthread_mutex_destroy(&_mutex);\
+  AcquireSRWLockExclusive(&_mutex);\
 }
+
+#define	MLOCKBEFOREDATE \
+- (BOOL) lockBeforeDate: (NSDate*)limit\
+{\
+  do\
+    {\
+      if (TryAcquireSRWLockExclusive(&_mutex))\
+        {\
+          CHK(Hold) \
+          return YES;\
+        }\
+      Sleep(0);\
+    } while ([limit timeIntervalSinceNow] > 0);\
+  return NO;\
+}
+
+#define	MTRYLOCK \
+- (BOOL) tryLock\
+{\
+  if (TryAcquireSRWLockExclusive(&_mutex)) \
+    { \
+      CHK(Hold) \
+      return YES; \
+    } \
+  else \
+    { \
+      return NO;\
+    } \
+}
+
+#define	MUNLOCK \
+- (void) unlock\
+{\
+  ReleaseSRWLockExclusive(&_mutex);\
+  CHK(Drop) \
+}
+
+#else /* !_WIN32 */
 
 #define	MLOCK \
 - (void) lock\
@@ -202,29 +242,13 @@ static BOOL     traceLocks = NO;
     {\
       int err = pthread_mutex_trylock(&_mutex);\
       if (0 == err)\
-	{\
+        {\
           CHK(Hold) \
-	  return YES;\
-	}\
+          return YES;\
+        }\
       sched_yield();\
     } while ([limit timeIntervalSinceNow] > 0);\
   return NO;\
-}
-
-#define MNAME \
-- (void) setName: (NSString*)newName\
-{\
-  ASSIGNCOPY(_name, newName);\
-}\
-- (NSString*) name\
-{\
-  return _name;\
-}
-
-#define MSTACK \
-- (GSStackTrace*) stack \
-{ \
-  return nil; \
 }
 
 #define	MTRYLOCK \
@@ -253,10 +277,30 @@ static BOOL     traceLocks = NO;
   CHK(Drop) \
 }
 
-static pthread_mutex_t deadlock;
+#endif /* _WIN32 */
+
+#define MNAME \
+- (void) setName: (NSString*)newName\
+{\
+  ASSIGNCOPY(_name, newName);\
+}\
+- (NSString*) name\
+{\
+  return _name;\
+}
+
+#define MSTACK \
+- (GSStackTrace*) stack \
+{ \
+  return nil; \
+}
+
+static gs_mutex_t deadlock;
+#if !defined(_WIN32)
 static pthread_mutexattr_t attr_normal;
 static pthread_mutexattr_t attr_reporting;
 static pthread_mutexattr_t attr_recursive;
+#endif
 
 /*
  * OS X 10.5 compatibility function to allow debugging deadlock conditions.
@@ -267,7 +311,7 @@ void _NSLockError(id obj, SEL _cmd, BOOL stop, NSString *msg)
     msg, obj);
   NSLog(@"*** Break on _NSLockError() to debug.");
   if (YES == stop)
-    pthread_mutex_lock(&deadlock);
+    GS_MUTEX_LOCK(deadlock);
 }
 
 NSLock_error_handler  *_NSLock_error_handler = _NSLockError;
@@ -295,6 +339,7 @@ NSString *NSLockException = @"NSLockException";
     {
       beenHere = YES;
 
+#if !defined(_WIN32)
       /* Initialise attributes for the different types of mutex.
        * We do it once, since attributes can be shared between multiple
        * mutexes.
@@ -312,14 +357,22 @@ NSString *NSLockException = @"NSLockException";
       pthread_mutexattr_settype(&attr_reporting, PTHREAD_MUTEX_ERRORCHECK);
       pthread_mutexattr_init(&attr_recursive);
       pthread_mutexattr_settype(&attr_recursive, PTHREAD_MUTEX_RECURSIVE);
+#endif
 
       /* To emulate OSX behavior, we need to be able both to detect deadlocks
        * (so we can log them), and also hang the thread when one occurs.
        * the simple way to do that is to set up a locked mutex we can
        * force a deadlock on.
        */
+#if defined(_WIN32)
+      /* default beavior for exclusive SWRLocks on Windows is to deadlock
+       * if already locked.
+       */
+      InitializeSRWLock(&deadlock);
+#else
       pthread_mutex_init(&deadlock, &attr_normal);
-      pthread_mutex_lock(&deadlock);
+#endif
+      GS_MUTEX_LOCK(deadlock);
 
       baseConditionClass = [NSCondition class];
       baseConditionLockClass = [NSConditionLock class];
@@ -340,7 +393,11 @@ NSString *NSLockException = @"NSLockException";
 
 MDEALLOC
 MDESCRIPTION
-MFINALIZE
+
+- (void) finalize
+{
+  GS_MUTEX_DESTROY(_mutex);
+}
 
 /* Use an error-checking lock.  This is marginally slower, but lets us throw
  * exceptions when incorrect locking occurs.
@@ -349,10 +406,14 @@ MFINALIZE
 {
   if (nil != (self = [super init]))
     {
+#if defined(_WIN32)
+      InitializeSRWLock(&_mutex);
+#else
       if (0 != pthread_mutex_init(&_mutex, &attr_reporting))
-	{
-	  DESTROY(self);
-	}
+        {
+          DESTROY(self);
+        }
+#endif
     }
   return self;
 }
@@ -364,17 +425,26 @@ MLOCK
 {
   do
     {
+#if defined(_WIN32)
+      if (TryAcquireSRWLockExclusive(&_mutex))
+        {
+          CHK(Hold)
+          return YES;
+        }
+      Sleep(0);
+#else
       int err = pthread_mutex_trylock(&_mutex);
       if (0 == err)
-	{
+        {
           CHK(Hold)
-	  return YES;
-	}
+          return YES;
+        }
       if (EDEADLK == err)
-	{
-	  (*_NSLock_error_handler)(self, _cmd, NO, @"deadlock");
-	}
+        {
+          (*_NSLock_error_handler)(self, _cmd, NO, @"deadlock");
+        }
       sched_yield();
+#endif
     } while ([limit timeIntervalSinceNow] > 0);
   return NO;
 }
@@ -404,27 +474,81 @@ MUNLOCK
 
 MDEALLOC
 MDESCRIPTION
-MFINALIZE
+
+- (void) finalize
+{
+  GS_RECURSIVE_MUTEX_DESTROY(_mutex);
+}
 
 - (id) init
 {
   if (nil != (self = [super init]))
     {
+#if defined(_WIN32)
+      InitializeCriticalSection(&_mutex);
+#else
       if (0 != pthread_mutex_init(&_mutex, &attr_recursive))
-	{
-	  DESTROY(self);
-	}
+        {
+          DESTROY(self);
+        }
+#endif
     }
   return self;
 }
 
 MISLOCKED
+
+#if defined(_WIN32)
+
+- (void) lock
+{
+  EnterCriticalSection(&_mutex);
+}
+
+- (BOOL) lockBeforeDate: (NSDate*)limit
+{
+  do
+    {
+      if (TryEnterCriticalSection(&_mutex))
+        {
+          CHK(Hold) 
+          return YES;
+        }
+      Sleep(0);
+    } while ([limit timeIntervalSinceNow] > 0);
+  return NO;
+}
+
+- (BOOL) tryLock
+{
+  if (TryEnterCriticalSection(&_mutex))
+    {
+      CHK(Hold)
+      return YES;
+    }
+  else
+    {
+      return NO;
+    }
+}
+
+- (void) unlock
+{
+  LeaveCriticalSection(&_mutex);
+  CHK(Drop)
+}
+
+#else
+
 MLOCK
 MLOCKBEFOREDATE
-MNAME
-MSTACK
 MTRYLOCK
 MUNLOCK
+
+#endif /* _WIN32 */
+
+MNAME
+MSTACK
 @end
 
 @implementation NSCondition
@@ -445,7 +569,7 @@ MUNLOCK
 
 - (void) broadcast
 {
-  pthread_cond_broadcast(&_condition);
+  GS_COND_BROADCAST(_condition);
 }
 
 MDEALLOC
@@ -453,23 +577,30 @@ MDESCRIPTION
 
 - (void) finalize
 {
+#if !defined(_WIN32)
   pthread_cond_destroy(&_condition);
-  pthread_mutex_destroy(&_mutex);
+#endif
+  GS_MUTEX_DESTROY(_mutex);
 }
 
 - (id) init
 {
   if (nil != (self = [super init]))
     {
+#if defined(_WIN32)
+      InitializeConditionVariable(&_condition);
+      InitializeSRWLock(&_mutex);
+#else
       if (0 != pthread_cond_init(&_condition, NULL))
-	{
-	  DESTROY(self);
-	}
+        {
+          DESTROY(self);
+        }
       else if (0 != pthread_mutex_init(&_mutex, &attr_reporting))
-	{
-	  pthread_cond_destroy(&_condition);
-	  DESTROY(self);
-	}
+        {
+          pthread_cond_destroy(&_condition);
+          DESTROY(self);
+        }
+#endif
     }
   return self;
 }
@@ -481,7 +612,7 @@ MNAME
 
 - (void) signal
 {
-  pthread_cond_signal(&_condition);
+  GS_COND_SIGNAL(_condition);
 }
 
 MSTACK
@@ -490,12 +621,38 @@ MUNLOCK
 
 - (void) wait
 {
+#if defined(_WIN32)
+  SleepConditionVariableSRW(&_condition, &_mutex, INFINITE, 0);
+#else
   pthread_cond_wait(&_condition, &_mutex);
+#endif
 }
 
 - (BOOL) waitUntilDate: (NSDate*)limit
 {
   NSTimeInterval ti = [limit timeIntervalSince1970];
+
+#if defined(_WIN32)
+  DWORD millisecs = ti / 1000.0;
+  if (SleepConditionVariableSRW(&_condition, &_mutex, millisecs, 0))
+    {
+      return YES;
+    }
+  else
+    {
+      DWORD lastError = GetLastError();
+      if (lastError == ERROR_TIMEOUT)
+        {
+          return NO;
+        }
+      else
+        {
+          NSLog(@"Unknown error calling SleepConditionVariableSRW(): %ld",
+            lastError);
+        }
+      return NO;
+    }
+#else
   double secs, subsecs;
   struct timespec timeout;
   int retVal = 0;
@@ -523,6 +680,7 @@ MUNLOCK
       NSLog(@"Invalid arguments to pthread_cond_timedwait");
     }
   return NO;
+#endif /* _WIN32 */
 }
 
 @end
@@ -688,6 +846,19 @@ MSTACK
 }
 
 #undef MLOCK
+#if defined(_WIN32)
+
+#define	MLOCK \
+- (void) lock\
+{ \
+  NSThread      *t = GSCurrentThread(); \
+  CHKT(t,Wait) \
+  AcquireSRWLockExclusive(&_mutex);\
+  CHKT(t,Hold) \
+}
+
+#else
+
 #define	MLOCK \
 - (void) lock\
 { \
@@ -707,6 +878,8 @@ MSTACK
     }\
   CHKT(t,Hold) \
 }
+
+#endif /* _WIN32 */
 
 #undef MSTACK
 #define MSTACK \
@@ -735,7 +908,11 @@ MTRYLOCK
   NSThread      *t = GSCurrentThread();
   CHKT(t,Drop)
   CHKT(t,Wait)
+#if defined(_WIN32)
+  SleepConditionVariableSRW(&_condition, &_mutex, INFINITE, 0);
+#else
   pthread_cond_wait(&_condition, &_mutex);
+#endif
   CHKT(t,Hold)
 }
 
@@ -743,6 +920,32 @@ MTRYLOCK
 {
   NSTimeInterval ti = [limit timeIntervalSince1970];
   NSThread      *t = GSCurrentThread();
+
+#if defined(_WIN32)
+  DWORD millisecs = ti / 1000.0;
+
+  CHKT(t,Drop)
+  if (SleepConditionVariableSRW(&_condition, &_mutex, millisecs, 0))
+    {
+      CHKT(t,Hold)
+      return YES;
+    }
+  else
+    {
+      DWORD lastError = GetLastError();
+      if (lastError == ERROR_TIMEOUT)
+        {
+          CHKT(t,Hold)
+          return NO;
+        }
+      else
+        {
+          NSLog(@"Unknown error calling SleepConditionVariableSRW(): %ld",
+            lastError);
+        }
+      return NO;
+    }
+#else
   double secs, subsecs;
   struct timespec timeout;
   int retVal = 0;
@@ -774,6 +977,7 @@ MTRYLOCK
       NSLog(@"Invalid arguments to pthread_cond_timedwait");
     }
   return NO;
+#endif /* _WIN32 */
 }
 
 MUNLOCK
@@ -819,11 +1023,60 @@ MUNLOCK
   return class_createInstance(tracedRecursiveLockClass, 0);
 }
 MDEALLOC
+
+#if defined(_WIN32)
+
+- (void) lock
+{
+  NSThread      *t = GSCurrentThread();
+  CHKT(t,Wait)
+  EnterCriticalSection(&_mutex);
+  CHKT(t,Hold)
+}
+
+- (BOOL) lockBeforeDate: (NSDate*)limit
+{
+  do
+    {
+      if (TryEnterCriticalSection(&_mutex))
+        {
+          CHK(Hold) 
+          return YES;
+        }
+      Sleep(0);
+    } while ([limit timeIntervalSinceNow] > 0);
+  return NO;
+}
+
+- (BOOL) tryLock
+{
+  if (TryEnterCriticalSection(&_mutex))
+    {
+      CHK(Hold)
+      return YES;
+    }
+  else
+    {
+      return NO;
+    }
+}
+
+- (void) unlock
+{
+  LeaveCriticalSection(&_mutex);
+  CHK(Drop)
+}
+
+#else /* !_WIN32 */
+
 MLOCK
 MLOCKBEFOREDATE
-MSTACK
 MTRYLOCK
 MUNLOCK
+
+#endif /* _WIN32 */
+
+MSTACK
 @end
 
 

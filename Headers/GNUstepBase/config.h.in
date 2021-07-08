@@ -861,6 +861,12 @@
 /* Define to 1 if the `setpgrp' function takes no argument. */
 #undef SETPGRP_VOID
 
+/* The size of `CONDITION_VARIABLE', as computed by sizeof. */
+#undef SIZEOF_CONDITION_VARIABLE
+
+/* The size of `CRITICAL_SECTION', as computed by sizeof. */
+#undef SIZEOF_CRITICAL_SECTION
+
 /* The size of `double', as computed by sizeof. */
 #undef SIZEOF_DOUBLE
 
@@ -884,6 +890,9 @@
 
 /* The size of `short', as computed by sizeof. */
 #undef SIZEOF_SHORT
+
+/* The size of `SRWLOCK', as computed by sizeof. */
+#undef SIZEOF_SRWLOCK
 
 /* The size of `void*', as computed by sizeof. */
 #undef SIZEOF_VOIDP

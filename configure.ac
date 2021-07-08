@@ -235,7 +235,7 @@ then
 fi
 if test x"$GNUSTEP_TARGET_CONFIG_FILE" = x""; then
   case "$target_os" in
-    mingw*|windows*)
+    mingw*|windows)
       GNUSTEP_TARGET_CONFIG_FILE=./GNUstep.conf ;;
     *)
       GNUSTEP_TARGET_CONFIG_FILE="$GNUSTEP_MAKE_CONFIG" ;;
@@ -252,7 +252,7 @@ AC_MSG_RESULT($GNUSTEP_TARGET_CONFIG_FILE)
 # location (used by gnustep-make when building).
 #-----------------------------------------------------------------
 case "$target_os" in
-    mingw*|windows*)	enable_env_config=no;;
+    mingw*|windows)	enable_env_config=no;;
     *)		enable_env_config=yes;;
 esac
 AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
@@ -534,7 +534,7 @@ AC_SUBST(GNUSTEP_BASE_DOMAIN)
 # paths (relative to libgnustep-base.dll).
 #
 case "$target_os" in
-  mingw*|windows*)
+  mingw*|windows)
     # TODO: Improve this hack.
     # According to Wikipedia, this is the default for Windows 2000,
     # Windows XP and Windows Server 2003.  For Windows Vista this will
@@ -1705,6 +1705,17 @@ AC_CHECK_FUNCS(getaddrinfo)
 #--------------------------------------------------------------------
 # Check for pthread.h
 #--------------------------------------------------------------------
+ismingw=no
+ismsvc=no
+checkinlibc=no
+case "$target_os" in
+  mingw*)	ismingw=yes;;
+  windows) ismsvc=yes;;
+  nto*)		checkinlibc=yes;;
+  qnx*)		checkinlibc=yes;;
+  *android*)   checkinlibc=yes;;
+esac
+
 AC_CHECK_HEADERS([pthread.h])
 AC_CHECK_HEADERS([pthread_np.h],[],[],[AC_INCLUDES_DEFAULT
 		  #ifdef HAVE_PTHREAD_H
@@ -1719,6 +1730,8 @@ if test $ac_cv_header_pthread_h = yes ; then
     AC_MSG_ERROR([Unable to find size of pthread_mutex_t (required).])
   fi
   AC_SUBST(GS_SIZEOF_MUTEX_T)
+  GS_SIZEOF_RECURSIVE_MUTEX_T=$ac_cv_sizeof_pthread_mutex_t
+  AC_SUBST(GS_SIZEOF_RECURSIVE_MUTEX_T)
 # pthread_mutex_t.__data.__owner is non-standard since pthread_mutex_t is
 # nominally an opaque type.  We must not rely on this for anything other
 # than debug output!
@@ -1742,6 +1755,8 @@ if test $ac_cv_header_pthread_h = yes ; then
     AC_MSG_ERROR([Unable to find align of pthread_mutex_t (required).])
   fi
   AC_SUBST(GS_ALIGNOF_MUTEX_T)
+  GS_ALIGNOF_RECURSIVE_MUTEX_T=$ac_cv_alignof_pthread_mutex_t
+  AC_SUBST(GS_ALIGNOF_RECURSIVE_MUTEX_T)
   AC_CHECK_ALIGNOF(pthread_cond_t,[AC_INCLUDES_DEFAULT
 #include <pthread.h>])
   if test $ac_cv_alignof_pthread_cond_t = 0 ; then
@@ -1753,15 +1768,7 @@ else
   AC_MSG_ERROR([Unable to find pthread.h (needed for thread support).])
 fi
 AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
-ismingw=no
-checkinlibc=no
-case "$target_os" in
-  mingw*)	ismingw=yes;;
-  windows) iswindows=yes;;
-  nto*)		checkinlibc=yes;;
-  qnx*)		checkinlibc=yes;;
-  *android*)   checkinlibc=yes;;
-esac
+
 if test $pthread_ok = yes ; then
   LIBS="$LIBS -lpthread"
 else
@@ -1771,7 +1778,7 @@ else
       LIBS="$LIBS -lpthreadGC2"
     fi
   fi
-  if test $iswindows = yes ; then
+  if test $ismsvc = yes ; then
     AC_CHECK_LIB(pthreadVC2, pthread_join, pthread_ok=yes, pthread_ok=no)
     if test $pthread_ok = yes ; then
       LIBS="$LIBS -lpthreadVC2"
@@ -1795,6 +1802,56 @@ AC_CHECK_FUNCS(pthread_getthreadid_np pthread_main_np)
 # Typically need librt on Solaris for sched_yield
 AC_CHECK_LIB(rt, sched_yield)
 
+# Windows: look up size/alignment for native Windows locks
+if test $ismingw = yes -o $ismsvc = yes; then
+  AC_CHECK_SIZEOF(SRWLOCK,,[AC_INCLUDES_DEFAULT
+    #include <windows.h>])
+  GS_SIZEOF_MUTEX_T=$ac_cv_sizeof_SRWLOCK
+  if test $ac_cv_sizeof_SRWLOCK = 0 ; then
+    AC_MSG_ERROR([Unable to find size of SRWLOCK (required).])
+  fi
+  AC_SUBST(GS_SIZEOF_MUTEX_T)
+  
+  AC_CHECK_ALIGNOF(SRWLOCK,[AC_INCLUDES_DEFAULT
+    #include <windows.h>])
+  GS_ALIGNOF_MUTEX_T=$ac_cv_alignof_SRWLOCK
+  if test $ac_cv_alignof_SRWLOCK = 0 ; then
+    AC_MSG_ERROR([Unable to find align of SRWLOCK (required).])
+  fi
+  AC_SUBST(GS_ALIGNOF_MUTEX_T)
+  
+  AC_CHECK_SIZEOF(CRITICAL_SECTION,,[AC_INCLUDES_DEFAULT
+    #include <windows.h>])
+  GS_SIZEOF_RECURSIVE_MUTEX_T=$ac_cv_sizeof_CRITICAL_SECTION
+  if test $ac_cv_sizeof_CRITICAL_SECTION = 0 ; then
+    AC_MSG_ERROR([Unable to find size of CRITICAL_SECTION (required).])
+  fi
+  AC_SUBST(GS_SIZEOF_RECURSIVE_MUTEX_T)
+  
+  AC_CHECK_ALIGNOF(CRITICAL_SECTION,[AC_INCLUDES_DEFAULT
+    #include <windows.h>])
+  GS_ALIGNOF_RECURSIVE_MUTEX_T=$ac_cv_alignof_CRITICAL_SECTION
+  if test $ac_cv_alignof_CRITICAL_SECTION = 0 ; then
+    AC_MSG_ERROR([Unable to find align of CRITICAL_SECTION (required).])
+  fi
+  AC_SUBST(GS_ALIGNOF_RECURSIVE_MUTEX_T)
+  
+  AC_CHECK_SIZEOF(CONDITION_VARIABLE,,[AC_INCLUDES_DEFAULT
+    #include <windows.h>])
+  GS_SIZEOF_COND_T=$ac_cv_sizeof_CONDITION_VARIABLE
+  if test $ac_cv_sizeof_CONDITION_VARIABLE = 0 ; then
+    AC_MSG_ERROR([Unable to find size of CONDITION_VARIABLE (required).])
+  fi
+  AC_SUBST(GS_SIZEOF_COND_T)
+  
+  AC_CHECK_ALIGNOF(CONDITION_VARIABLE,[AC_INCLUDES_DEFAULT
+    #include <windows.h>])
+  GS_ALIGNOF_COND_T=$ac_cv_alignof_CONDITION_VARIABLE
+  if test $ac_cv_alignof_CONDITION_VARIABLE = 0 ; then
+    AC_MSG_ERROR([Unable to find align of CONDITION_VARIABLE (required).])
+  fi
+  AC_SUBST(GS_ALIGNOF_COND_T)
+fi
 
 #--------------------------------------------------------------------
 # One of these function needed by NSThread.m and objc initialize test
@@ -2822,7 +2879,7 @@ elif test "$enable_pass_arguments" = "no"; then
   fi
 fi
 case "$target_os" in
-    mingw*|windows*)	enable_fake_main=no; GS_FAKE_MAIN=0;;
+    mingw*|windows)	enable_fake_main=no; GS_FAKE_MAIN=0;;
 esac
 AC_SUBST(GS_FAKE_MAIN)
 AC_MSG_RESULT($enable_fake_main)

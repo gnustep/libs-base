@@ -23,26 +23,53 @@
 #ifndef _GSPThread_h_
 #define _GSPThread_h_
 
+#if defined(_WIN32)
+
+#include <windows.h>
+
+// SRWLock is the fastest on Windows but non-recursive
+typedef SRWLOCK gs_mutex_t;
+#define GS_MUTEX_INIT_STATIC SRWLOCK_INIT
+#define GS_MUTEX_INIT(x) InitializeSRWLock(&(x))
+#define GS_MUTEX_LOCK(x) AcquireSRWLockExclusive(&(x))
+#define GS_MUTEX_UNLOCK(x) ReleaseSRWLockExclusive(&(x))
+#define GS_MUTEX_DESTROY(x)
+
+// Critical Section Objects are recursive
+typedef CRITICAL_SECTION gs_recursive_mutex_t;
+#define GS_RECURSIVE_MUTEX_INIT(x) InitializeCriticalSection(&(x))
+#define GS_RECURSIVE_MUTEX_LOCK(x) EnterCriticalSection(&(x))
+#define GS_RECURSIVE_MUTEX_UNLOCK(x) LeaveCriticalSection(&(x))
+#define GS_RECURSIVE_MUTEX_DESTROY(x) DeleteCriticalSection(&(x))
+
+typedef CONDITION_VARIABLE gs_cond_t;
+#define GS_COND_SIGNAL(x) WakeConditionVariable(&(x))
+#define GS_COND_BROADCAST(x) WakeAllConditionVariable(&(x))
+
+#else /* !_WIN32 */
+
 #include <pthread.h>
 
-#import "Foundation/NSLock.h"
+typedef pthread_mutex_t gs_mutex_t;
+#define GS_MUTEX_INIT_STATIC PTHREAD_MUTEX_INITIALIZER
+#define GS_MUTEX_INIT(x) pthread_mutex_init(&(x), NULL)
+#define GS_MUTEX_LOCK(x) pthread_mutex_lock(&(x))
+#define GS_MUTEX_UNLOCK(x) pthread_mutex_unlock(&(x))
+#define GS_MUTEX_DESTROY(x) pthread_mutex_destroy(&(x))
 
-@class  GSStackTrace;
-@class  NSArray;
-@class  NSMapTable;
-
+typedef pthread_mutex_t gs_recursive_mutex_t;
 /*
  * Macro to initialize recursive mutexes in a portable way. Adopted from
  * libobjc2 (lock.h).
  */
 # ifdef PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
-#   define GS_INIT_RECURSIVE_MUTEX(x) \
+#   define GS_RECURSIVE_MUTEX_INIT(x) \
 x = (pthread_mutex_t) PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
 # elif defined(PTHREAD_RECURSIVE_MUTEX_INITIALIZER)
-#   define GS_INIT_RECURSIVE_MUTEX(x) \
+#   define GS_RECURSIVE_MUTEX_INIT(x) \
 x = (pthread_mutex_t) PTHREAD_RECURSIVE_MUTEX_INITIALIZER
 # else
-#   define GS_INIT_RECURSIVE_MUTEX(x) GSPThreadInitRecursiveMutex(&(x))
+#   define GS_RECURSIVE_MUTEX_INIT(x) GSPThreadInitRecursiveMutex(&(x))
 
 static inline void GSPThreadInitRecursiveMutex(pthread_mutex_t *x)
 {
@@ -54,6 +81,21 @@ static inline void GSPThreadInitRecursiveMutex(pthread_mutex_t *x)
 }
 # endif // PTHREAD_RECURSIVE_MUTEX_INITIALIZER(_NP)
 
+#define GS_RECURSIVE_MUTEX_LOCK(x) GS_MUTEX_LOCK(x)
+#define GS_RECURSIVE_MUTEX_UNLOCK(x) GS_MUTEX_UNLOCK(x)
+#define GS_RECURSIVE_MUTEX_DESTROY(x) GS_MUTEX_DESTROY(x)
+
+typedef CONDITION_VARIABLE pthread_cond_t;
+#define GS_COND_SIGNAL(x) pthread_cond_signal(&(x))
+#define GS_COND_BROADCAST(x) pthread_cond_broadcast(&(x))
+
+#endif /* _WIN32 */
+
+#import "Foundation/NSLock.h"
+
+@class  GSStackTrace;
+@class  NSArray;
+@class  NSMapTable;
 
 /* Class to obtain/encapsulate a stack trace for exception reporting and/or
  * lock tracing.
