@@ -1,0 +1,15 @@
+# This is the CI workflow for gnustep base
+name: CI
+
+# Controls when the workflow will run
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # Checkout and build...
+    steps:
+      - name: Checkout repository 
+      - uses: actions/checkout@v2
+      
