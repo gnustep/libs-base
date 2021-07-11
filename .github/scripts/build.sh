@@ -1,3 +1,7 @@
+#! /usr/bin/env sh
+
+set -ex
+
 echo "Building..."
 
 sudo apt-get -qq update
@@ -21,7 +25,7 @@ then
     then
       sudo update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.gold" 10;
     fi;
-  fi;
+fi;
 
 # Install dependencies
-./travis-deps.sh
+./.github/scripts/dependencies.sh
