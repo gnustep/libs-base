@@ -4,11 +4,11 @@ set -ex
 
 DEP_SRC=$HOME/dependency_source/
 
-case $TRAVIS_OS_NAME in
-linux)
+case $RUNNER_OS in
+Linux)
     DEP_ROOT=$HOME/staging
     ;;
-windows)
+Windows)
     DEP_ROOT=/c/staging
     ;;
 esac
