@@ -22,7 +22,6 @@ then
       sudo update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.gold" 10;
     fi;
   fi;
-fi;
 
 # Install dependencies
 ./travis-deps.sh
