@@ -7,7 +7,7 @@ echo "Building..."
 sudo apt-get -qq update
 sudo apt-get install -y cmake pkg-config libgnutls28-dev libgmp-dev libffi-dev \
      libicu-dev libxml2-dev libxslt1-dev libssl-dev libavahi-client-dev zlib1g-dev \
-     gnutls-bin certtool
+     gnutls-bin
 
 if [ $LIBRARY_COMBO = 'gnu-gnu-gnu' ];
 then
