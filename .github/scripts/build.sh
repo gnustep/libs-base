@@ -49,5 +49,4 @@ export GNUSTEP_MAKEFILES=$HOME/staging/share/GNUstep/Makefiles;
 
 # script
 ./configure $BASE_ABI || (cat config.log && false);
-make && make install
-    # && make check || (cat Tests/tests.log && false);
+make && make install && make check || (cat Tests/tests.log && false);
