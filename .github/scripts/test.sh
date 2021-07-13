@@ -2,5 +2,5 @@
 
 set -ex
 
-Echo "Running unit tests"
+echo "Running unit tests"
 make check || (cat Tests/tests.log && false);
