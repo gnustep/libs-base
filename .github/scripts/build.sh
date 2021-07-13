@@ -22,8 +22,8 @@ then
     sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" && \
 	sudo apt-get update -qq;
     sudo apt-get install -y clang-9 libkqueue-dev libpthread-workqueue-dev;
-    sudo update-alternatives   --install /usr/bin/clang   clang   /usr/bin/clang-9   10 \
-                               --slave   /usr/bin/clang++ clang++ /usr/bin/clang++-9;
+#    sudo update-alternatives   --install /usr/bin/clang   clang   /usr/bin/clang-9   10 \
+#                               --slave   /usr/bin/clang++ clang++ /usr/bin/clang++-9;
     export PATH=$(echo "$PATH" | sed -e 's/:\/usr\/local\/clang-7.0.0\/bin//');
     if [ "$RUNTIME_VERSION" = "gnustep-2.0" ];
     then
@@ -49,4 +49,4 @@ export GNUSTEP_MAKEFILES=$HOME/staging/share/GNUstep/Makefiles;
 
 # script
 ./configure $BASE_ABI || (cat config.log && false);
-make && make install && make check || (cat Tests/tests.log && false);
+make && make install

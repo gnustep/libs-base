@@ -23,3 +23,8 @@ jobs:
       # Runs a single command using the runners shell
       - name: Build source
         run: ./.github/scripts/build.sh
+
+      # Runs a single command using the runners shell
+      - name: Run Tests
+        run: ./.github/scripts/test.sh
+	
