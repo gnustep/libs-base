@@ -1,6 +1,16 @@
 #import <Foundation/NSString.h>
 #import <Foundation/NSException.h>
+
+#if defined(HAVE_UNICODE_UTEXT_H)
 #include <unicode/utext.h>
+#endif
+#if defined(HAVE_ICU_H)
+#include <icu.h>
+// icu.h in Windows 10 is missing a declaration of UTEXT_MAGIC
+#ifndef UTEXT_MAGIC
+#define UTEXT_MAGIC 0x345ad82c
+#endif
+#endif
 
 /*
  * Define TRUE/FALSE to be used with UBool parameters, as these are no longer

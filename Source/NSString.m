@@ -109,6 +109,9 @@
 #if     defined(HAVE_UNICODE_USEARCH_H)
 # include <unicode/usearch.h>
 #endif
+#if     defined(HAVE_ICU_H)
+# include <icu.h>
+#endif
 
 /* Create local inline versions of key functions for case-insensitive operations
  */

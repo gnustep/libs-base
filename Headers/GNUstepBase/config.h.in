@@ -344,6 +344,9 @@
 /* Define if you have this function */
 #undef HAVE_ICONV
 
+/* Define to 1 if you have the <icu.h> header file. */
+#undef HAVE_ICU_H
+
 /* Define to 1 if you have the `inet_aton' function. */
 #undef HAVE_INET_ATON
 
@@ -771,6 +774,9 @@
 
 /* Define to 1 if you have the <unicode/ustring.h> header file. */
 #undef HAVE_UNICODE_USTRING_H
+
+/* Define to 1 if you have the <unicode/utext.h> header file. */
+#undef HAVE_UNICODE_UTEXT_H
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H

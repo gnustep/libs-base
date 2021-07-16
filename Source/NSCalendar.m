@@ -40,6 +40,8 @@
 #include <unicode/ucal.h>
 #include <unicode/uvernum.h>
 #undef id
+#elif defined(HAVE_ICU_H)
+#include <icu.h>
 #endif
 
 

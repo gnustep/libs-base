@@ -121,6 +121,9 @@
 #include <unicode/ucal.h>
 #undef id
 #endif
+#if defined(HAVE_ICU_H)
+#include <icu.h>
+#endif
 
 /* Key for local time zone in user defaults. */
 #define LOCALDBKEY @"Local Time Zone"
