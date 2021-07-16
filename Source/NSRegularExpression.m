@@ -27,7 +27,12 @@
 #import "common.h"
 
 #if GS_USE_ICU == 1
-#include "unicode/uregex.h"
+#if defined(HAVE_UNICODE_UREGEX_H)
+#include <unicode/uregex.h>
+#endif
+#if defined(HAVE_ICU_H)
+#include <icu.h>
+#endif
 
 /* FIXME It would be nice to use autoconf for checking whether uregex_openUText
  * is defined.  However the naive check using AC_CHECK_FUNCS(uregex_openUText)

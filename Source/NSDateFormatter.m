@@ -54,6 +54,9 @@
 #if defined(HAVE_UNICODE_UDATPG_H)
 #include <unicode/udatpg.h>
 #endif
+#if defined(HAVE_ICU_H)
+#include <icu.h>
+#endif
 
 
 
@@ -1034,7 +1037,7 @@ symbolRange(NSInteger symbol, int *from)
       unichar           *value;
       NSString          *str;
       NSZone            *z = [self zone];
-      UErrorCode        err = U_ERROR_LIMIT;
+      UErrorCode        err = U_ZERO_ERROR;
       
       length
         = udat_getSymbols(internal->_formatter, symbol, idx, NULL, 0, &err);

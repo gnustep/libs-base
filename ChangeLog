@@ -1,3 +1,20 @@
+2021-07-29 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/GNUstepBase/config.h.in:
+	* Source/Additions/Unicode.m:
+	* Source/GSICUString.h:
+	* Source/NSCalendar.m:
+	* Source/NSDateFormatter.m:
+	* Source/NSLocale.m:
+	* Source/NSNumberFormatter.m:
+	* Source/NSPredicate.m:
+	* Source/NSRegularExpression.m:
+	* Source/NSString.m:
+	* Source/NSTimeZone.m:
+	* configure:
+	* configure.ac:
+	Add support for using ICU DLL from Windows 10.
+
 2021-07-29 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZone.m:

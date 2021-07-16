@@ -13197,7 +13197,70 @@ else
 fi
 
 
-if test "$enable_icu" = "yes"; then
+if test "x$enable_icu" = "xyes"; then :
+
+  case "$target_os" in
+    mingw*|windows)
+      # check for ICU bundled with Windows 10
+      for ac_header in icu.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "icu.h" "ac_cv_header_icu_h" "$ac_includes_default"
+if test "x$ac_cv_header_icu_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_ICU_H 1
+_ACEOF
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for udat_open in -licu" >&5
+$as_echo_n "checking for udat_open in -licu... " >&6; }
+if ${ac_cv_lib_icu_udat_open+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-licu  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char udat_open ();
+int
+main ()
+{
+return udat_open ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_icu_udat_open=yes
+else
+  ac_cv_lib_icu_udat_open=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_icu_udat_open" >&5
+$as_echo "$ac_cv_lib_icu_udat_open" >&6; }
+if test "x$ac_cv_lib_icu_udat_open" = xyes; then :
+  HAVE_ICU=1
+fi
+
+fi
+
+done
+
+      if test $HAVE_ICU = 1; then
+        ICU_LIBS=-licu
+        { $as_echo "$as_me:${as_lineno-$LINENO}: Using ICU DLL from Windows 10 (requires version 1903 or later)" >&5
+$as_echo "$as_me: Using ICU DLL from Windows 10 (requires version 1903 or later)" >&6;}
+      fi
+    ;;
+  esac
+  if test $HAVE_ICU = 0; then
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ICU" >&5
@@ -13257,39 +13320,18 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$ICU_PKG_ERRORS" >&5
 
-	as_fn_error $? "Package requirements (icu-i18n > 49.0) were not met:
-
-$ICU_PKG_ERRORS
-
-Consider adjusting the PKG_CONFIG_PATH environment variable if you
-installed software in a non-standard prefix.
-
-Alternatively, you may set the environment variables ICU_CFLAGS
-and ICU_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details." "$LINENO" 5
+	HAVE_ICU=0
 elif test $pkg_failed = untried; then
      	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
-is in your PATH or set the PKG_CONFIG environment variable to the full
-path to pkg-config.
-
-Alternatively, you may set the environment variables ICU_CFLAGS
-and ICU_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-
-To get pkg-config, see <http://pkg-config.freedesktop.org/>.
-See \`config.log' for more details" "$LINENO" 5; }
+	HAVE_ICU=0
 else
 	ICU_CFLAGS=$pkg_cv_ICU_CFLAGS
 	ICU_LIBS=$pkg_cv_ICU_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
-fi
-  for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h
+      for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h unicode/utext.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -13297,13 +13339,18 @@ if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
-
+ HAVE_ICU=1
 fi
 
 done
 
+fi
+  fi
+  if test $HAVE_ICU = 0; then
+    as_fn_error $? "No useable ICU installation found" "$LINENO" 5
+  fi
   LIBS="$LIBS $ICU_LIBS"
-  HAVE_ICU=1
+
 fi
 
 
