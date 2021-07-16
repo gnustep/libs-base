@@ -80,13 +80,13 @@ static inline void free_string(unichar **buf)
  *
  * Buffers created in this way are exception safe when using native exceptions.
  */
-#define TEMP_BUFFER(name, size)\
+#define TEMP_BUFFER(name, length)\
   __attribute__((cleanup(free_string))) unichar *name ##_onheap = 0;\
-  unichar name ## _onstack[64 / sizeof(unichar)];\
+  unichar name ## _onstack[64];\
   unichar *name = name ## _onstack;\
-  if (size > 64)\
+  if (length > 64)\
     {\
-      name ## _onheap = malloc(size);\
+      name ## _onheap = malloc(length * sizeof(unichar));\
       name = name ## _onheap;\
     }
 

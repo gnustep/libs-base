@@ -487,13 +487,13 @@ UTextInitWithNSString(UText *txt, NSString *str)
 - (void) replaceCharactersInRange: (NSRange)r
                        withString: (NSString*)aString
 {
-  NSUInteger	size = [aString length];
+  NSUInteger	length = [aString length];
   UErrorCode	status = 0;
 
-  TEMP_BUFFER(buffer, size);
-  [aString getCharacters: buffer range: NSMakeRange(0, size)];
+  TEMP_BUFFER(buffer, length);
+  [aString getCharacters: buffer range: NSMakeRange(0, length)];
 
-  utext_replace(&txt, r.location, r.location + r.length, buffer, size, &status);
+  utext_replace(&txt, r.location, r.location + r.length, buffer, length, &status);
 }
 
 - (void) dealloc
