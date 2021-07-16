@@ -1,3 +1,11 @@
+2021-07-16 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/GSICUString.h:
+	* Source/GSICUString.m:
+	Fix possible memory corruption in string handling that occured
+	primarily when using NSRegularExpression with strings longer than
+	16 characters.
+
 2021-07-02 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/Additions/Unicode.m:
