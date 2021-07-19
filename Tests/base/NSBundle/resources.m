@@ -39,7 +39,7 @@ int main()
   END_SET("NSBundle resources")
 
 #if	defined(GNUSTEP)
-    START_SET("NSBundle GNUstep general")
+    START_SET("NSBundle GNUstep resources")
       NSBundle *gnustepBundle;
       NSArray  *arr;
 
