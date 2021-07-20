@@ -16,6 +16,8 @@ came from the OpenStep standard.
 Initial reading
 ---------------
 
+The file [NEWS](NEWS) has the library's feature history.
+
 The files [INSTALL](INSTALL) or [GNUstep-HOWTO][1] (from the web site)
 gives instructions for installing the library.
 
