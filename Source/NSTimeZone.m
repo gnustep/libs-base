@@ -252,7 +252,7 @@ typedef struct {
   NSData	*timeZoneData;
   unsigned int	n_trans;
   unsigned int	n_types;
-  int32_t	*trans;
+  int64_t	*trans;
   TypeInfo	*types;
   unsigned char	*idxs;
 }
@@ -2912,8 +2912,8 @@ GSBreakTime(NSTimeInterval when,
 static TypeInfo*
 chop(NSTimeInterval since, GSTimeZone *zone)
 {
-  int32_t		when = (int32_t)since;
-  int32_t		*trans = zone->trans;
+  int64_t		when = (int64_t)since;
+  int64_t		*trans = zone->trans;
   unsigned		hi = zone->n_trans;
   unsigned		lo = 0;
   unsigned int		i;
@@ -3018,6 +3018,7 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
       unsigned		i, charcnt;
       unsigned char	*abbr;
       struct tzhead	*header;
+      unsigned		version = 1;
 
       if (length < sizeof(struct tzhead))
 	{
@@ -3026,19 +3027,55 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 	}
       header = (struct tzhead *)(bytes + pos);
       pos += sizeof(struct tzhead);
-#ifdef TZ_MAGIC
+
       if (memcmp(header->tzh_magic, TZ_MAGIC, strlen(TZ_MAGIC)) != 0)
 	{
 	  [NSException raise: fileException
 		      format: @"TZ_MAGIC is incorrect"];
 	}
-#endif
+
+      /* For version 2+, skip to second header */
+      if (header->tzh_version[0] != 0)
+        {
+	  version = header->tzh_version[0];
+	  /* pos indexes after the first header, increment it to index after
+	   * the data associated with that header too.
+	   */
+          pos += GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_timecnt) * 5
+	    + GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_typecnt) * 6
+	    + GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_charcnt)
+	    + GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_leapcnt) * 8
+	    + GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_ttisstdcnt)
+	    + GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_ttisutcnt);
+
+	  /* Now we get a pointer to the version 2+ header and set pos as an
+	   * index to the data after that.
+	   */
+	  header = (struct tzhead *)(bytes + pos);
+          pos += sizeof(struct tzhead);
+
+          if (memcmp(header->tzh_magic, TZ_MAGIC, strlen(TZ_MAGIC)) != 0)
+	    {
+	      [NSException raise: fileException
+		      format: @"TZ_MAGIC is incorrect (v2+ header)"];
+	    }
+	}
+
       n_trans = GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_timecnt);
       n_types = GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_typecnt);
       charcnt = GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_charcnt);
 
       i = pos;
-      i += sizeof(int32_t)*n_trans;
+      if (1 == version)
+	{
+	  /* v1 with 32-bit transitions */
+	  i += sizeof(int32_t) * n_trans;
+	}
+      else
+	{
+	  /* v2+ with 64-bit transitions */
+	  i += sizeof(int64_t) * n_trans;
+	}
       if (i > length)
 	{
 	  [NSException raise: fileException
@@ -3065,21 +3102,34 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
       /*
        * Now calculate size we need to store the information
        * for efficient access ... not the same saze as the data
-       * we received.
+       * we received (we always use 64bit transitions internally).
        */
-      i = n_trans * (sizeof(int32_t)+1) + n_types * sizeof(TypeInfo);
+      i = n_trans * (sizeof(int64_t)+1) + n_types * sizeof(TypeInfo);
       buf = NSZoneMalloc(NSDefaultMallocZone(), i);
       types = (TypeInfo*)buf;
       buf += (n_types * sizeof(TypeInfo));
-      trans = (int32_t*)buf;
-      buf += (n_trans * sizeof(int32_t));
+      trans = (int64_t*)buf;
+      buf += (n_trans * sizeof(int64_t)); 
       idxs = (unsigned char*)buf;
 
       /* Read in transitions. */
-      for (i = 0; i < n_trans; i++)
+      if (1 == version)
 	{
-	  trans[i] = GSSwapBigI32ToHost(*(int32_t*)(bytes + pos));
-	  pos += sizeof(int32_t);
+	  /* v1 with 32-bit transitions */
+	  for (i = 0; i < n_trans; i++)
+	    {
+	      trans[i] = GSSwapBigI32ToHost(*(int32_t*)(bytes + pos));
+	      pos += sizeof(int32_t);
+	    }
+	}
+      else
+	{
+	  /* v2+ with 64-bit transitions */
+	  for (i = 0; i < n_trans; i++)
+	    {
+	      trans[i] = GSSwapBigI64ToHost(*(int64_t*)(bytes + pos));
+	      pos += sizeof(int64_t);
+	    }
 	}
       for (i = 0; i < n_trans; i++)
 	{

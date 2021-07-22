@@ -35,8 +35,9 @@
 
 struct tzhead {
  	char	tzh_magic[4];		/* TZ_MAGIC */
-	char	tzh_reserved[16];	/* reserved for future use */
-	char	tzh_ttisgmtcnt[4];	/* coded number of trans. time flags */
+	char	tzh_version[1];		/* \0 for 1, 2 or 3 */
+	char	tzh_reserved[15];	/* reserved for future use */
+	char	tzh_ttisutcnt[4];	/* coded number of trans. time flags */
 	char	tzh_ttisstdcnt[4];	/* coded number of trans. time flags */
 	char	tzh_leapcnt[4];		/* coded number of leap seconds */
 	char	tzh_timecnt[4];		/* coded number of transition times */

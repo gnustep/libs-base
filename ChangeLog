@@ -1,3 +1,10 @@
+2021-07-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/nstzfile.h:
+	* Source/NSTimeZone.m:
+	Changes to add support for 64bit transitions used by v2+ of the
+	timezone format.
+
 2021-07-16 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/GSICUString.h:
