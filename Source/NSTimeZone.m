@@ -3037,7 +3037,10 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
       /* For version 2+, skip to second header */
       if (header->tzh_version[0] != 0)
         {
-	  version = header->tzh_version[0];
+	  /* tzh_version[0] is an ascii digit for versions above 1.
+	   */
+	  version = header->tzh_version[0] - '0';
+
 	  /* pos indexes after the first header, increment it to index after
 	   * the data associated with that header too.
 	   */
