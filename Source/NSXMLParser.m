@@ -2334,9 +2334,6 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
   return myHandler->_shouldResolveExternalEntities;
 }
 
-@end
-
-@implementation NSXMLParser (NSXMLParserLocatorAdditions)
 - (NSInteger) columnNumber
 {
   return [myParser columnNumber];

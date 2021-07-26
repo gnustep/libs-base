@@ -1,3 +1,9 @@
+2021-07-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLParser.m:
+	Fix error caused by having methods in category for strict parser
+	overriding methods provided by sloppy parser.
+
 2021-07-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/nstzfile.h:
