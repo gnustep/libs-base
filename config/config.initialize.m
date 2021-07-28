@@ -2,13 +2,24 @@
  */
 
 #include "objc-common.g"
-#include <pthread.h>
 #include <stdio.h>
 
 #if defined(_WIN32)
-# define	mySleep(X)	usleep(1000*(X))
+
+#include <process.h>
+typedef unsigned thread_id_t;
+#define CREATE_THREAD(threadId, start, arg) \
+  _beginthreadex(NULL, 0, start, arg, 0, &threadId) != 0
+#define	mySleep(X)	usleep(1000*(X))
+
 #else
-# define	mySleep(X)	sleep(X)
+
+#include <pthread.h>
+typedef pthread_t thread_id_t;
+#define CREATE_THREAD(threadId, start, arg) \
+  pthread_create(&threadId, 0, start, arg) == 0
+#define	mySleep(X)	sleep(X)
+
 #endif
 
 #if _MSC_VER
@@ -65,11 +76,11 @@ test(void *arg)
 int
 main()
 {
-  pthread_t t1;
-  pthread_t t2;
+  thread_id_t t1;
+  thread_id_t t2;
   unsigned  counter;
 
-  if (0 == pthread_create(&t1, 0, test, 0))
+  if (CREATE_THREAD(t1, test, 0))
     {
       for (counter = 0; 0 == initialize_entered && counter < 5; counter++)
 	{
@@ -82,7 +93,7 @@ main()
 	  return 1;
 	}
 
-      if (0 == pthread_create(&t2, 0, test, 0))
+      if (CREATE_THREAD(t2, test, 0))
         {
           /* Wait long enough for t2 to  try calling +class
 	   */

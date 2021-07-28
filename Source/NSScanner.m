@@ -246,11 +246,11 @@ typedef GSString	*ivars;
  */
 + (BOOL) _scanDouble: (double*)value from: (NSString*)str
 {
-  static pthread_mutex_t myLock = PTHREAD_MUTEX_INITIALIZER;
+  static gs_mutex_t myLock = GS_MUTEX_INIT_STATIC;
   static NSScanner	*doubleScanner = nil;
   BOOL	ok = NO;
 
-  pthread_mutex_lock(&myLock);
+  GS_MUTEX_LOCK(myLock);
   if (nil == doubleScanner)
     {
       doubleScanner = [[self alloc] initWithString: _empty];
@@ -258,7 +258,7 @@ typedef GSString	*ivars;
   [doubleScanner _setString: str];
   ok = [doubleScanner scanDouble: value];
   [doubleScanner _setString: _empty];		// Release scanned string
-  pthread_mutex_unlock(&myLock);
+  GS_MUTEX_UNLOCK(myLock);
   return ok;
 }
 

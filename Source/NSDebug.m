@@ -93,7 +93,7 @@ static table_entry*	the_table = 0;
 static BOOL	debug_allocation = NO;
 static BOOL	debug_byte_size = NO;
 
-static pthread_mutex_t	uniqueLock;
+static gs_mutex_t	uniqueLock;
 
 static void     _GSDebugAllocationFetch(list_entry *items, BOOL difference);
 static void     _GSDebugAllocationFetchAll(list_entry *items);
@@ -106,8 +106,8 @@ static void (*_GSDebugAllocationAddFunc)(Class c, id o)
 static void (*_GSDebugAllocationRemoveFunc)(Class c, id o)
   = _GSDebugAllocationRemove;
 
-#define doLock() pthread_mutex_lock(&uniqueLock)
-#define unLock() pthread_mutex_unlock(&uniqueLock)
+#define doLock() GS_MUTEX_LOCK(uniqueLock)
+#define unLock() GS_MUTEX_UNLOCK(uniqueLock)
 
 @interface GSDebugAlloc : NSObject
 + (void) initialize;
@@ -116,7 +116,7 @@ static void (*_GSDebugAllocationRemoveFunc)(Class c, id o)
 @implementation GSDebugAlloc
 + (void) initialize
 {
-  GS_INIT_RECURSIVE_MUTEX(uniqueLock);
+  GS_MUTEX_INIT_RECURSIVE(uniqueLock);
 }
 @end
 

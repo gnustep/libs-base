@@ -134,7 +134,7 @@ GS_EXPORT_CLASS
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST) \
   && GS_API_VERSION( 10200,GS_API_LATEST)
-+ (void) setThreadPriority: (double)pri;
++ (BOOL) setThreadPriority: (double)pri;
 + (double) threadPriority;
 #endif
 

@@ -137,7 +137,7 @@ internal_unicode_enc(void)
 #define UNICODE_UTF32 ""
 #endif
 
-static pthread_mutex_t local_lock = PTHREAD_MUTEX_INITIALIZER;
+static gs_mutex_t local_lock = GS_MUTEX_INIT_STATIC;
 
 typedef	unsigned char	unc;
 static NSStringEncoding	defEnc = GSUndefinedEncoding;
@@ -279,7 +279,7 @@ static void GSSetupEncodingTable(void)
 {
   if (encodingTable == 0)
     {
-      (void)pthread_mutex_lock(&local_lock);
+      GS_MUTEX_LOCK(local_lock);
       if (encodingTable == 0)
 	{
 	  static struct _strenc_	**encTable = 0;
@@ -355,7 +355,7 @@ static void GSSetupEncodingTable(void)
 	    }
 	  encodingTable = encTable;
 	}
-      (void)pthread_mutex_unlock(&local_lock);
+      GS_MUTEX_UNLOCK(local_lock);
     }
 }
 
@@ -2735,7 +2735,7 @@ GSPrivateAvailableEncodings()
   if (_availableEncodings == 0)
     {
       GSSetupEncodingTable();
-      (void)pthread_mutex_lock(&local_lock);
+      GS_MUTEX_LOCK(local_lock);
       if (_availableEncodings == 0)
 	{
 	  NSStringEncoding	*encodings;
@@ -2761,7 +2761,7 @@ GSPrivateAvailableEncodings()
 	  encodings[pos] = 0;
 	  _availableEncodings = encodings;
 	}
-      (void)pthread_mutex_unlock(&local_lock);
+      GS_MUTEX_UNLOCK(local_lock);
     }
   return _availableEncodings;
 }
@@ -2903,10 +2903,10 @@ GSPrivateDefaultCStringEncoding()
 
       GSSetupEncodingTable();
 
-      (void)pthread_mutex_lock(&local_lock);
+      GS_MUTEX_LOCK(local_lock);
       if (defEnc != GSUndefinedEncoding)
 	{
-	  (void)pthread_mutex_unlock(&local_lock);
+	  GS_MUTEX_UNLOCK(local_lock);
 	  return defEnc;
 	}
 
@@ -2950,7 +2950,7 @@ GSPrivateDefaultCStringEncoding()
 	  defEnc = NSISOLatin1StringEncoding;
 	}
 
-      (void)pthread_mutex_unlock(&local_lock);
+      GS_MUTEX_UNLOCK(local_lock);
     }
   return defEnc;
 }

@@ -86,7 +86,7 @@ static Class GSPlaceholderArrayClass;
 
 static GSPlaceholderArray	*defaultPlaceholderArray;
 static NSMapTable		*placeholderMap;
-static pthread_mutex_t          placeholderLock = PTHREAD_MUTEX_INITIALIZER;
+static gs_mutex_t		placeholderLock = GS_MUTEX_INIT_STATIC;
 
 
 /**
@@ -167,7 +167,7 @@ static SEL	rlSel;
 	   * locate the correct placeholder in the (lock protected)
 	   * table of placeholders.
 	   */
-	  (void)pthread_mutex_lock(&placeholderLock);
+	  GS_MUTEX_LOCK(placeholderLock);
 	  obj = (id)NSMapGet(placeholderMap, (void*)z);
 	  if (obj == nil)
 	    {
@@ -178,7 +178,7 @@ static SEL	rlSel;
 	      obj = (id)NSAllocateObject(GSPlaceholderArrayClass, 0, z);
 	      NSMapInsert(placeholderMap, (void*)z, (void*)obj);
 	    }
-	  (void)pthread_mutex_unlock(&placeholderLock);
+	  GS_MUTEX_UNLOCK(placeholderLock);
 	  return obj;
 	}
     }

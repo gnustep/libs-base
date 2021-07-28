@@ -736,9 +736,9 @@ static Class concreteMutableClass = nil;
 			length: (unsigned)length
 			number: (int)number
 {
-  static pthread_mutex_t cache_lock = PTHREAD_MUTEX_INITIALIZER;
+  static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
 
-  pthread_mutex_lock(&cache_lock);
+  GS_MUTEX_LOCK(cache_lock);
   if (cache_set[number] == nil && bytes != 0)
     {
       NSData	*bitmap;
@@ -751,7 +751,7 @@ static Class concreteMutableClass = nil;
       [[NSObject leakAt: &cache_set[number]] release];
       RELEASE(bitmap);
     }
-  pthread_mutex_unlock(&cache_lock);
+  GS_MUTEX_UNLOCK(cache_lock);
   return cache_set[number];
 }
 

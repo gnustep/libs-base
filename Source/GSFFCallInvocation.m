@@ -26,6 +26,7 @@
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDistantObject.h"
 #import "GSInvocation.h"
+#import "GSPThread.h"
 #import <avcall.h>
 #import <callback.h>
 #import "callframe.h"
@@ -33,10 +34,6 @@
 #if !defined (__GNU_LIBOBJC__)
 #  include <objc/encoding.h>
 #endif
-
-#include <pthread.h>
-
-#import "GSInvocation.h"
 
 #ifndef GS_STATIC_INLINE
 #define GS_STATIC_INLINE static inline
@@ -140,7 +137,7 @@ static GSIMapTable_t ff_callback_map;
 
 /* Lock that protects the ff_callback_map */
 
-static pthread_mutex_t ff_callback_map_lock = PTHREAD_MUTEX_INITIALIZER;
+static gs_mutex_t ff_callback_map_lock = GS_MUTEX_INIT_STATIC;
 
 /* Static pre-computed return type info */
 
@@ -486,7 +483,7 @@ static IMP gs_objc_msg_forward (SEL sel)
       GSIMapNode node;
 
       // Lock
-      pthread_mutex_lock (&ff_callback_map_lock);
+      GS_MUTEX_LOCK(ff_callback_map_lock);
 
       node = GSIMapNodeForKey (&ff_callback_map,
 	(GSIMapKey) ((void *) &returnInfo));
@@ -512,7 +509,7 @@ static IMP gs_objc_msg_forward (SEL sel)
 	    (GSIMapVal) forwarding_callback);
 	}
       // Unlock
-      pthread_mutex_unlock (&ff_callback_map_lock);
+      GS_MUTEX_UNLOCK(ff_callback_map_lock);
     }
   return forwarding_callback;
 }

@@ -254,10 +254,13 @@ typedef	gsuaddr gsaddr;
  */
 typedef	struct {
   uint8_t	dummy[@GS_SIZEOF_COND_T@];
-} gs_cond_t	__attribute__((aligned (@GS_ALIGNOF_COND_T@)));
+} gs_cond_public_t	__attribute__((aligned (@GS_ALIGNOF_COND_T@)));
+typedef	struct {
+  uint8_t	dummy[@GS_SIZEOF_COND_MUTEX_T@];
+} gs_cond_mutex_public_t	__attribute__((aligned (@GS_ALIGNOF_COND_MUTEX_T@)));
 typedef	struct {
   uint8_t	dummy[@GS_SIZEOF_MUTEX_T@];
-} gs_mutex_t	__attribute__((aligned (@GS_ALIGNOF_MUTEX_T@)));
+} gs_mutex_public_t	__attribute__((aligned (@GS_ALIGNOF_MUTEX_T@)));
 
 #define	OBJC2RUNTIME @OBJC2RUNTIME@
 #define BASE_NATIVE_OBJC_EXCEPTIONS     @BASE_NATIVE_OBJC_EXCEPTIONS@
@@ -272,6 +275,7 @@ typedef	struct {
 #define GS_USE_LIBDISPATCH_RUNLOOP @HAVE_LIBDISPATCH_RUNLOOP@
 #define GS_HAVE_NSURLSESSION @GS_HAVE_NSURLSESSION@
 #define GS_HAVE_OBJC_ROOT_CLASS_ATTR @GS_HAVE_OBJC_ROOT_CLASS_ATTR@
+#define GS_USE_WIN32_THREADS_AND_LOCKS @HAVE_WIN32_THREADS_AND_LOCKS@
 
 #ifndef __has_include
 #  define __has_include(x) 0

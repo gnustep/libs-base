@@ -21,6 +21,45 @@
 	Changes to add support for 64bit transitions used by v2+ of the
 	timezone format.
 
+2021-07-14 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSLock.h:
+	* Headers/Foundation/NSThread.h:
+	* Headers/GNUstepBase/GSConfig.h.in:
+	* Headers/GNUstepBase/config.h.in:
+	* Source/Additions/GCObject.m:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/Additions/Unicode.m:
+	* Source/GSAtomic.h:
+	* Source/GSFFCallInvocation.m:
+	* Source/GSFFIInvocation.m:
+	* Source/GSPThread.h:
+	* Source/NSArray.m:
+	* Source/NSCharacterSet.m:
+	* Source/NSDebug.m:
+	* Source/NSException.m:
+	* Source/NSLock.m:
+	* Source/NSObject.m:
+	* Source/NSScanner.m:
+	* Source/NSString.m:
+	* Source/NSThread.m:
+	* Source/NSTimeZone.m:
+	* Source/NSZone.m:
+	* Tests/base/NSThread/GNUmakefile.preamble:
+	* Tests/base/NSThread/late_unregister.m:
+	* Tests/base/NSThread/lazy_thread.m:
+	* config/config.initialize.m:
+	* configure:
+	* configure.ac:
+	Use native threading and locking APIs on Windows, removing dependency
+	on pthread library and using fast Slim Reader/Writer (SRW) locks for
+	NSLock/NSRecursiveLock/NSCondition/NSConditionLock as well as all
+	internal locks. Adds GS_MUTEX_*() macros in GSPThread.h, that are being
+	used for all internal locking instead of pthread APIs.
+	Also adds support for thread priorities on Windows, fixes method
+	signature of +[NSThread setThreadPriority:] to match Apple platforms,
+	and adds error handling in same method.
+
 2021-07-16 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/GSICUString.h:

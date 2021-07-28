@@ -74,7 +74,7 @@ GS_EXPORT_CLASS
 {
 #if	GS_EXPOSE(NSLock)
 @protected
-  gs_mutex_t	_mutex;
+  gs_mutex_public_t	_mutex;
   NSString	*_name;
 #endif
 }
@@ -126,8 +126,8 @@ GS_EXPORT_CLASS
 {
 #if	GS_EXPOSE(NSCondition)
 @protected
-  gs_cond_t	_condition;
-  gs_mutex_t	_mutex;
+  gs_cond_public_t	_condition;
+  gs_mutex_public_t	_mutex;
   NSString	*_name;
 #endif
 }
@@ -278,7 +278,7 @@ GS_EXPORT_CLASS
 {
 #if	GS_EXPOSE(NSRecursiveLock)
 @protected
-  gs_mutex_t	_mutex;
+  gs_mutex_public_t	_mutex;
   NSString      *_name;
 #endif
 }
