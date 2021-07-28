@@ -235,7 +235,7 @@ then
 fi
 if test x"$GNUSTEP_TARGET_CONFIG_FILE" = x""; then
   case "$target_os" in
-    mingw*|windows*)
+    mingw*|windows)
       GNUSTEP_TARGET_CONFIG_FILE=./GNUstep.conf ;;
     *)
       GNUSTEP_TARGET_CONFIG_FILE="$GNUSTEP_MAKE_CONFIG" ;;
@@ -252,7 +252,7 @@ AC_MSG_RESULT($GNUSTEP_TARGET_CONFIG_FILE)
 # location (used by gnustep-make when building).
 #-----------------------------------------------------------------
 case "$target_os" in
-    mingw*|windows*)	enable_env_config=no;;
+    mingw*|windows)	enable_env_config=no;;
     *)		enable_env_config=yes;;
 esac
 AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
@@ -534,7 +534,7 @@ AC_SUBST(GNUSTEP_BASE_DOMAIN)
 # paths (relative to libgnustep-base.dll).
 #
 case "$target_os" in
-  mingw*|windows*)
+  mingw*|windows)
     # TODO: Improve this hack.
     # According to Wikipedia, this is the default for Windows 2000,
     # Windows XP and Windows Server 2003.  For Windows Vista this will
@@ -1703,98 +1703,208 @@ fi
 AC_CHECK_FUNCS(getaddrinfo)
 
 #--------------------------------------------------------------------
+# Windows: check if we have native threading APIs and SRW locks
+#--------------------------------------------------------------------
+HAVE_WIN32_THREADS_AND_LOCKS=0
+case "$target_os" in
+  mingw*|windows)
+    AC_MSG_CHECKING(for native Windows threads and locks)
+    AC_COMPILE_IFELSE(
+      [AC_LANG_SOURCE([
+        #define GS_USE_WIN32_THREADS_AND_LOCKS 1
+        #include "$srcdir/Source/GSPThread.h"
+      ])],
+      AC_MSG_RESULT([yes])
+      HAVE_WIN32_THREADS_AND_LOCKS=1,
+      AC_MSG_RESULT([no]))
+    ;;
+esac
+AC_SUBST(HAVE_WIN32_THREADS_AND_LOCKS)
+
+#--------------------------------------------------------------------
 # Check for pthread.h
 #--------------------------------------------------------------------
-AC_CHECK_HEADERS([pthread.h])
-AC_CHECK_HEADERS([pthread_np.h],[],[],[AC_INCLUDES_DEFAULT
-		  #ifdef HAVE_PTHREAD_H
-		  #include <pthread.h>
-		  #endif
-		  ])
-if test $ac_cv_header_pthread_h = yes ; then
-  AC_CHECK_SIZEOF(pthread_mutex_t,,[AC_INCLUDES_DEFAULT
-#include <pthread.h>])
-  GS_SIZEOF_MUTEX_T=$ac_cv_sizeof_pthread_mutex_t
-  if test $ac_cv_sizeof_pthread_mutex_t = 0 ; then
-    AC_MSG_ERROR([Unable to find size of pthread_mutex_t (required).])
+if test $HAVE_WIN32_THREADS_AND_LOCKS = 0; then
+  AC_CHECK_HEADERS([pthread.h])
+  AC_CHECK_HEADERS([pthread_np.h],[],[],[AC_INCLUDES_DEFAULT
+    #ifdef HAVE_PTHREAD_H
+    #include <pthread.h>
+    #endif
+  ])
+  if test $ac_cv_header_pthread_h = yes ; then
+    AC_CHECK_SIZEOF(pthread_mutex_t,,[AC_INCLUDES_DEFAULT
+      #include <pthread.h>])
+    GS_SIZEOF_MUTEX_T=$ac_cv_sizeof_pthread_mutex_t
+    if test $ac_cv_sizeof_pthread_mutex_t = 0 ; then
+      AC_MSG_ERROR([Unable to find size of pthread_mutex_t (required).])
+    fi
+    AC_SUBST(GS_SIZEOF_MUTEX_T)
+    GS_SIZEOF_COND_MUTEX_T=$ac_cv_sizeof_pthread_mutex_t
+    AC_SUBST(GS_SIZEOF_COND_MUTEX_T)
+
+    # pthread_mutex_t.__data.__owner is non-standard since pthread_mutex_t is
+    # nominally an opaque type.  We must not rely on this for anything other
+    # than debug output!
+    AC_CHECK_MEMBER([pthread_mutex_t.__data.__owner],,,[AC_INCLUDES_DEFAULT
+      #include <pthread.h>])
+    if test $ac_cv_member_pthread_mutex_t___data___owner = yes ; then
+      AC_DEFINE(HAVE_PTHREAD_MUTEX_OWNER, 1,
+        [Define if you have pthread_mutex_t.__data.__owner])
+    fi
+
+    AC_CHECK_SIZEOF(pthread_cond_t,,[AC_INCLUDES_DEFAULT
+      #include <pthread.h>])
+    if test $ac_cv_sizeof_pthread_cond_t = 0 ; then
+      AC_MSG_ERROR([Unable to find size of pthread_cond_t (required).])
+    fi
+    GS_SIZEOF_COND_T=$ac_cv_sizeof_pthread_cond_t
+    AC_SUBST(GS_SIZEOF_COND_T)
+
+    AC_CHECK_ALIGNOF(pthread_mutex_t,[AC_INCLUDES_DEFAULT
+      #include <pthread.h>])
+    GS_ALIGNOF_MUTEX_T=$ac_cv_alignof_pthread_mutex_t
+    if test $ac_cv_alignof_pthread_mutex_t = 0 ; then
+      AC_MSG_ERROR([Unable to find align of pthread_mutex_t (required).])
+    fi
+    AC_SUBST(GS_ALIGNOF_MUTEX_T)
+    GS_ALIGNOF_COND_MUTEX_T=$ac_cv_alignof_pthread_mutex_t
+    AC_SUBST(GS_ALIGNOF_COND_MUTEX_T)
+
+    AC_CHECK_ALIGNOF(pthread_cond_t,[AC_INCLUDES_DEFAULT
+      #include <pthread.h>])
+    if test $ac_cv_alignof_pthread_cond_t = 0 ; then
+      AC_MSG_ERROR([Unable to find align of pthread_cond_t (required).])
+    fi
+    GS_ALIGNOF_COND_T=$ac_cv_alignof_pthread_cond_t
+    AC_SUBST(GS_ALIGNOF_COND_T)
+  else
+    AC_MSG_ERROR([Unable to find pthread.h (needed for thread support).])
+  fi
+  AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
+
+  if test $pthread_ok = yes ; then
+    LIBS="$LIBS -lpthread"
+  else
+    case "$target_os" in
+      mingw*)
+        AC_CHECK_LIB(pthreadGC2, pthread_join, pthread_ok=yes, pthread_ok=no)
+        if test $pthread_ok = yes ; then
+          LIBS="$LIBS -lpthreadGC2"
+        fi
+        ;;
+      windows)
+        AC_CHECK_LIB(pthreadVC2, pthread_join, pthread_ok=yes, pthread_ok=no)
+        if test $pthread_ok = yes ; then
+          LIBS="$LIBS -lpthreadVC2"
+        fi
+        ;;
+      nto*|qnx*|*android*)
+        # Android and QNX have pthread in libc instead of libpthread
+        AC_CHECK_LIB(c, pthread_join, pthread_ok=yes, pthread_ok=no)
+        if test $pthread_ok = yes ; then
+           LIBS="$LIBS -lc"
+        fi
+        ;;
+    esac
+  fi
+  if test $pthread_ok = no ; then
+    AC_MSG_ERROR([Unable to find pthread library (needed for thread support).])
+  fi
+
+  # Check threading extensions
+  AC_CHECK_FUNCS(pthread_getthreadid_np pthread_main_np)
+
+  # Typically need librt on Solaris for sched_yield
+  AC_CHECK_LIB(rt, sched_yield)
+  
+  # Check if we can name pthreads
+  AC_CACHE_CHECK([for pthread_setname_np()], gs_cv_pthread_setname_np,
+  [AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([#include <pthread.h>],
+      [pthread_setname_np("name");])],
+    [gs_cv_pthread_setname_np=darwin],
+    [AC_LINK_IFELSE(
+      [AC_LANG_PROGRAM([#include <pthread.h>],
+        [pthread_setname_np(pthread_self(), "name");])],
+      [gs_cv_pthread_setname_np=glibc],
+      [AC_LINK_IFELSE(
+        [AC_LANG_PROGRAM([#include <pthread.h>],
+          [pthread_setname_np(pthread_self(), "%s", "name");])],
+        [gs_cv_pthread_setname_np=netbsd],
+        [gs_cv_pthread_setname_np=none])])])])
+  case $gs_cv_pthread_setname_np in
+    darwin)
+      AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(a),
+        [Description: Define set name function for pthread with one arg])
+      ;;
+    glibc)
+      AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(pthread_self(),a),
+        [Description: Define setname function for pthread with two args])
+      ;;
+    netbsd)
+      AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(pthread_self(),"%s",a),
+        [Description: Define setname function for pthread with three args])
+      ;;
+  esac
+  
+  # Check if we have spinlock support
+  AC_CHECK_FUNCS(pthread_spin_lock)
+fi
+
+#--------------------------------------------------------------------
+# Check Win32 lock sizes
+#--------------------------------------------------------------------
+if test $HAVE_WIN32_THREADS_AND_LOCKS = 1; then
+  AC_CHECK_SIZEOF(gs_mutex_t,,[AC_INCLUDES_DEFAULT
+    #define GS_USE_WIN32_THREADS_AND_LOCKS 1
+    #include "Source/GSPThread.h"])
+  GS_SIZEOF_MUTEX_T=$ac_cv_sizeof_gs_mutex_t
+  if test $ac_cv_sizeof_gs_mutex_t = 0 ; then
+    AC_MSG_ERROR([Unable to find size of gs_mutex_t (required).])
   fi
   AC_SUBST(GS_SIZEOF_MUTEX_T)
-# pthread_mutex_t.__data.__owner is non-standard since pthread_mutex_t is
-# nominally an opaque type.  We must not rely on this for anything other
-# than debug output!
-  AC_CHECK_MEMBER([pthread_mutex_t.__data.__owner],,,[AC_INCLUDES_DEFAULT
-#include <pthread.h>])
-  if test $ac_cv_member_pthread_mutex_t___data___owner = yes ; then
-    AC_DEFINE(HAVE_PTHREAD_MUTEX_OWNER, 1,
-      [Define if you have pthread_mutex_t.__data.__owner])
-  fi
-  AC_CHECK_SIZEOF(pthread_cond_t,,[AC_INCLUDES_DEFAULT
-#include <pthread.h>])
-  if test $ac_cv_sizeof_pthread_cond_t = 0 ; then
-    AC_MSG_ERROR([Unable to find size of pthread_cond_t (required).])
-  fi
-  GS_SIZEOF_COND_T=$ac_cv_sizeof_pthread_cond_t
-  AC_SUBST(GS_SIZEOF_COND_T)
-  AC_CHECK_ALIGNOF(pthread_mutex_t,[AC_INCLUDES_DEFAULT
-#include <pthread.h>])
-  GS_ALIGNOF_MUTEX_T=$ac_cv_alignof_pthread_mutex_t
-  if test $ac_cv_alignof_pthread_mutex_t = 0 ; then
-    AC_MSG_ERROR([Unable to find align of pthread_mutex_t (required).])
+  
+  AC_CHECK_ALIGNOF(gs_mutex_t,[AC_INCLUDES_DEFAULT
+    #define GS_USE_WIN32_THREADS_AND_LOCKS 1
+    #include "Source/GSPThread.h"])
+  GS_ALIGNOF_MUTEX_T=$ac_cv_alignof_gs_mutex_t
+  if test $ac_cv_alignof_gs_mutex_t = 0 ; then
+    AC_MSG_ERROR([Unable to find align of gs_mutex_t (required).])
   fi
   AC_SUBST(GS_ALIGNOF_MUTEX_T)
-  AC_CHECK_ALIGNOF(pthread_cond_t,[AC_INCLUDES_DEFAULT
-#include <pthread.h>])
-  if test $ac_cv_alignof_pthread_cond_t = 0 ; then
-    AC_MSG_ERROR([Unable to find align of pthread_cond_t (required).])
+  
+  AC_CHECK_SIZEOF(CONDITION_VARIABLE,,[AC_INCLUDES_DEFAULT
+    #include <windows.h>])
+  GS_SIZEOF_COND_T=$ac_cv_sizeof_CONDITION_VARIABLE
+  if test $ac_cv_sizeof_CONDITION_VARIABLE = 0 ; then
+    AC_MSG_ERROR([Unable to find size of CONDITION_VARIABLE (required).])
   fi
-  GS_ALIGNOF_COND_T=$ac_cv_alignof_pthread_cond_t
+  AC_SUBST(GS_SIZEOF_COND_T)
+  
+  AC_CHECK_ALIGNOF(CONDITION_VARIABLE,[AC_INCLUDES_DEFAULT
+    #include <windows.h>])
+  GS_ALIGNOF_COND_T=$ac_cv_alignof_CONDITION_VARIABLE
+  if test $ac_cv_alignof_CONDITION_VARIABLE = 0 ; then
+    AC_MSG_ERROR([Unable to find align of CONDITION_VARIABLE (required).])
+  fi
   AC_SUBST(GS_ALIGNOF_COND_T)
-else
-  AC_MSG_ERROR([Unable to find pthread.h (needed for thread support).])
-fi
-AC_CHECK_LIB(pthread, pthread_join, pthread_ok=yes, pthread_ok=no)
-ismingw=no
-checkinlibc=no
-case "$target_os" in
-  mingw*)	ismingw=yes;;
-  windows) iswindows=yes;;
-  nto*)		checkinlibc=yes;;
-  qnx*)		checkinlibc=yes;;
-  *android*)   checkinlibc=yes;;
-esac
-if test $pthread_ok = yes ; then
-  LIBS="$LIBS -lpthread"
-else
-  if test $ismingw = yes ; then
-    AC_CHECK_LIB(pthreadGC2, pthread_join, pthread_ok=yes, pthread_ok=no)
-    if test $pthread_ok = yes ; then
-      LIBS="$LIBS -lpthreadGC2"
-    fi
+  
+  AC_CHECK_SIZEOF(SRWLOCK,,[AC_INCLUDES_DEFAULT
+    #include <windows.h>])
+  GS_SIZEOF_COND_MUTEX_T=$ac_cv_sizeof_SRWLOCK
+  if test $ac_cv_sizeof_SRWLOCK = 0 ; then
+    AC_MSG_ERROR([Unable to find size of SRWLOCK (required).])
   fi
-  if test $iswindows = yes ; then
-    AC_CHECK_LIB(pthreadVC2, pthread_join, pthread_ok=yes, pthread_ok=no)
-    if test $pthread_ok = yes ; then
-      LIBS="$LIBS -lpthreadVC2"
-    fi
+  AC_SUBST(GS_SIZEOF_COND_MUTEX_T)
+  
+  AC_CHECK_ALIGNOF(SRWLOCK,[AC_INCLUDES_DEFAULT
+    #include <windows.h>])
+  GS_ALIGNOF_COND_MUTEX_T=$ac_cv_alignof_SRWLOCK
+  if test $ac_cv_alignof_SRWLOCK = 0 ; then
+    AC_MSG_ERROR([Unable to find align of SRWLOCK (required).])
   fi
-  # Android and QNX have pthread in libc instead of libpthread
-  if test $checkinlibc = yes ; then
-    AC_CHECK_LIB(c, pthread_join, pthread_ok=yes, pthread_ok=no)
-    if test $pthread_ok = yes ; then
-       LIBS="$LIBS -lc"
-    fi
-  fi
+  AC_SUBST(GS_ALIGNOF_COND_MUTEX_T)
 fi
-if test $pthread_ok = no ; then
-  AC_MSG_ERROR([Unable to find pthread library (needed for thread support).])
-fi
-
-# Check threading extensions
-AC_CHECK_FUNCS(pthread_getthreadid_np pthread_main_np)
-
-# Typically need librt on Solaris for sched_yield
-AC_CHECK_LIB(rt, sched_yield)
-
 
 #--------------------------------------------------------------------
 # One of these function needed by NSThread.m and objc initialize test
@@ -1820,45 +1930,6 @@ AC_SUBST(GS_HAVE_OBJC_ROOT_CLASS_ATTR)
 AC_DEFINE_UNQUOTED(HAVE_OBJC_ROOT_CLASS_ATTRIBUTE,$gs_objc_root_class_attr,
   [Says whether the objc_root_class attribute works])
 CFLAGS=$saved_CFLAGS
-
-
-#--------------------------------------------------------------------
-# Check if we can name pthreads
-#--------------------------------------------------------------------
-
-AC_CACHE_CHECK([for pthread_setname_np()], gs_cv_pthread_setname_np,
-[AC_LINK_IFELSE(
-  [AC_LANG_PROGRAM([#include <pthread.h>],
-    [pthread_setname_np("name");])],
-  [gs_cv_pthread_setname_np=darwin],
-  [AC_LINK_IFELSE(
-    [AC_LANG_PROGRAM([#include <pthread.h>],
-      [pthread_setname_np(pthread_self(), "name");])],
-    [gs_cv_pthread_setname_np=glibc],
-    [AC_LINK_IFELSE(
-      [AC_LANG_PROGRAM([#include <pthread.h>],
-        [pthread_setname_np(pthread_self(), "%s", "name");])],
-      [gs_cv_pthread_setname_np=netbsd],
-      [gs_cv_pthread_setname_np=none])])])])
-case $gs_cv_pthread_setname_np in
-  darwin)
-    AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(a),
-      [Description: Define set name function for pthread with one arg])
-    ;;
-  glibc)
-    AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(pthread_self(),a),
-      [Description: Define setname function for pthread with two args])
-    ;;
-  netbsd)
-    AC_DEFINE(PTHREAD_SETNAME(a), pthread_setname_np(pthread_self(),"%s",a),
-      [Description: Define setname function for pthread with three args])
-    ;;
-esac
-
-#--------------------------------------------------------------------
-# Check if we have spinlock support
-#--------------------------------------------------------------------
-AC_CHECK_FUNCS(pthread_spin_lock)
 
 #--------------------------------------------------------------------
 # Check whether we can get the system thread ID
@@ -2369,12 +2440,15 @@ if test $bfd_section_vma = 1; then
 fi
 
 
-if test $ismingw = yes ; then
-  AC_CHECK_HEADERS(dbghelp.h)
-else
-  AC_CHECK_HEADERS(execinfo.h)
-  AC_CHECK_FUNCS(backtrace)
-fi
+case "$target_os" in
+  mingw*)
+    AC_CHECK_HEADERS(dbghelp.h)
+    ;;
+  *)
+    AC_CHECK_HEADERS(execinfo.h)
+    AC_CHECK_FUNCS(backtrace)
+    ;;
+esac
 
 AC_CHECK_FUNCS(__builtin_extract_return_address)
 
@@ -2822,7 +2896,7 @@ elif test "$enable_pass_arguments" = "no"; then
   fi
 fi
 case "$target_os" in
-    mingw*|windows*)	enable_fake_main=no; GS_FAKE_MAIN=0;;
+    mingw*|windows)	enable_fake_main=no; GS_FAKE_MAIN=0;;
 esac
 AC_SUBST(GS_FAKE_MAIN)
 AC_MSG_RESULT($enable_fake_main)

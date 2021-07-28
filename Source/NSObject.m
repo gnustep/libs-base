@@ -131,7 +131,7 @@ GS_ROOT_CLASS @interface	NSZombie
 /* allocationLock is needed when for protecting the map table of zombie
  * information and if atomic operations are not available.
  */
-static pthread_mutex_t  allocationLock = PTHREAD_MUTEX_INITIALIZER;
+static gs_mutex_t  allocationLock = GS_MUTEX_INIT_STATIC;
 
 BOOL	NSZombieEnabled = NO;
 BOOL	NSDeallocateZombies = NO;
@@ -146,12 +146,12 @@ static void GSMakeZombie(NSObject *o, Class c)
   object_setClass(o, zombieClass);
   if (0 != zombieMap)
     {
-      pthread_mutex_lock(&allocationLock);
+      GS_MUTEX_LOCK(allocationLock);
       if (0 != zombieMap)
         {
           NSMapInsert(zombieMap, (void*)o, (void*)c);
         }
-      pthread_mutex_unlock(&allocationLock);
+      GS_MUTEX_UNLOCK(allocationLock);
     }
 }
 #endif
@@ -162,12 +162,12 @@ static void GSLogZombie(id o, SEL sel)
 
   if (0 != zombieMap)
     {
-      pthread_mutex_lock(&allocationLock);
+      GS_MUTEX_LOCK(allocationLock);
       if (0 != zombieMap)
         {
           c = NSMapGet(zombieMap, (void*)o);
         }
-      pthread_mutex_unlock(&allocationLock);
+      GS_MUTEX_UNLOCK(allocationLock);
     }
   if (c == 0)
     {
@@ -394,6 +394,8 @@ GSAtomicDecrement(gsatomic_t X)
 #endif
 
 #if	!defined(GSATOMICREAD)
+
+#include <pthread.h>
 
 typedef int     gsrefcount_t;   // No atomics, use a simple integer
 
@@ -841,12 +843,12 @@ NSDeallocateObject(id anObject)
 #ifdef OBJC_CAP_ARC
 	  if (0 != zombieMap)
 	    {
-              pthread_mutex_lock(&allocationLock);
+              GS_MUTEX_LOCK(allocationLock);
               if (0 != zombieMap)
                 {
                   NSMapInsert(zombieMap, (void*)anObject, (void*)aClass);
                 }
-              pthread_mutex_unlock(&allocationLock);
+              GS_MUTEX_UNLOCK(allocationLock);
 	    }
 	  if (NSDeallocateZombies == YES)
 	    {
@@ -1117,10 +1119,10 @@ static id gs_weak_load(id obj)
 + (void) _atExit
 {
   NSMapTable	*m = nil;
-  pthread_mutex_lock(&allocationLock);
+  GS_MUTEX_LOCK(allocationLock);
   m = zombieMap;
   zombieMap = nil;
-  pthread_mutex_unlock(&allocationLock);
+  GS_MUTEX_UNLOCK(allocationLock);
   DESTROY(m);
 }
 
@@ -2500,12 +2502,12 @@ static id gs_weak_load(id obj)
 
   if (0 != zombieMap)
     {
-      pthread_mutex_lock(&allocationLock);
+      GS_MUTEX_LOCK(allocationLock);
       if (0 != zombieMap)
         {
           c = NSMapGet(zombieMap, (void*)self);
         }
-      pthread_mutex_unlock(&allocationLock);
+      GS_MUTEX_UNLOCK(allocationLock);
     }
   return c;
 }
@@ -2527,9 +2529,9 @@ static id gs_weak_load(id obj)
     {
       return nil;
     }
-  pthread_mutex_lock(&allocationLock);
+  GS_MUTEX_LOCK(allocationLock);
   c = zombieMap ? NSMapGet(zombieMap, (void*)self) : Nil;
-  pthread_mutex_unlock(&allocationLock);
+  GS_MUTEX_UNLOCK(allocationLock);
 
   return [c instanceMethodSignatureForSelector: aSelector];
 }

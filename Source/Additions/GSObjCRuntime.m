@@ -48,16 +48,15 @@
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "../GSPrivate.h"
+#import "../GSPThread.h"
 
 #include <objc/Protocol.h>
 
 #include <stdio.h>
 #include <ctype.h>
 
-#ifndef NeXT_RUNTIME
-#include <pthread.h>
-#endif
 #ifdef __GNUSTEP_RUNTIME__
+GS_IMPORT
 extern struct objc_slot	*objc_get_slot(Class, SEL);
 #endif
 
@@ -728,18 +727,17 @@ gs_string_hash(const char *s)
 #define GSI_MAP_VTYPES GSUNION_PTR
 
 #include "GNUstepBase/GSIMap.h"
-#include <pthread.h>
 
 static GSIMapTable_t protocol_by_name;
 static BOOL protocol_by_name_init = NO;
-static pthread_mutex_t protocol_by_name_lock = PTHREAD_MUTEX_INITIALIZER;
+static gs_mutex_t protocol_by_name_lock = GS_MUTEX_INIT_STATIC;
 
 /* Not sure about the semantics of inlining
    functions with static variables.  */
 static void
 gs_init_protocol_lock(void)
 {
-  pthread_mutex_lock(&protocol_by_name_lock);
+  GS_MUTEX_LOCK(protocol_by_name_lock);
   if (protocol_by_name_init == NO)
   	{
 	  GSIMapInitWithZoneAndCapacity (&protocol_by_name,
@@ -747,7 +745,7 @@ gs_init_protocol_lock(void)
 					 128);
 	  protocol_by_name_init = YES;
 	}
-  pthread_mutex_unlock(&protocol_by_name_lock);
+  GS_MUTEX_UNLOCK(protocol_by_name_lock);
 }
 
 void
@@ -762,7 +760,7 @@ GSRegisterProtocol(Protocol *proto)
     {
       GSIMapNode node;
 
-      pthread_mutex_lock(&protocol_by_name_lock);
+      GS_MUTEX_LOCK(protocol_by_name_lock);
       node = GSIMapNodeForKey(&protocol_by_name,
 	(GSIMapKey)protocol_getName(proto));
       if (node == 0)
@@ -771,7 +769,7 @@ GSRegisterProtocol(Protocol *proto)
 	    (GSIMapKey)(void*)protocol_getName(proto),
 	    (GSIMapVal)(void*)proto);
 	}
-      pthread_mutex_unlock(&protocol_by_name_lock);
+      GS_MUTEX_UNLOCK(protocol_by_name_lock);
     }
 }
 
@@ -793,7 +791,7 @@ GSProtocolFromName(const char *name)
     }
   else
     {
-      pthread_mutex_lock(&protocol_by_name_lock);
+      GS_MUTEX_LOCK(protocol_by_name_lock);
       node = GSIMapNodeForKey(&protocol_by_name, (GSIMapKey) name);
 
       if (node)
@@ -812,7 +810,7 @@ GSProtocolFromName(const char *name)
 		(GSIMapVal)(void*)p);
 	    }
 	}
-      pthread_mutex_unlock(&protocol_by_name_lock);
+      GS_MUTEX_UNLOCK(protocol_by_name_lock);
 
     }
 

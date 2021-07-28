@@ -1,1 +1,8 @@
-ADDITIONAL_TOOL_LIBS += -lpthread
+
+ifneq ($(GNUSTEP_TARGET_OS), mingw32)
+  ifneq ($(GNUSTEP_TARGET_OS), mingw64)
+    ifneq ($(GNUSTEP_TARGET_OS), windows)
+      ADDITIONAL_TOOL_LIBS += -lpthread
+    endif
+  endif
+endif

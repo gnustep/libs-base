@@ -3,11 +3,20 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
+/* The normal alignment of `CONDITION_VARIABLE', in bytes. */
+#undef ALIGNOF_CONDITION_VARIABLE
+
+/* The normal alignment of `gs_mutex_t', in bytes. */
+#undef ALIGNOF_GS_MUTEX_T
+
 /* The normal alignment of `pthread_cond_t', in bytes. */
 #undef ALIGNOF_PTHREAD_COND_T
 
 /* The normal alignment of `pthread_mutex_t', in bytes. */
 #undef ALIGNOF_PTHREAD_MUTEX_T
+
+/* The normal alignment of `SRWLOCK', in bytes. */
+#undef ALIGNOF_SRWLOCK
 
 /* Define if SO_REUSEADDR is broken on this system */
 #undef BROKEN_SO_REUSEADDR
@@ -861,11 +870,17 @@
 /* Define to 1 if the `setpgrp' function takes no argument. */
 #undef SETPGRP_VOID
 
+/* The size of `CONDITION_VARIABLE', as computed by sizeof. */
+#undef SIZEOF_CONDITION_VARIABLE
+
 /* The size of `double', as computed by sizeof. */
 #undef SIZEOF_DOUBLE
 
 /* The size of `float', as computed by sizeof. */
 #undef SIZEOF_FLOAT
+
+/* The size of `gs_mutex_t', as computed by sizeof. */
+#undef SIZEOF_GS_MUTEX_T
 
 /* The size of `int', as computed by sizeof. */
 #undef SIZEOF_INT
@@ -884,6 +899,9 @@
 
 /* The size of `short', as computed by sizeof. */
 #undef SIZEOF_SHORT
+
+/* The size of `SRWLOCK', as computed by sizeof. */
+#undef SIZEOF_SRWLOCK
 
 /* The size of `void*', as computed by sizeof. */
 #undef SIZEOF_VOIDP
