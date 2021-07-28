@@ -245,16 +245,6 @@ static int SetThreadName(DWORD dwThreadID, const char *threadName)
 #endif
 
 
-// Some older BSD systems used a non-standard range of thread priorities.
-// Use these if they exist, otherwise define standard ones.
-#ifndef PTHREAD_MAX_PRIORITY
-#define PTHREAD_MAX_PRIORITY 31
-#endif
-#ifndef PTHREAD_MIN_PRIORITY
-#define PTHREAD_MIN_PRIORITY 0
-#endif
-
-
 @interface NSThread (Activation)
 - (void) _makeThreadCurrent;
 @end
@@ -1062,19 +1052,28 @@ unregisterActiveThread(NSThread *thread)
   if (pri > 1) { pri = 1; }
   if (pri < 0) { pri = 0; }
 
-  // Scale pri based on the range of the host system.
-  pri *= (PTHREAD_MAX_PRIORITY - PTHREAD_MIN_PRIORITY);
-  pri += PTHREAD_MIN_PRIORITY;
-
   res = pthread_getschedparam(pthread_self(), &policy, &param);
-  if (res == 0) {
-    param.sched_priority = pri;
-    res = pthread_setschedparam(pthread_self(), policy, &param);
-  }
+  if (res == 0)
+    {
+      int min = sched_get_priority_min(policy);
+      int max = sched_get_priority_max(policy);
+      if (min == max) {
+        // priority not settable => fail silently
+        return NO;
+      }
+
+      // Scale pri based on the range of the host system.
+      pri = min + pri * (max - min);
+
+      param.sched_priority = pri;
+      res = pthread_setschedparam(pthread_self(), policy, &param);
+    }
+
   if (res != 0) {
     NSLog(@"Failed to set thread priority %f: %d", pri, res);
     return NO;
   }
+
   return YES;
 #else
   return NO;
@@ -1143,14 +1142,22 @@ unregisterActiveThread(NSThread *thread)
   struct sched_param param;
 
   res = pthread_getschedparam(pthread_self(), &policy, &param);
-  if (res == 0) {
-    pri = param.sched_priority;
-    // Scale pri based on the range of the host system.
-    pri -= PTHREAD_MIN_PRIORITY;
-    pri /= (PTHREAD_MAX_PRIORITY - PTHREAD_MIN_PRIORITY);
-  } else {
-    NSLog(@"Failed to get thread priority: %d", res);
-  }
+  if (res == 0)
+    {
+      int min = sched_get_priority_min(policy);
+      int max = sched_get_priority_max(policy);
+      if (min != max) /* avoid division by zero */
+        {
+          pri = param.sched_priority;
+
+          // Scale pri based on the range of the host system.
+          pri = (pri - min) / (max - min);
+        }
+    }
+  else
+    {
+      NSLog(@"Failed to get thread priority: %d", res);
+    }
 #else
 #warning Your pthread implementation does not support thread priorities
 #endif
