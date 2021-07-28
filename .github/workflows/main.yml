@@ -64,10 +64,6 @@ jobs:
             CC: gcc
             CXX: g++
 
-    defaults:
-      run:
-        shell: ${{ matrix.shell || 'bash' }}
-
     env:
       SRC: ${{ github.workspace }}/source
       DEP_SRC: ${{ github.workspace }}/dependency_source
@@ -80,6 +76,11 @@ jobs:
       # MSYS2: disable conversion to native-form paths when configuring GNUstep Make
       # https://www.msys2.org/wiki/Porting/#filesystem-namespaces
       MSYS2_ARG_CONV_EXCL: --prefix=
+
+    defaults:
+      run:
+        shell: ${{ matrix.shell || 'bash' }}
+        working-directory: ${{ env.SRC }}
 
     steps:
       - uses: actions/checkout@v2
@@ -134,18 +135,16 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           # convert Windows paths to Unix paths for MSYS2 shell
-          echo "SRC=`cygpath -u $SRC`" >> $GITHUB_ENV
           echo "DEP_SRC=`cygpath -u $DEP_SRC`" >> $GITHUB_ENV
           echo "DEP_ROOT=`cygpath -u $DEP_ROOT`" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
-          $SRC/.github/scripts/dependencies.sh
+          ./.github/scripts/dependencies.sh
 
       - name: Build source
         run: |
           . $DEP_ROOT/share/GNUstep/Makefiles/GNUstep.sh
-          cd $SRC
           ./configure $CONFIGURE_OPTS
           make && make install
 
@@ -153,7 +152,6 @@ jobs:
         continue-on-error: ${{ matrix.allow-test-failures || false }}
         run: |
           . $DEP_ROOT/share/GNUstep/Makefiles/GNUstep.sh
-          cd $SRC
           make check
 
       - name: Upload logs
@@ -162,5 +160,5 @@ jobs:
         with:
           name: Logs - ${{ matrix.name }}
           path: |
-            source/config.log
-            source/Tests/tests.log
+            $SRC/config.log
+            $SRC/Tests/tests.log
