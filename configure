@@ -8920,23 +8920,6 @@ fi
 done
 
 
-# Check if tzfile contains the proper definitions
-if test $ac_cv_header_tzfile_h = yes; then
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <tzfile.h>
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "tzhead" >/dev/null 2>&1; then :
-
-$as_echo "#define HAVE_TZHEAD 1" >>confdefs.h
-
-fi
-rm -f conftest*
-
-fi
-
 #--------------------------------------------------------------------
 # These headers/functions needed by GSTcpPort.m
 #--------------------------------------------------------------------

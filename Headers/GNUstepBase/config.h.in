@@ -712,9 +712,6 @@
 /* Define to 1 if you have the <tzfile.h> header file. */
 #undef HAVE_TZFILE_H
 
-/* Define if tzfile.h includes the proper definitions */
-#undef HAVE_TZHEAD
-
 /* Define to 1 if you have the `tzset' function. */
 #undef HAVE_TZSET
 

@@ -1,3 +1,13 @@
+2021-07-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m:
+	* Headers/GNUstepBase/config.h.in:
+	* configure.ac:
+	* configure:
+	Always use builtin header for parsing posix time zone files, so we
+	know that the field names are consistent and so we knw we have a
+	define for the file magic number.
+
 2021-07-26 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m:

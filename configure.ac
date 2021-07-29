@@ -2322,13 +2322,6 @@ dnl AC_REPLACE_FUNCS(getrusage gettimeofday)
 AC_CHECK_HEADERS(time.h sys/time.h tzfile.h sys/rusage.h ucbinclude/sys/resource.h)
 AC_CHECK_FUNCS(time ctime tzset)
 
-# Check if tzfile contains the proper definitions
-if test $ac_cv_header_tzfile_h = yes; then
-  AC_EGREP_HEADER(tzhead, tzfile.h,
-	AC_DEFINE(HAVE_TZHEAD,1,
-                  [ Define if tzfile.h includes the proper definitions]),)
-fi
-
 #--------------------------------------------------------------------
 # These headers/functions needed by GSTcpPort.m
 #--------------------------------------------------------------------

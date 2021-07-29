@@ -110,11 +110,11 @@
 #import "GSPrivate.h"
 #import "GSPThread.h"
 
-#ifdef HAVE_TZHEAD
-#include <tzfile.h>
-#else
+/* In systems without POSIX time zone information we can use our own builtin
+ * time zone data.  To build on those systems we need a header reproducing
+ * the POSIX time zone file format.
+ */
 #include "nstzfile.h"
-#endif
 
 #if defined(HAVE_UNICODE_UCAL_H)
 #define id id_ucal
