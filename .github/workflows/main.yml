@@ -5,55 +5,85 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   ci:
     name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os || 'ubuntu-latest' }}
+    runs-on: ${{ matrix.os }}
 
     strategy:
       fail-fast: false
       matrix:
         include:
           - name: Ubuntu GCC
+            os: ubuntu-latest
             library-combo: gnu-gnu-gnu
             CC: gcc
             CXX: g++
 
           - name: Ubuntu Clang gnustep-1.9
+            os: ubuntu-latest
             library-combo: ng-gnu-gnu
             runtime-version: gnustep-1.9
             CC: clang
             CXX: clang++
 
           - name: Ubuntu Clang gnustep-2.0
+            os: ubuntu-latest
             library-combo: ng-gnu-gnu
             runtime-version: gnustep-2.0
             CC: clang
             CXX: clang++
 
-          - name: Windows GCC MinGW-w64 i686
+          - name: Windows MinGW GCC i686
             allow-test-failures: true
-            library-combo: gnu-gnu-gnu
             os: windows-latest
             arch: i686
-            msystem: mingw32
-            shell: msys2 {0}
+            msystem: MINGW32
+            library-combo: gnu-gnu-gnu
             CC: gcc
             CXX: g++
 
-          - name: Windows GCC MinGW-w64 x86_64
+          - name: Windows MinGW GCC x86_64
             allow-test-failures: true
-            library-combo: gnu-gnu-gnu
             os: windows-latest
             arch: x86_64
-            msystem: mingw64
-            shell: msys2 {0}
+            msystem: MINGW64
+            library-combo: gnu-gnu-gnu
             CC: gcc
             CXX: g++
 
+          - name: Windows MSVC Clang gnustep-2.0 i686
+            allow-test-failures: true
+            os: windows-latest
+            arch: x86
+            host: i686-pc-windows
+            library-combo: ng-gnu-gnu
+            runtime-version: gnustep-2.0
+            configure-opts: --disable-tls
+            CC: clang
+            CXX: clang++
+            LDFLAGS: -fuse-ld=lld
+
+          - name: Windows MSVC Clang gnustep-2.0 x86_64
+            allow-test-failures: true
+            os: windows-latest
+            arch: x64
+            host: x86_64-pc-windows
+            library-combo: ng-gnu-gnu
+            runtime-version: gnustep-2.0
+            configure-opts: --disable-tls
+            CC: clang
+            CXX: clang++
+            LDFLAGS: -fuse-ld=lld
+
     env:
-      SRC: ${{ github.workspace }}/source
-      DEP_SRC: ${{ github.workspace }}/dependency_source
-      DEP_ROOT: ${{ github.workspace }}/staging
+      SRC_PATH: ${{ github.workspace }}${{ startsWith(matrix.os, 'windows') && '\' || '/' }}source
+      DEPS_PATH: ${{ github.workspace }}${{ startsWith(matrix.os, 'windows') && '\' || '/' }}dependencies
+      INSTALL_PATH: ${{ github.workspace }}${{ startsWith(matrix.os, 'windows') && '\' || '/' }}build
+      IS_WINDOWS_MINGW: ${{ startsWith(matrix.os, 'windows') && startsWith(matrix.msystem, 'MINGW') }}
+      IS_WINDOWS_MSVC: ${{ startsWith(matrix.os, 'windows') && endsWith(matrix.host, '-pc-windows') }}
       CC: ${{ matrix.CC }}
       CXX: ${{ matrix.CXX }}
+      LDFLAGS: ${{ matrix.LDFLAGS }}
+      HOST: ${{ matrix.host }}
+      ARCH: ${{ matrix.arch }}
       LIBRARY_COMBO: ${{ matrix.library-combo }}
       RUNTIME_VERSION: ${{ matrix.runtime-version }}
       CONFIGURE_OPTS: ${{ matrix.configure-opts }}
@@ -63,13 +93,13 @@ jobs:
 
     defaults:
       run:
-        shell: ${{ matrix.shell || 'bash' }}
-        working-directory: ${{ env.SRC }}
+        shell: ${{ startsWith(matrix.os, 'windows') && 'msys2 {0}' || 'bash' }}
+        working-directory: ${{ env.SRC_PATH }}
 
     steps:
       - uses: actions/checkout@v2
         with:
-          path: ${{ env.SRC }}
+          path: ${{ env.SRC_PATH }}
 
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
@@ -93,9 +123,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install $PACKAGES
 
-      - name: Set up MSYS2 (Windows)
+      - name: Set up MSYS2 (Windows MinGW)
         uses: msys2/setup-msys2@v2
-        if: runner.os == 'Windows'
+        if: env.IS_WINDOWS_MINGW == 'true'
         with:
           msystem: ${{ matrix.msystem }}
           install: >
@@ -115,12 +145,52 @@ jobs:
             mingw-w64-${{matrix.arch}}-gnutls
             mingw-w64-${{matrix.arch}}-icu
 
+      - name: Set up MSYS2 (Windows MSVC)
+        uses: msys2/setup-msys2@v2
+        if: env.IS_WINDOWS_MSVC == 'true'
+        with:
+          msystem: MSYS
+          install: make autoconf automake libtool
+          # make Windows packages like Clang available in MSYS
+          path-type: inherit
+      
+      - name: Delete MinGW gmake (Windows MSVC)
+        if: env.IS_WINDOWS_MSVC == 'true'
+        # delete /c/Strawberry/c/bin/gmake built for MinGW that is found on runners, because we must use make built for MSYS
+        run: if GMAKE_PATH=`which gmake`; then rm -f "$GMAKE_PATH"; fi
+
+      - name: Install Windows packages (Windows MSVC)
+        if: env.IS_WINDOWS_MSVC == 'true'
+        shell: cmd
+        run: choco install ninja
+
+      - name: Set up VS Developer Command Prompt (Windows MSVC)
+        if: env.IS_WINDOWS_MSVC == 'true'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+
+      - name: Install dependencies (Windows MSVC)
+        if: env.IS_WINDOWS_MSVC == 'true'
+        shell: cmd
+        run: |
+          mkdir %DEPS_PATH% & cd %DEPS_PATH%
+          git clone https://github.com/gnustep/tools-windows-msvc.git || exit /b 1
+          cd tools-windows-msvc
+          :: use msys2.cmd from setup-msys2 as Bash shell, as it doesn't have msys2_shell.cmd used normally by build.bat
+          set "BASH=msys2 -c"
+          build.bat --prefix=%INSTALL_PATH% --type Release --only-dependencies
+
       - name: Set environment variables (Windows)
         if: runner.os == 'Windows'
         run: |
+          # MSVC: update install path to include [x86|x64]/Release subdir used by build.bat above
+          if [ "$IS_WINDOWS_MSVC" = "true" ]; then
+            INSTALL_PATH=$INSTALL_PATH\\$ARCH\\Release
+          fi
           # convert Windows paths to Unix paths for MSYS2 shell
-          echo "DEP_SRC=`cygpath -u $DEP_SRC`" >> $GITHUB_ENV
-          echo "DEP_ROOT=`cygpath -u $DEP_ROOT`" >> $GITHUB_ENV
+          echo "INSTALL_PATH=`cygpath -u $INSTALL_PATH`" >> $GITHUB_ENV
+          echo "DEPS_PATH=`cygpath -u $DEPS_PATH`" >> $GITHUB_ENV
 
       - name: Install dependencies
         run: |
@@ -128,14 +198,21 @@ jobs:
 
       - name: Build source
         run: |
-          . $DEP_ROOT/share/GNUstep/Makefiles/GNUstep.sh
+          . $INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh
+          if [ -n "$HOST" ]; then
+            CONFIGURE_OPTS="$CONFIGURE_OPTS --host=$HOST"
+          fi
           ./configure $CONFIGURE_OPTS
           make && make install
 
       - name: Run tests
         continue-on-error: ${{ matrix.allow-test-failures || false }}
         run: |
-          . $DEP_ROOT/share/GNUstep/Makefiles/GNUstep.sh
+          . $INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh
+          # MSVC: build tests for release to match CRT of DLLs
+          if [ "$IS_WINDOWS_MSVC" = "true" ]; then
+            sed -i -e 's/ debug=yes//g' `which gnustep-tests`
+          fi
           make check
 
       - name: Upload logs
@@ -144,5 +221,5 @@ jobs:
         with:
           name: Logs - ${{ matrix.name }}
           path: |
-            $SRC/config.log
-            $SRC/Tests/tests.log
+            ${{ env.SRC_PATH }}/config.log
+            ${{ env.SRC_PATH }}/Tests/tests.log
