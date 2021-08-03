@@ -31,7 +31,6 @@ jobs:
           - name: Windows GCC MinGW-w64 i686
             allow-test-failures: true
             library-combo: gnu-gnu-gnu
-            configure-opts: --without-unwind
             os: windows-latest
             arch: i686
             msystem: mingw32
@@ -42,7 +41,6 @@ jobs:
           - name: Windows GCC MinGW-w64 x86_64
             allow-test-failures: true
             library-combo: gnu-gnu-gnu
-            configure-opts: --without-unwind
             os: windows-latest
             arch: x86_64
             msystem: mingw64
