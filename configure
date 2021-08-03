@@ -647,6 +647,8 @@ TLS_CFLAGS
 TLS_CONFIG
 HAVE_LIBXML
 HAVE_LIBXSLT
+XSLT_LIBS
+XSLT_CFLAGS
 XML_CONFIG
 XML2_CONFIG
 XML_LIBS
@@ -848,6 +850,8 @@ PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
 XML_CFLAGS
 XML_LIBS
+XSLT_CFLAGS
+XSLT_LIBS
 ICU_CFLAGS
 ICU_LIBS'
 
@@ -1604,6 +1608,8 @@ Some influential environment variables:
               path overriding pkg-config's built-in search path
   XML_CFLAGS  C compiler flags for XML, overriding pkg-config
   XML_LIBS    linker flags for XML, overriding pkg-config
+  XSLT_CFLAGS C compiler flags for XSLT, overriding pkg-config
+  XSLT_LIBS   linker flags for XSLT, overriding pkg-config
   ICU_CFLAGS  C compiler flags for ICU, overriding pkg-config
   ICU_LIBS    linker flags for ICU, overriding pkg-config
 
@@ -12565,74 +12571,108 @@ fi
 
 
     if test $enable_xslt = yes; then
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking for xsltApplyStylesheet in -lxslt" >&5
-$as_echo_n "checking for xsltApplyStylesheet in -lxslt... " >&6; }
-if ${ac_cv_lib_xslt_xsltApplyStylesheet+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lxslt  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
 
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char xsltApplyStylesheet ();
-int
-main ()
-{
-return xsltApplyStylesheet ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_xslt_xsltApplyStylesheet=yes
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for XSLT" >&5
+$as_echo_n "checking for XSLT... " >&6; }
+
+if test -n "$XSLT_CFLAGS"; then
+    pkg_cv_XSLT_CFLAGS="$XSLT_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libxslt >= 1.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libxslt >= 1.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_XSLT_CFLAGS=`$PKG_CONFIG --cflags "libxslt >= 1.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
-  ac_cv_lib_xslt_xsltApplyStylesheet=no
+  pkg_failed=yes
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+ else
+    pkg_failed=untried
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_xslt_xsltApplyStylesheet" >&5
-$as_echo "$ac_cv_lib_xslt_xsltApplyStylesheet" >&6; }
-if test "x$ac_cv_lib_xslt_xsltApplyStylesheet" = xyes; then :
-  xslt_ok=yes
+if test -n "$XSLT_LIBS"; then
+    pkg_cv_XSLT_LIBS="$XSLT_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libxslt >= 1.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libxslt >= 1.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_XSLT_LIBS=`$PKG_CONFIG --libs "libxslt >= 1.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        XSLT_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libxslt >= 1.0" 2>&1`
+        else
+	        XSLT_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libxslt >= 1.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$XSLT_PKG_ERRORS" >&5
+
+	xslt_ok=no
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	xslt_ok=no
+else
+	XSLT_CFLAGS=$pkg_cv_XSLT_CFLAGS
+	XSLT_LIBS=$pkg_cv_XSLT_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	xslt_ok=yes
+fi
+      if test "$xslt_ok" = "yes"; then
+        for ac_header in libxslt/xslt.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "libxslt/xslt.h" "ac_cv_header_libxslt_xslt_h" "$ac_includes_default"
+if test "x$ac_cv_header_libxslt_xslt_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBXSLT_XSLT_H 1
+_ACEOF
+ xslt_ok=yes
 else
   xslt_ok=no
 fi
 
-      if test "$xslt_ok" = "yes"; then
-	ac_fn_c_check_header_mongrel "$LINENO" "libxslt/xslt.h" "ac_cv_header_libxslt_xslt_h" "$ac_includes_default"
-if test "x$ac_cv_header_libxslt_xslt_h" = xyes; then :
-  xslthdr_ok=yes
-else
-  xslthdr_ok=no
-fi
+done
 
-
-	if test "$xslthdr_ok" = "no"; then
-	  xslt_ok=no
-	fi
       fi
       if test "$xslt_ok" = "yes"; then
-	HAVE_LIBXSLT=1
+        CPPFLAGS="$CPPFLAGS $XSLT_CFLAGS"
+        INCLUDE_FLAGS="$INCLUDE_FLAGS $XSLT_CFLAGS"
+        LIBS="$XSLT_LIBS $LIBS"
+        HAVE_LIBXSLT=1
 
 $as_echo "#define HAVE_LIBXSLT 1" >>confdefs.h
 
-	LIBS="-lxslt $LIBS"
       else
-	echo
-	echo "You do not appear to have usable libxslt headers/library."
-	echo "Building without them will disable the XSLT extensions."
-	echo "If you really want to build gnustep-base without XSLT support,"
-	echo "add --disable-xslt to the configure arguments to avoid warning."
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Missing support for XSLT functionality." >&5
+        echo
+        echo "You do not appear to have usable libxslt headers/library."
+        echo "Building without them will disable the XSLT extensions."
+        echo "If you really want to build gnustep-base without XSLT support,"
+        echo "add --disable-xslt to the configure arguments to avoid warning."
+        { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Missing support for XSLT functionality." >&5
 $as_echo "$as_me: WARNING: Missing support for XSLT functionality." >&2;}
       fi
     else

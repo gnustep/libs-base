@@ -1,3 +1,10 @@
+2021-08-03 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/GNUstepBase/config.h.in:
+	* configure:
+	* configure.ac:
+	Use pkgconfig to find libxslt.
+
 2021-07-29 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/GNUstepBase/config.h.in:

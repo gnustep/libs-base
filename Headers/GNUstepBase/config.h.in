@@ -410,6 +410,9 @@
 /* Define if libxslt available */
 #undef HAVE_LIBXSLT
 
+/* Define to 1 if you have the <libxslt/xslt.h> header file. */
+#undef HAVE_LIBXSLT_XSLT_H
+
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 

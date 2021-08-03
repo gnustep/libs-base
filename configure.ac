@@ -3326,24 +3326,23 @@ if test $enable_xml = yes; then
       enable_xslt=yes)
 
     if test $enable_xslt = yes; then
-      AC_CHECK_LIB(xslt, xsltApplyStylesheet, xslt_ok=yes, xslt_ok=no)
+      PKG_CHECK_MODULES([XSLT], [libxslt >= 1.0], [xslt_ok=yes], [xslt_ok=no])
       if test "$xslt_ok" = "yes"; then
-	AC_CHECK_HEADER(libxslt/xslt.h, xslthdr_ok=yes, xslthdr_ok=no)
-	if test "$xslthdr_ok" = "no"; then
-	  xslt_ok=no
-	fi
+        AC_CHECK_HEADERS(libxslt/xslt.h, xslt_ok=yes, xslt_ok=no)
       fi
       if test "$xslt_ok" = "yes"; then
-	HAVE_LIBXSLT=1
-	AC_DEFINE(HAVE_LIBXSLT,1,[Define if libxslt available])
-	LIBS="-lxslt $LIBS"
+        CPPFLAGS="$CPPFLAGS $XSLT_CFLAGS"
+        INCLUDE_FLAGS="$INCLUDE_FLAGS $XSLT_CFLAGS"
+        LIBS="$XSLT_LIBS $LIBS"
+        HAVE_LIBXSLT=1
+        AC_DEFINE(HAVE_LIBXSLT,1,[Define if libxslt available])
       else
-	echo
-	echo "You do not appear to have usable libxslt headers/library."
-	echo "Building without them will disable the XSLT extensions."
-	echo "If you really want to build gnustep-base without XSLT support,"
-	echo "add --disable-xslt to the configure arguments to avoid warning."
-	AC_MSG_WARN([Missing support for XSLT functionality.])
+        echo
+        echo "You do not appear to have usable libxslt headers/library."
+        echo "Building without them will disable the XSLT extensions."
+        echo "If you really want to build gnustep-base without XSLT support,"
+        echo "add --disable-xslt to the configure arguments to avoid warning."
+        AC_MSG_WARN([Missing support for XSLT functionality.])
       fi
     else
       HAVE_LIBXSLT=0
