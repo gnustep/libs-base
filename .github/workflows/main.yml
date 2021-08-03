@@ -22,23 +22,9 @@ jobs:
             CC: clang
             CXX: clang++
 
-          - name: Ubuntu Clang gnustep-1.9 disable-mixedabi
-            library-combo: ng-gnu-gnu
-            runtime-version: gnustep-1.9
-            configure-opts: --disable-mixedabi
-            CC: clang
-            CXX: clang++
-
           - name: Ubuntu Clang gnustep-2.0
             library-combo: ng-gnu-gnu
             runtime-version: gnustep-2.0
-            CC: clang
-            CXX: clang++
-
-          - name: Ubuntu Clang gnustep-2.0 disable-mixedabi
-            library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
-            configure-opts: --disable-mixedabi
             CC: clang
             CXX: clang++
 
