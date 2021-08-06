@@ -46,15 +46,12 @@
 #import "Foundation/NSDateFormatter.h"
 #import "Foundation/NSCoder.h"
 
-#if defined(HAVE_UNICODE_UDAT_H)
+#if defined(HAVE_UNICODE_UDAT_H) && defined(HAVE_UNICODE_UDATPG_H)
 #define id id_ucal
 #include <unicode/udat.h>
 #undef id
-#endif
-#if defined(HAVE_UNICODE_UDATPG_H)
 #include <unicode/udatpg.h>
-#endif
-#if defined(HAVE_ICU_H)
+#elif defined(HAVE_ICU_H)
 #include <icu.h>
 #endif
 
