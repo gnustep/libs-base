@@ -120,8 +120,7 @@
 #define id id_ucal
 #include <unicode/ucal.h>
 #undef id
-#endif
-#if defined(HAVE_ICU_H)
+#elif defined(HAVE_ICU_H)
 #include <icu.h>
 #endif
 

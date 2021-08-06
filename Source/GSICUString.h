@@ -3,8 +3,7 @@
 
 #if defined(HAVE_UNICODE_UTEXT_H)
 #include <unicode/utext.h>
-#endif
-#if defined(HAVE_ICU_H)
+#elif defined(HAVE_ICU_H)
 #include <icu.h>
 // icu.h in Windows 10 is missing a declaration of UTEXT_MAGIC
 #ifndef UTEXT_MAGIC

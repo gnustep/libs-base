@@ -3496,11 +3496,18 @@ AS_IF([test "x$enable_icu" = "xyes"], [
   case "$target_os" in
     mingw*|windows)
       # check for ICU bundled with Windows 10
+      old_LIBS="$LIBS"
+      LIBS="-licu $LIBS"
       AC_CHECK_HEADERS([icu.h],
-        AC_CHECK_LIB(icu, udat_open, HAVE_ICU=1))
+        AC_RUN_IFELSE([AC_LANG_SOURCE([
+          #include <icu.h>
+          int main () {
+            return udat_countAvailable() > 0 ? 0 : 1;
+          }])], HAVE_ICU=1))
+      LIBS="$old_LIBS"
       if test $HAVE_ICU = 1; then
         ICU_LIBS=-licu
-        AC_MSG_NOTICE([Using ICU DLL from Windows 10 (requires version 1903 or later)])
+        AC_MSG_NOTICE([Using system-provided ICU DLL (requires Windows 10 version 1903 or later)])
       fi
     ;;
   esac
