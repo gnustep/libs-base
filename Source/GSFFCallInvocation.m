@@ -422,7 +422,7 @@ gs_sel_type_to_callback_type (const char *sel_type,
       case _C_DBL:
 	vatype->type = __VAdouble;
 	break;
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
       case _C_BOOL:
 	vatype->type = __VAuchar;
 	break;
@@ -611,7 +611,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
       CASE_TYPE(_C_ULNG_LNG, unsigned long long, av_start_ulonglong)
       CASE_TYPE(_C_FLT,  float, av_start_float)
       CASE_TYPE(_C_DBL,  double, av_start_double)
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
       CASE_TYPE(_C_BOOL, _Bool, av_start_uchar)
 #endif
 
@@ -716,7 +716,7 @@ GSFFCallInvokeWithTargetAndImp(NSInvocation *_inv, id anObject, IMP imp)
           CASE_TYPE(_C_ULNG_LNG, unsigned long long, av_ulonglong)
           CASE_TYPE(_C_FLT,  float, av_float)
           CASE_TYPE(_C_DBL,  double, av_double)
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
           CASE_TYPE(_C_BOOL, _Bool, av_uchar)
 #endif
 	
@@ -1054,7 +1054,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
 	  CASE_TYPE(_C_ULNG_LNG, unsigned long long, va_arg_ulonglong)
 	  CASE_TYPE(_C_FLT,  float, va_arg_float)
 	  CASE_TYPE(_C_DBL,  double, va_arg_double)
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
 	  CASE_TYPE(_C_BOOL,  _Bool, va_arg_uchar)
 #endif
 	
@@ -1117,7 +1117,7 @@ GSInvocationCallback (void *callback_data, va_alist args)
       CASE_TYPE(_C_ULNG_LNG, unsigned long long, va_return_ulonglong)
       CASE_TYPE(_C_FLT,  float, va_return_float)
       CASE_TYPE(_C_DBL,  double, va_return_double)
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
       CASE_TYPE(_C_BOOL, _Bool, va_return_uchar)
 #endif
 

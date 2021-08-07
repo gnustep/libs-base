@@ -1103,7 +1103,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
            * don't think it matters, because we don't bother with anything
            * smaller than int for NSNumbers
 	   */
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
           case _C_BOOL:
             STRING_FROM_NUMBER(unum_format, (int)[anObject boolValue]);
             break;

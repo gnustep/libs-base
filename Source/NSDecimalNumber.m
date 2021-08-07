@@ -324,7 +324,7 @@ static NSDecimalNumber *one;
 	llval = (long long)v;
 	break;
       }
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
     case _C_BOOL:
       {
 	llval = (long long)((*(unsigned char *)value == 0) ? 0 : 1);

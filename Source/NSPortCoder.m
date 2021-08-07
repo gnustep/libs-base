@@ -122,7 +122,7 @@ typeToName1(char type)
       case _C_CHARPTR:	return "cstring";
       case _C_ARY_B:	return "array";
       case _C_STRUCT_B:	return "struct";
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
       case _C_BOOL:	return "_Bool";
 #endif
       default:
@@ -215,7 +215,7 @@ static char	type_map[32] = {
 #endif
   _C_FLT,
   _C_DBL,
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
   _C_BOOL,
 #else
   0,
@@ -508,7 +508,7 @@ static unsigned	encodingVersion;
 #endif
       case _C_FLT:	info = _GSC_FLT; break;
       case _C_DBL:	info = _GSC_DBL; break;
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
       case _C_BOOL:	info = _GSC_BOOL; break;
 #endif
       default:		info = _GSC_NONE; break;
@@ -1296,7 +1296,7 @@ scalarSize(char type)
       case _C_ULNG_LNG:	info = _GSC_ULNG_LNG | _GSC_S_LNG_LNG;	break;
       case _C_FLT:	info = _GSC_FLT;	break;
       case _C_DBL:	info = _GSC_DBL;	break;
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
       case _C_BOOL:	info = _GSC_BOOL;	break;
 #endif
       default:		info = _GSC_NONE;	break;
@@ -1897,7 +1897,7 @@ scalarSize(char type)
 	(*_eSerImp)(_dst, eSerSel, (void*)buf, @encode(double), nil);
 	return;
 
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
       case _C_BOOL:
 	(*_eTagImp)(_dst, eTagSel, _GSC_BOOL);
 	(*_eSerImp)(_dst, eSerSel, (void*)buf, @encode(_Bool), nil);
