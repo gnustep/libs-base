@@ -1,12 +1,14 @@
 #import <Foundation/Foundation.h>
 
 #import "Testing.h"
+#import "GNUstepBase/GSConfig.h"
 
 #import <GNUstepBase/NSData+GNUstepBase.h>
 
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+#if USE_ZLIB
   NSData        *data;
   NSData        *ref;
   NSUInteger    last;
@@ -62,6 +64,9 @@ int main()
   PASS(NO == [data isGzipped], "Complete gunzip is not gzipped");
 
   PASS(0 == [data length], "Complete gunzip is empty");
+#else
+  SKIP("zlib support disabled");
+#endif
 
   [arp release]; arp = nil;
   return 0;
