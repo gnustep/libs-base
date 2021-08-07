@@ -256,10 +256,18 @@ static id gs_objc_proxy_lookup(id receiver, SEL op)
 }
 #endif
 
+#ifdef __GNUSTEP_RUNTIME__
+static void GS_WINAPI
+exitedThread(void *slot)
+{
+  free(slot);
+}
+#endif
+
 + (void) load
 {
 #ifdef __GNUSTEP_RUNTIME__
-  GS_THREAD_KEY_INIT(thread_slot_key, free);
+  GS_THREAD_KEY_INIT(thread_slot_key, exitedThread);
   __objc_msg_forward3 = gs_objc_msg_forward3;
   __objc_msg_forward2 = gs_objc_msg_forward2;
   objc_proxy_lookup = gs_objc_proxy_lookup;

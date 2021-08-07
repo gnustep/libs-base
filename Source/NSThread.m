@@ -642,7 +642,8 @@ unregisterActiveThread(NSThread *thread);
  * we must not call into NSAutoreleasePool unless the NSThread object can still
  * be found using GSCurrentThread()
  */
-static void exitedThread(void *thread)
+static void GS_WINAPI
+exitedThread(void *thread)
 {
   if (thread != defaultThread)
     {

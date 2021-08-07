@@ -337,6 +337,13 @@ typedef	struct {
 #  undef  BOOL
 #endif
 
+/* Used to annotate callback functions with __stdcall on Windows. */
+#if defined(_WIN32)
+#define GS_WINAPI WINAPI
+#else
+#define GS_WINAPI
+#endif
+
 /* Include the blocks runtime header if it's available (It shouldn't matter
  * that this doesn't work on compilers that don't support __has_include(),
  * because they also don't support blocks).
