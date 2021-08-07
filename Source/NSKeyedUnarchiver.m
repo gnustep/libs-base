@@ -752,7 +752,7 @@ static NSMapTable	*globalClassMap = 0;
 	*(double*)address = [o doubleValue];
 	return;
 
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
       case _C_BOOL:
 	*(_Bool*)address = (_Bool)[o unsignedCharValue];
 	return;

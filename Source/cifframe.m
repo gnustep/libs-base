@@ -532,7 +532,7 @@ cifframe_type(const char *typePtr, const char **advance)
 
     case _C_VOID: ftype = &ffi_type_void;
       break;
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
     case _C_BOOL: ftype = &ffi_type_uchar;
       break;
 #endif

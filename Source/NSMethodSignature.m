@@ -332,7 +332,7 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 	info->align = __alignof__(char*);
 	break;
 
-#if __GNUC__ > 2 && defined(_C_BOOL)
+#if defined(_C_BOOL) && (!defined(__GNUC__) || __GNUC__ > 2)
       case _C_BOOL:
 	info->size = sizeof(_Bool);
 	info->align = __alignof__(_Bool);
