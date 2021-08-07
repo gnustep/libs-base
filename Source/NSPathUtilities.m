@@ -2134,9 +2134,9 @@ NSOpenStepRootDirectory(void)
   return root;
 }
 
-#if	defined(_WIN32)
-/* The developer root on a windows system (where we have an msys environment
- * set up) is the point in the filesystem where we can reference make.exe via
+#if	defined(__MINGW__)
+/* The developer root under MinGW (where we have an MSYS environment set up)
+ * is the point in the filesystem where we can reference make.exe via
  * msys/.../bin/.  That is, it's the windows path at which msys is installed.
  */
 static NSString*
@@ -2144,7 +2144,7 @@ devroot(NSFileManager *manager, NSString *path)
 {
   NSString      *tmp = @"";
 
-  while (NO == [tmp isEqual: path])
+  while (path && NO == [tmp isEqual: path])
     {
       NSString	*pb;
       NSString	*msys;
@@ -2323,7 +2323,7 @@ if (domainMask & mask) \
 
       case NSDeveloperDirectory:
 	{
-#if	defined(_WIN32)
+#if	defined(__MINGW__)
           if (nil == gnustepDeveloperDir)
             {
               NSString          *path = nil;
