@@ -208,8 +208,8 @@ gs_objc_msg_forward3(id receiver, SEL op)
 }
 
 /** Hidden by legacy API define.  Declare it locally */
-BOOL class_isMetaClass(Class cls);
-BOOL class_respondsToSelector(Class cls, SEL sel);
+GS_IMPORT BOOL class_isMetaClass(Class cls);
+GS_IMPORT BOOL class_respondsToSelector(Class cls, SEL sel);
 
 /**
  * Runtime hook used to provide message redirections with libobjc2.
