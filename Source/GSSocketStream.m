@@ -1561,7 +1561,7 @@ setNonBlocking(SOCKET fd)
   if (result == nil && _address.s.sa_family != AF_UNSPEC)
     {
       SOCKET    	s = [self _sock];
-      struct sockaddr	sin;
+      sockaddr_any	sin;
       socklen_t	        size = sizeof(sin);
 
       memset(&sin, '\0', size);
@@ -1569,7 +1569,7 @@ setNonBlocking(SOCKET fd)
 	{
 	  if (getsockname(s, (struct sockaddr*)&sin, (OPTLEN*)&size) != -1)
 	    {
-	      result = GSPrivateSockaddrHost(&sin);
+	      result = GSPrivateSockaddrHost((struct sockaddr*)&sin);
 	    }
 	}
       else if ([key isEqualToString: GSStreamLocalPortKey])
@@ -1577,14 +1577,14 @@ setNonBlocking(SOCKET fd)
 	  if (getsockname(s, (struct sockaddr*)&sin, (OPTLEN*)&size) != -1)
 	    {
 	      result = [NSString stringWithFormat: @"%d",
-		(int)GSPrivateSockaddrPort(&sin)];
+		(int)GSPrivateSockaddrPort((struct sockaddr*)&sin)];
 	    }
 	}
       else if ([key isEqualToString: GSStreamRemoteAddressKey])
 	{
 	  if (getpeername(s, (struct sockaddr*)&sin, (OPTLEN*)&size) != -1)
 	    {
-	      result = GSPrivateSockaddrHost(&sin);
+	      result = GSPrivateSockaddrHost((struct sockaddr*)&sin);
 	    }
 	}
       else if ([key isEqualToString: GSStreamRemotePortKey])
@@ -1592,7 +1592,7 @@ setNonBlocking(SOCKET fd)
 	  if (getpeername(s, (struct sockaddr*)&sin, (OPTLEN*)&size) != -1)
 	    {
 	      result = [NSString stringWithFormat: @"%d",
-		(int)GSPrivateSockaddrPort(&sin)];
+		(int)GSPrivateSockaddrPort((struct sockaddr*)&sin)];
 	    }
 	}
     }

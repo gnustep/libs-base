@@ -33,7 +33,7 @@ typedef	union {
   struct sockaddr	s;
   struct sockaddr_in	i4;
 #ifdef	AF_INET6
-  struct sockaddr_in	i6;
+  struct sockaddr_in6	i6;
 #endif
 #ifndef	_WIN32
   struct sockaddr_un	u;
