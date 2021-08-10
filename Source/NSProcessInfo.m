@@ -987,21 +987,6 @@ int main(int argc, char *argv[], char *env[])
          sizeof(_NSConstantStringClassReference));
 #endif
 
-#if defined(_WIN32)
-  WSADATA lpWSAData;
-
-  // Initialize Windows Sockets
-  if (WSAStartup(MAKEWORD(1,1), &lpWSAData))
-    {
-      printf("Could not startup Windows Sockets\n");
-      exit(1);
-    }
-#endif /* _WIN32 */
-
-#ifdef __MS_WIN__
-  _MB_init_runtime();
-#endif /* __MS_WIN__ */
-
   _gnu_process_args(argc, argv, env);
 
   /* Call the user defined main function */
