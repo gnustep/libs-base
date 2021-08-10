@@ -275,12 +275,12 @@ static Class		messagePortClass = 0;
   if (d == nil)
     {
       NSDebugMLLog(@"NSMessagePort",
-	@"No delegate to handle incoming message", 0);
+        @"No delegate to handle incoming message");
       return;
     }
   if ([d respondsToSelector: @selector(handlePortMessage:)] == NO)
     {
-      NSDebugMLLog(@"NSMessagePort", @"delegate doesn't handle messages", 0);
+      NSDebugMLLog(@"NSMessagePort", @"delegate doesn't handle messages");
       return;
     }
   NSDebugMLLog(@"NSMessagePort", @"%@ asking %@ to handle msg", self, d);
@@ -612,7 +612,7 @@ static Class		messagePortClass = 0;
 	    }
 	  if (rType != GSP_HEAD && rItems == nil)
 	    {
-	      NSLog(@"%@ - initial part of message had bad type");
+	      NSLog(@"%@ - initial part of message had bad type", self);
 	      break;
 	    }
 
@@ -873,7 +873,7 @@ again:
 	  /* This is probably an end of file
 	   * eg. when the process at the other end has terminated.
 	   */
-	  NSDebugMLog(@"NSMessagePort",
+	  NSDebugMLLog(@"NSMessagePort",
 	    @"unable to write to mailslot '%@' - %@",
 	    this->name, [NSError _last]);
 	  [self invalidate];
