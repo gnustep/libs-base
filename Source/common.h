@@ -88,6 +88,7 @@
 /* Redefine some function names when using the MSVC ABI on Windows.
  */
 #ifdef _MSC_VER
+#  include <io.h>
 #  define strncasecmp _strnicmp
 #  define strcasecmp _stricmp
 #  define write(fd, buffer, count) _write(fd, buffer, count)

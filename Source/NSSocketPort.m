@@ -51,6 +51,9 @@
 #include <stdio.h>
 
 #ifdef _WIN32
+#ifdef close
+#undef close // also defined in common.h
+#endif
 #define close closesocket
 #define	OPTLEN	int
 #else
