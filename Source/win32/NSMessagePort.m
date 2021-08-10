@@ -941,7 +941,7 @@ again:
   return sizeof(GSPortItemHeader) + sizeof(GSPortMsgHeader);
 }
 
-- (void) release
+- (oneway void) release
 {
   /* We lock the port table while checking, to prevent
    * another thread from grabbing this port while we are
