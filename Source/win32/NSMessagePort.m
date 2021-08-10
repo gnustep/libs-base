@@ -964,7 +964,7 @@ again:
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when
-		  msgid: (int)msgId
+		  msgid: (NSInteger)msgId
              components: (NSMutableArray*)components
                    from: (NSPort*)receivingPort
                reserved: (NSUInteger)length
