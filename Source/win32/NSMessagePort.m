@@ -214,7 +214,7 @@ static Class		messagePortClass = 0;
              toRunLoop: (NSRunLoop*)aLoop
                forMode: (NSString*)aMode
 {
-  NSDebugMLLog(@"NSMessagePort", @"%@ add to 0x%x in mode %@",
+  NSDebugMLLog(@"NSMessagePort", @"%@ add to 0x%p in mode %@",
     self, aLoop, aMode);
   NSAssert(PORT(self)->rHandle != INVALID_HANDLE_VALUE,
     @"Attempt to listen on send port");
@@ -248,7 +248,7 @@ static Class		messagePortClass = 0;
 {
   internal	*this;
 
-  NSDebugMLLog(@"NSMessagePort", @"NSMessagePort 0x%x finalized", self);
+  NSDebugMLLog(@"NSMessagePort", @"NSMessagePort 0x%p finalized", self);
   [self invalidate];
   this = PORT(self);
   if (this != 0)
@@ -493,7 +493,7 @@ static Class		messagePortClass = 0;
 
   M_LOCK(this->lock);
 
-  NSDebugMLLog(@"NSMessagePort", @"entered with rWant=%d", this->rWant);
+  NSDebugMLLog(@"NSMessagePort", @"entered with rWant=%lu", this->rWant);
 
   if (this->rState == RS_MESG)
     {
@@ -529,7 +529,7 @@ static Class		messagePortClass = 0;
 	}
       else
 	{
-	  NSLog(@"GetOverlappedResult success ... %u", this->rSize);
+	  NSLog(@"GetOverlappedResult success ... %lu", this->rSize);
 	  this->rState = RS_NONE;
 	  this->rLength = 0;
 	}
@@ -552,7 +552,7 @@ static Class		messagePortClass = 0;
       else
 	{
 	  this->rState = RS_DATA;
-	  NSDebugMLLog(@"NSMessagePort", @"mailslot size=%d",
+	  NSDebugMLLog(@"NSMessagePort", @"mailslot size=%lu",
 	    this->rWant);
 	  [this->rData setLength: this->rWant];
 	  if (ReadFile(this->rHandle,
@@ -568,7 +568,7 @@ static Class		messagePortClass = 0;
 	    }
 	  if (this->rSize != this->rWant)
 	    {
-	      NSLog(@"only read %d of %d bytes from mailslot '%@' - %@",
+	      NSLog(@"only read %lu of %lu bytes from mailslot '%@' - %@",
 		this->rSize, this->rWant, this->name, [NSError _last]);
 	      [self invalidate];
 	      return;
@@ -776,7 +776,7 @@ static Class		messagePortClass = 0;
       pm = RETAIN([this->rMsgs objectAtIndex: 0]);
       [this->rMsgs removeObjectAtIndex: 0];
 
-      NSDebugMLLog(@"NSMessagePort", @"got message %@ on 0x%x", pm, self);
+      NSDebugMLLog(@"NSMessagePort", @"got message %@ on 0x%p", pm, self);
       M_UNLOCK(this->lock);
       NS_DURING
 	{
@@ -838,7 +838,7 @@ again:
       if (this->wData != nil)
 	{
 	  NSDebugMLLog(@"NSMessagePort",
-	    @"completed write on 0x%x", self);
+	    @"completed write on 0x%p", self);
 	  [this->wMsgs removeObjectIdenticalTo: this->wData];
 	  this->wData = nil;
 	}
@@ -863,8 +863,8 @@ again:
 	&this->wOv);
       if (rc > 0)
 	{
-	  NSDebugMLLog(@"NSMessagePort", @"Write of %d performs %d",
-	    [this->wData length] - this->wLength, this->wSize);
+	  NSDebugMLLog(@"NSMessagePort", @"Write of %lu performs %lu",
+	    (unsigned long)([this->wData length] - this->wLength), this->wSize);
 	  this->wLength += this->wSize;
 	  goto again;
 	}
@@ -880,8 +880,8 @@ again:
 	}
       else
 	{
-	  NSDebugMLLog(@"NSMessagePort", @"Write of %d queued",
-	    [this->wData length] - this->wLength);
+	  NSDebugMLLog(@"NSMessagePort", @"Write of %lu queued",
+	    (unsigned long)([this->wData length] - this->wLength));
 	}
     }
   M_UNLOCK(this->lock);
@@ -910,7 +910,7 @@ again:
   else
     {
       NSDebugMLLog(@"NSMessagePort",
-	@"got event on invalidated port 0x%x in mode %@", self, mode);
+	@"got event on invalidated port 0x%p in mode %@", self, mode);
     }
   RELEASE(self);
 }
@@ -920,7 +920,7 @@ again:
               fromRunLoop: (NSRunLoop*)aLoop
                   forMode: (NSString*)aMode
 {
-  NSDebugMLLog(@"NSMessagePort", @"%@ remove from 0x%x in mode %@",
+  NSDebugMLLog(@"NSMessagePort", @"%@ remove from 0x%p in mode %@",
     self, aLoop, aMode);
   [aLoop removeEvent: (void*)(uintptr_t)PORT(self)->rEvent
 		type: ET_HANDLE
@@ -1006,7 +1006,7 @@ again:
    */
   if (length != [self reservedSpaceLength])
     {
-      NSLog(@"bad reserved length - %u", length);
+      NSLog(@"bad reserved length - %lu", (unsigned long)length);
       return NO;
     }
   NSAssert([receivingPort isKindOfClass: messagePortClass] == YES,

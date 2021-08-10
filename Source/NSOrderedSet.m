@@ -108,7 +108,7 @@ static SEL	remSel;
 
   reason = [NSString stringWithFormat:
     @"Index %"PRIuPTR" is out of range %lu (in '%@')",
-    index, count, NSStringFromSelector(sel)];
+    index, (unsigned long)count, NSStringFromSelector(sel)];
 
   exception = [NSException exceptionWithName: NSRangeException
 		                      reason: reason

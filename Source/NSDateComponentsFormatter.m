@@ -119,7 +119,7 @@
             {
               NSString *s;
 
-              s = [NSString stringWithFormat: @"%4ld", [components year]];
+              s = [NSString stringWithFormat: @"%4ld", (long)[components year]];
               result = [result stringByAppendingString: s];
             }
           
@@ -161,7 +161,7 @@
             {
               NSString *s;
 
-              s = [NSString stringWithFormat: @"%2ld", [components month]];
+              s = [NSString stringWithFormat: @"%2ld", (long)[components month]];
               result = [result stringByAppendingString: s];
             }
 
@@ -203,7 +203,7 @@
             {
               NSString *s;
 
-              s = [NSString stringWithFormat: @"%2ld", [components day]];
+              s = [NSString stringWithFormat: @"%2ld", (long)[components day]];
               result = [result stringByAppendingString: s];
             }
 
@@ -245,7 +245,7 @@
             {
               NSString *s;
 
-              s = [NSString stringWithFormat: @"%2ld", [components hour]];
+              s = [NSString stringWithFormat: @"%2ld", (long)[components hour]];
               result = [result stringByAppendingString: s];
             }
 
@@ -287,7 +287,7 @@
             {
               NSString *s;
 
-              s = [NSString stringWithFormat: @"%2ld", [components minute]];
+              s = [NSString stringWithFormat: @"%2ld", (long)[components minute]];
               result = [result stringByAppendingString: s];
             }
 
@@ -329,7 +329,7 @@
             {
               NSString *s;
 
-              s = [NSString stringWithFormat: @"%2ld", [components second]];
+              s = [NSString stringWithFormat: @"%2ld", (long)[components second]];
               result = [result stringByAppendingString: s];
             }
 

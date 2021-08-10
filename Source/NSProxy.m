@@ -271,7 +271,7 @@
  */
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"<%s %lx>",
+  return [NSString stringWithFormat: @"<%s %zx>",
 	GSClassNameFromObject(self), (size_t)self];
 }
 

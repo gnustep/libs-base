@@ -481,15 +481,15 @@ static Class	runLoopClass;
 
   if (d == INVALID_SOCKET)
     {
-      NSLog(@"illegal descriptor (%d) for Tcp Handle", d);
+      NSLog(@"illegal descriptor (%lld) for Tcp Handle", (long long)d);
       return nil;
     }
 #ifdef _WIN32
   dummy = 1;
   if (ioctlsocket(d, FIONBIO, &dummy) == SOCKET_ERROR)
     {
-      NSLog(@"unable to set non-blocking mode on %d - %@",
-	d, [NSError _last]);
+      NSLog(@"unable to set non-blocking mode on %lld - %@",
+        (long long)d, [NSError _last]);
       return nil;
     }
 #else /* !_WIN32 */
@@ -688,8 +688,8 @@ static Class	runLoopClass;
       else
 	{
 	  gotAddr = YES;
-	  NSDebugMLLog(@"GSTcpHandle", @"Connecting to %@:%d using desc %d",
-	    addr, [aPort portNumber], desc);
+	  NSDebugMLLog(@"GSTcpHandle", @"Connecting to %@:%d using desc %lld",
+	    addr, [aPort portNumber], (long long)desc);
 	}
     }
 
@@ -770,7 +770,8 @@ static Class	runLoopClass;
       if (setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
 	(OPTLEN)sizeof(status)) < 0)
         {
-          NSLog(@"failed to turn on keepalive for connected socket %d", desc);
+          NSLog(@"failed to turn on keepalive for connected socket %lld",
+            (long long)desc);
         }
       addrNum = 0;
       caller = YES;
@@ -794,8 +795,8 @@ static Class	runLoopClass;
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"<Handle %p (%d) to %@>",
-    self, desc, GSPrivateSockaddrName(&sockAddr)];
+  return [NSString stringWithFormat: @"<Handle %p (%lld) to %@>",
+    self, (long long)desc, GSPrivateSockaddrName(&sockAddr)];
 }
 
 - (int) descriptor
@@ -1531,7 +1532,7 @@ static Class	runLoopClass;
     }
   if (ocurredEvents.lNetworkEvents)
     {
-      NSLog(@"Event not get %d", ocurredEvents.lNetworkEvents);
+      NSLog(@"Event not get %ld", ocurredEvents.lNetworkEvents);
       abort();
     }
 
@@ -1573,8 +1574,8 @@ static Class	runLoopClass;
 
   NSAssert([components count] > 0, NSInternalInconsistencyException);
   NSDebugMLLog(@"GSTcpHandle",
-    @"Sending message %p %@ on %p(%d) before %@",
-    components, components, self, desc, when);
+    @"Sending message %p %@ on %p(%lld) before %@",
+    components, components, self, (long long)desc, when);
   M_LOCK(myLock);
   [wMsgs addObject: components];
 
@@ -2383,8 +2384,8 @@ static Class		tcpPortClass;
 	  if (setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char*)&status,
 	    (OPTLEN)sizeof(status)) < 0)
             {
-              NSLog(@"failed to turn on keepalive for accepted socket %d",
-                desc);
+              NSLog(@"failed to turn on keepalive for accepted socket %lld",
+                (long long)desc);
             }
 #if	defined(_WIN32)
 	  // reset associated event with new socket
@@ -2438,7 +2439,7 @@ static Class		tcpPortClass;
 #endif
 	  else if (type == ET_RPORT) t = "rport";
 	  else t = "unknown";
-	  NSLog(@"No handle for event %s on descriptor %d", t, desc);
+	  NSLog(@"No handle for event %s on descriptor %lld", t, (long long)desc);
 	}
       else
 	{
