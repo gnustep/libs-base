@@ -164,7 +164,7 @@ For more detailed assistance, please report the error to bug-gnustep@gnu.org.\n\
  *************************************************************************/
 @interface _NSConcreteProcessInfo: NSProcessInfo
 - (id) autorelease;
-- (void) release;
+- (oneway void) release;
 - (id) retain;
 @end
 
@@ -174,7 +174,7 @@ For more detailed assistance, please report the error to bug-gnustep@gnu.org.\n\
   return self;
 }
 
-- (void) release
+- (oneway void) release
 {
   return;
 }
