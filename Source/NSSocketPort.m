@@ -541,13 +541,6 @@ static Class	runLoopClass;
     {
       tlsLock = [NSLock new];
       [[NSObject leakAt: &tlsLock] release];
-#ifdef _WIN32
-      WORD wVersionRequested;
-      WSADATA wsaData;
-
-      wVersionRequested = MAKEWORD(2, 0);
-      WSAStartup(wVersionRequested, &wsaData);
-#endif
       mutableArrayClass = [NSMutableArray class];
       mutableDataClass = [NSMutableData class];
       portMessageClass = [NSPortMessage class];
