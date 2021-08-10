@@ -1525,8 +1525,8 @@ setNonBlocking(SOCKET fd)
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"%@ sock %d loopID %p",
-    [super description], _sock, _loopID];
+  return [NSString stringWithFormat: @"%@ sock %lld loopID %p",
+    [super description], (long long)_sock, _loopID];
 }
 
 - (id) init
@@ -2077,7 +2077,7 @@ setNonBlocking(SOCKET fd)
 #ifndef	NDEBUG
       else
 	{
-	  NSDebugMLLog(@"NSStream", @"%@ EVENTS 0x%x",
+	  NSDebugMLLog(@"NSStream", @"%@ EVENTS 0x%lx",
 	    self, events.lNetworkEvents);
 	}
 #endif
@@ -2539,7 +2539,7 @@ setNonBlocking(SOCKET fd)
 #ifndef	NDEBUG
       else
 	{
-	  NSDebugMLLog(@"NSStream", @"%@ EVENTS 0x%x",
+	  NSDebugMLLog(@"NSStream", @"%@ EVENTS 0x%lx",
 	    self, events.lNetworkEvents);
 	}
 #endif

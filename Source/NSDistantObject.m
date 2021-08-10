@@ -844,7 +844,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
     {
       if (debug_proxy > 3)
 	NSLog(@"retain count for connection (%p) is now %lx\n",
-		_connection, [_connection retainCount]);
+		_connection, (unsigned long)[_connection retainCount]);
       /*
        * A proxy for local object retains its target - so we release it.
        * For a local object the connection also retains this proxy, so we

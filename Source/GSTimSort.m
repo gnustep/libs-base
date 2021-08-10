@@ -1022,8 +1022,9 @@ descriptorOrComparator: (id)descriptorOrComparator
   r1 = runStack[i];
   r2 = runStack[i+1];
   NSDebugMLLog(@"GSTimSort",
-    @"Merging stack location %lu (stack size: %lu, run %@ with %@)", i,
-    stackSize, NSStringFromRange(r1), NSStringFromRange(r2));
+    @"Merging stack location %lu (stack size: %lu, run %@ with %@)",
+    (unsigned long)i, (unsigned long)stackSize,
+    NSStringFromRange(r1), NSStringFromRange(r2));
 
   /* Do some housekeeping on the stack: We combine the two runs
    * being merged and move around the last run on the stack
@@ -1050,7 +1051,7 @@ descriptorOrComparator: (id)descriptorOrComparator
     }
   NSDebugMLLog(@"GSTimSort",
     @"Insertion point for r2 in r1: %lu, r1 for the merge is now %@.",
-    insert, NSStringFromRange(r1));
+    (unsigned long)insert, NSStringFromRange(r1));
 
   // Find an insertion point for the last element of r1 into r2. Subtracting the
   // location from that point gives us the length of the subrange we need to

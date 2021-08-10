@@ -1139,7 +1139,7 @@ static void determineOperatingSystem()
        * use the information from NSBundle and only get the version info
        * here.
        */
-      _operatingSystemVersion = [[NSString alloc] initWithFormat: @"%d.%d",
+      _operatingSystemVersion = [[NSString alloc] initWithFormat: @"%lu.%lu",
         osver.dwMajorVersion, osver.dwMinorVersion];
 #else
 #if	defined(HAVE_SYS_UTSNAME_H)

@@ -1265,12 +1265,12 @@ GSPrivateReturnAddresses(NSUInteger **returns)
           if ((fromSym)(hProcess, (DWORD64)addr, 0, symbol))
             {
               syms[i] = [NSString stringWithFormat:
-                @"%s - %p", symbol->Name, addr];
+                @"%s - %lx", symbol->Name, (unsigned long)addr];
             }
           else
             {
               syms[i] = [NSString stringWithFormat:
-                @"unknown - %p", addr];
+                @"unknown - %lx", (unsigned long)addr];
             }
         }
       GS_MUTEX_UNLOCK(traceLock);

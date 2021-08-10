@@ -348,8 +348,8 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
                       port_hd_array = malloc(sizeof(NSInteger)*port_hd_size);
                       [port getFds: port_hd_array count: &port_hd_count];
                     }
-		  NSDebugMLLog(@"NSRunLoop", @"listening to %d port handles",
-		    port_hd_count);
+		  NSDebugMLLog(@"NSRunLoop", @"listening to %ld port handles",
+		    (long)port_hd_count);
 		  while (port_hd_count--)
 		    {
 		      NSMapInsert(handleMap, 
@@ -587,7 +587,7 @@ static const NSMapTableValueCallBacks WatcherMapValueCallBacks =
     }
   else
     {
-      NSDebugMLLog(@"NSRunLoop", @"unexpected result %d", wait_return);
+      NSDebugMLLog(@"NSRunLoop", @"unexpected result %lu", wait_return);
       GSPrivateNotifyASAP(mode);
       completed = NO;
       return NO;        

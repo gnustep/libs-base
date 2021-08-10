@@ -3752,8 +3752,8 @@ static NSSet	*fileKeys = nil;
       DWORD dwErrorCode = 0;
 
       dwErrorCode = GetLastError();
-      NSDebugMLog(@"Error %d getting file handle for '%S'",
-        dwErrorCode, _path);
+      NSDebugMLog(@"Error %lu getting file handle for '%ls'",
+        dwErrorCode, (const unichar *)_path);
       return group;
     }
 
@@ -3776,8 +3776,8 @@ static NSSet	*fileKeys = nil;
       DWORD dwErrorCode = 0;
 
       dwErrorCode = GetLastError();
-      NSDebugMLog(@"Error %d getting security info for '%S'",
-        dwErrorCode, _path);
+      NSDebugMLog(@"Error %lu getting security info for '%ls'",
+        dwErrorCode, (const unichar *)_path);
       return group;
     }
 
@@ -3798,17 +3798,18 @@ static NSSet	*fileKeys = nil;
 
       dwErrorCode = GetLastError();
       if (dwErrorCode == ERROR_NONE_MAPPED)
-        NSDebugMLog(@"Error %d in LookupAccountSid for '%S'",
-          dwErrorCode, _path);
+        NSDebugMLog(@"Error %lu in LookupAccountSid for '%ls'",
+          dwErrorCode, (const unichar *)_path);
       else
-        NSDebugMLog(@"Error %d getting security info for '%S'",
-          dwErrorCode, _path);
+        NSDebugMLog(@"Error %lu getting security info for '%ls'",
+          dwErrorCode, (const unichar *)_path);
       return group;
     }
 
   if (accountSize >= 1024)
     {
-      NSDebugMLog(@"Account name for '%S' is unreasonably long", _path);
+      NSDebugMLog(@"Account name for '%ls' is unreasonably long",
+        (const unichar *)_path);
       return group;
     }
   return [NSString stringWithCharacters: account length: accountSize];
@@ -3918,8 +3919,8 @@ static NSSet	*fileKeys = nil;
       DWORD dwErrorCode = 0;
 
       dwErrorCode = GetLastError();
-      NSDebugMLog(@"Error %d getting file handle for '%S'",
-        dwErrorCode, _path);
+      NSDebugMLog(@"Error %lu getting file handle for '%ls'",
+        dwErrorCode, (const unichar *)_path);
       return owner;
     }
 
@@ -3942,8 +3943,8 @@ static NSSet	*fileKeys = nil;
       DWORD dwErrorCode = 0;
 
       dwErrorCode = GetLastError();
-      NSDebugMLog(@"Error %d getting security info for '%S'",
-        dwErrorCode, _path);
+      NSDebugMLog(@"Error %lu getting security info for '%ls'",
+        dwErrorCode, (const unichar *)_path);
       return owner;
     }
 
@@ -3964,17 +3965,18 @@ static NSSet	*fileKeys = nil;
 
       dwErrorCode = GetLastError();
       if (dwErrorCode == ERROR_NONE_MAPPED)
-        NSDebugMLog(@"Error %d in LookupAccountSid for '%S'",
-          dwErrorCode, _path);
+        NSDebugMLog(@"Error %lu in LookupAccountSid for '%ls'",
+          dwErrorCode, (const unichar *)_path);
       else
-        NSDebugMLog(@"Error %d getting security info for '%S'",
-          dwErrorCode, _path);
+        NSDebugMLog(@"Error %lu getting security info for '%ls'",
+          dwErrorCode, (const unichar *)_path);
       return owner;
     }
 
   if (accountSize >= 1024)
     {
-      NSDebugMLog(@"Account name for '%S' is unreasonably long", _path);
+      NSDebugMLog(@"Account name for '%ls' is unreasonably long",
+        (const unichar *)_path);
       return owner;
     }
   return [NSString stringWithCharacters: account length: accountSize];

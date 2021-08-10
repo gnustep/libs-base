@@ -2103,7 +2103,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
               if (e != ERROR_BROKEN_PIPE && e != ERROR_HANDLE_EOF)
 		{
-	          NSLog(@"pipe peek problem %d, %@", e, [NSError _last]);
+	          NSLog(@"pipe peek problem %lu: %@", e, [NSError _last]);
 	          return;
 		}
 	      /* In the case of a broken pipe, we fall through so that a read
@@ -2300,7 +2300,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (type != ET_HANDLE)
 	{
 	  NSLog(@"Argh, TRIGGER on socket %"PRIuPTR" %"PRIuPTR
-	    " %@ with event %u desc %u",
+	    " %@ with event %"PRIuPTR" desc %"PRIuPTR,
 	    (uintptr_t)data, (uintptr_t)extra, mode, (uintptr_t)event,
 	    (uintptr_t)descriptor);
 /*
@@ -2318,42 +2318,42 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       if (ocurredEvents.lNetworkEvents & FD_CONNECT)
 	{
-	  NSDebugMLLog(@"NSFileHandle", @"Connect on %x", extra);
+	  NSDebugMLLog(@"NSFileHandle", @"Connect on %p", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_CONNECT;
 	  [self receivedEventWrite];
 	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_ACCEPT)
 	{
-	  NSDebugMLLog(@"NSFileHandle", @"Accept on %x", extra);
+	  NSDebugMLLog(@"NSFileHandle", @"Accept on %p", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_ACCEPT;
 	  [self receivedEventRead];
 	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_WRITE)
 	{
-	  NSDebugMLLog(@"NSFileHandle", @"Write on %x", extra);
+	  NSDebugMLLog(@"NSFileHandle", @"Write on %p", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_WRITE;
 	  [self receivedEventWrite];
 	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_READ)
 	{
-	  NSDebugMLLog(@"NSFileHandle", @"Read on %x", extra);
+	  NSDebugMLLog(@"NSFileHandle", @"Read on %p", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_READ;
 	  [self receivedEventRead];
 	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_OOB)
 	{
-	  NSDebugMLLog(@"NSFileHandle", @"OOB on %x", extra);
+	  NSDebugMLLog(@"NSFileHandle", @"OOB on %p", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_OOB;
 	  [self receivedEventRead];
 	  GSPrivateNotifyASAP(mode);
 	}
       if (ocurredEvents.lNetworkEvents & FD_CLOSE)
 	{
-	  NSDebugMLLog(@"NSFileHandle", @"Close on %x", extra);
+	  NSDebugMLLog(@"NSFileHandle", @"Close on %p", extra);
 	  ocurredEvents.lNetworkEvents ^= FD_CLOSE;
 	  if ([writeInfo count] > 0)
 	    {
@@ -2367,7 +2367,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	}
       if (ocurredEvents.lNetworkEvents)
 	{
-	  NSLog(@"Event not get %d", ocurredEvents.lNetworkEvents);
+	  NSLog(@"Event not get %ld", ocurredEvents.lNetworkEvents);
 	  abort();      
 	}
     }
@@ -2440,7 +2440,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
             }
           else
             {
-	      NSLog(@"unable to set pipe non-blocking mode to %s - %d",
+	      NSLog(@"unable to set pipe non-blocking mode to %s - %lu",
 		(YES  == flag ? "YES" : "NO"), GetLastError());
             }
           return;
