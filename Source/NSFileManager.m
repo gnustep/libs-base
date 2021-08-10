@@ -3798,7 +3798,8 @@ static NSSet	*fileKeys = nil;
 
       dwErrorCode = GetLastError();
       if (dwErrorCode == ERROR_NONE_MAPPED)
-	NSDebugMLog(@"Error %d in LookupAccountSid for '%S'", _path);
+        NSDebugMLog(@"Error %d in LookupAccountSid for '%S'",
+          dwErrorCode, _path);
       else
         NSDebugMLog(@"Error %d getting security info for '%S'",
           dwErrorCode, _path);
@@ -3963,7 +3964,8 @@ static NSSet	*fileKeys = nil;
 
       dwErrorCode = GetLastError();
       if (dwErrorCode == ERROR_NONE_MAPPED)
-	NSDebugMLog(@"Error %d in LookupAccountSid for '%S'", _path);
+        NSDebugMLog(@"Error %d in LookupAccountSid for '%S'",
+          dwErrorCode, _path);
       else
         NSDebugMLog(@"Error %d getting security info for '%S'",
           dwErrorCode, _path);
