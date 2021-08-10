@@ -1270,7 +1270,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
           else
             {
               syms[i] = [NSString stringWithFormat:
-                @"unknown - %p", symbol->Name, addr];
+                @"unknown - %p", addr];
             }
         }
       GS_MUTEX_UNLOCK(traceLock);
