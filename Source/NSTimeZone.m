@@ -165,6 +165,11 @@
 #define BUFFER_SIZE 512
 #define WEEK_MILLISECONDS (7.0*24.0*60.0*60.0*1000.0)
 
+/* Include public domain code (modified for use here) to parse standard
+ * posix time zone files.
+ */
+#include "tzdb.h"
+
 #if GS_USE_ICU == 1
 static inline int
 _NSToICUTZDisplayStyle(NSTimeZoneNameStyle style)
@@ -243,20 +248,15 @@ typedef struct {
   BOOL		isdst;
   unsigned char	abbr_idx;
   char		pad[2];
-  NSString	*abbreviation;
+  const char	*abbreviation;
 } TypeInfo;
 
 @interface	GSTimeZone : NSTimeZone
 {
 @public
   NSString	*timeZoneName;
-  NSArray	*abbreviations;
   NSData	*timeZoneData;
-  unsigned int	n_trans;
-  unsigned int	n_types;
-  int64_t	*trans;
-  TypeInfo	*types;
-  unsigned char	*idxs;
+  struct state  *sp;
 }
 @end
 
@@ -2298,8 +2298,8 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
   return [self nextDaylightSavingTimeTransitionAfterDate: [NSDate date]];
 }
 
-- (NSString *)localizedName: (NSTimeZoneNameStyle)style
-                     locale: (NSLocale *)locale
+- (NSString *) localizedName: (NSTimeZoneNameStyle)style
+                      locale: (NSLocale *)locale
 {
 #if GS_USE_ICU == 1
   UChar *result;
@@ -2905,87 +2905,56 @@ GSBreakTime(NSTimeInterval when,
 
 @implementation	GSTimeZone
 
-/**
- * Perform a binary search of a transitions table to locate the index
- * of the transition to use for a particular time interval since 1970.<br />
- * We locate the index of the highest transition before the date, or zero
- * if there is no transition before it.
- */
-static TypeInfo*
-chop(NSTimeInterval since, GSTimeZone *zone)
-{
-  int64_t		when = (int64_t)since;
-  int64_t		*trans = zone->trans;
-  unsigned		hi = zone->n_trans;
-  unsigned		lo = 0;
-  unsigned int		i;
-
-  if (hi == 0 || trans[0] > when)
-    {
-      unsigned	n_types = zone->n_types;
-
-      /*
-       * If the first transition is greater than our date,
-       * we locate the first non-DST transition and use that offset,
-       * or just use the first transition.
-       */
-      for (i = 0; i < n_types; i++)
-	{
-	  if (zone->types[i].isdst == 0)
-	    {
-	      return &zone->types[i];
-	    }
-	}
-      return &zone->types[0];
-    }
-  else
-    {
-      for (i = hi/2; hi != lo; i = (hi + lo)/2)
-	{
-	  if (when < trans[i])
-	    {
-	      hi = i;
-	    }
-	  else if (when > trans[i])
-	    {
-	      lo = ++i;
-	    }
-	  else
-	    {
-	      break;
-	    }
-	}
-      /*
-       * If we went off the top of the table or the closest transition
-       * was later than our date, we step back to find the last
-       * transition before our date.
-       */
-      if (i > 0 && (i == zone->n_trans || trans[i] > when))
-	{
-	  i--;
-	}
-      return &zone->types[zone->idxs[i]];
-    }
-}
-
 static NSTimeZoneDetail*
 newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
-{
-  GSTimeZoneDetail	*detail;
+{ 
+  GSTimeZoneDetail      *detail;
+  NSString		*abbr;
 
-  detail = [GSTimeZoneDetail alloc];
-  detail = [detail initWithTimeZone: zone
-			 withAbbrev: type->abbreviation
-			 withOffset: type->offset
-			    withDST: type->isdst];
+  abbr = [[NSString alloc] initWithUTF8String: type->abbreviation];
+  
+  detail = [[GSTimeZoneDetail alloc] initWithTimeZone: zone
+					   withAbbrev: abbr
+					   withOffset: type->offset
+					      withDST: type->isdst];
+  RELEASE(abbr);
   return detail;
 }
 
+/**
+ * Obtain TypeInfo from transisions or TZstring
+ */
+static TypeInfo
+getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
+{
+  int64_t               when = (int64_t)since;
+  struct tm             tm;
+  TypeInfo              type;
+
+  if (localsub(zone->sp, &when, 0, &tm) == NULL)
+    {
+      memset(&type, '\0', sizeof(type));
+    }
+  else
+    {
+      type.offset = tm.tm_gmtoff;
+      type.isdst = tm.tm_isdst;
+      type.abbr_idx = 0;
+      type.abbreviation = tm.tm_zone;
+    }
+  return type;
+}
+
+
 - (NSString*) abbreviationForDate: (NSDate*)aDate
 {
-  TypeInfo	*type = chop([aDate timeIntervalSince1970], self);
+  TypeInfo	type = getTypeInfo([aDate timeIntervalSince1970], self);
 
-  return type->abbreviation;
+  if (NULL == type.abbreviation)
+    {
+      return nil;
+    }
+  return [NSString stringWithUTF8String: type.abbreviation];
 }
 
 - (NSData*) data
@@ -2993,14 +2962,18 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
   return timeZoneData;
 }
 
+- (NSTimeInterval) daylightSavingTimeOffsetForDate: (NSDate *)aDate
+{
+  return [super daylightSavingTimeOffsetForDate: aDate];
+}
+
 - (void) dealloc
 {
   RELEASE(timeZoneName);
   RELEASE(timeZoneData);
-  RELEASE(abbreviations);
-  if (types != 0)
+  if (sp != 0)
     {
-      NSZoneFree(NSDefaultMallocZone(), types);
+      free(sp);
     }
   [super dealloc];
 }
@@ -3008,220 +2981,80 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 - (id) initWithName: (NSString*)name data: (NSData*)data
 {
   static NSString	*fileException = @"GSTimeZoneFileException";
+  union local_storage	*lsp;
+  const char      	*zoneName;
+
+  /* The placeholder class should have dealt with loading the data
+   */
+  NSAssert([data isKindOfClass: [NSData class]], NSInvalidArgumentException);
+  NSAssert([name isKindOfClass: [NSString class]], NSInvalidArgumentException);
 
   timeZoneName = [name copy];
   timeZoneData = [data copy];
+
+  zoneName = [timeZoneName UTF8String];
+  sp = malloc(sizeof(*sp));
+
   NS_DURING
     {
-      const void	*bytes = [timeZoneData bytes];
-      unsigned		length = [timeZoneData length];
-      void		*buf;
-      unsigned		pos = 0;
-      unsigned		i, charcnt;
-      unsigned char	*abbr;
-      struct tzhead	*header;
-      unsigned		version = 1;
+      size_t		nread;
+      union input_buffer  	*up;
 
-      if (length < sizeof(struct tzhead))
+      lsp = malloc(sizeof(*lsp));
+      up = &lsp->u.u;
+      nread = [data length];
+      if (nread > sizeof(up->buf))
 	{
 	  [NSException raise: fileException
-		      format: @"File is too small"];
+		      format: @"data too large"];
 	}
-      header = (struct tzhead *)(bytes + pos);
-      pos += sizeof(struct tzhead);
+      [data getBytes: up->buf]; 
 
-      if (memcmp(header->tzh_magic, TZ_MAGIC, strlen(TZ_MAGIC)) != 0)
+      if (tzloadbody1(zoneName, sp, true, lsp, nread) != 0)
 	{
 	  [NSException raise: fileException
-		      format: @"TZ_MAGIC is incorrect"];
+		      format: @"cannot load data"];
 	}
+      free(lsp);
+      lsp = NULL;
 
-      /* For version 2+, skip to second header */
-      if (header->tzh_version[0] != 0)
-        {
-	  /* tzh_version[0] is an ascii digit for versions above 1.
-	   */
-	  version = header->tzh_version[0] - '0';
-
-	  /* pos indexes after the first header, increment it to index after
-	   * the data associated with that header too.
-	   */
-          pos += GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_timecnt) * 5
-	    + GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_typecnt) * 6
-	    + GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_charcnt)
-	    + GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_leapcnt) * 8
-	    + GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_ttisstdcnt)
-	    + GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_ttisutcnt);
-
-	  /* Now we get a pointer to the version 2+ header and set pos as an
-	   * index to the data after that.
-	   */
-	  header = (struct tzhead *)(bytes + pos);
-          pos += sizeof(struct tzhead);
-
-          if (memcmp(header->tzh_magic, TZ_MAGIC, strlen(TZ_MAGIC)) != 0)
-	    {
-	      [NSException raise: fileException
-		      format: @"TZ_MAGIC is incorrect (v2+ header)"];
-	    }
-	}
-
-      n_trans = GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_timecnt);
-      n_types = GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_typecnt);
-      charcnt = GSSwapBigI32ToHost(*(int32_t*)(void*)header->tzh_charcnt);
-
-      i = pos;
-      if (1 == version)
-	{
-	  /* v1 with 32-bit transitions */
-	  i += sizeof(int32_t) * n_trans;
-	}
-      else
-	{
-	  /* v2+ with 64-bit transitions */
-	  i += sizeof(int64_t) * n_trans;
-	}
-      if (i > length)
+#if 0
+      if (!tzparse(zoneName, sp, false))
 	{
 	  [NSException raise: fileException
-		      format: @"Transitions list is truncated"];
+		      format: @"failed to parse zone data"];
 	}
-      i += n_trans;
-      if (i > length)
-	{
-	  [NSException raise: fileException
-		      format: @"Transition indexes are truncated"];
-	}
-      i += sizeof(struct ttinfo)*n_types;
-      if (i > length)
-	{
-	  [NSException raise: fileException
-		      format: @"Types list is truncated"];
-	}
-      if (i + charcnt > length)
-	{
-	  [NSException raise: fileException
-		      format: @"Abbreviations list is truncated"];
-	}
-
-      /*
-       * Now calculate size we need to store the information
-       * for efficient access ... not the same saze as the data
-       * we received (we always use 64bit transitions internally).
-       */
-      i = n_trans * (sizeof(int64_t)+1) + n_types * sizeof(TypeInfo);
-      buf = NSZoneMalloc(NSDefaultMallocZone(), i);
-      types = (TypeInfo*)buf;
-      buf += (n_types * sizeof(TypeInfo));
-      trans = (int64_t*)buf;
-      buf += (n_trans * sizeof(int64_t)); 
-      idxs = (unsigned char*)buf;
-
-      /* Read in transitions. */
-      if (1 == version)
-	{
-	  /* v1 with 32-bit transitions */
-	  for (i = 0; i < n_trans; i++)
-	    {
-	      trans[i] = GSSwapBigI32ToHost(*(int32_t*)(bytes + pos));
-	      pos += sizeof(int32_t);
-	    }
-	}
-      else
-	{
-	  /* v2+ with 64-bit transitions */
-	  for (i = 0; i < n_trans; i++)
-	    {
-	      trans[i] = GSSwapBigI64ToHost(*(int64_t*)(bytes + pos));
-	      pos += sizeof(int64_t);
-	    }
-	}
-      for (i = 0; i < n_trans; i++)
-	{
-	  idxs[i] = *(unsigned char*)(bytes + pos);
-	  pos++;
-	}
-      for (i = 0; i < n_types; i++)
-	{
-	  struct ttinfo	*ptr = (struct ttinfo*)(bytes + pos);
-          uint32_t      off;
-
-	  types[i].isdst = (ptr->isdst != 0 ? YES : NO);
-	  types[i].abbr_idx = ptr->abbr_idx;
-          memcpy(&off, ptr->offset, 4);
-	  types[i].offset = GSSwapBigI32ToHost(off);
-	  pos += sizeof(struct ttinfo);
-	}
-      abbr = (unsigned char*)(bytes + pos);
-      {
-	id		abbrevs[charcnt];
-	unsigned	count = 0;
-	unsigned	used = 0;
-
-	memset(abbrevs, '\0', sizeof(id)*charcnt);
-	for (i = 0; i < n_types; i++)
-	  {
-	    int	loc = types[i].abbr_idx;
-
-	    if (abbrevs[loc] == nil)
-	      {
-		abbrevs[loc]
-		  = [[NSString alloc] initWithUTF8String: (char*)abbr + loc];
-		count++;
-	      }
-	    types[i].abbreviation = abbrevs[loc];
-	  }
-	/*
-	 * Now we have created all the abbreviations, we put them in an
-	 * array for easy access later and easy deallocation if/when
-	 * the receiver is deallocated.
-	 */
-	i = charcnt;
-	while (i-- > count)
-	  {
-	    if (abbrevs[i] != nil)
-	      {
-		while (abbrevs[used] != nil)
-		  {
-		    used++;
-		  }
-		abbrevs[used] = abbrevs[i];
-		abbrevs[i] = nil;
-		if (++used >= count)
-		  {
-		    break;
-		  }
-	      }
-	  }
-	abbreviations = [[NSArray alloc] initWithObjects: abbrevs count: count];
-	while (count-- > 0)
-	  {
-	    RELEASE(abbrevs[count]);
-	  }
-      }
-
-      GS_MUTEX_LOCK(zone_mutex);
-      [zoneDictionary setObject: self forKey: timeZoneName];
-      GS_MUTEX_UNLOCK(zone_mutex);
+#endif
+      scrub_abbrs(sp);
     }
   NS_HANDLER
     {
+      if (lsp)
+	{
+	  free(lsp);
+	}
       DESTROY(self);
-      NSLog(@"Unable to obtain time zone `%@'... %@", name, localException);
+      NSLog(@"Unable to obtain time zone `%@'... %@",
+	name, localException);
       if ([localException name] != fileException)
 	{
 	  [localException raise];
 	}
+      return nil;
     }
   NS_ENDHANDLER
+
+  GS_MUTEX_LOCK(zone_mutex);
+  [zoneDictionary setObject: self forKey: timeZoneName];
+  GS_MUTEX_UNLOCK(zone_mutex);
   return self;
 }
 
 - (BOOL) isDaylightSavingTimeForDate: (NSDate*)aDate
 {
-  TypeInfo	*type = chop([aDate timeIntervalSince1970], self);
+  TypeInfo	type = getTypeInfo([aDate timeIntervalSince1970], self);
 
-  return type->isdst;
+  return type.isdst;
 }
 
 - (NSString*) name
@@ -3229,25 +3062,38 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
   return timeZoneName;
 }
 
+- (NSDate *) nextDaylightSavingTimeTransitionAfterDate: (NSDate *)aDate
+{
+  return [super nextDaylightSavingTimeTransitionAfterDate: aDate];
+}
+
 - (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
 {
-  TypeInfo	*type = chop([aDate timeIntervalSince1970], self);
+  TypeInfo	type = getTypeInfo([aDate timeIntervalSince1970], self);
 
-  return type->offset;
+  return type.offset;
 }
 
 - (NSArray*) timeZoneDetailArray
 {
-  NSTimeZoneDetail	*details[n_types];
+  NSTimeZoneDetail	*details[sp->typecnt];
   unsigned		i;
   NSArray		*array;
 
-  for (i = 0; i < n_types; i++)
+  for (i = 0; i < sp->typecnt; i++)
     {
-      details[i] = newDetailInZoneForType(self, &types[i]);
+      const struct _ttinfo *const ttisp = &sp->ttis[i];
+      const char *abbr = &sp->chars[ttisp->tt_desigidx];
+      TypeInfo	type;
+
+      type.offset = ttisp->tt_utoff;
+      type.isdst = ttisp->tt_isdst;
+      type.abbr_idx = ttisp->tt_desigidx;
+      type.abbreviation = abbr;
+      details[i] = newDetailInZoneForType(self, &type);
     }
-  array = [NSArray arrayWithObjects: details count: n_types];
-  for (i = 0; i < n_types; i++)
+  array = [NSArray arrayWithObjects: details count: sp->typecnt];
+  for (i = 0; i < sp->typecnt; i++)
     {
       RELEASE(details[i]);
     }
@@ -3256,11 +3102,11 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)aDate
 {
-  TypeInfo		*type;
+  TypeInfo		type;
   NSTimeZoneDetail	*detail;
 
-  type = chop([aDate timeIntervalSince1970], self);
-  detail = newDetailInZoneForType(self, type);
+  type = getTypeInfo([aDate timeIntervalSince1970], self);
+  detail = newDetailInZoneForType(self, &type);
   return AUTORELEASE(detail);
 }
 
