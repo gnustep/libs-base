@@ -77,12 +77,14 @@ struct tzhead {
 
 #ifndef TZ_MAX_TIMES
 /*
-** The TZ_MAX_TIMES value below is enough to handle a bit more than a
-** year's worth of solar time (corrected daily to the nearest second) or
-** 138 years of Pacific Presidential Election time
+** A value of 370 is enough to handle a bit more than a year's worth of
+** solar time (corrected daily to the nearest second) or 138 years of
+** Pacific Presidential Election time
 ** (where there are three time zone transitions every fourth year).
+** This needs to be at least 2000 to cope with TZDB v2+ as likely
+** dates go far further into the future than TZDB v1
 */
-#define TZ_MAX_TIMES	370
+#define TZ_MAX_TIMES	2000
 #endif /* !defined TZ_MAX_TIMES */
 
 #ifndef TZ_MAX_TYPES

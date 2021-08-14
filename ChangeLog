@@ -1,3 +1,15 @@
+2021-08-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/nstzfile.h: Fix by Emmanuel Dreyfus - increase number of
+	transitions allowed, so that we can handle dates further into the
+	future (since v2+ files support that).
+	* Tests/base/NSTimeZone/ParisV1-noMagic.tzdb:
+	* Tests/base/NSTimeZone/ParisV1.tzdb:
+	* Tests/base/NSTimeZone/ParisV2-missingHeader.tzdb:
+	* Tests/base/NSTimeZone/ParisV2.tzdb:
+	* Tests/base/NSTimeZone/localtime.m:
+	Increase the range of testcases
+
 2021-08-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/tzdb.h: Public domain time zone file parsing etc
