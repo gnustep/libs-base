@@ -8,7 +8,7 @@
 /*	$NetBSD: private.h,v 1.56 2020/05/25 14:52:48 christos Exp $	*/
 
 #ifndef __UNCONST
-#define __UNCONST(a)   ((void *)(unsigned long)(const void *)(a))
+#define __UNCONST(a)   ((void *)(const void *)(a))
 #endif
 
 #ifndef _DIAGASSERT
@@ -543,10 +543,9 @@ typedef time_tz tz_time_t;
 */
 
 #ifdef O_BINARY
-#define OPEN_MODE	(O_RDONLY | O_BINARY | O_CLOEXEC)
-#endif /* defined O_BINARY */
-#ifndef O_BINARY
-#define OPEN_MODE	(O_RDONLY | O_CLOEXEC)
+#define OPEN_MODE	(O_RDONLY | O_BINARY)
+#else
+#define OPEN_MODE	(O_RDONLY)
 #endif /* !defined O_BINARY */
 
 /*
