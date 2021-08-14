@@ -56,10 +56,6 @@
 ** You can override these in your C compiler options, e.g. '-DHAVE_GETTEXT=1'.
 */
 
-#ifndef HAVE_DECL_ASCTIME_R
-#define HAVE_DECL_ASCTIME_R 1
-#endif
-
 #if !defined HAVE_GENERIC && defined __has_extension
 # if __has_extension(c_generic_selections)
 #  define HAVE_GENERIC 1
@@ -127,15 +123,8 @@
 # define NETBSD_INSPIRED 1
 #endif
 
-#if HAVE_INCOMPATIBLE_CTIME_R
-#define asctime_r _incompatible_asctime_r
-#define ctime_r _incompatible_ctime_r
-#endif /* HAVE_INCOMPATIBLE_CTIME_R */
-
 /* Enable tm_gmtoff, tm_zone, and environ on GNUish systems.  */
 #define _GNU_SOURCE 1
-/* Fix asctime_r on Solaris 11.  */
-#define _POSIX_PTHREAD_SEMANTICS 1
 /* Enable strtoimax on pre-C99 Solaris 11.  */
 #define __EXTENSIONS__ 1
 
@@ -153,35 +142,7 @@
 ** Nested includes
 */
 
-#ifndef __NetBSD__
-/* Avoid clashes with NetBSD by renaming NetBSD's declarations.
-   If defining the 'timezone' variable, avoid a clash with FreeBSD's
-   'timezone' function by renaming its declaration.  */
-#define localtime_rz sys_localtime_rz
-#define mktime_z sys_mktime_z
-#define posix2time_z sys_posix2time_z
-#define time2posix_z sys_time2posix_z
-#if defined USG_COMPAT && USG_COMPAT == 2
-# define timezone sys_timezone
-#endif
-#define timezone_t sys_timezone_t
-#define tzalloc sys_tzalloc
-#define tzfree sys_tzfree
-#include <time.h>
-#undef localtime_rz
-#undef mktime_z
-#undef posix2time_z
-#undef time2posix_z
-#if defined USG_COMPAT && USG_COMPAT == 2
-# undef timezone
-#endif
-#undef timezone_t
-#undef tzalloc
-#undef tzfree
-#else
 #include "time.h"
-#endif
-
 #include <sys/types.h>	/* for time_t */
 #include <string.h>
 #include <limits.h>	/* for CHAR_BIT et al. */
@@ -207,14 +168,6 @@
 #include <unistd.h>	/* for R_OK, and other POSIX goodness */
 #endif /* HAVE_UNISTD_H */
 
-#ifndef HAVE_STRFTIME_L
-# if _POSIX_VERSION < 200809
-#  define HAVE_STRFTIME_L 0
-# else
-#  define HAVE_STRFTIME_L 1
-# endif
-#endif
-
 #ifndef USG_COMPAT
 # ifndef _XOPEN_VERSION
 #  define USG_COMPAT 0
@@ -228,14 +181,6 @@
 #  define HAVE_TZNAME 0
 # else
 #  define HAVE_TZNAME 1
-# endif
-#endif
-
-#ifndef ALTZONE
-# if defined __sun || defined _M_XENIX
-#  define ALTZONE 1
-# else
-#  define ALTZONE 0
 # endif
 #endif
 
@@ -444,130 +389,7 @@ typedef unsigned long uintmax_t;
 #endif
 
 #if TZ_TIME_T
-# ifdef LOCALTIME_IMPLEMENTATION
-static time_t sys_time(time_t *x) { return time(x); }
-# endif
-
 typedef time_tz tz_time_t;
-
-# undef  asctime
-# define asctime tz_asctime
-# undef  asctime_r
-# define asctime_r tz_asctime_r
-# undef  ctime
-# define ctime tz_ctime
-# undef  ctime_r
-# define ctime_r tz_ctime_r
-# undef  difftime
-# define difftime tz_difftime
-# undef  gmtime
-# define gmtime tz_gmtime
-# undef  gmtime_r
-# define gmtime_r tz_gmtime_r
-# undef  localtime
-# define localtime tz_localtime
-# undef  localtime_r
-# define localtime_r tz_localtime_r
-# undef  localtime_rz
-# define localtime_rz tz_localtime_rz
-# undef  mktime
-# define mktime tz_mktime
-# undef  mktime_z
-# define mktime_z tz_mktime_z
-# undef  offtime
-# define offtime tz_offtime
-# undef  posix2time
-# define posix2time tz_posix2time
-# undef  posix2time_z
-# define posix2time_z tz_posix2time_z
-# undef  strftime
-# define strftime tz_strftime
-# undef  time
-# define time tz_time
-# undef  time2posix
-# define time2posix tz_time2posix
-# undef  time2posix_z
-# define time2posix_z tz_time2posix_z
-# undef  time_t
-# define time_t tz_time_t
-# undef  timegm
-# define timegm tz_timegm
-# undef  timelocal
-# define timelocal tz_timelocal
-# undef  timeoff
-# define timeoff tz_timeoff
-# undef  tzalloc
-# define tzalloc tz_tzalloc
-# undef  tzfree
-# define tzfree tz_tzfree
-# undef  tzset
-# define tzset tz_tzset
-# undef  tzsetwall
-# define tzsetwall tz_tzsetwall
-# if HAVE_STRFTIME_L
-#  undef  strftime_l
-#  define strftime_l tz_strftime_l
-# endif
-# if HAVE_TZNAME
-#  undef  tzname
-#  define tzname tz_tzname
-# endif
-# if USG_COMPAT
-#  undef  daylight
-#  define daylight tz_daylight
-#  undef  timezone
-#  define timezone tz_timezone
-# endif
-# if ALTZONE
-#  undef  altzone
-#  define altzone tz_altzone
-# endif
-
-char *asctime(struct tm const *);
-char *asctime_r(struct tm const *restrict, char *restrict);
-char *ctime(time_t const *);
-char *ctime_r(time_t const *, char *);
-double difftime(time_t, time_t) ATTRIBUTE_CONST;
-size_t strftime(char *restrict, size_t, char const *restrict,
-		struct tm const *restrict);
-# if HAVE_STRFTIME_L
-size_t strftime_l(char *restrict, size_t, char const *restrict,
-		  struct tm const *restrict, locale_t);
-# endif
-struct tm *gmtime(time_t const *);
-struct tm *gmtime_r(time_t const *restrict, struct tm *restrict);
-struct tm *localtime(time_t const *);
-struct tm *localtime_r(time_t const *restrict, struct tm *restrict);
-time_t mktime(struct tm *);
-time_t time(time_t *);
-void tzset(void);
-#endif
-
-#if !HAVE_DECL_ASCTIME_R && !defined asctime_r
-extern char *asctime_r(struct tm const *restrict, char *restrict);
-#endif
-
-#ifndef HAVE_DECL_ENVIRON
-# if defined environ || defined __USE_GNU
-#  define HAVE_DECL_ENVIRON 1
-# else
-#  define HAVE_DECL_ENVIRON 0
-# endif
-#endif
-
-#if !HAVE_DECL_ENVIRON
-extern char **environ;
-#endif
-
-#if 2 <= HAVE_TZNAME + (TZ_TIME_T || !HAVE_POSIX_DECLS)
-extern char *tzname[];
-#endif
-#if 2 <= USG_COMPAT + (TZ_TIME_T || !HAVE_POSIX_DECLS)
-extern long timezone;
-extern int daylight;
-#endif
-#if 2 <= ALTZONE + (TZ_TIME_T || !HAVE_POSIX_DECLS)
-extern long altzone;
 #endif
 
 
@@ -1988,12 +1810,6 @@ tzparse(const char *name, struct state *sp, bool lastditch)
 ** freely called. (And no, the PANS doesn't require the above behavior,
 ** but it *is* desirable.)
 **
-** If successful and SETNAME is nonzero,
-** set the applicable parts of tzname, timezone and altzone;
-** however, it's OK to omit this step if the timezone is POSIX-compatible,
-** since in that case tzset should have already done this step correctly.
-** SETNAME's type is intfast32_t for compatibility with gmtsub,
-** but it is actually a boolean and its value should be 0 or 1.
 */
 
 /*ARGSUSED*/
@@ -2006,12 +1822,6 @@ localsub(struct state const *sp, time_t const *timep, int_fast32_t setname,
   struct tm 		*result;
   const time_t		t = *timep;
 
-#if 0
-  if (sp == NULL) {
-	  /* Don't bother to set tzname etc.; tzset has already done it.  */
-	  return gmtsub(gmtptr, timep, 0, tmp);
-  }
-#endif
   if ((sp->goback && t < sp->ats[0])
     || (sp->goahead && t > sp->ats[sp->timecnt - 1]))
     {
