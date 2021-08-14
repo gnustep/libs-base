@@ -19,12 +19,6 @@
 #define TZDIR "/usr/share/zoneinfo"
 #endif
 
-/* NetBSD defaults */
-#define TM_GMTOFF	tm_gmtoff
-#define TM_ZONE		tm_zone
-#define STD_INSPIRED	1
-#define HAVE_LONG_DOUBLE 1
-
 /*
 ** This file is in the public domain, so clarified as of
 ** 1996-06-05 by Arthur David Olson.
@@ -74,10 +68,6 @@
 #ifndef HAVE_GETTEXT
 #define HAVE_GETTEXT		0
 #endif /* !defined HAVE_GETTEXT */
-
-#ifndef HAVE_INCOMPATIBLE_CTIME_R
-#define HAVE_INCOMPATIBLE_CTIME_R	0
-#endif
 
 #ifndef HAVE_LINK
 #define HAVE_LINK		1
@@ -167,22 +157,6 @@
 #if HAVE_UNISTD_H
 #include <unistd.h>	/* for R_OK, and other POSIX goodness */
 #endif /* HAVE_UNISTD_H */
-
-#ifndef USG_COMPAT
-# ifndef _XOPEN_VERSION
-#  define USG_COMPAT 0
-# else
-#  define USG_COMPAT 1
-# endif
-#endif
-
-#ifndef HAVE_TZNAME
-# if _POSIX_VERSION < 198808 && !USG_COMPAT
-#  define HAVE_TZNAME 0
-# else
-#  define HAVE_TZNAME 1
-# endif
-#endif
 
 #ifndef R_OK
 #define R_OK	4
@@ -392,19 +366,6 @@ typedef unsigned long uintmax_t;
 typedef time_tz tz_time_t;
 #endif
 
-
-/* Infer TM_ZONE on systems where this information is known, but suppress
-   guessing if NO_TM_ZONE is defined.  Similarly for TM_GMTOFF.  */
-#if (defined __GLIBC__ \
-     || defined __FreeBSD__ || defined __NetBSD__ || defined __OpenBSD__ \
-     || (defined __APPLE__ && defined __MACH__))
-# if !defined TM_GMTOFF && !defined NO_TM_GMTOFF
-#  define TM_GMTOFF tm_gmtoff
-# endif
-# if !defined TM_ZONE && !defined NO_TM_ZONE
-#  define TM_ZONE tm_zone
-# endif
-#endif
 
 /*
 ** Finally, some convenience items.
@@ -659,11 +620,25 @@ struct rule {
 	int_fast32_t	r_time;		/* transition time of rule */
 };
 
+typedef struct {
+ int tm_sec;    	/* Seconds (0-60) */
+ int tm_min;    	/* Minutes (0-59) */
+ int tm_hour;   	/* Hours (0-23) */
+ int tm_mday;   	/* Day of the month (1-31) */
+ int tm_mon;    	/* Month (0-11) */
+ int tm_year;   	/* Year - 1900 */
+ int tm_wday;   	/* Day of the week (0-6, Sunday = 0) */
+ int tm_yday;   	/* Day in the year (0-365, 1 Jan = 0) */
+ int tm_isdst;  	/* Daylight saving time */
+ int tm_gmtoff;		/* Localtime offset from UTC */
+ const char *tm_zone;	/* Timezone name */
+} gstm;
+
 static bool increment_overflow(int *, int);
 static bool increment_overflow_time(time_t *, int_fast32_t);
 static int_fast64_t leapcorr(struct state const *, time_t);
-static struct tm *timesub(time_t const *, int_fast32_t, struct state const *,
-			  struct tm *);
+static gstm *timesub(time_t const *, int_fast32_t, struct state const *,
+			  gstm *);
 static bool typesequiv(struct state const *, int, int);
 static bool tzparse(char const *, struct state *, bool);
 
@@ -1813,13 +1788,13 @@ tzparse(const char *name, struct state *sp, bool lastditch)
 */
 
 /*ARGSUSED*/
-static struct tm *
+static gstm *
 localsub(struct state const *sp, time_t const *timep, int_fast32_t setname,
-	 struct tm *const tmp)
+	 gstm *const tmp)
 {
   const struct _ttinfo	*ttisp;
   int			i;
-  struct tm 		*result;
+  gstm 		*result;
   const time_t		t = *timep;
 
   if ((sp->goback && t < sp->ats[0])
@@ -1903,9 +1878,7 @@ localsub(struct state const *sp, time_t const *timep, int_fast32_t setname,
   if (result)
     {
       result->tm_isdst = ttisp->tt_isdst;
-#ifdef TM_ZONE
-      result->TM_ZONE = __UNCONST(&sp->chars[ttisp->tt_desigidx]);
-#endif /* defined TM_ZONE */
+      result->tm_zone = __UNCONST(&sp->chars[ttisp->tt_desigidx]);
     }
   return result;
 }
@@ -1930,9 +1903,9 @@ leaps_thru_end_of(const int y)
 		: leaps_thru_end_of_nonneg(y));
 }
 
-static struct tm *
+static gstm *
 timesub(const time_t *timep, int_fast32_t offset,
-    const struct state *sp, struct tm *tmp)
+    const struct state *sp, gstm *tmp)
 {
   const struct lsinfo *	lp;
   time_t		tdays;
@@ -2034,9 +2007,7 @@ timesub(const time_t *timep, int_fast32_t offset,
 	  idays -= ip[tmp->tm_mon];
   tmp->tm_mday = (int) (idays + 1);
   tmp->tm_isdst = 0;
-#ifdef TM_GMTOFF
-  tmp->TM_GMTOFF = offset;
-#endif /* defined TM_GMTOFF */
+  tmp->tm_gmtoff = offset;
   return tmp;
 out_of_range:
   errno = EOVERFLOW;
