@@ -2927,9 +2927,9 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 static TypeInfo
 getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
 {
-  int64_t               when = (int64_t)since;
-  struct tm             tm;
-  TypeInfo              type;
+  int64_t       when = (int64_t)since;
+  gstm		tm;
+  TypeInfo      type;
 
   if (localsub(zone->sp, &when, 0, &tm) == NULL)
     {
