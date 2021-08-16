@@ -376,7 +376,6 @@ typedef time_tz tz_time_t;
 /* ms-windows lacks ssize_t but has SSIZE_T
  */
 #if defined(_MSC_VER)
-#include 
 typedef SSIZE_T ssize_t;
 #endif
 
