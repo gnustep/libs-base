@@ -65,80 +65,14 @@
 # define HAVE_GENERIC (201112 <= __STDC_VERSION__)
 #endif
 
-#ifndef HAVE_GETTEXT
-#define HAVE_GETTEXT		0
-#endif /* !defined HAVE_GETTEXT */
-
-#ifndef HAVE_LINK
-#define HAVE_LINK		1
-#endif /* !defined HAVE_LINK */
-
-#ifndef HAVE_POSIX_DECLS
-#define HAVE_POSIX_DECLS 1
-#endif
-
-#ifndef HAVE_STDBOOL_H
-#define HAVE_STDBOOL_H (199901 <= __STDC_VERSION__)
-#endif
-
-#ifndef HAVE_STRDUP
-#define HAVE_STRDUP 1
-#endif
-
-#ifndef HAVE_STRTOLL
-#define HAVE_STRTOLL 1
-#endif
-
-#ifndef HAVE_SYMLINK
-#define HAVE_SYMLINK		1
-#endif /* !defined HAVE_SYMLINK */
-
-#ifndef HAVE_SYS_STAT_H
-#define HAVE_SYS_STAT_H		1
-#endif /* !defined HAVE_SYS_STAT_H */
-
-#ifndef HAVE_SYS_WAIT_H
-#define HAVE_SYS_WAIT_H		1
-#endif /* !defined HAVE_SYS_WAIT_H */
-
-#ifndef HAVE_UNISTD_H
-#define HAVE_UNISTD_H		1
-#endif /* !defined HAVE_UNISTD_H */
-
-#ifndef HAVE_UTMPX_H
-#define HAVE_UTMPX_H		1
-#endif /* !defined HAVE_UTMPX_H */
-
-#ifndef NETBSD_INSPIRED
-# define NETBSD_INSPIRED 1
-#endif
-
-/* Enable tm_gmtoff, tm_zone, and environ on GNUish systems.  */
-#define _GNU_SOURCE 1
-/* Enable strtoimax on pre-C99 Solaris 11.  */
-#define __EXTENSIONS__ 1
-
-/* To avoid having 'stat' fail unnecessarily with errno == EOVERFLOW,
-   enable large files on GNUish systems ...  */
-#ifndef _FILE_OFFSET_BITS
-# define _FILE_OFFSET_BITS 64
-#endif
-/* ... and on AIX ...  */
-#define _LARGE_FILES 1
-/* ... and enable large inode numbers on Mac OS X 10.5 and later.  */
-#define _DARWIN_USE_64_BIT_INODE 1
-
 /*
 ** Nested includes
 */
 
-#include "time.h"
+#include <time.h>
 #include <sys/types.h>	/* for time_t */
-#include <string.h>
-#include <limits.h>	/* for CHAR_BIT et al. */
-#include <stdlib.h>
 
-#include <errno.h>
+#include <stdlib.h>
 
 #ifndef ENAMETOOLONG
 # define ENAMETOOLONG EINVAL
@@ -149,10 +83,6 @@
 #ifndef EOVERFLOW
 # define EOVERFLOW EINVAL
 #endif
-
-#if HAVE_GETTEXT
-#include <libintl.h>
-#endif /* HAVE_GETTEXT */
 
 #if HAVE_UNISTD_H
 #include <unistd.h>	/* for R_OK, and other POSIX goodness */
@@ -165,26 +95,10 @@
 /* Unlike <ctype.h>'s isdigit, this also works if c < 0 | c > UCHAR_MAX. */
 #define is_digit(c) ((unsigned)(c) - '0' <= 9)
 
-/*
-** Define HAVE_STDINT_H's default value here, rather than at the
-** start, since __GLIBC__ and INTMAX_MAX's values depend on
-** previously-included files.  glibc 2.1 and Solaris 10 and later have
-** stdint.h, even with pre-C99 compilers.
-*/
-#ifndef HAVE_STDINT_H
-#define HAVE_STDINT_H \
-   (199901 <= __STDC_VERSION__ \
-    || 2 < __GLIBC__ + (1 <= __GLIBC_MINOR__)	\
-    || __CYGWIN__ || INTMAX_MAX)
-#endif /* !defined HAVE_STDINT_H */
-
 #if HAVE_STDINT_H
 #include <stdint.h>
 #endif /* !HAVE_STDINT_H */
 
-#ifndef HAVE_INTTYPES_H
-# define HAVE_INTTYPES_H HAVE_STDINT_H
-#endif
 #if HAVE_INTTYPES_H
 # include <inttypes.h>
 #endif
@@ -215,18 +129,6 @@ typedef long		int_fast64_t;
 # endif
 #endif
 
-#ifndef PRIdFAST64
-# if INT_FAST64_MAX == LLONG_MAX
-#  define PRIdFAST64 "lld"
-# else
-#  define PRIdFAST64 "ld"
-# endif
-#endif
-
-#ifndef SCNdFAST64
-# define SCNdFAST64 PRIdFAST64
-#endif
-
 #ifndef INT_FAST32_MAX
 # if INT_MAX >> 31 == 0
 typedef long int_fast32_t;
@@ -236,32 +138,6 @@ typedef long int_fast32_t;
 typedef int int_fast32_t;
 #  define INT_FAST32_MAX INT_MAX
 #  define INT_FAST32_MIN INT_MIN
-# endif
-#endif
-
-#ifndef INTMAX_MAX
-# ifdef LLONG_MAX
-typedef long long intmax_t;
-#  if HAVE_STRTOLL
-#   define strtoimax strtoll
-#  endif
-#  define INTMAX_MAX LLONG_MAX
-#  define INTMAX_MIN LLONG_MIN
-# else
-typedef long intmax_t;
-#  define INTMAX_MAX LONG_MAX
-#  define INTMAX_MIN LONG_MIN
-# endif
-# ifndef strtoimax
-#  define strtoimax strtol
-# endif
-#endif
-
-#ifndef PRIdMAX
-# if INTMAX_MAX == LLONG_MAX
-#  define PRIdMAX "lld"
-# else
-#  define PRIdMAX "ld"
 # endif
 #endif
 
@@ -277,32 +153,12 @@ typedef unsigned long	uint_fast64_t;
 # endif
 #endif
 
-#ifndef UINTMAX_MAX
-# if defined ULLONG_MAX || defined __LONG_LONG_MAX__
-typedef unsigned long long uintmax_t;
-# else
-typedef unsigned long uintmax_t;
-# endif
-#endif
-
-#ifndef PRIuMAX
-# if defined ULLONG_MAX || defined __LONG_LONG_MAX__
-#  define PRIuMAX "llu"
-# else
-#  define PRIuMAX "lu"
-# endif
-#endif
-
 #ifndef INT32_MAX
 #define INT32_MAX 0x7fffffff
 #endif /* !defined INT32_MAX */
 #ifndef INT32_MIN
 #define INT32_MIN (-1 - INT32_MAX)
 #endif /* !defined INT32_MIN */
-
-#ifndef SIZE_MAX
-#define SIZE_MAX ((size_t) -1)
-#endif
 
 #if 3 <= __GNUC__
 # define ATTRIBUTE_CONST __attribute__ ((__const__))
@@ -370,14 +226,6 @@ typedef time_tz tz_time_t;
 /*
 ** Finally, some convenience items.
 */
-
-#if HAVE_STDBOOL_H
-# include <stdbool.h>
-#else
-# define true 1
-# define false 0
-# define bool int
-#endif
 
 #define TYPE_BIT(type)	(sizeof (type) * CHAR_BIT)
 #define TYPE_SIGNED(type) (/*CONSTCOND*/((type) -1) < 0)
@@ -560,10 +408,10 @@ typedef time_tz tz_time_t;
 
 struct _ttinfo {				/* time type information */
 	int_fast32_t	tt_utoff;	/* UT offset in seconds */
-	bool		tt_isdst;	/* used to set tm_isdst */
+	BOOL		tt_isdst;	/* used to set tm_isdst */
 	int		tt_desigidx;	/* abbreviation list index */
-	bool		tt_ttisstd;	/* transition is std time */
-	bool		tt_ttisut;	/* transition is UT */
+	BOOL		tt_ttisstd;	/* transition is std time */
+	BOOL		tt_ttisut;	/* transition is UT */
 };
 
 struct lsinfo {				/* leap second information */
@@ -591,8 +439,8 @@ struct state {
 	int		timecnt;
 	int		typecnt;
 	int		charcnt;
-	bool		goback;
-	bool		goahead;
+	BOOL		goback;
+	BOOL		goahead;
 	time_t		ats[TZ_MAX_TIMES];
 	unsigned char	types[TZ_MAX_TIMES];
 	struct _ttinfo	ttis[TZ_MAX_TYPES];
@@ -633,17 +481,17 @@ typedef struct {
  const char *tm_zone;	/* Timezone name */
 } gstm;
 
-static bool increment_overflow(int *, int);
-static bool increment_overflow_time(time_t *, int_fast32_t);
+static BOOL increment_overflow(int *, int);
+static BOOL increment_overflow_time(time_t *, int_fast32_t);
 static int_fast64_t leapcorr(struct state const *, time_t);
 static gstm *timesub(time_t const *, int_fast32_t, struct state const *,
 			  gstm *);
-static bool typesequiv(struct state const *, int, int);
-static bool tzparse(char const *, struct state *, bool);
+static BOOL typesequiv(struct state const *, int, int);
+static BOOL tzparse(char const *, struct state *, BOOL);
 
 /* Initialize *S to a value based on UTOFF, ISDST, and DESIGIDX.  */
 static void
-init_ttinfo(struct _ttinfo *s, int_fast32_t utoff, bool isdst, int desigidx)
+init_ttinfo(struct _ttinfo *s, int_fast32_t utoff, BOOL isdst, int desigidx)
 {
 	s->tt_utoff = utoff;
 	s->tt_isdst = isdst;
@@ -724,7 +572,7 @@ scrub_abbrs(struct state *sp)
 	}
 }
 
-static bool
+static BOOL
 differ_by_repeat(const time_t t1, const time_t t0)
 {
 	if (TYPE_BIT(time_t) - TYPE_SIGNED(time_t) < SECSPERREPEAT_BITS)
@@ -765,7 +613,7 @@ union local_storage {
    success, an errno value on failure.  */
 
 static int
-tzloadbody1(char const *name, struct state *sp, bool doextend,
+tzloadbody1(char const *name, struct state *sp, BOOL doextend,
   union local_storage *lsp, ssize_t nread)
 {
   int			i;
@@ -1076,12 +924,12 @@ tzloadbody1(char const *name, struct state *sp, bool doextend,
 }
 
 static int
-tzloadbody(char const *name, struct state *sp, bool doextend,
+tzloadbody(char const *name, struct state *sp, BOOL doextend,
   union local_storage *lsp)
 {
 	int			fid;
 	ssize_t			nread;
-	bool			doaccess;
+	BOOL			doaccess;
 	union input_buffer	*up = &lsp->u.u;
 	size_t			tzheadsize = sizeof(struct tzhead);
 
@@ -1143,7 +991,7 @@ tzloadbody(char const *name, struct state *sp, bool doextend,
 /* Load tz data from the file named NAME into *SP.  Read extended
    format if DOEXTEND.  Return 0 on success, an errno value on failure.  */
 static int
-tzload(char const *name, struct state *sp, bool doextend)
+tzload(char const *name, struct state *sp, BOOL doextend)
 {
   union local_storage *lsp = malloc(sizeof *lsp);
 
@@ -1159,10 +1007,10 @@ tzload(char const *name, struct state *sp, bool doextend)
     }
 }
 
-static bool
+static BOOL
 typesequiv(const struct state *sp, int a, int b)
 {
-	bool result;
+	BOOL result;
 
 	if (sp == NULL ||
 		a < 0 || a >= sp->typecnt ||
@@ -1313,7 +1161,7 @@ getsecs(const char *strp, int_fast32_t *const secsp)
 static const char *
 getoffset(const char *strp, int_fast32_t *const offsetp)
 {
-	bool neg = false;
+	BOOL neg = false;
 
 	if (*strp == '-') {
 		neg = true;
@@ -1390,7 +1238,7 @@ static int_fast32_t
 transtime(const int year, const struct rule *const rulep,
 	  const int_fast32_t offset)
 {
-	bool	leapyear;
+	BOOL	leapyear;
 	int_fast32_t value;
 	int	i;
 	int		d, m1, yy0, yy1, yy2, dow;
@@ -1479,8 +1327,8 @@ transtime(const int year, const struct rule *const rulep,
 
 //#define	DEB(X) fprintf(stderr, "tzparse %d\n", X);
 #define	DEB(X) 
-static bool
-tzparse(const char *name, struct state *sp, bool lastditch)
+static BOOL
+tzparse(const char *name, struct state *sp, BOOL lastditch)
 {
   const char 	*stdname;
   const char 	*dstname;
@@ -1490,7 +1338,7 @@ tzparse(const char *name, struct state *sp, bool lastditch)
   int_fast32_t	stdoffset;
   int_fast32_t	dstoffset;
   char		*cp;
-  bool		load_ok;
+  BOOL		load_ok;
 
   DEB(1)
   dstname = NULL; /* XXX gcc */
@@ -1634,7 +1482,7 @@ tzparse(const char *name, struct state *sp, bool lastditch)
 			  int_fast32_t
 			    yearsecs = (year_lengths[isleap(year)]
 					* SECSPERDAY);
-			  bool reversed = endtime < starttime;
+			  BOOL reversed = endtime < starttime;
 			  if (reversed) {
 				  int_fast32_t swap = starttime;
 				  starttime = endtime;
@@ -1675,7 +1523,7 @@ tzparse(const char *name, struct state *sp, bool lastditch)
 		  int_fast32_t	theirstdoffset;
 		  int_fast32_t	theirdstoffset;
 		  int_fast32_t	theiroffset;
-		  bool		isdst;
+		  BOOL		isdst;
 		  int		i;
 		  int		j;
 
@@ -2023,7 +1871,7 @@ out_of_range:
 ** Normalize logic courtesy Paul Eggert.
 */
 
-static bool
+static BOOL
 increment_overflow(int *ip, int j)
 {
 	int const	i = *ip;
@@ -2040,7 +1888,7 @@ increment_overflow(int *ip, int j)
 	return false;
 }
 
-static bool
+static BOOL
 increment_overflow_time(time_t *tp, int_fast32_t j)
 {
 	/*
