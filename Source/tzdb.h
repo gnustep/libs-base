@@ -373,6 +373,13 @@ typedef time_tz tz_time_t;
 
 #include <fcntl.h>
 
+/* ms-windows lacks ssize_t but has SSIZE_T
+ */
+#if defined(_MSC_VER)
+#include 
+typedef SSIZE_T ssize_t;
+#endif
+
 #ifndef TZ_ABBR_MAX_LEN
 #define TZ_ABBR_MAX_LEN	16
 #endif /* !defined TZ_ABBR_MAX_LEN */
