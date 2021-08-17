@@ -1530,6 +1530,8 @@ retrieve_callback(gnutls_session_t session,
     }
   else
     {
+      NSLog(@"Certificates retrieved for sending to peer -\n"
+	@"None: not a request for an X509 certificate.");
       return -1;
     }
 }
