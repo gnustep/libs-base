@@ -102,9 +102,7 @@ GS_EXPORT_CLASS
 + (instancetype) fileURLWithPath: (NSString *)aPath
 	                 isDirectory: (BOOL)isDir
 	               relativeToURL: (NSURL *)baseURL;
-#endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_11, GS_API_LATEST)
 /** Create and return a file URL with the supplied path, relative to a base URL.
  */
 + (instancetype) fileURLWithPath:(NSString *)aPath relativeToURL:(NSURL *)baseURL;
@@ -170,9 +168,7 @@ GS_EXPORT_CLASS
  */
 - (instancetype) initFileURLWithPath: (NSString *)aPath
 		               relativeToURL: (NSURL *)baseURL;
-#endif
 
-#if OS_API_VERSION(MAC_OS_X_VERSION_10_11, GS_API_LATEST)
 /**
  * Initialise as a file URL with the specified path (which must
  * be a valid path on the local filesystem) relative to the base URL.<br />

@@ -591,15 +591,15 @@ static NSUInteger	urlAlign;
 	      isDirectory: (BOOL)isDir
 	    relativeToURL: (NSURL *)baseURL
 {
-  return AUTORELEASE([[NSURL alloc] initFileURLWithPath:aPath
-					    isDirectory:isDir
-					  relativeToURL:baseURL]);
+  return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath
+					    isDirectory: isDir
+					  relativeToURL: baseURL]);
 }
 
-+ (id)fileURLWithPath:(NSString *)aPath relativeToURL:(NSURL *)baseURL
++ (id)fileURLWithPath: (NSString *)aPath relativeToURL: (NSURL *)baseURL
 {
-  return AUTORELEASE([[NSURL alloc] initFileURLWithPath:aPath
-					  relativeToURL:baseURL]);
+  return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath
+					  relativeToURL: baseURL]);
 }
 
 + (id) fileURLWithPathComponents: (NSArray*)components
@@ -642,21 +642,18 @@ static NSUInteger	urlAlign;
 - (id) initFileURLWithPath: (NSString *)aPath
 {
   /* isDirectory flag will be overwritten if a directory exists. */
-  self = [self initFileURLWithPath:aPath isDirectory:NO relativeToURL:nil];
-  return self;
+  return [self initFileURLWithPath: aPath isDirectory: NO relativeToURL: nil];
 }
 
 - (id) initFileURLWithPath: (NSString *)aPath isDirectory: (BOOL)isDir
 {
-  self = [self initFileURLWithPath:aPath isDirectory:isDir relativeToURL:nil];
-  return self;
+  return [self initFileURLWithPath: aPath isDirectory: isDir relativeToURL: nil];
 }
 
 - (id) initFileURLWithPath: (NSString *)aPath relativeToURL: (NSURL *)baseURL
 {
   /* isDirectory flag will be overwritten if a directory exists. */
-  self = [self initFileURLWithPath:aPath isDirectory:NO relativeToURL:baseURL];
-  return self;
+  return [self initFileURLWithPath: aPath isDirectory: NO relativeToURL: baseURL];
 }
 
 - (id) initFileURLWithPath: (NSString *)aPath
@@ -676,30 +673,29 @@ static NSUInteger	urlAlign;
   if ([aPath isAbsolutePath] == NO)
     {
       if (baseURL)
-	{
-	  /* Append aPath to baseURL */
-	  aPath = [[baseURL relativePath] stringByAppendingPathComponent:aPath];
-	}
+        {
+          /* Append aPath to baseURL */
+          aPath = [[baseURL relativePath] stringByAppendingPathComponent:aPath];
+        }
       else
-	{
-	  aPath =
-	    [[mgr currentDirectoryPath] stringByAppendingPathComponent:aPath];
-	}
+        {
+          aPath =
+            [[mgr currentDirectoryPath] stringByAppendingPathComponent:aPath];
+        }
     }
   if ([mgr fileExistsAtPath:aPath isDirectory:&flag] == YES)
     {
       if ([aPath isAbsolutePath] == NO)
-	{
-	  aPath = [aPath stringByStandardizingPath];
-	}
+        {
+          aPath = [aPath stringByStandardizingPath];
+        }
       isDir = flag;
     }
   if (isDir == YES && [aPath hasSuffix:@"/"] == NO)
     {
       aPath = [aPath stringByAppendingString:@"/"];
     }
-  self = [self initWithScheme:NSURLFileScheme host:@"" path:aPath];
-  return self;
+  return [self initWithScheme: NSURLFileScheme host: @"" path: aPath];
 }
 
 - (id) initWithScheme: (NSString*)aScheme
