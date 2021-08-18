@@ -85,7 +85,7 @@
 #  endif
 #endif
 
-/* Redefine some function names when using the MSVC ABI on Windows.
+/* Redefine some functions/variables when using the MSVC ABI on Windows.
  */
 #ifdef _MSC_VER
 #  include <io.h>
@@ -93,6 +93,12 @@
 #  define strcasecmp _stricmp
 #  define write(fd, buffer, count) _write(fd, buffer, count)
 #  define close(fd) _close(fd)
+
+   // time.h
+#  define tzset _tzset
+#  define tzname _tzname
+#  define timezone _timezone
+#  define daylight _daylight
 #endif
 
 #endif /* COMMON_H */
