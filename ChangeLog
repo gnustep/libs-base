@@ -28,6 +28,15 @@
 	transition in the file, but I'm not convinced it works properly, so
 	this may need to be revisited.
 
+2021-08-10 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSObject:
+	* Source/NSProcessInfo.m:
+	* Source/NSSocketPort.m:
+	* Source:libgnustep-base-entry.m:
+	Initialize Windows Sockets in NSObject only and update to Windows
+	Socket version 2.2.
+
 2021-08-03 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/GNUstepBase/config.h.in:

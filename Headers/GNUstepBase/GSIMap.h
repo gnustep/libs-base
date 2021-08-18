@@ -994,16 +994,17 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
   NSInteger count;
   NSInteger i;
 
-  /* We can store a GSIMapEnumerator inside the extra buffer in state on all
-   * platforms that don't suck beyond belief (i.e. everything except win64),
-   * but we can't on anything where long is 32 bits and pointers are 64 bits,
-   * so we have to construct it here to avoid breaking on that platform.
+  /* We can store a GSIMapEnumerator inside the extra buffer in state, but we
+   * need to handle platforms like Win64 where long is 32 bits and pointers are
+   * 64 bits, so we have to construct it here to avoid breaking on such
+   * platforms.
    */
   struct GSPartMapEnumerator
     {
       GSIMapNode node;
       uintptr_t bucket;
     };
+#define GS_PART_MAP_ENUMERATOR(state) ((struct GSPartMapEnumerator*)(uintptr_t)((state)->extra))
   GSIMapEnumerator_t enumerator;
 
   count = MIN(len, map->nodeCount - state->state);
@@ -1016,8 +1017,8 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
   else
     {
       enumerator.map = map;
-      enumerator.node = ((struct GSPartMapEnumerator*)(state->extra))->node; 
-      enumerator.bucket = ((struct GSPartMapEnumerator*)(state->extra))->bucket;
+      enumerator.node = GS_PART_MAP_ENUMERATOR(state)->node; 
+      enumerator.bucket = GS_PART_MAP_ENUMERATOR(state)->bucket;
     }
   /* Get the next count objects and put them in the stack buffer. */
   for (i = 0; i < count; i++)
@@ -1033,8 +1034,8 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
         }
     }
   /* Store the important bits of the enumerator in the caller. */
-  ((struct GSPartMapEnumerator*)(state->extra))->node = enumerator.node;
-  ((struct GSPartMapEnumerator*)(state->extra))->bucket = enumerator.bucket;
+  GS_PART_MAP_ENUMERATOR(state)->node = enumerator.node;
+  GS_PART_MAP_ENUMERATOR(state)->bucket = enumerator.bucket;
   /* Update the rest of the state. */
   state->state += count;
   state->itemsPtr = stackbuf;

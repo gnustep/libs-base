@@ -587,6 +587,21 @@ static NSUInteger	urlAlign;
 					    isDirectory: isDir]);
 }
 
++ (id) fileURLWithPath: (NSString *)aPath
+	      isDirectory: (BOOL)isDir
+	    relativeToURL: (NSURL *)baseURL
+{
+  return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath
+					    isDirectory: isDir
+					  relativeToURL: baseURL]);
+}
+
++ (id)fileURLWithPath: (NSString *)aPath relativeToURL: (NSURL *)baseURL
+{
+  return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath
+					  relativeToURL: baseURL]);
+}
+
 + (id) fileURLWithPathComponents: (NSArray*)components
 {
   return [self fileURLWithPath: [NSString pathWithComponents: components]];
@@ -624,43 +639,29 @@ static NSUInteger	urlAlign;
   return nil;
 }
 
-- (id) initFileURLWithPath: (NSString*)aPath
+- (id) initFileURLWithPath: (NSString *)aPath
 {
-  NSFileManager	*mgr = [NSFileManager defaultManager];
-  BOOL		flag = NO;
-
-  if (nil == aPath)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"[%@ %@] nil string parameter",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-    }
-  if ([aPath isAbsolutePath] == NO)
-    {
-      aPath = [[mgr currentDirectoryPath]
-	stringByAppendingPathComponent: aPath];
-    }
-  if ([mgr fileExistsAtPath: aPath isDirectory: &flag] == YES)
-    {
-      if ([aPath isAbsolutePath] == NO)
-	{
-	  aPath = [aPath stringByStandardizingPath];
-	}
-      if (flag == YES && [aPath hasSuffix: @"/"] == NO)
-	{
-	  aPath = [aPath stringByAppendingString: @"/"];
-	}
-    }
-  self = [self initWithScheme: NSURLFileScheme
-			 host: @""
-			 path: aPath];
-  return self;
+  /* isDirectory flag will be overwritten if a directory exists. */
+  return [self initFileURLWithPath: aPath isDirectory: NO relativeToURL: nil];
 }
 
-- (id) initFileURLWithPath: (NSString*)aPath isDirectory: (BOOL)isDir
+- (id) initFileURLWithPath: (NSString *)aPath isDirectory: (BOOL)isDir
 {
-  NSFileManager	*mgr = [NSFileManager defaultManager];
-  BOOL		flag = NO;
+  return [self initFileURLWithPath: aPath isDirectory: isDir relativeToURL: nil];
+}
+
+- (id) initFileURLWithPath: (NSString *)aPath relativeToURL: (NSURL *)baseURL
+{
+  /* isDirectory flag will be overwritten if a directory exists. */
+  return [self initFileURLWithPath: aPath isDirectory: NO relativeToURL: baseURL];
+}
+
+- (id) initFileURLWithPath: (NSString *)aPath
+	       isDirectory: (BOOL)isDir
+	     relativeToURL: (NSURL *)baseURL
+{
+  NSFileManager *mgr = [NSFileManager defaultManager];
+  BOOL		 flag = NO;
 
   if (nil == aPath)
     {
@@ -670,25 +671,31 @@ static NSUInteger	urlAlign;
     }
   if ([aPath isAbsolutePath] == NO)
     {
-      aPath = [[mgr currentDirectoryPath]
-	stringByAppendingPathComponent: aPath];
+      if (baseURL)
+        {
+          /* Append aPath to baseURL */
+          aPath
+	    = [[baseURL relativePath] stringByAppendingPathComponent: aPath];
+        }
+      else
+        {
+          aPath =
+            [[mgr currentDirectoryPath] stringByAppendingPathComponent: aPath];
+        }
     }
   if ([mgr fileExistsAtPath: aPath isDirectory: &flag] == YES)
     {
       if ([aPath isAbsolutePath] == NO)
-	{
-	  aPath = [aPath stringByStandardizingPath];
-	}
+        {
+          aPath = [aPath stringByStandardizingPath];
+        }
       isDir = flag;
     }
-  if (isDir == YES && [aPath hasSuffix: @"/"] == NO)
+  if (isDir == YES && [aPath hasSuffix:@"/"] == NO)
     {
       aPath = [aPath stringByAppendingString: @"/"];
     }
-  self = [self initWithScheme: NSURLFileScheme
-			 host: @""
-			 path: aPath];
-  return self;
+  return [self initWithScheme: NSURLFileScheme host: @"" path: aPath];
 }
 
 - (id) initWithScheme: (NSString*)aScheme
@@ -1971,8 +1978,8 @@ static NSUInteger	urlAlign;
   return self;
 }
 
-- (NSURL *) URLByAppendingPathComponent:(NSString *)pathComponent
-                            isDirectory:(BOOL)isDirectory
+- (NSURL *) URLByAppendingPathComponent: (NSString *)pathComponent
+                            isDirectory: (BOOL)isDirectory
 {
   NSString *path = [[self path] stringByAppendingPathComponent: pathComponent];
   if (isDirectory)
@@ -2139,8 +2146,8 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
 @implementation NSURLQueryItem
 
 // Creating query items.
-+ (instancetype)queryItemWithName:(NSString *)name 
-                            value:(NSString *)value
++ (instancetype)queryItemWithName: (NSString *)name 
+                            value: (NSString *)value
 {
   NSURLQueryItem *newQueryItem = [[NSURLQueryItem alloc] initWithName: name
                                                                 value: value];
@@ -2149,31 +2156,33 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
 
 - (instancetype) init
 {
-  self = [self initWithName:nil value:nil];
-  if(self != nil)
+  self = [self initWithName: nil value: nil];
+  if (self != nil)
     {
     
     }
   return self;
 }
 
-- (instancetype)initWithName:(NSString *)name 
-                       value:(NSString *)value
+- (instancetype) initWithName: (NSString *)name 
+                        value: (NSString *)value
 {
   self = [super init];
-  if(self != nil)
-  {
-    GS_CREATE_INTERNAL(NSURLQueryItem);
-    if(name)
-      {
-        ASSIGNCOPY(internal->_name, name);
-      }
-    else
-      {
-        ASSIGN(internal->_name, @""); //OSX behaviour is to set an empty string for nil name property
-      }
-    ASSIGNCOPY(internal->_value, value);
-  }
+  if (self != nil)
+    {
+      GS_CREATE_INTERNAL(NSURLQueryItem);
+      if (name)
+	{
+	  ASSIGNCOPY(internal->_name, name);
+	}
+      else
+	{
+	  /* OSX behaviour is to set an empty string for nil name property
+	   */
+	  ASSIGN(internal->_name, @"");
+	}
+      ASSIGNCOPY(internal->_value, value);
+    }
   return self;
 }
 
@@ -2303,11 +2312,13 @@ static NSCharacterSet	*queryItemCharSet = nil;
 
 - (instancetype) initWithString: (NSString *)URLString
 {
-  //OSX behavior is to return nil for a string which cannot be used to initialize valid NSURL object
-  NSURL* url = [NSURL URLWithString:URLString];
-  if(url)
+  /* OSX behavior is to return nil for a string which cannot be
+   * used to initialize valid NSURL object
+   */
+  NSURL	*url = [NSURL URLWithString: URLString];
+  if (url)
     {
-      return [self initWithURL:url resolvingAgainstBaseURL:NO];
+      return [self initWithURL: url resolvingAgainstBaseURL: NO];
     }
   else
     {

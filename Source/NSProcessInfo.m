@@ -164,7 +164,7 @@ For more detailed assistance, please report the error to bug-gnustep@gnu.org.\n\
  *************************************************************************/
 @interface _NSConcreteProcessInfo: NSProcessInfo
 - (id) autorelease;
-- (void) release;
+- (oneway void) release;
 - (id) retain;
 @end
 
@@ -174,7 +174,7 @@ For more detailed assistance, please report the error to bug-gnustep@gnu.org.\n\
   return self;
 }
 
-- (void) release
+- (oneway void) release
 {
   return;
 }
@@ -987,21 +987,6 @@ int main(int argc, char *argv[], char *env[])
          sizeof(_NSConstantStringClassReference));
 #endif
 
-#if defined(_WIN32)
-  WSADATA lpWSAData;
-
-  // Initialize Windows Sockets
-  if (WSAStartup(MAKEWORD(1,1), &lpWSAData))
-    {
-      printf("Could not startup Windows Sockets\n");
-      exit(1);
-    }
-#endif /* _WIN32 */
-
-#ifdef __MS_WIN__
-  _MB_init_runtime();
-#endif /* __MS_WIN__ */
-
   _gnu_process_args(argc, argv, env);
 
   /* Call the user defined main function */
@@ -1139,7 +1124,7 @@ static void determineOperatingSystem()
        * use the information from NSBundle and only get the version info
        * here.
        */
-      _operatingSystemVersion = [[NSString alloc] initWithFormat: @"%d.%d",
+      _operatingSystemVersion = [[NSString alloc] initWithFormat: @"%lu.%lu",
         osver.dwMajorVersion, osver.dwMinorVersion];
 #else
 #if	defined(HAVE_SYS_UTSNAME_H)

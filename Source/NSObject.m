@@ -979,11 +979,14 @@ static id gs_weak_load(id obj)
   if (self == [NSObject class])
     {
 #ifdef _WIN32
-      {
-        // See libgnustep-base-entry.m
-        extern void gnustep_base_socket_init(void);
-        gnustep_base_socket_init();
-      }
+      /* Start of sockets so we can get host name and other info */
+      WORD wVersionRequested = MAKEWORD(2, 2);
+      WSADATA wsaData;
+      int wsaResult = WSAStartup(wVersionRequested, &wsaData);
+      if (wsaResult != 0)
+        {
+          fprintf(stderr, "Error %d initializing Windows Sockets\n", wsaResult);
+        }
 #else /* _WIN32 */
 
 #ifdef	SIGPIPE
