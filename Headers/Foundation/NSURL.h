@@ -97,6 +97,17 @@ GS_EXPORT_CLASS
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 + (instancetype) fileURLWithPath: (NSString*)aPath isDirectory: (BOOL)isDir;
 #endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_11, GS_API_LATEST)
++ (instancetype) fileURLWithPath: (NSString *)aPath
+	                 isDirectory: (BOOL)isDir
+	               relativeToURL: (NSURL *)baseURL;
+
+/** Create and return a file URL with the supplied path, relative to a base URL.
+ */
++ (instancetype) fileURLWithPath:(NSString *)aPath relativeToURL:(NSURL *)baseURL;
+#endif
+
 /**
  * Create and return a URL with the supplied string, which should
  * be a string (containing percent escape codes where necessary)
@@ -143,6 +154,33 @@ GS_EXPORT_CLASS
  */
 - (instancetype) initFileURLWithPath: (NSString*)aPath
                          isDirectory: (BOOL)isDir;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_11, GS_API_LATEST)
+/**
+ * Initialise as a file URL with the specified path (which must
+ * be a valid path on the local filesystem) relative to the base URL.<br />
+ * Raises NSInvalidArgumentException if aPath is nil.<br />
+ * Converts relative paths to absolute ones.<br />
+ * Appends a trailing slash to the path when necessary if it
+ * specifies a directory.<br />
+ * Calls -initWithScheme:host:path:
+ */
+- (instancetype) initFileURLWithPath: (NSString *)aPath
+		               relativeToURL: (NSURL *)baseURL;
+
+/**
+ * Initialise as a file URL with the specified path (which must
+ * be a valid path on the local filesystem) relative to the base URL.<br />
+ * Raises NSInvalidArgumentException if aPath is nil.<br />
+ * Converts relative paths to absolute ones.<br />
+ * Appends a trailing slash to the path when necessary if it
+ * specifies a directory.<br />
+ * Calls -initWithScheme:host:path:
+ */
+- (instancetype) initFileURLWithPath: (NSString *)aPath
+			             isDirectory: (BOOL)isDir
+		               relativeToURL: (NSURL *)baseURL;
 #endif
 
 /**

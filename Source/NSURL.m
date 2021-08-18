@@ -587,6 +587,21 @@ static NSUInteger	urlAlign;
 					    isDirectory: isDir]);
 }
 
++ (id) fileURLWithPath: (NSString *)aPath
+	      isDirectory: (BOOL)isDir
+	    relativeToURL: (NSURL *)baseURL
+{
+  return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath
+					    isDirectory: isDir
+					  relativeToURL: baseURL]);
+}
+
++ (id)fileURLWithPath: (NSString *)aPath relativeToURL: (NSURL *)baseURL
+{
+  return AUTORELEASE([[NSURL alloc] initFileURLWithPath: aPath
+					  relativeToURL: baseURL]);
+}
+
 + (id) fileURLWithPathComponents: (NSArray*)components
 {
   return [self fileURLWithPath: [NSString pathWithComponents: components]];
@@ -624,71 +639,63 @@ static NSUInteger	urlAlign;
   return nil;
 }
 
-- (id) initFileURLWithPath: (NSString*)aPath
+- (id) initFileURLWithPath: (NSString *)aPath
 {
-  NSFileManager	*mgr = [NSFileManager defaultManager];
-  BOOL		flag = NO;
-
-  if (nil == aPath)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"[%@ %@] nil string parameter",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-    }
-  if ([aPath isAbsolutePath] == NO)
-    {
-      aPath = [[mgr currentDirectoryPath]
-	stringByAppendingPathComponent: aPath];
-    }
-  if ([mgr fileExistsAtPath: aPath isDirectory: &flag] == YES)
-    {
-      if ([aPath isAbsolutePath] == NO)
-	{
-	  aPath = [aPath stringByStandardizingPath];
-	}
-      if (flag == YES && [aPath hasSuffix: @"/"] == NO)
-	{
-	  aPath = [aPath stringByAppendingString: @"/"];
-	}
-    }
-  self = [self initWithScheme: NSURLFileScheme
-			 host: @""
-			 path: aPath];
-  return self;
+  /* isDirectory flag will be overwritten if a directory exists. */
+  return [self initFileURLWithPath: aPath isDirectory: NO relativeToURL: nil];
 }
 
-- (id) initFileURLWithPath: (NSString*)aPath isDirectory: (BOOL)isDir
+- (id) initFileURLWithPath: (NSString *)aPath isDirectory: (BOOL)isDir
 {
-  NSFileManager	*mgr = [NSFileManager defaultManager];
-  BOOL		flag = NO;
+  return [self initFileURLWithPath: aPath isDirectory: isDir relativeToURL: nil];
+}
+
+- (id) initFileURLWithPath: (NSString *)aPath relativeToURL: (NSURL *)baseURL
+{
+  /* isDirectory flag will be overwritten if a directory exists. */
+  return [self initFileURLWithPath: aPath isDirectory: NO relativeToURL: baseURL];
+}
+
+- (id) initFileURLWithPath: (NSString *)aPath
+	           isDirectory: (BOOL)isDir
+	         relativeToURL: (NSURL *)baseURL
+{
+  NSFileManager *mgr = [NSFileManager defaultManager];
+  BOOL		 flag = NO;
 
   if (nil == aPath)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"[%@ %@] nil string parameter",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+      [NSException
+	 raise:NSInvalidArgumentException
+	format:@"[%@ %@] nil string parameter", NSStringFromClass([self class]),
+	       NSStringFromSelector(_cmd)];
     }
   if ([aPath isAbsolutePath] == NO)
     {
-      aPath = [[mgr currentDirectoryPath]
-	stringByAppendingPathComponent: aPath];
+      if (baseURL)
+        {
+          /* Append aPath to baseURL */
+          aPath = [[baseURL relativePath] stringByAppendingPathComponent:aPath];
+        }
+      else
+        {
+          aPath =
+            [[mgr currentDirectoryPath] stringByAppendingPathComponent:aPath];
+        }
     }
-  if ([mgr fileExistsAtPath: aPath isDirectory: &flag] == YES)
+  if ([mgr fileExistsAtPath:aPath isDirectory:&flag] == YES)
     {
       if ([aPath isAbsolutePath] == NO)
-	{
-	  aPath = [aPath stringByStandardizingPath];
-	}
+        {
+          aPath = [aPath stringByStandardizingPath];
+        }
       isDir = flag;
     }
-  if (isDir == YES && [aPath hasSuffix: @"/"] == NO)
+  if (isDir == YES && [aPath hasSuffix:@"/"] == NO)
     {
-      aPath = [aPath stringByAppendingString: @"/"];
+      aPath = [aPath stringByAppendingString:@"/"];
     }
-  self = [self initWithScheme: NSURLFileScheme
-			 host: @""
-			 path: aPath];
-  return self;
+  return [self initWithScheme: NSURLFileScheme host: @"" path: aPath];
 }
 
 - (id) initWithScheme: (NSString*)aScheme
