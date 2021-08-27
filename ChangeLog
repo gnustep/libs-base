@@ -1,3 +1,33 @@
+2021-08-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/nstzfile.h: Fix by Emmanuel Dreyfus - increase number of
+	transitions allowed, so that we can handle dates further into the
+	future (since v2+ files support that).
+	* Tests/base/NSTimeZone/ParisV1-noMagic.tzdb:
+	* Tests/base/NSTimeZone/ParisV1.tzdb:
+	* Tests/base/NSTimeZone/ParisV2-missingHeader.tzdb:
+	* Tests/base/NSTimeZone/ParisV2.tzdb:
+	* Tests/base/NSTimeZone/localtime.m:
+	Increase the range of testcases
+
+2021-08-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/tzdb.h: Public domain time zone file parsing etc
+	* Source/NSTimeZone.m: Use code from tzdb.h
+	* Headers/Foundation/NSTimeZone.h: Remove some obsolete comments
+	* configure.ac:  check for stdbool.h needed by tzdb.h
+	* configure: regenerate
+	* Headers/GNUstepBase/config.h.in: define for stdbool check
+	* Tests/base/NSTimeZone/Paris.tzdbv1: test timezone file (version 1)
+	* Tests/base/NSTimeZone/Paris.tzdbv2: test timezone file (version 2)
+	* Tests/base/NSTimeZone/localtime.m: Some testcases for v1/v2
+	Incorporate work by Emmanuel Dreyfus to use public domain tzfile
+	parsing code supporting times too large to fit in 32bit value.
+	The public domain code has some support for the Posix TZ environment
+	variable style string used by version2 to support times after the last
+	transition in the file, but I'm not convinced it works properly, so
+	this may need to be revisited.
+
 2021-08-10 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSObject:

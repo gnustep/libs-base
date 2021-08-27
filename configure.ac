@@ -2597,6 +2597,7 @@ AC_CHECK_HEADERS(dnl
 	unistd.h dnl
 	utime.h dnl
         stdlib.h dnl
+        stdbool.h dnl
 	)
 
 if test $ac_cv_header_inttypes_h = yes; then

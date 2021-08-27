@@ -10130,7 +10130,7 @@ _ACEOF
 
 
 
-for ac_header in 	fcntl.h 	inttypes.h 	libc.h 	limits.h 	malloc.h 	memory.h 	signal.h 	stdint.h 	string.h 	sys/fcntl.h 	sys/file.h 	sys/filio.h 	sys/inttypes.h 	sys/ioctl.h 	sys/signal.h 	sys/stropts.h 	sys/wait.h 	unistd.h 	utime.h         stdlib.h
+for ac_header in 	fcntl.h 	inttypes.h 	libc.h 	limits.h 	malloc.h 	memory.h 	signal.h 	stdint.h 	string.h 	sys/fcntl.h 	sys/file.h 	sys/filio.h 	sys/inttypes.h 	sys/ioctl.h 	sys/signal.h 	sys/stropts.h 	sys/wait.h 	unistd.h 	utime.h         stdlib.h         stdbool.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
