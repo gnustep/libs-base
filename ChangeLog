@@ -1,3 +1,10 @@
+2021-08-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/nstzfile.h: deleted (merged into tzdb.h)
+	* Source/tzdb.h: updated (includes nstzfile.h)
+	* Source/NSTimeZone.h: some cleanups
+	Tidies up as suggested by Fred
+
 2021-08-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/nstzfile.h: Fix by Emmanuel Dreyfus - increase number of
