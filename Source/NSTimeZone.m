@@ -3011,13 +3011,6 @@ getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
       free(lsp);
       lsp = NULL;
 
-#if 0
-      if (!tzparse(zoneName, sp, false))
-	{
-	  [NSException raise: fileException
-		      format: @"failed to parse zone data"];
-	}
-#endif
       scrub_abbrs(sp);
     }
   NS_HANDLER
