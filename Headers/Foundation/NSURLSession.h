@@ -24,6 +24,7 @@
 @class NSURLResponse;
 @class NSURLSessionConfiguration;
 @class NSURLSessionDataTask;
+@class NSURLSessionDownloadTask;
 
 
 /**
@@ -109,6 +110,12 @@ GS_EXPORT_CLASS
 
 /* Creates a data task to retrieve the contents of the given URL. */
 - (NSURLSessionDataTask*) dataTaskWithURL: (NSURL*)url;
+
+/* Creates a download task with the given request. */
+- (NSURLSessionDownloadTask *) downloadTaskWithRequest: (NSURLRequest *)request;
+
+/* Creates a download task to download the contents of the given URL. */
+- (NSURLSessionDownloadTask *) downloadTaskWithURL: (NSURL *)url;
 
 @end
 
@@ -427,6 +434,37 @@ didReceiveChallenge: (NSURLAuthenticationChallenge*)challenge
            dataTask: (NSURLSessionDataTask*)dataTask
  didReceiveResponse: (NSURLResponse*)response
   completionHandler: (void (^)(NSURLSessionResponseDisposition disposition))completionHandler;
+
+@end
+
+@protocol NSURLSessionDownloadDelegate <NSURLSessionTaskDelegate>
+
+/* Sent when a download task that has completed a download.  The delegate should 
+ * copy or move the file at the given location to a new location as it will be 
+ * removed when the delegate message returns. URLSession:task:didCompleteWithError: will
+ * still be called.
+ */
+- (void)         URLSession: (NSURLSession *)session
+               downloadTask: (NSURLSessionDownloadTask *)downloadTask
+  didFinishDownloadingToURL: (NSURL *)location;
+
+@optional
+/* Sent periodically to notify the delegate of download progress. */
+- (void)         URLSession: (NSURLSession *)session
+               downloadTask: (NSURLSessionDownloadTask *)downloadTask
+               didWriteData: (int64_t)bytesWritten
+          totalBytesWritten: (int64_t)totalBytesWritten
+  totalBytesExpectedToWrite: (int64_t)totalBytesExpectedToWrite;
+
+/* Sent when a download has been resumed. If a download failed with an
+ * error, the -userInfo dictionary of the error will contain an
+ * NSURLSessionDownloadTaskResumeData key, whose value is the resume
+ * data. 
+ */
+- (void)  URLSession: (NSURLSession *)session
+        downloadTask: (NSURLSessionDownloadTask *)downloadTask
+   didResumeAtOffset: (int64_t)fileOffset
+  expectedTotalBytes: (int64_t)expectedTotalBytes;
 
 @end
 

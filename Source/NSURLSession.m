@@ -284,6 +284,34 @@ static int nextSessionIdentifier()
   return [self dataTaskWithRequest: request];
 }
 
+- (NSURLSessionDownloadTask *) downloadTaskWithRequest: (NSURLRequest *)request
+{
+  NSURLSessionDownloadTask  *task;
+
+  if (_invalidated)
+    {
+      return nil;
+    }
+
+  task = [[NSURLSessionDownloadTask alloc] initWithSession: self 
+                                                   request: request 
+                                            taskIdentifier: _nextTaskIdentifier++];
+
+  [self addTask: task];
+
+  return AUTORELEASE(task);
+}
+
+- (NSURLSessionDownloadTask *) downloadTaskWithURL: (NSURL *)url
+{
+  NSMutableURLRequest *request;
+  
+  request = [NSMutableURLRequest requestWithURL: url];
+  [request setHTTPMethod: @"GET"];
+
+  return [self downloadTaskWithRequest: request];
+}
+
 - (void) addTask: (NSURLSessionTask*)task
 {
   [_taskRegistry addTask: task];
@@ -632,7 +660,7 @@ static int nextSessionIdentifier()
 
 @implementation NSURLSessionTask
 {
-  NSURLSession                   *_session; /* not retained */
+  NSURLSession                   *_session;
   NSLock                         *_protocolLock;
   NSURLSessionTaskProtocolState  _protocolState;
   NSURLProtocol                  *_protocol;
@@ -653,7 +681,7 @@ static int nextSessionIdentifier()
       NSData		*data;
       NSInputStream	*stream;
 
-      _session = session;
+      ASSIGN(_session, session);
       ASSIGN(_originalRequest, request);
       ASSIGN(_currentRequest, request);
       if ([(data = [request HTTPBody]) length] > 0)
@@ -694,6 +722,7 @@ static int nextSessionIdentifier()
 
 - (void) dealloc
 {
+  DESTROY(_session);
   DESTROY(_originalRequest);
   DESTROY(_currentRequest);
   DESTROY(_response);
@@ -1080,6 +1109,10 @@ static int nextSessionIdentifier()
 @end
 
 @implementation NSURLSessionUploadTask
+
+@end
+
+@implementation NSURLSessionDownloadTask
 
 @end
 
