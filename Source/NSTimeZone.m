@@ -111,10 +111,8 @@
 #import "GSPThread.h"
 
 /* In systems without POSIX time zone information we can use our own builtin
- * time zone data.  To build on those systems we need a header reproducing
- * the POSIX time zone file format.
+ * time zone data.
  */
-#include "nstzfile.h"
 
 #if defined(HAVE_UNICODE_UCAL_H)
 #define id id_ucal
@@ -665,7 +663,7 @@ static NSMapTable	*absolutes = 0;
     }
   RELEASE(name);
   RELEASE(detail);
-  [super dealloc];
+  DEALLOC;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder
@@ -809,7 +807,7 @@ static NSMapTable	*absolutes = 0;
 - (void) dealloc
 {
   RELEASE(timeZone);
-  [super dealloc];
+  DEALLOC
 }
 
 - (id) initWithCoder: (NSCoder*)aDecoder
@@ -885,7 +883,7 @@ static NSMapTable	*absolutes = 0;
 - (void) dealloc
 {
   RELEASE(zone);
-  [super dealloc];
+  DEALLOC
 }
 
 - (id) initWithTimeZone: (GSAbsTimeZone*)aZone
@@ -2516,7 +2514,7 @@ GSBreakTime(NSTimeInterval when,
   RELEASE(daylightZoneName);
   RELEASE(timeZoneNameAbbr);
   RELEASE(daylightZoneNameAbbr);
-  [super dealloc];
+  DEALLOC
 }
 
 - (id) initWithName: (NSString*)name data: (NSData*)data
@@ -2962,11 +2960,6 @@ getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
   return timeZoneData;
 }
 
-- (NSTimeInterval) daylightSavingTimeOffsetForDate: (NSDate *)aDate
-{
-  return [super daylightSavingTimeOffsetForDate: aDate];
-}
-
 - (void) dealloc
 {
   RELEASE(timeZoneName);
@@ -2975,7 +2968,7 @@ getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
     {
       free(sp);
     }
-  [super dealloc];
+  DEALLOC
 }
 
 - (id) initWithName: (NSString*)name data: (NSData*)data
@@ -3060,11 +3053,6 @@ getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
 - (NSString*) name
 {
   return timeZoneName;
-}
-
-- (NSDate *) nextDaylightSavingTimeTransitionAfterDate: (NSDate *)aDate
-{
-  return [super nextDaylightSavingTimeTransitionAfterDate: aDate];
 }
 
 - (NSInteger) secondsFromGMTForDate: (NSDate*)aDate
