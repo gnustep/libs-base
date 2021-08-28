@@ -1,3 +1,4 @@
+#import "GSURLPrivate.h"
 #import "GSNativeProtocol.h"
 #import "GSTransferState.h"
 #import "GSURLSessionTaskBody.h"
@@ -715,9 +716,10 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
 
 - (void) completeTask
 {
-  NSURLSessionTask  *task;
-  GSDataDrain       *bodyDataDrain;
-  id<NSURLProtocolClient> client;
+  NSURLSessionTask         *task;
+  GSDataDrain              *bodyDataDrain;
+  id<NSURLProtocolClient>  client;
+  id<NSURLSessionDelegate> delegate;
 
   NSAssert(_internalState == GSNativeProtocolInternalStateTransferCompleted,
     @"Trying to complete the task, but its transfer isn't complete.");
@@ -725,6 +727,7 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
   task = [self task];
   [task setResponse: [_transferState response]];
   client = [self client];
+  delegate = [[task session] delegate];
 
   // We don't want a timeout to be triggered after this. The timeout timer 
   // needs to be cancelled.
@@ -754,6 +757,16 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
       [self setInternalState: GSNativeProtocolInternalStateTaskCompleted];
     }
   
+  // Add temporary file URL to NSURLRequest properties
+  // and close the fileHandle
+  if (nil != delegate
+    && [task isKindOfClass: [NSURLSessionDownloadTask class]])
+    {
+      [[bodyDataDrain fileHandle] closeFile];
+      [[self request] _setProperty: [bodyDataDrain fileURL]
+                            forKey: @"tempFileURL"];
+    }
+
   if ([client respondsToSelector: @selector(URLProtocolDidFinishLoading:)])
     {
       [client URLProtocolDidFinishLoading: self];

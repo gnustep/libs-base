@@ -612,6 +612,27 @@ static int nextSessionIdentifier()
 
   if (nil != delegate)
     {
+      // Send delegate with temporary fileURL
+      if ([task isKindOfClass: [NSURLSessionDownloadTask class]]
+        && [delegate respondsToSelector: @selector(URLSession:downloadTask:didFinishDownloadingToURL:)])
+        {
+          id<NSURLSessionDownloadDelegate> downloadDelegate;
+          NSURLSessionDownloadTask         *downloadTask;
+          NSURL                            *fileURL;
+
+          downloadDelegate = (id<NSURLSessionDownloadDelegate>)delegate;
+          downloadTask = (NSURLSessionDownloadTask *)task;
+          fileURL = [NSURLProtocol propertyForKey: @"tempFileURL"
+                                        inRequest: [protocol request]];
+
+          [delegateQueue addOperationWithBlock:
+            ^{
+              [downloadDelegate URLSession: session
+                              downloadTask: downloadTask
+                 didFinishDownloadingToURL: fileURL];
+            }];
+        }
+
       [delegateQueue addOperationWithBlock: 
         ^{
           if (NSURLSessionTaskStateCompleted == [task state])
