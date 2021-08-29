@@ -293,10 +293,6 @@
       tempURL = [NSURL fileURLWithPath: NSTemporaryDirectory()];
 
       _fileURL = [NSURL fileURLWithPath: fileName relativeToURL: tempURL];
-
-      RELEASE(randomUUID);
-      RELEASE(fileName);
-      RELEASE(tempURL);
     }
 
   return _fileURL;
@@ -312,12 +308,12 @@
   /* Create temporary file and open a fileHandle for writing. */
   if (!_fileHandle)
     {
-      NSFileManager *file = [NSFileManager defaultManager];
-      [file createFileAtPath: [[self fileURL] relativePath] contents: nil attributes: nil];
+      NSFileManager *fileManager = [NSFileManager defaultManager];
+      [fileManager createFileAtPath: [[self fileURL] relativePath]
+                           contents: nil
+                         attributes: nil];
 
       _fileHandle = [NSFileHandle fileHandleForWritingToURL: [self fileURL] error: NULL];
-
-      RELEASE(file);
     }
 
   return _fileHandle;

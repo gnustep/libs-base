@@ -512,7 +512,7 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
   session = [task session];
   NSAssert(nil != session, @"Missing session");
 
-  delegate = [[task session] delegate];
+  delegate = [session delegate];
   if (nil != delegate
     && [task isKindOfClass: [NSURLSessionDataTask class]]
     && [delegate respondsToSelector: @selector(URLSession:dataTask:didReceiveData:)])
