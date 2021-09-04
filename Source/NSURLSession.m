@@ -702,7 +702,13 @@ static int nextSessionIdentifier()
       NSData		*data;
       NSInputStream	*stream;
 
-      ASSIGN(_session, session);
+      /*
+       * Only retain the session once the -resume method is called
+       * and release the session as the last thing done once the
+       * task has completed. This avoids a retain loop causing
+       * session and tasks to be leaked. 
+       */
+      _session = session;
       ASSIGN(_originalRequest, request);
       ASSIGN(_currentRequest, request);
       if ([(data = [request HTTPBody]) length] > 0)
@@ -743,7 +749,6 @@ static int nextSessionIdentifier()
 
 - (void) dealloc
 {
-  DESTROY(_session);
   DESTROY(_originalRequest);
   DESTROY(_currentRequest);
   DESTROY(_response);
@@ -907,6 +912,12 @@ static int nextSessionIdentifier()
 
 - (void) resume
 {
+  /*
+   * Properly retain the session to keep a reference
+   * to the task. This ensures correct API behaviour.
+   */
+  RETAIN(_session);
+
   dispatch_sync(_workQueue, 
     ^{
       if (NSURLSessionTaskStateCanceling == _state
@@ -1120,6 +1131,11 @@ static int nextSessionIdentifier()
   [_protocolLock lock];
   _protocolState = NSURLSessionTaskProtocolStateInvalidated;
   DESTROY(_protocol);
+  /*
+   * Release session at the end of the task
+   * and not when -dealloc is called.
+   */
+  DESTROY(_session);
   [_protocolLock unlock];
 }
 
