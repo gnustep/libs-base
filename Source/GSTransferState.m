@@ -10,6 +10,9 @@
 #import "Foundation/NSURLError.h"
 #import "Foundation/NSURLResponse.h"
 #import "Foundation/NSURLSession.h"
+#import "Foundation/NSUUID.h"
+#import "Foundation/NSFileManager.h"
+#import "Foundation/NSPathUtilities.h"
 
 #define GS_DELIMITERS_CR 0x0d
 #define GS_DELIMITERS_LR 0x0a
@@ -277,6 +280,21 @@
 
 - (NSURL*) fileURL
 {
+  /* Generate a random fileURL if fileURL is not initialized.
+   * It would be nice to have this implemented in an initializer. */
+  if (!_fileURL)
+    {
+      NSUUID *randomUUID;
+      NSString *fileName;
+      NSURL *tempURL;
+      
+      randomUUID = [NSUUID UUID];
+      fileName = [[randomUUID UUIDString] stringByAppendingPathExtension: @"tmp"];
+      tempURL = [NSURL fileURLWithPath: NSTemporaryDirectory()];
+
+      _fileURL = [NSURL fileURLWithPath: fileName relativeToURL: tempURL];
+    }
+
   return _fileURL;
 }
 
@@ -287,6 +305,17 @@
 
 - (NSFileHandle*) fileHandle
 {
+  /* Create temporary file and open a fileHandle for writing. */
+  if (!_fileHandle)
+    {
+      NSFileManager *fileManager = [NSFileManager defaultManager];
+      [fileManager createFileAtPath: [[self fileURL] relativePath]
+                           contents: nil
+                         attributes: nil];
+
+      _fileHandle = [NSFileHandle fileHandleForWritingToURL: [self fileURL] error: NULL];
+    }
+
   return _fileHandle;
 }
 

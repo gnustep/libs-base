@@ -10,6 +10,7 @@
   NSData                *_taskData;
   NSString              *_taskText;
   NSError               *_taskError;
+  NSURL                 *_taskLocation;
 }
 - (BOOL) finished;
 - (void) reset;
@@ -48,6 +49,7 @@
   DESTROY(_taskData);
   DESTROY(_taskError);
   DESTROY(_taskText);
+  DESTROY(_taskLocation);
   _finished = NO;
 }
 
@@ -66,6 +68,11 @@
 - (NSString*) taskText
 {
   return _taskText;
+}
+
+- (NSURL*) taskLocation
+{
+  return _taskLocation;
 }
 
 - (void) URLSession: (NSURLSession*)session
@@ -95,6 +102,14 @@
   RELEASE(text);
 }
 
+/* NSURLSessionDownloadDelegate */
+- (void) URLSession: (NSURLSession *)session
+       downloadTask: (NSURLSessionDownloadTask *)downloadTask 
+       didFinishDownloadingToURL: (NSURL *)location
+{
+  ASSIGN(_taskLocation, location);
+}
+
 - (void) URLSession: (NSURLSession*)session
                task: (NSURLSessionTask*)task
 didCompleteWithError: (NSError*)error
@@ -104,7 +119,7 @@ didCompleteWithError: (NSError*)error
 
   if (error == nil)
     {
-      NSLog(@"Download is Succesfull");
+      NSLog(@"Download is Successful");
     }
   else
     {

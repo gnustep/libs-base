@@ -284,6 +284,34 @@ static int nextSessionIdentifier()
   return [self dataTaskWithRequest: request];
 }
 
+- (NSURLSessionDownloadTask *) downloadTaskWithRequest: (NSURLRequest *)request
+{
+  NSURLSessionDownloadTask  *task;
+
+  if (_invalidated)
+    {
+      return nil;
+    }
+
+  task = [[NSURLSessionDownloadTask alloc] initWithSession: self 
+                                                   request: request 
+                                            taskIdentifier: _nextTaskIdentifier++];
+
+  [self addTask: task];
+
+  return AUTORELEASE(task);
+}
+
+- (NSURLSessionDownloadTask *) downloadTaskWithURL: (NSURL *)url
+{
+  NSMutableURLRequest *request;
+  
+  request = [NSMutableURLRequest requestWithURL: url];
+  [request setHTTPMethod: @"GET"];
+
+  return [self downloadTaskWithRequest: request];
+}
+
 - (void) addTask: (NSURLSessionTask*)task
 {
   [_taskRegistry addTask: task];
@@ -584,6 +612,27 @@ static int nextSessionIdentifier()
 
   if (nil != delegate)
     {
+      // Send delegate with temporary fileURL
+      if ([task isKindOfClass: [NSURLSessionDownloadTask class]]
+        && [delegate respondsToSelector: @selector(URLSession:downloadTask:didFinishDownloadingToURL:)])
+        {
+          id<NSURLSessionDownloadDelegate> downloadDelegate;
+          NSURLSessionDownloadTask         *downloadTask;
+          NSURL                            *fileURL;
+
+          downloadDelegate = (id<NSURLSessionDownloadDelegate>)delegate;
+          downloadTask = (NSURLSessionDownloadTask *)task;
+          fileURL = [NSURLProtocol propertyForKey: @"tempFileURL"
+                                        inRequest: [protocol request]];
+
+          [delegateQueue addOperationWithBlock:
+            ^{
+              [downloadDelegate URLSession: session
+                              downloadTask: downloadTask
+                 didFinishDownloadingToURL: fileURL];
+            }];
+        }
+
       [delegateQueue addOperationWithBlock: 
         ^{
           if (NSURLSessionTaskStateCompleted == [task state])
@@ -632,7 +681,7 @@ static int nextSessionIdentifier()
 
 @implementation NSURLSessionTask
 {
-  NSURLSession                   *_session; /* not retained */
+  NSURLSession                   *_session;
   NSLock                         *_protocolLock;
   NSURLSessionTaskProtocolState  _protocolState;
   NSURLProtocol                  *_protocol;
@@ -653,6 +702,12 @@ static int nextSessionIdentifier()
       NSData		*data;
       NSInputStream	*stream;
 
+      /*
+       * Only retain the session once the -resume method is called
+       * and release the session as the last thing done once the
+       * task has completed. This avoids a retain loop causing
+       * session and tasks to be leaked. 
+       */
       _session = session;
       ASSIGN(_originalRequest, request);
       ASSIGN(_currentRequest, request);
@@ -857,6 +912,12 @@ static int nextSessionIdentifier()
 
 - (void) resume
 {
+  /*
+   * Properly retain the session to keep a reference
+   * to the task. This ensures correct API behaviour.
+   */
+  RETAIN(_session);
+
   dispatch_sync(_workQueue, 
     ^{
       if (NSURLSessionTaskStateCanceling == _state
@@ -1070,6 +1131,11 @@ static int nextSessionIdentifier()
   [_protocolLock lock];
   _protocolState = NSURLSessionTaskProtocolStateInvalidated;
   DESTROY(_protocol);
+  /*
+   * Release session at the end of the task
+   * and not when -dealloc is called.
+   */
+  DESTROY(_session);
   [_protocolLock unlock];
 }
 
@@ -1080,6 +1146,10 @@ static int nextSessionIdentifier()
 @end
 
 @implementation NSURLSessionUploadTask
+
+@end
+
+@implementation NSURLSessionDownloadTask
 
 @end
 
