@@ -2274,6 +2274,7 @@ static NSCharacterSet	*queryItemCharSet = nil;
        */
       [m removeCharactersInString: @"&="];
       queryItemCharSet = [m copy];
+      RELEASE(m);
       LEAVE_POOL
     }
 }
