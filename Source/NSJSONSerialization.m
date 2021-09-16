@@ -18,6 +18,7 @@
 #import "Foundation/NSNull.h"
 #import "Foundation/NSStream.h"
 #import "Foundation/NSString.h"
+#import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSValue.h"
 #import "GSFastEnumeration.h"
 
@@ -784,6 +785,7 @@ static Class NSNumberClass;
 static Class NSStringClass;
 
 static NSMutableCharacterSet *escapeSet;
+static NSString *JSONTabString = nil;
 
 static inline void
 writeTabs(NSMutableString *output, NSInteger tabs)
@@ -792,7 +794,7 @@ writeTabs(NSMutableString *output, NSInteger tabs)
 
   for (i = 0 ; i < tabs ; i++)
     {
-      [output appendString: @"\t"];
+      [output appendString: JSONTabString];
     }
 }
 
@@ -819,8 +821,8 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
           }
         writeComma = YES;
         writeNewline(output, tabs);
-        writeTabs(output, tabs);
-        writeObject(o, output, tabs + 1);
+      writeTabs(output, tabs+1);
+        writeObject(o, output, tabs + 2);
       END_FOR_IN(obj)
       writeNewline(output, tabs);
       writeTabs(output, tabs);
@@ -839,8 +841,8 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
           }
         writeComma = YES;
         writeNewline(output, tabs);
-        writeTabs(output, tabs);
-        writeObject(o, output, tabs + 1);
+        writeTabs(output, tabs+1);
+        writeObject(o, output, tabs + 2);
         [output appendString: @": "];
         writeObject([obj objectForKey: o], output, tabs + 1);
       END_FOR_IN(obj)
@@ -986,6 +988,9 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
       [[NSObject leakAt: &boolN] release];
       boolY = [[NSNumber alloc] initWithBool: YES];
       [[NSObject leakAt: &boolY] release];
+      JSONTabString = [[NSUserDefaults standardUserDefaults] stringForKey: @"GSJSONDefaultTabString"];
+      if ((JSONTabString == nil) || ([JSONTabString length] == 0))
+        JSONTabString = @"\t";
       beenHere = YES;
     }
 }

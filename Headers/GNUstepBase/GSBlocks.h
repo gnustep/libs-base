@@ -107,6 +107,10 @@ typedef retTy(^name)()
 
 #endif /* __has_feature(blocks) */
 
+#if __has_include(<objc/blocks_runtime.h>)
+#  include <objc/blocks_runtime.h>
+#else
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -120,8 +124,8 @@ extern "C" {
 /* weak attributed supported only with ELF, MINGW is COFF */
 #ifndef __MINGW32__
 
-void *_Block_copy(void *) __attribute__((weak));
-void _Block_release(void *) __attribute__((weak));
+void *_Block_copy(const void *) __attribute__((weak));
+void _Block_release(const void *) __attribute__((weak));
 
 #endif /* __MINGW32__ */
 
@@ -129,12 +133,24 @@ void _Block_release(void *) __attribute__((weak));
 }
 #endif
 
+// Testplant -- this workaround is temporary until we move to a newer libobjc on linux.
+#ifndef __MINGW32__
 #ifndef Block_copy
 #  define Block_copy(x) ((__typeof(x))_Block_copy((void *)(x)))
 #endif
 #ifndef Block_release
 #  define Block_release(x) _Block_release((void *)(x))
 #endif
+#else
+// Testplant -- keep this part when moving to newer libobjc on linux.
+#ifndef Block_copy
+#  define Block_copy(x) ((__typeof(x))_Block_copy((const void *)(x)))
+#endif
+#ifndef Block_release
+#  define Block_release(x) _Block_release((const void *)(x))
+#endif
+#endif // __MINGW32__
+
+#endif /* __has_include(<objc/blocks_runtime.h>) */
 
 #endif /* __GSBlocks_h_GNUSTEP_BASE_INCLUDE */
-

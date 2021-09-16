@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 2009 Remy Demarest
  * Portions Copyright (c) 2009 David Chisnall
- *  
+ *
  *  Permission is hereby granted, free of charge, to any person
  *  obtaining a copy of this software and associated documentation
  *  files (the "Software"), to deal in the Software without
@@ -10,10 +10,10 @@
  *  copies of the Software, and to permit persons to whom the
  *  Software is furnished to do so, subject to the following
  *  conditions:
- *   
+ *
  *  The above copyright notice and this permission notice shall be
  *  included in all copies or substantial portions of the Software.
- *   
+ *
  *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  *  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  *  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -66,7 +66,7 @@ struct psy_block_literal {
     unsigned long int size;  // sizeof(struct Block_literal_1)
     // optional helper functions
     void (*copy_helper)(void *dst, void *src);
-    void (*dispose_helper)(void *src); 
+    void (*dispose_helper)(void *src);
   } *descriptor;
   const char *types;
 };
@@ -195,7 +195,7 @@ struct StackBlockClass {
     unsigned long int size;  // sizeof(struct Block_literal_1)
       // optional helper functions
     void (*copy_helper)(void *dst, void *src);
-    void (*dispose_helper)(void *src); 
+    void (*dispose_helper)(void *src);
   } *descriptor;
   const char *types;
 };
@@ -205,7 +205,13 @@ struct StackBlockClass {
  * increments its retain count.
  */
 void *
+// Testplant -- this workaround is temporary until we move to a newer libobjc on linux.
+#ifndef __MINGW32__
 _Block_copy(void *src)
+#else
+// Testplant -- keep this part when moving to newer libobjc on linux.
+_Block_copy(const void *src)
+#endif // __MINGW32__
 {
   struct StackBlockClass *self = src;
   struct StackBlockClass *ret = self;

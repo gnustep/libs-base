@@ -40,7 +40,8 @@ extern "C" {
 @class NSURLAuthenticationChallenge;
 @class NSURLRequest;
 @class NSURLResponse;
-
+@class NSInputStream;
+  
 /**
  */
 @interface NSURLConnection : NSObject
@@ -86,12 +87,26 @@ extern "C" {
  */
 - (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
+/**
+ * Start the asynchronous load for this connection.
+ */
+- (void) start;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5,MAC_OS_X_VERSION_10_11)
+/**
+ * Same as previous init but starts the connection based on the input flag
+ */
+- (id) initWithRequest: (NSURLRequest *)request delegate: (id)delegate startImmediately: (BOOL)startImmediately;
+#endif
+
 @end
 
 
 
 /**
- * This category is an informal protocol specifying how an NSURLConnection
+ * This category is an (formerly informal) protocol specifying how an NSURLConnection
  * instance will communicate with its delegate to inform it of (and allow
  * it to manage) the progress of a load request.<br />
  * A load operation is performed by asynchronous I/O using the
@@ -142,7 +157,13 @@ extern "C" {
  *   </item>
  * </list>
  */
+// TESTPLANT-MAL-08152017: Changed to formal protocol definition...
+#if defined(__clang__)
+@protocol NSURLConnectionDelegate <NSObject>
+@optional
+#else
 @interface NSObject (NSURLConnectionDelegate)
+#endif
 
 /**
  * Instructs the delegate that authentication for challenge has
@@ -214,8 +235,27 @@ extern "C" {
 
 @end
 
+  
+// TESTPLANT-MAL-08152017: Added to formal protocol definition...
+#if defined(__clang__)
+@protocol NSURLConnectionDataDelegate <NSURLConnectionDelegate>
+@optional
+- (NSURLRequest *)connection:(NSURLConnection *)connection willSendRequest:(NSURLRequest *)request redirectResponse:(NSURLResponse *)response;
+- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response;
 
+- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data;
 
+- (NSInputStream *)connection:(NSURLConnection *)connection needNewBodyStream:(NSURLRequest *)request;
+- (void)connection:(NSURLConnection *)connection
+   didSendBodyData:(NSInteger)bytesWritten
+ totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite;
+
+- (NSCachedURLResponse *)connection:(NSURLConnection *)connection willCacheResponse:(NSCachedURLResponse *)cachedResponse;
+
+- (void)connectionDidFinishLoading:(NSURLConnection *)connection;
+@end
+#endif
+  
 /**
  * An interface to perform synchronous loading of URL requests.
  */

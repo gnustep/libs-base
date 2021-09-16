@@ -119,6 +119,9 @@
 #define id id_ucal
 #include <unicode/ucal.h>
 #undef id
+#if (U_ICU_VERSION_MAJOR_NUM >= 52)
+#define HAVE_WINDOWS_TO_IANA_CONVERSION 1
+#endif
 #endif
 
 NSString * const NSSystemTimeZoneDidChangeNotification
@@ -268,6 +271,7 @@ typedef struct {
   NSString	*daylightZoneName;
   NSString	*timeZoneNameAbbr;
   NSString	*daylightZoneNameAbbr;
+  NSString	*standardZoneIdentifier; // the IANA/Olson identifier
   LONG		Bias;
   LONG		StandardBias;
   LONG		DaylightBias;
@@ -514,7 +518,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
                 {
                   zone = [[GSWindowsTimeZone alloc] initWithName: name data: 0];
                   DESTROY(self);
-                  return zone;
+                  return (GSPlaceholderTimeZone*)zone;
                 }
 #else
 		{
@@ -1217,6 +1221,13 @@ static NSMapTable	*absolutes = 0;
  */
 + (NSArray*) knownTimeZoneNames
 {
+#if GS_USE_ICU == 1
+  NSArray *stdArray = [self standardTimeZoneNames];	
+  if ([stdArray count] > 0)
+    {
+      return stdArray;
+    }
+#else
   static NSArray *namesArray = nil;
 
   /* We create the array only when we need it to reduce overhead. */
@@ -1258,6 +1269,62 @@ static NSMapTable	*absolutes = 0;
     {
       [zone_mutex unlock];
     }
+  return namesArray;
+#endif
+}
+
+/**
+ * Returns an array of all known time zone names as obtained from the ICU library.
+ */
++ (NSArray*) standardTimeZoneNames
+{
+  static NSArray *namesArray = nil;
+
+#if GS_USE_ICU == 1
+  /* We create the array only when we need it to reduce overhead. */
+  if (namesArray != nil)
+    {
+      return namesArray;
+    }
+
+  if (zone_mutex != nil)
+    {
+      [zone_mutex lock];
+    }
+  if (namesArray == nil)
+    {
+      NSMutableArray *standardNames = [NSMutableArray new];
+      UErrorCode ec = 0;
+      UEnumeration *en = ucal_openTimeZones	(&ec); // enumerate all time zones
+      if (en) {
+        const char *str;
+        int32_t len;
+	    while ((str = uenum_next (en, &len, &ec)) != NULL)
+	      {
+            if (len > 0)
+              {
+    	        NSString *stdName = [[NSString alloc] initWithBytes:str length:len encoding:NSUTF8StringEncoding];
+		    	[standardNames addObject:stdName];
+	          }
+	      }
+        uenum_close(en);
+      }
+      if ([standardNames makeImmutable] == YES)
+        {
+          namesArray = standardNames;
+        }
+      else
+        {
+          namesArray = [standardNames copy];
+          RELEASE(standardNames);
+        }
+	}
+  if (zone_mutex != nil)
+    {
+      [zone_mutex unlock];
+    }
+#endif
+
   return namesArray;
 }
 
@@ -1385,6 +1452,15 @@ static NSMapTable	*absolutes = 0;
     }
 }
 
++ (NSString *) icuLibraryVersion
+{
+#if GS_USE_ICU == 1
+	return [NSString stringWithFormat:@"ICU version %d.%d", U_ICU_VERSION_MAJOR_NUM, U_ICU_VERSION_MINOR_NUM];
+#else
+	return @"ICU not used";
+#endif
+}
+
 /**
  * Return a proxy to the default time zone for this process.
  */
@@ -1499,6 +1575,7 @@ static NSMapTable	*absolutes = 0;
       /*
        * Try to get timezone from windows system call.
        */
+      if (localZoneString == nil)
       {
       	TIME_ZONE_INFORMATION tz;
       	DWORD DST = GetTimeZoneInformation(&tz);
@@ -2210,6 +2287,61 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
   return [self subclassResponsibility: _cmd];
 }
 
+/**
+ * Returns the IANA/Olson identifier given a possible "Windows" identifier,
+ * or nil if no translation found.
+ */
+- (NSString *) standardNameForName:(NSString *)identifier
+{
+  // see if it is already a standard name
+  NSArray *standardNames = [NSTimeZone standardTimeZoneNames];
+  if ([standardNames indexOfObject:[self name]] != NSNotFound)
+    {
+	  return [self name];
+	}
+
+  // not a standard name, try to convert it to one
+  NSString *standardName = nil;
+#if HAVE_WINDOWS_TO_IANA_CONVERSION == 1
+  int32_t resultLen = 0;
+  UChar *winID;
+  int32_t winIDLength;
+  UChar *zoneID;
+  UErrorCode status = 0; 
+  winIDLength = [identifier length];
+  winID = malloc(sizeof(UChar) * winIDLength);
+  [identifier getCharacters: winID];
+  zoneID = malloc(sizeof(UChar) * 200);
+  
+  // convert possible Windows identifier to IANA/Olson identifier
+  resultLen = ucal_getTimeZoneIDForWindowsID(winID, winIDLength, NULL, zoneID, 200, &status);
+  if (resultLen > 0)
+    {
+      standardName = AUTORELEASE([[NSString allocWithZone: NSDefaultMallocZone()]
+        initWithBytesNoCopy: zoneID
+        length: resultLen * sizeof(UChar)
+        encoding: NSUnicodeStringEncoding
+        freeWhenDone: YES]);
+	  NSDebugLLog(@"NSTimeZone",@"Translated zone '%@' to '%@'", identifier, standardName);
+	}
+  else
+    {
+	  free(zoneID);
+	}
+  free(winID);
+#endif
+  return standardName;
+}
+
+/**
+ * Returns the IANA/Olson identifier of the timezone if different from the name, or else returns
+ * the name. This is needed by NSDateFormatter when the name is a "Windows" identifier.
+ */
+- (NSString *) standardName	// Note: See the GSWindowsTimeZone override of this method
+{
+  return [self name];	
+}
+
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {
   if ([aCoder isByref] == NO)
@@ -2598,6 +2730,7 @@ GSBreakTime(NSTimeInterval when,
   RELEASE(daylightZoneName);
   RELEASE(timeZoneNameAbbr);
   RELEASE(daylightZoneNameAbbr);
+  RELEASE(standardZoneIdentifier);
   [super dealloc];
 }
 
@@ -2930,6 +3063,62 @@ GSBreakTime(NSTimeInterval when,
     {
       return timeZoneName;
     }
+}
+
+/**
+ * Returns the IANA/Olson identifier of the timezone if different from the name, or else returns
+ * the name. This is needed by NSDateFormatter when the name is a "Windows" identifier.
+ */
+- (NSString *) standardName
+{
+#if HAVE_WINDOWS_TO_IANA_CONVERSION == 1
+  if (!standardZoneIdentifier)
+    {
+      NSString *identifier = [self name];
+      NSString *standardName = [self standardNameForName:identifier];
+
+      if (!standardName)
+        {
+		  NSMutableString *modifiedIdent = [[identifier mutableCopy] autorelease];
+		  NSRange substringRange = [modifiedIdent rangeOfString:@"Daylight "];
+		  if (substringRange.location != NSNotFound)
+		    {
+			  [modifiedIdent replaceCharactersInRange:substringRange withString:@"Standard "];
+			  NSDebugLLog(@"NSTimeZone",@"Trying zone name %@", modifiedIdent);
+			  standardName = [self standardNameForName:modifiedIdent];
+			}
+		  substringRange = [modifiedIdent rangeOfString:@"Standard "];
+		  if (!standardName && substringRange.location != NSNotFound)
+		    {
+			  [modifiedIdent deleteCharactersInRange:substringRange];
+			  NSDebugLLog(@"NSTimeZone",@"Trying zone name %@", modifiedIdent);
+			  standardName = [self standardNameForName:modifiedIdent];
+			}
+	    }
+	  
+	  if (!standardName)
+	    {
+		  // Fall back to "Etc/GMT+X" based on the offset if the name couldn't be resolved
+		  NSInteger theOffset = [self secondsFromGMT];
+		  BOOL isNegative = theOffset < 0;
+		  if (isNegative)
+		    theOffset = -theOffset;
+		  int hours = theOffset / 3600;
+		  standardName = [NSString stringWithFormat:@"Etc/GMT%@%d", (isNegative ? @"+" : @"-"), hours]; // note: sign is reversed in these identifiers
+		}
+	  if (standardName)
+	    {
+		  standardZoneIdentifier = [standardName copy];
+          NSDebugLLog(@"NSTimeZone",@"Found translation '%@' for zone '%@'", standardName, [self name]);
+		}
+	  else
+	    {		  
+		  standardZoneIdentifier = [identifier copy];
+          NSDebugLLog(@"NSTimeZone",@"No translation for zone '%@'", [self name]);
+		}
+	}
+#endif
+  return standardZoneIdentifier;		
 }
 
 - (NSInteger) secondsFromGMTForDate: (NSDate*)aDate

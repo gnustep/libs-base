@@ -1266,6 +1266,13 @@ newLanguages(NSArray *oldNames)
       [NSException raise: NSInvalidArgumentException
 		  format: @"attempt to add suite with nil name"];
     }
+  
+  // TESTPLANT-MAL-12142017: Issue 16656...
+  // Avoid trying to reload a domain that's already loaded...
+  if ([[self persistentDomainNames] containsObject: aName])
+    if ([_searchList containsObject: aName])
+      return;
+  
   [_lock lock];
   NS_DURING
     {

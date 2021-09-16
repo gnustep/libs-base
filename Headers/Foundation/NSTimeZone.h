@@ -59,6 +59,7 @@ GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
 // Getting Time Zone Information
 + (NSDictionary*) abbreviationDictionary;
 + (NSArray*) knownTimeZoneNames;
++ (NSArray*) standardTimeZoneNames;
 
 //Getting Arrays of Time Zones
 + (NSArray*) timeZoneArray;
@@ -83,6 +84,7 @@ GS_EXPORT NSString * const NSSystemTimeZoneDidChangeNotification;
 - (BOOL) isDaylightSavingTimeForDate: (NSDate*)aDate;
 - (BOOL) isEqualToTimeZone: (NSTimeZone*)aTimeZone;
 - (NSString*) name;
+- (NSString*) standardName;
 - (NSInteger) secondsFromGMT;
 - (NSInteger) secondsFromGMTForDate: (NSDate*)aDate;
 #endif

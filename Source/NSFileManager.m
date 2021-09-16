@@ -2147,6 +2147,7 @@ static NSStringEncoding	defaultEncoding;
    */
   if ([self fileExistsAtPath: path isDirectory: &is_dir] == NO || is_dir == NO)
     {
+      ASSIGN(_lastError, @"path is not a directory");
       return nil;
     }
   content = [NSMutableArray arrayWithCapacity: 128];

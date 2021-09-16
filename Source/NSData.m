@@ -1025,6 +1025,119 @@ failure:
   return [NSData dataWithBytesNoCopy: buffer length: aRange.length];
 }
 
+/**
+ * Finds and returns the range of the first occurrence of the given data, within the given range, subject to given options.
+ */
+- (NSRange) rangeOfData: (NSData *)dataToFind
+                options: (NSDataSearchOptions)mask
+                  range: (NSRange)searchRange
+{
+  NSUInteger  length = [self length];
+  NSUInteger  countOther = [dataToFind length];
+  const void* bytesSelf = [self bytes];
+  const void* bytesOther = [dataToFind bytes];
+  NSRange     result;
+
+  GS_RANGE_CHECK(searchRange, length);
+  if (dataToFind == nil)
+    [NSException raise: NSInvalidArgumentException format: @"range of nil"];
+
+  /* Zero length data is always found at the start of the given range.
+   */
+  if (0 == countOther)
+    {
+      if ((mask & NSDataSearchBackwards) == NSDataSearchBackwards)
+        {
+          searchRange.location += searchRange.length;
+        }
+      searchRange.length = 0;
+      return searchRange;
+    }
+
+  if (searchRange.length < countOther)
+    {
+      /* Range to search is smaller than data to look for.
+       */
+      result = NSMakeRange(NSNotFound, 0);
+    }
+  else
+    {
+      if ((mask & NSDataSearchAnchored) == NSDataSearchAnchored
+        || searchRange.length == countOther)
+        {
+          /* Range to search is same size as data to look for.
+           */
+          if ((mask & NSDataSearchBackwards) == NSDataSearchBackwards)
+            {
+              searchRange.location = NSMaxRange(searchRange) - countOther;
+              searchRange.length = countOther;
+            }
+          else
+            {
+              searchRange.length = countOther;
+            }
+          if (memcmp(&bytesSelf[0], &bytesOther[0], countOther) == 0)
+            {
+              result = searchRange;
+            }
+          else
+            {
+              result = NSMakeRange(NSNotFound, 0);
+            }
+        }
+      else
+        {
+          /* Range to search is bigger than data to look for.
+           */
+
+          NSUInteger pos;
+          NSUInteger end;
+
+          end = searchRange.length - countOther + 1;
+          if ((mask & NSDataSearchBackwards) == NSDataSearchBackwards)
+            {
+              pos = end;
+            }
+          else
+            {
+              pos = 0;
+            }
+
+          if ((mask & NSDataSearchBackwards) == NSDataSearchBackwards)
+            {
+              while (pos-- > 0)
+                {
+                  if (memcmp(&bytesSelf[searchRange.location + pos], bytesOther, countOther) == 0)
+                    {
+                      break;
+                    }
+                }
+            }
+          else
+            {
+              while (pos < end)
+                {
+                  if (memcmp(&bytesSelf[searchRange.location + pos], bytesOther, countOther) == 0)
+                    {
+                      break;
+                    }
+                  pos++;
+                }
+            }
+
+          if (pos >= end)
+            {
+              result = NSMakeRange(NSNotFound, 0);
+            }
+          else
+            {
+              result = NSMakeRange(searchRange.location + pos, countOther);
+            }
+        }
+    }
+  return result;
+}
+
 - (NSData *) base64EncodedDataWithOptions: (NSDataBase64EncodingOptions)options
 {
   void          *srcBytes = (void*)[self bytes];

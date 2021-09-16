@@ -29,6 +29,28 @@
 
 @implementation NSURL (GNUstepBaseAdditions)
 
+- (NSString*) cacheKey
+{
+  NSString      *k;
+  NSString      *s = [[self scheme] lowercaseString];
+  NSString      *h = [[self host] lowercaseString];
+  NSNumber      *p = [self port];
+
+  if (nil == p)
+    {
+      if ([s isEqualToString: @"http"])
+        {
+          p = [NSNumber numberWithInt: 80];
+        }
+      else if ([s isEqualToString: @"https"])
+        {
+          p = [NSNumber numberWithInt: 443];
+        }
+    }
+  k = [NSString stringWithFormat: @"%@::/%@:%@", s, h, p];
+  return k;
+}
+
 - (id) initWithScheme: (NSString*)scheme
 		 user: (NSString*)user
 	     password: (NSString*)password
@@ -42,8 +64,15 @@
   NSMutableString	*urlString;
   NSString		*s;
 
+  if (scheme != nil)
+    {
   urlString = [scheme mutableCopy];
   [urlString appendString: @"://"];
+    }
+  else
+    {
+      urlString = [[NSMutableString alloc] init];
+    }
   if ([user length] > 0 || [password length] > 0)
     {
       if (nil == (s = user)) s = @"";

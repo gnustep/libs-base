@@ -137,6 +137,13 @@ extern "C" {
  */
 + (id) whitespaceCharacterSet;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+/**
+ * Returns the character set for characters allowed in a query URL component.
+ */
++ (NSCharacterSet*)URLQueryAllowedCharacterSet;
+#endif
+
 /**
  * Returns a character set containing characters as encoded in the
  * data object (8192 bytes)

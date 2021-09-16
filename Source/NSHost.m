@@ -41,8 +41,8 @@
 #if defined(_WIN32)
 #include <winsock2.h>
 #include <ws2tcpip.h>
-extern const char *inet_ntop(int, const void *, char *, size_t);
-extern int inet_pton(int , const char *, void *);
+// extern const char *inet_ntop(int, const void *, char *, size_t);
+// extern int inet_pton(int , const char *, void *);
 #else
 #include <netdb.h>
 #include <sys/param.h>
@@ -519,7 +519,7 @@ myHostName()
 
       if (inet_pton(AF_INET, a, (void*)&hostaddr) <= 0)
 	{
-	  NSLog(@"Invalid host address sent to [NSHost +hostWithAddress:]");
+	  NSLog(@"Invalid host address sent to [NSHost +hostWithAddress:]: %@ (%s)", address, a);
 	  return nil;
 	}
       inet_ntop(AF_INET, (void*)&hostaddr, buf, sizeof(buf));
@@ -533,7 +533,7 @@ myHostName()
 
       if (inet_pton(AF_INET6, a, (void*)&hostaddr6) <= 0)
 	{
-	  NSLog(@"Invalid host address sent to [NSHost +hostWithAddress:]");
+          NSLog(@"Invalid host address sent to [NSHost +hostWithAddress:]: %@ (%s)", address, a);
 	  return nil;
 	}
       inet_ntop(AF_INET6, (void*)&hostaddr6, buf, sizeof(buf));

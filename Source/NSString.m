@@ -20,12 +20,12 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
 
    <title>NSString class reference</title>
    $Date$ $Revision$
@@ -75,6 +75,7 @@
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 #import "GSPrivate.h"
+#import "GSPThread.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -149,9 +150,12 @@ static Class	GSPlaceholderStringClass;
 
 static GSPlaceholderString	*defaultPlaceholderString;
 static NSMapTable		*placeholderMap;
-static NSLock			*placeholderLock;
+static pthread_mutex_t          placeholderLock = PTHREAD_MUTEX_INITIALIZER;
+
 
 static SEL	cMemberSel = 0;
+static NSCharacterSet	        *nonBase = nil;
+static BOOL                     (*nonBaseImp)(id, SEL, unichar) = 0;
 
 /* Macro to return the receiver if it is already immutable, but an
  * autoreleased copy otherwise.  Used where we have to return an
@@ -194,6 +198,24 @@ static void setupWhitespace(void)
       whitespaceBitmap = RETAIN([whitespace bitmapRepresentation]);
       whitespaceBitmapRep = [whitespaceBitmap bytes];
     }
+}
+
+/* A non-spacing character is one which is part of a 'user-perceived character'
+ * where the user perceived character consists of a base character followed
+ * by a sequence of non-spacing characters.  Non-spacing characters do not
+ * exist in isolation.
+ * eg. an accented 'a' might be represented as the 'a' followed by the accent.
+ */
+inline BOOL
+uni_isnonsp(unichar u)
+{
+  /* Treating upper surrogates as non-spacing is a convenient solution
+   * to a number of issues with UTF-16
+   */
+  if ((u >= 0xdc00) && (u <= 0xdfff))
+    return YES;
+
+  return (*nonBaseImp)(nonBase, cMemberSel, u);
 }
 
 /*
@@ -279,14 +301,14 @@ pathSeps(void)
     {
       if (rPathSeps == nil)
 	{
-	  [placeholderLock lock];
+	  (void)pthread_mutex_lock(&placeholderLock);
 	  if (rPathSeps == nil)
 	    {
 	      rPathSeps
 		= [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
               rPathSeps = [NSObject leakAt: &rPathSeps];
 	    }
-	  [placeholderLock unlock];
+	  (void)pthread_mutex_unlock(&placeholderLock);
 	}
       return rPathSeps;
     }
@@ -294,14 +316,14 @@ pathSeps(void)
     {
       if (uPathSeps == nil)
 	{
-	  [placeholderLock lock];
+	  (void)pthread_mutex_lock(&placeholderLock);
 	  if (uPathSeps == nil)
 	    {
 	      uPathSeps
 		= [NSCharacterSet characterSetWithCharactersInString: @"/"];
               uPathSeps = [NSObject leakAt: &uPathSeps];
 	    }
-	  [placeholderLock unlock];
+	  (void)pthread_mutex_unlock(&placeholderLock);
 	}
       return uPathSeps;
     }
@@ -309,14 +331,14 @@ pathSeps(void)
     {
       if (wPathSeps == nil)
 	{
-	  [placeholderLock lock];
+	  (void)pthread_mutex_lock(&placeholderLock);
 	  if (wPathSeps == nil)
 	    {
 	      wPathSeps
 		= [NSCharacterSet characterSetWithCharactersInString: @"\\"];
               wPathSeps = [NSObject leakAt: &wPathSeps];
 	    }
-	  [placeholderLock unlock];
+	  (void)pthread_mutex_unlock(&placeholderLock);
 	}
       return wPathSeps;
     }
@@ -515,10 +537,13 @@ static const unichar byteOrderMarkSwapped = 0xFFFE;
    Apparently GNU libc 2.xx needs this to be 0 also, along with Linux
    libc versions 5.2.xx and higher (including libc6, which is just GNU
    libc). -chung */
-#define PRINTF_ATSIGN_VA_LIST			\
-       (defined(_LINUX_C_LIB_VERSION_MINOR)	\
+#if defined(_LINUX_C_LIB_VERSION_MINOR)	\
 	&& _LINUX_C_LIB_VERSION_MAJOR <= 5	\
-	&& _LINUX_C_LIB_VERSION_MINOR < 2)
+  && _LINUX_C_LIB_VERSION_MINOR < 2
+#define PRINTF_ATSIGN_VA_LIST	1
+#else
+#define PRINTF_ATSIGN_VA_LIST	0
+#endif
 
 #if ! PRINTF_ATSIGN_VA_LIST
 static int
@@ -596,6 +621,31 @@ handle_printf_atsign (FILE *stream,
 }
 #endif /* HAVE_REGISTER_PRINTF_FUNCTION */
 
+static void
+register_printf_atsign ()
+{
+#if     defined(HAVE_REGISTER_PRINTF_SPECIFIER)
+      if (register_printf_specifier ('@', handle_printf_atsign,
+#if PRINTF_ATSIGN_VA_LIST
+				    0))
+#else
+	                            arginfo_func))
+#endif
+	[NSException raise: NSGenericException
+		     format: @"register printf handling of %%@ failed"];
+#elif   defined(HAVE_REGISTER_PRINTF_FUNCTION)
+      if (register_printf_function ('@', handle_printf_atsign,
+#if PRINTF_ATSIGN_VA_LIST
+				    0))
+#else
+	                            arginfo_func))
+#endif
+	[NSException raise: NSGenericException
+		     format: @"register printf handling of %%@ failed"];
+#endif
+}
+
+
 #if GS_USE_ICU == 1
 /**
  * Returns an ICU collator for the given locale and options, or returns
@@ -614,7 +664,18 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
       return NULL;
     }
   
-  if (locale == nil)
+  if (NO == [locale isKindOfClass: [NSLocale class]])
+    {
+      if (nil == locale)
+        {
+          /* See comments below about the posix locale.
+           * It's bad for case insensitive search, but needed for numeric
+           */
+          if (mask & NSNumericSearch)
+            {
+              locale = [NSLocale systemLocale];
+            }
+          else
     {
       /* A nil locale should trigger POSIX collation (i.e. 'A'-'Z' sort
        * before 'a'), and support for this was added in ICU 4.6 under the
@@ -625,14 +686,18 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
        */
       return NULL;
     }
+        }
   else
     {
+          locale = [NSLocale currentLocale];
+        }
+    }
+
       localeCString = [[locale localeIdentifier] UTF8String];
 
-      if (localeCString == NULL || strcmp("", localeCString) == 0)
+  if (localeCString != NULL && strcmp("", localeCString) == 0)
 	{
-	  return NULL;
-	}
+      localeCString = NULL;
     }
 	  
   coll = ucol_open(localeCString, &status);
@@ -755,7 +820,6 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
 + (void) atExit
 {
-  DESTROY(placeholderLock);
   DESTROY(placeholderMap);
 }
 
@@ -775,6 +839,11 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
       gcrSel = @selector(getCharacters:range:);
       ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
 
+      nonBase = [NSCharacterSet nonBaseCharacterSet];
+      nonBase = [NSObject leakAt: &nonBase];
+      nonBaseImp
+        = (BOOL(*)(id,SEL,unichar))[nonBase methodForSelector: cMemberSel];
+
       _DefaultStringEncoding = GSPrivateDefaultCStringEncoding();
       _ByteEncodingOk = GSPrivateIsByteEncoding(_DefaultStringEncoding);
 
@@ -793,27 +862,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	[GSPlaceholderStringClass allocWithZone: NSDefaultMallocZone()];
       placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
-      placeholderLock = [NSLock new];
-
-#if     defined(HAVE_REGISTER_PRINTF_SPECIFIER)
-      if (register_printf_specifier ('@', handle_printf_atsign,
-#if PRINTF_ATSIGN_VA_LIST
-				    0))
-#else
-	                            arginfo_func))
-#endif
-	[NSException raise: NSGenericException
-		     format: @"register printf handling of %%@ failed"];
-#elif   defined(HAVE_REGISTER_PRINTF_FUNCTION)
-      if (register_printf_function ('@', handle_printf_atsign,
-#if PRINTF_ATSIGN_VA_LIST
-				    0))
-#else
-	                            arginfo_func))
-#endif
-	[NSException raise: NSGenericException
-		     format: @"register printf handling of %%@ failed"];
-#endif
+      register_printf_atsign();
       [self registerAtExit];
     }
 }
@@ -844,7 +893,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	   * locate the correct placeholder in the (lock protected)
 	   * table of placeholders.
 	   */
-	  [placeholderLock lock];
+	  (void)pthread_mutex_lock(&placeholderLock);
 	  obj = (id)NSMapGet(placeholderMap, (void*)z);
 	  if (obj == nil)
 	    {
@@ -855,7 +904,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	      obj = (id)[GSPlaceholderStringClass allocWithZone: z];
 	      NSMapInsert(placeholderMap, (void*)z, (void*)obj);
 	    }
-	  [placeholderLock unlock];
+	  (void)pthread_mutex_unlock(&placeholderLock);
 	  return obj;
 	}
     }
@@ -904,6 +953,9 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 {
   NSString	*obj;
 
+  if (NULL == aString)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString+stringWithString:]: NULL string"];
   obj = [self allocWithZone: NSDefaultMallocZone()];
   obj = [obj initWithString: aString];
   return AUTORELEASE(obj);
@@ -930,10 +982,12 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 + (id) stringWithCString: (const char*)byteString
 {
   NSString	*obj;
-  unsigned	length = byteString ? strlen(byteString) : 0;
 
+  if (NULL == byteString)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString+stringWithCString:]: NULL cString"];
   obj = [self allocWithZone: NSDefaultMallocZone()];
-  obj = [obj initWithCString: byteString length: length];
+  obj = [obj initWithCString: byteString];
   return AUTORELEASE(obj);
 }
 
@@ -1081,16 +1135,16 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 + (id) stringWithFormat: (NSString*)format,...
 {
   va_list ap;
-  id ret;
+  NSString	*obj;
 
+  if (NULL == format)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString+stringWithFormat:]: NULL format"];
   va_start(ap, format);
-  if (format == nil)
-    ret = nil;
-  else
-    ret = AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
-      initWithFormat: format arguments: ap]);
+  obj = [self allocWithZone: NSDefaultMallocZone()];
+  obj = [obj initWithFormat: format arguments: ap];
   va_end(ap);
-  return ret;
+  return AUTORELEASE(obj);
 }
 
 
@@ -1241,8 +1295,11 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 - (id) initWithCString: (const char*)byteString
 	      encoding: (NSStringEncoding)encoding
 {
+  if (NULL == byteString)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString-initWithCString:encoding:]: NULL cString"];
   return [self initWithBytes: byteString
-		      length: (byteString ? strlen(byteString) : 0)
+		      length: strlen(byteString)
 		    encoding: encoding];
 }
 
@@ -1265,8 +1322,11 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
  */
 - (id) initWithCString: (const char*)byteString
 {
+  if (NULL == byteString)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString-initWithCString:]: NULL cString"];
   return [self initWithBytes: byteString
-		      length: (byteString ? strlen(byteString) : 0)
+		      length: strlen(byteString)
 		    encoding: _DefaultStringEncoding];
 }
 
@@ -1277,6 +1337,9 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 {
   unsigned	length = [string length];
 
+  if (NULL == string)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString-initWithString:]: NULL string"];
   if (length > 0)
     {
       unichar	*s = NSZoneMalloc([self zone], sizeof(unichar)*length);
@@ -1300,8 +1363,11 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
  */
 - (id) initWithUTF8String: (const char *)bytes
 {
+  if (NULL == bytes)
+    [NSException raise: NSInvalidArgumentException
+		format: @"[NSString-initWithUTF8String:]: NULL cString"];
   return [self initWithBytes: bytes
-		      length: (bytes ? strlen(bytes) : 0)
+		      length: strlen(bytes)
 		    encoding: NSUTF8StringEncoding];
 }
 
@@ -1353,6 +1419,9 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   unichar	*fmt = fbuf;
   size_t	len;
 
+  if (NULL == format)
+    [NSException raise: NSInvalidArgumentException
+      format: @"[NSString-initWithFormat:locale:arguments:]: NULL format"];
   /*
    * First we provide an array of unichar characters containing the
    * format string.  For performance reasons we try to use an on-stack
@@ -1396,13 +1465,11 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
    * the temporary buffer) for large strings.  For most strings, the
    * on-stack memory will have been used, so we will get better performance.
    */
-#if HAVE_WIDE_PRINTF_FUNCTION
   if (f->_flags.wide == 1)
     {
       self = [self initWithCharacters: f->_contents.u length: f->_count];
     }
   else
-#endif	/* HAVE_WIDE_PRINTF_FUNCTION */
     {
       self = [self initWithCString: (char*)f->_contents.c length: f->_count];
     }
@@ -1834,6 +1901,112 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     }
 }
 
+- (NSString *) stringByAddingPercentEncodingWithAllowedCharacters:
+  (NSCharacterSet *)aSet
+{
+  NSData	*data = [self dataUsingEncoding: NSUTF8StringEncoding];
+  NSString	*s = nil;
+
+  if (data != nil)
+    {
+      unsigned char	*src = (unsigned char*)[data bytes];
+      unsigned int	slen = [data length];
+      unsigned char	*dst;
+      unsigned int	spos = 0;
+      unsigned int	dpos = 0;
+
+      dst = (unsigned char*)NSZoneMalloc(NSDefaultMallocZone(), slen * 3);
+      while (spos < slen)
+	{
+	  unichar	c = src[spos++];
+	  unsigned int	hi;
+	  unsigned int	lo;
+
+	  /* If the character is in the allowed set *and* is in the
+	   * 7-bit ASCII range, it can be added unchanged.
+	   */
+	  if (c < 128 && [aSet characterIsMember: c])
+	    {
+	      dst[dpos++] = c;
+	    }
+	  else // if not, then encode it...
+	    {
+	      dst[dpos++] = '%';
+	      hi = (c & 0xf0) >> 4;
+	      dst[dpos++] = (hi > 9) ? 'A' + hi - 10 : '0' + hi;
+	      lo = (c & 0x0f);
+	      dst[dpos++] = (lo > 9) ? 'A' + lo - 10 : '0' + lo;
+	    }
+	}
+      s = [[NSString alloc] initWithBytes: dst
+				   length: dpos
+				 encoding: NSASCIIStringEncoding];
+      NSZoneFree(NSDefaultMallocZone(), dst);
+      IF_NO_GC([s autorelease];)
+    }
+  return s;
+}
+
+- (NSString *) stringByRemovingPercentEncoding
+{
+  NSData	*data = [self dataUsingEncoding: NSUTF8StringEncoding];
+  const uint8_t	*s = [data bytes];
+  NSUInteger	length = [data length]; 
+  NSUInteger	lastPercent = length - 3;
+  char		*o = (char *)NSZoneMalloc(NSDefaultMallocZone(), length + 1);
+  char		*next = o;
+  NSUInteger	index;
+  NSString	*result;
+
+  for (index = 0; index < length; index++)
+    {
+      char	c = s[index];
+
+      if ('%' == c && index <= lastPercent)
+	{
+	  uint8_t	hi = s[index+1];
+	  uint8_t	lo = s[index+2];
+
+	  if (isxdigit(hi) && isxdigit(lo))
+	    {
+	      index += 2;
+              if (hi <= '9')
+                {
+                  c = hi - '0';
+                }
+              else if (hi <= 'F')
+                {
+                  c = hi - 'A' + 10;
+                }
+              else
+                {
+                  c = hi - 'a' + 10;
+                }
+	      c <<= 4;
+              if (lo <= '9')
+                {
+                  c += lo - '0';
+                }
+              else if (lo <= 'F')
+                {
+                  c += lo - 'A' + 10;
+                }
+              else
+                {
+                  c += lo - 'a' + 10;
+                }
+	    }
+	}
+      *next++ = c;
+    }
+  *next = '\0';
+
+  result = [NSString stringWithUTF8String: o];
+  NSZoneFree(NSDefaultMallocZone(), o);
+  
+  return result; 
+}
+
 /**
  * Constructs a new ASCII string which is a representation of the receiver
  * in which characters are escaped where necessary in order to produce a
@@ -2209,11 +2382,6 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     }
 
   return range;
-}
-
-- (NSRange) rangeOfComposedCharacterSequencesForRange: (NSRange)range
-{
-  return NSMakeRange(0, 0);     // FIXME
 }
 
 /**
@@ -2655,10 +2823,6 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     }
 
 #if GS_USE_ICU == 1
-  if (nil != locale && NO == [locale isKindOfClass: [NSLocale class]])
-    {
-      locale = [NSLocale currentLocale];
-    }
     {
       UCollator *coll = GSICUCollatorOpen(mask, locale);
 
@@ -2761,9 +2925,6 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
  */
 - (NSRange) rangeOfComposedCharacterSequenceAtIndex: (NSUInteger)anIndex
 {
-static NSCharacterSet	*nonbase = nil;
-static SEL              nbSel;
-static BOOL             (*nbImp)(id, SEL, unichar) = 0;
   unsigned	start;
   unsigned	end;
   unsigned	length = [self length];
@@ -2775,26 +2936,36 @@ static BOOL             (*nbImp)(id, SEL, unichar) = 0;
   caiImp = (unichar (*)(NSString*,SEL,NSUInteger))
     [self methodForSelector: caiSel];
 
-  if (nil == nonbase)
-    {
-      nonbase = [[NSCharacterSet nonBaseCharacterSet] retain];
-      nbSel = @selector(characterIsMember:);
-      nbImp = (BOOL(*)(id,SEL,unichar))[nonbase methodForSelector: nbSel];
-    }
   for (start = anIndex; start > 0; start--)
     {
       ch = (*caiImp)(self, caiSel, start);
-      if ((*nbImp)(nonbase, nbSel, ch) == NO)
+      if (uni_isnonsp(ch) == NO)
         break;
     }
   for (end = start+1; end < length; end++)
     {
       ch = (*caiImp)(self, caiSel, end);
-      if ((*nbImp)(nonbase, nbSel, ch) == NO)
+      if (uni_isnonsp(ch) == NO)
         break;
     }
 
   return NSMakeRange(start, end-start);
+}
+
+- (NSRange) rangeOfComposedCharacterSequencesForRange: (NSRange)range
+{
+  NSRange startRange = [self rangeOfComposedCharacterSequenceAtIndex: range.location];
+
+  if (NSMaxRange(startRange) >= NSMaxRange(range))
+    {
+      return startRange;
+    }
+  else
+    {
+      NSRange endRange = [self rangeOfComposedCharacterSequenceAtIndex: NSMaxRange(range) - 1];
+
+      return NSUnionRange(startRange, endRange);
+    }
 }
 
 // Identifying and Comparing Strings
@@ -2925,16 +3096,21 @@ static BOOL             (*nbImp)(id, SEL, unichar) = 0;
 
   if (len > 0)
     {
-      unichar		buf[64];
-      unichar		*ptr = (len <= 64) ? buf :
-	NSZoneMalloc(NSDefaultMallocZone(), len * sizeof(unichar));
+      static const int buf_size = 64;
+      unichar		buf[buf_size];
+      int idx = 0;
+      uint32_t s0 = 0;
+      uint32_t s1 = 0;
 
-      [self getCharacters: ptr range: NSMakeRange(0,len)];
-      ret = GSPrivateHash(0, (const void*)ptr, len * sizeof(unichar));
-      if (ptr != buf)
+      while (idx < len)
 	{
-	  NSZoneFree(NSDefaultMallocZone(), ptr);
+	  int l = MIN(len-idx, buf_size);
+	  [self getCharacters: buf range: NSMakeRange(idx,l)];
+	  GSPrivateIncrementalHash(&s0, &s1, buf, l * sizeof(unichar));
+	  idx += l;
 	}
+
+      ret = GSPrivateFinishHash(s0, s1, len * sizeof(unichar));
 
       /*
        * The hash caching in our concrete string classes uses zero to denote

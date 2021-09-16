@@ -62,7 +62,24 @@ enum
   NSWeekOfMonthCalendarUnit = (1UL << 12),
   NSWeekOfYearCalendarUnit = (1UL << 13),
   NSYearForWeekOfYearCalendarUnit = (1UL << 14),
+  NSCalendarUnitNanosecond = (1UL << 15),
+  NSCalendarUnitCalendar = (1UL << 20),
+  NSCalendarUnitTimeZone = (1UL << 21),
 #endif
+  NSCalendarUnitEra = NSEraCalendarUnit,
+  NSCalendarUnitYear = NSYearCalendarUnit,
+  NSCalendarUnitMonth = NSMonthCalendarUnit,
+  NSCalendarUnitDay = NSDayCalendarUnit,
+  NSCalendarUnitHour = NSHourCalendarUnit,
+  NSCalendarUnitMinute = NSMinuteCalendarUnit,
+  NSCalendarUnitSecond = NSSecondCalendarUnit,
+  NSCalendarUnitWeek = NSWeekCalendarUnit,
+  NSCalendarUnitWeekday = NSWeekdayCalendarUnit,
+  NSCalendarUnitWeekdayOrdinal = NSWeekdayOrdinalCalendarUnit,
+  NSCalendarUnitQuarter = NSQuarterCalendarUnit,
+  NSCalendarUnitWeekOfMonth = NSWeekOfMonthCalendarUnit,
+  NSCalendarUnitWeekOfYear = NSWeekOfYearCalendarUnit,
+  NSCalendarUnitYearForWeekOfYear = NSYearForWeekOfYearCalendarUnit,
 };
 
 enum
@@ -189,6 +206,7 @@ enum
 }
 
 + (id) currentCalendar;
++ (id) calendarWithIdentifier: (NSString *) string;
 
 - (id) initWithCalendarIdentifier: (NSString *) string;
 - (NSString *) calendarIdentifier;
@@ -232,6 +250,19 @@ enum
 - (NSRange) rangeOfUnit: (NSCalendarUnit) smaller
                  inUnit: (NSCalendarUnit) larger
                 forDate: (NSDate *) date;
+				
+- (void)getEra:(out NSInteger *)eraValuePointer
+          year:(out NSInteger *)yearValuePointer
+		  month:(out NSInteger *)monthValuePointer
+		  day:(out NSInteger *)dayValuePointer
+		  fromDate:(NSDate *)date;
+
+- (void)getHour:(out NSInteger *)hourValuePointer
+         minute:(out NSInteger *)minuteValuePointer
+		 second:(out NSInteger *)secondValuePointer
+		 nanosecond:(out NSInteger *)nanosecondValuePointer
+		 fromDate:(NSDate *)date;
+
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 + (id) autoupdatingCurrentCalendar;

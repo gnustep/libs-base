@@ -1,3 +1,134 @@
+2020-12-23  Doug Simons <doug.simons@eggplant.io>
+
+       * NSDateFormatter.m: 
+	   Round to nearest millisecond when formatting.
+
+2020-10-11  Adam Fox <adam.fox@eggplantsoftware.com>
+
+       * NSData.m: Implement rangeOfData:options:range
+
+2019-12-03  Doug Simons <doug.simons@eggplant.io>
+
+       * NSTimeZone.m: 
+	   Tweak standardName to return Etc/GMT+X name as a last resort.
+
+2019-09-15  Doug Simons <doug.simons@eggplant.io>
+
+       * NSCalendar.m: 
+	   Change _resetCalendarWithTimeZone: to use the standardName of the time
+	   zone so the ICU functions don't fall back to assuming GMT.
+	   
+2019-08-06  Doug Simons <doug.simons@eggplant.io>
+
+       * NSDateFormatter.m: 
+	   Unset _dateFormat when using date or time styles, because the format
+	   will override the style.
+	   
+2019-08-05  Doug Simons <doug.simons@eggplant.io>
+
+       * NSTimeZone.m: 
+	   Work harder at translating Windows time zone names to IANA/Olson, since
+	   the ICU function doesn't seem to handle "Daylight" zone names.
+	   
+2019-07-25  Doug Simons <doug.simons@eggplant.io>
+
+       * NSTimeZone.m: 
+	   Fix my sloppy mistake in standardTimeZoneNames method.
+	   
+2019-07-23  Doug Simons <doug.simons@eggplant.io>
+
+       * NSTimeZone.m: 
+	   Add +icuLibraryVersion method to get the library version.
+	   
+2019-07-18  Doug Simons <doug.simons@eggplant.io>
+
+       * NSTimeZone.m: 
+	   Don't try to call the Windows-to-IANA conversion function unless we have
+	   ICU version 52 or later.
+	   
+2019-07-18  Doug Simons <doug.simons@eggplant.io>
+
+       * NSTimeZone.h: 
+       * NSTimeZone.m: 
+	   Add standardTimeZoneNames method to get the list of standard IANA/Olson
+	   time zone names directly from the ICU library. These are the names that
+	   should be used with the library. Return these from knownTimeZoneNames if
+	   they are available.
+	   
+2019-07-18  Doug Simons <doug.simons@eggplant.io>
+
+       * NSTimeZone.h: 
+       * NSTimeZone.m: 
+       * NSDateFormatter.m: 
+	   Add standardName method to convert a "Windows" timeZone name to a
+	   standard IANA/Olson name. This is needed in order for NSDateFormatter
+	   to correctly format times (otherwise they are displayed in GMT).
+	   
+2019-05-14  Doug Simons <doug.simons@eggplant.io>
+
+       * NSDateFormatter.m: 
+	   Add check for ICU version to fix problem with UDAT_PATTERN
+	   not being defined on older versions.
+	   
+2019-05-13  Doug Simons <doug.simons@eggplant.io>
+
+       * NSDateFormatter.m: 
+	   Fix stringFromDate: to ensure we always have a time zone.
+	   
+2019-05-12  Doug Simons <doug.simons@eggplant.io>
+
+       * NSCalendar.m: 
+       Fix my earlier change to -dateFromComponents: method.
+	   Similarly fix -getEra:year:month:day:fromDate: and
+	   -getHour:minute:second:nanosecond:fromDate: to use
+	   the timeZone that is set.
+
+2019-05-09  Doug Simons <doug.simons@eggplant.io>
+
+       * NSCalendar.h:
+       * NSCalendar.m: 
+       Add some missing NSCalendarUnit enum constants.
+	   Add +calendarWithIdentifier: method.
+	   Add -getEra:(out NSInteger *)eraValuePointer
+          year:(out NSInteger *)yearValuePointer
+		  month:(out NSInteger *)monthValuePointer
+		  day:(out NSInteger *)dayValuePointer
+		  fromDate:(NSDate *)date method.
+	   Add -getHour:(out NSInteger *)hourValuePointer
+         minute:(out NSInteger *)minuteValuePointer
+		 second:(out NSInteger *)secondValuePointer
+		 nanosecond:(out NSInteger *)nanosecondValuePointer
+		 fromDate: method.
+		 
+       * NSDateFormatter.h:
+	   Fix _resetUDateFormat to actually use the format that was set!!!
+	   
+       * NSTimeZone.m: 
+	   Fix +systemTimeZone method to honor defaults, environment variable,
+	   or local file override of system time zone setting.
+	   
+2019-04-10  Doug Simons <doug.simons@eggplant.io>
+
+       * NSCalendar.m: 
+	   Fix to use timeZone if supplied in -dateFromComponents: method.
+	
+2019-04-10  Doug Simons <doug.simons@eggplant.io>
+
+       * NSXMLDocument.m: 
+	   Ensure that URI is set in all init methods; otherwise it could start with random value.
+	
+2019-02-12  Doug Simons <doug.simons@eggplant.io>
+
+       * NSCharacterSetData.h: 
+	   Add characters 8232 (Line Separator) and 8233 (Paragraph Separator) to the
+	   newlineCharSet. These were already in the whitespaceAndNlCharSet. I added
+	   these codes directly in this file since I don't know how it is generated.
+	
+2018-04-25  Doug Simons <doug.simons@testplant.com>
+
+       * NSRegularExpression.m: Move call to uregex_setMatchCallback after some other
+	calls so it will succeed (not sure why, but this makes it work).
+
 2017-03-28  Doug Simons <doug.simons@testplant.com>
 
        * NSFileManager.m: Add basic implementation of setAttributes:ofItemAtPath:error:.

@@ -15,12 +15,12 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
 
    $Date$ $Revision$
    */
@@ -38,6 +38,8 @@
 
 #import "GSPrivate.h"
 #import "GSSorting.h"
+
+#define USE_IMMUTABLE_FAST_ENUMERATION_CODE
 
 static SEL	eqSel;
 static SEL	oaiSel;
@@ -72,6 +74,18 @@ static Class	GSInlineArrayClass;
 @end
 
 @implementation GSArray
+
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  NSUInteger	size = _count * sizeof(id);
+  NSUInteger	index = _count;
+
+  while (index-- > 0)
+    {
+      size += [_contents_array[index] sizeInBytesExcluding: exclude];
+    }
+  return size + [super sizeOfContentExcluding: exclude];
+}
 
 - (void) _raiseRangeExceptionWithIndex: (NSUInteger)index from: (SEL)sel
 {
@@ -421,6 +435,13 @@ static Class	GSInlineArrayClass;
 
 @implementation GSMutableArray
 
+- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
+{
+  /* Can't safely calculate for mutable object; just buffer size
+   */
+  return _capacity * sizeof(void*);
+}
+
 + (void) initialize
 {
   if (self == [GSMutableArray class])
@@ -556,6 +577,27 @@ static Class	GSInlineArrayClass;
       _count = count;
     }
   return self;
+}
+
+// TESTPLANT-MAL-10162017: Set comment/code in +initialize
+// ANY method added will REPLACE the swizzling copy from GSArray
+// so THIS MUST be a FULL implementation of the dealloc method...
+- (void) dealloc
+{
+  _version = 0xDEADDEAD;
+
+  if (_contents_array)
+  {
+    NSUInteger	i;
+    
+    for (i = 0; i < _count; i++)
+    {
+      [_contents_array[i] release];
+    }
+    NSZoneFree([self zone], _contents_array);
+    _contents_array = 0;
+  }
+  [super dealloc];
 }
 
 - (void) insertObject: (id)anObject atIndex: (NSUInteger)index

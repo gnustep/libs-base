@@ -13,7 +13,7 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
@@ -73,15 +73,19 @@
 
 @interface      NSURLProtocol (Private)
 + (Class) _classToHandleRequest:(NSURLRequest *)request;
+// TESTPLANT-MAL-06092020: Keeping testplant branch code...
+- (NSDictionary*) _userInfoForErrorCode: (NSUInteger) errorCode;
+- (NSDictionary*) _userInfoForErrorCode: (NSUInteger) errorCode description: (NSString*) description;
+- (NSDictionary*) _userInfoForErrorCode: (NSUInteger) errorCode description: (NSString*) description host: (NSHost*)host;
 @end
 
 /*
  * Internal class for handling HTTP authentication
  */
-@class	GSLazyLock;
+@class	NSLock;
 @interface GSHTTPAuthentication : NSObject
 {
-  GSLazyLock		*_lock;
+  NSLock		*_lock;
   NSURLCredential	*_credential;
   NSURLProtectionSpace	*_space;
   NSString		*_nonce;

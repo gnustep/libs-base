@@ -3,19 +3,19 @@
 
    Written by:  Adam Fedor <fedor@boulder.colorado.edu>
    Date: 1995
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Library General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
@@ -26,7 +26,7 @@
     AutogsdocSource: NSAssertionHandler.m
     AutogsdocSource: NSException.m
 
-   */ 
+   */
 
 #ifndef __NSException_h_GNUSTEP_BASE_INCLUDE
 #define __NSException_h_GNUSTEP_BASE_INCLUDE
@@ -54,22 +54,6 @@
 #include <setjmp.h>
 #include <stdarg.h>
 
-#if	defined(__WIN64__)
-/* This hack is to deal with the fact that currently (June 2016) the
- * implementation of longjmp in mingw-w64  sometimes crashes in msvcrt.dll
- * but the builtin version provided by gcc seems to work.
-  */
-#ifdef setjmp
-#undef setjmp
-#endif
-// Testplant: also changed declaration of jmp_buf below to line up with the builtins
-#define	setjmp(X)	__builtin_setjmp(X)
-
-#ifdef longjmp
-#undef longjmp
-#endif
-#define	longjmp(X,Y)	__builtin_longjmp(X,Y)
-#endif
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -117,7 +101,7 @@ extern "C" {
    </p>
 */
 @interface NSException : NSObject <NSCoding, NSCopying>
-{    
+{
 #if	GS_EXPOSE(NSException)
 @private
   NSString *_e_name;
@@ -164,10 +148,10 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) && GS_API_VERSION( 11903,GS_API_LATEST)
 /**
- * Returns an array of the symbolic names of the call stack return addresses.  
+ * Returns an array of the symbolic names of the call stack return addresses.
  * Note that, on some platforms, symbols are only exported in
  * position-independent code and so these may only return numeric addresses for
- * code in static libraries or the main application.  
+ * code in static libraries or the main application.
  */
 - (NSArray*) callStackSymbols;
 #endif
@@ -176,8 +160,8 @@ extern "C" {
  * <init/>Initializes a newly allocated NSException object with a
  * name, reason and a dictionary userInfo.
  */
-- (id) initWithName: (NSString*)name 
-	     reason: (NSString*)reason 
+- (id) initWithName: (NSString*)name
+	     reason: (NSString*)reason
 	   userInfo: (NSDictionary*)userInfo;
 
 /** Returns the name of the exception. */
@@ -284,13 +268,10 @@ GS_EXPORT NSString* const NSRangeException;
 /**
  * The actual structure for an NSHandler.  You shouldn't need to worry about it.
  */
-typedef struct _NSHandler 
+typedef struct _NSHandler
 {
-#ifdef __MINGW64__ // other half of hack to use builtins
-    void *jumpState[20];
-#else
     jmp_buf jumpState;			/* place to longjmp to */
-#endif
+
     struct _NSHandler *next;		/* ptr to next handler */
     __unsafe_unretained NSException *exception;
 } NSHandler;
@@ -339,7 +320,7 @@ NSGetUncaughtExceptionHandler();
 GS_EXPORT void
 NSSetUncaughtExceptionHandler(NSUncaughtExceptionHandler *handler);
 
-/* NS_DURING, NS_HANDLER and NS_ENDHANDLER are always used like: 
+/* NS_DURING, NS_HANDLER and NS_ENDHANDLER are always used like:
 
 	NS_DURING
 	    some code which might raise an error
@@ -391,7 +372,7 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 
 #define NS_VALUERETURN(object, id) do { id temp = object;	\
 			_NSRemoveHandler(&NSLocalHandler);	\
-			return(temp); } while (0) 
+			return(temp); } while (0)
 
 #define NS_VOIDRETURN	do { _NSRemoveHandler(&NSLocalHandler);	\
 			return; } while (0)
@@ -406,23 +387,23 @@ GS_EXPORT void _NSRemoveHandler( NSHandler *handler );
 
 + (NSAssertionHandler*) currentHandler;
 
-- (void) handleFailureInFunction: (NSString*)functionName 
-			    file: (NSString*)fileName 
-		      lineNumber: (NSInteger)line 
+- (void) handleFailureInFunction: (NSString*)functionName
+			    file: (NSString*)fileName
+		      lineNumber: (NSInteger)line
 		     description: (NSString*)format,... GS_NORETURN_METHOD;
 
-- (void) handleFailureInMethod: (SEL)aSelector 
-			object: object 
-			  file: (NSString*)fileName 
-		    lineNumber: (NSInteger)line 
+- (void) handleFailureInMethod: (SEL)aSelector
+			object: object
+			  file: (NSString*)fileName
+		    lineNumber: (NSInteger)line
 		   description: (NSString*)format,... GS_NORETURN_METHOD;
 
 @end
 extern NSString *const NSAssertionHandlerKey;
 
 #ifdef	NS_BLOCK_ASSERTIONS
-#define _NSAssertArgs(condition, desc, args...)		
-#define _NSCAssertArgs(condition, desc, args...)	
+#define _NSAssertArgs(condition, desc, args...)
+#define _NSCAssertArgs(condition, desc, args...)
 #else
 #define _NSAssertArgs(condition, desc, args...)			\
     do {							\

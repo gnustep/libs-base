@@ -1262,32 +1262,69 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   [iLock unlock];
 }
 
-- (void*) contextForObserver: (NSObject*)anObserver ofKeyPath: (NSString*)aPath
+- (void) removeObserver: (NSObject*)anObserver
+             forKeyPath: (NSString*)aPath
+                context: (void *)context
 {
   GSKVOPathInfo	*pathInfo;
-  void          *context = 0;
-
+  
   [iLock lock];
   pathInfo = (GSKVOPathInfo*)NSMapGet(paths, (void*)aPath);
   if (pathInfo != nil)
     {
       unsigned  count = [pathInfo->observations count];
-
+      
+      pathInfo->allOptions = 0;
       while (count-- > 0)
         {
           GSKVOObservation      *o;
-
+          
           o = [pathInfo->observations objectAtIndex: count];
-          if (o->observer == anObserver)
+          if ((o->observer == anObserver || o->observer == nil) &&
+              (o->context == context))
             {
-              context = o->context;
-              break;
+              [pathInfo->observations removeObjectAtIndex: count];
+              if ([pathInfo->observations count] == 0)
+                {
+                  NSMapRemove(paths, (void*)aPath);
+                }
             }
-	    }
-	}
+          else
+            {
+              pathInfo->allOptions |= o->options;
+            }
+        }
+    }
+  [iLock unlock];
+}
+
+- (void*) contextForObserver: (NSObject*)anObserver ofKeyPath: (NSString*)aPath
+{
+  GSKVOPathInfo	*pathInfo;
+  void          *context = 0;
+  
+  [iLock lock];
+  pathInfo = (GSKVOPathInfo*)NSMapGet(paths, (void*)aPath);
+  if (pathInfo != nil)
+  {
+    unsigned  count = [pathInfo->observations count];
+    
+    while (count-- > 0)
+    {
+      GSKVOObservation      *o;
+      
+      o = [pathInfo->observations objectAtIndex: count];
+      if (o->observer == anObserver)
+      {
+        context = o->context;
+        break;
+      }
+    }
+  }
   [iLock unlock];
   return context;
 }
+
 @end
 
 @implementation NSKeyValueObservationForwarder
@@ -1558,6 +1595,32 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
     [forwarder finalize];
 }
 
+- (void) removeObserver: (NSObject*)anObserver
+             forKeyPath: (NSString*)aPath
+                context: (void *)context
+{
+  GSKVOInfo	*info;
+  
+  setup();
+  [kvoLock lock];
+  /*
+   * Get the observation information and remove this observation.
+   */
+  info = (GSKVOInfo*)[self observationInfo];
+  [info removeObserver: anObserver forKeyPath: aPath context: context];
+  if ([info isUnobserved] == YES)
+    {
+      /*
+       * The instance is no longer being observed ... so we can
+       * turn off key-value-observing for it.
+       */
+      object_setClass(self, [self class]);
+      IF_NO_GC(AUTORELEASE(info);)
+      [self setObservationInfo: nil];
+    }
+  [kvoLock unlock];
+}
+
 @end
 
 /**
@@ -1593,6 +1656,15 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
 }
 
 - (void) removeObserver: (NSObject*)anObserver
+             forKeyPath: (NSString*)aPath
+                context: (void *)context
+{
+  [NSException raise: NSGenericException
+              format: @"[%@-%@]: This class is not observable",
+   NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+}
+
+- (void) removeObserver: (NSObject*)anObserver
    fromObjectsAtIndexes: (NSIndexSet*)indexes
 	     forKeyPath: (NSString*)aPath
 {
@@ -1622,6 +1694,15 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   [NSException raise: NSGenericException
 	      format: @"[%@-%@]: This class is not observable",
     NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+}
+
+- (void) removeObserver: (NSObject*)anObserver
+             forKeyPath: (NSString*)aPath
+                context: (void *)context
+{
+  [NSException raise: NSGenericException
+              format: @"[%@-%@]: This class is not observable",
+   NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
 }
 
 @end

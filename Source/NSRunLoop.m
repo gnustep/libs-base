@@ -879,10 +879,14 @@ static inline BOOL timerInvalidated(NSTimer *t)
       context->maxTimers = i;
       NSLog(@"WARNING ... there are %u timers scheduled in mode %@ of %@",
 	i, mode, self);
-    }
+	
+	  [[NSNotificationCenter defaultCenter]
+        postNotificationName: @"NSRunLoop_MaxTimers_Exceeded"
+        object: self
+        userInfo: nil];
+    }	
 }
 
-
 
 /* Ensure that the fire date has been updated either by the timeout handler
  * updating it or by incrementing it ourselves.<br />
@@ -1514,6 +1518,12 @@ updateTimer(NSTimer *t, NSDate *d, NSTimeInterval now)
                 @" in mode %@ of %@\n(Latest: [%@ %@])",
                 i, mode, self, NSStringFromClass([target class]),
                 NSStringFromSelector(aSelector));
+
+	  [[NSNotificationCenter defaultCenter]
+        postNotificationName: @"NSRunLoop_MaxPerformers_Exceeded"
+        object: self
+        userInfo: nil];
+
 	    }
 	}
       RELEASE(item);

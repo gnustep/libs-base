@@ -51,7 +51,6 @@
 
 #ifdef	HAVE_LIBXML
 
-// #undef	HAVE_LIBXML_SAX2_H
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 #import "GNUstepBase/GSMime.h"
@@ -83,15 +82,7 @@
 #include <libxml/parser.h>
 #include <libxml/parserInternals.h>
 #include <libxml/catalog.h>
-#ifdef	HAVE_LIBXML_SAX2_H
 #include <libxml/SAX2.h>
-#else
-# define	xmlSAX2GetColumnNumber	getColumnNumber
-# define	xmlSAX2GetLineNumber	getLineNumber
-# define	xmlSAX2GetPublicId	getPublicId
-# define	xmlSAX2GetSystemId	getSystemId
-# define	xmlSAX2ResolveEntity 	resolveEntity
-#endif
 #include <libxml/HTMLparser.h>
 #include <libxml/xmlmemory.h>
 #include <libxml/xpath.h>
@@ -113,8 +104,10 @@
  */
 static Class NSString_class;
 static Class treeClass;
-static IMP usImp;
+static id (*usImp)(id, SEL, const unsigned char*);
 static SEL usSel;
+
+static xmlExternalEntityLoader  originalLoader = NULL;
 
 /*
  * Macro to cast results to correct type for libxml2
@@ -170,20 +163,38 @@ setupCache()
       cacheDone = YES;
       xmlMemSetup(free, malloc, realloc, xml_strdup);
       xmlInitializeCatalog();
-
-#if	HAVE_LIBXML_SAX2_H
       xmlDefaultSAXHandlerInit();
-#endif
       NSString_class = [NSString class];
       usSel = @selector(stringWithUTF8String:);
-      usImp = [NSString_class methodForSelector: usSel];
+      usImp = (id (*)(id, SEL, const unsigned char*))
+	[NSString_class methodForSelector: usSel];
       treeClass = [GSTreeSAXHandler class];
     }
 }
 
+static int xmlNSInputStreamReadCallback(void *context, char *buffer, int len)
+{
+  NSInputStream *stream = (NSInputStream *)context;
+  return [stream read: (uint8_t *)buffer maxLength: len];
+}
+
+static int xmlNSInputStreamCloseCallback (void *context)
+{
+  NSInputStream *stream = (NSInputStream *)context;
+  [stream close];
+  return 0;
+}
+
 static xmlParserInputPtr
-loadEntityFunction(void *ctx,
-  const unsigned char *eid, const unsigned char *url);
+loadEntityFunction(const unsigned char *url, const unsigned char *eid,
+  void *ctx);
+static xmlParserInputPtr
+resolveEntityFunction(void *ctx, const unsigned char *eid,
+  const unsigned char *url);
+static xmlEntityPtr
+getEntityIgnoreExternal(void *ctx, const xmlChar *name);
+static xmlEntityPtr
+getEntityResolveExternal(void *ctx, const xmlChar *name);
 
 @interface GSXPathObject(Private)
 + (id) _newWithNativePointer: (xmlXPathObject *)lib
@@ -1659,6 +1670,15 @@ static NSString	*endMarker = @"At end of incremental parse";
       beenHere = YES;
       if (cacheDone == NO)
 	setupCache();
+      /* Replace the default external entity loader with our own one which
+       * looks for GNUstep DTDs in the correct location.
+       */
+      if (NULL == originalLoader)
+        {
+          originalLoader = xmlGetExternalEntityLoader();
+          xmlSetExternalEntityLoader(
+            (xmlExternalEntityLoader)loadEntityFunction);
+        }
     }
 }
 
@@ -2096,6 +2116,31 @@ static NSString	*endMarker = @"At end of incremental parse";
 }
 
 /**
+ * <p>
+ *   Initialisation of a new Parser with SAX handler (if not nil)
+ *   by calling -initWithSAXHandler:
+ * </p>
+ * <p>
+ *   Sets the input source for the parser to be the specified input stream,
+ *   so parsing of the entire document will be performed rather than
+ *   incremental parsing.
+ * </p>
+ */
+- (id) initWithSAXHandler: (GSSAXHandler*)handler
+	 withInputStream: (NSInputStream*)stream
+{
+  if (stream == nil || [stream isKindOfClass: [NSInputStream class]] == NO)
+    {
+      NSLog(@"Bad NSInputStream passed to initialize GSXMLParser");
+      DESTROY(self);
+      return nil;
+    }
+  src = RETAIN(stream);
+  self = [self initWithSAXHandler: handler];
+  return self;
+}
+
+/**
  * Set and return the previous value for blank text nodes support.
  * ignorableWhitespace nodes are only generated when running
  * the parser in validating mode and when the current element
@@ -2128,7 +2173,9 @@ static NSString	*endMarker = @"At end of incremental parse";
 }
 
 /**
- * Parse source. Return YES if parsed, otherwise NO.
+ * Parse source. Return YES if parsed as valid, otherwise NO.
+ * If validation against a DTD is not enabled, the return value simply
+ * indicates whether the xml was well formed.<br />
  * This method should be called once to parse the entire document.
  * <example>
  * GSXMLParser       *p = [GSXMLParser parserWithContentsOfFile:@"macos.xml"];
@@ -2158,7 +2205,8 @@ static NSString	*endMarker = @"At end of incremental parse";
       return NO;
     }
 
-  if ([src isKindOfClass: [NSData class]])
+  if ([src isKindOfClass: [NSData class]]
+      || [src isKindOfClass: [NSInputStream class]])
     {
     }
   else if ([src isKindOfClass: NSString_class])
@@ -2185,19 +2233,30 @@ static NSString	*endMarker = @"At end of incremental parse";
     }
   else
     {
-       NSLog(@"source for [-parse] must be NSString, NSData or NSURL type");
+       NSLog(@"Source for [-parse] must be NSString, NSData, NSInputStream, or"
+         @" NSURL type");
        return NO;
     }
 
   tmp = RETAIN(src);
   ASSIGN(src, endMarker);
+  if ([tmp isKindOfClass: [NSInputStream class]])
+    {
+      xmlParseDocument(lib);
+    }
+  else
+    {
   [self _parseChunk: tmp];
   [self _parseChunk: nil];
+    }
   RELEASE(tmp);
 
-  if (((xmlParserCtxtPtr)lib)->wellFormed)
+  if (((xmlParserCtxtPtr)lib)->wellFormed != 0
+    && (0 == ((xmlParserCtxtPtr)lib)->validate
+      || ((xmlParserCtxtPtr)lib)->valid != 0))
+    {
     return YES;
-  else
+    }
     return NO;
 }
 
@@ -2209,7 +2268,8 @@ static NSString	*endMarker = @"At end of incremental parse";
  *   document has been parsed, the method should be called with
  *   an empty or nil data object to indicate end of parsing.
  *   On this final call, the return value indicates whether the
- *   document was valid or not.
+ *   document was valid or not.  If validation to a DTD is not enabled,
+ *   the return value simply indicates whether the xml was well formed.
  * </p>
  * <example>
  * GSXMLParser       *p = [GSXMLParser parserWithSAXHandler: nil source: nil];
@@ -2247,9 +2307,12 @@ static NSString	*endMarker = @"At end of incremental parse";
 	{
 	  [self _parseChunk: nil];
 	  src = endMarker;
-	  if (((xmlParserCtxtPtr)lib)->wellFormed)
+          if (((xmlParserCtxtPtr)lib)->wellFormed != 0
+            && (0 == ((xmlParserCtxtPtr)lib)->validate
+              || ((xmlParserCtxtPtr)lib)->valid != 0))
+            {
 	    return YES;
-	  else
+            }
 	    return NO;
 	}
       else
@@ -2292,6 +2355,33 @@ static NSString	*endMarker = @"At end of incremental parse";
     }
 }
 
+- (BOOL) resolveEntities: (BOOL)yesno
+{
+  BOOL	old;
+
+  if (yesno) yesno = YES;
+  if ((((xmlParserCtxtPtr)lib)->sax)->getEntity
+    == (void*)getEntityIgnoreExternal)
+    {
+      old = NO;
+    }
+  else
+    {
+      old = YES;
+    }
+  if (YES == yesno)
+    {
+      (((xmlParserCtxtPtr)lib)->sax)->getEntity
+        = (void*)getEntityResolveExternal;
+    }
+  else
+    {
+      (((xmlParserCtxtPtr)lib)->sax)->getEntity
+        = (void*)getEntityIgnoreExternal;
+    } 
+  return old;
+}
+
 /**
  * Set and return the previous value for entity support.
  * Initially the parser always keeps entity references instead
@@ -2301,8 +2391,13 @@ static NSString	*endMarker = @"At end of incremental parse";
 {
   BOOL	old;
 
+  if (yesno) yesno = YES;
   old = (((xmlParserCtxtPtr)lib)->replaceEntities) ? YES : NO;
+  if (old != yesno)
+    {
   ((xmlParserCtxtPtr)lib)->replaceEntities = (yesno ? 1 : 0);
+    }
+  
   return old;
 }
 
@@ -2334,7 +2429,19 @@ static NSString	*endMarker = @"At end of incremental parse";
     {
       file = ".";
     }
+
+  if ([src isKindOfClass: [NSInputStream class]])
+    {
+      [(NSInputStream*)src open];
+      lib = (void*)xmlCreateIOParserCtxt([saxHandler lib], NULL,
+        xmlNSInputStreamReadCallback, xmlNSInputStreamCloseCallback,
+        (void*)src, XML_CHAR_ENCODING_NONE);
+    }
+  else
+    {
   lib = (void*)xmlCreatePushParserCtxt([saxHandler lib], NULL, 0, 0, file);
+    }
+
   if (lib == NULL)
     {
       NSLog(@"Failed to create libxml parser context");
@@ -2351,7 +2458,7 @@ static NSString	*endMarker = @"At end of incremental parse";
       /*
        * Set the entity loading function for this parser to be our one.
        */
-      ((xmlParserCtxtPtr)lib)->sax->resolveEntity = loadEntityFunction;
+      ((xmlParserCtxtPtr)lib)->sax->resolveEntity = resolveEntityFunction;
     }
   return YES;
 }
@@ -2441,9 +2548,24 @@ static NSString	*endMarker = @"At end of incremental parse";
 
 + (void) initialize
 {
+  static BOOL	beenHere = NO;
+
+  if (beenHere == NO)
+    {
+      beenHere = YES;
   if (cacheDone == NO)
     {
       setupCache();
+    }
+      /* Replace the default external entity loader with our own one which
+       * looks for GNUstep DTDs in the correct location.
+       */
+      if (NULL == originalLoader)
+        {
+          originalLoader = xmlGetExternalEntityLoader();
+          xmlSetExternalEntityLoader(
+            (xmlExternalEntityLoader)loadEntityFunction);
+        }
     }
 }
 
@@ -2455,9 +2577,117 @@ static NSString	*endMarker = @"At end of incremental parse";
  */
 #define	HANDLER	((GSSAXHandler*)(((xmlParserCtxtPtr)ctx)->_private))
 
+static xmlEntityPtr
+getEntityDefault(void *ctx, const xmlChar *name, BOOL resolve)
+{
+  xmlParserCtxtPtr      ctxt = (xmlParserCtxtPtr) ctx;
+  xmlEntityPtr          ret = NULL;
+
+  if (ctx != 0)
+    {
+      if (0 == ctxt->inSubset)
+        {
+          if ((ret = xmlGetPredefinedEntity(name)) != NULL)
+            {
+              return ret;
+            }
+        }
+      if ((ctxt->myDoc != NULL) && (1 == ctxt->myDoc->standalone))
+        {
+          if (2 == ctxt->inSubset)
+            {
+              ctxt->myDoc->standalone = 0;
+              ret = xmlGetDocEntity(ctxt->myDoc, name);
+              ctxt->myDoc->standalone = 1;
+            }
+          else
+            {
+              ret = xmlGetDocEntity(ctxt->myDoc, name);
+              if (NULL == ret)
+                {
+                  ctxt->myDoc->standalone = 0;
+                  ret = xmlGetDocEntity(ctxt->myDoc, name);
+                  if (ret != NULL)
+                    {
+                      ((((xmlParserCtxtPtr)ctxt)->sax)->fatalError)(ctxt,
+                        "Entity(%s) document marked standalone"
+                        " but requires external subset", name);
+                      xmlStopParser(ctxt);
+                    }
+                  ctxt->myDoc->standalone = 1;
+                }
+            }
+        }
+      else
+        {
+          ret = xmlGetDocEntity(ctxt->myDoc, name);
+        }
+      if ((ret != NULL)
+        && ((ctxt->validate) || (ctxt->replaceEntities))
+        && (ret->children == NULL)
+        && (ret->etype == XML_EXTERNAL_GENERAL_PARSED_ENTITY))
+        {
+          if (YES == resolve)
+            {
+              xmlNodePtr    children;
+              int           val;
+
+              /*
+               * for validation purposes we really need to fetch and
+               * parse the external entity
+               */
+              val = xmlParseCtxtExternalEntity(ctxt, ret->URI,
+                ret->ExternalID, &children);
+              if (val == 0)
+                {
+                  xmlAddChildList((xmlNodePtr) ret, children);
+                }
+              else
+                {
+                  ((((xmlParserCtxtPtr)ctxt)->sax)->fatalError)(ctxt,
+                    "Failure to process entity %s\n", name);
+                  xmlStopParser(ctxt);
+                  ctxt->validate = 0;
+                  return NULL;
+                }
+              ret->owner = 1;
+              if (ret->checked == 0)
+                {
+                  ret->checked = 1;
+                }
+            }
+        }
+    }
+  return ret;
+}
+
+static xmlEntityPtr
+getEntityIgnoreExternal(void *ctx, const xmlChar *name)
+{
+  return getEntityDefault(ctx, name, NO);
+}
+
+static xmlEntityPtr
+getEntityResolveExternal(void *ctx, const xmlChar *name)
+{
+  return getEntityDefault(ctx, name, YES);
+}
+
+/* WARNING ... as far as I can tell libxml2 never uses the resolveEntity
+ * callback, so this function is never called via that route.
+ * We therefore also set this as the global default entity loading
+ * function (in [GSXMLParser+initialize] and [GSSAXHandler+initialize]).
+ *
+ * To implement the -resolveEntities method we must permit/deny any attempt
+ * to load an entity (before the function to resolve is even called),
+ * We therefore intercept the getEntity callback (using getEntityDefault()),
+ * re-implementing some of the code inside libxml2 to avoid attempts to
+ * load/parse external entities unless we have specifically enabled it.
+ */
 static xmlParserInputPtr
-loadEntityFunction(void *ctx,
-  const unsigned char *eid, const unsigned char *url)
+loadEntityFunction(const unsigned char *url,
+  const unsigned char *eid,
+  void *ctx)
 {
   NSString			*file = nil;
   NSString			*entityId;
@@ -2496,7 +2726,6 @@ loadEntityFunction(void *ctx,
                             options: NSLiteralSearch
                             range: NSMakeRange(0, [local length])];
 
-#ifdef GNUSTEP
   if ([location rangeOfString: @"/DTDs/PropertyList"].length > 0)
     {
       file = [location substringFromIndex: 6];
@@ -2509,9 +2738,8 @@ loadEntityFunction(void *ctx,
 	  file = nil;
 	}
     }
-#endif
 
-  if (file == nil)
+  if (file == nil && ((xmlParserCtxtPtr)ctx)->_private != NULL)
     {
       /*
        * Now ask the SAXHandler callback for the name of a local file
@@ -2657,11 +2885,17 @@ loadEntityFunction(void *ctx,
         UTF8STRING([theURL absoluteString]));
     }
     
-  /*
-   * A local DTD will now be in the catalog: The builtin entity resolver can
+  /* A local DTD will now be in the catalog: The builtin entity resolver can
    * take over.
    */
-  return xmlSAX2ResolveEntity(ctx, eid, url);
+  return (*originalLoader)((const char*)url, (const char*)eid, ctx);
+}
+
+static xmlParserInputPtr
+resolveEntityFunction(void *ctx,
+  const unsigned char *eid, const unsigned char *url)
+{
+  return loadEntityFunction(url, eid, ctx);
 }
 
 
@@ -2861,7 +3095,6 @@ endElementFunction(void *ctx, const unsigned char *name)
   [HANDLER endElement: UTF8Str(name)];
 }
 
-#if	HAVE_LIBXML_SAX2_H
 static void
 startElementNsFunction(void *ctx, const unsigned char *name,
   const unsigned char *prefix, const unsigned char *href,
@@ -2945,7 +3178,6 @@ endElementNsFunction(void *ctx, const unsigned char *name,
 	       prefix: UTF8Str(prefix)
 		 href: UTF8Str(href)];
 }
-#endif
 
 static void
 charactersFunction(void *ctx, const unsigned char *ch, int len)
@@ -3005,7 +3237,7 @@ warningFunction(void *ctx, const unsigned char *msg, ...)
   va_end(args);
 
   NSCAssert(ctx,@"No Context");
-  lineNumber = getLineNumber(ctx);
+  lineNumber = xmlSAX2GetLineNumber(ctx);
   colNumber = xmlSAX2GetColumnNumber(ctx);
   [HANDLER warning: estr
 	 colNumber: colNumber
@@ -3427,7 +3659,6 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       memcpy(lib, &xmlDefaultSAXHandler, sizeof(xmlSAXHandler));
 
 #define	LIB	((xmlSAXHandlerPtr)lib)
-#if	HAVE_LIBXML_SAX2_H
       /*
        * We must call xmlSAXVersion() BEFORE setting any functions as it
        * sets up default values and would trash our settings.
@@ -3435,7 +3666,6 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       xmlSAXVersion(LIB, 2);	// Set SAX2
       LIB->startElementNs         = (void*) startElementNsFunction;
       LIB->endElementNs           = (void*) endElementNsFunction;
-#endif
       LIB->startElement           = (void*) startElementFunction;
       LIB->endElement             = (void*) endElementFunction;
       LIB->internalSubset         = (void*) internalSubsetFunction;
@@ -3443,7 +3673,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       LIB->isStandalone           = (void*) isStandaloneFunction;
       LIB->hasInternalSubset      = (void*) hasInternalSubsetFunction;
       LIB->hasExternalSubset      = (void*) hasExternalSubsetFunction;
-      LIB->getEntity              = (void*) getEntityFunction;
+      LIB->getEntity              = (void*) getEntityIgnoreExternal;
       LIB->entityDecl             = (void*) entityDeclFunction;
       LIB->notationDecl           = (void*) notationDeclFunction;
       LIB->attributeDecl          = (void*) attributeDeclFunction;
@@ -3461,6 +3691,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       LIB->fatalError             = (void*) fatalErrorFunction;
       LIB->getParameterEntity     = (void*) getParameterEntityFunction;
       LIB->cdataBlock             = (void*) cdataBlockFunction;
+      LIB->resolveEntity          = (void*) resolveEntityFunction;
 #undef	LIB
       return YES;
     }
@@ -3548,7 +3779,6 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
 
 #define	LIB	((xmlSAXHandlerPtr)lib)
 #define	SETCB(NAME,SEL) if ([self methodForSelector: @selector(SEL)] != [treeClass instanceMethodForSelector: @selector(SEL)]) LIB->NAME = (void*)NAME ## Function
-#if	HAVE_LIBXML_SAX2_H
       /*
        * We must call xmlSAXVersion() BEFORE setting any functions as it
        * sets up default values and would trash our settings.
@@ -3556,7 +3786,6 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       xmlSAXVersion(LIB, 2);	// Set SAX2
       SETCB(startElementNs, startElement:prefix:href:attributes:);
       SETCB(endElementNs, endElement:prefix:href:);
-#endif
       SETCB(startElement, startElement:attributes:);
       SETCB(endElement, endElement:);
       SETCB(internalSubset, internalSubset:externalID:systemID:);
@@ -3565,6 +3794,10 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       SETCB(hasInternalSubset, hasInternalSubset);
       SETCB(hasExternalSubset, hasExternalSubset);
       SETCB(getEntity, getEntity:);
+      if (LIB->getEntity != getEntityFunction)
+        {
+          LIB->getEntity = getEntityIgnoreExternal;
+        }
       SETCB(entityDecl, entityDecl:type:public:system:content:);
       SETCB(notationDecl, notationDecl:public:system:);
       SETCB(attributeDecl, attributeDecl:name:type:typeDefValue:defaultValue:);

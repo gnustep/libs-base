@@ -365,32 +365,40 @@ NSRectFromString(NSString* string)
       return rect;
     }
   else
-    {
-      [scanner setScanLocation: 0];
-      if ((*scanStringImp)(scanner, scanStringSel, @"{", NULL)
-	&& (*scanStringImp)(scanner, scanStringSel, @"{", NULL)
-	&& (*scanFloatImp)(scanner, scanFloatSel, &rect.origin.x)
-	&& (*scanStringImp)(scanner, scanStringSel, @",", NULL)
-
-	&& (*scanFloatImp)(scanner, scanFloatSel, &rect.origin.y)
-	&& (*scanStringImp)(scanner, scanStringSel, @"}", NULL)
-	&& (*scanStringImp)(scanner, scanStringSel, @",", NULL)
-	
-	&& (*scanStringImp)(scanner, scanStringSel, @"{", NULL)
-	&& (*scanFloatImp)(scanner, scanFloatSel, &rect.size.width)
-	&& (*scanStringImp)(scanner, scanStringSel, @",", NULL)
-	
-	&& (*scanFloatImp)(scanner, scanFloatSel, &rect.size.height)
-	&& (*scanStringImp)(scanner, scanStringSel, @"}", NULL)
-	&& (*scanStringImp)(scanner, scanStringSel, @"}", NULL))
-	{
-	  return rect;
-	}
-      else
-	{
-	  return NSMakeRect(0, 0, 0, 0);
-	}
-    }
+  {
+    [scanner setScanLocation: 0];
+    if ((*scanStringImp)(scanner, scanStringSel, @"{", NULL)
+        && (*scanStringImp)(scanner, scanStringSel, @"{", NULL)
+        && (*scanFloatImp)(scanner, scanFloatSel, &rect.origin.x)
+        && (*scanStringImp)(scanner, scanStringSel, @",", NULL)
+        
+        && (*scanFloatImp)(scanner, scanFloatSel, &rect.origin.y)
+        && (*scanStringImp)(scanner, scanStringSel, @"}", NULL)
+        && (*scanStringImp)(scanner, scanStringSel, @",", NULL)
+        
+        && (*scanStringImp)(scanner, scanStringSel, @"{", NULL)
+        && (*scanFloatImp)(scanner, scanFloatSel, &rect.size.width)
+        && (*scanStringImp)(scanner, scanStringSel, @",", NULL)
+        
+        && (*scanFloatImp)(scanner, scanFloatSel, &rect.size.height)
+        && (*scanStringImp)(scanner, scanStringSel, @"}", NULL)
+        && (*scanStringImp)(scanner, scanStringSel, @"}", NULL))
+      {
+        return rect;
+      }
+    else
+      {
+        [scanner setScanLocation: 0];
+        if ((*scanFloatImp)(scanner, scanFloatSel, &rect.origin.x)
+            && (*scanFloatImp)(scanner, scanFloatSel, &rect.origin.y)
+            && (*scanFloatImp)(scanner, scanFloatSel, &rect.size.width)
+            && (*scanFloatImp)(scanner, scanFloatSel, &rect.size.height))
+          {
+            return rect;
+          }
+      }
+  }
+  return NSMakeRect(0, 0, 0, 0);
 }
 
 /* Tests for equality of floats/doubles.

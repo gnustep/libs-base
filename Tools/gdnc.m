@@ -727,7 +727,8 @@ ihandler(int sig)
             {
               [timer invalidate];
 	}
-          timer = [NSTimer scheduledTimerWithTimeInterval: 15.0
+          NSTimeInterval timeout = [[NSUserDefaults standardDefaults] floatForKey:@"GSGDNCAutostopTimeout"];
+          timer = [NSTimer scheduledTimerWithTimeInterval: ((timeout == 0) ? 15.0 : timeout)
                                                    target: self
                                                  selector: @selector(autoStop:)
                                                  userInfo: nil

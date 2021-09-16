@@ -835,7 +835,7 @@ static NSUInteger	urlAlign;
     {
       parsedURL	*buf;
       parsedURL	*base = baseData;
-      unsigned	size = [_urlString length];
+      unsigned	size = [_urlString length] + 1; // Add 1 for possible move due to '?'
       char	*end;
       char	*start;
       char	*ptr;
@@ -918,6 +918,12 @@ static NSUInteger	urlAlign;
 	      usesParameters = NO;
 	      usesQueries = NO;
 	    }
+          else if (strcmp(buf->scheme, "http") == 0)
+            {
+              // TESTPLANT-MAL-11262017: Patch for issue 16821...
+              // Force generic if HTTP...
+              buf->isGeneric = YES;
+            }
         }
 
       if (canBeGeneric == YES)
@@ -936,7 +942,13 @@ static NSUInteger	urlAlign;
 	       * the 'authority' if there is no path.
 	       */
 	      end = strchr(start, '/');
-	      if (end == 0)
+              if (end == 0 && ((end = strchr(start, '?')) != 0))
+                {
+                  // Move it right one character to save '?'...
+                  memmove(end+1, end, strlen(end));
+                  *end = '/'; // Mimic as if '/' was at end...
+                }
+              if (end == 0)
 		{
 		  buf->hasNoPath = YES;
 		  end = &start[strlen(start)];
@@ -1661,7 +1673,7 @@ static NSUInteger	urlAlign;
 
 - (NSString*) _pathWithEscapes: (BOOL)withEscapes
 {
-  NSString	*path = nil;
+  NSString	*path = [NSString string];
 
   if (YES == myData->isGeneric || 0 == myData->scheme)
     {

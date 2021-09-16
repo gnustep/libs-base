@@ -18,12 +18,27 @@
 
 #include "objc-common.g"
 
+#ifdef __OBJC_GNUSTEP_RUNTIME_ABI__
+#  if __OBJC_GNUSTEP_RUNTIME_ABI__ >= 20
+#    define GNUSTEP_NEW_STRING_ABI
+#  endif
+#endif
+
+
 /* Define our custom constant string class */
 GS_OBJC_ROOT_CLASS @interface FooConstantString
 {
    Class isa;
+#ifdef GNUSTEP_NEW_STRING_ABI
+  uint32_t flags;
+  uint32_t len;
+  uint32_t size;
+  uint32_t hash;
+  const char * const c_string;
+#else
    char *c_string;
    unsigned int len;
+#endif
 }
 - (char *) customString;
 @end
@@ -65,7 +80,7 @@ int main (int argc, char **argv)
      }
 
    /* Do another, more direct test. */
-   if (strcmp ([@"Jump" customString], "Jump"))
+   if (strcmp ([@"JumpMustBeBigEnoughNotToBeATingString" customString], "JumpMustBeBigEnoughNotToBeATingString"))
        {
          abort ();
        }

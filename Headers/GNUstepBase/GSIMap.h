@@ -157,9 +157,12 @@ extern "C" {
 #  define GSI_MAP_WRITE_VAL(M, addr, obj) (*(addr) = obj)
 #endif
 #if	GSI_MAP_HAS_VALUE
-#define GSI_MAP_NODE_IS_EMPTY(M, node) (((GSI_MAP_READ_VALUE(M, &node->key).addr) == 0) || ((GSI_MAP_READ_VALUE(M, &node->value).addr == 0)))
+#define GSI_MAP_NODE_IS_EMPTY(M, node) \
+  (((GSI_MAP_READ_KEY(M, &node->key).addr) == 0) \
+  || ((GSI_MAP_READ_VALUE(M, &node->value).addr == 0)))
 #else
-#define GSI_MAP_NODE_IS_EMPTY(M, node) (((GSI_MAP_READ_VALUE(M, &node->key).addr) == 0))
+#define GSI_MAP_NODE_IS_EMPTY(M, node) \
+  (((GSI_MAP_READ_KEY(M, &node->key).addr) == 0))
 #endif
 
 /*
@@ -447,7 +450,7 @@ GSIMapAddNodeToMap(GSIMapTable map, GSIMapNode node)
 {
   GSIMapBucket	bucket;
 
-  bucket = GSIMapBucketForKey(map, node->key);
+  bucket = GSIMapBucketForKey(map, GSI_MAP_READ_KEY(map, &node->key));
   GSIMapAddNodeToBucket(bucket, node);
   map->nodeCount++;
 }
@@ -540,7 +543,8 @@ GSIMapRemangleBuckets(GSIMapTable map,
 		  GSIMapBucket	bkt;
 
 		  GSIMapRemoveNodeFromBucket(old_buckets, node);
-		  bkt = GSIMapPickBucket(GSI_MAP_HASH(map, node->key),
+		  bkt = GSIMapPickBucket(GSI_MAP_HASH(map,
+		    GSI_MAP_READ_KEY(map, &node->key)),
 		    new_buckets, new_bucketCount);
 		  GSIMapAddNodeToBucket(bkt, node);
 		}
@@ -558,7 +562,8 @@ GSIMapRemangleBuckets(GSIMapTable map,
 	  GSIMapBucket	bkt;
 
 	  GSIMapRemoveNodeFromBucket(old_buckets, node);
-	  bkt = GSIMapPickBucket(GSI_MAP_HASH(map, node->key),
+	  bkt = GSIMapPickBucket(GSI_MAP_HASH(map,
+	    GSI_MAP_READ_KEY(map, &node->key)),
 	    new_buckets, new_bucketCount);
 	  GSIMapAddNodeToBucket(bkt, node);
 	}
@@ -942,7 +947,7 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 	{
 	  uintptr_t	bucket = ((_GSIE)enumerator)->bucket;
 
-	  while (next != 0 && next->key.addr == 0)
+	  while (next != 0 && GSI_MAP_NODE_IS_EMPTY(map, next))
 	    {
 	      next = GSIMapRemoveAndFreeNode(map, bucket, next);
 	    }
@@ -958,7 +963,7 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
 	      while (next == 0 && ++bucket < bucketCount)
 		{
 		  next = (map->buckets[bucket]).firstNode;
-		  while (next != 0 && next->key.addr == 0)
+		  while (next != 0 && GSI_MAP_NODE_IS_EMPTY(map, next))
 		    {
 		      next = GSIMapRemoveAndFreeNode(map, bucket, next);
 		    }
@@ -984,9 +989,7 @@ GSIMapEnumeratorNextNode(GSIMapEnumerator enumerator)
  */
 GS_STATIC_INLINE NSUInteger 
 GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
-                                              NSFastEnumerationState *state,
-                                              id *stackbuf,
-                                              NSUInteger len)
+  NSFastEnumerationState *state, id *stackbuf, NSUInteger len)
 {
   NSInteger count;
   NSInteger i;

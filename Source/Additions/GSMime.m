@@ -128,6 +128,7 @@ static NSString         *Cte7bit = @"7bit";
 static NSString         *Cte8bit = @"8bit";
 static NSString         *CteBase64 = @"base64";
 static NSString         *CteBinary = @"binary";
+static NSString         *CteContentType = @"content-type";
 static NSString         *CteQuotedPrintable = @"quoted-printable";
 static NSString         *CteXuuencode = @"x-uuencode";
 
@@ -1715,7 +1716,6 @@ wordData(NSString *word, BOOL *encoded)
   GSMimeHeader		*info;
 
   NSDebugMLLog(@"GSMime", @"Parse header - '%@'", aHeader);
-  info = AUTORELEASE([headerClass new]);
 
   /*
    * Special case - permit web response status line to act like a header.
@@ -1778,7 +1778,7 @@ wordData(NSString *word, BOOL *encoded)
 	}
       [document deleteHeaderNamed: name];	// Should be unique
     }
-  else if ([name isEqualToString: @"content-type"] == YES)
+  else if ([name isEqualToString: CteContentType] == YES)
     {
       NSString	*tmp = [info parameterForKey: @"boundary"];
       NSString	*type;
@@ -2011,7 +2011,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	}
       value = [value lowercaseString];
     }
-  else if ([name isEqualToString: @"content-type"] == YES)
+  else if ([name isEqualToString: CteContentType] == YES)
     {
       NSString	*type;
       NSString	*subtype = nil;
@@ -2434,7 +2434,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
       GSMimeHeader	*typeInfo;
       NSString		*type;
 
-      typeInfo = [document headerNamed: @"content-type"];
+      typeInfo = [document headerNamed: CteContentType];
       type = [typeInfo objectForKey: @"Type"];
       if ([type isEqualToString: @"multipart"] == YES)
 	{
@@ -2692,7 +2692,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	       * document, we set it as the default characterset inherited
 	       * by any child documents.
 	       */
-	      cset = [[document headerNamed: @"content-type"]
+	      cset = [[document headerNamed: CteContentType]
 		parameterForKey: @"charset"];
 	      if (cset != nil)
 		{
@@ -2998,12 +2998,12 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 
 	      src = tmp + 1;
 	      if (src >= end) return nil;
-	      c = tolower(*src);
-	      if (c == 'b')
+	      c = toupper(*src);
+	      if (c == 'B')
 		{
 		  encoding = WE_BASE64;
 		}
-	      else if (c == 'q')
+	      else if (c == 'Q')
 		{
 		  encoding = WE_QUOTED;
 		}
@@ -3634,10 +3634,9 @@ static NSCharacterSet	*tokenSet = nil;
       n = @"unknown";
     }
   ASSIGN(name, n);
-  if ([@"content-type" caseInsensitiveCompare: name]
-    == NSOrderedSame)
+  if ([CteContentType caseInsensitiveCompare: name] == NSOrderedSame)
     {
-      n = @"content-type";
+      n = CteContentType;
     }
   else if ([@"content-transfer-encoding" caseInsensitiveCompare: name]
     == NSOrderedSame)
@@ -3809,7 +3808,7 @@ static char* _charsToEncode = "()<>@,;:_\"/[]?.=";
 
 static NSUInteger
 quotableLength(const uint8_t *ptr, NSUInteger size, NSUInteger max,
-  NSUInteger *quotedLength)
+  NSUInteger *quotedLength, BOOL utf8)
 {
   NSUInteger    encoded;
   NSUInteger    index;
@@ -3817,17 +3816,45 @@ quotableLength(const uint8_t *ptr, NSUInteger size, NSUInteger max,
   for (encoded = index = 0; index < size; index++)
     {
       uint8_t   c = ptr[index];
-      int       add = 1;
 
       if (c < 32 || c >= 127 || strchr(_charsToEncode, c))
         {
-          add += 2;
+          if (encoded + 3 > max)
+            {
+              break;
+            }
+          encoded += 3;
         }
-      if (encoded + add > max)
+      else
         {
-          break;
+          if (encoded >= max)
+            {
+              break;
+            }
+          encoded++;
         }
-      encoded += add;
+    }
+
+  if (YES == utf8 && index < size)
+    {
+      uint8_t   c = ptr[index];
+
+      /* We are breaking up a utf-8 string, so we must make sure
+       * we don't break inside a character.
+       */
+      if ((c & 0xc0) == 0x80)
+        {
+          /* The next byte is a continuation byte, so we must be
+           * inside a utf-8 codepoint and need to step back out
+           * of it.
+           */
+          do
+            {
+              encoded -= 3;
+              c = ptr[--index];
+            }
+          while ((c & 0xc0) == 0x80);
+        }
     }
   *quotedLength = encoded;
   return index;
@@ -4063,8 +4090,13 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       NSString          *cset = selectCharacterSet(str, &d);
       const uint8_t     *ptr = (const uint8_t*)[d bytes];
       NSUInteger        len = [d length];
+      BOOL              utf8 = NO;
 
-      if ([cset isEqualToString: @"us-ascii"])
+      if ([cset isEqualToString: @"utf-8"])
+        {
+          utf8 = YES;
+        }
+      else if ([cset isEqualToString: @"us-ascii"])
         {
           if (0 == fold)
             {
@@ -4153,8 +4185,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
               uint8_t           *buffer;
               NSUInteger        existingLength;
               NSUInteger        quotedLength;
-              NSUInteger        charLength;
-              uint8_t           style = 'q';
+              NSUInteger        byteLength;
+              uint8_t           style = 'Q';
 
               /* Calculate the number of encoded characters we can
                * fit on the current line.  If there's no room, we
@@ -4172,23 +4204,34 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                   offset = 1;
                 }
 
-              charLength = quotableLength(ptr + pos, len - pos,
-                fold - offset - overhead, &quotedLength);
-              if (quotedLength > (charLength * 4) / 3)
+              byteLength = quotableLength(ptr + pos, len - pos,
+                fold - offset - overhead, &quotedLength, utf8);
+              if (quotedLength > (byteLength * 4) / 3)
                 {
                   /* Using base64 is more compact than using quoted
                    * text, so lets do that.
                    */
-                  style = 'b';
-                  charLength = ((fold - offset - overhead) / 4) * 3;
-                  if (charLength >= len - pos)
+                  style = 'B';
+                  byteLength = ((fold - offset - overhead) / 4) * 3;
+                  if (byteLength >= len - pos)
                     {
                       /* If we have less text than we can fit,
                        * just encode all of it.
                        */
-                      charLength = len - pos;
+                      byteLength = len - pos;
                     }
-                  quotedLength = 4 * ((charLength + 2) / 3);
+                  else if (YES == utf8
+                    && (ptr[pos + byteLength] % 0xc0) == 0x80)
+                    {
+                      /* The byte after the end of the data we propose
+                       * to encode is a utf8 continuation byte
+                       * so step back to the character boundary.
+                       */
+                      do {
+                        byteLength--;
+                      } while ((ptr[pos + byteLength] % 0xc0) == 0x80);
+                    }
+                  quotedLength = 4 * ((byteLength + 2) / 3);
                 }
 
               /* make sure we have enough space in the output buffer.
@@ -4206,23 +4249,33 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
               *buffer++ = '?';
               *buffer++ = style;
               *buffer++ = '?';
-              if ('q' == style)
+              if ('Q' == style)
                 {
-                  quotedWord(ptr + pos, charLength, buffer);
+                  quotedWord(ptr + pos, byteLength, buffer);
                 }
               else
                 {
-                  GSPrivateEncodeBase64(ptr + pos, charLength, buffer);
+                  GSPrivateEncodeBase64(ptr + pos, byteLength, buffer);
                 }
               buffer[quotedLength] = '?';
               buffer[quotedLength + 1] = '=';
               offset += quotedLength + overhead;
-              pos += charLength;
+              pos += byteLength;
             }
         }
       return offset;
     }
 }
+/* For testing
++ (NSUInteger) appendString: (NSString*)str
+                         to: (NSMutableData*)m
+                         at: (NSUInteger)offset
+                       fold: (NSUInteger)fold
+                         ok: (BOOL*)ok
+{
+  return appendString(m, offset, fold, str, ok);
+}
+*/
 
 /**
  * Returns the full text of the header, built from its component parts,
@@ -4487,7 +4540,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       s = @"";
     }
   ASSIGNCOPY(value, s);
-  if ([lower isEqualToString:@"content-type"])
+  if (CteContentType == lower)
     {
       NSArray   *a;
 
@@ -4764,7 +4817,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                         {
                           /* Extract the charset and return it.
                            */
-                          r = NSMakeRange(index, r.length - index);
+                          r = NSMakeRange(index, r.location - index);
                           return [xml substringWithRange: r];
                         }
                     }
@@ -5474,7 +5527,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   if ([name isEqualToString: @"mime-version"] == YES
     || [name isEqualToString: @"content-disposition"] == YES
     || [name isEqualToString: @"content-transfer-encoding"] == YES
-    || [name isEqualToString: @"content-type"] == YES
+    || [name isEqualToString: CteContentType] == YES
     || [name isEqualToString: @"subject"] == YES)
     {
       NSUInteger	index = [self _indexOfHeaderNamed: name];
@@ -5498,7 +5551,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    {
 	      index = tmp;
 	    }
-	  tmp = [self _indexOfHeaderNamed: @"content-type"];
+	  tmp = [self _indexOfHeaderNamed: CteContentType];
 	  if (tmp != NSNotFound && tmp < index)
 	    {
 	      index = tmp;
@@ -5650,7 +5703,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	{
 	  GSMimeHeader	*hdr;
 
-	  hdr = [d headerNamed: @"content-type"];
+	  hdr = [d headerNamed: CteContentType];
 	  if ([[hdr parameterForKey: @"name"] isEqualToString: key] == YES)
 	    {
 	      return d;
@@ -5705,7 +5758,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (NSString*) contentName
 {
-  GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+  GSMimeHeader	*hdr = [self headerNamed: CteContentType];
 
   return [hdr parameterForKey: @"name"];
 }
@@ -5715,7 +5768,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (NSString*) contentSubtype
 {
-  GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+  GSMimeHeader	*hdr = [self headerNamed: CteContentType];
   NSString	*val = nil;
 
   if (hdr != nil)
@@ -5756,7 +5809,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (NSString*) contentType
 {
-  GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+  GSMimeHeader	*hdr = [self headerNamed: CteContentType];
   NSString	*val = nil;
 
   if (hdr != nil)
@@ -5804,7 +5857,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	  GSMimeHeader	*hdr;
 	  BOOL		match = YES;
 
-	  hdr = [d headerNamed: @"content-type"];
+	  hdr = [d headerNamed: CteContentType];
 	  if ([[hdr parameterForKey: @"name"] isEqualToString: key] == NO)
 	    {
 	      hdr = [d headerNamed: @"content-disposition"];
@@ -5854,10 +5907,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
        * When there is a header, there are trwo possible 8bit encodings
        * that we need to deal with...
        */
-      if ([CteBinary caseInsensitiveCompare: v] == NSOrderedSame
-	|| [Cte8bit caseInsensitiveCompare: v] == NSOrderedSame)
+      if (v != nil
+        && ([CteBinary caseInsensitiveCompare: v] == NSOrderedSame
+	  || [Cte8bit caseInsensitiveCompare: v] == NSOrderedSame))
 	{
-          GSMimeHeader  *t = [self headerNamed: @"content-type"];
+          GSMimeHeader  *t = [self headerNamed: CteContentType];
           NSString	*charset = [t parameterForKey: @"charset"];
           BOOL          isText = (nil == charset) ? NO : YES;
 
@@ -5945,8 +5999,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       GSMimeHeader	*h = [self headerNamed: @"content-transfer-encoding"];
       NSString		*v = [h value];
 
-      if ([CteBase64 caseInsensitiveCompare: v] == NSOrderedSame
-        || [CteQuotedPrintable caseInsensitiveCompare: v] == NSOrderedSame)
+      if (v != nil
+        && ([CteBase64 caseInsensitiveCompare: v] == NSOrderedSame
+          || [CteQuotedPrintable caseInsensitiveCompare: v] == NSOrderedSame))
 	{
 	  [h setValue: CteBinary];
 	}
@@ -5967,7 +6022,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   if ([content isKindOfClass: NSStringClass] == YES)
     {
-      GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+      GSMimeHeader	*hdr = [self headerNamed: CteContentType];
       NSString		*charset = [hdr parameterForKey: @"charset"];
       NSString          *subtype;
       NSStringEncoding	enc;
@@ -6021,7 +6076,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     }
   else if ([content isKindOfClass: NSDataClass] == YES)
     {
-      GSMimeHeader	*hdr = [self headerNamed: @"content-type"];
+      GSMimeHeader	*hdr = [self headerNamed: CteContentType];
       NSString		*charset = [hdr parameterForKey: @"charset"];
       NSString          *subtype = [self contentSubtype];
       NSStringEncoding	enc;
@@ -6525,12 +6580,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       /*
        * Ensure there is a mime version header.
        */
-      hdr = [self headerNamed: @"mime-version"];
-      if (hdr == nil)
+      if (nil == [self headerNamed: @"mime-version"])
 	{
-          hdr = [self setHeader: @"MIME-Version"
-                          value: @"1.0"
-                     parameters: nil];
+          [self setHeader: @"MIME-Version"
+		    value: @"1.0"
+	       parameters: nil];
 	}
     }
   else
@@ -6538,8 +6592,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       /*
        * Inner documents should not contain the mime version header.
        */
-      hdr = [self headerNamed: @"mime-version"];
-      if (hdr != nil)
+      if (nil != (hdr = [self headerNamed: @"mime-version"]))
 	{
 	  [self deleteHeader: hdr];
 	}
@@ -6582,7 +6635,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	}
     }
 
-  type = [self headerNamed: @"content-type"];
+  type = [self headerNamed: CteContentType];
   if (type == nil)
     {
       /*
@@ -6612,7 +6665,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 		      format: @"[%@ -%@] with bad content",
 	    NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
 	}
-      type = [self headerNamed: @"content-type"];
+      type = [self headerNamed: CteContentType];
     }
 
   if (partData != nil)
@@ -6750,7 +6803,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    {
 	      start = [self contentByID: v];
 	    }
-	  hdr = [start headerNamed: @"content-type"];
+	  hdr = [start headerNamed: CteContentType];
 	  v = [hdr value];
 	  /*
 	   * If there is no 'type' parameter, we can fill it in automatically.
@@ -6966,7 +7019,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
         {
 	  NSString	*name;
 
-	  name = [[self headerNamed: @"content-type"] parameterForKey: @"name"];
+	  name = [[self headerNamed: CteContentType] parameterForKey: @"name"];
 	  if (name == nil)
 	    {
 	      name = @"untitled";
@@ -7326,14 +7379,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   NSUInteger    size = [document estimatedSize];
   NSMutableData *md = [NSMutableData dataWithCapacity: size];
-  GSMimeHeader  *hdr = [document headerNamed: @"mime-version"];
 
-  if (nil == hdr)
+  if (nil == [document headerNamed: @"mime-version"])
     {
-      hdr = [document setHeader: @"MIME-Version"
-                          value: @"1.0"
-                     parameters: nil];
-    }
+      [document setHeader: @"MIME-Version" value: @"1.0" parameters: nil];
+}
   [self encodePart: document to: md];
   return md;
 }
@@ -7343,7 +7393,6 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   CREATE_AUTORELEASE_POOL(arp);
   NSData		*d = nil;
   NSEnumerator		*enumerator;
-  NSString              *type;
   NSString              *subtype;
   NSString              *charset;
   NSString              *enc;
@@ -7358,9 +7407,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
    */
   contentIsArray = [content isKindOfClass: NSArrayClass];
 
-  ct = [document headerNamed: @"content-type"];
+  ct = [document headerNamed: CteContentType];
   if (nil == ct)
     {
+      NSString	*type;
+
       /*
        * Attempt to infer the content type from the content.
        */
@@ -7407,7 +7458,6 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     }
   else
     {
-      type = [ct objectForKey: @"Type"];
       subtype = [ct objectForKey: @"Subtype"];
       charset = [ct parameterForKey: @"charset"];
       if (nil == content)
@@ -7583,7 +7633,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    {
 	      start = [document contentByID: v];
 	    }
-	  hdr = [start headerNamed: @"content-type"];
+	  hdr = [start headerNamed: CteContentType];
 	  v = [hdr value];
 	  /*
 	   * If there is no 'type' parameter, we can fill it in automatically.
@@ -7679,10 +7729,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
             }
           else
             {
-              cte = [document setHeader: @"Content-Transfer-Encoding"
-                                  value: enc
-                             parameters: nil];
-            }
+              [document setHeader: @"Content-Transfer-Encoding"
+			    value: enc
+		       parameters: nil];
+    }
         }
     }
 
@@ -7778,15 +7828,17 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       foldAt = 78;
       use8bit = NO;
 
+#if 0   // Which is best?
       /* The default content transfer encoding to make 8bit data into
        * 7bit-safe data is 'base64'
        */
       dataEncoding = CteBase64;
-
+#else
       /* The default content transfer encoding to make 8bit text into
        * 7bit-safe data is 'quoted-printable'
        */
       dataEncoding = CteQuotedPrintable;
+#endif
     }
   return self;
 }

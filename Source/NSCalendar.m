@@ -97,7 +97,7 @@ typedef struct {
 #define TZ_NAME_LENGTH 1024
 
 @implementation NSCalendar (PrivateMethods)
-- (void) _resetCalendar
+- (void) _resetCalendarWithTimeZone:(NSTimeZone *)specificTimeZone
 {
 #if GS_USE_ICU == 1
   NSString *tzName;
@@ -110,7 +110,8 @@ typedef struct {
     ucal_close (my->cal);
   
   cLocaleId = [my->localeID UTF8String];
-  tzName = [my->tz name];
+  NSTimeZone *zone = (specificTimeZone ? specificTimeZone : my->tz);
+  tzName = [zone standardName];
   tzLen = [tzName length];
   if (tzLen > TZ_NAME_LENGTH)
     tzLen = TZ_NAME_LENGTH;
@@ -149,6 +150,11 @@ typedef struct {
     }
 
 #endif
+}
+
+- (void) _resetCalendar
+{
+  [self _resetCalendarWithTimeZone:nil];
 }
 
 - (void *) _UCalendar
@@ -244,6 +250,10 @@ static NSRecursiveLock *classLock = nil;
     [[NSCalendar alloc] initWithCalendarIdentifier: [cal calendarIdentifier]];
   
   return AUTORELEASE(result);
+}
+
++ (id) calendarWithIdentifier: (NSString *) string {
+	return [[[self alloc] initWithCalendarIdentifier:string] autorelease];
 }
 
 - (id) init
@@ -362,6 +372,62 @@ static NSRecursiveLock *classLock = nil;
   return AUTORELEASE(comps);
 #else
   return nil;
+#endif
+}
+
+- (void)getEra:(out NSInteger *)eraValuePointer
+          year:(out NSInteger *)yearValuePointer
+		  month:(out NSInteger *)monthValuePointer
+		  day:(out NSInteger *)dayValuePointer
+		  fromDate:(NSDate *)date
+{
+#if GS_USE_ICU == 1
+  UErrorCode err = U_ZERO_ERROR;
+  UDate udate;
+  [self _resetCalendarWithTimeZone:[self timeZone]];
+  ucal_clear (my->cal);
+  
+  udate = (UDate)floor([date timeIntervalSince1970] * 1000.0);
+  ucal_setMillis (my->cal, udate, &err);
+  if (U_FAILURE(err))
+    return;
+	
+  if (eraValuePointer != NULL)
+    *eraValuePointer = ucal_get(my->cal, UCAL_ERA, &err);
+  if (yearValuePointer != NULL)
+    *yearValuePointer = ucal_get(my->cal, UCAL_YEAR, &err);
+  if (monthValuePointer != NULL)
+    *monthValuePointer = ucal_get(my->cal, UCAL_MONTH, &err) + 1;
+  if (dayValuePointer != NULL)
+    *dayValuePointer = ucal_get(my->cal, UCAL_DAY_OF_MONTH, &err);
+#endif
+}
+
+- (void)getHour:(out NSInteger *)hourValuePointer
+         minute:(out NSInteger *)minuteValuePointer
+		 second:(out NSInteger *)secondValuePointer
+		 nanosecond:(out NSInteger *)nanosecondValuePointer
+		 fromDate:(NSDate *)date
+{
+#if GS_USE_ICU == 1
+  UErrorCode err = U_ZERO_ERROR;
+  UDate udate;
+  [self _resetCalendarWithTimeZone:[self timeZone]];
+  ucal_clear (my->cal);
+
+  udate = (UDate)floor([date timeIntervalSince1970] * 1000.0);
+  ucal_setMillis (my->cal, udate, &err);
+  if (U_FAILURE(err))
+    return;
+	
+  if (hourValuePointer != NULL)
+    *hourValuePointer = ucal_get(my->cal, UCAL_HOUR_OF_DAY, &err);
+  if (minuteValuePointer != NULL)
+    *minuteValuePointer = ucal_get(my->cal, UCAL_MINUTE, &err);
+  if (secondValuePointer != NULL)
+    *secondValuePointer = ucal_get(my->cal, UCAL_SECOND, &err);
+  if (nanosecondValuePointer != NULL)
+    *nanosecondValuePointer = ucal_get(my->cal, UCAL_MILLISECOND, &err) * 1000;
 #endif
 }
 
@@ -546,7 +612,7 @@ do \
   UDate udate;
   UErrorCode err = U_ZERO_ERROR;
   
-  [self _resetCalendar];
+  [self _resetCalendarWithTimeZone:[comps timeZone]];
   ucal_clear (my->cal);
   
   if ((amount = [comps era]) != NSDateComponentUndefined)

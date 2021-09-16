@@ -18,7 +18,7 @@
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
    If you are interested in a warranty or support for this source code,
    contact Scott Christley <scottc@net-community.com> for more information.
@@ -26,7 +26,7 @@
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Boston, MA 02110 USA.
 */ 
 
 #ifndef __NSLock_h_GNUSTEP_BASE_INCLUDE
@@ -72,7 +72,7 @@ extern "C" {
 @interface NSLock : NSObject <NSLocking>
 {
 #if	GS_EXPOSE(NSLock)
-@private
+@protected
   gs_mutex_t	_mutex;
   NSString	*_name;
 #endif
@@ -123,7 +123,7 @@ extern "C" {
 @interface NSCondition : NSObject <NSLocking>
 {
 #if	GS_EXPOSE(NSCondition)
-@private
+@protected
   gs_cond_t	_condition;
   gs_mutex_t	_mutex;
   NSString	*_name;
@@ -173,7 +173,7 @@ extern "C" {
 @interface NSConditionLock : NSObject <NSLocking>
 {
 #if	GS_EXPOSE(NSConditionLock)
-@private
+@protected
   NSCondition *_condition;
   int   _condition_value;
   NSString      *_name;
@@ -273,7 +273,7 @@ extern "C" {
 @interface NSRecursiveLock : NSObject <NSLocking>
 {
 #if	GS_EXPOSE(NSRecursiveLock)
-@private
+@protected
   gs_mutex_t	_mutex;
   NSString      *_name;
 #endif
@@ -318,6 +318,41 @@ extern "C" {
 #endif
 
 @end
+
+#if !NO_GNUSTEP
+typedef void NSLock_error_handler(id obj, SEL _cmd, BOOL stop, NSString *msg);
+/** Code may replace this function pointer in order to intercept the normal
+ * logging of a deadlock.
+ */
+GS_EXPORT NSLock_error_handler  *_NSLock_error_handler;
+
+/** Controls tracing of locks for deadlocking.
+ */
+@interface      NSObject (GSTraceLocks)
+/** Sets whether newly created lock objects (NSCondition, NSConditionLock,
+ * NSLock, NSRecursiveLock but NOT NSDistributedLock) should be created so
+ * that their use by threads is traced and deadlocks can be detected.<br />
+ * Returns the old value of the setting.
+ */
++ (BOOL) shouldCreateTraceableLocks: (BOOL)shouldTrace;
+
+/** Creates and returns a single autoreleased traced condition.
+ */
++ (NSCondition*) tracedCondition;
+
+/** Creates and returns a single autoreleased traced condition lock.
+ */
++ (NSConditionLock*) tracedConditionLockWithCondition: (NSInteger)value;
+
+/** Creates and returns a single autoreleased traced lock.
+ */
++ (NSLock*) tracedLock;
+
+/** Creates and returns a single autoreleased traced recursive lock.
+ */
++ (NSRecursiveLock*) tracedRecursiveLock;
+@end
+#endif
 
 #if  defined(__cplusplus)
 }
