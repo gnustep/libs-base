@@ -574,7 +574,10 @@ parseArray(ParserState *state)
     {
       if (NO == [array makeImmutable])
         {
+	  id	a = array;
+
           array = [array copy];
+	  RELEASE(a);
         }
     }
   return array;
@@ -638,7 +641,10 @@ parseObject(ParserState *state)
     {
       if (NO == [dict makeImmutable])
         {
+	  id	d = dict;
+
           dict = [dict copy];
+	  RELEASE(d);
         }
     }
   return dict;
