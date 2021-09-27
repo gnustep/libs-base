@@ -162,6 +162,37 @@ extern "C" {
 #  define NS_ASSUME_NONNULL_END
 #endif
 
+#if !__has_feature(nullability)
+#  ifndef _Nullable
+#    define _Nullable
+#  endif
+#  ifndef _Nonnull
+#    define _Nonnull
+#  endif
+#  ifndef _Null_unspecified
+#    define _Null_unspecified
+#  endif
+#endif
+
+/*
+ * Any argument that is passed inside a block is not going to escape
+ * the runtime of the function itself.
+ */
+#if __has_attribute(noescape)
+#  define NS_NOESCAPE __attribute__((noescape))
+#else
+#  define NS_NOESCAPE
+#endif
+
+/*
+ * Prevent NSError from being imported by Swift as a method that throws.
+ */ 
+#if __has_attribute(swift_error)
+#  define NS_SWIFT_NOTHROW __attribute__((swift_error(none)))
+#else
+#  define NS_SWIFT_NOTHROW
+#endif
+
 /*
  * Backwards compatibility macro for instance type.
  */
