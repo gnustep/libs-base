@@ -71,16 +71,18 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
 
   // FIXME: add the per interface __SCOPED__ dictionary section in the code
   // section(s) below...
-  NSDictionary *scopedProxies = @{ @"ExceptionsList" : [NSArray array],
-                                   @"FTPEnable"      : [NSNumber numberWithBool: NO],
-                                   @"HTTPEnable"     : [NSNumber numberWithBool: NO],
-                                   @"HTTPSEnable"    : [NSNumber numberWithBool: NO],
-                                   @"RTSEnable"      : [NSNumber numberWithBool: NO],
-                                   @"SOCKSEnable"    : [NSNumber numberWithBool: NO] };
+  NSDictionary *scopedProxies = [NSDictionary dictionaryWithObjectsAndKeys:
+                                                [NSArray array], @"ExceptionsList",
+                                                  [NSNumber numberWithBool: NO], @"FTPEnable", 
+                                                  [NSNumber numberWithBool: NO], @"HTTPEnable", 
+                                                  [NSNumber numberWithBool: NO], @"HTTPSEnable", 
+                                                  [NSNumber numberWithBool: NO], @"RTSEnable",
+                                                  [NSNumber numberWithBool: NO], @"SOCKSEnable",
+                                              nil];
   [proxyDict setObject: scopedProxies forKey: @"__SCOPED__"];
 
   // Setup proxy information...
-  NSArray *ProxyEnvStrings = @[ @"socks_proxy", @"http_proxy", @"https_proxy" ];
+  NSArray *ProxyEnvStrings = [NSArray arrayWithObjects: @"socks_proxy", @"http_proxy", @"https_proxy", nil];
   for (NSString *envProxyString in ProxyEnvStrings)
     {
       char *envproxy = getenv([envProxyString cStringUsingEncoding: NSUTF8StringEncoding]);
@@ -565,16 +567,20 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
       // store in the streams...
       if ([[proxyDict objectForKey: @"SOCKSEnable"] boolValue])
         {
-          NSDictionary *proxy = @{ NSStreamSOCKSProxyHostKey : [proxyDict objectForKey: NSStreamSOCKSProxyHostKey],
-                                   NSStreamSOCKSProxyPortKey : [proxyDict objectForKey: NSStreamSOCKSProxyPortKey]};
+          NSDictionary *proxy = [NSDictionary dictionaryWithObjectsAndKeys:
+                                                   [proxyDict objectForKey: NSStreamSOCKSProxyHostKey], NSStreamSOCKSProxyHostKey,
+                                                   [proxyDict objectForKey: NSStreamSOCKSProxyPortKey], NSStreamSOCKSProxyPortKey,
+                                              nil]; 
 
           [ins setProperty: proxy forKey: NSStreamSOCKSProxyConfigurationKey];
           [outs setProperty: proxy forKey: NSStreamSOCKSProxyConfigurationKey];
         }
       if ([[proxyDict objectForKey: @"HTTPEnable"] boolValue])
         {
-          NSDictionary *proxy = @{ kCFStreamPropertyHTTPProxyHost : [proxyDict objectForKey: kCFStreamPropertyHTTPProxyHost],
-                                   kCFStreamPropertyHTTPProxyPort : [proxyDict objectForKey: kCFStreamPropertyHTTPProxyPort]};
+          NSDictionary *proxy = [NSDictionary dictionaryWithObjectsAndKeys:
+                                                   [proxyDict objectForKey: kCFStreamPropertyHTTPProxyHost], kCFStreamPropertyHTTPProxyHost,
+                                                   [proxyDict objectForKey: kCFStreamPropertyHTTPProxyPort], kCFStreamPropertyHTTPProxyPort,
+                                              nil]; 
 
           [ins setProperty: proxy forKey: kCFStreamPropertyHTTPProxy];
           [outs setProperty: proxy forKey: kCFStreamPropertyHTTPProxy];
