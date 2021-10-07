@@ -60,6 +60,18 @@ enum {
  *     Says that any protocol specific cache policy should be
  *     used ... this is the default.
  *   </desc>
+ *   <term>NSURLRequestReloadIgnoringLocalAndRemoteCacheData</term>
+ *   <desc>
+ *     Says that not only should the local cache data be
+ *     ignored, but that proxies and other intermediates should be
+ *     instructed to disregard their caches so far as the protocol allows.
+ *   </desc>
+ *   <term>NSURLRequestReloadRevalidatingCacheData</term>
+ *   <desc>
+ *     Says that the existing cache data may be used provided
+ *     the origin source confirms its validity, otherwise the
+ *     URL is loaded from the origin source.
+ *   </desc>
  *   <term>NSURLRequestReloadIgnoringCacheData</term>
  *   <desc>
  *     Says the data should be re-loaded from source rather

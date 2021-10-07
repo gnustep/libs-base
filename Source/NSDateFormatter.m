@@ -343,6 +343,10 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 
 - (NSString *) stringFromDate: (NSDate *) date
 {
+  // Cocoa ignores inputs that are not NSDates...
+  if (NO == [date isKindOfClass: [NSDate class]])
+    return nil;
+  
 #if GS_USE_ICU == 1
   NSString *result;
   int32_t length;

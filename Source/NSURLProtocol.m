@@ -1025,7 +1025,7 @@ typedef struct {
 - (void) _got: (NSStream*)stream
 {
   unsigned char	buffer[BUFSIZ*64];
-  int 		readCount;
+  int 		readCount = -1;
   NSError	*e;
   NSData	*d;
   BOOL		wasInHeaders = NO;
@@ -1083,6 +1083,22 @@ typedef struct {
       unsigned		bodyLength;
 
       _complete = [_parser isComplete];
+      if ((_complete == NO) && ([stream  streamStatus] == NSStreamStatusAtEnd))
+        {
+          if (_debug)
+            {
+              NSWarnMLog(@"premature stream status at END (NSStreamStatusAtEnd) complete: %ld", (long)_complete);
+            }
+          // Force to complete...
+          _complete = YES;
+        }
+      
+      if (_debug)
+        {
+          NSWarnMLog(@"_complete: %ld wasInHeaders: %ld isInHeaders: %ld", (long)_complete,
+                     (long)wasInHeaders, (long)isInHeaders);
+        }
+
       if (YES == wasInHeaders && NO == isInHeaders)
         {
 	  GSMimeHeader		*info;
@@ -1148,7 +1164,12 @@ typedef struct {
 	  [document deleteHeaderNamed: @"http"];
 	  [_response _setHeaders: [document allHeaders]];
 
-	  if (_statusCode == 204 || _statusCode == 304)
+          if (_debug)
+            {
+              NSWarnMLog(@"[document allHeaders]: %@", [document allHeaders]);
+            }
+
+          if (_statusCode == 204 || _statusCode == 304 || _statusCode == 404)
 	    {
 	      _complete = YES;	// No body expected.
 	    }

@@ -22,6 +22,7 @@
 
    */
 #include "common.h"
+#include <winhttp.h>
 
 #import "Foundation/NSData.h"
 #import "Foundation/NSArray.h"
@@ -42,6 +43,185 @@
 #import "../GSSocketStream.h"
 
 #define	BUFFERSIZE	(BUFSIZ*64)
+
+// FIXME: Move this code into System Configuration framework...
+CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
+{
+  NSMutableDictionary *proxyDict = [NSMutableDictionary dictionary];
+#if 1
+  WINHTTP_CURRENT_USER_IE_PROXY_CONFIG  proxyInfo = { 0 };
+#else
+  WINHTTP_PROXY_INFO                    proxyInfo = { 0 };
+#endif
+
+  // Initialize...
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"FTPEnable"];
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"HTTPEnable"];
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"HTTPSEnable"];
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"RTSEnable"];
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"SOCKSEnable"];
+
+  // FIXME: add the ExceptionsList array section...
+  [proxyDict setObject: [NSArray array] forKey: @"ExceptionsList"];
+
+  // FIXME: add the per interface __SCOPED__ dictionary section in the code
+  // section(s) below...
+  NSDictionary *scopedProxies = @{ @"ExceptionsList" : [NSArray array],
+                                   @"FTPEnable"      : [NSNumber numberWithBool: NO],
+                                   @"HTTPEnable"     : [NSNumber numberWithBool: NO],
+                                   @"HTTPSEnable"    : [NSNumber numberWithBool: NO],
+                                   @"RTSEnable"      : [NSNumber numberWithBool: NO],
+                                   @"SOCKSEnable"    : [NSNumber numberWithBool: NO] };
+  [proxyDict setObject: scopedProxies forKey: @"__SCOPED__"];
+
+#if 1
+  if (FALSE == WinHttpGetIEProxyConfigForCurrentUser(&proxyInfo))
+#else
+  if (FALSE == WinHttpGetDefaultProxyConfiguration(&proxyInfo))
+#endif
+    {
+      NSWarnMLog(@"error retrieving windows proxy information - error code: %ld", (long)GetLastError());
+    }
+  else
+    {
+      NSWarnMLog(@"fAutoDetect: %ld hosts: %S bypass %S",
+#if 1
+                 (long)proxyInfo.fAutoDetect, proxyInfo.lpszProxy, proxyInfo.lpszProxyBypass);
+#else
+                 (long)proxyInfo.dwAccessType, proxyInfo.lpszProxy, proxyInfo.lpszProxyBypass);
+#endif
+
+      // Proxy host(s) list...
+      if (NULL != proxyInfo.lpszProxy)
+        {
+          NSString            *host = nil;
+          NSNumber            *port = nil;
+          NSString            *string = AUTORELEASE([[NSString alloc] initWithBytes: proxyInfo.lpszProxy
+                                                                             length: wcslen(proxyInfo.lpszProxy)*sizeof(wchar_t)
+                                                                           encoding: NSUTF16StringEncoding]);
+
+          // Multiple components setup???
+          if ([string containsString: @";"] || [string containsString: @"="])
+            {
+              // Split the components using ';'...
+              NSArray   *components = [string componentsSeparatedByString: @";"];
+              NSString  *proxy      = nil;
+
+              // Find the SOCKS proxy setting...
+              for (proxy in components)
+                {
+                  if ([[proxy lowercaseString] containsString: @"socks="])
+                    {
+                      // SOCKS available...
+                      NSInteger  index      = [proxy rangeOfString: @"="].location + 1;
+                      NSArray   *socksProxy = [[proxy substringFromIndex: index] componentsSeparatedByString: @":"];
+                      if (0 == [socksProxy count])
+                        {
+                          NSWarnMLog(@"error processing SOCKS proxy info for (%@)", proxy);
+                        }
+                      else
+                        {
+                          host              = [socksProxy objectAtIndex: 0];
+                          NSInteger portnum = ([socksProxy count] > 1 ? [[socksProxy objectAtIndex: 1] integerValue] : 8080);
+                          port              = [NSNumber numberWithInteger: portnum];
+                          NSWarnMLog(@"SOCKS - host: %@ port: %@", host, port);
+
+                          // Setup the proxy dictionary information and...
+                          [proxyDict setObject: host forKey: NSStreamSOCKSProxyHostKey];
+                          [proxyDict setObject: port forKey: NSStreamSOCKSProxyPortKey];
+                          // This key is NOT in the returned dictionary on Cocoa...
+                          [proxyDict setObject: NSStreamSOCKSProxyVersion5 forKey: NSStreamSOCKSProxyVersionKey];
+                          [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"SOCKSEnable"];
+                        }
+                    }
+                  else if ([[proxy lowercaseString] containsString: @"http="])
+                    {
+                      // HTTP available...
+                      NSInteger  index      = [proxy rangeOfString: @"="].location + 1;
+                      NSArray   *socksProxy = [[proxy substringFromIndex: index] componentsSeparatedByString: @":"];
+                      if (0 == [socksProxy count])
+                        {
+                          NSWarnMLog(@"error processing HTTP proxy info for (%@)", proxy);
+                        }
+                      else
+                        {
+                          host              = [socksProxy objectAtIndex: 0];
+                          NSInteger portnum = ([socksProxy count] > 1 ? [[socksProxy objectAtIndex: 1] integerValue] : 8080);
+                          port              = [NSNumber numberWithInteger: portnum];
+                          NSWarnMLog(@"HTTP - host: %@ port: %@", host, port);
+
+                          // Setup the proxy dictionary information and...
+                          [proxyDict setObject: host forKey: kCFStreamPropertyHTTPProxyHost];
+                          [proxyDict setObject: port forKey: kCFStreamPropertyHTTPProxyPort];
+                          [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"HTTPEnable"];
+                        }
+                    }
+                  else if ([[proxy lowercaseString] containsString: @"https="])
+                    {
+                      // HTTPS available...
+                      NSInteger  index      = [proxy rangeOfString: @"="].location + 1;
+                      NSArray   *socksProxy = [[proxy substringFromIndex: index] componentsSeparatedByString: @":"];
+                      if (0 == [socksProxy count])
+                        {
+                          NSWarnMLog(@"error processing HTTPS proxy info for (%@)", proxy);
+                        }
+                      else
+                        {
+                          host              = [socksProxy objectAtIndex: 0];
+                          NSInteger portnum = ([socksProxy count] > 1 ? [[socksProxy objectAtIndex: 1] integerValue] : 8080);
+                          port              = [NSNumber numberWithInteger: portnum];
+                          NSWarnMLog(@"HTTPS - host: %@ port: %@", host, port);
+
+                          // Setup the proxy dictionary information and...
+                          [proxyDict setObject: host forKey: kCFStreamPropertyHTTPSProxyHost];
+                          [proxyDict setObject: port forKey: kCFStreamPropertyHTTPSProxyPort];
+                          [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"HTTPSEnable"];
+                        }
+                    }
+                }
+            }
+          else
+            {
+              // Split the components using ':'...
+              NSArray   *components = [string componentsSeparatedByString: @":"];
+              NSDebugFLLog(@"NSStream", @"component(s): %@", components);
+              if (0 != [components count])
+                {
+                  host              = [components objectAtIndex: 0];
+                  NSInteger portnum = ([components count] > 1 ? [[components objectAtIndex: 1] integerValue] : 8080);
+                  port              = [NSNumber numberWithInteger: portnum];
+                  NSWarnMLog(@"host: %@ port: %@", host, port);
+
+                  // Setup the proxy dictionary information...
+                  [proxyDict setObject: host forKey: NSStreamSOCKSProxyHostKey];
+                  [proxyDict setObject: port forKey: NSStreamSOCKSProxyPortKey];
+                  [proxyDict setObject: NSStreamSOCKSProxyVersion5 forKey: NSStreamSOCKSProxyVersionKey];
+                  [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"SOCKSEnable"];
+
+                  [proxyDict setObject: host forKey: kCFStreamPropertyHTTPProxyHost];
+                  [proxyDict setObject: port forKey: kCFStreamPropertyHTTPProxyPort];
+                  [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"HTTPEnable"];
+
+                  [proxyDict setObject: host forKey: kCFStreamPropertyHTTPSProxyHost];
+                  [proxyDict setObject: port forKey: kCFStreamPropertyHTTPSProxyPort];
+                  [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"HTTPSEnable"];
+                }
+            }
+        }
+    }
+
+  // Proxy exception(s) list...
+  if (NULL != proxyInfo.lpszProxyBypass)
+    {
+      NSString *bypass  = AUTORELEASE([[NSString alloc] initWithBytes: proxyInfo.lpszProxyBypass
+                                                               length: wcslen(proxyInfo.lpszProxyBypass)*sizeof(wchar_t)
+                                                             encoding: NSUTF16StringEncoding]);
+      NSWarnMLog(@"bypass %@", bypass);
+    }
+  NSWarnMLog(@"proxies: %@", proxyDict);
+
+  return [proxyDict copy];
+}
 
 /** 
  * The concrete subclass of NSInputStream that reads from a file
@@ -949,6 +1129,8 @@
     initToAddr: address port: port]);
   outs = AUTORELEASE([[GSInetOutputStream alloc]
     initToAddr: address port: port]);
+
+#if 0 // TESTPLANT-MAL-03132018: This bypasses the GSSOCKS processing...
   sock = socket(PF_INET, SOCK_STREAM, 0);
 
   /*
@@ -964,7 +1146,43 @@
   NSAssert(sock != INVALID_SOCKET, @"Cannot open socket");
   [ins _setSock: sock];
   [outs _setSock: sock];
-  
+#endif
+
+    // Setup proxy information...
+  NSDictionary *proxyDict = SCDynamicStoreCopyProxies(NULL);
+
+  // and if available...
+  if ([proxyDict count])
+    {
+      // store in the streams...
+      if ([[proxyDict objectForKey: @"SOCKSEnable"] boolValue])
+        {
+          NSDictionary *proxy = @{ NSStreamSOCKSProxyHostKey : [proxyDict objectForKey: NSStreamSOCKSProxyHostKey],
+                                   NSStreamSOCKSProxyPortKey : [proxyDict objectForKey: NSStreamSOCKSProxyPortKey]};
+
+          [ins setProperty: proxy forKey: NSStreamSOCKSProxyConfigurationKey];
+          [outs setProperty: proxy forKey: NSStreamSOCKSProxyConfigurationKey];
+        }
+      if ([[proxyDict objectForKey: @"HTTPEnable"] boolValue])
+        {
+          NSDictionary *proxy = @{ kCFStreamPropertyHTTPProxyHost : [proxyDict objectForKey: kCFStreamPropertyHTTPProxyHost],
+                                   kCFStreamPropertyHTTPProxyPort : [proxyDict objectForKey: kCFStreamPropertyHTTPProxyPort]};
+
+          [ins setProperty: proxy forKey: kCFStreamPropertyHTTPProxy];
+          [outs setProperty: proxy forKey: kCFStreamPropertyHTTPProxy];
+        }
+      if ([[proxyDict objectForKey: @"HTTPSEnable"] boolValue])
+        {
+          [ins setProperty: [proxyDict objectForKey: kCFStreamPropertyHTTPSProxyHost] forKey: kCFStreamPropertyHTTPSProxyHost];
+          [ins setProperty: [proxyDict objectForKey: kCFStreamPropertyHTTPSProxyHost] forKey: kCFStreamPropertyHTTPSProxyHost];
+          [outs setProperty: [proxyDict objectForKey: kCFStreamPropertyHTTPSProxyPort] forKey: kCFStreamPropertyHTTPSProxyPort];
+          [outs setProperty: [proxyDict objectForKey: kCFStreamPropertyHTTPSProxyPort] forKey: kCFStreamPropertyHTTPSProxyPort];
+        }
+    }
+
+  // SCDynamicStoreCopyProxies creates a copy so we need to release...
+  RELEAS(proxyDict);
+
   if (inputStream)
     {
       [ins _setSibling: outs];

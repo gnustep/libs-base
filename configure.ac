@@ -3457,7 +3457,7 @@ if test $enable_zeroconf = yes; then
     if test "$have_mdns" = "yes"; then
       AC_CHECK_LIB(dns_sd, DNSServiceBrowse, have_mdns=yes, have_mdns=no)
       if test "$have_mdns" = "yes"; then
-        MDNS_LIBS="-ldns_sd"
+        MDNS_LIBS="-ldnssd"
         HAVE_MDNS=1
       fi
     fi

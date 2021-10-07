@@ -33,6 +33,7 @@
 
 - (void) dealloc
 {
+  RELEASE(receiver);
   [super dealloc];
 }
 
@@ -41,7 +42,7 @@
 	       data: (void*)item
 {
   _invalidated = NO;
-  receiver = anObj;
+  receiver = RETAIN(anObj);
   data = item;
   switch (aType)
     {

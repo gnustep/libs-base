@@ -1,3 +1,31 @@
+2021-10-07 Gregory John Casamento <greg.casamento@gmail.com>
+
+	* configure
+	* configure.ac
+	* Headers/Foundation/NSObjCRuntime.h
+	* Headers/Foundation/NSStream.h
+	* Headers/Foundation/NSURLRequest.h
+	* Source/GNUmakefile
+	* Source/GSAvahiNetServiceBrowser.m
+	* Source/GSNetServices.h
+	* Source/GSRunLoopWatcher.m
+	* Source/GSStream.m
+	* Source/NSCharacterSetData.h
+	* Source/NSDateFormatter.m
+	* Source/NSDistributedLock.m
+	* Source/NSDistributedNotificationCenter.m
+	* Source/NSHTTPCookie.m
+	* Source/NSKeyValueObserving.m
+	* Source/NSSortDescriptor.m
+	* Source/NSURLProtocol.m
+	* Source/NSURLResponse.m
+	* Source/NSUserDefaults.m
+	* Source/unix/NSStream.m
+	* Source/win32/NSStream.m: All relevant changes made by eggplant/
+        testplant since the divergence of the gnustep_testplant_branch.
+        This is a manual merge as much of the code has been refactored or
+        reorganized in the interim.
+
 2021-09-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSJSONSerialization.m:
