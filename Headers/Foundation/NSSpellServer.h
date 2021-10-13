@@ -163,6 +163,12 @@ findMisspelledWordInString: (NSString *)stringToCheck
 
 @end
 
+#if	!NO_GNUSTEP
+// Function to create name for spell server
+GS_EXPORT NSString*
+GSSpellServerName(NSString *vendor, NSString *language);
+#endif
+
 #if     defined(__cplusplus)
 }
 #endif

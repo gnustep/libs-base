@@ -42,6 +42,7 @@ extern "C" {
 
 @class NSNotification;
 
+GS_EXPORT_CLASS
 @interface	GSLazyLock : NSLock
 {
   int	locked;
@@ -49,6 +50,7 @@ extern "C" {
 - (void) _becomeThreaded: (NSNotification*)n;
 @end
 
+GS_EXPORT_CLASS
 @interface	GSLazyRecursiveLock : NSRecursiveLock
 {
   int	counter;

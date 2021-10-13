@@ -78,6 +78,7 @@ GS_EXPORT NSString* const GSPublicNotificationCenterType;
 GS_EXPORT NSString* const GSNetworkNotificationCenterType;
 #endif
 
+GS_EXPORT_CLASS
 @interface	NSDistributedNotificationCenter : NSNotificationCenter
 {
 #if	GS_EXPOSE(NSDistributedNotificationCenter)
