@@ -59,8 +59,8 @@ jobs:
             library-combo: ng-gnu-gnu
             runtime-version: gnustep-2.0
             configure-opts: --disable-tls
-            CC: clang
-            CXX: clang++
+            CC: clang -m32
+            CXX: clang++ -m32
             LDFLAGS: -fuse-ld=lld
 
           - name: Windows MSVC Clang gnustep-2.0 x86_64
@@ -71,8 +71,8 @@ jobs:
             library-combo: ng-gnu-gnu
             runtime-version: gnustep-2.0
             configure-opts: --disable-tls
-            CC: clang
-            CXX: clang++
+            CC: clang -m64
+            CXX: clang++ -m64
             LDFLAGS: -fuse-ld=lld
 
     env:
