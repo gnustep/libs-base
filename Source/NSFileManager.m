@@ -867,33 +867,31 @@ static NSStringEncoding	defaultEncoding;
                     create: (BOOL)shouldCreate 
                      error: (NSError **)error
 {
-  NSURL *result = nil;
-  NSArray *urlArray = NSSearchPathForDirectoriesInDomains(directory, domain, YES);
-
-  // Find out the URL exists...
-  if ([urlArray count] > 0)
-    {
-      result = [NSURL URLWithString: [urlArray objectAtIndex: 0]];
-    }
+  NSString *path = nil;
 
   if (directory == NSItemReplacementDirectory)
     {
-      result = [NSURL URLWithString: NSTemporaryDirectory()];
+      path = NSTemporaryDirectory();
+    }
+  else
+    {
+      NSArray *pathArray = NSSearchPathForDirectoriesInDomains(directory, domain, YES);
+
+      if ([pathArray count] > 0)
+        {
+          path = [pathArray objectAtIndex: 0];
+        }
     }
 
-  if (![self fileExistsAtPath: [result absoluteString]])
+  if (shouldCreate && ![self fileExistsAtPath: path])
       {
-        // If we should created it, create it...
-        if (shouldCreate)
-          {
-            [self       createDirectoryAtPath: [result absoluteString]
-                  withIntermediateDirectories: YES
-                                   attributes: nil
-                                        error: error];
-          }
+        [self       createDirectoryAtPath: path
+              withIntermediateDirectories: YES
+                               attributes: nil
+                                    error: error];
       }
   
-  return result;
+  return [NSURL fileURLWithPath: path];
 }
 
 - (NSDirectoryEnumerator *)enumeratorAtURL: (NSURL *)url
@@ -2903,7 +2901,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
                       if (_errorHandler != NULL)
                         {
                           flag = CALL_BLOCK(_errorHandler,
-			    [NSURL URLWithString: _currentFilePath],
+			    [NSURL fileURLWithPath: _currentFilePath],
 			    [NSError _last]);
                         }
                       if (flag == NO)
