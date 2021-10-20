@@ -1,3 +1,9 @@
+2021-09-20 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSFileManager.m:
+	Fix -[NSFileManager URLForDirectory:...] using incorrect NSURL
+	initializer and simplified implementation.
+
 2021-09-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSJSONSerialization.m:
