@@ -3548,6 +3548,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     }
 
   GSClassSwizzle(self, dataBlock);
+  bytes = buf;
+  length = len;
   ASSIGN(deallocator, (id)deallocBlock);
   return self;
 }

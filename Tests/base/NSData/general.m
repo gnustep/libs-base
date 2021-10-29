@@ -89,6 +89,8 @@ int main()
                             deallocator: ^(void* bytes, NSUInteger length) {
       called++;
   }];
+  PASS([immutable length] == 4, "Length set");
+  PASS([immutable bytes] == stackBuf, "Bytes set");
   PASS_RUNS([immutable release]; immutable = nil;,
       "No free() error with custom deallocator");
   PASS(called == 1, "Deallocator block called");
@@ -102,6 +104,8 @@ int main()
                                       called++;
                                    }
   ];
+  PASS([mutable length] == 4, "Length set");
+  PASS([mutable bytes] == buf, "Bytes set");
   PASS_RUNS([mutable release]; mutable = nil;,
     "No free() error with custom deallocator on mutable data");
   PASS(called == 2, "Deallocator block called on -dealloc of mutable data");
