@@ -298,7 +298,7 @@ static NSMutableArray *GSCookieStrings(NSString *string);
       return nil;
     }
 
-  rawProps = [[properties mutableCopy] autorelease];
+  rawProps = AUTORELEASE([properties mutableCopy]);
   if ([rawProps objectForKey: @"Created"] == nil)
     {
       NSInteger seconds;

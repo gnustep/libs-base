@@ -263,11 +263,23 @@ static NSFileManager	*mgr = nil;
 	  attributes = [mgr fileAttributesAtPath: _lockPath
 				    traverseLink: YES];
 	  if (attributes == nil)
-	    {
-	      [NSException raise: NSGenericException
-		format: @"Unable to get attributes of lock file we made at %@",
-		_lockPath];
-	    }
+            {
+              /*
+               * We've seen cases where several instances of the same
+               * program were launched at once, where this exception
+               * got raised. It may be possible that one process removed
+               * the lock we've been using here, and with the right timing
+               * the exception could get raised, however we would only
+               * expect a failure in setting the lock:
+               */
+              /*
+               * [NSException raise: NSGenericException
+               *             format: @"Unable to get attributes of lock file we made"];
+               */
+              NSLog(@"Unable to get attributes of lock file we made");
+              return NO;
+            }
+          
 	  ASSIGN(_lockTime, [attributes fileModificationDate]);
 	  if (nil == _lockTime)
 	    {

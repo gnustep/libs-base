@@ -49,6 +49,19 @@
 #define PRIuPTR "lu"
 #endif
 
+/* MINGW 32/64 go here... */
+#if defined(__MINGW32__)
+/* NONE FOR NOW... */
+#endif
+#if defined(__MINGW64__)
+#undef PRIuPTR
+#define PRIuPTR "llu"
+#undef PRIdPTR
+#define PRIdPTR "ld"
+#undef PRIxPTR
+#define PRIxPTR "lx"
+#endif
+
 /* IRIX kludge.  */
 #if defined(__sgi)
 /* IRIX 6.5 <inttypes.h> provides all definitions, but only for C99

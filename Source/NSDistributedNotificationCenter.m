@@ -734,18 +734,39 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 		@"--auto",
 		nil];
 	    }
-	  [NSTask launchedTaskWithLaunchPath: cmd arguments: args];
-
+#if defined(__MINGW32__)
+          NSTask *task = AUTORELEASE([NSTask new]);
+          [task setStandardError:[NSFileHandle fileHandleForWritingAtPath:@"NUL"]];
+          [task setStandardOutput:[NSFileHandle fileHandleForWritingAtPath:@"NUL"]];
+          [task setLaunchPath:cmd];
+          [task setArguments:args];
+          [task launch];
+#else
+          [NSTask launchedTaskWithLaunchPath: cmd arguments: args];
+#endif
 	  limit = [NSDate dateWithTimeIntervalSinceNow: 10.0];
 	  while (_remote == nil && [limit timeIntervalSinceNow] > 0)
 	    {
               NSAutoreleasePool	*pool = [NSAutoreleasePool new];
 
               [NSThread sleepForTimeInterval: 0.05];
-	      _remote = [NSConnection
-		rootProxyForConnectionWithRegisteredName: service
-		host: host usingNameServer: ns];
-              [_remote retain];
+              NS_DURING
+                {
+                  _remote = [NSConnection
+                              rootProxyForConnectionWithRegisteredName: service
+                                                                  host: host usingNameServer: ns];
+                  RETAIN(_remote);
+                }
+              NS_HANDLER
+                {
+                  NSLog(@"%s:exception: %@", __PRETTY_FUNCTION__, localException);
+                  _remote = nil;
+                  // Re-raise??? Another exeption will be raised below...
+                  //[pool drain]; // Avoid autorelease pool leak...
+                  //[localException raise];
+                }
+              NS_ENDHANDLER;
+              
               [pool drain];
 	    }
 	  if (_remote == nil)

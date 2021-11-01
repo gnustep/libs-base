@@ -107,6 +107,10 @@ ifeq ($(findstring openbsd, $(GNUSTEP_TARGET_OS)), openbsd)
   OBJC_LIBS += -pthread
 endif
 
+ifeq ($(findstring mingw, $(GNUSTEP_TARGET_OS)), mingw)
+  ADDITIONAL_NATIVE_LIBS += winhttp
+endif
+
 ifeq ($(GNUSTEP_TARGET_OS), mingw32)
   GNU_MFILES += libgnustep-base-entry.m
 else ifeq ($(GNUSTEP_TARGET_OS), mingw64)

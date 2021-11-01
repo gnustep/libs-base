@@ -113,16 +113,31 @@ static BOOL     initialized = NO;
   id comparedKey1 = [object1 valueForKeyPath: _key];
   id comparedKey2 = [object2 valueForKeyPath: _key];
 
-  if (_comparator == NULL)
-    {
-      result = (NSComparisonResult) [comparedKey1 performSelector: _selector
-                                                       withObject: comparedKey2];
+  // Cocoa seems to either capture the exception thrown in the nil parameter case or
+  // do some other type of comparison for it's internal sorting algorithm.  We will
+  // just capture the exception and continue for now...
+  NS_DURING
+    {      
+      if (_comparator == NULL)
+        {
+          result = (NSComparisonResult) [comparedKey1 performSelector: _selector
+                                                           withObject: comparedKey2];
+        }
+      else
+        {
+          result = CALL_BLOCK(((NSComparator)_comparator), comparedKey1, comparedKey2);
+        }
     }
-  else
+  NS_HANDLER
     {
-      result = CALL_BLOCK(((NSComparator)_comparator), comparedKey1, comparedKey2);
+      // What should we use for the result here???
+      result = NSOrderedAscending;
+
+      // NOTE:  I am not sure why TP assumes here that the order is Ascending, but since the behavior is
+      //   undefined, I suppose it's as good a result as any.
     }
-  
+  NS_ENDHANDLER;
+    
   if (_ascending == NO)
     {
       if (result == NSOrderedAscending)
