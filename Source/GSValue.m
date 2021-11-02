@@ -73,7 +73,7 @@ typeSize(const char* type)
 	{
 	  NSUInteger	size;
 
-	  NSGetSizeAndAlignment(type, &size, 0);
+	  NSGetSizeAndAlignment(type, &size, NULL);
 	  return (int)size;
 	}
       case _C_VOID:	return 0;
@@ -265,7 +265,7 @@ typeSize(const char* type)
   size = strlen(objctype)+1;
   [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
   [coder encodeArrayOfObjCType: @encode(signed char) count: size at: objctype];
-  NSGetSizeAndAlignment(objctype, 0, &tsize);
+  NSGetSizeAndAlignment(objctype, &tsize, NULL);
   size = tsize;
   d = [NSMutableData new];
   [d serializeDataAt: data ofObjCType: objctype context: nil];

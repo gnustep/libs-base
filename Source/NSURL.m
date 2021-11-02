@@ -611,7 +611,7 @@ static NSUInteger	urlAlign;
 {
   if (clientsLock == nil)
     {
-      NSGetSizeAndAlignment(@encode(parsedURL), &urlAlign, 0);
+      NSGetSizeAndAlignment(@encode(parsedURL), NULL, &urlAlign);
       clientsLock = [NSLock new];
       [[NSObject leakAt: &clientsLock] release];
       ASSIGN(fileCharSet, [NSCharacterSet characterSetWithCharactersInString:

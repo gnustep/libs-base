@@ -1862,7 +1862,7 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
               {
 		NSUInteger	size;
 
-		NSGetSizeAndAlignment(type, &size, 0);
+		NSGetSizeAndAlignment(type, &size, NULL);
                 if (sel == 0)
                   {
 		    [val getValue: ((char *)self + offset)];
