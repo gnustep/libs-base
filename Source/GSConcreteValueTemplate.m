@@ -113,7 +113,7 @@
 		  format: @"Cannot copy value into NULL buffer"];
 	/* NOT REACHED */
     }
-  NSGetSizeAndAlignment([self objCType], 0, &size);
+  NSGetSizeAndAlignment([self objCType], &size, NULL);
   memcpy(value, &data, size);
 }
 

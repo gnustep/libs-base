@@ -440,7 +440,7 @@ static NSLock			*placeholderLock;
       return;
     }
 
-  NSGetSizeAndAlignment(objctype, 0, &tsize);
+  NSGetSizeAndAlignment(objctype, &tsize, NULL);
   data = (void *)NSZoneMalloc([self zone], tsize);
   [self getValue: (void*)data];
   d = [NSMutableData new];
@@ -583,7 +583,7 @@ static NSLock			*placeholderLock;
 	   * For performance, decode small values directly onto the stack,
 	   * For larger values we allocate and deallocate heap space.
 	   */
-	  NSGetSizeAndAlignment(objctype, 0, &tsize);
+	  NSGetSizeAndAlignment(objctype, &tsize, NULL);
 	  if (tsize <= 64)
 	    {
 	      unsigned char data[tsize];
@@ -625,7 +625,7 @@ static NSLock			*placeholderLock;
        * For performance, decode small values directly onto the stack,
        * For larger values we allocate and deallocate heap space.
        */
-      NSGetSizeAndAlignment(objctype, 0, &tsize);
+      NSGetSizeAndAlignment(objctype, &tsize, NULL);
       if (tsize <= 64)
 	{
 	  unsigned char	data[tsize];

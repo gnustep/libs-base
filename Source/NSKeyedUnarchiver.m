@@ -427,7 +427,7 @@ static NSMapTable	*globalClassMap = 0;
 		  format: @"[%@ +%@]: count mismatch for %@",
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd), o];
     }
-  NSGetSizeAndAlignment(type, 0, &size);
+  NSGetSizeAndAlignment(type, &size, NULL);
   memcpy(buf, [o bytes], expected * size);
 }
 
