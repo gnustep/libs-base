@@ -272,10 +272,8 @@ static NSFileManager	*mgr = nil;
                * the exception could get raised, however we would only
                * expect a failure in setting the lock:
                */
-              /*
-               * [NSException raise: NSGenericException
-               *             format: @"Unable to get attributes of lock file we made"];
-               */
+	       
+              [_localLock unlock];
               NSLog(@"Unable to get attributes of lock file we made");
               return NO;
             }
