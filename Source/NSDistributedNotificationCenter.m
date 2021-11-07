@@ -759,11 +759,8 @@ static NSDistributedNotificationCenter	*netCenter = nil;
                 }
               NS_HANDLER
                 {
-                  NSLog(@"%s:exception: %@", __PRETTY_FUNCTION__, localException);
+                  NSDebugMLLog(@"%@:exception: %@", NSStringFromSelector(_cmd), localException);
                   _remote = nil;
-                  // Re-raise??? Another exeption will be raised below...
-                  //[pool drain]; // Avoid autorelease pool leak...
-                  //[localException raise];
                 }
               NS_ENDHANDLER;
               
