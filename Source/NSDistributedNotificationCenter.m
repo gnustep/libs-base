@@ -736,8 +736,8 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 	    }
 #if defined(__MINGW32__)
           NSTask *task = AUTORELEASE([NSTask new]);
-          [task setStandardError:[NSFileHandle fileHandleForWritingAtPath:@"NUL"]];
-          [task setStandardOutput:[NSFileHandle fileHandleForWritingAtPath:@"NUL"]];
+          [task setStandardError:[NSFileHandle fileHandleWithNullDevice]];
+          [task setStandardOutput:[NSFileHandle fileHandleWithNullDevice]];
           [task setLaunchPath:cmd];
           [task setArguments:args];
           [task launch];
