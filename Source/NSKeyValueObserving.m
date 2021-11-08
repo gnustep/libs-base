@@ -1717,7 +1717,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
       if (pathInfo->recursion++ == 0)
         {
           id    old = [pathInfo->change objectForKey: NSKeyValueChangeNewKey];
-          
+
           if (old != nil)
             {
               /* We have set a value for this key already, so the value
