@@ -1,3 +1,8 @@
+2021-11-11 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSBundle.h:
+	Annotate NSBundle localized string function with NS_FORMAT_ARGUMENT.
+
 2021-09-20 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSFileManager.m:

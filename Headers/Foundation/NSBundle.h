@@ -345,7 +345,7 @@ GS_EXPORT_CLASS
  */
 - (NSString*) localizedStringForKey: (NSString*)key
 			      value: (NSString*)value
-			      table: (NSString*)tableName;
+			      table: (NSString*)tableName NS_FORMAT_ARGUMENT(1);
 
 /** Returns the absolute path to the resources directory of the bundle.  */
 - (NSString*) resourcePath;
