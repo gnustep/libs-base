@@ -191,8 +191,9 @@ typedef	enum {
 /** Adds a watcher to the receiver ... the watcher is used to monitor events
  * of the specified type which are associted with the event handle data and
  * it operates in the specified run loop modes.<br />
- * The watcher remains in place until a corresponding call to
- * -removeEvent:type:forMode:all: is made.
+ * The watcher is not retained, but remains in place until a corresponding
+ * call to -removeEvent:type:forMode:all: is made.  If is the watchers
+ * responsibility to ensure that it is removed from the run loop safely.
  */
 - (void) addEvent: (void*)data
 	     type: (RunLoopEventType)type

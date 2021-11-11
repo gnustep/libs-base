@@ -44,8 +44,9 @@
  *	watcher is interested in.  Its meaning is system dependent.
  *
  *	The 'receiver' is the object which should be told when the event
- *	occurs.  This object is retained so that we know it will continue
- *	to exist and can handle a callback.
+ *	occurs.  This object is NOT retained so that we can avoid retain
+ *	loops.  It is the responsibility of the receiver to invalidate
+ *	the watcher before it is destroyed.
  *
  *	The 'type' variable indentifies the type of event watched for.
  *	NSRunLoops [-acceptInputForMode: beforeDate: ] method MUST contain
