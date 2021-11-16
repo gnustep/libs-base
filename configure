@@ -815,6 +815,7 @@ with_ffi_include
 with_ffi_library
 enable_iconv
 with_libiconv_library
+with_libiconv_include
 enable_stricticonv
 enable_xml
 with_xml_prefix
@@ -1582,6 +1583,7 @@ Optional Packages:
   --with-ffi-include=PATH       Include path for ffi headers
   --with-ffi-library=PATH       Library path for ffi libs
   --with-libiconv-library=PATH  Library path for libiconv libraries
+  --with-libiconv-include=PATH  Include path for libiconv header
   --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
   --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
   --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)
@@ -11529,6 +11531,19 @@ case "$target_os" in
 		LDIR_FLAGS="$LDIR_FLAGS -Wl,-rpath,${libiconv_libdir} -L${libiconv_libdir}";;
 esac
 
+  fi
+
+
+# Check whether --with-libiconv-include was given.
+if test "${with_libiconv_include+set}" = set; then :
+  withval=$with_libiconv_include; libiconv_incdir="$withval"
+else
+  libiconv_incdir="no"
+fi
+
+  if test ${libiconv_incdir} != "no"; then
+      CPPFLAGS="$CPPFLAGS -I${libiconv_incdir}"
+      INCLUDE_FLAGS="$INCLUDE_FLAGS -I${libiconv_incdir}"
   fi
 
   old_LIBS="$LIBS"
