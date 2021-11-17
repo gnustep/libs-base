@@ -1071,7 +1071,7 @@ compareIt(id o1, id o2, void* context)
       }
     else // call block directly
 #endif
-    if (CALL_BLOCK(aPredicate, key, obj, &shouldStop))
+    if (CALL_NON_NULL_BLOCK(aPredicate, key, obj, &shouldStop))
       {
         addObject(buildSet, addObjectSelector, key);
       }

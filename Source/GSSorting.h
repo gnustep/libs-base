@@ -148,7 +148,7 @@ GSCompareUsingDescriptorOrComparator(id first, id second, id descOrComp,
         return [(NSSortDescriptor*)descOrComp compareObject: first
                                                    toObject: second];
       case GSComparisonTypeComparatorBlock:
-        return CALL_BLOCK(((NSComparator)descOrComp), first, second);
+        return CALL_NON_NULL_BLOCK(((NSComparator)descOrComp), first, second);
 
       case GSComparisonTypeFunction:
         return ((NSInteger (*)(id, id, void *))descOrComp)(first,

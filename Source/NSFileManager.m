@@ -2900,7 +2900,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 			_currentFilePath, [NSError _last]);
                       if (_errorHandler != NULL)
                         {
-                          flag = CALL_BLOCK(_errorHandler,
+                          flag = CALL_NON_NULL_BLOCK(_errorHandler,
 			    [NSURL fileURLWithPath: _currentFilePath],
 			    [NSError _last]);
                         }

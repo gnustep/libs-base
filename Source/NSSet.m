@@ -933,7 +933,7 @@ static Class NSMutableSet_concrete_class;
     
   FOR_IN (id, obj, enumerator)
     {
-      BOOL include = CALL_BLOCK(aBlock, obj, &shouldStop);
+      BOOL include = CALL_NON_NULL_BLOCK(aBlock, obj, &shouldStop);
 
       if (include)
         {

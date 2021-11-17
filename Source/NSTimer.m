@@ -290,7 +290,7 @@ static Class	NSDate_class;
     {
       if ((id)_block != nil)
         {
-          CALL_BLOCK(_block, self);
+          CALL_NON_NULL_BLOCK(_block, self);
         }
       else
         {

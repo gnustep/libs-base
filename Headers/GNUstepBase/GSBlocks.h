@@ -48,12 +48,12 @@ typedef retTy(^name)()
 /**
  * Calls a block.  Works irrespective of whether the compiler supports blocks.
  */
-#define CALL_BLOCK(block, args, ...) block(args, ## __VA_ARGS__)
+#define CALL_NON_NULL_BLOCK(block, args, ...) block(args, ## __VA_ARGS__)
 
 /**
  * Calls a block without arguments.
  */
-#define CALL_BLOCK_NO_ARGS(block) block()
+#define CALL_NON_NULL_BLOCK_NO_ARGS(block) block()
 #else
 
 /* Fall-back versions for when the compiler doesn't have native blocks support.
@@ -76,9 +76,9 @@ typedef retTy(^name)()
     retTy (*invoke)(void*);\
   } *name
 
-#define CALL_BLOCK(block, args, ...) block->invoke(block, args, ## __VA_ARGS__)
+#define CALL_NON_NULL_BLOCK(block, args, ...) block->invoke(block, args, ## __VA_ARGS__)
 
-#define CALL_BLOCK_NO_ARGS(block) block->invoke(block)
+#define CALL_NON_NULL_BLOCK_NO_ARGS(block) block->invoke(block)
 #define BLOCK_SCOPE
 
 #else /* GCC_VERSION >= 3000 */
@@ -100,12 +100,15 @@ typedef retTy(^name)()
   } *name
 
 
-#define CALL_BLOCK(block, args...) block->invoke(block, args)
-#define CALL_BLOCK_NO_ARGS(block) block->invoke(block)
+#define CALL_NON_NULL_BLOCK(block, args...) block->invoke(block, args)
+#define CALL_NON_NULL_BLOCK_NO_ARGS(block) block->invoke(block)
 #define BLOCK_SCOPE
 #endif /* GCC_VERSION >= 3000 */
 
 #endif /* __has_feature(blocks) */
+
+#define CALL_BLOCK(block, args...) ((NULL != block) ? CALL_NON_NULL_BLOCK(block, args) : nil)
+#define CALL_BLOCK_NO_ARGS(block) ((NULL != block) ? CALL_NON_NULL_BLOCK_NO_ARGS(block) : nil)
 
 #if __has_include(<objc/blocks_runtime.h>)
 #  include <objc/blocks_runtime.h>

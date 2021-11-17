@@ -526,11 +526,7 @@ static NSArray	*empty = nil;
 	  internal->finished = YES;
 	  [self didChangeValueForKey: @"isFinished"];
 	}
-      if (NULL != internal->completionBlock)
-	{
-	  CALL_BLOCK_NO_ARGS(
-	    ((GSOperationCompletionBlock)internal->completionBlock));
-	}
+      CALL_BLOCK_NO_ARGS(((GSOperationCompletionBlock)internal->completionBlock));
     }
   [internal->lock unlock];
 }
@@ -584,7 +580,7 @@ static NSArray	*empty = nil;
 
   while ((theBlock = (GSBlockOperationBlock)[en nextObject]) != NULL)
     {
-      CALL_BLOCK_NO_ARGS(theBlock);
+      CALL_NON_NULL_BLOCK_NO_ARGS(theBlock);
     }
 }
 @end
