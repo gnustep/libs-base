@@ -3169,6 +3169,14 @@ if test $found_iconv = no ; then
     GS_ADD_LIBRARY_PATH([${libiconv_libdir}])
   fi
 
+  AC_ARG_WITH(libiconv-include,
+    [  --with-libiconv-include=PATH  Include path for libiconv header],
+    libiconv_incdir="$withval", libiconv_incdir="no")
+  if test ${libiconv_incdir} != "no"; then
+      CPPFLAGS="$CPPFLAGS -I${libiconv_incdir}"
+      INCLUDE_FLAGS="$INCLUDE_FLAGS -I${libiconv_incdir}"
+  fi
+
   old_LIBS="$LIBS"
   LIBS="-liconv $LIBS"
   AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
