@@ -14,7 +14,7 @@
   BOOL              done; /* the response is written */
   NSString         *file; /* the file to write the captured request */
 }
-- (id)initWithSecure:(BOOL)flag;
+- (id) initWithSecure:(BOOL)flag;
 - (int) runTest;
 @end
 
@@ -29,9 +29,9 @@
   [super dealloc];
 }
 
-- (id)initWithSecure:(BOOL)flag
+- (id) initWithSecure:(BOOL)flag
 {
-  if((self = [super init]) != nil)
+  if ((self = [super init]) != nil)
     {
       isSecure = flag;
       capture = [NSMutableData new];
@@ -70,7 +70,7 @@
       NSLog(@"Failed to create server stream");
       return 1;
     }
-  if(isSecure)
+  if (isSecure)
     {
       [serverStream setProperty: NSStreamSocketSecurityLevelTLSv1 forKey: NSStreamSocketSecurityLevelKey];
       [serverStream setProperty: @"testCert.pem" forKey: GSTLSCertificateFile];
@@ -81,7 +81,12 @@
   [serverStream scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
   [serverStream open];
 
-  while(!done)
+  /* Tell main test program we are ready to handle a request
+   */
+  [[NSFileHandle fileHandleWithStandardOutput] writeData:
+    [@"Ready" dataUsingEncoding: NSASCIIStringEncoding]];
+
+  while (!done)
     {
       [rl runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.1]];
     }
@@ -151,18 +156,18 @@
 	      tmp1 = [[NSString alloc] initWithData: capture 
 					   encoding: NSUTF8StringEncoding];
 	      // whether the headers are read
-	      if((r1 = [tmp1 rangeOfString: @"\r\n\r\n"]).location != NSNotFound)
+	      if ((r1 = [tmp1 rangeOfString: @"\r\n\r\n"]).location != NSNotFound)
 		{
 		  headers = [tmp1 substringToIndex: r1.location + 2];
-		  if((r2 = [[headers lowercaseString] rangeOfString: @"content-length:"]).location != NSNotFound)
+		  if ((r2 = [[headers lowercaseString] rangeOfString: @"content-length:"]).location != NSNotFound)
 		    {
 		      tmp2 = [headers substringFromIndex: r2.location + r2.length]; // content-length:<tmp2><end of headers>
-		      if((r2 = [tmp2 rangeOfString: @"\r\n"]).location != NSNotFound)
+		      if ((r2 = [tmp2 rangeOfString: @"\r\n"]).location != NSNotFound)
 			{
 			  // full line with content-length is present
 			  tmp2 = [tmp2 substringToIndex: r2.location]; // number of content's bytes
 			  contentLength = [tmp2 intValue];
-			  if(r1.location + 4 + contentLength == [capture length]) // Did we get headers + body?
+			  if (r1.location + 4 + contentLength == [capture length]) // Did we get headers + body?
 			    {
 			      // full request is read so write it
 			      if ([capture writeToFile: file atomically: YES] == NO)
@@ -178,11 +183,11 @@
 		}
 	      DESTROY(tmp1);
 	    }
-	  if(!doRespond) break;
+	  if (!doRespond) break;
 	}
       case NSStreamEventHasSpaceAvailable: 
 	{
-	  if(doRespond)
+	  if (doRespond)
 	    {
 	      // if we have read all request's bytes
 	      NSData	*data;

@@ -75,6 +75,11 @@
   [serverStream scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
   [serverStream open];
 
+  /* Tell main test program we are ready to handle a request
+   */
+  [[NSFileHandle fileHandleWithStandardOutput] writeData:
+    [@"Ready" dataUsingEncoding: NSASCIIStringEncoding]];
+
   /* Run for up to 5 minutes to allow slow/large tests to complete.
    */
   [rl runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 300]];
