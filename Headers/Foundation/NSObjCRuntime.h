@@ -55,7 +55,7 @@
 #endif
 #if defined(__MINGW64__)
 #undef PRIuPTR
-#define PRIuPTR "llu"
+#define PRIuPTR "lu"
 #undef PRIdPTR
 #define PRIdPTR "ld"
 #undef PRIxPTR
