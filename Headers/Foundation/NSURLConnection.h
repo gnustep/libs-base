@@ -261,6 +261,37 @@ GS_EXPORT_CLASS
 	     redirectResponse: (NSURLResponse *)response;
 @end
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_2,GS_API_LATEST)
+@protocol NSURLConnectionDataDelegate <NSURLConnectionDelegate>
+#if GS_PROTOCOLS_HAVE_OPTIONAL
+@optional
+#endif
+
+- (NSURLRequest *) connection: (NSURLConnection *)connection
+              willSendRequest: (NSURLRequest *)request
+             redirectResponse: (NSURLResponse *)response;
+
+- (void) connection: (NSURLConnection *)connection
+ didReceiveResponse: (NSURLResponse *)response;
+
+- (void) connection: (NSURLConnection *) connection didReceiveData: (NSData *)data;
+
+- (NSInputStream *) connection: (NSURLConnection *)connection
+             needNewBodyStream: (NSURLRequest *)request;
+
+- (void) connection: (NSURLConnection *)connection
+    didSendBodyData: (NSInteger)bytesWritten
+  totalBytesWritten: (NSInteger)totalBytesWritten
+  totalBytesExpectedToWrite: (NSInteger)totalBytesExpectedToWrite;
+
+- (NSCachedURLResponse *) connection: (NSURLConnection *)connection
+                   willCacheResponse:(NSCachedURLResponse *)cachedResponse;
+
+- (void) connectionDidFinishLoading: (NSURLConnection *)connection;
+
+@end
+#endif
+
 /**
  * An interface to perform synchronous loading of URL requests.
  */

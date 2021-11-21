@@ -1,3 +1,10 @@
+2021-11-21 Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSURLConnection.h: Add
+        NSURLConnectionDataDelegate protocol.
+	* Headers/Foundation/NSURLRequest.h: Add enum for
+        NSURLNetworkServiceType.
+
 2021-11-11 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Headers/Foundation/NSBundle.h:
