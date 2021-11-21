@@ -4,6 +4,22 @@
         NSURLConnectionDataDelegate protocol.
 	* Headers/Foundation/NSURLRequest.h: Add enum for
         NSURLNetworkServiceType.
+2021-11-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Helpers/Launch.h:
+	* Helpers/capture.m:
+	* Helpers/keepalive.m:
+	* Helpers/respond.m:
+	* test00.m:
+	* test01.m:
+	* test02.m:
+	Rewrite helper launching so that the test process waits for up to
+	ten seconds for the helper to tell it that it's ready to accept
+	requests.  This should make tests run a bit quicker (no longer
+	waiting a fixed interval for the helper to start) while allowing
+	longer for the helpers to start on slow systems, and thus making
+	the tests more reliable.
+>>>>>>> b7d82408a6fba871ce9e51f249aefc398fcd3bce
 
 2021-11-11 Frederik Seiffert <frederik@algoriddim.com>
 
