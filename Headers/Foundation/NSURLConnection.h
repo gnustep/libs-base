@@ -42,7 +42,7 @@ extern "C" {
 @class NSURLAuthenticationChallenge;
 @class NSURLRequest;
 @class NSURLResponse;
-  
+
 /**
  */
 GS_EXPORT_CLASS
