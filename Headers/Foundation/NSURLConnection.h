@@ -38,10 +38,11 @@ extern "C" {
 @class NSCachedURLResponse;
 @class NSData;
 @class NSError;
+@class NSInputStream;
 @class NSURLAuthenticationChallenge;
 @class NSURLRequest;
 @class NSURLResponse;
-
+  
 /**
  */
 GS_EXPORT_CLASS
