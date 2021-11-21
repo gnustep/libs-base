@@ -4,6 +4,7 @@
         NSURLConnectionDataDelegate protocol.
 	* Headers/Foundation/NSURLRequest.h: Add enum for
         NSURLNetworkServiceType.
+
 2021-11-19 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Helpers/Launch.h:
@@ -19,7 +20,6 @@
 	waiting a fixed interval for the helper to start) while allowing
 	longer for the helpers to start on slow systems, and thus making
 	the tests more reliable.
->>>>>>> b7d82408a6fba871ce9e51f249aefc398fcd3bce
 
 2021-11-11 Frederik Seiffert <frederik@algoriddim.com>
 
