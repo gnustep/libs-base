@@ -1,3 +1,10 @@
+2021-11-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: check for zlib before bfd
+	* configure: regenerate
+	libbfd may need libz, so we must check for one before checking for
+	the other.
+
 2021-11-21 Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSURLConnection.h: Add
