@@ -51,11 +51,11 @@ GS_EXPORT_CLASS
   gsuuid_t uuid;
 }
 
-+ (instancetype)UUID;
-- (instancetype)initWithUUIDString:(NSString *)string;
-- (instancetype)initWithUUIDBytes:(gsuuid_t)bytes;
-- (NSString *)UUIDString;
-- (void)getUUIDBytes:(gsuuid_t)bytes;
++ (instancetype) UUID;
+- (instancetype) initWithUUIDString: (NSString *)string;
+- (instancetype) initWithUUIDBytes: (gsuuid_t)bytes;
+- (NSString *) UUIDString;
+- (void) getUUIDBytes: (gsuuid_t)bytes;
 
 @end
 
