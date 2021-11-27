@@ -2961,15 +2961,20 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
 - (NSRange) rangeOfComposedCharacterSequencesForRange: (NSRange)range
 {
-  NSRange startRange = [self rangeOfComposedCharacterSequenceAtIndex: range.location];
+  NSRange	startRange;
 
+  startRange = [self rangeOfComposedCharacterSequenceAtIndex: range.location];
   if (NSMaxRange(startRange) >= NSMaxRange(range))
     {
       return startRange;
     }
   else
     {
-      NSRange endRange = [self rangeOfComposedCharacterSequenceAtIndex: NSMaxRange(range) - 1];
+      NSUInteger	index;
+      NSRange		endRange;
+
+      index = NSMaxRange(range) - 1;
+      endRange = [self rangeOfComposedCharacterSequenceAtIndex: index];
 
       return NSUnionRange(startRange, endRange);
     }
