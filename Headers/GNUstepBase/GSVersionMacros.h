@@ -420,7 +420,7 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
  */
 
 #ifndef NS_FORMAT_ARGUMENT
-#if defined(__clang__) || GS_GCC_MINREQ(4,2)
+#if defined(__clang__)
 #  define NS_FORMAT_ARGUMENT(A) __attribute__((format_arg(A)))
 #else
 #  define NS_FORMAT_ARGUMENT(A)
