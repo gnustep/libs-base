@@ -648,7 +648,6 @@ parseObject(ParserState *state)
         }
     }
   return dict;
-
 }
 
 /**
@@ -661,9 +660,10 @@ parseValue(ParserState *state)
 
   if (state->error) { return nil; };
   c = consumeSpace(state);
-  //   2.1: A JSON value MUST be an object, array, number, or string, or one of the
-  //   following three literal names:
-  //            false null true
+  /*   2.1: A JSON value MUST be an object, array, number, or string,
+   *   or one of the following three literal names:
+   *   false null true
+   */
   switch (c)
     {
       case (unichar)'"':
