@@ -136,7 +136,6 @@ NSDebug:
 	NSObjectInternalRefIncrementedEvent
 	NSObjectInternalRefDecrementedEvent
 	
-	NSDebugEnabled
 	NSKeepAllocationStatistics
 
 	NSIsFreedObject()

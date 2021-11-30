@@ -104,6 +104,13 @@ extern "C" {
  *  GSDebugAllocationListRecordedObjects() 
  *  GSDebugAllocationTagRecordedObject()
  */
+
+/**
+ * A global variable that you can use to enable debug behaviour in
+ * your program.
+ */
+extern BOOL NSDebugEnabled;
+
 #ifndef	NDEBUG
 
 /**

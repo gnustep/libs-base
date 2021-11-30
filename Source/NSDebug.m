@@ -92,6 +92,7 @@ static table_entry*	the_table = 0;
 
 static BOOL	debug_allocation = NO;
 static BOOL	debug_byte_size = NO;
+BOOL NSDebugEnabled = NO;
 
 static gs_mutex_t	uniqueLock;
 
