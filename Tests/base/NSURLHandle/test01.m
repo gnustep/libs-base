@@ -1,6 +1,7 @@
-#include <Foundation/Foundation.h>
-#include "Testing.h"
-#include "ObjectTesting.h"
+#import <Foundation/Foundation.h>
+#import "Testing.h"
+#import "ObjectTesting.h"
+#import "../NSURL/Helpers/Launch.h"
 
 /* This test collection examines the responses when a variety of HTTP
 * status codes are returned by the server. Relies on the
@@ -31,12 +32,12 @@ int main(int argc, char **argv)
   helpers = [helpers stringByAppendingPathComponent: @"obj"];
   statusServer = [helpers stringByAppendingPathComponent: @"StatusServer"];
   
-  t = [NSTask launchedTaskWithLaunchPath: statusServer arguments: nil];
-  
+  t = [NSTask launchedHelperWithLaunchPath: statusServer
+				 arguments: nil
+				   timeout: 10.0];
+
   if (t != nil)
     {
-      // pause, so that the server is set up
-      [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.5]];
       // try some different requests
       handle = [[[cls alloc] initWithURL: url cached: NO] autorelease];
       rxd = [handle loadInForeground];
