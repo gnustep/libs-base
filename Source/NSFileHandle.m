@@ -1034,7 +1034,14 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 
 - (void) sslDisconnect
 {
-  [self setNonBlocking: NO];
+  /* When disconnecting, since the TCP/IP connection is not going to be
+   * re-used, we can use non-blocking I/O and abandon the cleanup in the
+   * TLS layer if the I/O cannot complete immediately.
+   * We don't want to block because a network issue (or a failure at the
+   * remote end) could tie up this thread until the 5 minute TCP/IP
+   * keepalive expires.
+   */
+  [self setNonBlocking: YES];
   [session disconnect: NO];
 }
 

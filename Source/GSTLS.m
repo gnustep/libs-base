@@ -1592,26 +1592,36 @@ retrieve_callback(gnutls_session_t session,
 
   if (YES == active || YES == handshake)
     {
+      int	result;
+
       active = NO;
       handshake = NO;
       if (NO == reusable)
         {
-          gnutls_bye(session, GNUTLS_SHUT_WR);
+	  /* Since the connection is not reusable, we need only try once.
+	   */
+          result = gnutls_bye(session, GNUTLS_SHUT_WR);
         }
       else
         {
-          int   result;
+	  NSTimeInterval	start;
 
+	  /* Attempting to do a clean shutdown on a reusable connection,
+	   * so we keep retrying for a little while to let the other end
+	   * close down cleanly.
+	   */
+	  start = [NSDate timeIntervalSinceReferenceDate];
           do
             {
               result = gnutls_bye(session, GNUTLS_SHUT_RDWR);
             }
-          while (GNUTLS_E_AGAIN == result || GNUTLS_E_INTERRUPTED == result);
-          if (result < 0)
-            {
-              ok = NO;
-            }
+          while ((GNUTLS_E_AGAIN == result || GNUTLS_E_INTERRUPTED == result)
+	    && ([NSDate timeIntervalSinceReferenceDate] - start) < 10.0);
         }
+      if (result < 0)
+	{
+	  ok = NO;
+	}
     }
   if (YES == setup)
     {

@@ -1,3 +1,11 @@
+2021-12-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSTLS.m: (-disconnect:) try once if we are closing the TCP
+	connection, for up to 10 seconds if trying to keep it available.
+	* Source/NSFileHandle.m: (-sslDisconnect) operate in non-blocking
+	mode so that network issues should not cause a disconnect attempt
+	to hang. This should behave better on heavily loaded systems.
+
 2021-11-23 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: check for zlib before bfd
