@@ -1,3 +1,8 @@
+2021-12-14 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSBundle.m:
+	Default to UTF-8 when reading localized string files without BOM.
+
 2021-12-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTLS.m: (-disconnect:) try once if we are closing the TCP

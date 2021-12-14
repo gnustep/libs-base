@@ -2639,10 +2639,10 @@ IF_NO_GC(
           bytes = [tableData bytes];
           length = [tableData length];
           /*
-           * A localisation file can be ...
-           * UTF16 with a leading BOM,
-           * UTF8 with a leading BOM,
-           * or ASCII (the original standard) with \U escapes.
+           * A localisation file can be:
+           * - UTF-16 with a leading BOM,
+           * - UTF-8,
+           * - or ASCII with \U escapes.
            */
           if (length > 2
               && ((bytes[0] == 0xFF && bytes[1] == 0xFE)
@@ -2650,30 +2650,25 @@ IF_NO_GC(
             {
               encoding = NSUnicodeStringEncoding;
             }
-          else if (length > 2
-                   && bytes[0] == 0xEF && bytes[1] == 0xBB && bytes[2] == 0xBF)
+          else
             {
               encoding = NSUTF8StringEncoding;
             }
-          else
-            {
-              encoding = NSASCIIStringEncoding;
-            }
           tableContent = [[NSString alloc] initWithData: tableData
                                            encoding: encoding];
-          if (tableContent == nil && encoding == NSASCIIStringEncoding)
+          if (tableContent == nil && encoding == NSUTF8StringEncoding)
             {
               encoding = [NSString defaultCStringEncoding];
               tableContent = [[NSString alloc] initWithData: tableData
                                                encoding: encoding];
               if (tableContent != nil)
                 {
-                  NSWarnMLog (@"Localisation file %@ not in portable encoding"
-		    @" so I'm using the default encoding for the current"
-		    @" system, which may not display messages correctly.\n"
-		    @"The file should be ASCII (using \\U escapes for unicode"
-		    @" characters) or Unicode (UTF16 or UTF8) with a leading "
-		    @"byte-order-marker.\n", tablePath);
+                  NSWarnMLog (@"Localisation file %@ not in portable encoding,"
+                    @" so I'm using the default encoding for the current"
+                    @" system, which may not display messages correctly.\n"
+                    @"The file should be UTF-8, UTF-16 with a leading"
+                    @" byte-order-marker, or ASCII (using \\U escapes for"
+                    @" unicode characters.\n", tablePath);
                 }
             }
           if (tableContent == nil)
