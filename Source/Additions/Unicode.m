@@ -3025,7 +3025,7 @@ GSPrivateICUCStringEncoding()
   if (icuEnc == GSUndefinedEncoding)
     {
       const char        *encoding = 0;
-#if HAVE_UNICODE_UCNV_H
+#if defined(HAVE_UNICODE_UCNV_H) || defined(HAVE_ICU_H)
       const char *defaultName;
       UErrorCode err = U_ZERO_ERROR;
 
