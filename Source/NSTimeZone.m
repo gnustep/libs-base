@@ -1824,7 +1824,7 @@ zoneName, LOCALDBKEY, LOCALDBKEY, zoneName);
 @"\nYou can override the timezone name by setting the '%@'\n"
 @"NSUserDefault via the 'defaults' command line utility, a Preferences\n"
 @"application, or some other utility.\n"
-@"eg \"defaults write NSGlobalDomain \"%@\" \"Africa/Nairobi\"'\"\n"
+@"eg \"defaults write NSGlobalDomain \"%@\" \"Africa/Nairobi\"\"\n"
 @"See '%@'\n"
 @"for the standard timezones such as 'GB-Eire' or 'America/Chicago'.\n",
 LOCALDBKEY, LOCALDBKEY, _time_zone_path (ZONES_DIR, nil));
