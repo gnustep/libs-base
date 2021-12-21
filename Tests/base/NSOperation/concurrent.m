@@ -39,10 +39,9 @@
 - (void) main
 {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-    
-  [self willChangeValueForKey:@"isExecuting"];
-  executing = YES;
-  [self didChangeValueForKey:@"isExecuting"];
+
+  [self beginOperation];
+
   // Do the main work of the operation here.
   calculation = 2 * calculation;
     
@@ -71,6 +70,20 @@
   [pool release];
 }
 
+- (void) beginOperation
+{
+  // Also trigger KVO notification for isFinished to ensure its handled
+  // correctly if operation is not yet finished
+  [self willChangeValueForKey: @"isFinished"];
+  [self willChangeValueForKey: @"isExecuting"];
+  
+  executing = YES;
+  finished = NO;
+  
+  [self didChangeValueForKey: @"isExecuting"];
+  [self didChangeValueForKey: @"isFinished"];
+}
+
 - (void) completeOperation
 {
   [self willChangeValueForKey: @"isFinished"];
@@ -92,16 +105,25 @@ int main()
   NSOperationQueue      *q;
   int                   i;
   NSMutableArray        *a;
+# if __has_feature(blocks)
+  __block BOOL blockDidRun = NO;
+#endif
 
   START_SET("concurrent operations")
 
   // single concurrent operation
   obj = [[MyOperation alloc] initWithValue: 1];
+# if __has_feature(blocks)
+  [obj setCompletionBlock: ^(void){blockDidRun = YES;}];
+# endif
   q = [NSOperationQueue new];
   [q addOperation: obj];
   [q waitUntilAllOperationsAreFinished];
   PASS(([obj isFinished] == YES), "operation ran");
   PASS(([obj isExecuting] == NO), "operation is not executing");
+# if __has_feature(blocks)
+  PASS(blockDidRun == YES, "completion block is executed");
+# endif
   PASS(([obj getCalculation] == 2), "operation was performed");
   [obj release];
 
