@@ -2718,7 +2718,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       substitutionVariables: (GS_GENERIC_CLASS(NSDictionary,
                                                NSString*,id)*)variables
 {
-  return CALL_BLOCK(_block, object, variables);
+  return CALL_NON_NULL_BLOCK(_block, object, variables);
 }
 
 - (BOOL) evaluateWithObject: (id)object

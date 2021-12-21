@@ -751,7 +751,7 @@ static SEL	remSel;
     }
   if (range.length == 1)
     {
-      switch (CALL_BLOCK(comparator, key, [self objectAtIndex: range.location]))
+      switch (CALL_NON_NULL_BLOCK(comparator, key, [self objectAtIndex: range.location]))
         {
           case NSOrderedSame:
             return range.location;
@@ -818,7 +818,7 @@ static SEL	remSel;
        * For a search from the left, we'd have the correct index anyways. Check
        * whether it's equal to the key and return NSNotFound otherwise
        */
-      return (NSOrderedSame == CALL_BLOCK(comparator,
+      return (NSOrderedSame == CALL_NON_NULL_BLOCK(comparator,
         key, [self objectAtIndex: index]) ? index : NSNotFound);
     }
   // Never reached
@@ -886,7 +886,7 @@ static SEL	remSel;
         }
       else // call block directly
 #     endif
-      if (CALL_BLOCK(predicate, obj, count, &shouldStop))
+      if (CALL_NON_NULL_BLOCK(predicate, obj, count, &shouldStop))
         {
           index = count;
           shouldStop = YES;
@@ -959,10 +959,10 @@ static SEL	remSel;
         }
       else // call block directly
 #     endif
-      if (CALL_BLOCK(predicate, obj, count, &shouldStop))
+      if (CALL_NON_NULL_BLOCK(predicate, obj, count, &shouldStop))
         {
           /* TODO: It would be more efficient to collect an NSRange and only
-           * pass it to the index set when CALL_BLOCK returned NO. */
+           * pass it to the index set when CALL_NON_NULL_BLOCK returned NO. */
           [set addIndex: count];
         }
       if (shouldStop)

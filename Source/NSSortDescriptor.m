@@ -120,7 +120,7 @@ static BOOL     initialized = NO;
     }
   else
     {
-      result = CALL_BLOCK(((NSComparator)_comparator), comparedKey1, comparedKey2);
+      result = CALL_NON_NULL_BLOCK(((NSComparator)_comparator), comparedKey1, comparedKey2);
     }
   
   if (_ascending == NO)
