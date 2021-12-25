@@ -20,10 +20,10 @@ NSISOLatin6StringEncoding = 		"ISO Lat\U00edn-6 N\U00f3rdico(ISO-8859-10)";
 NSISOLatin7StringEncoding = 		"ISO Lat\U00edn-7 B\U00e1ltico (ISO-8859-13)";
 NSISOLatin8StringEncoding = 		"ISO Lat\U00edn-8 C\U00e9ltico (ISO-8859-14)";
 NSISOLatin9StringEncoding = 		"ISO Lat\U00edn-9 Europa Occidental (nuevo) (ISO-8859-15)";
-NSISOCyrillicStringEncoding = 		"Cir\U00edlico (ISO-8859-5)";
-NSISOArabicStringEncoding = 		"Ar\U00e1bigo (ISO-8859-6)";
-NSISOGreekStringEncoding = 			"Griego (ISO-8859-7)";
-NSISOHebrewStringEncoding = 		"Hebreo (ISO-8859-8)";
+NSISOLatinCyrillicStringEncoding = 		"Cir\U00edlico (ISO-8859-5)";
+NSISOLatinArabicStringEncoding = 		"Ar\U00e1bigo (ISO-8859-6)";
+NSISOLatinGreekStringEncoding = 			"Griego (ISO-8859-7)";
+NSISOLatinHebrewStringEncoding = 		"Hebreo (ISO-8859-8)";
 NSUTF7StringEncoding = 				"Unicode UTF-7 (RFC 2152)";
 NSUTF8StringEncoding = 				"Unicode UTF-8";
 NSUnicodeStringEncoding = 			"Unicode UTF-16";
@@ -31,7 +31,7 @@ NSKOI8RStringEncoding = 			"Cir\U00edlico KOI8-R (Ruso)";
 NSJapaneseEUCStringEncoding = 		"Japon\U00e9s EUC";
 NSShiftJISStringEncoding = 			"Japon\U00e9s Shift-JIS";
 NSISO2022JPStringEncoding = 		"Japon\U00e9s JIS (7 bits) (ISO 2022)";
-NSGB2312StringEncoding = 			"Chino Simplificado GB2312";
+NSChineseEUCStringEncoding = 			"Chino Simplificado GB2312";
 
 /* Menu items for NSUndoManager */
 

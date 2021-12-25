@@ -35,6 +35,7 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSMapTable.h"
 #import "Foundation/NSPathUtilities.h"
 #endif
 
@@ -221,26 +222,26 @@ static struct _strenc_ str_encoding_table[] = {
 #endif
 
 // GNUstep additions
-  {NSISOCyrillicStringEncoding,
-    "NSISOCyrillicStringEncoding","ISO-8859-5",0,1,0},
+  {NSISOLatinCyrillicStringEncoding,
+    "NSISOLatinCyrillicStringEncoding","ISO-8859-5",0,1,0},
   {NSKOI8RStringEncoding,
     "NSKOI8RStringEncoding","KOI8-R",0,0,0},
   {NSISOLatin3StringEncoding,
     "NSISOLatin3StringEncoding","ISO-8859-3",0,0,0},
   {NSISOLatin4StringEncoding,
     "NSISOLatin4StringEncoding","ISO-8859-4",0,0,0},
-  {NSISOArabicStringEncoding,
-    "NSISOArabicStringEncoding","ISO-8859-6",0,0,0},
-  {NSISOGreekStringEncoding,
-    "NSISOGreekStringEncoding","ISO-8859-7",0,0,0},
-  {NSISOHebrewStringEncoding,
-    "NSISOHebrewStringEncoding","ISO-8859-8",0,0,0},
+  {NSISOLatinArabicStringEncoding,
+    "NSISOLatinArabicStringEncoding","ISO-8859-6",0,0,0},
+  {NSISOLatinGreekStringEncoding,
+    "NSISOLatinGreekStringEncoding","ISO-8859-7",0,0,0},
+  {NSISOLatinHebrewStringEncoding,
+    "NSISOLatinHebrewStringEncoding","ISO-8859-8",0,0,0},
   {NSISOLatin5StringEncoding,
     "NSISOLatin5StringEncoding","ISO-8859-9",0,0,0},
   {NSISOLatin6StringEncoding,
     "NSISOLatin6StringEncoding","ISO-8859-10",0,0,0},
-  {NSISOThaiStringEncoding,
-    "NSISOThaiStringEncoding","ISO-8859-11",1,1,0},
+  {NSISOLatinThaiStringEncoding,
+    "NSISOLatinThaiStringEncoding","ISO-8859-11",1,1,0},
   {NSISOLatin7StringEncoding,
     "NSISOLatin7StringEncoding","ISO-8859-13",0,0,0},
   {NSISOLatin8StringEncoding,
@@ -249,12 +250,12 @@ static struct _strenc_ str_encoding_table[] = {
     "NSISOLatin9StringEncoding","ISO-8859-15",1,1,0},
   {NSUTF7StringEncoding,
     "NSUTF7StringEncoding","UTF-7",0,0,0},
-  {NSGB2312StringEncoding,
-    "NSGB2312StringEncoding","EUC-CN",0,0,0},
+  {NSChineseEUCStringEncoding,
+    "NSChineseEUCStringEncoding","EUC-CN",0,0,0},
   {NSGSM0338StringEncoding,
     "NSGSM0338StringEncoding","",0,1,0},
-  {NSBIG5StringEncoding,
-    "NSBIG5StringEncoding","BIG5",0,0,0},
+  {NSBig5StringEncoding,
+    "NSBig5StringEncoding","BIG5",0,0,0},
   {NSKoreanEUCStringEncoding,
     "NSKoreanEUCStringEncoding","EUC-KR",0,0,0},
 
@@ -329,60 +330,34 @@ static struct _strenc_ str_encoding_table[] = {
   {0,"Unknown encoding","",0,0,0}
 };
 
-static struct _strenc_	**encodingTable = 0;
 static unsigned		encTableSize = 0;
+static NSMapTable   *encodingPointerTable = nil;
 
 static void GSSetupEncodingTable(void)
 {
-  if (encodingTable == 0)
+  if (nil == encodingPointerTable)
     {
       GS_MUTEX_LOCK(local_lock);
-      if (encodingTable == 0)
+      if (nil == encodingPointerTable)
 	{
-	  static struct _strenc_	**encTable = 0;
-	  unsigned			count;
 	  unsigned			i;
 
 	  /*
 	   * We want to store pointers to our string encoding info in a
 	   * large table so we can do efficient lookup by encoding value.
 	   */
-#define	MAX_ENCODING	128
-	  count = sizeof(str_encoding_table) / sizeof(struct _strenc_);
-
-	  /*
-	   * First determine the largest encoding value and create a
-	   * large enough table of pointers.
-	   */
-	  encTableSize = 0;
-	  for (i = 0; i < count; i++)
-	    {
-	      unsigned	tmp = str_encoding_table[i].enc;
-
-	      if (tmp > encTableSize)
-		{
-		  if (tmp < MAX_ENCODING)
-		    {
-		      encTableSize = tmp;
-		    }
-		}
-	    }
-	  encTable = malloc(
-	    (encTableSize+1)*sizeof(struct _strenc_ *));
-	  memset(encTable, 0, (encTableSize+1)*sizeof(struct _strenc_ *));
+    encTableSize = sizeof(str_encoding_table) / sizeof(struct _strenc_);
+    encodingPointerTable = NSCreateMapTable(NSIntegerMapKeyCallBacks, NSNonOwnedPointerMapValueCallBacks, encTableSize);
+    [[NSObject leakAt:&encodingPointerTable] release];
 
 	  /*
 	   * Now set up the pointers at the correct location in the table.
 	   */
-	  for (i = 0; i < count; i++)
+	  for (i = 0; i < encTableSize; i++)
 	    {
 	      struct _strenc_ *entry = &str_encoding_table[i];
-	      unsigned	tmp = entry->enc;
 
-	      if (tmp < MAX_ENCODING)
-		{
-		  encTable[tmp] = entry;
-		}
+        NSMapInsert(encodingPointerTable, (const void *)entry->enc, (const void *)entry);
 #ifdef HAVE_ICONV
 	      if (entry->iconv != 0 && *(entry->iconv) != 0)
 		{
@@ -410,7 +385,6 @@ static void GSSetupEncodingTable(void)
 		}
 #endif
 	    }
-	  encodingTable = encTable;
 	}
       GS_MUTEX_UNLOCK(local_lock);
     }
@@ -424,24 +398,7 @@ EntryForEncoding(NSStringEncoding enc)
   if (enc != 0)
     {
       GSSetupEncodingTable();
-      if (enc > 0 && enc <= encTableSize)
-	{
-	  entry = encodingTable[enc];
-	}
-      else
-	{
-	  unsigned	i = 0;
-
-	  while (i < sizeof(str_encoding_table) / sizeof(struct _strenc_))
-	    {
-	      if (str_encoding_table[i].enc == enc)
-		{
-		  entry = &str_encoding_table[i];
-		  break;
-		}
-	      i++;
-	    }
-	}
+      entry = NSMapGet(encodingPointerTable, (const void *)enc);
     }
   return entry;
 }
@@ -517,7 +474,7 @@ GSPrivateIsEncodingSupported(NSStringEncoding enc)
  *  character set registry and encoding information. For instance,
  *  for the iso8859-5 character set, the registry is iso8859 and
  *  the encoding is 5, and the returned NSStringEncoding is
- *  NSISOCyrillicStringEncoding. If there is no specific encoding,
+ *  NSISOLatinCyrillicStringEncoding. If there is no specific encoding,
  *  use @"0". Returns GSUndefinedEncoding if there is no match.
  */
 NSStringEncoding
@@ -1430,7 +1387,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	table = Next_char_to_uni_table;
 	goto tables;
 
-      case NSISOCyrillicStringEncoding:
+      case NSISOLatinCyrillicStringEncoding:
 	base = Cyrillic_conv_base;
 	table = Cyrillic_char_to_uni_table;
 	goto tables;
@@ -1445,7 +1402,7 @@ GSToUnicode(unichar **dst, unsigned int *size, const unsigned char *src,
 	table = Latin9_char_to_uni_table;
 	goto tables;
 
-      case NSISOThaiStringEncoding:
+      case NSISOLatinThaiStringEncoding:
         base = Thai_conv_base;
 	table = Thai_char_to_uni_table;
 	goto tables;
@@ -2452,7 +2409,7 @@ bases:
 	tsize = Next_uni_to_char_table_size;
 	goto tables;
 
-      case NSISOCyrillicStringEncoding:
+      case NSISOLatinCyrillicStringEncoding:
 	base = Cyrillic_conv_base;
 	table = Cyrillic_uni_to_char_table;
 	tsize = Cyrillic_uni_to_char_table_size;
@@ -2470,7 +2427,7 @@ bases:
 	tsize = Latin9_uni_to_char_table_size;
 	goto tables;
 
-      case NSISOThaiStringEncoding:
+      case NSISOLatinThaiStringEncoding:
         base = Thai_conv_base;
 	table = Thai_uni_to_char_table;
 	tsize = Thai_uni_to_char_table_size;
@@ -2808,11 +2765,12 @@ GSPrivateAvailableEncodings()
 	   */
 	  encodings = malloc(sizeof(NSStringEncoding) * (encTableSize+1));
 	  pos = 0;
-	  for (i = 0; i < encTableSize+1; i++)
+	  for (i = 0; i < encTableSize; i++)
 	    {
-	      if (GSPrivateIsEncodingSupported(i) == YES)
+        NSStringEncoding encoding = str_encoding_table[i].enc;
+	      if (GSPrivateIsEncodingSupported(encoding) == YES)
 		{
-		  encodings[pos++] = i;
+		  encodings[pos++] = encoding;
 		}
 	    }
 	  encodings[pos] = 0;
@@ -2868,7 +2826,7 @@ GSPrivateCStringEncoding(const char *encoding)
         /* AIX IRIX OSF/1 Solaris NetBSD */
         || strcmp(encoding, "ISO8859-5") == 0
         || strcmp(encoding, "iso88595") == 0 /* HP-UX */)
-        enc = NSISOCyrillicStringEncoding;
+        enc = NSISOLatinCyrillicStringEncoding;
       else if (strcmp(encoding, "KOI8-R") == 0 /* glibc */
         || strcmp(encoding, "koi8-r") == 0 /* Solaris */)
         enc = NSKOI8RStringEncoding;
@@ -2881,15 +2839,15 @@ GSPrivateCStringEncoding(const char *encoding)
       else if (strcmp(encoding, "ISO-8859-6") == 0 /* glibc */
         || strcmp(encoding, "ISO8859-6") == 0 /* AIX Solaris */
         || strcmp(encoding, "iso88596") == 0 /* HP-UX */)
-        enc = NSISOArabicStringEncoding;
+        enc = NSISOLatinArabicStringEncoding;
       else if (strcmp(encoding, "ISO-8859-7") == 0 /* glibc */
         || strcmp(encoding, "ISO8859-7") == 0 /* AIX IRIX OSF/1 Solaris */
         || strcmp(encoding, "iso88597") == 0 /* HP-UX */)
-        enc = NSISOGreekStringEncoding;
+        enc = NSISOLatinGreekStringEncoding;
       else if (strcmp(encoding, "ISO-8859-8") == 0 /* glibc */
         || strcmp(encoding, "ISO8859-8") == 0 /* AIX OSF/1 Solaris */
         || strcmp(encoding, "iso88598") == 0 /* HP-UX */)
-        enc = NSISOHebrewStringEncoding;
+        enc = NSISOLatinHebrewStringEncoding;
       else if (strcmp(encoding, "ISO-8859-9") == 0 /* glibc */
         || strcmp(encoding, "ISO8859-9") == 0 /* AIX IRIX OSF/1 Solaris */
         || strcmp(encoding, "iso88599") == 0 /* HP-UX */)
@@ -2901,7 +2859,7 @@ GSPrivateCStringEncoding(const char *encoding)
         || strcmp(encoding, "tis620") == 0 /* HP-UX */
         || strcmp(encoding, "TIS620.2533") == 0 /* Solaris */
         || strcmp(encoding, "TACTIS") == 0 /* OSF/1 */)
-        enc = NSISOThaiStringEncoding;
+        enc = NSISOLatinThaiStringEncoding;
       else if (strcmp(encoding, "ISO-8859-13") == 0 /* glibc */
         || strcmp(encoding, "ISO8859-13") == 0 /*  */
         || strcmp(encoding, "IBM-921") == 0 /* AIX */)
@@ -2919,10 +2877,10 @@ GSPrivateCStringEncoding(const char *encoding)
         || strcmp(encoding, "eucCN") == 0 /* IRIX NetBSD */
         || strcmp(encoding, "IBM-eucCN") == 0 /* AIX */
         || strcmp(encoding, "hp15CN") == 0 /* HP-UX */)
-        enc = NSGB2312StringEncoding;
+        enc = NSChineseEUCStringEncoding;
       else if (strcmp(encoding, "BIG5") == 0 /* glibc Solaris NetBSD */
         || strcmp(encoding, "big5") == 0 /* AIX HP-UX OSF/1 */)
-        enc = NSBIG5StringEncoding;
+        enc = NSBig5StringEncoding;
       else if (strcmp(encoding, "EUC-KR") == 0 /* glibc */
         || strcmp(encoding, "eucKR") == 0 /* HP-UX IRIX OSF/1 NetBSD */
         || strcmp(encoding, "IBM-eucKR") == 0 /* AIX */

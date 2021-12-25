@@ -141,7 +141,7 @@ test_encoding(void)
     (unichar[]){0xd87e, 0xdc01}, 2);
 
 #if	defined(GNUSTEP_BASE_LIBRARY)
-  test_encodings_helper(NSISOHebrewStringEncoding, 
+  test_encodings_helper(NSISOLatinHebrewStringEncoding, 
     (unsigned char[]){0xf9, 0xec, 0xe5, 0xed}, 4, 
     (unichar[]){0x5e9, 0x5dc, 0x5d5, 0x5dd}, 4);
 #endif
@@ -165,7 +165,7 @@ test_encoding(void)
 */
 
 #if	defined(GNUSTEP_BASE_LIBRARY)
-  test_encodings_helper(NSBIG5StringEncoding, 
+  test_encodings_helper(NSBig5StringEncoding, 
     (unsigned char[]){0x41, 0x42, 0x43, 0x20, 0xa7, 0x41, 0xa6, 0x6e, 0x21}, 9, 
     (unichar[]){0x41, 0x42, 0x43, 0x20, 0x4f60, 0x597d, 0x21}, 7);
 #endif
