@@ -163,7 +163,20 @@ typedef NSUInteger NSStringCompareOptions;
  *  NSISOLatin7StringEncoding, NSISOLatin8StringEncoding,
  *  NSISOLatin9StringEncoding, NSGB2312StringEncoding, NSUTF7StringEncoding,
  *  NSGSM0338StringEncoding, NSBIG5StringEncoding,
- *  NSKoreanEUCStringEncoding</code>.</p>
+ *  NSKoreanEUCStringEncoding, NSDOSLatinUSStringEncoding,
+ *  NSDOSGreekStringEncoding, NSDOSBalticRimStringEncoding,
+ *  NSDOSLatin1StringEncoding, NSDOSGreek1StringEncoding,
+ *  NSDOSLatin2StringEncoding, NSDOSCyrillicStringEncoding,
+ *  NSDOSTurkishStringEncoding, NSDOICortugueseStringEncoding,
+ *  NSDOSIcelandicStringEncoding, NSDOSHebrewStringEncoding,
+ *  NSDOSCanadianFrenchStringEncoding, NSDOSArabicStringEncoding,
+ *  NSDOSNordicStringEncoding, NSDOSRussianStringEncoding,
+ *  NSDOSGreek2StringEncoding, NSDOSThaiStringEncoding,
+ *  NSDOSJapaneseStringEncoding, NSDOSChineseSimplifStringEncoding,
+ *  NSDOSKoreanStringEncoding, NSDOSChineseTradStringEncoding,
+ *  NSWindowsHebrewStringEncoding, NSWindowsArabicStringEncoding,
+ *  NSWindowsBalticRimStringEncoding, NSWindowsVietnameseStringEncoding
+ *  NSWindowsKoreanJohabStringEncoding</code>.</p>
  */
 typedef enum _NSStringEncoding
 {
@@ -208,10 +221,42 @@ typedef enum _NSStringEncoding
   NSISOLatin8StringEncoding = 62,	// ISO-8859-14
   NSISOLatin9StringEncoding = 63,	// ISO-8859-15; Replaces ISOLatin1
   NSGB2312StringEncoding = 56,
-  NSUTF7StringEncoding = 64,		// RFC 2152
-  NSGSM0338StringEncoding,		// GSM (mobile phone) default alphabet
-  NSBIG5StringEncoding,			// Traditional chinese
-  NSKoreanEUCStringEncoding		// Korean
+  NSUTF7StringEncoding = 64, // RFC 2152
+  NSGSM0338StringEncoding = 65, // GSM (mobile phone) default alphabet
+  NSBIG5StringEncoding = 66, // Traditional chinese
+  NSKoreanEUCStringEncoding = 67, // Korean
+
+  NSDOSLatinUSStringEncoding = 68, // code page 437
+  NSDOSGreekStringEncoding, // code page 737 (formerly code page 437G) */
+  NSDOSBalticRimStringEncoding, // code page 775
+  NSDOSLatin1StringEncoding, // code page 850, "Multilingual"
+  NSDOSGreek1StringEncoding, // code page 851
+  NSDOSLatin2StringEncoding, // code page 852, Slavic
+  NSDOSCyrillicStringEncoding, // code page 855, IBM Cyrillic
+  NSDOSTurkishStringEncoding, // code page 857, IBM Turkish
+  NSDOICortugueseStringEncoding, // code page 860
+  NSDOSIcelandicStringEncoding, // code page 861
+  NSDOSHebrewStringEncoding, // code page 862
+  NSDOSCanadianFrenchStringEncoding, // code page 863
+  NSDOSArabicStringEncoding, // code page 864
+  NSDOSNordicStringEncoding, // code page 865
+  NSDOSRussianStringEncoding, // code page 866
+  NSDOSGreek2StringEncoding, // code page 869, IBM Modern Greek
+  NSDOSThaiStringEncoding, // code page 874, also for Windows
+  NSDOSJapaneseStringEncoding, // code page 932, also for Windows
+  NSDOSChineseSimplifStringEncoding, // code page 936, also for Windows
+  NSDOSKoreanStringEncoding, // code page 949, also for Windows; Unified Hangul Code
+  NSDOSChineseTradStringEncoding, // code page 950, also for Windows
+  // NSWindowsLatin1StringEncoding, // code page 1252, NSWindowsCP1252StringEncoding
+  // NSWindowsLatin2StringEncoding, // code page 1250, Central Europe, NSWindowsCP1250StringEncoding
+  // NSWindowsCyrillicStringEncoding, // code page 1251, Slavic Cyrillic. NSWindowsCP1251StringEncoding
+  // NSWindowsGreekStringEncoding, // code page 1253, NSWindowsCP1253StringEncoding
+  // NSWindowsLatin5StringEncoding, // code page 1254, Turkish, NSWindowsCP1254StringEncoding
+  NSWindowsHebrewStringEncoding, // code page 1255
+  NSWindowsArabicStringEncoding, // code page 1256
+  NSWindowsBalticRimStringEncoding, // code page 1257
+  NSWindowsVietnameseStringEncoding, // code page 1258
+  NSWindowsKoreanJohabStringEncoding // code page 1361, for Windows NT
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) 
   ,

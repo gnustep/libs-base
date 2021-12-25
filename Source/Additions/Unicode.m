@@ -258,6 +258,61 @@ static struct _strenc_ str_encoding_table[] = {
   {NSKoreanEUCStringEncoding,
     "NSKoreanEUCStringEncoding","EUC-KR",0,0,0},
 
+/* DOS and Windows encodings
+ */
+  {NSDOSLatinUSStringEncoding,
+    "NSDOSLatinUSStringEncoding","CP437",0,0,0},
+  {NSDOSGreekStringEncoding,
+    "NSDOSGreekStringEncoding","CP737",0,0,0},
+  {NSDOSBalticRimStringEncoding,
+    "NSDOSBalticRimStringEncoding","CP775",0,0,0},
+  {NSDOSLatin1StringEncoding,
+    "NSDOSLatin1StringEncoding","CP850",0,0,0},
+  {NSDOSGreek1StringEncoding,
+    "NSDOSGreek1StringEncoding","CP851",0,0,0},
+  {NSDOSLatin2StringEncoding,
+    "NSDOSLatin2StringEncoding","CP852",0,0,0},
+  {NSDOSCyrillicStringEncoding,
+    "NSDOSCyrillicStringEncoding","CP855",0,0,0},
+  {NSDOSTurkishStringEncoding,
+    "NSDOSTurkishStringEncoding","CP857",0,0,0},
+  {NSDOICortugueseStringEncoding,
+    "NSDOICortugueseStringEncoding","CP860",0,0,0},
+  {NSDOSIcelandicStringEncoding,
+    "NSDOSIcelandicStringEncoding","CP861",0,0,0},
+  {NSDOSHebrewStringEncoding,
+    "NSDOSHebrewStringEncoding","CP862",0,0,0},
+  {NSDOSCanadianFrenchStringEncoding,
+    "NSDOSCanadianFrenchStringEncoding","CP863",0,0,0},
+  {NSDOSArabicStringEncoding,
+    "NSDOSArabicStringEncoding","CP864",0,0,0},
+  {NSDOSNordicStringEncoding,
+    "NSDOSNordicStringEncoding","CP865",0,0,0},
+  {NSDOSRussianStringEncoding,
+    "NSDOSRussianStringEncoding","CP866",0,0,0},
+  {NSDOSGreek2StringEncoding,
+    "NSDOSGreek2StringEncoding","CP869",0,0,0},
+  {NSDOSThaiStringEncoding,
+    "NSDOSThaiStringEncoding","CP874",0,0,0},
+  {NSDOSJapaneseStringEncoding,
+    "NSDOSJapaneseStringEncoding","CP932",0,0,0},
+  {NSDOSChineseSimplifStringEncoding,
+    "NSDOSChineseSimplifStringEncoding","CP936",0,0,0},
+  {NSDOSKoreanStringEncoding,
+    "NSDOSKoreanStringEncoding","CP949",0,0,0},
+  {NSDOSChineseTradStringEncoding,
+    "NSDOSChineseTradStringEncoding","CP950",0,0,0},
+  {NSWindowsHebrewStringEncoding,
+    "NSWindowsHebrewStringEncoding","CP1255",0,0,0},
+  {NSWindowsArabicStringEncoding,
+    "NSWindowsArabicStringEncoding","CP1256",0,0,0},
+  {NSWindowsBalticRimStringEncoding,
+    "NSWindowsBalticRimStringEncoding","CP1257",0,0,0},
+  {NSWindowsVietnameseStringEncoding,
+    "NSWindowsVietnameseStringEncoding","CP1258",0,0,0},
+  {NSWindowsKoreanJohabStringEncoding,
+    "NSWindowsKoreanJohabStringEncoding","CP1361",0,0,0},
+
 /* Now Apple encodings which have high numeric values.
  */
   {NSUTF16BigEndianStringEncoding,
@@ -2873,6 +2928,84 @@ GSPrivateCStringEncoding(const char *encoding)
         || strcmp(encoding, "IBM-eucKR") == 0 /* AIX */
         || strcmp(encoding, "5601") == 0 /* Solaris */)
         enc = NSKoreanEUCStringEncoding;
+      else if (strcmp(encoding, "CP437") == 0
+        || strcmp(encoding, "IBM-437") == 0)
+        enc = NSDOSLatinUSStringEncoding;
+      else if (strcmp(encoding, "CP737") == 0
+        || strcmp(encoding, "IBM-737") == 0)
+        enc = NSDOSGreekStringEncoding;
+      else if (strcmp(encoding, "CP775") == 0
+        || strcmp(encoding, "IBM-775") == 0)
+        enc = NSDOSBalticRimStringEncoding;
+      else if (strcmp(encoding, "CP850") == 0
+        || strcmp(encoding, "IBM-850") == 0)
+        enc = NSDOSLatin1StringEncoding;
+      else if (strcmp(encoding, "CP851") == 0
+        || strcmp(encoding, "IBM-851") == 0)
+        enc = NSDOSGreek1StringEncoding;
+      else if (strcmp(encoding, "CP852") == 0
+        || strcmp(encoding, "IBM-852") == 0)
+        enc = NSDOSLatin2StringEncoding;
+      else if (strcmp(encoding, "CP855") == 0
+        || strcmp(encoding, "IBM-855") == 0)
+        enc = NSDOSCyrillicStringEncoding;
+      else if (strcmp(encoding, "CP857") == 0
+        || strcmp(encoding, "IBM-857") == 0)
+        enc = NSDOSTurkishStringEncoding;
+      else if (strcmp(encoding, "CP860") == 0
+        || strcmp(encoding, "IBM-860") == 0)
+        enc = NSDOICortugueseStringEncoding;
+      else if (strcmp(encoding, "CP861") == 0
+        || strcmp(encoding, "IBM-861") == 0)
+        enc = NSDOSIcelandicStringEncoding;
+      else if (strcmp(encoding, "CP862") == 0
+        || strcmp(encoding, "IBM-862") == 0)
+        enc = NSDOSHebrewStringEncoding;
+      else if (strcmp(encoding, "CP863") == 0
+        || strcmp(encoding, "IBM-863") == 0)
+        enc = NSDOSCanadianFrenchStringEncoding;
+      else if (strcmp(encoding, "CP864") == 0
+        || strcmp(encoding, "IBM-864") == 0)
+        enc = NSDOSArabicStringEncoding;
+      else if (strcmp(encoding, "CP865") == 0
+        || strcmp(encoding, "IBM-865") == 0)
+        enc = NSDOSNordicStringEncoding;
+      else if (strcmp(encoding, "CP866") == 0
+        || strcmp(encoding, "IBM-866") == 0)
+        enc = NSDOSRussianStringEncoding;
+      else if (strcmp(encoding, "CP869") == 0
+        || strcmp(encoding, "IBM-869") == 0)
+        enc = NSDOSGreek2StringEncoding;
+      else if (strcmp(encoding, "CP874") == 0
+        || strcmp(encoding, "IBM-874") == 0)
+        enc = NSDOSThaiStringEncoding;
+      else if (strcmp(encoding, "CP932") == 0
+        || strcmp(encoding, "IBM-932") == 0)
+        enc = NSDOSJapaneseStringEncoding;
+      else if (strcmp(encoding, "CP936") == 0
+        || strcmp(encoding, "IBM-936") == 0)
+        enc = NSDOSChineseSimplifStringEncoding;
+      else if (strcmp(encoding, "CP949") == 0
+        || strcmp(encoding, "IBM-949") == 0)
+        enc = NSDOSKoreanStringEncoding;
+      else if (strcmp(encoding, "CP950") == 0
+        || strcmp(encoding, "IBM-950") == 0)
+        enc = NSDOSChineseTradStringEncoding;
+      else if (strcmp(encoding, "CP1255") == 0
+        || strcmp(encoding, "WINDOWS-1255") == 0)
+        enc = NSWindowsHebrewStringEncoding;
+      else if (strcmp(encoding, "CP1256") == 0
+        || strcmp(encoding, "WINDOWS-1256") == 0)
+        enc = NSWindowsArabicStringEncoding;
+      else if (strcmp(encoding, "CP1257") == 0
+        || strcmp(encoding, "WINDOWS-1257") == 0)
+        enc = NSWindowsBalticRimStringEncoding;
+      else if (strcmp(encoding, "CP1258") == 0
+        || strcmp(encoding, "WINDOWS-1258") == 0)
+        enc = NSWindowsVietnameseStringEncoding;
+      else if (strcmp(encoding, "CP1361") == 0
+        || strcmp(encoding, "WINDOWS-1361") == 0)
+        enc = NSWindowsKoreanJohabStringEncoding;
     }
 
   if (enc == GSUndefinedEncoding)
