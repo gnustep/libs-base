@@ -1,3 +1,10 @@
+2021-12-21 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSOperation.m: fix handling of concurrent NSOperations
+	if isFinished KVO is triggered without the operation being finished,
+	and call completion block for concurrent operations. Also fixes
+	removing dependency observers more than once.
+
 2021-12-14 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSBundle.m:

@@ -297,49 +297,45 @@ static NSArray	*empty = nil;
                          change: (NSDictionary *)change
                         context: (void *)context
 {
-  [internal->lock lock];
-
-  /* We only observe isFinished changes, and we can remove self as an
-   * observer once we know the operation has finished since it can never
-   * become unfinished.
-   */
-  [object removeObserver: self forKeyPath: @"isFinished"];
+  NSOperation *op = object;
+  if (NO == [op isFinished])
+    {
+      return;
+    }
 
   if (object == self)
     {
+      [internal->lock lock];
+
+      /* We only observe isFinished changes, and we can remove self as an
+       * observer once we know the operation has finished since it can never
+       * become unfinished.
+       */
+      [object removeObserver: self forKeyPath: @"isFinished"];
+
+      /* Concurrent operations: Call completion block and set internal finished
+       * state so we don't try removing the observer again in -dealloc. */
+      if (YES == [self isConcurrent])
+        {
+          internal->finished = YES;
+          CALL_BLOCK_NO_ARGS(
+            ((GSOperationCompletionBlock)internal->completionBlock));
+        }
+
       /* We have finished and need to unlock the condition lock so that
        * any waiting thread can continue.
        */
       [internal->cond lock];
       [internal->cond unlockWithCondition: 1];
+
       [internal->lock unlock];
-      return;
     }
-
-  if (NO == internal->ready)
+  else
     {
-      NSEnumerator	*en;
-      NSOperation	*op;
-
-      /* Some dependency has finished (or been removed) ...
-       * so we need to check to see if we are now ready unless we know we are.
-       * This is protected by locks so that an update due to an observed
-       * change in one thread won't interrupt anything in another thread.
+      /* Some dependency has finished ...
        */
-      en = [internal->dependencies objectEnumerator];
-      while ((op = [en nextObject]) != nil)
-        {
-          if (NO == [op isFinished])
-	    break;
-        }
-      if (op == nil)
-	{
-          [self willChangeValueForKey: @"isReady"];
-	  internal->ready = YES;
-          [self didChangeValueForKey: @"isReady"];
-	}
+      [self _updateReadyState];
     }
-  [internal->lock unlock];
 }
 
 - (NSOperationQueuePriority) queuePriority
@@ -360,12 +356,8 @@ static NSArray	*empty = nil;
 	  if (NO == internal->ready)
 	    {
 	      /* The dependency may cause us to become ready ...
-	       * fake an observation so we can deal with that.
 	       */
-	      [self observeValueForKeyPath: @"isFinished"
-				  ofObject: op
-				    change: nil
-				   context: isFinishedCtxt];
+	      [self _updateReadyState];
 	    }
 	  [self didChangeValueForKey: @"dependencies"];
 	}
@@ -527,6 +519,35 @@ static NSArray	*empty = nil;
 	  [self didChangeValueForKey: @"isFinished"];
 	}
       CALL_BLOCK_NO_ARGS(((GSOperationCompletionBlock)internal->completionBlock));
+    }
+  [internal->lock unlock];
+}
+
+- (void)_updateReadyState
+{
+  [internal->lock lock];
+  if (NO == internal->ready)
+    {
+      NSEnumerator	*en;
+      NSOperation	*op;
+
+      /* After a dependency has finished or was removed we need to check
+       * to see if we are now ready.
+       * This is protected by locks so that an update due to an observed
+       * change in one thread won't interrupt anything in another thread.
+       */
+      en = [internal->dependencies objectEnumerator];
+      while ((op = [en nextObject]) != nil)
+        {
+          if (NO == [op isFinished])
+            break;
+        }
+      if (op == nil)
+        {
+          [self willChangeValueForKey: @"isReady"];
+          internal->ready = YES;
+          [self didChangeValueForKey: @"isReady"];
+        }
     }
   [internal->lock unlock];
 }
@@ -938,17 +959,21 @@ static NSOperationQueue *mainQueue = nil;
    */
   if (context == isFinishedCtxt)
     {
-      [internal->lock lock];
-      internal->executing--;
-      [object removeObserver: self forKeyPath: @"isFinished"];
-      [internal->lock unlock];
-      [self willChangeValueForKey: @"operations"];
-      [self willChangeValueForKey: @"operationCount"];
-      [internal->lock lock];
-      [internal->operations removeObjectIdenticalTo: object];
-      [internal->lock unlock];
-      [self didChangeValueForKey: @"operationCount"];
-      [self didChangeValueForKey: @"operations"];
+      NSOperation *op = object;
+      if (YES == [op isFinished])
+        {
+          [internal->lock lock];
+          internal->executing--;
+          [object removeObserver: self forKeyPath: @"isFinished"];
+          [internal->lock unlock];
+          [self willChangeValueForKey: @"operations"];
+          [self willChangeValueForKey: @"operationCount"];
+          [internal->lock lock];
+          [internal->operations removeObjectIdenticalTo: object];
+          [internal->lock unlock];
+          [self didChangeValueForKey: @"operationCount"];
+          [self didChangeValueForKey: @"operations"];
+        }
     }
   else if (context == queuePriorityCtxt || context == isReadyCtxt)
     {
