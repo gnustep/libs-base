@@ -21,8 +21,8 @@ int main()
     == NSASCIIStringEncoding,
     "charset 'ascii' is NSASCIIStringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"big5"]
-    == NSBIG5StringEncoding,
-    "charset 'big5' is NSBIG5StringEncoding");
+    == NSBig5StringEncoding,
+    "charset 'big5' is NSBig5StringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"cp367"]
     == NSASCIIStringEncoding,
     "charset 'cp367' is NSASCIIStringEncoding");
@@ -36,8 +36,8 @@ int main()
     == NSISOLatin1StringEncoding,
     "charset 'csisolatin1' is NSISOLatin1StringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"gb2312.1980"]
-    == NSGB2312StringEncoding,
-    "charset 'gb2312.1980' is NSGB2312StringEncoding");
+    == NSChineseEUCStringEncoding,
+    "charset 'gb2312.1980' is NSChineseEUCStringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"gsm0338"]
     == NSGSM0338StringEncoding,
     "charset 'gsm0338' is NSGSM0338StringEncoding");
@@ -69,11 +69,11 @@ int main()
     == NSISOLatin6StringEncoding,
     "charset 'iso8859-10' is NSISOLatin6StringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"iso-8859-11"]
-    == NSISOThaiStringEncoding,
-    "charset 'iso-8859-11' is NSISOThaiStringEncoding");
+    == NSISOLatinThaiStringEncoding,
+    "charset 'iso-8859-11' is NSISOLatinThaiStringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"iso8859-11"]
-    == NSISOThaiStringEncoding,
-    "charset 'iso8859-11' is NSISOThaiStringEncoding");
+    == NSISOLatinThaiStringEncoding,
+    "charset 'iso8859-11' is NSISOLatinThaiStringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"iso-8859-13"]
     == NSISOLatin7StringEncoding,
     "charset 'iso-8859-13' is NSISOLatin7StringEncoding");
@@ -117,29 +117,29 @@ int main()
     == NSISOLatin4StringEncoding,
     "charset 'iso8859-4' is NSISOLatin4StringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"iso-8859-5"]
-    == NSISOCyrillicStringEncoding,
-    "charset 'iso-8859-5' is NSISOCyrillicStringEncoding");
+    == NSISOLatinCyrillicStringEncoding,
+    "charset 'iso-8859-5' is NSISOLatinCyrillicStringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"iso8859-5"]
-    == NSISOCyrillicStringEncoding,
-    "charset 'iso8859-5' is NSISOCyrillicStringEncoding");
+    == NSISOLatinCyrillicStringEncoding,
+    "charset 'iso8859-5' is NSISOLatinCyrillicStringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"iso-8859-6"]
-    == NSISOArabicStringEncoding,
-    "charset 'iso-8859-6' is NSISOArabicStringEncoding");
+    == NSISOLatinArabicStringEncoding,
+    "charset 'iso-8859-6' is NSISOLatinArabicStringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"iso8859-6"]
-    == NSISOArabicStringEncoding,
-    "charset 'iso8859-6' is NSISOArabicStringEncoding");
+    == NSISOLatinArabicStringEncoding,
+    "charset 'iso8859-6' is NSISOLatinArabicStringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"iso-8859-7"]
-    == NSISOGreekStringEncoding,
-    "charset 'iso-8859-7' is NSISOGreekStringEncoding");
+    == NSISOLatinGreekStringEncoding,
+    "charset 'iso-8859-7' is NSISOLatinGreekStringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"iso8859-7"]
-    == NSISOGreekStringEncoding,
-    "charset 'iso8859-7' is NSISOGreekStringEncoding");
+    == NSISOLatinGreekStringEncoding,
+    "charset 'iso8859-7' is NSISOLatinGreekStringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"iso-8859-8"]
-    == NSISOHebrewStringEncoding,
-    "charset 'iso-8859-8' is NSISOHebrewStringEncoding");
+    == NSISOLatinHebrewStringEncoding,
+    "charset 'iso-8859-8' is NSISOLatinHebrewStringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"iso8859-8"]
-    == NSISOHebrewStringEncoding,
-    "charset 'iso8859-8' is NSISOHebrewStringEncoding");
+    == NSISOLatinHebrewStringEncoding,
+    "charset 'iso8859-8' is NSISOLatinHebrewStringEncoding");
   PASS([GSMimeDocument encodingFromCharset: @"iso-8859-9"]
     == NSISOLatin5StringEncoding,
     "charset 'iso-8859-9' is NSISOLatin5StringEncoding");
@@ -257,27 +257,27 @@ int main()
   PASS([[GSMimeDocument charsetFromEncoding: NSASCIIStringEncoding]
     isEqualToString: @"us-ascii"],
     "NSASCIIStringEncoding canonical charset is us-ascii");
-  PASS([[GSMimeDocument charsetFromEncoding: NSBIG5StringEncoding]
+  PASS([[GSMimeDocument charsetFromEncoding: NSBig5StringEncoding]
     isEqualToString: @"big5"],
-    "NSBIG5StringEncoding canonical charset is big5");
-  PASS([[GSMimeDocument charsetFromEncoding: NSGB2312StringEncoding]
+    "NSBig5StringEncoding canonical charset is big5");
+  PASS([[GSMimeDocument charsetFromEncoding: NSChineseEUCStringEncoding]
     isEqualToString: @"gb2312.1980"],
-    "NSGB2312StringEncoding canonical charset is gb2312.1980");
+    "NSChineseEUCStringEncoding canonical charset is gb2312.1980");
   PASS([[GSMimeDocument charsetFromEncoding: NSGSM0338StringEncoding]
     isEqualToString: @"gsm0338"],
     "NSGSM0338StringEncoding canonical charset is gsm0338");
-  PASS([[GSMimeDocument charsetFromEncoding: NSISOArabicStringEncoding]
+  PASS([[GSMimeDocument charsetFromEncoding: NSISOLatinArabicStringEncoding]
     isEqualToString: @"iso-8859-6"],
-    "NSISOArabicStringEncoding canonical charset is iso-8859-6");
-  PASS([[GSMimeDocument charsetFromEncoding: NSISOCyrillicStringEncoding]
+    "NSISOLatinArabicStringEncoding canonical charset is iso-8859-6");
+  PASS([[GSMimeDocument charsetFromEncoding: NSISOLatinCyrillicStringEncoding]
     isEqualToString: @"iso-8859-5"],
-    "NSISOCyrillicStringEncoding canonical charset is iso-8859-5");
-  PASS([[GSMimeDocument charsetFromEncoding: NSISOGreekStringEncoding]
+    "NSISOLatinCyrillicStringEncoding canonical charset is iso-8859-5");
+  PASS([[GSMimeDocument charsetFromEncoding: NSISOLatinGreekStringEncoding]
     isEqualToString: @"iso-8859-7"],
-    "NSISOGreekStringEncoding canonical charset is iso-8859-7");
-  PASS([[GSMimeDocument charsetFromEncoding: NSISOHebrewStringEncoding]
+    "NSISOLatinGreekStringEncoding canonical charset is iso-8859-7");
+  PASS([[GSMimeDocument charsetFromEncoding: NSISOLatinHebrewStringEncoding]
     isEqualToString: @"iso-8859-8"],
-    "NSISOHebrewStringEncoding canonical charset is iso-8859-8");
+    "NSISOLatinHebrewStringEncoding canonical charset is iso-8859-8");
   PASS([[GSMimeDocument charsetFromEncoding: NSISOLatin1StringEncoding]
     isEqualToString: @"iso-8859-1"],
     "NSISOLatin1StringEncoding canonical charset is iso-8859-1");
@@ -305,9 +305,9 @@ int main()
   PASS([[GSMimeDocument charsetFromEncoding: NSISOLatin9StringEncoding]
     isEqualToString: @"iso-8859-15"],
     "NSISOLatin9StringEncoding canonical charset is iso-8859-15");
-  PASS([[GSMimeDocument charsetFromEncoding: NSISOThaiStringEncoding]
+  PASS([[GSMimeDocument charsetFromEncoding: NSISOLatinThaiStringEncoding]
     isEqualToString: @"iso-8859-11"],
-    "NSISOThaiStringEncoding canonical charset is iso-8859-11");
+    "NSISOLatinThaiStringEncoding canonical charset is iso-8859-11");
   PASS([[GSMimeDocument charsetFromEncoding: NSKOI8RStringEncoding]
     isEqualToString: @"koi8-r"],
     "NSKOI8RStringEncoding canonical charset is koi8-r");

@@ -1,4 +1,4 @@
-﻿/* Esperanto string encodings */
+/* Esperanto string encodings */
 GSUndefinedEncoding = 			"nekonata";
 NSProprietaryStringEncoding = 		"Installaĵo-dependa";
 NSASCIIStringEncoding = 		"7 bita ASCII";
@@ -20,10 +20,10 @@ NSISOLatin6StringEncoding = 		"ISO Latin-6 Norda (ISO-8859-10)";
 NSISOLatin7StringEncoding = 		"ISO Latin-7 Balta (ISO-8859-13)";
 NSISOLatin8StringEncoding = 		"ISO Latin-8 Kelta (ISO-8859-14)";
 NSISOLatin9StringEncoding = 		"ISO Latin-9 Okcidenteŭropa (nova) (ISO-8859-15)";
-NSISOCyrillicStringEncoding = 		"Kirila (ISO-8859-5)";
-NSISOArabicStringEncoding = 		"Araba (ISO-8859-6)";
-NSISOGreekStringEncoding = 		"Greka (ISO-8859-7)";
-NSISOHebrewStringEncoding = 		"Hebrea (ISO-8859-8)";
+NSISOLatinCyrillicStringEncoding = 		"Kirila (ISO-8859-5)";
+NSISOLatinArabicStringEncoding = 		"Araba (ISO-8859-6)";
+NSISOLatinGreekStringEncoding = 		"Greka (ISO-8859-7)";
+NSISOLatinHebrewStringEncoding = 		"Hebrea (ISO-8859-8)";
 NSUTF7StringEncoding = 			"Unikodo UTF-7 (RFC 2152)";
 NSUTF8StringEncoding = 			"Unikodo UTF-8";
 NSUnicodeStringEncoding = 		"Unikodo UTF-16";
@@ -31,4 +31,4 @@ NSKOI8RStringEncoding = 		"Kirila KOI8-R (Rusa)";
 NSJapaneseEUCStringEncoding = 		"Japana EUC";
 NSShiftJISStringEncoding = 		"Japana Shift-JIS";
 NSISO2022JPStringEncoding = 		"Japana JIS (7 bits) (ISO 2022)";
-NSGB2312StringEncoding = 		"Simpligita ĉina GB2312";
+NSChineseEUCStringEncoding = 		"Simpligita ĉina GB2312";
