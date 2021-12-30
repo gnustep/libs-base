@@ -5532,7 +5532,12 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       (void*)NSWindowsVietnameseStringEncoding);
     NSMapInsert(charsets, (void*)@"NSWindowsKoreanJohabStringEncoding",
       (void*)NSWindowsKoreanJohabStringEncoding);
-
+    NSMapInsert(charsets, (void*)@"NSGB_2312_80StringEncoding",
+      (void*)NSGB_2312_80StringEncoding);
+    NSMapInsert(charsets, (void*)@"NSGBK_95StringEncoding",
+      (void*)NSGBK_95StringEncoding);
+    NSMapInsert(charsets, (void*)@"NSGB_18030_2000StringEncoding",
+      (void*)NSGB_18030_2000StringEncoding);
 #endif
 	}
       if (encodings == 0)
