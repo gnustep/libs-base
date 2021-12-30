@@ -72,6 +72,7 @@ int main()
   PASS([date1 timeIntervalSinceReferenceDate] + 1 == [[date1 addTimeInterval:1]
   						timeIntervalSinceReferenceDate],
        "-addTimeInterval: works on a NSCalendarDate parsed with no timezone");
+  NSLog(@"%f and %f", [date1 timeIntervalSinceReferenceDate] + 1, [[date1 addTimeInterval:1] timeIntervalSinceReferenceDate]);
 
   {
     NSString *fmt = @"%Y-%m-%d %H:%M:%S:%F";
