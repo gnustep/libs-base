@@ -102,7 +102,7 @@ int main(void)
   
   locale = [[NSLocale alloc] initWithLocaleIdentifier: @"zh-Hant_TW"];
   PASS_EQUAL([locale objectForKey: NSLocaleCountryCode], @"TW",
-    "zh-Hant_TW country code is zh");
+    "zh-Hant_TW country code is TW");
   PASS_EQUAL([locale objectForKey: NSLocaleLanguageCode], @"zh",
     "zh-Hant_TW language code is zh");
   PASS_EQUAL([locale localeIdentifier], @"zh_TW",
@@ -110,7 +110,18 @@ int main(void)
   PASS_EQUAL([locale objectForKey: NSLocaleScriptCode], nil,
     "zh-Hant_TW has no script code");
   RELEASE(locale);
-  
+
+  locale = [[NSLocale alloc] initWithLocaleIdentifier: @"zh-Hans_CN"];
+  PASS_EQUAL([locale objectForKey: NSLocaleCountryCode], @"CN",
+    "zh-Hans_CN country code is CN");
+  PASS_EQUAL([locale objectForKey: NSLocaleLanguageCode], @"zh",
+    "zh-Hans_CN language code is zh");
+  PASS_EQUAL([locale localeIdentifier], @"zh_CN",
+    "'zh-Hans_CN' is stored as 'zh_CN'");
+  PASS_EQUAL([locale objectForKey: NSLocaleScriptCode], nil,
+    "zh-Hans_CN has no script code");
+  RELEASE(locale);
+
   PASS_EQUAL([NSLocale canonicalLocaleIdentifierFromString: nil], nil,
     "Canonical identifier for nil is nil");
   PASS_EQUAL([NSLocale canonicalLocaleIdentifierFromString: @""], @"",
