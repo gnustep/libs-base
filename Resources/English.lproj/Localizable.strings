@@ -71,6 +71,7 @@ NSDOSJapaneseStringEncoding =     "Japanese (Windows, DOS)";
 NSDOSChineseSimplifStringEncoding =     "Simplified Chinese (Windows, DOS)";
 NSDOSKoreanStringEncoding =     "Korean (Windows, DOS)";
 NSDOSChineseTradStringEncoding =     "Traditional Chinese (Windows, DOS)";
+NSWindowsLatin1StringEncoding =     "Western (Windows Latin 1)";
 NSWindowsHebrewStringEncoding =     "Hebrew (Windows)";
 NSWindowsArabicStringEncoding =     "Arabic (Windows)";
 NSWindowsBalticRimStringEncoding =     "Baltic (Windows)";

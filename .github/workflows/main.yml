@@ -13,19 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Ubuntu GCC
-            os: ubuntu-latest
-            library-combo: gnu-gnu-gnu
-            CC: gcc
-            CXX: g++
-
-          - name: Ubuntu Clang gnustep-1.9
-            os: ubuntu-latest
-            library-combo: ng-gnu-gnu
-            runtime-version: gnustep-1.9
-            CC: clang
-            CXX: clang++
-
           - name: Ubuntu Clang gnustep-2.0
             os: ubuntu-latest
             library-combo: ng-gnu-gnu
