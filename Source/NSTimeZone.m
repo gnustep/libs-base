@@ -622,6 +622,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date
 {
+    printf("mark 17\n");
   return [[NSTimeZoneClass defaultTimeZone] timeZoneDetailForDate: date];
 }
 

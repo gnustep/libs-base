@@ -489,9 +489,8 @@ GSPrivateTimeNow(void)
     printf("mark 14\n");
 
   [newObj setTimeZone: [self timeZoneDetail]];
-    printf("mark 15\n");
+    printf("mark 30\n");
   [newObj setCalendarFormat: [self calendarFormat]];
-    printf("mark 16\n");
 
   return newObj;
 }
@@ -2571,7 +2570,9 @@ static void outputValueWithFormat(int v, char *fldfmt, DescriptionInfo *info)
  */
 - (NSTimeZoneDetail*) timeZoneDetail
 {
+    printf("mark 15\n");
   NSTimeZoneDetail	*detail = [_time_zone timeZoneDetailForDate: self];
+    printf("mark 16\n");
   return detail;
 }
 
