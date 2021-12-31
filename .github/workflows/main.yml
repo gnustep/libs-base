@@ -145,6 +145,8 @@ jobs:
 
       - name: Build source
         run: |
+          mv Testing.h $INSTALL_PATH/share/GNUstep/Makefiles/TestFramework/Testing.h
+          cat $INSTALL_PATH/share/GNUstep/Makefiles/TestFramework/Testing.h
           . $INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh
           if [ -n "$HOST" ]; then
             CONFIGURE_OPTS="$CONFIGURE_OPTS --host=$HOST"
