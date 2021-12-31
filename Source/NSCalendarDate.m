@@ -483,11 +483,15 @@ GSPrivateTimeNow(void)
  */
 - (id) dateByAddingTimeInterval: (NSTimeInterval)seconds
 {
+    printf("mark 9\n");
   id newObj = [[self class] dateWithTimeIntervalSinceReferenceDate:
      [self timeIntervalSinceReferenceDate] + seconds];
-	
+    printf("mark 14\n");
+
   [newObj setTimeZone: [self timeZoneDetail]];
+    printf("mark 15\n");
   [newObj setCalendarFormat: [self calendarFormat]];
+    printf("mark 16\n");
 
   return newObj;
 }
@@ -1627,6 +1631,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
  */
 - (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)seconds
 {
+    printf("mark 10\n");
   if (isnan(seconds))
     {
       [NSException raise: NSInvalidArgumentException
@@ -1643,17 +1648,20 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
       seconds = DISTANT_FUTURE;
     }
 #endif
+    printf("mark 11\n");
   _seconds_since_ref = seconds;
   if (_calendar_format == nil)
     {
       _calendar_format = cformat;
     }
+    printf("mark 12\n");
   if (_time_zone == nil)
     {
       _time_zone = localTZ;	// retain is a no-op for the local timezone.
         printf("Other log 2\n");
         printf("%s\n", [[localTZ description] UTF8String]);
     }
+    printf("mark 13\n");
   return self;
 }
 
