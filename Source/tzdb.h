@@ -1822,9 +1822,12 @@ localsub(struct state const *sp, time_t const *timep, int_fast32_t setname,
   gstm 		*result;
   const time_t		t = *timep;
 
+    printf("mark 110\n");
+
   if ((sp->goback && t < sp->ats[0])
     || (sp->goahead && t > sp->ats[sp->timecnt - 1]))
     {
+        printf("mark 117\n");
       time_t	newt = t;
       time_t	seconds;
       time_t	years;
@@ -1842,6 +1845,7 @@ localsub(struct state const *sp, time_t const *timep, int_fast32_t setname,
 	newt -= seconds;
       if (newt < sp->ats[0] || newt > sp->ats[sp->timecnt - 1])
 	{
+        printf("mark 111\n");
 	  errno = EINVAL;
 	  return NULL;	/* "cannot happen" */
 	}
@@ -1861,11 +1865,13 @@ localsub(struct state const *sp, time_t const *timep, int_fast32_t setname,
 	    }
 	  if (! (INT_MIN <= newy && newy <= INT_MAX))
 	    {
+            printf("mark 112\n");
 	      errno = EOVERFLOW;
 	      return NULL;
 	    }
 	  result->tm_year = (int)newy;
 	}
+        printf("mark 116\n");
       return result;
     }
   if (sp->timecnt == 0 || t < sp->ats[0])
@@ -1900,8 +1906,10 @@ localsub(struct state const *sp, time_t const *timep, int_fast32_t setname,
   **	timesub(&t, 0L, sp, tmp);
   */
   result = timesub(&t, ttisp->tt_utoff, sp, tmp);
+    printf("mark 113\n");
   if (result)
     {
+        printf("mark 114\n");
       result->tm_isdst = ttisp->tt_isdst;
       result->tm_zone = __UNCONST(&sp->chars[ttisp->tt_desigidx]);
     }
@@ -2035,6 +2043,7 @@ timesub(const time_t *timep, int_fast32_t offset,
   tmp->tm_gmtoff = offset;
   return tmp;
 out_of_range:
+    printf("mark 115\n");
   errno = EOVERFLOW;
   return NULL;
 }
