@@ -1651,6 +1651,8 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   if (_time_zone == nil)
     {
       _time_zone = localTZ;	// retain is a no-op for the local timezone.
+        printf("Other log 2\n");
+        printf("%s\n", [[localTZ description] UTF8String]);
     }
   return self;
 }
