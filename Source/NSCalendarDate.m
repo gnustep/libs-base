@@ -488,6 +488,7 @@ GSPrivateTimeNow(void)
 	
   [newObj setTimeZone: [self timeZoneDetail]];
   [newObj setCalendarFormat: [self calendarFormat]];
+    NSLog(@"TZDetail %@, CalendarFormat: %@", [self timeZoneDetail], [self calendarFormat]);
 
   return newObj;
 }
@@ -1651,6 +1652,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   if (_time_zone == nil)
     {
       _time_zone = localTZ;	// retain is a no-op for the local timezone.
+        NSLog(@"LocalTZ: %@", localTZ);
     }
   return self;
 }
