@@ -731,6 +731,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   NSMutableData	*fd;
   BOOL		changedFormat = NO;
   BOOL		error = NO;
+  printf("mark 1\n");
 
   if (description == nil)
     {
@@ -746,6 +747,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 	  fmt = @"";
 	}
     }
+    printf("mark 2\n");
 
   /*
    * Get format into a buffer, leaving room for expansion in case it has
@@ -756,6 +758,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
     initWithLength: (formatLen + 32) * sizeof(unichar)];
   format = (unichar*)[fd mutableBytes];
   [fmt getCharacters: format];
+    printf("mark 3\n");
 
   /*
    * Expand any sequences to their basic components.
@@ -856,6 +859,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 	  hadPercent = NO;
 	}
     }
+    printf("mark 4\n");
 
   /*
    * Set up calendar format.
@@ -865,6 +869,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
       fmt = [NSString stringWithCharacters: format length: formatLen];
     }
   ASSIGN(_calendar_format, fmt);
+    printf("mark 5\n");
 
   //
   // WARNING:
@@ -872,6 +877,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
   //   -Long day and month names depend on a non-alpha character after the
   //    last digit to work.
   //
+    printf("mark 6\n");
 
   while (error == NO && formatIdx < formatLen)
     {
@@ -1373,6 +1379,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
       formatIdx++;
     }
   RELEASE(fd);
+    printf("mark 7\n");
 
   if (error == NO)
     {
@@ -1473,6 +1480,7 @@ static inline int getDigits(const char *from, char *to, int limit, BOOL *error)
 	  _seconds_since_ref += ((NSTimeInterval)milliseconds) / 1000.0;
 	}
     }
+    printf("mark 8\n");
 
   if (error == YES)
     {
