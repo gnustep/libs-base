@@ -5421,6 +5421,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       (void*)NSDOSChineseSimplifStringEncoding);
     NSMapInsert(charsets, (void*)@"cp936",
       (void*)NSDOSChineseSimplifStringEncoding);
+    NSMapInsert(charsets, (void*)@"gbk",
+      (void*)NSDOSChineseSimplifStringEncoding);
     NSMapInsert(charsets, (void*)@"ibm949",
       (void*)NSDOSKoreanStringEncoding);
     NSMapInsert(charsets, (void*)@"cp949",
@@ -5530,7 +5532,12 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       (void*)NSWindowsVietnameseStringEncoding);
     NSMapInsert(charsets, (void*)@"NSWindowsKoreanJohabStringEncoding",
       (void*)NSWindowsKoreanJohabStringEncoding);
-
+    NSMapInsert(charsets, (void*)@"NSGB_2312_80StringEncoding",
+      (void*)NSGB_2312_80StringEncoding);
+    NSMapInsert(charsets, (void*)@"NSGBK_95StringEncoding",
+      (void*)NSGBK_95StringEncoding);
+    NSMapInsert(charsets, (void*)@"NSGB_18030_2000StringEncoding",
+      (void*)NSGB_18030_2000StringEncoding);
 #endif
 	}
       if (encodings == 0)
@@ -5659,6 +5666,8 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       (void*)@"windows-1258");
     NSMapInsert(encodings, (void*)NSWindowsKoreanJohabStringEncoding,
       (void*)@"windows-1361");
+    NSMapInsert(encodings, (void*)NSGB_18030_2000StringEncoding,
+      (void*)@"gb18030");
 #endif
 	}
       if (headerClass == 0)

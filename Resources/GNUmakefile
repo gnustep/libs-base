@@ -54,7 +54,7 @@ ifeq ($(base-resources_INSTALL_DIR),)
 base-resources_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-base/Versions/$(libgnustep-base_INTERFACE_VERSION)/Resources
 endif
 
-base-resources_LANGUAGES = English German French Italian TraditionalChinese \
+base-resources_LANGUAGES = English German French Italian TraditionalChinese SimplifiedChinese \
 Spanish Esperanto Korean Japanese
 base-resources_LOCALIZED_RESOURCE_FILES = Localizable.strings
 base-resources_RESOURCE_DIRS = Languages GSTLS
@@ -73,6 +73,7 @@ Languages/Polish \
 Languages/Russian \
 Languages/Spanish \
 Languages/TraditionalChinese \
+Languages/SimplifiedChinese \
 Languages/Slovak \
 Languages/Ukrainian \
 Languages/Esperanto \

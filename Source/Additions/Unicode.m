@@ -314,6 +314,13 @@ static struct _strenc_ str_encoding_table[] = {
   {NSWindowsKoreanJohabStringEncoding,
     "NSWindowsKoreanJohabStringEncoding","CP1361",0,0,0},
 
+  {NSGB_2312_80StringEncoding,
+    "NSGB_2312_80StringEncoding","EUC-CN",0,0,0}, // Same as NSChineseEUCStringEncoding
+  {NSGBK_95StringEncoding,
+    "NSGBK_95StringEncoding","CP936",0,0,0}, // Same as NSDOSChineseSimplifStringEncoding
+  {NSGB_18030_2000StringEncoding,
+    "NSGB_18030_2000StringEncoding","GB18030",0,0,0},
+
 /* Now Apple encodings which have high numeric values.
  */
   {NSUTF16BigEndianStringEncoding,
@@ -2941,7 +2948,8 @@ GSPrivateCStringEncoding(const char *encoding)
         || strcmp(encoding, "IBM-932") == 0)
         enc = NSDOSJapaneseStringEncoding;
       else if (strcmp(encoding, "CP936") == 0
-        || strcmp(encoding, "IBM-936") == 0)
+        || strcmp(encoding, "IBM-936") == 0
+        || strcmp(encoding, "GBK") == 0)
         enc = NSDOSChineseSimplifStringEncoding;
       else if (strcmp(encoding, "CP949") == 0
         || strcmp(encoding, "IBM-949") == 0)
@@ -2964,6 +2972,8 @@ GSPrivateCStringEncoding(const char *encoding)
       else if (strcmp(encoding, "CP1361") == 0
         || strcmp(encoding, "WINDOWS-1361") == 0)
         enc = NSWindowsKoreanJohabStringEncoding;
+      else if (strcmp(encoding, "GB18030") == 0)
+        enc = NSGB_18030_2000StringEncoding;
     }
 
   if (enc == GSUndefinedEncoding)
