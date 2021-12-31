@@ -1845,7 +1845,7 @@ localsub(struct state const *sp, time_t const *timep, int_fast32_t setname,
 	newt -= seconds;
       if (newt < sp->ats[0] || newt > sp->ats[sp->timecnt - 1])
 	{
-        printf("mark 111\n");
+        printf("mark 111 %d %d %d %d\n", newt, sp->ats[0], sp->ats[sp->timecnt - 1], sp->timecnt);
 	  errno = EINVAL;
 	  return NULL;	/* "cannot happen" */
 	}
