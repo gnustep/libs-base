@@ -1287,17 +1287,21 @@ static NSMapTable	*absolutes = 0;
  */
 + (NSTimeZone*) defaultTimeZone
 {
+    printf("mark 18\n");
   NSTimeZone	*zone;
 
   GS_MUTEX_LOCK(zone_mutex);
   if (defaultTimeZone == nil)
     {
+        printf("mark 19\n");
       zone = [self systemTimeZone];
     }
   else
     {
+        printf("mark 20\n");
       zone = AUTORELEASE(RETAIN(defaultTimeZone));
     }
+    printf("mark 21\n");
   GS_MUTEX_UNLOCK(zone_mutex);
   return zone;
 }
@@ -1386,11 +1390,14 @@ static NSMapTable	*absolutes = 0;
  */
 + (NSTimeZone*) systemTimeZone
 {
+    printf("mark 21\n");
   NSTimeZone	*zone = nil;
 
   GS_MUTEX_LOCK(zone_mutex);
   if (systemTimeZone == nil)
     {
+        printf("mark 22\n");
+
       NSFileManager *dflt = [NSFileManager defaultManager];
       NSString	*localZoneString = nil;
       NSString	*localZoneSource = nil;
@@ -1411,12 +1418,14 @@ static NSMapTable	*absolutes = 0;
       /*
        * Try to get timezone from GNUSTEP_TZ environment variable.
        */
+        printf("mark 23\n");
       if (localZoneString == nil)
 	{
           localZoneSource = _(@"environment variable: 'GNUSTEP_TZ'");
 	  localZoneString = [[[NSProcessInfo processInfo]
 	    environment] objectForKey: @"GNUSTEP_TZ"];
 	}
+        printf("mark 24\n");
 
       /*
        * Try to get timezone from LOCAL_TIME_FILE.
@@ -1432,6 +1441,7 @@ static NSMapTable	*absolutes = 0;
 	      localZoneString = [localZoneString stringByTrimmingSpaces];
 	    }
 	}
+        printf("mark 25\n");
 
 #if	defined(_WIN32)
       /*
@@ -1454,9 +1464,11 @@ static NSMapTable	*absolutes = 0;
 	  }
       }
 #endif
+        printf("mark 26\n");
 
       if (localZoneString == nil)
 	{
+        printf("mark 27\n");
 	  if (YES == [dflt isReadableFileAtPath: @"/etc/timezone"])
 	    {
 	      NSString	*s;
@@ -1469,10 +1481,15 @@ static NSMapTable	*absolutes = 0;
 		  localZoneString = s;
 		}
 	    }
+        printf("mark 28\n");
 	}
+
+        printf("mark 29\n");
 
       if (localZoneString == nil)
 	{
+        printf("mark 30\n");
+
 	  if (YES == [dflt isReadableFileAtPath: @"/etc/sysconfig/clock"])
 	    {
 	      NSString		*s;
@@ -1519,6 +1536,8 @@ static NSMapTable	*absolutes = 0;
 
       if (localZoneString == nil)
         {
+            printf("mark 31\n");
+
           /* Get the zone name from the localtime file, assuming the file
 	     is a symlink to the time zone. Getting the actual data (which
 	     is easier) doesn't help, since we won't know the name itself.  */

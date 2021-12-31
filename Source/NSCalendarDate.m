@@ -489,7 +489,7 @@ GSPrivateTimeNow(void)
     printf("mark 14\n");
 
   [newObj setTimeZone: [self timeZoneDetail]];
-    printf("mark 30\n");
+    printf("mark 40\n");
   [newObj setCalendarFormat: [self calendarFormat]];
 
   return newObj;
