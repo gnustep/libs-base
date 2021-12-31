@@ -2953,12 +2953,16 @@ getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
   gstm		tm;
   TypeInfo      type;
 
+    printf("mark 107\n");
+
   if (localsub(zone->sp, &when, 0, &tm) == NULL)
     {
+        printf("mark 108\n");
       memset(&type, '\0', sizeof(type));
     }
   else
     {
+        printf("mark 109\n");
       type.offset = tm.tm_gmtoff;
       type.isdst = tm.tm_isdst;
       type.abbr_idx = 0;
