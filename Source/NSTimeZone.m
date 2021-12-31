@@ -3106,8 +3106,14 @@ getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
   TypeInfo		type;
   NSTimeZoneDetail	*detail;
 
+    printf("mark 101\n");
+
   type = getTypeInfo([aDate timeIntervalSince1970], self);
-  detail = newDetailInZoneForType(self, &type);
+    printf("mark 102\n");
+
+    detail = newDetailInZoneForType(self, &type);
+    printf("mark 103\n");
+
   return AUTORELEASE(detail);
 }
 
