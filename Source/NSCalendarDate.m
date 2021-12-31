@@ -488,7 +488,6 @@ GSPrivateTimeNow(void)
 	
   [newObj setTimeZone: [self timeZoneDetail]];
   [newObj setCalendarFormat: [self calendarFormat]];
-    NSLog(@"TZDetail %@, CalendarFormat: %@", [self timeZoneDetail], [self calendarFormat]);
 
   return newObj;
 }
