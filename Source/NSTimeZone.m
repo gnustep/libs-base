@@ -2987,6 +2987,7 @@ getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
 
   zoneName = [timeZoneName UTF8String];
   sp = malloc(sizeof(*sp));
+  memset((char *)sp, '\0', sizeof(*sp));
 
   NS_DURING
     {

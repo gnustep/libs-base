@@ -1,4 +1,4 @@
-/* Esperanto string encodings */
+﻿/* Esperanto string encodings */
 GSUndefinedEncoding = 			"nekonata";
 NSProprietaryStringEncoding = 		"Installaĵo-dependa";
 NSASCIIStringEncoding = 		"7 bita ASCII";
