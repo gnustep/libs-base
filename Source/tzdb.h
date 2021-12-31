@@ -1841,7 +1841,7 @@ localsub(struct state const *sp, time_t const *timep, int_fast32_t setname,
   const time_t		t = *timep;
 
     printf("mark 110\n");
-
+    printf("mark 118 %d %d %d %d %d %d\n", t, sp->goback, sp->goahead, sp->ats[0], sp->ats[sp->timecnt - 1], sp->timecnt);
   if ((sp->goback && t < sp->ats[0])
     || (sp->goahead && t > sp->ats[sp->timecnt - 1]))
     {
