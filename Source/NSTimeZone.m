@@ -2929,12 +2929,16 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
   GSTimeZoneDetail      *detail;
   NSString		*abbr;
 
+    printf("mark 104\n");
   abbr = [[NSString alloc] initWithUTF8String: type->abbreviation];
+    printf("mark 105\n");
   
   detail = [[GSTimeZoneDetail alloc] initWithTimeZone: zone
 					   withAbbrev: abbr
 					   withOffset: type->offset
 					      withDST: type->isdst];
+
+    printf("mark 106\n");
   RELEASE(abbr);
   return detail;
 }
@@ -3112,7 +3116,7 @@ getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
     printf("mark 102\n");
 
     detail = newDetailInZoneForType(self, &type);
-    printf("mark 103\n");
+    printf("mark 200\n");
 
   return AUTORELEASE(detail);
 }
