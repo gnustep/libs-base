@@ -71,7 +71,7 @@ static unsigned testLineNumber __attribute__((unused)) = 0;
 #if     !defined(TEST_TS)
 #define TEST_TS  0
 #endif
-static BOOL testTimestamps __attribute__((unused)) = TEST_TS;
+static BOOL testTimestamps __attribute__((unused)) = NO;
 
 /* A variable storing the indentation of the set currently being run.
  * Do not modify this directly.
@@ -218,12 +218,12 @@ static void testStart()
   NS_HANDLER \
     testRaised = [localException retain]; \
     pass(0, "%s:%d ... " testFormat__, __FILE__, __LINE__, ## __VA_ARGS__); \
-    printf("%s: %s", [[testRaised name] UTF8String], \
+    printf("%s: %s\n", [[testRaised name] UTF8String], \
       [[testRaised description] UTF8String]); \
     NSArray *callStackSymbols = [testRaised callStackSymbols]; \
     for (NSString *symbol in callStackSymbols) \
     { \
-      printf("Callstack: %s", [symbol UTF8String]);\
+      printf("Callstack: %s\n", [symbol UTF8String]);\
     };\
   NS_ENDHANDLER
 
