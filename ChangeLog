@@ -1,8 +1,19 @@
-2021-01-04 Richard Frith-Macdonald <rfm@gnu.org>
+2022-01-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSString.h:
 	* Source/Additions/GSMime.m:
 	* Source/Additions/Unicode.m:
+	* Resources/English.lproj/Localizable.strings:
+	* Resources/Esperanto.lproj/Localizable.strings:
+	* Resources/French.lproj/Localizable.strings:
+	* Resources/German.lproj/Localizable.strings:
+	* Resources/Italian.lproj/Localizable.strings:
+	* Resources/Japanese.lproj/Localizable.strings:
+	* Resources/Korean.lproj/Localizable.strings:
+	* Resources/Polish.lproj/Localizable.strings:
+	* Resources/SimplifiedChinese.lproj/Localizable.strings:
+	* Resources/Spanish.lproj/Localizable.strings:
+	* Resources/TraditionalChinese.lproj/Localizable.strings:
 	Reinstate lost encoding constants (so that software using the
 	gnustep extenstions should work again).  Also tidy some indentation
 	issues.

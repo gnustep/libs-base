@@ -221,7 +221,8 @@ static struct _strenc_ str_encoding_table[] = {
     "NSProprietaryStringEncoding","",0,0,0},
 #endif
 
-// GNUstep additions
+  /* GNUstep additions
+   */
   {NSISOCyrillicStringEncoding,
     "NSISOCyrillicStringEncoding","ISO-8859-5",0,1,0},
   {NSKOI8RStringEncoding,
@@ -259,8 +260,8 @@ static struct _strenc_ str_encoding_table[] = {
   {NSKoreanEUCStringEncoding,
     "NSKoreanEUCStringEncoding","EUC-KR",0,0,0},
 
-/* DOS and Windows encodings
- */
+  /* DOS and Windows encodings
+   */
   {NSDOSLatinUSStringEncoding,
     "NSDOSLatinUSStringEncoding","CP437",0,0,0},
   {NSDOSGreekStringEncoding,
@@ -314,10 +315,10 @@ static struct _strenc_ str_encoding_table[] = {
   {NSWindowsKoreanJohabStringEncoding,
     "NSWindowsKoreanJohabStringEncoding","CP1361",0,0,0},
 
-  {NSGB_2312_80StringEncoding,
-    "NSGB_2312_80StringEncoding","EUC-CN",0,0,0}, // Same as NSChineseEUCStringEncoding
-  {NSGBK_95StringEncoding,
-    "NSGBK_95StringEncoding","CP936",0,0,0}, // Same as NSDOSChineseSimplifStringEncoding
+  {NSGB_2312_80StringEncoding,	// Same as NSChineseEUCStringEncoding
+    "NSGB_2312_80StringEncoding","EUC-CN",0,0,0},
+  {NSGBK_95StringEncoding,	// Same as NSDOSChineseSimplifStringEncoding
+    "NSGBK_95StringEncoding","CP936",0,0,0},
   {NSGB_18030_2000StringEncoding,
     "NSGB_18030_2000StringEncoding","GB18030",0,0,0},
 
@@ -338,7 +339,7 @@ static struct _strenc_ str_encoding_table[] = {
 };
 
 static unsigned		encTableSize = 0;
-static NSMapTable   *encodingPointerTable = nil;
+static NSMapTable   	*encodingPointerTable = nil;
 
 static void GSSetupEncodingTable(void)
 {
@@ -3033,9 +3034,9 @@ GSPrivateDefaultCStringEncoding()
 	  else
 	    {
 	      fprintf(stderr,
-		      "WARNING: %s - encoding not supported.\n", encoding);
+		"WARNING: %s - encoding not supported.\n", encoding);
 	      fprintf(stderr,
-		      "  NSISOLatin1StringEncoding set as default.\n");
+		"  NSISOLatin1StringEncoding set as default.\n");
 	      defEnc = NSISOLatin1StringEncoding;
 	    }
 	}
@@ -3050,9 +3051,9 @@ GSPrivateDefaultCStringEncoding()
       else if (GSPrivateIsEncodingSupported(defEnc) == NO)
 	{
 	  fprintf(stderr, "WARNING: %s - encoding not implemented as "
-		  "default c string encoding.\n", encoding);
+	    "default c string encoding.\n", encoding);
 	  fprintf(stderr,
-		  "  NSISOLatin1StringEncoding set as default.\n");
+	    "  NSISOLatin1StringEncoding set as default.\n");
 	  defEnc = NSISOLatin1StringEncoding;
 	}
 
