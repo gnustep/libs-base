@@ -1,3 +1,12 @@
+2021-01-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSString.h:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/Unicode.m:
+	Reinstate lost encoding constants (so that software using the
+	gnustep extenstions should work again).  Also tidy some indentation
+	issues.
+
 2021-12-21 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSOperation.m: fix handling of concurrent NSOperations
