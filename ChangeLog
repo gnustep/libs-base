@@ -1,5 +1,10 @@
 2022-01-04 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSOperation.m:
+	Declare private method to avoid compiler warnings.
+
+2022-01-04 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/Foundation/NSString.h:
 	* Source/Additions/GSMime.m:
 	* Source/Additions/Unicode.m:

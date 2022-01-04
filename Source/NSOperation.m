@@ -83,6 +83,7 @@ static NSArray	*empty = nil;
 
 @interface	NSOperation (Private)
 - (void) _finish;
+- (void) _updateReadyState;
 @end
 
 @implementation NSOperation
@@ -518,12 +519,13 @@ static NSArray	*empty = nil;
 	  internal->finished = YES;
 	  [self didChangeValueForKey: @"isFinished"];
 	}
-      CALL_BLOCK_NO_ARGS(((GSOperationCompletionBlock)internal->completionBlock));
+      CALL_BLOCK_NO_ARGS(
+	((GSOperationCompletionBlock)internal->completionBlock));
     }
   [internal->lock unlock];
 }
 
-- (void)_updateReadyState
+- (void) _updateReadyState
 {
   [internal->lock lock];
   if (NO == internal->ready)
