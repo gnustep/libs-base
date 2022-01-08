@@ -44,6 +44,11 @@
 #include <limits.h>
 #include <float.h>
 
+/* NS_INLINE */
+#if !defined(NS_INLINE)
+#define NS_INLINE static inline
+#endif
+
 /* PA HP-UX kludge.  */
 #if defined(__hppa__) && defined(__hpux__) && !defined(PRIuPTR)
 #define PRIuPTR "lu"
