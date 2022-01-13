@@ -1437,20 +1437,39 @@ static NSMapTable	*absolutes = 0;
        * Try to get timezone from windows system call.
        */
       {
-      	TIME_ZONE_INFORMATION tz;
-      	DWORD DST = GetTimeZoneInformation(&tz);
-
+        TIME_ZONE_INFORMATION tz;
+        DWORD dst = GetTimeZoneInformation(&tz);
+        wchar_t *tzName;
+  
         localZoneSource = @"function: 'GetTimeZoneInformation()'";
-      	if (DST == TIME_ZONE_ID_DAYLIGHT)
-	  {
-	    localZoneString = [NSString stringWithCharacters: tz.DaylightName
-	      length: wcslen(tz.DaylightName)];
-	  }
-      	else
-	  {
-	    localZoneString = [NSString stringWithCharacters: tz.StandardName
-	      length: wcslen(tz.StandardName)];
-	  }
+        if (dst == TIME_ZONE_ID_DAYLIGHT)
+          tzName = tz.DaylightName;
+        else
+          tzName = tz.StandardName;
+
+#if defined(_MSC_VER) && defined(UCAL_H)
+        // Convert Windows timezone name to IANA identifier
+        if (tzName)
+          {
+            UErrorCode status = U_ZERO_ERROR;
+            UChar ianaTzName[128];
+            ucal_getTimeZoneIDForWindowsID(tzName, -1, NULL, ianaTzName, 128,
+              &status);
+            if (U_SUCCESS(status)) {
+              localZoneString = [NSString stringWithCharacters: ianaTzName
+                length: u_strlen(ianaTzName)];
+            } else {
+              NSLog(@"Error converting timezone '%ls' to IANA format: %s",
+                tzName, u_errorName(status));
+            }
+          }
+#endif
+
+        if (localZoneString == nil)
+          {
+            localZoneString = [NSString stringWithCharacters: tzName
+              length: wcslen(tzName)];
+          }
       }
 #endif
 

@@ -1,3 +1,9 @@
+2022-01-13 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSTimeZone.m:
+	Fix time zone lookup on Windows MSVC by converting Windows timezone
+	name to IANA identifier.
+
 2022-01-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSOperation.m:
