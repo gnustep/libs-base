@@ -1962,6 +1962,9 @@ NSTemporaryDirectory(void)
     {
       baseTempDirName = [NSString stringWithCharacters: buffer
 						length: wcslen(buffer)];
+      // convert path to use forward slashes, which we use internally
+      baseTempDirName = [baseTempDirName stringByReplacingString: @"\\"
+        withString: @"/"];
     }
 #elif defined(__ANDROID__)
   /*
