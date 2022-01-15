@@ -1,3 +1,9 @@
+2022-01-15 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSPathUtilities.m:
+	Fix NSTemporaryDirectory() returning path with backslashes on
+	Windows.
+
 2022-01-13 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSTimeZone.m:
