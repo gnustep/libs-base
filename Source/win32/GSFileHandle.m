@@ -984,7 +984,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (id) initForReadingAtPath: (NSString*)path
 {
   int	d = _wopen(
-    (unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
+    (const GSNativeChar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
     O_RDONLY|O_BINARY);
 
   if (d < 0)
@@ -1008,7 +1008,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (id) initForWritingAtPath: (NSString*)path
 {
   int	d = _wopen(
-    (unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
+    (const GSNativeChar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
     O_WRONLY|O_BINARY);
 
   if (d < 0)
@@ -1032,7 +1032,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 - (id) initForUpdatingAtPath: (NSString*)path
 {
   int	d = _wopen(
-    (unichar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
+    (const GSNativeChar*)[path cStringUsingEncoding: NSUnicodeStringEncoding],
     O_RDWR|O_BINARY);
 
   if (d < 0)

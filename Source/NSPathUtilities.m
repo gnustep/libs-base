@@ -1162,8 +1162,8 @@ static void InitialisePathUtilities(void)
 	  char	dummy[1024];
 	} s;
 	LPTSTR	str;
-	unichar buf[1024];
-	unichar dom[1024];
+	GSNativeChar buf[1024];
+	GSNativeChar dom[1024];
 	SID_NAME_USE use;
 	DWORD bsize = 1024;
 	DWORD ssize = 1024;
@@ -1650,7 +1650,7 @@ NSUserName(void)
       else
 	{
 	  /* The GetUserName function returns the current user name */
-	  unichar buf[1024];
+	  GSNativeChar buf[1024];
 	  DWORD n = 1024;
 
 	  if (GetUserNameW(buf, &n) != 0 && buf[0] != '\0')
@@ -1829,8 +1829,9 @@ NSFullUserName(void)
 #if defined(_WIN32)
       struct _USER_INFO_2	*userInfo;
 
-      if (NetUserGetInfo(NULL, (unichar*)[userName cStringUsingEncoding:
-	NSUnicodeStringEncoding], 2, (LPBYTE*)&userInfo) == 0)
+      if (NetUserGetInfo(NULL, (const GSNativeChar*)[userName
+        cStringUsingEncoding: NSUnicodeStringEncoding], 2,
+        (LPBYTE*)&userInfo) == 0)
 	{
 	  int	length = wcslen(userInfo->usri2_full_name);
 
@@ -1957,7 +1958,7 @@ NSTemporaryDirectory(void)
 #endif
 
 #if defined(_WIN32)
-  unichar buffer[1024];
+  GSNativeChar buffer[1024];
   if (GetTempPathW(1024, buffer))
     {
       baseTempDirName = [NSString stringWithCharacters: buffer
