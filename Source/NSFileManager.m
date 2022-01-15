@@ -237,9 +237,6 @@
 
 #endif
 
-#define	_CHAR		GSNativeChar
-#define	_CCP		const _CHAR*
-
 
 
 
@@ -252,7 +249,7 @@
 {
 @public
   struct _STATB	statbuf;
-  _CHAR		_path[0];
+  GSNativeChar	_path[0];
 }
 + (NSDictionary*) attributesAt: (NSString *)path
 		  traverseLink: (BOOL)traverse;
@@ -382,7 +379,7 @@ static NSStringEncoding	defaultEncoding;
 - (BOOL) changeCurrentDirectoryPath: (NSString*)path
 {
   static Class	bundleClass = 0;
-  const _CHAR	*lpath = [self fileSystemRepresentationWithPath: path];
+  const GSNativeChar	*lpath = [self fileSystemRepresentationWithPath: path];
 
   /*
    * On some systems the only way NSBundle can determine the path to the
@@ -410,7 +407,7 @@ static NSStringEncoding	defaultEncoding;
 - (BOOL) changeFileAttributes: (NSDictionary*)attributes atPath: (NSString*)path
 {
   NSDictionary  *old;
-  const _CHAR	*lpath = 0;
+  const GSNativeChar	*lpath = 0;
   NSUInteger	num;
   NSString	*str;
   NSDate	*date;
@@ -571,7 +568,7 @@ static NSStringEncoding	defaultEncoding;
     {
       BOOL		ok = NO;
       struct _STATB	sb;
-      const _CHAR *lpath;
+      const GSNativeChar *lpath;
 
       lpath = [self fileSystemRepresentationWithPath: path];
       if (_STAT(lpath, &sb) != 0)
@@ -1058,7 +1055,7 @@ static NSStringEncoding	defaultEncoding;
     }
   else
     {
-      const _CHAR   *lpath;
+      const GSNativeChar   *lpath;
       lpath = [self fileSystemRepresentationWithPath: path];
 #if defined(_WIN32)
       isDir = (CreateDirectoryW(lpath, 0) != FALSE) ? YES : NO;
@@ -1115,13 +1112,12 @@ static NSStringEncoding	defaultEncoding;
 		 contents: (NSData*)contents
 	       attributes: (NSDictionary*)attributes
 {
+  const GSNativeChar	*lpath;
 #if	defined(_WIN32)
-  const _CHAR	*lpath = [self fileSystemRepresentationWithPath: path];
   HANDLE fh;
   DWORD	written = 0;
   DWORD	len = [contents length];
 #else
-  const _CHAR	*lpath;
   int	fd;
   int	len;
   int	written;
@@ -1133,6 +1129,8 @@ static NSStringEncoding	defaultEncoding;
       ASSIGN(_lastError, @"no path given");
       return NO;
     }
+
+  lpath = [self fileSystemRepresentationWithPath: path];
 
 #if	defined(_WIN32)
   fh = CreateFileW(lpath, GENERIC_WRITE, 0, 0, CREATE_ALWAYS,
@@ -1156,8 +1154,6 @@ static NSStringEncoding	defaultEncoding;
       return YES;
     }
 #else
-  lpath = [self fileSystemRepresentationWithPath: path];
-
   fd = open(lpath, GSBINIO|O_WRONLY|O_TRUNC|O_CREAT, 0644);
   if (fd < 0)
     {
@@ -1214,7 +1210,8 @@ static NSStringEncoding	defaultEncoding;
   int len = GetCurrentDirectoryW(0, 0);
   if (len > 0)
     {
-      _CHAR *lpath = (_CHAR*)calloc(len+10,sizeof(_CHAR));
+      GSNativeChar *lpath = (GSNativeChar*)calloc(len + 10,
+        sizeof(GSNativeChar));
 
       if (lpath != 0)
 	{
@@ -1233,7 +1230,7 @@ static NSStringEncoding	defaultEncoding;
 	}
     }
 #else
-  _CHAR path[PATH_MAX];
+  GSNativeChar path[PATH_MAX];
 #ifdef HAVE_GETCWD
   if (getcwd(path, PATH_MAX-1) == 0)
     return nil;
@@ -1396,8 +1393,8 @@ static NSStringEncoding	defaultEncoding;
   NSString	*destinationParent;
   unsigned int	sourceDevice;
   unsigned int	destinationDevice;
-  const _CHAR	*sourcePath;
-  const _CHAR	*destPath;
+  const GSNativeChar	*sourcePath;
+  const GSNativeChar	*destPath;
 
   sourcePath = [self fileSystemRepresentationWithPath: source];
   destPath = [self fileSystemRepresentationWithPath: destination];
@@ -1606,7 +1603,7 @@ static NSStringEncoding	defaultEncoding;
 		  handler: handler
 {
   BOOL		is_dir;
-  const _CHAR	*lpath;
+  const GSNativeChar	*lpath;
 
   if ([path isEqualToString: @"."] || [path isEqualToString: @".."])
     {
@@ -1761,7 +1758,7 @@ static NSStringEncoding	defaultEncoding;
 
 - (BOOL) fileExistsAtPath: (NSString*)path isDirectory: (BOOL*)isDirectory
 {
-  const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
+  const GSNativeChar *lpath = [self fileSystemRepresentationWithPath: path];
 
   if (isDirectory != 0)
     {
@@ -1844,7 +1841,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) isReadableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
+  const GSNativeChar* lpath = [self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1901,7 +1898,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) isWritableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
+  const GSNativeChar* lpath = [self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -1943,7 +1940,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) isExecutableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
+  const GSNativeChar* lpath = [self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -2002,7 +1999,7 @@ static NSStringEncoding	defaultEncoding;
  */
 - (BOOL) isDeletableFileAtPath: (NSString*)path
 {
-  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
+  const GSNativeChar* lpath = [self fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == _NUL)
     {
@@ -2230,8 +2227,8 @@ static NSStringEncoding	defaultEncoding;
   DWORD SectorsPerCluster, BytesPerSector, NumberFreeClusters;
   DWORD TotalNumberClusters;
   DWORD volumeSerialNumber = 0;
-  const _CHAR *lpath = [self fileSystemRepresentationWithPath: path];
-  _CHAR volumePathName[128];
+  const GSNativeChar *lpath = [self fileSystemRepresentationWithPath: path];
+  GSNativeChar volumePathName[128];
 
   if (!GetVolumePathNameW(lpath, volumePathName, 128))
     {
@@ -2280,7 +2277,7 @@ static NSStringEncoding	defaultEncoding;
 #endif
   unsigned long long totalsize, freesize;
   unsigned long blocksize;
-  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
+  const GSNativeChar* lpath = [self fileSystemRepresentationWithPath: path];
 
   id  values[5];
   id	keys[5] = {
@@ -2487,8 +2484,11 @@ static NSStringEncoding	defaultEncoding;
 		      pathContent: (NSString*)otherPath
 {
 #ifdef HAVE_SYMLINK
-  const _CHAR* newpath = [self fileSystemRepresentationWithPath: path];
-  const _CHAR* oldpath = [self fileSystemRepresentationWithPath: otherPath];
+  const GSNativeChar* oldpath;
+  const GSNativeChar* newpath;
+
+  newpath = [self fileSystemRepresentationWithPath: path];
+  oldpath = [self fileSystemRepresentationWithPath: otherPath];
 
   return (symlink(oldpath, newpath) == 0);
 #else
@@ -2505,7 +2505,7 @@ static NSStringEncoding	defaultEncoding;
 {
 #ifdef HAVE_READLINK
   char  buf[PATH_MAX];
-  const _CHAR* lpath = [self fileSystemRepresentationWithPath: path];
+  const GSNativeChar* lpath = [self fileSystemRepresentationWithPath: path];
   int   llen = readlink(lpath, buf, PATH_MAX-1);
 
   if (llen > 0)
@@ -2630,7 +2630,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     //TODO: the justContents flag is currently basically useless and should be
     //      removed
       _DIR		*dir_pointer;
-      const _CHAR	*localPath;
+      const GSNativeChar	*localPath;
 
       _mgr = RETAIN(mgr);
       _stack = NSZoneMalloc([self zone], sizeof(GSIArray_t));
@@ -2779,7 +2779,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     {
       GSEnumeratedDirectory dir = GSIArrayLastItem(_stack).ext;
       struct _STATB	statbuf;
-      const _CHAR *dirname = NULL;
+      const GSNativeChar *dirname = NULL;
 
 #ifdef __ANDROID__
       if (dir.assetDir)
@@ -3588,10 +3588,12 @@ static NSSet	*fileKeys = nil;
   GSAttrDictionary	*d;
   unsigned		l = 0;
   unsigned		i;
-  const _CHAR *lpath = [defaultManager fileSystemRepresentationWithPath: path];
+  const GSNativeChar *lpath;
 #ifdef __ANDROID__
   AAsset *asset = NULL;
 #endif
+
+  lpath = [defaultManager fileSystemRepresentationWithPath: path];
 
   if (lpath == 0 || *lpath == 0)
     {
@@ -3601,7 +3603,7 @@ static NSSet	*fileKeys = nil;
     {
       l++;
     }
-  d = (GSAttrDictionary*)NSAllocateObject(self, (l+1)*sizeof(_CHAR),
+  d = (GSAttrDictionary*)NSAllocateObject(self, (l+1)*sizeof(GSNativeChar),
     NSDefaultMallocZone());
 
 #if defined(S_IFLNK) && !defined(_WIN32)
@@ -3726,8 +3728,8 @@ static NSSet	*fileKeys = nil;
   DWORD		returnCode = 0;
   PSID		sidOwner;
   int		result = TRUE;
-  _CHAR		account[BUFSIZ];
-  _CHAR		domain[BUFSIZ];
+  GSNativeChar		account[BUFSIZ];
+  GSNativeChar		domain[BUFSIZ];
   DWORD		accountSize = 1024;
   DWORD		domainSize = 1024;
   SID_NAME_USE	eUse = SidTypeUnknown;
@@ -3893,8 +3895,8 @@ static NSSet	*fileKeys = nil;
   DWORD		returnCode = 0;
   PSID		sidOwner;
   int		result = TRUE;
-  _CHAR		account[BUFSIZ];
-  _CHAR		domain[BUFSIZ];
+  GSNativeChar		account[BUFSIZ];
+  GSNativeChar		domain[BUFSIZ];
   DWORD		accountSize = 1024;
   DWORD		domainSize = 1024;
   SID_NAME_USE	eUse = SidTypeUnknown;
@@ -4023,7 +4025,7 @@ static NSSet	*fileKeys = nil;
 {
 #if defined(_WIN32)
   DWORD volumeSerialNumber = 0;
-  _CHAR volumePathName[128];
+  GSNativeChar volumePathName[128];
   if (GetVolumePathNameW(_path,volumePathName,128))
   {
     GetVolumeInformationW(volumePathName,NULL,0,&volumeSerialNumber,NULL,NULL,NULL,0);
