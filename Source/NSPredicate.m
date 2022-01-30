@@ -1339,7 +1339,25 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (id) expressionValueWithObject: (id)object
 			 context: (NSMutableDictionary *)context
 {
-  return _obj;
+  if ([_obj isKindOfClass: [NSArray class]])
+    {
+      NSMutableArray	*tmp = [(NSArray*)_obj mutableCopy];
+      NSUInteger	count = [tmp count];
+      NSUInteger	index;
+
+      for (index = 0; index < count; index++)
+	{
+	  NSExpression	*e = [tmp objectAtIndex: index];
+	  id		o = [e expressionValueWithObject: e context: context];
+
+	  [tmp replaceObjectAtIndex: index withObject: o];
+	}
+      return AUTORELEASE(tmp);
+    }
+  else
+    {
+      return _obj;
+    }
 }
 
 - (void) dealloc
