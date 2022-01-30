@@ -1577,7 +1577,7 @@ static NSUInteger	urlAlign;
 - (void) loadResourceDataNotifyingClient: (id)client
 			      usingCache: (BOOL)shouldUseCache
 {
-  NSURLHandle	*handle = [self URLHandleUsingCache: YES];
+  NSURLHandle	*handle = [self URLHandleUsingCache: shouldUseCache];
   NSData	*d;
 
   if (shouldUseCache == YES && (d = [handle availableResourceData]) != nil)
