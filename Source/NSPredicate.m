@@ -1341,18 +1341,18 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 {
   if ([_obj isKindOfClass: [NSArray class]])
     {
-      NSMutableArray	*tmp = [(NSArray*)_obj mutableCopy];
-      NSUInteger	count = [tmp count];
-      NSUInteger	index;
+      NSUInteger	count = [(NSArray*)_obj count];
+      NSMutableArray	*tmp = [NSMutableArray arrayWithCapacity: count];
+      NSUInteger	index = 0;
 
-      for (index = 0; index < count; index++)
+      while (index < count)
 	{
-	  NSExpression	*e = [tmp objectAtIndex: index];
+	  NSExpression	*e = [(NSArray*)_obj objectAtIndex: index++];
 	  id		o = [e expressionValueWithObject: e context: context];
 
-	  [tmp replaceObjectAtIndex: index withObject: o];
+	  [tmp addObject: o];
 	}
-      return AUTORELEASE(tmp);
+      return tmp;
     }
   else
     {
