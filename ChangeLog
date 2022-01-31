@@ -1,7 +1,14 @@
+2022-01-31 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURL.m:
+	Fix for git #235 reported by Sergei Golovin
+	Plus, make methods consistent in handling of clients.
+	Plus, make clientForHandle() thread-safe.
+
 2022-01-30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPredicate.m:
-	Fix for git #233
+	Fix for git #233 by Larry Campbell
 
 2022-01-15 Frederik Seiffert <frederik@algoriddim.com>
 
