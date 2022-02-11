@@ -1659,6 +1659,10 @@ retrieve_callback(gnutls_session_t session,
       BOOL      	trust;
       BOOL      	verify;
 
+      /* Set this early because it is needed in debug output during init.
+       */
+      handle = ioHandle;
+
       created = [NSDate timeIntervalSinceReferenceDate];
       opts = [options copy];
       outgoing = isOutgoing ? YES : NO;
@@ -1915,7 +1919,6 @@ retrieve_callback(gnutls_session_t session,
 #endif
       gnutls_transport_set_pull_function(session, pullFunc);
       gnutls_transport_set_push_function(session, pushFunc);
-      handle = ioHandle;
       gnutls_transport_set_ptr(session, (gnutls_transport_ptr_t)ioHandle);
       gnutls_session_set_ptr(session, (void*)self);
     }
