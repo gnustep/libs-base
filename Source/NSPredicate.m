@@ -133,6 +133,14 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 }
 @end
 
+@interface GSKeyPathCompositionExpression : NSExpression
+{
+  @public
+  NSExpression	*_left;
+  NSExpression  *_right;
+}
+@end
+
 @interface GSFunctionExpression : NSExpression
 {
   @public
@@ -1206,6 +1214,18 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return AUTORELEASE(e);
 }
 
++ (NSExpression *) expressionForKeyPathCompositionWithLeft: (NSExpression*)left
+						     right: (NSExpression*)right
+{
+  GSKeyPathCompositionExpression *e;
+
+  e = [[GSKeyPathCompositionExpression alloc] 
+    initWithExpressionType: NSKeyPathCompositionExpressionType];
+  ASSIGN(e->_left, left);
+  ASSIGN(e->_right, right);
+  return AUTORELEASE(e);
+}
+
 + (NSExpression *) expressionForVariable: (NSString *)string
 {
   GSVariableExpression *e;
@@ -1491,6 +1511,55 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables
 {
   return self;
+}
+
+@end
+
+@implementation GSKeyPathCompositionExpression
+
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"%@.%@", _left, _right];
+}
+
+- (id) expressionValueWithObject: (id)object
+                         context: (NSMutableDictionary *)context
+{
+  object = [_left expressionValueWithObject: object context: context];
+  return [_right expressionValueWithObject: object context: context];
+}
+
+- (NSString *) keyPath
+{
+  return nil;
+}
+
+- (void) dealloc
+{
+  RELEASE(_left);
+  RELEASE(_right);
+  [super dealloc];
+}
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  GSKeyPathCompositionExpression *copy;
+
+  copy = (GSKeyPathCompositionExpression *)[super copyWithZone: zone];
+  copy->_left = [_left copyWithZone: zone];
+  copy->_right = [_right copyWithZone: zone];
+  return copy;
+}
+
+- (id) _expressionWithSubstitutionVariables: (NSDictionary*)variables
+{
+  NSExpression	*left;
+  NSExpression	*right;
+
+  left = [_left _expressionWithSubstitutionVariables: variables];
+  right = [_right _expressionWithSubstitutionVariables: variables];
+  return [NSExpression expressionForKeyPathCompositionWithLeft: left
+							 right: right];
 }
 
 @end
@@ -1959,7 +2028,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
           NSCompoundPredicate   *right = (NSCompoundPredicate*)r;
 
           // merge
-          if ([l isKindOfClass:[NSCompoundPredicate class]]
+          if ([l isKindOfClass: [NSCompoundPredicate class]]
             && [(NSCompoundPredicate *)l compoundPredicateType]
             == NSAndPredicateType)
             {
@@ -2083,7 +2152,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
           NSMutableArray        *subs;
 
           subs = [[left subpredicates] mutableCopy];
-          [subs addObject:r];
+          [subs addObject: r];
           l = [NSCompoundPredicate orPredicateWithSubpredicates: subs];
           [subs release];
         }
@@ -2580,24 +2649,24 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
           // second %K to "b.c"
           NSExpression *right;
 		
-          if (![left keyPath])
-            {
-              [NSException raise: NSInvalidArgumentException 
-                          format: @"Invalid left keypath: %@", left];
-            }
           right = [self parseExpression];
-          if (![right keyPath])
-            {
-              [NSException raise: NSInvalidArgumentException 
-                          format: @"Invalid right keypath: %@", left];
-            }
 
           if (evaluatedObjectExpression != left)
             {
-              // concatenate
-              left = [NSExpression expressionForKeyPath:
-                        [NSString stringWithFormat: @"%@.%@",
-                                  [left keyPath], [right keyPath]]];
+	      // if both are simple key expressions (identifiers)
+	      if ([left keyPath] && [right keyPath])
+	        {
+                  // concatenate
+                  left = [NSExpression expressionForKeyPath:
+		    [NSString stringWithFormat: @"%@.%@",
+		      [left keyPath], [right keyPath]]];
+		}
+	      else
+		{
+		  left = [NSExpression
+		    expressionForKeyPathCompositionWithLeft: left
+		    right: right];
+		}
             }
           else
             {

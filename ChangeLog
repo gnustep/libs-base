@@ -1,7 +1,13 @@
+2022-02-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSExpression.h:
+	* Source/NSPredicate.m:
+	Patched from git #237 by Larry Campbell.
+
 2022-02-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSTLS.m: Fix failure to log handle properly during
-	initialisation (set ivar containign handle earlier).
+	initialisation (set ivar containing handle earlier).
 
 2022-01-31 Richard Frith-Macdonald <rfm@gnu.org>
 

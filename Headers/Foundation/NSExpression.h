@@ -44,7 +44,8 @@ enum
   NSEvaluatedObjectExpressionType,
   NSVariableExpressionType,
   NSKeyPathExpressionType,
-  NSFunctionExpressionType
+  NSFunctionExpressionType,
+  NSKeyPathCompositionExpressionType
 };
 typedef NSUInteger NSExpressionType;
 
