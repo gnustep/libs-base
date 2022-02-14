@@ -155,8 +155,8 @@ GS_EXPORT_CLASS
 - (NSString *) descriptionWithLocale: (NSLocale *)locale indent: (BOOL)flag;
 
   // Convert to other types
-- (NSArray *) array;
-- (NSSet *) set;
+- (GS_GENERIC_CLASS(NSArray, ElementT) *) array;
+- (GS_GENERIC_CLASS(NSSet, ElementT) *) set;
 @end
 
 // Mutable Ordered Set

@@ -102,7 +102,7 @@ typedef uint16_t unichar;
 #define NSMaximumStringLength   (INT_MAX-1)
 #endif
 
-@class NSArray;
+@class GS_GENERIC_CLASS(NSArray, ElementT);
 @class NSCharacterSet;
 @class NSData;
 @class NSDictionary;
@@ -576,7 +576,7 @@ GS_EXPORT_CLASS
 - (NSString*) stringByAppendingString: (NSString*)aString;
 
 // Dividing Strings into Substrings
-- (NSArray*) componentsSeparatedByString: (NSString*)separator;
+- (GS_GENERIC_CLASS(NSArray, NSString*) *) componentsSeparatedByString: (NSString*)separator;
 - (NSString*) substringFromIndex: (NSUInteger)index;
 - (NSString*) substringToIndex: (NSUInteger)index;
 
@@ -1024,7 +1024,7 @@ GS_EXPORT_CLASS
  * Returns NO if the above conditions are not met.
  */
 - (BOOL) boolValue;
-- (NSArray *) componentsSeparatedByCharactersInSet: (NSCharacterSet *)separator;
+- (GS_GENERIC_CLASS(NSArray, NSString*) *) componentsSeparatedByCharactersInSet: (NSCharacterSet *)separator;
 - (NSInteger) integerValue;
 - (long long) longLongValue;
 /** Not implemented */
