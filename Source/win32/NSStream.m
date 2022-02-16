@@ -85,6 +85,37 @@ void PrintLastError(NSString * f) {
   }
 }
 
+NSString * normalizeUrl(NSString * url)
+{
+  if (!url) return nil;
+
+  BOOL prepend = YES;
+  NSString * urlFront = nil;
+    
+  if ([url length] >= 7) {
+    // Check that url begins with http://
+    urlFront = [url substringToIndex:7];
+    if ([urlFront caseInsensitiveCompare:@"http://"] == NSOrderedSame) {
+        prepend = NO;
+    }
+  }
+  if ([url length] >= 8) {
+    // Check that url begins with https://
+      urlFront = [url substringToIndex:8];
+      if ([urlFront caseInsensitiveCompare:@"https://"] == NSOrderedSame) {
+          prepend = NO;
+      }
+  }
+
+  // If http[s]:// is omited, slap it on.
+  if (prepend) {
+    return [NSString stringWithFormat:@"http://%@", url];
+  }
+  else {
+    return url;
+  }
+}
+
 BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultProxyConfig)
 {
   NSString * dstUrlString = [NSString stringWithFormat: @"http://%@", url];
@@ -164,6 +195,9 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
     NSString * autoConfigUrl = @"";
     NSString * proxy = @"";
     NSString * proxyBypass = @"";
+
+    autoConfigUrl = normalizeUrl(autoConfigUrl);
+    proxy = normalizeUrl(proxy);
 
     if (resultProxyConfig->lpszAutoConfigUrl) autoConfigUrl = [[NSString alloc] initWithBytes: resultProxyConfig->lpszAutoConfigUrl length:wcslen(resultProxyConfig->lpszAutoConfigUrl)*2 encoding:NSUTF16StringEncoding];
     if (resultProxyConfig->lpszProxy) proxy = [[NSString alloc] initWithBytes: resultProxyConfig->lpszProxy length:wcslen(resultProxyConfig->lpszProxy)*2 encoding:NSUTF16StringEncoding];
