@@ -745,7 +745,7 @@ static Class NSFileHandle_ssl_class = nil;
     {
       NSRunLoop	*loop;
 
-      IF_NO_GC([self retain];)		// Don't get destroyed during runloop
+      IF_NO_ARC([self retain];)		// Don't get destroyed during runloop
       loop = [NSRunLoop currentRunLoop];
       [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
       if (NO == [self sslHandshakeEstablished: &result outgoing: NO])
@@ -789,7 +789,7 @@ static Class NSFileHandle_ssl_class = nil;
     {
       NSRunLoop	*loop;
 
-      IF_NO_GC([self retain];)		// Don't get destroyed during runloop
+      IF_NO_ARC([self retain];)		// Don't get destroyed during runloop
       loop = [NSRunLoop currentRunLoop];
       [loop runUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
       if (NO == [self sslHandshakeEstablished: &result outgoing: YES])

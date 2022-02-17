@@ -142,7 +142,7 @@ static GSMimeParser		*mimeParser = nil;
 	      RELEASE(authentication);
 	    }
 	}
-      IF_NO_GC([[authentication retain] autorelease];)
+      IF_NO_ARC([[authentication retain] autorelease];)
     }
   NS_HANDLER
     {

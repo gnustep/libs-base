@@ -149,7 +149,7 @@ GSSpellServerName(NSString *vendor, NSString *language)
 - (void) setDelegate: (id)anObject
 {
   /* FIXME - we should not retain the delegate ! */
-  IF_NO_GC(RETAIN(anObject);)
+  IF_NO_ARC(RETAIN(anObject);)
   ASSIGN(_delegate, anObject);
 }
 

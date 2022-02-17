@@ -881,7 +881,7 @@ wordData(NSString *word, BOOL *encoded)
   if ([parser isComplete] == YES)
     {
       newDocument = [parser mimeDocument];
-      IF_NO_GC(RETAIN(newDocument);)
+      IF_NO_ARC(RETAIN(newDocument);)
     }
   RELEASE(parser);
   return AUTORELEASE(newDocument);
@@ -2412,7 +2412,7 @@ NSDebugMLLog(@"GSMime", @"Header parsed - %@", info);
 	  expect = 0;
 	}
       context = [self contextFor: hdr];
-      IF_NO_GC([context retain];)
+      IF_NO_ARC([context retain];)
       NSDebugMLLog(@"GSMime", @"Parse body expects %u bytes", expect);
     }
 
@@ -4749,7 +4749,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
                   tmp = [[NSString alloc] initWithBytes: buffer
                     length: buflen
                     encoding: NSASCIIStringEncoding];
-                  IF_NO_GC([tmp autorelease];)
+                  IF_NO_ARC([tmp autorelease];)
                   return [tmp lowercaseString];
                 }
               buflen = 0;
@@ -4977,7 +4977,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       r = [NSStringClass allocWithZone: NSDefaultMallocZone()];
       r = [r initWithData: d encoding: NSUTF8StringEncoding];
-      IF_NO_GC([r autorelease];)
+      IF_NO_ARC([r autorelease];)
     }
   return r;
 }
@@ -5038,7 +5038,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
     {
       r = [NSStringClass allocWithZone: NSDefaultMallocZone()];
       r = [r initWithData: d encoding: NSASCIIStringEncoding];
-      IF_NO_GC([r autorelease];)
+      IF_NO_ARC([r autorelease];)
     }
   return r;
 }
@@ -6312,7 +6312,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
         }
       s = [NSStringClass allocWithZone: NSDefaultMallocZone()];
       s = [s initWithData: content encoding: enc];
-      IF_NO_GC([s autorelease];)
+      IF_NO_ARC([s autorelease];)
     }
   return s;
 }
@@ -7381,7 +7381,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       hdr = [hdr initWithName: @"Content-Type" value: val parameters: nil];
       [hdr setObject: type forKey: @"Type"];
       [hdr setObject: subtype forKey: @"Subtype"];
-      IF_NO_GC([hdr autorelease];)
+      IF_NO_ARC([hdr autorelease];)
     }
   else
     {

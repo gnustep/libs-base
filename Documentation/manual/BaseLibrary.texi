@@ -950,13 +950,9 @@ to be of general utility by the GNUstep developers.  The library is designed
 so that it can be built and installed on a system, such as OS X, where GNUstep
 is not available but an alternate Foundation implementation is.
 
-It contains the following five categories of classes:
+It contains the following categories of classes:
 
 @table @code
-@item GCxxx
-These are classes that are substituted (behind the scenes) for certain
-Foundation classes if the Base library is compiled with garbage collection
-enabled.  (See @ref{Objects, , Memory Management}.)
 
 @item GSXMLxxx
 Classes for parsing XML using DOM- or SAX-like APIs, for processing XPath

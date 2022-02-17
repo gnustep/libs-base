@@ -1303,7 +1303,7 @@ recheck:
 	@"unsigned",
 	@"volatile",
 	nil];
-      IF_NO_GC([qualifiers retain];)
+      IF_NO_ARC([qualifiers retain];)
       keep = [NSSet setWithObjects:
 	@"const",
 	@"long",
@@ -1312,7 +1312,7 @@ recheck:
 	@"unsigned",
 	@"volatile",
 	nil];
-      IF_NO_GC([keep retain];)
+      IF_NO_ARC([keep retain];)
     }
 
   a = [NSMutableArray array];
@@ -1374,7 +1374,7 @@ recheck:
 		  pos++;
 		  [self skipSpaces];
 		}
-	      IF_NO_GC(DESTROY(arp);)
+	      IF_NO_ARC(DESTROY(arp);)
 	      return nil;
 	    }
 
@@ -3023,7 +3023,7 @@ fail:
 
   DESTROY(itemName);
   [arp drain];
-  IF_NO_GC([method autorelease];)
+  IF_NO_ARC([method autorelease];)
   return method;
 
 fail:
@@ -3733,7 +3733,7 @@ fail:
   DESTROY(unitName);
   DESTROY(comment);
   [arp drain];
-  IF_NO_GC([dict autorelease];)
+  IF_NO_ARC([dict autorelease];)
   return dict;
 
 fail:
@@ -4201,7 +4201,7 @@ fail:
   pos = 0;
   ASSIGN(lines, [NSArray arrayWithArray: a]);
   [arp drain];
-  IF_NO_GC([data autorelease];)
+  IF_NO_ARC([data autorelease];)
 }
 
 /**

@@ -31,11 +31,6 @@
 #import <objc/objc.h>
 #import	<Foundation/NSZone.h>
 
-#ifdef	GS_WITH_GC
-#undef  GS_WITH_GC
-#endif
-#define	GS_WITH_GC	0
-
 #import	<GNUstepBase/GNUstep.h>
 
 #if	defined(__cplusplus)

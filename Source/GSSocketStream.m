@@ -2173,7 +2173,7 @@ setNonBlocking(SOCKET fd)
       int result;
       socklen_t len = sizeof(error);
 
-      IF_NO_GC([[self retain] autorelease];)
+      IF_NO_ARC([[self retain] autorelease];)
       [self _unschedule];
       result = getsockopt([self _sock], SOL_SOCKET, SO_ERROR,
 	&error, (OPTLEN*)&len);
@@ -2633,7 +2633,7 @@ setNonBlocking(SOCKET fd)
       socklen_t len = sizeof(error);
       int result;
 
-      IF_NO_GC([[self retain] autorelease];)
+      IF_NO_ARC([[self retain] autorelease];)
       [self _schedule];
       result = getsockopt((intptr_t)_loopID, SOL_SOCKET, SO_ERROR,
 	&error, (OPTLEN*)&len);

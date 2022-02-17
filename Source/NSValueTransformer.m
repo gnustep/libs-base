@@ -101,7 +101,7 @@ static NSRecursiveLock *lock = nil;
 
   [lock lock];
   transformer = [registry objectForKey: name];
-  IF_NO_GC([transformer retain];)
+  IF_NO_ARC([transformer retain];)
 
   if (transformer == nil)
     {

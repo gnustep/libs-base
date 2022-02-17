@@ -46,9 +46,7 @@
  * public header, but as an opaque private instance variable, while macros
  * from this file allow the actual memory to be accessed either as a private
  * class.  The use of a private class rather than simple heap memory is
- * necessary for garbage collection... the runtime is able to ensure that
- * garbage collection works properly for the instance variables in the 
- * private class.
+ * necessary for automatic reference counting.
  *
  * Before including the header file containing the public class declaration,
  * you must define GS_X_IVARS (where X is the class name) to be the

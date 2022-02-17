@@ -41,58 +41,43 @@ extern "C" {
 GS_EXPORT_CLASS
 @interface NSGarbageCollector : NSObject 
 
-/** Returns the garbage collector instance ... there is only one.<br />
- * Returns nil if the process is not using garbage collection.
+/** Obsolete ... returns nil because garbage collection no longer exists.
  */
 + (id) defaultCollector;
 
-/** Collects some memory.
+/** Obsolete ... does nothing because garbage collection no longer exists.
  */
 - (void) collectIfNeeded;
 
-/** Collects all collectable memory.
+/** Obsolete ... does nothing because garbage collection no longer exists.
  */
 - (void) collectExhaustively;
 
-/** Disables garbage collection until a corresponding call to -enable is made.
- * NB. Calls to this method stack, and must be matched by the same number of
- * calls to the -enable method.
+/** Obsolete ... does nothing because garbage collection no longer exists.
  */
 - (void) disable;
 
-/** Makes the area of memory pointed at be uncollectable ... that is to say,
- * the memory will not be collected by the garbage collector.  You must not
- * explicitly free this memory unless you re-enable collection first.<br />
- * Calls to this method do not stack, so callig it multiple times for the
- * same pointer has the same effect as calling it once.
+/** Obsolete ... does nothing because garbage collection no longer exists.
  */
 - (void) disableCollectorForPointer: (void *)ptr;
 
-/** Enables garbage collection prevously disabled by a call to the
- * -disable method.  Since calls to -disable stack, you must make as
- * many calls to -enable as to -disable in order to re-start collection.
+/** Obsolete ... does nothing because garbage collection no longer exists.
  */
 - (void) enable;
 
-/** Enables collection for the area of memory pointed at, which must have
- * previously been made uncollectable by a call to the
- * -disableCollectorForPointer: method.
+/** Obsolete ... does nothing because garbage collection no longer exists.
  */
 - (void) enableCollectorForPointer: (void *)ptr;      
 
-/** Returns yes if there is a garbage collection progress.
+/** Obsolete ... returns NO because garbage collection no longer exists.
  */
 - (BOOL) isCollecting;
 
-/** Retunrs YES if garbage collecting is currently enabled.
+/** Obsolete ... returns NO because garbage collection no longer exists.
  */
 - (BOOL) isEnabled;
 
-/** Returns a zone for holding non-collectable pointers.<br />
- * Memory allocated in this zone will not be seen by the garbage collector
- * and will never be collected (so it needs to be freed explicitly).
- * The presence of pointers from the memory to other objects will not
- * prevent those other objects from being collected.
+/** Returns the default zone.
  */
 - (NSZone*) zone;
 @end

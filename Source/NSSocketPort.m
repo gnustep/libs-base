@@ -1199,7 +1199,7 @@ static Class	runLoopClass;
           rId = 0;
           DESTROY(rItems);
           NSDebugMLLog(@"GSTcpHandle", @"got message %@ on %p", pm, self);
-          IF_NO_GC(RETAIN(rp);)
+          IF_NO_ARC(RETAIN(rp);)
           M_UNLOCK(myLock);
           NS_DURING
             {
@@ -1577,7 +1577,7 @@ static Class	runLoopClass;
 
   l = [runLoopClass currentRunLoop];
 
-  IF_NO_GC(RETAIN(self);)
+  IF_NO_ARC(RETAIN(self);)
 
   [self _add: l];
 
@@ -1703,7 +1703,7 @@ static Class		tcpPortClass;
   if (thePorts != 0)
     {
       port = (NSSocketPort*)NSMapGet(thePorts, (void*)aHost);
-      IF_NO_GC(AUTORELEASE(RETAIN(port)));
+      IF_NO_ARC(AUTORELEASE(RETAIN(port)));
     }
   M_UNLOCK(tcpPortLock);
   return port;
@@ -1925,10 +1925,10 @@ static Class		tcpPortClass;
     }
   else
     {
-      IF_NO_GC(RETAIN(port);)
+      IF_NO_ARC(RETAIN(port);)
       NSDebugMLLog(@"NSPort", @"Using pre-existing port: %@", port);
     }
-  IF_NO_GC(AUTORELEASE(port));
+  IF_NO_ARC(AUTORELEASE(port));
 
   M_UNLOCK(tcpPortLock);
   return port;
@@ -2006,7 +2006,7 @@ static Class		tcpPortClass;
     {
       if ((NSPort*) [handle recvPort] == recvPort)
 	{
-	  IF_NO_GC(RETAIN(handle);)
+	  IF_NO_ARC(RETAIN(handle);)
 	  NSEndMapTableEnumeration(&me);
 	  M_UNLOCK(myLock);
 	  return AUTORELEASE(handle);
@@ -2267,7 +2267,7 @@ static Class		tcpPortClass;
 {
   if ([self isValid] == YES)
     {
-      IF_NO_GC(RETAIN(self);)
+      IF_NO_ARC(RETAIN(self);)
       M_LOCK(myLock);
 
       if ([self isValid] == YES)
@@ -2420,7 +2420,7 @@ static Class		tcpPortClass;
       desc = (SOCKET)NSMapGet(events, (void*)(uintptr_t)event);
 #endif
       handle = (GSTcpHandle*)NSMapGet(handles, (void*)(uintptr_t)desc);
-      IF_NO_GC(AUTORELEASE(RETAIN(handle)));
+      IF_NO_ARC(AUTORELEASE(RETAIN(handle)));
       M_UNLOCK(myLock);
       if (handle == nil)
 	{
@@ -2473,7 +2473,7 @@ static Class		tcpPortClass;
  */
 - (void) removeHandle: (GSTcpHandle*)handle
 {
-  IF_NO_GC(RETAIN(self);)
+  IF_NO_ARC(RETAIN(self);)
   M_LOCK(myLock);
   if ([handle sendPort] == self)
     {
@@ -2486,7 +2486,7 @@ static Class		tcpPortClass;
 	   * been retained - we must therefore release this port since the
 	   * handle no longer uses it.
 	   */
-	  IF_NO_GC(RELEASE(self);)
+	  IF_NO_ARC(RELEASE(self);)
 	}
       handle->sendPort = nil;
     }

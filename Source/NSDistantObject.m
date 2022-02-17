@@ -836,7 +836,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 }
 
 /**
- * Used by the garbage collection system to tidy up when a proxy is destroyed.
+ * Used to tidy up when a proxy is destroyed.
  */
 - (void) finalize
 {

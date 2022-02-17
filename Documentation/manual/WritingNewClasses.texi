@@ -597,13 +597,13 @@ is not always possible given other design constraints.
 @subsection Instance Deallocation
 
 As described in @ref{Objects, the previous chapter, Memory Management},
-objects should be deallocated when they are no longer needed.  When garbage
-collection is not being used, this is done through explicit calls to the
-@code{dealloc} method.  When GC @i{is} being used, @code{dealloc} is still
+objects should be deallocated when they are no longer needed.  When ARC
+is not being used, this is done through explicit calls to the
+@code{dealloc} method.  When ARC @i{is} being used, @code{dealloc} is still
 called implicitly, and should be implemented.  However the tasks of the
 @code{dealloc} method are fewer in this case.
 
-When garbage collection is @i{not} active, the @code{dealloc} method must
+When ARC is @i{not} used, the @code{dealloc} method must
 release all other objects that this instance has retained.  Usually these are
 those instance variables that are objects rather than primitive types.  In
 certain cases such as container classes, other objects must be released as
@@ -612,17 +612,12 @@ as a network connection or open file descriptor, these should be relinquished
 as well.  Likewise, any memory that has been directly allocated through use
 of @code{malloc} or other functions should be released.
 
-When garbage collection @i{is} active, the @code{dealloc} method is still
-responsible to relinquish external resources, but other GNUstep objects need
-not be released, since they will be garbage collected once this instance has
-been.
+When ARC @i{is} active, the @code{dealloc} method is still
+responsible to relinquish external resources, but other GNUstep objects must
+not be released, since they will be managed by ARC.
 
-If you cannot be sure whether your class will be running in a
-garbage-collecting environment, it never hurts to execute all of the releases
-of other objects.  This will not harm the operation of the garbage collector,
-though it will result in pointless calls to the retain/release methods that
-are stubbed out under garbage collection.  If this could cause a performance
-hit in your application, you should use the RETAIN/RELEASE macros instead of
+If you cannot be sure whether your class will be running in an ARC
+environment, you should use the RETAIN/RELEASE macros instead of
 the function calls.
 
 Here is an example of a @code{dealloc} implementation:
@@ -632,7 +627,7 @@ Here is an example of a @code{dealloc} implementation:
 @{
   RELEASE(anInstanceVariableObject);
   NSZoneFree(NULL, myMemory);
-  [super dealloc];
+  DEALLOC
 @}
 @end example
 
@@ -643,10 +638,11 @@ discussion of GNUstep's raw memory allocation functions.)  The @code{NULL}
 used indicates that the memory was from the default zone, and is equivalent
 to saying '@code{NSDefaultMallocZone()}' instead.
 
-Finally, notice we end with a call to @code{[super dealloc]}.  This should
-always be done in @code{dealloc} implementations, and you should never
-concern yourself with deallocating structures that are associated with a
-superclass, since it will take care of this itself.
+Finally, notice we end with the DEALLOC macro to call the superclass
+implementation (but not for ARC).  This should always be done in @code{dealloc}
+implementations, and you should never concern yourself with deallocating
+structures that are associated with a superclass, since it will take care
+of this itself.
 
 
 @section Protocols

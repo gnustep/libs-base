@@ -75,7 +75,7 @@ static NSMapTable	*classMap;
                         object: aClass];
       description = NSMapGet(classMap, aClass);
     }
-  IF_NO_GC([description retain];)
+  IF_NO_ARC([description retain];)
   [mapLock unlock];
 
   return AUTORELEASE(description);

@@ -278,7 +278,7 @@ static NSMapTable *portToNamesMap;
       data = [GSMimeDocument encodeBase64: data];
       name = [[NSString alloc] initWithData: data
 				   encoding: NSASCIIStringEncoding];
-      IF_NO_GC([name autorelease];)
+      IF_NO_ARC([name autorelease];)
     }
   [serverLock lock];
   if (!base_path)

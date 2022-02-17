@@ -446,7 +446,7 @@ myHostName()
 	   * with ALL the IP addresses of any interfaces on the local machine
 	   */
 	  host = [[self alloc] _initWithHostEntry: 0 key: localHostName];
-	  IF_NO_GC([host autorelease];)
+	  IF_NO_ARC([host autorelease];)
 	}
       else
 	{
@@ -474,7 +474,7 @@ myHostName()
 	  else
 	    {
 	      host = [[self alloc] _initWithHostEntry: h key: name];
-	      IF_NO_GC([host autorelease];)
+	      IF_NO_ARC([host autorelease];)
 	    }
 	}
     }
@@ -484,7 +484,7 @@ myHostName()
     }
   else
     {
-      IF_NO_GC([[host retain] autorelease];)
+      IF_NO_ARC([[host retain] autorelease];)
     }
   [_hostCacheLock unlock];
   return host;
@@ -559,17 +559,17 @@ myHostName()
       if (0 == h)
 	{
 	  host = [[self alloc] _initWithAddress: address];
-	  IF_NO_GC([host autorelease];)
+	  IF_NO_ARC([host autorelease];)
 	}
       else
 	{
 	  host = [[self alloc] _initWithHostEntry: h key: address];
-	  IF_NO_GC([host autorelease];)
+	  IF_NO_ARC([host autorelease];)
 	}
     }
   else
     {
-      IF_NO_GC([[host retain] autorelease];)
+      IF_NO_ARC([[host retain] autorelease];)
     }
   [_hostCacheLock unlock];
   return host;
@@ -634,7 +634,7 @@ myHostName()
     {
       host = [NSHost currentHost];
     }
-  IF_NO_GC([host retain];)
+  IF_NO_ARC([host retain];)
   DESTROY(self);
   return host;
 }

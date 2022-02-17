@@ -850,7 +850,7 @@ pty_slave(const char* name)
   NSTimer	*timer = nil;
   NSDate	*limit = nil;
 
-  IF_NO_GC([[self retain] autorelease];)
+  IF_NO_ARC([[self retain] autorelease];)
   while ([self isRunning])
     {
       /* Poll at 0.1 second intervals.
@@ -923,7 +923,7 @@ pty_slave(const char* name)
 - (void) _terminatedChild: (int)status reason: (NSTaskTerminationReason)reason
 {
   [tasksLock lock];
-  IF_NO_GC([[self retain] autorelease];)
+  IF_NO_ARC([[self retain] autorelease];)
   NSMapRemove(activeTasks, (void*)(intptr_t)_taskId);
   [tasksLock unlock];
   _terminationStatus = status;
@@ -1397,7 +1397,7 @@ GSPrivateCheckTasks()
 #if	defined(WAITDEBUG)
 	      [tasksLock lock];
 	      t = (NSTask*)NSMapGet(activeTasks, (void*)(intptr_t)result);
-	      IF_NO_GC([[t retain] autorelease];)
+	      IF_NO_ARC([[t retain] autorelease];)
 	      [tasksLock unlock];
 	      if (t != nil)
 		{
@@ -1410,7 +1410,7 @@ GSPrivateCheckTasks()
 	    {
 	      [tasksLock lock];
 	      t = (NSTask*)NSMapGet(activeTasks, (void*)(intptr_t)result);
-	      IF_NO_GC([[t retain] autorelease];)
+	      IF_NO_ARC([[t retain] autorelease];)
 	      [tasksLock unlock];
 	      if (t != nil)
 		{

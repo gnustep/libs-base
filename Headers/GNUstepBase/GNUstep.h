@@ -52,6 +52,12 @@
 #  define __has_attribute(x) 0
 #endif
 
+/* This set of macros is provided to make it relatively simple to write
+ * code which works both when compiled with an ObjC-2 compiler and ARC
+ * or with an ObjC-1 compiler with manual retain counting.
+ * In essence, it conditionally compiles all the operations where manual
+ * retain count management is needed if ARC is not in use.
+ */
 #if	__has_feature(objc_arc)
 
 #ifndef	RETAIN
@@ -83,11 +89,14 @@
 #ifndef	ASSIGNMUTABLECOPY
 #define	ASSIGNMUTABLECOPY(object,value)	object = [(value) mutableCopy]
 #endif
+
 #ifndef	DESTROY
 #define	DESTROY(object) 	        object = nil
 #endif
 
-#define	IF_NO_GC(X)	
+#ifndef DEALLOC
+#define DEALLOC
+#endif
 
 #ifndef ENTER_POOL
 #define ENTER_POOL                      @autoreleasepool{
@@ -97,8 +106,11 @@
 #define LEAVE_POOL                      }
 #endif
 
-#ifndef DEALLOC
-#define DEALLOC
+#ifndef IF_NO_ARC
+#define	IF_NO_ARC(X)	
+#endif
+#ifndef IF_NO_GC
+#define	IF_NO_GC(X)	
 #endif
 
 #else
@@ -214,7 +226,13 @@ void *__object = (void*)(object);\
 })
 #endif
 
-#define	IF_NO_GC(X)	X
+#ifndef DEALLOC
+/**
+ *	DEALLOC calls the superclass implementation of dealloc, unless
+ *	ARC is in use (in which case it does nothing).
+ */
+#define DEALLOC         [super dealloc];
+#endif
 
 #ifndef ENTER_POOL
 /**
@@ -238,13 +256,21 @@ void *__object = (void*)(object);\
 #define LEAVE_POOL      [_lARP drain];}
 #endif
 
-#ifndef DEALLOC
+#ifndef IF_NO_ARC
 /**
- *	DEALLOC calls the superclass implementation of dealloc, unless
- *	ARC is in use (in which case it does nothing).
+ *	Compile-in X if (and only if) ARC is not in use.  This is provided
+ *	to handle obscure cases not covered by the other macros.
  */
-#define DEALLOC         [super dealloc];
+#define	IF_NO_ARC(X)	X
 #endif
+
+#ifndef IF_NO_GC
+/**
+ *	DEPRECATED ... use IF_NO_ARC() instead.
+ */
+#define	IF_NO_GC(X)	X
+#endif
+
 #endif
 
 #ifndef	CREATE_AUTORELEASE_POOL
@@ -263,6 +289,11 @@ void *__object = (void*)(object);\
   DESTROY(X);\
   X = [NSAutoreleasePool new]
 #endif
+
+
+
+
+
 
 
 /**

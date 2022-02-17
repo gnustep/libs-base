@@ -839,7 +839,7 @@ static NSMapTable	*globalClassMap = 0;
 	  unsigned	count;
 	  unsigned	i;
 
-	  IF_NO_GC(RETAIN(_archive);)
+	  IF_NO_ARC(RETAIN(_archive);)
 	  _archiverClass = [_archive objectForKey: @"$archiver"];
 	  _version = [_archive objectForKey: @"$version"];
 

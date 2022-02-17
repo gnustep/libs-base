@@ -47,7 +47,7 @@ convert_unicode(NSArray *args)
 	  data = [NSData dataWithContentsOfFile: file];
 	  myString = [[NSString alloc] initWithData: data
 					   encoding: NSUTF8StringEncoding];
-	  IF_NO_GC([myString autorelease];)
+	  IF_NO_ARC([myString autorelease];)
 	  if ([myString length] == 0)
 	    {
 	      myString = [[[NSString alloc] initWithData: data

@@ -198,7 +198,7 @@ static SEL	objSel;
       node = GSIMapNodeForKey(&map, (GSIMapKey)(id)keys[i]);
       if (node)
 	{
-	  IF_NO_GC(RETAIN(objs[i]));
+	  IF_NO_ARC(RETAIN(objs[i]));
 	  RELEASE(node->value.obj);
 	  node->value.obj = objs[i];
 	}
@@ -428,7 +428,7 @@ static SEL	objSel;
   node = GSIMapNodeForKey(&map, (GSIMapKey)aKey);
   if (node)
     {
-      IF_NO_GC(RETAIN(anObject));
+      IF_NO_ARC(RETAIN(anObject));
       RELEASE(node->value.obj);
       node->value.obj = anObject;
     }

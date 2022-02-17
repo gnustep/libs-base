@@ -180,18 +180,9 @@ pools which provide a degree of automated memory management.  This gives
 a good degree of control over memory management, but requires some care
 in following simple rules.  It's pretty efficient.
 
-@item Garbage collection@*
-You build the GNUstep base library with garbage collection, and link
-with the Boehm GC library @dots{} then never bother about
-releasing/deallocating memory.  This requires a slightly different
-approach to programming @dots{} you need to take care about what happens
-when objects are deallocated @dots{} but don't need to worry about
-deallocating them.
-@end itemize
-
 The recommended approach is to use some standard macros defined in
 @code{NSObject.h} which encapsulate the retain/release/autorelease mechanism,
-but which permit efficient use of the garbage collection system if you build
+but which permit efficient use of Automated reference Counts (ARC) if you build
 your software with that.  We will justify this recommendation after describing
 the three alternatives in greater detail.
 
@@ -481,34 +472,14 @@ Special examples: delegate, target
 @end ignore
 
 
-@subsection Garbage Collection Based Memory Management
-@cindex memory management, garbage collection based
-@cindex garbage collection
+@subsection ObjC-2 and Automated Reference Counting
+@cindex ObjC-2 , automated reference counting
+@cindex ARC
 
-The GNUstep system can be optionally compiled with a memory sweeping
-@b{garbage collection} mechanism using the Boehm conservative garbage
-collection library (@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc}).
-In this case, you need not worry about retaining and releasing objects; the
-garbage collector will automatically track which objects are still referred to
-at any given point within the program, and which are not.  Those that are not
-are automatically deallocated.  The situation is largely similar to
-programming in Java, except that garbage collection will only be triggered
-during memory allocation requests and will be less efficient since pointers
-in C are not always explicitly marked.
-
-Whether in Java or Objective-C, life is still not completely worry-free under
-garbage collection however.  You still must ``help the garbage collector
-along'' by explicitly dropping references to objects when they become
-unneeded.  Failing to do this is easier than you might think, and leads to
-memory leaks.
-
-When GNUstep was compiled with garbage collection, the macro flag
-@code{GS_WITH_GC} will be defined, which you can use in programs to determine
-whether you need to call @code{retain}, @code{release}, etc..  Rather than
-doing this manually, however, you may use special macros in place of the
-@code{retain} and @code{release} method calls.  These macros call the methods
-in question when garbage collection is @i{not} available, but do nothing when
-it is.
+When using a compiler and runtime supporting ObjC-2 and ARC, the reference
+counting for objects is handled by the compiler.  To enable easy development
+(to ObjC-1) code, a number of macros are provided which encapsulate the
+manual reference counting required when ARC is not available.
 
 @multitable @columnfractions 0.25 0.75
 @item Macro @tab Functionality
@@ -528,30 +499,28 @@ it is.
 @item @code{ASSIGNCOPY(foo, bar);}
 @tab @code{[foo release]; foo = [bar copy];}
 
+@item @code{ASSIGNMUTABLECOPY(foo, bar);}
+@tab @code{[foo release]; foo = [bar mutableCopy];}
+
 @item @code{DESTROY(foo);}
 @tab @code{[foo release]; foo = nil;}
+
+@item @code{ENTER_POOL}
+@tab Like @@autoreleasepool this introduces a code block with a manually created autorelease pool.
+
+@item @code{LEAVE_POOL}
+@tab This ends a block created by an ENTER_POOL destroying the autorelease pool created at the start of the block
+
+@item @code{DEALLOC}
+@tab @code{[super dealloc];}
+
+@item @code{IF_NO_ARC(...)}
+@tab Code to be compiled only if ARC is not in use
+
 @end multitable
 
-In the latter three ``convenience'' macros, appropriate @code{nil} checks are
+In the assignment ``convenience'' macros, appropriate @code{nil} checks are
 made so that no retain/release messages are sent to @code{nil}.
-
-Some authorities recommend that you always use the RETAIN/RELEASE macros in
-place of the actual method calls, in order to allow running in a non-garbage
-collecting GNUstep environment yet also save unneeded method calls in the case
-your code runs in a garbage collecting enviromnent.  On the other hand, if you
-know you are always going to be running in a non-garbage collecting
-environment, there is no harm in using the method calls, and if you know you
-will always have garbage collection available you can save development effort
-by avoiding any use of retain/release or RETAIN/RELEASE.
-
-
-@subsection Current Recommendations
-
-As of May 2004 the garbage collection in GNUstep was still considered beta
-quality (some bugs exist).  In the OS X world, Apple's Cocoa does @i{not}
-employ garbage collection, and it is not clear whether there are plans to
-implement it.  Therefore the majority of GNUstep programmers use the
-RETAIN/RELEASE approach to memory management.
 
 @page
 

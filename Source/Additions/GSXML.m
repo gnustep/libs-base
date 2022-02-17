@@ -4134,7 +4134,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
   else
     {
       result = [GSXPathObject _newWithNativePointer: res  context: self];
-      IF_NO_GC ([result autorelease];)
+      IF_NO_ARC ([result autorelease];)
     }
   xmlXPathFreeCompExpr (comp);
 
@@ -4368,7 +4368,7 @@ static BOOL warned = NO; if (warned == NO) { warned = YES; NSLog(@"WARNING, use 
 	      newdoc = [newdoc _initFrom: res
 				  parent: self
 				 ownsLib: YES];
-	      IF_NO_GC([newdoc autorelease];)
+	      IF_NO_ARC([newdoc autorelease];)
 	    }
 	}
       /*
@@ -4672,7 +4672,7 @@ GS_EXPORT_CLASS
 	}
       self = [[NSString alloc] initWithCharacters: to length: output];
       NSZoneFree (NSDefaultMallocZone (), to);
-      IF_NO_GC([self autorelease];)
+      IF_NO_ARC([self autorelease];)
     }
   else
     {

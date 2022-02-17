@@ -1826,7 +1826,7 @@ failure:
 	{
 	  att = [[mgr fileAttributesAtPath: path
 			      traverseLink: YES] mutableCopy];
-	  IF_NO_GC(AUTORELEASE(att));
+	  IF_NO_ARC(AUTORELEASE(att));
 	}
 
       /* To replace the existing file on windows, it must be writable.
@@ -2083,7 +2083,7 @@ failure:
 	{
           NSMutableDictionary *mAtt = [att mutableCopy];
 
-          IF_NO_GC(AUTORELEASE(mAtt));
+          IF_NO_ARC(AUTORELEASE(mAtt));
 	  /*
 	   * We have created a new file - so we attempt to make it's
 	   * attributes match that of the original.

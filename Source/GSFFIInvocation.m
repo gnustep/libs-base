@@ -607,7 +607,7 @@ GSFFIInvocationCallback(ffi_cif *cif, void *retp, void **args, void *user)
 					values: args
  					frame: user
 					signature: sig];
-  IF_NO_GC([invocation autorelease];)
+  IF_NO_ARC([invocation autorelease];)
   [invocation setTarget: obj];
   [invocation setSelector: selector];
 

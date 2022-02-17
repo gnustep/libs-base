@@ -1949,7 +1949,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 				   length: dpos
 				 encoding: NSASCIIStringEncoding];
       NSZoneFree(NSDefaultMallocZone(), dst);
-      IF_NO_GC([s autorelease];)
+      IF_NO_ARC([s autorelease];)
     }
   return s;
 }
@@ -2072,7 +2072,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 				   length: dpos
 				 encoding: NSASCIIStringEncoding];
       NSZoneFree(NSDefaultMallocZone(), dst);
-      IF_NO_GC([s autorelease];)
+      IF_NO_ARC([s autorelease];)
     }
   return s;
 }
@@ -2126,13 +2126,13 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   NSRange	complete;
   NSRange	found;
   NSMutableArray *array;
-  IF_NO_GC(NSAutoreleasePool *pool; NSUInteger count;)
+  IF_NO_ARC(NSAutoreleasePool *pool; NSUInteger count;)
 
   if (separator == nil)
     [NSException raise: NSInvalidArgumentException format: @"separator is nil"];
 
   array = [NSMutableArray array];
-  IF_NO_GC(pool = [NSAutoreleasePool new]; count = 0;)
+  IF_NO_ARC(pool = [NSAutoreleasePool new]; count = 0;)
   search = NSMakeRange (0, [self length]);
   complete = search;
   found = [self rangeOfCharacterFromSet: separator];
@@ -2149,11 +2149,11 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
       found = [self rangeOfCharacterFromSet: separator
                                     options: 0
                                       range: search];
-      IF_NO_GC(if (0 == count % 200) [pool emptyPool];)
+      IF_NO_ARC(if (0 == count % 200) [pool emptyPool];)
     }
   // Add the last search string range
   [array addObject: [self substringWithRange: search]];
-  IF_NO_GC([pool release];)
+  IF_NO_ARC([pool release];)
   // FIXME: Need to make mutable array into non-mutable array?
   return array;
 }
@@ -3681,7 +3681,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     }
   m = [d mutableCopy];
   [m appendBytes: "" length: 1];
-  IF_NO_GC([m autorelease];)
+  IF_NO_ARC([m autorelease];)
   return (const char*)[m bytes];
 }
 
@@ -3769,7 +3769,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
          allowLossyConversion: YES];
   m = [d mutableCopy];
   [m appendBytes: "" length: 1];
-  IF_NO_GC([m autorelease];)
+  IF_NO_ARC([m autorelease];)
   return (const char*)[m bytes];
 }
 
@@ -3787,7 +3787,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
          allowLossyConversion: NO];
   m = [d mutableCopy];
   [m appendBytes: "" length: 1];
-  IF_NO_GC([m autorelease];)
+  IF_NO_ARC([m autorelease];)
   return (const char*)[m bytes];
 }
 

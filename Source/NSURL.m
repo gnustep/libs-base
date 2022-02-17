@@ -1915,7 +1915,7 @@ static NSUInteger	urlAlign;
       if (c != 0)
 	{
 	  handle = [[c alloc] initWithURL: self cached: shouldUseCache];
-	  IF_NO_GC([handle autorelease];)
+	  IF_NO_ARC([handle autorelease];)
 	}
     }
   return handle;

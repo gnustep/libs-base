@@ -393,7 +393,7 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
     {
       zone = nil;
     }
-  IF_NO_GC(RETAIN(zone));
+  IF_NO_ARC(RETAIN(zone));
   GS_MUTEX_UNLOCK(zone_mutex);
 
   if (zone == nil)
@@ -709,7 +709,7 @@ static NSMapTable	*absolutes = 0;
       z = commonAbsolutes[anOffset/900 + 72];
       if (z != nil)
         {
-          IF_NO_GC(RETAIN(z));
+          IF_NO_ARC(RETAIN(z));
           DESTROY(self);
           return z;
         }
@@ -719,7 +719,7 @@ static NSMapTable	*absolutes = 0;
   z = (GSAbsTimeZone*)NSMapGet(absolutes, (void*)(uintptr_t)anOffset);
   if (z != nil)
     {
-      IF_NO_GC(RETAIN(z));
+      IF_NO_ARC(RETAIN(z));
       DESTROY(self);
     }
   else
@@ -1846,7 +1846,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 			     to be in this directory, but initWithName:data:
 			     will do this anyway and log a message if not. */
 			  zone = [[self alloc] initWithName: name data: data];
-			  IF_NO_GC([zone autorelease];)
+			  IF_NO_ARC([zone autorelease];)
 			}
 		      if (zone != nil)
 			{

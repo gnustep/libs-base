@@ -1056,7 +1056,7 @@ build_relocation_table_for_directory (NSString *dir)
       NSMutableDictionary *relocationTable;
       
       relocationTable = [NSMutableDictionary new];
-      IF_NO_GC ([relocationTable autorelease];)
+      IF_NO_ARC ([relocationTable autorelease];)
 
       e = [HTMLDirectoryEnumerator alloc];
       e = [[e initWithBasePath: dir] autorelease];

@@ -379,7 +379,7 @@ existingConnection(NSPort *receivePort, NSPort *sendPort)
 	   * We don't want this connection to be destroyed by another thread
 	   * between now and when it's returned from this function and used!
 	   */
-	  IF_NO_GC([[c retain] autorelease];)
+	  IF_NO_ARC([[c retain] autorelease];)
 	  break;
 	}
     }
@@ -467,7 +467,7 @@ static NSLock	*cached_proxies_gate = nil;
     {
       c = [self allocWithZone: NSDefaultMallocZone()];
       c = [c initWithReceivePort: r sendPort: s];
-      IF_NO_GC([c autorelease];)
+      IF_NO_ARC([c autorelease];)
     }
   return c;
 }
@@ -1259,7 +1259,7 @@ static NSLock	*cached_proxies_gate = nil;
    */
   [self setRequestMode: nil];
 
-  IF_NO_GC(RETAIN(self);)
+  IF_NO_ARC(RETAIN(self);)
 
   if (debug_connection)
     {
@@ -3522,7 +3522,7 @@ static NSLock	*cached_proxies_gate = nil;
   node = GSIMapNodeForKey(IlocalTargets, (GSIMapKey)(NSUInteger)target);
   NSAssert(node == 0, NSInternalInconsistencyException);
 
-  IF_NO_GC([anObj retain];)
+  IF_NO_ARC([anObj retain];)
   GSIMapAddPair(IlocalObjects, (GSIMapKey)object, (GSIMapVal)((id)anObj));
   GSIMapAddPair(IlocalTargets,
     (GSIMapKey)(NSUInteger)target, (GSIMapVal)((id)anObj));

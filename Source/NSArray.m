@@ -2658,7 +2658,7 @@ compare(id elem1, id elem2, void* context)
   if (self != nil)
     {
       array = anArray;
-      IF_NO_GC(RETAIN(array));
+      IF_NO_ARC(RETAIN(array));
       pos = 0;
       get = [array methodForSelector: oaiSel];
       cnt = (NSUInteger (*)(NSArray*, SEL))[array methodForSelector: countSel];

@@ -1,3 +1,69 @@
+2022-02-17 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/manual/BaseLibrary.texi:
+	* Documentation/manual/WorkingWithObjects.texi:
+	* Documentation/manual/WritingNewClasses.texi:
+	* Headers/Foundation/NSGarbageCollector.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/GNUstepBase/GNUstep.h:
+	* Source/Additions/GSInsensitiveDictionary.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/NSData+GNUstepBase.m:
+	* Source/GSArray.m:
+	* Source/GSDictionary.m:
+	* Source/GSFFIInvocation.m:
+	* Source/GSFTPURLHandle.m:
+	* Source/GSHTTPAuthentication.m:
+	* Source/GSInternal.h:
+	* Source/GSInvocation.h:
+	* Source/GSSocketStream.m:
+	* Source/NSArray.m:
+	* Source/NSAttributedString.m:
+	* Source/NSBundle.m:
+	* Source/NSCallBacks.m:
+	* Source/NSClassDescription.m:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	* Source/NSDateFormatter.m:
+	* Source/NSDistantObject.m:
+	* Source/NSFileHandle.m:
+	* Source/NSHost.m:
+	* Source/NSInvocation.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSMessagePort.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSNumberFormatter.m:
+	* Source/NSObject.m:
+	* Source/NSPortCoder.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSRunLoop.m:
+	* Source/NSScanner.m:
+	* Source/NSSerializer.m:
+	* Source/NSSet.m:
+	* Source/NSSocketPort.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSSpellServer.m:
+	* Source/NSString.m:
+	* Source/NSTask.m:
+	* Source/NSTimeZone.m:
+	* Source/NSURL.m:
+	* Source/NSURLHandle.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSURLResponse.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSValueTransformer.m:
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.m:
+	* Tools/HTMLLinker.m:
+	* Tools/autogsdoc.m:
+	* Tools/sfparse.m:
+	Replaced IF_NO_GC() macro calls with the more descriptive IF_NO_ARC()
+	and deprecate it.  Searched for and removed obsolete references to
+	garbage collection in comments and documentation.
+
 2022-02-12 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSExpression.h:
@@ -19,6 +85,66 @@
 2022-01-30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPredicate.m:
+	* Documentation/manual/BaseLibrary.texi:
+	* Documentation/manual/WorkingWithObjects.texi:
+	* Documentation/manual/WritingNewClasses.texi:
+	* Headers/Foundation/NSGarbageCollector.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/GNUstepBase/GNUstep.h:
+	* Source/Additions/GSInsensitiveDictionary.m:
+	* Source/Additions/GSMime.m:
+	* Source/Additions/GSXML.m:
+	* Source/Additions/NSData+GNUstepBase.m:
+	* Source/GSArray.m:
+	* Source/GSDictionary.m:
+	* Source/GSFFIInvocation.m:
+	* Source/GSFTPURLHandle.m:
+	* Source/GSHTTPAuthentication.m:
+	* Source/GSInternal.h:
+	* Source/GSInvocation.h:
+	* Source/GSSocketStream.m:
+	* Source/NSArray.m:
+	* Source/NSAttributedString.m:
+	* Source/NSBundle.m:
+	* Source/NSCallBacks.m:
+	* Source/NSClassDescription.m:
+	* Source/NSConnection.m:
+	* Source/NSData.m:
+	* Source/NSDateFormatter.m:
+	* Source/NSDistantObject.m:
+	* Source/NSFileHandle.m:
+	* Source/NSHost.m:
+	* Source/NSInvocation.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSMessagePort.m:
+	* Source/NSMessagePortNameServer.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSNumberFormatter.m:
+	* Source/NSObject.m:
+	* Source/NSPortCoder.m:
+	* Source/NSProcessInfo.m:
+	* Source/NSRunLoop.m:
+	* Source/NSScanner.m:
+	* Source/NSSerializer.m:
+	* Source/NSSet.m:
+	* Source/NSSocketPort.m:
+	* Source/NSSocketPortNameServer.m:
+	* Source/NSSpellServer.m:
+	* Source/NSString.m:
+	* Source/NSTask.m:
+	* Source/NSTimeZone.m:
+	* Source/NSURL.m:
+	* Source/NSURLHandle.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSURLResponse.m:
+	* Source/NSUnarchiver.m:
+	* Source/NSValueTransformer.m:
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.m:
+	* Tools/HTMLLinker.m:
+	* Tools/autogsdoc.m:
+	* Tools/sfparse.m:
 	Fix for git #233 by Larry Campbell
 
 2022-01-15 Frederik Seiffert <frederik@algoriddim.com>

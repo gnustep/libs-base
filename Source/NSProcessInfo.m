@@ -306,7 +306,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     }
 
   /* Getting the process name */
-  IF_NO_GC(RELEASE(_gnu_processName));
+  IF_NO_ARC(RELEASE(_gnu_processName));
   _gnu_processName = [arg0 lastPathComponent];
 #if	defined(_WIN32)
   /* On windows we remove any .exe extension for consistency with app names
@@ -321,7 +321,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
       }
   }
 #endif
-  IF_NO_GC(RETAIN(_gnu_processName));
+  IF_NO_ARC(RETAIN(_gnu_processName));
 
   /* Copy the argument list */
 #if	defined(_WIN32)
@@ -349,7 +349,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	}
     }
     
-  IF_NO_GC(RELEASE(_gnu_arguments));
+  IF_NO_ARC(RELEASE(_gnu_arguments));
   _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
   RELEASE(arg0);
 }
@@ -376,7 +376,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	    obj_argv[added++] = str;
 	}
 
-      IF_NO_GC(RELEASE(_gnu_arguments));
+      IF_NO_ARC(RELEASE(_gnu_arguments));
       _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
       RELEASE(arg0);
     }
@@ -458,11 +458,11 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	    i++;
 	  }
       }
-    IF_NO_GC(RELEASE(_gnu_environment));
+    IF_NO_ARC(RELEASE(_gnu_environment));
     _gnu_environment = [[NSDictionary alloc] initWithObjects: values
 						     forKeys: keys];
-    IF_NO_GC(RELEASE(keys));
-    IF_NO_GC(RELEASE(values));
+    IF_NO_ARC(RELEASE(keys));
+    IF_NO_ARC(RELEASE(values));
   }
   [arp drain];
 }

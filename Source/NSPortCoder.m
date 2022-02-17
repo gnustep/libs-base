@@ -388,7 +388,7 @@ static unsigned	encodingVersion;
 
   coder = [self allocWithZone: NSDefaultMallocZone()];
   coder = [coder initWithReceivePort: recv sendPort: send components: comp];
-  IF_NO_GC(AUTORELEASE(coder);)
+  IF_NO_ARC(AUTORELEASE(coder);)
   return coder;
 }
 
@@ -633,7 +633,7 @@ scalarSize(char type)
 		   *	order to give the appearance that it's actually a
 		   *	new object.
 		   */
-		  IF_NO_GC(RETAIN(obj));
+		  IF_NO_ARC(RETAIN(obj));
 		}
 	      else
 		{
@@ -705,7 +705,7 @@ scalarSize(char type)
 		   *	order to give the appearance that it's actually a
 		   *	new object.
 		   */
-		  IF_NO_GC(RETAIN(obj));
+		  IF_NO_ARC(RETAIN(obj));
 		}
 	      else
 		{

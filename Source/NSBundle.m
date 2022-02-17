@@ -388,7 +388,7 @@ GSPrivateExecutablePath()
 	      executablePath = [executablePath stringByResolvingSymlinksInPath];
 	      executablePath = [executablePath stringByStandardizingPath];
 	    }
-	  IF_NO_GC([executablePath retain];)
+	  IF_NO_ARC([executablePath retain];)
 	  beenHere = YES;
 	}
       [load_lock unlock];
@@ -1627,7 +1627,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   if (_byIdentifier)
     {
       bundle = (NSBundle *)NSMapGet(_byIdentifier, identifier);
-IF_NO_GC(
+IF_NO_ARC(
 	[bundle retain]; /* retain - look as if we were alloc'ed */
 )
     }
@@ -1720,7 +1720,7 @@ IF_NO_GC(
   bundle = (NSBundle *)NSMapGet(_bundles, path);
   if (bundle != nil)
     {
-      IF_NO_GC([bundle retain];)
+      IF_NO_ARC([bundle retain];)
       [load_lock unlock];
       [self dealloc];
       return bundle;
@@ -1770,7 +1770,7 @@ IF_NO_GC(
         {
           if (bundle != nil)
             {
-              IF_NO_GC([bundle retain];)
+              IF_NO_ARC([bundle retain];)
               [load_lock unlock];
               [self dealloc];
               return bundle;
@@ -1800,7 +1800,7 @@ IF_NO_GC(
        * dynamically loaded code, so we want to prevent a bundle
        * being loaded twice.
        */
-      IF_NO_GC([self retain];)
+      IF_NO_ARC([self retain];)
       return;
     }
   if (_path != nil)
@@ -2023,7 +2023,7 @@ IF_NO_GC(
 	 We need it to answer calls like bundleForClass:; also, users
 	 normally want all loaded bundles to appear when they call
 	 +allBundles.  */
-      IF_NO_GC([self retain];)
+      IF_NO_ARC([self retain];)
 
       classNames = [NSMutableArray arrayWithCapacity: [_bundleClasses count]];
       classEnumerator = [_bundleClasses objectEnumerator];

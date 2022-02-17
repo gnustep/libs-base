@@ -324,7 +324,7 @@ typedef struct {
       p = AUTORELEASE([GSMimeParser new]);
       h = [[GSMimeHeader alloc] initWithName: @"content-displosition"
 				       value: disp];
-      IF_NO_GC([h autorelease];)
+      IF_NO_ARC([h autorelease];)
       sc = [NSScanner scannerWithString: [h value]];
       if ([p scanHeaderBody: sc into: h] == YES)
         {

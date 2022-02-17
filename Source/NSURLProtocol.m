@@ -1676,7 +1676,7 @@ typedef struct {
 {
   /* Make sure no action triggered by anything else destroys us prematurely.
    */
-  IF_NO_GC([[self retain] autorelease];)
+  IF_NO_ARC([[self retain] autorelease];)
 
 #if 0
   NSLog(@"stream: %@ handleEvent: %x for: %@ (ip %p, op %p)",

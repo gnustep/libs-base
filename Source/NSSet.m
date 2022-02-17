@@ -1171,7 +1171,7 @@ static Class NSMutableSet_concrete_class;
     }
   else
     {
-      IF_NO_GC([other retain];)	// In case it's held by us
+      IF_NO_ARC([other retain];)	// In case it's held by us
       [self removeAllObjects];
       [self unionSet: other];
       RELEASE(other);
