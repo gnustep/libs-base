@@ -1958,8 +1958,25 @@ retrieve_callback(gnutls_session_t session,
 #endif
             || ret == GNUTLS_E_UNSUPPORTED_VERSION_PACKET)
             {
-              p = [p stringByAppendingString:
-                @"\nmost often due to the remote end not expecting TLS/SSL"];
+	      NSString	*extra = nil;
+
+	      switch (ret)
+		{
+		  case GNUTLS_E_FATAL_ALERT_RECEIVED:
+		    extra = @"The TLS protocol does not tell us why the remote"
+		      @" end sent an alert, but the most common problem during"
+		      @" handshake is a cipher mismatch";
+		      break;
+		  case GNUTLS_E_UNEXPECTED_PACKET_LENGTH:
+                  case GNUTLS_E_PREMATURE_TERMINATION:
+		    extra = @"Most often this is due to the remote end not"
+		      @" expecting/supporting TLS";
+		    break;
+		}
+	      if (extra)
+		{
+		  p = [p stringByAppendingFormat: @"\n%@", extra];
+		}
               ASSIGN(problem, p);
               if (YES == debug)
                 {
