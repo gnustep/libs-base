@@ -964,7 +964,7 @@ static Class	GSInlineArrayClass;
   if ((self = [super init]) != nil)
     {
       array = anArray;
-      IF_NO_ARC(RETAIN(array));
+      IF_NO_ARC(RETAIN(array);)
       pos = 0;
     }
   return self;

@@ -1703,7 +1703,7 @@ static Class		tcpPortClass;
   if (thePorts != 0)
     {
       port = (NSSocketPort*)NSMapGet(thePorts, (void*)aHost);
-      IF_NO_ARC(AUTORELEASE(RETAIN(port)));
+      IF_NO_ARC(AUTORELEASE(RETAIN(port));)
     }
   M_UNLOCK(tcpPortLock);
   return port;
@@ -1928,7 +1928,7 @@ static Class		tcpPortClass;
       IF_NO_ARC(RETAIN(port);)
       NSDebugMLLog(@"NSPort", @"Using pre-existing port: %@", port);
     }
-  IF_NO_ARC(AUTORELEASE(port));
+  IF_NO_ARC(AUTORELEASE(port);)
 
   M_UNLOCK(tcpPortLock);
   return port;
@@ -2420,7 +2420,7 @@ static Class		tcpPortClass;
       desc = (SOCKET)NSMapGet(events, (void*)(uintptr_t)event);
 #endif
       handle = (GSTcpHandle*)NSMapGet(handles, (void*)(uintptr_t)desc);
-      IF_NO_ARC(AUTORELEASE(RETAIN(handle)));
+      IF_NO_ARC(AUTORELEASE(RETAIN(handle));)
       M_UNLOCK(myLock);
       if (handle == nil)
 	{

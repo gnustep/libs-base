@@ -132,7 +132,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 {
   NSDateFormatter	*o = (id)NSCopyObject(self, 0, zone);
 
-  IF_NO_ARC(RETAIN(o->_dateFormat));
+  IF_NO_ARC(RETAIN(o->_dateFormat);)
   if (0 != internal)
     {
       GS_COPY_INTERNAL(o, zone)

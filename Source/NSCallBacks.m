@@ -152,7 +152,7 @@ _NS_id_is_equal(void *table, id <NSObject> o, id <NSObject> p)
 void
 _NS_id_retain(void *table, id <NSObject> o)
 {
-  IF_NO_ARC(RETAIN(o));
+  IF_NO_ARC(RETAIN(o);)
   return;
 }
 

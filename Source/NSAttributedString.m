@@ -716,7 +716,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
       RELEASE(m);
     }
 
-  IF_NO_ARC(AUTORELEASE(newAttrString));
+  IF_NO_ARC(AUTORELEASE(newAttrString);)
   return newAttrString;
 }
 
@@ -894,7 +894,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
 	  newDict = (*initDictImp)(newDict, initDictSel, attrDict);
 	  (*setDictImp)(newDict, setDictSel, value, name);
 	  (*setImp)(self, setSel, newDict, effectiveRange);
-	  IF_NO_ARC((*relDictImp)(newDict, relDictSel));
+	  IF_NO_ARC((*relDictImp)(newDict, relDictSel);)
 	
 	  if (NSMaxRange(effectiveRange) >= NSMaxRange(aRange))
 	    {
@@ -954,7 +954,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
 	  newDict = (*initDictImp)(newDict, initDictSel, attrDict);
 	  (*addDictImp)(newDict, addDictSel, attributes);
 	  (*setImp)(self, setSel, newDict, effectiveRange);
-	  IF_NO_ARC((*relDictImp)(newDict, relDictSel));
+	  IF_NO_ARC((*relDictImp)(newDict, relDictSel);)
 	
 	  if (NSMaxRange(effectiveRange) >= NSMaxRange(aRange))
 	    {
@@ -1003,7 +1003,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
 	  newDict = (*initDictImp)(newDict, initDictSel, attrDict);
 	  (*remDictImp)(newDict, remDictSel, name);
 	  (*setImp)(self, setSel, newDict, effectiveRange);
-	  IF_NO_ARC((*relDictImp)(newDict, relDictSel));
+	  IF_NO_ARC((*relDictImp)(newDict, relDictSel);)
 	
 	  if (NSMaxRange(effectiveRange) >= NSMaxRange(aRange))
 	    {

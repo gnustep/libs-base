@@ -490,7 +490,7 @@ _arg_addr(NSInvocation *inv, int index)
 
 	      _get_arg(self, index, &old);
 	      _set_arg(self, index, buffer);
-	      IF_NO_ARC(RETAIN(*(id*)buffer));
+	      IF_NO_ARC(RETAIN(*(id*)buffer);)
 	      if (old != nil)
 		{
 		  RELEASE(old);
@@ -634,7 +634,7 @@ _arg_addr(NSInvocation *inv, int index)
 	      _get_arg(self, i-1, &old);
 	      if (old != nil)
 		{
-		  IF_NO_ARC(RETAIN(old));
+		  IF_NO_ARC(RETAIN(old);)
 		}
             }
 	  else if (*_inf[i].type == _C_CHARPTR)
@@ -661,7 +661,7 @@ _arg_addr(NSInvocation *inv, int index)
     {
       _targetRetained = YES;
 
-      IF_NO_ARC(RETAIN(_target));
+      IF_NO_ARC(RETAIN(_target);)
     }
 }
 

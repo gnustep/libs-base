@@ -284,7 +284,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
     {
       GSTimedPerformer	*array[count];
 
-      IF_NO_ARC(RETAIN(target));
+      IF_NO_ARC(RETAIN(target);)
       [perf getObjects: array];
       while (count-- > 0)
 	{
@@ -318,8 +318,8 @@ static inline BOOL timerInvalidated(NSTimer *t)
     {
       GSTimedPerformer	*array[count];
 
-      IF_NO_ARC(RETAIN(target));
-      IF_NO_ARC(RETAIN(arg));
+      IF_NO_ARC(RETAIN(target);)
+      IF_NO_ARC(RETAIN(arg);)
       [perf getObjects: array];
       while (count-- > 0)
 	{

@@ -1371,7 +1371,7 @@ typedef	struct {
       IF_NO_ARC([port retain];)
       NSDebugMLLog(@"NSMessagePort", @"Using pre-existing port: %@", port);
     }
-  IF_NO_ARC(AUTORELEASE(port));
+  IF_NO_ARC(AUTORELEASE(port);)
 
   M_UNLOCK(messagePortLock);
   return port;
@@ -1693,7 +1693,7 @@ typedef	struct {
     {
       M_LOCK(myLock);
       handle = (GSMessageHandle*)NSMapGet(handles, (void*)(uintptr_t)desc);
-      IF_NO_ARC(AUTORELEASE(RETAIN(handle)));
+      IF_NO_ARC(AUTORELEASE(RETAIN(handle));)
       M_UNLOCK(myLock);
       if (handle == nil)
 	{

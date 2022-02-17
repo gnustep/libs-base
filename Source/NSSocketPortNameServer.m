@@ -460,7 +460,7 @@ typedef enum {
   if (state == GSPC_FAIL)
     return;
 
-  IF_NO_ARC(RETAIN(handle));
+  IF_NO_ARC(RETAIN(handle);)
   nc = [NSNotificationCenter defaultCenter];
   [nc addObserver: self
 	 selector: @selector(didConnect:)
@@ -494,7 +494,7 @@ typedef enum {
   msg.port = 0;
   TEST_RELEASE(data);
   data = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
-  IF_NO_ARC(RETAIN(data));
+  IF_NO_ARC(RETAIN(data);)
   [self open: nil];
 }
 
@@ -507,7 +507,7 @@ typedef enum {
   [name getCString: (char*)msg.name];
   TEST_RELEASE(data);
   data = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
-  IF_NO_ARC(RETAIN(data));
+  IF_NO_ARC(RETAIN(data);)
   [self open: host];
 }
 
@@ -520,7 +520,7 @@ typedef enum {
   msg.port = GSSwapHostI32ToBig(portNumber);
   TEST_RELEASE(data);
   data = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
-  IF_NO_ARC(RETAIN(data));
+  IF_NO_ARC(RETAIN(data);)
   [self open: nil];
 }
 
@@ -540,7 +540,7 @@ typedef enum {
   msg.port = GSSwapHostI32ToBig(portNumber);
   TEST_RELEASE(data);
   data = [NSMutableData dataWithBytes: (void*)&msg length: sizeof(msg)];
-  IF_NO_ARC(RETAIN(data));
+  IF_NO_ARC(RETAIN(data);)
   [self open: nil];
 }
 

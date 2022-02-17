@@ -903,7 +903,7 @@ scalarSize(char type)
 		   *	order to give the appearance that it's actually a
 		   *	new object.
 		   */
-		  IF_NO_ARC(RETAIN(obj));
+		  IF_NO_ARC(RETAIN(obj);)
 		}
 	      else
 		{
@@ -1506,7 +1506,7 @@ scalarSize(char type)
 				   at: b];
 	  d = [[NSData allocWithZone: zone] initWithBytesNoCopy: b
 							 length: l];
-	  IF_NO_ARC(AUTORELEASE(d));
+	  IF_NO_ARC(AUTORELEASE(d);)
 	  return d;
 	}
       else

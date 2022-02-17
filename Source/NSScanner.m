@@ -153,7 +153,7 @@ typedef GSString	*ivars;
 
       memSel = @selector(characterIsMember:);
       defaultSkipSet = [NSCharacterSet whitespaceAndNewlineCharacterSet];
-      IF_NO_ARC(RETAIN(defaultSkipSet));
+      IF_NO_ARC(RETAIN(defaultSkipSet);)
       NSStringClass = [NSString class];
       GSCStringClass = [GSCString class];
       GSUnicodeStringClass = [GSUnicodeString class];
