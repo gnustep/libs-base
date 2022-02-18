@@ -5,7 +5,7 @@ set -ex
 install_gnustep_make() {
     echo "::group::GNUstep Make"
     cd $DEPS_PATH
-    git clone https://github.com/gnustep/tools-make.git
+    git clone -q https://github.com/gnustep/tools-make.git
     cd tools-make
     MAKE_OPTS=
     if [ -n "$HOST" ]; then
@@ -25,7 +25,7 @@ install_gnustep_make() {
 install_libobjc2() {
     echo "::group::libobjc2"
     cd $DEPS_PATH
-    git clone https://github.com/gnustep/libobjc2.git
+    git clone -q https://github.com/gnustep/libobjc2.git
     cd libobjc2
     git submodule sync
     git submodule update --init
@@ -45,7 +45,7 @@ install_libdispatch() {
     echo "::group::libdispatch"
     cd $DEPS_PATH
     # will reference upstream after https://github.com/apple/swift-corelibs-libdispatch/pull/534 is merged
-    git clone -b system-blocksruntime https://github.com/ngrewe/swift-corelibs-libdispatch.git libdispatch
+    git clone -q -b system-blocksruntime https://github.com/ngrewe/swift-corelibs-libdispatch.git libdispatch
     mkdir libdispatch/build
     cd libdispatch/build
     # -Wno-error=void-pointer-to-int-cast to work around build error in queue.c due to -Werror
