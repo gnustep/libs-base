@@ -143,13 +143,13 @@ GS_EXPORT_CLASS
 - (id) reversedSortDescriptor;
 @end
 
-@interface NSArray (NSSortDescriptorSorting)
+@interface GS_GENERIC_CLASS(NSArray, ElementT) (NSSortDescriptorSorting)
 
 /**
  * Produces a sorted array using the mechanism described for
  * [NSMutableArray-sortUsingDescriptors:]
  */
-- (NSArray *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors;
+- (GS_GENERIC_CLASS(NSArray, ElementT) *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors;
 
 @end
 
@@ -171,12 +171,12 @@ GS_EXPORT_CLASS
 @end
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
-@interface NSSet (NSSortDescriptorSorting)
+@interface GS_GENERIC_CLASS(NSSet, ElementT) (NSSortDescriptorSorting)
  /**
  * Produces a sorted array from using the mechanism described for
  * [NSMutableArray-sortUsingDescriptors:]
  */
-- (NSArray *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors;
+- (GS_GENERIC_CLASS(NSArray, ElementT) *) sortedArrayUsingDescriptors: (NSArray *)sortDescriptors;
 @end
 #endif
 
