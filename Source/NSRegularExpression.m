@@ -38,7 +38,7 @@
  * won't work because libicu internally renames all entry points with some cpp
  * magic.
  */
-#if (U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4))
+#if U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4) || defined(HAVE_ICU_H)
 #define HAVE_UREGEX_OPENUTEXT 1
 #endif
 

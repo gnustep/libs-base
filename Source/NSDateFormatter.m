@@ -946,7 +946,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
       pat = malloc(sizeof(UChar) * patLength);
       [self->_dateFormat getCharacters: pat];
     }
-#if U_ICU_VERSION_MAJOR_NUM >= 50
+#if U_ICU_VERSION_MAJOR_NUM >= 50 || defined(HAVE_ICU_H)
   timeStyle = pat ? UDAT_PATTERN : NSToUDateFormatStyle (internal->_timeStyle);
   dateStyle = pat ? UDAT_PATTERN : NSToUDateFormatStyle (internal->_dateStyle);
 #else

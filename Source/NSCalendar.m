@@ -447,7 +447,8 @@ do \
                           options: (NSUInteger) opts
 {
 #if GS_USE_ICU == 1 && (U_ICU_VERSION_MAJOR_NUM > 4 \
-  || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 8))
+  || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 8) \
+  || defined(HAVE_ICU_H))
 
   NSDateComponents *comps = nil;
   UErrorCode err = U_ZERO_ERROR;
