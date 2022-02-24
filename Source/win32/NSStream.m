@@ -88,7 +88,7 @@ void PrintLastError(NSString * f) {
 NSString * normalizeUrl(NSString * url)
 {
   if (!url) return nil;
-  if ([url caseInsensitiveCompare:@"" == NSOrderedSame]) return nil;
+  if ([url caseInsensitiveCompare:@""] == NSOrderedSame) return @"";
 
   BOOL prepend = YES;
   NSString * urlFront = nil;
