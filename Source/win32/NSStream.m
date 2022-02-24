@@ -213,12 +213,12 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
       NSString * proxy = @"";
       NSString * proxyBypass = @"";
 
-      autoConfigUrl = normalizeUrl(autoConfigUrl);
-      proxy = normalizeUrl(proxy);
-
       if (resultProxyConfig->lpszAutoConfigUrl) autoConfigUrl = [[NSString alloc] initWithBytes: resultProxyConfig->lpszAutoConfigUrl length:wcslen(resultProxyConfig->lpszAutoConfigUrl)*2 encoding:NSUTF16StringEncoding];
       if (resultProxyConfig->lpszProxy) proxy = [[NSString alloc] initWithBytes: resultProxyConfig->lpszProxy length:wcslen(resultProxyConfig->lpszProxy)*2 encoding:NSUTF16StringEncoding];
       if (resultProxyConfig->lpszProxyBypass) proxyBypass = [[NSString alloc] initWithBytes: resultProxyConfig->lpszProxyBypass length:wcslen(resultProxyConfig->lpszProxyBypass)*2 encoding:NSUTF16StringEncoding];
+
+      autoConfigUrl = normalizeUrl(autoConfigUrl);
+      proxy = normalizeUrl(proxy);
 
       NSLog(@"  * autoConfigUrl: %@", autoConfigUrl);
       NSLog(@"  * proxy: %@", proxy);
