@@ -92,28 +92,34 @@ NSString * normalizeUrl(NSString * url)
   BOOL prepend = YES;
   NSString * urlFront = nil;
     
-  if ([url length] >= 7) {
-    // Check that url begins with http://
-    urlFront = [url substringToIndex:7];
-    if ([urlFront caseInsensitiveCompare:@"http://"] == NSOrderedSame) {
-        prepend = NO;
-    }
-  }
-  if ([url length] >= 8) {
-    // Check that url begins with https://
-      urlFront = [url substringToIndex:8];
-      if ([urlFront caseInsensitiveCompare:@"https://"] == NSOrderedSame) {
+  if ([url length] >= 7) 
+    {
+      // Check that url begins with http://
+      urlFront = [url substringToIndex:7];
+      if ([urlFront caseInsensitiveCompare:@"http://"] == NSOrderedSame) 
+        {
           prepend = NO;
-      }
-  }
+        }
+    }
+  if ([url length] >= 8) 
+    {
+      // Check that url begins with https://
+      urlFront = [url substringToIndex:8];
+      if ([urlFront caseInsensitiveCompare:@"https://"] == NSOrderedSame) 
+        {
+          prepend = NO;
+        }
+    }
 
   // If http[s]:// is omited, slap it on.
-  if (prepend) {
-    return [NSString stringWithFormat:@"http://%@", url];
-  }
-  else {
-    return url;
-  }
+  if (prepend) 
+    {
+      return [NSString stringWithFormat:@"http://%@", url];
+    }
+  else 
+    {
+      return url;
+    }
 }
 
 BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultProxyConfig)
@@ -121,34 +127,39 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
   NSString * dstUrlString = [NSString stringWithFormat: @"http://%@", url];
   const wchar_t *DestURL = (wchar_t*)[dstUrlString cStringUsingEncoding: NSUTF16StringEncoding];
 
-    WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ProxyConfig;
-    WINHTTP_PROXY_INFO ProxyInfo, ProxyInfoTemp;
-    WINHTTP_AUTOPROXY_OPTIONS OptPAC;
-    DWORD dwOptions = SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID | SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
+  WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ProxyConfig;
+  WINHTTP_PROXY_INFO ProxyInfo, ProxyInfoTemp;
+  WINHTTP_AUTOPROXY_OPTIONS OptPAC;
+  DWORD dwOptions = SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID | SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
 
-    ZeroMemory(&ProxyInfo, sizeof(ProxyInfo));
-    ZeroMemory(&ProxyConfig, sizeof(ProxyConfig));
+  ZeroMemory(&ProxyInfo, sizeof(ProxyInfo));
+  ZeroMemory(&ProxyConfig, sizeof(ProxyConfig));
   ZeroMemory(resultProxyConfig, sizeof(*resultProxyConfig));
 
   BOOL result = false;
   BOOL autoConfigWorked = false;
   BOOL autoDetectWorked = false;
 
-    HINTERNET http_local_session = WinHttpOpen(L"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)", WINHTTP_ACCESS_TYPE_NO_PROXY, 0, WINHTTP_NO_PROXY_BYPASS, 0);
+  HINTERNET http_local_session = WinHttpOpen(L"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)", WINHTTP_ACCESS_TYPE_NO_PROXY, 0, WINHTTP_NO_PROXY_BYPASS, 0);
 
-    if (http_local_session && WinHttpGetIEProxyConfigForCurrentUser(&ProxyConfig)) {
-    NSLog(@"Got proxy config for current user.");
-        if (ProxyConfig.lpszProxy) {
+    if (http_local_session && WinHttpGetIEProxyConfigForCurrentUser(&ProxyConfig)) 
+      {
+        NSLog(@"Got proxy config for current user.");
+        if (ProxyConfig.lpszProxy) 
+          {
             ProxyInfo.lpszProxy = ProxyConfig.lpszProxy;
             ProxyInfo.dwAccessType = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
             ProxyInfo.lpszProxyBypass = NULL;
-        }
-    memcpy(resultProxyConfig, &ProxyConfig, sizeof(*resultProxyConfig));
+          }
+    
+        memcpy(resultProxyConfig, &ProxyConfig, sizeof(*resultProxyConfig));
 
-        if (ProxyConfig.lpszAutoConfigUrl) {
-      size_t len = wcslen(ProxyConfig.lpszAutoConfigUrl);
-      NSString * autoConfigUrl = [[NSString alloc] initWithBytes: ProxyConfig.lpszAutoConfigUrl length:len*2 encoding:NSUTF16StringEncoding];
-      NSLog(@"trying script proxy pac file: %@.", autoConfigUrl);
+        if (ProxyConfig.lpszAutoConfigUrl) 
+          {
+            size_t len = wcslen(ProxyConfig.lpszAutoConfigUrl);
+            NSString * autoConfigUrl = [[NSString alloc] initWithBytes: ProxyConfig.lpszAutoConfigUrl length:len*2 encoding:NSUTF16StringEncoding];
+            NSLog(@"trying script proxy pac file: %@.", autoConfigUrl);
+
             // Script proxy pac
             OptPAC.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
             OptPAC.lpszAutoConfigUrl = ProxyConfig.lpszAutoConfigUrl;
@@ -157,60 +168,65 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
             OptPAC.lpvReserved = 0;
             OptPAC.dwReserved = 0;
 
-            if (WinHttpGetProxyForUrl(http_local_session, DestURL, &OptPAC, &ProxyInfoTemp)) {
-        NSLog(@"worked");
+            if (WinHttpGetProxyForUrl(http_local_session, DestURL, &OptPAC, &ProxyInfoTemp)) 
+              {
+                NSLog(@"worked");
                 memcpy(&ProxyInfo, &ProxyInfoTemp, sizeof(ProxyInfo));
 
-        resultProxyConfig->lpszProxy = ProxyInfoTemp.lpszProxy;
-        resultProxyConfig->lpszProxyBypass = ProxyInfoTemp.lpszProxyBypass;
-        autoConfigWorked = true;
-      }
-      else {
-        PrintLastError(@"WinHttpGetProxyForUrl");
-      }
+                resultProxyConfig->lpszProxy = ProxyInfoTemp.lpszProxy;
+                resultProxyConfig->lpszProxyBypass = ProxyInfoTemp.lpszProxyBypass;
+                autoConfigWorked = true;
+              }
+            else 
+              {
+                PrintLastError(@"WinHttpGetProxyForUrl");
+              }
+          }
+      else if (ProxyConfig.fAutoDetect) 
+        {
+          NSLog(@"trying autodetect proxy");
+
+          // Autodetect proxy
+          OptPAC.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT;
+          OptPAC.dwAutoDetectFlags = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
+          OptPAC.fAutoLogonIfChallenged = TRUE;
+          OptPAC.lpszAutoConfigUrl = NULL;
+          OptPAC.lpvReserved = 0;
+          OptPAC.dwReserved = 0;
+
+          if (WinHttpGetProxyForUrl(http_local_session, DestURL, &OptPAC, &ProxyInfoTemp)) 
+            {
+              NSLog(@"worked");
+              memcpy(&ProxyInfo, &ProxyInfoTemp, sizeof(ProxyInfo));
+
+              resultProxyConfig->lpszProxy = ProxyInfoTemp.lpszProxy;
+              resultProxyConfig->lpszProxyBypass = ProxyInfoTemp.lpszProxyBypass;
+              autoDetectWorked = true;
+            }
+          else 
+            {
+              PrintLastError(@"WinHttpGetProxyForUrl");
+            }
         }
-        else if (ProxyConfig.fAutoDetect) {
-      NSLog(@"trying autodetect proxy");
-            // Autodetect proxy
-            OptPAC.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT;
-            OptPAC.dwAutoDetectFlags = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
-            OptPAC.fAutoLogonIfChallenged = TRUE;
-            OptPAC.lpszAutoConfigUrl = NULL;
-            OptPAC.lpvReserved = 0;
-            OptPAC.dwReserved = 0;
 
-            if (WinHttpGetProxyForUrl(http_local_session, DestURL, &OptPAC, &ProxyInfoTemp)) {
-        NSLog(@"worked");
-        memcpy(&ProxyInfo, &ProxyInfoTemp, sizeof(ProxyInfo));
+      NSString * autoConfigUrl = @"";
+      NSString * proxy = @"";
+      NSString * proxyBypass = @"";
 
-        resultProxyConfig->lpszProxy = ProxyInfoTemp.lpszProxy;
-        resultProxyConfig->lpszProxyBypass = ProxyInfoTemp.lpszProxyBypass;
-        autoDetectWorked = true;
-      }
-      else {
-        PrintLastError(@"WinHttpGetProxyForUrl");
-      }
-        }
+      autoConfigUrl = normalizeUrl(autoConfigUrl);
+      proxy = normalizeUrl(proxy);
 
-    NSString * autoConfigUrl = @"";
-    NSString * proxy = @"";
-    NSString * proxyBypass = @"";
+      if (resultProxyConfig->lpszAutoConfigUrl) autoConfigUrl = [[NSString alloc] initWithBytes: resultProxyConfig->lpszAutoConfigUrl length:wcslen(resultProxyConfig->lpszAutoConfigUrl)*2 encoding:NSUTF16StringEncoding];
+      if (resultProxyConfig->lpszProxy) proxy = [[NSString alloc] initWithBytes: resultProxyConfig->lpszProxy length:wcslen(resultProxyConfig->lpszProxy)*2 encoding:NSUTF16StringEncoding];
+      if (resultProxyConfig->lpszProxyBypass) proxyBypass = [[NSString alloc] initWithBytes: resultProxyConfig->lpszProxyBypass length:wcslen(resultProxyConfig->lpszProxyBypass)*2 encoding:NSUTF16StringEncoding];
 
-    autoConfigUrl = normalizeUrl(autoConfigUrl);
-    proxy = normalizeUrl(proxy);
+      NSLog(@"  * autoConfigUrl: %@", autoConfigUrl);
+      NSLog(@"  * proxy: %@", proxy);
+      NSLog(@"  * proxyBypass: %@", proxyBypass);
 
-    if (resultProxyConfig->lpszAutoConfigUrl) autoConfigUrl = [[NSString alloc] initWithBytes: resultProxyConfig->lpszAutoConfigUrl length:wcslen(resultProxyConfig->lpszAutoConfigUrl)*2 encoding:NSUTF16StringEncoding];
-    if (resultProxyConfig->lpszProxy) proxy = [[NSString alloc] initWithBytes: resultProxyConfig->lpszProxy length:wcslen(resultProxyConfig->lpszProxy)*2 encoding:NSUTF16StringEncoding];
-    if (resultProxyConfig->lpszProxyBypass) proxyBypass = [[NSString alloc] initWithBytes: resultProxyConfig->lpszProxyBypass length:wcslen(resultProxyConfig->lpszProxyBypass)*2 encoding:NSUTF16StringEncoding];
-
-    NSLog(@"  autoConfigUrl: %@", autoConfigUrl);
-    NSLog(@"  proxy: %@", proxy);
-    NSLog(@"  proxyBypass: %@", proxyBypass);
-
-    result = true;
-  }
+      result = true;
+    }
   
-
   return result;
 }
 
