@@ -88,6 +88,7 @@ void PrintLastError(NSString * f) {
 NSString * normalizeUrl(NSString * url)
 {
   if (!url) return nil;
+  if ([url caseInsensitiveCompare:@"" == NSOrderedSame]) return nil;
 
   BOOL prepend = YES;
   NSString * urlFront = nil;
@@ -220,9 +221,9 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
       autoConfigUrl = normalizeUrl(autoConfigUrl);
       proxy = normalizeUrl(proxy);
 
-      NSLog(@"  * autoConfigUrl: %@", autoConfigUrl);
-      NSLog(@"  * proxy: %@", proxy);
-      NSLog(@"  * proxyBypass: %@", proxyBypass);
+      NSLog(@"  autoConfigUrl: %@", autoConfigUrl);
+      NSLog(@"  proxy: %@", proxy);
+      NSLog(@"  proxyBypass: %@", proxyBypass);
 
       result = true;
     }
