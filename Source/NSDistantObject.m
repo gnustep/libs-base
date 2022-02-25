@@ -640,9 +640,10 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
   self = [_connection retainOrAddLocal: self forObject: anObject];
 
   if (debug_proxy)
-    NSLog(@"Created new local=%p object %p target 0x%x connection %p\n",
-     self, _object, _handle, _connection);
-
+    {
+      NSLog(@"Created new local=%p object %p target 0x%x connection %p\n",
+       self, _object, _handle, _connection);
+    }
   return self;
 }
 
@@ -666,9 +667,10 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
   self = [_connection retainOrAddProxy: self forTarget: target];
 
   if (debug_proxy)
+    {
       NSLog(@"Created new proxy=%p target 0x%x connection %p\n",
 	 self, _handle, _connection);
-
+    }
   return self;
 }
 
@@ -725,16 +727,20 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
       if (_protocol != nil)
 	{
 	  struct objc_method_description mth;
-	  mth = GSProtocolGetMethodDescriptionRecursive(_protocol, aSelector, YES, YES);
+	  mth = GSProtocolGetMethodDescriptionRecursive(
+	    _protocol, aSelector, YES, YES);
 
 	  if (mth.name == NULL && mth.types == NULL)
 	    {
 	      // Search for class method
-	      mth = GSProtocolGetMethodDescriptionRecursive(_protocol, aSelector, YES, NO);
+	      mth = GSProtocolGetMethodDescriptionRecursive(
+		_protocol, aSelector, YES, NO);
 	    }
 
 	  if (mth.types)
-	    return [NSMethodSignature signatureWithObjCTypes: mth.types];
+	    {
+	      return [NSMethodSignature signatureWithObjCTypes: mth.types];
+	    }
 	}
 
       if (_sigs != 0)
@@ -900,13 +906,24 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 
 - (BOOL) respondsToSelector: (SEL)aSelector
 {
-  BOOL		m = NO;
-  id		inv;
-  id		sig;
+  if (aSelector == 0)
+    {
+      return NO;
+    }
+  if (class_respondsToSelector(object_getClass(self), aSelector))
+    {
+      return YES;
+    }
+  else
+    {
+      BOOL	m = NO;
+      id	inv;
+      id	sig;
 
-  DO_FORWARD_INVOCATION(respondsToSelector:, aSelector);
+      DO_FORWARD_INVOCATION(respondsToSelector:, aSelector);
 
-  return m;
+      return m;
+    }
 }
 
 - (id) replacementObjectForCoder: (NSCoder*)aCoder

@@ -1,3 +1,10 @@
+2022-02-25 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistantObject.m:
+	Check to see whether receiver responds to selector before asking the
+	remote object.  Fixes bug in testing to see if distant object responds
+	to -connectionForProxy.
+
 2022-02-17 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/manual/BaseLibrary.texi:
