@@ -50,6 +50,9 @@ GS_EXPORT_CLASS
   NSUInteger	_hash;
   NSUInteger	_length;
   NSUInteger	*_indexes;
+  
+  NSInteger     _item;
+  NSInteger     _section;
 #endif
 #if     GS_NONFRAGILE
 #else
@@ -72,6 +75,23 @@ GS_EXPORT_CLASS
  */
 + (id) indexPathWithIndexes: (NSUInteger*)indexes length: (NSUInteger)length;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_11,GS_API_LATEST)
+/**
+ * Return a path containing an item number and section.
+ */
++ (NSIndexPath *) indexPathForItem: (NSInteger)item inSection: (NSInteger)section;
+
+/**
+ * Return an index number identifying an item in a collection view
+ */
+- (NSInteger) item;
+
+/**
+ * Return an index number identifying a section in a collection view
+ */
+- (NSInteger) section;
+#endif
+  
 /**
  * Compares other with the receiver.<br />
  * Returns NSOrderedSame if the two are identical.<br />

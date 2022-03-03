@@ -40,6 +40,27 @@ static	Class		myClass = 0;
 static	NSIndexPath	*empty = nil;
 static	NSIndexPath	*dummy = nil;
 
+@interface NSIndexPath (__GNUstepPrivate__)
+
+- (void) _setSection: (NSInteger)section;
+- (void) _setItem: (NSInteger)item;
+
+@end
+
+@implementation NSIndexPath (__GNUstepPrivate__)
+
+- (void) _setSection: (NSInteger)section
+{
+  _section = section;
+}
+
+- (void) _setItem: (NSInteger)item
+{
+  _item = item;
+}
+
+@end
+
 @implementation	NSIndexPath
 
 + (id) allocWithZone: (NSZone*)aZone
@@ -61,6 +82,16 @@ static	NSIndexPath	*dummy = nil;
   id	o = [self allocWithZone: NSDefaultMallocZone()];
 
   o = [o initWithIndexes: indexes length: length];
+  return AUTORELEASE(o);
+}
+
++ (NSIndexPath *) indexPathForItem: (NSInteger)item inSection: (NSInteger)section;
+{
+  id o = [self allocWithZone: NSDefaultMallocZone()];
+
+  [o _setItem: item];
+  [o _setSection: section];
+
   return AUTORELEASE(o);
 }
 
@@ -196,6 +227,16 @@ static	NSIndexPath	*dummy = nil;
 				     at: _indexes];
 	}
     }
+}
+
+- (NSInteger) item
+{
+  return _item;
+}
+
+- (NSInteger) section
+{
+  return _section;
 }
 
 - (void) getIndexes: (NSUInteger*)aBuffer
