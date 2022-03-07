@@ -1019,15 +1019,22 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 #endif
       case NSBeginsWithPredicateOperatorType:
 	{
-	  NSRange range = NSMakeRange(0, [rightResult length]);
+	  NSRange	range;
+          NSUInteger    ll = [leftResult length];
+          NSUInteger    rl = [rightResult length];
 
+	  if (rl > ll)
+	    {
+	      return NO;
+	    }
+	  range = NSMakeRange(0, rl);
 	  return ([leftResult compare: rightResult
 			      options: compareOptions
 				range: range] == NSOrderedSame ? YES : NO);
 	}
       case NSEndsWithPredicateOperatorType:
 	{
-	  NSRange range;
+	  NSRange	range;
           NSUInteger    ll = [leftResult length];
           NSUInteger    rl = [rightResult length];
 

@@ -1,3 +1,9 @@
+2022-03-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPredicate.m:
+	* Tests/base/NSPredicate/basic.m:
+	Fix for git #243
+
 2022-02-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistantObject.m:

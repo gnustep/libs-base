@@ -40,6 +40,13 @@ testString(NSDictionary *dict)
   PASS([p evaluateWithObject: dict], "%%K BEGINSWITH %%@");
   p = [NSPredicate predicateWithFormat: @"(%K == %@) AND (%K == %@)", @"Record1.Name", @"John", @"Record2.Name", @"Mary"];
   PASS([p evaluateWithObject: dict], "(%%K == %%@) AND (%%K == %%@)");
+
+  NSMutableArray *strings = [NSMutableArray arrayWithObjects: @"a", @"aa",
+    @"aaa", @"aaaa", nil];
+  NSArray *expect = [NSMutableArray arrayWithObjects: @"aaa", @"aaaa", nil];
+  p = [NSPredicate predicateWithFormat: @"self beginswith 'aaa'"];
+  [strings filterUsingPredicate: p];
+  PASS_EQUAL(strings, expect, "filter using BEGINSWITH") 
 }
 
 void
