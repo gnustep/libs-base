@@ -40,27 +40,6 @@ static	Class		myClass = 0;
 static	NSIndexPath	*empty = nil;
 static	NSIndexPath	*dummy = nil;
 
-@interface NSIndexPath (__GNUstepPrivate__)
-
-- (void) _setSection: (NSInteger)section;
-- (void) _setItem: (NSInteger)item;
-
-@end
-
-@implementation NSIndexPath (__GNUstepPrivate__)
-
-- (void) _setSection: (NSInteger)section
-{
-  _section = section;
-}
-
-- (void) _setItem: (NSInteger)item
-{
-  _item = item;
-}
-
-@end
-
 @implementation	NSIndexPath
 
 + (id) allocWithZone: (NSZone*)aZone
@@ -87,12 +66,12 @@ static	NSIndexPath	*dummy = nil;
 
 + (NSIndexPath *) indexPathForItem: (NSInteger)item inSection: (NSInteger)section;
 {
-  id o = [self allocWithZone: NSDefaultMallocZone()];
+  NSUInteger idxs[2];
 
-  [o _setItem: item];
-  [o _setSection: section];
-
-  return AUTORELEASE(o);
+  idxs[0] = (NSUInteger)section;
+  idxs[1] = (NSUInteger)item;
+  
+  return [self indexPathWithIndexes: idxs length: 2];
 }
 
 + (void) initialize
@@ -231,12 +210,12 @@ static	NSIndexPath	*dummy = nil;
 
 - (NSInteger) item
 {
-  return _item;
+  return (NSInteger)[self indexAtPosition: 1];
 }
 
 - (NSInteger) section
 {
-  return _section;
+  return (NSInteger)[self indexAtPosition: 0];
 }
 
 - (void) getIndexes: (NSUInteger*)aBuffer

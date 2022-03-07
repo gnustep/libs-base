@@ -50,9 +50,6 @@ GS_EXPORT_CLASS
   NSUInteger	_hash;
   NSUInteger	_length;
   NSUInteger	*_indexes;
-  
-  NSInteger     _item;
-  NSInteger     _section;
 #endif
 #if     GS_NONFRAGILE
 #else
