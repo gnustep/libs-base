@@ -88,7 +88,19 @@ GS_EXPORT_CLASS
  */
 - (NSInteger) section;
 #endif
-  
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_13,GS_API_LATEST)
+/**
+ * Return a path containing row number and section.
+ */
++ (NSIndexPath *) indexPathForRow: (NSInteger)item inSection: (NSInteger)section;
+
+/**
+ * Return an index number identifying a row in a table view
+ */
+- (NSInteger) item;
+#endif
+
 /**
  * Compares other with the receiver.<br />
  * Returns NSOrderedSame if the two are identical.<br />
