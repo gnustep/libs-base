@@ -1,3 +1,12 @@
+2022-03-07 Gregory John Casamento <greg.casamento@gmail.com>
+
+        * Headers/Foundation/NSIndexPath.h: Add declarations for new
+        methods to support collection and table view.  New methods are
+        - item, - section, - row, - initWithItem:inSection:,
+        and - initWithRow:inSection:
+        * Source/NSIndexPath.m: Implementation of the methods mentioned
+        above.
+        
 2022-03-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPredicate.m:
