@@ -64,6 +64,16 @@ static	NSIndexPath	*dummy = nil;
   return AUTORELEASE(o);
 }
 
++ (NSIndexPath *) indexPathForItem: (NSInteger)item inSection: (NSInteger)section;
+{
+  NSUInteger idxs[2];
+
+  idxs[0] = (NSUInteger)section;
+  idxs[1] = (NSUInteger)item;
+  
+  return [self indexPathWithIndexes: idxs length: 2];
+}
+
 + (void) initialize
 {
   if (empty == nil)
@@ -196,6 +206,16 @@ static	NSIndexPath	*dummy = nil;
 				     at: _indexes];
 	}
     }
+}
+
+- (NSInteger) item
+{
+  return (NSInteger)[self indexAtPosition: 1];
+}
+
+- (NSInteger) section
+{
+  return (NSInteger)[self indexAtPosition: 0];
 }
 
 - (void) getIndexes: (NSUInteger*)aBuffer
