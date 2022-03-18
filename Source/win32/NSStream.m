@@ -422,11 +422,19 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * fo
               NSDebugFLLog(@"NSStream", @"component(s): %@", components);
               if (0 != [components count])
                 {
-                  host              = [components objectAtIndex: 0];
-                  NSInteger portnum = ([components count] > 1 ? [[components objectAtIndex: 1] integerValue] : 8080);
+                  host              = [components objectAtIndex: 1];
+                  NSInteger portnum = ([components count] > 2 ? [[components objectAtIndex: 2] integerValue] : 8080);
                   port              = [NSNumber numberWithInteger: portnum];
                   NSWarnMLog(@"host: %@ port: %@", host, port);
 
+                  if ([host length] >= 2) 
+                    {
+                      if ([[host substringToIndex:2] isEqualToString:@"//"])
+                        {
+                          host = [host substringFromIndex:2];
+                        }
+                    }
+                  
                   // Setup the proxy dictionary information...
                   [proxyDict setObject: host forKey: NSStreamSOCKSProxyHostKey];
                   [proxyDict setObject: port forKey: NSStreamSOCKSProxyPortKey];
