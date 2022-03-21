@@ -422,15 +422,26 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * fo
               NSDebugFLLog(@"NSStream", @"component(s): %@", components);
 
               NSMutableArray * mutableComponents = [NSMutableArray arrayWithArray:components];
-              if ([mutableComponents count] > 1) {
-                NSString * firstItem = [mutableComponents objectAtIndex:0];
-                if ([firstItem length] > 4){
-                  if ([[firstItem substringToIndex:4] isEqualToString:@"http"]) {
-                    [mutableComponents removeObjectAtIndex:0];
-                    components = (NSArray *)mutableComponents;
-                  }
+              if ([mutableComponents count] > 1) 
+                {
+                  NSString * firstItem = [mutableComponents objectAtIndex:0];
+                  if ([firstItem length] >= 6)
+                    {
+                      if ([[firstItem substringToIndex:6] isEqualToString:@"https:"]) 
+                        {
+                          [mutableComponents removeObjectAtIndex:0];
+                          components = (NSArray *)mutableComponents;
+                        }
+                    }                    
+                  else if ([firstItem length] >= 5)
+                    {
+                      if ([[firstItem substringToIndex:5] isEqualToString:@"http:"]) 
+                        {
+                          [mutableComponents removeObjectAtIndex:0];
+                          components = (NSArray *)mutableComponents;
+                        }
+                    }                    
                 }
-              }
 
               NSLog(@"components ---------- ");
               for(NSInteger i = 0; i < [components count]; i++){
