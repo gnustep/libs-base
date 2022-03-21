@@ -421,6 +421,17 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * fo
               NSArray   *components = [string componentsSeparatedByString: @":"];
               NSDebugFLLog(@"NSStream", @"component(s): %@", components);
 
+              NSMutableArray * mutableComponents = [NSMutableArray arrayWithArray:components];
+              if ([mutableComponents count] > 1) {
+                NSString * firstItem = [mutableComponents objectAtIndex:0];
+                if ([firstItem length] > 4){
+                  if ([[firstItem substringToIndex:4] isEqualToString:@"http"]) {
+                    [mutableComponents removeObjectAtIndex:0];
+                    components = (NSArray *)mutableComponents;
+                  }
+                }
+              }
+
               NSLog(@"components ---------- ");
               for(NSInteger i = 0; i < [components count]; i++){
                 NSLog(@"%@", [components objectAtIndex:i]);
@@ -429,10 +440,10 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * fo
 
               if (0 != [components count])
                 {
-                  host              = [components objectAtIndex: 1];
-                  NSInteger portnum = ([components count] > 2 ? [[components objectAtIndex: 2] integerValue] : 8080);
+                  host              = [components objectAtIndex: 0];
+                  NSInteger portnum = ([components count] > 1 ? [[components objectAtIndex: 1] integerValue] : 8080);
                   port              = [NSNumber numberWithInteger: portnum];
-                  NSWarnMLog(@"host: %@ port: %@", host, port);
+                  NSLog(@"host: %@ port: %d", host, portnum);
 
                   if ([host length] >= 2) 
                     {
