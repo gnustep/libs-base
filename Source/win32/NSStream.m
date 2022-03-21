@@ -420,6 +420,13 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * fo
               // Split the components using ':'...
               NSArray   *components = [string componentsSeparatedByString: @":"];
               NSDebugFLLog(@"NSStream", @"component(s): %@", components);
+
+              NSLog(@"components ---------- ");
+              for(NSInteger i = 0; i < [components count]; i++){
+                NSLog(@"%@", [components objectAtIndex:i]);
+              }
+              NSLog(@"--------------------- ");
+
               if (0 != [components count])
                 {
                   host              = [components objectAtIndex: 1];

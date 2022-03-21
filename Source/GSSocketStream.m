@@ -1652,12 +1652,10 @@ static NSString * const GSSOCKSAckConn = @"GSSOCKSAckConn";
           host = [conf objectForKey: kCFStreamPropertyHTTPProxyHost];
           pnum = [[conf objectForKey: kCFStreamPropertyHTTPProxyPort] intValue];
           if (NO == [istream _setSocketAddress: host port: pnum family: AF_INET]) {
-            NSString * aLog = [NSString stringWithFormat:@"error setting HTTP %@:%d for input stream", host, (int)pnum];
-            NSLog(aLog);
+            NSLog(@"error setting HTTP %@:%d for input stream", host, (int)pnum);
           }
           if (NO == [ostream _setSocketAddress: host port: pnum family: AF_INET]) {
-            NSString * aLog = [NSString stringWithFormat:@"error setting HTTP %@:%d for output stream", host, (int)pnum];
-            NSLog(aLog);
+            NSLog(@"error setting HTTP %@:%d for output stream", host, (int)pnum);
           }
         }
     }
