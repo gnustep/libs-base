@@ -427,7 +427,7 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * fo
                   NSString * firstItem = [mutableComponents objectAtIndex:0];
                   if ([firstItem length] >= 6)
                     {
-                      if ([[firstItem substringToIndex:6] isEqualToString:@"https:"]) 
+                      if ([[[firstItem substringToIndex:6] lowercaseString] isEqualToString:@"https:"]) 
                         {
                           [mutableComponents removeObjectAtIndex:0];
                           components = (NSArray *)mutableComponents;
@@ -435,7 +435,7 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * fo
                     }                    
                   else if ([firstItem length] >= 5)
                     {
-                      if ([[firstItem substringToIndex:5] isEqualToString:@"http:"]) 
+                      if ([[[firstItem substringToIndex:5] lowercaseString] isEqualToString:@"http:"]) 
                         {
                           [mutableComponents removeObjectAtIndex:0];
                           components = (NSArray *)mutableComponents;
