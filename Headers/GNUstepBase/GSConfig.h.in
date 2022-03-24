@@ -299,7 +299,7 @@ typedef	struct {
 #endif
 
 #if defined(_WIN32)
-#  define BOOL WinBOOL
+#  define BOOL WINBOOL
 #  define __OBJC_BOOL 1
 
 #  if defined(__MINGW__)
