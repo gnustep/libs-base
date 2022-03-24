@@ -2005,6 +2005,7 @@ setNonBlocking(SOCKET fd)
           ptonReturn = inet_pton(AF_INET, addr_c, &peer.sin_addr);
           if (ptonReturn <= 0)   // error
             {
+              NSLog(@"inet_pton error: %d.", ptonReturn);
               return NO;
             }
           else
