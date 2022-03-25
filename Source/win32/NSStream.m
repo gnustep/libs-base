@@ -462,9 +462,9 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * fo
                           NSLog(@"host appears to be a domain name: %@", host);
                           struct hostent * hostInfo;
                           hostInfo = gethostbyname ([host cString]);
-                          if (!hostInfo) 
+                          if (hostInfo) 
                             {
-                            NSLog(@"gethostbyname worked");
+                              NSLog(@"gethostbyname worked");
                               if (hostInfo->h_addr_list[0] != 0) 
                                 {
                                   struct in_addr addr;
