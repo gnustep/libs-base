@@ -123,6 +123,21 @@ NSString * normalizeUrl(NSString * url)
     }
 }
 
+BOOL isIpAddr(NSString * _str) {
+    
+    // eg: 192.168.0.1
+    NSString * isV4RegEx = @"^\\d{1,3}.\\d{1,3}.\\d{1,3}.\\d{1,3}$";
+    // eg: 2001:db8:3333:4444:CCCC:DDDD:EEEE:FFFF
+    NSString * isV6RegEx = @"^\\w{4}:\\w{3}:\\w{4}:\\w{4}:\\w{4}:\\w{4}:\\w{4}:\\w{4}$";
+    
+    NSError * error = nil;
+    NSRegularExpression * v4Regex = [NSRegularExpression regularExpressionWithPattern:isV4RegEx options:0 error:&error];
+    NSTextCheckingResult * v4Result = [v4Regex firstMatchInString:_str options:0 range:NSMakeRange(0, [_str length])];
+    NSRegularExpression * v6Regex = [NSRegularExpression regularExpressionWithPattern:isV6RegEx options:0 error:&error];
+    NSTextCheckingResult * v6Result = [v6Regex firstMatchInString:_str options:0 range:NSMakeRange(0, [_str length])];
+    return (v4Result || v6Result) ? YES : NO;
+}
+
 BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultProxyConfig)
 {
   NSString * dstUrlString = [NSString stringWithFormat: @"http://%@", url];
@@ -454,6 +469,22 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * fo
                   host              = [components objectAtIndex: 0];
                   NSInteger portnum = ([components count] > 1 ? [[components objectAtIndex: 1] integerValue] : 8080);
                   port              = [NSNumber numberWithInteger: portnum];
+
+                  if (!(isIpAddr(host)))
+                    {
+                      struct hostent * hostInfo;
+                      hostInfo = gethostbyname (hostname);
+                      if (!hostInfo) 
+                        {
+                          if (host_info->h_addr_list[i] != 0) 
+                            {
+                              addr.s_addr = *(u_long *) host_info->h_addr_list[i++];
+                              const char * ipAddr = inet_ntoa(addr);
+                              host = [NSString stringWithFormat:@"%s", ipAddr];
+                            } 
+                        }  
+                    }
+
                   NSLog(@"host: %@ port: %d", host, portnum);
 
                   if ([host length] >= 2) 
