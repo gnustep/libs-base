@@ -470,21 +470,30 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * fo
                   NSInteger portnum = ([components count] > 1 ? [[components objectAtIndex: 1] integerValue] : 8080);
                   port              = [NSNumber numberWithInteger: portnum];
 
-                  if (!(isIpAddr(host)))
+                  if ([host length] >= 1)
                     {
-                      struct hostent * hostInfo;
-                      hostInfo = gethostbyname (hostname);
-                      if (!hostInfo) 
+                      if (!isdigit([host characterAtIndex:0]))
                         {
-                          if (host_info->h_addr_list[i] != 0) 
+                          NSLog(@"host appears to be a domain name: %@", host);
+                          struct hostent * hostInfo;
+                          hostInfo = gethostbyname ([host cString]);
+                          if (hostInfo) 
                             {
-                              addr.s_addr = *(u_long *) host_info->h_addr_list[i++];
-                              const char * ipAddr = inet_ntoa(addr);
-                              host = [NSString stringWithFormat:@"%s", ipAddr];
-                            } 
-                        }  
+                              NSLog(@"gethostbyname worked");
+                              if (hostInfo->h_addr_list[0] != 0) 
+                                {
+                                  struct in_addr addr;
+                                  addr.s_addr = *(u_long *) hostInfo->h_addr_list[0];
+                                  const char * ipAddr = inet_ntoa(addr);
+                                  host = [NSString stringWithFormat:@"%s", ipAddr];
+                                } 
+                            }  
+                          else 
+                            {
+                              NSLog(@"gethostbyname worked");
+                            }
+                        }
                     }
-
                   NSLog(@"host: %@ port: %d", host, portnum);
 
                   if ([host length] >= 2) 
