@@ -13220,7 +13220,7 @@ _ACEOF
 else
   have_avahi=no
 fi
-
+have_avahi=yes
 done
 
     if test "$have_avahi" = "yes"; then
