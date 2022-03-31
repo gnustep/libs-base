@@ -13127,7 +13127,7 @@ fi
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
 HAVE_MDNS=0
-HAVE_AVAHI=0
+HAVE_AVAHI=1
 # Check whether --enable-zeroconf was given.
 if test "${enable_zeroconf+set}" = set; then :
   enableval=$enable_zeroconf;
