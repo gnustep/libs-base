@@ -329,6 +329,27 @@ GS_EXPORT_CLASS
             interval: (NSTimeInterval *)tip
              forDate: (NSDate *)date;
 #endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+- (void) getEra: (NSInteger *)eraValuePointer
+           year: (NSInteger *)yearValuePointer
+          month: (NSInteger *)monthValuePointer
+            day: (NSInteger *)dayValuePointer
+       fromDate: (NSDate *)date;
+
+- (void) getHour: (NSInteger *)hourValuePointer
+          minute: (NSInteger *)minuteValuePointer
+          second: (NSInteger *)secondValuePointer
+      nanosecond: (NSInteger *)nanosecondValuePointer
+        fromDate: (NSDate *)date;
+
+- (void) getEra: (NSInteger *)eraValuePointer 
+yearForWeekOfYear: (NSInteger *)yearValuePointer 
+     weekOfYear: (NSInteger *)weekValuePointer 
+        weekday: (NSInteger *)weekdayValuePointer 
+       fromDate: (NSDate *)date;
+#endif
+
 @end
 
 #if	defined(__cplusplus)
