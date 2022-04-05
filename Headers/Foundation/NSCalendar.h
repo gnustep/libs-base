@@ -348,6 +348,9 @@ yearForWeekOfYear: (NSInteger *)yearValuePointer
      weekOfYear: (NSInteger *)weekValuePointer 
         weekday: (NSInteger *)weekdayValuePointer 
        fromDate: (NSDate *)date;
+
+- (NSInteger) component: (NSCalendarUnit)unit 
+               fromDate: (NSDate *)date;
 #endif
 
 @end

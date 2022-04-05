@@ -337,6 +337,65 @@ static NSRecursiveLock *classLock = nil;
   return my->identifier;
 }
 
+- (NSInteger) component: (NSCalendarUnit)unit 
+               fromDate: (NSDate *)date
+{
+  NSDateComponents *comps = [self components: unit
+                                    fromDate: date];
+  NSInteger val = 0;
+
+  switch (unit)
+    {
+    case NSCalendarUnitEra:
+      val = [comps era];
+      break;
+    case NSCalendarUnitYear:
+      val = [comps year];
+      break;
+    case NSCalendarUnitMonth:
+      val = [comps month];
+      break;
+    case NSCalendarUnitDay:
+      val = [comps day];
+      break;
+    case NSCalendarUnitHour:
+      val = [comps hour];
+      break;
+    case NSCalendarUnitMinute:
+      val = [comps minute];
+      break;
+    case NSCalendarUnitSecond:
+      val = [comps second];
+      break;
+    case NSCalendarUnitWeekday:
+      val = [comps weekday];
+      break;
+    case NSCalendarUnitWeekdayOrdinal:
+      val = [comps weekdayOrdinal];
+      break;
+    case NSCalendarUnitQuarter:
+      val = [comps quarter];
+      break;
+    case NSCalendarUnitWeekOfMonth: 
+      val = [comps weekOfMonth];
+      break;
+    case NSCalendarUnitWeekOfYear: 
+      val = [comps weekOfYear];
+      break;
+    case NSCalendarUnitYearForWeekOfYear:
+      val = [comps yearForWeekOfYear];
+      break;
+    case NSCalendarUnitNanosecond:
+      val = [comps nanosecond];
+      break;
+    case NSCalendarUnitCalendar:
+    case NSCalendarUnitTimeZone:
+      // in these cases do nothing since they are undefined.
+      break;
+    }
+
+  return val;
+}
 
 - (NSDateComponents *) components: (NSUInteger) unitFlags
                          fromDate: (NSDate *) date
