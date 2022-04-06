@@ -275,12 +275,29 @@ GS_EXPORT_CLASS
   void  *_dummy3;
 }
 
+/**
+ * Returns the current calendar.
+ */
 + (id) currentCalendar;
+
+/**
+ * Create a calendar with the given string as identifier.
+ */
 + (id) calendarWithIdentifier: (NSString *) string;
 
+/**
+ * Instantiate a calendar with the given string as identifier.
+ */
 - (id) initWithCalendarIdentifier: (NSString *) string;
+
+/**
+ * Returns the calendar identifier for the receiver.
+ */
 - (NSString *) calendarIdentifier;
 
+/**
+ * Returns the calendar units specified by unitFlags for the given date object.
+ */
 - (NSDateComponents *) components: (NSUInteger) unitFlags
                          fromDate: (NSDate *) date;
 /**
@@ -298,32 +315,94 @@ GS_EXPORT_CLASS
                          fromDate: (NSDate *) startingDate
                            toDate: (NSDate *) resultDate
                           options: (NSUInteger) opts;
+
+/**
+ * Returns a date object created by adding the NSDateComponents in comps to
+ * to object date with the options specified by opts.
+ */
 - (NSDate *) dateByAddingComponents: (NSDateComponents *) comps
                              toDate: (NSDate *) date
                             options: (NSUInteger) opts;
+
+/**
+ * Creates an NSDate from NSDateComponents in comps.
+ */
 - (NSDate *) dateFromComponents: (NSDateComponents *) comps;
 
+/**
+ * Returns the locale of the receiver.
+ */
 - (NSLocale *) locale;
+
+/**
+ * Sets the locale of the receiver.
+ */
 - (void)setLocale: (NSLocale *) locale;
+
+/**
+ * Returns the integer value of the first weekday (0-6).
+ */
 - (NSUInteger) firstWeekday;
+
+/**
+ * Set the integer first weekday of the week (0-6).
+ */
 - (void) setFirstWeekday: (NSUInteger) weekday;
+
+/**
+ * Returns the minimum number of days in the first week of the receiver.
+ */
 - (NSUInteger) minimumDaysInFirstWeek;
+
+/**
+ * Sets the minimum number of days in the first week of the receiver.
+ */
 - (void) setMinimumDaysInFirstWeek: (NSUInteger) mdw;
+
+/**
+ * Returns the NSTimeZone associated with the receiver.
+ */
 - (NSTimeZone *) timeZone;
+
+/**
+ * Sets tz as the current NSTimeZone of the receiver.
+ */
 - (void) setTimeZone: (NSTimeZone *) tz;
 
+/**
+ * Returns the maximum range of unit.
+ */
 - (NSRange) maximumRangeOfUnit: (NSCalendarUnit) unit;
+
+/**
+ * Returns the minimum range of unit.
+ */
 - (NSRange) minimumRangeofUnit: (NSCalendarUnit) unit;
+
+/**
+ * Returns the ordinality of unit smaller within the
+ * unit larger with the given date.
+ */
 - (NSUInteger) ordinalityOfUnit: (NSCalendarUnit) smaller
                          inUnit: (NSCalendarUnit) larger
                         forDate: (NSDate *) date;
+
+/**
+ * Returns the range of unit smaller in larger in date.
+ */
 - (NSRange) rangeOfUnit: (NSCalendarUnit) smaller
                  inUnit: (NSCalendarUnit) larger
                 forDate: (NSDate *) date;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+/**
+ * A calendar that tracks changes to the user's calendar.
+ */
 + (id) autoupdatingCurrentCalendar;
 
+/**
+ * Returns by referene the started time and duration of a given unit containing the given date.
+ */ 
 - (BOOL) rangeOfUnit: (NSCalendarUnit) unit
            startDate: (NSDate **) datep
             interval: (NSTimeInterval *)tip
@@ -331,24 +410,36 @@ GS_EXPORT_CLASS
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+/**
+ * Returns by reference the era, year, month, and day from the given date.
+ */
 - (void) getEra: (NSInteger *)eraValuePointer
            year: (NSInteger *)yearValuePointer
           month: (NSInteger *)monthValuePointer
             day: (NSInteger *)dayValuePointer
        fromDate: (NSDate *)date;
 
+/**
+ * Returns by reference the hour, minute, second, and nanosecond from the given date.
+ */
 - (void) getHour: (NSInteger *)hourValuePointer
           minute: (NSInteger *)minuteValuePointer
           second: (NSInteger *)secondValuePointer
       nanosecond: (NSInteger *)nanosecondValuePointer
         fromDate: (NSDate *)date;
 
+/**
+ * Returns by reference the era, year, week of year, and weekday from the given date.
+ */
 - (void) getEra: (NSInteger *)eraValuePointer 
 yearForWeekOfYear: (NSInteger *)yearValuePointer 
      weekOfYear: (NSInteger *)weekValuePointer 
         weekday: (NSInteger *)weekdayValuePointer 
        fromDate: (NSDate *)date;
 
+/**
+ * Returns the integer value of the specified unit from the given date.
+ */
 - (NSInteger) component: (NSCalendarUnit)unit 
                fromDate: (NSDate *)date;
 #endif
