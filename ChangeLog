@@ -1,3 +1,12 @@
+2022-04-06 Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSCalendar.h: Add documentation.
+	* Source/NSCalendar.m: Implement getEra:... and getHour:...
+        methods based on Keysight/TestPlant changes
+	* Tests/base/NSCalendar/basic.m: Minor cleanup.
+	* Tests/base/NSCalendar/component-diff.m: Add tests for
+        methods implemented above.
+
 2022-03-07 Gregory John Casamento <greg.casamento@gmail.com>
 
         * Headers/Foundation/NSIndexPath.h: Add declarations for new

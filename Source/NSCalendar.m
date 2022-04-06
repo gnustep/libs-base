@@ -337,6 +337,65 @@ static NSRecursiveLock *classLock = nil;
   return my->identifier;
 }
 
+- (NSInteger) component: (NSCalendarUnit)unit 
+               fromDate: (NSDate *)date
+{
+  NSDateComponents *comps = [self components: unit
+                                    fromDate: date];
+  NSInteger val = 0;
+
+  switch (unit)
+    {
+    case NSCalendarUnitEra:
+      val = [comps era];
+      break;
+    case NSCalendarUnitYear:
+      val = [comps year];
+      break;
+    case NSCalendarUnitMonth:
+      val = [comps month];
+      break;
+    case NSCalendarUnitDay:
+      val = [comps day];
+      break;
+    case NSCalendarUnitHour:
+      val = [comps hour];
+      break;
+    case NSCalendarUnitMinute:
+      val = [comps minute];
+      break;
+    case NSCalendarUnitSecond:
+      val = [comps second];
+      break;
+    case NSCalendarUnitWeekday:
+      val = [comps weekday];
+      break;
+    case NSCalendarUnitWeekdayOrdinal:
+      val = [comps weekdayOrdinal];
+      break;
+    case NSCalendarUnitQuarter:
+      val = [comps quarter];
+      break;
+    case NSCalendarUnitWeekOfMonth: 
+      val = [comps weekOfMonth];
+      break;
+    case NSCalendarUnitWeekOfYear: 
+      val = [comps weekOfYear];
+      break;
+    case NSCalendarUnitYearForWeekOfYear:
+      val = [comps yearForWeekOfYear];
+      break;
+    case NSCalendarUnitNanosecond:
+      val = [comps nanosecond];
+      break;
+    case NSCalendarUnitCalendar:
+    case NSCalendarUnitTimeZone:
+      // in these cases do nothing since they are undefined.
+      break;
+    }
+
+  return val;
+}
 
 - (NSDateComponents *) components: (NSUInteger) unitFlags
                          fromDate: (NSDate *) date
@@ -845,6 +904,91 @@ do \
     }
 
   return NO;
+#endif
+}
+
+
+- (void) getEra: (NSInteger *)eraValuePointer
+           year: (NSInteger *)yearValuePointer
+          month: (NSInteger *)monthValuePointer
+            day: (NSInteger *)dayValuePointer
+       fromDate: (NSDate *)date
+{
+#if GS_USE_ICU == 1
+  UErrorCode err = U_ZERO_ERROR;
+  UDate udate;
+  [self _resetCalendar];
+  ucal_clear (my->cal);
+  
+  udate = (UDate)floor([date timeIntervalSince1970] * 1000.0);
+  ucal_setMillis (my->cal, udate, &err);
+  if (U_FAILURE(err))
+    return;
+  
+  if (eraValuePointer != NULL)
+    *eraValuePointer = ucal_get(my->cal, UCAL_ERA, &err);
+  if (yearValuePointer != NULL)
+    *yearValuePointer = ucal_get(my->cal, UCAL_YEAR, &err);
+  if (monthValuePointer != NULL)
+    *monthValuePointer = ucal_get(my->cal, UCAL_MONTH, &err) + 1;
+  if (dayValuePointer != NULL)
+    *dayValuePointer = ucal_get(my->cal, UCAL_DAY_OF_MONTH, &err);
+#endif
+}
+
+- (void) getHour: (NSInteger *)hourValuePointer
+          minute: (NSInteger *)minuteValuePointer
+          second: (NSInteger *)secondValuePointer
+      nanosecond: (NSInteger *)nanosecondValuePointer
+        fromDate: (NSDate *)date
+{ 
+#if GS_USE_ICU == 1
+  UErrorCode err = U_ZERO_ERROR;
+  UDate udate;
+  [self _resetCalendar];
+  ucal_clear (my->cal);
+
+  udate = (UDate)floor([date timeIntervalSince1970] * 1000.0);
+  ucal_setMillis (my->cal, udate, &err);
+  if (U_FAILURE(err))
+    return;
+	
+  if (hourValuePointer != NULL)
+    *hourValuePointer = ucal_get(my->cal, UCAL_HOUR_OF_DAY, &err);
+  if (minuteValuePointer != NULL)
+    *minuteValuePointer = ucal_get(my->cal, UCAL_MINUTE, &err);
+  if (secondValuePointer != NULL)
+    *secondValuePointer = ucal_get(my->cal, UCAL_SECOND, &err);
+  if (nanosecondValuePointer != NULL)
+    *nanosecondValuePointer = ucal_get(my->cal, UCAL_MILLISECOND, &err) * 1000;
+#endif
+}
+
+- (void) getEra: (NSInteger *)eraValuePointer 
+yearForWeekOfYear: (NSInteger *)yearValuePointer 
+     weekOfYear: (NSInteger *)weekValuePointer 
+        weekday: (NSInteger *)weekdayValuePointer 
+       fromDate: (NSDate *)date
+{
+#if GS_USE_ICU == 1
+  UErrorCode err = U_ZERO_ERROR;
+  UDate udate;
+  [self _resetCalendar];
+  ucal_clear (my->cal);
+
+  udate = (UDate)floor([date timeIntervalSince1970] * 1000.0);
+  ucal_setMillis (my->cal, udate, &err);
+  if (U_FAILURE(err))
+    return;
+	
+  if (eraValuePointer != NULL)
+    *eraValuePointer = ucal_get(my->cal, UCAL_ERA, &err);
+  if (yearValuePointer != NULL)
+    *yearValuePointer = ucal_get(my->cal, UCAL_YEAR_WOY, &err);
+  if (weekValuePointer != NULL)
+    *weekValuePointer = ucal_get(my->cal, UCAL_WEEK_OF_YEAR, &err);
+  if (weekdayValuePointer != NULL)
+    *weekdayValuePointer = ucal_get(my->cal, UCAL_DAY_OF_WEEK, &err);
 #endif
 }
 

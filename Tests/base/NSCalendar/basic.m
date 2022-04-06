@@ -54,7 +54,6 @@ int main()
   PASS([testObj minimumDaysInFirstWeek] == 10,
     "-setMinimumDaysInFirstWeek: can set ten");
 
-
   END_SET("NSCalendar basic")
   return 0;
 }
