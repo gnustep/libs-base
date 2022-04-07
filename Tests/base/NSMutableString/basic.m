@@ -156,6 +156,29 @@ int main()
                              range: NSMakeRange(0, [str1 length])];
   PASS_EQUAL(str1, @"The quick brown fox", "replace entire string works")
 
+  /* Test for normalisation of combining characters.  The literal here has
+   * a space combined with multiple repeated combining-tilde characters,
+   * and that needs to match a single space plus combining tilde.
+   */
+  {
+    NSString	*text; 
+    NSString	*find;
+    NSString	*str;
+    NSRange	r;
+    unichar	u;
+
+    text = [NSString stringWithUTF8String: "Text Message ̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃̃"];
+
+    find = [NSString stringWithUTF8String: " ̃"];
+
+    r = [text rangeOfString: find];
+    PASS(12 == r.location, "find combining-tilde")
+
+    str = [text stringByReplacingOccurrencesOfString: find
+					  withString: @""];
+    PASS_EQUAL(str, @"Text Message", "remove combining-tilde")
+  }
+
   [testObj release];
   [arp release]; arp = nil; 
   return 0;
