@@ -1,3 +1,9 @@
+2022-04-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSeq.h: Fix normalisation to handle the case where combining
+	diacriticals are repeated in a composed character sequence.  Those
+	repeats need to be reduced to a single instance.
+
 2022-04-06 Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSCalendar.h: Add documentation.
