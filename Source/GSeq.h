@@ -190,12 +190,30 @@ static inline void GSeq_normalize(GSeq seq)
 				   *second = tmp;
 				   notdone = YES;
 				}
+			      else if (*first == *second)
+				{
+				  unichar	*end = seq->chars + count;
+
+				  while (*first == *second && second < end)
+				    {
+				      second++;
+				      count--;
+				    }
+				  first++;
+				  while (second < end)
+				    {
+				      *first++ = *second++;
+				    }
+				  notdone = YES;
+				  break;
+				}
 			    }
 			}
 		      first++;
 		      second++;
 		    }
 		}
+	      seq->count = count;
 	    }
 	}
       seq->normalized = YES;
