@@ -2037,9 +2037,17 @@ static NSLock	*cached_proxies_gate = nil;
 	  [node->value.obj decodeValueOfObjCType: @encode(BOOL)
 					      at: &is_exception];
 	  if (is_exception == YES)
-	    NSLog(@"Got exception with %s", name);
+	    {
+	      /* Decode the exception object, and log it. */
+	      id exc = [node->value.obj decodeObject];
+
+	      NSLog(@"%@ got exception from oneway method %s - %@",
+		self, name, exc);
+	    }
 	  else
-	    NSLog(@"Got response with %s", name);
+	    {
+	      NSLog(@"%@ got response from oneway method %s", self, name);
+	    }
 	  [self _doneInRmc: node->value.obj];
 	}
       GSIMapRemoveKey(IreplyMap, (GSIMapKey)(NSUInteger)seq);

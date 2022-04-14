@@ -1,3 +1,9 @@
+2022-04-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConnection.m: If we get an exception in a packet from a
+	remote system to which we sent a oneway void message, decode the
+	exception and report it.
+
 2022-04-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSeq.h: Fix normalisation to handle the case where combining
