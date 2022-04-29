@@ -116,7 +116,6 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) dealloc
 {
-  RELEASE(internal->_userInfo);
   RELEASE(internal->_fileOperationKind);
   RELEASE(internal->_kind);
   RELEASE(internal->_estimatedTimeRemaining);
@@ -343,6 +342,11 @@ static NSMutableDictionary *__subscribers = nil;
                    forKey: (NSProgressUserInfoKey)key
 {
   [internal->_userInfo setObject: obj forKey: key];
+}
+
+- (GS_GENERIC_CLASS(NSDictionary,NSProgressUserInfoKey,id) *)userInfo
+{
+  return AUTORELEASE([internal->_userInfo copy]);
 }
 
 // Instance property accessors...
