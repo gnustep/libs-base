@@ -6,10 +6,16 @@
 int main()
 {
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
-  NSDictionary *dict = [NSDictionary dictionary];
+  NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+  [dict setObject:@"value" forKey:@"key"];
   NSProgress *progress = [[NSProgress alloc] initWithParent: nil
                                                    userInfo: dict];
   PASS(progress != nil, "[NSProgress initWithParent:userInfo:] returns instance");
+  
+  PASS_EQUAL([progress userInfo], dict, @"[NSProgress userInfo] returns correct user info");
+  
+  [progress setUserInfoObject:@"new value" forKey:@"key"];
+  PASS_EQUAL([[progress userInfo] objectForKey:@"key"], @"new value", @"[NSProgress setUserInfoObject:forKey:] updates user info");
   
   progress = [NSProgress discreteProgressWithTotalUnitCount:100];
   PASS(progress != nil, "[NSProgress discreteProgressWithTotalUnitCount:] returns instance");

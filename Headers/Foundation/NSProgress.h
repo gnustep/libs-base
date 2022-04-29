@@ -118,6 +118,7 @@ GS_NSProgress_IVARS;
 - (void) setKind: (NSProgressKind)k;
 - (void) setUserInfoObject: (id)obj
                     forKey: (NSProgressUserInfoKey)key;
+- (GS_GENERIC_CLASS(NSDictionary,NSProgressUserInfoKey,id) *)userInfo;
 
 // Instance property accessors...
 - (void) setFileOperationKind: (NSProgressFileOperationKind)k;
