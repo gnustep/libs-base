@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 @class GS_GENERIC_CLASS(NSArray, ElementT);
-@class GS_GENERIC_CLASS(NSDictionary, KeyT, ValT);
+@class GS_GENERIC_CLASS(NSDictionary, KeyT:id<NSCopying>, ValT);
 @class NSString, NSNumber, NSURL, NSProgress;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
