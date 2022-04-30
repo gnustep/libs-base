@@ -27,6 +27,7 @@
 
 #import	<GNUstepBase/GSVersionMacros.h>
 #import	<Foundation/NSObject.h>
+#import <Foundation/NSString.h>
 #import <GNUstepBase/GSBlocks.h>
 
 #if	defined(__cplusplus)
@@ -35,7 +36,7 @@ extern "C" {
 
 @class GS_GENERIC_CLASS(NSArray, ElementT);
 @class GS_GENERIC_CLASS(NSDictionary, KeyT:id<NSCopying>, ValT);
-@class NSString, NSNumber, NSURL, NSProgress;
+@class NSNumber, NSURL, NSProgress;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
 
