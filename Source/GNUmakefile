@@ -358,7 +358,9 @@ NSXMLParser.m \
 NSXPCConnection.m \
 NSZone.m \
 externs.m \
-objc-load.m 
+objc-load.m \
+	GSMDNSNetServices.m \
+	NSNetServices.m
 
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   ifneq ($(GNUSTEP_TARGET_OS), mingw64)

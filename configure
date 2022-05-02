@@ -13284,6 +13284,8 @@ fi
   fi
 fi
 
+# DHV - Hack to get things to link. (in my particular use case)
+LIBS="-ldnssd $LIBS"
 
 #--------------------------------------------------------------------
 # Check for International Components for Unicode
