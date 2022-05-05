@@ -100,6 +100,7 @@ GS_EXPORT_CLASS
 #if	GS_EXPOSE(NSUserNotificationCenter)
   NSMutableArray *_scheduledNotifications;
   NSMutableArray *_deliveredNotifications;
+  id <NSUserNotificationCenterDelegate> _delegate;
 #endif
 }
 
@@ -110,6 +111,7 @@ GS_EXPORT_CLASS
 
 - (void) scheduleNotification: (NSUserNotification *)notification;
 - (void) removeScheduledNotification: (NSUserNotification *)notification;
+- (void) setDelegate: (id)delegate;
 
 @property (readonly) NSArray *deliveredNotifications;
 

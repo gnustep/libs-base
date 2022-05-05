@@ -188,6 +188,13 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
   [_scheduledNotifications removeObject: un];
 }
 
+- (void) setDelegate: (id)delegate
+{
+  if (_delegate) 
+    [_delegate release];
+  _delegate = [delegate retain];
+}
+
 - (void) _deliverNotification: (NSUserNotification *)un
 {
   [un setPresented: YES];
