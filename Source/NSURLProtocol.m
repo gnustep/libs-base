@@ -47,6 +47,11 @@
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSURL+GNUstepBase.h"
 
+@interface GSMimeHeader (HTTPRequest)
+- (void) addToBuffer: (NSMutableData*)buf
+             masking: (NSMutableData**)masked;
+@end
+
 /* Define to 1 for experimental (net yet working) compression support
  */
 #ifdef	USE_ZLIB
@@ -355,8 +360,9 @@ static NSLock		*pairLock = nil;
   float			_version;	// The HTTP version in use.
   int			_statusCode;	// The HTTP status code returned.
   NSInputStream		*_body;		// for sending the body
-  unsigned		_writeOffset;	// Request data to write
-  NSData		*_writeData;	// Request bytes written so far
+  unsigned		_writeOffset;	// Request bytes written so far
+  NSData		*_writeData;	// Request data to write
+  NSData		*_masked;	// Request masked data
   BOOL			_complete;
   BOOL			_debug;
   BOOL			_isLoading;
@@ -780,6 +786,8 @@ typedef struct {
   [_body release];			// for sending the body
   [_response release];
   [_credential release];
+  DESTROY(_writeData);
+  DESTROY(_masked);
   [super dealloc];
 }
 
@@ -1002,6 +1010,7 @@ typedef struct {
     }
   _isLoading = NO;
   DESTROY(_writeData);
+  DESTROY(_masked);
   if (this->input != nil)
     {
       [this->input setDelegate: nil];
@@ -1533,17 +1542,24 @@ typedef struct {
 	    {
 	      if (_debug)
 		{
-		  if (NO == [_logDelegate putBytes: bytes + _writeOffset
+		  const unsigned char   *b = [_masked bytes];
+
+		  if (NULL == b)
+		    {
+		      b = bytes;
+		    }
+		  if (NO == [_logDelegate putBytes: b + _writeOffset
 					  ofLength: written
 					  byHandle: self])
 		    {
-		      debugWrite(self, written, bytes + _writeOffset);
+		      debugWrite(self, written, b + _writeOffset);
 		    }
 		}
 	      _writeOffset += written;
 	      if (_writeOffset >= len)
 		{
 		  DESTROY(_writeData);
+		  DESTROY(_masked);
 		  if (_body == nil)
 		    {
 		      _body = RETAIN([this->request HTTPBodyStream]);
@@ -1710,6 +1726,7 @@ typedef struct {
 	  case NSStreamEventOpenCompleted: 
 	    {
 	      NSMutableData	*m;
+	      NSMutableData	*mm = nil;
 	      NSDictionary	*d;
 	      NSEnumerator	*e;
 	      NSString		*s;
@@ -1733,6 +1750,7 @@ typedef struct {
                 [stream propertyForKey: GSStreamRemoteAddressKey],
                 [stream propertyForKey: GSStreamRemotePortKey]];
 	      DESTROY(_writeData);
+	      DESTROY(_masked);
 	      _writeOffset = 0;
 	      if ([this->request HTTPBodyStream] == nil)
 	        {
@@ -1783,8 +1801,14 @@ typedef struct {
                   h = [[GSMimeHeader alloc] initWithName: s
                                                    value: [d objectForKey: s]
                                               parameters: nil];
-                  [m appendData:
-                    [h rawMimeDataPreservingCase: YES foldedAt: 0]];
+		  if (_debug || mm)
+		    {
+		      [h addToBuffer: m masking: &mm];
+		    }
+		  else
+		    {
+		      [h addToBuffer: m masking: NULL];
+		    }
                   RELEASE(h);
 		}
 
@@ -1839,7 +1863,8 @@ typedef struct {
                   [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
 		}
 	      [m appendBytes: "\r\n" length: 2];	// End of headers
-	      _writeData  = m;
+	      _writeData = m;
+	      ASSIGN(_masked, mm);
 	    }			// Fall through to do the write
 
 	  case NSStreamEventHasSpaceAvailable: 

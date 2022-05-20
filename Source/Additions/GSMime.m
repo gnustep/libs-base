@@ -3512,6 +3512,97 @@ static NSCharacterSet	*tokenSet = nil;
   return [self makeToken: t preservingCase: NO];
 }
 
+/* Used to put headers in the HTTP requests we generate.
+ * If masked is non-NULL then the data object it points to is modified to
+ * make it a version of the request with authenticiation hidden (for debug
+ * logging). If the receiver is an authentication header and masked is not
+ * NULL but points to a nil object, an autoreleased mutable data object is
+ * created to hold the debug information.
+ */
+- (void) addToBuffer: (NSMutableData*)buf
+	     masking: (NSMutableData**)masked
+{
+  NSUInteger	pos = [buf length];
+  BOOL		maskThis = NO;
+
+  if (masked)
+    {
+      NSString	*n = [self name];
+
+      if ([n isEqualToString: @"authorization"])
+	{
+	  NSUInteger	len = [*masked length];
+
+	  maskThis = YES;
+	  if (0 == len)
+	    {
+	      *masked = AUTORELEASE([buf mutableCopy]);
+	    }
+	  else if (len < pos)
+	    {
+	      [*masked appendBytes: [buf bytes] + len
+			    length: pos - len];
+	    }
+	}
+    }
+  [buf appendData: [self rawMimeDataPreservingCase: YES foldedAt: 0]];
+  if (masked && *masked)
+    {
+      NSUInteger	len = [buf length];
+      const uint8_t	*from = [buf bytes];
+
+      if (maskThis)
+	{
+	  uint8_t   *to;
+	  uint8_t   c;
+
+	  [*masked setLength: len];
+	  to = [*masked mutableBytes];
+	  memcpy(to + pos, from + pos, 14);	// Authorization:
+	  pos += 14;
+
+	  /* Show spaces before scheme
+	   */
+	  while (pos < len && isspace((c = from[pos])))
+	    {
+	      to[pos++] = c;
+	    }
+
+	  /* Show authorisation scheme
+	   */
+	  while (pos < len && ((c = from[pos]) == '-' || isalnum(c)))
+	    {
+	      to[pos++] = c;
+	    }
+
+	  /* Show spaces after scheme
+	   */
+	  while (pos < len && isspace((c = from[pos])))
+	    {
+	      to[pos++] = c;
+	    }
+
+	  /* Mask out everything apart from line wrapping/termination.
+	   */
+	  while (pos < len)
+	    {
+	      uint8_t	c = from[pos];
+
+	      if (c != '\n' && c != '\r' && c != '\t')
+		{
+		  c = '*';
+		}
+	      to[pos++] = c;
+	    }
+	}
+      else
+	{
+	  [*masked appendBytes: from + pos
+		        length: len - pos];
+	}
+    }
+}
+
 - (id) copyWithZone: (NSZone*)z
 {
   GSMimeHeader	*c;
@@ -3542,18 +3633,68 @@ static NSCharacterSet	*tokenSet = nil;
 
 - (NSString*) description
 {
-  NSString	*desc;
+  NSString	*desc = [super description];
+  NSString	*n = [self name];
+  NSString	*v = [self value];
   NSDictionary  *p = [self parameters];
 
-  if ([p count] > 0)
+  if ([n isEqualToString: @"authorization"])
     {
-      desc = [NSString stringWithFormat: @"%@ %@: %@ params: %@",
-        [super description], [self name], [self value], p];
+      NSRange	r = [v rangeOfCharacterFromSet: whitespace];
+      NSString	*scheme;
+
+      if (r.length > 0)
+	{
+	  scheme = [v substringToIndex: r.location];
+	  v = [v substringFromIndex: NSMaxRange(r)];
+	}
+      else
+	{
+	  scheme = v;
+	  v = @"";
+	}
+      if ([p count] > 0)
+	{
+	  if ([scheme caseInsensitiveCompare: @"digest"] == NSOrderedSame)
+	    {
+	      NSMutableDictionary	*m = AUTORELEASE([p mutableCopy]);
+
+	      /* For a digest, it's good for debug to be able to see the
+	       * digest parameters.  Only the 'response' is sensitive.
+	       */
+	      [m setObject: @"masked" forKey: @"response"];
+	      v = [v stringByTrimmingSpaces];
+	      if ([v length] > 0)
+		{
+		  v = @"value-masked";
+		}
+	      desc = [NSString stringWithFormat: @"%@ %@: %@ params: %@",
+		desc, n, v, m];
+	    }
+	  else
+	    {
+	      desc = [NSString stringWithFormat: @"%@ %@: value-masked",
+		desc, n];
+	    }
+	}
+      else
+	{
+	  desc = [NSString stringWithFormat: @"%@ %@: value-masked",
+	    desc, n];
+	}
     }
   else
     {
-      desc = [NSString stringWithFormat: @"%@ %@: %@",
-        [super description], [self name], [self value]];
+      if ([p count] > 0)
+	{
+	  desc = [NSString stringWithFormat: @"%@ %@: %@ params: %@",
+	    desc, n, v, p];
+	}
+      else
+	{
+	  desc = [NSString stringWithFormat: @"%@ %@: %@",
+	    desc, n, v];
+	}
     }
   return desc;
 }
@@ -4566,7 +4707,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 /**
  * Returns the value of this header (excluding any parameters).<br />
- * Use the -fullValue m,ethod if you want parameter included.
+ * Use the -fullValue method if you want parameter included.
  */
 - (NSString*) value
 {

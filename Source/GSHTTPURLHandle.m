@@ -65,6 +65,11 @@
 #  include <sys/socket.h>		// For MSG_PEEK, etc
 #endif
 
+@interface GSMimeHeader (HTTPRequest)
+- (void) addToBuffer: (NSMutableData*)buf
+             masking: (NSMutableData**)masked;
+@end
+
 /*
  * Implement map keys for strings with case insensitive comparisons,
  * so we can have case insensitive matching of http headers (correct
@@ -427,6 +432,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSString              *key;
   NSString		*val;
   NSMutableData		*buf;
+  NSMutableData		*masked = nil;
   NSString		*version;
   NSMapEnumerator       enumerator;
 
@@ -574,7 +580,14 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       GSMimeHeader      *h;
 
       h = [[GSMimeHeader alloc] initWithName: key value: val parameters: nil];
-      [buf appendData: [h rawMimeDataPreservingCase: YES foldedAt: 0]];
+      if (debug || masked)
+	{
+	  [h addToBuffer: buf masking: &masked];
+  	}
+      else
+	{
+	  [h addToBuffer: buf masking: NULL];
+	}
       RELEASE(h);
     }
   NSEndMapTableEnumeration(&enumerator);
@@ -603,11 +616,15 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
    */
   if (debug)
     {
-      if (NO == [ioDelegate putBytes: [buf bytes]
-                            ofLength: [buf length]
+      if (nil == masked)
+	{
+	  masked = buf;		// Just log unmasked data
+	}
+      if (NO == [ioDelegate putBytes: [masked bytes]
+                            ofLength: [masked length]
                             byHandle: self])
         {
-          debugWrite(self, buf);
+          debugWrite(self, masked);
         }
     }
   [sock writeInBackgroundAndNotify: buf];

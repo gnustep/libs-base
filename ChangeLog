@@ -1,3 +1,14 @@
+2022-05-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	Changes to remove sensitive information from debug logs.
+	* Source/Additions/GSMime.m: Mask out sensitive information in the
+	-description method of the Authorization header.  Add method to do
+	similar masking for debug output of HTTP requests.
+	* Source/GSHTTPURLHandle.m: Use new method to mask Authorization
+	header value in debug log of outgoing requests.
+	* Source/NSURLProtocol.m: Use new method to mask Authorization
+	header value in debug log of outgoing requests.
+
 2022-04-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSConnection.m: If we get an exception in a packet from a
