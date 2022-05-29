@@ -16,6 +16,8 @@ higher.
    * icu (HIGHLY RECOMMENDED)
    * gnutls (HIGHLY RECOMMENDED)
    * libxml2 (RECOMMENDED)
+   * libcurl (RECOMMENDED)
+   * libdispatch (RECOMMENDED)
    * libxslt (OPTIONAL)
    * iconv (OPTIONAL, not needed if you have glibc)
    * openssl (OPTIONAL, not needed if you have gnutls)
