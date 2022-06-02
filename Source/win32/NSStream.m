@@ -246,20 +246,6 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
   return result;
 }
 
-BOOL ResolveProxy_old(NSString * url, WINHTTP_PROXY_INFO * proxyInfo)
-{
-  BOOL success = false;
-  HINTERNET hHttpSession = NULL;
-
-/*
-            OptPAC.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
-            OptPAC.lpszAutoConfigUrl = ProxyConfig.lpszAutoConfigUrl;
-            OptPAC.dwAutoDetectFlags = 0;
-            OptPAC.fAutoLogonIfChallenged = TRUE;
-            OptPAC.lpvReserved = 0;
-            OptPAC.dwReserved = 0;
-*/
-
   ZeroMemory(proxyInfo, sizeof(*proxyInfo));
 
   WINHTTP_AUTOPROXY_OPTIONS AutoProxyOptions;
