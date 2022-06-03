@@ -35,6 +35,7 @@
 #import "Foundation/NSHost.h"
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSByteOrder.h"
+#import "Foundation/NSRegularExpression.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "../GSPrivate.h"
