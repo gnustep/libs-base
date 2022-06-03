@@ -41,17 +41,276 @@
 #import "../GSStream.h"
 #import "../GSSocketStream.h"
 
-#define	BUFFERSIZE	(BUFSIZ*64)
+#define    BUFFERSIZE    (BUFSIZ*64)
+
+void PrintLastError(NSString * f) {
+  DWORD lastError = GetLastError();
+  switch (lastError) {
+    case ERROR_WINHTTP_AUTO_PROXY_SERVICE_ERROR:
+      NSLog(@"%@: (%d) Returned by WinHttpGetProxyForUrl when a proxy for the specified URL cannot be located.", f, lastError);
+      break;
+    case ERROR_WINHTTP_BAD_AUTO_PROXY_SCRIPT:
+      NSLog(@"%@: (%d) An error occurred executing the script code in the Proxy Auto-Configuration (PAC) file.", f, lastError);
+      break;
+    case ERROR_WINHTTP_INCORRECT_HANDLE_TYPE:
+      NSLog(@"%@: (%d) The type of handle supplied is incorrect for this operation.", f, lastError);
+      break;
+    case ERROR_WINHTTP_INTERNAL_ERROR:
+      NSLog(@"%@: (%d) An internal error has occurred.", f, lastError);
+      break;
+    case ERROR_WINHTTP_INVALID_URL:
+      NSLog(@"%@: (%d) The URL is invalid.", f, lastError);
+      break;
+    case ERROR_WINHTTP_LOGIN_FAILURE:
+      NSLog(@"%@: (%d) The login attempt failed. When this error is encountered, close the request handle with WinHttpCloseHandle. A new request handle must be created before retrying the function that originally produced this error.", f, lastError);
+      break;
+    case ERROR_WINHTTP_OPERATION_CANCELLED:
+      NSLog(@"%@: (%d) The operation was canceled, usually because the handle on which the request was operating was closed before the operation completed.", f, lastError);
+      break;
+    case ERROR_WINHTTP_UNABLE_TO_DOWNLOAD_SCRIPT:
+      NSLog(@"%@: (%d) The PAC file could not be downloaded. For example, the server referenced by the PAC URL may not have been reachable, or the server returned a 404 NOT FOUND response.", f, lastError);
+      break;
+    case ERROR_WINHTTP_UNRECOGNIZED_SCHEME:
+        NSLog(@"%@: (%d) The URL of the PAC file specified a scheme other than \"http:\" or \"https:\".", f, lastError);
+        break;
+    case ERROR_NOT_ENOUGH_MEMORY:
+        NSLog(@"%@: (%d) ERROR_NOT_ENOUGH_MEMORY", f, lastError);
+        break;
+    case (ERROR_WINHTTP_AUTODETECTION_FAILED):
+      NSLog(@"%@: (%d) Returned WinHTTP was unable to discover the URL of the Proxy Auto-Configuration (PAC) file", f, lastError);
+      break;
+    default:
+      NSLog(@"%@: (%d) Unknown Error.", f, lastError);
+      break;
+  }
+}
+
+NSString * normalizeUrl(NSString * url)
+{
+  if (!url) return nil;
+  if ([url caseInsensitiveCompare:@""] == NSOrderedSame) return @"";
+
+  BOOL prepend = YES;
+  NSString * urlFront = nil;
+    
+  if ([url length] >= 7) 
+    {
+      // Check that url begins with http://
+      urlFront = [url substringToIndex:7];
+      if ([urlFront caseInsensitiveCompare:@"http://"] == NSOrderedSame) 
+        {
+          prepend = NO;
+        }
+    }
+  if ([url length] >= 8) 
+    {
+      // Check that url begins with https://
+      urlFront = [url substringToIndex:8];
+      if ([urlFront caseInsensitiveCompare:@"https://"] == NSOrderedSame) 
+        {
+          prepend = NO;
+        }
+    }
+
+  // If http[s]:// is omited, slap it on.
+  if (prepend) 
+    {
+      return [NSString stringWithFormat:@"http://%@", url];
+    }
+  else 
+    {
+      return url;
+    }
+}
+
+BOOL isIpAddr(NSString * _str) {
+    
+    // eg: 192.168.0.1
+    NSString * isV4RegEx = @"^\\d{1,3}.\\d{1,3}.\\d{1,3}.\\d{1,3}$";
+    // eg: 2001:db8:3333:4444:CCCC:DDDD:EEEE:FFFF
+    NSString * isV6RegEx = @"^\\w{4}:\\w{3}:\\w{4}:\\w{4}:\\w{4}:\\w{4}:\\w{4}:\\w{4}$";
+    
+    NSError * error = nil;
+    NSRegularExpression * v4Regex = [NSRegularExpression regularExpressionWithPattern:isV4RegEx options:0 error:&error];
+    NSTextCheckingResult * v4Result = [v4Regex firstMatchInString:_str options:0 range:NSMakeRange(0, [_str length])];
+    NSRegularExpression * v6Regex = [NSRegularExpression regularExpressionWithPattern:isV6RegEx options:0 error:&error];
+    NSTextCheckingResult * v6Result = [v6Regex firstMatchInString:_str options:0 range:NSMakeRange(0, [_str length])];
+    return (v4Result || v6Result) ? YES : NO;
+}
+
+BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultProxyConfig)
+{
+  NSString * dstUrlString = [NSString stringWithFormat: @"http://%@", url];
+  const wchar_t *DestURL = (wchar_t*)[dstUrlString cStringUsingEncoding: NSUTF16StringEncoding];
+
+  WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ProxyConfig;
+  WINHTTP_PROXY_INFO ProxyInfo, ProxyInfoTemp;
+  WINHTTP_AUTOPROXY_OPTIONS OptPAC;
+  DWORD dwOptions = SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID | SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
+
+  ZeroMemory(&ProxyInfo, sizeof(ProxyInfo));
+  ZeroMemory(&ProxyConfig, sizeof(ProxyConfig));
+  ZeroMemory(resultProxyConfig, sizeof(*resultProxyConfig));
+
+  BOOL result = false;
+  BOOL autoConfigWorked = false;
+  BOOL autoDetectWorked = false;
+
+  HINTERNET http_local_session = WinHttpOpen(L"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)", WINHTTP_ACCESS_TYPE_NO_PROXY, 0, WINHTTP_NO_PROXY_BYPASS, 0);
+
+    if (http_local_session && WinHttpGetIEProxyConfigForCurrentUser(&ProxyConfig)) 
+      {
+        NSLog(@"Got proxy config for current user.");
+        if (ProxyConfig.lpszProxy) 
+          {
+            ProxyInfo.lpszProxy = ProxyConfig.lpszProxy;
+            ProxyInfo.dwAccessType = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
+            ProxyInfo.lpszProxyBypass = NULL;
+          }
+    
+        memcpy(resultProxyConfig, &ProxyConfig, sizeof(*resultProxyConfig));
+
+        if (ProxyConfig.lpszAutoConfigUrl) 
+          {
+            size_t len = wcslen(ProxyConfig.lpszAutoConfigUrl);
+            NSString * autoConfigUrl = [[NSString alloc] initWithBytes: ProxyConfig.lpszAutoConfigUrl length:len*2 encoding:NSUTF16StringEncoding];
+            NSLog(@"trying script proxy pac file: %@.", autoConfigUrl);
+
+            // Script proxy pac
+            OptPAC.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
+            OptPAC.lpszAutoConfigUrl = ProxyConfig.lpszAutoConfigUrl;
+            OptPAC.dwAutoDetectFlags = 0;
+            OptPAC.fAutoLogonIfChallenged = TRUE;
+            OptPAC.lpvReserved = 0;
+            OptPAC.dwReserved = 0;
+
+            if (WinHttpGetProxyForUrl(http_local_session, DestURL, &OptPAC, &ProxyInfoTemp)) 
+              {
+                NSLog(@"worked");
+                memcpy(&ProxyInfo, &ProxyInfoTemp, sizeof(ProxyInfo));
+
+                resultProxyConfig->lpszProxy = ProxyInfoTemp.lpszProxy;
+                resultProxyConfig->lpszProxyBypass = ProxyInfoTemp.lpszProxyBypass;
+                autoConfigWorked = true;
+              }
+            else 
+              {
+                PrintLastError(@"WinHttpGetProxyForUrl");
+              }
+          }
+      else if (ProxyConfig.fAutoDetect) 
+        {
+          NSLog(@"trying autodetect proxy");
+
+          // Autodetect proxy
+          OptPAC.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT;
+          OptPAC.dwAutoDetectFlags = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
+          OptPAC.fAutoLogonIfChallenged = TRUE;
+          OptPAC.lpszAutoConfigUrl = NULL;
+          OptPAC.lpvReserved = 0;
+          OptPAC.dwReserved = 0;
+
+          if (WinHttpGetProxyForUrl(http_local_session, DestURL, &OptPAC, &ProxyInfoTemp)) 
+            {
+              NSLog(@"worked");
+              memcpy(&ProxyInfo, &ProxyInfoTemp, sizeof(ProxyInfo));
+
+              resultProxyConfig->lpszProxy = ProxyInfoTemp.lpszProxy;
+              resultProxyConfig->lpszProxyBypass = ProxyInfoTemp.lpszProxyBypass;
+              autoDetectWorked = true;
+            }
+          else 
+            {
+              PrintLastError(@"WinHttpGetProxyForUrl");
+            }
+        }
+
+      NSString * autoConfigUrl = @"";
+      NSString * proxy = @"";
+      NSString * proxyBypass = @"";
+
+      if (resultProxyConfig->lpszAutoConfigUrl) autoConfigUrl = [[NSString alloc] initWithBytes: resultProxyConfig->lpszAutoConfigUrl length:wcslen(resultProxyConfig->lpszAutoConfigUrl)*2 encoding:NSUTF16StringEncoding];
+      if (resultProxyConfig->lpszProxy) proxy = [[NSString alloc] initWithBytes: resultProxyConfig->lpszProxy length:wcslen(resultProxyConfig->lpszProxy)*2 encoding:NSUTF16StringEncoding];
+      if (resultProxyConfig->lpszProxyBypass) proxyBypass = [[NSString alloc] initWithBytes: resultProxyConfig->lpszProxyBypass length:wcslen(resultProxyConfig->lpszProxyBypass)*2 encoding:NSUTF16StringEncoding];
+
+      autoConfigUrl = normalizeUrl(autoConfigUrl);
+      proxy = normalizeUrl(proxy);
+
+      NSLog(@"  autoConfigUrl: %@", autoConfigUrl);
+      NSLog(@"  proxy: %@", proxy);
+      NSLog(@"  proxyBypass: %@", proxyBypass);
+
+      result = true;
+    }
+  
+  return result;
+}
+
+BOOL ResolveProxy_old(NSString * url, WINHTTP_PROXY_INFO * proxyInfo)
+{
+  BOOL success = false;
+  HINTERNET hHttpSession = NULL;
+
+/*
+            OptPAC.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
+            OptPAC.lpszAutoConfigUrl = ProxyConfig.lpszAutoConfigUrl;
+            OptPAC.dwAutoDetectFlags = 0;
+            OptPAC.fAutoLogonIfChallenged = TRUE;
+            OptPAC.lpvReserved = 0;
+            OptPAC.dwReserved = 0;
+*/
+
+  ZeroMemory(proxyInfo, sizeof(*proxyInfo));
+
+  WINHTTP_AUTOPROXY_OPTIONS AutoProxyOptions;
+  ZeroMemory(&AutoProxyOptions, sizeof(AutoProxyOptions));
+  AutoProxyOptions.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT;
+  AutoProxyOptions.dwAutoDetectFlags =  WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
+  AutoProxyOptions.fAutoLogonIfChallenged = TRUE;
+  
+//  wchar_t    urlW[[url length] + 1];
+//  mbstowcs(urlW, [url cStringUsingEncoding:NSASCIIStringEncoding] , [url length]);
+
+//  NSString * goodUrl = [NSString stringWithFormat:@"http://%@", url];
+  const wchar_t *urlW = (wchar_t*)[url cStringUsingEncoding: NSUTF16StringEncoding];
+
+  NSLog(@"url: %@", url);
+
+  {
+    hHttpSession = WinHttpOpen(L"GNUstep",WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+    if( !hHttpSession ) goto exit;
+
+    BOOL result = WinHttpGetProxyForUrl( hHttpSession, urlW, &AutoProxyOptions, proxyInfo);
+    if (!result) {
+      PrintLastError(@"WinHttpGetProxyForUrl");
+
+      result = WinHttpGetIEProxyConfigForCurrentUser(proxyInfo);
+      if (!result) goto exit;
+      NSLog(@"Manual proxy worked.");
+    }
+    else {
+      NSLog(@"Auto proxy worked.");
+    }
+
+    success = TRUE;
+  }
+  exit:
+
+  if(proxyInfo->lpszProxy != NULL) GlobalFree(proxyInfo->lpszProxy);
+  if(proxyInfo->lpszProxyBypass != NULL) GlobalFree( proxyInfo->lpszProxyBypass );
+  if(hHttpSession != NULL) WinHttpCloseHandle( hHttpSession );
+
+  NSLog(@"%@", success ? @"SUCCESS" : @"FAIL");
+
+  return success;
+}
 
 // FIXME: Move this code into System Configuration framework...
-CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
+CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * forUrl)
 {
+  NSLog(@"forURL: %@", forUrl);
   NSMutableDictionary *proxyDict = [NSMutableDictionary dictionary];
-#if 1
   WINHTTP_CURRENT_USER_IE_PROXY_CONFIG  proxyInfo = { 0 };
-#else
-  WINHTTP_PROXY_INFO                    proxyInfo = { 0 };
-#endif
   
   // Initialize...
   [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"FTPEnable"];
@@ -73,22 +332,14 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
                                    @"SOCKSEnable"    : [NSNumber numberWithBool: NO] };
   [proxyDict setObject: scopedProxies forKey: @"__SCOPED__"];
 
-#if 1
-  if (FALSE == WinHttpGetIEProxyConfigForCurrentUser(&proxyInfo))
-#else
-  if (FALSE == WinHttpGetDefaultProxyConfiguration(&proxyInfo))
-#endif
+  if (ResolveProxy(forUrl, &proxyInfo) == FALSE)
     {
       NSWarnMLog(@"error retrieving windows proxy information - error code: %ld", (long)GetLastError());
     }
   else
     {
       NSWarnMLog(@"fAutoDetect: %ld hosts: %S bypass %S",
-#if 1
                  (long)proxyInfo.fAutoDetect, proxyInfo.lpszProxy, proxyInfo.lpszProxyBypass);
-#else
-                 (long)proxyInfo.dwAccessType, proxyInfo.lpszProxy, proxyInfo.lpszProxyBypass);
-#endif
       
       // Proxy host(s) list...
       if (NULL != proxyInfo.lpszProxy)
@@ -184,13 +435,75 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
               // Split the components using ':'...
               NSArray   *components = [string componentsSeparatedByString: @":"];
               NSDebugFLLog(@"NSStream", @"component(s): %@", components);
+
+              NSMutableArray * mutableComponents = [NSMutableArray arrayWithArray:components];
+              if ([mutableComponents count] > 1) 
+                {
+                  NSString * firstItem = [mutableComponents objectAtIndex:0];
+                  if ([firstItem length] >= 6)
+                    {
+                      if ([[[firstItem substringToIndex:6] lowercaseString] isEqualToString:@"https:"]) 
+                        {
+                          [mutableComponents removeObjectAtIndex:0];
+                          components = (NSArray *)mutableComponents;
+                        }
+                    }                    
+                  else if ([firstItem length] >= 5)
+                    {
+                      if ([[[firstItem substringToIndex:5] lowercaseString] isEqualToString:@"http:"]) 
+                        {
+                          [mutableComponents removeObjectAtIndex:0];
+                          components = (NSArray *)mutableComponents;
+                        }
+                    }                    
+                }
+
+              NSLog(@"components ---------- ");
+              for(NSInteger i = 0; i < [components count]; i++){
+                NSLog(@"%@", [components objectAtIndex:i]);
+              }
+              NSLog(@"--------------------- ");
+
               if (0 != [components count])
                 {
                   host              = [components objectAtIndex: 0];
                   NSInteger portnum = ([components count] > 1 ? [[components objectAtIndex: 1] integerValue] : 8080);
                   port              = [NSNumber numberWithInteger: portnum];
-                  NSWarnMLog(@"host: %@ port: %@", host, port);
 
+                  if ([host length] >= 1)
+                    {
+                      if (!isdigit([host characterAtIndex:0]))
+                        {
+                          NSLog(@"host appears to be a domain name: %@", host);
+                          struct hostent * hostInfo;
+                          hostInfo = gethostbyname ([host cString]);
+                          if (hostInfo) 
+                            {
+                              NSLog(@"gethostbyname worked");
+                              if (hostInfo->h_addr_list[0] != 0) 
+                                {
+                                  struct in_addr addr;
+                                  addr.s_addr = *(u_long *) hostInfo->h_addr_list[0];
+                                  const char * ipAddr = inet_ntoa(addr);
+                                  host = [NSString stringWithFormat:@"%s", ipAddr];
+                                } 
+                            }  
+                          else 
+                            {
+                              NSLog(@"gethostbyname worked");
+                            }
+                        }
+                    }
+                  NSLog(@"host: %@ port: %d", host, portnum);
+
+                  if ([host length] >= 2) 
+                    {
+                      if ([[host substringToIndex:2] isEqualToString:@"//"])
+                        {
+                          host = [host substringFromIndex:2];
+                        }
+                    }
+                  
                   // Setup the proxy dictionary information...
                   [proxyDict setObject: host forKey: NSStreamSOCKSProxyHostKey];
                   [proxyDict setObject: port forKey: NSStreamSOCKSProxyPortKey];
@@ -239,15 +552,15 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
  */
 @interface GSPipeInputStream : GSInputStream
 {
-  HANDLE	handle;
-  OVERLAPPED	ov;
-  uint8_t	data[BUFFERSIZE];
-  unsigned	offset;	// Read pointer within buffer
-  unsigned	length;	// Amount of data in buffer
-  unsigned	want;	// Amount of data we want to read.
-  DWORD		size;	// Number of bytes returned by read.
+  HANDLE    handle;
+  OVERLAPPED    ov;
+  uint8_t    data[BUFFERSIZE];
+  unsigned    offset;    // Read pointer within buffer
+  unsigned    length;    // Amount of data in buffer
+  unsigned    want;    // Amount of data we want to read.
+  DWORD        size;    // Number of bytes returned by read.
   GSPipeOutputStream *_sibling;
-  BOOL		hadEOF;
+  BOOL        hadEOF;
 }
 - (NSStreamStatus) _check;
 - (void) _queue;
@@ -271,15 +584,15 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
  */
 @interface GSPipeOutputStream : GSOutputStream
 {
-  HANDLE	handle;
-  OVERLAPPED	ov;
-  uint8_t	data[BUFFERSIZE];
-  unsigned	offset;
-  unsigned	want;
-  DWORD		size;
+  HANDLE    handle;
+  OVERLAPPED    ov;
+  uint8_t    data[BUFFERSIZE];
+  unsigned    offset;
+  unsigned    want;
+  DWORD        size;
   GSPipeInputStream *_sibling;
-  BOOL		closing;
-  BOOL		writtenEOF;
+  BOOL        closing;
+  BOOL        writtenEOF;
 }
 - (NSStreamStatus) _check;
 - (void) _queue;
@@ -293,9 +606,9 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
  */
 @interface GSLocalServerStream : GSAbstractServerStream
 {
-  NSString	*path;
-  HANDLE	handle;
-  OVERLAPPED	ov;
+  NSString    *path;
+  HANDLE    handle;
+  OVERLAPPED    ov;
 }
 @end
 
@@ -306,9 +619,9 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   if (_loopID != (void*)INVALID_HANDLE_VALUE)
     {
       if (CloseHandle((HANDLE)_loopID) == 0)
-	{
+    {
           [self _recordError];
-	}
+    }
     }
   [super close];
   _loopID = (void*)INVALID_HANDLE_VALUE;
@@ -347,7 +660,7 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
 
 - (void) open
 {
-  HANDLE	h;
+  HANDLE    h;
 
   h = (void*)CreateFileW((LPCWSTR)[_path fileSystemRepresentation],
                          GENERIC_READ,
@@ -385,12 +698,12 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   if (buffer == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"null pointer for buffer"];
+          format: @"null pointer for buffer"];
     }
   if (len == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"zero byte length read requested"];
+          format: @"zero byte length read requested"];
     }
 
   _events &= ~NSStreamEventHasBytesAvailable;
@@ -416,9 +729,9 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
 - (void) _dispatch
 {
   BOOL av = [self hasBytesAvailable];
-  NSStreamEvent myEvent = av ? NSStreamEventHasBytesAvailable : 
+  NSStreamEvent myEvent = av ? NSStreamEventHasBytesAvailable :
     NSStreamEventEndEncountered;
-  NSStreamStatus myStatus = av ? NSStreamStatusOpen : 
+  NSStreamStatus myStatus = av ? NSStreamStatusOpen :
     NSStreamStatusAtEnd;
   
   [self _setStatus: myStatus];
@@ -442,27 +755,27 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
        * before closing the pipe.
        */
       if (want > 0)
-	{
-	  want = 0;
-	  CancelIo(handle);
-	}
+    {
+      want = 0;
+      CancelIo(handle);
+    }
 
       /* We can only close the pipe if there is no sibling using it.
        */
       if ([_sibling _isOpened] == NO)
-	{
-	  if (DisconnectNamedPipe(handle) == 0)
-	    {
-	      if ((errno = GetLastError()) != ERROR_PIPE_NOT_CONNECTED)
-		{
-		  [self _recordError];
-		}
-	    }
-	  if (CloseHandle(handle) == 0)
-	    {
-	      [self _recordError];
-	    }
-	}
+    {
+      if (DisconnectNamedPipe(handle) == 0)
+        {
+          if ((errno = GetLastError()) != ERROR_PIPE_NOT_CONNECTED)
+        {
+          [self _recordError];
+        }
+        }
+      if (CloseHandle(handle) == 0)
+        {
+          [self _recordError];
+        }
+    }
       handle = INVALID_HANDLE_VALUE;
     }
   [super close];
@@ -518,25 +831,25 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   if (GetOverlappedResult(handle, &ov, &size, TRUE) == 0)
     {
       if ((errno = GetLastError()) == ERROR_HANDLE_EOF
-	|| errno == ERROR_PIPE_NOT_CONNECTED
-	|| errno == ERROR_BROKEN_PIPE)
-	{
-	  /*
-	   * Got EOF, but we don't want to register it until a
-	   * -read:maxLength: is called.
-	   */
-	  offset = length = want = 0;
-	  [self _setStatus: NSStreamStatusOpen];
-	  hadEOF = YES;
-	}
+    || errno == ERROR_PIPE_NOT_CONNECTED
+    || errno == ERROR_BROKEN_PIPE)
+    {
+      /*
+       * Got EOF, but we don't want to register it until a
+       * -read:maxLength: is called.
+       */
+      offset = length = want = 0;
+      [self _setStatus: NSStreamStatusOpen];
+      hadEOF = YES;
+    }
       else if (errno != ERROR_IO_PENDING)
-	{
-	  /*
-	   * Got an error ... record it.
-	   */
-	  want = 0;
-	  [self _recordError];
-	}
+    {
+      /*
+       * Got an error ... record it.
+       */
+      want = 0;
+      [self _recordError];
+    }
     }
   else if (size == 0)
     {
@@ -559,7 +872,7 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
 {
   if (hadEOF == NO && [self streamStatus] == NSStreamStatusOpen)
     {
-      int	rc;
+      int    rc;
 
       want = sizeof(data);
       ov.Offset = 0;
@@ -567,29 +880,29 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
       ov.hEvent = (HANDLE)_loopID;
       rc = ReadFile(handle, data, want, &size, &ov);
       if (rc != 0)
-	{
-	  // Read succeeded
-	  want = 0;
-	  length = size;
-	  if (length == 0)
-	    {
-	      hadEOF = YES;
-	    }
-	}
+    {
+      // Read succeeded
+      want = 0;
+      length = size;
+      if (length == 0)
+        {
+          hadEOF = YES;
+        }
+    }
       else if ((errno = GetLastError()) == ERROR_HANDLE_EOF
-	|| errno == ERROR_PIPE_NOT_CONNECTED
+    || errno == ERROR_PIPE_NOT_CONNECTED
         || errno == ERROR_BROKEN_PIPE)
-	{
-	  hadEOF = YES;
-	}
+    {
+      hadEOF = YES;
+    }
       else if (errno != ERROR_IO_PENDING)
-	{
+    {
           [self _recordError];
-	}
+    }
       else
-	{
-	  [self _setStatus: NSStreamStatusReading];
-	}
+    {
+      [self _setStatus: NSStreamStatusReading];
+    }
     }
 }
 
@@ -600,12 +913,12 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   if (buffer == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"null pointer for buffer"];
+          format: @"null pointer for buffer"];
     }
   if (len == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"zero byte length read requested"];
+          format: @"zero byte length read requested"];
     }
 
   _events &= ~NSStreamEventHasBytesAvailable;
@@ -623,17 +936,17 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   if (offset == length)
     {
       if (myStatus == NSStreamStatusError)
-	{
-	  return -1;	// Waiting for read.
-	}
+    {
+      return -1;    // Waiting for read.
+    }
       if (myStatus == NSStreamStatusOpen)
-	{
-	  /*
-	   * There is no buffered data and no read in progress,
-	   * so we must be at EOF.
-	   */
-	  [self _setStatus: NSStreamStatusAtEnd];
-	}
+    {
+      /*
+       * There is no buffered data and no read in progress,
+       * so we must be at EOF.
+       */
+      [self _setStatus: NSStreamStatusAtEnd];
+    }
       return 0;
     }
 
@@ -651,9 +964,9 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
       length = 0;
       offset = 0;
       if (myStatus == NSStreamStatusOpen)
-	{
-          [self _queue];	// Queue another read
-	}
+    {
+          [self _queue];    // Queue another read
+    }
     }
   return len;
 }
@@ -712,9 +1025,9 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   *trigger = YES;
   if (myStatus == NSStreamStatusReading)
     {
-      return YES;	// Need to wait for I/O
+      return YES;    // Need to wait for I/O
     }
-  return NO;		// Need to signal for an event
+  return NO;        // Need to signal for an event
 }
 @end
 
@@ -726,9 +1039,9 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   if (_loopID != (void*)INVALID_HANDLE_VALUE)
     {
       if (CloseHandle((HANDLE)_loopID) == 0)
-	{
+    {
           [self _recordError];
-	}
+    }
     }
   [super close];
   _loopID = (void*)INVALID_HANDLE_VALUE;
@@ -756,7 +1069,7 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
 
 - (void) open
 {
-  HANDLE	h;
+  HANDLE    h;
 
   h = (void*)CreateFileW((LPCWSTR)[_path fileSystemRepresentation],
                          GENERIC_WRITE,
@@ -772,12 +1085,12 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
     }
   else if (_shouldAppend == NO)
     {
-      if (SetEndOfFile(h) == 0)	// Truncate to current file pointer (0)
-	{
+      if (SetEndOfFile(h) == 0)    // Truncate to current file pointer (0)
+    {
           [self _recordError];
           CloseHandle(h);
-	  return;
-	}
+      return;
+    }
     }
   [self _setLoopID: (void*)h];
   [super open];
@@ -803,12 +1116,12 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   if (buffer == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"null pointer for buffer"];
+          format: @"null pointer for buffer"];
     }
   if (len == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"zero byte length write requested"];
+          format: @"zero byte length write requested"];
     }
 
   _events &= ~NSStreamEventHasSpaceAvailable;
@@ -833,7 +1146,7 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
 - (void) _dispatch
 {
   BOOL av = [self hasSpaceAvailable];
-  NSStreamEvent myEvent = av ? NSStreamEventHasSpaceAvailable : 
+  NSStreamEvent myEvent = av ? NSStreamEventHasSpaceAvailable :
     NSStreamEventEndEncountered;
 
   [self _sendEvent: myEvent];
@@ -860,7 +1173,7 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
    */
   if ([_sibling _isOpened] == YES && writtenEOF == NO)
     {
-      int	rc;
+      int    rc;
 
       writtenEOF = YES;
       ov.Offset = 0;
@@ -869,14 +1182,14 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
       size = 0;
       rc = WriteFile(handle, "", 0, &size, &ov);
       if (rc == 0)
-	{
-	  if ((errno = GetLastError()) == ERROR_IO_PENDING)
-	    {
-	      [self _setStatus: NSStreamStatusWriting];
-	      return;		// Wait for write to complete
-	    }
-	  [self _recordError];	// Failed to write EOF
-	}
+    {
+      if ((errno = GetLastError()) == ERROR_IO_PENDING)
+        {
+          [self _setStatus: NSStreamStatusWriting];
+          return;        // Wait for write to complete
+        }
+      [self _recordError];    // Failed to write EOF
+    }
     }
 
   offset = want = 0;
@@ -887,20 +1200,20 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   if (handle != INVALID_HANDLE_VALUE)
     {
       if ([_sibling _isOpened] == NO)
-	{
-	  if (DisconnectNamedPipe(handle) == 0)
-	    {
-	      if ((errno = GetLastError()) != ERROR_PIPE_NOT_CONNECTED)
-		{
-		  [self _recordError];
-		}
-	      [self _recordError];
-	    }
-	  if (CloseHandle(handle) == 0)
-	    {
-	      [self _recordError];
-	    }
-	}
+    {
+      if (DisconnectNamedPipe(handle) == 0)
+        {
+          if ((errno = GetLastError()) != ERROR_PIPE_NOT_CONNECTED)
+        {
+          [self _recordError];
+        }
+          [self _recordError];
+        }
+      if (CloseHandle(handle) == 0)
+        {
+          [self _recordError];
+        }
+    }
       handle = INVALID_HANDLE_VALUE;
     }
 
@@ -945,33 +1258,33 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   if (myStatus == NSStreamStatusOpen)
     {
       while (offset < want)
-	{
-	  int	rc;
+    {
+      int    rc;
 
-	  ov.Offset = 0;
-	  ov.OffsetHigh = 0;
-	  ov.hEvent = (HANDLE)_loopID;
-	  size = 0;
-	  rc = WriteFile(handle, data + offset, want - offset, &size, &ov);
-	  if (rc != 0)
-	    {
-	      offset += size;
-	      if (offset == want)
-		{
-		  offset = want = 0;
-		}
-	    }
-	  else if ((errno = GetLastError()) == ERROR_IO_PENDING)
-	    {
-	      [self _setStatus: NSStreamStatusWriting];
-	      break;
-	    }
-	  else
-	    {
-	      [self _recordError];
-	      break;
-	    }
-	}
+      ov.Offset = 0;
+      ov.OffsetHigh = 0;
+      ov.hEvent = (HANDLE)_loopID;
+      size = 0;
+      rc = WriteFile(handle, data + offset, want - offset, &size, &ov);
+      if (rc != 0)
+        {
+          offset += size;
+          if (offset == want)
+        {
+          offset = want = 0;
+        }
+        }
+      else if ((errno = GetLastError()) == ERROR_IO_PENDING)
+        {
+          [self _setStatus: NSStreamStatusWriting];
+          break;
+        }
+      else
+        {
+          [self _recordError];
+          break;
+        }
+    }
     }
 }
 
@@ -982,12 +1295,12 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   if (buffer == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"null pointer for buffer"];
+          format: @"null pointer for buffer"];
     }
   if (len == 0)
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"zero byte length write requested"];
+          format: @"zero byte length write requested"];
     }
 
   _events &= ~NSStreamEventHasSpaceAvailable;
@@ -1026,24 +1339,24 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
     {
       errno = GetLastError();
       if (errno != ERROR_IO_PENDING)
-	{
+    {
           offset = 0;
           want = 0;
           [self _recordError];
-	}
+    }
     }
   else
     {
       [self _setStatus: NSStreamStatusOpen];
       offset += size;
       if (offset < want)
-	{
-	  [self _queue];
-	}
+    {
+      [self _queue];
+    }
       else
-	{
-	  offset = want = 0;
-	}
+    {
+      offset = want = 0;
+    }
     }
   if (closing == YES && [self streamStatus] != NSStreamStatusWriting)
     {
@@ -1114,9 +1427,9 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
 
 @implementation NSStream
 
-+ (void) getStreamsToHost: (NSHost *)host 
-                     port: (NSInteger)port 
-              inputStream: (NSInputStream **)inputStream 
++ (void) getStreamsToHost: (NSHost *)host
+                     port: (NSInteger)port
+              inputStream: (NSInputStream **)inputStream
              outputStream: (NSOutputStream **)outputStream
 {
   NSString *address = host ? (id)[host address] : (id)@"127.0.0.1";
@@ -1146,8 +1459,10 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
 #endif
   
   // Setup proxy information...
-  NSDictionary *proxyDict = SCDynamicStoreCopyProxies(NULL);
-  
+  NSString * hostName = [[host name] retain];
+  NSDictionary *proxyDict = SCDynamicStoreCopyProxies(NULL, hostName);
+  [hostName release];
+
   // and if available...
   if ([proxyDict count])
     {
@@ -1193,8 +1508,8 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   return;
 }
 
-+ (void) getLocalStreamsToPath: (NSString *)path 
-                   inputStream: (NSInputStream **)inputStream 
++ (void) getLocalStreamsToPath: (NSString *)path
+                   inputStream: (NSInputStream **)inputStream
                   outputStream: (NSOutputStream **)outputStream
 {
   const unichar *name;
@@ -1244,8 +1559,8 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   if (handle == INVALID_HANDLE_VALUE)
     {
       [NSException raise: NSInternalInconsistencyException
-		  format: @"Unable to open named pipe '%@'... %@",
-	path, [NSError _last]];
+          format: @"Unable to open named pipe '%@'... %@",
+    path, [NSError _last]];
     }
 
   // the type of the stream does not matter, since we are only using the fd
@@ -1268,7 +1583,7 @@ done:
     }
 }
 
-+ (void) pipeWithInputStream: (NSInputStream **)inputStream 
++ (void) pipeWithInputStream: (NSInputStream **)inputStream
                 outputStream: (NSOutputStream **)outputStream
 {
   const unichar *name;
@@ -1323,7 +1638,7 @@ done:
       CloseHandle(event);
       CloseHandle(readh);
       [NSException raise: NSInternalInconsistencyException
-		  format: @"Unable to create/open write pipe"];
+          format: @"Unable to create/open write pipe"];
     }
 
   rc = WaitForSingleObject(event, 10);
@@ -1334,7 +1649,7 @@ done:
       CloseHandle(readh);
       CloseHandle(writeh);
       [NSException raise: NSInternalInconsistencyException
-		  format: @"Unable to create/open read pipe"];
+          format: @"Unable to create/open read pipe"];
     }
 
   // the type of the stream does not matter, since we are only using the fd
@@ -1459,13 +1774,13 @@ done:
 
 + (id) outputStreamToMemory
 {
-  return AUTORELEASE([[GSDataOutputStream alloc] init]);  
+  return AUTORELEASE([[GSDataOutputStream alloc] init]);
 }
 
 + (id) outputStreamToBuffer: (uint8_t *)buffer capacity: (NSUInteger)capacity
 {
-  return AUTORELEASE([[GSBufferOutputStream alloc] 
-    initToBuffer: buffer capacity: capacity]);  
+  return AUTORELEASE([[GSBufferOutputStream alloc]
+    initToBuffer: buffer capacity: capacity]);
 }
 
 + (id) outputStreamToFileAtPath: (NSString *)path append: (BOOL)shouldAppend
@@ -1490,7 +1805,7 @@ done:
 {
   DESTROY(self);
   return [[GSFileOutputStream alloc] initToFileAtPath: path
-					       append: shouldAppend];  
+                           append: shouldAppend];
 }
 
 - (id) initToMemory
@@ -1502,7 +1817,7 @@ done:
 - (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
-  return -1;  
+  return -1;
 }
 
 @end
@@ -1596,14 +1911,14 @@ done:
     {
       errno = GetLastError();
       if (errno == ERROR_PIPE_CONNECTED)
-	{
-	  alreadyConnected = YES;
-	}
+    {
+      alreadyConnected = YES;
+    }
       else if (errno != ERROR_IO_PENDING)
-	{
-	  [self _recordError];
-	  return;
-	}
+    {
+      [self _recordError];
+      return;
+    }
     }
 
   if ([self _isOpened] == NO)
@@ -1626,16 +1941,16 @@ done:
     {
       CancelIo(handle);
       if (CloseHandle(handle) == 0)
-	{
-	  [self _recordError];
-	}
+    {
+      [self _recordError];
+    }
       handle = INVALID_HANDLE_VALUE;
     }
   [super close];
   _loopID = INVALID_HANDLE_VALUE;
 }
 
-- (void) acceptWithInputStream: (NSInputStream **)inputStream 
+- (void) acceptWithInputStream: (NSInputStream **)inputStream
                   outputStream: (NSOutputStream **)outputStream
 {
   GSPipeInputStream *ins = nil;
@@ -1651,7 +1966,7 @@ done:
   [outs _setHandle: handle];
 
   handle = INVALID_HANDLE_VALUE;
-  [self open];	// Re-open to accept more
+  [self open];    // Re-open to accept more
 
   if (inputStream)
     {
@@ -1667,7 +1982,7 @@ done:
 
 - (void) _dispatch
 {
-  DWORD		size;
+  DWORD        size;
 
   if (GetOverlappedResult(handle, &ov, &size, TRUE) == 0)
     {

@@ -30,7 +30,7 @@
 typedef NSDictionary *CFDictionaryRef;
 // FIXME: Move this code into System Configuration framework...
 typedef NSDictionary *SCDynamicStoreRef;
-extern CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store);
+extern CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * forUrl);
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4,GS_API_LATEST) && GS_API_VERSION( 10200,GS_API_LATEST)
