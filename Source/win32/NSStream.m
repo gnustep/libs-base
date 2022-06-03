@@ -35,6 +35,7 @@
 #import "Foundation/NSHost.h"
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSByteOrder.h"
+#import "Foundation/NSRegularExpression.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "../GSPrivate.h"
@@ -244,65 +245,6 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
     }
   
   return result;
-}
-
-BOOL ResolveProxy_old(NSString * url, WINHTTP_PROXY_INFO * proxyInfo)
-{
-  BOOL success = false;
-  HINTERNET hHttpSession = NULL;
-
-/*
-            OptPAC.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
-            OptPAC.lpszAutoConfigUrl = ProxyConfig.lpszAutoConfigUrl;
-            OptPAC.dwAutoDetectFlags = 0;
-            OptPAC.fAutoLogonIfChallenged = TRUE;
-            OptPAC.lpvReserved = 0;
-            OptPAC.dwReserved = 0;
-*/
-
-  ZeroMemory(proxyInfo, sizeof(*proxyInfo));
-
-  WINHTTP_AUTOPROXY_OPTIONS AutoProxyOptions;
-  ZeroMemory(&AutoProxyOptions, sizeof(AutoProxyOptions));
-  AutoProxyOptions.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT;
-  AutoProxyOptions.dwAutoDetectFlags =  WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
-  AutoProxyOptions.fAutoLogonIfChallenged = TRUE;
-  
-//  wchar_t    urlW[[url length] + 1];
-//  mbstowcs(urlW, [url cStringUsingEncoding:NSASCIIStringEncoding] , [url length]);
-
-//  NSString * goodUrl = [NSString stringWithFormat:@"http://%@", url];
-  const wchar_t *urlW = (wchar_t*)[url cStringUsingEncoding: NSUTF16StringEncoding];
-
-  NSLog(@"url: %@", url);
-
-  {
-    hHttpSession = WinHttpOpen(L"GNUstep",WINHTTP_ACCESS_TYPE_NO_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
-    if( !hHttpSession ) goto exit;
-
-    BOOL result = WinHttpGetProxyForUrl( hHttpSession, urlW, &AutoProxyOptions, proxyInfo);
-    if (!result) {
-      PrintLastError(@"WinHttpGetProxyForUrl");
-
-      result = WinHttpGetIEProxyConfigForCurrentUser(proxyInfo);
-      if (!result) goto exit;
-      NSLog(@"Manual proxy worked.");
-    }
-    else {
-      NSLog(@"Auto proxy worked.");
-    }
-
-    success = TRUE;
-  }
-  exit:
-
-  if(proxyInfo->lpszProxy != NULL) GlobalFree(proxyInfo->lpszProxy);
-  if(proxyInfo->lpszProxyBypass != NULL) GlobalFree( proxyInfo->lpszProxyBypass );
-  if(hHttpSession != NULL) WinHttpCloseHandle( hHttpSession );
-
-  NSLog(@"%@", success ? @"SUCCESS" : @"FAIL");
-
-  return success;
 }
 
 // FIXME: Move this code into System Configuration framework...
