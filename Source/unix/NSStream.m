@@ -50,7 +50,7 @@
 #import "../GSSocketStream.h"
 
 // FIXME: Move this code into System Configuration framework...
-CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
+CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * forUrl)
 {
   NSMutableDictionary *proxyDict = [NSMutableDictionary dictionary];
   
@@ -516,7 +516,7 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store)
   // Setup proxy information...
   
   // Setup proxy information...
-  NSDictionary *proxyDict = SCDynamicStoreCopyProxies(NULL);
+  NSDictionary *proxyDict = SCDynamicStoreCopyProxies(NULL, nil);
   
   // and if available...
   if ([proxyDict count])
