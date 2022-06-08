@@ -36,6 +36,8 @@
 extern "C" {
 #endif
 
+DEFINE_BLOCK_TYPE_NO_ARGS(GSTaskTerminatorHandler, void);
+  
 @class  NSThread;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
@@ -130,6 +132,19 @@ GS_EXPORT_CLASS
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 - (BOOL) usePseudoTerminal;
 - (NSString*) validatedLaunchPath;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_13, GS_API_LATEST)
++ (NSTask *) launchedTaskWithExecutableURL: (NSURL *)url 
+                                 arguments: (NSArray *)arguments 
+                                     error: (NSError **)error 
+                        terminationHandler: (GSTaskTerminatorHandler)terminationHandler;
+
+- (BOOL) launchAndReturnError:(out NSError **)error;
+
+- (NSURL *) executableURL;
+
+- (NSURL *) currentDirectoryURL;
 #endif
 @end
 

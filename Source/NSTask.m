@@ -876,6 +876,29 @@ pty_slave(const char* name)
   [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
   LEAVE_POOL
 }
+
++ (NSTask *) launchedTaskWithExecutableURL: (NSURL *)url 
+                                 arguments: (NSArray *)arguments 
+                                     error: (NSError **)error 
+                        terminationHandler: (GSTaskTerminatorHandler)terminationHandler
+{
+  return nil;
+}
+
+- (BOOL) launchAndReturnError:(out NSError **)error
+{
+  return NO;
+}
+
+- (NSURL *) executableURL
+{
+  return nil;
+}
+
+- (NSURL *) currentDirectoryURL
+{
+  return nil;
+}
 @end
 
 @implementation	NSTask (Private)
