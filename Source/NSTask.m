@@ -895,7 +895,25 @@ pty_slave(const char* name)
 
 - (BOOL) launchAndReturnError: (NSError **)error
 {
-  return NO;
+  NSProcessInfo *pi = [NSProcessInfo processInfo];
+  NSDictionary *env = [pi environment];
+  BOOL result = YES;
+  
+  *error = nil;
+  [self setEnvironment: env];
+
+  NS_DURING
+    {
+      [self launch];
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Launch failed: %@", [localException reason]);
+      result = NO;
+    }
+  NS_ENDHANDLER;
+  
+  return result;
 }
 
 - (NSURL *) executableURL
