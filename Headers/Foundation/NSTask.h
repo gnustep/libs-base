@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-DEFINE_BLOCK_TYPE_NO_ARGS(GSTaskTerminatorHandler, void);
+DEFINE_BLOCK_TYPE_NO_ARGS(GSTaskTerminationHandler, void);
   
 @class  NSThread;
 
@@ -68,6 +68,7 @@ GS_EXPORT_CLASS
   BOOL		_hasNotified;
   NSThread      *_launchingThread;
   NSTaskTerminationReason       _terminationReason;
+  GSTaskTerminationHandler      _handler;
 #endif
 #if     GS_NONFRAGILE
 #else
@@ -138,9 +139,9 @@ GS_EXPORT_CLASS
 + (NSTask *) launchedTaskWithExecutableURL: (NSURL *)url 
                                  arguments: (NSArray *)arguments 
                                      error: (NSError **)error 
-                        terminationHandler: (GSTaskTerminatorHandler)terminationHandler;
+                        terminationHandler: (GSTaskTerminationHandler)terminationHandler;
 
-- (BOOL) launchAndReturnError:(out NSError **)error;
+- (BOOL) launchAndReturnError: (NSError **)error;
 
 - (NSURL *) executableURL;
 

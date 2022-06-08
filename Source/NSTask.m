@@ -38,12 +38,13 @@
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSRunLoop.h"
+#import "Foundation/NSLock.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSNotificationQueue.h"
 #import "Foundation/NSTask.h"
 #import "Foundation/NSThread.h"
 #import "Foundation/NSTimer.h"
-#import "Foundation/NSLock.h"
+#import "Foundation/NSURL.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSTask+GNUstepBase.h"
 #import "GSPrivate.h"
@@ -877,27 +878,44 @@ pty_slave(const char* name)
   LEAVE_POOL
 }
 
+// macOS 10.13 methods...
+
 + (NSTask *) launchedTaskWithExecutableURL: (NSURL *)url 
                                  arguments: (NSArray *)arguments 
                                      error: (NSError **)error 
-                        terminationHandler: (GSTaskTerminatorHandler)terminationHandler
+                        terminationHandler: (GSTaskTerminationHandler)terminationHandler
 {
-  return nil;
+  NSTask *task =  [self launchedTaskWithLaunchPath: [url path]
+                                         arguments: arguments];
+  task->_handler = terminationHandler;
+  *error = nil;
+  
+  return task;
 }
 
-- (BOOL) launchAndReturnError:(out NSError **)error
+- (BOOL) launchAndReturnError: (NSError **)error
 {
   return NO;
 }
 
 - (NSURL *) executableURL
 {
-  return nil;
+  return [NSURL URLWithString: [self launchPath]];;
+}
+
+- (void) setExecutableURL: (NSURL *)url
+{
+  [self setLaunchPath: [url path]];
 }
 
 - (NSURL *) currentDirectoryURL
 {
-  return nil;
+  return [NSURL URLWithString: [self currentDirectoryPath]];
+}
+
+- (void) setCurrentDirectoryURL: (NSURL *)url
+{
+  [self setCurrentDirectoryPath: [url path]];
 }
 @end
 
@@ -941,6 +959,11 @@ pty_slave(const char* name)
             postingStyle: NSPostASAP
             coalesceMask: NSNotificationNoCoalescing
                 forModes: nil];
+
+  if (_handler != nil)
+    {
+      CALL_BLOCK_NO_ARGS(_handler);
+    }
 }
 
 - (void) _terminatedChild: (int)status reason: (NSTaskTerminationReason)reason
@@ -1174,7 +1197,7 @@ quotedFromString(NSString *aString)
     }
 
   [super launch];
-
+  )
   lpath = [self _fullLaunchPath];
   wexecutable = (const unichar*)[lpath fileSystemRepresentation];
 
