@@ -1197,7 +1197,7 @@ quotedFromString(NSString *aString)
     }
 
   [super launch];
-  )
+
   lpath = [self _fullLaunchPath];
   wexecutable = (const unichar*)[lpath fileSystemRepresentation];
 
