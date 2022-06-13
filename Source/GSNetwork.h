@@ -43,7 +43,6 @@
 #include <winsock2.h>
 #include <io.h>
 #include <ws2tcpip.h>
-#include <wininet.h>
 #if     !defined(EAFNOSUPPORT)
 #define EAFNOSUPPORT WSAEAFNOSUPPORT
 #endif

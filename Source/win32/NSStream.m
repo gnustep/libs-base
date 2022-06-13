@@ -22,6 +22,7 @@
 
    */
 #include "common.h"
+#include <winhttp.h>
 
 #import "Foundation/NSData.h"
 #import "Foundation/NSArray.h"
@@ -34,12 +35,19 @@
 #import "Foundation/NSHost.h"
 #import "Foundation/NSProcessInfo.h"
 #import "Foundation/NSByteOrder.h"
+#import "Foundation/NSRegularExpression.h"
 #import "Foundation/NSURL.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #import "../GSPrivate.h"
 #import "../GSStream.h"
 #import "../GSSocketStream.h"
+
+void PrintLastError(NSString * f);
+NSString * normalizeUrl(NSString * url);
+BOOL isIpAddr(NSString * _str);
+BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultProxyConfig);
+CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * forUrl);
 
 #define	BUFFERSIZE	(BUFSIZ*64)
 
@@ -945,10 +953,10 @@
   GSSocketStream *outs = nil;
   int sock;
 
-  ins = AUTORELEASE([[GSInetInputStream alloc]
-    initToAddr: address port: port]);
-  outs = AUTORELEASE([[GSInetOutputStream alloc]
-    initToAddr: address port: port]);
+  ins = (GSSocketStream*)AUTORELEASE([[GSInetInputStream alloc] initToAddr: address port: port]);
+  outs = (GSSocketStream*)AUTORELEASE([[GSInetOutputStream alloc] initToAddr: address port: port]);
+  
+#if 0 // TESTPLANT-MAL-03132018: This bypasses the GSSOCKS processing...
   sock = socket(PF_INET, SOCK_STREAM, 0);
 
   /*
@@ -964,6 +972,44 @@
   NSAssert(sock != INVALID_SOCKET, @"Cannot open socket");
   [ins _setSock: sock];
   [outs _setSock: sock];
+#endif
+  
+  // Setup proxy information...
+  NSString * hostName = [[host name] retain];
+  NSDictionary *proxyDict = SCDynamicStoreCopyProxies(NULL, hostName);
+  [hostName release];
+
+  // and if available...
+  if ([proxyDict count])
+    {
+      // store in the streams...
+      if ([[proxyDict objectForKey: @"SOCKSEnable"] boolValue])
+        {
+          NSDictionary *proxy = @{ NSStreamSOCKSProxyHostKey : [proxyDict objectForKey: NSStreamSOCKSProxyHostKey],
+                                   NSStreamSOCKSProxyPortKey : [proxyDict objectForKey: NSStreamSOCKSProxyPortKey]};
+          
+          [ins setProperty: proxy forKey: NSStreamSOCKSProxyConfigurationKey];
+          [outs setProperty: proxy forKey: NSStreamSOCKSProxyConfigurationKey];
+        }
+      if ([[proxyDict objectForKey: @"HTTPEnable"] boolValue])
+        {
+          NSDictionary *proxy = @{ kCFStreamPropertyHTTPProxyHost : [proxyDict objectForKey: kCFStreamPropertyHTTPProxyHost],
+                                   kCFStreamPropertyHTTPProxyPort : [proxyDict objectForKey: kCFStreamPropertyHTTPProxyPort]};
+          
+          [ins setProperty: proxy forKey: kCFStreamPropertyHTTPProxy];
+          [outs setProperty: proxy forKey: kCFStreamPropertyHTTPProxy];
+        }
+      if ([[proxyDict objectForKey: @"HTTPSEnable"] boolValue])
+        {
+          [ins setProperty: [proxyDict objectForKey: kCFStreamPropertyHTTPSProxyHost] forKey: kCFStreamPropertyHTTPSProxyHost];
+          [ins setProperty: [proxyDict objectForKey: kCFStreamPropertyHTTPSProxyHost] forKey: kCFStreamPropertyHTTPSProxyHost];
+          [outs setProperty: [proxyDict objectForKey: kCFStreamPropertyHTTPSProxyPort] forKey: kCFStreamPropertyHTTPSProxyPort];
+          [outs setProperty: [proxyDict objectForKey: kCFStreamPropertyHTTPSProxyPort] forKey: kCFStreamPropertyHTTPSProxyPort];
+        }
+    }
+  
+  // SCDynamicStoreCopyProxies creates a copy so we need to release...
+  [proxyDict release];
   
   if (inputStream)
     {
@@ -1483,3 +1529,434 @@ done:
 
 @end
 
+void PrintLastError(NSString * f) {
+  DWORD lastError = GetLastError();
+  switch (lastError) {
+    case ERROR_WINHTTP_AUTO_PROXY_SERVICE_ERROR:
+      NSLog(@"%@: (%d) Returned by WinHttpGetProxyForUrl when a proxy for the specified URL cannot be located.", f, lastError);
+      break;
+    case ERROR_WINHTTP_BAD_AUTO_PROXY_SCRIPT:
+      NSLog(@"%@: (%d) An error occurred executing the script code in the Proxy Auto-Configuration (PAC) file.", f, lastError);
+      break;
+    case ERROR_WINHTTP_INCORRECT_HANDLE_TYPE:
+      NSLog(@"%@: (%d) The type of handle supplied is incorrect for this operation.", f, lastError);
+      break;
+    case ERROR_WINHTTP_INTERNAL_ERROR:
+      NSLog(@"%@: (%d) An internal error has occurred.", f, lastError);
+      break;
+    case ERROR_WINHTTP_INVALID_URL:
+      NSLog(@"%@: (%d) The URL is invalid.", f, lastError);
+      break;
+    case ERROR_WINHTTP_LOGIN_FAILURE:
+      NSLog(@"%@: (%d) The login attempt failed. When this error is encountered, close the request handle with WinHttpCloseHandle. A new request handle must be created before retrying the function that originally produced this error.", f, lastError);
+      break;
+    case ERROR_WINHTTP_OPERATION_CANCELLED:
+      NSLog(@"%@: (%d) The operation was canceled, usually because the handle on which the request was operating was closed before the operation completed.", f, lastError);
+      break;
+    case ERROR_WINHTTP_UNABLE_TO_DOWNLOAD_SCRIPT:
+      NSLog(@"%@: (%d) The PAC file could not be downloaded. For example, the server referenced by the PAC URL may not have been reachable, or the server returned a 404 NOT FOUND response.", f, lastError);
+      break;
+    case ERROR_WINHTTP_UNRECOGNIZED_SCHEME:
+        NSLog(@"%@: (%d) The URL of the PAC file specified a scheme other than \"http:\" or \"https:\".", f, lastError);
+        break;
+    case ERROR_NOT_ENOUGH_MEMORY:
+        NSLog(@"%@: (%d) ERROR_NOT_ENOUGH_MEMORY", f, lastError);
+        break;
+    case (ERROR_WINHTTP_AUTODETECTION_FAILED):
+      NSLog(@"%@: (%d) Returned WinHTTP was unable to discover the URL of the Proxy Auto-Configuration (PAC) file", f, lastError);
+      break;
+    default:
+      NSLog(@"%@: (%d) Unknown Error.", f, lastError);
+      break;
+  }
+}
+
+NSString * normalizeUrl(NSString * url)
+{
+  if (!url) return nil;
+  if ([url caseInsensitiveCompare:@""] == NSOrderedSame) return @"";
+
+  BOOL prepend = YES;
+  NSString * urlFront = nil;
+    
+  if ([url length] >= 7) 
+    {
+      // Check that url begins with http://
+      urlFront = [url substringToIndex:7];
+      if ([urlFront caseInsensitiveCompare:@"http://"] == NSOrderedSame) 
+        {
+          prepend = NO;
+        }
+    }
+  if ([url length] >= 8) 
+    {
+      // Check that url begins with https://
+      urlFront = [url substringToIndex:8];
+      if ([urlFront caseInsensitiveCompare:@"https://"] == NSOrderedSame) 
+        {
+          prepend = NO;
+        }
+    }
+
+  // If http[s]:// is omited, slap it on.
+  if (prepend) 
+    {
+      return [NSString stringWithFormat:@"http://%@", url];
+    }
+  else 
+    {
+      return url;
+    }
+}
+
+BOOL isIpAddr(NSString * _str) {
+    
+    // eg: 192.168.0.1
+    NSString * isV4RegEx = @"^\\d{1,3}.\\d{1,3}.\\d{1,3}.\\d{1,3}$";
+    // eg: 2001:db8:3333:4444:CCCC:DDDD:EEEE:FFFF
+    NSString * isV6RegEx = @"^\\w{4}:\\w{3}:\\w{4}:\\w{4}:\\w{4}:\\w{4}:\\w{4}:\\w{4}$";
+    
+    NSError * error = nil;
+    NSRegularExpression * v4Regex = [NSRegularExpression regularExpressionWithPattern:isV4RegEx options:0 error:&error];
+    NSTextCheckingResult * v4Result = [v4Regex firstMatchInString:_str options:0 range:NSMakeRange(0, [_str length])];
+    NSRegularExpression * v6Regex = [NSRegularExpression regularExpressionWithPattern:isV6RegEx options:0 error:&error];
+    NSTextCheckingResult * v6Result = [v6Regex firstMatchInString:_str options:0 range:NSMakeRange(0, [_str length])];
+    return (v4Result || v6Result) ? YES : NO;
+}
+
+BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultProxyConfig)
+{
+  NSString * dstUrlString = [NSString stringWithFormat: @"http://%@", url];
+  const wchar_t *DestURL = (wchar_t*)[dstUrlString cStringUsingEncoding: NSUTF16StringEncoding];
+
+  WINHTTP_CURRENT_USER_IE_PROXY_CONFIG ProxyConfig;
+  WINHTTP_PROXY_INFO ProxyInfo, ProxyInfoTemp;
+  WINHTTP_AUTOPROXY_OPTIONS OptPAC;
+  DWORD dwOptions = SECURITY_FLAG_IGNORE_CERT_CN_INVALID | SECURITY_FLAG_IGNORE_CERT_DATE_INVALID | SECURITY_FLAG_IGNORE_UNKNOWN_CA | SECURITY_FLAG_IGNORE_CERT_WRONG_USAGE;
+
+  ZeroMemory(&ProxyInfo, sizeof(ProxyInfo));
+  ZeroMemory(&ProxyConfig, sizeof(ProxyConfig));
+  ZeroMemory(resultProxyConfig, sizeof(*resultProxyConfig));
+
+  BOOL result = false;
+  BOOL autoConfigWorked = false;
+  BOOL autoDetectWorked = false;
+
+  HINTERNET http_local_session = WinHttpOpen(L"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko)", WINHTTP_ACCESS_TYPE_NO_PROXY, 0, WINHTTP_NO_PROXY_BYPASS, 0);
+
+    if (http_local_session && WinHttpGetIEProxyConfigForCurrentUser(&ProxyConfig)) 
+      {
+        NSLog(@"Got proxy config for current user.");
+        if (ProxyConfig.lpszProxy) 
+          {
+            ProxyInfo.lpszProxy = ProxyConfig.lpszProxy;
+            ProxyInfo.dwAccessType = WINHTTP_ACCESS_TYPE_NAMED_PROXY;
+            ProxyInfo.lpszProxyBypass = NULL;
+          }
+    
+        memcpy(resultProxyConfig, &ProxyConfig, sizeof(*resultProxyConfig));
+
+        if (ProxyConfig.lpszAutoConfigUrl) 
+          {
+            size_t len = wcslen(ProxyConfig.lpszAutoConfigUrl);
+            NSString * autoConfigUrl = [[NSString alloc] initWithBytes: ProxyConfig.lpszAutoConfigUrl length:len*2 encoding:NSUTF16StringEncoding];
+            NSLog(@"trying script proxy pac file: %@.", autoConfigUrl);
+
+            // Script proxy pac
+            OptPAC.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
+            OptPAC.lpszAutoConfigUrl = ProxyConfig.lpszAutoConfigUrl;
+            OptPAC.dwAutoDetectFlags = 0;
+            OptPAC.fAutoLogonIfChallenged = TRUE;
+            OptPAC.lpvReserved = 0;
+            OptPAC.dwReserved = 0;
+
+            if (WinHttpGetProxyForUrl(http_local_session, DestURL, &OptPAC, &ProxyInfoTemp)) 
+              {
+                NSLog(@"worked");
+                memcpy(&ProxyInfo, &ProxyInfoTemp, sizeof(ProxyInfo));
+
+                resultProxyConfig->lpszProxy = ProxyInfoTemp.lpszProxy;
+                resultProxyConfig->lpszProxyBypass = ProxyInfoTemp.lpszProxyBypass;
+                autoConfigWorked = true;
+              }
+            else 
+              {
+                PrintLastError(@"WinHttpGetProxyForUrl");
+              }
+          }
+      else if (ProxyConfig.fAutoDetect) 
+        {
+          NSLog(@"trying autodetect proxy");
+
+          // Autodetect proxy
+          OptPAC.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT;
+          OptPAC.dwAutoDetectFlags = WINHTTP_AUTO_DETECT_TYPE_DHCP | WINHTTP_AUTO_DETECT_TYPE_DNS_A;
+          OptPAC.fAutoLogonIfChallenged = TRUE;
+          OptPAC.lpszAutoConfigUrl = NULL;
+          OptPAC.lpvReserved = 0;
+          OptPAC.dwReserved = 0;
+
+          if (WinHttpGetProxyForUrl(http_local_session, DestURL, &OptPAC, &ProxyInfoTemp)) 
+            {
+              NSLog(@"worked");
+              memcpy(&ProxyInfo, &ProxyInfoTemp, sizeof(ProxyInfo));
+
+              resultProxyConfig->lpszProxy = ProxyInfoTemp.lpszProxy;
+              resultProxyConfig->lpszProxyBypass = ProxyInfoTemp.lpszProxyBypass;
+              autoDetectWorked = true;
+            }
+          else 
+            {
+              PrintLastError(@"WinHttpGetProxyForUrl");
+            }
+        }
+
+      NSString * autoConfigUrl = @"";
+      NSString * proxy = @"";
+      NSString * proxyBypass = @"";
+
+      if (resultProxyConfig->lpszAutoConfigUrl) autoConfigUrl = [[NSString alloc] initWithBytes: resultProxyConfig->lpszAutoConfigUrl length:wcslen(resultProxyConfig->lpszAutoConfigUrl)*2 encoding:NSUTF16StringEncoding];
+      if (resultProxyConfig->lpszProxy) proxy = [[NSString alloc] initWithBytes: resultProxyConfig->lpszProxy length:wcslen(resultProxyConfig->lpszProxy)*2 encoding:NSUTF16StringEncoding];
+      if (resultProxyConfig->lpszProxyBypass) proxyBypass = [[NSString alloc] initWithBytes: resultProxyConfig->lpszProxyBypass length:wcslen(resultProxyConfig->lpszProxyBypass)*2 encoding:NSUTF16StringEncoding];
+
+      autoConfigUrl = normalizeUrl(autoConfigUrl);
+      proxy = normalizeUrl(proxy);
+
+      NSLog(@"  autoConfigUrl: %@", autoConfigUrl);
+      NSLog(@"  proxy: %@", proxy);
+      NSLog(@"  proxyBypass: %@", proxyBypass);
+
+      result = true;
+    }
+  
+  return result;
+}
+
+CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * forUrl)
+{
+  NSLog(@"forURL: %@", forUrl);
+  NSMutableDictionary *proxyDict = [NSMutableDictionary dictionary];
+  WINHTTP_CURRENT_USER_IE_PROXY_CONFIG  proxyInfo = { 0 };
+  
+  // Initialize...
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"FTPEnable"];
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"HTTPEnable"];
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"HTTPSEnable"];
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"RTSEnable"];
+  [proxyDict setObject: [NSNumber numberWithBool: NO] forKey: @"SOCKSEnable"];
+  
+  // FIXME: add the ExceptionsList array section...
+  [proxyDict setObject: [NSArray array] forKey: @"ExceptionsList"];
+  
+  // FIXME: add the per interface __SCOPED__ dictionary section in the code
+  // section(s) below...
+  NSDictionary *scopedProxies = @{ @"ExceptionsList" : [NSArray array],
+                                   @"FTPEnable"      : [NSNumber numberWithBool: NO],
+                                   @"HTTPEnable"     : [NSNumber numberWithBool: NO],
+                                   @"HTTPSEnable"    : [NSNumber numberWithBool: NO],
+                                   @"RTSEnable"      : [NSNumber numberWithBool: NO],
+                                   @"SOCKSEnable"    : [NSNumber numberWithBool: NO] };
+  [proxyDict setObject: scopedProxies forKey: @"__SCOPED__"];
+
+  if (ResolveProxy(forUrl, &proxyInfo) == FALSE)
+    {
+      NSWarnMLog(@"error retrieving windows proxy information - error code: %ld", (long)GetLastError());
+    }
+  else
+    {
+      NSWarnMLog(@"fAutoDetect: %ld hosts: %S bypass %S",
+                 (long)proxyInfo.fAutoDetect, proxyInfo.lpszProxy, proxyInfo.lpszProxyBypass);
+      
+      // Proxy host(s) list...
+      if (NULL != proxyInfo.lpszProxy)
+        {
+          NSString            *host = nil;
+          NSNumber            *port = nil;
+          NSString            *string = AUTORELEASE([[NSString alloc] initWithBytes: proxyInfo.lpszProxy
+                                                                             length: wcslen(proxyInfo.lpszProxy)*sizeof(wchar_t)
+                                                                           encoding: NSUTF16StringEncoding]);
+          
+          // Multiple components setup???
+          if ([string containsString: @";"] || [string containsString: @"="])
+            {
+              // Split the components using ';'...
+              NSArray   *components = [string componentsSeparatedByString: @";"];
+              NSString  *proxy      = nil;
+              
+              // Find the SOCKS proxy setting...
+              for (proxy in components)
+                {
+                  if ([[proxy lowercaseString] containsString: @"socks="])
+                    {
+                      // SOCKS available...
+                      NSInteger  index      = [proxy rangeOfString: @"="].location + 1;
+                      NSArray   *socksProxy = [[proxy substringFromIndex: index] componentsSeparatedByString: @":"];
+                      if (0 == [socksProxy count])
+                        {
+                          NSWarnMLog(@"error processing SOCKS proxy info for (%@)", proxy);
+                        }
+                      else
+                        {
+                          host              = [socksProxy objectAtIndex: 0];
+                          NSInteger portnum = ([socksProxy count] > 1 ? [[socksProxy objectAtIndex: 1] integerValue] : 8080);
+                          port              = [NSNumber numberWithInteger: portnum];
+                          NSWarnMLog(@"SOCKS - host: %@ port: %@", host, port);
+
+                          // Setup the proxy dictionary information and...
+                          [proxyDict setObject: host forKey: NSStreamSOCKSProxyHostKey];
+                          [proxyDict setObject: port forKey: NSStreamSOCKSProxyPortKey];
+                          // This key is NOT in the returned dictionary on Cocoa...
+                          [proxyDict setObject: NSStreamSOCKSProxyVersion5 forKey: NSStreamSOCKSProxyVersionKey];
+                          [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"SOCKSEnable"];
+                        }
+                    }
+                  else if ([[proxy lowercaseString] containsString: @"http="])
+                    {
+                      // HTTP available...
+                      NSInteger  index      = [proxy rangeOfString: @"="].location + 1;
+                      NSArray   *socksProxy = [[proxy substringFromIndex: index] componentsSeparatedByString: @":"];
+                      if (0 == [socksProxy count])
+                        {
+                          NSWarnMLog(@"error processing HTTP proxy info for (%@)", proxy);
+                        }
+                      else
+                        {
+                          host              = [socksProxy objectAtIndex: 0];
+                          NSInteger portnum = ([socksProxy count] > 1 ? [[socksProxy objectAtIndex: 1] integerValue] : 8080);
+                          port              = [NSNumber numberWithInteger: portnum];
+                          NSWarnMLog(@"HTTP - host: %@ port: %@", host, port);
+
+                          // Setup the proxy dictionary information and...
+                          [proxyDict setObject: host forKey: kCFStreamPropertyHTTPProxyHost];
+                          [proxyDict setObject: port forKey: kCFStreamPropertyHTTPProxyPort];
+                          [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"HTTPEnable"];
+                        }
+                    }
+                  else if ([[proxy lowercaseString] containsString: @"https="])
+                    {
+                      // HTTPS available...
+                      NSInteger  index      = [proxy rangeOfString: @"="].location + 1;
+                      NSArray   *socksProxy = [[proxy substringFromIndex: index] componentsSeparatedByString: @":"];
+                      if (0 == [socksProxy count])
+                        {
+                          NSWarnMLog(@"error processing HTTPS proxy info for (%@)", proxy);
+                        }
+                      else
+                        {
+                          host              = [socksProxy objectAtIndex: 0];
+                          NSInteger portnum = ([socksProxy count] > 1 ? [[socksProxy objectAtIndex: 1] integerValue] : 8080);
+                          port              = [NSNumber numberWithInteger: portnum];
+                          NSWarnMLog(@"HTTPS - host: %@ port: %@", host, port);
+
+                          // Setup the proxy dictionary information and...
+                          [proxyDict setObject: host forKey: kCFStreamPropertyHTTPSProxyHost];
+                          [proxyDict setObject: port forKey: kCFStreamPropertyHTTPSProxyPort];
+                          [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"HTTPSEnable"];
+                        }
+                    }
+                }
+            }
+          else
+            {
+              // Split the components using ':'...
+              NSArray   *components = [string componentsSeparatedByString: @":"];
+              NSDebugFLLog(@"NSStream", @"component(s): %@", components);
+
+              NSMutableArray * mutableComponents = [NSMutableArray arrayWithArray:components];
+              if ([mutableComponents count] > 1) 
+                {
+                  NSString * firstItem = [mutableComponents objectAtIndex:0];
+                  if ([firstItem length] >= 6)
+                    {
+                      if ([[[firstItem substringToIndex:6] lowercaseString] isEqualToString:@"https:"]) 
+                        {
+                          [mutableComponents removeObjectAtIndex:0];
+                          components = (NSArray *)mutableComponents;
+                        }
+                    }                    
+                  else if ([firstItem length] >= 5)
+                    {
+                      if ([[[firstItem substringToIndex:5] lowercaseString] isEqualToString:@"http:"]) 
+                        {
+                          [mutableComponents removeObjectAtIndex:0];
+                          components = (NSArray *)mutableComponents;
+                        }
+                    }                    
+                }
+
+              NSLog(@"components ---------- ");
+              for(NSInteger i = 0; i < [components count]; i++){
+                NSLog(@"%@", [components objectAtIndex:i]);
+              }
+              NSLog(@"--------------------- ");
+
+              if (0 != [components count])
+                {
+                  host              = [components objectAtIndex: 0];
+                  NSInteger portnum = ([components count] > 1 ? [[components objectAtIndex: 1] integerValue] : 8080);
+                  port              = [NSNumber numberWithInteger: portnum];
+
+                  if ([host length] >= 1)
+                    {
+                      if (!isdigit([host characterAtIndex:0]))
+                        {
+                          NSLog(@"host appears to be a domain name: %@", host);
+                          struct hostent * hostInfo;
+                          hostInfo = gethostbyname ([host cString]);
+                          if (hostInfo) 
+                            {
+                              NSLog(@"gethostbyname worked");
+                              if (hostInfo->h_addr_list[0] != 0) 
+                                {
+                                  struct in_addr addr;
+                                  addr.s_addr = *(u_long *) hostInfo->h_addr_list[0];
+                                  const char * ipAddr = inet_ntoa(addr);
+                                  host = [NSString stringWithFormat:@"%s", ipAddr];
+                                } 
+                            }  
+                          else 
+                            {
+                              NSLog(@"gethostbyname worked");
+                            }
+                        }
+                    }
+                  NSLog(@"host: %@ port: %d", host, portnum);
+
+                  if ([host length] >= 2) 
+                    {
+                      if ([[host substringToIndex:2] isEqualToString:@"//"])
+                        {
+                          host = [host substringFromIndex:2];
+                        }
+                    }
+                  
+                  // Setup the proxy dictionary information...
+                  [proxyDict setObject: host forKey: NSStreamSOCKSProxyHostKey];
+                  [proxyDict setObject: port forKey: NSStreamSOCKSProxyPortKey];
+                  [proxyDict setObject: NSStreamSOCKSProxyVersion5 forKey: NSStreamSOCKSProxyVersionKey];
+                  [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"SOCKSEnable"];
+
+                  [proxyDict setObject: host forKey: kCFStreamPropertyHTTPProxyHost];
+                  [proxyDict setObject: port forKey: kCFStreamPropertyHTTPProxyPort];
+                  [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"HTTPEnable"];
+                  
+                  [proxyDict setObject: host forKey: kCFStreamPropertyHTTPSProxyHost];
+                  [proxyDict setObject: port forKey: kCFStreamPropertyHTTPSProxyPort];
+                  [proxyDict setObject: [NSNumber numberWithBool: YES] forKey: @"HTTPSEnable"];
+                }
+            }
+        }
+    }
+  
+  // Proxy exception(s) list...
+  if (NULL != proxyInfo.lpszProxyBypass)
+    {
+      NSString *bypass  = AUTORELEASE([[NSString alloc] initWithBytes: proxyInfo.lpszProxyBypass
+                                                               length: wcslen(proxyInfo.lpszProxyBypass)*sizeof(wchar_t)
+                                                             encoding: NSUTF16StringEncoding]);
+      NSWarnMLog(@"bypass %@", bypass);
+    }
+  NSWarnMLog(@"proxies: %@", proxyDict);
+  
+  return [proxyDict copy];
+}
