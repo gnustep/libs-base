@@ -415,7 +415,7 @@ pty_slave(const char* name)
  */
 - (void) launch
 {
-  ASSIGN(_launchingThread, [NSThread currentThread]);
+  [self launchAndReturnError: NULL];
 }
 
 /**
@@ -895,26 +895,10 @@ pty_slave(const char* name)
 
 - (BOOL) launchAndReturnError: (NSError **)error
 {
-  NSProcessInfo *pi = [NSProcessInfo processInfo];
-  NSDictionary *env = [pi environment];
-  BOOL result = YES;
-  
-  *error = nil;
-  [self setEnvironment: env];
-
-  NS_DURING
-    {
-      [self launch];
-    }
-  NS_HANDLER
-    {
-      NSLog(@"Launch failed: %@", [localException reason]);
-      result = NO;
-    }
-  NS_ENDHANDLER;
-  
-  return result;
+  ASSIGN(_launchingThread, [NSThread currentThread]);
+  return YES;
 }
+
 
 - (NSURL *) executableURL
 {
@@ -1189,7 +1173,8 @@ quotedFromString(NSString *aString)
     }
 }
 
-- (void) launch
+// 10.13 method...
+- (BOOL) launchAndReturnError: (NSError **)error
 {
   STARTUPINFOW		start_info;
   NSString      	*lpath;
@@ -1214,7 +1199,7 @@ quotedFromString(NSString *aString)
                   format: @"NSTask - task has already been launched"];
     }
 
-  [super launch];
+  [super launchAndReturnError: error];
 
   lpath = [self _fullLaunchPath];
   wexecutable = (const unichar*)[lpath fileSystemRepresentation];
@@ -1411,6 +1396,8 @@ quotedFromString(NSString *aString)
       [hdl closeFile];
       [toClose removeObjectAtIndex: 0];
     }
+
+  return YES;
 }
 
 - (void) _collectChild
@@ -1517,7 +1504,8 @@ GSPrivateCheckTasks()
   return found;
 }
 
-- (void) launch
+// 10.13 method...
+- (BOOL) launchAndReturnError: (NSError **)error
 {
   NSMutableArray	*toClose;
   NSString      	*lpath;
@@ -1543,7 +1531,7 @@ GSPrivateCheckTasks()
                   format: @"NSTask - task has already been launched"];
     }
 
-  [super launch];
+  [super launchAndReturnError: error];
 
   lpath = [self _fullLaunchPath];
   executable = [lpath fileSystemRepresentation];
@@ -1738,6 +1726,8 @@ GSPrivateCheckTasks()
 	  [toClose removeObjectAtIndex: 0];
 	}
     }
+  
+  return YES;
 }
 
 - (void) setStandardError: (id)hdl
