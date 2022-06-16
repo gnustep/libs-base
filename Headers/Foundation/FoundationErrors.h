@@ -75,6 +75,71 @@ enum
   NSFileReadUnknownStringEncodingError = 264,
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+  NSFileWriteVolumeReadOnlyError = 642,
+  NSPropertyListErrorMaximum = 4095,
+  NSPropertyListErrorMinimum = 3840,
+  NSPropertyListReadCorruptError = 3840,
+  NSPropertyListReadStreamError = 3842,
+  NSPropertyListReadUnknownVersionError = 3841,
+  NSPropertyListWriteStreamError = 3851,
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+  NSFileWriteFileExistsError = 516, 
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
+  NSFeatureUnsupportedError = 3328,
+  NSXPCConnectionErrorMaximum = 4224,
+  NSXPCConnectionErrorMinimum = 4096,
+  NSXPCConnectionInterrupted = 4097,
+  NSXPCConnectionInvalid = 4099,
+  NSXPCConnectionReplyInvalid = 4101,
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+  NSUbiquitousFileErrorMaximum = 4607,
+  NSUbiquitousFileErrorMinimum = 4352,
+  NSUbiquitousFileNotUploadedDueToQuotaError = 4354,
+  NSUbiquitousFileUbiquityServerNotAvailable = 4355,
+  NSUbiquitousFileUnavailableError = 4353, 
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+  NSPropertyListWriteInvalidError = 3852,       
+  NSUserActivityConnectionUnavailableError = 4609,
+  NSUserActivityErrorMaximum = 4863, 
+  NSUserActivityErrorMinimum = 4608,
+  NSUserActivityHandoffFailedError = 4608,
+  NSUserActivityHandoffUserInfoTooLargeError = 4611,
+  NSUserActivityRemoteApplicationTimedOutError = 4610,
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_11, GS_API_LATEST)
+  NSBundleErrorMaximum = 5119,
+  NSBundleErrorMinimum = 4992,
+  NSCoderErrorMaximum = 4991,
+  NSCoderErrorMinimum = 4864,
+  NSCoderReadCorruptError = 4864,
+  NSCoderValueNotFoundError = 4865,
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
+  NSCloudSharingConflictError = 5123,
+  NSCloudSharingErrorMaximum = 5375,
+  NSCloudSharingErrorMinimum = 5120, 
+  NSCloudSharingNetworkFailureError = 5120,
+  NSCloudSharingNoPermissionError = 5124,
+  NSCloudSharingOtherError = 5375,
+  NSCloudSharingQuotaExceededError = 5121,
+  NSCloudSharingTooManyParticipantsError = 5122,
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_13, GS_API_LATEST)
+  NSCoderInvalidValueError = 4866, 
+#endif
+
   GSFoundationPlaceHolderError = 9999
 };
 
