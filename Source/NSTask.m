@@ -415,17 +415,12 @@ pty_slave(const char* name)
  */
 - (void) launch
 {
-  NSError *error = nil;
-  BOOL success = [self launchAndReturnError: &error];
+  NSError	*e;
 
-  if (success == NO)
+  if (NO == [self launchAndReturnError: &e])
     {
-      if (error != nil)
-        {
-          NSException *ex =
-            [NSException exceptionWithName: NSInvalidArgumentException
-                                    reason: 
-        }
+      [NSException raise: NSInvalidArgumentException
+		  format: @"%@", e ? e : @"Unable to launch"];
     }
 }
 
@@ -892,15 +887,17 @@ pty_slave(const char* name)
 // macOS 10.13 methods...
 
 + (NSTask *) launchedTaskWithExecutableURL: (NSURL *)url 
-                                 arguments: (NSArray *)arguments 
-                                     error: (NSError **)error 
-                        terminationHandler: (GSTaskTerminationHandler)terminationHandler
+  arguments: (NSArray *)arguments 
+  error: (NSError **)error 
+  terminationHandler: (GSTaskTerminationHandler)terminationHandler
 {
-  NSTask *task =  [self launchedTaskWithLaunchPath: [url path]
-                                         arguments: arguments];
+  NSTask	*task = [self launchedTaskWithLaunchPath: [url path]
+					       arguments: arguments];
   task->_handler = terminationHandler;
-  *error = nil;
-  
+  if (error)
+    {
+      *error = nil;
+     } 
   return task;
 }
 
@@ -909,7 +906,6 @@ pty_slave(const char* name)
   ASSIGN(_launchingThread, [NSThread currentThread]);
   return YES;
 }
-
 
 - (NSURL *) executableURL
 {
@@ -1206,8 +1202,17 @@ quotedFromString(NSString *aString)
 
   if (_hasLaunched)
     {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - task has already been launched"];
+      if (error)
+	{
+	  NSDictionary      *info;
+
+	  info = [NSDictionary dictionaryWithObjectsAndKeys:
+	    @"task has already been launched", NSLocalizedDescriptionKey, nil];
+	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
+				       code: 0
+				   userInfo: info];
+	}
+      return NO;
     }
 
   [super launchAndReturnError: error];
@@ -1367,7 +1372,7 @@ quotedFromString(NSString *aString)
     (const unichar*)[[self currentDirectoryPath] fileSystemRepresentation],
     &start_info,
     &procInfo);
-  if (result == 0)
+  if (0 == result)
     {
       last = [NSError _last];
     }
@@ -1379,8 +1384,11 @@ quotedFromString(NSString *aString)
 
   if (0 == result)
     {
-      [NSException raise: NSInvalidArgumentException
-        format: @"NSTask - Error launching task: %@ ... %@", lpath, last];
+      if (error)
+	{
+	  *error = last;
+	}
+      return NO;
     }
 
   _taskId = procInfo.dwProcessId;
@@ -1538,8 +1546,17 @@ GSPrivateCheckTasks()
 
   if (_hasLaunched)
     {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - task has already been launched"];
+      if (error)
+	{
+	  NSDictionary      *info;
+
+	  info = [NSDictionary dictionaryWithObjectsAndKeys:
+	    @"task has already been launched", NSLocalizedDescriptionKey, nil];
+	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
+				       code: 0
+				   userInfo: info];
+	}
+      return NO;
     }
 
   [super launchAndReturnError: error];
@@ -1614,8 +1631,11 @@ GSPrivateCheckTasks()
   pid = vfork();
   if (pid < 0)
     {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - failed to create child process"];
+      if (error)
+	{
+	  *error = [NSError _last];
+	}
+      return NO;
     }
   if (pid == 0)
     {
