@@ -415,7 +415,18 @@ pty_slave(const char* name)
  */
 - (void) launch
 {
-  [self launchAndReturnError: NULL];
+  NSError *error = nil;
+  BOOL success = [self launchAndReturnError: &error];
+
+  if (success == NO)
+    {
+      if (error != nil)
+        {
+          NSException *ex =
+            [NSException exceptionWithName: NSInvalidArgumentException
+                                    reason: 
+        }
+    }
 }
 
 /**
