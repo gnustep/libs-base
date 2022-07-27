@@ -1,3 +1,9 @@
+2022-07-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURLProtocol.m:
+	Include body after masked headers in debug output.
+
 2022-05-20 Richard Frith-Macdonald <rfm@gnu.org>
 
 	Changes to remove sensitive information from debug logs.

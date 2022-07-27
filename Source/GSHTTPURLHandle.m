@@ -593,6 +593,10 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSEndMapTableEnumeration(&enumerator);
 
   [buf appendBytes: "\r\n" length: 2];
+  if (masked)
+    {
+      [masked appendBytes: "\r\n" length: 2];
+    }
 
   /*
    * Append any data to be sent
@@ -600,6 +604,10 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if (wData != nil)
     {
       [buf appendData: wData];
+      if (masked)
+	{
+	  [masked appendData: wData];
+	}
     }
 
   /*

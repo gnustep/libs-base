@@ -1732,6 +1732,7 @@ typedef struct {
 	      NSString		*s;
 	      NSURL		*u;
 	      int		l;		
+	      NSData		*bytes;
 
 	      if (_debug)
 	        {
@@ -1825,6 +1826,10 @@ typedef struct {
                   static char   *ct
                     = "Content-Type: application/x-www-form-urlencoded\r\n";
 		  [m appendBytes: ct length: strlen(ct)];
+		  if (mm)
+		    {
+		      [mm appendBytes: ct length: strlen(ct)];
+		    }
 		}
 	      if ([this->request valueForHTTPHeaderField: @"Host"] == nil)
 		{
@@ -1854,15 +1859,29 @@ typedef struct {
 		    {
 		      s = [NSString stringWithFormat: @"Host: %@:%@\r\n", h, p];
 		    }
-                  [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
+                  bytes = [s dataUsingEncoding: NSASCIIStringEncoding];
+                  [m appendData: bytes];
+		  if (mm)
+		    {
+		      [mm appendData: bytes];
+		    }
 		}
 	      if (l >= 0 && [this->request
 	        valueForHTTPHeaderField: @"Content-Length"] == nil)
 		{
                   s = [NSString stringWithFormat: @"Content-Length: %d\r\n", l];
-                  [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
+                  bytes = [s dataUsingEncoding: NSASCIIStringEncoding];
+                  [m appendData: bytes];
+		  if (mm)
+		    {
+		      [mm appendData: bytes];
+		    }
 		}
 	      [m appendBytes: "\r\n" length: 2];	// End of headers
+	      if (mm)
+		{
+		  [mm appendBytes: "\r\n" length: 2];
+		}
 	      _writeData = m;
 	      ASSIGN(_masked, mm);
 	    }			// Fall through to do the write
