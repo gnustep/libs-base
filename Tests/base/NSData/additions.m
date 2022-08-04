@@ -15,6 +15,7 @@ int main()
   NSUInteger    length;
 
   ref = [NSData dataWithContentsOfFile: @"Lorum"];
+  PASS(ref != nil, "dataWithContentsOfFile: is not nil");
   PASS(NO == [ref isGzipped], "Reference data is not gzipped");
 
   data = [ref gzipped: 0];
