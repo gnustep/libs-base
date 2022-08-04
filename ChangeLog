@@ -1,3 +1,10 @@
+2022-08-04 Hugo Melder <contact@hugomelder.com>
+
+	* Tests/base/coding/basictypes.m:
+	Fetch the generated .type file directly to avoid size mismatches.
+	* .gitignore:
+	Ignore .type files in the coding unit test directory.
+
 2022-07-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m:
