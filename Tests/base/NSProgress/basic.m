@@ -15,7 +15,7 @@ int main()
   PASS_EQUAL([progress userInfo], dict, "[NSProgress userInfo] returns correct user info");
   
   [progress setUserInfoObject:@"new value" forKey:@"key"];
-  PASS_EQUAL([[progress userInfo] objectForKey:@"key"], "new value", "[NSProgress setUserInfoObject:forKey:] updates user info");
+  PASS_EQUAL([[[progress userInfo] objectForKey:@"key"] UTF8String], "new value", "[NSProgress setUserInfoObject:forKey:] updates user info");
   
   progress = [NSProgress discreteProgressWithTotalUnitCount:100];
   PASS(progress != nil, "[NSProgress discreteProgressWithTotalUnitCount:] returns instance");
