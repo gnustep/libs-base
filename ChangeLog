@@ -1,3 +1,12 @@
+2022-08-05 Hugo Melder <contact@hugomelder.com>
+
+	* Tests/base/NSTask/Helpers/GNUmakefile:
+	Fix compilation of NSTask helper test files on Windows MSVC.
+	* Tests/base/NSTask/general.m:
+	* Tests/base/NSTask/launch.m:
+	* Tests/base/NSTask/notify.m:
+	Conditionally use .exe suffix in executable paths.
+
 2022-08-04 Hugo Melder <contact@hugomelder.com>
 
 	* Tests/base/coding/basictypes.m:
