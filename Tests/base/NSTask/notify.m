@@ -43,7 +43,7 @@ static BOOL taskTerminationNotificationReceived;
   testsleep = @"testsleep.exe";
 #else
   testecho = @"testecho";
-  testsleep = @"testsleep.exe";
+  testsleep = @"testsleep";
 #endif
 
   for (;;)
