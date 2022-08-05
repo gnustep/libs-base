@@ -8,15 +8,28 @@
 
 int main()
 {
+  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSTask *task;
   NSPipe *outPipe;
   NSFileManager *mgr;
   NSString      *helpers;
+  NSString *testecho;
+  NSString *testcat;
+  NSString *processgroup;
   NSFileHandle  *outHandle;
-  NSAutoreleasePool *arp;
   NSData *data = nil;
 
-  arp = [[NSAutoreleasePool alloc] init];
+  /* Windows MSVC adds the '.exe' suffix to executables
+   */
+#if defined(_MSC_VER)
+  testecho = @"testecho.exe";
+  testcat = @"testcat.exe";
+  processgroup = @"processgroup.exe";
+#else
+  testecho = @"testecho";
+  testcat = @"testcat";
+  processgroup = @"processgroup";
+#endif
 
   mgr = [NSFileManager defaultManager];
   helpers = [mgr currentDirectoryPath];
@@ -25,7 +38,7 @@ int main()
 
   task = [[NSTask alloc] init];
   outPipe = [[NSPipe pipe] retain];
-  [task setLaunchPath: [helpers stringByAppendingPathComponent: @"testcat"]];
+  [task setLaunchPath: [helpers stringByAppendingPathComponent: testcat]];
   [task setArguments: [NSArray arrayWithObjects: nil]];
   [task setStandardOutput: outPipe]; 
   outHandle = [outPipe fileHandleForReading];
@@ -39,7 +52,7 @@ int main()
 
   task = [[NSTask alloc] init];
   outPipe = [[NSPipe pipe] retain];
-  [task setLaunchPath: [helpers stringByAppendingPathComponent: @"testecho"]];
+  [task setLaunchPath: [helpers stringByAppendingPathComponent: testecho]];
   [task setArguments: [NSArray arrayWithObjects: @"Hello", @"there", nil]];
   [task setStandardOutput: outPipe]; 
   outHandle = [outPipe fileHandleForReading];
@@ -59,7 +72,7 @@ int main()
 #if	!defined(_WIN32)
   task = [[NSTask alloc] init];
   [task setLaunchPath:
-    [helpers stringByAppendingPathComponent: @"processgroup"]];
+    [helpers stringByAppendingPathComponent: processgroup]];
   [task setArguments: [NSArray arrayWithObjects:
     [NSString stringWithFormat: @"%d", getpgrp()],
     nil]];
