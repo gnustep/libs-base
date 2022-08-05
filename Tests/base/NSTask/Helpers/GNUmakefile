@@ -1,7 +1,6 @@
 
 include $(GNUSTEP_MAKEFILES)/common.make
 
-#TOOL_NAME = NSZombie processgroup testcat testecho testsleep
 TOOL_NAME = NSZombie processgroup testcat testecho testsleep
 
 NEEDS_GUI = NO
