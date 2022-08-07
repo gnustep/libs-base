@@ -1,3 +1,11 @@
+2022-08-07 Hugo Melder <contact@hugomelder.com>
+
+	* Source/NSTimeZone.m:
+	Windows to IANA time zone conversion: remove unsupported
+	TIME_ZONE_ID_DAYLIGHT conversion.
+	* Tests/base/NSTimeZone/use.m:
+	Fix test case to check for the correct standard time zone name. 
+
 2022-08-04 Hugo Melder <contact@hugomelder.com>
 
 	* Tests/base/coding/basictypes.m:
