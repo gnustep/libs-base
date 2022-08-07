@@ -65,7 +65,7 @@ int main()
   testHopeful = YES;
   PASS_EQUAL(
     [current localizedName: NSTimeZoneNameStyleStandard locale: locale],
-    @"Brasilia Time",
+    @"Brasilia Standard Time",
     "Correctly localizes standard time zone name")
 
   /* The next few depend on ICU issues

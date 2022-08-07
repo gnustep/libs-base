@@ -1452,10 +1452,12 @@ static NSMapTable	*absolutes = 0;
 #endif
 
         localZoneSource = @"function: 'GetTimeZoneInformation()'";
-        if (dst == TIME_ZONE_ID_DAYLIGHT)
-          tzName = tz.DaylightName;
-        else
-          tzName = tz.StandardName;
+        // Only tz.StandardName time zone conversions are supported, as
+        // the Zone-Tzid table lacks all daylight time conversions:
+        // e.g. 'W. Europe Daylight Time' <-> 'Europe/Berlin' is not listed.
+        //
+        // See: https://unicode-org.github.io/cldr-staging/charts/latest/supplemental/zone_tzid.html
+        tzName = tz.StandardName;
 
 #if defined(_MSC_VER) && defined(UCAL_H)
         // Convert Windows timezone name to IANA identifier
