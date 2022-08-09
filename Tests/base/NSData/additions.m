@@ -8,6 +8,8 @@
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  
+  START_SET("NSData Additions")
 #if USE_ZLIB
   NSData        *data;
   NSData        *ref;
@@ -15,7 +17,6 @@ int main()
   NSUInteger    length;
 
   ref = [NSData dataWithContentsOfFile: @"Lorum"];
-  PASS(ref != nil, "dataWithContentsOfFile: is not nil");
   PASS(NO == [ref isGzipped], "Reference data is not gzipped");
 
   data = [ref gzipped: 0];
@@ -68,6 +69,7 @@ int main()
 #else
   SKIP("zlib support disabled");
 #endif
+  END_SET("NSData Additions")
 
   [arp release]; arp = nil;
   return 0;
