@@ -4,9 +4,6 @@
 	Disable test completly if gnutls is not present.
 	* Tests/base/NSData/additions.m:
 	Check if dataWithContentsOfFile: returns an instance.
-	* Tests/base/NSProgress/basic.m:
-	Replace Objective-C strings with cstrings in PASS_EQUAL macros
-	and fix UserInfo test case.
 	* Tests/base/NSString/tilde.m:
 	Skip tilde abbreviation test on Windows.
 
