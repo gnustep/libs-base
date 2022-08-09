@@ -10,27 +10,34 @@ int main()
   [dict setObject:@"value" forKey:@"key"];
   NSProgress *progress = [[NSProgress alloc] initWithParent: nil
                                                    userInfo: dict];
-  PASS(progress != nil, "[NSProgress initWithParent:userInfo:] returns instance");
+  PASS(progress != nil,
+    "[NSProgress initWithParent:userInfo:] returns instance");
   
-  PASS_EQUAL([progress userInfo], dict, "[NSProgress userInfo] returns correct user info");
+  PASS_EQUAL([progress userInfo], dict,
+    "[NSProgress userInfo] returns correct user info");
   
   [progress setUserInfoObject:@"new value" forKey:@"key"];
-  PASS_EQUAL([[[progress userInfo] objectForKey:@"key"] UTF8String], "new value", "[NSProgress setUserInfoObject:forKey:] updates user info");
+  PASS_EQUAL([[progress userInfo] objectForKey:@"key"], @"new value",
+    "[NSProgress setUserInfoObject:forKey:] updates user info");
   
   progress = [NSProgress discreteProgressWithTotalUnitCount:100];
-  PASS(progress != nil, "[NSProgress discreteProgressWithTotalUnitCount:] returns instance");
+  PASS(progress != nil,
+    "[NSProgress discreteProgressWithTotalUnitCount:] returns instance");
   
   progress = [NSProgress progressWithTotalUnitCount:100];
-  PASS(progress != nil, "[NSProgress progressWithTotalUnitCount:] returns instance");
+  PASS(progress != nil,
+    "[NSProgress progressWithTotalUnitCount:] returns instance");
   
   progress = [NSProgress progressWithTotalUnitCount:100
                                              parent:progress
                                    pendingUnitCount:50];
-  PASS(progress != nil, "[NSProgress progressWithTotalUnitCount:] returns instance");
+  PASS(progress != nil,
+    "[NSProgress progressWithTotalUnitCount:] returns instance");
   
   [progress becomeCurrentWithPendingUnitCount:50];
   NSProgress *currentProgress = [NSProgress currentProgress];
-  PASS(currentProgress == progress, "Correct progress object associated with current thread");
+  PASS(currentProgress == progress,
+    "Correct progress object associated with current thread");
   
   NSProgress *new_progress = [NSProgress progressWithTotalUnitCount:100
                                                              parent:progress
@@ -40,7 +47,8 @@ int main()
   
   [currentProgress resignCurrent];
 
-  PASS([NSProgress currentProgress] == nil, "Current progress is nil after resign current");
+  PASS([NSProgress currentProgress] == nil,
+    "Current progress is nil after resign current");
 
   [arp release]; arp = nil;
   return 0;
