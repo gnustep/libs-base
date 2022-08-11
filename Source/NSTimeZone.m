@@ -1447,15 +1447,23 @@ static NSMapTable	*absolutes = 0;
         SetThreadUILanguage(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US));
         dst = GetTimeZoneInformation(&tz);
         SetThreadUILanguage(origLangID);
+
+        // Only tz.StandardName time zone conversions are supported, as
+        // the Zone-Tzid table lacks all daylight time conversions:
+        // e.g. 'W. Europe Daylight Time' <-> 'Europe/Berlin' is not listed.
+        //
+        // See: https://unicode-org.github.io/cldr-staging/charts/latest/supplemental/zone_tzid.html
+        tzName = tz.StandardName;
 #else
         dst = GetTimeZoneInformation(&tz);
-#endif
 
-        localZoneSource = @"function: 'GetTimeZoneInformation()'";
         if (dst == TIME_ZONE_ID_DAYLIGHT)
           tzName = tz.DaylightName;
         else
           tzName = tz.StandardName;
+#endif
+
+        localZoneSource = @"function: 'GetTimeZoneInformation()'";
 
 #if defined(_MSC_VER) && defined(UCAL_H)
         // Convert Windows timezone name to IANA identifier
