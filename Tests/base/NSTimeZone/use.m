@@ -62,17 +62,15 @@ int main()
 
   current = [NSTimeZone timeZoneWithName: @"America/Sao_Paulo"];
   locale = [[NSLocale alloc] initWithLocaleIdentifier: @"en_GB"];
-  testHopeful = YES;
+
   PASS_EQUAL(
     [current localizedName: NSTimeZoneNameStyleStandard locale: locale],
     @"Brasilia Standard Time",
     "Correctly localizes standard time zone name")
 
-  /* The next few depend on ICU issues
-   */
   PASS_EQUAL(
     [current localizedName: NSTimeZoneNameStyleShortStandard locale: locale],
-    @"GMT-03:00",
+    @"GMT-3",
     "Correctly localizes short time zone name")
   PASS_EQUAL(
     [current localizedName: NSTimeZoneNameStyleDaylightSaving locale: locale],
@@ -81,9 +79,8 @@ int main()
   PASS_EQUAL(
     [current localizedName: NSTimeZoneNameStyleShortDaylightSaving
       locale: locale],
-    @"GMT-02:00",
+    @"GMT-3",
     "Correctly localizes short DST time zone name")
-  testHopeful = NO;
 
   RELEASE(locale);
   
