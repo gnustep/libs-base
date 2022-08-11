@@ -1,3 +1,8 @@
+2022-08-11 Hugo Melder <contact@hugomelder.com>
+
+	* Tests/base/NSRunLoop/performers.m:
+	Remove unused unistd.h reference.
+
 2022-08-07 Hugo Melder <contact@hugomelder.com>
 
 	* Source/NSTimeZone.m:
