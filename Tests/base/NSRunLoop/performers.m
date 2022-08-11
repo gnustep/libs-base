@@ -7,8 +7,6 @@
 #import <Foundation/NSFileHandle.h>
 #import <Foundation/NSDictionary.h>
 
-#include <unistd.h>
-
 int main()
 {
   START_SET("NSRunLoop performers")
