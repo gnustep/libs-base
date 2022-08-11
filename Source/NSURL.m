@@ -752,6 +752,19 @@ static NSUInteger	urlAlign;
           aUrlString = [aUrlString initWithFormat: @"%@://%@%@",
             aScheme, aHost, aPath];
         }
+#if  defined(_WIN32)
+      /* On Windows file systems, an absolute file path can begin with
+       * a drive letter. The first component in an absolute path
+       * (e.g. C:) has to be enclosed by a leading slash.
+       *
+       * "file:///c:/path/to/file"
+       */
+      else if ([aScheme isEqualToString: @"file"] && [aPath characterAtIndex:1] == ':')
+        {
+          aUrlString = [aUrlString initWithFormat: @"%@:///%@%@",
+            aScheme, aHost, aPath];
+        }
+#endif
       else
         {
           aUrlString = [aUrlString initWithFormat: @"%@://%@/%@",

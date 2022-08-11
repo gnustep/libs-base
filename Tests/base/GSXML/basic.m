@@ -16,6 +16,8 @@ int main()
   GSXMLNode	*node;
   GSXMLRPC	*rpc;
   NSString	*str;
+  NSString  *testPath;
+  NSString  *absolutePath;
   NSData        *dat;
 
   TEST_FOR_CLASS(@"GSXMLDocument",[GSXMLDocument alloc],
@@ -149,13 +151,16 @@ int main()
     "Can parse a method call with a date");
 
   mgr = [NSFileManager defaultManager];
+  testPath = [[mgr currentDirectoryPath]
+              stringByAppendingPathComponent: @"GNUmakefile"];
+  absolutePath = [[NSURL fileURLWithPath: testPath] absoluteString];
 
   str = [NSString stringWithFormat:
 @"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
 @"<!DOCTYPE foo [\n"
-@"<!ENTITY foo SYSTEM \"file://%@/GNUmakefile\">\n"
+@"<!ENTITY foo SYSTEM \"%@\">\n"
 @"]>\n"
-@"<file>&amp;&foo;&#65;</file>", [mgr currentDirectoryPath]];
+@"<file>&amp;&foo;&#65;</file>", absolutePath];
 
   parser = [GSXMLParser parserWithData:
     [str dataUsingEncoding: NSUTF8StringEncoding]];
