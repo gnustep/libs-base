@@ -52,9 +52,6 @@ int main()
     PASS(NSNumberFormatterBehaviorDefault == [fmt formatterBehavior],
      "a new formatter can have the default behavior set")
 
-    str = [fmt stringFromNumber: [NSDecimalNumber notANumber]];
-    PASS_EQUAL(str, @"NaN", "notANumber special case")
-
     START_SET("NSLocale")
       NSLocale  *sys;
       NSLocale  *en;
