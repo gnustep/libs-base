@@ -9,7 +9,7 @@ NSZombie_OBJC_FILES = NSZombie.m
 
 processgroup_OBJC_FILES = processgroup.m
 
-testcat_OBJC_FILES = testcat.m
+testcat_C_FILES = testcat.c
 
 testecho_OBJC_FILES = testecho.m
 
