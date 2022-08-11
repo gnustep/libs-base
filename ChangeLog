@@ -14,6 +14,13 @@
 	* .gitignore:
 	Ignore .type files in the coding unit test directory.
 
+2022-08-03 Hugo Melder <contact@hugomelder.com>
+
+	* Tests/base/NSBundle/GNUmakefile.preamble
+	* Tests/base/NSBundle/resources2.m
+	Exclude framework loading on Windows, as Windows lacks support
+	for run-time search paths.
+
 2022-07-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m:
