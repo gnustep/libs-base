@@ -10,6 +10,7 @@ Tests/base/*/GNUmakefile
 *.sum
 
 # Test products
+Tests/base/coding/*.type
 Tests/base/NSBundle/Resources/TestBundle.bundle/
 Tests/base/NSBundle/Resources/TestFramework.framework/
 Tests/base/NSBundle/Resources/derived_src/

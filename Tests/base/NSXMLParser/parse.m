@@ -2,6 +2,7 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSFileManager.h>
 #import <Foundation/NSStream.h>
+#import <Foundation/NSURL.h>
 #import <Foundation/NSUserDefaults.h>
 #import <Foundation/NSXMLParser.h>
 #include <string.h>
@@ -256,6 +257,12 @@ testParser(NSXMLParser *parser, NSString *expect)
     }
   else
     {
+#if defined(_WIN32)
+      /* Replace CRLF from result files with LF
+       */
+      expect = [expect stringByReplacingOccurrencesOfString: @"\r\n" withString: @"\n"];
+#endif
+
       if (NO == [[handler description] isEqual: expect]) 
         {
           NSLog(@"######## Expected:\n%@\n######## Parsed:\n%@\n########\n",
@@ -370,6 +377,8 @@ int main()
 
   {
     NSString    *exp;
+    NSString    *mgrPath;
+    NSString    *absolutePath;
     NSData      *dat;
 
      exp = @"parserDidStartDocument:\n\
@@ -378,10 +387,13 @@ parser:didStartElement:namespaceURI:qualifiedName:attributes: file  file {\n}\n\
 parserDidEndDocument:\n\
 ";
 
+    mgrPath = [[mgr currentDirectoryPath] stringByAppendingPathComponent: @"GNUmakefile"];
+    absolutePath = [[NSURL fileURLWithPath: mgrPath] absoluteString];
+
     str = [NSString stringWithFormat:
 @"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
-@"<!DOCTYPE file [<!ENTITY foo SYSTEM \"file://%@/GNUmakefile\">]>\n"
-@"<file>&amp;&foo;&#65;</file>", [mgr currentDirectoryPath]];
+@"<!DOCTYPE file [<!ENTITY foo SYSTEM \"%@\">]>\n"
+@"<file>&amp;&foo;&#65;</file>", absolutePath];
 
     dat = [str dataUsingEncoding: NSUTF8StringEncoding];
     PASS((testParseData(dat, exp, YES)), "external entity (strict)")

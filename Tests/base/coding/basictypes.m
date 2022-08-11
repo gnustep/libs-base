@@ -114,15 +114,10 @@ void testReadBasicType_##testName (char *pre, testType *expect, testType *toDeco
   NSData *data; \
   NSUnarchiver *unArch; \
   NSString *str2; \
-  NSArray *encodedFiles; \
-  NSString *prefix = [[NSString stringWithCString:pre] retain]; \
-  unsigned int i, c; \
-  encodedFiles = [[NSBundle bundleWithPath: [fm currentDirectoryPath]] \
-	  		pathsForResourcesOfType:@"type" inDirectory:nil]; \
-  for (i = 0, c = [encodedFiles count]; i < c; i++) \
-    { \
-      NSString *fileName = [encodedFiles objectAtIndex:i]; \
-      if ([[fileName lastPathComponent] hasPrefix:prefix]) \
+  NSString *fileName; \
+  long typeSize = sizeof(testType); \
+  fileName = [[NSString stringWithFormat:@"%s-%li.type",pre,typeSize] retain]; \
+  if ([fm isReadableFileAtPath:fileName]) \
 	{ \
 	  data = [NSData dataWithContentsOfFile:fileName]; \
 	  unArch = [[NSUnarchiver alloc] initForReadingWithData:data]; \
@@ -136,7 +131,10 @@ void testReadBasicType_##testName (char *pre, testType *expect, testType *toDeco
 	  PASS((VAL_TEST(*expect,*toDecode) && [str isEqual:str2]), \
 		"can unarchive %s from %s", pre, [fileName UTF8String]); \
 	} \
-    } \
+  else \
+  { \
+    PASS(1 == 2, "Archive %s not found.", [fileName UTF8String]); \
+  } \
 } 
 
 #define VAL_TEST(testX,testY) testX == testY

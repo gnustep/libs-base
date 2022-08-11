@@ -1438,9 +1438,19 @@ static NSMapTable	*absolutes = 0;
        */
       {
         TIME_ZONE_INFORMATION tz;
-        DWORD dst = GetTimeZoneInformation(&tz);
+        DWORD dst;
         wchar_t *tzName;
-  
+
+#if defined(_MSC_VER) && defined(UCAL_H)
+        // Get time zone name for US locale as expected by ICU method below
+        LANGID origLangID = GetThreadUILanguage();
+        SetThreadUILanguage(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US));
+        dst = GetTimeZoneInformation(&tz);
+        SetThreadUILanguage(origLangID);
+#else
+        dst = GetTimeZoneInformation(&tz);
+#endif
+
         localZoneSource = @"function: 'GetTimeZoneInformation()'";
         if (dst == TIME_ZONE_ID_DAYLIGHT)
           tzName = tz.DaylightName;
@@ -1453,11 +1463,14 @@ static NSMapTable	*absolutes = 0;
           {
             UErrorCode status = U_ZERO_ERROR;
             UChar ianaTzName[128];
-            ucal_getTimeZoneIDForWindowsID(tzName, -1, NULL, ianaTzName, 128,
-              &status);
-            if (U_SUCCESS(status)) {
+            int32_t ianaTzNameLen = ucal_getTimeZoneIDForWindowsID(tzName,
+              -1, NULL, ianaTzName, 128, &status);
+            if (U_SUCCESS(status) && ianaTzNameLen > 0) {
               localZoneString = [NSString stringWithCharacters: ianaTzName
-                length: u_strlen(ianaTzName)];
+                length: ianaTzNameLen];
+            } else if (U_SUCCESS(status)) {
+              // this happens when ICU has no mapping for the time zone
+              NSLog(@"Unable to map timezone '%ls' to IANA format", tzName);
             } else {
               NSLog(@"Error converting timezone '%ls' to IANA format: %s",
                 tzName, u_errorName(status));
