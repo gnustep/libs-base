@@ -6,12 +6,37 @@
 	* Tests/base/NSTimeZone/use.m:
 	Fix test case to check for the correct standard time zone name. 
 
+2022-08-05 Hugo Melder <contact@hugomelder.com>
+
+	* Tests/base/NSTask/Helpers/GNUmakefile:
+	Fix compilation of NSTask helper test files on Windows MSVC.
+	* Tests/base/NSTask/general.m:
+	* Tests/base/NSTask/launch.m:
+	* Tests/base/NSTask/notify.m:
+	Conditionally use .exe suffix in executable paths.
+
+2022-08-04 Hugo Melder <contact@hugomelder.com>
+
+	* Tests/base/GSTLS/basic.m:
+	Disable test completly if gnutls is not present.
+	* Tests/base/NSData/additions.m:
+	Check if dataWithContentsOfFile: returns an instance.
+	* Tests/base/NSString/tilde.m:
+	Skip tilde abbreviation test on Windows.
+
 2022-08-04 Hugo Melder <contact@hugomelder.com>
 
 	* Tests/base/coding/basictypes.m:
 	Fetch the generated .type file directly to avoid size mismatches.
 	* .gitignore:
 	Ignore .type files in the coding unit test directory.
+
+2022-08-03 Hugo Melder <contact@hugomelder.com>
+
+	* Tests/base/NSBundle/GNUmakefile.preamble
+	* Tests/base/NSBundle/resources2.m
+	Exclude framework loading on Windows, as Windows lacks support
+	for run-time search paths.
 
 2022-07-27 Richard Frith-Macdonald <rfm@gnu.org>
 
