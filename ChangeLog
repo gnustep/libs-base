@@ -9,6 +9,15 @@
 
 2022-08-04 Hugo Melder <contact@hugomelder.com>
 
+	* Tests/base/GSTLS/basic.m:
+	Disable test completly if gnutls is not present.
+	* Tests/base/NSData/additions.m:
+	Check if dataWithContentsOfFile: returns an instance.
+	* Tests/base/NSString/tilde.m:
+	Skip tilde abbreviation test on Windows.
+
+2022-08-04 Hugo Melder <contact@hugomelder.com>
+
 	* Tests/base/coding/basictypes.m:
 	Fetch the generated .type file directly to avoid size mismatches.
 	* .gitignore:
