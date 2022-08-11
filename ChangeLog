@@ -1,3 +1,9 @@
+2022-08-11 Hugo Melder <contact@hugomelder.com>
+
+	* Tests/base/NSTimeZone/use.m:
+	Update NSTimeZone unit test to match macOS behaviour.
+	America/Sao_Paulo has no DST.
+
 2022-08-07 Hugo Melder <contact@hugomelder.com>
 
 	* Source/NSTimeZone.m:
