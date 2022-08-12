@@ -81,6 +81,7 @@ jobs:
       INSTALL_PATH: ${{ github.workspace }}${{ startsWith(matrix.os, 'windows') && '\' || '/' }}build
       IS_WINDOWS_MINGW: ${{ startsWith(matrix.os, 'windows') && startsWith(matrix.msystem, 'MINGW') }}
       IS_WINDOWS_MSVC: ${{ startsWith(matrix.os, 'windows') && endsWith(matrix.host, '-pc-windows') }}
+      IS_WINDOWS: ${{ startsWith(matrix.os, 'windows')}}
       CC: ${{ matrix.CC }}
       CXX: ${{ matrix.CXX }}
       LDFLAGS: ${{ matrix.LDFLAGS }}
@@ -211,9 +212,14 @@ jobs:
         continue-on-error: ${{ matrix.allow-test-failures || false }}
         run: |
           . $INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh
+          # MSVC: build tests for release to match CRT of DLLs
+          if [ "$IS_WINDOWS" = "true" ]; then
+            cd ${{ env.SRC_PATH }}\Tests
+          else
+            cd ${{ env.SRC_PATH }}/Tests
+          fi
           # Run 'gnustep-tests' instead of 'make check' to avoid edge-cases
           # on MSVC
-          cd ${{ env.SRC_PATH }}/Tests
           gnustep-tests .
 
       - name: Upload logs
