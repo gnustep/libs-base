@@ -211,11 +211,10 @@ jobs:
         continue-on-error: ${{ matrix.allow-test-failures || false }}
         run: |
           . $INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh
-          # MSVC: build tests for release to match CRT of DLLs
-          if [ "$IS_WINDOWS_MSVC" = "true" ]; then
-            sed -i -e 's/ debug=yes//g' `which gnustep-tests`
-          fi
-          make check
+          # Run 'gnustep-tests' instead of 'make check' to avoid edge-cases
+          # on MSVC
+          cd ${{ env.SRC_PATH }}/Tests
+          gnustep-tests .
 
       - name: Upload logs
         uses: actions/upload-artifact@v2
