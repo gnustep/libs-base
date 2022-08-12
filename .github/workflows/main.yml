@@ -212,15 +212,9 @@ jobs:
         continue-on-error: ${{ matrix.allow-test-failures || false }}
         run: |
           . $INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh
-          # MSVC: build tests for release to match CRT of DLLs
-          if [ "$IS_WINDOWS" = "true" ]; then
-            cd ${{ env.SRC_PATH }}\Tests
-          else
-            cd ${{ env.SRC_PATH }}/Tests
-          fi
           # Run 'gnustep-tests' instead of 'make check' to avoid edge-cases
           # on MSVC
-          gnustep-tests .
+          gnustep-tests Tests
 
       - name: Upload logs
         uses: actions/upload-artifact@v2
@@ -229,4 +223,4 @@ jobs:
           name: Logs - ${{ matrix.name }}
           path: |
             ${{ env.SRC_PATH }}/config.log
-            ${{ env.SRC_PATH }}/Tests/tests.log
+            ${{ env.SRC_PATH }}/tests.log
