@@ -2442,6 +2442,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
             {
 	      NSLog(@"unable to set pipe non-blocking mode to %s - %lu",
 		(YES  == flag ? "YES" : "NO"), GetLastError());
+        [NSException raise: NSGenericException format: @"unable to set pipe to non-blocking mode"];
             }
           return;
         }
