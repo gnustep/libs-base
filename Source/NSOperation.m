@@ -54,7 +54,7 @@
   BOOL			suspended; \
   NSInteger		executing; \
   NSInteger		threadCount; \
-  NSInteger		count;
+  NSInteger		maxThreads;
 
 #import "Foundation/NSOperation.h"
 #import "Foundation/NSArray.h"
@@ -74,10 +74,6 @@ GS_PRIVATE_INTERNAL(NSOperation)
 static void     *isFinishedCtxt = (void*)"isFinished";
 static void     *isReadyCtxt = (void*)"isReady";
 static void     *queuePriorityCtxt = (void*)"queuePriority";
-
-/* The pool of threads for 'non-concurrent' operations in a queue.
- */
-#define	POOL	8
 
 static NSArray	*empty = nil;
 
@@ -624,7 +620,7 @@ GS_PRIVATE_INTERNAL(NSOperationQueue)
                         context: (void *)context;
 @end
 
-static NSInteger	maxConcurrent = 200;	// Thread pool size
+static NSInteger	maxConcurrent = 8;	// Thread pool size
 
 static NSComparisonResult
 sortFunc(id o1, id o2, void *ctxt)
@@ -824,7 +820,7 @@ static NSOperationQueue *mainQueue = nil;
     {
       GS_CREATE_INTERNAL(NSOperationQueue);
       internal->suspended = NO;
-      internal->count = NSOperationQueueDefaultMaxConcurrentOperationCount;
+      internal->maxThreads = NSOperationQueueDefaultMaxConcurrentOperationCount;
       internal->operations = [NSMutableArray new];
       internal->starting = [NSMutableArray new];
       internal->waiting = [NSMutableArray new];
@@ -845,7 +841,7 @@ static NSOperationQueue *mainQueue = nil;
 
 - (NSInteger) maxConcurrentOperationCount
 {
-  return internal->count;
+  return internal->maxThreads;
 }
 
 - (NSString*) name
@@ -893,10 +889,10 @@ static NSOperationQueue *mainQueue = nil;
 	NSStringFromClass([self class]), NSStringFromSelector(_cmd), cnt];
     }
   [internal->lock lock];
-  if (cnt != internal->count)
+  if (cnt != internal->maxThreads)
     {
       [self willChangeValueForKey: @"maxConcurrentOperationCount"];
-      internal->count = cnt;
+      internal->maxThreads = cnt;
       [self didChangeValueForKey: @"maxConcurrentOperationCount"];
     }
   [internal->lock unlock];
@@ -1127,7 +1123,7 @@ static NSOperationQueue *mainQueue = nil;
 	   * we haven't reached the pool limit.
 	   */
 	  if (0 == internal->threadCount
-	    || (pending > 0 && internal->threadCount < POOL))
+	    || (pending > 0 && internal->threadCount < max))
 	    {
 	      internal->threadCount++;
 	      NS_DURING
