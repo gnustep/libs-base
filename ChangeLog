@@ -1,3 +1,10 @@
+2022-08-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSOperation.m: Remove restriction (of 8) on the maximum
+	number of threads, and set that as the default value instead, so
+	the -setMaxConcurrentOperationCount: method can override it.
+	Thanks to https://github.com/wbardwel for the suggestion.
+
 2022-08-11 Hugo Melder <contact@hugomelder.com>
 
 	* Tests/base/NSTimeZone/use.m:
