@@ -52,6 +52,8 @@ struct sockaddr_in;
   int			descriptor;
   BOOL			closeOnDealloc;
   BOOL			isStandardFile;
+  // stdin, stdout, and stderr
+  BOOL      isStandardStream;
   BOOL			isNullDevice;
   BOOL			isSocket;
   BOOL			isNonBlocking;
