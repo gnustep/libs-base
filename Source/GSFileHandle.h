@@ -54,6 +54,7 @@ struct sockaddr_in;
   BOOL			isStandardFile;
   // stdin, stdout, and stderr
   BOOL      isStandardStream;
+  BOOL      isStandardInput;
   BOOL			isNullDevice;
   BOOL			isSocket;
   BOOL			isNonBlocking;
