@@ -1085,6 +1085,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
         {
           writeOK = NO;
           isStandardStream = YES;
+          isStandardInput = YES;
         }
     }
   return self;
@@ -2106,7 +2107,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
        * PeekNamedPipe is therefore not supported. Instead, PeekConsoleInput
        * is used to "peek" into the standard stream.
        */
-      if (YES == isStandardStream)
+      if (YES == isStandardInput && YES == isStandardStream)
         {
           /* Stores the number of input records read
            */
@@ -2117,8 +2118,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
           if (PeekConsoleInput(h, 0, 0, &bytes) == 0)
             {
               DWORD e = GetLastError();
+              NSString *s;
 
-              NSLog(@"console peek problem: (win32 error code: %lu): %@", e, [NSError _last]);
+              s = [NSString stringWithFormat: @"Standard input peek problem: %lu - %@", e,
+                [NSError _last]];
+              [readInfo setObject: s forKey: GSFileHandleNotificationError];
+
+              NSLog(@"%@", s);
               return;
             }
           else if (bytes == 0)
@@ -2126,6 +2132,15 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
             return;	// No data available yet.
             }
         }
+      else if (NO == isStandardInput && YES == isStandardStream) {
+        NSString *s;
+
+        s = @"Reading from stdout and stderr is not available.";
+        [readInfo setObject: s forKey: GSFileHandleNotificationError];
+
+        NSLog(@"%@", s);
+        return;
+      }
       /* If this is not a socket or a standard file, we assume it's a pipe
        * and therefore we need to check to see if data really is available.
        */
@@ -2139,7 +2154,13 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
               if (e != ERROR_BROKEN_PIPE && e != ERROR_HANDLE_EOF)
                 {
-                  NSLog(@"pipe peek problem (win32 error code: %lu): %@", e, [NSError _last]);
+                  NSString *s;
+
+                  s = [NSString stringWithFormat: @"pipe peek problem: %lu - %@", e,
+                    [NSError _last]];
+                  [readInfo setObject: s forKey: GSFileHandleNotificationError];
+
+                  NSLog(@"%@", s);
                   return;
                 }
               /* In the case of a broken pipe, we fall through so that a read
