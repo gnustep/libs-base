@@ -53,8 +53,8 @@ struct sockaddr_in;
   BOOL			closeOnDealloc;
   BOOL			isStandardFile;
   // stdin, stdout, and stderr
-  BOOL      isStandardStream;
-  BOOL      isStandardInput;
+  BOOL			isStandardStream;
+  BOOL			isStandardInput;
   BOOL			isNullDevice;
   BOOL			isSocket;
   BOOL			isNonBlocking;
