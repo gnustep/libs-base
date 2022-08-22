@@ -1164,9 +1164,9 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	    {
         // If we can't get named pipe info, we assume this is a socket.
 	      if (GetNamedPipeInfo(h, 0, 0, 0, 0) == 0)
-		      {
-		        isSocket = YES;
-		      }
+		{
+		  isSocket = YES;
+		}
 	    }
 	}
 
