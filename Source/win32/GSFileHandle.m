@@ -1162,7 +1162,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{
  	  if (GetFileType(h) == FILE_TYPE_PIPE)
 	    {
-        // If we can't get named pipe info, we assume this is a socket.
+	      // If we can't get named pipe info, we assume this is a socket.
 	      if (GetNamedPipeInfo(h, 0, 0, 0, 0) == 0)
 		{
 		  isSocket = YES;
