@@ -29,6 +29,17 @@ int main(int argc, char **argv, char **env)
       TestWebServer *server;
       NSURLConnectionTest *testCase;
       BOOL debug = NO;
+  
+  /* The following test cases depend on the GSInetServerStream
+   * class which is completely broken on Windows.
+   *
+   * See: https://github.com/gnustep/libs-base/issues/266
+   *
+   * We will mark the test cases as hopeful on Windows.
+   */
+#if defined(_WIN32)
+  testHopeful = YES;
+#endif
 
       testClass = [bundle principalClass]; // NSURLConnectionTest
 
@@ -132,6 +143,10 @@ int main(int argc, char **argv, char **env)
 
 
   DESTROY(arp);
+
+#if defined(_WIN32)
+  testHopeful = NO;
+#endif
 
   return 0;
 }

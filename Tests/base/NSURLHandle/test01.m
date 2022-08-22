@@ -23,6 +23,17 @@ int main(int argc, char **argv)
   NSData *resp;
   NSData *rxd;
   
+  /* The following test cases depend on the GSInetServerStream
+   * class which is completely broken on Windows.
+   *
+   * See: https://github.com/gnustep/libs-base/issues/266
+   *
+   * We will mark the test cases as hopeful on Windows.
+   */
+#if defined(_WIN32)
+  testHopeful = YES;
+#endif
+  
   url = [NSURL URLWithString: @"http://localhost:1234/200"];
   cls = [NSURLHandle URLHandleClassForURL: url];
   resp = [NSData dataWithBytes: "Hello\r\n" length: 7];
@@ -62,6 +73,10 @@ int main(int argc, char **argv)
     }
   
   [arp release]; arp = nil ;
+
+#if defined(_WIN32)
+  testHopeful = NO;
+#endif
   
   return 0;
 }

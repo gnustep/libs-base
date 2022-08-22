@@ -151,10 +151,25 @@ resourceDidFailLoadingWithReason: (NSString *)reason
 int main(int argc, char **argv)
 {
   int status;
+  
+  /* The following test cases depend on the GSInetServerStream
+   * class which is completely broken on Windows.
+   *
+   * See: https://github.com/gnustep/libs-base/issues/266
+   *
+   * We will mark the test cases as hopeful on Windows.
+   */
+#if defined(_WIN32)
+  testHopeful = YES;
+#endif
 
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   status = [[[[TestObject alloc] init] autorelease] runTest];
   [arp release]; arp = nil;
+
+#if defined(_WIN32)
+  testHopeful = NO;
+#endif
 
   return status;
 }

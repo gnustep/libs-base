@@ -27,6 +27,18 @@ int main()
   keepalive = [helpers stringByAppendingPathComponent: @"keepalive"];
   respond = [helpers stringByAppendingPathComponent: @"respond"];
 
+  /* The following test cases depend on the keepalive and response
+   * HTTP servers. Both servers use the GSInetServerStream
+   * class which is completely broken on Windows.
+   *
+   * See: https://github.com/gnustep/libs-base/issues/266
+   *
+   * We will mark the test cases as hopeful on Windows.
+   */
+#if defined(_WIN32)
+  testHopeful = YES;
+#endif
+
   START_SET("-resourceDataUsingCache")
   const char *lit = "This is the data in the first chunk\r\n"
     "and this is the second one\r\n"
@@ -209,6 +221,11 @@ int main()
       END_SET([name UTF8String])
     }
   LEAVE_POOL
+
+#if defined(_WIN32)
+  testHopeful = NO;
+#endif
+
 #endif
   return 0;
 }

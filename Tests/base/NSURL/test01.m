@@ -23,6 +23,18 @@ int main()
   helpers = [helpers stringByAppendingPathComponent: @"Helpers"];
   helpers = [helpers stringByAppendingPathComponent: @"obj"];
   keepalive = [helpers stringByAppendingPathComponent: @"keepalive"];
+  
+  /* The following test cases depend on the keepalive
+   * HTTP server. This server uses the GSInetServerStream
+   * class which is completely broken on Windows.
+   *
+   * See: https://github.com/gnustep/libs-base/issues/266
+   *
+   * We will mark the test cases as hopeful on Windows.
+   */
+#if defined(_WIN32)
+  testHopeful = YES;
+#endif
 
   START_SET("Keepalive")
   url = [NSURL URLWithString: @"http://localhost:4322/"];
@@ -63,6 +75,11 @@ int main()
   END_SET("Keepalive")
 
   LEAVE_POOL
+
+#if defined(_WIN32)
+  testHopeful = NO;
+#endif
+
 #endif
   return 0;
 }

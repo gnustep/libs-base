@@ -56,6 +56,17 @@ int main(int argc, char **argv, char **env)
   NSString *urlString;
   NSURLRequest *req;
   Delegate *del;
+  
+  /* The following test cases depend on the GSInetServerStream
+   * class which is completely broken on Windows.
+   *
+   * See: https://github.com/gnustep/libs-base/issues/266
+   *
+   * We will mark the test cases as hopeful on Windows.
+   */
+#if defined(_WIN32)
+  testHopeful = YES;
+#endif
 
   duration = 0.0;
   timing = 0.1;
@@ -92,6 +103,10 @@ int main(int argc, char **argv, char **env)
   [del reset];
 
   [arp release]; arp = nil;
+
+#if defined(_WIN32)
+  testHopeful = NO;
+#endif
 
   return 0;
 }
