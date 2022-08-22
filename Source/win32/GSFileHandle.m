@@ -2480,7 +2480,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
    */
   else if (isStandardStream == YES)
     {
-    return;
+      return;
     }
   else if (isNonBlocking == flag)
     {
