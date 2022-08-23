@@ -240,7 +240,9 @@ static BOOL     setShouldResolveExternalEntities = NO;
 static BOOL
 testParser(NSXMLParser *parser, NSString *expect)
 {
-  Handler *handler;
+  NSString *convertWin;
+  NSString *desc;
+  Handler  *handler;
   
   [parser setShouldProcessNamespaces: setShouldProcessNamespaces];
   [parser setShouldReportNamespacePrefixes: setShouldReportNamespacePrefixes];
@@ -257,13 +259,12 @@ testParser(NSXMLParser *parser, NSString *expect)
     }
   else
     {
-#if defined(_WIN32)
       /* Replace CRLF from result files with LF
        */
-      expect = [expect stringByReplacingOccurrencesOfString: @"\r\n" withString: @"\n"];
-#endif
+      convertWin = [expect stringByReplacingOccurrencesOfString: @"\r\n" withString: @"\n"];
+      desc = [handler description];
 
-      if (NO == [[handler description] isEqual: expect]) 
+      if (NO == [desc isEqual: expect] && NO == [desc isEqual: convertWin]) 
         {
           NSLog(@"######## Expected:\n%@\n######## Parsed:\n%@\n########\n",
             expect, [handler description]);
