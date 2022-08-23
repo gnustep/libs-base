@@ -101,10 +101,10 @@ int main()
   str = [url path];
   PASS_EQUAL(str, @"C:\\WINDOWS",
     "Path of file URL C:\\WINDOWS is C:\\WINDOWS");
-  PASS_EQUAL([url description], @"file://localhost/C:%5CWINDOWS/",
-    "File URL C:\\WINDOWS is file://localhost/C:%%5CWINDOWS/");
-  PASS_EQUAL([url resourceSpecifier], @"//localhost/C:%5CWINDOWS/",
-    "resourceSpecifier of C:\\WINDOWS is //localhost/C:%%5CWINDOWS/");
+  PASS_EQUAL([url description], @"file:///C:%5CWINDOWS/",
+    "File URL C:\\WINDOWS is file:///C:%%5CWINDOWS/");
+  PASS_EQUAL([url resourceSpecifier], @"/C:%5CWINDOWS/",
+    "resourceSpecifier of C:\\WINDOWS is /C:%5CWINDOWS/");
 #else
   url = [NSURL fileURLWithPath: @"/usr"];
   str = [url path];

@@ -22,7 +22,8 @@ int main(int argc, char **argv, char **env)
    * We will mark the test cases as hopeful on Windows.
    */
 #if defined(_WIN32)
-  testHopeful = YES;
+  NSLog(@"Skipping local web server tests because GSInetServerStream is broken on Windows");
+  return 0;
 #endif
 
   // load the test suite's classes
@@ -78,10 +79,6 @@ int main(int argc, char **argv, char **env)
 
 
   DESTROY(arp);
-
-#if defined(_WIN32)
-  testHopeful = NO;
-#endif
 
   return 0;
 }

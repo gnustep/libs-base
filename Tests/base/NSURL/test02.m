@@ -39,7 +39,8 @@ int main()
    * We will mark the test cases as hopeful on Windows.
    */
 #if defined(_WIN32)
-  testHopeful = YES;
+  NSLog(@"Skipping local web server tests because GSInetServerStream is broken on Windows");
+  return 0;
 #endif
 
   m = [NSMutableString stringWithCapacity: 2048];
@@ -136,10 +137,6 @@ int main()
   END_SET("Secure")
 
   LEAVE_POOL
-
-#if defined(_WIN32)
-  testHopeful = NO;
-#endif
 
 #endif
   return 0;
