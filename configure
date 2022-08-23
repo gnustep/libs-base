@@ -831,6 +831,7 @@ enable_icu
 enable_libdispatch
 with_dispatch_include
 with_dispatch_library
+with_curl
 enable_nsurlsession
 with_gmp_include
 with_gmp_library
@@ -1600,6 +1601,7 @@ Optional Packages:
   --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)
   --with-dispatch-include=PATH       Include path for dispatch header
   --with-dispatch-library=PATH       Library path for dispatch lib
+  --with-curl=<DIR>       use curl installed in directory <DIR>
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
   --with-gdomap-port=PORT  alternative port for gdomap
@@ -13672,22 +13674,33 @@ fi
 # Check for libcurl
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
+CURL_CONFIG="curl-config"
+
+# Check whether --with-curl was given.
+if test "${with_curl+set}" = set; then :
+  withval=$with_curl;
+fi
+
+if test "$with_curl" != ""; then
+  CURL_CONFIG="$with_curl/bin/curl-config"
+fi
 
 HAVE_LIBCURL=0
 curl_all=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for libcurl" >&5
 $as_echo_n "checking for libcurl... " >&6; }
 
-if test -n "$PKG_CONFIG"; then
-  if pkg-config --exists libcurl; then
-    HAVE_LIBCURL=1
-    CURL_CFLAGS=`$PKG_CONFIG --cflags libcurl`
-    CURL_LIBS=`$PKG_CONFIG --libs libcurl`
-    CFLAGS="$CFLAGS $CURLCFLAGS"
-    LIBS="$LIBS $CURLLIBS"
-
-    if pkg-config --atleast-version 2.66.0 libcurl; then
-      for ac_header in curl/curl.h
+if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
+  curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
+  curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
+  curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
+  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 66 \); then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
+$as_echo "FAILED (version too old to use" >&6; }
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes ... version $curl_ver" >&5
+$as_echo "yes ... version $curl_ver" >&6; }
+    for ac_header in curl/curl.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "curl/curl.h" "ac_cv_header_curl_curl_h" "$ac_includes_default"
 if test "x$ac_cv_header_curl_curl_h" = xyes; then :
@@ -13702,13 +13715,50 @@ fi
 done
 
     if test "$curl_ok" = yes; then
+      HAVE_LIBCURL=1
+      CURLCFLAGS=`$CURL_CONFIG --cflags`
+      CURLLIBS=`$CURL_CONFIG --libs`
+      CFLAGS="$CFLAGS $CURLCFLAGS"
+      LIBS="$LIBS $CURLLIBS"
       curl_all=yes
     fi
-    else
-      { $as_echo "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
+  fi
+else
+  if test -n "$PKG_CONFIG"; then
+    if pkg-config --exists libcurl; then
+      HAVE_LIBCURL=1
+      CURLCFLAGS=`$PKG_CONFIG --cflags libcurl`
+      CURLLIBS=`$PKG_CONFIG --libs libcurl`
+      CFLAGS="$CFLAGS $CURLCFLAGS"
+      LIBS="$LIBS $CURLLIBS"
+
+      if $PKG_CONFIG --atleast-version 2.66.0 libcurl; then
+        for ac_header in curl/curl.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "curl/curl.h" "ac_cv_header_curl_curl_h" "$ac_includes_default"
+if test "x$ac_cv_header_curl_curl_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CURL_CURL_H 1
+_ACEOF
+ curl_ok=yes
+else
+  curl_ok=no
+fi
+
+done
+
+        if test "$curl_ok" = yes; then
+          curl_all=yes
+        fi
+        else
+          { $as_echo "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
 $as_echo "FAILED (version too old to use" >&6; }
-      curl_all=no
+          curl_all=no
+      fi
     fi
+  else
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: FAILED (curl-config and pkg-config not found)" >&5
+$as_echo "FAILED (curl-config and pkg-config not found)" >&6; }
   fi
 fi
 
