@@ -1065,6 +1065,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (self)
         {
           readOK = NO;
+          isStandardStream = YES;
         }
     }
   return self;
@@ -1083,6 +1084,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (self)
         {
           writeOK = NO;
+          isStandardStream = YES;
+          isStandardInput = YES;
         }
     }
   return self;
@@ -1101,6 +1104,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       if (self)
         {
           readOK = NO;
+          isStandardStream = YES;
         }
     }
   return self;
@@ -1158,8 +1162,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	{
  	  if (GetFileType(h) == FILE_TYPE_PIPE)
 	    {
-	      /* If we can't get named pipe info, we assume this is a socket.
-	       */
+	      // If we can't get named pipe info, we assume this is a socket.
 	      if (GetNamedPipeInfo(h, 0, 0, 0, 0) == 0)
 		{
 		  isSocket = YES;
@@ -2089,33 +2092,87 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   else
     {
+      HANDLE h;
+      h = (HANDLE)_get_osfhandle(descriptor);
+
+      /* Overlapped (asynchronous) I/O on a standard stream requires
+       * a different interface to that of a pipe.
+       *
+       * Opening a standard stream ("CONIN$", "CONOUT$", "CONERR$") via
+       * CreateFile() with the FILE_FLAG_OVERLAPPED flag has no effect
+       * on the handle; the parameter dwFlagsAndAttributes is ignored when
+       * creating a standard stream handle.
+       *
+       * A Windows standard stream is not an anonymous or named pipe and
+       * PeekNamedPipe is therefore not supported. Instead, PeekConsoleInput
+       * is used to "peek" into the standard stream.
+       */
+      if (YES == isStandardInput && YES == isStandardStream)
+        {
+          /* Stores the number of input records read
+           */
+          DWORD		bytes = 0;
+
+          /* PeekConsoleInput fails, if it returns a non-zero value.
+           */
+          if (PeekConsoleInput(h, 0, 0, &bytes) == 0)
+            {
+              DWORD e = GetLastError();
+              NSString *s;
+
+              s = [NSString stringWithFormat: @"Standard input peek problem: %lu - %@", e,
+                [NSError _last]];
+              [readInfo setObject: s forKey: GSFileHandleNotificationError];
+
+              NSLog(@"%@", s);
+              return;
+            }
+          else if (bytes == 0)
+            {
+            return;	// No data available yet.
+            }
+        }
+      else if (NO == isStandardInput && YES == isStandardStream) {
+        NSString *s;
+
+        s = @"Reading from stdout and stderr is not available.";
+        [readInfo setObject: s forKey: GSFileHandleNotificationError];
+
+        NSLog(@"%@", s);
+        return;
+      }
       /* If this is not a socket or a standard file, we assume it's a pipe
        * and therefore we need to check to see if data really is available.
        */
-      if (NO == isSocket && NO == isStandardFile)
-	{
-	  HANDLE	h = (HANDLE)_get_osfhandle(descriptor);
-	  DWORD		bytes = 0;
+      else if (NO == isSocket && NO == isStandardFile)
+        {
+          DWORD		bytes = 0;
 
-	  if (PeekNamedPipe(h, 0, 0, 0, &bytes, 0) == 0)
-	    {
-	      DWORD	e = GetLastError();
+          if (PeekNamedPipe(h, 0, 0, 0, &bytes, 0) == 0)
+            {
+              DWORD	e = GetLastError();
 
               if (e != ERROR_BROKEN_PIPE && e != ERROR_HANDLE_EOF)
-		{
-	          NSLog(@"pipe peek problem %lu: %@", e, [NSError _last]);
-	          return;
-		}
-	      /* In the case of a broken pipe, we fall through so that a read
-	       * attempt is performed allowing higer level code to notice the
-	       * problem and deal with it.
-	       */
-	    }
-	  else if (bytes == 0)
-	    {
-	      return;	// No data available yet.
-	    }
-	}
+                {
+                  NSString *s;
+
+                  s = [NSString stringWithFormat: @"pipe peek problem: %lu - %@", e,
+                    [NSError _last]];
+                  [readInfo setObject: s forKey: GSFileHandleNotificationError];
+
+                  NSLog(@"%@", s);
+                  return;
+                }
+              /* In the case of a broken pipe, we fall through so that a read
+               * attempt is performed allowing higer level code to notice the
+               * problem and deal with it.
+               */
+            }
+          else if (bytes == 0)
+            {
+              return;	// No data available yet.
+            }
+        }
 
       if (operation == NSFileHandleDataAvailableNotification)
 	{
@@ -2414,6 +2471,14 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       return;
     }
   else if (isStandardFile == YES)
+    {
+      return;
+    }
+  /* Invoking SetNamedPipeHandleState on a standard stream results in an
+   * ERROR_INVALID_FUNCTION (1) error message. Proceed only if the
+   * file descriptor is not a standard stream.
+   */
+  else if (isStandardStream == YES)
     {
       return;
     }
