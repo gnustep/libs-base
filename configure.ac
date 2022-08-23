@@ -3615,28 +3615,56 @@ AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 # Check for libcurl
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
+CURL_CONFIG="curl-config"
+AC_ARG_WITH(curl, AS_HELP_STRING([--with-curl=<DIR>],
+  [use curl installed in directory <DIR>]))
+if test "$with_curl" != ""; then
+  CURL_CONFIG="$with_curl/bin/curl-config"
+fi
 
 HAVE_LIBCURL=0
 curl_all=no
 AC_MSG_CHECKING([for libcurl])
 
-if test -n "$PKG_CONFIG"; then
-  if pkg-config --exists libcurl; then
-    HAVE_LIBCURL=1
-    CURL_CFLAGS=`$PKG_CONFIG --cflags libcurl`
-    CURL_LIBS=`$PKG_CONFIG --libs libcurl`
-    CFLAGS="$CFLAGS $CURLCFLAGS"
-    LIBS="$LIBS $CURLLIBS"
-
-    if pkg-config --atleast-version 2.66.0 libcurl; then
-      AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
+if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
+  curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
+  curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
+  curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
+  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 66 \); then
+    AC_MSG_RESULT([FAILED (version too old to use])
+  else
+    AC_MSG_RESULT(yes ... version $curl_ver)
+    AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
     if test "$curl_ok" = yes; then
+      HAVE_LIBCURL=1
+      CURLCFLAGS=`$CURL_CONFIG --cflags`
+      CURLLIBS=`$CURL_CONFIG --libs`
+      CFLAGS="$CFLAGS $CURLCFLAGS"
+      LIBS="$LIBS $CURLLIBS"
       curl_all=yes
     fi
-    else
-      AC_MSG_RESULT([FAILED (version too old to use])
-      curl_all=no
+  fi
+else
+  if test -n "$PKG_CONFIG"; then
+    if pkg-config --exists libcurl; then
+      HAVE_LIBCURL=1
+      CURLCFLAGS=`$PKG_CONFIG --cflags libcurl`
+      CURLLIBS=`$PKG_CONFIG --libs libcurl`
+      CFLAGS="$CFLAGS $CURLCFLAGS"
+      LIBS="$LIBS $CURLLIBS"
+
+      if $PKG_CONFIG --atleast-version 2.66.0 libcurl; then
+        AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
+        if test "$curl_ok" = yes; then
+          curl_all=yes
+        fi
+        else
+          AC_MSG_RESULT([FAILED (version too old to use])
+          curl_all=no
+      fi
     fi
+  else
+    AC_MSG_RESULT([FAILED (curl-config and pkg-config not found)])
   fi
 fi
 
