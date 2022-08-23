@@ -264,7 +264,7 @@ testParser(NSXMLParser *parser, NSString *expect)
       convertWin = [expect stringByReplacingOccurrencesOfString: @"\r\n" withString: @"\n"];
       desc = [handler description];
 
-      if (NO == [desc isEqual: expect] || [desc isEqual: convertWin] == NO) 
+      if (NO == [desc isEqual: expect] && [desc isEqual: convertWin] == NO) 
         {
           NSLog(@"######## Expected:\n%@\n######## Parsed:\n%@\n########\n",
             expect, [handler description]);
