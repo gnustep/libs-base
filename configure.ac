@@ -3615,71 +3615,31 @@ AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 # Check for libcurl
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
-CURL_CONFIG="curl-config"
-AC_ARG_WITH(curl, AS_HELP_STRING([--with-curl=<DIR>],
-  [use curl installed in directory <DIR>]))
-if test "$with_curl" != ""; then
-  CURL_CONFIG="$with_curl/bin/curl-config"
-fi
 
 HAVE_LIBCURL=0
 curl_all=no
 AC_MSG_CHECKING([for libcurl])
-if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
-  curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
-  curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
-  curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
-  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 49 \); then
-    AC_MSG_RESULT([FAILED (version too old to use])
-  else
-    AC_MSG_RESULT(yes ... version $curl_ver)
-    AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
+
+if test -n "$PKG_CONFIG"; then
+  if pkg-config --exists libcurl; then
+    HAVE_LIBCURL=1
+    CURL_CFLAGS=`$PKG_CONFIG --cflags libcurl`
+    CURL_LIBS=`$PKG_CONFIG --libs libcurl`
+    CFLAGS="$CFLAGS $CURLCFLAGS"
+    LIBS="$LIBS $CURLLIBS"
+
+    if pkg-config --atleast-version 2.66.0 libcurl; then
+      AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
     if test "$curl_ok" = yes; then
-      HAVE_LIBCURL=1
-      CURLCFLAGS=`$CURL_CONFIG --cflags`
-      CURLLIBS=`$CURL_CONFIG --libs`
-      CFLAGS="$CFLAGS $CURLCFLAGS"
-      LIBS="$LIBS $CURLLIBS"
       curl_all=yes
-      if test \( $curl_maj -eq 7 -a $curl_min -lt 56 \); then
-        AC_MSG_WARN([LOSS OF FUNCTIONALITY (version too old for SSL backend control)])
-        curl_all=no
-      elif test \( $curl_maj -eq 7 -a $curl_min -lt 65 \); then
-        AC_MSG_WARN([LOSS OF FUNCTIONALITY (version too old for connection lifetime control)])
-        curl_all=no
-      fi
+    fi
+    else
+      AC_MSG_RESULT([FAILED (version too old to use])
+      curl_all=no
     fi
   fi
-else
-  AC_MSG_RESULT([FAILED (curl-config not found)])
 fi
 
-if test $HAVE_LIBCURL = 1; then
-  AC_MSG_CHECKING([for libcurl TLS support with gnutls])
-  if $CURL_CONFIG --configure | grep -q with-gnutls; then
-    AC_MSG_RESULT(yes)
-  else
-    AC_MSG_RESULT(no)
-    curl_all=no
-    AC_MSG_WARN([LOSS OF FUNCTIONALITY (curl lacks gnutls support)])
-  fi
-fi
-
-if test $HAVE_LIBCURL = 1; then
-  AC_CHECK_LIB(curl, curl_multi_perform, curl_ok=yes, curl_ok=no)
-fi
-if test $HAVE_LIBCURL = 1; then
-  AC_CHECK_DECL(CURLOPT_CONNECT_TO, curl_ok=yes, curl_ok=no,
-    [#include <curl/curl.h>])
-fi
-if test $HAVE_LIBCURL = 1; then
-  # Check for Curl capabilities we may use in NSURLSession
-  AC_CHECK_DECLS(CURLOPT_MAXAGE_CONN,,, [#include <curl/curl.h>])
-
-  # If curl supports runtime selection of the TLS module we will need
-  # to use curl_global_sslset to pick GNUTLS
-  AC_CHECK_FUNCS(curl_global_sslset)
-fi
 AC_SUBST(HAVE_LIBCURL)
 
 #--------------------------------------------------------------------
