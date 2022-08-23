@@ -204,18 +204,11 @@
 /* Define to 1 if you have the <curl/curl.h> header file. */
 #undef HAVE_CURL_CURL_H
 
-/* Define to 1 if you have the `curl_global_sslset' function. */
-#undef HAVE_CURL_GLOBAL_SSLSET
-
 /* Define if you have currency_symbol field in struct lconv */
 #undef HAVE_CURRENCY_SYMBOL_IN_LCONV
 
 /* Define to 1 if you have the <dbghelp.h> header file. */
 #undef HAVE_DBGHELP_H
-
-/* Define to 1 if you have the declaration of `CURLOPT_MAXAGE_CONN', and to 0
-   if you don't. */
-#undef HAVE_DECL_CURLOPT_MAXAGE_CONN
 
 /* Define to 1 if you have the declaration of `strerror_r', and to 0 if you
    don't. */
@@ -412,6 +405,9 @@
 
 /* Define to 1 if you have the <libxslt/xslt.h> header file. */
 #undef HAVE_LIBXSLT_XSLT_H
+
+/* Define to 1 if you have the `z' library (-lz). */
+#undef HAVE_LIBZ
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
