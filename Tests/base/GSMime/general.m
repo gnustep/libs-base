@@ -76,6 +76,8 @@ int main()
   NSData *cr;
   NSData *data;
   NSData *orig;
+  NSString *obj0;
+  NSString *obj1;
   NSString *str;
   GSMimeParser *parser;
   GSMimeDocument *doc;
@@ -116,14 +118,9 @@ int main()
   [parser parse: data];
   doc = [parser mimeDocument];
 
-#if defined(_WIN32)
-  // CRLF instead of LF
-  PASS([[parser excess] length] == 6, "Can detect excess data in multipart");
+  PASS([[parser excess] length] == 5 || [[parser excess] length] == 6,
+  "Can detect excess data in multipart");
   [parser release];
-#else
-  PASS([[parser excess] length] == 5, "Can detect excess data in multipart");
-  [parser release];
-#endif
   
   data = [NSData dataWithContentsOfFile: @"mime2.dat"];
   idoc = exact(0, data);
@@ -146,15 +143,12 @@ int main()
   data = [NSData dataWithContentsOfFile: @"mime4.dat"];
   idoc = exact(0, data);
 
-#if defined(_WIN32)
-  PASS(([[[[idoc content] objectAtIndex:0] content] isEqual: @"hello\r\n"]
-    && [[[[idoc content] objectAtIndex:1] content] isEqual: @"there\r\n"]),
-    "can parse multi-part text mime4.dat incrementally");
-#else
-  PASS(([[[[idoc content] objectAtIndex:0] content] isEqual: @"hello\n"]
-    && [[[[idoc content] objectAtIndex:1] content] isEqual: @"there\n"]),
-    "can parse multi-part text mime4.dat incrementally");
-#endif
+  obj0 = [[[idoc content] objectAtIndex:0] content];
+  obj1 = [[[idoc content] objectAtIndex:1] content];
+
+  PASS(([obj0 isEqual: @"hello\n"] && [obj1 isEqual: @"there\n"])
+    || ([obj0 isEqual: @"hello\r\n"] && [obj1 isEqual: @"there\r\n"]),
+   "can parse multi-part text mime4.dat incrementally");
 
   PASS(([[[[idoc content] objectAtIndex:0] contentFile] isEqual: @"a.a"]),
    "can extract content file name from mime4.dat (incrementally parsed)");
@@ -164,16 +158,13 @@ int main()
    "can extract content sub type from mime4.dat (incrementally parsed)");
     
   doc = [GSMimeParser documentFromData: data];
+  
+  obj0 = [[[doc content] objectAtIndex:0] content];
+  obj1 = [[[doc content] objectAtIndex:1] content];
 
-#if defined(_WIN32)
-  PASS(([[[[doc content] objectAtIndex:0] content] isEqual: @"hello\r\n"]
-    && [[[[doc content] objectAtIndex:1] content] isEqual: @"there\r\n"]),
+  PASS(([obj0 isEqual: @"hello\n"] && [obj1 isEqual: @"there\n"])
+    || ([obj0 isEqual: @"hello\r\n"] && [obj1 isEqual: @"there\r\n"]),
     "can parse multi-part text mime4.dat in one go");
-#else
-  PASS(([[[[doc content] objectAtIndex:0] content] isEqual: @"hello\n"]
-    && [[[[doc content] objectAtIndex:1] content] isEqual: @"there\n"]),
-    "can parse multi-part text mime4.dat in one go");
-#endif
 
   PASS(([[[[doc content] objectAtIndex:0] contentFile] isEqual: @"a.a"]),
    "can extract content file name from mime4.dat (parsed in one go)");
