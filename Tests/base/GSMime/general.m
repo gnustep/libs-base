@@ -118,7 +118,7 @@ int main()
   [parser parse: data];
   doc = [parser mimeDocument];
 
-  PASS([[parser excess] length] == 5 || [[parser excess] length] == 6,
+  PASS([[parser excess] length] == 5 || [[parser excess] length] == 6,
   "Can detect excess data in multipart");
   [parser release];
   
