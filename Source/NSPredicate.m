@@ -1374,18 +1374,18 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
       while (index < count)
 	{
-      id e = [(NSArray*)_obj objectAtIndex: index++];
-      id		o;
+	  id e = [(NSArray*)_obj objectAtIndex: index++];
+	  id o;
 
-      /* Array index is not always a NSExpression object
-       * (e.g. When specified as an argument instead of
-       * an inline expression).
-       */
-      if ([e isKindOfClass: [NSExpression class]]) {
-         o = [e expressionValueWithObject: e context: context];
-      } else {
-         o = e;
-      }
+	  /* Array index is not always a NSExpression object
+	  * (e.g. When specified as an argument instead of
+	  * an inline expression).
+	  */
+	  if ([e isKindOfClass: [NSExpression class]]) {
+	    o = [e expressionValueWithObject: e context: context];
+	  } else {
+	    o = e;
+	  }
 
 	  [tmp addObject: o];
 	}
