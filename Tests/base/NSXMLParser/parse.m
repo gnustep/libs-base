@@ -242,6 +242,7 @@ testParser(NSXMLParser *parser, NSString *expect)
 {
   NSString *convertWin;
   NSString *desc;
+  NSString *descWin;
   Handler  *handler;
   
   [parser setShouldProcessNamespaces: setShouldProcessNamespaces];
@@ -263,8 +264,9 @@ testParser(NSXMLParser *parser, NSString *expect)
        */
       convertWin = [expect stringByReplacingOccurrencesOfString: @"\r\n" withString: @"\n"];
       desc = [handler description];
+      descWin = [desc stringByReplacingOccurrencesOfString: @"\r\n" withString: @"\n"];
 
-      if (NO == [desc isEqual: expect] && NO == [desc isEqual: convertWin]) 
+      if (NO == [desc isEqual: expect] && NO == [descWin isEqual: convertWin]) 
         {
           NSLog(@"######## Expected:\n%@\n######## Parsed:\n%@\n########\n",
             expect, [handler description]);
