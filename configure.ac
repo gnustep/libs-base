@@ -3623,10 +3623,15 @@ if test "$with_curl" != ""; then
 fi
 
 HAVE_LIBCURL=0
+SKIP_CURL_CONFIG=0
 curl_all=no
 AC_MSG_CHECKING([for libcurl])
 
-if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
+case "$target_os" in
+    mingw*|windows)	SKIP_CURL_CONFIG=1;;
+esac
+
+if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG" == "0"; then
   curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
   curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
   curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
@@ -3647,21 +3652,23 @@ if eval $CURL_CONFIG --version 2>/dev/null >/dev/null; then
 else
   if test -n "$PKG_CONFIG"; then
     if pkg-config --exists libcurl; then
-      HAVE_LIBCURL=1
-      CURLCFLAGS=`$PKG_CONFIG --cflags libcurl`
-      CURLLIBS=`$PKG_CONFIG --libs libcurl`
-      CFLAGS="$CFLAGS $CURLCFLAGS"
-      LIBS="$LIBS $CURLLIBS"
-
       if $PKG_CONFIG --atleast-version 2.66.0 libcurl; then
         AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
         if test "$curl_ok" = yes; then
+          HAVE_LIBCURL=1
+          CURLCFLAGS=`$PKG_CONFIG --cflags libcurl`
+          CURLLIBS=`$PKG_CONFIG --libs libcurl`
+          CFLAGS="$CFLAGS $CURLCFLAGS"
+          LIBS="$LIBS $CURLLIBS"
           curl_all=yes
         fi
         else
           AC_MSG_RESULT([FAILED (version too old to use])
           curl_all=no
       fi
+    else
+      AC_MSG_RESULT([FAILED (libcurl not found via pkg-config)])
+      curl_all=no
     fi
   else
     AC_MSG_RESULT([FAILED (curl-config and pkg-config not found)])
