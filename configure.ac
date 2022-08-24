@@ -3628,9 +3628,14 @@ curl_all=no
 AC_MSG_CHECKING([for libcurl])
 
 case "$target_os" in
-    mingw*|windows)	SKIP_CURL_CONFIG=1;;
+    windows)	SKIP_CURL_CONFIG=1;;
 esac
 
+# When compiling libs-base in an MSYS2 environment on Windows MSVC, compilation may fail:
+# Curl is preinstalled on MSYS2 and bundles the curl-config script. The MSYS2 curl library
+# and a different (MSVC) curl library might interfere and produce an incorrect configuration.
+#
+# Skip the curl-config check on Windows.
 if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG" == "0"; then
   curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
   curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
@@ -3652,6 +3657,7 @@ if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG
 else
   if test -n "$PKG_CONFIG"; then
     if pkg-config --exists libcurl; then
+      AC_MSG_RESULT(yes ... via pkg-config)
       if $PKG_CONFIG --atleast-version 2.66.0 libcurl; then
         AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
         if test "$curl_ok" = yes; then
