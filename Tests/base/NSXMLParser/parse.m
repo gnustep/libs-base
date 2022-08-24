@@ -262,9 +262,9 @@ testParser(NSXMLParser *parser, NSString *expect)
     {
       /* Replace CRLF from result files with LF
        */
-      convertWin = [expect stringByReplacingOccurrencesOfString: @"\r\n" withString: @"\n"];
+      convertWin = [expect stringByReplacingOccurrencesOfString: @"\r" withString: @""];
       desc = [handler description];
-      descWin = [desc stringByReplacingOccurrencesOfString: @"\r\n" withString: @"\n"];
+      descWin = [desc stringByReplacingOccurrencesOfString: @"\r" withString: @""];
 
       if (NO == [desc isEqual: expect] && NO == [descWin isEqual: convertWin]) 
         {
