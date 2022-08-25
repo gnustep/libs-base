@@ -27,7 +27,6 @@
    */
 
 #import "common.h"
-#import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/NSDebug+GNUstepBase.h"
 
 GS_DECLARE NSString*
