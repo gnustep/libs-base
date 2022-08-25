@@ -133,7 +133,7 @@ typedef enum _NSGNUstepStringEncoding
   NSISOHebrewStringEncoding               = 0x80000208,  /* ISO 8859-8 */
   NSISOLatin5StringEncoding               = 0x80000209,  /* ISO 8859-9 */
   NSISOLatin6StringEncoding               = 0x8000020a,  /* ISO 8859-10 */
-  NSISOLatinStringEncoding                = 0x8000020b,  /* ISO 8859-11 */
+  NSISOThaiStringEncoding                 = 0x8000020b,  /* ISO 8859-11 */
   // missing 0c
   NSISOLatin7StringEncoding               = 0x8000020d,  /* ISO 8859-13 */
   NSISOLatin8StringEncoding               = 0x8000020e,  /* ISO 8859-14 */
