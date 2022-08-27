@@ -250,6 +250,11 @@ int main()
   p = [NSPredicate predicateWithFormat: @"sum(a) == 3"]; 
   PASS([p evaluateWithObject: a], "aggregate sum works");
 
+  p = [NSPredicate predicateWithFormat: @"self IN %@", @[@"yes"]];
+  a = [@[@"yes", @"no"] filteredArrayUsingPredicate: p];
+  PASS_EQUAL([a description], @"(yes)",
+    "predicate created with format can filter an array")
+
   END_SET("basic")
 
   return 0;

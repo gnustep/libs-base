@@ -17,6 +17,23 @@
 	Skip all test cases using the GSInetServerStream class as
 	it is broken on win32.
 
+2022-08-16 Hugo Melder <contact@hugomelder.com>
+
+	* Source/NSPredicate.m:
+	When parsing an NSArray in -expressionValueWithObject:context:,
+	check if the array entry is a NSExpression object.
+	* Tests/base/NSPredicate/basic.m:
+	Test filter operation.
+
+2022-08-16 Hugo Melder <contact@hugomelder.com>
+
+	* Source/win32/GSFileHandle.m:
+	Support overlapped I/O on standard streams in GSFileHandle.
+	* Source/GSFileHandle.h:
+	Add the isStandardStream instance variable.
+	* Tests/base/NSRunLoop/performers.m:
+	Remove extraneous unistd header from unit test.
+
 2022-08-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSOperation.m: Remove restriction (of 8) on the maximum

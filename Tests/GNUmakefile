@@ -65,19 +65,17 @@ check::
 	GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES="$(TOP_DIR)/base.make";\
 	ADDITIONAL_INCLUDE_DIRS="-I$(TOP_DIR)/Headers -I$(TOP_DIR)/Source/$(GNUSTEP_TARGET_DIR)";\
 	ADDITIONAL_LIB_DIRS="-L$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR)";\
-	if [ "$(GNUSTEP_TARGET_OS)" = "windows" ]; then \
-		PATH="$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR):$(TOP_DIR)/Tools/$(GNUSTEP_OBJ_DIR):${PATH}";\
-	else \
+	if [ "$(GNUSTEP_TARGET_OS)" != "windows" ]; then \
 		PATH="$(TOP_DIR)/Tools/$(GNUSTEP_OBJ_DIR):${PATH}";\
 		ADDITIONAL_LDFLAGS="-Wl,-rpath,$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR)";\
+		LD_LIBRARY_PATH="$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR):${LD_LIBRARY_PATH}";\
+		export PATH;\
+		export ADDITIONAL_LDFLAGS;\
+		export LD_LIBRARY_PATH;\
 	fi; \
-	LD_LIBRARY_PATH="$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR):${LD_LIBRARY_PATH}";\
 	export GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES;\
 	export ADDITIONAL_INCLUDE_DIRS;\
-	export ADDITIONAL_LDFLAGS;\
 	export ADDITIONAL_LIB_DIRS;\
-	export LD_LIBRARY_PATH;\
-	export PATH;\
 	if [ "$(debug)" = "yes" ]; then \
 	  gnustep-tests --debug 'base/$(testobj)';\
         else \
