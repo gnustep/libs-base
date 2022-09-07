@@ -45,45 +45,45 @@
 #define    BUFFERSIZE    (BUFSIZ*64)
 
 void PrintLastError(NSString * f) {
-  DWORD lastError = GetLastError();
-  switch (lastError) {
-    case ERROR_WINHTTP_AUTO_PROXY_SERVICE_ERROR:
-      NSLog(@"%@: (%d) Returned by WinHttpGetProxyForUrl when a proxy for the specified URL cannot be located.", f, lastError);
-      break;
-    case ERROR_WINHTTP_BAD_AUTO_PROXY_SCRIPT:
-      NSLog(@"%@: (%d) An error occurred executing the script code in the Proxy Auto-Configuration (PAC) file.", f, lastError);
-      break;
-    case ERROR_WINHTTP_INCORRECT_HANDLE_TYPE:
-      NSLog(@"%@: (%d) The type of handle supplied is incorrect for this operation.", f, lastError);
-      break;
-    case ERROR_WINHTTP_INTERNAL_ERROR:
-      NSLog(@"%@: (%d) An internal error has occurred.", f, lastError);
-      break;
-    case ERROR_WINHTTP_INVALID_URL:
-      NSLog(@"%@: (%d) The URL is invalid.", f, lastError);
-      break;
-    case ERROR_WINHTTP_LOGIN_FAILURE:
-      NSLog(@"%@: (%d) The login attempt failed. When this error is encountered, close the request handle with WinHttpCloseHandle. A new request handle must be created before retrying the function that originally produced this error.", f, lastError);
-      break;
-    case ERROR_WINHTTP_OPERATION_CANCELLED:
-      NSLog(@"%@: (%d) The operation was canceled, usually because the handle on which the request was operating was closed before the operation completed.", f, lastError);
-      break;
-    case ERROR_WINHTTP_UNABLE_TO_DOWNLOAD_SCRIPT:
-      NSLog(@"%@: (%d) The PAC file could not be downloaded. For example, the server referenced by the PAC URL may not have been reachable, or the server returned a 404 NOT FOUND response.", f, lastError);
-      break;
-    case ERROR_WINHTTP_UNRECOGNIZED_SCHEME:
-        NSLog(@"%@: (%d) The URL of the PAC file specified a scheme other than \"http:\" or \"https:\".", f, lastError);
-        break;
-    case ERROR_NOT_ENOUGH_MEMORY:
-        NSLog(@"%@: (%d) ERROR_NOT_ENOUGH_MEMORY", f, lastError);
-        break;
-    case (ERROR_WINHTTP_AUTODETECTION_FAILED):
-      NSLog(@"%@: (%d) Returned WinHTTP was unable to discover the URL of the Proxy Auto-Configuration (PAC) file", f, lastError);
-      break;
-    default:
-      NSLog(@"%@: (%d) Unknown Error.", f, lastError);
-      break;
-  }
+  // DWORD lastError = GetLastError();
+  // switch (lastError) {
+  //   case ERROR_WINHTTP_AUTO_PROXY_SERVICE_ERROR:
+  //     NSLog(@"%@: (%d) Returned by WinHttpGetProxyForUrl when a proxy for the specified URL cannot be located.", f, lastError);
+  //     break;
+  //   case ERROR_WINHTTP_BAD_AUTO_PROXY_SCRIPT:
+  //     NSLog(@"%@: (%d) An error occurred executing the script code in the Proxy Auto-Configuration (PAC) file.", f, lastError);
+  //     break;
+  //   case ERROR_WINHTTP_INCORRECT_HANDLE_TYPE:
+  //     NSLog(@"%@: (%d) The type of handle supplied is incorrect for this operation.", f, lastError);
+  //     break;
+  //   case ERROR_WINHTTP_INTERNAL_ERROR:
+  //     NSLog(@"%@: (%d) An internal error has occurred.", f, lastError);
+  //     break;
+  //   case ERROR_WINHTTP_INVALID_URL:
+  //     NSLog(@"%@: (%d) The URL is invalid.", f, lastError);
+  //     break;
+  //   case ERROR_WINHTTP_LOGIN_FAILURE:
+  //     NSLog(@"%@: (%d) The login attempt failed. When this error is encountered, close the request handle with WinHttpCloseHandle. A new request handle must be created before retrying the function that originally produced this error.", f, lastError);
+  //     break;
+  //   case ERROR_WINHTTP_OPERATION_CANCELLED:
+  //     NSLog(@"%@: (%d) The operation was canceled, usually because the handle on which the request was operating was closed before the operation completed.", f, lastError);
+  //     break;
+  //   case ERROR_WINHTTP_UNABLE_TO_DOWNLOAD_SCRIPT:
+  //     NSLog(@"%@: (%d) The PAC file could not be downloaded. For example, the server referenced by the PAC URL may not have been reachable, or the server returned a 404 NOT FOUND response.", f, lastError);
+  //     break;
+  //   case ERROR_WINHTTP_UNRECOGNIZED_SCHEME:
+  //       NSLog(@"%@: (%d) The URL of the PAC file specified a scheme other than \"http:\" or \"https:\".", f, lastError);
+  //       break;
+  //   case ERROR_NOT_ENOUGH_MEMORY:
+  //       NSLog(@"%@: (%d) ERROR_NOT_ENOUGH_MEMORY", f, lastError);
+  //       break;
+  //   case (ERROR_WINHTTP_AUTODETECTION_FAILED):
+  //     NSLog(@"%@: (%d) Returned WinHTTP was unable to discover the URL of the Proxy Auto-Configuration (PAC) file", f, lastError);
+  //     break;
+  //   default:
+  //     NSLog(@"%@: (%d) Unknown Error.", f, lastError);
+  //     break;
+  // }
 }
 
 NSString * normalizeUrl(NSString * url)
@@ -161,7 +161,7 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
 
     if (http_local_session && WinHttpGetIEProxyConfigForCurrentUser(&ProxyConfig)) 
       {
-        NSLog(@"Got proxy config for current user.");
+        //NSLog(@"Got proxy config for current user.");
         if (ProxyConfig.lpszProxy) 
           {
             ProxyInfo.lpszProxy = ProxyConfig.lpszProxy;
@@ -175,7 +175,7 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
           {
             size_t len = wcslen(ProxyConfig.lpszAutoConfigUrl);
             NSString * autoConfigUrl = [[NSString alloc] initWithBytes: ProxyConfig.lpszAutoConfigUrl length:len*2 encoding:NSUTF16StringEncoding];
-            NSLog(@"trying script proxy pac file: %@.", autoConfigUrl);
+            //NSLog(@"trying script proxy pac file: %@.", autoConfigUrl);
 
             // Script proxy pac
             OptPAC.dwFlags = WINHTTP_AUTOPROXY_CONFIG_URL;
@@ -187,7 +187,7 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
 
             if (WinHttpGetProxyForUrl(http_local_session, DestURL, &OptPAC, &ProxyInfoTemp)) 
               {
-                NSLog(@"worked");
+                //NSLog(@"worked");
                 memcpy(&ProxyInfo, &ProxyInfoTemp, sizeof(ProxyInfo));
 
                 resultProxyConfig->lpszProxy = ProxyInfoTemp.lpszProxy;
@@ -196,12 +196,12 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
               }
             else 
               {
-                PrintLastError(@"WinHttpGetProxyForUrl");
+                //PrintLastError(@"WinHttpGetProxyForUrl");
               }
           }
       else if (ProxyConfig.fAutoDetect) 
         {
-          NSLog(@"trying autodetect proxy");
+          //NSLog(@"trying autodetect proxy");
 
           // Autodetect proxy
           OptPAC.dwFlags = WINHTTP_AUTOPROXY_AUTO_DETECT;
@@ -213,7 +213,7 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
 
           if (WinHttpGetProxyForUrl(http_local_session, DestURL, &OptPAC, &ProxyInfoTemp)) 
             {
-              NSLog(@"worked");
+              //NSLog(@"worked");
               memcpy(&ProxyInfo, &ProxyInfoTemp, sizeof(ProxyInfo));
 
               resultProxyConfig->lpszProxy = ProxyInfoTemp.lpszProxy;
@@ -222,7 +222,7 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
             }
           else 
             {
-              PrintLastError(@"WinHttpGetProxyForUrl");
+              //PrintLastError(@"WinHttpGetProxyForUrl");
             }
         }
 
@@ -237,9 +237,9 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
       autoConfigUrl = normalizeUrl(autoConfigUrl);
       proxy = normalizeUrl(proxy);
 
-      NSLog(@"  autoConfigUrl: %@", autoConfigUrl);
-      NSLog(@"  proxy: %@", proxy);
-      NSLog(@"  proxyBypass: %@", proxyBypass);
+      //NSLog(@"  autoConfigUrl: %@", autoConfigUrl);
+      //NSLog(@"  proxy: %@", proxy);
+      //NSLog(@"  proxyBypass: %@", proxyBypass);
 
       result = true;
     }
@@ -250,7 +250,7 @@ BOOL ResolveProxy(NSString * url, WINHTTP_CURRENT_USER_IE_PROXY_CONFIG * resultP
 // FIXME: Move this code into System Configuration framework...
 CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * forUrl)
 {
-  NSLog(@"forURL: %@", forUrl);
+  //NSLog(@"forURL: %@", forUrl);
   NSMutableDictionary *proxyDict = [NSMutableDictionary dictionary];
   WINHTTP_CURRENT_USER_IE_PROXY_CONFIG  proxyInfo = { 0 };
   
@@ -400,11 +400,11 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * fo
                     }                    
                 }
 
-              NSLog(@"components ---------- ");
-              for(NSInteger i = 0; i < [components count]; i++){
-                NSLog(@"%@", [components objectAtIndex:i]);
-              }
-              NSLog(@"--------------------- ");
+             // NSLog(@"components ---------- ");
+             // for(NSInteger i = 0; i < [components count]; i++){
+             //   NSLog(@"%@", [components objectAtIndex:i]);
+             // }
+             // NSLog(@"--------------------- ");
 
               if (0 != [components count])
                 {
@@ -416,12 +416,12 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * fo
                     {
                       if (!isdigit([host characterAtIndex:0]))
                         {
-                          NSLog(@"host appears to be a domain name: %@", host);
+                          //NSLog(@"host appears to be a domain name: %@", host);
                           struct hostent * hostInfo;
                           hostInfo = gethostbyname ([host cString]);
                           if (hostInfo) 
                             {
-                              NSLog(@"gethostbyname worked");
+                              //NSLog(@"gethostbyname worked");
                               if (hostInfo->h_addr_list[0] != 0) 
                                 {
                                   struct in_addr addr;
@@ -432,11 +432,11 @@ CFDictionaryRef SCDynamicStoreCopyProxies(SCDynamicStoreRef store, NSString * fo
                             }  
                           else 
                             {
-                              NSLog(@"gethostbyname worked");
+                              //NSLog(@"gethostbyname worked");
                             }
                         }
                     }
-                  NSLog(@"host: %@ port: %d", host, portnum);
+                  //NSLog(@"host: %@ port: %d", host, portnum);
 
                   if ([host length] >= 2) 
                     {
