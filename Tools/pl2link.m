@@ -85,7 +85,7 @@ main(int argc, char** argv, char **env)
     }
   NS_DURING
     {
-      fileContents = [NSString stringWithContentsOfFile: sourceName];
+      fileContents = [NSMutableString stringWithContentsOfFile: sourceName];
       plist = [fileContents propertyList];
     }
   NS_HANDLER

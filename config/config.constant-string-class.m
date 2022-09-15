@@ -16,6 +16,7 @@
    as an option to gcc.  If it doesn't work, it means your gcc doesn't
    support this option. */
 
+#include <string.h>
 #include "objc-common.g"
 
 #ifdef __OBJC_GNUSTEP_RUNTIME_ABI__

@@ -6340,11 +6340,13 @@ static NSFileManager *fm = nil;
  */
 + (id) stringWithFormat: (NSString*)format, ...
 {
+  id    s;
+
   va_list ap;
   va_start(ap, format);
-  self = [super stringWithFormat: format arguments: ap];
+  s = [super stringWithFormat: format arguments: ap];
   va_end(ap);
-  return self;
+  return s;
 }
 
 /** <init/> <override-subclass />

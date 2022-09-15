@@ -6,6 +6,10 @@
 
 #import "ObjectTesting.h" 
 
+#if !defined(_WIN32)
+#include <unistd.h>
+#endif
+
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
