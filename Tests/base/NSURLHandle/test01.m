@@ -32,7 +32,7 @@ int main(int argc, char **argv)
    */
 #if defined(_WIN32)
   NSLog(@"Marking local web server tests as hopeful because GSInetServerStream is broken on Windows");
-  testHopeful = YES
+  testHopeful = YES;
 #endif
   
   url = [NSURL URLWithString: @"http://localhost:1234/200"];
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
   [arp release]; arp = nil ;
 
 #if defined(_WIN32)
-  testHopeful = NO
+  testHopeful = NO;
 #endif
 
   return 0;

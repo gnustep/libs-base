@@ -37,7 +37,7 @@ int main()
    */
 #if defined(_WIN32)
   NSLog(@"Marking local web server tests as hopeful because GSInetServerStream is broken on Windows");
-  testHopeful = YES
+  testHopeful = YES;
 #endif
 
   START_SET("-resourceDataUsingCache")
@@ -224,7 +224,7 @@ int main()
   LEAVE_POOL
 
 #if defined(_WIN32)
-  testHopeful = NO
+  testHopeful = NO;
 #endif
 
 #endif

@@ -25,7 +25,7 @@ int main(int argc, char **argv, char **env)
    */
 #if defined(_WIN32)
   NSLog(@"Marking local web server tests as hopeful because GSInetServerStream is broken on Windows");
-  testHopeful = YES
+  testHopeful = YES;
 #endif
 
   // load the test suite's classes
@@ -155,7 +155,7 @@ int main(int argc, char **argv, char **env)
   DESTROY(arp);
 
 #if defined(_WIN32)
-  testHopeful = NO
+  testHopeful = NO;
 #endif
   
   return 0;
