@@ -38,8 +38,8 @@ int main(int argc, char **argv, char **env)
    * We will mark the test cases as hopeful on Windows.
    */
 #if defined(_WIN32)
-  NSLog(@"Skipping local web server tests because GSInetServerStream is broken on Windows");
-  return 0;
+  NSLog(@"Marking local web server tests as hopeful because GSInetServerStream is broken on Windows");
+  testHopeful = YES
 #endif
 
       testClass = [bundle principalClass]; // NSURLConnectionTest
@@ -142,6 +142,9 @@ int main(int argc, char **argv, char **env)
 		  format: @"can't load bundle TestConnection"];
     }
 
+#if defined(_WIN32)
+  testHopeful = NO
+#endif
 
   DESTROY(arp);
   

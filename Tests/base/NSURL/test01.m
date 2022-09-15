@@ -33,8 +33,8 @@ int main()
    * We will mark the test cases as hopeful on Windows.
    */
 #if defined(_WIN32)
-  NSLog(@"Skipping local web server tests because GSInetServerStream is broken on Windows");
-  return 0;
+  NSLog(@"Marking local web server tests as hopeful because GSInetServerStream is broken on Windows");
+  testHopeful = YES
 #endif
   
   START_SET("Keepalive")
@@ -76,6 +76,10 @@ int main()
   END_SET("Keepalive")
 
   LEAVE_POOL
+
+#if defined(_WIN32)
+  testHopeful = NO
+#endif
 
 #endif
   return 0;
