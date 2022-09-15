@@ -34,7 +34,7 @@ int main()
   response = nil;
  
 #if defined(_WIN32)
-testHopeful = YES
+testHopeful = YES;
 #endif
 
   data = [NSURLConnection sendSynchronousRequest: mutable
@@ -46,7 +46,7 @@ testHopeful = YES
     "NSURLConnection synchronous load returns a response");
 
 #if defined(_WIN32)
-testHopeful = NO
+testHopeful = NO;
 #endif
 
   path = [[NSFileManager defaultManager] currentDirectoryPath];
