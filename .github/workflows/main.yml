@@ -43,7 +43,6 @@ jobs:
             CXX: g++
 
           - name: Windows MinGW GCC x86_64
-            allow-test-failures: true
             os: windows-2019
             arch: x86_64
             msystem: MINGW64
@@ -64,7 +63,6 @@ jobs:
             LDFLAGS: -fuse-ld=lld
 
           - name: Windows MSVC Clang gnustep-2.0 x86_64
-            allow-test-failures: true
             os: windows-2019
             arch: x64
             host: x86_64-pc-windows
