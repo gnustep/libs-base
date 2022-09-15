@@ -247,8 +247,7 @@ static BOOL     traceLocks = NO;
 {\
   if (0 != pthread_mutex_unlock(&_mutex))\
     {\
-      [NSException raise: NSLockException\
-	    format: @"failed to unlock mutex"];\
+      NSLog( @"failed to unlock mutex" );       \
     }\
   CHK(Drop) \
 }
@@ -703,7 +702,7 @@ MSTACK
   else if (err != 0)\
     {\
       CHKT(t,Drop) \
-      [NSException raise: NSLockException format: @"failed to lock mutex"];\
+      NSLog( @"failed to lock mutex" );       \      
     }\
   CHKT(t,Hold) \
 }
