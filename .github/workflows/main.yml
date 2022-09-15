@@ -106,7 +106,7 @@ jobs:
       - name: Install packages (Linux)
         if: runner.os == 'Linux'
         run: |
-          PACKAGES="cmake pkg-config libgnutls28-dev libffi-dev libicu-dev libxml2-dev libxslt1-dev libssl-dev libavahi-client-dev zlib1g-dev gnutls-bin"
+          PACKAGES="cmake pkg-config libgnutls28-dev libffi-dev libicu-dev libxml2-dev libxslt1-dev libssl-dev libavahi-client-dev zlib1g-dev gnutls-bin libcurl4-gnutls-dev"
           case $LIBRARY_COMBO in
             gnu-gnu-gnu)
               # GCC Objective-C runtime
