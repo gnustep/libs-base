@@ -1,3 +1,11 @@
+2022-09-15 Hugo Melder <contact@hugomelder.com>
+
+        * config/config.constant-string-class.m:
+        * Tests/base/NSObject/initialize.m:
+        * Tests/base/NSTask/launch.m:
+        C99 does not support implicit function declarations. Add string.h
+        and unistd.h when applicable.
+
 2022-08-16 Hugo Melder <contact@hugomelder.com>
 
 	* Source/NSPredicate.m:
