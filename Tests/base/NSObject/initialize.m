@@ -4,6 +4,10 @@
 #include <signal.h>
 #import "Testing.h"
 
+#if defined(SIGALRM)
+#include <unistd.h>
+#endif
+
 @interface Init0 : NSObject
 @end
 
