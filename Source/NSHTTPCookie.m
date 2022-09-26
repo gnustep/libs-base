@@ -756,8 +756,13 @@ GSPropertyListFromCookieFormat(NSString *string, int version)
 	  if ([keyval length] < [key length])
 	    {
 	      pld->pos = keyvalpos;
+              DESTROY(key);
 	      key = keyval;
 	    }
+          else
+            {
+              DESTROY(keyval);
+            }
 	}
       if (key == nil)
 	{
