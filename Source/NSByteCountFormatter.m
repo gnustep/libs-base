@@ -59,19 +59,20 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 
 @implementation NSByteCountFormatter
   
-+ (NSString *)stringFromByteCount: (long long)byteCount
++ (NSString*) stringFromByteCount: (long long)byteCount
                        countStyle: (NSByteCountFormatterCountStyle)countStyle
 {
-  NSByteCountFormatter *formatter = [[NSByteCountFormatter alloc] init];
+  NSByteCountFormatter *formatter = AUTORELEASE([NSByteCountFormatter new]);
+
   [formatter setCountStyle: countStyle];
   return [formatter stringFromByteCount: byteCount];
 }
 
-- (NSString *)stringForObjectValue: (id)obj
+- (NSString*) stringForObjectValue: (id)obj
 {
   long long byteCount = 0;
   
-  if([obj respondsToSelector: @selector(longLongValue)])
+  if ([obj respondsToSelector: @selector(longLongValue)])
     {
       byteCount = [obj longLongValue];
     }
@@ -115,16 +116,16 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
   return units;
 }
 
-- (NSString *)stringFromByteCount: (long long)byteCount
+- (NSString*) stringFromByteCount: (long long)byteCount
 {
-  NSString *result = nil;
-  double bc = (double)byteCount;
-  double count = 0;
-  NSString *outputFormat = @"";
-  NSString *unitName = @"";
-  NSByteCountFormatterUnits allowed = internal->_allowedUnits;
+  NSString                      *result = nil;
+  double                        bc = (double)byteCount;
+  double                        count = 0;
+  NSString                      *outputFormat = @"";
+  NSString                      *unitName = @"";
+  NSByteCountFormatterUnits     allowed = internal->_allowedUnits;
 
-  if(internal->_adaptive)
+  if (internal->_adaptive)
     {
       allowed = [self _adaptiveSettings: bc];
     }
@@ -174,13 +175,13 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
       unitName = @"bytes";
     }
 
-  if(internal->_allowsNonnumericFormatting && count == 0.0)
+  if (internal->_allowsNonnumericFormatting && count == 0.0)
     {
       outputFormat = [outputFormat stringByAppendingString: @"Zero"];
     }
   else
     {
-      if(internal->_zeroPadsFractionDigits)
+      if (internal->_zeroPadsFractionDigits)
 	{
 	  outputFormat = [outputFormat stringByAppendingString: @"%01.08f"];
 	}
@@ -188,7 +189,7 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 	{
 	  NSInteger whole = (NSInteger)(count / 1);
 	  double frac = (double)count - (double)whole;
-	  if(frac > 0.0)
+	  if (frac > 0.0)
 	    {
 	      whole += 1;
 	    }
@@ -197,7 +198,7 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 	}
     }
   
-  if(internal->_includesUnit)
+  if (internal->_includesUnit)
     {
       NSString *paddedUnit = [NSString stringWithFormat: @" %@",unitName];
       outputFormat = [outputFormat stringByAppendingString: paddedUnit];
@@ -211,8 +212,7 @@ GS_PRIVATE_INTERNAL(NSByteCountFormatter)
 
 - (id) init
 {
-  self = [super init];
-  if(self == nil)
+  if (nil == (self = [super init]))
     {
       return nil;
     }
