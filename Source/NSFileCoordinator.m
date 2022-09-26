@@ -40,7 +40,7 @@ static NSMutableDictionary *__presenterIdDict = nil;
 - (instancetype) init
 {
   self = [super init];
-  if(self != nil)
+  if (self != nil)
     {
       _url = nil;
       _isRead = NO;
@@ -53,20 +53,22 @@ static NSMutableDictionary *__presenterIdDict = nil;
                               options: (NSFileCoordinatorReadingOptions)options
 {
   NSFileAccessIntent *result = [[self alloc] init];
+
   ASSIGNCOPY(result->_url, url);
   result->_options = options;
   result->_isRead = YES;
-  return result;
+  return AUTORELEASE(result);
 }
 
 + (instancetype) writingIntentWithURL: (NSURL *)url
                               options: (NSFileCoordinatorWritingOptions)options
 {
   NSFileAccessIntent *result = [[self alloc] init];
+
   ASSIGNCOPY(result->_url, url);
   result->_options = options;
   result->_isRead = NO;
-  return result;
+  return AUTORELEASE(result);
 }
 
 - (NSURL *) URL
@@ -79,7 +81,7 @@ static NSMutableDictionary *__presenterIdDict = nil;
 
 + (void) initialize
 {
-  if(self == [NSFileCoordinator class])
+  if (self == [NSFileCoordinator class])
     {
       __presenters = [[NSMutableArray alloc] init];
       __presenterMap = [[NSMutableDictionary alloc] init];
@@ -109,7 +111,7 @@ static NSMutableDictionary *__presenterIdDict = nil;
 - (instancetype) init
 {
   self = [super init];
-  if(self != nil)
+  if (self != nil)
     {
       NSString *p = nil;
 
@@ -135,7 +137,7 @@ static NSMutableDictionary *__presenterIdDict = nil;
 {
   NSEnumerator *en = [__presenters objectEnumerator];
   id obj = nil;
-  while((obj = [en nextObject]) != nil)
+  while ((obj = [en nextObject]) != nil)
     {
       id<NSFilePresenter> o = (id<NSFilePresenter>)obj;
       NSOperationQueue *q = [o presentedItemOperationQueue];
@@ -151,7 +153,7 @@ static NSMutableDictionary *__presenterIdDict = nil;
   NSEnumerator *en = [intents objectEnumerator];
   id obj = nil;
   
-  while((obj = [en nextObject]) != nil)
+  while ((obj = [en nextObject]) != nil)
     {
       NSBlockOperation *op;
 
@@ -161,127 +163,144 @@ static NSMutableDictionary *__presenterIdDict = nil;
     }
 }
 
-- (void)coordinateReadingItemAtURL: (NSURL *)readingURL
-                           options: (NSFileCoordinatorReadingOptions)readingOptions
-                  writingItemAtURL: (NSURL *)writingURL
-                           options: (NSFileCoordinatorWritingOptions)writingOptions
-                             error: (NSError **)outError
-                        byAccessor: (GSNoEscapeReadWriteHandler)readerWriter
+- (void) coordinateReadingItemAtURL: (NSURL *)readingURL
+  options: (NSFileCoordinatorReadingOptions)readingOptions
+  writingItemAtURL: (NSURL *)writingURL
+  options: (NSFileCoordinatorWritingOptions)writingOptions
+  error: (NSError **)outError
+  byAccessor: (GSNoEscapeReadWriteHandler)readerWriter
 {
-  if(readingOptions == 0L)
+  if (readingOptions == 0L)
     {
       id<NSFilePresenter> p = [__presenterMap objectForKey: readingURL];
-      if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
+
+      if ([p respondsToSelector:
+        @selector(savePresentedItemChangesWithCompletionHandler:)])
         {
-          [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+          [p savePresentedItemChangesWithCompletionHandler: NULL]; 
         }
     }
   
-  if(writingOptions == 0L)
+  if (writingOptions == 0L)
     {
       id<NSFilePresenter> p = [__presenterMap objectForKey: writingURL];
-      if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
+
+      if ([p respondsToSelector:
+        @selector(savePresentedItemChangesWithCompletionHandler:)])
         {
-          [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+          [p savePresentedItemChangesWithCompletionHandler: NULL]; 
         }
     }
   CALL_BLOCK(readerWriter, readingURL, writingURL);
 }
                  
-- (void)coordinateReadingItemAtURL: (NSURL *)url
-                           options: (NSFileCoordinatorReadingOptions)options
-                             error: (NSError **)outError
-                        byAccessor: (GSNoEscapeNewURLHandler)reader
+- (void) coordinateReadingItemAtURL: (NSURL *)url
+                            options: (NSFileCoordinatorReadingOptions)options
+                              error: (NSError **)outError
+                         byAccessor: (GSNoEscapeNewURLHandler)reader
 {
-  if(options == 0L)
+  if (options == 0L)
     {
       id<NSFilePresenter> p = [__presenterMap objectForKey: url];
-      if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
+      if ([p respondsToSelector:
+        @selector(savePresentedItemChangesWithCompletionHandler:)])
         {
-          [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+          [p savePresentedItemChangesWithCompletionHandler: NULL]; 
         }
     }
   CALL_BLOCK(reader, url);
 }
                  
-- (void)coordinateWritingItemAtURL: (NSURL *)url
-                           options: (NSFileCoordinatorWritingOptions)options
-                             error: (NSError **)outError
-                        byAccessor: (GSNoEscapeNewURLHandler)writer
+- (void) coordinateWritingItemAtURL: (NSURL *)url
+                            options: (NSFileCoordinatorWritingOptions)options
+                              error: (NSError **)outError
+                         byAccessor: (GSNoEscapeNewURLHandler)writer
 {
-  if(options == 0L)
+  if (options == 0L)
     {
       id<NSFilePresenter> p = [__presenterMap objectForKey: url];
-      if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
-         {
-           [p savePresentedItemChangesWithCompletionHandler:NULL]; 
-         }
+      if ([p respondsToSelector:
+        @selector(savePresentedItemChangesWithCompletionHandler:)])
+        {
+          [p savePresentedItemChangesWithCompletionHandler: NULL]; 
+        }
     }
   CALL_BLOCK(writer, url);
 }
 
-- (void)coordinateWritingItemAtURL: (NSURL *)url1
-                           options: (NSFileCoordinatorWritingOptions)options1
-                  writingItemAtURL: (NSURL *)url2
-                           options: (NSFileCoordinatorWritingOptions)options2
-                             error: (NSError **)outError
-                        byAccessor: (GSDualWriteURLCallbackHandler)writer
+- (void) coordinateWritingItemAtURL: (NSURL *)url1
+                            options: (NSFileCoordinatorWritingOptions)options1
+                   writingItemAtURL: (NSURL *)url2
+                            options: (NSFileCoordinatorWritingOptions)options2
+                              error: (NSError **)outError
+                         byAccessor: (GSDualWriteURLCallbackHandler)writer
 {
-  if(options1 == 0L)
+  if (options1 == 0L)
     {
       id<NSFilePresenter> p = [__presenterMap objectForKey: url1];
-      if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
-         {
-           [p savePresentedItemChangesWithCompletionHandler:NULL]; 
-         }
+
+      if ([p respondsToSelector:
+        @selector(savePresentedItemChangesWithCompletionHandler:)])
+        {
+          [p savePresentedItemChangesWithCompletionHandler: NULL]; 
+        }
     }
 
-  if(options2 == 0L)
+  if (options2 == 0L)
     {
       id<NSFilePresenter> p = [__presenterMap objectForKey: url2];
-      if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
-         {
-           [p savePresentedItemChangesWithCompletionHandler:NULL]; 
-         }
+
+      if ([p respondsToSelector:
+        @selector(savePresentedItemChangesWithCompletionHandler:)])
+        {
+          [p savePresentedItemChangesWithCompletionHandler: NULL]; 
+        }
     }
   CALL_BLOCK(writer, url1, url2);  
 }
 
-- (void)itemAtURL: (NSURL *)oldURL didMoveToURL: (NSURL *)newURL
+- (void) itemAtURL: (NSURL *)oldURL didMoveToURL: (NSURL *)newURL
 {
   id<NSFilePresenter> presenter = [__presenterMap objectForKey: oldURL];
+
   [presenter presentedItemDidMoveToURL: newURL];
 }
 
-- (void)itemAtURL: (NSURL *)oldURL willMoveToURL: (NSURL *)newURL 
+- (void) itemAtURL: (NSURL *)oldURL willMoveToURL: (NSURL *)newURL 
 {
   id<NSFilePresenter> presenter = [__presenterMap objectForKey: oldURL];
+
   [presenter presentedItemDidChange]; // there is no "Will" method for this, so I am a bit perplexed.
 }
 
-- (void)itemAtURL: (NSURL *)url didChangeUbiquityAttributes: (NSSet *)attributes
+- (void) itemAtURL: (NSURL *)url
+  didChangeUbiquityAttributes: (NSSet *)attributes
 {
   id<NSFilePresenter> presenter = [__presenterMap objectForKey: url];
+
   [presenter presentedItemDidChangeUbiquityAttributes: attributes];
 }
 
-- (void)prepareForReadingItemsAtURLs: (NSArray *)readingURLs
-                             options: (NSFileCoordinatorReadingOptions)readingOptions
-                  writingItemsAtURLs: (NSArray *)writingURLs
-                             options: (NSFileCoordinatorWritingOptions)writingOptions
-                               error: (NSError **)outError
-                          byAccessor: (GSBatchAccessorCompositeBlock)batchAccessor
+- (void) prepareForReadingItemsAtURLs: (NSArray *)readingURLs
+  options: (NSFileCoordinatorReadingOptions)readingOptions
+  writingItemsAtURLs: (NSArray *)writingURLs
+  options: (NSFileCoordinatorWritingOptions)writingOptions
+  error: (NSError **)outError
+  byAccessor: (GSBatchAccessorCompositeBlock)batchAccessor
 {
-   if(readingOptions == 0L)
+  if (readingOptions == 0L)
     {
-      NSEnumerator *en = [readingURLs objectEnumerator];
-      NSURL *aurl = nil;
-      while((aurl = [en nextObject]) != nil)
+      NSEnumerator      *en = [readingURLs objectEnumerator];
+      NSURL             *aurl = nil;
+
+      while ((aurl = [en nextObject]) != nil)
         { 
           id<NSFilePresenter> p = [__presenterMap objectForKey: aurl];
-          if([p respondsToSelector: @selector(savePresentedItemChangesWithCompletionHandler:)])
+
+          if ([p respondsToSelector:
+            @selector(savePresentedItemChangesWithCompletionHandler:)])
             {
-              [p savePresentedItemChangesWithCompletionHandler:NULL]; 
+              [p savePresentedItemChangesWithCompletionHandler: NULL]; 
             }
         }
     }
