@@ -2768,7 +2768,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
  */
 - (id) nextObject
 {
-  NSString *returnFileName = 0;
+  NSString      *returnFileName = nil;
 
   if (_currentFilePath != 0)
     {
@@ -2839,8 +2839,8 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	  if (returnFileName == nil)
 	    continue;
 	  
-	  returnFileName = RETAIN([dir.path stringByAppendingPathComponent:
-	    returnFileName]);
+	  returnFileName = [dir.path stringByAppendingPathComponent:
+	    returnFileName];
 
 	  if (!_flags.justContents)
 	    _currentFilePath = RETAIN([_topPath stringByAppendingPathComponent:
@@ -2922,7 +2922,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    }
 	}
     }
-  return AUTORELEASE(returnFileName);
+  return returnFileName;
 }
 
 @end /* NSDirectoryEnumerator */
