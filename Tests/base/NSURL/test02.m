@@ -29,6 +29,19 @@ int main()
   helpers = [helpers stringByAppendingPathComponent: @"Helpers"];
   helpers = [helpers stringByAppendingPathComponent: @"obj"];
   capture = [helpers stringByAppendingPathComponent: @"capture"];
+  
+  /* The following test cases depend on the capture
+   * HTTP server. The server uses the GSInetServerStream
+   * class which is completely broken on Windows.
+   *
+   * See: https://github.com/gnustep/libs-base/issues/266
+   *
+   * We will mark the test cases as hopeful on Windows.
+   */
+#if defined(_WIN32)
+  NSLog(@"Marking local web server tests as hopeful because GSInetServerStream is broken on Windows");
+  testHopeful = YES;
+#endif
 
   m = [NSMutableString stringWithCapacity: 2048];
   for (i = 0; i < 128; i++)
@@ -124,6 +137,11 @@ int main()
   END_SET("Secure")
 
   LEAVE_POOL
+
+#if defined(_WIN32)
+  testHopeful = NO;
+#endif
+
 #endif
   return 0;
 }

@@ -32,6 +32,11 @@ int main()
     "NSURLConnection +connectionWithRequest: delegate: with nil as delegate returns a instance");
 
   response = nil;
+ 
+#if defined(_WIN32)
+testHopeful = YES;
+#endif
+
   data = [NSURLConnection sendSynchronousRequest: mutable
                                returningResponse: &response
                                            error: &error];
@@ -39,6 +44,10 @@ int main()
     "NSURLConnection synchronously load data from an http URL");
   PASS(response != nil && [(NSHTTPURLResponse*)response statusCode] > 0,
     "NSURLConnection synchronous load returns a response");
+
+#if defined(_WIN32)
+testHopeful = NO;
+#endif
 
   path = [[NSFileManager defaultManager] currentDirectoryPath];
   path = [path stringByAppendingPathComponent: @"basic.m"];

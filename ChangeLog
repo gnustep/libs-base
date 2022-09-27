@@ -6,6 +6,25 @@
         C99 does not support implicit function declarations. Add string.h
         and unistd.h when applicable.
 
+2022-08-23 Hugo Melder <contact@hugomelder.com>
+
+	* Tests/base/NSURL/basic.m:
+	Fix URL description and resource specifier test value on win32.
+	* Tests/base/NSURL/test00.m:
+	* Tests/base/NSURL/test01.m:
+	* Tests/base/NSURL/test02.m:
+	* Tests/base/NSURLConnection/test01.m:
+	* Tests/base/NSURLConnection/test02.m:
+	* Tests/base/NSURLConnection/test03.m:
+	* Tests/base/NSURLConnection/test04.m:
+	* Tests/base/NSURLConnection/test05.m:
+	* Tests/base/NSURLConnection/test06.m:
+	* Tests/base/NSURLConnection/test07.m:
+	* Tests/base/NSURLHandle/test00.m:
+	* Tests/base/NSURLHandle/test01.m:
+	Skip all test cases using the GSInetServerStream class as
+	it is broken on win32.
+
 2022-08-16 Hugo Melder <contact@hugomelder.com>
 
 	* Source/NSPredicate.m:
