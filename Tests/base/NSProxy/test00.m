@@ -120,10 +120,12 @@ int main()
   PASS([sub remote] == rem, "Can set the remote object for the subclass");
   PASS([obj length] == [rem length], "Get the length of the remote object");
   PASS([sub length] == [rem length], "Get the length of the subclass object");
-  PASS([obj isEqual: rem], "proxy isEqual: to remote");
+  PASS([obj isEqual: rem], "proxy isEqual: to remote")
   PASS([obj isEqual: sub], "proxy isEqual: to subclass");
   PASS([sub isEqual: rem], "subclass isEqual: to remote");
   PASS([sub isEqual: obj], "subclass isEqual: to proxy");
+  NSLog(@"Remote Object: %@", [rem description]);
+  NSLog(@"Subclass Object: %@", [sub description]);
   PASS([rem isEqual: obj], "remote isEqual: to proxy");
   PASS([rem isEqual: sub], "remote isEqual: to subclass");
   PASS([obj isEqualToString: rem], "proxy isEqualToString: to remote");
@@ -138,6 +140,8 @@ int main()
   PASS([sub compare: obj] == NSOrderedSame, "subclass compare: proxy");
   PASS([rem compare: obj] == NSOrderedSame, "remote compare: proxy");
   PASS([rem compare: sub] == NSOrderedSame, "remote compare: subclass");
+  NSLog(@"Remote Object Compare: %@", [sub compare: obj]);
+  NSLog(@"Remote Object Compare: %@", [rem compare: obj]);
   
   [arp release]; arp = nil;
   return 0;
