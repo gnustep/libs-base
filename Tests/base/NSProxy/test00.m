@@ -43,6 +43,13 @@
 {
   return _remote;
 }
+- (BOOL) isEqual: (id)other
+{
+  if (_remote)
+    return [_remote isEqual: other];
+  else
+    return [super isEqual: other];
+}
 @end
 
 @implementation MyProxy
