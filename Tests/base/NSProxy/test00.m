@@ -125,7 +125,9 @@ int main()
   PASS([sub isEqual: rem], "subclass isEqual: to remote");
   PASS([sub isEqual: obj], "subclass isEqual: to proxy");
   NSLog(@"Remote Object: %@", [rem description]);
+  NSLog(@"Remote Object Pointer: %p", rem);
   NSLog(@"Subclass Object: %@", [sub description]);
+  NSLog(@"Subclass Object Pointer: %p", sub);
   PASS([rem isEqual: obj], "remote isEqual: to proxy");
   PASS([rem isEqual: sub], "remote isEqual: to subclass");
   PASS([obj isEqualToString: rem], "proxy isEqualToString: to remote");
@@ -140,8 +142,6 @@ int main()
   PASS([sub compare: obj] == NSOrderedSame, "subclass compare: proxy");
   PASS([rem compare: obj] == NSOrderedSame, "remote compare: proxy");
   PASS([rem compare: sub] == NSOrderedSame, "remote compare: subclass");
-  NSLog(@"Remote Object Compare: %@", [sub compare: obj]);
-  NSLog(@"Remote Object Compare: %@", [rem compare: obj]);
   
   [arp release]; arp = nil;
   return 0;
