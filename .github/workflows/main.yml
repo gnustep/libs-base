@@ -63,7 +63,6 @@ jobs:
             LDFLAGS: -fuse-ld=lld
 
           - name: Windows MSVC Clang gnustep-2.0 x86_64
-            allow-test-failures: true
             os: windows-2019
             arch: x64
             host: x86_64-pc-windows
