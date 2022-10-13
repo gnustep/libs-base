@@ -7861,6 +7861,52 @@ _ACEOF
 fi
 done
 
+
+  # Check if we have signalling to an individual thread
+  for ac_func in pthread_kill
+do :
+  ac_fn_c_check_func "$LINENO" "pthread_kill" "ac_cv_func_pthread_kill"
+if test "x$ac_cv_func_pthread_kill" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_PTHREAD_KILL 1
+_ACEOF
+
+fi
+done
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking return type of signal handlers" >&5
+$as_echo_n "checking return type of signal handlers... " >&6; }
+if ${ac_cv_type_signal+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <sys/types.h>
+#include <signal.h>
+
+int
+main ()
+{
+return *(signal (0, 0)) (0) == 1;
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_type_signal=int
+else
+  ac_cv_type_signal=void
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_type_signal" >&5
+$as_echo "$ac_cv_type_signal" >&6; }
+
+cat >>confdefs.h <<_ACEOF
+#define RETSIGTYPE $ac_cv_type_signal
+_ACEOF
+
+
 fi
 
 #--------------------------------------------------------------------
@@ -9648,12 +9694,13 @@ fi
 
 done
 
-for ac_func in poll
+for ac_func in poll ppoll
 do :
-  ac_fn_c_check_func "$LINENO" "poll" "ac_cv_func_poll"
-if test "x$ac_cv_func_poll" = xyes; then :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
-#define HAVE_POLL 1
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
 
 fi
@@ -14017,6 +14064,33 @@ fi
 
 
 
+#--------------------------------------------------------------------
+# Can we use eventfd rather than a pipe for interthread signals?
+#--------------------------------------------------------------------
+for ac_header in sys/eventfd.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/eventfd.h" "ac_cv_header_sys_eventfd_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_eventfd_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYS_EVENTFD_H 1
+_ACEOF
+
+fi
+
+done
+
+
+#--------------------------------------------------------------------
+# Can we avoid using a pipe to wake the runloop of a thread?
+#--------------------------------------------------------------------
+if test "$ac_cv_func_ppoll" = "yes" \
+  -a "$ac_cv_func_pthread_kill" = "yes" \
+  -a "$ac_cv_func_sigaction" = "yes"
+then
+
+$as_echo "#define USE_THREAD_SIGNAL 1" >>confdefs.h
+
+fi
 
 #--------------------------------------------------------------------
 # Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.

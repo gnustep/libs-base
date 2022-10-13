@@ -119,6 +119,10 @@ typedef struct {
 #  include <fcntl.h>
 #endif
 
+#if	defined(HAVE_SYS_EVENTFD_H)
+#  include <sys/eventfd.h>
+#endif
+
 #if defined(__POSIX_SOURCE)\
         || defined(__EXT_POSIX1_198808)\
         || defined(O_NONBLOCK)
@@ -152,6 +156,23 @@ typedef struct {
 #  include <sys/syscall.h>
 #  include <sys/types.h>
 #endif
+
+#if     defined(USE_THREAD_SIGNAL)
+static int    signalValue = 0;
+
+static RETSIGTYPE
+handleThreadSignal(int sig)
+{
+  GSRunLoopThreadInfo   *info = GSRunLoopInfoForThread(nil);
+
+  info->sig = YES;      // Note that this thread has been signalled.
+  signal([info threadSignal], handleThreadSignal);
+#if     RETSIGTYPE != void
+  return 0;
+#endif
+}
+#endif
+
 
 #define GSInternal      NSThreadInternal
 #include        "GSInternal.h"
@@ -260,11 +281,12 @@ static BOOL                     disableTraceLocks = NO;
 /**
  * This class performs a dual function ...
  * <p>
- *   As a class, it is responsible for handling incoming events from
- *   the main runloop on a special inputFd.  This consumes any bytes
+ *   As a class, it is responsible for handling inter-thread messages
+ *   waking the run loop either by a unix signal or by read events on
+ *   a special inputFd.  In the latter case this consumes any bytes
  *   written to wake the main runloop.<br />
- *   During initialisation, the default runloop is set up to watch
- *   for data arriving on inputFd.
+ *   If the file descriptor method is used, during initialisation the
+ *   default runloop is set up to watch for data arriving on inputFd.
  * </p>
  * <p>
  *   As instances, each  instance retains perform receiver and argument
@@ -835,6 +857,7 @@ gnustep_base_thread_callback(void)
    * check what the current thread is (like getting the ID)!
    */
   GS_THREAD_KEY_SET(thread_object_key, self);
+  pthreadID = pthread_self();
   threadID = GSPrivateThreadID();
   GS_MUTEX_LOCK(_activeLock);
   /* The hash table is created lazily/late so that the NSThread
@@ -851,6 +874,73 @@ gnustep_base_thread_callback(void)
     }
   NSHashInsert(_activeThreads, (const void*)self);
   GS_MUTEX_UNLOCK(_activeLock);
+}
+
+/* Return the per-thread run loop information, creating if necessary.
+ */
+- (GSRunLoopThreadInfo*) _runLoopInfo
+{
+  if (_runLoopInfo == nil)
+    {
+      [gnustep_global_lock lock];
+      if (_runLoopInfo == nil)
+        {
+          GSRunLoopThreadInfo   *ti = [GSRunLoopThreadInfo new];
+#if !GS_USE_WIN32_THREADS_AND_LOCKS
+          ti->tid = pthreadID;  // For use signalling the thread
+#endif
+          _runLoopInfo = ti;
+	}
+      [gnustep_global_lock unlock];
+    }
+  return _runLoopInfo;
+}
+@end
+
+@implementation NSThread (Signal)
+/* Method to turn on use of a signal to wake threads.
+ */
++ (BOOL) setThreadSignal: (int)s
+{
+#if   defined(USE_THREAD_SIGNAL)
+  if (s < 1 || s > 64)
+    {
+      return NO;                        // Bad signal number
+    }
+  [gnustep_global_lock lock];
+  if (signalValue)
+    {
+      [gnustep_global_lock unlock];
+      return NO;                        // Already set
+    }
+  else
+    {
+      struct sigaction  act;
+      sigset_t          mask;
+
+      signalValue = s;
+
+      /* Set handler for inter-thread messaging and block
+       * the signal to only occur when the run loop is polling.
+       */
+      act.sa_flags = 0;
+      act.sa_handler = handleThreadSignal;
+      sigemptyset(&act.sa_mask);
+      sigaddset(&act.sa_mask, signalValue);
+      if (sigaction(signalValue, &act, 0) < 0)
+        {
+          perror("Unable to set read wakeup signal handler");
+        }
+      sigemptyset(&mask);
+      sigaddset(&mask, signalValue);
+      pthread_sigmask(SIG_BLOCK, &mask, NULL);
+
+      [gnustep_global_lock unlock];
+      return YES;
+    }
+#else
+  return NO;
+#endif
 }
 @end
 
@@ -1872,51 +1962,94 @@ lockInfoErr(NSString *str)
 
 
 @implementation GSRunLoopThreadInfo
+
+#if   defined(USE_THREAD_SIGNAL)
++ (int) threadSignal
+{
+  return signalValue;
+}
+- (int) threadSignal
+{
+  return signalValue;
+}
+#endif
+
 - (void) addPerformer: (id)performer
 {
-  BOOL  signalled = NO;
+  BOOL  signalled;
 
   [lock lock];
+  /* If there are any performers present, the thread must already have
+   * been signalled to handle them, so we don't need to signal again.
+   */
+  signalled = [performers count] ? YES : NO;
 #if defined(_WIN32)
-  if (INVALID_HANDLE_VALUE != event)
+  if (NO == signalled)
     {
-      if (SetEvent(event) == 0)
+      if (INVALID_HANDLE_VALUE != event)
         {
-          NSLog(@"Set event failed - %@", [NSError _last]);
-        }
-      else
-        {
-          signalled = YES;
+          if (SetEvent(event) == 0)
+            {
+              NSLog(@"Set event failed - %@", [NSError _last]);
+            }
+          else
+            {
+              signalled = YES;
+            }
         }
     }
 #else
-{
-  NSTimeInterval        start = 0.0;
-
-  /* The write could concievably fail if the pipe is full.
-   * In that case we need to release the lock temporarily to allow the other
-   * thread to consume data from the pipe.  It's possible that the thread
-   * and its runloop might stop during that ... so we need to check that
-   * outputFd is still valid.
-   */
-  while (outputFd >= 0
-    && NO == (signalled = (write(outputFd, "0", 1) == 1) ? YES : NO))
+  if (NO == signalled)
     {
-      NSTimeInterval    now = [NSDate timeIntervalSinceReferenceDate];
+#if   defined(USE_THREAD_SIGNAL)
+      int       ts = [self threadSignal];
 
-      if (0.0 == start)
+      if (ts > 0)
         {
-          start = now;
+          if (0 == pthread_kill(tid, [self threadSignal]))
+            {
+              signalled = YES;
+            }
         }
-      else if (now - start >= 1.0)
+      else
+#endif
+#if	defined(HAVE_SYS_EVENTFD_H)
         {
-          NSLog(@"Unable to signal %@ within a second; blocked?", self);
-          break;
+          uint64_t  val = 1;
+
+          signalled = (write(outputFd, &val, 8) > 0) ? YES : NO;
         }
-      [lock unlock];
-      [lock lock];
+#else
+        {
+          NSTimeInterval        start = 0.0;
+
+          /* The write could concievably fail if the pipe is full.
+           * In that case we need to release the lock temporarily
+           * to allow the other thread to consume data from the pipe.
+           * It's possible that the thread and its runloop might stop
+           * during that ... so we need to check that outputFd is
+           * still valid.
+           */
+          while (outputFd >= 0
+            && NO == (signalled = (write(outputFd, "0", 1) == 1) ? YES : NO))
+            {
+              NSTimeInterval    now = [NSDate timeIntervalSinceReferenceDate];
+
+              if (0.0 == start)
+                {
+                  start = now;
+                }
+              else if (now - start >= 1.0)
+                {
+                  NSLog(@"Unable to signal %@ within a second; blocked?", self);
+                  break;
+                }
+              [lock unlock];
+              [lock lock];
+            }
+        }
+#endif
     }
-}
 #endif
   if (YES == signalled)
     {
@@ -1949,9 +2082,43 @@ lockInfoErr(NSString *str)
       [NSException raise: NSInternalInconsistencyException
         format: @"Failed to create event to handle perform in thread"];
     }
+#elif   defined(HAVE_SYS_EVENTFD_H)
+  int   desc;
+
+  inputFd = -1;
+  outputFd = -1;
+  if ((desc = eventfd(0, 0)) >= 0)
+    {
+      int       e;
+
+      inputFd = desc;
+      outputFd = desc;
+      if ((e = fcntl(desc, F_GETFL, 0)) >= 0)
+        {
+          e |= NBLK_OPT;
+          if (fcntl(desc, F_SETFL, e) < 0)
+            {
+              [NSException raise: NSInternalInconsistencyException
+                format: @"Failed to set non block flag for perform in thread"];
+            }
+        }
+      else
+	{
+	  [NSException raise: NSInternalInconsistencyException
+	    format: @"Failed to get non block flag for perform in thread"];
+	}
+    }
+  else
+    {
+      DESTROY(self);
+      [NSException raise: NSInternalInconsistencyException
+        format: @"Failed to create eventfd to handle perform in thread"];
+    }
 #else
   int	fd[2];
 
+  inputFd = -1;
+  outputFd = -1;
   if (pipe(fd) == 0)
     {
       int	e;
@@ -2013,16 +2180,17 @@ lockInfoErr(NSString *str)
       event = INVALID_HANDLE_VALUE;
     }
 #else
+  sig = 0;
   if (inputFd >= 0)
     {
       close(inputFd);
-      inputFd = -1;
     }
-  if (outputFd >= 0)
+  if (outputFd >= 0 && outputFd != inputFd)
     {
       close(outputFd);
-      outputFd = -1;
     }
+  inputFd = -1;
+  outputFd = -1;
 #endif
   [lock unlock];
   [p makeObjectsPerformSelector: @selector(invalidate)];
@@ -2044,6 +2212,18 @@ lockInfoErr(NSString *str)
         }
     }
 #else
+  sig = NO;     // Clear the signal
+#if   defined(HAVE_SYS_EVENTFD_H)
+  if (inputFd >= 0)
+    {
+      uint64_t  val;
+
+      /* This resets the eventfd to zero nothing to read until a write
+       * has been done.
+       */
+      read(inputFd, &val, 8);
+    }
+#else
   if (inputFd >= 0)
     {
       char	buf[BUFSIZ];
@@ -2059,6 +2239,7 @@ lockInfoErr(NSString *str)
 	;
     }
 #endif
+#endif
 
   c = [performers count];
   if (0 == c)
@@ -2070,8 +2251,8 @@ lockInfoErr(NSString *str)
       [lock unlock];
       return;
     }
-  toDo = [NSArray arrayWithArray: performers];
-  [performers removeAllObjects];
+  toDo = AUTORELEASE(performers);
+  performers = [[NSMutableArray alloc] initWithCapacity: c];
   [lock unlock];
 
   for (i = 0; i < c; i++)
@@ -2096,16 +2277,10 @@ GSRunLoopInfoForThread(NSThread *aThread)
     {
       aThread = GSCurrentThread();
     }
-  if (aThread->_runLoopInfo == nil)
+  if (nil == (info = aThread->_runLoopInfo))
     {
-      [gnustep_global_lock lock];
-      if (aThread->_runLoopInfo == nil)
-        {
-          aThread->_runLoopInfo = [GSRunLoopThreadInfo new];
-	}
-      [gnustep_global_lock unlock];
+      info = [aThread _runLoopInfo];
     }
-  info = aThread->_runLoopInfo;
   return info;
 }
 

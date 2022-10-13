@@ -8,6 +8,8 @@
 #import <Foundation/NSTimer.h>
 #import <Foundation/NSRunLoop.h>
 
+#define CALLS   2000
+
 @interface ThreadTest : NSObject {
   char  acceptEmptyBlocks;
   char  acceptTimerBlocks;
@@ -21,6 +23,9 @@
   char  moreForInput;
   char  moreForTimer;
   char  performed;
+  unsigned              count;
+  NSTimeInterval        countStart;
+  NSTimeInterval        countEnd;
 }
 - (void) notified: (NSNotification*)n;
 - (void) timeout: (NSTimer*)t;
@@ -140,18 +145,26 @@
  
   loop = [NSRunLoop currentRunLoop];
 
-  [NSTimer scheduledTimerWithTimeInterval: 2.0
+  [NSTimer scheduledTimerWithTimeInterval: 20.0
                                    target: self
                                  selector: @selector(timeout:)
                                  userInfo: nil
                                   repeats: NO];
 
-  end = [NSDate dateWithTimeIntervalSinceNow: 2.0];
+  end = [NSDate dateWithTimeIntervalSinceNow: 20.0];
   while ([end timeIntervalSinceNow] > 0)
     {
       [loop runUntilDate: end];
     }
   [pool release];
+}
+
+- (void) threadCount: (id)o
+{
+  if (++count >= CALLS)
+    {
+      countEnd = [NSDate timeIntervalSinceReferenceDate];
+    }
 }
 
 - (void) threadEvent: (id)ignored
@@ -182,10 +195,26 @@
                onThread: t
              withObject: nil
           waitUntilDone: NO];
+
+  countStart = [NSDate timeIntervalSinceReferenceDate];
+  for (int i = 0; i < CALLS; i++)
+    {
+      [self performSelector: @selector(threadCount:)
+                   onThread: t
+                 withObject: nil
+              waitUntilDone: YES];
+    }
+
   while ([until timeIntervalSinceNow] > 0)
     {
       [[NSRunLoop currentRunLoop] runUntilDate: until];
     }
+
+  while (0.0 == countEnd)
+    {
+      [NSThread sleepForTimeInterval: 0.1];
+    }
+  NSLog(@"Multiple calls %g", countEnd - countStart);
 
   PASS(acceptEmptyBlocks == 'N', "Accept with no inputs or timers will exit");
   PASS(acceptTimerBlocks == 'Y', "Accept with timers will not exit");

@@ -413,6 +413,9 @@
 /* Define to 1 if you have the <libxslt/xslt.h> header file. */
 #undef HAVE_LIBXSLT_XSLT_H
 
+/* Define to 1 if you have the `z' library (-lz). */
+#undef HAVE_LIBZ
+
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
 
@@ -482,6 +485,9 @@
 /* Define to 1 if you have the `posix_memalign' function. */
 #undef HAVE_POSIX_MEMALIGN
 
+/* Define to 1 if you have the `ppoll' function. */
+#undef HAVE_PPOLL
+
 /* Define if system supports the /proc filesystem */
 #undef HAVE_PROCFS
 
@@ -499,6 +505,9 @@
 
 /* Define to 1 if you have the <pthread.h> header file. */
 #undef HAVE_PTHREAD_H
+
+/* Define to 1 if you have the `pthread_kill' function. */
+#undef HAVE_PTHREAD_KILL
 
 /* Define to 1 if you have the `pthread_main_np' function. */
 #undef HAVE_PTHREAD_MAIN_NP
@@ -638,6 +647,9 @@
 /* Define to 1 if you have the <sys/dir.h> header file, and it defines `DIR'.
    */
 #undef HAVE_SYS_DIR_H
+
+/* Define to 1 if you have the <sys/eventfd.h> header file. */
+#undef HAVE_SYS_EVENTFD_H
 
 /* Define to 1 if you have the <sys/fcntl.h> header file. */
 #undef HAVE_SYS_FCNTL_H
@@ -876,6 +888,9 @@
 /* Description: Define setname function for pthread with three args */
 #undef PTHREAD_SETNAME
 
+/* Define as the return type of signal handlers (`int' or `void'). */
+#undef RETSIGTYPE
+
 /* Define to 1 if the `setpgrp' function takes no argument. */
 #undef SETPGRP_VOID
 
@@ -954,6 +969,9 @@
 # undef __EXTENSIONS__
 #endif
 
+
+/* Optionally wake threads using signal */
+#undef USE_THREAD_SIGNAL
 
 /* Define if vasprintf returns the length printed */
 #undef VASPRINTF_RETURNS_LENGTH

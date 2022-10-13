@@ -1849,6 +1849,10 @@ if test $HAVE_WIN32_THREADS_AND_LOCKS = 0; then
   
   # Check if we have spinlock support
   AC_CHECK_FUNCS(pthread_spin_lock)
+  
+  # Check if we have signalling to an individual thread
+  AC_CHECK_FUNCS(pthread_kill)
+  AC_TYPE_SIGNAL
 fi
 
 #--------------------------------------------------------------------
@@ -2482,7 +2486,7 @@ fi
 # These headers/functions needed by NSRunLoop.m
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(poll.h)
-AC_CHECK_FUNCS(poll)
+AC_CHECK_FUNCS(poll ppoll)
 have_poll=no
 if test $ac_cv_header_poll_h = yes; then
   have_poll=yes
@@ -3749,6 +3753,20 @@ fi
 
 AC_SUBST(USE_GMP)
 
+#--------------------------------------------------------------------
+# Can we use eventfd rather than a pipe for interthread signals?
+#--------------------------------------------------------------------
+AC_CHECK_HEADERS(sys/eventfd.h)
+
+#--------------------------------------------------------------------
+# Can we avoid using a pipe to wake the runloop of a thread?
+#--------------------------------------------------------------------
+if test "$ac_cv_func_ppoll" = "yes" \
+  -a "$ac_cv_func_pthread_kill" = "yes" \
+  -a "$ac_cv_func_sigaction" = "yes"
+then
+  AC_DEFINE(USE_THREAD_SIGNAL,1,[Optionally wake threads using signal])
+fi
 
 #--------------------------------------------------------------------
 # Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.

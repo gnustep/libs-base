@@ -1,3 +1,26 @@
+2022-10-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Add test for eventfd presence on linux and use it
+	rather than a pipe for inter-thread signalling.  This reduces the
+	per-thread resource overhead from two file descriptors (a pipe) to
+	a single one, as well as being more efficient than an pipe.
+	Add tests for ppoll and pthread_kill to determine if it is possible
+	to have an option to use signals to wake the run loop for inter-thread
+	messaging rather than using file descriptor(s).  This avoids the
+	resource overhead of per-thread open file descriptors, but means that
+	if a program is linked with other libraries which interfere with
+	signals, they may break inter-thread messaging.
+	* configure: Regenerate
+	* Headers/GNUstepBase/config.h.in: Regenerate
+	* Source/GSPrivate.h: Update thread specific info to hold pthread ID
+	* Source/NSThread.m: Implement optional inter-thread messaging using
+	signals as well as use of eventfd (where available) rather than a pipe.
+	Add [NSThread+setThreadSignal:] method to turn on the use of a signal.
+	* Source/unix/GSRunLoopCtxt.m: Add support for polling with ppoll
+	and getting an interrupt as a posix signal.
+	* Tests/base/NSRunLoop/thread.m: add option to test a large number
+	of inter-thread messages.
+
 2022-09-15 Hugo Melder <contact@hugomelder.com>
 
         * config/config.constant-string-class.m:

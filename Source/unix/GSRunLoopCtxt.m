@@ -27,6 +27,48 @@
 #include <poll.h>
 #endif
 
+#if     defined(USE_THREAD_SIGNAL)
+
+/* Perform inter-thread messaging by sending a signal if configured.
+ */
+static int
+gspoll(struct pollfd *fds, nfds_t nfds, int timeout, GSRunLoopThreadInfo *ti)
+{
+  int   sig = [ti threadSignal];
+
+  if (sig > 0)
+    {
+      struct timespec   t;
+      struct timespec   *tp = &t;
+      sigset_t          mask;
+      int               r;
+
+      t.tv_sec = timeout / 1000;
+      t.tv_nsec = (timeout - (t.tv_sec * 1000)) * 1000000;     
+      sigemptyset(&mask);
+      r = ppoll(fds, nfds, tp, &mask);
+      if (r < 0)
+        {
+          int       e = errno;
+
+          NSDebugFLLog(@"NSRunLoop", @"Fire perform on thread");
+          [ti fire];
+          errno = e;
+        }
+      return r;
+    }
+  else
+    {
+      return poll(fds, nfds, timeout);
+    }
+}
+#define GSPOLL(A,B,C,D) gspoll(A, B, C, D)
+#elif   defined(HAVE_POLL_F)
+/* Perform inter-thread messaging by writing to pipe
+ */
+#define GSPOLL(A,B,C,D) poll(A, B, C)
+#endif
+
 #define	FDCOUNT	1024
 
 static SEL	wRelSel;
@@ -252,6 +294,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   int		fdEnd;	/* Number of descriptors being monitored. */
   int		fdIndex;
   int		fdFinish;
+  int           err;
   unsigned	count;
   unsigned int	i;
   BOOL		immediate = NO;
@@ -287,9 +330,12 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   pollfds_count = 0;
   ((pollextra*)extra)->limit = 0;
 
-  /* Watch for signals from other threads.
+  /* Watch for descriptor signalling messages from other threads.
    */
-  setPollfd(threadInfo->inputFd, POLLIN, self);
+  if (threadInfo->inputFd >= 0)
+    {
+      setPollfd(threadInfo->inputFd, POLLIN, self);
+    }
 
   while (i-- > 0)
     {
@@ -388,7 +434,8 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   fprintf(stderr, "\n");
 }
 #endif
-  poll_return = poll (pollfds, pollfds_count, milliseconds);
+  poll_return = GSPOLL(pollfds, pollfds_count, milliseconds, threadInfo);
+  err = errno;  // we may want to use errno later
 #if 0
 {
   unsigned int i;
@@ -403,12 +450,12 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 
   if (poll_return < 0)
     {
-      if (errno == EINTR)
+      if (EINTR == err)
 	{
 	  GSPrivateCheckTasks();
 	  poll_return = 0;
 	}
-      else if (errno == 0)
+      else if (0 == err)
 	{
 	  /* Some systems returns an errno == 0. Not sure why */
 	  poll_return = 0;
@@ -630,22 +677,29 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 + (BOOL) awakenedBefore: (NSDate*)when
 {
   GSRunLoopThreadInfo   *threadInfo = GSRunLoopInfoForThread(nil);
+  struct pollfd		pollfds;
   NSTimeInterval	ti = (when == nil) ? 0.0 : [when timeIntervalSinceNow];
   int			milliseconds = (ti <= 0.0) ? 0 : (int)(ti*1000);
-  struct pollfd		pollfds;
+  int                   fdcount;
+  int                   result;
 
-  /* Watch for signals from other threads.
-   */
-  pollfds.fd = threadInfo->inputFd;
+  if (threadInfo->inputFd >= 0)
+    {
+      /* Watch for events from other threads.
+       */
+      fdcount = 1;
+      pollfds.fd = threadInfo->inputFd;
+    }
+  else
+    {
+      fdcount = 0;
+      pollfds.fd = 0;
+    }
+
   pollfds.events = POLLIN;
   pollfds.revents = 0;
-  if (poll(&pollfds, 1, milliseconds) == 1)
-    {
-      NSDebugMLLog(@"NSRunLoop", @"Fire perform on thread");
-      [threadInfo fire];
-      return YES;
-    }
-  return NO;
+  result = GSPOLL(&pollfds, fdcount, milliseconds, threadInfo);
+  return (0 == result) ? NO : YES;
 }
 
 #else
@@ -711,7 +765,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   fd = threadInfo->inputFd;
   if (fd > fdEnd)
     fdEnd = fd;
-  FD_SET (fd, &read_fds);
+  FD_SET(fd, &read_fds);
 
   while (i-- > 0)
     {
@@ -740,7 +794,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		fd = (int)(intptr_t)info->data;
 		if (fd > fdEnd)
 		  fdEnd = fd;
-		FD_SET (fd, &exception_fds);
+		FD_SET(fd, &exception_fds);
 		NSMapInsert(_efdMap, (void*)(intptr_t)fd, info);
 		break;
 
@@ -748,7 +802,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		fd = (int)(intptr_t)info->data;
 		if (fd > fdEnd)
 		  fdEnd = fd;
-		FD_SET (fd, &read_fds);
+		FD_SET(fd, &read_fds);
 		NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
 		break;
 
@@ -756,7 +810,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		fd = (int)(intptr_t)info->data;
 		if (fd > fdEnd)
 		  fdEnd = fd;
-		FD_SET (fd, &write_fds);
+		FD_SET(fd, &write_fds);
 		NSMapInsert(_wfdMap, (void*)(intptr_t)fd, info);
 		break;
 
@@ -784,7 +838,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		      fd = port_fd_array[port_fd_count];
 		      if (fd > fdEnd)
 			fdEnd = fd;
-		      FD_SET (fd, &read_fds);
+		      FD_SET(fd, &read_fds);
 		      NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
 		    }
                   if (port_fd_array != port_fd_buffer) free(port_fd_array);
@@ -1045,7 +1099,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   memset(&write_fds, '\0', sizeof(write_fds));
   timeout.tv_sec = milliseconds/1000;
   timeout.tv_usec = (milliseconds - 1000 * timeout.tv_sec) * 1000;
-  FD_SET (threadInfo->inputFd, &read_fds);
+  FD_SET(threadInfo->inputFd, &read_fds);
   if (select (threadInfo->inputFd, &read_fds, &write_fds,
     &exception_fds, &timeout) > 0)
     {

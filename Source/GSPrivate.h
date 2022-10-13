@@ -324,10 +324,18 @@ typedef enum {
 #ifdef _WIN32
   HANDLE	        event;
 #else
-  int                   inputFd;
+  pthread_t             tid;            /* POSIX thread ID of owning thread */
+  BOOL                  sig;            /* YES if thread was signalled */
+  int                   inputFd;        /* Descriptor to wake thread */
   int                   outputFd;
 #endif	
 }
+#if     USE_THREAD_SIGNAL
+/** Return the signal used to wake threads (0 if not used)
+ */
++ (int) threadSignal;
+- (int) threadSignal;
+#endif
 /* Add a performer to be run in the loop's thread.  May be called from
  * any thread.
  */
