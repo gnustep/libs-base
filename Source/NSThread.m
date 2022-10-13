@@ -857,7 +857,10 @@ gnustep_base_thread_callback(void)
    * check what the current thread is (like getting the ID)!
    */
   GS_THREAD_KEY_SET(thread_object_key, self);
+#if defined(USE_THREAD_SIGNAL) && !GS_USE_WIN32_THREADS_AND_LOCKS
   pthreadID = pthread_self();
+#endif
+
   threadID = GSPrivateThreadID();
   GS_MUTEX_LOCK(_activeLock);
   /* The hash table is created lazily/late so that the NSThread
@@ -886,7 +889,7 @@ gnustep_base_thread_callback(void)
       if (_runLoopInfo == nil)
         {
           GSRunLoopThreadInfo   *ti = [GSRunLoopThreadInfo new];
-#if !GS_USE_WIN32_THREADS_AND_LOCKS
+#if defined(USE_THREAD_SIGNAL) && !GS_USE_WIN32_THREADS_AND_LOCKS
           ti->tid = pthreadID;  // For use signalling the thread
 #endif
           _runLoopInfo = ti;

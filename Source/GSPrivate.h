@@ -330,7 +330,7 @@ typedef enum {
   int                   outputFd;
 #endif	
 }
-#if     USE_THREAD_SIGNAL
+#if     defined(USE_THREAD_SIGNAL)
 /** Return the signal used to wake threads (0 if not used)
  */
 + (int) threadSignal;
