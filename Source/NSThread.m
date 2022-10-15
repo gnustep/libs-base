@@ -160,18 +160,56 @@ typedef struct {
 #if     defined(USE_THREAD_SIGNAL)
 static int    signalValue = 0;
 
+#if     defined(SA_SIGINFO)
+
+static RETSIGTYPE (*oldHandler)(int) = SIG_IGN;
+static RETSIGTYPE (*oldSigaction)(int, siginfo_t*, void*) = SIG_IGN;
+static RETSIGTYPE
+handleThreadSignal(int sig, siginfo_t *inf, void *extra)
+{
+  GSRunLoopThreadInfo   *info = GSRunLoopInfoForThread(nil);
+
+  info->sig = YES;      // Note that this thread has been signalled.
+  if (oldHandler != SIG_IGN)
+    {
+      (*oldHandler)(sig);
+    }
+  else if (oldSigaction != SIG_IGN)
+    {
+      (*oldSigaction)(sig, inf, extra);
+    }
+  signal([info threadSignal], handleThreadSignal);
+#if     RETSIGTYPE != void
+  return 0;
+#else
+  return;
+#endif
+}
+
+#else   /* SA_SIGINFO */
+
+static RETSIGTYPE (*oldHandler)(int) = SIG_IGN;
 static RETSIGTYPE
 handleThreadSignal(int sig)
 {
   GSRunLoopThreadInfo   *info = GSRunLoopInfoForThread(nil);
 
   info->sig = YES;      // Note that this thread has been signalled.
+  if (oldHandler != SIG_IGN)
+    {
+      (*oldHandler)(sig);
+    }
   signal([info threadSignal], handleThreadSignal);
 #if     RETSIGTYPE != void
   return 0;
+#else
+  return;
 #endif
 }
-#endif
+
+#endif  /* SA_SIGINFO */
+
+#endif  /* USE_THREAD_SIGNAL */
 
 
 #define GSInternal      NSThreadInternal
@@ -919,6 +957,7 @@ gnustep_base_thread_callback(void)
   else
     {
       struct sigaction  act;
+      struct sigaction  old;
       sigset_t          mask;
 
       signalValue = s;
@@ -927,12 +966,41 @@ gnustep_base_thread_callback(void)
        * the signal to only occur when the run loop is polling.
        */
       act.sa_flags = 0;
+#if     defined(SA_SIGINFO)
+      act.sa_flags |= SA_SIGINFO;
+      act.sa_sigaction = handleThreadSignal;
+#else
       act.sa_handler = handleThreadSignal;
+#endif
       sigemptyset(&act.sa_mask);
       sigaddset(&act.sa_mask, signalValue);
-      if (sigaction(signalValue, &act, 0) < 0)
+      if (sigaction(signalValue, &act, &old) < 0)
         {
           perror("Unable to set read wakeup signal handler");
+        }
+      else
+        {
+#if     defined(SA_SIGINFO)
+          if (old.sa_flags & SA_SIGINFO)
+            {
+              if (old.sa_sigaction != SIG_DFL && old.sa_sigaction != SIG_IGN)
+                {
+                  oldHandler = old.sa_sigaction;
+                }
+            }
+          else
+            {
+              if (old.sa_handler != SIG_DFL && old.sa_handler != SIG_IGN)
+                {
+                  oldHandler = old.sa_handler;
+                }
+            }
+#else
+          if (old.sa_handler != SIG_DFL && old.sa_handler != SIG_IGN)
+            {
+              oldHandler = old.sa_handler;
+            }
+#endif
         }
       sigemptyset(&mask);
       sigaddset(&mask, signalValue);
@@ -2078,6 +2146,34 @@ lockInfoErr(NSString *str)
 
 - (id) init
 {
+#if     defined(USE_THREAD_SIGNAL)
+  /* If we have a default signal value configured, we must ensure
+   * that the method to set it up has been called.
+   */
+  if (USE_THREAD_SIGNAL > 0 && 0 == signalValue)
+    {
+      [NSThread setThreadSignal: USE_THREAD_SIGNAL];
+    }
+
+  if (signalValue > 0)
+    {
+      sigset_t  mask;
+
+      /* We are using a signal to wake threads, so we should ensure
+       * that the thread has that signal blocked normally.
+       */
+      if (pthread_sigmask(SIG_BLOCK, NULL, &mask) == 0)
+        {
+          sigaddset(&mask, signalValue);
+          pthread_sigmask(SIG_BLOCK, &mask, NULL);
+        }
+      else
+        {
+	  perror("Thread creation failed to set signal mask");
+        }
+    }
+#endif
+
 #ifdef _WIN32
   if ((event = CreateEvent(NULL, TRUE, FALSE, NULL)) == INVALID_HANDLE_VALUE)
     {

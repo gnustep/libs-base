@@ -10,6 +10,8 @@
 	resource overhead of per-thread open file descriptors, but means that
 	if a program is linked with other libraries which interfere with
 	signals, they may break inter-thread messaging.
+	Add --with-thread-signal=... to control whether a signal can be used
+	and (if so) whether/what the default signal is.
 	* configure: Regenerate
 	* Headers/GNUstepBase/config.h.in: Regenerate
 	* Source/GSPrivate.h: Update thread specific info to hold pthread ID

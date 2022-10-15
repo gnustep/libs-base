@@ -34,25 +34,59 @@
 static int
 gspoll(struct pollfd *fds, nfds_t nfds, int timeout, GSRunLoopThreadInfo *ti)
 {
-  int   sig = [ti threadSignal];
+  int   signalToUse = [ti threadSignal];
 
-  if (sig > 0)
+  if (signalToUse > 0)
     {
-      struct timespec   t;
-      struct timespec   *tp = &t;
       sigset_t          mask;
       int               r;
 
-      t.tv_sec = timeout / 1000;
-      t.tv_nsec = (timeout - (t.tv_sec * 1000)) * 1000000;     
-      sigemptyset(&mask);
-      r = ppoll(fds, nfds, tp, &mask);
+      /* The existing mask should contain our signal ... if not we
+       * should set it in the mask to prevent it interupting other
+       * system calls.
+       */
+      if (pthread_sigmask(SIG_BLOCK, NULL, &mask) != 0)
+        {
+          perror("failed to get thread signal mask");
+          sigemptyset(&mask);
+        }
+      if (!sigismember(&mask, signalToUse))
+        {
+          sigaddset(&mask, signalToUse);
+          pthread_sigmask(SIG_BLOCK, &mask, NULL);
+          fprintf(stderr, "WARNING: expected mask for signal %d not set."
+            "  This may cause inter-thread messaging issues."
+            " Is some linked library interfering with that signal?",
+            signalToUse);
+        }
+
+      if (ti->sig)
+        {
+          /* already signalled ... pretend it happened during the poll
+           */
+          r = -1;
+          errno = EINTR;
+        }
+      else
+        {
+          struct timespec       t;
+          struct timespec       *tp = &t;
+
+          t.tv_sec = timeout / 1000;
+          t.tv_nsec = (timeout - (t.tv_sec * 1000)) * 1000000;     
+          sigdelset(&mask, signalToUse);
+          r = ppoll(fds, nfds, tp, &mask);
+        }
+
       if (r < 0)
         {
           int       e = errno;
 
-          NSDebugFLLog(@"NSRunLoop", @"Fire perform on thread");
-          [ti fire];
+          if (ti->sig)
+            {
+              NSDebugFLLog(@"NSRunLoop", @"Fire perform on thread");
+              [ti fire];
+            }
           errno = e;
         }
       return r;

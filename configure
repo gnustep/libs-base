@@ -834,6 +834,7 @@ with_curl
 enable_nsurlsession
 with_gmp_include
 with_gmp_library
+with_thread_signal
 with_gdomap_port
 enable_setuid_gdomap
 '
@@ -1592,6 +1593,10 @@ Optional Packages:
   --with-curl=<DIR>       use curl installed in directory <DIR>
   --with-gmp-include=PATH  include path for gmp headers
   --with-gmp-library=PATH  library path for gmp libraries
+  --with-thread-signal=yes/SIG/no   Specify whether a POSIX signal should be
+				used to wake threads for inter-thread messaging.
+				If yes, the signal must be specified at runtime
+				but a default signal to use may be given.
   --with-gdomap-port=PORT  alternative port for gdomap
 
 Some influential environment variables:
@@ -14087,9 +14092,32 @@ if test "$ac_cv_func_ppoll" = "yes" \
   -a "$ac_cv_func_pthread_kill" = "yes" \
   -a "$ac_cv_func_sigaction" = "yes"
 then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for use of signals to wake threads" >&5
+$as_echo_n "checking for use of signals to wake threads... " >&6; }
 
-$as_echo "#define USE_THREAD_SIGNAL 1" >>confdefs.h
+# Check whether --with-thread-signal was given.
+if test "${with_thread_signal+set}" = set; then :
+  withval=$with_thread_signal; result="$withval"
+else
+  result="yes"
 
+fi
+
+  if test "$result" != "no"
+  then
+    if test "$result" = "yes"
+    then
+      result=0
+    fi
+
+cat >>confdefs.h <<_ACEOF
+#define USE_THREAD_SIGNAL $result
+_ACEOF
+
+  fi
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: This operating system does not support using POSIX signal to wake threads for inter-thread messaging. A file descriptor will be used instead." >&5
+$as_echo "$as_me: WARNING: This operating system does not support using POSIX signal to wake threads for inter-thread messaging. A file descriptor will be used instead." >&2;}
 fi
 
 #--------------------------------------------------------------------

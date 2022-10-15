@@ -3765,7 +3765,25 @@ if test "$ac_cv_func_ppoll" = "yes" \
   -a "$ac_cv_func_pthread_kill" = "yes" \
   -a "$ac_cv_func_sigaction" = "yes"
 then
-  AC_DEFINE(USE_THREAD_SIGNAL,1,[Optionally wake threads using signal])
+  AC_MSG_CHECKING([for use of signals to wake threads])
+  AC_ARG_WITH(thread-signal,
+  [  --with-thread-signal=yes/SIG/no   Specify whether a POSIX signal should be
+				used to wake threads for inter-thread messaging.
+				If yes, the signal must be specified at runtime
+				but a default signal to use may be given.],
+    result="$withval",
+    result="yes"
+  )
+  if test "$result" != "no"
+  then
+    if test "$result" = "yes"
+    then
+      result=0
+    fi
+    AC_DEFINE_UNQUOTED(USE_THREAD_SIGNAL,$result,[Optionally wake threads using signal])
+  fi
+else
+  AC_MSG_WARN([This operating system does not support using POSIX signal to wake threads for inter-thread messaging. A file descriptor will be used instead.])
 fi
 
 #--------------------------------------------------------------------
