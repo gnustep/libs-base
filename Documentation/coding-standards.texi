@@ -51,7 +51,7 @@ Permission is granted to copy and distribute translations of this manual
 into another language, under the above conditions for modified versions.
 @end titlepage
 
-@node Top, Introduction, (dir), (dir)
+@node Top
 @top Coding Standards
 
 @menu
@@ -71,7 +71,7 @@ into another language, under the above conditions for modified versions.
 
 @c ******************************************************************
 @node Introduction, ChangeLog Entries, Top, Top
-@section Introduction
+@chapter Introduction
 
 This document explains the official coding standards which developers
 for GNUstep should follow. Note that these standards are in addition
