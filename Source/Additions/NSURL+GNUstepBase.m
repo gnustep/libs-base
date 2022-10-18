@@ -47,7 +47,7 @@
           p = [NSNumber numberWithInt: 443];
         }
     }
-  k = [NSString stringWithFormat: @"%@::/%@:%@", s, h, p];
+  k = [NSString stringWithFormat: @"%@://%@:%@", s, h, p];
   return k;
 }
 
