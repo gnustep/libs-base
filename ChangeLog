@@ -1,3 +1,16 @@
+2022-10-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Track whether we have read any data from
+	the server.  If a connection is closed by the server while it is being
+	kept alive (ie we are not on first request) and no response data has
+	been read for a request we sent, we assume it was an intentional close
+	and try to establish a new connection to retry the request.
+	This is more tolerant of latency in the network (which could mean that
+	our test tthat the connection is still alive before sending a request
+	could be wrong) and also deals with perverse server implementations
+	which drop long standing connections when the server receives a
+	request rather than when a timeout occurred.
+
 2022-09-15 Hugo Melder <contact@hugomelder.com>
 
         * config/config.constant-string-class.m:

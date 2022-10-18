@@ -113,6 +113,7 @@ static NSString	*httpVersion = @"1.1";
   BOOL			debug;
   BOOL			keepalive;
   BOOL			returnAll;
+  BOOL                  inResponse;
   id<GSLogDelegate>     ioDelegate;
   unsigned char		challenged;
   NSFileHandle          *sock;
@@ -703,8 +704,31 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [sock closeFile];
       DESTROY(sock);
     }
+  else if (0 == readCount && NO == inResponse && YES == keepalive)
+    {
+      /* On a keepalive connection where the remote end
+       * dropped the connection without responding.  We
+       * should try again.
+       */
+      if (connectionState != idle)
+        {
+          [nc removeObserver: self name: nil object: sock];
+          [sock closeFile];
+          DESTROY(sock);
+          DESTROY(in);
+          DESTROY(out);
+          connectionState = idle;
+          if (debug)
+            {
+              NSLog(@"%@ %p restart on new connection",
+                NSStringFromSelector(_cmd), self);
+            }
+          [self _tryLoadInBackground: u];
+        }
+    }
   else if ([parser parse: d] == NO && [parser isComplete] == NO)
     {
+      inResponse = YES;
       if (debug)
 	{
 	  NSLog(@"HTTP parse failure - %@", parser);
@@ -714,8 +738,10 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
   else
     {
-      BOOL	complete = [parser isComplete];
+      BOOL	complete;
 
+      inResponse = YES;
+      complete = [parser isComplete];
       if (complete == NO && [parser isInHeaders] == NO)
 	{
 	  GSMimeHeader	*info;
@@ -960,7 +986,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
   NSDictionary		*dict = [not userInfo];
   NSData		*d;
-  GSMimeParser		*p = [GSMimeParser new];
+  GSMimeParser		*p;
+  unsigned		readCount;
 
   RETAIN(self);
   if (debug)
@@ -968,6 +995,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       NSLog(@"%@ %p %s", NSStringFromSelector(_cmd), self, keepalive?"K":"");
     }
   d = [dict objectForKey: NSFileHandleNotificationDataItem];
+  readCount = [d length];
   if (debug)
     {
       if (NO == [ioDelegate getBytes: [d bytes]
@@ -978,10 +1006,32 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
         }
     }
 
-  if ([d length] > 0)
+  if (readCount > 0)
     {
+      inResponse = YES;
       [dat appendData: d];
     }
+  else if (NO == inResponse)
+    {
+      /* remote end dropped the connection without responding
+       */
+      [nc removeObserver: self name: nil object: sock];
+      [sock closeFile];
+      DESTROY(sock);
+      DESTROY(in);
+      DESTROY(out);
+      connectionState = idle;
+      if (debug)
+        {
+          NSLog(@"%@ %p restart on new connection",
+            NSStringFromSelector(_cmd), self);
+        }
+      [self _tryLoadInBackground: u];
+      DESTROY(self);
+      return;
+    }
+
+  p = [GSMimeParser new];
   [p parse: dat];
   if ([p isInBody] == YES || [d length] == 0)
     {
@@ -1297,7 +1347,6 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
 
   [self _apply];
-
 }
 
 - (void) bgdHandshake: (NSNotification*)notification
@@ -1359,8 +1408,10 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
           DESTROY(out);
 	  connectionState = idle;
 	  if (debug)
-	    NSLog(@"%@ %p restart on new connection",
-	      NSStringFromSelector(_cmd), self);
+            {
+              NSLog(@"%@ %p restart on new connection",
+                NSStringFromSelector(_cmd), self);
+            }
 	  [self _tryLoadInBackground: u];
           RELEASE(self);
 	  return;
@@ -1554,6 +1605,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       return;
     }
 
+  inResponse = NO;
   [dat setLength: 0];
   RELEASE(document);
   RELEASE(parser);
