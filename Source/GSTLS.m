@@ -225,8 +225,13 @@ static NSMutableDictionary      *fileMap = nil;
     {
       /* Let the GS_TLS_CA_FILE environment variable override the
        * default certificate authority location.
+       * Failing that, use the same environment variable as OpenSSL
        */
       str = [env objectForKey: @"GS_TLS_CA_FILE"];
+      if (nil == str)
+        {
+          str = [env objectForKey: @"SSL_CERT_FILE"];
+        }
       if (nil == str)
         {
           str = [bundle pathForResource: @"ca-certificates"

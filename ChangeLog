@@ -1,3 +1,11 @@
+2022-10-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Resources/GSTLS/README:
+	* Source/GSTLS.m:
+	Honor the SSL_CERT_FILE environment variable (for OpenSSL
+	compatibility) if our own user default or environment variable
+	is not used.
+
 2022-10-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Track whether we have read any data from
