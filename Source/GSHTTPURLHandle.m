@@ -345,9 +345,9 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   maxCached = limit;
 }
 
-- (void) dealloc
+- (void) _disconnect
 {
-  if (sock != nil)
+  if (sock)
     {
       NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
 
@@ -355,6 +355,14 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       [sock closeFile];
       DESTROY(sock);
     }
+  DESTROY(in);
+  DESTROY(out);
+  connectionState = idle;
+}
+
+- (void) dealloc
+{
+  [self _disconnect];
   DESTROY(out);
   DESTROY(in);
   DESTROY(u);
@@ -700,9 +708,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
                 }
             }
 	}
-      [nc removeObserver: self name: nil object: sock];
-      [sock closeFile];
-      DESTROY(sock);
+      [self _disconnect];
     }
   else if (0 == readCount && NO == inResponse && YES == keepalive)
     {
@@ -712,12 +718,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
        */
       if (connectionState != idle)
         {
-          [nc removeObserver: self name: nil object: sock];
-          [sock closeFile];
-          DESTROY(sock);
-          DESTROY(in);
-          DESTROY(out);
-          connectionState = idle;
+          [self _disconnect];
           if (debug)
             {
               NSLog(@"%@ %p restart on new connection",
@@ -789,18 +790,14 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  ver = [[[document headerNamed: @"http"] value] floatValue];
 	  if (ver < 1.1)
 	    {
-	      [nc removeObserver: self name: nil object: sock];
-	      [sock closeFile];
-	      DESTROY(sock);
+              [self _disconnect];
 	    }
 	  else if (nil != (val = [[document headerNamed: @"connection"] value]))
 	    {
 	      val = [val lowercaseString];
 	      if (YES == [val isEqualToString: @"close"])
 		{
-		  [nc removeObserver: self name: nil object: sock];
-		  [sock closeFile];
-		  DESTROY(sock);
+                  [self _disconnect];
 		}
 	      else if ([val length] > 5)
 		{
@@ -813,9 +810,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		      val = [val stringByTrimmingSpaces];
 		      if (YES == [val isEqualToString: @"close"])
 			{
-			  [nc removeObserver: self name: nil object: sock];
-			  [sock closeFile];
-			  DESTROY(sock);
+                          [self _disconnect];
 			  break;
 			}
 		    }
@@ -928,6 +923,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  bodyPos = 0;
 	  DESTROY(wData);
 	  NSResetMapTable(wProperties);
+          connectionState = idle;       // Finished I/O
 	  if (returnAll || (code >= 200 && code < 300))
 	    {
 	      [self didLoadBytes: [d subdataWithRange: r]
@@ -1015,12 +1011,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     {
       /* remote end dropped the connection without responding
        */
-      [nc removeObserver: self name: nil object: sock];
-      [sock closeFile];
-      DESTROY(sock);
-      DESTROY(in);
-      DESTROY(out);
-      connectionState = idle;
+      [self _disconnect];
       if (debug)
         {
           NSLog(@"%@ %p restart on new connection",
@@ -1077,15 +1068,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 {
   DESTROY(wData);
   NSResetMapTable(wProperties);
-  if (connectionState != idle)
-    {
-      NSNotificationCenter	*nc = [NSNotificationCenter defaultCenter];
-
-      [nc removeObserver: self name: nil object: sock];
-      [sock closeFile];
-      DESTROY(sock);
-      connectionState = idle;
-    }
+  [self _disconnect];
   [super endLoadInBackground];
 }
 
@@ -1400,13 +1383,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	   * are re-using an existing connection (keepalive = YES)
 	   * then we may try again with a new connection.
 	   */
-	  nc = [NSNotificationCenter defaultCenter];
-	  [nc removeObserver: self name: nil object: sock];
-	  [sock closeFile];
-	  DESTROY(sock);
-          DESTROY(in);
-          DESTROY(out);
-	  connectionState = idle;
+          [self _disconnect];
 	  if (debug)
             {
               NSLog(@"%@ %p restart on new connection",
@@ -1574,15 +1551,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
               [urlOrder removeObjectIdenticalTo: self];
             }
           [urlLock unlock];
-          if (sock != nil)
-            {
-              NSNotificationCenter	*nc;
-
-              nc = [NSNotificationCenter defaultCenter];
-              [nc removeObserver: self name: nil object: sock];
-              [sock closeFile];
-              DESTROY(sock);
-            }
+          [self _disconnect];
           ASSIGN(urlKey, k);
         }
       ASSIGN(url, newUrl);

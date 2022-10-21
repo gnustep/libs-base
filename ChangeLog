@@ -1,3 +1,9 @@
+2022-10-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Refactor a litle to avoid code duplication
+	and try to ensure that the connection is mared 'idle' as soon as we
+	have finished I/O (so its URL can be changed).
+
 2022-10-20 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Resources/GSTLS/README:
