@@ -536,7 +536,7 @@ static NSRecursiveLock *classLock = nil;
   if (nil == systemLocale)
     {
 #if	GS_USE_ICU == 1
-      systemLocale = [[NSLocale alloc] initWithLocaleIdentifier: @""];
+      systemLocale = [[NSLocale alloc] initWithLocaleIdentifier: nil];
 #endif
     }
 
