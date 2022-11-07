@@ -265,6 +265,13 @@ GS_EXPORT_CLASS
  */
 - (NSString*) owner;
 
+/** Returns the number of bytes of data available to be read from the TLS
+ * buffers (using the -read:length: method).  If this returns zero the TLS
+ * software needs to perform a network read before any more data can be
+ * returned.
+ */
+- (size_t) pending;
+
 /* After a failed handshake, this should contain a description of the
  * failure reason.
  */

@@ -1,3 +1,12 @@
+2022-11-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSTLS.h:
+	* Source/GSTLS.m:
+	Add -pending method to return the number of bytes in the read bufffer.
+	* Source/NSSocketPort.m:
+	Use the new method to avoid a potential hang on an encrypted DO
+	connection.
+
 2022-10-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Refactor a litle to avoid code duplication

@@ -862,6 +862,9 @@ static Class	runLoopClass;
 
 - (void) receivedEventRead
 {
+#if     defined(HAVE_GNUTLS)
+  do {
+#endif
   unsigned	want;
   void	*bytes;
   int	res;
@@ -1219,6 +1222,14 @@ static Class	runLoopClass;
           bytes = [rData mutableBytes];
         }
     }
+#if     defined(HAVE_GNUTLS)
+  /* As long as there are bytes available in the TLS buffers we must act as
+   * if the network connection is readable, otherwise we could have a hang
+   * waiting for the run loop to signal more data when the TLS layer has
+   * already read it.
+   */
+  } while ([session pending]);
+#endif
 }
 
 - (void) receivedEventWrite

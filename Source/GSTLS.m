@@ -2063,6 +2063,11 @@ retrieve_callback(gnutls_session_t session,
   return owner;
 }
 
+- (size_t) pending
+{
+  return gnutls_record_check_pending(session);
+}
+
 - (NSString*) problem
 {
   return problem;
