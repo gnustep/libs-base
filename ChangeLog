@@ -1,3 +1,10 @@
+2022-11-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* GSSocketStream.m:
+	* NSFileHandle.m:
+	Use new -[GSTLS pending] method to trigger event handling immediately
+	rather than waiting for more data from the network layer.
+
 2022-11-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSTLS.h:
