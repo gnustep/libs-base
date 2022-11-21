@@ -957,6 +957,8 @@ typedef struct {
                 GSTLSCertificateKeyFile,
                 GSTLSCertificateKeyPassword,
                 GSTLSDebug,
+                GSTLSIssuers,
+                GSTLSOwners,
                 GSTLSPriority,
                 GSTLSRemoteHosts,
                 GSTLSRevokeFile,

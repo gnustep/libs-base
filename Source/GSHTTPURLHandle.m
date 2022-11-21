@@ -1268,6 +1268,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
             GSTLSCertificateKeyFile,
             GSTLSCertificateKeyPassword,
             GSTLSDebug,
+            GSTLSIssuers,
+            GSTLSOwners,
             GSTLSPriority,
             GSTLSRemoteHosts,
             GSTLSRevokeFile,

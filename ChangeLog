@@ -1,3 +1,18 @@
+2022-11-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSFileHandle.h:
+	* Headers/GNUstepBase/GSTLS.h:
+	* Source/GSHTTPURLHandle.m:
+	* Source/GSSocketStream.m:
+	* Source/GSTLS.m:
+	* Source/NSURLProtocol.m:
+	* Source/externs.m:
+	Fixup to use strict rfc4514 for distinguished names of issuer and
+	owner of certificates.  Add GSTLSIssuers and GSTLSOwners properties
+	to reject remote certificates which do not match distinguishd names
+	accepted.  This allows encrypted DO to be configured to automatically
+	reject connection attempts which do not have trusted certificates.
+
 2022-11-15 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* GSSocketStream.m:

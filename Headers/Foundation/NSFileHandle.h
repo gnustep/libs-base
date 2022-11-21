@@ -324,6 +324,18 @@ GS_EXPORT_CLASS
  *   <desc>A boolean specifying whether diagnostic debug is to be enabled
  *   to log information about a connection where the handshake fails.<br />
  *   </desc>
+ *   <term>GSTLSIssuers</term>
+ *   <desc>An array of distinguished names (in RFC4514 format) listing the
+ *   permitted issuers of the remote certificate.  If this is present and the
+ *   issuer of the remote certificate is not in the array, the connection
+ *   handshake is failed.
+ *   </desc>
+ *   <term>GSTLSOwners</term>
+ *   <desc>An array of distinguished names (in RFC4514 format) listing the
+ *   permitted owners/subjects of the remote certificate.  If this is present
+ *   and the owner/subject of the remote certificate is not in the array, the
+ *   connection handshake is failed.
+ *   </desc>
  *   <term>GSTLSPriority</term>
  *   <desc>A GNUTLS priority string describing the ciphers etc which may be
  *   used for the connection.  In addition the string may be one of
@@ -398,6 +410,14 @@ GS_EXPORT NSString * const GSTLSDebug;
 /** Dictionary key for a GNUTLS priority setting for a session.
  */
 GS_EXPORT NSString * const GSTLSPriority;
+
+/** Dictionary key for an array of issuers to use in certificate verification.
+ */
+GS_EXPORT NSString * const GSTLSIssuers;
+
+/** Dictionary key for an array of owners to use in certificate verification.
+ */
+GS_EXPORT NSString * const GSTLSOwners;
 
 /** Dictionary key for a list of hosts to use in certificate verification.
  */

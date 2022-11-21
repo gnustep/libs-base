@@ -576,8 +576,12 @@ static NSMutableDictionary      *certificateListCache = nil;
 
 + (void) certInfo: (gnutls_x509_crt_t)cert to: (NSMutableString*)str
 {
+#if GNUTLS_VERSION_NUMBER >= 0x030507
+  gnutls_datum_t    dn;
+#else
   char            dn[1024];
   size_t          dn_size = sizeof(dn);
+#endif
   char            serial[40];
   size_t          serial_size = sizeof(serial);
   time_t          expiret;
@@ -589,6 +593,20 @@ static NSMutableDictionary      *certificateListCache = nil;
   [str appendFormat: _(@"- Certificate version: #%d\n"),
     gnutls_x509_crt_get_version(cert)];
 
+#if GNUTLS_VERSION_NUMBER >= 0x030507
+  if (GNUTLS_E_SUCCESS == gnutls_x509_crt_get_dn3(cert, &dn, 0))
+    {
+      [str appendFormat: @"- Certificate DN: %@\n",
+        [NSString stringWithUTF8String: (const char*)dn.data]];
+      gnutls_free(dn.data);
+    }
+  if (GNUTLS_E_SUCCESS == gnutls_x509_crt_get_issuer_dn3(cert, &dn, 0))
+    { 
+      [str appendFormat: _(@"- Certificate Issuer's DN: %@\n"),
+        [NSString stringWithUTF8String: (const char*)dn.data]];
+      gnutls_free(dn.data);
+    }
+#else
   dn_size = sizeof(dn) - 1;
   gnutls_x509_crt_get_dn(cert, dn, &dn_size);
   dn[dn_size] = '\0';
@@ -600,6 +618,7 @@ static NSMutableDictionary      *certificateListCache = nil;
   dn[dn_size] = '\0';
   [str appendFormat: _(@"- Certificate Issuer's DN: %@\n"),
     [NSString stringWithUTF8String: dn]];
+#endif
 
   activet = gnutls_x509_crt_get_activation_time(cert);
   [str appendFormat: _(@"- Certificate is valid since: %s"),
@@ -2447,8 +2466,22 @@ retrieve_callback(gnutls_session_t session,
     }
   else
     {
-      char                      dn[1024];
-      size_t                    dn_size;
+#if GNUTLS_VERSION_NUMBER >= 0x030507
+      gnutls_datum_t    dn;
+
+      if (GNUTLS_E_SUCCESS == gnutls_x509_crt_get_dn3(cert, &dn, 0))
+        {
+          ASSIGN(owner, [NSString stringWithUTF8String: (const char*)dn.data]);
+          gnutls_free(dn.data);
+        }
+      if (GNUTLS_E_SUCCESS == gnutls_x509_crt_get_issuer_dn3(cert, &dn, 0))
+        {
+          ASSIGN(issuer, [NSString stringWithUTF8String: (const char*)dn.data]);
+          gnutls_free(dn.data);
+        }
+#else
+      char              dn[1024];
+      size_t            dn_size;
 
       /* Get certificate owner and issuer
        */
@@ -2461,6 +2494,7 @@ retrieve_callback(gnutls_session_t session,
       gnutls_x509_crt_get_issuer_dn(cert, dn, &dn_size);
       dn[dn_size] = '\0';
       ASSIGN(issuer, [NSString stringWithUTF8String: dn]);
+#endif
     }
 
   str = [opts objectForKey: GSTLSRemoteHosts];
@@ -2502,6 +2536,34 @@ retrieve_callback(gnutls_session_t session,
     }
 
   gnutls_x509_crt_deinit(cert);
+
+  names = [opts objectForKey: GSTLSIssuers];
+  if ([names isKindOfClass: [NSArray class]])
+    {
+      if (nil == issuer || NO == [names containsObject: issuer])
+        {
+          str = [NSString stringWithFormat:
+            @"TLS verification: certificate's issuer does not match '%@'",
+            names];
+          ASSIGN(problem, str);
+          if (YES == debug) NSLog(@"%p %@", handle, problem);
+          return GNUTLS_E_CERTIFICATE_ERROR;
+        }
+    }
+
+  names = [opts objectForKey: GSTLSOwners];
+  if ([names isKindOfClass: [NSArray class]])
+    {
+      if (nil == owner || NO == [names containsObject: owner])
+        {
+          str = [NSString stringWithFormat:
+            @"TLS verification: certificate's owner does not match '%@'",
+            names];
+          ASSIGN(problem, str);
+          if (YES == debug) NSLog(@"%p %@", handle, problem);
+          return GNUTLS_E_CERTIFICATE_ERROR;
+        }
+    }
 
   return 0;     // Verified
 }

@@ -33,6 +33,8 @@ GS_EXPORT NSString * const GSTLSCertificateFile;
 GS_EXPORT NSString * const GSTLSCertificateKeyFile;
 GS_EXPORT NSString * const GSTLSCertificateKeyPassword;
 GS_EXPORT NSString * const GSTLSDebug;
+GS_EXPORT NSString * const GSTLSIssuers;
+GS_EXPORT NSString * const GSTLSOwners;
 GS_EXPORT NSString * const GSTLSPriority;
 GS_EXPORT NSString * const GSTLSRemoteHosts;
 GS_EXPORT NSString * const GSTLSRevokeFile;
