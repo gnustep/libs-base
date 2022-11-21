@@ -909,10 +909,10 @@ static NSStringEncoding	defaultEncoding;
   
   direnum = [[NSDirectoryEnumerator alloc]
 		       initWithDirectoryPath: path
-                   recurseIntoSubdirectories: !(mask & NSDirectoryEnumerationSkipsSubdirectoryDescendants) 
+                   recurseIntoSubdirectories: !(mask & NSDirectoryEnumerationSkipsSubdirectoryDescendants) ? YES : NO
                               followSymlinks: NO
                                 justContents: NO
-                                  skipHidden: (mask & NSDirectoryEnumerationSkipsHiddenFiles)
+                                  skipHidden: (mask & NSDirectoryEnumerationSkipsHiddenFiles) ? YES : NO
                                 errorHandler: handler
                                          for: self];
 
@@ -2803,7 +2803,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
       if (dirname)
 	{
           // Skip it if it is hidden and flag is yes...
-          if ([[dir.path lastPathComponent] hasPrefix: @"."]
+          if (dirname[0] == '.'
 	    && _flags.skipHidden == YES)
             {
               continue;

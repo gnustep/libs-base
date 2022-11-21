@@ -1,3 +1,11 @@
+2022-11-21  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSFileManager.m:
+	Call NSDirectoryEnumerator's constructor with either YES or NO for
+	the BOOL arguments.
+	Really skip hidden files in enumerations if requested by the
+	options.
+
 2022-11-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSFileHandle.h:
