@@ -180,6 +180,8 @@ pools which provide a degree of automated memory management.  This gives
 a good degree of control over memory management, but requires some care
 in following simple rules.  It's pretty efficient.
 
+@end itemize
+
 The recommended approach is to use some standard macros defined in
 @code{NSObject.h} which encapsulate the retain/release/autorelease mechanism,
 but which permit efficient use of Automated reference Counts (ARC) if you build
