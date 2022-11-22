@@ -898,6 +898,8 @@ static NSStringEncoding	defaultEncoding;
 {
   NSDirectoryEnumerator *direnum;
   NSString              *path;
+  BOOL                  shouldRecurse;
+  BOOL                  shouldSkipHidden;
   
   DESTROY(_lastError);
 
@@ -907,12 +909,32 @@ static NSStringEncoding	defaultEncoding;
     }
   path = [url path];
   
+  if ((mask & NSDirectoryEnumerationSkipsSubdirectoryDescendants)
+    == NSDirectoryEnumerationSkipsSubdirectoryDescendants)
+    {
+      shouldRecurse = NO;
+    }
+  else
+    {
+      shouldRecurse = YES;
+    }
+  
+  if ((mask & NSDirectoryEnumerationSkipsHiddenFiles)
+    == NSDirectoryEnumerationSkipsHiddenFiles)
+    {
+      shouldSkipHidden = YES;
+    }
+  else
+    {
+      shouldSkipHidden = NO;
+    }
+  
   direnum = [[NSDirectoryEnumerator alloc]
 		       initWithDirectoryPath: path
-                   recurseIntoSubdirectories: !(mask & NSDirectoryEnumerationSkipsSubdirectoryDescendants) ? YES : NO
+                   recurseIntoSubdirectories: shouldRecurse
                               followSymlinks: NO
                                 justContents: NO
-                                  skipHidden: (mask & NSDirectoryEnumerationSkipsHiddenFiles) ? YES : NO
+                                  skipHidden: shouldSkipHidden
                                 errorHandler: handler
                                          for: self];
 
