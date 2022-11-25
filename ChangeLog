@@ -1,3 +1,12 @@
+2022-11-25  Florian Weimer
+
+	* config/config.poll-dev.c:
+	* config/config.proccmd.c:
+	* config/config.reuseaddr.c:
+	* config/config.vasprintf.c:
+	* config/config.vsprintf.c:
+	Make config tests work with C99 compiler
+
 2022-11-21  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSFileManager.m:
