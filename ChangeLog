@@ -1,3 +1,8 @@
+2022-11-26 Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/Additions/GSXML.m: Remove usage of deprecated function
+	when a newer version of libxml is used.
+
 2022-11-25  Florian Weimer
 
 	* config/config.poll-dev.c:

@@ -164,7 +164,9 @@ static char * xml_strdup(const char *from)
       xmlInitParser();
       xmlMemSetup(free, malloc, realloc, xml_strdup);
       xmlInitializeCatalog();
+#if LIBXML_VERSION < 21000
       xmlDefaultSAXHandlerInit();
+#endif
       NSString_class = [NSString class];
       usSel = @selector(stringWithUTF8String:);
       usImp = (id (*)(id, SEL, const unsigned char*))
