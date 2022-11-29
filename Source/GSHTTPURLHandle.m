@@ -121,6 +121,7 @@ static NSString	*httpVersion = @"1.1";
   NSString              *urlKey;
   NSURL                 *url;
   NSURL                 *u;
+  NSURL                 *proxyURL;
   NSMutableData         *dat;
   GSMimeParser		*parser;
   GSMimeDocument	*document;
@@ -215,11 +216,14 @@ static NSString	*httpVersion = @"1.1";
  *   alternative method (i.e &quot;PUT&quot;).
  * </p>
  * <p>
- *   A Proxy may be specified by calling -writeProperty:forKey:
+ *   A Proxy may be specified by calling -writeProperty:forKey: to set a
+ *   URL as the value for either https_proxy or http_proxy.<br />
+ *   For backward compatibility a proxy may also be specified by calling
+ *   -writeProperty:forKey:
  *   with the keys &quot;GSHTTPPropertyProxyHostKey&quot; and
  *   &quot;GSHTTPPropertyProxyPortKey&quot; to set the host and port
- *   of the proxy server respectively.  The GSHTTPPropertyProxyHostKey
- *   property can be set to either the IP address or the hostname of
+ *   of the proxy server respectively.<br />
+ *   The proxy property can specify either the IP address or the hostname of
  *   the proxy server.  If an attempt is made to load a page via a
  *   secure connection when a proxy is specified, GSHTTPURLHandle will
  *   attempt to open an SSL Tunnel through the proxy.
@@ -368,6 +372,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   DESTROY(u);
   DESTROY(urlKey);
   DESTROY(url);
+  DESTROY(proxyURL);
   DESTROY(dat);
   DESTROY(parser);
   DESTROY(document);
@@ -1102,7 +1107,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
     }
 
-  if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] > 0
+  if (proxyURL
     && [[u scheme] isEqualToString: @"https"] == NO)
     {
       if ([u port] == nil)
@@ -1169,8 +1174,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   /*
    * If SSL via proxy, set up tunnel first
    */
-  if ([[u scheme] isEqualToString: @"https"]
-    && [[request objectForKey: GSHTTPPropertyProxyHostKey] length] > 0)
+  if (proxyURL && [[u scheme] isEqualToString: @"https"])
     {
       NSRunLoop		*loop = [NSRunLoop currentRunLoop];
       NSString		*cmd;
@@ -1670,6 +1674,10 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
   if (sock == nil)
     {
+      NSURLProtectionSpace      *space;
+      NSURL                     *proxy = nil;
+      NSString                  *proxyStr = nil;
+
       keepalive = NO;	// New connection
       /*
        * If we have a local address specified,
@@ -1685,7 +1693,100 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  s = @"tcp";	// Bind to any.
 	}
 
-      if ([[request objectForKey: GSHTTPPropertyProxyHostKey] length] == 0)
+      space = [GSHTTPAuthentication protectionSpaceForURL: u];
+      if ([space isProxy])
+	{ 
+          proxyStr = [NSString stringWithFormat: @"%@://%@:%u/",
+            [u scheme], [space host], (unsigned)[space port]];
+        }
+      else
+        {
+          NSString      *ph;
+          NSString      *pp;
+
+          ph = [request objectForKey: GSHTTPPropertyProxyHostKey];
+          pp = [request objectForKey: GSHTTPPropertyProxyPortKey];
+          if (ph)
+            {
+              if (pp)
+                {
+                  proxyStr = [NSString stringWithFormat: @"%@://%@:%@/",
+                    [u scheme], ph, pp];
+                }
+              else
+                {
+                  proxyStr = [NSString stringWithFormat: @"%@://%@/",
+                    [u scheme], ph];
+                }
+            }
+
+          /* The preferred proxy specification is by a URL set as a property
+           */
+          if ([[u scheme] isEqualToString: @"https"])
+            {
+              proxy = [request objectForKey: @"https_proxy"];
+            }
+          else
+            {
+              proxy = [request objectForKey: @"http_proxy"];
+            }
+        }
+      if ([proxy isKindOfClass: [NSString class]])
+        {
+          proxyStr = (NSString*)proxy;
+          proxy = nil;
+        }
+
+      /* A generic fallback for the entire process can come from
+       * environment variables.
+       */
+      if (nil == proxy && nil == proxyStr)
+        {
+          NSDictionary  *env;
+          NSString      *key;
+  
+          env = [[NSProcessInfo processInfo] environment];
+          key = [[u scheme] stringByAppendingString: @"_proxy"];
+          if (nil == (proxyStr = [env objectForKey: key]))
+            {
+              proxyStr = [env objectForKey: [key uppercaseString]];
+            }
+        }
+      if (nil == proxy)
+        {
+          /* We make the proxy URL from a supplied string unless that is empty;
+           * An empty string in the request can be used to disable the process
+           * wide settings for that request..
+           */
+          if ([proxyStr length])
+            {
+              proxy = [NSURL URLWithString: proxyStr];
+            }
+        }
+
+      /* Make sure the proxy URL has a port specified. The default port
+       * depends on the scheme of the request (4430 for TLS, 8080 unencrypted).
+       */
+      if (proxy && [[proxy port] intValue] == 0)
+        {
+          NSURLComponents       *c;
+
+          c = [NSURLComponents componentsWithURL: proxy
+                         resolvingAgainstBaseURL: NO];
+          
+          if ([[u scheme] isEqualToString: @"https"])
+            {
+              [c setPort: [NSNumber numberWithInteger: 4430]];
+            }
+          else
+            {
+              [c setPort: [NSNumber numberWithInteger: 8080]];
+            }
+          proxy = [c URL];
+        }
+      ASSIGN(proxyURL, proxy);
+
+      if (nil == proxyURL)
 	{
 	  if ([[u scheme] isEqualToString: @"https"])
 	    {
@@ -1733,10 +1834,9 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	}
       else
 	{
-	  if ([[request objectForKey: GSHTTPPropertyProxyPortKey] length] == 0)
-	    {
-	      [request setObject: @"8080" forKey: GSHTTPPropertyProxyPortKey];
-	    }
+          port = [[proxyURL port] description];
+          host = [proxyURL host];
+          
 	  if ([[u scheme] isEqualToString: @"https"])
 	    {
 	      if (sslClass == 0)
@@ -1745,16 +1845,12 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		    @" ... needs gnustep-base built with GNUTLS"];
 		  return;
 		}
-	      host = [request objectForKey: GSHTTPPropertyProxyHostKey];
-	      port = [request objectForKey: GSHTTPPropertyProxyPortKey];
 	      sock = [sslClass fileHandleAsClientInBackgroundAtAddress: host
 							       service: port
 							      protocol: s];
 	    }
 	  else
 	    {
-	      host = [request objectForKey: GSHTTPPropertyProxyHostKey];
-	      port = [request objectForKey: GSHTTPPropertyProxyPortKey];
 	      sock = [NSFileHandle
 		fileHandleAsClientInBackgroundAtAddress: host
 						service: port
@@ -1853,12 +1949,15 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
  *   </item>
  *   <item>
  *     GSHTTPPropertyProxyHostKey - specify the name or IP address
- *     of a host to proxy through.
+ *     of a host to proxy through.  Obsolete ... use
+ *     https_proxy or http_proxy to specify the URL of the proxy
  *   </item>
  *   <item>
  *     GSHTTPPropertyProxyPortKey - specify the port number to
  *     connect to on the proxy host.  If not give, this defaults
  *     to 8080 for <code>http</code> and 4430 for <code>https</code>.
+ *     Obsolete ... use https_proxy or http_proxy to specify the URL
+ *     of the proxy.
  *   </item>
  *   <item>
  *     Any GSTLS... key to control TLS behavior

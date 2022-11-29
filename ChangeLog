@@ -1,3 +1,10 @@
+2022-11-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Use the https_proxy and http_proxy
+	environment variables if no proxying is specified. Also support
+	those keys as properties in the request (overriding the environment
+	variables) and support the URL protection spece if set.
+
 2022-11-26 Fred Kiefer <fredkiefer@gmx.de>
 
 	* Source/Additions/GSXML.m: Remove usage of deprecated function
