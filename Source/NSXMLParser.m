@@ -1559,7 +1559,12 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                       [self _processTag: tag
                                   isEnd: NO
                          withAttributes: attributes];
-                      [self _processTag: tag isEnd: YES withAttributes: nil];
+                      if (NO == this->abort)
+                        {
+                          [self _processTag: tag
+                                      isEnd: YES
+                             withAttributes: nil];
+                        }
                       break;
                     }
 
@@ -1597,9 +1602,12 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                     }
                   if (c == '>')
                     {
-                      [self _processTag: tag
-                                  isEnd: (*addr(tp) == '/')
-                         withAttributes: attributes];
+                      if (NO == this->abort)
+                        {
+                          [self _processTag: tag
+                                      isEnd: (*addr(tp) == '/')
+                             withAttributes: attributes];
+                        }
                       break;
                     }
                   /* get next argument (eats up to /, ?, >, =, space)

@@ -1,3 +1,8 @@
+2022-12-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLParser.m: do not process end tag if parsing was aborted
+	while processing start tag.
+
 2022-11-29 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Use the https_proxy and http_proxy
