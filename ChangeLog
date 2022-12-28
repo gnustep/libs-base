@@ -3,6 +3,7 @@
 	* ChangeLog: Update for new release
 	* ANNOUNCE:
 	* NEWS:
+	* NSTimeZones/NSTimeZones.tar: update
 	* Documentation/ReleaseNotes.gsdoc:
 	* Documentation/news.texi:
 	Update release notes for 1.29.0 release.
