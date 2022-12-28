@@ -6,8 +6,8 @@
 	* NSTimeZones/NSTimeZones.tar: update
 	* Documentation/ReleaseNotes.gsdoc:
 	* Documentation/news.texi:
-	Update release notes for 1.29.0 release.
-	* Version: bump to 1.29.0
+	Update release notes for 1.28.1 release.
+	* Version: bump to 1.28.1
 
 2022-12-09 Richard Frith-Macdonald <rfm@gnu.org>
 
