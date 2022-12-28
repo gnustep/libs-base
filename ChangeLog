@@ -1,3 +1,13 @@
+2022-12-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* ChangeLog: Update for new release
+	* ANNOUNCE:
+	* NEWS:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	Update release notes for 1.29.0 release.
+	* Version: bump to 1.29.0
+
 2022-12-09 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSXMLParser.m: do not process end tag if parsing was aborted
