@@ -1,11 +1,43 @@
 name: CI
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      tools_windows_msvc_branch:
+        description: "Windows MSVC dependencies branch (leave empty to use latest pre-built release)"
+        required: false
+
+env:
+  APT_PACKAGES: >-
+    pkg-config
+    libgnutls28-dev
+    libffi-dev
+    libicu-dev
+    libxml2-dev
+    libxslt1-dev
+    libssl-dev
+    libavahi-client-dev
+    zlib1g-dev
+    gnutls-bin
+    libcurl4-gnutls-dev
+
+  # packages for GCC Objective-C runtime
+  APT_PACKAGES_gcc: >-
+    libobjc-10-dev
+    libblocksruntime-dev
+    gobjc
+
+  # packages for libobjc2 / libdispatch
+  APT_PACKAGES_clang: >-
+    libpthread-workqueue-dev
 
 jobs:
-  ci:
+  ########### Linux ###########
+  linux:
     name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     # don't run pull requests from local branches twice
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
 
@@ -13,46 +45,103 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Ubuntu GCC
-            os: ubuntu-latest
+          - name: Ubuntu x64 GCC
             library-combo: gnu-gnu-gnu
             CC: gcc
             CXX: g++
 
-          - name: Ubuntu Clang gnustep-1.9
-            os: ubuntu-latest
+          - name: Ubuntu x64 Clang gnustep-1.9
             library-combo: ng-gnu-gnu
             runtime-version: gnustep-1.9
             CC: clang
             CXX: clang++
 
-          - name: Ubuntu Clang gnustep-2.0
-            os: ubuntu-latest
+          - name: Ubuntu x64 Clang gnustep-2.0
             library-combo: ng-gnu-gnu
             runtime-version: gnustep-2.0
             CC: clang
             CXX: clang++
 
-          - name: Windows MinGW GCC i686
+    env:
+      SRC_PATH: ${{ github.workspace }}/source
+      DEPS_PATH: ${{ github.workspace }}/dependencies
+      INSTALL_PATH: ${{ github.workspace }}/build
+      CC: ${{ matrix.CC }}
+      CXX: ${{ matrix.CXX }}
+      LIBRARY_COMBO: ${{ matrix.library-combo }}
+      RUNTIME_VERSION: ${{ matrix.runtime-version }}
+
+    defaults:
+      run:
+        working-directory: ${{ env.SRC_PATH }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: ${{ env.SRC_PATH }}
+
+      - name: Install packages
+        run: |
+          sudo apt-get -q -y update
+          sudo apt-get -q -y install $APT_PACKAGES $APT_PACKAGES_${{ matrix.library-combo == 'ng-gnu-gnu' && 'clang' || 'gcc' }}
+
+          # gnustep-2.0 runtime requires ld.gold or lld
+          if [ "$RUNTIME_VERSION" = "gnustep-2.0" ]; then
+            sudo update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.gold" 10
+          fi
+
+      - name: Install dependencies
+        run: ./.github/scripts/dependencies.sh
+
+      - name: Build source
+        run: |
+          . $INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh
+          ./configure
+          make && make install
+
+      - name: Run tests
+        run: |
+          . $INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh
+          make check
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: Logs - ${{ matrix.name }}
+          path: |
+            ${{ env.SRC_PATH }}/config.log
+            ${{ env.SRC_PATH }}/Tests/tests.log
+
+
+  ########### Windows ###########
+  windows:
+    name: ${{ matrix.name }}
+    runs-on: windows-2019
+    # don't run pull requests from local branches twice
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x86 MinGW GCC
             allow-test-failures: true
-            os: windows-2019
             arch: i686
             msystem: MINGW32
             library-combo: gnu-gnu-gnu
             CC: gcc
             CXX: g++
 
-          - name: Windows MinGW GCC x86_64
-            os: windows-2019
+          - name: Windows x64 MinGW GCC
             arch: x86_64
             msystem: MINGW64
             library-combo: gnu-gnu-gnu
             CC: gcc
             CXX: g++
 
-          - name: Windows MSVC Clang gnustep-2.0 i686
+          - name: Windows x86 MSVC Clang gnustep-2.0
             allow-test-failures: true
-            os: windows-2019
             arch: x86
             host: i686-pc-windows
             library-combo: ng-gnu-gnu
@@ -62,8 +151,7 @@ jobs:
             CXX: clang++ -m32
             LDFLAGS: -fuse-ld=lld
 
-          - name: Windows MSVC Clang gnustep-2.0 x86_64
-            os: windows-2019
+          - name: Windows x64 MSVC Clang gnustep-2.0
             arch: x64
             host: x86_64-pc-windows
             library-combo: ng-gnu-gnu
@@ -74,11 +162,11 @@ jobs:
             LDFLAGS: -fuse-ld=lld
 
     env:
-      SRC_PATH: ${{ github.workspace }}${{ startsWith(matrix.os, 'windows') && '\' || '/' }}source
-      DEPS_PATH: ${{ github.workspace }}${{ startsWith(matrix.os, 'windows') && '\' || '/' }}dependencies
-      INSTALL_PATH: ${{ github.workspace }}${{ startsWith(matrix.os, 'windows') && '\' || '/' }}build
-      IS_WINDOWS_MINGW: ${{ startsWith(matrix.os, 'windows') && startsWith(matrix.msystem, 'MINGW') }}
-      IS_WINDOWS_MSVC: ${{ startsWith(matrix.os, 'windows') && endsWith(matrix.host, '-pc-windows') }}
+      SRC_PATH: ${{ github.workspace }}\source
+      DEPS_PATH: ${{ github.workspace }}\dependencies
+      INSTALL_PATH: ${{ github.workspace }}\build
+      IS_WINDOWS_MINGW: ${{ startsWith(matrix.msystem, 'MINGW') }}
+      IS_WINDOWS_MSVC: ${{ endsWith(matrix.host, '-pc-windows') }}
       CC: ${{ matrix.CC }}
       CXX: ${{ matrix.CXX }}
       LDFLAGS: ${{ matrix.LDFLAGS }}
@@ -93,37 +181,15 @@ jobs:
 
     defaults:
       run:
-        shell: ${{ startsWith(matrix.os, 'windows') && 'msys2 {0}' || 'bash' }}
+        shell: msys2 {0}
         working-directory: ${{ env.SRC_PATH }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: ${{ env.SRC_PATH }}
 
-      - name: Install packages (Linux)
-        if: runner.os == 'Linux'
-        run: |
-          PACKAGES="cmake pkg-config libgnutls28-dev libffi-dev libicu-dev libxml2-dev libxslt1-dev libssl-dev libavahi-client-dev zlib1g-dev gnutls-bin libcurl4-gnutls-dev"
-          case $LIBRARY_COMBO in
-            gnu-gnu-gnu)
-              # GCC Objective-C runtime
-              PACKAGES="$PACKAGES libobjc-9-dev libblocksruntime-dev gobjc"
-              ;;
-            ng-gnu-gnu)
-              # packages for libdispatch
-              PACKAGES="$PACKAGES libkqueue-dev libpthread-workqueue-dev"
-              # gnustep-2.0 runtime requires ld.gold or lld
-              if [ "$RUNTIME_VERSION" = "gnustep-2.0" ]; then
-                sudo update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.gold" 10
-              fi
-              ;;
-          esac
-
-          sudo apt-get update
-          sudo apt-get install $PACKAGES
-
-      - name: Set up MSYS2 (Windows MinGW)
+      - name: Set up MSYS2 (MinGW)
         uses: msys2/setup-msys2@v2
         if: env.IS_WINDOWS_MINGW == 'true'
         with:
@@ -145,7 +211,7 @@ jobs:
             mingw-w64-${{matrix.arch}}-gnutls
             mingw-w64-${{matrix.arch}}-icu
 
-      - name: Set up MSYS2 (Windows MSVC)
+      - name: Set up MSYS2 (MSVC)
         uses: msys2/setup-msys2@v2
         if: env.IS_WINDOWS_MSVC == 'true'
         with:
@@ -154,35 +220,47 @@ jobs:
           # make Windows packages like Clang available in MSYS
           path-type: inherit
       
-      - name: Delete MinGW gmake (Windows MSVC)
+      - name: Delete MinGW gmake (MSVC)
         if: env.IS_WINDOWS_MSVC == 'true'
         # delete /c/Strawberry/c/bin/gmake built for MinGW that is found on runners, because we must use make built for MSYS
         run: if GMAKE_PATH=`which gmake`; then rm -f "$GMAKE_PATH"; fi
 
-      - name: Install Windows packages (Windows MSVC)
+      - name: Install Windows packages (MSVC)
         if: env.IS_WINDOWS_MSVC == 'true'
         shell: cmd
         run: choco install ninja
 
-      - name: Set up VS Developer Command Prompt (Windows MSVC)
+      - name: Set up VS Developer Command Prompt (MSVC)
         if: env.IS_WINDOWS_MSVC == 'true'
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: ${{ matrix.arch }}
 
-      - name: Install dependencies (Windows MSVC)
-        if: env.IS_WINDOWS_MSVC == 'true'
+      - name: Build dependencies (MSVC)
+        if: env.IS_WINDOWS_MSVC == 'true' && github.event.inputs.tools_windows_msvc_branch
         shell: cmd
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by scripts to prevent GitHub rate limit errors
         run: |
           mkdir %DEPS_PATH% & cd %DEPS_PATH%
-          git clone https://github.com/gnustep/tools-windows-msvc.git || exit /b 1
+          git clone -q -b ${{github.event.inputs.tools_windows_msvc_branch}} https://github.com/gnustep/tools-windows-msvc.git || exit /b 1
           cd tools-windows-msvc
           :: use msys2.cmd from setup-msys2 as Bash shell, as it doesn't have msys2_shell.cmd used normally by build.bat
           set "BASH=msys2 -c"
           build.bat --prefix=%INSTALL_PATH% --type Release --only-dependencies
 
-      - name: Set environment variables (Windows)
-        if: runner.os == 'Windows'
+      - name: Install pre-built dependencies (MSVC)
+        if: env.IS_WINDOWS_MSVC == 'true' && !github.event.inputs.tools_windows_msvc_branch
+        shell: cmd
+        run: |
+          mkdir %INSTALL_PATH% & cd %INSTALL_PATH%
+          # download latest pre-built release
+          curl -L -o GNUstep-Windows-MSVC.zip https://github.com/gnustep/tools-windows-msvc/releases/download/latest/GNUstep-Windows-MSVC-${{matrix.arch}}.zip || exit /b 1
+          # extract excluding debug build and GNUstep components (we need dependencies only)
+          tar -xvf GNUstep-Windows-MSVC.zip --strip 1 --exclude Debug --exclude "**/gnustep*" --exclude "**/GNUstep*" --exclude Foundation --exclude CoreFoundation || exit /b 1
+          del /Q GNUstep-Windows-MSVC.zip
+
+      - name: Set environment variables
         run: |
           # MSVC: update install path to include [x86|x64]/Release subdir used by build.bat above
           if [ "$IS_WINDOWS_MSVC" = "true" ]; then
@@ -193,8 +271,7 @@ jobs:
           echo "DEPS_PATH=`cygpath -u $DEPS_PATH`" >> $GITHUB_ENV
 
       - name: Install dependencies
-        run: |
-          ./.github/scripts/dependencies.sh
+        run: ./.github/scripts/dependencies.sh
 
       - name: Build source
         run: |
@@ -216,7 +293,7 @@ jobs:
           make check
 
       - name: Upload logs
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: always()
         with:
           name: Logs - ${{ matrix.name }}
