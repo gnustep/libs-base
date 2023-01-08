@@ -11,7 +11,15 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
-This is a release focussing more on portability improvements and bugfixes, though it does contain some new features.
+This is a bugfix release increasing the library version number to reflect ABI change that should have been included when the previous release was made.
+
+@section Noteworthy changes in version @samp{1.29.0}
+
+@itemize @bullet
+@item Library version changed from 1.28 to 1.29
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.28.1}
 
@@ -25,7 +33,6 @@ This is a release focussing more on portability improvements and bugfixes, thoug
 @item a variety of bugfixes.
 @end itemize
 
-@ifclear ANNOUNCE-ONLY
 @section Noteworthy changes in version @samp{1.28.0}
 
 Aside from an assortment of bugfixes, this release includes a lot of

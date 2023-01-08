@@ -30,6 +30,14 @@ notice and this notice are preserved.
       </p>
 
       <section>
+	<heading>Version 1.29.0</heading>
+        <p>
+          Bugfix release to increment library version number to reflect ABI
+          changes which should have been noticed before 1.28.1 release.
+        </p>
+      </section>
+
+      <section>
 	<heading>Version 1.28.1</heading>
         <p>
           Aside from an assortment of bugfixes, this release includes a lot of
