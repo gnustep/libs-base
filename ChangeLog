@@ -1,5 +1,16 @@
 2023-01-13 Frederik Seiffert <frederik@algoriddim.com>
 
+	* Source/GSEasyHandle.m:
+	* Source/GSMultiHandle.m:
+	* Source/GSTimeoutSource.h:
+	* Source/GSTimeoutSource.m:
+	* Source/NSURLSession.m:
+	Fix NSURLSession memory management of libdispatch objects.
+	* Source/GSHTTPURLProtocol.m:
+	Fix overrelease.
+
+2023-01-13 Frederik Seiffert <frederik@algoriddim.com>
+
 	* Headers/Foundation/NSURLSession.h:
 	* Source/NSURLSession.m:
 	Add missing NSURLSession APIs.

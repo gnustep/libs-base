@@ -108,7 +108,10 @@ static int curl_timer_function(CURL *easyHandle, int timeout, void *userdata) {
   NSEnumerator   *e;
   GSEasyHandle   *handle;
 
+  [_timeoutSource cancel];
   DESTROY(_timeoutSource);
+
+  dispatch_release(_queue);
 
   e = [_easyHandles objectEnumerator];
   while (nil != (handle = [e nextObject]))
@@ -193,10 +196,12 @@ static int curl_timer_function(CURL *easyHandle, int timeout, void *userdata) {
   // of milliseconds.
   if (-1 == value)
     {
+      [_timeoutSource cancel];
       DESTROY(_timeoutSource);
     }   
   else if (0 == value) 
     {
+      [_timeoutSource cancel];
       DESTROY(_timeoutSource);
       dispatch_async(_queue, 
         ^{
@@ -207,6 +212,7 @@ static int curl_timer_function(CURL *easyHandle, int timeout, void *userdata) {
     {
       if (nil == _timeoutSource || value != [_timeoutSource milliseconds]) 
         {
+          [_timeoutSource cancel];
           DESTROY(_timeoutSource);
           _timeoutSource = [[GSTimeoutSource alloc] initWithQueue: _queue
                                                      milliseconds: value
@@ -438,12 +444,14 @@ static int curl_timer_function(CURL *easyHandle, int timeout, void *userdata) {
   if (_readSource) 
     {
       dispatch_source_cancel(_readSource);
+      dispatch_release(_readSource);
     }
   _readSource = NULL;
 
   if (_writeSource) 
     {
       dispatch_source_cancel(_writeSource);
+      dispatch_release(_writeSource);
     }
   _writeSource = NULL;
   [super dealloc];

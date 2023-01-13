@@ -9,7 +9,7 @@
   if (nil != (self = [super init])) 
     {
       _queue = queue;
-      _handler = handler;
+      _handler = Block_copy(handler);
       _milliseconds = milliseconds;
       _rawSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, _queue);
 
@@ -26,8 +26,19 @@
 
 - (void) dealloc 
 {
-  dispatch_source_cancel(_rawSource);
+  [self cancel];
+  Block_release(_handler);
   [super dealloc];
+}
+
+- (void) cancel
+{
+  if (_rawSource)
+    {
+      dispatch_source_cancel(_rawSource);
+      dispatch_release(_rawSource);
+      _rawSource = NULL;
+    }
 }
 
 - (NSInteger) milliseconds

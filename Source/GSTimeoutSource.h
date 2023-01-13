@@ -17,6 +17,8 @@
   dispatch_block_t   _handler;
 }
 
+- (void) cancel;
+
 - (NSInteger) milliseconds;
 
 - (dispatch_queue_t) queue;
