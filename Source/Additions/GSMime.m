@@ -3345,7 +3345,6 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 
 @end
 
-
 
 @interface	_GSMutableInsensitiveDictionary : NSMutableDictionary
 @end

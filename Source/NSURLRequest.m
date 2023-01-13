@@ -118,7 +118,7 @@ typedef struct {
 	  inst->shouldHandleCookies = this->shouldHandleCookies;
 	  inst->debug = this->debug;
 	  inst->ioDelegate = this->ioDelegate;
-          inst->headers = [this->headers mutableCopy];
+	  inst->headers = [this->headers mutableCopy];
 	}
     }
   return o;

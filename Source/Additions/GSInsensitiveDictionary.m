@@ -378,6 +378,13 @@ static SEL	objSel;
   return [copy initWithDictionary: self copyItems: NO];
 }
 
+- (id) mutableCopyWithZone: (NSZone*)z
+{
+  NSMutableDictionary	*copy = [_GSMutableInsensitiveDictionary allocWithZone: z];
+
+  return [copy initWithDictionary: self copyItems: NO];
+}
+
 - (id) init
 {
   return [self initWithCapacity: 0];
