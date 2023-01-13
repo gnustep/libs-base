@@ -37,6 +37,10 @@ env:
   APT_PACKAGES_clang: >-
     libpthread-workqueue-dev
 
+  # GNUstep Windows MSVC toolchain release tag to be used (keep up to date with latest release):
+  # https://github.com/gnustep/tools-windows-msvc/releases
+  TOOLS_WINDOWS_MSVC_RELEASE_TAG: release-20230104
+
 jobs:
   ########### Linux ###########
   linux:
@@ -260,9 +264,9 @@ jobs:
         shell: cmd
         run: |
           mkdir %INSTALL_PATH% & cd %INSTALL_PATH%
-          # download latest pre-built release
-          curl -L -o GNUstep-Windows-MSVC.zip https://github.com/gnustep/tools-windows-msvc/releases/download/latest/GNUstep-Windows-MSVC-${{matrix.arch}}.zip || exit /b 1
-          # extract excluding debug build and GNUstep components (we need dependencies only)
+          :: download pre-built release
+          curl -L -o GNUstep-Windows-MSVC.zip https://github.com/gnustep/tools-windows-msvc/releases/download/${{env.TOOLS_WINDOWS_MSVC_RELEASE_TAG}}/GNUstep-Windows-MSVC-${{matrix.arch}}.zip || exit /b 1
+          :: extract excluding debug build and GNUstep components (we need dependencies only)
           tar -xvf GNUstep-Windows-MSVC.zip --strip 1 --exclude Debug --exclude "**/gnustep*" --exclude "**/GNUstep*" --exclude Foundation --exclude CoreFoundation || exit /b 1
           del /Q GNUstep-Windows-MSVC.zip
 
