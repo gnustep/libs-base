@@ -592,17 +592,14 @@ parseArgumentPart(NSString *part, NSString *name)
   [hh addEntriesFromDictionary: 
     [self transformLowercaseKeyForHTTPHeaders: HTTPHeaders]];
 
-  NSArray *curlHeaders = [self curlHeadersForHTTPHeaders: hh];
+  NSMutableArray *curlHeaders = [self curlHeadersForHTTPHeaders: hh];
   if ([[request HTTPMethod] isEqualToString:@"POST"] 
     && [[request HTTPBody] length] > 0
     && [request valueForHTTPHeaderField: @"Content-Type"] == nil) 
     {
-      NSMutableArray *temp = [curlHeaders mutableCopy];
-      [temp addObject: @"Content-Type:application/x-www-form-urlencoded"];
-      curlHeaders = temp;
+      [curlHeaders addObject: @"Content-Type:application/x-www-form-urlencoded"];
     }
   [_easyHandle setCustomHeaders: curlHeaders];
-  RELEASE(curlHeaders);
 
   NSInteger        timeoutInterval = [request timeoutInterval] * 1000;
   GSTimeoutSource  *timeoutTimer;
@@ -874,7 +871,7 @@ parseArgumentPart(NSString *part, NSString *name)
 // expects.
 //
 // - SeeAlso: https://curl.haxx.se/libcurl/c/CURLOPT_HTTPHEADER.html
-- (NSArray*) curlHeadersForHTTPHeaders: (NSDictionary*)HTTPHeaders 
+- (NSMutableArray*) curlHeadersForHTTPHeaders: (NSDictionary*)HTTPHeaders 
 {
   NSMutableArray *result = [NSMutableArray array];
   NSMutableSet   *names = [NSMutableSet set];
@@ -951,7 +948,7 @@ parseArgumentPart(NSString *part, NSString *name)
       [result addObject: [NSString stringWithFormat: @"%@:", k]];
     }
 
-  return AUTORELEASE([result copy]);
+  return result;
 }
 
 // Any header values that should be passed to libcurl

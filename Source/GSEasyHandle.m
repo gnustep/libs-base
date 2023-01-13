@@ -195,6 +195,7 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
   curl_slist_free_all(_headerList);
   free(_errorBuffer);
   DESTROY(_config);
+  [_timeoutTimer cancel];
   DESTROY(_timeoutTimer);
   DESTROY(_URL);
   [super dealloc];
@@ -217,6 +218,7 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
 
 - (void) setTimeoutTimer: (GSTimeoutSource*)timer
 {
+  [_timeoutTimer cancel];
   ASSIGN(_timeoutTimer, timer);
 }
 
@@ -234,10 +236,15 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
 {
   // simply create a new timer with the same queue, timeout and handler
   // this must cancel the old handler and reset the timer
-  DESTROY(_timeoutTimer);
-  _timeoutTimer = [[GSTimeoutSource alloc] initWithQueue: [_timeoutTimer queue]
-                                            milliseconds: [_timeoutTimer milliseconds]
-                                                 handler: [_timeoutTimer handler]];
+  if (_timeoutTimer)
+    {
+      GSTimeoutSource *oldTimer = _timeoutTimer;
+      [oldTimer cancel];
+      _timeoutTimer = [[GSTimeoutSource alloc] initWithQueue: [oldTimer queue]
+                                                milliseconds: [oldTimer milliseconds]
+                                                     handler: [oldTimer handler]];
+      RELEASE(oldTimer);
+    }
 }
 
 - (void) setupCallbacks 

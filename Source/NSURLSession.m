@@ -970,6 +970,7 @@ static int nextSessionIdentifier()
   DESTROY(_protocolBag);
   DESTROY(_dataCompletionHandler);
   DESTROY(_knownBody);
+  dispatch_release(_workQueue);
   [super dealloc];
 }
 
@@ -1212,6 +1213,7 @@ static int nextSessionIdentifier()
       copy->_state = _state;
       copy->_error = [_error copyWithZone: zone];
       copy->_session = _session;
+      dispatch_retain(_workQueue);
       copy->_workQueue = _workQueue;
       copy->_suspendCount  = _suspendCount;
       copy->_protocolLock = [_protocolLock copy];
