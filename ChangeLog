@@ -1,5 +1,13 @@
 2023-01-13 Frederik Seiffert <frederik@algoriddim.com>
 
+	* Source/Additions/GSInsensitiveDictionary.m:
+	* Source/NSURLRequest.m:
+	* Source/NSURLResponse.m:
+	Fix NSURLSession header fields not always being matched case
+	insensitive.
+
+2023-01-13 Frederik Seiffert <frederik@algoriddim.com>
+
 	* Source/GSEasyHandle.m:
 	* Source/GSMultiHandle.m:
 	* Source/GSTimeoutSource.h:
