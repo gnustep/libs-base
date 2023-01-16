@@ -2,10 +2,11 @@
 #import <curl/curl.h>
 
 #import "GSDispatch.h"
-#import "GSMultiHandle.h"
 #import "GSEasyHandle.h"
-#import "GSTaskRegistry.h"
 #import "GSHTTPURLProtocol.h"
+#import "GSMultiHandle.h"
+#import "GSPThread.h"
+#import "GSTaskRegistry.h"
 #import "GSURLSessionTaskBody.h"
 
 #import "Foundation/NSError.h"
@@ -91,24 +92,20 @@ typedef NS_ENUM(NSUInteger, NSURLSessionTaskProtocolState) {
   NSURLSessionTaskProtocolStateInvalidated = 3,  
 };
 
-static dispatch_queue_t _globalVarSyncQ = NULL;
-static int sessionCounter = 0;
-static int nextSessionIdentifier() 
+static unsigned nextSessionIdentifier()
 {
-  if (NULL == _globalVarSyncQ) 
-    {
-      _globalVarSyncQ = dispatch_queue_create("org.gnustep.NSURLSession.GlobalVarSyncQ", DISPATCH_QUEUE_SERIAL);
-    }
-  dispatch_sync(_globalVarSyncQ, 
-    ^{
-      sessionCounter += 1;
-    });
+  static gs_mutex_t lock = GS_MUTEX_INIT_STATIC;
+  static unsigned sessionCounter = 0;
+
+  GS_MUTEX_LOCK(lock);
+  sessionCounter += 1;
+  GS_MUTEX_UNLOCK(lock);
+
   return sessionCounter;
 }
 
 @implementation NSURLSession
 {
-  int                  _identifier;
   dispatch_queue_t     _workQueue;
   NSUInteger           _nextTaskIdentifier;
   BOOL                 _invalidated;
@@ -162,15 +159,21 @@ static int nextSessionIdentifier()
   if (nil != (self = [super init]))
     {
       char	label[30];
+      dispatch_queue_t	targetQueue;
 
       _taskRegistry = [[GSTaskRegistry alloc] init];
 #if	defined(CURLSSLBACKEND_GNUTLS)
       curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, NULL)l 
 #endif
       curl_global_init(CURL_GLOBAL_SSL);
-      _identifier = nextSessionIdentifier();
-      sprintf(label, "NSURLSession %d", _identifier);
-      _workQueue = dispatch_queue_create(label, DISPATCH_QUEUE_SERIAL);
+      sprintf(label, "NSURLSession %u", nextSessionIdentifier());
+      targetQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+#if HAVE_DISPATCH_QUEUE_CREATE_WITH_TARGET
+      _workQueue = dispatch_queue_create_with_target(label, DISPATCH_QUEUE_SERIAL, targetQueue);
+#else
+      _workQueue = dispatch_queue_create(label,	DISPATCH_QUEUE_SERIAL);
+      dispatch_set_target_queue(_queue, targetQueue);
+#endif
       if (nil != queue)
         {
           ASSIGN(_delegateQueue, queue);
@@ -596,14 +599,12 @@ static int nextSessionIdentifier()
 {
   NSURLSessionTask          *task = [protocol task];
   NSURLSession              *session;
-  NSOperationQueue          *delegateQueue;
   id<NSURLSessionDelegate>  delegate;
 
   NSAssert(nil != task, @"Missing task");
 
   session = [task session];
   delegate = [session delegate];
-  delegateQueue = [session delegateQueue];
 
   switch (_cachePolicy)
     {
@@ -625,7 +626,7 @@ static int nextSessionIdentifier()
     && [delegate respondsToSelector:
       @selector(URLSession:dataTask:didReceiveData:)])
     {
-      [delegateQueue addOperationWithBlock:
+      [[session delegateQueue] addOperationWithBlock:
        ^{
          [(id<NSURLSessionDataDelegate>)delegate URLSession: session 
                                                    dataTask: (NSURLSessionDataTask*)task 
