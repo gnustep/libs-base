@@ -7,6 +7,7 @@
 @class GSURLSessionTaskBodySource;
 @class NSArray;
 @class NSData;
+@class NSMutableData;
 @class NSFileHandle;
 @class NSHTTPURLResponse;
 @class NSURL;
@@ -57,7 +58,7 @@ typedef NS_ENUM(NSUInteger, GSDataDrainType) {
 @interface GSDataDrain: NSObject
 {
   GSDataDrainType _type;
-  NSData          *_data;
+  NSMutableData   *_data;
   NSURL           *_fileURL;
   NSFileHandle    *_fileHandle;
 }
@@ -65,14 +66,11 @@ typedef NS_ENUM(NSUInteger, GSDataDrainType) {
 - (GSDataDrainType) type;
 - (void) setType: (GSDataDrainType)type;
 
-- (NSData*) data;
-- (void) setData: (NSData*)data;
+- (NSMutableData*) data;
 
 - (NSURL*) fileURL;
-- (void) setFileURL: (NSURL*)url;
 
 - (NSFileHandle*) fileHandle;
-- (void) setFileHandle: (NSFileHandle*)handle;
 
 @end
 
