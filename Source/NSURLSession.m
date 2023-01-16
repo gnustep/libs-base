@@ -243,7 +243,8 @@ static unsigned nextSessionIdentifier()
       void (^invalidateSessionCallback)(void) = 
         ^{
           if (nil == _delegate) return;
-          [self.delegateQueue addOperationWithBlock:
+
+          [[self delegateQueue] addOperationWithBlock:
             ^{
               if ([_delegate respondsToSelector: @selector(URLSession:didBecomeInvalidWithError:)]) 
                 {
@@ -287,7 +288,7 @@ static unsigned nextSessionIdentifier()
           return;
         }
       
-      [_delegateQueue addOperationWithBlock: 
+      [[self delegateQueue] addOperationWithBlock:
         ^{
           if ([_delegate respondsToSelector: @selector(URLSession:didBecomeInvalidWithError:)])
             {
@@ -394,14 +395,20 @@ static unsigned nextSessionIdentifier()
       return [task isKindOfClass:[NSURLSessionDownloadTask class]];
   }]];
 
-  completionHandler(dataTasks, uploadTasks, downloadTasks);
+  [[self delegateQueue] addOperationWithBlock:
+    ^{
+      completionHandler(dataTasks, uploadTasks, downloadTasks);
+    }];
 }
 
 - (void) getAllTasksWithCompletionHandler: (void (^)(GS_GENERIC_CLASS(NSArray, __kindof NSURLSessionTask*) *tasks))completionHandler
 {
   NSArray *allTasks = [_taskRegistry allTasks];
 
-  completionHandler(allTasks);
+  [[self delegateQueue] addOperationWithBlock:
+    ^{
+      completionHandler(allTasks);
+    }];
 }
 
 - (void) addTask: (NSURLSessionTask*)task
