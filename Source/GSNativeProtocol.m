@@ -63,7 +63,7 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
     }
 }
 
-@interface NSURLSession (Internal)
+@interface NSURLSession (GSNativeProtocolInternal)
 
 - (void) removeHandle: (GSEasyHandle*)handle;
 
@@ -71,7 +71,7 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
 
 @end
 
-@implementation NSURLSession (Internal)
+@implementation NSURLSession (GSNativeProtocolInternal)
 
 - (void) removeHandle: (GSEasyHandle*)handle
 {
@@ -85,25 +85,7 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
 
 @end
 
-@interface NSURLSessionTask (Internal)
-
-- (void) setCurrentRequest: (NSURLRequest*)request;
-
-- (dispatch_queue_t) workQueue;
-
-- (NSUInteger) suspendCount;
-
-- (void) getBodyWithCompletion: (void (^)(GSURLSessionTaskBody *body))completion;
-
-- (void) setKnownBody: (GSURLSessionTaskBody*)body;
-
-- (void) setError: (NSError*)error;
-
-- (void) setCountOfBytesReceived: (int64_t)count;
-
-@end
-
-@implementation NSURLSessionTask (Internal)
+@implementation NSURLSessionTask (GSNativeProtocolInternal)
 
 - (void) setCurrentRequest: (NSURLRequest*)request
 {
@@ -132,6 +114,11 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
   completion(body);
 }
 
+- (GSURLSessionTaskBody*) knownBody
+{
+  return _knownBody;
+}
+
 - (void) setKnownBody: (GSURLSessionTaskBody*)body
 {
   ASSIGN(_knownBody, body);
@@ -145,6 +132,26 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
 - (void) setCountOfBytesReceived: (int64_t)count
 {
   _countOfBytesReceived = count;
+}
+
+- (void) setCountOfBytesExpectedToReceive: (int64_t)count
+{
+  _countOfBytesExpectedToReceive = count;
+}
+
+- (void) setCountOfBytesExpectedToSend: (int64_t)count
+{
+  _countOfBytesExpectedToSend = count;
+}
+
+- (void (^)(NSData *data, NSURLResponse *response, NSError *error)) dataCompletionHandler
+{
+  return _dataCompletionHandler;
+}
+
+- (void (^)(NSURL *location, NSURLResponse *response, NSError *error)) downloadCompletionHandler
+{
+  return _downloadCompletionHandler;
 }
 
 @end
@@ -352,24 +359,29 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
 }
 
 // The data drain.
-// This depends on what the delegate need.
+// This depends on what the task needs.
 - (GSDataDrain*) createTransferBodyDataDrain 
 {
-  NSURLSession *s = [[self task] session];
+  NSURLSessionTask *task = [self task];
   GSDataDrain  *dd = AUTORELEASE([[GSDataDrain alloc] init]);
-  
-  if (nil != [s delegate])
+
+  if ([task isKindOfClass: [NSURLSessionDownloadTask class]])
     {
-      // Data will be forwarded to the delegate as we receive it, we don't
-      // need to do anything about it.
-      [dd setType: GSDataDrainTypeIgnore];
-      return dd;
+      // drain to file for download tasks
+      [dd setType: GSDataDrainTypeToFile];
+    }
+  else if ([task dataCompletionHandler])
+    {
+      // drain to memory if task has a completion handler, which requires the
+      // full body to be passed on completion
+      [dd setType: GSDataDrainInMemory];
     }
   else
     {
+      // otherwise the data is probably sent to the delegate as it arrives
       [dd setType: GSDataDrainTypeIgnore];
-      return dd;
     }
+  return dd;
 }
 
 - (void) resume
@@ -512,6 +524,9 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
   session = [task session];
   NSAssert(nil != session, @"Missing session");
 
+  /* Calculate received data length */
+  [task setCountOfBytesReceived: (int64_t)[data length] + [task countOfBytesReceived]];
+
   delegate = [session delegate];
   if (nil != delegate
     && [task isKindOfClass: [NSURLSessionDataTask class]]
@@ -522,6 +537,7 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
       
       dataDelegate = (id<NSURLSessionDataDelegate>)delegate;
       dataTask = (NSURLSessionDataTask*)task;
+
       [[session delegateQueue] addOperationWithBlock:
         ^{
           [dataDelegate URLSession: session 
@@ -529,39 +545,26 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
                     didReceiveData: data];
         }];
     }
-  /* Don't check whether delegate respondsToSelector.
-   * This delegate is optional. */
+
   if (nil != delegate
-    && [task isKindOfClass: [NSURLSessionDownloadTask class]])
+    && [task isKindOfClass: [NSURLSessionDownloadTask class]]
+    && [delegate respondsToSelector: @selector
+      (URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:)])
     {
       id<NSURLSessionDownloadDelegate> downloadDelegate;
       NSURLSessionDownloadTask *downloadTask;
-      GSDataDrain *dataDrain;
-      NSFileHandle *fileHandle;
 
       downloadDelegate = (id<NSURLSessionDownloadDelegate>)delegate;
       downloadTask = (NSURLSessionDownloadTask*)task;
-      dataDrain = [_transferState bodyDataDrain];
 
-      /* Write to file. GSDataDrain opens the fileHandle. */
-      fileHandle = [dataDrain fileHandle];
-      [fileHandle seekToEndOfFile];
-      [fileHandle writeData: data];
-
-      if ([delegate respondsToSelector: @selector
-          (URLSession:downloadTask:didWriteData:totalBytesWritten:totalBytesExpectedToWrite:)])
-        {
-          /* Calculate received data length */
-          [task setCountOfBytesReceived: (int64_t)[data length] + [task countOfBytesReceived]];
-          [[session delegateQueue] addOperationWithBlock:
-          ^{
-            [downloadDelegate URLSession: session 
-                            downloadTask: downloadTask 
-                            didWriteData: (int64_t)[data length]
-                       totalBytesWritten: [task countOfBytesReceived]
-               totalBytesExpectedToWrite: [task countOfBytesExpectedToReceive]];
-          }];
-        }
+      [[session delegateQueue] addOperationWithBlock:
+        ^{
+          [downloadDelegate URLSession: session 
+                          downloadTask: downloadTask 
+                          didWriteData: (int64_t)[data length]
+                     totalBytesWritten: [task countOfBytesReceived]
+             totalBytesExpectedToWrite: [task countOfBytesExpectedToReceive]];
+        }];
     }
 }
 
@@ -719,7 +722,6 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
   NSURLSessionTask         *task;
   GSDataDrain              *bodyDataDrain;
   id<NSURLProtocolClient>  client;
-  id<NSURLSessionDelegate> delegate;
 
   NSAssert(_internalState == GSNativeProtocolInternalStateTransferCompleted,
     @"Trying to complete the task, but its transfer isn't complete.");
@@ -727,40 +729,26 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
   task = [self task];
   [task setResponse: [_transferState response]];
   client = [self client];
-  delegate = [[task session] delegate];
 
   // We don't want a timeout to be triggered after this. The timeout timer 
   // needs to be cancelled.
   [_easyHandle setTimeoutTimer: nil];
+  
+  [self setInternalState: GSNativeProtocolInternalStateTaskCompleted];
 
-  // because we deregister the task with the session on internalState being set 
-  // to taskCompleted we need to do the latter after the delegate/handler was 
-  // notified/invoked
+  // Add complete data to NSURLRequestProperties if the task has a data
+  // completion handler
   bodyDataDrain = [_transferState bodyDataDrain];
   if (GSDataDrainInMemory == [bodyDataDrain type])
     {
-      NSData                  *data;
-      
-      if (nil != [bodyDataDrain data])
-        {
-          data = [NSData dataWithData: [bodyDataDrain data]];
-        }
-      else
-        {
-          data = [NSData data];
-        }
-
-      if ([client respondsToSelector: @selector(URLProtocol:didLoadData:)])
-        {
-          [client URLProtocol: self didLoadData: data];
-        }
-      [self setInternalState: GSNativeProtocolInternalStateTaskCompleted];
+      NSData *data = AUTORELEASE([[bodyDataDrain data] copy]);
+      [[self request] _setProperty: data
+                            forKey: @"tempData"];
     }
   
   // Add temporary file URL to NSURLRequest properties
   // and close the fileHandle
-  if (nil != delegate
-    && [task isKindOfClass: [NSURLSessionDownloadTask class]])
+  if ([task isKindOfClass: [NSURLSessionDownloadTask class]])
     {
       [[bodyDataDrain fileHandle] closeFile];
       [[self request] _setProperty: [bodyDataDrain fileURL]

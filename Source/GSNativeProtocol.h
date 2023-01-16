@@ -1,10 +1,39 @@
 #ifndef	INCLUDED_GSNATIVEPROTOCOL_H
 #define	INCLUDED_GSNATIVEPROTOCOL_H
 
+#import "GSDispatch.h"
 #import "GSEasyHandle.h"
 #import "Foundation/NSURLProtocol.h"
+#import "Foundation/NSURLSession.h"
 
 @class GSTransferState;
+
+@interface NSURLSessionTask (GSNativeProtocolInternal)
+
+- (void) setCurrentRequest: (NSURLRequest*)request;
+
+- (dispatch_queue_t) workQueue;
+
+- (NSUInteger) suspendCount;
+
+- (void) getBodyWithCompletion: (void (^)(GSURLSessionTaskBody *body))completion;
+
+- (GSURLSessionTaskBody*) knownBody;
+- (void) setKnownBody: (GSURLSessionTaskBody*)body;
+
+- (void) setError: (NSError*)error;
+
+- (void) setCountOfBytesReceived: (int64_t)count;
+
+- (void) setCountOfBytesExpectedToReceive: (int64_t)count;
+
+- (void) setCountOfBytesExpectedToSend: (int64_t)count;
+
+- (void (^)(NSData *data, NSURLResponse *response, NSError *error)) dataCompletionHandler;
+
+- (void (^)(NSURL *location, NSURLResponse *response, NSError *error)) downloadCompletionHandler;
+
+@end
 
 typedef NS_ENUM(NSUInteger, GSCompletionActionType) {
     GSCompletionActionTypeCompleteTask,

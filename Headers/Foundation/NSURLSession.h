@@ -278,6 +278,9 @@ GS_EXPORT_CLASS
   NSUInteger            _suspendCount;
 
   GSURLSessionTaskBody  *_knownBody;
+
+  void                  (^_dataCompletionHandler)(NSData *data, NSURLResponse *response, NSError *error);
+  void                  (^_downloadCompletionHandler)(NSURL *location, NSURLResponse *response, NSError *error);
 }
 
 - (NSUInteger) taskIdentifier;
