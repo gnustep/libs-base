@@ -10,8 +10,7 @@
 #import "Foundation/NSURLSession.h"
 
 @interface GSMultiHandle ()
-- (void) performActionForSocket: (int)socket;
-- (void) readAndWriteAvailableDataOnSocket: (int)socket;
+- (void) readAndWriteAvailableDataOnSocket: (curl_socket_t)socket;
 - (void) readMessages;
 - (void) completedTransferForEasyHandle: (CURL*)rawEasyHandle 
                                easyCode: (int)easyCode;
@@ -196,44 +195,27 @@ static int curl_timer_function(CURL *easyHandle, int timeout, void *userdata) {
   // of milliseconds.
   if (-1 == value)
     {
-      [_timeoutSource cancel];
-      DESTROY(_timeoutSource);
-    }   
-  else if (0 == value) 
-    {
-      [_timeoutSource cancel];
-      DESTROY(_timeoutSource);
-      dispatch_async(_queue, 
-        ^{
-          [self timeoutTimerFired];
-        });
-    } 
+      [_timeoutSource suspend];
+    }
   else 
     {
-      if (nil == _timeoutSource || value != [_timeoutSource milliseconds]) 
+      if (!_timeoutSource)
         {
-          [_timeoutSource cancel];
-          DESTROY(_timeoutSource);
           _timeoutSource = [[GSTimeoutSource alloc] initWithQueue: _queue
-                                                     milliseconds: value
                                                           handler: ^{
                                                             [self timeoutTimerFired];
                                                           }];
-      }
-  }
+        }
+      [_timeoutSource setTimeout: value];
+    }
 }
 
-- (void) performActionForSocket: (int)socket 
-{
-  [self readAndWriteAvailableDataOnSocket: socket];
-}
-
-- (void)timeoutTimerFired 
+- (void) timeoutTimerFired 
 {
   [self readAndWriteAvailableDataOnSocket: CURL_SOCKET_TIMEOUT];
 }
 
-- (void) readAndWriteAvailableDataOnSocket: (int)socket 
+- (void) readAndWriteAvailableDataOnSocket: (curl_socket_t)socket
 {
   int runningHandlesCount = 0;
   
@@ -312,7 +294,7 @@ static int curl_timer_function(CURL *easyHandle, int timeout, void *userdata) {
   [handle transferCompletedWithError: err];
 }
 
-- (int32_t) registerWithSocket: (curl_socket_t)socket 
+- (int32_t) registerWithSocket: (curl_socket_t)socket
                           what: (int)what 
                socketSourcePtr: (void *)socketSourcePtr
 {
@@ -342,6 +324,7 @@ static int curl_timer_function(CURL *easyHandle, int timeout, void *userdata) {
     && GSSocketRegisterActionTypeUnregister == [action type]) 
     {
       DESTROY(socketSources);
+      curl_multi_assign(_rawHandle, socket, NULL);
     }
 
   if (nil != socketSources) 
@@ -350,7 +333,7 @@ static int curl_timer_function(CURL *easyHandle, int timeout, void *userdata) {
                                       socket: socket
                                        queue: _queue
                                      handler: ^{
-	        [self performActionForSocket: socket];
+	        [self readAndWriteAvailableDataOnSocket: socket];
         }];
     }
 
@@ -400,16 +383,11 @@ static int curl_timer_function(CURL *easyHandle, int timeout, void *userdata) {
 {
   switch (self.type) 
     {
-      case GSSocketRegisterActionTypeNone:
-        return false;
       case GSSocketRegisterActionTypeRegisterRead:
-        return true;
-      case GSSocketRegisterActionTypeRegisterWrite:
-        return false;
       case GSSocketRegisterActionTypeRegisterReadAndWrite:
-        return true;
-      case GSSocketRegisterActionTypeUnregister:
-        return false;
+        return YES;
+      default:
+        return NO;
     }
 }
 
@@ -417,16 +395,11 @@ static int curl_timer_function(CURL *easyHandle, int timeout, void *userdata) {
 {
   switch (self.type) 
     {
-      case GSSocketRegisterActionTypeNone:
-        return false;
-      case GSSocketRegisterActionTypeRegisterRead:
-        return false;
       case GSSocketRegisterActionTypeRegisterWrite:
-        return true;
       case GSSocketRegisterActionTypeRegisterReadAndWrite:
-        return true;
-      case GSSocketRegisterActionTypeUnregister:
-        return false;
+        return YES;
+      default:
+        return NO;
     }
 }
 
@@ -444,16 +417,15 @@ static int curl_timer_function(CURL *easyHandle, int timeout, void *userdata) {
   if (_readSource) 
     {
       dispatch_source_cancel(_readSource);
-      dispatch_release(_readSource);
     }
   _readSource = NULL;
 
   if (_writeSource) 
     {
       dispatch_source_cancel(_writeSource);
-      dispatch_release(_writeSource);
     }
   _writeSource = NULL;
+
   [super dealloc];
 }
 
@@ -462,50 +434,40 @@ static int curl_timer_function(CURL *easyHandle, int timeout, void *userdata) {
                            queue: (dispatch_queue_t)queue
                          handler: (dispatch_block_t)handler 
 {
-  if ([action needsReadSource]) 
+  if (!_readSource && [action needsReadSource]) 
     {
-      [self createReadSourceWithSocket: socket queue: queue handler: handler];
+      _readSource = [self createSourceWithType: DISPATCH_SOURCE_TYPE_READ
+                                        socket: socket
+                                         queue: queue
+                                       handler: handler];
     }
 
-  if ([action needsWriteSource]) 
+  if (!_writeSource && [action needsWriteSource]) 
     {
-      [self createWriteSourceWithSocket: socket queue: queue handler: handler];
+      _writeSource = [self createSourceWithType: DISPATCH_SOURCE_TYPE_WRITE
+                                         socket: socket
+                                          queue: queue
+                                        handler: handler];
     }
 }
 
-- (void) createReadSourceWithSocket: (curl_socket_t)socket
-                              queue: (dispatch_queue_t)queue
-                            handler: (dispatch_block_t)handler 
+- (dispatch_source_t) createSourceWithType: (dispatch_source_type_t)type
+                                    socket: (curl_socket_t)socket
+                                     queue: (dispatch_queue_t)queue
+                                   handler: (dispatch_block_t)handler
 {
-  dispatch_source_t s;
+  dispatch_source_t source;
 
-  if (_readSource) 
-    {
-      return;
-    }
+  source = dispatch_source_create(type, socket, 0, queue);
+  dispatch_source_set_event_handler(source, handler);
+  dispatch_source_set_cancel_handler(source, ^{
+    dispatch_release(source);
+  });
+  dispatch_resume(source);
 
-  s = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, socket, 0, queue);
-  dispatch_source_set_event_handler(s, handler);
-  _readSource = s;
-  dispatch_resume(s);
+  return source;
 }
 
-- (void) createWriteSourceWithSocket: (curl_socket_t)socket
-                               queue: (dispatch_queue_t)queue
-                             handler: (dispatch_block_t)handler 
-{
-  dispatch_source_t s;
-
-  if (_writeSource) 
-    {
-      return;
-    }
-
-  s = dispatch_source_create(DISPATCH_SOURCE_TYPE_WRITE, socket, 0, queue);
-  dispatch_source_set_event_handler(s, handler);
-  _writeSource = s;
-  dispatch_resume(s);
-}
 
 + (instancetype) from: (void*)socketSourcePtr 
 {
