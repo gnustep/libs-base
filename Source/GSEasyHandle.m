@@ -155,7 +155,7 @@ curl_debug_function(CURL *handle, curl_infotype type, char *data,
       text = [NSString stringWithUTF8String: data];
     }
   
-  NSLog(@"%p %lu %d %@", o, [task taskIdentifier], type, text);
+  NSLog(@"%p %lu %d %@", o, (unsigned long)[task taskIdentifier], type, text);
 
   return 0;
 }
@@ -234,17 +234,7 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
 
 - (void) resetTimer 
 {
-  // simply create a new timer with the same queue, timeout and handler
-  // this must cancel the old handler and reset the timer
-  if (_timeoutTimer)
-    {
-      GSTimeoutSource *oldTimer = _timeoutTimer;
-      [oldTimer cancel];
-      _timeoutTimer = [[GSTimeoutSource alloc] initWithQueue: [oldTimer queue]
-                                                milliseconds: [oldTimer milliseconds]
-                                                     handler: [oldTimer handler]];
-      RELEASE(oldTimer);
-    }
+  [_timeoutTimer setTimeout: [_timeoutTimer timeout]];
 }
 
 - (void) setupCallbacks 
@@ -415,7 +405,7 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
       else 
         {
           value = [NSString stringWithFormat: @"%@:%lu:%@", 
-            originHost, port, host];
+            originHost, (unsigned long)port, host];
         }
       
       struct curl_slist *connect_to = NULL;

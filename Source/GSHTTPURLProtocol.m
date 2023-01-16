@@ -605,7 +605,6 @@ parseArgumentPart(NSString *part, NSString *name)
   GSTimeoutSource  *timeoutTimer;
 
   timeoutTimer = [[GSTimeoutSource alloc] initWithQueue: [task workQueue] 
-                                           milliseconds: timeoutInterval 
                                                 handler: 
     ^{
       NSError                 *urlError;
@@ -622,6 +621,7 @@ parseArgumentPart(NSString *part, NSString *name)
           [client URLProtocol: self didFailWithError: urlError];
         }
     }];
+  [timeoutTimer setTimeout: timeoutInterval];
   [_easyHandle setTimeoutTimer: timeoutTimer];
   RELEASE(timeoutTimer);
 

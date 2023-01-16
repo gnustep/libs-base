@@ -77,12 +77,10 @@ typedef NS_ENUM(NSUInteger, GSSocketRegisterActionType) {
                           socket: (curl_socket_t)socket
                            queue: (dispatch_queue_t)queue
                          handler: (dispatch_block_t)handler;
-- (void) createReadSourceWithSocket: (curl_socket_t)socket
-                              queue: (dispatch_queue_t)queue
-                            handler: (dispatch_block_t)handler;
-- (void) createWriteSourceWithSocket: (curl_socket_t)socket
-                               queue: (dispatch_queue_t)queue
-                             handler: (dispatch_block_t)handler;
+- (dispatch_source_t) createSourceWithType: (dispatch_source_type_t)type
+                                    socket: (curl_socket_t)socket
+                                     queue: (dispatch_queue_t)queue
+                                   handler: (dispatch_block_t)handler;
 
 + (instancetype) from: (void*)socketSourcePtr;
 
