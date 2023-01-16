@@ -806,25 +806,50 @@ static unsigned nextSessionIdentifier()
   if (nil != dataCompletionHandler
     && ([task isKindOfClass: [NSURLSessionDataTask class]]
       || [task isKindOfClass: [NSURLSessionUploadTask class]]))
-  {
-    [delegateQueue addOperationWithBlock:
-      ^{
-        dataCompletionHandler(nil, urlResponse, nil);
-      }];
-  }
+    {
+      NSData *data = [NSURLProtocol propertyForKey: @"tempData"
+                                         inRequest: [protocol request]];
+
+      [delegateQueue addOperationWithBlock:
+        ^{
+          if (NSURLSessionTaskStateCompleted == [task state])
+            {
+              return;
+            }
+
+          dataCompletionHandler(data, urlResponse, nil);
+
+          [task setState: NSURLSessionTaskStateCompleted];
+
+          dispatch_async([session workQueue],
+            ^{
+              [session removeTask: task];
+            });
+        }];
+    }
   else if (nil != downloadCompletionHandler
     && [task isKindOfClass: [NSURLSessionDownloadTask class]])
-  {
-    NSURL *fileURL;
+    {
+      NSURL *fileURL = [NSURLProtocol propertyForKey: @"tempFileURL"
+                                           inRequest: [protocol request]];
 
-    fileURL = [NSURLProtocol propertyForKey: @"tempFileURL"
-                                  inRequest: [protocol request]];
+      [delegateQueue addOperationWithBlock:
+        ^{
+          if (NSURLSessionTaskStateCompleted == [task state])
+            {
+              return;
+            }
 
-    [delegateQueue addOperationWithBlock:
-      ^{
-        downloadCompletionHandler(fileURL, urlResponse, nil);
-      }];
-  }
+          downloadCompletionHandler(fileURL, urlResponse, nil);
+
+          [task setState: NSURLSessionTaskStateCompleted];
+
+          dispatch_async([session workQueue],
+            ^{
+              [session removeTask: task];
+            });
+        }];
+    }
   else if (nil != delegate)
     {
       // Send delegate with temporary fileURL
@@ -902,8 +927,6 @@ static unsigned nextSessionIdentifier()
   NSURLProtocol                  *_protocol;
   NSMutableArray                 *_protocolBag;
   Class                          _protocolClass;
-  void                           (^_dataCompletionHandler)(NSData *data, NSURLResponse *response, NSError *error);
-  void                           (^_downloadCompletionHandler)(NSURL *location, NSURLResponse *response, NSError *error);
   BOOL                           _hasTriggeredResume;
   float                          _priority;
 }

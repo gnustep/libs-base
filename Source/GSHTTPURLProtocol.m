@@ -13,43 +13,7 @@
 #import "Foundation/NSStream.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSURLError.h"
-#import "Foundation/NSURLSession.h"
 #import "Foundation/NSValue.h"
-
-
-@interface NSURLSessionTask (Internal)
-
-- (void) setCountOfBytesExpectedToReceive: (int64_t)count;
-
-- (void) setCountOfBytesExpectedToSend: (int64_t)count;
-
-- (dispatch_queue_t) workQueue;
-
-@end
-
-@implementation NSURLSessionTask (Internal)
-
-- (void) setCountOfBytesExpectedToReceive: (int64_t)count
-{
-  _countOfBytesExpectedToReceive = count;
-}
-
-- (void) setCountOfBytesExpectedToSend: (int64_t)count
-{
-  _countOfBytesExpectedToSend = count;
-}
-
-- (GSURLSessionTaskBody*) knownBody
-{
-  return _knownBody;
-}
-
-- (dispatch_queue_t) workQueue
-{
-  return _workQueue;
-}
-
-@end
 
 @interface GSURLCacherHelper : NSObject
 
