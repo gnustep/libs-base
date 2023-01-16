@@ -300,7 +300,7 @@ jobs:
           . $INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh
           # MSVC: build tests for release to match CRT of DLLs
           if [ "$IS_WINDOWS_MSVC" = "true" ]; then
-            sed -i -e 's/ debug=yes//g' `which gnustep-tests`
+            sed -i -e 's/debug=yes//g' `which gnustep-tests`
           fi
           make check
 
