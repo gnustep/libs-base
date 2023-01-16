@@ -268,14 +268,14 @@
   _type = type;
 }
 
-- (NSData*) data
+- (NSMutableData*) data
 {
-  return _data;
-}
+  if (!_data)
+    {
+      _data = [[NSMutableData alloc] init];
+    }
 
-- (void) setData: (NSData*)data
-{
-  ASSIGN(_data, data);
+  return _data;
 }
 
 - (NSURL*) fileURL
@@ -298,11 +298,6 @@
   return _fileURL;
 }
 
-- (void) setFileURL: (NSURL*)url
-{
-  ASSIGN(_fileURL, url);
-}
-
 - (NSFileHandle*) fileHandle
 {
   /* Create temporary file and open a fileHandle for writing. */
@@ -317,11 +312,6 @@
     }
 
   return _fileHandle;
-}
-
-- (void) setFileHandle: (NSFileHandle*)handle
-{
-  ASSIGN(_fileHandle, handle);
 }
 
 @end
@@ -389,27 +379,8 @@
   switch ([_bodyDataDrain type]) 
     {
       case GSDataDrainInMemory: 
-        {
-          NSMutableData    *data;
-          GSDataDrain      *dataDrain;
-          GSTransferState  *ts;
-          
-          data = [_bodyDataDrain data] ? 
-            AUTORELEASE([[_bodyDataDrain data] mutableCopy]) 
-            : [NSMutableData data];
-          
-          [data appendData: bodyData];
-          dataDrain = AUTORELEASE([[GSDataDrain alloc] init]);
-          [dataDrain setType: GSDataDrainInMemory];
-          [dataDrain setData: data];
-
-          ts = [[GSTransferState alloc] initWithURL: _url
-                               parsedResponseHeader: _parsedResponseHeader
-                                           response: _response
-                                         bodySource: _requestBodySource
-                                      bodyDataDrain: dataDrain];
-          return AUTORELEASE(ts);
-        }
+        [[_bodyDataDrain data] appendData: bodyData];
+        return self;
       case GSDataDrainTypeToFile: 
         {
           NSFileHandle *fileHandle;
