@@ -981,9 +981,10 @@ static unsigned nextSessionIdentifier()
           if ([protocolClass canInitWithRequest: request])
             {
               _protocolClass = protocolClass;
+              break;
             }
         }
-      NSAssert(nil != _protocolClass, @"Unsupported protocol");      
+      NSAssert(nil != _protocolClass, @"Unsupported protocol for request: %@", request);
     }
   
   return self;
