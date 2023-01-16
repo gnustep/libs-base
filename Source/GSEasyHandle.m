@@ -329,7 +329,7 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
 {
   if (flag) 
     {
-      handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_DEBUGDATA, self));
+      handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_DEBUGDATA, task));
       handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_DEBUGFUNCTION,
 	curl_debug_function));
     } 
