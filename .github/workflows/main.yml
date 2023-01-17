@@ -188,6 +188,8 @@ jobs:
       # MSYS2: disable conversion to native-form paths when configuring GNUstep Make
       # https://www.msys2.org/wiki/Porting/#filesystem-namespaces
       MSYS2_ARG_CONV_EXCL: --prefix=
+      # provide GitHub token to scripts to prevent rate limit errors when accessing GitHub
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     defaults:
       run:
@@ -249,8 +251,6 @@ jobs:
       - name: Build dependencies (MSVC)
         if: env.IS_WINDOWS_MSVC == 'true' && github.event.inputs.tools_windows_msvc_branch
         shell: cmd
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # used by scripts to prevent GitHub rate limit errors
         run: |
           mkdir %DEPS_PATH% & cd %DEPS_PATH%
           git clone -q -b ${{github.event.inputs.tools_windows_msvc_branch}} https://github.com/gnustep/tools-windows-msvc.git || exit /b 1
@@ -264,9 +264,10 @@ jobs:
         shell: cmd
         run: |
           mkdir %INSTALL_PATH% & cd %INSTALL_PATH%
-          :: download pre-built release
-          curl -L -o GNUstep-Windows-MSVC.zip https://github.com/gnustep/tools-windows-msvc/releases/download/${{env.TOOLS_WINDOWS_MSVC_RELEASE_TAG}}/GNUstep-Windows-MSVC-${{matrix.arch}}.zip || exit /b 1
-          :: extract excluding debug build and GNUstep components (we need dependencies only)
+          echo Downloading pre-built release...
+          curl --silent --show-error --fail-with-body --header "Authorization: Bearer $GITHUB_TOKEN" --location -o GNUstep-Windows-MSVC.zip ^
+            https://github.com/gnustep/tools-windows-msvc/releases/download/${{env.TOOLS_WINDOWS_MSVC_RELEASE_TAG}}/GNUstep-Windows-MSVC-${{matrix.arch}}.zip || exit /b 1
+          echo Extracting pre-built release... (dependencies only excluding debug build and GNUstep components)
           tar -xvf GNUstep-Windows-MSVC.zip --strip 1 --exclude Debug --exclude "**/gnustep*" --exclude "**/GNUstep*" --exclude Foundation --exclude CoreFoundation || exit /b 1
           del /Q GNUstep-Windows-MSVC.zip
 
