@@ -292,7 +292,7 @@
       fileName = [[randomUUID UUIDString] stringByAppendingPathExtension: @"tmp"];
       tempURL = [NSURL fileURLWithPath: NSTemporaryDirectory()];
 
-      _fileURL = [NSURL fileURLWithPath: fileName relativeToURL: tempURL];
+      _fileURL = RETAIN([NSURL fileURLWithPath: fileName relativeToURL: tempURL]);
     }
 
   return _fileURL;
@@ -308,7 +308,7 @@
                            contents: nil
                          attributes: nil];
 
-      _fileHandle = [NSFileHandle fileHandleForWritingToURL: [self fileURL] error: NULL];
+      _fileHandle = RETAIN([NSFileHandle fileHandleForWritingToURL: [self fileURL] error: NULL]);
     }
 
   return _fileHandle;
