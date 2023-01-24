@@ -1,3 +1,9 @@
+2022-01-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSException.m:
+	Wrap bfd backtrace code in a lock, just in case something in there
+	is not thread-safe.
+
 2022-01-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* ChangeLog: Update for new release
