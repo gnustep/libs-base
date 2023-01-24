@@ -1188,7 +1188,6 @@ GSPrivateReturnAddresses(NSUInteger **returns)
 
       a = [[NSMutableArray alloc] initWithCapacity: count];
 
-      GS_MUTEX_LOCK(traceLock);
       for (i = 0; i < count; i++)
         {
           GSFunctionInfo	*aFrame = nil;
@@ -1247,7 +1246,6 @@ GSPrivateReturnAddresses(NSUInteger **returns)
           [a addObject: [aFrame description]];
         }
       symbols = [a copy];
-      GS_MUTEX_UNLOCK(traceLock);
       [a release];
 #elif	defined(_WIN32)
       void              **ptrs = (void**)&returns[FrameOffset];
