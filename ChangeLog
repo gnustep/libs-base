@@ -1,3 +1,8 @@
+2022-01-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: fix incorrect close of socket at the end
+	of a successful request.
+
 2022-01-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* ChangeLog: Update for new release
@@ -29,7 +34,7 @@
 	* Source/GSHTTPURLHandle.m: Use the https_proxy and http_proxy
 	environment variables if no proxying is specified. Also support
 	those keys as properties in the request (overriding the environment
-	variables) and support the URL protection spece if set.
+	variables) and support the URL protection space if set.
 
 2022-11-26 Fred Kiefer <fredkiefer@gmx.de>
 
@@ -87,7 +92,7 @@
 2022-10-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: Refactor a litle to avoid code duplication
-	and try to ensure that the connection is mared 'idle' as soon as we
+	and try to ensure that the connection is marked 'idle' as soon as we
 	have finished I/O (so its URL can be changed).
 
 2022-10-20 Richard Frith-Macdonald <rfm@gnu.org>
