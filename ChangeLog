@@ -1,3 +1,9 @@
+2022-02-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: ([GSMimeHeader setValue:]) do not set
+	type/subtype information if the content-type header value  is not
+	in that format.
+
 2022-01-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: fix incorrect close of socket at the end
