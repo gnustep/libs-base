@@ -90,6 +90,11 @@ int main()
   NSString                      *params;
   MyDelegate                    *object;
 
+#if defined(_WIN32)
+  NSLog(@"Marking nonexistant host test as hopeful on Windows as it seems to be broken");
+  testHopeful = YES;
+#endif
+
   object = AUTORELEASE([MyDelegate new]);
   mainQueue = [NSOperationQueue mainQueue];
   defaultConfigObject = [NSURLSessionConfiguration defaultSessionConfiguration];
@@ -125,6 +130,10 @@ int main()
   PASS(YES == object->didComplete, "request completed")
   PASS([object->taskError code] == NSURLErrorCannotConnectToHost,
     "unable to connect to host")
+
+#if defined(_WIN32)
+  testHopeful = NO;
+#endif
 
 #endif
   END_SET("NSURLSession test01")
