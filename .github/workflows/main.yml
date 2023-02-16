@@ -236,14 +236,19 @@ jobs:
         if: env.IS_WINDOWS_MSVC == 'true'
         with:
           msystem: MSYS
-          install: make autoconf automake libtool
+          install: make autoconf automake libtool pkg-config
           # make Windows packages like Clang available in MSYS
           path-type: inherit
       
-      - name: Delete MinGW gmake (MSVC)
+      - name: Remove Perl Strawberry installation and MinGW gmake (MSVC)
         if: env.IS_WINDOWS_MSVC == 'true'
-        # delete /c/Strawberry/c/bin/gmake built for MinGW that is found on runners, because we must use make built for MSYS
-        run: if GMAKE_PATH=`which gmake`; then rm -f "$GMAKE_PATH"; fi
+        # C:\Strawberry contains various MinGW libraries and binaries like pkg-config
+        # that can get picked up by configure/CMake and don't necessarily behave
+        # correctly when not using a MinGW environment, and more specifically we cannot
+        # use MinGW gmake but must use MSYS make for correctly handling of Windows paths,
+        # so we delete everything that could mess up our builds
+        run: rmdir /S /Q C:\Strawberry
+        shell: cmd
 
       - name: Install Windows packages (MSVC)
         if: env.IS_WINDOWS_MSVC == 'true'
