@@ -1,4 +1,12 @@
 name: CI
+run-name: >-
+  ${{
+    join(fromJSON(format('["{0}", "{1}", "{2}"]',
+      ((inputs.tools_make_branch != '' && inputs.tools_make_branch != 'master') || inputs.tools_windows_msvc_branch != '') && github.workflow || '',
+      (inputs.tools_make_branch != '' && inputs.tools_make_branch != 'master') && format('tools-make: {0}', inputs.tools_make_branch) || '',
+      inputs.tools_windows_msvc_branch != '' && format('tools-windows-msvc: {0}', inputs.tools_windows_msvc_branch) || ''
+    )), ' ')
+  }}
 
 on:
   push:
