@@ -11,21 +11,21 @@
  */
 @interface GSTimeoutSource : NSObject
 {
-  dispatch_source_t  _rawSource;
-  NSInteger          _milliseconds;
-  dispatch_queue_t   _queue;
-  dispatch_block_t   _handler;
+  dispatch_source_t  _timer;
+  NSInteger          _timeoutMs;
+  bool               _isSuspended;
 }
 
-- (NSInteger) milliseconds;
-
-- (dispatch_queue_t) queue;
-
-- (dispatch_block_t) handler;
 
 - (instancetype) initWithQueue: (dispatch_queue_t)queue
-                  milliseconds: (NSInteger)milliseconds
                        handler: (dispatch_block_t)handler;
+
+- (NSInteger) timeout;
+- (void) setTimeout: (NSInteger)timeoutMs;
+
+- (void) suspend;
+
+- (void) cancel;
 
 @end
 

@@ -1,4 +1,4 @@
-2022-10-10 Richard Frith-Macdonald <rfm@gnu.org>
+2023-03-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Add test for eventfd presence on linux and use it
 	rather than a pipe for inter-thread signalling.  This reduces the
@@ -22,6 +22,155 @@
 	and getting an interrupt as a posix signal.
 	* Tests/base/NSRunLoop/thread.m: add option to test a large number
 	of inter-thread messages.
+
+2023-01-13 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/Additions/GSInsensitiveDictionary.m:
+	* Source/NSURLRequest.m:
+	* Source/NSURLResponse.m:
+	Fix NSURLSession header fields not always being matched case
+	insensitive.
+
+2023-01-13 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/GSEasyHandle.m:
+	* Source/GSMultiHandle.m:
+	* Source/GSTimeoutSource.h:
+	* Source/GSTimeoutSource.m:
+	* Source/NSURLSession.m:
+	Fix NSURLSession memory management of libdispatch objects.
+	* Source/GSHTTPURLProtocol.m:
+	Fix overrelease.
+
+2023-01-13 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSURLSession.h:
+	* Source/NSURLSession.m:
+	Add missing NSURLSession APIs.
+
+2022-02-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m: ([GSMimeHeader setValue:]) do not set
+	type/subtype information if the content-type header value  is not
+	in that format.
+
+2022-01-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: fix incorrect close of socket at the end
+	of a successful request.
+
+2022-01-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* ChangeLog: Update for new release
+	* ANNOUNCE:
+	* NEWS:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	Update release notes for 1.29.0 release.
+	* Version: bump to 1.29.0
+
+2022-12-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* ChangeLog: Update for new release
+	* ANNOUNCE:
+	* NEWS:
+	* NSTimeZones/NSTimeZones.tar: update
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	Update release notes for 1.28.1 release.
+	* Version: bump to 1.28.1
+
+2022-12-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSXMLParser.m: do not process end tag if parsing was aborted
+	while processing start tag.
+
+2022-11-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Use the https_proxy and http_proxy
+	environment variables if no proxying is specified. Also support
+	those keys as properties in the request (overriding the environment
+	variables) and support the URL protection space if set.
+
+2022-11-26 Fred Kiefer <fredkiefer@gmx.de>
+
+	* Source/Additions/GSXML.m: Remove usage of deprecated function
+	when a newer version of libxml is used.
+
+2022-11-25  Florian Weimer
+
+	* config/config.poll-dev.c:
+	* config/config.proccmd.c:
+	* config/config.reuseaddr.c:
+	* config/config.vasprintf.c:
+	* config/config.vsprintf.c:
+	Make config tests work with C99 compiler
+
+2022-11-21  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSFileManager.m:
+	Call NSDirectoryEnumerator's constructor with either YES or NO for
+	the BOOL arguments.
+	Really skip hidden files in enumerations if requested by the
+	options.
+
+2022-11-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSFileHandle.h:
+	* Headers/GNUstepBase/GSTLS.h:
+	* Source/GSHTTPURLHandle.m:
+	* Source/GSSocketStream.m:
+	* Source/GSTLS.m:
+	* Source/NSURLProtocol.m:
+	* Source/externs.m:
+	Fixup to use strict rfc4514 for distinguished names of issuer and
+	owner of certificates.  Add GSTLSIssuers and GSTLSOwners properties
+	to reject remote certificates which do not match distinguishd names
+	accepted.  This allows encrypted DO to be configured to automatically
+	reject connection attempts which do not have trusted certificates.
+
+2022-11-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* GSSocketStream.m:
+	* NSFileHandle.m:
+	Use new -[GSTLS pending] method to trigger event handling immediately
+	rather than waiting for more data from the network layer.
+
+2022-11-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSTLS.h:
+	* Source/GSTLS.m:
+	Add -pending method to return the number of bytes in the read bufffer.
+	* Source/NSSocketPort.m:
+	Use the new method to avoid a potential hang on an encrypted DO
+	connection.
+
+2022-10-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Refactor a litle to avoid code duplication
+	and try to ensure that the connection is marked 'idle' as soon as we
+	have finished I/O (so its URL can be changed).
+
+2022-10-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Resources/GSTLS/README:
+	* Source/GSTLS.m:
+	Honor the SSL_CERT_FILE environment variable (for OpenSSL
+	compatibility) if our own user default or environment variable
+	is not used.
+
+2022-10-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: Track whether we have read any data from
+	the server.  If a connection is closed by the server while it is being
+	kept alive (ie we are not on first request) and no response data has
+	been read for a request we sent, we assume it was an intentional close
+	and try to establish a new connection to retry the request.
+	This is more tolerant of latency in the network (which could mean that
+	our test tthat the connection is still alive before sending a request
+	could be wrong) and also deals with perverse server implementations
+	which drop long standing connections when the server receives a
+	request rather than when a timeout occurred.
 
 2022-09-15 Hugo Melder <contact@hugomelder.com>
 

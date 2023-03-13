@@ -1018,6 +1018,31 @@ GSTLSHandlePush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
   return [super read: buf length: len];
 }
 
+- (void) watchReadDescriptorForModes: (NSArray*)modes
+{
+  if (descriptor < 0)
+    { 
+      return;
+    }
+  if ([session pending] > 0)
+    {
+      NSRunLoop *l = [NSRunLoop currentRunLoop];
+
+      /* The underlying TLS buffers already have data so we signal
+       * an event as soon as possible.
+       */
+      [l performSelector: @selector(receivedEventRead)
+                  target: self
+                argument: nil
+                   order: 0
+                   modes: modes];
+    }
+  else
+    {
+      [super watchReadDescriptorForModes: modes];
+    }
+}
+
 - (BOOL) sslAccept
 {
   /* If a server session is over five minutes old, destroy it so that

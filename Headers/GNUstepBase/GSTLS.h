@@ -33,6 +33,8 @@ GS_EXPORT NSString * const GSTLSCertificateFile;
 GS_EXPORT NSString * const GSTLSCertificateKeyFile;
 GS_EXPORT NSString * const GSTLSCertificateKeyPassword;
 GS_EXPORT NSString * const GSTLSDebug;
+GS_EXPORT NSString * const GSTLSIssuers;
+GS_EXPORT NSString * const GSTLSOwners;
 GS_EXPORT NSString * const GSTLSPriority;
 GS_EXPORT NSString * const GSTLSRemoteHosts;
 GS_EXPORT NSString * const GSTLSRevokeFile;
@@ -264,6 +266,13 @@ GS_EXPORT_CLASS
  * described in RFC4514.  Otherwise returns nil.
  */
 - (NSString*) owner;
+
+/** Returns the number of bytes of data available to be read from the TLS
+ * buffers (using the -read:length: method).  If this returns zero the TLS
+ * software needs to perform a network read before any more data can be
+ * returned.
+ */
+- (size_t) pending;
 
 /* After a failed handshake, this should contain a description of the
  * failure reason.

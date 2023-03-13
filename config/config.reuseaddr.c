@@ -31,7 +31,7 @@
 // Maximum data in single I/O operation
 #define	NETBUF_SIZE	4096
 
-main()
+int main()
 {
   struct sockaddr_in	sin;
   int	size = sizeof(sin);

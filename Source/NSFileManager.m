@@ -685,6 +685,14 @@ static NSStringEncoding	defaultEncoding;
   return allOk;
 }
 
+- (BOOL) setAttributes:(NSDictionary *)attributes ofItemAtPath:(NSString *)path error:(NSError **)error
+{
+  BOOL success = [self changeFileAttributes: attributes atPath: path];
+  if (!success && error != NULL)
+    *error = [NSError _last];
+  return success;
+}
+
 /**
  * Returns an array of path components suitably modified for display
  * to the end user.  This modification may render the returned strings
@@ -898,6 +906,8 @@ static NSStringEncoding	defaultEncoding;
 {
   NSDirectoryEnumerator *direnum;
   NSString              *path;
+  BOOL                  shouldRecurse;
+  BOOL                  shouldSkipHidden;
   
   DESTROY(_lastError);
 
@@ -907,12 +917,32 @@ static NSStringEncoding	defaultEncoding;
     }
   path = [url path];
   
+  if ((mask & NSDirectoryEnumerationSkipsSubdirectoryDescendants)
+    == NSDirectoryEnumerationSkipsSubdirectoryDescendants)
+    {
+      shouldRecurse = NO;
+    }
+  else
+    {
+      shouldRecurse = YES;
+    }
+  
+  if ((mask & NSDirectoryEnumerationSkipsHiddenFiles)
+    == NSDirectoryEnumerationSkipsHiddenFiles)
+    {
+      shouldSkipHidden = YES;
+    }
+  else
+    {
+      shouldSkipHidden = NO;
+    }
+  
   direnum = [[NSDirectoryEnumerator alloc]
 		       initWithDirectoryPath: path
-                   recurseIntoSubdirectories: !(mask & NSDirectoryEnumerationSkipsSubdirectoryDescendants) 
+                   recurseIntoSubdirectories: shouldRecurse
                               followSymlinks: NO
                                 justContents: NO
-                                  skipHidden: (mask & NSDirectoryEnumerationSkipsHiddenFiles)
+                                  skipHidden: shouldSkipHidden
                                 errorHandler: handler
                                          for: self];
 
@@ -2609,7 +2639,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
 - (void) _setSkipHidden: (BOOL)flag
 {
-  _flags.skipHidden = flag;
+  _flags.skipHidden = flag ? 1 : 0;
 }
 
 - (void) _setErrorHandler: (GSDirEnumErrorHandler) handler
@@ -2629,17 +2659,17 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
     {
     //TODO: the justContents flag is currently basically useless and should be
     //      removed
-      _DIR		*dir_pointer;
+      _DIR		        *dir_pointer;
       const GSNativeChar	*localPath;
 
       _mgr = RETAIN(mgr);
       _stack = NSZoneMalloc([self zone], sizeof(GSIArray_t));
       GSIArrayInitWithZoneAndCapacity(_stack, [self zone], 64);
 
-      _flags.isRecursive = recurse;
-      _flags.isFollowing = follow;
-      _flags.justContents = justContents;
-      _flags.skipHidden = skipHidden;
+      _flags.isRecursive = recurse ? 1 : 0;
+      _flags.isFollowing = follow ? 1 : 0;
+      _flags.justContents = justContents ? 1 : 0;
+      _flags.skipHidden = skipHidden ? 1 : 0;
       _errorHandler = handler;
       
       _topPath = [[NSString alloc] initWithString: path];
@@ -2723,7 +2753,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 - (NSDictionary*) directoryAttributes
 {
   return [_mgr fileAttributesAtPath: _topPath
-		       traverseLink: _flags.isFollowing];
+		       traverseLink: _flags.isFollowing ? YES : NO];
 }
 
 /**
@@ -2735,7 +2765,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 - (NSDictionary*) fileAttributes
 {
   return [_mgr fileAttributesAtPath: _currentFilePath
-		       traverseLink: _flags.isFollowing];
+		       traverseLink: _flags.isFollowing ? YES : NO];
 }
 
 /**
@@ -2803,8 +2833,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
       if (dirname)
 	{
           // Skip it if it is hidden and flag is yes...
-          if ([[dir.path lastPathComponent] hasPrefix: @"."]
-	    && _flags.skipHidden == YES)
+          if (dirname[0] == '.' && _flags.skipHidden)
             {
               continue;
             }
@@ -2846,7 +2875,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	    _currentFilePath = RETAIN([_topPath stringByAppendingPathComponent:
 	      returnFileName]);
 
-	  if (_flags.isRecursive == YES)
+	  if (_flags.isRecursive)
 	    {
 	      // Do not follow links
 #ifdef S_IFLNK

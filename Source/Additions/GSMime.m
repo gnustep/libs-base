@@ -3345,7 +3345,6 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 
 @end
 
-
 
 @interface	_GSMutableInsensitiveDictionary : NSMutableDictionary
 @end
@@ -4688,8 +4687,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       NSArray   *a;
 
       a = [[value lowercaseString] componentsSeparatedByString: @"/"];
-      [self setObject: [a objectAtIndex: 0] forKey: @"Type"];
-      [self setObject: [a objectAtIndex: 1] forKey: @"Subtype"];
+      if ([a count] == 2)
+        {
+          [self setObject: [a objectAtIndex: 0] forKey: @"Type"];
+          [self setObject: [a objectAtIndex: 1] forKey: @"Subtype"];
+        }
     }
 }
 

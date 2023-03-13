@@ -18,7 +18,7 @@ notice and this notice are preserved.
     </author>
     <version>$Revision$</version>
     <date>$Date$</date>
-    <copy>2005-2020 Free Software Foundation, Inc.</copy>
+    <copy>2005-2022 Free Software Foundation, Inc.</copy>
   </head>
   <body>
     <chapter>
@@ -30,95 +30,101 @@ notice and this notice are preserved.
       </p>
 
       <section>
-	<heading>Version 1.28.0</heading>
+	<heading>Version 1.29.0</heading>
+        <p>
+          Bugfix release to increment library version number to reflect ABI
+          changes which should have been noticed before 1.28.1 release.
+        </p>
+      </section>
+
+      <section>
+	<heading>Version 1.28.1</heading>
         <p>
           Aside from an assortment of bugfixes, this release includes a lot of
-          improvements for Windows support as well as numerous new classes and methods.
+          improvements for Windows support as well as security features.
         </p>
         <p>
           Not every bugfix, improvement or a new feature will be listed here.
         </p>
 
-        Reading and setting File Creation Date attribute on Windows.<br />
-        Added new <code>ASSIGNMUTABLECOPY()</code> macro for consistency with
-        <code>ASSIGNCOPY()</code>.<br />
-        Replaced character set data headers for URLs with loading these from a
-        standard data source, and updated bitmap representation to use much less space
-        for character sets residing wholly in the base plane, such as the URL charsets
-        (given they are purely ASCII).<br />
-        Updated character set data with newer Unicode data set.<br />
-        <code>[NSURLProtocol -initWithRequest:cachedResponse:client:]</code> will now
-        retain the client up until the last message is sent to it, which improves
-        compatibility with OS X.<br />
-        Percent-escaping code in <code>NSURL</code> simplified.<br />
-        Removed mixed ABI support.<br />
-        Use of Apple runtime now assumes non-fragile ABI (which is true on modern
-        systems).<br />
-        Improve typing on method implementation pointers in some classes.<br />
-        In <code>NSHTTPCookie</code>, rewritten code for extracting individual cookies
-        from the HTTP header.<br />
-        In <code>NSKeyedArchiver</code>, implement secure coding methods.<br />
-        New methods in <code>NSDateComponents</code>.<br />
-        Improvements in <code>NSCalendar</code> and <code>NSLocale</code> for calendar locale
-        and <code>NSDateComponents</code>.<br />
-        In <code>NSFileManager</code>, use <code>utimensat()</code> to set file modification
-        date, if available.<br />
-        Correctly stop parsing number being decoded in <code>NSJSONSerialization</code>
-        when encountering a number with an invalid exponent.<br />
-        Improve OS X compatibility for <code>NSURLQueryItem</code> initializers.<br />
-        For <code>NSFileManager</code>, in <code>changeFileAttributes</code>, implement
-        setting creation date for Unix-like systems. Implement reading the creation
-        date if a supported method was detected.<br />
-        Support reading Android assets from the main bundle in
-        <code>NSInputStream</code>.<br />
-        Support Android assets directories in <code>NSBundle</code> and <code>NSFileManager</code>.<br />
-        Implement <code>-[NSXMLParser initWithStream:]</code>.<br />
-        Allow clearer choice between 'sloppy' <code>GSSloppyXMLParser</code> used in
-        <code>NSXMLParser</code> and the libxml2-based <code>GSStrictXMLParser</code>.<br />
-        Fix building Win32 implementations for <code>GSFileHandle</code> and
-        <code>NSMessagePort</code> with nonfragile ABI.<br />
-        Use <code>NSNumber</code> and not <code>NSString</code> in
-        <code>-[NSUserDefaults setBool:forKey:]</code>.<br />
-        Posting notification before <code>NSThread</code> exit.<br />
-        Actually declare optional <code>NSFilePresenter</code> methods as optional.<br />
-        In <code>NSConcreteMapTable</code>, fix replacing existing values in a weak
-        objects map table.<br />
-        Fix leaks in <code>NSOperation</code>.<br />
-        Various compat fixes for various MSYS systems, particularly around
-        sockets code.<br />
-        In <code>NSData</code>, <code>NSFileManager</code> and more, various improvements when
-        overwriting and creating files with respect to file attributes (owners, creation
-        timestamp, etc).<br />
-        Improve <code>NSLog</code> output on Android.<br />
-        Use <code>instancetype</code> in <code>NSURLRequest</code> header.<br />
-        Define <code>NSAttributedStringKey</code> and <code>NSNotificationName</code>.<br />
-        Add new <code>NSURL</code> methods.<br />
-        In <code>GSMime</code>, have <code>-contentFile</code> check the <code>Content-Type</code>
-        header before checking <code>Content-Disposition</code>.<br />
-        Fix a bug linking with WEAK symbols where binutils 2.3.5 would fail to
-        link due to not all expected symbols being exported.<br />
-        New <code>plutil</code> utility.<br />
-        Implementation of <code>[NSData rangeOfData:options:range:]</code> which finds
-        the <code>NSRange</code> in which the passed data occurs.<br />
-        Change <code>ENTER_POOL</code>/<code>LEAVE_POOL</code> so they no longer wrap the
-        enclosed code in a loop, enabling use in some loops.<br />
-        New 10.5 methods in <code>NSRunLoop</code>/<code>NSURLConnection</code>.<br />
-        Improve compatibility when building with ICU 68.<br />
-        Fix compiling libdispatch integration of <code>NSRunLoop</code> on Windows.<br />
-        Add support for building on Windows with MSVC's Clang by passing the
-        <code>configure</code> flag <code>--host=x86_64-pc-windows</code>. Use of an MSYS2 shell
-        without <code>-devel</code> packages is recommended.<br />
-        Implementation of <code>NSURLSession</code> and related classes. This adds some
-        dependencies on more recent versions of <code>libcurl</code>, <code>libdispatch</code> etc.<br />
-        Fix initializing <code>NSUUID</code> from a string.<br />
-        Disable use of <code>libcurl</code> if its headers are not found.<br />
-        In <code>NSURLProtocol</code>, continue writing data if not all of it was
-        written.<br />
-        Fix use of GnuTLS under MinGW by using <code>send/recv</code> rather than
-        <code>read/write</code>.<br />
-        Add support for libobjc2 runtime on Windows.<br />
-        Fix BOM insertion when generating data from a string using one of the
-        Unicode encodings.
+        Configuration: Make config tests work with C99 compiler.<br />
+
+        GSTLS: Use strict rfc4514 for distinguished names of issuer and
+        owner of certificates.  Add GSTLSIssuers and GSTLSOwners properties
+        to reject remote certificates which do not match distinguishd names
+        accepted.  This allows encrypted DO to be configured to automatically
+        reject connection attempts which do not have trusted certificates.
+        Add -pending method allowing NSFileHandle and NSStream to detect when
+        there is buffered data in the TLS layer that they could read.
+        Honor the SSL_CERT_FILE environment variable for OpenSSL compatibility.
+
+        GSXML.m: Remove usage of deprecated function when a newer version of
+        libxml is used.<br />
+
+        NSCalendar: New methods with testcases and documentation.<br />
+
+        NSConnection: Add debug output reporting the details of any exception
+        returned over a DO connection from the remote process or thread.<br />
+
+        NSFileHandle: On ms-windows support overlapped I/O on standard
+        streams.<br />
+
+        NSFileManager: Fix bug creating NSDirectoryEnumerator instances, and
+        ensure we eeally skip hidden files in enumerations if requested by
+        the options.<br />
+
+        NSIndexPath: New methods to support collection and table view.<br />
+
+        NSLock: Use native APIs on ms-windows.
+
+        NSOperation: Fix various bugs in operation finishing, completion block,
+        and removal of dependency observers.
+        Remove the maximum number of threads restriction and use
+        the setting from -setMaxConcurrentOperationCount: instead.<br />
+
+        NSPredicate: fix error parsing an array whose entry is an NSExpression
+        object.<br />
+
+        NSRegularExpression: Fix possible corruption when using ICU strings
+        longer than 16 characters.
+
+        NSSocketPort: APIs to permit Distributed Objects connections to be TLS
+        encrypted for secure inter-process communications.
+
+        NSString: Use ICU on ms-windows.  Fix various obscure bugs.
+
+        NSTask: Use .exe extension implicitly if needed on ms-windows.
+ 
+        NSThread: Use native APIs on ms-windows.
+
+        NSTimeZone: Rewrite to support the latest (v2+) timezone file format
+        and transition data held as 64bit values rather than the 32bit values
+        needed so far.
+        ms-windows compatibility fixes.
+
+        NSURL: Improve handling of clients (including making client lookup
+        thread-safe).
+        When making a request to retrieve an http/https URL, improve
+        debug output, mask sensitive authentication header detials, and provide
+        delegate metods/api to permite callers to filter the debug log to remove
+        any other sensitive information.<br />
+
+        NSURLHandle: Use the https_proxy and http_proxy
+        environment variables if no proxying is specified. Also support
+        those keys as properties in the request (overriding the environment
+        variables) and support the URL protection space if set.
+        Improve handling of the remote end dropping the connection (reconnect
+        if the request has not been sent).<br />
+
+        NSXMLParser: do not process end tag if parsing was aborted
+        while processing start tag.<br />
+
+        Testcases: Changes to work with a C99 compiler.
+        Fixes for NSTask tests to work on ms-windows. 
+        Exclude NSBundle framework tests on ms-windows.
+        Skip tilde abbreviation tests on ms-windows.
+        Skip GSInetServerStream based testcases on win32<br />
+
       </section>
 
       <section>

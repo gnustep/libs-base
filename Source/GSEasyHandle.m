@@ -155,7 +155,7 @@ curl_debug_function(CURL *handle, curl_infotype type, char *data,
       text = [NSString stringWithUTF8String: data];
     }
   
-  NSLog(@"%p %lu %d %@", o, [task taskIdentifier], type, text);
+  NSLog(@"%p %lu %d %@", o, (unsigned long)[task taskIdentifier], type, text);
 
   return 0;
 }
@@ -195,6 +195,7 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
   curl_slist_free_all(_headerList);
   free(_errorBuffer);
   DESTROY(_config);
+  [_timeoutTimer cancel];
   DESTROY(_timeoutTimer);
   DESTROY(_URL);
   [super dealloc];
@@ -217,6 +218,7 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
 
 - (void) setTimeoutTimer: (GSTimeoutSource*)timer
 {
+  [_timeoutTimer cancel];
   ASSIGN(_timeoutTimer, timer);
 }
 
@@ -232,12 +234,7 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
 
 - (void) resetTimer 
 {
-  // simply create a new timer with the same queue, timeout and handler
-  // this must cancel the old handler and reset the timer
-  DESTROY(_timeoutTimer);
-  _timeoutTimer = [[GSTimeoutSource alloc] initWithQueue: [_timeoutTimer queue]
-                                            milliseconds: [_timeoutTimer milliseconds]
-                                                 handler: [_timeoutTimer handler]];
+  [_timeoutTimer setTimeout: [_timeoutTimer timeout]];
 }
 
 - (void) setupCallbacks 
@@ -332,7 +329,7 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
 {
   if (flag) 
     {
-      handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_DEBUGDATA, self));
+      handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_DEBUGDATA, task));
       handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_DEBUGFUNCTION,
 	curl_debug_function));
     } 
@@ -408,7 +405,7 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
       else 
         {
           value = [NSString stringWithFormat: @"%@:%lu:%@", 
-            originHost, port, host];
+            originHost, (unsigned long)port, host];
         }
       
       struct curl_slist *connect_to = NULL;

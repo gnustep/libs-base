@@ -284,8 +284,15 @@ typedef struct {
 	  textEncodingName: nil];
   if (nil != self)
     {
+      NSString *k;
+      NSEnumerator *e = [headerFields keyEnumerator];
+      while (nil != (k = [e nextObject]))
+        {
+          NSString *v = [headerFields objectForKey: k];
+          [self _setValue: v forHTTPHeaderField: k];
+        }
+
       this->statusCode = statusCode;
-      this->headers = [headerFields copy];
       [self _checkHeaders];
     }
   return self;

@@ -11,6 +11,28 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+This is a bugfix release increasing the library version number to reflect ABI change that should have been included when the previous release was made.
+
+@section Noteworthy changes in version @samp{1.29.0}
+
+@itemize @bullet
+@item Library version changed from 1.28 to 1.29
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
+@section Noteworthy changes in version @samp{1.28.1}
+
+@itemize @bullet
+@item Many changes to make building and testcases work on ms-windows (particularly with the MSVC target and when using a strict C99 compiler).
+@item Support for native locking on ms-windows.
+@item Support for overlapped I/O on ms-windows.
+@item New timezone handling code to deal with v2+ of the timezone format.
+@item TLS support for secure Distributed Objects connections.
+@item Masking of sensitive information in http/https debug logs.
+@item a variety of bugfixes.
+@end itemize
+
 @section Noteworthy changes in version @samp{1.28.0}
 
 Aside from an assortment of bugfixes, this release includes a lot of
@@ -101,7 +123,6 @@ written.
 Unicode encodings.
 @end itemize
 
-@ifclear ANNOUNCE-ONLY
 @section Noteworthy changes in version @samp{1.27.0}
 
 Aside from an assortment of bugfixes, this release includes a lot of

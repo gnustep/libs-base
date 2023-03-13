@@ -25,6 +25,6 @@ static int func(const char *fmt, ...)
 int main()
 {
   if (func("1234", 0) == 4)
-    exit (0);
-  exit (-1);
+    return 0;
+  return -1;
 }

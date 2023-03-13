@@ -9,6 +9,9 @@ Tests/base/*/GNUmakefile
 *.log
 *.sum
 
+# Autoconf
+autom4te.cache
+
 # Test products
 Tests/base/coding/*.type
 Tests/base/NSBundle/Resources/TestBundle.bundle/

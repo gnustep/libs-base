@@ -287,6 +287,7 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 - (void) bye;           /* Close down the handled session.   */
 - (BOOL) handshake;     /* A handshake/hello is in progress. */
 - (void) hello;         /* Start up the session handshake.   */
+- (BOOL) readable;      /* is there buffered data to read?   */
 - (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len;
 - (void) remove: (NSStream*)stream;	/* Stream no longer available */
 - (void) stream: (NSStream*)stream handleEvent: (NSStreamEvent)event;
@@ -339,6 +340,11 @@ GSPrivateSockaddrSetup(NSString *machine, uint16_t port,
 - (GSSocketOutputStream*) ostream
 {
   return ostream;
+}
+ 
+- (BOOL) readable
+{
+  return NO;
 }
 
 - (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
@@ -476,6 +482,8 @@ static NSArray  *keys = nil;
         GSTLSCertificateKeyFile,
         GSTLSCertificateKeyPassword,
         GSTLSDebug,
+        GSTLSIssuers,
+        GSTLSOwners,
         GSTLSPriority,
         GSTLSRemoteHosts,
         GSTLSRevokeFile,
@@ -691,6 +699,15 @@ static NSArray  *keys = nil;
   return ostream;
 }
 
+- (BOOL) readable
+{
+  if (NO == active || YES == handshake)
+    {
+      return NO;
+    }
+  return ([session pending] > 0) ? YES : NO;
+}
+
 - (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
   return [session read: buffer length: len];
@@ -810,6 +827,8 @@ static NSArray  *keys = nil;
         GSTLSCertificateKeyFile,
         GSTLSCertificateKeyPassword,
         GSTLSDebug,
+        GSTLSIssuers,
+        GSTLSOwners,
         GSTLSPriority,
         GSTLSRemoteHosts,
         GSTLSRevokeFile,
@@ -2214,13 +2233,23 @@ setNonBlocking(SOCKET fd)
 #endif
 }
 
-#if	defined(_WIN32)
 - (BOOL) runLoopShouldBlock: (BOOL*)trigger
 {
+  /* If there is a handler in place which has data buffered for reading
+   * the run loop should trigger immediately so we read it.
+   */
+  if ([_handler readable])
+    {
+      *trigger = YES;
+      return NO;
+    }
+#if	defined(_WIN32)
   *trigger = YES;
   return YES;
-}
+#else
+  return [super runLoopShouldBlock: trigger];
 #endif
+}
 
 @end
 

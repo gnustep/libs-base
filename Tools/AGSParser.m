@@ -3130,20 +3130,6 @@ fail:
 		 * Merge info from implementation into existing version.
 		 */
 
-		a0 = [exist objectForKey: @"Args"];
-		a1 = [method objectForKey: @"Args"];
-		if (a0 != nil)
-		  {
-		    if ([a0 isEqual: a1] == NO)
-		      {
-			ASSIGNCOPY(itemName, token);
-			[self log: @"method args in interface %@ don't match "
-			  @"those in implementation %@", a0, a1];
-			DESTROY(itemName);
-			[exist setObject: a1 forKey: @"Args"];
-		      }
-		  }
-
 		a0 = [exist objectForKey: @"Types"];
 		a1 = [method objectForKey: @"Types"];
 		if (a0 != nil)

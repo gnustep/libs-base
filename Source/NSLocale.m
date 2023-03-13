@@ -536,7 +536,15 @@ static NSRecursiveLock *classLock = nil;
   if (nil == systemLocale)
     {
 #if	GS_USE_ICU == 1
+  #if U_ICU_VERSION_MAJOR_NUM >= 64
+      /* Since ICU 64, the locale handling has changed such that passing an 
+         empty string to uloc_canonicalize no longer returns the en_US_POSIX
+         locale as it did in previous versions.
+         See https://icu.unicode.org/download/64#h.plg55ia6o3du */
+      systemLocale = [[NSLocale alloc] initWithLocaleIdentifier: @"en_US_POSIX"];  
+  #else
       systemLocale = [[NSLocale alloc] initWithLocaleIdentifier: @""];
+  #endif    
 #endif
     }
 

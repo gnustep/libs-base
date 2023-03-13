@@ -23,7 +23,9 @@
 @class NSURLRequest;
 @class NSURLResponse;
 @class NSURLSessionConfiguration;
+@class NSURLSessionTask;
 @class NSURLSessionDataTask;
+@class NSURLSessionUploadTask;
 @class NSURLSessionDownloadTask;
 
 
@@ -61,6 +63,10 @@ GS_EXPORT_CLASS
   NSString                   *_sessionDescription;
   GSMultiHandle              *_multiHandle;
 }
+
++ (NSURLSession*) sharedSession;
+
++ (NSURLSession*) sessionWithConfiguration: (NSURLSessionConfiguration*)configuration;
 
 /*
  * Customization of NSURLSession occurs during creation of a new session.
@@ -111,11 +117,80 @@ GS_EXPORT_CLASS
 /* Creates a data task to retrieve the contents of the given URL. */
 - (NSURLSessionDataTask*) dataTaskWithURL: (NSURL*)url;
 
+/* Not implemented */
+- (NSURLSessionUploadTask*) uploadTaskWithRequest: (NSURLRequest*)request
+                                          fromFile: (NSURL*)fileURL;
+
+/* Not implemented */
+- (NSURLSessionUploadTask*) uploadTaskWithRequest: (NSURLRequest*)request
+                                          fromData: (NSData*)bodyData;
+
+/* Not implemented */
+- (NSURLSessionUploadTask*) uploadTaskWithStreamedRequest: (NSURLRequest*)request;
+
 /* Creates a download task with the given request. */
-- (NSURLSessionDownloadTask *) downloadTaskWithRequest: (NSURLRequest *)request;
+- (NSURLSessionDownloadTask*) downloadTaskWithRequest: (NSURLRequest*)request;
 
 /* Creates a download task to download the contents of the given URL. */
-- (NSURLSessionDownloadTask *) downloadTaskWithURL: (NSURL *)url;
+- (NSURLSessionDownloadTask*) downloadTaskWithURL: (NSURL*)url;
+
+/* Not implemented */
+- (NSURLSessionDownloadTask *) downloadTaskWithResumeData: (NSData *)resumeData;
+
+- (void) getTasksWithCompletionHandler: (void (^)(GS_GENERIC_CLASS(NSArray, NSURLSessionDataTask*) *dataTasks, GS_GENERIC_CLASS(NSArray, NSURLSessionUploadTask*) *uploadTasks, GS_GENERIC_CLASS(NSArray, NSURLSessionDownloadTask*) *downloadTasks))completionHandler;
+
+- (void) getAllTasksWithCompletionHandler: (void (^)(GS_GENERIC_CLASS(NSArray, __kindof NSURLSessionTask*) *tasks))completionHandler;
+
+@end
+
+/*
+ * NSURLSession convenience routines deliver results to 
+ * a completion handler block.  These convenience routines
+ * are not available to NSURLSessions that are configured
+ * as background sessions.
+ *
+ * Task objects are always created in a suspended state and 
+ * must be sent the -resume message before they will execute.
+ */
+@interface NSURLSession (NSURLSessionAsynchronousConvenience)
+/*
+ * data task convenience methods.  These methods create tasks that
+ * bypass the normal delegate calls for response and data delivery,
+ * and provide a simple cancelable asynchronous interface to receiving
+ * data.  Errors will be returned in the NSURLErrorDomain, 
+ * see <Foundation/NSURLError.h>.  The delegate, if any, will still be
+ * called for authentication challenges.
+ */
+- (NSURLSessionDataTask*) dataTaskWithRequest: (NSURLRequest*)request
+                            completionHandler: (void (^)(NSData *data, NSURLResponse *response, NSError *error))completionHandler;
+- (NSURLSessionDataTask*) dataTaskWithURL: (NSURL*)url
+                        completionHandler: (void (^)(NSData *data, NSURLResponse *response, NSError *error))completionHandler;
+
+
+/* Not implemented */
+- (NSURLSessionUploadTask*) uploadTaskWithRequest: (NSURLRequest*)request
+                                         fromFile: (NSURL*)fileURL
+                                completionHandler: (void (^)(NSData *data, NSURLResponse *response, NSError *error))completionHandler;
+
+/* Not implemented */
+- (NSURLSessionUploadTask*) uploadTaskWithRequest: (NSURLRequest*)request
+                                         fromData: (NSData*)bodyData
+                                completionHandler: (void (^)(NSData *data, NSURLResponse *response, NSError *error))completionHandler;
+
+/*
+ * download task convenience methods.  When a download successfully
+ * completes, the NSURL will point to a file that must be read or
+ * copied during the invocation of the completion routine.  The file
+ * will be removed automatically.
+ */
+- (NSURLSessionDownloadTask*) downloadTaskWithRequest: (NSURLRequest*)request
+                                    completionHandler: (void (^)(NSURL *location, NSURLResponse *response, NSError *error))completionHandler;
+- (NSURLSessionDownloadTask*) downloadTaskWithURL: (NSURL *)url
+                                completionHandler: (void (^)(NSURL *location, NSURLResponse *response, NSError *error))completionHandler;
+
+/* Not implemented */
+- (NSURLSessionDownloadTask*) downloadTaskWithResumeData: (NSData*)resumeData
+                                       completionHandler: (void (^)(NSURL *location, NSURLResponse *response, NSError *error))completionHandler;
 
 @end
 
@@ -130,6 +205,12 @@ typedef NS_ENUM(NSUInteger, NSURLSessionTaskState) {
    * delegate notifications */
   NSURLSessionTaskStateCompleted = 3,  
 };
+
+GS_EXPORT const float NSURLSessionTaskPriorityDefault;
+GS_EXPORT const float NSURLSessionTaskPriorityLow;
+GS_EXPORT const float NSURLSessionTaskPriorityHigh;
+
+GS_EXPORT const int64_t NSURLSessionTransferSizeUnknown;
 
 /*
  * NSURLSessionTask - a cancelable object that refers to the lifetime
@@ -197,6 +278,9 @@ GS_EXPORT_CLASS
   NSUInteger            _suspendCount;
 
   GSURLSessionTaskBody  *_knownBody;
+
+  void                  (^_dataCompletionHandler)(NSData *data, NSURLResponse *response, NSError *error);
+  void                  (^_downloadCompletionHandler)(NSURL *location, NSURLResponse *response, NSError *error);
 }
 
 - (NSUInteger) taskIdentifier;
@@ -245,6 +329,9 @@ GS_EXPORT_CLASS
 - (void) suspend;
 - (void) resume;
 
+- (float) priority;
+- (void) setPriority: (float)priority;
+
 @end
 
 GS_EXPORT_CLASS
@@ -273,6 +360,7 @@ GS_EXPORT_CLASS
 GS_EXPORT_CLASS
 @interface NSURLSessionConfiguration : NSObject <NSCopying>
 {
+  NSString                 *_identifier;
   NSURLCache               *_URLCache;
   NSURLRequestCachePolicy  _requestCachePolicy;
   NSArray                  *_protocolClasses;
@@ -288,34 +376,40 @@ GS_EXPORT_CLASS
 
 - (NSURLRequest*) configureRequest: (NSURLRequest*)request;
 
-@property (class, readonly, strong)
-  NSURLSessionConfiguration *defaultSessionConfiguration;
++ (NSURLSessionConfiguration*) defaultSessionConfiguration;
++ (NSURLSessionConfiguration*) ephemeralSessionConfiguration;
++ (NSURLSessionConfiguration*) backgroundSessionConfigurationWithIdentifier:(NSString*)identifier;
 
 - (NSDictionary*) HTTPAdditionalHeaders;
+- (void) setHTTPAdditionalHeaders: (NSDictionary*)headers;
 
 - (NSHTTPCookieAcceptPolicy) HTTPCookieAcceptPolicy;
+- (void) setHTTPCookieAcceptPolicy: (NSHTTPCookieAcceptPolicy)policy;
 
 - (NSHTTPCookieStorage*) HTTPCookieStorage;
-
-#if     !NO_GNUSTEP 
-- (NSInteger) HTTPMaximumConnectionLifetime;
-#endif
+- (void) setHTTPCookieStorage: (NSHTTPCookieStorage*)storage;
 
 - (NSInteger) HTTPMaximumConnectionsPerHost;
+- (void) setHTTPMaximumConnectionsPerHost: (NSInteger)n;
 
 - (BOOL) HTTPShouldSetCookies;
+- (void) setHTTPShouldSetCookies: (BOOL)flag;
 
 - (BOOL) HTTPShouldUsePipelining;
+- (void) setHTTPShouldUsePipelining: (BOOL)flag;
+
+- (NSString*) identifier;
 
 - (NSArray*) protocolClasses;
 
 - (NSURLRequestCachePolicy) requestCachePolicy;
+- (void) setRequestCachePolicy: (NSURLRequestCachePolicy)policy;
 
-- (void) setHTTPAdditionalHeaders: (NSDictionary*)headers;
+- (NSURLCache*) URLCache;
+- (void) setURLCache: (NSURLCache*)cache;
 
-- (void) setHTTPCookieAcceptPolicy: (NSHTTPCookieAcceptPolicy)policy;
-
-- (void) setHTTPCookieStorage: (NSHTTPCookieStorage*)storage;
+- (NSURLCredentialStorage*) URLCredentialStorage;
+- (void) setURLCredentialStorage: (NSURLCredentialStorage*)storage;
 
 #if     !NO_GNUSTEP 
 /** Permits a session to be configured so that older connections are reused.
@@ -323,24 +417,9 @@ GS_EXPORT_CLASS
  * reused as long as they are not older than 118 seconds, which is reasonable
  * for the vast majority if situations.
  */
+- (NSInteger) HTTPMaximumConnectionLifetime;
 - (void) setHTTPMaximumConnectionLifetime: (NSInteger)n;
 #endif
-
-- (void) setHTTPMaximumConnectionsPerHost: (NSInteger)n;
-
-- (void) setHTTPShouldSetCookies: (BOOL)flag;
-
-- (void) setHTTPShouldUsePipelining: (BOOL)flag;
-
-- (void) setRequestCachePolicy: (NSURLRequestCachePolicy)policy;
-
-- (void) setURLCache: (NSURLCache*)cache;
-
-- (void) setURLCredentialStorage: (NSURLCredentialStorage*)storage;
-
-- (NSURLCache*) URLCache;
-
-- (NSURLCredentialStorage*) URLCredentialStorage;
 
 @end
 
