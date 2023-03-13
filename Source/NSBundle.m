@@ -711,6 +711,8 @@ _find_main_bundle_for_tool(NSString *toolName)
           return bundle;
         }
 
+      NSWarnLog(@"\t *** frameworkClass = %@, _byClass = %@", frameworkClass, _byClass);
+
       name = [NSString stringWithUTF8String: &frameworkClassName[12]];
       /* Important - gnustep-make mangles framework names to encode
        * them as ObjC class names.  Here we need to demangle them.  We
@@ -726,6 +728,8 @@ _find_main_bundle_for_tool(NSString *toolName)
        * locate the framework no matter where it is on disk!
        */
       bundlePath = GSPrivateSymbolPath(frameworkClass);
+
+      NSWarnLog(@"\t *** name = %@, bundlePath = %@", name, bundlePath);
 
       if ([bundlePath isEqualToString: GSPrivateExecutablePath()])
 	{
@@ -784,7 +788,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 	    {
 	      bundlePath = [bundlePath stringByDeletingLastPathComponent];
 	    }
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_MSC_VER)
 	  /* On windows, the library (dll) is in the Tools area rather than
 	   * in the framework, so we can adjust the path here.
 	   */
@@ -819,7 +823,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 		  if (bundlePath)
 		    bundle = [[self alloc] initWithPath: bundlePath];
 		}
-#if !defined(_WIN32)
+#if !defined(_WIN32) && !defined(_MSC_VER)
 	    }
 #endif
 
@@ -856,6 +860,8 @@ _find_main_bundle_for_tool(NSString *toolName)
 	    }
 	}
 
+      NSWarnLog(@"\t *** bundlePath = %@", bundlePath);
+      
       [load_lock lock];
       if (bundle == nil)
 	{
@@ -931,6 +937,12 @@ _find_main_bundle_for_tool(NSString *toolName)
 	    }
 	}
     }
+
+  if (bundle)
+    {
+      NSWarnLog(@"\t *** Bundle loaded %@", bundle);
+    }
+  
   return bundle;
 }
 

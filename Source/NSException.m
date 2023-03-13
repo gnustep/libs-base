@@ -1603,6 +1603,10 @@ callUncaughtHandler(id value)
       _e_stack = [GSStackTrace new];
       [_e_stack trace];
     }
+  
+  NSWarnLog(@"\t *** name = %@, reason = %@", _e_name, _e_reason);
+
+  while (1);
 
 #if     defined(_NATIVE_OBJC_EXCEPTIONS)
   @throw self;
