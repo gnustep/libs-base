@@ -860,7 +860,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 	    }
 	}
 
-      NSWarnLog(@"\t *** bundlePath = %@", bundlePath);
+      NSLog(@"\t *** bundlePath = %@", bundlePath);
       
       [load_lock lock];
       if (bundle == nil)
