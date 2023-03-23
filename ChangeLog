@@ -1,3 +1,7 @@
+2022-03-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimer.m: wrap call to block in exception handler (bug #289)
+
 2023-01-13 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/Additions/GSInsensitiveDictionary.m:

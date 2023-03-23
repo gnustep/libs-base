@@ -290,7 +290,17 @@ static Class	NSDate_class;
     {
       if ((id)_block != nil)
         {
-          CALL_NON_NULL_BLOCK(_block, self);
+          NS_DURING
+            {
+              CALL_NON_NULL_BLOCK(_block, self);
+            }
+          NS_HANDLER
+            {
+              NSLog(@"*** NSTimer ignoring exception '%@' (reason '%@') "
+                @"raised during posting of timer with block",
+                [localException name], [localException reason]);
+            }
+          NS_ENDHANDLER
         }
       else
         {
