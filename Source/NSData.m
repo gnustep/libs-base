@@ -804,6 +804,13 @@ failure:
 	}
     }
   length = dst - result;
+
+  if (length == 0)
+    {
+      NSZoneFree(zone, result);
+      return [self initWithBytesNoCopy: 0 length: 0 freeWhenDone: YES];
+    }
+
   if (options & NSDataBase64DecodingIgnoreUnknownCharacters)
     {
       /* If the decoded length is a lot shorter than expected (because we

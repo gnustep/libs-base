@@ -127,6 +127,12 @@ int main()
   PASS_EQUAL(data, ref, "base64 decoding Yml0bWFya2V0cyB1c2VyIGluZGVudGl0eQ==")
   [data release];
 
+  data = [[NSData alloc] initWithBase64EncodedString: @"\n"
+    options: NSDataBase64DecodingIgnoreUnknownCharacters];
+  ref = [NSData dataWithBytes: "" length: 0];
+  PASS_EQUAL(data, ref, "base64 decoding empty string")
+  [data release];
+
   [arp release]; arp = nil;
   return 0;
 }
