@@ -1864,6 +1864,23 @@ static Class		tcpPortClass;
 	    {
 #if	defined(_WIN32)
               int rc;
+
+#else
+              int e;
+              if ((e = fcntl(desc, F_GETFL, 0)) >= 0)
+                {
+                  e |= NBLK_OPT;
+                  if (fcntl(desc, F_SETFL, e) < 0)
+                    {
+                      NSLog(@"unable to set non-blocking mode on %d - %@",
+                        desc, [NSError _last]);
+                    }
+                }
+              else
+                {
+                  NSLog(@"unable to get/set non-blocking mode on %d - %@",
+                    desc, [NSError _last]);
+                }
 #endif
 	      /*
 	       * Set up the listening descriptor and the actual TCP port

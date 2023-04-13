@@ -1,3 +1,10 @@
+2022-04-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSocketPort.m: set listening socket into non-blocking mode
+	if possible, so if multiple threads are using the same port we don't
+	get one thread blocked wating for an accept which was handled by
+	another one.
+
 2022-03-23 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimer.m: wrap call to block in exception handler (bug #289)
