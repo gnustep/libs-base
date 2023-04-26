@@ -1,3 +1,11 @@
+2023-04-26 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Tests/base/NSFileManager/general.m:
+	* Source/NSFileManager.m:
+	Add test for and fix -[NSFileManager contentsOfDirectoryAtURL:...]
+	implementation not working correctly if directory did not match
+	current working directory.
+
 2022-04-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSocketPort.m: set listening socket into non-blocking mode

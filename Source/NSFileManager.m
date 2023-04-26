@@ -837,7 +837,7 @@ static NSStringEncoding	defaultEncoding;
           NSURL         *tempURL;
           NSString      *lastComponent;
       
-          tempURL = [NSURL fileURLWithPath: tempPath];
+          tempURL = [NSURL fileURLWithPath: tempPath relativeToURL: url];
           lastComponent = [tempPath lastPathComponent];
           
           /* we purge files beginning with . */
