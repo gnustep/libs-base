@@ -143,6 +143,31 @@ int main()
   }
 
   {
+    NSArray	*a;
+    NSString *dir1 = [mgr currentDirectoryPath];
+
+    [mgr changeCurrentDirectoryPath: [dir1 stringByDeletingLastPathComponent]];
+    a = [mgr contentsOfDirectoryAtPath: dir error: 0];
+    PASS(1 == [a count] && [[a lastObject] isEqual: @"NSFMFile"],
+      "-contentsOfDirectoryAtPath: agrees with different current directory");
+    [mgr changeCurrentDirectoryPath: dir1];
+  }
+
+  {
+    NSArray	*a;
+    NSString *dir1 = [mgr currentDirectoryPath];
+    NSURL *dirURL = [NSURL fileURLWithPath: dir1];
+    NSURL *fileURL = [dirURL URLByAppendingPathComponent: @"NSFMFile"];
+
+    [mgr changeCurrentDirectoryPath: [dir1 stringByDeletingLastPathComponent]];
+    a = [mgr contentsOfDirectoryAtURL: dirURL includingPropertiesForKeys: nil
+                              options: 0 error: NULL];
+    PASS(1 == [a count] && [[a lastObject] isEqual: fileURL],
+      "-contentsOfDirectoryAtURL: agrees with different current directory");
+    [mgr changeCurrentDirectoryPath: dir];
+  }
+
+  {
     NSData *dat1 = [mgr contentsAtPath: @"NSFMFile"];
     str2 = [[NSString alloc] initWithData: dat1 encoding: 1];
     PASS([str1 isEqualToString: str2], "NSFileManager file contents match");
