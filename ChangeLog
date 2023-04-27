@@ -10,7 +10,7 @@
 
 	* Source/NSSocketPort.m: set listening socket into non-blocking mode
 	if possible, so if multiple threads are using the same port we don't
-	get one thread blocked wating for an accept which was handled by
+	get one thread blocked waiting for an accept which was handled by
 	another one.
 
 2022-03-23 Richard Frith-Macdonald <rfm@gnu.org>
