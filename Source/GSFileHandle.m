@@ -2221,6 +2221,11 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   NSString		*operation;
   NSMutableDictionary	*info;
 
+  if ([writeInfo count] == 0)
+    {
+      NSLog(@"%@ is writable but has nothing to write", self);
+      return;
+    }
   info = [writeInfo objectAtIndex: 0];
   operation = [info objectForKey: NotificationKey];
   if (operation == GSFileHandleConnectCompletionNotification
