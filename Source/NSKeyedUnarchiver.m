@@ -354,6 +354,61 @@ static NSMapTable	*globalClassMap = 0;
   return o;
 }
 
++ (id) unarchivedObjectOfClass: (Class)cls
+                      fromData: (NSData*)data
+                         error: (NSError**)error
+{
+  return [self unarchivedObjectOfClasses: [NSSet setWithObject:cls]
+                                fromData: data
+                                   error: error];
+}
+
++ (id) unarchivedObjectOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)classes
+                        fromData: (NSData*)data
+                           error: (NSError**)error
+{
+  /* FIXME: implement proper secure coding support */
+  return [self unarchiveObjectWithData: data];
+}
+
++ (NSArray*) unarchivedArrayOfObjectsOfClass: (Class)cls
+                                    fromData: (NSData*)data
+                                       error: (NSError**)error
+{
+  return [self unarchivedArrayOfObjectsOfClasses: [NSSet setWithObject:cls]
+                                        fromData: data
+                                           error: error];
+}
+
++ (NSArray*) unarchivedArrayOfObjectsOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)classes
+                                      fromData: (NSData*)data
+                                         error: (NSError**)error
+{
+  /* FIXME: implement proper secure coding support */
+  return [self unarchiveObjectWithData: data];
+}
+
++ (NSDictionary*) unarchivedDictionaryWithKeysOfClass: (Class)keyCls
+                                       objectsOfClass: (Class)valueCls
+                                             fromData: (NSData*)data
+                                                error: (NSError**)error
+{
+  return [self unarchivedDictionaryWithKeysOfClasses: [NSSet setWithObject:keyCls]
+                                    objectsOfClasses: [NSSet setWithObject:valueCls]
+                                            fromData: data
+                                               error: error];
+}
+
++ (NSDictionary*) unarchivedDictionaryWithKeysOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)keyClasses
+                                       objectsOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)valueClasses
+                                               fromData: (NSData*)data
+                                                  error: (NSError**)error
+{
+  /* FIXME: implement proper secure coding support */
+  return [self unarchiveObjectWithData: data];
+}
+
+
 - (BOOL) allowsKeyedCoding
 {
   return YES;
