@@ -40,6 +40,7 @@ extern "C" {
 #import	<Foundation/NSMapTable.h>
 #import	<Foundation/NSPropertyList.h>
 
+@class GS_GENERIC_CLASS(NSSet, ElementT);
 @class NSMutableDictionary, NSMutableData, NSData, NSString;
 
 /**
@@ -310,6 +311,40 @@ GS_EXPORT_CLASS
  *  Decodes from file contents at aPath and returns resulting root object.
  */
 + (id) unarchiveObjectWithFile: (NSString*)aPath;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_13,GS_API_LATEST)
+
++ (id) unarchivedObjectOfClass: (Class)cls
+                      fromData: (NSData*)data
+                         error: (NSError**)error;
+
++ (id) unarchivedObjectOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)classes
+                        fromData: (NSData*)data
+                           error: (NSError**)error;
+
+#endif
+
+#if OS_API_VERSION(MAC_OS_VERSION_11_0,GS_API_LATEST)
+
++ (NSArray*) unarchivedArrayOfObjectsOfClass: (Class)cls
+                                    fromData: (NSData*)data
+                                       error: (NSError**)error;
+
++ (NSArray*) unarchivedArrayOfObjectsOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)classes
+                                      fromData: (NSData*)data
+                                         error: (NSError**)error;
+
++ (NSDictionary*) unarchivedDictionaryWithKeysOfClass: (Class)keyCls
+                                       objectsOfClass: (Class)valueCls
+                                             fromData: (NSData*)data
+                                                error: (NSError**)error;
+
++ (NSDictionary*) unarchivedDictionaryWithKeysOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)keyClasses
+                                       objectsOfClasses: (GS_GENERIC_CLASS(NSSet,Class)*)valueClasses
+                                               fromData: (NSData*)data
+                                                  error: (NSError**)error;
+
+#endif
 
 /**
  * Returns whether the current instance of the archiver needs secure
