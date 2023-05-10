@@ -1,3 +1,8 @@
+2023-05-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Tools/AGSParser.m: Add support for OSX version numbers up to 15
+	(and fix version 9).
+
 2023-05-04 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSOrderedSet.m: Fix keyed encoding to match Apple platforms.
