@@ -370,12 +370,30 @@ static GSTcpTune        *tune = nil;
   DESTROY(address);
   DESTROY(service);
   DESTROY(protocol);
-  DESTROY(readInfo);
-  DESTROY(writeInfo);
 
-  /* Finalize *after* destroying readInfo and writeInfo so that, if the
+  /* If a read operation is in progress, we need to remove the handle
+   * from the run loop and destroy the operation information so that
+   * we won't generate a notification about it failing.
+   */
+  if (readInfo)
+    {
+      [self ignoreReadDescriptor];
+      DESTROY(readInfo);
+    }
+
+  /* If a write operation is in progress, we need to remove the handle
+   * from the run loop and destroy the operation information so that
+   * we won't generate a notification about it failing.
+   */
+  if ([writeInfo count] > 0)
+    {
+      [self ignoreWriteDescriptor];
+      [writeInfo removeAllObjects];
+    }
+
+  /* Finalize *after* ending read and write operations so that, if the
    * file handle needs to be closed, we don't generate any notifications
-   * containing the deallocated object.  Tnanks to david for this fix.
+   * containing the deallocated object.  Thanks to David for this fix.
    */
   [self finalize];
   [super dealloc];

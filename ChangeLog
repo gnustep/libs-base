@@ -1,3 +1,8 @@
+2023-06-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m: Fix to reliably remove handle from run loop
+	when -dealloc is called without the handle having been closed first.
+
 2023-05-08 Richard Frith-Macdonald <rfm@gnu.org>
 
         * Tools/AGSParser.m: Add support for OSX version numbers up to 15
