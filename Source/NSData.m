@@ -231,6 +231,7 @@ encodebase64(unsigned char **dstRef,
 static BOOL
 readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
 {
+  NSLog(@"readContentsOfFile");
   NSFileManager	*mgr = [NSFileManager defaultManager];
   NSDictionary	*att;
   const GSNativeChar	*thePath = 0;
