@@ -267,7 +267,8 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
       if (value == nil)
 	{
-	  value = [NSNull null];
+          continue;
+	  //value = [NSNull null];
 	}
       [dictionary setObject: value forKey: key];
     }
@@ -915,7 +916,8 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
       if (val == nil)
 	{
-	  val = null;
+	  //val = null;
+      continue;
 	}
       [dict setObject: val forKey: key];
     }

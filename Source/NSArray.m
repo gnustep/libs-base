@@ -2403,7 +2403,7 @@ compare(id elem1, id elem2, void* context)
  */
 - (void) addObjectsFromArray: (NSArray*)otherArray
 {
-  NSUInteger c = [otherArray count];
+  NSUInteger c = otherArray ? [otherArray count] : 0;
 
   if (c > 0)
     {
