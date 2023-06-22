@@ -199,6 +199,9 @@
 #  if __has_include(<dispatch/dispatch.h>)
 #    include <dispatch/dispatch.h>
 #  endif
+#  if __has_include(<GNUStepFixes/GNUStepFixes.h>)
+#    include <GNUStepFixes/GNUStepFixes.h>
+#  endif
 #endif
 
 #endif /* __Foundation_h_GNUSTEP_BASE_INCLUDE */
