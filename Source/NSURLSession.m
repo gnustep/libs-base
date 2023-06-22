@@ -254,11 +254,11 @@ static unsigned nextSessionIdentifier()
             }];
         };
 
-      if (![_taskRegistry isEmpty]) 
-        {
-          [_taskRegistry notifyOnTasksCompletion: invalidateSessionCallback];
-        }
-      else 
+      // if (![_taskRegistry isEmpty]) 
+      //   {
+      //     [_taskRegistry notifyOnTasksCompletion: invalidateSessionCallback];
+      //   }
+      // else 
         {
           invalidateSessionCallback();
         }

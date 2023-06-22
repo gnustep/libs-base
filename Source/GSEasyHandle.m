@@ -263,6 +263,12 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
   handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_SEEKDATA, self));
   handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_SEEKFUNCTION,
     curl_seek_function));
+
+  handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_SSL_OPTIONS, CURLSSLOPT_NATIVE_CA));
+  handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1));
+  handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_FOLLOWLOCATION, 1));
+  handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_MAXREDIRS, 10));
+  handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_VERBOSE, 1));
 }
 
 - (int) urlErrorCodeWithEasyCode: (int)easyCode 
@@ -383,6 +389,12 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
     {
       handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_URL,
 	[[URL absoluteString] UTF8String]));
+
+      if (nil != [URL user]) 
+        {
+          handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_USERNAME, [[[URL user] stringByRemovingPercentEncoding] UTF8String]));
+          handleEasyCode(curl_easy_setopt(_rawHandle, CURLOPT_PASSWORD, [[[URL password] stringByRemovingPercentEncoding] UTF8String]));
+        }
     }
 }
 

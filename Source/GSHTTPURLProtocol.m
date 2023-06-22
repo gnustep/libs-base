@@ -711,7 +711,7 @@ parseArgumentPart(NSString *part, NSString *name)
       [components setPath: [targetURL relativePath]];
     }
 
-  NSString *urlString = [components string];
+  NSString *urlString = [[components string] copy];
   RELEASE(components);
   if (nil == urlString) 
     {
@@ -738,7 +738,7 @@ parseArgumentPart(NSString *part, NSString *name)
   delegate = [session delegate];
 
   if (nil != delegate
-    && [delegate respondsToSelector:@selector(selectr)])
+    && [delegate respondsToSelector:@selector(URLSession:task:willPerformHTTPRedirection:newRequest:completionHandler:)])
     {
       // At this point we need to change the internal state to note
       // that we're waiting for the delegate to call the completion
