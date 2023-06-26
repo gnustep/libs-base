@@ -1,3 +1,8 @@
+2023-06-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: close socket if we end loading with an
+	I/O operation in progress.
+
 2023-06-15 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFileHandle.m: Fix to reliably remove handle from run loop
