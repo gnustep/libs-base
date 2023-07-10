@@ -1,3 +1,9 @@
+2023-06-10 Riccardo Mottola <rm@gnu.org>
+
+	* Tests/base/NSURL/Helpers/Launch.h:
+	Declare method in interface to provide accurate signature fixing
+	bug on sparc 64
+
 2023-06-26 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSHTTPURLHandle.m: close socket if we end loading with an
