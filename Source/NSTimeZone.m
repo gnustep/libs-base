@@ -258,6 +258,7 @@ typedef struct {
 #if defined(_WIN32)
 @interface GSWindowsTimeZone : NSTimeZone {
    @public
+    NSString *ianaZoneName;
     NSString *timeZoneName;
     NSString *daylightZoneName;
     NSString *timeZoneNameAbbr;
@@ -1268,7 +1269,102 @@ static NSMapTable *absolutes = 0;
 /**
  * Returns the current system time zone for the process.
  */
-+ (NSTimeZone *)systemTimeZone
+#if defined(_WIN32) && defined(_MSC_VER) && defined(UCAL_H)
+
+/*
+ * Windows/MSVC/UCal-specific systemTimeZone implementation (Flexibits)
+ */
+
++ (NSTimeZone*)systemTimeZone
+{
+    GS_MUTEX_LOCK(zone_mutex);
+
+    if (systemTimeZone == nil) {
+        NSString *windowsZoneString = nil;
+        NSString *ianaZoneString = nil;
+        NSString *zoneSource = nil;
+
+        /*
+        * setup default value in case something goes wrong.
+        */
+        systemTimeZone = RETAIN([NSTimeZoneClass timeZoneForSecondsFromGMT: 0]);
+
+        /*
+        * Try to get timezone from windows system call.
+        */
+        {
+            TIME_ZONE_INFORMATION tz;
+            DWORD dst;
+            wchar_t *tzName;
+
+            // Get time zone name for US locale as expected by ICU method below
+            LANGID origLangID = GetThreadUILanguage();
+            SetThreadUILanguage(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US));
+            dst = GetTimeZoneInformation(&tz);
+            SetThreadUILanguage(origLangID);
+
+            // Only tz.StandardName time zone conversions are supported, as
+            // the Zone-Tzid table lacks all daylight time conversions:
+            // e.g. 'W. Europe Daylight Time' <-> 'Europe/Berlin' is not listed.
+            //
+            // See: https://unicode-org.github.io/cldr-staging/charts/latest/supplemental/zone_tzid.html
+            tzName = tz.StandardName;
+
+            zoneSource = @"function: 'GetTimeZoneInformation()'";
+
+            // Convert Windows timezone name to IANA identifier
+            if (tzName) {
+                windowsZoneString = [NSString stringWithCharacters: tzName length: wcslen(tzName)];
+
+                UErrorCode status = U_ZERO_ERROR;
+                UChar ianaTzName[128];
+                int32_t ianaTzNameLen = ucal_getTimeZoneIDForWindowsID(tzName,
+                -1, NULL, ianaTzName, 128, &status);
+                if (U_SUCCESS(status) && ianaTzNameLen > 0) {
+                ianaZoneString = [NSString stringWithCharacters: ianaTzName
+                    length: ianaTzNameLen];
+                } else if (U_SUCCESS(status)) {
+                // this happens when ICU has no mapping for the time zone
+                NSLog(@"Unable to map timezone '%ls' to IANA format", tzName);
+                } else {
+                NSLog(@"Error converting timezone '%ls' to IANA format: %s",
+                    tzName, u_errorName(status));
+                }
+            }
+        }
+
+        if (windowsZoneString == nil || ianaZoneString == nil) {
+            // Default to GMT (UTC+0) if we were unable to get the zone from Windows, or if
+            // the zone name couldn't be converted to a proper IANA zone name.
+            windowsZoneString = @"GMT Standard Time";
+            ianaZoneString = @"Etc/GMT";
+        }
+
+        {
+            NSTimeZone* zone = [[GSWindowsTimeZone alloc] initWithName:windowsZoneString data:0 ianaName:ianaZoneString];
+
+            if (zone == nil)
+            {
+                NSLog(@"Using time zone with absolute offset 0.");
+                zone = systemTimeZone;
+            }
+
+            ASSIGN(systemTimeZone, zone);
+        }
+    }
+
+    NSTimeZone *zone = AUTORELEASE(RETAIN(systemTimeZone));
+    GS_MUTEX_UNLOCK(zone_mutex);
+    return zone;
+}
+
+#else
+
+/*
+ * Original GNUstep systemTimeZone implementation (partially broken on Windows)
+ */
+
++ (NSTimeZone*) systemTimeZone
 {
     NSTimeZone *zone = nil;
 
@@ -1608,6 +1704,8 @@ static NSMapTable *absolutes = 0;
     GS_MUTEX_UNLOCK(zone_mutex);
     return zone;
 }
+
+#endif
 
 /**
  * Returns an array of all the known regions.<br />
@@ -2347,6 +2445,12 @@ void GSBreakTime(NSTimeInterval when,
     DEALLOC
 }
 
+- (id)initWithName:(NSString *)name data:(NSData *)data ianaName:(NSString *)ianaName
+{
+    ASSIGN(ianaZoneName, ianaName);
+    return [self initWithName:name data:data];
+}
+
 - (id)initWithName:(NSString *)name data:(NSData *)data
 {
     HKEY regDirKey;
@@ -2621,7 +2725,12 @@ void GSBreakTime(NSTimeInterval when,
     return NO; // Never reached
 }
 
-- (NSString *)name
+- (NSString*)name
+{
+    return ianaZoneName;
+}
+
+- (NSString *)windowsName
 {
     TIME_ZONE_INFORMATION tz;
     DWORD DST = GetTimeZoneInformation(&tz);
