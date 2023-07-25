@@ -30,7 +30,7 @@
 #import "GSNetwork.h"
 
 typedef	union {
-  struct sockaddr	s;
+  struct sockaddr_storage	s;    /* Increased memory allocation for IPv6 addresses*/
   struct sockaddr_in	i4;
 #ifdef	AF_INET6
   struct sockaddr_in6	i6;
@@ -59,12 +59,12 @@ SOCKIVARS
 /**
  * get the sockaddr
  */
-- (struct sockaddr*) _address;
+- (struct sockaddr_storage*) _address;
 
 /**
  * set the sockaddr
  */
-- (void) _setAddress: (struct sockaddr*)address;
+- (void) _setAddress: (struct sockaddr_storage*)address;
 
 /**
  * setter for closing flag ... the remote end has stopped either sending
@@ -116,8 +116,8 @@ SOCKIVARS
 SOCKIVARS
 @end
 @interface GSSocketInputStream (AddedBehaviors)
-- (struct sockaddr*) _address;
-- (void) _setAddress: (struct sockaddr*)address;
+- (struct sockaddr_storage*) _address;
+- (void) _setAddress: (struct sockaddr_storage*)address;
 - (NSInteger) _read: (uint8_t *)buffer maxLength: (NSUInteger)len;
 - (void) _setClosing: (BOOL)passive;
 - (void) _setHandler: (id)h;
@@ -158,8 +158,8 @@ SOCKIVARS
 SOCKIVARS
 @end
 @interface GSSocketOutputStream (AddedBehaviors)
-- (struct sockaddr*) _address;
-- (void) _setAddress: (struct sockaddr*)address;
+- (struct sockaddr_storage*) _address;
+- (void) _setAddress: (struct sockaddr_storage*)address;
 - (void) _setClosing: (BOOL)passive;
 - (void) _setHandler: (id)h;
 - (void) _setPassive: (BOOL)passive;
@@ -214,8 +214,8 @@ SOCKIVARS
 
 @end
 @interface GSSocketServerStream (AddedBehaviors)
-- (struct sockaddr*) _address;
-- (void) _setAddress: (struct sockaddr*)address;
+- (struct sockaddr_storage*) _address;
+- (void) _setAddress: (struct sockaddr_storage*)address;
 - (void) _setClosing: (BOOL)passive;
 - (void) _setHandler: (id)h;
 - (void) _setPassive: (BOOL)passive;
