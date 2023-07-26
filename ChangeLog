@@ -1,5 +1,10 @@
 2023-07-26 Frederik Seiffert <frederik@algoriddim.com>
 
+	* Source/NSData.m:
+	Fix NSData initWithContentsOfURL: caching data of file URLs.
+
+2023-07-26 Frederik Seiffert <frederik@algoriddim.com>
+
 	* Source/NSURL.m:
 	* Tests/base/NSURL/basic.m:
 	Fix NSURL path on Windows for UNC paths.
