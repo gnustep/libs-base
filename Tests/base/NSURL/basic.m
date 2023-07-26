@@ -105,6 +105,16 @@ int main()
     "File URL C:\\WINDOWS is file:///C:%%5CWINDOWS/");
   PASS_EQUAL([url resourceSpecifier], @"/C:%5CWINDOWS/",
     "resourceSpecifier of C:\\WINDOWS is /C:%5CWINDOWS/");
+
+  // UNC path
+  url = [NSURL fileURLWithPath: @"\\\\SERVER\\SHARE\\"];
+  str = [url path];
+  PASS_EQUAL(str, @"\\\\SERVER\\SHARE\\",
+    "Path of file URL \\\\SERVER\\SHARE\\ is \\\\SERVER\\SHARE\\");
+  PASS_EQUAL([url description], @"file:///%5C%5CSERVER%5CSHARE%5C",
+    "File URL \\\\SERVER\\SHARE\\ is file:///%5C%5CSERVER%5CSHARE%5C");
+  PASS_EQUAL([url resourceSpecifier], @"/%5C%5CSERVER%5CSHARE%5C",
+    "resourceSpecifier of \\\\SERVER\\SHARE\\ is /%5C%5CSERVER%5CSHARE%5C");
 #else
   url = [NSURL fileURLWithPath: @"/usr"];
   str = [url path];
