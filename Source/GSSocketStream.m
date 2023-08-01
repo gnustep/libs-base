@@ -2792,7 +2792,7 @@ setNonBlocking(SOCKET fd)
 #endif
 
   bindReturn = bind([self _sock],
-    &_address.s, GSPrivateSockaddrLength(&_address.s));
+    (struct sockaddr*)&_address.s, GSPrivateSockaddrLength(&_address.s));
   if (socketError(bindReturn))
     {
       [self _recordError];
