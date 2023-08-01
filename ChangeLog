@@ -1,3 +1,12 @@
+2023-07-30  Yavor Doganov  <yavor@gnu.org>
+
+	* Tools/HTMLLinker.1: Fix a groff warning.
+
+2023-07-30  Yavor Doganov  <yavor@gnu.org>
+
+       * Tools/gdnc.m ([GDNCServer init]):
+       * Tools/gspath.1: Fix spelling errors.
+
 2023-07-26 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSData.m:
