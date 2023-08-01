@@ -15,6 +15,18 @@
 	* Source/NSFileManager.m:
 	Fixed NSFileManager thread safety.
 
+2023-07-17  Yavor Doganov  <yavor@gnu.org>
+
+	* Tests/base/NSTimeZone/localtime.m (testTZDB): Skip tests relying
+	on 64bit time_t on all 32bit architectures.
+	* Source/NSTimeZone.m: Move #include "tzdb.h" a bit earlier so
+	that the POSIX_TZONES preprocessor conditional is correct.
+	([GSTimeZoneDetail
+	initWithTimeZone:withAbbrev:withOffset:withDST:]): Retain abbrev.
+	([GSTimeZoneDetail dealloc]): Release abbrev.
+	([NSTimeZone timeZoneArray]): Skip files *.zi, *.list and
+	leapseconds which are not zone files.
+
 2023-06-10 Riccardo Mottola <rm@gnu.org>
 
 	* Tests/base/NSURL/Helpers/Launch.h:

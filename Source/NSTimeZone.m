@@ -153,6 +153,11 @@
 /* Many systems have this file */
 #define SYSTEM_TIME_FILE @"/etc/localtime"
 
+/* Include public domain code (modified for use here) to parse standard
+ * posix time zone files.
+ */
+#include "tzdb.h"
+
 /* If TZDIR told us where the zoneinfo files are, don't append anything else */
 #ifdef TZDIR
 #define POSIX_TZONES     @""
@@ -162,11 +167,6 @@
 
 #define BUFFER_SIZE 512
 #define WEEK_MILLISECONDS (7.0*24.0*60.0*60.0*1000.0)
-
-/* Include public domain code (modified for use here) to parse standard
- * posix time zone files.
- */
-#include "tzdb.h"
 
 #if GS_USE_ICU == 1
 static inline int
@@ -806,6 +806,7 @@ static NSMapTable	*absolutes = 0;
 
 - (void) dealloc
 {
+  RELEASE(abbrev);
   RELEASE(timeZone);
   DEALLOC
 }
@@ -824,7 +825,7 @@ static NSMapTable	*absolutes = 0;
 		withDST: (BOOL)isDST
 {
   timeZone = RETAIN(aZone);
-  abbrev = anAbbrev;		// NB. Depend on this being retained in aZone
+  abbrev = RETAIN(anAbbrev);
   offset = anOffset;
   is_dst = isDST;
   return self;
@@ -1849,12 +1850,17 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 	      while ((name = [enumerator nextObject]) != nil)
 		{
 		  NSTimeZone	*zone = nil;
+		  NSString	*ext;
 		  BOOL		isDir;
 		
 		  path = [zonedir stringByAppendingPathComponent: name];
+		  ext = [path pathExtension];
 		  if ([mgr fileExistsAtPath: path isDirectory: &isDir]
                     && isDir == NO
-                    && [[path pathExtension] isEqual: @"tab"] == NO)
+                    && [ext isEqual: @"tab"] == NO
+                    && [ext isEqual: @"zi"] == NO
+                    && [ext isEqual: @"list"] == NO
+                    && [ext isEqual: @"leapseconds"] == NO)
 		    {
 		      zone = [zoneDictionary objectForKey: name];
 		      if (zone == nil)
