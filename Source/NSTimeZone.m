@@ -269,6 +269,7 @@ typedef struct {
     SYSTEMTIME StandardDate;
     SYSTEMTIME DaylightDate;
 }
+- (id)initWithName:(NSString *)name data:(NSData *)data ianaName:(NSString *)ianaName;
 @end
 #endif
 
@@ -375,10 +376,10 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
         return (GSPlaceholderTimeZone *)zone;
     }
 
-    /*
-     * Return a cached time zone if possible.
-     * NB. if data of cached zone does not match new data ... don't use cache
-     */
+    //
+    // Return a cached time zone if possible.
+    // NB. if data of cached zone does not match new data ... don't use cache
+    //
     GS_MUTEX_LOCK(zone_mutex);
     zone = [zoneDictionary objectForKey:name];
     if (data != nil && [data isEqual:[zone data]] == NO) {
@@ -387,98 +388,134 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
     IF_NO_ARC(RETAIN(zone);)
     GS_MUTEX_UNLOCK(zone_mutex);
 
-    if (zone == nil) {
-        unichar c;
-        int i;
+    if (zone != nil) {
+        DESTROY(self);
+        return (GSPlaceholderTimeZone *)zone;
+    }
 
-        if ((length == 3 && ([name isEqualToString:@"GMT"] == YES || [name isEqualToString:@"UTC"] == YES || [name isEqualToString:@"UCT"] == YES)) || (length == 4 && ([name isEqualToString:@"GMT0"] == YES || [name isEqualToString:@"Zulu"] == YES)) || (length == 9 && [name isEqualToString:@"Universal"] == YES)) {
-            // Synonyms for GMT
-            zone = [[GSAbsTimeZone alloc] initWithOffset:0 name:name];
-        } else if (length == 5 && [name hasPrefix:@"GMT"] == YES && ((c = [name characterAtIndex:3]) == '+' || c == '-') && ((c = [name characterAtIndex:4]) >= '0' && c <= '9')) {
-            // GMT-9 to GMT+9
-            i = (c - '0') * 60 * 60;
-            if ([name characterAtIndex:3] == '-') {
-                i = -i;
-            }
-            zone = [[GSAbsTimeZone alloc] initWithOffset:i name:name];
-        } else if (length == 6 && [name hasPrefix:@"GMT"] == YES && ((c = [name characterAtIndex:3]) == '+' || c == '-') && ((c = [name characterAtIndex:4]) == '0' || c == '1') && ((c = [name characterAtIndex:5]) >= '0' && c <= '4')) {
-            // GMT-14 to GMT-10 and GMT+10 to GMT+14
-            i = (c - '0') * 60 * 60;
-            if ([name characterAtIndex:4] == '1') {
-                i += 60 * 60 * 10;
-            }
-            if ([name characterAtIndex:3] == '-') {
-                i = -i;
-            }
-            zone = [[GSAbsTimeZone alloc] initWithOffset:i name:name];
-        } else if (length == 8 && [name hasPrefix:@"GMT"] == YES && ((c = [name characterAtIndex:3]) == '+' || c == '-')) {
-            // GMT+NNNN and GMT-NNNN
-            c = [name characterAtIndex:4];
+    //
+    // Try to parse out shorthand timezone names
+    //
+    unichar c;
+    int i;
+    if ((length == 3 && ([name isEqualToString:@"GMT"] == YES || [name isEqualToString:@"UTC"] == YES || [name isEqualToString:@"UCT"] == YES)) || (length == 4 && ([name isEqualToString:@"GMT0"] == YES || [name isEqualToString:@"Zulu"] == YES)) || (length == 9 && [name isEqualToString:@"Universal"] == YES)) {
+        // Synonyms for GMT
+        zone = [[GSAbsTimeZone alloc] initWithOffset:0 name:name];
+    } else if (length == 5 && [name hasPrefix:@"GMT"] == YES && ((c = [name characterAtIndex:3]) == '+' || c == '-') && ((c = [name characterAtIndex:4]) >= '0' && c <= '9')) {
+        // GMT-9 to GMT+9
+        i = (c - '0') * 60 * 60;
+        if ([name characterAtIndex:3] == '-') {
+            i = -i;
+        }
+        zone = [[GSAbsTimeZone alloc] initWithOffset:i name:name];
+    } else if (length == 6 && [name hasPrefix:@"GMT"] == YES && ((c = [name characterAtIndex:3]) == '+' || c == '-') && ((c = [name characterAtIndex:4]) == '0' || c == '1') && ((c = [name characterAtIndex:5]) >= '0' && c <= '4')) {
+        // GMT-14 to GMT-10 and GMT+10 to GMT+14
+        i = (c - '0') * 60 * 60;
+        if ([name characterAtIndex:4] == '1') {
+            i += 60 * 60 * 10;
+        }
+        if ([name characterAtIndex:3] == '-') {
+            i = -i;
+        }
+        zone = [[GSAbsTimeZone alloc] initWithOffset:i name:name];
+    } else if (length == 8 && [name hasPrefix:@"GMT"] == YES && ((c = [name characterAtIndex:3]) == '+' || c == '-')) {
+        // GMT+NNNN and GMT-NNNN
+        c = [name characterAtIndex:4];
+        if (c >= '0' && c <= '9') {
+            i = c - '0';
+            c = [name characterAtIndex:5];
             if (c >= '0' && c <= '9') {
-                i = c - '0';
-                c = [name characterAtIndex:5];
+                i = i * 10 + (c - '0');
+                c = [name characterAtIndex:6];
                 if (c >= '0' && c <= '9') {
-                    i = i * 10 + (c - '0');
-                    c = [name characterAtIndex:6];
+                    i = i * 6 + (c - '0');
+                    c = [name characterAtIndex:7];
                     if (c >= '0' && c <= '9') {
-                        i = i * 6 + (c - '0');
-                        c = [name characterAtIndex:7];
-                        if (c >= '0' && c <= '9') {
-                            i = i * 10 + (c - '0');
-                            i = i * 60;
-                            if ([name characterAtIndex:3] == '-') {
-                                i = -i;
-                            }
-                            zone = [[GSAbsTimeZone alloc] initWithOffset:i
-                                                                    name:nil];
+                        i = i * 10 + (c - '0');
+                        i = i * 60;
+                        if ([name characterAtIndex:3] == '-') {
+                            i = -i;
                         }
+                        zone = [[GSAbsTimeZone alloc] initWithOffset:i
+                                                                name:nil];
                     }
                 }
             }
         }
+    }
 
-        if (zone == nil && length > 19 && [name hasPrefix:@"NSAbsoluteTimeZone: "] == YES) {
-            i = [[name substringFromIndex:19] intValue];
+    if (zone != nil) {
+        DESTROY(self);
+        return (GSPlaceholderTimeZone *)zone;
+    }
 
-            zone = [[GSAbsTimeZone alloc] initWithOffset:i name:nil];
-        }
+    //
+    // Check for NSAbsoluteTimeZone
+    //
+    if (length > 19 && [name hasPrefix:@"NSAbsoluteTimeZone: "] == YES) {
+        i = [[name substringFromIndex:19] intValue];
 
-        if (zone == nil) {
-            if (data == nil) {
-                NSString *fileName;
-                BOOL isDir;
+        zone = [[GSAbsTimeZone alloc] initWithOffset:i name:nil];
+    }
 
-                fileName = [NSTimeZoneClass _getTimeZoneFile:name];
-                if (fileName == nil || ![[NSFileManager defaultManager] fileExistsAtPath:fileName
-                                                                             isDirectory:&isDir] ||
-                    YES == isDir) {
-                    data = nil;
-                } else {
-                    data = [NSData dataWithContentsOfFile:fileName];
-                }
-                if (nil == data)
+    if (zone != nil) {
+        DESTROY(self);
+        return (GSPlaceholderTimeZone *)zone;
+    }
+
 #if defined(_WIN32)
-                {
-                    zone = [[GSWindowsTimeZone alloc] initWithName:name data:0];
-                    DESTROY(self);
-                    return zone;
-                }
+    //
+    // Convert IANA to Windows timezone name
+    //
+    NSData* ianaNameData = [name dataUsingEncoding:NSUTF16LittleEndianStringEncoding];
+    const UChar* ianaNameDataChars = (const UChar*)[ianaNameData bytes];
+    UChar windowsZoneStringBuffer[BUFFER_SIZE];
+    UErrorCode ucalError = U_ZERO_ERROR;
+
+    int32_t windowsZoneStringLength =
+        ucal_getWindowsTimeZoneID(
+            ianaNameDataChars,
+            [name length],
+            windowsZoneStringBuffer,
+            BUFFER_SIZE,
+            &ucalError);
+
+    if (U_SUCCESS(ucalError) && windowsZoneStringLength > 0) {
+        NSString* windowsZoneString = [NSString stringWithCharacters: windowsZoneStringBuffer
+                                                length: windowsZoneStringLength];
+
+        zone = [[GSWindowsTimeZone alloc] initWithName:windowsZoneString data:0 ianaName:name];
+        DESTROY(self);
+        return (GSPlaceholderTimeZone *)zone;
+    }
+
+    NSLog(@"Couldn't convert timezone '%@' to Windows format", name);
+    return nil;
+
 #else
-                {
-                    return nil;
-                }
-#endif
-            }
-#if defined(_WIN32)
-            if (!data)
-                zone = [[GSWindowsTimeZone alloc] initWithName:name data:data];
-            else
-#endif
-                zone = [[GSTimeZone alloc] initWithName:name data:data];
+    if (data == nil) {
+        NSString *fileName;
+        BOOL isDir;
+
+        fileName = [NSTimeZoneClass _getTimeZoneFile:name];
+        if (fileName == nil || ![[NSFileManager defaultManager] fileExistsAtPath:fileName
+                                                                        isDirectory:&isDir] ||
+            YES == isDir) {
+            data = nil;
+        } else {
+            data = [NSData dataWithContentsOfFile:fileName];
+        }
+        if (nil == data)
+        {
+            return nil;
         }
     }
+    zone = [[GSTimeZone alloc] initWithName:name data:data];
+
+
     DESTROY(self);
     return (GSPlaceholderTimeZone *)zone;
+#endif
 }
 
 - (oneway void)release
@@ -1316,19 +1353,27 @@ static NSMapTable *absolutes = 0;
             if (tzName) {
                 windowsZoneString = [NSString stringWithCharacters: tzName length: wcslen(tzName)];
 
-                UErrorCode status = U_ZERO_ERROR;
-                UChar ianaTzName[128];
-                int32_t ianaTzNameLen = ucal_getTimeZoneIDForWindowsID(tzName,
-                -1, NULL, ianaTzName, 128, &status);
-                if (U_SUCCESS(status) && ianaTzNameLen > 0) {
-                ianaZoneString = [NSString stringWithCharacters: ianaTzName
-                    length: ianaTzNameLen];
-                } else if (U_SUCCESS(status)) {
-                // this happens when ICU has no mapping for the time zone
-                NSLog(@"Unable to map timezone '%ls' to IANA format", tzName);
+                UErrorCode ucalError = U_ZERO_ERROR;
+                UChar ianaTzName[BUFFER_SIZE];
+
+                int32_t ianaTzNameLen =
+                    ucal_getTimeZoneIDForWindowsID(
+                        tzName,
+                        -1,
+                        NULL,
+                        ianaTzName,
+                        BUFFER_SIZE,
+                        &ucalError);
+
+                if (U_SUCCESS(ucalError) && ianaTzNameLen > 0) {
+                    ianaZoneString = [NSString stringWithCharacters: ianaTzName
+                                               length: ianaTzNameLen];
+                } else if (U_SUCCESS(ucalError)) {
+                    // this happens when ICU has no mapping for the time zone
+                    NSLog(@"Unable to map timezone '%ls' to IANA format", tzName);
                 } else {
-                NSLog(@"Error converting timezone '%ls' to IANA format: %s",
-                    tzName, u_errorName(status));
+                    NSLog(@"Error converting timezone '%ls' to IANA format: %s",
+                          tzName, u_errorName(ucalError));
                 }
             }
         }
