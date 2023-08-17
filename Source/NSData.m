@@ -643,7 +643,15 @@ failure:
 {
   NSData	*d;
 
-  d = [url resourceDataUsingCache: YES];
+  if ([url isFileURL])
+    {
+      d = [dataMalloc allocWithZone: NSDefaultMallocZone()];
+      d = AUTORELEASE([d initWithContentsOfFile: [url path]]);
+    }
+  else
+    {
+      d = [url resourceDataUsingCache: YES];
+    }
   return d;
 }
 
@@ -955,9 +963,15 @@ failure:
  */
 - (id) initWithContentsOfURL: (NSURL*)url
 {
-  NSData	*data = [url resourceDataUsingCache: YES];
-
-  return [self initWithData: data];
+  if ([url isFileURL])
+    {
+      return [self initWithContentsOfFile: [url path]];
+    }
+  else
+    {
+      NSData *data = [url resourceDataUsingCache: YES];
+      return [self initWithData: data];
+    }
 }
 
 /**
@@ -2359,11 +2373,18 @@ failure:
 + (id) dataWithContentsOfURL: (NSURL*)url
 {
   NSMutableData	*d;
-  NSData	*data;
 
   d = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
-  data = [url resourceDataUsingCache: YES];
-  d = [d initWithBytes: [data bytes] length: [data length]];
+
+  if ([url isFileURL])
+    {
+      d = [d initWithContentsOfFile: [url path]];
+    }
+  else
+    {
+      NSData *data = [url resourceDataUsingCache: YES];
+      d = [d initWithBytes: [data bytes] length: [data length]];
+    }
   return AUTORELEASE(d);
 }
 

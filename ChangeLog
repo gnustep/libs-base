@@ -1,11 +1,87 @@
-2022-04-13 Richard Frith-Macdonald <rfm@gnu.org>
+2023-07-30  Yavor Doganov  <yavor@gnu.org>
+
+	* Tools/HTMLLinker.1: Fix a groff warning.
+
+2023-07-30  Yavor Doganov  <yavor@gnu.org>
+
+       * Tools/gdnc.m ([GDNCServer init]):
+       * Tools/gspath.1: Fix spelling errors.
+
+2023-07-26 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSData.m:
+	Fix NSData initWithContentsOfURL: caching data of file URLs.
+
+2023-07-26 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSURL.m:
+	* Tests/base/NSURL/basic.m:
+	Fix NSURL path on Windows for UNC paths.
+
+2023-07-25 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSFileManager.h:
+	* Source/NSFileManager.m:
+	Fixed NSFileManager thread safety.
+
+2023-07-17  Yavor Doganov  <yavor@gnu.org>
+
+	* Tests/base/NSTimeZone/localtime.m (testTZDB): Skip tests relying
+	on 64bit time_t on all 32bit architectures.
+	* Source/NSTimeZone.m: Move #include "tzdb.h" a bit earlier so
+	that the POSIX_TZONES preprocessor conditional is correct.
+	([GSTimeZoneDetail
+	initWithTimeZone:withAbbrev:withOffset:withDST:]): Retain abbrev.
+	([GSTimeZoneDetail dealloc]): Release abbrev.
+	([NSTimeZone timeZoneArray]): Skip files *.zi, *.list and
+	leapseconds which are not zone files.
+
+2023-06-10 Riccardo Mottola <rm@gnu.org>
+
+	* Tests/base/NSURL/Helpers/Launch.h:
+	Declare method in interface to provide accurate signature fixing
+	bug on sparc 64
+
+2023-06-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: close socket if we end loading with an
+	I/O operation in progress.
+
+2023-06-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m: Fix to reliably remove handle from run loop
+	when -dealloc is called without the handle having been closed first.
+
+2023-05-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Tools/AGSParser.m: Add support for OSX version numbers up to 15
+	(and fix version 9).
+
+2023-05-04 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSOrderedSet.m: Fix keyed encoding to match Apple platforms.
+
+2023-05-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m: Ignore notificaton that a descriptor is
+	writable if we have nothing to be written.
+
+2023-04-26 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Tests/base/NSFileManager/general.m:
+	* Source/NSFileManager.m:
+	Add test for and fix -[NSFileManager contentsOfDirectoryAtURL:...]
+	implementation not working correctly if directory did not match
+	current working directory.
+
+2023-04-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSocketPort.m: set listening socket into non-blocking mode
 	if possible, so if multiple threads are using the same port we don't
-	get one thread blocked wating for an accept which was handled by
+	get one thread blocked waiting for an accept which was handled by
 	another one.
 
-2022-03-23 Richard Frith-Macdonald <rfm@gnu.org>
+2023-03-23 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimer.m: wrap call to block in exception handler (bug #289)
 

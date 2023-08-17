@@ -179,30 +179,17 @@ static SEL	remSel;
 {
    if ([aCoder allowsKeyedCoding])
     {
-      if ([aCoder class] == [NSKeyedArchiver class])
-	{
-          /* HACK ... MacOS-X seems to code differently if the coder is an
-           * actual instance of NSKeyedArchiver
-           */
-          NSArray *array = [self array];
-
-	  [(NSKeyedArchiver*)aCoder _encodeArrayOfObjects: array
-						   forKey: @"NS.objects"];
-	}
-      else
-	{
-	  unsigned	i = 0;
-	  NSEnumerator	*e = [self objectEnumerator];
-	  id		o;
-
-	  while ((o = [e nextObject]) != nil)
-	    {
-	      NSString	*key;
-
-	      key = [NSString stringWithFormat: @"NS.object.%u", i++];
-	      [(NSKeyedArchiver*)aCoder encodeObject: o forKey: key];
-	    }
-	}
+      unsigned	i = 0;
+      NSEnumerator	*e = [self objectEnumerator];
+      id		o;
+    
+      while ((o = [e nextObject]) != nil)
+        {
+          NSString	*key;
+    
+          key = [NSString stringWithFormat: @"NS.object.%u", i++];
+          [(NSKeyedArchiver*)aCoder encodeObject: o forKey: key];
+        }
     }
   else
     {
@@ -212,9 +199,9 @@ static SEL	remSel;
 
       [aCoder encodeValueOfObjCType: @encode(unsigned) at: &count];
       while ((o = [e nextObject]) != nil)
-	{
-	  [aCoder encodeValueOfObjCType: @encode(id) at: &o];
-	}
+        {
+          [aCoder encodeValueOfObjCType: @encode(id) at: &o];
+        }
     }
 }
 

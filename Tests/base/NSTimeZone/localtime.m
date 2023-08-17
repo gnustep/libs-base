@@ -41,6 +41,7 @@ testTZDB(NSString *fileName, const char *message, bool beyond2038)
 	"post-1996 DST time offset vs UTC found for user-supplied %s",
 	message);
 
+#if __LP64__
    /* After 32bit value seconds-since-1970 using TZDB v2+ file */
    if (beyond2038) {
      date = [NSDate dateWithString: @"2039-01-16 23:59:59 -0200"];
@@ -48,6 +49,7 @@ testTZDB(NSString *fileName, const char *message, bool beyond2038)
 	  "post-2038 standard time offset vs UTC found for user-supplied %s",
 	  message);
    }
+#endif
 
   return;
 }

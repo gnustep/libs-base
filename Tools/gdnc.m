@@ -493,7 +493,7 @@ ihandler(int sig)
     {
       if ([conn registerName: service withNameServer: ns] == NO)
 	{
-	  NSLog(@"gdnc - unable to register with name server as %@ - quiting.",
+	  NSLog(@"gdnc - unable to register with name server as %@ - quitting.",
 	    service);
 	  DESTROY(self);
 	  return self;
@@ -508,7 +508,7 @@ ihandler(int sig)
 
       if (host == nil)
 	{
-	  NSLog(@"gdnc - unknown NSHost argument  ... %@ - quiting.", hostname);
+	  NSLog(@"gdnc - unknown NSHost argument  ... %@ - quitting.", hostname);
 	  DESTROY(self);
 	  return self;
 	}

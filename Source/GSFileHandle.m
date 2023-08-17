@@ -370,12 +370,30 @@ static GSTcpTune        *tune = nil;
   DESTROY(address);
   DESTROY(service);
   DESTROY(protocol);
-  DESTROY(readInfo);
-  DESTROY(writeInfo);
 
-  /* Finalize *after* destroying readInfo and writeInfo so that, if the
+  /* If a read operation is in progress, we need to remove the handle
+   * from the run loop and destroy the operation information so that
+   * we won't generate a notification about it failing.
+   */
+  if (readInfo)
+    {
+      [self ignoreReadDescriptor];
+      DESTROY(readInfo);
+    }
+
+  /* If a write operation is in progress, we need to remove the handle
+   * from the run loop and destroy the operation information so that
+   * we won't generate a notification about it failing.
+   */
+  if ([writeInfo count] > 0)
+    {
+      [self ignoreWriteDescriptor];
+      [writeInfo removeAllObjects];
+    }
+
+  /* Finalize *after* ending read and write operations so that, if the
    * file handle needs to be closed, we don't generate any notifications
-   * containing the deallocated object.  Tnanks to david for this fix.
+   * containing the deallocated object.  Thanks to David for this fix.
    */
   [self finalize];
   [super dealloc];
@@ -2221,6 +2239,11 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   NSString		*operation;
   NSMutableDictionary	*info;
 
+  if ([writeInfo count] == 0)
+    {
+      NSLog(@"%@ is writable but has nothing to write", self);
+      return;
+    }
   info = [writeInfo objectAtIndex: 0];
   operation = [info objectForKey: NotificationKey];
   if (operation == GSFileHandleConnectCompletionNotification

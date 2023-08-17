@@ -3909,7 +3909,13 @@ fail:
 	@"100600", @"MAC_OS_X_VERSION_10_6",
 	@"100700", @"MAC_OS_X_VERSION_10_7",
 	@"100800", @"MAC_OS_X_VERSION_10_8",
-	@"100800", @"MAC_OS_X_VERSION_10_8",
+	@"100900", @"MAC_OS_X_VERSION_10_9",
+	@"101000", @"MAC_OS_X_VERSION_10_10",
+	@"101100", @"MAC_OS_X_VERSION_10_11",
+	@"101200", @"MAC_OS_X_VERSION_10_12",
+	@"101300", @"MAC_OS_X_VERSION_10_13",
+	@"101400", @"MAC_OS_X_VERSION_10_14",
+	@"101500", @"MAC_OS_X_VERSION_10_15",
         nil];
     }
   tmp = [known objectForKey: str];

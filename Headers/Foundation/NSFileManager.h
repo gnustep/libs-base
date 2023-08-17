@@ -216,7 +216,6 @@ GS_EXPORT_CLASS
 #if	GS_EXPOSE(NSFileManager)
 @private
   id<NSFileManagerDelegate> _delegate;
-  NSString	*_lastError;
 #endif
 #if     GS_NONFRAGILE
 #else
