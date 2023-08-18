@@ -900,12 +900,12 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   return _localizesFormat;
 }
 
-- (NSDecimalNumber*) maximum
+- (NSNumber*) maximum
 {
   return _maximum;
 }
 
-- (NSDecimalNumber*) minimum
+- (NSNumber*) minimum
 {
   return _minimum;
 }
@@ -1002,13 +1002,13 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   _localizesFormat = flag;
 }
 
-- (void) setMaximum: (NSDecimalNumber*)aMaximum
+- (void) setMaximum: (NSNumber*)aMaximum
 {
   // FIXME: NSNumberFormatterBehavior10_4
   ASSIGN(_maximum, aMaximum);
 }
 
-- (void) setMinimum: (NSDecimalNumber*)aMinimum
+- (void) setMinimum: (NSNumber*)aMinimum
 {
   // FIXME: NSNumberFormatterBehavior10_4
   ASSIGN(_minimum, aMinimum);
