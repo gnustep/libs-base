@@ -81,6 +81,11 @@ inline static BOOL memoryType(int options, int flag)
   return (options & 0xff) == flag;
 }
 
+inline static BOOL personalityType(int options, int flag)
+{
+  return (options & 0xff00) == flag;
+}
+
 /* Declare the concrete pointer functions class as a wrapper around
  * an instance of the PFInfo structure.
  */
