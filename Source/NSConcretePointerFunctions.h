@@ -78,12 +78,12 @@ typedef struct
 
 inline static BOOL memoryType(int options, int flag)
 {
-  return (options & 0xff) == flag;
+  return ((options & 0xff) == flag) ? YES : NO;
 }
 
 inline static BOOL personalityType(int options, int flag)
 {
-  return (options & 0xff00) == flag;
+  return ((options & 0xff00) == flag) ? YES : NO;
 }
 
 /* Declare the concrete pointer functions class as a wrapper around
