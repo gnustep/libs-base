@@ -87,7 +87,7 @@
   if ([host length] > 0)
     {
       [urlString appendString:
-	[host stringByAddingPercentEncodingWithAllowedCharacters: [NSCharacterSet URLHostAllowedCharacterSet]]];
+	[host stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding]];
     }
   if ([port intValue] > 0)
     {

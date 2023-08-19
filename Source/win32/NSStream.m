@@ -951,14 +951,15 @@
     initToAddr: address port: port]);
   sock = socket(PF_INET, SOCK_STREAM, 0);
 
-  //IPv6
-  if(!ins)
-  {
-    #if defined(AF_INET6)
-    ins = (GSSocketStream*)AUTORELEASE([[GSInet6InputStream alloc] initToAddr: address port: port]);
-    outs = (GSSocketStream*)AUTORELEASE([[GSInet6OutputStream alloc] initToAddr: address port: port]);
-    #endif
-  }
+  if (!ins)
+    {
+#if     defined(PF_INET6)
+      ins = AUTORELEASE([[GSInet6InputStream alloc]
+        initToAddr: address port: port]);
+      outs = AUTORELEASE([[GSInet6OutputStream alloc]
+        initToAddr: address port: port]);
+#endif
+    }
 
   /*
    * Windows only permits a single event to be associated with a socket
