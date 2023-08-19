@@ -951,6 +951,16 @@
     initToAddr: address port: port]);
   sock = socket(PF_INET, SOCK_STREAM, 0);
 
+  if (!ins)
+    {
+#if     defined(PF_INET6)
+      ins = AUTORELEASE([[GSInet6InputStream alloc]
+        initToAddr: address port: port]);
+      outs = AUTORELEASE([[GSInet6OutputStream alloc]
+        initToAddr: address port: port]);
+#endif
+    }
+
   /*
    * Windows only permits a single event to be associated with a socket
    * at any time, but the runloop system only allows an event handle to
