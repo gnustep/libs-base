@@ -450,7 +450,7 @@ static Class NSMutableSet_concrete_class;
     {
       k[i] = [e nextObject];
     }
-  return AUTORELEASE([[NSArray allocWithZone: NSDefaultMallocZone()]
+  result = AUTORELEASE([[NSArray allocWithZone: NSDefaultMallocZone()]
     initWithObjects: k count: c]);
   GS_ENDIDBUF();
   return result;
