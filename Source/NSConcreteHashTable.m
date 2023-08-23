@@ -77,7 +77,7 @@ typedef GSIMapNode_t *GSIMapNode;
 #define	GSI_MAP_TABLE_S	instanceSize
   
 #define IS_WEAK(M) \
-      M->cb.pf.options & (NSPointerFunctionsZeroingWeakMemory | NSPointerFunctionsWeakMemory)
+  memoryType(M->cb.pf.options, NSPointerFunctionsZeroingWeakMemory) || memoryType(M->cb.pf.options, NSPointerFunctionsWeakMemory)
 #define GSI_MAP_HASH(M, X)\
  (M->legacy ? M->cb.old.hash(M, X.ptr) \
  : pointerFunctionsHash(&M->cb.pf, X.ptr))
