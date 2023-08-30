@@ -247,8 +247,7 @@ static BOOL     traceLocks = NO;
 {\
   if (0 != GS_MUTEX_UNLOCK(_mutex))\
     {\
-      [NSException raise: NSLockException\
-	    format: @"failed to unlock mutex"];\
+      NSLog(@"failed to unlock mutex");\
     }\
   CHK(Drop) \
 }
