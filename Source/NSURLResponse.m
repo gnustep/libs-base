@@ -149,6 +149,9 @@ typedef struct {
 }
 - (void) _setValue: (NSString *)value forHTTPHeaderField: (NSString *)field
 {
+  if (!field || !value)
+    return;
+
   if (this->headers == 0)
     {
       this->headers = [_GSMutableInsensitiveDictionary new];
