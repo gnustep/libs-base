@@ -191,19 +191,19 @@ relinquishRetainedMemory(const void *item,
    * should be used to relinquish contents of a container with these
    * options.
    */
-  if (options & NSPointerFunctionsZeroingWeakMemory)
+  if (memoryType(options, NSPointerFunctionsZeroingWeakMemory))
     {
       _x.relinquishFunction = 0;
     }
-  else if (options & NSPointerFunctionsOpaqueMemory)
+  else if (memoryType(options, NSPointerFunctionsOpaqueMemory))
     {
       _x.relinquishFunction = 0;
     }
-  else if (options & NSPointerFunctionsMallocMemory)
+  else if (memoryType(options, NSPointerFunctionsMallocMemory))
     {
       _x.relinquishFunction = relinquishMallocMemory;
     }
-  else if (options & NSPointerFunctionsMachVirtualMemory)
+  else if (memoryType(options, NSPointerFunctionsMachVirtualMemory))
     {
       _x.relinquishFunction = relinquishMallocMemory;
     }
@@ -214,16 +214,16 @@ relinquishRetainedMemory(const void *item,
 
   /* Now we look at the personality options to determine other functions.
    */
-  if (options & NSPointerFunctionsOpaquePersonality)
+  if (personalityType(options, NSPointerFunctionsOpaquePersonality))
     {
       _x.acquireFunction = acquireExistingMemory;
       _x.descriptionFunction = describePointer;
       _x.hashFunction = hashShifted;
       _x.isEqualFunction = equalDirect;
     }
-  else if (options & NSPointerFunctionsObjectPointerPersonality)
+  else if (personalityType(options, NSPointerFunctionsObjectPointerPersonality))
     {
-      if (options & NSPointerFunctionsZeroingWeakMemory)
+      if (memoryType(options, NSPointerFunctionsZeroingWeakMemory))
 	{
 	  _x.acquireFunction = acquireExistingMemory;
 	}
@@ -235,21 +235,21 @@ relinquishRetainedMemory(const void *item,
       _x.hashFunction = hashShifted;
       _x.isEqualFunction = equalDirect;
     }
-  else if (options & NSPointerFunctionsCStringPersonality)
+  else if (personalityType(options, NSPointerFunctionsCStringPersonality))
     {
       _x.acquireFunction = acquireMallocMemory;
       _x.descriptionFunction = describeString;
       _x.hashFunction = hashString;
       _x.isEqualFunction = equalString;
     }
-  else if (options & NSPointerFunctionsStructPersonality)
+  else if (personalityType(options, NSPointerFunctionsStructPersonality))
     {
       _x.acquireFunction = acquireMallocMemory;
       _x.descriptionFunction = describePointer;
       _x.hashFunction = hashMemory;
       _x.isEqualFunction = equalMemory;
     }
-  else if (options & NSPointerFunctionsIntegerPersonality)
+  else if (personalityType(options, NSPointerFunctionsIntegerPersonality))
     {
       _x.acquireFunction = acquireExistingMemory;
       _x.descriptionFunction = describeInteger;
@@ -258,7 +258,7 @@ relinquishRetainedMemory(const void *item,
     }
   else		/* objects */
     {
-      if (options & NSPointerFunctionsZeroingWeakMemory)
+      if (memoryType(options, NSPointerFunctionsZeroingWeakMemory))
 	{
 	  _x.acquireFunction = acquireExistingMemory;
 	}
@@ -344,16 +344,18 @@ relinquishRetainedMemory(const void *item,
     ~(NSPointerFunctionsZeroingWeakMemory
     |NSPointerFunctionsOpaqueMemory
     |NSPointerFunctionsMallocMemory
-    |NSPointerFunctionsMachVirtualMemory);
+    |NSPointerFunctionsMachVirtualMemory
+    |NSPointerFunctionsWeakMemory);
 }
 
 - (void) setUsesWeakReadAndWriteBarriers: (BOOL)flag
 {
-  _x.options |= NSPointerFunctionsZeroingWeakMemory;
   _x.options &=
     ~(NSPointerFunctionsOpaqueMemory
     |NSPointerFunctionsMallocMemory
-    |NSPointerFunctionsMachVirtualMemory);
+    |NSPointerFunctionsMachVirtualMemory
+    |NSPointerFunctionsWeakMemory);
+  _x.options |= NSPointerFunctionsZeroingWeakMemory;
 }
 
 - (NSUInteger (*)(const void *item)) sizeFunction
@@ -363,20 +365,12 @@ relinquishRetainedMemory(const void *item,
 
 - (BOOL) usesStrongWriteBarrier
 {
-  if ((_x.options &
-    (NSPointerFunctionsZeroingWeakMemory
-    |NSPointerFunctionsOpaqueMemory
-    |NSPointerFunctionsMallocMemory
-    |NSPointerFunctionsMachVirtualMemory)) == NSPointerFunctionsStrongMemory)
-    return YES;
-  return NO;
+  return memoryType(_x.options, NSPointerFunctionsStrongMemory);
 }
 
 - (BOOL) usesWeakReadAndWriteBarriers
 {
-  if (_x.options & NSPointerFunctionsZeroingWeakMemory)
-    return YES;
-  return NO;
+  return memoryType(_x.options, NSPointerFunctionsZeroingWeakMemory);
 }
 
 @end

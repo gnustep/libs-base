@@ -534,7 +534,7 @@ static Class	concreteClass = Nil;
 	  new_gf = new_cap / 2;
 	  if (_contents == 0)
 	    {
-	      if (_pf.options & NSPointerFunctionsZeroingWeakMemory)
+	      if (memoryType(_pf.options, NSPointerFunctionsZeroingWeakMemory))
 		{
 		  ptr = (void**)NSAllocateCollectable(size, 0);
 		}
@@ -545,7 +545,7 @@ static Class	concreteClass = Nil;
 	    }
 	  else
 	    {
-	      if (_pf.options & NSPointerFunctionsZeroingWeakMemory)
+	      if (memoryType(_pf.options, NSPointerFunctionsZeroingWeakMemory))
 		{
 		  ptr = (void**)NSReallocateCollectable(
 		    _contents, size, 0);

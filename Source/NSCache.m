@@ -30,6 +30,7 @@
 #import "Foundation/NSCache.h"
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSEnumerator.h"
+#import "Foundation/NSLock.h"
 
 /**
  * _GSCachedObject is effectively used as a structure containing the various
@@ -60,8 +61,9 @@
     {
       return nil;
     }
-  ASSIGN(_objects,[NSMapTable strongToStrongObjectsMapTable]);
+  ASSIGN(_objects, [NSMapTable strongToStrongObjectsMapTable]);
   _accesses = [NSMutableArray new];
+  _lock = [NSRecursiveLock new];
   return self;
 }
 
@@ -82,15 +84,24 @@
 
 - (NSString*) name
 {
-  return _name;
+  NSString	*n;
+
+  [_lock lock];
+  n = RETAIN(_name);
+  [_lock unlock];
+  return AUTORELEASE(n);
 }
 
 - (id) objectForKey: (id)key
 {
-  _GSCachedObject *obj = [_objects objectForKey: key];
+  _GSCachedObject	*obj;
+  id			value;
 
+  [_lock lock];
+  obj = [_objects objectForKey: key];
   if (nil == obj)
     {
+      [_lock unlock];
       return nil;
     }
   if (obj->isEvictable)
@@ -101,14 +112,18 @@
     }
   obj->accessCount++;
   _totalAccesses++;
-  return obj->object;
+  value = RETAIN(obj->object);
+  [_lock unlock];
+  return AUTORELEASE(value);
 }
 
 - (void) removeAllObjects
 {
-  NSEnumerator *e = [_objects objectEnumerator];
-  _GSCachedObject *obj;
+  NSEnumerator		*e;
+  _GSCachedObject	*obj;
 
+  [_lock lock];
+  e = [_objects objectEnumerator];
   while (nil != (obj = [e nextObject]))
     {
       [_delegate cache: self willEvictObject: obj->object];
@@ -116,12 +131,15 @@
   [_objects removeAllObjects];
   [_accesses removeAllObjects];
   _totalAccesses = 0;
+  [_lock unlock];
 }
 
 - (void) removeObjectForKey: (id)key
 {
-  _GSCachedObject *obj = [_objects objectForKey: key];
+  _GSCachedObject	*obj;
 
+  [_lock lock];
+  obj = [_objects objectForKey: key];
   if (nil != obj)
     {
       [_delegate cache: self willEvictObject: obj->object];
@@ -129,6 +147,7 @@
       [_objects removeObjectForKey: key];
       [_accesses removeObjectIdenticalTo: obj];
     }
+  [_lock unlock];
 }
 
 - (void) setCountLimit: (NSUInteger)lim
@@ -148,14 +167,18 @@
 
 - (void) setName: (NSString*)cacheName
 {
+  [_lock lock];
   ASSIGN(_name, cacheName);
+  [_lock unlock];
 }
 
 - (void) setObject: (id)obj forKey: (id)key cost: (NSUInteger)num
 {
-  _GSCachedObject *oldObject = [_objects objectForKey: key];
+  _GSCachedObject *oldObject;
   _GSCachedObject *newObject;
 
+  [_lock lock];
+  oldObject = [_objects objectForKey: key];
   if (nil != oldObject)
     {
       [self removeObjectForKey: oldObject->key];
@@ -174,6 +197,7 @@
   [_objects setObject: newObject forKey: key];
   RELEASE(newObject);
   _totalCost += num;
+  [_lock unlock];
 }
 
 - (void) setObject: (id)obj forKey: (id)key
@@ -198,11 +222,13 @@
  * could in future have a class cluster with pluggable policies for different
  * caches or some other mechanism.
  */
-- (void)_evictObjectsToMakeSpaceForObjectWithCost: (NSUInteger)cost
+- (void) _evictObjectsToMakeSpaceForObjectWithCost: (NSUInteger)cost
 {
   NSUInteger spaceNeeded = 0;
-  NSUInteger count = [_objects count];
+  NSUInteger count;
 
+  [_lock lock];
+  count = [_objects count];
   if (_costLimit > 0 && _totalCost + cost > _costLimit)
     {
       spaceNeeded = _totalCost + cost - _costLimit;
@@ -261,24 +287,26 @@
 	      [self removeObjectForKey: key];
 	    }
 	}
-    [evictedKeys release];
+      RELEASE(evictedKeys);
     }
+  [_lock unlock];
 }
 
 - (void) dealloc
 {
-  [_name release];
-  [_objects release];
-  [_accesses release];
-  [super dealloc];
+  RELEASE(_lock);
+  RELEASE(_name);
+  RELEASE(_objects);
+  RELEASE(_accesses);
+  DEALLOC
 }
 @end
 
 @implementation _GSCachedObject
 - (void) dealloc
 {
-  [object release];
-  [key release];
-  [super dealloc];
+  RELEASE(object);
+  RELEASE(key);
+  DEALLOC
 }
 @end
