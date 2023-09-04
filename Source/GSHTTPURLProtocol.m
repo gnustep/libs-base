@@ -656,8 +656,13 @@ parseArgumentPart(NSString *part, NSString *name)
     {
       case 301:
       case 302:
-        method = [[fromRequest HTTPMethod] isEqualToString:@"POST"] ? 
-          @"GET" : [fromRequest HTTPMethod];
+#if REDIRECT_302_GET
+          method = [[fromRequest HTTPMethod] isEqualToString:@"POST"] ? 
+            @"GET" : [fromRequest HTTPMethod];
+#else
+          // RFC leaves the choice of method to the client - the Mac appears to use the same method.
+          method = [fromRequest HTTPMethod];
+#endif
         break;
       case 303:
         method = @"GET";
