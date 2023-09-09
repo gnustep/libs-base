@@ -18,7 +18,9 @@ higher.
    * libxml2 (RECOMMENDED)
    * libcurl (RECOMMENDED)
    * libdispatch (RECOMMENDED)
-   * libxslt (OPTIONAL)
+   * libavahi (RECOMMENDED for NSNetServices)
+   * libxslt (RECOMMENDED)
+   * zlib (RECOMMENDED)
    * iconv (OPTIONAL, not needed if you have glibc)
    * openssl (OPTIONAL, not needed if you have gnutls)
 
