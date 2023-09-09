@@ -42,6 +42,7 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSThread.h"
+#import "Foundation/NSUserDefaults.h"
 
 #define class_createInstance(C,E) NSAllocateObject(C,E,NSDefaultMallocZone())
 
@@ -61,6 +62,7 @@ static Class    untracedLockClass = Nil;
 static Class    untracedRecursiveLockClass = Nil;
 
 static BOOL     traceLocks = NO;
+static BOOL     compatible = NO;
 
 @implementation NSObject (GSTraceLocks)
 
@@ -247,7 +249,11 @@ static BOOL     traceLocks = NO;
 {\
   if (0 != GS_MUTEX_UNLOCK(_mutex))\
     {\
-      NSLog(@"failed to unlock mutex");\
+      if (compatible)\
+	{\
+          [NSException raise: NSLockException\
+  	        format: @"failed to unlock mutex"];\
+	}\
     }\
   CHK(Drop) \
 }
@@ -342,6 +348,7 @@ NSString *NSLockException = @"NSLockException";
       untracedConditionLockClass = [GSUntracedConditionLock class];
       untracedLockClass = [GSUntracedLock class];
       untracedRecursiveLockClass = [GSUntracedRecursiveLock class];
+      compatible = [[NSUserDefaults standardUserDefaults] boolForKey: @"GSMacOSXCompatible"];
     }
 }
 
