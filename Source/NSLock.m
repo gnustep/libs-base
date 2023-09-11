@@ -36,13 +36,14 @@
 #import "GSPrivate.h"
 #import "GSPThread.h"
 #include <math.h>
+#include <stdlib.h>
 
 #import "common.h"
 
 #import "Foundation/NSLock.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSThread.h"
-#import "Foundation/NSUserDefaults.h"
+// #import "Foundation/NSUserDefaults.h"
 
 #define class_createInstance(C,E) NSAllocateObject(C,E,NSDefaultMallocZone())
 
@@ -348,7 +349,7 @@ NSString *NSLockException = @"NSLockException";
       untracedConditionLockClass = [GSUntracedConditionLock class];
       untracedLockClass = [GSUntracedLock class];
       untracedRecursiveLockClass = [GSUntracedRecursiveLock class];
-      compatible = [[NSUserDefaults standardUserDefaults] boolForKey: @"GSMacOSXCompatible"];
+      compatible = (strcmp(getenv("NSLOCK_COMPATIBLE"), "YES") == 0) ? YES : NO;
     }
 }
 
