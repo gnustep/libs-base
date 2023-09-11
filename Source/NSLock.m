@@ -63,7 +63,6 @@ static Class    untracedLockClass = Nil;
 static Class    untracedRecursiveLockClass = Nil;
 
 static BOOL     traceLocks = NO;
-static BOOL     compatible = NO;
 
 @implementation NSObject (GSTraceLocks)
 
@@ -250,10 +249,15 @@ static BOOL     compatible = NO;
 {\
   if (0 != GS_MUTEX_UNLOCK(_mutex))\
     {\
-      if (compatible)\
+      if (GSPrivateDefaultsFlag(GSMacOSXCompatible))\
+	{\
+          NSLog(@"Failed to unlock mutex %@ at %@",\
+	    self, [NSThread callStackSymbols]);\
+	}\
+      else \
 	{\
           [NSException raise: NSLockException\
-  	        format: @"failed to unlock mutex"];\
+		      format: @"failed to unlock mutex %@", self];\
 	}\
     }\
   CHK(Drop) \
@@ -349,7 +353,6 @@ NSString *NSLockException = @"NSLockException";
       untracedConditionLockClass = [GSUntracedConditionLock class];
       untracedLockClass = [GSUntracedLock class];
       untracedRecursiveLockClass = [GSUntracedRecursiveLock class];
-      compatible = (strcmp(getenv("NSLOCK_COMPATIBLE"), "YES") == 0) ? YES : NO;
     }
 }
 
