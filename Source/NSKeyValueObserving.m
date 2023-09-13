@@ -1561,6 +1561,12 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
     [forwarder finalize];
 }
 
+
+- (void) removeObserver: (NSObject*)anObserver forKeyPath: (NSString*)aPath context: (void*)context
+{
+  [self removeObserver: anObserver forKeyPath: aPath];
+}
+
 @end
 
 /**

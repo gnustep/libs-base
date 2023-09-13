@@ -138,6 +138,10 @@ GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
 - (void) removeObserver: (NSObject*)anObserver
 	     forKeyPath: (NSString*)aPath;
 
+- (void) removeObserver: (NSObject*)anObserver
+	     forKeyPath: (NSString*)aPath
+                context: (void*)context;
+
 @end
 
 @interface NSArray (NSKeyValueObserverRegistration)
