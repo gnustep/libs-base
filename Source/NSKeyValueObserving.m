@@ -1566,7 +1566,9 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
 	     forKeyPath: (NSString*)aPath
 		context: (void*)context
 {
-  [self removeObserver: anObserver forKeyPath: aPath];
+  [NSException raise: NSGenericException
+	      format: @"[%@-%@]: This class is not observable",
+    NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
 }
 
 @end
