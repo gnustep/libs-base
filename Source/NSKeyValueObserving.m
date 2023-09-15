@@ -1566,9 +1566,36 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
 	     forKeyPath: (NSString*)aPath
 		context: (void*)context
 {
-  [NSException raise: NSGenericException
-	      format: @"[%@-%@]: This class is not observable",
-    NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+  GSKVOPathInfo	*pathInfo;
+  
+  [iLock lock];
+  pathInfo = (GSKVOPathInfo*)NSMapGet(paths, (void*)aPath);
+  if (pathInfo != nil)
+    {
+      unsigned  count = [pathInfo->observations count];
+      
+      pathInfo->allOptions = 0;
+      while (count-- > 0)
+        {
+          GSKVOObservation      *o;
+          
+          o = [pathInfo->observations objectAtIndex: count];
+          if ((o->observer == anObserver || o->observer == nil) &&
+              (o->context == context))
+            {
+              [pathInfo->observations removeObjectAtIndex: count];
+              if ([pathInfo->observations count] == 0)
+                {
+                  NSMapRemove(paths, (void*)aPath);
+                }
+            }
+          else
+            {
+              pathInfo->allOptions |= o->options;
+            }
+        }
+    }
+  [iLock unlock];  
 }
 
 @end
