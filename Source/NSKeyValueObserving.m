@@ -1598,6 +1598,13 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   [kvoLock unlock];  
 }
 
+- (void)removeObserver:(NSObject *)observer 
+  fromObjectsAtIndexes:(NSIndexSet *)indexes 
+            forKeyPath:(NSString *)keyPath 
+               context:(void *)context
+{
+}
+
 @end
 
 /**
