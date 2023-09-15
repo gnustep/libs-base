@@ -1568,7 +1568,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
 {
   GSKVOPathInfo	*pathInfo;
   
-  [iLock lock];
+  [kvoLock lock];
   pathInfo = (GSKVOPathInfo*)NSMapGet(paths, (void*)aPath);
   if (pathInfo != nil)
     {
@@ -1595,7 +1595,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
             }
         }
     }
-  [iLock unlock];  
+  [kvoLock unlock];  
 }
 
 @end
