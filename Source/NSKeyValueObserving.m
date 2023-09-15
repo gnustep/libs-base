@@ -1288,6 +1288,50 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   [iLock unlock];
   return context;
 }
+
+- (void) removeObserver: (NSObject*)anObserver
+	     forKeyPath: (NSString*)aPath
+		context: (void*)context
+{
+  GSKVOPathInfo	*pathInfo;
+  
+  [iLock lock];
+  pathInfo = (GSKVOPathInfo*)NSMapGet(paths, (void*)aPath);
+  if (pathInfo != nil)
+    {
+      unsigned  count = [pathInfo->observations count];
+      
+      pathInfo->allOptions = 0;
+      while (count-- > 0)
+        {
+          GSKVOObservation      *o;
+          
+          o = [pathInfo->observations objectAtIndex: count];
+          if ((o->observer == anObserver || o->observer == nil) &&
+              (o->context == context))
+            {
+              [pathInfo->observations removeObjectAtIndex: count];
+              if ([pathInfo->observations count] == 0)
+                {
+                  NSMapRemove(paths, (void*)aPath);
+                }
+            }
+          else
+            {
+              pathInfo->allOptions |= o->options;
+            }
+        }
+    }
+  [iLock unlock];  
+}
+
+- (void)removeObserver:(NSObject *)observer 
+  fromObjectsAtIndexes:(NSIndexSet *)indexes 
+            forKeyPath:(NSString *)keyPath 
+               context:(void *)context
+{
+}
+
 @end
 
 @implementation NSKeyValueObservationForwarder
@@ -1561,49 +1605,6 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
     [forwarder finalize];
 }
 
-
-- (void) removeObserver: (NSObject*)anObserver
-	     forKeyPath: (NSString*)aPath
-		context: (void*)context
-{
-  GSKVOPathInfo	*pathInfo;
-  
-  [kvoLock lock];
-  pathInfo = (GSKVOPathInfo*)NSMapGet(paths, (void*)aPath);
-  if (pathInfo != nil)
-    {
-      unsigned  count = [pathInfo->observations count];
-      
-      pathInfo->allOptions = 0;
-      while (count-- > 0)
-        {
-          GSKVOObservation      *o;
-          
-          o = [pathInfo->observations objectAtIndex: count];
-          if ((o->observer == anObserver || o->observer == nil) &&
-              (o->context == context))
-            {
-              [pathInfo->observations removeObjectAtIndex: count];
-              if ([pathInfo->observations count] == 0)
-                {
-                  NSMapRemove(paths, (void*)aPath);
-                }
-            }
-          else
-            {
-              pathInfo->allOptions |= o->options;
-            }
-        }
-    }
-  [kvoLock unlock];  
-}
-
-- (void)removeObserver:(NSObject *)observer 
-  fromObjectsAtIndexes:(NSIndexSet *)indexes 
-            forKeyPath:(NSString *)keyPath 
-               context:(void *)context
-{
-}
 
 @end
 
