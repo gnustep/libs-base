@@ -1605,6 +1605,31 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
     [forwarder finalize];
 }
 
+- (void) removeObserver: (NSObject*)anObserver
+             forKeyPath: (NSString*)aPath
+                context: (void *)context
+{
+  GSKVOInfo	*info;
+  
+  setup();
+  [kvoLock lock];
+  /*
+   * Get the observation information and remove this observation.
+   */
+  info = (GSKVOInfo*)[self observationInfo];
+  [info removeObserver: anObserver forKeyPath: aPath context: context];
+  if ([info isUnobserved] == YES)
+    {
+      /*
+       * The instance is no longer being observed ... so we can
+       * turn off key-value-observing for it.
+       */
+      object_setClass(self, [self class]);
+      IF_NO_GC(AUTORELEASE(info);)
+      [self setObservationInfo: nil];
+    }
+  [kvoLock unlock];
+}
 
 @end
 
