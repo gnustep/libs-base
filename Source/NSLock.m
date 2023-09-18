@@ -36,12 +36,14 @@
 #import "GSPrivate.h"
 #import "GSPThread.h"
 #include <math.h>
+#include <stdlib.h>
 
 #import "common.h"
 
 #import "Foundation/NSLock.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSThread.h"
+// #import "Foundation/NSUserDefaults.h"
 
 #define class_createInstance(C,E) NSAllocateObject(C,E,NSDefaultMallocZone())
 
@@ -247,7 +249,16 @@ static BOOL     traceLocks = NO;
 {\
   if (0 != GS_MUTEX_UNLOCK(_mutex))\
     {\
-      NSLog(@"failed to unlock mutex");\
+      if (GSPrivateDefaultsFlag(GSMacOSXCompatible))\
+	{\
+          NSLog(@"Failed to unlock mutex %@ at %@",\
+	    self, [NSThread callStackSymbols]);\
+	}\
+      else \
+	{\
+          [NSException raise: NSLockException\
+		      format: @"failed to unlock mutex %@", self];\
+	}\
     }\
   CHK(Drop) \
 }
