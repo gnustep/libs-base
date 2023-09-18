@@ -25,6 +25,7 @@ Tests/base/NSURL/SimpleResponse.dat
 Tests/base/NSURLConnection/Helpers/TestConnection.bundle/
 Tests/base/coding/long-8.type
 Tests/base/coding/ulong-8.type
+Tests/*.tmp
 
 # Editor byproducts
 *.orig
