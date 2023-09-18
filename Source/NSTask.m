@@ -1733,7 +1733,11 @@ GSPrivateCheckTasks()
 	  (void) close(i);
 	}
 
-      (void)chdir(path);
+      if (0 != chdir(path))
+        {
+          exit(-1);
+        }
+
       (void)execve(executable, (char**)args, (char**)envl);
       exit(-1);
     }
