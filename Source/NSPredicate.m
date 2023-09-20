@@ -384,13 +384,13 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   return [NSPredicate class];
 }
 
-- (void) encodeWithCoder: (NSCoder *) coder;
+- (void) encodeWithCoder: (NSCoder *) coder
 {
   // FIXME
   [self subclassResponsibility: _cmd];
 }
 
-- (id) initWithCoder: (NSCoder *) coder;
+- (id) initWithCoder: (NSCoder *) coder
 {
   // FIXME
   [self subclassResponsibility: _cmd];

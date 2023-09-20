@@ -284,7 +284,7 @@ static NSArray	*empty = nil;
   return internal->ready;
 }
 
-- (void) main;
+- (void) main
 {
   return;	// OSX default implementation does nothing
 }
