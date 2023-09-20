@@ -1880,9 +1880,16 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (void) truncateFileAtOffset: (unsigned long long)pos
 {
-  if (isStandardFile && descriptor >= 0)
+  if (!(isStandardFile && descriptor >= 0))
     {
-      (void)ftruncate(descriptor, pos);
+      [NSException raise: NSFileHandleOperationException
+		  format: @"attempt to truncate invalid file"];
+
+    }
+  if (ftruncate(descriptor, pos) < 0)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"truncation failed"];
     }
   [self seekToFileOffset: pos];
 }

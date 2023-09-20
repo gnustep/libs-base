@@ -420,7 +420,7 @@ pty_slave(const char* name)
   if (NO == [self launchAndReturnError: &e])
     {
       [NSException raise: NSInvalidArgumentException
-		  format: @"%@", e ? e : @"Unable to launch"];
+		  format: @"%@", e ? [e description] : @"Unable to launch"];
     }
 }
 
@@ -969,7 +969,7 @@ pty_slave(const char* name)
             coalesceMask: NSNotificationNoCoalescing
                 forModes: nil];
 
-  if (_handler != nil)
+  if (_handler != NULL)
     {
       CALL_BLOCK_NO_ARGS(_handler);
     }
@@ -1733,7 +1733,11 @@ GSPrivateCheckTasks()
 	  (void) close(i);
 	}
 
-      (void)chdir(path);
+      if (0 != chdir(path))
+        {
+          exit(-1);
+        }
+
       (void)execve(executable, (char**)args, (char**)envl);
       exit(-1);
     }
