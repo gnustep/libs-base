@@ -3,7 +3,7 @@
 
    Implementation of string class with attributes
 
-   Copyright (C) 1997,1999 Free Software Foundation, Inc.
+   Copyright (C) 1997-2022 Free Software Foundation, Inc.
 
    Written by: ANOQ of the sun <anoq@vip.cybercity.dk>
    Date: November 1997

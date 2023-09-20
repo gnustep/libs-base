@@ -1,9 +1,8 @@
 /**Interface for NSOperation for GNUStep
-   Copyright (C) 2009,2010 Free Software Foundation, Inc.
+   Copyright (C) 2008-2022 Free Software Foundation, Inc.
 
    Written by:  Gregory Casamento <greg.casamento@gmail.com>
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
-   Date: 2009,2010
 
    This file is part of the GNUstep Base Library.
 
