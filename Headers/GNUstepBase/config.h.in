@@ -601,6 +601,9 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
+/* if struct sockaddr_storage is defined */
+#undef HAVE_STRUCT_SOCKADDR_STORAGE
+
 /* Define to 1 if `st_birthtimespec' is a member of `struct stat64'. */
 #undef HAVE_STRUCT_STAT64_ST_BIRTHTIMESPEC
 
