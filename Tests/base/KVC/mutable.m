@@ -8,6 +8,14 @@ typedef struct {
 } aStruct;
 
 @interface Observer : NSObject
+{
+  BOOL _string2DidChange;
+}
+
+- (void) reset;
+
+- (BOOL) string2DidChange;
+
 - (void) observeValueForKeyPath: (NSString *)keyPath
                        ofObject: (id)object
                          change: (NSDictionary *)change
@@ -15,6 +23,16 @@ typedef struct {
 @end
 
 @implementation Observer
+- (void) reset;
+{
+  _string2DidChange = NO;
+}
+
+- (BOOL) string2DidChange
+{
+  return _string2DidChange;
+}
+
 - (void) observeValueForKeyPath: (NSString *)keyPath
                        ofObject: (id)object
                          change: (NSDictionary *)change
@@ -22,6 +40,11 @@ typedef struct {
 {
   NSLog(@"observeValueForKeyPath: %@\nofObject:%@\nchange:%@\ncontext:%p",
     keyPath, object, change, context);
+
+  if ([keyPath isEqualToString: @"string2"] )
+    {
+      _string2DidChange = YES;
+    }
 }
 @end
 
@@ -31,6 +54,7 @@ typedef struct {
   NSMutableArray * numbers;
   NSMutableArray * third;
   NSString *string;
+  NSString *string2;
   aStruct x;
 }
 
@@ -115,6 +139,16 @@ typedef struct {
   x = s;
 }
 
+- (void) setString2: (NSString *)s
+{
+  string2 = s;
+}
+
+- (NSString *) string2
+{
+  return string2;
+}
+
 - (void) willChangeValueForKey: (NSString*)k
 {
   [super willChangeValueForKey: k];
@@ -179,11 +213,17 @@ int main(void)
   NSMutableArray * proxy;
   NSDictionary * temp;
 
+  [observer reset];
   [list addObserver: observer forKeyPath: @"numbers" options: 15 context: 0];
   [list addObserver: observer forKeyPath: @"string" options: 15 context: 0];
+  [list addObserver: observer forKeyPath: @"string2" options: 15 context: 0];
   [list addObserver: observer forKeyPath: @"x" options: 15 context: 0];
 
   [list setValue: @"x" forKey: @"string"];
+  [list setString2: @"Hello"];
+
+  PASS([observer string2DidChange],
+       "string did change properly");
 
   proxy = [list mutableArrayValueForKey:@"numbers"];
   PASS([proxy isKindOfClass:[NSMutableArray class]],
@@ -277,8 +317,14 @@ int main(void)
 
   [list removeObserver: observer forKeyPath: @"numbers"];
   [list removeObserver: observer forKeyPath: @"string"];
-  [list removeObserver: observer forKeyPath: @"x"];
+  [list removeObserver: observer forKeyPath: @"x"];  
+  [list removeObserver: observer forKeyPath: @"string2" context: 0];
 
+  [observer reset];
+  [list setString2: @"Test"];
+  PASS([observer string2DidChange] == NO,
+       "string2 should NOT have changed");
+  
   [arp release]; arp = nil;
   return 0;
 }
