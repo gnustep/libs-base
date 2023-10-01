@@ -1325,13 +1325,6 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   [iLock unlock];  
 }
 
-- (void) removeObserver: (NSObject*)anObserver
-   fromObjectsAtIndexes: (NSIndexSet *)indexes
-             forKeyPath: (NSString*)aPath
-                context: (void *)context
-{
-}
-
 @end
 
 @implementation NSKeyValueObservationForwarder
