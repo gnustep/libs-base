@@ -9,12 +9,12 @@ typedef struct {
 
 @interface Observer : NSObject
 {
-  BOOL _string2DidChange;
+  NSMutableSet *_keysChanged;
 }
 
 - (void) reset;
 
-- (BOOL) string2DidChange;
+- (NSSet *) keysChanged;
 
 - (void) observeValueForKeyPath: (NSString *)keyPath
                        ofObject: (id)object
@@ -23,14 +23,30 @@ typedef struct {
 @end
 
 @implementation Observer
-- (void) reset;
+- (instancetype) init
 {
-  _string2DidChange = NO;
+  self = [super init];
+  if (self)
+    {
+      _keysChanged = [[NSMutableSet alloc] init];
+    }
+  return self;
 }
 
-- (BOOL) string2DidChange
+- (void) dealloc
 {
-  return _string2DidChange;
+  RELEASE(_keysChanged);
+  [super dealloc];
+}
+
+- (void) reset;
+{
+  [_keysChanged removeAllObjects];
+}
+
+- (NSSet *) keysChanged
+{
+  return _keysChanged;
 }
 
 - (void) observeValueForKeyPath: (NSString *)keyPath
@@ -41,10 +57,7 @@ typedef struct {
   NSLog(@"observeValueForKeyPath: %@\nofObject:%@\nchange:%@\ncontext:%p",
     keyPath, object, change, context);
 
-  if ([keyPath isEqualToString: @"string2"] )
-    {
-      _string2DidChange = YES;
-    }
+  [_keysChanged addObject: keyPath];
 }
 @end
 
@@ -222,8 +235,8 @@ int main(void)
   [list setValue: @"x" forKey: @"string"];
   [list setString2: @"Hello"];
 
-  PASS([observer string2DidChange],
-       "string did change properly");
+  PASS([[observer keysChanged] containsObject: @"string2"],
+       "string2 did change properly");
 
   proxy = [list mutableArrayValueForKey:@"numbers"];
   PASS([proxy isKindOfClass:[NSMutableArray class]],
@@ -320,10 +333,42 @@ int main(void)
   [list removeObserver: observer forKeyPath: @"x"];  
   [list removeObserver: observer forKeyPath: @"string2" context: 0];
 
+  // Test if we see the change on string2 after the observer is removed with
+  // the removeObjserver:forKeyPath:context: method.
   [observer reset];
   [list setString2: @"Test"];
-  PASS([observer string2DidChange] == NO,
-       "string2 should NOT have changed");
+  PASS([[observer keysChanged] containsObject: @"string2"] == NO,
+       "string2 should NOT have been observed");
+
+  // Create an array and add an object, add an observer to that object... test
+  // it and then remove it and verify the remove.
+  Lists *obj = [[[Lists alloc] init] autorelease];
+  NSArray *array = [NSArray arrayWithObject: obj];
+  NSIndexSet *idxs = [NSIndexSet indexSetWithIndex: 0];
+
+  // Add the observer then remove it...
+  [observer reset];
+  [array addObserver: observer
+	 toObjectsAtIndexes: idxs
+	  forKeyPath: @"string2"
+	     options: 15
+	     context: 0];
+  
+  [obj setString2: @"Hello again"];
+  PASS([[observer keysChanged] containsObject: @"string2"],
+       "string2 has been observed");
+  
+  [observer reset];
+  [array removeObserver: observer
+	 fromObjectsAtIndexes: idxs
+	     forKeyPath: @"string2"
+		context: 0];
+
+  // Determine if it still responds..
+  [obj setString2: @"Test"];
+  PASS([[observer keysChanged] containsObject: @"string2"] == NO,
+       "string2 should NOT have been observed");
+  
   
   [arp release]; arp = nil;
   return 0;
