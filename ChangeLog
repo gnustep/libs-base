@@ -1,3 +1,8 @@
+2023-10-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPredicate.m: fixup for array access keywords
+	* Tests/base/NSPredicate/basic.m: add simple testcases for array
+
 2023-10-07 Gregory John Casamento <greg.casamento@gmail.com>
 
 	* Headers/Foundation/NSKeyValueObserving.h
