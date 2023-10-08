@@ -1687,6 +1687,25 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
     }
 }
 
+- (void) removeObserver: (NSObject*)anObserver
+   fromObjectsAtIndexes: (NSIndexSet *)indexes
+             forKeyPath: (NSString*)aPath
+                context: (void *)context
+{
+  NSUInteger i = [indexes firstIndex];
+
+  while (i != NSNotFound)
+    {
+      NSObject *elem = [self objectAtIndex: i];
+
+      [elem removeObserver: anObserver
+                forKeyPath: aPath
+		   context: context];
+
+      i = [indexes indexGreaterThanIndex: i];
+    }
+}
+
 @end
 
 /**
