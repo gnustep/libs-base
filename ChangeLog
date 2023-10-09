@@ -1,3 +1,10 @@
+2023-10-09  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSTask.m(launchAndReturnError:): Use _exit instead of
+	exit to terminate the vfork'ed process. This avoids running the
+	atexit handlers, which could have visible side effects in the
+	parent process.
+
 2023-10-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSPredicate.m: fixup for array access keywords

@@ -1735,11 +1735,11 @@ GSPrivateCheckTasks()
 
       if (0 != chdir(path))
         {
-          exit(-1);
+          _exit(-1);
         }
 
       (void)execve(executable, (char**)args, (char**)envl);
-      exit(-1);
+      _exit(-1);
     }
   else
     {
