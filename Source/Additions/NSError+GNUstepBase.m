@@ -28,6 +28,7 @@
 
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSError.h"
+#import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
 #import "GSPrivate.h"
 
@@ -167,4 +168,18 @@ strerror_r(int eno, char *buf, int len)
   error = [self errorWithDomain: domain code: code userInfo: info];
   return error;
 }
+
+- (void) _setObject: (NSObject*)anObject forKey: (NSString*)aKey
+{
+  NSMutableDictionary	*ui = (NSMutableDictionary*)[self userInfo];
+
+  NSAssert([anObject isKindOfClass: [NSObject class]],
+    NSInvalidArgumentException);
+  NSAssert([aKey isKindOfClass: [NSString class]],
+    NSInvalidArgumentException);
+  NSAssert([ui isKindOfClass: [NSMutableDictionary class]],
+    NSGenericException);
+  [ui setObject: anObject forKey: aKey];
+}
+
 @end

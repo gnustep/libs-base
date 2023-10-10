@@ -27,11 +27,13 @@
 
 #import "common.h"
 #define	EXPOSE_NSTask_IVARS	1
+#import "Foundation/FoundationErrors.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSEnumerator.h"
+#import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSFileHandle.h"
 #import "Foundation/NSFileManager.h"
@@ -339,7 +341,7 @@ pty_slave(const char* name)
   if (_currentDirectoryPath == nil)
     {
       [self setCurrentDirectoryPath:
-		[[NSFileManager defaultManager] currentDirectoryPath]];
+	[[NSFileManager defaultManager] currentDirectoryPath]];
     }
   return _currentDirectoryPath;
 }
@@ -1526,8 +1528,12 @@ GSPrivateCheckTasks()
 // 10.13 method...
 - (BOOL) launchAndReturnError: (NSError **)error
 {
+  NSFileManager		*mgr = [NSFileManager defaultManager];
+  NSDictionary      	*info;
   NSMutableArray	*toClose;
   NSString      	*lpath;
+  NSString		*cwd;
+  BOOL			ok;
   int			pid;
   const char		*executable;
   const char		*path;
@@ -1548,8 +1554,6 @@ GSPrivateCheckTasks()
     {
       if (error)
 	{
-	  NSDictionary      *info;
-
 	  info = [NSDictionary dictionaryWithObjectsAndKeys:
 	    @"task has already been launched", NSLocalizedDescriptionKey, nil];
 	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
@@ -1589,7 +1593,40 @@ GSPrivateCheckTasks()
     }
   envl[ec] = 0;
 
-  path = [[self currentDirectoryPath] fileSystemRepresentation];
+  cwd = [self currentDirectoryPath];
+  if (NO == [mgr fileExistsAtPath: cwd isDirectory: &ok])
+    {
+      if (error)
+	{
+	  info = [NSDictionary dictionaryWithObjectsAndKeys:
+	    @"does not exist", NSLocalizedDescriptionKey,
+	    cwd, NSFilePathErrorKey,
+	    nil];
+	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
+				       code: NSFileNoSuchFileError
+				   userInfo: info];
+	}
+      return NO;
+    }
+  if (NO == ok)
+    {
+      if (error)
+	{
+	  *error = [NSError _systemError: ENOTDIR];
+	  [*error _setObject: cwd forKey: NSFilePathErrorKey];
+	}
+      return NO;
+    }
+  if (NO == [mgr isExecutableFileAtPath: cwd])
+    {
+      if (error)
+	{
+	  *error = [NSError _systemError: EACCES];
+	  [*error _setObject: cwd forKey: NSFilePathErrorKey];
+	}
+      return NO;
+    }
+  path = [cwd fileSystemRepresentation];
 
   toClose = [NSMutableArray arrayWithCapacity: 3];
   hdl = [self standardInput];
