@@ -905,7 +905,45 @@ pty_slave(const char* name)
 
 - (BOOL) launchAndReturnError: (NSError **)error
 {
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSString	*cwd;
+  BOOL		ok;
+
   ASSIGN(_launchingThread, [NSThread currentThread]);
+
+  cwd = [self currentDirectoryPath];
+  if (NO == [mgr fileExistsAtPath: cwd isDirectory: &ok])
+    {
+      if (error)
+	{
+	  NSDictionary	*info = [NSDictionary dictionaryWithObjectsAndKeys:
+	    @"does not exist", NSLocalizedDescriptionKey,
+	    cwd, NSFilePathErrorKey,
+	    nil];
+	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
+				       code: NSFileNoSuchFileError
+				   userInfo: info];
+	}
+      return NO;
+    }
+  if (NO == ok)
+    {
+      if (error)
+	{
+	  *error = [NSError _systemError: ENOTDIR];
+	  [*error _setObject: cwd forKey: NSFilePathErrorKey];
+	}
+      return NO;
+    }
+  if (NO == [mgr isExecutableFileAtPath: cwd])
+    {
+      if (error)
+	{
+	  *error = [NSError _systemError: EACCES];
+	  [*error _setObject: cwd forKey: NSFilePathErrorKey];
+	}
+      return NO;
+    }
   return YES;
 }
 
@@ -1217,7 +1255,10 @@ quotedFromString(NSString *aString)
       return NO;
     }
 
-  [super launchAndReturnError: error];
+  if (NO == [super launchAndReturnError: error])
+    {
+      return NO;
+    }
 
   lpath = [self _fullLaunchPath];
   wexecutable = (const unichar*)[lpath fileSystemRepresentation];
@@ -1528,12 +1569,9 @@ GSPrivateCheckTasks()
 // 10.13 method...
 - (BOOL) launchAndReturnError: (NSError **)error
 {
-  NSFileManager		*mgr = [NSFileManager defaultManager];
   NSDictionary      	*info;
   NSMutableArray	*toClose;
   NSString      	*lpath;
-  NSString		*cwd;
-  BOOL			ok;
   int			pid;
   const char		*executable;
   const char		*path;
@@ -1563,7 +1601,10 @@ GSPrivateCheckTasks()
       return NO;
     }
 
-  [super launchAndReturnError: error];
+  if (NO == [super launchAndReturnError: error])
+    {
+      return NO;
+    }
 
   lpath = [self _fullLaunchPath];
   executable = [lpath fileSystemRepresentation];
@@ -1593,40 +1634,7 @@ GSPrivateCheckTasks()
     }
   envl[ec] = 0;
 
-  cwd = [self currentDirectoryPath];
-  if (NO == [mgr fileExistsAtPath: cwd isDirectory: &ok])
-    {
-      if (error)
-	{
-	  info = [NSDictionary dictionaryWithObjectsAndKeys:
-	    @"does not exist", NSLocalizedDescriptionKey,
-	    cwd, NSFilePathErrorKey,
-	    nil];
-	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
-				       code: NSFileNoSuchFileError
-				   userInfo: info];
-	}
-      return NO;
-    }
-  if (NO == ok)
-    {
-      if (error)
-	{
-	  *error = [NSError _systemError: ENOTDIR];
-	  [*error _setObject: cwd forKey: NSFilePathErrorKey];
-	}
-      return NO;
-    }
-  if (NO == [mgr isExecutableFileAtPath: cwd])
-    {
-      if (error)
-	{
-	  *error = [NSError _systemError: EACCES];
-	  [*error _setObject: cwd forKey: NSFilePathErrorKey];
-	}
-      return NO;
-    }
-  path = [cwd fileSystemRepresentation];
+  path = [[self currentDirectoryPath] fileSystemRepresentation];
 
   toClose = [NSMutableArray arrayWithCapacity: 3];
   hdl = [self standardInput];
