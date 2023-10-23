@@ -152,23 +152,47 @@
   [super dealloc];
 }
 
+- (NSString*) description
+{
+  NSString	*string;
+
+  if (pos >= length)
+    {
+      string = [NSString stringWithFormat: @"%@ in %@ pos %u of %u\n",
+	[super description], fileName, (unsigned)pos, (unsigned) length];
+    }
+  else
+    {
+      NSString	*remaining;
+
+      remaining = [[NSString alloc] initWithCharactersNoCopy: buffer + pos
+						      length: length - pos
+						freeWhenDone: NO]; 
+      string = [NSString stringWithFormat: @"%@ in %@ pos %u of %u: %@\n",
+	[super description], fileName, (unsigned)pos, (unsigned)length,
+	remaining];
+      RELEASE(remaining);
+    }
+  return string;
+}
+
 - (NSMutableDictionary*) info
 {
   return info;
 }
 
-/** Returns the methods, functions and C data types in their header declaration 
-order, by organizing them into arrays as described below. 
-
-Methods are grouped by class, category or protocol references. For example, 
-valid keys could be <em>ClassName</em>, <em>ClassName(CategoryName)</em> and 
-<em>(ProtocolName)</em>.
-
-Functions and C data types are grouped by header file names. For example, 
-<em>AGParser.h</em> would a valid key.
-
-TODO: Collect functions and C data types. Only methods are currently included 
-in the returned dictionary. */
+/** Returns the methods, functions and C data types in their header
+ * declaration order, by organizing them into arrays as described below. 
+ *
+ * Methods are grouped by class, category or protocol references.
+ * For example, valid keys could be <em>ClassName</em>,
+ * <em>ClassName(CategoryName)</em> and <em>(ProtocolName)</em>.
+ *
+ * Functions and C data types are grouped by header file names.
+ * For example, <em>AGParser.h</em> would a valid key.
+ * TODO: Collect functions and C data types. Only methods are currently
+ * included in the returned dictionary.
+ */
 - (NSDictionary *) orderedSymbolDeclarationsByUnit
 {
   return orderedSymbolDeclsByUnit;
@@ -204,8 +228,7 @@ in the returned dictionary. */
   const char	*msg;
   int		where;
 
-  /*
-   * Take the current position in the character buffer and
+  /* Take the current position in the character buffer and
    * step through the lines array to find which line of the
    * original document it was on.
    * NB. Each item in the array represents the position *after*
@@ -292,7 +315,7 @@ in the returned dictionary. */
 	    {
 	      break;
 	    }
-	  if ([[m objectForKey: @"BaseType"] isEqual: @"void"] == YES
+	  if ([[m objectForKey: @"BaseType"] isEqual: @"void"]
 	     && [m objectForKey: @"Prefix"] == nil)
 	    {
 	      continue;	// C++ style empty arg list. eg. 'int foo(void);'
@@ -468,14 +491,14 @@ patata
 {
   NSArray *firstCommentTags = [NSArray arrayWithObjects: @"<title>", 
     @"<abstract>", @"<author>", @"<copy>", @"<version>", @"<date>", 
-    @"Author:", @"By:", @"Copyright (C)", @"Revision:", @"Date:", nil];
+    @"Author:", @"By:", @"Copyright (C)", nil];
    NSEnumerator *e = [firstCommentTags objectEnumerator];
    NSString *tag = nil;
 
    while ((tag = [e nextObject]) != nil)
      {
        if ([aComment rangeOfString: tag 
-                           options: NSCaseInsensitiveSearch].location != NSNotFound)
+	 options: NSCaseInsensitiveSearch].location != NSNotFound)
          {
             return NO;
          }
@@ -486,17 +509,19 @@ patata
 
 - (NSString *) generateParagraphMarkupForString: (NSString *)aComment
 {
-  NSMutableString *formattedComment = [NSMutableString stringWithCapacity: [aComment length] + 100];
-  NSArray *paras = [aComment componentsSeparatedByString: @"\n\n"];
-  NSEnumerator *e = [paras objectEnumerator];
-  NSString *para = nil;
-  BOOL isFirstComment = (commentsRead == NO);
+  NSMutableString	*formattedComment;
+  NSString 		*para;
+  NSEnumerator		*e;
 
-  if (isFirstComment 
+  if (NO == commentsRead
    && ![self shouldInsertParagraphMarkupInFirstComment: aComment])
     {
       return aComment;
     }
+
+  formattedComment = [NSMutableString
+    stringWithCapacity: [aComment length] + 100];
+  e = [[aComment componentsSeparatedByString: @"\n\n"] objectEnumerator];
 
   while ((para = [e nextObject]) != nil)
     {
@@ -585,7 +610,7 @@ comment:
 	    }
 	}
 
-      if (isDocumentation == YES)
+      if (isDocumentation)
 	{
 	  unichar	*end = &buffer[pos - 1];
 	  unichar	*ptr = start;
@@ -603,7 +628,7 @@ comment:
 	   * Remove any trailing whitespace in the comment, but ensure that
 	   * there is a final newline.
 	   */
-	  while (end > start && [spacenl characterIsMember: end[-1]] == YES)
+	  while (end > start && [spacenl characterIsMember: end[-1]])
 	    {
 	      end--;
 	    }
@@ -643,7 +668,7 @@ comment:
 		}
 	    }
 
-	  if (stripAsterisks == YES)
+	  if (stripAsterisks)
 	    {
 	      /*
 	       * Strip parts of lines up to leading asterisks.
@@ -935,7 +960,7 @@ recheck:
 			   * header.
 			   */
 			  mgr = [NSFileManager defaultManager];
-			  if ([line isAbsolutePath] == YES)
+			  if ([line isAbsolutePath])
 			    {
 			      if ([mgr isReadableFileAtPath: line] == NO)
 				{
@@ -954,7 +979,7 @@ recheck:
 			      p = [info objectForKey: @"Header"];
 			      p = [p stringByDeletingLastPathComponent];
 			      p = [p stringByAppendingPathComponent: line];
-			      if ([mgr isReadableFileAtPath: p] == YES)
+			      if ([mgr isReadableFileAtPath: p])
 				{
 				  line = p;
 				}
@@ -971,7 +996,7 @@ recheck:
 				    {
 				      p = [ddir stringByAppendingPathComponent:
 					line];
-				      if ([mgr isReadableFileAtPath: p] == YES)
+				      if ([mgr isReadableFileAtPath: p])
 					{
 					  line = p;
 					}
@@ -1005,8 +1030,6 @@ recheck:
 	      /**
 	       * There are various sections we can extract from the
 	       * document - at most one of each.
-	       * If date and version are not supplied RCS Date and Revision
-	       * tags will be extracted where available.
 	       */
 	      keys = [NSArray arrayWithObjects:
 		@"abstract",	// Abstract for document head
@@ -1085,60 +1108,6 @@ recheck:
 			  line = [NSString stringWithFormat:
 			    @"<copy>%@</copy>", line];
 			  [info setObject: line forKey: @"copy"];
-			}
-		    }
-		}
-
-	      /*
-	       * If no <date> ... </date> then try RCS info.
-	       */
-	      if ([info objectForKey: @"date"] == nil)
-		{
-		  r = [comment rangeOfString: @"$Date:"];
-		  if (r.length > 0)
-		    {
-		      unsigned	i = NSMaxRange(r);
-		      NSString	*date;
-
-		      r = NSMakeRange(i, commentLength - i);
-		      r = [comment rangeOfString: @"$"
-					 options: NSLiteralSearch
-					   range: r];
-		      if (r.length > 0)
-			{
-			  r = NSMakeRange(i, r.location - i);
-			  date = [comment substringWithRange: r];
-			  date = [date stringByTrimmingSpaces];
-			  date = [NSString stringWithFormat:
-			    @"<date>%@</date>", date];
-			  [info setObject: date forKey: @"date"];
-			}
-		    }
-		}
-
-	      /*
-	       * If no <version> ... </version> then try RCS info.
-	       */
-	      if ([info objectForKey: @"version"] == nil)
-		{
-		  r = [comment rangeOfString: @"$Revision:"];
-		  if (r.length > 0)
-		    {
-		      unsigned	i = NSMaxRange(r);
-		      NSString	*version;
-
-		      r = NSMakeRange(i, commentLength - i);
-		      r = [comment rangeOfString: @"$"
-					 options: NSLiteralSearch
-					   range: r];
-		      if (r.length > 0)
-			{
-			  r = NSMakeRange(i, r.location - i);
-			  version = [comment substringWithRange: r];
-			  version = [version stringByTrimmingSpaces];
-			  version = [NSString stringWithFormat:
-			    @"<version>%@</version>", version];
-			  [info setObject: version forKey: @"version"];
 			}
 		    }
 		}
@@ -1318,7 +1287,7 @@ recheck:
   a = [NSMutableArray array];
   while ((s = [self parseIdentifier]) != nil)
     {
-      if (inHeader == NO && [s isEqualToString: @"static"] == YES)
+      if (inHeader == NO && [s isEqualToString: @"static"])
 	{
 	  /*
 	   * We don't want to document static declarations unless they
@@ -1327,8 +1296,8 @@ recheck:
 	  [self skipStatementLine];
 	  goto fail;
 	}
-      if (([s isEqual: @"__attribute__"] == YES)
-          || ([s isEqual: @"__asm__"] == YES))
+      if (([s isEqual: @"__attribute__"])
+          || ([s isEqual: @"__asm__"]))
 	{
 	  if ([self skipSpaces] < length && buffer[pos] == '(')
 	    {
@@ -1350,7 +1319,7 @@ recheck:
 	    }
 	  continue;
 	}
-      if ([s isEqualToString: @"GS_EXPORT"] == YES)
+      if ([s isEqualToString: @"GS_EXPORT"])
 	{
 	  s = @"extern";
 	}
@@ -1360,7 +1329,7 @@ recheck:
 	}
       else
 	{
-	  if ([s isEqualToString: @"extern"] == YES
+	  if ([s isEqualToString: @"extern"]
 	    && [self skipSpaces] < length - 3 && buffer[pos] == '\"'
 	    && buffer[pos+1] == 'C' && buffer[pos+2] == '\"')
 	    {
@@ -1378,7 +1347,7 @@ recheck:
 	      return nil;
 	    }
 
-	  if ([s isEqualToString: @"typedef"] == YES)
+	  if ([s isEqualToString: @"typedef"])
 	    {
 	      isTypedef = YES;
 	    }
@@ -1399,11 +1368,11 @@ recheck:
    * after the keyword we use it as the struct name, otherwise we
    * use '...' to denote a nameless type.
    */
-  if ([s isEqualToString: @"struct"] == YES
-    || [s isEqualToString: @"union"] == YES
-    || [s isEqualToString: @"enum"] == YES
-    || [s isEqualToString: @"NS_ENUM"] == YES
-    || [s isEqualToString: @"NS_OPTIONS"] == YES)
+  if ([s isEqualToString: @"struct"]
+    || [s isEqualToString: @"union"]
+    || [s isEqualToString: @"enum"]
+    || [s isEqualToString: @"NS_ENUM"]
+    || [s isEqualToString: @"NS_OPTIONS"])
     {
       BOOL      isEnum = NO;
       NSString	*tmp = s;
@@ -1562,7 +1531,7 @@ recheck:
 	   */
 	  [a addObject: @"int"];
 	}
-      else if (needScalarType == YES
+      else if (needScalarType
 	&& [s isEqualToString: @"char"] == NO
 	&& [s isEqualToString: @"int"] == NO)
 	{
@@ -1585,40 +1554,40 @@ recheck:
    */
   t = [NSMutableString new];
 
-  if ([a containsObject: @"const"] == YES)
+  if ([a containsObject: @"const"])
     {
       [t appendString: @"const"];
       [t appendString: @" "];
       [a removeObject: @"const"];
       baseConstant = YES;
     }
-  else if ([a containsObject: @"volatile"] == YES)
+  else if ([a containsObject: @"volatile"])
     {
       [t appendString: @"volatile"];
       [t appendString: @" "];
       [a removeObject: @"volatile"];
     }
 
-  if ([a containsObject: @"signed"] == YES)
+  if ([a containsObject: @"signed"])
     {
       [t appendString: @"signed"];
       [t appendString: @" "];
       [a removeObject: @"signed"];
     }
-  else if ([a containsObject: @"unsigned"] == YES)
+  else if ([a containsObject: @"unsigned"])
     {
       [t appendString: @"unsigned"];
       [t appendString: @" "];
       [a removeObject: @"unsigned"];
     }
 
-  if ([a containsObject: @"short"] == YES)
+  if ([a containsObject: @"short"])
     {
       [t appendString: @"short"];
       [t appendString: @" "];
       [a removeObject: @"short"];
     }
-  else if ([a containsObject: @"long"] == YES)
+  else if ([a containsObject: @"long"])
     {
       unsigned	c = [a count];
 
@@ -1629,7 +1598,7 @@ recheck:
 	{
 	  NSString	*tmp = [a objectAtIndex: c];
 
-	  if ([tmp isEqual: @"long"] == YES)
+	  if ([tmp isEqual: @"long"])
 	    {
 	      [t appendString: tmp];
 	      [t appendString: @" "];
@@ -1683,12 +1652,12 @@ recheck:
    * 'Variables', or 'Constants'
    * We may override this later.
    */
-  if (isTypedef == YES)
+  if (isTypedef)
     {
       [d setObject: @"Types" forKey: @"Kind"];
       [d setObject: @"YES" forKey: @"Implemented"];
     }
-  else if (baseConstant == YES)
+  else if (baseConstant)
     {
       [d setObject: @"Constants" forKey: @"Kind"];
       [d setObject: @"YES" forKey: @"Implemented"];
@@ -1786,7 +1755,7 @@ recheck:
 
   if ([self parseSpace] < length)
     {
-      if (inArgList == YES)
+      if (inArgList)
 	{
 	  if (buffer[pos] == ')' || buffer[pos] == ',')
 	    {
@@ -1802,11 +1771,11 @@ recheck:
 	}
       else
 	{
-	  if (isFunction == YES)
+	  if (isFunction)
 	    {
 	      NSString	*ident = [self parseIdentifier];
 
-	      if ([ident isEqual: @"__attribute__"] == YES)
+	      if ([ident isEqual: @"__attribute__"])
 		{
 		  if ([self skipSpaces] < length && buffer[pos] == '(')
 		    {
@@ -1839,7 +1808,7 @@ recheck:
 	    {
 	      NSString	*ident = [self parseIdentifier];
 
-	      if ([ident isEqualToString: @"__attribute__"] == YES)
+	      if ([ident isEqualToString: @"__attribute__"])
 		{
 		  [self skipSpaces];
 		  if (pos < length && buffer[pos] == '(')
@@ -1890,7 +1859,7 @@ recheck:
 	      /*
 	       * Inline functions may be implemented in the header.
 	       */
-	      if (isFunction == YES)
+	      if (isFunction)
 	      	{
 		  [d setObject: @"YES" forKey: @"Implemented"];
 		}
@@ -1937,7 +1906,7 @@ recheck:
 	      /*
 	       * Don't bother to warn about nameless enumerations.
 	       */
-	      if (verbose == YES && [t isEqual: @"enum ..."] == NO)
+	      if (verbose && [t isEqual: @"enum ..."] == NO)
 		{
 		  [self log: @"parse declaration with no name - %@", d];
 		}
@@ -1962,7 +1931,7 @@ fail:
   NSString		*token;
   NSMutableDictionary	*nDecl;
 
-  if (isSource == YES)
+  if (isSource)
     {
       inHeader = NO;
     }
@@ -2051,9 +2020,9 @@ fail:
 	    token = [self parseIdentifier];
 	    if (token != nil)
 	      {
-		if ([token isEqual: @"interface"] == YES)
+		if ([token isEqual: @"interface"])
 		  {
-		    if (isSource == YES)
+		    if (isSource)
 		      {
 			[self skipUnit];
 			DESTROY(comment);
@@ -2063,9 +2032,9 @@ fail:
 			[self parseInterface];
 		      }
 		  }
-		else if ([token isEqual: @"protocol"] == YES)
+		else if ([token isEqual: @"protocol"])
 		  {
-		    if (isSource == YES)
+		    if (isSource)
 		      {
 			[self skipUnit];
 			DESTROY(comment);
@@ -2075,9 +2044,9 @@ fail:
 			[self parseProtocol];
 		      }
 		  }
-		else if ([token isEqual: @"implementation"] == YES)
+		else if ([token isEqual: @"implementation"])
 		  {
-		    if (isSource == YES)
+		    if (isSource)
 		      {
 			[self parseImplementation];
 		      }
@@ -2141,7 +2110,7 @@ fail:
 			  }
 			[oDecl setObject: @"YES" forKey: @"Implemented"];
 
-			if ([kind isEqualToString: @"Functions"] == YES)
+			if ([kind isEqualToString: @"Functions"])
 			  {
 			    NSArray	*a1 = [oDecl objectForKey: @"Args"];
 			    NSArray	*a2 = [nDecl objectForKey: @"Args"];
@@ -2157,7 +2126,7 @@ fail:
 			     * comments are added to the 'front'
 			     * section of the documentation.
 			     */
-			    if ([name isEqual: @"main"] == YES)
+			    if ([name isEqual: @"main"])
 			      {
 			        NSString	*c;
 
@@ -2174,6 +2143,21 @@ fail:
 	      }
 	    break;
         }
+    }
+
+  /* If no <date> ... </date> then use the date/time at which the file
+   * was parsed.
+   */
+  if ([info objectForKey: @"date"] == nil)
+    {
+      static NSString	*generated = nil;
+
+      if (nil == generated)
+	{
+	  generated = [[NSString alloc] initWithFormat:
+	    @"<date>Generated at %@</date>", [NSDate date]];
+	}
+      [info setObject: generated forKey: @"date"];
     }
 
   return info;
@@ -2516,7 +2500,7 @@ try:
 	  RELEASE(tmp);
 	  if ([val length] > 0)
 	    {
-	      if ([val isEqualToString: @"//"] == YES)
+	      if ([val isEqualToString: @"//"])
 		{
 		  [self skipToEndOfLine];
 		  return [self parseIdentifier];
@@ -2554,23 +2538,23 @@ try:
 	      [self log: @"interface with bad validity directive"];
 	      goto fail;
 	    }
-	  if ([token isEqual: @"private"] == YES)
+	  if ([token isEqual: @"private"])
 	    {
 	      ASSIGN(validity, token);
 	      shouldDocument = documentInstanceVariables
                                  && documentAllInstanceVariables;
 	    }
-	  else if ([token isEqual: @"protected"] == YES)
+	  else if ([token isEqual: @"protected"])
 	    {
 	      ASSIGN(validity, token);
 	      shouldDocument = documentInstanceVariables;
 	    }
-	  else if ([token isEqual: @"package"] == YES)
+	  else if ([token isEqual: @"package"])
 	    {
 	      ASSIGN(validity, token);
 	      shouldDocument = documentInstanceVariables;
 	    }
-	  else if ([token isEqual: @"public"] == YES)
+	  else if ([token isEqual: @"public"])
 	    {
 	      ASSIGN(validity, token);
 	      shouldDocument = documentInstanceVariables;
@@ -2586,7 +2570,7 @@ try:
 	  [self parsePreprocessor];	// Ignore preprocessor directive.
 	  DESTROY(comment);
 	}
-      else if (shouldDocument == YES)
+      else if (shouldDocument)
 	{
 	  NSMutableDictionary	*iv = [self parseDeclaration];
 
@@ -2596,7 +2580,7 @@ try:
 		{
 		  NSString	*n = [iv objectForKey: @"Name"];
 
-		  if ([n hasPrefix: @"_"] == YES)
+		  if ([n hasPrefix: @"_"])
 		    {
 		      NSString	*c;
 
@@ -2792,7 +2776,7 @@ fail:
       [method setObject: @"id" forKey: @"ReturnType"];
     }
 
-  if (flag == YES)
+  if (flag)
     {
       term = ';';
     }
@@ -2804,7 +2788,7 @@ fail:
   while (buffer[pos] != term)
     {
       token = [self parseIdentifier];
-      if ([token isEqual: @"__attribute__"] == YES)
+      if ([token isEqual: @"__attribute__"])
 	{
 	  if ([self skipSpaces] < length && buffer[pos] == '(')
 	    {
@@ -2967,7 +2951,7 @@ fail:
     }
 
   [method setObject: mname forKey: @"Name"];
-  if (flag == YES)
+  if (flag)
     {
       [self setStandards: method];
     }
@@ -2991,7 +2975,7 @@ fail:
       BOOL	isEmpty;
 
       [self skipBlock: &isEmpty];
-      if (isEmpty == YES)
+      if (isEmpty)
 	{
 	  [method setObject: @"YES" forKey: @"Empty"];
 	}
@@ -3010,7 +2994,7 @@ fail:
       [self appendComment: comment to: method];
       DESTROY(comment);
     }
-  if (flag == YES
+  if (flag
     && [itemName length] > 1 && [itemName characterAtIndex: 1] == '_')
     {
       NSString	*c;
@@ -3047,6 +3031,232 @@ fail:
   [orderedSymbolDecls addObject: aMethodOrFunc];
 }
 
+static unsigned
+countAttributes(NSSet *keys, NSDictionary *a)
+{
+  NSEnumerator	*e = [keys objectEnumerator];
+  NSString	*k;
+  unsigned	count = 0;
+
+  while ((k = [e nextObject]) != nil)
+    {
+      if ([a objectForKey: k])
+	{
+	  count++;
+	}
+    }
+  return count;
+}
+
+- (NSMutableDictionary*) parsePropertyGetter: (NSMutableDictionary**)g
+				   andSetter: (NSMutableDictionary**)s
+{
+  static NSSet 		*atomicity = nil;
+  static NSSet 		*writability = nil;
+  static NSSet 		*semantics = nil;
+  NSMutableDictionary	*gd;
+  NSMutableDictionary	*prop;
+  NSMutableDictionary	*attr;
+  NSString		*type;
+  NSString		*name;
+  NSString		*sel;
+  NSString		*token;
+
+  if (nil == atomicity)
+    {
+      atomicity = [[NSSet alloc] initWithObjects:
+	@"atomic",
+	@"nonatomic",
+	nil];
+    }
+  if (nil == writability)
+    {
+      writability = [[NSSet alloc] initWithObjects:
+	@"readonly",
+	@"readwrite",
+	nil];
+    }
+  if (nil == semantics)
+    {
+      semantics = [[NSSet alloc] initWithObjects:
+	@"assign",
+	@"copy",
+	@"retain",
+	@"strong",
+	@"weak",
+	nil];
+    }
+
+  attr = [NSMutableDictionary dictionary];
+  if ([self parseSpace] < length && '(' == buffer[pos])
+    {
+      pos++;
+      while ([self parseSpace] < length)
+	{
+	  if (',' == buffer[pos])
+	    {
+	      pos++;
+	      continue;
+	    }
+	  if (')' == buffer[pos])
+	    {
+	      pos++;
+	      break;	// End of property attributes
+	    }
+	  if (nil == (token = [self parseIdentifier]))
+	    {
+	      [self log: @"@property bad attributes"];
+	      return nil;
+	    }
+	  if ([token isEqual: @"getter"]
+	    || [token isEqual: @"setter"])
+	    {
+	      NSString	*key = token;
+
+	      if ([self parseSpace] >= length
+		|| buffer[pos] != '=')
+		{
+		  [self log: @"@property bad %@ spec", key];
+		  return nil;
+		}
+	      pos++;
+	      if ([self parseSpace] >= length
+		|| (nil == (token = [self parseIdentifier])))
+		{
+		  [self log: @"@property bad %@ spec", key];
+		  return nil;
+		}
+	      [attr setObject: token forKey: key];
+	    }
+	  else
+	    {
+	      if ([writability member: token])
+		{
+		  [attr setObject: token forKey: token];
+		}
+	      else if ([atomicity member: token])
+		{
+		  [attr setObject: token forKey: token];
+		}
+	      else if ([semantics member: token])
+		{
+		  [attr setObject: token forKey: token];
+		}
+	      else
+		{
+		  [self log: @"@property unknown attribute %@",
+		    token];
+		  return nil;
+		}
+	    }
+	}
+    }
+
+  if (countAttributes(writability, attr) > 1)
+    {
+      [self log: @"@property with multiple writablity attributes"];
+      return nil;
+    }
+  if (countAttributes(atomicity, attr) > 1)
+    {
+      [self log: @"@property with multiple atomicity attributes"];
+      return nil;
+    }
+  if (countAttributes(semantics, attr) > 1)
+    {
+      [self log: @"@property with multiple setter semantics attributes"];
+      return nil;
+    }
+  if ([attr objectForKey: @"readonly"] && [attr objectForKey: @"setter"])
+    {
+      [self log: @"@property with setter is marked readonl"];
+      return nil;
+    }
+
+  if (nil == (prop = [self parseDeclaration]))
+    {
+      return nil;
+    }
+
+  /* Get the property name (will use it in the setter)
+   */
+  name = [prop objectForKey: @"Name"];
+
+  /* Use the declaration of the property to set up its type information.
+   */
+  type = [prop objectForKey: @"BaseType"];
+  if ((token = [prop objectForKey: @"Prefix"]) != nil)
+    {
+      type = [type stringByAppendingString: token];
+    }
+  if ((token = [prop objectForKey: @"Suffix"]) != nil)
+    {
+      type = [type stringByAppendingString: token];
+    }
+
+  [prop setObject: attr forKey: @"Attributes"];
+
+  if ([attr objectForKey: @"readonly"])
+    {
+      *s = nil;
+    }
+  else
+    {
+      NSMutableDictionary	*sd = [NSMutableDictionary dictionary];
+
+      *s = sd;
+      [sd setObject: @"Methods" forKey: @"Kind"];
+      [sd setObject: @"void" forKey: @"ReturnType"];
+      if (nil == (sel = [attr objectForKey: @"setter"]))
+	{
+	  unichar	c;
+
+          sel = name;
+	  c = [sel characterAtIndex: 0];
+	  if (c >= 'a' && c <= 'z')
+	    {
+	      c += 'A' - 'a';
+	    }
+	  sel = [NSString stringWithFormat: @"set%c%@:",
+	    c, [sel substringFromIndex: 1]];
+	}
+      if ([sel hasSuffix: @":"] == NO)
+	{
+	  sel = [sel stringByAppendingString: @":"];
+	}
+      [sd setObject: [@"-" stringByAppendingString: sel] forKey: @"Name"];
+      [sd setObject: [NSMutableArray arrayWithObject: sel]
+	     forKey: @"Sels"];
+      [sd setObject: [NSMutableArray arrayWithObject: name]
+	     forKey: @"Args"];
+      [sd setObject: [NSMutableArray arrayWithObject: type]
+	     forKey: @"Types"];
+      token = [NSString stringWithFormat: @"Setter for property '%@'.", name];
+      [sd setObject: token forKey: @"Comment"];
+    }
+
+  gd = [NSMutableDictionary dictionary];
+  *g = gd;
+  [gd setObject: @"Methods" forKey: @"Kind"];
+  [gd setObject: type forKey: @"ReturnType"];
+  if (nil == (sel = [attr objectForKey: @"getter"]))
+    {
+      sel = name;
+    }
+  while ([sel hasSuffix: @":"])
+    {
+      sel = [sel substringToIndex: [sel length] - 1];
+    }
+  [gd setObject: [NSMutableArray arrayWithObject: sel]
+	 forKey: @"Sels"];
+  [gd setObject: [@"-" stringByAppendingString: sel] forKey: @"Name"];
+  token = [NSString stringWithFormat: @"Getter for property '%@'.", name];
+  [gd setObject: token forKey: @"Comment"];
+
+  [prop setObject: @"Properties" forKey: @"Kind"];
+  return prop;
+}
+
 - (NSMutableDictionary*) parseMethodsAreDeclarations: (BOOL)flag
 {
   NSMutableDictionary	*methods;
@@ -3055,7 +3265,7 @@ fail:
   NSString		*token;
   BOOL			optionalMethods = NO;
 
-  if (flag == YES)
+  if (flag)
     {
       methods = [NSMutableDictionary dictionaryWithCapacity: 8];
     }
@@ -3110,7 +3320,7 @@ fail:
 		[method setObject: @"YES" forKey: @"Optional"];
 	      }
 	    token = [method objectForKey: @"Name"];
-	    if (flag == YES)
+	    if (flag)
 	      {
 		/*
 		 * Just record the method.
@@ -3178,31 +3388,72 @@ fail:
 		[self skipStatementLine];
 		return nil;
 	      }
-	    if ([token isEqual: @"end"] == YES)
+	    if ([token isEqual: @"end"])
 	      {
 		return methods;
 	      }
-	    else if ([token isEqual: @"optional"] == YES)
+	    else if ([token isEqual: @"optional"])
 	      {
 	        /* marking remaining methods as optional.
 	         */
 		optionalMethods = YES;
 		continue;
 	      }
-	    else if ([token isEqual: @"required"] == YES)
+	    else if ([token isEqual: @"required"])
 	      {
 	        /* marking remaining methods as required.
 	         */
 		optionalMethods = NO;
 		continue;
 	      }
-	    else if ([token isEqual: @"class"] == YES)
+	    else if ([token isEqual: @"class"])
 	      {
-		/*
-		 * Pre-declaration of one or more classes ... rather like a
+		/* Pre-declaration of one or more classes ... rather like a
 		 * normal C statement, it ends with a semicolon.
 		 */
 		[self skipStatementLine];
+	      }
+	    else if (NO == flag
+	      && ([token isEqual: @"dynamic"]
+		|| [token isEqual: @"synthesize"]))
+	      {
+		/* In implementation @dynamic and @synthesize defines how
+		 * one or more properties are generated.
+		 * The lists of property names end with a semicolon.
+		 */
+		[self skipStatementLine];
+	      }
+	    else if ([token isEqual: @"property"])
+	      {
+		NSMutableDictionary	*g = nil;
+		NSMutableDictionary	*p = nil;
+		NSMutableDictionary	*s = nil;
+
+		if (nil == (p = [self parsePropertyGetter: &g andSetter: &s]))
+		  {
+		    [self log: @"@property declaration invalid"];
+		    [self skipStatementLine];
+		  }
+		else
+		  {
+/* FIXME ... need to handle properties
+		    token = [p objectForKey: @"Name"];
+		    [methods setObject: p forKey: token];
+		    [self addOrderedSymbolDeclaration: token toUnit: unitName];
+*/
+
+		    token = [g objectForKey: @"Name"];
+		    [methods setObject: g forKey: token];
+		    [self addOrderedSymbolDeclaration: token toUnit: unitName];
+
+		    if (s)
+		      {
+			token = [s objectForKey: @"Name"];
+			[methods setObject: s forKey: token];
+			[self addOrderedSymbolDeclaration: token
+						   toUnit: unitName];
+		      }
+		  }
 	      }
 	    else
 	      {
@@ -3225,7 +3476,7 @@ fail:
 	    /*
 	     * Some statement other than a method ... skip and delete comments.
 	     */
-	    if (flag == YES)
+	    if (flag)
 	      {
 		[self log: @"interface with bogus line ... we expect methods"];
 		[self skipStatementLine];
@@ -3314,7 +3565,7 @@ fail:
 	   * Don't retain whitespace if we know we don't need it
 	   * because the previous character was not part of a name.
 	   */
-	  if (ptr > start && [identifier characterIsMember: ptr[-1]] == YES)
+	  if (ptr > start && [identifier characterIsMember: ptr[-1]])
 	    {
 	      *ptr++ = ' ';
 	    }
@@ -3330,7 +3581,7 @@ fail:
    * Strip trailing space ... leading space we never copied in the
    * first place.
    */
-  if (ptr > start && [spacenl characterIsMember: ptr[-1]] == YES)
+  if (ptr > start && [spacenl characterIsMember: ptr[-1]])
     {
       ptr--;
     }
@@ -3359,7 +3610,7 @@ fail:
     {
       NSString	*directive = [self parseIdentifier];
 
-      if ([directive isEqual: @"define"] == YES && inHeader == YES)
+      if ([directive isEqual: @"define"] && inHeader)
         {
 	  NSMutableDictionary		*defn;
 
@@ -3400,7 +3651,7 @@ fail:
 		}
 	    }
 	}
-      else if ([directive isEqual: @"endif"] == YES)
+      else if ([directive isEqual: @"endif"])
 	{
 	  if ([ifStack count] <= 1)
 	    {
@@ -3411,7 +3662,7 @@ fail:
 	      [ifStack removeLastObject];
 	    }
 	}
-      else if ([directive isEqual: @"elif"] == YES)
+      else if ([directive isEqual: @"elif"])
 	{
 	  if ([ifStack count] <= 1)
 	    {
@@ -3423,7 +3674,7 @@ fail:
 	      [ifStack addObject: [ifStack lastObject]];
 	    }
 	}
-      else if ([directive isEqual: @"else"] == YES)
+      else if ([directive isEqual: @"else"])
 	{
 	  if ([ifStack count] <= 1)
 	    {
@@ -3435,7 +3686,7 @@ fail:
 	      [ifStack addObject: [ifStack lastObject]];
 	    }
 	}
-      else if ([directive isEqual: @"if"] == YES)
+      else if ([directive isEqual: @"if"])
 	{
 	  NSMutableDictionary	*top;
 	  NSString		*arg;
@@ -3449,10 +3700,10 @@ fail:
 	    BOOL	openstep;
 	    NSString	*ver;
 
-	    if ([arg isEqual: @"OS_API_VERSION"] == YES)
+	    if ([arg isEqual: @"OS_API_VERSION"])
 	      {
 		openstep = YES;
-		if (hadOstep == YES)
+		if (hadOstep)
 		  {
 		    [self log: @"multiple grouped OS_API_VERSION() calls"];
 		    return [self skipRemainderOfLine];
@@ -3462,10 +3713,10 @@ fail:
 		[top removeObjectForKey: @"ovdep"];
 		[top removeObjectForKey: @"ovrem"];
 	      }
-	    else if ([arg isEqual: @"GS_API_VERSION"] == YES)
+	    else if ([arg isEqual: @"GS_API_VERSION"])
 	      {
 		openstep = NO;
-		if (hadGstep == YES)
+		if (hadGstep)
 		  {
 		    [self log: @"multiple grouped GS_API_VERSION() calls"];
 		    return [self skipRemainderOfLine];
@@ -3562,7 +3813,7 @@ fail:
 	  [ifStack addObject: top];
 	  RELEASE(top);
 	}
-      else if ([directive hasPrefix: @"if"] == YES)
+      else if ([directive hasPrefix: @"if"])
 	{
 	  BOOL	isIfDef = [directive isEqual: @"ifdef"];
 
@@ -3574,9 +3825,9 @@ fail:
 
 	      top = [[ifStack lastObject] mutableCopy];
 	      arg = [self parseIdentifier];
-	      if ([arg isEqual: @"NO_GNUSTEP"] == YES)
+	      if ([arg isEqual: @"NO_GNUSTEP"])
 		{
-		  if (isIfDef == YES)
+		  if (isIfDef)
 		    {
 		      [self log: @"Unexpected #ifdef NO_GNUSTEP (nonsense)"];
 		    }
@@ -3588,9 +3839,9 @@ fail:
 		      [top setObject: @"NotOpenStep" forKey: @"NotOpenStep"];
 		    }
 		}
-	      else if ([arg isEqual: @"STRICT_MACOS_X"] == YES)
+	      else if ([arg isEqual: @"STRICT_MACOS_X"])
 		{
-		  if (isIfDef == YES)
+		  if (isIfDef)
 		    {
 		      [top removeObjectForKey: @"NotMacOS-X"];
 		      [top setObject: @"MacOS-X" forKey: @"MacOS-X"];
@@ -3601,9 +3852,9 @@ fail:
 		      [top setObject: @"NotMacOS-X" forKey: @"NotMacOS-X"];
 		    }
 		}
-	      else if ([arg isEqual: @"STRICT_OPENSTEP"] == YES)
+	      else if ([arg isEqual: @"STRICT_OPENSTEP"])
 		{
-		  if (isIfDef == YES)
+		  if (isIfDef)
 		    {
 		      [top removeObjectForKey: @"NotOpenStep"];
 		      [top setObject: @"OpenStep" forKey: @"OpenStep"];
@@ -3688,8 +3939,7 @@ fail:
       NSEnumerator		*e = [methods objectEnumerator];
       NSMutableDictionary	*m;
 
-      /*
-       * Mark methods as implemented because protocol methods have no
+      /* Mark methods as implemented because protocol methods have no
        * implementation separate from their declaration.
        */
       while ((m = [e nextObject]) != nil)
@@ -3798,7 +4048,7 @@ fail:
 	  pos++;		// Step past space character.
 	}
       start = pos;
-      if (pos < length && [identifier characterIsMember: buffer[pos]] == YES)
+      if (pos < length && [identifier characterIsMember: buffer[pos]])
 	{
 	  while (pos < length)
 	    {
@@ -3830,7 +4080,7 @@ fail:
 		    }
 		  else if ([val length] > 0)
 		    {
-		      if ([val isEqualToString: @"//"] == YES)
+		      if ([val isEqualToString: @"//"])
 			{
 			  [self skipToEndOfLine];
 			  tryAgain = YES;
@@ -3850,7 +4100,7 @@ fail:
 	    }
 	}
     }
-  while (tryAgain == YES);
+  while (tryAgain);
 
   return pos;
 }
@@ -3867,7 +4117,7 @@ fail:
   NSString	        *str;
   NSString	        *tmp;
 
-  while (pos < length && [spaces characterIsMember: buffer[pos]] == YES)
+  while (pos < length && [spaces characterIsMember: buffer[pos]])
     {
       pos++;
     }
@@ -3984,7 +4234,7 @@ fail:
  */
 - (void) setGenerateStandards: (BOOL)flag
 {
-  if (flag == YES)
+  if (flag)
     {
       [ifStack replaceObjectAtIndex: 0 withObject:
 	[NSDictionary dictionaryWithObjectsAndKeys:
@@ -4003,7 +4253,7 @@ fail:
  */
 - (void) setStandards: (NSMutableDictionary*)dict
 {
-  if (standards == YES)
+  if (standards)
     {
       NSDictionary	*top = [ifStack lastObject];
 
@@ -4133,7 +4383,7 @@ fail:
 	      case '!':		*outptr = '|';	break;
 	      default:		*outptr = '?'; changed = NO; break;
 	    }
-	  if (changed == YES)
+	  if (changed)
 	    {
 	      inptr += 2;
 	    }
