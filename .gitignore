@@ -1,5 +1,4 @@
 # Build products
-Documentation
 obj
 config.*
 GSConfig.h
