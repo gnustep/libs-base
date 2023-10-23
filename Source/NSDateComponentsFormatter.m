@@ -1,7 +1,7 @@
-/* Implementation of class NSDateComponentsFormatter
+/**Implementation of class NSDateComponentsFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: Gregory Casamento <greg.casamento@gmail.com>
+   Author: Gregory Casamento <greg.casamento@gmail.com>
    Date: Wed Nov  6 00:24:02 EST 2019
 
    This file is part of the GNUstep Library.
@@ -456,7 +456,7 @@
   return _zeroFormattingBehavior;
 }
 
-- (void) setZeroFormattingBehavior: (NSDateComponentsFormatterZeroFormattingBehavior)behavior;
+- (void) setZeroFormattingBehavior: (NSDateComponentsFormatterZeroFormattingBehavior)behavior
 {
   _zeroFormattingBehavior = behavior;
 }
