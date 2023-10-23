@@ -42,6 +42,158 @@
  */
 @implementation	AGSParser
 
+static NSString *
+concreteType(NSString *t)
+{
+  static NSString	*gClass = @"GS_GENERIC_CLASS";
+  static NSString	*gType = @"GS_GENERIC_TYPE";
+  NSRange		r;
+
+  r = [t rangeOfString: gClass];
+  while (r.length > 0)
+    {
+      NSMutableString	*m = [t mutableCopy];
+      unsigned		end;
+      unsigned		len;
+      unsigned		pos;
+
+      r = NSMakeRange(0, [gClass length]);
+      [m deleteCharactersInRange: r];
+      len = [m length];
+      for (pos = r.location; pos < len; pos++)
+	{
+	  unichar	c = [m characterAtIndex: pos];
+
+	  if (c != '(' && !isspace(c))
+	    {
+	      break;
+	    }
+	}
+      if (pos > r.location)
+	{
+	  r.length = pos - r.location;
+	  [m deleteCharactersInRange: r];
+	  len -= r.length;
+	}
+      /* Having skipped the macro opening bracket and any white space
+       * we now expect the true type.
+       */
+      for (pos = r.location; pos < len; pos++)
+	{
+	  unichar	c = [m characterAtIndex: pos];
+
+	  if (',' == c || ')' == c || isspace(c))
+	    {
+	      break;
+	    }
+	}
+      end = pos;
+      if (pos > r.location)
+	{
+	  while (pos < len)
+	    {
+	      unichar	c = [m characterAtIndex: pos++];
+
+	      if (')' == c)
+		{
+		  break;
+		}
+	    }
+	  /* Stripping everything from the end of the class name to the
+	   * closing bracket of the macro.
+	   */
+	  [m deleteCharactersInRange: NSMakeRange(end, pos - end)];
+	}
+      t = AUTORELEASE(m);
+      r = [t rangeOfString: gClass];
+    }
+
+  r = [t rangeOfString: gType];
+  while (r.length > 0)
+    {
+      NSMutableString	*m = [t mutableCopy];
+      unsigned		end;
+      unsigned		len;
+      unsigned		pos;
+
+      [m deleteCharactersInRange: r];
+      len = [m length];
+      for (pos = r.location; pos < len; pos++)
+	{
+	  unichar	c = [m characterAtIndex: pos];
+
+	  if (c != '(' && !isspace(c))
+	    {
+	      break;
+	    }
+	}
+      if (pos > r.location)
+	{
+	  r.length = pos - r.location;
+	  [m deleteCharactersInRange: r];
+	  len -= r.length;
+	}
+      /* Having skipped the macro opening bracket and any white space
+       * we now expect the true type.
+       */
+      for (pos = r.location; pos < len; pos++)
+	{
+	  unichar	c = [m characterAtIndex: pos];
+
+	  if (',' == c || ')' == c || isspace(c))
+	    {
+	      break;
+	    }
+	}
+      end = pos;
+      r.length  = end - r.location;
+      if (pos > r.location)
+	{
+	  while (pos < len)
+	    {
+	      unichar	c = [m characterAtIndex: pos++];
+
+	      if (')' == c)
+		{
+		  break;
+		}
+	    }
+	  [m deleteCharactersInRange: NSMakeRange(end, pos - end)];
+	}
+      t = [m substringWithRange: r];
+      if ([t isEqual: @"ElementT"])
+	{
+	  [m replaceCharactersInRange: r withString: @"id"];
+	}
+      t = AUTORELEASE(m);
+      r = [t rangeOfString: gType];
+    }
+
+  return t;
+}
+
+static BOOL
+equalTypes(NSArray *t1, NSArray *t2)
+{
+  unsigned	count = (unsigned)[t1 count];
+
+  if ([t2 count] != count)
+    {
+      return NO;
+    }
+  while (count-- > 0)
+    {
+      NSString	*c1 = concreteType([t1 objectAtIndex: count]);
+      NSString	*c2 = concreteType([t2 objectAtIndex: count]);
+
+      if ([c1 isEqual: c2] == NO)
+	{
+	  return NO;
+	}
+    }
+  return YES;
+}
+
 /**
  * Method to add the comment from the main() function to the end
  * of the initial chapter in the output document.  We do this to
@@ -3361,7 +3513,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 		a1 = [method objectForKey: @"Types"];
 		if (a0 != nil)
 		  {
-		    if ([a0 isEqual: a1] == NO)
+		    if (equalTypes(a0, a1) == NO)
 		      {
 			ASSIGNCOPY(itemName, token);
 			[self log: @"method types in interface %@ don't match "
