@@ -3061,6 +3061,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
   NSString		*name;
   NSString		*sel;
   NSString		*token;
+  unsigned		count;
 
   if (nil == atomicity)
     {
@@ -3152,24 +3153,36 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	}
     }
 
-  if (countAttributes(writability, attr) > 1)
+  if ((count = countAttributes(writability, attr)) > 1)
     {
       [self log: @"@property with multiple writablity attributes"];
       return nil;
     }
-  if (countAttributes(atomicity, attr) > 1)
+  else if (0 == count)
+    {
+      [attr setObject: @"readwrite" forKey: @"readwrite"];
+    }
+  if ((count = countAttributes(atomicity, attr)) > 1)
     {
       [self log: @"@property with multiple atomicity attributes"];
       return nil;
     }
-  if (countAttributes(semantics, attr) > 1)
+  else if (0 == count)
+    {
+      [attr setObject: @"atomic" forKey: @"atomic"];
+    }
+  if ((count = countAttributes(semantics, attr)) > 1)
     {
       [self log: @"@property with multiple setter semantics attributes"];
       return nil;
     }
+  else if (0 == count)
+    {
+      [attr setObject: @"assign" forKey: @"assign"];
+    }
   if ([attr objectForKey: @"readonly"] && [attr objectForKey: @"setter"])
     {
-      [self log: @"@property with setter is marked readonl"];
+      [self log: @"@property with setter is marked readonly"];
       return nil;
     }
 
@@ -3231,7 +3244,9 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	     forKey: @"Args"];
       [sd setObject: [NSMutableArray arrayWithObject: type]
 	     forKey: @"Types"];
-      token = [NSString stringWithFormat: @"Setter for property '%@'.", name];
+      token = [NSString stringWithFormat:
+	@"Setter for property '%@' with attributes %@.",
+	name, [attr allKeys]];
       [sd setObject: token forKey: @"Comment"];
     }
 
@@ -3250,7 +3265,9 @@ countAttributes(NSSet *keys, NSDictionary *a)
   [gd setObject: [NSMutableArray arrayWithObject: sel]
 	 forKey: @"Sels"];
   [gd setObject: [@"-" stringByAppendingString: sel] forKey: @"Name"];
-  token = [NSString stringWithFormat: @"Getter for property '%@'.", name];
+  token = [NSString stringWithFormat:
+    @"Getter for property '%@' with attributes %@.",
+    name, [attr allKeys]];
   [gd setObject: token forKey: @"Comment"];
 
   [prop setObject: @"Properties" forKey: @"Kind"];
