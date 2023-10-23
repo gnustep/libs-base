@@ -112,58 +112,61 @@ concreteType(NSString *t)
   while (r.length > 0)
     {
       NSMutableString	*m = [t mutableCopy];
-      unsigned		end;
-      unsigned		len;
-      unsigned		pos;
+      unsigned		len = [m length];
+      unsigned		pos = r.location;
+      BOOL		found = NO;
 
-      [m deleteCharactersInRange: r];
       len = [m length];
-      for (pos = r.location; pos < len; pos++)
+      while (pos < len)
 	{
-	  unichar	c = [m characterAtIndex: pos];
+	  unichar	c = [m characterAtIndex: pos++];
 
-	  if (c != '(' && !isspace(c))
+	  if (',' == c)
+	    {
+	      found = YES;
+	      break;
+	    }
+	  else if (')' == c)
 	    {
 	      break;
 	    }
 	}
-      if (pos > r.location)
+      r.length = pos - r.location;
+      if (found)
 	{
-	  r.length = pos - r.location;
+	  int	nest = 0;
+
+	  /* We have a type specification as the second argument.
+	   */
 	  [m deleteCharactersInRange: r];
-	  len -= r.length;
-	}
-      /* Having skipped the macro opening bracket and any white space
-       * we now expect the true type.
-       */
-      for (pos = r.location; pos < len; pos++)
-	{
-	  unichar	c = [m characterAtIndex: pos];
-
-	  if (',' == c || ')' == c || isspace(c))
-	    {
-	      break;
-	    }
-	}
-      end = pos;
-      r.length  = end - r.location;
-      if (pos > r.location)
-	{
+	  len = [m length];
+	  pos = r.location;
 	  while (pos < len)
 	    {
 	      unichar	c = [m characterAtIndex: pos++];
 
-	      if (')' == c)
+	      if ('(' == c)
 		{
-		  break;
+		  nest++;
+		}
+	      else if (')' == c)
+		{
+		  if (--nest < 0)
+		    {
+		      /* Remove the closing bracket.
+		       */
+		      [m replaceCharactersInRange: NSMakeRange(pos - 1, 1)
+				       withString: @""];
+		      break;
+		    }
 		}
 	    }
-	  [m deleteCharactersInRange: NSMakeRange(end, pos - end)];
 	}
-      t = [m substringWithRange: r];
-      if ([t isEqual: @"ElementT"])
+      else
 	{
-	  [m replaceCharactersInRange: r withString: @"id"];
+	  /* No type specification ... use id
+	   */
+          [m replaceCharactersInRange: r withString: @"id"];
 	}
       t = AUTORELEASE(m);
       r = [t rangeOfString: gType];
@@ -2622,14 +2625,13 @@ try:
 
 	  tmp = [[NSString alloc] initWithCharacters: &buffer[start]
 					      length: pos - start];
-          if ([tmp isEqual: @"GS_GENERIC_CLASS"]
-            || [tmp isEqual: @"GS_GENERIC_TYPE"])
+          if ([tmp isEqual: @"GS_GENERIC_CLASS"])
             {
               [self skipSpaces];
               if (pos < length && buffer[pos] == '(')
                 {
                   pos++;
-                  /* Found a GS_GENERIC_ macro ... the first
+                  /* Found a GS_GENERIC_CLASS macro ... the first
                    * identifier inside the macro arguments is the 
                    * name we want to return.
                    */
@@ -2642,6 +2644,43 @@ try:
                           break;
                         }
                     }
+                }
+            }
+          if ([tmp isEqual: @"GS_GENERIC_TYPE"])
+            {
+              [self skipSpaces];
+              if (pos < length && buffer[pos] == '(')
+                {
+                  pos++;
+                  /* Found a GS_GENERIC_TYPE macro ... the second
+                   * argument inside the macro is the name we want
+                   * to return (or 'id' if there is no second arg).
+                   */
+                  DESTROY(tmp);
+                  while (pos < length)
+                    {
+		      unichar	c = buffer[pos++];
+
+                      if (')' == c)
+			{
+			  break;
+			}
+                      else if (',' == c)
+                        {
+			  tmp = RETAIN([self parseMethodType]);
+			  [self skipSpaces];
+			  if (')' == buffer[pos])
+			    {
+			      pos++;
+			    }
+NSLog(@"Parsed generic type as '%@'", tmp);
+			  break;
+                        }
+                    }
+		  if (nil == tmp)
+		    {
+		      tmp = @"id";
+		    }
                 }
             }
 	  val = [wordMap objectForKey: tmp];
