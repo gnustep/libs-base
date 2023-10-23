@@ -3106,8 +3106,8 @@ fail:
 		}
 	      if (buffer[pos] == term)
 		{
-		  [self log: @"error in method definition ... "
-		    @"semicolon after name"];
+		  [self log: @"Warning - incorrect semicolon"
+		    @" after name in method definition"];
 		}
 	      else
 		{
