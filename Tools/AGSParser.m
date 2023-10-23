@@ -2025,6 +2025,11 @@ recheck:
 	      pos++;			// Ignore extraneous '}'
 	      [self skipSpaces];
 	    }
+	  else if (buffer[pos] == '#')
+	    {
+	      [self parsePreprocessor];	// Ignore preprocessor directive.
+	      DESTROY(comment);
+	    }
 	  else
 	    {
 	      [self log: @"Unexpected char (%c) in declaration", buffer[pos]];
