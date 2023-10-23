@@ -563,7 +563,10 @@ parseArgumentPart(NSString *part, NSString *name)
     {
       [curlHeaders addObject: @"Content-Type:application/x-www-form-urlencoded"];
     }
-  [_easyHandle setCustomHeaders: curlHeaders];
+  if (!_headersSet) {
+      [_easyHandle setCustomHeaders:curlHeaders];
+      _headersSet = YES;
+  }
 
   NSInteger        timeoutInterval = [request timeoutInterval] * 1000;
   GSTimeoutSource  *timeoutTimer;

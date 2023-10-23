@@ -4,6 +4,9 @@
 #import "GSNativeProtocol.h"
 
 @interface GSHTTPURLProtocol : GSNativeProtocol
+{
+    BOOL _headersSet;
+}
 @end
 
 #endif
