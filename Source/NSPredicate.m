@@ -384,13 +384,13 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   return [NSPredicate class];
 }
 
-- (void) encodeWithCoder: (NSCoder *) coder;
+- (void) encodeWithCoder: (NSCoder *) coder
 {
   // FIXME
   [self subclassResponsibility: _cmd];
 }
 
-- (id) initWithCoder: (NSCoder *) coder;
+- (id) initWithCoder: (NSCoder *) coder
 {
   // FIXME
   [self subclassResponsibility: _cmd];
@@ -2634,17 +2634,17 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
           if ([self scanPredicateKeyword: @"FIRST"])
             {
               left = [NSExpression expressionForFunction: @"_first" 
-                arguments: [NSArray arrayWithObject: [self parseExpression]]];
+                arguments: [NSArray arrayWithObject: left]];
             }
           else if ([self scanPredicateKeyword: @"LAST"])
             {
               left = [NSExpression expressionForFunction: @"_last" 
-                arguments: [NSArray arrayWithObject: [self parseExpression]]];
+                arguments: [NSArray arrayWithObject: left]];
             }
           else if ([self scanPredicateKeyword: @"SIZE"])
             {
               left = [NSExpression expressionForFunction: @"count" 
-                arguments: [NSArray arrayWithObject: [self parseExpression]]];
+                arguments: [NSArray arrayWithObject: left]];
             }
           else
             {

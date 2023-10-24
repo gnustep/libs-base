@@ -350,7 +350,7 @@ static NSMutableDictionary *__subscribers = nil;
 }
 
 // Instance property accessors...
-- (void) setFileOperationKind: (NSProgressFileOperationKind)k;
+- (void) setFileOperationKind: (NSProgressFileOperationKind)k
 {
   ASSIGN(internal->_fileOperationKind, k);
 }

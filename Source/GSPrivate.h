@@ -307,6 +307,7 @@ typedef enum {
 @interface	NSError (GNUstepBase)
 + (NSError*) _last;
 + (NSError*) _systemError: (long)number;
+- (void) _setObject: (NSObject*)anObject forKey: (NSString*)aKey;
 @end
 
 @class  NSRunLoop;

@@ -38,6 +38,9 @@ typedef	union {
 #ifndef	_WIN32
   struct sockaddr_un	u;
 #endif
+#ifdef	HAVE_STRUCT_SOCKADDR_STORAGE
+  struct sockaddr_storage	m;
+#endif
 } sockaddr_any;
 
 #define	SOCKIVARS \

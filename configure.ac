@@ -2398,6 +2398,35 @@ AC_CHECK_FUNCS(time ctime tzset)
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/socket.h netinet/in.h)
 AC_CHECK_TYPES([socklen_t])
+
+#--------------------------------------------------------------------
+# This needed by GSSocketStream.h
+#--------------------------------------------------------------------
+AC_CHECK_TYPE([struct sockaddr_storage],
+  AC_DEFINE(HAVE_STRUCT_SOCKADDR_STORAGE, 1,
+    [if struct sockaddr_storage is defined]), ,[
+#undef inline
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+#else
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#endif
+])
+
 dnl AC_REPLACE_FUNCS(recvfrom)
 
 #--------------------------------------------------------------------

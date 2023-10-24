@@ -1266,18 +1266,20 @@ static Class	runLoopClass;
 	      cLength = 0;
 
 #if	defined(HAVE_GNUTLS)
-	      NSDictionary	*opts = [p clientOptionsForTLS];
-	      DESTROY(session);
-	      if (opts)
-		{
-		  session = [[GSTLSSession alloc] initWithOptions: opts
-			  direction: YES	// as client
-			  transport: self
-			       push: GSTLSHandlePush
-			       pull: GSTLSHandlePull];
-		  NSDebugMLLog(@"GSTcpHandle",
-		    @"%@ is connecting using %@", self, session);
-		}
+              {
+                NSDictionary	*opts = [p clientOptionsForTLS];
+                DESTROY(session);
+                if (opts)
+                  {
+                    session = [[GSTLSSession alloc] initWithOptions: opts
+                                                          direction: YES	// as client
+                                                          transport: self
+                                                               push: GSTLSHandlePush
+                                                               pull: GSTLSHandlePull];
+                    NSDebugMLLog(@"GSTcpHandle",
+                                 @"%@ is connecting using %@", self, session);
+                  }
+              }
 #endif
             }
         }
@@ -2425,18 +2427,20 @@ static Class		tcpPortClass;
 	  ASSIGN(handle->defaultAddress, GSPrivateSockaddrHost(&sockAddr));
 	  [handle setState: GS_H_ACCEPT];
 #if	defined(HAVE_GNUTLS)
-	  NSDictionary	*o;
-	  if ((o = [self serverOptionsForTLS]) != nil)
-	    {
-	      handle->session = [[GSTLSSession alloc]
-		initWithOptions: o
-		      direction: NO	// as server
-		      transport: handle
-			   push: GSTLSHandlePush
-			   pull: GSTLSHandlePull];
-              NSDebugMLLog(@"GSTcpHandle",
-                @"%@ is accepting using %@", handle, handle->session);
-	    }
+	  {
+	    NSDictionary	*o;
+	    if ((o = [self serverOptionsForTLS]) != nil)
+	      {
+	        handle->session = [[GSTLSSession alloc]
+		  initWithOptions: o
+		        direction: NO	// as server
+		        transport: handle
+			     push: GSTLSHandlePush
+			     pull: GSTLSHandlePull];
+                NSDebugMLLog(@"GSTcpHandle",
+                  @"%@ is accepting using %@", handle, handle->session);
+	      }
+	  }
 #endif
 	  [self addHandle: handle forSend: NO];
 	}

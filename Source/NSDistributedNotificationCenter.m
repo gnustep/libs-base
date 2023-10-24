@@ -699,6 +699,12 @@ static NSDistributedNotificationCenter	*netCenter = nil;
 
 	  cmd = [NSTask launchPathForTool: @"gdnc"];
 	
+	  if (cmd == nil)
+	    {
+	      [NSException raise: NSInternalInconsistencyException
+		format: @"Unable to find the gdnc tool.\n"];
+	    }
+	
 	  NSDebugMLLog(@"NSDistributedNotificationCenter",
 @"\nI couldn't contact the notification server for %@ -\n"
 @"so I'm attempting to to start one - which will take a few seconds.\n"

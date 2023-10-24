@@ -9,6 +9,10 @@ Tests/base/*/GNUmakefile
 *.log
 *.sum
 
+# Unit test byproducts
+*.err
+*.out
+
 # Autoconf
 autom4te.cache
 

@@ -334,7 +334,7 @@ static unsigned nextSessionIdentifier()
 }
 
 - (NSURLSessionUploadTask*) uploadTaskWithRequest: (NSURLRequest*)request
-                                         fromData: (NSData*)bodyData;
+                                         fromData: (NSData*)bodyData
 {
   return [self notImplemented: _cmd];
 }
