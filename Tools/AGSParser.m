@@ -1,7 +1,7 @@
 /*
    Copyright (C) 2001 Free Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Written By:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
    Created: October 2001
 
    This file is part of the GNUstep Project
@@ -213,16 +213,33 @@ equalTypes(NSArray *t1, NSArray *t2)
 
   chap = [info objectForKey: @"chapter"];
   toolName = [[fileName lastPathComponent] stringByDeletingPathExtension];
-  if (chap == nil)
+  if (nil == chap)
     {
-      chap = [NSString stringWithFormat:
+      createSec = NO;
+      m = [NSMutableString stringWithFormat:
         @"<chapter id=\"_main\"><heading>%@</heading></chapter>", toolName];
     }
   else
     {
       createSec = YES;
+      m = AUTORELEASE([chap mutableCopy]);
     }
-  m = [chap mutableCopy];
+
+  /* Check for a pre-existing <chapter> elemment and add the markup to say
+   * it's for a tool if necessary (also update any <section>).
+   */
+  r = [m rangeOfString: @"<chapter>"];
+  if (r.length > 0)
+    {
+      [m replaceCharactersInRange: r withString: @"<chapter id=\"_main\">"];
+      r = [m rangeOfString: @"<section>"];
+      if (r.length > 0)
+	{
+	  [m replaceCharactersInRange: r
+			   withString: @"<section id=\"_main\">"];
+	}
+    }
+
   r = [m rangeOfString: @"</chapter>"];
   r.length = 0;
   if (createSec)
@@ -238,7 +255,6 @@ equalTypes(NSArray *t1, NSArray *t2)
       [m replaceCharactersInRange: r withString: secHeading];
     }
   [info setObject: m forKey: @"chapter"];
-  RELEASE(m);
 }
 
 /**
@@ -287,6 +303,18 @@ equalTypes(NSArray *t1, NSArray *t2)
 	  [d setObject: s forKey: @"Comment"];
 	}
     }
+}
+
+- (NSString*) comment
+{
+  return comment;
+}
+
+/** Returns the current debug setting for the parser.
+ */
+- (BOOL) debug
+{
+  return debug;
 }
 
 - (void) dealloc
@@ -685,13 +713,13 @@ patata
       BOOL wasInUnclosedExample = inUnclosedExample;
 
       if ([self canWrapWithParagraphMarkup: para])
-      {
-        newPara = [NSString stringWithFormat: @"<p>%@</p>", para];
-      }
+	{
+	  newPara = [NSString stringWithFormat: @"<p>%@</p>", para];
+	}
       else if (wasInUnclosedExample)
-      {
-        newPara = [NSString stringWithFormat: @"\n\n%@", para];
-      }
+	{
+	  newPara = [NSString stringWithFormat: @"\n\n%@", para];
+	}
       [formattedComment appendString: newPara];
     }
 
@@ -1203,8 +1231,7 @@ recheck:
 		  NSString	*s = [NSString stringWithFormat: @"<%@>", key];
 		  NSString	*e = [NSString stringWithFormat: @"</%@>", key];
 	
-		  /*
-		   * Read date information if available
+		  /* Read complete element information if available
 		   */
 		  r = [comment rangeOfString: s];
 		  if (r.length > 0)
@@ -1266,6 +1293,7 @@ recheck:
 			}
 		    }
 		}
+	      DESTROY(comment);
 	    }
 	  commentsRead = YES;
 	}
@@ -2091,6 +2119,10 @@ fail:
   NSString		*token;
   NSMutableDictionary	*nDecl;
 
+  if (debug)
+    {
+      NSLog(@"-parseFile:isSource: '%@' %@", name, (isSource ? @"YES" : @"NO"));
+    }
   if (isSource)
     {
       inHeader = NO;
@@ -2170,10 +2202,9 @@ fail:
 	  case '#':
 	    /*
 	     * Some preprocessor directive ... must be on one line ... skip
-	     * past it and delete any comment accumulated while doing so.
+	     * past it.
 	     */
 	    [self parsePreprocessor];
-	    DESTROY(comment);
 	    break;
 
 	  case '@':
@@ -2229,6 +2260,10 @@ fail:
 	     */
 	    pos--;
 	    nDecl = [self parseDeclaration];
+	    if (debug)
+	      {
+		NSLog(@"top level declaration: %@", nDecl);
+	      }
 	    if (nDecl != nil)
 	      {
 		NSString		*name = [nDecl objectForKey: @"Name"];
@@ -2280,24 +2315,25 @@ fail:
 				[self log: @"Function %@ args mismatch - "
 				  @"%@ %@", name, a1, a2];
 			      }
-			    /*
-			     * A main function is not documented as a
-			     * function, but as a special case its
-			     * comments are added to the 'front'
-			     * section of the documentation.
-			     */
-			    if ([name isEqual: @"main"])
-			      {
-			        NSString	*c;
-
-			        c = [oDecl objectForKey: @"Comment"];
-				if (c != nil)
-				  {
-				    [self addMain: c];
-				  }
-				[dict removeObjectForKey: name];
-			      }
 			  }
+		      }
+
+		    /* A main function is not documented as a function,
+		     * but as a special case its comments are added to
+		     * the 'front' section of the documentation.
+		     * We may also need to patch up the initial chapter
+		     * and section to indicate that this is a tool.
+		     */
+		    if ([name isEqual: @"main"])
+		      {
+			NSString	*c;
+
+			if (nil == (c = [oDecl objectForKey: @"Comment"]))
+			  {
+			    c = @"";
+			  }
+			[self addMain: c];
+			[dict removeObjectForKey: name];
 		      }
 		  }
 	      }
@@ -4407,6 +4443,13 @@ fail:
   buffer = 0;
   length = 0;
   pos = 0;
+}
+
+/** Turns debug on/off
+ */
+- (void) setDebug: (BOOL)aFlag
+{
+  debug = (aFlag ? YES : NO);
 }
 
 /**

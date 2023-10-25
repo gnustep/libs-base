@@ -67,6 +67,7 @@
   BOOL		warn;
   BOOL		standards;
   BOOL          inUnclosedExample;
+  BOOL		debug;
   NSDictionary		*wordMap;
   NSString		*declared;	/** Where classes were declared. */
   NSMutableArray	*ifStack;	/** Track preprocessor conditionals. */
@@ -81,6 +82,7 @@
   NSCharacterSet	*spacenl;	/** Blanks excluding newline */
 }
 
+- (BOOL) debug;
 - (NSMutableDictionary*) info;
 - (NSDictionary *) orderedSymbolDeclarationsByUnit;
 - (id) init;	/** <init> Simple initialiser */
@@ -103,6 +105,7 @@
 - (unsigned) parseSpace;
 - (NSString*) parseVersion;
 - (void) reset;
+- (void) setDebug: (BOOL)aFlag;
 - (void) setDeclared: (NSString*)name;
 - (void) setDocumentInstanceVariables: (BOOL)flag;
 - (void) setDocumentAllInstanceVariables: (BOOL)flag;
