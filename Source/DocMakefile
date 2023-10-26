@@ -256,16 +256,8 @@ Base_AGSDOC_FLAGS = \
 	-MacrosTemplate Functions \
 	-TypedefsTemplate TypesAndConstants \
 	-VariablesTemplate TypesAndConstants \
+	-Verbose YES \
 	-WordMap '{\
-	BLOCK_SCOPE="";\
-	DEFINE_BLOCK_TYPE="//";\
-	DEFINE_BLOCK_TYPE_NO_ARGS="//";\
-	GS_EXPORT_CLASS="";\
-	GS_IMPORT="";\
-	GS_PRIVATE_INTERNAL="//";\
-	WEAK_ATTRIBUTE="";\
-	WINAPI="";\
-	WSAAPI="";\
 	}' -Up Base
 
 BaseAdditions_AGSDOC_FLAGS = \
@@ -280,16 +272,8 @@ BaseAdditions_AGSDOC_FLAGS = \
 	-MacrosTemplate Functions \
 	-TypedefsTemplate TypesAndConstants \
 	-VariablesTemplate TypesAndConstants \
+	-Verbose YES \
 	-WordMap '{\
-	BLOCK_SCOPE="";\
-	DEFINE_BLOCK_TYPE="//";\
-	DEFINE_BLOCK_TYPE_NO_ARGS="//";\
-	GS_EXPORT_CLASS="";\
-	GS_IMPORT="";\
-	GS_PRIVATE_INTERNAL="//";\
-	WEAK_ATTRIBUTE="";\
-	WINAPI="";\
-	WSAAPI="";\
 	}' -Up BaseAdditions
 
 # Use local version of autogsdoc in case it is not installed

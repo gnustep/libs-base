@@ -66,8 +66,8 @@ BaseTools_AGSDOC_FLAGS = \
 	-HeaderDirectory ../Tools \
 	-Standards YES \
 	-DTDs ../Tools \
+	-Verbose YES \
 	-WordMap '{\
-	WINAPI="";\
 	}' -Up BaseTools
 
 # Use local version of autogsdoc in case it is not installed
