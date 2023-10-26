@@ -122,7 +122,7 @@
     {
       if (_formatOptions & NSISO8601DateFormatWithColonSeparatorInTimeZone)
         {
-          result = [result stringByAppendingString: @"ZZ:ZZ"];
+          result = [result stringByAppendingString: @"ZZZZZ"];
         }
       else
         {
