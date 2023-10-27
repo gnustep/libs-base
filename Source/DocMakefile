@@ -256,7 +256,6 @@ Base_AGSDOC_FLAGS = \
 	-MacrosTemplate Functions \
 	-TypedefsTemplate TypesAndConstants \
 	-VariablesTemplate TypesAndConstants \
-	-Verbose YES \
 	-WordMap '{\
 	}' -Up Base
 
@@ -272,7 +271,6 @@ BaseAdditions_AGSDOC_FLAGS = \
 	-MacrosTemplate Functions \
 	-TypedefsTemplate TypesAndConstants \
 	-VariablesTemplate TypesAndConstants \
-	-Verbose YES \
 	-WordMap '{\
 	}' -Up BaseAdditions
 

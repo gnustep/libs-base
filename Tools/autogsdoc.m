@@ -1021,6 +1021,10 @@ main(int argc, char **argv, char **env)
 	  NSDictionary	*dict;
 
 	  [projectRefs mergeRefs: originalIndex override: NO];
+	  if (verbose)
+	    {
+	      NSLog(@"Initialised projectRefs from %@", refsFile);
+	    }
 	  dict = [mgr fileAttributesAtPath: refsFile traverseLink: YES];
 	  rDate = [dict fileModificationDate];
 	}
@@ -1596,8 +1600,10 @@ main(int argc, char **argv, char **env)
   count = [gFiles count];
   if (count > 0)
     {
-      NSDictionary	*projectIndex;
+      NSMutableArray	*merged
+	= [[NSMutableArray alloc] initWithCapacity: count];
       CREATE_AUTORELEASE_POOL(arp);
+      NSDictionary	*projectIndex;
 
       for (i = 0; i < count; i++)
 	{
@@ -1685,6 +1691,7 @@ main(int argc, char **argv, char **env)
 		   * accumulate index info in project references
 		   */
 		  [projectRefs mergeRefs: [localRefs refs] override: NO];
+		  [merged addObject: gsdocfile];
 		}
 	      else
 		{
@@ -1693,10 +1700,20 @@ main(int argc, char **argv, char **env)
 		}
 	    }
 	}
-      if (informalProtocols != nil) {
+      if (verbose)
+	{
+	  NSLog(@"Merged indexes into projectRefs from %@", merged);
+	}
+
+      if (informalProtocols != nil)
+	{
           [projectRefs addInformalProtocols: informalProtocols];
           DESTROY(informalProtocols);
-      }
+	  if (verbose)
+	    {
+	      NSLog(@"Added informal protocols into projectRefs");
+	    }
+	}
       DESTROY(arp);
 
       /*
@@ -1712,6 +1729,7 @@ main(int argc, char **argv, char **env)
 	    }
 	}
       DESTROY(originalIndex);
+      DESTROY(merged);
     }
 
   globalRefs = [AGSIndex new];
@@ -1833,11 +1851,13 @@ main(int argc, char **argv, char **env)
       /*
        * Merge any "plain project" references.
        */
-      if (projects != nil)
+      if ([projects count] > 0)
 	{
-	  NSEnumerator	*e = [projects keyEnumerator];
-	  NSString	*k;
+	  NSEnumerator		*e = [projects keyEnumerator];
+	  NSMutableArray	*merged;
+	  NSString		*k;
 
+	  merged = [NSMutableArray arrayWithCapacity: [projects count]];
 	  while ((k = [e nextObject]) != nil)
 	    {
 	      if ([mgr isReadableFileAtPath: k] == NO)
@@ -1873,8 +1893,14 @@ main(int argc, char **argv, char **env)
 		      [tmp setDirectory: p];
 		      [globalRefs mergeRefs: [tmp refs] override: YES];
 		      RELEASE(tmp);
+		      [merged addObject: k];
 		    }
 		}
+	    }
+	  if (verbose)
+	    {
+	      NSLog(@"Merged indexes into globalRefs from %@", merged);
+	
 	    }
 	}
 
@@ -1882,6 +1908,10 @@ main(int argc, char **argv, char **env)
        * Accumulate project index info into global index
        */
       [globalRefs mergeRefs: [projectRefs refs] override: YES];
+      if (verbose)
+	{
+	  NSLog(@"Merged indexes from projectRefs into globalRefs");
+	}
 
       RELEASE(pool);
     }

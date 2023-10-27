@@ -25,6 +25,7 @@
 #import	"Foundation/NSArray.h"
 #import	"Foundation/NSAutoreleasePool.h"
 #import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSUserDefaults.h"
 #import "AGSIndex.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
@@ -57,29 +58,31 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
       [stack addObject: k];
       if (d == nil)
 	{
-	  if ([s isKindOfClass: [NSString class]] == YES)
+	  if ([s isKindOfClass: [NSString class]])
 	    {
 	      [dst setObject: s forKey: k];
 	    }
-	  else if ([s isKindOfClass: [NSArray class]] == YES)
+	  else if ([s isKindOfClass: [NSArray class]])
 	    {
 	      [dst setObject: s forKey: k];
 	    }
-	  else if ([s isKindOfClass: [NSDictionary class]] == YES)
+	  else if ([s isKindOfClass: [NSDictionary class]])
 	    {
 	      d = [[NSMutableDictionary alloc] initWithCapacity: [s count]];
 	      [dst setObject: d forKey: k];
 	      RELEASE(d);
+	      /* Fall through to populate the new dictionary.
+	       */
 	    }
 	  else
 	    {
 	      NSLog(@"Unexpected class in merge %@ ignored", stack);
-	      d = nil;
 	    }
 	}
+
       if (d != nil)
 	{
-	  if ([d isKindOfClass: [NSString class]] == YES)
+	  if ([d isKindOfClass: [NSString class]])
 	    {
 	      if ([s isKindOfClass: [NSString class]] == NO)
 		{
@@ -99,7 +102,7 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
 		    }
 		}
 	    }
-	  else if ([d isKindOfClass: [NSArray class]] == YES)
+	  else if ([d isKindOfClass: [NSArray class]])
 	    {
 	      if ([s isKindOfClass: [NSArray class]] == NO)
 		{
@@ -118,7 +121,7 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
 		    }
 		}
 	    }
-	  else if ([d isKindOfClass: [NSDictionary class]] == YES)
+	  else if ([d isKindOfClass: [NSDictionary class]])
 	    {
 	      if ([s isKindOfClass: [NSDictionary class]] == NO)
 		{
@@ -200,6 +203,54 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
 {
   RELEASE(refs);
   [super dealloc];
+}
+
+static void
+findKey(id refs, NSString *key, NSMutableArray *path, NSMutableArray *found)
+{
+  if ([refs isKindOfClass: [NSDictionary class]])
+    {
+      if ([refs objectForKey: key])
+	{
+	  [found addObject: AUTORELEASE([path copy])];
+	}
+      else
+	{
+	  NSEnumerator	*e = [refs keyEnumerator];
+	  NSString	*k;
+
+	  while ((k = [e nextObject]) != nil)
+	    {
+	      [path addObject: k];
+	      findKey([refs objectForKey: k], key, path, found);
+	      [path removeLastObject];
+	    }
+	}
+    }
+  else if ([refs isKindOfClass: [NSArray class]])
+    {
+      if ([refs containsObject: key])
+	{
+	  [found addObject: AUTORELEASE([path copy])];
+	}
+    }
+  else if ([refs isEqual: key])
+    {
+      [found addObject: AUTORELEASE([path copy])];
+    }
+}
+
+/** Looks for a string as a key or value in the index,
+ * and returns the paths to any occurrences found.
+ * Returns nil if the string is not found.
+ */
+- (NSArray*) find: (NSString*)key
+{
+  NSMutableArray	*path = [NSMutableArray arrayWithCapacity: 10];
+  NSMutableArray	*found = [NSMutableArray arrayWithCapacity: 10];
+
+  findKey(refs, key, path, found);
+  return ([found count] ? found : nil);
 }
 
 - (NSString*) globalRef: (NSString*)ref type: (NSString*)type
@@ -767,13 +818,29 @@ setDirectory(NSMutableDictionary *dict, NSString *path)
   if ([*u length] > 0 && [*u characterAtIndex: [*u length] - 1] == ')')
     {
       *u = [*u substringToIndex: [*u rangeOfString: @"("].location];
-      s = [t objectForKey: *u];
-      if (s != nil)
+      if ((s = [t objectForKey: *u]) != nil)
         {
           return s;
         }
     }
 
+  /* For a method lookup, try an informal protocol of the class
+   */
+  if ([*u length] > 0 && [type isEqual: @"method"])
+    {
+      NSString	*p = [NSString stringWithFormat: @"(%@)", *u];
+
+      if ((s = [t objectForKey: p]) != nil)
+        {
+	  if ([[NSUserDefaults standardUserDefaults] boolForKey: @"Warn"])
+	    {
+	      NSLog(@"Warning - found %@ only in informal protocol of %@",
+		ref, *u);
+	    }
+          return s;
+        }
+    }
+    
   /**
    * Try all superclasses in turn.
    */

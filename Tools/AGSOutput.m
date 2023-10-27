@@ -91,8 +91,8 @@ static BOOL snuggleStart(NSString *t)
  * And finally, here is the actual class description ... outside the chapter.
  * This is the class description for <code>AGSOutput</code>, including some
  * sample uses of GSDoc, such as cross-references (see [NSString]).
- * Functions, like escapeType(), are automatically referenced (if they are
- * found).
+ * Functions, (recognised as an identifier immediately followed by open and
+ * closing brackets), are automatically referenced (if they are found).
  */
 @implementation	AGSOutput
 

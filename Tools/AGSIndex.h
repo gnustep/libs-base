@@ -42,6 +42,7 @@
   unsigned		ssect;
   unsigned		sssect;
 }
+- (NSArray*) find: (NSString*)key;
 - (NSString*) globalRef: (NSString*)ref type: (NSString*)type;
 - (void) makeRefs: (GSXMLNode*)node;
 - (void) mergeRefs: (NSDictionary*)more override: (BOOL)flag;

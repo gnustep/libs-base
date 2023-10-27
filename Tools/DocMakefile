@@ -66,7 +66,6 @@ BaseTools_AGSDOC_FLAGS = \
 	-HeaderDirectory ../Tools \
 	-Standards YES \
 	-DTDs ../Tools \
-	-Verbose YES \
 	-WordMap '{\
 	}' -Up BaseTools
 
