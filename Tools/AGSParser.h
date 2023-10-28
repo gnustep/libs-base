@@ -124,6 +124,7 @@
 - (unsigned) skipToEndOfLine;
 - (unsigned) skipUnit;
 - (NSMutableArray*) sources;
+- (NSString*) where;
 @end
 
 #endif

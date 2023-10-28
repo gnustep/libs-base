@@ -3859,45 +3859,57 @@ countAttributes(NSSet *keys, NSDictionary *a)
     {
       NSString	*directive = [self parseIdentifier];
 
-      if ([directive isEqual: @"define"] && inHeader)
-        {
-	  NSMutableDictionary		*defn;
-
-	  defn = [self parseMacro];
-	  if (defn != nil)
+      if ([directive isEqual: @"define"])
+	{
+	  if (inHeader)
 	    {
-	      NSMutableDictionary	*dict = [info objectForKey: @"Macros"];
-	      NSString			*name = [defn objectForKey: @"Name"];
-	      NSMutableDictionary	*odef;
+	      NSMutableDictionary	*defn;
 
-	      odef = [dict objectForKey: name];
-	      if (odef == nil)
+	      defn = [self parseMacro];
+	      if (defn != nil)
 		{
-		  if (dict == nil)
-		    {
-		      dict = [[NSMutableDictionary alloc] initWithCapacity: 8];
-		      [info setObject: dict forKey: @"Macros"];
-		      RELEASE(dict);
-		    }
-		  [dict setObject: defn forKey: name];
-		}
-	      else
-		{
-		  NSString	*oc = [odef objectForKey: @"Comment"];
-		  NSString	*nc = [defn objectForKey: @"Comment"];
+		  NSMutableDictionary	*dict = [info objectForKey: @"Macros"];
+		  NSString		*name = [defn objectForKey: @"Name"];
+		  NSMutableDictionary	*odef;
 
-		  /*
-		   * If the old comment from the header parsing is
-		   * the same as the new comment from the source
-		   * parsing, assume we parsed the same file as both
-		   * source and header ... otherwise append the new
-		   * comment.
-		   */
-		  if ([oc isEqual: nc] == NO)
+		  odef = [dict objectForKey: name];
+		  if (odef == nil)
 		    {
-		      [self appendComment: nc to: odef];
+		      if (dict == nil)
+			{
+			  dict = [[NSMutableDictionary alloc]
+			    initWithCapacity: 8];
+			  [info setObject: dict forKey: @"Macros"];
+			  RELEASE(dict);
+			}
+		      [dict setObject: defn forKey: name];
+		    }
+		  else
+		    {
+		      NSString	*oc = [odef objectForKey: @"Comment"];
+		      NSString	*nc = [defn objectForKey: @"Comment"];
+
+		      /*
+		       * If the old comment from the header parsing is
+		       * the same as the new comment from the source
+		       * parsing, assume we parsed the same file as both
+		       * source and header ... otherwise append the new
+		       * comment.
+		       */
+		      if ([oc isEqual: nc] == NO)
+			{
+			  [self appendComment: nc to: odef];
+			}
 		    }
 		}
+	      return pos;
+	    }
+	  else
+	    {
+	      /* Macro definition inside source is ignored since it is not
+	       * visible to the outside world.
+	       */
+	      return [self skipRemainderOfLine];
 	    }
 	}
       else if ([directive isEqual: @"endif"])
@@ -3910,6 +3922,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	    {
 	      [ifStack removeLastObject];
 	    }
+	  return [self skipRemainderOfLine];
 	}
       else if ([directive isEqual: @"elif"])
 	{
@@ -3922,6 +3935,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	      [ifStack removeLastObject];
 	      [ifStack addObject: [ifStack lastObject]];
 	    }
+	  return [self skipRemainderOfLine];
 	}
       else if ([directive isEqual: @"else"])
 	{
@@ -3934,6 +3948,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	      [ifStack removeLastObject];
 	      [ifStack addObject: [ifStack lastObject]];
 	    }
+	  return [self skipRemainderOfLine];
 	}
       else if ([directive isEqual: @"if"])
 	{
@@ -3945,127 +3960,126 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	  top = [[ifStack lastObject] mutableCopy];
 
 	  while ((arg = [self parseIdentifier]) != nil)
-	  {
-	    BOOL	openstep;
-	    NSString	*ver;
+	    {
+	      BOOL	openstep;
+	      NSString	*ver;
 
-	    if ([arg isEqual: @"OS_API_VERSION"])
-	      {
-		openstep = YES;
-		if (hadOstep)
-		  {
-		    [self log: @"multiple grouped OS_API_VERSION() calls"];
-		    return [self skipRemainderOfLine];
-		  }
-		hadOstep = YES;
-		[top removeObjectForKey: @"ovadd"];
-		[top removeObjectForKey: @"ovdep"];
-		[top removeObjectForKey: @"ovrem"];
-	      }
-	    else if ([arg isEqual: @"GS_API_VERSION"])
-	      {
-		openstep = NO;
-		if (hadGstep)
-		  {
-		    [self log: @"multiple grouped GS_API_VERSION() calls"];
-		    return [self skipRemainderOfLine];
-		  }
-		hadGstep = YES;
-		[top removeObjectForKey: @"gvadd"];
-		[top removeObjectForKey: @"gvdep"];
-		[top removeObjectForKey: @"gvrem"];
-	      }
-	    else
-	      {
-		break;
-	      }
+	      if ([arg isEqual: @"OS_API_VERSION"])
+		{
+		  openstep = YES;
+		  if (hadOstep)
+		    {
+		      [self log: @"multiple grouped OS_API_VERSION() calls"];
+		      return [self skipRemainderOfLine];
+		    }
+		  hadOstep = YES;
+		  [top removeObjectForKey: @"ovadd"];
+		  [top removeObjectForKey: @"ovdep"];
+		  [top removeObjectForKey: @"ovrem"];
+		}
+	      else if ([arg isEqual: @"GS_API_VERSION"])
+		{
+		  openstep = NO;
+		  if (hadGstep)
+		    {
+		      [self log: @"multiple grouped GS_API_VERSION() calls"];
+		      return [self skipRemainderOfLine];
+		    }
+		  hadGstep = YES;
+		  [top removeObjectForKey: @"gvadd"];
+		  [top removeObjectForKey: @"gvdep"];
+		  [top removeObjectForKey: @"gvrem"];
+		}
+	      else
+		{
+		  break;
+		}
 
-	    [self parseSpace: spaces];
-	    if (pos < length && buffer[pos] == '(')
-	      {
-		pos++;
-	      }
-	    ver = [self parseVersion];
-	    if ([ver length] == 0)
-	      {
-		ver = @"1.0.0";
-	      }
-	    if (openstep)
-	      {
-		[top setObject: ver forKey: @"ovadd"];
-	      }
-	    else
-	      {
-		[top setObject: ver forKey: @"gvadd"];
-	      }
+	      [self parseSpace: spaces];
+	      if (pos < length && buffer[pos] == '(')
+		{
+		  pos++;
+		}
+	      ver = [self parseVersion];
+	      if ([ver length] == 0)
+		{
+		  ver = @"1.0.0";
+		}
+	      if (openstep)
+		{
+		  [top setObject: ver forKey: @"ovadd"];
+		}
+	      else
+		{
+		  [top setObject: ver forKey: @"gvadd"];
+		}
 
-	    [self parseSpace: spaces];
-	    if (pos < length && buffer[pos] == ',')
-	      {
-		pos++;
-	      }
-	    ver = [self parseVersion];
-	    if ([ver length] == 0)
-	      {
-		ver = @"99.99.99";
-	      }
-	    if ([ver isEqualToString: @"99.99.99"] == NO)
-	      {
-		if (openstep)
-		  {
-		    [top setObject: ver forKey: @"ovrem"];
-		  }
-		else
-		  {
-		    [top setObject: ver forKey: @"gvrem"];
-		  }
-	      }
+	      [self parseSpace: spaces];
+	      if (pos < length && buffer[pos] == ',')
+		{
+		  pos++;
+		}
+	      ver = [self parseVersion];
+	      if ([ver length] == 0)
+		{
+		  ver = @"99.99.99";
+		}
+	      if ([ver isEqualToString: @"99.99.99"] == NO)
+		{
+		  if (openstep)
+		    {
+		      [top setObject: ver forKey: @"ovrem"];
+		    }
+		  else
+		    {
+		      [top setObject: ver forKey: @"gvrem"];
+		    }
+		}
 
-	    [self parseSpace: spaces];
-	    if (pos < length && buffer[pos] == ',')
-	      {
-		pos++;
-		ver = [self parseVersion];
-		if ([ver length] == 0)
-		  {
-		    ver = @"99.99.99";
-		  }
-		if ([ver isEqualToString: @"99.99.99"] == NO)
-		  {
-		    if (openstep)
-		      {
-			[top setObject: ver forKey: @"ovdep"];
-		      }
-		    else
-		      {
-			[top setObject: ver forKey: @"gvdep"];
-		      }
-		  }
-		[self parseSpace: spaces];
-	      }
+	      [self parseSpace: spaces];
+	      if (pos < length && buffer[pos] == ',')
+		{
+		  pos++;
+		  ver = [self parseVersion];
+		  if ([ver length] == 0)
+		    {
+		      ver = @"99.99.99";
+		    }
+		  if ([ver isEqualToString: @"99.99.99"] == NO)
+		    {
+		      if (openstep)
+			{
+			  [top setObject: ver forKey: @"ovdep"];
+			}
+		      else
+			{
+			  [top setObject: ver forKey: @"gvdep"];
+			}
+		    }
+		  [self parseSpace: spaces];
+		}
 
-	    if (pos < length && buffer[pos] == ')')
-	      {
-		pos++;
-	      }
+	      if (pos < length && buffer[pos] == ')')
+		{
+		  pos++;
+		}
 
-	    [self parseSpace: spaces];
-	    if (pos < length-1 && buffer[pos] == '&' && buffer[pos+1] == '&')
-	      {
-		pos += 2;
-	      }
-	    else
-	      {
-		break;	// may only join version macros with &&
-	      }
-	  }
+	      [self parseSpace: spaces];
+	      if (pos < length-1 && buffer[pos] == '&' && buffer[pos+1] == '&')
+		{
+		  pos += 2;
+		}
+	      else
+		{
+		  break;	// may only join version macros with &&
+		}
+	    }
 	  [ifStack addObject: top];
 	  RELEASE(top);
+	  return [self skipRemainderOfLine];
 	}
-      else if ([directive hasPrefix: @"if"])
+      else if ([directive isEqual: @"ifdef"])
 	{
-	  BOOL	isIfDef = [directive isEqual: @"ifdef"];
-
 	  [self parseSpace: spaces];
 	  if (pos < length && buffer[pos] != '\n')
 	    {
@@ -4076,47 +4090,64 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	      arg = [self parseIdentifier];
 	      if ([arg isEqual: @"NO_GNUSTEP"])
 		{
-		  if (isIfDef)
-		    {
-		      [self log: @"Unexpected #ifdef NO_GNUSTEP (nonsense)"];
-		    }
-		  else
-		    {
-		      [top removeObjectForKey: @"MacOS-X"];
-		      [top setObject: @"NotMacOS-X" forKey: @"NotMacOS-X"];
-		      [top removeObjectForKey: @"OpenStep"];
-		      [top setObject: @"NotOpenStep" forKey: @"NotOpenStep"];
-		    }
+		  [self log: @"Unexpected #ifdef NO_GNUSTEP (nonsense)"];
 		}
 	      else if ([arg isEqual: @"STRICT_MACOS_X"])
 		{
-		  if (isIfDef)
-		    {
-		      [top removeObjectForKey: @"NotMacOS-X"];
-		      [top setObject: @"MacOS-X" forKey: @"MacOS-X"];
-		    }
-		  else
-		    {
-		      [top removeObjectForKey: @"MacOS-X"];
-		      [top setObject: @"NotMacOS-X" forKey: @"NotMacOS-X"];
-		    }
+		  [top removeObjectForKey: @"NotMacOS-X"];
+		  [top setObject: @"MacOS-X" forKey: @"MacOS-X"];
 		}
 	      else if ([arg isEqual: @"STRICT_OPENSTEP"])
 		{
-		  if (isIfDef)
-		    {
-		      [top removeObjectForKey: @"NotOpenStep"];
-		      [top setObject: @"OpenStep" forKey: @"OpenStep"];
-		    }
-		  else
-		    {
-		      [top removeObjectForKey: @"OpenStep"];
-		      [top setObject: @"NotOpenStep" forKey: @"NotOpenStep"];
-		    }
+		  [top removeObjectForKey: @"NotOpenStep"];
+		  [top setObject: @"OpenStep" forKey: @"OpenStep"];
 		}
 	      [ifStack addObject: top];
 	      RELEASE(top);
 	    }
+	  return [self skipRemainderOfLine];
+	}
+      else if ([directive isEqual: @"ifndef"])
+	{
+	  [self parseSpace: spaces];
+	  if (pos < length && buffer[pos] != '\n')
+	    {
+	      NSMutableDictionary	*top;
+	      NSString			*arg;
+
+	      top = [[ifStack lastObject] mutableCopy];
+	      arg = [self parseIdentifier];
+	      if ([arg isEqual: @"NO_GNUSTEP"])
+		{
+		  [top removeObjectForKey: @"MacOS-X"];
+		  [top setObject: @"NotMacOS-X" forKey: @"NotMacOS-X"];
+		  [top removeObjectForKey: @"OpenStep"];
+		  [top setObject: @"NotOpenStep" forKey: @"NotOpenStep"];
+		}
+	      else if ([arg isEqual: @"STRICT_MACOS_X"])
+		{
+		  [top removeObjectForKey: @"MacOS-X"];
+		  [top setObject: @"NotMacOS-X" forKey: @"NotMacOS-X"];
+		}
+	      else if ([arg isEqual: @"STRICT_OPENSTEP"])
+		{
+		  [top removeObjectForKey: @"OpenStep"];
+		  [top setObject: @"NotOpenStep" forKey: @"NotOpenStep"];
+		}
+	      [ifStack addObject: top];
+	      RELEASE(top);
+	    }
+	  return [self skipRemainderOfLine];
+	}
+      else if ([directive isEqual: @"import"]
+        || [directive isEqual: @"include"])
+	{
+	  return [self skipRemainderOfLine];
+	}
+      else
+	{
+	  [self log: @"Warning - unknown preprocessor directive %@", directive];
+	  return [self skipRemainderOfLine];
 	}
     }
   return [self skipRemainderOfLine];
@@ -4840,7 +4871,7 @@ fail:
 {
   while (pos < length)
     {
-      if (buffer[pos++] == '\n')
+      if ('\n' == buffer[pos++])
 	{
 	  break;
 	}
@@ -4856,7 +4887,7 @@ fail:
 
       if ([spaces characterIsMember: c] == NO)
 	{
-	  break;
+          break;
 	}
       pos++;
     }
@@ -4975,5 +5006,46 @@ fail:
 {
   return AUTORELEASE([source mutableCopy]);
 }
+
+- (NSString*) where
+{
+  int		index;
+  int		start = 0;
+  int		end;
+  NSString	*l;
+  NSString	*s;
+
+  for (index = [lines count] - 1; index >= 0; index--)
+    {
+      NSNumber	*num = [lines objectAtIndex: index];
+
+      if ((start = [num intValue]) <= (int)pos)
+	{
+	  break;
+	}
+    }
+  if (index >= [lines count] || index < 0)
+    {
+      start = 0;
+      index = -1;
+    }
+
+  if (index + 1 < [lines count])
+    {
+      end = [[lines objectAtIndex: index + 1] intValue];
+    }
+  else
+    {
+      end = length;
+    }
+  l = [[NSString alloc] initWithCharactersNoCopy: buffer + start
+					  length: end - start
+				    freeWhenDone: NO];
+  s = [NSString stringWithFormat: @"Character %d in line %d:%@",
+    pos - start, index + 2, l];
+  RELEASE(l);
+  return s;
+}
+
 @end
 
