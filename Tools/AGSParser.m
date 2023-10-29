@@ -3292,6 +3292,8 @@ countAttributes(NSSet *keys, NSDictionary *a)
   NSString		*type;
   NSString		*name;
   NSString		*sel;
+  NSString		*get;
+  NSString		*set;
   NSString		*token;
   unsigned		count;
 
@@ -3441,9 +3443,20 @@ countAttributes(NSSet *keys, NSDictionary *a)
 
   [prop setObject: attr forKey: @"Attributes"];
 
+  if (nil == (sel = [attr objectForKey: @"getter"]))
+    {
+      sel = name;
+    }
+  while ([sel hasSuffix: @":"])
+    {
+      sel = [sel substringToIndex: [sel length] - 1];
+    }
+  get = sel;		// The getter selector
+
   if ([attr objectForKey: @"readonly"])
     {
       *s = nil;
+      set = nil;
     }
   else
     {
@@ -3469,40 +3482,54 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	{
 	  sel = [sel stringByAppendingString: @":"];
 	}
-      [sd setObject: [@"-" stringByAppendingString: sel] forKey: @"Name"];
-      [sd setObject: [NSMutableArray arrayWithObject: sel]
+      set = sel;	// The setter selector
+
+      [sd setObject: [@"-" stringByAppendingString: set] forKey: @"Name"];
+      [sd setObject: [NSMutableArray arrayWithObject: set]
 	     forKey: @"Sels"];
       [sd setObject: [NSMutableArray arrayWithObject: name]
 	     forKey: @"Args"];
       [sd setObject: [NSMutableArray arrayWithObject: type]
 	     forKey: @"Types"];
       token = [NSString stringWithFormat:
-	@"Setter for property '%@' with attributes %@.",
-	name, [attr allKeys]];
+	@"Setter for property '%@' with attributes %@."
+	@"See also <ref type=\"method\" id=\"-%@\""
+	@" class=\"%@\">[%@ -%@]</ref>\n",
+	name, [attr allKeys], get, unitName, unitName, get];
+      if (comment != nil)
+	{
+	  token = [token stringByAppendingString: comment];
+	}
       [sd setObject: token forKey: @"Comment"];
+      [sd setObject: @"YES" forKey: @"Implemented"];
     }
 
   gd = [NSMutableDictionary dictionary];
   *g = gd;
   [gd setObject: @"Methods" forKey: @"Kind"];
   [gd setObject: type forKey: @"ReturnType"];
-  if (nil == (sel = [attr objectForKey: @"getter"]))
-    {
-      sel = name;
-    }
-  while ([sel hasSuffix: @":"])
-    {
-      sel = [sel substringToIndex: [sel length] - 1];
-    }
-  [gd setObject: [NSMutableArray arrayWithObject: sel]
+  [gd setObject: [NSMutableArray arrayWithObject: get]
 	 forKey: @"Sels"];
-  [gd setObject: [@"-" stringByAppendingString: sel] forKey: @"Name"];
+  [gd setObject: [@"-" stringByAppendingString: get] forKey: @"Name"];
   token = [NSString stringWithFormat:
     @"Getter for property '%@' with attributes %@.",
     name, [attr allKeys]];
+  if (set)
+    {
+      token = [token stringByAppendingFormat:
+	@"See also <ref type=\"method\" id=\"-%@\""
+	@" class=\"%@\">[%@ -%@]</ref>\n",
+	set, unitName, unitName, set];
+      if (comment != nil)
+	{
+	  token = [token stringByAppendingString: comment];
+	}
+    }
   [gd setObject: token forKey: @"Comment"];
+  [gd setObject: @"YES" forKey: @"Implemented"];
 
   [prop setObject: @"Properties" forKey: @"Kind"];
+  DESTROY(comment);
   return prop;
 }
 
