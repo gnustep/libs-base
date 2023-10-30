@@ -131,7 +131,7 @@ GS_EXPORT_CLASS
  * This is the method which actually performs the operation ...
  * the default implementation does nothing.<br />
  * You MUST ensure that your implemention of -main does not raise any
- * exception or call [NSThread-exit] as either of these will terminate
+ * exception or call [NSThread+exit] as either of these will terminate
  * the operation prematurely resulting in the operation never reaching
  * the -isFinished state.<br />
  * If you are writing a concurrent subclass, you should override -start
@@ -139,7 +139,7 @@ GS_EXPORT_CLASS
  */
 - (void) main;
 
-/** Returns the priority set using the -setQueuePriority method, or
+/** Returns the priority set using the -setQueuePriority: method, or
  * NSOperationQueuePriorityNormal if no priority has been set.
  */
 - (NSOperationQueuePriority) queuePriority;

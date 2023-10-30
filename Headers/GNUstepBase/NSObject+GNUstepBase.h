@@ -52,7 +52,7 @@ extern "C" {
 */
 - (NSComparisonResult) compare: (id)anObject;
 
-/** For backward compatibility only ... use class_isMetaClass() on the
+/** For backward compatibility only ... use "class_isMetaClass()" on the
  * class of the receiver instead.
  */
 - (BOOL) isInstance;

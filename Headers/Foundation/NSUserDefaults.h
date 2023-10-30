@@ -49,7 +49,7 @@ extern "C" {
  * User defaults domain for process arguments.  Command-line arguments
  * (key-value pairs, as in "-NSFoo bar") are placed in this domain.<br />
  * Where there is a sequence of arguments beginning with '-', only the
- * last one is used (so "-a -b -c d" will produce a single user default
+ * last one is used (so "-a" "-b" "-c" "d" will produce a single user default
  * 'c' with value 'd').<br />
  * NB. On OSX the argument "-" means a key consisting of an empty string
  * (so you can't use a '-' as a default value), while in GNUstep a "-" is

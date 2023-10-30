@@ -742,8 +742,8 @@ static inline BOOL timerInvalidated(NSTimer *t)
  * <p>There is one run loop per thread in an application, which
  *  may always be obtained through the <code>+currentRunLoop</code> method
  *  (you cannot use -init or +new),
- *  however unless you are using the AppKit and the [NSApplication] class, the
- *  run loop will not be started unless you explicitly send it a
+ *  however unless you are using the AppKit and the <code>NSApplication</code>
+ *  class, the  run loop will not be started unless you explicitly send it a
  *  <code>-run</code> message.</p>
  *
  * <p>At any given point, a run loop operates in a single <em>mode</em>, usually
