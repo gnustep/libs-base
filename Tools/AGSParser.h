@@ -68,6 +68,7 @@
   BOOL		standards;
   BOOL          inUnclosedExample;
   BOOL		debug;
+  BOOL		inPreprocessorDirective;
   NSDictionary		*wordMap;
   NSString		*declared;	/** Where classes were declared. */
   NSMutableArray	*ifStack;	/** Track preprocessor conditionals. */

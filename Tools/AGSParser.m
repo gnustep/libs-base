@@ -2055,6 +2055,7 @@ recheck:
 	    }
 	  else if (buffer[pos] == '#')
 	    {
+	      pos++;
 	      [self parsePreprocessor];	// Ignore preprocessor directive.
 	      DESTROY(comment);
 	    }
@@ -2746,6 +2747,52 @@ NSLog(@"Parsed generic type as '%@'", tmp);
   return nil;
 }
 
+/** Parses an identifier as long as we don't skip to a new line.
+ * For use when parsing a preprocessor line.
+ */
+- (NSString*) parseIdentifierInLine
+{
+  unsigned	start;
+
+try:
+  [self parseSpace: spaces];
+  if (pos >= length || [identStart characterIsMember: buffer[pos]] == NO)
+    {
+      return nil;
+    }
+  start = pos;
+  while (pos < length)
+    {
+      if ([identifier characterIsMember: buffer[pos]] == NO)
+	{
+	  NSString	*tmp;
+	  NSString	*val;
+
+	  tmp = [[NSString alloc] initWithCharacters: &buffer[start]
+					      length: pos - start];
+	  val = [wordMap objectForKey: tmp];
+	  if (val == nil)
+	    {
+	      return AUTORELEASE(tmp);	// No mapping found.
+	    }
+	  RELEASE(tmp);
+	  val = [val stringByTrimmingSpaces];
+	  if ([val length] > 0)
+	    {
+	      if ([val isEqualToString: @"//"])
+		{
+		  [self skipToEndOfLine];
+		  return nil;
+		}
+	      return val;	// Got mapped identifier.
+	    }
+	  goto try;		// Mapping removed the identifier.
+	}
+      pos++;
+    }
+  return nil;
+}
+
 - (NSMutableDictionary*) parseInstanceVariables
 {
   NSString		*validity = @"protected";
@@ -2799,6 +2846,7 @@ NSLog(@"Parsed generic type as '%@'", tmp);
 	}
       else if (buffer[pos] == '#')
 	{
+	  pos++;
 	  [self parsePreprocessor];	// Ignore preprocessor directive.
 	  DESTROY(comment);
 	}
@@ -2859,8 +2907,7 @@ fail:
   NSString		*name;
 
   dict = [[NSMutableDictionary alloc] initWithCapacity: 4];
-  [self parseSpace: spaces];
-  name = [self parseIdentifier];
+  name = [self parseIdentifierInLine];
   if (nil == name)
     {
       // [self log: @"Missing name in #define"];
@@ -2888,7 +2935,7 @@ fail:
 	    {
 	      NSString	*s;
 
-	      s = [self parseIdentifier];
+	      s = [self parseIdentifierInLine];
 	      if (s == nil)
 		{
 		  break;
@@ -3881,171 +3928,188 @@ countAttributes(NSSet *keys, NSDictionary *a)
  */
 - (unsigned) parsePreprocessor
 {
-  [self parseSpace: spaces];
-  if (pos < length && buffer[pos] != '\n')
+  NSString	*directive;
+//  NSString	*where = [self where];
+
+  NSAssert(pos > 0 & '#' == buffer[pos - 1], NSInternalInconsistencyException);
+
+  inPreprocessorDirective = YES;
+  directive = [self parseIdentifierInLine];
+  if ([directive isEqual: @"define"])
     {
-      NSString	*directive = [self parseIdentifier];
-
-      if ([directive isEqual: @"define"])
+      /* Macro definition inside source is ignored since it is not
+       * visible to the outside world.
+       */
+      if (inHeader)
 	{
-	  if (inHeader)
-	    {
-	      NSMutableDictionary	*defn;
+	  NSMutableDictionary	*defn;
 
-	      defn = [self parseMacro];
-	      if (defn != nil)
+	  defn = [self parseMacro];
+	  if (defn != nil)
+	    {
+	      NSMutableDictionary	*dict = [info objectForKey: @"Macros"];
+	      NSString			*name = [defn objectForKey: @"Name"];
+	      NSMutableDictionary	*odef;
+
+	      odef = [dict objectForKey: name];
+	      if (odef == nil)
 		{
-		  NSMutableDictionary	*dict = [info objectForKey: @"Macros"];
-		  NSString		*name = [defn objectForKey: @"Name"];
-		  NSMutableDictionary	*odef;
-
-		  odef = [dict objectForKey: name];
-		  if (odef == nil)
+		  if (dict == nil)
 		    {
-		      if (dict == nil)
-			{
-			  dict = [[NSMutableDictionary alloc]
-			    initWithCapacity: 8];
-			  [info setObject: dict forKey: @"Macros"];
-			  RELEASE(dict);
-			}
-		      [dict setObject: defn forKey: name];
+		      dict = [[NSMutableDictionary alloc]
+			initWithCapacity: 8];
+		      [info setObject: dict forKey: @"Macros"];
+		      RELEASE(dict);
 		    }
-		  else
-		    {
-		      NSString	*oc = [odef objectForKey: @"Comment"];
-		      NSString	*nc = [defn objectForKey: @"Comment"];
-
-		      /*
-		       * If the old comment from the header parsing is
-		       * the same as the new comment from the source
-		       * parsing, assume we parsed the same file as both
-		       * source and header ... otherwise append the new
-		       * comment.
-		       */
-		      if ([oc isEqual: nc] == NO)
-			{
-			  [self appendComment: nc to: odef];
-			}
-		    }
-		}
-	      return pos;
-	    }
-	  else
-	    {
-	      /* Macro definition inside source is ignored since it is not
-	       * visible to the outside world.
-	       */
-	      return [self skipRemainderOfLine];
-	    }
-	}
-      else if ([directive isEqual: @"endif"])
-	{
-	  if ([ifStack count] <= 1)
-	    {
-	      [self log: @"Unexpected #endif (no matching #if)"];
-	    }
-	  else
-	    {
-	      [ifStack removeLastObject];
-	    }
-	  return [self skipRemainderOfLine];
-	}
-      else if ([directive isEqual: @"elif"])
-	{
-	  if ([ifStack count] <= 1)
-	    {
-	      [self log: @"Unexpected #else (no matching #if)"];
-	    }
-	  else
-	    {
-	      [ifStack removeLastObject];
-	      [ifStack addObject: [ifStack lastObject]];
-	    }
-	  return [self skipRemainderOfLine];
-	}
-      else if ([directive isEqual: @"else"])
-	{
-	  if ([ifStack count] <= 1)
-	    {
-	      [self log: @"Unexpected #else (no matching #if)"];
-	    }
-	  else
-	    {
-	      [ifStack removeLastObject];
-	      [ifStack addObject: [ifStack lastObject]];
-	    }
-	  return [self skipRemainderOfLine];
-	}
-      else if ([directive isEqual: @"if"])
-	{
-	  NSMutableDictionary	*top;
-	  NSString		*arg;
-	  BOOL			hadOstep = NO;
-	  BOOL			hadGstep = NO;
-
-	  top = [[ifStack lastObject] mutableCopy];
-
-	  while ((arg = [self parseIdentifier]) != nil)
-	    {
-	      BOOL	openstep;
-	      NSString	*ver;
-
-	      if ([arg isEqual: @"OS_API_VERSION"])
-		{
-		  openstep = YES;
-		  if (hadOstep)
-		    {
-		      [self log: @"multiple grouped OS_API_VERSION() calls"];
-		      return [self skipRemainderOfLine];
-		    }
-		  hadOstep = YES;
-		  [top removeObjectForKey: @"ovadd"];
-		  [top removeObjectForKey: @"ovdep"];
-		  [top removeObjectForKey: @"ovrem"];
-		}
-	      else if ([arg isEqual: @"GS_API_VERSION"])
-		{
-		  openstep = NO;
-		  if (hadGstep)
-		    {
-		      [self log: @"multiple grouped GS_API_VERSION() calls"];
-		      return [self skipRemainderOfLine];
-		    }
-		  hadGstep = YES;
-		  [top removeObjectForKey: @"gvadd"];
-		  [top removeObjectForKey: @"gvdep"];
-		  [top removeObjectForKey: @"gvrem"];
+		  [dict setObject: defn forKey: name];
 		}
 	      else
 		{
-		  break;
-		}
+		  NSString	*oc = [odef objectForKey: @"Comment"];
+		  NSString	*nc = [defn objectForKey: @"Comment"];
 
-	      [self parseSpace: spaces];
-	      if (pos < length && buffer[pos] == '(')
-		{
-		  pos++;
+		  /*
+		   * If the old comment from the header parsing is
+		   * the same as the new comment from the source
+		   * parsing, assume we parsed the same file as both
+		   * source and header ... otherwise append the new
+		   * comment.
+		   */
+		  if ([oc isEqual: nc] == NO)
+		    {
+		      [self appendComment: nc to: odef];
+		    }
 		}
-	      ver = [self parseVersion];
-	      if ([ver length] == 0)
+	    }
+	}
+    }
+  else if ([directive isEqual: @"endif"])
+    {
+      if ([ifStack count] <= 1)
+	{
+	  [self log: @"Unexpected #endif (no matching #if)"];
+	}
+      else
+	{
+// NSLog(@"Pop %@", where);
+	  [ifStack removeLastObject];
+	}
+    }
+  else if ([directive isEqual: @"else"])
+    {
+      if ([ifStack count] <= 1)
+	{
+	  [self log: @"Unexpected #else (no matching #if)"];
+	}
+      else
+	{
+	  [ifStack removeLastObject];
+	  [ifStack addObject: [ifStack lastObject]];
+	}
+    }
+  else if ([directive isEqual: @"if"] || [directive isEqual: @"elif"])
+    {
+      NSMutableDictionary	*top;
+      NSString			*arg;
+      BOOL			hadOstep = NO;
+      BOOL			hadGstep = NO;
+
+      if ([directive isEqual: @"elif"])
+	{
+	  if ([ifStack count] <= 1)
+	    {
+	      [self log: @"Unexpected #elif (no matching #if"];
+	    }
+	  else
+	    {
+// NSLog(@"Pop %@", where);
+	      [ifStack removeLastObject];
+	    }
+	}
+
+      top = [[ifStack lastObject] mutableCopy];
+
+      while ((arg = [self parseIdentifierInLine]) != nil)
+	{
+	  BOOL	openstep;
+	  NSString	*ver;
+
+	  if ([arg isEqual: @"OS_API_VERSION"])
+	    {
+	      openstep = YES;
+	      if (hadOstep)
 		{
-		  ver = @"1.0.0";
+		  [self log: @"multiple grouped OS_API_VERSION() calls"];
+		  return [self skipRemainderOfLine];
 		}
+	      hadOstep = YES;
+	      [top removeObjectForKey: @"ovadd"];
+	      [top removeObjectForKey: @"ovdep"];
+	      [top removeObjectForKey: @"ovrem"];
+	    }
+	  else if ([arg isEqual: @"GS_API_VERSION"])
+	    {
+	      openstep = NO;
+	      if (hadGstep)
+		{
+		  [self log: @"multiple grouped GS_API_VERSION() calls"];
+		  return [self skipRemainderOfLine];
+		}
+	      hadGstep = YES;
+	      [top removeObjectForKey: @"gvadd"];
+	      [top removeObjectForKey: @"gvdep"];
+	      [top removeObjectForKey: @"gvrem"];
+	    }
+	  else
+	    {
+	      break;
+	    }
+
+	  [self parseSpace: spaces];
+	  if (pos < length && buffer[pos] == '(')
+	    {
+	      pos++;
+	    }
+	  ver = [self parseVersion];
+	  if ([ver length] == 0)
+	    {
+	      ver = @"1.0.0";
+	    }
+	  if (openstep)
+	    {
+	      [top setObject: ver forKey: @"ovadd"];
+	    }
+	  else
+	    {
+	      [top setObject: ver forKey: @"gvadd"];
+	    }
+
+	  [self parseSpace: spaces];
+	  if (pos < length && buffer[pos] == ',')
+	    {
+	      pos++;
+	    }
+	  ver = [self parseVersion];
+	  if ([ver length] == 0)
+	    {
+	      ver = @"99.99.99";
+	    }
+	  if ([ver isEqualToString: @"99.99.99"] == NO)
+	    {
 	      if (openstep)
 		{
-		  [top setObject: ver forKey: @"ovadd"];
+		  [top setObject: ver forKey: @"ovrem"];
 		}
 	      else
 		{
-		  [top setObject: ver forKey: @"gvadd"];
+		  [top setObject: ver forKey: @"gvrem"];
 		}
+	    }
 
-	      [self parseSpace: spaces];
-	      if (pos < length && buffer[pos] == ',')
-		{
-		  pos++;
-		}
+	  [self parseSpace: spaces];
+	  if (pos < length && buffer[pos] == ',')
+	    {
+	      pos++;
 	      ver = [self parseVersion];
 	      if ([ver length] == 0)
 		{
@@ -4055,129 +4119,100 @@ countAttributes(NSSet *keys, NSDictionary *a)
 		{
 		  if (openstep)
 		    {
-		      [top setObject: ver forKey: @"ovrem"];
+		      [top setObject: ver forKey: @"ovdep"];
 		    }
 		  else
 		    {
-		      [top setObject: ver forKey: @"gvrem"];
+		      [top setObject: ver forKey: @"gvdep"];
 		    }
 		}
-
 	      [self parseSpace: spaces];
-	      if (pos < length && buffer[pos] == ',')
-		{
-		  pos++;
-		  ver = [self parseVersion];
-		  if ([ver length] == 0)
-		    {
-		      ver = @"99.99.99";
-		    }
-		  if ([ver isEqualToString: @"99.99.99"] == NO)
-		    {
-		      if (openstep)
-			{
-			  [top setObject: ver forKey: @"ovdep"];
-			}
-		      else
-			{
-			  [top setObject: ver forKey: @"gvdep"];
-			}
-		    }
-		  [self parseSpace: spaces];
-		}
-
-	      if (pos < length && buffer[pos] == ')')
-		{
-		  pos++;
-		}
-
-	      [self parseSpace: spaces];
-	      if (pos < length-1 && buffer[pos] == '&' && buffer[pos+1] == '&')
-		{
-		  pos += 2;
-		}
-	      else
-		{
-		  break;	// may only join version macros with &&
-		}
 	    }
-	  [ifStack addObject: top];
-	  RELEASE(top);
-	  return [self skipRemainderOfLine];
-	}
-      else if ([directive isEqual: @"ifdef"])
-	{
-	  [self parseSpace: spaces];
-	  if (pos < length && buffer[pos] != '\n')
+
+	  if (pos < length && buffer[pos] == ')')
 	    {
-	      NSMutableDictionary	*top;
-	      NSString			*arg;
-
-	      top = [[ifStack lastObject] mutableCopy];
-	      arg = [self parseIdentifier];
-	      if ([arg isEqual: @"NO_GNUSTEP"])
-		{
-		  [self log: @"Unexpected #ifdef NO_GNUSTEP (nonsense)"];
-		}
-	      else if ([arg isEqual: @"STRICT_MACOS_X"])
-		{
-		  [top removeObjectForKey: @"NotMacOS-X"];
-		  [top setObject: @"MacOS-X" forKey: @"MacOS-X"];
-		}
-	      else if ([arg isEqual: @"STRICT_OPENSTEP"])
-		{
-		  [top removeObjectForKey: @"NotOpenStep"];
-		  [top setObject: @"OpenStep" forKey: @"OpenStep"];
-		}
-	      [ifStack addObject: top];
-	      RELEASE(top);
+	      pos++;
 	    }
-	  return [self skipRemainderOfLine];
-	}
-      else if ([directive isEqual: @"ifndef"])
-	{
+
 	  [self parseSpace: spaces];
-	  if (pos < length && buffer[pos] != '\n')
+	  if (pos < length-1 && buffer[pos] == '&' && buffer[pos+1] == '&')
 	    {
-	      NSMutableDictionary	*top;
-	      NSString			*arg;
-
-	      top = [[ifStack lastObject] mutableCopy];
-	      arg = [self parseIdentifier];
-	      if ([arg isEqual: @"NO_GNUSTEP"])
-		{
-		  [top removeObjectForKey: @"MacOS-X"];
-		  [top setObject: @"NotMacOS-X" forKey: @"NotMacOS-X"];
-		  [top removeObjectForKey: @"OpenStep"];
-		  [top setObject: @"NotOpenStep" forKey: @"NotOpenStep"];
-		}
-	      else if ([arg isEqual: @"STRICT_MACOS_X"])
-		{
-		  [top removeObjectForKey: @"MacOS-X"];
-		  [top setObject: @"NotMacOS-X" forKey: @"NotMacOS-X"];
-		}
-	      else if ([arg isEqual: @"STRICT_OPENSTEP"])
-		{
-		  [top removeObjectForKey: @"OpenStep"];
-		  [top setObject: @"NotOpenStep" forKey: @"NotOpenStep"];
-		}
-	      [ifStack addObject: top];
-	      RELEASE(top);
+	      pos += 2;
 	    }
-	  return [self skipRemainderOfLine];
+	  else
+	    {
+	      break;	// may only join version macros with &&
+	    }
 	}
-      else if ([directive isEqual: @"import"]
-        || [directive isEqual: @"include"])
-	{
-	  return [self skipRemainderOfLine];
-	}
-      else
-	{
-	  [self log: @"Warning - unknown preprocessor directive %@", directive];
-	  return [self skipRemainderOfLine];
-	}
+      [ifStack addObject: top];
+// NSLog(@"Push %@", where);
+      RELEASE(top);
     }
-  return [self skipRemainderOfLine];
+  else if ([directive isEqual: @"ifdef"])
+    {
+      NSMutableDictionary	*top = [[ifStack lastObject] mutableCopy];
+      NSString			*arg = [self parseIdentifierInLine];
+
+      if ([arg isEqual: @"NO_GNUSTEP"])
+	{
+	  [self log: @"Unexpected #ifdef NO_GNUSTEP (nonsense)"];
+	}
+      else if ([arg isEqual: @"STRICT_MACOS_X"])
+	{
+	  [top removeObjectForKey: @"NotMacOS-X"];
+	  [top setObject: @"MacOS-X" forKey: @"MacOS-X"];
+	}
+      else if ([arg isEqual: @"STRICT_OPENSTEP"])
+	{
+	  [top removeObjectForKey: @"NotOpenStep"];
+	  [top setObject: @"OpenStep" forKey: @"OpenStep"];
+	}
+
+      [ifStack addObject: top];
+// NSLog(@"Push %@", where);
+      RELEASE(top);
+    }
+  else if ([directive isEqual: @"ifndef"])
+    {
+      NSMutableDictionary	*top = [[ifStack lastObject] mutableCopy];
+      NSString			*arg = [self parseIdentifierInLine];
+
+      if ([arg isEqual: @"NO_GNUSTEP"])
+	{
+	  [top removeObjectForKey: @"MacOS-X"];
+	  [top setObject: @"NotMacOS-X" forKey: @"NotMacOS-X"];
+	  [top removeObjectForKey: @"OpenStep"];
+	  [top setObject: @"NotOpenStep" forKey: @"NotOpenStep"];
+	}
+      else if ([arg isEqual: @"STRICT_MACOS_X"])
+	{
+	  [top removeObjectForKey: @"MacOS-X"];
+	  [top setObject: @"NotMacOS-X" forKey: @"NotMacOS-X"];
+	}
+      else if ([arg isEqual: @"STRICT_OPENSTEP"])
+	{
+	  [top removeObjectForKey: @"OpenStep"];
+	  [top setObject: @"NotOpenStep" forKey: @"NotOpenStep"];
+	}
+      [ifStack addObject: top];
+// NSLog(@"Push %@", where);
+      RELEASE(top);
+    }
+  else if ([directive isEqual: @"error"]
+    || [directive isEqual: @"import"]
+    || [directive isEqual: @"include"]
+    || [directive isEqual: @"pragma"]
+    || [directive isEqual: @"undef"]
+    || [directive isEqual: @"warning"])
+    {
+    }
+  else
+    {
+      [self log: @"Warning - unknown preprocessor directive %@", directive];
+    }
+  [self skipRemainderOfLine];
+  inPreprocessorDirective = NO;
+  return pos;
 }
 
 - (NSMutableDictionary*) parseProtocol
@@ -4369,12 +4404,19 @@ fail:
                   if ([tmp isEqualToString: @"NS_FORMAT_ARGUMENT"]
                     || [tmp isEqualToString: @"NS_FORMAT_FUNCTION"])
                     {
-                      /* These macros need to be skipped as they appear inside
-                       * method declarations.
-                       */
-                      val = @"";
-                      [self skipSpaces];
-                      [self skipBlock];
+		      if (inPreprocessorDirective)
+			{
+			  val = tmp;
+			}
+		      else
+			{
+			  /* These macros need to be skipped as they appear
+			   * inside method declarations.
+			   */
+			  val = @"";
+			  [self skipSpaces];
+			  [self skipBlock];
+			}
                     }
                   else
                     {
