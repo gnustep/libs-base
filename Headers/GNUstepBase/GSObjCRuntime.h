@@ -395,7 +395,7 @@ typedef Ivar	GSIVar;
  * either the specified class only or also its superclasses.<br/>
  * To obtain the implementation pointer IMP use returnValue->method_imp
  * which should be safe across all runtimes.<br/>
- * It should be safe to use this function in +load implementations.<br/>
+ * It should be safe to use this function in "+load" implementations.<br/>
  * This function should currently (June 2004) be considered WIP.
  * Please follow potential changes (Name, parameters, ...) closely until
  * it stabilizes.
