@@ -1380,6 +1380,21 @@ recheck:
 	  [p appendString: @"*"];
 	  pos++;
 	}
+      if (pos < length && buffer[pos] == '^')
+	{
+	  if (p == nil && (p = [d objectForKey: @"Prefix"]) == nil)
+	    {
+	      p = [NSMutableString new];
+	      [d setObject: p forKey: @"Prefix"];
+	      RELEASE(p);
+	    }
+	  else if ([p hasSuffix: @"("] == NO && [p hasSuffix: @"*"] == NO)
+	    {
+	      [p appendString: @" "];
+	    }
+	  [p appendString: @"^"];
+	  pos++;
+	}
       if (buffer[pos] == '(')
 	{
 	  if (p == nil && (p = [d objectForKey: @"Prefix"]) == nil)
