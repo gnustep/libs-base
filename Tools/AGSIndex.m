@@ -786,9 +786,13 @@ findKey(id refs, NSString *key, NSMutableArray *path, NSMutableArray *found)
 	}
       if (*u != nil)
 	{
-	  return [t objectForKey: *u];
+	  n = [t objectForKey: *u];
 	}
-      return nil;
+      else
+	{
+	  n = nil;
+	}
+      return n;
     }
 
   /**

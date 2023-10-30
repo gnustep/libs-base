@@ -1721,13 +1721,15 @@ static NSString		*mainFont = nil;
 	    {
 	      if (c == nil)
 		{
-		  NSLog(@"Location of %@ '%@' (referenced from %@) "
-		    @"not found or not unique.", type, r, base);
+		  NSLog(@"Location of %@ '%@' not found or not unique"
+		    @" (referenced from %@:\n%@).",
+		    type, r, base, [[node parent] parent]);
 		}
 	      else
 		{
-		  NSLog(@"Location of the %@ version of %@ '%@' (referenced "
-		    @"from %@) not found.", c, type, r, base);
+		  NSLog(@"Location of the %@ version of %@ '%@' not found"
+		    @"(referenced from %@:\n%@).",
+		    c, type, r, base, [[node parent] parent]);
 		}
 	      if (tmp == nil)
 		{
