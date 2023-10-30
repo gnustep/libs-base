@@ -670,11 +670,22 @@ patata
 
 // NOTE: We could be able to eliminate that if -parseComment processes the 
 // first comment tags before calling -generateParagraphMarkups:
-- (BOOL) shouldInsertParagraphMarkupInFirstComment: (NSString *)aComment
+- (BOOL) containsSpecialMarkup: (NSString *)aComment
 {
-  NSArray *firstCommentTags = [NSArray arrayWithObjects: @"<title>", 
-    @"<abstract>", @"<author>", @"<copy>", @"<version>", @"<date>", 
-    @"Author:", @"By:", @"Copyright (C)", nil];
+  NSArray *firstCommentTags = [NSArray arrayWithObjects:
+    @"<abstract>",
+    @"<author>",
+    @"<back>",
+    @"<chapter>",
+    @"<copy>",
+    @"<date>", 
+    @"<front>", 
+    @"<title>", 
+    @"<unit>",
+    @"<version>",
+    @"Author:",
+    @"By:",
+    @"Copyright (C)", nil];
    NSEnumerator *e = [firstCommentTags objectEnumerator];
    NSString *tag = nil;
 
@@ -683,11 +694,11 @@ patata
        if ([aComment rangeOfString: tag 
 	 options: NSCaseInsensitiveSearch].location != NSNotFound)
          {
-            return NO;
+           return YES;
          }
      }
 
-  return YES;
+  return NO;
 }
 
 - (NSString *) generateParagraphMarkupForString: (NSString *)aComment
@@ -697,7 +708,7 @@ patata
   NSEnumerator		*e;
 
   if (NO == commentsRead
-   && ![self shouldInsertParagraphMarkupInFirstComment: aComment])
+   && [self containsSpecialMarkup: aComment])
     {
       return aComment;
     }
@@ -741,6 +752,11 @@ patata
  */
 - (unsigned) parseComment
 {
+  if (pos >= length)
+    {
+      return length;
+    }
+  NSAssert('/' == buffer[pos], NSInternalInconsistencyException);
   if (buffer[pos + 1] == '/')
     {
       return [self skipRemainderOfLine];
@@ -761,7 +777,7 @@ comment:
       pos += 2;	/* Skip opening part */
 
       /*
-       * Only comments starting with slash and TWO asterisks are special.
+       * Only comments starting with slash and TWO asterisks are documentation.
        */
       if (pos < length - 2 && buffer[pos] == '*' && buffer[pos + 1] != '*')
 	{
@@ -799,6 +815,7 @@ comment:
 	  unichar	*ptr = start;
 	  unichar	*newLine = ptr;
 	  BOOL		stripAsterisks = NO;
+	  BOOL		special = NO;
 
 	  /*
 	   * Remove any asterisks immediately before end of comment.
@@ -896,12 +913,20 @@ comment:
 
 	      tmp = [NSString stringWithCharacters: start length: end - start];
 
+	      /* The first documentation comment in a file may be special
+	       * containing markup not permitted elsewhere. 
+	       */
+	      if (NO == commentsRead)
+		{
+		  special = [self containsSpecialMarkup: tmp];
+		}
+
               /* 
                * If the comment does not contain block markup already and we 
                * were asked to generate it, we insert <p> tags to get an 
                * explicit paragraph structure.
                */
-              if ([defs boolForKey: @"GenerateParagraphMarkup"])
+              if (special && [defs boolForKey: @"GenerateParagraphMarkup"])
                 {
                   // FIXME: Should follow <ignore> processing and be called 
                   // just before using -appendComment:to:
@@ -932,10 +957,9 @@ recheck:
 		}
 	    }
 
-          /*
-           * We're in the first comment of a file; perform special processing.
+          /* For the first comment of a file we may perform special processing.
            */
-	  if (commentsRead == NO && comment != nil)
+	  if (special)
 	    {
 	      unsigned		commentLength = [comment length];
 	      NSMutableArray	*authors;
@@ -1222,6 +1246,7 @@ recheck:
 		@"date",	// date for document head
 		@"front",	// Forward for document body
 		@"title",	// Title for document head
+		@"unit",	// Unit for document body
 		@"version",	// Version for document head
 		nil];
 	      enumerator = [keys objectEnumerator];
@@ -2652,7 +2677,7 @@ fail:
   unsigned	start;
 
 try:
-  [self parseSpace];
+  [self parseSpace: (inPreprocessorDirective ? spaces : spacenl)]; 
   if (pos >= length || [identStart characterIsMember: buffer[pos]] == NO)
     {
       return nil;
@@ -2663,128 +2688,93 @@ try:
       if ([identifier characterIsMember: buffer[pos]] == NO)
 	{
 	  NSString	*tmp;
-	  NSString	*val;
 
 	  tmp = [[NSString alloc] initWithCharacters: &buffer[start]
 					      length: pos - start];
-          if ([tmp isEqual: @"GS_GENERIC_CLASS"])
-            {
-              [self skipSpaces];
-              if (pos < length && buffer[pos] == '(')
-                {
-                  pos++;
-                  /* Found a GS_GENERIC_CLASS macro ... the first
-                   * identifier inside the macro arguments is the 
-                   * name we want to return.
-                   */
-                  RELEASE(tmp);
-                  tmp = RETAIN([self parseIdentifier]);
-                  while (pos < length)
-                    {
-                      if (buffer[pos++] == ')')
-                        {
-                          break;
-                        }
-                    }
-                }
-            }
-          if ([tmp isEqual: @"GS_GENERIC_TYPE"])
-            {
-              [self skipSpaces];
-              if (pos < length && buffer[pos] == '(')
-                {
-                  pos++;
-                  /* Found a GS_GENERIC_TYPE macro ... the second
-                   * argument inside the macro is the name we want
-                   * to return (or 'id' if there is no second arg).
-                   */
-                  DESTROY(tmp);
-                  while (pos < length)
-                    {
-		      unichar	c = buffer[pos++];
+	  if (inPreprocessorDirective)
+	    {
+	      /* No word mapping or special processing is done inside a
+	       * preprocessor directive.
+	       */
+	      return AUTORELEASE(tmp);
+	    }
+	  else
+	    {
+	      NSString	*val;
 
-                      if (')' == c)
-			{
-			  break;
-			}
-                      else if (',' == c)
-                        {
-			  tmp = RETAIN([self parseMethodType]);
-			  [self skipSpaces];
-			  if (')' == buffer[pos])
-			    {
-			      pos++;
-			    }
-NSLog(@"Parsed generic type as '%@'", tmp);
-			  break;
-                        }
-                    }
-		  if (nil == tmp)
+	      if ([tmp isEqual: @"GS_GENERIC_CLASS"])
+		{
+		  [self skipSpaces];
+		  if (pos < length && buffer[pos] == '(')
 		    {
-		      tmp = @"id";
+		      pos++;
+		      /* Found a GS_GENERIC_CLASS macro ... the first
+		       * identifier inside the macro arguments is the 
+		       * name we want to return.
+		       */
+		      RELEASE(tmp);
+		      tmp = RETAIN([self parseIdentifier]);
+		      while (pos < length)
+			{
+			  if (buffer[pos++] == ')')
+			    {
+			      break;
+			    }
+			}
 		    }
-                }
-            }
-	  val = [wordMap objectForKey: tmp];
-	  if (val == nil)
-	    {
-	      return AUTORELEASE(tmp);	// No mapping found.
-	    }
-	  RELEASE(tmp);
-	  if ([val length] > 0)
-	    {
-	      if ([val isEqualToString: @"//"])
-		{
-		  [self skipToEndOfLine];
-		  return [self parseIdentifier];
 		}
-	      return val;	// Got mapped identifier.
-	    }
-	  goto try;		// Mapping removed the identifier.
-	}
-      pos++;
-    }
-  return nil;
-}
-
-/** Parses an identifier as long as we don't skip to a new line.
- * For use when parsing a preprocessor line.
- */
-- (NSString*) parseIdentifierInLine
-{
-  unsigned	start;
-
-try:
-  [self parseSpace: spaces];
-  if (pos >= length || [identStart characterIsMember: buffer[pos]] == NO)
-    {
-      return nil;
-    }
-  start = pos;
-  while (pos < length)
-    {
-      if ([identifier characterIsMember: buffer[pos]] == NO)
-	{
-	  NSString	*tmp;
-	  NSString	*val;
-
-	  tmp = [[NSString alloc] initWithCharacters: &buffer[start]
-					      length: pos - start];
-	  val = [wordMap objectForKey: tmp];
-	  if (val == nil)
-	    {
-	      return AUTORELEASE(tmp);	// No mapping found.
-	    }
-	  RELEASE(tmp);
-	  val = [val stringByTrimmingSpaces];
-	  if ([val length] > 0)
-	    {
-	      if ([val isEqualToString: @"//"])
+	      if ([tmp isEqual: @"GS_GENERIC_TYPE"])
 		{
-		  [self skipToEndOfLine];
-		  return nil;
+		  [self skipSpaces];
+		  if (pos < length && buffer[pos] == '(')
+		    {
+		      pos++;
+		      /* Found a GS_GENERIC_TYPE macro ... the second
+		       * argument inside the macro is the name we want
+		       * to return (or 'id' if there is no second arg).
+		       */
+		      DESTROY(tmp);
+		      while (pos < length)
+			{
+			  unichar	c = buffer[pos++];
+
+			  if (')' == c)
+			    {
+			      break;
+			    }
+			  else if (',' == c)
+			    {
+			      tmp = RETAIN([self parseMethodType]);
+			      [self skipSpaces];
+			      if (')' == buffer[pos])
+				{
+				  pos++;
+				}
+// NSLog(@"Parsed generic type as '%@'", tmp);
+			      break;
+			    }
+			}
+		      if (nil == tmp)
+			{
+			  tmp = @"id";
+			}
+		    }
 		}
-	      return val;	// Got mapped identifier.
+	      val = [wordMap objectForKey: tmp];
+	      if (val == nil)
+		{
+		  return AUTORELEASE(tmp);	// No mapping found.
+		}
+	      RELEASE(tmp);
+	      if ([val length] > 0)
+		{
+		  if ([val isEqualToString: @"//"])
+		    {
+		      [self skipToEndOfLine];
+		      return [self parseIdentifier];
+		    }
+		  return val;	// Got mapped identifier.
+		}
 	    }
 	  goto try;		// Mapping removed the identifier.
 	}
@@ -2907,10 +2897,10 @@ fail:
   NSString		*name;
 
   dict = [[NSMutableDictionary alloc] initWithCapacity: 4];
-  name = [self parseIdentifierInLine];
+  name = [self parseIdentifier];
   if (nil == name)
     {
-      // [self log: @"Missing name in #define"];
+      [self log: @"Warning - missing name in #define"];
       return nil;
     }
   [self parseSpace: spaces];
@@ -2935,7 +2925,7 @@ fail:
 	    {
 	      NSString	*s;
 
-	      s = [self parseIdentifierInLine];
+	      s = [self parseIdentifier];
 	      if (s == nil)
 		{
 		  break;
@@ -3934,7 +3924,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
   NSAssert(pos > 0 & '#' == buffer[pos - 1], NSInternalInconsistencyException);
 
   inPreprocessorDirective = YES;
-  directive = [self parseIdentifierInLine];
+  directive = [self parseIdentifier];
   if ([directive isEqual: @"define"])
     {
       /* Macro definition inside source is ignored since it is not
@@ -4029,7 +4019,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 
       top = [[ifStack lastObject] mutableCopy];
 
-      while ((arg = [self parseIdentifierInLine]) != nil)
+      while ((arg = [self parseIdentifier]) != nil)
 	{
 	  BOOL	openstep;
 	  NSString	*ver;
@@ -4151,7 +4141,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
   else if ([directive isEqual: @"ifdef"])
     {
       NSMutableDictionary	*top = [[ifStack lastObject] mutableCopy];
-      NSString			*arg = [self parseIdentifierInLine];
+      NSString			*arg = [self parseIdentifier];
 
       if ([arg isEqual: @"NO_GNUSTEP"])
 	{
@@ -4175,7 +4165,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
   else if ([directive isEqual: @"ifndef"])
     {
       NSMutableDictionary	*top = [[ifStack lastObject] mutableCopy];
-      NSString			*arg = [self parseIdentifierInLine];
+      NSString			*arg = [self parseIdentifier];
 
       if ([arg isEqual: @"NO_GNUSTEP"])
 	{
@@ -4201,10 +4191,15 @@ countAttributes(NSSet *keys, NSDictionary *a)
   else if ([directive isEqual: @"error"]
     || [directive isEqual: @"import"]
     || [directive isEqual: @"include"]
+    || [directive isEqual: @"line"]
     || [directive isEqual: @"pragma"]
     || [directive isEqual: @"undef"]
     || [directive isEqual: @"warning"])
     {
+    }
+  else if ([directive length] == 0)
+    {
+      [self log: @"Warning - empty preprocessor directive"];
     }
   else
     {
@@ -4390,62 +4385,65 @@ fail:
 	  pos++;		// Step past space character.
 	}
       start = pos;
-      if (pos < length && [identifier characterIsMember: buffer[pos]])
+      if (NO == inPreprocessorDirective)
 	{
-	  while (pos < length)
+	  if (pos < length && [identifier characterIsMember: buffer[pos]])
 	    {
-	      if ([identifier characterIsMember: buffer[pos]] == NO)
+	      while (pos < length)
 		{
-		  NSString	*tmp;
-		  NSString	*val;
+		  if ([identifier characterIsMember: buffer[pos]] == NO)
+		    {
+		      NSString	*tmp;
+		      NSString	*val;
 
-		  tmp = [[NSString alloc] initWithCharacters: &buffer[start]
-						      length: pos - start];
-                  if ([tmp isEqualToString: @"NS_FORMAT_ARGUMENT"]
-                    || [tmp isEqualToString: @"NS_FORMAT_FUNCTION"])
-                    {
-		      if (inPreprocessorDirective)
+		      tmp = [[NSString alloc] initWithCharacters: &buffer[start]
+							  length: pos - start];
+		      if ([tmp isEqualToString: @"NS_FORMAT_ARGUMENT"]
+			|| [tmp isEqualToString: @"NS_FORMAT_FUNCTION"])
 			{
-			  val = tmp;
+			  if (inPreprocessorDirective)
+			    {
+			      val = tmp;
+			    }
+			  else
+			    {
+			      /* These macros need to be skipped as they appear
+			       * inside method declarations.
+			       */
+			      val = @"";
+			      [self skipSpaces];
+			      [self skipBlock];
+			    }
 			}
 		      else
 			{
-			  /* These macros need to be skipped as they appear
-			   * inside method declarations.
-			   */
-			  val = @"";
-			  [self skipSpaces];
-			  [self skipBlock];
+			  val = [wordMap objectForKey: tmp];
 			}
-                    }
-                  else
-                    {
-                      val = [wordMap objectForKey: tmp];
-                    }
-		  RELEASE(tmp);
-		  if (val == nil)
-		    {
-		      pos = start;	// No mapping found
-		    }
-		  else if ([val length] > 0)
-		    {
-		      if ([val isEqualToString: @"//"])
+		      RELEASE(tmp);
+		      if (val == nil)
 			{
-			  [self skipToEndOfLine];
-			  tryAgain = YES;
+			  pos = start;	// No mapping found
+			}
+		      else if ([val length] > 0)
+			{
+			  if ([val isEqualToString: @"//"])
+			    {
+			      [self skipToEndOfLine];
+			      tryAgain = YES;
+			    }
+			  else
+			    {
+			      pos = start;	// Not mapped to a comment.
+			    }
 			}
 		      else
 			{
-			  pos = start;	// Not mapped to a comment.
+			  tryAgain = YES;	// Identifier ignored.
 			}
+		      break;
 		    }
-		  else
-		    {
-		      tryAgain = YES;	// Identifier ignored.
-		    }
-		  break;
+		  pos++;
 		}
-	      pos++;
 	    }
 	}
     }

@@ -1,4 +1,4 @@
-/* GSVersionMacros.h - macros for managing API versioning and visibility
+/** GSVersionMacros.h - macros for managing API versioning and visibility
    Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
    Written by: Richard Frith-Macdonald <rfm@gnu.org>
@@ -147,18 +147,6 @@
  * symbolic constants for version numbering.  Their contants are currently
  * four digit values (two digits for the major version, one for the minor,
  * and one for the subminor). 
- * </p>
- * <p>The Apple compatibility version macros are currently:
- * <ref type="macro" id="MAC_OS_X_VERSION_10_0">MAC_OS_X_VERSION_10_0</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_1">MAC_OS_X_VERSION_10_1</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_2">MAC_OS_X_VERSION_10_2</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_3">MAC_OS_X_VERSION_10_3</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_4">MAC_OS_X_VERSION_10_4</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_5">MAC_OS_X_VERSION_10_5</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_6">MAC_OS_X_VERSION_10_6</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_7">MAC_OS_X_VERSION_10_7</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_8">MAC_OS_X_VERSION_10_8</ref>
- * <ref type="macro" id="MAC_OS_X_VERSION_10_9">MAC_OS_X_VERSION_10_9</ref>
  * </p>
  */
 #define	OS_API_VERSION(ADD,REM) \
