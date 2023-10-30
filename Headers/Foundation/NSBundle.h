@@ -565,7 +565,7 @@ GS_EXPORT_CLASS
  * Returns the Android asset for the given path if path is in main bundle
  * resources and asset exists.
  * Uses `AASSET_MODE_UNKNOWN` to open the asset if it exists.
- * The returned object must be released using AAsset_close().
+ * The returned object must be released using the AAsset_close function.
  */
 + (AAsset *) assetForPath: (NSString *)path;
 
@@ -573,14 +573,14 @@ GS_EXPORT_CLASS
  * Returns the Android asset for the given path if path is in main bundle
  * resources and asset exists.
  * Uses the given mode to open the AAsset if it exists.
- * The returned object must be released using AAsset_close().
+ * The returned object must be released using the AAsset_close function.
  */
 + (AAsset *) assetForPath: (NSString *)path withMode: (int)mode;
 
 /**
  * Returns the Android asset dir for the given path if path is in main bundle
  * resources and the asset directory exists.
- * The returned object must be released using AAssetDir_close().
+ * The returned object must be released using the AAssetDir_close function.
  */
 + (AAssetDir *) assetDirForPath: (NSString *)path;
 

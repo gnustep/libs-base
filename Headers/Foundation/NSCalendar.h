@@ -235,7 +235,7 @@ GS_EXPORT_CLASS
 
 /**
  * Sets the number of the week in this year.
- * Identical to calling <code>-setWeek</code>. */
+ * Identical to calling <code>-setWeek:</code>. */
 - (void) setWeekOfYear: (NSInteger) v;
 
 /**

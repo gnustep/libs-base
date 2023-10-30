@@ -242,7 +242,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  * Notifies the delegate that the search is about to begin.
  *
  * <p><strong>See also:</strong><br />
- *   [NSNetServiceBrowser-netServiceBrowser:didNotSearch:]<br />
+ *   -netServiceBrowser:didNotSearch:<br />
  * </p>
  */
 
@@ -252,7 +252,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  * Notifies the delegate that the search was unsuccessful.
  *
  * <p><strong>See also:</strong><br />
- *   [NSNetServiceBrowser-netServiceBrowserWillSearch:]<br />
+ *   -netServiceBrowserWillSearch:<br />
  * </p>
  */
 
