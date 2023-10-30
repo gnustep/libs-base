@@ -40,16 +40,20 @@
   return _inputItems;
 }
   
-- (void)completeRequestReturningItems: (NSArray *)items completionHandler: (GSExtensionContextReturningItemsCompletionHandler)completionHandler
+- (void) completeRequestReturningItems: (NSArray *)items
+		     completionHandler: (GSExtensionContextReturningItemsCompletionHandler)completionHandler
 {
+  [self notImplemented: _cmd];
 }
 
-- (void)cancelRequestWithError:(NSError *)error
+- (void) cancelRequestWithError:(NSError *)error
 {
+  [self notImplemented: _cmd];
 }
 
-- (void)openURL: (NSURL *)URL completionHandler: (GSOpenURLCompletionHandler)completionHandler
+- (void) openURL: (NSURL *)URL completionHandler: (GSOpenURLCompletionHandler)completionHandler
 {
+  [self notImplemented: _cmd];
 }
 
 @end
