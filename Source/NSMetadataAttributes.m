@@ -22,8 +22,8 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSMetadataAttributes.h>
-#include <Foundation/NSString.h>
+#import "Foundation/NSMetadataAttributes.h"
+#import "Foundation/NSString.h"
 
 GS_DECLARE NSString *const NSMetadataItemAcquisitionMakeKey = @"NSMetadataItemAcquisitionMakeKey";
 GS_DECLARE NSString *const NSMetadataItemAcquisitionModelKey = @"NSMetadataItemAcquisitionModelKey";

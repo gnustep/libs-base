@@ -22,13 +22,13 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSDateIntervalFormatter.h>
-#include <Foundation/NSLocale.h>
-#include <Foundation/NSCalendar.h>
-#include <Foundation/NSTimeZone.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSDateInterval.h>
+#import "Foundation/NSDateIntervalFormatter.h"
+#import "Foundation/NSLocale.h"
+#import "Foundation/NSCalendar.h"
+#import "Foundation/NSTimeZone.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSDateInterval.h"
 
 @implementation NSDateIntervalFormatter
 // Properties

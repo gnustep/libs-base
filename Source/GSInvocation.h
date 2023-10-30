@@ -25,7 +25,7 @@
 #ifndef __GSInvocation_h_GNUSTEP_BASE_INCLUDE
 #define __GSInvocation_h_GNUSTEP_BASE_INCLUDE
 
-#include <Foundation/NSInvocation.h>
+#import "Foundation/NSInvocation.h"
 
 @class	NSMutableData;
 

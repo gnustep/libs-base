@@ -22,7 +22,7 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSItemProviderReadingWriting.h>
+#import "Foundation/NSItemProviderReadingWriting.h"
 
 @implementation NSItemProviderReadingWriting
 

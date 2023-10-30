@@ -23,7 +23,7 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSScriptCommand.h>
+#import "Foundation/NSScriptCommand.h"
 
 @implementation NSScriptCommand
 

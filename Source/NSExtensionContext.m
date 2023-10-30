@@ -22,11 +22,12 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSExtensionContext.h>
-#include <Foundation/NSError.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSURL.h>
-#include <Foundation/NSString.h>
+#import "Foundation/NSExtensionContext.h"
+#import "Foundation/NSError.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSString.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @implementation NSExtensionContext
 
