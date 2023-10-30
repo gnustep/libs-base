@@ -54,14 +54,15 @@
 
 #define	EXPOSE_NSProgress_IVARS
 
-#import <Foundation/NSObject.h>
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSArray.h>
-#import <Foundation/NSValue.h>
-#import <Foundation/NSURL.h>
-#import <Foundation/NSString.h>
-#import	<Foundation/NSProgress.h>
-#import <Foundation/NSKeyValueObserving.h>
+#import "Foundation/NSObject.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSURL.h"
+#import "Foundation/NSString.h"
+#import	"Foundation/NSProgress.h"
+#import "Foundation/NSKeyValueObserving.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 #define	GSInternal NSProgressInternal
 #include "GSInternal.h"
@@ -453,16 +454,17 @@ static NSMutableDictionary *__subscribers = nil;
 }
 
 // Type methods
-+ (id)addSubscriberForFileURL: (NSURL *)url 
-        withPublishingHandler: (NSProgressPublishingHandler)publishingHandler
++ (id) addSubscriberForFileURL: (NSURL *)url 
+         withPublishingHandler: (NSProgressPublishingHandler)publishingHandler
 {
   // [__subscribers addObject: publishingHandler forObject: url];
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 + (void) removeSubscriber: (id)subscriber
 {
   // [__subscribers removeObject: subscriber];
+  [self notImplemented: _cmd];
 }
   
 @end
