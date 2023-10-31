@@ -12,7 +12,7 @@ int main()
   NSInputStream *inputStream;
   NSOutputStream *outputStream;
   
-  NSString *ipv6ServerAddress = @"your_ipv6_server_address"; // Replace with your actual IPv6 server address
+  NSString *ipv6ServerAddress = @"::1"; // Replace with your actual IPv6 server address
   uint16_t port = 12345; // Replace with the actual port number
   
   // Resolve the IPv6 address using NSHost
