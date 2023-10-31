@@ -4,15 +4,11 @@
  */
 #import <Foundation/Foundation.h>
 #import "Testing.h"
-#import "ObjectTesting.h"
 
-@interface IPv6StreamTest : NSObject
-@end
-
-@implementation IPv6StreamTest
-
-- (void) runTest
+int main()
 {
+  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+
   NSInputStream *inputStream;
   NSOutputStream *outputStream;
   
@@ -54,19 +50,6 @@
   
   [inputStream close];
   [outputStream close];
-}
-
-@end
-
-
-int main()
-{
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-
-  // Run the test...
-  IPv6StreamTest *test = [[IPv6StreamTest alloc] init];
-
-  [test runTest];
   
   [arp release];
   arp = nil;
