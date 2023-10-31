@@ -2178,7 +2178,7 @@ main(int argc, char **argv, char **env)
 		  [html setProjectRefs: projectRefs];
 		  [html setLocalRefs: localRefs];
                   [html setInstanceVariablesAtEnd: instanceVarsAtEnd];
-		  generated = [html outputDocument: root];
+		  generated = [html outputDocument: root name: gsdocfile];
 		  d = [generated dataUsingEncoding: NSUTF8StringEncoding];
 		  if ([d writeToFile: htmlfile atomically: YES] == NO)
 		    {

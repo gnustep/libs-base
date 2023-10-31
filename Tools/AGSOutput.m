@@ -746,7 +746,7 @@ static BOOL snuggleStart(NSString *t)
 
   if (warn == YES && [[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
     {
-      NSLog(@"Warning ... %@ %@ is not implemented where expected", kind, name);
+      NSLog(@"Warning - %@ %@ is not implemented where expected", kind, name);
     }
 
   [str appendFormat: @"      <%@ type=\"", kind];
@@ -790,7 +790,7 @@ static BOOL snuggleStart(NSString *t)
 
   if (warn == YES && [[d objectForKey: @"Implemented"] isEqual: @"YES"] == NO)
     {
-      NSLog(@"Warning ... function %@ is not implemented where expected", name);
+      NSLog(@"Warning - function %@ is not implemented where expected", name);
     }
 
   /**
@@ -1172,7 +1172,7 @@ static BOOL snuggleStart(NSString *t)
 	}
       else if (warn == YES)
 	{
-	  NSLog(@"Warning ... unit %@ is not implemented where expected", name);
+	  NSLog(@"Warning - unit %@ is not implemented where expected", name);
 	}
     }
   else
