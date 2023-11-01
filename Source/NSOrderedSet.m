@@ -1697,30 +1697,47 @@ static SEL	remSel;
 {
   if (other != self)
     {
+      NSMutableArray *removals = [NSMutableArray array];
       id keys = [self objectEnumerator];
       id key;
 
       while ((key = [keys nextObject]))
-	{
-	  if ([other containsObject: key] == NO)
-	    {
-	      [self removeObject: key];
-	    }
-	}
+        {
+          if (![other containsObject:key])
+            {
+              [removals addObject:key];
+            }
+        }
+
+      id removalKeys = [removals objectEnumerator];
+      while((key = [removalKeys nextObject]))
+        {
+          [self removeObject:key];
+        }
     }
 }
 
 - (void) intersectSet: (NSSet *)other
 {
-  id keys = [self objectEnumerator];
-  id key;
-
-  while ((key = [keys nextObject]))
+  if (other != self)
     {
-      if ([other containsObject: key] == NO)
-	{
-	  [self removeObject: key];
-	}
+      NSMutableArray *removals = [NSMutableArray array];
+      id keys = [self objectEnumerator];
+      id key;
+
+      while ((key = [keys nextObject]))
+        {
+          if (![other containsObject:key])
+            {
+              [removals addObject:key];
+            }
+        }
+
+      id removalKeys = [removals objectEnumerator];
+      while((key = [removalKeys nextObject]))
+        {
+          [self removeObject:key];
+        }
     }
 }
 
