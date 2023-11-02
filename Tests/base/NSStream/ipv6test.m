@@ -5,12 +5,27 @@
 #import <Foundation/Foundation.h>
 #import "Testing.h"
 
+@interface IPV6Server : NSObject
+
+- (void) main;
+
+@end
+
+@implementation IPV6Server
+
+- (void) main
+{
+}
+
+@end
+
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
 
   NSInputStream *inputStream;
   NSOutputStream *outputStream;
+  IPV6Server *svr = [[IPV6Server alloc] init];
   
   NSString *ipv6ServerAddress = @"::1"; // Replace with your actual IPv6 server address
   uint16_t port = 12345; // Replace with the actual port number
@@ -18,10 +33,15 @@ int main()
   // Resolve the IPv6 address using NSHost
   NSHost *host = [NSHost hostWithName: ipv6ServerAddress];
   NSArray *addresses = [host addresses];
-
+  
   PASS([addresses count] > 0, "Resolve IPv6 address");
   
   NSString *ipv6Address = [addresses objectAtIndex: 0];
+  NSThread *thread = [[NSThread alloc] initWithTarget: svr selector: @selector(main) object: nil];
+
+  PASS(thread != nil, "Created thread for server");
+
+  [thread start];
   
   [NSStream getStreamsToHost: [NSHost hostWithName: ipv6Address]
 			port: port
