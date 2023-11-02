@@ -30,40 +30,6 @@
 
 @implementation NSISO8601DateFormatter
 
-- (instancetype) init
-{
-  self = [super init];
-  if (self != nil)
-    {
-      _formatter = [[NSDateFormatter alloc] init];
-      _timeZone = RETAIN([NSTimeZone localTimeZone]);
-      _formatOptions = NSISO8601DateFormatWithInternetDateTime;
-    }
-  return self;
-}
-
-- (oneway void) dealloc
-{
-  RELEASE(_formatter);
-  RELEASE(_timeZone);
-  [super dealloc];
-}
-  
-- (NSTimeZone *) timeZone
-{
-  return _timeZone;
-}
-
-- (void) setTimeZone: (NSTimeZone *)tz
-{
-  _timeZone = tz;
-}
-
-- (NSISO8601DateFormatOptions) formatOptions
-{
-  return _formatOptions;
-}
-
 - (NSString *) _buildFormatWithOptions
 {
   NSString *result = @"";
@@ -73,8 +39,8 @@
     {
       result = [result stringByAppendingString: @"yyyy"];
     }
-  if (_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate &&
-      _formatOptions & NSISO8601DateFormatWithMonth)
+  if ((_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate)
+    && (_formatOptions & NSISO8601DateFormatWithMonth))
     {
       result = [result stringByAppendingString: @"-"];
     }
@@ -82,8 +48,8 @@
     {
       result = [result stringByAppendingString: @"MM"];
     }
-  if (_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate &&
-      _formatOptions & NSISO8601DateFormatWithDay)
+  if ((_formatOptions & NSISO8601DateFormatWithDashSeparatorInDate)
+    && (_formatOptions & NSISO8601DateFormatWithDay))
     {
       result = [result stringByAppendingString: @"-"];
     }
@@ -93,8 +59,8 @@
     }
   
   // Build time...
-  if (_formatOptions & NSISO8601DateFormatWithSpaceBetweenDateAndTime &&
-      _formatOptions & NSISO8601DateFormatWithTime)
+  if ((_formatOptions & NSISO8601DateFormatWithSpaceBetweenDateAndTime)
+    && (_formatOptions & NSISO8601DateFormatWithTime))
     {
       result = [result stringByAppendingString: @" "];
     }
@@ -122,7 +88,7 @@
     {
       if (_formatOptions & NSISO8601DateFormatWithColonSeparatorInTimeZone)
         {
-          result = [result stringByAppendingString: @"ZZ:ZZ"];
+          result = [result stringByAppendingString: @"ZZZZZ"];
         }
       else
         {
@@ -133,38 +99,22 @@
   return result;
 }
 
-- (void) setFormatOptions: (NSISO8601DateFormatOptions)options
-{
-  _formatOptions = options;
-}
-  
-- (NSString *) stringFromDate: (NSDate *)date
-{
-  NSString *formatString = [self _buildFormatWithOptions];
-  [_formatter setTimeZone: _timeZone];
-  [_formatter setDateFormat: formatString];
-  return [_formatter stringFromDate: date];
-}
-
 - (NSDate *) dateFromString: (NSString *)string
 {
   NSString *formatString = [self _buildFormatWithOptions];
+
   [_formatter setTimeZone: _timeZone];
   [_formatter setDateFormat: formatString];
   return [_formatter dateFromString: string];
 }
 
-+ (NSString *) stringFromDate: (NSDate *)date
-                     timeZone: (NSTimeZone *)timeZone
-                formatOptions: (NSISO8601DateFormatOptions)formatOptions
+- (oneway void) dealloc
 {
-  NSISO8601DateFormatter *formatter = [[NSISO8601DateFormatter alloc] init];
-  AUTORELEASE(formatter);
-  [formatter setTimeZone: timeZone];
-  [formatter setFormatOptions: formatOptions];
-  return [formatter stringFromDate: date];
+  RELEASE(_formatter);
+  RELEASE(_timeZone);
+  [super dealloc];
 }
-
+ 
 - (void) encodeWithCoder: (NSCoder *)coder
 {
   if ([coder allowsKeyedCoding])
@@ -179,6 +129,23 @@
     }
 }
 
+- (NSISO8601DateFormatOptions) formatOptions
+{
+  return _formatOptions;
+}
+
+- (instancetype) init
+{
+  self = [super init];
+  if (self != nil)
+    {
+      _formatter = [[NSDateFormatter alloc] init];
+      _timeZone = RETAIN([NSTimeZone localTimeZone]);
+      _formatOptions = NSISO8601DateFormatWithInternetDateTime;
+    }
+  return self;
+}
+
 - (id) initWithCoder: (NSCoder *)decoder
 {
   if ((self = [super init]) != nil)
@@ -191,10 +158,47 @@
       else
         {
           ASSIGN(_timeZone, [decoder decodeObject]);
-          [decoder decodeValueOfObjCType: @encode(NSUInteger) at: &_formatOptions];
+          [decoder decodeValueOfObjCType: @encode(NSUInteger)
+				      at: &_formatOptions];
         }
     }
   return self;
 }
+- (void) setFormatOptions: (NSISO8601DateFormatOptions)options
+{
+  _formatOptions = options;
+}
+  
+- (void) setTimeZone: (NSTimeZone *)tz
+{
+  _timeZone = tz;
+}
+
+- (NSString *) stringFromDate: (NSDate *)date
+{
+  NSString *formatString = [self _buildFormatWithOptions];
+
+  [_formatter setTimeZone: _timeZone];
+  [_formatter setDateFormat: formatString];
+  return [_formatter stringFromDate: date];
+}
+
++ (NSString *) stringFromDate: (NSDate *)date
+                     timeZone: (NSTimeZone *)timeZone
+                formatOptions: (NSISO8601DateFormatOptions)formatOptions
+{
+  NSISO8601DateFormatter *formatter;
+
+  formatter = AUTORELEASE([[NSISO8601DateFormatter alloc] init]);
+  [formatter setTimeZone: timeZone];
+  [formatter setFormatOptions: formatOptions];
+  return [formatter stringFromDate: date];
+}
+
+- (NSTimeZone *) timeZone
+{
+  return _timeZone;
+}
+
 @end
 
