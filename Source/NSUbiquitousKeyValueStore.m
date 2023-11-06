@@ -20,21 +20,21 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110 USA.
-
 */
+
 #import "common.h"
 #import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSKeyedArchiver.h"
-#import <Foundation/NSUbiquitousKeyValueStore.h>
-#import <Foundation/NSArray.h>
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSData.h>
-#import <Foundation/NSString.h>
-#import <Foundation/NSValue.h>
-#import <Foundation/NSUserDefaults.h>
+#import "Foundation/NSUbiquitousKeyValueStore.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSData.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSValue.h"
+#import "Foundation/NSUserDefaults.h"
 
 static NSUbiquitousKeyValueStore *_sharedUbiquitousKeyValueStore = nil;
 
