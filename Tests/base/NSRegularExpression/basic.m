@@ -9,6 +9,8 @@
 #import <Foundation/NSRunLoop.h>
 #import <Foundation/NSThread.h>
 #import <Foundation/NSValue.h>
+#import <Foundation/NSError.h>
+#import <Foundation/FoundationErrors.h>
 
 @interface DegeneratePatternTest : NSObject
 {
@@ -169,6 +171,31 @@ int main()
        beforeDate: [NSDate dateWithTimeIntervalSinceNow: 0.01]];
     }
   PASS(NO == [thread isExecuting], "Faulty regular expression terminated");
+
+  /* Testing the error handling when an invalid pattern is passed
+   * The error should look like this:
+   *
+   * Error Domain=NSCocoaErrorDomain Code=2048 "The value “(abc” is
+   * invalid." UserInfo={NSInvalidValue=(abc}
+   */
+
+  NSError *error = nil;
+  NSRegularExpression *testObj3 =
+    [[NSRegularExpression alloc] initWithPattern: @"(abc"
+           options: 0
+             error: &error];
+  PASS(testObj3 == nil, "Invalid pattern: returns nil");
+  PASS(error != nil, "Invalid pattern: error is set");
+  PASS_EQUAL([error domain], NSCocoaErrorDomain,
+             "Invalid pattern: error domain is NSCocoaErrorDomain");
+  PASS_EQUAL([error code], NSFormattingError, 
+             "Invalid pattern: error code is NSFormattingError");
+  PASS_EQUAL([[error userInfo] objectForKey: @"NSInvalidValue"],
+             @"(abc", "Invalid pattern: error message is correct");
+  PASS_EQUAL([[error userInfo] objectForKey: NSLocalizedDescriptionKey],
+             @"The value “(abc” is invalid.",
+             "Invalid pattern: localized description is correct");
+
 #endif
 
   END_SET("NSRegularExpression")
