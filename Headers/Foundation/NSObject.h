@@ -363,7 +363,7 @@ GS_EXPORT_CLASS GS_ROOT_CLASS
 + (BOOL) isSubclassOfClass: (Class)aClass;
 + (id) new;
 + (void) poseAsClass: (Class)aClassObject;
-+ (id) setVersion: (NSInteger)aVersion;
++ (void) setVersion: (NSInteger)aVersion;
 + (NSInteger) version;
 
 - (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;
