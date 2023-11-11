@@ -2220,14 +2220,13 @@ static id gs_weak_load(id obj)
 /**
  * Sets the version number of the receiving class.  Should be nonnegative.
  */
-+ (id) setVersion: (NSInteger)aVersion
++ (void) setVersion: (NSInteger)aVersion
 {
   if (aVersion < 0)
     [NSException raise: NSInvalidArgumentException
 	        format: @"%s +setVersion: may not set a negative version",
 			GSClassNameFromObject(self)];
   class_setVersion(self, aVersion);
-  return self;
 }
 
 /**
