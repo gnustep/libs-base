@@ -116,7 +116,14 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
 	       options: (NSRegularExpressionOptions)opts
 		 error: (NSError**)e
 {
-  NSAssert(nil != aPattern, @"nil argument");
+  // Raise an NSInvalidArgumentException to match macOS behaviour.
+  if (!aPattern) {
+    NSException *exp;
+
+    exp = [NSException exceptionWithName: NSInvalidArgumentException
+          reason: @"nil argument"];
+    [exp raise];
+  }
 
   uint32_t	flags = NSRegularExpressionOptionsToURegexpFlags(opts);
   UText		p = UTEXT_INITIALIZER;
