@@ -196,6 +196,13 @@ int main()
              @"The value “(abc” is invalid.",
              "Invalid pattern: localized description is correct");
 
+  /* Testing exception handling when nil is passed as pattern */
+  PASS_EXCEPTION([NSRegularExpression regularExpressionWithPattern: nil
+                                                           options: 0
+                                                             error: NULL],
+                 NSInvalidArgumentException,
+                 "nil pattern: throws NSInvalidArgumentException");
+
 #endif
 
   END_SET("NSRegularExpression")
