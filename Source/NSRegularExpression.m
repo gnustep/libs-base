@@ -52,6 +52,8 @@
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSNotification.h"
+#import "Foundation/FoundationErrors.h"
+#import "Foundation/NSError.h"
 
 
 /**
@@ -114,6 +116,8 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
 	       options: (NSRegularExpressionOptions)opts
 		 error: (NSError**)e
 {
+  NSAssert(nil != aPattern, @"nil argument");
+
   uint32_t	flags = NSRegularExpressionOptionsToURegexpFlags(opts);
   UText		p = UTEXT_INITIALIZER;
   UParseError	pe = {0};
@@ -131,7 +135,27 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
   utext_close(&p);
   if (U_FAILURE(s))
     {
-      // FIXME: Do something sensible with the error parameter.
+      // Match macOS behaviour if the pattern is invalid.
+      // Example:
+      //   Domain=NSCocoaErrorDomain
+      //   Code=2048 "The value “<PATTERN>” is invalid."
+      //   UserInfo={NSInvalidValue=<PATTERN>}
+      if (e) {
+        NSDictionary *userInfo;
+        NSString *description;
+
+        description = [NSString stringWithFormat:
+                       @"The value “%@” is invalid.",
+                       aPattern];
+
+        userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+                    aPattern, @"NSInvalidValue", description, NSLocalizedDescriptionKey, nil];
+
+        *e = [NSError errorWithDomain: NSCocoaErrorDomain
+                                 code: NSFormattingError
+                             userInfo: userInfo];
+      }
+
       [self release];
       return nil;
     }
