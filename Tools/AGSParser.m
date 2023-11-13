@@ -3562,7 +3562,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	     forKey: @"Types"];
       token = [NSString stringWithFormat:
 	@"Setter for property '%@' with attributes %@."
-	@"See also <ref type=\"method\" id=\"-%@\""
+	@" See also <ref type=\"method\" id=\"-%@\""
 	@" class=\"%@\">[%@ -%@]</ref>\n",
 	name, [attr allKeys], get, unitName, unitName, get];
       if (comment != nil)
@@ -3586,7 +3586,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
   if (set)
     {
       token = [token stringByAppendingFormat:
-	@"See also <ref type=\"method\" id=\"-%@\""
+	@" See also <ref type=\"method\" id=\"-%@\""
 	@" class=\"%@\">[%@ -%@]</ref>\n",
 	set, unitName, unitName, set];
       if (comment != nil)
