@@ -67,7 +67,7 @@ static const NSMatchingOptions NSMatchingWithTransparentBounds  = 1<<3;
 static const NSMatchingOptions NSMatchingWithoutAnchoringBounds = 1<<4;
 
 
-DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*,
+DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*,\
   NSMatchingFlags, BOOL*);
 
 #ifndef GSREGEXTYPE
