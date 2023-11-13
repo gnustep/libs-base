@@ -1410,6 +1410,10 @@ recheck:
 	  [p appendString: @"("];
 	  pos++;
 	  [self parseDeclaratorInto: d];
+	  if ([self parseSpace] < length && buffer[pos] == '<')
+            {
+              [self skipGeneric];
+            }
 	  if ([self parseSpace] < length && buffer[pos] == '(')
 	    {
 	      [self parseArgsInto: d];	// parse function args.
@@ -1520,7 +1524,7 @@ recheck:
 	  goto fail;
 	}
       if (([s isEqual: @"__attribute__"])
-          || ([s isEqual: @"__asm__"]))
+        || ([s isEqual: @"__asm__"]))
 	{
 	  if ([self skipSpaces] < length && buffer[pos] == '(')
 	    {
@@ -1843,10 +1847,11 @@ recheck:
 
 
   /*
-   * Handle protocol specification if necessary
+   * Handle protocol or generic specification if necessary
    */
   if ([self parseSpace] < length && buffer[pos] == '<')
     {
+      unsigned  save = pos;
       NSString	*p;
 
       do
@@ -1859,13 +1864,21 @@ recheck:
 	    }
 	}
       while ([self parseSpace] < length && buffer[pos] == ',');
-      pos++;
-      [self parseSpace];
-      [a sortUsingSelector: @selector(compare:)];
-      [t appendString: @"<"];
-      [t appendString: [a componentsJoinedByString: @","]];
-      [t appendString: @">"];
-      [a removeAllObjects];
+      if ('>' == buffer[pos])
+        {
+          pos++;
+          [self parseSpace];
+          [a sortUsingSelector: @selector(compare:)];
+          [t appendString: @"<"];
+          [t appendString: [a componentsJoinedByString: @","]];
+          [t appendString: @">"];
+          [a removeAllObjects];
+        }
+      else
+        {
+          pos = save;
+          [self skipGeneric];
+        }
     }
 
   [d setObject: t forKey: @"BaseType"];
@@ -1932,6 +1945,10 @@ recheck:
 
   if ([self parseSpace] < length)
     {
+      if (buffer[pos] == '<')
+        {
+          [self skipGeneric];
+        }
       if (buffer[pos] == '[')
 	{
 	  NSMutableString	*suffix;
@@ -4925,6 +4942,37 @@ fail:
   if (isEmpty != 0)
     {
       *isEmpty = empty;
+    }
+  return pos;
+}
+
+- (unsigned) skipGeneric
+{
+  unsigned      depth = 0;
+  unsigned      save = pos;
+
+  NSAssert(buffer[pos] == '<', NSInternalInconsistencyException);
+  while (pos < length)
+    {
+      unichar	c = buffer[pos++];
+
+      if (c == '\\')
+	{
+	  pos++;
+	}
+      else if ('<' == c)
+        {
+          depth++;
+        }
+      else if ('>' == c && --depth == 0)
+	{
+	  break;
+	}
+    }
+  if (depth > 0
+    || (pos < length && buffer[pos - 1] != '>'))
+    {
+      return save;
     }
   return pos;
 }
