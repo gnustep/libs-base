@@ -7,6 +7,10 @@
 #include <stdlib.h>
 #include <limits.h>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846264338327950288
+#endif
+
 #if	!defined(LLONG_MAX)
 #  if	defined(__LONG_LONG_MAX__)
 #    define LLONG_MAX __LONG_LONG_MAX__
