@@ -2,6 +2,9 @@
 
 	* Source/NSFileManager.m: Fix issue #292
 	* Tests/base/NSFileManager/general.m: test for enumerator at URL
+	* Source/NSNotificationCenter.m: fix indentation/style errors
+	* Headers/GNUstepBase/GSBlocks.h: Add new macros for calling blocks
+	which return a value.
 
 2023-11-14 Richard Frith-Macdonald <rfm@gnu.org> Riccardo Mottola <rm@gnu.org>
 

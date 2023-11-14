@@ -543,8 +543,8 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
 
 @interface GSNotificationBlockOperation : NSOperation
 {
-	NSNotification *_notification;
-	GSNotificationBlock _block;
+  NSNotification	*_notification;
+  GSNotificationBlock	_block;
 }
 
 - (id) initWithNotification: (NSNotification *)notif 
@@ -557,34 +557,32 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
 - (id) initWithNotification: (NSNotification *)notif 
                       block: (GSNotificationBlock)block
 {
-	self = [super init];
-	if (self == nil)
-		return nil;
-
-	ASSIGN(_notification, notif);
-	_block = Block_copy(block);
-	return self;
-
+  if ((self = [super init]) != nil)
+    {
+      ASSIGN(_notification, notif);
+      _block = Block_copy(block);
+    }
+  return self;
 }
 
 - (void) dealloc
 {
-	DESTROY(_notification);
-	Block_release(_block);
-	[super dealloc];
+  DESTROY(_notification);
+  Block_release(_block);
+  DEALLOC
 }
 
 - (void) main
 {
-	CALL_BLOCK(_block, _notification);
+  CALL_BLOCK(_block, _notification);
 }
 
 @end
 
 @interface GSNotificationObserver : NSObject
 {
-	NSOperationQueue *_queue;
-	GSNotificationBlock _block;
+  NSOperationQueue	*_queue;
+  GSNotificationBlock	_block;
 }
 
 @end
@@ -594,35 +592,34 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
 - (id) initWithQueue: (NSOperationQueue *)queue 
                block: (GSNotificationBlock)block
 {
-	self = [super init];
-	if (self == nil)
-		return nil;
-
-	ASSIGN(_queue, queue);
-	_block = Block_copy(block);
-	return self;
+  if ((self = [super init]) != nil)
+    {
+      ASSIGN(_queue, queue);
+      _block = Block_copy(block);
+    }
+  return self;
 }
 
 - (void) dealloc
 {
-	DESTROY(_queue);
-	Block_release(_block);
-	[super dealloc];
+  DESTROY(_queue);
+  Block_release(_block);
+  DEALLOC
 }
 
 - (void) didReceiveNotification: (NSNotification *)notif
 {
-	if (_queue != nil)
-	{
-		GSNotificationBlockOperation *op = [[GSNotificationBlockOperation alloc] 
-			initWithNotification: notif block: _block];
+  if (_queue != nil)
+    {
+      GSNotificationBlockOperation *op = [[GSNotificationBlockOperation alloc] 
+	initWithNotification: notif block: _block];
 
-		[_queue addOperation: op];
-	}
-	else
-	{
-		CALL_BLOCK(_block, notif);
-	}
+      [_queue addOperation: op];
+    }
+  else
+    {
+      CALL_BLOCK(_block, notif);
+    }
 }
 
 @end
