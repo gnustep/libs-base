@@ -1,3 +1,8 @@
+2023-11-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Fix issue #292
+	* Tests/base/NSFileManager/general.m: test for enumerator at URL
+
 2023-11-14 Richard Frith-Macdonald <rfm@gnu.org> Riccardo Mottola <rm@gnu.org>
 
 	* Documentation/Base.gsdoc:

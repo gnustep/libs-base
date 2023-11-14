@@ -272,6 +272,28 @@ NSLog(@"%@\n%@", oa, na);
   PASS([mgr createDirectoryAtPath: @"subdir" attributes: nil],
        "NSFileManager can create a subdirectory");
   
+  {
+    NSURL			*u;
+    NSDirectoryEnumerator	*e;
+    unsigned			found = 0;
+
+    e = [mgr enumeratorAtURL: [NSURL fileURLWithPath: @"."]
+  includingPropertiesForKeys: nil
+		     options: 0
+		errorHandler: nil]; 
+
+    while (nil != (u = [e nextObject]))
+      {
+	NSString	*c = [[u path] lastPathComponent];
+
+	if ([c isEqualToString: @"NSFMCopy"])
+	  found++;
+	if ([c isEqualToString: @"subdir"])
+	  found++;
+      }
+    PASS(2 == found, "URL enumerator finds expected file and subdirectory")
+  }
+
   PASS([mgr changeCurrentDirectoryPath: @"subdir"], 
        "NSFileManager can move into subdir");
 
