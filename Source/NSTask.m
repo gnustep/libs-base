@@ -1775,10 +1775,18 @@ GSPrivateCheckTasks()
        */
 #if	defined(HAVE_CLOSEFROM)
       closefrom(3);
+#elif	defined(F_CLOSEM)
+      (void)fcntl(3, F_CLOSEM, 0);
+#elif	defined(_SC_OPEN_MAX)
+      i = sysconf(_SC_OPEN_MAX);
+      while (i-- > 3)
+	{
+	  (void)close(i);
+	}
 #else
       for (i = 3; i < NOFILE; i++)
 	{
-	  (void) close(i);
+	  (void)close(i);
 	}
 #endif
 
