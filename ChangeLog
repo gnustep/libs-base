@@ -1,3 +1,84 @@
+2023-11-14 Richard Frith-Macdonald <rfm@gnu.org> Riccardo Mottola <rm@gnu.org>
+
+	* Documentation/Base.gsdoc:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/install.texi:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/NSCalendar.h:
+	* Headers/Foundation/NSDate.h:
+	* Headers/Foundation/NSDateFormatter.h:
+	* Headers/Foundation/NSExpression.h:
+	* Headers/Foundation/NSMetadata.h:
+	* Headers/Foundation/NSNetServices.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSOperation.h:
+	* Headers/Foundation/NSRegularExpression.h:
+	* Headers/Foundation/NSSortDescriptor.h:
+	* Headers/Foundation/NSURLConnection.h:
+	* Headers/Foundation/NSURLDownload.h:
+	* Headers/Foundation/NSUserDefaults.h:
+	* Headers/Foundation/NSZone.h:
+	* Headers/GNUstepBase/GSObjCRuntime.h:
+	* Headers/GNUstepBase/GSVersionMacros.h:
+	* Headers/GNUstepBase/NSLock+GNUstepBase.h:
+	* Headers/GNUstepBase/NSObject+GNUstepBase.h:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/DocMakefile:
+	* Source/GSInvocation.h:
+	* Source/GSPrivate.h:
+	* Source/GSTLS.m:
+	* Source/NSAppleEventDescriptor.m:
+	* Source/NSAppleEventManager.m:
+	* Source/NSAppleScript.m:
+	* Source/NSCallBacks.h:
+	* Source/NSCountedSet.m:
+	* Source/NSDateComponentsFormatter.m:
+	* Source/NSDateInterval.m:
+	* Source/NSDateIntervalFormatter.m:
+	* Source/NSDictionary.m:
+	* Source/NSExtensionContext.m:
+	* Source/NSExtensionItem.m:
+	* Source/NSFileVersion.m:
+	* Source/NSHFSFileTypes.m:
+	* Source/NSItemProvider.m:
+	* Source/NSItemProviderReadingWriting.m:
+	* Source/NSLinguisticTagger.m:
+	* Source/NSMetadata.m:
+	* Source/NSMetadataAttributes.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSObjectScripting.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSProgress.m:
+	* Source/NSRunLoop.m:
+	* Source/NSScriptClassDescription.m:
+	* Source/NSScriptCoercionHandler.m:
+	* Source/NSScriptCommand.m:
+	* Source/NSScriptCommandDescription.m:
+	* Source/NSScriptExecutionContext.m:
+	* Source/NSScriptKeyValueCoding.m:
+	* Source/NSScriptObjectSpecifiers.m:
+	* Source/NSScriptStandardSuiteCommands.m:
+	* Source/NSScriptSuiteRegistry.m:
+	* Source/NSUserActivity.m:
+	* Source/NSUserScriptTask.m:
+	* Source/NSXMLDocument.m:
+	* Source/NSXMLNode.m:
+	* Source/objc-load.h:
+	* Tools/AGSHtml.h:
+	* Tools/AGSHtml.m:
+	* Tools/AGSIndex.h:
+	* Tools/AGSIndex.m:
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.h:
+	* Tools/AGSParser.m:
+	* Tools/DocMakefile:
+	* Tools/autogsdoc.m:
+	* Tools/gsdoc-1_0_4.dtd:
+	Autogsdoc changes to avoide parser being confused by ObjectiveC-2
+	features.  Automatic generation for the setter/getter methods of
+	properties.  Various fixes and cleanups in documentation generation.
+	Many tweaks to correct documentation errors in comments etc.
+
 2023-11-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* configure.ac: Add check for closefrom()
