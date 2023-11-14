@@ -36,6 +36,8 @@
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
+#define	ENDBRACE	0x7D	// '}' character
+
 /**
  *  The AGSParser class parses Objective-C header and source files
  *  to produce a property-list which can be handled by [AGSOutput].
@@ -491,19 +493,24 @@ equalTypes(NSArray *t1, NSArray *t2)
 	}
       else
 	{
-	  NSMutableDictionary	*m;
+	  NSArray	*declarations = [self parseDeclarations];
+	  NSEnumerator	*e = [declarations objectEnumerator];
+	  NSDictionary	*m;
 
-	  m = [self parseDeclaration];
-	  if (m == nil)
+	  if ([declarations count] == 0)
 	    {
 	      break;
 	    }
-	  if ([[m objectForKey: @"BaseType"] isEqual: @"void"]
-	     && [m objectForKey: @"Prefix"] == nil)
+	  while (nil != (m = [e nextObject]))
 	    {
-	      continue;	// C++ style empty arg list. eg. 'int foo(void);'
+	      if ([[m objectForKey: @"BaseType"] isEqual: @"void"]
+		 && [m objectForKey: @"Prefix"] == nil)
+		{
+		  // C++ style empty arg list. eg. 'int foo(void);'
+		  continue;
+		}
+	      [a addObject: m];
 	    }
-	  [a addObject: m];
 	}
     }
   if (pos < length)
@@ -1468,15 +1475,16 @@ recheck:
     }
 }
 
-- (NSMutableDictionary*) parseDeclaration
+- (NSMutableArray*) parseDeclarations
 {
-  NSMutableDictionary	*d = [NSMutableDictionary dictionary];
+  NSMutableArray	*declarations = [NSMutableArray array];
   CREATE_AUTORELEASE_POOL(arp);
   static NSSet		*qualifiers = nil;
   static NSSet		*keep = nil;
-  NSMutableString	*t = nil;
-  NSMutableArray	*a;
+  NSString		*baseName = nil;
+  NSString		*baseType = nil;
   NSString		*s;
+  NSMutableDictionary	*d;
   BOOL			isTypedef = NO;
   BOOL			isPointer = NO;
   BOOL			isFunction = NO;
@@ -1511,378 +1519,392 @@ recheck:
       IF_NO_ARC([keep retain];)
     }
 
-  a = [NSMutableArray array];
-  while ((s = [self parseIdentifier]) != nil)
     {
-      if (inHeader == NO && [s isEqualToString: @"static"])
+      NSMutableArray	*a = [NSMutableArray array];
+      NSMutableString	*t = nil;
+
+      while ((s = [self parseIdentifier]) != nil)
 	{
-	  /*
-	   * We don't want to document static declarations unless they
-	   * occur in a public header.
-	   */
-	  [self skipStatementLine];
-	  goto fail;
-	}
-      if (([s isEqual: @"__attribute__"])
-        || ([s isEqual: @"__asm__"]))
-	{
-	  if ([self skipSpaces] < length && buffer[pos] == '(')
+	  if (inHeader == NO && [s isEqualToString: @"static"])
 	    {
-	      unsigned	start = pos;
-
-	      [self skipBlock];	// Skip the attributes
-	      if (YES == verbose)
+	      /*
+	       * We don't want to document static declarations unless they
+	       * occur in a public header.
+	       */
+	      [self skipStatementLine];
+	      goto fail;
+	    }
+	  if (([s isEqual: @"__attribute__"])
+	    || ([s isEqual: @"__asm__"]))
+	    {
+	      if ([self skipSpaces] < length && buffer[pos] == '(')
 		{
-		  NSString	*attr;
+		  unsigned	start = pos;
 
-		  attr = [NSString stringWithCharacters: buffer + start
-						 length: pos - start];
-		  [self log: @"skip %@ %@", s, attr];
+		  [self skipBlock];	// Skip the attributes
+		  if (YES == verbose)
+		    {
+		      NSString	*attr;
+
+		      attr = [NSString stringWithCharacters: buffer + start
+						     length: pos - start];
+		      [self log: @"skip %@ %@", s, attr];
+		    }
+		}
+	      else
+		{
+		  [self log: @"strange format %@", s];
+		}
+	      continue;
+	    }
+	  if ([s isEqualToString: @"GS_EXPORT"])
+	    {
+	      s = @"extern";
+	    }
+	  if ([qualifiers member: s] == nil)
+	    {
+	      break;
+	    }
+	  else
+	    {
+	      if ([s isEqualToString: @"extern"]
+		&& [self skipSpaces] < length - 3 && buffer[pos] == '\"'
+		&& buffer[pos+1] == 'C' && buffer[pos+2] == '\"')
+		{
+		  /*
+		   * Found 'extern "C" ...'
+		   * Which is for C++ and should be ignored
+		   */
+		  pos += 3;
+		  if ([self skipSpaces] < length && buffer[pos] == '{')
+		    {
+		      pos++;
+		      [self skipSpaces];
+		    }
+		  IF_NO_ARC(DESTROY(arp);)
+		  return nil;
+		}
+
+	      if ([s isEqualToString: @"typedef"])
+		{
+		  isTypedef = YES;
+		}
+	      if ([keep member: s] != nil)
+		{
+		  [a addObject: s];
+		  if ([s isEqual: @"const"] == NO
+		    && [s isEqual: @"volatile"] == NO)
+		    {
+		      needScalarType = YES;
+		    }
+		}
+	    }
+	}
+
+      /**
+       * We handle struct, union, and enum declarations by skipping the
+       * stuff enclosed in curly braces.  If there was an identifier
+       * after the keyword we use it as the struct name, otherwise we
+       * use '...' to denote a nameless type.
+       */
+      if ([s isEqualToString: @"struct"]
+	|| [s isEqualToString: @"union"]
+	|| [s isEqualToString: @"enum"]
+	|| [s isEqualToString: @"NS_ENUM"]
+	|| [s isEqualToString: @"NS_OPTIONS"])
+	{
+	  BOOL      isEnum = NO;
+	  NSString	*tmp = s;
+
+	  if ([s isEqualToString: @"NS_ENUM"]
+	    || [s isEqualToString: @"NS_OPTIONS"])
+	    {
+	      if ([self parseSpace] < length && buffer[pos] == '(')
+		{
+		  pos++;
+		  [self parseSpace];
+		  s = [self parseIdentifier];
+		  if (nil != s && [self parseSpace] < length
+		    && buffer[pos] == ',')
+		    {
+		      tmp = [tmp stringByAppendingFormat: @"(%@)", s];
+		      pos++;
+		      [self parseSpace];
+		      s = [self parseIdentifier];
+		      if (nil != s && [self parseSpace] < length
+			&& buffer[pos] == ')')
+			{
+			  isEnum = YES;
+			  pos++;
+			  baseName = s;
+			  s = tmp;
+			}
+		    }
+		}
+	      if (NO == isEnum)
+		{
+		  [self log: @"messed up NS_ENUM/NS_OPTIONS declaration"];
+		  [arp drain];
+		  return nil;
 		}
 	    }
 	  else
 	    {
-	      [self log: @"strange format %@", s];
+	      isEnum = [s isEqualToString: @"enum"];
+
+	      s = [self parseIdentifier];
+	      if (s == nil)
+		{
+		  s = [NSString stringWithFormat: @"%@ ...", tmp];
+		}
+	      else
+		{
+		  s = [NSString stringWithFormat: @"%@ %@", tmp, s];
+		  /*
+		   * It's possible to declare a struct, union, or enum without
+		   * giving it a name beyond after the declaration, in this case
+		   * we can use something like 'struct foo' as the name.
+		   */
+		  baseName = s;
+		}
 	    }
-	  continue;
-	}
-      if ([s isEqualToString: @"GS_EXPORT"])
-	{
-	  s = @"extern";
-	}
-      if ([qualifiers member: s] == nil)
-	{
-	  break;
+
+	  /* We parse enum and options comment of the form:
+	   * <introComment> enum { <comment1> field1, <comment2> field2 } bla;
+	   */
+	  if (isEnum && [self parseSpace] < length && buffer[pos] == '{')
+	    {
+	      NSString *ident;
+	      NSString *introComment;
+	      NSMutableString *fieldComments = [NSMutableString string];
+	      BOOL foundFieldComment = NO;
+
+	      /* We want to be able to parse new comments while retaining the 
+		 originally parsed comment for the enum/union/struct. */
+	      introComment = [comment copy];
+	      DESTROY(comment);
+
+	      pos++; /* Skip '{' */
+
+	      [fieldComments appendString: @"<deflist>"];
+
+	      // TODO: We should put the parsed field into the doc index and 
+	      // let AGSOutput generate the deflist.
+	      while (buffer[pos] != ENDBRACE)
+		{
+		  /*
+		     A comment belongs with the declaration following it,
+		     unless it begins on the same line as a declaration.
+		     Six combinations can be parsed:
+		     - fieldDecl,
+		     - <comment> fieldDecl,
+		     - fieldDecl, <comment>
+		     - <comment> fieldDecl, <comment>
+		     - fieldDecl }
+		     - <comment> fieldDecl }
+		   */
+
+		  /* Parse any space and comments before the identifier into
+		   * 'comment' and get the identifier in 'ident'.
+		   */
+		  ident = [self parseIdentifier];
+
+		  /* Skip the left-hand side such as ' = aValue'
+		   */
+		  while (pos < length
+		    && buffer[pos] != ',' && buffer[pos] != ENDBRACE)
+		    {
+		      pos++;
+		    }
+		  if (buffer[pos] == ',')
+		    {
+		      /* Parse any more space on the same line as the identifier
+		       * appending it to the 'comment' ivar
+		       */
+		      [self parseSpace: spaces];
+		      pos++;
+		    }
+
+		  if (ident != nil)
+		    {
+		      foundFieldComment = YES;
+		      [fieldComments appendString: @"<term><em>"];
+		      [fieldComments appendString: ident];
+		      [fieldComments appendString: @"</em></term>"];
+		      [fieldComments appendString: @"<desc>"];
+		      // NOTE: We could add a 'Description forthcoming' if nil
+		      if (comment != nil)
+			{
+			  [fieldComments appendString: comment];
+			}
+		      [fieldComments appendString: @"</desc>\n"];
+		    }
+		  DESTROY(comment);
+		}
+
+	      [fieldComments appendString: @"</deflist>"];
+
+	      /* Restore the comment as initially parsed before
+	       * -parseDeclaration was called and add the comments
+	       *  parsed per field into a deflist. */
+	      ASSIGN(comment, introComment);
+	      if (foundFieldComment)
+		{
+		  NSString *enumComment = 
+		    [comment stringByAppendingFormat: @"\n\n%@", fieldComments];
+
+		  ASSIGN(comment, enumComment);
+		}
+
+	      pos++; /* Skip closing curly brace */
+	    }
+	  [a addObject: s];
+	  s = nil;
 	}
       else
 	{
-	  if ([s isEqualToString: @"extern"]
-	    && [self skipSpaces] < length - 3 && buffer[pos] == '\"'
-	    && buffer[pos+1] == 'C' && buffer[pos+2] == '\"')
+	  if (s == nil)
 	    {
 	      /*
-	       * Found 'extern "C" ...'
-	       * Which is for C++ and should be ignored
+	       * If there is no identifier here, the line must have been
+	       * something like 'unsigned *length' so we must set the default
+	       * base type of 'int'
 	       */
-	      pos += 3;
-	      if ([self skipSpaces] < length && buffer[pos] == '{')
-		{
-		  pos++;
-		  [self skipSpaces];
-		}
-	      IF_NO_ARC(DESTROY(arp);)
-	      return nil;
+	      [a addObject: @"int"];
 	    }
-
-	  if ([s isEqualToString: @"typedef"])
+	  else if (needScalarType
+	    && [s isEqualToString: @"char"] == NO
+	    && [s isEqualToString: @"int"] == NO)
 	    {
-	      isTypedef = YES;
+	      /*
+	       * If we had something like 'unsigned' in the qualifiers, we must
+	       * have a 'char' or an 'int', and if we didn't find one we should
+	       * insert one and use what we found as the variable name.
+	       */
+	      [a addObject: @"int"];
 	    }
-	  if ([keep member: s] != nil)
+	  else
 	    {
 	      [a addObject: s];
-	      if ([s isEqual: @"const"] == NO && [s isEqual: @"volatile"] == NO)
-		{
-		  needScalarType = YES;
-		}
+	      s = nil;	// s used as baseType
 	    }
 	}
-    }
-
-  /**
-   * We handle struct, union, and enum declarations by skipping the
-   * stuff enclosed in curly braces.  If there was an identifier
-   * after the keyword we use it as the struct name, otherwise we
-   * use '...' to denote a nameless type.
-   */
-  if ([s isEqualToString: @"struct"]
-    || [s isEqualToString: @"union"]
-    || [s isEqualToString: @"enum"]
-    || [s isEqualToString: @"NS_ENUM"]
-    || [s isEqualToString: @"NS_OPTIONS"])
-    {
-      BOOL      isEnum = NO;
-      NSString	*tmp = s;
-
-      if ([s isEqualToString: @"NS_ENUM"]
-        || [s isEqualToString: @"NS_OPTIONS"])
-        {
-          if ([self parseSpace] < length && buffer[pos] == '(')
-            {
-              pos++;
-              [self parseSpace];
-              s = [self parseIdentifier];
-              if (nil != s && [self parseSpace] < length
-                && buffer[pos] == ',')
-                {
-                  tmp = [tmp stringByAppendingFormat: @"(%@)", s];
-                  pos++;
-                  [self parseSpace];
-                  s = [self parseIdentifier];
-                  if (nil != s && [self parseSpace] < length
-                    && buffer[pos] == ')')
-                    {
-                      isEnum = YES;
-                      pos++;
-                      [d setObject: s forKey: @"Name"];
-                      s = tmp;
-                    }
-                }
-            }
-          if (NO == isEnum)
-            {
-              [self log: @"messed up NS_ENUM/NS_OPTIONS declaration"];
-              [arp drain];
-              return nil;
-            }
-        }
-      else
-        {
-          isEnum = [s isEqualToString: @"enum"];
-
-          s = [self parseIdentifier];
-          if (s == nil)
-            {
-              s = [NSString stringWithFormat: @"%@ ...", tmp];
-            }
-          else
-            {
-              s = [NSString stringWithFormat: @"%@ %@", tmp, s];
-              /*
-               * It's possible to declare a struct, union, or enum without
-               * giving it a name beyond after the declaration, in this case
-               * we can use something like 'struct foo' as the name.
-               */
-              [d setObject: s forKey: @"Name"];
-            }
-        }
-
-      /* We parse enum and options comment of the form:
-       * <introComment> enum { <comment1> field1, <comment2> field2 } bla;
-       */
-      if (isEnum && [self parseSpace] < length && buffer[pos] == '{')
-	{
-          NSString *ident;
-          NSString *introComment;
-          NSMutableString *fieldComments = [NSMutableString string];
-          BOOL foundFieldComment = NO;
-
-          /* We want to be able to parse new comments while retaining the 
-             originally parsed comment for the enum/union/struct. */
-          introComment = [comment copy];
-          DESTROY(comment);
-
-          pos++; /* Skip '{' */
-
-          [fieldComments appendString: @"<deflist>"];
-
-          // TODO: We should put the parsed field into the doc index and 
-          // let AGSOutput generate the deflist.
-	  while (buffer[pos] != '}')
-            {
-	      /*
-		 A comment belongs with the declaration following it,
-		 unless it begins on the same line as a declaration.
-                 Six combinations can be parsed:
-                 - fieldDecl,
-                 - <comment> fieldDecl,
-                 - fieldDecl, <comment>
-                 - <comment> fieldDecl, <comment>
-                 - fieldDecl }
-                 - <comment> fieldDecl }
-	       */
-
-	      /* Parse any space and comments before the identifier into
-	       * 'comment' and get the identifier in 'ident'.
-	       */
-              ident = [self parseIdentifier];
-
-              /* Skip the left-hand side such as ' = aValue'
-	       */
-              while (pos < length && buffer[pos] != ',' && buffer[pos] != '}')
-                {
-                  pos++;
-                }
-              if (buffer[pos] == ',')
-		{
-                  /* Parse any more space on the same line as the identifier
-		   * appending it to the 'comment' ivar
-		   */
-		  [self parseSpace: spaces];
-                  pos++;
-		}
-
-              if (ident != nil)
-                {
-                  foundFieldComment = YES;
-                  [fieldComments appendString: @"<term><em>"];
-                  [fieldComments appendString: ident];
-                  [fieldComments appendString: @"</em></term>"];
-                  [fieldComments appendString: @"<desc>"];
-                  // NOTE: We could add a 'Description forthcoming' if nil
-                  if (comment != nil)
-                    {
-                      [fieldComments appendString: comment];
-                    }
-                  [fieldComments appendString: @"</desc>\n"];
-                }
-              DESTROY(comment);
-            }
-
-          [fieldComments appendString: @"</deflist>"];
-
-          /* Restore the comment as initially parsed before -parseDeclaration 
-             was called and add the comments parsed per field into a deflist. */
-          ASSIGN(comment, introComment);
-          if (foundFieldComment)
-            {
-              NSString *enumComment = 
-                [comment stringByAppendingFormat: @"\n\n%@", fieldComments];
-
-              ASSIGN(comment, enumComment);
-            }
-
-          pos++; /* Skip closing curly brace */
-	}
-      [a addObject: s];
-      s = nil;
-    }
-  else
-    {
-      if (s == nil)
-	{
-	  /*
-	   * If there is no identifier here, the line must have been
-	   * something like 'unsigned *length' so we must set the default
-	   * base type of 'int'
-	   */
-	  [a addObject: @"int"];
-	}
-      else if (needScalarType
-	&& [s isEqualToString: @"char"] == NO
-	&& [s isEqualToString: @"int"] == NO)
-	{
-	  /*
-	   * If we had something like 'unsigned' in the qualifiers, we must
-	   * have a 'char' or an 'int', and if we didn't find one we should
-	   * insert one and use what we found as the variable name.
-	   */
-	  [a addObject: @"int"];
-	}
-      else
-	{
-	  [a addObject: s];
-	  s = nil;	// s used as baseType
-	}
-    }
-
-  /*
-   * Now build a string containing the base type in a standardised form.
-   */
-  t = [NSMutableString new];
-
-  if ([a containsObject: @"const"])
-    {
-      [t appendString: @"const"];
-      [t appendString: @" "];
-      [a removeObject: @"const"];
-      baseConstant = YES;
-    }
-  else if ([a containsObject: @"volatile"])
-    {
-      [t appendString: @"volatile"];
-      [t appendString: @" "];
-      [a removeObject: @"volatile"];
-    }
-
-  if ([a containsObject: @"signed"])
-    {
-      [t appendString: @"signed"];
-      [t appendString: @" "];
-      [a removeObject: @"signed"];
-    }
-  else if ([a containsObject: @"unsigned"])
-    {
-      [t appendString: @"unsigned"];
-      [t appendString: @" "];
-      [a removeObject: @"unsigned"];
-    }
-
-  if ([a containsObject: @"short"])
-    {
-      [t appendString: @"short"];
-      [t appendString: @" "];
-      [a removeObject: @"short"];
-    }
-  else if ([a containsObject: @"long"])
-    {
-      unsigned	c = [a count];
 
       /*
-       * There may be more than one 'long' in a type spec
+       * Now build a string containing the base type in a standardised form.
        */
-      while (c-- > 0)
-	{
-	  NSString	*tmp = [a objectAtIndex: c];
+      t = [NSMutableString string];
 
-	  if ([tmp isEqual: @"long"])
+      if ([a containsObject: @"const"])
+	{
+	  [t appendString: @"const"];
+	  [t appendString: @" "];
+	  [a removeObject: @"const"];
+	  baseConstant = YES;
+	}
+      else if ([a containsObject: @"volatile"])
+	{
+	  [t appendString: @"volatile"];
+	  [t appendString: @" "];
+	  [a removeObject: @"volatile"];
+	}
+
+      if ([a containsObject: @"signed"])
+	{
+	  [t appendString: @"signed"];
+	  [t appendString: @" "];
+	  [a removeObject: @"signed"];
+	}
+      else if ([a containsObject: @"unsigned"])
+	{
+	  [t appendString: @"unsigned"];
+	  [t appendString: @" "];
+	  [a removeObject: @"unsigned"];
+	}
+
+      if ([a containsObject: @"short"])
+	{
+	  [t appendString: @"short"];
+	  [t appendString: @" "];
+	  [a removeObject: @"short"];
+	}
+      else if ([a containsObject: @"long"])
+	{
+	  unsigned	c = [a count];
+
+	  /*
+	   * There may be more than one 'long' in a type spec
+	   */
+	  while (c-- > 0)
 	    {
-	      [t appendString: tmp];
-	      [t appendString: @" "];
-	      [a removeObjectAtIndex: c];
+	      NSString	*tmp = [a objectAtIndex: c];
+
+	      if ([tmp isEqual: @"long"])
+		{
+		  [t appendString: tmp];
+		  [t appendString: @" "];
+		  [a removeObjectAtIndex: c];
+		}
 	    }
 	}
-    }
 
-  if ([a count] != 1)
-    {
-      [self log: @"odd values in declaration base type - '%@'", a];
-      [t appendString: [a componentsJoinedByString: @" "]];
-    }
-  else
-    {
-      [t appendString: [a objectAtIndex: 0]];
-    }
-  [a removeAllObjects];		// Parsed base type
-
-
-  /*
-   * Handle protocol or generic specification if necessary
-   */
-  if ([self parseSpace] < length && buffer[pos] == '<')
-    {
-      unsigned  save = pos;
-      NSString	*p;
-
-      do
+      if ([a count] != 1)
 	{
-	  pos++;
-	  p = [self parseIdentifier];
-	  if (p != nil)
-	    {
-	      [a addObject: p];
-	    }
+	  [self log: @"odd values in declaration base type - '%@'", a];
+	  [t appendString: [a componentsJoinedByString: @" "]];
 	}
-      while ([self parseSpace] < length && buffer[pos] == ',');
-      if ('>' == buffer[pos])
-        {
-          pos++;
-          [self parseSpace];
-          [a sortUsingSelector: @selector(compare:)];
-          [t appendString: @"<"];
-          [t appendString: [a componentsJoinedByString: @","]];
-          [t appendString: @">"];
-          [a removeAllObjects];
-        }
       else
-        {
-          pos = save;
-          [self skipGeneric];
-        }
+	{
+	  [t appendString: [a objectAtIndex: 0]];
+	}
+      [a removeAllObjects];		// Parsed base type
+
+      /*
+       * Handle protocol or generic specification if necessary
+       */
+      if ([self parseSpace] < length && buffer[pos] == '<')
+	{
+	  unsigned  save = pos;
+	  NSString	*p;
+
+	  do
+	    {
+	      pos++;
+	      p = [self parseIdentifier];
+	      if (p != nil)
+		{
+		  [a addObject: p];
+		}
+	    }
+	  while ([self parseSpace] < length && buffer[pos] == ',');
+	  if ('>' == buffer[pos])
+	    {
+	      pos++;
+	      [self parseSpace];
+	      [a sortUsingSelector: @selector(compare:)];
+	      [t appendString: @"<"];
+	      [t appendString: [a componentsJoinedByString: @","]];
+	      [t appendString: @">"];
+	      [a removeAllObjects];
+	    }
+	  else
+	    {
+	      pos = save;
+	      [self skipGeneric];
+	    }
+	}
+      baseType = t;
     }
 
-  [d setObject: t forKey: @"BaseType"];
-  RELEASE(t);
+another:
+  d = [NSMutableDictionary dictionary];
+  [declarations addObject: d];
+  [d setObject: baseType forKey: @"BaseType"];
+  if (baseName)
+    {
+      [d setObject: baseName forKey: @"Name"];
+    }
+
   /*
    * Set the 'Kind' of declaration ... one of 'Types', 'Functions',
    * 'Variables', or 'Constants'
@@ -2000,7 +2022,7 @@ recheck:
 	  if (buffer[pos] == ')' || buffer[pos] == ',')
 	    {
 	      [arp drain];
-	      return d;
+	      return declarations;
 	    }
 	  else
 	    {
@@ -2087,8 +2109,9 @@ recheck:
 	    }
 	  else if (buffer[pos] == ',')
 	    {
-	      [self log: @"ignoring multiple comma separated declarations"];
-	      [self skipStatement];
+	      pos++;	// Step past the comma
+	      s = nil;	// Need to parse idenfier etc
+	      goto another;
 	    }
 	  else if (buffer[pos] == '=')
 	    {
@@ -2105,9 +2128,9 @@ recheck:
 		}
 	      [self skipBlock];
 	    }
-	  else if (buffer[pos] == '}')
+	  else if (buffer[pos] == ENDBRACE)
 	    {
-	      pos++;			// Ignore extraneous '}'
+	      pos++;			// Ignore extraneous closing brace
 	      [self skipSpaces];
 	    }
 	  else if (buffer[pos] == '#')
@@ -2159,8 +2182,8 @@ recheck:
 	      return nil;
 	    }
 	}
-      [self setStandards: d];
-      return d;
+      [self setStandards: declarations];
+      return declarations;
     }
   else
     {
@@ -2175,6 +2198,8 @@ fail:
 - (NSMutableDictionary*) parseFile: (NSString*)name isSource: (BOOL)isSource
 {
   NSString		*token;
+  NSMutableArray	*declarations;
+  NSEnumerator		*enumerator;
   NSMutableDictionary	*nDecl;
 
   if (debug)
@@ -2317,12 +2342,13 @@ fail:
 	     * Must be some sort of declaration ...
 	     */
 	    pos--;
-	    nDecl = [self parseDeclaration];
+	    declarations = [self parseDeclarations];
 	    if (debug)
 	      {
-		NSLog(@"top level declaration: %@", nDecl);
+		NSLog(@"top level declaration: %@", declarations);
 	      }
-	    if (nDecl != nil)
+	    enumerator = [declarations objectEnumerator];
+	    while ((nDecl = [enumerator nextObject]) != nil)
 	      {
 		NSString		*name = [nDecl objectForKey: @"Name"];
 		NSString		*kind = [nDecl objectForKey: @"Kind"];
@@ -2826,7 +2852,7 @@ try:
 
   ivars = [NSMutableDictionary dictionaryWithCapacity: 8];
   pos++;
-  while ([self parseSpace] < length && buffer[pos] != '}')
+  while ([self parseSpace] < length && buffer[pos] != ENDBRACE)
     {
       if (buffer[pos] == '@')
 	{
@@ -2874,9 +2900,11 @@ try:
 	}
       else if (shouldDocument)
 	{
-	  NSMutableDictionary	*iv = [self parseDeclaration];
+	  NSMutableArray	*declarations = [self parseDeclarations];
+	  NSEnumerator		*enumerator = [declarations objectEnumerator];
+	  NSMutableDictionary	*iv;
 
-	  if (iv != nil)
+	  while ((iv = [enumerator nextObject]) != nil)
 	    {
 	      if ([validity isEqual: @"private"] == NO)
 		{
@@ -3489,7 +3517,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
       return nil;
     }
 
-  if (nil == (prop = [self parseDeclaration]))
+  if (nil == (prop = [[self parseDeclarations] firstObject]))
     {
       return nil;
     }
@@ -3829,7 +3857,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	    else
 	      {
 		pos--;
-		[self parseDeclaration];
+		[self parseDeclarations];
 	      }
 	    DESTROY(comment);	// Don't want this.
 	    break;
@@ -4637,7 +4665,7 @@ fail:
  * conditionals in the supplied dictionary ... this will be used by
  * the AGSOutput class to put standards markup in the gsdoc output.
  */
-- (void) setStandards: (NSMutableDictionary*)dict
+- (void) setStandards: (id)dst
 {
   if (standards)
     {
@@ -4702,7 +4730,24 @@ fail:
 	    }
 	  if (vInfo != nil)
 	    {
-	      [dict setObject: vInfo forKey: @"Versions"];
+	      if ([dst isKindOfClass: [NSMutableDictionary class]])
+		{
+		  [(NSMutableDictionary*)dst setObject: vInfo
+						forKey: @"Versions"];
+		}
+	      else
+		{
+		  NSEnumerator	*e = [(NSArray*)dst objectEnumerator];
+
+		  while ((dst = [e nextObject]) != nil)
+		    {
+		      if ([dst isKindOfClass: [NSMutableDictionary class]])
+			{
+			  [(NSMutableDictionary*)dst setObject: vInfo
+							forKey: @"Versions"];
+			}
+		    }
+		}
 	    }
 	}
     }
@@ -4880,7 +4925,7 @@ fail:
 
 - (unsigned) skipBlock: (BOOL*)isEmpty
 {
-  unichar	term = '}';
+  unichar	term = ENDBRACE;
   BOOL		empty = YES;
 
   if (buffer[pos] == '(')
@@ -5055,8 +5100,8 @@ fail:
 	  case ';':
 	    return pos;		// At end of statement
 
-	  case '}':
-	    [self log: @"Argh ... read '}' when looking for ';'"];
+	  case ENDBRACE:
+	    [self log: @"Argh ... read end brace when looking for ';'"];
 	    return --pos;	// No statement to skip.
 	    break;
         }
@@ -5072,7 +5117,7 @@ fail:
 - (unsigned) skipStatementLine
 {
   [self skipStatement];
-  if (buffer[pos-1] == ';' || buffer[pos-1] == '}')
+  if (buffer[pos-1] == ';' || buffer[pos-1] == ENDBRACE)
     {
       [self skipRemainderOfLine];
     }

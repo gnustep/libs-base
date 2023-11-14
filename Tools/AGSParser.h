@@ -89,7 +89,7 @@
 - (id) init;	/** <init> Simple initialiser */
 - (NSMutableArray*) outputs;
 - (unsigned) parseComment;
-- (NSMutableDictionary*) parseDeclaration;
+- (NSMutableArray*) parseDeclarations;
 - (NSMutableDictionary*) parseFile: (NSString*)name isSource: (BOOL)isSource;
 - (NSString*) parseIdentifier;
 - (NSMutableDictionary*) parseImplementation;
@@ -111,7 +111,7 @@
 - (void) setDocumentInstanceVariables: (BOOL)flag;
 - (void) setDocumentAllInstanceVariables: (BOOL)flag;
 - (void) setGenerateStandards: (BOOL)flag;
-- (void) setStandards: (NSMutableDictionary*)dict;
+- (void) setStandards: (id)dst;
 - (void) setWordMap: (NSDictionary*)map;
 - (void) setupBuffer;
 - (unsigned) skipArray;
