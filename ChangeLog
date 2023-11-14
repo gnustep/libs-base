@@ -1,3 +1,11 @@
+2023-11-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Add check for closefrom()
+	* configure: regenerate
+	* Headers/GNUstepBase/config.h.in: regenerate
+	* Source/NSTask.m: Use closefrom() to close descriptors in child
+	process if it is available.
+
 2023-10-26 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSISO8601DateFormatter.m:

@@ -2592,6 +2592,7 @@ AC_CHECK_HEADERS(sys/mman.h)
 # These functions needed by NSTask.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(killpg setpgrp setpgid setsid grantpt)
+AC_CHECK_FUNCS(closefrom)
 if test "x$ac_cv_func_setpgrp" = xyes; then
   AC_FUNC_SETPGRP
 fi

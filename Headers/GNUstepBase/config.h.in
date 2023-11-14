@@ -198,6 +198,9 @@
 /* Define to 1 if you have the <callback.h> header file. */
 #undef HAVE_CALLBACK_H
 
+/* Define to 1 if you have the `closefrom' function. */
+#undef HAVE_CLOSEFROM
+
 /* Define to 1 if you have the `ctime' function. */
 #undef HAVE_CTIME
 

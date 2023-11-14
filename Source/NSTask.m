@@ -1773,10 +1773,14 @@ GSPrivateCheckTasks()
       /*
        * Close any extra descriptors.
        */
+#if	defined(HAVE_CLOSEFROM)
+      closefrom(3);
+#else
       for (i = 3; i < NOFILE; i++)
 	{
 	  (void) close(i);
 	}
+#endif
 
       if (0 != chdir(path))
         {

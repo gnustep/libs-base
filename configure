@@ -10167,6 +10167,17 @@ _ACEOF
 fi
 done
 
+for ac_func in closefrom
+do :
+  ac_fn_c_check_func "$LINENO" "closefrom" "ac_cv_func_closefrom"
+if test "x$ac_cv_func_closefrom" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CLOSEFROM 1
+_ACEOF
+
+fi
+done
+
 if test "x$ac_cv_func_setpgrp" = xyes; then
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether setpgrp takes no argument" >&5
 $as_echo_n "checking whether setpgrp takes no argument... " >&6; }
