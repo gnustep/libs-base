@@ -1,3 +1,10 @@
+2023-11-14 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSURLRequest.m: Support deleting NSMutableURLRequest headers by
+	calling setValue:forHTTPHeaderField: with nil value.
+	* Headers/Foundation/NSURLRequest.h: Update method documentation.
+	* Tests/base/NSURLRequest/basic.m: Extended NSMutableURLRequest tests.
+
 2023-11-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: Fix issue #292
