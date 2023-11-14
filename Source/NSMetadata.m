@@ -20,8 +20,6 @@
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110 USA.
-
-   AutogsdocSource: NSMetadata.m
 */ 
 
 #import "common.h"
@@ -122,7 +120,7 @@
   [super dealloc];
 }
 
-- (id<NSMetadataQueryDelegate>) delegate;
+- (id<NSMetadataQueryDelegate>) delegate
 {
   return this->_delegate;
 }
@@ -137,7 +135,7 @@
   [self subclassResponsibility: _cmd];
 }
 
-- (NSArray *) groupedResults;
+- (NSArray *) groupedResults
 {
   return [self subclassResponsibility: _cmd];
 }
@@ -218,7 +216,7 @@
   return this->_scopes;
 }
 
-- (void) setDelegate: (id<NSMetadataQueryDelegate>)delegate;
+- (void) setDelegate: (id<NSMetadataQueryDelegate>)delegate
 {
   this->_delegate = delegate;
 }

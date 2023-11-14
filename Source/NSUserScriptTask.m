@@ -23,7 +23,7 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSUserScriptTask.h>
+#import "Foundation/NSUserScriptTask.h"
 
 @implementation NSUserScriptTask
 

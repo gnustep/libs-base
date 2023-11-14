@@ -22,10 +22,10 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSExtensionItem.h>
-#include <Foundation/NSAttributedString.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSArray.h>
+#import "Foundation/NSExtensionItem.h"
+#import "Foundation/NSAttributedString.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
 
 @implementation NSExtensionItem
 

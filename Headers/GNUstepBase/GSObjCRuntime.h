@@ -256,30 +256,30 @@ GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,
  */
 
 /**
- * Deprecated ... use objc_getClassList()
+ * Deprecated ... use "objc_getClassList()".
  */
 GS_EXPORT unsigned int
 GSClassList(Class *buffer, unsigned int max, BOOL clearCache);
 
 /**
- * GSObjCClass() is deprecated ... use object_getClass()
+ * GSObjCClass() is deprecated ... use "object_getClass()".
  */
 GS_EXPORT Class GSObjCClass(id obj);
 
 /**
- * GSObjCSuper() is deprecated ... use class_getSuperclass()
+ * GSObjCSuper() is deprecated ... use "class_getSuperclass()".
  */
 GS_EXPORT Class GSObjCSuper(Class cls);
 
 /**
- * GSObjCIsInstance() is deprecated ... use object_getClass()
- * in conjunction with class_isMetaClass()
+ * GSObjCIsInstance() is deprecated ... use "object_getClass()"
+ * in conjunction with "class_isMetaClass()".
  */
 GS_EXPORT BOOL GSObjCIsInstance(id obj);
 
 /**
- * GSObjCIsClass() is deprecated ... use object_getClass()
- * in conjunction with class_isMetaClass()
+ * GSObjCIsClass() is deprecated ... use "object_getClass()"
+ * in conjunction with "class_isMetaClass()".
  */
 GS_EXPORT BOOL GSObjCIsClass(Class cls);
 
@@ -290,28 +290,28 @@ GS_EXPORT BOOL GSObjCIsClass(Class cls);
 GS_EXPORT BOOL GSObjCIsKindOf(Class cls, Class other);
 
 /**
- * GSClassFromName() is deprecated ... use objc_lookUpClass()
+ * GSClassFromName() is deprecated ... use "objc_lookUpClass()".
  */
 GS_EXPORT Class GSClassFromName(const char *name);
 
 /**
- * GSNameFromClass() is deprecated ... use class_getName()
+ * GSNameFromClass() is deprecated ... use "class_getName()".
  */
 GS_EXPORT const char *GSNameFromClass(Class cls);
 
 /**
- * GSClassNameFromObject() is deprecated ... use object_getClass()
- * in conjunction with class_getName()
+ * GSClassNameFromObject() is deprecated ... use "object_getClass()".
+ * in conjunction with "class_getName()".
  */
 GS_EXPORT const char *GSClassNameFromObject(id obj);
 
 /**
- * GSNameFromSelector() is deprecated ... use sel_getName()
+ * GSNameFromSelector() is deprecated ... use "sel_getName()".
  */
 GS_EXPORT const char *GSNameFromSelector(SEL sel);
 
 /**
- * GSSelectorFromName() is deprecated ... use sel_getUid()
+ * GSSelectorFromName() is deprecated ... use "sel_getUid()".
  */
 GS_EXPORT SEL
 GSSelectorFromName(const char *name);
@@ -395,7 +395,7 @@ typedef Ivar	GSIVar;
  * either the specified class only or also its superclasses.<br/>
  * To obtain the implementation pointer IMP use returnValue->method_imp
  * which should be safe across all runtimes.<br/>
- * It should be safe to use this function in +load implementations.<br/>
+ * It should be safe to use this function in "+load" implementations.<br/>
  * This function should currently (June 2004) be considered WIP.
  * Please follow potential changes (Name, parameters, ...) closely until
  * it stabilizes.
@@ -412,19 +412,19 @@ GS_EXPORT void
 GSFlushMethodCacheForClass (Class cls);
 
 /**
- * Deprecated .. use class_getInstanceVariable()
+ * Deprecated .. use "class_getInstanceVariable()".
  */
 GS_EXPORT GSIVar
 GSCGetInstanceVariableDefinition(Class cls, const char *name);
 
 /**
- * Deprecated .. use class_getInstanceVariable()
+ * Deprecated .. use "class_getInstanceVariable()".
  */
 GS_EXPORT GSIVar
 GSObjCGetInstanceVariableDefinition(Class cls, NSString *name);
 
 /**
- * GSObjCVersion() is deprecated ... use class_getVersion()
+ * GSObjCVersion() is deprecated ... use "class_getVersion()"
  */
 GS_EXPORT int GSObjCVersion(Class cls);
 

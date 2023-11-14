@@ -67,6 +67,8 @@
   BOOL		warn;
   BOOL		standards;
   BOOL          inUnclosedExample;
+  BOOL		debug;
+  BOOL		inPreprocessorDirective;
   NSDictionary		*wordMap;
   NSString		*declared;	/** Where classes were declared. */
   NSMutableArray	*ifStack;	/** Track preprocessor conditionals. */
@@ -81,12 +83,13 @@
   NSCharacterSet	*spacenl;	/** Blanks excluding newline */
 }
 
+- (BOOL) debug;
 - (NSMutableDictionary*) info;
 - (NSDictionary *) orderedSymbolDeclarationsByUnit;
 - (id) init;	/** <init> Simple initialiser */
 - (NSMutableArray*) outputs;
 - (unsigned) parseComment;
-- (NSMutableDictionary*) parseDeclaration;
+- (NSMutableArray*) parseDeclarations;
 - (NSMutableDictionary*) parseFile: (NSString*)name isSource: (BOOL)isSource;
 - (NSString*) parseIdentifier;
 - (NSMutableDictionary*) parseImplementation;
@@ -103,11 +106,12 @@
 - (unsigned) parseSpace;
 - (NSString*) parseVersion;
 - (void) reset;
+- (void) setDebug: (BOOL)aFlag;
 - (void) setDeclared: (NSString*)name;
 - (void) setDocumentInstanceVariables: (BOOL)flag;
 - (void) setDocumentAllInstanceVariables: (BOOL)flag;
 - (void) setGenerateStandards: (BOOL)flag;
-- (void) setStandards: (NSMutableDictionary*)dict;
+- (void) setStandards: (id)dst;
 - (void) setWordMap: (NSDictionary*)map;
 - (void) setupBuffer;
 - (unsigned) skipArray;
@@ -121,6 +125,7 @@
 - (unsigned) skipToEndOfLine;
 - (unsigned) skipUnit;
 - (NSMutableArray*) sources;
+- (NSString*) where;
 @end
 
 #endif

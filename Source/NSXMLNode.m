@@ -2237,6 +2237,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (void) detach
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSUInteger) index
@@ -2331,22 +2332,27 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 - (void) setObjectValue: (id)value
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setName: (NSString *)name
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setStringValue: (NSString*)string
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setStringValue: (NSString*)string resolvingEntities: (BOOL)resolve
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setURI: (NSString*)URI
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSString*) URI

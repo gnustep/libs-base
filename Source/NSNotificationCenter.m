@@ -853,7 +853,7 @@ static NSNotificationCenter *default_center = nil;
  * the object argument is nil).</p>
  *
  * <p>For the name and object arguments, the constraints and behavior described 
- * in -addObserver:name:selector:object: remain valid.</p>
+ * in -addObserver:selector:name:object: remain valid.</p>
  *
  * <p>For each notification received by the center, the observer will execute 
  * the notification block. If the queue is not nil, the notification block is 
@@ -865,15 +865,15 @@ static NSNotificationCenter *default_center = nil;
                     queue: (NSOperationQueue *)queue 
                usingBlock: (GSNotificationBlock)block
 {
-	GSNotificationObserver *observer = 
-		[[GSNotificationObserver alloc] initWithQueue: queue block: block];
+  GSNotificationObserver *observer = 
+    [[GSNotificationObserver alloc] initWithQueue: queue block: block];
 
-	[self addObserver: observer 
-	         selector: @selector(didReceiveNotification:) 
-	             name: name 
-	           object: object];
+  [self addObserver: observer 
+	   selector: @selector(didReceiveNotification:) 
+	       name: name 
+	     object: object];
 
-	return observer;
+  return observer;
 }
 
 /**

@@ -86,7 +86,7 @@ typedef NSUInteger NSDateFormatterBehavior;
  *  <desc>day of the month as a decimal number (01-31)</desc>
  *  <term>%e</term>
  *  <desc>same as %d but does not print the leading 0 for days 1 through 9
- *  (unlike strftime(), does not print a leading space)</desc>
+ *  (unlike "strftime()", does not print a leading space)</desc>
  *  <term>%F</term>
  *  <desc>milliseconds as a decimal number (000-999)</desc>
  *  <term>%H</term>
@@ -107,17 +107,17 @@ typedef NSUInteger NSDateFormatterBehavior;
  *  <desc>weekday as a decimal number (0-6), where Sunday is 0</desc>
  *  <term>%x</term>
  *  <desc>date using the date representation for the locale, including the
- *  time zone (produces different results from strftime())</desc>
+ *  time zone (produces different results from "strftime()")</desc>
  *  <term>%X</term>
  *  <desc>time using the time representation for the locale (produces
- *  different results from strftime())</desc>
+ *  different results from "strftime()")</desc>
  *  <term>%y</term>
  *  <desc>year without century (00-99)</desc>
  *  <term>%Y</term>
  *  <desc>year with century (such as 1990)</desc>
  *  <term>%Z</term>
  *  <desc>time zone name (such as Pacific Daylight Time; produces different
- *  results from strftime())</desc>
+ *  results from "strftime()")</desc>
  *  <term>%z</term>
  *  <desc>time zone offset in hours and minutes from GMT (HHMM)</desc>
  * </deflist>

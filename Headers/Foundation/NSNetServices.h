@@ -224,18 +224,6 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 @end
 
 /**
- * <unit>
- *   <heading>
- *     NSNetServiceBrowserDelegate protocol description
- *   </heading>
- *   <p>
- *     <!-- Foreword -->
- *   </p>
- *   <unit />
- *   <p>
- *     <!-- Afterword -->
- *   </p>
- * </unit>
  * <p>
  *  This protocol must be adopted by any class wishing to implement
  *  an [NSNetServiceBrowser] delegate.
@@ -254,7 +242,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  * Notifies the delegate that the search is about to begin.
  *
  * <p><strong>See also:</strong><br />
- *   [NSNetServiceBrowser-netServiceBrowser:didNotSearch:]<br />
+ *   -netServiceBrowser:didNotSearch:<br />
  * </p>
  */
 
@@ -264,7 +252,7 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
  * Notifies the delegate that the search was unsuccessful.
  *
  * <p><strong>See also:</strong><br />
- *   [NSNetServiceBrowser-netServiceBrowserWillSearch:]<br />
+ *   -netServiceBrowserWillSearch:<br />
  * </p>
  */
 
@@ -336,18 +324,6 @@ GS_EXPORT NSString * const NSNetServicesErrorDomain;
 
 
 /**
- * <unit>
- *   <heading>
- *     NSNetService class description
- *   </heading>
- *   <p>
- *     <!-- Foreword -->
- *   </p>
- *   <unit />
- *   <p>
- *     <!-- Afterword -->
- *   </p>
- * </unit>
  * <p>
  *   [NSNetService] lets you publish a network service in a domain using
  *   multicast DNS. Additionally, it lets you resolve a network service that
@@ -416,18 +392,6 @@ GS_EXPORT_CLASS
 @end
 
 /**
- * <unit>
- *   <heading>
- *     NSNetServiceBrowser class description
- *   </heading>
- *   <p>
- *     <!-- Foreword -->
- *   </p>
- *   <unit />
- *   <p>
- *     <!-- Afterword -->
- *   </p>
- * </unit>
  * <p>
  *   [NSNetServiceBrowser] asynchronously lets you discover network domains
  *   and, additionally, search for a type of network service. It sends its
@@ -473,18 +437,6 @@ GS_EXPORT_CLASS
 @end
 
 /**
- * <unit>
- *   <heading>
- *     NSNetServiceDelegate protocol description
- *   </heading>
- *   <p>
- *     <!-- Foreword -->
- *   </p>
- *   <unit />
- *   <p>
- *     <!-- Afterword -->
- *   </p>
- * </unit>
  * <p>
  *  This protocol must be adopted by any class wishing to implement
  *  an [NSNetService] delegate.

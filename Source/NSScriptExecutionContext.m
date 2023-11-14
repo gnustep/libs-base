@@ -23,7 +23,7 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSScriptExecutionContext.h>
+#import "Foundation/NSScriptExecutionContext.h"
 
 @implementation NSScriptExecutionContext
 

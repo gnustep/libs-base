@@ -44,7 +44,7 @@ extern "C" {
  * IDENT is considered uninitialized, if it contains nil.
  * CLASSNAME must be either NSLock, NSRecursiveLock or one
  * of their subclasses.
- * See [NSLock+newLockAt:] for details.
+ * See [NSLock(GNUstepBase)+newLockAt:] for details.
  * This macro is intended for code that cannot insure
  * that a lock can be initialized in thread safe manner otherwise.
  * <example>

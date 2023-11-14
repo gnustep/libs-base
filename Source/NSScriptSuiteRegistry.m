@@ -23,7 +23,7 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSScriptSuiteRegistry.h>
+#import "Foundation/NSScriptSuiteRegistry.h"
 
 @implementation NSScriptSuiteRegistry
 

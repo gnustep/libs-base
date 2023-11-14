@@ -578,10 +578,16 @@
 <!-- The version of the document. -->
 <!ELEMENT version (%text;)*>
 
-<!-- The date the document was written. -->
+<!-- The date the document was written.
+     If the text content is empty, output produced from the document
+     should describe the date/time at which that output was generated.
+     -->
 <!ELEMENT date (%text;)*>
 
-<!-- An author. -->
+<!-- An author.
+     If the name attribute is empty, output produced from the document
+     should describe the user account which generated the output.
+     -->
 <!ELEMENT author (email?, url?, desc?)>
 <!ATTLIST author
   name CDATA #REQUIRED

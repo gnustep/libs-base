@@ -8,10 +8,14 @@ dynamic-load.h
 Tests/base/*/GNUmakefile
 *.log
 *.sum
+Tools/BaseTools/dependencies
 
 # Unit test byproducts
 *.err
 *.out
+
+# Core files
+*.core
 
 # Autoconf
 autom4te.cache
@@ -34,6 +38,8 @@ Tests/*.tmp
 # Editor byproducts
 *.orig
 *.swp
+\#*\#
+*~
 
 # MacOS Desktop Services Store
 .DS_Store

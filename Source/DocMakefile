@@ -35,6 +35,7 @@ BaseAdditions_DOC_INSTALL_DIR = Developer
 
 Base_AGSDOC_FILES = \
 ../Documentation/Base.gsdoc \
+../GNUstepBase/GSVersionMacros.h \
 FoundationErrors.h \
 Foundation.h \
 FoundationLegacySwiftCompatibility.h \
@@ -257,11 +258,6 @@ Base_AGSDOC_FLAGS = \
 	-TypedefsTemplate TypesAndConstants \
 	-VariablesTemplate TypesAndConstants \
 	-WordMap '{\
-	GS_EXPORT_CLASS="";\
-	GS_PRIVATE_INTERNAL="//";\
-	DEFINE_BLOCK_TYPE="//";\
-	WEAK_ATTRIBUTE="";\
-	WINAPI="";\
 	}' -Up Base
 
 BaseAdditions_AGSDOC_FLAGS = \
@@ -277,9 +273,6 @@ BaseAdditions_AGSDOC_FLAGS = \
 	-TypedefsTemplate TypesAndConstants \
 	-VariablesTemplate TypesAndConstants \
 	-WordMap '{\
-	GS_EXPORT_CLASS="";\
-	GS_PRIVATE_INTERNAL="//";\
-	WINAPI="";\
 	}' -Up BaseAdditions
 
 # Use local version of autogsdoc in case it is not installed

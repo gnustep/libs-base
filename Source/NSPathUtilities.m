@@ -1627,7 +1627,7 @@ GSSetUserName(NSString *aName)
  * Under unix-like systems, the name associated with the current
  * effective user ID is used.<br/ >
  * Under ms-windows, the 'LOGNAME' environment is used, or if that fails, the
- * GetUserName() call is used to find the user name.<br />
+ * GetUserNameW function is used to find the user name.<br />
  * Raises an exception on failure.
  */
 /* NOTE FOR DEVELOPERS.
@@ -1649,7 +1649,7 @@ NSUserName(void)
 	}
       else
 	{
-	  /* The GetUserName function returns the current user name */
+	  /* The GetUserNameW function returns the current user name */
 	  GSNativeChar buf[1024];
 	  DWORD n = 1024;
 

@@ -32,8 +32,12 @@ Other external libraries that you may need to install include:
 @item gnutls (HIGHLY RECOMMENDED)
 @item libxml2 (RECOMMENDED)
 @item libxslt (OPTIONAL)
+@item libavahi (RECOMMENDED for NSNetServices)
+@item zlib (RECOMMENDED)
 @item iconv (OPTIONAL, not needed if you have glibc)
 @item openssl (OPTIONAL, not needed if you have gnutls)
+@item libcurl (RECOMMENDED)
+@item libdispatch (RECOMMENDED)
 @end itemize
 
 If you are installing the GNUstep libraries individually, make sure you

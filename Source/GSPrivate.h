@@ -54,9 +54,9 @@
 
 NSTimeInterval   GSPrivateTimeNow() GS_ATTRIB_PRIVATE;
 
-#include "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 
-#include "Foundation/NSArray.h"
+#import "Foundation/NSArray.h"
 
 #ifdef __GNUSTEP_RUNTIME__
 struct objc_category;
@@ -87,7 +87,7 @@ typedef struct objc_category* Category;
 }
 @end
 
-#include "Foundation/NSString.h"
+#import "Foundation/NSString.h"
 
 /**
  * Macro to manage memory for chunks of code that need to work with
