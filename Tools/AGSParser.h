@@ -117,6 +117,7 @@
 - (unsigned) skipArray;
 - (unsigned) skipBlock;
 - (unsigned) skipBlock: (BOOL*)isEmpty;
+- (unsigned) skipGeneric;
 - (unsigned) skipLiteral;
 - (unsigned) skipRemainderOfLine;
 - (unsigned) skipSpaces;

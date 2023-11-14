@@ -3981,7 +3981,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
   NSString	*directive;
 //  NSString	*where = [self where];
 
-  NSAssert(pos > 0 & '#' == buffer[pos - 1], NSInternalInconsistencyException);
+  NSAssert(pos > 0 && '#' == buffer[pos - 1], NSInternalInconsistencyException);
 
   inPreprocessorDirective = YES;
   directive = [self parseIdentifier];
