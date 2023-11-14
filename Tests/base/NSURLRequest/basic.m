@@ -43,6 +43,18 @@ int main()
   [mutable addValue: @"value2" forHTTPHeaderField: @"gnustep"];
   PASS_EQUAL([mutable valueForHTTPHeaderField: @"gnustep"], (@"value1,value2"),
     "Handle multiple values for an HTTP header field");
+  [mutable setAllHTTPHeaderFields: [NSDictionary dictionaryWithObject: @"object" forKey: @"key"]];
+  PASS_EQUAL([mutable allHTTPHeaderFields],
+    [NSDictionary dictionaryWithObjectsAndKeys:@"object", @"key", @"value1,value2", @"gnustep", nil],
+    "setAllHTTPHeaderFields adds header");
+  [mutable setValue: @"value3" forHTTPHeaderField: @"gnustep"];
+  PASS_EQUAL([mutable allHTTPHeaderFields],
+    [NSDictionary dictionaryWithObjectsAndKeys:@"object", @"key", @"value3", @"gnustep", nil],
+    "Update header field");
+  [mutable setValue: nil forHTTPHeaderField: @"gnustep"];
+  PASS_EQUAL([mutable allHTTPHeaderFields],
+    [NSDictionary dictionaryWithObjectsAndKeys:@"object", @"key", nil],
+    "Remove header field");
   [mutable release];
 
   mutable = [NSMutableURLRequest new];
