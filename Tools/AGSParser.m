@@ -1372,6 +1372,10 @@ recheck:
 
   while ([self parseSpace] < length)
     {
+      if (pos < length && buffer[pos] == '_')
+	{
+	  [self skipIfAttribute];
+	}
       while (pos < length && buffer[pos] == '*')
 	{
 	  if (p == nil && (p = [d objectForKey: @"Prefix"]) == nil)
@@ -1537,24 +1541,7 @@ recheck:
 	  if (([s isEqual: @"__attribute__"])
 	    || ([s isEqual: @"__asm__"]))
 	    {
-	      if ([self skipSpaces] < length && buffer[pos] == '(')
-		{
-		  unsigned	start = pos;
-
-		  [self skipBlock];	// Skip the attributes
-		  if (YES == verbose)
-		    {
-		      NSString	*attr;
-
-		      attr = [NSString stringWithCharacters: buffer + start
-						     length: pos - start];
-		      [self log: @"skip %@ %@", s, attr];
-		    }
-		}
-	      else
-		{
-		  [self log: @"strange format %@", s];
-		}
+	      [self skipAttribute: s];
 	      continue;
 	    }
 	  if ([s isEqualToString: @"GS_EXPORT"])
@@ -1925,16 +1912,6 @@ another:
       [d setObject: @"Variables" forKey: @"Kind"];
     }
 
-  /* If there is an attribute before the variable name we must ignore it.
-   */
-  if ([s isEqualToString: @"__attribute__"])
-    {
-      if ([self skipSpaces] < length && buffer[pos] == '(')
-	{
-	  [self skipBlock];	// Skip the attributes
-	}
-    }
-
   if (s == nil)
     {
       [self parseDeclaratorInto: d];
@@ -2064,6 +2041,7 @@ another:
 			    @"future versions"
 			    to: nil];
 			}
+		      [self skipSpaces];
 		    }
 		  else
 		    {
@@ -3144,6 +3122,7 @@ fail:
 		    @"future versions"
 		    to: nil];
 		}
+  	      [self skipSpaces];
 	    }
 	  else
 	    {
@@ -4919,6 +4898,49 @@ fail:
 	  case ']':
 	    return pos;
         }
+    }
+  return pos;
+}
+
+- (unsigned) skipAttribute: (NSString*)s
+{
+  if ([self skipSpaces] < length && buffer[pos] == '(')
+    {
+      unsigned	start = pos;
+
+      [self skipBlock];	// Skip the attributes/asm
+      if (YES == verbose)
+	{
+	  NSString	*attr;
+
+	  attr = [NSString stringWithCharacters: buffer + start
+					 length: pos - start];
+	  [self log: @"skip %@ %@", s, attr];
+	}
+    }
+  else
+    {
+      [self log: @"strange format %@", s];
+    }
+  [self skipSpaces];
+}
+
+- (unsigned) skipIfAttribute
+{
+  if (pos < length && '_' == buffer[pos])
+    {
+      unsigned	saved = pos;
+      NSString	*s = [self parseIdentifier];
+
+      if ([s isEqualToString: @"__attribute__"]
+	|| [s isEqualToString: @"__asm__"])
+	{
+	  [self skipAttribute: s];
+	}
+      else
+	{
+	  pos = saved;
+	}
     }
   return pos;
 }
