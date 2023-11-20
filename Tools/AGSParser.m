@@ -1925,6 +1925,16 @@ another:
       [d setObject: @"Variables" forKey: @"Kind"];
     }
 
+  /* If there is an attribute before the variable name we must ignore it.
+   */
+  if ([s isEqualToString: @"__attribute__"])
+    {
+      if ([self skipSpaces] < length && buffer[pos] == '(')
+	{
+	  [self skipBlock];	// Skip the attributes
+	}
+    }
+
   if (s == nil)
     {
       [self parseDeclaratorInto: d];
