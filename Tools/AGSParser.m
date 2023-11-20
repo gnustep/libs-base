@@ -4923,6 +4923,7 @@ fail:
       [self log: @"strange format %@", s];
     }
   [self skipSpaces];
+  return pos;
 }
 
 - (unsigned) skipIfAttribute
