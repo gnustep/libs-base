@@ -281,7 +281,7 @@ NSString *GSPrivateSymbolPath(Class theClass)
 
       s = [NSString stringWithUTF8String: info.dli_fname];
       s = [s stringByResolvingSymlinksInPath];
-      s = [s stringByStandardizingPath];
+      return [s stringByStandardizingPath];
     }
 #endif
 
@@ -327,7 +327,7 @@ NSString *GSPrivateSymbolPath(Class theClass)
 
           s = [NSString stringWithUTF8String: ret];
 	  s = [s stringByResolvingSymlinksInPath];
-	  s = [s stringByStandardizingPath];
+	  return [s stringByStandardizingPath];
         }
     }
   return nil;
