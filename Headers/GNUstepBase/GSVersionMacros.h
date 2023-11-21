@@ -242,9 +242,18 @@
  */
 
 #if defined(__clang__) || GS_GCC_MINREQ(3,1)
-#  define GS_DEPRECATED_FUNC __attribute__ ((deprecated))
+#  define GS_DEPRECATED_FUNC __attribute__((deprecated))
 #else
 #  define GS_DEPRECATED_FUNC
+#endif
+
+/* This attribute is placed immediately before the name of a method
+ * or function to mark it as unimplemented.
+ */
+#if defined(__clang__) || GS_GCC_MINREQ(3,1)
+#  define GS_UNIMPLEMENTED __attribute__((deprecated("*** not implemented - please contribute an implementation before using this feature ***")))
+#else
+#  define GS_UNIMPLEMENTED
 #endif
 
 #define GS_UNUSED_ARG __attribute__((unused))

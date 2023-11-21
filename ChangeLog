@@ -1,3 +1,9 @@
+2023-11-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSVersionMacros.h: Added GS_UNIMPLEMENTED to
+	mark methods and functions as unimplemented for compiler warnings
+	and documentation. github #350
+
 2023-11-14 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSURLRequest.m: Support deleting NSMutableURLRequest headers by
