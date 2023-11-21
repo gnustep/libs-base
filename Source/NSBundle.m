@@ -2988,9 +2988,9 @@ IF_NO_ARC(
    * change NSUserDefault's manual gnustep-base resource
    * lookup to match.
    */
-  NSArray *paths;
-  NSEnumerator *enumerator;
-  NSString *path;
+  NSArray	*paths;
+  NSEnumerator	*enumerator;
+  NSString	*path = libraryName;
   NSFileManager *fm = manager();
   NSRange	r;
 
@@ -3078,6 +3078,14 @@ IF_NO_ARC(
 	}
     }
 #endif
+
+  if (nil == interfaceVersion
+    && NO == [libraryName isEqualToString: @"gnustep-base"])
+    {
+      NSLog(@"Warning: [%@+%@] called without version and unable to"
+	@" infer version from library name (%@).",
+	NSStringFromClass(self), NSStringFromSelector(_cmd), path);
+    }
 
   while ([[libraryName pathExtension] length] > 0)
     {
