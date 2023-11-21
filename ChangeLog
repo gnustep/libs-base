@@ -1,5 +1,10 @@
 2023-11-21 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/objc-load.m: Fix to get library path in standardised form to
+	match code for getting executable path.
+
+2023-11-21 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/GNUstepBase/GSVersionMacros.h: Added GS_UNIMPLEMENTED to
 	mark methods and functions as unimplemented for compiler warnings
 	and documentation. github #350

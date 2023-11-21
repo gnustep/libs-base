@@ -259,6 +259,8 @@ GSPrivateSymbolPath(Class theClass)
 #warning Under Cygwin, we may want to use cygwin_conv_path() to get the unix path back?
 #endif
       s = [NSString stringWithCharacters: buf length: wcslen(buf)];
+      s = [s stringByResolvingSymlinksInPath];
+      s = [s stringByStandardizingPath];
     }
   return s;
 }
@@ -275,7 +277,11 @@ NSString *GSPrivateSymbolPath(Class theClass)
    */
   if (0 != dladdr((void*)theClass, &info))
     {
-      return [NSString stringWithUTF8String: info.dli_fname];
+      NSString	*s;
+
+      s = [NSString stringWithUTF8String: info.dli_fname];
+      s = [s stringByResolvingSymlinksInPath];
+      s = [s stringByStandardizingPath];
     }
 #endif
 
@@ -317,7 +323,11 @@ NSString *GSPrivateSymbolPath(Class theClass)
 
       if (ret)
         {
-          return [NSString stringWithUTF8String: ret];
+	  NSString	*s;
+
+          s = [NSString stringWithUTF8String: ret];
+	  s = [s stringByResolvingSymlinksInPath];
+	  s = [s stringByStandardizingPath];
         }
     }
   return nil;
