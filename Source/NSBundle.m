@@ -1576,6 +1576,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	   * and return the mainBundle instead.
 	   */
 	  bundle = [NSBundle bundleForLibrary: lib];
+	  NSDebugLLog(@"NSBundle", @"NSBundle bundleForClass: looking up %@ in bundle %@", lib, bundle);
           if (nil == bundle && [[self _addFrameworks] count] > 0)
             {
               bundle = (NSBundle *)NSMapGet(_byClass, aClass);
