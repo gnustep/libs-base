@@ -530,13 +530,12 @@ GS_EXPORT_CLASS
  *  not exist on disk.
  * </p>
  */
-+ (NSBundle *) bundleForLibrary: (NSString *)libraryName
-                        version: (NSString *)interfaceVersion;
++ (NSBundle *) bundleForLibrary: (NSString*)libraryName
+                        version: (NSString*)interfaceVersion;
 
-/** This method is a equivalent to bundleForLibrary:version: with a nil
- * version.
+/** Use +bundleForLibrary:version: instead.
  */
-+ (NSBundle *) bundleForLibrary: (NSString *)libraryName;
++ (NSBundle*) bundleForLibrary: (NSString*)libraryName NS_DEPRECATED();
 
 
 

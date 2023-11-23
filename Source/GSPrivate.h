@@ -279,6 +279,7 @@ typedef enum {
 + (NSString*) _gnustep_target_dir;
 + (NSString*) _gnustep_target_os;
 + (NSString*) _library_combo;
++ (NSString*) _versionForLibrary: (NSString**)path;
 @end
 
 /**

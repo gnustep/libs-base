@@ -1,3 +1,13 @@
+2023-11-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m:
+	* Source/GSPrivate.h:
+	* Headers/Foundation/NSBundle.m:
+	Make +bundleForLibrary:version: behavior match documenation.
+	Make +bundleForClass: call new private method to get library name
+	and version, warnign if version cannot be determined.
+	Mark +bundleForLibrary: as deprecated since we want a version.
+
 2023-11-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/objc-load.m: Fix to get library path in standardised form to
