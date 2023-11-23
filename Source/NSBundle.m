@@ -1014,6 +1014,7 @@ _find_main_bundle_for_tool(NSString *toolName)
 	{
 	  ver = [[libraryName substringFromIndex: NSMaxRange(r)]
 	    stringByReplacingString: @"_" withString: @"."];
+	  libraryName = [libraryName substringToIndex: r.location];
 	}
     }
 #elif defined(__APPLE__)
