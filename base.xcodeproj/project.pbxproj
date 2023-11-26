@@ -4062,6 +4062,7 @@
 				);
 				INFOPLIST_FILE = "Support/Foundation/Foundation-Info.plist";
 				LIBRARY_SEARCH_PATHS = /opt/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				OTHER_CFLAGS = (
 					"-DGNUSTEP",
 					"-DNeXT_RUNTIME",
@@ -4100,6 +4101,7 @@
 				);
 				INFOPLIST_FILE = "Support/Foundation/Foundation-Info.plist";
 				LIBRARY_SEARCH_PATHS = /opt/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.14;
 				OTHER_CFLAGS = (
 					"-DGNUSTEP",
 					"-DNeXT_RUNTIME",
