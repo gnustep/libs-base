@@ -1645,6 +1645,11 @@ setNonBlocking(SOCKET fd)
     }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wcast-align" 
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types" 
 - (BOOL) _setSocketAddress: (NSString*)address
                       port: (NSInteger)port
                     family: (NSInteger)family
@@ -1670,7 +1675,7 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
-              [self _setAddress: (struct sockaddr*)&peer];
+              [self _setAddress: (struct sockaddr_storage*)&peer];
               return YES;
             }
         }
@@ -2933,6 +2938,11 @@ setNonBlocking(SOCKET fd)
   /* Now the streams are redy to be opened.
    */
 }
+
+#pragma GCC diagnostic pop // cast align
+
+#pragma GCC diagnostic pop // incompatible pointer types...
+
 
 - (void) _dispatch
 {
