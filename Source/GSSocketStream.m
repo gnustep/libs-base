@@ -1849,7 +1849,7 @@ setNonBlocking(SOCKET fd)
           [GSTLSHandler tryInput: self output: _sibling];
         }
 
-      result = connect([self _sock], &_address.s,
+      result = connect([self _sock], (struct sockaddr *)&_address.s,
         GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
@@ -2370,7 +2370,7 @@ setNonBlocking(SOCKET fd)
           [GSTLSHandler tryInput: _sibling output: self];
         }
 
-      result = connect([self _sock], &_address.s,
+      result = connect([self _sock], (struct sockaddr *)&_address.s,
         GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
@@ -2792,7 +2792,7 @@ setNonBlocking(SOCKET fd)
 #endif
 
   bindReturn = bind([self _sock],
-    &_address.s, GSPrivateSockaddrLength(&_address.s));
+    (struct sockaddr *)&_address.s, GSPrivateSockaddrLength(&_address.s));
   if (socketError(bindReturn))
     {
       [self _recordError];
@@ -2854,11 +2854,11 @@ setNonBlocking(SOCKET fd)
   struct {
     uint8_t bytes[BUFSIZ];
   } __attribute__((aligned(2)))buf;
-  struct sockaddr       *addr = (struct sockaddr*)&buf;
+  struct sockaddr_storate       *addr = (struct sockaddr_storage *)&buf;
   socklen_t		len = sizeof(buf);
   int			acceptReturn;
 
-  acceptReturn = accept([self _sock], addr, (OPTLEN*)&len);
+  acceptReturn = accept([self _sock], (struct sockaddr *)addr, (OPTLEN*)&len);
   _events &= ~NSStreamEventHasBytesAvailable;
   if (socketError(acceptReturn))
     { // test for real error
