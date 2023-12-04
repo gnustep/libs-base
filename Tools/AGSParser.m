@@ -2020,11 +2020,19 @@ another:
 	}
       else
 	{
-	  if (isFunction)
-	    {
-	      NSString	*ident = [self parseIdentifier];
+	  NSString	*ident;
 
-	      if ([ident isEqual: @"__attribute__"])
+	  while (isFunction && (ident = [self parseIdentifier]) != nil)
+	    {
+	      if ([ident isEqual: @"GS_UNIMPLEMENTED"])
+		{
+		  [d setObject: @"YES" forKey: @"Unimplemented"];
+		  [self appendComment: @"<em>Warning</em> this is "
+		    @"<em>unimplemented</em> but may be implemented "
+		    @"in future versions"
+		    to: nil];
+		}
+	      else if ([ident isEqual: @"__attribute__"])
 		{
 		  if ([self skipSpaces] < length && buffer[pos] == '(')
 		    {
@@ -2036,12 +2044,12 @@ another:
 						     length: pos - start];
 		      if ([attr rangeOfString: @"deprecated"].length > 0)
 			{
+			  [d setObject: @"YES" forKey: @"Deprecated"];
 			  [self appendComment: @"<em>Warning</em> this is "
 			    @"<em>deprecated</em> and may be removed in "
 			    @"future versions"
 			    to: nil];
 			}
-		      [self skipSpaces];
 		    }
 		  else
 		    {
@@ -2052,45 +2060,19 @@ another:
 		{
 		  [self log: @"ignoring '%@' in function declaration", ident];
 		}
+	      [self skipSpaces];
 	    }
-
-	  if (buffer[pos] == '_')
+	  if (NO == isFunction)
 	    {
-	      NSString	*ident = [self parseIdentifier];
-
-	      if ([ident isEqualToString: @"__attribute__"])
-		{
-		  [self skipSpaces];
-		  if (pos < length && buffer[pos] == '(')
-		    {
-		      unsigned	start = pos;
-		      NSString	*attr;
-
-		      [self skipBlock];
-		      attr = [NSString stringWithCharacters: buffer + start
-						     length: pos - start];
-		      if ([attr rangeOfString: @"deprecated"].length > 0)
-			{
-			  [self appendComment: @"<em>Warning</em> this is "
-			    @"<em>deprecated</em> and may be removed in "
-			    @"future versions"
-			    to: nil];
-			}
-		      [self skipSpaces];
-		    }
-		}
-	      else
-		{
-		  [self log: @"Underscore is not from __attribute__"];
-		  goto fail;
-		}
-	      if (pos >= length)
-		{
-		  [self log: @"Unexpected end of declaration"];
-		  goto fail;
-		}
+	      /* If there's an attribute in the variable declaration, skip it
+	       */
+	      [self skipIfAttribute];
 	    }
-
+	  if (pos >= length)
+	    {
+	      [self log: @"Unexpected end of file in declaration"];
+	      goto fail;
+	    }
 	  if (buffer[pos] == ';')
 	    {
 	      [self skipStatement];
@@ -2819,6 +2801,15 @@ try:
 		      [self skipToEndOfLine];
 		      return [self parseIdentifier];
 		    }
+		  else if ([val isEqualToString: @"()"])
+		    {
+		      if ([self skipSpaces] < length && buffer[pos] == '(')
+			{
+			  [self skipBlock];	// Skip the attributes
+			  [self skipSpaces];
+			}
+		      return [self parseIdentifier];
+		    }
 		  return val;	// Got mapped identifier.
 		}
 	    }
@@ -3105,30 +3096,44 @@ fail:
   while (buffer[pos] != term)
     {
       token = [self parseIdentifier];
-      if ([token isEqual: @"__attribute__"])
+      while ([token isEqual: @"GS_UNIMPLEMENTED"]
+	|| [token isEqual: @"__attribute__"])
 	{
-	  if ([self skipSpaces] < length && buffer[pos] == '(')
+	  if ([token isEqual: @"GS_UNIMPLEMENTED"])
 	    {
-	      unsigned	start = pos;
-	      NSString	*attr;
-
-	      [self skipBlock];	// Skip the attributes
-	      attr = [NSString stringWithCharacters: buffer + start
-					     length: pos - start];
-	      if ([attr rangeOfString: @"deprecated"].length > 0)
+	      [method setObject: @"YES" forKey: @"Unimplemented"];
+	      [self appendComment: @"<em>Warning</em> this is "
+		@"<em>unimplemented</em> but may be implemented "
+		@"in future versions"
+		to: nil];
+	      [self skipSpaces];
+	    }
+	  else if ([token isEqual: @"__attribute__"])
+	    {
+	      if ([self skipSpaces] < length && buffer[pos] == '(')
 		{
-		  [self appendComment: @"<em>Warning</em> this is "
-		    @"<em>deprecated</em> and may be removed in "
-		    @"future versions"
-		    to: nil];
+		  unsigned	start = pos;
+		  NSString	*attr;
+
+		  [self skipBlock];	// Skip the attributes
+		  attr = [NSString stringWithCharacters: buffer + start
+						 length: pos - start];
+		  if ([attr rangeOfString: @"deprecated"].length > 0)
+		    {
+		      [method setObject: @"YES" forKey: @"Deprecated"];
+		      [self appendComment: @"<em>Warning</em> this is "
+			@"<em>deprecated</em> and may be removed in "
+			@"future versions"
+			to: nil];
+		    }
+		  [self skipSpaces];
 		}
-  	      [self skipSpaces];
+	      else
+		{
+		  [self log: @"strange format function attributes"];
+		}
 	    }
-	  else
-	    {
-	      [self log: @"strange format function attributes"];
-	    }
-	  continue;
+	  token = [self parseIdentifier];
 	}
       if ([self parseSpace] >= length)
 	{
@@ -4448,7 +4453,8 @@ fail:
 		      tmp = [[NSString alloc] initWithCharacters: &buffer[start]
 							  length: pos - start];
 		      if ([tmp isEqualToString: @"NS_FORMAT_ARGUMENT"]
-			|| [tmp isEqualToString: @"NS_FORMAT_FUNCTION"])
+			|| [tmp isEqualToString: @"NS_FORMAT_FUNCTION"]
+			|| [tmp isEqualToString: @"NS_DEPRECATED"])
 			{
 			  if (inPreprocessorDirective)
 			    {
