@@ -139,11 +139,6 @@ static int socketError()
 }
 #endif /* !_WIN32 */
 
-/*
- * Largest chunk of data possible in DO
- */
-static uint32_t	maxDataLength = 32 * 1024 * 1024;
-
 /* Options for TLS encryption of connections
  */
 static NSDictionary     *tlsClientOptions;
@@ -883,15 +878,19 @@ static Class	runLoopClass;
   else
     {
       want = [rData length];
-      if (want < rWant)
+      if (want < MAX(rWant, NETBLOCK))
         {
-          want = rWant;
-          [rData setLength: want];
-        }
-      if (want < NETBLOCK)
-        {
-          want = NETBLOCK;
-          [rData setLength: want];
+          want = MAX(rWant, NETBLOCK);
+	  NS_DURING
+	    {
+	      [rData setLength: want];
+	    }
+	  NS_HANDLER
+	    {
+	      [self invalidate];
+	      [localException raise];
+	    }
+	  NS_ENDHANDLER
         }
     }
 
@@ -1013,13 +1012,6 @@ static Class	runLoopClass;
 		    }
 		  else
 		    {
-		      if (l > maxDataLength)
-		        {
-		          NSLog(@"%@ - unreasonable length (%u) for data",
-		        	self, l);
-		          [self invalidate];
-		          return;
-		        }
 		      /*
 		       * If not a port or zero length data,
 		       * we discard the data read so far and fill the
@@ -1035,13 +1027,6 @@ static Class	runLoopClass;
 		}
 	      else if (rType == GSP_HEAD)
 		{
-		  if (l > maxDataLength)
-		    {
-		      NSLog(@"%@ - unreasonable length (%u) for data",
-		        self, l);
-		      [self invalidate];
-		      return;
-		    }
 		  /*
 		   * If not a port or zero length data,
 		   * we discard the data read so far and fill the

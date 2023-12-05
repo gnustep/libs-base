@@ -1,3 +1,11 @@
+2023-12-05 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Remove obsolete restriction on DO message length.  Add exception handler
+	to invalidate port if we are unable to allocate more memory for a very
+	large port message.
+
 2023-11-23 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m:
