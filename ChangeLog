@@ -1,3 +1,8 @@
+2023-12-06 Daniel Boyd <danieljboyd@icloud.com>
+
+	* Source/NSDecimal.m:
+	For compare, handle the case where one or both operands are zero.
+
 2023-12-05 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSMessagePort.m:
