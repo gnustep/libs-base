@@ -1420,4 +1420,39 @@ typedef struct {
     }
 }
 
+- (BOOL)isEqual:(id)object
+{
+    if ([object isKindOfClass:[NSDateComponents class]]) {
+        if ([self era] != [object era] ||
+            [self year] != [object year] ||
+            [self quarter] != [object quarter] ||
+            [self month] != [object month] ||
+            [self day] != [object day] ||
+            [self hour] != [object hour] ||
+            [self minute] != [object minute] ||
+            [self second] != [object second] ||
+            [self weekday] != [object weekday] ||
+            [self weekdayOrdinal] != [object weekdayOrdinal] ||
+            [self weekOfMonth] != [object weekOfMonth] ||
+            [self weekOfYear] != [object weekOfYear] ||
+            [self yearForWeekOfYear] != [object yearForWeekOfYear] ||
+            [self nanosecond] != [object nanosecond]) {
+            return NO;
+        }
+
+        if ([self leapMonth] != [object leapMonth]) {
+            return NO;
+        }
+
+        // != test first to handle nil
+        if ([self calendar] != [object calendar] && ![[self calendar] isEqual:[object calendar]]) { return NO; }
+        // != test first to handle nil
+        if ([self timeZone] != [object timeZone] && ![[self timeZone] isEqual:[object timeZone]]) { return NO; }
+
+        return YES;
+    }
+
+    return [super isEqual:object];
+}
+
 @end
