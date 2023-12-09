@@ -87,6 +87,10 @@ static NSNull	*null = 0;
   return @"<null>";
 }
 
+- (id) valueForUndefinedKey: (NSString*)aKey {
+  return null;
+}
+
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
 }
