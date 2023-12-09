@@ -87,7 +87,8 @@ static NSNull	*null = 0;
   return @"<null>";
 }
 
-- (id) valueForUndefinedKey: (NSString*)aKey {
+- (id) valueForUndefinedKey: (NSString*)aKey
+{
   return null;
 }
 
