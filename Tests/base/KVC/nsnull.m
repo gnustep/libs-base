@@ -18,7 +18,7 @@ int main(void) {
               "Setting an undefined key on NSNull should not crash.");
 
     // Accessing an undefined key path
-    id result = [nullObject valueForKeyPath:@"some.path"];
+    result = [nullObject valueForKeyPath:@"some.path"];
     PASS(result == nullObject, "NSNull returns itself for undefined key paths.");
 
     //  Attempting to set a value for an undefined key path
