@@ -21,19 +21,19 @@ int main(void) {
 
     value = [[filtered objectAtIndex:0] objectForKey:@"key"];
 
-    PASS(filtered.count == 1 && [value isEqualToString:@"value2"], 
+    PASS([filtered count] == 1 && [value isEqualToString:@"value2"], 
          "NSPredicate should correctly filter array including NSNull");
 
     // Filtering with NSPredicate where no match is found
 	predicate = [NSPredicate predicateWithFormat:@"key == %@", @"nonexistent"];
     filtered = [array filteredArrayUsingPredicate: predicate];
-    PASS(filtered.count == 0, 
+    PASS([filtered count] == 0, 
          "NSPredicate should return an empty array when no match is found");
 
     // Filtering with NSPredicate with a different key
 	predicate = [NSPredicate predicateWithFormat:@"anotherKey == %@", @"value1"];
     filtered = [array filteredArrayUsingPredicate: predicate];
-    PASS(filtered.count == 0, 
+    PASS([filtered count] == 0, 
          "NSPredicate should return an empty array when filtering with a non-existent key");
 
     [arp release];
