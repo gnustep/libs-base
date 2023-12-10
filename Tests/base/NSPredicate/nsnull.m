@@ -8,6 +8,7 @@ int main(void) {
     NSAutoreleasePool *arp = [NSAutoreleasePool new];
     NSDictionary *dict1, *dict2;
 	NSArray *array, *filtered;
+    NSString *value;
 	NSPredicate *predicate;
 
     dict1 = [NSDictionary dictionaryWithObject:@"value1" forKey:@"key"];
@@ -18,7 +19,9 @@ int main(void) {
 	predicate = [NSPredicate predicateWithFormat:@"key == %@", @"value2"];
     filtered = [array filteredArrayUsingPredicate: predicate];
 
-    PASS(filtered.count == 1 && [filtered[0][@"key"] isEqualToString:@"value2"], 
+    value = [[filtered objectAtIndex:0] objectForKey:@"key"];
+
+    PASS(filtered.count == 1 && [value isEqualToString:@"value2"], 
          "NSPredicate should correctly filter array including NSNull");
 
     // Filtering with NSPredicate where no match is found
