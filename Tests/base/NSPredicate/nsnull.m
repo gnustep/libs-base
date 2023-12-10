@@ -6,11 +6,15 @@
 
 int main(void) {
     NSAutoreleasePool *arp = [NSAutoreleasePool new];
+    NSDictionary *dict1, *dict2;
 	NSArray *array, *filtered;
 	NSPredicate *predicate;
 
+    dict1 = [NSDictionary dictionaryWithObject:@"value1" forKey:@"key"];
+    dict2 = [NSDictionary dictionaryWithObject:@"value2" forKey:@"key"];
+    array = [NSArray arrayWithObjects:dict1, dict2, [NSNull null], nil];
+
     // Basic filtering with NSPredicate
-    array = @[@{@"key": @"value1"}, @{@"key": @"value2"}, [NSNull null]];
 	predicate = [NSPredicate predicateWithFormat:@"key == %@", @"value2"];
     filtered = [array filteredArrayUsingPredicate: predicate];
 
