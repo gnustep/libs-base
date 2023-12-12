@@ -1669,11 +1669,23 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 	  NSString	*path;
 	  NSString	*exep;
 
+	  exep = GSPrivateExecutablePath();
+	  path = GSPrivateSymbolPath(aClass);
+
+	  /* Some systems do not provide the full path to the file
+	   * containing the symbol.  In that case we assume that if
+	   * the partial path matches the executable path then it
+	   * the executable path is the full path to the file.
+	   */
+	  if ([path isAbsolutePath] == NO
+	    && [path isEqualToString: [exep lastPathComponent]])
+	    {
+	      path = exep;
+	    }
+
 	  /* If the class is defined in a file other than the executable
 	   * it must be in a library or framework/bundle.
 	   */
-	  path = GSPrivateSymbolPath(aClass);
-	  exep = GSPrivateExecutablePath();
 	  if ([path isEqual: exep] == NO)
 	    {
               NSString	*libraryName = path;
