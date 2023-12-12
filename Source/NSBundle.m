@@ -1667,22 +1667,24 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       if (!class_isMetaClass(aClass))
         {
 	  NSString	*path;
+	  NSString	*exep;
 
 	  /* If the class is defined in a file other than the executable
 	   * it must be in a library or framework/bundle.
 	   */
 	  path = GSPrivateSymbolPath(aClass);
-	  if ([path isEqual: GSPrivateExecutablePath()] == NO)
+	  exep = GSPrivateExecutablePath();
+	  if ([path isEqual: exep] == NO)
 	    {
               NSString	*libraryName = path;
 	      NSString	*ver = [self _versionForLibrary: &libraryName];
 
 	      if (nil == ver)
 		{
-		  NSLog(@"Warning: [%@+%@] unable to determine"
-		    @" version of library '%@' containing '%@'",
+		  NSLog(@"Warning: [%@+%@] unable to determine version"
+		    @" of library '%@' containing '%@' for executable '%@'",
 		    NSStringFromClass(self), NSStringFromSelector(_cmd),
-		    path, NSStringFromClass(aClass));
+		    path, NSStringFromClass(aClass), exep);
 		}
 	      /* Get the library bundle ... if there wasn't one then we
 	       * will check to see if it's in a newly loaded framework
