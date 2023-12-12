@@ -1361,6 +1361,10 @@ recheck:
 		}
 	    }
 	}
+      if (ignore)
+	{
+	  [self log: @"unmatched <ignore> tag"];
+	}
     }
   return pos;
 }
