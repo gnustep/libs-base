@@ -1,7 +1,17 @@
+2023-12-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/objc-load.m:
+	* Source/GSPrivate.h:
+	In GSPrivateSymbolPath() check for dladdr returning argv[0] as the
+	file path, and map it to the path of the executable so bundle checks
+	for the location of the file containing the code can work consistently.
+
+
 2023-12-06 Daniel Boyd <danieljboyd@icloud.com>
 
 	* Source/NSDecimal.m:
 	For compare, handle the case where one or both operands are zero.
+	* Tests/base/NSNumber/test03.m: add tests
 
 2023-12-05 Richard Frith-Macdonald <rfm@gnu.org>
 

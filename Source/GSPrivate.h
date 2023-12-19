@@ -496,7 +496,8 @@ GSPrivateStrExternalize(GSStr s) GS_ATTRIB_PRIVATE;
  * module.  So it returns the full filesystem path for shared libraries
  * and bundles (which is very nice), but unfortunately it returns 
  * argv[0] (which might be something as horrible as './obj/test')
- * for classes in the main executable.
+ * for classes in the main executable.  In this case we return the
+ * full path to the executable rather than the value from the linker.
  *
  * Currently, the function will return nil if any of the following
  * conditions is satisfied:

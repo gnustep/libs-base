@@ -277,11 +277,23 @@ NSString *GSPrivateSymbolPath(Class theClass)
    */
   if (0 != dladdr((void*)theClass, &info))
     {
-      NSString	*s;
+      /* On some platforms, when the symbol is in the executable, the
+       * dladdr() function returns the value from argv[0] as the path.
+       * So we check for that and map it to the full path of the
+       * executable.
+       */
+      if (strcmp(info.dli_fname, GSPrivateArgZero()) == 0)
+	{
+	  return GSPrivateExecutablePath();
+	}
+      else
+	{
+	  NSString	*s;
 
-      s = [NSString stringWithUTF8String: info.dli_fname];
-      s = [s stringByResolvingSymlinksInPath];
-      return [s stringByStandardizingPath];
+	  s = [NSString stringWithUTF8String: info.dli_fname];
+	  s = [s stringByResolvingSymlinksInPath];
+	  return [s stringByStandardizingPath];
+	}
     }
 #endif
 
