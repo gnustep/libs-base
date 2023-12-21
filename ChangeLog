@@ -1,3 +1,8 @@
+2023-12-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Tools/AGSParser.m: Replace GS_GENERIC macros in method types etc
+	with the basic type name.
+
 2023-12-09 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/objc-load.m:
@@ -128,7 +133,7 @@
 	* Tools/AGSIndex.h:
 	* Tools/AGSIndex.m:
 	* Tools/AGSOutput.m:
-	* Tools/AGSParser.h:
+	* Tools/AGSPme.arser.h:
 	* Tools/AGSParser.m:
 	* Tools/DocMakefile:
 	* Tools/autogsdoc.m:
