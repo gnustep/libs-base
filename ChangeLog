@@ -2,6 +2,8 @@
 
         * Tools/AGSParser.m: Replace GS_GENERIC macros in method types etc
 	with the basic type name.
+	* Tools/AGSIndex.h:
+	* Tools/AGSIndex.m: Create index of all authors in the project
 
 2023-12-09 Richard Frith-Macdonald <rfm@gnu.org>
 

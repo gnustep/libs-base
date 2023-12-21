@@ -110,7 +110,23 @@ mergeDictionaries(NSMutableDictionary *dst, NSDictionary *src, BOOL override)
 		}
 	      else if ([d isEqual: s] == NO)
 		{
-		  if (override == YES)
+		  if ([[stack firstObject] isEqualToString: @"author"])
+		    {
+		      NSMutableArray	*m = AUTORELEASE([s mutableCopy]);
+		      NSUInteger	c = [d count];
+
+		      while (c-- > 0)
+			{
+			  NSString	*e = [d objectAtIndex: c];
+
+			  if (NO == [m containsObject: e])
+			    {
+			      [m addObject: e];
+			    }
+			}
+		      [dst setObject: m forKey: k];
+		    }
+		  else if (override == YES)
 		    {
 		      [dst setObject: s forKey: k];
 		    }
@@ -291,7 +307,32 @@ findKey(id refs, NSString *key, NSMutableArray *path, NSMutableArray *found)
           [self setGlobalRef: base type: @"tool"];
         }
 
-      if ([name isEqual: @"category"] == YES)
+      if ([name isEqual: @"author"] == YES)
+	{
+	  NSString	*author = [prop objectForKey: @"name"];
+
+	  if ([author length] > 0)
+	    {
+	      GSXMLNode	*tmp = [node firstChild];
+
+	      [self setEmail: nil forAuthor: author];
+	      while (tmp)
+		{
+		  if ([[tmp name] isEqual: @"email"])
+		    {
+		      NSDictionary	*prop = [tmp attributes];
+
+		      name = [prop objectForKey: @"address"];
+		      if ([name length] > 0)
+			{
+			  [self setEmail: name forAuthor: author];
+			}
+		    }
+		  tmp = [tmp next];
+		}
+	    }
+	}
+      else if ([name isEqual: @"category"] == YES)
 	{
 	  newUnit = YES;
 	  classname = [prop objectForKey: @"class"];
@@ -594,6 +635,38 @@ findKey(id refs, NSString *key, NSMutableArray *path, NSMutableArray *found)
       ENTER_POOL
       setDirectory(refs, path);
       LEAVE_POOL
+    }
+}
+
+- (NSDictionary*) authors
+{
+  return [refs objectForKey: @"author"];
+}
+
+/**
+ * Set up an array of email addresses for author.
+ */
+- (void) setEmail: (NSString*)address forAuthor: (NSString*)name
+{
+  NSMutableDictionary	*dict;
+  NSMutableArray	*array;
+
+  dict = [refs objectForKey: @"author"];
+  if (dict == nil)
+    {
+      dict = [NSMutableDictionary new];
+      [refs setObject: dict forKey: @"author"];
+      RELEASE(dict);
+    }
+  if (nil == (array = [dict objectForKey: name]))
+    {
+      array = [NSMutableArray array];
+      [dict setObject: array forKey: name];
+    }
+  address = [address lowercaseString];
+  if (address != nil && NO == [array containsObject: address]) 
+    {
+      [array addObject: address];
     }
 }
 

@@ -42,6 +42,7 @@
   unsigned		ssect;
   unsigned		sssect;
 }
+- (NSDictionary*) authors;
 - (NSArray*) find: (NSString*)key;
 - (NSString*) globalRef: (NSString*)ref type: (NSString*)type;
 - (void) makeRefs: (GSXMLNode*)node;
@@ -50,6 +51,7 @@
 - (NSArray*) methodsInUnit: (NSString*)aUnit;
 - (NSMutableDictionary*) refs;
 - (void) setDirectory: (NSString*)path;
+- (void) setEmail: (NSString*)address forAuthor: (NSString*)name;
 - (void) setGlobalRef: (NSString*)ref type: (NSString*)type;
 - (void) setOutputs: (NSArray*)a forHeader: (NSString*)h;
 - (void) setRelationship: (NSString*)r from: (NSString*)from to: (NSString*)to;
