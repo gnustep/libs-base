@@ -2782,7 +2782,7 @@ try:
 				{
 				  pos++;
 				}
-// NSLog(@"Parsed generic type as '%@'", tmp);
+//NSLog(@"Parsed generic type as '%@'", tmp);
 			      break;
 			    }
 			}
@@ -3959,7 +3959,11 @@ countAttributes(NSSet *keys, NSDictionary *a)
 
   if (ptr > start)
     {
-      return [NSString stringWithCharacters: start length: ptr - start];
+      NSString	*tmp;
+
+      tmp = [NSString stringWithCharacters: start length: ptr - start];
+      tmp = concreteType(tmp);
+      return tmp;
     }
   else
     {
