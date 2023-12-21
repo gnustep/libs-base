@@ -1067,7 +1067,8 @@ gs_cond_wait(gs_cond_t *cond, gs_mutex_t *mutex)
   return gs_cond_timedwait(cond, mutex, INFINITE);
 }
 
+#endif /* GS_USE_WIN32_THREADS_AND_LOCKS */
+
 /** </ignore>
  */
-#endif /* GS_USE_WIN32_THREADS_AND_LOCKS */
 
