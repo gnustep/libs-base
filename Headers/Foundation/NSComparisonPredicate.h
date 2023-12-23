@@ -1,4 +1,4 @@
-/* Interface for NSComparisonPredicate for GNUStep
+/** Interface for NSComparisonPredicate for GNUStep
    Copyright (C) 2005 Free Software Foundation, Inc.
 
    Written by:  Dr. H. Nikolaus Schaller

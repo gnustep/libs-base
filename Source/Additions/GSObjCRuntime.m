@@ -26,7 +26,6 @@
    Boston, MA 02111 USA.
 
    <title>GSObjCRuntime function and macro reference</title>
-   $Date$ $Revision$
    */
 
 #import "common.h"

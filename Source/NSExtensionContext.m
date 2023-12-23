@@ -1,4 +1,4 @@
-/* Implementation of class NSExtensionContext
+/** Implementation of class NSExtensionContext
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    By: Gregory Casamento <greg.casamento@gmail.com>

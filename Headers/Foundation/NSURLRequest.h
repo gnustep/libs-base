@@ -1,4 +1,4 @@
-/* Interface for NSURLRequest for GNUstep
+/**Interface for NSURLRequest for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <frm@gnu.org>

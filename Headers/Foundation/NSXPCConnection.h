@@ -1,4 +1,4 @@
-/* Definition of class NSXPCConnection
+/**Definition of class NSXPCConnection
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    By: Gregory Casamento <greg.casamento@gmail.com>

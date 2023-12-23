@@ -1,4 +1,4 @@
-/* Interface for NSSortDescriptor for GNUStep
+/**Interface for NSSortDescriptor for GNUStep
    Copyright (C) 2005 Free Software Foundation, Inc.
 
    Written by:  Saso Kiselkov <diablos@manga.sk>

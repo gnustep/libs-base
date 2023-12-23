@@ -22,7 +22,6 @@
    Boston, MA 02110 USA.
 
    <title>NSSerializer class reference</title>
-   $Date$ $Revision$
    */
 
 #import "common.h"

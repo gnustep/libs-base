@@ -1,7 +1,7 @@
 /** Implementation of NSNotificationCenter for GNUstep
    Copyright (C) 1999 Free Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Created: June 1999
 
    Many thanks for the earlier version, (from which this is loosely
@@ -26,7 +26,6 @@
    Boston, MA 02110 USA.
 
    <title>NSNotificationCenter class reference</title>
-   $Date$ $Revision$
 */
 
 #import "common.h"

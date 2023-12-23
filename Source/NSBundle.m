@@ -28,7 +28,6 @@
 
 
    <title>NSBundle class reference</title>
-   $Date$ $Revision$
 */
 
 #define	EXPOSE_NSBundle_IVARS	1

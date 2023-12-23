@@ -2,7 +2,7 @@
    Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   Rewrite by:  Richard Frith-Macdonald <rfm@gnu.org>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: March 1995
    
    This file is part of the GNUstep Base Library.

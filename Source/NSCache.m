@@ -1,4 +1,4 @@
-/* Implementation for NSCache for GNUStep
+/** Implementation for NSCache for GNUStep
    Copyright (C) 2009 Free Software Foundation, Inc.
 
    Written by:  David Chisnall <csdavec@swan.ac.uk>

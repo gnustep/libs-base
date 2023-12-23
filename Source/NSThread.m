@@ -28,7 +28,6 @@
    Boston, MA 02110 USA.
 
    <title>NSThread class reference</title>
-   $Date$ $Revision$
 */
 
 #import "common.h"

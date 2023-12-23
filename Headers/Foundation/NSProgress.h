@@ -1,4 +1,4 @@
-/* Definition of class NSProgress
+/**Definition of class NSProgress
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    Written by: 	Gregory Casamento <greg.casamento@gmail.com>

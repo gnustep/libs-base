@@ -1,4 +1,4 @@
-/* Interface for NSXMLElement for GNUStep
+/**Interface for NSXMLElement for GNUStep
    Copyright (C) 2008 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>

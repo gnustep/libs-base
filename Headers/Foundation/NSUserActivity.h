@@ -1,7 +1,7 @@
-/* Definition of class NSUserActivity
+/**Definition of class NSUserActivity
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Fri Nov  1 00:25:47 EDT 2019
 
    This file is part of the GNUstep Library.

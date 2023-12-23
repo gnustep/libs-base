@@ -1,8 +1,9 @@
-/* NSLocale.h
+/** NSLocale.h
    
    Copyright (C) 2010 Free Software Foundation, Inc.
    
-   Written by: Stefan Bidigaray, Richard Frith-Macdonald
+   Written by: Stefan Bidigaray
+   Written by: Richard Frith-Macdonald
    Date: June, 2010
    
    This library is free software; you can redistribute it and/or

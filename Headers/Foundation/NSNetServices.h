@@ -1,4 +1,4 @@
-/* Interface for NSNetServices for GNUstep
+/**Interface for NSNetServices for GNUstep
    Copyright (C) 2006 Free Software Foundation, Inc.
 
    Written by:  Chris B. Vetter

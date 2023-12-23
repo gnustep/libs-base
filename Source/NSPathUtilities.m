@@ -26,7 +26,6 @@
    Boston, MA 02110 USA.
 
    <title>NSPathUtilities function reference</title>
-   $Date$ $Revision$
    */
 
 /**

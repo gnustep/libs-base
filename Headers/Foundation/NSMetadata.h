@@ -1,7 +1,7 @@
 /**Interface for NSMetadataQuery for GNUStep
    Copyright (C) 2012 Free Software Foundation, Inc.
 
-   Written by: Gregory Casamento
+   Written by: Gregory John Casamento <greg.casamento@gmail.com>
    Date: 2012
    
    This file is part of the GNUstep Base Library.

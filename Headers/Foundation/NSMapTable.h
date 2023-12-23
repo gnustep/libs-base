@@ -1,11 +1,10 @@
-/* NSMapTable interface for GNUStep.
+/**NSMapTable interface for GNUStep.
  * Copyright (C) 1994, 1995, 1996, 2002, 2009  Free Software Foundation, Inc.
  * 
  * Author: Albin L. Jones <Albin.L.Jones@Dartmouth.EDU>
  * Created: Tue Dec 13 00:05:02 EST 1994
- * Updated: Thu Mar 21 15:12:42 EST 1996
  * Serial: 96.03.21.05
- * Modified by: Richard Frith-Macdonald <rfm@gnu.org>
+ * Author: Richard Frith-Macdonald <rfm@gnu.org>
  * Updated: March 2009
  * 
  * This file is part of the GNUstep Base Library.

@@ -1,4 +1,4 @@
-/* Interface for NSData for GNUStep
+/**Interface for NSData for GNUStep
    Copyright (C) 1995 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

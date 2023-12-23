@@ -1,4 +1,4 @@
-/* Implementation for NSURLCache for GNUstep
+/** Implementation for NSURLCache for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
