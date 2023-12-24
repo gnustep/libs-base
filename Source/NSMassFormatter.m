@@ -58,22 +58,22 @@
   return _unitStyle;
 }
 
-- (void) setUnitStyle: (NSFormattingUnitStyle)style;
+- (void) setUnitStyle: (NSFormattingUnitStyle)style
 {
   _unitStyle = style;
 }
 
-- (BOOL) isForPersonMassUse;
+- (BOOL) isForPersonMassUse
 {
   return _isForPersonMassUse;
 }
 
-- (void) setForPersonMassUse: (BOOL)flag;
+- (void) setForPersonMassUse: (BOOL)flag
 {
   _isForPersonMassUse = flag;
 }
 
-- (NSString *) stringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
+- (NSString *) stringFromValue: (double)value unit: (NSMassFormatterUnit)unit
 {
   NSUnit *u = nil;
   NSMeasurement *m = nil;
@@ -109,12 +109,12 @@
   return [mf stringFromMeasurement: m];
 }
 
-- (NSString *) stringFromKilograms: (double)numberInKilograms;
+- (NSString *) stringFromKilograms: (double)numberInKilograms
 {
   return [self stringFromValue: numberInKilograms unit: NSMassFormatterUnitKilogram];
 }
 
-- (NSString *) unitStringFromValue: (double)value unit: (NSMassFormatterUnit)unit;
+- (NSString *) unitStringFromValue: (double)value unit: (NSMassFormatterUnit)unit
 {
   return [self stringFromValue: value unit: unit];
 }

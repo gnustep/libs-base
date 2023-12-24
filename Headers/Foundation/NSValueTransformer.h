@@ -1,9 +1,9 @@
-/* Interface for NSValueTransformer for GNUStep
+/**Interface for NSValueTransformer for GNUStep
    Copyright (C) 2006 Free Software Foundation, Inc.
 
-   Written Dr. H. Nikolaus Schaller
-   Created on Mon Mar 21 2005.
-   Updatesd and documented by Richard Frith-Macdonald
+   Written by:Dr. H. Nikolaus Schaller
+   Created: Mon Mar 21 2005.
+   Author: Richard Frith-Macdonald
    
    This file is part of the GNUstep Base Library.
 

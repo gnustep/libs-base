@@ -22,7 +22,7 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSAppleEventDescriptor.h>
+#import "Foundation/NSAppleEventDescriptor.h"
 
 @implementation NSAppleEventDescriptor
 

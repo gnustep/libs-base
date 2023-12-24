@@ -28,7 +28,6 @@
    Boston, MA 02110 USA.
 
    <title>NSURL class reference</title>
-   $Date$ $Revision$
 */
 
 /*

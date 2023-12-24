@@ -196,6 +196,9 @@
 - (void) _setErrorHandler: (GSDirEnumErrorHandler) handler;
 @end
 
+@interface	GSURLEnumerator : NSDirectoryEnumerator
+@end
+
 /*
  * Macros to handle unichar filesystem support.
  */
@@ -918,8 +921,8 @@ static NSStringEncoding	defaultEncoding;
   return [NSURL fileURLWithPath: path];
 }
 
-- (NSDirectoryEnumerator *)enumeratorAtURL: (NSURL *)url
-                includingPropertiesForKeys: (NSArray *)keys 
+- (NSDirectoryEnumerator*) enumeratorAtURL: (NSURL*)url
+                includingPropertiesForKeys: (NSArray*)keys 
                                    options: (NSDirectoryEnumerationOptions)mask 
                               errorHandler: (GSDirEnumErrorHandler)handler
 {
@@ -956,7 +959,7 @@ static NSStringEncoding	defaultEncoding;
       shouldSkipHidden = NO;
     }
   
-  direnum = [[NSDirectoryEnumerator alloc]
+  direnum = [[GSURLEnumerator alloc]
 		       initWithDirectoryPath: path
                    recurseIntoSubdirectories: shouldRecurse
                               followSymlinks: NO
@@ -2980,6 +2983,15 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 }
 
 @end /* NSDirectoryEnumerator */
+
+@implementation	GSURLEnumerator
+- (id) nextObject
+{
+  id	name = [super nextObject];
+
+  return name ? [NSURL fileURLWithPath: name] : nil;
+}
+@end
 
 /**
  * Convenience methods for accessing named file attributes in a dictionary.

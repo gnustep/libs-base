@@ -1,4 +1,4 @@
-/* Interface for NSArray for GNUStep
+/**Interface for NSArray for GNUStep
    Copyright (C) 1995-2015 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>

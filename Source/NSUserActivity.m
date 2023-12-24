@@ -22,7 +22,7 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSUserActivity.h>
+#import "Foundation/NSUserActivity.h"
 
 @implementation NSUserActivity
 

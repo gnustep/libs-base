@@ -23,7 +23,7 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSScriptKeyValueCoding.h>
+#import "Foundation/NSScriptKeyValueCoding.h"
 
 @implementation NSScriptKeyValueCoding
 

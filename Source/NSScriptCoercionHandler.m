@@ -23,7 +23,7 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSScriptCoercionHandler.h>
+#import "Foundation/NSScriptCoercionHandler.h"
 
 @implementation NSScriptCoercionHandler
 

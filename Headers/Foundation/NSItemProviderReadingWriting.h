@@ -1,7 +1,7 @@
-/* Definition of class NSItemProviderReadingWriting
+/**Definition of class NSItemProviderReadingWriting
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory Casamento <greg.casamento@gmail.com>
    Date: Sun Nov 10 04:00:24 EST 2019
 
    This file is part of the GNUstep Library.

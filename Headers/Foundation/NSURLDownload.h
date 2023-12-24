@@ -1,4 +1,4 @@
-/* Interface for NSURLDownload for GNUstep
+/**Interface for NSURLDownload for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <frm@gnu.org>
@@ -122,6 +122,7 @@ GS_EXPORT_CLASS
  */
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+/** <ignore> autogsdoc will ignore everything up to the end tag */
 @protocol NSURLDownloadDelegate <NSObject>
 #if GS_PROTOCOLS_HAVE_OPTIONAL
 @optional
@@ -129,6 +130,7 @@ GS_EXPORT_CLASS
 @end
 @interface NSObject (NSURLDownloadDelegate)
 #endif
+/** end of text ignored by autogsdoc </ignore> */
 #else
 @interface NSObject (NSURLDownloadDelegate)
 #endif

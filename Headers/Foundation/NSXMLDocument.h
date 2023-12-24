@@ -1,4 +1,4 @@
-/* Interface for NSXMLDocument for GNUStep
+/**Interface for NSXMLDocument for GNUStep
    Copyright (C) 2008 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>

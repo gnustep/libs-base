@@ -1217,7 +1217,7 @@ compareIt(id o1, id o2, void* context)
  * according to the locale, and indented according to level.<br />
  * Unless locale is nil, a level of zero indents items by four spaces,
  * while a level of one indents them by a tab.<br />
- * If the keys in the dictionary respond to [NSObject-compare:], the items are
+ * If the keys in the dictionary respond to [NSString-compare:], the items are
  * listed by key in ascending order.  If not, the order in which the
  * items are listed is undefined.
  */

@@ -21,7 +21,6 @@
    Boston, MA 02110 USA.
 
    <title>NSUndoManager class reference</title>
-   $Date$ $Revision$
 */
 
 #import "common.h"

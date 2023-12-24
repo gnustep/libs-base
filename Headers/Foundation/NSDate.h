@@ -247,7 +247,7 @@ GS_EXPORT_CLASS
 - (instancetype) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs;
 
 /** Returns NO if other is not a date, otherwise returns the result of
- * calling the -isEqualtoDate: method.
+ * calling the -isEqualToDate: method.
  */
 - (BOOL) isEqual: (id)other;
 

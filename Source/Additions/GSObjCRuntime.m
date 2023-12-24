@@ -26,7 +26,6 @@
    Boston, MA 02111 USA.
 
    <title>GSObjCRuntime function and macro reference</title>
-   $Date$ $Revision$
    */
 
 #import "common.h"
@@ -1000,8 +999,8 @@ GSObjCAddClassOverride(Class receiver, Class override)
  * supplied).<br />
  * Automatic conversion between NSNumber and C scalar types is performed.<br />
  * If type is null and can't be determined from the selector, the
- * [NSObject-handleQueryWithUnboundKey:] method is called to try
- * to get a value.
+ * "-handleQueryWithUnboundKey:" method is called (if the object responds to
+ * that message) to try to get a value.
  */
 id
 GSObjCGetVal(NSObject *self, const char *key, SEL sel,
@@ -1454,8 +1453,8 @@ GSObjCGetValue(NSObject *self, NSString *key, SEL sel,
  * supplied).<br />
  * Automatic conversion between NSNumber and C scalar types is performed.<br />
  * If type is null and can't be determined from the selector, the
- * [NSObject-handleTakeValue:forUnboundKey:] method is called to try
- * to set a value.
+ * "-handleTakeValue:forUnboundKey:" method is called (if the object
+ * responds to that message) to try to set a value.
  */
 void
 GSObjCSetVal(NSObject *self, const char *key, id val, SEL sel,

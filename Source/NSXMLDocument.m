@@ -541,7 +541,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) characterEncoding
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (NSXMLDocumentContentKind) documentContentKind
@@ -551,7 +551,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSXMLDTD*) DTD
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (id) init
@@ -597,109 +597,123 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (NSString*) MIMEType
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (NSXMLElement*) rootElement
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) setCharacterEncoding: (NSString*)encoding
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setDocumentContentKind: (NSXMLDocumentContentKind)theContentKind
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setDTD: (NSXMLDTD*)documentTypeDeclaration
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setMIMEType: (NSString*)theMIMEType
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setRootElement: (NSXMLNode*)root
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setStandalone: (BOOL)standalone
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setURI: (NSString*)URI
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSString*) URI
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) setVersion: (NSString*)version
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSString*) version
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) insertChild: (NSXMLNode*)child atIndex: (NSUInteger)index
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) insertChildren: (NSArray*)children atIndex: (NSUInteger)index
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) removeChildAtIndex: (NSUInteger)index
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) setChildren: (NSArray*)children
 {
+  [self notImplemented: _cmd];
 }
  
 - (void) addChild: (NSXMLNode*)child
 {
+  [self notImplemented: _cmd];
 }
  
 - (void) replaceChildAtIndex: (NSUInteger)index withNode: (NSXMLNode*)theNode
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSData*) XMLData
 { 
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (NSData *) XMLDataWithOptions: (NSUInteger)theOptions
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (id) objectByApplyingXSLT: (NSData*)xslt
                   arguments: (NSDictionary*)arguments
                       error: (NSError**)error
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (id) objectByApplyingXSLTString: (NSString*)xslt
                         arguments: (NSDictionary*)arguments
                             error: (NSError**)error
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (id) objectByApplyingXSLTAtURL: (NSURL*)xsltURL
                        arguments: (NSDictionary*)arguments
                            error: (NSError**)error
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (BOOL) validateAndReturnError: (NSError**)error
@@ -709,7 +723,7 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
 - (id) copyWithZone: (NSZone *)zone
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (BOOL) isEqual: (id)other

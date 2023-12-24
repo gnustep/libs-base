@@ -1,7 +1,7 @@
-/* Definition of class NSExtensionRequestHandling
+/**Definition of class NSExtensionRequestHandling
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   By: heron
+   By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Sun Nov 10 04:00:05 EST 2019
 
    This file is part of the GNUstep Library.

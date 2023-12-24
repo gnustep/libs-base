@@ -1,3 +1,194 @@
+2023-12-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+        * Tools/AGSParser.m: Replace GS_GENERIC macros in method types etc
+	with the basic type name.
+	* Tools/AGSIndex.h:
+	* Tools/AGSIndex.m: Create index of all authors in the project
+
+2023-12-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/objc-load.m:
+	* Source/GSPrivate.h:
+	In GSPrivateSymbolPath() check for dladdr returning argv[0] as the
+	file path, and map it to the path of the executable so bundle checks
+	for the location of the file containing the code can work consistently.
+
+
+2023-12-06 Daniel Boyd <danieljboyd@icloud.com>
+
+	* Source/NSDecimal.m:
+	For compare, handle the case where one or both operands are zero.
+	* Tests/base/NSNumber/test03.m: add tests
+
+2023-12-05 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Remove obsolete restriction on DO message length.  Add exception handler
+	to invalidate port if we are unable to allocate more memory for a very
+	large port message.
+
+2023-11-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m:
+	* Source/GSPrivate.h:
+	* Headers/Foundation/NSBundle.m:
+	Make +bundleForLibrary:version: behavior match documenation.
+	Make +bundleForClass: call new private method to get library name
+	and version, warnign if version cannot be determined.
+	Mark +bundleForLibrary: as deprecated since we want a version.
+
+2023-11-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/objc-load.m: Fix to get library path in standardised form to
+	match code for getting executable path.
+
+2023-11-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSVersionMacros.h: Added GS_UNIMPLEMENTED to
+	mark methods and functions as unimplemented for compiler warnings
+	and documentation. github #350
+
+2023-11-14 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSURLRequest.m: Support deleting NSMutableURLRequest headers by
+	calling setValue:forHTTPHeaderField: with nil value.
+	* Headers/Foundation/NSURLRequest.h: Update method documentation.
+	* Tests/base/NSURLRequest/basic.m: Extended NSMutableURLRequest tests.
+
+2023-11-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Fix issue #292
+	* Tests/base/NSFileManager/general.m: test for enumerator at URL
+	* Source/NSNotificationCenter.m: fix indentation/style errors
+	* Headers/GNUstepBase/GSBlocks.h: Add new macros for calling blocks
+	which return a value.
+
+2023-11-14 Richard Frith-Macdonald <rfm@gnu.org> Riccardo Mottola <rm@gnu.org>
+
+	* Documentation/Base.gsdoc:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/install.texi:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/NSCalendar.h:
+	* Headers/Foundation/NSDate.h:
+	* Headers/Foundation/NSDateFormatter.h:
+	* Headers/Foundation/NSExpression.h:
+	* Headers/Foundation/NSMetadata.h:
+	* Headers/Foundation/NSNetServices.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSOperation.h:
+	* Headers/Foundation/NSRegularExpression.h:
+	* Headers/Foundation/NSSortDescriptor.h:
+	* Headers/Foundation/NSURLConnection.h:
+	* Headers/Foundation/NSURLDownload.h:
+	* Headers/Foundation/NSUserDefaults.h:
+	* Headers/Foundation/NSZone.h:
+	* Headers/GNUstepBase/GSObjCRuntime.h:
+	* Headers/GNUstepBase/GSVersionMacros.h:
+	* Headers/GNUstepBase/NSLock+GNUstepBase.h:
+	* Headers/GNUstepBase/NSObject+GNUstepBase.h:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/DocMakefile:
+	* Source/GSInvocation.h:
+	* Source/GSPrivate.h:
+	* Source/GSTLS.m:
+	* Source/NSAppleEventDescriptor.m:
+	* Source/NSAppleEventManager.m:
+	* Source/NSAppleScript.m:
+	* Source/NSCallBacks.h:
+	* Source/NSCountedSet.m:
+	* Source/NSDateComponentsFormatter.m:
+	* Source/NSDateInterval.m:
+	* Source/NSDateIntervalFormatter.m:
+	* Source/NSDictionary.m:
+	* Source/NSExtensionContext.m:
+	* Source/NSExtensionItem.m:
+	* Source/NSFileVersion.m:
+	* Source/NSHFSFileTypes.m:
+	* Source/NSItemProvider.m:
+	* Source/NSItemProviderReadingWriting.m:
+	* Source/NSLinguisticTagger.m:
+	* Source/NSMetadata.m:
+	* Source/NSMetadataAttributes.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSObjectScripting.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSProgress.m:
+	* Source/NSRunLoop.m:
+	* Source/NSScriptClassDescription.m:
+	* Source/NSScriptCoercionHandler.m:
+	* Source/NSScriptCommand.m:
+	* Source/NSScriptCommandDescription.m:
+	* Source/NSScriptExecutionContext.m:
+	* Source/NSScriptKeyValueCoding.m:
+	* Source/NSScriptObjectSpecifiers.m:
+	* Source/NSScriptStandardSuiteCommands.m:
+	* Source/NSScriptSuiteRegistry.m:
+	* Source/NSUserActivity.m:
+	* Source/NSUserScriptTask.m:
+	* Source/NSXMLDocument.m:
+	* Source/NSXMLNode.m:
+	* Source/objc-load.h:
+	* Tools/AGSHtml.h:
+	* Tools/AGSHtml.m:
+	* Tools/AGSIndex.h:
+	* Tools/AGSIndex.m:
+	* Tools/AGSOutput.m:
+	* Tools/AGSPme.arser.h:
+	* Tools/AGSParser.m:
+	* Tools/DocMakefile:
+	* Tools/autogsdoc.m:
+	* Tools/gsdoc-1_0_4.dtd:
+	Autogsdoc changes to avoide parser being confused by ObjectiveC-2
+	features.  Automatic generation for the setter/getter methods of
+	properties.  Various fixes and cleanups in documentation generation.
+	Many tweaks to correct documentation errors in comments etc.
+
+2023-11-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Add check for closefrom()
+	* configure: regenerate
+	* Headers/GNUstepBase/config.h.in: regenerate
+	* Source/NSTask.m: Use closefrom() to close descriptors in child
+	process if it is available.
+
+2023-10-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSISO8601DateFormatter.m:
+	* Tests/base/NSDateFormatter/NSISO8601DateFormatter.m:
+	Add a couple of testcases, tidy up source code formatting, and make
+	fix for github issue #339 as suggested by kevinpeizner
+
+2023-10-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSPrivate.h: New method to set up system error information.
+	* Source/Additions/NSError+GNUstepBase.m: Implement method.
+	* Source/NSTask.m(launchAndReturnError:): Return an error if the
+	path to launch in does not exist, is not a directory or is not
+	accessible.
+
+2023-10-09  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSTask.m(launchAndReturnError:): Use _exit instead of
+	exit to terminate the vfork'ed process. This avoids running the
+	atexit handlers, which could have visible side effects in the
+	parent process.
+
+2023-10-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPredicate.m: fixup for array access keywords
+	* Tests/base/NSPredicate/basic.m: add simple testcases for array
+
+2023-10-07 Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSKeyValueObserving.h
+	* Source/NSKeyValueObserving.m: Add nethods
+	removeObserver:forKeyPath:context: and
+	removeObserver:forObjectsAtIndexes:forKeyPath:context:
+	* Tests/base/KVC/mutable.m: Add tests for the above
+	methods.
+
 2023-08-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSCache.h: Add _lock ivar

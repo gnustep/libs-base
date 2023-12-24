@@ -107,8 +107,11 @@ typedef retTy(^name)()
 
 #endif /* __has_feature(blocks) */
 
-#define CALL_BLOCK(block, args...) ((NULL != block) ? CALL_NON_NULL_BLOCK(block, args) : nil)
-#define CALL_BLOCK_NO_ARGS(block) ((NULL != block) ? CALL_NON_NULL_BLOCK_NO_ARGS(block) : nil)
+#define CALL_BLOCK(block, args...) ({if (NULL != block) CALL_NON_NULL_BLOCK(block, args);})
+#define CALL_BLOCK_RET(block, rettype, args...) ((NULL != block) ? (rettype)CALL_NON_NULL_BLOCK(block, args) : (rettype)0)
+
+#define CALL_BLOCK_NO_ARGS(block) ({if (NULL != block) CALL_NON_NULL_BLOCK_NO_ARGS(block);})
+#define CALL_BLOCK_RET_NO_ARGS(block, rettype) ((NULL != block) ? (rettype)CALL_NON_NULL_BLOCK_NO_ARGS(block) : (rettype)0)
 
 #if __has_include(<objc/blocks_runtime.h>)
 #  include <objc/blocks_runtime.h>

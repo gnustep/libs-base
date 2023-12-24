@@ -188,6 +188,20 @@ GSDecimalCompare(const GSDecimal *leftOperand, const GSDecimal *rightOperand)
 	return NSOrderedAscending;
     }
 
+  // Handle zero length operands
+  if (leftOperand->length == 0 || rightOperand->length == 0)
+    {
+      if (leftOperand->length == 0 && rightOperand->length == 0)
+        return NSOrderedSame;
+      else if (leftOperand->length == 0)
+        return rightOperand->isNegative
+	  ? NSOrderedDescending : NSOrderedAscending;
+      else
+        return leftOperand->isNegative
+	  ? NSOrderedAscending : NSOrderedDescending;
+    }
+
+
   // Same sign, check size
   if (s1 < s2)
     {

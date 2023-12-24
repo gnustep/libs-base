@@ -23,7 +23,7 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSAppleScript.h>
+#import "Foundation/NSAppleScript.h"
 
 @implementation NSAppleScript
 

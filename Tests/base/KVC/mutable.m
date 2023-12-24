@@ -8,6 +8,14 @@ typedef struct {
 } aStruct;
 
 @interface Observer : NSObject
+{
+  NSMutableSet *_keysChanged;
+}
+
+- (void) reset;
+
+- (NSSet *) keysChanged;
+
 - (void) observeValueForKeyPath: (NSString *)keyPath
                        ofObject: (id)object
                          change: (NSDictionary *)change
@@ -15,6 +23,32 @@ typedef struct {
 @end
 
 @implementation Observer
+- (instancetype) init
+{
+  self = [super init];
+  if (self)
+    {
+      _keysChanged = [[NSMutableSet alloc] init];
+    }
+  return self;
+}
+
+- (void) dealloc
+{
+  RELEASE(_keysChanged);
+  [super dealloc];
+}
+
+- (void) reset;
+{
+  [_keysChanged removeAllObjects];
+}
+
+- (NSSet *) keysChanged
+{
+  return _keysChanged;
+}
+
 - (void) observeValueForKeyPath: (NSString *)keyPath
                        ofObject: (id)object
                          change: (NSDictionary *)change
@@ -22,6 +56,8 @@ typedef struct {
 {
   NSLog(@"observeValueForKeyPath: %@\nofObject:%@\nchange:%@\ncontext:%p",
     keyPath, object, change, context);
+
+  [_keysChanged addObject: keyPath];
 }
 @end
 
@@ -31,6 +67,7 @@ typedef struct {
   NSMutableArray * numbers;
   NSMutableArray * third;
   NSString *string;
+  NSString *string2;
   aStruct x;
 }
 
@@ -115,6 +152,16 @@ typedef struct {
   x = s;
 }
 
+- (void) setString2: (NSString *)s
+{
+  string2 = s;
+}
+
+- (NSString *) string2
+{
+  return string2;
+}
+
 - (void) willChangeValueForKey: (NSString*)k
 {
   [super willChangeValueForKey: k];
@@ -179,11 +226,17 @@ int main(void)
   NSMutableArray * proxy;
   NSDictionary * temp;
 
+  [observer reset];
   [list addObserver: observer forKeyPath: @"numbers" options: 15 context: 0];
   [list addObserver: observer forKeyPath: @"string" options: 15 context: 0];
+  [list addObserver: observer forKeyPath: @"string2" options: 15 context: 0];
   [list addObserver: observer forKeyPath: @"x" options: 15 context: 0];
 
   [list setValue: @"x" forKey: @"string"];
+  [list setString2: @"Hello"];
+
+  PASS([[observer keysChanged] containsObject: @"string2"],
+       "string2 did change properly");
 
   proxy = [list mutableArrayValueForKey:@"numbers"];
   PASS([proxy isKindOfClass:[NSMutableArray class]],
@@ -277,8 +330,46 @@ int main(void)
 
   [list removeObserver: observer forKeyPath: @"numbers"];
   [list removeObserver: observer forKeyPath: @"string"];
-  [list removeObserver: observer forKeyPath: @"x"];
+  [list removeObserver: observer forKeyPath: @"x"];  
+  [list removeObserver: observer forKeyPath: @"string2" context: 0];
 
+  // Test if we see the change on string2 after the observer is removed with
+  // the removeObjserver:forKeyPath:context: method.
+  [observer reset];
+  [list setString2: @"Test"];
+  PASS([[observer keysChanged] containsObject: @"string2"] == NO,
+       "string2 should NOT have been observed");
+
+  // Create an array and add an object, add an observer to that object... test
+  // it and then remove it and verify the remove.
+  Lists *obj = [[[Lists alloc] init] autorelease];
+  NSArray *array = [NSArray arrayWithObject: obj];
+  NSIndexSet *idxs = [NSIndexSet indexSetWithIndex: 0];
+
+  // Add the observer then remove it...
+  [observer reset];
+  [array addObserver: observer
+	 toObjectsAtIndexes: idxs
+	  forKeyPath: @"string2"
+	     options: 15
+	     context: 0];
+  
+  [obj setString2: @"Hello again"];
+  PASS([[observer keysChanged] containsObject: @"string2"],
+       "string2 has been observed");
+  
+  [observer reset];
+  [array removeObserver: observer
+	 fromObjectsAtIndexes: idxs
+	     forKeyPath: @"string2"
+		context: 0];
+
+  // Determine if it still responds..
+  [obj setString2: @"Test"];
+  PASS([[observer keysChanged] containsObject: @"string2"] == NO,
+       "string2 should NOT have been observed");
+  
+  
   [arp release]; arp = nil;
   return 0;
 }

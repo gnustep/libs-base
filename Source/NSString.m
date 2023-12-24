@@ -28,7 +28,6 @@
    Boston, MA 02110 USA.
 
    <title>NSString class reference</title>
-   $Date$ $Revision$
 */
 
 /* Caveats:

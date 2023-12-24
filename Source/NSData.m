@@ -4458,7 +4458,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (deallocator != NULL)
     {
-      CALL_NON_NULL_BLOCK(((GSDataDeallocatorBlock)deallocator), bytes, capacity);
+      CALL_NON_NULL_BLOCK(((GSDataDeallocatorBlock)deallocator),
+	bytes, capacity);
       // Clear out the ivars so that super doesn't double free.
       bytes = NULL;
       length = 0;
@@ -4488,8 +4489,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  memcpy(tmp, bytes, capacity < size ? capacity : size);
 	  if (deallocator != NULL)
 	    {
-          CALL_NON_NULL_BLOCK(((GSDataDeallocatorBlock)deallocator), bytes, capacity);
-          DESTROY(deallocator);
+	      CALL_NON_NULL_BLOCK(((GSDataDeallocatorBlock)deallocator),
+		bytes, capacity);
+	      DESTROY(deallocator);
 	      zone = NSDefaultMallocZone();
 	    }
 	  else
@@ -4499,8 +4501,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       else if (deallocator != NULL)
 	{
-      CALL_NON_NULL_BLOCK(((GSDataDeallocatorBlock)deallocator), bytes, capacity);
-      DESTROY(deallocator);
+	  CALL_NON_NULL_BLOCK(((GSDataDeallocatorBlock)deallocator),
+	    bytes, capacity);
+	  DESTROY(deallocator);
 	  zone = NSDefaultMallocZone();
 	}
       bytes = tmp;

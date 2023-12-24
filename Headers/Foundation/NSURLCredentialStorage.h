@@ -1,4 +1,4 @@
-/* Interface for NSURLCredentialStorage for GNUstep
+/**Interface for NSURLCredentialStorage for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <frm@gnu.org>

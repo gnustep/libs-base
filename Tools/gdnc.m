@@ -102,13 +102,13 @@ gdnc_log (int prio, const char *ebuf)
     }
   else if (prio == LOG_INFO)
     {
-      write (1, ebuf, strlen (ebuf));
-      write (1, "\n", 1);
+      fprintf (stdout, "%s\n", ebuf);
+      fflush (stdout);
     }
   else
     {
-      write (2, ebuf, strlen (ebuf));
-      write (2, "\n", 1);
+      fprintf (stderr, "%s\n", ebuf);
+      fflush (stderr);
     }
 
   if (prio == LOG_CRIT)

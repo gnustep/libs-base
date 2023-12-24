@@ -31,7 +31,7 @@
 #define __objc_load_h_INCLUDE
 
 #include <stdio.h>
-#include <Foundation/NSString.h>
+#include "Foundation/NSString.h"
 
 #ifdef HAVE_DLADDR
 #define LINKER_GETSYMBOL 1

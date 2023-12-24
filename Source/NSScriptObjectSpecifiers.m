@@ -23,7 +23,7 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSScriptObjectSpecifiers.h>
+#import "Foundation/NSScriptObjectSpecifiers.h"
 
 @implementation NSScriptObjectSpecifiers
 

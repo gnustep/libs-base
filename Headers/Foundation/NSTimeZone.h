@@ -1,4 +1,4 @@
-/* Interface for NSTimeZone for GNUStep
+/**Interface for NSTimeZone for GNUStep
    Copyright (C) 1994, 1996, 1999 Free Software Foundation, Inc.
 
    This file is part of the GNUstep Base Library.
