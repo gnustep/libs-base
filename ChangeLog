@@ -1,6 +1,6 @@
 2023-12-21 Richard Frith-Macdonald <rfm@gnu.org>
 
-        * Tools/AGSParser.m: Replace GS_GENERIC macros in method types etc
+	* Tools/AGSParser.m: Replace GS_GENERIC macros in method types etc
 	with the basic type name.
 	* Tools/AGSIndex.h:
 	* Tools/AGSIndex.m: Create index of all authors in the project
@@ -13,6 +13,14 @@
 	file path, and map it to the path of the executable so bundle checks
 	for the location of the file containing the code can work consistently.
 
+2023-12-09: Hugo Melder <contact@hugomelder.com>
+
+	* Source/NSNull.m:
+	Implement valueForUndefinedKey: and always return the NSNull singleton object.
+	* Tests/base/KVC/nsnull.m:
+	Test for various KVC interactions with NSNull.
+	* Tests/base/NSPredicate/nsnull.m:
+	Test if predicate evaluation on collections with NSNull objects works.
 
 2023-12-06 Daniel Boyd <danieljboyd@icloud.com>
 
@@ -1439,9 +1447,12 @@
 	* configure:
 	* configure.ac:
 	Added support for building on Windows with Clang MSVC target and
-	libobjc2. This requires using a standard (non-MinGW) Clang build that
-	e.g. comes with Visual Studio or is available as pre-built binary from
-	the LLVM website, and requires passing a host to configure like
+	libobjc2. This requires using
+	a
+	  standard(non - MinGW) Clang build that e.g.comes with Visual Studio
+	  or is available as pre - built binary from the LLVM website,
+	  and
+	    requires passing a host to configure like
 	--host=x86_64-pc-windows.
 	The build is best done in an MSYS2 shell that does not have any
 	additional *-devel packages installed that might get picked up by
@@ -1824,7 +1835,7 @@
 2020-11-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/NSMutableString+GNUstepBase.m:
-        Report YES for GSImmutableString being a proxy
+	Report YES for GSImmutableString being a proxy
 
 2020-11-21 Richard Frith-Macdonald <rfm@gnu.org>
 
