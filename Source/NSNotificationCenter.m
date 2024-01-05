@@ -869,7 +869,7 @@ static NSNotificationCenter *default_center = nil;
 	       name: name 
 	     object: object];
 
-  return observer;
+  return AUTORELEASE(observer);
 }
 
 /**
