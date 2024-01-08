@@ -869,7 +869,7 @@ static NSNotificationCenter *default_center = nil;
 	       name: name 
 	     object: object];
 
-  return AUTORELEASE(observer);
+  return observer; // return retained object to be released in -removeObserver:
 }
 
 /**
@@ -1029,6 +1029,11 @@ static NSNotificationCenter *default_center = nil;
 	}
     }
   unlockNCTable(TABLE);
+
+  if ([observer isKindOfClass: [GSNotificationObserver class]])
+    {
+      RELEASE(observer); // this was retained by -addObserverForName: above
+    }
 }
 
 /**
