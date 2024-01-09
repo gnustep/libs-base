@@ -1,3 +1,8 @@
+2024-01-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m: fix for memory leak should keep the
+	observer retained until removed.
+
 2023-12-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSParser.m: Replace GS_GENERIC macros in method types etc
@@ -16,7 +21,8 @@
 2023-12-09: Hugo Melder <contact@hugomelder.com>
 
 	* Source/NSNull.m:
-	Implement valueForUndefinedKey: and always return the NSNull singleton object.
+	Implement valueForUndefinedKey: and always return the NSNull singleton
+	object.
 	* Tests/base/KVC/nsnull.m:
 	Test for various KVC interactions with NSNull.
 	* Tests/base/NSPredicate/nsnull.m:
