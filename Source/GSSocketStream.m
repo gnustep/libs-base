@@ -460,6 +460,9 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
 #else
       errno = e;	// Not thread-safe
 #endif
+      NSDebugFLLog(@"NSStream", @"GSTLSPush to %p error %d (%s)",
+	[tls ostream], e, strerror(e));
+      return -1;
     }
   NSDebugFLLog(@"NSStream", @"GSTLSPush to %p write %ld of %lu",
     [tls ostream], (long)result, (unsigned long)len);
