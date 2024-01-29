@@ -450,18 +450,22 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
       if ([[tls ostream] streamStatus] == NSStreamStatusError)
         {
           e = [[[tls ostream] streamError] code];
+	  NSDebugFLLog(@"NSStream",
+	    @"GSTLSPush write for %p error %d (%s)",
+	    [tls ostream], e, strerror(e));
         }
       else
         {
           e = EAGAIN;	// Tell GNUTLS this would block.
+	  NSDebugFLLog(@"NSStream",
+	    @"GSTLSPush write for %p of %lu would block",
+	    [tls ostream], (unsigned long)len);
         }
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
       gnutls_transport_set_errno(tls->session->session, e);
 #else
       errno = e;	// Not thread-safe
 #endif
-      NSDebugFLLog(@"NSStream", @"GSTLSPush write for %p error %d (%s)",
-	[tls ostream], e, strerror(e));
       return -1;
     }
   if (len != result)
@@ -471,7 +475,7 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
     }
   else
     {
-      NSDebugFLLog(@"NSStream", @"GSTLSPush write for %p of %ld",
+      NSDebugFLLog(@"NSStream", @"GSTLSPush write for %p of %ld success",
 	[tls ostream], (long)result);
     }
   return result;
