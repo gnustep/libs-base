@@ -456,14 +456,13 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
           e = EAGAIN;	// Tell GNUTLS this would block.
         }
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
-      gnutls_transport_set_errno (tls->session->session, e);
+      gnutls_transport_set_errno(tls->session->session, e);
 #else
       errno = e;	// Not thread-safe
 #endif
-
     }
-  NSDebugFLLog(@"NSStream", @"GSTLSPush write %p of %u on %u",
-    [tls ostream], (unsigned)result, (unsigned)len);
+  NSDebugFLLog(@"NSStream", @"GSTLSPush to %p write %ld of %lu",
+    [tls ostream], (long)result, (unsigned long)len);
   return result;
 }
 
