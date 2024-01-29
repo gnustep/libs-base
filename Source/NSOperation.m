@@ -1112,17 +1112,13 @@ static NSOperationQueue *mainQueue = nil;
 	}
       else
 	{
-	  NSUInteger	pending;
-
 	  [internal->cond lock];
-	  pending = [internal->starting count];
 	  [internal->starting addObject: op];
 
 	  /* Create a new thread if all existing threads are busy and
 	   * we haven't reached the pool limit.
 	   */
-	  if (0 == internal->threadCount
-	    || (pending > 0 && internal->threadCount < max))
+	  if (internal->threadCount < max)
 	    {
 	      internal->threadCount++;
 	      NS_DURING

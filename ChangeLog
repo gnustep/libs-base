@@ -1,7 +1,12 @@
 2024-01-08 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSOperation.m: patch for issue #366 by Larry Campbell.
+
+2024-01-08 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSJSONSerialization.m: Fix for issue #365 ... don't try to
 	create a string ending with the first half of a unicode surrogate pair.
+
 2024-01-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNotificationCenter.m: fix for memory leak should keep the
