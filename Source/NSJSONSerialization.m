@@ -413,20 +413,36 @@ parseString(ParserState *state)
       buffer[bufferIndex++] = next;
       if (bufferIndex >= BUFFER_SIZE)
         {
-          NSMutableString *str;
+          NSMutableString 	*str;
+	  int			len = bufferIndex;
 
-          str = [[NSMutableString alloc] initWithCharacters: buffer
-						     length: bufferIndex];
 	  bufferIndex = 0;
-          if (nil == val)
-            {
-              val = str;
-            }
-          else
-            {
-              [val appendString: str];
-              [str release];
-            }
+          if (next < 0xd800 || next > 0xdbff)
+	    {
+	      str = [[NSMutableString alloc] initWithCharacters: buffer
+							 length: len];
+	    }
+	  else
+	    {
+	      /* The most recent unicode character is the first half of a
+	       * surrogate pair, so we need to defer it to the next chunk  
+	       * to make sure the whole unicode character is in the same
+	       * string (otherwise we would have an invalid string).
+	       */
+	      len--;
+	      str = [[NSMutableString alloc] initWithCharacters: buffer
+							 length: len];
+	      buffer[bufferIndex++] = next;
+	    }
+	  if (nil == val)
+	    {
+	      val = str;
+	    }
+	  else
+	    {
+	      [val appendString: str];
+	      RELEASE(str);
+	    }
         }
       next = consumeChar(state);
     }
