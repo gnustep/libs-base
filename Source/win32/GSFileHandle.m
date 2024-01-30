@@ -37,6 +37,7 @@
 #import "Foundation/NSHost.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSStream.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSDebug.h"
 
