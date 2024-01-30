@@ -35,6 +35,7 @@
 #import "Foundation/NSHost.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSProcessInfo.h"
+#import "Foundation/NSStream.h"
 #import "Foundation/NSUserDefaults.h"
 #import "GSPrivate.h"
 #import "GSNetwork.h"
@@ -100,21 +101,14 @@ static GSFileHandle     *fh_stdin = nil;
 static GSFileHandle     *fh_stdout = nil;
 static GSFileHandle     *fh_stderr = nil;
 
-@interface      GSTcpTune : NSObject
-- (int) delay;
-- (int) recvSize;
-- (int) sendSize: (int)bytesToSend;
-- (void) tune: (void*)handle;
-@end
-
 @implementation GSTcpTune
 
 static int      tuneDelay = 0;
 static int      tuneLinger = -1;
 static int      tuneReceive = 0;
 static BOOL     tuneSendAll = NO;
-static int	tuneRBuf = 0;
-static int	tuneSBuf = 0;
+static int	tuneRcvBuf = 0;
+static int	tuneSndBuf = 0;
 
 + (void) defaultsChanged: (NSNotification*)n
 {
@@ -134,8 +128,8 @@ static int	tuneSBuf = 0;
     {
       tuneLinger = [str intValue];
     }
-  tuneRBuf = (int)[defs integerForKey: @"GSTcpRcvBuf"];
-  tuneSBuf = (int)[defs integerForKey: @"GSTcpSndBuf"];
+  tuneRcvBuf = (int)[defs integerForKey: @"GSTcpRcvBuf"];
+  tuneSndBuf = (int)[defs integerForKey: @"GSTcpSndBuf"];
   tuneReceive = (int)[defs integerForKey: @"GSTcpReceive"];
   tuneSendAll = [defs boolForKey: @"GSTcpSendAll"];
   tuneDelay = [defs boolForKey: @"GSTcpDelay"];
@@ -161,33 +155,33 @@ static int	tuneSBuf = 0;
     }
 }
 
-- (int) delay
++ (int) delay
 {
   return tuneDelay;             // Milliseconds to delay close
 }
 
-- (int) recvSize
++ (int) recvSize
 {
   if (tuneReceive > 0)
     {
       return tuneReceive;       // Return receive buffer size
     }
-  if (tuneRBuf > 0)
+  if (tuneRcvBuf > 0)
     {
-      return tuneRBuf;          // Return socket receive buffer size
+      return tuneRcvBuf;        // Return socket receive buffer size
     }
   return READ_SIZE;             // Return hard-coded default
 }
 
-- (int) sendSize: (int)bytesToSend
++ (int) sendSize: (int)bytesToSend
 {
   if (YES == tuneSendAll)
     {
       return bytesToSend;       // Try to send all in one go
     }
-  if (tuneSBuf > 0 && tuneSBuf <= bytesToSend)
+  if (tuneSndBuf > 0 && tuneSndBuf <= bytesToSend)
     {
-      return tuneSBuf;          // Limit to socket send buffer
+      return tuneSndBuf;          // Limit to socket send buffer
     }
   if (NETBUF_SIZE <= bytesToSend)
     {
@@ -196,10 +190,25 @@ static int	tuneSBuf = 0;
   return bytesToSend;
 }
 
-- (void) tune: (void*)handle
++ (void) tune: (void*)handle with: (id)opts
 {
   int   desc = (int)(intptr_t)handle;
   int   value;
+  id	o;
+
+#ifndef	BROKEN_SO_REUSEADDR
+  /*
+   * Under decent systems, SO_REUSEADDR means that the port can be reused
+   * immediately that this process exits.  Under some it means
+   * that multiple processes can serve the same port simultaneously.
+   * We don't want that broken behavior!
+   */
+  if (setsockopt(desc, SOL_SOCKET, SO_REUSEADDR, (char*)&value, sizeof(value))
+    < 0)
+    {
+      NSDebugMLLog(@"GSTcpTune", @"setsockopt reuseaddr failed for %d", desc);
+    }
+#endif
 
   /*
    * Enable tcp-level tracking of whether connection is alive.
@@ -208,10 +217,17 @@ static int	tuneSBuf = 0;
   if (setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char *)&value, sizeof(value))
     < 0)
     {
-      NSDebugMLLog(@"GSTcpTune", @"setsockopt keepalive failed");
+      NSDebugMLLog(@"GSTcpTune", @"setsockopt keepalive failed for %d", desc);
     }
 
-  if (tuneLinger >= 0)
+
+#define	OPTS(X) ([opts isKindOfClass: [NSStream class]] \
+  ? [(NSStream*)opts propertyForKey: X] \
+  : [(NSDictionary*)opts objectForKey: X])
+
+  o = OPTS(@"GSTcpLinger");
+  value = (o ? [o intValue] : tuneLinger);
+  if (value >= 0)
     {
       struct linger     l;
 
@@ -219,40 +235,55 @@ static int	tuneSBuf = 0;
       l.l_linger = tuneLinger;
       if (setsockopt(desc, SOL_SOCKET, SO_LINGER, (char *)&l, sizeof(l)) < 0)
         {
-          NSLog(@"Failed to set GSTcpLinger %d: %@",
-            tuneLinger, [NSError _last]);
+          NSLog(@"Failed to set GSTcpLinger for %d to %d: %@",
+            desc, value, [NSError _last]);
+        }
+      else
+        {
+	  NSDebugMLLog(@"GSTcpTune", @"Set GSTcpLinger for %d to %d",
+	    desc, value);
         }
     }
   
-  if (tuneRBuf > 0)
+  o = OPTS(@"GSTcpRcvBuf");
+  value = (o ? [o intValue] : tuneRcvBuf);
+  if (value > 0)
     {
       /* Set the receive buffer for the socket.
        */
       if (setsockopt(desc, SOL_SOCKET, SO_RCVBUF,
-        (char *)&tuneRBuf, sizeof(tuneRBuf)) < 0)
+        (char *)&value, sizeof(value)) < 0)
         {
-          NSLog(@"Failed to set GSTcpRcvBuf %d: %@", tuneRBuf, [NSError _last]);
+          NSLog(@"Failed to set GSTcpRcvBuf for %d to %d: %@",
+	    desc, value, [NSError _last]);
         }
       else
         {
-	  NSDebugMLLog(@"GSTcpTune", @"Set GSTcpRcvBuf %d", tuneRBuf);
+	  NSDebugMLLog(@"GSTcpTune", @"Set GSTcpRcvBuf for %d to %d",
+	    desc, value);
         }
     }
-  if (tuneSBuf > 0)
+
+  o = OPTS(@"GSTcpSndBuf");
+  value = (o ? [o intValue] : tuneSndBuf);
+  if (value > 0)
     {
       /* Set the send buffer for the socket.
        */
       if (setsockopt(desc, SOL_SOCKET, SO_SNDBUF,
-        (char *)&tuneSBuf, sizeof(tuneSBuf)) < 0)
+        (char *)&value, sizeof(value)) < 0)
         {
-          NSLog(@"Failed to set GSTcpSndBuf %d: %@", tuneSBuf, [NSError _last]);
+          NSLog(@"Failed to set GSTcpSndBuf for %d to %d: %@",
+	    desc, value, [NSError _last]);
         }
       else
         {
-	  NSDebugMLLog(@"GSTcpTune", @"Set GSTcpSndBuf %d", tuneSBuf);
+	  NSDebugMLLog(@"GSTcpTune", @"Set GSTcpSndBuf for %d to %d",
+	    desc, value);
         }
     }
 }
+
 @end
 
 // Key to info dictionary for operation mode.
@@ -265,14 +296,9 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
 @implementation GSFileHandle
 
-static GSTcpTune        *tune = nil;
-
 + (void) initialize
 {
-  if (nil == tune)
-    {
-      tune = [GSTcpTune new];
-    }
+  [GSTcpTune class];
 }
 
 /**
@@ -949,7 +975,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       return nil;
     }
 
-  [tune tune: (void*)(intptr_t)net];
+  [GSTcpTune tune: (void*)(intptr_t)net with: nil];
 
   if (lhost != nil)
     {
@@ -1431,7 +1457,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (NSData*) availableData
 {
-  int			rmax = [tune recvSize];
+  int			rmax = [GSTcpTune recvSize];
   char			buf[rmax];
   NSMutableData*	d;
   int			len;
@@ -1501,7 +1527,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 - (NSData*) readDataToEndOfFile
 {
-  int			rmax = [tune recvSize];
+  int			rmax = [GSTcpTune recvSize];
   char			buf[rmax];
   NSMutableData*	d;
   int			len;
@@ -1529,7 +1555,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   NSMutableData	*d;
   int		got;
-  int		rmax = [tune recvSize];
+  int		rmax = [GSTcpTune recvSize];
   char		buf[rmax];
 
   [self checkRead];
@@ -1577,7 +1603,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       int	toWrite = len - pos;
 
-      toWrite = [tune sendSize: toWrite];
+      toWrite = [GSTcpTune sendSize: toWrite];
       rval = [self write: (char*)ptr+pos length: toWrite];
       if (rval < 0)
 	{
@@ -1807,7 +1833,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 #endif
   if (YES == isSocket)
     {
-      int       milli = [tune delay];
+      int       milli = [GSTcpTune delay];
 
       shutdown(descriptor, SHUT_WR);
       if (milli > 0)
@@ -2168,7 +2194,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	  struct sockaddr	sin;
 	  unsigned int		size = sizeof(sin);
 
-          [tune tune: (void*)(intptr_t)desc];
+          [GSTcpTune tune: (void*)(intptr_t)desc with: nil];
         
 	  h = [[[self class] alloc] initWithFileDescriptor: desc
 					    closeOnDealloc: YES];
@@ -2192,7 +2218,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       NSMutableData	*item;
       int		length;
       int		received = 0;
-      int		rmax = [tune recvSize];
+      int		rmax = [GSTcpTune recvSize];
       char		buf[rmax];
 
       item = [readInfo objectForKey: NSFileHandleNotificationDataItem];

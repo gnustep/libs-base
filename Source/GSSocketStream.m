@@ -451,14 +451,14 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
         {
           e = [[[tls ostream] streamError] code];
 	  NSDebugFLLog(@"NSStream",
-	    @"GSTLSPush write for %p error %d (%s)",
+	    @"GSTLSPush write for %@ error %d (%s)",
 	    [tls ostream], e, strerror(e));
         }
       else
         {
           e = EAGAIN;	// Tell GNUTLS this would block.
 	  NSDebugFLLog(@"NSStream",
-	    @"GSTLSPush write for %p of %lu would block",
+	    @"GSTLSPush write for %@ of %lu would block",
 	    [tls ostream], (unsigned long)len);
         }
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
@@ -470,12 +470,12 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
     }
   if (len != result)
     {
-      NSDebugFLLog(@"NSStream", @"GSTLSPush write for %p of %ld (tried %lu)",
+      NSDebugFLLog(@"NSStream", @"GSTLSPush write for %@ of %ld (tried %lu)",
 	[tls ostream], (long)result, (unsigned long)len);
     }
   else
     {
-      NSDebugFLLog(@"NSStream", @"GSTLSPush write for %p of %ld success",
+      NSDebugFLLog(@"NSStream", @"GSTLSPush write for %@ of %ld success",
 	[tls ostream], (long)result);
     }
   return result;
@@ -768,6 +768,7 @@ static NSArray  *keys = nil;
             {
               [istream _resetEvents: NSStreamEventOpenCompleted];
               [istream _sendEvent: NSStreamEventOpenCompleted];
+	      [istream _schedule];
             }
           else
             {
@@ -780,6 +781,7 @@ static NSArray  *keys = nil;
                 | NSStreamEventHasSpaceAvailable];
               [ostream _sendEvent: NSStreamEventOpenCompleted];
               [ostream _sendEvent: NSStreamEventHasSpaceAvailable];
+	      [ostream _schedule];
             }
           else
             {
@@ -1853,6 +1855,7 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
+	      [GSTcpTune tune: (void*)(intptr_t)s with: self];
               [self _setSock: s];
               [_sibling _setSock: s];
             }
@@ -2374,6 +2377,7 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
+	      [GSTcpTune tune: (void*)(intptr_t)s with: self];
               [self _setSock: s];
               [_sibling _setSock: s];
             }
@@ -2779,6 +2783,7 @@ setNonBlocking(SOCKET fd)
     }
   else
     {
+      [GSTcpTune tune: (void*)(intptr_t)s with: self];
       [(GSSocketStream*)self _setSock: s];
     }
 

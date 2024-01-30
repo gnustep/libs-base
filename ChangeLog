@@ -1,8 +1,20 @@
-2024-01-08 Richard Frith-Macdonald <rfm@gnu.org>
+2024-01-30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m:
+	* Source/GSPrivate.h:
+	* Source/GSSocketStream.m:
+	* Source/GSStream.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	Make GSTcpTune options available to streams as well as file handles.
+	Improve debug logging for streasm operations.
+	Schedule streams in run loop on conclusion of TLS handshake (so we get
+	events telling us to start again after a blocked write).
+
+2024-01-29 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSOperation.m: patch for issue #366 by Larry Campbell.
 
-2024-01-08 Richard Frith-Macdonald <rfm@gnu.org>
+2024-01-28 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSJSONSerialization.m: Fix for issue #365 ... don't try to
 	create a string ending with the first half of a unicode surrogate pair.
