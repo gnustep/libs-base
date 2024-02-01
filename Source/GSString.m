@@ -2710,7 +2710,7 @@ getCStringE_c(GSStr self, char *buffer, unsigned int maxLength,
 		  if (c > 127)
 		    {
 		      [NSException raise: NSCharacterConversionException
-				  format: @"unable to convert to encoding (one)"];
+				  format: @"unable to convert to encoding"];
 		    }
 		  buffer[i] = c;
 		}
@@ -2805,7 +2805,7 @@ getCStringE_u(GSStr self, char *buffer, unsigned int maxLength,
 		    {
 		      [NSException
 			 raise:NSCharacterConversionException
-			format:@"unable to convert to encoding (two)"];
+			format:@"unable to convert to encoding"];
 		    }
 		  buffer[i] = (char)u;
 		}
@@ -2831,7 +2831,7 @@ getCStringE_u(GSStr self, char *buffer, unsigned int maxLength,
 		  if (u & 0xff80)
 		    {
 		      [NSException raise: NSCharacterConversionException
-				  format: @"unable to convert to encoding (three)"];
+				  format: @"unable to convert to encoding"];
 		    }
 		  buffer[i] = (char)u;
 		}
