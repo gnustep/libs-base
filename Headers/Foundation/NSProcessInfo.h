@@ -298,6 +298,7 @@ GS_EXPORT void GSInitializeProcess(int argc, char **argv, char **envp);
  * for the Android data directory and asset loading via NSBundle.
  */
 GS_EXPORT void GSInitializeProcessAndroid(JNIEnv *env, jobject context);
+GS_EXPORT void GSInitializeProcessAndroidWithArgs(JNIEnv *env, jobject context, int argc, char **argv, char **envp);
 #endif
 
 /**

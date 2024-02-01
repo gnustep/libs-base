@@ -1,5 +1,11 @@
 2024-02-01 Frederik Seiffert <frederik@algoriddim.com>
 
+	* Source/NSProcessInfo.m:
+	* Headers/Foundation/NSProcessInfo.h:
+	Initialize Android process with current locale and system time zone.
+
+2024-02-01 Frederik Seiffert <frederik@algoriddim.com>
+
 	* Source/NSLocale.m: Fix -countryCode incorrectly returning language
 	code.
 
