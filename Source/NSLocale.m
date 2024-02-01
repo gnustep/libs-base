@@ -825,7 +825,7 @@ static NSRecursiveLock *classLock = nil;
 
 - (NSString *) countryCode
 {
-  return [self objectForKey: NSLocaleLanguageCode];
+  return [self objectForKey: NSLocaleCountryCode];
 }
 
 - (NSString *) scriptCode
