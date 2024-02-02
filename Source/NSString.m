@@ -1542,8 +1542,10 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   if (len == 0)
     {
       RELEASE(d);
-      DESTROY(self);
-      return @"";
+      return [self initWithBytesNoCopy: (char *)""
+				length: 0
+			      encoding: NSASCIIStringEncoding
+			  freeWhenDone: NO];
     }
   data_bytes = [d bytes];
   if ((data_bytes != NULL) && (len >= 2))
@@ -1616,8 +1618,10 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   if (len == 0)
     {
       RELEASE(d);
-      DESTROY(self);
-      return @"";
+      return [self initWithBytesNoCopy: (char *)""
+				length: 0
+			      encoding: NSASCIIStringEncoding
+			  freeWhenDone: NO];
     }
   data_bytes = [d bytes];
   if ((data_bytes != NULL) && (len >= 2))
@@ -1668,8 +1672,10 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   if (len == 0)
     {
       RELEASE(d);
-      DESTROY(self);
-      return @"";
+      return [self initWithBytesNoCopy: (char *)""
+				length: 0
+			      encoding: NSASCIIStringEncoding
+			  freeWhenDone: NO];
     }
   self = [self initWithData: d encoding: enc];
   RELEASE(d);
@@ -1719,7 +1725,10 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   if (len == 0)
     {
       DESTROY(self);
-      return @"";
+      return [self initWithBytesNoCopy: (char *)""
+				length: 0
+			      encoding: NSASCIIStringEncoding
+			  freeWhenDone: NO];
     }
   data_bytes = [d bytes];
   if ((data_bytes != NULL) && (len >= 2))
@@ -1766,7 +1775,10 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   if (len == 0)
     {
       DESTROY(self);
-      return @"";
+      return [self initWithBytesNoCopy: (char *)""
+				length: 0
+			      encoding: NSASCIIStringEncoding
+			  freeWhenDone: NO];
     }
   data_bytes = [d bytes];
   if ((data_bytes != NULL) && (len >= 2))
@@ -1816,7 +1828,10 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   if (len == 0)
     {
       DESTROY(self);
-      return @"";
+      return [self initWithBytesNoCopy: (char *)""
+				length: 0
+			      encoding: NSASCIIStringEncoding
+			  freeWhenDone: NO];
     }
   self = [self initWithData: d encoding: enc];
   if (self == nil)

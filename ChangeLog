@@ -1,3 +1,10 @@
+2024-02-02 Richard Frith-Macdonald <rfm@gnu.org>
+
+	Source/NSString.m: Return empty string of correct class when loading
+	from an empty file or URL.
+	Source/Additions/GSMime.m: minor optimisation usng more efficient
+	method to append headers to mutable data object.
+
 2024-02-01 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSLocale.m: Fix -countryCode incorrectly returning language
