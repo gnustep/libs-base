@@ -2979,7 +2979,7 @@ else
 
 fi
 
-CROSS_CONFIG="./cross.config"
+CROSS_CONFIG="$srcdir/cross.config"
 if test "$cross_result" != "no"
 then
  if test -f "$cross_result" && test -r "$cross_result"
@@ -7890,7 +7890,7 @@ if ${ac_cv_sizeof_gs_mutex_t+:} false; then :
 else
   if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (gs_mutex_t))" "ac_cv_sizeof_gs_mutex_t"        "$ac_includes_default
     #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-    #include \"Source/GSPThread.h\"
+    #include \"$srcdir/Source/GSPThread.h\"
 "; then :
 
 else
@@ -7930,7 +7930,7 @@ if ${ac_cv_alignof_gs_mutex_t+:} false; then :
 else
   if ac_fn_c_compute_int "$LINENO" "(long int) offsetof (ac__type_alignof_, y)" "ac_cv_alignof_gs_mutex_t"        "$ac_includes_default
     #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-    #include \"Source/GSPThread.h\"
+    #include \"$srcdir/Source/GSPThread.h\"
 
 #ifndef offsetof
 # define offsetof(type, member) ((char *) &((type *) 0)->member - (char *) 0)
