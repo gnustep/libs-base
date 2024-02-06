@@ -949,8 +949,9 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
  * </p>
  */
 @implementation NSObject
-#if  defined(GS_ARC_COMPATIBLE)
-- (void)_ARCCompliantRetainRelease {}
+#ifdef OBJC_CAP_ARC
++ (void) _TrivialAllocInit {}
+- (void) _ARCCompliantRetainRelease {}
 #endif
 
 /**
