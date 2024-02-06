@@ -381,9 +381,10 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 #if	defined(GNUSTEP_WITH_DLL)
 
 #if BUILD_libgnustep_base_DLL
-# if defined(__MINGW__)
-  /* On Mingw, the compiler will export all symbols automatically, so
-   * __declspec(dllexport) is not needed.
+# if defined(__MINGW__) && !defined(__clang__)
+  /* On Mingw, the GCC compiler will export all symbols automatically, so
+   * __declspec(dllexport) is not needed.  Clang uses the more standard behavior,
+   * requiring you to add add a dllimport/dllexport attribute.
    */
 #  define GS_EXPORT_CLASS
 #  define GS_EXPORT  extern
@@ -396,8 +397,8 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 #  define GS_DECLARE __declspec(dllexport)
 # endif
 #else
-# if defined(__MINGW__)
-   /* MinGW does not need dllimport on ObjC classes and produces warnings. */
+# if defined(__MINGW__) && !defined(__clang__)
+   /* On MinGW, the GCC compiler does not need dllimport on ObjC classes and produces warnings. */
 #  define GS_EXPORT_CLASS
 # else
 #  define GS_EXPORT_CLASS  __declspec(dllimport)
