@@ -36,6 +36,7 @@
 #import "Foundation/NSNumberFormatter.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSString.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 #import "GNUstepBase/GSLock.h"
 
 #if	defined(HAVE_UNICODE_ULOC_H)
@@ -272,18 +273,36 @@ static NSRecursiveLock *classLock = nil;
   if (result == nil)
     result = string;
   
-  // Strip script info from locale
+  /* Strip script info (if present) from locale.
+   * We try to cope with zh-Hant_TW or zh_Hant-TW
+   */
+  mStr = nil;
   range = [result rangeOfString: @"-"];
+  if (range.length > 0)
+    {
+      mStr = [NSMutableString stringWithString: result];
+      [mStr replaceString: @"-" withString: @"_"];
+      result = mStr;
+    }
+  range = [result rangeOfString: @"_"];
   if (range.location != NSNotFound)
     {
       NSUInteger start = range.location;
-      NSUInteger length;
-      range = [result rangeOfString: @"_"];
-      length = range.location - start;
+
+      range = [result rangeOfString: @"_" options: NSBackwardsSearch];
+      if (range.location != start)
+	{
+	  NSUInteger length = range.location - start;
       
-      mStr = [NSMutableString stringWithString: result];
-      [mStr deleteCharactersInRange: NSMakeRange (start, length)];
-      
+	  if (nil == mStr)
+	    {
+	      mStr = [NSMutableString stringWithString: result];
+	    }
+	  [mStr deleteCharactersInRange: NSMakeRange(start, length)];
+	}
+    }
+  if (mStr)
+    {
       result = [NSString stringWithString: mStr];
     }
   

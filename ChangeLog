@@ -1,3 +1,10 @@
+2024-02-06 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLocale.m: (+canonicalLocaleIdentifierFromString:)
+	Fix for #368 ... standardise hyphen to underscore then check for
+	presence of two underscores and delete the script identifier between
+	them, as suggested by the existing comments.  Avoids the exception.
+
 2024-02-02 Richard Frith-Macdonald <rfm@gnu.org>
 
 	Source/NSString.m: Return empty string of correct class when loading
