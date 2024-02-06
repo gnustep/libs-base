@@ -1,3 +1,8 @@
+2024-02-06 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSObject.m: add +[NSObject _TrivialAllocInit] to enable
+	fast-path alloc / init methods with libobjc2 2.2.
+
 2024-02-02 Richard Frith-Macdonald <rfm@gnu.org>
 
 	Source/NSString.m: Return empty string of correct class when loading
