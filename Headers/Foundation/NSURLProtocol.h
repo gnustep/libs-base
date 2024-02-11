@@ -209,6 +209,11 @@ GS_EXPORT_CLASS
  */
 + (BOOL) canInitWithRequest: (NSURLRequest *)request;
 
+/** This method is called to decide whether a class can deal with
+ * the specified task. The abstract class implementation return NO.
+ */
++ (BOOL) canInitWithTask: (NSURLSessionTask*)task;
+
 /** <override-subclass />
  * Returns the 'canonical' version of the request.<br />
  * The canonical form is used to look up requests in the cache by

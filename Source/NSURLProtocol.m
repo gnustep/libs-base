@@ -721,6 +721,11 @@ typedef struct {
   return NO;
 }
 
++ (BOOL) canInitWithTask: (NSURLSessionTask*)task
+{
+  return NO;
+}
+
 + (NSURLRequest *) canonicalRequestForRequest: (NSURLRequest *)request
 {
   return request;

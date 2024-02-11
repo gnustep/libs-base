@@ -1,5 +1,17 @@
 2024-02-11 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Headers/Foundation/NSURLProtocol.h:
+	* Source/GSEasyHandle.m:
+	* Source/GSHTTPURLProtocol.m:
+	* Source/GSNativeProtocol.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSURLSession.m:
+	Add +canInitWithTask: and altered code to differentiate between
+	protocols which can be used with NSURLConnection and those which
+	can be used with NSURLSession to fix #302
+
+2024-02-11 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSLocale.m: (+canonicalLocaleIdentifierFromString:)
 	Fix for #368 ... then check for presence of huphen...underscore script
 	identifier and delete it, as suggested by the existing comments.

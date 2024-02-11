@@ -684,6 +684,7 @@ static unsigned nextSessionIdentifier()
 {
   NSURLSessionTask          *task = [protocol task];
   NSURLSession              *session;
+  id<NSURLSessionDelegate>  delegate;
 
   NSAssert(nil != task, @"Missing task");
 
@@ -712,7 +713,7 @@ static unsigned nextSessionIdentifier()
         }
     }
 
-  id<NSURLSessionDelegate>  delegate = [session delegate];
+  delegate = [session delegate];
   if (nil != delegate)
     {
       [[session delegateQueue] addOperationWithBlock: 
@@ -1008,7 +1009,7 @@ static unsigned nextSessionIdentifier()
       e = [[[session configuration] protocolClasses] objectEnumerator];
       while (nil != (protocolClass = [e nextObject]))
         {
-          if ([protocolClass canInitWithRequest: request])
+          if ([protocolClass canInitWithTask: self])
             {
               _protocolClass = protocolClass;
               break;
