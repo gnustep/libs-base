@@ -1,9 +1,10 @@
-2024-02-06 Richard Frith-Macdonald <rfm@gnu.org>
+2024-02-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSLocale.m: (+canonicalLocaleIdentifierFromString:)
-	Fix for #368 ... standardise hyphen to underscore then check for
-	presence of two underscores and delete the script identifier between
-	them, as suggested by the existing comments.  Avoids the exception.
+	Fix for #368 ... then check for presence of huphen...underscore script
+	identifier and delete it, as suggested by the existing comments.
+	Avoids the exception.
+	* Tests/base/NSLocale/general.m: Simple testcase
 
 2024-02-02 Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -259,9 +259,8 @@ static NSRecursiveLock *classLock = nil;
      zh-Hant_TW as it's locale identifier (was zh_TW on 10.3.9 and below).
      Since ICU doesn't use "-" as a separator it will modify that identifier
      to zh_Hant_TW. */
-  NSString *result;
-  NSMutableString *mStr;
-  NSRange range;
+  NSString	*result;
+  NSRange	range;
   
   if (string == nil)
     return nil;
@@ -273,37 +272,29 @@ static NSRecursiveLock *classLock = nil;
   if (result == nil)
     result = string;
   
-  /* Strip script info (if present) from locale.
-   * We try to cope with zh-Hant_TW or zh_Hant-TW
+  /* Strip script info (if present) from hyphenated form.
+   * eg. try to cope with zh-Hant_TW
    */
-  mStr = nil;
   range = [result rangeOfString: @"-"];
   if (range.length > 0)
     {
-      mStr = [NSMutableString stringWithString: result];
-      [mStr replaceString: @"-" withString: @"_"];
-      result = mStr;
-    }
-  range = [result rangeOfString: @"_"];
-  if (range.location != NSNotFound)
-    {
-      NSUInteger start = range.location;
+      NSUInteger 	start = range.location;
+      NSUInteger	length = [result length];
 
-      range = [result rangeOfString: @"_" options: NSBackwardsSearch];
-      if (range.location != start)
+      range = [result rangeOfString: @"_"
+			    options: 0
+			      range: NSMakeRange(start, length - start)];
+      if (range.length > 0)
 	{
-	  NSUInteger length = range.location - start;
-      
-	  if (nil == mStr)
-	    {
-	      mStr = [NSMutableString stringWithString: result];
-	    }
+	  NSMutableString	*mStr;
+
+	  /* Found -..._ sequence, so delete the script part.
+	   */
+	  mStr = [NSMutableString stringWithString: result];
+	  length = range.location - start;
 	  [mStr deleteCharactersInRange: NSMakeRange(start, length)];
+	  result = [NSString stringWithString: mStr];
 	}
-    }
-  if (mStr)
-    {
-      result = [NSString stringWithString: mStr];
     }
   
   return result;
