@@ -1446,10 +1446,10 @@ callUncaughtHandler(id value)
 #if defined(_NATIVE_OBJC_EXCEPTIONS)
 #  ifdef HAVE_SET_UNCAUGHT_EXCEPTION_HANDLER
       objc_setUncaughtExceptionHandler(callUncaughtHandler);
-#  elif defined(HAVE_UNEXPECTED)
-      _objc_unexpected_exception = callUncaughtHandler;
 #  elif defined(HAVE_SET_UNEXPECTED)
       objc_set_unexpected(callUncaughtHandler);
+#  elif defined(HAVE_UNEXPECTED)
+      _objc_unexpected_exception = callUncaughtHandler;
 #  endif
 #endif
     }

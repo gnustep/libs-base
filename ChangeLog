@@ -1,3 +1,9 @@
+2024-02-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSException.m: Prefer objc_set_unexpected() to the older
+	_objc_unexpected_exception for setting handler.  Should cure problem
+	where _objc_unexpected_exception exists in library but not header.
+
 2024-02-11 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSURLProtocol.h:
