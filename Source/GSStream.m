@@ -126,8 +126,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
   RunLoopEventType 	type = typeForStream(aStream);
   void			*event = [aStream _loopID];
 
-  NSDebugMLLog(@"NSStream",
-    @"-removeStream:mode: %@ (desc %d,%d) from %@ mode %@",
+  NSDebugMLLog(@"NSStream", @"%@ (desc %d,%d) from %@ mode %@",
     aStream, (int)(intptr_t)event, type, self, mode);
   /* We may have added the stream more than once (eg if the stream -open
    * method was called more than once, so we need to remove all event
@@ -227,7 +226,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 		 extra: (void*)extra
 	       forMode: (NSString*)mode
 {
-//  NSDebugMLLog(@"NSStream", @"receivedEvent for %@ - %d", self, type);
+  NSDebugMLLog(@"NSStream", @"receivedEvent for %@ - %d", self, type);
   [self _dispatch];
 }
 
@@ -341,17 +340,37 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 - (NSString*) _stringFromEvents
 {
   NSMutableString	*s = [NSMutableString stringWithCapacity: 100];
+  BOOL			bits = 0;
 
+  if (0 == _events)
+    {
+      return @"None";
+    }
   if (_events & NSStreamEventOpenCompleted)
-    [s appendString: @"|NSStreamEventOpenCompleted"];
+    {
+      if (bits++ > 0) [s appendString: @"|"];
+      [s appendString: @"OpenCompleted"];
+    }
   if (_events & NSStreamEventHasBytesAvailable)
-    [s appendString: @"|NSStreamEventHasBytesAvailable"];
+    {
+      if (bits++ > 0) [s appendString: @"|"];
+      [s appendString: @"HasBytesAvailable"];
+    }
   if (_events & NSStreamEventHasSpaceAvailable)
-    [s appendString: @"|NSStreamEventHasSpaceAvailable"];
+    {
+      if (bits++ > 0) [s appendString: @"|"];
+      [s appendString: @"HasSpaceAvailable"];
+    }
   if (_events & NSStreamEventErrorOccurred)
-    [s appendString: @"|NSStreamEventErrorOccurred"];
+    {
+      if (bits++ > 0) [s appendString: @"|"];
+      [s appendString: @"ErrorOccurred"];
+    }
   if (_events & NSStreamEventEndEncountered)
-    [s appendString: @"|NSStreamEventEndEncountered"];
+    {
+      if (bits++ > 0) [s appendString: @"|"];
+      [s appendString: @"EndEncountered"];
+    }
   return s;
 }
 
@@ -546,7 +565,7 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 - (void) _sendEvent: (NSStreamEvent)event delegate: (id)delegate
 {
   NSDebugMLLog(@"NSStream",
-    @"%@ sendEvent %@", self, [self stringFromEvent:event]);
+    @"%@ event:%@ delegate: %@", self, [self stringFromEvent: event], delegate);
   if (event == NSStreamEventNone)
     {
       return;
