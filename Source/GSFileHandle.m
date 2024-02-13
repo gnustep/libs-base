@@ -813,9 +813,11 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
       [self setNonBlocking: YES];
       if (connect(net, &sin, GSPrivateSockaddrLength(&sin)) == -1)
 	{
-	  if (!GSWOULDBLOCK)
+	  long	eno = GSNETERROR;
+
+	  if (!GSWOULDBLOCK(eno))
 	    {
-	      NSError	*e = [NSError _last];
+	      NSError	*e = [NSError _systemError: eno];
 
 	      NSLog(@"unable to make socket connection to %@ - %@ (%d)",
 		GSPrivateSockaddrName(&sin), e, (int)[e code]);
