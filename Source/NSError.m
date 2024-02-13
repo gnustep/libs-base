@@ -27,6 +27,9 @@
 #import	"Foundation/NSDictionary.h"
 #import	"Foundation/NSError.h"
 #import	"Foundation/NSCoder.h"
+#import	"Foundation/NSArray.h"
+
+#import	"GSFastEnumeration.h"
 
 @implementation	NSError
 
@@ -62,7 +65,58 @@
 
 - (NSString*) description
 {
-  return [self localizedDescription];
+  NSMutableString	*m = [NSMutableString stringWithCapacity: 200];
+  NSUInteger		count = [_userInfo count];
+  NSString		*loc = [self localizedDescription];
+
+  [m appendFormat: @"Error Domain=%@ Code=%lld \"%@\"",
+    [self domain], (long long)[self code], loc];
+
+  if ([loc isEqual: [_userInfo objectForKey: NSLocalizedDescriptionKey]])
+    {
+      count--;	// Don't repeat this information
+    }
+
+  if (count > 0)
+    {
+      NSArray		*keys = [_userInfo allKeys];
+      BOOL		first = YES;
+
+      keys = [keys sortedArrayUsingSelector: @selector(compare:)];
+      [m appendString: @" UserInfo={"];
+      FOR_IN (NSString*, k, keys)
+	{
+	  id	o = [_userInfo objectForKey: k];
+
+	  if ([k isEqualToString: NSLocalizedDescriptionKey])
+	    {
+	      continue;
+	    }
+
+	  if (first)
+	    {
+	      first = NO;
+	    }
+	  else
+	    {
+	      [m appendString: @", "];
+	    }
+	  [m appendString: k];
+	  [m appendString: @"="];
+	  if ([k isEqualToString: NSUnderlyingErrorKey])
+	    {
+	      [m appendFormat: @"%p {%@}", o, [o description]];
+	    }
+	  else
+	    {
+	      [m appendString: [o description]];
+	    }
+	}
+      END_FOR_IN (enumerator)
+
+      [m appendString: @"}"];
+    }
+  return m;
 }
 
 - (NSErrorDomain) domain
@@ -134,13 +188,7 @@
 
 - (NSString *) localizedDescription
 {
-  NSString	*desc = [_userInfo objectForKey: NSLocalizedDescriptionKey];
-
-  if (desc == nil)
-    {
-      desc = [NSString stringWithFormat: @"%@ %d", _domain, _code];
-    }
-  return desc;
+  return [_userInfo objectForKey: NSLocalizedDescriptionKey];
 }
 
 - (NSString *) localizedFailureReason
