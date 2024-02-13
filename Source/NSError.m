@@ -84,7 +84,7 @@
 
       keys = [keys sortedArrayUsingSelector: @selector(compare:)];
       [m appendString: @" UserInfo={"];
-      FOR_IN (NSString*, k, keys)
+      FOR_IN(NSString*, k, keys)
 	{
 	  id	o = [_userInfo objectForKey: k];
 
@@ -112,7 +112,7 @@
 	      [m appendString: [o description]];
 	    }
 	}
-      END_FOR_IN (enumerator)
+      END_FOR_IN(keys)
 
       [m appendString: @"}"];
     }
