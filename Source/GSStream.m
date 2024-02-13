@@ -578,15 +578,6 @@ static RunLoopEventType typeForStream(NSStream *aStream)
 	      [delegate stream: self
                    handleEvent: NSStreamEventOpenCompleted];
 	    }
-	  if ([self isKindOfClass: [NSOutputStream class]])
-	    {
-	      _events |= NSStreamEventHasSpaceAvailable;
-	      if (delegate != nil)
-		{
-		  [delegate stream: self
-		     handleEvent: NSStreamEventHasSpaceAvailable];
-		}
-	    }
 	}
     }
   else if (event == NSStreamEventHasBytesAvailable)
