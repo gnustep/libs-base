@@ -1843,7 +1843,7 @@ setNonBlocking(SOCKET fd)
        * and/or output stream in case of an error during TLS handshake.
        */
       RETAIN(self);
-      [super _sendEvent: event delegate: _handler];
+      [self _sendEvent: event delegate: _handler];
       RELEASE(self);
     }
   else
@@ -2502,6 +2502,21 @@ setNonBlocking(SOCKET fd)
       GSObjCAddClassBehavior(self, [GSSocketStream class]);
     }
 }
+
+#ifdef	_WIN32
+/* On windows a stream is considered writable once it is opened, even though the
+ * system doesn't signal to say so.  We therefore override the event sending to
+ * add the extra event.
+ */
+- (void) _sendEvent: (NSStreamEvent)event delegate: (id)delegate
+{
+  [super _sendEvent: event delegate: delegate];
+  if (NSStreamEventOpenCompleted == event)
+    {
+      [super _sendEvent: NSStreamEventHasSpaceAvailable delegate: delegate];
+    }
+}
+#endif
 
 - (NSInteger) _write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
