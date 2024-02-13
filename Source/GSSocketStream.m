@@ -1706,9 +1706,9 @@ socketError(int result)
 }
 
 static inline BOOL
-socketWouldBlock()
+socketWouldBlock(long eno)
 {
-  return GSWOULDBLOCK ? YES : NO;
+  return GSWOULDBLOCK(eno) ? YES : NO;
 }
 
 
@@ -2062,7 +2062,9 @@ setNonBlocking(SOCKET fd)
         GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
-          if (socketWouldBlock())
+	  long	eno = GSNETERROR;
+
+          if (socketWouldBlock(eno))
             {
               /* Need to set the status first, so that the run loop can tell
                * it needs to add the stream as waiting on writable, as an
@@ -2072,10 +2074,12 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
+	      NSError	*e = [NSError _systemError: eno];
+
               /* Had an immediate connect error.
                */
-              [self _recordError];
-              [_sibling _recordError];
+              [self _recordError: e];
+              [_sibling _recordError: e];
             }
 #if	defined(_WIN32)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
@@ -2228,6 +2232,8 @@ setNonBlocking(SOCKET fd)
     }
   if (socketError(readLen))
     {
+      long	eno = GSNETERROR;
+
       if (_closing == YES)
         {
           /* If a read fails on a closing socket,
@@ -2241,7 +2247,7 @@ setNonBlocking(SOCKET fd)
         }
       else
         {
-          if (socketWouldBlock())
+          if (socketWouldBlock(eno))
             {
               /* We need an event from the operating system
                * to tell us we can start reading again.
@@ -2250,7 +2256,9 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
-              [self _recordError];
+              NSError	*e = [NSError _systemError: eno];
+
+              [self _recordError: e];
             }
           readLen = -1;
         }
@@ -2344,12 +2352,14 @@ setNonBlocking(SOCKET fd)
 
       if (error != 0)
 	{
+	  NSError	*e = [NSError _systemError: error];
+
 	  errno = error;
-	  [self _recordError];
+	  [self _recordError: e];
 	  [self _sendEvent: NSStreamEventErrorOccurred];
 	  if ([_sibling streamStatus] == NSStreamStatusOpening)
 	    {
-	      [_sibling _recordError];
+	      [_sibling _recordError: e];
 	      [_sibling _sendEvent: NSStreamEventErrorOccurred];
 	    }
 	}
@@ -2357,9 +2367,10 @@ setNonBlocking(SOCKET fd)
 	{
 	  if (events.lNetworkEvents & FD_WRITE)
 	    {
-	      NSAssert([_sibling _isOpened], NSInternalInconsistencyException);
-	      /* Clear NSStreamStatusWriting if it was set */
-	      [_sibling _setStatus: NSStreamStatusOpen];
+	      if (_sibling && NSStreamStatusWriting == [_sibling streamStatus])
+		{
+	          [_sibling _setStatus: NSStreamStatusOpen];
+		}
 	    }
 
 	  /* On winsock a socket is always writable unless it has had
@@ -2423,11 +2434,11 @@ setNonBlocking(SOCKET fd)
         }
       else // must be an error
         {
-          if (error)
-            errno = error;
-          [self _recordError];
+	  NSError	*e = [NSError _systemError: error];
+
+          [self _recordError: e];
           myEvent = NSStreamEventErrorOccurred;
-          [_sibling _recordError];
+          [_sibling _recordError: e];
           [_sibling _sendEvent: myEvent];
         }
     }
@@ -2504,6 +2515,8 @@ setNonBlocking(SOCKET fd)
 
   if (socketError(writeLen))
     {
+      long	eno = GSNETERROR;
+
       if (_closing == YES)
         {
           /* If a write fails on a closing socket,
@@ -2516,7 +2529,7 @@ setNonBlocking(SOCKET fd)
         }
       else
         {
-          if (socketWouldBlock())
+          if (socketWouldBlock(eno))
             {
               /* We need an event from the operating system
                * to tell us we can start writing again.
@@ -2525,7 +2538,9 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
-              [self _recordError];
+              NSError	*e = [NSError _systemError: eno];
+
+              [self _recordError: e];
             }
           writeLen = -1;
         }
@@ -2591,7 +2606,9 @@ setNonBlocking(SOCKET fd)
         GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
-          if (socketWouldBlock())
+	  long	eno = GSNETERROR;
+
+          if (socketWouldBlock(eno))
             {
               /*
                * Need to set the status first, so that the run loop can tell
@@ -2602,10 +2619,12 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
+	      NSError	*e = [NSError _systemError: eno];
+
               /* Had an immediate connect error.
                */
-              [self _recordError];
-              [_sibling _recordError];
+              [self _recordError: e];
+              [_sibling _recordError: e];
             }
 #if	defined(_WIN32)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
@@ -2827,12 +2846,13 @@ setNonBlocking(SOCKET fd)
 
       if (error != 0)
 	{
-	  errno = error;
-	  [self _recordError];
+	  NSError	*e = [NSError _systemError: error];
+
+	  [self _recordError: e];
 	  [self _sendEvent: NSStreamEventErrorOccurred];
 	  if ([_sibling streamStatus] == NSStreamStatusOpening)
 	    {
-	      [_sibling _recordError];
+	      [_sibling _recordError: e];
 	      [_sibling _sendEvent: NSStreamEventErrorOccurred];
 	    }
 	}
@@ -2902,11 +2922,11 @@ setNonBlocking(SOCKET fd)
         }
       else // must be an error
         {
-          if (error)
-            errno = error;
-          [self _recordError];
+	  NSError	*e = [NSError _systemError: error];
+
+          [self _recordError: e];
           myEvent = NSStreamEventErrorOccurred;
-          [_sibling _recordError];
+          [_sibling _recordError: e];
           [_sibling _sendEvent: myEvent];
         }
     }
@@ -3090,9 +3110,13 @@ setNonBlocking(SOCKET fd)
   _events &= ~NSStreamEventHasBytesAvailable;
   if (socketError(acceptReturn))
     { // test for real error
-      if (!socketWouldBlock())
+      long	eno = GSNETERROR;
+
+      if (!socketWouldBlock(eno))
 	{
-          [self _recordError];
+          NSError	*e = [NSError _systemError: eno];
+
+          [self _recordError: e];
 	}
       ins = nil;
       outs = nil;
