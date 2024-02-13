@@ -1,7 +1,17 @@
 2024-02-13 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/GSFileHandle.m:
+	* Source/GSNetwork.h:
+	* Source/GSSocketStream.m:
+	* Source/GSStream.m:
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Improve handling of error responses from socket operations and tweak
+	behavior in windows to try to recognise end of connection more reliably.
+
+2024-02-13 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/NSError.m: Make -description and -localizedDescription formats
-	match those used by OSX (14.3.1).
 
 2024-02-12 Richard Frith-Macdonald <rfm@gnu.org>
 
