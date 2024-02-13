@@ -356,8 +356,6 @@ NSLog(@"%@\n%@", oa, na);
       dir = [dir stringByStandardizingPath];
       PASS([mgr removeFileAtPath: dir handler: handler], "removed directory");
       PASS(![mgr fileExistsAtPath: dir], "directory no longer exists");
-GSPrintf(stdout, @"%@\n", dir);
-GSPrintf(stderr, @"%@\n", dir);
     }
   
   err = nil;
