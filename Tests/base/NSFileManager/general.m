@@ -219,10 +219,14 @@ int main()
     PASS(ok, "can rewrite data file")
     if (NO == ok) NSLog(@"Problem: %@ with %@", err, dat1);
     na = [mgr fileAttributesAtPath: @"NSFMFile" traverseLink: NO];
-NSLog(@"%@\n%@", oa, na);
+#if !defined(_WIN32)
+    /* Atomic copy to an existing file on windows retains the file
+     * creation date, but on unix a rename produces a new timestamp.
+     */
     ot = [[oa fileCreationDate] timeIntervalSinceReferenceDate];
     nt = [[na fileCreationDate] timeIntervalSinceReferenceDate];
     PASS(!EQ(ot, nt), "rewritten file creation date changed")
+#endif
     ot = [[oa fileModificationDate] timeIntervalSinceReferenceDate];
     nt = [[na fileModificationDate] timeIntervalSinceReferenceDate];
     PASS(!EQ(ot, nt), "rewritten file modification date changed")
