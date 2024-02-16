@@ -1,3 +1,7 @@
+2024-02-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: fix for #361
+
 2024-02-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFileHandle.m:
