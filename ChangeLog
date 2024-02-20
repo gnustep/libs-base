@@ -1,3 +1,8 @@
+2024-02-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Move posting of notification outside lock
+	protected region to avoid deadlock.
+
 2024-02-16 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSData.m: fix for #361
