@@ -219,13 +219,6 @@ typedef struct
       startImmediately: (BOOL)startImmediately
 {
   NSAssert(NO, @"Flexibits: We've seen some trouble using this path for networking, prefer session+task");
-  return [self orig_initWithRequest:request delegate:delegate startImmediately:startImmediately];
-}
-
-- (id) orig_initWithRequest: (NSURLRequest *)request
-              delegate: (id)delegate
-      startImmediately: (BOOL)startImmediately
-{
   if ((self = [super init]) != nil)
     {
       this->_request = [request mutableCopyWithZone: [self zone]];
