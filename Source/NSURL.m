@@ -639,6 +639,35 @@ static NSUInteger	urlAlign;
   return nil;
 }
 
+- (NSData *) bookmarkDataWithOptions: (NSURLBookmarkCreationOptions)options 
+      includingResourceValuesForKeys: (NSArray<NSURLResourceKey> *)keys 
+                       relativeToURL: (NSURL *)relativeURL 
+                               error: (NSError **)error
+{
+  // TODO: unimplemented
+  return nil;
+}
+
+- (instancetype) initByResolvingBookmarkData: (NSData *)bookmarkData 
+                                     options: (NSURLBookmarkResolutionOptions)options 
+                               relativeToURL: (NSURL *)relativeURL 
+                         bookmarkDataIsStale: (BOOL *)isStale 
+                                       error: (NSError **)error
+{
+  // TODO: unimplemented
+  return nil;
+}
+
++ (instancetype) URLByResolvingBookmarkData: (NSData *)bookmarkData
+                                    options: (NSURLBookmarkResolutionOptions)options 
+                              relativeToURL: (NSURL *)relativeURL 
+                        bookmarkDataIsStale: (BOOL *)isStale 
+                                      error: (NSError **)error
+{
+  // TODO: unimplemented
+  return nil;
+}
+
 - (id) initFileURLWithPath: (NSString *)aPath
 {
   /* isDirectory flag will be overwritten if a directory exists. */
