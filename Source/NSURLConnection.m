@@ -120,6 +120,7 @@
 
 typedef struct
 {
+  NSURLRequest          *_originalRequest;
   NSMutableURLRequest		*_request;
   NSURLProtocol			*_protocol;
   id				_delegate;
@@ -155,6 +156,16 @@ typedef struct
 
   o = [o initWithRequest: request delegate: delegate];
   return AUTORELEASE(o);
+}
+
+- (NSURLRequest *) originalRequest
+{
+  return this->_originalRequest;
+}
+
+- (NSURLRequest *) currentRequest
+{
+    return [this->_request copyWithZone: [self zone]];
 }
 
 - (void) start
@@ -221,6 +232,7 @@ typedef struct
   NSAssert(NO, @"Flexibits: We've seen some trouble using this path for networking, prefer session+task");
   if ((self = [super init]) != nil)
     {
+      this->_originalRequest = [request copyWithZone: [self zone]];
       this->_request = [request mutableCopyWithZone: [self zone]];
 
       /* Enrich the request with the appropriate HTTP cookies,
