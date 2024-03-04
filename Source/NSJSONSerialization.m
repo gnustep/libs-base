@@ -113,8 +113,8 @@ typedef struct ParserStateStruct
 static inline void
 updateStringBuffer(ParserState* state)
 {
-  NSRange r = {state->sourceIndex, BUFFER_SIZE};
-  NSUInteger end = [state->source length];
+  NSRange	r = {state->sourceIndex, BUFFER_SIZE};
+  NSUInteger	end = [state->source length];
 
   if (end - state->sourceIndex < BUFFER_SIZE)
     {
@@ -211,9 +211,10 @@ updateStreamBuffer(ParserState* state)
 		  n = [stream read: &bytes[1] maxLength: i];
                   if (n == i)
 		    {
-                      str = [NSString stringWithUTF8String: (char*)bytes];
+                      str = [[NSString alloc] initWithUTF8String: (char*)bytes];
                       [str getCharacters: state->buffer
                                    range: NSMakeRange(0,1)];
+                      [str release];
                     }
                   else
                     {
@@ -276,8 +277,8 @@ updateStreamBuffer(ParserState* state)
   // Just use the string buffer fetch function to actually get the data
   state->source = str;
   updateStringBuffer(state);
-  state->source = stream;
   RELEASE(str);
+  state->source = stream;
 }
 
 /**
@@ -340,7 +341,7 @@ parseError(ParserState *state)
   state->error = [NSError errorWithDomain: NSCocoaErrorDomain
                                      code: 0
                                  userInfo: userInfo];
-  [userInfo release];
+  RELEASE(userInfo);
 }
 
 
@@ -480,10 +481,10 @@ parseString(ParserState *state)
     {
       if (NO == [val makeImmutable])
         {
-	  NSString	*str = [val copy];
+	  NSMutableString	*m = val;
 
-	  RELEASE(val);
-          return str;
+          val = [m copy];
+	  RELEASE(m);
         }
     }
   return val;
@@ -1074,14 +1075,13 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
     {
       if (NULL != error)
 	{
-	  NSDictionary *userInfo;
-
-	  userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+	  NSDictionary *userInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
 	    _(@"JSON writing error"), NSLocalizedDescriptionKey,
 	    nil];
 	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
 				       code: 0
 				   userInfo: userInfo];
+	  RELEASE(userInfo);
 	}
     }
   [str release];
@@ -1140,6 +1140,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
                                               encoding: p.enc
                                           freeWhenDone: NO];
       updateStringBuffer(&p);
+      RELEASE(p.source);
       /* Negative source index because we are before the
        * current point in the buffer
        */
@@ -1150,12 +1151,11 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
   obj = parseValue(&p);
   // Consume any data in the stream that we've failed to read
   updateStreamBuffer(&p);
-  RELEASE(p.source);
   if (NULL != error)
     {
       *error = p.error;
     }
-  return AUTORELEASE(obj);
+  return [obj autorelease];
 }
 
 + (NSInteger) writeJSONObject: (id)obj
