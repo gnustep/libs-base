@@ -1,3 +1,8 @@
+2024-03-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSJSONSerialization.m: Fix leak reported by Larry Campbell
+	git issue #377
+
 2024-02-20 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUserDefaults.m: Move posting of notification outside lock

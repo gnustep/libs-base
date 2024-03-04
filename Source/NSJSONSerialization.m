@@ -211,10 +211,9 @@ updateStreamBuffer(ParserState* state)
 		  n = [stream read: &bytes[1] maxLength: i];
                   if (n == i)
 		    {
-                      str = [[NSString alloc] initWithUTF8String: (char*)bytes];
+                      str = [NSString stringWithUTF8String: (char*)bytes];
                       [str getCharacters: state->buffer
                                    range: NSMakeRange(0,1)];
-                      [str release];
                     }
                   else
                     {
@@ -278,6 +277,7 @@ updateStreamBuffer(ParserState* state)
   state->source = str;
   updateStringBuffer(state);
   state->source = stream;
+  RELEASE(str);
 }
 
 /**
@@ -1146,11 +1146,12 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
   obj = parseValue(&p);
   // Consume any data in the stream that we've failed to read
   updateStreamBuffer(&p);
+  RELEASE(p.source);
   if (NULL != error)
     {
       *error = p.error;
     }
-  return [obj autorelease];
+  return AUTORELEASE(obj);
 }
 
 + (NSInteger) writeJSONObject: (id)obj
