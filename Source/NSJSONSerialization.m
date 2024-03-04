@@ -474,15 +474,18 @@ parseString(ParserState *state)
     {
       val = [NSMutableString new];
     }
+  // Consume the trailing "
+  consumeChar(state);
   if (!state->mutableStrings)
     {
       if (NO == [val makeImmutable])
         {
-          val = [val copy];
+	  NSString	*str = [val copy];
+
+	  RELEASE(val);
+          return str;
         }
     }
-  // Consume the trailing "
-  consumeChar(state);
   return val;
 }
 
@@ -549,10 +552,9 @@ parseNumber(ParserState *state)
           if (number != numberBuffer)
             {
               free(number);
-              number = numberBuffer;
             }
-            parseError(state);
-            return nil;
+	  parseError(state);
+	  return nil;
         }
       BUFFER(c);
       while (isdigit(c = consumeChar(state)))
@@ -1072,7 +1074,9 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
     {
       if (NULL != error)
 	{
-	  NSDictionary *userInfo = [[NSDictionary alloc] initWithObjectsAndKeys:
+	  NSDictionary *userInfo;
+
+	  userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
 	    _(@"JSON writing error"), NSLocalizedDescriptionKey,
 	    nil];
 	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
