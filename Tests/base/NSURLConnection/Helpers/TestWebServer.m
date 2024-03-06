@@ -391,10 +391,10 @@
       if ([h isEqual: l])
 	{
 	  certPath = [[NSBundle bundleForClass: [self class]]
-		       pathForResource: @"testCert"
+		       pathForResource: @"certificate"
 				ofType: @"pem"];
 	  keyPath = [[NSBundle bundleForClass: [self class]]
-		      pathForResource: @"testKey"
+		      pathForResource: @"key"
 			       ofType: @"pem"];
 	  secure = [NSDictionary dictionaryWithObjectsAndKeys:
 				   certPath, @"CertificateFile",
