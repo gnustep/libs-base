@@ -201,7 +201,6 @@
 						     object: _cfh];
 	  [_cfh readInBackgroundAndNotify];
 	}
-      NSLog(@"accept");
     }
 }
 
@@ -228,7 +227,6 @@
 	      [_capture appendData: hunk];
 	      if ([self _tryCaptured]) // <- the _request and _response are allocated
 		{
-		  NSLog(@"make and send");
 		  [self _makeAndSendResponse];
 		  // ready for another request-response cycle
 		  [self _resetCycle]; // <- the _request and _response are deallocated
@@ -487,7 +485,6 @@
       [_cfh sslDisconnect];
     }
   DESTROY(_cfh);
-  NSLog(@"close");
 }
 
 @end /* SimpleWebServer (Private) */
