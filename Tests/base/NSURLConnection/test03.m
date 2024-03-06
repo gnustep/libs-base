@@ -121,6 +121,7 @@ int main(int argc, char **argv, char **env)
         @"/301", @"Path",      // request the handler responding with a redirect
         @"/", @"RedirectPath", // the URL's path of redirecting
         @"YES", @"IsAuxilliary", // start an auxilliary TestWebServer instance
+        @"1236", @"AuxPort",   // the port of the auxilliary instance			  
         refs, @"ReferenceFlags", // the expected reference set difference
         nil];      
       [testCase setUpTest: d];
