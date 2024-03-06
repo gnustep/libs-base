@@ -41,11 +41,11 @@ int main(int argc, char **argv, char **env)
       // create a shared TestWebServer instance for performance
       server = [[[testClass testWebServerClass] alloc]
         initWithAddress: @"localhost"
-                   port: @"1234"
+                   port: @"1233"
                    mode: NO
                   extra: d];
       [server setDebug: debug];
-      [server start: d]; // localhost:1234 HTTPS
+      [server start: d]; // localhost:1233 HTTPS
 
       /*
        *  Simple GET via HTTPS with empty response's body and
@@ -59,7 +59,7 @@ int main(int argc, char **argv, char **env)
         nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... GET https://localhost:1234/");
+      PASS([testCase isSuccess], "HTTPS... GET https://localhost:1233/");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -78,7 +78,7 @@ int main(int argc, char **argv, char **env)
         nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... response 400 .... GET https://localhost:1234/400");
+      PASS([testCase isSuccess], "HTTPS... response 400 .... GET https://localhost:1233/400");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -99,7 +99,7 @@ int main(int argc, char **argv, char **env)
         nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... payload... response 400 .... POST https://localhost:1234/400");
+      PASS([testCase isSuccess], "HTTPS... payload... response 400 .... POST https://localhost:1233/400");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
@@ -125,7 +125,7 @@ int main(int argc, char **argv, char **env)
         nil];      
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... redirecting... GET https://localhost:1234/301");
+      PASS([testCase isSuccess], "HTTPS... redirecting... GET https://localhost:1233/301");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 

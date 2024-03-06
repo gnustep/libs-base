@@ -41,11 +41,11 @@ int main(int argc, char **argv, char **env)
       // create a shared TestWebServer instance for performance
       server = [[[testClass testWebServerClass] alloc]
 	initWithAddress: @"localhost"
-	port: @"1234"
+	port: @"1229"
 	mode: NO
         extra: d];
       [server setDebug: debug];
-      [server start: d]; // localhost:1234 HTTPS
+      [server start: d]; // localhost:1229 HTTPS
 
       /* Simple POST via HTTPS with the response's status code 400 and
        * non-empty response's body
@@ -82,7 +82,7 @@ int main(int argc, char **argv, char **env)
 	nil];
       [testCase setUpTest: d];
       [testCase startTest: d];
-      PASS([testCase isSuccess], "HTTPS... big payload... response 400 .... POST https://localhost:1234/400/withoutauth");
+      PASS([testCase isSuccess], "HTTPS... big payload... response 400 .... POST https://localhost:1229/400/withoutauth");
       [testCase tearDownTest: d];
       DESTROY(testCase);
 
