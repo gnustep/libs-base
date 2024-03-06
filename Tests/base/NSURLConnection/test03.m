@@ -16,18 +16,6 @@ int main(int argc, char **argv, char **env)
   BOOL loaded;
   NSString *helperPath;
   
-  /* The following test cases depend on the GSInetServerStream
-   * class which is completely broken on Windows.
-   *
-   * See: https://github.com/gnustep/libs-base/issues/266
-   *
-   * We will mark the test cases as hopeful on Windows.
-   */
-#if defined(_WIN32)
-  NSLog(@"Marking local web server tests as hopeful because GSInetServerStream is broken on Windows");
-  testHopeful = YES;
-#endif
-
   // load the test suite's classes
   fm = [NSFileManager defaultManager];
   helperPath = [[fm currentDirectoryPath]
@@ -154,9 +142,5 @@ int main(int argc, char **argv, char **env)
 
   DESTROY(arp);
 
-#if defined(_WIN32)
-  testHopeful = NO;
-#endif
-  
   return 0;
 }
