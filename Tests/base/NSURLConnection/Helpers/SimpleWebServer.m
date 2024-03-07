@@ -179,21 +179,14 @@
       ASSIGN(_cfh, fh);
 
       [_fh acceptConnectionInBackgroundAndNotify];
-      if (_isSecure && [_cfh sslAccept])
+
+      if (!_isSecure || (_isSecure && [_cfh sslAccept]))
 	{
 	  [[NSNotificationCenter defaultCenter] addObserver: self
 						   selector: @selector(_read:)
 						       name: NSFileHandleReadCompletionNotification
 						     object: _cfh];
 
-	  [_cfh readInBackgroundAndNotify];
-	}
-      else
-	{
-	  [[NSNotificationCenter defaultCenter] addObserver: self
-						   selector: @selector(_read:)
-						       name: NSFileHandleReadCompletionNotification
-						     object: _cfh];
 	  [_cfh readInBackgroundAndNotify];
 	}
     }
