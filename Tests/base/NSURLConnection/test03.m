@@ -10,6 +10,11 @@
 
 int main(int argc, char **argv, char **env)
 {
+  
+#if !defined(HAVE_GNUTLS)
+testHopeful = YES;
+#endif
+
   CREATE_AUTORELEASE_POOL(arp);
   NSFileManager *fm;
   NSBundle *bundle;
@@ -142,6 +147,10 @@ int main(int argc, char **argv, char **env)
     }
 
   DESTROY(arp);
+
+#if !defined(HAVE_GNUTLS)
+testHopeful = NO;
+#endif
 
   return 0;
 }

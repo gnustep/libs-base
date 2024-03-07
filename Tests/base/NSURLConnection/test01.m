@@ -75,6 +75,10 @@ int main(int argc, char **argv, char **env)
     "connection to dead(not-listening) HTTP service");
   [del reset];
 
+#if !defined(HAVE_GNUTLS)
+testHopeful = YES;
+#endif
+
   duration = 0.0;
   urlString = @"https://localhost:19750";
   req = [NSURLRequest requestWithURL: [NSURL URLWithString: urlString]];
@@ -90,6 +94,10 @@ int main(int argc, char **argv, char **env)
   PASS([del done] && nil != [del error],
     "connection to dead(not-listening) HTTPS service");
   [del reset];
+
+#if !defined(HAVE_GNUTLS)
+testHopeful = NO;
+#endif
 
   [arp release]; arp = nil;
 
