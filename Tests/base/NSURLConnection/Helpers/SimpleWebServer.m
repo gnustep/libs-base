@@ -219,7 +219,7 @@
 		  // ready for another request-response cycle
 		  [self _resetCycle]; // <- the _request and _response are deallocated
 
-		  /*if (_isClose)
+		  if (_isClose)
 		    {
 		      // if the client didn't supply the header 'Connection' or explicitly stated
 		      // to close the current connection
@@ -227,7 +227,7 @@
 		      return;
 		      // BEWARE: it can left the socket busy for HTTP after server stopping (for HTTPS is OK)
 		      //         so consequent tests are failed bc their server can't bind
-		      } */
+		    } 
 		}
 	      [_cfh readInBackgroundAndNotify];
 	    }
