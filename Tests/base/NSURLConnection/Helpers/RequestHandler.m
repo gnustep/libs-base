@@ -76,12 +76,7 @@
   NSString *path;
   BOOL ret = NO;
 
-
-
-  if(YES == _debug)
-    {
-      NSLog(@"%@: BEGIN\n%@", self, request);
-    }
+  NSDebugLog(@"%@: BEGIN\n%@", self, request);
 
   if(nil != _delegate && [_delegate respondsToSelector: @selector(handler:gotRequest:with:)])
     {
@@ -105,10 +100,7 @@
 	      [_delegate handler: self willSendUnauthorized: response with: server];
 	    }
 
-	  if(YES == _debug)
-	    {
-	      NSLog(@"%@: about to send Unauthorized\n%@", self, response);
-	    }
+	  NSDebugLog(@"%@: about to send Unauthorized\n%@", self, response);
 
 	  return YES;
 	}
@@ -124,10 +116,7 @@
 	      if([[credentials objectAtIndex:0] isEqualToString: _login] &&
 		 [[credentials objectAtIndex:1] isEqualToString: _password])
 		{
-		  if(YES == _debug)
-		    {
-		      NSLog(@"%@: got valid credentials", self);
-		    }
+		  NSDebugLog(@"%@: got valid credentials", self);
 
 		  if(nil != _delegate && [_delegate respondsToSelector: @selector(handler:gotAuthorized:with:)])
 		    {
@@ -149,10 +138,7 @@
 		  [_delegate handler: self willSendUnauthorized: response with: server];
 		}
 
-	      if(YES == _debug)
-		{
-		  NSLog(@"%@: about to send Unauthorized\n%@", self, response);
-		}
+	      NSDebugLog(@"%@: about to send Unauthorized\n%@", self, response);
       
 	      return YES;
 	    }
@@ -183,10 +169,7 @@
     }
 
   // TODO: may be to move at another place?
-  if(YES == _debug)
-    {
-      NSLog(@"%@: about to send\n%@", self, response);
-    }
+  NSDebugLog(@"%@: about to send\n%@", self, response);
 
   return ret;
 }

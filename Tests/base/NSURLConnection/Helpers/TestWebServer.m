@@ -149,17 +149,13 @@
 {
   if ([_server port] != nil)
     {
-      if (_debug)
-	{
-	  NSWarnMLog(@"SimpleWebServer already started");
-	}
+      NSWarnMLog(@"SimpleWebServer already started");
       return;
     }
 
   if (nil != _serverThread)
     {
-      if (_debug)
-	NSLog(@"Waiting for startup");
+      NSDebugLog(@"Waiting for startup");
       if (![_serverThread isExecuting])
 	{
 	  NSTimeInterval duration = 0.0;
@@ -199,10 +195,7 @@
 {
   if ([_server port] == nil)
     {
-      if (YES == _debug)
-	{
-	  NSWarnMLog(@"SimpleWebServer already stopped");
-	}
+      NSWarnMLog(@"SimpleWebServer already stopped");
       return;
     }
   if (nil != _serverThread)
@@ -363,6 +356,10 @@
 
 - (void)setDebug:(BOOL)mode
 {
+  NSProcessInfo *pi = [NSProcessInfo processInfo];
+
+  [pi setDebugLoggingEnabled: mode];
+
   _debug = mode;
 }
 
@@ -411,11 +408,9 @@
 	}
     }
 
-  if (_debug)
-    {
-      NSLog(@"Starting web server with address %@, port %@ %@",
-	_address, _port, secure ? @" with TLS" : @"");
-    }
+  NSDebugLog(@"Starting web server with address %@, port %@ %@",
+	     _address, _port, secure ? @" with TLS" : @"");
+
   status = [_server setAddress: _address port: _port secure: secure];
   if (!status)
     {
@@ -430,10 +425,7 @@
   if (nil != _server && [_server port] != nil)
     {
       [_server stop]; // shut down the server
-      if (YES == _debug)
-	{
-	  NSLog(@"%@: stopped SimpleWebServer %@", self, _server);
-	}
+      NSDebugLog(@"%@: stopped SimpleWebServer %@", self, _server);
       DESTROY(_server);
     }
 }
@@ -447,10 +439,8 @@
   [self _startHTTPServer: extra];
   [_lock unlockWithCondition: STARTED];
 
-  if (YES == _debug)
-    {
-      NSLog(@"%@: enter into runloop in detached thread %@", self, [NSThread currentThread]);
-    }
+  NSDebugLog(@"%@: enter into runloop in detached thread %@", self, [NSThread currentThread]);
+
 
   while(!_threadToQuit && duration < MAXDURATION)
     {
@@ -459,10 +449,7 @@
       duration += TIMING;
     }
 
-  if (YES == _debug)
-    {
-      NSLog(@"%@: exit from runloop in detached thread %@", self, [NSThread currentThread]);
-    }
+  NSDebugLog(@"%@: exit from runloop in detached thread %@", self, [NSThread currentThread]);
 
   if (duration >= MAXDURATION &&
      nil != _delegate &&

@@ -30,7 +30,7 @@ int main(int argc, char **argv, char **env)
       NSDictionary *refs;
       TestWebServer *server;
       NSURLConnectionTest *testCase;
-      BOOL debug = NO;
+      BOOL debug = GSDebugSet(@"dflt");
 
       testClass = [bundle principalClass]; // NSURLConnectionTest
 

@@ -25,7 +25,7 @@ int main(int argc, char **argv, char **env)
     {
       Class testClass;
       TestWebServer *server;
-      BOOL debug = NO;
+      BOOL debug = GSDebugSet(@"dflt");
       NSURL *url;
       NSError *error = nil;
       NSURLRequest *request;

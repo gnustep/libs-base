@@ -29,7 +29,7 @@ int main(int argc, char **argv, char **env)
       TestWebServer		*server;
       NSMutableString		*payload;
       NSURLConnectionTest 	*testCase;
-      BOOL 			debug = NO;
+      BOOL 			debug = GSDebugSet(@"dflt");
       int			i;
 
       testClass = [bundle principalClass]; // NSURLConnectionTest

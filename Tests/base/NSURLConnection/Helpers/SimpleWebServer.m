@@ -361,11 +361,10 @@
 			value: version
 		   parameters: nil];
 
-	  if (YES == _debug)
-	    {
-	      NSLog(@"%@: got request\n%@", self, _request);
-	    }
+	  NSDebugLog(@"%@: got request\n%@", self, _request);
+
 	  _response = [GSMimeDocument new];
+
 	  if (nil != _delegate && [_delegate respondsToSelector: @selector(processRequest:response:for:)])
 	    {
 	      ret = [_delegate processRequest: _request response: _response for: self];
@@ -460,10 +459,7 @@
   // actual sending
   [data appendData: [_response rawMimeData]];
 
-  if (YES == _debug)
-    {
-      NSLog(@"%@: about to send response\n%@", self, _response);
-    }
+  NSDebugLog(@"%@: about to send response\n%@", self, _response);
 
   [_cfh writeData: data];
 }
