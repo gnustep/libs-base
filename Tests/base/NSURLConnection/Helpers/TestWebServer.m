@@ -142,6 +142,7 @@
   DESTROY(_password);
   _delegate = nil;
   DESTROY(_traversalMap);
+  DESTROY(_server);
   [super dealloc];
 }
 
