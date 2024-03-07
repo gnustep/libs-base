@@ -133,10 +133,6 @@
 
 - (BOOL) _startListening
 {
-  /*NSDictionary *sslOptions = [NSDictionary dictionaryWithObjectsAndKeys:
-					     @"CertificateFile.pem", GSTLSCertificateFile,
-					   @"KeyFile.pem", GSTLSCertificateKeyFile,
-					   nil];*/
   if (nil != _secure
       && [_secure objectForKey: @"CertificateFile"] != nil
       && [_secure objectForKey: @"KeyFile"] != nil)
