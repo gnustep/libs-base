@@ -469,7 +469,7 @@ didReceiveResponse:(NSURLResponse *)response
 	    {
 	      d = [d mutableCopy];
 	      [(NSMutableDictionary *)d setObject: protocol forKey: @"Protocol"];
-	      [d autorelease];
+	      AUTORELEASE(d);
 	    }
 
 	  address = [instance address];
