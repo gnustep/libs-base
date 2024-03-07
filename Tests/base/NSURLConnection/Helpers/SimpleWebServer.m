@@ -166,7 +166,6 @@
 
 - (void) _accept:(NSNotification *)ntf
 {
-
   if (_isRunning)
     {
       NSDictionary *info = [ntf userInfo];
