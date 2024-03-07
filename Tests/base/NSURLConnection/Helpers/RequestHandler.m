@@ -27,6 +27,8 @@
 - (void)dealloc
 {
   _delegate = nil;
+  DESTROY(_login);
+  DESTROY(_password);
   [super dealloc];
 }
 
