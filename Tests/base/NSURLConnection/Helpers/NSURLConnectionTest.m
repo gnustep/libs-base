@@ -163,7 +163,6 @@ static NSMapTable *_flagMap = nil;
   DESTROY(_request);
   DESTROY(_redirectRequest);
   DESTROY(_expectedContent);
-  [_conn cancel];
   DESTROY(_conn);
   DESTROY(_error);
   
