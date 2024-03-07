@@ -440,7 +440,7 @@
       status = [[_response headerNamed: @"Http"] value];
     }
   statusData = [status dataUsingEncoding: NSUTF8StringEncoding];
-  data = [NSMutableData dataWithData: statusData];
+  data = [[NSMutableData alloc] initWithData: statusData];
   [_response deleteHeaderNamed: @"http"];
   [data appendBytes: crlf length: 2];
 
@@ -450,6 +450,7 @@
   NSDebugLog(@"%@: about to send response\n%@", self, _response);
 
   [_cfh writeData: data];
+  RELEASE(data);
 }
 
 - (void)_resetCycle
