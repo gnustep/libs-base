@@ -65,7 +65,7 @@ check::
 	GNUSTEP_LOCAL_ADDITIONAL_MAKEFILES="$(TOP_DIR)/base.make";\
 	ADDITIONAL_INCLUDE_DIRS="-I$(TOP_DIR)/Headers -I$(TOP_DIR)/Source/$(GNUSTEP_TARGET_DIR)";\
 	ADDITIONAL_LIB_DIRS="-L$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR)";\
-	if [ "$(GNUSTEP_TARGET_OS)" != "windows" ]; then \
+	if [ "$(GNUSTEP_TARGET_OS)" != "windows" -a "$(GNUSTEP_TARGET_OS)" != "mingw32" ]; then \
 		PATH="$(TOP_DIR)/Tools/$(GNUSTEP_OBJ_DIR):${PATH}";\
 		ADDITIONAL_LDFLAGS="-Wl,-rpath,$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR)";\
 		LD_LIBRARY_PATH="$(TOP_DIR)/Source/$(GNUSTEP_OBJ_DIR):${LD_LIBRARY_PATH}";\
