@@ -266,6 +266,7 @@
       Class cls = (Class)handler;
       handler = [[cls alloc] init];
       [_traversalMap setObject: handler forKey: component];
+      RELEASE(handler);
     }
 
   // set the handler
