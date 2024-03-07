@@ -84,11 +84,10 @@ int main(int argc, char **argv, char **env)
 	  [[NSRunLoop currentRunLoop]
       		runUntilDate: [NSDate dateWithTimeIntervalSinceNow: TIMING]];
 	}
-      //      [server1 stop];
-      //      DESTROY(server1);
-      //      [server2 stop];
-      //      DESTROY(server2);
-
+      [server1 stop];
+      DESTROY(server1);
+      [server2 stop];
+      DESTROY(server2);
     }
   else
     {
