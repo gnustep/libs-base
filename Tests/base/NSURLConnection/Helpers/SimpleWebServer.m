@@ -427,14 +427,6 @@
 
   // adding the status line
   status = [[_response headerNamed: @"http"] value];
-  if (nil == status)
-    {
-      status = [[_response headerNamed: @"HTTP"] value];
-    }
-  if (nil == status)
-    {
-      status = [[_response headerNamed: @"Http"] value];
-    }
   statusData = [status dataUsingEncoding: NSUTF8StringEncoding];
   data = [[NSMutableData alloc] initWithData: statusData];
   [_response deleteHeaderNamed: @"http"];
