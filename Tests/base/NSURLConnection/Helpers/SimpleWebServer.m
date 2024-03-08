@@ -384,11 +384,7 @@
   NSString      *connection;
 
   // adding the 'Connection' to the response
-  connection = [[_request headerNamed: @"Connection"] value];
-  if (nil == connection)
-    {
-      connection = [[_request headerNamed: @"connection"] value];
-    }
+  connection = [[_request headerNamed: @"connection"] value];
   // if the client didn't supply the header 'Connection' or
   // explicitly stated to close the current connection
   _isClose = (nil == connection ||
