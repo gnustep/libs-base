@@ -1,6 +1,6 @@
 /**
  *
- *  Author: Sergei Golovin <Golovin.SV@gmail.com>
+ *  Author: Sergei Golovin <svgdev@mail.ru>
  *
  *  Runs two TestWebServer instances to check how the class TestWebServer
  *  behaves. Visit http://localhost:1234/index to see all supported resources.

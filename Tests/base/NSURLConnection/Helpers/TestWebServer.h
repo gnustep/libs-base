@@ -1,7 +1,7 @@
 
 /** -*- objc -*-
  *
- *  Author: Sergei Golovin <Golovin.SV@gmail.com>
+ *  Author: Sergei Golovin <svgdev@mail.ru>
  *
  *  TestWebServer is intended to be used in the tests where a web service is
  *  needed. The class's instance is instantiated with the method

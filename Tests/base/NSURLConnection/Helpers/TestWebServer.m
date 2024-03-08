@@ -1,5 +1,5 @@
 /*
- *  Author: Sergei Golovin <Golovin.SV@gmail.com>
+ *  Author: Sergei Golovin <svgdev@mail.ru>
  */
 
 #import "TestWebServer.h"
