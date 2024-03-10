@@ -163,6 +163,13 @@ GS_EXPORT_CLASS
  */
 + (instancetype) distantFuture;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_15, GS_API_LATEST)
+/** Returns an autoreleased instance with the date/time set to
+ *  the time of access.
+ */
++ (instancetype) now;
+#endif
+
 /** Returns the time interval between the reference date and the current
  * time.
  */
