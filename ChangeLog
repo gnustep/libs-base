@@ -1,3 +1,8 @@
+2024-03-10 Hugo Melder <service@hugomelder.com>
+	* Headers/Foundation/NSDate.h:
+	* Source/NSDate.m:
+	Added the +[NSDate now] constructor, which was introduced in macOS 10.15.
+
 2024-03-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSJSONSerialization.m: Fix leak reported by Larry Campbell
