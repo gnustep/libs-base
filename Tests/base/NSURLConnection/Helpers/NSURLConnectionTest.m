@@ -1,5 +1,5 @@
 /*
- *  Author: Sergei Golovin <Golovin.SV@gmail.com>
+ *  Author: Sergei Golovin <svgdev@mail.ru>
  */
 
 #import "NSURLConnectionTest.h"
@@ -163,7 +163,6 @@ static NSMapTable *_flagMap = nil;
   DESTROY(_request);
   DESTROY(_redirectRequest);
   DESTROY(_expectedContent);
-  [_conn cancel];
   DESTROY(_conn);
   DESTROY(_error);
   
@@ -246,10 +245,7 @@ static NSMapTable *_flagMap = nil;
   NSData *content = [request convertToData];
 
   [self setFlags: SENTREQUEST];
-  if (YES == _debug)
-    {
-      NSLog(@"%@: set SENTREQUEST (-[%@])", self, NSStringFromSelector(_cmd));
-    }
+  NSDebugLog(@"%@: set SENTREQUEST (-[%@])", self, NSStringFromSelector(_cmd));
 
   // TODO: more comparisons of _request and request
   if ([method isEqualToString: @"POST"] ||
@@ -258,19 +254,13 @@ static NSMapTable *_flagMap = nil;
       if ([content isEqualToData: [_request HTTPBody]])
 	{
 	  [self setFlags: GOTREQUEST];
-	  if (YES == _debug)
-	    {
-	      NSLog(@"%@: set GOTREQUEST (-[%@])", self, NSStringFromSelector(_cmd));
-	    }
+	  NSDebugLog(@"%@: set GOTREQUEST (-[%@])", self, NSStringFromSelector(_cmd));
 	}
     }
   else
     {
       [self setFlags: GOTREQUEST];
-      if (YES == _debug)
-	{
-	  NSLog(@"%@: set GOTREQUEST (-[%@])", self, NSStringFromSelector(_cmd));
-	}
+      NSDebugLog(@"%@: set GOTREQUEST (-[%@])", self, NSStringFromSelector(_cmd));
     }
 }
 
@@ -279,10 +269,7 @@ willSendUnauthorized:(GSMimeDocument *)response
 	   with:(TestWebServer *)server
 {
   [self setFlags: NOTAUTHORIZED];
-  if (YES == _debug)
-    {
-      NSLog(@"%@: set NOTAUTHORIZED (-[%@])", self, NSStringFromSelector(_cmd));
-    }
+  NSDebugLog(@"%@: set NOTAUTHORIZED (-[%@])", self, NSStringFromSelector(_cmd));
 }
 
 - (void)handler:(id)handler
@@ -290,10 +277,7 @@ willSendUnauthorized:(GSMimeDocument *)response
 	   with:(TestWebServer *)server
 {
   [self setFlags: AUTHORIZED];
-  if (YES == _debug)
-    {
-      NSLog(@"%@: set AUTHORIZED (-[%@])", self, NSStringFromSelector(_cmd));
-    }
+  NSDebugLog(@"%@: set AUTHORIZED (-[%@])", self, NSStringFromSelector(_cmd));
 }
 
 - (void)handler:(id)handler
@@ -301,10 +285,7 @@ willSendUnauthorized:(GSMimeDocument *)response
 	   with:(TestWebServer *)server
 {
   [self setFlags: SENTRESPONSE];
-  if (YES == _debug)
-    {
-      NSLog(@"%@: set SENTRESPONSE (-[%@])", self, NSStringFromSelector(_cmd));
-    }
+  NSDebugLog(@"%@: set SENTRESPONSE (-[%@])", self, NSStringFromSelector(_cmd));
 }
 
 - (void)timeoutExceededByHandler:(id)handler
@@ -323,19 +304,13 @@ willSendUnauthorized:(GSMimeDocument *)response
       if ([(NSHTTPURLResponse *)redirectResponse statusCode] == _redirectStatusCode)
 	{
 	  [self setFlags: GOTREDIRECT];
-	  if (YES == _debug)
-	    {
-	      NSLog(@"%@: set GOTREDIRECT (-[%@])", self, NSStringFromSelector(_cmd));
-	    }
+	  NSDebugLog(@"%@: set GOTREDIRECT (-[%@])", self, NSStringFromSelector(_cmd));
 	}
     }
   else
     {
       [self setFlags: GOTREDIRECT];
-      if (YES == _debug)
-	{
-	  NSLog(@"%@: set GOTREDIRECT (-[%@])", self, NSStringFromSelector(_cmd));
-	}
+      NSDebugLog(@"%@: set GOTREDIRECT (-[%@])", self, NSStringFromSelector(_cmd));
     }
 
   return _redirectRequest;
@@ -345,10 +320,7 @@ willSendUnauthorized:(GSMimeDocument *)response
 didReceiveAuthenticationChallenge:(NSURLAuthenticationChallenge *)challenge
 {
   [self setFlags: GOTUNAUTHORIZED];
-  if (YES == _debug)
-    {
-      NSLog(@"%@: set GOTUNAUTHORIZED (-[%@])", self, NSStringFromSelector(_cmd));
-    }
+  NSDebugLog(@"%@: set GOTUNAUTHORIZED (-[%@])", self, NSStringFromSelector(_cmd));
 
   if ([challenge previousFailureCount] == 0)
     {
@@ -401,19 +373,13 @@ didReceiveResponse:(NSURLResponse *)response
       if ([(NSHTTPURLResponse *)response statusCode] == _expectedStatusCode)
 	{
 	  [self setFlags: GOTRESPONSE];
-	  if (YES == _debug)
-	    {
-	      NSLog(@"%@: set GOTRESPONSE (-[%@])", self, NSStringFromSelector(_cmd));
-	    }
+	  NSDebugLog(@"%@: set GOTRESPONSE (-[%@])", self, NSStringFromSelector(_cmd));
 	}
     }
   else
     {
       [self setFlags: GOTRESPONSE];
-      if (YES == _debug)
-	{
-	  NSLog(@"%@: set GOTRESPONSE (-[%@])", self, NSStringFromSelector(_cmd));
-	}
+      NSDebugLog(@"%@: set GOTRESPONSE (-[%@])", self, NSStringFromSelector(_cmd));
     }
 }
 
@@ -421,10 +387,7 @@ didReceiveResponse:(NSURLResponse *)response
     didReceiveData:(NSData *)data
 {
   [_received appendData: data];
-  if (YES == _debug)
-    {
-      NSLog(@"%@: received data '%@' (-[%@])", self, data, NSStringFromSelector(_cmd));
-    }
+  NSDebugLog(@"%@: received data '%@' (-[%@])", self, data, NSStringFromSelector(_cmd));
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection
@@ -433,17 +396,11 @@ didReceiveResponse:(NSURLResponse *)response
      [_received isEqualToData: _expectedContent])
     {
       [self setFlags: GOTCONTENT];
-      if (YES == _debug)
-	{
-	  NSLog(@"%@: set GOTCONTENT (-[%@])", self, NSStringFromSelector(_cmd));
-	}
+      NSDebugLog(@"%@: set GOTCONTENT (-[%@])", self, NSStringFromSelector(_cmd));
     }
 
   [self setFlags: GOTFINISH];
-  if (YES == _debug)
-    {
-      NSLog(@"%@: set GOTFINISH (-[%@])", self, NSStringFromSelector(_cmd));
-    }
+  NSDebugLog(@"%@: set GOTFINISH (-[%@])", self, NSStringFromSelector(_cmd));
 
   _done = YES;
 }
@@ -461,11 +418,8 @@ didReceiveResponse:(NSURLResponse *)response
   */
 
   [self setFlags: GOTFAIL];
-  if (YES == _debug)
-    {
-      NSLog(@"%@: set GOTFAIL (-[%@])", self, NSStringFromSelector(_cmd));
-      NSLog(@"%@: error %@", self, error);
-    }
+  NSDebugLog(@"%@: set GOTFAIL (-[%@])", self, NSStringFromSelector(_cmd));
+  NSDebugLog(@"%@: error %@", self, error);
 
   _done = YES;
 }
@@ -515,7 +469,7 @@ didReceiveResponse:(NSURLResponse *)response
 	    {
 	      d = [d mutableCopy];
 	      [(NSMutableDictionary *)d setObject: protocol forKey: @"Protocol"];
-	      [d autorelease];
+	      AUTORELEASE(d);
 	    }
 
 	  address = [instance address];

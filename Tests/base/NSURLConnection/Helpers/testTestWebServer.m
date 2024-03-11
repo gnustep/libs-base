@@ -1,6 +1,6 @@
 /**
  *
- *  Author: Sergei Golovin <Golovin.SV@gmail.com>
+ *  Author: Sergei Golovin <svgdev@mail.ru>
  *
  *  Runs two TestWebServer instances to check how the class TestWebServer
  *  behaves. Visit http://localhost:1234/index to see all supported resources.
@@ -84,11 +84,10 @@ int main(int argc, char **argv, char **env)
 	  [[NSRunLoop currentRunLoop]
       		runUntilDate: [NSDate dateWithTimeIntervalSinceNow: TIMING]];
 	}
-      //      [server1 stop];
-      //      DESTROY(server1);
-      //      [server2 stop];
-      //      DESTROY(server2);
-
+      [server1 stop];
+      DESTROY(server1);
+      [server2 stop];
+      DESTROY(server2);
     }
   else
     {

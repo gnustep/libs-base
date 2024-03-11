@@ -1,6 +1,6 @@
 /** -*- objc -*-
  *
- *  Author: Sergei Golovin <Golovin.SV@gmail.com>
+ *  Author: Sergei Golovin <svgdev@mail.ru>
  * 
  *  The class is intended to test the class NSURLConnection. It is designed to start
  *  a TestWebServer instance and make NSURLConnection to it getting TestWebServerDelegate's
