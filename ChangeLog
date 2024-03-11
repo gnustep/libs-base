@@ -1,3 +1,8 @@
+2024-03-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m: Ensure class pointer is initialised
+	before use (git issue #381).
+
 2024-03-10 Hugo Melder <service@hugomelder.com>
 	* Headers/Foundation/NSDate.h:
 	* Source/NSDate.m:

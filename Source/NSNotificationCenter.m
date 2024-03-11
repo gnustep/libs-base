@@ -679,6 +679,14 @@ static NSNotificationCenter *default_center = nil;
 	{
 	  concrete = [GSNotification class];
 	}
+      /* Ensure value is initialised before we use it in
+       * -removeObserver:name:object:
+       */
+      if (nil == GSNotificationObserverClass)
+	{
+	  [GSNotificationObserver class];
+	}
+
       /*
        * Do alloc and init separately so the default center can refer to
        * the 'default_center' variable during initialisation.
