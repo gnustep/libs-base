@@ -293,15 +293,15 @@ NSLog(@"%@ Server %p accept failed (no connection)", prefix, theStream);
 int main()
 {
   CREATE_AUTORELEASE_POOL(arp);
-  NSRunLoop *rl = [NSRunLoop currentRunLoop];
-  NSHost *host = [NSHost hostWithAddress: @"127.0.0.1"];
-  ServerListener *sli;
-  ClientListener *cli;
-  NSString *path = @"socket_cs.m";
-  NSString *socketPath = @"test-socket";
-  NSDate *end;
+  NSRunLoop		*rl = [NSRunLoop currentRunLoop];
+  NSHost 		*host;
+  ServerListener 	*sli;
+  ClientListener 	*cli;
+  NSString		*path = @"socket_cs.m";
+  NSString		*socketPath = @"test-socket";
+  NSDate 		*end;
 
-  [[NSFileManager defaultManager] removeFileAtPath: socketPath handler: nil];
+  host = [NSHost hostWithAddress: @"127.0.0.1"];
   NSLog(@"sending and receiving on %@: %@", host, [host address]);
   goldData = [NSData dataWithContentsOfFile: path];
   testData = [NSMutableData dataWithCapacity: 4096];
@@ -309,7 +309,7 @@ int main()
 {
   CREATE_AUTORELEASE_POOL(inner);
 
-  prefix = @"Test1";
+  prefix = @"Test1IPV4";
   [testData setLength: 0];
   sli = AUTORELEASE([ServerListener new]);
   cli = AUTORELEASE([ClientListener new]);
@@ -351,7 +351,7 @@ int main()
 {
   CREATE_AUTORELEASE_POOL(inner);
 
-  prefix = @"Test2";
+  prefix = @"Test2IPV4";
   [testData setLength: 0];
   sli = AUTORELEASE([ServerListener new]);
   cli = AUTORELEASE([ClientListener new]);
@@ -364,8 +364,8 @@ int main()
 			port: 1234
 		 inputStream: &clientInput
 		outputStream: &clientOutput];
-  NSLog(@"%@ Client input stream is %p", prefix, clientInput);
-  NSLog(@"%@ Client output stream is %p", prefix, clientOutput);
+  NSLog(@"%@ Client input stream is %@", prefix, clientInput);
+  NSLog(@"%@ Client output stream is %@", prefix, clientOutput);
   [clientInput setDelegate: cli];
   [clientOutput setDelegate: cli];
   [clientInput open];
@@ -389,6 +389,100 @@ int main()
   DESTROY(serverOutput);
   RELEASE(inner);
 }
+
+  host = [NSHost hostWithAddress: @"::1"];
+  NSLog(@"sending and receiving on %@: %@", host, [host address]);
+  goldData = [NSData dataWithContentsOfFile: path];
+  testData = [NSMutableData dataWithCapacity: 4096];
+
+{
+  CREATE_AUTORELEASE_POOL(inner);
+
+  prefix = @"Test1IPV6";
+  [testData setLength: 0];
+  sli = AUTORELEASE([ServerListener new]);
+  cli = AUTORELEASE([ClientListener new]);
+  serverStream
+    = [GSServerStream serverStreamToAddr: [host address] port: 1234];
+  [serverStream setDelegate: sli];
+  [serverStream scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
+  [serverStream open];
+  [NSStream getStreamsToHost: host
+			port: 1234
+		 inputStream: &clientInput
+		outputStream: &clientOutput];
+  NSLog(@"%@ Client input stream is %p", prefix, clientInput);
+  NSLog(@"%@ Client output stream is %p", prefix, clientOutput);
+  [clientInput setDelegate: cli];
+  [clientOutput setDelegate: cli];
+  [clientInput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
+  [clientOutput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
+  [clientInput open];
+  [clientOutput open];
+
+  end = [NSDate dateWithTimeIntervalSinceNow: 5];
+  while (NO == [goldData isEqualToData: testData]
+    && [end timeIntervalSinceNow] > 0.0)
+    {
+      [rl runMode: NSDefaultRunLoopMode beforeDate: end];
+    }
+  PASS([goldData isEqualToData: testData], "Local tcp");
+  if ([end timeIntervalSinceNow] < 0.0)
+    NSLog(@"%@ timed out.\n", prefix);
+
+  [clientInput setDelegate: nil];
+  [clientOutput setDelegate: nil];
+  DESTROY(serverInput);
+  DESTROY(serverOutput);
+  RELEASE(inner);
+}
+
+{
+  CREATE_AUTORELEASE_POOL(inner);
+
+  prefix = @"Test2IPV6";
+  [testData setLength: 0];
+  sli = AUTORELEASE([ServerListener new]);
+  cli = AUTORELEASE([ClientListener new]);
+  serverStream
+    = [GSServerStream serverStreamToAddr: [host address] port: 1234];
+  [serverStream setDelegate: sli];
+  [serverStream open];
+  [serverStream scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
+  [NSStream getStreamsToHost: host
+			port: 1234
+		 inputStream: &clientInput
+		outputStream: &clientOutput];
+  NSLog(@"%@ Client input stream is %@", prefix, clientInput);
+  NSLog(@"%@ Client output stream is %@", prefix, clientOutput);
+  [clientInput setDelegate: cli];
+  [clientOutput setDelegate: cli];
+  [clientInput open];
+  [clientOutput open];
+  [clientInput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
+  [clientOutput scheduleInRunLoop: rl forMode: NSDefaultRunLoopMode];
+
+  end = [NSDate dateWithTimeIntervalSinceNow: 5];
+  while (NO == [goldData isEqualToData: testData]
+    && [end timeIntervalSinceNow] > 0.0)
+    {
+      [rl runMode: NSDefaultRunLoopMode beforeDate: end];
+    }
+  PASS([goldData isEqualToData: testData], "Local tcp (blocking open)");
+  if ([end timeIntervalSinceNow] < 0.0)
+    NSLog(@"%@ timed out.\n", prefix);
+
+  [clientInput setDelegate: nil];
+  [clientOutput setDelegate: nil];
+  DESTROY(serverInput);
+  DESTROY(serverOutput);
+  RELEASE(inner);
+}
+
+  [[NSFileManager defaultManager] removeFileAtPath: socketPath handler: nil];
+  NSLog(@"sending and receiving on %@", socketPath);
+  goldData = [NSData dataWithContentsOfFile: path];
+  testData = [NSMutableData dataWithCapacity: 4096];
 
 {
   CREATE_AUTORELEASE_POOL(inner);
