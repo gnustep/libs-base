@@ -83,3 +83,24 @@ DerivedData/
 **/xcshareddata/WorkspaceSettings.xcsettings
 
 # End of https://www.gitignore.io/api/xcode
+
+.cache
+compile_commands.json
+**.kdev4
+
+# Documentation
+Documentation/Base*
+Documentation/General
+Documentation/manual
+Documentation/ReleaseNotes
+Documentation/ANNOUNCE
+Documentation/*.pdf
+Documentation/README
+Documentation/version.texi
+Documentation/*.aux
+Documentation/*.toc
+Documentation/INSTALL
+Documentation/NEWS
+**/dependencies
+Source/Base.gsdoc
+Source/BaseAdditions.gsdoc

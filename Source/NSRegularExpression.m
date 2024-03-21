@@ -1064,6 +1064,20 @@ prepareResult(NSRegularExpression *regex,
 }
 #endif
 
++ (NSString *)escapedPatternForString:(NSString *)string {
+  // https://unicode-org.github.io/icu/userguide/strings/regexp.html
+  // Need to escape * ? + [ ( ) { } ^ $ | \ .
+  return [[NSRegularExpression 
+    regularExpressionWithPattern: @"([*?+\\[(){}^$|\\\\.])" 
+                         options: 0 
+                           error: NULL]
+    stringByReplacingMatchesInString: string
+                             options: 0
+                               range: NSMakeRange(0, [string length]) 
+                        withTemplate: @"\\\\$1"
+  ];
+}
+
 - (NSRegularExpressionOptions) options
 {
   return options;

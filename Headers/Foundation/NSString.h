@@ -426,6 +426,48 @@ enum {
 typedef NSUInteger NSStringEncodingConversionOptions;
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
+/** For enumerateSubstringsInRange:options:usingBlock: 
+    You must include an substring type (`NSStringEnumerationBy`), and may
+    bitwise or (`|`) with any of the other options. */
+enum {
+    /* Must include one of these 
+       Must fit into 8 bits. */
+    /** Enumerate by lines. Uses lineRangeForRange: */
+    NSStringEnumerationByLines = 0,
+    /** Enumerate by paragraph. Uses paragraphRangeForRange: */
+    NSStringEnumerationByParagraphs = 1,
+    /** Enumerate by composed character sequence. Uses rangeOfComposedCharacterSequencesForRange: */
+    NSStringEnumerationByComposedCharacterSequences = 2,
+    /** Enumerate by word, as specified in Unicode TR 29. 
+        Only supported if GNUstep is compiled with ICU. 
+        Uses UBRK_WORD, with current locale and standard abbreviation lists if 
+        NSStringEnumerationLocalized is passed, otherwise the locale is "en_US_POSIX". */
+    NSStringEnumerationByWords = 3,
+    /** Enumerate by sentence, as specified in Unicode TR 29. 
+        Only supported if GNUstep is compiled with ICU. 
+        Uses UBRK_WORD, with current locale and standard abbreviation lists if 
+        NSStringEnumerationLocalized is passed, otherwise the locale is "en_US_POSIX". */
+    NSStringEnumerationBySentences = 4,
+    #if OS_API_VERSION(MAC_OS_X_VERSION_11,GS_API_LATEST) 
+    /** Undocumented public API on macOS. Not supported by GNUstep. */
+    NSStringEnumerationByCaretPositions = 5,
+    /** Undocumented public API on macOS. Not supported by GNUstep. */
+    NSStringEnumerationByDeletionClusters = 6,
+    #endif
+
+    /* May pass one of these via bitwise or. 
+       Must be a single bit set at an offset >= 8. */
+    NSStringEnumerationReverse = 1UL << 8,
+    NSStringEnumerationSubstringNotRequired = 1UL << 9,
+    NSStringEnumerationLocalized = 1UL << 10
+};
+
+typedef NSUInteger NSStringEnumerationOptions;
+
+DEFINE_BLOCK_TYPE(GSNSStringEnumerationBlock, void, NSString* substring, NSRange substringRange, NSRange enclosingRange, BOOL* stop);
+#endif
+
 /**
  * <p>
  *   <code>NSString</code> objects represent an immutable string of Unicode 3.0
@@ -1049,6 +1091,12 @@ GS_EXPORT_CLASS
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 + (Class) constantStringClass;
 #endif	/* GS_API_NONE */
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
+- (void) enumerateSubstringsInRange: (NSRange)range 
+                            options: (NSStringEnumerationOptions)opts 
+                         usingBlock: (GSNSStringEnumerationBlock)block;
+#endif
 
 @end
 
