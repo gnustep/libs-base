@@ -961,6 +961,14 @@
 #endif
     }
 
+  if (!ins)
+    {
+#if defined(AF_INET6)
+      ins = (GSSocketStream *)AUTORELEASE([[GSInet6InputStream alloc] initToAddr: address port: port]);
+      outs = (GSSocketStream *)AUTORELEASE([[GSInet6OutputStream alloc] initToAddr: address port: port]);
+#endif      
+    }
+  
   /*
    * Windows only permits a single event to be associated with a socket
    * at any time, but the runloop system only allows an event handle to
