@@ -9,6 +9,7 @@ Tests/base/*/GNUmakefile
 *.log
 *.sum
 Tools/BaseTools/dependencies
+Source/gnustep-base.pc
 
 # Unit test byproducts
 *.err
