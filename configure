@@ -750,6 +750,8 @@ build_os
 build_vendor
 build_cpu
 build
+BASELIBS
+BASEFLAGS
 BASE_NONFRAGILE_ABI
 target_alias
 host_alias
@@ -2800,6 +2802,11 @@ else
 $as_echo "$as_me: WARNING: You are running configure with the link options ($LDFLAGS) set to a different value from that used by gnustep-make ($MAKELDFLAGS).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use LDFLAGS=$LDFLAGS or run the gnustep-base configure again with your LDFLAGS environment variable set to $MAKELDFLAGS" >&2;}
   fi
 fi
+
+BASEFLAGS=`gnustep-config --objc-flags`
+
+BASELIBS=`gnustep-config --base-libs`
+
 
 # We shouldn't be loading GNUstep.sh here.  It would load in a lot of
 # variables which might get confused with the ones that will be used
@@ -14161,7 +14168,7 @@ $as_echo "$VERSION" >&6; }
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-ac_config_files="$ac_config_files config.mak base.make Headers/GNUstepBase/GSConfig.h"
+ac_config_files="$ac_config_files config.mak base.make Source/gnustep-base.pc Headers/GNUstepBase/GSConfig.h"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -14856,6 +14863,7 @@ do
     "Headers/GNUstepBase/config.h") CONFIG_HEADERS="$CONFIG_HEADERS Headers/GNUstepBase/config.h" ;;
     "config.mak") CONFIG_FILES="$CONFIG_FILES config.mak" ;;
     "base.make") CONFIG_FILES="$CONFIG_FILES base.make" ;;
+    "Source/gnustep-base.pc") CONFIG_FILES="$CONFIG_FILES Source/gnustep-base.pc" ;;
     "Headers/GNUstepBase/GSConfig.h") CONFIG_FILES="$CONFIG_FILES Headers/GNUstepBase/GSConfig.h" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

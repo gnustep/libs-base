@@ -639,6 +639,7 @@ libbase-resources_RESOURCE_FILES = Info-gnustep.plist
 
 libgnustep-base_NEEDS_GUI = NO
 libgnustep-baseadd_NEEDS_GUI = NO
+libgnustep-base_PKGCONFIG_FILES = "gnustep-base.pc"
 
 # Build the Additions subproject first.  It can then be used in by
 # both gnustep-base and gnustep-baseadd (otherwise, if we ever build

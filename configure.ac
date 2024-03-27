@@ -126,6 +126,9 @@ else
   fi
 fi
 
+AC_SUBST(BASEFLAGS, `gnustep-config --objc-flags`)
+AC_SUBST(BASELIBS, `gnustep-config --base-libs`)
+
 # We shouldn't be loading GNUstep.sh here.  It would load in a lot of
 # variables which might get confused with the ones that will be used
 # at runtime.  We will load it later once we have determined (and
@@ -3868,5 +3871,5 @@ AC_SUBST(GCC_VERSION)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_CONFIG_FILES([config.mak base.make Headers/GNUstepBase/GSConfig.h])
+AC_CONFIG_FILES([config.mak base.make Source/gnustep-base.pc Headers/GNUstepBase/GSConfig.h])
 AC_OUTPUT
