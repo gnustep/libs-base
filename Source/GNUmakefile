@@ -270,6 +270,7 @@ NSMeasurement.m \
 NSMetadata.m \
 NSMetadataAttributes.m \
 NSMethodSignature.m \
+NSNetServices.m \
 NSNotification.m \
 NSNotificationCenter.m \
 NSNotificationQueue.m \
@@ -391,8 +392,7 @@ endif
 
 ifeq ($(GNUSTEP_BASE_HAVE_MDNS), 1)
   BASE_MFILES += \
-	GSMDNSNetServices.m \
-	NSNetServices.m
+	GSMDNSNetServices.m
 endif
 
 ifeq ($(GNUSTEP_BASE_HAVE_AVAHI), 1)
@@ -400,8 +400,7 @@ ifeq ($(GNUSTEP_BASE_HAVE_AVAHI), 1)
 	GSAvahiNetService.m \
 	GSAvahiNetServiceBrowser.m \
 	GSAvahiClient.m \
-	GSAvahiRunLoopIntegration.m \
-	NSNetServices.m
+	GSAvahiRunLoopIntegration.m
 endif
 
 ifeq ($(WITH_FFI),libffi)
