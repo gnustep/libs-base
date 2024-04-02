@@ -197,12 +197,14 @@ static unsigned nextSessionIdentifier()
 #endif
       curl_global_init(CURL_GLOBAL_SSL);
       sprintf(label, "NSURLSession %u", nextSessionIdentifier());
-      targetQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+      targetQueue
+	= dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
 #if HAVE_DISPATCH_QUEUE_CREATE_WITH_TARGET
-      _workQueue = dispatch_queue_create_with_target(label, DISPATCH_QUEUE_SERIAL, targetQueue);
+      _workQueue = dispatch_queue_create_with_target(label,
+	DISPATCH_QUEUE_SERIAL, targetQueue);
 #else
       _workQueue = dispatch_queue_create(label,	DISPATCH_QUEUE_SERIAL);
-      dispatch_set_target_queue(_queue, targetQueue);
+      dispatch_set_target_queue(_workQueue, targetQueue);
 #endif
       if (nil != queue)
         {
