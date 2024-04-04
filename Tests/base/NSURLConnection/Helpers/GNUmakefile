@@ -6,7 +6,7 @@ NEEDS_GUI=NO
 
 TestConnection_OBJC_FILES = TestCase.m SimpleWebServer.m TestWebServer.m NSURLConnectionTest.m RequestHandler.m
 #TestConnection_OBJC_LIBS += -lWebServer -lPerformance
-TestConnection_RESOURCE_FILES += testKey.pem testCert.pem
+TestConnection_RESOURCE_FILES += key.pem certificate.pem
 TestConnection_PRINCIPAL_CLASS = NSURLConnectionTest
 
 TOOL_NAME = testTestWebServer
