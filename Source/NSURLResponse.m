@@ -131,20 +131,19 @@ typedef struct {
         {
 	  NSString	*n = [h namePreservingCase: YES];
 	  NSString	*v = [h fullValue];
+	  NSString	*o = [this->headers objectForKey: n];
 
 	  if ([v isKindOfClass: [NSString class]] && [v length] > 0)
 	    {
-	      NSString	*o = [this->headers objectForKey: n];
-
-	      if (nil != o)
+	      if ([o length] > 0)
 		{
-		  n = [NSString stringWithFormat: @"%@, %@", o, v];
+		  v = [NSString stringWithFormat: @"%@, %@", o, v];
 		}
 	      [self _setValue: v forHTTPHeaderField: n];
 	    }
-	  else
+	  else if (nil == o)
 	    {
-	      NSLog(@"Ignored bad/empty header value for %@", h);
+	      [self _setValue: @"" forHTTPHeaderField: n];
 	    }
 	}
     }
