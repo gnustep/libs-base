@@ -399,56 +399,112 @@ foundIgnorableWhitespace: (NSString *)string
   return plist;
 }
 
-- (void) unescape
+-(void) unescape
 {
-  id	o;
-  NSRange	r;
+    /* Convert any \Uxxxx sequences to unicode characters.
+    * This method does not handle malformed escape codes,
+    * such as too-short/too-long escape codes, or unpaired surrogate pairs
+    * In such cases the string is left as-is in that region
+    */
+    NSRange	r = NSMakeRange(0, [value length]);
 
-  /* Convert any \Uxxxx sequences to unicode characters.
-   */
-  r = NSMakeRange(0, [value length]);
-  while (r.length >= 6)
-    {
-      r = [value rangeOfString: @"\\U" options: NSLiteralSearch range: r];
-      if (r.length == 2 && [value length] >= r.location + 6)
-	{
-	  unichar	c;
-	  unichar	v;
+    while (r.length >= 6) {
+        r = [value rangeOfString: @"\\U" options: NSLiteralSearch range: r];
 
-	  c = [value characterAtIndex: r.location + 2];
-	  if (isxdigit(c))
-	    {
-	      v = char2num(c);
-	      c = [value characterAtIndex: r.location + 3];
-	      if (isxdigit(c))
-		{
-		  v <<= 4;
-		  v |= char2num(c);
-		  c = [value characterAtIndex: r.location + 4];
-		  if (isxdigit(c))
-		    {
-		      v <<= 4;
-		      v |= char2num(c);
-		      c = [value characterAtIndex: r.location + 5];
-		      if (isxdigit(c))
-			{
-			  v <<= 4;
-			  v |= char2num(c);
-			  o = [NSString alloc];
-			  o = [o initWithCharacters: &v length: 1];
-			  r.length += 4;
-			  [value replaceCharactersInRange: r withString: o];
-			  [o release];
-			  r.location++;
-			  r.length = 0;
-			}
-		    }
-		}
-	    }
-	  r = NSMakeRange(NSMaxRange(r), [value length] - NSMaxRange(r));
-	}
+        if (r.length == 2 && r.location + 5 < [value length]) {
+            unichar	c = [value characterAtIndex: r.location + 2];
+
+            NSString *unescapedString = nil;
+
+            if (isxdigit(c)) {
+                unichar v = char2num(c);
+                c = [value characterAtIndex: r.location + 3];
+
+                if (isxdigit(c)) {
+                    v <<= 4;
+                    v |= char2num(c);
+                    c = [value characterAtIndex: r.location + 4];
+
+                    if (isxdigit(c)) {
+                        v <<= 4;
+                        v |= char2num(c);
+                        c = [value characterAtIndex: r.location + 5];
+
+                        if (isxdigit(c)) {
+                            v <<= 4;
+                            v |= char2num(c);
+
+                            // Surrogate pair, read the following `\Uxxxx`
+                            if (0xD800 <= v && v <= 0xDBFF) {
+                                unichar hi = v;
+                                
+                                if (r.location + 11 < [value length]) {
+                                    c = [value characterAtIndex: r.location + 6];
+
+                                    if (c == '\\') {
+                                        c = [value characterAtIndex: r.location + 7];
+
+                                        if (c == 'U') {
+                                            c = [value characterAtIndex: r.location + 8];
+
+                                            if (isxdigit(c)) {
+                                                unichar lo = char2num(c);
+                                                c = [value characterAtIndex: r.location + 9];
+
+                                                if (isxdigit(c)) {
+                                                    lo <<= 4;
+                                                    lo |= char2num(c);
+                                                    c = [value characterAtIndex: r.location + 10];
+
+                                                    if (isxdigit(c)) {
+                                                        lo <<= 4;
+                                                        lo |= char2num(c);
+                                                        c = [value characterAtIndex: r.location + 11];
+
+                                                        if (isxdigit(c)) {
+                                                            lo <<= 4;
+                                                            lo |= char2num(c);
+
+                                                            if (0xDC00 <= lo && lo <= 0xDFFF) {
+                                                                uint32_t code_point = 0x10000 | ((hi - 0xD800) << 10) | (lo - 0xDC00);
+
+                                                                unescapedString = [[NSString alloc] initWithBytes:&code_point length:sizeof(code_point) encoding:NSUTF32StringEncoding];
+                                                                NSRange escapeRange = NSMakeRange(r.location, 12);
+
+                                                                [value replaceCharactersInRange:escapeRange withString:unescapedString];
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                unescapedString = [[NSString alloc] initWithCharacters:&v length:1];
+                                NSRange escapeRange = NSMakeRange(r.location, 6);
+
+                                [value replaceCharactersInRange:escapeRange withString:unescapedString];
+                            }
+                        }
+                    }
+                }
+            }
+
+            NSUInteger newLocation;
+
+            if (unescapedString){
+                newLocation = r.location + [unescapedString length];
+                [unescapedString release];
+            } else {
+                newLocation = r.location + 1;
+            }
+
+            r = NSMakeRange(newLocation, [value length] - newLocation);
+        }
     }
 }
+
 @end
 
 
