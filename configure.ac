@@ -2451,6 +2451,7 @@ fi
 
 AC_CHECK_HEADERS(bfd.h)
 AC_CHECK_LIB(intl, libintl_fprintf)
+AC_CHECK_LIB(zstd, ZSTD_versionNumber)
 AC_CHECK_LIB(iberty, dyn_string_append)
 AC_CHECK_LIB(z, gzseek)
 AC_CHECK_LIB(bfd, bfd_openr)
