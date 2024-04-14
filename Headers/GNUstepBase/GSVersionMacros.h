@@ -355,7 +355,7 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
  */
 #if __has_feature(blocks)
 #  if	OBJC2RUNTIME
-#    if defined(__APPLE__)
+#    if __has_include(<Block.h>)
 #      include <Block.h>
 #    else
 #      include <objc/blocks_runtime.h>
