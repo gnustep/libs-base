@@ -56,22 +56,22 @@ int main()
   url = [NSURL URLWithString:@"this isn't a URL"];
   PASS(url == nil, "URL with 'this isn't a URL' returns nil");
 
-  url = [NSURL URLWithString: @"https://gnustep.github.io/silly-file-name"];
+  url = [NSURL URLWithString: @"https://httpbin.org/silly-file-name"];
   data = [url resourceDataUsingCache: NO];
   num = [url propertyForKey: NSHTTPPropertyStatusCodeKey];
   PASS_EQUAL(num, [NSNumber numberWithInt: 404],
-    "Status of load is 404 for gnustep.github.io/silly-file-name");
+    "Status of load is 404 for httpbin.org/silly-file-name");
   str = [url scheme];
   PASS([str isEqual: @"https"],
-       "Scheme of https://gnustep.github.io/silly-file-name is https");
+       "Scheme of https://httpbin.org/silly-file-name is https");
   str = [url host];
-  PASS([str isEqual: @"gnustep.github.io"],
-    "Host of https://gnustep.github.io/silly-file-name is gnustep.github.io");
+  PASS([str isEqual: @"httpbin.org"],
+    "Host of https://httpbin.org/silly-file-name is httpbin.org");
   str = [url path];
   PASS([str isEqual: @"/silly-file-name"],
-    "Path of https://gnustep.github.io/silly-file-name is /silly-file-name");
-  PASS([[url resourceSpecifier] isEqual: @"//gnustep.github.io/silly-file-name"],
-    "resourceSpecifier of https://gnustep.github.io/silly-file-name is //gnustep.github.io/silly-file-name");
+    "Path of https://httpbin.org/silly-file-name is /silly-file-name");
+  PASS([[url resourceSpecifier] isEqual: @"//httpbin.org/silly-file-name"],
+    "resourceSpecifier of https://httpbin.org/silly-file-name is //httpbin.org/silly-file-name");
 
 
   url = [NSURL URLWithString: @"http://example.com/silly-file-path/"];
