@@ -20,6 +20,11 @@ int main(void)
   if (!NSLOCALE_SUPPORTED)
     SKIP("NSLocale not supported\nThe ICU library was not available when GNUstep-base was built")
 
+  PASS_EQUAL([NSLocale canonicalLocaleIdentifierFromString: @"es_ES"],
+    @"es_ES", "canonical version of es_ES")
+  PASS_EQUAL([NSLocale canonicalLocaleIdentifierFromString: @"zh-Hant_TW"],
+    @"zh_TW", "canonical version of zh-Hant_TW")
+
   // These tests don't really work all that well.  I need to come up with
   // something better.  Most of the ones that fail are because nil is returned.
   testHopeful = YES;

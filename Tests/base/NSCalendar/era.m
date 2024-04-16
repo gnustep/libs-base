@@ -32,6 +32,8 @@ int main()
   /* Test getEra:year:month:day:fromDate:
    */
   dateFormatter = [[NSDateFormatter alloc] init];
+  [dateFormatter setLocale: [[NSLocale alloc] initWithLocaleIdentifier:
+	[NSLocale canonicalLocaleIdentifierFromString: @"en_US"]]];
   cal = [NSCalendar currentCalendar];
   [cal setTimeZone:[NSTimeZone timeZoneWithName: @"America/New_York"]];
   [dateFormatter setDateFormat: @"d MMM yyyy HH:mm:ss Z"];

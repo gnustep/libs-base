@@ -687,7 +687,9 @@ static Class	runLoopClass;
   if (connect(desc, (struct sockaddr*)&sockAddr,
     GSPrivateSockaddrLength(&sockAddr)) == SOCKET_ERROR)
     {
-      if (!GSWOULDBLOCK)
+      long	eno = GSNETERROR;
+
+      if (!GSWOULDBLOCK(eno))
 	{
 	  NSLog(@"unable to make connection to %@ - %@",
 	    GSPrivateSockaddrName(&sockAddr), [NSError _last]);

@@ -750,6 +750,8 @@ build_os
 build_vendor
 build_cpu
 build
+BASELIBS
+BASEFLAGS
 BASE_NONFRAGILE_ABI
 target_alias
 host_alias
@@ -2800,6 +2802,11 @@ else
 $as_echo "$as_me: WARNING: You are running configure with the link options ($LDFLAGS) set to a different value from that used by gnustep-make ($MAKELDFLAGS).  To avoid conflicts/problems, reconfigure/reinstall gnustep-make to use LDFLAGS=$LDFLAGS or run the gnustep-base configure again with your LDFLAGS environment variable set to $MAKELDFLAGS" >&2;}
   fi
 fi
+
+BASEFLAGS=`gnustep-config --objc-flags`
+
+BASELIBS=`gnustep-config --base-libs`
+
 
 # We shouldn't be loading GNUstep.sh here.  It would load in a lot of
 # variables which might get confused with the ones that will be used
@@ -9363,6 +9370,51 @@ _ACEOF
 
 fi
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ZSTD_compress in -lzstd" >&5
+$as_echo_n "checking for ZSTD_compress in -lzstd... " >&6; }
+if ${ac_cv_lib_zstd_ZSTD_compress+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lzstd  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char ZSTD_compress ();
+int
+main ()
+{
+return ZSTD_compress ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_zstd_ZSTD_compress=yes
+else
+  ac_cv_lib_zstd_ZSTD_compress=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_zstd_ZSTD_compress" >&5
+$as_echo "$ac_cv_lib_zstd_ZSTD_compress" >&6; }
+if test "x$ac_cv_lib_zstd_ZSTD_compress" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBZSTD 1
+_ACEOF
+
+  LIBS="-lzstd $LIBS"
+
+fi
+
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for dyn_string_append in -liberty" >&5
 $as_echo_n "checking for dyn_string_append in -liberty... " >&6; }
 if ${ac_cv_lib_iberty_dyn_string_append+:} false; then :
@@ -9450,6 +9502,51 @@ if test "x$ac_cv_lib_z_gzseek" = xyes; then :
 _ACEOF
 
   LIBS="-lz $LIBS"
+
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sframe_decode in -lsframe" >&5
+$as_echo_n "checking for sframe_decode in -lsframe... " >&6; }
+if ${ac_cv_lib_sframe_sframe_decode+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lsframe  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char sframe_decode ();
+int
+main ()
+{
+return sframe_decode ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_sframe_sframe_decode=yes
+else
+  ac_cv_lib_sframe_sframe_decode=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_sframe_sframe_decode" >&5
+$as_echo "$ac_cv_lib_sframe_sframe_decode" >&6; }
+if test "x$ac_cv_lib_sframe_sframe_decode" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_LIBSFRAME 1
+_ACEOF
+
+  LIBS="-lsframe $LIBS"
 
 fi
 
@@ -14161,7 +14258,7 @@ $as_echo "$VERSION" >&6; }
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-ac_config_files="$ac_config_files config.mak base.make Headers/GNUstepBase/GSConfig.h"
+ac_config_files="$ac_config_files config.mak base.make Source/gnustep-base.pc Headers/GNUstepBase/GSConfig.h"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -14856,6 +14953,7 @@ do
     "Headers/GNUstepBase/config.h") CONFIG_HEADERS="$CONFIG_HEADERS Headers/GNUstepBase/config.h" ;;
     "config.mak") CONFIG_FILES="$CONFIG_FILES config.mak" ;;
     "base.make") CONFIG_FILES="$CONFIG_FILES base.make" ;;
+    "Source/gnustep-base.pc") CONFIG_FILES="$CONFIG_FILES Source/gnustep-base.pc" ;;
     "Headers/GNUstepBase/GSConfig.h") CONFIG_FILES="$CONFIG_FILES Headers/GNUstepBase/GSConfig.h" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

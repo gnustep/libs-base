@@ -36,6 +36,7 @@
 #import "Foundation/NSNumberFormatter.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSString.h"
+#import "GNUstepBase/NSMutableString+GNUstepBase.h"
 #import "GNUstepBase/GSLock.h"
 
 #if	defined(HAVE_UNICODE_ULOC_H)
@@ -258,9 +259,8 @@ static NSRecursiveLock *classLock = nil;
      zh-Hant_TW as it's locale identifier (was zh_TW on 10.3.9 and below).
      Since ICU doesn't use "-" as a separator it will modify that identifier
      to zh_Hant_TW. */
-  NSString *result;
-  NSMutableString *mStr;
-  NSRange range;
+  NSString	*result;
+  NSRange	range;
   
   if (string == nil)
     return nil;
@@ -272,19 +272,29 @@ static NSRecursiveLock *classLock = nil;
   if (result == nil)
     result = string;
   
-  // Strip script info from locale
+  /* Strip script info (if present) from hyphenated form.
+   * eg. try to cope with zh-Hant_TW
+   */
   range = [result rangeOfString: @"-"];
-  if (range.location != NSNotFound)
+  if (range.length > 0)
     {
-      NSUInteger start = range.location;
-      NSUInteger length;
-      range = [result rangeOfString: @"_"];
-      length = range.location - start;
-      
-      mStr = [NSMutableString stringWithString: result];
-      [mStr deleteCharactersInRange: NSMakeRange (start, length)];
-      
-      result = [NSString stringWithString: mStr];
+      NSUInteger 	start = range.location;
+      NSUInteger	length = [result length];
+
+      range = [result rangeOfString: @"_"
+			    options: 0
+			      range: NSMakeRange(start, length - start)];
+      if (range.length > 0)
+	{
+	  NSMutableString	*mStr;
+
+	  /* Found -..._ sequence, so delete the script part.
+	   */
+	  mStr = [NSMutableString stringWithString: result];
+	  length = range.location - start;
+	  [mStr deleteCharactersInRange: NSMakeRange(start, length)];
+	  result = [NSString stringWithString: mStr];
+	}
     }
   
   return result;
@@ -825,7 +835,7 @@ static NSRecursiveLock *classLock = nil;
 
 - (NSString *) countryCode
 {
-  return [self objectForKey: NSLocaleLanguageCode];
+  return [self objectForKey: NSLocaleCountryCode];
 }
 
 - (NSString *) scriptCode

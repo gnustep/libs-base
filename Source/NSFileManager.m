@@ -2946,6 +2946,9 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
 		      item.ext.path = RETAIN(returnFileName);
 		      item.ext.pointer = dir_pointer;
+#ifdef __ANDROID__
+		      item.ext.assetDir = NULL;
+#endif
 
 		      GSIArrayAddItem(_stack, item);
 		    }

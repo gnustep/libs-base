@@ -22,11 +22,12 @@ find(const char *buf, unsigned len, const char *str)
 
 int main(int argc,char **argv)
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSData *data = nil;
-  NSString *string = nil;
-  GSMimeDocument *doc = [[GSMimeDocument alloc] init];
-  NSMutableDictionary *par = [[NSMutableDictionary alloc] init];
+  NSAutoreleasePool  	*arp = [NSAutoreleasePool new];
+  NSData		*data = nil;
+  NSString		*string = nil;
+  GSMimeDocument	*doc = [[GSMimeDocument alloc] init];
+  GSMimeDocument	*mul;
+  NSMutableDictionary	*par = [[NSMutableDictionary alloc] init];
 
   [par setObject: @"my/type" forKey: @"type"];
   [doc setContent: @"Hello\r\n"];
@@ -69,6 +70,29 @@ int main(int argc,char **argv)
     "Subject: =?utf-8?B?4oKs?=\r\n\r\n";
   PASS(find((char*)[data bytes], (unsigned)[data length], "?B?4oKs?=") > 0,
     "encodes utf-8 euro in subject");
+
+  mul = AUTORELEASE([GSMimeDocument new]);
+  [mul addHeader: @"Subject" value: @"subject" parameters: nil];
+  [mul setContentType: @"multipart/alternative"];
+
+  [mul addContent:
+    [GSMimeDocument documentWithContent: @"<body>some html</body>"
+                                   type: @"text/html; charset=utf-8"
+                                   name: @"html"]];
+  [mul addContent:
+    [GSMimeDocument documentWithContent: @"some text"
+                                   type: @"text/plain; charset=utf-8"
+                                   name: @"text"]];
+  doc = [[mul content] firstObject];
+  PASS_EQUAL([doc contentName], @"html", "before parse, first part is html")
+  doc = [[mul content] lastObject];
+  PASS_EQUAL([doc contentName], @"text", "before parse, last part is text")
+  data = [mul rawMimeData];
+  mul = [GSMimeParser documentFromData: data];
+  doc = [[mul content] firstObject];
+  PASS_EQUAL([doc contentName], @"html", "after parse, first part is html")
+  doc = [[mul content] lastObject];
+  PASS_EQUAL([doc contentName], @"text", "after parse, last part is text")
 
   [arp release]; arp = nil;
   return 0;

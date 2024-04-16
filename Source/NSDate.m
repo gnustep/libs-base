@@ -164,6 +164,12 @@ otherTime(NSDate* other)
     initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()]);
 }
 
++ (instancetype) now
+{
+  return AUTORELEASE([[self allocWithZone: NSDefaultMallocZone()]
+    initWithTimeIntervalSinceReferenceDate: GSPrivateTimeNow()]);
+}
+
 /**
  * Returns an autoreleased instance representing the date and time given
  * by string. The value of string may be a 'natural' specification as

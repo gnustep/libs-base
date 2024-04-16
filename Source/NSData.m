@@ -2011,9 +2011,13 @@ failure:
           NSWarnMLog(@"mkstemp (%s) failed - %@", thePath, [NSError _last]);
           goto failure;
 	}
+      /* Created writable files are supposed to only have read and/or
+       * write set (no execute) according to Apple documentation.
+       * They should honor the setting specified by umask though.
+       */
       mask = umask(0);
       umask(mask);
-      fchmod(desc, 0644 & ~mask);
+      fchmod(desc, 0666 & ~mask);
       if ((theFile = fdopen(desc, "w")) == 0)
 	{
 	  close(desc);

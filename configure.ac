@@ -126,6 +126,9 @@ else
   fi
 fi
 
+AC_SUBST(BASEFLAGS, `gnustep-config --objc-flags`)
+AC_SUBST(BASELIBS, `gnustep-config --base-libs`)
+
 # We shouldn't be loading GNUstep.sh here.  It would load in a lot of
 # variables which might get confused with the ones that will be used
 # at runtime.  We will load it later once we have determined (and
@@ -2448,8 +2451,10 @@ fi
 
 AC_CHECK_HEADERS(bfd.h)
 AC_CHECK_LIB(intl, libintl_fprintf)
+AC_CHECK_LIB(zstd, ZSTD_compress)
 AC_CHECK_LIB(iberty, dyn_string_append)
 AC_CHECK_LIB(z, gzseek)
+AC_CHECK_LIB(sframe, sframe_decode)
 AC_CHECK_LIB(bfd, bfd_openr)
 
 AC_TRY_COMPILE([
@@ -3868,5 +3873,5 @@ AC_SUBST(GCC_VERSION)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_CONFIG_FILES([config.mak base.make Headers/GNUstepBase/GSConfig.h])
+AC_CONFIG_FILES([config.mak base.make Source/gnustep-base.pc Headers/GNUstepBase/GSConfig.h])
 AC_OUTPUT

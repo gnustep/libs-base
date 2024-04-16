@@ -578,6 +578,10 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
 
 @end
 
+/* Cached class for fast test when removing observer.
+ */
+static Class	GSNotificationObserverClass = Nil;
+
 @interface GSNotificationObserver : NSObject
 {
   NSOperationQueue	*_queue;
@@ -587,6 +591,14 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
 @end
 
 @implementation GSNotificationObserver
+
++ (void) initialize
+{
+  if ([GSNotificationObserver class] == self)
+    {
+      GSNotificationObserverClass = self;
+    }
+}
 
 - (id) initWithQueue: (NSOperationQueue *)queue 
                block: (GSNotificationBlock)block
@@ -667,6 +679,14 @@ static NSNotificationCenter *default_center = nil;
 	{
 	  concrete = [GSNotification class];
 	}
+      /* Ensure value is initialised before we use it in
+       * -removeObserver:name:object:
+       */
+      if (nil == GSNotificationObserverClass)
+	{
+	  [GSNotificationObserver class];
+	}
+
       /*
        * Do alloc and init separately so the default center can refer to
        * the 'default_center' variable during initialisation.
@@ -869,7 +889,7 @@ static NSNotificationCenter *default_center = nil;
 	       name: name 
 	     object: object];
 
-  return observer;
+  return observer;	// Released when observer is removed.
 }
 
 /**
@@ -885,7 +905,9 @@ static NSNotificationCenter *default_center = nil;
                  object: (id)object
 {
   if (name == nil && object == nil && observer == nil)
+    {
       return;
+    }
 
   /*
    *	NB. The removal algorithm depends on an implementation characteristic
@@ -1029,6 +1051,14 @@ static NSNotificationCenter *default_center = nil;
 	}
     }
   unlockNCTable(TABLE);
+
+  /* As a special case GSNotificationObserver instances are owned by the
+   * notification center and are released when they are removed.
+   */
+  if (object_getClass(observer) == GSNotificationObserverClass)
+    {
+      RELEASE(observer);
+    }
 }
 
 /**

@@ -3544,7 +3544,7 @@ static NSCharacterSet	*tokenSet = nil;
 	    }
 	}
     }
-  [buf appendData: [self rawMimeDataPreservingCase: YES foldedAt: 0]];
+  [self rawMimeDataPreservingCase: YES foldedAt: 0 to: buf];
   if (masked && *masked)
     {
       NSUInteger	len = [buf length];
@@ -7290,7 +7290,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   enumerator = [headers objectEnumerator];
   while ((hdr = [enumerator nextObject]) != nil)
     {
-      [md appendData: [hdr rawMimeDataPreservingCase: NO foldedAt: fold]];
+      [hdr rawMimeDataPreservingCase: NO foldedAt: fold to: md];
     }
 
   if (partData != nil)
@@ -8085,7 +8085,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
               [document setHeader: @"Content-Transfer-Encoding"
 			    value: enc
 		       parameters: nil];
-    }
+	    }
         }
     }
 

@@ -2803,8 +2803,9 @@ getCStringE_u(GSStr self, char *buffer, unsigned int maxLength,
 
 		  if (u & 0xff00)
 		    {
-		      [NSException raise: NSCharacterConversionException
-				  format: @"unable to convert to encoding"];
+		      [NSException
+			 raise:NSCharacterConversionException
+			format:@"unable to convert to encoding"];
 		    }
 		  buffer[i] = (char)u;
 		}

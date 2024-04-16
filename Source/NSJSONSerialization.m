@@ -113,8 +113,8 @@ typedef struct ParserStateStruct
 static inline void
 updateStringBuffer(ParserState* state)
 {
-  NSRange r = {state->sourceIndex, BUFFER_SIZE};
-  NSUInteger end = [state->source length];
+  NSRange	r = {state->sourceIndex, BUFFER_SIZE};
+  NSUInteger	end = [state->source length];
 
   if (end - state->sourceIndex < BUFFER_SIZE)
     {
@@ -277,6 +277,7 @@ updateStreamBuffer(ParserState* state)
   // Just use the string buffer fetch function to actually get the data
   state->source = str;
   updateStringBuffer(state);
+  RELEASE(str);
   state->source = stream;
 }
 
@@ -340,7 +341,7 @@ parseError(ParserState *state)
   state->error = [NSError errorWithDomain: NSCocoaErrorDomain
                                      code: 0
                                  userInfo: userInfo];
-  [userInfo release];
+  RELEASE(userInfo);
 }
 
 
@@ -413,20 +414,36 @@ parseString(ParserState *state)
       buffer[bufferIndex++] = next;
       if (bufferIndex >= BUFFER_SIZE)
         {
-          NSMutableString *str;
+          NSMutableString 	*str;
+	  int			len = bufferIndex;
 
-          str = [[NSMutableString alloc] initWithCharacters: buffer
-						     length: bufferIndex];
 	  bufferIndex = 0;
-          if (nil == val)
-            {
-              val = str;
-            }
-          else
-            {
-              [val appendString: str];
-              [str release];
-            }
+          if (next < 0xd800 || next > 0xdbff)
+	    {
+	      str = [[NSMutableString alloc] initWithCharacters: buffer
+							 length: len];
+	    }
+	  else
+	    {
+	      /* The most recent unicode character is the first half of a
+	       * surrogate pair, so we need to defer it to the next chunk  
+	       * to make sure the whole unicode character is in the same
+	       * string (otherwise we would have an invalid string).
+	       */
+	      len--;
+	      str = [[NSMutableString alloc] initWithCharacters: buffer
+							 length: len];
+	      buffer[bufferIndex++] = next;
+	    }
+	  if (nil == val)
+	    {
+	      val = str;
+	    }
+	  else
+	    {
+	      [val appendString: str];
+	      RELEASE(str);
+	    }
         }
       next = consumeChar(state);
     }
@@ -458,15 +475,18 @@ parseString(ParserState *state)
     {
       val = [NSMutableString new];
     }
+  // Consume the trailing "
+  consumeChar(state);
   if (!state->mutableStrings)
     {
       if (NO == [val makeImmutable])
         {
-          val = [val copy];
+	  NSMutableString	*m = val;
+
+          val = [m copy];
+	  RELEASE(m);
         }
     }
-  // Consume the trailing "
-  consumeChar(state);
   return val;
 }
 
@@ -533,10 +553,9 @@ parseNumber(ParserState *state)
           if (number != numberBuffer)
             {
               free(number);
-              number = numberBuffer;
             }
-            parseError(state);
-            return nil;
+	  parseError(state);
+	  return nil;
         }
       BUFFER(c);
       while (isdigit(c = consumeChar(state)))
@@ -1062,6 +1081,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
 	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
 				       code: 0
 				   userInfo: userInfo];
+	  RELEASE(userInfo);
 	}
     }
   [str release];
@@ -1120,6 +1140,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
                                               encoding: p.enc
                                           freeWhenDone: NO];
       updateStringBuffer(&p);
+      RELEASE(p.source);
       /* Negative source index because we are before the
        * current point in the buffer
        */

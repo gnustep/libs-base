@@ -546,6 +546,15 @@ GSPrivateUnloadModule(FILE *errorStream,
 - (void) setFrame: (id)aFrame;
 @end
 
+/* For tuning socket connections
+ */
+@interface      GSTcpTune : NSObject
++ (int) delay;
++ (int) recvSize;
++ (int) sendSize: (int)bytesToSend;
++ (void) tune: (void*)handle with: (id)opts;
+@end
+
 BOOL
 GSPrivateIsCollectable(const void *ptr) GS_ATTRIB_PRIVATE;
 

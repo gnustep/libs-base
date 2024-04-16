@@ -57,18 +57,6 @@ int main(int argc, char **argv, char **env)
   NSURLRequest *req;
   Delegate *del;
   
-  /* The following test cases depend on the GSInetServerStream
-   * class which is completely broken on Windows.
-   *
-   * See: https://github.com/gnustep/libs-base/issues/266
-   *
-   * We will mark the test cases as hopeful on Windows.
-   */
-#if defined(_WIN32)
-  NSLog(@"Marking local web server tests as hopeful because GSInetServerStream is broken on Windows");
-  testHopeful = YES;
-#endif
-
   duration = 0.0;
   timing = 0.1;
   urlString = @"http://localhost:19750";
@@ -87,6 +75,10 @@ int main(int argc, char **argv, char **env)
     "connection to dead(not-listening) HTTP service");
   [del reset];
 
+#if !defined(HAVE_GNUTLS)
+testHopeful = YES;
+#endif
+
   duration = 0.0;
   urlString = @"https://localhost:19750";
   req = [NSURLRequest requestWithURL: [NSURL URLWithString: urlString]];
@@ -103,11 +95,11 @@ int main(int argc, char **argv, char **env)
     "connection to dead(not-listening) HTTPS service");
   [del reset];
 
-  [arp release]; arp = nil;
-
-#if defined(_WIN32)
-  testHopeful = NO;
+#if !defined(HAVE_GNUTLS)
+testHopeful = NO;
 #endif
+
+  [arp release]; arp = nil;
 
   return 0;
 }

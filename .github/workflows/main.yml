@@ -158,6 +158,15 @@ jobs:
             CC: gcc
             CXX: g++
 
+          - name: Windows x64 MinGW Clang gnustep-2.0
+            arch: x86_64
+            msystem: MINGW64
+            library-combo: ng-gnu-gnu
+            runtime-version: gnustep-2.0
+            CC: clang
+            CXX: clang
+            LDFLAGS: -fuse-ld=lld -lstdc++ -lgcc_s
+
           - name: Windows x86 MSVC Clang gnustep-2.0
             allow-test-failures: true
             arch: x86
@@ -223,13 +232,31 @@ jobs:
             libffi-devel
             libgnutls-devel
             icu-devel
-            mingw-w64-${{matrix.arch}}-gcc-objc
             mingw-w64-${{matrix.arch}}-pkg-config
             mingw-w64-${{matrix.arch}}-libxml2
             mingw-w64-${{matrix.arch}}-libxslt
             mingw-w64-${{matrix.arch}}-libffi
             mingw-w64-${{matrix.arch}}-gnutls
             mingw-w64-${{matrix.arch}}-icu
+
+      - name: Set up MSYS2 (gcc)
+        uses: msys2/setup-msys2@v2
+        if: env.CC == 'gcc'
+        with:
+          msystem: ${{ matrix.msystem }}
+          install: >
+            mingw-w64-${{matrix.arch}}-gcc-objc
+
+      - name: Set up MSYS2 (clang)
+        uses: msys2/setup-msys2@v2
+        if: env.CC == 'clang'
+        with:
+          msystem: ${{ matrix.msystem }}
+          update: true
+          install: >
+            mingw-w64-${{matrix.arch}}-libobjc2
+            mingw-w64-${{matrix.arch}}-clang
+            mingw-w64-${{matrix.arch}}-lld
 
       - name: Set up MSYS2 (MSVC)
         uses: msys2/setup-msys2@v2

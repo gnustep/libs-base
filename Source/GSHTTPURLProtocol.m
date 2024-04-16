@@ -323,9 +323,10 @@ parseArgumentPart(NSString *part, NSString *name)
 
 @implementation GSHTTPURLProtocol
 
-+ (BOOL) canInitWithRequest: (NSURLRequest*)request
++ (BOOL) canInitWithTask: (NSURLSessionTask*)task
 {
-  NSURL  *url;
+  NSURLRequest	*request = [task currentRequest];
+  NSURL  	*url;
 
   if (nil != (url = [request URL]) 
     && ([[url scheme] isEqualToString: @"http"]
@@ -431,6 +432,7 @@ parseArgumentPart(NSString *part, NSString *name)
   NSURLSessionTask  		*task = [self task];
   NSURLSession			*session = [task session];
   NSURLSessionConfiguration	*config = [session configuration];
+  BOOL				debugLibcurl;
 
   if ([[request HTTPMethod] isEqualToString:@"GET"]) 
     {
@@ -452,7 +454,7 @@ parseArgumentPart(NSString *part, NSString *name)
         }
     }
 
-  BOOL debugLibcurl = [[[NSProcessInfo processInfo] environment] 
+  debugLibcurl = [[[NSProcessInfo processInfo] environment] 
     objectForKey: @"URLSessionDebugLibcurl"] ? YES : NO;
 
   /* Programatically turning debug on in the request supercedes any
@@ -636,9 +638,10 @@ parseArgumentPart(NSString *part, NSString *name)
 - (NSURLRequest*) redirectRequestForResponse: (NSHTTPURLResponse*)response 
                                  fromRequest: (NSURLRequest*)fromRequest 
 {
-  NSString  *method = nil;
-  NSURL     *targetURL;
-  NSString  *location;
+  NSString  		*method = nil;
+  NSURL     		*targetURL;
+  NSString  		*location;
+  NSMutableURLRequest	*request;
 
   if (nil == [response allHeaderFields]) 
     {
@@ -673,7 +676,7 @@ parseArgumentPart(NSString *part, NSString *name)
         return nil;
    }
 
-  NSMutableURLRequest *request = AUTORELEASE([fromRequest mutableCopy]);
+  request = AUTORELEASE([fromRequest mutableCopy]);
   [request setHTTPMethod: method];
 
   if (nil != [targetURL scheme] && nil != [targetURL host]) 

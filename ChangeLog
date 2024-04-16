@@ -1,6 +1,124 @@
+2024-04-15 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSObject.m: add +[NSObject _TrivialAllocInit] to enable
+	fast-path alloc / init methods with libobjc2 2.2.
+
+2024-04-02 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLSession.m: fix for #385
+
+2024-03-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m: Ensure class pointer is initialised
+	before use (git issue #381).
+
+2024-03-10 Hugo Melder <service@hugomelder.com>
+	* Headers/Foundation/NSDate.h:
+	* Source/NSDate.m:
+	Added the +[NSDate now] constructor, which was introduced in macOS 10.15.
+
+2024-03-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSJSONSerialization.m: Fix leak reported by Larry Campbell
+	git issue #377
+
+2024-02-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Move posting of notification outside lock
+	protected region to avoid deadlock.
+
+2024-02-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: fix for #361
+
+2024-02-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m:
+	* Source/GSNetwork.h:
+	* Source/GSSocketStream.m:
+	* Source/GSStream.m:
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Improve handling of error responses from socket operations and tweak
+	behavior in windows to try to recognise end of connection more reliably.
+
+2024-02-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSError.m: Make -description and -localizedDescription formats
+
+2024-02-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSException.m: Prefer objc_set_unexpected() to the older
+	_objc_unexpected_exception for setting handler.  Should cure problem
+	where _objc_unexpected_exception exists in library but not header.
+
+2024-02-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSURLProtocol.h:
+	* Source/GSEasyHandle.m:
+	* Source/GSHTTPURLProtocol.m:
+	* Source/GSNativeProtocol.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSURLSession.m:
+	Add +canInitWithTask: and altered code to differentiate between
+	protocols which can be used with NSURLConnection and those which
+	can be used with NSURLSession to fix #302
+
+2024-02-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLocale.m: (+canonicalLocaleIdentifierFromString:)
+	Fix for #368 ... then check for presence of huphen...underscore script
+	identifier and delete it, as suggested by the existing comments.
+	Avoids the exception.
+	* Tests/base/NSLocale/general.m: Simple testcase
+
+2024-02-02 Richard Frith-Macdonald <rfm@gnu.org>
+
+	Source/NSString.m: Return empty string of correct class when loading
+	from an empty file or URL.
+	Source/Additions/GSMime.m: minor optimisation usng more efficient
+	method to append headers to mutable data object.
+
+2024-02-01 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSProcessInfo.m:
+	* Headers/Foundation/NSProcessInfo.h:
+	Initialize Android process with current locale and system time zone.
+
+2024-02-01 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSLocale.m: Fix -countryCode incorrectly returning language
+	code.
+
+2024-01-30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m:
+	* Source/GSPrivate.h:
+	* Source/GSSocketStream.m:
+	* Source/GSStream.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	Make GSTcpTune options available to streams as well as file handles.
+	Improve debug logging for streasm operations.
+	Schedule streams in run loop on conclusion of TLS handshake (so we get
+	events telling us to start again after a blocked write).
+
+2024-01-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSOperation.m: patch for issue #366 by Larry Campbell.
+
+2024-01-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSJSONSerialization.m: Fix for issue #365 ... don't try to
+	create a string ending with the first half of a unicode surrogate pair.
+
+2024-01-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m: fix for memory leak should keep the
+	observer retained until removed.
+
 2023-12-21 Richard Frith-Macdonald <rfm@gnu.org>
 
-        * Tools/AGSParser.m: Replace GS_GENERIC macros in method types etc
+	* Tools/AGSParser.m: Replace GS_GENERIC macros in method types etc
 	with the basic type name.
 	* Tools/AGSIndex.h:
 	* Tools/AGSIndex.m: Create index of all authors in the project
@@ -13,6 +131,15 @@
 	file path, and map it to the path of the executable so bundle checks
 	for the location of the file containing the code can work consistently.
 
+2023-12-09: Hugo Melder <contact@hugomelder.com>
+
+	* Source/NSNull.m:
+	Implement valueForUndefinedKey: and always return the NSNull singleton
+	object.
+	* Tests/base/KVC/nsnull.m:
+	Test for various KVC interactions with NSNull.
+	* Tests/base/NSPredicate/nsnull.m:
+	Test if predicate evaluation on collections with NSNull objects works.
 
 2023-12-06 Daniel Boyd <danieljboyd@icloud.com>
 
@@ -1439,9 +1566,12 @@
 	* configure:
 	* configure.ac:
 	Added support for building on Windows with Clang MSVC target and
-	libobjc2. This requires using a standard (non-MinGW) Clang build that
-	e.g. comes with Visual Studio or is available as pre-built binary from
-	the LLVM website, and requires passing a host to configure like
+	libobjc2. This requires using
+	a
+	  standard(non - MinGW) Clang build that e.g.comes with Visual Studio
+	  or is available as pre - built binary from the LLVM website,
+	  and
+	    requires passing a host to configure like
 	--host=x86_64-pc-windows.
 	The build is best done in an MSYS2 shell that does not have any
 	additional *-devel packages installed that might get picked up by
@@ -1824,7 +1954,7 @@
 2020-11-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/NSMutableString+GNUstepBase.m:
-        Report YES for GSImmutableString being a proxy
+	Report YES for GSImmutableString being a proxy
 
 2020-11-21 Richard Frith-Macdonald <rfm@gnu.org>
 
