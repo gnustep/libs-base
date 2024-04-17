@@ -1779,7 +1779,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
  * Each element contains an array of NSStrings which are
  * the region names.
  */
-+ (NSArray*) timeZoneArray
++ (NSArray *)timeZoneArray
 {
   static NSArray *regionsArray = nil;
 
@@ -1791,56 +1791,59 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
   GS_MUTEX_LOCK(zone_mutex);
   if (regionsArray == nil)
     {
-      NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+      NSAutoreleasePool *pool = [NSAutoreleasePool new];
       NSMutableArray	*temp_array[24];
-      NSInteger index;
-      NSInteger i;
-	    NSString *name;
-      NSString *path;
-	    NSString *contents;
-	    NSScanner *scanner;
-	    NSCharacterSet *newLineSet;
-      NSError *error = nil;
+      NSInteger		 index;
+      NSInteger		 i;
+      NSString		*name;
+      NSString		*path;
+      NSString		*contents;
+      NSScanner		*scanner;
+      NSCharacterSet	*newLineSet;
+      NSError		*error = nil;
 
       for (i = 0; i < 24; i++)
-	      {
-	        temp_array[i] = [NSMutableArray array];
-	      }
+	{
+	  temp_array[i] = [NSMutableArray array];
+	}
 
-      path = _time_zone_path (REGIONS_FILE, nil);
+      path = _time_zone_path(REGIONS_FILE, nil);
       if (path != nil)
-	      {
-          contents = [NSString stringWithContentsOfFile: path
-                                               encoding: NSUTF8StringEncoding
-                                                  error: &error];
-          if (!contents)
-            {
-              NSException *exp;
-              NSDictionary *userInfo;
-              GS_MUTEX_UNLOCK(zone_mutex);
+	{
+	  contents = [NSString stringWithContentsOfFile: path
+					       encoding: NSUTF8StringEncoding
+						  error: &error];
+	  if (!contents)
+	    {
+	      NSException  *exp;
+	      NSDictionary *userInfo;
+	      GS_MUTEX_UNLOCK(zone_mutex);
 
-              userInfo = [NSDictionary dictionaryWithObjectsAndKeys: error, @"underlyingError"];
-              exp = [NSException exceptionWithName: NSInternalInconsistencyException
-                                            reason:@"Failed to open time zone regions array file."
-                                          userInfo:userInfo];
-              [exp raise];
-            }
-          newLineSet = [NSCharacterSet newlineCharacterSet];
-          scanner = [NSScanner scannerWithString: contents];
-
-          while ([scanner scanInteger: &index]
-            && [scanner scanUpToCharactersFromSet: newLineSet intoString: &name])
-            {
-              NSLog(@"Index: %ld Name: %@", index, name);
-              if (index < 0)
-                index = 0;
-              else
-                index %= 24;
-              
-              [temp_array[index] addObject: name];
-            }
+	      userInfo = [NSDictionary
+		dictionaryWithObjectsAndKeys: error, @"underlyingError"];
+	      exp = [NSException
+		exceptionWithName: NSInternalInconsistencyException
+			   reason:
+			     @"Failed to open time zone regions array file."
+			 userInfo: userInfo];
+	      [exp raise];
 	    }
-  else
+	  newLineSet = [NSCharacterSet newlineCharacterSet];
+	  scanner = [NSScanner scannerWithString: contents];
+
+	  while ([scanner scanInteger: &index] &&
+		 [scanner scanUpToCharactersFromSet: newLineSet
+					 intoString: &name])
+	    {
+	      if (index < 0)
+		index = 0;
+	      else
+		index %= 24;
+
+	      [temp_array[index] addObject: name];
+	    }
+	}
+      else
 	  {
 	  NSString	*zonedir = [NSTimeZone _getTimeZoneFile: @"WET"]; 
 
