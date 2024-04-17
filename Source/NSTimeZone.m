@@ -106,6 +106,7 @@
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSLocale.h"
+#import "Foundation/NSScanner.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSPThread.h"
