@@ -1791,52 +1791,56 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
   if (regionsArray == nil)
     {
       NSAutoreleasePool	*pool = [NSAutoreleasePool new];
-      int		index;
-      int		i;
-      char		name[80];
-      FILE		*fp;
       NSMutableArray	*temp_array[24];
-      NSString		*path;
+      NSInteger index;
+      NSInteger i;
+	    NSString *name;
+      NSString *path;
+	    NSString *contents;
+	    NSScanner *scanner;
+	    NSCharacterSet *newLineSet;
+      NSError *error = nil;
 
       for (i = 0; i < 24; i++)
-	{
-	  temp_array[i] = [NSMutableArray array];
-	}
+	      {
+	        temp_array[i] = [NSMutableArray array];
+	      }
 
       path = _time_zone_path (REGIONS_FILE, nil);
       if (path != nil)
-	{
-#if	defined(_WIN32)
-	  unichar	mode[3];
-
-	  mode[0] = 'r';
-	  mode[1] = 'b';
-	  mode[2] = '\0';
-
-	  fp = _wfopen((const unichar*)[path fileSystemRepresentation], mode);
-#else
-	  fp = fopen([path fileSystemRepresentation], "r");
-#endif
-	  if (fp == NULL)
-	    {
+	      {
+          contents = [NSString stringWithContentsOfFile: path
+                                               encoding: NSUTF8StringEncoding
+                                                  error: &error];
+          if (!contents)
+            {
+              NSException *exp;
+              NSDictionary *userInfo;
               GS_MUTEX_UNLOCK(zone_mutex);
-	      [NSException
-		raise: NSInternalInconsistencyException
-		format: @"Failed to open time zone regions array file."];
-	    }
-	  while (fscanf(fp, "%d %79s", &index, name) == 2)
-	    {
+
+              userInfo = [NSDictionary dictionaryWithObjectsAndKeys: error, @"underlyingError"];
+              exp = [NSException exceptionWithName: NSInternalInconsistencyException
+                                            reason:@"Failed to open time zone regions array file."
+                                          userInfo:userInfo];
+              [exp raise];
+            }
+          newLineSet = [NSCharacterSet newlineCharacterSet];
+          scanner = [NSScanner scannerWithString: contents];
+
+          while ([scanner scanInteger: &index]
+            && [scanner scanUpToCharactersFromSet: newLineSet intoString: &name])
+            {
+              NSLog(@"Index: %ld Name: %@", index, name);
               if (index < 0)
                 index = 0;
               else
                 index %= 24;
-	      [temp_array[index]
-		addObject: [NSString stringWithUTF8String: name]];
+              
+              [temp_array[index] addObject: name];
+            }
 	    }
-	  fclose(fp);
-	}
-      else
-	{
+  else
+	  {
 	  NSString	*zonedir = [NSTimeZone _getTimeZoneFile: @"WET"]; 
 
 	  if (tzdir != nil)
