@@ -910,17 +910,26 @@ static NSUInteger	urlAlign;
               DESTROY(_baseURL);
               base = 0;
             }
-          else if (strcmp(buf->scheme, "mailto") == 0)
-	    {
-	      usesFragments = NO;
-	      usesParameters = NO;
-	      usesQueries = NO;
-	    }
+      // removed: not parsing the components for mailto
+      //    else if (strcmp(buf->scheme, "mailto") == 0)
+	  //  {
+	  //    usesFragments = NO;
+	  //    usesParameters = NO;
+	  //    usesQueries = NO;
+	  //  }
           else if (strcmp(buf->scheme, "http") == 0
             || strcmp(buf->scheme, "https") == 0)
 	    {
 	      buf->emptyPath = YES;
 	    }
+          else
+          {
+              // Unknown scheme, don't parse the components (like data:). It's not required for Fantastical's usecase,
+              // and the parser makes some assumptions that may not be valid for all schemes.
+              canBeGeneric = NO;
+              DESTROY(_baseURL);
+              base = 0;
+          }
         }
 
       if (canBeGeneric == YES)
@@ -931,6 +940,7 @@ static NSUInteger	urlAlign;
 	   */
 	  if (start[0] == '/' && start[1] == '/')
 	    {
+          char *q;
 	      buf->isGeneric = YES;
 	      start = end = &end[2];
 
@@ -939,6 +949,14 @@ static NSUInteger	urlAlign;
 	       * the 'authority' if there is no path.
 	       */
 	      end = strchr(start, '/');
+          q = strchr(start, '?');
+          // If a query string is before the path, then there is no path
+          if (q != 0 && (end == 0 || q < end))
+          {
+              *q = '\0';
+              buf->query = q + 1;
+              end = 0;
+          }
 	      if (end == 0)
 		{
 		  buf->hasNoPath = YES;
