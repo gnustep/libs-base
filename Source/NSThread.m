@@ -31,9 +31,12 @@
 */
 
 #import "common.h"
-#include <processthreadsapi.h>
 
 #import "GSPThread.h"
+
+#ifdef _WIN32
+#import <processthreadsapi.h>
+#endif
 
 // Dummy implementatation
 // cleaner than IFDEF'ing the code everywhere
