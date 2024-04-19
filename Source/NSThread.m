@@ -31,6 +31,7 @@
 */
 
 #import "common.h"
+#include <processthreadsapi.h>
 
 #import "GSPThread.h"
 
@@ -191,56 +192,12 @@ GSPrivateThreadID()
 #endif
 }
 
-#if 0
-/*
- * NSThread setName: method for windows.
- * FIXME ... This is code for the microsoft compiler;
- * how do we make it work for gcc/clang?
- */
-#if defined(_WIN32) && defined(HAVE_WINDOWS_H)
-// Usage: SetThreadName (-1, "MainThread");
-#include <windows.h>
-const DWORD MS_VC_EXCEPTION=0x406D1388;
-
-#pragma pack(push,8)
-typedef struct tagTHREADNAME_INFO
-{
-  DWORD dwType; // Must be 0x1000.
-  LPCSTR szName; // Pointer to name (in user addr space).
-  DWORD dwThreadID; // Thread ID (-1=caller thread).
-  DWORD dwFlags; // Reserved for future use, must be zero.
-} THREADNAME_INFO;
-#pragma pack(pop)
-
-static int SetThreadName(DWORD dwThreadID, const char *threadName)
-{
-  THREADNAME_INFO info;
-  int result;
-
-  info.dwType = 0x1000;
-  info.szName = threadName;
-  info.dwThreadID = dwThreadID;
-  info.dwFlags = 0;
-
-  __try
-  {
-    RaiseException(MS_VC_EXCEPTION, 0,
-      sizeof(info)/sizeof(ULONG_PTR), (ULONG_PTR*)&info);
-    result = 0;
-  }
-  __except(EXCEPTION_EXECUTE_HANDLER)
-  {
-    result = -1;
-  }
-}
-
-#define PTHREAD_SETNAME(a)  SetThreadName(-1, a)
-
-#endif
-#endif
-
 #ifndef PTHREAD_SETNAME
 #define PTHREAD_SETNAME(a) -1
+#endif
+
+#ifndef PTHREAD_GETNAME
+#define PTHREAD_GETNAME() -1
 #endif
 
 
@@ -1253,6 +1210,34 @@ unregisterActiveThread(NSThread *thread)
 
 - (id) init
 {
+// SetThreadDescription() was added in Windows 10 1607 (Redstone 1)
+#if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
+  HANDLE current;
+  HRESULT hr;
+  PWSTR name;
+  NSString *threadName;
+
+  current = GetCurrentThread();
+  hr = GetThreadDescription(current, &name);
+  if (SUCCEEDED(hr))
+    {
+      threadName = [NSString stringWithCharacters: (const void *) name length: wcslen(name)];
+      ASSIGN(_name, threadName);
+      LocalFree(name);
+    }
+#elif defined(PTHREAD_GETNAME)
+  NSString *threadName;
+  char name[16];
+  int status;
+
+  status = PTHREAD_GETNAME(name, 16);
+  if (status == 0)
+    {
+      threadName = [NSString stringWithCString: name encoding: NSUTF8StringEncoding];
+      ASSIGN(_name, threadName);
+    }
+#endif
+
   GS_CREATE_INTERNAL(NSThread);
   pthread_spin_init(&lockInfo.spin, 0);
   lockInfo.held = NSCreateHashTable(NSNonOwnedPointerHashCallBacks, 10);
@@ -1316,11 +1301,20 @@ unregisterActiveThread(NSThread *thread)
 {
   if ([aName isKindOfClass: [NSString class]])
     {
+// SetThreadDescription() was added in Windows 10 1607 (Redstone 1)
+#if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
+      HANDLE current;
+      const void *utf16String;
+
+      current = GetCurrentThread();
+      utf16String = [aName cStringUsingEncoding: NSUnicodeStringEncoding];
+      SetThreadDescription(current, utf16String);
+#elif defined(PTHREAD_SETNAME)
       int       i;
       char      buf[200];
 
       if (YES == [aName getCString: buf
-                         maxLength: sizeof(buf)
+                        maxLength: sizeof(buf)
                           encoding: NSUTF8StringEncoding])
         {
           i = strlen(buf);
@@ -1328,7 +1322,7 @@ unregisterActiveThread(NSThread *thread)
       else
         {
           /* Too much for buffer ... truncate on a character boundary.
-           */
+          */
           i = sizeof(buf) - 1;
           if (buf[i] & 0x80)
             {
@@ -1347,7 +1341,7 @@ unregisterActiveThread(NSThread *thread)
           if (PTHREAD_SETNAME(buf) == ERANGE)
             {
               /* Name must be too long ... gnu/linux uses 15 characters
-               */
+              */
               if (i > 15)
                 {
                   i = 15;
@@ -1357,7 +1351,7 @@ unregisterActiveThread(NSThread *thread)
                   i--;
                 }
               /* too long a name ... truncate on a character boundary.
-               */
+              */
               if (buf[i] & 0x80)
                 {
                   while (i > 0 && (buf[i] & 0x80))
@@ -1375,13 +1369,14 @@ unregisterActiveThread(NSThread *thread)
               break;    // Success or some other error
             }
         }
-    }
+#endif
+  }
 }
 
 - (void) setName: (NSString*)aName
 {
   ASSIGN(_name, aName);
-#ifdef PTHREAD_SETNAME
+  
   if (YES == _active)
     {
       [self performSelector: @selector(_setName:)
@@ -1389,7 +1384,6 @@ unregisterActiveThread(NSThread *thread)
                  withObject: aName
               waitUntilDone: NO];
     }
-#endif
 }
 
 - (void) setStackSize: (NSUInteger)stackSize

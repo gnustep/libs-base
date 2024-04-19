@@ -1849,7 +1849,20 @@ if test $HAVE_WIN32_THREADS_AND_LOCKS = 0; then
         [Description: Define setname function for pthread with three args])
       ;;
   esac
-  
+
+# Check if we can get names of pthreads
+AC_CACHE_CHECK([for pthread_getname_np()], gs_cv_pthread_getname_np,
+[AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM([#include <pthread.h>],
+    [char name[16]; pthread_getname_np(pthread_self(), name, 16);])],
+  [gs_cv_pthread_getname_np=generic])])
+case $gs_cv_pthread_getname_np in
+  generic)
+    AC_DEFINE(PTHREAD_GETNAME(b,c), pthread_getname_np(pthread_self(),b,c),
+      [Description: Define getname function for pthread with two args (generic style)])
+    ;;
+esac
+
   # Check if we have spinlock support
   AC_CHECK_FUNCS(pthread_spin_lock)
 fi
