@@ -200,7 +200,7 @@ GSPrivateThreadID()
 #endif
 
 #ifndef PTHREAD_GETNAME
-#define PTHREAD_GETNAME() -1
+#define PTHREAD_GETNAME(a, b) -1
 #endif
 
 
