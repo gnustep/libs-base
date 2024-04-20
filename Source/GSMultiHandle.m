@@ -8,6 +8,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSURLError.h"
 #import "Foundation/NSURLSession.h"
+#import "Foundation/NSValue.h"
 
 @interface GSMultiHandle ()
 - (void) readAndWriteAvailableDataOnSocket: (curl_socket_t)socket;
@@ -287,7 +288,7 @@ static int curl_timer_function(CURL *easyHandle, int timeout, void *userdata) {
         }
       err = [NSError errorWithDomain: NSURLErrorDomain 
                                 code: errCode 
-                            userInfo: @{NSLocalizedDescriptionKey : d}];
+                            userInfo: @{NSLocalizedDescriptionKey : d, NSUnderlyingErrorKey: [NSNumber numberWithInt:easyCode]}];
       RELEASE(d);
     }
 
