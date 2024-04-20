@@ -48,6 +48,23 @@ env:
   APT_PACKAGES_clang: >-
     libpthread-workqueue-dev
 
+  RPM_PACKAGES: >-
+    which
+    gzip
+    git
+    cmake
+    clang
+    lld
+    pkg-config
+    gnutls-devel
+    gnutls-utils
+    libcurl-devel
+    libffi-devel
+    libicu-devel
+    libxml2-devel
+    libxslt-devel
+    glibc-gconv-extra
+
   # GNUstep Windows MSVC toolchain release tag to be used (keep up to date with latest release):
   # https://github.com/gnustep/tools-windows-msvc/releases
   TOOLS_WINDOWS_MSVC_RELEASE_TAG: release-20230104
@@ -70,6 +87,7 @@ jobs:
             library-combo: gnu-gnu-gnu
             CC: gcc
             CXX: g++
+            libdir: lib
 
           - name: Ubuntu x64 Clang gnustep-2.0
             container: ubuntu:22.04
@@ -77,6 +95,15 @@ jobs:
             runtime-version: gnustep-2.0
             CC: clang
             CXX: clang++
+            libdir: lib
+
+          - name: Rocky Linux x64 Clang gnustep-2.0
+            container: rockylinux:9
+            library-combo: ng-gnu-gnu
+            runtime-version: gnustep-2.0
+            CC: clang
+            CXX: clang++
+            libdir: lib64
 
     env:
       SRC_PATH: ${{ github.workspace }}/source
@@ -86,6 +113,7 @@ jobs:
       CXX: ${{ matrix.CXX }}
       LIBRARY_COMBO: ${{ matrix.library-combo }}
       RUNTIME_VERSION: ${{ matrix.runtime-version }}
+      LIBDIR: ${{ matrix.libdir }}
 
     defaults:
       run:
@@ -96,7 +124,7 @@ jobs:
         with:
           path: ${{ env.SRC_PATH }}
 
-      - name: Install packages
+      - name: Install apt packages
         run: |
           apt-get -q -y update
           apt-get -q -y install $APT_PACKAGES $APT_PACKAGES_${{ matrix.library-combo == 'ng-gnu-gnu' && 'clang' || 'gcc' }}
@@ -105,6 +133,17 @@ jobs:
           if [ "$RUNTIME_VERSION" = "gnustep-2.0" ]; then
             update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.gold" 10
           fi
+        if: ${{ startsWith(matrix.container, 'ubuntu') }}
+
+      - name: Install rpm packages
+        run: |
+          yum install -y $RPM_PACKAGES
+
+          # gnustep-2.0 runtime requires ld.gold or lld
+          if [ "$RUNTIME_VERSION" = "gnustep-2.0" ]; then
+            update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/lld" 10
+          fi
+        if: ${{ startsWith(matrix.container, 'rockylinux') }}
 
       - name: Install dependencies
         env:
@@ -207,6 +246,7 @@ jobs:
       MSYS2_ARG_CONV_EXCL: --prefix=
       # provide GitHub token to scripts to prevent rate limit errors when accessing GitHub
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      LIBDIR: lib
 
     defaults:
       run:
