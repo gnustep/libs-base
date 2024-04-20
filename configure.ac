@@ -2454,7 +2454,7 @@ AC_CHECK_LIB(intl, libintl_fprintf)
 AC_CHECK_LIB(zstd, ZSTD_compress)
 AC_CHECK_LIB(iberty, dyn_string_append)
 AC_CHECK_LIB(z, gzseek)
-AC_CHECK_LIB(sframe, sframe_decode)
+AC_SEARCH_LIBS(sframe, sframe_decode)
 AC_CHECK_LIB(bfd, bfd_openr)
 
 AC_TRY_COMPILE([
