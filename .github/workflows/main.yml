@@ -23,6 +23,9 @@ on:
 
 env:
   APT_PACKAGES: >-
+    git
+    cmake
+    clang
     pkg-config
     libgnutls28-dev
     libffi-dev
@@ -53,6 +56,7 @@ jobs:
   ########### Linux ###########
   linux:
     name: ${{ matrix.name }}
+    container: ${{ matrix.container }}
     runs-on: ubuntu-latest
     # don't run pull requests from local branches twice
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
@@ -62,11 +66,13 @@ jobs:
       matrix:
         include:
           - name: Ubuntu x64 GCC
+            container: ubuntu:22.04
             library-combo: gnu-gnu-gnu
             CC: gcc
             CXX: g++
 
           - name: Ubuntu x64 Clang gnustep-2.0
+            container: ubuntu:22.04
             library-combo: ng-gnu-gnu
             runtime-version: gnustep-2.0
             CC: clang
@@ -92,12 +98,12 @@ jobs:
 
       - name: Install packages
         run: |
-          sudo apt-get -q -y update
-          sudo apt-get -q -y install $APT_PACKAGES $APT_PACKAGES_${{ matrix.library-combo == 'ng-gnu-gnu' && 'clang' || 'gcc' }}
+          apt-get -q -y update
+          apt-get -q -y install $APT_PACKAGES $APT_PACKAGES_${{ matrix.library-combo == 'ng-gnu-gnu' && 'clang' || 'gcc' }}
 
           # gnustep-2.0 runtime requires ld.gold or lld
           if [ "$RUNTIME_VERSION" = "gnustep-2.0" ]; then
-            sudo update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.gold" 10
+            update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.gold" 10
           fi
 
       - name: Install dependencies
@@ -109,7 +115,7 @@ jobs:
         run: |
           . $INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh
           ./configure
-          make && make install
+          make -j$(nproc) && make install
 
       - name: Run tests
         run: |
