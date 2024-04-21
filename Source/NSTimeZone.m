@@ -106,6 +106,7 @@
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSLocale.h"
+#import "Foundation/NSScanner.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSPThread.h"
@@ -1778,7 +1779,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
  * Each element contains an array of NSStrings which are
  * the region names.
  */
-+ (NSArray*) timeZoneArray
++ (NSArray *)timeZoneArray
 {
   static NSArray *regionsArray = nil;
 
@@ -1790,53 +1791,60 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
   GS_MUTEX_LOCK(zone_mutex);
   if (regionsArray == nil)
     {
-      NSAutoreleasePool	*pool = [NSAutoreleasePool new];
-      int		index;
-      int		i;
-      char		name[80];
-      FILE		*fp;
+      NSAutoreleasePool *pool = [NSAutoreleasePool new];
       NSMutableArray	*temp_array[24];
+      NSInteger		 index;
+      NSInteger		 i;
+      NSString		*name;
       NSString		*path;
+      NSString		*contents;
+      NSScanner		*scanner;
+      NSCharacterSet	*newLineSet;
+      NSError		*error = nil;
 
       for (i = 0; i < 24; i++)
 	{
 	  temp_array[i] = [NSMutableArray array];
 	}
 
-      path = _time_zone_path (REGIONS_FILE, nil);
+      path = _time_zone_path(REGIONS_FILE, nil);
       if (path != nil)
 	{
-#if	defined(_WIN32)
-	  unichar	mode[3];
-
-	  mode[0] = 'r';
-	  mode[1] = 'b';
-	  mode[2] = '\0';
-
-	  fp = _wfopen((const unichar*)[path fileSystemRepresentation], mode);
-#else
-	  fp = fopen([path fileSystemRepresentation], "r");
-#endif
-	  if (fp == NULL)
+	  contents = [NSString stringWithContentsOfFile: path
+					       encoding: NSUTF8StringEncoding
+						  error: &error];
+	  if (!contents)
 	    {
-              GS_MUTEX_UNLOCK(zone_mutex);
-	      [NSException
-		raise: NSInternalInconsistencyException
-		format: @"Failed to open time zone regions array file."];
+	      NSException  *exp;
+	      NSDictionary *userInfo;
+	      GS_MUTEX_UNLOCK(zone_mutex);
+
+	      userInfo = [NSDictionary
+		dictionaryWithObjectsAndKeys: error, @"underlyingError"];
+	      exp = [NSException
+		exceptionWithName: NSInternalInconsistencyException
+			   reason:
+			     @"Failed to open time zone regions array file."
+			 userInfo: userInfo];
+	      [exp raise];
 	    }
-	  while (fscanf(fp, "%d %79s", &index, name) == 2)
+	  newLineSet = [NSCharacterSet newlineCharacterSet];
+	  scanner = [NSScanner scannerWithString: contents];
+
+	  while ([scanner scanInteger: &index] &&
+		 [scanner scanUpToCharactersFromSet: newLineSet
+					 intoString: &name])
 	    {
-              if (index < 0)
-                index = 0;
-              else
-                index %= 24;
-	      [temp_array[index]
-		addObject: [NSString stringWithUTF8String: name]];
+	      if (index < 0)
+		index = 0;
+	      else
+		index %= 24;
+
+	      [temp_array[index] addObject: name];
 	    }
-	  fclose(fp);
 	}
       else
-	{
+	  {
 	  NSString	*zonedir = [NSTimeZone _getTimeZoneFile: @"WET"]; 
 
 	  if (tzdir != nil)
