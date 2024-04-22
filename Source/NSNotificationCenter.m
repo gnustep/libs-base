@@ -1052,13 +1052,6 @@ static NSNotificationCenter *default_center = nil;
     }
   unlockNCTable(TABLE);
 
-  /* As a special case GSNotificationObserver instances are owned by the
-   * notification center and are released when they are removed.
-   */
-  if (object_getClass(observer) == GSNotificationObserverClass)
-    {
-      RELEASE(observer);
-    }
 }
 
 /**
