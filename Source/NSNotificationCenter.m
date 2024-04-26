@@ -715,6 +715,7 @@ static NSNotificationCenter *default_center = nil;
   if ((self = [super init]) != nil)
     {
       _table = newNCTable();
+      _retainedObserverArray = [[NSMutableArray alloc] init];
     }
   return self;
 }
@@ -722,7 +723,7 @@ static NSNotificationCenter *default_center = nil;
 - (void) dealloc
 {
   [self finalize];
-
+   
   [super dealloc];
 }
 
@@ -737,6 +738,7 @@ static NSNotificationCenter *default_center = nil;
    * Release all memory used to store Observations etc.
    */
   endNCTable(TABLE);
+  [_retainedObserverArray release];
 }
 
 
@@ -758,10 +760,18 @@ static NSNotificationCenter *default_center = nil;
  * the notification center before releasing these objects.<br />
  * </p>
  *
+ * <p>While it is good practice to remove an observer before releasing it,  
+ * currently on MacOS it is possible to remove an observer even after the
+ * object has been deallocated. This is not documented behavior from Apple
+ * and could change at any time. In the interests of compatibility, this behavior
+ * will also be supported here.
+ * </p>
+ *
  * <p>NB. For MacOS-X compatibility, adding an observer multiple times will
  * register it to receive multiple copies of any matching notification, however
  * removing an observer will remove <em>all</em> of the multiple registrations.
  * </p>
+ *
  */
 - (void) addObserver: (id)observer
 	    selector: (SEL)selector
@@ -792,6 +802,11 @@ static NSNotificationCenter *default_center = nil;
   lockNCTable(TABLE);
 
   o = obsNew(TABLE, selector, observer);
+
+  if (object_getClass(observer) == GSNotificationObserverClass)
+    {
+      [_retainedObserverArray addObject:observer];
+    }
 
   /*
    * Record the Observation in one of the linked lists.
@@ -1050,6 +1065,22 @@ static NSNotificationCenter *default_center = nil;
 	  GSIMapRemoveKey(NAMED, (GSIMapKey)((id)name));
 	}
     }
+
+  BOOL needToRelease = NO;
+  for (id listObserver in _retainedObserverArray) 
+    {
+      if (listObserver == observer)
+        {
+	  needToRelease = YES;
+          break;
+	}
+    }
+  if (needToRelease)
+    {
+      [_retainedObserverArray removeObject:observer];
+      [observer release];
+    }
+    
   unlockNCTable(TABLE);
 
 }
