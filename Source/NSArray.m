@@ -193,6 +193,7 @@ static SEL	rlSel;
  */
 + (id) array
 {
+  ;
   id	o;
 
   o = [self allocWithZone: NSDefaultMallocZone()];
