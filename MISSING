@@ -1,16 +1,7 @@
 Missing macros:
-	NS_ENUM
-	NS_OPTIONS
-	NS_AVAILABLE
 	NS_RETURNS_INNER_POINTER
-	NS_ENUM_AVAILABLE
 	NS_BLOCKS_AVAILABLE
-	NS_CLASS_AVAILABLE
-	NS_AVAILABLE_MAC
 	NS_ENUM_AVAILABLE_IOS
-	NS_DEPRECATED
-	NS_UNAVAILABLE
-	NS_AUTOMATED_REFCOUNT_WEAK_UNAVAILABLE
 	NS_AVAILABLE_IOS
 
 Missing headers:
@@ -19,15 +10,6 @@ NONE
 
 -------------------------------------------------------------
 FoundationErrors:
-	NSFileWriteFileExistsError
-	NSFileWriteVolumeReadOnlyError
-	NSFeatureUnsupportedError
-	NSPropertyListReadCorruptError
-    NSPropertyListReadUnknownVersionError
-    NSPropertyListReadStreamError
-    NSPropertyListWriteStreamError
-    NSPropertyListErrorMinimum
-    NSPropertyListErrorMaximum
     NSXPCConnectionInterrupted
     NSXPCConnectionInvalid
     NSXPCConnectionReplyInvalid
