@@ -74,7 +74,8 @@ GS_EXPORT_CLASS
 {
 #if	GS_EXPOSE(NSNotificationCenter)
 @private
-  void	*_table;
+  void	         *_table;
+  NSMutableArray *retainedObserverList;
 #endif
 }
 
