@@ -42,6 +42,7 @@ extern "C" {
 @class NSDictionary;
 @class NSLock;
 @class NSOperationQueue;
+@class NSMutableArray;
 
 typedef NSString* NSNotificationName;
 
