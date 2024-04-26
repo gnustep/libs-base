@@ -738,7 +738,7 @@ static NSNotificationCenter *default_center = nil;
    * Release all memory used to store Observations etc.
    */
   endNCTable(TABLE);
-  [_retainedObserverArray release];
+  RELEASE(_retainedObserverArray);
 }
 
 
@@ -1078,7 +1078,7 @@ static NSNotificationCenter *default_center = nil;
   if (needToRelease)
     {
       [_retainedObserverArray removeObject:observer];
-      [observer release];
+      RELEASE(observer);
     }
     
   unlockNCTable(TABLE);
