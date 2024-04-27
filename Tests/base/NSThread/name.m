@@ -1,5 +1,4 @@
 #import "ObjectTesting.h"
-#include <winerror.h>
 #import <Foundation/NSThread.h>
 
 #if defined(_WIN32) && (NTDDI_VERSION >= NTDDI_WIN10_RS1)
@@ -19,11 +18,12 @@ int main(void)
     HRESULT hr = SetThreadDescription(current, L"Test");
     PASS(SUCCEEDED(hr), "SetThreadDescription was successful");
 
-    NSString *name = [[[NSThread alloc] init] name];
+    NSThread *thread = [[NSThread alloc] init];
+    NSString *name = [thread name];
     PASS(name != nil, "-[NSThread name] returns a valid string");
     NSLog(@"Name: %@", name);
     PASS([name isEqualToString: @"Test"], "Thread name is correct");
-    [name release];
+    [thread release];
 
     [[NSThread currentThread] setName: @"Test2"];
     name = [[NSThread currentThread] name];
