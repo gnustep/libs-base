@@ -394,6 +394,9 @@
 /* Define to 1 if you have the `rt' library (-lrt). */
 #undef HAVE_LIBRT
 
+/* Define to 1 if you have the `sframe' library (-lsframe). */
+#undef HAVE_LIBSFRAME
+
 /* Define to 1 if you have the `socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
 
@@ -877,6 +880,10 @@
 
 /* Define as the link to exe of process in /proc filesystem. */
 #undef PROCFS_EXE_LINK
+
+/* Description: Define getname function for pthread with two args (generic
+   style) */
+#undef PTHREAD_GETNAME
 
 /* Description: Define setname function for pthread with three args */
 #undef PTHREAD_SETNAME
