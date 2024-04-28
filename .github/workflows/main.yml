@@ -66,12 +66,6 @@ jobs:
             CC: gcc
             CXX: g++
 
-          - name: Ubuntu x64 Clang gnustep-1.9
-            library-combo: ng-gnu-gnu
-            runtime-version: gnustep-1.9
-            CC: clang
-            CXX: clang++
-
           - name: Ubuntu x64 Clang gnustep-2.0
             library-combo: ng-gnu-gnu
             runtime-version: gnustep-2.0
