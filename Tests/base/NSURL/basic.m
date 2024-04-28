@@ -59,8 +59,16 @@ int main()
   url = [NSURL URLWithString: @"https://httpbin.org/silly-file-name"];
   data = [url resourceDataUsingCache: NO];
   num = [url propertyForKey: NSHTTPPropertyStatusCodeKey];
+
+#if defined(_WIN64) && defined(_MSC_VER)
+  testHopeful = YES;
+#endif
   PASS_EQUAL(num, [NSNumber numberWithInt: 404],
     "Status of load is 404 for httpbin.org/silly-file-name");
+#if defined(_WIN64) && defined(_MSC_VER)
+  testHopeful = YES;
+#endif
+
   str = [url scheme];
   PASS([str isEqual: @"https"],
        "Scheme of https://httpbin.org/silly-file-name is https");

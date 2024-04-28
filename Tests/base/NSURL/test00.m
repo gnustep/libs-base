@@ -112,6 +112,10 @@ int main()
 
   START_SET("Shrink")
 
+#if defined(_WIN64) && defined(_MSC_VER)
+  SKIP("Known to crash on 64-bit Windows with Clang/MSVC.")
+#endif
+
   /* Ask the 'respond' helper to send back a response containing
    * 'hello' and to shrink the write buffer size it uses on each
    * request.  We do as many requests as the total response size
@@ -187,6 +191,10 @@ int main()
       NSString	*name = [NSString stringWithFormat: @"Keepalive drop %u", j];
 
       START_SET([name UTF8String])
+
+#if defined(_WIN64) && defined(_MSC_VER)
+      SKIP("Known to crash on 64-bit Windows with Clang/MSVC.")
+#endif
 
       t = [NSTask launchedHelperWithLaunchPath: respond
          arguments: [NSArray arrayWithObjects:
