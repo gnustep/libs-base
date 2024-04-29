@@ -36,7 +36,7 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSOperation.h"
 #import "Foundation/NSThread.h"
-#import "Foundation/NSArray.h"
+#import "Foundation/NSHashTable.h"
 #import "GNUstepBase/GSLock.h"
 
 static NSZone	*_zone = 0;
@@ -241,6 +241,7 @@ typedef struct NCTbl {
   GSIMapTable		cache[CACHESIZE];
   unsigned short	chunkIndex;
   unsigned short	cacheIndex;
+  NSHashTable		*retainedObjectsTable;
 } NCTable;
 
 #define	TABLE		((NCTable*)_table)
@@ -389,7 +390,9 @@ static void endNCTable(NCTable *t)
       NSZoneFree(NSDefaultMallocZone(), (void*)t->cache[i]);
     }
   NSZoneFree(NSDefaultMallocZone(), t->chunks);
+  RELEASE(t->retainedObjectsTable);
   NSZoneFree(NSDefaultMallocZone(), t);
+
 }
 
 static NCTable *newNCTable(void)
@@ -405,6 +408,7 @@ static NCTable *newNCTable(void)
   GSIMapInitWithZoneAndCapacity(t->nameless, _zone, 16);
   GSIMapInitWithZoneAndCapacity(t->named, _zone, 128);
   t->named->extra = YES;        // This table retains keys
+  t->retainedObjectsTable = [[NSHashTable alloc] initWithOptions:NSHashTableObjectPointerPersonality capacity:10];
 
   t->_lock = [NSRecursiveLock new];
   return t;
@@ -739,7 +743,6 @@ static NSNotificationCenter *default_center = nil;
    * Release all memory used to store Observations etc.
    */
   endNCTable(TABLE);
-  RELEASE(_retainedObserverArray);
 }
 
 
@@ -806,7 +809,7 @@ static NSNotificationCenter *default_center = nil;
 
   if (object_getClass(observer) == GSNotificationObserverClass)
     {
-      [_retainedObserverArray addObject:observer];
+      [TABLE->retainedObjectsTable addObject:observer];
     }
 
   /*
@@ -1067,18 +1070,9 @@ static NSNotificationCenter *default_center = nil;
 	}
     }
 
-  BOOL needToRelease = NO;
-  for (id listObserver in _retainedObserverArray) 
+  if ([TABLE->retainedObjectsTable containsObject:observer])
     {
-      if (listObserver == observer)
-        {
-	  needToRelease = YES;
-          break;
-	}
-    }
-  if (needToRelease)
-    {
-      [_retainedObserverArray removeObject:observer];
+      [TABLE->retainedObjectsTable removeObject:observer];
       RELEASE(observer);
     }
     
