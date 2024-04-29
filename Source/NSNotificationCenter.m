@@ -720,7 +720,6 @@ static NSNotificationCenter *default_center = nil;
   if ((self = [super init]) != nil)
     {
       _table = newNCTable();
-      _retainedObserverArray = [[NSMutableArray alloc] init];
     }
   return self;
 }
