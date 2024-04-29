@@ -42,7 +42,6 @@ extern "C" {
 @class NSDictionary;
 @class NSLock;
 @class NSOperationQueue;
-@class NSMutableArray;
 
 typedef NSString* NSNotificationName;
 
@@ -76,7 +75,6 @@ GS_EXPORT_CLASS
 #if	GS_EXPOSE(NSNotificationCenter)
 @private
   void	         *_table;
-  NSMutableArray *_retainedObserverArray;
 #endif
 }
 
