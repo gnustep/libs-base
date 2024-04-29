@@ -83,7 +83,6 @@ NSMutableDictionary* GNUstepConfig(NSDictionary *newConfig);
 
 void GNUstepUserConfig(NSMutableDictionary *config, NSString *userName);
 
-
 /* The global configuration file. The real value is read from config.h */
 #ifndef GNUSTEP_TARGET_CONFIG_FILE
 # define   GNUSTEP_TARGET_CONFIG_FILE  "/etc/GNUstep/GNUstep.conf"
@@ -909,7 +908,7 @@ GNUstepConfig(NSDictionary *newConfig)
   NSMutableDictionary	*conf = nil;
   BOOL			changedSystemConfig = NO;
 
-  [gnustep_global_lock lock];
+  [GSPrivateGlobalLock() lock];
   if (NO == beenHere)
     {
       beenHere = YES;
@@ -1063,14 +1062,14 @@ GNUstepConfig(NSDictionary *newConfig)
 	}
       NS_HANDLER
 	{
-	  [gnustep_global_lock unlock];
+	  [GSPrivateGlobalLock() unlock];
 	  config = nil;
 	  DESTROY(conf);
 	  [localException raise];
 	}
       NS_ENDHANDLER
     }
-  [gnustep_global_lock unlock];
+  [GSPrivateGlobalLock() unlock];
 
   if (changedSystemConfig == YES)
     {
@@ -1141,7 +1140,7 @@ static void InitialisePathUtilities(void)
       NSMutableDictionary	*config;
       static BOOL               beenHere = NO;
 
-      [gnustep_global_lock lock];
+      [GSPrivateGlobalLock() lock];
       if (NO == beenHere)
         {
           beenHere = YES;
@@ -1196,12 +1195,12 @@ static void InitialisePathUtilities(void)
       gnustepUserHome = [NSHomeDirectoryForUser(gnustepUserName) copy];
       ExtractValuesFromConfig(config);
 
-      [gnustep_global_lock unlock];
+      [GSPrivateGlobalLock() unlock];
     }
   NS_HANDLER
     {
       /* unlock then re-raise the exception */
-      [gnustep_global_lock unlock];
+      [GSPrivateGlobalLock() unlock];
       [localException raise];
     }
   NS_ENDHANDLER
@@ -1607,7 +1606,7 @@ GSSetUserName(NSString *aName)
   /*
    * Release the memory
    */
-  [gnustep_global_lock lock];
+  [GSPrivateGlobalLock() lock];
   ShutdownPathUtilities();
 
   /*
@@ -1618,7 +1617,7 @@ GSSetUserName(NSString *aName)
   InitialisePathUtilities();
   [NSUserDefaults resetStandardUserDefaults];
 
-  [gnustep_global_lock unlock];
+  [GSPrivateGlobalLock() unlock];
 }
 
 /**
@@ -1691,11 +1690,11 @@ NSUserName(void)
 #if     defined(HAVE_GETPWUID)
       struct passwd *pwent;
 
-      [gnustep_global_lock lock];
+      [GSPrivateGlobalLock() lock];
       pwent = getpwuid (uid);
       strncpy(buf, pwent->pw_name, sizeof(buf) - 1);
       buf[sizeof(buf) - 1] = '\0';
-      [gnustep_global_lock unlock];
+      [GSPrivateGlobalLock() unlock];
       loginName = buf;
 #endif /* HAVE_GETPWUID */
 #endif /* HAVE_GETPWUID_R */
@@ -1756,13 +1755,13 @@ NSHomeDirectoryForUser(NSString *loginName)
 #if     defined(HAVE_GETPWNAM)
   struct passwd *pw;
 
-  [gnustep_global_lock lock];
+  [GSPrivateGlobalLock() lock];
   pw = getpwnam ([loginName cString]);
   if (pw != 0 && pw->pw_dir != 0 && pw->pw_dir[0] != '\0')
     {
       s = [NSString stringWithUTF8String: pw->pw_dir];
     }
-  [gnustep_global_lock unlock];
+  [GSPrivateGlobalLock() unlock];
 #endif
 #endif
 #else
@@ -1862,13 +1861,13 @@ NSFullUserName(void)
 #if     defined(HAVE_PW_GECOS_IN_PASSWD)
       struct passwd	*pw;
 
-      [gnustep_global_lock lock];
+      [GSPrivateGlobalLock() lock];
       pw = getpwnam([userName cString]);
       if (pw->pw_gecos)
 	{
           userName = [NSString stringWithUTF8String: pw->pw_gecos];
         }
-      [gnustep_global_lock lock];
+      [GSPrivateGlobalLock() unlock];
 #endif /* HAVE_PW_GECOS_IN_PASSWD */
 #endif /* HAVE_GETPWNAM */
 #endif /* HAVE_GETPWNAM_R */
