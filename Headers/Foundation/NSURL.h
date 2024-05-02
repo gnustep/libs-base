@@ -61,6 +61,8 @@ enum
     NSURLBookmarkCreationWithoutImplicitSecurityScope = (1 << 29)
 #endif
 };
+
+typedef NSString *NSURLResourceKey;
 #endif
 
 /** URL Bookmark Resolution Options **/
