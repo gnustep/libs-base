@@ -2576,6 +2576,11 @@ void GSBreakTime(NSTimeInterval when,
                             DWORD bufsize;
                             DWORD type;
 
+                            /* check display name */
+                            if (wcscmp(achKey, wName) == 0) {
+                                tzFound = YES;
+                            }
+
                             /* check standardname */
                             standardName[0] = L'\0';
                             bufsize = sizeof(buf);
