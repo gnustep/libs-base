@@ -163,7 +163,7 @@ static unsigned nextSessionIdentifier()
 
       _taskRegistry = [[GSTaskRegistry alloc] init];
 #if	defined(CURLSSLBACKEND_GNUTLS)
-      curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, NULL)l 
+      curl_global_sslset(CURLSSLBACKEND_GNUTLS, NULL, NULL);
 #endif
       curl_global_init(CURL_GLOBAL_SSL);
       sprintf(label, "NSURLSession %u", nextSessionIdentifier());
