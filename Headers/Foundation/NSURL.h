@@ -46,6 +46,25 @@ extern "C" {
  */
 GS_EXPORT NSString* const NSURLFileScheme;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+typedef NSUInteger NSURLBookmarkCreationOptions;
+enum
+{
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, MAC_OS_X_VERSION_10_9)
+    NSURLBookmarkCreationPreferFileIDResolution = ( 1UL << 8 ),
+#endif
+    NSURLBookmarkCreationMinimalBookmark = ( 1UL << 9 ),
+    NSURLBookmarkCreationSuitableForBookmarkFile = ( 1UL << 10 ),
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+    NSURLBookmarkCreationWithSecurityScope = ( 1 << 11 ),
+    NSURLBookmarkCreationSecurityScopeAllowOnlyReadAccess = ( 1 << 12 ),
+    NSURLBookmarkCreationWithoutImplicitSecurityScope = (1 << 29)
+#endif
+};
+
+typedef NSString *NSURLResourceKey;
+#endif
+
 /** URL Bookmark Resolution Options **/
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 typedef NSUInteger NSURLBookmarkResolutionOptions;
@@ -121,6 +140,29 @@ GS_EXPORT_CLASS
 + (instancetype) URLByResolvingAliasFileAtURL: (NSURL*)url
                                       options: (NSURLBookmarkResolutionOptions)options
                                         error: (NSError**)error;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+- (NSData *) bookmarkDataWithOptions: (NSURLBookmarkCreationOptions)options 
+      includingResourceValuesForKeys: (NSArray<NSURLResourceKey> *)keys 
+                       relativeToURL: (NSURL *)relativeURL 
+                               error: (NSError **)error;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+- (instancetype) initByResolvingBookmarkData: (NSData *)bookmarkData 
+                                     options: (NSURLBookmarkResolutionOptions)options 
+                               relativeToURL: (NSURL *)relativeURL 
+                         bookmarkDataIsStale: (BOOL *)isStale 
+                                       error: (NSError **)error;
+#endif
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
++ (instancetype) URLByResolvingBookmarkData: (NSData *)bookmarkData
+                                    options: (NSURLBookmarkResolutionOptions)options 
+                              relativeToURL: (NSURL *)relativeURL 
+                        bookmarkDataIsStale: (BOOL *)isStale 
+                                      error: (NSError **)error;
 #endif
 
 /**

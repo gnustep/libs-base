@@ -753,13 +753,8 @@ NSURL:
 	NSURLUbiquitousItemPercentDownloadedKey
 	NSURLUbiquitousItemPercentUploadedKey
 
-	typedef NSURLBookmarkCreationOptions
-	typedef NSURLBookmarkResolutionOptions
 	typedef NSURLBookmarkFileCreationOptions
 
-	- bookmarkDataWithOptions:includingResourceValuesForKeys:relativeToURL:error:
-	- initByResolvingBookmarkData:options:relativeToURL:bookmarkDataIsStale:error:
-	+ URLByResolvingBookmarkData:options:relativeToURL:bookmarkDataIsStale:error:
 	+ resourceValuesForKeys:fromBookmarkData:
 	+ writeBookmarkData:toURL:options:error:
 	+ bookmarkDataWithContentsOfURL:error:

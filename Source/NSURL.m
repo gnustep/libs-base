@@ -569,8 +569,6 @@ static char *unescape(const char *from, char * to)
   return to;
 }
 
-
-
 @implementation NSURL
 
 static NSCharacterSet	*fileCharSet = nil;
@@ -637,6 +635,45 @@ static NSUInteger	urlAlign;
 {
   // TODO: unimplemented
   return nil;
+}
+
+- (NSData *) bookmarkDataWithOptions: (NSURLBookmarkCreationOptions)options 
+      includingResourceValuesForKeys: (NSArray<NSURLResourceKey> *)keys 
+                       relativeToURL: (NSURL *)relativeURL 
+                               error: (NSError **)error
+{
+    // TODO: unimplemented
+    if (error != nil) {
+        *error = [NSError errorWithDomain:NSCocoaErrorDomain code:0 userInfo:nil];
+    }
+    return nil;
+}
+
+- (instancetype) initByResolvingBookmarkData: (NSData *)bookmarkData 
+                                     options: (NSURLBookmarkResolutionOptions)options 
+                               relativeToURL: (NSURL *)relativeURL 
+                         bookmarkDataIsStale: (BOOL *)isStale 
+                                       error: (NSError **)error
+{
+    // TODO: unimplemented
+    RELEASE(self);
+    if (error != nil) {
+        *error = [NSError errorWithDomain:NSCocoaErrorDomain code:0 userInfo:nil];
+    }
+    return nil;
+}
+
++ (instancetype) URLByResolvingBookmarkData: (NSData *)bookmarkData
+                                    options: (NSURLBookmarkResolutionOptions)options 
+                              relativeToURL: (NSURL *)relativeURL 
+                        bookmarkDataIsStale: (BOOL *)isStale 
+                                      error: (NSError **)error
+{
+    // TODO: unimplemented
+    if (error != nil) {
+        *error = [NSError errorWithDomain:NSCocoaErrorDomain code:0 userInfo:nil];
+    }
+    return nil;
 }
 
 - (id) initFileURLWithPath: (NSString *)aPath
