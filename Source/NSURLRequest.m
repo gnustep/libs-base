@@ -444,7 +444,10 @@ typedef struct {
     {
       this->headers = [_GSMutableInsensitiveDictionary new];
     }
-  [this->headers setObject: value forKey: field];
+  if (value)
+    {
+      [this->headers setObject: value forKey: field];
+    }
 }
 
 @end
