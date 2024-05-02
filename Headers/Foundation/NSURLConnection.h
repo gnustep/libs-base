@@ -69,6 +69,11 @@ GS_EXPORT_CLASS
 + (NSURLConnection *) connectionWithRequest: (NSURLRequest *)request
 				   delegate: (id)delegate;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_8, GS_API_LATEST)
+@property (readonly, copy) NSURLRequest *originalRequest;
+@property (readonly, copy) NSURLRequest *currentRequest;
+#endif
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 /**
  * Start the asynchronous load.  This method is only needed if NO is passed 
