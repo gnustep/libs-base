@@ -638,7 +638,7 @@ static NSUInteger	urlAlign;
 }
 
 - (NSData *) bookmarkDataWithOptions: (NSURLBookmarkCreationOptions)options 
-      includingResourceValuesForKeys: (NSArray<NSURLResourceKey> *)keys 
+      includingResourceValuesForKeys: (NSArray *)keys
                        relativeToURL: (NSURL *)relativeURL 
                                error: (NSError **)error
 {

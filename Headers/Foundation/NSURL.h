@@ -144,7 +144,9 @@ GS_EXPORT_CLASS
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 - (NSData *) bookmarkDataWithOptions: (NSURLBookmarkCreationOptions)options 
-      includingResourceValuesForKeys: (NSArray<NSURLResourceKey> *)keys 
+// TODO(brooke.tilley): For some reason doing NSArray<NSURLResourceKey*> causes a strange compile error,
+//                      so I'm omitting the type argument for now.
+      includingResourceValuesForKeys: (NSArray *)keys
                        relativeToURL: (NSURL *)relativeURL 
                                error: (NSError **)error;
 #endif
