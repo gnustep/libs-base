@@ -325,6 +325,10 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
       {
         return NSURLErrorTimedOut;
       }
+    else if (easyCode == CURLE_COULDNT_CONNECT) 
+      {
+        return NSURLErrorCannotConnectToHost;
+      }
     else if (easyCode == CURLE_OPERATION_TIMEDOUT) 
       {
         return NSURLErrorTimedOut;

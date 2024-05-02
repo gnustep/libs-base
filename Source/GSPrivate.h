@@ -33,6 +33,7 @@
 @class	_GSMutableInsensitiveDictionary;
 
 @class	NSNotification;
+@class	NSRecursiveLock;
 
 #if ( (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3) ) && HAVE_VISIBILITY_ATTRIBUTE )
 #define GS_ATTRIB_PRIVATE __attribute__ ((visibility("internal")))
@@ -421,6 +422,13 @@ long
 GSPrivateLoadModule(NSString *filename, FILE *errorStream,
   void (*loadCallback)(Class, struct objc_category *),
   void **header, NSString *debugFilename) GS_ATTRIB_PRIVATE;
+
+/* Return a private global recursive lock for protecting internal
+ * data structures before aother locks have been initialised.
+ * Implemented in NSLock.m
+ */
+NSRecursiveLock *
+GSPrivateGlobalLock() GS_ATTRIB_PRIVATE;
 
 /* Get the native C-string encoding as used by locale specific code in the
  * operating system.  This may differ from the default C-string encoding

@@ -43,7 +43,6 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSThread.h"
-// #import "Foundation/NSUserDefaults.h"
 
 #define class_createInstance(C,E) NSAllocateObject(C,E,NSDefaultMallocZone())
 
@@ -907,6 +906,26 @@ MUNLOCK
 }
 @end
 
+/* Return a global recursive lock
+ */
+NSRecursiveLock *
+GSPrivateGlobalLock()
+{
+  static NSRecursiveLock	*lock = nil;
+
+  if (nil == lock)
+    {
+      static gs_mutex_t	lockLock = GS_MUTEX_INIT_STATIC;
+
+      GS_MUTEX_LOCK(lockLock);
+      if (nil == lock)
+	{
+	  lock = [GSUntracedRecursiveLock new];
+	}
+      GS_MUTEX_UNLOCK(lockLock);
+    }
+  return lock;
+}
 
 /*
  * Pthread-like locking primitives using Windows SRWLock. Provides

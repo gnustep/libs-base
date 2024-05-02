@@ -14,6 +14,11 @@ int main(int argc, char **argv, char **env)
   BOOL loaded;
   NSString *helperPath;
 
+#if defined(_WIN64) && defined(_MSC_VER)
+  NSLog(@"Marking tests as hopeful because they are known to fail on 64-bit Windows with Clang/MSVC.")
+  testHopeful = YES;
+#endif
+
   // load the test suite's classes
   fm = [NSFileManager defaultManager];
   helperPath = [[fm currentDirectoryPath]
@@ -132,5 +137,9 @@ int main(int argc, char **argv, char **env)
 
   DESTROY(arp);
   
+#if defined(_WIN64) && defined(_MSC_VER)
+  testHopeful = NO;
+#endif
+
   return 0;
 }

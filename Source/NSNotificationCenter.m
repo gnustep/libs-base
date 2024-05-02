@@ -36,6 +36,7 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSOperation.h"
 #import "Foundation/NSThread.h"
+#import "Foundation/NSHashTable.h"
 #import "GNUstepBase/GSLock.h"
 
 static NSZone	*_zone = 0;
@@ -240,6 +241,7 @@ typedef struct NCTbl {
   GSIMapTable		cache[CACHESIZE];
   unsigned short	chunkIndex;
   unsigned short	cacheIndex;
+  NSHashTable		*retainedObjectsTable;
 } NCTable;
 
 #define	TABLE		((NCTable*)_table)
@@ -388,7 +390,9 @@ static void endNCTable(NCTable *t)
       NSZoneFree(NSDefaultMallocZone(), (void*)t->cache[i]);
     }
   NSZoneFree(NSDefaultMallocZone(), t->chunks);
+  RELEASE(t->retainedObjectsTable);
   NSZoneFree(NSDefaultMallocZone(), t);
+
 }
 
 static NCTable *newNCTable(void)
@@ -404,6 +408,7 @@ static NCTable *newNCTable(void)
   GSIMapInitWithZoneAndCapacity(t->nameless, _zone, 16);
   GSIMapInitWithZoneAndCapacity(t->named, _zone, 128);
   t->named->extra = YES;        // This table retains keys
+  t->retainedObjectsTable = [[NSHashTable alloc] initWithOptions:NSHashTableObjectPointerPersonality capacity:10];
 
   t->_lock = [NSRecursiveLock new];
   return t;
@@ -722,7 +727,7 @@ static NSNotificationCenter *default_center = nil;
 - (void) dealloc
 {
   [self finalize];
-
+   
   [super dealloc];
 }
 
@@ -758,10 +763,18 @@ static NSNotificationCenter *default_center = nil;
  * the notification center before releasing these objects.<br />
  * </p>
  *
+ * <p>While it is good practice to remove an observer before releasing it,  
+ * currently on MacOS it is possible to remove an observer even after the
+ * object has been deallocated. This is not documented behavior from Apple
+ * and could change at any time. In the interests of compatibility, this behavior
+ * will also be supported here.
+ * </p>
+ *
  * <p>NB. For MacOS-X compatibility, adding an observer multiple times will
  * register it to receive multiple copies of any matching notification, however
  * removing an observer will remove <em>all</em> of the multiple registrations.
  * </p>
+ *
  */
 - (void) addObserver: (id)observer
 	    selector: (SEL)selector
@@ -792,6 +805,11 @@ static NSNotificationCenter *default_center = nil;
   lockNCTable(TABLE);
 
   o = obsNew(TABLE, selector, observer);
+
+  if (object_getClass(observer) == GSNotificationObserverClass)
+    {
+      [TABLE->retainedObjectsTable addObject:observer];
+    }
 
   /*
    * Record the Observation in one of the linked lists.
@@ -1050,15 +1068,15 @@ static NSNotificationCenter *default_center = nil;
 	  GSIMapRemoveKey(NAMED, (GSIMapKey)((id)name));
 	}
     }
-  unlockNCTable(TABLE);
 
-  /* As a special case GSNotificationObserver instances are owned by the
-   * notification center and are released when they are removed.
-   */
-  if (object_getClass(observer) == GSNotificationObserverClass)
+  if ([TABLE->retainedObjectsTable containsObject:observer])
     {
+      [TABLE->retainedObjectsTable removeObject:observer];
       RELEASE(observer);
     }
+    
+  unlockNCTable(TABLE);
+
 }
 
 /**
