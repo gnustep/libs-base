@@ -53,7 +53,8 @@
   BOOL _didLoad;
 }
 
-- (void) _setFileCacheSize: (NSUInteger) size;
++ (void) _setFileCacheSize: (NSUInteger) size;
++ (NSCache *) _fileCache;
 @end
 
 /**
@@ -612,9 +613,14 @@ static Class		NSURLHandleClass = 0;
 static NSCache	*fileCache = nil;
 static NSUInteger defaultCacheSize = 4 * 1024 * 1024;
 
-- (void) _setFileCacheSize: (NSUInteger) size
++ (void) _setFileCacheSize: (NSUInteger) size
 {
   [fileCache setTotalCostLimit: size];
+}
+
++ (NSCache *) _fileCache
+{
+  return fileCache;
 }
 
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)url
