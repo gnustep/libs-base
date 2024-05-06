@@ -49,12 +49,7 @@
 {
   NSString		*_path;
   NSMutableDictionary	*_attributes;
-  BOOL _cached;
-  BOOL _didLoad;
 }
-
-+ (void) _setFileCacheSize: (NSUInteger) size;
-+ (NSCache *) _fileCache;
 @end
 
 /**
@@ -610,32 +605,9 @@ static Class		NSURLHandleClass = 0;
  */
 @implementation	GSFileURLHandle
 
-static NSCache	*fileCache = nil;
-static NSUInteger defaultCacheSize = 4 * 1024 * 1024;
-
-+ (void) _setFileCacheSize: (NSUInteger) size
-{
-  [fileCache setTotalCostLimit: size];
-}
-
-+ (NSCache *) _fileCache
-{
-  return fileCache;
-}
-
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)url
 {
-  NSURLHandle	*obj = nil;
-
-  if ([url isFileURL] == YES)
-    {
-      NSString	*path = [url path];
-
-      path = [path stringByStandardizingPath];
-	    obj = [fileCache objectForKey: path];
-	    IF_NO_ARC([[obj retain] autorelease];)
-    }
-  return obj;
+  return nil;
 }
 
 + (BOOL) canInitWithURL: (NSURL*)url
@@ -645,14 +617,6 @@ static NSUInteger defaultCacheSize = 4 * 1024 * 1024;
       return YES;
     }
   return NO;
-}
-
-+ (void) initialize
-{
-  fileCache = [NSCache new];
-  [fileCache setName: @"org.gnustep.GSFileURLHandle.cache"];
-  [fileCache setTotalCostLimit: defaultCacheSize];
-  [[NSObject leakAt: &fileCache] release];
 }
 
 - (NSData*) availableResourceData
@@ -709,21 +673,6 @@ static NSUInteger defaultCacheSize = 4 * 1024 * 1024;
   path = [url path];
   path = [path stringByStandardizingPath];
 
-  _didLoad = NO;
-  _cached = cached;
-  if (cached == YES)
-    {
-      id	obj;
-
-      obj = [fileCache objectForKey: path];
-      if (obj != nil)
-        {
-          DESTROY(self);
-          IF_NO_ARC([obj retain];)
-	        return obj;
-        }
-    }
-
   if ((self = [super initWithURL: url cached: cached]) != nil)
     {
       _path = [path copy];
@@ -740,12 +689,6 @@ static NSUInteger defaultCacheSize = 4 * 1024 * 1024;
 						 traverseLink: YES];
   RELEASE(_attributes);
   _attributes = [dict mutableCopy];
-
-  if (_cached && !_didLoad)
-    {
-      [fileCache setObject: self forKey: _path cost: [d length]];
-    }
-  _didLoad = YES;
 
   [self didLoadBytes: d loadComplete: YES];
   return d;
