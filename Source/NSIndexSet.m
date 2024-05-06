@@ -872,7 +872,6 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
   startArrayIndex = posForIndex(_array, range.location);
   if (NSNotFound == startArrayIndex)
     {
-      // FIXME: Should we error out?
       startArrayIndex = 0;
     }
 
@@ -882,7 +881,6 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
 
   if (NSNotFound == endArrayIndex)
     {
-      // FIXME: Should we error out?
       endArrayIndex = GSIArrayCount(_array) - 1;
     }
 
