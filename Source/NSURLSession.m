@@ -585,12 +585,16 @@ static unsigned nextSessionIdentifier()
   NSURLSession                  *session;
   NSOperationQueue              *delegateQueue;
   id<NSURLSessionDelegate>      delegate;
+  void (^dataCompletionHandler)(NSData *data, NSURLResponse *response, NSError *error);
+  void (^downloadCompletionHandler)(NSURL *location, NSURLResponse *response, NSError *error);
 
   session = [task session];
   NSAssert(nil != session, @"Missing session");
 
   delegateQueue = [session delegateQueue];
   delegate = [session delegate];
+  dataCompletionHandler = [task dataCompletionHandler];
+  downloadCompletionHandler = [task downloadCompletionHandler];
 
   if (nil != delegate)
     {
@@ -611,6 +615,44 @@ static unsigned nextSessionIdentifier()
 
           [task setState: NSURLSessionTaskStateCompleted];
           dispatch_async([session workQueue],  
+            ^{
+              [session removeTask: task];
+            });
+        }];
+    }
+  else if (nil != dataCompletionHandler)
+    {
+      [delegateQueue addOperationWithBlock:
+        ^{
+          if (NSURLSessionTaskStateCompleted == [task state])
+            {
+              return;
+            }
+
+          dataCompletionHandler(nil, nil, error);
+
+          [task setState: NSURLSessionTaskStateCompleted];
+
+          dispatch_async([session workQueue],
+            ^{
+              [session removeTask: task];
+            });
+        }];
+    }
+  else if (nil != downloadCompletionHandler)
+    {
+          [delegateQueue addOperationWithBlock:
+        ^{
+          if (NSURLSessionTaskStateCompleted == [task state])
+            {
+              return;
+            }
+
+          downloadCompletionHandler(nil, nil, error);
+
+          [task setState: NSURLSessionTaskStateCompleted];
+
+          dispatch_async([session workQueue],
             ^{
               [session removeTask: task];
             });
@@ -836,9 +878,7 @@ static unsigned nextSessionIdentifier()
       RELEASE(cacheable);
     }
 
-  if (nil != dataCompletionHandler
-    && ([task isKindOfClass: [NSURLSessionDataTask class]]
-      || [task isKindOfClass: [NSURLSessionUploadTask class]]))
+  if (nil != dataCompletionHandler)
     {
       NSData *data = [NSURLProtocol propertyForKey: @"tempData"
                                          inRequest: [protocol request]];
@@ -860,8 +900,7 @@ static unsigned nextSessionIdentifier()
             });
         }];
     }
-  else if (nil != downloadCompletionHandler
-    && [task isKindOfClass: [NSURLSessionDownloadTask class]])
+  else if (nil != downloadCompletionHandler)
     {
       NSURL *fileURL = [NSURLProtocol propertyForKey: @"tempFileURL"
                                            inRequest: [protocol request]];
