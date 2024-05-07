@@ -1,3 +1,10 @@
+2024-05-07 Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSURLSession.m:
+	_NSURLProtocolClient did not call completion handlers
+	in task:didFailWithError:.
+	Removed extraneous runtime calls.
+
 2024-04-28 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSPrivate.h:
