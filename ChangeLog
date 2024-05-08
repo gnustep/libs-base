@@ -1,3 +1,10 @@
+2024-05-08 Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSIndexSet.m:
+	* Tests/base/NSIndexSet/enumerateRanges.m:
+	Implement enumerateRangesInRange convenience methods
+	and tests.
+
 2024-05-07 Hugo Melder <hugo@algoriddim.com>
 
 	* Source/NSURLSession.m:
