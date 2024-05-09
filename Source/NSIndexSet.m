@@ -852,16 +852,16 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
   return [c initWithIndexSet: self];
 }
 
-- (void)enumerateRangesInRange:(NSRange)range 
-                       options:(NSEnumerationOptions)opts 
-                    usingBlock:(GSIndexSetRangeEnumerationBlock)aBlock
+- (void) enumerateRangesInRange: (NSRange)range 
+                        options: (NSEnumerationOptions)opts 
+                     usingBlock: (GSIndexSetRangeEnumerationBlock)aBlock
 {
-  NSUInteger    startArrayIndex;
-  NSUInteger    endArrayIndex;
-  NSUInteger    lastInRange;
-  NSUInteger i;
-  NSUInteger c;
-  BOOL isReverse = opts & NSEnumerationReverse;
+  NSUInteger		startArrayIndex;
+  NSUInteger    	endArrayIndex;
+  NSUInteger    	lastInRange;
+  NSUInteger 		i;
+  NSUInteger 		c;
+  BOOL 			isReverse = opts & NSEnumerationReverse;
   BLOCK_SCOPE BOOL      shouldStop = NO;
 
   if ((0 == [self count]) || (NSNotFound == range.location))
@@ -925,13 +925,13 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
   GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
 }
 
-- (void)enumerateRangesUsingBlock:(GSIndexSetRangeEnumerationBlock)aBlock
+- (void) enumerateRangesUsingBlock: (GSIndexSetRangeEnumerationBlock)aBlock
 {
   [self enumerateRangesWithOptions: 0 usingBlock: aBlock];
 }
 
-- (void)enumerateRangesWithOptions:(NSEnumerationOptions)opts 
-                        usingBlock:(GSIndexSetRangeEnumerationBlock)aBlock
+- (void) enumerateRangesWithOptions: (NSEnumerationOptions)opts 
+			 usingBlock: (GSIndexSetRangeEnumerationBlock)aBlock
 {
   NSUInteger    firstIndex;
   NSUInteger    lastIndex;

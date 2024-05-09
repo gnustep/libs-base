@@ -116,14 +116,14 @@ DEFINE_BLOCK_TYPE(GSIndexSetEnumerationBlock, void, NSUInteger, BOOL*);
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST)
 DEFINE_BLOCK_TYPE(GSIndexSetRangeEnumerationBlock, void, NSRange, BOOL*);
 
-- (void)enumerateRangesInRange:(NSRange)range 
-                       options:(NSEnumerationOptions)opts 
-                    usingBlock:(GSIndexSetRangeEnumerationBlock)aBlock;
+- (void) enumerateRangesInRange: (NSRange)range 
+                        options: (NSEnumerationOptions)opts 
+                     usingBlock: (GSIndexSetRangeEnumerationBlock)aBlock;
 
-- (void)enumerateRangesUsingBlock:(GSIndexSetRangeEnumerationBlock)aBlock;
+- (void) enumerateRangesUsingBlock: (GSIndexSetRangeEnumerationBlock)aBlock;
 
-- (void)enumerateRangesWithOptions:(NSEnumerationOptions)opts 
-                        usingBlock:(GSIndexSetRangeEnumerationBlock)aBlock;
+- (void) enumerateRangesWithOptions: (NSEnumerationOptions)opts 
+                         usingBlock: (GSIndexSetRangeEnumerationBlock)aBlock;
 #endif
 
 /**
