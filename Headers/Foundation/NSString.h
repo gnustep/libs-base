@@ -527,7 +527,7 @@ GS_EXPORT_CLASS
                             length: (NSUInteger)length;
 + (instancetype) stringWithCString: (const char*)byteString;
 + (instancetype) stringWithFormat: (NSString*)format, ... NS_FORMAT_FUNCTION(1,2);
-+ (instancetype) stringWithContentsOfFile:(NSString *)path;
++ (instancetype) stringWithContentsOfFile: (NSString *)path;
 
 // Initializing Newly Allocated Strings
 - (instancetype) init;

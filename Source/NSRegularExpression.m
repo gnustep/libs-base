@@ -640,11 +640,12 @@ prepareResult(NSRegularExpression *regex,
 
 {
   __block NSUInteger	count = 0;
+  GSRegexBlock		block;
 
   opts &= ~NSMatchingReportProgress;
   opts &= ~NSMatchingReportCompletion;
 
-  GSRegexBlock block =
+  block =
     ^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop)
     {
       count++;
@@ -660,12 +661,13 @@ prepareResult(NSRegularExpression *regex,
                                      options: (NSMatchingOptions)opts
                                        range: (NSRange)range
 {
-  __block NSTextCheckingResult *r = nil;
+  __block NSTextCheckingResult	*r = nil;
+  GSRegexBlock 			block;
 
   opts &= ~NSMatchingReportProgress;
   opts &= ~NSMatchingReportCompletion;
 
-  GSRegexBlock block =
+  block =
     ^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop)
     {
       r = result;
@@ -683,11 +685,12 @@ prepareResult(NSRegularExpression *regex,
                        range:(NSRange)range
 {
   NSMutableArray	*array = [NSMutableArray array];
+  GSRegexBlock 		block;
 
   opts &= ~NSMatchingReportProgress;
   opts &= ~NSMatchingReportCompletion;
 
-  GSRegexBlock block =
+  block =
     ^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop)
     {
       [array addObject: result];
@@ -703,12 +706,13 @@ prepareResult(NSRegularExpression *regex,
                               options: (NSMatchingOptions)opts
                                 range: (NSRange)range
 {
-  __block NSRange r = {NSNotFound, 0};
+  __block NSRange	r = {NSNotFound, 0};
+  GSRegexBlock 		block;
 
   opts &= ~NSMatchingReportProgress;
   opts &= ~NSMatchingReportCompletion;
 
-  GSRegexBlock block =
+  block =
     ^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop)
     {
       r = [result range];
@@ -1064,9 +1068,11 @@ prepareResult(NSRegularExpression *regex,
 }
 #endif
 
-+ (NSString *)escapedPatternForString:(NSString *)string {
-  // https://unicode-org.github.io/icu/userguide/strings/regexp.html
-  // Need to escape * ? + [ ( ) { } ^ $ | \ .
++ (NSString*) escapedPatternForString: (NSString *)string
+{
+  /* https://unicode-org.github.io/icu/userguide/strings/regexp.html
+   * Need to escape * ? + [ ( ) { } ^ $ | \ .
+   */
   return [[NSRegularExpression 
     regularExpressionWithPattern: @"([*?+\\[(){}^$|\\\\.])" 
                          options: 0 
