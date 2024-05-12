@@ -76,6 +76,8 @@ int main(int argc, char **argv)
       [t terminate];
       [t waitUntilExit];
     }
+
+  END_SET("Keepalive")
   
   [arp release]; arp = nil ;
 
