@@ -364,7 +364,8 @@ extern void ensure_oldNs(xmlNodePtr node);
 
   // Remove all previous attributes
   NSArray *currentAttributes = [self attributes]; 
-  for (int index = [currentAttributes count]-1; index >= 0; index--)
+  int index;
+  for (index = [currentAttributes count]-1; index >= 0; index--)
     {
 	  NSXMLNode *attrNode = [currentAttributes objectAtIndex:index];
       NSString *name = [attrNode name];
@@ -389,7 +390,8 @@ extern void ensure_oldNs(xmlNodePtr node);
 
   // Remove all previous attributes
   NSArray *currentAttributes = [self attributes]; 
-  for (int index = [currentAttributes count]-1; index >= 0; index--)
+  int index;
+  for (index = [currentAttributes count]-1; index >= 0; index--)
     {
 	  NSXMLNode *attrNode = [currentAttributes objectAtIndex:index];
       NSString *name = [attrNode name];
