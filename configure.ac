@@ -3571,7 +3571,7 @@ AS_IF([test "x$enable_icu" = "xyes"], [
   esac
   if test $HAVE_ICU = 0; then
     PKG_CHECK_MODULES([ICU], [icu-i18n > 49.0], [
-      AC_CHECK_HEADERS([unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h unicode/utext.h],
+      AC_CHECK_HEADERS([unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h unicode/utext.h unicode/ubrk.h unicode/utypes.h],
         HAVE_ICU=1)], [HAVE_ICU=0])
   fi
   if test $HAVE_ICU = 0; then
