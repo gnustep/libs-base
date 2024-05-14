@@ -306,6 +306,92 @@ GS_EXPORT_CLASS
                              toDate: (NSDate *) date
                             options: (NSUInteger) opts;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
+
+/**
+ * 
+ */
+- (NSDateComponents *)components:(NSCalendarUnit)unitFlags 
+              fromDateComponents:(NSDateComponents *)startingDateComp 
+                toDateComponents:(NSDateComponents *)resultDateComp  
+                         options:(NSCalendarOptions)options;
+
+/**
+ * 
+ */
+- (NSDate *)dateByAddingUnit:(NSCalendarUnit)unit 
+                       value:(NSInteger)value 
+                      toDate:(NSDate *)date 
+                     options:(NSCalendarOptions)options;
+
+/**
+ * 
+ */
+- (NSDate *)dateBySettingHour:(NSInteger)h 
+                       minute:(NSInteger)m 
+                       second:(NSInteger)s 
+                       ofDate:(NSDate *)date 
+                      options:(NSCalendarOptions)opts;
+
+/**
+ * 
+ */
+- (NSDate *)dateWithEra:(NSInteger)eraValue 
+                   year:(NSInteger)yearValue 
+                  month:(NSInteger)monthValue 
+                    day:(NSInteger)dayValue 
+                   hour:(NSInteger)hourValue 
+                 minute:(NSInteger)minuteValue 
+                 second:(NSInteger)secondValue 
+             nanosecond:(NSInteger)nanosecondValue;
+
+/**
+ * 
+ */
+- (NSDate *)startOfDayForDate:(NSDate *)date;
+
+/**
+ * 
+ */
+- (BOOL)isDate:(NSDate *)date1 inSameDayAsDate:(NSDate *)date2;
+
+/**
+ * 
+ */
+- (BOOL)isDate:(NSDate *)date1 equalToDate:(NSDate *)date2 toUnitGranularity:(NSCalendarUnit)unit;
+
+/**
+ * 
+ */
+- (NSComparisonResult)compareDate:(NSDate *)date1 toDate:(NSDate *)date2 toUnitGranularity:(NSCalendarUnit)unit;
+
+/**
+ * 
+ */
+- (NSDate *)dateBySettingUnit:(NSCalendarUnit)unit value:(NSInteger)v ofDate:(NSDate *)date options:(NSCalendarOptions)opts;
+
+/**
+ * 
+ */
+- (BOOL)isDateInWeekend:(NSDate *)date;
+
+/**
+ * 
+ */
+- (BOOL)nextWeekendStartDate:(out NSDate * _Nullable *)datep interval:(out NSTimeInterval *)tip options:(NSCalendarOptions)options afterDate:(NSDate *)date;
+
+/**
+ * 
+ */
+- (BOOL)isDateInToday:(NSDate *)date;
+
+/**
+ * 
+ */
+- (BOOL)isDateInTomorrow:(NSDate *)date;
+
+#endif
+
 /**
  * Creates an NSDate from NSDateComponents in comps.
  */
