@@ -13601,7 +13601,7 @@ else
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 
-      for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h unicode/utext.h
+      for ac_header in unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h unicode/utext.h unicode/ubrk.h unicode/utypes.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"

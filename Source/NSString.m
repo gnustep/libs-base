@@ -66,11 +66,13 @@
 #import "Foundation/NSLocale.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSNotification.h"
+#import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/FoundationErrors.h"
 // For private method _decodePropertyListForKey:
 #import "Foundation/NSKeyedArchiver.h"
+#import "GNUstepBase/GSBlocks.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
@@ -102,23 +104,21 @@
 #if	defined(HAVE_UNICODE_UNORM2_H)
 # include <unicode/unorm2.h>
 #endif
-#if     defined(HAVE_UNICODE_USTRING_H)
+#if	defined(HAVE_UNICODE_USTRING_H)
 # include <unicode/ustring.h>
 #endif
-#if     defined(HAVE_UNICODE_USEARCH_H)
+#if	defined(HAVE_UNICODE_USEARCH_H)
 # include <unicode/usearch.h>
 #endif
-#if     defined(HAVE_ICU_H)
+#if	defined(HAVE_UNICODE_UBRK_H)
+# include <unicode/ubrk.h>
+#endif
+#if	defined(HAVE_UNICODE_UTYPES_H)
+# include <unicode/utypes.h>
+#endif
+#if	defined(HAVE_ICU_H)
 # include <icu.h>
 #endif
-
-#import "Foundation/NSObjCRuntime.h"
-#import "GNUstepBase/GSBlocks.h"
-#if GS_USE_ICU
-#include <unicode/ubrk.h>
-#include <unicode/utypes.h>
-#endif
-
 
 /* Create local inline versions of key functions for case-insensitive operations
  */

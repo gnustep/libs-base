@@ -750,6 +750,9 @@
 /* Define if libobjc has the _objc_unexpected_exception callback */
 #undef HAVE_UNEXPECTED
 
+/* Define to 1 if you have the <unicode/ubrk.h> header file. */
+#undef HAVE_UNICODE_UBRK_H
+
 /* Define to 1 if you have the <unicode/ucal.h> header file. */
 #undef HAVE_UNICODE_UCAL_H
 
@@ -791,6 +794,9 @@
 
 /* Define to 1 if you have the <unicode/utext.h> header file. */
 #undef HAVE_UNICODE_UTEXT_H
+
+/* Define to 1 if you have the <unicode/utypes.h> header file. */
+#undef HAVE_UNICODE_UTYPES_H
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
