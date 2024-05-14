@@ -1,3 +1,13 @@
+2024-04-29  Doug Simons <douglas.simons@keysight.com>
+
+    * NSXMLNode.m:
+       Fix execute_xpath() to return an NSError when xpath expression can't
+	   be evaluated instead of just calling NSLog.
+       	   
+    * NSXMLElement.m: 
+	   Fix setAttributes: and setAttributesWithDictionary: to remove previous
+	   attributes.
+
 2024-05-12 ethanc8R (github user)
 
 	* Headers/Foundation/NSRegularExpression.h:
