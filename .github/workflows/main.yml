@@ -173,7 +173,7 @@ jobs:
   ########### Windows ###########
   windows:
     name: ${{ matrix.name }}
-    runs-on: windows-2019
+    runs-on: windows-latest
     # don't run pull requests from local branches twice
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
 
