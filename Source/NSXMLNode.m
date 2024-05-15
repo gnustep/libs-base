@@ -29,6 +29,7 @@
 #define GSInternal	NSXMLNodeInternal
 
 #import "Foundation/NSCharacterSet.h"
+#import "Foundation/NSError.h"
 #import "NSXMLPrivate.h"
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLNode)
@@ -826,6 +827,14 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
   if (xpathObj == NULL) 
     {
       NSLog(@"Error: unable to evaluate xpath expression \"%s\"", xpathExpr);
+      if (error != 0)
+        {
+          xmlError xmlError = xpathCtx->lastError;
+          NSString *message = [NSString stringWithFormat:@"Error: unable to evaluate xpath expression \"%s\" (%d)", xpathExpr, xmlError.code]; 
+          *error = [NSError errorWithDomain: @"LibXMLErrorDomain"
+                                       code: xmlError.code
+                                   userInfo: [NSDictionary dictionaryWithObject:message forKey:NSLocalizedDescriptionKey]];
+        }
       xmlXPathFreeContext(xpathCtx);
       return nil;
     }
