@@ -628,6 +628,198 @@ static NSRecursiveLock *classLock = nil;
 
 #undef _ADD_COMPONENT
 
+- (NSDateComponents *)components:(NSCalendarUnit)unitFlags fromDateComponents:(NSDateComponents *)startingDateComp toDateComponents:(NSDateComponents *)resultDateComp options:(NSCalendarOptions)options
+{
+    NSDate *startDate;
+    NSDate *toDate;
+    NSCalendar *startCalendar;
+    NSCalendar *toCalendar;
+
+    startCalendar = [startingDateComp calendar];
+
+    if (startCalendar) {
+        startDate = [startCalendar dateFromComponents:startingDateComp];
+    } else {
+        startDate = [self dateFromComponents:startingDateComp];
+    }
+
+    toCalendar = [resultDateComp calendar];
+
+    if (toCalendar) {
+        toDate = [toCalendar dateFromComponents:resultDateComp];
+    } else {
+        toDate = [self dateFromComponents:resultDateComp];
+    }
+
+    if (startDate && toDate) {
+        return [self components:unitFlags fromDate:startDate toDate:toDate options:options];
+    }
+
+    return nil;
+}
+
+- (NSDate *)dateByAddingUnit:(NSCalendarUnit)unit value:(NSInteger)value toDate:(NSDate *)date options:(NSCalendarOptions)options
+{
+    NSDateComponents *components = [[NSDateComponents alloc] init];
+
+    [components setValue:value forComponent:unit];
+    return [self dateByAddingComponents:components toDate:date options:options];
+}
+
+- (NSDate *)dateBySettingUnit:(NSCalendarUnit)unit value:(NSInteger)value ofDate:(NSDate *)date options:(NSCalendarOptions)opts
+{
+    NSDateComponents *components = [[NSDateComponents alloc] init];
+
+    [components setValue:value forComponent:unit];
+    return [self dateFromComponents:components];
+}
+
+- (NSDate *)dateBySettingHour:(NSInteger)h minute:(NSInteger)m second:(NSInteger)s ofDate:(NSDate *)date options:(NSCalendarOptions)opts
+{
+    NSDateComponents *components = [self components:-1 fromDate:date];
+
+    [components setHour:h];
+    [components setMinute:m];
+    [components setSecond:s];
+
+    return [self dateFromComponents:components];
+}
+
+- (NSDate *)dateWithEra:(NSInteger)eraValue 
+                   year:(NSInteger)yearValue 
+                  month:(NSInteger)monthValue 
+                    day:(NSInteger)dayValue 
+                   hour:(NSInteger)hourValue 
+                 minute:(NSInteger)minuteValue 
+                 second:(NSInteger)secondValue 
+             nanosecond:(NSInteger)nanosecondValue
+{
+    NSDateComponents *components = [[NSDateComponents alloc] init];
+
+    [components setEra:eraValue];
+    [components setYear:yearValue];
+    [components setMonth:monthValue];
+    [components setDay:dayValue];
+    [components setHour:hourValue];
+    [components setMinute:minuteValue];
+    [components setSecond:secondValue];
+    [components setNanosecond:nanosecondValue];
+
+    return [self dateFromComponents:components];
+}
+
+- (NSDate *)dateWithEra:(NSInteger)eraValue 
+      yearForWeekOfYear:(NSInteger)yearValue 
+             weekOfYear:(NSInteger)weekValue 
+                weekday:(NSInteger)weekdayValue 
+                   hour:(NSInteger)hourValue 
+                 minute:(NSInteger)minuteValue 
+                 second:(NSInteger)secondValue 
+             nanosecond:(NSInteger)nanosecondValue
+{
+    NSDateComponents *components = [[NSDateComponents alloc] init];
+
+    [components setEra:eraValue];
+    [components setYear:yearValue];
+    [components setWeek:weekValue];
+    [components setWeekday:weekdayValue];
+    [components setHour:hourValue];
+    [components setMinute:minuteValue];
+    [components setSecond:secondValue];
+    [components setNanosecond:nanosecondValue];
+
+    return [self dateFromComponents:components];
+}
+
+- (NSDate *)startOfDayForDate:(NSDate *)date
+{
+    NSDateComponents *components = [self components:NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay fromDate:date];
+
+    return [self dateFromComponents:components];
+}
+
+- (BOOL)isDate:(NSDate *)date1 inSameDayAsDate:(NSDate *)date2
+{
+    NSDateComponents *components1 = [self components:NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay fromDate:date1];
+    NSDateComponents *components2 = [self components:NSCalendarUnitYear | NSCalendarUnitMonth | NSCalendarUnitDay fromDate:date2];
+    
+    return [components1 year] == [components2 year] &&
+        [components1 month] == [components2 month] &&
+        [components1 day] == [components2 day];
+}
+
+- (BOOL)isDate:(NSDate *)date1 equalToDate:(NSDate *)date2 toUnitGranularity:(NSCalendarUnit)unit
+{
+    return [self compareDate:date1 toDate:date2 toUnitGranularity:unit] == NSOrderedSame;
+}
+
+- (NSComparisonResult)compareDate:(NSDate *)date1 toDate:(NSDate *)date2 toUnitGranularity:(NSCalendarUnit)unit
+{
+    NSDateComponents *components1 = [self components:unit fromDate:date1];
+    NSDateComponents *components2 = [self components:unit fromDate:date2];
+
+    NSInteger value1 = [components1 valueForComponent:unit];
+    NSInteger value2 = [components2 valueForComponent:unit];
+    
+    if (value1 == value2) {
+        return NSOrderedSame;
+    } else if (value1 < value2) { 
+        return NSOrderedAscending;
+    }
+    return NSOrderedDescending;
+}
+
+- (BOOL)isDateInWeekend:(NSDate *)date
+{
+    NSInteger day = [self component:NSCalendarUnitWeekday fromDate:date];
+
+    return (day == 1 || day == 7);
+}
+
+- (BOOL)nextWeekendStartDate:(out NSDate * _Nullable *)datep interval:(out NSTimeInterval *)tip options:(NSCalendarOptions)options afterDate:(NSDate * _Nonnull)date
+{
+    NSInteger day = [self component:NSCalendarUnitWeekday fromDate:date];
+    NSInteger daysUntil;
+    BOOL back = (options & NSCalendarSearchBackwards) == NSCalendarSearchBackwards;
+    
+    if (back) {
+        // previous Monday
+        daysUntil = day == 1 ? -5 : 1 - day;
+    } else {
+        // next Saturday
+        daysUntil = 7 - (day % 7);
+    }
+    
+    NSDate *next = [self dateByAddingUnit:NSDayCalendarUnit value:daysUntil toDate:date options:0];
+    next = [self startOfDayForDate:next];
+    
+    if (back) {
+        // 1 second before monday starts
+        next = [self dateByAddingUnit:NSSecondCalendarUnit value:-1 toDate:next options:0];
+    }
+    
+    if (datep) {
+        *datep = next;
+    }
+    
+    if (tip) {
+        *tip = [next timeIntervalSinceDate:date];
+    }
+    
+    return YES;
+}
+
+- (BOOL)isDateInToday:(NSDate *)date
+{
+    return [self isDate:date inSameDayAsDate:[NSDate date]];
+}
+
+- (BOOL)isDateInTomorrow:(NSDate *)date
+{
+    NSDate *tomorrow = [self dateByAddingUnit:NSDayCalendarUnit value:1 toDate:[NSDate date] options:0];
+    return [self isDate:date inSameDayAsDate:tomorrow];
+}
+
 - (NSDate *) dateFromComponents: (NSDateComponents *) comps
 {
 #if GS_USE_ICU == 1
