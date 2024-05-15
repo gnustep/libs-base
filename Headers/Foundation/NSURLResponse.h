@@ -133,6 +133,11 @@ GS_EXPORT_CLASS
  */
 - (NSInteger) statusCode;
 
+/**
+ * 
+ */
+- (NSString *)valueForHTTPHeaderField:(NSString *)field;
+
 @end
 
 #if	defined(__cplusplus)
