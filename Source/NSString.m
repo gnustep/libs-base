@@ -6278,10 +6278,6 @@ static NSFileManager *fm = nil;
   NSRange	currentLocationRange;
   BOOL stop;
 
-  if (!block) {
-      return;
-  }
-    
   length = [self length];
   lineStart = lineEnd = contentsEnd = 0;
   stop = NO;
@@ -6301,7 +6297,7 @@ static NSFileManager *fm = nil;
     line = [self substringWithRange: lineRange];
     
     // Execute the block
-    block(line, &stop);
+    CALL_BLOCK(block, line, &stop);
     
     // Move to the next line
     lineStart = lineEnd;
