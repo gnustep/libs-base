@@ -6271,6 +6271,43 @@ static NSFileManager *fm = nil;
   return [self rangeOfString: string].location != NSNotFound;
 }
 
+- (void) enumerateLinesUsingBlock: (GSNSStringLineEnumerationBlock)block
+{
+  NSUInteger length;
+  NSUInteger lineStart, lineEnd, contentsEnd;
+  NSRange	currentLocationRange;
+  BOOL stop;
+
+  if (!block) {
+      return;
+  }
+    
+  length = [self length];
+  lineStart = lineEnd = contentsEnd = 0;
+  stop = NO;
+    
+  // Enumerate through the string line by line
+  while (lineStart < length && !stop) {
+    NSString *line;
+    NSRange lineRange;
+
+    currentLocationRange = NSMakeRange(lineStart, 0);
+    [self getLineStart:&lineStart
+                   end: &lineEnd
+           contentsEnd: &contentsEnd
+              forRange: currentLocationRange];
+      
+    lineRange = NSMakeRange(lineStart, contentsEnd - lineStart);
+    line = [self substringWithRange: lineRange];
+    
+    // Execute the block
+    block(line, &stop);
+    
+    // Move to the next line
+    lineStart = lineEnd;
+  }
+}
+
 - (void) enumerateSubstringsInRange: (NSRange)range 
                             options: (NSStringEnumerationOptions)opts 
                          usingBlock: (GSNSStringEnumerationBlock)block

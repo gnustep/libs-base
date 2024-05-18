@@ -466,6 +466,7 @@ enum {
 typedef NSUInteger NSStringEnumerationOptions;
 
 DEFINE_BLOCK_TYPE(GSNSStringEnumerationBlock, void, NSString* substring, NSRange substringRange, NSRange enclosingRange, BOOL* stop);
+DEFINE_BLOCK_TYPE(GSNSStringLineEnumerationBlock, void, NSString *line, BOOL *stop);
 #endif
 
 /**
@@ -1093,6 +1094,9 @@ GS_EXPORT_CLASS
 #endif	/* GS_API_NONE */
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
+
+- (void) enumerateLinesUsingBlock: (GSNSStringLineEnumerationBlock)block;
+
 - (void) enumerateSubstringsInRange: (NSRange)range 
                             options: (NSStringEnumerationOptions)opts 
                          usingBlock: (GSNSStringEnumerationBlock)block;

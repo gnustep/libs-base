@@ -1,3 +1,10 @@
+2024-05-18 Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSString.m:
+	* Headers/Foundation/NSString.h:
+	* Tests/base/NSString/enumerateLinesUsingBlock.m:
+	Implemented -[NSString enumerateLinesUsingBlock:].
+
 2024-04-29  Doug Simons <douglas.simons@keysight.com>
 
     * NSXMLNode.m:
