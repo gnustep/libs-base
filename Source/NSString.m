@@ -6292,7 +6292,7 @@ static NSFileManager *fm = nil;
     NSRange lineRange;
 
     currentLocationRange = NSMakeRange(lineStart, 0);
-    [self getLineStart:&lineStart
+    [self getLineStart: &lineStart
                    end: &lineEnd
            contentsEnd: &contentsEnd
               forRange: currentLocationRange];
