@@ -1330,22 +1330,23 @@ static NSMapTable *absolutes = 0;
         * Try to get timezone from windows system call.
         */
         {
-            TIME_ZONE_INFORMATION tz;
+            DYNAMIC_TIME_ZONE_INFORMATION tz;
             DWORD dst;
             wchar_t *tzName;
 
             // Get time zone name for US locale as expected by ICU method below
             LANGID origLangID = GetThreadUILanguage();
             SetThreadUILanguage(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US));
-            dst = GetTimeZoneInformation(&tz);
+            dst = GetDynamicTimeZoneInformation(&tz);
             SetThreadUILanguage(origLangID);
 
-            // Only tz.StandardName time zone conversions are supported, as
-            // the Zone-Tzid table lacks all daylight time conversions:
-            // e.g. 'W. Europe Daylight Time' <-> 'Europe/Berlin' is not listed.
-            //
-            // See: https://unicode-org.github.io/cldr-staging/charts/latest/supplemental/zone_tzid.html
-            tzName = tz.StandardName;
+            // The key name is the actual "canonical" windows name for the timezone,
+            // because tz.StandardName and tz.DaylightName are both localized.
+            // And even without localization, StandardName often differs from the key name.
+            // Based on tables provided by ICU, it seems that it always uses the key name,
+            // NOT the standard name to perform its conversions.
+            // See https://gist.github.com/brooke-tilley/7203b758ea722f8f72fa1508e1d18ed9 for proof.
+            tzName = tz.TimeZoneKeyName;
 
             zoneSource = @"function: 'GetTimeZoneInformation()'";
 
