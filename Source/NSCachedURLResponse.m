@@ -1,4 +1,4 @@
-/* Implementation for NSCachedURLResponse for GNUstep
+/** Implementation for NSCachedURLResponse for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>

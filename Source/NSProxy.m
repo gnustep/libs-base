@@ -34,6 +34,7 @@
 #import "Foundation/NSHashTable.h"
 #import "Foundation/NSDistantObject.h"
 #import "Foundation/NSPortCoder.h"
+#include <objc/message.h>
 
 // Get objc_delete_weak_refs(), if it is present in the runtime.
 #ifdef __GNUSTEP_RUNTIME__

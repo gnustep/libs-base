@@ -56,22 +56,30 @@ int main()
   url = [NSURL URLWithString:@"this isn't a URL"];
   PASS(url == nil, "URL with 'this isn't a URL' returns nil");
 
-  url = [NSURL URLWithString: @"http://example.com/silly-file-name"];
+  url = [NSURL URLWithString: @"https://httpbin.org/silly-file-name"];
   data = [url resourceDataUsingCache: NO];
   num = [url propertyForKey: NSHTTPPropertyStatusCodeKey];
+
+#if defined(_WIN64) && defined(_MSC_VER)
+  testHopeful = YES;
+#endif
   PASS_EQUAL(num, [NSNumber numberWithInt: 404],
-    "Status of load is 404 for example.com/silly-file-name");
+    "Status of load is 404 for httpbin.org/silly-file-name");
+#if defined(_WIN64) && defined(_MSC_VER)
+  testHopeful = YES;
+#endif
+
   str = [url scheme];
-  PASS([str isEqual: @"http"],
-       "Scheme of http://example.com/silly-file-name is http");
+  PASS([str isEqual: @"https"],
+       "Scheme of https://httpbin.org/silly-file-name is https");
   str = [url host];
-  PASS([str isEqual: @"example.com"],
-    "Host of http://example.com/silly-file-name is example.com");
+  PASS([str isEqual: @"httpbin.org"],
+    "Host of https://httpbin.org/silly-file-name is httpbin.org");
   str = [url path];
   PASS([str isEqual: @"/silly-file-name"],
-    "Path of http://example.com/silly-file-name is /silly-file-name");
-  PASS([[url resourceSpecifier] isEqual: @"//example.com/silly-file-name"],
-    "resourceSpecifier of http://example.com/silly-file-name is //example.com/silly-file-name");
+    "Path of https://httpbin.org/silly-file-name is /silly-file-name");
+  PASS([[url resourceSpecifier] isEqual: @"//httpbin.org/silly-file-name"],
+    "resourceSpecifier of https://httpbin.org/silly-file-name is //httpbin.org/silly-file-name");
 
 
   url = [NSURL URLWithString: @"http://example.com/silly-file-path/"];
@@ -105,6 +113,16 @@ int main()
     "File URL C:\\WINDOWS is file:///C:%%5CWINDOWS/");
   PASS_EQUAL([url resourceSpecifier], @"/C:%5CWINDOWS/",
     "resourceSpecifier of C:\\WINDOWS is /C:%5CWINDOWS/");
+
+  // UNC path
+  url = [NSURL fileURLWithPath: @"\\\\SERVER\\SHARE\\"];
+  str = [url path];
+  PASS_EQUAL(str, @"\\\\SERVER\\SHARE\\",
+    "Path of file URL \\\\SERVER\\SHARE\\ is \\\\SERVER\\SHARE\\");
+  PASS_EQUAL([url description], @"file:///%5C%5CSERVER%5CSHARE%5C",
+    "File URL \\\\SERVER\\SHARE\\ is file:///%5C%5CSERVER%5CSHARE%5C");
+  PASS_EQUAL([url resourceSpecifier], @"/%5C%5CSERVER%5CSHARE%5C",
+    "resourceSpecifier of \\\\SERVER\\SHARE\\ is /%5C%5CSERVER%5CSHARE%5C");
 #else
   url = [NSURL fileURLWithPath: @"/usr"];
   str = [url path];

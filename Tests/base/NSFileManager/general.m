@@ -53,18 +53,20 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSFileManager *mgr = [NSFileManager defaultManager];
-  NSString *dir = @"NSFileManagerTestDir"; 
-  MyHandler *handler = [MyHandler new];
-  NSDictionary *attr;
-  NSString *dirInDir;
-  NSString *str1,*str2;
-  NSString *tmp;
-  NSError *err;
-  NSDictionary *errInfo;
-  BOOL exists;
-  BOOL isDir;
+  NSAutoreleasePool   	*arp = [NSAutoreleasePool new];
+  NSFileManager		*mgr = [NSFileManager defaultManager];
+  NSString 		*dir = @"NSFileManagerTestDir"; 
+  MyHandler 		*handler = [MyHandler new];
+  NSDictionary 		*attr;
+  NSString 		*dirInDir;
+  NSString 		*str1;
+  NSString 		*str2;
+  NSMutableString	*mstr;
+  NSString 		*tmp;
+  NSError 		*err;
+  NSDictionary 		*errInfo;
+  BOOL 			exists;
+  BOOL 			isDir;
 
   dirInDir = [dir stringByAppendingPathComponent: @"WithinDirectory"];
 
@@ -127,6 +129,19 @@ int main()
          "NSFileManager can get current dir");
   }
   
+  PASS([mgr createFileAtPath: @"NSFMFile" 
+                    contents: [NSData data]
+		  attributes: nil],
+       "NSFileManager creates an empty file")
+  PASS([mgr fileExistsAtPath: @"NSFMFile"],"-fileExistsAtPath: agrees")
+  str1 = [NSString stringWithContentsOfFile: @"NSFMFile"];
+  PASS_EQUAL(str1, @"", "empty file produces empty string")
+  mstr = [NSMutableString stringWithContentsOfFile: @"NSFMFile"];
+  PASS([mstr isKindOfClass: [NSMutableString class]] && [mstr isEqual: @""],
+    "empty file produces empty mutable string")
+  PASS([mgr removeFileAtPath: @"NSFMFile" handler: handler], 
+    "NSFileManager removes an empty file")
+
   str1 = @"A string";
   PASS([mgr createFileAtPath: @"NSFMFile" 
                     contents: [str1 dataUsingEncoding: 1]
@@ -204,10 +219,14 @@ int main()
     PASS(ok, "can rewrite data file")
     if (NO == ok) NSLog(@"Problem: %@ with %@", err, dat1);
     na = [mgr fileAttributesAtPath: @"NSFMFile" traverseLink: NO];
-NSLog(@"%@\n%@", oa, na);
+#if !defined(_WIN32)
+    /* Atomic copy to an existing file on windows retains the file
+     * creation date, but on unix a rename produces a new timestamp.
+     */
     ot = [[oa fileCreationDate] timeIntervalSinceReferenceDate];
     nt = [[na fileCreationDate] timeIntervalSinceReferenceDate];
     PASS(!EQ(ot, nt), "rewritten file creation date changed")
+#endif
     ot = [[oa fileModificationDate] timeIntervalSinceReferenceDate];
     nt = [[na fileModificationDate] timeIntervalSinceReferenceDate];
     PASS(!EQ(ot, nt), "rewritten file modification date changed")
@@ -272,6 +291,28 @@ NSLog(@"%@\n%@", oa, na);
   PASS([mgr createDirectoryAtPath: @"subdir" attributes: nil],
        "NSFileManager can create a subdirectory");
   
+  {
+    NSURL			*u;
+    NSDirectoryEnumerator	*e;
+    unsigned			found = 0;
+
+    e = [mgr enumeratorAtURL: [NSURL fileURLWithPath: @"."]
+  includingPropertiesForKeys: nil
+		     options: 0
+		errorHandler: nil]; 
+
+    while (nil != (u = [e nextObject]))
+      {
+	NSString	*c = [[u path] lastPathComponent];
+
+	if ([c isEqualToString: @"NSFMCopy"])
+	  found++;
+	if ([c isEqualToString: @"subdir"])
+	  found++;
+      }
+    PASS(2 == found, "URL enumerator finds expected file and subdirectory")
+  }
+
   PASS([mgr changeCurrentDirectoryPath: @"subdir"], 
        "NSFileManager can move into subdir");
 
@@ -334,8 +375,6 @@ NSLog(@"%@\n%@", oa, na);
       dir = [dir stringByStandardizingPath];
       PASS([mgr removeFileAtPath: dir handler: handler], "removed directory");
       PASS(![mgr fileExistsAtPath: dir], "directory no longer exists");
-GSPrintf(stdout, @"%@\n", dir);
-GSPrintf(stderr, @"%@\n", dir);
     }
   
   err = nil;

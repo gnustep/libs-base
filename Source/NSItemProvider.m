@@ -22,20 +22,22 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSItemProvider.h>
-#include <Foundation/NSString.h>
+#import "Foundation/NSItemProvider.h"
+#import "Foundation/NSString.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
 
 @implementation NSItemProvider
 
 - (instancetype) init
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) registerDataRepresentationForTypeIdentifier: (NSString *)typeIdentifier
                                           visibility: (NSItemProviderRepresentationVisibility)visibility
                                          loadHandler: (GSProgressHandler)loadHandler
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) registerFileRepresentationForTypeIdentifier: (NSString *)typeIdentifier
@@ -43,16 +45,17 @@
                                           visibility: (NSItemProviderRepresentationVisibility)visibility
                                          loadHandler: (GSProgressURLBOOLHandler)loadHandler
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSArray *) registeredTypeIdentifiers
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (NSArray *) registeredTypeIdentifiersWithFileOptions: (NSItemProviderFileOptions)fileOptions
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (BOOL) hasItemConformingToTypeIdentifier: (NSString *)typeIdentifier
@@ -69,43 +72,46 @@
 - (NSProgress *) loadDataRepresentationForTypeIdentifier: (NSString *)typeIdentifier
                                        completionHandler: (GSProviderCompletionHandler)completionHandler
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (NSProgress *) loadFileRepresentationForTypeIdentifier: (NSString *)typeIdentifier
                                        completionHandler: (GSProviderURLCompletionHandler)completionHandler
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (NSProgress *) loadInPlaceFileRepresentationForTypeIdentifier: (NSString *)typeIdentifier
                                               completionHandler: (GSProviderURLBOOLCompletionHandler)completionHandler
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (NSString *) suggestedName
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) setSuggestedName: (NSString *)suggestedName
 {
+  [self notImplemented: _cmd];
 }
 
 - (instancetype) initWithObject: (id<NSItemProviderWriting>)object
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) registerObject: (id<NSItemProviderWriting>)object visibility: (NSItemProviderRepresentationVisibility)visibility
 {
+  [self notImplemented: _cmd];
 }
 
 - (void) registerObjectOfClass: (Class<NSItemProviderWriting>)aClass  // NSItemProviderWriting conforming class...
                     visibility: (NSItemProviderRepresentationVisibility)visibility
                    loadHandler: (GSItemProviderWritingHandler)loadHandler
 {
+  [self notImplemented: _cmd];
 }
 
 - (BOOL) canLoadObjectOfClass: (Class<NSItemProviderReading>)aClass
@@ -116,32 +122,34 @@
 - (NSProgress *) loadObjectOfClass: (Class<NSItemProviderReading>)aClass // NSItemProviderReading conforming class...
                  completionHandler: (GSItemProviderReadingHandler)completionHandler
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (instancetype) initWithItem: (id<NSSecureCoding>)item typeIdentifier: (NSString *)typeIdentifier // designated init
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (instancetype) initWithContentsOfURL: (NSURL *)fileURL
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 
 - (void) registerItemForTypeIdentifier: (NSString *)typeIdentifier loadHandler: (NSItemProviderLoadHandler)loadHandler
 {
+  [self notImplemented: _cmd];
 }
 
 - (void)loadItemForTypeIdentifier: (NSString *)typeIdentifier
                           options: (NSDictionary *)options
                 completionHandler: (NSItemProviderCompletionHandler)completionHandler
 {
+  [self notImplemented: _cmd];
 }
 
 - (instancetype) copyWithZone: (NSZone*)zone
 {
-  return nil;
+  return [self notImplemented: _cmd];
 }
 @end
 
@@ -156,11 +164,13 @@
 
 - (void) setPreviewImageHandler: (NSItemProviderLoadHandler) previewImageHandler
 {
+  [self notImplemented: _cmd];
 }
   
 - (void) loadPreviewImageWithOptions: (NSDictionary *)options
                    completionHandler: (NSItemProviderCompletionHandler)completionHandler
 {
+  [self notImplemented: _cmd];
 }
 
 @end

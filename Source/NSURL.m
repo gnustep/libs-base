@@ -28,7 +28,6 @@
    Boston, MA 02110 USA.
 
    <title>NSURL class reference</title>
-   $Date$ $Revision$
 */
 
 /*
@@ -1552,24 +1551,24 @@ static NSUInteger	urlAlign;
     }
 
 #if	defined(_WIN32)
-  /* On windows a file URL path may be of the form C:\xxx (ie we should
-   * not insert the leading slash).
+  /* On Windows a file URL path may be of the form C:\xxx or \\xxx,
+   * and in both cases we should not insert the leading slash.
    * Also the vertical bar symbol may have been used instead of the
    * colon, so we need to convert that.
    */
   if (myData->isFile == YES)
     {
-      if (ptr[1] && isalpha(ptr[1]))
-	{
-	  if (ptr[2] == ':' || ptr[2] == '|')
-	    {
-	      if (ptr[3] == '\0' || ptr[3] == '/' || ptr[3] == '\\')
-		{
-		  ptr[2] = ':';
-		  ptr++;
-		}
-	    }
-	}
+      if ((ptr[1] && isalpha(ptr[1]))
+          && (ptr[2] == ':' || ptr[2] == '|')
+          && (ptr[3] == '\0' || ptr[3] == '/' || ptr[3] == '\\'))
+        {
+          ptr[2] = ':';
+          ptr++; // remove leading slash
+        }
+      else if (ptr[1] == '\\' && ptr[2] == '\\')
+        {
+          ptr++; // remove leading slash
+        }
     }
 #endif
   return ptr;

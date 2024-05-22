@@ -1,4 +1,4 @@
-/* Interface for NSURLRequest for GNUstep
+/**Interface for NSURLRequest for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <frm@gnu.org>
@@ -321,8 +321,9 @@ GS_EXPORT_CLASS
 - (void) setHTTPShouldHandleCookies: (BOOL)should;
 
 /**
- * Sets the value for the sapecified header field, replacing any
- * previously set value.
+ * Sets the value for the specified header field, replacing any
+ * previously set value. Setting a nil value deletes a previously set
+ * header field.
  */
 - (void) setValue: (NSString *)value forHTTPHeaderField: (NSString *)field;
 

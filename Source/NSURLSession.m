@@ -1,3 +1,33 @@
+/**
+   NSURLSession.m
+
+   Copyright (C) 2017-2023 Free Software Foundation, Inc.
+
+   Written by: Daniel Ferreira <dtf@stanford.edu>
+   Date: November 2017
+   Author: Richard Frith-Macdonald <richard@brainstorm.co.uk>
+
+   This file is part of GNUStep-base
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   If you are interested in a warranty or support for this source code,
+   contact Scott Christley <scottc@net-community.com> for more information.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110 USA.
+*/
+
 #import "GSURLPrivate.h"
 #import <curl/curl.h>
 
@@ -167,12 +197,14 @@ static unsigned nextSessionIdentifier()
 #endif
       curl_global_init(CURL_GLOBAL_SSL);
       sprintf(label, "NSURLSession %u", nextSessionIdentifier());
-      targetQueue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+      targetQueue
+	= dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
 #if HAVE_DISPATCH_QUEUE_CREATE_WITH_TARGET
-      _workQueue = dispatch_queue_create_with_target(label, DISPATCH_QUEUE_SERIAL, targetQueue);
+      _workQueue = dispatch_queue_create_with_target(label,
+	DISPATCH_QUEUE_SERIAL, targetQueue);
 #else
       _workQueue = dispatch_queue_create(label,	DISPATCH_QUEUE_SERIAL);
-      dispatch_set_target_queue(_queue, targetQueue);
+      dispatch_set_target_queue(_workQueue, targetQueue);
 #endif
       if (nil != queue)
         {
@@ -334,7 +366,7 @@ static unsigned nextSessionIdentifier()
 }
 
 - (NSURLSessionUploadTask*) uploadTaskWithRequest: (NSURLRequest*)request
-                                         fromData: (NSData*)bodyData;
+                                         fromData: (NSData*)bodyData
 {
   return [self notImplemented: _cmd];
 }
@@ -553,12 +585,16 @@ static unsigned nextSessionIdentifier()
   NSURLSession                  *session;
   NSOperationQueue              *delegateQueue;
   id<NSURLSessionDelegate>      delegate;
+  void (^dataCompletionHandler)(NSData *data, NSURLResponse *response, NSError *error);
+  void (^downloadCompletionHandler)(NSURL *location, NSURLResponse *response, NSError *error);
 
   session = [task session];
   NSAssert(nil != session, @"Missing session");
 
   delegateQueue = [session delegateQueue];
   delegate = [session delegate];
+  dataCompletionHandler = [task dataCompletionHandler];
+  downloadCompletionHandler = [task downloadCompletionHandler];
 
   if (nil != delegate)
     {
@@ -579,6 +615,44 @@ static unsigned nextSessionIdentifier()
 
           [task setState: NSURLSessionTaskStateCompleted];
           dispatch_async([session workQueue],  
+            ^{
+              [session removeTask: task];
+            });
+        }];
+    }
+  else if (nil != dataCompletionHandler)
+    {
+      [delegateQueue addOperationWithBlock:
+        ^{
+          if (NSURLSessionTaskStateCompleted == [task state])
+            {
+              return;
+            }
+
+          dataCompletionHandler(nil, nil, error);
+
+          [task setState: NSURLSessionTaskStateCompleted];
+
+          dispatch_async([session workQueue],
+            ^{
+              [session removeTask: task];
+            });
+        }];
+    }
+  else if (nil != downloadCompletionHandler)
+    {
+          [delegateQueue addOperationWithBlock:
+        ^{
+          if (NSURLSessionTaskStateCompleted == [task state])
+            {
+              return;
+            }
+
+          downloadCompletionHandler(nil, nil, error);
+
+          [task setState: NSURLSessionTaskStateCompleted];
+
+          dispatch_async([session workQueue],
             ^{
               [session removeTask: task];
             });
@@ -654,6 +728,7 @@ static unsigned nextSessionIdentifier()
 {
   NSURLSessionTask          *task = [protocol task];
   NSURLSession              *session;
+  id<NSURLSessionDelegate>  delegate;
 
   NSAssert(nil != task, @"Missing task");
 
@@ -682,7 +757,7 @@ static unsigned nextSessionIdentifier()
         }
     }
 
-  id<NSURLSessionDelegate>  delegate = [session delegate];
+  delegate = [session delegate];
   if (nil != delegate)
     {
       [[session delegateQueue] addOperationWithBlock: 
@@ -803,9 +878,7 @@ static unsigned nextSessionIdentifier()
       RELEASE(cacheable);
     }
 
-  if (nil != dataCompletionHandler
-    && ([task isKindOfClass: [NSURLSessionDataTask class]]
-      || [task isKindOfClass: [NSURLSessionUploadTask class]]))
+  if (nil != dataCompletionHandler)
     {
       NSData *data = [NSURLProtocol propertyForKey: @"tempData"
                                          inRequest: [protocol request]];
@@ -827,8 +900,7 @@ static unsigned nextSessionIdentifier()
             });
         }];
     }
-  else if (nil != downloadCompletionHandler
-    && [task isKindOfClass: [NSURLSessionDownloadTask class]])
+  else if (nil != downloadCompletionHandler)
     {
       NSURL *fileURL = [NSURLProtocol propertyForKey: @"tempFileURL"
                                            inRequest: [protocol request]];
@@ -978,7 +1050,7 @@ static unsigned nextSessionIdentifier()
       e = [[[session configuration] protocolClasses] objectEnumerator];
       while (nil != (protocolClass = [e nextObject]))
         {
-          if ([protocolClass canInitWithRequest: request])
+          if ([protocolClass canInitWithTask: self])
             {
               _protocolClass = protocolClass;
               break;

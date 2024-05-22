@@ -198,6 +198,9 @@
 /* Define to 1 if you have the <callback.h> header file. */
 #undef HAVE_CALLBACK_H
 
+/* Define to 1 if you have the `closefrom' function. */
+#undef HAVE_CLOSEFROM
+
 /* Define to 1 if you have the `ctime' function. */
 #undef HAVE_CTIME
 
@@ -391,6 +394,9 @@
 /* Define to 1 if you have the `rt' library (-lrt). */
 #undef HAVE_LIBRT
 
+/* Define to 1 if you have the `sframe' library (-lsframe). */
+#undef HAVE_LIBSFRAME
+
 /* Define to 1 if you have the `socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
 
@@ -408,6 +414,9 @@
 
 /* Define to 1 if you have the `z' library (-lz). */
 #undef HAVE_LIBZ
+
+/* Define to 1 if you have the `zstd' library (-lzstd). */
+#undef HAVE_LIBZSTD
 
 /* Define to 1 if you have the <limits.h> header file. */
 #undef HAVE_LIMITS_H
@@ -601,6 +610,9 @@
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
 
+/* if struct sockaddr_storage is defined */
+#undef HAVE_STRUCT_SOCKADDR_STORAGE
+
 /* Define to 1 if `st_birthtimespec' is a member of `struct stat64'. */
 #undef HAVE_STRUCT_STAT64_ST_BIRTHTIMESPEC
 
@@ -738,6 +750,9 @@
 /* Define if libobjc has the _objc_unexpected_exception callback */
 #undef HAVE_UNEXPECTED
 
+/* Define to 1 if you have the <unicode/ubrk.h> header file. */
+#undef HAVE_UNICODE_UBRK_H
+
 /* Define to 1 if you have the <unicode/ucal.h> header file. */
 #undef HAVE_UNICODE_UCAL_H
 
@@ -779,6 +794,9 @@
 
 /* Define to 1 if you have the <unicode/utext.h> header file. */
 #undef HAVE_UNICODE_UTEXT_H
+
+/* Define to 1 if you have the <unicode/utypes.h> header file. */
+#undef HAVE_UNICODE_UTYPES_H
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
@@ -868,6 +886,10 @@
 
 /* Define as the link to exe of process in /proc filesystem. */
 #undef PROCFS_EXE_LINK
+
+/* Description: Define getname function for pthread with two args (generic
+   style) */
+#undef PTHREAD_GETNAME
 
 /* Description: Define setname function for pthread with three args */
 #undef PTHREAD_SETNAME

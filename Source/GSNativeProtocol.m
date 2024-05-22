@@ -104,13 +104,15 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
 
 - (void) getBodyWithCompletion: (void (^)(GSURLSessionTaskBody *body))completion
 {
+  GSURLSessionTaskBody	*body;
+
   if (nil != _knownBody) 
     {
       completion(_knownBody);
       return;
     };
 
-  GSURLSessionTaskBody *body = AUTORELEASE([[GSURLSessionTaskBody alloc] init]);
+  body = AUTORELEASE([[GSURLSessionTaskBody alloc] init]);
   completion(body);
 }
 
@@ -197,6 +199,11 @@ static BOOL isEasyHandleAddedToMultiHandle(GSNativeProtocolInternalState state)
 @end
 
 @implementation GSNativeProtocol
+
++ (BOOL) canInitWithRequest: (NSURLRequest*)request
+{
+  return NO;
+}
 
 - (instancetype) initWithTask: (NSURLSessionTask*)_task 
                cachedResponse: (NSCachedURLResponse*)_cachedResponse 

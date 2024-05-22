@@ -72,6 +72,196 @@
   #define	OPTLEN	socklen_t
 #endif // _WIN32
 
+// Maximum data in single I/O operation
+#define	NETBUF_SIZE	(1024 * 16)
+#define	READ_SIZE	NETBUF_SIZE*10
+
+@implementation GSTcpTune
+
+static int      tuneDelay = 0;
+static int      tuneLinger = -1;
+static int      tuneReceive = 0;
+static BOOL     tuneSendAll = NO;
+static int	tuneRcvBuf = 0;
+static int	tuneSndBuf = 0;
+
++ (void) defaultsChanged: (NSNotification*)n
+{
+  NSUserDefaults        *defs = (NSUserDefaults*)[n object];
+  NSString              *str;
+
+  if (nil == defs)
+    {
+      defs = [NSUserDefaults standardUserDefaults];
+    }
+  str = [defs stringForKey: @"GSTcpLinger"];
+  if (nil == str)
+    {
+      tuneLinger = -1;
+    }
+  else
+    {
+      tuneLinger = [str intValue];
+    }
+  tuneRcvBuf = (int)[defs integerForKey: @"GSTcpRcvBuf"];
+  tuneSndBuf = (int)[defs integerForKey: @"GSTcpSndBuf"];
+  tuneReceive = (int)[defs integerForKey: @"GSTcpReceive"];
+  tuneSendAll = [defs boolForKey: @"GSTcpSendAll"];
+  tuneDelay = [defs boolForKey: @"GSTcpDelay"];
+}
+
++ (void) initialize
+{
+  static BOOL   beenHere = NO;
+
+  if (NO == beenHere)
+    {
+      NSNotificationCenter      *nc;
+      NSUserDefaults	        *defs;
+
+      beenHere = YES;
+      nc = [NSNotificationCenter defaultCenter];
+      defs = [NSUserDefaults standardUserDefaults];
+      [nc addObserver: self
+             selector: @selector(defaultsChanged:)
+                 name: NSUserDefaultsDidChangeNotification
+               object: defs];
+      [self defaultsChanged: nil];
+    }
+}
+
++ (int) delay
+{
+  return tuneDelay;             // Milliseconds to delay close
+}
+
++ (int) recvSize
+{
+  if (tuneReceive > 0)
+    {
+      return tuneReceive;       // Return receive buffer size
+    }
+  if (tuneRcvBuf > 0)
+    {
+      return tuneRcvBuf;        // Return socket receive buffer size
+    }
+  return READ_SIZE;             // Return hard-coded default
+}
+
++ (int) sendSize: (int)bytesToSend
+{
+  if (YES == tuneSendAll)
+    {
+      return bytesToSend;       // Try to send all in one go
+    }
+  if (tuneSndBuf > 0 && tuneSndBuf <= bytesToSend)
+    {
+      return tuneSndBuf;          // Limit to socket send buffer
+    }
+  if (NETBUF_SIZE <= bytesToSend)
+    {
+      return NETBUF_SIZE;       // Limit to hard coded default
+    }
+  return bytesToSend;
+}
+
++ (void) tune: (void*)handle with: (id)opts
+{
+  int   desc = (int)(intptr_t)handle;
+  int   value;
+  id	o;
+
+#ifndef	BROKEN_SO_REUSEADDR
+  /*
+   * Under decent systems, SO_REUSEADDR means that the port can be reused
+   * immediately that this process exits.  Under some it means
+   * that multiple processes can serve the same port simultaneously.
+   * We don't want that broken behavior!
+   */
+  if (setsockopt(desc, SOL_SOCKET, SO_REUSEADDR, (char*)&value, sizeof(value))
+    < 0)
+    {
+      NSDebugMLLog(@"GSTcpTune", @"setsockopt reuseaddr failed for %d", desc);
+    }
+#endif
+
+  /*
+   * Enable tcp-level tracking of whether connection is alive.
+   */
+  value = 1;
+  if (setsockopt(desc, SOL_SOCKET, SO_KEEPALIVE, (char *)&value, sizeof(value))
+    < 0)
+    {
+      NSDebugMLLog(@"GSTcpTune", @"setsockopt keepalive failed for %d", desc);
+    }
+
+
+#define	OPTS(X) ([opts isKindOfClass: [NSStream class]] \
+  ? [(NSStream*)opts propertyForKey: X] \
+  : [(NSDictionary*)opts objectForKey: X])
+
+  o = OPTS(@"GSTcpLinger");
+  value = (o ? [o intValue] : tuneLinger);
+  if (value >= 0)
+    {
+      struct linger     l;
+
+      l.l_onoff = 1;
+      l.l_linger = tuneLinger;
+      if (setsockopt(desc, SOL_SOCKET, SO_LINGER, (char *)&l, sizeof(l)) < 0)
+        {
+          NSLog(@"Failed to set GSTcpLinger for %d to %d: %@",
+            desc, value, [NSError _last]);
+        }
+      else
+        {
+	  NSDebugMLLog(@"GSTcpTune", @"Set GSTcpLinger for %d to %d",
+	    desc, value);
+        }
+    }
+  
+  o = OPTS(@"GSTcpRcvBuf");
+  value = (o ? [o intValue] : tuneRcvBuf);
+  if (value > 0)
+    {
+      /* Set the receive buffer for the socket.
+       */
+      if (setsockopt(desc, SOL_SOCKET, SO_RCVBUF,
+        (char *)&value, sizeof(value)) < 0)
+        {
+          NSLog(@"Failed to set GSTcpRcvBuf for %d to %d: %@",
+	    desc, value, [NSError _last]);
+        }
+      else
+        {
+	  NSDebugMLLog(@"GSTcpTune", @"Set GSTcpRcvBuf for %d to %d",
+	    desc, value);
+        }
+    }
+
+  o = OPTS(@"GSTcpSndBuf");
+  value = (o ? [o intValue] : tuneSndBuf);
+  if (value > 0)
+    {
+      /* Set the send buffer for the socket.
+       */
+      if (setsockopt(desc, SOL_SOCKET, SO_SNDBUF,
+        (char *)&value, sizeof(value)) < 0)
+        {
+          NSLog(@"Failed to set GSTcpSndBuf for %d to %d: %@",
+	    desc, value, [NSError _last]);
+        }
+      else
+        {
+	  NSDebugMLLog(@"GSTcpTune", @"Set GSTcpSndBuf for %d to %d",
+	    desc, value);
+        }
+    }
+}
+
+@end
+
+
 unsigned
 GSPrivateSockaddrLength(struct sockaddr *addr)
 {
@@ -450,20 +640,34 @@ GSTLSPush(gnutls_transport_ptr_t handle, const void *buffer, size_t len)
       if ([[tls ostream] streamStatus] == NSStreamStatusError)
         {
           e = [[[tls ostream] streamError] code];
+	  NSDebugFLLog(@"NSStream",
+	    @"GSTLSPush write for %@ error %d (%s)",
+	    [tls ostream], e, strerror(e));
         }
       else
         {
           e = EAGAIN;	// Tell GNUTLS this would block.
+	  NSDebugFLLog(@"NSStream",
+	    @"GSTLSPush write for %@ of %lu would block",
+	    [tls ostream], (unsigned long)len);
         }
 #if	HAVE_GNUTLS_TRANSPORT_SET_ERRNO
-      gnutls_transport_set_errno (tls->session->session, e);
+      gnutls_transport_set_errno(tls->session->session, e);
 #else
       errno = e;	// Not thread-safe
 #endif
-
+      return -1;
     }
-  NSDebugFLLog(@"NSStream", @"GSTLSPush write %p of %u on %u",
-    [tls ostream], (unsigned)result, (unsigned)len);
+  if (len != result)
+    {
+      NSDebugFLLog(@"NSStream", @"GSTLSPush write for %@ of %ld (tried %lu)",
+	[tls ostream], (long)result, (unsigned long)len);
+    }
+  else
+    {
+      NSDebugFLLog(@"NSStream", @"GSTLSPush write for %@ of %ld success",
+	[tls ostream], (long)result);
+    }
   return result;
 }
 
@@ -754,6 +958,7 @@ static NSArray  *keys = nil;
             {
               [istream _resetEvents: NSStreamEventOpenCompleted];
               [istream _sendEvent: NSStreamEventOpenCompleted];
+	      [istream _schedule];
             }
           else
             {
@@ -766,6 +971,7 @@ static NSArray  *keys = nil;
                 | NSStreamEventHasSpaceAvailable];
               [ostream _sendEvent: NSStreamEventOpenCompleted];
               [ostream _sendEvent: NSStreamEventHasSpaceAvailable];
+	      [ostream _schedule];
             }
           else
             {
@@ -1500,9 +1706,9 @@ socketError(int result)
 }
 
 static inline BOOL
-socketWouldBlock()
+socketWouldBlock(long eno)
 {
-  return GSWOULDBLOCK ? YES : NO;
+  return GSWOULDBLOCK(eno) ? YES : NO;
 }
 
 
@@ -1544,8 +1750,9 @@ setNonBlocking(SOCKET fd)
 
 - (NSString*) description
 {
-  return [NSString stringWithFormat: @"%@ sock %lld loopID %p",
-    [super description], (long long)_sock, _loopID];
+  return [NSString stringWithFormat: @"<%s: %p sock %lld loopID %p mask %@>",
+    class_getName(object_getClass(self)), self,
+    (long long)_sock, _loopID, [self _stringFromEvents]];
 }
 
 - (id) init
@@ -1636,7 +1843,7 @@ setNonBlocking(SOCKET fd)
        * and/or output stream in case of an error during TLS handshake.
        */
       RETAIN(self);
-      [super _sendEvent: event delegate: _handler];
+      [self _sendEvent: event delegate: _handler];
       RELEASE(self);
     }
   else
@@ -1803,6 +2010,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) open
 {
+  NSDebugMLLog(@"NSStream", @"%@", self);
   // could be opened because of sibling
   if ([self _isOpened])
     return;
@@ -1839,6 +2047,7 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
+	      [GSTcpTune tune: (void*)(intptr_t)s with: self];
               [self _setSock: s];
               [_sibling _setSock: s];
             }
@@ -1853,7 +2062,9 @@ setNonBlocking(SOCKET fd)
         GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
-          if (socketWouldBlock())
+	  long	eno = GSNETERROR;
+
+          if (socketWouldBlock(eno))
             {
               /* Need to set the status first, so that the run loop can tell
                * it needs to add the stream as waiting on writable, as an
@@ -1863,10 +2074,12 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
+	      NSError	*e = [NSError _systemError: eno];
+
               /* Had an immediate connect error.
                */
-              [self _recordError];
-              [_sibling _recordError];
+              [self _recordError: e];
+              [_sibling _recordError: e];
             }
 #if	defined(_WIN32)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
@@ -1910,6 +2123,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) close
 {
+  NSDebugMLLog(@"NSStream", @"%@", self);
   /* If the socket descriptor is still present, we need to close it to
    * avoid a leak no matter what the nominal state of the stream is.
    * The descriptor is created before the stream is formally opened.
@@ -1972,6 +2186,8 @@ setNonBlocking(SOCKET fd)
 
 - (NSInteger) read: (uint8_t *)buffer maxLength: (NSUInteger)len
 {
+  NSInteger	result;
+
   if (buffer == 0)
     {
       [NSException raise: NSInvalidArgumentException
@@ -1984,9 +2200,12 @@ setNonBlocking(SOCKET fd)
     }
 
   if (_handler == nil)
-    return [self _read: buffer maxLength: len];
+    result = [self _read: buffer maxLength: len];
   else
-    return [_handler read: buffer maxLength: len];
+    result = [_handler read: buffer maxLength: len];
+  NSDebugMLLog(@"NSStream", @"%@ tried %lld result %lld",
+    self, (long long)len, (long long) result);
+  return result;
 }
 
 - (NSInteger) _read: (uint8_t *)buffer maxLength: (NSUInteger)len
@@ -2013,6 +2232,8 @@ setNonBlocking(SOCKET fd)
     }
   if (socketError(readLen))
     {
+      long	eno = GSNETERROR;
+
       if (_closing == YES)
         {
           /* If a read fails on a closing socket,
@@ -2026,7 +2247,15 @@ setNonBlocking(SOCKET fd)
         }
       else
         {
-          if (socketWouldBlock())
+#if	defined(_WIN32)
+	  if (WSAECONNABORTED == eno)
+	    {
+	      readLen = 0;	// Read end of file
+	      readLen = -1;
+	    }
+	  else
+#endif
+          if (socketWouldBlock(eno))
             {
               /* We need an event from the operating system
                * to tell us we can start reading again.
@@ -2035,9 +2264,11 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
-              [self _recordError];
+              NSError	*e = [NSError _systemError: eno];
+
+              [self _recordError: e];
+	      readLen = -1;
             }
-          readLen = -1;
         }
     }
   else if (readLen == 0)
@@ -2077,6 +2308,10 @@ setNonBlocking(SOCKET fd)
       NSAssert([_sibling streamStatus] != NSStreamStatusClosed,
 	@"Received event for closed stream");
       [_sibling _dispatch];
+    }
+  else if ([self streamStatus] == NSStreamStatusAtEnd)
+    {
+      [self _sendEvent: NSStreamEventEndEncountered];
     }
   else if ([self streamStatus] == NSStreamStatusError)
     {
@@ -2129,12 +2364,14 @@ setNonBlocking(SOCKET fd)
 
       if (error != 0)
 	{
+	  NSError	*e = [NSError _systemError: error];
+
 	  errno = error;
-	  [self _recordError];
+	  [self _recordError: e];
 	  [self _sendEvent: NSStreamEventErrorOccurred];
 	  if ([_sibling streamStatus] == NSStreamStatusOpening)
 	    {
-	      [_sibling _recordError];
+	      [_sibling _recordError: e];
 	      [_sibling _sendEvent: NSStreamEventErrorOccurred];
 	    }
 	}
@@ -2142,9 +2379,10 @@ setNonBlocking(SOCKET fd)
 	{
 	  if (events.lNetworkEvents & FD_WRITE)
 	    {
-	      NSAssert([_sibling _isOpened], NSInternalInconsistencyException);
-	      /* Clear NSStreamStatusWriting if it was set */
-	      [_sibling _setStatus: NSStreamStatusOpen];
+	      if (_sibling && NSStreamStatusWriting == [_sibling streamStatus])
+		{
+	          [_sibling _setStatus: NSStreamStatusOpen];
+		}
 	    }
 
 	  /* On winsock a socket is always writable unless it has had
@@ -2208,11 +2446,11 @@ setNonBlocking(SOCKET fd)
         }
       else // must be an error
         {
-          if (error)
-            errno = error;
-          [self _recordError];
+	  NSError	*e = [NSError _systemError: error];
+
+          [self _recordError: e];
           myEvent = NSStreamEventErrorOccurred;
-          [_sibling _recordError];
+          [_sibling _recordError: e];
           [_sibling _sendEvent: myEvent];
         }
     }
@@ -2265,6 +2503,21 @@ setNonBlocking(SOCKET fd)
     }
 }
 
+#ifdef	_WIN32
+/* On windows a stream is considered writable once it is opened, even though the
+ * system doesn't signal to say so.  We therefore override the event sending to
+ * add the extra event.
+ */
+- (void) _sendEvent: (NSStreamEvent)event delegate: (id)delegate
+{
+  [super _sendEvent: event delegate: delegate];
+  if (NSStreamEventOpenCompleted == event)
+    {
+      [super _sendEvent: NSStreamEventHasSpaceAvailable delegate: delegate];
+    }
+}
+#endif
+
 - (NSInteger) _write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
   int writeLen;
@@ -2289,6 +2542,8 @@ setNonBlocking(SOCKET fd)
 
   if (socketError(writeLen))
     {
+      long	eno = GSNETERROR;
+
       if (_closing == YES)
         {
           /* If a write fails on a closing socket,
@@ -2301,18 +2556,29 @@ setNonBlocking(SOCKET fd)
         }
       else
         {
-          if (socketWouldBlock())
+#if	defined(_WIN32)
+	  if (WSAECONNABORTED == eno)
+	    {
+	      [_sibling _setStatus:  NSStreamStatusAtEnd];
+	      writeLen = 0;
+	    }
+	  else
+#endif
+          if (socketWouldBlock(eno))
             {
               /* We need an event from the operating system
                * to tell us we can start writing again.
                */
               [self _setStatus: NSStreamStatusWriting];
+              writeLen = -1;
             }
           else
             {
-              [self _recordError];
+              NSError	*e = [NSError _systemError: eno];
+
+              [self _recordError: e];
+              writeLen = -1;
             }
-          writeLen = -1;
         }
     }
   else
@@ -2324,6 +2590,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) open
 {
+  NSDebugMLLog(@"NSStream", @"%@", self);
   // could be opened because of sibling
   if ([self _isOpened])
     return;
@@ -2360,6 +2627,7 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
+	      [GSTcpTune tune: (void*)(intptr_t)s with: self];
               [self _setSock: s];
               [_sibling _setSock: s];
             }
@@ -2374,7 +2642,9 @@ setNonBlocking(SOCKET fd)
         GSPrivateSockaddrLength(&_address.s));
       if (socketError(result))
         {
-          if (socketWouldBlock())
+	  long	eno = GSNETERROR;
+
+          if (socketWouldBlock(eno))
             {
               /*
                * Need to set the status first, so that the run loop can tell
@@ -2385,10 +2655,12 @@ setNonBlocking(SOCKET fd)
             }
           else
             {
+	      NSError	*e = [NSError _systemError: eno];
+
               /* Had an immediate connect error.
                */
-              [self _recordError];
-              [_sibling _recordError];
+              [self _recordError: e];
+              [_sibling _recordError: e];
             }
 #if	defined(_WIN32)
           WSAEventSelect(_sock, _loopID, FD_ALL_EVENTS);
@@ -2433,6 +2705,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) close
 {
+  NSDebugMLLog(@"NSStream", @"%@", self);
   /* If the socket descriptor is still present, we need to close it to
    * avoid a leak no matter what the nominal state of the stream is.
    * The descriptor is created before the stream is formally opened.
@@ -2496,6 +2769,8 @@ setNonBlocking(SOCKET fd)
 
 - (NSInteger) write: (const uint8_t *)buffer maxLength: (NSUInteger)len
 {
+  NSInteger	result;
+
   if (len == 0)
     {
       /*
@@ -2514,19 +2789,24 @@ setNonBlocking(SOCKET fd)
        *  detect that no more data is arriving, and shut down.
        */ 
       _events &= ~NSStreamEventHasSpaceAvailable;
-      return 0;
+      result = 0;
     }
-
-  if (buffer == 0)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"null pointer for buffer"];
-    }
-
-  if (_handler == nil)
-    return [self _write: buffer maxLength: len];
   else
-    return [_handler write: buffer maxLength: len];
+    {
+      if (buffer == 0)
+	{
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"null pointer for buffer"];
+	}
+
+      if (_handler == nil)
+	result = [self _write: buffer maxLength: len];
+      else
+	result = [_handler write: buffer maxLength: len];
+    }
+  NSDebugMLLog(@"NSStream", @"%@ tried %lld result %lld",
+    self, (long long)len, (long long) result);
+  return result;
 }
 
 - (void) _dispatch
@@ -2549,6 +2829,10 @@ setNonBlocking(SOCKET fd)
       NSAssert([_sibling streamStatus] != NSStreamStatusClosed,
 	@"Received event for closed stream");
       [_sibling _dispatch];
+    }
+  else if ([self streamStatus] == NSStreamStatusAtEnd)
+    {
+      [self _sendEvent: NSStreamEventEndEncountered];
     }
   else if ([self streamStatus] == NSStreamStatusError)
     {
@@ -2602,12 +2886,13 @@ setNonBlocking(SOCKET fd)
 
       if (error != 0)
 	{
-	  errno = error;
-	  [self _recordError];
+	  NSError	*e = [NSError _systemError: error];
+
+	  [self _recordError: e];
 	  [self _sendEvent: NSStreamEventErrorOccurred];
 	  if ([_sibling streamStatus] == NSStreamStatusOpening)
 	    {
-	      [_sibling _recordError];
+	      [_sibling _recordError: e];
 	      [_sibling _sendEvent: NSStreamEventErrorOccurred];
 	    }
 	}
@@ -2677,11 +2962,11 @@ setNonBlocking(SOCKET fd)
         }
       else // must be an error
         {
-          if (error)
-            errno = error;
-          [self _recordError];
+	  NSError	*e = [NSError _systemError: error];
+
+          [self _recordError: e];
           myEvent = NSStreamEventErrorOccurred;
-          [_sibling _recordError];
+          [_sibling _recordError: e];
           [_sibling _sendEvent: myEvent];
         }
     }
@@ -2749,6 +3034,7 @@ setNonBlocking(SOCKET fd)
   int listenReturn;
   SOCKET s;
 
+  NSDebugMLLog(@"NSStream", @"%@", self);
   if (_currentStatus != NSStreamStatusNotOpen)
     {
       NSDebugMLLog(@"NSStream",
@@ -2765,6 +3051,7 @@ setNonBlocking(SOCKET fd)
     }
   else
     {
+      [GSTcpTune tune: (void*)(intptr_t)s with: self];
       [(GSSocketStream*)self _setSock: s];
     }
 
@@ -2817,6 +3104,7 @@ setNonBlocking(SOCKET fd)
 
 - (void) close
 {
+  NSDebugMLLog(@"NSStream", @"%@", self);
 #if	defined(_WIN32)
   if (_loopID != WSA_INVALID_EVENT)
     {
@@ -2862,9 +3150,13 @@ setNonBlocking(SOCKET fd)
   _events &= ~NSStreamEventHasBytesAvailable;
   if (socketError(acceptReturn))
     { // test for real error
-      if (!socketWouldBlock())
+      long	eno = GSNETERROR;
+
+      if (!socketWouldBlock(eno))
 	{
-          [self _recordError];
+          NSError	*e = [NSError _systemError: eno];
+
+          [self _recordError: e];
 	}
       ins = nil;
       outs = nil;
@@ -2930,7 +3222,7 @@ setNonBlocking(SOCKET fd)
       [outs _setSibling: ins];
       *outputStream = (NSOutputStream*)outs;
     }
-  /* Now the streams are redy to be opened.
+  /* Now the streams are ready to be opened.
    */
 }
 

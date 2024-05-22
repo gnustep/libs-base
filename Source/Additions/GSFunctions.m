@@ -23,7 +23,6 @@
    Boston, MA 02111 USA.
 
    <title>NSPathUtilities function reference</title>
-   $Date$ $Revision$
    */
 
 #import "common.h"

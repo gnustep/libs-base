@@ -1,4 +1,4 @@
-/* Definition of class NSFileCoordinator
+/** Definition of class NSFileCoordinator
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    Implemented by: 	Gregory Casamento <greg.casamento@gmail.com>

@@ -1075,14 +1075,19 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSResetMapTable(wProperties);
 
   /* Socket must be removed from I/O notifications and connection state
-   * marked idle, but the socket is left open to be re-used for another
-   * request.
+   * marked idle, but the socket is already idle it may be re-used for
+   * another request.
    */
   if (sock)
     {
       NSNotificationCenter      *nc = [NSNotificationCenter defaultCenter];
 
       [nc removeObserver: self name: nil object: sock];
+      if (connectionState != idle)
+	{
+	  [sock closeFile];	// Close to cancel any I/O in progress
+	  DESTROY(sock);
+	}
     }
   connectionState = idle;
   [super endLoadInBackground];

@@ -33,6 +33,7 @@
 @class	_GSMutableInsensitiveDictionary;
 
 @class	NSNotification;
+@class	NSRecursiveLock;
 
 #if ( (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3) ) && HAVE_VISIBILITY_ATTRIBUTE )
 #define GS_ATTRIB_PRIVATE __attribute__ ((visibility("internal")))
@@ -54,9 +55,9 @@
 
 NSTimeInterval   GSPrivateTimeNow() GS_ATTRIB_PRIVATE;
 
-#include "GNUstepBase/GSObjCRuntime.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 
-#include "Foundation/NSArray.h"
+#import "Foundation/NSArray.h"
 
 #ifdef __GNUSTEP_RUNTIME__
 struct objc_category;
@@ -87,7 +88,7 @@ typedef struct objc_category* Category;
 }
 @end
 
-#include "Foundation/NSString.h"
+#import "Foundation/NSString.h"
 
 /**
  * Macro to manage memory for chunks of code that need to work with
@@ -279,6 +280,7 @@ typedef enum {
 + (NSString*) _gnustep_target_dir;
 + (NSString*) _gnustep_target_os;
 + (NSString*) _library_combo;
++ (NSString*) _versionForLibrary: (NSString**)path;
 @end
 
 /**
@@ -307,6 +309,7 @@ typedef enum {
 @interface	NSError (GNUstepBase)
 + (NSError*) _last;
 + (NSError*) _systemError: (long)number;
+- (void) _setObject: (NSObject*)anObject forKey: (NSString*)aKey;
 @end
 
 @class  NSRunLoop;
@@ -420,6 +423,13 @@ GSPrivateLoadModule(NSString *filename, FILE *errorStream,
   void (*loadCallback)(Class, struct objc_category *),
   void **header, NSString *debugFilename) GS_ATTRIB_PRIVATE;
 
+/* Return a private global recursive lock for protecting internal
+ * data structures before aother locks have been initialised.
+ * Implemented in NSLock.m
+ */
+NSRecursiveLock *
+GSPrivateGlobalLock() GS_ATTRIB_PRIVATE;
+
 /* Get the native C-string encoding as used by locale specific code in the
  * operating system.  This may differ from the default C-string encoding
  * if the latter has been set via an environment variable.
@@ -494,7 +504,8 @@ GSPrivateStrExternalize(GSStr s) GS_ATTRIB_PRIVATE;
  * module.  So it returns the full filesystem path for shared libraries
  * and bundles (which is very nice), but unfortunately it returns 
  * argv[0] (which might be something as horrible as './obj/test')
- * for classes in the main executable.
+ * for classes in the main executable.  In this case we return the
+ * full path to the executable rather than the value from the linker.
  *
  * Currently, the function will return nil if any of the following
  * conditions is satisfied:
@@ -541,6 +552,15 @@ GSPrivateUnloadModule(FILE *errorStream,
 - (id) initWithSize: (NSUInteger)_size;
 - (void) protect;
 - (void) setFrame: (id)aFrame;
+@end
+
+/* For tuning socket connections
+ */
+@interface      GSTcpTune : NSObject
++ (int) delay;
++ (int) recvSize;
++ (int) sendSize: (int)bytesToSend;
++ (void) tune: (void*)handle with: (id)opts;
 @end
 
 BOOL

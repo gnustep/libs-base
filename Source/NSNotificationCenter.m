@@ -1,7 +1,7 @@
 /** Implementation of NSNotificationCenter for GNUstep
    Copyright (C) 1999 Free Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <richard@brainstorm.co.uk>
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Created: June 1999
 
    Many thanks for the earlier version, (from which this is loosely
@@ -26,7 +26,6 @@
    Boston, MA 02110 USA.
 
    <title>NSNotificationCenter class reference</title>
-   $Date$ $Revision$
 */
 
 #import "common.h"
@@ -37,6 +36,7 @@
 #import "Foundation/NSLock.h"
 #import "Foundation/NSOperation.h"
 #import "Foundation/NSThread.h"
+#import "Foundation/NSHashTable.h"
 #import "GNUstepBase/GSLock.h"
 
 static NSZone	*_zone = 0;
@@ -241,6 +241,7 @@ typedef struct NCTbl {
   GSIMapTable		cache[CACHESIZE];
   unsigned short	chunkIndex;
   unsigned short	cacheIndex;
+  NSHashTable		*retainedObjectsTable;
 } NCTable;
 
 #define	TABLE		((NCTable*)_table)
@@ -389,7 +390,9 @@ static void endNCTable(NCTable *t)
       NSZoneFree(NSDefaultMallocZone(), (void*)t->cache[i]);
     }
   NSZoneFree(NSDefaultMallocZone(), t->chunks);
+  RELEASE(t->retainedObjectsTable);
   NSZoneFree(NSDefaultMallocZone(), t);
+
 }
 
 static NCTable *newNCTable(void)
@@ -405,6 +408,7 @@ static NCTable *newNCTable(void)
   GSIMapInitWithZoneAndCapacity(t->nameless, _zone, 16);
   GSIMapInitWithZoneAndCapacity(t->named, _zone, 128);
   t->named->extra = YES;        // This table retains keys
+  t->retainedObjectsTable = [[NSHashTable alloc] initWithOptions:NSHashTableObjectPointerPersonality capacity:10];
 
   t->_lock = [NSRecursiveLock new];
   return t;
@@ -543,8 +547,8 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
 
 @interface GSNotificationBlockOperation : NSOperation
 {
-	NSNotification *_notification;
-	GSNotificationBlock _block;
+  NSNotification	*_notification;
+  GSNotificationBlock	_block;
 }
 
 - (id) initWithNotification: (NSNotification *)notif 
@@ -557,72 +561,81 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
 - (id) initWithNotification: (NSNotification *)notif 
                       block: (GSNotificationBlock)block
 {
-	self = [super init];
-	if (self == nil)
-		return nil;
-
-	ASSIGN(_notification, notif);
-	_block = Block_copy(block);
-	return self;
-
+  if ((self = [super init]) != nil)
+    {
+      ASSIGN(_notification, notif);
+      _block = Block_copy(block);
+    }
+  return self;
 }
 
 - (void) dealloc
 {
-	DESTROY(_notification);
-	Block_release(_block);
-	[super dealloc];
+  DESTROY(_notification);
+  Block_release(_block);
+  DEALLOC
 }
 
 - (void) main
 {
-	CALL_BLOCK(_block, _notification);
+  CALL_BLOCK(_block, _notification);
 }
 
 @end
 
+/* Cached class for fast test when removing observer.
+ */
+static Class	GSNotificationObserverClass = Nil;
+
 @interface GSNotificationObserver : NSObject
 {
-	NSOperationQueue *_queue;
-	GSNotificationBlock _block;
+  NSOperationQueue	*_queue;
+  GSNotificationBlock	_block;
 }
 
 @end
 
 @implementation GSNotificationObserver
 
++ (void) initialize
+{
+  if ([GSNotificationObserver class] == self)
+    {
+      GSNotificationObserverClass = self;
+    }
+}
+
 - (id) initWithQueue: (NSOperationQueue *)queue 
                block: (GSNotificationBlock)block
 {
-	self = [super init];
-	if (self == nil)
-		return nil;
-
-	ASSIGN(_queue, queue);
-	_block = Block_copy(block);
-	return self;
+  if ((self = [super init]) != nil)
+    {
+      ASSIGN(_queue, queue);
+      _block = Block_copy(block);
+    }
+  return self;
 }
 
 - (void) dealloc
 {
-	DESTROY(_queue);
-	Block_release(_block);
-	[super dealloc];
+  DESTROY(_queue);
+  Block_release(_block);
+  DEALLOC
 }
 
 - (void) didReceiveNotification: (NSNotification *)notif
 {
-	if (_queue != nil)
-	{
-		GSNotificationBlockOperation *op = [[GSNotificationBlockOperation alloc] 
-			initWithNotification: notif block: _block];
+  if (_queue != nil)
+    {
+      GSNotificationBlockOperation *op = [[GSNotificationBlockOperation alloc] 
+	initWithNotification: notif block: _block];
 
-		[_queue addOperation: op];
-	}
-	else
-	{
-		CALL_BLOCK(_block, notif);
-	}
+      [_queue addOperation: op];
+    }
+  else
+    {
+      CALL_BLOCK(_block, notif);
+    }
 }
 
 @end
@@ -671,6 +684,14 @@ static NSNotificationCenter *default_center = nil;
 	{
 	  concrete = [GSNotification class];
 	}
+      /* Ensure value is initialised before we use it in
+       * -removeObserver:name:object:
+       */
+      if (nil == GSNotificationObserverClass)
+	{
+	  [GSNotificationObserver class];
+	}
+
       /*
        * Do alloc and init separately so the default center can refer to
        * the 'default_center' variable during initialisation.
@@ -706,7 +727,7 @@ static NSNotificationCenter *default_center = nil;
 - (void) dealloc
 {
   [self finalize];
-
+   
   [super dealloc];
 }
 
@@ -742,10 +763,18 @@ static NSNotificationCenter *default_center = nil;
  * the notification center before releasing these objects.<br />
  * </p>
  *
+ * <p>While it is good practice to remove an observer before releasing it,  
+ * currently on MacOS it is possible to remove an observer even after the
+ * object has been deallocated. This is not documented behavior from Apple
+ * and could change at any time. In the interests of compatibility, this behavior
+ * will also be supported here.
+ * </p>
+ *
  * <p>NB. For MacOS-X compatibility, adding an observer multiple times will
  * register it to receive multiple copies of any matching notification, however
  * removing an observer will remove <em>all</em> of the multiple registrations.
  * </p>
+ *
  */
 - (void) addObserver: (id)observer
 	    selector: (SEL)selector
@@ -776,6 +805,11 @@ static NSNotificationCenter *default_center = nil;
   lockNCTable(TABLE);
 
   o = obsNew(TABLE, selector, observer);
+
+  if (object_getClass(observer) == GSNotificationObserverClass)
+    {
+      [TABLE->retainedObjectsTable addObject:observer];
+    }
 
   /*
    * Record the Observation in one of the linked lists.
@@ -853,7 +887,7 @@ static NSNotificationCenter *default_center = nil;
  * the object argument is nil).</p>
  *
  * <p>For the name and object arguments, the constraints and behavior described 
- * in -addObserver:name:selector:object: remain valid.</p>
+ * in -addObserver:selector:name:object: remain valid.</p>
  *
  * <p>For each notification received by the center, the observer will execute 
  * the notification block. If the queue is not nil, the notification block is 
@@ -865,15 +899,15 @@ static NSNotificationCenter *default_center = nil;
                     queue: (NSOperationQueue *)queue 
                usingBlock: (GSNotificationBlock)block
 {
-	GSNotificationObserver *observer = 
-		[[GSNotificationObserver alloc] initWithQueue: queue block: block];
+  GSNotificationObserver *observer = 
+    [[GSNotificationObserver alloc] initWithQueue: queue block: block];
 
-	[self addObserver: observer 
-	         selector: @selector(didReceiveNotification:) 
-	             name: name 
-	           object: object];
+  [self addObserver: observer 
+	   selector: @selector(didReceiveNotification:) 
+	       name: name 
+	     object: object];
 
-	return observer;
+  return observer;	// Released when observer is removed.
 }
 
 /**
@@ -889,7 +923,9 @@ static NSNotificationCenter *default_center = nil;
                  object: (id)object
 {
   if (name == nil && object == nil && observer == nil)
+    {
       return;
+    }
 
   /*
    *	NB. The removal algorithm depends on an implementation characteristic
@@ -1032,7 +1068,15 @@ static NSNotificationCenter *default_center = nil;
 	  GSIMapRemoveKey(NAMED, (GSIMapKey)((id)name));
 	}
     }
+
+  if ([TABLE->retainedObjectsTable containsObject:observer])
+    {
+      [TABLE->retainedObjectsTable removeObject:observer];
+      RELEASE(observer);
+    }
+    
   unlockNCTable(TABLE);
+
 }
 
 /**

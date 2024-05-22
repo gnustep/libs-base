@@ -1,4 +1,4 @@
-/* GSVersionMacros.h - macros for managing API versioning and visibility
+/** GSVersionMacros.h - macros for managing API versioning and visibility
    Copyright (C) 2006-2014 Free Software Foundation, Inc.
 
    Written by: Richard Frith-Macdonald <rfm@gnu.org>
@@ -71,6 +71,7 @@
 #define	MAC_OS_VERSION_11_0	110000
 #define	MAC_OS_VERSION_12_0	120000
 #define	MAC_OS_VERSION_13_0	130000
+#define	MAC_OS_VERSION_14_0	140000
 #endif	/* MAC_OS_X_VERSION_10_0 */
 
 /* Allow MAC_OS_X_VERSION_MAX_ALLOWED to be used in place of GS_OPENSTEP_V
@@ -147,18 +148,6 @@
  * symbolic constants for version numbering.  Their contants are currently
  * four digit values (two digits for the major version, one for the minor,
  * and one for the subminor). 
- * </p>
- * <p>The Apple compatibility version macros are currently:
- * <ref type="macro" id="MAC_OS_X_VERSION_10_0">MAC_OS_X_VERSION_10_0</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_1">MAC_OS_X_VERSION_10_1</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_2">MAC_OS_X_VERSION_10_2</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_3">MAC_OS_X_VERSION_10_3</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_4">MAC_OS_X_VERSION_10_4</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_5">MAC_OS_X_VERSION_10_5</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_6">MAC_OS_X_VERSION_10_6</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_7">MAC_OS_X_VERSION_10_7</ref>,
- * <ref type="macro" id="MAC_OS_X_VERSION_10_8">MAC_OS_X_VERSION_10_8</ref>
- * <ref type="macro" id="MAC_OS_X_VERSION_10_9">MAC_OS_X_VERSION_10_9</ref>
  * </p>
  */
 #define	OS_API_VERSION(ADD,REM) \
@@ -254,9 +243,18 @@
  */
 
 #if defined(__clang__) || GS_GCC_MINREQ(3,1)
-#  define GS_DEPRECATED_FUNC __attribute__ ((deprecated))
+#  define GS_DEPRECATED_FUNC __attribute__((deprecated))
 #else
 #  define GS_DEPRECATED_FUNC
+#endif
+
+/* This attribute is placed immediately before the name of a method
+ * or function to mark it as unimplemented.
+ */
+#if defined(__clang__) || GS_GCC_MINREQ(3,1)
+#  define GS_UNIMPLEMENTED __attribute__((deprecated("*** not implemented - please contribute an implementation before using this feature ***")))
+#else
+#  define GS_UNIMPLEMENTED
 #endif
 
 #define GS_UNUSED_ARG __attribute__((unused))
@@ -358,7 +356,7 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
  */
 #if __has_feature(blocks)
 #  if	OBJC2RUNTIME
-#    if defined(__APPLE__)
+#    if __has_include(<Block.h>)
 #      include <Block.h>
 #    else
 #      include <objc/blocks_runtime.h>
@@ -384,10 +382,10 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 #if	defined(GNUSTEP_WITH_DLL)
 
 #if BUILD_libgnustep_base_DLL
-#
-# if defined(__MINGW__)
-  /* On Mingw, the compiler will export all symbols automatically, so
-   * __declspec(dllexport) is not needed.
+# if defined(__MINGW__) && !defined(__clang__)
+  /* On Mingw, the GCC compiler will export all symbols automatically, so
+   * __declspec(dllexport) is not needed.  Clang uses the more standard behavior,
+   * requiring you to add add a dllimport/dllexport attribute.
    */
 #  define GS_EXPORT_CLASS
 #  define GS_EXPORT  extern
@@ -400,8 +398,8 @@ static inline void gs_consumed(id NS_CONSUMED GS_UNUSED_ARG o) { return; }
 #  define GS_DECLARE __declspec(dllexport)
 # endif
 #else
-# if defined(__MINGW__)
-   /* MinGW does not need dllimport on ObjC classes and produces warnings. */
+# if defined(__MINGW__) && !defined(__clang__)
+   /* On MinGW, the GCC compiler does not need dllimport on ObjC classes and produces warnings. */
 #  define GS_EXPORT_CLASS
 # else
 #  define GS_EXPORT_CLASS  __declspec(dllimport)

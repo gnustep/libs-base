@@ -1,4 +1,4 @@
-/* Interface for NSURLProtocol for GNUstep
+/**Interface for NSURLProtocol for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <frm@gnu.org>
@@ -208,6 +208,11 @@ GS_EXPORT_CLASS
  * raises an exception.
  */
 + (BOOL) canInitWithRequest: (NSURLRequest *)request;
+
+/** This method is called to decide whether a class can deal with
+ * the specified task. The abstract class implementation return NO.
+ */
++ (BOOL) canInitWithTask: (NSURLSessionTask*)task;
 
 /** <override-subclass />
  * Returns the 'canonical' version of the request.<br />

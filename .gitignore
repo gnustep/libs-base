@@ -8,6 +8,15 @@ dynamic-load.h
 Tests/base/*/GNUmakefile
 *.log
 *.sum
+Tools/BaseTools/dependencies
+Source/gnustep-base.pc
+
+# Unit test byproducts
+*.err
+*.out
+
+# Core files
+*.core
 
 # Autoconf
 autom4te.cache
@@ -25,10 +34,13 @@ Tests/base/NSURL/SimpleResponse.dat
 Tests/base/NSURLConnection/Helpers/TestConnection.bundle/
 Tests/base/coding/long-8.type
 Tests/base/coding/ulong-8.type
+Tests/*.tmp
 
 # Editor byproducts
 *.orig
 *.swp
+\#*\#
+*~
 
 # MacOS Desktop Services Store
 .DS_Store
@@ -72,3 +84,24 @@ DerivedData/
 **/xcshareddata/WorkspaceSettings.xcsettings
 
 # End of https://www.gitignore.io/api/xcode
+
+.cache
+compile_commands.json
+**.kdev4
+
+# Documentation
+Documentation/Base*
+Documentation/General
+Documentation/manual
+Documentation/ReleaseNotes
+Documentation/ANNOUNCE
+Documentation/*.pdf
+Documentation/README
+Documentation/version.texi
+Documentation/*.aux
+Documentation/*.toc
+Documentation/INSTALL
+Documentation/NEWS
+**/dependencies
+Source/Base.gsdoc
+Source/BaseAdditions.gsdoc

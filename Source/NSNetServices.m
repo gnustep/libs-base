@@ -31,6 +31,7 @@
 #import "Foundation/NSArray.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
+#import "Foundation/NSException.h"
 #import "Foundation/NSHost.h"
 #import "Foundation/NSStream.h"
 #import "Foundation/NSString.h"
@@ -48,7 +49,7 @@ static Class concreteBrowserClass;
       abstractServiceClass = self;
 #     if GS_USE_AVAHI==1 
         concreteServiceClass = [GSAvahiNetService class];
-#     else
+#     elif GS_USE_MDNS==1
         concreteServiceClass = [GSMDNSNetService class];
 #     endif
   }
@@ -58,7 +59,14 @@ static Class concreteBrowserClass;
 {
   if (self == abstractServiceClass)
     {
-      return [concreteServiceClass allocWithZone: zone];
+      if (concreteServiceClass != nil)
+      {
+        return [concreteServiceClass allocWithZone: zone];
+      }
+      else
+      {
+        return nil;
+      }
     }
   return [super allocWithZone: zone];
 }
@@ -77,7 +85,15 @@ static Class concreteBrowserClass;
                  type: (NSString *) type
                  name: (NSString *) name
 {
-  return [self subclassResponsibility: _cmd];
+  if (concreteServiceClass != nil)
+  {
+    return [self subclassResponsibility: _cmd];
+  }
+  else
+  {
+    [self release];
+    return nil;
+  }
 }
 
 - (id) initWithDomain: (NSString *) domain
@@ -85,7 +101,15 @@ static Class concreteBrowserClass;
                  name: (NSString *) name
                  port: (NSInteger) port
 {
-  return [self subclassResponsibility: _cmd];
+  if (concreteServiceClass != nil)
+  {
+    return [self subclassResponsibility: _cmd];
+  }
+  else
+  {
+    [self release];
+    return nil;
+  }
 }
 
 - (void) removeFromRunLoop: (NSRunLoop *) aRunLoop
@@ -394,7 +418,7 @@ static Class concreteBrowserClass;
       abstractBrowserClass = self;
 #     if GS_USE_AVAHI==1 
         concreteBrowserClass = [GSAvahiNetServiceBrowser class];
-#     else // Not Avahi (=GS_USE_MDNS)
+#     elif GS_USE_MDNS==1
         concreteBrowserClass = [GSMDNSNetServiceBrowser class];
 #     endif // GS_USE_AVAHI
     }
@@ -404,14 +428,29 @@ static Class concreteBrowserClass;
 {
   if (self == abstractBrowserClass)
     {
-      return [concreteBrowserClass allocWithZone: zone];
+      if (concreteBrowserClass != nil)
+      {
+        return [concreteBrowserClass allocWithZone: zone];
+      }
+      else
+      {
+        return nil;
+      }
     }
   return [super allocWithZone: zone];
 }
 
 - (id) init
 {
-  return [super init];
+  if (concreteBrowserClass != nil)
+  {
+    return [super init];
+  }
+  else
+  {
+    [self release];
+    return nil;
+  }
 }
 
 

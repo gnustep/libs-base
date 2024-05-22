@@ -1,5 +1,4 @@
-
-/* Definition of class NSRegularExpression
+/**Definition of class NSRegularExpression
    Copyright (C) 2011 Free Software Foundation, Inc.
 
    This file is part of the GNUstep Library.
@@ -67,7 +66,7 @@ static const NSMatchingOptions NSMatchingWithTransparentBounds  = 1<<3;
 static const NSMatchingOptions NSMatchingWithoutAnchoringBounds = 1<<4;
 
 
-DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*,
+DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*,\
   NSMatchingFlags, BOOL*);
 
 #ifndef GSREGEXTYPE
@@ -150,6 +149,9 @@ GS_EXPORT_CLASS
                                 inString: (NSString*)string
                                   offset: (NSInteger)offset
                                 template: (NSString*)templat;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
++ (NSString *) escapedPatternForString: (NSString *)string;
+#endif
 #if GS_HAS_DECLARED_PROPERTIES
 @property (readonly) NSRegularExpressionOptions options;
 @property (readonly) NSUInteger numberOfCaptureGroups;

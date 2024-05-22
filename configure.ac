@@ -126,6 +126,9 @@ else
   fi
 fi
 
+AC_SUBST(BASEFLAGS, `gnustep-config --objc-flags`)
+AC_SUBST(BASELIBS, `gnustep-config --base-libs`)
+
 # We shouldn't be loading GNUstep.sh here.  It would load in a lot of
 # variables which might get confused with the ones that will be used
 # at runtime.  We will load it later once we have determined (and
@@ -1846,7 +1849,20 @@ if test $HAVE_WIN32_THREADS_AND_LOCKS = 0; then
         [Description: Define setname function for pthread with three args])
       ;;
   esac
-  
+
+# Check if we can get names of pthreads
+AC_CACHE_CHECK([for pthread_getname_np()], gs_cv_pthread_getname_np,
+[AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM([#include <pthread.h>],
+    [char name[16]; pthread_getname_np(pthread_self(), name, 16);])],
+  [gs_cv_pthread_getname_np=generic])])
+case $gs_cv_pthread_getname_np in
+  generic)
+    AC_DEFINE(PTHREAD_GETNAME(b,c), pthread_getname_np(pthread_self(),b,c),
+      [Description: Define getname function for pthread with two args (generic style)])
+    ;;
+esac
+
   # Check if we have spinlock support
   AC_CHECK_FUNCS(pthread_spin_lock)
 fi
@@ -2398,6 +2414,35 @@ AC_CHECK_FUNCS(time ctime tzset)
 #--------------------------------------------------------------------
 AC_CHECK_HEADERS(sys/socket.h netinet/in.h)
 AC_CHECK_TYPES([socklen_t])
+
+#--------------------------------------------------------------------
+# This needed by GSSocketStream.h
+#--------------------------------------------------------------------
+AC_CHECK_TYPE([struct sockaddr_storage],
+  AC_DEFINE(HAVE_STRUCT_SOCKADDR_STORAGE, 1,
+    [if struct sockaddr_storage is defined]), ,[
+#undef inline
+#ifdef HAVE_WINDOWS_H
+#include <windows.h>
+#ifdef HAVE_WINSOCK2_H
+#include <winsock2.h>
+#endif
+#else
+#ifdef HAVE_SYS_TYPES_H
+#include <sys/types.h>
+#endif
+#ifdef HAVE_SYS_SOCKET_H
+#include <sys/socket.h>
+#endif
+#ifdef HAVE_NETINET_IN_H
+#include <netinet/in.h>
+#endif
+#ifdef HAVE_ARPA_INET_H
+#include <arpa/inet.h>
+#endif
+#endif
+])
+
 dnl AC_REPLACE_FUNCS(recvfrom)
 
 #--------------------------------------------------------------------
@@ -2419,8 +2464,10 @@ fi
 
 AC_CHECK_HEADERS(bfd.h)
 AC_CHECK_LIB(intl, libintl_fprintf)
+AC_CHECK_LIB(zstd, ZSTD_compress)
 AC_CHECK_LIB(iberty, dyn_string_append)
 AC_CHECK_LIB(z, gzseek)
+AC_SEARCH_LIBS(sframe, sframe_decode)
 AC_CHECK_LIB(bfd, bfd_openr)
 
 AC_TRY_COMPILE([
@@ -2563,6 +2610,7 @@ AC_CHECK_HEADERS(sys/mman.h)
 # These functions needed by NSTask.m
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(killpg setpgrp setpgid setsid grantpt)
+AC_CHECK_FUNCS(closefrom)
 if test "x$ac_cv_func_setpgrp" = xyes; then
   AC_FUNC_SETPGRP
 fi
@@ -3523,7 +3571,7 @@ AS_IF([test "x$enable_icu" = "xyes"], [
   esac
   if test $HAVE_ICU = 0; then
     PKG_CHECK_MODULES([ICU], [icu-i18n > 49.0], [
-      AC_CHECK_HEADERS([unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h unicode/utext.h],
+      AC_CHECK_HEADERS([unicode/uloc.h unicode/ulocdata.h unicode/ucol.h unicode/ucurr.h unicode/uregex.h unicode/ucal.h unicode/unorm2.h unicode/unum.h unicode/udat.h unicode/udatpg.h unicode/ustring.h unicode/usearch.h unicode/ucnv.h unicode/utext.h unicode/ubrk.h unicode/utypes.h],
         HAVE_ICU=1)], [HAVE_ICU=0])
   fi
   if test $HAVE_ICU = 0; then
@@ -3838,5 +3886,5 @@ AC_SUBST(GCC_VERSION)
 #--------------------------------------------------------------------
 # Write the Makefiles
 #--------------------------------------------------------------------
-AC_CONFIG_FILES([config.mak base.make Headers/GNUstepBase/GSConfig.h])
+AC_CONFIG_FILES([config.mak base.make Source/gnustep-base.pc Headers/GNUstepBase/GSConfig.h])
 AC_OUTPUT

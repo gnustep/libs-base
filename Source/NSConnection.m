@@ -3141,8 +3141,8 @@ static NSLock	*cached_proxies_gate = nil;
     {
       BOOL	warned = NO;
 
-      NSDebugMLLog(@"RMC", @"Waiting for reply RMC %d (%s) on %@",
-        sn, request, self);
+      NSDebugMLLog(@"RMC", @"Waiting up to %g sec for reply RMC %d (%s) on %@",
+        IreplyTimeout, sn, request, self);
       GS_M_LOCK(IrefGate); isLocked = YES;
       while (IisValid == YES
 	&& (node = GSIMapNodeForKey(IreplyMap, (GSIMapKey)(NSUInteger)sn)) != 0

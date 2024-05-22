@@ -22,7 +22,6 @@
    Boston, MA 02110 USA.
 
    <title>NSNull class reference</title>
-   $Date$ $Revision$
    */
 
 #import "common.h"
@@ -86,6 +85,11 @@ static NSNull	*null = 0;
 - (NSString*) description
 {
   return @"<null>";
+}
+
+- (id) valueForUndefinedKey: (NSString*)aKey
+{
+  return null;
 }
 
 - (void) encodeWithCoder: (NSCoder*)aCoder

@@ -22,7 +22,6 @@
    Boston, MA 02110 USA.
 
    <title>NSObject+NSComparisonMethods category reference</title>
-   $Date: 2008-11-26 04:20:34 -0500 (Wed, 26 Nov 2008) $ $Revision: 27135 $
 */
 
 #import "common.h"

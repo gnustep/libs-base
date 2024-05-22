@@ -106,6 +106,7 @@
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSByteOrder.h"
 #import "Foundation/NSLocale.h"
+#import "Foundation/NSScanner.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GSPrivate.h"
 #import "GSPThread.h"
@@ -153,6 +154,11 @@
 /* Many systems have this file */
 #define SYSTEM_TIME_FILE @"/etc/localtime"
 
+/* Include public domain code (modified for use here) to parse standard
+ * posix time zone files.
+ */
+#include "tzdb.h"
+
 /* If TZDIR told us where the zoneinfo files are, don't append anything else */
 #ifdef TZDIR
 #define POSIX_TZONES @""
@@ -162,11 +168,6 @@
 
 #define BUFFER_SIZE 512
 #define WEEK_MILLISECONDS (7.0 * 24.0 * 60.0 * 60.0 * 1000.0)
-
-/* Include public domain code (modified for use here) to parse standard
- * posix time zone files.
- */
-#include "tzdb.h"
 
 #if GS_USE_ICU == 1
 static inline int
@@ -778,6 +779,7 @@ static NSMapTable *absolutes = 0;
 
 - (void)dealloc
 {
+    RELEASE(abbrev);
     RELEASE(timeZone);
     DEALLOC
 }
@@ -796,7 +798,7 @@ static NSMapTable *absolutes = 0;
                withDST:(BOOL)isDST
 {
     timeZone = RETAIN(aZone);
-    abbrev = anAbbrev; // NB. Depend on this being retained in aZone
+    abbrev = RETAIN(anAbbrev);
     offset = anOffset;
     is_dst = isDST;
     return self;
@@ -1770,12 +1772,15 @@ static NSMapTable *absolutes = 0;
     GS_MUTEX_LOCK(zone_mutex);
     if (regionsArray == nil) {
         NSAutoreleasePool *pool = [NSAutoreleasePool new];
-        int index;
-        int i;
-        char name[80];
-        FILE *fp;
         NSMutableArray *temp_array[24];
+        NSInteger index;
+        NSInteger i;
+        NSString *name;
         NSString *path;
+        NSString *contents;
+        NSScanner *scanner;
+        NSCharacterSet *newLineSet;
+        NSError *error = nil;
 
         for (i = 0; i < 24; i++) {
             temp_array[i] = [NSMutableArray array];
@@ -1783,34 +1788,31 @@ static NSMapTable *absolutes = 0;
 
         path = _time_zone_path(REGIONS_FILE, nil);
         if (path != nil) {
-#if defined(_WIN32)
-            unichar mode[3];
+	       contents = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:&error];
+	       if (!contents) {
+	           NSException *exp;
+	           NSDictionary *userInfo;
+	           GS_MUTEX_UNLOCK(zone_mutex);
 
-            mode[0] = 'r';
-            mode[1] = 'b';
-            mode[2] = '\0';
+	           userInfo = [NSDictionary dictionaryWithObjectsAndKeys:error, @"underlyingError"];
+	           exp = [NSException exceptionWithName: NSInternalInconsistencyException reason:@"Failed to open time zone regions array file." userInfo: userInfo];
+	           [exp raise];
+	        }
+	        newLineSet = [NSCharacterSet newlineCharacterSet];
+	        scanner = [NSScanner scannerWithString: contents];
 
-            fp = _wfopen((const unichar *)[path fileSystemRepresentation], mode);
-#else
-            fp = fopen([path fileSystemRepresentation], "r");
-#endif
-            if (fp == NULL) {
-                GS_MUTEX_UNLOCK(zone_mutex);
-                [NSException
-                     raise:NSInternalInconsistencyException
-                    format:@"Failed to open time zone regions array file."];
-            }
-            while (fscanf(fp, "%d %79s", &index, name) == 2) {
-                if (index < 0)
-                    index = 0;
-                else
+	        while ([scanner scanInteger: &index] && 
+                [scanner scanUpToCharactersFromSet: newLineSet intoString: &name]) {
+	            if (index < 0){
+                   index = 0;
+                } else {
                     index %= 24;
-                [temp_array[index]
-                    addObject:[NSString stringWithUTF8String:name]];
-            }
-            fclose(fp);
-        } else {
-            NSString *zonedir = [NSTimeZone _getTimeZoneFile:@"WET"];
+                }
+
+	            [temp_array[index] addObject: name];
+	        }
+	    } else {
+	        NSString *zonedir = [NSTimeZone _getTimeZoneFile:@"WET"];
 
             if (tzdir != nil) {
                 NSFileManager *mgr = [NSFileManager defaultManager];
@@ -1821,13 +1823,20 @@ static NSMapTable *absolutes = 0;
                 enumerator = [mgr enumeratorAtPath:zonedir];
                 while ((name = [enumerator nextObject]) != nil) {
                     NSTimeZone *zone = nil;
+                    NSString *ext;
                     BOOL isDir;
 
-                    path = [zonedir stringByAppendingPathComponent:name];
-                    if ([mgr fileExistsAtPath:path isDirectory:&isDir] && isDir == NO && [[path pathExtension] isEqual:@"tab"] == NO) {
-                        zone = [zoneDictionary objectForKey:name];
-                        if (zone == nil) {
-                            NSData *data;
+		            path = [zonedir stringByAppendingPathComponent:name];
+		            ext = [path pathExtension];
+		            if ([mgr fileExistsAtPath:path isDirectory:&isDir]
+                        && isDir == NO
+                        && [ext isEqual:@"tab"] == NO
+                        && [ext isEqual:@"zi"] == NO
+                        && [ext isEqual:@"list"] == NO
+                        && [ext isEqual:@"leapseconds"] == NO) {
+		                zone = [zoneDictionary objectForKey: name];
+		                if (zone == nil) {
+			                NSData *data;
 
                             data = [NSData dataWithContentsOfFile:path];
                             /* We should really make sure this is a real
@@ -2868,7 +2877,7 @@ newDetailInZoneForType(GSTimeZone *zone, TypeInfo *type)
 static TypeInfo
 getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
 {
-    int64_t when = (int64_t)since;
+    time_t when = (time_t)since;
     gstm tm;
     TypeInfo type;
 

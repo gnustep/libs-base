@@ -255,6 +255,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
   unsigned	count;
   unsigned int	i;
   BOOL		immediate = NO;
+  BOOL		debug = GSDebugSet(@"NSRunLoop");
 
   i = GSIArrayCount(watchers);
 
@@ -319,18 +320,21 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
 		fd = (int)(intptr_t)info->data;
 		setPollfd(fd, POLLPRI, self);
 		NSMapInsert(_efdMap, (void*)(intptr_t)fd, info);
+		if (debug) NSLog(@"listening for EDESC %d", fd);
 		break;
 
 	      case ET_RDESC: 
 		fd = (int)(intptr_t)info->data;
 		setPollfd(fd, POLLIN, self);
 		NSMapInsert(_rfdMap, (void*)(intptr_t)fd, info);
+		if (debug) NSLog(@"listening for RDESC %d", fd);
 		break;
 
 	      case ET_WDESC: 
 		fd = (int)(intptr_t)info->data;
 		setPollfd(fd, POLLOUT, self);
 		NSMapInsert(_wfdMap, (void*)(intptr_t)fd, info);
+		if (debug) NSLog(@"listening for WDESC %d", fd);
 		break;
 
 	      case ET_TRIGGER:
@@ -353,7 +357,7 @@ static void setPollfd(int fd, int event, GSRunLoopCtxt *ctxt)
                       port_fd_array = malloc(sizeof(NSInteger)*port_fd_size);
                       [port getFds: port_fd_array count: &port_fd_count];
                     }
-		  NSDebugMLLog(@"NSRunLoop",
+		  if (debug) NSLog(
 		    @"listening to %"PRIdPTR" port handles\n", port_fd_count);
 		  while (port_fd_count--)
 		    {

@@ -43,12 +43,15 @@
   NSString		*nextFile;	// Not retained
   NSString		*prevFile;	// Not retained
   NSString		*upFile;	// Not retained
+  NSString		*fileName;
   unsigned		chap;
   unsigned		sect;
   unsigned		ssect;
   unsigned		sssect;
   BOOL			isContentsDoc;
   BOOL			ivarsAtEnd;
+  BOOL			verbose;
+  BOOL			warn;
 }
 - (void) decIndent;
 - (void) incIndent;
@@ -68,7 +71,7 @@
 	       style: (NSString*)style
               target: (NSString*)target
                   to: (NSMutableString*)buf;
-- (NSString*) outputDocument: (GSXMLNode*)node;
+- (NSString*) outputDocument: (GSXMLNode*)node name: (NSString*)file;
 - (void) outputNode: (GSXMLNode*)node to: (NSMutableString*)buf;
 - (void) outputNodeList: (GSXMLNode*)node to: (NSMutableString*)buf;
 - (GSXMLNode*) outputBlock: (GSXMLNode*)node

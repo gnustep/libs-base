@@ -1,7 +1,8 @@
-/* Interface for NSURLConnection for GNUstep
+/** Interface for NSURLConnection for GNUstep
    Copyright (C) 2006 Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <frm@gnu.org>
+   Written by:  Armando Pesenti Gritti
+   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
    Date: 2006
    
    This file is part of the GNUstep Base Library.
@@ -185,6 +186,7 @@ GS_EXPORT_CLASS
  * </list>
  */
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST) && GS_API_VERSION(11300,GS_API_LATEST)
+/** <ignore> autogsdoc will ignore everything up to the end tag */
 @protocol NSURLConnectionDelegate <NSObject>
 
 #if GS_PROTOCOLS_HAVE_OPTIONAL
@@ -193,6 +195,7 @@ GS_EXPORT_CLASS
 @end
 @interface NSObject (NSURLConnectionDelegate)
 #endif
+/** end of text ignored by autogsdoc </ignore> */
 
 #else
 @interface NSObject (NSURLConnectionDelegate)

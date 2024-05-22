@@ -35,6 +35,7 @@
 
 #import "common.h"
 #include <objc/Protocol.h>
+#include <objc/message.h>
 #import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSInvocation.h"
 #import "Foundation/NSLock.h"
@@ -208,20 +209,6 @@ static void GSLogZombie(id o, SEL sel)
 #undef	GSATOMICREAD
 #endif
 
-
-/* Traditionally, GNUstep has been using a 32bit reference count in front
- * of the object. The automatic reference counting implementation in
- * libobjc2 uses an intptr_t instead, so NSObject will only be compatible
- * with ARC if either of the following apply:
- *
- * a) sizeof(intptr_t) == sizeof(int32_t)
- * b) we can provide atomic operations on pointer sized values, allowing
- *    us to extend the refcount to intptr_t.
- */
-#ifdef GS_ARC_COMPATIBLE
-#undef GS_ARC_COMPATIBLE
-#endif
-
 #if defined(__llvm__) || (defined(USE_ATOMIC_BUILTINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
 /* Use the GCC atomic operations with recent GCC versions */
 
@@ -230,7 +217,6 @@ typedef intptr_t gsrefcount_t;
 #define GSATOMICREAD(X) (*(X))
 #define GSAtomicIncrement(X)    __sync_add_and_fetch(X, 1)
 #define GSAtomicDecrement(X)    __sync_sub_and_fetch(X, 1)
-#define GS_ARC_COMPATIBLE 1
 
 #elif	defined(_WIN32)
 
@@ -424,16 +410,6 @@ static inline pthread_mutex_t   *GSAllocationLockForObject(id p)
 
 #endif
 
-#ifndef GS_ARC_COMPATIBLE
-/*
- * If we haven't previously declared that we can work in fast-ARC mode,
- * check whether a point is 32bit (4 bytes) wide, which also enables ARC
- * integration.
- */
-#  if __SIZEOF_POINTER__ == 4
-#    define GS_ARC_COMPATIBLE 1
-#  endif
-#endif
 
 #if defined(__GNUC__) && __GNUC__ < 4
 #define __builtin_offsetof(s, f) (uintptr_t)(&(((s*)0)->f))
@@ -948,8 +924,9 @@ NSShouldRetainWithZone (NSObject *anObject, NSZone *requestedZone)
  * </p>
  */
 @implementation NSObject
-#if  defined(GS_ARC_COMPATIBLE)
-- (void)_ARCCompliantRetainRelease {}
+#ifdef OBJC_CAP_ARC
++ (void) _TrivialAllocInit {}
+- (void) _ARCCompliantRetainRelease {}
 #endif
 
 /**
@@ -2104,12 +2081,6 @@ static id gs_weak_load(id obj)
 
   if (aSelector == 0)
     {
-      if (GSPrivateDefaultsFlag(GSMacOSXCompatible))
-	{
-	  [NSException raise: NSInvalidArgumentException
-		    format: @"%@ null selector given",
-	    NSStringFromSelector(_cmd)];
-	}
       return NO;
     }
 
@@ -2225,14 +2196,13 @@ static id gs_weak_load(id obj)
 /**
  * Sets the version number of the receiving class.  Should be nonnegative.
  */
-+ (id) setVersion: (NSInteger)aVersion
++ (void) setVersion: (NSInteger)aVersion
 {
   if (aVersion < 0)
     [NSException raise: NSInvalidArgumentException
 	        format: @"%s +setVersion: may not set a negative version",
 			GSClassNameFromObject(self)];
   class_setVersion(self, aVersion);
-  return self;
 }
 
 /**

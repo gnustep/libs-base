@@ -1,11 +1,33 @@
-/**
- * NSJSONSerialization.m.  This file provides an implementation of the JSON
- * reading and writing APIs introduced with OS X 10.7.  
- *
- * The parser is implemented as a simple recursive parser.  The JSON is
- * unambiguous, so this requires no read-ahead or backtracking.  The source of
- * data for the parse can be either a static JSON string or some JSON data.
- */
+/** Implementation of class NSJSONSerialization
+   Copyright (C) 2011-2021 Free Software Foundation, Inc.
+
+   NSJSONSerialization.m.  This file provides an implementation of the JSON
+   reading and writing APIs introduced with OS X 10.7.
+
+   The parser is implemented as a simple recursive parser.  The JSON is
+   unambiguous, so this requires no read-ahead or backtracking.  The source of
+   data for the parse can be either a static JSON string or some JSON data.
+
+   By: David Chisnall <github@theravensnest.org>
+   Date: Jul 2011
+
+   This file is part of the GNUstep Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110 USA.
+*/
 
 #import "common.h"
 #import "Foundation/NSArray.h"
@@ -91,8 +113,8 @@ typedef struct ParserStateStruct
 static inline void
 updateStringBuffer(ParserState* state)
 {
-  NSRange r = {state->sourceIndex, BUFFER_SIZE};
-  NSUInteger end = [state->source length];
+  NSRange	r = {state->sourceIndex, BUFFER_SIZE};
+  NSUInteger	end = [state->source length];
 
   if (end - state->sourceIndex < BUFFER_SIZE)
     {
@@ -255,6 +277,7 @@ updateStreamBuffer(ParserState* state)
   // Just use the string buffer fetch function to actually get the data
   state->source = str;
   updateStringBuffer(state);
+  RELEASE(str);
   state->source = stream;
 }
 
@@ -318,7 +341,7 @@ parseError(ParserState *state)
   state->error = [NSError errorWithDomain: NSCocoaErrorDomain
                                      code: 0
                                  userInfo: userInfo];
-  [userInfo release];
+  RELEASE(userInfo);
 }
 
 
@@ -391,20 +414,36 @@ parseString(ParserState *state)
       buffer[bufferIndex++] = next;
       if (bufferIndex >= BUFFER_SIZE)
         {
-          NSMutableString *str;
+          NSMutableString 	*str;
+	  int			len = bufferIndex;
 
-          str = [[NSMutableString alloc] initWithCharacters: buffer
-						     length: bufferIndex];
 	  bufferIndex = 0;
-          if (nil == val)
-            {
-              val = str;
-            }
-          else
-            {
-              [val appendString: str];
-              [str release];
-            }
+          if (next < 0xd800 || next > 0xdbff)
+	    {
+	      str = [[NSMutableString alloc] initWithCharacters: buffer
+							 length: len];
+	    }
+	  else
+	    {
+	      /* The most recent unicode character is the first half of a
+	       * surrogate pair, so we need to defer it to the next chunk  
+	       * to make sure the whole unicode character is in the same
+	       * string (otherwise we would have an invalid string).
+	       */
+	      len--;
+	      str = [[NSMutableString alloc] initWithCharacters: buffer
+							 length: len];
+	      buffer[bufferIndex++] = next;
+	    }
+	  if (nil == val)
+	    {
+	      val = str;
+	    }
+	  else
+	    {
+	      [val appendString: str];
+	      RELEASE(str);
+	    }
         }
       next = consumeChar(state);
     }
@@ -436,15 +475,18 @@ parseString(ParserState *state)
     {
       val = [NSMutableString new];
     }
+  // Consume the trailing "
+  consumeChar(state);
   if (!state->mutableStrings)
     {
       if (NO == [val makeImmutable])
         {
-          val = [val copy];
+	  NSMutableString	*m = val;
+
+          val = [m copy];
+	  RELEASE(m);
         }
     }
-  // Consume the trailing "
-  consumeChar(state);
   return val;
 }
 
@@ -511,10 +553,9 @@ parseNumber(ParserState *state)
           if (number != numberBuffer)
             {
               free(number);
-              number = numberBuffer;
             }
-            parseError(state);
-            return nil;
+	  parseError(state);
+	  return nil;
         }
       BUFFER(c);
       while (isdigit(c = consumeChar(state)))
@@ -1040,6 +1081,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
 	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
 				       code: 0
 				   userInfo: userInfo];
+	  RELEASE(userInfo);
 	}
     }
   [str release];
@@ -1098,6 +1140,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
                                               encoding: p.enc
                                           freeWhenDone: NO];
       updateStringBuffer(&p);
+      RELEASE(p.source);
       /* Negative source index because we are before the
        * current point in the buffer
        */

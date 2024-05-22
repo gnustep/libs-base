@@ -113,6 +113,19 @@ DEFINE_BLOCK_TYPE(GSIndexSetEnumerationBlock, void, NSUInteger, BOOL*);
 
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST)
+DEFINE_BLOCK_TYPE(GSIndexSetRangeEnumerationBlock, void, NSRange, BOOL*);
+
+- (void) enumerateRangesInRange: (NSRange)range 
+                        options: (NSEnumerationOptions)opts 
+                     usingBlock: (GSIndexSetRangeEnumerationBlock)aBlock;
+
+- (void) enumerateRangesUsingBlock: (GSIndexSetRangeEnumerationBlock)aBlock;
+
+- (void) enumerateRangesWithOptions: (NSEnumerationOptions)opts 
+                         usingBlock: (GSIndexSetRangeEnumerationBlock)aBlock;
+#endif
+
 /**
  * Returns the first index value in the receiver or NSNotFound if the
  * receiver is empty.

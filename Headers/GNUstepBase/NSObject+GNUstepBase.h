@@ -52,7 +52,7 @@ extern "C" {
 */
 - (NSComparisonResult) compare: (id)anObject;
 
-/** For backward compatibility only ... use class_isMetaClass() on the
+/** For backward compatibility only ... use "class_isMetaClass()" on the
  * class of the receiver instead.
  */
 - (BOOL) isInstance;
@@ -112,9 +112,9 @@ extern "C" {
 @end
 
 /** This is an informal protocol; classes may implement the
- * +contentSizeOf:declaredIn:excluding: method to report how much memory
+ * +contentSizeOf:excluding: method to report how much memory
  * is used by any objects/pointers it acts as a container for.<br />
- * Code may call the -sizeInBytesExcluding: or -sizeinBytes method to
+ * Code may call the -sizeInBytesExcluding: or -sizeInBytes method to
  * determine how much heap memory an object (and its content) occupies.
  */
 @interface      NSObject(MemoryFootprint)
@@ -186,7 +186,7 @@ extern "C" {
  * is immutable or if locking is used to prevent mutation while calculating
  * content size).<br />
  * Subclasses may use the +contentSizeOf:excluding: method as a convenience
- * to provide the sizes of object instnce variables.
+ * to provide the sizes of object instance variables.
  */
 - (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude;
 
@@ -271,9 +271,9 @@ extern "C" {
 + (BOOL) registerAtExit: (SEL)aSelector;
 
 /** Specifies the default cleanup behavior on process exit ... the value
- * returned by the NSObject implementation of the +shouldClanUp method.<br />
- * Calling this method with a YES argument implicitly calls the +enableAtExit
- * method as well.<br />
+ * returned by the NSObject implementation of the +shouldCleanUp method.<br />
+ * Calling this method with a YES argument implicitly enables the support for
+ * cleanup at exit.<br />
  * The GNUstep Base library calls this method with the value obtained from
  * the GNUSTEP_SHOULD_CLEAN_UP environment variable when NSObject is
  * initialised.

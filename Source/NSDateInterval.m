@@ -1,4 +1,4 @@
-/* Implementation of class NSDateInterval
+/** Implementation of class NSDateInterval
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    By: Gregory Casamento <greg.casamento@gmail.com>
@@ -22,10 +22,10 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSDateInterval.h>
-#include <Foundation/NSDate.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSException.h>
+#import "Foundation/NSDateInterval.h"
+#import "Foundation/NSDate.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSException.h"
 
 @implementation NSDateInterval
 

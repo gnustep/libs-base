@@ -22,7 +22,7 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSObjectScripting.h>
+#import "Foundation/NSObjectScripting.h"
 
 @implementation NSObjectScripting
 

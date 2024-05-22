@@ -102,13 +102,13 @@ gdnc_log (int prio, const char *ebuf)
     }
   else if (prio == LOG_INFO)
     {
-      write (1, ebuf, strlen (ebuf));
-      write (1, "\n", 1);
+      fprintf (stdout, "%s\n", ebuf);
+      fflush (stdout);
     }
   else
     {
-      write (2, ebuf, strlen (ebuf));
-      write (2, "\n", 1);
+      fprintf (stderr, "%s\n", ebuf);
+      fflush (stderr);
     }
 
   if (prio == LOG_CRIT)
@@ -493,7 +493,7 @@ ihandler(int sig)
     {
       if ([conn registerName: service withNameServer: ns] == NO)
 	{
-	  NSLog(@"gdnc - unable to register with name server as %@ - quiting.",
+	  NSLog(@"gdnc - unable to register with name server as %@ - quitting.",
 	    service);
 	  DESTROY(self);
 	  return self;
@@ -508,7 +508,7 @@ ihandler(int sig)
 
       if (host == nil)
 	{
-	  NSLog(@"gdnc - unknown NSHost argument  ... %@ - quiting.", hostname);
+	  NSLog(@"gdnc - unknown NSHost argument  ... %@ - quitting.", hostname);
 	  DESTROY(self);
 	  return self;
 	}

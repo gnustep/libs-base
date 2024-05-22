@@ -1,4 +1,4 @@
-/* Definition of class NSByteCountFormatter
+/** Definition of class NSByteCountFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    Written by: 	Gregory Casamento <greg.casamento@gmail.com>

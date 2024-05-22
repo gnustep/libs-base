@@ -1,4 +1,4 @@
-/* Interface for NSXMLDTD for GNUStep
+/**Interface for NSXMLDTD for GNUStep
    Copyright (C) 2008 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>

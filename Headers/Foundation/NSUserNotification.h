@@ -1,4 +1,4 @@
-/* Interface for NSUserNotification for GNUstep
+/**Interface for NSUserNotification for GNUstep
    Copyright (C) 2014 Free Software Foundation, Inc.
 
    Written by:  Marcus Mueller <znek@mulle-kybernetik.com>

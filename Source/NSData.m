@@ -643,7 +643,15 @@ failure:
 {
   NSData	*d;
 
-  d = [url resourceDataUsingCache: YES];
+  if ([url isFileURL])
+    {
+      d = [dataMalloc allocWithZone: NSDefaultMallocZone()];
+      d = AUTORELEASE([d initWithContentsOfFile: [url path]]);
+    }
+  else
+    {
+      d = [url resourceDataUsingCache: YES];
+    }
   return d;
 }
 
@@ -955,9 +963,15 @@ failure:
  */
 - (id) initWithContentsOfURL: (NSURL*)url
 {
-  NSData	*data = [url resourceDataUsingCache: YES];
-
-  return [self initWithData: data];
+  if ([url isFileURL])
+    {
+      return [self initWithContentsOfFile: [url path]];
+    }
+  else
+    {
+      NSData *data = [url resourceDataUsingCache: YES];
+      return [self initWithData: data];
+    }
 }
 
 /**
@@ -1997,9 +2011,13 @@ failure:
           NSWarnMLog(@"mkstemp (%s) failed - %@", thePath, [NSError _last]);
           goto failure;
 	}
+      /* Created writable files are supposed to only have read and/or
+       * write set (no execute) according to Apple documentation.
+       * They should honor the setting specified by umask though.
+       */
       mask = umask(0);
       umask(mask);
-      fchmod(desc, 0644 & ~mask);
+      fchmod(desc, 0666 & ~mask);
       if ((theFile = fdopen(desc, "w")) == 0)
 	{
 	  close(desc);
@@ -2359,11 +2377,18 @@ failure:
 + (id) dataWithContentsOfURL: (NSURL*)url
 {
   NSMutableData	*d;
-  NSData	*data;
 
   d = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
-  data = [url resourceDataUsingCache: YES];
-  d = [d initWithBytes: [data bytes] length: [data length]];
+
+  if ([url isFileURL])
+    {
+      d = [d initWithContentsOfFile: [url path]];
+    }
+  else
+    {
+      NSData *data = [url resourceDataUsingCache: YES];
+      d = [d initWithBytes: [data bytes] length: [data length]];
+    }
   return AUTORELEASE(d);
 }
 
@@ -4437,7 +4462,8 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 {
   if (deallocator != NULL)
     {
-      CALL_NON_NULL_BLOCK(((GSDataDeallocatorBlock)deallocator), bytes, capacity);
+      CALL_NON_NULL_BLOCK(((GSDataDeallocatorBlock)deallocator),
+	bytes, capacity);
       // Clear out the ivars so that super doesn't double free.
       bytes = NULL;
       length = 0;
@@ -4467,8 +4493,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	  memcpy(tmp, bytes, capacity < size ? capacity : size);
 	  if (deallocator != NULL)
 	    {
-          CALL_NON_NULL_BLOCK(((GSDataDeallocatorBlock)deallocator), bytes, capacity);
-          DESTROY(deallocator);
+	      CALL_NON_NULL_BLOCK(((GSDataDeallocatorBlock)deallocator),
+		bytes, capacity);
+	      DESTROY(deallocator);
 	      zone = NSDefaultMallocZone();
 	    }
 	  else
@@ -4478,8 +4505,9 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
 	}
       else if (deallocator != NULL)
 	{
-      CALL_NON_NULL_BLOCK(((GSDataDeallocatorBlock)deallocator), bytes, capacity);
-      DESTROY(deallocator);
+	  CALL_NON_NULL_BLOCK(((GSDataDeallocatorBlock)deallocator),
+	    bytes, capacity);
+	  DESTROY(deallocator);
 	  zone = NSDefaultMallocZone();
 	}
       bytes = tmp;

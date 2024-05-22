@@ -1553,22 +1553,28 @@ GSInitializeProcess(int argc, char **argv, char **envp)
 }
 
 #ifdef __ANDROID__
+static NSString *
+_NSStringFromJString(JNIEnv *env, jstring jstr)
+{
+  const jchar *unichars = (*env)->GetStringChars(env, jstr, NULL);
+  jsize len = (*env)->GetStringLength(env, jstr);
+  NSString *result = [NSString stringWithCharacters:unichars length:len];
+  (*env)->ReleaseStringChars(env, jstr, unichars);
+  return result;
+}
+
 void
 GSInitializeProcessAndroid(JNIEnv *env, jobject context)
 {
-  [NSProcessInfo class];
-
-  // create global reference to to prevent garbage collection
-  _androidContext = (*env)->NewGlobalRef(env, context);
+  jclass contextCls = (*env)->GetObjectClass(env, context);
 
   // get package code path (path to APK)
-  jclass cls = (*env)->GetObjectClass(env, context);
-  jmethodID packageCodePathMethod = (*env)->GetMethodID(env, cls, "getPackageCodePath", "()Ljava/lang/String;");
+  jmethodID packageCodePathMethod = (*env)->GetMethodID(env, contextCls, "getPackageCodePath", "()Ljava/lang/String;");
   jstring packageCodePathJava = (*env)->CallObjectMethod(env, context, packageCodePathMethod);
   const char *packageCodePath = (*env)->GetStringUTFChars(env, packageCodePathJava, NULL);
 
   // get package name
-  jmethodID packageNameMethod = (*env)->GetMethodID(env, cls, "getPackageName", "()Ljava/lang/String;");
+  jmethodID packageNameMethod = (*env)->GetMethodID(env, contextCls, "getPackageName", "()Ljava/lang/String;");
   jstring packageNameJava = (*env)->CallObjectMethod(env, context, packageNameMethod);
   const char *packageName = (*env)->GetStringUTFChars(env, packageNameJava, NULL);
 
@@ -1582,45 +1588,82 @@ GSInitializeProcessAndroid(JNIEnv *env, jobject context)
   char *arg0;
   asprintf(&arg0, "%.*s/%s", (int)(lastSlash - packageCodePath), packageCodePath, packageName);
 
+
+  // get current locale
+  jclass localeCls = (*env)->FindClass(env, "java/util/Locale");
+  jmethodID localeDefaultMethod = (*env)->GetStaticMethodID(env, localeCls, "getDefault", "()Ljava/util/Locale;");
+  jmethodID localeIdMethod = (*env)->GetMethodID(env, localeCls, "toLanguageTag", "()Ljava/lang/String;");
+  jobject localeObj = (*env)->CallStaticObjectMethod(env, localeCls, localeDefaultMethod);
+  jstring localeIdJava = (*env)->CallObjectMethod(env, localeObj, localeIdMethod);
+  const char *localeIdOrig = (*env)->GetStringUTFChars(env, localeIdJava, NULL);
+
+  // Android uses dashes as delimiters (e.g "en-US"), but we expect underscores
+  char *localeId = strdup(localeIdOrig);
+  for (int i = 0; localeId[i]; i++) {
+    if (localeId[i] == '-') {
+      localeId[i] = '_';
+    }
+  }
+
+  // get current time zone
+  jclass timezoneCls = (*env)->FindClass(env, "java/util/TimeZone");
+  jmethodID timezoneDefaultMethod = (*env)->GetStaticMethodID(env, timezoneCls, "getDefault", "()Ljava/util/TimeZone;");
+  jmethodID timezoneIdMethod = (*env)->GetMethodID(env, timezoneCls, "getID", "()Ljava/lang/String;");
+  jobject timezoneObj = (*env)->CallStaticObjectMethod(env, timezoneCls, timezoneDefaultMethod);
+  jstring timezoneIdJava = (*env)->CallObjectMethod(env, timezoneObj, timezoneIdMethod);
+  const char *timezoneId = (*env)->GetStringUTFChars(env, timezoneIdJava, NULL);
+
+  // initialize process with these options
+  char *argv[] = {
+    arg0,
+    "-Locale", localeId,
+    "-Local Time Zone", (char *)timezoneId,
+    "-GSLogSyslog", "YES" // use syslog (available via logcat) instead of stdout/stderr (not available on Android)
+  };
+
+  GSInitializeProcessAndroidWithArgs(env, context, sizeof(argv)/sizeof(char *), argv, NULL);
+
+  free(arg0);
   (*env)->ReleaseStringUTFChars(env, packageCodePathJava, packageCodePath);
   (*env)->ReleaseStringUTFChars(env, packageNameJava, packageName);
+  (*env)->ReleaseStringUTFChars(env, localeIdJava, localeId);
+  (*env)->ReleaseStringUTFChars(env, timezoneIdJava, timezoneId);
+}
+
+void
+GSInitializeProcessAndroidWithArgs(JNIEnv *env, jobject context, int argc, char **argv, char **envp)
+{
+  [NSProcessInfo class];
+
+  // create global reference to to prevent garbage collection
+  _androidContext = (*env)->NewGlobalRef(env, context);
 
   // initialize process
   [procLock lock];
   fallbackInitialisation = YES;
-  char *argv[] = {
-    arg0,
-    "-GSLogSyslog", "YES" // use syslog (available via logcat) instead of stdout/stderr (not available on Android)
-  };
-  _gnu_process_args(sizeof(argv)/sizeof(char *), argv, NULL);
+  _gnu_process_args(argc, argv, NULL);
   [procLock unlock];
 
-  free(arg0);
+  jclass contextCls = (*env)->GetObjectClass(env, context);
 
   // get File class and path method
   jclass fileCls = (*env)->FindClass(env, "java/io/File");
   jmethodID getAbsolutePathMethod = (*env)->GetMethodID(env, fileCls, "getAbsolutePath", "()Ljava/lang/String;");
 
   // get Android files dir
-  jmethodID filesDirMethod = (*env)->GetMethodID(env, cls, "getFilesDir", "()Ljava/io/File;");
+  jmethodID filesDirMethod = (*env)->GetMethodID(env, contextCls, "getFilesDir", "()Ljava/io/File;");
   jobject filesDirObj = (*env)->CallObjectMethod(env, context, filesDirMethod);
   jstring filesDirJava = (*env)->CallObjectMethod(env, filesDirObj, getAbsolutePathMethod);
-	const jchar *filesDirUnichars = (*env)->GetStringChars(env, filesDirJava, NULL);
-  jsize filesDirLength = (*env)->GetStringLength(env, filesDirJava);
-  _androidFilesDir = [NSString stringWithCharacters:filesDirUnichars length:filesDirLength];
-  (*env)->ReleaseStringChars(env, filesDirJava, filesDirUnichars);
+  _androidFilesDir = _NSStringFromJString(env, filesDirJava);
 
   // get Android cache dir
-  jmethodID cacheDirMethod = (*env)->GetMethodID(env, cls, "getCacheDir", "()Ljava/io/File;");
+  jmethodID cacheDirMethod = (*env)->GetMethodID(env, contextCls, "getCacheDir", "()Ljava/io/File;");
   jobject cacheDirObj = (*env)->CallObjectMethod(env, context, cacheDirMethod);
   jstring cacheDirJava = (*env)->CallObjectMethod(env, cacheDirObj, getAbsolutePathMethod);
-	const jchar *cacheDirUnichars = (*env)->GetStringChars(env, cacheDirJava, NULL);
-  jsize cacheDirLength = (*env)->GetStringLength(env, cacheDirJava);
-  _androidCacheDir = [NSString stringWithCharacters:cacheDirUnichars length:cacheDirLength];
-  (*env)->ReleaseStringChars(env, cacheDirJava, cacheDirUnichars);
+  _androidCacheDir = _NSStringFromJString(env, cacheDirJava);
 
   // get asset manager and initialize NSBundle
-  jmethodID assetManagerMethod = (*env)->GetMethodID(env, cls, "getAssets", "()Landroid/content/res/AssetManager;");
+  jmethodID assetManagerMethod = (*env)->GetMethodID(env, contextCls, "getAssets", "()Landroid/content/res/AssetManager;");
   jstring assetManagerJava = (*env)->CallObjectMethod(env, context, assetManagerMethod);
   [NSBundle setJavaAssetManager:assetManagerJava withJNIEnv:env];
 

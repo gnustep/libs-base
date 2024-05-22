@@ -22,7 +22,7 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSHFSFileTypes.h>
+#import "Foundation/NSHFSFileTypes.h"
 
 GS_DECLARE NSString *NSFileTypeForHFSTypeCode(NSUInteger hfsFileTypeCode)
 {

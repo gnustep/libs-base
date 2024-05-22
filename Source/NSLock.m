@@ -36,6 +36,7 @@
 #import "GSPrivate.h"
 #import "GSPThread.h"
 #include <math.h>
+#include <stdlib.h>
 
 #import "common.h"
 
@@ -247,8 +248,16 @@ static BOOL     traceLocks = NO;
 {\
   if (0 != GS_MUTEX_UNLOCK(_mutex))\
     {\
-      [NSException raise: NSLockException\
-	    format: @"failed to unlock mutex"];\
+      if (GSPrivateDefaultsFlag(GSMacOSXCompatible))\
+	{\
+          NSLog(@"Failed to unlock mutex %@ at %@",\
+	    self, [NSThread callStackSymbols]);\
+	}\
+      else \
+	{\
+          [NSException raise: NSLockException\
+		      format: @"failed to unlock mutex %@", self];\
+	}\
     }\
   CHK(Drop) \
 }
@@ -897,6 +906,26 @@ MUNLOCK
 }
 @end
 
+/* Return a global recursive lock
+ */
+NSRecursiveLock *
+GSPrivateGlobalLock()
+{
+  static NSRecursiveLock	*lock = nil;
+
+  if (nil == lock)
+    {
+      static gs_mutex_t	lockLock = GS_MUTEX_INIT_STATIC;
+
+      GS_MUTEX_LOCK(lockLock);
+      if (nil == lock)
+	{
+	  lock = [GSUntracedRecursiveLock new];
+	}
+      GS_MUTEX_UNLOCK(lockLock);
+    }
+  return lock;
+}
 
 /*
  * Pthread-like locking primitives using Windows SRWLock. Provides
@@ -1058,4 +1087,7 @@ gs_cond_wait(gs_cond_t *cond, gs_mutex_t *mutex)
 }
 
 #endif /* GS_USE_WIN32_THREADS_AND_LOCKS */
+
+/** </ignore>
+ */
 

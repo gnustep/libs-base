@@ -1,4 +1,4 @@
-/* Definition of class NSMeasurementFormatter
+/**Definition of class NSMeasurementFormatter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    By: Gregory John Casamento <greg.casamento@gmail.com>

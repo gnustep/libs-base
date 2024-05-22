@@ -103,11 +103,6 @@
 + (BOOL) _exists: (int)pid;
 @end
 
-/*
- * Largest chunk of data possible in DO
- */
-static uint32_t	maxDataLength = 32 * 1024 * 1024;
-
 #if 0
 #define	M_LOCK(X) {NSDebugMLLog(@"NSMessagePort",@"lock %@",X); [X lock];}
 #define	M_UNLOCK(X) {NSDebugMLLog(@"NSMessagePort",@"unlock %@",X); [X unlock];}
@@ -414,7 +409,9 @@ static Class	runLoopClass;
 
   if (connect(desc, (struct sockaddr*)&sockAddr, SUN_LEN(&sockAddr)) < 0)
     {
-      if (!GSWOULDBLOCK)
+      long	eno = GSNETERROR;
+
+      if (!GSWOULDBLOCK(eno))
 	{
 	  NSLog(@"unable to make connection to %s - %@",
 	    sockAddr.sun_path, [NSError _last]);
@@ -580,15 +577,20 @@ static Class	runLoopClass;
       else
 	{
 	  want = [rData length];
-	  if (want < rWant)
+	  if (want < MAX(rWant, NETBLOCK))
 	    {
-	      want = rWant;
-	      [rData setLength: want];
-	    }
-	  if (want < NETBLOCK)
-	    {
-	      want = NETBLOCK;
-	      [rData setLength: want];
+	      want = MAX(rWant, NETBLOCK);
+	      NS_DURING
+		{
+		  [rData setLength: want];
+		}
+	      NS_HANDLER
+		{
+		  M_UNLOCK(myLock);
+		  [self invalidate];
+		  [localException raise];
+		}
+	      NS_ENDHANDLER
 	    }
 	}
 
@@ -682,14 +684,6 @@ static Class	runLoopClass;
 			}
 		      else
 			{
-			  if (l > maxDataLength)
-			    {
-			      NSLog(@"%@ - unreasonable length (%u) for data",
-				self, l);
-			      M_UNLOCK(myLock);
-			      [self invalidate];
-			      return;
-			    }
 			  /*
 			   * If not a port or zero length data,
 			   * we discard the data read so far and fill the
@@ -705,14 +699,6 @@ static Class	runLoopClass;
 		    }
 		  else if (rType == GSP_HEAD)
 		    {
-		      if (l > maxDataLength)
-			{
-			  NSLog(@"%@ - unreasonable length (%u) for data",
-			    self, l);
-			  M_UNLOCK(myLock);
-			  [self invalidate];
-			  return;
-			}
 		      /*
 		       * If not a port or zero length data,
 		       * we discard the data read so far and fill the

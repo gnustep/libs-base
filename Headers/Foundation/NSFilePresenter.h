@@ -1,9 +1,9 @@
-/* Definition of class NSFilePresenter
+/** Definition of class NSFilePresenter
    Copyright (C) 2019 Free Software Foundation, Inc.
    
-   Implemented by: 	Gregory Casamento <greg.casamento@gmail.com>
+   Written by: 	Gregory Casamento <greg.casamento@gmail.com>
    Date: 	Sep 2019
-   Original File by: Daniel Ferreira
+   Written by: Daniel Ferreira
 
    This file is part of the GNUstep Library.
    

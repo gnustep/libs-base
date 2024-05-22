@@ -51,12 +51,14 @@ handleEasyCode(int code)
 static size_t
 curl_write_function(char *data, size_t size, size_t nmemb, void *userdata) 
 {
+  GSEasyHandle	*handle;
+
   if (!userdata)
     {
       return 0;
     }
 
-  GSEasyHandle *handle = (GSEasyHandle*)userdata;
+  handle = (GSEasyHandle*)userdata;
   
   [handle resetTimer]; //FIXME should be deffered after the function returns?
 
@@ -66,12 +68,14 @@ curl_write_function(char *data, size_t size, size_t nmemb, void *userdata)
 static size_t
 curl_read_function(char *data, size_t size, size_t nmemb, void *userdata) 
 {
+  GSEasyHandle	*handle;
+
   if (!userdata)
     {
       return 0;
     }
 
-  GSEasyHandle *handle = (GSEasyHandle*)userdata;
+  handle = (GSEasyHandle*)userdata;
    
   [handle resetTimer]; //FIXME should be deffered after the function returns?
 
@@ -81,13 +85,15 @@ curl_read_function(char *data, size_t size, size_t nmemb, void *userdata)
 size_t
 curl_header_function(char *data, size_t size, size_t nmemb, void *userdata) 
 {
+  GSEasyHandle	*handle;
+  double	length;
+
   if (!userdata)
     {
       return 0;
     }
 
-  GSEasyHandle *handle = (GSEasyHandle*)userdata;
-  double length;
+  handle = (GSEasyHandle*)userdata;
 
   [handle resetTimer]; //FIXME should be deffered after the function returns?
 
@@ -103,12 +109,14 @@ curl_header_function(char *data, size_t size, size_t nmemb, void *userdata)
 static int
 curl_seek_function(void *userdata, curl_off_t offset, int origin) 
 {
+  GSEasyHandle	*handle;
+
   if (!userdata)
     {
       return CURL_SEEKFUNC_FAIL;
     }
 
-  GSEasyHandle *handle = (GSEasyHandle*)userdata;
+  handle = (GSEasyHandle*)userdata;
   
   return [handle seekInputStreamWithOffset: offset origin: origin];
 }
@@ -117,6 +125,12 @@ static int
 curl_debug_function(CURL *handle, curl_infotype type, char *data,
   size_t size, void *userptr) 
 {
+  NSURLSessionTask      *task;
+  NSString              *text;
+  NSURLRequest          *o;
+  NSURLRequest          *r;
+  id<GSLogDelegate>     d;
+
   if (!userptr)
     {
       return 0;
@@ -127,11 +141,11 @@ curl_debug_function(CURL *handle, curl_infotype type, char *data,
       return 0; // Don't log encrypted data here
     }
 
-  NSURLSessionTask      *task = (NSURLSessionTask*)userptr;
-  NSString              *text = @"";
-  NSURLRequest          *o = [task originalRequest];
-  NSURLRequest          *r = [task currentRequest];
-  id<GSLogDelegate>     d = [(nil == r ? o : r) _debugLogDelegate];
+  task = (NSURLSessionTask*)userptr;
+  text = @"";
+  o = [task originalRequest];
+  r = [task currentRequest];
+  d = [(nil == r ? o : r) _debugLogDelegate];
 
   if (d != nil)
     {
@@ -177,10 +191,12 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
 {
   if (nil != (self = [super init])) 
     {
+      char	*eb;
+
       _rawHandle = curl_easy_init();
       _delegate = delegate;
 
-      char *eb = (char *)malloc(sizeof(char) * (CURL_ERROR_SIZE + 1));
+      eb = (char *)malloc(sizeof(char) * (CURL_ERROR_SIZE + 1));
       _errorBuffer = memset(eb, 0, sizeof(char) * (CURL_ERROR_SIZE + 1));
       
       [self setupCallbacks];
@@ -315,6 +331,10 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
       {
         return NSURLErrorTimedOut;
       }
+    else if (easyCode == CURLE_COULDNT_CONNECT) 
+      {
+        return NSURLErrorCannotConnectToHost;
+      }
     else if (easyCode == CURLE_OPERATION_TIMEDOUT) 
       {
         return NSURLErrorTimedOut;
@@ -407,8 +427,9 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
 {
   if (nil != host) 
     {
-      NSString *originHost = [_URL host];
-      NSString *value = nil;
+      NSString		*originHost = [_URL host];
+      NSString		*value;
+      struct curl_slist	*connect_to;
 
       if (0 == port)
         {
@@ -420,7 +441,6 @@ curl_socket_function(void *userdata, curl_socket_t fd, curlsocktype type)
             originHost, (unsigned long)port, host];
         }
       
-      struct curl_slist *connect_to = NULL;
       connect_to = curl_slist_append(NULL, [value UTF8String]);
       handleEasyCode(
 	curl_easy_setopt(_rawHandle, CURLOPT_CONNECT_TO, connect_to));

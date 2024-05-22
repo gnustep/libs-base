@@ -1,5 +1,4 @@
-
-/* Definition of class NSScriptStandardSuiteCommands
+/**Definition of class NSScriptStandardSuiteCommands
    Copyright (C) 2019 Free Software Foundation, Inc.
    
    By: Gregory John Casamento <greg.casamento@gmail.com>

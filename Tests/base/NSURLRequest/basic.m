@@ -8,6 +8,7 @@ int main()
   NSURLRequest          *request;
   NSMutableURLRequest   *mutable;
   NSURL                 *httpURL, *foobarURL;
+  NSDictionary          *expected;
 
   httpURL = [NSURL URLWithString: @"http://www.gnustep.org"];
   foobarURL = [NSURL URLWithString: @"foobar://localhost/madeupscheme"];
@@ -43,6 +44,15 @@ int main()
   [mutable addValue: @"value2" forHTTPHeaderField: @"gnustep"];
   PASS_EQUAL([mutable valueForHTTPHeaderField: @"gnustep"], (@"value1,value2"),
     "Handle multiple values for an HTTP header field");
+  [mutable setAllHTTPHeaderFields: [NSDictionary dictionaryWithObject: @"object" forKey: @"key"]];
+  expected = [NSDictionary dictionaryWithObjectsAndKeys:@"object", @"key", @"value1,value2", @"gnustep", nil];
+  PASS_EQUAL([mutable allHTTPHeaderFields], expected, "setAllHTTPHeaderFields adds header");
+  [mutable setValue: @"value3" forHTTPHeaderField: @"gnustep"];
+  expected = [NSDictionary dictionaryWithObjectsAndKeys:@"object", @"key", @"value3", @"gnustep", nil];
+  PASS_EQUAL([mutable allHTTPHeaderFields], expected, "Update header field");
+  [mutable setValue: nil forHTTPHeaderField: @"gnustep"];
+  expected = [NSDictionary dictionaryWithObjectsAndKeys:@"object", @"key", nil];
+  PASS_EQUAL([mutable allHTTPHeaderFields], expected, "Remove header field");
   [mutable release];
 
   mutable = [NSMutableURLRequest new];

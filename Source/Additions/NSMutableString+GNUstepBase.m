@@ -279,7 +279,6 @@
 	    withString: (NSString*)by
 {
   NSRange       range;
-  unsigned int  count = 0;
   unsigned int	newEnd;
   NSRange	searchRange;
 
@@ -303,7 +302,6 @@
 
       do
         {
-          count++;
           [self replaceCharactersInRange: range
                               withString: by];
 

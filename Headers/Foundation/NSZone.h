@@ -93,7 +93,7 @@ GS_EXPORT NSZone*
 NSCreateZone (NSUInteger start, NSUInteger gran, BOOL canFree);
 
 /** Returns the default zone for memory allocation.  Memory created in this
- * zone is the same as memory allocates using the system malloc() function.
+ * zone is the same as memory allocates using the system malloc function.
  */
 GS_EXPORT NSZone*
 NSDefaultMallocZone (void);

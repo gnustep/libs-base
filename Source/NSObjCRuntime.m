@@ -22,7 +22,6 @@
    Boston, MA 02110 USA.
 
    <title>NSObjCRuntime class reference</title>
-   $Date$ $Revision$
    */
 
 #import "common.h"

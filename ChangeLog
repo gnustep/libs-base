@@ -1,3 +1,429 @@
+2024-04-29  Doug Simons <douglas.simons@keysight.com>
+
+    * NSXMLNode.m:
+       Fix execute_xpath() to return an NSError when xpath expression can't
+	   be evaluated instead of just calling NSLog.
+       	   
+    * NSXMLElement.m: 
+	   Fix setAttributes: and setAttributesWithDictionary: to remove previous
+	   attributes.
+
+2024-05-12 ethanc8R (github user)
+
+	* Headers/Foundation/NSRegularExpression.h:
+	* Headers/Foundation/NSString.h:
+	* Source/NSRegularExpression.m:
+	* Source/NSString.m:
+	* Tests/base/NSString/enumerateSubstringsInRange.m:
+	Added regular expression search methods.
+
+2024-05-08 Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSIndexSet.m:
+	* Tests/base/NSIndexSet/enumerateRanges.m:
+	Implement enumerateRangesInRange convenience methods
+	and tests.
+
+2024-05-07 Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSURLSession.m:
+	_NSURLProtocolClient did not call completion handlers
+	in task:didFailWithError:.
+	Removed extraneous runtime calls.
+
+2024-04-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSPrivate.h:
+	* Source/NSLock.m:
+	* Source/NSPathUtilities.m:
+	Fix for bug #399 ... the problem occurred becaause gnustep_global_lock
+	does not exist until +initialize is called on NSObject so in the path
+	utilities function the -lock message as sent to nil and the -unlock
+	message as sent to the lock.
+	The change adds a new GSPrivateGlobalLock() function to reliably return
+	a recursive lock, and alters the NSPathUtilities code to use it instead
+	of gnustep_global_lock (we should probably do that elsewhere too).
+
+2024-04-15 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSObject.m: add +[NSObject _TrivialAllocInit] to enable
+	fast-path alloc / init methods with libobjc2 2.2.
+
+2024-04-02 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLSession.m: fix for #385
+
+2024-03-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m: Ensure class pointer is initialised
+	before use (git issue #381).
+
+2024-03-10 Hugo Melder <service@hugomelder.com>
+	* Headers/Foundation/NSDate.h:
+	* Source/NSDate.m:
+	Added the +[NSDate now] constructor, which was introduced in macOS 10.15.
+
+2024-03-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSJSONSerialization.m: Fix leak reported by Larry Campbell
+	git issue #377
+
+2024-02-20 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUserDefaults.m: Move posting of notification outside lock
+	protected region to avoid deadlock.
+
+2024-02-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSData.m: fix for #361
+
+2024-02-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m:
+	* Source/GSNetwork.h:
+	* Source/GSSocketStream.m:
+	* Source/GSStream.m:
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Improve handling of error responses from socket operations and tweak
+	behavior in windows to try to recognise end of connection more reliably.
+
+2024-02-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSError.m: Make -description and -localizedDescription formats
+
+2024-02-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSException.m: Prefer objc_set_unexpected() to the older
+	_objc_unexpected_exception for setting handler.  Should cure problem
+	where _objc_unexpected_exception exists in library but not header.
+
+2024-02-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSURLProtocol.h:
+	* Source/GSEasyHandle.m:
+	* Source/GSHTTPURLProtocol.m:
+	* Source/GSNativeProtocol.m:
+	* Source/NSURLProtocol.m:
+	* Source/NSURLSession.m:
+	Add +canInitWithTask: and altered code to differentiate between
+	protocols which can be used with NSURLConnection and those which
+	can be used with NSURLSession to fix #302
+
+2024-02-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSLocale.m: (+canonicalLocaleIdentifierFromString:)
+	Fix for #368 ... then check for presence of huphen...underscore script
+	identifier and delete it, as suggested by the existing comments.
+	Avoids the exception.
+	* Tests/base/NSLocale/general.m: Simple testcase
+
+2024-02-02 Richard Frith-Macdonald <rfm@gnu.org>
+
+	Source/NSString.m: Return empty string of correct class when loading
+	from an empty file or URL.
+	Source/Additions/GSMime.m: minor optimisation usng more efficient
+	method to append headers to mutable data object.
+
+2024-02-01 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSProcessInfo.m:
+	* Headers/Foundation/NSProcessInfo.h:
+	Initialize Android process with current locale and system time zone.
+
+2024-02-01 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSLocale.m: Fix -countryCode incorrectly returning language
+	code.
+
+2024-01-30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m:
+	* Source/GSPrivate.h:
+	* Source/GSSocketStream.m:
+	* Source/GSStream.m:
+	* Source/unix/GSRunLoopCtxt.m:
+	Make GSTcpTune options available to streams as well as file handles.
+	Improve debug logging for streasm operations.
+	Schedule streams in run loop on conclusion of TLS handshake (so we get
+	events telling us to start again after a blocked write).
+
+2024-01-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSOperation.m: patch for issue #366 by Larry Campbell.
+
+2024-01-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSJSONSerialization.m: Fix for issue #365 ... don't try to
+	create a string ending with the first half of a unicode surrogate pair.
+
+2024-01-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m: fix for memory leak should keep the
+	observer retained until removed.
+
+2023-12-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSParser.m: Replace GS_GENERIC macros in method types etc
+	with the basic type name.
+	* Tools/AGSIndex.h:
+	* Tools/AGSIndex.m: Create index of all authors in the project
+
+2023-12-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/objc-load.m:
+	* Source/GSPrivate.h:
+	In GSPrivateSymbolPath() check for dladdr returning argv[0] as the
+	file path, and map it to the path of the executable so bundle checks
+	for the location of the file containing the code can work consistently.
+
+2023-12-09: Hugo Melder <contact@hugomelder.com>
+
+	* Source/NSNull.m:
+	Implement valueForUndefinedKey: and always return the NSNull singleton
+	object.
+	* Tests/base/KVC/nsnull.m:
+	Test for various KVC interactions with NSNull.
+	* Tests/base/NSPredicate/nsnull.m:
+	Test if predicate evaluation on collections with NSNull objects works.
+
+2023-12-06 Daniel Boyd <danieljboyd@icloud.com>
+
+	* Source/NSDecimal.m:
+	For compare, handle the case where one or both operands are zero.
+	* Tests/base/NSNumber/test03.m: add tests
+
+2023-12-05 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSMessagePort.m:
+	* Source/NSSocketPort.m:
+	Remove obsolete restriction on DO message length.  Add exception handler
+	to invalidate port if we are unable to allocate more memory for a very
+	large port message.
+
+2023-11-23 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m:
+	* Source/GSPrivate.h:
+	* Headers/Foundation/NSBundle.m:
+	Make +bundleForLibrary:version: behavior match documenation.
+	Make +bundleForClass: call new private method to get library name
+	and version, warnign if version cannot be determined.
+	Mark +bundleForLibrary: as deprecated since we want a version.
+
+2023-11-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/objc-load.m: Fix to get library path in standardised form to
+	match code for getting executable path.
+
+2023-11-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSVersionMacros.h: Added GS_UNIMPLEMENTED to
+	mark methods and functions as unimplemented for compiler warnings
+	and documentation. github #350
+
+2023-11-14 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSURLRequest.m: Support deleting NSMutableURLRequest headers by
+	calling setValue:forHTTPHeaderField: with nil value.
+	* Headers/Foundation/NSURLRequest.h: Update method documentation.
+	* Tests/base/NSURLRequest/basic.m: Extended NSMutableURLRequest tests.
+
+2023-11-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Fix issue #292
+	* Tests/base/NSFileManager/general.m: test for enumerator at URL
+	* Source/NSNotificationCenter.m: fix indentation/style errors
+	* Headers/GNUstepBase/GSBlocks.h: Add new macros for calling blocks
+	which return a value.
+
+2023-11-14 Richard Frith-Macdonald <rfm@gnu.org> Riccardo Mottola <rm@gnu.org>
+
+	* Documentation/Base.gsdoc:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/install.texi:
+	* Headers/Foundation/NSBundle.h:
+	* Headers/Foundation/NSCalendar.h:
+	* Headers/Foundation/NSDate.h:
+	* Headers/Foundation/NSDateFormatter.h:
+	* Headers/Foundation/NSExpression.h:
+	* Headers/Foundation/NSMetadata.h:
+	* Headers/Foundation/NSNetServices.h:
+	* Headers/Foundation/NSObject.h:
+	* Headers/Foundation/NSOperation.h:
+	* Headers/Foundation/NSRegularExpression.h:
+	* Headers/Foundation/NSSortDescriptor.h:
+	* Headers/Foundation/NSURLConnection.h:
+	* Headers/Foundation/NSURLDownload.h:
+	* Headers/Foundation/NSUserDefaults.h:
+	* Headers/Foundation/NSZone.h:
+	* Headers/GNUstepBase/GSObjCRuntime.h:
+	* Headers/GNUstepBase/GSVersionMacros.h:
+	* Headers/GNUstepBase/NSLock+GNUstepBase.h:
+	* Headers/GNUstepBase/NSObject+GNUstepBase.h:
+	* Source/Additions/GSObjCRuntime.m:
+	* Source/DocMakefile:
+	* Source/GSInvocation.h:
+	* Source/GSPrivate.h:
+	* Source/GSTLS.m:
+	* Source/NSAppleEventDescriptor.m:
+	* Source/NSAppleEventManager.m:
+	* Source/NSAppleScript.m:
+	* Source/NSCallBacks.h:
+	* Source/NSCountedSet.m:
+	* Source/NSDateComponentsFormatter.m:
+	* Source/NSDateInterval.m:
+	* Source/NSDateIntervalFormatter.m:
+	* Source/NSDictionary.m:
+	* Source/NSExtensionContext.m:
+	* Source/NSExtensionItem.m:
+	* Source/NSFileVersion.m:
+	* Source/NSHFSFileTypes.m:
+	* Source/NSItemProvider.m:
+	* Source/NSItemProviderReadingWriting.m:
+	* Source/NSLinguisticTagger.m:
+	* Source/NSMetadata.m:
+	* Source/NSMetadataAttributes.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSObjectScripting.m:
+	* Source/NSPathUtilities.m:
+	* Source/NSProgress.m:
+	* Source/NSRunLoop.m:
+	* Source/NSScriptClassDescription.m:
+	* Source/NSScriptCoercionHandler.m:
+	* Source/NSScriptCommand.m:
+	* Source/NSScriptCommandDescription.m:
+	* Source/NSScriptExecutionContext.m:
+	* Source/NSScriptKeyValueCoding.m:
+	* Source/NSScriptObjectSpecifiers.m:
+	* Source/NSScriptStandardSuiteCommands.m:
+	* Source/NSScriptSuiteRegistry.m:
+	* Source/NSUserActivity.m:
+	* Source/NSUserScriptTask.m:
+	* Source/NSXMLDocument.m:
+	* Source/NSXMLNode.m:
+	* Source/objc-load.h:
+	* Tools/AGSHtml.h:
+	* Tools/AGSHtml.m:
+	* Tools/AGSIndex.h:
+	* Tools/AGSIndex.m:
+	* Tools/AGSOutput.m:
+	* Tools/AGSPme.arser.h:
+	* Tools/AGSParser.m:
+	* Tools/DocMakefile:
+	* Tools/autogsdoc.m:
+	* Tools/gsdoc-1_0_4.dtd:
+	Autogsdoc changes to avoide parser being confused by ObjectiveC-2
+	features.  Automatic generation for the setter/getter methods of
+	properties.  Various fixes and cleanups in documentation generation.
+	Many tweaks to correct documentation errors in comments etc.
+
+2023-11-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Add check for closefrom()
+	* configure: regenerate
+	* Headers/GNUstepBase/config.h.in: regenerate
+	* Source/NSTask.m: Use closefrom() to close descriptors in child
+	process if it is available.
+
+2023-10-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSISO8601DateFormatter.m:
+	* Tests/base/NSDateFormatter/NSISO8601DateFormatter.m:
+	Add a couple of testcases, tidy up source code formatting, and make
+	fix for github issue #339 as suggested by kevinpeizner
+
+2023-10-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSPrivate.h: New method to set up system error information.
+	* Source/Additions/NSError+GNUstepBase.m: Implement method.
+	* Source/NSTask.m(launchAndReturnError:): Return an error if the
+	path to launch in does not exist, is not a directory or is not
+	accessible.
+
+2023-10-09  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSTask.m(launchAndReturnError:): Use _exit instead of
+	exit to terminate the vfork'ed process. This avoids running the
+	atexit handlers, which could have visible side effects in the
+	parent process.
+
+2023-10-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPredicate.m: fixup for array access keywords
+	* Tests/base/NSPredicate/basic.m: add simple testcases for array
+
+2023-10-07 Gregory John Casamento <greg.casamento@gmail.com>
+
+	* Headers/Foundation/NSKeyValueObserving.h
+	* Source/NSKeyValueObserving.m: Add nethods
+	removeObserver:forKeyPath:context: and
+	removeObserver:forObjectsAtIndexes:forKeyPath:context:
+	* Tests/base/KVC/mutable.m: Add tests for the above
+	methods.
+
+2023-08-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSCache.h: Add _lock ivar
+	* Source/NSCache.m: Protect cache operations with a lock for
+	thread safety.
+	
+2023-08-10 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSNumberFormatter.h:
+	* Source/NSNumberFormatter.m:
+	Change NSNumberFormatter minimum/maximum properties from
+	NSDecimalNumber to NSNumber to match Apple platforms.
+
+2023-07-30  Yavor Doganov  <yavor@gnu.org>
+
+	* Tools/HTMLLinker.1: Fix a groff warning.
+
+2023-07-30  Yavor Doganov  <yavor@gnu.org>
+
+       * Tools/gdnc.m ([GDNCServer init]):
+       * Tools/gspath.1: Fix spelling errors.
+
+2023-07-26 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSData.m:
+	Fix NSData initWithContentsOfURL: caching data of file URLs.
+
+2023-07-26 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSURL.m:
+	* Tests/base/NSURL/basic.m:
+	Fix NSURL path on Windows for UNC paths.
+
+2023-07-25 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Headers/Foundation/NSFileManager.h:
+	* Source/NSFileManager.m:
+	Fixed NSFileManager thread safety.
+
+2023-07-17  Yavor Doganov  <yavor@gnu.org>
+
+	* Tests/base/NSTimeZone/localtime.m (testTZDB): Skip tests relying
+	on 64bit time_t on all 32bit architectures.
+	* Source/NSTimeZone.m: Move #include "tzdb.h" a bit earlier so
+	that the POSIX_TZONES preprocessor conditional is correct.
+	([GSTimeZoneDetail
+	initWithTimeZone:withAbbrev:withOffset:withDST:]): Retain abbrev.
+	([GSTimeZoneDetail dealloc]): Release abbrev.
+	([NSTimeZone timeZoneArray]): Skip files *.zi, *.list and
+	leapseconds which are not zone files.
+
+2023-06-10 Riccardo Mottola <rm@gnu.org>
+
+	* Tests/base/NSURL/Helpers/Launch.h:
+	Declare method in interface to provide accurate signature fixing
+	bug on sparc 64
+
+2023-06-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLHandle.m: close socket if we end loading with an
+	I/O operation in progress.
+
 2023-06-15 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFileHandle.m: Fix to reliably remove handle from run loop
@@ -1186,9 +1612,12 @@
 	* configure:
 	* configure.ac:
 	Added support for building on Windows with Clang MSVC target and
-	libobjc2. This requires using a standard (non-MinGW) Clang build that
-	e.g. comes with Visual Studio or is available as pre-built binary from
-	the LLVM website, and requires passing a host to configure like
+	libobjc2. This requires using
+	a
+	  standard(non - MinGW) Clang build that e.g.comes with Visual Studio
+	  or is available as pre - built binary from the LLVM website,
+	  and
+	    requires passing a host to configure like
 	--host=x86_64-pc-windows.
 	The build is best done in an MSYS2 shell that does not have any
 	additional *-devel packages installed that might get picked up by
@@ -1571,7 +2000,7 @@
 2020-11-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/NSMutableString+GNUstepBase.m:
-        Report YES for GSImmutableString being a proxy
+	Report YES for GSImmutableString being a proxy
 
 2020-11-21 Richard Frith-Macdonald <rfm@gnu.org>
 

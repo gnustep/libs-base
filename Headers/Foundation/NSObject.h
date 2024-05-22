@@ -56,21 +56,24 @@ extern "C" {
  * in assuming that the receiver can handle it.
  */
 @protocol NSObject
+
 /**
  * Returns the class of the receiver.  If the receiver is a proxy, then this
  * may return the class of the proxy target.  Use -isProxy to determine whether
  * the receiver is a proxy.  If you wish to find the real class of the
- * receiver, ignoring proxies, then use object_getClass().  
+ * receiver, ignoring proxies, then use "object_getClass()".  
  */
 - (Class) class;
+
 /**
  * Returns the superclass of receiver's class.  If the receiver is a proxy,
  * then this may return the class of the proxy target.  Use -isProxy to
  * determine whether the receiver is a proxy.  If you wish to find the real
  * superclass of the receiver's class, ignoring proxies, then use
- * class_getSuperclass(object_getClass()).
+ * "class_getSuperclass(object_getClass())".
  */
 - (Class) superclass;
+
 /**
  * Returns whether the receiver is equal to the argument.  Defining equality is
  * complex, so be careful when implementing this method.  Collections such as
@@ -89,12 +92,14 @@ extern "C" {
  * equal hash values do not imply equality.
  */
 - (BOOL) isEqual: (id)anObject;
+
 /**
  * Returns YES if the receiver is an instance of the class, an instance of the
  * subclass, or (in the case of proxies), an instance of something that can be
  * treated as an instance of the class.
  */
 - (BOOL) isKindOfClass: (Class)aClass;
+
 /**
  * Returns YES if the receiver is an instance of the class or (in the case of
  * proxies), an instance of something that can be treated as an instance of the
@@ -106,12 +111,14 @@ extern "C" {
  * subclass.  
  */
 - (BOOL) isMemberOfClass: (Class)aClass;
+
 /**
  * Returns YES if the receiver is a proxy, NO otherwise.  The default
  * implementation of this method in NSObject returns NO, while the
  * implementation in NSProxy returns YES.
  */
 - (BOOL) isProxy;
+
 /**
  * Returns a hash value for the object.  All objects that are equal *MUST*
  * return the same hash value.  For efficient storage in sets, or as keys in
@@ -124,16 +131,19 @@ extern "C" {
  * modified while stored in an unordered collection.
  */
 - (NSUInteger) hash;
+
 /**
  * Returns the receiver.  In a proxy, this may (but is not required to) return
  * the proxied object.
  */
 - (id) self;
+
 /**
  * Performs the specified selector.  The selector must correspond to a method
  * that takes no arguments.
  */
 - (id) performSelector: (SEL)aSelector;
+
 /**
  * Performs the specified selector, with the object as the argument.  This
  * method does not perform any automatic unboxing, so the selector must
@@ -141,6 +151,7 @@ extern "C" {
  */
 - (id) performSelector: (SEL)aSelector
 	    withObject: (id)anObject;
+
 /**
  * Performs the specified selector, with the objects as the arguments.  This
  * method does not perform any automatic unboxing, so the selector must
@@ -149,6 +160,7 @@ extern "C" {
 - (id) performSelector: (SEL)aSelector
 	    withObject: (id)object1
 	    withObject: (id)object2;
+
 /**
  * Returns YES if the object can respond to messages with the specified
  * selector.  The default implementation in NSObject returns YES if the
@@ -157,16 +169,19 @@ extern "C" {
  * forwarding mechanisms.
  */
 - (BOOL) respondsToSelector: (SEL)aSelector;
+
 /**
  * Returns YES if the receiver conforms to the specified protocol.
  */
 - (BOOL) conformsToProtocol: (Protocol*)aProtocol;
+
 /**
  * Increments the reference count of the object and returns the receiver.  In
  * garbage collected mode, this method does nothing.  In automated reference
  * counting mode, you may neither implement this method nor call it directly.
  */
 - (id) retain NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
+
 /**
  * Decrements the reference count of the object and destroys if it there are no
  * remaining references.  In garbage collected mode, this method does nothing.
@@ -174,6 +189,7 @@ extern "C" {
  * nor call it directly.
  */
 - (oneway void) release NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
+
 /**
  * Performs a deferred -release operation.  The object's reference count is
  * decremented at the end of the scope of the current autorelease pool,
@@ -185,6 +201,7 @@ extern "C" {
  * counting mode, you may neither implement this method nor call it directly.
  */
 - (id) autorelease NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
+
 /**
  * Returns the current retain count of an object.  This does not include the
  * result of any pending autorelease operations.
@@ -197,11 +214,13 @@ extern "C" {
  * occasionally be useful for debugging.
  */
 - (NSUInteger) retainCount NS_AUTOMATED_REFCOUNT_UNAVAILABLE;
+
 /**
  * Returns the description of the object.  This is used by the %@ format
  * specifier in strings.
  */
 - (NSString*) description;
+
 /**
  * Returns the zone of the object.
  */
@@ -363,7 +382,7 @@ GS_EXPORT_CLASS GS_ROOT_CLASS
 + (BOOL) isSubclassOfClass: (Class)aClass;
 + (id) new;
 + (void) poseAsClass: (Class)aClassObject;
-+ (id) setVersion: (NSInteger)aVersion;
++ (void) setVersion: (NSInteger)aVersion;
 + (NSInteger) version;
 
 - (id) awakeAfterUsingCoder: (NSCoder*)aDecoder;

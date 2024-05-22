@@ -43,7 +43,7 @@
 {
   NSRunLoop *runLoop;
   NSString *mode;
-  AvahiPoll *poll;
+  AvahiPoll *ap;
   NSMutableArray *children;
   NSLock *lock;
 }

@@ -1,9 +1,8 @@
 /**Implementation for NSOperation for GNUStep
-   Copyright (C) 2009,2010 Free Software Foundation, Inc.
+   Copyright (C) 2008-2023 Free Software Foundation, Inc.
 
    Written by:  Gregory Casamento <greg.casamento@gmail.com>
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>
-   Date: 2009,2010
 
    This file is part of the GNUstep Base Library.
 
@@ -23,7 +22,7 @@
    Boston, MA 02110 USA.
 
    <title>NSOperation class reference</title>
-   $Date: 2008-06-08 11:38:33 +0100 (Sun, 08 Jun 2008) $ $Revision: 26606 $
+   Created: 2008-06-08 11:38:33 +0100 (Sun, 08 Jun 2008)
    */
 
 #import "common.h"
@@ -284,7 +283,7 @@ static NSArray	*empty = nil;
   return internal->ready;
 }
 
-- (void) main;
+- (void) main
 {
   return;	// OSX default implementation does nothing
 }
@@ -1113,17 +1112,13 @@ static NSOperationQueue *mainQueue = nil;
 	}
       else
 	{
-	  NSUInteger	pending;
-
 	  [internal->cond lock];
-	  pending = [internal->starting count];
 	  [internal->starting addObject: op];
 
 	  /* Create a new thread if all existing threads are busy and
 	   * we haven't reached the pool limit.
 	   */
-	  if (0 == internal->threadCount
-	    || (pending > 0 && internal->threadCount < max))
+	  if (internal->threadCount < max)
 	    {
 	      internal->threadCount++;
 	      NS_DURING

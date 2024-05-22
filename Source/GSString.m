@@ -306,26 +306,29 @@ literalIsEqualInternal(NXConstantString *s, GSStr o)
     {
       return NO;
     }
-  size_t end = s->nxcslen;
-  static const int buffer_size = 64;
-  unichar buffer1[buffer_size];
-  unichar buffer2[buffer_size];
-  NSRange r = { 0, buffer_size };
-  do
+  else
     {
-      if (r.location + r.length > end)
+      size_t end = s->nxcslen;
+      static const int buffer_size = 64;
+      unichar buffer1[buffer_size];
+      unichar buffer2[buffer_size];
+      NSRange r = { 0, buffer_size };
+      do
 	{
-	  r.length = s->nxcslen - r.location;
-	}
-      [s getCharacters: buffer1 range: r];
-      [o getCharacters: buffer2 range: r];
-      if (memcmp(buffer1, buffer2, r.length * sizeof(unichar)) != 0)
-	{
-	  return NO;
-	}
-      r.location += buffer_size;
-    } while (r.location < end);
-  return YES;
+	  if (r.location + r.length > end)
+	    {
+	      r.length = s->nxcslen - r.location;
+	    }
+	  [s getCharacters: buffer1 range: r];
+	  [o getCharacters: buffer2 range: r];
+	  if (memcmp(buffer1, buffer2, r.length * sizeof(unichar)) != 0)
+	    {
+	      return NO;
+	    }
+	  r.location += buffer_size;
+	} while (r.location < end);
+      return YES;
+    }
 #else
   unsigned	len = o->_count;
 
@@ -2800,8 +2803,9 @@ getCStringE_u(GSStr self, char *buffer, unsigned int maxLength,
 
 		  if (u & 0xff00)
 		    {
-		      [NSException raise: NSCharacterConversionException
-				  format: @"unable to convert to encoding"];
+		      [NSException
+			 raise:NSCharacterConversionException
+			format:@"unable to convert to encoding"];
 		    }
 		  buffer[i] = (char)u;
 		}

@@ -1,4 +1,6 @@
-/* GSPrivateHash.m
+/**
+   GSPrivateHash.m
+
    Copyright (C) 2013 Free Software Foundation, Inc.
 
    Written by:  Richard Frith-Macdonald <rfm@gnu.org>

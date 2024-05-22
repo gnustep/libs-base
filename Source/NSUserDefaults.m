@@ -1923,7 +1923,7 @@ static BOOL isPlistObject(id o)
       [self _changePersistentDomain: NSGlobalDomain];
     }
   [_lock unlock];
-  if (YES == haveChange)
+  if (haveChange)
     {
       [[NSNotificationCenter defaultCenter]
 	postNotificationName: NSUserDefaultsDidChangeNotification
@@ -2305,6 +2305,8 @@ NSDictionary *GSPrivateDefaultLocale()
 
 - (void) _changePersistentDomain: (NSString*)domainName
 {
+  BOOL	haveChange = NO;
+
   NSAssert(nil != domainName, NSInvalidArgumentException);
   [_lock lock];
   NS_DURING
@@ -2323,9 +2325,7 @@ NSDictionary *GSPrivateDefaultLocale()
         {
           updateCache(self);
         }
-      [[NSNotificationCenter defaultCenter]
-	postNotificationName: NSUserDefaultsDidChangeNotification
-		      object: self];
+      haveChange = YES;
       [_lock unlock];
     }
   NS_HANDLER
@@ -2334,6 +2334,12 @@ NSDictionary *GSPrivateDefaultLocale()
       [localException raise];
     }
   NS_ENDHANDLER
+  if (haveChange)
+    {
+      [[NSNotificationCenter defaultCenter]
+	postNotificationName: NSUserDefaultsDidChangeNotification
+		      object: self];
+    }
 }
 
 - (NSString*) _directory

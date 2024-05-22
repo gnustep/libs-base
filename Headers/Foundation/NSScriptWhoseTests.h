@@ -1,4 +1,4 @@
-/*
+/**
    Global include file for the GNUstep Base Library.
 
    Copyright (C) 1997 Free Software Foundation, Inc.

@@ -60,6 +60,7 @@
 #import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
 #import "GSPrivate.h"
+#import "GSPThread.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSTask+GNUstepBase.h"
 
@@ -195,6 +196,9 @@
 - (void) _setErrorHandler: (GSDirEnumErrorHandler) handler;
 @end
 
+@interface	GSURLEnumerator : NSDirectoryEnumerator
+@end
+
 /*
  * Macros to handle unichar filesystem support.
  */
@@ -269,6 +273,19 @@ static Class	GSAttrDictionaryClass = 0;
 @end
 
 
+gs_thread_key_t thread_last_error_key;
+
+static void GS_WINAPI
+exitedThread(void *lastErrorPtr)
+{
+#if __has_feature(objc_arc)
+  NSString *oldError = (__bridge_transfer NSString*)lastErrorPtr;
+#pragma unused(oldError)
+#else
+  RELEASE(lastErrorPtr);
+#endif
+}
+
 
 @interface NSFileManager (PrivateMethods)
 
@@ -303,6 +320,10 @@ static Class	GSAttrDictionaryClass = 0;
                              inPath: (NSString*) path
                            fromPath: (NSString*) fromPath
                              toPath: (NSString*) toPath;
+
+/* Thread-local last error variable. */
+- (NSString*) _lastError;
+- (void) _setLastError: (NSString*)error;
 
 /* A convenience method to return an NSError object.
  * If the _lastError message is set, this creates an NSError using
@@ -358,11 +379,12 @@ static NSStringEncoding	defaultEncoding;
 {
   defaultEncoding = [NSString defaultCStringEncoding];
   GSAttrDictionaryClass = [GSAttrDictionary class];
+  GS_THREAD_KEY_INIT(thread_last_error_key, exitedThread);
 }
 
 - (void) dealloc
 {
-  TEST_RELEASE(_lastError);
+  [self _setLastError: nil];
   [super dealloc];
 }
 
@@ -439,7 +461,7 @@ static NSStringEncoding	defaultEncoding;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileOwnerAccountID to '%"PRIuPTR"' - %@",
 	    num, [NSError _last]];
-	  ASSIGN(_lastError, str);
+	  [self _setLastError: str];
 	}
     }
   else
@@ -481,7 +503,7 @@ static NSStringEncoding	defaultEncoding;
 	      str = [NSString stringWithFormat:
 		@"Unable to change NSFileOwnerAccountName to '%@' - %@",
 		str, [NSError _last]];
-	      ASSIGN(_lastError, str);
+	      [self _setLastError: str];
 	    }
 	}
     }
@@ -505,7 +527,7 @@ static NSStringEncoding	defaultEncoding;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileGroupOwnerAccountID to '%"PRIuPTR"' - %@",
 	    num, [NSError _last]];
-	  ASSIGN(_lastError, str);
+	  [self _setLastError: str];
 	}
     }
   else if ((str = [attributes fileGroupOwnerAccountName]) != nil
@@ -545,7 +567,7 @@ static NSStringEncoding	defaultEncoding;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileGroupOwnerAccountName to '%@' - %@",
 	    str, [NSError _last]];
-	  ASSIGN(_lastError, str);
+	  [self _setLastError: str];
 	}
     }
 #endif	/* _WIN32 */
@@ -559,7 +581,7 @@ static NSStringEncoding	defaultEncoding;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFilePosixPermissions to '%o' - %@",
 	    (unsigned)num, [NSError _last]];
-	  ASSIGN(_lastError, str);
+	  [self _setLastError: str];
 	}
     }
 
@@ -629,7 +651,7 @@ static NSStringEncoding	defaultEncoding;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileCreationDate to '%@' - %@",
 	    date, [NSError _last]];
-	  ASSIGN(_lastError, str);
+	  [self _setLastError: str];
 	}
     }
 
@@ -678,7 +700,7 @@ static NSStringEncoding	defaultEncoding;
 	  str = [NSString stringWithFormat:
 	    @"Unable to change NSFileModificationDate to '%@' - %@",
 	    date, [NSError _last]];
-	  ASSIGN(_lastError, str);
+	  [self _setLastError: str];
 	}
     }
 
@@ -805,7 +827,7 @@ static NSStringEncoding	defaultEncoding;
   NSDirectoryEnumerator *direnum;
   NSString              *path;
   
-  DESTROY(_lastError);
+  [self _setLastError: nil];
 
   if (![[url scheme] isEqualToString: @"file"])
     {
@@ -899,8 +921,8 @@ static NSStringEncoding	defaultEncoding;
   return [NSURL fileURLWithPath: path];
 }
 
-- (NSDirectoryEnumerator *)enumeratorAtURL: (NSURL *)url
-                includingPropertiesForKeys: (NSArray *)keys 
+- (NSDirectoryEnumerator*) enumeratorAtURL: (NSURL*)url
+                includingPropertiesForKeys: (NSArray*)keys 
                                    options: (NSDirectoryEnumerationOptions)mask 
                               errorHandler: (GSDirEnumErrorHandler)handler
 {
@@ -908,8 +930,8 @@ static NSStringEncoding	defaultEncoding;
   NSString              *path;
   BOOL                  shouldRecurse;
   BOOL                  shouldSkipHidden;
-  
-  DESTROY(_lastError);
+
+  [self _setLastError: nil];
 
   if (![[url scheme] isEqualToString: @"file"])
     {
@@ -937,7 +959,7 @@ static NSStringEncoding	defaultEncoding;
       shouldSkipHidden = NO;
     }
   
-  direnum = [[NSDirectoryEnumerator alloc]
+  direnum = [[GSURLEnumerator alloc]
 		       initWithDirectoryPath: path
                    recurseIntoSubdirectories: shouldRecurse
                               followSymlinks: NO
@@ -953,7 +975,8 @@ static NSStringEncoding	defaultEncoding;
 {
   NSArray       *result;
 
-  DESTROY(_lastError);
+  [self _setLastError: nil];
+
   result = [self directoryContentsAtPath: path];
 
   if (error != NULL)
@@ -982,7 +1005,8 @@ static NSStringEncoding	defaultEncoding;
 {
   BOOL result = NO;
 
-  DESTROY(_lastError);
+  [self _setLastError: nil];
+
   if (YES == flag)
     {
       NSEnumerator      *paths = [[path pathComponents] objectEnumerator];
@@ -1013,8 +1037,8 @@ static NSStringEncoding	defaultEncoding;
         }
       else
         {
-          result = NO;  
-          ASSIGN(_lastError, @"Could not create directory - intermediate path did not exist or was not a directory");
+          result = NO;
+          [self _setLastError: @"Could not create directory - intermediate path did not exist or was not a directory"];
         }
     }  
 
@@ -1062,7 +1086,7 @@ static NSStringEncoding	defaultEncoding;
   /* This is consistent with MacOSX - just return NO for an invalid path. */
   if ([path length] == 0)
     {
-      ASSIGN(_lastError, @"no path given");
+      [self _setLastError: @"no path given"];
       return NO;
     }
 
@@ -1080,7 +1104,7 @@ static NSStringEncoding	defaultEncoding;
           e = [NSString stringWithFormat:
             @"path %@ exists ... cannot create", path];
         }
-      ASSIGN(_lastError, e);
+      [self _setLastError: e];
       return NO;
     }
   else
@@ -1125,7 +1149,7 @@ static NSStringEncoding	defaultEncoding;
           e = [NSString stringWithFormat:
             @"Could not create '%@' - '%@'",
             path, [NSError _last]];
-          ASSIGN(_lastError, e);
+          [self _setLastError: e];
           return NO;
         }
     }
@@ -1156,7 +1180,7 @@ static NSStringEncoding	defaultEncoding;
   /* This is consistent with MacOSX - just return NO for an invalid path. */
   if ([path length] == 0)
     {
-      ASSIGN(_lastError, @"no path given");
+      [self _setLastError: @"no path given"];
       return NO;
     }
 
@@ -1322,8 +1346,7 @@ static NSStringEncoding	defaultEncoding;
       if ([[destination stringByAppendingString: @"/"]
 	hasPrefix: [source stringByAppendingString: @"/"]])
 	{
-	  ASSIGN(_lastError,
-            @"Could not copy - destination is a descendant of source");
+	  [self _setLastError: @"Could not copy - destination is a descendant of source"];
 	  return NO;
 	}
 
@@ -1332,7 +1355,7 @@ static NSStringEncoding	defaultEncoding;
       if ([self createDirectoryAtPath: destination attributes: attrs] == NO)
 	{
           return [self _proceedAccordingToHandler: handler
-					 forError: _lastError
+					 forError: [self _lastError]
 					   inPath: destination
 					 fromPath: source
 					   toPath: destination];
@@ -1385,7 +1408,8 @@ static NSStringEncoding	defaultEncoding;
 {
   BOOL  result;
 
-  DESTROY(_lastError);
+  [self _setLastError: nil];
+
   result = [self copyPath: src toPath: dst handler: nil];
 
   if (error != NULL)
@@ -1455,7 +1479,7 @@ static NSStringEncoding	defaultEncoding;
       if (sourceIsDir && [[destination stringByAppendingString: @"/"]
 	hasPrefix: [source stringByAppendingString: @"/"]])
 	{
-	  ASSIGN(_lastError, @"Could not move - destination is a descendant of source");
+	  [self _setLastError: @"Could not move - destination is a descendant of source"];
 	  return NO;
 	}
 
@@ -1499,7 +1523,8 @@ static NSStringEncoding	defaultEncoding;
 {
   BOOL  result;
 
-  DESTROY(_lastError);
+  [self _setLastError: nil];
+
   result = [self movePath: src toPath: dst handler: nil];
   
   if (error != NULL)
@@ -1570,14 +1595,14 @@ static NSStringEncoding	defaultEncoding;
       if ([[destination stringByAppendingString: @"/"]
 	hasPrefix: [source stringByAppendingString: @"/"]])
 	{
-	  ASSIGN(_lastError, @"Could not link - destination is a descendant of source");
+	  [self _setLastError: @"Could not link - destination is a descendant of source"];
 	  return NO;
 	}
 
       if ([self createDirectoryAtPath: destination attributes: attrs] == NO)
 	{
           return [self _proceedAccordingToHandler: handler
-					 forError: _lastError
+					 forError: [self _lastError]
 					   inPath: destination
 					 fromPath: source
 					   toPath: destination];
@@ -1624,7 +1649,7 @@ static NSStringEncoding	defaultEncoding;
   [self changeFileAttributes: attrs atPath: destination];
   return YES;
 #else
-  ASSIGN(_lastError, @"Links not supported on this platform");
+  [self _setLastError: @"Links not supported on this platform"];
   return NO;
 #endif
 }
@@ -1646,7 +1671,7 @@ static NSStringEncoding	defaultEncoding;
   lpath = [self fileSystemRepresentationWithPath: path];
   if (lpath == 0 || *lpath == 0)
     {
-      ASSIGN(_lastError, @"Could not remove - no path");
+      [self _setLastError: @"Could not remove - no path"];
       return NO;
     }
   else
@@ -1741,7 +1766,8 @@ static NSStringEncoding	defaultEncoding;
 {
   BOOL  result;
 
-  DESTROY(_lastError);
+  [self _setLastError: nil];
+
   result = [self removeFileAtPath: path handler: nil];
 
   if (error != NULL)
@@ -1767,7 +1793,8 @@ static NSStringEncoding	defaultEncoding;
 {
   BOOL  result;
 
-  DESTROY(_lastError);
+  [self _setLastError: nil];
+
   result = [self createSymbolicLinkAtPath: path pathContent: destPath];
 
   if (error != NULL)
@@ -1797,7 +1824,7 @@ static NSStringEncoding	defaultEncoding;
 
   if (lpath == 0 || *lpath == _NUL)
     {
-      ASSIGN(_lastError, @"no path given");
+      [self _setLastError: @"no path given"];
       return NO;
     }
 
@@ -1875,7 +1902,7 @@ static NSStringEncoding	defaultEncoding;
 
   if (lpath == 0 || *lpath == _NUL)
     {
-      ASSIGN(_lastError, @"no path given");
+      [self _setLastError: @"no path given"];
       return NO;
     }
 
@@ -1932,7 +1959,7 @@ static NSStringEncoding	defaultEncoding;
 
   if (lpath == 0 || *lpath == _NUL)
     {
-      ASSIGN(_lastError, @"no path given");
+      [self _setLastError: @"no path given"];
       return NO;
     }
 
@@ -1974,7 +2001,7 @@ static NSStringEncoding	defaultEncoding;
 
   if (lpath == 0 || *lpath == _NUL)
     {
-      ASSIGN(_lastError, @"no path given");
+      [self _setLastError: @"no path given"];
       return NO;
     }
 
@@ -2033,7 +2060,7 @@ static NSStringEncoding	defaultEncoding;
 
   if (lpath == 0 || *lpath == _NUL)
     {
-      ASSIGN(_lastError, @"no path given");
+      [self _setLastError: @"no path given"];
       return NO;
     }
 
@@ -2227,7 +2254,8 @@ static NSStringEncoding	defaultEncoding;
 {
   NSDictionary	*d;
 
-  DESTROY(_lastError);
+  [self _setLastError: nil];
+
   d = [GSAttrDictionaryClass attributesAt: path traverseLink: NO];
   
   if (error != NULL)
@@ -2368,7 +2396,7 @@ static NSStringEncoding	defaultEncoding;
   return [NSDictionary dictionaryWithObjects: values forKeys: keys count: 5];
 #else
   GSOnceMLog(@"NSFileManager", @"no support for filesystem attributes");
-  ASSIGN(_lastError, @"no support for filesystem attributes");
+  [self _setLastError: @"no support for filesystem attributes"];
   return nil;
 #endif
 #endif /* _WIN32 */
@@ -2522,7 +2550,7 @@ static NSStringEncoding	defaultEncoding;
 
   return (symlink(oldpath, newpath) == 0);
 #else
-  ASSIGN(_lastError, @"symbolic links not supported on this system");
+  [self _setLastError: @"symbolic links not supported on this system"];
   return NO;
 #endif
 }
@@ -2547,7 +2575,7 @@ static NSStringEncoding	defaultEncoding;
       return nil;
     }
 #else
-  ASSIGN(_lastError, @"symbolic links not supported on this system");
+  [self _setLastError: @"symbolic links not supported on this system"];
   return nil;
 #endif
 }
@@ -2918,6 +2946,9 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
 		      item.ext.path = RETAIN(returnFileName);
 		      item.ext.pointer = dir_pointer;
+#ifdef __ANDROID__
+		      item.ext.assetDir = NULL;
+#endif
 
 		      GSIArrayAddItem(_stack, item);
 		    }
@@ -2955,6 +2986,15 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 }
 
 @end /* NSDirectoryEnumerator */
+
+@implementation	GSURLEnumerator
+- (id) nextObject
+{
+  id	name = [super nextObject];
+
+  return name ? [NSURL fileURLWithPath: name] : nil;
+}
+@end
 
 /**
  * Convenience methods for accessing named file attributes in a dictionary.
@@ -3334,7 +3374,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 	  if (dirOK == NO)
 	    {
               if (![self _proceedAccordingToHandler: handler
-					   forError: _lastError
+					   forError: [self _lastError]
 					     inPath: destinationFile
 					   fromPath: sourceFile
 					     toPath: destinationFile])
@@ -3398,7 +3438,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 
 	  s = [NSString stringWithFormat: @"cannot copy file type '%@'",
 	    fileType];
-	  ASSIGN(_lastError, s);
+	  [self _setLastError: s];
 	  NSDebugLog(@"%@: %@", sourceFile, s);
 	  continue;
 	}
@@ -3441,7 +3481,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
 			       attributes: attributes] == NO)
 	    {
               if ([self _proceedAccordingToHandler: handler
-					  forError: _lastError
+					  forError: [self _lastError]
 					    inPath: destinationFile
 					  fromPath: sourceFile
 					    toPath: destinationFile] == NO)
@@ -3502,7 +3542,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   LEAVE_POOL
   return result;
 #else
-  ASSIGN(_lastError, @"Links not supported on this platform");
+  [self _setLastError: @"Links not supported on this platform"];
   return NO;
 #endif
 }
@@ -3552,6 +3592,28 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   return NO;
 }
 
+- (NSString*) _lastError
+{
+#if __has_feature(objc_arc)
+  return (__bridge NSString*)GS_THREAD_KEY_GET(thread_last_error_key);
+#else
+  return (NSString*)GS_THREAD_KEY_GET(thread_last_error_key);
+#endif
+}
+
+- (void) _setLastError: (NSString*)error
+{
+#if __has_feature(objc_arc)
+  NSString *oldError = (__bridge_transfer NSString*)GS_THREAD_KEY_GET(thread_last_error_key);
+  GS_THREAD_KEY_SET(thread_last_error_key, (__bridge_retained void*)error);
+#pragma unused(oldError)
+#else
+  NSString *oldError = (NSString*)GS_THREAD_KEY_GET(thread_last_error_key);
+  GS_THREAD_KEY_SET(thread_last_error_key, RETAIN(error));
+  RELEASE(oldError);
+#endif
+}
+
 - (NSError*) _errorFrom: (NSString *)fromPath to: (NSString *)toPath
 {
   NSError       *error;
@@ -3559,10 +3621,11 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   NSString      *message;
   NSString      *domain;
   NSInteger     code;
+  NSString      *lastError = [self _lastError];
 
-  if (_lastError)
+  if (lastError)
     {
-      message = _lastError;
+      message = lastError;
       domain = NSCocoaErrorDomain;
       code = 0;
     }
@@ -3599,7 +3662,12 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   error = [NSError errorWithDomain: domain
                               code: code
                           userInfo: errorInfo];
-  DESTROY(_lastError);
+
+  if (lastError)
+    {
+      [self _setLastError: nil];
+    }
+
   return error;
 }
 

@@ -842,7 +842,7 @@ static NSMutableDictionary      *certificateListCache = nil;
   return [NSDate dateWithTimeIntervalSince1970: expiret];
 }
 
-- (NSDate*) expiresAt: (unsigned)index
+- (NSDate*) expiresAt: (unsigned int)index
 {
   time_t        expiret;
 

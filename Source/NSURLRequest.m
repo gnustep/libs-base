@@ -403,8 +403,8 @@ typedef struct {
 
       if ([value isKindOfClass: [NSString class]] == YES)
         {
-	  [self setValue: (NSString*)value forHTTPHeaderField: field];
-	}
+          [self setValue: (NSString*)value forHTTPHeaderField: field];
+        }
     }
 }
 
@@ -444,9 +444,13 @@ typedef struct {
     {
       this->headers = [_GSMutableInsensitiveDictionary new];
     }
-  if (value)
+  if (value != nil)
     {
       [this->headers setObject: value forKey: field];
+    }
+  else
+    {
+      [this->headers removeObjectForKey: field];
     }
 }
 

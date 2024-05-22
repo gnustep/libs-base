@@ -1,4 +1,4 @@
-/* Interface for NSGeometry routines for GNUStep
+/** Interface for NSGeometry routines for GNUStep
  * Copyright (C) 1995 Free Software Foundation, Inc.
  * 
  * Written by:  Adam Fedor <fedor@boulder.colorado.edu>

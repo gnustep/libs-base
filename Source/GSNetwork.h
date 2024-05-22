@@ -49,7 +49,7 @@
 #endif
 #define BADSOCKET(X)    ((X) == INVALID_SOCKET)
 #define GSNETERROR      WSAGetLastError() 
-#define GSWOULDBLOCK    (GSNETERROR == WSAEWOULDBLOCK || GSNETERROR == WSAEINPROGRESS)
+#define GSWOULDBLOCK(X) (WSAEWOULDBLOCK == (X) || WSAEINPROGRESS == (X))
 
 #else
 
@@ -70,10 +70,10 @@
 #define INVALID_SOCKET  -1
 #define BADSOCKET(X)    ((X) < 0)
 #define GSNETERROR      errno
-#define GSWOULDBLOCK    (EINPROGRESS == errno\
- || EALREADY == errno\
- || EINTR == errno\
- || EAGAIN == errno)
+#define GSWOULDBLOCK(X) (EINPROGRESS == (X)\
+ || EALREADY == (X)\
+ || EINTR == (X)\
+ || EAGAIN == (X))
 
 #endif  /* _WIN32 */
 

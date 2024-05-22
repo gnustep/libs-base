@@ -22,12 +22,14 @@
    Boston, MA 02110 USA.
 */
 
-#include <Foundation/NSLinguisticTagger.h>
-#include <Foundation/NSRange.h>
-#include <Foundation/NSString.h>
-#include <Foundation/NSDictionary.h>
-#include <Foundation/NSArray.h>
-#include <Foundation/NSOrthography.h>
+#import "Foundation/NSLinguisticTagger.h"
+#import "Foundation/NSRange.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSOrthography.h"
+#import "GNUstepBase/NSObject+GNUstepBase.h"
+
 
 NSLinguisticTagScheme const NSLinguisticTagSchemeTokenType = @"NSLinguisticTagSchemeTokenType";
 NSLinguisticTagScheme const NSLinguisticTagSchemeLexicalClass = @"NSLinguisticTagSchemeLexicalClass";
@@ -80,7 +82,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
                             options: (NSUInteger)opts
 {
   self = [super init];
-  if(self != nil)
+  if (self != nil)
     {
       ASSIGNCOPY(_schemes, tagSchemes);
       _options = opts;
@@ -131,6 +133,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
 - (void) setOrthography: (NSOrthography *)orthography
                   range: (NSRange)range
 {
+  [self notImplemented: _cmd];
 }
   
 - (NSOrthography *) orthographyAtIndex: (NSUInteger)charIndex
@@ -142,6 +145,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
 - (void) stringEditedInRange: (NSRange)newRange
               changeInLength: (NSInteger)delta
 {
+  [self notImplemented: _cmd];
 }
   
 - (NSRange) tokenRangeAtIndex: (NSUInteger)charIndex
@@ -161,6 +165,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
                       options: (NSLinguisticTaggerOptions)options
                    usingBlock: (GSLinguisticTagRangeBoolBlock)block
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSLinguisticTag) tagAtIndex: (NSUInteger)charIndex
@@ -185,6 +190,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
                       options: (NSLinguisticTaggerOptions)opts
                    usingBlock: (GSLinguisticTagRangeRangeBoolBlock)block
 {
+  [self notImplemented: _cmd];
 }
 
 - (NSLinguisticTag) tagAtIndex: (NSUInteger)charIndex
@@ -242,6 +248,7 @@ NSLinguisticTag const NSLinguisticTagOrganizationName = @"NSLinguisticTagOrganiz
                     orthography: (NSOrthography *)orthography
                      usingBlock: (GSLinguisticTagRangeBoolBlock)block
 {
+  [self notImplemented: _cmd];
 }
   
 
