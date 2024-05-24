@@ -1243,6 +1243,31 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return AUTORELEASE(e);
 }
 
+// 10.5 methods...
++ (NSExpression *) expressionForIntersectSet: (NSExpression *)left
+                                        with: (NSExpression *)right
+{
+  return nil;
+}
+
++ (NSExpression *) expressionForAggregate: (NSArray *)subExpressions
+{
+  return nil;
+}
+
++ (NSExpression *) expressionForUnionSet: (NSExpression *)left
+                                    with: (NSExpression *)right
+{
+  return nil;
+}
+
++ (NSExpression *) expressionForMinusSet: (NSExpression *)left
+                                    with: (NSExpression *)right
+{
+  return nil;
+}
+// end 10.5 methods
+
 // 10.6 methods...
 + (NSExpression *) expressionWithFormat: (NSString *)format, ...
 {

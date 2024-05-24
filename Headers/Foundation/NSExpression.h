@@ -64,6 +64,16 @@ GS_EXPORT_CLASS
 + (NSExpression *) expressionForKeyPath: (NSString *)path;
 + (NSExpression *) expressionForVariable: (NSString *)string;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
++ (NSExpression *) expressionForIntersectSet: (NSExpression *)left
+                                        with: (NSExpression *)right;
++ (NSExpression *) expressionForAggregate: (NSArray *)subExpressions;
++ (NSExpression *) expressionForUnionSet: (NSExpression *)left
+                                    with: (NSExpression *)right;
++ (NSExpression *) expressionForMinusSet: (NSExpression *)left
+                                    with: (NSExpression *)right;
+#endif
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
 + (NSExpression *) expressionWithFormat: (NSString *)format, ...;
 + (NSExpression *) expressionWithFormat: (NSString *)format
