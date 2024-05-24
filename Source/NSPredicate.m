@@ -1243,6 +1243,47 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return AUTORELEASE(e);
 }
 
+// 10.6 methods...
++ (NSExpression *) expressionWithFormat: (NSString *)format, ...
+{
+  va_list ap;
+  NSExpression *obj;
+
+  if (NULL == format)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[NSExpression+expressionWithFormat:]: NULL format"];
+    }
+  
+  va_start(ap, format);
+  obj = [[self alloc] expressionWithFormat: format
+				 arguments: ap];
+  va_end(ap);
+  
+  return obj;
+}
+
++ (NSExpression *) expressionWithFormat: (NSString *)format
+                              arguments: (va_list)args
+{
+  NSString *expString = AUTORELEASE([[NSString alloc] initWithFormat: format
+							   arguments: args]);
+  GSPredicateScanner *scanner = AUTORELEASE([[GSPredicateScanner alloc]
+					      initWithString: expString
+							args: nil]);
+  return [scanner parseExpression];
+}
+
++ (NSExpression *) expressionWithFormat: (NSString *)format
+                          argumentArray: (NSArray *)args
+{
+  GSPredicateScanner *scanner = AUTORELEASE([[GSPredicateScanner alloc]
+					      initWithString: format
+							args: args]);
+  return [scanner parseExpression];
+}
+// End 10.6 methods
+
 - (id) initWithExpressionType: (NSExpressionType)type
 {
   if ((self = [super init]) != nil)

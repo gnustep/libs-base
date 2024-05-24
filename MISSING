@@ -165,9 +165,6 @@ NSExpression:
     NSSubqueryExpressionType
     NSAggregateExpressionType
 
-    + expressionWithFormat:argumentArray:
-	+ expressionWithFormat:
-	+ expressionWithFormat:arguments:
 	+ expressionForAggregate:
 	+ expressionForUnionSet:with:
 	+ expressionForIntersectSet:with

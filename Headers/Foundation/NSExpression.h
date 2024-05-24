@@ -3,24 +3,24 @@
 
    Written by:  Dr. H. Nikolaus Schaller
    Created: 2005
-   
+
    This file is part of the GNUstep Base Library.
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
    Boston, MA 02110 USA.
-   */ 
+   */
 
 #ifndef __NSExpression_h_GNUSTEP_BASE_INCLUDE
 #define __NSExpression_h_GNUSTEP_BASE_INCLUDE
@@ -64,6 +64,14 @@ GS_EXPORT_CLASS
 + (NSExpression *) expressionForKeyPath: (NSString *)path;
 + (NSExpression *) expressionForVariable: (NSString *)string;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
++ (NSExpression *) expressionWithFormat: (NSString *)format, ...;
++ (NSExpression *) expressionWithFormat: (NSString *)format
+			      arguments: (va_list)args;
++ (NSExpression *) expressionWithFormat: (NSString *)format
+			  argumentArray: (NSArray *)args;
+#endif
+
 - (NSArray *) arguments;
 - (id) constantValue;
 - (NSExpressionType) expressionType;
@@ -84,4 +92,3 @@ GS_EXPORT_CLASS
 #endif	/* 100400 */
 
 #endif /* __NSExpression_h_GNUSTEP_BASE_INCLUDE */
-
