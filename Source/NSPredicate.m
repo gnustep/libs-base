@@ -1254,17 +1254,17 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       [NSException raise: NSInvalidArgumentException
 		  format: @"[NSExpression+expressionWithFormat:]: NULL format"];
     }
-  
+
   va_start(ap, format);
   obj = [[self alloc] expressionWithFormat: format
 				 arguments: ap];
   va_end(ap);
-  
+
   return obj;
 }
 
 + (NSExpression *) expressionWithFormat: (NSString *)format
-                              arguments: (va_list)args
+			      arguments: (va_list)args
 {
   NSString *expString = AUTORELEASE([[NSString alloc] initWithFormat: format
 							   arguments: args]);
@@ -1275,7 +1275,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 }
 
 + (NSExpression *) expressionWithFormat: (NSString *)format
-                          argumentArray: (NSArray *)args
+			  argumentArray: (NSArray *)args
 {
   GSPredicateScanner *scanner = AUTORELEASE([[GSPredicateScanner alloc]
 					      initWithString: format
