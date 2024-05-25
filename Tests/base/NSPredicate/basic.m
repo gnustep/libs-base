@@ -173,6 +173,21 @@ void testArray(void)
   PASS([predicate evaluateWithObject: array], "size is three")
 }
 
+void testExpressions(void)
+{
+  NSExpression *exp = nil;
+  
+  // Add tests for new expressions here...
+  exp = [NSExpression expressionWithFormat: @"key = %@", @"test"];
+  PASS(exp != nil, "expressionWithFormat: returns non nil");
+
+  exp = [NSExpression expressionWithFormat: @"key = %@" arguments: @"test"];
+  PASS(exp != nil, "expressionWithFormat:arguments: returns non nil");
+
+  exp = [NSExpression expressionWithFormat: @"key = %@" argumentArray: [NSArray arrayWithObject: @"test"]];
+  PASS(exp != nil, "expressionWithFormat:argumentArray: returns non nil");
+}
+
 int main()
 {
   NSArray *filtered;
