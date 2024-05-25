@@ -45,7 +45,14 @@ enum
   NSVariableExpressionType,
   NSKeyPathExpressionType,
   NSFunctionExpressionType,
-  NSKeyPathCompositionExpressionType
+  NSKeyPathCompositionExpressionType,
+  NSUnionSetExpressionType,
+  NSIntersectSetExpressionType,
+  NSSubqueryExpressionType = 13,
+  NSAggregateExpressionType = 14,
+  NSAnyKeyExpressionType = 15,
+  NSBlockExpressionType = 19,
+  NSConditionalExpressionType = 20
 };
 typedef NSUInteger NSExpressionType;
 

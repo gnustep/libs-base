@@ -1281,8 +1281,8 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
     }
 
   va_start(ap, format);
-  obj = [[self alloc] expressionWithFormat: format
-				 arguments: ap];
+  obj = [self expressionWithFormat: format
+			 arguments: ap];
   va_end(ap);
 
   return obj;
