@@ -169,6 +169,10 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 @end
 
 @interface GSAggregateExpression : NSExpression
+{
+  @public
+  id _collection;
+}
 @end
 
 @interface GSFunctionExpression : NSExpression
@@ -1289,7 +1293,13 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 + (NSExpression *) expressionForAggregate: (NSArray *)subExpressions
 {
-  return nil;
+  GSAggregateExpression *e;
+
+  e = [[GSAggregateExpression alloc]
+	initWithExpressionType: NSAggregateExpressionType];
+  ASSIGN(e->_collection, [NSMutableArray array]);
+  
+  return AUTORELEASE(e);
 }
 
 + (NSExpression *) expressionForUnionSet: (NSExpression *)left
@@ -1728,6 +1738,11 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 @implementation GSUnionSetExpression
 
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"%@.%@", _left, _right];
+}
+
 - (NSExpression *) leftExpression
 {
   return _left;
@@ -1742,6 +1757,11 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 @implementation GSIntersectSetExpression
 
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"%@.%@", _left, _right];
+}
+
 - (NSExpression *) leftExpression
 {
   return _left;
@@ -1755,6 +1775,11 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 @end
 
 @implementation GSMinusSetExpression
+
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"%@.%@", _left, _right];
+}
 
 - (NSExpression *) leftExpression
 {
@@ -1772,6 +1797,17 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 @end
 
 @implementation GSAggregateExpression
+
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"%@", _collection];
+}
+
+- (id) collection
+{
+  return _collection;
+}
+
 @end
 
 @implementation GSFunctionExpression

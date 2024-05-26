@@ -40,7 +40,7 @@ extern "C" {
 
 enum
 {
-  NSConstantValueExpressionType=0,
+  NSConstantValueExpressionType = 0,
   NSEvaluatedObjectExpressionType,
   NSVariableExpressionType,
   NSKeyPathExpressionType,
