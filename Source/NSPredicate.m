@@ -142,9 +142,27 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 @end
 
 @interface GSUnionSetExpression : NSExpression
+{
+  @public
+  NSExpression	*_left;
+  NSExpression  *_right;
+}
 @end
 
 @interface GSIntersectSetExpression : NSExpression
+{
+  @public
+  NSExpression	*_left;
+  NSExpression  *_right;
+}
+@end
+
+@interface GSMinusSetExpression : NSExpression
+{
+  @public
+  NSExpression	*_left;
+  NSExpression  *_right;
+}
 @end
 
 @interface GSSubqueryExpression : NSExpression
@@ -1259,7 +1277,14 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 + (NSExpression *) expressionForIntersectSet: (NSExpression *)left
                                         with: (NSExpression *)right
 {
-  return nil;
+  GSIntersectSetExpression *e;
+
+  e = [[GSIntersectSetExpression alloc]
+	initWithExpressionType: NSIntersectSetExpressionType];
+  ASSIGN(e->_left, left);
+  ASSIGN(e->_right, right);
+  
+  return AUTORELEASE(e);
 }
 
 + (NSExpression *) expressionForAggregate: (NSArray *)subExpressions
@@ -1270,13 +1295,27 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 + (NSExpression *) expressionForUnionSet: (NSExpression *)left
                                     with: (NSExpression *)right
 {
-  return nil;
+  GSUnionSetExpression *e;
+
+  e = [[GSUnionSetExpression alloc]
+	initWithExpressionType: NSUnionSetExpressionType];
+  ASSIGN(e->_left, left);
+  ASSIGN(e->_right, right);
+  
+  return AUTORELEASE(e);
 }
 
 + (NSExpression *) expressionForMinusSet: (NSExpression *)left
                                     with: (NSExpression *)right
 {
-  return nil;
+  GSMinusSetExpression *e;
+
+  e = [[GSMinusSetExpression alloc]
+	initWithExpressionType: NSMinusSetExpressionType];
+  ASSIGN(e->_left, left);
+  ASSIGN(e->_right, right);
+  
+  return AUTORELEASE(e);
 }
 // end 10.5 methods
 
@@ -1688,9 +1727,45 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 @end
 
 @implementation GSUnionSetExpression
+
+- (NSExpression *) leftExpression
+{
+  return _left;
+}
+
+- (NSExpression *) rightExpression
+{
+  return _right;
+}
+
 @end
 
 @implementation GSIntersectSetExpression
+
+- (NSExpression *) leftExpression
+{
+  return _left;
+}
+
+- (NSExpression *) rightExpression
+{
+  return _right;
+}
+
+@end
+
+@implementation GSMinusSetExpression
+
+- (NSExpression *) leftExpression
+{
+  return _left;
+}
+
+- (NSExpression *) rightExpression
+{
+  return _right;
+}
+
 @end
 
 @implementation GSSubqueryExpression

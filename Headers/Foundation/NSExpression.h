@@ -49,6 +49,7 @@ enum
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
   NSUnionSetExpressionType,
   NSIntersectSetExpressionType,
+  NSMinusSetExpressionType,
   NSSubqueryExpressionType = 13,
   NSAggregateExpressionType = 14,
 #endif
