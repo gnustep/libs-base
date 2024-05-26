@@ -11,15 +11,63 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
-This is a bugfix release increasing the library version number to reflect ABI change that should have been included when the previous release was made.
+@section Noteworthy changes in version @samp{1.30.0}
+
+@itemize @bullet
+@item Library version changed from 1.29 to 1.30
+
+@item autogsdoc (and many source/header files) updated for ObjC-2 support
+@item gdnc gspath spelling error fixes
+@item GSFileHandle remove handle from run loop when -dealloc is called 
+@item GSHTTPURLHandle close socket if we end loading with I/O in progress.
+@item GSMimeDocimnet optimisations
+@item GSPrivateSymbolPath() portability improvements
+@item GSVersionMacros add GS_UNIMPLEMENTED to mark unimplemented methods
+@item HTMLLinker man page groff warning fixed
+@item Make GSTcpTune options available to streams as well as file handles and improve debug logging for stream operations.
+@item NSBundle improvements in librarym bundle lookup
+@item NSCache thread safety fix
+@item NSData caching data of file URLs and OSX consistency tweak to permissions when writing file atomically
+@item NSDate implements +now constructor.
+@item NSDecimalNumber fix possible coimparison bug for zero values
+@item NSError -description and -localizedDescription formats match OSX
+@item NSException portability improvments
+@item NSFileManager makeed safety fix and make enumerating a file URL return URLs rather than paths.
+@item NSIndexSet implements enumerateRangesInRange convenience methods.
+@item NSISO8601DateFormatter.m: bugfix for date/time string generation
+@item NSJSONSerialization fix memory leak, fix issue with unicode surrogate pairs.
+@item NSKeyValueObserving Add methods to remove observers
+@item NSLocale Fix -countryCode incorrectly returning language code, fix for hyphen and underscore in locale identifier
+@item NSMessagePort remove restriction on Distributed Objects message length
+@item NSNotificationCenter fix for memory leak, minor bugfixes (use before initialise)
+@item NSNull fix for -valueForUndefinedKey: to return singleton
+@item NSNumberFormatter make minimum/maximum properties NSNumbers
+@item NSObject optimise allocation with new runtime library
+@item NSOperation fix occasional scheduling bug
+@item NSOrderedSet Fix keyed encoding to match Apple platforms.
+@item NSPathUtilities fix intialisation order deadlock.
+@item NSPredicate fix for array access keywords
+@item NSProcessInfo android support
+@item NSString correct class used when loading empty string from file/URL, implements regular expression search methods.
+@item NSTask return an error if the path to launch in is bad, use _exit to terminate forked process if needed, use closefrom() to close descriptors in child process if possible 
+@item NSTimer wrap call to block in exception handler (bug #289)
+@item NSTimeZone improvements
+@item NSURL Fix NSURL path on Windows for UNC paths.
+@item NSURLRequest: Support deleting using setValue:forHTTPHeaderField: with nil value.
+@item NSURLSession many bugfixes and improvements 
+@item NSUserDefaults fix potential deadlock
+@item NSXMLElement bugfix to remove previous attributes when setting attributes.
+@item NSXMLNode returns NSError on failure to evaluate xpath expression.
+
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.29.0}
 
 @itemize @bullet
 @item Library version changed from 1.28 to 1.29
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.28.1}
 

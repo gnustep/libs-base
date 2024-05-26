@@ -16,13 +16,13 @@ higher.
    * icu (HIGHLY RECOMMENDED)
    * gnutls (HIGHLY RECOMMENDED)
    * libxml2 (RECOMMENDED)
-   * libcurl (RECOMMENDED)
-   * libdispatch (RECOMMENDED)
+   * libxslt (OPTIONAL)
    * libavahi (RECOMMENDED for NSNetServices)
-   * libxslt (RECOMMENDED)
    * zlib (RECOMMENDED)
    * iconv (OPTIONAL, not needed if you have glibc)
    * openssl (OPTIONAL, not needed if you have gnutls)
+   * libcurl (RECOMMENDED)
+   * libdispatch (RECOMMENDED)
 
    If you are installing the GNUstep libraries individually, make sure
 you have installed the GNUstep Makefile package (gnustep-make) already,
