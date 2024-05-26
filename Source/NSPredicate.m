@@ -141,6 +141,18 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 }
 @end
 
+@interface GSUnionSetExpression : NSExpression
+@end
+
+@interface GSIntersectSetExpression : NSExpression
+@end
+
+@interface GSSubqueryExpression : NSExpression
+@end
+
+@interface GSAggregateExpression : NSExpression
+@end
+
 @interface GSFunctionExpression : NSExpression
 {
   @public
@@ -1377,6 +1389,24 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return nil;
 }
 
+- (NSExpression *) leftExpression
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (NSExpression *) rightExpression
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (id) collection
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
 - (Class) classForCoder
 {
   return [NSExpression class];
@@ -1645,6 +1675,28 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 							 right: right];
 }
 
+- (NSExpression *) leftExpression
+{
+  return _left;
+}
+
+- (NSExpression *) rightExpression
+{
+  return _right;
+}
+
+@end
+
+@implementation GSUnionSetExpression
+@end
+
+@implementation GSIntersectSetExpression
+@end
+
+@implementation GSSubqueryExpression
+@end
+
+@implementation GSAggregateExpression
 @end
 
 @implementation GSFunctionExpression
@@ -2407,7 +2459,6 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 - (NSExpression *) parseExpression
 {
-//  return [self parseAdditionExpression];
   return [self parseBinaryExpression];
 }
 

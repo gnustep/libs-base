@@ -46,13 +46,19 @@ enum
   NSKeyPathExpressionType,
   NSFunctionExpressionType,
   NSKeyPathCompositionExpressionType,
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
   NSUnionSetExpressionType,
   NSIntersectSetExpressionType,
   NSSubqueryExpressionType = 13,
   NSAggregateExpressionType = 14,
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_9, GS_API_LATEST)
   NSAnyKeyExpressionType = 15,
+#endif
   NSBlockExpressionType = 19,
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_11, GS_API_LATEST)
   NSConditionalExpressionType = 20
+#endif
 };
 typedef NSUInteger NSExpressionType;
 
@@ -73,12 +79,12 @@ GS_EXPORT_CLASS
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
 + (NSExpression *) expressionForIntersectSet: (NSExpression *)left
-                                        with: (NSExpression *)right;
+					with: (NSExpression *)right;
 + (NSExpression *) expressionForAggregate: (NSArray *)subExpressions;
 + (NSExpression *) expressionForUnionSet: (NSExpression *)left
-                                    with: (NSExpression *)right;
+				    with: (NSExpression *)right;
 + (NSExpression *) expressionForMinusSet: (NSExpression *)left
-                                    with: (NSExpression *)right;
+				    with: (NSExpression *)right;
 #endif
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
@@ -100,6 +106,11 @@ GS_EXPORT_CLASS
 - (NSExpression *) operand;
 - (NSString *) variable;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+- (id) collection;
+- (NSExpression *) leftExpression;
+- (NSExpression *) rightExpression;
+#endif
 @end
 
 #if	defined(__cplusplus)
