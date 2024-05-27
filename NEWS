@@ -65,6 +65,8 @@ The currently released version of the library is '1.30.0'.
    * NSXMLElement bugfix to remove previous attributes when setting
      attributes.
    * NSXMLNode returns NSError on failure to evaluate xpath expression.
+   * gnustep_global_lock and GSLazyLock deprecated for removal in next
+     release.
 
 1.2 Noteworthy changes in version '1.29.0'
 ==========================================

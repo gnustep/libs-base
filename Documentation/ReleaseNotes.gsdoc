@@ -73,8 +73,8 @@ notice and this notice are preserved.
 	NSURLSession many bugfixes and improvements<br>
 	NSUserDefaults fix potential deadlock<br>
 	NSXMLElement bugfix to remove previous attributes when setting attributes.<br>
-	NSXMLNode returns NSError on failure to evaluate xpath expression.
-
+	NSXMLNode returns NSError on failure to evaluate xpath expression.<br>
+	gnustep_global_lock and GSLazyLock deprecated for removal in next release.
       </section>
 
       <section>

@@ -58,6 +58,7 @@ See the @url{ReleaseNotes.html} document for more information.
 @item NSUserDefaults fix potential deadlock
 @item NSXMLElement bugfix to remove previous attributes when setting attributes.
 @item NSXMLNode returns NSError on failure to evaluate xpath expression.
+@item gnustep_global_lock and GSLazyLock deprecated for removal in next release.
 
 @end itemize
 

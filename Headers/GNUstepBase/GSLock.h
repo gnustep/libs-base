@@ -42,6 +42,8 @@ extern "C" {
 
 @class NSNotification;
 
+/** DEPRECATED ... to be removed in next release
+ */
 GS_EXPORT_CLASS
 @interface	GSLazyLock : NSLock
 {
@@ -58,9 +60,8 @@ GS_EXPORT_CLASS
 - (void) _becomeThreaded: (NSNotification*)n;
 @end
 
-/** Global lock to be used by classes when operating on any global
-    data that invoke other methods which also access global; thus,
-    creating the potential for deadlock. */
+/** DEPRECATED ... to be removed in next release
+ */
 GS_EXPORT NSRecursiveLock *gnustep_global_lock;
 
 #if	defined(__cplusplus)
