@@ -599,8 +599,9 @@ static NSArray	*empty = nil;
   while ((theBlock = (GSBlockOperationBlock)[en nextObject]) != NULL)
     {
       CALL_NON_NULL_BLOCK_NO_ARGS(theBlock);
-      [_executionBlocks removeObject: theBlock];
     }
+
+  [_executionBlocks removeAllObjects];
 }
 @end
 
