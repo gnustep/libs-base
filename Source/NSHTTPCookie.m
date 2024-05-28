@@ -697,6 +697,7 @@ _setCookieKey(NSMutableDictionary *dict, NSString *key, NSString *value)
       expireDate = [formatter dateFromString:value];
       if (expireDate)
         [dict setObject: expireDate forKey: NSHTTPCookieExpires];
+      RELEASE(formatter);
     }
   else if ([[key lowercaseString] isEqual: @"max-age"])
     [dict setObject: value forKey: NSHTTPCookieMaximumAge];
