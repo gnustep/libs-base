@@ -48,6 +48,7 @@
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
+#import "GSFastEnumeration.h"
 
 // For pow()
 #include <math.h>
@@ -1297,7 +1298,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
   e = [[GSAggregateExpression alloc]
 	initWithExpressionType: NSAggregateExpressionType];
-  ASSIGN(e->_collection, [NSMutableArray array]);
+  ASSIGN(e->_collection, subExpressions);
   
   return AUTORELEASE(e);
 }
@@ -1808,6 +1809,21 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return _collection;
 }
 
+- (id) expressionValueWithObject: (id)object
+			 context: (NSMutableDictionary *)context
+{ 
+  NSMutableArray	*result = [NSMutableArray arrayWithCapacity:
+						    [_collection count]];
+
+  FOR_IN(NSExpression*, exp, _collection)
+    {
+      NSExpression *value = [exp expressionValueWithObject: object context: context];
+      [result addObject: value];
+    }
+  END_FOR_IN(_collection);
+
+  return result;
+}
 @end
 
 @implementation GSFunctionExpression

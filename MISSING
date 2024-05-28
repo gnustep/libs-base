@@ -158,10 +158,7 @@ NSExpression:
 	+ expressionForSubquery:usingIteratorVariable:predicate:
 	+ expressionForFunction:selectorName:arguments:
 	+ expressionForBlock:arguments:	
-	- collection
 	- predicate
-	- leftExpression
-	- rightExpression
 	- expressionBlock
 -------------------------------------------------------------
 NSFileHandle:
