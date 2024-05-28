@@ -1298,7 +1298,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
   e = [[GSAggregateExpression alloc]
 	initWithExpressionType: NSAggregateExpressionType];
-  ASSIGN(e->_collection, subExpressions);
+  ASSIGN(e->_collection, [NSSet setWithArray: subExpressions]);
   
   return AUTORELEASE(e);
 }
@@ -1737,6 +1737,30 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 @end
 
+// Macro for checking set related expressions
+
+#define CHECK_SETS \
+do { \
+  if ([rightValue isKindOfClass: [NSArray class]]) \
+    { \
+      rightSet = [NSSet setWithArray: rightValue]; \
+    } \
+  if (!rightSet) \
+    { \
+      [NSException raise: NSInvalidArgumentException \
+	          format: @"Can't evaluate set expression; right subexpression is not a set (lhs = %@ rhs = %@)", leftValue, rightValue]; \
+    } \
+  if ([leftValue isKindOfClass: [NSArray class]]) \
+    { \
+      leftSet = [NSSet setWithArray: leftValue]; \
+    } \
+  if (!leftSet) \
+    { \
+      [NSException raise: NSInvalidArgumentException \
+	          format: @"Can't evaluate set expression; left subexpression is not a set (lhs = %@ rhs = %@)", leftValue, rightValue]; \
+    } \
+ } while (0)
+
 @implementation GSUnionSetExpression
 
 - (NSString *) description
@@ -1752,6 +1776,23 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (NSExpression *) rightExpression
 {
   return _right;
+}
+
+- (id) expressionValueWithObject: (id)object
+			 context: (NSMutableDictionary *)context
+{
+  id leftValue = [_left expressionValueWithObject: object context: context];
+  id rightValue = [_right expressionValueWithObject: object context: context];
+  NSSet *leftSet = nil;
+  NSSet *rightSet = nil;
+  NSMutableSet *result = nil;
+
+  CHECK_SETS;
+    
+  result = [NSMutableSet setWithSet: leftSet];
+  [result unionSet: rightSet];
+
+  return result;  
 }
 
 @end
@@ -1773,6 +1814,23 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return _right;
 }
 
+- (id) expressionValueWithObject: (id)object
+			 context: (NSMutableDictionary *)context
+{
+  id leftValue = [_left expressionValueWithObject: object context: context];
+  id rightValue = [_right expressionValueWithObject: object context: context];
+  NSSet *leftSet = nil;
+  NSSet *rightSet = nil;
+  NSMutableSet *result = nil;
+
+  CHECK_SETS;
+  
+  result = [NSMutableSet setWithSet: leftSet];
+  [result intersectSet: rightSet];
+
+  return result;
+}
+
 @end
 
 @implementation GSMinusSetExpression
@@ -1790,6 +1848,23 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (NSExpression *) rightExpression
 {
   return _right;
+}
+
+- (id) expressionValueWithObject: (id)object
+			 context: (NSMutableDictionary *)context
+{
+  id leftValue = [_left expressionValueWithObject: object context: context];
+  id rightValue = [_right expressionValueWithObject: object context: context];
+  NSSet *leftSet = nil;
+  NSSet *rightSet = nil;
+  NSMutableSet *result = nil;
+
+  CHECK_SETS;
+  
+  result = [NSMutableSet setWithSet: leftSet];
+  [result minusSet: rightSet];
+
+  return result;
 }
 
 @end
