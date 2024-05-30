@@ -6,6 +6,8 @@
 #import <Foundation/NSPredicate.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSValue.h>
+#import "Foundation/NSException.h"
+#import "Foundation/NSDateFormatter.h"
 
 void
 testKVC(NSDictionary *dict)
@@ -237,12 +239,35 @@ int main()
   d = [NSDictionary dictionaryWithObjectsAndKeys: 
     @"2", @"foo", nil]; 
   p = [NSPredicate predicateWithFormat: @"SELF.foo <= 2"];
-  PASS([p evaluateWithObject: d], "SELF.foo <= 2");
+  PASS_EXCEPTION([p evaluateWithObject: d], NSInvalidArgumentException, "SELF.foo <= 2 throws an exception");
 
-  p = [NSPredicate predicateWithFormat:
-    @"%K like %@+$b+$c", @"$single", @"b\""];
-  PASS_EQUAL([p predicateFormat], @"$single LIKE (\"b\\\"\" + $b) + $c",
-    "predicate created with format has the format is preserved");
+  a = [NSArray arrayWithObjects: @"a", @"b", @"c", @"d", nil];
+  expect = [NSArray arrayWithObjects: @"b", @"c", nil];
+  p = [NSPredicate predicateWithFormat:@"SELF BETWEEN {%@, %@}", @"b", @"c"];
+  PASS_EQUAL([a filteredArrayUsingPredicate: p], expect, "BETWEEN on string array works");
+
+  NSNumber *num1 = [NSNumber numberWithInt: 1];
+  NSNumber *num2 = [NSNumber numberWithInt: 2];
+  NSNumber *num3 = [NSNumber numberWithInt: 3];
+
+  a = [NSArray arrayWithObjects: num1, num2, num3, nil];
+  expect = [NSArray arrayWithObjects: num2, num3, nil];
+  p = [NSPredicate predicateWithFormat:@"SELF BETWEEN {%d, %d}", 2, 3];
+  PASS_EQUAL([a filteredArrayUsingPredicate: p], expect, "BETWEEN on number array works");
+
+  NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+  [dateFormatter setDateFormat:@"yyyy-MM-dd"];
+
+  NSDate *first = [dateFormatter dateFromString:@"2024-01-01"];
+  NSDate *second = [dateFormatter dateFromString:@"2024-02-01"];
+  NSDate *third = [dateFormatter dateFromString:@"2024-03-01"];
+  NSDate *fourth = [dateFormatter dateFromString:@"2024-04-01"];
+
+  a = [NSArray arrayWithObjects: first, second, third, fourth, nil];
+  expect = [NSArray arrayWithObjects: second, third, nil];
+  NSPredicate *predicate = [NSPredicate predicateWithFormat:@"SELF BETWEEN {%@, %@}", second, third];
+  PASS_EQUAL([a filteredArrayUsingPredicate:predicate], expect, "BETWEEN on date array works");
+  [dateFormatter release];
 
 #if 0
   if ([p respondsToSelector: @selector(subpredicates)])
@@ -252,6 +277,11 @@ int main()
   if ([p respondsToSelector: @selector(rightExpression)])
     NSLog(@"right=%@", [(NSComparisonPredicate *)p rightExpression]);
 #endif
+  
+  p = [NSPredicate predicateWithFormat:
+    @"%K like %@+$b+$c", @"$single", @"b\""];
+  PASS_EQUAL([p predicateFormat], @"$single LIKE (\"b\\\"\" + $b) + $c",
+    "predicate created with format has the format is preserved");
 
   p = [p predicateWithSubstitutionVariables:
     [NSDictionary dictionaryWithObjectsAndKeys:
