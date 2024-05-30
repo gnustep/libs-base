@@ -901,25 +901,16 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 }
 #endif
 
-- (double) doubleValueFor: (id)value
-{
-  if ([value isKindOfClass: [NSDate class]])
-    {
-      return [(NSDate*)value timeIntervalSinceReferenceDate];
-    }
-  else
-    {
-      return [value doubleValue];
-    }
-}
-
 - (BOOL) _evaluateLeftValue: (id)leftResult
 		 rightValue: (id)rightResult
 		     object: (id)object
 {
+  
   unsigned compareOptions = 0;
   BOOL leftIsNil;
   BOOL rightIsNil;
+  Class constantValueClass;
+  
 
   leftIsNil = (leftResult == nil || [leftResult isEqual: [NSNull null]]);
   rightIsNil = (rightResult == nil || [rightResult isEqual: [NSNull null]]);
@@ -957,35 +948,87 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       compareOptions |= NSCaseInsensitiveSearch;
     }
 
-  /* This is a very optimistic implementation,
-   * hoping that the values are of the right type.
+  /* If the left or right result is a constant value expression, we need to
+   * extract the constant value from it.
    */
+  constantValueClass = [GSConstantValueExpression class];
+  if ([leftResult isKindOfClass: constantValueClass])
+    {
+      leftResult = [(GSConstantValueExpression *)leftResult constantValue];
+    }
+  if ([rightResult isKindOfClass: constantValueClass])
+    {
+      rightResult = [(GSConstantValueExpression *)rightResult constantValue];
+    }
+
+  /* We are assuming that the API is stable and enumeration values
+   * won't change. This covers:
+   * - NSLessThanPredicateOperatorType = 0,
+   * - NSLessThanOrEqualToPredicateOperatorType = 1,
+   * - NSGreaterThanPredicateOperatorType = 2,
+   * - NSGreaterThanOrEqualToPredicateOperatorType = 3
+   */
+  if (_type < NSEqualToPredicateOperatorType)
+    {
+      NSComparisonResult comparisonResult;
+      Class              stringClass;
+
+      stringClass = [NSString class];
+
+      /* We first check if the left and right result are strings.
+       * If this is not the case, check if we can do a comparison with
+       * doubleValue: (Mainly useful as a shortcut for expressions like
+       * "abc" == 3
+       */
+      if ([leftResult isKindOfClass:stringClass] &&
+          [rightResult isKindOfClass:stringClass])
+        {
+          comparisonResult = [leftResult compare:rightResult
+                                         options:compareOptions];
+        }
+      else if ([leftResult respondsToSelector:@selector(compare:)])
+        {
+          // Attempt a comparison
+          comparisonResult = [leftResult compare:rightResult];
+        }
+      else
+        {
+          // We can't compare these objects
+          [NSException raise:NSInvalidArgumentException
+                      format:@"Cannot compare objects of type %@ and %@",
+                             NSStringFromClass([leftResult class]),
+                             NSStringFromClass([rightResult class])];
+          return NO;
+        }
+
+      switch (_type)
+        {
+          case NSLessThanPredicateOperatorType:
+          {
+            return (comparisonResult == NSOrderedAscending) ? YES : NO;
+          }
+          case NSLessThanOrEqualToPredicateOperatorType:
+          {
+            /* True if left value is less then (NSOrderedAscending) or equal
+             * (NSOrderedSame) */
+            return (comparisonResult != NSOrderedDescending) ? YES : NO;
+          }
+          case NSGreaterThanPredicateOperatorType:
+          {
+            return (comparisonResult == NSOrderedDescending) ? YES : NO;
+          }
+          case NSGreaterThanOrEqualToPredicateOperatorType:
+          {
+            return (comparisonResult != NSOrderedAscending) ? YES : NO;
+          }
+        default: // This should never happen
+          return NO;
+        }
+    }
+
+  /* Handle remaining cases */
   switch (_type)
     {
-      case NSLessThanPredicateOperatorType:
-        {
-          double ld = [self doubleValueFor: leftResult];
-          double rd = [self doubleValueFor: rightResult];
-          return (ld < rd) ? YES : NO;
-        }
-      case NSLessThanOrEqualToPredicateOperatorType:
-        {
-          double ld = [self doubleValueFor: leftResult];
-          double rd = [self doubleValueFor: rightResult];
-          return (ld <= rd) ? YES : NO;
-        }
-      case NSGreaterThanPredicateOperatorType:
-        {
-          double ld = [self doubleValueFor: leftResult];
-          double rd = [self doubleValueFor: rightResult];
-          return (ld > rd) ? YES : NO;
-        }
-      case NSGreaterThanOrEqualToPredicateOperatorType:
-        {
-          double ld = [self doubleValueFor: leftResult];
-          double rd = [self doubleValueFor: rightResult];
-          return (ld >= rd) ? YES : NO;
-        }
       case NSEqualToPredicateOperatorType:
 	return [leftResult isEqual: rightResult];
       case NSNotEqualToPredicateOperatorType:
@@ -2290,12 +2333,12 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       lp = [NSComparisonPredicate predicateWithLeftExpression: left 
                                   rightExpression: lexp
                                   modifier: modifier 
-                                  type: NSGreaterThanPredicateOperatorType 
+                                  type: NSGreaterThanOrEqualToPredicateOperatorType 
                                   options: opts];
       up = [NSComparisonPredicate predicateWithLeftExpression: left 
                                   rightExpression: uexp
                                   modifier: modifier 
-                                  type: NSLessThanPredicateOperatorType 
+                                  type: NSLessThanOrEqualToPredicateOperatorType 
                                   options: opts];
       return [NSCompoundPredicate andPredicateWithSubpredicates: 
                                        [NSArray arrayWithObjects: lp, up, nil]];
