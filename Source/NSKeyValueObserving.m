@@ -41,7 +41,6 @@
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/Unicode.h"
-#import "GNUstepBase/GSLock.h"
 #import "GSInvocation.h"
 #import "GSPThread.h"
 

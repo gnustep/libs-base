@@ -39,7 +39,6 @@
 #import "Foundation/NSPathUtilities.h"
 #endif
 
-#import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/Unicode.h"
 

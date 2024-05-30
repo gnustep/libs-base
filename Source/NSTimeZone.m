@@ -86,7 +86,6 @@
 
 #import "common.h"
 #define	EXPOSE_NSTimeZone_IVARS	1
-#import "GNUstepBase/GSLock.h"
 #include <stdio.h>
 #include <time.h>
 #import "Foundation/NSArray.h"

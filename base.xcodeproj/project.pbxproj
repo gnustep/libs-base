@@ -132,7 +132,6 @@
 		18394BAC1610D9ED00335E85 /* NSData+GNUstepBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 18906EF21610BF3C0003C892 /* NSData+GNUstepBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		18394BAD1610D9ED00335E85 /* NSDebug+GNUstepBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 18906EF31610BF3C0003C892 /* NSDebug+GNUstepBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		18394BAE1610D9ED00335E85 /* NSFileHandle+GNUstepBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 18906EF41610BF3C0003C892 /* NSFileHandle+GNUstepBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		18394BAF1610D9ED00335E85 /* NSLock+GNUstepBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 18906EF51610BF3C0003C892 /* NSLock+GNUstepBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		18394BB01610D9ED00335E85 /* NSMutableString+GNUstepBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 18906EF61610BF3C0003C892 /* NSMutableString+GNUstepBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		18394BB11610D9ED00335E85 /* NSNetServices+GNUstepBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 18906EF71610BF3C0003C892 /* NSNetServices+GNUstepBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		18394BB21610D9ED00335E85 /* NSNumber+GNUstepBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 18906EF81610BF3C0003C892 /* NSNumber+GNUstepBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -273,7 +272,6 @@
 		185289591613961A0016729B /* GCObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F0D1610BF3C0003C892 /* GCObject.m */; };
 		1852895A161396200016729B /* GSFunctions.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F0F1610BF3C0003C892 /* GSFunctions.m */; };
 		1852895B161396240016729B /* GSInsensitiveDictionary.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F101610BF3C0003C892 /* GSInsensitiveDictionary.m */; };
-		1852895C161396280016729B /* GSLock.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F111610BF3C0003C892 /* GSLock.m */; };
 		1852895D1613962B0016729B /* GSMime.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F121610BF3C0003C892 /* GSMime.m */; };
 		1852895E161396310016729B /* GSXML.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F141610BF3C0003C892 /* GSXML.m */; };
 		1852895F161396450016729B /* GSArray.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F391610BF3C0003C892 /* GSArray.m */; };
@@ -309,7 +307,6 @@
 		18528989161398FF0016729B /* NSDebug+GNUstepBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F1C1610BF3C0003C892 /* NSDebug+GNUstepBase.m */; };
 		1852898A161398FF0016729B /* NSError+GNUstepBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F1D1610BF3C0003C892 /* NSError+GNUstepBase.m */; };
 		1852898B161398FF0016729B /* NSFileHandle+GNUstepBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F1E1610BF3C0003C892 /* NSFileHandle+GNUstepBase.m */; };
-		1852898C161399000016729B /* NSLock+GNUstepBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F1F1610BF3C0003C892 /* NSLock+GNUstepBase.m */; };
 		1852898D161399000016729B /* NSMutableString+GNUstepBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F201610BF3C0003C892 /* NSMutableString+GNUstepBase.m */; };
 		1852898E161399000016729B /* NSNumber+GNUstepBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F211610BF3C0003C892 /* NSNumber+GNUstepBase.m */; };
 		1852898F161399000016729B /* NSObject+GNUstepBase.m in Sources */ = {isa = PBXBuildFile; fileRef = 18906F221610BF3C0003C892 /* NSObject+GNUstepBase.m */; };
@@ -693,7 +690,6 @@
 		18906EE51610BF3C0003C892 /* GSIArray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GSIArray.h; sourceTree = "<group>"; };
 		18906EE61610BF3C0003C892 /* GSIMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GSIMap.h; sourceTree = "<group>"; };
 		18906EE71610BF3C0003C892 /* GSLocale.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GSLocale.h; sourceTree = "<group>"; };
-		18906EE81610BF3C0003C892 /* GSLock.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GSLock.h; sourceTree = "<group>"; };
 		18906EE91610BF3C0003C892 /* GSMime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GSMime.h; sourceTree = "<group>"; };
 		18906EEA1610BF3C0003C892 /* GSObjCRuntime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GSObjCRuntime.h; sourceTree = "<group>"; };
 		18906EEB1610BF3C0003C892 /* GSUnion.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GSUnion.h; sourceTree = "<group>"; };
@@ -706,7 +702,6 @@
 		18906EF21610BF3C0003C892 /* NSData+GNUstepBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSData+GNUstepBase.h"; path = "../GNUstepBase/NSData+GNUstepBase.h"; sourceTree = "<group>"; };
 		18906EF31610BF3C0003C892 /* NSDebug+GNUstepBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSDebug+GNUstepBase.h"; path = "../GNUstepBase/NSDebug+GNUstepBase.h"; sourceTree = "<group>"; };
 		18906EF41610BF3C0003C892 /* NSFileHandle+GNUstepBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSFileHandle+GNUstepBase.h"; path = "../GNUstepBase/NSFileHandle+GNUstepBase.h"; sourceTree = "<group>"; };
-		18906EF51610BF3C0003C892 /* NSLock+GNUstepBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSLock+GNUstepBase.h"; path = "../GNUstepBase/NSLock+GNUstepBase.h"; sourceTree = "<group>"; };
 		18906EF61610BF3C0003C892 /* NSMutableString+GNUstepBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSMutableString+GNUstepBase.h"; path = "../GNUstepBase/NSMutableString+GNUstepBase.h"; sourceTree = "<group>"; };
 		18906EF71610BF3C0003C892 /* NSNetServices+GNUstepBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSNetServices+GNUstepBase.h"; path = "../GNUstepBase/NSNetServices+GNUstepBase.h"; sourceTree = "<group>"; };
 		18906EF81610BF3C0003C892 /* NSNumber+GNUstepBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "NSNumber+GNUstepBase.h"; path = "../GNUstepBase/NSNumber+GNUstepBase.h"; sourceTree = "<group>"; };
@@ -726,7 +721,6 @@
 		18906F0E1610BF3C0003C892 /* GNUmakefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = GNUmakefile; sourceTree = "<group>"; };
 		18906F0F1610BF3C0003C892 /* GSFunctions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GSFunctions.m; sourceTree = "<group>"; };
 		18906F101610BF3C0003C892 /* GSInsensitiveDictionary.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GSInsensitiveDictionary.m; sourceTree = "<group>"; };
-		18906F111610BF3C0003C892 /* GSLock.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GSLock.m; sourceTree = "<group>"; };
 		18906F121610BF3C0003C892 /* GSMime.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GSMime.m; sourceTree = "<group>"; };
 		18906F131610BF3C0003C892 /* GSObjCRuntime.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GSObjCRuntime.m; sourceTree = "<group>"; };
 		18906F141610BF3C0003C892 /* GSXML.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GSXML.m; sourceTree = "<group>"; };
@@ -740,7 +734,6 @@
 		18906F1C1610BF3C0003C892 /* NSDebug+GNUstepBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDebug+GNUstepBase.m"; sourceTree = "<group>"; };
 		18906F1D1610BF3C0003C892 /* NSError+GNUstepBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSError+GNUstepBase.m"; sourceTree = "<group>"; };
 		18906F1E1610BF3C0003C892 /* NSFileHandle+GNUstepBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSFileHandle+GNUstepBase.m"; sourceTree = "<group>"; };
-		18906F1F1610BF3C0003C892 /* NSLock+GNUstepBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSLock+GNUstepBase.m"; sourceTree = "<group>"; };
 		18906F201610BF3C0003C892 /* NSMutableString+GNUstepBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSMutableString+GNUstepBase.m"; sourceTree = "<group>"; };
 		18906F211610BF3C0003C892 /* NSNumber+GNUstepBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSNumber+GNUstepBase.m"; sourceTree = "<group>"; };
 		18906F221610BF3C0003C892 /* NSObject+GNUstepBase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSObject+GNUstepBase.m"; sourceTree = "<group>"; };
@@ -1376,7 +1369,6 @@
 		18FE1FFE1628550100389A13 /* ullong-8.type */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ullong-8.type"; sourceTree = "<group>"; };
 		18FE1FFF1628550100389A13 /* ulong-4.type */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ulong-4.type"; sourceTree = "<group>"; };
 		18FE20001628550100389A13 /* ushort-2.type */ = {isa = PBXFileReference; lastKnownFileType = file; path = "ushort-2.type"; sourceTree = "<group>"; };
-		18FE20021628550100389A13 /* GSLock.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GSLock.m; sourceTree = "<group>"; };
 		18FE20031628550100389A13 /* GSMime.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GSMime.m; sourceTree = "<group>"; };
 		18FE20041628550100389A13 /* GSObjCRuntime.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GSObjCRuntime.m; sourceTree = "<group>"; };
 		18FE20051628550100389A13 /* GSXML.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = GSXML.m; sourceTree = "<group>"; };
@@ -1606,7 +1598,6 @@
 				18906EF21610BF3C0003C892 /* NSData+GNUstepBase.h */,
 				18906EF31610BF3C0003C892 /* NSDebug+GNUstepBase.h */,
 				18906EF41610BF3C0003C892 /* NSFileHandle+GNUstepBase.h */,
-				18906EF51610BF3C0003C892 /* NSLock+GNUstepBase.h */,
 				18906EF61610BF3C0003C892 /* NSMutableString+GNUstepBase.h */,
 				18906EF71610BF3C0003C892 /* NSNetServices+GNUstepBase.h */,
 				18906EF81610BF3C0003C892 /* NSNumber+GNUstepBase.h */,
@@ -2141,7 +2132,6 @@
 				18906EE51610BF3C0003C892 /* GSIArray.h */,
 				18906EE61610BF3C0003C892 /* GSIMap.h */,
 				18906EE71610BF3C0003C892 /* GSLocale.h */,
-				18906EE81610BF3C0003C892 /* GSLock.h */,
 				18906EE91610BF3C0003C892 /* GSMime.h */,
 				18906EEA1610BF3C0003C892 /* GSObjCRuntime.h */,
 				18EA6763172EC7F70026AC34 /* GSTypeEncoding.h */,
@@ -2201,7 +2191,6 @@
 				18906F0E1610BF3C0003C892 /* GNUmakefile */,
 				18906F0F1610BF3C0003C892 /* GSFunctions.m */,
 				18906F101610BF3C0003C892 /* GSInsensitiveDictionary.m */,
-				18906F111610BF3C0003C892 /* GSLock.m */,
 				18906F121610BF3C0003C892 /* GSMime.m */,
 				18906F131610BF3C0003C892 /* GSObjCRuntime.m */,
 				18EA675F172EC6170026AC34 /* GSTypeEncoding.c */,
@@ -2216,7 +2205,6 @@
 				18906F1C1610BF3C0003C892 /* NSDebug+GNUstepBase.m */,
 				18906F1D1610BF3C0003C892 /* NSError+GNUstepBase.m */,
 				18906F1E1610BF3C0003C892 /* NSFileHandle+GNUstepBase.m */,
-				18906F1F1610BF3C0003C892 /* NSLock+GNUstepBase.m */,
 				18906F201610BF3C0003C892 /* NSMutableString+GNUstepBase.m */,
 				18906F211610BF3C0003C892 /* NSNumber+GNUstepBase.m */,
 				18906F221610BF3C0003C892 /* NSObject+GNUstepBase.m */,
@@ -3439,7 +3427,6 @@
 		18FE20011628550100389A13 /* headers */ = {
 			isa = PBXGroup;
 			children = (
-				18FE20021628550100389A13 /* GSLock.m */,
 				18FE20031628550100389A13 /* GSMime.m */,
 				18FE20041628550100389A13 /* GSObjCRuntime.m */,
 				18FE20051628550100389A13 /* GSXML.m */,
@@ -3673,7 +3660,6 @@
 				18394BAC1610D9ED00335E85 /* NSData+GNUstepBase.h in Headers */,
 				18394BAD1610D9ED00335E85 /* NSDebug+GNUstepBase.h in Headers */,
 				18394BAE1610D9ED00335E85 /* NSFileHandle+GNUstepBase.h in Headers */,
-				18394BAF1610D9ED00335E85 /* NSLock+GNUstepBase.h in Headers */,
 				18394BB01610D9ED00335E85 /* NSMutableString+GNUstepBase.h in Headers */,
 				18394BB11610D9ED00335E85 /* NSNetServices+GNUstepBase.h in Headers */,
 				18394BB21610D9ED00335E85 /* NSNumber+GNUstepBase.h in Headers */,
@@ -3825,7 +3811,6 @@
 				185289591613961A0016729B /* GCObject.m in Sources */,
 				1852895A161396200016729B /* GSFunctions.m in Sources */,
 				1852895B161396240016729B /* GSInsensitiveDictionary.m in Sources */,
-				1852895C161396280016729B /* GSLock.m in Sources */,
 				1852895D1613962B0016729B /* GSMime.m in Sources */,
 				185289511613861E0016729B /* GSObjCRuntime.m in Sources */,
 				1852895E161396310016729B /* GSXML.m in Sources */,
@@ -3837,7 +3822,6 @@
 				18528989161398FF0016729B /* NSDebug+GNUstepBase.m in Sources */,
 				1852898A161398FF0016729B /* NSError+GNUstepBase.m in Sources */,
 				1852898B161398FF0016729B /* NSFileHandle+GNUstepBase.m in Sources */,
-				1852898C161399000016729B /* NSLock+GNUstepBase.m in Sources */,
 				1852898D161399000016729B /* NSMutableString+GNUstepBase.m in Sources */,
 				1852898E161399000016729B /* NSNumber+GNUstepBase.m in Sources */,
 				1852898F161399000016729B /* NSObject+GNUstepBase.m in Sources */,

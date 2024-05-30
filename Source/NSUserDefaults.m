@@ -52,7 +52,6 @@
 #import "Foundation/NSTimer.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSLocale.h"
-#import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
