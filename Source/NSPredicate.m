@@ -905,7 +905,6 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 		 rightValue: (id)rightResult
 		     object: (id)object
 {
-  
   unsigned compareOptions = 0;
   BOOL leftIsNil;
   BOOL rightIsNil;
