@@ -3100,7 +3100,7 @@ GSPrivateNativeCStringEncoding()
       char      *old;
 
       /* Take it from the system locale information.  */
-      [gnustep_global_lock lock];
+      [GSPrivateGlobalLock() lock];
       /* Initialise locale system by setting current locale from
        * environment and then resetting it.  Must be done before
        * any call to nl_langinfo()
@@ -3111,7 +3111,7 @@ GSPrivateNativeCStringEncoding()
         }
       strncpy(encbuf, nl_langinfo(CODESET), sizeof(encbuf)-1);
       encbuf[sizeof(encbuf)-1] = '\0';
-      [gnustep_global_lock unlock];
+      [GSPrivateGlobalLock() unlock];
 #else
       encbuf[0] = '\0';
 #endif

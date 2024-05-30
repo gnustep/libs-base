@@ -48,7 +48,7 @@ strerror_r(int eno, char *buf, int len)
   const char *ptr;
   int   result;
 
-  [gnustep_global_lock lock];
+  [GSPrivateGlobalLock() lock];
   ptr = strerror(eno);
   if (ptr == 0)
     {
@@ -61,7 +61,7 @@ strerror_r(int eno, char *buf, int len)
       result = 0;
     }
   buf[len - 1] = '\0';
-  [gnustep_global_lock unlock];
+  [GSPrivateGlobalLock() unlock];
   return result;
 }
 #else

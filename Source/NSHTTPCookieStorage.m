@@ -24,6 +24,7 @@
 
 #import "common.h"
 #define	EXPOSE_NSHTTPCookieStorage_IVARS	1
+#import "GSPThread.h"
 #import "GSURLPrivate.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSArray.h"
@@ -50,6 +51,7 @@ typedef struct {
 @implementation NSHTTPCookieStorage
 
 static NSHTTPCookieStorage   *storage = nil;
+static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
 
 + (id) allocWithZone: (NSZone*)z
 {
@@ -60,7 +62,7 @@ static NSHTTPCookieStorage   *storage = nil;
 {
   if (storage == nil)
     {
-      [gnustep_global_lock lock];
+      GS_MUTEX_LOCK(classLock);
       if (storage == nil)
         {
 	  NSHTTPCookieStorage	*o;
@@ -72,7 +74,7 @@ static NSHTTPCookieStorage   *storage = nil;
 	  [o init];
 	  storage = o;
 	}
-      [gnustep_global_lock unlock];
+      GS_MUTEX_UNLOCK(classLock);
     }
   return storage;
 }

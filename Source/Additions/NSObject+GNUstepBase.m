@@ -23,6 +23,7 @@
 
 */
 #import "common.h"
+#import "GSPThread.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSHashTable.h"
@@ -162,12 +163,14 @@ static inline void setup()
 {
   if (nil == exitLock)
     {
-      [gnustep_global_lock lock];
+      static gs_mutex_t	setupLock = GS_MUTEX_INIT_STATIC;
+
+      GS_MUTEX_LOCK(setupLock);
       if (nil == exitLock)
         {
           exitLock = [NSLock new];
         } 
-      [gnustep_global_lock unlock];
+      GS_MUTEX_UNLOCK(setupLock);
     }
 }
 

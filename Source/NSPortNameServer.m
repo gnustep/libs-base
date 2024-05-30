@@ -26,6 +26,7 @@
    */
 
 #import "common.h"
+#import "GSPThread.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSPort.h"
@@ -74,7 +75,9 @@
 
   if (nameServer == nil)
     {
-      [gnustep_global_lock lock];
+      static gs_mutex_t	classLock = GS_MUTEX_INIT_STATIC;
+
+      GS_MUTEX_LOCK(classLock);
       if (nameServer == nil)
 	{
 	  NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
@@ -91,7 +94,7 @@
 	    }
 	  nameServer = RETAIN(o);
 	}
-      [gnustep_global_lock unlock];
+      GS_MUTEX_UNLOCK(classLock);
     }
   return nameServer;
 }

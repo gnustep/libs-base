@@ -502,10 +502,6 @@ NSIncrementExtraRefCount(id anObject);
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
-/** DEPRECATED to be removed in next release.
- */
-GS_EXPORT NSRecursiveLock *gnustep_global_lock;
-
 @interface NSObject (NEXTSTEP)
 - (id) error:(const char *)aString, ...;
 /* - (const char *) name;

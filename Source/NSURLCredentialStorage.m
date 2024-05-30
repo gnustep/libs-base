@@ -23,6 +23,7 @@
    */ 
 
 #import "common.h"
+#import "GSPThread.h"
 
 #define	EXPOSE_NSURLCredentialStorage_IVARS	1
 #import "GSURLPrivate.h"
@@ -46,9 +47,11 @@ static NSURLCredentialStorage	*storage = nil;
 
 + (NSURLCredentialStorage *) sharedCredentialStorage
 {
+  static gs_mutex_t	classLock = GS_MUTEX_INIT_STATIC;
+
   if (storage == nil)
     {
-      [gnustep_global_lock lock];
+      GS_MUTEX_LOCK(classLock);
       if (storage == nil)
         {
 	  NSURLCredentialStorage	*o;
@@ -63,7 +66,7 @@ static NSURLCredentialStorage	*storage = nil;
 	    = [NSMutableDictionary new];
 	  storage = o;
 	}
-      [gnustep_global_lock unlock];
+      GS_MUTEX_UNLOCK(classLock);
     }
   return storage;
 }

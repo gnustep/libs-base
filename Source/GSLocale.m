@@ -23,6 +23,7 @@
    Boston, MA 02110 USA.
 */
 #import "common.h"
+#import "GSPrivate.h"
 #import "GNUstepBase/GSLocale.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArray.h"
@@ -109,7 +110,7 @@ GSDomainFromDefaultLocale(void)
   /* Protect locale access with locks to prevent multiple threads using
    * it and interfering with the buffer.
    */
-  [gnustep_global_lock lock];
+  [GSPrivateGlobalLock() lock];
 
   /**
    * Set the current locale to the system default, and backup
@@ -231,7 +232,7 @@ GSDomainFromDefaultLocale(void)
    */
   privateSetLocale(LC_ALL, backupLocale);
 
-  [gnustep_global_lock unlock];
+  [GSPrivateGlobalLock() unlock];
   return saved;
 }
 
@@ -329,14 +330,14 @@ NSString *GSDefaultLanguageLocale()
 #ifdef LC_MESSAGES
   NSString *backup;
 
-  [gnustep_global_lock lock];
+  [GSPrivateGlobalLock() lock];
 
   backup = privateSetLocale(LC_ALL, nil);
   privateSetLocale(LC_ALL, @"");
   locale = privateSetLocale(LC_MESSAGES, nil);  
   privateSetLocale(LC_ALL, backup);
 
-  [gnustep_global_lock unlock];
+  [GSPrivateGlobalLock() unlock];
 #endif
 #endif
 

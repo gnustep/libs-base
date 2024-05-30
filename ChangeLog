@@ -1,3 +1,33 @@
+2024-04-30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObject.h:
+	* Headers/GNUstepBase/GSLock.h:
+	* Headers/GNUstepBase/NSLock+GNUstepBase.h:
+	* Source/Additions/GNUmakefile:
+	* Source/Additions/GSLock.m:
+	* Source/Additions/NSError+GNUstepBase.m:
+	* Source/Additions/NSLock+GNUstepBase.m:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	* Source/Additions/Unicode.m:
+	* Source/DocMakefile:
+	* Source/GSLocale.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSFileManager.m:
+	* Source/NSHTTPCookieStorage.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSLog.m:
+	* Source/NSObject.m:
+	* Source/NSPortNameServer.m:
+	* Source/NSTask.m:
+	* Source/NSThread.m:
+	* Source/NSURLCache.m:
+	* Source/NSURLCredentialStorage.m:
+	* Source/ObjectiveC2/properties.m:
+	Remove deprecated locking code.  Use lightweight and more fine-grained
+	locking for simple cases protecting short regions.  Retain a global
+	lock for more complex siutations where there is a significant chance of
+	deadlock.
+
 2024-04-26 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* ChangeLog: Update for new release
