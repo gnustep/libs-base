@@ -178,6 +178,7 @@ static int	tuneSndBuf = 0;
    * that multiple processes can serve the same port simultaneously.
    * We don't want that broken behavior!
    */
+  value = 1;
   if (setsockopt(desc, SOL_SOCKET, SO_REUSEADDR, (char*)&value, sizeof(value))
     < 0)
     {

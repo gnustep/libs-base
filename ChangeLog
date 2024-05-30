@@ -1,12 +1,21 @@
+2024-04-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* ChangeLog: Update for new release
+	* ANNOUNCE:
+	* NEWS:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	Update release notes for 1.30.0 release.
+	* Version: bump to 1.30.0
+
 2024-04-29  Doug Simons <douglas.simons@keysight.com>
 
-    * NSXMLNode.m:
-       Fix execute_xpath() to return an NSError when xpath expression can't
-	   be evaluated instead of just calling NSLog.
-       	   
-    * NSXMLElement.m: 
-	   Fix setAttributes: and setAttributesWithDictionary: to remove previous
-	   attributes.
+	* NSXMLNode.m:
+	Fix execute_xpath() to return an NSError when xpath expression can't
+	be evaluated instead of just calling NSLog.
+	* NSXMLElement.m: 
+	Fix setAttributes: and setAttributesWithDictionary: to remove previous
+	attributes.
 
 2024-05-12 ethanc8R (github user)
 
@@ -61,7 +70,8 @@
 2024-03-10 Hugo Melder <service@hugomelder.com>
 	* Headers/Foundation/NSDate.h:
 	* Source/NSDate.m:
-	Added the +[NSDate now] constructor, which was introduced in macOS 10.15.
+	Added the +[NSDate now] constructor, which was introduced
+	in macOS 10.15.
 
 2024-03-04 Richard Frith-Macdonald <rfm@gnu.org>
 

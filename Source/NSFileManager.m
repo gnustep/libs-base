@@ -273,7 +273,7 @@ static Class	GSAttrDictionaryClass = 0;
 @end
 
 
-gs_thread_key_t thread_last_error_key;
+static gs_thread_key_t thread_last_error_key;
 
 static void GS_WINAPI
 exitedThread(void *lastErrorPtr)
@@ -379,7 +379,10 @@ static NSStringEncoding	defaultEncoding;
 {
   defaultEncoding = [NSString defaultCStringEncoding];
   GSAttrDictionaryClass = [GSAttrDictionary class];
-  GS_THREAD_KEY_INIT(thread_last_error_key, exitedThread);
+  if (!GS_THREAD_KEY_INIT(thread_last_error_key, exitedThread))
+    {
+      NSLog(@"Problem initialising thread error key");
+    }
 }
 
 - (void) dealloc
