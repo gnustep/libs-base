@@ -642,7 +642,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       return dest;
     }
   return (*(id(*)(id,SEL,id,id,id))originalImp)
-    (self, _cmd, aPropertyList, aFormat, anErrorString);
+    (self, _cmd, aPropertyList, [NSNumber numberWithInt:aFormat], anErrorString);
 }
 
 + (void) load
