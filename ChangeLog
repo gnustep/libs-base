@@ -1,3 +1,11 @@
+2024-05-31 Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSPredicate.m:
+	* Tests/base/NSPredicate/basic.m:
+	Improve implementation of BETWEEN operator in NSPredicate
+	for data types other than NSNumber. Proper support
+	for constant values.
+
 2024-04-30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSObject.h:
