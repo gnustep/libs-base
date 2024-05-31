@@ -1738,7 +1738,6 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 @end
 
 // Macro for checking set related expressions
-
 #define CHECK_SETS \
 do { \
   if ([rightValue isKindOfClass: [NSArray class]]) \
