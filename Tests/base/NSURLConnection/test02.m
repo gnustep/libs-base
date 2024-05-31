@@ -15,7 +15,7 @@ int main(int argc, char **argv, char **env)
   NSString *helperPath;
 
 #if defined(_WIN64) && defined(_MSC_VER)
-  NSLog(@"Marking tests as hopeful because they are known to fail on 64-bit Windows with Clang/MSVC.")
+  NSLog(@"Marking tests as hopeful because they are known to fail on 64-bit Windows with Clang/MSVC.");
   testHopeful = YES;
 #endif
 

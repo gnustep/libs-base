@@ -42,7 +42,6 @@
 #import "Foundation/NSURLHandle.h"
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/GSMime.h"
-#import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/GSTLS.h"
 #import "GNUstepBase/NSData+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"

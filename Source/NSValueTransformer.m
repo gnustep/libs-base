@@ -30,9 +30,9 @@
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSArchiver.h"
+#import "Foundation/NSLock.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSValueTransformer.h"
-#import "GNUstepBase/GSLock.h"
 
 @interface NSNegateBooleanTransformer : NSValueTransformer
 @end

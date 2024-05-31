@@ -82,7 +82,6 @@
 #endif
 
 #import "Foundation/NSEnumerator.h"
-#import "GNUstepBase/GSLock.h"
 
 /* Skip past an argument and also any offset information before the next.
  */

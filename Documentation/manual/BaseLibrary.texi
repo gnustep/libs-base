@@ -884,9 +884,7 @@ filesystem.
 If you are writing a class library and do not know whether it will be used in
 a multithreaded environment or not, and would like to avoid locking overhead
 if not, use the @code{NSThread +isMultiThreaded} method.  You can also
-register to receive @code{NSWillBecomeMultiThreadedNotification}s.  You can
-also use the @code{GSLazyLock} and @code{GSLazyRecursiveLock} classes (see
-next section) which handle this automatically.
+register to receive @code{NSWillBecomeMultiThreadedNotification}s.
 
 @subsection Using @code{NSConnection} to Communicate Between Threads
 
@@ -966,10 +964,6 @@ Classes for parsing HTML documents (not necessarily XHTML).
 @item GSMimeXxx
 Classes for handling MIME messages or HTML POST documents.
 
-@item GSLazyXxx
-Classes implementing ``lazy'' locking that do not actually attempt any locking
-unless running in a multithreaded application.  See @ref{Base Library, ,
-Threads and Run Control}.
 @end table
 
 All of these classes have excellent API reference documentation and you

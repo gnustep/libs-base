@@ -45,7 +45,6 @@
  */
 
 #import "common.h"
-#import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 #import "Foundation/NSAttributedString.h"
 #import "Foundation/NSException.h"

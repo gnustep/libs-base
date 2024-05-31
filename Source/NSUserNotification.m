@@ -168,13 +168,15 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
 - (void) scheduleNotification: (NSUserNotification *)un
 {
+  NSTimeInterval	delay;
+
   if (![un deliveryDate])
     {
       [self deliverNotification: un];
       return;
     }
   [_scheduledNotifications addObject: un];
-  NSTimeInterval delay = [[un deliveryDate] timeIntervalSinceNow];
+  delay = [[un deliveryDate] timeIntervalSinceNow];
   [self performSelector: @selector(deliverNotification:)
              withObject: un
              afterDelay: delay];
@@ -196,11 +198,15 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
 - (NSDate *) nextDeliveryDateForNotification: (NSUserNotification *)un
 {
-  NSDateComponents *repeatInterval = [un deliveryRepeatInterval];
+  NSDateComponents	*repeatInterval;
+  NSDate 		*nextDeliveryDate;
+  NSCalendar		*cal;
+
+  repeatInterval = [un deliveryRepeatInterval];
   if (!repeatInterval)
     return nil;
 
-  NSCalendar *cal = [[repeatInterval calendar] copy];
+  cal = [[repeatInterval calendar] copy];
   if (!cal)
     cal = [[NSCalendar currentCalendar] copy];
   if ([repeatInterval timeZone])
@@ -208,7 +214,7 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
   if (![cal timeZone])
     [cal setTimeZone:[NSTimeZone localTimeZone]];
 
-  NSDate *nextDeliveryDate
+  nextDeliveryDate
     = [cal dateByAddingComponents: repeatInterval
                            toDate: [un actualDeliveryDate]
                           options: 0];
@@ -218,10 +224,12 @@ static NSUserNotificationCenter *defaultUserNotificationCenter = nil;
 
 - (void) deliverNotification: (NSUserNotification *)un
 {
+  NSDate	*actualDeliveryDate;
+
   [self removeScheduledNotification: un];
   [self _deliverNotification: un];
 
-  NSDate *actualDeliveryDate = [un deliveryDate];
+  actualDeliveryDate = [un deliveryDate];
   if (!actualDeliveryDate)
     actualDeliveryDate = [NSDate date];
   [un setActualDeliveryDate: actualDeliveryDate];

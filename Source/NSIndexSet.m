@@ -852,6 +852,102 @@ static NSUInteger posForIndex(GSIArray array, NSUInteger index)
   return [c initWithIndexSet: self];
 }
 
+- (void) enumerateRangesInRange: (NSRange)range 
+                        options: (NSEnumerationOptions)opts 
+                     usingBlock: (GSIndexSetRangeEnumerationBlock)aBlock
+{
+  NSUInteger		startArrayIndex;
+  NSUInteger    	endArrayIndex;
+  NSUInteger    	lastInRange;
+  NSUInteger 		i;
+  NSUInteger 		c;
+  BOOL 			isReverse = opts & NSEnumerationReverse;
+  BLOCK_SCOPE BOOL      shouldStop = NO;
+
+  if ((0 == [self count]) || (NSNotFound == range.location))
+    {
+      return;
+    }
+
+  startArrayIndex = posForIndex(_array, range.location);
+  if (NSNotFound == startArrayIndex)
+    {
+      startArrayIndex = 0;
+    }
+
+    lastInRange = (NSMaxRange(range) - 1);
+    endArrayIndex = MIN(posForIndex(_array, lastInRange),
+      (GSIArrayCount(_array) - 1));
+
+  if (NSNotFound == endArrayIndex)
+    {
+      endArrayIndex = GSIArrayCount(_array) - 1;
+    }
+
+  if (isReverse)
+    {
+      i = endArrayIndex;
+      c = startArrayIndex;
+    }
+  else
+    {
+      i = startArrayIndex;
+      c = endArrayIndex;
+    }
+
+  
+  GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+  while (isReverse ? i >= c : i <= c)
+    {
+      NSRange r = GSIArrayItemAtIndex(_array, i).ext;
+
+      GS_DISPATCH_SUBMIT_BLOCK(enumQueueGroup, enumQueue,
+        if (shouldStop == NO) {, },
+        aBlock, r, &shouldStop);
+
+      if (shouldStop)
+        {
+          break;
+        }
+      if (isReverse)
+        {
+          if (0 == i)
+            {
+              break;
+            }
+          i--;
+        }
+      else
+        {
+          i++;
+        }
+    }
+  GS_DISPATCH_TEARDOWN_QUEUE_AND_GROUP_FOR_ENUMERATION(enumQueue, opts)
+}
+
+- (void) enumerateRangesUsingBlock: (GSIndexSetRangeEnumerationBlock)aBlock
+{
+  [self enumerateRangesWithOptions: 0 usingBlock: aBlock];
+}
+
+- (void) enumerateRangesWithOptions: (NSEnumerationOptions)opts 
+			 usingBlock: (GSIndexSetRangeEnumerationBlock)aBlock
+{
+  NSUInteger    firstIndex;
+  NSUInteger    lastIndex;
+  NSRange       range;
+
+  firstIndex = [self firstIndex];
+  if (NSNotFound == firstIndex)
+    {
+      return;
+    }
+
+  lastIndex = [self lastIndex];
+  range = NSMakeRange(firstIndex, ((lastIndex - firstIndex) + 1));
+
+  [self enumerateRangesInRange: range options: opts usingBlock: aBlock];
+}
 
 - (void) enumerateIndexesInRange: (NSRange)range
                          options: (NSEnumerationOptions)opts

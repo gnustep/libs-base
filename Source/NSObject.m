@@ -636,7 +636,8 @@ static id objc_retain_fast_np_internal(id anObject)
 #endif	/* GSATOMICREAD */
   if (YES == tooFar)
     {
-      static NSHashTable        *overrun = nil;
+      static NSHashTable	*overrun = nil;
+      static gs_mutex_t       	countLock = GS_MUTEX_INIT_STATIC;
 
       /* We store this instance in a hash table so that we will only raise
        * an exception for it once (and can therefore expect to log the instance
@@ -644,7 +645,7 @@ static id objc_retain_fast_np_internal(id anObject)
        * NB. The hash table does not retain the object, so the code in the
        * lock protected region below should be safe anyway.
        */
-      [gnustep_global_lock lock];
+      GS_MUTEX_LOCK(countLock);
       if (nil == overrun)
         {
           overrun = NSCreateHashTable(NSNonRetainedObjectHashCallBacks, 0);
@@ -657,7 +658,7 @@ static id objc_retain_fast_np_internal(id anObject)
         {
           tooFar = NO;
         }
-      [gnustep_global_lock lock];
+      GS_MUTEX_UNLOCK(countLock);
       if (YES == tooFar)
         {
           NSString      *base;
@@ -1042,13 +1043,6 @@ static id gs_weak_load(id obj)
       }
 #endif
 
-      /* Create the global lock.
-       * NB. Ths is one of the first things we do ... setting up a new lock
-       * must not call any other Objective-C classes and must not involve
-       * any use of the autorelease system.
-       */
-      gnustep_global_lock = [GSUntracedRecursiveLock new];
-
       /* Behavior debugging ... enable with environment variable if needed.
        */
       GSObjCBehaviorDebug(GSPrivateEnvironmentFlag("GNUSTEP_BEHAVIOR_DEBUG",
@@ -1072,11 +1066,6 @@ static id gs_weak_load(id obj)
       /* Make sure the constant string class works.
        */
       NSConstantStringClass = [NSString constantStringClass];
-
-      /* Now that the string class (and autorelease) is set up, we can set
-       * the name of the lock to a string value safely.
-       */
-      [gnustep_global_lock setName: @"gnustep_global_lock"];
 
       /* Determine zombie management flags and set up a map to store
        * information about zombie objects.

@@ -36,7 +36,6 @@
 #endif
 #import	<GNUstepBase/GSFunctions.h>
 #import	<GNUstepBase/GSLocale.h>
-#import	<GNUstepBase/GSLock.h>
 #import	<GNUstepBase/GSMime.h>
 #import	<GNUstepBase/GSXML.h>
 #import	<GNUstepBase/Unicode.h>
@@ -48,7 +47,6 @@
 #import	<GNUstepBase/NSData+GNUstepBase.h>
 #import	<GNUstepBase/NSDebug+GNUstepBase.h>
 #import	<GNUstepBase/NSFileHandle+GNUstepBase.h>
-#import	<GNUstepBase/NSLock+GNUstepBase.h>
 #import	<GNUstepBase/NSMutableString+GNUstepBase.h>
 #import	<GNUstepBase/NSNetServices+GNUstepBase.h>
 #import	<GNUstepBase/NSNumber+GNUstepBase.h>

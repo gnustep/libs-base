@@ -641,7 +641,7 @@ OAppend(id obj, NSDictionary *loc, unsigned lev, unsigned step,
       OAppend(aPropertyList, loc, 0, step > 3 ? 3 : step, dest);
       return dest;
     }
-  return (*(id(*)(id,SEL,id,id,id))originalImp)
+  return (*(id(*)(id,SEL,id,NSPropertyListFormat,NSString**))originalImp)
     (self, _cmd, aPropertyList, aFormat, anErrorString);
 }
 

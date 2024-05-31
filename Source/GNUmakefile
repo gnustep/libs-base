@@ -130,7 +130,6 @@ GSIArray.h \
 GSIMap.h \
 GSFunctions.h \
 GSLocale.h \
-GSLock.h \
 GSMime.h \
 GSTLS.h \
 GSXML.h \
@@ -142,7 +141,6 @@ NSData+GNUstepBase.h \
 NSDebug+GNUstepBase.h \
 NSFileHandle+GNUstepBase.h \
 NSHashTable+GNUstepBase.h \
-NSLock+GNUstepBase.h \
 NSMutableString+GNUstepBase.h \
 NSNetServices+GNUstepBase.h \
 NSNumber+GNUstepBase.h \

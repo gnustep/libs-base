@@ -37,7 +37,6 @@
 #import "Foundation/NSUserDefaults.h"
 #import "Foundation/NSString.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
-#import "GNUstepBase/GSLock.h"
 
 #if	defined(HAVE_UNICODE_ULOC_H)
 # include <unicode/uloc.h>

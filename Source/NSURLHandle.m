@@ -604,33 +604,9 @@ static Class		NSURLHandleClass = 0;
  */
 @implementation	GSFileURLHandle
 
-static NSMutableDictionary	*fileCache = nil;
-static NSLock			*fileLock = nil;
-
 + (NSURLHandle*) cachedHandleForURL: (NSURL*)url
 {
-  NSURLHandle	*obj = nil;
-
-  if ([url isFileURL] == YES)
-    {
-      NSString	*path = [url path];
-
-      path = [path stringByStandardizingPath];
-      [fileLock lock];
-      NS_DURING
-	{
-	  obj = [fileCache objectForKey: path];
-	  IF_NO_ARC([[obj retain] autorelease];)
-	}
-      NS_HANDLER
-	{
-	  [fileLock unlock];
-	  [localException raise];
-	}
-      NS_ENDHANDLER
-      [fileLock unlock];
-    }
-  return obj;
+  return nil;
 }
 
 + (BOOL) canInitWithURL: (NSURL*)url
@@ -640,14 +616,6 @@ static NSLock			*fileLock = nil;
       return YES;
     }
   return NO;
-}
-
-+ (void) initialize
-{
-  fileCache = [NSMutableDictionary new];
-  [[NSObject leakAt: &fileCache] release];
-  fileLock = [NSLock new];
-  [[NSObject leakAt: &fileLock] release];
 }
 
 - (NSData*) availableResourceData
@@ -704,52 +672,9 @@ static NSLock			*fileLock = nil;
   path = [url path];
   path = [path stringByStandardizingPath];
 
-  if (cached == YES)
-    {
-      id	obj;
-
-      [fileLock lock];
-      NS_DURING
-	{
-	  obj = [fileCache objectForKey: path];
-	  if (obj != nil)
-	    {
-	      DESTROY(self);
-	      IF_NO_ARC([obj retain];)
-	    }
-	}
-      NS_HANDLER
-	{
-	  obj = nil;
-	  [fileLock unlock];
-	  [localException raise];
-	}
-      NS_ENDHANDLER
-      [fileLock unlock];
-      if (obj != nil)
-	{
-	  return obj;
-	}
-    }
-
   if ((self = [super initWithURL: url cached: cached]) != nil)
     {
       _path = [path copy];
-      if (cached == YES)
-	{
-	  [fileLock lock];
-	  NS_DURING
-	    {
-	      [fileCache setObject: self forKey: _path];
-	    }
-	  NS_HANDLER
-	    {
-	      [fileLock unlock];
-	      [localException raise];
-	    }
-	  NS_ENDHANDLER
-	  [fileLock unlock];
-	}
     }
   return self;
 }
@@ -763,6 +688,7 @@ static NSLock			*fileLock = nil;
 						 traverseLink: YES];
   RELEASE(_attributes);
   _attributes = [dict mutableCopy];
+
   [self didLoadBytes: d loadComplete: YES];
   return d;
 }

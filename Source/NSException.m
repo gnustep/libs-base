@@ -114,6 +114,9 @@ static  NSUncaughtExceptionHandler *_NSUncaughtExceptionHandler = 0;
 - (GSStackTrace*) _callStack;
 @end
 
+#if	defined(_WIN32) || defined(USE_BFD)
+static	gs_mutex_t	traceLock;
+#endif
 
 #if	defined(_WIN32)
 #if	defined(USE_BFD)
@@ -402,7 +405,7 @@ struct SearchAddressStruct
   GSFunctionInfo	*theInfo;
 };
 
-static void find_address (bfd *abfd, asection *section,
+static void find_address(bfd *abfd, asection *section,
   struct SearchAddressStruct *info)
 {
   bfd_vma	address;
@@ -484,8 +487,10 @@ static void find_address (bfd *abfd, asection *section,
   struct SearchAddressStruct searchInfo =
     { address, self, _symbols, nil };
 
-  bfd_map_over_sections (_abfd,
+  GS_MUTEX_LOCK(traceLock);
+  bfd_map_over_sections(_abfd,
     (void (*) (bfd *, asection *, void *)) find_address, &searchInfo);
+  GS_MUTEX_UNLOCK(traceLock);
   return searchInfo.theInfo;
 }
 
@@ -615,12 +620,10 @@ static SymInitializeType initSym = 0;
 static SymSetOptionsType optSym = 0;
 static SymFromAddrType fromSym = 0;
 static HANDLE	hProcess = 0;
-static	gs_mutex_t	traceLock;
 #define	MAXFRAMES 62	/* Limitation of windows-xp */
 #else
 #define MAXFRAMES 128   /* 1KB buffer on 64bit machine */
 #endif
-
 
 #if	!defined(HAVE_BUILTIN_EXTRACT_RETURN_ADDRESS)
 # define	__builtin_extract_return_address(X)	X
@@ -1111,7 +1114,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
 
 + (void) initialize
 {
-#if	defined(_WIN32) && !defined(USE_BFD)
+#if	defined(_WIN32) || defined(USE_BFD)
   GS_MUTEX_INIT_RECURSIVE(traceLock);
 #endif
 #if     defined(USE_BFD)
