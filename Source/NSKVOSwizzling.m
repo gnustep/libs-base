@@ -14,7 +14,6 @@
 //
 //******************************************************************************
 
-#include "Foundation/NSIndexSet.h"
 #import "common.h"
 #import "NSKeyValueObserving-Internal.h"
 // #import "NSObject_NSKeyValueCoding-Internal.h"
@@ -22,8 +21,6 @@
 #import <objc/encoding.h>
 #import <objc/runtime.h>
 #import "type_encoding_cases.h"
-
-#import <memory>
 
 /* These are defined by the ABI and the runtime. */
 #define ABI_SUPER(obj) (((Class **) obj)[0][1])
@@ -326,37 +323,39 @@ NSKVONotifying$replaceXxxAtIndexes$withXxx$(id self, SEL _cmd,
 	     forKey:key];
 }
 
-template <NSKeyValueSetMutationKind Kind>
-static inline void
-_NSKVOSetDispatch(id self, SEL _cmd, NSSet *set)
-{
-  NSString *key = _keyForSelector(self, _cmd);
+#define GENERATE_NSKVOSetDispatch_IMPL(Kind)                                   \
+  static inline void _NSKVOSetDispatch_##Kind(id self, SEL _cmd, NSSet *set)   \
+  {                                                                            \
+    NSString *key = _keyForSelector(self, _cmd);                               \
+    [self willChangeValueForKey:key withSetMutation:Kind usingObjects:set];    \
+    struct objc_super super = {self, ABI_SUPER(self)};                         \
+    void (*imp)(id, SEL, NSSet *)                                              \
+      = (void (*)(id, SEL, NSSet *)) objc_msg_lookup_super(&super, _cmd);      \
+    imp(self, _cmd, set);                                                      \
+    [self didChangeValueForKey:key withSetMutation:Kind usingObjects:set];     \
+  }
 
-  [self willChangeValueForKey:key withSetMutation:Kind usingObjects:set];
+#define GENERATE_NSKVOSetDispatchIndividual_IMPL(Kind)                         \
+  static inline void _NSKVOSetDispatchIndividual_##Kind(id self, SEL _cmd,     \
+							id obj)                \
+  {                                                                            \
+    NSSet    *set = [NSSet setWithObject:obj];                                 \
+    NSString *key = _keyForSelector(self, _cmd);                               \
+    [self willChangeValueForKey:key withSetMutation:Kind usingObjects:set];    \
+    struct objc_super super = {self, ABI_SUPER(self)};                         \
+    void (*imp)(id, SEL, id)                                                   \
+      = (void (*)(id, SEL, id)) objc_msg_lookup_super(&super, _cmd);           \
+    imp(self, _cmd, obj);                                                      \
+    [self didChangeValueForKey:key withSetMutation:Kind usingObjects:set];     \
+  }
 
-  struct objc_super super = {self, ABI_SUPER(self)};
-  void (*imp)(id, SEL, NSSet *)
-    = (void (*)(id, SEL, NSSet *)) objc_msg_lookup_super(&super, _cmd);
-  imp(self, _cmd, set);
+GENERATE_NSKVOSetDispatchIndividual_IMPL(NSKeyValueUnionSetMutation);
+GENERATE_NSKVOSetDispatchIndividual_IMPL(NSKeyValueMinusSetMutation);
+GENERATE_NSKVOSetDispatchIndividual_IMPL(NSKeyValueIntersectSetMutation);
 
-  [self didChangeValueForKey:key withSetMutation:Kind usingObjects:set];
-}
-
-template <NSKeyValueSetMutationKind Kind>
-static inline void
-_NSKVOSetDispatchIndividual(id self, SEL _cmd, id obj)
-{
-  NSSet *set = [NSSet setWithObject:obj];
-
-  NSString *key = _keyForSelector(self, _cmd);
-  [self willChangeValueForKey:key withSetMutation:Kind usingObjects:set];
-
-  objc_super super{self, ABI_SUPER(self)};
-  auto	     imp = (void (*)(id, SEL, id)) objc_msg_lookup_super(&super, _cmd);
-  imp(self, _cmd, obj);
-
-  [self didChangeValueForKey:key withSetMutation:Kind usingObjects:set];
-}
+GENERATE_NSKVOSetDispatch_IMPL(NSKeyValueUnionSetMutation);
+GENERATE_NSKVOSetDispatch_IMPL(NSKeyValueMinusSetMutation);
+GENERATE_NSKVOSetDispatch_IMPL(NSKeyValueIntersectSetMutation);
 
 // - (void)setObject:(id)object forKey:(NSString*)key
 static void
@@ -365,7 +364,7 @@ NSKVO$setObject$forKey$(id self, SEL _cmd, id object, NSString *key)
   [self willChangeValueForKey:key];
   struct objc_super  super = {self, ABI_SUPER(self)};
   setObjectForKeyIMP imp
-    = (void (*)(id, SEL, id, id)) objc_msg_lookup_super(&super, _cmd);
+    = (void (*)(id, SEL, id, NSString *)) objc_msg_lookup_super(&super, _cmd);
   imp(self, _cmd, object, key);
   [self didChangeValueForKey:key];
 }
@@ -377,40 +376,54 @@ NSKVO$removeObjectForKey$(id self, SEL _cmd, NSString *key)
   [self willChangeValueForKey:key];
   struct objc_super	super = {self, ABI_SUPER(self)};
   removeObjectForKeyIMP imp
-    = (void (*)(id, SEL, id)) objc_msg_lookup_super(&super, _cmd);
+    = (void (*)(id, SEL, NSString *)) objc_msg_lookup_super(&super, _cmd);
   imp(self, _cmd, key);
   [self didChangeValueForKey:key];
 }
 #pragma endregion
 
-template <typename T>
-static void
-notifyingSetImpl(id self, SEL _cmd, T val)
-{
-  NSString *key = _keyForSelector(self, _cmd);
+#define GENERATE_NOTIFYING_SET_IMPL(funcName, type)                            \
+  static void funcName(id self, SEL _cmd, type val)                            \
+  {                                                                            \
+    NSString *key = _keyForSelector(self, _cmd);                               \
+    [self willChangeValueForKey:key];                                          \
+    struct objc_super super = {self, ABI_SUPER(self)};                         \
+    void (*imp)(id, SEL, type)                                                 \
+      = (void (*)(id, SEL, type)) objc_msg_lookup_super(&super, _cmd);         \
+    imp(self, _cmd, val);                                                      \
+    [self didChangeValueForKey:key];                                           \
+  }
 
-  [self willChangeValueForKey:key];
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplDouble, double);
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplFloat, float);
 
-  // This matches what clang generates for [super xxx].
-  struct objc_super super
-  {
-    self, ABI_SUPER(self)
-  };
-  auto imp = (void (*)(id, SEL, T)) objc_msg_lookup_super(&super, _cmd);
-  imp(self, _cmd, val);
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplChar, signed char);
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplInt, int);
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplShort, short);
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplLong, long);
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplLongLong, long long);
 
-  [self didChangeValueForKey:key];
-}
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplUnsignedChar, unsigned char);
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplUnsignedInt, unsigned int);
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplUnsignedShort, unsigned short);
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplUnsignedLong, unsigned long);
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplUnsignedLongLong,
+			    unsigned long long);
+
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplBool, bool);
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplObject, id);
+GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplPointer, void *);
 
 #define KVO_SET_IMPL_CASE(type, name, capitalizedName, encodingChar)           \
-  case encodingChar:                                                           \
-    newImpl = reinterpret_cast<IMP>(&notifyingSetImpl<type>);                  \
-    break;
+    case encodingChar: {                                                       \
+      newImpl = (IMP) (&notifyingSetImpl##capitalizedName);                    \
+      break;                                                                   \
+    }
 
 SEL
 KVCSetterForPropertyName(NSObject *self, const char *key)
 {
-  SEL	 sel = nullptr;
+  SEL	 sel = nil;
   size_t len = strlen(key);
   // For the key "example", we must construct the following buffer:
   // _ _ _ _ x a m p l e _ \0
@@ -430,7 +443,7 @@ KVCSetterForPropertyName(NSObject *self, const char *key)
       return sel;
     }
 
-  return nullptr;
+  return nil;
 }
 
 // invariant: rawKey has already been capitalized
@@ -463,9 +476,9 @@ _NSKVOEnsureSimpleKeyWillNotify(id object, NSString *key, const char *rawKey)
 			format:@"Class %s key %@ has a value size of %u bytes, "
 			       @"and cannot currently be KVO compliant.",
 			       class_getName(object_getClass(object)), key,
-			       static_cast<uintptr_t>(valueSize)];
+			       (unsigned int) (valueSize)];
 	  }
-	newImpl = reinterpret_cast<IMP>(&notifyingVariadicSetImpl);
+	newImpl = (IMP) (&notifyingVariadicSetImpl);
 	break;
       }
     default:
@@ -557,28 +570,28 @@ _NSKVOEnsureUnorderedCollectionWillNotify(id object, NSString *key,
     {
       replaceAndAssociateWithKey(
 	object, addOne, key,
-	(IMP) _NSKVOSetDispatchIndividual<NSKeyValueUnionSetMutation>);
+	(IMP) _NSKVOSetDispatchIndividual_NSKeyValueUnionSetMutation);
       replaceAndAssociateWithKey(
 	object, addMany, key,
-	(IMP) _NSKVOSetDispatch<NSKeyValueUnionSetMutation>);
+	(IMP) _NSKVOSetDispatch_NSKeyValueUnionSetMutation);
       replaceAndAssociateWithKey(
 	object, removeOne, key,
-	(IMP) _NSKVOSetDispatchIndividual<NSKeyValueMinusSetMutation>);
+	(IMP) _NSKVOSetDispatchIndividual_NSKeyValueMinusSetMutation);
       replaceAndAssociateWithKey(
 	object, removeMany, key,
-	(IMP) _NSKVOSetDispatch<NSKeyValueMinusSetMutation>);
+	(IMP) _NSKVOSetDispatch_NSKeyValueMinusSetMutation);
       replaceAndAssociateWithKey(
 	object, formatSelector(@"intersect%s:", rawKey), key,
-	(IMP) _NSKVOSetDispatch<NSKeyValueIntersectSetMutation>);
+	(IMP) _NSKVOSetDispatch_NSKeyValueIntersectSetMutation);
     }
 }
 
-static std::unique_ptr<char[]>
+char *
 mutableBufferFromString(NSString *string)
 {
-  NSUInteger		  lengthInBytes = string.length + 1;
-  std::unique_ptr<char[]> rawKey = std::make_unique<char[]>(lengthInBytes);
-  [string getCString:rawKey.get()
+  NSUInteger lengthInBytes = [string length] + 1;
+  char	    *rawKey = (char *) malloc(lengthInBytes);
+  [string getCString:rawKey
 	   maxLength:lengthInBytes
 	    encoding:NSASCIIStringEncoding];
   return rawKey;
@@ -601,14 +614,16 @@ _NSKVOEnsureKeyWillNotify(id object, NSString *key)
       return;
     }
 
-  std::unique_ptr<char[]> rawKey{mutableBufferFromString(key)};
+  char *rawKey = mutableBufferFromString(key);
   rawKey[0] = toupper(rawKey[0]);
 
   @synchronized(object)
   {
     _NSKVOEnsureObjectIsKVOAware(object);
-    _NSKVOEnsureSimpleKeyWillNotify(object, key, rawKey.get());
-    _NSKVOEnsureOrderedCollectionWillNotify(object, key, rawKey.get());
-    _NSKVOEnsureUnorderedCollectionWillNotify(object, key, rawKey.get());
+    _NSKVOEnsureSimpleKeyWillNotify(object, key, rawKey);
+    _NSKVOEnsureOrderedCollectionWillNotify(object, key, rawKey);
+    _NSKVOEnsureUnorderedCollectionWillNotify(object, key, rawKey);
   }
+
+  free(rawKey);
 }
