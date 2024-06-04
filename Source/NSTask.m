@@ -25,6 +25,7 @@
    */
 
 #import "common.h"
+#import "GSPThread.h"
 #define	EXPOSE_NSTask_IVARS	1
 #import "Foundation/FoundationErrors.h"
 #import "Foundation/NSAutoreleasePool.h"
@@ -250,7 +251,9 @@ pty_slave(const char* name)
 {
   if (self == [NSTask class])
     {
-      [gnustep_global_lock lock];
+      static gs_mutex_t	classLock = GS_MUTEX_INIT_STATIC;
+
+      GS_MUTEX_LOCK(classLock);
       if (tasksLock == nil)
         {
           tasksLock = [NSRecursiveLock new];
@@ -281,7 +284,7 @@ pty_slave(const char* name)
                 NSObjectMapValueCallBacks, 0);
           [[NSObject leakAt: &activeTasks] release];
         }
-      [gnustep_global_lock unlock];
+      GS_MUTEX_UNLOCK(classLock);
 
 #ifndef _WIN32
       signal(SIGCHLD, handleSignal);

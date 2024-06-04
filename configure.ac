@@ -170,7 +170,7 @@ AC_ARG_WITH(cross-compilation-info,
   cross_result="$withval",
   cross_result="no"
 )
-CROSS_CONFIG="./cross.config"
+CROSS_CONFIG="$srcdir/cross.config"
 if test "$cross_result" != "no"
 then
  if test -f "$cross_result" && test -r "$cross_result"
@@ -1873,7 +1873,7 @@ fi
 if test $HAVE_WIN32_THREADS_AND_LOCKS = 1; then
   AC_CHECK_SIZEOF(gs_mutex_t,,[AC_INCLUDES_DEFAULT
     #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-    #include "Source/GSPThread.h"])
+    #include "$srcdir/Source/GSPThread.h"])
   GS_SIZEOF_MUTEX_T=$ac_cv_sizeof_gs_mutex_t
   if test $ac_cv_sizeof_gs_mutex_t = 0 ; then
     AC_MSG_ERROR([Unable to find size of gs_mutex_t (required).])
@@ -1882,7 +1882,7 @@ if test $HAVE_WIN32_THREADS_AND_LOCKS = 1; then
   
   AC_CHECK_ALIGNOF(gs_mutex_t,[AC_INCLUDES_DEFAULT
     #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-    #include "Source/GSPThread.h"])
+    #include "$srcdir/Source/GSPThread.h"])
   GS_ALIGNOF_MUTEX_T=$ac_cv_alignof_gs_mutex_t
   if test $ac_cv_alignof_gs_mutex_t = 0 ; then
     AC_MSG_ERROR([Unable to find align of gs_mutex_t (required).])

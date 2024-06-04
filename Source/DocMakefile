@@ -215,7 +215,6 @@ GSUnion.h \
 GSIArray.h \
 GSIMap.h \
 GSLocale.h \
-GSLock.h \
 GSFunctions.h \
 GSMime.h \
 GSTLS.h \
@@ -227,7 +226,6 @@ NSCalendarDate+GNUstepBase.h \
 NSData+GNUstepBase.h \
 NSDebug+GNUstepBase.h \
 NSFileHandle+GNUstepBase.h \
-NSLock+GNUstepBase.h \
 NSMutableString+GNUstepBase.h \
 NSNumber+GNUstepBase.h \
 NSObject+GNUstepBase.h \

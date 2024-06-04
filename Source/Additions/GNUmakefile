@@ -39,7 +39,6 @@ Additions_OBJC_FILES =\
 	GCObject.m \
 	GCArray.m \
 	GCDictionary.m \
-	GSLock.m \
 	GSMime.m \
 	GSXML.m \
 	GSFunctions.m \
@@ -53,7 +52,6 @@ Additions_OBJC_FILES =\
 	NSError+GNUstepBase.m \
 	NSHashTable+GNUstepBase.m \
 	NSFileHandle+GNUstepBase.m \
-	NSLock+GNUstepBase.m \
 	NSMutableString+GNUstepBase.m \
 	NSNumber+GNUstepBase.m \
 	NSObject+GNUstepBase.m \

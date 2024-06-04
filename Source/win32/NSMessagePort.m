@@ -24,7 +24,6 @@
 #include "common.h"
 #define	EXPOSE_NSPort_IVARS	1
 #define	EXPOSE_NSMessagePort_IVARS	1
-#include "GNUstepBase/GSLock.h"
 #include "Foundation/NSArray.h"
 #include "Foundation/NSNotification.h"
 #include "Foundation/NSError.h"
@@ -188,7 +187,7 @@ static Class		messagePortClass = 0;
       ports = NSCreateMapTable(NSNonRetainedObjectMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
       [[NSObject leakAt: &ports] release];
-      messagePortLock = [GSLazyRecursiveLock new];
+      messagePortLock = [NSRecursiveLock new];
       [[NSObject leakAt: &messagePortLock] release];
       security.nLength = sizeof(SECURITY_ATTRIBUTES);
       security.lpSecurityDescriptor = 0;	// Default
@@ -311,7 +310,7 @@ static Class		messagePortClass = 0;
   this->name = [[NSString alloc] initWithFormat: @"%08x%08x",
     ((unsigned)ident), sequence++];
 
-  this->lock = [GSLazyRecursiveLock new];
+  this->lock = [NSRecursiveLock new];
   this->wHandle = INVALID_HANDLE_VALUE;
   this->wEvent = INVALID_HANDLE_VALUE;
 
@@ -373,7 +372,7 @@ static Class		messagePortClass = 0;
       self->_is_valid = YES;
       this->name = [name copy];
 
-      this->lock = [GSLazyRecursiveLock new];
+      this->lock = [NSRecursiveLock new];
 
       this->rState = RS_NONE;
 

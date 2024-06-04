@@ -26,7 +26,6 @@
    */
 
 #import "common.h"
-#import "GNUstepBase/GSLock.h"
 #import "Foundation/NSEnumerator.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSCoder.h"

@@ -1,3 +1,11 @@
+2024-05-31 Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSPredicate.m:
+	* Tests/base/NSPredicate/basic.m:
+	Improve implementation of BETWEEN operator in NSPredicate
+	for data types other than NSNumber. Proper support
+	for constant values.
+  
 2024-05-18 Hugo Melder <hugo@algoriddim.com>
 
 	* Source/NSString.m:
@@ -5,15 +13,54 @@
 	* Tests/base/NSString/enumerateLinesUsingBlock.m:
 	Implemented -[NSString enumerateLinesUsingBlock:].
 
+2024-04-30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSObject.h:
+	* Headers/GNUstepBase/GSLock.h:
+	* Headers/GNUstepBase/NSLock+GNUstepBase.h:
+	* Source/Additions/GNUmakefile:
+	* Source/Additions/GSLock.m:
+	* Source/Additions/NSError+GNUstepBase.m:
+	* Source/Additions/NSLock+GNUstepBase.m:
+	* Source/Additions/NSObject+GNUstepBase.m:
+	* Source/Additions/Unicode.m:
+	* Source/DocMakefile:
+	* Source/GSLocale.m:
+	* Source/NSDistributedNotificationCenter.m:
+	* Source/NSFileManager.m:
+	* Source/NSHTTPCookieStorage.m:
+	* Source/NSKeyValueObserving.m:
+	* Source/NSLog.m:
+	* Source/NSObject.m:
+	* Source/NSPortNameServer.m:
+	* Source/NSTask.m:
+	* Source/NSThread.m:
+	* Source/NSURLCache.m:
+	* Source/NSURLCredentialStorage.m:
+	* Source/ObjectiveC2/properties.m:
+	Remove deprecated locking code.  Use lightweight and more fine-grained
+	locking for simple cases protecting short regions.  Retain a global
+	lock for more complex siutations where there is a significant chance of
+	deadlock.
+
+2024-04-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* ChangeLog: Update for new release
+	* ANNOUNCE:
+	* NEWS:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	Update release notes for 1.30.0 release.
+	* Version: bump to 1.30.0
+
 2024-04-29  Doug Simons <douglas.simons@keysight.com>
 
-    * NSXMLNode.m:
-       Fix execute_xpath() to return an NSError when xpath expression can't
-	   be evaluated instead of just calling NSLog.
-       	   
-    * NSXMLElement.m: 
-	   Fix setAttributes: and setAttributesWithDictionary: to remove previous
-	   attributes.
+	* NSXMLNode.m:
+	Fix execute_xpath() to return an NSError when xpath expression can't
+	be evaluated instead of just calling NSLog.
+	* NSXMLElement.m: 
+	Fix setAttributes: and setAttributesWithDictionary: to remove previous
+	attributes.
 
 2024-05-12 ethanc8R (github user)
 
@@ -68,7 +115,8 @@
 2024-03-10 Hugo Melder <service@hugomelder.com>
 	* Headers/Foundation/NSDate.h:
 	* Source/NSDate.m:
-	Added the +[NSDate now] constructor, which was introduced in macOS 10.15.
+	Added the +[NSDate now] constructor, which was introduced
+	in macOS 10.15.
 
 2024-03-04 Richard Frith-Macdonald <rfm@gnu.org>
 

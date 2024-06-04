@@ -378,11 +378,12 @@ GSSleepUntilIntervalSinceReferenceDate(NSTimeInterval when)
 static NSArray *
 commonModes(void)
 {
+  static gs_mutex_t     modesLock = GS_MUTEX_INIT_STATIC;
   static NSArray	*modes = nil;
 
   if (modes == nil)
     {
-      [gnustep_global_lock lock];
+      GS_MUTEX_LOCK(modesLock);
       if (modes == nil)
 	{
 	  Class	c = NSClassFromString(@"NSApplication");
@@ -398,7 +399,7 @@ commonModes(void)
 		NSDefaultRunLoopMode, NSConnectionReplyMode, nil];
 	    }
 	}
-      [gnustep_global_lock unlock];
+      GS_MUTEX_UNLOCK(modesLock);
     }
   return modes;
 }
@@ -2094,12 +2095,14 @@ GSRunLoopInfoForThread(NSThread *aThread)
     }
   if (aThread->_runLoopInfo == nil)
     {
-      [gnustep_global_lock lock];
+      static gs_mutex_t	infoLock = GS_MUTEX_INIT_STATIC;
+
+      GS_MUTEX_LOCK(infoLock);
       if (aThread->_runLoopInfo == nil)
         {
           aThread->_runLoopInfo = [GSRunLoopThreadInfo new];
 	}
-      [gnustep_global_lock unlock];
+      GS_MUTEX_UNLOCK(infoLock);
     }
   info = aThread->_runLoopInfo;
   return info;

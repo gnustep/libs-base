@@ -26,6 +26,7 @@
    */
 
 #import "common.h"
+#import "GSPThread.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSCalendarDate.h"
 #import "Foundation/NSTimeZone.h"
@@ -101,14 +102,16 @@ GSLogLock()
 {
   if (myLock == nil)
     {
-      [gnustep_global_lock lock];
+      static gs_mutex_t	setupLock = GS_MUTEX_INIT_STATIC;
+
+      GS_MUTEX_LOCK(setupLock);
       if (myLock == nil)
 	{
 	  myLock = [NSRecursiveLock new];
           lockImp = [myLock methodForSelector: @selector(lock)];
           unlockImp = [myLock methodForSelector: @selector(unlock)];
 	}
-      [gnustep_global_lock unlock];
+      GS_MUTEX_UNLOCK(setupLock);
     }
   return myLock;
 }

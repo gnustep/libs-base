@@ -502,11 +502,6 @@ NSIncrementExtraRefCount(id anObject);
 
 #if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
 
-/** Global lock to be used by classes when operating on any global
-    data that invoke other methods which also access global; thus,
-    creating the potential for deadlock. */
-GS_EXPORT NSRecursiveLock *gnustep_global_lock;
-
 @interface NSObject (NEXTSTEP)
 - (id) error:(const char *)aString, ...;
 /* - (const char *) name;

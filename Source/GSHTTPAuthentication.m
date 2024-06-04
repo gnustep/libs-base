@@ -29,7 +29,6 @@
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSValue.h"
-#import "GNUstepBase/GSLock.h"
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/NSData+GNUstepBase.h"
 

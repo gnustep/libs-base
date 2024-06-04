@@ -24,6 +24,8 @@
 
 #import "common.h"
 
+#import "GSPThread.h"
+
 #if	GS_HAVE_NSURLSESSION
 #import <Foundation/NSURLSession.h>
 #endif
@@ -46,6 +48,7 @@ typedef struct {
 
 
 static NSURLCache	*shared = nil;
+static gs_mutex_t       cacheLock = GS_MUTEX_INIT_STATIC;
 
 @implementation	NSURLCache
 
@@ -62,9 +65,9 @@ static NSURLCache	*shared = nil;
 
 + (void) setSharedURLCache: (NSURLCache *)cache
 {
-  [gnustep_global_lock lock];
+  GS_MUTEX_LOCK(cacheLock);
   ASSIGN(shared, cache);
-  [gnustep_global_lock unlock];
+  GS_MUTEX_UNLOCK(cacheLock);
 }
 
 - (void) dealloc
@@ -82,7 +85,7 @@ static NSURLCache	*shared = nil;
 {
   NSURLCache	*c;
 
-  [gnustep_global_lock lock];
+  GS_MUTEX_LOCK(cacheLock);
   if (shared == nil)
     {
       NSString	*path = nil;
@@ -95,7 +98,7 @@ static NSURLCache	*shared = nil;
       
     }
   c = RETAIN(shared);
-  [gnustep_global_lock unlock];
+  GS_MUTEX_UNLOCK(cacheLock);
   return AUTORELEASE(c);
 }
 
