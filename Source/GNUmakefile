@@ -255,6 +255,8 @@ NSJSONSerialization.m \
 NSKeyedArchiver.m \
 NSKeyedUnarchiver.m \
 NSKeyValueCoding.m \
+NSKVOSupport.m \
+NSKVOSwizzling.m \
 NSLengthFormatter.m \
 NSLinguisticTagger.m \
 NSLocale.m \
@@ -356,11 +358,7 @@ NSXMLParser.m \
 NSXPCConnection.m \
 NSZone.m \
 externs.m \
-NSKVOSupport.m \
 objc-load.m 
-
-BASE_MMFILES = \
-NSKVOSwizzling.mm
 
 
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
@@ -615,7 +613,6 @@ endif
 # The Objective-C source files to be compiled
 libgnustep-base_OBJC_FILES = $(GNU_MFILES) \
 	$(BASE_MFILES)
-libgnustep-base_OBJCC_FILES = $(BASE_MMFILES)
 libgnustep-base_C_FILES = $(GNU_CFILES)
 
 # Extra DLL exports file
