@@ -5,6 +5,13 @@
 	Improve implementation of BETWEEN operator in NSPredicate
 	for data types other than NSNumber. Proper support
 	for constant values.
+  
+2024-05-18 Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSString.m:
+	* Headers/Foundation/NSString.h:
+	* Tests/base/NSString/enumerateLinesUsingBlock.m:
+	Implemented -[NSString enumerateLinesUsingBlock:].
 
 2024-04-30 Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -552,7 +552,6 @@ NSString:
 	- lowercaseStringWithLocale:
 	- capitalizedStringWithLocale:
 	- enumerateSubstringsInRange:options:usingBlock:
-	- enumerateLinesUsingBlock:
 	- getBytes:maxLength:usedLength:encoding:options:range:remainingRange:
 	- decomposedStringWithCanonicalMapping
 	- precomposedStringWithCanonicalMapping
