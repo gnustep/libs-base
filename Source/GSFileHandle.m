@@ -1108,11 +1108,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	   */
 	  isStandardFile = NO;
 #else
-	  /* This should never happen on unix.  If it does, we have somehow
-	   * ended up with a bad descriptor.
-	   */
-          NSLog(@"unable to get status of descriptor %d - %@",
-	    desc, [NSError _last]);
 	  isStandardFile = NO;
 #endif
 	}
