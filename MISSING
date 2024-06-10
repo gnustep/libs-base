@@ -200,7 +200,6 @@ NSFileManager:
 
 	- mountedVolumeURLsIncludingResourceValuesForKeys:options:
 	- contentsOfDirectoryAtURL:includingPropertiesForKeys:options:error:
-	- URLsForDirectory:inDomains:
 	- createDirectoryAtURL:withIntermediateDirectories:attributes:error:
 	- createSymbolicLinkAtURL:withDestinationURL:error:
 	- setDelegate:

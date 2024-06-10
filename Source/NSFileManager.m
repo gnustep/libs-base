@@ -59,6 +59,7 @@
 #import "Foundation/NSSet.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
+#import "GSFastEnumeration.h"
 #import "GSPrivate.h"
 #import "GSPThread.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
@@ -923,6 +924,20 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
       }
   
   return [NSURL fileURLWithPath: path];
+}
+
+- (GS_GENERIC_CLASS(NSArray, NSURL *) *)URLsForDirectory: (NSSearchPathDirectory)directory
+                                               inDomains: (NSSearchPathDomainMask)domain
+{
+  NSArray *paths = NSSearchPathForDirectoriesInDomains(directory, domain, YES);
+  NSMutableArray *urls = [[NSMutableArray alloc] initWithCapacity: paths.count];
+
+  FOR_IN(NSString *, path, paths)
+    [urls addObject: [NSURL fileURLWithPath: path]];
+  END_FOR_IN(paths)
+
+  RELEASE(paths);
+  return urls;
 }
 
 - (NSDirectoryEnumerator*) enumeratorAtURL: (NSURL*)url
