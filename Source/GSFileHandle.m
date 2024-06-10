@@ -1620,8 +1620,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (descriptor < 0)
     {
-      [NSException raise: NSFileHandleOperationException
-		  format: @"attempt to close closed file"];
+      NSDebugMLLog(@"NSFileHandle", @"close of closed file %@", self);
+      return;
     }
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
