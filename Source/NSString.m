@@ -6404,7 +6404,7 @@ static NSFileManager *fm = nil;
   else if (substringType == NSStringEnumerationByWords
     || substringType == NSStringEnumerationBySentences)
     {
-      #if GS_USE_ICU
+#if GS_USE_ICU
       // These macros may be useful elsewhere.
       #define GS_U_HANDLE_ERROR(errorCode, description) do { \
         if (U_FAILURE(errorCode)) { \
@@ -6422,6 +6422,7 @@ static NSFileManager *fm = nil;
       UErrorCode 	errorCode = U_ZERO_ERROR;
       const char	*locale;
       UBreakIterator	*breakIterator;
+      int32_t	start, end;
 
       [self getCharacters: characters range: range];
       /* @ss=standard will use lists of common abbreviations,
@@ -6438,55 +6439,42 @@ static NSFileManager *fm = nil;
 	length, 				// textLength
 	&errorCode);
       GS_U_HANDLE_ERROR(errorCode, @"opening ICU break iterator");
-      ubrk_first(breakIterator);
-      while (YES)
-        {
-          // Make sure it's a valid substring.
-          BOOL		isValidSubstring = YES;
-          int32_t	nextPosition;
-          NSUInteger 	nextLocation;
-          NSRange 	enclosingRange;
-          
-          if (byWords) 
-            {
-              int32_t ruleStatus = ubrk_getRuleStatus(breakIterator);
-              /* From ICU User Guide:
-               *   A status value UBRK_WORD_NONE indicates that the boundary
-               *   does not start a word or number.
-               * However, valid words seem to be UBRK_WORD_NONE, and invalid
-	       * words seem to be UBRK_WORD_NONE_LIMIT.
-	       */
-              isValidSubstring = ruleStatus != UBRK_WORD_NONE_LIMIT;
-// NSLog(@"Status for position %d (%d): %d", (int)currentLocation, (int)ubrk_current(breakIterator), (int) ruleStatus);
-            }
-          
-          nextPosition = ubrk_next(breakIterator);
-          if (nextPosition == UBRK_DONE) break;
 
-          nextLocation = range.location + nextPosition;
-          // Same as substringRange
-          enclosingRange
-	    = NSMakeRange(currentLocation, nextLocation - currentLocation);
+      // FIXME: Implement reverse enumeration by using ubrk_last and ubrk_previous
+      start = ubrk_first(breakIterator);
+      for (end = ubrk_next(breakIterator); end != UBRK_DONE; start = end, end = ubrk_next(breakIterator))
+      {
+        BOOL isValidSubstring = YES;
+        NSUInteger nextLocation;
+        NSRange enclosingRange;
           
-          if (isValidSubstring)
-            {
+        if (byWords) 
+          {
+            int32_t ruleStatus;
+            
+            ruleStatus = ubrk_getRuleStatus(breakIterator);
+            isValidSubstring = ruleStatus != UBRK_WORD_NONE;
+          }
+
+        nextLocation = range.location + end;
+        enclosingRange = NSMakeRange(currentLocation, end - start);
+        currentLocation = nextLocation;
+
+        if (isValidSubstring)
+          {
               CALL_BLOCK(block, 
-                substringNotRequired
-		  ? nil
-		  : [self substringWithRange: enclosingRange],
+                substringNotRequired ? nil : [self substringWithRange: enclosingRange],
                 enclosingRange,
                 enclosingRange,
                 &stop);
               if (stop) break;
-            }
-
-          currentLocation = nextLocation;
-        }
-      #else
+          }
+      }
+#else
       NSWarnLog(@"NSStringEnumerationByWords and NSStringEnumerationBySentences"
 	@" are not supported when GNUstep-base is compiled without ICU.");
       return;
-      #endif
+#endif
     }
   else if (substringType == NSStringEnumerationByCaretPositions)
     {
