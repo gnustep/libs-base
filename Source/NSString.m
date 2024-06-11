@@ -6273,35 +6273,38 @@ static NSFileManager *fm = nil;
 
 - (void) enumerateLinesUsingBlock: (GSNSStringLineEnumerationBlock)block
 {
-  NSUInteger length;
-  NSUInteger lineStart, lineEnd, contentsEnd;
+  NSUInteger	length;
+  NSUInteger 	lineStart;
+  NSUInteger	lineEnd;
+  NSUInteger	contentsEnd;
   NSRange	currentLocationRange;
-  BOOL stop;
+  BOOL 		stop;
 
   length = [self length];
   lineStart = lineEnd = contentsEnd = 0;
   stop = NO;
     
   // Enumerate through the string line by line
-  while (lineStart < length && !stop) {
-    NSString *line;
-    NSRange lineRange;
+  while (lineStart < length && !stop)
+    {
+      NSString	*line;
+      NSRange	lineRange;
 
-    currentLocationRange = NSMakeRange(lineStart, 0);
-    [self getLineStart: &lineStart
-                   end: &lineEnd
-           contentsEnd: &contentsEnd
-              forRange: currentLocationRange];
+      currentLocationRange = NSMakeRange(lineStart, 0);
+      [self getLineStart: &lineStart
+		     end: &lineEnd
+	     contentsEnd: &contentsEnd
+		forRange: currentLocationRange];
+	
+      lineRange = NSMakeRange(lineStart, contentsEnd - lineStart);
+      line = [self substringWithRange: lineRange];
       
-    lineRange = NSMakeRange(lineStart, contentsEnd - lineStart);
-    line = [self substringWithRange: lineRange];
-    
-    // Execute the block
-    CALL_BLOCK(block, line, &stop);
-    
-    // Move to the next line
-    lineStart = lineEnd;
-  }
+      // Execute the block
+      CALL_BLOCK(block, line, &stop);
+      
+      // Move to the next line
+      lineStart = lineEnd;
+    }
 }
 
 - (void) enumerateSubstringsInRange: (NSRange)range 
@@ -6309,14 +6312,17 @@ static NSFileManager *fm = nil;
                          usingBlock: (GSNSStringEnumerationBlock)block
 {
   // Get low byte.
-  uint8_t substringType = opts & 0xFF;
+  uint8_t	substringType;
+  BOOL		isReverse;
+  BOOL 		substringNotRequired;
+  BOOL 		localized; 
+  NSUInteger	currentLocation;
+  BOOL 		stop = NO;
 
-  BOOL isReverse = opts & NSStringEnumerationReverse;
-  BOOL substringNotRequired = opts & NSStringEnumerationSubstringNotRequired;
-  BOOL localized = opts & NSStringEnumerationLocalized;
-  
-  NSUInteger currentLocation;
-  BOOL stop = NO;
+  substringType = opts & 0xFF;
+  isReverse = opts & NSStringEnumerationReverse;
+  substringNotRequired = opts & NSStringEnumerationSubstringNotRequired;
+  localized = opts & NSStringEnumerationLocalized;
 
   if (isReverse)
     {
@@ -6332,7 +6338,7 @@ static NSFileManager *fm = nil;
     {
       BOOL isLineSep = substringType == NSStringEnumerationByLines;
       
-      while (YES)
+      while (NO == stop)
         {
           /* Contains the index of the first character of the line
 	   * containing the beginning of aRange.
@@ -6355,7 +6361,7 @@ static NSFileManager *fm = nil;
           [self _getStart: &start 
                       end: &end 
               contentsEnd: &contentsEnd 
-                forRange: currentLocationRange 
+                 forRange: currentLocationRange 
                   lineSep: isLineSep];
 
           /* If the enumerated range starts after the line/paragraph,
@@ -6371,7 +6377,6 @@ static NSFileManager *fm = nil;
             substringRange,
             NSMakeRange(start, end - start),
             &stop);
-          if (stop) break;
           if (end == range.location + range.length) break;
           currentLocation = end;
         }
@@ -6381,7 +6386,7 @@ static NSFileManager *fm = nil;
       /* We could also use rangeOfComposedCharacterSequenceAtIndex:,
        * but then we would need different logic.
        */
-      while (YES)
+      while (NO == stop)
         {
           NSRange	enclosingRange;
 
@@ -6397,7 +6402,6 @@ static NSFileManager *fm = nil;
             enclosingRange,
             enclosingRange,
             &stop);
-          if (stop) break;
           currentLocation = enclosingRange.location + enclosingRange.length;
         }
     } 
@@ -6422,7 +6426,8 @@ static NSFileManager *fm = nil;
       UErrorCode 	errorCode = U_ZERO_ERROR;
       const char	*locale;
       UBreakIterator	*breakIterator;
-      int32_t	start, end;
+      int32_t		start;
+      int32_t		end;
 
       [self getCharacters: characters range: range];
       /* @ss=standard will use lists of common abbreviations,
@@ -6430,7 +6435,7 @@ static NSFileManager *fm = nil;
        */
       locale = localized
         ? [[[[NSLocale currentLocale] localeIdentifier] 
-	      stringByAppendingString: @"@ss=standard"] UTF8String]
+	  stringByAppendingString: @"@ss=standard"] UTF8String]
         : "en_US_POSIX";
       breakIterator = ubrk_open(
 	byWords ? UBRK_WORD : UBRK_SENTENCE,	// type
@@ -6440,36 +6445,38 @@ static NSFileManager *fm = nil;
 	&errorCode);
       GS_U_HANDLE_ERROR(errorCode, @"opening ICU break iterator");
 
-      // FIXME: Implement reverse enumeration by using ubrk_last and ubrk_previous
+// FIXME: Implement reverse enumeration by using ubrk_last and ubrk_previous
       start = ubrk_first(breakIterator);
-      for (end = ubrk_next(breakIterator); end != UBRK_DONE; start = end, end = ubrk_next(breakIterator))
-      {
-        BOOL isValidSubstring = YES;
-        NSUInteger nextLocation;
-        NSRange enclosingRange;
-          
-        if (byWords) 
-          {
-            int32_t ruleStatus;
-            
-            ruleStatus = ubrk_getRuleStatus(breakIterator);
-            isValidSubstring = ruleStatus != UBRK_WORD_NONE;
-          }
+      for (end = ubrk_next(breakIterator);
+	NO == stop && end != UBRK_DONE;
+	start = end, end = ubrk_next(breakIterator))
+	{
+	  BOOL 		isValidSubstring = YES;
+	  NSUInteger 	nextLocation;
+	  NSRange 	enclosingRange;
+	    
+	  if (byWords) 
+	    {
+	      int32_t	ruleStatus;
+	      
+	      ruleStatus = ubrk_getRuleStatus(breakIterator);
+	      isValidSubstring = ruleStatus != UBRK_WORD_NONE;
+	    }
 
-        nextLocation = range.location + end;
-        enclosingRange = NSMakeRange(currentLocation, end - start);
-        currentLocation = nextLocation;
+	  nextLocation = range.location + end;
+	  enclosingRange = NSMakeRange(currentLocation, end - start);
+	  currentLocation = nextLocation;
 
-        if (isValidSubstring)
-          {
-              CALL_BLOCK(block, 
-                substringNotRequired ? nil : [self substringWithRange: enclosingRange],
-                enclosingRange,
-                enclosingRange,
-                &stop);
-              if (stop) break;
-          }
-      }
+	  if (isValidSubstring)
+	    {
+	      CALL_BLOCK(block, 
+		substringNotRequired ? nil
+		  : [self substringWithRange: enclosingRange],
+		enclosingRange,
+		enclosingRange,
+		&stop);
+	    }
+	}
 #else
       NSWarnLog(@"NSStringEnumerationByWords and NSStringEnumerationBySentences"
 	@" are not supported when GNUstep-base is compiled without ICU.");
