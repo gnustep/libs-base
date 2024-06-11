@@ -23,6 +23,10 @@
 #import <objc/runtime.h>
 #import "NSKVOTypeEncodingCases.h"
 
+#ifdef WIN32
+#define alloca(x) _alloca(x)
+#endif
+
 /* These are defined by the ABI and the runtime. */
 #define ABI_SUPER(obj) (((Class **) obj)[0][1])
 #define ABI_ISA(obj) (((Class *) obj)[0])
@@ -386,9 +390,9 @@ NSKVO$removeObjectForKey$(id self, SEL _cmd, NSString *key)
 #define GENERATE_NOTIFYING_SET_IMPL(funcName, type)                            \
   static void funcName(id self, SEL _cmd, type val)                            \
   {                                                                            \
+    struct objc_super super = {self, ABI_SUPER(self)};                         \
     NSString *key = _keyForSelector(self, _cmd);                               \
     [self willChangeValueForKey:key];                                          \
-    struct objc_super super = {self, ABI_SUPER(self)};                         \
     void (*imp)(id, SEL, type)                                                 \
       = (void (*)(id, SEL, type)) objc_msg_lookup_super(&super, _cmd);         \
     imp(self, _cmd, val);                                                      \
