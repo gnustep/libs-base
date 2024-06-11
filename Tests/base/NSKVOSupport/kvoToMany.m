@@ -366,7 +366,7 @@ typedef void (^PerformBlock)(Observee *);
 @implementation TestFacade
 + (instancetype)newWithObservee:(Observee *)observee
 {
-  return [[self alloc] initWithObservee:observee];
+  return [[[TestFacade alloc] initWithObservee:observee] autorelease];
 }
 
 - (instancetype)initWithObservee:(Observee *)observee
@@ -417,15 +417,8 @@ typedef void (^PerformBlock)(Observee *);
                              forKeyPath:keyPath
                                 options:options
                                 context:nil];
-                  @try
-                    {
-                      block(observee);
-                    }
-                  @finally
-                    {
-                      [observee removeObserver:self.observer
-                                    forKeyPath:keyPath];
-                    }
+                  block(observee);
+                  [observee removeObserver:self.observer forKeyPath:keyPath];
                 }
     andExpectChangeCallbacks:callbacks];
 }
