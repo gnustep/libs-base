@@ -684,7 +684,6 @@
 {
   if (notifiesObservers && !changeInProgress)
     {
-      NSLog(@"Observer Object: %@ addingObject: %@", object, anObject);
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueUnionSetMutation
 	               usingObjects: [NSSet setWithObject: anObject]];
