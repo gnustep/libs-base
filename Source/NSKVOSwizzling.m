@@ -1,18 +1,46 @@
-//******************************************************************************
-//
-// Copyright (c) Microsoft. All rights reserved.
-//
-// This code is licensed under the MIT License (MIT).
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-//
-//******************************************************************************
+/**
+   NSKVOSwizzling.m
+
+   Copyright (C) 2024 Free Software Foundation, Inc.
+
+   Written by: Hugo Melder <hugo@algoriddim.com>
+   Date: June 2024
+
+   Based on WinObjC KVO tests by Microsoft Corporation.
+
+   This file is part of GNUStep-base
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   If you are interested in a warranty or support for this source code,
+   contact Scott Christley <scottc@net-community.com> for more information.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; if not, write to the Free
+   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+   Boston, MA 02110 USA.
+*/
+/**
+  Copyright (c) Microsoft. All rights reserved.
+
+  This code is licensed under the MIT License (MIT).
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+  THE SOFTWARE.
+*/
 
 /* This Key Value Observing Implementation is tied to libobjc2 */
 
@@ -391,7 +419,7 @@ NSKVO$removeObjectForKey$(id self, SEL _cmd, NSString *key)
   static void funcName(id self, SEL _cmd, type val)                            \
   {                                                                            \
     struct objc_super super = {self, ABI_SUPER(self)};                         \
-    NSString *key = _keyForSelector(self, _cmd);                               \
+    NSString         *key = _keyForSelector(self, _cmd);                       \
     [self willChangeValueForKey:key];                                          \
     void (*imp)(id, SEL, type)                                                 \
       = (void (*)(id, SEL, type)) objc_msg_lookup_super(&super, _cmd);         \
