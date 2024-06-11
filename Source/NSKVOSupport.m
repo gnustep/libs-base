@@ -1079,7 +1079,7 @@ static const NSString *_NSKeyValueChangeOldSetValue
             // NOT in oldValues
             NSSet *newValue =
               [objects objectsPassingTest:^BOOL(id obj, BOOL *stop) {
-                return [objects member:obj] ? NO : YES;
+                return [oldValues member:obj] ? NO : YES;
               }];
 
             change[NSKeyValueChangeNewKey] = newValue;
