@@ -153,13 +153,11 @@ _NSKVOKeypathObserver ()
 
 - (BOOL)pushWillChange
 {
-  // return std::atomic_fetch_add(&_changeDepth, 1) == 0;
   return atomic_fetch_add(&_changeDepth, 1) == 0;
 }
 
 - (BOOL)popDidChange
 {
-  // return std::atomic_fetch_sub(&_changeDepth, 1) == 1;
   return atomic_fetch_sub(&_changeDepth, 1) == 1;
 }
 @end
