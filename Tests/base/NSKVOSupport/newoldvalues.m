@@ -101,7 +101,7 @@ static char observerContext;
 int
 main(int argc, char *argv[])
 {
-  [NSAutoreleasePool new];
+  NSAutoreleasePool *arp = [NSAutoreleasePool new];
 
   Bar *bar = [Bar new];
   bar.x = 0;
@@ -134,6 +134,8 @@ main(int argc, char *argv[])
   bar.firstFoo.a = 2;
   PASS(obs1.receivedCalls == 3, "num observe calls");
   PASS(obs2.receivedCalls == 2, "num observe calls");
+
+  DESTROY(arp);
 }
 
 #else
