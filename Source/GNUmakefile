@@ -367,7 +367,7 @@ ifeq ($(OBJC_RUNTIME_LIB), ng)
   NSKVOSwizzling.m
 else
   BASE_MFILES += \
-  NSKeyValueObserving
+  NSKeyValueObserving.m
 endif
 
 
