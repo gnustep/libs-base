@@ -420,9 +420,9 @@ NSKVO$removeObjectForKey$(id self, SEL _cmd, NSString *key)
   {                                                                            \
     struct objc_super super = {self, ABI_SUPER(self)};                         \
     NSString         *key = _keyForSelector(self, _cmd);                       \
-    [self willChangeValueForKey:key];                                          \
     void (*imp)(id, SEL, type)                                                 \
       = (void (*)(id, SEL, type)) objc_msg_lookup_super(&super, _cmd);         \
+    [self willChangeValueForKey:key];                                          \
     imp(self, _cmd, val);                                                      \
     [self didChangeValueForKey:key];                                           \
   }
