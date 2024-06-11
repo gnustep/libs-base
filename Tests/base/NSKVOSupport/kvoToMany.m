@@ -374,7 +374,7 @@ typedef void (^PerformBlock)(Observee *);
   self = [super init];
   if (self)
     {
-      _observee = observee;
+      ASSIGN(_observee, observee);
       _observer = [TestObserver new];
     }
   return self;
@@ -471,6 +471,9 @@ ToMany_NoNotificationOnBareArray()
       }
     ]];
   PASS([facade hits] == 0, "No notifications were sent");
+
+  [facade release];
+  [observee release];
 
   END_SET("ToMany_NoNotificationOnBareArray");
 }
@@ -571,6 +574,9 @@ ToMany_NotifyingArray()
     ]];
   PASS([facade hits] == 3, "Three notifications were sent");
 
+  [facade release];
+  [observee release];
+
   observee = [Observee new];
   facade = [TestFacade newWithObservee:observee];
   // This test expects two change notifications for each key; any more than that
@@ -634,6 +640,9 @@ ToMany_NotifyingArray()
     ]];
   PASS([facade hits] == 3, "Three notifications were sent");
 
+  [facade release];
+  [observee release];
+
   /* Testing array with helpers */
   observee = [Observee new];
   facade = [TestFacade newWithObservee:observee];
@@ -655,6 +664,9 @@ ToMany_NotifyingArray()
     ]];
   PASS([facade hits] == 3, "Three notifications were sent");
 
+  [facade release];
+  [observee release];
+
   observee = [Observee new];
   facade = [TestFacade newWithObservee:observee];
   // In this test, we use the same arrayWithHelpers as above, but interact with
@@ -674,6 +686,9 @@ ToMany_NotifyingArray()
       illegalChangeNotification
     ]];
   PASS([facade hits] == 3, "Three notifications were sent");
+
+  [facade release];
+  [observee release];
 
   END_SET("ToMany_NotifyingArray");
 }
@@ -720,6 +735,9 @@ ToMany_KVCMediatedArrayWithHelpers_AggregateFunction()
     ]];
   PASS([facade hits] == 1, "One notification was sent");
 
+  [facade release];
+  [observee release];
+
   observee = [Observee new];
   facade = [TestFacade newWithObservee:observee];
   // In this test, we use the same arrayWithHelpers as above, but interact with
@@ -736,6 +754,9 @@ ToMany_KVCMediatedArrayWithHelpers_AggregateFunction()
       insertCallbackPost, illegalChangeNotification
     ]];
   PASS([facade hits] == 1, "One notification was sent");
+
+  [facade release];
+  [observee release];
 
   END_SET("ToMany_KVCMediatedArrayWithHelpers_AggregateFunction");
 }
@@ -786,6 +807,9 @@ ToMany_ToOne_ShouldDowngradeForOrderedObservation()
     ]];
   PASS([facade hits] == 1, "One notification was sent");
 
+  [facade release];
+  [observee release];
+
   END_SET("ToMany_ToOne_ShouldDowngradeForOrderedObservation");
 }
 
@@ -829,6 +853,10 @@ ObserverInformationShouldNotLeak()
 
   PASS([facade hits] == 1, "One notification was sent");
 
+  [facade release];
+  [firstFacade release];
+  [observee release];
+
   END_SET("ObserverInformationShouldNotLeak");
 }
 
@@ -852,6 +880,8 @@ NSArrayShouldNotBeObservable()
   PASS_ANY_THROW([test removeObserver:observer forKeyPath:@"count" context:nil],
                  "Check removing non-existent observer");
 
+  [observer release];
+
   END_SET("NSArrayShouldNotBeObservable");
 }
 
@@ -869,6 +899,8 @@ NSArrayShouldThrowWhenTryingToObserveIndexesOutOfRange()
                               context:nil],
                  "Observe index out of range");
 
+  [observer release];
+
   END_SET("NSArrayShouldThrowWhenTryingToObserveIndexesOutOfRange");
 }
 
@@ -877,7 +909,11 @@ NSArrayObserveElements()
 {
   START_SET("NSArrayObserveElements");
 
-  NSArray *observeeArray = @[ [Observee new], [Observee new], [Observee new] ];
+  Observee *observee1 = [Observee new];
+  Observee *observee2 = [Observee new];
+  Observee *observee3 = [Observee new];
+
+  NSArray      *observeeArray = @[ observee1, observee2, observee3 ];
   TestObserver *observer = [TestObserver new];
   PASS_RUNS([observeeArray
                      addObserver:observer
@@ -930,6 +966,11 @@ NSArrayObserveElements()
   [observeeArray[1] addObjectToManualArray:@"object3"];
   PASS([observer hits] == 4, "Second element observer removed");
 
+  [observer release];
+  [observee1 release];
+  [observee2 release];
+  [observee3 release];
+
   END_SET("NSArrayObserveElements");
 }
 
@@ -952,6 +993,8 @@ NSSetShouldNotBeObservable()
                  "Check removing non-existent observer");
   PASS_ANY_THROW([test removeObserver:observer forKeyPath:@"count" context:nil],
                  "Check removing non-existent observer");
+
+  [observer release];
 
   END_SET("NSSetShouldNotBeObservable");
 }
@@ -1071,6 +1114,9 @@ NSSetMutationMethods()
 
   setSetChanged = YES;
 
+  [observee release];
+  [facade release];
+
   observee = [Observee new];
   facade = [TestFacade newWithObservee:observee];
 
@@ -1094,6 +1140,9 @@ NSSetMutationMethods()
       intersectCallback, setCallback, illegalChangeNotification
     ]];
   PASS([facade hits] == 6, "All six notifications were sent (kvcMediatedSet)");
+
+  [observee release];
+  [facade release];
 
   observee = [Observee new];
   facade = [TestFacade newWithObservee:observee];
@@ -1161,6 +1210,9 @@ NSSetMutationMethods()
       intersectCallback, setCallback, illegalChangeNotification
     ]];
   PASS([facade hits] == 6, "All six notifications were sent (proxySet)");
+
+  [observee release];
+  [facade release];
 
   END_SET("NSSetMutationMethods");
 }
