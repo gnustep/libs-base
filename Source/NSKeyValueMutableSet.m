@@ -104,6 +104,8 @@
     }
 
 
+  /* Ordering as specified in "Accessor Search Patterns" from Key-Value Coding
+   * Programming Guide */
   proxy = [NSKeyValueFastMutableSet setForKey: aKey 
                                      ofObject: anObject
                            withCapitalizedKey: keybuf];
