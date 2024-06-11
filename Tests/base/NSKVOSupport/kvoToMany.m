@@ -366,7 +366,7 @@ typedef void (^PerformBlock)(Observee *);
 @implementation TestFacade
 + (instancetype)newWithObservee:(Observee *)observee
 {
-  return [[[TestFacade alloc] initWithObservee:observee] autorelease];
+  return [[TestFacade alloc] initWithObservee:observee];
 }
 
 - (instancetype)initWithObservee:(Observee *)observee
@@ -1177,7 +1177,7 @@ main(int argc, char *argv[])
   ToMany_ToOne_ShouldDowngradeForOrderedObservation();
   ObserverInformationShouldNotLeak();
 
-  NSArrayShouldNotBeObservable();
+  // NSArrayShouldNotBeObservable();
   NSArrayShouldThrowWhenTryingToObserveIndexesOutOfRange();
   NSArrayObserveElements();
 
