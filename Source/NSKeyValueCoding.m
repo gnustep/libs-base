@@ -141,6 +141,7 @@ SetValueForKey(NSObject *self, id anObject, const char *key, unsigned size)
 	    }
 	}
     }
+
   GSObjCSetVal(self, key, anObject, sel, type, size, off);
 }
 
@@ -346,6 +347,8 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 {
   unsigned	size = [aKey length] * 8;
   char		key[size + 1];
+  BOOL shouldNotify = [[self class] automaticallyNotifiesObserversForKey:aKey];
+
 #ifdef WANT_DEPRECATED_KVC_COMPAT
   IMP   	o = [self methodForSelector: @selector(takeValue:forKey:)];
 
@@ -361,7 +364,18 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	 maxLength: size + 1
 	  encoding: NSUTF8StringEncoding];
   size = strlen(key);
+
+  if (shouldNotify)
+    {
+      [self willChangeValueForKey: aKey];
+    }
+
   SetValueForKey(self, anObject, key, size);
+
+  if (shouldNotify)
+    {
+      [self didChangeValueForKey: aKey];
+    }
 }
 
 
