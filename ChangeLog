@@ -1,3 +1,9 @@
+2024-06-10 Marco Rebhan <me@dblsaiko.net>
+
+  * Headers/Foundation/NSFileManager.h:
+  * Source/NSFileManager.m:
+  Implement -[NSFileManager URLsForDirectory:inDomains:].
+
 2024-06-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/GSFileHandle.m: debug log of closing a closed file handle
