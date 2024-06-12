@@ -936,7 +936,7 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
   NSMutableArray	*urls;
 
   paths = NSSearchPathForDirectoriesInDomains(directory, domain, YES);
-  urls = [[NSMutableArray alloc] initWithCapacity: [paths count]];
+  urls = [NSMutableArray arrayWithCapacity: [paths count]];
   FOR_IN(NSString*, path, paths)
     [urls addObject: [NSURL fileURLWithPath: path]];
   END_FOR_IN(paths)
