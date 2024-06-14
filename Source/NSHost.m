@@ -37,6 +37,7 @@
 #import "Foundation/NSNull.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSCoder.h"
+#import "Foundation/NSUserDefaults.h"
 
 #if defined(_WIN32)
 #ifdef HAVE_WS2TCPIP_H
@@ -368,6 +369,7 @@ myHostName()
   static char		old[GSMAXHOSTNAMELEN+1];
   char			buf[GSMAXHOSTNAMELEN+1];
   int			res;
+  NSUserDefaults        *defs = [NSUserDefaults standardUserDefaults];
 
   [_hostCacheLock lock];
   res = gethostname(buf, GSMAXHOSTNAMELEN);
@@ -378,10 +380,19 @@ myHostName()
     }
   else if (name == nil || strcmp(old, buf) != 0)
     {
-      strncpy(old, buf, sizeof(old) - 1);
-      old[sizeof(old) - 1] = '\0';
-      RELEASE(name);
-      name = [[NSString alloc] initWithCString: buf];
+      if ([defs boolForKey:@"NSHostNameIsLocalhost"] == YES)
+	{
+      	  NSLog(@"Force current host to 'localhost'");
+	  RELEASE(name);
+          name = [[NSString alloc] initWithCString: "localhost"];
+	}
+      else
+        {
+          strncpy(old, buf, sizeof(old) - 1);
+          old[sizeof(old) - 1] = '\0';
+          RELEASE(name);
+          name = [[NSString alloc] initWithCString: buf];
+        }
     }
   [_hostCacheLock unlock];
   return name;
