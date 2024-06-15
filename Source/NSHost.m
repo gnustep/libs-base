@@ -382,7 +382,7 @@ myHostName()
     {
       if ([defs boolForKey:@"NSHostNameIsLocalhost"] == YES)
 	{
-      	  NSLog(@"Force current host to 'localhost'");
+      	  //NSLog(@"Force current host to 'localhost'");
 	  RELEASE(name);
           name = [[NSString alloc] initWithCString: "localhost"];
 	}
