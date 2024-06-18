@@ -615,9 +615,7 @@ _removeKeypathObserver(id object, NSString *keypath, id observer, void *context)
 
 @implementation
 NSObject (NSKeyValueObserving)
-/**
-@Status Interoperable
-*/
+
 - (void)observeValueForKeyPath:(NSString *)keyPath
                       ofObject:(id)object
                         change:(NSDictionary<NSString *, id> *)change
@@ -632,18 +630,12 @@ NSObject (NSKeyValueObserving)
 static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
                                                  // as an association key.
 
-/**
-@Status Interoperable
-*/
 - (void *)observationInfo
 {
   return (__bridge void *)
     objc_getAssociatedObject(self, &s_kvoObservationInfoAssociationKey);
 }
 
-/**
-@Status Interoperable
-*/
 - (void)setObservationInfo:(void *)observationInfo
 {
   objc_setAssociatedObject(self, &s_kvoObservationInfoAssociationKey,
@@ -651,9 +643,6 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
                            OBJC_ASSOCIATION_RETAIN);
 }
 
-/**
-@Status Interoperable
-*/
 + (BOOL)automaticallyNotifiesObserversForKey:(NSString *)key
 {
   if ([key length] > 0)
@@ -679,17 +668,11 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
   return YES;
 }
 
-/**
-@Status Interoperable
-*/
 + (NSSet *)keyPathsForValuesAffectingValueForKey:(NSString *)key
 {
   return _keyPathsForValuesAffectingValueForKey(self, key) ?: [NSSet set];
 }
 
-/**
-@Status Interoperable
-*/
 - (void)addObserver:(id)observer
          forKeyPath:(NSString *)keyPath
             options:(NSKeyValueObservingOptions)options
@@ -724,9 +707,6 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
     }
 }
 
-/**
-@Status Interoperable
-*/
 - (void)removeObserver:(id)observer
             forKeyPath:(NSString *)keyPath
                context:(void *)context
@@ -741,9 +721,6 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
     }
 }
 
-/**
-@Status Interoperable
-*/
 - (void)removeObserver:(id)observer forKeyPath:(NSString *)keyPath
 {
   [self removeObserver:observer forKeyPath:keyPath context:NULL];
@@ -876,9 +853,6 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
     }
 }
 
-/**
-@Status Interoperable
-*/
 - (void)willChangeValueForKey:(NSString *)key
 {
   if ([self observationInfo])
@@ -905,9 +879,6 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
     }
 }
 
-/**
-@Status Interoperable
-*/
 - (void)didChangeValueForKey:(NSString *)key
 {
   if ([self observationInfo])
@@ -930,9 +901,6 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
     }
 }
 
-/**
-@Status Interoperable
-*/
 - (void)willChange:(NSKeyValueChange)changeKind
    valuesAtIndexes:(NSIndexSet *)indexes
             forKey:(NSString *)key
@@ -980,9 +948,6 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
     }
 }
 
-/**
-@Status Interoperable
-*/
 - (void)didChange:(NSKeyValueChange)changeKind
   valuesAtIndexes:(NSIndexSet *)indexes
            forKey:(NSString *)key
@@ -1016,9 +981,6 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
 static const NSString *_NSKeyValueChangeOldSetValue
   = @"_NSKeyValueChangeOldSetValue";
 
-/**
- @Status Interoperable
-*/
 - (void)willChangeValueForKey:(NSString *)key
               withSetMutation:(NSKeyValueSetMutationKind)mutationKind
                  usingObjects:(NSSet *)objects
@@ -1079,9 +1041,6 @@ static const NSString *_NSKeyValueChangeOldSetValue
     }
 }
 
-/**
- @Status Interoperable
-*/
 - (void)didChangeValueForKey:(NSString *)key
              withSetMutation:(NSKeyValueSetMutationKind)mutationKind
                 usingObjects:(NSSet *)objects
@@ -1122,9 +1081,6 @@ static const NSString *_NSKeyValueChangeOldSetValue
 @implementation
 NSArray (NSKeyValueObserving)
 
-/**
- @Status Interoperable
-*/
 - (void)addObserver:(id)observer
          forKeyPath:(NSString *)keyPath
             options:(NSKeyValueObservingOptions)options
@@ -1133,9 +1089,6 @@ NSArray (NSKeyValueObserving)
   NS_COLLECTION_THROW_ILLEGAL_KVO(keyPath);
 }
 
-/**
- @Status Interoperable
-*/
 - (void)removeObserver:(id)observer
             forKeyPath:(NSString *)keyPath
                context:(void *)context
@@ -1143,19 +1096,11 @@ NSArray (NSKeyValueObserving)
   NS_COLLECTION_THROW_ILLEGAL_KVO(keyPath);
 }
 
-/**
- @Status Interoperable
-*/
 - (void)removeObserver:(id)observer forKeyPath:(NSString *)keyPath
 {
   NS_COLLECTION_THROW_ILLEGAL_KVO(keyPath);
 }
 
-/**
- @Status Caveat
- @Notes This is a convenience method, no performance gains for using this over
- individual calls to removeObserver to affected objects
-*/
 - (void)addObserver:(id)observer
   toObjectsAtIndexes:(NSIndexSet *)indexes
           forKeyPath:(NSString *)keyPath
@@ -1170,11 +1115,6 @@ NSArray (NSKeyValueObserving)
   }];
 }
 
-/**
- @Status Caveat
- @Notes This is a convenience method, no performance gains for using this over
- individual calls to removeObserver to affected objects
-*/
 - (void)removeObserver:(id)observer
   fromObjectsAtIndexes:(NSIndexSet *)indexes
             forKeyPath:(NSString *)keyPath
@@ -1187,11 +1127,6 @@ NSArray (NSKeyValueObserving)
   }];
 }
 
-/**
- @Status Caveat
- @Notes This is a convenience method, no performance gains for using this over
- individual calls to removeObserver to affected objects
-*/
 - (void)removeObserver:(NSObject *)observer
   fromObjectsAtIndexes:(NSIndexSet *)indexes
             forKeyPath:(NSString *)keyPath
@@ -1211,9 +1146,6 @@ NSArray (NSKeyValueObserving)
 @implementation
 NSSet (NSKeyValueObserving)
 
-/**
- @Status Interoperable
-*/
 - (void)addObserver:(id)observer
          forKeyPath:(NSString *)keyPath
             options:(NSKeyValueObservingOptions)options
@@ -1222,9 +1154,6 @@ NSSet (NSKeyValueObserving)
   NS_COLLECTION_THROW_ILLEGAL_KVO(keyPath);
 }
 
-/**
- @Status Interoperable
-*/
 - (void)removeObserver:(id)observer
             forKeyPath:(NSString *)keyPath
                context:(void *)context
@@ -1232,9 +1161,6 @@ NSSet (NSKeyValueObserving)
   NS_COLLECTION_THROW_ILLEGAL_KVO(keyPath);
 }
 
-/**
- @Status Interoperable
-*/
 - (void)removeObserver:(id)observer forKeyPath:(NSString *)keyPath
 {
   NS_COLLECTION_THROW_ILLEGAL_KVO(keyPath);
