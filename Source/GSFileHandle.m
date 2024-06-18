@@ -230,7 +230,6 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
     {
       [self ignoreWriteDescriptor];
       [writeInfo removeAllObjects];
-      DESTROY(writeInfo);
     }
 
   /* Finalize *after* ending read and write operations so that, if the
@@ -275,6 +274,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
           [self setNonBlocking: wasNonBlocking];
         }
     }
+  DESTROY(writeInfo);
 }
 
 // Initializing a GSFileHandle Object
