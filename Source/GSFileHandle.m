@@ -230,6 +230,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
     {
       [self ignoreWriteDescriptor];
       [writeInfo removeAllObjects];
+      DESTROY(writeInfo);
     }
 
   /* Finalize *after* ending read and write operations so that, if the

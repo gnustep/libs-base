@@ -1,8 +1,18 @@
+2024-06-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSDebug.h: Remove deprecated function and add
+	new function to turn on tracing objects of a specific class.
+	* Source/NSDebug.m: Fix locking issues when recording object allocation.
+	Fix bug removing recoded objects.  Implement tracing recorded object
+	allocation with stack trace (also option to veto recording of
+	individual objects).
+	* Source/GSFileHandle.m: Fix memory leak found using changes above.
+
 2024-06-10 Marco Rebhan <me@dblsaiko.net>
 
-  * Headers/Foundation/NSFileManager.h:
-  * Source/NSFileManager.m:
-  Implement -[NSFileManager URLsForDirectory:inDomains:].
+  	* Headers/Foundation/NSFileManager.h:
+  	* Source/NSFileManager.m:
+  	Implement -[NSFileManager URLsForDirectory:inDomains:].
 
 2024-06-10 Richard Frith-Macdonald <rfm@gnu.org>
 
