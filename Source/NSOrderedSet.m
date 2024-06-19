@@ -326,7 +326,7 @@ static SEL	remSel;
 
   if (count == 0)
     {
-      return [self init];
+      self = [self init];
     }
   else
     {
@@ -347,10 +347,8 @@ static SEL	remSel;
 	}
       self = [self initWithObjects: objs count: count];
       GS_ENDIDBUF();
-      return self;
     }
-
-  return nil;
+  return self;
 }
 
 - (instancetype) initWithArray: (NSArray *)other copyItems: (BOOL)flag
@@ -416,11 +414,11 @@ static SEL	remSel;
 	  {
 	    if (flag == YES)
 	      {
-		objs[i] = [[other objectAtIndex: i] copy];
+		objs[j] = [[other objectAtIndex: i] copy];
 	      }
 	    else
 	      {
-		objs[i] = [other objectAtIndex: i];
+		objs[j] = [other objectAtIndex: i];
 	      }
 	    j++;
 	  }
@@ -435,7 +433,7 @@ static SEL	remSel;
 
   if (flag == YES)
     {
-      while(j--)
+      while (j--)
 	{
 	  [objs[j] release];
 	}
@@ -515,23 +513,22 @@ static SEL	remSel;
                           copyItems: (BOOL)flag
 {
   unsigned	c = [other count];
-  id		o, e = [other objectEnumerator];
   unsigned	i = 0, j = 0;
   unsigned      loc = range.location;
   unsigned      len = range.length;
   GS_BEGINIDBUF(os, c);
 
-  while ((o = [e nextObject]))
+  FOR_IN(id, o, other)
     {
       if (i >= loc && j < len)
 	{
 	  if (flag)
             {
-              os[i] = [o copy];
+              os[j] = [o copy];
             }
 	  else
             {
-              os[i] = o;
+              os[j] = o;
             }
 	  j++;
 	}
@@ -542,13 +539,14 @@ static SEL	remSel;
 	  break;
 	}
     }
+  END_FOR_IN(other)
 
   self = [self initWithObjects: os count: c];
   if (flag)
     {
-      while (i--)
+      while (j--)
         {
-          [os[i] release];
+          [os[j] release];
         }
     }
   GS_ENDIDBUF();
