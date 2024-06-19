@@ -235,6 +235,10 @@ static SEL	objSel;
   NSUInteger	c = [other count];
 
   GSIMapInitWithZoneAndCapacity(&map, z, c);
+  if (nil == other || other == self)
+    {
+      return self;
+    }
   if (c > 0)
     {
       NSEnumerator	*e = [other keyEnumerator];
@@ -251,20 +255,13 @@ static SEL	objSel;
 
 	  if (isProxy == YES)
 	    {
-	      k = [e nextObject];
+	      if (nil == (k = [e nextObject])) break;
 	      o = [other objectForKey: k];
 	    }
 	  else
 	    {
-	      k = (*nxtObj)(e, nxtSel);
+	      if (nil == (k = (*nxtObj)(e, nxtSel))) break;
 	      o = (*otherObj)(other, objSel, k);
-	    }
-	  k = [k copyWithZone: z];
-	  if (k == nil)
-	    {
-	      DESTROY(self);
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"Tried to init dictionary with nil key"];
 	    }
 	  if (shouldCopy)
 	    {
@@ -273,12 +270,6 @@ static SEL	objSel;
 	  else
 	    {
 	      o = RETAIN(o);
-	    }
-	  if (o == nil)
-	    {
-	      DESTROY(self);
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"Tried to init dictionary with nil value"];
 	    }
 
 	  node = GSIMapNodeForKey(&map, (GSIMapKey)k);
@@ -289,7 +280,8 @@ static SEL	objSel;
 	    }
 	  else
 	    {
-	      GSIMapAddPairNoRetain(&map, (GSIMapKey)k, (GSIMapVal)o);
+	      GSIMapAddPair(&map, (GSIMapKey)k, (GSIMapVal)o);
+	      RELEASE(o);
 	    }
 	}
     }
