@@ -206,19 +206,19 @@ static BOOL     initialized = NO;
          ascending: (BOOL) ascending
         comparator: (NSComparator) cmptr
 {
-  if ([self init])
+  if ((self = [self init]) != nil)
     {
       if (key == nil)
         {
           [NSException raise: NSInvalidArgumentException
-                      format: @"%@", _(@"Passed nil key when initializing "
-                                       @"an NSSortDescriptor.")];
+                      format: @"%@", _(@"Passed nil key when initializing"
+			      @" an NSSortDescriptor.")];
         }
       if (cmptr == NULL)
         {
           [NSException raise: NSInvalidArgumentException
-                      format: @"%@", _(@"Passed NULL comparator when initializing "
-                                       @"an NSSortDescriptor.")];
+                      format: @"%@", _(@"Passed NULL comparator when"
+			      @" initializing an NSSortDescriptor.")];
         }
 
       ASSIGN(_key, key);
@@ -237,7 +237,7 @@ static BOOL     initialized = NO;
          ascending: (BOOL) ascending
           selector: (SEL) selector
 {
-  if ([self init])
+  if ((self = [self init]) != nil)
     {
       if (key == nil)
         {
