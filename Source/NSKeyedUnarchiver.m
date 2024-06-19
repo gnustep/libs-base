@@ -253,12 +253,15 @@ static NSMapTable	*globalClassMap = 0;
       if (_delegate != nil)
 	{
 	  r = [_delegate unarchiver: self didDecodeObject: o];
-	  if (r != o)
+	  /* Apple documentation says that the delegate may return nil to
+	   * indicate that the decoded objects should not be changed.
+	   */
+	  if (r != nil && r != o)
 	    {
 	      [_delegate unarchiver: self
 		  willReplaceObject: o
 			 withObject: r];
-	      o = r;
+	      o = RETAIN(r);
 	      GSIArraySetItemAtIndex(_objMap, (GSIArrayItem)o, index);
 	    }
 	}
