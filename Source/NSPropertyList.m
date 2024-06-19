@@ -689,7 +689,7 @@ static BOOL skipSpace(pldata *pld)
   return NO;
 }
 
-static inline id parseQuotedString(pldata* pld)
+static inline id parseQuotedString(pldata* pld) NS_RETURNS_RETAINED
 {
   unsigned	start = ++pld->pos;
   unsigned	escaped = 0;
@@ -892,7 +892,7 @@ static inline id parseQuotedString(pldata* pld)
   return obj;
 }
 
-static inline id parseUnquotedString(pldata *pld)
+static inline id parseUnquotedString(pldata *pld) NS_RETURNS_RETAINED
 {
   unsigned	start = pld->pos;
   unsigned	i;
@@ -932,7 +932,7 @@ static inline id parseUnquotedString(pldata *pld)
   return obj;
 }
 
-static id parsePlItem(pldata* pld)
+static id parsePlItem(pldata* pld) NS_RETURNS_RETAINED
 {
   id	result = nil;
   BOOL	start = (pld->pos == 0 ? YES : NO);
@@ -1033,7 +1033,12 @@ static id parsePlItem(pldata* pld)
 	  result = dict;
 	  if (pld->opt == NSPropertyListImmutable)
 	    {
-              result = GS_IMMUTABLE(result);
+	      if (NO == [result makeImmutable])
+		{
+		  id	tmp = result;
+		  result = [tmp copy];
+		  RELEASE(tmp);
+		}
 	    }
 	}
 	break;
@@ -1085,7 +1090,12 @@ static id parsePlItem(pldata* pld)
 	  result = array;
 	  if (pld->opt == NSPropertyListImmutable)
 	    {
-              result = GS_IMMUTABLE(result);
+	      if (NO == [result makeImmutable])
+		{
+		  id	tmp = result;
+		  result = [tmp copy];
+		  RELEASE(tmp);
+		}
 	    }
 	}
 	break;
@@ -1188,11 +1198,13 @@ static id parsePlItem(pldata* pld)
 	    if (pld->pos >= pld->end)
 	      {
 		pld->err = @"unexpected end of string when parsing data";
+		DESTROY(result);
 		return nil;
 	      }
 	    if (pld->ptr[pld->pos] != '>')
 	      {
 		pld->err = @"unexpected character (wanted '>')";
+		DESTROY(result);
 		return nil;
 	      }
 	    pld->pos++;
@@ -1346,7 +1358,7 @@ static id parsePlItem(pldata* pld)
       if (skipSpace(pld) == YES)
 	{
 	  pld->err = @"extra data after parsed string";
-	  result = nil;		// Not at end of string.
+	  DESTROY(result);	// Not at end of string.
 	}
       else
         {
