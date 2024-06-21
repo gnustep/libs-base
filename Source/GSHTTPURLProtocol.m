@@ -536,7 +536,7 @@ parseArgumentPart(NSString *part, NSString *name)
    * configuration first and then append/update the request.allHTTPHeaders 
    * so that request.allHTTPHeaders can override httpAdditionalHeaders.
    */
-  NSMutableDictionary *hh = [NSMutableDictionary dictionary];
+  NSMutableDictionary *hh;
   NSDictionary        *HTTPAdditionalHeaders;
   NSDictionary        *HTTPHeaders;
   

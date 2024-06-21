@@ -118,7 +118,6 @@ concreteType(NSString *t)
       unsigned		pos = r.location;
       BOOL		found = NO;
 
-      len = [m length];
       while (pos < len)
 	{
 	  unichar	c = [m characterAtIndex: pos++];

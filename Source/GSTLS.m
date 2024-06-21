@@ -758,7 +758,7 @@ static NSMutableDictionary      *certificateListCache = nil;
       if (count > 0)
         {
           time_t        now = (time_t)[[NSDate date] timeIntervalSince1970];
-          unsigned int  i = count;
+          unsigned int  i;
 
           l->crts = malloc(sizeof(gnutls_x509_crt_t) * count);
           memcpy(l->crts, crts, sizeof(gnutls_x509_crt_t) * count);
