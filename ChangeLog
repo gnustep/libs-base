@@ -1,5 +1,6 @@
 2024-06-21 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSDistantObject.m: Use standard method name conventions
 	* Tools/AGSOutput.m:
 	* Tools/AGSParser.m:
 	* Tools/autogsdoc.m:
