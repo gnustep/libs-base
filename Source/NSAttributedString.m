@@ -445,6 +445,7 @@ appendUIntData(NSMutableData *d, NSUInteger i)
 		     effectiveRange: (NSRange*)aRange
 {
   [self subclassResponsibility: _cmd];/* Primitive method! */
+  *aRange = NSMakeRange(NSNotFound, 0);
   return nil;
 }
 
