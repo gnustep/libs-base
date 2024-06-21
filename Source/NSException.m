@@ -379,17 +379,17 @@ GSPrivateBaseAddress(void *addr, void **base)
       DESTROY(self);
       return nil;
     }
-  _symbols = malloc (neededSpace);
+  _symbols = (asymbol**)malloc(neededSpace);
   if (!_symbols)
     {
-      //NSLog (@"GSBinaryFileInfo: Can't allocate buffer");
+      //NSLog(@"GSBinaryFileInfo: Can't allocate buffer");
       DESTROY(self);
       return nil;
     }
-  _symbolCount = bfd_canonicalize_symtab (_abfd, _symbols);
+  _symbolCount = bfd_canonicalize_symtab(_abfd, _symbols);
   if (_symbolCount < 0)
     {
-      //NSLog (@"GSBinaryFileInfo: BFD error while reading symbols");
+      //NSLog(@"GSBinaryFileInfo: BFD error while reading symbols");
       DESTROY(self);
       return nil;
     }
@@ -454,7 +454,7 @@ static void find_address(bfd *abfd, asection *section,
     }
 
 
-  if (bfd_find_nearest_line (abfd, section, info->symbols,
+  if (bfd_find_nearest_line(abfd, section, info->symbols,
     address - vma, &fileName, &functionName, &line))
     {
       GSFunctionInfo	*fi;
@@ -988,20 +988,20 @@ GSPrivateReturnAddresses(NSUInteger **returns)
   numReturns = (capture)(0, MAXFRAMES, (void**)addr, NULL);
   if (numReturns > 0)
     {
-      *returns = malloc(numReturns * sizeof(void*));
-      memcpy(*returns, addr, numReturns * sizeof(void*));
+      *returns = (NSUInteger*)malloc(numReturns * sizeof(NSUInteger));
+      memcpy(*returns, addr, numReturns * sizeof(NSUInteger));
     }
   
   GS_MUTEX_UNLOCK(traceLock);
 
 #elif	defined(HAVE_BACKTRACE)
-  void          *addr[MAXFRAMES*sizeof(void*)];
+  void          *addr[MAXFRAMES*sizeof(NSUInteger)];
 
   numReturns = backtrace(addr, MAXFRAMES);
   if (numReturns > 0)
     {
-      *returns = malloc(numReturns * sizeof(void*));
-      memcpy(*returns, addr, numReturns * sizeof(void*));
+      *returns = (NSUInteger*)malloc(numReturns * sizeof(NSUInteger));
+      memcpy(*returns, addr, numReturns * sizeof(NSUInteger));
     }
 #elif defined(WITH_UNWIND)
   void          *addr[MAXFRAMES];
@@ -1012,8 +1012,8 @@ GSPrivateReturnAddresses(NSUInteger **returns)
   numReturns = state.current - addr;
   if (numReturns > 0)
     {
-      *returns = malloc(numReturns * sizeof(void*));
-      memcpy(*returns, addr, numReturns * sizeof(void*));
+      *returns = (NSUInteger*)malloc(numReturns * sizeof(NSUInteger));
+      memcpy(*returns, addr, numReturns * sizeof(NSUInteger));
     }
 #else
   int   n;
@@ -1034,7 +1034,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
     {
       jbuf_type *env;
 
-      *returns = malloc(numReturns * sizeof(void*));
+      *returns = (NSUInteger*)malloc(numReturns * sizeof(NSUInteger));
 
       env = jbuf();
       if (sigsetjmp(env->buf, 1) == 0)
@@ -1088,7 +1088,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
                 {
                   break;
                 }
-              memcpy(&(*returns)[i], env->addr, sizeof(void*));
+              memcpy(&(*returns)[i], env->addr, sizeof(NSUInteger));
             }
           signal(SIGSEGV, env->segv);
           signal(SIGBUS, env->bus);
