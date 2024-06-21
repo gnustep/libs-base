@@ -151,7 +151,7 @@ parseQuotedString(const char *, size_t *);
 NSArray *
 parseKeyPath(const char *keypath)
 {
-  NSMutableArray	*res = [[NSMutableArray alloc] init];
+  NSMutableArray	*res = [NSMutableArray array];
   NSString		*key = nil;
   size_t	  	i;
   size_t	  	j;
@@ -185,7 +185,7 @@ parseKeyPath(const char *keypath)
 	    break;
 	}
     }
-  return [res copy];
+  return AUTORELEASE([res copy]);
 }
 
 /**
@@ -249,15 +249,20 @@ plIndexKeypath(id obj, NSString *keypath, int depthOffset)
 id
 parseValue(NSString *type, NSString *value)
 {
+  id	result;
+
   if ([type isEqual: @"-plist"])
-    return [value propertyList];
+    {
+      result = [value propertyList];
+    }
   else if ([type isEqual: @"-xml"] || [type isEqual: @"-date"])
     {
       NSData *mydata =
 	[value dataUsingEncoding: [NSString defaultCStringEncoding]];
       NSPropertyListFormat aFormat;
-      NSError *		   anError;
-      id		   result = [NSPropertyListSerialization
+      NSError	*anError;
+
+      result = [NSPropertyListSerialization
 	propertyListWithData: mydata
 		       options: NSPropertyListMutableContainersAndLeaves
 			format: &aFormat
@@ -265,39 +270,52 @@ parseValue(NSString *type, NSString *value)
       if (result == nil)
 	{
 	  GSPrintf(stderr, @"Parsing plist %@: %@\n", value, anError);
-	  return nil;
 	}
       else if ([type isEqual: @"-xml"]
-	       && aFormat != NSPropertyListXMLFormat_v1_0)
-	GSPrintf(stderr,
-		 @"Warning: parsing XML plist %@: Not an XML (fmt %d)\n", value,
-		 aFormat);
+        && aFormat != NSPropertyListXMLFormat_v1_0)
+	{
+	  GSPrintf(stderr,
+	     @"Warning: parsing XML plist %@: Not an XML (fmt %d)\n", value,
+	     aFormat);
+	}
       else if ([type isEqual: @"-date"]
-	       && ![result isKindOfClass: [NSDate class]])
-	GSPrintf(stderr, @"Warning: parsing date %@: Not a date (got %@)\n",
-		 value, result);
-      return result;
+        && ![result isKindOfClass: [NSDate class]])
+	{
+	  GSPrintf(stderr, @"Warning: parsing date %@: Not a date (got %@)\n",
+	    value, result);
+	}
     }
   else if ([type isEqual: @"-bool"])
-    return [NSNumber
-      numberWithBool: ([value isEqual: @"YES"] || [value isEqual: @"true"])];
+    {
+      result = [NSNumber numberWithBool:
+	([value isEqual: @"YES"] || [value isEqual: @"true"])];
+    }
   else if ([type isEqual: @"-integer"])
-    return [[NSNumber alloc] initWithLongLong: [value longLongValue]];
+    {
+      result = [NSNumber numberWithLongLong: [value longLongValue]];
+    }
   else if ([type isEqual: @"-float"])
-    // We do a step further than NSPropertyList.m and probably Apple,
-    // since notsupporting inf and nan is a bad look
-    // (No hex literals for now unless someone really wants it)
-    return [[NSNumber alloc] initWithDouble: strtod([value cString], 0)];
+    {
+      /*
+       * We do a step further than NSPropertyList.m and probably Apple,
+       * since notsupporting inf and nan is a bad look
+       * (No hex literals for now unless someone really wants it)
+       */
+      result = [NSNumber numberWithDouble: strtod([value cString], 0)];
+    }
   else if ([type isEqual: @"-data"])
-    return [[NSData alloc]
-      initWithBase64EncodedData: [value
-				  dataUsingEncoding: [NSString
-						      defaultCStringEncoding]]
-			options: NSDataBase64DecodingIgnoreUnknownCharacters];
+    {
+      result = AUTORELEASE([[NSData alloc] initWithBase64EncodedData:
+	[value dataUsingEncoding: [NSString defaultCStringEncoding]]
+	options: NSDataBase64DecodingIgnoreUnknownCharacters]);
+    }
   else
-    GSPrintf(stderr, @"Unrecognized type %@\n", type);
+    {
+      GSPrintf(stderr, @"Unrecognized type %@\n", type);
+      result = nil;
+    }
 
-  return nil;
+  return result;
 }
 
 #define SELFMAP(Name) NINT(Name), NSTR(#Name)

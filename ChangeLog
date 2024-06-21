@@ -1,5 +1,14 @@
 2024-06-21 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.m:
+	* Tools/autogsdoc.m:
+	* Tools/make_strings/make_strings.m:
+	* Tools/plutil.m:
+	Fix various memory leaks.
+
+2024-06-21 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/Additions/Unicode.m:
 	* Source/GSTLS.m:
 	* Source/NSDictionary.m:

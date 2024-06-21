@@ -1498,7 +1498,8 @@ static BOOL snuggleStart(NSString *t)
    * or end tag, or one of the whitespace separated words.
    * What about str?
    */
-  data = [[NSMutableData alloc] initWithLength: l * sizeof(unichar)];
+  data = AUTORELEASE([[NSMutableData alloc]
+    initWithLength: l * sizeof(unichar)]);
   ptr = buf = [data mutableBytes];
   [str getCharacters: buf];
   end = buf + l;
@@ -2341,7 +2342,7 @@ static BOOL snuggleStart(NSString *t)
 	   * No pre-existing file, and no blank template available ...
 	   * Generate a standard template.
 	   */
-	  str = [[NSMutableString alloc] initWithCapacity: 1024];
+	  str = [NSMutableString stringWithCapacity: 1024];
 
 	  [str appendString: @"<?xml version=\"1.0\"?>\n"];
 	  [str appendString: @"<!DOCTYPE gsdoc PUBLIC "];

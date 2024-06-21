@@ -896,7 +896,7 @@ main(int argc, char **argv, char **env)
 
   declared = [defs stringForKey: @"Declared"];
   project = [defs stringForKey: @"Project"];
-  refsName = [[project stringByAppendingPathExtension: @"igsdoc"] copy];
+  refsName = [project stringByAppendingPathExtension: @"igsdoc"];
 
   headerDirectory = [defs stringForKey: @"HeaderDirectory"];
   if (headerDirectory == nil)
@@ -1005,13 +1005,13 @@ main(int argc, char **argv, char **env)
   refsFile = [documentationDirectory
     stringByAppendingPathComponent: project];
   refsFile = [refsFile stringByAppendingPathExtension: @"igsdoc"];
-  projectRefs = [AGSIndex new];
+  projectRefs = AUTORELEASE([AGSIndex new]);
   originalIndex = nil;
   rDate = [NSDate distantPast];
   if ([mgr isReadableFileAtPath: refsFile] == YES)
     {
       originalIndex
-	= [[NSDictionary alloc] initWithContentsOfFile: refsFile];
+	= AUTORELEASE([[NSDictionary alloc] initWithContentsOfFile: refsFile]);
       if (originalIndex == nil)
 	{
 	  NSLog(@"Unable to read project file '%@'", refsFile);
@@ -1105,7 +1105,7 @@ main(int argc, char **argv, char **env)
 		  NSString		*k;
 		  unsigned		length;
 
-		  ms = [[NSMutableString alloc] initWithContentsOfFile: path];
+		  ms = [NSMutableString stringWithContentsOfFile: path];
 		  if (ms == nil)
 		    {
 		      NSLog(@"Cleaning ... failed to read '%@'", path);
@@ -1231,7 +1231,8 @@ main(int argc, char **argv, char **env)
 
   if ([sFiles count] == 0 && [gFiles count] == 0 && [hFiles count] == 0)
     {
-      NSLog(@"No .h, .m, .c, .gsdoc, or .html filename arguments found ... giving up");
+      NSLog(@"No .h, .m, .c, .gsdoc, or .html filename arguments found"
+	@" ... giving up");
       return 1;
     }
 
@@ -1590,6 +1591,7 @@ main(int argc, char **argv, char **env)
       DESTROY(pool);
       DESTROY(parser);
       DESTROY(output);
+      AUTORELEASE(informalProtocols);
     }
 
   /*
@@ -1680,6 +1682,7 @@ main(int argc, char **argv, char **env)
 		    {
 		      NSLog(@"not a gsdoc document - because name node is %@",
 			[root name]);
+		      DESTROY(merged);
 		      return 1;
 		    }
 
@@ -1708,7 +1711,6 @@ main(int argc, char **argv, char **env)
       if (informalProtocols != nil)
 	{
           [projectRefs addInformalProtocols: informalProtocols];
-          DESTROY(informalProtocols);
 	  if (verbose)
 	    {
 	      NSLog(@"Added informal protocols into projectRefs");
@@ -1732,7 +1734,7 @@ main(int argc, char **argv, char **env)
       DESTROY(merged);
     }
 
-  globalRefs = [AGSIndex new];
+  globalRefs = AUTORELEASE([AGSIndex new]);
 
   /*
    * 8) If we are either generating html output, or relocating existing
@@ -1900,7 +1902,6 @@ main(int argc, char **argv, char **env)
 	  if (verbose)
 	    {
 	      NSLog(@"Merged indexes into globalRefs from %@", merged);
-	
 	    }
 	}
 
