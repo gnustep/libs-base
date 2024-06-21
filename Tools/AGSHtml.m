@@ -185,7 +185,7 @@ static NSString		*mainFont = nil;
   NSString	*kind = (f == YES) ? @"rel=\"gsdoc\" href" : @"name";
   NSString	*hash = (f == YES) ? @"#" : @"";
 
-  if (f == NO || (s = [localRefs globalRef: r type: t]) != nil)
+  if (f == NO || [localRefs globalRef: r type: t] != nil)
     {
       s = [NSString stringWithFormat: @"<a %@=\"%@%@$%@\">",
 	kind, hash, t, r];
@@ -1286,7 +1286,7 @@ static NSString		*mainFont = nil;
 	      [buf appendString: @"<p><b>Date:</b> "];
 	      if (nil == tmp
 		|| ([tmp type] == XML_TEXT_NODE
-		  && [(str = [[tmp escapedContent] stringByTrimmingSpaces])
+		  && [[[tmp escapedContent] stringByTrimmingSpaces]
 		    length] == 0))
 		{
             	  str = [NSString stringWithFormat: @"Generated at %@",
@@ -1369,7 +1369,7 @@ static NSString		*mainFont = nil;
 	  NSString	*s;
 	  GSXMLNode	*tmp;
 
-	  tmp = children = firstElement(children);
+	  tmp = firstElement(children);
 	  [buf appendString: indent];
 	  [buf appendString: @"<h3>"];
 	  s = [self makeLink: n ofType: @"ivariable" inUnit: nil isRef: NO];
@@ -1389,13 +1389,6 @@ static NSString		*mainFont = nil;
 	      v = @"public";
 	    }
 	  [buf appendFormat: @"%@@%@ %@ <b>%@</b>;<br />\n", indent, v, t, n];
-
-/*
-	  if ([[children name] isEqual: @"desc"] == YES)
-	    {
-	      children = [children nextElement];
-	    }
-*/
 
 	  /*
 	   * List standards with which ivar complies

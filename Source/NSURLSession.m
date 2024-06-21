@@ -840,11 +840,7 @@ static unsigned nextSessionIdentifier()
 
   if ([urlResponse statusCode] == 401)
     {
-      NSURLProtectionSpace	*space;
-
-      if (nil != (space = [self _protectionSpaceFrom: urlResponse]))
-        {
-        }
+      [self _protectionSpaceFrom: urlResponse];
     }
 
   delegate = [session delegate];

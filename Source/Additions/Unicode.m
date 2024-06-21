@@ -746,13 +746,13 @@ GSUnicode(const unichar *chars, unsigned length,
   if (isLatin1) *isLatin1 = YES;
   while (i < length)
     {
-      if ((c = chars[i++]) > 127)
+      if (chars[i++] > 127)
         {
 	  if (isASCII) *isASCII = NO;
 	  i--;
 	  while (i < length)
 	    {
-	      if ((c = chars[i++]) > 255)
+	      if (chars[i++] > 255)
 		{
 		  if (isLatin1) *isLatin1 = NO;
 		  i--;

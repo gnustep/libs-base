@@ -3799,13 +3799,16 @@ countAttributes(NSSet *keys, NSDictionary *a)
 		NSMutableDictionary	*p = nil;
 		NSMutableDictionary	*s = nil;
 
-		if (nil == (p = [self parsePropertyGetter: &g andSetter: &s]))
+		if (nil == [self parsePropertyGetter: &g andSetter: &s])
 		  {
 		    [self log: @"@property declaration invalid"];
 		    [self skipStatementLine];
 		  }
 		else
 		  {
+		    NSAssert(nil == p
+		      || [[p objectForKey: @"Kind"] isEqual: @"Properties"],
+		      NSInternalInconsistencyException);
 /* FIXME ... need to handle properties
 		    token = [p objectForKey: @"Name"];
 		    [methods setObject: p forKey: token];

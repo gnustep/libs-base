@@ -1977,7 +1977,7 @@ static BOOL snuggleStart(NSString *t)
 		  pos++;
 		  if (pos < ePos
 		    && [identStart characterIsMember:
-		      (c = [tmp characterAtIndex: pos])] == YES)
+		      [tmp characterAtIndex: pos]] == YES)
 		    {
 		      while (pos < ePos)
 			{

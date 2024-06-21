@@ -879,9 +879,7 @@ static SEL	appSel;
  */
 - (NSArray*) allKeysForObject: (id)anObject
 {
-  unsigned	c;
-
-  if (anObject == nil || (c = [self count]) == 0)
+  if (anObject == nil || [self count] == 0)
     {
       return nil;
     }
@@ -891,12 +889,12 @@ static SEL	appSel;
       IMP		nxtObj = [e methodForSelector: nxtSel];
       IMP		myObj = [self methodForSelector: objSel];
       BOOL		(*eqObj)(id, SEL, id);
+      unsigned		c = 0;
       id		k;
       id		result;
       GS_BEGINIDBUF(a, [self count]);
 
       eqObj = (BOOL (*)(id, SEL, id))[anObject methodForSelector: eqSel];
-      c = 0;
       while ((k = (*nxtObj)(e, nxtSel)) != nil)
 	{
 	  id	o = (*myObj)(self, objSel, k);

@@ -483,7 +483,7 @@ static GSTLSDHParams            *paramsCurrent = nil;
    * thread since it's likely to be rather slow.
    */
   if (nil != paramsCurrent && NO == paramsGenerating
-    && (now = paramsWhen) > 24.0 * 60.0 * 60.0)
+    && paramsWhen > 24.0 * 60.0 * 60.0)
     {
       [NSThread detachNewThreadSelector: @selector(generate)
                                toTarget: self

@@ -1,5 +1,17 @@
 2024-06-21 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/Unicode.m:
+	* Source/GSTLS.m:
+	* Source/NSDictionary.m:
+	* Source/NSThread.m:
+	* Source/NSURLSession.m:
+	* Tools/AGSHtml.m:
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.m:
+	Fix dead assignments.
+
+2024-06-21 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Source/GSHTTPURLProtocol.m:
 	* Source/GSTLS.m:
 	* Source/NSConnection.m:

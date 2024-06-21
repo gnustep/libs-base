@@ -1712,7 +1712,6 @@ lockInfoErr(NSString *str)
               if (YES == th->_active && nil != info->wait)
                 {
                   BOOL          wasLocked;
-                  GSStackTrace  *stck;
 
                   if (th == self
                     || NULL != NSHashGet(_activeBlocked, (const void*)th))
@@ -1728,7 +1727,7 @@ lockInfoErr(NSString *str)
                       wasLocked = NO;
                     }
                   if (nil != info->wait
-                    && nil != (stck = NSHashGet(info->held, (const void*)want)))
+                    && nil != (id)NSHashGet(info->held, (const void*)want))
                     {
                       /* This thread holds the lock we are interested in and
                        * is waiting for another lock.
