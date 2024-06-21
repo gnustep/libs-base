@@ -1,3 +1,36 @@
+2024-06-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLProtocol.m:
+	* Source/GSTLS.m:
+	* Source/NSConnection.m:
+	* Source/NSSpellServer.m:
+	* Tools/AGSParser.m
+	Fix dead initialisations.
+	* Source/GSAttributedString.m:
+	* Source/tzdb.h:
+	Fix dead assignments
+	* Source/NSTask.m:
+	Use fork() becuse vfork() behavior is undefined when we make assignments
+	to variables or system calls before exec().
+	* Source/GSArray.m:
+	Ignore nil values in collection (should never happen) possibly caused
+	by retain/release errors.  Old code would have crashed.
+	* Source/NSException.m:
+	Avoid compiler warning about malloced memory type compatibility.
+ 
+2024-06-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSInsensitiveDictionary.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSXMLParser.m:
+	Fix rare memory management issues.
+	* Source/NSURL.m: Fix C-string termination issues
+	and a few dead assignments
+	* Source/NSOrderedSet.m: Fix ranged initialisation index errors
+	* Source/GSDictionary.m: Avoid excess copies of dictionary keys
+	* Source/NSPropertyList.m: Fix potential leaks
+	* Source/NSSortDescriptor.m: Fix potential use after dealloc
+
 2024-06-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSDebug.h: Remove deprecated function and add
