@@ -509,11 +509,13 @@ notice and this notice are preserved.
 	      <p>
 		If this is set to YES, then deallocation of an object causes
 	        the object to be morphed into a Zombie ... a special object
-		which will call the GNUstep specific GSLogZombie() function
-		to log the method call.<br />
+		of class NSZombie whose -logZombie: method will call the
+		GNUstep specific GSLogZombie() function to log the method
+		call.<br />
 		If GNUstep-base was built for debugging (make debug=yes),
-                you can set a breakpoint in this function and examine the
-		process memory when you are running under a debugger.<br />
+                you can set a breakpoint in this method or function and
+		examine the process memory when you are running under a
+		debugger.<br />
 		As this overrides actual object deallocation, all memory
 		allocated for objects will be leaked unless the
                 NSDeallocateZombies environment variable is also set.<br />

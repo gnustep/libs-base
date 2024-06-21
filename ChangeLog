@@ -6,6 +6,12 @@
 	* Tools/make_strings/make_strings.m:
 	* Tools/plutil.m:
 	Fix various memory leaks.
+	* Tools/NSObject.m:
+	* Documentation/Base.gsdoc:
+	Make GSLogZombie() an external function for debuggers which can't find
+	it as a static function. Add [NSZombie -logZombie:] method to call the
+	function in case there is a debugger which can set a breakpoint on the
+	method more easily than on the function.
 
 2024-06-21 Richard Frith-Macdonald <rfm@gnu.org>
 

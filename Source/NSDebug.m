@@ -743,34 +743,29 @@ _GSDebugAllocationRemove(Class c, id o)
 	      the_table[i].bytes -= bytes;
 	      if (the_table[i].num_recorded_objects > 0)
 		{
-		  unsigned j, k, n;
+		  unsigned j, n;
 
-                  n = the_table[i].num_recorded_objects;
-		  for (j = 0; j < n; j++)
+		  /* Most objects have a brief lifespan.  It therefore
+		   * makes sense to search from the end of the array back
+		   * to the start to maximise the chance of finding an
+		   * object quickly.
+		   */
+                  j = n = the_table[i].num_recorded_objects;
+		  while (j-- > 0)
 		    {
 		      if ((the_table[i].recorded_objects)[j] == o)
 			{
 			  tag = (the_table[i].recorded_tags)[j];
+			  while (++j < n)
+			    {
+			      (the_table[i].recorded_objects)[j - 1] =
+				(the_table[i].recorded_objects)[j];
+			      (the_table[i].recorded_tags)[j - 1] =
+				(the_table[i].recorded_tags)[j];
+			    }
+			  the_table[i].num_recorded_objects--;
 			  break;
 			}
-		    }
-		  if (j < n)
-		    {
-		      for (k = j + 1; k < n; k++)
-			{
-			  (the_table[i].recorded_objects)[k - 1] =
-			    (the_table[i].recorded_objects)[k];
-			  (the_table[i].recorded_tags)[k - 1] =
-			    (the_table[i].recorded_tags)[k];
-			}
-		      the_table[i].num_recorded_objects--;
-		    }
-		  else
-		    {
-		      /* Not found - no problem - this happens if the
-                         object was allocated before we started
-                         recording */
-		      ;
 		    }
 		}
 	      unLock();
