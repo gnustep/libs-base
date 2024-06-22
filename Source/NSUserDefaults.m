@@ -55,6 +55,8 @@
 #import "GNUstepBase/NSProcessInfo+GNUstepBase.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
+#import "NSKVOInternal.h"
+
 #if	defined(_WIN32)
 /* Fake interface to avoid compiler warnings
  */
@@ -562,6 +564,23 @@ newLanguages(NSArray *oldNames)
   DESTROY(argumentsDictionary);
   DESTROY(classLock);
   DESTROY(syncLock);
+}
+
+/* Opt-out off automatic willChange/didChange notifications 
+ * as the KVO behaviour for NSUserDefaults is slightly different.
+ *
+ * We do not notify observers of changes that do not actually
+ * change the value of a key (the value is equal to the old value).
+ *
+ * https://developer.apple.com/documentation/foundation/nsuserdefaults#2926902
+ * "You can use key-value observing to be notified of any updates to a particular
+ * default value. You can also register as an observer for
+ * NSUserDefaultsDidChangeNotification on the defaultCenter notification center
+ * in order to be notified of all updates to a local defaults database."
+ */
++ (BOOL) automaticallyNotifiesObserversForKey: (NSString*)key
+{
+  return NO;
 }
 
 + (void) initialize
@@ -1402,13 +1421,22 @@ newLanguages(NSArray *oldNames)
   NS_DURING
     {
       GSPersistentDomain	*pd = [_persDomains objectForKey: processName];
+      id old = [pd objectForKey: defaultName];
 
       if (nil != pd)
 	{
           if ([pd setObject: nil forKey: defaultName])
 	    {
 	      [self _changePersistentDomain: processName];
-	    }
+        [self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue:nil];
+	    } else {
+        // We always notify observers of a change, even if the value
+        // itself is unchanged.
+        [[NSNotificationCenter defaultCenter]
+          postNotificationName: NSUserDefaultsDidChangeNotification
+            object: self];
+
+      }
 	}
       [_lock unlock];
     }
@@ -1527,6 +1555,7 @@ static BOOL isPlistObject(id o)
   NS_DURING
     {
       GSPersistentDomain	*pd;
+      id old;
 
       pd = [_persDomains objectForKey: processName];
       if (nil == pd)
@@ -1536,9 +1565,19 @@ static BOOL isPlistObject(id o)
           [_persDomains setObject: pd forKey: processName];
 	  RELEASE(pd);
 	}
+      old = [pd objectForKey: defaultName];
       if ([pd setObject: value forKey: defaultName])
         {
           [self _changePersistentDomain: processName];
+          [self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue:value];
+        }
+      else
+        {
+          // We always notify observers of a change, even if the value
+          // itself is unchanged.
+          [[NSNotificationCenter defaultCenter]
+            postNotificationName: NSUserDefaultsDidChangeNotification
+		        object: self];
         }
       [_lock unlock];
     }
