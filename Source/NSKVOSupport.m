@@ -49,6 +49,8 @@
 #import <objc/objc-arc.h>
 #import <stdatomic.h>
 
+#import <Foundation/Foundation.h>
+
 typedef void (^DispatchChangeBlock)(_NSKVOKeyObserver *);
 
 NSString *
@@ -1072,6 +1074,49 @@ static const NSString *_NSKeyValueChangeOldSetValue
       });
     }
 }
+@end
+
+#pragma endregion
+
+#pragma region KVO Core Implementation - Private Access
+
+@implementation
+NSObject (NSKeyValueObservingPrivate)
+
+- (void)_notifyObserversOfChangeForKey:(NSString *)key
+                              oldValue:(id)oldValue
+                              newValue:(id)newValue
+{
+  if ([self observationInfo])
+    {
+      _dispatchWillChange(self, key, ^(_NSKVOKeyObserver *keyObserver) {
+        NSMutableDictionary *change =
+          [NSMutableDictionary dictionaryWithObject:@(NSKeyValueChangeSetting)
+                                             forKey:NSKeyValueChangeKindKey];
+        _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
+        NSKeyValueObservingOptions options = keypathObserver.options;
+
+        if (options & NSKeyValueObservingOptionOld)
+          {
+            change[NSKeyValueChangeOldKey] = oldValue ? oldValue : [NSNull null];
+          }
+
+        keypathObserver.pendingChange = change;
+      });
+      _dispatchDidChange(self, key, ^(_NSKVOKeyObserver *keyObserver) {
+        _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
+        NSKeyValueObservingOptions options = keypathObserver.options;
+        NSMutableDictionary       *change = keypathObserver.pendingChange;
+        if ((options & NSKeyValueObservingOptionNew) &&
+            [change[NSKeyValueChangeKindKey] integerValue]
+              != NSKeyValueChangeRemoval)
+          {
+            change[NSKeyValueChangeNewKey] = newValue ? newValue : [NSNull null];
+          }
+      });
+    }
+}
+
 @end
 
 #pragma endregion
