@@ -623,6 +623,7 @@ main(int argc, char **argv, char **env)
 {
   NSProcessInfo		*proc;
   unsigned		i;
+  NSMutableDictionary	*safe;
   NSDictionary		*argsRecognized;
   NSUserDefaults	*defs;
   NSFileManager		*mgr;
@@ -727,6 +728,11 @@ main(int argc, char **argv, char **env)
 #endif
 
   outer = [NSAutoreleasePool new];
+
+  /* Objects we want to persist until the outer autorelease pool is exited
+   * can be stored in the 'safe; dictionary.
+   */
+  safe = [NSMutableDictionary dictionary];
 
 #ifndef HAVE_LIBXML
   NSLog(@"ERROR: The GNUstep Base Library was built\n"
@@ -897,6 +903,7 @@ main(int argc, char **argv, char **env)
   declared = [defs stringForKey: @"Declared"];
   project = [defs stringForKey: @"Project"];
   refsName = [project stringByAppendingPathExtension: @"igsdoc"];
+  [safe setObject: refsName forKey: @"refsName"];
 
   headerDirectory = [defs stringForKey: @"HeaderDirectory"];
   if (headerDirectory == nil)
@@ -1006,6 +1013,7 @@ main(int argc, char **argv, char **env)
     stringByAppendingPathComponent: project];
   refsFile = [refsFile stringByAppendingPathExtension: @"igsdoc"];
   projectRefs = AUTORELEASE([AGSIndex new]);
+  [safe setObject: projectRefs forKey: @"projectRefs"];
   originalIndex = nil;
   rDate = [NSDate distantPast];
   if ([mgr isReadableFileAtPath: refsFile] == YES)
@@ -1020,6 +1028,7 @@ main(int argc, char **argv, char **env)
 	{
 	  NSDictionary	*dict;
 
+	  [safe setObject: originalIndex forKey: @"originalIndex"];
 	  [projectRefs mergeRefs: originalIndex override: NO];
 	  if (verbose)
 	    {
@@ -1730,11 +1739,12 @@ main(int argc, char **argv, char **env)
 	      NSLog(@"Sorry unable to write %@", refsFile);
 	    }
 	}
-      DESTROY(originalIndex);
+      originalIndex = nil;
       DESTROY(merged);
     }
 
   globalRefs = AUTORELEASE([AGSIndex new]);
+  [safe setObject: globalRefs forKey: @"globalRefs"];
 
   /*
    * 8) If we are either generating html output, or relocating existing
