@@ -51,6 +51,8 @@
 #import <objc/runtime.h>
 #import "NSKVOTypeEncodingCases.h"
 
+#import <Foundation/Foundation.h>
+
 #ifdef WIN32
 #define alloca(x) _alloca(x)
 #endif

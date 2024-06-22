@@ -44,12 +44,17 @@
 
 /* This Key Value Observing Implementation is tied to libobjc2 */
 
-#import <Foundation/Foundation.h>
-#import "GSPThread.h"
+#import <Foundation/NSObject.h>
+#import <Foundation/NSString.h>
+#import <Foundation/NSDictionary.h>
+#import <Foundation/NSArray.h>
+#import <Foundation/NSSet.h>
+#import <Foundation/NSKeyValueObserving.h>
+#import <Foundation/NSException.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#if defined(__OBJC2__)
+
+#import "GSPThread.h"
 
 #define NS_COLLECTION_THROW_ILLEGAL_KVO(keyPath)                               \
   do                                                                           \
@@ -111,6 +116,14 @@ extern "C" {
 void
 _NSKVOEnsureKeyWillNotify(id object, NSString *key);
 
-#ifdef __cplusplus
-}
 #endif
+
+/* Implementation in NSKVOSupport.m for ObjC2 and NSKeyValueObserving
+ * respectively
+ */
+@interface
+NSObject (NSKeyValueObservingPrivate)
+- (void)_notifyObserversOfChangeForKey:(NSString *)key
+                              oldValue:(id)oldValue
+                              newValue:(id)newValue;
+@end
