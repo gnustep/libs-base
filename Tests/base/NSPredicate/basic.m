@@ -183,7 +183,9 @@ void testExpressions(void)
   id value = [expression expressionValueWithObject: nil context: nil];
   PASS(value != nil, "Expression evaluation returns a value");
 
-  NSExpression *expression2 = [NSExpression expressionWithFormat: @"%f*%f" argumentArray:@[@3.4,@3.1]];
+  NSExpression *expression2 = [NSExpression expressionWithFormat: @"%f*%f"
+    argumentArray: [NSArray arrayWithObjects:
+      [NSNumber numberWithFloat: 3.4], [NSNumber numberWithFloat: 3.1], nil]];
   PASS(expression2 != nil, "expressionWithFormat:argumentArray: returns an initialized expression");
 
   id value2 = [expression2 expressionValueWithObject: nil context: nil];
