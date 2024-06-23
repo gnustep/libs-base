@@ -2091,6 +2091,10 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
     {
       new = null;
     }
+  if (old == nil)
+    {
+      old = null;
+    }
 
   pathInfo = [info lockReturningPathInfoForKey: aKey];
   if (pathInfo != nil)
@@ -2110,6 +2114,10 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
             [NSNumber numberWithInt: NSKeyValueChangeSetting]
             forKey: NSKeyValueChangeKindKey];
           [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: NO];
+        }
+      if (pathInfo->recursion > 0)
+        {
+          pathInfo->recursion--;
         }
       [info unlock];
     }
