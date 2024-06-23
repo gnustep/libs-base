@@ -2104,6 +2104,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
         {
           [pathInfo->change setObject: old
                                forKey: NSKeyValueChangeOldKey];
+          [pathInfo->change removeObjectForKey: NSKeyValueChangeNewKey];
           [pathInfo->change setValue:
             [NSNumber numberWithInt: NSKeyValueChangeSetting]
             forKey: NSKeyValueChangeKindKey];
@@ -2111,9 +2112,6 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
 
           [pathInfo->change setValue: new
                               forKey: NSKeyValueChangeNewKey];
-          [pathInfo->change setValue:
-            [NSNumber numberWithInt: NSKeyValueChangeSetting]
-            forKey: NSKeyValueChangeKindKey];
           [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: NO];
         }
       if (pathInfo->recursion > 0)
