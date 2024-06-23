@@ -126,19 +126,18 @@ enum proxyLocation
 
 
 
-/*
- *	The GSDistantObjectPlaceHolder class is simply used as a placeholder
- *	for an NSDistantObject so we can manage efficient allocation and
+/* The GSDistantObjectPlaceHolder class produces a singleton used as a
+ * placeholder	for an NSDistantObject so we can manage efficient allocation and
  *	initialisation - in most cases when we ask for an NSDistantObject
  *	instance, we will get a pre-existing one, so we don't want to go
  *	allocating the memory for a new instance unless absolutely necessary.
  */
 GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
-+ (NSDistantObject*) newWithCoder: (NSCoder*)aCoder;
-+ (NSDistantObject*) newWithLocal: (id)anObject
-		       connection: (NSConnection*)aConnection;
-+ (NSDistantObject*) newWithTarget: (unsigned)target
-			connection: (NSConnection*)aConnection;
++ (id) initWithCoder: (NSCoder*)aCoder NS_RETURNS_RETAINED;
++ (id) initWithLocal: (id)anObject
+	  connection: (NSConnection*)aConnection NS_RETURNS_RETAINED;
++ (id) initWithTarget: (unsigned)target
+	   connection: (NSConnection*)aConnection NS_RETURNS_RETAINED;
 + (id) autorelease;
 + (void) release;
 + (id) retain;
@@ -174,7 +173,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
   return class_getClassMethod(self, sel) != NULL;
 }
 
-+ (NSDistantObject*) newWithCoder: (NSCoder*)aCoder
++ (id) initWithCoder: (NSCoder*)aCoder
 {
   uint8_t		proxy_tag;
   unsigned		target;
@@ -243,8 +242,8 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 	if (debug_proxy)
 	  NSLog(@"Receiving a proxy, was local 0x%x connection %p\n",
 		  target, decoder_connection);
-	o = [self newWithTarget: target
-		     connection: decoder_connection];
+	o = [self initWithTarget: target
+		      connection: decoder_connection];
 	return o;
 
       case PROXY_REMOTE_FOR_BOTH:
@@ -277,8 +276,8 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 	   */
 	  [aCoder decodeValueOfObjCType: @encode(__typeof__(intermediary))
 				     at: &intermediary];
-	  AUTORELEASE([self newWithTarget: intermediary
-			       connection: decoder_connection]);
+	  AUTORELEASE([self initWithTarget: intermediary
+				connection: decoder_connection]);
 
 	  /*
 	   *	Now we get the target number and port for the orignal object
@@ -330,8 +329,8 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 	   *	and will therefore go away when the current autorelease
 	   *	pool is destroyed.
 	   */
-	  o = [self newWithTarget: target
-		       connection: proxy_connection];
+	  o = [self initWithTarget: target
+			connection: proxy_connection];
 	  return o;
         }
 
@@ -344,8 +343,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
   return nil;
 }
 
-+ (NSDistantObject*) newWithLocal: (id)anObject
-		       connection: (NSConnection*)aConnection
++ (id) initWithLocal: (id)anObject connection: (NSConnection*)aConnection
 {
   NSDistantObject	*proxy;
 
@@ -365,8 +363,7 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
   return proxy;
 }
 
-+ (NSDistantObject*) newWithTarget: (unsigned)target
-			connection: (NSConnection*)aConnection
++ (id) initWithTarget: (unsigned)target connection: (NSConnection*)aConnection
 {
   NSDistantObject	*proxy;
 
@@ -428,8 +425,8 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 + (NSDistantObject*) proxyWithLocal: (id)anObject
 			 connection: (NSConnection*)aConnection
 {
-  return AUTORELEASE([placeHolder newWithLocal: anObject
-				    connection: aConnection]);
+  return AUTORELEASE([placeHolder initWithLocal: anObject
+				     connection: aConnection]);
 }
 
 /**
@@ -440,8 +437,8 @@ GS_ROOT_CLASS @interface	GSDistantObjectPlaceHolder
 + (NSDistantObject*) proxyWithTarget: (unsigned)anObject
 			  connection: (NSConnection*)aConnection
 {
-  return AUTORELEASE([placeHolder newWithTarget: anObject
-				     connection: aConnection]);
+  return AUTORELEASE([placeHolder initWithTarget: anObject
+				      connection: aConnection]);
 }
 
 /**
