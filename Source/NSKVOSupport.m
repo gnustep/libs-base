@@ -860,11 +860,25 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
   if ([self observationInfo])
     {
       _dispatchWillChange(self, key, ^(_NSKVOKeyObserver *keyObserver) {
-        NSMutableDictionary *change =
-          [NSMutableDictionary dictionaryWithObject:@(NSKeyValueChangeSetting)
-                                             forKey:NSKeyValueChangeKindKey];
         _NSKVOKeypathObserver *keypathObserver = keyObserver.keypathObserver;
+        NSMutableDictionary *change = keypathObserver.pendingChange;
         NSKeyValueObservingOptions options = keypathObserver.options;
+
+        static NSNumber *setting = nil;
+        if (nil == setting)
+          {
+            setting = [[NSNumber alloc] initWithInt: NSKeyValueChangeSetting];
+            [[NSObject leakAt: &setting] release];
+          }
+
+        if (nil == change) {
+          change = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                    @(NSKeyValueChangeSetting), NSKeyValueChangeKindKey, nil];
+          [keypathObserver setPendingChange: change];
+        } else {
+          [change removeAllObjects];
+          change[NSKeyValueChangeKindKey] = @(NSKeyValueChangeSetting);
+        }
 
         if (options & NSKeyValueObservingOptionOld)
           {
@@ -875,8 +889,6 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
             id oldValue = [rootObject valueForKeyPath:keypath] ?: [NSNull null];
             change[NSKeyValueChangeOldKey] = oldValue;
           }
-
-        keypathObserver.pendingChange = change;
       });
     }
 }
