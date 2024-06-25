@@ -1046,7 +1046,8 @@ static const NSString *_NSKeyValueChangeOldSetValue
             // didChangeValueForKey:withSetMutation:usingObjects: to use for
             // determining added objects Only needed if observer wants New
             // value
-            change[_NSKeyValueChangeOldSetValue] = oldValues;
+            change[_NSKeyValueChangeOldSetValue] =
+              [[oldValues copy] autorelease];
           }
 
         keypathObserver.pendingChange = change;
