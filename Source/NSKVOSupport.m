@@ -320,18 +320,18 @@ _keyPathsForValuesAffectingValueForKey(Class self, NSString *key)
   if (keyLength > 0)
     {
       static const char *const sc_prefix = "keyPathsForValuesAffecting";
+      static const size_t      sc_prefixLength = 26; // strlen(sc_prefix)
       static const size_t      sc_bufferSize = 128;
-      static const size_t      sc_prefixLength = strlen(sc_prefix); // 26
-
-      const char *rawKey;
-      size_t      rawKeyLength;
-      SEL         sel;
 
       // max length of a key that can guaranteed fit in the char buffer,
       // even if UTF16->UTF8 conversion causes length to double, or a null
       // terminator is needed
       static const size_t sc_safeKeyLength
         = (sc_bufferSize - sc_prefixLength) / 2 - 1; // 50
+
+      const char *rawKey;
+      size_t      rawKeyLength;
+      SEL         sel;
 
       rawKey = [key UTF8String];
       rawKeyLength = strlen(rawKey);
@@ -650,7 +650,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
   if ([key length] > 0)
     {
       static const char *const sc_prefix = "automaticallyNotifiesObserversOf";
-      static const size_t      sc_prefixLength = strlen(sc_prefix); // 32
+      static const size_t      sc_prefixLength = 32; // strlen(sc_prefix)
       const char              *rawKey = [key UTF8String];
       size_t                   keyLength = strlen(rawKey);
       size_t                   bufferSize = sc_prefixLength + keyLength + 1;
