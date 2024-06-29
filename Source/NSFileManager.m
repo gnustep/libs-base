@@ -59,6 +59,7 @@
 #import "Foundation/NSSet.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
+#import "GSFastEnumeration.h"
 #import "GSPrivate.h"
 #import "GSPThread.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
@@ -892,13 +893,13 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
   return result;  
 }
 
-- (NSURL *)URLForDirectory: (NSSearchPathDirectory)directory 
+- (NSURL*) URLForDirectory: (NSSearchPathDirectory)directory 
                   inDomain: (NSSearchPathDomainMask)domain 
-         appropriateForURL: (NSURL *)url 
+         appropriateForURL: (NSURL*)url 
                     create: (BOOL)shouldCreate 
-                     error: (NSError **)error
+                     error: (NSError**)error
 {
-  NSString *path = nil;
+  NSString	*path = nil;
 
   if (directory == NSItemReplacementDirectory)
     {
@@ -906,7 +907,9 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
     }
   else
     {
-      NSArray *pathArray = NSSearchPathForDirectoriesInDomains(directory, domain, YES);
+      NSArray	*pathArray;
+
+      pathArray = NSSearchPathForDirectoriesInDomains(directory, domain, YES);
 
       if ([pathArray count] > 0)
         {
@@ -915,14 +918,29 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
     }
 
   if (shouldCreate && ![self fileExistsAtPath: path])
-      {
-        [self       createDirectoryAtPath: path
-              withIntermediateDirectories: YES
-                               attributes: nil
-                                    error: error];
-      }
+    {
+      [self createDirectoryAtPath: path
+      withIntermediateDirectories: YES
+		       attributes: nil
+			    error: error];
+    }
   
   return [NSURL fileURLWithPath: path];
+}
+
+- (GS_GENERIC_CLASS(NSArray, NSURL*)*)
+  URLsForDirectory: (NSSearchPathDirectory)directory
+  inDomains: (NSSearchPathDomainMask)domain
+{
+  NSArray		*paths;
+  NSMutableArray	*urls;
+
+  paths = NSSearchPathForDirectoriesInDomains(directory, domain, YES);
+  urls = [NSMutableArray arrayWithCapacity: [paths count]];
+  FOR_IN(NSString*, path, paths)
+    [urls addObject: [NSURL fileURLWithPath: path]];
+  END_FOR_IN(paths)
+  return urls;
 }
 
 - (NSDirectoryEnumerator*) enumeratorAtURL: (NSURL*)url

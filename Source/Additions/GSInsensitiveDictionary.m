@@ -237,20 +237,13 @@ static SEL	objSel;
 
 	  if (isProxy == YES)
 	    {
-	      k = [e nextObject];
+	      if (nil == (k = [e nextObject])) break;
 	      o = [other objectForKey: k];
 	    }
 	  else
 	    {
-	      k = (*nxtObj)(e, nxtSel);
+	      if (nil == (k = (*nxtObj)(e, nxtSel))) break;
 	      o = (*otherObj)(other, objSel, k);
-	    }
-	  k = [k copyWithZone: z];
-	  if (k == nil)
-	    {
-	      DESTROY(self);
-	      [NSException raise: NSInvalidArgumentException
-			  format: @"Tried to init dictionary with nil key"];
 	    }
 	  if (shouldCopy)
 	    {
@@ -275,7 +268,8 @@ static SEL	objSel;
 	    }
 	  else
 	    {
-	      GSIMapAddPairNoRetain(&map, (GSIMapKey)k, (GSIMapVal)o);
+	      GSIMapAddPair(&map, (GSIMapKey)k, (GSIMapVal)o);
+	      RELEASE(o);
 	    }
 	}
     }

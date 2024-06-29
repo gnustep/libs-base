@@ -118,7 +118,6 @@ concreteType(NSString *t)
       unsigned		pos = r.location;
       BOOL		found = NO;
 
-      len = [m length];
       while (pos < len)
 	{
 	  unichar	c = [m characterAtIndex: pos++];
@@ -2850,23 +2849,23 @@ try:
 	    }
 	  if ([token isEqual: @"private"])
 	    {
-	      ASSIGN(validity, token);
+	      validity = AUTORELEASE(RETAIN(token));
 	      shouldDocument = documentInstanceVariables
                                  && documentAllInstanceVariables;
 	    }
 	  else if ([token isEqual: @"protected"])
 	    {
-	      ASSIGN(validity, token);
+	      validity = AUTORELEASE(RETAIN(token));
 	      shouldDocument = documentInstanceVariables;
 	    }
 	  else if ([token isEqual: @"package"])
 	    {
-	      ASSIGN(validity, token);
+	      validity = AUTORELEASE(RETAIN(token));
 	      shouldDocument = documentInstanceVariables;
 	    }
 	  else if ([token isEqual: @"public"])
 	    {
-	      ASSIGN(validity, token);
+	      validity = AUTORELEASE(RETAIN(token));
 	      shouldDocument = documentInstanceVariables;
 	    }
 	  else
@@ -2939,7 +2938,7 @@ fail:
   NSMutableArray	*a = nil;
   NSString		*name;
 
-  dict = [[NSMutableDictionary alloc] initWithCapacity: 4];
+  dict = AUTORELEASE([[NSMutableDictionary alloc] initWithCapacity: 4]);
   name = [self parseIdentifier];
   if (nil == name)
     {
@@ -3036,11 +3035,11 @@ fail:
     }
   else
     {
-      DESTROY(dict);
+      dict = nil;
     }
   RELEASE(a);
   [self setStandards: dict];
-  return AUTORELEASE(dict);
+  return dict;
 }
 
 - (NSMutableDictionary*) parseMethodIsDeclaration: (BOOL)flag
@@ -3800,13 +3799,16 @@ countAttributes(NSSet *keys, NSDictionary *a)
 		NSMutableDictionary	*p = nil;
 		NSMutableDictionary	*s = nil;
 
-		if (nil == (p = [self parsePropertyGetter: &g andSetter: &s]))
+		if (nil == [self parsePropertyGetter: &g andSetter: &s])
 		  {
 		    [self log: @"@property declaration invalid"];
 		    [self skipStatementLine];
 		  }
 		else
 		  {
+		    NSAssert(nil == p
+		      || [[p objectForKey: @"Kind"] isEqual: @"Properties"],
+		      NSInternalInconsistencyException);
 /* FIXME ... need to handle properties
 		    token = [p objectForKey: @"Name"];
 		    [methods setObject: p forKey: token];
@@ -4092,6 +4094,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	      if (hadOstep)
 		{
 		  [self log: @"multiple grouped OS_API_VERSION() calls"];
+		  RELEASE(top);
 		  return [self skipRemainderOfLine];
 		}
 	      hadOstep = YES;
@@ -4105,6 +4108,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 	      if (hadGstep)
 		{
 		  [self log: @"multiple grouped GS_API_VERSION() calls"];
+		  RELEASE(top);
 		  return [self skipRemainderOfLine];
 		}
 	      hadGstep = YES;
@@ -4306,6 +4310,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
   if (pos < length && (buffer[pos] == ',' || buffer[pos] == ';'))
     {
       [self skipStatement];
+      DESTROY(dict);
       return nil;
     }
 

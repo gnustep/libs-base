@@ -649,12 +649,15 @@ static Class	GSInlineArrayClass;
           id    o = _contents_array[pos];
           Class c = object_getClass(o);
 
-          if (c != last)
-            {
-              last = c;
-              rel = [o methodForSelector: @selector(release)];
-            }
-          (*rel)(o, @selector(release));
+	  if (c)
+	    {
+	      if (c != last)
+		{
+		  last = c;
+		  rel = [o methodForSelector: @selector(release)];
+		}
+	      (*rel)(o, @selector(release));
+	    }
           _contents_array[pos] = nil;
         }
       _version++;
@@ -796,12 +799,15 @@ static Class	GSInlineArrayClass;
           id    o = _contents_array[end];
           Class c = object_getClass(o);
 
-          if (c != last)
-            {
-              last = c;
-              rel = [o methodForSelector: @selector(release)];
-            }
-          (*rel)(o, @selector(release));
+	  if (c)
+	    {
+	      if (c != last)
+		{
+		  last = c;
+		  rel = [o methodForSelector: @selector(release)];
+		}
+	      (*rel)(o, @selector(release));
+	    }
           _contents_array[end] = nil;
         }
 

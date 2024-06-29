@@ -4,10 +4,6 @@ Missing macros:
 	NS_ENUM_AVAILABLE_IOS
 	NS_AVAILABLE_IOS
 
-Missing headers:
-==
-NONE
-
 -------------------------------------------------------------
 FoundationErrors:
     NSXPCConnectionInterrupted
@@ -159,26 +155,10 @@ NSException:
 NSExpression:
 	@class NSPredicate
 
-	NSUnionSetExpressionType
-    NSIntersectSetExpressionType
-    NSMinusSetExpressionType
-    NSSubqueryExpressionType
-    NSAggregateExpressionType
-
-    + expressionWithFormat:argumentArray:
-	+ expressionWithFormat:
-	+ expressionWithFormat:arguments:
-	+ expressionForAggregate:
-	+ expressionForUnionSet:with:
-	+ expressionForIntersectSet:with
-	+ expressionForMinusSet:with:
 	+ expressionForSubquery:usingIteratorVariable:predicate:
 	+ expressionForFunction:selectorName:arguments:
 	+ expressionForBlock:arguments:	
-	- collection
 	- predicate
-	- leftExpression
-	- rightExpression
 	- expressionBlock
 -------------------------------------------------------------
 NSFileHandle:
@@ -200,7 +180,6 @@ NSFileManager:
 
 	- mountedVolumeURLsIncludingResourceValuesForKeys:options:
 	- contentsOfDirectoryAtURL:includingPropertiesForKeys:options:error:
-	- URLsForDirectory:inDomains:
 	- createDirectoryAtURL:withIntermediateDirectories:attributes:error:
 	- createSymbolicLinkAtURL:withDestinationURL:error:
 	- setDelegate:
@@ -552,7 +531,6 @@ NSString:
 	- lowercaseStringWithLocale:
 	- capitalizedStringWithLocale:
 	- enumerateSubstringsInRange:options:usingBlock:
-	- enumerateLinesUsingBlock:
 	- getBytes:maxLength:usedLength:encoding:options:range:remainingRange:
 	- decomposedStringWithCanonicalMapping
 	- precomposedStringWithCanonicalMapping

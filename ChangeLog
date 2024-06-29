@@ -1,3 +1,85 @@
+2024-06-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDistantObject.m: Use standard method name conventions
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.m:
+	* Tools/autogsdoc.m:
+	* Tools/make_strings/make_strings.m:
+	* Tools/plutil.m:
+	Fix various memory leaks.
+	* Tools/NSObject.m:
+	* Documentation/Base.gsdoc:
+	Make GSLogZombie() an external function for debuggers which can't find
+	it as a static function. Add [NSZombie -logZombie:] method to call the
+	function in case there is a debugger which can set a breakpoint on the
+	method more easily than on the function.
+
+2024-06-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m:
+	* Source/GSTLS.m:
+	* Source/NSDictionary.m:
+	* Source/NSThread.m:
+	* Source/NSURLSession.m:
+	* Tools/AGSHtml.m:
+	* Tools/AGSOutput.m:
+	* Tools/AGSParser.m:
+	Fix dead assignments.
+
+2024-06-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSHTTPURLProtocol.m:
+	* Source/GSTLS.m:
+	* Source/NSConnection.m:
+	* Source/NSSpellServer.m:
+	* Tools/AGSParser.m
+	Fix dead initialisations.
+	* Source/GSAttributedString.m:
+	* Source/tzdb.h:
+	Fix dead assignments
+	* Source/NSTask.m:
+	Use fork() becuse vfork() behavior is undefined when we make assignments
+	to variables or system calls before exec().
+	* Source/GSArray.m:
+	Ignore nil values in collection (should never happen) possibly caused
+	by retain/release errors.  Old code would have crashed.
+	* Source/NSException.m:
+	Avoid compiler warning about malloced memory type compatibility.
+ 
+2024-06-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSInsensitiveDictionary.m:
+	* Source/NSKeyedUnarchiver.m:
+	* Source/NSXMLParser.m:
+	Fix rare memory management issues.
+	* Source/NSURL.m: Fix C-string termination issues
+	and a few dead assignments
+	* Source/NSOrderedSet.m: Fix ranged initialisation index errors
+	* Source/GSDictionary.m: Avoid excess copies of dictionary keys
+	* Source/NSPropertyList.m: Fix potential leaks
+	* Source/NSSortDescriptor.m: Fix potential use after dealloc
+
+2024-06-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSDebug.h: Remove deprecated function and add
+	new function to turn on tracing objects of a specific class.
+	* Source/NSDebug.m: Fix locking issues when recording object allocation.
+	Fix bug removing recoded objects.  Implement tracing recorded object
+	allocation with stack trace (also option to veto recording of
+	individual objects).
+	* Source/GSFileHandle.m: Fix memory leak found using changes above.
+
+2024-06-10 Marco Rebhan <me@dblsaiko.net>
+
+  	* Headers/Foundation/NSFileManager.h:
+  	* Source/NSFileManager.m:
+  	Implement -[NSFileManager URLsForDirectory:inDomains:].
+
+2024-06-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/GSFileHandle.m: debug log of closing a closed file handle
+	rather than raising exception (reported by Wolfgang).
+
 2024-05-31 Hugo Melder <hugo@algoriddim.com>
 
 	* Source/NSPredicate.m:
@@ -5,6 +87,13 @@
 	Improve implementation of BETWEEN operator in NSPredicate
 	for data types other than NSNumber. Proper support
 	for constant values.
+  
+2024-05-18 Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSString.m:
+	* Headers/Foundation/NSString.h:
+	* Tests/base/NSString/enumerateLinesUsingBlock.m:
+	Implemented -[NSString enumerateLinesUsingBlock:].
 
 2024-04-30 Richard Frith-Macdonald <rfm@gnu.org>
 

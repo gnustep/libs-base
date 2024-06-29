@@ -720,10 +720,6 @@ SANITY();
             {
               beginRangeLoc = effectiveRange.location;
             }
-          if (NSMaxRange(effectiveRange) > afterRangeLoc)
-            {
-              afterRangeLoc = NSMaxRange(effectiveRange);
-            }
         }
       else if (effectiveRange.location > beginRangeLoc)
 	{

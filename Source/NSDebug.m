@@ -64,6 +64,7 @@ typedef struct {
   uint32_t	nominal_size;
   /* The following are used to record actual objects */
   BOOL  	is_recording;
+  NSObject      *(*trace_function)(id);
   id    	*recorded_objects;
   id    	*recorded_tags;
   uint32_t   	num_recorded_objects;
@@ -105,6 +106,23 @@ static void (*_GSDebugAllocationAddFunc)(Class c, id o)
   = _GSDebugAllocationAdd;
 static void (*_GSDebugAllocationRemoveFunc)(Class c, id o)
   = _GSDebugAllocationRemove;
+
+static NSObject*
+_GSDebugAllocationTrace(id object)
+{
+  NSArray       *a = [NSThread callStackSymbols];
+  NSUInteger    c = [a count];
+
+  /* Remove uninteresting frames incide the allocation debug system
+   */
+  if (c > 3)
+    {
+      NSRange   r = NSMakeRange(3, c - 3);
+
+      a = [a subarrayWithRange: r];
+    }
+  return [a description];
+}
 
 #define doLock() GS_MUTEX_LOCK(uniqueLock)
 #define unLock() GS_MUTEX_UNLOCK(uniqueLock)
@@ -161,14 +179,19 @@ GSDebugAllocationBytes(BOOL active)
 }
 
 BOOL
-GSDebugAllocationRecordObjects(Class c, BOOL newState)
+GSDebugAllocationRecordAndTrace(Class c, BOOL record, NSObject *(*trace)(id))
 {
-  BOOL oldState = NO;
+  BOOL wasRecording = NO;
   unsigned int i;
 
-  if (newState)
+  if (record)
     {
       GSDebugAllocationActive(YES);
+    }
+
+  if (trace == (NSObject *(*)(id))1)
+    {
+      trace = _GSDebugAllocationTrace;
     }
 
   for (i = 0; i < num_classes; i++)
@@ -176,29 +199,32 @@ GSDebugAllocationRecordObjects(Class c, BOOL newState)
       if (the_table[i].class == c)
 	{
 	  doLock();
-          oldState = (YES == the_table[i].is_recording) ? YES : NO;
-          if (newState)
+          wasRecording = (YES == the_table[i].is_recording) ? YES : NO;
+          if (record)
             {
               the_table[i].is_recording = YES;
+              the_table[i].trace_function = trace;
             }
-          else if (YES == oldState)
+          else if (wasRecording)
             {
               while (the_table[i].num_recorded_objects > 0)
                 {
-                  int   j = the_table[i].num_recorded_objects;
+                  int   j = the_table[i].num_recorded_objects - 1;
+                  id    o = the_table[i].recorded_objects[j];
+                  id    t = the_table[i].recorded_tags[j];
 
-                  the_table[i].num_recorded_objects = --j;
-                  [the_table[i].recorded_objects[j] release];
                   the_table[i].recorded_objects[j] = nil;
-                  [the_table[i].recorded_tags[j] release];
                   the_table[i].recorded_tags[j] = nil;
+                  the_table[i].num_recorded_objects = j;
+                  RELEASE(o);
+                  RELEASE(t);
                 }
             }
 	  unLock();
-	  return oldState;
+	  return wasRecording;
 	}
     }
-  if (YES == newState)
+  if (record)
     {
       doLock();
       if (num_classes >= table_size)
@@ -231,6 +257,7 @@ GSDebugAllocationRecordObjects(Class c, BOOL newState)
       the_table[num_classes].totalb = 0;
       the_table[num_classes].nominal_size = class_getInstanceSize(c);
       the_table[num_classes].is_recording = YES;
+      the_table[num_classes].trace_function = trace;
       the_table[num_classes].recorded_objects = NULL;
       the_table[num_classes].recorded_tags = NULL;
       the_table[num_classes].num_recorded_objects = 0;
@@ -238,7 +265,13 @@ GSDebugAllocationRecordObjects(Class c, BOOL newState)
       num_classes++;
       unLock();
     }
-  return oldState;
+  return wasRecording;
+}
+
+BOOL
+GSDebugAllocationRecordObjects(Class c, BOOL newState)
+{
+  return GSDebugAllocationRecordAndTrace(c, newState, NULL);
 }
 
 void
@@ -256,16 +289,19 @@ GSDebugAllocationAdd(Class c, id o)
 void
 _GSDebugAllocationAdd(Class c, id o)
 {
-  if (debug_allocation == YES)
+  if (debug_allocation)
     {
       unsigned int	i;
       unsigned		bytes;
 
+      doLock();
       for (i = 0; i < num_classes; i++)
 	{
 	  if (the_table[i].class == c)
 	    {
-	      doLock();
+	      NSObject	*tag = nil;
+	      BOOL	shouldRecord;
+
 	      the_table[i].count++;
 	      the_table[i].totalc++;
 	      if (YES == debug_byte_size)
@@ -282,7 +318,43 @@ _GSDebugAllocationAdd(Class c, id o)
 		{
 		  the_table[i].peak = the_table[i].count;
 		}
-	      if (the_table[i].is_recording == YES)
+	      shouldRecord = the_table[i].is_recording;
+	      if (shouldRecord)
+		{
+		  NSObject  *(*trace)(id);
+
+                  if ((trace = the_table[i].trace_function) != NULL)
+		    {
+                      /* Tracing means adding a stack trace as the tag of
+                       * each recorded objct ... we don't want to have any
+                       * recursion while doing that so we temporarily turn
+                       * recording off.
+                       */ 
+                      the_table[i].is_recording = NO;
+		      unLock();
+		      ENTER_POOL
+		      tag = RETAIN((*trace)(o));
+		      LEAVE_POOL
+		      doLock();
+		      for (i = 0; i < num_classes; i++)
+			{
+			  if (the_table[i].class == c)
+			    {
+			      the_table[i].is_recording = YES;
+			      break;
+			    }
+			}
+		      if (i >= num_classes)
+			{
+			  DESTROY(tag);		// Can't record it
+			}
+		      if (nil == tag)
+			{
+			  shouldRecord = NO;	// Don't want to record
+			}
+		    }
+		}
+	      if (shouldRecord)
 		{
 		  if (the_table[i].num_recorded_objects
 		    >= the_table[i].stack_size)
@@ -308,7 +380,6 @@ _GSDebugAllocationAdd(Class c, id o)
 			  return;
 			}
 
-
 		      if (the_table[i].recorded_objects != NULL)
 			{
 			  memcpy(tmp, the_table[i].recorded_objects,
@@ -329,15 +400,15 @@ _GSDebugAllocationAdd(Class c, id o)
 		
 		  (the_table[i].recorded_objects)
 		    [the_table[i].num_recorded_objects] = o;
-		  (the_table[i].recorded_tags)
-		    [the_table[i].num_recorded_objects] = nil;
+                  (the_table[i].recorded_tags)
+                    [the_table[i].num_recorded_objects] = tag;
 		  the_table[i].num_recorded_objects++;
 		}
 	      unLock();
 	      return;
 	    }
 	}
-      doLock();
+
       if (num_classes >= table_size)
 	{
 	  unsigned int	more = table_size + 128;
@@ -376,6 +447,7 @@ _GSDebugAllocationAdd(Class c, id o)
       the_table[num_classes].totalc = 1;
       the_table[num_classes].peak = 1;
       the_table[num_classes].is_recording = NO;
+      the_table[num_classes].trace_function = NULL;
       the_table[num_classes].recorded_objects = NULL;
       the_table[num_classes].recorded_tags = NULL;
       the_table[num_classes].num_recorded_objects = 0;
@@ -647,10 +719,11 @@ GSDebugAllocationRemove(Class c, id o)
 void
 _GSDebugAllocationRemove(Class c, id o)
 {
-  if (debug_allocation == YES)
+  if (debug_allocation)
     {
       unsigned int	i;
 
+      doLock();
       for (i = 0; i < num_classes; i++)
 	{
 	  if (the_table[i].class == c)
@@ -658,7 +731,6 @@ _GSDebugAllocationRemove(Class c, id o)
 	      id	tag = nil;
 	      unsigned	bytes;
 
-	      doLock();
 	      if (YES == debug_byte_size)
 		{
 		  bytes = [o sizeOfInstance];
@@ -669,37 +741,31 @@ _GSDebugAllocationRemove(Class c, id o)
 		}
 	      the_table[i].count--;
 	      the_table[i].bytes -= bytes;
-	      if (the_table[i].is_recording)
+	      if (the_table[i].num_recorded_objects > 0)
 		{
-		  unsigned j, k;
+		  unsigned j, n;
 
-		  for (j = 0; j < the_table[i].num_recorded_objects; j++)
+		  /* Most objects have a brief lifespan.  It therefore
+		   * makes sense to search from the end of the array back
+		   * to the start to maximise the chance of finding an
+		   * object quickly.
+		   */
+                  j = n = the_table[i].num_recorded_objects;
+		  while (j-- > 0)
 		    {
 		      if ((the_table[i].recorded_objects)[j] == o)
 			{
 			  tag = (the_table[i].recorded_tags)[j];
+			  while (++j < n)
+			    {
+			      (the_table[i].recorded_objects)[j - 1] =
+				(the_table[i].recorded_objects)[j];
+			      (the_table[i].recorded_tags)[j - 1] =
+				(the_table[i].recorded_tags)[j];
+			    }
+			  the_table[i].num_recorded_objects--;
 			  break;
 			}
-		    }
-		  if (j < the_table[i].num_recorded_objects)
-		    {
-		      for (k = j;
-                        k + 1 < the_table[i].num_recorded_objects;
-			k++)
-			{
-			  (the_table[i].recorded_objects)[k] =
-			    (the_table[i].recorded_objects)[k + 1];
-			  (the_table[i].recorded_tags)[k] =
-			    (the_table[i].recorded_tags)[k + 1];
-			}
-		      the_table[i].num_recorded_objects--;
-		    }
-		  else
-		    {
-		      /* Not found - no problem - this happens if the
-                         object was allocated before we started
-                         recording */
-		      ;
 		    }
 		}
 	      unLock();
@@ -707,6 +773,7 @@ _GSDebugAllocationRemove(Class c, id o)
 	      return;
 	    }
 	}
+      unLock();
     }
 }
 
@@ -758,7 +825,7 @@ NSArray *
 GSDebugAllocationListRecordedObjects(Class c)
 {
   NSArray *answer;
-  unsigned int i, k;
+  unsigned int i, k, n;
   id *tmp;
 
   if (debug_allocation == NO)
@@ -788,14 +855,13 @@ GSDebugAllocationListRecordedObjects(Class c)
       return nil;
     }
 
-  if (the_table[i].num_recorded_objects == 0)
+  if ((n = the_table[i].num_recorded_objects) == 0)
     {
       unLock();
       return [NSArray array];
     }
 
-  tmp = NSZoneMalloc(NSDefaultMallocZone(),
-    the_table[i].num_recorded_objects * sizeof(id));
+  tmp = NSZoneMalloc(NSDefaultMallocZone(), n * sizeof(id));
   if (tmp == 0)
     {
       unLock();
@@ -803,12 +869,11 @@ GSDebugAllocationListRecordedObjects(Class c)
     }
 
   /* First, we copy the objects into a temporary buffer */
-  memcpy(tmp, the_table[i].recorded_objects,
-    the_table[i].num_recorded_objects * sizeof(id));
+  memcpy(tmp, the_table[i].recorded_objects, n * sizeof(id));
 
   /* Retain all the objects - NB: if retaining one of the objects as a
    * side effect releases another one of them , we are broken ... */
-  for (k = 0; k < the_table[i].num_recorded_objects; k++)
+  for (k = 0; k < n; k++)
     {
       [tmp[k] retain];
     }
@@ -818,11 +883,10 @@ GSDebugAllocationListRecordedObjects(Class c)
 
   /* Only then we create an array with them - this is now safe as we
    * have copied the objects out, unlocked, and retained them. */
-  answer = [NSArray arrayWithObjects: tmp
-    count: the_table[i].num_recorded_objects];
+  answer = [NSArray arrayWithObjects: tmp count: n];
 
   /* Now we release all the objects to balance the retain */
-  for (k = 0; k < the_table[i].num_recorded_objects; k++)
+  for (k = 0; k < n; k++)
     {
       [tmp[k] release];
     }
@@ -833,6 +897,77 @@ GSDebugAllocationListRecordedObjects(Class c)
   return answer;
 }
 
+
+NSMapTable *
+GSDebugAllocationTaggedObjects(Class c)
+{
+  NSMapTable *answer;
+  unsigned int i, j, n, t;
+
+  if (debug_allocation == NO)
+    {
+      return nil;
+    }
+
+  /* Create the map table outside the locked region to minimise time
+   * locked and to avoid deadlock.
+   */
+  answer = [NSMapTable mapTableWithStrongToStrongObjects];
+
+  doLock();
+
+  for (i = 0; i < num_classes; i++)
+    {
+      if (the_table[i].class == c)
+	{
+	  break;
+	}
+    }
+
+  if (i == num_classes)
+    {
+      unLock();
+      return nil;
+    }
+
+  if (the_table[i].is_recording == NO)
+    {
+      unLock();
+      return nil;
+    }
+
+  if ((n = the_table[i].num_recorded_objects) == 0)
+    {
+      unLock();
+      return nil;
+    }
+
+  for (j = t = 0; j < n; j++)
+    {
+      if (the_table[i].recorded_tags[j])
+        {
+          t++;
+        }
+    }
+  if (0 == t)
+    {
+      unLock();
+      return nil;
+    }
+
+  for (j = 0; j < n; j++)
+    {
+      if (the_table[i].recorded_tags[j])
+        {
+          [answer setObject: the_table[i].recorded_tags[j]
+                     forKey: the_table[i].recorded_objects[j]];
+        }
+    }
+  
+  unLock();
+
+  return answer;
+}
 
 const char *
 _NSPrintForDebugger(id object)

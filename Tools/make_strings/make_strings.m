@@ -600,7 +600,7 @@ int main(int argc, char **argv)
       return 1;
     }
 
-  source_entries = [[NSMutableDictionary alloc] init];
+  source_entries = [NSMutableDictionary dictionary];
   error = 0;
   {
     int i;

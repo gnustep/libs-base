@@ -1669,13 +1669,14 @@ GSPrivateCheckTasks()
     }
   edesc = [hdl fileDescriptor];
 
-#ifdef __APPLE__
-  /* Use fork instead of vfork on Darwin because setsid() fails under
-   * Darwin 7 (aka OS X 10.3) and later while the child is in the vfork.
+  /* NB. we use fork() rather than vfork() because the bahavior of vfork()
+   * is undefined when we assign to variables or make system calls (as we
+   * do below) other than a very limited set.
+   * For performance it might be possible to use vfork on systems where
+   * there is a guarantee that vfork() is safe, but when in doubt we must
+   * assume the standard POSIX behavior.
    */
-#define vfork fork
-#endif
-  pid = vfork();
+  pid = fork();
   if (pid < 0)
     {
       if (error)

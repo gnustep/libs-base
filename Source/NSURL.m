@@ -701,7 +701,7 @@ static NSUInteger	urlAlign;
 		 host: (NSString*)aHost
 		 path: (NSString*)aPath
 {
-  NSRange	r = NSMakeRange(NSNotFound, 0);
+  NSRange	r;
   NSString	*auth = nil;
   NSString	*aUrlString = [NSString alloc];
 
@@ -833,7 +833,7 @@ static NSUInteger	urlAlign;
       size += sizeof(parsedURL) + urlAlign + 1;
       buf = _data = (parsedURL*)NSZoneMalloc(NSDefaultMallocZone(), size);
       memset(buf, '\0', size);
-      start = end = ptr = (char*)&buf[1];
+      start = end = (char*)&buf[1];
       NS_DURING
         {
           [_urlString getCString: start
@@ -931,7 +931,7 @@ static NSUInteger	urlAlign;
 	  if (start[0] == '/' && start[1] == '/')
 	    {
 	      buf->isGeneric = YES;
-	      start = end = &end[2];
+	      start = &end[2];
 
 	      /*
 	       * Set 'end' to point to the start of the path, or just past
@@ -1439,11 +1439,13 @@ static NSUInteger	urlAlign;
   char	*tmp = buf;
   int	l;
 
+  *buf = '\0';
   if (myData->pathIsAbsolute == YES)
     {
       if (myData->hasNoPath == NO)
 	{
 	  *tmp++ = '/';
+	  *tmp = '\0';
 	}
       if (myData->path != 0)
 	{
@@ -1464,6 +1466,7 @@ static NSUInteger	urlAlign;
       if (baseData->hasNoPath == NO)
 	{
 	  *tmp++ = '/';
+	  *tmp = '\0';
 	}
       if (baseData->path != 0)
 	{
@@ -1483,6 +1486,7 @@ static NSUInteger	urlAlign;
 	  tmp += end - start;
 	}
       *tmp++ = '/';
+      *tmp = '\0';
       if (myData->path != 0)
 	{
 	  l = strlen(myData->path);
@@ -1504,8 +1508,8 @@ static NSUInteger	urlAlign;
   if (myData->isFile == YES)
     {
       if ((ptr[1] && isalpha(ptr[1]))
-          && (ptr[2] == ':' || ptr[2] == '|')
-          && (ptr[3] == '\0' || ptr[3] == '/' || ptr[3] == '\\'))
+	&& (ptr[2] == ':' || ptr[2] == '|')
+	&& (ptr[3] == '\0' || ptr[3] == '/' || ptr[3] == '\\'))
         {
           ptr[2] = ':';
           ptr++; // remove leading slash
@@ -1531,7 +1535,7 @@ static NSUInteger	urlAlign;
 	{
 	  char	*end = unescape(myData->host + 1, buf);
 
-	  if (end[-1] == ']')
+	  if (end > buf && end[-1] == ']')
 	    {
 	      end[-1] = '\0';
 	    }
@@ -2490,7 +2494,6 @@ static NSCharacterSet	*queryItemCharSet = nil;
       location += 1;
       [urlString appendString: component];
       internal->_rangeOfFragment = NSMakeRange(location, len);
-      location += len;
     }
     
   ASSIGNCOPY(internal->_string, urlString);

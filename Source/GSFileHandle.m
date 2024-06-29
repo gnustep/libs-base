@@ -274,6 +274,7 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
           [self setNonBlocking: wasNonBlocking];
         }
     }
+  DESTROY(writeInfo);
 }
 
 // Initializing a GSFileHandle Object
@@ -1108,11 +1109,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 	   */
 	  isStandardFile = NO;
 #else
-	  /* This should never happen on unix.  If it does, we have somehow
-	   * ended up with a bad descriptor.
-	   */
-          NSLog(@"unable to get status of descriptor %d - %@",
-	    desc, [NSError _last]);
 	  isStandardFile = NO;
 #endif
 	}
@@ -1625,8 +1621,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 {
   if (descriptor < 0)
     {
-      [NSException raise: NSFileHandleOperationException
-		  format: @"attempt to close closed file"];
+      NSDebugMLLog(@"NSFileHandle", @"close of closed file %@", self);
+      return;
     }
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];

@@ -2513,7 +2513,7 @@ static NSLock	*cached_proxies_gate = nil;
       unsigned		in_parameters = 0;
       unsigned		out_parameters = 0;
       NSMethodSignature	*sig;
-      const char	*encoded_types = forward_type;
+      const char	*encoded_types;
 
       NSParameterAssert (IisValid);
       if ([IrunLoops indexOfObjectIdenticalTo: runLoop] == NSNotFound)

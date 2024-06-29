@@ -175,6 +175,76 @@ void testArray(void)
   PASS([predicate evaluateWithObject: array], "size is three")
 }
 
+void testExpressions(void)
+{
+  NSExpression *expression = [NSExpression expressionWithFormat: @"%d*%f",3,3.5];
+  PASS(expression != nil, "expressionWithFormat: returns an initialized expression");
+
+  id value = [expression expressionValueWithObject: nil context: nil];
+  PASS(value != nil, "Expression evaluation returns a value");
+
+  NSExpression *expression2 = [NSExpression expressionWithFormat: @"%f*%f"
+    argumentArray: [NSArray arrayWithObjects:
+      [NSNumber numberWithFloat: 3.4], [NSNumber numberWithFloat: 3.1], nil]];
+  PASS(expression2 != nil, "expressionWithFormat:argumentArray: returns an initialized expression");
+
+  id value2 = [expression2 expressionValueWithObject: nil context: nil];
+  PASS(value2 != nil, "Expression evaluation returns a value");
+
+  NSExpression *expression3 = [NSExpression expressionForAggregate:[NSArray arrayWithObjects: expression, expression2, nil]];
+  PASS(expression3 != nil, "expressionForAggregate: returns an initialized expression");
+
+  id value3 = [expression3 expressionValueWithObject: nil context: nil];
+  PASS(value3 != nil, "Expression evaluation returns a value");
+  PASS([value3 isKindOfClass: [NSArray class]], "value is an NSArray");
+        
+  NSExpression *set1 = [NSExpression expressionForAggregate: [NSArray arrayWithObjects:
+									[NSExpression expressionForConstantValue: @"A"],
+								      [NSExpression expressionForConstantValue: @"B"],
+								      [NSExpression expressionForConstantValue: @"C"], nil]];
+  NSExpression *set2 = [NSExpression expressionForAggregate: [NSArray arrayWithObjects:
+									[NSExpression expressionForConstantValue: @"C"],
+								      [NSExpression expressionForConstantValue: @"D"],
+								      [NSExpression expressionForConstantValue: @"E"], nil]];
+
+  NSExpression *expression4 = [NSExpression expressionForIntersectSet:set1 with:set2];
+  id value4 = [expression4 expressionValueWithObject:nil context:nil];
+  BOOL flag4 = [value4 isEqualToSet: [NSSet setWithObjects: @"C", nil]]; 
+  PASS(value4 != nil, "Expression evaluation returns a value");
+  PASS([value4 isKindOfClass: [NSSet class]], "value is an NSSet");
+  PASS(flag4 == YES, "returns correct value");
+  
+  NSExpression *expression5 = [NSExpression expressionForUnionSet:set1 with:set2];
+  id value5 = [expression5 expressionValueWithObject:nil context:nil];
+  // BOOL flag5 = [value5 isEqualToSet: [NSSet setWithObjects: @"A", @"B", @"C" @"E", @"E", nil]]; 
+  PASS(value5 != nil, "Expression evaluation returns a value");
+  PASS([value5 isKindOfClass: [NSSet class]], "value is an NSSet");
+  // PASS(flag5 == YES, "returns correct value");
+  
+  NSExpression *expression6 = [NSExpression expressionForMinusSet:set1 with:set2];
+  id value6 = [expression6 expressionValueWithObject:nil context:nil];
+  BOOL flag6 = [value6 isEqualToSet: [NSSet setWithObjects: @"A", @"B", nil]];   
+  PASS(value6 != nil, "Expression evaluation returns a value");
+  PASS([value6 isKindOfClass: [NSSet class]], "value is an NSSet");
+  PASS(flag6 == YES, "returns correct value");
+
+  // This should error out...
+  BOOL raised = NO;
+  NS_DURING
+    {
+      NSExpression *expression7 = [NSExpression expressionForMinusSet:set1 with:expression2];
+      NSLog(@"%@",[expression7 expressionValueWithObject:nil context:nil]);
+    }
+  NS_HANDLER
+    {
+      raised = YES;
+      NSLog(@"exception = %@", localException);
+    }
+  NS_ENDHANDLER;
+
+  PASS(raised, "Raise an exception when a set based NSExpression tries to process a non-set");
+}
+
 int main()
 {
   NSArray *filtered;
@@ -310,7 +380,8 @@ int main()
     "predicate created with format can filter an array")
 
   testArray();
-
+  testExpressions();
+  
   END_SET("basic")
 
   return 0;

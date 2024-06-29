@@ -1012,7 +1012,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
     }
   else
     {
-      entity = @"";             // not resolved
+      ASSIGN(entity, @"");	// not resolved
     }
   return entity;
 }

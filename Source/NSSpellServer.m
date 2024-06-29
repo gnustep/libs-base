@@ -429,7 +429,7 @@ combined with the set of ignored words in the current document.
 			      wordCount: (int32_t *)wordCount
 			      countOnly: (BOOL)countOnly
 {
-  NSRange r = NSMakeRange(0,0);
+  NSRange r;
 
   // Forward to delegate
   NS_DURING
@@ -444,6 +444,7 @@ combined with the set of ignored words in the current document.
     }
   NS_HANDLER
     {
+      r = NSMakeRange(0,0);
       NSLog(@"Call to delegate caused the following exception: %@",
 	    [localException reason]);
     }

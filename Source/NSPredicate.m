@@ -48,6 +48,7 @@
 #import "Foundation/NSValue.h"
 
 #import "GSPrivate.h"
+#import "GSFastEnumeration.h"
 
 // For pow()
 #include <math.h>
@@ -138,6 +139,40 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   @public
   NSExpression	*_left;
   NSExpression  *_right;
+}
+@end
+
+@interface GSUnionSetExpression : NSExpression
+{
+  @public
+  NSExpression	*_left;
+  NSExpression  *_right;
+}
+@end
+
+@interface GSIntersectSetExpression : NSExpression
+{
+  @public
+  NSExpression	*_left;
+  NSExpression  *_right;
+}
+@end
+
+@interface GSMinusSetExpression : NSExpression
+{
+  @public
+  NSExpression	*_left;
+  NSExpression  *_right;
+}
+@end
+
+@interface GSSubqueryExpression : NSExpression
+@end
+
+@interface GSAggregateExpression : NSExpression
+{
+  @public
+  id _collection;
 }
 @end
 
@@ -1285,6 +1320,99 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return AUTORELEASE(e);
 }
 
+// 10.5 methods...
++ (NSExpression *) expressionForIntersectSet: (NSExpression *)left
+                                        with: (NSExpression *)right
+{
+  GSIntersectSetExpression *e;
+
+  e = [[GSIntersectSetExpression alloc]
+	initWithExpressionType: NSIntersectSetExpressionType];
+  ASSIGN(e->_left, left);
+  ASSIGN(e->_right, right);
+  
+  return AUTORELEASE(e);
+}
+
++ (NSExpression *) expressionForAggregate: (NSArray *)subExpressions
+{
+  GSAggregateExpression *e;
+
+  e = [[GSAggregateExpression alloc]
+	initWithExpressionType: NSAggregateExpressionType];
+  ASSIGN(e->_collection, [NSSet setWithArray: subExpressions]);
+  
+  return AUTORELEASE(e);
+}
+
++ (NSExpression *) expressionForUnionSet: (NSExpression *)left
+                                    with: (NSExpression *)right
+{
+  GSUnionSetExpression *e;
+
+  e = [[GSUnionSetExpression alloc]
+	initWithExpressionType: NSUnionSetExpressionType];
+  ASSIGN(e->_left, left);
+  ASSIGN(e->_right, right);
+  
+  return AUTORELEASE(e);
+}
+
++ (NSExpression *) expressionForMinusSet: (NSExpression *)left
+                                    with: (NSExpression *)right
+{
+  GSMinusSetExpression *e;
+
+  e = [[GSMinusSetExpression alloc]
+	initWithExpressionType: NSMinusSetExpressionType];
+  ASSIGN(e->_left, left);
+  ASSIGN(e->_right, right);
+  
+  return AUTORELEASE(e);
+}
+// end 10.5 methods
+
+// 10.6 methods...
++ (NSExpression *) expressionWithFormat: (NSString *)format, ...
+{
+  va_list ap;
+  NSExpression *obj;
+
+  if (NULL == format)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"[NSExpression+expressionWithFormat:]: NULL format"];
+    }
+
+  va_start(ap, format);
+  obj = [self expressionWithFormat: format
+			 arguments: ap];
+  va_end(ap);
+
+  return obj;
+}
+
++ (NSExpression *) expressionWithFormat: (NSString *)format
+			      arguments: (va_list)args
+{
+  NSString *expString = AUTORELEASE([[NSString alloc] initWithFormat: format
+							   arguments: args]);
+  GSPredicateScanner *scanner = AUTORELEASE([[GSPredicateScanner alloc]
+					      initWithString: expString
+							args: nil]);
+  return [scanner parseExpression];
+}
+
++ (NSExpression *) expressionWithFormat: (NSString *)format
+			  argumentArray: (NSArray *)args
+{
+  GSPredicateScanner *scanner = AUTORELEASE([[GSPredicateScanner alloc]
+					      initWithString: format
+							args: args]);
+  return [scanner parseExpression];
+}
+// End 10.6 methods
+
 - (id) initWithExpressionType: (NSExpressionType)type
 {
   if ((self = [super init]) != nil)
@@ -1348,6 +1476,24 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 }
 
 - (NSString *) variable
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (NSExpression *) leftExpression
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (NSExpression *) rightExpression
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (id) collection
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -1621,6 +1767,179 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 							 right: right];
 }
 
+- (NSExpression *) leftExpression
+{
+  return _left;
+}
+
+- (NSExpression *) rightExpression
+{
+  return _right;
+}
+
+@end
+
+// Macro for checking set related expressions
+#define CHECK_SETS \
+do { \
+  if ([rightValue isKindOfClass: [NSArray class]]) \
+    { \
+      rightSet = [NSSet setWithArray: rightValue]; \
+    } \
+  if (!rightSet) \
+    { \
+      [NSException raise: NSInvalidArgumentException \
+	          format: @"Can't evaluate set expression; right subexpression is not a set (lhs = %@ rhs = %@)", leftValue, rightValue]; \
+    } \
+  if ([leftValue isKindOfClass: [NSArray class]]) \
+    { \
+      leftSet = [NSSet setWithArray: leftValue]; \
+    } \
+  if (!leftSet) \
+    { \
+      [NSException raise: NSInvalidArgumentException \
+	          format: @"Can't evaluate set expression; left subexpression is not a set (lhs = %@ rhs = %@)", leftValue, rightValue]; \
+    } \
+ } while (0)
+
+@implementation GSUnionSetExpression
+
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"%@.%@", _left, _right];
+}
+
+- (NSExpression *) leftExpression
+{
+  return _left;
+}
+
+- (NSExpression *) rightExpression
+{
+  return _right;
+}
+
+- (id) expressionValueWithObject: (id)object
+			 context: (NSMutableDictionary *)context
+{
+  id leftValue = [_left expressionValueWithObject: object context: context];
+  id rightValue = [_right expressionValueWithObject: object context: context];
+  NSSet *leftSet = nil;
+  NSSet *rightSet = nil;
+  NSMutableSet *result = nil;
+
+  CHECK_SETS;
+    
+  result = [NSMutableSet setWithSet: leftSet];
+  [result unionSet: rightSet];
+
+  return result;  
+}
+
+@end
+
+@implementation GSIntersectSetExpression
+
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"%@.%@", _left, _right];
+}
+
+- (NSExpression *) leftExpression
+{
+  return _left;
+}
+
+- (NSExpression *) rightExpression
+{
+  return _right;
+}
+
+- (id) expressionValueWithObject: (id)object
+			 context: (NSMutableDictionary *)context
+{
+  id leftValue = [_left expressionValueWithObject: object context: context];
+  id rightValue = [_right expressionValueWithObject: object context: context];
+  NSSet *leftSet = nil;
+  NSSet *rightSet = nil;
+  NSMutableSet *result = nil;
+
+  CHECK_SETS;
+  
+  result = [NSMutableSet setWithSet: leftSet];
+  [result intersectSet: rightSet];
+
+  return result;
+}
+
+@end
+
+@implementation GSMinusSetExpression
+
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"%@.%@", _left, _right];
+}
+
+- (NSExpression *) leftExpression
+{
+  return _left;
+}
+
+- (NSExpression *) rightExpression
+{
+  return _right;
+}
+
+- (id) expressionValueWithObject: (id)object
+			 context: (NSMutableDictionary *)context
+{
+  id leftValue = [_left expressionValueWithObject: object context: context];
+  id rightValue = [_right expressionValueWithObject: object context: context];
+  NSSet *leftSet = nil;
+  NSSet *rightSet = nil;
+  NSMutableSet *result = nil;
+
+  CHECK_SETS;
+  
+  result = [NSMutableSet setWithSet: leftSet];
+  [result minusSet: rightSet];
+
+  return result;
+}
+
+@end
+
+@implementation GSSubqueryExpression
+@end
+
+@implementation GSAggregateExpression
+
+- (NSString *) description
+{
+  return [NSString stringWithFormat: @"%@", _collection];
+}
+
+- (id) collection
+{
+  return _collection;
+}
+
+- (id) expressionValueWithObject: (id)object
+			 context: (NSMutableDictionary *)context
+{ 
+  NSMutableArray	*result = [NSMutableArray arrayWithCapacity:
+						    [_collection count]];
+
+  FOR_IN(NSExpression*, exp, _collection)
+    {
+      NSExpression *value = [exp expressionValueWithObject: object context: context];
+      [result addObject: value];
+    }
+  END_FOR_IN(_collection);
+
+  return result;
+}
 @end
 
 @implementation GSFunctionExpression
@@ -2383,7 +2702,6 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 
 - (NSExpression *) parseExpression
 {
-//  return [self parseAdditionExpression];
   return [self parseBinaryExpression];
 }
 

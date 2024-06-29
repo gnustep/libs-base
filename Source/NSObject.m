@@ -157,7 +157,7 @@ static void GSMakeZombie(NSObject *o, Class c)
 }
 #endif
 
-static void GSLogZombie(id o, SEL sel)
+extern void GSLogZombie(id o, SEL sel)
 {
   Class	c = 0;
 
@@ -2473,13 +2473,17 @@ static id gs_weak_load(id obj)
     }
   return c;
 }
+- (void) logZombie: (SEL)selector
+{
+  GSLogZombie(self, selector);
+}
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
   NSUInteger	size = [[anInvocation methodSignature] methodReturnLength];
   unsigned char	v[size];
 
   memset(v, '\0', size);
-  GSLogZombie(self, [anInvocation selector]);
+  [self logZombie: [anInvocation selector]];
   [anInvocation setReturnValue: (void*)v];
   return;
 }
