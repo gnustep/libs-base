@@ -46,9 +46,10 @@
 
 	* Headers/Foundation/NSURLRequest.h:
 	* Source/NSURLRequest.m:
-	Implemented  -[NSURLRequest assumesHTTP3Capable] and -[NSURLRequest setAssumesHTTP3Capable:] respectively.
-	The internal case-insensitive header dictionary is now exposed for private
-	usage with -[NSURLRequest _insensitiveHeaders].
+	Implemented  -[NSURLRequest assumesHTTP3Capable] and -[NSURLRequest
+	setAssumesHTTP3Capable:] respectively.  The internal case-insensitive header
+	dictionary is now exposed for private usage with -[NSURLRequest
+	_insensitiveHeaders].
 
 2024-06-21 Richard Frith-Macdonald <rfm@gnu.org>
 
