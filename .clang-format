@@ -65,6 +65,7 @@ SortIncludes: false
 SpaceAfterCStyleCast: true
 SpaceBeforeParens: ControlStatements
 SpacesBeforeTrailingComments: 1
+UseTab: Always
 AlignEscapedNewlines: Right
 AlignTrailingComments: true
 AllowShortFunctionsOnASingleLine: All

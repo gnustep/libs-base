@@ -298,7 +298,6 @@ GS_DECLARE NSString* const NSFormalName = @"NSFormalName";
 
 /* For GNUstep */
 GS_DECLARE NSString* const GSLocale = @"GSLocale";
-GS_DECLARE NSString *const GSCACertificateFilePath = @"GSCACertificateFilePath";
 
 
 /*

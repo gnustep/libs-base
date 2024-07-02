@@ -1,8 +1,5 @@
 
-include $(GNUSTEP_MAKEFILES)/common.make
-
-ifeq ($(the_library_combo), ng-gnu-gnu)
-SUBPROJECTS = Helpers
+SUBPROJECTS = ../NSURLConnection/Helpers
 
 include $(GNUSTEP_MAKEFILES)/aggregate.make
-endif
+
