@@ -97,7 +97,7 @@ createRoutes(Class routeClass, NSURL *baseURL)
            httpResponse = @"HTTP/1.1 200 OK\r\n"
                            "Content-Type: text/html; charset=UTF-8\r\n"
                            "Set-Cookie: sessionId=abc123; Expires=Wed, 09 Jun "
-                           "2024 10:18:14 GMT; Path=/\r\n"
+                           "2100 10:18:14 GMT; Path=/\r\n"
                            "Content-Length: 13\r\n"
                            "\r\n"
                            "Hello, world!";
@@ -677,7 +677,7 @@ testDataTaskWithCookies(NSURL *baseURL)
             }
           else if ([[ck name] isEqualToString:@"sessionId"])
             {
-              date = [NSDate dateWithString:@"2024-06-09 10:18:14 +0000"];
+              date = [NSDate dateWithString:@"2100-06-09 10:18:14 +0000"];
               PASS_EQUAL([ck name], @"sessionId", "Cookie name is correct");
               PASS_EQUAL([ck value], @"abc123", "Cookie value is correct");
               PASS([ck version] == 0, "Correct cookie version");
@@ -804,7 +804,7 @@ main(int argc, char *argv[])
       NSHTTPCookieDomain : @"127.0.0.1",
       NSHTTPCookiePath : @"/",
       NSHTTPCookieExpires :
-        [NSDate dateWithString:@"2024-06-09 12:18:14 +0000"],
+        [NSDate dateWithString:@"2100-06-09 12:18:14 +0000"],
       NSHTTPCookieSecure : @NO,
     };
 
