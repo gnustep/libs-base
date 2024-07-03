@@ -271,16 +271,6 @@ GS_EXPORT_CLASS
  */
 - (NSString *) valueForHTTPHeaderField: (NSString *)field;
 
-#if OS_API_VERSION(MAC_OS_VERSION_11_0, GS_API_LATEST)
-/**
- * Indicates whether the URL loading system assumes the host is HTTP/3 capable.
- *
- * This method returns the current assumption of the URL loading system regarding
- * the server's HTTP capabilities.
- */
-- (BOOL) assumesHTTP3Capable;
-#endif
-
 @end
 
 
@@ -336,17 +326,6 @@ GS_EXPORT_CLASS
  * header field.
  */
 - (void) setValue: (NSString *)value forHTTPHeaderField: (NSString *)field;
-
-#if OS_API_VERSION(MAC_OS_VERSION_11_0, GS_API_LATEST)
-/**
- * Sets whether the URL loading system should assume the host is HTTP/3 capable.
- *
- * This method configures the URL loading system's assumptions about the
- * server's HTTP capabilities, optimizing the connection process if HTTP/3 is
- * supported.
- */
-- (void) setAssumesHTTP3Capable: (BOOL)capable;
-#endif
 
 @end
 
