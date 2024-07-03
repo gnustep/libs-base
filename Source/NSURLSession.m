@@ -921,6 +921,8 @@ socket_callback(CURL         *easy,    /* easy handle */
 
 #if	defined(HAVE_DISPATCH_CANCEL)
   dispatch_cancel(_timer);
+#else
+  dispatch_source_cancel(_timer);
 #endif
   dispatch_release(_workQueue);
 
