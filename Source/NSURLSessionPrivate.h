@@ -28,6 +28,8 @@
    Boston, MA 02110 USA.
 */
 
+#import "common.h"
+
 #import "Foundation/NSURLSession.h"
 #import "Foundation/NSDictionary.h"
 #import <curl/curl.h>
