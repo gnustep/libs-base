@@ -3655,6 +3655,8 @@ if test $HAVE_LIBDISPATCH = 1; then
   if test "$ac_cv_func__dispatch_main_queue_callback_4CF" = "yes" && test "$ac_cv_func__dispatch_get_main_queue_handle_4CF" = "yes"; then
     HAVE_LIBDISPATCH_RUNLOOP=1
   fi
+  # Check for availability of functions in more recent libdispatch versions.
+  AC_CHECK_FUNCS(dispatch_cancel)
 fi
 AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 
