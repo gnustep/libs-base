@@ -38,8 +38,9 @@
 #import "Foundation/NSData.h"
 
 #import "GNUstepBase/NSDebug+GNUstepBase.h"  /* For NSDebugMLLog */
-#import "GNUstepBase/NSObject+GNUstepBase.h" /* For -[NSObject notImplemented] */
+#import "GNUstepBase/NSObject+GNUstepBase.h" /* For -notImplemented */
 #import "GSPThread.h"                        /* For nextSessionIdentifier() */
+#import "GSDispatch.h"                       /* For dispatch compatibility */
 
 NSString *GS_NSURLSESSION_DEBUG_KEY = @"NSURLSession";
 
