@@ -27,12 +27,12 @@
    Boston, MA 02110 USA.
 */
 
-#include "Foundation/NSOperation.h"
 #import "NSURLSessionPrivate.h"
 #include <curl/curl.h>
 #include <dispatch/dispatch.h>
 #import "NSURLSessionTaskPrivate.h"
 
+#import "Foundation/NSOperation.h"
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSFileManager.h"
 #import "Foundation/NSFileHandle.h"
