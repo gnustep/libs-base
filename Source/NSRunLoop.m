@@ -412,14 +412,6 @@ static inline BOOL timerInvalidated(NSTimer *t)
 #if HAVE_DISPATCH_GET_MAIN_QUEUE_HANDLE_NP
   return (void*)(uintptr_t)dispatch_get_main_queue_handle_np();
 #elif HAVE__DISPATCH_GET_MAIN_QUEUE_HANDLE_4CF
-
-#if defined(__linux__)
-  uint64_t value;
-  int fd = (int)(intptr_t)data;
-  int n = eventfd_read(fd, &value);
-  (void) n;
-#endif
-
   return (void*)(uintptr_t)_dispatch_get_main_queue_handle_4CF();
 #else
 #error libdispatch missing main queue handle function
@@ -434,6 +426,12 @@ static inline BOOL timerInvalidated(NSTimer *t)
 #if HAVE_DISPATCH_MAIN_QUEUE_DRAIN_NP
   dispatch_main_queue_drain_np();
 #elif HAVE__DISPATCH_MAIN_QUEUE_CALLBACK_4CF
+#if defined(__linux__)
+  uint64_t value;
+  int fd = (int)(intptr_t)data;
+  int n = eventfd_read(fd, &value);
+  (void) n;
+#endif
   _dispatch_main_queue_callback_4CF(NULL);
 #else
 #error libdispatch missing main queue callback function
