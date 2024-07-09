@@ -55,9 +55,11 @@ AC_DEFUN(AC_SYS_PROCFS_PSINFO,
 
   AC_CACHE_CHECK([support for /proc psinfo struct], ac_cv_sys_procfs_psinfo,
   [if test "$enable_procfs_psinfo" = yes; then
-    AC_TRY_RUN([#include "$srcdir/config/config.psinfo.c"],
-	ac_cv_sys_procfs_psinfo=yes, ac_cv_sys_procfs_psinfo=no, 
-	ac_cv_sys_procfs_psinfo=yes)
+    AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.psinfo.c"]])],
+	[ac_cv_sys_procfs_psinfo=yes],
+	[ac_cv_sys_procfs_psinfo=no], 
+	[ac_cv_sys_procfs_psinfo=yes])
   elif test "$enable_procfs" = cross; then
     ac_cv_sys_procfs_psinfo=no
   else
