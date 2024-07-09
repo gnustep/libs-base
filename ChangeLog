@@ -1,5 +1,11 @@
 2024-07-09 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSString.m: Implement regular expression search in replace
+	methods (github issue 424) by using -rangeOfString:options:range: in
+	place of obsolete optimisation function.
+
+2024-07-09 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* config/codeset.m4:
  	* config/objc-con-autoload.m4:
  	* config/pathtls.m4:
