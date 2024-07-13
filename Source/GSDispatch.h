@@ -96,14 +96,14 @@
  * Convenience macro to create concurrent dispatch queues for the various
  * -enumerateUsingBlock: methods. Non-concurrent will be run in place.
  */
-#define GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(queue, opts)\
+#define GS_DISPATCH_CREATE_QUEUE_AND_GROUP_FOR_ENUMERATION(queue, opts) {\
   dispatch_queue_t queue = NULL;\
   dispatch_group_t queue ## Group = NULL;\
   if (opts & NSEnumerationConcurrent)\
-  {\
-    queue = GS_DISPATCH_GET_DEFAULT_CONCURRENT_QUEUE();\
-    queue ## Group = GS_DISPATCH_GROUP_CREATE();\
-  }
+    {\
+      queue = GS_DISPATCH_GET_DEFAULT_CONCURRENT_QUEUE();\
+      queue ## Group = GS_DISPATCH_GROUP_CREATE();\
+    }
 
 /**
  * Convenience macro to destroy concurrent dispatch queues for the various
@@ -114,10 +114,11 @@
     GS_DISPATCH_GROUP_FINISH(queue ## Group);\
     GS_DISPATCH_RELEASE(queue ## Group);\
     if (NO == (opts & NSEnumerationConcurrent))\
-    {\
-      GS_DISPATCH_RELEASE(queue);\
-    }\
-  }
+      {\
+        GS_DISPATCH_RELEASE(queue);\
+      }\
+  }\
+}
 
 
 #else

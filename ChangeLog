@@ -1,3 +1,24 @@
+2024-07-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSString.m: Implement regular expression search in replace
+	methods (github issue 424) by using -rangeOfString:options:range: in
+	place of obsolete optimisation function.
+
+2024-07-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* config/codeset.m4:
+ 	* config/objc-con-autoload.m4:
+ 	* config/pathtls.m4:
+ 	* config/pathxml.m4:
+ 	* config/procfs.m4:
+ 	* configure.ac:
+	Changes to avoid the use of most obsolete/deprecated autoconf macros.
+	Change usage of AC_CONFIG_AUX_DIR() to deal with altered behavior in
+	autoconf-2.71 (shipped on many new systems) where the value we set
+	in CURRENT_GNUSTEP_MAKEFILES is not available.  This should now use
+	the GNUSTEP_MAKEFILES environment variable or get the output of the
+	gnustep-config script directly.
+
 2024-06-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistantObject.m: Use standard method name conventions

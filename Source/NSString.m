@@ -6726,7 +6726,6 @@ static NSFileManager *fm = nil;
 {
   NSRange	range;
   unsigned int	count = 0;
-  GSRSFunc	func;
 
   if ([replace isKindOfClass: NSStringClass] == NO)
     {
@@ -6743,8 +6742,9 @@ static NSFileManager *fm = nil;
       [NSException raise: NSInvalidArgumentException
 		  format: @"%@ bad search range", NSStringFromSelector(_cmd)];
     }
-  func = GSPrivateRangeOfString(self, replace);
-  range = (*func)(self, replace, opts, searchRange);
+  range = [self rangeOfString: replace
+		      options: opts
+			range: searchRange];
 
   if (range.length > 0)
     {
@@ -6770,12 +6770,9 @@ static NSFileManager *fm = nil;
 	      searchRange.location = range.location + byLen;
 	      searchRange.length = newEnd - searchRange.location;
 	    }
-	  /* We replaced something and now need to scan again.
-	   * As we modified the receiver, we must refresh the
-	   * method implementation for searching.
-	   */
-	  func = GSPrivateRangeOfString(self, replace);
-	  range = (*func)(self, replace, opts, searchRange);
+	  range = [self rangeOfString: replace
+			      options: opts
+				range: searchRange];
 	}
       while (range.length > 0);
     }
