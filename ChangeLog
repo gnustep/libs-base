@@ -1,3 +1,12 @@
+2024-07-15 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSPointerFunctions.h: deprecate GC methods.
+	* Source/NSConcreteHashTable.m: add brackets around test.
+	* Source/NSConcreteMapTable.m: correct test for weak value and key.
+	* Source/NSConcretePointerFunctions.m: Obsolete GC code changes ...
+	Raise exception for setter of GC write barriers.
+	Log error for n getter of GC write barriers.
+
 2024-07-09 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSString.m: Implement regular expression search in replace

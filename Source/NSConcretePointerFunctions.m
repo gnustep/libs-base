@@ -24,6 +24,7 @@
    */ 
 
 #import "common.h"
+#import	"Foundation/NSException.h"
 #import	"NSConcretePointerFunctions.h"
 
 static void*
@@ -340,22 +341,14 @@ relinquishRetainedMemory(const void *item,
 
 - (void) setUsesStrongWriteBarrier: (BOOL)flag
 {
-  _x.options &=
-    ~(NSPointerFunctionsZeroingWeakMemory
-    |NSPointerFunctionsOpaqueMemory
-    |NSPointerFunctionsMallocMemory
-    |NSPointerFunctionsMachVirtualMemory
-    |NSPointerFunctionsWeakMemory);
+  [NSException raise: NSGenericException
+	      format: @"Garbage collection no longer supported"];
 }
 
 - (void) setUsesWeakReadAndWriteBarriers: (BOOL)flag
 {
-  _x.options &=
-    ~(NSPointerFunctionsOpaqueMemory
-    |NSPointerFunctionsMallocMemory
-    |NSPointerFunctionsMachVirtualMemory
-    |NSPointerFunctionsWeakMemory);
-  _x.options |= NSPointerFunctionsZeroingWeakMemory;
+  [NSException raise: NSGenericException
+	      format: @"Garbage collection no longer supported"];
 }
 
 - (NSUInteger (*)(const void *item)) sizeFunction
@@ -365,12 +358,16 @@ relinquishRetainedMemory(const void *item,
 
 - (BOOL) usesStrongWriteBarrier
 {
-  return memoryType(_x.options, NSPointerFunctionsStrongMemory);
+  NSLog(@"-usesStrongWriteBarrier does nothing:"
+    @" garbage collection not supported");
+  return NO;
 }
 
 - (BOOL) usesWeakReadAndWriteBarriers
 {
-  return memoryType(_x.options, NSPointerFunctionsZeroingWeakMemory);
+  NSLog(@"-usesWeakReadAndWriteBarriers does nothing:"
+    @" garbage collection not supported");
+  return NO;
 }
 
 @end

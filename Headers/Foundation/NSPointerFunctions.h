@@ -139,15 +139,15 @@ GS_EXPORT_CLASS
 
 - (void) setSizeFunction: (NSUInteger (*)(const void *item))func;
 
-- (void) setUsesStrongWriteBarrier: (BOOL)flag;
+- (void) setUsesStrongWriteBarrier: (BOOL)flag GS_DEPRECATED_FUNC;
 
-- (void) setUsesWeakReadAndWriteBarriers: (BOOL)flag;
+- (void) setUsesWeakReadAndWriteBarriers: (BOOL)flag GS_DEPRECATED_FUNC;
 
 - (NSUInteger (*)(const void *item)) sizeFunction;
 
-- (BOOL) usesStrongWriteBarrier;
+- (BOOL) usesStrongWriteBarrier GS_DEPRECATED_FUNC;
 
-- (BOOL) usesWeakReadAndWriteBarriers;
+- (BOOL) usesWeakReadAndWriteBarriers GS_DEPRECATED_FUNC;
 
 @end
 
