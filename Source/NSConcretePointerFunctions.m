@@ -186,6 +186,13 @@ relinquishRetainedMemory(const void *item,
 
 - (id) initWithOptions: (NSPointerFunctionsOptions)options
 {
+#define Unsupported(X)	({\
+  NSLog(@"*** An unsupported PointerFunctions configuration was requested,"\
+    @" probably for use by NSMapTable, NSHashTable, or NSPointerArray.  %@",\
+    X);\
+  DESTROY(self);\
+})
+
   _x.options = options;
 
   /* First we look at the memory management options to see which function
@@ -252,10 +259,18 @@ relinquishRetainedMemory(const void *item,
     }
   else if (personalityType(options, NSPointerFunctionsIntegerPersonality))
     {
-      _x.acquireFunction = acquireExistingMemory;
-      _x.descriptionFunction = describeInteger;
-      _x.hashFunction = hashDirect;
-      _x.isEqualFunction = equalDirect;
+      if (memoryType(options, NSPointerFunctionsOpaqueMemory))
+	{
+	  _x.acquireFunction = acquireExistingMemory;
+	  _x.descriptionFunction = describeInteger;
+	  _x.hashFunction = hashDirect;
+	  _x.isEqualFunction = equalDirect;
+	}
+      else
+	{
+	  Unsupported(@"The requested configuration fails due to"
+	    @" integer personality not using opaque memory.");
+	}
     }
   else		/* objects */
     {
@@ -271,7 +286,6 @@ relinquishRetainedMemory(const void *item,
       _x.hashFunction = hashObject;
       _x.isEqualFunction = equalObject;
     }
-
 
   return self;
 }
