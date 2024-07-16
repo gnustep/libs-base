@@ -78,10 +78,6 @@ int main()
 
   void                  *(*acquireFunction)\
   (const void *src, NSUInteger (*size)(const void *item), BOOL shouldCopy);
-  NSUInteger            (*hashFunction)\
-  (const void *item, NSUInteger (*size)(const void *item));
-  BOOL                  (*isEqualFunction)\
-  (const void *item1, const void *item2, NSUInteger (*size)(const void *item));
   NSString              *(*descriptionFunction)(const void *item);
   void                  (*relinquishFunction)\
   (const void *item, NSUInteger (*size)(const void *item));
@@ -95,9 +91,10 @@ int main()
 
   START_SET("CStringPersonality")
     {
-      const char    *cstr1 = "hello";
-      const char    *cstr2 = "hello";
-      const char    *cstr3 = "goodbye";
+      const char        *cstr1 = "hello";
+      const char        *cstr2 = "hello";
+      const char        *cstr3 = "goodbye";
+      const char        *cstr;
 
       pf = [NSPointerFunctions pointerFunctionsWithOptions:
         NSPointerFunctionsCStringPersonality];
@@ -108,6 +105,11 @@ int main()
       PASS_EQUAL([pf descriptionFunction](cstr1),
         [NSString stringWithUTF8String: cstr1],
         "CStringPersonality description")
+
+      PASS(NULL == [pf acquireFunction],
+        "CStringPersonality no acquireFunction")
+      PASS(NULL == [pf relinquishFunction],
+        "CStringPersonality no relinquishFunction")
     }
   END_SET("CStringPersonality")
 
@@ -122,6 +124,11 @@ int main()
 
       testIsEqualFunction(pf, "IntegerPersonality", int1, int2, int3);
       testHashFunction(pf, "IntegerPersonality", int1, int2, int3);
+
+      PASS(NULL == [pf acquireFunction],
+        "IntegerPersonality no acquireFunction")
+      PASS(NULL == [pf relinquishFunction],
+        "IntegerPersonality no relinquishFunction")
     }
   END_SET("IntegerPersonality")
 
@@ -179,27 +186,9 @@ int main()
 
   START_SET("StructPersonality")
     {
-      aStructType s1;
-      aStructType s2;
-      aStructType s3;
-
-      /* Struct equality testing should be a binary comparison of the
-       * memory, but because there's inter-field padding we must make
-       * sure that padding is cleared to guarantee two structs are
-       * equal.
-       */
-      memset(&s1, '\0', sizeof(s1));
-      s1.aBool = YES;
-      s1.anInt = 24;
-      s1.aChar = 'n';
-      memset(&s2, '\0', sizeof(s2));
-      s2.aBool = YES;
-      s2.anInt = 24;
-      s2.aChar = 'n';
-      memset(&s3, '\0', sizeof(s3));
-      s3.aBool = NO;
-      s3.anInt = 42;
-      s3.aChar = 'y';
+      aStructType s1 = { NO, 24, 'n' };
+      aStructType s2 = { NO, 24, 'n' };
+      aStructType s3 = { YES, 42, 'y' };
 
       pf = [NSPointerFunctions pointerFunctionsWithOptions:
         NSPointerFunctionsStructPersonality];

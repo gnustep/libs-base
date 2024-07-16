@@ -53,13 +53,6 @@ acquireRetainedObject(const void *item,
   return [(NSObject*)item retain];
 }
 
-static void*
-acquireExistingMemory(const void *item,
-  NSUInteger (*size)(const void *item), BOOL shouldCopy)
-{
-  return (void*)item;
-}
-
 static NSString*
 describeString(const void *item)
 {
@@ -217,14 +210,24 @@ relinquishRetainedMemory(const void *item,
     }
   else
     {
-      _x.relinquishFunction = relinquishRetainedMemory;
+      /* NSPointerFunctionsStrongMemory uses -release for objects
+       */
+      if (personalityType(options, NSPointerFunctionsObjectPersonality)
+	|| personalityType(options, NSPointerFunctionsObjectPointerPersonality))
+	{
+          _x.relinquishFunction = relinquishRetainedMemory;
+	}
+      else
+	{
+	  _x.relinquishFunction = 0;
+	}
     }
 
   /* Now we look at the personality options to determine other functions.
    */
   if (personalityType(options, NSPointerFunctionsOpaquePersonality))
     {
-      _x.acquireFunction = acquireExistingMemory;
+      _x.acquireFunction = 0;
       _x.descriptionFunction = describePointer;
       _x.hashFunction = hashShifted;
       _x.isEqualFunction = equalDirect;
@@ -233,7 +236,7 @@ relinquishRetainedMemory(const void *item,
     {
       if (memoryType(options, NSPointerFunctionsZeroingWeakMemory))
 	{
-	  _x.acquireFunction = acquireExistingMemory;
+	  _x.acquireFunction = 0;
 	}
       else
 	{
@@ -245,7 +248,14 @@ relinquishRetainedMemory(const void *item,
     }
   else if (personalityType(options, NSPointerFunctionsCStringPersonality))
     {
-      _x.acquireFunction = acquireMallocMemory;
+      if (memoryType(options, NSPointerFunctionsMallocMemory))
+	{
+	  _x.acquireFunction = acquireMallocMemory;
+	}
+      else
+	{
+	  _x.acquireFunction = NULL;
+	}
       _x.descriptionFunction = describeString;
       _x.hashFunction = hashString;
       _x.isEqualFunction = equalString;
@@ -261,7 +271,7 @@ relinquishRetainedMemory(const void *item,
     {
       if (memoryType(options, NSPointerFunctionsOpaqueMemory))
 	{
-	  _x.acquireFunction = acquireExistingMemory;
+	  _x.acquireFunction = 0;
 	  _x.descriptionFunction = describeInteger;
 	  _x.hashFunction = hashDirect;
 	  _x.isEqualFunction = equalDirect;
@@ -276,7 +286,7 @@ relinquishRetainedMemory(const void *item,
     {
       if (memoryType(options, NSPointerFunctionsZeroingWeakMemory))
 	{
-	  _x.acquireFunction = acquireExistingMemory;
+	  _x.acquireFunction = 0;
 	}
       else
 	{
