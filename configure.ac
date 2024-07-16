@@ -157,7 +157,7 @@ fi`])
 #--------------------------------------------------------------------
 # Use a .h file with #define's, instead of -D command-line switches
 #--------------------------------------------------------------------
-AC_CONFIG_HEADERS([Headers/GNUstepBase/config.h])
+AC_CONFIG_HEADERS([Headers/GNUstepBase/config.h:Headers/GNUstepBase/config.h.in])
 
 #--------------------------------------------------------------------
 # Determine the host, build, and target systems
