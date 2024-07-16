@@ -179,9 +179,27 @@ int main()
 
   START_SET("StructPersonality")
     {
-      aStructType s1 = { NO, 24, 'n' };
-      aStructType s2 = { NO, 24, 'n' };
-      aStructType s3 = { YES, 42, 'y' };
+      aStructType s1;
+      aStructType s2;
+      aStructType s3;
+
+      /* Struct equality testing should be a binary comparison of the
+       * memory, but because there's inter-field padding we must make
+       * sure that padding is cleared to guarantee two structs are
+       * equal.
+       */
+      memset(&s1, '\0', sizeof(s1));
+      s1.aBool = YES;
+      s1.anInt = 24;
+      s1.aChar = 'n';
+      memset(&s2, '\0', sizeof(s2));
+      s2.aBool = YES;
+      s2.anInt = 24;
+      s2.aChar = 'n';
+      memset(&s3, '\0', sizeof(s3));
+      s3.aBool = NO;
+      s3.anInt = 42;
+      s3.aChar = 'y';
 
       pf = [NSPointerFunctions pointerFunctionsWithOptions:
         NSPointerFunctionsStructPersonality];
