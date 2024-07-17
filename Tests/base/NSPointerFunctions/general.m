@@ -186,9 +186,26 @@ int main()
 
   START_SET("StructPersonality")
     {
-      aStructType s1 = { NO, 24, 'n' };
-      aStructType s2 = { NO, 24, 'n' };
-      aStructType s3 = { YES, 42, 'y' };
+      aStructType s1;
+      aStructType s2;
+      aStructType s3;
+
+      /* Due to padding, structs may contain uninitialised data.
+       * We therefore have to clear the entire struct before we
+       * set it up.
+       */
+      memset(&s1, '\0', sizeof(s1));
+      memset(&s2, '\0', sizeof(s2));
+      memset(&s3, '\0', sizeof(s3));
+      s1.aBool = NO;
+      s2.aBool = NO;
+      s3.aBool = YES;
+      s1.anInt = 24;
+      s2.anInt = 24;
+      s3.anInt = 42S;
+      s1.aChar = 'n';
+      s2.aChar = 'n';
+      s3.aChar = 'y';
 
       pf = [NSPointerFunctions pointerFunctionsWithOptions:
         NSPointerFunctionsStructPersonality];
