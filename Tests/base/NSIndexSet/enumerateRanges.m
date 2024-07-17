@@ -2,6 +2,12 @@
 
 #import "Testing.h"
 
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+
+#if __has_feature(blocks)
+
 BOOL
 enumerateEmptySet()
 {
@@ -294,11 +300,16 @@ testInvalidRangeEnumeration()
   return neverCalled;
 }
 
+#endif
+
 int
 main(int argc, char *argv[])
 {
+
   NSAutoreleasePool *arp = [NSAutoreleasePool new];
 
+  START_SET("NSIndexSet BLOCKS")
+#if __has_feature(blocks)
   PASS(enumerateEmptySet(),
        "Enumeration on an empty index set should not call the block.");
   PASS(enumerateSingleRange(),
@@ -315,6 +326,11 @@ main(int argc, char *argv[])
        "Enumerate ranges in reverse order correctly.");
   PASS(testOutOfRangeEnumeration(), "Enumerate ranges with NSNotFound range");
   PASS(testInvalidRangeEnumeration(), "Enumerate ranges with invalid range");
+#else
+  SKIP("Blocks support unavailable")
+#endif
+
+  END_SET("NSIndexSet BLOCKS")
 
   [arp release];
   return 0;
