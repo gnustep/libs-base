@@ -1382,11 +1382,11 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 {
   GSIMapNode	node;
 
-  if (aKey == nil)
+  if (nil == aKey || nil == anObject)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"[%@-%@:] given nil argument",
-        NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+      /* tested behavior on os-x 14.5 is to do nothing if either arg is nil
+       */
+      return;
     }
   node = GSIMapNodeForKey(self, (GSIMapKey)aKey);
   if (node)
