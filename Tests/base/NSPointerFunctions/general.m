@@ -202,7 +202,7 @@ int main()
       s3.aBool = YES;
       s1.anInt = 24;
       s2.anInt = 24;
-      s3.anInt = 42S;
+      s3.anInt = 42;
       s1.aChar = 'n';
       s2.aChar = 'n';
       s3.aChar = 'y';
