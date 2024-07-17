@@ -837,11 +837,11 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
   GSIMapTable   t = (GSIMapTable)self;
   GSIMapNode	n;
 
-  if (anObject == nil)
+  if (nil == anObject)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"[%@-%@:] given nil argument",
-        NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+      /* Tested behavior on os-x 14.5 is to do nothing if the arg is nil
+       */
+      return;
     }
 
   n = GSIMapNodeForKey(t, (GSIMapKey)anObject);
