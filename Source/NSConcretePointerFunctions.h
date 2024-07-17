@@ -139,22 +139,16 @@ static inline void pointerFunctionsAssign(PFInfo *PF, void **addr, void *value)
     }
 }
 
-/* Acquire the pointer value to store for the specified item.
- */
 static inline void *
-pointerFunctionsAcquire(PFInfo *PF, void **dst, void *src)
+pointerFunctionsAcquire(PFInfo *PF, void *src)
 {
   if (PF->acquireFunction != 0)
-    src = (*PF->acquireFunction)(src, PF->sizeFunction,
-    PF->options & NSPointerFunctionsCopyIn ? YES : NO);
-  // FIXME: This shouldn't be here.  Acquire and assign are separate
-  // operations.  Acquire is for copy-in operations (i.e. retain / copy),
-  // assign is for move operations of already-owned pointers.  Combining them
-  // like this is Just Plain Wrong™
-  pointerFunctionsAssign(PF, dst, src);
+    {
+      src = (*PF->acquireFunction)(src, PF->sizeFunction,
+	PF->options & NSPointerFunctionsCopyIn ? YES : NO);
+    }
   return src;
 }
-
 
 /**
  * Moves a pointer from location to another.

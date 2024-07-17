@@ -90,7 +90,8 @@ typedef GSIMapNode_t *GSIMapNode;
   : IS_WEAK(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf, &X.ptr))
 #define GSI_MAP_RETAIN_KEY(M, X)\
  (M->legacy ? M->cb.old.retain(M, X.ptr) \
-  : IS_WEAK(M) ? nil : pointerFunctionsAcquire(&M->cb.pf, &X.ptr, X.ptr))
+  : IS_WEAK(M) ? nil : pointerFunctionsAssign(\
+    &M->cb.pf, &X.ptr, pointerFunctionsAcquire(&M->cb.pf, X.ptr)))
 #define GSI_MAP_ZEROED(M)\
  (M->legacy ? 0 \
  : (IS_WEAK(M) ? YES : NO))

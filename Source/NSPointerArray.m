@@ -308,8 +308,9 @@ static Class	concreteClass = Nil;
   for (i = 0; i < _count; i++)
     {
       NSLog(@"Copying %d, %p", i, _contents[i]);
-      pointerFunctionsAcquire(&_pf, &c->_contents[i],
-              pointerFunctionsRead(&_pf, &_contents[i]));
+      pointerFunctionsAssign(&_pf, &c->_contents[i],
+        pointerFunctionsAcquire(&_pf,
+	  pointerFunctionsRead(&_pf, &_contents[i])));
     }
   return c;
 }
@@ -442,7 +443,8 @@ static Class	concreteClass = Nil;
       pointerFunctionsMove(&_pf, _contents+i, _contents + i-1);
       i--;
     }
-  pointerFunctionsAcquire(&_pf, &_contents[index], pointer);
+  pointerFunctionsAssign(&_pf, &_contents[index],
+    pointerFunctionsAcquire(&_pf, pointer));
 }
 
 - (BOOL) isEqual: (id)other
