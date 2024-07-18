@@ -82,7 +82,8 @@ GS_EXPORT_CLASS
 - (instancetype) initWithPointerFunctions: (NSPointerFunctions*)functions
                                  capacity: (NSUInteger)initialCapacity;
 
-/** Adds the object to the receiver.
+/** Adds the object to the receiver.<br />
+ * Adding a nil object has no effect.
  */
 - (void) addObject: (GS_GENERIC_TYPE(ElementT))object;
 
