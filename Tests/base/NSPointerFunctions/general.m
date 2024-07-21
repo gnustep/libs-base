@@ -83,10 +83,37 @@ int main()
   (const void *item, NSUInteger (*size)(const void *item));
   NSUInteger            (*sizeFunction)(const void *item);
 
+  START_SET("GarbageCollection")
+  NSPointerFunctions    *pf;
+  NSPointerFunctions    *zpf;
+
+  pf = [NSPointerFunctions pointerFunctionsWithOptions:
+    NSPointerFunctionsWeakMemory 
+    | NSPointerFunctionsObjectPersonality];
+  zpf = [NSPointerFunctions pointerFunctionsWithOptions:
+    NSPointerFunctionsZeroingWeakMemory 
+    | NSPointerFunctionsObjectPersonality];
+  PASS([pf acquireFunction] == [zpf acquireFunction],
+    "acquire for weak and zeroing weak is the same");
+  PASS([pf relinquishFunction] == [zpf relinquishFunction],
+    "acquire for weak and zeroing weak is the same");
+  PASS(pf && zpf, "Objects can have either weak or zeroing weak memory")
+
+  END_SET("GarbageCollection")
+
   START_SET("Personality/Memory")
   PASS(nil == [NSPointerFunctions pointerFunctionsWithOptions:
-    NSPointerFunctionsIntegerPersonality],
-    "nil on create with integer personality and wrong memory")
+    NSPointerFunctionsZeroingWeakMemory 
+    | NSPointerFunctionsIntegerPersonality],
+    "nil on create with integer personality and zeroing weak memory")
+  PASS(nil == [NSPointerFunctions pointerFunctionsWithOptions:
+    NSPointerFunctionsWeakMemory 
+    | NSPointerFunctionsIntegerPersonality],
+    "nil on create with integer personality and weak memory")
+  PASS(nil == [NSPointerFunctions pointerFunctionsWithOptions:
+    NSPointerFunctionsStrongMemory 
+    | NSPointerFunctionsIntegerPersonality],
+    "nil on create with integer personality and strong memory")
   END_SET("Personality/Memory")
 
   START_SET("CStringPersonality")
