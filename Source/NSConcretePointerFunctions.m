@@ -186,13 +186,24 @@ relinquishRetainedMemory(const void *item,
   DESTROY(self);\
 })
 
-  _x.options = options;
+  if (memoryType(options, NSPointerFunctionsZeroingWeakMemory))
+    {
+      /* Garbage Collection is no longer supported, so we treat all weak
+       * memory the same way.
+       */
+      _x.options = (options & 0xffffff00) | NSPointerFunctionsWeakMemory;
+    }
+  else
+    {
+      _x.options = options;
+    }
 
   /* First we look at the memory management options to see which function
    * should be used to relinquish contents of a container with these
    * options.
    */
-  if (memoryType(options, NSPointerFunctionsZeroingWeakMemory))
+  if (memoryType(options, NSPointerFunctionsWeakMemory)
+    || memoryType(options, NSPointerFunctionsZeroingWeakMemory))
     {
       _x.relinquishFunction = 0;
     }
@@ -234,7 +245,8 @@ relinquishRetainedMemory(const void *item,
     }
   else if (personalityType(options, NSPointerFunctionsObjectPointerPersonality))
     {
-      if (memoryType(options, NSPointerFunctionsZeroingWeakMemory))
+      if (memoryType(options, NSPointerFunctionsWeakMemory)
+        || memoryType(options, NSPointerFunctionsZeroingWeakMemory))
 	{
 	  _x.acquireFunction = 0;
 	}
@@ -284,7 +296,8 @@ relinquishRetainedMemory(const void *item,
     }
   else		/* objects */
     {
-      if (memoryType(options, NSPointerFunctionsZeroingWeakMemory))
+      if (memoryType(options, NSPointerFunctionsWeakMemory)
+        || memoryType(options, NSPointerFunctionsZeroingWeakMemory))
 	{
 	  _x.acquireFunction = 0;
 	}
