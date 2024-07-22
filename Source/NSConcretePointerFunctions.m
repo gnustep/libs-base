@@ -179,6 +179,9 @@ relinquishRetainedMemory(const void *item,
 
 - (id) initWithOptions: (NSPointerFunctionsOptions)options
 {
+  int	memoryType = options & 0x00ff;
+  int	personality = options & 0xff00;
+
 #define Unsupported(X)	({\
   NSLog(@"*** An unsupported PointerFunctions configuration was requested,"\
     @" probably for use by NSMapTable, NSHashTable, or NSPointerArray.  %@",\
@@ -186,130 +189,155 @@ relinquishRetainedMemory(const void *item,
   DESTROY(self);\
 })
 
-  if (memoryType(options, NSPointerFunctionsZeroingWeakMemory))
+  /* Check that we have a valid memory management option.
+   */
+  switch (memoryType)
+    {
+      case NSPointerFunctionsMachVirtualMemory:
+      case NSPointerFunctionsMallocMemory:
+      case NSPointerFunctionsOpaqueMemory:
+      case NSPointerFunctionsStrongMemory:
+      case NSPointerFunctionsWeakMemory:
+      case NSPointerFunctionsZeroingWeakMemory:
+	break;
+
+      default:
+	Unsupported(@"The requested configuration fails due to"
+	  @" an unknown memory type being specified.");
+	return self;
+    }
+
+  /* Save the supplied options (with modification if needed).
+   */
+  if (NSPointerFunctionsZeroingWeakMemory == memoryType)
     {
       /* Garbage Collection is no longer supported, so we treat all weak
        * memory the same way.
        */
-      _x.options = (options & 0xffffff00) | NSPointerFunctionsWeakMemory;
+      memoryType = NSPointerFunctionsWeakMemory;
+      _x.options = (options & 0xffffff00) | memoryType;
     }
   else
     {
       _x.options = options;
     }
 
-  /* First we look at the memory management options to see which function
-   * should be used to relinquish contents of a container with these
-   * options.
+  /* Check for unsupported memory/personality combinations
    */
-  if (memoryType(options, NSPointerFunctionsWeakMemory)
-    || memoryType(options, NSPointerFunctionsZeroingWeakMemory))
+  if (NSPointerFunctionsIntegerPersonality == personality)
     {
-      _x.relinquishFunction = 0;
-    }
-  else if (memoryType(options, NSPointerFunctionsOpaqueMemory))
-    {
-      _x.relinquishFunction = 0;
-    }
-  else if (memoryType(options, NSPointerFunctionsMallocMemory))
-    {
-      _x.relinquishFunction = relinquishMallocMemory;
-    }
-  else if (memoryType(options, NSPointerFunctionsMachVirtualMemory))
-    {
-      _x.relinquishFunction = relinquishMallocMemory;
-    }
-  else
-    {
-      /* NSPointerFunctionsStrongMemory uses -release for objects
-       */
-      if (personalityType(options, NSPointerFunctionsObjectPersonality)
-	|| personalityType(options, NSPointerFunctionsObjectPointerPersonality))
-	{
-          _x.relinquishFunction = relinquishRetainedMemory;
-	}
-      else
-	{
-	  _x.relinquishFunction = 0;
-	}
-    }
-
-  /* Now we look at the personality options to determine other functions.
-   */
-  if (personalityType(options, NSPointerFunctionsOpaquePersonality))
-    {
-      _x.acquireFunction = 0;
-      _x.descriptionFunction = describePointer;
-      _x.hashFunction = hashShifted;
-      _x.isEqualFunction = equalDirect;
-    }
-  else if (personalityType(options, NSPointerFunctionsObjectPointerPersonality))
-    {
-      if (memoryType(options, NSPointerFunctionsWeakMemory)
-        || memoryType(options, NSPointerFunctionsZeroingWeakMemory))
-	{
-	  _x.acquireFunction = 0;
-	}
-      else
-	{
-	  _x.acquireFunction = acquireRetainedObject;
-	}
-      _x.descriptionFunction = describeObject;
-      _x.hashFunction = hashShifted;
-      _x.isEqualFunction = equalDirect;
-    }
-  else if (personalityType(options, NSPointerFunctionsCStringPersonality))
-    {
-      if (memoryType(options, NSPointerFunctionsMallocMemory))
-	{
-	  _x.acquireFunction = acquireMallocMemory;
-	}
-      else
-	{
-	  _x.acquireFunction = NULL;
-	}
-      _x.descriptionFunction = describeString;
-      _x.hashFunction = hashString;
-      _x.isEqualFunction = equalString;
-    }
-  else if (personalityType(options, NSPointerFunctionsStructPersonality))
-    {
-      _x.acquireFunction = acquireMallocMemory;
-      _x.descriptionFunction = describePointer;
-      _x.hashFunction = hashMemory;
-      _x.isEqualFunction = equalMemory;
-    }
-  else if (personalityType(options, NSPointerFunctionsIntegerPersonality))
-    {
-      if (memoryType(options, NSPointerFunctionsOpaqueMemory))
-	{
-	  _x.acquireFunction = 0;
-	  _x.descriptionFunction = describeInteger;
-	  _x.hashFunction = hashDirect;
-	  _x.isEqualFunction = equalDirect;
-	}
-      else
+      if (NSPointerFunctionsOpaqueMemory != memoryType)
 	{
 	  Unsupported(@"The requested configuration fails due to"
 	    @" integer personality not using opaque memory.");
+	  return self;
 	}
-    }
-  else		/* objects */
-    {
-      if (memoryType(options, NSPointerFunctionsWeakMemory)
-        || memoryType(options, NSPointerFunctionsZeroingWeakMemory))
-	{
-	  _x.acquireFunction = 0;
-	}
-      else
-	{
-          _x.acquireFunction = acquireRetainedObject;
-	}
-      _x.descriptionFunction = describeObject;
-      _x.hashFunction = hashObject;
-      _x.isEqualFunction = equalObject;
     }
 
+  if (NSPointerFunctionsObjectPersonality == personality
+    || NSPointerFunctionsObjectPointerPersonality == personality)
+    {
+      if (NSPointerFunctionsMachVirtualMemory == memoryType
+	|| NSPointerFunctionsMallocMemory == memoryType)
+	{
+	  Unsupported(@"The requested configuration fails due to"
+	    @" integer personality not using opaque memory.");
+	  return self;
+	}
+    }
+
+
+  /* Now we look at the personality options to determine functions.
+   */
+  switch (personality)
+    {
+      case NSPointerFunctionsCStringPersonality:
+	if (NSPointerFunctionsMachVirtualMemory == memoryType
+	  || NSPointerFunctionsMallocMemory == memoryType)
+	  {
+	    _x.acquireFunction = acquireMallocMemory;
+	    _x.relinquishFunction = relinquishMallocMemory;
+	  }
+	else
+	  {
+	    _x.acquireFunction = 0;
+	    _x.relinquishFunction = 0;
+	  }
+	_x.descriptionFunction = describeString;
+	_x.hashFunction = hashString;
+	_x.isEqualFunction = equalString;
+	break;
+
+      case NSPointerFunctionsIntegerPersonality:
+	_x.acquireFunction = 0;
+	_x.relinquishFunction = 0;
+	_x.descriptionFunction = describeInteger;
+	_x.hashFunction = hashDirect;
+	_x.isEqualFunction = equalDirect;
+	break;
+
+      case NSPointerFunctionsObjectPersonality:
+	if (NSPointerFunctionsWeakMemory == memoryType)
+	  {
+	    _x.acquireFunction = 0;
+	    _x.relinquishFunction = 0;
+	  }
+	else
+	  {
+	    _x.acquireFunction = acquireRetainedObject;
+	    _x.relinquishFunction = relinquishRetainedMemory;
+	  }
+	_x.descriptionFunction = describeObject;
+	_x.hashFunction = hashObject;
+	_x.isEqualFunction = equalObject;
+	break;
+
+      case NSPointerFunctionsObjectPointerPersonality:
+	if (NSPointerFunctionsWeakMemory == memoryType)
+	  {
+	    _x.acquireFunction = 0;
+	    _x.relinquishFunction = 0;
+	  }
+	else
+	  {
+	    _x.acquireFunction = acquireRetainedObject;
+	    _x.relinquishFunction = 0;
+	  }
+	_x.descriptionFunction = describeObject;
+	_x.hashFunction = hashShifted;
+	_x.isEqualFunction = equalDirect;
+	break;
+
+      case NSPointerFunctionsOpaquePersonality:
+	_x.acquireFunction = 0;
+	_x.relinquishFunction = 0;
+	_x.descriptionFunction = describePointer;
+	_x.hashFunction = hashShifted;
+	_x.isEqualFunction = equalDirect;
+	break;
+
+      case NSPointerFunctionsStructPersonality:
+	if (NSPointerFunctionsMachVirtualMemory == memoryType
+	  || NSPointerFunctionsMallocMemory == memoryType)
+	  {
+	    _x.acquireFunction = acquireMallocMemory;
+	    _x.relinquishFunction = relinquishMallocMemory;
+	  }
+	else
+	  {
+	    _x.acquireFunction = 0;
+	    _x.relinquishFunction = 0;
+	  }
+	_x.descriptionFunction = describePointer;
+	_x.hashFunction = hashMemory;
+	_x.isEqualFunction = equalMemory;
+        break;
+
+      default:
+	Unsupported(@"The requested configuration fails due to"
+	  @" an unknown personality being specified.");
+	return self;
+    }
   return self;
 }
 

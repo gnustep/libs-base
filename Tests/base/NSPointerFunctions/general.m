@@ -69,6 +69,10 @@ static NSUInteger aStructSize(const void *item)
 @end
  
 
+typedef struct {
+  int code;
+  const char  *name;
+} OptInfo;
 
 
 int main()
@@ -82,6 +86,86 @@ int main()
   void                  (*relinquishFunction)\
   (const void *item, NSUInteger (*size)(const void *item));
   NSUInteger            (*sizeFunction)(const void *item);
+
+  START_SET("Combinations")
+  OptInfo MemoryType[] = {
+    { NSPointerFunctionsMachVirtualMemory,
+      "NSPointerFunctionsMachVirtualMemory" },
+    { NSPointerFunctionsMallocMemory,
+      "NSPointerFunctionsMallocMemory" },
+    { NSPointerFunctionsOpaqueMemory,
+      "NSPointerFunctionsOpaqueMemory" },
+    { NSPointerFunctionsStrongMemory,
+      "NSPointerFunctionsStrongMemory" },
+    { NSPointerFunctionsWeakMemory,
+      "NSPointerFunctionsWeakMemory" },
+    { NSPointerFunctionsZeroingWeakMemory,
+      "NSPointerFunctionsZeroingWeakMemory" },
+    { 0x00ff, "Unknown/BadMemory" }
+  };
+  OptInfo Personality[] = {
+    { NSPointerFunctionsCStringPersonality,
+      "NSPointerFunctionsCStringPersonality" },
+    { NSPointerFunctionsIntegerPersonality,
+      "NSPointerFunctionsIntegerPersonality" },
+    { NSPointerFunctionsObjectPersonality,
+      "NSPointerFunctionsObjectPersonality" },
+    { NSPointerFunctionsObjectPointerPersonality,
+      "NSPointerFunctionsObjectPointerPersonality" },
+    { NSPointerFunctionsOpaquePersonality,
+      "NSPointerFunctionsOpaquePersonality" },
+    { NSPointerFunctionsStructPersonality,
+      "NSPointerFunctionsStructPersonality" },
+    { 0xff00, "Unknown/BadPersonality" }
+  };
+  int                   mem;
+  int                   per;
+
+  for (mem = 0; mem < sizeof(MemoryType) / sizeof(*MemoryType); mem++)
+    {
+      for (per = 0; per < sizeof(Personality) / sizeof(*Personality); per++)
+        {
+          int           mc = MemoryType[mem].code;
+          int           pc = Personality[per].code;
+          BOOL          ok = (0x00ff != mc && 0xff00 != pc);
+          const char    *msg;
+
+          if (NSPointerFunctionsIntegerPersonality == pc)
+            {
+              if (NSPointerFunctionsOpaqueMemory != mc)
+                {
+                  ok = NO;
+                }
+            }
+          if (NSPointerFunctionsObjectPersonality == pc
+            || NSPointerFunctionsObjectPointerPersonality == pc)
+            {
+              if (NSPointerFunctionsMachVirtualMemory == mc
+                || NSPointerFunctionsMallocMemory == mc)
+                {
+                  ok = NO;
+                }
+            }
+
+
+          pf = [NSPointerFunctions pointerFunctionsWithOptions: mc | pc];
+          if (ok)
+            {
+              msg = [[NSString stringWithFormat: @"Create with %s %s allowed",
+                MemoryType[mem].name, Personality[per].name] UTF8String];
+              PASS(pf != nil, "%s", msg)
+            }
+          else
+            {
+              msg = [[NSString stringWithFormat: @"Create with %s %s refused",
+                MemoryType[mem].name, Personality[per].name] UTF8String];
+              PASS(nil == pf, "%s", msg)
+            }
+        }
+    }
+
+
+  END_SET("Combinations")
 
   START_SET("GarbageCollection")
   NSPointerFunctions    *pf;
@@ -101,27 +185,11 @@ int main()
 
   END_SET("GarbageCollection")
 
-  START_SET("Personality/Memory")
-  PASS(nil == [NSPointerFunctions pointerFunctionsWithOptions:
-    NSPointerFunctionsZeroingWeakMemory 
-    | NSPointerFunctionsIntegerPersonality],
-    "nil on create with integer personality and zeroing weak memory")
-  PASS(nil == [NSPointerFunctions pointerFunctionsWithOptions:
-    NSPointerFunctionsWeakMemory 
-    | NSPointerFunctionsIntegerPersonality],
-    "nil on create with integer personality and weak memory")
-  PASS(nil == [NSPointerFunctions pointerFunctionsWithOptions:
-    NSPointerFunctionsStrongMemory 
-    | NSPointerFunctionsIntegerPersonality],
-    "nil on create with integer personality and strong memory")
-  END_SET("Personality/Memory")
-
   START_SET("CStringPersonality")
     {
       const char        *cstr1 = "hello";
       const char        *cstr2 = "hello";
       const char        *cstr3 = "goodbye";
-      const char        *cstr;
 
       pf = [NSPointerFunctions pointerFunctionsWithOptions:
         NSPointerFunctionsCStringPersonality];
