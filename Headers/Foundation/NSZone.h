@@ -231,40 +231,6 @@ NSZoneStats (NSZone *zone);
 void*
 GSOutOfMemory(NSUInteger size, BOOL retry);
 
-/**
- * Called during +initialize to tell the class that instances created
- * in future should have the specified instance variable as a weak
- * pointer for garbage collection.<br />
- * NB. making a pointer weak does not mean that it is automatically
- * zeroed when the object it points to is garbage collected. To get that
- * behavior you must asign values to the pointer using the
- * GSAssignZeroingWeakPointer() function.<br />
- * This function has no effect if the system is
- * not built for garbage collection.
- */
-GS_EXPORT void
-GSMakeWeakPointer(Class theClass, const char *iVarName);
-
-/**
- * This function must be used to assign a value to a zeroing weak pointer.<br />
- * A zeroing weak pointer is one where, when the garbage collector collects
- * the object pointed to, it also clears the weak pointer.<br />
- * Assigning zero (nil) will always succeed and has the effect of telling the
- * garbage collector that it no longer needs to track the previously assigned
- * object.  Apart from that case, a source needs to be garbage collectable for
- * this function to work, and using a non-garbage collectable value will
- * cause the function to return NO.<br />
- * If the destination object (the weak pointer watching the source object)
- * belongs to a chunk of memory which may be collected before the source
- * object is collected, it is important that it is finalised and the
- * finalisation code assigns zero to the pointer.<br />
- * If garbage collection is not in use, this function performs a simple
- * assignment returning YES, unless destination is null in which case it
- * returns NO.
- */
-GS_EXPORT BOOL
-GSAssignZeroingWeakPointer(void **destination, void *source);
-
 #endif
 
 GS_EXPORT NSUInteger

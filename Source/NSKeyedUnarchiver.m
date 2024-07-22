@@ -298,8 +298,6 @@ static NSMapTable	*globalClassMap = 0;
 
 + (void) initialize
 {
-  GSMakeWeakPointer(self, "delegate");
-
   if (globalClassMap == 0)
     {
       globalClassMap =

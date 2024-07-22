@@ -1162,8 +1162,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   if (observation == nil)
     {
       observation = [GSKVOObservation new];
-      GSAssignZeroingWeakPointer((void**)&observation->observer,
-	(void*)anObserver);
+      observation->observer = anObserver;
       observation->context = aContext;
       observation->options = options;
       [pathInfo->observations addObject: observation];

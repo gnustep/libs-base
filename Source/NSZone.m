@@ -1754,23 +1754,6 @@ GSAtomicMallocZone (void)
   return &default_zone;
 }
 
-GS_DECLARE void
-GSMakeWeakPointer(Class theClass, const char *iVarName)
-{
-  return;
-}
-
-GS_DECLARE BOOL
-GSAssignZeroingWeakPointer(void **destination, void *source)
-{
-  if (destination == 0)
-    {
-      return NO;
-    }
-  *destination = source;
-  return YES;
-}
-
 GS_DECLARE void*
 NSZoneMalloc (NSZone *zone, NSUInteger size)
 {
