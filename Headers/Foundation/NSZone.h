@@ -30,28 +30,6 @@
 #define __NSZone_h_GNUSTEP_BASE_INCLUDE
 #import	"GNUstepBase/GSVersionMacros.h"
 
-/**
- * Primary structure representing an <code>NSZone</code>.  Technically it
- * consists of a set of function pointers for zone upkeep functions plus some
- * other things-
-<example>
-{
-  // Functions for zone.
-  void *(*malloc)(struct _NSZone *zone, size_t size);
-  void *(*realloc)(struct _NSZone *zone, void *ptr, size_t size);
-  void (*free)(struct _NSZone *zone, void *ptr);
-  void (*recycle)(struct _NSZone *zone);
-  BOOL (*check)(struct _NSZone *zone);
-  BOOL (*lookup)(struct _NSZone *zone, void *ptr);
-
-  // Zone statistics (not always maintained).
-  struct NSZoneStats (*stats)(struct _NSZone *zone);
-  
-  size_t gran;    // Zone granularity (passed in on initialization)
-  NSString *name; // Name of zone (default is 'nil')
-  NSZone *next;   // Pointer used for internal management of multiple zones.
-}</example>
- */
 typedef struct _NSZone NSZone;
 
 #import	<Foundation/NSObjCRuntime.h>
@@ -61,22 +39,6 @@ typedef struct _NSZone NSZone;
 #if	defined(__cplusplus)
 extern "C" {
 #endif
-
-struct _NSZone
-{
-  /* Functions for zone. */
-  void *(*malloc)(struct _NSZone *zone, size_t size);
-  void *(*realloc)(struct _NSZone *zone, void *ptr, size_t size);
-  void (*free)(struct _NSZone *zone, void *ptr);
-  void (*recycle)(struct _NSZone *zone);
-  BOOL (*check)(struct _NSZone *zone);
-  BOOL (*lookup)(struct _NSZone *zone, void *ptr);
-  struct NSZoneStats (*stats)(struct _NSZone *zone);
-  
-  size_t gran; // Zone granularity
-  __unsafe_unretained NSString *name; // Name of zone (default is 'nil')
-  NSZone *next;
-};
 
 /**
  * Creates a new zone of start bytes, which will grow and shrink by
