@@ -58,6 +58,8 @@
 #if	defined(_WIN32)
 #import "win32/NSString+Win32Additions.h"
 
+#include <winnls.h>
+
 /* Fake interface to avoid compiler warnings
  */
 @interface	NSUserDefaultsWin32 : NSUserDefaults
