@@ -77,7 +77,7 @@ typedef GSIMapNode_t *GSIMapNode;
 #define	GSI_MAP_TABLE_S	instanceSize
   
 #define IS_WEAK(M) \
-  memoryType(M->cb.pf.options, NSPointerFunctionsZeroingWeakMemory) || memoryType(M->cb.pf.options, NSPointerFunctionsWeakMemory)
+  memoryType(M->cb.pf.options, NSPointerFunctionsWeakMemory)
 #define GSI_MAP_HASH(M, X)\
  (M->legacy ? M->cb.old.hash(M, X.ptr) \
  : pointerFunctionsHash(&M->cb.pf, X.ptr))
@@ -89,7 +89,8 @@ typedef GSIMapNode_t *GSIMapNode;
   : IS_WEAK(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf, &X.ptr))
 #define GSI_MAP_RETAIN_KEY(M, X)\
  (M->legacy ? M->cb.old.retain(M, X.ptr) \
-  : IS_WEAK(M) ? nil : pointerFunctionsAcquire(&M->cb.pf, &X.ptr, X.ptr))
+  : IS_WEAK(M) ? nil : pointerFunctionsAssign(\
+    &M->cb.pf, &X.ptr, pointerFunctionsAcquire(&M->cb.pf, X.ptr)))
 #define GSI_MAP_ZEROED(M)\
  (M->legacy ? 0 \
  : (IS_WEAK(M) ? YES : NO))
@@ -836,11 +837,11 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
   GSIMapTable   t = (GSIMapTable)self;
   GSIMapNode	n;
 
-  if (anObject == nil)
+  if (nil == anObject)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"[%@-%@:] given nil argument",
-        NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+      /* Tested behavior on os-x 14.5 is to do nothing if the arg is nil
+       */
+      return;
     }
 
   n = GSIMapNodeForKey(t, (GSIMapKey)anObject);

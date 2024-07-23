@@ -203,13 +203,13 @@ static Class	concreteClass = Nil;
 @implementation NSPointerArray (NSArrayConveniences)  
 
 + (id) pointerArrayWithStrongObjects
-{
+{               
   return [self pointerArrayWithOptions: NSPointerFunctionsStrongMemory];
-}
-
+}  
+                
 + (id) pointerArrayWithWeakObjects
-{
-  return [self pointerArrayWithOptions: NSPointerFunctionsZeroingWeakMemory];
+{         
+  return [self pointerArrayWithOptions: NSPointerFunctionsWeakMemory];
 }
 
 - (NSArray*) allObjects
@@ -280,18 +280,22 @@ static Class	concreteClass = Nil;
 {
   NSUInteger	insert = 0;
   NSUInteger	i;
-  // We can't use memmove here for __weak pointers, because that would omit the
-  // required read barriers.  We could use objc_memmoveCollectable() for strong
-  // pointers, but we may as well use the same code path for everything
-  for (i=0 ; i<_count ; i++)
+
+  /* We can't use memmove here for __weak pointers, because that would omit the
+   * required read barriers.  We could use objc_memmoveCollectable() for strong
+   * pointers, but we may as well use the same code path for everything
+   */
+  for (i = 0 ; i < _count; i++)
     {
       id obj = pointerFunctionsRead(&_pf, &_contents[i]);
-      // If this object is not nil, but at least one before it has been, then
-      // move it back to the correct location.
+
+      /* If this object is not nil, but at least one before it has been, then
+       * move it back to the correct location.
+       */
       if (nil != obj && i != insert)
-       {
-         pointerFunctionsAssign(&_pf, &_contents[insert++], obj);
-       }
+        {
+          pointerFunctionsAssign(&_pf, &_contents[insert++], obj);
+        }
     }
   _count = insert;
 }
@@ -308,8 +312,9 @@ static Class	concreteClass = Nil;
   for (i = 0; i < _count; i++)
     {
       NSLog(@"Copying %d, %p", i, _contents[i]);
-      pointerFunctionsAcquire(&_pf, &c->_contents[i],
-              pointerFunctionsRead(&_pf, &_contents[i]));
+      pointerFunctionsAssign(&_pf, &c->_contents[i],
+        pointerFunctionsAcquire(&_pf,
+	  pointerFunctionsRead(&_pf, &_contents[i])));
     }
   return c;
 }
@@ -429,7 +434,6 @@ static Class	concreteClass = Nil;
 - (void) insertPointer: (void*)pointer atIndex: (NSUInteger)index
 {
   NSUInteger	i;
-  
 
   if (index > _count)
     {
@@ -442,7 +446,8 @@ static Class	concreteClass = Nil;
       pointerFunctionsMove(&_pf, _contents+i, _contents + i-1);
       i--;
     }
-  pointerFunctionsAcquire(&_pf, &_contents[index], pointer);
+  pointerFunctionsAssign(&_pf, &_contents[index],
+    pointerFunctionsAcquire(&_pf, pointer));
 }
 
 - (BOOL) isEqual: (id)other
@@ -465,9 +470,11 @@ static Class	concreteClass = Nil;
   while (count-- > 0)
     {
       if (pointerFunctionsEqual(&_pf,
-            pointerFunctionsRead(&_pf, &_contents[count]),
-            [other pointerAtIndex: count]) == NO)
-	return NO;
+	pointerFunctionsRead(&_pf, &_contents[count]),
+	[other pointerAtIndex: count]) == NO)
+	{
+	  return NO;
+	}
     }
   return YES;
 }
@@ -500,7 +507,7 @@ static Class	concreteClass = Nil;
     {
       pointerFunctionsMove(&_pf, &_contents[index-1], &_contents[index]);
     }
-  [self setCount: _count - 1];
+  _contents[--_count] = NULL;
 }
 
 - (void) replacePointerAtIndex: (NSUInteger)index withPointer: (void*)item
@@ -512,10 +519,17 @@ static Class	concreteClass = Nil;
   pointerFunctionsReplace(&_pf, &_contents[index], item);
 }
 
+
+#define	ZEROING 0
+
 - (void) setCount: (NSUInteger)count
 {
   if (count > _count)
     {
+#if ZEROING
+      NSUInteger	index = _count;
+#endif
+
       _count = count;
       if (_count >= _capacity)
 	{
@@ -532,37 +546,45 @@ static Class	concreteClass = Nil;
 	  size = (new_cap + new_gf)*sizeof(void*);
 	  new_cap += new_gf;
 	  new_gf = new_cap / 2;
-	  if (_contents == 0)
+#if ZEROING
+	  /* The objc2 API for zeroing weak references passes the addresses of
+	   * pointers, so an implementation could zero the reference when the
+	   * associated object is deallocated.  This can potentially cause an
+	   * issue if a chunk of memory cntaining a weak reference is returned
+	   * to the heap and the runtime zeros part of it after it has been
+	   * re-used.  To be safe in that case we must move the weak references
+	   * explicitly before returning memry to the heap.
+	   */
+          ptr = NSZoneMalloc([self zone], size);
+	  if (0 == ptr)
 	    {
-	      if (memoryType(_pf.options, NSPointerFunctionsZeroingWeakMemory))
-		{
-		  ptr = (void**)NSAllocateCollectable(size, 0);
-		}
-	      else
-		{
-		  ptr = (void**)NSAllocateCollectable(size, NSScannedOption);
-		} 
+	      [NSException raise: NSMallocException
+			  format: @"Unable to grow array"];
 	    }
-	  else
+	  memset(ptr, '\0', size);
+	  if (_contents)
 	    {
-	      if (memoryType(_pf.options, NSPointerFunctionsZeroingWeakMemory))
+	      while (index-- > 0)
 		{
-		  ptr = (void**)NSReallocateCollectable(
-		    _contents, size, 0);
-		}
-	      else
-		{
-		  ptr = (void**)NSReallocateCollectable(
-		    _contents, size, NSScannedOption);
+		  pointerFunctionsMove(&_pf, ptr + index, _contents + index);
 		} 
+	      NSZoneFree([self zone], _contents);
 	    }
-	  if (ptr == 0)
+#else
+	  /* The gnustep libobjc2 implementation of the weak reference methods
+	   * does not zero the memory location until/unless something tries to
+	   * load a weakly referenced object from it, so it is safe to simply
+           * copy the array.
+	   */
+	  ptr = NSZoneRealloc([self zone], _contents, size);
+	  if (0 == ptr)
 	    {
 	      [NSException raise: NSMallocException
 			  format: @"Unable to grow array"];
 	    }
 	  memset(ptr + _capacity, '\0',
 	    (new_cap - _capacity) * sizeof(void*));
+#endif
 	  _contents = ptr;
 	  _capacity = new_cap;
 	  _grow_factor = new_gf;

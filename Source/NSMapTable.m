@@ -80,22 +80,22 @@ static Class	concreteClass = 0;
 {
   return [self mapTableWithKeyOptions: NSPointerFunctionsObjectPersonality
 			 valueOptions: NSPointerFunctionsObjectPersonality
-    | NSPointerFunctionsZeroingWeakMemory];
+    | NSPointerFunctionsWeakMemory];
 }
 
 + (id) mapTableWithWeakToStrongObjects
 {
   return [self mapTableWithKeyOptions: NSPointerFunctionsObjectPersonality
-    | NSPointerFunctionsZeroingWeakMemory
+    | NSPointerFunctionsWeakMemory
 			 valueOptions: NSPointerFunctionsObjectPersonality];
 }
 
 + (id) mapTableWithWeakToWeakObjects
 {
   return [self mapTableWithKeyOptions: NSPointerFunctionsObjectPersonality
-    | NSPointerFunctionsZeroingWeakMemory
+    | NSPointerFunctionsWeakMemory
 			 valueOptions: NSPointerFunctionsObjectPersonality
-    | NSPointerFunctionsZeroingWeakMemory];
+    | NSPointerFunctionsWeakMemory];
 }
 
 + (id) strongToStrongObjectsMapTable

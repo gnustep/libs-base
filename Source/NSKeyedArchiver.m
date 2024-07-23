@@ -486,8 +486,6 @@ static NSDictionary *makeReference(unsigned ref)
 
 + (void) initialize
 {
-  GSMakeWeakPointer(self, "delegate");
-
   if (globalClassMap == 0)
     {
       globalClassMap =

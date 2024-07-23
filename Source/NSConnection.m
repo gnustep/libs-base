@@ -628,7 +628,6 @@ static NSLock	*cached_proxies_gate = nil;
     {
       NSNotificationCenter	*nc;
 
-      GSMakeWeakPointer(self, "delegate");
       connectionClass = self;
       dateClass = [NSDate class];
       distantObjectClass = [NSDistantObject class];
@@ -2846,8 +2845,10 @@ static NSLock	*cached_proxies_gate = nil;
       [tmp release];
       tmp = encoder;
       encoder = nil;
-      NSDebugMLLog(@"RMC", @"RMC %d replying with %s and %u out parameters",
-	seq, (YES == is_void ? "void result" : "result"), out_parameters);
+      NSDebugMLLog(@"RMC", @"RMC %d replying with %s"
+	@" and %u/%u in/out parameters",
+	seq, (YES == is_void ? "void result" : "result"),
+	in_parameters, out_parameters);
 
       [self _sendOutRmc: tmp type: METHOD_REPLY sequence: seq];
     }

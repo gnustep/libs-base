@@ -73,7 +73,7 @@ static Class	concreteClass = 0;
 + (id) hashTableWithWeakObjects
 {
   return [self hashTableWithOptions:
-    NSPointerFunctionsObjectPersonality | NSPointerFunctionsZeroingWeakMemory];
+    NSPointerFunctionsObjectPersonality | NSPointerFunctionsWeakMemory];
 }
 
 + (id) weakObjectsHashTable

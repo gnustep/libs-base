@@ -1861,8 +1861,6 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
 + (void) initialize
 {
-  GSMakeWeakPointer(self, "_delegate");
-  GSMakeWeakPointer(self, "_owner");
 }
 
 - (void) dealloc

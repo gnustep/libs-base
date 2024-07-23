@@ -123,16 +123,6 @@ GS_EXPORT_CLASS
 
 @interface NSPointerArray (NSArrayConveniences)  
 
-/** Creates an instance configured to hold objects and prevent them from
- * being garbage collected.
- */
-+ (id) pointerArrayWithStrongObjects;
-
-/** Creates an instance configured to hold objects, allowing them to be
- * garbage collected and replaced by nil if/when they are collected.
- */
-+ (id) pointerArrayWithWeakObjects;
-
 /** Returns an array containing all the non-nil objects from the receiver.
  */
 - (NSArray*) allObjects;

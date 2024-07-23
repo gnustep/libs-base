@@ -70,8 +70,6 @@ static Class	NSPort_concrete_class;
     {
       NSUserDefaults	*defs;
 
-      GSMakeWeakPointer(self, "delegate");
-
       NSPort_abstract_class = self;
       NSPort_concrete_class = [NSMessagePort class];
 

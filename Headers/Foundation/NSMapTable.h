@@ -156,9 +156,11 @@ GS_EXPORT_CLASS
 - (void) removeObjectForKey: (GS_GENERIC_TYPE(KeyT))aKey;
 
 /** Store the object under the specified key, replacing any object which
- * was previously stored under that key.
+ * was previously stored under that key.<br />
+ * Calling the method with eitther a nil key or a nil value has no effect.
  */
-- (void) setObject: (GS_GENERIC_TYPE(ValT))anObject forKey: (GS_GENERIC_TYPE(KeyT))aKey;
+- (void) setObject: (GS_GENERIC_TYPE(ValT))anObject
+	    forKey: (GS_GENERIC_TYPE(KeyT))aKey;
 
 /** Return an NSPointerFunctions value describind the functions used by the
  * receiver to handle values.

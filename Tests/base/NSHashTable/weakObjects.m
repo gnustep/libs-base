@@ -8,12 +8,14 @@
 int main()
 {
   START_SET("NSHashTable weak objects")
+#if !__APPLE__  // We assume that apple systems support zeroing weak pointers
 #ifdef OBJC_CAP_ARC
   if (!objc_test_capability(OBJC_CAP_ARC))
 #endif
   {
     SKIP("ARC support unavailable")
   }
+#endif
   NSAutoreleasePool *arp = [NSAutoreleasePool new];
   NSHashTable *hashTable = [NSHashTable weakObjectsHashTable];
 

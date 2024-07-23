@@ -82,9 +82,9 @@ typedef GSIMapNode_t *GSIMapNode;
 #define	GSI_MAP_KTYPES	GSUNION_PTR | GSUNION_OBJ
 #define	GSI_MAP_VTYPES	GSUNION_PTR | GSUNION_OBJ
 #define IS_WEAK_KEY(M) \
-  M->cb.pf.k.options & (NSPointerFunctionsZeroingWeakMemory | NSPointerFunctionsWeakMemory)
+  memoryType(M->cb.pf.k.options, NSPointerFunctionsWeakMemory)
 #define IS_WEAK_VALUE(M) \
-  M->cb.pf.v.options & (NSPointerFunctionsZeroingWeakMemory | NSPointerFunctionsWeakMemory)
+  memoryType(M->cb.pf.v.options, NSPointerFunctionsWeakMemory)
 #define GSI_MAP_HASH(M, X)\
  (M->legacy ? M->cb.old.k.hash(M, X.ptr) \
  : pointerFunctionsHash(&M->cb.pf.k, X.ptr))
@@ -96,49 +96,42 @@ typedef GSIMapNode_t *GSIMapNode;
   : IS_WEAK_KEY(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf.k, &X.ptr))
 #define GSI_MAP_RETAIN_KEY(M, X)\
  (M->legacy ? M->cb.old.k.retain(M, X.ptr) \
-  : IS_WEAK_KEY(M) ? nil : pointerFunctionsAcquire(&M->cb.pf.k, &X.ptr, X.ptr))
+  : IS_WEAK_KEY(M) ? nil : pointerFunctionsAssign(&M->cb.pf.k, &X.ptr,\
+    pointerFunctionsAcquire(&M->cb.pf.k, X.ptr)))
 #define GSI_MAP_RELEASE_VAL(M, X)\
  (M->legacy ? M->cb.old.v.release(M, X.ptr) \
   : IS_WEAK_VALUE(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf.v, &X.ptr))
 #define GSI_MAP_RETAIN_VAL(M, X)\
  (M->legacy ? M->cb.old.v.retain(M, X.ptr) \
-  : IS_WEAK_VALUE(M) ? nil : pointerFunctionsAcquire(&M->cb.pf.v, &X.ptr, X.ptr))
+  : IS_WEAK_VALUE(M) ? nil : pointerFunctionsAssign(&M->cb.pf.v, &X.ptr,\
+    pointerFunctionsAcquire(&M->cb.pf.v, X.ptr)))
 
-/* 2013-05-25 Here are the macros originally added for GC/ARC ...
- * but they caused map table entries to be doubly retained :-(
- * The question is, are the new versions I hacked in below to
- * fix this correct?
- 
+/* The GSI_MAP_WRITE_KEY() and GSI_MAP_WRITE_VAL() macros are expectd to
+ * write without retain (GSI_MAP RETAIN macros are executed separately)
+ * so they can't use pointerFunctionsAssign() unless working with weak
+ * references.
+ */
 #define GSI_MAP_WRITE_KEY(M, addr, x) \
-	if (M->legacy) \
-	  *(addr) = x;\
-	else\
-	  pointerFunctionsAssign(&M->cb.pf.k, (void**)addr, (x).obj);
+  if (M->legacy) \
+    *(addr) = x;\
+  else\
+    (IS_WEAK_KEY(M) ? pointerFunctionsAssign(&M->cb.pf.k, (void**)addr,\
+      (x).obj) : (*(id*)(addr) = (x).obj));
 #define GSI_MAP_WRITE_VAL(M, addr, x) \
-	if (M->legacy) \
-	  *(addr) = x;\
-	else\
-	  pointerFunctionsAssign(&M->cb.pf.v, (void**)addr, (x).obj);
-*/
-#define GSI_MAP_WRITE_KEY(M, addr, x) \
-	if (M->legacy) \
-          *(addr) = x;\
-	else\
-	  (IS_WEAK_KEY(M) ? pointerFunctionsAssign(&M->cb.pf.k, (void**)addr, (x).obj) : (*(id*)(addr) = (x).obj));
-#define GSI_MAP_WRITE_VAL(M, addr, x) \
-	if (M->legacy) \
-          *(addr) = x;\
-	else\
-	  (IS_WEAK_VALUE(M) ? pointerFunctionsAssign(&M->cb.pf.v, (void**)addr, (x).obj) : (*(id*)(addr) = (x).obj));
+  if (M->legacy) \
+    *(addr) = x;\
+  else\
+    (IS_WEAK_VALUE(M) ? pointerFunctionsAssign(&M->cb.pf.v, (void**)addr,\
+      (x).obj) : (*(id*)(addr) = (x).obj));
 #define GSI_MAP_READ_KEY(M,addr) \
-	(M->legacy ? *(addr)\
-	  : (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf.k, (void**)addr))
+  (M->legacy ? *(addr)\
+    : (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf.k, (void**)addr))
 #define GSI_MAP_READ_VALUE(M,addr) \
-	(M->legacy ? *(addr)\
-	  : (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf.v, (void**)addr))
+  (M->legacy ? *(addr)\
+    : (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf.v, (void**)addr))
 #define GSI_MAP_ZEROED(M)\
-        (M->legacy ? 0\
-	  : (IS_WEAK_KEY(M) || IS_WEAK_VALUE(M)) ? YES : NO)
+  (M->legacy ? 0\
+    : (IS_WEAK_KEY(M) || IS_WEAK_VALUE(M)) ? YES : NO)
 
 #define	GSI_MAP_ENUMERATOR	NSMapEnumerator
 
@@ -1380,11 +1373,11 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
 {
   GSIMapNode	node;
 
-  if (aKey == nil)
+  if (nil == aKey || nil == anObject)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"[%@-%@:] given nil argument",
-        NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+      /* tested behavior on os-x 14.5 is to do nothing if either arg is nil
+       */
+      return;
     }
   node = GSIMapNodeForKey(self, (GSIMapKey)aKey);
   if (node)
