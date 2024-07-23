@@ -410,6 +410,40 @@ systemLanguages()
 	  {
 	    [names addObjectsFromArray: GSLanguagesFromLocaleWithSeparator(locale, @"-")];
 	  }
+  #elif defined(__ANDROID__)
+  // When running on Android, the process must be correctly initialized
+  // with GSInitializeProcessAndroid (See NSProcessInfo).
+  //
+  // If the minimum API level is 24 or higher, the user-prefered locales
+  // are retrieved from the Android system and passed as GSAndroidLocaleList
+  // process argument
+  NSArray *args = [[NSProcessInfo processInfo] arguments];
+  NSEnumerator *enumerator = [args objectEnumerator];
+  NSString *key = nil;
+  NSString *localeList = nil;
+
+  [enumerator nextObject];	// Skip process name.
+  while (nil != (key = [enumerator nextObject]))
+    {
+      if ([key isEqualToString:@"-GSAndroidLocaleList"])
+        {
+          localeList = [enumerator nextObject];
+          break;
+        }
+    }
+
+  // The locale list is a comma-separated list of locales of form ll-CC
+  if (localeList != nil)
+    {
+      NSString *locale;
+      NSArray *locales = [localeList componentsSeparatedByString: @","];
+
+      enumerator = [locales objectEnumerator];
+      while (nil != (locale = [enumerator nextObject]))
+        {
+          [names addObjectsFromArray: GSLanguagesFromLocaleWithSeparator(locale, @"_")];
+        }
+    }
   #else
   // Add the languages listed in the LANGUAGE environment variable
   // (a non-POSIX GNU extension)
