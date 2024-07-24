@@ -56,6 +56,8 @@
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
 #if	defined(_WIN32)
+#import "win32/NSString+Win32Additions.h"
+
 /* Fake interface to avoid compiler warnings
  */
 @interface	NSUserDefaultsWin32 : NSUserDefaults
@@ -355,6 +357,58 @@ systemLanguages()
 {
   NSMutableArray *names = [NSMutableArray arrayWithCapacity: 10];
 
+  #ifdef WIN32
+  NSEnumerator *enumerator;
+  NSArray *languages;
+	NSString *locale;
+  BOOL ret;
+
+  unsigned long numberOfLanguages = 0;
+  unsigned long length = 3;
+  unsigned long factor = sizeof(wchar_t);
+  wchar_t *buffer = malloc(length * factor);
+  if (!buffer)
+    {
+      return names;
+    }
+
+  /* Returns a wchar_t list of languages in the form ll-CC, where ll is the
+   * two-letter language code, and CC is the two-letter country code.
+   */
+  ret = GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &numberOfLanguages,
+                                    buffer, &length);
+  if (!ret)
+    {
+      length = 0;
+      if (GetLastError() == ERROR_INSUFFICIENT_BUFFER &&
+          GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &numberOfLanguages,
+                                      NULL, &length)) {
+        wchar_t *oldBuffer = buffer; 
+        buffer = realloc(buffer, length * factor);
+        if (!buffer)
+          {
+            free(oldBuffer);
+            return names;
+          }
+
+        ret = GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &numberOfLanguages, buffer, &length);
+        if (!ret)
+          {
+            free(buffer);
+            return names;
+          }
+      }
+    }
+
+  languages = [NSString arrayFromWCharList:buffer length:length];
+  enumerator = [languages objectEnumerator];
+  free(buffer);
+
+	while (nil != (locale = [enumerator nextObject]))
+	  {
+	    [names addObjectsFromArray: GSLanguagesFromLocaleWithSeparator(locale, @"-")];
+	  }
+  #else
   // Add the languages listed in the LANGUAGE environment variable
   // (a non-POSIX GNU extension)
   {
@@ -367,11 +421,11 @@ systemLanguages()
 	NSString *locale;
 	while (nil != (locale = [enumerator nextObject]))
 	  {
-	    [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
+	    [names addObjectsFromArray: GSLanguagesFromLocaleWithSeparator(locale, @"_")];
 	  }
       }
   }	
-  
+
   // If LANGUAGES did not yield any languages, try LC_MESSAGES
 
   if ([names count] == 0)
@@ -380,9 +434,10 @@ systemLanguages()
 
       if (locale != nil)
 	{
-	  [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
+	  [names addObjectsFromArray: GSLanguagesFromLocaleWithSeparator(locale, @"_")];
 	}
     }
+  #endif
 
   return names;
 }
