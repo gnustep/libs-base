@@ -204,12 +204,16 @@ static Class	concreteClass = Nil;
 
 + (id) pointerArrayWithStrongObjects
 {               
-  return [self pointerArrayWithOptions: NSPointerFunctionsStrongMemory];
+  GSOnceMLog(@"Garbage Collection no longer supported."
+    @"  Using +strongObjectsPointerArray");
+  return [self strongObjectsPointerArray];
 }  
                 
 + (id) pointerArrayWithWeakObjects
 {         
-  return [self pointerArrayWithOptions: NSPointerFunctionsWeakMemory];
+  GSOnceMLog(@"Garbage Collection no longer supported."
+    @"  Using +weakObjectsPointerArray");
+  return [self weakObjectsPointerArray];
 }
 
 - (NSArray*) allObjects

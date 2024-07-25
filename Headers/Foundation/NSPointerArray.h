@@ -59,7 +59,7 @@ GS_EXPORT_CLASS
  * objects.
  */
 + (id) strongObjectsPointerArray;
-/** Returns a new pointer array for storing zeroing weak references to objects.
+/** Returns a new pointer array for storing weak references to objects.
  */
 + (id) weakObjectsPointerArray;
 
