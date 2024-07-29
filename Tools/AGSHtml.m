@@ -60,8 +60,6 @@ static GSXMLNode	*firstElement(GSXMLNode *nodes)
 @implementation	AGSHtml
 
 static NSMutableSet	*textNodes = nil;
-static NSString		*tocFont = nil;
-static NSString		*mainFont = nil;
 
 + (void) initialize
 {
@@ -90,10 +88,6 @@ static NSString		*mainFont = nil;
       [textNodes addObject: @"url"];
       [textNodes addObject: @"var"];
       [textNodes addObject: @"footnote"];
-
-      // default fonts
-      tocFont = @"sans";
-      mainFont = @"serif";
     }
 }
 
@@ -646,8 +640,10 @@ static NSString		*mainFont = nil;
 	  [buf appendString: indent];
 
           [buf appendString: indent];
-          [buf appendString: @"</font>\n"];
-
+          if (isContentsDoc)
+	    {
+	      [buf appendString: @"</div>\n"];
+	    }
 	  [buf appendString: @"</body>\n"];
 	}
       else if ([name isEqual: @"br"] == YES)
@@ -1136,17 +1132,11 @@ static NSString		*mainFont = nil;
 	  [buf appendString: @"<body>\n"];
 	  [self incIndent];
 
-          // special formatting for table-of-contents frames; ultimately
-          // this should be moved to stylesheet
+          // special formatting for table-of-contents frames
           if (isContentsDoc)
             {
               [buf appendString: indent];
-              [buf appendFormat: @"<font face=\"%@\" size=\"-1\">\n", tocFont];
-            }
-          else
-            {
-              [buf appendString: indent];
-              [buf appendFormat: @"<font face=\"%@\">\n", mainFont];
+              [buf appendString: @"<div class=\"ToC\">\n"];
             }
 
 	  if (prevFile != nil)
