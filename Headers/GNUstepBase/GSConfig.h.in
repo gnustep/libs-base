@@ -304,7 +304,7 @@ typedef	struct {
 
 #  if defined(__MINGW__)
 #    include <w32api.h>
-#    define GS_WINVER Windows2000
+#    define GS_WINVER WindowsVista
 #  elif defined(_MSC_VER)
 #    include <WinSDKVer.h>
 #    define GS_WINVER _WIN32_WINNT_WIN10
