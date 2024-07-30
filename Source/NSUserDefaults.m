@@ -366,7 +366,7 @@ systemLanguages()
   BOOL ret;
 
   unsigned long numberOfLanguages = 0;
-  unsigned long length = 3;
+  unsigned long length = 7;
   unsigned long factor = sizeof(wchar_t);
   wchar_t *buffer = malloc(length * factor);
   if (!buffer)
