@@ -72,30 +72,30 @@ static Class	concreteClass = 0;
 
 + (id) mapTableWithStrongToStrongObjects
 {
-  return [self mapTableWithKeyOptions: NSPointerFunctionsObjectPersonality
-			 valueOptions: NSPointerFunctionsObjectPersonality];
+  GSOnceMLog(@"Garbage Collection no longer supported."
+    @"  Using +strongToStrongObjectsMapTable");
+  return [self strongToStrongObjectsMapTable];
 }
 
 + (id) mapTableWithStrongToWeakObjects
 {
-  return [self mapTableWithKeyOptions: NSPointerFunctionsObjectPersonality
-			 valueOptions: NSPointerFunctionsObjectPersonality
-    | NSPointerFunctionsZeroingWeakMemory];
+  GSOnceMLog(@"Garbage Collection no longer supported."
+    @"  Using +strongToWeakObjectsMapTable");
+  return [self strongToWeakObjectsMapTable];
 }
 
 + (id) mapTableWithWeakToStrongObjects
 {
-  return [self mapTableWithKeyOptions: NSPointerFunctionsObjectPersonality
-    | NSPointerFunctionsZeroingWeakMemory
-			 valueOptions: NSPointerFunctionsObjectPersonality];
+  GSOnceMLog(@"Garbage Collection no longer supported."
+    @"  Using +weakToStringObjectsMapTable");
+  return [self weakToStringObjectsMapTable];
 }
 
 + (id) mapTableWithWeakToWeakObjects
 {
-  return [self mapTableWithKeyOptions: NSPointerFunctionsObjectPersonality
-    | NSPointerFunctionsZeroingWeakMemory
-			 valueOptions: NSPointerFunctionsObjectPersonality
-    | NSPointerFunctionsZeroingWeakMemory];
+  GSOnceMLog(@"Garbage Collection no longer supported."
+    @"  Using +weakToWeakObjectsMapTable");
+  return [self weakToWeakObjectsMapTable];
 }
 
 + (id) strongToStrongObjectsMapTable

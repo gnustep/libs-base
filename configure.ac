@@ -143,13 +143,21 @@ CURRENT_GNUSTEP_MAKEFILES="$GNUSTEP_MAKEFILES"
 
 #--------------------------------------------------------------------
 # Use config.guess, config.sub and install-sh provided by gnustep-make
+# Evaluation order of the configure script means we can not depend on
+# GNUSTEP_MAKEFILES being set for simple variable substitution, so we
+# execute a bit of shell code to dynamically get the directory.
 #--------------------------------------------------------------------
-AC_CONFIG_AUX_DIR($CURRENT_GNUSTEP_MAKEFILES)
+AC_CONFIG_AUX_DIR([`if test -z "$GNUSTEP_MAKEFILES"; then
+  gnustep-config --variable=GNUSTEP_MAKEFILES 2>&5
+else
+  echo $GNUSTEP_MAKEFILES
+fi`])
+
 
 #--------------------------------------------------------------------
 # Use a .h file with #define's, instead of -D command-line switches
 #--------------------------------------------------------------------
-AC_CONFIG_HEADER(Headers/GNUstepBase/config.h)
+AC_CONFIG_HEADERS([Headers/GNUstepBase/config.h:Headers/GNUstepBase/config.h.in])
 
 #--------------------------------------------------------------------
 # Determine the host, build, and target systems
@@ -1372,12 +1380,12 @@ fi
 #--------------------------------------------------------------------
 AC_MSG_NOTICE(for gdomap network details)
 AC_MSG_CHECKING(for variable length socket addresses)
-AC_TRY_COMPILE([
+AC_LANG(C)
+AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
   #include <sys/types.h>
   #include <sys/socket.h>
-  #include <net/if.h>
-  ],
-  [struct ifreq s; s.ifr_addr.sa_len = 0;],
+  #include <net/if.h>]],
+  [[struct ifreq s; s.ifr_addr.sa_len = 0;]])],
   sa_len=1, sa_len=0)
 if test $sa_len = 1; then
   AC_MSG_RESULT([found])
@@ -1409,10 +1417,11 @@ CFLAGS="$saved_CFLAGS"
 # Check if system has buggy SO_REUSEADDR
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(whether SO_REUSEADDR is broken)
-AC_TRY_RUN([#include "$srcdir/config/config.reuseaddr.c"],
-	reuseaddr_ok=1,
-	reuseaddr_ok=0,
-	reuseaddr_ok="$cross_reuseaddr_ok")
+AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.reuseaddr.c"]])],
+	[reuseaddr_ok=1],
+	[reuseaddr_ok=0],
+	[reuseaddr_ok="$cross_reuseaddr_ok"])
 if test $reuseaddr_ok = 0; then
   AC_DEFINE(BROKEN_SO_REUSEADDR,1,
             [Define if SO_REUSEADDR is broken on this system])
@@ -1951,13 +1960,16 @@ CFLAGS=$saved_CFLAGS
 # Check whether we can get the system thread ID
 #--------------------------------------------------------------------
 AC_CACHE_CHECK([for gettid()], ac_cv_gettid,
-[AC_TRY_RUN(#define _GNU_SOURCE
+[AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#define _GNU_SOURCE
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <sys/types.h>
 int main(int argc, char **argv) {
-pid_t t = syscall(SYS_gettid); return t == -1 ? 1 : 0; },
-[ac_cv_gettid=yes], [ac_cv_gettid=no], [ac_cv_gettid=no])])
+pid_t t = syscall(SYS_gettid); return t == -1 ? 1 : 0; }]])],
+	[ac_cv_gettid=yes],
+	[ac_cv_gettid=no],
+	[ac_cv_gettid=no])])
 if test "$ac_cv_gettid" = "yes"; then
   AC_DEFINE(HAVE_GETTID, 1, [Define if you have gettid()])
 fi
@@ -1975,10 +1987,11 @@ if test x"$objc_threaded" != x""; then
 fi
 LIBS="$LIBS $extra_LIBS"
 AC_CACHE_VAL(gs_cv_objc_works,
-  AC_TRY_RUN([#include "$srcdir/config/config.objc.m"],
-  gs_cv_objc_works=yes,
-  gs_cv_objc_works=no,
-  gs_cv_objc_works="$cross_gs_cv_objc_works")
+  AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.objc.m"]])],
+  	[gs_cv_objc_works=yes],
+  	[gs_cv_objc_works=no],
+  	[gs_cv_objc_works="$cross_gs_cv_objc_works"])
 )
 if test $gs_cv_objc_works = yes; then
   AC_MSG_RESULT(yes)
@@ -2010,10 +2023,12 @@ else
   CPPFLAGS="$CPPFLAGS -fconstant-string-class=FooConstantString"
   AC_MSG_CHECKING(if the compiler supports -fconstant-string-class)
   AC_CACHE_VAL(gs_cv_objc_compiler_supports_constant_string_class,
-    AC_TRY_RUN([#include "$srcdir/config/config.constant-string-class.m"],
-    gs_cv_objc_compiler_supports_constant_string_class=yes,
-    gs_cv_objc_compiler_supports_constant_string_class=no,
-    gs_cv_objc_compiler_supports_constant_string_class="$cross_gs_cv_objc_compiler_supports_constant_string_class")
+    AC_RUN_IFELSE(
+	[AC_LANG_SOURCE(
+	  [[#include "$srcdir/config/config.constant-string-class.m"]])],
+    	[gs_cv_objc_compiler_supports_constant_string_class=yes],
+    	[gs_cv_objc_compiler_supports_constant_string_class=no],
+    	[gs_cv_objc_compiler_supports_constant_string_class="$cross_gs_cv_objc_compiler_supports_constant_string_class"])
   )
   if test $gs_cv_objc_compiler_supports_constant_string_class = yes; then
     NX_CONST_STRING_OBJCFLAGS="-fconstant-string-class=NSConstantString"
@@ -2049,10 +2064,11 @@ AC_SUBST(NX_CONST_STRING_CLASS)
 #---------------------------------------------------------------------
 AC_MSG_CHECKING(if +load method is executed before main)
 AC_CACHE_VAL(gs_cv_objc_load_method_worked,
-  AC_TRY_RUN([#include "$srcdir/config/config.loadtest.m"],
-	gs_cv_objc_load_method_worked=yes,
-	gs_cv_objc_load_method_worked=no,
-	gs_cv_objc_load_method_worked="$cross_gs_cv_objc_load_method_worked")
+  AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.loadtest.m"]])],
+	[gs_cv_objc_load_method_worked=yes],
+	[gs_cv_objc_load_method_worked=no],
+	[gs_cv_objc_load_method_worked="$cross_gs_cv_objc_load_method_worked"])
 )
 if test $gs_cv_objc_load_method_worked = yes; then
   AC_DEFINE(HAVE_LOAD_METHOD,1,
@@ -2470,11 +2486,10 @@ AC_CHECK_LIB(z, gzseek)
 AC_SEARCH_LIBS(sframe, sframe_decode)
 AC_CHECK_LIB(bfd, bfd_openr)
 
-AC_TRY_COMPILE([
-  #include <bfd.h>
-  ],
-  [bfd_section_vma(0);],
-  bfd_section_vma=1, bfd_section_vma=0)
+AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM([[#include <bfd.h>]],[[bfd_section_vma(0);]])],
+	[bfd_section_vma=1],
+	[bfd_section_vma=0])
 if test $bfd_section_vma = 1; then
   AC_MSG_RESULT([bfd_section_vma found])
   AC_DEFINE([HAVE_BFD_SECTION_VMA], [1], [Have bfd_section_vma])
@@ -2539,7 +2554,11 @@ if test $ac_cv_header_poll_h = yes; then
   if test $have_poll = yes; then
     AC_MSG_RESULT(no)
     AC_MSG_CHECKING([if poll supports devices])
-    AC_TRY_RUN([#include "$srcdir/config/config.poll-dev.c"i], ,have_poll=no, have_poll="$cross_have_poll" )
+    AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.poll-dev.c"]])],
+	,
+	[have_poll=no],
+	[have_poll="$cross_have_poll"])
     if test $have_poll = yes; then
       AC_MSG_RESULT(yes)
       AC_DEFINE(HAVE_POLL_F,1, [ Define if poll is NOT emulated via select])
@@ -2556,18 +2575,20 @@ fi
 #--------------------------------------------------------------------
 AC_CHECK_FUNCS(vsprintf vasprintf snprintf vsnprintf)
 if test $ac_cv_func_vsprintf = yes ; then
-    AC_TRY_RUN([#include "$srcdir/config/config.vsprintf.c"],
-		VSPRINTF_RETURNS_LENGTH=1,
-		VSPRINTF_RETURNS_LENGTH=0,
-		VSPRINTF_RETURNS_LENGTH="$cross_VSPRINTF_RETURNS_LENGTH")
+    AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.vsprintf.c"]])],
+	[VSPRINTF_RETURNS_LENGTH=1],
+	[VSPRINTF_RETURNS_LENGTH=0],
+	[VSPRINTF_RETURNS_LENGTH="$cross_VSPRINTF_RETURNS_LENGTH"])
     AC_DEFINE_UNQUOTED(VSPRINTF_RETURNS_LENGTH, $VSPRINTF_RETURNS_LENGTH,
                        [Define if vsprintf returns the length printed])
 fi
 if test $ac_cv_func_vasprintf = yes ; then
-    AC_TRY_RUN([#include "$srcdir/config/config.vasprintf.c"],
-		VASPRINTF_RETURNS_LENGTH=1,
-		VASPRINTF_RETURNS_LENGTH=0,
-		VASPRINTF_RETURNS_LENGTH="$cross_VASPRINTF_RETURNS_LENGTH")
+    AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.vasprintf.c"]])],
+	[VASPRINTF_RETURNS_LENGTH=1],
+	[VASPRINTF_RETURNS_LENGTH=0],
+	[VASPRINTF_RETURNS_LENGTH="$cross_VASPRINTF_RETURNS_LENGTH"])
     AC_DEFINE_UNQUOTED(VASPRINTF_RETURNS_LENGTH, $VASPRINTF_RETURNS_LENGTH,
                        [Define if vasprintf returns the length printed])
 fi
@@ -2756,10 +2777,11 @@ AC_CHECK_HEADERS(wchar.h)
 saved_CFLAGS="$CFLAGS"
 CFLAGS="$CFLAGS -O0"
 AC_MSG_CHECKING(short/int needs to be word aligned)
-AC_TRY_RUN([#include "$srcdir/config/config.align.c"],
-	NEED_WORD_ALIGNMENT=0,
-	NEED_WORD_ALIGNMENT=1,
-	NEED_WORD_ALIGNMENT="$cross_NEED_WORD_ALIGNMENT")
+AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.align.c"]])],
+	[NEED_WORD_ALIGNMENT=0],
+	[NEED_WORD_ALIGNMENT=1],
+	[NEED_WORD_ALIGNMENT="$cross_NEED_WORD_ALIGNMENT"])
 CFLAGS="$saved_CFLAGS"
 AC_DEFINE_UNQUOTED(NEED_WORD_ALIGNMENT, $NEED_WORD_ALIGNMENT,
                    [Define if your system needs to have short/int word aligned])
@@ -2776,15 +2798,19 @@ AC_CHECK_FUNCS(register_printf_specifier)
 AC_CHECK_FUNC(register_printf_function, register_printf=1,
 register_printf=0)
 if test $register_printf = 1; then
-  AC_TRY_RUN([#include "$srcdir/config/config.printf.c"],
-	       working_register_printf=1, working_register_printf=0,
-               working_register_printf="$cross_working_register_printf")
+  AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.printf.c"]])],
+	[working_register_printf=1],
+	[working_register_printf=0],
+       	[working_register_printf="$cross_working_register_printf"])
   if test $working_register_printf = 1; then
     AC_DEFINE(HAVE_REGISTER_PRINTF_FUNCTION,1,
               [Define if you have the register_printf_function function])
-    AC_TRY_RUN([#include "$srcdir/config/config.wprintf.c"],
-	       wide_register_printf=1, wide_register_printf=0,
-               wide_register_printf="$cross_wide_register_printf")
+    AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.wprintf.c"]])],
+	[wide_register_printf=1],
+	[wide_register_printf=0],
+	[wide_register_printf="$cross_wide_register_printf"])
     if test $wide_register_printf = 1; then
       AC_DEFINE(HAVE_WIDE_PRINTF_FUNCTION,1,
               [Define if register_printf_function supports wide characters])
@@ -2804,7 +2830,8 @@ AC_CHECK_FUNCS(realpath)
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(program_invocation_name in C Library)
 AC_CACHE_VAL(gs_cv_program_invocation_name_worked,
-[AC_TRY_RUN([
+[AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[
 #include <string.h>
 int
 main (int argc, char *argv[])
@@ -2812,8 +2839,10 @@ main (int argc, char *argv[])
   extern char *program_invocation_name;
   return (strcmp (program_invocation_name, argv[0]));
 }
-], gs_cv_program_invocation_name_worked=yes, gs_cv_program_invocation_name_worked=no,
- gs_cv_program_invocation_name_worked="$cross_gs_cv_program_invocation_name_worked")])
+]])],
+	[gs_cv_program_invocation_name_worked=yes],
+	[gs_cv_program_invocation_name_worked=no],
+	[gs_cv_program_invocation_name_worked="$cross_gs_cv_program_invocation_name_worked"])])
 if test $gs_cv_program_invocation_name_worked = yes; then
   AC_DEFINE(HAVE_PROGRAM_INVOCATION_NAME,1,
             [Define if your Lib C defines program_invocation_name])
@@ -2846,10 +2875,11 @@ AC_SYS_PROCFS_EXE_LINK
 # Check if /proc/$$/cmdline terminates the last argument with a nul
 #--------------------------------------------------------------------
 AC_MSG_CHECKING(/proc/$$/cmdline terminated by nul)
-AC_TRY_RUN([#include "$srcdir/config/config.proccmd.c"],
-	CMDLINE_TERMINATED=1,
-	CMDLINE_TERMINATED=0,
-	CMDLINE_TERMINATED="$cross_CMDLINE_TERMINATED")
+AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.proccmd.c"]])],
+	[CMDLINE_TERMINATED=1],
+	[CMDLINE_TERMINATED=0],
+	[CMDLINE_TERMINATED="$cross_CMDLINE_TERMINATED"])
 AC_DEFINE_UNQUOTED(CMDLINE_TERMINATED, $CMDLINE_TERMINATED,
 		   [Define if your system terminates the final argument in /proc/$$/cmdline])
 if test $CMDLINE_TERMINATED = 1; then
@@ -2866,10 +2896,11 @@ save_LIBS="$LIBS"
 AC_CHECK_LIB(kvm, kvm_getenvv)
 if test "$ac_cv_lib_kvm_kvm_getenvv" = yes; then
   AC_MSG_CHECKING(if we can access kernel memory)
-  AC_TRY_RUN([#include "$srcdir/config/config.kvmopen.c"],
-	have_kvm_env=1,
-	have_kvm_env=0,
-	have_kvm_env="$cross_have_kvm_env")
+  AC_RUN_IFELSE(
+	[AC_LANG_SOURCE[[#include "$srcdir/config/config.kvmopen.c"]])],
+	[have_kvm_env=1],
+	[have_kvm_env=0],
+	[have_kvm_env="$cross_have_kvm_env"])
   if test $have_kvm_env = 1; then
     AC_MSG_RESULT(yes)
     AC_DEFINE(HAVE_KVM_ENV, 1,
@@ -3095,8 +3126,11 @@ if test $enable_libffi = yes; then
     ffi_LIBS=-lffi
   fi
   LIBS="$ffi_LIBS $LIBS"
-  AC_TRY_RUN([#include "$srcdir/config/config.ffi.c"],
-             ffi_ok="yes",ffi_ok="no",ffi_ok="$cross_ffi_ok")
+  AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[#include "$srcdir/config/config.ffi.c"]])],
+	[ffi_ok="yes"],
+	[ffi_ok="no"],
+	[ffi_ok="$cross_ffi_ok"])
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(libffi)
     if test $do_broken_libffi = yes; then
@@ -3111,7 +3145,10 @@ elif test $enable_ffcall = yes; then
             [Define if using the ffcall library for invocations])
   WITH_FFI=ffcall
   LIBS="-lcallback -lavcall $LIBS"
-  AC_TRY_LINK([#include <callback.h>], , ffi_ok="yes", ffi_ok="no")
+  AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([[#include <callback.h>]],)],
+	[ffi_ok="yes"],
+	[ffi_ok="no"])
   if test $ffi_ok = yes; then
     AC_MSG_RESULT(ffcall)
   fi
@@ -3624,7 +3661,10 @@ if test $enable_libdispatch = yes; then
       # This check is needed because libdispatch might be linked against a
       # version of libBlocksRuntime that defines symbols conflicting with libobjc
       AC_MSG_CHECKING(whether we can link libdispatch and libobjc at the same time)
-      AC_TRY_LINK(,,have_dispatch=yes, have_dispatch=no)
+      AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM(,)],
+	[have_dispatch=yes],
+	[have_dispatch=no])
       if test "$have_dispatch" = "yes"; then
 	LIBS="$saveLIBS -ldispatch";
 	AC_MSG_RESULT(yes);

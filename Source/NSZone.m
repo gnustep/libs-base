@@ -93,6 +93,47 @@
 #import "GSPrivate.h"
 #import "GSPThread.h"
 
+/**
+ * Primary structure representing an <code>NSZone</code>.  Technically it
+ * consists of a set of function pointers for zone upkeep functions plus some
+ * other things-
+<example>
+{
+  // Functions for zone.
+  void *(*malloc)(struct _NSZone *zone, size_t size);
+  void *(*realloc)(struct _NSZone *zone, void *ptr, size_t size);
+  void (*free)(struct _NSZone *zone, void *ptr);
+  void (*recycle)(struct _NSZone *zone);
+  BOOL (*check)(struct _NSZone *zone);
+  BOOL (*lookup)(struct _NSZone *zone, void *ptr);
+
+  // Zone statistics (not always maintained).
+  struct NSZoneStats (*stats)(struct _NSZone *zone);
+  
+  size_t gran;    // Zone granularity (passed in on initialization)
+  NSString *name; // Name of zone (default is 'nil')
+  NSZone *next;   // Pointer used for internal management of multiple zones.
+}</example>
+ */
+
+struct _NSZone
+{
+  /* Functions for zone. */
+  void *(*malloc)(struct _NSZone *zone, size_t size);
+  void *(*realloc)(struct _NSZone *zone, void *ptr, size_t size);
+  void (*free)(struct _NSZone *zone, void *ptr);
+  void (*recycle)(struct _NSZone *zone);
+  BOOL (*check)(struct _NSZone *zone);
+  BOOL (*lookup)(struct _NSZone *zone, void *ptr);
+  struct NSZoneStats (*stats)(struct _NSZone *zone);
+  
+  size_t gran; // Zone granularity
+  __unsafe_unretained NSString *name; // Name of zone (default is 'nil')
+  NSZone *next;
+};
+
+
+
 static gs_mutex_t  zoneLock = GS_MUTEX_INIT_STATIC;
 
 /**
@@ -1752,23 +1793,6 @@ NSZone*
 GSAtomicMallocZone (void)
 {
   return &default_zone;
-}
-
-GS_DECLARE void
-GSMakeWeakPointer(Class theClass, const char *iVarName)
-{
-  return;
-}
-
-GS_DECLARE BOOL
-GSAssignZeroingWeakPointer(void **destination, void *source)
-{
-  if (destination == 0)
-    {
-      return NO;
-    }
-  *destination = source;
-  return YES;
 }
 
 GS_DECLARE void*

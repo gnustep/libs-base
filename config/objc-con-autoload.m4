@@ -21,15 +21,17 @@ AC_DEFUN(OBJC_CON_AUTOLOAD,
 AC_MSG_CHECKING(loading of constructor functions)
 AC_CACHE_VAL(objc_cv_con_autoload,
 [dnl
-AC_TRY_RUN([static int loaded = 0;
+AC_RUN_IFELSE(
+	[AC_LANG_SOURCE([[static int loaded = 0;
 	void cons_functions() __attribute__ ((constructor));
 	void cons_functions() { loaded = 1; }
 	int main()
 	{
   	  return ( (loaded == 1) ? 0 : 1);
-	}],
-	objc_cv_con_autoload=yes, objc_cv_con_autoload=no, 
-	objc_cv_con_autoload=no)
+	}]])],
+	[objc_cv_con_autoload=yes],
+	[objc_cv_con_autoload=no], 
+	[objc_cv_con_autoload=no])
 case "$target_os" in
     cygwin*)	objc_cv_con_autoload=yes;;
     mingw*)	objc_cv_con_autoload=yes;;

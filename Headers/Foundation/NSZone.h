@@ -30,28 +30,6 @@
 #define __NSZone_h_GNUSTEP_BASE_INCLUDE
 #import	"GNUstepBase/GSVersionMacros.h"
 
-/**
- * Primary structure representing an <code>NSZone</code>.  Technically it
- * consists of a set of function pointers for zone upkeep functions plus some
- * other things-
-<example>
-{
-  // Functions for zone.
-  void *(*malloc)(struct _NSZone *zone, size_t size);
-  void *(*realloc)(struct _NSZone *zone, void *ptr, size_t size);
-  void (*free)(struct _NSZone *zone, void *ptr);
-  void (*recycle)(struct _NSZone *zone);
-  BOOL (*check)(struct _NSZone *zone);
-  BOOL (*lookup)(struct _NSZone *zone, void *ptr);
-
-  // Zone statistics (not always maintained).
-  struct NSZoneStats (*stats)(struct _NSZone *zone);
-  
-  size_t gran;    // Zone granularity (passed in on initialization)
-  NSString *name; // Name of zone (default is 'nil')
-  NSZone *next;   // Pointer used for internal management of multiple zones.
-}</example>
- */
 typedef struct _NSZone NSZone;
 
 #import	<Foundation/NSObjCRuntime.h>
@@ -61,22 +39,6 @@ typedef struct _NSZone NSZone;
 #if	defined(__cplusplus)
 extern "C" {
 #endif
-
-struct _NSZone
-{
-  /* Functions for zone. */
-  void *(*malloc)(struct _NSZone *zone, size_t size);
-  void *(*realloc)(struct _NSZone *zone, void *ptr, size_t size);
-  void (*free)(struct _NSZone *zone, void *ptr);
-  void (*recycle)(struct _NSZone *zone);
-  BOOL (*check)(struct _NSZone *zone);
-  BOOL (*lookup)(struct _NSZone *zone, void *ptr);
-  struct NSZoneStats (*stats)(struct _NSZone *zone);
-  
-  size_t gran; // Zone granularity
-  __unsafe_unretained NSString *name; // Name of zone (default is 'nil')
-  NSZone *next;
-};
 
 /**
  * Creates a new zone of start bytes, which will grow and shrink by
@@ -230,40 +192,6 @@ NSZoneStats (NSZone *zone);
  */
 void*
 GSOutOfMemory(NSUInteger size, BOOL retry);
-
-/**
- * Called during +initialize to tell the class that instances created
- * in future should have the specified instance variable as a weak
- * pointer for garbage collection.<br />
- * NB. making a pointer weak does not mean that it is automatically
- * zeroed when the object it points to is garbage collected. To get that
- * behavior you must asign values to the pointer using the
- * GSAssignZeroingWeakPointer() function.<br />
- * This function has no effect if the system is
- * not built for garbage collection.
- */
-GS_EXPORT void
-GSMakeWeakPointer(Class theClass, const char *iVarName);
-
-/**
- * This function must be used to assign a value to a zeroing weak pointer.<br />
- * A zeroing weak pointer is one where, when the garbage collector collects
- * the object pointed to, it also clears the weak pointer.<br />
- * Assigning zero (nil) will always succeed and has the effect of telling the
- * garbage collector that it no longer needs to track the previously assigned
- * object.  Apart from that case, a source needs to be garbage collectable for
- * this function to work, and using a non-garbage collectable value will
- * cause the function to return NO.<br />
- * If the destination object (the weak pointer watching the source object)
- * belongs to a chunk of memory which may be collected before the source
- * object is collected, it is important that it is finalised and the
- * finalisation code assigns zero to the pointer.<br />
- * If garbage collection is not in use, this function performs a simple
- * assignment returning YES, unless destination is null in which case it
- * returns NO.
- */
-GS_EXPORT BOOL
-GSAssignZeroingWeakPointer(void **destination, void *source);
 
 #endif
 

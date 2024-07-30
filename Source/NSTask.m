@@ -880,10 +880,17 @@ pty_slave(const char* name)
     }
   [timer invalidate];
 
-  /* Run loop one last time (with limit date in past) so that any
-   * notification about the task ending is sent immediately.
+  /* Run loop twice more (with limit date in past) so that if the
+   * notification about the task ending is to be delivered in this
+   * thread it is delivered before this method completes. (Twice
+   * because the first time runs the _notifyOfTermination performer,
+   * which queues the notification, and the second dequeues and posts
+   * the notification.)
+   * If the task was launched in another thread, the notification
+   * is delivered when that thread executes its run loop.
    */
   limit = [NSDate dateWithTimeIntervalSinceNow: 0.0];
+  [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
   [loop runMode: NSDefaultRunLoopMode beforeDate: limit];
   LEAVE_POOL
 }

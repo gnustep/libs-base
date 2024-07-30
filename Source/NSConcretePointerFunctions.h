@@ -31,10 +31,8 @@
 
 #if defined(OBJC_CAP_ARC)
 #    include <objc/objc-arc.h>
-#    define ARC_WEAK_READ(x) objc_loadWeak((id*)x)
-#    define ARC_WEAK_WRITE(addr, x) objc_storeWeak((id*)addr, (id)x)
-#    define WEAK_READ(x) (*x)
-#    define WEAK_WRITE(addr, x) (*(addr) =  x)
+#    define WEAK_READ(x) objc_loadWeak((id*)x)
+#    define WEAK_WRITE(addr, x) objc_storeWeak((id*)addr, (id)x)
 #    define STRONG_WRITE(addr, x) objc_storeStrong((id*)addr, (id)x)
 #    define STRONG_ACQUIRE(x) objc_retain(x)
 #else
@@ -42,12 +40,6 @@
 #  define WEAK_WRITE(addr, x) (*(addr) =  x)
 #  define STRONG_WRITE(addr, x) ASSIGN(*((id*)addr), ((id)x))
 #  define STRONG_ACQUIRE(x) RETAIN(((id)x))
-#endif
-#ifndef ARC_WEAK_WRITE
-#  define ARC_WEAK_WRITE(addr, x) WEAK_WRITE(addr, x)
-#endif
-#ifndef ARC_WEAK_READ
-#  define ARC_WEAK_READ(x) WEAK_READ(x)
 #endif
 
 
@@ -107,10 +99,6 @@ static inline void *pointerFunctionsRead(PFInfo *PF, void **addr)
 {
   if (memoryType(PF->options, NSPointerFunctionsWeakMemory))
     {
-      return ARC_WEAK_READ((id*)addr);
-    }
-  if (memoryType(PF->options, NSPointerFunctionsZeroingWeakMemory))
-    {
       return WEAK_READ((id*)addr);
     }
   return *addr;
@@ -122,10 +110,6 @@ static inline void *pointerFunctionsRead(PFInfo *PF, void **addr)
 static inline void pointerFunctionsAssign(PFInfo *PF, void **addr, void *value)
 {
   if (memoryType(PF->options, NSPointerFunctionsWeakMemory))
-    {
-      ARC_WEAK_WRITE(addr, value);
-    }
-  else if (memoryType(PF->options, NSPointerFunctionsZeroingWeakMemory))
     {
       WEAK_WRITE(addr, value);
     }
@@ -139,22 +123,16 @@ static inline void pointerFunctionsAssign(PFInfo *PF, void **addr, void *value)
     }
 }
 
-/* Acquire the pointer value to store for the specified item.
- */
 static inline void *
-pointerFunctionsAcquire(PFInfo *PF, void **dst, void *src)
+pointerFunctionsAcquire(PFInfo *PF, void *src)
 {
   if (PF->acquireFunction != 0)
-    src = (*PF->acquireFunction)(src, PF->sizeFunction,
-    PF->options & NSPointerFunctionsCopyIn ? YES : NO);
-  // FIXME: This shouldn't be here.  Acquire and assign are separate
-  // operations.  Acquire is for copy-in operations (i.e. retain / copy),
-  // assign is for move operations of already-owned pointers.  Combining them
-  // like this is Just Plain Wrong™
-  pointerFunctionsAssign(PF, dst, src);
+    {
+      src = (*PF->acquireFunction)(src, PF->sizeFunction,
+	PF->options & NSPointerFunctionsCopyIn ? YES : NO);
+    }
   return src;
 }
-
 
 /**
  * Moves a pointer from location to another.
@@ -209,9 +187,7 @@ pointerFunctionsRelinquish(PFInfo *PF, void **itemptr)
   if (PF->relinquishFunction != 0)
     (*PF->relinquishFunction)(*itemptr, PF->sizeFunction);
   if (memoryType(PF->options, NSPointerFunctionsWeakMemory))
-    ARC_WEAK_WRITE(itemptr, 0);
-  else if (memoryType(PF->options, NSPointerFunctionsZeroingWeakMemory))
-    WEAK_WRITE(itemptr, (void*)0);
+    WEAK_WRITE(itemptr, 0);
   else
     *itemptr = 0;
 }
@@ -228,9 +204,7 @@ pointerFunctionsReplace(PFInfo *PF, void **dst, void *src)
       if (PF->relinquishFunction != 0)
 	(*PF->relinquishFunction)(*dst, PF->sizeFunction);
       if (memoryType(PF->options, NSPointerFunctionsWeakMemory))
-        ARC_WEAK_WRITE(dst, 0);
-      else if (memoryType(PF->options, NSPointerFunctionsZeroingWeakMemory))
-        WEAK_WRITE(dst, (void*)0);
+        WEAK_WRITE(dst, 0);
       else
 	*dst = src;
     }

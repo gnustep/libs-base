@@ -59,7 +59,7 @@ GS_EXPORT_CLASS
  * objects.
  */
 + (id) strongObjectsPointerArray;
-/** Returns a new pointer array for storing zeroing weak references to objects.
+/** Returns a new pointer array for storing weak references to objects.
  */
 + (id) weakObjectsPointerArray;
 
@@ -122,16 +122,6 @@ GS_EXPORT_CLASS
 @end
 
 @interface NSPointerArray (NSArrayConveniences)  
-
-/** Creates an instance configured to hold objects and prevent them from
- * being garbage collected.
- */
-+ (id) pointerArrayWithStrongObjects;
-
-/** Creates an instance configured to hold objects, allowing them to be
- * garbage collected and replaced by nil if/when they are collected.
- */
-+ (id) pointerArrayWithWeakObjects;
 
 /** Returns an array containing all the non-nil objects from the receiver.
  */
