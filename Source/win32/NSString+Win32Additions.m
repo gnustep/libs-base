@@ -39,7 +39,7 @@
   array = [string componentsSeparatedByString: @"\0"];
   RELEASE(string);
 
-  return AUTORELEASE(array);
+  return array;
 }
 
 @end
