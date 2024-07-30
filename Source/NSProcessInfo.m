@@ -1629,7 +1629,9 @@ GSInitializeProcessAndroid(JNIEnv *env, jobject context)
         localeList = strdup(localeListOrig);
       }
 
-      // FIXME: This is an IETF BCP 47 language tag and may not correspond to ll-CC format
+      // NOTE: This is an IETF BCP 47 language tag and may not correspond exactly tocorrespond ll-CC format
+      // e.g. gsw-u-sd-chzh is a valid BCP 47 language tag, but uses an ISO 639-3 subtag to classify the language.
+      // There is no easy fix to this, as we use ISO 639-2 subtags internally.
       for (int i = 0; localeList[i]; i++) {
         if (localeList[i] == '-') {
           localeList[i] = '_';
