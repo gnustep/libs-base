@@ -211,7 +211,7 @@ copyDispatchDataToNSData(dispatch_data_t dispatchData)
 - (void)acceptConnection
 {
   struct sockaddr_in clientAddr;
-  dispatch_io_t      ioChannel;
+  dispatch_source_t clientSource;
   NSUInteger         sin_size;
   int                clientSocket;
 
@@ -222,45 +222,58 @@ copyDispatchDataToNSData(dispatch_data_t dispatchData)
       NSLog(@"Error accepting connection %s", strerror(errno));
       return;
     }
+  
+  clientSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ,
+                                         clientSocket, 0, _queue);
+  
+  dispatch_source_set_cancel_handler(clientSource, ^{
+    close(clientSocket);
+  });
 
-  ioChannel
-    = dispatch_io_create(DISPATCH_IO_STREAM, clientSocket, _queue,
-                         ^(int error) {
-                           close(clientSocket);
+  dispatch_source_set_event_handler(clientSource, ^{
+    while (1)
+      {
+        char buffer[4096];
+        ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+        if (bytesRead < 0)
+          {
+            #ifdef _WIN32
+            int error = WSAGetLastError();
+            if (error == WSAEWOULDBLOCK)
+              {
+                break;
+              }
+            #else
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
+              {
+                break;
+              }
+            #endif
+            else
+              {
+                NSLog(@"Error reading data %s", strerror(errno));
+                dispatch_source_cancel(clientSource);
+                return;
+              }
+          }
+        else if (bytesRead == 0)
+          {
+            dispatch_source_cancel(clientSource);
+            return;
+          }
+        else
+          {
+            NSData *data = [NSData dataWithBytes:buffer length:bytesRead];
+            [self handleConnectionData:data forSocket:clientSocket];
+          }
+      }
+  });
 
-                           if (error)
-                             {
-                               NSLog(@"Error creating dispatch I/O channel %s",
-                                     strerror(error));
-                               return;
-                             }
-                         });
-
-  dispatch_io_set_low_water(ioChannel, 1);
-
-  dispatch_io_read(ioChannel, 0, SIZE_MAX, _queue,
-                   ^(bool done, dispatch_data_t data, int error) {
-                     if (error)
-                       {
-                         NSLog(@"Error reading data %s", strerror(error));
-                         dispatch_io_close(ioChannel, DISPATCH_IO_STOP);
-                         return;
-                       }
-                     if (data && dispatch_data_get_size(data) != 0)
-                       {
-                         [self handleConnectionData:data
-                                          forSocket:clientSocket];
-                       }
-                     if (done)
-                       {
-                         dispatch_io_close(ioChannel, DISPATCH_IO_STOP);
-                       }
-                   });
+  dispatch_resume(clientSource);
 }
 
-- (void)handleConnectionData:(dispatch_data_t)data forSocket:(int)sock
+- (void)handleConnectionData:(NSData *)reqData forSocket:(int)sock
 {
-  NSData    *reqData;
   NSString  *reqString;
   NSRange    bodyRange;
   NSString  *method, *url, *version;
@@ -272,7 +285,6 @@ copyDispatchDataToNSData(dispatch_data_t dispatchData)
   __block NSMutableURLRequest *request = [NSMutableURLRequest new];
   __block NSUInteger           headerEndIndex = 1;
 
-  reqData = copyDispatchDataToNSData(data);
   reqString = [[NSString alloc] initWithData:reqData
                                     encoding:NSUTF8StringEncoding];
 
