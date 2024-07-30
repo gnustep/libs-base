@@ -408,7 +408,9 @@ systemLanguages()
 
 	while (nil != (locale = [enumerator nextObject]))
 	  {
-	    [names addObjectsFromArray: GSLanguagesFromLocaleWithSeparator(locale, @"-")];
+      /* Replace "-" Separator with "_" */
+      locale = [locale stringByReplacingOccurrencesOfString:@"-" withString:@"_"];
+	    [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
 	  }
   #elif defined(__ANDROID__)
   // When running on Android, the process must be correctly initialized
@@ -441,7 +443,7 @@ systemLanguages()
       enumerator = [locales objectEnumerator];
       while (nil != (locale = [enumerator nextObject]))
         {
-          [names addObjectsFromArray: GSLanguagesFromLocaleWithSeparator(locale, @"_")];
+          [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
         }
     }
   #else
@@ -457,7 +459,7 @@ systemLanguages()
 	NSString *locale;
 	while (nil != (locale = [enumerator nextObject]))
 	  {
-	    [names addObjectsFromArray: GSLanguagesFromLocaleWithSeparator(locale, @"_")];
+	    [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
 	  }
       }
   }	
@@ -470,7 +472,7 @@ systemLanguages()
 
       if (locale != nil)
 	{
-	  [names addObjectsFromArray: GSLanguagesFromLocaleWithSeparator(locale, @"_")];
+	  [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
 	}
     }
   #endif
