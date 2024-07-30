@@ -234,7 +234,7 @@ copyDispatchDataToNSData(dispatch_data_t dispatchData)
     while (1)
       {
         char buffer[4096];
-        ssize_t bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
+        NSInteger bytesRead = recv(clientSocket, buffer, sizeof(buffer), 0);
         if (bytesRead < 0)
           {
             #ifdef _WIN32
