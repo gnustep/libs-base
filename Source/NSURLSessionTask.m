@@ -132,7 +132,8 @@ errorForCURLcode(CURL *handle, CURLcode code, char errorBuffer[CURL_ERROR_SIZE])
   NSDictionary *userInfo;
   NSError      *error;
   NSInteger     urlError = NSURLErrorUnknown;
-  NSInteger     osError, posixError;
+  NSInteger     posixError;
+  NSInteger     osError = 0;
 
   if (NULL == handle || CURLE_OK == code)
     {
@@ -425,10 +426,10 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
       NSString          *version;
       NSString          *urlString;
       NSURL             *url;
-      NSInteger          numberOfRedirects;
-      NSInteger          statusCode;
       CURL              *handle;
       char              *effURL;
+      NSInteger          numberOfRedirects = 0;
+      NSInteger          statusCode = 0;
 
       session = [task _session];
       delegate = [task delegate];
