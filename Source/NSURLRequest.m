@@ -483,7 +483,7 @@ typedef struct {
   return this->ioDelegate;
 }
 
-- (_GSInsensitiveDictionary *) _insensitiveHeaders
+- (NSDictionary *) _insensitiveHeaders
 {
   return [this->headers copy];
 }
