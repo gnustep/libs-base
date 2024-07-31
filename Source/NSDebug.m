@@ -912,7 +912,7 @@ GSDebugAllocationTaggedObjects(Class c)
   /* Create the map table outside the locked region to minimise time
    * locked and to avoid deadlock.
    */
-  answer = [NSMapTable mapTableWithStrongToStrongObjects];
+  answer = [NSMapTable strongToStrongObjectsMapTable];
 
   doLock();
 
