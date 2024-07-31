@@ -88,7 +88,7 @@ static Class	concreteClass = 0;
 {
   GSOnceMLog(@"Garbage Collection no longer supported."
     @"  Using +weakToStringObjectsMapTable");
-  return [self weakToStringObjectsMapTable];
+  return [self weakToStrongObjectsMapTable];
 }
 
 + (id) mapTableWithWeakToWeakObjects
