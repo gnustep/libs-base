@@ -1,6 +1,8 @@
 #import <Foundation/Foundation.h>
 #import "ObjectTesting.h"
 
+#if defined(__OBJC2__)
+
 @class Bar;
 
 @interface                     Foo : NSObject
@@ -220,3 +222,10 @@ main(int argc, char *argv[])
   return 0;
 }
 
+#else
+int
+main(int argc, char *argv[])
+{
+  return 0;
+}
+#endif
