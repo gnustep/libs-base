@@ -1,6 +1,7 @@
 /**
    general.m
 
+
    Copyright (C) 2024 Free Software Foundation, Inc.
 
    Written by: Hugo Melder <hugo@algoriddim.com>
@@ -45,22 +46,12 @@
 #import <Foundation/Foundation.h>
 #import "Testing.h"
 
-#if defined(__OBJC2__)
+#define	BOXF(V)	[NSNumber numberWithFloat: (V)]
+#define	BOXI(V)	[NSNumber numberWithInteger: (V)]
+#define	MPAIR(K,V)\
+ [NSMutableDictionary dictionaryWithObjectsAndKeys: V, K, nil]
 
-#define PASS_ANY_THROW(expr, msg)                                              \
-  do                                                                           \
-    {                                                                          \
-      BOOL threw = NO;                                                         \
-      @try                                                                     \
-        {                                                                      \
-          expr;                                                                \
-        }                                                                      \
-      @catch (NSException * exception)                                         \
-        {                                                                      \
-          threw = YES;                                                         \
-        }                                                                      \
-      PASS(threw, msg);                                                        \
-  } while (0)
+#if defined(__OBJC2__)
 
 @interface TestKVOSelfObserver : NSObject
 {
@@ -256,14 +247,14 @@ struct TestKVOStruct
 
 + (NSSet *)keyPathsForValuesAffectingDependsOnTwoKeys
 {
-  return [NSSet setWithArray:@[ @"boolTrigger1", @"boolTrigger2" ]];
+  return [NSSet setWithArray: [NSArray arrayWithObjects:
+    @"boolTrigger1", @"boolTrigger2", nil] ];
 }
 
 + (NSSet *)keyPathsForValuesAffectingDependsOnTwoSubKeys
 {
-  return [NSSet setWithArray:@[
-    @"cascadableKey.boolTrigger1", @"cascadableKey.boolTrigger2"
-  ]];
+  return [NSSet setWithArray: [NSArray arrayWithObjects:
+    @"cascadableKey.boolTrigger1", @"cascadableKey.boolTrigger2", nil] ];
 }
 
 - (bool)dependsOnTwoKeys
@@ -434,7 +425,7 @@ ManualChangeNotification()
   PASS_EQUAL(
     [[[[observer changesForKeypath:@"manuallyNotifyingIntegerProperty"]
       anyObject] info] objectForKey:NSKeyValueChangeNewKey],
-    @(1),
+    BOXI(1),
     "The new value stored in the change notification should be a boxed 1.");
 
   PASS_RUNS([observed removeObserver:observer
@@ -622,7 +613,7 @@ PODNotification()
   PASS_EQUAL(
     [[[[observer changesForKeypath:@"basicPodProperty"] anyObject] info]
       objectForKey:NSKeyValueChangeNewKey],
-    @(10),
+    BOXI(10),
     "The new value stored in the change notification should be a boxed 10.");
 
   PASS_RUNS([observed removeObserver:observer forKeyPath:@"basicPodProperty"],
@@ -717,7 +708,7 @@ DisabledInitialNotification()
              "An INITIAL notification for nonNotifyingObjectProperty should "
              "have fired.");
 
-  PASS_EQUAL(@(NSKeyValueChangeSetting),
+  PASS_EQUAL(BOXF(NSKeyValueChangeSetting),
              [[[[observer changesForKeypath:@"nonNotifyingObjectProperty"]
                anyObject] info] objectForKey:NSKeyValueChangeKindKey],
              "The change kind should be NSKeyValueChangeSetting.");
@@ -743,7 +734,7 @@ SetValueForKeyIvarNotification()
              forKeyPath:@"ivarWithoutSetter"
                 options:NSKeyValueObservingOptionNew
                 context:NULL];
-  [observed setValue:@(1024) forKey:@"ivarWithoutSetter"];
+  [observed setValue:BOXI(1024) forKey:@"ivarWithoutSetter"];
 
   PASS_EQUAL([[observer changesForKeypath:@"ivarWithoutSetter"] count], 1,
              "One change on ivarWithoutSetter should have fired (using "
@@ -752,7 +743,7 @@ SetValueForKeyIvarNotification()
   PASS_EQUAL(
     [[[[observer changesForKeypath:@"ivarWithoutSetter"] anyObject] info]
       objectForKey:NSKeyValueChangeNewKey],
-    @(1024),
+    BOXI(1024),
     "The new value stored in the change notification should a boxed 1024.");
 
   PASS_RUNS([observed removeObserver:observer forKeyPath:@"ivarWithoutSetter"],
@@ -871,7 +862,7 @@ DerivedKeyOnSubpath1()
     [[[[observer
       changesForKeypath:@"cascadableKey.derivedObjectProperty.length"]
       anyObject] info] objectForKey:NSKeyValueChangeNewKey],
-    @(11),
+    BOXI(11),
     "The new value stored in the change notification should a boxed 11.");
 
   PASS_RUNS([observed
@@ -1140,7 +1131,7 @@ SubpathsWithInitialNotification()
                changesForKeypath:@"cascadableKey.basicObjectProperty"]
                anyObject] info] objectForKey:NSKeyValueChangeNewKey],
              "The initial value of basicObjectProperty should be nil.");
-  PASS_EQUAL(@(0),
+  PASS_EQUAL(BOXI(0),
              [[[[observer changesForKeypath:@"cascadableKey.basicPodProperty"]
                anyObject] info] objectForKey:NSKeyValueChangeNewKey],
              "The initial value of basicPodProperty should be 0.");
@@ -1397,11 +1388,12 @@ RemoveUnregistered()
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
 
-  PASS_ANY_THROW(
+  PASS_EXCEPTION(
     [observed removeObserver:observer
                   forKeyPath:@"basicObjectProperty"
                      context:(void *) (1)],
-    "Removing an unregistered observer should throw an exception.");
+    (NSString*)nil,
+    "Removing an unregistered observer should throw an exception.")
 
   END_SET("RemoveUnregistered");
 }
@@ -1498,7 +1490,7 @@ SubpathOnDerivedKey()
 
   observed.cascadableKey = child;
   child.dictionaryProperty =
-    [NSMutableDictionary dictionaryWithDictionary:@{@"Key1" : @"Value1"}];
+    [NSMutableDictionary dictionaryWithDictionary:MPAIR(@"Key1" , @"Value1")];
 
   [observed addObserver:observer
              forKeyPath:@"derivedCascadableKey.dictionaryProperty.Key1"
@@ -1507,7 +1499,7 @@ SubpathOnDerivedKey()
 
   observed.cascadableKey = child2;
   child2.dictionaryProperty =
-    [NSMutableDictionary dictionaryWithDictionary:@{@"Key1" : @"Value2"}];
+    [NSMutableDictionary dictionaryWithDictionary:MPAIR(@"Key1" , @"Value2")];
 
   PASS_EQUAL(2, [observer numberOfObservedChanges],
              "Two changes should have "
@@ -1533,9 +1525,9 @@ SubpathWithDerivedKeyBasedOnSubpath()
 
   // key dependent on sub keypath is dependent upon
   // dictionaryProperty.subDictionary
-  NSMutableDictionary *mutableDictionary = [[@{
-    @"subDictionary" : @{@"floatGuy" : @(1.234)}
-  } mutableCopy] autorelease];
+  NSMutableDictionary *mutableDictionary = MPAIR(
+    @"subDictionary", MPAIR(@"floatGuy" , BOXF(1.234))
+  );
   observed.dictionaryProperty = mutableDictionary;
 
   [observed addObserver:observer
@@ -1544,16 +1536,16 @@ SubpathWithDerivedKeyBasedOnSubpath()
                 context:nil];
 
   mutableDictionary[@"subDictionary"] =
-    @{@"floatGuy" : @(3.456)}; // 1 notification
+    MPAIR(@"floatGuy" , BOXF(3.456)); // 1 notification
 
-  NSMutableDictionary *mutableDictionary2 = [[@{
-    @"subDictionary" : @{@"floatGuy" : @(5.678)}
-  } mutableCopy] autorelease];
+  NSMutableDictionary *mutableDictionary2 = MPAIR(
+    @"subDictionary", MPAIR(@"floatGuy" , BOXF(5.678))
+  );
 
   observed.dictionaryProperty = mutableDictionary2; // 2nd notification
 
   mutableDictionary2[@"subDictionary"] =
-    @{@"floatGuy" : @(7.890)}; // 3rd notification
+    MPAIR(@"floatGuy" , BOXF(7.890)); // 3rd notification
 
   PASS_EQUAL(3, [observer numberOfObservedChanges],
              "Three changes should have "
@@ -1640,8 +1632,6 @@ DerivedKeyDependentOnDerivedKey()
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
-  TestKVOObject     *child = [[[TestKVOObject alloc] init] autorelease];
-  TestKVOObject     *child2 = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver   *observer = [[[TestKVOObserver alloc] init] autorelease];
 
   observed.basicObjectProperty = @"Hello";
@@ -1832,7 +1822,7 @@ SetValueForKeyPropertyNotification()
              forKeyPath:@"basicObjectProperty"
                 options:NSKeyValueObservingOptionNew
                 context:NULL];
-  [observed setValue:@(1024) forKey:@"basicObjectProperty"];
+  [observed setValue:BOXI(1024) forKey:@"basicObjectProperty"];
 
   PASS_EQUAL([[observer changesForKeypath:@"basicObjectProperty"] count], 1,
              "ONLY one change on basicObjectProperty should have fired "
@@ -1841,7 +1831,7 @@ SetValueForKeyPropertyNotification()
   PASS_EQUAL(
     [[[[observer changesForKeypath:@"basicObjectProperty"] anyObject] info]
       objectForKey:NSKeyValueChangeNewKey],
-    @(1024),
+    BOXI(1024),
     "The new value stored in the change notification should a boxed 1024.");
 
   PASS_RUNS([observed removeObserver:observer
