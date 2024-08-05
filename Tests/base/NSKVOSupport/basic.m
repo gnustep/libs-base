@@ -1,23 +1,44 @@
 #import <Foundation/Foundation.h>
 #import "ObjectTesting.h"
 
-#if defined(__OBJC2__)
-
 @interface                              Foo : NSObject
-@property (assign) BOOL                 a;
-@property (assign) NSInteger            b;
-@property (nonatomic, strong) NSString *c;
-@property (nonatomic, strong) NSArray  *d;
+{
+@public
+  BOOL		a;
+  NSInteger	b;
+  NSString	*c;
+  NSArray	*d;
+}
+- (void) setA: (BOOL)v;
+- (void) setB: (NSInteger)v;
+- (void) setC: (NSString *)v;
 @end
 
 @implementation Foo
+- (void) setA: (BOOL)v
+{
+  a = v;
+}
+- (void) setB: (NSInteger)v
+{
+  b = v;
+}
+- (void) setC: (NSString *)v
+{
+  c = v;
+}
 @end
 
 @interface                   Observer : NSObject
-@property (assign) Foo      *object;
-@property (assign) NSString *expectedKeyPath;
-@property (assign) NSInteger receivedCalls;
-
+{
+  Foo		*object;
+  NSString	*expectedKeyPath;
+  NSInteger	receivedCalls;
+}
+- (NSString*) expectedKeyPath;
+- (void) setExpectedKeyPath: (NSString*)s;
+- (NSInteger) receivedCalls;
+- (void) setReceivedCalls: (NSInteger)i;
 @end
 
 @implementation Observer
@@ -27,7 +48,7 @@
   self = [super init];
   if (self)
     {
-      self.receivedCalls = 0;
+      receivedCalls = 0;
     }
   return self;
 }
@@ -36,21 +57,38 @@ static char observerContext;
 
 - (void)startObserving:(Foo *)target
 {
-  self.object = target;
+  object = target;
   [target addObserver:self forKeyPath:@"a" options:0 context:&observerContext];
   [target addObserver:self forKeyPath:@"b" options:0 context:&observerContext];
   [target addObserver:self forKeyPath:@"c" options:0 context:&observerContext];
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath
-                      ofObject:(id)object
-                        change:(NSDictionary<NSString *, id> *)change
+                      ofObject:(id)o
+                        change:(NSDictionary *)change
                        context:(void *)context
 {
   PASS(context == &observerContext, "context");
-  PASS(object == self.object, "object");
-  PASS([keyPath isEqualToString:self.expectedKeyPath], "key path");
-  self.receivedCalls++;
+  PASS(o == self->object, "object");
+  PASS([keyPath isEqualToString: [self expectedKeyPath]], "key path");
+  [self setReceivedCalls: [self receivedCalls] + 1];
+}
+
+- (NSString*) expectedKeyPath
+{
+  return expectedKeyPath;
+}
+- (void) setExpectedKeyPath: (NSString*)s
+{
+  expectedKeyPath = s;
+}
+- (NSInteger) receivedCalls
+{
+  return receivedCalls;
+}
+- (void) setReceivedCalls: (NSInteger)i
+{
+  receivedCalls = i;
 }
 
 @end
@@ -62,26 +100,21 @@ main(int argc, char *argv[])
 
   Foo      *foo = [Foo new];
   Observer *obs = [Observer new];
-  [obs startObserving:foo];
 
-  obs.expectedKeyPath = @"a";
-  foo.a = YES;
-  PASS(obs.receivedCalls == 1, "received calls")
+  [obs startObserving: foo];
 
-  obs.expectedKeyPath = @"b";
-  foo.b = 1;
-  PASS(obs.receivedCalls == 2, "received calls")
+  [obs setExpectedKeyPath: @"a"];
+  [foo setA: YES];
+  PASS([obs receivedCalls] == 1, "received calls")
 
-  obs.expectedKeyPath = @"c";
-  foo.c = @"henlo";
-  PASS(obs.receivedCalls == 3, "received calls")
-}
+  [obs setExpectedKeyPath: @"b"];
+  [foo setB: 1];
+  PASS([obs receivedCalls] == 2, "received calls")
 
-#else
-int
-main(int argc, const char *argv[])
-{
+  [obs setExpectedKeyPath: @"c"];
+  [foo setC: @"henlo"];
+  PASS([obs receivedCalls] == 3, "received calls")
+
   return 0;
 }
 
-#endif
