@@ -648,7 +648,7 @@ static NSMutableSet	*textNodes = nil;
 	}
       else if ([name isEqual: @"br"] == YES)
 	{
-	  [buf appendString: @"<br />"];
+	  [buf appendString: @"<br/>"];
 	}
       else if ([name isEqual: @"category"] == YES)
 	{
@@ -739,7 +739,7 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"</h3>\n"];
 	  [buf appendString: indent];
 	  [buf appendString: str];
-	  [buf appendString: @";<br />\n"];
+	  [buf appendString: @";<br/>\n"];
 
 	  node = firstElement(children);
 
@@ -1937,7 +1937,7 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"</h3>\n"];
 	  [buf appendString: indent];
 	  [buf appendString: str];
-	  [buf appendString: @";<br />\n"];
+	  [buf appendString: @";<br/>\n"];
 
 	  node = firstElement(children);
 
@@ -2549,14 +2549,14 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @" deprecated at "];
 	  [buf appendString: gvdep];
 	}
-      [buf appendString: @"<br />\n"];
+      [buf appendString: @"<br/>\n"];
       if ([gvrem length] > 0)
 	{
           [buf appendString: @" Likely to be changed/moved/removed at "];
 	  [buf appendString: gvrem];
 	}
       [buf appendString:@"</div>\n"];
-      [buf appendString: @"<br />\n"];
+      [buf appendString: @"<br/>\n"];
     }
 }
 
