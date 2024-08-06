@@ -462,6 +462,10 @@
 	is part of GNUstep and possibly complies with the OpenStep standard
 	or implements MacOS-X compatible methods.
       </item>
+      <item><strong>StylesheetURL</strong>
+	The URL of a CSS document to be used as the stadard stylesheet for
+	generated autogsdoc files.
+      </item>
       <item><strong>SystemProjects</strong>
 	This value is used to control the automatic inclusion of system
 	external projects into the indexing system for generation of
@@ -816,6 +820,8 @@ main(int argc, char **argv, char **env)
     @"VariablesTemplate",
     @"\t\tBOOL\t(NO)\n\tif YES, create documentation pages "
       @"for display in HTML frames",
+    @"StylesheetURL",
+    @"\t\tString\t(nil)\n\tIf set, stylesheet of generated agsdoc files",
     @"MakeFrames",
     @"\t\tString\t(nil)\n\tIf set, look for DTDs in the given directory",
     @"DTDs",
@@ -831,8 +837,8 @@ main(int argc, char **argv, char **env)
       arg = [argsGiven objectAtIndex: i];
       if ([arg characterAtIndex: 0] == '-')
 	{
-	  opt = ([arg characterAtIndex: 1] == '-') ?
-	      [arg substringFromIndex: 2] : [arg substringFromIndex: 1];
+	  opt = ([arg characterAtIndex: 1] == '-')
+	    ? [arg substringFromIndex: 2] : [arg substringFromIndex: 1];
 	}
       else
 	{

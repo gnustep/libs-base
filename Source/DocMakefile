@@ -253,6 +253,7 @@ Base_AGSDOC_FLAGS = \
 	-ConstantsTemplate TypesAndConstants \
 	-FunctionsTemplate Functions \
 	-MacrosTemplate Functions \
+	-StylesheetURL gnustepStyle \
 	-TypedefsTemplate TypesAndConstants \
 	-VariablesTemplate TypesAndConstants \
 	-WordMap '{\
