@@ -179,7 +179,8 @@ GSDebugAllocationBytes(BOOL active)
 }
 
 BOOL
-GSDebugAllocationRecordAndTrace(Class c, BOOL record, NSObject *(*trace)(id))
+GSDebugAllocationRecordAndTrace(Class c, BOOL record,
+  GSDebugAllocationTraceFunction traceFunction)
 {
   BOOL wasRecording = NO;
   unsigned int i;
@@ -189,9 +190,9 @@ GSDebugAllocationRecordAndTrace(Class c, BOOL record, NSObject *(*trace)(id))
       GSDebugAllocationActive(YES);
     }
 
-  if (trace == (NSObject *(*)(id))1)
+  if (traceFunction == (NSObject *(*)(id))1)
     {
-      trace = _GSDebugAllocationTrace;
+      traceFunction = _GSDebugAllocationTrace;
     }
 
   for (i = 0; i < num_classes; i++)
@@ -203,7 +204,7 @@ GSDebugAllocationRecordAndTrace(Class c, BOOL record, NSObject *(*trace)(id))
           if (record)
             {
               the_table[i].is_recording = YES;
-              the_table[i].trace_function = trace;
+              the_table[i].trace_function = traceFunction;
             }
           else if (wasRecording)
             {
@@ -257,7 +258,7 @@ GSDebugAllocationRecordAndTrace(Class c, BOOL record, NSObject *(*trace)(id))
       the_table[num_classes].totalb = 0;
       the_table[num_classes].nominal_size = class_getInstanceSize(c);
       the_table[num_classes].is_recording = YES;
-      the_table[num_classes].trace_function = trace;
+      the_table[num_classes].trace_function = traceFunction;
       the_table[num_classes].recorded_objects = NULL;
       the_table[num_classes].recorded_tags = NULL;
       the_table[num_classes].num_recorded_objects = 0;
