@@ -1,3 +1,15 @@
+2024-08-07 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m:
+	* Tools/GNUmakefile:
+	* config.mak.in:
+	* configure.ac:
+	* configure:
+	Preliminary changes add inheritance diagrams to class documentation.
+	Uses the graphviz 'dot' tool if it is available at configure time.
+	Just draws class/superclass relationship for now.
+	Should add protocols and prettify boxes later.
+
 2024-07-25 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSHashTable.h:

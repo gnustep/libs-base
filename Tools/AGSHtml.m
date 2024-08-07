@@ -40,6 +40,15 @@
 #define	GS_API_MACOSX	100000
 #endif
 
+
+#if defined(HAVE_DOT)
+#define expandstringify(X) stringify(X)
+#define stringify(X) #X
+static NSString	*graphviz = @ expandstringify(HAVE_DOT);
+#else
+static NSString	*graphviz = nil;
+#endif
+
 static int      XML_ELEMENT_NODE;
 static int      XML_ENTITY_REF_NODE;
 static int      XML_TEXT_NODE;
@@ -56,6 +65,76 @@ static GSXMLNode	*firstElement(GSXMLNode *nodes)
     }
   return [nodes nextElement];
 }
+
+static BOOL
+graph(NSString *path, NSString *input, BOOL verbose)
+{
+  BOOL          didLaunch = NO;
+  BOOL          didWrite = NO;
+  BOOL          didSucceed = NO;
+  ENTER_POOL
+  NSTask	*task = AUTORELEASE([[NSTask alloc] init]);
+  NSPipe 	*writePipe = [NSPipe pipe];
+  NSFileHandle 	*writeHandle = [writePipe fileHandleForWriting];
+
+  [task setLaunchPath: graphviz];
+  [task setArguments: [NSArray arrayWithObjects:
+    @"-Tsvg", @"-o", path, nil]];
+
+  [task setStandardInput: [writePipe fileHandleForReading]];
+
+  if (verbose)
+    {
+      NSLog(@"Graph source '%@'", input);
+    }
+  else
+    {
+      [task setStandardError: [NSFileHandle fileHandleWithNullDevice]];
+      [task setStandardOutput: [NSFileHandle fileHandleWithNullDevice]];
+    }
+
+  NS_DURING
+    {
+      [task launch];
+      didLaunch = YES;
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Failed task '%@': %@", path, localException);
+      task = nil;       // No need to terminate
+    }
+  NS_ENDHANDLER
+
+  if (YES == didLaunch)
+    {
+      NS_DURING
+        {
+          NSData	*data;
+
+	  data = [input dataUsingEncoding: NSUTF8StringEncoding];
+	  [writeHandle writeData: data];
+          didWrite = YES;
+        }
+      NS_HANDLER
+        {
+          NSLog(@"Failed to write to '%@': %@", path, localException);
+        }
+      NS_ENDHANDLER
+    }
+  [writeHandle closeFile];
+  [task waitUntilExit];
+  if ([task terminationStatus] == 0)
+    {
+      didSucceed = YES;
+    }
+  else
+    {
+      NSLog(@"Graphing termination status %d", [task terminationStatus]);
+    }
+  LEAVE_POOL
+  return (didLaunch && didWrite && didSucceed) ? YES : NO;
+}
+
 
 @implementation	AGSHtml
 
@@ -177,18 +256,32 @@ static NSMutableSet	*textNodes = nil;
 {
   NSString	*s;
   NSString	*kind = (f == YES) ? @"rel=\"gsdoc\" href" : @"name";
+
+  s = [self makeURL: r ofType: t isRef: f];
+  if (s)
+    {
+      s = [NSString stringWithFormat: @"<a %@=\"%@\">", kind, s];
+    }
+  return s;
+}
+
+- (NSString*) makeURL: (NSString*)r
+	       ofType: (NSString*)t
+		isRef: (BOOL)f
+{
+  NSString	*s;
   NSString	*hash = (f == YES) ? @"#" : @"";
 
-  if (f == NO || [localRefs globalRef: r type: t] != nil)
+  if (NO == f || [localRefs globalRef: r type: t] != nil)
     {
-      s = [NSString stringWithFormat: @"<a %@=\"%@%@$%@\">",
-	kind, hash, t, r];
+      s = [NSString stringWithFormat: @"%@%@$%@",
+	hash, t, r];
     }
   else if ((s = [globalRefs globalRef: r type: t]) != nil)
     {
       s = [s stringByAppendingPathExtension: @"html"];
-      s = [NSString stringWithFormat: @"<a %@=\"%@%@%@$%@\">",
-	kind, s, hash, t, r];
+      s = [NSString stringWithFormat: @"%@%@%@$%@",
+	 s, hash, t, r];
     }
   return [s stringByReplacingString: @":" withString: @"$"];
 }
@@ -352,6 +445,11 @@ static NSMutableSet	*textNodes = nil;
     {
       dict = [refs objectForKey: type];
     }
+
+  /* Put the index in a div with a class identifying its scope and type
+   * so that CSS can be used to style it.
+   */
+  [buf appendFormat: @"<div class=\"%@_%@_index\">\n", scope, type];
 
   if ([type isEqual: @"title"] == YES)
     {
@@ -588,6 +686,7 @@ static NSMutableSet	*textNodes = nil;
 	}
       [buf appendString: @"\n"];
     }
+  [buf appendString: @"</div>\n"];
 }
 
 - (void) outputNode: (GSXMLNode*)node to: (NSMutableString*)buf
@@ -686,19 +785,60 @@ static NSMutableSet	*textNodes = nil;
 	  classname = [prop objectForKey: @"name"];
 	  unit = classname;
 	  [buf appendString: indent];
-	  [buf appendString: @"<h2>"];
+	  [buf appendString: @"<h2 class=\"class\">"];
 	  [buf appendString:
 	    [self makeAnchor: classname ofType: @"class" name: classname]];
-	  if (sup != nil)
+	  if ([(sup = [sup stringByTrimmingSpaces]) length] == 0)
 	    {
-	      sup = [self typeRef: sup];
-	      if (sup != nil)
+	      sup = nil;
+	    }
+	  if (sup)
+	    {
+	      NSString	*supref = [self typeRef: sup];
+
+	      if (supref != nil)
 		{
 		  [buf appendString: @" : "];
-		  [buf appendString: sup];
+		  [buf appendString: supref];
 		}
 	    }
 	  [buf appendString: @"</h2>\n"];
+
+	  if (graphviz && sup)
+	    {
+	      NSString	*url;
+
+	      url = [self makeURL: sup ofType: @"class" isRef: YES];
+
+	      if (url)
+		{
+		  NSMutableString	*dot = [NSMutableString string];
+		  NSString		*full;
+		  NSString		*svg;
+
+		  [dot appendString: @"digraph inheritance {\n"];
+		  [dot appendString: @" rankdir = \"TB\";\n"];
+		  [dot appendString: @" node [margin=0 fontcolor=blue"
+		    @" fontsize=24 width=0.5 shape=rectangle]\n"];
+		  [dot appendFormat: @" {node [URL=\"%@\"] %@}\n", url, sup];
+		  [dot appendString: @" ->\n"];
+		  [dot appendFormat: @" {node [fontcolor=\"green\"] %@}\n",
+		    classname];
+		  [dot appendString: @"}"];
+
+		  svg = [NSString stringWithFormat:
+		    @"class_%@.svg", classname];
+		  full = [[fileName stringByDeletingLastPathComponent]
+		    stringByAppendingPathComponent: svg];
+
+		  if (graph(full, dot, verbose))
+		    {
+		      [buf appendFormat: @"<img alt=\"%@\" src=\"%@\" />\n",
+			classname, svg];
+		    }
+		}
+	    }
+
 	  [self outputUnit: node to: buf];
 	  unit = nil;
 	  classname = nil;
@@ -2609,10 +2749,10 @@ static NSMutableSet	*textNodes = nil;
  */
 - (NSString*) typeRef: (NSString*)t
 {
-  NSString	*str = [t stringByTrimmingSpaces];
-  NSString	*s;
-  unsigned	end = [str length];
-  unsigned	start;
+  NSString		*str = [t stringByTrimmingSpaces];
+  NSString		*s;
+  unsigned		end = [str length];
+  unsigned		start;
   NSMutableString	*ms = nil;
   NSRange		er;
   NSRange		sr;

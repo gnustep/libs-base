@@ -73,7 +73,7 @@ builtin(include, config/addlibrarypath.m4)dnl
 builtin(include, config/pkg.m4)dnl
 
 AC_INIT
-AC_PREREQ([2.60])
+AC_PREREQ([2.71])
 AC_CONFIG_SRCDIR([Source/NSArray.m])
 
 # If GNUSTEP_MAKEFILES is undefined, try to use gnustep-config to determine it.
@@ -2346,7 +2346,7 @@ AC_C_INLINE
 #--------------------------------------------------------------------
 # Following header checks needed for bzero in Storage.m and other places
 #--------------------------------------------------------------------
-AC_HEADER_STDC
+
 AC_CHECK_HEADERS(string.h memory.h alloca.h)
 
 #--------------------------------------------------------------------
@@ -3838,6 +3838,13 @@ fi
 
 AC_SUBST(USE_GMP)
 
+#--------------------------------------------------------------------
+# Check dor 'dot', needed for graphs in autogsdoc output.
+#--------------------------------------------------------------------
+AC_ARG_VAR([DOT], [The name or full path of the graphviz dot command.])
+
+AC_PATH_PROG([DOT], [dot], [])
+AC_SUBST(HAVE_DOT, [$ac_cv_path_DOT])
 
 #--------------------------------------------------------------------
 # Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.
