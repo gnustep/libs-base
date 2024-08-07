@@ -762,7 +762,7 @@ static NSMutableSet	*textNodes = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	  [buf appendString: @"<hr class=\"method-separator\">\n"];
 	}
       else if ([name isEqual: @"contents"] == YES)
         {
@@ -1075,7 +1075,7 @@ static NSMutableSet	*textNodes = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	  [buf appendString: @"<hr class=\"method-separator\">\n"];
 	}
       else if ([name isEqual: @"gsdoc"] == YES)
 	{
@@ -1118,6 +1118,14 @@ static NSMutableSet	*textNodes = nil;
 	  [self outputText: [children firstChild] to: buf];
 	  [self decIndent];
 	  [buf appendString: @"</title>\n"];
+
+	  /** handcrafted styles for previous in-line styles */
+	  [buf appendString: indent];
+	  [buf appendString: @"<style type=\"text/css\">\n"];
+	  [buf appendString: indent];
+	  [buf appendString: @"hr.method-separator { width:25%; margin-left:0; }\n"];
+	  [buf appendString: indent];
+	  [buf appendString: @"</style>\n"];
 #if 0
           /** Css : TODO print.css **/
           [buf appendString:@"<meta http-equiv=\"Content-Style-Type\" content=\"text/css\"/>\n"];
@@ -1390,7 +1398,7 @@ static NSMutableSet	*textNodes = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	  [buf appendString: @"<hr class=\"method-separator\"/>\n"];
 	}
       else if ([name isEqual: @"label"] == YES)	// %anchor
 	{
@@ -1519,7 +1527,7 @@ static NSMutableSet	*textNodes = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	  [buf appendString: @"<hr class=\"method-separator\"/>\n"];
 	}
       else if ([name isEqual: @"method"] == YES)
 	{
@@ -1685,7 +1693,7 @@ static NSMutableSet	*textNodes = nil;
 		  [self outputNode: node to: buf];
 		}
 	      [buf appendString: indent];
-	      [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	      [buf appendString: @"<hr class=\"method-separator\"/>\n"];
 	    }
           [buf appendString:@"</div>\n"];
 	}
@@ -1882,7 +1890,7 @@ static NSMutableSet	*textNodes = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	  [buf appendString: @"<hr class=\"method-separator\"/>\n"];
 	}
       else if ([name isEqual: @"uref"] == YES)
 	{
@@ -1960,7 +1968,7 @@ static NSMutableSet	*textNodes = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"25%\" align=\"left\" />\n"];
+	  [buf appendString: @"<hr class=\"method-separator\"/>\n"];
 	}
       else
 	{
