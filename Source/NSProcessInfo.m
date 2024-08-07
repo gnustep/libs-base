@@ -1605,7 +1605,45 @@ GSInitializeProcessAndroid(JNIEnv *env, jobject context)
     }
   }
 
-  // get current time zone
+  char *localeList = NULL;
+  #if __ANDROID_API__ >= 24
+  // get locales ordered by user preference
+  jclass localeListCls = (*env)->FindClass(env, "android/os/LocaleList");
+  jmethodID localeListGetDefaultMethod = (*env)->GetStaticMethodID(env, localeListCls, "getDefault", "()Landroid/os/LocaleList;");
+  jobject localeListObj = (*env)->CallStaticObjectMethod(env, localeListCls, localeListGetDefaultMethod);
+
+  if (localeCls) {
+    // Retrieve string representation of the locale list
+    jmethodID localeListToLanguageTagsMethod = (*env)->GetMethodID(env, localeListCls, "toLanguageTags", "()Ljava/lang/String;");
+    jstring localeListJava = (*env)->CallObjectMethod(env, localeListObj, localeListToLanguageTagsMethod);
+    
+    if (localeListJava) {
+      const char *localeListOrig = (*env)->GetStringUTFChars(env, localeIdJava, NULL);
+
+      // Some devices return with it enclosed in []'s so check if both exists before
+      // removing to ensure it is formatted correctly
+      if (localeListOrig[0] == '[' && localeListOrig[strlen(localeListOrig) - 1] == ']') {
+        localeList = strdup(localeListOrig + 1);
+        localeList[strlen(localeList) - 1] = '\0';
+      } else {
+        localeList = strdup(localeListOrig);
+      }
+
+      // NOTE: This is an IETF BCP 47 language tag and may not correspond exactly tocorrespond ll-CC format
+      // e.g. gsw-u-sd-chzh is a valid BCP 47 language tag, but uses an ISO 639-3 subtag to classify the language.
+      // There is no easy fix to this, as we use ISO 639-2 subtags internally.
+      for (int i = 0; localeList[i]; i++) {
+        if (localeList[i] == '-') {
+          localeList[i] = '_';
+        }
+      }
+
+      (*env)->ReleaseStringUTFChars(env, localeListJava, localeListOrig);
+    }
+  }
+  #endif
+
+  
   jclass timezoneCls = (*env)->FindClass(env, "java/util/TimeZone");
   jmethodID timezoneDefaultMethod = (*env)->GetStaticMethodID(env, timezoneCls, "getDefault", "()Ljava/util/TimeZone;");
   jmethodID timezoneIdMethod = (*env)->GetMethodID(env, timezoneCls, "getID", "()Ljava/lang/String;");
@@ -1613,20 +1651,28 @@ GSInitializeProcessAndroid(JNIEnv *env, jobject context)
   jstring timezoneIdJava = (*env)->CallObjectMethod(env, timezoneObj, timezoneIdMethod);
   const char *timezoneId = (*env)->GetStringUTFChars(env, timezoneIdJava, NULL);
 
+  char *localeListValue = "";
+  if (localeList) {
+    localeListValue = localeList;
+  }
+
   // initialize process with these options
   char *argv[] = {
     arg0,
     "-Locale", localeId,
     "-Local Time Zone", (char *)timezoneId,
+    "-GSAndroidLocaleList", localeListValue,
     "-GSLogSyslog", "YES" // use syslog (available via logcat) instead of stdout/stderr (not available on Android)
   };
 
   GSInitializeProcessAndroidWithArgs(env, context, sizeof(argv)/sizeof(char *), argv, NULL);
 
   free(arg0);
+  free(localeId);
+  free(localeList);
   (*env)->ReleaseStringUTFChars(env, packageCodePathJava, packageCodePath);
   (*env)->ReleaseStringUTFChars(env, packageNameJava, packageName);
-  (*env)->ReleaseStringUTFChars(env, localeIdJava, localeId);
+  (*env)->ReleaseStringUTFChars(env, localeIdJava, localeIdOrig);
   (*env)->ReleaseStringUTFChars(env, timezoneIdJava, timezoneId);
 }
 

@@ -56,6 +56,10 @@
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
 #if	defined(_WIN32)
+#import "win32/NSString+Win32Additions.h"
+
+#include <winnls.h>
+
 /* Fake interface to avoid compiler warnings
  */
 @interface	NSUserDefaultsWin32 : NSUserDefaults
@@ -355,6 +359,94 @@ systemLanguages()
 {
   NSMutableArray *names = [NSMutableArray arrayWithCapacity: 10];
 
+  #ifdef WIN32
+  NSEnumerator *enumerator;
+  NSArray *languages;
+	NSString *locale;
+  BOOL ret;
+
+  unsigned long numberOfLanguages = 0;
+  unsigned long length = 7;
+  unsigned long factor = sizeof(wchar_t);
+  wchar_t *buffer = malloc(length * factor);
+  if (!buffer)
+    {
+      return names;
+    }
+
+  /* Returns a wchar_t list of languages in the form ll-CC, where ll is the
+   * two-letter language code, and CC is the two-letter country code.
+   */
+  ret = GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &numberOfLanguages,
+                                    buffer, &length);
+  if (!ret)
+    {
+      length = 0;
+      if (GetLastError() == ERROR_INSUFFICIENT_BUFFER &&
+          GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &numberOfLanguages,
+                                      NULL, &length)) {
+        wchar_t *oldBuffer = buffer; 
+        buffer = realloc(buffer, length * factor);
+        if (!buffer)
+          {
+            free(oldBuffer);
+            return names;
+          }
+
+        ret = GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &numberOfLanguages, buffer, &length);
+        if (!ret)
+          {
+            free(buffer);
+            return names;
+          }
+      }
+    }
+
+  languages = [NSString arrayFromWCharList:buffer length:length];
+  enumerator = [languages objectEnumerator];
+  free(buffer);
+
+	while (nil != (locale = [enumerator nextObject]))
+	  {
+      /* Replace "-" Separator with "_" */
+      locale = [locale stringByReplacingOccurrencesOfString:@"-" withString:@"_"];
+	    [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
+	  }
+  #elif defined(__ANDROID__)
+  // When running on Android, the process must be correctly initialized
+  // with GSInitializeProcessAndroid (See NSProcessInfo).
+  //
+  // If the minimum API level is 24 or higher, the user-prefered locales
+  // are retrieved from the Android system and passed as GSAndroidLocaleList
+  // process argument
+  NSArray *args = [[NSProcessInfo processInfo] arguments];
+  NSEnumerator *enumerator = [args objectEnumerator];
+  NSString *key = nil;
+  NSString *localeList = nil;
+
+  [enumerator nextObject];	// Skip process name.
+  while (nil != (key = [enumerator nextObject]))
+    {
+      if ([key isEqualToString:@"-GSAndroidLocaleList"])
+        {
+          localeList = [enumerator nextObject];
+          break;
+        }
+    }
+
+  // The locale list is a comma-separated list of locales of form ll-CC
+  if (localeList != nil)
+    {
+      NSString *locale;
+      NSArray *locales = [localeList componentsSeparatedByString: @","];
+
+      enumerator = [locales objectEnumerator];
+      while (nil != (locale = [enumerator nextObject]))
+        {
+          [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
+        }
+    }
+  #else
   // Add the languages listed in the LANGUAGE environment variable
   // (a non-POSIX GNU extension)
   {
@@ -371,7 +463,7 @@ systemLanguages()
 	  }
       }
   }	
-  
+
   // If LANGUAGES did not yield any languages, try LC_MESSAGES
 
   if ([names count] == 0)
@@ -383,6 +475,7 @@ systemLanguages()
 	  [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
 	}
     }
+  #endif
 
   return names;
 }
