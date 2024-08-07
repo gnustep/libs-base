@@ -66,6 +66,124 @@ static GSXMLNode	*firstElement(GSXMLNode *nodes)
   return [nodes nextElement];
 }
 
+static NSString *
+filter(NSString *input, BOOL verbose)
+{
+  NSString	*result = nil;
+  ENTER_POOL
+  NSTask	*task = AUTORELEASE([[NSTask alloc] init]);
+  BOOL          didLaunch = NO;
+  BOOL          didWrite = NO;
+  NSData 	*readData;
+  NSPipe 	*readPipe = [NSPipe pipe];
+  NSFileHandle 	*readHandle = [readPipe fileHandleForReading];
+  NSData 	*writeData;
+  NSPipe 	*writePipe = [NSPipe pipe];
+  NSFileHandle 	*writeHandle = [writePipe fileHandleForWriting];
+  NSMutableData *output;
+
+  writeData = [input dataUsingEncoding: NSUTF8StringEncoding];
+  [task setLaunchPath: graphviz];
+  [task setArguments: [NSArray arrayWithObjects:
+    @"-Tsvg", nil]];
+
+  [task setStandardInput: writePipe];
+  [task setStandardOutput: readPipe];
+
+  if (verbose)
+    {
+      NSLog(@"Graph source:\n%@", input);
+    }
+  else
+    {
+      [task setStandardError: [NSFileHandle fileHandleWithNullDevice]];
+    }
+
+  NS_DURING
+    {
+      [task launch];
+      didLaunch = YES;
+    }
+  NS_HANDLER
+    {
+      NSLog(@"Failed to launch '%@': %@", graphviz, localException);
+      task = nil;       // No need to terminate
+    }
+  NS_ENDHANDLER
+
+  if (YES == didLaunch)
+    {
+      NS_DURING
+        {
+          if (nil != input)
+            {
+              [writeHandle writeData: writeData];
+            }
+          didWrite = YES;
+        }
+      NS_HANDLER
+        {
+          NSLog(@"Failed to write to '%@': %@", graphviz, localException);
+        }
+      NS_ENDHANDLER
+    }
+  [writeHandle closeFile];
+
+  if (YES == didWrite)
+    {
+      output = [NSMutableData dataWithCapacity: [input length] * 5];
+      while ((readData = [readHandle availableData]) && [readData length] > 0)
+        {
+          [output appendData: readData];
+        }
+    }
+  [readHandle closeFile];
+  [task terminate];
+  [task waitUntilExit];
+  if ([task terminationStatus] != 0)
+    {
+      NSLog(@"Graphing termination status %d", [task terminationStatus]);
+    }
+  if (output)
+    {
+      unsigned		l = [output length];
+      const uint8_t	*s = [output bytes];
+      const uint8_t	*e = s + l - 5;
+      const uint8_t	*p = s;
+
+      while (p < e)
+	{
+	  p = memchr(p, '<', e-p);
+	  if (NULL == p)
+	    {
+	      p = e;
+	      break;	// Reached end 
+	    }
+	  if (memcmp(p, "<svg ", 5) == 0)
+	    {
+	      break;	// Found start of svg
+	    }
+	  p++;		// Step past the '<'
+	}
+      if (p >= s && p < e)
+	{
+	  NSRange	r;
+
+	  r.location = p - s;
+	  r.length = l - r.location;
+	  result = [[NSString alloc] initWithData: [output subdataWithRange: r]
+					 encoding: NSUTF8StringEncoding];
+	}
+    }
+  if (verbose)
+    {
+      NSLog(@"Graph result:\n%@", result);
+    }
+  LEAVE_POOL
+  return AUTORELEASE(result);
+}
+
+/*
 static BOOL
 graph(NSString *path, NSString *input, BOOL verbose)
 {
@@ -85,7 +203,7 @@ graph(NSString *path, NSString *input, BOOL verbose)
 
   if (verbose)
     {
-      NSLog(@"Graph source '%@'", input);
+      NSLog(@"Graph source for %@ is:\n%@", path, input);
     }
   else
     {
@@ -134,6 +252,7 @@ graph(NSString *path, NSString *input, BOOL verbose)
   LEAVE_POOL
   return (didLaunch && didWrite && didSucceed) ? YES : NO;
 }
+*/
 
 
 @implementation	AGSHtml
@@ -813,28 +932,53 @@ static NSMutableSet	*textNodes = nil;
 	      if (url)
 		{
 		  NSMutableString	*dot = [NSMutableString string];
-		  NSString		*full;
 		  NSString		*svg;
 
-		  [dot appendString: @"digraph inheritance {\n"];
+		  /* Make sure a URL local to the HTML file includes the
+		   * file name so it's not interpreted local to the SVG.
+		   */
+		  if ([url hasPrefix: @"#"])
+		    {
+		      NSString	*file = [fileName lastPathComponent];
+		      NSString	*ext = [file pathExtension];
+
+		      if ([ext isEqual: @"gsdoc"])
+			{
+			  file = [file stringByDeletingPathExtension];
+			}
+		      if (NO == [ext isEqual: @"html"])
+			{
+			  file = [file stringByAppendingPathExtension: @"html"];
+			}
+		      url = [file stringByAppendingString: url];
+		    }
+
+		  [dot appendFormat: @"digraph class_%@ {\n", classname];
 		  [dot appendString: @" rankdir = \"TB\";\n"];
 		  [dot appendString: @" node [margin=0 fontcolor=blue"
-		    @" fontsize=24 width=0.5 shape=rectangle]\n"];
+		    @" fontsize=24 width=0.5 shape=rectangle style=filled]\n"];
 		  [dot appendFormat: @" {node [URL=\"%@\"] %@}\n", url, sup];
 		  [dot appendString: @" ->\n"];
 		  [dot appendFormat: @" {node [fontcolor=\"green\"] %@}\n",
 		    classname];
 		  [dot appendString: @"}"];
 
+/*
 		  svg = [NSString stringWithFormat:
 		    @"class_%@.svg", classname];
-		  full = [[fileName stringByDeletingLastPathComponent]
+		  NSString *full = [[fileName stringByDeletingLastPathComponent]
 		    stringByAppendingPathComponent: svg];
-
-		  if (graph(full, dot, verbose))
+		  if (0 && graph(full, dot, verbose))
 		    {
-		      [buf appendFormat: @"<img alt=\"%@\" src=\"%@\" />\n",
-			classname, svg];
+		      [buf appendFormat:
+			@"<object type=\"image/svg+xml\" data=\"%@\">\n"
+			@"<img alt=\"%@\" src=\"%@\" />\n</object>\n",
+			svg, classname, svg];
+		    }
+*/
+		  if ((svg = filter(dot, verbose)) != nil)
+		    {
+		      [buf appendString: svg];
 		    }
 		}
 	    }
