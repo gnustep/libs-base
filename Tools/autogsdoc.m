@@ -1978,8 +1978,7 @@ main(int argc, char **argv, char **env)
       // file for top-left frame (header only; rest appended below)
       idxIndexFile = [@"MainIndex" stringByAppendingPathExtension: @"html"];
       [idxIndex setString: @"<HTML>\n  <BODY>\n"
-@"    <FONT FACE=\"sans\" SIZE=\"+1\"><B>Index</B></FONT><BR/><BR/>\n"
-@"    <FONT FACE=\"sans\" SIZE=\"-1\">"];
+@"    <B>Index</B><BR/>\n"];
 
       // this becomes index.html
       framesetFile = [@"index" stringByAppendingPathExtension: @"html"];
@@ -2041,7 +2040,7 @@ main(int argc, char **argv, char **env)
       [idxIndex appendFormat:
         @"&nbsp;(<A HREF=\"%@.html\" TARGET=\"_top\">unframe</A>)\n",
         project];
-      [idxIndex appendString: @"    </FONT>\n  </BODY>\n</HTML>\n"];
+      [idxIndex appendString: @"    </BODY>\n</HTML>\n"];
       [idxIndex writeToFile:
         [documentationDirectory stringByAppendingPathComponent: idxIndexFile]
                  atomically: YES];
