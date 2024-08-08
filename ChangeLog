@@ -1,3 +1,8 @@
+2024-08-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSHtml.m:
+	Add protocols to the graphing.
+
 2024-08-07 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m:

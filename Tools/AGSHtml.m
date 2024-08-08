@@ -183,78 +183,6 @@ filter(NSString *input, BOOL verbose)
   return AUTORELEASE(result);
 }
 
-/*
-static BOOL
-graph(NSString *path, NSString *input, BOOL verbose)
-{
-  BOOL          didLaunch = NO;
-  BOOL          didWrite = NO;
-  BOOL          didSucceed = NO;
-  ENTER_POOL
-  NSTask	*task = AUTORELEASE([[NSTask alloc] init]);
-  NSPipe 	*writePipe = [NSPipe pipe];
-  NSFileHandle 	*writeHandle = [writePipe fileHandleForWriting];
-
-  [task setLaunchPath: graphviz];
-  [task setArguments: [NSArray arrayWithObjects:
-    @"-Tsvg", @"-o", path, nil]];
-
-  [task setStandardInput: [writePipe fileHandleForReading]];
-
-  if (verbose)
-    {
-      NSLog(@"Graph source for %@ is:\n%@", path, input);
-    }
-  else
-    {
-      [task setStandardError: [NSFileHandle fileHandleWithNullDevice]];
-      [task setStandardOutput: [NSFileHandle fileHandleWithNullDevice]];
-    }
-
-  NS_DURING
-    {
-      [task launch];
-      didLaunch = YES;
-    }
-  NS_HANDLER
-    {
-      NSLog(@"Failed task '%@': %@", path, localException);
-      task = nil;       // No need to terminate
-    }
-  NS_ENDHANDLER
-
-  if (YES == didLaunch)
-    {
-      NS_DURING
-        {
-          NSData	*data;
-
-	  data = [input dataUsingEncoding: NSUTF8StringEncoding];
-	  [writeHandle writeData: data];
-          didWrite = YES;
-        }
-      NS_HANDLER
-        {
-          NSLog(@"Failed to write to '%@': %@", path, localException);
-        }
-      NS_ENDHANDLER
-    }
-  [writeHandle closeFile];
-  [task waitUntilExit];
-  if ([task terminationStatus] == 0)
-    {
-      didSucceed = YES;
-    }
-  else
-    {
-      NSLog(@"Graphing termination status %d", [task terminationStatus]);
-    }
-  LEAVE_POOL
-  return (didLaunch && didWrite && didSucceed) ? YES : NO;
-}
-*/
-
-
 @implementation	AGSHtml
 
 static NSMutableSet	*textNodes = nil;
@@ -922,66 +850,6 @@ static NSMutableSet	*textNodes = nil;
 		}
 	    }
 	  [buf appendString: @"</h2>\n"];
-
-	  if (graphviz && sup)
-	    {
-	      NSString	*url;
-
-	      url = [self makeURL: sup ofType: @"class" isRef: YES];
-
-	      if (url)
-		{
-		  NSMutableString	*dot = [NSMutableString string];
-		  NSString		*svg;
-
-		  /* Make sure a URL local to the HTML file includes the
-		   * file name so it's not interpreted local to the SVG.
-		   */
-		  if ([url hasPrefix: @"#"])
-		    {
-		      NSString	*file = [fileName lastPathComponent];
-		      NSString	*ext = [file pathExtension];
-
-		      if ([ext isEqual: @"gsdoc"])
-			{
-			  file = [file stringByDeletingPathExtension];
-			}
-		      if (NO == [ext isEqual: @"html"])
-			{
-			  file = [file stringByAppendingPathExtension: @"html"];
-			}
-		      url = [file stringByAppendingString: url];
-		    }
-
-		  [dot appendFormat: @"digraph class_%@ {\n", classname];
-		  [dot appendString: @" rankdir = \"TB\";\n"];
-		  [dot appendString: @" node [margin=0 fontcolor=blue"
-		    @" fontsize=24 width=0.5 shape=rectangle style=filled]\n"];
-		  [dot appendFormat: @" {node [URL=\"%@\"] %@}\n", url, sup];
-		  [dot appendString: @" ->\n"];
-		  [dot appendFormat: @" {node [fontcolor=\"green\"] %@}\n",
-		    classname];
-		  [dot appendString: @"}"];
-
-/*
-		  svg = [NSString stringWithFormat:
-		    @"class_%@.svg", classname];
-		  NSString *full = [[fileName stringByDeletingLastPathComponent]
-		    stringByAppendingPathComponent: svg];
-		  if (0 && graph(full, dot, verbose))
-		    {
-		      [buf appendFormat:
-			@"<object type=\"image/svg+xml\" data=\"%@\">\n"
-			@"<img alt=\"%@\" src=\"%@\" />\n</object>\n",
-			svg, classname, svg];
-		    }
-*/
-		  if ((svg = filter(dot, verbose)) != nil)
-		    {
-		      [buf appendString: svg];
-		    }
-		}
-	    }
 
 	  [self outputUnit: node to: buf];
 	  unit = nil;
@@ -2601,10 +2469,131 @@ static NSMutableSet	*textNodes = nil;
 
 - (void) outputUnit: (GSXMLNode*)node to: (NSMutableString*)buf
 {
-  NSArray	*a;
-  NSMutableString *ivarBuf = ivarsAtEnd ?
+  NSMutableDictionary	*protocols = nil;
+  NSArray		*a;
+  NSMutableString 	*ivarBuf = ivarsAtEnd ?
     (id)[NSMutableString stringWithCapacity: 1024] : nil;
-  NSDictionary	*prop = [node attributes];
+  NSDictionary		*prop = [node attributes];
+  GSXMLNode		*tmp;
+
+  /* First scan the top level children for protocols we conform to.
+   */
+  tmp = [node firstChildElement];
+  while ([[tmp name] isEqualToString: @"declared"])
+    {
+      tmp = [tmp nextElement];
+    }
+  while ([[tmp name] isEqualToString: @"conform"])
+    {
+      NSString	*p;
+
+      p = [[[tmp firstChild] escapedContent] stringByTrimmingSpaces];
+      if ([p length] > 0)
+	{
+	  NSString	*n;
+	  NSString	*u;
+
+	  n = [NSString stringWithFormat: @"(%@)", p];
+	  u = [self makeURL: n ofType: @"protocol" isRef: YES];
+	  if (u)
+	    {
+	      if (nil == protocols)
+		{
+		  protocols = [NSMutableDictionary dictionary];
+		}
+	      [protocols setObject: u forKey: p];
+	    }
+	}
+      tmp = [tmp nextElement];
+    }
+
+  if (graphviz && [[node name] isEqualToString: @"class"])
+    {
+      NSDictionary	*prop = [node attributes];
+      NSString		*cNam = [prop objectForKey: @"name"];
+      NSString		*sNam = [prop objectForKey: @"super"];
+      NSMutableString	*dot = [NSMutableString string];
+      NSString		*url = nil;
+      NSString		*svg;
+      NSEnumerator	*e;
+      NSString		*p;
+
+      cNam = [cNam stringByTrimmingSpaces];
+      sNam = [sNam stringByTrimmingSpaces];
+      url = [self makeURL: sNam ofType: @"class" isRef: YES];
+
+      /* Make sure a URL local to the HTML file includes the
+       * file name so it's not interpreted local to the SVG.
+       */
+/*
+      if ([url hasPrefix: @"#"])
+	{
+	  NSString	*file = [fileName lastPathComponent];
+	  NSString	*ext = [file pathExtension];
+
+	  if ([ext isEqual: @"gsdoc"])
+	    {
+	      file = [file stringByDeletingPathExtension];
+	    }
+	  if (NO == [ext isEqual: @"html"])
+	    {
+	      file = [file stringByAppendingPathExtension: @"html"];
+	    }
+	  url = [file stringByAppendingString: url];
+	}
+*/
+
+      [dot appendFormat: @"digraph class_%@ {\n", cNam];
+      [dot appendString: @" rankdir = \"TB\";\n"];
+      [dot appendString: @" {\n"];
+      [dot appendString: @"   node [margin=0 fontcolor=blue"
+	@" fontsize=24 width=0.5 shape=rectangle style=filled]\n"];
+      if (sNam)
+	{
+	  if (url)
+	    {
+	      [dot appendFormat: @"  %@ [URL=\"%@\"]\n", sNam, url];
+	    }
+	  else
+	    {
+	      [dot appendFormat: @"  %@\n", sNam];
+	    }
+	}
+      else
+	{
+	  sNam = cNam;	// This is a root class ... 
+	}
+      [dot appendFormat: @"  %@ [fontcolor=\"green\"]\n", cNam];
+      if (protocols)
+	{
+	  e = [protocols keyEnumerator];
+	  while ((p = [e nextObject]) != nil)
+	    {
+	      [dot appendFormat:
+		@"  p_%@ [label=\"%@\" URL=\"%@\" shape=hexagon]\n",
+		p, p, [protocols objectForKey: p]];
+	    }
+	}
+      [dot appendString: @" }\n"];
+      [dot appendFormat: @" %@ -> %@\n", sNam, cNam];
+      if (protocols)
+	{
+	  NSArray	*keys = [protocols allKeys];
+
+	  keys = [keys sortedArrayUsingSelector: @selector(compare:)];
+	  e = [keys objectEnumerator];
+	  while ((p = [e nextObject]) != nil)
+	    {
+	      [dot appendFormat: @"  p_%@ -> %@\n", p, cNam];
+	    }
+	}  
+      [dot appendString: @"}"];
+
+      if ((svg = filter(dot, verbose)) != nil)
+	{
+	  [buf appendString: svg];
+	}
+    }
 
   node = [node firstChildElement];
   if (node != nil && [[node name] isEqual: @"declared"] == YES)
@@ -2613,8 +2602,19 @@ static NSMutableSet	*textNodes = nil;
       node = [node nextElement];
     }
 
-  if (node != nil && [[node name] isEqual: @"conform"] == YES)
+  while ([[node name] isEqual: @"conform"])
     {
+      node = [node nextElement];
+    }
+
+  if (protocols)
+    {
+      NSArray		*keys = [protocols allKeys];
+      NSEnumerator	*e;
+      NSString		*p;
+
+      keys = [keys sortedArrayUsingSelector: @selector(compare:)];
+      e = [keys objectEnumerator];
       [buf appendString: indent];
       [buf appendString: @"<blockquote>\n"];
       [self incIndent];
@@ -2623,16 +2623,16 @@ static NSMutableSet	*textNodes = nil;
       [self incIndent];
       [buf appendString: indent];
       [buf appendString: @"<dt><b>Conforms to:</b></dt>\n"];
-      while (node != nil && [[node name] isEqual: @"conform"] == YES)
+      while ((p = [e nextObject]) != nil)
 	{
-	  NSString	*text = [[node firstChild] escapedContent];
+	  NSString	*u = [protocols objectForKey: p];
 
-	  if (text == nil) text = @"";
 	  [buf appendString: indent];
-	  [buf appendString: @"<dd>"];
-	  [buf appendString: [self protocolRef: text]];
-	  [buf appendString: @"</dd>\n"];
-	  node = [node nextElement];
+	  [buf appendString: @"<dd><a rel=\"gsdoc\" href=\""];
+	  [buf appendString: u];
+	  [buf appendString: @"\">"];
+	  [buf appendString: p];
+	  [buf appendString: @"</a></dd>\n"];
 	}
       [self decIndent];
       [buf appendString: indent];
