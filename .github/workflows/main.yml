@@ -200,7 +200,7 @@ jobs:
             arch: x86_64
             msystem: MINGW64
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
+            runtime-version: gnustep-2.2
             CC: clang
             CXX: clang
             LDFLAGS: -fuse-ld=lld -lstdc++ -lgcc_s
@@ -210,7 +210,7 @@ jobs:
             arch: x86
             host: i686-pc-windows
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
+            runtime-version: gnustep-2.2
             configure-opts: --disable-tls
             CC: clang -m32
             CXX: clang++ -m32
@@ -220,7 +220,7 @@ jobs:
             arch: x64
             host: x86_64-pc-windows
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
+            runtime-version: gnustep-2.2
             configure-opts: --disable-tls
             CC: clang -m64
             CXX: clang++ -m64
@@ -283,6 +283,7 @@ jobs:
         if: env.CC == 'gcc'
         with:
           msystem: ${{ matrix.msystem }}
+          update: true
           install: >
             mingw-w64-${{matrix.arch}}-gcc-objc
 
