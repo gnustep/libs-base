@@ -83,6 +83,12 @@ DerivedData/
 ### Xcode Patch ###
 **/xcshareddata/WorkspaceSettings.xcsettings
 
+# clangd cache
+.cache
+
+# compile commands
+compile_commands.json
+
 # End of https://www.gitignore.io/api/xcode
 
 .cache

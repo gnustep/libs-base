@@ -192,6 +192,11 @@ GS_EXPORT NSString* const GSLocale;
 #endif
 #endif
 
+#if !NO_GNUSTEP
+/* Path to PEM Encoded Certificate File (NSString). Used by NSURLSession if set. */
+GS_EXPORT NSString *const GSCACertificateFilePath;
+#endif
+
 /* General implementation notes: 
 
    OpenStep spec currently is neither complete nor consistent. Therefore

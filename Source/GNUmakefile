@@ -374,16 +374,9 @@ ifeq ($(HAVE_BLOCKS), 1)
 ifeq ($(GNUSTEP_BASE_HAVE_LIBDISPATCH), 1)
 ifeq ($(GNUSTEP_BASE_HAVE_LIBCURL), 1)
   BASE_MFILES += \
-	GSEasyHandle.m \
-	GSHTTPURLProtocol.m \
-	GSMultiHandle.m \
-	GSNativeProtocol.m \
-	GSTaskRegistry.m \
-	GSTimeoutSource.m \
-	GSTransferState.m \
-	GSURLSessionTaskBody.m \
-	GSURLSessionTaskBodySource.m \
-	NSURLSession.m
+	NSURLSession.m \
+	NSURLSessionTask.m \
+	NSURLSessionConfiguration.m
 endif
 endif
 endif
