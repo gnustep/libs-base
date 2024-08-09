@@ -4,7 +4,7 @@ dnl  Copying and distribution of this file, with or without modification,
 dnl  are permitted in any medium without royalty provided the copyright
 dnl  notice and this notice are preserved.
 dnl AM_PATH_XML([MINIMUM-VERSION [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-AC_DEFUN(AM_PATH_XML,[
+AC_DEFUN([AM_PATH_XML],[
 AC_ARG_WITH(xml-prefix,
             [  --with-xml-prefix=PFX    Prefix where libxml is installed (optional)],
             xml_config_prefix="$withval", xml_config_prefix="")

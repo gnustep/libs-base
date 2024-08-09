@@ -1,4 +1,4 @@
-AC_DEFUN(OBJC_CON_AUTOLOAD,
+AC_DEFUN([OBJC_CON_AUTOLOAD],
 # Copyright (C) 2005 Free Software Foundation
 #
 # Copying and distribution of this file, with or without modification,
