@@ -669,8 +669,7 @@ static Class	GSInlineArrayClass;
   _version++;
   if (_count == 0)
     {
-      [NSException raise: NSRangeException
-		  format: @"Trying to remove from an empty array."];
+      return;
     }
   _count--;
   RELEASE(_contents_array[_count]);

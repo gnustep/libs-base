@@ -158,7 +158,12 @@
 
 - (void) removeLastObject
 {
-  [self removeObjectAtIndex: ([self count] - 1)];
+  NSUInteger count = [self count];
+  if (0 == count)
+    {
+      return;
+    }
+  [self removeObjectAtIndex: (count - 1)];
 }
 
 @end
@@ -521,10 +526,15 @@
 - (void) removeLastObject
 {
   NSIndexSet *indexes =  nil;
+  NSUInteger count = [array count];
+  if (0 == count)
+    {
+      return;
+    }
 
   if (notifiesObservers)
     {
-      indexes = [NSIndexSet indexSetWithIndex: [array count] - 1];
+      indexes = [NSIndexSet indexSetWithIndex: count - 1];
       [object willChange: NSKeyValueChangeRemoval
          valuesAtIndexes: indexes
                   forKey: key];
