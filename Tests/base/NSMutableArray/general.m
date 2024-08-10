@@ -116,6 +116,13 @@ int main()
     [ma release];
     PASS(5 == before && 0 == after, "-removeObjectsInArray: works for self")
   }
+  {
+    NSMutableArray *ma = [NSMutableArray new];
+      
+    PASS_RUNS([ma removeLastObject],
+              "-removeLastObject does not raise exceptions on empty array")
+    [ma release];
+  }
   [arp release]; arp = nil;
   return 0;
 }

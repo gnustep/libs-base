@@ -2187,16 +2187,14 @@ compare(id elem1, id elem2, void* context)
 }
 
 /**
- * Removes the last object in the array.  Raises an exception if the array
- * is already empty.
+ * Removes the last object in the array if one exists (otherwise it just returns).
  */
 - (void) removeLastObject
 {
   NSUInteger	count = [self count];
 
   if (count == 0)
-    [NSException raise: NSRangeException
-		 format: @"Trying to remove from an empty array."];
+    return;
   [self removeObjectAtIndex: count-1];
 }
 
