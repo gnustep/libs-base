@@ -181,14 +181,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Windows x86 MinGW GCC
-            allow-test-failures: true
-            arch: i686
-            msystem: MINGW32
-            library-combo: gnu-gnu-gnu
-            CC: gcc
-            CXX: g++
-
           - name: Windows x64 MinGW GCC
             arch: x86_64
             msystem: MINGW64
@@ -200,7 +192,7 @@ jobs:
             arch: x86_64
             msystem: MINGW64
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.2
+            runtime-version: gnustep-2.0
             CC: clang
             CXX: clang
             LDFLAGS: -fuse-ld=lld -lstdc++ -lgcc_s
@@ -210,7 +202,7 @@ jobs:
             arch: x86
             host: i686-pc-windows
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.2
+            runtime-version: gnustep-2.0
             configure-opts: --disable-tls
             CC: clang -m32
             CXX: clang++ -m32
@@ -220,7 +212,7 @@ jobs:
             arch: x64
             host: x86_64-pc-windows
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.2
+            runtime-version: gnustep-2.0
             configure-opts: --disable-tls
             CC: clang -m64
             CXX: clang++ -m64
