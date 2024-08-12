@@ -432,11 +432,8 @@ static NSMutableSet	*textNodes = nil;
 
   /* Declaration */
   [buf appendString: @"<!DOCTYPE html PUBLIC "];
-  [buf appendString: @"\"-//W3C//DTD XHTML 1.0 Strict//EN\"\n"];
-  [buf appendString: @"\"http://www.w3.org/TR/xhtml1/DTD/"];
-  [buf appendString: @"xhtml1-strict.dtd\">\n"];
-  [buf appendString: @"<html xmlns=\"http://www.w3.org/1999/xhtml\" "];
-  [buf appendString: @"xml:lang=\"en\" lang=\"en\">\n"];
+  [buf appendString: @"\"-//W3C//DTD HTML 4.01//EN\"\n"];
+  [buf appendString:@"\"http://www.w3.org/TR/html4/strict.dtd\">"];
  
   [self incIndent];
   [self outputNodeList: node to: buf];
