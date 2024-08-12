@@ -7646,7 +7646,7 @@ printf %s "checking for native Windows threads and locks... " >&6; }
 /* end confdefs.h.  */
 
         #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-        #include "$srcdir/Source/GSPThread.h"
+        #include "$srcdir/Headers/GNUstepBase/GSPThread.h"
 
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"
@@ -8271,7 +8271,7 @@ then :
 else $as_nop
   if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (gs_mutex_t))" "ac_cv_sizeof_gs_mutex_t"        "$ac_includes_default
     #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-    #include \"$srcdir/Source/GSPThread.h\"
+    #include \"$srcdir/Headers/GNUstepBase/GSPThread.h\"
 "
 then :
 
@@ -8311,7 +8311,7 @@ then :
 else $as_nop
   if ac_fn_c_compute_int "$LINENO" "(long int) offsetof (ac__type_alignof_, y)" "ac_cv_alignof_gs_mutex_t"        "$ac_includes_default
     #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-    #include \"$srcdir/Source/GSPThread.h\"
+    #include \"$srcdir/Headers/GNUstepBase/GSPThread.h\"
 
 typedef struct { char x; gs_mutex_t y; } ac__type_alignof_;"
 then :
