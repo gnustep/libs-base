@@ -1724,7 +1724,7 @@ case "$target_os" in
     AC_COMPILE_IFELSE(
       [AC_LANG_SOURCE([
         #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-        #include "$srcdir/Source/GSPThread.h"
+        #include "$srcdir/Headers/GNUstepBase/GSPThread.h"
       ])],
       AC_MSG_RESULT([yes])
       HAVE_WIN32_THREADS_AND_LOCKS=1,
@@ -1882,7 +1882,7 @@ fi
 if test $HAVE_WIN32_THREADS_AND_LOCKS = 1; then
   AC_CHECK_SIZEOF(gs_mutex_t,,[AC_INCLUDES_DEFAULT
     #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-    #include "$srcdir/Source/GSPThread.h"])
+    #include "$srcdir/Headers/GNUstepBase/GSPThread.h"])
   GS_SIZEOF_MUTEX_T=$ac_cv_sizeof_gs_mutex_t
   if test $ac_cv_sizeof_gs_mutex_t = 0 ; then
     AC_MSG_ERROR([Unable to find size of gs_mutex_t (required).])
@@ -1891,7 +1891,7 @@ if test $HAVE_WIN32_THREADS_AND_LOCKS = 1; then
   
   AC_CHECK_ALIGNOF(gs_mutex_t,[AC_INCLUDES_DEFAULT
     #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-    #include "$srcdir/Source/GSPThread.h"])
+    #include "$srcdir/Headers/GNUstepBase/GSPThread.h"])
   GS_ALIGNOF_MUTEX_T=$ac_cv_alignof_gs_mutex_t
   if test $ac_cv_alignof_gs_mutex_t = 0 ; then
     AC_MSG_ERROR([Unable to find align of gs_mutex_t (required).])

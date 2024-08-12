@@ -58,7 +58,7 @@
 #include	<malloc.h>
 #endif
 
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 
 #if	defined(HAVE_SYS_SIGNAL_H)
 #  include	<sys/signal.h>

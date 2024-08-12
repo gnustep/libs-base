@@ -37,7 +37,7 @@
 
 #import "GNUstepBase/GCObject.h"
 
-#import "../GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 
 /*
  * The head of a linked list of all garbage collecting objects  is a

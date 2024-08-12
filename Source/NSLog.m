@@ -26,7 +26,7 @@
    */
 
 #import "common.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 #import "Foundation/NSDate.h"
 #import "Foundation/NSCalendarDate.h"
 #import "Foundation/NSTimeZone.h"

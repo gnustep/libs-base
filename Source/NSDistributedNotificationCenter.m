@@ -45,7 +45,7 @@
 #import	"Foundation/NSPortNameServer.h"
 #import "Foundation/NSThread.h"
 #import	"../Tools/gdnc.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 
 
 @interface	NSDistributedNotificationCenter (Private)

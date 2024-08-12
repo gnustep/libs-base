@@ -34,7 +34,7 @@
 #import "Foundation/NSDistantObject.h"
 #import "Foundation/NSData.h"
 #import "GSInvocation.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "cifframe.h"
 #import "GSPrivate.h"

@@ -45,9 +45,9 @@
 #endif
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GNUstepBase/GSPThread.h"
 
 #import "../GSPrivate.h"
-#import "../GSPThread.h"
 
 #include <objc/Protocol.h>
 

@@ -1,5 +1,5 @@
 /* GSPThread.h
-   Copyright (C) 2010 Free Software Foundation, Inc.
+   Copyright (C) 2024 Free Software Foundation, Inc.
 
    Written by:  Niels Grewe <niels.grewe@halbordnung.de>
    
@@ -22,6 +22,8 @@
 */ 
 #ifndef _GSPThread_h_
 #define _GSPThread_h_
+
+#include <GNUstepBase/config.h>
 
 #if GS_USE_WIN32_THREADS_AND_LOCKS
 

@@ -77,7 +77,7 @@
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 #import "GSPrivate.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 #include <sys/stat.h>
 #include <sys/types.h>
 

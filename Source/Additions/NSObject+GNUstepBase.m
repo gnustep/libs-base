@@ -23,7 +23,7 @@
 
 */
 #import "common.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSHashTable.h"

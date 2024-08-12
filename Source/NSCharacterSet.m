@@ -27,7 +27,7 @@
 */
 
 #import "common.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSException.h"

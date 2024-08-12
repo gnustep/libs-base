@@ -61,7 +61,7 @@
 #import "Foundation/NSValue.h"
 #import "GSFastEnumeration.h"
 #import "GSPrivate.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSTask+GNUstepBase.h"
 

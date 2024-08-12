@@ -42,7 +42,7 @@
 #import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/Unicode.h"
 #import "GSInvocation.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 
 #if defined(USE_LIBFFI)
 #import "cifframe.h"

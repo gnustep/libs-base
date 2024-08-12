@@ -25,7 +25,7 @@
    */
 
 #import "common.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 #define	EXPOSE_NSTask_IVARS	1
 #import "Foundation/FoundationErrors.h"
 #import "Foundation/NSAutoreleasePool.h"

@@ -108,7 +108,7 @@
 #import "Foundation/NSScanner.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GSPrivate.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 
 /* In systems without POSIX time zone information we can use our own builtin
  * time zone data.

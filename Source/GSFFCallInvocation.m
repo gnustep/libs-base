@@ -26,7 +26,7 @@
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDistantObject.h"
 #import "GSInvocation.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 #import <avcall.h>
 #import <callback.h>
 #import "callframe.h"

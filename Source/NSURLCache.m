@@ -24,7 +24,7 @@
 
 #import "common.h"
 
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 
 #if	GS_HAVE_NSURLSESSION
 #import <Foundation/NSURLSession.h>

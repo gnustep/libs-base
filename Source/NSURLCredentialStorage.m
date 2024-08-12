@@ -23,7 +23,7 @@
    */ 
 
 #import "common.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 
 #define	EXPOSE_NSURLCredentialStorage_IVARS	1
 #import "GSURLPrivate.h"

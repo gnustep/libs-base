@@ -8,7 +8,7 @@
  */
 #import	"Foundation/NSException.h"
 #import	"Foundation/NSLock.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 
 static NSRecursiveLock *propertyLock = nil;
 static inline NSRecursiveLock*

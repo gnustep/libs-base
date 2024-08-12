@@ -41,9 +41,9 @@
 
 #import "GNUstepBase/GSMime.h"
 #import "GNUstepBase/Unicode.h"
+#import "GNUstepBase/GSPThread.h"
 
 #import "../GSPrivate.h"
-#import "../GSPThread.h"
 
 #include <stdio.h>
 

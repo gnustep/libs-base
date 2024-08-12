@@ -34,7 +34,7 @@
 #define	gs_mutex_public_t	gs_mutex_t
 
 #import "GSPrivate.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 #include <math.h>
 #include <stdlib.h>
 

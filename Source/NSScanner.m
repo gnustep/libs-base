@@ -55,7 +55,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSUserDefaults.h"
 
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 
 #import "GSPrivate.h"
 

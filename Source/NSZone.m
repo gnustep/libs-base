@@ -91,7 +91,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSLock.h"
 #import "GSPrivate.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 
 /**
  * Primary structure representing an <code>NSZone</code>.  Technically it

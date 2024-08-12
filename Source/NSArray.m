@@ -50,7 +50,7 @@
 // For private method _decodeArrayOfObjectsForKey:
 #import "Foundation/NSKeyedArchiver.h"
 #import "GSPrivate.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 #import "GSFastEnumeration.h"
 #import "GSDispatch.h"
 #import "GSSorting.h"

@@ -41,7 +41,7 @@
 #import "Foundation/NSValue.h"
 #import "GNUstepBase/NSString+GNUstepBase.h"
 
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 
 #ifdef __GNUSTEP_RUNTIME__
 #include <objc/hooks.h>

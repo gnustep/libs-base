@@ -32,7 +32,7 @@
 
 #import "common.h"
 
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 
 #ifdef _WIN32
 #import <processthreadsapi.h>

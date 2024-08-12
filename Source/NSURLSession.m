@@ -35,7 +35,7 @@
 #import "GSEasyHandle.h"
 #import "GSHTTPURLProtocol.h"
 #import "GSMultiHandle.h"
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 #import "GSTaskRegistry.h"
 #import "GSURLSessionTaskBody.h"
 

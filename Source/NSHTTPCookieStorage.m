@@ -24,7 +24,7 @@
 
 #import "common.h"
 #define	EXPOSE_NSHTTPCookieStorage_IVARS	1
-#import "GSPThread.h"
+#import "GNUstepBase/GSPThread.h"
 #import "GSURLPrivate.h"
 #import "Foundation/NSSet.h"
 #import "Foundation/NSArray.h"
