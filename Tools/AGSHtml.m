@@ -261,7 +261,7 @@ static NSMutableSet	*textNodes = nil;
  * Calls -makeLink:ofType:isRef: or -makeLink:ofType:inUnit:isRef: to
  * create the first part of an anchor, and fills in the text content
  * of the anchor with n (the specified name).  Returns an entire anchor
- * string as a result.<br />
+ * string as a result.<br/>
  * This method is used to create all the anchors in the html output.
  */
 - (NSString*) makeAnchor: (NSString*)r
@@ -336,9 +336,9 @@ static NSMutableSet	*textNodes = nil;
 /**
  * Make a link for the element r, with the specified type t,
  * in a particular unit u. Only the start of
- * the html element is returned (&lt;a ...&gt;).<br />
+ * the html element is returned (&lt;a ...&gt;).<br>
  * If the boolean f is YES, then the link is a reference to somewhere,
- * otherwise the link is an anchor for some element being output.<br />
+ * otherwise the link is an anchor for some element being output.<br>
  * If there is an error, the method returns nil.
  */
 - (NSString*) makeLink: (NSString*)r
@@ -553,7 +553,7 @@ static NSMutableSet	*textNodes = nil;
                 }
               else
                 {
-                  [buf appendString: @"<br/>"];
+                  [buf appendString: @"<br>"];
                 }
               [buf appendString: @"\n"];
             }
@@ -716,7 +716,7 @@ static NSMutableSet	*textNodes = nil;
             }
           else
             {
-              [buf appendString: @"<br/>"];
+              [buf appendString: @"<br>"];
             }
           [buf appendString: @"\n"];
 
@@ -762,7 +762,7 @@ static NSMutableSet	*textNodes = nil;
 	  [self outputNodeList: children to: buf];
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<br />\n"];
+	  [buf appendString: @"<br>\n"];
 	  if (prevFile != nil)
 	    {
 	      [buf appendString: indent];
@@ -791,7 +791,7 @@ static NSMutableSet	*textNodes = nil;
 	}
       else if ([name isEqual: @"br"] == YES)
 	{
-	  [buf appendString: @"<br/>"];
+	  [buf appendString: @"<br>"];
 	}
       else if ([name isEqual: @"category"] == YES)
 	{
@@ -888,7 +888,7 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"</h3>\n"];
 	  [buf appendString: indent];
 	  [buf appendString: str];
-	  [buf appendString: @";<br/>\n"];
+	  [buf appendString: @";<br>\n"];
 
 	  node = firstElement(children);
 
@@ -925,7 +925,7 @@ static NSMutableSet	*textNodes = nil;
 	      unsigned	l = 0;
 
 	      [buf appendString: indent];
-	      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
+	      [buf appendString: @"<hr width=\"50%\" align=\"left\">\n"];
 	      [buf appendString: indent];
 	      [buf appendString: @"<h3>Contents -</h3>\n"];
 
@@ -1002,7 +1002,7 @@ static NSMutableSet	*textNodes = nil;
 		  l--;
 		}
 	      [buf appendString: indent];
-	      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
+	      [buf appendString: @"<hr width=\"50%\" align=\"left\">\n"];
 	    }
 	}
       else if ([name isEqual: @"declared"] == YES)
@@ -1201,7 +1201,7 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"</h3>\n"];
 	  [buf appendString: indent];
 	  [buf appendString: str];
-	  [buf appendString: @");<br />\n"];
+	  [buf appendString: @");<br>\n"];
 
 	  node = firstElement(children);
 
@@ -1314,7 +1314,7 @@ static NSMutableSet	*textNodes = nil;
           if (prevFile != nil || upFile != nil || nextFile != nil)
             {
               [buf appendString: indent];
-              [buf appendString: @"<br />\n"];
+              [buf appendString: @"<br>\n"];
             }
 
 	  [buf appendString: indent];
@@ -1535,7 +1535,7 @@ static NSMutableSet	*textNodes = nil;
 	    {
 	      v = @"public";
 	    }
-	  [buf appendFormat: @"%@@%@ %@ <b>%@</b>;<br />\n", indent, v, t, n];
+	  [buf appendFormat: @"%@@%@ %@ <b>%@</b>;<br>\n", indent, v, t, n];
 
 	  /*
 	   * List standards with which ivar complies
@@ -1653,7 +1653,7 @@ static NSMutableSet	*textNodes = nil;
 	    {
 	      [buf appendString: @")"];
 	    }
-	  [buf appendString: @"<br />\n"];
+	  [buf appendString: @"<br>\n"];
 
 	  node = firstElement(children);
 
@@ -1676,7 +1676,7 @@ static NSMutableSet	*textNodes = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr class=\"method-separator\"/>\n"];
+	  [buf appendString: @"<hr class=\"method-separator\">\n"];
 	}
       else if ([name isEqual: @"method"] == YES)
 	{
@@ -1800,7 +1800,7 @@ static NSMutableSet	*textNodes = nil;
 	      [buf appendString: @"</h3>\n"];
 	      [buf appendString: indent];
 	      [buf appendString: str];
-	      [buf appendString: @";<br />\n"];
+	      [buf appendString: @";<br>\n"];
 
 	      node = firstElement(children);
 
@@ -1818,23 +1818,23 @@ static NSMutableSet	*textNodes = nil;
 		&& [str boolValue] == YES)
 		{
 		  [buf appendString: @"This is a designated initialiser "
-		    @"for the class.<br />\n"];
+		    @"for the class.<br>\n"];
 		}
 	      str = [prop objectForKey: @"override"];
 	      if ([str isEqual: @"subclass"] == YES)
 		{
 		  [buf appendString: @"Subclasses <strong>must</strong> "
-		    @"override this method.<br />\n"];
+		    @"override this method.<br>\n"];
 		}
 	      else if ([str isEqual: @"dummy"] == YES)
 		{
 		  [buf appendString: @"An empty method provided for subclasses "
-		    @"to override.<br />\n"];
+		    @"to override.<br>\n"];
 		}
 	      else if ([str isEqual: @"never"] == YES)
 		{
 		  [buf appendString: @"Subclasses must <strong>NOT</strong> "
-		    @"override this method.<br />\n"];
+		    @"override this method.<br>\n"];
 		}
 
 	      if ([[node name] isEqual: @"desc"])
@@ -1842,7 +1842,7 @@ static NSMutableSet	*textNodes = nil;
 		  [self outputNode: node to: buf];
 		}
 	      [buf appendString: indent];
-	      [buf appendString: @"<hr class=\"method-separator\"/>\n"];
+	      [buf appendString: @"<hr class=\"method-separator\">\n"];
 	    }
           [buf appendString:@"</div>\n"];
 	}
@@ -2016,7 +2016,7 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"</h3>\n"];
 	  [buf appendString: indent];
 	  [buf appendString: str];
-	  [buf appendString: @";<br />\n"];
+	  [buf appendString: @";<br>\n"];
 
 	  node = firstElement(children);
 
@@ -2039,7 +2039,7 @@ static NSMutableSet	*textNodes = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr class=\"method-separator\"/>\n"];
+	  [buf appendString: @"<hr class=\"method-separator\">\n"];
 	}
       else if ([name isEqual: @"uref"] == YES)
 	{
@@ -2094,7 +2094,7 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @"</h3>\n"];
 	  [buf appendString: indent];
 	  [buf appendString: str];
-	  [buf appendString: @";<br/>\n"];
+	  [buf appendString: @";<br>\n"];
 
 	  node = firstElement(children);
 
@@ -2117,7 +2117,7 @@ static NSMutableSet	*textNodes = nil;
 	    }
 
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr class=\"method-separator\"/>\n"];
+	  [buf appendString: @"<hr class=\"method-separator\">\n"];
 	}
       else
 	{
@@ -2663,16 +2663,16 @@ static NSMutableSet	*textNodes = nil;
 	{
 	  ibuf = ivarBuf;
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
+	  [buf appendString: @"<hr width=\"50%\" align=\"left\">\n"];
 	  [buf appendString: indent];
 	  [buf appendFormat: @"<a href=\"#_%@_ivars\">Instance Variables</a>\n",
 			     classname];
 	  [buf appendString: indent];
-	  [buf appendString: @"<br/><br/>\n"];
+	  [buf appendString: @"<br><br>\n"];
 	  [ibuf appendFormat: @"<a name=\"_%@_ivars\"/>", classname];
 	}
       [ibuf appendString: indent];
-      [ibuf appendString: @"<br/><hr width=\"50%\" align=\"left\" />\n"];
+      [ibuf appendString: @"<br><hr width=\"50%\" align=\"left\">\n"];
       [ibuf appendString: indent];
       [ibuf appendFormat: @"<h2>Instance Variables for %@ Class</h2>\n",
 	classname];
@@ -2682,7 +2682,7 @@ static NSMutableSet	*textNodes = nil;
 	  node = [node nextElement];
 	}
       [ibuf appendString: indent];
-      [ibuf appendString: @"<br/><hr width=\"50%\" align=\"left\" /><br/>\n"];
+      [ibuf appendString: @"<br><hr width=\"50%\" align=\"left\"><br>\n"];
     }
 
   a = [localRefs methodsInUnit: unit];
@@ -2695,7 +2695,7 @@ static NSMutableSet	*textNodes = nil;
                  target: nil
 		     to: buf];
       [buf appendString: indent];
-      [buf appendString: @"<hr width=\"50%\" align=\"left\" />\n"];
+      [buf appendString: @"<hr width=\"50%\" align=\"left\">\n"];
       while (node != nil)
 	{
 	  if ([[node name] isEqual: @"method"] == YES)
@@ -2820,7 +2820,7 @@ static NSMutableSet	*textNodes = nil;
 	    }
 	}
       [buf appendString:@"</div>\n"];
-      [buf appendString: @"<br />\n"];
+      [buf appendString: @"<br>\n"];
     }
   else if ([gvadd length] > 0)
     {
@@ -2838,14 +2838,14 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: @" deprecated at "];
 	  [buf appendString: gvdep];
 	}
-      [buf appendString: @"<br/>\n"];
+      [buf appendString: @"<br>\n"];
       if ([gvrem length] > 0)
 	{
           [buf appendString: @" Likely to be changed/moved/removed at "];
 	  [buf appendString: gvrem];
 	}
       [buf appendString:@"</div>\n"];
-      [buf appendString: @"<br/>\n"];
+      [buf appendString: @"<br>\n"];
     }
 }
 
