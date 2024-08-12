@@ -1,3 +1,8 @@
+2024-12-08 Hugo Melder <hugo@algoriddim.com>
+	* Source/GSPThread.h:
+	* Headers/GNUstepBase/GSPThread.h:
+	Make GSPThread.h a public API.
+
 2024-08-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m:
