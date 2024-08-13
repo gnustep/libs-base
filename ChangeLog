@@ -1,3 +1,7 @@
+2024-12-08 Hugo Melder <hugo@algoriddim.com>
+	* Source/NSThread.m:
+	Fix threadPriority and setThreadPriority: on Android.
+
 2024-08-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSHtml.m:
