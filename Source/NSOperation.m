@@ -50,6 +50,7 @@
   NSMutableArray	*waiting; \
   NSMutableArray	*starting; \
   NSString		*name; \
+  NSString		*threadName; \
   BOOL			suspended; \
   NSInteger		executing; \
   NSInteger		threadCount; \
@@ -63,6 +64,7 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSKeyValueObserving.h"
 #import "Foundation/NSThread.h"
+#import "Foundation/NSValue.h"
 #import "GNUstepBase/NSArray+GNUstepBase.h"
 #import "GSPrivate.h"
 
@@ -612,7 +614,7 @@ GS_PRIVATE_INTERNAL(NSOperationQueue)
 
 @interface	NSOperationQueue (Private)
 - (void) _execute;
-- (void) _thread;
+- (void) _thread: (NSNumber *) threadNumber;
 - (void) observeValueForKeyPath: (NSString *)keyPath
 		       ofObject: (id)object
                          change: (NSDictionary *)change
@@ -829,6 +831,15 @@ static NSOperationQueue *mainQueue = nil;
       internal->cond = [[NSConditionLock alloc] initWithCondition: 0];
       [internal->cond setName:
         [NSString stringWithFormat: @"cond-for-op-%p", self]];
+      internal->name = [[NSString alloc] initWithFormat: @"NSOperationQueue %p", self];
+
+      /* Ensure that default thread name can be displayed on systems with a
+       * limited thread name length.
+       *
+       * This value is set to internal->name, when altered with -setName:
+       * Worker threads are not renamed during their lifetime.
+       */
+      internal->threadName = @"NSOperationQ";
     }
   return self;
 }
@@ -848,13 +859,9 @@ static NSOperationQueue *mainQueue = nil;
   NSString	*s;
 
   [internal->lock lock];
-  if (internal->name == nil)
-    {
-      internal->name
-	= [[NSString alloc] initWithFormat: @"NSOperation %p", self];
-    }
-  s = RETAIN(internal->name);
+  s = [internal->name copy];
   [internal->lock unlock];
+
   return AUTORELEASE(s);
 }
 
@@ -900,13 +907,16 @@ static NSOperationQueue *mainQueue = nil;
 
 - (void) setName: (NSString*)s
 {
-  if (s == nil) s = @"";
+  if (s == nil) return;
+
   [internal->lock lock];
   if (NO == [internal->name isEqual: s])
     {
       [self willChangeValueForKey: @"name"];
       RELEASE(internal->name);
       internal->name = [s copy];
+      // internal->threadName is unretained
+      internal->threadName = internal->name;
       [self didChangeValueForKey: @"name"];
     }
   [internal->lock unlock];
@@ -998,12 +1008,22 @@ static NSOperationQueue *mainQueue = nil;
   [self _execute];
 }
 
-- (void) _thread
+- (void) _thread: (NSNumber *) threadNumber
 {
+  NSString *tName;
+  NSThread *current;
+
   CREATE_AUTORELEASE_POOL(arp);
 
-  [[[NSThread currentThread] threadDictionary] setObject: self
-                                                  forKey: threadKey];
+  current = [NSThread currentThread];
+
+  [internal->lock lock];
+  tName = [internal->threadName stringByAppendingFormat: @"_%@", threadNumber];
+  [internal->lock unlock];
+
+  [[current threadDictionary] setObject: self forKey: threadKey];
+  [current setName: tName];
+
   for (;;)
     {
       NSOperation	*op;
@@ -1123,9 +1143,10 @@ static NSOperationQueue *mainQueue = nil;
 	      internal->threadCount++;
 	      NS_DURING
 		{
-		  [NSThread detachNewThreadSelector: @selector(_thread)
+      NSNumber *threadNumber = [NSNumber numberWithInteger: internal->threadCount - 1];
+		  [NSThread detachNewThreadSelector: @selector(_thread:)
 					   toTarget: self
-					 withObject: nil];
+					 withObject: threadNumber];
 		}
 	      NS_HANDLER
 		{
