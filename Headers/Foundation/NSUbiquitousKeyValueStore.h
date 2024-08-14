@@ -43,69 +43,113 @@ extern "C" {
 GS_EXPORT_CLASS
 @interface NSUbiquitousKeyValueStore : NSObject
 
-// Getting the Shared Instance
+/**
+ * Getting the Shared Instance
+ */
 + (NSUbiquitousKeyValueStore *) defaultStore;
   
 // Getting Values
-// Returns the array associated with the specified key.
+
+/**
+ * Returns the array associated with the specified key.
+ */
 - (NSArray *) arrayForKey: (NSString *)key;
   
-// Returns the Boolean value associated with the specified key.
+/**
+ * Returns the Boolean value associated with the specified key.
+ */
 - (BOOL) boolForKey: (NSString *)key;
 
-// Returns the data object associated with the specified key.
+/**
+ * Returns the data object associated with the specified key.
+ */
 - (NSData*) dataForKey: (NSString *)key;
-
-// Returns the dictionary object associated with the specified key.
+  
+/**
+ * Returns the dictionary object associated with the specified key.
+ */
 - (NSDictionary *) dictionaryForKey: (NSString *)key;
 
-// Returns the double value associated with the specified key.
+/**
+ * Returns the double value associated with the specified key.
+ */
 - (double) doubleForKey: (NSString *)key;
 
-// Returns the long long value associated with the specified key.
+/**
+ * Returns the long long value associated with the specified key.
+ */
 - (long long) longLongForKey: (NSString *)key;
 
-// Returns the object associated with the specified key.
+/**
+ * Returns the object associated with the specified key.
+ */
 - (id) objectForKey: (NSString *)key;
 
-//  Returns the string associated with the specified key.
+/**
+ * Returns the string associated with the specified key.
+ */
 - (NSString *) stringForKey: (NSString *)key;
 
 // Setting Values
-// Sets an array object for the specified key in the key-value store.
+
+/**
+ * Sets an array object for the specified key in the key-value store.
+ */
 - (void) setArray: (NSArray *)array forKey: (NSString *)key;
 
-// Sets a Boolean value for the specified key in the key-value store.
+/**
+ * Sets a Boolean value for the specified key in the key-value store.
+ */
 - (void) setBool: (BOOL)flag forKey: (NSString *)key;
 
-// Sets a data object for the specified key in the key-value store.
+/**
+ * Sets a data object for the specified key in the key-value store.
+ */
 - (void) setData: (NSData *)data forKey: (NSString *)key;
 
-// Sets a dictionary object for the specified key in the key-value store.
+/**
+ * Sets a dictionary object for the specified key in the key-value store.
+ */
 - (void) setDictionary: (NSDictionary *)dict forKey: (NSString *)key;
 
-// Sets a double value for the specified key in the key-value store.
+/**
+ * Sets a double value for the specified key in the key-value store.
+ */
 - (void) setDouble: (double)val forKey: (NSString *)key;
 
-// Sets a long long value for the specified key in the key-value store.
+/**
+ * Sets a long long value for the specified key in the key-value store.
+ */
 - (void) setLongLong: (long long)val forKey: (NSString *)key;
 
-// Sets an object for the specified key in the key-value store.
+/**
+ * Sets an object for the specified key in the key-value store.
+ */
 - (void) setObject: (id) obj forKey: (NSString *)key;
 
-// Sets a string object for the specified key in the key-value store.
+/**
+ * Sets a string object for the specified key in the key-value store.
+ */
 - (void) setString: (NSString *)string forKey: (NSString *)key;
 
 // Explicitly Synchronizing In-Memory Key-Value Data to Disk
-// Explicitly synchronizes in-memory keys and values with those stored on disk.
+
+/**
+ * Explicitly synchronizes in-memory keys and values with those stored on disk.
+ */
 - (void) synchronize;
 
 // Removing Keys
-// Removes the value associated with the specified key from the key-value store.
+
+/**
+ * Removes the value associated with the specified key from the key-value store.
+ */
 - (void) removeObjectForKey: (NSString *)key;
 
 // Retrieving the Current Keys and Values
-// A dictionary containing all of the key-value pairs in the key-value store.
+/**
+ * A dictionary containing all of the key-value pairs in the key-value store.
+ */
 - (NSDictionary *) dictionaryRepresentation;
 
 @end
