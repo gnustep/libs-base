@@ -7,7 +7,7 @@ dnl
 dnl AC_SYS_PROCFS
 dnl This macro defines HAVE_PROCFS if either it finds a mounted /proc
 dnl or the user explicitly enables it for cross-compiles.
-AC_DEFUN(AC_SYS_PROCFS,
+AC_DEFUN([AC_SYS_PROCFS],
 [ AC_ARG_ENABLE(procfs,
     [  --enable-procfs               Use /proc filesystem (default)],
     enable_procfs="$enableval", if test "$cross_compiling" = yes; then enable_procfs=cross; else enable_procfs=yes; fi;)
@@ -48,7 +48,7 @@ AC_DEFUN(AC_SYS_PROCFS,
 dnl AC_SYS_PROCFS_PSINFO
 dnl This macro defines HAVE_PROCFS_PSINFO if it can read the psinfo 
 dnl structure from the /proc/%pid% directory
-AC_DEFUN(AC_SYS_PROCFS_PSINFO,
+AC_DEFUN([AC_SYS_PROCFS_PSINFO],
 [ AC_ARG_ENABLE(procfs-psinfo,
     [  --enable-procfs-psinfo         Use /proc/%pid% to get info],
     enable_procfs_psinfo="$enableval", if test "$cross_compiling" = yes; then enable_procfs_psinfo=cross; else enable_procfs_psinfo=yes; fi;)

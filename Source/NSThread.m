@@ -116,6 +116,11 @@ typedef struct {
 #  include <sys/file.h>
 #endif
 
+#if defined(__ANDROID__)
+#  include <string.h>       // For strerror
+#  include <sys/resource.h> // For getpriority and setpriority
+#endif
+
 #if	defined(HAVE_SYS_FCNTL_H)
 #  include <sys/fcntl.h>
 #elif	defined(HAVE_FCNTL_H)
@@ -1004,6 +1009,34 @@ unregisterActiveThread(NSThread *thread)
     return NO;
   }
   return YES;
+#elif defined(__ANDROID__)
+/* Android's pthread_setschedparam is currently broken, as it checks
+ * if the priority is in the range of the system's min and max
+ * priorities. The interval bounds are queried with `sched_get_priority_min`,
+ * and `sched_get_priority_max` which just return 0, regardless of the
+ * specified scheduling policy.
+ *
+ * The solution is to use `setpriority` to set the thread
+ * priority. This is possible because on Linux, it is not a per-process setting
+ * as specified by POSIX but a per-thread setting (See the `Bugs` section in `setpriority`).
+ *
+ * Android's internal implementation also relies on this behavior, so it
+ * is safe to use it here.
+ */
+
+  // Clamp pri into the required range.
+  if (pri > 1) { pri = 1; }
+  if (pri < 0) { pri = 0; }
+
+  // Convert [0.0, 1.0] to [-20, 19] range where -20 is the highest
+  // and 19 the lowest priority.
+  int priority = (int)(-20 + (1-pri) * 39);
+  if (setpriority(PRIO_PROCESS, 0, priority) == -1)
+  {
+    NSLog(@"Failed to set thread priority %d: %s", priority, strerror(errno));
+    return NO;
+  }
+  return YES;
 #elif defined(_POSIX_THREAD_PRIORITY_SCHEDULING) && (_POSIX_THREAD_PRIORITY_SCHEDULING > 0)
   int res;
   int	policy;
@@ -1097,6 +1130,18 @@ unregisterActiveThread(NSThread *thread)
         NSLog(@"Unknown thread priority: %d", winPri);
         break;
     }
+#elif defined(__ANDROID__)
+/* See notes in setThreadPriority
+ */
+  int priority = getpriority(PRIO_PROCESS, 0);
+  if (priority == -1)
+  {
+    NSLog(@"Failed to get thread priority: %s", strerror(errno));
+    return pri;
+  }
+
+  // Convert [-20, 19] to [0.0, 1.0] range
+  pri = 1 - (priority + 20) / 39.0;
 #elif defined(_POSIX_THREAD_PRIORITY_SCHEDULING) && (_POSIX_THREAD_PRIORITY_SCHEDULING > 0)
   int res;
   int policy;
@@ -1125,8 +1170,6 @@ unregisterActiveThread(NSThread *thread)
 
   return pri;
 }
-
-
 
 /*
  * Thread instance methods.

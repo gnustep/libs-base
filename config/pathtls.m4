@@ -4,7 +4,7 @@ dnl  Copying and distribution of this file, with or without modification,
 dnl  are permitted in any medium without royalty provided the copyright
 dnl  notice and this notice are preserved.
 dnl AM_PATH_TLS([MINIMUM-VERSION [, ACTION-IF-FOUND [, ACTION-IF-NOT-FOUND]]])
-AC_DEFUN(AM_PATH_TLS,[
+AC_DEFUN([AM_PATH_TLS],[
 AC_ARG_WITH(tls-prefix,
             [  --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)],
             tls_config_prefix="$withval", tls_config_prefix="")
