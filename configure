@@ -14510,6 +14510,18 @@ fi
   if test "$ac_cv_func__dispatch_main_queue_callback_4CF" = "yes" && test "$ac_cv_func__dispatch_get_main_queue_handle_4CF" = "yes"; then
     HAVE_LIBDISPATCH_RUNLOOP=1
   fi
+  # Check for availability of functions in more recent libdispatch versions.
+  for ac_func in dispatch_cancel
+do :
+  ac_fn_c_check_func "$LINENO" "dispatch_cancel" "ac_cv_func_dispatch_cancel"
+if test "x$ac_cv_func_dispatch_cancel" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DISPATCH_CANCEL 1
+_ACEOF
+
+fi
+done
+
 fi
 
 
