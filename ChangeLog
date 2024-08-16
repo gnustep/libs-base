@@ -86,6 +86,59 @@
 	the GNUSTEP_MAKEFILES environment variable or get the output of the
 	gnustep-config script directly.
 
+2024-07-02 Hugo Melder <hugo@algoriddim.com>
+
+	* Source/GSEasyHandle.h:
+	* Source/GSEasyHandle.m:
+	* Source/GSHTTPURLProtocol.h:
+	* Source/GSHTTPURLProtocol.m:
+	* Source/GSMultiHandle.h:
+	* Source/GSMultiHandle.m:
+	* Source/GSNativeProtocol.h:
+	* Source/GSNativeProtocol.m:
+	* Source/GSTaskRegistry.h:
+	* Source/GSTaskRegistry.m:
+	* Source/GSTimeoutSource.h:
+	* Source/GSTimeoutSource.m:
+	* Source/GSTransferState.h:
+	* Source/GSTransferState.m:
+	* Source/GSURLPrivate.h:
+	* Source/GSURLSessionTaskBody.h:
+	* Source/GSURLSessionTaskBody.m:
+	* Source/GSURLSessionTaskBodySource.h:
+	* Source/GSURLSessionTaskBodySource.m:
+	Deleted old NSURLSession implementation.
+
+	* Headers/Foundation/NSURLSession.h:
+	* Source/NSURLSessionPrivate.h:
+	* Source/NSURLSession.m:
+	* Source/NSURLSessionConfiguration.m:
+	* Source/NSURLSessionTaskPrivate.h:
+	* Source/NSURLSessionTask.m:
+	* Source/NSURLSessionConfiguration.m:
+	The new NSURLSession implementation was reduced to just two main classes:
+	NSURLSession and NSURLSessionTask. URLSession manages a libcurl multi
+	handle and the required plumming via libdispatch. Timeout and socket actions
+	are handled in the libdispatch workqueue. Delegate messages and completion
+	handlers are submitted to a seperate serial NSOperationQueue.
+
+	* Headers/Foundation/NSUserDefaults.h:
+	* Source/externs.m:
+	Added GSCACertificateFilePath for custom CA certificate file configuration.
+
+	* Source/NSHTTPCookie.m:
+	Reworked cookie expiration date parsing.
+
+	* Source/NSOperation.m:
+	Clear all blocks in _executionBlocks after completion.
+
+	* Headers/Foundation/NSURLRequest.h:
+	* Source/NSURLRequest.m:
+	Implemented  -[NSURLRequest assumesHTTP3Capable] and -[NSURLRequest
+	setAssumesHTTP3Capable:] respectively.  The internal case-insensitive header
+	dictionary is now exposed for private usage with -[NSURLRequest
+	_insensitiveHeaders].
+
 2024-06-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDistantObject.m: Use standard method name conventions
