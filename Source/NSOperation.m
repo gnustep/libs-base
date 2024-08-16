@@ -595,13 +595,15 @@ static NSArray	*empty = nil;
 
 - (void) main
 {
-  NSEnumerator 		*en = [[self executionBlocks] objectEnumerator];
+  NSEnumerator 		*en = [_executionBlocks objectEnumerator];
   GSBlockOperationBlock theBlock;
 
   while ((theBlock = (GSBlockOperationBlock)[en nextObject]) != NULL)
     {
       CALL_NON_NULL_BLOCK_NO_ARGS(theBlock);
     }
+
+  [_executionBlocks removeAllObjects];
 }
 @end
 
