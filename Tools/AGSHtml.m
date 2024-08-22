@@ -447,6 +447,24 @@ static NSMutableSet	*textNodes = nil;
   return buf;
 }
 
+/** Output all the nodes containing xml elements from this one onwards.
+ * Text and entity ref nodes are ignored (to remove whitespace etc 
+ * between elements).
+ */
+- (void) outputElemList: (GSXMLNode*)node to: (NSMutableString*)buf
+{
+  while (node != nil)
+    {
+      GSXMLNode	*next = [node nextElement];
+
+      if ([node type] == XML_ELEMENT_NODE)
+	{
+	  [self outputNode: node to: buf];
+	}
+      node = next;
+    }
+}
+
 - (void) outputIndex: (NSString*)type
 	       scope: (NSString*)scope
 	       title: (NSString*)title
@@ -1253,7 +1271,7 @@ static NSMutableSet	*textNodes = nil;
 		([stylesheetURL rangeOfString: @"gsdoc_contents"].length > 0))
 		? YES : NO;
 
-	      [self outputNodeList: children to: buf];
+	      [self outputElemList: children to: buf];
 	    }
 	}
       else if ([name isEqual: @"head"] == YES)
@@ -2138,8 +2156,7 @@ static NSMutableSet	*textNodes = nil;
   LEAVE_POOL
 }
 
-/**
- * Output all the nodes from this one onwards ... try to output
+/** Output all the nodes from this one onwards ... try to output
  * as text first, if not possible, call the main method to output
  * each node.
  */
