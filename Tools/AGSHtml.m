@@ -1259,6 +1259,11 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: indent];
 	  [buf appendString: @"<head>\n"];
 	  [self incIndent];
+
+	  /** charset/encoding should be in first 1024 bytes, so before title */
+	  [buf appendString: indent];
+	  [buf appendString: @"<meta charset=\"utf-8\">\n"];
+
 	  children = firstElement(children);
 	  [buf appendString: indent];
 	  [buf appendString: @"<title>"];
