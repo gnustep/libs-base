@@ -432,7 +432,7 @@ static NSMutableSet	*textNodes = nil;
 
   /* Declaration */
   [buf appendString: @"<!DOCTYPE html>\n"];
-  [buf appendString: @"<html lang=\"en\">"];  // if we support multi-lang doc, this should be dynamic
+  [buf appendString: @"<html lang=\"en\">\n"];
  
   [self incIndent];
   [self outputNodeList: node to: buf];
