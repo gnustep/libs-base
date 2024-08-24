@@ -61,6 +61,9 @@
 - (NSString*) makeLink: (NSString*)r
 		ofType: (NSString*)t
 		 isRef: (BOOL)f;
+- (NSString*) makeURL: (NSString*)r
+	       ofType: (NSString*)t
+                isRef: (BOOL)f;
 - (NSString*) makeLink: (NSString*)r
 		ofType: (NSString*)t
 		inUnit: (NSString*)u
