@@ -1977,14 +1977,20 @@ main(int argc, char **argv, char **env)
 
       // file for top-left frame (header only; rest appended below)
       idxIndexFile = [@"MainIndex" stringByAppendingPathExtension: @"html"];
-      [idxIndex setString: @"<HTML>\n  <BODY>\n"
-@"    <B>Index</B><BR/>\n"];
+      [idxIndex setString: @"<!DOCTYPE HTML>\n"
+@"<HTML>\n"
+@"  <HEAD>\n"
+@"    <META charset=\"utf-8\">\n"
+@"  </HEAD>\n"
+@"  <BODY>\n"
+@"    <B>Index</B><BR>\n"];
 
       // this becomes index.html
       framesetFile = [@"index" stringByAppendingPathExtension: @"html"];
-      [frameset setString: @"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"\"http://www.w3.org/TR/REC-html40/loose.dtd\">\n"
-@"<HTML>\n"
+      [frameset setString: @"<!DOCTYPE HTML>\n"
+@"<HTML lang=\"en\">\n"
 @"  <HEAD>\n"
+@"  <META charset=\"utf-8\">\n"
 @"  <TITLE>\n"
 @"    Autogsdoc-generated Documentation for [prjName]\n"
 @"  </TITLE>\n"
