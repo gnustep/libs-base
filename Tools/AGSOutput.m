@@ -2383,7 +2383,7 @@ static BOOL snuggleStart(NSString *t)
 	   */
 	  if (up != nil && [up isEqual: [name lastPathComponent]] == NO)
 	    {
-	      [str appendString: @"\" up=\""];
+	      [str appendString: @" up=\""];
 	      [str appendString: up];
 	      [str appendString: @"\""];
 	    }
