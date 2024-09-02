@@ -1391,6 +1391,7 @@ unregisterActiveThread(NSThread *thread)
               */
               if (i > 15)
                 {
+                  NSWarnLog(@"Truncating thread name '%s' to 15 characters due to platform limitations", buf);
                   i = 15;
                 }
               else
