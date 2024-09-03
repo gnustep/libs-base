@@ -464,7 +464,8 @@
       </item>
       <item><strong>StylesheetURL</strong>
 	The URL of a CSS document to be used as the stadard stylesheet for
-	generated autogsdoc files.
+	generated autogsdoc files.  If this is not specified the default of
+	a local document default-styles.css is used.
       </item>
       <item><strong>SystemProjects</strong>
 	This value is used to control the automatic inclusion of system
@@ -751,6 +752,7 @@ main(int argc, char **argv, char **env)
   defs = [NSUserDefaults standardUserDefaults];
   [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
     @"Untitled", @"Project",
+    @"default-styles.css", @"StylesheetURL",
     nil]];
 
   // BEGIN test for any unrecognized arguments, or "--help"

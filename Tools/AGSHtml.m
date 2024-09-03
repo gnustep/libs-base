@@ -1290,17 +1290,13 @@ static NSMutableSet	*textNodes = nil;
 	  [self decIndent];
 	  [buf appendString: @"</title>\n"];
 
-	  /** handcrafted styles for previous in-line styles */
-	  [buf appendString: indent];
-	  [buf appendString: @"<style type=\"text/css\">\n"];
-	  [buf appendString: indent];
-	  [buf appendString: @"hr.method-separator { width:25%; margin-left:0; }\n"];
-	  [buf appendString: indent];
-	  [buf appendString: @"</style>\n"];
+          [buf appendString: @"<meta http-equiv=\"Content-Style-Type\""
+	    @" content=\"text/css\"/>\n"];
+          [buf appendFormat: @"<link rel=\"stylesheet\" type=\"text/css\""
+	    @" href=\"%@\" media=\"screen\" title=\"Normal\" />\n",
+	    [[NSUserDefaults standardUserDefaults] stringForKey:
+	    @"StylesheetURL"]];
 #if 0
-          /** Css : TODO print.css **/
-          [buf appendString:@"<meta http-equiv=\"Content-Style-Type\" content=\"text/css\"/>\n"];
-          [buf appendString:@"<link rel=\"stylesheet\" type=\"text/css\" href=\"screen.css\" media=\"screen\" title=\"Normal\" />\n"];
           /** Robots **/
           [buf appendString:@"<meta name=\"robots\" content=\"all\" />\n"];
 #endif
