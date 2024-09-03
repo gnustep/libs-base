@@ -1345,6 +1345,7 @@ recheck:
 			if (buffer[pos + 1] == '/')
 			  {
 			    [self skipRemainderOfLine];
+			    break;
 			  }
 			else if (buffer[pos + 1] == '*')
 			  {
