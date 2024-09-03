@@ -235,6 +235,31 @@ static NSMutableSet	*mySet = nil;
 static jobject _androidContext = NULL;
 static NSString *_androidFilesDir = nil;
 static NSString *_androidCacheDir = nil;
+
+
+/* The following macro assumes that the function's return type is bool.
+ */
+#define GS_JNI_CHECK(env, obj) \
+  if (unlikely(JNI_TRUE == (*env)->ExceptionCheck(env))) { \
+    fprintf(stderr, "File: %s, Line: %d jenv: %p obj: %p Pending exception in JNI environment.\n", __FILE__, __LINE__, env, obj); \
+    (*env)->ExceptionDescribe(env); \
+    (*env)->ExceptionClear(env); \
+    abort(); \
+  } \
+  if (unlikely(obj == NULL)) { \
+    fprintf(stderr, "File: %s, Line: %d jenv: %p JNI returned NULL instead of a valid JNI object.\n", __FILE__, __LINE__, env); \
+    abort(); \
+  }
+#define GS_JNI_CLS_CHECK(env, cls, name) \
+  if (unlikely(cls == NULL)) { \
+    fprintf(stderr, "File: %s, Line: %d jenv: %p JNI returned NULL instead of a valid JNI class object for '%s'.\n", __FILE__, __LINE__, env, name); \
+    abort(); \
+  }
+#define GS_JNI_METH_CHECK(env, meth) \
+  if (unlikely(meth == NULL)) { \
+    fprintf(stderr, "File: %s, Line: %d jenv: %p JNI returned NULL instead of a valid JNI method object.\n", __FILE__, __LINE__, env); \
+    abort(); \
+  }
 #endif
 
 /*************************************************************************
@@ -1567,15 +1592,22 @@ void
 GSInitializeProcessAndroid(JNIEnv *env, jobject context)
 {
   jclass contextCls = (*env)->GetObjectClass(env, context);
+  GS_JNI_CLS_CHECK(env, contextCls, "L/android/content/Context;");
 
   // get package code path (path to APK)
   jmethodID packageCodePathMethod = (*env)->GetMethodID(env, contextCls, "getPackageCodePath", "()Ljava/lang/String;");
+  GS_JNI_METH_CHECK(env, packageCodePathMethod);
   jstring packageCodePathJava = (*env)->CallObjectMethod(env, context, packageCodePathMethod);
+  GS_JNI_CHECK(env, packageCodePathJava);
+
   const char *packageCodePath = (*env)->GetStringUTFChars(env, packageCodePathJava, NULL);
 
   // get package name
   jmethodID packageNameMethod = (*env)->GetMethodID(env, contextCls, "getPackageName", "()Ljava/lang/String;");
+  GS_JNI_CHECK(env, packageNameMethod);
   jstring packageNameJava = (*env)->CallObjectMethod(env, context, packageNameMethod);
+  GS_JNI_CHECK(env, packageNameJava);
+
   const char *packageName = (*env)->GetStringUTFChars(env, packageNameJava, NULL);
 
   // create fake executable path consisting of package code path (without .apk)
@@ -1591,10 +1623,18 @@ GSInitializeProcessAndroid(JNIEnv *env, jobject context)
 
   // get current locale
   jclass localeCls = (*env)->FindClass(env, "java/util/Locale");
+  GS_JNI_CLS_CHECK(env, localeCls, "Ljava/util/Locale;");
+
   jmethodID localeDefaultMethod = (*env)->GetStaticMethodID(env, localeCls, "getDefault", "()Ljava/util/Locale;");
+  GS_JNI_METH_CHECK(env, localeDefaultMethod);
   jmethodID localeIdMethod = (*env)->GetMethodID(env, localeCls, "toLanguageTag", "()Ljava/lang/String;");
+  GS_JNI_METH_CHECK(env, localeIdMethod);
+
   jobject localeObj = (*env)->CallStaticObjectMethod(env, localeCls, localeDefaultMethod);
+  GS_JNI_CHECK(env, localeObj);
   jstring localeIdJava = (*env)->CallObjectMethod(env, localeObj, localeIdMethod);
+  GS_JNI_CHECK(env, localeIdJava);
+
   const char *localeIdOrig = (*env)->GetStringUTFChars(env, localeIdJava, NULL);
 
   // Android uses dashes as delimiters (e.g "en-US"), but we expect underscores
@@ -1605,28 +1645,83 @@ GSInitializeProcessAndroid(JNIEnv *env, jobject context)
     }
   }
 
-  // get current time zone
+  char *localeList = NULL;
+  #if __ANDROID_API__ >= 24
+  // get locales ordered by user preference
+  jclass localeListCls = (*env)->FindClass(env, "android/os/LocaleList");
+  GS_JNI_CLS_CHECK(env, localeListCls, "L/android/os/LocaleList;");
+  jmethodID localeListGetDefaultMethod = (*env)->GetStaticMethodID(env, localeListCls, "getDefault", "()Landroid/os/LocaleList;");
+  GS_JNI_METH_CHECK(env, localeListGetDefaultMethod);
+
+  jobject localeListObj = (*env)->CallStaticObjectMethod(env, localeListCls, localeListGetDefaultMethod);
+  GS_JNI_CHECK(env, localeListObj);
+
+  // Retrieve string representation of the locale list
+  jmethodID localeListToLanguageTagsMethod = (*env)->GetMethodID(env, localeListCls, "toLanguageTags", "()Ljava/lang/String;");
+  GS_JNI_METH_CHECK(env, localeListToLanguageTagsMethod);
+  jstring localeListJava = (*env)->CallObjectMethod(env, localeListObj, localeListToLanguageTagsMethod);
+  GS_JNI_CHECK(env, localeListJava);
+  
+  const char *localeListOrig = (*env)->GetStringUTFChars(env, localeIdJava, NULL);
+
+  // Some devices return with it enclosed in []'s so check if both exists before
+  // removing to ensure it is formatted correctly
+  if (localeListOrig[0] == '[' && localeListOrig[strlen(localeListOrig) - 1] == ']') {
+    localeList = strdup(localeListOrig + 1);
+    localeList[strlen(localeList) - 1] = '\0';
+  } else {
+    localeList = strdup(localeListOrig);
+  }
+
+  // NOTE: This is an IETF BCP 47 language tag and may not correspond exactly tocorrespond ll-CC format
+  // e.g. gsw-u-sd-chzh is a valid BCP 47 language tag, but uses an ISO 639-3 subtag to classify the language.
+  // There is no easy fix to this, as we use ISO 639-2 subtags internally.
+  for (int i = 0; localeList[i]; i++) {
+    if (localeList[i] == '-') {
+      localeList[i] = '_';
+    }
+  }
+
+  (*env)->ReleaseStringUTFChars(env, localeListJava, localeListOrig);
+  #endif
+
+  
   jclass timezoneCls = (*env)->FindClass(env, "java/util/TimeZone");
+  GS_JNI_CLS_CHECK(env, timezoneCls, "Ljava/util/TimeZone;");
   jmethodID timezoneDefaultMethod = (*env)->GetStaticMethodID(env, timezoneCls, "getDefault", "()Ljava/util/TimeZone;");
+  GS_JNI_METH_CHECK(env, timezoneDefaultMethod);
   jmethodID timezoneIdMethod = (*env)->GetMethodID(env, timezoneCls, "getID", "()Ljava/lang/String;");
+  GS_JNI_METH_CHECK(env, timezoneIdMethod);
+
   jobject timezoneObj = (*env)->CallStaticObjectMethod(env, timezoneCls, timezoneDefaultMethod);
+  GS_JNI_CHECK(env, timezoneObj);
   jstring timezoneIdJava = (*env)->CallObjectMethod(env, timezoneObj, timezoneIdMethod);
+  GS_JNI_CHECK(env, timezoneIdJava);
+
   const char *timezoneId = (*env)->GetStringUTFChars(env, timezoneIdJava, NULL);
+
+  char *localeListValue = "";
+  if (localeList) {
+    localeListValue = localeList;
+  }
 
   // initialize process with these options
   char *argv[] = {
     arg0,
     "-Locale", localeId,
     "-Local Time Zone", (char *)timezoneId,
+    "-GSAndroidLocaleList", localeListValue,
     "-GSLogSyslog", "YES" // use syslog (available via logcat) instead of stdout/stderr (not available on Android)
   };
 
   GSInitializeProcessAndroidWithArgs(env, context, sizeof(argv)/sizeof(char *), argv, NULL);
 
   free(arg0);
+  free(localeId);
+  free(localeList);
   (*env)->ReleaseStringUTFChars(env, packageCodePathJava, packageCodePath);
   (*env)->ReleaseStringUTFChars(env, packageNameJava, packageName);
-  (*env)->ReleaseStringUTFChars(env, localeIdJava, localeId);
+  (*env)->ReleaseStringUTFChars(env, localeIdJava, localeIdOrig);
   (*env)->ReleaseStringUTFChars(env, timezoneIdJava, timezoneId);
 }
 
@@ -1645,26 +1740,37 @@ GSInitializeProcessAndroidWithArgs(JNIEnv *env, jobject context, int argc, char 
   [procLock unlock];
 
   jclass contextCls = (*env)->GetObjectClass(env, context);
+  GS_JNI_CLS_CHECK(env, contextCls, "L/android/content/Context;");
 
   // get File class and path method
   jclass fileCls = (*env)->FindClass(env, "java/io/File");
+  GS_JNI_CLS_CHECK(env, fileCls, "Ljava/io/File;");
   jmethodID getAbsolutePathMethod = (*env)->GetMethodID(env, fileCls, "getAbsolutePath", "()Ljava/lang/String;");
+  GS_JNI_METH_CHECK(env, getAbsolutePathMethod);
 
   // get Android files dir
   jmethodID filesDirMethod = (*env)->GetMethodID(env, contextCls, "getFilesDir", "()Ljava/io/File;");
+  GS_JNI_METH_CHECK(env, filesDirMethod);
   jobject filesDirObj = (*env)->CallObjectMethod(env, context, filesDirMethod);
+  GS_JNI_CHECK(env, filesDirObj);
   jstring filesDirJava = (*env)->CallObjectMethod(env, filesDirObj, getAbsolutePathMethod);
+  GS_JNI_CHECK(env, filesDirJava);
   _androidFilesDir = _NSStringFromJString(env, filesDirJava);
 
   // get Android cache dir
   jmethodID cacheDirMethod = (*env)->GetMethodID(env, contextCls, "getCacheDir", "()Ljava/io/File;");
+  GS_JNI_METH_CHECK(env, cacheDirMethod);
   jobject cacheDirObj = (*env)->CallObjectMethod(env, context, cacheDirMethod);
+  GS_JNI_CHECK(env, cacheDirObj);
   jstring cacheDirJava = (*env)->CallObjectMethod(env, cacheDirObj, getAbsolutePathMethod);
+  GS_JNI_CHECK(env, cacheDirJava);
   _androidCacheDir = _NSStringFromJString(env, cacheDirJava);
 
   // get asset manager and initialize NSBundle
   jmethodID assetManagerMethod = (*env)->GetMethodID(env, contextCls, "getAssets", "()Landroid/content/res/AssetManager;");
+  GS_JNI_METH_CHECK(env, assetManagerMethod);
   jstring assetManagerJava = (*env)->CallObjectMethod(env, context, assetManagerMethod);
+  GS_JNI_CHECK(env, assetManagerJava);
   [NSBundle setJavaAssetManager:assetManagerJava withJNIEnv:env];
 
   // clean up our NSTemporaryDirectory() if it exists

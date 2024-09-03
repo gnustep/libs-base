@@ -185,7 +185,7 @@ static NSString *parse_string(NSString **ptr)
 		pos = [l rangeOfString: @"*/"].location;
                 if (pos == NSNotFound)
                   {
-                    fprintf(stderr,"parse error in '%s', missing '*\'\n",
+                    fprintf(stderr,"parse error in '%s', missing '*/'\n",
                       [filename cString]);
                     pos = [l length];
                   }

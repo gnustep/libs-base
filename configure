@@ -658,6 +658,8 @@ GNUSTEP_GDOMAP_PORT_OVERRIDE
 WARN_FLAGS
 LDIR_FLAGS
 INCLUDE_FLAGS
+HAVE_DOT
+DOT
 USE_GMP
 GS_HAVE_NSURLSESSION
 HAVE_LIBCURL
@@ -884,7 +886,8 @@ XML_LIBS
 XSLT_CFLAGS
 XSLT_LIBS
 ICU_CFLAGS
-ICU_LIBS'
+ICU_LIBS
+DOT'
 
 
 # Initialize some variables set by options.
@@ -1653,6 +1656,7 @@ Some influential environment variables:
   XSLT_LIBS   linker flags for XSLT, overriding pkg-config
   ICU_CFLAGS  C compiler flags for ICU, overriding pkg-config
   ICU_LIBS    linker flags for ICU, overriding pkg-config
+  DOT         The name or full path of the graphviz dot command.
 
 Use these variables to override the choices made by `configure' or to help
 it to find libraries and programs with nonstandard names/locations.
@@ -3716,59 +3720,45 @@ GNUSTEP_BASE_DOMAIN=$result
 #
 case "$target_os" in
   mingw*|windows)
-    # TODO: Improve this hack.
-    # According to Wikipedia, this is the default for Windows 2000,
-    # Windows XP and Windows Server 2003.  For Windows Vista this will
-    # change to C:\Users.  The directory name needs to be localized though
-    # (and the disk may need changing as well ?).
-    GNUSTEP_SYSTEM_USERS_DIR="C:\Documents and Settings"
-    GNUSTEP_NETWORK_USERS_DIR="C:\Documents and Settings"
-    GNUSTEP_LOCAL_USERS_DIR="C:\Documents and Settings"
+    GNUSTEP_SYSTEM_USERS_DIR="C:\Users"
+    GNUSTEP_NETWORK_USERS_DIR="C:\Users"
+    GNUSTEP_LOCAL_USERS_DIR="C:\Users"
 
-    # TODO: It would be nice to use the 'short' output of
-    # relative_path.sh, but older versions of relative_path.sh
-    # did not support specifying the type of output and
-    # would abort if they were given more than 2 parameters,
-    # so we can not use the 'short' option if we want gnustep-base
-    # to work with older versions of gnustep-make.
-    # Once everyone has upgraded to gnustep-make >= 2.0.5 (I'd say
-    # two years after it has been released ?), we could switch to the
-    # 'short' output though.
-    GNUSTEP_SYSTEM_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_APPS`
-    GNUSTEP_SYSTEM_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_APPS`
-    GNUSTEP_SYSTEM_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_WEB_APPS`
-    GNUSTEP_SYSTEM_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_TOOLS`
-    GNUSTEP_SYSTEM_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_TOOLS`
-    GNUSTEP_SYSTEM_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARY`
-    GNUSTEP_SYSTEM_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARIES`
-    GNUSTEP_SYSTEM_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_HEADERS`
-    GNUSTEP_SYSTEM_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC`
-    GNUSTEP_SYSTEM_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_MAN`
-    GNUSTEP_SYSTEM_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_INFO`
+    GNUSTEP_SYSTEM_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_APPS short`
+    GNUSTEP_SYSTEM_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_APPS short`
+    GNUSTEP_SYSTEM_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_WEB_APPS short`
+    GNUSTEP_SYSTEM_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_TOOLS short`
+    GNUSTEP_SYSTEM_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_TOOLS short`
+    GNUSTEP_SYSTEM_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARY short`
+    GNUSTEP_SYSTEM_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARIES short`
+    GNUSTEP_SYSTEM_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_HEADERS short`
+    GNUSTEP_SYSTEM_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC short`
+    GNUSTEP_SYSTEM_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_MAN short`
+    GNUSTEP_SYSTEM_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_INFO short`
 
-    GNUSTEP_NETWORK_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_APPS`
-    GNUSTEP_NETWORK_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_APPS`
-    GNUSTEP_NETWORK_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_WEB_APPS`
-    GNUSTEP_NETWORK_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_TOOLS`
-    GNUSTEP_NETWORK_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_TOOLS`
-    GNUSTEP_NETWORK_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARY`
-    GNUSTEP_NETWORK_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARIES`
-    GNUSTEP_NETWORK_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_HEADERS`
-    GNUSTEP_NETWORK_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC`
-    GNUSTEP_NETWORK_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_MAN`
-    GNUSTEP_NETWORK_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_INFO`
+    GNUSTEP_NETWORK_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_APPS short`
+    GNUSTEP_NETWORK_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_APPS short`
+    GNUSTEP_NETWORK_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_WEB_APPS short`
+    GNUSTEP_NETWORK_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_TOOLS short`
+    GNUSTEP_NETWORK_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_TOOLS short`
+    GNUSTEP_NETWORK_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARY short`
+    GNUSTEP_NETWORK_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARIES short`
+    GNUSTEP_NETWORK_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_HEADERS short`
+    GNUSTEP_NETWORK_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC short`
+    GNUSTEP_NETWORK_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_MAN short`
+    GNUSTEP_NETWORK_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_INFO short`
 
-    GNUSTEP_LOCAL_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_APPS`
-    GNUSTEP_LOCAL_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_APPS`
-    GNUSTEP_LOCAL_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_WEB_APPS`
-    GNUSTEP_LOCAL_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_TOOLS`
-    GNUSTEP_LOCAL_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_TOOLS`
-    GNUSTEP_LOCAL_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARY`
-    GNUSTEP_LOCAL_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARIES`
-    GNUSTEP_LOCAL_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_HEADERS`
-    GNUSTEP_LOCAL_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC`
-    GNUSTEP_LOCAL_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_MAN`
-    GNUSTEP_LOCAL_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_INFO`
+    GNUSTEP_LOCAL_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_APPS short`
+    GNUSTEP_LOCAL_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_APPS short`
+    GNUSTEP_LOCAL_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_WEB_APPS short`
+    GNUSTEP_LOCAL_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_TOOLS short`
+    GNUSTEP_LOCAL_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_TOOLS short`
+    GNUSTEP_LOCAL_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARY short`
+    GNUSTEP_LOCAL_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARIES short`
+    GNUSTEP_LOCAL_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_HEADERS short`
+    GNUSTEP_LOCAL_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC short`
+    GNUSTEP_LOCAL_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_MAN short`
+    GNUSTEP_LOCAL_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_INFO short`
 # It would be nice to now store this stuff into a ./GNUstep.conf file
 # installed with gnustep-base.dll.  This would clarify.
     ;;
@@ -9355,82 +9345,6 @@ esac
 #--------------------------------------------------------------------
 # Following header checks needed for bzero in Storage.m and other places
 #--------------------------------------------------------------------
-# Autoupdate added the next two lines to ensure that your configure
-# script's behavior did not change.  They are probably safe to remove.
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for egrep" >&5
-printf %s "checking for egrep... " >&6; }
-if test ${ac_cv_path_EGREP+y}
-then :
-  printf %s "(cached) " >&6
-else $as_nop
-  if echo a | $GREP -E '(a|b)' >/dev/null 2>&1
-   then ac_cv_path_EGREP="$GREP -E"
-   else
-     if test -z "$EGREP"; then
-  ac_path_EGREP_found=false
-  # Loop through the user's path and test for each of PROGNAME-LIST
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH$PATH_SEPARATOR/usr/xpg4/bin
-do
-  IFS=$as_save_IFS
-  case $as_dir in #(((
-    '') as_dir=./ ;;
-    */) ;;
-    *) as_dir=$as_dir/ ;;
-  esac
-    for ac_prog in egrep
-   do
-    for ac_exec_ext in '' $ac_executable_extensions; do
-      ac_path_EGREP="$as_dir$ac_prog$ac_exec_ext"
-      as_fn_executable_p "$ac_path_EGREP" || continue
-# Check for GNU ac_path_EGREP and select it if it is found.
-  # Check for GNU $ac_path_EGREP
-case `"$ac_path_EGREP" --version 2>&1` in
-*GNU*)
-  ac_cv_path_EGREP="$ac_path_EGREP" ac_path_EGREP_found=:;;
-*)
-  ac_count=0
-  printf %s 0123456789 >"conftest.in"
-  while :
-  do
-    cat "conftest.in" "conftest.in" >"conftest.tmp"
-    mv "conftest.tmp" "conftest.in"
-    cp "conftest.in" "conftest.nl"
-    printf "%s\n" 'EGREP' >> "conftest.nl"
-    "$ac_path_EGREP" 'EGREP$' < "conftest.nl" >"conftest.out" 2>/dev/null || break
-    diff "conftest.out" "conftest.nl" >/dev/null 2>&1 || break
-    as_fn_arith $ac_count + 1 && ac_count=$as_val
-    if test $ac_count -gt ${ac_path_EGREP_max-0}; then
-      # Best one so far, save it but keep looking for a better one
-      ac_cv_path_EGREP="$ac_path_EGREP"
-      ac_path_EGREP_max=$ac_count
-    fi
-    # 10*(2^10) chars as input seems more than enough
-    test $ac_count -gt 10 && break
-  done
-  rm -f conftest.in conftest.tmp conftest.nl conftest.out;;
-esac
-
-      $ac_path_EGREP_found && break 3
-    done
-  done
-  done
-IFS=$as_save_IFS
-  if test -z "$ac_cv_path_EGREP"; then
-    as_fn_error $? "no acceptable egrep could be found in $PATH$PATH_SEPARATOR/usr/xpg4/bin" "$LINENO" 5
-  fi
-else
-  ac_cv_path_EGREP=$EGREP
-fi
-
-   fi
-fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_path_EGREP" >&5
-printf "%s\n" "$ac_cv_path_EGREP" >&6; }
- EGREP="$ac_cv_path_EGREP"
-
-
 
 ac_fn_c_check_header_compile "$LINENO" "string.h" "ac_cv_header_string_h" "$ac_includes_default"
 if test "x$ac_cv_header_string_h" = xyes
@@ -14596,6 +14510,18 @@ fi
   if test "$ac_cv_func__dispatch_main_queue_callback_4CF" = "yes" && test "$ac_cv_func__dispatch_get_main_queue_handle_4CF" = "yes"; then
     HAVE_LIBDISPATCH_RUNLOOP=1
   fi
+  # Check for availability of functions in more recent libdispatch versions.
+  for ac_func in dispatch_cancel
+do :
+  ac_fn_c_check_func "$LINENO" "dispatch_cancel" "ac_cv_func_dispatch_cancel"
+if test "x$ac_cv_func_dispatch_cancel" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_DISPATCH_CANCEL 1
+_ACEOF
+
+fi
+done
+
 fi
 
 
@@ -14892,6 +14818,58 @@ fi
 fi
 
 
+
+#--------------------------------------------------------------------
+# Check dor 'dot', needed for graphs in autogsdoc output.
+#--------------------------------------------------------------------
+
+
+# Extract the first word of "dot", so it can be a program name with args.
+set dummy dot; ac_word=$2
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
+printf %s "checking for $ac_word... " >&6; }
+if test ${ac_cv_path_DOT+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  case $DOT in
+  [\\/]* | ?:[\\/]*)
+  ac_cv_path_DOT="$DOT" # Let the user override the test with a path.
+  ;;
+  *)
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH
+do
+  IFS=$as_save_IFS
+  case $as_dir in #(((
+    '') as_dir=./ ;;
+    */) ;;
+    *) as_dir=$as_dir/ ;;
+  esac
+    for ac_exec_ext in '' $ac_executable_extensions; do
+  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
+    ac_cv_path_DOT="$as_dir$ac_word$ac_exec_ext"
+    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
+    break 2
+  fi
+done
+  done
+IFS=$as_save_IFS
+
+  ;;
+esac
+fi
+DOT=$ac_cv_path_DOT
+if test -n "$DOT"; then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $DOT" >&5
+printf "%s\n" "$DOT" >&6; }
+else
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
+printf "%s\n" "no" >&6; }
+fi
+
+
+HAVE_DOT=$ac_cv_path_DOT
 
 
 #--------------------------------------------------------------------

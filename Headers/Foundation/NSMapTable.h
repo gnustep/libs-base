@@ -69,26 +69,6 @@ GS_EXPORT_CLASS
                            valueOptions: (NSPointerFunctionsOptions)valueOptions;
 
 /** Convenience method for creating a map table to store object values
- * using object keys.
- */
-+ (instancetype) mapTableWithStrongToStrongObjects;
-
-/** Convenience method for creating a map table to store non-retained
- * object values with retained object keys.
- */
-+ (instancetype) mapTableWithStrongToWeakObjects;
-
-/** Convenience method for creating a map table to store retained
- * object values with non-retained object keys.
- */
-+ (instancetype) mapTableWithWeakToStrongObjects;
-
-/** Convenience method for creating a map table to store non-retained
- * object values with non-retained object keys.
- */
-+ (instancetype) mapTableWithWeakToWeakObjects;
-
-/** Convenience method for creating a map table to store object values
  * using object keys.  The collection will retain both the key and the value.
  */
 + (instancetype) strongToStrongObjectsMapTable;

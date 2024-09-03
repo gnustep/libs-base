@@ -243,6 +243,8 @@ GS_EXPORT const char*	GSDebugAllocationList(BOOL changeFlag);
  */
 GS_EXPORT const char*	GSDebugAllocationListAll(void);
 
+typedef NSObject	*(*GSDebugAllocationTraceFunction)(id);
+
 /**
  * This function activates (or deactivates) tracking all allocated
  * instances of the specified class c.<br />
@@ -271,7 +273,7 @@ GS_EXPORT const char*	GSDebugAllocationListAll(void);
  * allocated instances of that class.
  */
 GS_EXPORT BOOL  GSDebugAllocationRecordAndTrace(
-  Class c, BOOL record, NSObject* (*traceFunction)(id));
+  Class c, BOOL record, GSDebugAllocationTraceFunction traceFunction);
 
 /** Calls GSDebugAllocationRecordAndTrace() with a null trace function.
  */

@@ -3945,8 +3945,9 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
     {
       unsigned	index;
       SEL	sel = @selector(characterAtIndex:);
-      unichar	(*imp)() = (unichar (*)())[self methodForSelector: sel];
+      unichar	(*imp)(id,SEL,unsigned);
 
+      imp = (unichar (*)(id,SEL,unsigned))[self methodForSelector: sel];
       for (index = 0; index < length; index++)
 	{
 	  unichar	c = (*imp)(self, sel, index);

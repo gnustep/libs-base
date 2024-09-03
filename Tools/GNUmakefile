@@ -113,6 +113,9 @@ HTMLLinker_OBJC_FILES = HTMLLinker.m
 ifeq ($(OBJC_RUNTIME_LIB), ng)
 AGSHtml.m_FILE_FLAGS+= -fobjc-arc
 endif
+ifneq ($(HAVE_DOT), )
+AGSHtml.m_FILE_FLAGS+= -DHAVE_DOT=$(HAVE_DOT)
+endif
 
 # Reset this variable (defined in config.mak) to avoid useless linkage
 # against the libraries gnustep-base uses.

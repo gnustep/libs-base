@@ -72,8 +72,9 @@ static Class	concreteClass = 0;
 
 + (id) hashTableWithWeakObjects
 {
-  return [self hashTableWithOptions:
-    NSPointerFunctionsObjectPersonality | NSPointerFunctionsWeakMemory];
+  GSOnceMLog(@"Garbage Collection no longer supported."
+    @"  Using +weakObjectsHashTable");
+  return [self weakObjectsHashTable];
 }
 
 + (id) weakObjectsHashTable

@@ -73,7 +73,7 @@ builtin(include, config/addlibrarypath.m4)dnl
 builtin(include, config/pkg.m4)dnl
 
 AC_INIT
-AC_PREREQ([2.60])
+AC_PREREQ([2.71])
 AC_CONFIG_SRCDIR([Source/NSArray.m])
 
 # If GNUSTEP_MAKEFILES is undefined, try to use gnustep-config to determine it.
@@ -546,59 +546,45 @@ AC_SUBST(GNUSTEP_BASE_DOMAIN)
 #
 case "$target_os" in
   mingw*|windows)
-    # TODO: Improve this hack.
-    # According to Wikipedia, this is the default for Windows 2000,
-    # Windows XP and Windows Server 2003.  For Windows Vista this will
-    # change to C:\Users.  The directory name needs to be localized though
-    # (and the disk may need changing as well ?).
-    GNUSTEP_SYSTEM_USERS_DIR="C:\Documents and Settings"
-    GNUSTEP_NETWORK_USERS_DIR="C:\Documents and Settings"
-    GNUSTEP_LOCAL_USERS_DIR="C:\Documents and Settings"
+    GNUSTEP_SYSTEM_USERS_DIR="C:\Users"
+    GNUSTEP_NETWORK_USERS_DIR="C:\Users"
+    GNUSTEP_LOCAL_USERS_DIR="C:\Users"
 
-    # TODO: It would be nice to use the 'short' output of
-    # relative_path.sh, but older versions of relative_path.sh
-    # did not support specifying the type of output and
-    # would abort if they were given more than 2 parameters,
-    # so we can not use the 'short' option if we want gnustep-base
-    # to work with older versions of gnustep-make.
-    # Once everyone has upgraded to gnustep-make >= 2.0.5 (I'd say
-    # two years after it has been released ?), we could switch to the
-    # 'short' output though.
-    GNUSTEP_SYSTEM_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_APPS`
-    GNUSTEP_SYSTEM_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_APPS`
-    GNUSTEP_SYSTEM_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_WEB_APPS`
-    GNUSTEP_SYSTEM_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_TOOLS`
-    GNUSTEP_SYSTEM_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_TOOLS`
-    GNUSTEP_SYSTEM_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARY`
-    GNUSTEP_SYSTEM_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARIES`
-    GNUSTEP_SYSTEM_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_HEADERS`
-    GNUSTEP_SYSTEM_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC`
-    GNUSTEP_SYSTEM_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_MAN`
-    GNUSTEP_SYSTEM_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_INFO`
+    GNUSTEP_SYSTEM_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_APPS short`
+    GNUSTEP_SYSTEM_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_APPS short`
+    GNUSTEP_SYSTEM_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_WEB_APPS short`
+    GNUSTEP_SYSTEM_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_TOOLS short`
+    GNUSTEP_SYSTEM_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_ADMIN_TOOLS short`
+    GNUSTEP_SYSTEM_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARY short`
+    GNUSTEP_SYSTEM_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_LIBRARIES short`
+    GNUSTEP_SYSTEM_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_HEADERS short`
+    GNUSTEP_SYSTEM_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC short`
+    GNUSTEP_SYSTEM_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_MAN short`
+    GNUSTEP_SYSTEM_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_SYSTEM_DOC_INFO short`
 
-    GNUSTEP_NETWORK_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_APPS`
-    GNUSTEP_NETWORK_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_APPS`
-    GNUSTEP_NETWORK_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_WEB_APPS`
-    GNUSTEP_NETWORK_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_TOOLS`
-    GNUSTEP_NETWORK_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_TOOLS`
-    GNUSTEP_NETWORK_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARY`
-    GNUSTEP_NETWORK_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARIES`
-    GNUSTEP_NETWORK_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_HEADERS`
-    GNUSTEP_NETWORK_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC`
-    GNUSTEP_NETWORK_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_MAN`
-    GNUSTEP_NETWORK_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_INFO`
+    GNUSTEP_NETWORK_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_APPS short`
+    GNUSTEP_NETWORK_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_APPS short`
+    GNUSTEP_NETWORK_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_WEB_APPS short`
+    GNUSTEP_NETWORK_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_TOOLS short`
+    GNUSTEP_NETWORK_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_ADMIN_TOOLS short`
+    GNUSTEP_NETWORK_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARY short`
+    GNUSTEP_NETWORK_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_LIBRARIES short`
+    GNUSTEP_NETWORK_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_HEADERS short`
+    GNUSTEP_NETWORK_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC short`
+    GNUSTEP_NETWORK_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_MAN short`
+    GNUSTEP_NETWORK_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_NETWORK_DOC_INFO short`
 
-    GNUSTEP_LOCAL_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_APPS`
-    GNUSTEP_LOCAL_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_APPS`
-    GNUSTEP_LOCAL_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_WEB_APPS`
-    GNUSTEP_LOCAL_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_TOOLS`
-    GNUSTEP_LOCAL_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_TOOLS`
-    GNUSTEP_LOCAL_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARY`
-    GNUSTEP_LOCAL_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARIES`
-    GNUSTEP_LOCAL_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_HEADERS`
-    GNUSTEP_LOCAL_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC`
-    GNUSTEP_LOCAL_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_MAN`
-    GNUSTEP_LOCAL_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_INFO`
+    GNUSTEP_LOCAL_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_APPS short`
+    GNUSTEP_LOCAL_ADMIN_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_APPS short`
+    GNUSTEP_LOCAL_WEB_APPS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_WEB_APPS short`
+    GNUSTEP_LOCAL_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_TOOLS short`
+    GNUSTEP_LOCAL_ADMIN_TOOLS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_ADMIN_TOOLS short`
+    GNUSTEP_LOCAL_LIBRARY=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARY short`
+    GNUSTEP_LOCAL_LIBRARIES=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_LIBRARIES short`
+    GNUSTEP_LOCAL_HEADERS=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_HEADERS short`
+    GNUSTEP_LOCAL_DOC=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC short`
+    GNUSTEP_LOCAL_DOC_MAN=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_MAN short`
+    GNUSTEP_LOCAL_DOC_INFO=`$GNUSTEP_MAKEFILES/relative_path.sh $GNUSTEP_BASE_PATH $GNUSTEP_LOCAL_DOC_INFO short`
 # It would be nice to now store this stuff into a ./GNUstep.conf file
 # installed with gnustep-base.dll.  This would clarify.
     ;;
@@ -2346,7 +2332,7 @@ AC_C_INLINE
 #--------------------------------------------------------------------
 # Following header checks needed for bzero in Storage.m and other places
 #--------------------------------------------------------------------
-AC_HEADER_STDC
+
 AC_CHECK_HEADERS(string.h memory.h alloca.h)
 
 #--------------------------------------------------------------------
@@ -3695,6 +3681,8 @@ if test $HAVE_LIBDISPATCH = 1; then
   if test "$ac_cv_func__dispatch_main_queue_callback_4CF" = "yes" && test "$ac_cv_func__dispatch_get_main_queue_handle_4CF" = "yes"; then
     HAVE_LIBDISPATCH_RUNLOOP=1
   fi
+  # Check for availability of functions in more recent libdispatch versions.
+  AC_CHECK_FUNCS(dispatch_cancel)
 fi
 AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 
@@ -3838,6 +3826,13 @@ fi
 
 AC_SUBST(USE_GMP)
 
+#--------------------------------------------------------------------
+# Check dor 'dot', needed for graphs in autogsdoc output.
+#--------------------------------------------------------------------
+AC_ARG_VAR([DOT], [The name or full path of the graphviz dot command.])
+
+AC_PATH_PROG([DOT], [dot], [])
+AC_SUBST(HAVE_DOT, [$ac_cv_path_DOT])
 
 #--------------------------------------------------------------------
 # Check whether nl_langinfo(CODESET) is supported, needed by Unicode.m.

@@ -66,15 +66,11 @@ GS_EXPORT_CLASS
 
 + (instancetype) hashTableWithOptions: (NSPointerFunctionsOptions)options;
 
-+ (instancetype) hashTableWithWeakObjects;
-/**
- * Creates a hash table that uses zeroing weak references (either using the
- * automatic reference counting or garbage collection mechanism, depending on
- * which mode this framework is compiled in) so that objects are removed when
+/** Creates a hash table that uses weak references (using the automatic
+ * reference counting mechanism) so that objects are removed when
  * their last other reference disappears.
  */
 + (instancetype) weakObjectsHashTable;
-
 
 - (instancetype) initWithOptions: (NSPointerFunctionsOptions)options
                         capacity: (NSUInteger)initialCapacity;
