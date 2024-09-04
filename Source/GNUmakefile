@@ -359,6 +359,11 @@ NSZone.m \
 externs.m \
 objc-load.m 
 
+ifeq ($(OBJC_RUNTIME_LIB), ng)
+  BASE_MFILES += \
+  NSKeyValueCoding+Caching.m
+endif
+
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   ifneq ($(GNUSTEP_TARGET_OS), mingw64)
     ifneq ($(GNUSTEP_TARGET_OS), windows)
