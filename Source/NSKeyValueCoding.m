@@ -147,6 +147,7 @@ SetValueForKey(NSObject *self, id anObject, const char *key, unsigned size)
   GSObjCSetVal(self, key, anObject, sel, type, size, off);
 }
 
+#if !defined(__OBJC2__)
 static id ValueForKey(NSObject *self, const char *key, unsigned size)
 {
   SEL		sel = 0;
@@ -232,6 +233,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
     }
   return GSObjCGetVal(self, key, sel, type, size, off);
 }
+#endif
 
 
 @implementation NSObject(KeyValueCoding)
