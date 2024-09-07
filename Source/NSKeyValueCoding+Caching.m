@@ -1,5 +1,5 @@
 /** Key-Value Coding Safe Caching Support.
-   Copyright (C) 2006 Free Software Foundation, Inc.
+   Copyright (C) 2024 Free Software Foundation, Inc.
 
    Written by:  Hugo Melder <hugo@algoriddim.com>
    Created: August 2024
