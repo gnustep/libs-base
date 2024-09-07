@@ -4,9 +4,6 @@
 
 #import "Testing.h"
 
-// Caching is only available for libobjc2
-#if defined(__OBJC2__)
-
 @interface TestClass : NSObject
 
 - (float)floatVal;
@@ -57,10 +54,3 @@ main(int argc, char *argv[])
   testInstallingNewMethodAfterCaching();
   return 0;
 }
-#else
-int
-main(int argc, char *argv[])
-{
-  return 0;
-}
-#endif // defined(__OBJC2__)
