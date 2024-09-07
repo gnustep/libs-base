@@ -1317,7 +1317,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
             break;
 
           case _C_STRUCT_B:
-            if (GSSelectorTypesMatch(@encode(NSPoint), type))
+            if (strncmp(@encode(NSPoint), type, strlen(@encode(NSPoint))) == 0)
               {
                 NSPoint	v;
 
@@ -1334,7 +1334,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithPoint: v];
               }
-            else if (GSSelectorTypesMatch(@encode(NSRange), type))
+            else if (strncmp(@encode(NSRange), type, strlen(@encode(NSRange))) == 0)
               {
                 NSRange	v;
 
@@ -1351,7 +1351,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithRange: v];
               }
-            else if (GSSelectorTypesMatch(@encode(NSRect), type))
+            else if (strncmp(@encode(NSRect), type, strlen(@encode(NSRect))) == 0)
               {
                 NSRect	v;
 
@@ -1368,7 +1368,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithRect: v];
               }
-            else if (GSSelectorTypesMatch(@encode(NSSize), type))
+            else if (strncmp(@encode(NSSize), type, strlen(@encode(NSSize))) == 0)
               {
                 NSSize	v;
 
