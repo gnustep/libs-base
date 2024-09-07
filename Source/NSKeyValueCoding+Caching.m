@@ -215,7 +215,9 @@ _getBoxedBlockForIVar(NSString *key, Ivar ivar)
 
   slot.offset = ivar_getOffset(ivar);
   slot.types = encoding;
-  slot.version = UINT64_MAX;
+  // Get the current objc_method_cache_version as we do not explicitly
+  // request a new slot when looking up ivars.
+  slot.version = objc_method_cache_version;
 
   switch (encoding[0])
     {
@@ -626,24 +628,21 @@ valueForKeyWithCaching(id obj, NSString *aKey)
     }
   cachedSlot = node->key.ptr;
 
-  if (cachedSlot->version != UINT64_MAX)
+  // Check if a new method was registered. If this is the case,
+  // the objc_method_cache_version was incremented and we need to update the
+  // cache.
+  if (objc_method_cache_version != cachedSlot->version)
     {
-      // Check if a new method was registered. If this is the case,
-      // the objc_method_cache_version was incremented and we need to update the
-      // cache.
-      if (objc_method_cache_version != cachedSlot->version)
-        {
-          // Lookup the getter
-          // TODO: We can optimise this by supplying a hint (return type etc.)
-          // as it is unlikely, that the return type has changed.
-          slot = ValueForKeyLookup(cls, obj, aKey, [aKey UTF8String],
-                                   [aKey length]);
+      // Lookup the getter
+      // TODO: We can optimise this by supplying a hint (return type etc.)
+      // as it is unlikely, that the return type has changed.
+      slot
+        = ValueForKeyLookup(cls, obj, aKey, [aKey UTF8String], [aKey length]);
 
-          // Update entry
-          GS_MUTEX_LOCK(cacheTableLock);
-          memcpy(cachedSlot, &slot, sizeof(struct _KVCCacheSlot));
-          GS_MUTEX_UNLOCK(cacheTableLock);
-        }
+      // Update entry
+      GS_MUTEX_LOCK(cacheTableLock);
+      memcpy(cachedSlot, &slot, sizeof(struct _KVCCacheSlot));
+      GS_MUTEX_UNLOCK(cacheTableLock);
     }
 
   return cachedSlot->get(cachedSlot, obj);
