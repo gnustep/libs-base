@@ -320,6 +320,25 @@ static Class NSFileHandle_ssl_class = nil;
   [self subclassResponsibility: _cmd];
 }
 
+/**
+ * Get the current position in the file.
+ */
+- (BOOL) getOffset: (unsigned long long *)offsetInFile error: (NSError **)error
+{
+  BOOL result = YES;
+
+  // We can do the concrete implementation here since the method relies on
+  // offsetInFile to get the offset.
+  *error = nil;
+  *offsetInFile = [self offsetInFile];
+  if (*offsetInFile == -1)
+    {
+      *offsetInFile = 0;
+      result = NO;
+    }
+
+  return result;
+}
 
 // Asynchronous I/O operations
 
