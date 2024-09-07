@@ -41,6 +41,9 @@
 #include "NSKeyValueMutableArray.m"
 #include "NSKeyValueMutableSet.m"
 
+#if defined(__OBJC2__)
+#import "NSKeyValueCoding+Caching.h"
+#endif
 
 /* this should move into autoconf once it's accepted */
 #define WANT_DEPRECATED_KVC_COMPAT 1
@@ -513,6 +516,9 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (id) valueForKey: (NSString*)aKey
 {
+  #if defined(__OBJC2__)
+  return valueForKeyWithCaching(self, aKey);
+  #else
   unsigned	size = [aKey length] * 8;
   char		key[size + 1];
 
@@ -521,6 +527,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	  encoding: NSUTF8StringEncoding];
   size = strlen(key);
   return ValueForKey(self, key, size);
+  #endif
 }
 
 
