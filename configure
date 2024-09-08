@@ -7624,29 +7624,31 @@ fi
 # Windows: check if we have native threading APIs and SRW locks
 #--------------------------------------------------------------------
 HAVE_WIN32_THREADS_AND_LOCKS=0
-case "$target_os" in
-  mingw*|windows)
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for native Windows threads and locks" >&5
+if test "$CLANG_CC" = "yes"; then
+  case "$target_os" in
+    mingw*|windows)
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for native Windows threads and locks" >&5
 printf %s "checking for native Windows threads and locks... " >&6; }
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-        #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-        #include "$srcdir/Source/GSPThread.h"
+          #define GS_USE_WIN32_THREADS_AND_LOCKS 1
+          #include "$srcdir/Source/GSPThread.h"
 
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"
 then :
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
-      HAVE_WIN32_THREADS_AND_LOCKS=1
+        HAVE_WIN32_THREADS_AND_LOCKS=1
 else $as_nop
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-    ;;
-esac
+      ;;
+  esac
+fi
 
 
 #--------------------------------------------------------------------
@@ -14511,16 +14513,12 @@ fi
     HAVE_LIBDISPATCH_RUNLOOP=1
   fi
   # Check for availability of functions in more recent libdispatch versions.
-  for ac_func in dispatch_cancel
-do :
   ac_fn_c_check_func "$LINENO" "dispatch_cancel" "ac_cv_func_dispatch_cancel"
-if test "x$ac_cv_func_dispatch_cancel" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_DISPATCH_CANCEL 1
-_ACEOF
+if test "x$ac_cv_func_dispatch_cancel" = xyes
+then :
+  printf "%s\n" "#define HAVE_DISPATCH_CANCEL 1" >>confdefs.h
 
 fi
-done
 
 fi
 

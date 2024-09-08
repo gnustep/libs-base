@@ -1704,19 +1704,21 @@ AC_CHECK_FUNCS(getaddrinfo)
 # Windows: check if we have native threading APIs and SRW locks
 #--------------------------------------------------------------------
 HAVE_WIN32_THREADS_AND_LOCKS=0
-case "$target_os" in
-  mingw*|windows)
-    AC_MSG_CHECKING(for native Windows threads and locks)
-    AC_COMPILE_IFELSE(
-      [AC_LANG_SOURCE([
-        #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-        #include "$srcdir/Source/GSPThread.h"
-      ])],
-      AC_MSG_RESULT([yes])
-      HAVE_WIN32_THREADS_AND_LOCKS=1,
-      AC_MSG_RESULT([no]))
-    ;;
-esac
+if test "$CLANG_CC" = "yes"; then
+  case "$target_os" in
+    mingw*|windows)
+      AC_MSG_CHECKING(for native Windows threads and locks)
+      AC_COMPILE_IFELSE(
+        [AC_LANG_SOURCE([
+          #define GS_USE_WIN32_THREADS_AND_LOCKS 1
+          #include "$srcdir/Source/GSPThread.h"
+        ])],
+        AC_MSG_RESULT([yes])
+        HAVE_WIN32_THREADS_AND_LOCKS=1,
+        AC_MSG_RESULT([no]))
+      ;;
+  esac
+fi
 AC_SUBST(HAVE_WIN32_THREADS_AND_LOCKS)
 
 #--------------------------------------------------------------------
