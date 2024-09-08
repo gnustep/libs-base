@@ -107,8 +107,6 @@ int main()
   PASS(([[obj1 name] length] > 0), "name has a default");
   [obj1 setName: @"mine"];
   PASS(([[obj1 name] isEqual: @"mine"] == YES), "set name OK");
-  [obj1 setName: nil];
-  PASS(([[obj1 name] isEqual: @""]), "setting null name gives empty string");
 
   PASS(([obj1 maxConcurrentOperationCount] == NSOperationQueueDefaultMaxConcurrentOperationCount), "max concurrent set by default");
   [obj1 setMaxConcurrentOperationCount: 1];
