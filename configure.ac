@@ -1120,7 +1120,9 @@ AC_PROG_CPP
 AC_USE_SYSTEM_EXTENSIONS
 
 AC_MSG_CHECKING(whether the compiler is clang)
-if "${CC}" -v 2>&1 | grep -q 'clang version'; then
+# CC may have flags appended to it, so we need to extract the actual
+# compiler name.
+if "$(echo "${CC}" | awk '{print $1}')" -v 2>&1 | grep -q 'clang version'; then
   CLANG_CC=yes
   AC_MSG_RESULT(yes)
 else
