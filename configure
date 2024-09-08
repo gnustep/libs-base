@@ -5696,20 +5696,14 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the compiler is clang" >&5
 printf %s "checking whether the compiler is clang... " >&6; }
-if test ! x"${GCC}" = x"yes" ; then
+if "${CC}" -v 2>&1 | grep -q 'clang version'; then
+  CLANG_CC=yes
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+else
   CLANG_CC=no
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-else
-  if "${CC}" -v 2>&1 | grep -q 'clang version'; then
-    CLANG_CC=yes
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-  else
-    CLANG_CC=no
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-  fi
 fi
 
 

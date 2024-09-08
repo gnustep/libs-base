@@ -1120,17 +1120,12 @@ AC_PROG_CPP
 AC_USE_SYSTEM_EXTENSIONS
 
 AC_MSG_CHECKING(whether the compiler is clang)
-if test ! x"${GCC}" = x"yes" ; then
+if "${CC}" -v 2>&1 | grep -q 'clang version'; then
+  CLANG_CC=yes
+  AC_MSG_RESULT(yes)
+else
   CLANG_CC=no
   AC_MSG_RESULT(no)
-else
-  if "${CC}" -v 2>&1 | grep -q 'clang version'; then
-    CLANG_CC=yes
-    AC_MSG_RESULT(yes)
-  else
-    CLANG_CC=no
-    AC_MSG_RESULT(no)
-  fi
 fi
 AC_SUBST(CLANG_CC)
 
