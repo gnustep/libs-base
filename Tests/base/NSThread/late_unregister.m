@@ -140,9 +140,11 @@ int main(void)
 
   NSDate *start = [NSDate date];
   [expectation lock];
-  while (![expectation isDone] && [start timeIntervalSinceNow] > -5.0f)
+  int attempts = 3;
+  while (![expectation isDone] && [start timeIntervalSinceNow] > -5.0f && attempts > 0)
   {
     [expectation waitUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.5f]];
+    attempts -= 1;
   }
   PASS([expectation isDone], "Notification for thread exit was sent");
   [expectation unlock];

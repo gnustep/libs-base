@@ -36,9 +36,7 @@ static BOOL taskTerminationNotificationReceived;
   NSString      *testecho;
   BOOL          earlyTermination = NO;
   
-  /* Windows MSVC adds the '.exe' suffix to executables
-   */
-#if defined(_MSC_VER)
+#if defined(_WIN32)
   testecho = @"testecho.exe";
   testsleep = @"testsleep.exe";
 #else
