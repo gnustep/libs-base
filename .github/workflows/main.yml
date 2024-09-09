@@ -251,12 +251,14 @@ jobs:
             libxslt-devel
             libffi-devel
             libgnutls-devel
+            libcurl-devel
             icu-devel
             mingw-w64-${{matrix.arch}}-pkg-config
             mingw-w64-${{matrix.arch}}-libxml2
             mingw-w64-${{matrix.arch}}-libxslt
             mingw-w64-${{matrix.arch}}-libffi
             mingw-w64-${{matrix.arch}}-gnutls
+            mingw-w64-${{matrix.arch}}-curl
             mingw-w64-${{matrix.arch}}-icu
 
       - name: Set up MSYS2 (gcc)
