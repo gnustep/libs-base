@@ -67,7 +67,7 @@ env:
 
   # GNUstep Windows MSVC toolchain release tag to be used (keep up to date with latest release):
   # https://github.com/gnustep/tools-windows-msvc/releases
-  TOOLS_WINDOWS_MSVC_RELEASE_TAG: release-20230104
+  TOOLS_WINDOWS_MSVC_RELEASE_TAG: release-20231228
 
 jobs:
   ########### Linux ###########
