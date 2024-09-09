@@ -197,17 +197,6 @@ jobs:
             CXX: clang
             LDFLAGS: -fuse-ld=lld -lstdc++ -lgcc_s
 
-          - name: Windows x86 MSVC Clang gnustep-2.0
-            allow-test-failures: true
-            arch: x86
-            host: i686-pc-windows
-            library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
-            configure-opts: --disable-tls
-            CC: clang -m32
-            CXX: clang++ -m32
-            LDFLAGS: -fuse-ld=lld
-
           - name: Windows x64 MSVC Clang gnustep-2.0
             arch: x64
             host: x86_64-pc-windows
@@ -338,7 +327,7 @@ jobs:
           mkdir %INSTALL_PATH% & cd %INSTALL_PATH%
           echo Downloading pre-built release...
           curl --silent --show-error --fail-with-body --header "Authorization: Bearer $GITHUB_TOKEN" --location -o GNUstep-Windows-MSVC.zip ^
-            https://github.com/gnustep/tools-windows-msvc/releases/download/${{env.TOOLS_WINDOWS_MSVC_RELEASE_TAG}}/GNUstep-Windows-MSVC-${{matrix.arch}}.zip || exit /b 1
+            https://github.com/gnustep/tools-windows-msvc/releases/download/${{env.TOOLS_WINDOWS_MSVC_RELEASE_TAG}}/GNUstep-Windows-MSVC-${{matrix.arch}}-Release.zip || exit /b 1
           echo Extracting pre-built release... (dependencies only excluding debug build and GNUstep components)
           tar -xvf GNUstep-Windows-MSVC.zip --strip 1 --exclude Debug --exclude "**/gnustep*" --exclude "**/GNUstep*" --exclude Foundation --exclude CoreFoundation || exit /b 1
           del /Q GNUstep-Windows-MSVC.zip
