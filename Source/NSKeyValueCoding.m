@@ -170,12 +170,12 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
       name = &buf[1];	// getKey
       sel = sel_getUid(name);
-      if (sel == 0 || [self respondsToSelector: sel] == NO)
+      if ([self respondsToSelector: sel] == NO)
 	{
 	  buf[4] = lo;
 	  name = &buf[4];	// key
 	  sel = sel_getUid(name);
-	  if (sel == 0 || [self respondsToSelector: sel] == NO)
+	  if ([self respondsToSelector: sel] == NO)
 	    {
               buf[4] = hi;
               buf[3] = 's';
@@ -194,13 +194,13 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	  buf[4] = hi;
 	  name = buf;	// _getKey
 	  sel = sel_getUid(name);
-	  if (sel == 0 || [self respondsToSelector: sel] == NO)
+	  if ([self respondsToSelector: sel] == NO)
 	    {
 	      buf[4] = lo;
 	      buf[3] = '_';
 	      name = &buf[3];	// _key
 	      sel = sel_getUid(name);
-	      if (sel == 0 || [self respondsToSelector: sel] == NO)
+	      if ([self respondsToSelector: sel] == NO)
 		{
 		  sel = 0;
 		}
