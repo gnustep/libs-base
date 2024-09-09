@@ -113,7 +113,6 @@ int main(void)
   pthread_create(&thr, &attr, thread, expectation);
 #endif
 
-  NSDate *start = [NSDate date];
   int attempts = 10;
   while (![expectation isDone] && attempts > 0)
   {
