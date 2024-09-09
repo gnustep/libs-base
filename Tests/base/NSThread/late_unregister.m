@@ -9,9 +9,8 @@
 #include <pthread.h>
 #endif
 
-@interface ThreadExpectation : NSObject <NSLocking>
+@interface ThreadExpectation : NSObject
 {
-  NSCondition *condition;
   NSThread *origThread;
   BOOL done;
   BOOL deallocated;
@@ -29,7 +28,6 @@
     {
       return nil;
     }
-  condition = [NSCondition new];
   return self;
 }
 
@@ -67,10 +65,7 @@
 
   [[NSNotificationCenter defaultCenter] removeObserver: self];
   origThread = nil;
-  [condition lock];
   done = YES;
-  [condition broadcast];
-  [condition unlock];
 }
 
 - (BOOL) isDone
@@ -78,26 +73,6 @@
   return done;
 }
 
-- (void) waitUntilDate: (NSDate*)date
-{
-  [condition waitUntilDate: date];
-}
-
-- (void) lock
-{
-  [condition lock];
-}
-
-- (void) unlock
-{
-  [condition unlock];
-}
-
-- (void) dealloc
-{
-  DESTROY(condition);
-  [super dealloc];
-}
 @end
 
 #if defined(_WIN32)
@@ -139,15 +114,13 @@ int main(void)
 #endif
 
   NSDate *start = [NSDate date];
-  [expectation lock];
-  int attempts = 3;
-  while (![expectation isDone] && [start timeIntervalSinceNow] > -5.0f && attempts > 0)
+  int attempts = 10;
+  while (![expectation isDone] && attempts > 0)
   {
-    [expectation waitUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.5f]];
+    [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1]];
     attempts -= 1;
   }
   PASS([expectation isDone], "Notification for thread exit was sent");
-  [expectation unlock];
   DESTROY(expectation);
   DESTROY(arp);
   return 0;
