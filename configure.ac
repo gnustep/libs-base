@@ -3755,6 +3755,10 @@ else
     AC_MSG_RESULT([FAILED (curl-config and pkg-config not found)])
   fi
 fi
+  
+if test "$OBJC_RUNTIME_LIB" = "ng" -a "$HAVE_LIBCURL" = 0; then
+AC_MSG_ERROR([libcurl is a hard-dependency when building with the Objective-C 2.0 toolchain])
+fi
 
 AC_SUBST(HAVE_LIBCURL)
 

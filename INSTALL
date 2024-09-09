@@ -7,6 +7,26 @@ install the entire GNUstep package (including this library).
 GNUstep-HOWTO is located in the gnustep-make package or at
 <http://www.gnustep.org>
 
+   There are two Objective-C toolchains available for GNUstep: the
+original GNU Objective-C runtime bundled with GCC, and the new
+libobjc2 runtime with Objective-C 2.0 features. Due to lack of
+Objective-C 2.0 support in GCC, the libobjc2 runtime requires the
+use of clang.
+
+   Here is a list of some of the features of the libobjc2 runtime:
+
+ * Modern Objective-C runtime APIs, initially introduced with OS X 10.5.
+ * Fast message passing, and caching.
+ * Blocks (closures).
+ * @property syntax for declaring properties.
+ * Efficient support for @synchronized()
+ * Type-dependent dispatch, eliminating stack corruption from mismatched selectors.
+ * Support for the associated reference APIs introduced with Mac OS X 10.6.
+ * Support for the automatic reference counting APIs introduced with Mac OS X 10.7
+ * Support for fast-path message dispatch for common methods (e.g. retain, release, autorelease).
+
+   We recommend using the new toolchain when possible.
+
    This version of gnustep-base requires gnustep-make version 2.0.0 or
 higher.
 
@@ -21,7 +41,7 @@ higher.
    * zlib (RECOMMENDED)
    * iconv (OPTIONAL, not needed if you have glibc)
    * openssl (OPTIONAL, not needed if you have gnutls)
-   * libcurl (RECOMMENDED)
+   * libcurl (REQUIRED WHEN USING Objective-C 2.0 TOOLCHAIN)
    * libdispatch (RECOMMENDED)
 
    If you are installing the GNUstep libraries individually, make sure

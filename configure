@@ -14624,6 +14624,10 @@ printf "%s\n" "FAILED (curl-config and pkg-config not found)" >&6; }
   fi
 fi
 
+if test "$OBJC_RUNTIME_LIB" = "ng" -a "$HAVE_LIBCURL" = 0; then
+as_fn_error $? "libcurl is a hard-dependency when building with the Objective-C 2.0 toolchain" "$LINENO" 5
+fi
+
 
 
 #--------------------------------------------------------------------
