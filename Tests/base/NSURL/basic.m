@@ -45,6 +45,8 @@ int main()
   str = [url scheme];
   PASS([str isEqual: @"file"], "Scheme of file URL is file");
 
+  // Test depends on network connection
+  testHopeful = YES;
   url = [NSURL URLWithString: @"http://example.com/"];
   data = [url resourceDataUsingCache: NO];
   PASS(data != nil,
@@ -52,19 +54,20 @@ int main()
   num = [url propertyForKey: NSHTTPPropertyStatusCodeKey];
   PASS([num isKindOfClass: [NSNumber class]] && [num intValue] == 200,
     "Status of load is 200 for example.com");
+  testHopeful = NO;
 
   url = [NSURL URLWithString:@"this isn't a URL"];
   PASS(url == nil, "URL with 'this isn't a URL' returns nil");
 
+  // Test depends on network connection
+  testHopeful = YES;
   url = [NSURL URLWithString: @"https://httpbin.org/silly-file-name"];
   data = [url resourceDataUsingCache: NO];
   num = [url propertyForKey: NSHTTPPropertyStatusCodeKey];
-
-#if defined(_WIN64) && defined(_MSC_VER)
-  testHopeful = YES;
-#endif
   PASS_EQUAL(num, [NSNumber numberWithInt: 404],
     "Status of load is 404 for httpbin.org/silly-file-name");
+  testHopeful = NO;
+
 #if defined(_WIN64) && defined(_MSC_VER)
   testHopeful = YES;
 #endif
