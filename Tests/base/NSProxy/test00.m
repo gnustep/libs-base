@@ -31,6 +31,10 @@
 {
   return [_remote characterAtIndex: i];
 }
+- (NSUInteger) hash
+{
+  return [_remote hash];
+}
 - (NSUInteger) length
 {
   return [_remote length];
