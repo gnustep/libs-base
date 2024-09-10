@@ -1,3 +1,4 @@
+#include "GNUstepBase/GSObjCRuntime.h"
 #import <Foundation/NSKeyValueCoding.h>
 #import <Foundation/NSValue.h>
 #import <Foundation/NSGeometry.h>
@@ -317,10 +318,27 @@ testIvars(void)
              "Ivar returns NSRect");
   PASS_EQUAL([rt valueForKey:@"iNSSize"], [NSValue valueWithSize:s],
              "Ivar returns NSSize");
+
+  /* Welcome to another session of: Why GCC ObjC is a buggy mess.
+   *
+   * You'd expect that the type encoding of an ivar would be the same as @encode.
+   *
+   * Ivar var = class_getInstanceVariable([ReturnTypes class], "_iMyStruct");
+   * const char *type = ivar_getTypeEncoding(var);
+   * NSLog(@"Type encoding of iMyStruct: %s", type);
+   *
+   * So type should be equal to @encode(MyStruct) ({?=if})
+   *
+   * On GCC this is not the case. The type encoding of the ivar is {?="x"i"y"f}.
+   * This leads to failure of the following test.
+   *
+   * So mark this as hopeful until we stop supporting buggy compilers.
+   */
+  testHopeful = YES;
   PASS_EQUAL([rt valueForKey:@"iMyStruct"],
              [NSValue valueWithBytes:&ms objCType:@encode(MyStruct)],
              "Ivar returns MyStruct");
-
+  testHopeful = NO;
   END_SET("Ivars");
 
   [rt release];
