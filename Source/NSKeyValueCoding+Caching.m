@@ -22,14 +22,13 @@
    Boston, MA 02110 USA.
 */
 
-#include "Foundation/NSMethodSignature.h"
-#include "Foundation/NSZone.h"
-#include "GNUstepBase/GSObjCRuntime.h"
 #import <objc/runtime.h>
 #import <objc/slot.h>
 
 #import "common.h" // for likely and unlikely
+#import "typeEncodingHelper.h"
 #import "Foundation/NSKeyValueCoding.h"
+#import "Foundation/NSMethodSignature.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSInvocation.h"
 #import "NSKeyValueCoding+Caching.h"
@@ -282,25 +281,22 @@ _getBoxedBlockForIVar(NSString *key, Ivar ivar)
         return slot;
       }
       case '{': {
-        if (strncmp(@encode(NSRange), encoding, strlen(@encode(NSRange))) == 0)
+        if (IS_NSRANGE_ENCODING(encoding))
           {
             slot.get = _getBoxedNSRangeForIvar;
             return slot;
           }
-        else if (strncmp(@encode(NSRect), encoding, strlen(@encode(NSRect)))
-                 == 0)
+        else if (IS_CGRECT_ENCODING(encoding))
           {
             slot.get = _getBoxedNSRectForIvar;
             return slot;
           }
-        else if (strncmp(@encode(NSPoint), encoding, strlen(@encode(NSPoint)))
-                 == 0)
+        else if (IS_CGPOINT_ENCODING(encoding))
           {
             slot.get = _getBoxedNSPointForIvar;
             return slot;
           }
-        else if (strncmp(@encode(NSSize), encoding, strlen(@encode(NSSize)))
-                 == 0)
+        else if (IS_CGSIZE_ENCODING(encoding))
           {
             slot.get = _getBoxedNSSizeForIvar;
             return slot;
@@ -396,25 +392,22 @@ _getBoxedBlockForMethod(NSString *key, Method method, SEL sel, uint64_t version)
         return slot;
       }
       case '{': {
-        if (strncmp(@encode(NSRange), encoding, strlen(@encode(NSRange))) == 0)
+        if (IS_NSRANGE_ENCODING(encoding))
           {
             slot.get = _getBoxedNSRange;
             return slot;
           }
-        else if (strncmp(@encode(NSRect), encoding, strlen(@encode(NSRect)))
-                 == 0)
+        else if (IS_CGRECT_ENCODING(encoding))
           {
             slot.get = _getBoxedNSRect;
             return slot;
           }
-        else if (strncmp(@encode(NSPoint), encoding, strlen(@encode(NSPoint)))
-                 == 0)
+        else if (IS_CGPOINT_ENCODING(encoding))
           {
             slot.get = _getBoxedNSPoint;
             return slot;
           }
-        else if (strncmp(@encode(NSSize), encoding, strlen(@encode(NSSize)))
-                 == 0)
+        else if (IS_CGSIZE_ENCODING(encoding))
           {
             slot.get = _getBoxedNSSize;
             return slot;

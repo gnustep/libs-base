@@ -48,6 +48,7 @@
 
 #import "../GSPrivate.h"
 #import "../GSPThread.h"
+#import "../typeEncodingHelper.h"
 
 #include <objc/Protocol.h>
 
@@ -1317,7 +1318,8 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
             break;
 
           case _C_STRUCT_B:
-            if (strncmp(@encode(NSPoint), type, strlen(@encode(NSPoint))) == 0)
+		  {
+            if (IS_CGPOINT_ENCODING(type))
               {
                 NSPoint	v;
 
@@ -1334,7 +1336,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithPoint: v];
               }
-            else if (strncmp(@encode(NSRange), type, strlen(@encode(NSRange))) == 0)
+            else if (IS_NSRANGE_ENCODING(type))
               {
                 NSRange	v;
 
@@ -1351,7 +1353,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithRange: v];
               }
-            else if (strncmp(@encode(NSRect), type, strlen(@encode(NSRect))) == 0)
+            else if (IS_CGRECT_ENCODING(type))
               {
                 NSRect	v;
 
@@ -1368,7 +1370,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithRect: v];
               }
-            else if (strncmp(@encode(NSSize), type, strlen(@encode(NSSize))) == 0)
+            else if (IS_CGSIZE_ENCODING(type))
               {
                 NSSize	v;
 
@@ -1410,6 +1412,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
               }
             break;
+		  }
 
 	  default:
 #ifdef __GNUSTEP_RUNTIME__
