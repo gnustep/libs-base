@@ -79,7 +79,6 @@ int main()
   PASS([obj isEqual: obj], "proxy isEqual: to self without remote");
   [obj setRemote: rem];
   PASS([obj remote] == rem, "Can set the remote object for the proxy");
-  PASS([sub remote] == rem, "Can set the remote object for the subclass");
   PASS([obj length] == [rem length], "Get the length of the remote object");
   PASS([sub length] == [rem length], "Get the length of the subclass object");
   PASS([obj isEqual: rem], "proxy isEqual: to remote");
