@@ -23,6 +23,7 @@
 */
 
 #import <objc/runtime.h>
+#import <objc/encoding.h>
 #import <objc/slot.h>
 
 #import "common.h" // for likely and unlikely
@@ -33,14 +34,12 @@
 #import "Foundation/NSInvocation.h"
 #import "NSKeyValueCoding+Caching.h"
 
+
 struct _KVCCacheSlot
 {
   Class cls;
-  union
-  {
-    SEL         selector;
-    const char *types;
-  };
+  SEL         selector;
+  const char *types;
   uintptr_t hash;
   // The slot version returned by objc_get_slot2.
   // Set to zero when this is caching an ivar lookup
@@ -172,8 +171,7 @@ _getBoxedStruct(struct _KVCCacheSlot *slot, id obj)
   NSInvocation      *inv;
   NSMethodSignature *sig;
   size_t             retSize;
-
-  const char *types = sel_getType_np(slot->selector);
+  const char *types = slot->types;
 
   sig = [NSMethodSignature signatureWithObjCTypes:types];
   inv = [NSInvocation invocationWithMethodSignature:sig];
@@ -325,7 +323,8 @@ _getBoxedBlockForMethod(NSString *key, Method method, SEL sel, uint64_t version)
     }
 
   slot.imp = method_getImplementation(method);
-  slot.selector = method_getTypedSelector_np(method);
+  slot.selector = sel;
+  slot.types = encoding;
   slot.version = version;
 
   // TODO: Move most commonly used types up the switch statement
