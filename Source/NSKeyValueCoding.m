@@ -46,7 +46,7 @@
 #endif
 
 /* this should move into autoconf once it's accepted */
-#define WANT_DEPRECATED_KVC_COMPAT 1
+#define WANT_DEPRECATED_KVC_COMPAT 0
 
 #ifdef WANT_DEPRECATED_KVC_COMPAT
 
