@@ -56,8 +56,8 @@ extern "C" {
   CGFloat y;
 }</example>
  <p>Represents a 2-d cartesian position.</p> */
-typedef struct _NSPoint NSPoint;
-struct _NSPoint
+typedef struct CGPoint NSPoint;
+struct CGPoint
 {
   CGFloat x;
   CGFloat y;
@@ -76,8 +76,8 @@ typedef NSPoint *NSPointPointer;
   CGFloat height;
 }</example>
  <p>Floating point rectangle size.</p> */
-typedef struct _NSSize NSSize;
-struct _NSSize
+typedef struct CGSize NSSize;
+struct CGSize
 {
   CGFloat width;
   CGFloat height;
@@ -97,8 +97,8 @@ typedef NSSize *NSSizePointer;
 }</example>
 
  <p>Rectangle.</p> */
-typedef struct _NSRect NSRect;
-struct _NSRect
+typedef struct CGRect NSRect;
+struct CGRect
 {
   NSPoint origin;
   NSSize size;

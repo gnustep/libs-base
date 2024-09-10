@@ -41,6 +41,9 @@
 #include "NSKeyValueMutableArray.m"
 #include "NSKeyValueMutableSet.m"
 
+#if defined(__OBJC2__)
+#import "NSKeyValueCoding+Caching.h"
+#endif
 
 /* this should move into autoconf once it's accepted */
 #define WANT_DEPRECATED_KVC_COMPAT 1
@@ -145,6 +148,7 @@ SetValueForKey(NSObject *self, id anObject, const char *key, unsigned size)
   GSObjCSetVal(self, key, anObject, sel, type, size, off);
 }
 
+#if !defined(__OBJC2__)
 static id ValueForKey(NSObject *self, const char *key, unsigned size)
 {
   SEL		sel = 0;
@@ -167,12 +171,12 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
       name = &buf[1];	// getKey
       sel = sel_getUid(name);
-      if (sel == 0 || [self respondsToSelector: sel] == NO)
+      if ([self respondsToSelector: sel] == NO)
 	{
 	  buf[4] = lo;
 	  name = &buf[4];	// key
 	  sel = sel_getUid(name);
-	  if (sel == 0 || [self respondsToSelector: sel] == NO)
+	  if ([self respondsToSelector: sel] == NO)
 	    {
               buf[4] = hi;
               buf[3] = 's';
@@ -191,13 +195,13 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	  buf[4] = hi;
 	  name = buf;	// _getKey
 	  sel = sel_getUid(name);
-	  if (sel == 0 || [self respondsToSelector: sel] == NO)
+	  if ([self respondsToSelector: sel] == NO)
 	    {
 	      buf[4] = lo;
 	      buf[3] = '_';
 	      name = &buf[3];	// _key
 	      sel = sel_getUid(name);
-	      if (sel == 0 || [self respondsToSelector: sel] == NO)
+	      if ([self respondsToSelector: sel] == NO)
 		{
 		  sel = 0;
 		}
@@ -230,6 +234,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
     }
   return GSObjCGetVal(self, key, sel, type, size, off);
 }
+#endif
 
 
 @implementation NSObject(KeyValueCoding)
@@ -527,6 +532,9 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 
 - (id) valueForKey: (NSString*)aKey
 {
+  #if defined(__OBJC2__)
+  return valueForKeyWithCaching(self, aKey);
+  #else
   unsigned	size = [aKey length] * 8;
   char		key[size + 1];
 
@@ -535,6 +543,7 @@ static id ValueForKey(NSObject *self, const char *key, unsigned size)
 	  encoding: NSUTF8StringEncoding];
   size = strlen(key);
   return ValueForKey(self, key, size);
+  #endif
 }
 
 
