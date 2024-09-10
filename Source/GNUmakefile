@@ -255,7 +255,6 @@ NSJSONSerialization.m \
 NSKeyedArchiver.m \
 NSKeyedUnarchiver.m \
 NSKeyValueCoding.m \
-NSKeyValueObserving.m \
 NSLengthFormatter.m \
 NSLinguisticTagger.m \
 NSLocale.m \
@@ -358,6 +357,19 @@ NSXPCConnection.m \
 NSZone.m \
 externs.m \
 objc-load.m 
+
+# We have two implementations for Key Value Observing.
+# One highly-optimised one that depends on libobjc2
+# and the original implementation.
+ifeq ($(OBJC_RUNTIME_LIB), ng)
+  BASE_MFILES += \
+  NSKVOSupport.m \
+  NSKVOSwizzling.m
+else
+  BASE_MFILES += \
+  NSKeyValueObserving.m
+endif
+
 
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   ifneq ($(GNUSTEP_TARGET_OS), mingw64)
