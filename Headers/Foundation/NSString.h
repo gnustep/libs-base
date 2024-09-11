@@ -514,8 +514,25 @@ DEFINE_BLOCK_TYPE(GSNSStringLineEnumerationBlock, void, NSString *line, BOOL *st
  * </p>
  */
 
+
+#if GS_USE_ICU == 1
+// Structure for caching a previously created collator
+struct GSICUCollator
+{
+  void *handle;
+  NSUInteger hash;
+};
+#endif
+
 GS_EXPORT_CLASS
 @interface NSString :NSObject <NSCoding, NSCopying, NSMutableCopying>
+
+// Cache the collator created for comparing strings
+// as creating a new one is expensive.
+// This is lazily created when needed.
+// Note that the collator is tied to the locale.
+// If the locale changes, the collator must be recreated.
+@property (nonatomic) struct GSICUCollator collator;
 
 + (instancetype) string;
 + (instancetype) stringWithCharacters: (const unichar*)chars

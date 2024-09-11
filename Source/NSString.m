@@ -666,16 +666,16 @@ register_printf_atsign ()
  * NULL if a collator couldn't be created or the GNUstep comparison code
  * should be used instead.
  */
-static UCollator *
-GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
+static struct GSICUCollator *GSICUCollatorOpen(struct GSICUCollator *existing, NSStringCompareOptions mask, NSLocale *locale)
 {
   UErrorCode status = U_ZERO_ERROR;
   const char *localeCString;
-  UCollator *coll;
-  
+  NSUInteger hash;
+  NSString *localeIdentifier;
+
   if (mask & NSLiteralSearch)
     {
-      return NULL;
+      return NO;
     }
 
   if (NO == [locale isKindOfClass: [NSLocale class]])
@@ -707,43 +707,59 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
         }
     }
 
-  localeCString = [[locale localeIdentifier] UTF8String];
-
-  if (localeCString != NULL && strcmp("", localeCString) == 0)
+  localeIdentifier = [locale localeIdentifier];
+  if (nil != localeIdentifier && [localeIdentifier length] == 0)
     {
-      localeCString = NULL;
+      return NULL;
+    }
+  localeCString = [localeIdentifier UTF8String];
+
+  // Check if we already have a collator for this locale and mask combination
+  hash =  [localeIdentifier hash] ^ mask; 
+  if (existing->handle != NULL && existing->hash == hash)
+    {
+      return existing;
+    }
+  else if (existing->handle != NULL)
+    {
+      ucol_close(existing->handle);
     }
 
-  coll = ucol_open(localeCString, &status);
+  existing->handle = ucol_open(localeCString, &status);
+  existing->hash = hash;
+  if (U_FAILURE(status)) {
+    existing->handle = NULL;
+    return NULL;
+  }
 
-  if (U_SUCCESS(status))
-    {
-      if (mask & (NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch))
+  if (mask & (NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch))
 	{
-	  ucol_setStrength(coll, UCOL_PRIMARY);
+	  ucol_setStrength(existing->handle, UCOL_PRIMARY);
 	}
-      else if (mask & NSCaseInsensitiveSearch)
+  else if (mask & NSCaseInsensitiveSearch)
 	{
-	  ucol_setStrength(coll, UCOL_SECONDARY);
+	  ucol_setStrength(existing->handle, UCOL_SECONDARY);
 	}
-      else if (mask & NSDiacriticInsensitiveSearch)
+  else if (mask & NSDiacriticInsensitiveSearch)
 	{
-	  ucol_setStrength(coll, UCOL_PRIMARY);
-	  ucol_setAttribute(coll, UCOL_CASE_LEVEL, UCOL_ON, &status);
+	  ucol_setStrength(existing->handle, UCOL_PRIMARY);
+	  ucol_setAttribute(existing->handle, UCOL_CASE_LEVEL, UCOL_ON, &status);
 	}
       
-      if (mask & NSNumericSearch)
+  if (mask & NSNumericSearch)
 	{
-	  ucol_setAttribute(coll, UCOL_NUMERIC_COLLATION, UCOL_ON, &status);
+	  ucol_setAttribute(existing->handle, UCOL_NUMERIC_COLLATION, UCOL_ON, &status);
 	}
-	  
-      if (U_SUCCESS(status))
+ 
+  if (U_SUCCESS(status))
 	{
-	  return coll;
+	  return existing;
 	}
-    }
 
-  ucol_close(coll);
+  // If we failed to create the collator, close it and return NULL
+  // so that the GNUstep comparison code is used instead.
+  ucol_close(existing->handle);
+  existing->handle = NULL;
   return NULL;
 }
 
@@ -1854,6 +1870,18 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
   return self;
 }
 
+- (void) dealloc
+{
+#if GS_USE_ICU == 1
+  if (_collator.handle != NULL)
+  {
+      ucol_close(_collator.handle);
+  }
+#endif
+
+  [super dealloc];
+}
+
 /**
  * Returns the number of Unicode characters in this string, including the
  * individual characters of composed character sequences,
@@ -2853,8 +2881,8 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 
 #if GS_USE_ICU == 1
     {
-      UCollator *coll = GSICUCollatorOpen(mask, locale);
-
+        struct GSICUCollator *coll = GSICUCollatorOpen(&_collator, mask, locale);
+      
       if (NULL != coll)
 	{
 	  NSRange       result = NSMakeRange(NSNotFound, 0);
@@ -2871,7 +2899,7 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
 	  
 	  search = usearch_openFromCollator(charsOther, countOther,
 					    charsSelf, countSelf,
-					    coll, NULL, &status);
+					    coll->handle, NULL, &status);
 	  if (search != NULL && U_SUCCESS(status))
 	    {
 	      int32_t matchLocation;
@@ -2919,7 +2947,6 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
           GS_ENDITEMBUF2()
           GS_ENDITEMBUF()
 	  usearch_close(search);
-	  ucol_close(coll);
 	  return result;
 	}
     }
@@ -5827,8 +5854,8 @@ static NSFileManager *fm = nil;
 
 #if GS_USE_ICU == 1
     {
-      UCollator *coll = GSICUCollatorOpen(mask, locale);
-
+      struct GSICUCollator *coll = GSICUCollatorOpen(&_collator, mask, locale);
+      
       if (coll != NULL)
 	{
 	  NSUInteger countSelf = compareRange.length;
@@ -5846,12 +5873,11 @@ static NSFileManager *fm = nil;
 	  [self getCharacters: charsSelf range: compareRange];
 	  [string getCharacters: charsOther range: NSMakeRange(0, countOther)];
 	  
-	  result = ucol_strcoll(coll,
+	  result = ucol_strcoll(coll->handle,
 	    charsSelf, countSelf, charsOther, countOther);
 
 	  NSZoneFree(NSDefaultMallocZone(), charsSelf);
 	  NSZoneFree(NSDefaultMallocZone(), charsOther);	  
-	  ucol_close(coll); 
 	  
 	  switch (result)
 	    {
