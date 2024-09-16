@@ -27,6 +27,8 @@
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
+#define	navcss	1
+
 /*
  * Define constants for use if we are built with apple Foundation
  */
@@ -510,6 +512,7 @@ static NSMutableSet	*textNodes = nil;
   /* Put the index in a div with a class identifying its scope and type
    * so that CSS can be used to style it.
    */
+  [buf appendString: indent];
   [buf appendFormat: @"<div class=\"%@_%@_index\">\n", scope, type];
 
   if ([type isEqual: @"title"] == YES)
@@ -747,6 +750,7 @@ static NSMutableSet	*textNodes = nil;
 	}
       [buf appendString: @"\n"];
     }
+  [buf appendString: indent];
   [buf appendString: @"</div>\n"];
 }
 
@@ -800,6 +804,10 @@ static NSMutableSet	*textNodes = nil;
 	  [buf appendString: indent];
 
           [buf appendString: indent];
+	  if (navcss)
+	    {
+	      [buf appendString: @"</div>\n"];
+	    }
           if (isContentsDoc)
 	    {
 	      [buf appendString: @"</div>\n"];
@@ -1313,6 +1321,118 @@ static NSMutableSet	*textNodes = nil;
               [buf appendString: indent];
               [buf appendString: @"<div class=\"ToC\">\n"];
             }
+
+	  if (navcss)
+	    {
+              [buf appendString: indent];
+              [buf appendString: @"<div class=\"content-bar\">\n"];
+              [buf appendString: indent];
+              [buf appendString: @"<div class=\"content-bar-top\">\n"];
+
+              [buf appendString: indent];
+	      [buf appendString:
+		@"<a href=\"#nav-bar-classes\">Classes</a><br>\n"];
+              [buf appendString: indent];
+	      [buf appendString:
+		@"<a href=\"#nav-bar-protocols\">Protocols</a><br>\n"];
+              [buf appendString: indent];
+	      [buf appendString:
+		@"<a href=\"#nav-bar-constants\">Constants</a><br>\n"];
+              [buf appendString: indent];
+	      [buf appendString:
+		@"<a href=\"#nav-bar-functions\">Functions</a><br>\n"];
+              [buf appendString: indent];
+	      [buf appendString:
+		@"<a href=\"#nav-bar-macros\">Macros</a><br>\n"];
+              [buf appendString: indent];
+	      [buf appendString:
+		@"<a href=\"#nav-bar-types\">Types</a><br>\n"];
+              [buf appendString: indent];
+	      [buf appendString:
+		@"<a href=\"#nav-bar-variables\">Variables</a><br>\n"];
+
+              [buf appendString: indent];
+              [buf appendString: @"</div>\n"];	// content-bar-top
+
+              [buf appendString: indent];
+              [buf appendString: @"<div class=\"content-bar-bottom\">\n"];
+
+              [buf appendString: indent];
+	      [buf appendString: @"<a name=\"nav-bar-classes\">Classes</a>\n"];
+	      [self outputIndex: @"class"
+			  scope: @"project"
+			  title: @"Project classes"
+			  style: @"bare"
+			 target: nil
+			     to: buf];
+
+              [buf appendString: indent];
+	      [buf appendString:
+		@"<a name=\"nav-bar-protocols\">Protocols</a>\n"];
+	      [self outputIndex: @"protocol"
+			  scope: @"project"
+			  title: @"Project protocols"
+			  style: @"bare"
+			 target: nil
+			     to: buf];
+
+              [buf appendString: indent];
+	      [buf appendString:
+		@"<a name=\"nav-bar-constants\">Constants</a>\n"];
+	      [self outputIndex: @"constant"
+			  scope: @"project"
+			  title: @"Project constants"
+			  style: @"bare"
+			 target: nil
+			     to: buf];
+
+              [buf appendString: indent];
+	      [buf appendString:
+		@"<a name=\"nav-bar-functions\">Functions</a>\n"];
+	      [self outputIndex: @"function"
+			  scope: @"project"
+			  title: @"Project functions"
+			  style: @"bare"
+			 target: nil
+			     to: buf];
+
+              [buf appendString: indent];
+	      [buf appendString:
+		@"<a name=\"nav-bar-macros\">Macros</a>\n"];
+	      [self outputIndex: @"macro"
+			  scope: @"project"
+			  title: @"Project macros"
+			  style: @"bare"
+			 target: nil
+			     to: buf];
+
+              [buf appendString: indent];
+	      [buf appendString: @"<a name=\"nav-bar-types\">Types</a>\n"];
+	      [self outputIndex: @"type"
+			  scope: @"project"
+			  title: @"Project types"
+			  style: @"bare"
+			 target: nil
+			     to: buf];
+
+              [buf appendString: indent];
+	      [buf appendString: @"<a name=\"nav-bar-variables\">Variables</a>\n"];
+	      [self outputIndex: @"variable"
+			  scope: @"project"
+			  title: @"Project variables"
+			  style: @"bare"
+			 target: nil
+			     to: buf];
+
+              [buf appendString: indent];
+              [buf appendString: @"</div>\n"];	// bar-bottom
+
+              [buf appendString: indent];
+              [buf appendString: @"</div>\n"];	// content-bar
+
+              [buf appendString: indent];
+              [buf appendString: @"<div class=\"content-pane\">\n"];
+ 	    }
 
 	  if (prevFile != nil)
 	    {
