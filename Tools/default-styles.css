@@ -1,19 +1,49 @@
 .content-bar {
-	background-color: #cccccc;
+	background-color: green;
 	float: left;
 	position: fixed;
 	top: 0px;
 	left: 0px;
 	width: 20%;
 	height: 100%;
-	padding: 10px;
-	margin: 5px;
 }
 
-.content-nav-box {
+.content-bar-top {
 	position: absolute;
-	top: 0px; left: 0px; height: 30%; width: 100%;
-	overflow: auto; background-color: yellow;
+	top: 0px;
+	left: 0px;
+	height: 30%;
+	width: 100%;
+	overflow: auto;
+	background-color: yellow;
+}
+
+.content-bar-bottom {
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	height:70%;
+	width: 100%;
+	overflow: auto;
+	background-color: red;
+}
+
+.content-pane {
+	background-color: pink;
+	position: fixed;
+	top: 0px;
+	right: 0px;
+	width: 80%;
+	height: 100%;
+	overflow-y: auto;
+}
+
+.content-body {
+	background-color: grey;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	padding-left: 10px;
 }
 
 hr.method-separator {
