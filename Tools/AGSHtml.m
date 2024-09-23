@@ -514,6 +514,7 @@ static NSMutableSet	*textNodes = nil;
    */
   [buf appendString: indent];
   [buf appendFormat: @"<div class=\"%@_%@_index\">\n", scope, type];
+  [self incIndent];
 
   if ([type isEqual: @"title"] == YES)
     {
@@ -750,8 +751,10 @@ static NSMutableSet	*textNodes = nil;
 	}
       [buf appendString: @"\n"];
     }
+
+  [self decIndent];
   [buf appendString: indent];
-  [buf appendString: @"</div>\n"];
+  [buf appendString: @"</div>\n"];  // nav-bar section
 }
 
 - (void) outputNode: (GSXMLNode*)node to: (NSMutableString*)buf
@@ -801,17 +804,23 @@ static NSMutableSet	*textNodes = nil;
 	    }
 
 	  [self decIndent];
-	  [buf appendString: indent];
 
-          [buf appendString: indent];
 	  if (navcss)
 	    {
-	      [buf appendString: @"</div>\n"];
+	      [self decIndent];
+              [buf appendString: indent];
+	      [buf appendString: @"</div>\n"]; //content-pane-body
+	      [self decIndent];
+              [buf appendString: indent];
+	      [buf appendString: @"</div>\n"]; //content-pane
 	    }
           if (isContentsDoc)
 	    {
+	      [self decIndent];
+              [buf appendString: indent];
 	      [buf appendString: @"</div>\n"];
 	    }
+	  [buf appendString: indent];
 	  [buf appendString: @"</body>\n"];
 	}
       else if ([name isEqual: @"br"] == YES)
@@ -1320,14 +1329,22 @@ static NSMutableSet	*textNodes = nil;
             {
               [buf appendString: indent];
               [buf appendString: @"<div class=\"ToC\">\n"];
+	      [self incIndent];
             }
 
 	  if (navcss)
 	    {
               [buf appendString: indent];
               [buf appendString: @"<div class=\"content-bar\">\n"];
+	      [self incIndent];
+
               [buf appendString: indent];
               [buf appendString: @"<div class=\"content-bar-top\">\n"];
+	      [self incIndent];
+
+              [buf appendString: indent];
+              [buf appendString: @"<div class=\"content-bar-top-body\">\n"];
+	      [self incIndent];
 
               [buf appendString: indent];
 	      [buf appendString:
@@ -1351,11 +1368,20 @@ static NSMutableSet	*textNodes = nil;
 	      [buf appendString:
 		@"<a href=\"#nav-bar-variables\">Variables</a><br>\n"];
 
+	      [self decIndent];
+              [buf appendString: indent];
+              [buf appendString: @"</div>\n"];	// content-bar-top-body
+	      [self decIndent];
               [buf appendString: indent];
               [buf appendString: @"</div>\n"];	// content-bar-top
 
               [buf appendString: indent];
               [buf appendString: @"<div class=\"content-bar-bottom\">\n"];
+	      [self incIndent];
+
+              [buf appendString: indent];
+              [buf appendString: @"<div class=\"content-bar-bottom-body\">\n"];
+	      [self incIndent];
 
               [buf appendString: indent];
 	      [buf appendString: @"<a name=\"nav-bar-classes\">Classes</a>\n"];
@@ -1424,14 +1450,23 @@ static NSMutableSet	*textNodes = nil;
 			 target: nil
 			     to: buf];
 
+	      [self decIndent];
+              [buf appendString: indent];
+              [buf appendString: @"</div>\n"];	// bar-bottom-body
+	      [self decIndent];
               [buf appendString: indent];
               [buf appendString: @"</div>\n"];	// bar-bottom
 
+	      [self decIndent];
               [buf appendString: indent];
               [buf appendString: @"</div>\n"];	// content-bar
 
               [buf appendString: indent];
               [buf appendString: @"<div class=\"content-pane\">\n"];
+	      [self incIndent];
+              [buf appendString: indent];
+              [buf appendString: @"<div class=\"content-pane-body\">\n"];
+	      [self incIndent];
  	    }
 
 	  if (prevFile != nil)
