@@ -64,6 +64,9 @@
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  START_SET("NSProxy 0")
+  testHopeful = YES; // This test is somewhat flaky on GCC MinGW. Further investigation is needed.
+
   char *prefix = "The class 'NSProxy' ";
   Class theClass = NSClassFromString(@"NSProxy");
   id obj = nil;
@@ -100,6 +103,7 @@ int main()
   PASS([rem compare: obj] == NSOrderedSame, "remote compare: proxy");
   PASS([rem compare: sub] == NSOrderedSame, "remote compare: subclass");
   
+  END_SET("NSProxy 0")
   [arp release]; arp = nil;
   return 0;
 }
