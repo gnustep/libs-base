@@ -359,7 +359,7 @@ systemLanguages()
 {
   NSMutableArray *names = [NSMutableArray arrayWithCapacity: 10];
 
-  #ifdef WIN32
+  #if defined(_WIN32)
   NSEnumerator *enumerator;
   NSArray *languages;
 	NSString *locale;

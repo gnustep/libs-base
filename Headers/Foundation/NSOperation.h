@@ -224,6 +224,17 @@ enum {
    NSOperationQueueDefaultMaxConcurrentOperationCount = -1
 };
 
+/**
+ * An NSOperationQueue manages a number of NSOperation objects, scheduling
+ * them for execution and managing their dependencies.
+ *
+ * Depending on the configuration of the queue, operations may be executed
+ * concurrently or serially.
+ *
+ * Worker threads are named "NSOperationQ_<number>" by default, but
+ * you can set a name for the queue using the -setName: method.
+ * The suffix "_<number>"" is automatically added to the thread name.
+ */
 GS_EXPORT_CLASS
 @interface NSOperationQueue : NSObject
 {
