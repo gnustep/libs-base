@@ -21,9 +21,6 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
 
-   If you are interested in a warranty or support for this source code,
-   contact Scott Christley <scottc@net-community.com> for more information.
-
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
@@ -50,8 +47,17 @@
 #define	BOXI(V)	[NSNumber numberWithInteger: (V)]
 #define	MPAIR(K,V)\
  [NSMutableDictionary dictionaryWithObjectsAndKeys: V, K, nil]
+#define BOXBOOL(V) [NSNumber numberWithBool: (V)]
 
-#if defined(__OBJC2__)
+#if defined (__OBJC2__)
+#define FLAKY_ON_GCC_START
+#define FLAKY_ON_GCC_END
+#else
+#define FLAKY_ON_GCC_START \
+  testHopeful = YES;
+#define FLAKY_ON_GCC_END \
+  testHopeful = NO;
+#endif
 
 @interface TestKVOSelfObserver : NSObject
 {
@@ -61,7 +67,8 @@
 @implementation TestKVOSelfObserver
 - (id)init
 {
-  if (self = [super init])
+  self = [super init];
+  if (self)
     {
       [self addObserver:self forKeyPath:@"dummy" options:0 context:nil];
     }
@@ -74,12 +81,27 @@
 }
 @end
 
-@interface                                           TestKVOChange : NSObject
-@property (nonatomic, copy) NSString                *keypath;
-@property (nonatomic, assign /*weak but no arc*/) id object;
-@property (nonatomic, copy) NSDictionary            *info;
-@property (nonatomic, assign) void                  *context;
+@interface TestKVOChange : NSObject {
+    NSString *_keypath;
+    id _object;
+    NSDictionary *_info;
+    void *_context;
+}
+
+- (NSString *)keypath;
+- (void)setKeypath:(NSString *)newKeypath;
+
+- (id)object;
+- (void)setObject:(id)newObject;
+
+- (NSDictionary *)info;
+- (void)setInfo:(NSDictionary *)newInfo;
+
+- (void *)context;
+- (void)setContext:(void *)newContext;
+
 @end
+
 @implementation TestKVOChange
 + (id)changeWithKeypath:(NSString *)keypath
                  object:(id)object
@@ -87,12 +109,64 @@
                 context:(void *)context
 {
   TestKVOChange *change = [[[self alloc] init] autorelease];
-  change.keypath = keypath;
-  change.object = object;
-  change.info = info;
-  change.context = context;
+  [change setKeypath: keypath];
+  [change setObject: object];
+  [change setInfo: info];
+  [change setContext: context];
   return change;
 }
+
+- (NSString *)keypath {
+    return _keypath;
+}
+
+- (void)setKeypath:(NSString *)newKeypath
+{
+    if (_keypath != newKeypath)
+    {
+        [_keypath release];
+        _keypath = [newKeypath copy];
+    }
+}
+
+- (id)object
+{
+    return _object;
+}
+
+- (void)setObject:(id)newObject
+{
+  ASSIGN(_object, newObject);
+}
+
+- (NSDictionary *)info
+{
+    return _info;
+}
+
+- (void)setInfo:(NSDictionary *)newInfo
+{
+    ASSIGN(_info, [newInfo copy]);
+}
+
+- (void *)context
+{
+    return _context;
+}
+
+- (void)setContext:(void *)newContext
+{
+    _context = newContext;
+}
+
+- (void)dealloc
+{
+    [_object release];
+    [_keypath release];
+    [_info release];
+    [super dealloc];
+}
+
 @end
 
 @interface TestKVOObserver : NSObject
@@ -110,7 +184,8 @@
 @implementation TestKVOObserver
 - (id)init
 {
-  if (self = [super init])
+  self = [super init];
+  if (self)
     {
       _changedKeypaths = [NSMutableDictionary dictionary];
     }
@@ -123,11 +198,11 @@
 {
   @synchronized(self)
   {
-    NSMutableSet *changeSet = _changedKeypaths[keypath];
+    NSMutableSet *changeSet = [_changedKeypaths objectForKey:keypath];
     if (!changeSet)
       {
         changeSet = [NSMutableSet set];
-        _changedKeypaths[keypath] = changeSet;
+        [_changedKeypaths setObject: changeSet forKey: keypath];
       }
     [changeSet addObject:[TestKVOChange changeWithKeypath:keypath
                                                    object:object
@@ -139,7 +214,7 @@
 {
   @synchronized(self)
   {
-    return [_changedKeypaths[keypath] copy];
+    return [[_changedKeypaths objectForKey:keypath] copy];
   }
 }
 - (void)clear
@@ -168,6 +243,7 @@ struct TestKVOStruct
   int a, b, c;
 };
 
+/*
 @interface TestKVOObject : NSObject
 {
   NSString *_internal_derivedObjectProperty;
@@ -197,9 +273,69 @@ struct TestKVOStruct
 @property (nonatomic, retain) id     boolTrigger2;
 @property (nonatomic, readonly) bool dependsOnTwoKeys;
 
-// This modifies the internal integer property and notifies about it.
 - (void)incrementManualIntegerProperty;
 @end
+*/
+
+@interface TestKVOObject : NSObject {
+    NSString *_internal_derivedObjectProperty;
+    NSString *_internal_keyDerivedTwoTimes;
+    int _manuallyNotifyingIntegerProperty;
+    int _ivarWithoutSetter;
+
+    NSString *_nonNotifyingObjectProperty;
+    NSString *_basicObjectProperty;
+    uint32_t _basicPodProperty;
+    struct TestKVOStruct _structProperty;
+    TestKVOObject *_cascadableKey;
+    id _recursiveDependent1;
+    id _recursiveDependent2;
+    NSMutableDictionary *_dictionaryProperty;
+    id _boolTrigger1;
+    id _boolTrigger2;
+}
+
+- (NSString *)nonNotifyingObjectProperty;
+- (void)setNonNotifyingObjectProperty:(NSString *)newValue;
+
+- (NSString *)basicObjectProperty;
+- (void)setBasicObjectProperty:(NSString *)newValue;
+
+- (uint32_t)basicPodProperty;
+- (void)setBasicPodProperty:(uint32_t)newValue;
+
+- (struct TestKVOStruct)structProperty;
+- (void)setStructProperty:(struct TestKVOStruct)newValue;
+
+- (NSString *)derivedObjectProperty;
+
+- (TestKVOObject *)cascadableKey;
+- (void)setCascadableKey:(TestKVOObject *)newValue;
+
+- (TestKVOObject *)derivedCascadableKey;
+
+- (id)recursiveDependent1;
+- (void)setRecursiveDependent1:(id)newValue;
+
+- (id)recursiveDependent2;
+- (void)setRecursiveDependent2:(id)newValue;
+
+- (NSMutableDictionary *)dictionaryProperty;
+- (void)setDictionaryProperty:(NSMutableDictionary *)newValue;
+
+- (id)boolTrigger1;
+- (void)setBoolTrigger1:(id)newValue;
+
+- (id)boolTrigger2;
+- (void)setBoolTrigger2:(id)newValue;
+
+- (bool)dependsOnTwoKeys;
+
+// This modifies the internal integer property and notifies about it.
+- (void)incrementManualIntegerProperty;
+
+@end
+
 
 @implementation TestKVOObject
 - (void)dealloc
@@ -270,7 +406,7 @@ struct TestKVOStruct
 
 - (id)keyDependentOnSubKeypath
 {
-  return _dictionaryProperty[@"subDictionary"];
+  return [_dictionaryProperty objectForKey:@"subDictionary"];
 }
 
 + (BOOL)automaticallyNotifiesObserversOfManuallyNotifyingIntegerProperty
@@ -314,18 +450,109 @@ struct TestKVOStruct
   _manuallyNotifyingIntegerProperty++;
   [self didChangeValueForKey:@"manuallyNotifyingIntegerProperty"];
 }
+
+// Accessors
+
+- (NSString *)nonNotifyingObjectProperty {
+    return _nonNotifyingObjectProperty;
+}
+
+- (void)setNonNotifyingObjectProperty:(NSString *)newValue {
+    ASSIGN(_nonNotifyingObjectProperty, newValue);
+}
+
+- (NSString *)basicObjectProperty {
+    return _basicObjectProperty;
+}
+
+- (uint32_t)basicPodProperty {
+    return _basicPodProperty;
+}
+
+- (void)setBasicPodProperty:(uint32_t)newValue {
+    _basicPodProperty = newValue;
+}
+
+- (struct TestKVOStruct)structProperty {
+    return _structProperty;
+}
+
+- (void)setStructProperty:(struct TestKVOStruct)newValue {
+    _structProperty = newValue;
+}
+
+- (TestKVOObject *)cascadableKey {
+    return _cascadableKey;
+}
+
+- (void)setCascadableKey:(TestKVOObject *)newValue {
+    ASSIGN(_cascadableKey, newValue);
+}
+
+- (id)recursiveDependent1 {
+    return _recursiveDependent1;
+}
+
+- (void)setRecursiveDependent1:(id)newValue {
+    ASSIGN(_recursiveDependent1, newValue);
+}
+
+- (id)recursiveDependent2 {
+    return _recursiveDependent2;
+}
+
+- (void)setRecursiveDependent2:(id)newValue {
+    ASSIGN(_recursiveDependent2, newValue);
+}
+
+- (NSMutableDictionary *)dictionaryProperty {
+    return _dictionaryProperty;
+}
+
+- (void)setDictionaryProperty:(NSMutableDictionary *)newValue {
+    ASSIGN(_dictionaryProperty, newValue);
+}
+
+- (id)boolTrigger1 {
+    return _boolTrigger1;
+}
+
+- (void)setBoolTrigger1:(id)newValue {
+    ASSIGN(_boolTrigger1, newValue);
+}
+
+- (id)boolTrigger2 {
+    return _boolTrigger2;
+}
+
+- (void)setBoolTrigger2:(id)newValue {
+    ASSIGN(_boolTrigger2, newValue);
+}
+
 @end
 
 @interface                          TestKVOObject2 : NSObject
-@property (nonatomic, assign) float someFloat;
+{
+  float _someFloat;
+}
+
 @end
 @implementation TestKVOObject2
+- (float)someFloat
+{
+  return _someFloat;
+}
+- (void)setSomeFloat:(float)newValue
+{
+  _someFloat = newValue;
+}
 @end
 
 static void
 BasicChangeNotification()
 {
   START_SET("BasicChangeNotification");
+  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -361,6 +588,7 @@ BasicChangeNotification()
                           forKeyPath:@"basicObjectProperty"],
             "remove observer should not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("BasicChangeNotification");
 }
 
@@ -468,6 +696,7 @@ static void
 CascadingNotificationWithEmptyLeaf()
 {
   START_SET("CascadingNotificationWithEmptyLeaf");
+  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -491,8 +720,8 @@ CascadingNotificationWithEmptyLeaf()
                anyObject] info] objectForKey:NSKeyValueChangeOldKey],
              [NSNull null],
              "The old value stored in the change notification should be null.");
-
-  [observer clear];
+  
+    [observer clear];
 
   TestKVOObject *subObject2 = [[[TestKVOObject alloc] init] autorelease];
   subObject2.basicObjectProperty = @"Hello";
@@ -521,6 +750,7 @@ CascadingNotificationWithEmptyLeaf()
                           forKeyPath:@"cascadableKey.basicObjectProperty"],
             "remove observer should not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("CascadingNotificationWithEmptyLeaf");
 }
 
@@ -560,6 +790,7 @@ static void
 DependentKeyNotification()
 {
   START_SET("DependentKeyNotification");
+  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -570,22 +801,28 @@ DependentKeyNotification()
                 context:NULL];
   observed.basicObjectProperty = @"Hello";
 
-  PASS_EQUAL([[observer changesForKeypath:@"basicObjectProperty"] count], 0,
-             "No changes on basicObjectProperty should have fired (we did not "
-             "register for it).");
-  PASS_EQUAL([[observer changesForKeypath:@"derivedObjectProperty"] count], 1,
-             "One change on derivedObjectProperty should have fired.");
+  NSSet *basicChanges = [observer changesForKeypath:@"basicObjectProperty"];
+  NSSet *derivedChanges = [observer changesForKeypath:@"derivedObjectProperty"];
 
+  PASS(nil != derivedChanges, "derivedChanges should not be nil.");
+
+  PASS([basicChanges count] == 0,
+            "No changes on basicObjectProperty should have fired (we did not "
+            "register for it).");
+  PASS([derivedChanges count] == 1, "One change on derivedObjectProperty should have fired.");
+  
   PASS_RUNS([observed removeObserver:observer
                           forKeyPath:@"derivedObjectProperty"],
             "remove observer should not throw");
 
-  PASS_EQUAL([[[[observer changesForKeypath:@"derivedObjectProperty"] anyObject]
-               info] objectForKey:NSKeyValueChangeNewKey],
+  derivedChanges = [observer changesForKeypath:@"derivedObjectProperty"];
+  PASS(nil != derivedChanges, "derivedChanges should not be nil.");
+  PASS_EQUAL([[[derivedChanges anyObject] info] objectForKey:NSKeyValueChangeNewKey],
              @"!!!Hello!!!",
              "The new value stored in the change notification should be "
              "!!!Hello!!! (the derived object).");
 
+  FLAKY_ON_GCC_END
   END_SET("DependentKeyNotification");
 }
 
@@ -666,6 +903,7 @@ static void
 DisabledNotification()
 { // No notification for non-notifying keypaths.
   START_SET("DisabledNotification");
+  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -677,14 +915,17 @@ DisabledNotification()
                 context:NULL];
   observed.nonNotifyingObjectProperty = @"Whatever";
 
-  PASS_EQUAL([[observer changesForKeypath:@"nonNotifyingObjectProperty"] count],
-             0, "No changes for nonNotifyingObjectProperty should have fired.");
+  NSSet *changes = [observer changesForKeypath:@"nonNotifyingObjectProperty"];
+
+  PASS([changes count] == 0,
+            "No changes on nonNotifyingObjectProperty should have fired.");
 
   PASS_RUNS([observed removeObserver:observer
                           forKeyPath:@"nonNotifyingObjectProperty"],
             "remove observer should not throw");
   PASS_RUNS([pool release], "release should not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("DisabledNotification");
 }
 
@@ -692,6 +933,7 @@ static void
 DisabledInitialNotification()
 { // Initial notification for non-notifying keypaths.
   START_SET("DisabledInitialNotification");
+  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -703,14 +945,17 @@ DisabledInitialNotification()
                 context:NULL];
   observed.nonNotifyingObjectProperty = @"Whatever";
 
-  PASS_EQUAL([[observer changesForKeypath:@"nonNotifyingObjectProperty"] count],
-             1,
-             "An INITIAL notification for nonNotifyingObjectProperty should "
-             "have fired.");
+  NSSet *changes = [observer changesForKeypath:@"nonNotifyingObjectProperty"];
+
+  
+
+  PASS(nil != changes, "changes should not be nil.");
+  PASS([changes count] == 1,
+            "An INITIAL notification for nonNotifyingObjectProperty should "
+            "have fired.");
 
   PASS_EQUAL(BOXF(NSKeyValueChangeSetting),
-             [[[[observer changesForKeypath:@"nonNotifyingObjectProperty"]
-               anyObject] info] objectForKey:NSKeyValueChangeKindKey],
+             [[[changes anyObject] info] objectForKey:NSKeyValueChangeKindKey],
              "The change kind should be NSKeyValueChangeSetting.");
 
   PASS_RUNS([observed removeObserver:observer
@@ -718,6 +963,7 @@ DisabledInitialNotification()
             "remove observer should not throw");
   PASS_RUNS([pool release], "release should not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("DisabledInitialNotification");
 }
 
@@ -758,6 +1004,7 @@ DictionaryNotification()
 { // Basic notification on a dictionary, which does not have properties or
   // ivars.
   START_SET("DictionaryNotification");
+  FLAKY_ON_GCC_START
 
   NSMutableDictionary *observed = [NSMutableDictionary dictionary];
   TestKVOObserver     *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -778,11 +1025,16 @@ DictionaryNotification()
   [observed setValue:@"Whatever2" forKeyPath:@"arbitraryValue"];
   [observed setValue:@"Whatever2" forKeyPath:@"subKey.basicObjectProperty"];
 
-  PASS_EQUAL(
-    [[observer changesForKeypath:@"arbitraryValue"] count], 2,
+  NSSet *changes = [observer changesForKeypath:@"arbitraryValue"];
+
+  PASS(nil != changes, "changes should not be nil.");
+  PASS([changes count] == 2,
     "On a NSMutableDictionary, a change notification for arbitraryValue.");
-  PASS_EQUAL([[observer changesForKeypath:@"subKey.basicObjectProperty"] count],
-             1,
+
+  changes = [observer changesForKeypath:@"subKey.basicObjectProperty"];
+    
+  PASS(nil != changes, "changes should not be nil.");
+  PASS([changes count] == 1,
              "On a NSMutableDictionary, a change notification for "
              "subKey.basicObjectProperty.");
 
@@ -792,6 +1044,7 @@ DictionaryNotification()
                           forKeyPath:@"subKey.basicObjectProperty"],
             "remove observer should not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("DictionaryNotification");
 }
 
@@ -799,6 +1052,7 @@ static void
 BasicDeregistration()
 { // Deregistration test
   START_SET("BasicDeregistration");
+  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -830,10 +1084,11 @@ BasicDeregistration()
 
   subObject.basicObjectProperty = @"Hello";
 
-  PASS_EQUAL(
-    [[observer changesForKeypath:@"cascadableKey.basicObjectProperty"] count],
-    0, "No changes on cascadableKey.basicObjectProperty should have fired.");
+  NSSet *changes = [observer changesForKeypath:@"cascadableKey.basicObjectProperty"];
 
+  PASS([changes count] == 0, "No changes on cascadableKey.basicObjectProperty should have fired.");
+
+  FLAKY_ON_GCC_END
   END_SET("BasicDeregistration");
 }
 
@@ -854,14 +1109,12 @@ DerivedKeyOnSubpath1()
   subObject.basicObjectProperty = @"Hello";
   observed.cascadableKey = subObject;
 
-  PASS_EQUAL([[observer
-               changesForKeypath:@"cascadableKey.derivedObjectProperty.length"]
-               count],
-             1, "One change on cascade.derived.length should have fired.");
+  NSSet *changes = [observer changesForKeypath:@"cascadableKey.derivedObjectProperty.length"];
+
+  PASS(nil != changes, "changes should not be nil.");
+  PASS([changes count] == 1, "One change on cascade.derived.length should have fired.");
   PASS_EQUAL(
-    [[[[observer
-      changesForKeypath:@"cascadableKey.derivedObjectProperty.length"]
-      anyObject] info] objectForKey:NSKeyValueChangeNewKey],
+    [[[changes anyObject] info] objectForKey:NSKeyValueChangeNewKey],
     BOXI(11),
     "The new value stored in the change notification should a boxed 11.");
 
@@ -1023,6 +1276,7 @@ static void
 SubpathWithMultipleReplacement()
 { // Test key value replacement and re-registration (3)
   START_SET("SubpathWithMultipleReplacement");
+  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[TestKVOObject alloc] init];
   TestKVOObserver *observer = [[TestKVOObserver alloc] init];
@@ -1050,6 +1304,7 @@ SubpathWithMultipleReplacement()
   [observer release];
   [observed release];
 
+  FLAKY_ON_GCC_END
   END_SET("SubpathWithMultipleReplacement");
 }
 
@@ -1158,6 +1413,7 @@ static void
 CyclicDependency()
 { // Make sure that dependency loops don't cause crashes.
   START_SET("CyclicDependency");
+  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[TestKVOObject alloc] init];
   TestKVOObserver *observer = [[TestKVOObserver alloc] init];
@@ -1173,7 +1429,7 @@ CyclicDependency()
             "add observer should not throw");
   observed.recursiveDependent1 = @"x";
   observed.recursiveDependent2 = @"y";
-  PASS_EQUAL(4, [observer numberOfObservedChanges],
+  PASS(4 == [observer numberOfObservedChanges],
              "Four changes should have "
              "been observed.");
   PASS_RUNS([observed removeObserver:observer
@@ -1186,6 +1442,7 @@ CyclicDependency()
   [observer release];
   [observed release];
 
+  FLAKY_ON_GCC_END
   END_SET("CyclicDependency");
 }
 
@@ -1193,6 +1450,7 @@ static void
 ObserveAllProperties()
 {
   START_SET("ObserveAllProperties");
+  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[TestKVOObject alloc] init];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -1232,7 +1490,7 @@ ObserveAllProperties()
   subObject.basicObjectProperty = @"Hello";
   observed.cascadableKey = subObject; // 2 here
 
-  PASS_EQUAL([observer numberOfObservedChanges], 6,
+  PASS([observer numberOfObservedChanges] == 6,
              "There should have been 6 observed changes on the observer.");
 
   PASS_RUNS([observed removeObserver:observer
@@ -1252,6 +1510,7 @@ ObserveAllProperties()
             "remove observer for keyPath cascadableKey.basicObjectProperty "
             "should not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("ObserveAllProperties");
 }
 
@@ -1259,6 +1518,7 @@ static void
 RemoveWithoutContext()
 { // Test removal without specifying context.
   START_SET("RemoveWithoutContext");
+  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[TestKVOObject alloc] init];
   TestKVOObserver *observer = [[TestKVOObserver alloc] init];
@@ -1278,7 +1538,7 @@ RemoveWithoutContext()
 
   observed.basicObjectProperty = @"";
 
-  PASS_EQUAL([observer numberOfObservedChanges], 1,
+  PASS([observer numberOfObservedChanges] == 1,
              "There should be only one change notification despite "
              "registering two with contexts.");
 
@@ -1289,6 +1549,7 @@ RemoveWithoutContext()
   [observer release];
   [observed release];
 
+  FLAKY_ON_GCC_END
   END_SET("RemoveWithoutContext");
 }
 
@@ -1296,6 +1557,7 @@ static void
 RemoveWithDuplicateContext()
 { // Test adding duplicate contexts
   START_SET("RemoveWithDuplicateContext");
+  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -1311,7 +1573,7 @@ RemoveWithDuplicateContext()
 
   observed.basicObjectProperty = @"";
 
-  PASS_EQUAL([observer numberOfObservedChanges], 2,
+  PASS([observer numberOfObservedChanges] == 2,
              "There should be two observed changes, despite the identical "
              "registration.");
 
@@ -1323,7 +1585,7 @@ RemoveWithDuplicateContext()
 
   observed.basicObjectProperty = @"";
 
-  PASS_EQUAL([observer numberOfObservedChanges], 3,
+  PASS([observer numberOfObservedChanges] == 3,
              "There should be one additional observed change; the removal "
              "should have only effected one.");
 
@@ -1332,6 +1594,7 @@ RemoveWithDuplicateContext()
                              context:(void *) (1)],
             "removing observer forKeyPath=basicObjectProperty does not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("RemoveWithDuplicateContext");
 }
 
@@ -1339,6 +1602,7 @@ static void
 RemoveOneOfTwoObservers()
 { // Test adding duplicate contexts
   START_SET("RemoveOneOfTwoObservers");
+  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -1355,9 +1619,9 @@ RemoveOneOfTwoObservers()
 
   observed.basicObjectProperty = @"";
 
-  PASS_EQUAL([observer numberOfObservedChanges], 1,
+  PASS([observer numberOfObservedChanges] == 1,
              "There should be one observed change per observer.");
-  PASS_EQUAL([observer2 numberOfObservedChanges], 1,
+  PASS([observer2 numberOfObservedChanges] == 1,
              "There should be one observed change per observer.");
 
   PASS_RUNS([observed removeObserver:observer2
@@ -1366,17 +1630,18 @@ RemoveOneOfTwoObservers()
 
   observed.basicObjectProperty = @"";
 
-  PASS_EQUAL([observer numberOfObservedChanges], 2,
+  PASS([observer numberOfObservedChanges] == 2,
              "There should be one additional observed change; the removal "
              "should have only removed the second observer.");
 
-  PASS_EQUAL([observer2 numberOfObservedChanges], 1,
+  PASS([observer2 numberOfObservedChanges] == 1,
              "Observer2 should have only observed one change.");
 
   PASS_RUNS([observed removeObserver:observer
                           forKeyPath:@"basicObjectProperty"],
             "removing observer should not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("RemoveOneOfTwoObservers");
 }
 
@@ -1384,6 +1649,7 @@ static void
 RemoveUnregistered()
 { // Test removing an urnegistered observer
   START_SET("RemoveUnregistered");
+  FLAKY_ON_GCC_START
 
   TestKVOObject   *observed = [[[TestKVOObject alloc] init] autorelease];
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
@@ -1395,6 +1661,7 @@ RemoveUnregistered()
     (NSString*)nil,
     "Removing an unregistered observer should throw an exception.")
 
+  FLAKY_ON_GCC_END
   END_SET("RemoveUnregistered");
 }
 
@@ -1425,7 +1692,7 @@ DeepSubpathWithCompleteTree()
                 options:0
                 context:nil];
   observed.cascadableKey = child;
-  PASS_EQUAL([observer numberOfObservedChanges], 1,
+  PASS([observer numberOfObservedChanges] == 1,
              "One change should have "
              "been observed.");
 
@@ -1463,7 +1730,7 @@ DeepSubpathWithIncompleteTree()
   observed.cascadableKey = child;
   observed.cascadableKey = child;
 
-  PASS_EQUAL([observer numberOfObservedChanges], 2,
+  PASS([observer numberOfObservedChanges] == 2,
              "Two changes should have "
              "been observed.");
 
@@ -1481,6 +1748,7 @@ static void
 SubpathOnDerivedKey()
 {
   START_SET("SubpathOnDerivedKey");
+  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -1501,7 +1769,7 @@ SubpathOnDerivedKey()
   child2.dictionaryProperty =
     [NSMutableDictionary dictionaryWithDictionary:MPAIR(@"Key1" , @"Value2")];
 
-  PASS_EQUAL(2, [observer numberOfObservedChanges],
+  PASS(2 == [observer numberOfObservedChanges],
              "Two changes should have "
              "been observed.");
 
@@ -1511,6 +1779,7 @@ SubpathOnDerivedKey()
             "remove observer should not throw");
   PASS_RUNS([pool release], "release pool should not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("SubpathOnDerivedKey");
 }
 
@@ -1518,6 +1787,7 @@ static void
 SubpathWithDerivedKeyBasedOnSubpath()
 {
   START_SET("SubpathWithDerivedKeyBasedOnSubpath");
+  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -1535,8 +1805,7 @@ SubpathWithDerivedKeyBasedOnSubpath()
                 options:0
                 context:nil];
 
-  mutableDictionary[@"subDictionary"] =
-    MPAIR(@"floatGuy" , BOXF(3.456)); // 1 notification
+  [mutableDictionary setObject: MPAIR(@"floatGuy" , BOXF(3.456)) forKey: @"subDictionary"]; // 1 notification
 
   NSMutableDictionary *mutableDictionary2 = MPAIR(
     @"subDictionary", MPAIR(@"floatGuy" , BOXF(5.678))
@@ -1544,10 +1813,9 @@ SubpathWithDerivedKeyBasedOnSubpath()
 
   observed.dictionaryProperty = mutableDictionary2; // 2nd notification
 
-  mutableDictionary2[@"subDictionary"] =
-    MPAIR(@"floatGuy" , BOXF(7.890)); // 3rd notification
+  [mutableDictionary2 setObject: MPAIR(@"floatGuy" , BOXF(7.890)) forKey: @"subDictionary"]; // 3rd notification
 
-  PASS_EQUAL(3, [observer numberOfObservedChanges],
+  PASS(3 == [observer numberOfObservedChanges],
              "Three changes should have "
              "been observed.");
 
@@ -1556,6 +1824,7 @@ SubpathWithDerivedKeyBasedOnSubpath()
             "remove observer should not throw");
   PASS_RUNS([pool release], "release pool should not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("SubpathWithDerivedKeyBasedOnSubpath");
 }
 
@@ -1563,6 +1832,7 @@ static void
 MultipleObservers()
 {
   START_SET("MultipleObservers");
+  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -1622,6 +1892,7 @@ MultipleObservers()
 
   PASS_RUNS([pool release], "release pool should not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("MultipleObservers");
 }
 
@@ -1629,6 +1900,7 @@ static void
 DerivedKeyDependentOnDerivedKey()
 {
   START_SET("DerivedKeyDependentOnDerivedKey");
+  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -1643,7 +1915,7 @@ DerivedKeyDependentOnDerivedKey()
 
   observed.basicObjectProperty = @"KVO";
 
-  PASS_EQUAL(1, [observer numberOfObservedChanges],
+  PASS(1 == [observer numberOfObservedChanges],
              "One change should have "
              "been observed.");
   PASS_EQUAL([[[[observer changesForKeypath:@"keyDerivedTwoTimes"] anyObject]
@@ -1654,7 +1926,7 @@ DerivedKeyDependentOnDerivedKey()
 
   observed.basicObjectProperty = @"$$$";
 
-  PASS_EQUAL(1, [observer numberOfObservedChanges],
+  PASS(1 == [observer numberOfObservedChanges],
              "One change should have "
              "been observed.");
   PASS_EQUAL([[[[observer changesForKeypath:@"keyDerivedTwoTimes"] anyObject]
@@ -1666,6 +1938,7 @@ DerivedKeyDependentOnDerivedKey()
             "should not throw");
   PASS_RUNS([pool release], "release pool should not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("DerivedKeyDependentOnDerivedKey");
 }
 
@@ -1673,6 +1946,7 @@ static void
 DerivedKeyDependentOnTwoKeys()
 {
   START_SET("DerivedKeyDependentOnTwoKeys");
+  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -1685,10 +1959,10 @@ DerivedKeyDependentOnTwoKeys()
 
   observed.boolTrigger1 = @"firstObject";
 
-  PASS_EQUAL(1, [observer numberOfObservedChanges],
+  PASS(1 == [observer numberOfObservedChanges],
              "One change should have "
              "been observed.");
-  PASS_EQUAL(@NO,
+  PASS_EQUAL(BOXBOOL(NO),
              [[[[observer changesForKeypath:@"dependsOnTwoKeys"] anyObject]
                info] objectForKey:NSKeyValueChangeNewKey],
              "The new value "
@@ -1697,9 +1971,9 @@ DerivedKeyDependentOnTwoKeys()
   [observer clear];
   observed.boolTrigger2 = @"secondObject";
 
-  PASS_EQUAL(1, [observer numberOfObservedChanges],
+  PASS(1 == [observer numberOfObservedChanges],
              "One change should have been observed.");
-  PASS_EQUAL(@YES,
+  PASS_EQUAL(BOXBOOL(YES),
              [[[[observer changesForKeypath:@"dependsOnTwoKeys"] anyObject]
                info] objectForKey:NSKeyValueChangeNewKey],
              "The new value should be YES.");
@@ -1708,6 +1982,7 @@ DerivedKeyDependentOnTwoKeys()
             "remove observer should not throw");
   PASS_RUNS([pool release], "release pool should not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("DerivedKeyDependentOnTwoKeys");
 }
 
@@ -1715,6 +1990,7 @@ static void
 DerivedKeyDependentOnTwoSubKeys()
 {
   START_SET("DerivedKeyDependentOnTwoSubKeys");
+  FLAKY_ON_GCC_START
 
   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
   TestKVOObject     *observed = [[[TestKVOObject alloc] init] autorelease];
@@ -1727,9 +2003,9 @@ DerivedKeyDependentOnTwoSubKeys()
                 context:nil];
 
   observed.cascadableKey = child;
-  PASS_EQUAL(1, [observer numberOfObservedChanges],
+  PASS(1 == [observer numberOfObservedChanges],
              "One change should have been observed.");
-  PASS_EQUAL(@NO,
+  PASS_EQUAL(BOXBOOL(NO),
              [[[[observer changesForKeypath:@"dependsOnTwoSubKeys"] anyObject]
                info] objectForKey:NSKeyValueChangeNewKey],
              "new value should be NO");
@@ -1737,9 +2013,9 @@ DerivedKeyDependentOnTwoSubKeys()
   [observer clear];
   child.boolTrigger1 = @"firstObject";
 
-  PASS_EQUAL(1, [observer numberOfObservedChanges],
+  PASS(1 == [observer numberOfObservedChanges],
              "One change should have been observed.");
-  PASS_EQUAL(@NO,
+  PASS_EQUAL(BOXBOOL(NO),
              [[[[observer changesForKeypath:@"dependsOnTwoSubKeys"] anyObject]
                info] objectForKey:NSKeyValueChangeNewKey],
              "new value should be NO");
@@ -1747,9 +2023,9 @@ DerivedKeyDependentOnTwoSubKeys()
   [observer clear];
   child.boolTrigger2 = @"secondObject";
 
-  PASS_EQUAL(1, [observer numberOfObservedChanges],
+  PASS(1 == [observer numberOfObservedChanges],
              "One change should have been observed.");
-  PASS_EQUAL(@YES,
+  PASS_EQUAL(BOXBOOL(YES),
              [[[[observer changesForKeypath:@"dependsOnTwoSubKeys"] anyObject]
                info] objectForKey:NSKeyValueChangeNewKey],
              "new value should be YES");
@@ -1759,6 +2035,7 @@ DerivedKeyDependentOnTwoSubKeys()
             "remove observer should not throw");
   PASS_RUNS([pool release], "release pool should not throw");
 
+  FLAKY_ON_GCC_END
   END_SET("DerivedKeyDependentOnTwoSubKeys");
 }
 
@@ -1789,17 +2066,17 @@ ObserverInfoShouldNotStompOthers()
   NSDictionary *baseInfo =
     [[[observer changesForKeypath:@"cascadableKey"] anyObject] info];
   PASS(nil != baseInfo, "There should be a change notification.");
-  PASS_EQUAL(oldObj, baseInfo[NSKeyValueChangeOldKey],
+  PASS_EQUAL(oldObj, [baseInfo objectForKey: NSKeyValueChangeOldKey],
              "The old value should be the old object.");
-  PASS_EQUAL(newObj, baseInfo[NSKeyValueChangeNewKey],
+  PASS_EQUAL(newObj, [baseInfo objectForKey: NSKeyValueChangeNewKey],
              "The new value should be the new object.");
 
   NSDictionary *subInfo = [[[observer
     changesForKeypath:@"cascadableKey.basicObjectProperty"] anyObject] info];
   PASS(nil != subInfo, "There should be a change notification.");
-  PASS_EQUAL(@"Original", subInfo[NSKeyValueChangeOldKey],
+  PASS_EQUAL(@"Original", [subInfo objectForKey: NSKeyValueChangeOldKey],
              "The old value should be the old object's basicObjectProperty.");
-  PASS_EQUAL(@"NewObj", subInfo[NSKeyValueChangeNewKey],
+  PASS_EQUAL(@"NewObj", [subInfo objectForKey: NSKeyValueChangeNewKey],
              "The new value should be the new object's basicObjectProperty.");
 
   PASS_RUNS([observed removeObserver:observer forKeyPath:@"cascadableKey"],
@@ -1889,19 +2166,3 @@ main(int argc, char *argv[])
   DESTROY(arp);
   return 0;
 }
-
-#else
-int
-main(int argc, char *argv[])
-{
-  NSAutoreleasePool *pool = [NSAutoreleasePool new];
-
-  NSLog(@"This test requires an Objective-C 2.0 runtime and is not supported "
-        @"on this platform.");
-
-  DESTROY(pool);
-
-  return 0;
-}
-
-#endif
