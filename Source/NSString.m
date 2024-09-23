@@ -69,6 +69,7 @@
 #import "Foundation/NSObjCRuntime.h"
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSUserDefaults.h"
+#import "Foundation/NSThread.h"
 #import "Foundation/FoundationErrors.h"
 // For private method _decodePropertyListForKey:
 #import "Foundation/NSKeyedArchiver.h"
@@ -530,6 +531,134 @@ static unsigned rootOf(NSString *s, unsigned l)
   return root;
 }
 
+#if GS_USE_ICU == 1
+
+/**
+ * Returns an ICU collator for the given locale and options, or returns
+ * NULL if a collator couldn't be created or the GNUstep comparison code
+ * should be used instead.
+ *
+ * Used in -[GSICUCollatorCache initWithMask:locale:]
+ */
+static UCollator *
+_GSICUCollatorCreate(NSStringCompareOptions mask, const char *localeCString)
+{
+  UErrorCode status = U_ZERO_ERROR;
+  UCollator *coll;
+
+  coll = ucol_open(localeCString, &status);
+
+  if (U_SUCCESS(status))
+    {
+      if (mask & (NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch))
+	{
+	  ucol_setStrength(coll, UCOL_PRIMARY);
+	}
+      else if (mask & NSCaseInsensitiveSearch)
+	{
+	  ucol_setStrength(coll, UCOL_SECONDARY);
+	}
+      else if (mask & NSDiacriticInsensitiveSearch)
+	{
+	  ucol_setStrength(coll, UCOL_PRIMARY);
+	  ucol_setAttribute(coll, UCOL_CASE_LEVEL, UCOL_ON, &status);
+	}
+      
+      if (mask & NSNumericSearch)
+	{
+	  ucol_setAttribute(coll, UCOL_NUMERIC_COLLATION, UCOL_ON, &status);
+	}
+	  
+      if (U_SUCCESS(status))
+	{
+	  return coll;
+	}
+    }
+
+  ucol_close(coll);
+  return NULL;
+}
+
+@interface GSICUCollatorCache : NSObject
+{
+  @public
+  UCollator *collator;
+  NSUInteger mask;
+  NSLocale *locale;
+}
+- (instancetype) initWithMask: (NSUInteger) aMask locale: (NSLocale *) aLocale;
+- (void) dealloc;
+@end
+
+@implementation GSICUCollatorCache
+- (instancetype) initWithMask: (NSUInteger) aMask locale: (NSLocale *) aLocale
+{
+  const char *localeId;
+  self = [super init];
+  if (self != nil)
+    {
+      mask = aMask;
+      ASSIGN(locale, aLocale);
+      localeId = [[locale localeIdentifier] UTF8String];
+      collator = _GSICUCollatorCreate(mask, localeId);
+      if (NULL == collator)
+        {
+          DESTROY(self);
+          return nil;
+        }
+    }
+  return self;
+}
+
+- (void) dealloc {
+  RELEASE(locale);
+  if (collator != NULL)
+    {
+      ucol_close(collator);
+    }
+  [super dealloc];
+}
+
+@end
+
+
+@interface NSThread (StringCollatorCache)
+- (id) _stringCollatorCache;
+- (void) _setStringCollatorCache: (id)cache;
+@end
+
+// The locale parameter must not be nil at this point.
+static UCollator *
+GSICUCachedCollator(NSStringCompareOptions mask, NSLocale *locale)
+{
+  NSThread *current;
+  GSICUCollatorCache *cache;
+
+  current = [NSThread currentThread];
+  cache = [current _stringCollatorCache];
+  if (nil == cache) {
+    cache = [[GSICUCollatorCache alloc] initWithMask: mask locale: locale];
+    [current _setStringCollatorCache: cache];
+    [cache release];
+    return cache->collator;
+  }
+
+  // Do a pointer comparison first to avoid the overhead of isEqual:
+  // The locale instance is likely a global constant object.
+  // If this fails, do a full comparison.
+  if ((cache->locale == locale || [cache->locale isEqual: locale]) && mask == cache->mask)
+    {
+      return cache->collator;
+    }
+  else
+   {
+      cache = [[GSICUCollatorCache alloc] initWithMask: mask locale: locale];
+      [current _setStringCollatorCache: cache];
+      [cache release];
+      return cache->collator;
+   }
+}
+
 
 @implementation NSString
 //  NSString itself is an abstract class which provides factory
@@ -660,92 +789,6 @@ register_printf_atsign ()
 }
 
 
-#if GS_USE_ICU == 1
-/**
- * Returns an ICU collator for the given locale and options, or returns
- * NULL if a collator couldn't be created or the GNUstep comparison code
- * should be used instead.
- */
-static UCollator *
-GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
-{
-  UErrorCode status = U_ZERO_ERROR;
-  const char *localeCString;
-  UCollator *coll;
-  
-  if (mask & NSLiteralSearch)
-    {
-      return NULL;
-    }
-
-  if (NO == [locale isKindOfClass: [NSLocale class]])
-    {
-      if (nil == locale)
-        {
-          /* See comments below about the posix locale.
-           * It's bad for case insensitive search, but needed for numeric
-           */
-          if (mask & NSNumericSearch)
-            {
-              locale = [NSLocale systemLocale];
-            }
-          else
-            {
-              /* A nil locale should trigger POSIX collation (i.e. 'A'-'Z' sort
-               * before 'a'), and support for this was added in ICU 4.6 under the
-               * locale name en_US_POSIX, but it doesn't fit our requirements
-               * (e.g. 'e' and 'E' don't compare as equal with case insensitive
-               * comparison.) - so return NULL to indicate that the GNUstep
-               * comparison code should be used.
-               */
-              return NULL;
-            }
-        }
-      else
-        {
-          locale = [NSLocale currentLocale];
-        }
-    }
-
-  localeCString = [[locale localeIdentifier] UTF8String];
-
-  if (localeCString != NULL && strcmp("", localeCString) == 0)
-    {
-      localeCString = NULL;
-    }
-
-  coll = ucol_open(localeCString, &status);
-
-  if (U_SUCCESS(status))
-    {
-      if (mask & (NSCaseInsensitiveSearch | NSDiacriticInsensitiveSearch))
-	{
-	  ucol_setStrength(coll, UCOL_PRIMARY);
-	}
-      else if (mask & NSCaseInsensitiveSearch)
-	{
-	  ucol_setStrength(coll, UCOL_SECONDARY);
-	}
-      else if (mask & NSDiacriticInsensitiveSearch)
-	{
-	  ucol_setStrength(coll, UCOL_PRIMARY);
-	  ucol_setAttribute(coll, UCOL_CASE_LEVEL, UCOL_ON, &status);
-	}
-      
-      if (mask & NSNumericSearch)
-	{
-	  ucol_setAttribute(coll, UCOL_NUMERIC_COLLATION, UCOL_ON, &status);
-	}
-	  
-      if (U_SUCCESS(status))
-	{
-	  return coll;
-	}
-    }
-
-  ucol_close(coll);
-  return NULL;
-}
 
 #if defined(HAVE_UNICODE_UNORM2_H) || defined(HAVE_ICU_H)
 - (NSString *) _normalizedICUStringOfType: (const char*)normalization
@@ -2851,9 +2894,18 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
       return result;
     }
 
+  if (locale == nil && (mask & NSNumericSearch) == 0)
+  {
+    return strRangeNsNs(self, aString, mask, searchRange);
+  }
+  else if (locale == nil)
+  {
+    locale = [NSLocale systemLocale];
+  }
+
 #if GS_USE_ICU == 1
     {
-      UCollator *coll = GSICUCollatorOpen(mask, locale);
+      UCollator *coll = GSICUCachedCollator(mask, locale);
 
       if (NULL != coll)
 	{
@@ -2919,7 +2971,6 @@ GSICUCollatorOpen(NSStringCompareOptions mask, NSLocale *locale)
           GS_ENDITEMBUF2()
           GS_ENDITEMBUF()
 	  usearch_close(search);
-	  ucol_close(coll);
 	  return result;
 	}
     }
@@ -5825,9 +5876,25 @@ static NSFileManager *fm = nil;
 		  format: @"compare with nil"];
     }
 
+  /* A nil locale should trigger POSIX collation (i.e. 'A'-'Z' sort
+   * before 'a'), and support for this was added in ICU 4.6 under the
+   * locale name en_US_POSIX, but it doesn't fit our requirements
+   * (e.g. 'e' and 'E' don't compare as equal with case insensitive
+   * comparison.) - so return NULL to indicate that the GNUstep
+   * comparison code should be used.
+   */
+  if (locale == nil && (mask & NSNumericSearch) == 0)
+    {
+      return strCompNsNs(self, string, mask, compareRange);
+    }
+  else if (locale == nil)
+    {
+      locale = [NSLocale systemLocale];
+    }
+
 #if GS_USE_ICU == 1
     {
-      UCollator *coll = GSICUCollatorOpen(mask, locale);
+      UCollator *coll = GSICUCachedCollator(mask, locale);
 
       if (coll != NULL)
 	{
@@ -5836,29 +5903,35 @@ static NSFileManager *fm = nil;
 	  unichar *charsSelf;
 	  unichar *charsOther;
 	  UCollationResult result;
-	  
-	  charsSelf = NSZoneMalloc(NSDefaultMallocZone(),
-	    countSelf * sizeof(unichar));
-	  charsOther = NSZoneMalloc(NSDefaultMallocZone(),
-	    countOther * sizeof(unichar));
-	  // Copy to buffer
+    NSUInteger sizeSelf = countSelf * sizeof(unichar);
+    NSUInteger sizeOther = countOther * sizeof(unichar);
+    bool useStack = sizeSelf + sizeOther < 128;
 
+    if (useStack)
+    {
+      charsSelf = alloca(sizeSelf);
+      charsOther = alloca(sizeOther);
+    } else {
+      charsSelf = NSZoneMalloc(NSDefaultMallocZone(), sizeSelf);
+      charsOther = NSZoneMalloc(NSDefaultMallocZone(), sizeOther);
+    }
+
+	  
+	  // Copy to buffer
 	  [self getCharacters: charsSelf range: compareRange];
 	  [string getCharacters: charsOther range: NSMakeRange(0, countOther)];
 	  
 	  result = ucol_strcoll(coll,
 	    charsSelf, countSelf, charsOther, countOther);
 
-	  NSZoneFree(NSDefaultMallocZone(), charsSelf);
-	  NSZoneFree(NSDefaultMallocZone(), charsOther);	  
-	  ucol_close(coll); 
+    if (!useStack)
+    {
+      NSZoneFree(NSDefaultMallocZone(), charsSelf);
+      NSZoneFree(NSDefaultMallocZone(), charsOther);	  
+    }
 	  
-	  switch (result)
-	    {
-	      case UCOL_EQUAL: return NSOrderedSame;
-	      case UCOL_GREATER: return NSOrderedDescending;
-	      case UCOL_LESS: return NSOrderedAscending;
-	    }
+    // UCollationResult enums are stable and match NSComparisonResult enums
+    return (NSComparisonResult)result;
 	}
     }
 #endif
