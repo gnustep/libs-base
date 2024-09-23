@@ -1,5 +1,5 @@
 .content-bar {
-	background-color: green;
+	background-color: ;
 	float: left;
 	position: fixed;
 	top: 0px;
@@ -15,7 +15,14 @@
 	height: 30%;
 	width: 100%;
 	overflow: auto;
-	background-color: yellow;
+}
+
+.content-bar-top-body {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	padding-left: 10px;
+	padding-top: 10px;
 }
 
 .content-bar-bottom {
@@ -25,11 +32,18 @@
 	height:70%;
 	width: 100%;
 	overflow: auto;
-	background-color: red;
 }
 
+.content-bar-bottom-body {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	padding-left: 10px;
+	padding-top: 10px;
+}
+
+
 .content-pane {
-	background-color: pink;
 	position: fixed;
 	top: 0px;
 	right: 0px;
@@ -38,8 +52,7 @@
 	overflow-y: auto;
 }
 
-.content-body {
-	background-color: grey;
+.content-pane-body {
 	position: absolute;
 	top: 0px;
 	left: 0px;
