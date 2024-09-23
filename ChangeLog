@@ -1,3 +1,11 @@
+2024-23-09: Hugo Melder <hugo@algoriddim.com>
+
+	* Headers/Foundation/NSThread.h:
+	* Source/NSString.m:
+	* Source/NSThread.m:
+	Cache ICU collator in thread-local storage to avoid
+	expensive construction when comparing strings.
+
 2024-13-08: Hugo Melder <hugo@algoriddim.com>
 
 	* Source/NSOperation.m:
