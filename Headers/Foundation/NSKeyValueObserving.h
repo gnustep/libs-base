@@ -72,6 +72,9 @@ GS_EXPORT NSString *const NSKeyValueChangeOldKey;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST)
 GS_EXPORT NSString *const NSKeyValueChangeNotificationIsPriorKey;
 #endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_12,GS_API_LATEST)
+typedef NSString *NSKeyValueChangeKey;
+#endif
 
 /* Given that the receiver has been registered as an observer
  * of the value at a key path relative to an object,
