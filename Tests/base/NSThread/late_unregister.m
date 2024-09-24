@@ -3,6 +3,18 @@
 #import <Foundation/NSLock.h>
 #import <Foundation/NSNotification.h>
 
+#if defined(_WIN32) && !defined(__clang__)
+int main(void)
+{
+  testHopeful = YES;
+  START_SET("Late unregistering of NSThread")
+  PASS(NO, "FIXME: Results in a deadlock in MinGW with GCC");
+  END_SET("Late unregistering of NSThread")
+  return 0;
+}
+
+#else
+
 #if defined(_WIN32)
 #include <process.h>
 #else
@@ -124,3 +136,5 @@ int main(void)
   DESTROY(arp);
   return 0;
 }
+
+#endif
