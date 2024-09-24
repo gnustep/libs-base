@@ -459,6 +459,11 @@ GSPrivateTimeNow(void)
   return AUTORELEASE(d);
 }
 
+- (NSTimeInterval) timeIntervalSinceReferenceDate
+{
+  return _seconds_since_ref;
+}
+
 /**
  * Creates and returns a new NSCalendarDate object by taking the
  * value of the receiver and adding the interval in seconds specified.

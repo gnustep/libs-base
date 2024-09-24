@@ -1773,7 +1773,7 @@ otherTime(NSDate* other)
   double selfTime;
   if (otherDate == nil)
   {
-    return NO;
+    return nil;
   }
   
   selfTime = [self timeIntervalSinceReferenceDate];
