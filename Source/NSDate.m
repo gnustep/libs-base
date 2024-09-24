@@ -130,7 +130,7 @@ static id _distantFuture = nil;
 
 // 1-5 are already used by NSNumber and GSString
 #define SMALL_DATE_MASK 6
-#define EXPONENT_BIAS 0x3FF
+#define EXPONENT_BIAS 0x3EF
 
 #define GET_INTERVAL(obj) decompressTimeInterval((uintptr_t)obj)
 #define SET_INTERVAL(obj, interval) (obj = (id)(compressTimeInterval(interval) | SMALL_DATE_MASK))
@@ -257,6 +257,11 @@ static BOOL useSmallDate;
   return self;
 }
 
+- (id) copyWithZone: (NSZone*)aZone
+{
+  return self;
+}
+
 - (id) retain
 {
   return self;
@@ -332,8 +337,7 @@ static BOOL useSmallDate;
     }
 #endif
 
-  SET_INTERVAL(self, secs);
-  return self;
+  return CREATE_SMALL_DATE(secs);
 }
 
 - (id) initWithCoder: (NSCoder*)coder
@@ -349,9 +353,7 @@ static BOOL useSmallDate;
                                 at: &secondsSinceRef];
     }
 
-  SET_INTERVAL(self, secondsSinceRef);
-  
-  return self;
+  return CREATE_SMALL_DATE(secondsSinceRef);
 }
 
 // NSDate Hashing, Comparison and Equality
@@ -1494,7 +1496,7 @@ otherTime(NSDate* other)
       if (_distantFuture == nil)
       {
         #if USE_SMALL_DATE
-        _distantPast = CREATE_SMALL_DATE(DISTANT_FUTURE);
+        _distantFuture = CREATE_SMALL_DATE(DISTANT_FUTURE);
         #else
         _distantFuture = [GSDateFuture allocWithZone: 0];
         #endif
