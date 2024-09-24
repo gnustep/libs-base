@@ -3,12 +3,12 @@
 #import <Foundation/NSLock.h>
 #import <Foundation/NSNotification.h>
 
-#if defined(_WIN32) && !defined(__clang__)
+#if defined(_WIN32)
 int main(void)
 {
   testHopeful = YES;
   START_SET("Late unregistering of NSThread")
-  PASS(NO, "FIXME: Results in a deadlock in MinGW with GCC");
+  PASS(NO, "FIXME: Results in a deadlock in MinGW with Clang");
   END_SET("Late unregistering of NSThread")
   return 0;
 }
