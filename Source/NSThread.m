@@ -1194,6 +1194,7 @@ unregisterActiveThread(NSThread *thread)
   DESTROY(_target);
   DESTROY(_arg);
   DESTROY(_name);
+  DESTROY(_stringCollatorCache);
   if (_autorelease_vars.pool_cache != 0)
     {
       [NSAutoreleasePool _endThread: self];
@@ -1570,9 +1571,18 @@ nsthreadLauncher(void *thread)
   return _thread_dictionary;
 }
 
+- (id) _stringCollatorCache
+{
+  return (id)self->_stringCollatorCache;
+}
+- (void) _setStringCollatorCache: (id) cache
+{
+  ASSIGN(self->_stringCollatorCache, cache);
+}
+
 @end
 
-
+
 
 @implementation NSThread (GSLockInfo)
 

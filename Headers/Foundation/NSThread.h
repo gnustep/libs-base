@@ -72,6 +72,8 @@ GS_EXPORT_CLASS
   struct autorelease_thread_vars _autorelease_vars;
   id			_gcontext;
   void                  *_runLoopInfo;  // Per-thread runloop related info.
+  // Used to store a GSICUStringCollatorCache object for this thread.
+  id    _stringCollatorCache;
 #endif
 #if     GS_NONFRAGILE
 #  if defined(GS_NSThread_IVARS)

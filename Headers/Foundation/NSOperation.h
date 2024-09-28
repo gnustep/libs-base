@@ -231,9 +231,9 @@ enum {
  * Depending on the configuration of the queue, operations may be executed
  * concurrently or serially.
  *
- * Worker threads are named "NSOperationQ_<number>" by default, but
+ * Worker threads are named "NSOperationQ_&lt;number&gt;" by default, but
  * you can set a name for the queue using the -setName: method.
- * The suffix "_<number>"" is automatically added to the thread name.
+ * The suffix "_&lt;number&gt;"" is automatically added to the thread name.
  */
 GS_EXPORT_CLASS
 @interface NSOperationQueue : NSObject
