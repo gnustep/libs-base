@@ -1439,7 +1439,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
 }
 
-
 // Asynchronous I/O operations
 
 - (void) acceptConnectionInBackgroundAndNotifyForModes: (NSArray*)modes

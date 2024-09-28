@@ -76,6 +76,9 @@ GS_EXPORT_CLASS
 - (NSData*) readDataToEndOfFile;
 - (NSData*) readDataOfLength: (unsigned int)len;
 - (void) writeData: (NSData*)item;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_15, GS_API_LATEST)
+- (BOOL) getOffset: (unsigned long long *)offsetInFile error: (NSError **)error;
+#endif
 
 // Asynchronous I/O operations
 
