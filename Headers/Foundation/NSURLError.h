@@ -68,16 +68,32 @@ enum
   NSURLErrorUserCancelledAuthentication = 	-1012,
   NSURLErrorUserAuthenticationRequired = 	-1013,
   NSURLErrorZeroByteResource = 			-1014,
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+  NSURLErrorCannotDecodeRawData =		-1015,
+  NSURLErrorCannotDecodeContentData =		-1016,
+  NSURLErrorCannotParseResponse =		-1017,
+#endif
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+  NSURLErrorInternationalRoamingOff =		-1018,
+  NSURLErrorCallIsActive =			-1019,
+  NSURLErrorDataNotAllowed =			-1020,
+  NSURLErrorRequestBodyStreamExhausted =	-1021,
+#endif
   NSURLErrorFileDoesNotExist = 			-1100,
   NSURLErrorFileIsDirectory = 			-1101,
   NSURLErrorNoPermissionsToReadFile = 		-1102,
-  NSURLErrorDataLengthExceedsMaximum =    -1103,
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+  NSURLErrorDataLengthExceedsMaximum =		-1103,
+#endif
   NSURLErrorSecureConnectionFailed = 		-1200,
   NSURLErrorServerCertificateHasBadDate = 	-1201,
   NSURLErrorServerCertificateUntrusted = 	-1202,
   NSURLErrorServerCertificateHasUnknownRoot =	-1203,
   NSURLErrorServerCertificateNotYetValid = 	-1204,
   NSURLErrorClientCertificateRejected = 	-1205,
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
+  NSURLErrorClientCertificateRequired = -1206,
+#endif
   NSURLErrorCannotLoadFromNetwork = 		-2000,
 
   NSURLErrorCannotCreateFile = 			-3000,
