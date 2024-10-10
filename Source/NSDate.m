@@ -412,7 +412,7 @@ static BOOL useSmallDate;
 
   if (IS_CONCRETE_CLASS(other))
   {
-      otherTime = GET_INTERVAL(self);
+      otherTime = GET_INTERVAL(other);
   } else if ([other isKindOfClass: abstractClass])
   {
       otherTime = [other timeIntervalSinceReferenceDate];
