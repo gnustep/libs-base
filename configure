@@ -5696,20 +5696,16 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the compiler is clang" >&5
 printf %s "checking whether the compiler is clang... " >&6; }
-if test ! x"${GCC}" = x"yes" ; then
+# CC may have flags appended to it, so we need to extract the actual
+# compiler name.
+if "$(echo "${CC}" | awk '{print $1}')" -v 2>&1 | grep -q 'clang version'; then
+  CLANG_CC=yes
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+else
   CLANG_CC=no
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-else
-  if "${CC}" -v 2>&1 | grep -q 'clang version'; then
-    CLANG_CC=yes
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-  else
-    CLANG_CC=no
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-  fi
 fi
 
 
@@ -7624,29 +7620,31 @@ fi
 # Windows: check if we have native threading APIs and SRW locks
 #--------------------------------------------------------------------
 HAVE_WIN32_THREADS_AND_LOCKS=0
-case "$target_os" in
-  mingw*|windows)
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for native Windows threads and locks" >&5
+if test "$CLANG_CC" = "yes"; then
+  case "$target_os" in
+    mingw*|windows)
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for native Windows threads and locks" >&5
 printf %s "checking for native Windows threads and locks... " >&6; }
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-        #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-        #include "$srcdir/Source/GSPThread.h"
+          #define GS_USE_WIN32_THREADS_AND_LOCKS 1
+          #include "$srcdir/Source/GSPThread.h"
 
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"
 then :
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
-      HAVE_WIN32_THREADS_AND_LOCKS=1
+        HAVE_WIN32_THREADS_AND_LOCKS=1
 else $as_nop
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-    ;;
-esac
+      ;;
+  esac
+fi
 
 
 #--------------------------------------------------------------------
@@ -14511,16 +14509,12 @@ fi
     HAVE_LIBDISPATCH_RUNLOOP=1
   fi
   # Check for availability of functions in more recent libdispatch versions.
-  for ac_func in dispatch_cancel
-do :
   ac_fn_c_check_func "$LINENO" "dispatch_cancel" "ac_cv_func_dispatch_cancel"
-if test "x$ac_cv_func_dispatch_cancel" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_DISPATCH_CANCEL 1
-_ACEOF
+if test "x$ac_cv_func_dispatch_cancel" = xyes
+then :
+  printf "%s\n" "#define HAVE_DISPATCH_CANCEL 1" >>confdefs.h
 
 fi
-done
 
 fi
 
@@ -14628,6 +14622,10 @@ printf "%s\n" "FAILED (libcurl not found via pkg-config)" >&6; }
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (curl-config and pkg-config not found)" >&5
 printf "%s\n" "FAILED (curl-config and pkg-config not found)" >&6; }
   fi
+fi
+
+if test "$OBJC_RUNTIME_LIB" = "ng" -a "$HAVE_LIBCURL" = 0; then
+as_fn_error $? "libcurl is a hard-dependency when building with the Objective-C 2.0 toolchain" "$LINENO" 5
 fi
 
 

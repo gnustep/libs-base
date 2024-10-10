@@ -1120,17 +1120,14 @@ AC_PROG_CPP
 AC_USE_SYSTEM_EXTENSIONS
 
 AC_MSG_CHECKING(whether the compiler is clang)
-if test ! x"${GCC}" = x"yes" ; then
+# CC may have flags appended to it, so we need to extract the actual
+# compiler name.
+if "$(echo "${CC}" | awk '{print $1}')" -v 2>&1 | grep -q 'clang version'; then
+  CLANG_CC=yes
+  AC_MSG_RESULT(yes)
+else
   CLANG_CC=no
   AC_MSG_RESULT(no)
-else
-  if "${CC}" -v 2>&1 | grep -q 'clang version'; then
-    CLANG_CC=yes
-    AC_MSG_RESULT(yes)
-  else
-    CLANG_CC=no
-    AC_MSG_RESULT(no)
-  fi
 fi
 AC_SUBST(CLANG_CC)
 
@@ -1704,19 +1701,21 @@ AC_CHECK_FUNCS(getaddrinfo)
 # Windows: check if we have native threading APIs and SRW locks
 #--------------------------------------------------------------------
 HAVE_WIN32_THREADS_AND_LOCKS=0
-case "$target_os" in
-  mingw*|windows)
-    AC_MSG_CHECKING(for native Windows threads and locks)
-    AC_COMPILE_IFELSE(
-      [AC_LANG_SOURCE([
-        #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-        #include "$srcdir/Source/GSPThread.h"
-      ])],
-      AC_MSG_RESULT([yes])
-      HAVE_WIN32_THREADS_AND_LOCKS=1,
-      AC_MSG_RESULT([no]))
-    ;;
-esac
+if test "$CLANG_CC" = "yes"; then
+  case "$target_os" in
+    mingw*|windows)
+      AC_MSG_CHECKING(for native Windows threads and locks)
+      AC_COMPILE_IFELSE(
+        [AC_LANG_SOURCE([
+          #define GS_USE_WIN32_THREADS_AND_LOCKS 1
+          #include "$srcdir/Source/GSPThread.h"
+        ])],
+        AC_MSG_RESULT([yes])
+        HAVE_WIN32_THREADS_AND_LOCKS=1,
+        AC_MSG_RESULT([no]))
+      ;;
+  esac
+fi
 AC_SUBST(HAVE_WIN32_THREADS_AND_LOCKS)
 
 #--------------------------------------------------------------------
@@ -3755,6 +3754,10 @@ else
   else
     AC_MSG_RESULT([FAILED (curl-config and pkg-config not found)])
   fi
+fi
+  
+if test "$OBJC_RUNTIME_LIB" = "ng" -a "$HAVE_LIBCURL" = 0; then
+AC_MSG_ERROR([libcurl is a hard-dependency when building with the Objective-C 2.0 toolchain])
 fi
 
 AC_SUBST(HAVE_LIBCURL)

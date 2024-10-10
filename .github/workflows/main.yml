@@ -67,7 +67,7 @@ env:
 
   # GNUstep Windows MSVC toolchain release tag to be used (keep up to date with latest release):
   # https://github.com/gnustep/tools-windows-msvc/releases
-  TOOLS_WINDOWS_MSVC_RELEASE_TAG: release-20230104
+  TOOLS_WINDOWS_MSVC_RELEASE_TAG: release-20231228
 
 jobs:
   ########### Linux ###########
@@ -173,7 +173,7 @@ jobs:
   ########### Windows ###########
   windows:
     name: ${{ matrix.name }}
-    runs-on: windows-2019
+    runs-on: windows-2022
     # don't run pull requests from local branches twice
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
 
@@ -196,17 +196,6 @@ jobs:
             CC: clang
             CXX: clang
             LDFLAGS: -fuse-ld=lld -lstdc++ -lgcc_s
-
-          - name: Windows x86 MSVC Clang gnustep-2.0
-            allow-test-failures: true
-            arch: x86
-            host: i686-pc-windows
-            library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
-            configure-opts: --disable-tls
-            CC: clang -m32
-            CXX: clang++ -m32
-            LDFLAGS: -fuse-ld=lld
 
           - name: Windows x64 MSVC Clang gnustep-2.0
             arch: x64
@@ -262,12 +251,14 @@ jobs:
             libxslt-devel
             libffi-devel
             libgnutls-devel
+            libcurl-devel
             icu-devel
             mingw-w64-${{matrix.arch}}-pkg-config
             mingw-w64-${{matrix.arch}}-libxml2
             mingw-w64-${{matrix.arch}}-libxslt
             mingw-w64-${{matrix.arch}}-libffi
             mingw-w64-${{matrix.arch}}-gnutls
+            mingw-w64-${{matrix.arch}}-curl
             mingw-w64-${{matrix.arch}}-icu
 
       - name: Set up MSYS2 (gcc)
@@ -338,7 +329,7 @@ jobs:
           mkdir %INSTALL_PATH% & cd %INSTALL_PATH%
           echo Downloading pre-built release...
           curl --silent --show-error --fail-with-body --header "Authorization: Bearer $GITHUB_TOKEN" --location -o GNUstep-Windows-MSVC.zip ^
-            https://github.com/gnustep/tools-windows-msvc/releases/download/${{env.TOOLS_WINDOWS_MSVC_RELEASE_TAG}}/GNUstep-Windows-MSVC-${{matrix.arch}}.zip || exit /b 1
+            https://github.com/gnustep/tools-windows-msvc/releases/download/${{env.TOOLS_WINDOWS_MSVC_RELEASE_TAG}}/GNUstep-Windows-MSVC-${{matrix.arch}}-Release.zip || exit /b 1
           echo Extracting pre-built release... (dependencies only excluding debug build and GNUstep components)
           tar -xvf GNUstep-Windows-MSVC.zip --strip 1 --exclude Debug --exclude "**/gnustep*" --exclude "**/GNUstep*" --exclude Foundation --exclude CoreFoundation || exit /b 1
           del /Q GNUstep-Windows-MSVC.zip

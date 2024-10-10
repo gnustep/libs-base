@@ -26,9 +26,7 @@ int main()
   NSFileHandle  *outHandle;
   NSData *data = nil;
 
-  /* Windows MSVC adds the '.exe' suffix to executables
-   */
-#if defined(_MSC_VER)
+#if defined(_WIN32)
   testecho = @"testecho.exe";
   testcat = @"testcat.exe";
   processgroup = @"processgroup.exe";
