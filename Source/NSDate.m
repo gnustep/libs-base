@@ -337,7 +337,12 @@ static BOOL useSmallDate;
     }
 #endif
 
+#if    USE_SMALL_DATE == 0
+  _seconds_since_ref = secs;
+  return self;
+#else
   return CREATE_SMALL_DATE(secs);
+#endif
 }
 
 - (id) initWithCoder: (NSCoder*)coder
@@ -353,7 +358,12 @@ static BOOL useSmallDate;
                                 at: &secondsSinceRef];
     }
 
+#if    USE_SMALL_DATE == 0
+  _seconds_since_ref = secondsSinceRef;
+  return self;
+#else
   return CREATE_SMALL_DATE(secondsSinceRef);
+#endif
 }
 
 // NSDate Hashing, Comparison and Equality
