@@ -4,14 +4,25 @@
 #import <Foundation/NSNotification.h>
 
 #if defined(_WIN32)
+int main(void)
+{
+  testHopeful = YES;
+  START_SET("Late unregistering of NSThread")
+  PASS(NO, "FIXME: Results in a deadlock in MinGW with Clang");
+  END_SET("Late unregistering of NSThread")
+  return 0;
+}
+
+#else
+
+#if defined(_WIN32)
 #include <process.h>
 #else
 #include <pthread.h>
 #endif
 
-@interface ThreadExpectation : NSObject <NSLocking>
+@interface ThreadExpectation : NSObject
 {
-  NSCondition *condition;
   NSThread *origThread;
   BOOL done;
   BOOL deallocated;
@@ -29,7 +40,6 @@
     {
       return nil;
     }
-  condition = [NSCondition new];
   return self;
 }
 
@@ -67,10 +77,7 @@
 
   [[NSNotificationCenter defaultCenter] removeObserver: self];
   origThread = nil;
-  [condition lock];
   done = YES;
-  [condition broadcast];
-  [condition unlock];
 }
 
 - (BOOL) isDone
@@ -78,26 +85,6 @@
   return done;
 }
 
-- (void) waitUntilDate: (NSDate*)date
-{
-  [condition waitUntilDate: date];
-}
-
-- (void) lock
-{
-  [condition lock];
-}
-
-- (void) unlock
-{
-  [condition unlock];
-}
-
-- (void) dealloc
-{
-  DESTROY(condition);
-  [super dealloc];
-}
 @end
 
 #if defined(_WIN32)
@@ -138,15 +125,16 @@ int main(void)
   pthread_create(&thr, &attr, thread, expectation);
 #endif
 
-  NSDate *start = [NSDate date];
-  [expectation lock];
-  while (![expectation isDone] && [start timeIntervalSinceNow] > -5.0f)
+  int attempts = 10;
+  while (![expectation isDone] && attempts > 0)
   {
-    [expectation waitUntilDate: [NSDate dateWithTimeIntervalSinceNow: 0.5f]];
+    [NSThread sleepUntilDate: [NSDate dateWithTimeIntervalSinceNow: 1]];
+    attempts -= 1;
   }
   PASS([expectation isDone], "Notification for thread exit was sent");
-  [expectation unlock];
   DESTROY(expectation);
   DESTROY(arp);
   return 0;
 }
+
+#endif

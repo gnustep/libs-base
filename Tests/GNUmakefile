@@ -77,9 +77,9 @@ check::
 	export ADDITIONAL_INCLUDE_DIRS;\
 	export ADDITIONAL_LIB_DIRS;\
 	if [ "$(debug)" = "yes" ]; then \
-	  gnustep-tests --debug 'base/$(testobj)';\
+	  gnustep-tests --debug --timeout 300s 'base/$(testobj)';\
         else \
-	  gnustep-tests 'base/$(testobj)';\
+	  gnustep-tests --timeout 300s 'base/$(testobj)';\
         fi; \
 	)
 

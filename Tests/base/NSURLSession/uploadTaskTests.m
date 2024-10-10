@@ -3,6 +3,10 @@
 #include <Foundation/NSProgress.h>
 #include <Foundation/NSString.h>
 
+#if defined(__OBJC__) && defined(__clang__) && defined(_MSC_VER)
+id __work_around_clang_bug2 = @"__unused__";
+#endif
+
 #if GS_HAVE_NSURLSESSION
 
 #import "Helpers/HTTPServer.h"
