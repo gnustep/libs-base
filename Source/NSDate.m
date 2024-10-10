@@ -226,7 +226,7 @@ static BOOL useSmallDate;
 
 #endif
 
-@implementation CONCRETE_CLASS_NAME
+@implementation DATE_CONCRETE_CLASS_NAME
 
 #if USE_SMALL_DATE
 
@@ -679,7 +679,7 @@ otherTime(NSDate* other)
     {
       [self setVersion: 1];
       abstractClass = self;
-      concreteClass = [CONCRETE_CLASS_NAME class];
+      concreteClass = [DATE_CONCRETE_CLASS_NAME class];
       calendarClass = [NSCalendarDate class];
     }
 }
@@ -689,7 +689,7 @@ otherTime(NSDate* other)
   if (self == abstractClass)
     {
       #if USE_SMALL_DATE
-      return [CONCRETE_CLASS_NAME alloc]; // alloc is overridden to return a small object
+      return [DATE_CONCRETE_CLASS_NAME alloc]; // alloc is overridden to return a small object
       #else
       return NSAllocateObject(concreteClass, 0, NSDefaultMallocZone());
       #endif
@@ -702,7 +702,7 @@ otherTime(NSDate* other)
   if (self == abstractClass)
     {
       #if USE_SMALL_DATE
-      return [CONCRETE_CLASS_NAME alloc]; // alloc is overridden to return a small object
+      return [DATE_CONCRETE_CLASS_NAME alloc]; // alloc is overridden to return a small object
       #else
       return NSAllocateObject(concreteClass, 0, z);
       #endif

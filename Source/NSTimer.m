@@ -57,7 +57,7 @@ static Class	NSDate_class;
 {
   if (self == [NSTimer class])
     {
-      NSDate_class = [CONCRETE_CLASS_NAME class];
+      NSDate_class = [DATE_CONCRETE_CLASS_NAME class];
     }
 }
 
