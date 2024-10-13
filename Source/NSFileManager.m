@@ -1338,11 +1338,13 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 
   if ([self fileExistsAtPath: destination] == YES)
     {
+      [self _setLastError: @"Could not copy - destination already exists"];
       return NO;
     }
   attrs = [self fileAttributesAtPath: source traverseLink: NO];
   if (attrs == nil)
     {
+      [self _setLastError: @"Cound not copy - destination is not readable"];
       return NO;
     }
   fileType = [attrs fileType];
@@ -1368,7 +1370,8 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
       if ([[destination stringByAppendingString: @"/"]
 	hasPrefix: [source stringByAppendingString: @"/"]])
 	{
-	  [self _setLastError: @"Could not copy - destination is a descendant of source"];
+	  [self _setLastError:
+	    @"Could not copy - destination is a descendant of source"];
 	  return NO;
 	}
 
