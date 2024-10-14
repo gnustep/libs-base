@@ -36,7 +36,7 @@
 # define CF_BOXABLE
 #endif
 
- #if defined(__LP64__) && __LP64__
+ #if (defined(__LP64__) && __LP64__) || defined(_WIN64)
  # define CGFLOAT_TYPE double
  # define CGFLOAT_IS_DOUBLE 1
  # define CGFLOAT_MIN DBL_MIN
