@@ -307,73 +307,6 @@ _addKeypathObserver(id object, NSString *keypath,
 static void
 _removeKeyObserver(_NSKVOKeyObserver *keyObserver);
 
-// Private helper that backs the default implementation of
-// keyPathsForValuesAffectingValueForKey: Returns nil instead of constructing an
-// empty set if no keyPaths are found Also used internally as a minor
-// optimization, to avoid constructing an empty set when it is not needed
-static NSSet *
-_keyPathsForValuesAffectingValueForKey(Class self, NSString *key)
-{
-  // This function can be a KVO bottleneck, so it will prefer to use c string
-  // manipulation when safe
-  NSUInteger keyLength = [key length];
-  if (keyLength > 0)
-    {
-      static const char *const sc_prefix = "keyPathsForValuesAffecting";
-      static const size_t      sc_prefixLength = 26; // strlen(sc_prefix)
-      static const size_t      sc_bufferSize = 128;
-
-      // max length of a key that can guaranteed fit in the char buffer,
-      // even if UTF16->UTF8 conversion causes length to double, or a null
-      // terminator is needed
-      static const size_t sc_safeKeyLength
-        = (sc_bufferSize - sc_prefixLength) / 2 - 1; // 50
-
-      const char *rawKey;
-      size_t      rawKeyLength;
-      SEL         sel;
-
-      rawKey = [key UTF8String];
-      rawKeyLength = strlen(rawKey);
-
-      if (keyLength <= sc_safeKeyLength)
-        {
-          // fast path using c string manipulation, will cover most cases, as
-          // most keyPaths are short
-          char selectorName[sc_bufferSize]
-            = "keyPathsForValuesAffecting"; // 26 chars
-          selectorName[sc_prefixLength] = toupper(rawKey[0]);
-          // Copy the rest of the key, including the null terminator
-          memcpy(&selectorName[sc_prefixLength + 1], &rawKey[1], rawKeyLength);
-          sel = sel_registerName(selectorName);
-        }
-      else // Guaranteed path for long keyPaths
-        {
-          size_t keyLength;
-          size_t bufferSize;
-          char  *selectorName;
-
-          keyLength = strlen(rawKey);
-          bufferSize = sc_prefixLength + keyLength + 1;
-          selectorName = (char *) malloc(bufferSize);
-          memcpy(selectorName, sc_prefix, sc_prefixLength);
-
-          selectorName[sc_prefixLength] = toupper(rawKey[0]);
-          // Copy the rest of the key, including the null terminator
-          memcpy(&selectorName[sc_prefixLength + 1], &rawKey[1], keyLength);
-
-          sel = sel_registerName(selectorName);
-          free(selectorName);
-        }
-
-      if ([self respondsToSelector:sel])
-        {
-          return [self performSelector:sel];
-        }
-    }
-  return nil;
-}
-
 // Add all observers with declared dependencies on this one:
 // * All keypaths that could trigger a change (keypaths for values affecting
 // us).
@@ -672,7 +605,77 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
 
 + (NSSet *)keyPathsForValuesAffectingValueForKey:(NSString *)key
 {
-  return _keyPathsForValuesAffectingValueForKey(self, key) ?: [NSSet set]; // TODO(Hugo): Avoid constructing an empty set in every call
+  static NSSet *emptySet = nil;
+  static gs_mutex_t lock = GS_MUTEX_INIT_STATIC;
+  if (nil == emptySet)
+    {
+      GS_MUTEX_LOCK(lock);
+      if (nil == emptySet)
+        {
+          emptySet = [[NSSet alloc] init];
+          [NSObject leakAt: &emptySet];
+        }
+      GS_MUTEX_UNLOCK(lock);
+    }
+
+  // This function can be a KVO bottleneck, so it will prefer to use c string
+  // manipulation when safe
+  NSUInteger keyLength = [key length];
+  if (keyLength > 0)
+    {
+      static const char *const sc_prefix = "keyPathsForValuesAffecting";
+      static const size_t      sc_prefixLength = 26; // strlen(sc_prefix)
+      static const size_t      sc_bufferSize = 128;
+
+      // max length of a key that can guaranteed fit in the char buffer,
+      // even if UTF16->UTF8 conversion causes length to double, or a null
+      // terminator is needed
+      static const size_t sc_safeKeyLength
+        = (sc_bufferSize - sc_prefixLength) / 2 - 1; // 50
+
+      const char *rawKey;
+      size_t      rawKeyLength;
+      SEL         sel;
+
+      rawKey = [key UTF8String];
+      rawKeyLength = strlen(rawKey);
+
+      if (keyLength <= sc_safeKeyLength)
+        {
+          // fast path using c string manipulation, will cover most cases, as
+          // most keyPaths are short
+          char selectorName[sc_bufferSize]
+            = "keyPathsForValuesAffecting"; // 26 chars
+          selectorName[sc_prefixLength] = toupper(rawKey[0]);
+          // Copy the rest of the key, including the null terminator
+          memcpy(&selectorName[sc_prefixLength + 1], &rawKey[1], rawKeyLength);
+          sel = sel_registerName(selectorName);
+        }
+      else // Guaranteed path for long keyPaths
+        {
+          size_t keyLength;
+          size_t bufferSize;
+          char  *selectorName;
+
+          keyLength = strlen(rawKey);
+          bufferSize = sc_prefixLength + keyLength + 1;
+          selectorName = (char *) malloc(bufferSize);
+          memcpy(selectorName, sc_prefix, sc_prefixLength);
+
+          selectorName[sc_prefixLength] = toupper(rawKey[0]);
+          // Copy the rest of the key, including the null terminator
+          memcpy(&selectorName[sc_prefixLength + 1], &rawKey[1], keyLength);
+
+          sel = sel_registerName(selectorName);
+          free(selectorName);
+        }
+
+      if ([self respondsToSelector:sel])
+        {
+          return [self performSelector:sel];
+        }
+    }
+  return emptySet;
 }
 
 - (void)addObserver:(id)observer
