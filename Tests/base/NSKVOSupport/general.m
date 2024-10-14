@@ -172,6 +172,7 @@
 @interface TestKVOObserver : NSObject
 {
   NSMutableDictionary *_changedKeypaths;
+  NSLock              *_lock;
 }
 - (void)observeValueForKeyPath:(NSString *)keypath
                       ofObject:(id)object
@@ -187,7 +188,8 @@
   self = [super init];
   if (self)
     {
-      _changedKeypaths = [NSMutableDictionary dictionary];
+      _changedKeypaths = [NSMutableDictionary new];
+      _lock = [NSLock new];
     }
   return self;
 }
@@ -196,7 +198,6 @@
                         change:(NSDictionary *)change
                        context:(void *)context
 {
-  @synchronized(self)
   {
     NSMutableSet *changeSet = [_changedKeypaths objectForKey:keypath];
     if (!changeSet)
@@ -212,29 +213,32 @@
 }
 - (NSSet *)changesForKeypath:(NSString *)keypath
 {
-  @synchronized(self)
-  {
-    return [[_changedKeypaths objectForKey:keypath] copy];
-  }
+  [_lock lock];
+  NSSet *paths = [[_changedKeypaths objectForKey:keypath] copy]; 
+  [_lock unlock];
+  return paths;
 }
 - (void)clear
 {
-  @synchronized(self)
-  {
-    [_changedKeypaths removeAllObjects];
-  }
+  [_lock lock];
+  [_changedKeypaths removeAllObjects];
+  [_lock unlock];
 }
 - (NSInteger)numberOfObservedChanges
 {
-  @synchronized(self)
-  {
-    NSInteger accumulator = 0;
-    for (NSString *keypath in [_changedKeypaths allKeys])
-      {
-        accumulator += [[_changedKeypaths objectForKey:keypath] count];
-      }
-    return accumulator;
-  }
+  [_lock lock];
+  NSInteger accumulator = 0;
+  for (NSString *keypath in [_changedKeypaths allKeys])
+    {
+      accumulator += [[_changedKeypaths objectForKey:keypath] count];
+    }
+  [_lock unlock];
+  return accumulator;
+}
+
+- (void) dealloc {
+  [_lock release];
+  [_changedKeypaths release];
 }
 @end
 
