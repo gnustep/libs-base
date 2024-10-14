@@ -481,13 +481,13 @@ static NSLock			*placeholderLock;
   [coder decodeArrayOfObjCType: @encode(signed char)
 			 count: size
 			    at: (void*)objctype];
-  if (strncmp("{_NSSize=", objctype, 9) == 0)
+  if (strncmp(CGSIZE_ENCODING_PREFIX, objctype, strlen(CGSIZE_ENCODING_PREFIX)) == 0)
     c = [abstractClass valueClassWithObjCType: @encode(NSSize)];
-  else if (strncmp("{_NSPoint=", objctype, 10) == 0)
+  else if (strncmp(CGPOINT_ENCODING_PREFIX, objctype, strlen(CGPOINT_ENCODING_PREFIX)) == 0)
     c = [abstractClass valueClassWithObjCType: @encode(NSPoint)];
-  else if (strncmp("{_NSRect=", objctype, 9) == 0)
+  else if (strncmp(CGRECT_ENCODING_PREFIX, objctype, strlen(CGRECT_ENCODING_PREFIX)) == 0)
     c = [abstractClass valueClassWithObjCType: @encode(NSRect)];
-  else if (strncmp("{_NSRange=", objctype, 10) == 0)
+  else if (strncmp(NSRANGE_ENCODING_PREFIX, objctype, strlen(NSRANGE_ENCODING_PREFIX)) == 0)
     c = [abstractClass valueClassWithObjCType: @encode(NSRange)];
   else
     c = [abstractClass valueClassWithObjCType: objctype];
