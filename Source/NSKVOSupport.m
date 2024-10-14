@@ -392,8 +392,8 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
   // Aggregate all keys whose values will affect us.
   if (dependents)
     {
-      NSSet *valueInfluencingKeys
-        = _keyPathsForValuesAffectingValueForKey([object class], key);
+      Class cls = [object class];
+      NSSet *valueInfluencingKeys = [cls keyPathsForValuesAffectingValueForKey: key];
       if (valueInfluencingKeys.count > 0)
         {
           // affectedKeyObservers is the list of observers that must be notified
@@ -672,7 +672,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
 
 + (NSSet *)keyPathsForValuesAffectingValueForKey:(NSString *)key
 {
-  return _keyPathsForValuesAffectingValueForKey(self, key) ?: [NSSet set];
+  return _keyPathsForValuesAffectingValueForKey(self, key) ?: [NSSet set]; // TODO(Hugo): Avoid constructing an empty set in every call
 }
 
 - (void)addObserver:(id)observer
