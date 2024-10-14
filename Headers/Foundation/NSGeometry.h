@@ -25,10 +25,12 @@
 #ifndef __NSGeometry_h_GNUSTEP_BASE_INCLUDE
 #define __NSGeometry_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
+#import	<CoreFoundation/CFCGTypes.h>
 
+#ifdef __OBJC__
 #import <objc/objc.h>
-
 #import <Foundation/NSString.h>
+#endif
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -57,11 +59,6 @@ extern "C" {
 }</example>
  <p>Represents a 2-d cartesian position.</p> */
 typedef struct CGPoint NSPoint;
-struct CGPoint
-{
-  CGFloat x;
-  CGFloat y;
-};
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Array of NSPoint structs. */
@@ -77,11 +74,6 @@ typedef NSPoint *NSPointPointer;
 }</example>
  <p>Floating point rectangle size.</p> */
 typedef struct CGSize NSSize;
-struct CGSize
-{
-  CGFloat width;
-  CGFloat height;
-};
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Array of NSSize structs. */
@@ -98,11 +90,6 @@ typedef NSSize *NSSizePointer;
 
  <p>Rectangle.</p> */
 typedef struct CGRect NSRect;
-struct CGRect
-{
-  NSPoint origin;
-  NSSize size;
-};
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Array of NSRect structs. */

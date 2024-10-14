@@ -419,6 +419,11 @@ win32-load.h \
 NSCallBacks.h \
 tzfile.h
 
+# Definitions for toll-free bridging of known structures
+# such as NSRect, NSPoint, or NSSize.
+COREFOUNDATION_HEADERS = \
+CFCGTypes.h
+
 FOUNDATION_HEADERS = \
 Foundation.h \
 FoundationErrors.h \
@@ -591,7 +596,8 @@ NSZone.h
 HEADERS_INSTALL = \
 	$(OBJECTIVEC2_HEADERS) \
 	$(GNUSTEPBASE_HEADERS) \
-	$(FOUNDATION_HEADERS)
+	$(FOUNDATION_HEADERS) \
+  $(COREFOUNDATION_HEADERS)
 
 GENERATED_HFILES = \
 dynamic-load.h \
