@@ -173,6 +173,7 @@ static __attribute__((always_inline)) uintptr_t compressTimeInterval(NSTimeInter
         exponent -= EXPONENT_BIAS;
         // 3. Truncate to 8-bit signed
         c.exponent = exponent;
+        c.tag = 0;
 
         return c.data;
 }
