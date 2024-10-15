@@ -1658,7 +1658,8 @@ static BOOL isPlistObject(id o)
           [_persDomains setObject: pd forKey: processName];
 	  RELEASE(pd);
 	}
-      old = [pd objectForKey: defaultName];
+      // Make sure to search all domains and not only the process domain
+      old = [self objectForKey: defaultName];
       if ([pd setObject: value forKey: defaultName])
         {
           [self _changePersistentDomain: processName];
