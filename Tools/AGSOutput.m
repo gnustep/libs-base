@@ -24,6 +24,7 @@
 
 #import "Foundation/NSArray.h"
 #import "Foundation/NSAutoreleasePool.h"
+#import "Foundation/NSBundle.h"
 #import "Foundation/NSCharacterSet.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSDictionary.h"
@@ -301,6 +302,7 @@ static BOOL snuggleStart(NSString *t)
  */
 - (NSArray*) output: (NSMutableDictionary*)d
 {
+  NSFileManager		*mgr = [NSFileManager defaultManager];
   NSMutableString	*str = [NSMutableString stringWithCapacity: 10240];
   NSDictionary		*classes;
   NSDictionary		*categories;
@@ -312,6 +314,7 @@ static BOOL snuggleStart(NSString *t)
   NSDictionary		*macros;
   NSMutableArray	*files;
   NSArray		*authors;
+  NSString		*style = @"default-styles.css";
   NSString		*base;
   NSString		*tmp;
   NSString		*file;
@@ -328,9 +331,25 @@ static BOOL snuggleStart(NSString *t)
       file = [file stringByAppendingPathExtension: @"gsdoc"];
     }
   dest = [info objectForKey: @"directory"];
-  if ([dest length] > 0 && [file isAbsolutePath] == NO)
+  if ([dest length] > 0)
     {
-      file = [dest stringByAppendingPathComponent: file];
+      style = [dest stringByAppendingPathComponent: style];
+      if ([file isAbsolutePath] == NO)
+	{
+	  file = [dest stringByAppendingPathComponent: file];
+	}
+    }
+
+  /* When there is no local default stylesheet present, we copy the
+   * stylesheet from the main bundle.
+   */
+  if ([mgr isReadableFileAtPath: style] == NO)
+    {
+      NSBundle	*bundle = [NSBundle mainBundle];
+      NSString	*path;
+
+      path = [bundle pathForResource: @"default-styles" ofType: @"css"];
+      [mgr copyPath: path toPath: style handler: nil];
     }
 
   classes = [info objectForKey: @"Classes"];
@@ -361,12 +380,9 @@ static BOOL snuggleStart(NSString *t)
       tmp = [[NSUserDefaults standardUserDefaults]
 	stringForKey: @"StylesheetURL"];
     }
-  if (tmp)
-    {
-      [str appendString: @" stylesheeturl=\""];
-      [str appendString: tmp];
-      [str appendString: @"\""];
-    }
+  [str appendString: @" stylesheeturl=\""];
+  [str appendString: tmp];
+  [str appendString: @"\""];
 
   tmp = [info objectForKey: @"up"];
   if (tmp != nil)
@@ -2370,12 +2386,10 @@ static BOOL snuggleStart(NSString *t)
 	      tmp = [[NSUserDefaults standardUserDefaults]
 		stringForKey: @"StylesheetURL"];
 	    }
-	  if (tmp)
-	    {
-	      [str appendString: @" stylesheeturl=\""];
-	      [str appendString: tmp];
-	      [str appendString: @"\""];
-	    }
+	  [str appendString: @" stylesheeturl=\""];
+	  [str appendString: tmp];
+	  [str appendString: @"\""];
+
 	  /*
 	   * If a -Up default has been set, create an up link in this
 	   * template file... as long as the specified up link is not
@@ -2383,7 +2397,7 @@ static BOOL snuggleStart(NSString *t)
 	   */
 	  if (up != nil && [up isEqual: [name lastPathComponent]] == NO)
 	    {
-	      [str appendString: @"\" up=\""];
+	      [str appendString: @" up=\""];
 	      [str appendString: up];
 	      [str appendString: @"\""];
 	    }

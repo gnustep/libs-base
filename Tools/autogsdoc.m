@@ -464,7 +464,8 @@
       </item>
       <item><strong>StylesheetURL</strong>
 	The URL of a CSS document to be used as the stadard stylesheet for
-	generated autogsdoc files.
+	generated autogsdoc files.  If this is not specified the default of
+	a local document default-styles.css is used.
       </item>
       <item><strong>SystemProjects</strong>
 	This value is used to control the automatic inclusion of system
@@ -751,6 +752,7 @@ main(int argc, char **argv, char **env)
   defs = [NSUserDefaults standardUserDefaults];
   [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
     @"Untitled", @"Project",
+    @"default-styles.css", @"StylesheetURL",
     nil]];
 
   // BEGIN test for any unrecognized arguments, or "--help"
@@ -1977,14 +1979,20 @@ main(int argc, char **argv, char **env)
 
       // file for top-left frame (header only; rest appended below)
       idxIndexFile = [@"MainIndex" stringByAppendingPathExtension: @"html"];
-      [idxIndex setString: @"<HTML>\n  <BODY>\n"
-@"    <B>Index</B><BR/>\n"];
+      [idxIndex setString: @"<!DOCTYPE HTML>\n"
+@"<HTML>\n"
+@"  <HEAD>\n"
+@"    <META charset=\"utf-8\">\n"
+@"  </HEAD>\n"
+@"  <BODY>\n"
+@"    <B>Index</B><BR>\n"];
 
       // this becomes index.html
       framesetFile = [@"index" stringByAppendingPathExtension: @"html"];
-      [frameset setString: @"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"\"http://www.w3.org/TR/REC-html40/loose.dtd\">\n"
-@"<HTML>\n"
+      [frameset setString: @"<!DOCTYPE HTML>\n"
+@"<HTML lang=\"en\">\n"
 @"  <HEAD>\n"
+@"  <META charset=\"utf-8\">\n"
 @"  <TITLE>\n"
 @"    Autogsdoc-generated Documentation for [prjName]\n"
 @"  </TITLE>\n"
