@@ -5,6 +5,7 @@
 	left: 0px;
 	width: 20%;
 	height: 100%;
+	border-right: 1px solid grey;
 }
 
 .content-bar-top {
@@ -14,6 +15,7 @@
 	height: 30%;
 	width: 100%;
 	overflow: auto;
+	border-bottom: 1px solid grey;
 }
 
 .content-bar-top-body {
