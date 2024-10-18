@@ -959,7 +959,7 @@ static NSMutableSet	*textNodes = nil;
 	      unsigned	l = 0;
 
 	      [buf appendString: indent];
-	      [buf appendString: @"<hr width=\"50%\" align=\"left\">\n"];
+	      [buf appendString: @"<hr class=\"section-separator\">\n"];
 	      [buf appendString: indent];
 	      [buf appendString: @"<h3>Contents -</h3>\n"];
 
@@ -1036,7 +1036,7 @@ static NSMutableSet	*textNodes = nil;
 		  l--;
 		}
 	      [buf appendString: indent];
-	      [buf appendString: @"<hr width=\"50%\" align=\"left\">\n"];
+	      [buf appendString: @"<hr class=\"section-separator\">\n"];
 	    }
 	}
       else if ([name isEqual: @"declared"] == YES)
@@ -2835,7 +2835,7 @@ static NSMutableSet	*textNodes = nil;
 	{
 	  ibuf = ivarBuf;
 	  [buf appendString: indent];
-	  [buf appendString: @"<hr width=\"50%\" align=\"left\">\n"];
+	  [buf appendString: @"<hr class=\"section-separator\">\n"];
 	  [buf appendString: indent];
 	  [buf appendFormat: @"<a href=\"#_%@_ivars\">Instance Variables</a>\n",
 			     classname];
@@ -2844,7 +2844,7 @@ static NSMutableSet	*textNodes = nil;
 	  [ibuf appendFormat: @"<a name=\"_%@_ivars\"/>", classname];
 	}
       [ibuf appendString: indent];
-      [ibuf appendString: @"<br><hr width=\"50%\" align=\"left\">\n"];
+      [ibuf appendString: @"<br><hr class=\"section-separator\">\n"];
       [ibuf appendString: indent];
       [ibuf appendFormat: @"<h2>Instance Variables for %@ Class</h2>\n",
 	classname];
@@ -2854,7 +2854,7 @@ static NSMutableSet	*textNodes = nil;
 	  node = [node nextElement];
 	}
       [ibuf appendString: indent];
-      [ibuf appendString: @"<br><hr width=\"50%\" align=\"left\"><br>\n"];
+      [ibuf appendString: @"<br><hr class=\"section-separator\"><br>\n"];
     }
 
   a = [localRefs methodsInUnit: unit];
@@ -2867,7 +2867,7 @@ static NSMutableSet	*textNodes = nil;
                  target: nil
 		     to: buf];
       [buf appendString: indent];
-      [buf appendString: @"<hr width=\"50%\" align=\"left\">\n"];
+      [buf appendString: @"<hr class=\"section-separator\">\n"];
       while (node != nil)
 	{
 	  if ([[node name] isEqual: @"method"] == YES)

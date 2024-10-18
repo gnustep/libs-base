@@ -1,5 +1,4 @@
 .content-bar {
-	background-color: ;
 	float: left;
 	position: fixed;
 	top: 0px;
@@ -59,7 +58,15 @@
 	padding-left: 10px;
 }
 
+hr.section-separator {
+    width:50%;
+    margin-left:0;
+    text-align:left;
+}
+
+
 hr.method-separator {
     width:25%;
     margin-left:0;
+    text-align:left;
 }
