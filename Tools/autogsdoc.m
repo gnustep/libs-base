@@ -853,6 +853,10 @@ main(int argc, char **argv, char **env)
 	{
 	  NSArray	*args = [argsRecognized allKeys];
 
+	  if (![@"help" isEqual: opt])
+	    {
+	      GSPrintf(stderr, @"Unknown option:\ '%@'\n", opt);
+	    }
 	  GSPrintf(stderr, @"Usage:\n");
 	  GSPrintf(stderr, [NSString stringWithFormat:
 	    @"    %@ [options] [files]\n", [argsGiven objectAtIndex: 0]]);
