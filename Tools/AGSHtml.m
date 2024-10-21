@@ -474,7 +474,16 @@ static NSMutableSet	*textNodes = nil;
   NSArray	*a;
   unsigned	c;
   unsigned	i;
-  BOOL		isBareStyle = [@"bare" isEqualToString: style];
+  BOOL          isBareStyle = NO;
+
+  if ([@"bare" isEqualToString: style])
+    {
+      isBareStyle = YES;
+    }
+  else if ([@"cssNavigation" isEqualToString: style])
+    {
+      isBareStyle = YES;
+    }
 
   if (globalRefs != nil && [scope isEqual: @"global"] == YES)
     {
@@ -514,6 +523,12 @@ static NSMutableSet	*textNodes = nil;
   [buf appendString: indent];
   [buf appendFormat: @"<div class=\"%@_%@_index\">\n", scope, type];
   [self incIndent];
+  if ([@"cssNavigation" isEqualToString: style])
+    {
+      [buf appendString: indent];
+      [buf appendString: @"<p>\n"];
+      [self incIndent];
+    }
 
   if ([type isEqual: @"title"] == YES)
     {
@@ -522,7 +537,9 @@ static NSMutableSet	*textNodes = nil;
           if (!isBareStyle)
             {
               [buf appendString: indent];
-              [buf appendFormat: @"<b>%@ Index</b>\n", title];
+              [buf appendFormat:
+		@"<h3 class=\"index-section-header\">%@ Index</h3>\n",
+		title];
               [buf appendString: indent];
               [buf appendString: @"<ul>\n"];
               [self incIndent];
@@ -751,6 +768,12 @@ static NSMutableSet	*textNodes = nil;
       [buf appendString: @"\n"];
     }
 
+  if ([@"cssNavigation" isEqualToString: style])
+    {
+      [self decIndent];
+      [buf appendString: indent];
+      [buf appendString: @"</p>\n"];
+    }
   [self decIndent];
   [buf appendString: indent];
   [buf appendString: @"</div>\n"];  // nav-bar section
@@ -1383,83 +1406,83 @@ static NSMutableSet	*textNodes = nil;
 	      [self incIndent];
 
               [buf appendString: indent];
-              [buf appendString: @"<h3 class=\"index-section-header\">"];
+              [buf appendString: @"<h3 class=\"content-bar-index-section-header\">"];
 	      [buf appendString: @"<a name=\"nav-bar-classes\">Classes</a>"];
               [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"class"
 			  scope: @"project"
 			  title: @"Project classes"
-			  style: @"bare"
+			  style: @"cssNavigation"
 			 target: nil
 			     to: buf];
 
               [buf appendString: indent];
-              [buf appendString: @"<h3 class=\"index-section-header\">"];
+              [buf appendString: @"<h3 class=\"content-bar-index-section-header\">"];
 	      [buf appendString:
 		@"<a name=\"nav-bar-protocols\">Protocols</a>"];
               [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"protocol"
 			  scope: @"project"
 			  title: @"Project protocols"
-			  style: @"bare"
+			  style: @"cssNavigation"
 			 target: nil
 			     to: buf];
 
               [buf appendString: indent];
-              [buf appendString: @"<h3 class=\"index-section-header\">"];
+              [buf appendString: @"<h3 class=\"content-bar-index-section-header\">"];
 	      [buf appendString:
 		@"<a name=\"nav-bar-constants\">Constants</a>"];
               [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"constant"
 			  scope: @"project"
 			  title: @"Project constants"
-			  style: @"bare"
+			  style: @"cssNavigation"
 			 target: nil
 			     to: buf];
 
               [buf appendString: indent];
-              [buf appendString: @"<h3 class=\"index-section-header\">"];
+              [buf appendString: @"<h3 class=\"content-bar-index-section-header\">"];
 	      [buf appendString:
 		@"<a name=\"nav-bar-functions\">Functions</a>"];
               [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"function"
 			  scope: @"project"
 			  title: @"Project functions"
-			  style: @"bare"
+			  style: @"cssNavigation"
 			 target: nil
 			     to: buf];
 
               [buf appendString: indent];
-              [buf appendString: @"<h3 class=\"index-section-header\">"];
+              [buf appendString: @"<h3 class=\"content-bar-index-section-header\">"];
 	      [buf appendString:
 		@"<a name=\"nav-bar-macros\">Macros</a>"];
               [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"macro"
 			  scope: @"project"
 			  title: @"Project macros"
-			  style: @"bare"
+			  style: @"cssNavigation"
 			 target: nil
 			     to: buf];
 
               [buf appendString: indent];
-              [buf appendString: @"<h3 class=\"index-section-header\">"];
+              [buf appendString: @"<h3 class=\"content-bar-index-section-header\">"];
 	      [buf appendString: @"<a name=\"nav-bar-types\">Types</a>"];
               [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"type"
 			  scope: @"project"
 			  title: @"Project types"
-			  style: @"bare"
+			  style: @"cssNavigation"
 			 target: nil
 			     to: buf];
 
               [buf appendString: indent];
-              [buf appendString: @"<h3 class=\"index-section-header\">"];
+              [buf appendString: @"<h3 class=\"content-bar-index-section-header\">"];
 	      [buf appendString: @"<a name=\"nav-bar-variables\">Variables</a>"];
               [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"variable"
 			  scope: @"project"
 			  title: @"Project variables"
-			  style: @"bare"
+			  style: @"cssNavigation"
 			 target: nil
 			     to: buf];
 
