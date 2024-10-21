@@ -2222,7 +2222,7 @@ main(int argc, char **argv, char **env)
 			stringByAppendingPathComponent: @"index.html"];
 		      if ([d writeToFile: s atomically: YES])
 			{
-			  NSLog(@"Sorry unable to write %@ to %s", htmlfile, s);
+			  NSLog(@"Sorry unable to write %@ to %@", htmlfile, s);
 			}
 		    }
 		}
