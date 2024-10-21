@@ -50,6 +50,7 @@
   unsigned		sssect;
   BOOL			isContentsDoc;
   BOOL			ivarsAtEnd;
+  BOOL			cssNavigation;
   BOOL			verbose;
   BOOL			warn;
 }
@@ -61,6 +62,9 @@
 - (NSString*) makeLink: (NSString*)r
 		ofType: (NSString*)t
 		 isRef: (BOOL)f;
+- (NSString*) makeURL: (NSString*)r
+	       ofType: (NSString*)t
+                isRef: (BOOL)f;
 - (NSString*) makeLink: (NSString*)r
 		ofType: (NSString*)t
 		inUnit: (NSString*)u

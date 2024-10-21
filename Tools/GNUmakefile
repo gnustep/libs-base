@@ -117,6 +117,10 @@ ifneq ($(HAVE_DOT), )
 AGSHtml.m_FILE_FLAGS+= -DHAVE_DOT=$(HAVE_DOT)
 endif
 
+autogsdoc_HAS_RESOURCE_BUNDLE = yes
+autogsdoc_RESOURCE_FILES = \
+	default-styles.css
+
 # Reset this variable (defined in config.mak) to avoid useless linkage
 # against the libraries gnustep-base uses.
 CONFIG_SYSTEM_LIBS :=
