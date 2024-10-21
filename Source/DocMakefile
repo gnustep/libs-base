@@ -244,7 +244,8 @@ GCObject.h \
 # directory.
 #
 Base_AGSDOC_FLAGS = \
-	-MakeFrames YES \
+	-MakeFrames NO \
+	-IndexFile Base \
 	-DocumentationDirectory ../Documentation/Base \
 	-HeaderDirectory ../Headers/Foundation \
 	-Declared Foundation \
@@ -259,7 +260,8 @@ Base_AGSDOC_FLAGS = \
 	}' -Up Base
 
 BaseAdditions_AGSDOC_FLAGS = \
-	-MakeFrames YES \
+	-MakeFrames NO \
+	-IndexFile BaseAdditions \
 	-DocumentationDirectory ../Documentation/BaseAdditions \
 	-HeaderDirectory ../Headers/GNUstepBase \
 	-Declared GNUstepBase \

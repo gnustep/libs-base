@@ -27,8 +27,6 @@
 #import "GNUstepBase/NSString+GNUstepBase.h"
 #import "GNUstepBase/NSMutableString+GNUstepBase.h"
 
-#define	navcss	1
-
 /*
  * Define constants for use if we are built with apple Foundation
  */
@@ -255,6 +253,7 @@ static NSMutableSet	*textNodes = nil;
       project = RETAIN([defs stringForKey: @"Project"]);
       verbose = [defs boolForKey: @"Verbose"];
       warn = [defs boolForKey: @"Warn"];
+      cssNavigation = [defs boolForKey: @"MakeFrames"] ? NO : YES;
     }
   return self;
 }
@@ -805,7 +804,7 @@ static NSMutableSet	*textNodes = nil;
 
 	  [self decIndent];
 
-	  if (navcss)
+	  if (cssNavigation)
 	    {
 	      [self decIndent];
               [buf appendString: indent];
@@ -1332,7 +1331,7 @@ static NSMutableSet	*textNodes = nil;
 	      [self incIndent];
             }
 
-	  if (navcss)
+	  if (cssNavigation)
 	    {
               [buf appendString: indent];
               [buf appendString: @"<div class=\"content-bar\">\n"];

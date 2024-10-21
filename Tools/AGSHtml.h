@@ -50,6 +50,7 @@
   unsigned		sssect;
   BOOL			isContentsDoc;
   BOOL			ivarsAtEnd;
+  BOOL			cssNavigation;
   BOOL			verbose;
   BOOL			warn;
 }

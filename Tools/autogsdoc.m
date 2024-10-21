@@ -813,6 +813,9 @@ main(int argc, char **argv, char **env)
     @"FunctionsTemplate",
     @"\t\tSTR\t(\"\")\n\tfile into which docs for macros "
       @"should be consolidated",
+    @"IndexFile",
+    @"\t\tSTR\t(\"\")\n\tHTML file name (extension omitted) "
+      @"copied to index.html",
     @"MacrosTemplate",
     @"\t\tSTR\t(\"\")\n\tfile into which docs for typedefs "
       @"should be consolidated",
@@ -2102,6 +2105,9 @@ main(int argc, char **argv, char **env)
   count = [gFiles count];
   if (generateHtml == YES && count > 0)
     {
+      NSString		*htmlIndexFile;
+
+      htmlIndexFile = [defs stringForKey: @"IndexFile"];
       pool = [NSAutoreleasePool new];
 
       for (i = 0; i < count; i++)
@@ -2207,6 +2213,17 @@ main(int argc, char **argv, char **env)
 		  if ([d writeToFile: htmlfile atomically: YES] == NO)
 		    {
 		      NSLog(@"Sorry unable to write %@", htmlfile);
+		    }
+		  if ([file isEqual: htmlIndexFile])
+		    {
+		      NSString	*s;
+
+		      s = [documentationDirectory
+			stringByAppendingPathComponent: @"index.html"];
+		      if ([d writeToFile: s atomically: YES])
+			{
+			  NSLog(@"Sorry unable to write %@ to %s", htmlfile, s);
+			}
 		    }
 		}
 	    }
