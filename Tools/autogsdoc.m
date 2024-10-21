@@ -855,7 +855,7 @@ main(int argc, char **argv, char **env)
 
 	  if (![@"help" isEqual: opt])
 	    {
-	      GSPrintf(stderr, @"Unknown option:\ '%@'\n", opt);
+	      GSPrintf(stderr, @"Unknown option: '%@'\n", opt);
 	    }
 	  GSPrintf(stderr, @"Usage:\n");
 	  GSPrintf(stderr, [NSString stringWithFormat:
