@@ -1383,7 +1383,9 @@ static NSMutableSet	*textNodes = nil;
 	      [self incIndent];
 
               [buf appendString: indent];
-	      [buf appendString: @"<a name=\"nav-bar-classes\">Classes</a>\n"];
+              [buf appendString: @"<h3 class=\"index-section-header\">"];
+	      [buf appendString: @"<a name=\"nav-bar-classes\">Classes</a>"];
+              [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"class"
 			  scope: @"project"
 			  title: @"Project classes"
@@ -1392,8 +1394,10 @@ static NSMutableSet	*textNodes = nil;
 			     to: buf];
 
               [buf appendString: indent];
+              [buf appendString: @"<h3 class=\"index-section-header\">"];
 	      [buf appendString:
-		@"<a name=\"nav-bar-protocols\">Protocols</a>\n"];
+		@"<a name=\"nav-bar-protocols\">Protocols</a>"];
+              [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"protocol"
 			  scope: @"project"
 			  title: @"Project protocols"
@@ -1402,8 +1406,10 @@ static NSMutableSet	*textNodes = nil;
 			     to: buf];
 
               [buf appendString: indent];
+              [buf appendString: @"<h3 class=\"index-section-header\">"];
 	      [buf appendString:
-		@"<a name=\"nav-bar-constants\">Constants</a>\n"];
+		@"<a name=\"nav-bar-constants\">Constants</a>"];
+              [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"constant"
 			  scope: @"project"
 			  title: @"Project constants"
@@ -1412,8 +1418,10 @@ static NSMutableSet	*textNodes = nil;
 			     to: buf];
 
               [buf appendString: indent];
+              [buf appendString: @"<h3 class=\"index-section-header\">"];
 	      [buf appendString:
-		@"<a name=\"nav-bar-functions\">Functions</a>\n"];
+		@"<a name=\"nav-bar-functions\">Functions</a>"];
+              [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"function"
 			  scope: @"project"
 			  title: @"Project functions"
@@ -1422,8 +1430,10 @@ static NSMutableSet	*textNodes = nil;
 			     to: buf];
 
               [buf appendString: indent];
+              [buf appendString: @"<h3 class=\"index-section-header\">"];
 	      [buf appendString:
-		@"<a name=\"nav-bar-macros\">Macros</a>\n"];
+		@"<a name=\"nav-bar-macros\">Macros</a>"];
+              [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"macro"
 			  scope: @"project"
 			  title: @"Project macros"
@@ -1432,7 +1442,9 @@ static NSMutableSet	*textNodes = nil;
 			     to: buf];
 
               [buf appendString: indent];
-	      [buf appendString: @"<a name=\"nav-bar-types\">Types</a>\n"];
+              [buf appendString: @"<h3 class=\"index-section-header\">"];
+	      [buf appendString: @"<a name=\"nav-bar-types\">Types</a>"];
+              [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"type"
 			  scope: @"project"
 			  title: @"Project types"
@@ -1441,7 +1453,9 @@ static NSMutableSet	*textNodes = nil;
 			     to: buf];
 
               [buf appendString: indent];
-	      [buf appendString: @"<a name=\"nav-bar-variables\">Variables</a>\n"];
+              [buf appendString: @"<h3 class=\"index-section-header\">"];
+	      [buf appendString: @"<a name=\"nav-bar-variables\">Variables</a>"];
+              [buf appendString: @"</h3>\n"];
 	      [self outputIndex: @"variable"
 			  scope: @"project"
 			  title: @"Project variables"
