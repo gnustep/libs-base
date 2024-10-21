@@ -521,14 +521,8 @@ static NSMutableSet	*textNodes = nil;
    * so that CSS can be used to style it.
    */
   [buf appendString: indent];
-  [buf appendFormat: @"<div class=\"%@_%@_index\">\n", scope, type];
+  [buf appendFormat: @"<p class=\"%@_%@_index\">\n", scope, type];
   [self incIndent];
-  if ([@"cssNavigation" isEqualToString: style])
-    {
-      [buf appendString: indent];
-      [buf appendString: @"<p>\n"];
-      [self incIndent];
-    }
 
   if ([type isEqual: @"title"] == YES)
     {
@@ -670,7 +664,8 @@ static NSMutableSet	*textNodes = nil;
       [buf appendString: indent];
       if (!isBareStyle)
         {
-          [buf appendFormat: @"<b>%@</b>\n", title];
+	  [buf appendFormat:
+	    @"<h3 class=\"index-section-header\">%@</h3>\n", title];
         }
       [buf appendString: indent];
       if (!isBareStyle)
@@ -768,15 +763,9 @@ static NSMutableSet	*textNodes = nil;
       [buf appendString: @"\n"];
     }
 
-  if ([@"cssNavigation" isEqualToString: style])
-    {
-      [self decIndent];
-      [buf appendString: indent];
-      [buf appendString: @"</p>\n"];
-    }
   [self decIndent];
   [buf appendString: indent];
-  [buf appendString: @"</div>\n"];  // nav-bar section
+  [buf appendString: @"</p>\n"];
 }
 
 - (void) outputNode: (GSXMLNode*)node to: (NSMutableString*)buf
