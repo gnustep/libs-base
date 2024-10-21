@@ -1855,34 +1855,21 @@ recheck:
        */
       if ([self parseSpace] < length && buffer[pos] == '<')
 	{
-	  unsigned  save = pos;
-	  NSString	*p;
+          NSArray	*protocols = [self parseProtocolList];
 
-	  do
-	    {
-	      pos++;
-	      p = [self parseIdentifier];
-	      if (p != nil)
-		{
-		  [a addObject: p];
-		}
-	    }
-	  while ([self parseSpace] < length && buffer[pos] == ',');
-	  if ('>' == buffer[pos])
-	    {
-	      pos++;
-	      [self parseSpace];
+          if (protocols)
+            {
+              [a addObjectsFromArray: protocols];
 	      [a sortUsingSelector: @selector(compare:)];
 	      [t appendString: @"<"];
 	      [t appendString: [a componentsJoinedByString: @","]];
 	      [t appendString: @">"];
 	      [a removeAllObjects];
-	    }
-	  else
-	    {
-	      pos = save;
-	      [self skipGeneric];
-	    }
+            }
+          else
+            {
+              [self skipGeneric];
+            }
 	}
       baseType = t;
     }
@@ -2464,7 +2451,7 @@ fail:
     {
       pos++;
       if ((base = [self parseIdentifier]) == nil
-	|| [self parseSpace] >= length)
+	|| [self parseSpaceOrGeneric] >= length)
 	{
 	  [self log: @"@interface with bad base class"];
 	  goto fail;
@@ -2561,7 +2548,7 @@ fail:
     }
 
   if ((name = [self parseIdentifier]) == nil
-    || [self parseSpace] >= length)
+    || [self parseSpaceOrGeneric] >= length)
     {
       [self log: @"interface with bad name"];
       goto fail;
@@ -2626,7 +2613,17 @@ fail:
 
       if (protocols == nil)
 	{
-	  goto fail;
+          unsigned      saved = pos;
+
+          if ([self skipGeneric] > saved)
+            {
+              [self parseSpace];
+            }
+          else
+            {
+              [self log: @"bad protocol list"];
+              goto fail;
+            }
 	}
       else if ([protocols count] > 0)
 	{
@@ -4329,6 +4326,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 
       if (protocols == nil)
 	{
+          [self log: @"bad protocol list"];
 	  goto fail;
 	}
       else if ([protocols count] > 0)
@@ -4389,6 +4387,7 @@ fail:
 {
   NSMutableArray	*protocols;
   NSString		*p;
+  unsigned              start = pos;
 
   protocols = [NSMutableArray arrayWithCapacity: 2];
   pos++;
@@ -4411,7 +4410,7 @@ fail:
   if (pos >= length || buffer[pos] != '>' || ++pos >= length
     || [self parseSpace] >= length || [protocols count] == 0)
     {
-      [self log: @"bad protocol list"];
+      pos = start;
       return nil;
     }
   return protocols;
@@ -4523,7 +4522,28 @@ fail:
 
 - (unsigned) parseSpace
 {
-  return [self parseSpace: spacenl];
+  [self parseSpace: spacenl];
+  return pos;
+}
+
+- (unsigned) parseSpaceOrGeneric
+{
+  [self parseSpace: spacenl];
+
+  if (pos < length && '<' == buffer[pos])
+    {
+      unsigned  saved = pos;
+
+      if ([self skipGeneric] > saved)
+        {
+          [self parseSpace];
+        }
+      else
+        {
+	  [self log: @"bad generic"];
+        }
+    }
+  return pos;
 }
 
 - (NSString*) parseVersion
