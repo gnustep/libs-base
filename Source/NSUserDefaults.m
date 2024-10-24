@@ -1662,8 +1662,14 @@ static BOOL isPlistObject(id o)
       old = [self objectForKey: defaultName];
       if ([pd setObject: value forKey: defaultName])
         {
+          id new;
+          
+          // New value must be fetched from all domains, as there might be
+          // a registered default if value is nil, or the value is
+          // superseded by GSPrimary or NSArgumentDomain
+          new = [self objectForKey: defaultName];
           [self _changePersistentDomain: processName];
-          [self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue:value];
+          [self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue:new];
         }
       else
         {
