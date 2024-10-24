@@ -1,3 +1,8 @@
+2024-10-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Create an NSError object when we fail to
+	copy because the destination item already exists.
+
 2024-10-10: Hugo Melder <hugo@algoriddim.com>
 
 	* Source/NSDate.m:
@@ -21,14 +26,14 @@
 	Cache ICU collator in thread-local storage to avoid
 	expensive construction when comparing strings.
 
-2024-13-08: Hugo Melder <hugo@algoriddim.com>
+2024-08-13: Hugo Melder <hugo@algoriddim.com>
 
 	* Source/NSOperation.m:
 	* Headers/Foundation/NSOperation.h:
 	Give NSOperationQueue worker threads a proper thread
 	name for easy identification.
 
-2024-12-08 Hugo Melder <hugo@algoriddim.com>
+2024-08-12 Hugo Melder <hugo@algoriddim.com>
 	* Source/NSThread.m:
 	Fix threadPriority and setThreadPriority: on Android.
 
