@@ -1,5 +1,5 @@
 /**
-   NSKVOSwizzling.m
+   NSKVOInternal.h
 
    Copyright (C) 2024 Free Software Foundation, Inc.
 
