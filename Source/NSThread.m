@@ -30,7 +30,6 @@
    <title>NSThread class reference</title>
 */
 
-#include "GNUstepBase/GSBlocks.h"
 #import "common.h"
 
 #import "GSPThread.h"
