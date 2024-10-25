@@ -1518,13 +1518,14 @@ newLanguages(NSArray *oldNames)
 
       if (nil != pd)
 	{
-          if ([pd setObject: nil forKey: defaultName])
+      if ([pd setObject: nil forKey: defaultName])
 	    {
-        id new;
-	      [self _changePersistentDomain: processName];
-        new = [self objectForKey: defaultName];
-        [self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue: new];
-	    } else {
+        	id new;
+		[self _changePersistentDomain: processName];
+		new = [self objectForKey: defaultName];
+		[self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue: new];
+	    }
+      else {
         // We always notify observers of a change, even if the value
         // itself is unchanged.
         [[NSNotificationCenter defaultCenter]
