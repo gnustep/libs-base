@@ -3,6 +3,7 @@
 #import <Foundation/NSValue.h>
 #import <Foundation/NSNull.h>
 #import <Foundation/NSDictionary.h>
+#import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSUserDefaults.h>
 #import <Foundation/NSKeyValueObserving.h>
 
@@ -70,6 +71,7 @@
 int
 main(int argc, char *argv[])
 {
+  NSAutoreleasePool *pool = [NSAutoreleasePool new];
   NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
   Observer       *obs = [Observer new];
   NSString       *key1 = @"key1";
@@ -164,6 +166,8 @@ main(int argc, char *argv[])
   [defs removeObserver:obs forKeyPath:key1];
   [defs removeObserver:obs forKeyPath:key2];
 
+  [pool drain];
   [obs release];
+  
   return 0;
 }
