@@ -43,6 +43,11 @@
 extern "C" {
 #endif
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
+#import <GNUstepBase/GSBlocks.h>
+DEFINE_BLOCK_TYPE(GSThreadBlock, void, void);
+#endif  
+
 /**
  * This class encapsulates OpenStep threading.  See [NSLock] and its
  * subclasses for handling synchronisation between threads.<br />
@@ -67,6 +72,7 @@ GS_EXPORT_CLASS
   BOOL			_cancelled;
   BOOL			_active;
   BOOL			_finished;
+  BOOL      _targetIsBlock;
   NSHandler		*_exception_handler;    // Not retained.
   NSMutableDictionary	*_thread_dictionary;
   struct autorelease_thread_vars _autorelease_vars;
@@ -397,6 +403,29 @@ GS_EXPORT void GSUnregisterCurrentThread (void);
 @end
 
 #endif
+
+/**
+ * This category contains convenience
+ * initialisers and methods for executing
+ * blocks in different threads and creating
+ * NSThread objects with a block as entry point.
+ */
+@interface NSThread (BlockAdditions)
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
+/**
+ * Detaches a new thread with block as its entry point.
+ */
++ (void)detachNewThreadWithBlock: (GSThreadBlock)block;
+
+/**
+ * Initialises a NSThread object with block as the
+ * entry point.
+ */
+- (instancetype)initWithBlock: (GSThreadBlock)block;
+#endif // OS_API_VERSION
+
+@end
 
 /*
  * Notification Strings.
