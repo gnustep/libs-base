@@ -1,6 +1,7 @@
 #import <Foundation/NSObject.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSValue.h>
+#import <Foundation/NSNull.h>
 #import <Foundation/NSDictionary.h>
 #import <Foundation/NSUserDefaults.h>
 #import <Foundation/NSKeyValueObserving.h>
@@ -29,8 +30,6 @@
                         change:(NSDictionary *)change
                        context:(void *)context
 {
-  NSLog(@"KVO notification: keyPath: %@ ofObject: %@ change: %@ context: %p",
-        keyPath, object, change, context);
   called++;
   ASSIGN(lastKeyPath, keyPath);
   ASSIGN(lastObject, object);
@@ -96,8 +95,8 @@ main(int argc, char *argv[])
   PASS(obs->lastChange != nil, "change is not nil");
   PASS_EQUAL([obs->lastChange objectForKey:@"kind"],
              [NSNumber numberWithInteger:1], "value for 'kind' is 1");
-  PASS_EQUAL([obs->lastChange objectForKey:@"old"], nil,
-             "value for 'old' is nil");
+  PASS_EQUAL([obs->lastChange objectForKey:@"old"], [NSNull null],
+             "value for 'old' is [NSNull null]");
   PASS_EQUAL([obs->lastChange objectForKey:@"new"], value1,
              "value for 'new' is 'value1'");
 
@@ -109,8 +108,8 @@ main(int argc, char *argv[])
              [NSNumber numberWithInteger:1], "value for 'kind' is 1");
   PASS_EQUAL([obs->lastChange objectForKey:@"old"], value1,
              "value for 'old' is value1");
-  PASS_EQUAL([obs->lastChange objectForKey:@"new"], nil,
-             "value for 'new' is nil");
+  PASS_EQUAL([obs->lastChange objectForKey:@"new"], [NSNull null],
+             "value for 'new' is [NSNull null]");
 
   // Test setting two different values for the same key in application domain
   // and registration domain. When removing the value in the application domain,
@@ -122,8 +121,8 @@ main(int argc, char *argv[])
   PASS(obs->lastChange != nil, "change is not nil");
   PASS_EQUAL([obs->lastChange objectForKey:@"kind"],
              [NSNumber numberWithInteger:1], "value for 'kind' is 1");
-  PASS_EQUAL([obs->lastChange objectForKey:@"old"], nil,
-             "value for 'old' is nil");
+  PASS_EQUAL([obs->lastChange objectForKey:@"old"], [NSNull null],
+             "value for 'old' is [NSNull null]");
   PASS_EQUAL([obs->lastChange objectForKey:@"new"], value2,
              "value for 'new' is 'value2'");
 
@@ -132,7 +131,6 @@ main(int argc, char *argv[])
   // notification, when the entry is removed from the application domain.
   NSDictionary *registrationDict = [NSDictionary dictionaryWithObject:value2Alt
                                                                forKey:key2];
-  // -registerDefaults: does not emit a KVO notification
   [defs registerDefaults:registrationDict];
 
   [defs removeObjectForKey:key2];
@@ -142,7 +140,7 @@ main(int argc, char *argv[])
   PASS_EQUAL([obs->lastChange objectForKey:@"kind"],
              [NSNumber numberWithInteger:1], "value for 'kind' is 1");
   PASS_EQUAL([obs->lastChange objectForKey:@"old"], value2,
-             "value for 'old' is nil");
+             "value for 'old' is value2");
   // this must not be null in this case
   PASS_EQUAL([obs->lastChange objectForKey:@"new"], value2Alt,
              "value for 'new' is 'value2Alt'");
@@ -153,21 +151,15 @@ main(int argc, char *argv[])
   registrationDict = [NSDictionary dictionaryWithObject:value1 forKey:key1];
   [defs registerDefaults:registrationDict];
 
-  [defs setObject:value1 forKey:key1];
-  PASS(obs->called == 5, "KVO notification received");
-  PASS(obs->lastObject != nil, "object is not nil");
-  PASS(obs->lastChange != nil, "change is not nil");
-  PASS_EQUAL([obs->lastChange objectForKey:@"kind"],
-             [NSNumber numberWithInteger:1], "value for 'kind' is 1");
-  PASS_EQUAL([obs->lastChange objectForKey:@"old"], nil,
-             "value for 'old' is nil");
-  PASS_EQUAL([obs->lastChange objectForKey:@"new"], value1,
-             "value for 'new' is 'value1'");
+   // Does not emit a KVO notification as value is not changed
+  [defs setObject:value1 forKey:key1]; 
+  PASS(obs->called == 4,
+       "KVO notification was not emitted as other domain has the same entry");
 
   // Remove the entry from the application domain.
   [defs removeObjectForKey:key1];
-  PASS(obs->called == 5,
-       "KVO notification was not emitted when other domain has the same entry");
+  PASS(obs->called == 4,
+       "KVO notification was not emitted as other domain has the same entry");
 
   [defs removeObserver:obs forKeyPath:key1];
   [defs removeObserver:obs forKeyPath:key2];
