@@ -1519,12 +1519,17 @@ newLanguages(NSArray *oldNames)
       if (nil != pd)
 	{
       if ([pd setObject: nil forKey: defaultName])
+	{
+          id new;
+	  [self _changePersistentDomain: processName];
+	  new = [self objectForKey: defaultName];
+	  // Emit only a KVO notification when the value has actually changed,
+	  // meaning -objectForKey: would return a different value than before.
+	  if ([new hash] != [old hash])
 	    {
-        	id new;
-		[self _changePersistentDomain: processName];
-		new = [self objectForKey: defaultName];
-		[self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue: new];
+	      [self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue: new];
 	    }
+	}
       else {
         // We always notify observers of a change, even if the value
         // itself is unchanged.
@@ -1672,7 +1677,12 @@ static BOOL isPlistObject(id o)
           // superseded by GSPrimary or NSArgumentDomain
           new = [self objectForKey: defaultName];
           [self _changePersistentDomain: processName];
-          [self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue:new];
+	  
+	  // Emit only a KVO notification when the value has actually changed
+	  if ([new hash] != [old hash])
+	    {
+              [self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue:new];
+	    }
         }
       else
         {
