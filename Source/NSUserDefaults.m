@@ -1514,14 +1514,16 @@ newLanguages(NSArray *oldNames)
   NS_DURING
     {
       GSPersistentDomain	*pd = [_persDomains objectForKey: processName];
-      id old = [pd objectForKey: defaultName];
+      id old = [self objectForKey: defaultName];
 
       if (nil != pd)
 	{
           if ([pd setObject: nil forKey: defaultName])
 	    {
+        id new;
 	      [self _changePersistentDomain: processName];
-        [self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue:nil];
+        new = [self objectForKey: defaultName];
+        [self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue: new];
 	    } else {
         // We always notify observers of a change, even if the value
         // itself is unchanged.
