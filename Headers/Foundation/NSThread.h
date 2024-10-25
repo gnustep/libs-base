@@ -45,7 +45,7 @@ extern "C" {
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_12, GS_API_LATEST)
 #import <GNUstepBase/GSBlocks.h>
-DEFINE_BLOCK_TYPE(GSThreadBlock, void, void);
+DEFINE_BLOCK_TYPE_NO_ARGS(GSThreadBlock, void);
 #endif  
 
 /**
