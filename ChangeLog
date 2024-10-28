@@ -1,3 +1,9 @@
+2024-10-28 Hugo Melder <hugo@algoriddim.com>
+	* Source/NSString.m:
+	-commonPrefixWithString:options: returns nil when string supplied as
+	first argument is nil. On macOS, the empty string is returned instead.
+	Align implementation with macOS.
+
 2024-10-13 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSFileManager.m: Create an NSError object when we fail to
