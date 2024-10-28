@@ -169,17 +169,15 @@ static id
 _getBoxedStruct(struct _KVCCacheSlot *slot, id obj)
 {
   NSInvocation      *inv;
-  NSMethodSignature *sig;
-  size_t             retSize;
-  const char *types = slot->types;
+  const char	    *types = slot->types;
+  NSMethodSignature *sig = [NSMethodSignature signatureWithObjCTypes: types];
+  size_t            retSize = [sig methodReturnLength];
+  char 		    ret[retSize];
 
-  sig = [NSMethodSignature signatureWithObjCTypes:types];
-  inv = [NSInvocation invocationWithMethodSignature:sig];
-  [inv setSelector:slot->selector];
-  [inv invokeWithTarget:obj];
-  retSize = [sig methodReturnLength];
-  char ret[retSize];
-  [inv getReturnValue:ret];
+  inv = [NSInvocation invocationWithMethodSignature: sig];
+  [inv setSelector: slot->selector];
+  [inv invokeWithTarget: obj];
+  [inv getReturnValue: ret];
 
   return [NSValue valueWithBytes:ret objCType:[sig methodReturnType]];
 }
