@@ -35,5 +35,7 @@ int main()
   PASS_EQUAL(result, @"abc", "common prefix of 'abc' and 'abcx' is 'abc'");
 
   [arp drain];
+
+  return 0;
 }
 
