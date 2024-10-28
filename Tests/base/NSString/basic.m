@@ -144,6 +144,9 @@ int main()
   PASS([@"" isEqual: nil] == NO, "an empty string is not null");
   PASS([@"" isEqualToString: nil] == NO, "an empty string is not null");
 
+  s = [@"test" commonPrefixWithString: nil options: 0];
+  PASS_EQUAL(s, @"", "Common prefix of some string with nil is empty string");
+
   [arp release]; arp = nil;
   return 0;
 }
