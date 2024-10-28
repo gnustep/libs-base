@@ -1,32 +1,32 @@
 /**
-   NSURLSession.m
-
-   Copyright (C) 2017-2024 Free Software Foundation, Inc.
-
-   Written by: Hugo Melder <hugo@algoriddim.com>
-   Date: May 2024
-   Author: Hugo Melder <hugo@algoriddim.com>
-
-   This file is part of GNUStep-base
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   If you are interested in a warranty or support for this source code,
-   contact Scott Christley <scottc@net-community.com> for more information.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
-*/
+ * NSURLSession.m
+ *
+ * Copyright (C) 2017-2024 Free Software Foundation, Inc.
+ *
+ * Written by: Hugo Melder <hugo@algoriddim.com>
+ * Date: May 2024
+ * Author: Hugo Melder <hugo@algoriddim.com>
+ *
+ * This file is part of GNUStep-base
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * If you are interested in a warranty or support for this source code,
+ * contact Scott Christley <scottc@net-community.com> for more information.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free
+ * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110 USA.
+ */
 
 #import "NSURLSessionPrivate.h"
 #import "NSURLSessionTaskPrivate.h"
@@ -42,7 +42,7 @@
 #import "GSPThread.h"                        /* For nextSessionIdentifier() */
 #import "GSDispatch.h"                       /* For dispatch compatibility */
 
-NSString *GS_NSURLSESSION_DEBUG_KEY = @"NSURLSession";
+NSString * GS_NSURLSESSION_DEBUG_KEY = @"NSURLSession";
 
 /* We need a globably unique label for the NSURLSession workQueues.
  */
@@ -63,15 +63,18 @@ nextSessionIdentifier()
 
 /* CURLMOPT_TIMERFUNCTION: Callback to receive timer requests from libcurl */
 static int
-timer_callback(CURLM *multi,      /* multi handle */
-               long   timeout_ms, /* timeout in number of ms */
-               void  *clientp)     /* private callback pointer */
+timer_callback(CURLM * multi,      /* multi handle */
+               long timeout_ms,   /* timeout in number of ms */
+               void * clientp)     /* private callback pointer */
 {
-  NSURLSession *session = (NSURLSession *) clientp;
+  NSURLSession * session = (NSURLSession *)clientp;
 
-  NSDebugLLog(GS_NSURLSESSION_DEBUG_KEY,
-              @"Timer Callback for Session %@: multi=%p timeout_ms=%ld",
-              session, multi, timeout_ms);
+  NSDebugLLog(
+    GS_NSURLSESSION_DEBUG_KEY,
+    @"Timer Callback for Session %@: multi=%p timeout_ms=%ld",
+    session,
+    multi,
+    timeout_ms);
 
   /*
    * if timeout_ms is -1, just delete the timer
@@ -82,42 +85,46 @@ timer_callback(CURLM *multi,      /* multi handle */
   if (timeout_ms == -1)
     [session _suspendTimer];
   else
-    [session _setTimer:timeout_ms];
+    [session _setTimer: timeout_ms];
   return 0;
 }
 
 /* CURLMOPT_SOCKETFUNCTION: libcurl requests socket monitoring using this
  * callback */
 static int
-socket_callback(CURL         *easy,    /* easy handle */
+socket_callback(CURL * easy,           /* easy handle */
                 curl_socket_t s,       /* socket */
-                int           what,    /* describes the socket */
-                void         *clientp, /* private callback pointer */
-                void         *socketp)         /* private socket pointer */
+                int what,              /* describes the socket */
+                void * clientp,        /* private callback pointer */
+                void * socketp)                /* private socket pointer */
 {
-  NSURLSession *session = clientp;
-  const char   *whatstr[] = {"none", "IN", "OUT", "INOUT", "REMOVE"};
+  NSURLSession * session = clientp;
+  const char * whatstr[] = { "none", "IN", "OUT", "INOUT", "REMOVE" };
 
-  NSDebugLLog(GS_NSURLSESSION_DEBUG_KEY,
-              @"Socket Callback for Session %@: socket=%d easy:%p what=%s",
-              session, s, easy, whatstr[what]);
+  NSDebugLLog(
+    GS_NSURLSESSION_DEBUG_KEY,
+    @"Socket Callback for Session %@: socket=%d easy:%p what=%s",
+    session,
+    s,
+    easy,
+    whatstr[what]);
 
   if (NULL == socketp)
     {
-      return [session _addSocket:s easyHandle:easy what:what];
+      return [session _addSocket: s easyHandle: easy what: what];
     }
   else if (CURL_POLL_REMOVE == what)
     {
-      [session _removeSocket:(struct SourceInfo *) socketp];
+      [session _removeSocket: (struct SourceInfo *)socketp];
       return 0;
     }
   else
     {
-      return [session _setSocket:s
-                         sources:(struct SourceInfo *) socketp
-                            what:what];
+      return [session _setSocket: s
+                         sources: (struct SourceInfo *)socketp
+                            what: what];
     }
-}
+} /* socket_callback */
 
 #pragma mark - NSURLSession Implementation
 
@@ -130,7 +137,7 @@ socket_callback(CURL         *easy,    /* easy handle */
    * Event creation and deletion is driven by the various callbacks
    * registered during initialisation of the multi handle.
    */
-  CURLM *_multiHandle;
+  CURLM * _multiHandle;
   /* A serial work queue for timer and socket sources
    * created on libcurl's behalf.
    */
@@ -165,15 +172,15 @@ socket_callback(CURL         *easy,    /* easy handle */
 
   /* List of active tasks. Access is synchronised via the _workQueue.
    */
-  NSMutableArray<NSURLSessionTask *> *_tasks;
+  NSMutableArray<NSURLSessionTask *> * _tasks;
 
   /* PEM encoded blob of one or more certificates.
    *
    * See GSCACertificateFilePath in NSUserDefaults.h
    */
-  NSData *_certificateBlob;
+  NSData * _certificateBlob;
   /* Path to PEM encoded CA certificate file. */
-  NSString *_certificatePath;
+  NSString * _certificatePath;
 
   /* The task identifier for the next task
    */
@@ -183,59 +190,62 @@ socket_callback(CURL         *easy,    /* easy handle */
   gs_mutex_t _taskLock;
 }
 
-+ (NSURLSession *)sharedSession
++ (NSURLSession *) sharedSession
 {
-  static NSURLSession   *session = nil;
+  static NSURLSession * session = nil;
   static dispatch_once_t predicate;
 
-  dispatch_once(&predicate, ^{
-    NSURLSessionConfiguration *configuration =
+  dispatch_once(
+    &predicate,
+    ^{
+    NSURLSessionConfiguration * configuration =
       [NSURLSessionConfiguration defaultSessionConfiguration];
-    session = [[NSURLSession alloc] initWithConfiguration:configuration
-                                                 delegate:nil
-                                            delegateQueue:nil];
-    [session _setSharedSession:YES];
+    session = [[NSURLSession alloc] initWithConfiguration: configuration
+                                                 delegate: nil
+                                            delegateQueue: nil];
+    [session _setSharedSession: YES];
   });
 
   return session;
 }
 
-+ (NSURLSession *)sessionWithConfiguration:
++ (NSURLSession *) sessionWithConfiguration:
   (NSURLSessionConfiguration *)configuration
 {
-  NSURLSession *session;
+  NSURLSession * session;
 
-  session = [[NSURLSession alloc] initWithConfiguration:configuration
-                                               delegate:nil
-                                          delegateQueue:nil];
+  session = [[NSURLSession alloc] initWithConfiguration: configuration
+                                               delegate: nil
+                                          delegateQueue: nil];
 
   return AUTORELEASE(session);
 }
 
-+ (NSURLSession *)sessionWithConfiguration:
-                    (NSURLSessionConfiguration *)configuration
-                                  delegate:(id<NSURLSessionDelegate>)delegate
-                             delegateQueue:(NSOperationQueue *)queue
++ (NSURLSession *) sessionWithConfiguration:
+  (NSURLSessionConfiguration *)configuration
+  delegate: (id<NSURLSessionDelegate>)delegate
+  delegateQueue: (NSOperationQueue *)queue
 {
-  NSURLSession *session;
+  NSURLSession * session;
 
-  session = [[NSURLSession alloc] initWithConfiguration:configuration
-                                               delegate:delegate
-                                          delegateQueue:queue];
+  session = [[NSURLSession alloc] initWithConfiguration: configuration
+                                               delegate: delegate
+                                          delegateQueue: queue];
 
   return AUTORELEASE(session);
 }
 
-- (instancetype)initWithConfiguration:(NSURLSessionConfiguration *)configuration
-                             delegate:(id<NSURLSessionDelegate>)delegate
-                        delegateQueue:(NSOperationQueue *)queue
+- (instancetype) initWithConfiguration: (NSURLSessionConfiguration *)
+  configuration
+  delegate: (id<NSURLSessionDelegate>)delegate
+  delegateQueue: (NSOperationQueue *)queue
 {
   self = [super init];
 
   if (self)
     {
-      NSString  *queueLabel;
-      NSString  *caPath;
+      NSString * queueLabel;
+      NSString * caPath;
       NSUInteger sessionIdentifier;
 
       /* To avoid a retain cycle in blocks referencing this object */
@@ -243,8 +253,8 @@ socket_callback(CURL         *easy,    /* easy handle */
 
       sessionIdentifier = nextSessionIdentifier();
       queueLabel = [[NSString alloc]
-        initWithFormat:@"org.gnustep.NSURLSession.WorkQueue%ld",
-                       sessionIdentifier];
+                    initWithFormat: @"org.gnustep.NSURLSession.WorkQueue%ld",
+                    sessionIdentifier];
       ASSIGN(_delegate, delegate);
       ASSIGNCOPY(_configuration, configuration);
 
@@ -266,17 +276,24 @@ socket_callback(CURL         *easy,    /* easy handle */
           return nil;
         }
 
-      dispatch_source_set_cancel_handler(_timer, ^{
-        dispatch_release(this->_timer);
-      });
+      dispatch_source_set_cancel_handler(
+        _timer,
+        ^{
+      dispatch_release(this->_timer);
+    });
 
       // Called after timeout set by libcurl is reached
-      dispatch_source_set_event_handler(_timer, ^{
-        // TODO: Check for return values
-        curl_multi_socket_action(this->_multiHandle, CURL_SOCKET_TIMEOUT, 0,
-                                 &this->_stillRunning);
-        [this _checkForCompletion];
-      });
+      dispatch_source_set_event_handler(
+        _timer,
+        ^{
+      // TODO: Check for return values
+      curl_multi_socket_action(
+        this->_multiHandle,
+        CURL_SOCKET_TIMEOUT,
+        0,
+        &this->_stillRunning);
+      [this _checkForCompletion];
+    });
 
       /* Use the provided delegateQueue if available */
       if (queue)
@@ -289,7 +306,7 @@ socket_callback(CURL         *easy,    /* easy handle */
            * delegate callbacks and is orthogonal to the workQueue.
            */
           _delegateQueue = [[NSOperationQueue alloc] init];
-          [_delegateQueue setMaxConcurrentOperationCount:1];
+          [_delegateQueue setMaxConcurrentOperationCount: 1];
         }
 
       /* libcurl Configuration */
@@ -304,25 +321,28 @@ socket_callback(CURL         *easy,    /* easy handle */
       curl_multi_setopt(_multiHandle, CURLMOPT_TIMERDATA, self);
 
       // Configure Multi Handle
-      curl_multi_setopt(_multiHandle, CURLMOPT_MAX_HOST_CONNECTIONS,
-                        [_configuration HTTPMaximumConnectionsPerHost]);
+      curl_multi_setopt(
+        _multiHandle,
+        CURLMOPT_MAX_HOST_CONNECTIONS,
+        [_configuration HTTPMaximumConnectionsPerHost]);
 
       /* Check if GSCACertificateFilePath is set */
 
       caPath = [[NSUserDefaults standardUserDefaults]
-        objectForKey:GSCACertificateFilePath];
+                objectForKey: GSCACertificateFilePath];
       if (caPath)
         {
           NSDebugMLLog(
             GS_NSURLSESSION_DEBUG_KEY,
             @"Found a GSCACertificateFilePath entry in UserDefaults");
 
-          _certificateBlob = [[NSData alloc] initWithContentsOfFile:caPath];
+          _certificateBlob = [[NSData alloc] initWithContentsOfFile: caPath];
           if (!_certificateBlob)
             {
-              NSDebugMLLog(GS_NSURLSESSION_DEBUG_KEY,
-                           @"Could not open file at GSCACertificateFilePath=%@",
-                           caPath);
+              NSDebugMLLog(
+                GS_NSURLSESSION_DEBUG_KEY,
+                @"Could not open file at GSCACertificateFilePath=%@",
+                caPath);
             }
           else
             {
@@ -332,26 +352,26 @@ socket_callback(CURL         *easy,    /* easy handle */
     }
 
   return self;
-}
+} /* initWithConfiguration */
 
 #pragma mark - Private Methods
 
-- (NSData *)_certificateBlob
+- (NSData *) _certificateBlob
 {
   return _certificateBlob;
 }
 
-- (NSString *)_certificatePath
+- (NSString *) _certificatePath
 {
   return _certificatePath;
 }
 
-- (void)_setSharedSession:(BOOL)flag
+- (void) _setSharedSession: (BOOL)flag
 {
   _isSharedSession = flag;
 }
 
-- (NSInteger)_nextTaskIdentifier
+- (NSInteger) _nextTaskIdentifier
 {
   NSInteger identifier;
 
@@ -363,36 +383,44 @@ socket_callback(CURL         *easy,    /* easy handle */
   return identifier;
 }
 
-- (void)_resumeTask:(NSURLSessionTask *)task
+- (void) _resumeTask: (NSURLSessionTask *)task
 {
-  dispatch_async(_workQueue, ^{
+  dispatch_async(
+    _workQueue,
+    ^{
     CURLMcode code;
-    CURLM    *multiHandle = _multiHandle;
+    CURLM * multiHandle = _multiHandle;
 
     code = curl_multi_add_handle(multiHandle, [task _easyHandle]);
 
-    NSDebugMLLog(GS_NSURLSESSION_DEBUG_KEY,
-                 @"Added task=%@ easy=%p to multi=%p with return value %d",
-                 task, [task _easyHandle], multiHandle, code);
+    NSDebugMLLog(
+      GS_NSURLSESSION_DEBUG_KEY,
+      @"Added task=%@ easy=%p to multi=%p with return value %d",
+      task,
+      [task _easyHandle],
+      multiHandle,
+      code);
   });
 }
 
-- (void)_addHandle:(CURL *)easy
+- (void) _addHandle: (CURL *)easy
 {
   curl_multi_add_handle(_multiHandle, easy);
 }
-- (void)_removeHandle:(CURL *)easy
+- (void) _removeHandle: (CURL *)easy
 {
   curl_multi_remove_handle(_multiHandle, easy);
 }
 
-- (void)_setTimer:(NSInteger)timeoutMs
+- (void) _setTimer: (NSInteger)timeoutMs
 {
-  dispatch_source_set_timer(_timer,
-                            dispatch_time(DISPATCH_TIME_NOW,
-                                          timeoutMs * NSEC_PER_MSEC),
-                            DISPATCH_TIME_FOREVER, // don't repeat
-                            timeoutMs * 0.05);     // 5% leeway
+  dispatch_source_set_timer(
+    _timer,
+    dispatch_time(
+      DISPATCH_TIME_NOW,
+      timeoutMs * NSEC_PER_MSEC),
+    DISPATCH_TIME_FOREVER,                         // don't repeat
+    timeoutMs * 0.05);                             // 5% leeway
 
   if (_isTimerSuspended)
     {
@@ -401,7 +429,7 @@ socket_callback(CURL         *easy,    /* easy handle */
     }
 }
 
-- (void)_suspendTimer
+- (void) _suspendTimer
 {
   if (!_isTimerSuspended)
     {
@@ -410,19 +438,21 @@ socket_callback(CURL         *easy,    /* easy handle */
     }
 }
 
-- (dispatch_queue_t)_workQueue
+- (dispatch_queue_t) _workQueue
 {
   return _workQueue;
 }
 
 /* This method is called when receiving CURL_POLL_REMOVE in socket_callback.
  * We cancel all active dispatch sources and release the SourceInfo structure
- * previously allocated in _addSocket:easyHandle:what:
+ * previously allocated in _addSocket: easyHandle: what:
  */
-- (void)_removeSocket:(struct SourceInfo *)sources
+- (void) _removeSocket: (struct SourceInfo *)sources
 {
-  NSDebugMLLog(GS_NSURLSESSION_DEBUG_KEY, @"Remove socket with SourceInfo: %p",
-               sources);
+  NSDebugMLLog(
+    GS_NSURLSESSION_DEBUG_KEY,
+    @"Remove socket with SourceInfo: %p",
+    sources);
 
   if (sources->readSocket)
     {
@@ -442,23 +472,28 @@ socket_callback(CURL         *easy,    /* easy handle */
  * (socketp) in socket_callback is NULL, meaning we first need to
  * allocate our SourceInfo structure.
  */
-- (int)_addSocket:(curl_socket_t)socket easyHandle:(CURL *)easy what:(int)what
+- (int) _addSocket: (curl_socket_t)socket easyHandle: (CURL *)easy what: (int)
+  what
 {
-  struct SourceInfo *info;
+  struct SourceInfo * info;
 
-  NSDebugMLLog(GS_NSURLSESSION_DEBUG_KEY, @"Add Socket: %d easy: %p", socket,
-               easy);
+  NSDebugMLLog(
+    GS_NSURLSESSION_DEBUG_KEY,
+    @"Add Socket: %d easy: %p",
+    socket,
+    easy);
 
   /* Allocate a new SourceInfo structure on the heap */
   if (!(info = calloc(1, sizeof(struct SourceInfo))))
     {
-      NSDebugMLLog(GS_NSURLSESSION_DEBUG_KEY,
-                   @"Failed to allocate SourceInfo structure!");
+      NSDebugMLLog(
+        GS_NSURLSESSION_DEBUG_KEY,
+        @"Failed to allocate SourceInfo structure!");
       return -1;
     }
 
   /* We can now configure the dispatch sources */
-  if (-1 == [self _setSocket:socket sources:info what:what])
+  if (-1 == [self _setSocket: socket sources: info what: what])
     {
       NSDebugMLLog(GS_NSURLSESSION_DEBUG_KEY, @"Failed to setup sockets!");
       return -1;
@@ -466,11 +501,11 @@ socket_callback(CURL         *easy,    /* easy handle */
   /* Assign the SourceInfo for access in subsequent socket_callback calls */
   curl_multi_assign(_multiHandle, socket, info);
   return 0;
-}
+} /* _addSocket */
 
-- (int)_setSocket:(curl_socket_t)socket
-          sources:(struct SourceInfo *)sources
-             what:(int)what
+- (int) _setSocket: (curl_socket_t)socket
+  sources: (struct SourceInfo *)sources
+  what: (int)what
 {
   /* Create a Reading Dispatch Source that listens on socket */
   if (CURL_POLL_IN == what || CURL_POLL_INOUT == what)
@@ -486,30 +521,38 @@ socket_callback(CURL         *easy,    /* easy handle */
       NSDebugMLLog(
         GS_NSURLSESSION_DEBUG_KEY,
         @"Creating a reading dispatch source: socket=%d sources=%p what=%d",
-        socket, sources, what);
+        socket,
+        sources,
+        what);
 
-      sources->readSocket = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ,
-                                                   socket, 0, _workQueue);
+      sources->readSocket = dispatch_source_create(
+        DISPATCH_SOURCE_TYPE_READ,
+        socket,
+        0,
+        _workQueue);
       if (!sources->readSocket)
         {
-          NSDebugMLLog(GS_NSURLSESSION_DEBUG_KEY,
-                       @"Unable to create dispatch source for read socket!");
+          NSDebugMLLog(
+            GS_NSURLSESSION_DEBUG_KEY,
+            @"Unable to create dispatch source for read socket!");
           return -1;
         }
-      dispatch_source_set_event_handler(sources->readSocket, ^{
-        int action;
+      dispatch_source_set_event_handler(
+        sources->readSocket,
+        ^{
+      int action;
 
-        action = CURL_CSELECT_IN;
-        curl_multi_socket_action(_multiHandle, socket, action, &_stillRunning);
+      action = CURL_CSELECT_IN;
+      curl_multi_socket_action(_multiHandle, socket, action, &_stillRunning);
 
-        /* Check if the transfer is complete */
-        [self _checkForCompletion];
-        /* When _stillRunning reaches zero, all transfers are complete/done */
-        if (_stillRunning <= 0)
-          {
-            [self _suspendTimer];
-          }
-      });
+      /* Check if the transfer is complete */
+      [self _checkForCompletion];
+      /* When _stillRunning reaches zero, all transfers are complete/done */
+      if (_stillRunning <= 0)
+      {
+        [self _suspendTimer];
+      }
+    });
 
       dispatch_resume(sources->readSocket);
     }
@@ -528,51 +571,59 @@ socket_callback(CURL         *easy,    /* easy handle */
       NSDebugMLLog(
         GS_NSURLSESSION_DEBUG_KEY,
         @"Creating a writing dispatch source: socket=%d sources=%p what=%d",
-        socket, sources, what);
+        socket,
+        sources,
+        what);
 
-      sources->writeSocket = dispatch_source_create(DISPATCH_SOURCE_TYPE_WRITE,
-                                                    socket, 0, _workQueue);
+      sources->writeSocket = dispatch_source_create(
+        DISPATCH_SOURCE_TYPE_WRITE,
+        socket,
+        0,
+        _workQueue);
       if (!sources->writeSocket)
         {
-          NSDebugMLLog(GS_NSURLSESSION_DEBUG_KEY,
-                       @"Unable to create dispatch source for write socket!");
+          NSDebugMLLog(
+            GS_NSURLSESSION_DEBUG_KEY,
+            @"Unable to create dispatch source for write socket!");
           return -1;
         }
 
-      dispatch_source_set_event_handler(sources->writeSocket, ^{
-        int action;
+      dispatch_source_set_event_handler(
+        sources->writeSocket,
+        ^{
+      int action;
 
-        action = CURL_CSELECT_OUT;
-        curl_multi_socket_action(_multiHandle, socket, action, &_stillRunning);
+      action = CURL_CSELECT_OUT;
+      curl_multi_socket_action(_multiHandle, socket, action, &_stillRunning);
 
-        /* Check if the tranfer is complete */
-        [self _checkForCompletion];
+      /* Check if the tranfer is complete */
+      [self _checkForCompletion];
 
-        /* When _stillRunning reaches zero, all transfers are complete/done */
-        if (_stillRunning <= 0)
-          {
-            [self _suspendTimer];
-          }
-      });
+      /* When _stillRunning reaches zero, all transfers are complete/done */
+      if (_stillRunning <= 0)
+      {
+        [self _suspendTimer];
+      }
+    });
 
       dispatch_resume(sources->writeSocket);
     }
 
   return 0;
-}
+} /* _setSocket */
 
 /* Called by a socket event handler or by a firing timer set by timer_callback.
  *
  * The socket event handler is executed on the _workQueue.
  */
-- (void)_checkForCompletion
+- (void) _checkForCompletion
 {
-  CURLMsg          *msg;
-  int               msgs_left;
-  CURL             *easyHandle;
-  CURLcode          res;
-  char             *eff_url = NULL;
-  NSURLSessionTask *task = nil;
+  CURLMsg * msg;
+  int msgs_left;
+  CURL * easyHandle;
+  CURLcode res;
+  char * eff_url = NULL;
+  NSURLSessionTask * task = nil;
 
   /* Ask the multi handle if there are any messages from the individual
    * transfers.
@@ -592,10 +643,11 @@ socket_callback(CURL         *easy,    /* easy handle */
           rc = curl_easy_getinfo(easyHandle, CURLINFO_PRIVATE, &task);
           if (CURLE_OK != rc)
             {
-              NSDebugMLLog(GS_NSURLSESSION_DEBUG_KEY,
-                           @"Failed to retrieve task from easy handle %p using "
-                           @"CURLINFO_PRIVATE",
-                           easyHandle);
+              NSDebugMLLog(
+                GS_NSURLSESSION_DEBUG_KEY,
+                @"Failed to retrieve task from easy handle %p using "
+                @"CURLINFO_PRIVATE",
+                easyHandle);
             }
           rc = curl_easy_getinfo(easyHandle, CURLINFO_EFFECTIVE_URL, &eff_url);
           if (CURLE_OK != rc)
@@ -607,10 +659,13 @@ socket_callback(CURL         *easy,    /* easy handle */
                 easyHandle);
             }
 
-          NSDebugMLLog(GS_NSURLSESSION_DEBUG_KEY,
-                       @"Transfer finished for Task %@ with effective url %s "
-                       @"and CURLcode: %s",
-                       task, eff_url, curl_easy_strerror(res));
+          NSDebugMLLog(
+            GS_NSURLSESSION_DEBUG_KEY,
+            @"Transfer finished for Task %@ with effective url %s "
+            @"and CURLcode: %s",
+            task,
+            eff_url,
+            curl_easy_strerror(res));
 
           curl_multi_remove_handle(_multiHandle, easyHandle);
 
@@ -619,296 +674,308 @@ socket_callback(CURL         *easy,    /* easy handle */
           RETAIN(self);
 
           RETAIN(task);
-          [_tasks removeObject:task];
-          [task _transferFinishedWithCode:res];
+          [_tasks removeObject: task];
+          [task _transferFinishedWithCode: res];
           RELEASE(task);
 
-          /* Send URLSession:didBecomeInvalidWithError: to delegate if this
+          /* Send URLSession: didBecomeInvalidWithError: to delegate if this
            * session was invalidated */
           if (_invalidated && [_tasks count] == 0 &&
-              [_delegate respondsToSelector:@selector(URLSession:
-                                              didBecomeInvalidWithError:)])
+              [_delegate respondsToSelector: @selector(URLSession:
+                                                       didBecomeInvalidWithError
+                                                       :)])
             {
               [_delegateQueue addOperationWithBlock:^{
-                /* We only support explicit Invalidation for now. Error is set
-                 * to nil in this case. */
-                [_delegate URLSession:self didBecomeInvalidWithError:nil];
-              }];
+                 /* We only support explicit Invalidation for now. Error is set
+                  * to nil in this case. */
+                 [_delegate URLSession: self didBecomeInvalidWithError: nil];
+               }];
             }
 
           RELEASE(self);
         }
     }
-}
+} /* _checkForCompletion */
 
 /* Adds task to _tasks and updates the delegate */
-- (void)_didCreateTask:(NSURLSessionTask *)task
+- (void) _didCreateTask: (NSURLSessionTask *)task
 {
-  dispatch_async(_workQueue, ^{
-    [_tasks addObject:task];
+  dispatch_async(
+    _workQueue,
+    ^{
+    [_tasks addObject: task];
   });
 
-  if ([_delegate respondsToSelector:@selector(URLSession:didCreateTask:)])
+  if ([_delegate respondsToSelector: @selector(URLSession:didCreateTask:)])
     {
       [_delegateQueue addOperationWithBlock:^{
-        [(id<NSURLSessionTaskDelegate>) _delegate URLSession:self
-                                               didCreateTask:task];
-      }];
+         [(id<NSURLSessionTaskDelegate>) _delegate URLSession: self
+                                                didCreateTask  : task];
+       }];
     }
 }
 
 #pragma mark - Public API
 
-- (void)finishTasksAndInvalidate
+- (void) finishTasksAndInvalidate
 {
   if (_isSharedSession)
     {
       return;
     }
 
-  dispatch_async(_workQueue, ^{
+  dispatch_async(
+    _workQueue,
+    ^{
     _invalidated = YES;
   });
 }
 
-- (void)invalidateAndCancel
+- (void) invalidateAndCancel
 {
   if (_isSharedSession)
     {
       return;
     }
 
-  dispatch_async(_workQueue, ^{
+  dispatch_async(
+    _workQueue,
+    ^{
     _invalidated = YES;
 
     /* Cancel all tasks */
-    for (NSURLSessionTask *task in _tasks)
-      {
-        [task cancel];
-      }
+    for (NSURLSessionTask * task in _tasks)
+    {
+      [task cancel];
+    }
   });
 }
 
-- (NSURLSessionDataTask *)dataTaskWithRequest:(NSURLRequest *)request
+- (NSURLSessionDataTask *) dataTaskWithRequest: (NSURLRequest *)request
 {
-  NSURLSessionDataTask *task;
-  NSInteger             identifier;
+  NSURLSessionDataTask * task;
+  NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionDataTask alloc] initWithSession:self
-                                               request:request
-                                        taskIdentifier:identifier];
+  task = [[NSURLSessionDataTask alloc] initWithSession: self
+                                               request: request
+                                        taskIdentifier: identifier];
 
   /* We use the session delegate by default. NSURLSessionTaskDelegate
    * is a purely optional protocol.
    */
-  [task setDelegate:(id<NSURLSessionTaskDelegate>) _delegate];
+  [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
 
-  [task _setProperties:GSURLSessionUpdatesDelegate];
+  [task _setProperties: GSURLSessionUpdatesDelegate];
 
-  [self _didCreateTask:task];
+  [self _didCreateTask: task];
 
   return AUTORELEASE(task);
 }
 
-- (NSURLSessionDataTask *)dataTaskWithURL:(NSURL *)url
+- (NSURLSessionDataTask *) dataTaskWithURL: (NSURL *)url
 {
-  NSURLRequest *request;
+  NSURLRequest * request;
 
-  request = [NSURLRequest requestWithURL:url];
-  return [self dataTaskWithRequest:request];
+  request = [NSURLRequest requestWithURL: url];
+  return [self dataTaskWithRequest: request];
 }
 
-- (NSURLSessionUploadTask *)uploadTaskWithRequest:(NSURLRequest *)request
-                                         fromFile:(NSURL *)fileURL
+- (NSURLSessionUploadTask *) uploadTaskWithRequest: (NSURLRequest *)request
+  fromFile: (NSURL *)fileURL
 {
-  NSURLSessionUploadTask *task;
-  NSInputStream          *stream;
-  NSInteger               identifier;
+  NSURLSessionUploadTask * task;
+  NSInputStream * stream;
+  NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  stream = [NSInputStream inputStreamWithURL:fileURL];
-  task = [[NSURLSessionUploadTask alloc] initWithSession:self
-                                                 request:request
-                                          taskIdentifier:identifier];
+  stream = [NSInputStream inputStreamWithURL: fileURL];
+  task = [[NSURLSessionUploadTask alloc] initWithSession: self
+                                                 request: request
+                                          taskIdentifier: identifier];
 
   /* We use the session delegate by default. NSURLSessionTaskDelegate
    * is a purely optional protocol.
    */
-  [task setDelegate:(id<NSURLSessionTaskDelegate>) _delegate];
+  [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
   [task
-    _setProperties:GSURLSessionUpdatesDelegate | GSURLSessionHasInputStream];
-  [task _setBodyStream:stream];
-  [task _enableUploadWithSize:0];
+   _setProperties: GSURLSessionUpdatesDelegate | GSURLSessionHasInputStream];
+  [task _setBodyStream: stream];
+  [task _enableUploadWithSize: 0];
 
-  [self _didCreateTask:task];
+  [self _didCreateTask: task];
 
   return AUTORELEASE(task);
-}
+} /* uploadTaskWithRequest */
 
-- (NSURLSessionUploadTask *)uploadTaskWithRequest:(NSURLRequest *)request
-                                         fromData:(NSData *)bodyData
+- (NSURLSessionUploadTask *) uploadTaskWithRequest: (NSURLRequest *)request
+  fromData: (NSData *)bodyData
 {
-  NSURLSessionUploadTask *task;
-  NSInteger               identifier;
+  NSURLSessionUploadTask * task;
+  NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionUploadTask alloc] initWithSession:self
-                                                 request:request
-                                          taskIdentifier:identifier];
+  task = [[NSURLSessionUploadTask alloc] initWithSession: self
+                                                 request: request
+                                          taskIdentifier: identifier];
 
   /* We use the session delegate by default. NSURLSessionTaskDelegate
    * is a purely optional protocol.
    */
-  [task setDelegate:(id<NSURLSessionTaskDelegate>) _delegate];
-  [task _setProperties:GSURLSessionUpdatesDelegate];
-  [task _enableUploadWithData:bodyData];
+  [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
+  [task _setProperties: GSURLSessionUpdatesDelegate];
+  [task _enableUploadWithData: bodyData];
 
-  [self _didCreateTask:task];
+  [self _didCreateTask: task];
 
   return AUTORELEASE(task);
 }
 
-- (NSURLSessionUploadTask *)uploadTaskWithStreamedRequest:
+- (NSURLSessionUploadTask *) uploadTaskWithStreamedRequest:
   (NSURLRequest *)request
 {
-  NSURLSessionUploadTask *task;
-  NSInteger               identifier;
+  NSURLSessionUploadTask * task;
+  NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionUploadTask alloc] initWithSession:self
-                                                 request:request
-                                          taskIdentifier:identifier];
+  task = [[NSURLSessionUploadTask alloc] initWithSession: self
+                                                 request: request
+                                          taskIdentifier: identifier];
 
   /* We use the session delegate by default. NSURLSessionTaskDelegate
    * is a purely optional protocol.
    */
-  [task setDelegate:(id<NSURLSessionTaskDelegate>) _delegate];
+  [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
   [task
-    _setProperties:GSURLSessionUpdatesDelegate | GSURLSessionHasInputStream];
-  [task _enableUploadWithSize:0];
+   _setProperties: GSURLSessionUpdatesDelegate | GSURLSessionHasInputStream];
+  [task _enableUploadWithSize: 0];
 
-  [self _didCreateTask:task];
+  [self _didCreateTask: task];
 
   return AUTORELEASE(task);
 }
 
-- (NSURLSessionDownloadTask *)downloadTaskWithRequest:(NSURLRequest *)request
+- (NSURLSessionDownloadTask *) downloadTaskWithRequest: (NSURLRequest *)request
 {
-  NSURLSessionDownloadTask *task;
-  NSInteger                 identifier;
+  NSURLSessionDownloadTask * task;
+  NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionDownloadTask alloc] initWithSession:self
-                                                   request:request
-                                            taskIdentifier:identifier];
+  task = [[NSURLSessionDownloadTask alloc] initWithSession: self
+                                                   request: request
+                                            taskIdentifier: identifier];
 
   /* We use the session delegate by default. NSURLSessionTaskDelegate
    * is a purely optional protocol.
    */
-  [task setDelegate:(id<NSURLSessionTaskDelegate>) _delegate];
+  [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
   [task
-    _setProperties:GSURLSessionWritesDataToFile | GSURLSessionUpdatesDelegate];
+   _setProperties: GSURLSessionWritesDataToFile | GSURLSessionUpdatesDelegate];
 
-  [self _didCreateTask:task];
+  [self _didCreateTask: task];
 
   return AUTORELEASE(task);
 }
 
-- (NSURLSessionDownloadTask *)downloadTaskWithURL:(NSURL *)url
+- (NSURLSessionDownloadTask *) downloadTaskWithURL: (NSURL *)url
 {
-  NSURLRequest *request;
+  NSURLRequest * request;
 
-  request = [NSURLRequest requestWithURL:url];
-  return [self downloadTaskWithRequest:request];
+  request = [NSURLRequest requestWithURL: url];
+  return [self downloadTaskWithRequest: request];
 }
 
-- (NSURLSessionDownloadTask *)downloadTaskWithResumeData:(NSData *)resumeData
+- (NSURLSessionDownloadTask *) downloadTaskWithResumeData: (NSData *)resumeData
 {
-  return [self notImplemented:_cmd];
+  return [self notImplemented: _cmd];
 }
 
-- (void)getTasksWithCompletionHandler:
-  (void (^)(NSArray<NSURLSessionDataTask *>     *dataTasks,
-            NSArray<NSURLSessionUploadTask *>   *uploadTasks,
-            NSArray<NSURLSessionDownloadTask *> *downloadTasks))
-    completionHandler
+- (void) getTasksWithCompletionHandler:
+  (void (^)(
+     NSArray<NSURLSessionDataTask *> * dataTasks,
+     NSArray<NSURLSessionUploadTask *> * uploadTasks,
+     NSArray<NSURLSessionDownloadTask *> * downloadTasks))
+  completionHandler
 {
-  dispatch_async(_workQueue, ^{
-    NSMutableArray<NSURLSessionDataTask *>     *dataTasks;
-    NSMutableArray<NSURLSessionUploadTask *>   *uploadTasks;
-    NSMutableArray<NSURLSessionDownloadTask *> *downloadTasks;
-    NSInteger                                   numberOfTasks;
+  dispatch_async(
+    _workQueue,
+    ^{
+    NSMutableArray<NSURLSessionDataTask *> * dataTasks;
+    NSMutableArray<NSURLSessionUploadTask *> * uploadTasks;
+    NSMutableArray<NSURLSessionDownloadTask *> * downloadTasks;
+    NSInteger numberOfTasks;
 
     Class dataTaskClass;
     Class uploadTaskClass;
     Class downloadTaskClass;
 
     numberOfTasks = [_tasks count];
-    dataTasks = [NSMutableArray arrayWithCapacity:numberOfTasks / 2];
-    uploadTasks = [NSMutableArray arrayWithCapacity:numberOfTasks / 2];
-    downloadTasks = [NSMutableArray arrayWithCapacity:numberOfTasks / 2];
+    dataTasks = [NSMutableArray arrayWithCapacity: numberOfTasks / 2];
+    uploadTasks = [NSMutableArray arrayWithCapacity: numberOfTasks / 2];
+    downloadTasks = [NSMutableArray arrayWithCapacity: numberOfTasks / 2];
 
     dataTaskClass = [NSURLSessionDataTask class];
     uploadTaskClass = [NSURLSessionUploadTask class];
     downloadTaskClass = [NSURLSessionDownloadTask class];
 
-    for (NSURLSessionTask *task in _tasks)
+    for (NSURLSessionTask * task in _tasks)
+    {
+      if ([task isKindOfClass: dataTaskClass])
       {
-        if ([task isKindOfClass:dataTaskClass])
-          {
-            [dataTasks addObject:(NSURLSessionDataTask *) task];
-          }
-        else if ([task isKindOfClass:uploadTaskClass])
-          {
-            [uploadTasks addObject:(NSURLSessionUploadTask *) task];
-          }
-        else if ([task isKindOfClass:downloadTaskClass])
-          {
-            [downloadTasks addObject:(NSURLSessionDownloadTask *) task];
-          }
+        [dataTasks addObject: (NSURLSessionDataTask *)task];
       }
+      else if ([task isKindOfClass: uploadTaskClass])
+      {
+        [uploadTasks addObject: (NSURLSessionUploadTask *)task];
+      }
+      else if ([task isKindOfClass: downloadTaskClass])
+      {
+        [downloadTasks addObject: (NSURLSessionDownloadTask *)task];
+      }
+    }
 
     completionHandler(dataTasks, uploadTasks, downloadTasks);
   });
-}
+} /* getTasksWithCompletionHandler */
 
-- (void)getAllTasksWithCompletionHandler:
-  (void (^)(NSArray<__kindof NSURLSessionTask *> *tasks))completionHandler
+- (void) getAllTasksWithCompletionHandler:
+  (void (^)(NSArray<__kindof NSURLSessionTask *> * tasks))completionHandler
 {
-  dispatch_async(_workQueue, ^{
+  dispatch_async(
+    _workQueue,
+    ^{
     completionHandler(_tasks);
   });
 }
 
 #pragma mark - Getter and Setter
 
-- (NSOperationQueue *)delegateQueue
+- (NSOperationQueue *) delegateQueue
 {
   return _delegateQueue;
 }
 
-- (id<NSURLSessionDelegate>)delegate
+- (id<NSURLSessionDelegate>) delegate
 {
   return _delegate;
 }
 
-- (NSURLSessionConfiguration *)configuration
+- (NSURLSessionConfiguration *) configuration
 {
   return AUTORELEASE([_configuration copy]);
 }
 
-- (NSString *)sessionDescription
+- (NSString *) sessionDescription
 {
   return _sessionDescription;
 }
 
-- (void)setSessionDescription:(NSString *)sessionDescription
+- (void) setSessionDescription: (NSString *)sessionDescription
 {
   ASSIGNCOPY(_sessionDescription, sessionDescription);
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   RELEASE(_delegateQueue);
   RELEASE(_delegate);
@@ -919,7 +986,7 @@ socket_callback(CURL         *easy,    /* easy handle */
 
   curl_multi_cleanup(_multiHandle);
 
-#if	defined(HAVE_DISPATCH_CANCEL)
+#if     defined(HAVE_DISPATCH_CANCEL)
   dispatch_cancel(_timer);
 #else
   dispatch_source_cancel(_timer);
@@ -935,131 +1002,131 @@ socket_callback(CURL         *easy,    /* easy handle */
 NSURLSession (NSURLSessionAsynchronousConvenience)
 
 - (NSURLSessionDataTask *)
-  dataTaskWithRequest:(NSURLRequest *)request
-    completionHandler:(GSNSURLSessionDataCompletionHandler)completionHandler
+  dataTaskWithRequest: (NSURLRequest *)request
+  completionHandler: (GSNSURLSessionDataCompletionHandler)completionHandler
 {
-  NSURLSessionDataTask *task;
-  NSInteger             identifier;
+  NSURLSessionDataTask * task;
+  NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionDataTask alloc] initWithSession:self
-                                               request:request
-                                        taskIdentifier:identifier];
-  [task setDelegate:(id<NSURLSessionTaskDelegate>) _delegate];
-  [task _setCompletionHandler:completionHandler];
-  [task _enableAutomaticRedirects:YES];
-  [task _setProperties:GSURLSessionStoresDataInMemory |
-                       GSURLSessionHasCompletionHandler];
+  task = [[NSURLSessionDataTask alloc] initWithSession: self
+                                               request: request
+                                        taskIdentifier: identifier];
+  [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
+  [task _setCompletionHandler: completionHandler];
+  [task _enableAutomaticRedirects: YES];
+  [task _setProperties: GSURLSessionStoresDataInMemory |
+   GSURLSessionHasCompletionHandler];
 
-  [self _didCreateTask:task];
+  [self _didCreateTask: task];
 
   return AUTORELEASE(task);
 }
 
-- (NSURLSessionDataTask *)dataTaskWithURL:(NSURL *)url
-                        completionHandler:
-                          (GSNSURLSessionDataCompletionHandler)completionHandler
+- (NSURLSessionDataTask *) dataTaskWithURL: (NSURL *)url
+  completionHandler:
+  (GSNSURLSessionDataCompletionHandler)completionHandler
 {
-  NSURLRequest *request = [NSURLRequest requestWithURL:url];
+  NSURLRequest * request = [NSURLRequest requestWithURL: url];
 
-  return [self dataTaskWithRequest:request completionHandler:completionHandler];
+  return [self dataTaskWithRequest: request completionHandler: completionHandler];
 }
 
 - (NSURLSessionUploadTask *)
-  uploadTaskWithRequest:(NSURLRequest *)request
-               fromFile:(NSURL *)fileURL
-      completionHandler:(GSNSURLSessionDataCompletionHandler)completionHandler
+  uploadTaskWithRequest: (NSURLRequest *)request
+  fromFile: (NSURL *)fileURL
+  completionHandler: (GSNSURLSessionDataCompletionHandler)completionHandler
 {
-  NSURLSessionUploadTask *task;
-  NSInputStream          *stream;
-  NSInteger               identifier;
+  NSURLSessionUploadTask * task;
+  NSInputStream * stream;
+  NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  stream = [NSInputStream inputStreamWithURL:fileURL];
-  task = [[NSURLSessionUploadTask alloc] initWithSession:self
-                                                 request:request
-                                          taskIdentifier:identifier];
-  [task setDelegate:(id<NSURLSessionTaskDelegate>) _delegate];
+  stream = [NSInputStream inputStreamWithURL: fileURL];
+  task = [[NSURLSessionUploadTask alloc] initWithSession: self
+                                                 request: request
+                                          taskIdentifier: identifier];
+  [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
 
-  [task _setProperties:GSURLSessionStoresDataInMemory
-                       | GSURLSessionHasInputStream |
-                       GSURLSessionHasCompletionHandler];
-  [task _setCompletionHandler:completionHandler];
-  [task _enableAutomaticRedirects:YES];
-  [task _setBodyStream:stream];
-  [task _enableUploadWithSize:0];
+  [task _setProperties: GSURLSessionStoresDataInMemory
+   | GSURLSessionHasInputStream |
+   GSURLSessionHasCompletionHandler];
+  [task _setCompletionHandler: completionHandler];
+  [task _enableAutomaticRedirects: YES];
+  [task _setBodyStream: stream];
+  [task _enableUploadWithSize: 0];
 
-  [self _didCreateTask:task];
+  [self _didCreateTask: task];
 
   return AUTORELEASE(task);
-}
+} /* uploadTaskWithRequest */
 
 - (NSURLSessionUploadTask *)
-  uploadTaskWithRequest:(NSURLRequest *)request
-               fromData:(NSData *)bodyData
-      completionHandler:(GSNSURLSessionDataCompletionHandler)completionHandler
+  uploadTaskWithRequest: (NSURLRequest *)request
+  fromData: (NSData *)bodyData
+  completionHandler: (GSNSURLSessionDataCompletionHandler)completionHandler
 {
-  NSURLSessionUploadTask *task;
-  NSInteger               identifier;
+  NSURLSessionUploadTask * task;
+  NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionUploadTask alloc] initWithSession:self
-                                                 request:request
-                                          taskIdentifier:identifier];
-  [task setDelegate:(id<NSURLSessionTaskDelegate>) _delegate];
+  task = [[NSURLSessionUploadTask alloc] initWithSession: self
+                                                 request: request
+                                          taskIdentifier: identifier];
+  [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
 
-  [task _setProperties:GSURLSessionStoresDataInMemory |
-                       GSURLSessionHasCompletionHandler];
-  [task _setCompletionHandler:completionHandler];
-  [task _enableAutomaticRedirects:YES];
-  [task _enableUploadWithData:bodyData];
+  [task _setProperties: GSURLSessionStoresDataInMemory |
+   GSURLSessionHasCompletionHandler];
+  [task _setCompletionHandler: completionHandler];
+  [task _enableAutomaticRedirects: YES];
+  [task _enableUploadWithData: bodyData];
 
-  [self _didCreateTask:task];
+  [self _didCreateTask: task];
 
   return AUTORELEASE(task);
 }
 
-- (NSURLSessionDownloadTask *)downloadTaskWithRequest:(NSURLRequest *)request
-                                    completionHandler:
-                                      (GSNSURLSessionDownloadCompletionHandler)
-                                        completionHandler
+- (NSURLSessionDownloadTask *) downloadTaskWithRequest: (NSURLRequest *)request
+  completionHandler:
+  (GSNSURLSessionDownloadCompletionHandler)
+  completionHandler
 {
-  NSURLSessionDownloadTask *task;
-  NSInteger                 identifier;
+  NSURLSessionDownloadTask * task;
+  NSInteger identifier;
 
   identifier = [self _nextTaskIdentifier];
-  task = [[NSURLSessionDownloadTask alloc] initWithSession:self
-                                                   request:request
-                                            taskIdentifier:identifier];
+  task = [[NSURLSessionDownloadTask alloc] initWithSession: self
+                                                   request: request
+                                            taskIdentifier: identifier];
 
-  [task setDelegate:(id<NSURLSessionTaskDelegate>) _delegate];
+  [task setDelegate: (id<NSURLSessionTaskDelegate>)_delegate];
 
-  [task _setProperties:GSURLSessionWritesDataToFile |
-                       GSURLSessionHasCompletionHandler];
-  [task _enableAutomaticRedirects:YES];
-  [task _setCompletionHandler:completionHandler];
+  [task _setProperties: GSURLSessionWritesDataToFile |
+   GSURLSessionHasCompletionHandler];
+  [task _enableAutomaticRedirects: YES];
+  [task _setCompletionHandler: completionHandler];
 
-  [self _didCreateTask:task];
+  [self _didCreateTask: task];
 
   return AUTORELEASE(task);
 }
 
 - (NSURLSessionDownloadTask *)
-  downloadTaskWithURL:(NSURL *)url
-    completionHandler:(GSNSURLSessionDownloadCompletionHandler)completionHandler
+  downloadTaskWithURL: (NSURL *)url
+  completionHandler: (GSNSURLSessionDownloadCompletionHandler)completionHandler
 {
-  NSURLRequest *request = [NSURLRequest requestWithURL:url];
+  NSURLRequest * request = [NSURLRequest requestWithURL: url];
 
-  return [self downloadTaskWithRequest:request
-                     completionHandler:completionHandler];
+  return [self downloadTaskWithRequest: request
+                     completionHandler: completionHandler];
 }
 
 - (NSURLSessionDownloadTask *)
-  downloadTaskWithResumeData:(NSData *)resumeData
-           completionHandler:
-             (GSNSURLSessionDownloadCompletionHandler)completionHandler
+  downloadTaskWithResumeData: (NSData *)resumeData
+  completionHandler:
+  (GSNSURLSessionDownloadCompletionHandler)completionHandler
 {
-  return [self notImplemented:_cmd];
+  return [self notImplemented: _cmd];
 }
 
 @end
