@@ -3227,6 +3227,11 @@ register_printf_atsign ()
 - (NSString*) commonPrefixWithString: (NSString*)aString
 			     options: (NSUInteger)mask
 {
+  // Return empty string to match behaviour on macOS
+  if (nil == aString)
+    {
+      return @"";
+    }
   if (mask & NSLiteralSearch)
     {
       int prefix_len = 0;
