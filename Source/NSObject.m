@@ -2152,26 +2152,6 @@ static id gs_weak_load(id obj)
   return NSDefaultMallocZone();
 }
 
-/**
- * Called to encode the instance variables of the receiver to aCoder.<br />
- * Subclasses should call the superclass method at the start of their
- * own implementation.
- */
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  return;
-}
-
-/**
- * Called to intialise instance variables of the receiver from aDecoder.<br />
- * Subclasses should call the superclass method at the start of their
- * own implementation.
- */
-- (id) initWithCoder: (NSCoder*)aDecoder
-{
-  return self;
-}
-
 + (BOOL) resolveClassMethod: (SEL)name
 {
   return NO;
