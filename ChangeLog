@@ -1,4 +1,10 @@
+2024-10-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUndoManager.m: set zero/nil return value when forwarding
+	invocation ... in case calling code tries to use the result.
+
 2024-10-28 Hugo Melder <hugo@algoriddim.com>
+
 	* Source/NSString.m:
 	-commonPrefixWithString:options: returns nil when string supplied as
 	first argument is nil. On macOS, the empty string is returned instead.
