@@ -359,6 +359,11 @@ NSZone.m \
 externs.m \
 objc-load.m 
 
+ifeq ($(OBJC_RUNTIME_LIB), ng)
+  BASE_MFILES += \
+  NSKeyValueCoding+Caching.m
+endif
+
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   ifneq ($(GNUSTEP_TARGET_OS), mingw64)
     ifneq ($(GNUSTEP_TARGET_OS), windows)
@@ -413,6 +418,11 @@ simple-load.h \
 win32-load.h \
 NSCallBacks.h \
 tzfile.h
+
+# Definitions for toll-free bridging of known structures
+# such as NSRect, NSPoint, or NSSize.
+COREFOUNDATION_HEADERS = \
+CFCGTypes.h
 
 FOUNDATION_HEADERS = \
 Foundation.h \
@@ -586,7 +596,8 @@ NSZone.h
 HEADERS_INSTALL = \
 	$(OBJECTIVEC2_HEADERS) \
 	$(GNUSTEPBASE_HEADERS) \
-	$(FOUNDATION_HEADERS)
+	$(FOUNDATION_HEADERS) \
+  $(COREFOUNDATION_HEADERS)
 
 GENERATED_HFILES = \
 dynamic-load.h \

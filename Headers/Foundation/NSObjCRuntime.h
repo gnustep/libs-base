@@ -101,19 +101,6 @@ typedef	uintptr_t	NSUInteger;
 #	define NSUIntegerMax UINTPTR_MAX
 #endif /* !defined(NSINTEGER_DEFINED) */
 
-#if     !defined(CGFLOAT_DEFINED)
-#if     GS_SIZEOF_VOIDP == 8
-#define CGFLOAT_IS_DBL  1
-typedef double          CGFloat;
-#define CGFLOAT_MIN	DBL_MIN
-#define CGFLOAT_MAX	DBL_MAX
-#else
-typedef float           CGFloat;
-#define CGFLOAT_MIN	FLT_MIN
-#define CGFLOAT_MAX	FLT_MAX
-#endif
-#endif /* !defined(CGFLOAT_DEFINED) */
-
 #define NSINTEGER_DEFINED 1
 #define CGFLOAT_DEFINED 1
 #ifndef NS_AUTOMATED_REFCOUNT_UNAVAILABLE
