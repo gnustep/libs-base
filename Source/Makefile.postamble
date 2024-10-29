@@ -56,6 +56,11 @@ after-install::
 	done
 endif
 after-install::
+	$(MKDIRS) $(GNUSTEP_HEADERS)/CoreFoundation
+	for file in $(COREFOUNDATION_HEADERS); do \
+	  $(INSTALL_DATA) ../Headers/CoreFoundation/$$file \
+	  $(GNUSTEP_HEADERS)/CoreFoundation/$$file ; \
+	done
 	$(MKDIRS) $(GNUSTEP_HEADERS)/GNUstepBase
 	for file in $(GNUSTEPBASE_HEADERS); do \
 	  $(INSTALL_DATA) ../Headers/GNUstepBase/$$file \
