@@ -429,6 +429,11 @@
  */
 - (void) forwardInvocation: (NSInvocation*)anInvocation
 {
+  NSUInteger    size = [[anInvocation methodSignature] methodReturnLength];
+  unsigned char v[size];
+
+  memset(v, '\0', size);
+
   if (_disableCount == 0)
     {
       if (_nextTarget == nil)
@@ -466,6 +471,8 @@
 	  _runLoopGroupingPending = YES;
 	}
     }
+
+  [anInvocation setReturnValue: (void*)v];
 }
 
 /**
