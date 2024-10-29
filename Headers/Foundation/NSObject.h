@@ -298,7 +298,7 @@ extern "C" {
 @end
 
 @protocol NSSecureCoding <NSCoding>
-+ (BOOL)supportsSecureCoding;
++ (BOOL) supportsSecureCoding;
 @end
 
 
