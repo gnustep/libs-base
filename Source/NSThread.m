@@ -2424,7 +2424,7 @@ GSRunLoopInfoForThread(NSThread *aThread)
 
 @implementation NSThread (BlockAdditions)
 
-+ (void)detachNewThreadWithBlock: (GSThreadBlock)block
++ (void) detachNewThreadWithBlock: (GSThreadBlock)block
 {
   NSThread	*thread;
 
@@ -2434,7 +2434,7 @@ GSRunLoopInfoForThread(NSThread *aThread)
   RELEASE(thread);
 }
 
-- (instancetype)initWithBlock: (GSThreadBlock)block
+- (instancetype) initWithBlock: (GSThreadBlock)block
 {
   if (nil != (self = [self init]))
     {
