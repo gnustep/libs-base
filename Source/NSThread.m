@@ -1337,7 +1337,15 @@ unregisterActiveThread(NSThread *thread)
         NSStringFromSelector(_cmd)];
     }
 
-  [_target performSelector: _selector withObject: _arg];
+  if (_targetIsBlock)
+    {
+      GSThreadBlock block = (GSThreadBlock)_target;
+      CALL_BLOCK_NO_ARGS(block);
+    }
+  else
+    {
+      [_target performSelector: _selector withObject: _arg];
+    }
 }
 
 - (NSString*) name
@@ -2410,6 +2418,31 @@ GSRunLoopInfoForThread(NSThread *aThread)
   [NSThread detachNewThreadSelector: aSelector
                            toTarget: self
                          withObject: anObject];
+}
+
+@end
+
+@implementation NSThread (BlockAdditions)
+
++ (void) detachNewThreadWithBlock: (GSThreadBlock)block
+{
+  NSThread	*thread;
+
+  thread = [[NSThread alloc] initWithBlock: block];
+  [thread start];
+
+  RELEASE(thread);
+}
+
+- (instancetype) initWithBlock: (GSThreadBlock)block
+{
+  if (nil != (self = [self init]))
+    {
+      _targetIsBlock = YES;
+      /* Copy block to heap */
+      _target = _Block_copy(block);
+    } 
+  return self;
 }
 
 @end
