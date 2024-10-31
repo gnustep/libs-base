@@ -35,8 +35,9 @@
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSInvocation.h"
 
-#import "NSDatePrivate.h"
-
+@class	NSGDate;
+@interface NSGDate : NSObject	// Help the compiler
+@end
 static Class	NSDate_class;
 
 /**
@@ -57,7 +58,7 @@ static Class	NSDate_class;
 {
   if (self == [NSTimer class])
     {
-      NSDate_class = [DATE_CONCRETE_CLASS_NAME class];
+      NSDate_class = [NSGDate class];
     }
 }
 
