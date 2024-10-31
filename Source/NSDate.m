@@ -1,11 +1,10 @@
 /** Implementation for NSDate for GNUStep
-   Copyright (C) 2024 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
    Written by:  Jeremy Bettis <jeremy@hksys.com>
    Rewritten by:  Scott Christley <scottc@net-community.com>
+   Date: March 1995
    Modifications by: Richard Frith-Macdonald <richard@brainstorm.co.uk>
-   Small Object Optimization by: Hugo Melder <hugo@algoriddim.com>
-   Date: September 2024
 
    This file is part of the GNUstep Base Library.
 
@@ -40,13 +39,9 @@
 #import "Foundation/NSScanner.h"
 #import "Foundation/NSTimeZone.h"
 #import "Foundation/NSUserDefaults.h"
-#import "Foundation/NSHashTable.h"
 #import "GNUstepBase/GSObjCRuntime.h"
 
 #import "GSPrivate.h"
-#import "GSPThread.h"
-
-#import "NSDatePrivate.h"
 
 #include <math.h>
 
@@ -61,160 +56,22 @@
 
 GS_DECLARE const NSTimeInterval NSTimeIntervalSince1970 = 978307200.0;
 
+
+
 static BOOL	debug = NO;
 static Class	abstractClass = nil;
 static Class	concreteClass = nil;
 static Class	calendarClass = nil;
 
-static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
-
-// Singleton instances for distantPast and distantFuture
-static id _distantPast = nil;
-static id _distantFuture = nil;
-
 /**
- * Compression of IEEE 754 double-precision floating-point numbers
- *
- * libobjc2 just like Apple's Objective-C runtime implement small
- * object classes, or tagged pointers in the case of Apple's runtime,
- * to store a 60-bit payload and 4-bit metadata in a 64-bit pointer.
- * This avoids constructing a full object on the heap. 
- *
- * NSDate stores the time as a double-precision floating-point number
- * representing the number of seconds since the reference date, the
- * Cocoa epoch (2001-01-01 00:00:00 UTC). This is a 64-bit value.
- * This poses a problem for small object classes, as the time value
- * is too large to fit in the 60-bit payload.
- *
- * To solve this problem, we look at the range of values that we
- * need to acurately represent. Idealy, this would include dates
- * before distant past and beyond distant future.
- *
- * After poking around with __NSTaggedDate, here is the algorithm
- * for constructing its payload:
- *
- * Sign and mantissa are not touched. The exponent is compressed.
- * Compression:
- * 1. Take the 11-bit unsigned exponent and sign-extend it to a 64-bit signed integer.
- * 2. Subtract a new secondary bias of 0x3EF from the exponent.
- * 3. Truncate the result to a 7-bit signed integer.
- *
- * The order of operations is important. The biased exponent of a
- * double-precision floating-point number is in range [0, 2047] (including
- * special values).  Sign-extending and subtracting the secondary bias results
- * in a value in range [-1007, 1040]. Truncating this to a 7-bit signed integer
- * further reduces the range to [-64, 63].
- *
- * When unbiasing the compressed 7-bit signed exponent with 0x3EF, we
- * get a biased exponent in range [943, 1070]. We have effectively shifted
- * the value range in order to represent values from
- * (-1)^0 * 2^(943 - 1023) * 1.048576 = 8.673617379884035e-25
- * to (-1)^0 * 2^(1070 - 1023) * 1.048576 = 147573952589676.4
- *
- * This encodes all dates for a few million years beyond distantPast and
- * distantFuture, except within about 1e-25 second of the reference date.
- *
- * So how does decompression work?
- * 1. Sign extend the 7-bit signed exponent to a 64-bit signed integer.
- * 2. Add the secondary bias of 0x3EF to the exponent.
- * 3. Cast the result to an unsigned 11-bit integer.
- *
- * Note that we only use the least-significant 3-bits for the tag in
- * libobjc2, contrary to Apple's runtime which uses the most-significant
- * 4-bits.
- *
- * We'll thus use 8-bits for the exponent.
+ * Our concrete base class - NSCalendar date must share the ivar layout.
  */
-
-#if USE_SMALL_DATE
-
-// 1-5 are already used by NSNumber and GSString
-#define SMALL_DATE_MASK 6
-#define EXPONENT_BIAS 0x3EF
-
-#define GET_INTERVAL(obj) decompressTimeInterval((uintptr_t)obj)
-#define SET_INTERVAL(obj, interval) (obj = (id)(compressTimeInterval(interval) | SMALL_DATE_MASK))
-
-#define IS_CONCRETE_CLASS(obj) isSmallDate(obj)
-
-#define CREATE_SMALL_DATE(interval) (id)(compressTimeInterval(interval) | SMALL_DATE_MASK)
-
-union CompressedDouble {
-        uintptr_t data;
-        struct {
-          uintptr_t tag : 3; // placeholder for tag bits
-          uintptr_t fraction : 52;
-          intptr_t exponent : 8;  // signed!
-          uintptr_t sign : 1;
-        };
-};
-
-union DoubleBits {
-        double val;
-        struct {
-          uintptr_t fraction : 52;
-          uintptr_t exponent : 11;
-          uintptr_t sign : 1;
-        };
-};
-
-static __attribute__((always_inline)) uintptr_t compressTimeInterval(NSTimeInterval interval) {
-        union CompressedDouble c;
-        union DoubleBits db;
-        intptr_t exponent;
-
-        db.val = interval;
-        c.fraction = db.fraction;
-        c.sign = db.sign;
-
-        // 1. Cast 11-bit unsigned exponent to 64-bit signed
-        exponent = db.exponent;
-        // 2. Subtract secondary Bias first
-        exponent -= EXPONENT_BIAS;
-        // 3. Truncate to 8-bit signed
-        c.exponent = exponent;
-        c.tag = 0;
-
-        return c.data;
+@interface NSGDate : NSDate
+{
+@public
+  NSTimeInterval _seconds_since_ref;
 }
-
-static __attribute__((always_inline)) NSTimeInterval decompressTimeInterval(uintptr_t compressed) {
-        union CompressedDouble c;
-        union DoubleBits d;
-        intptr_t biased_exponent;
-
-        c.data = compressed;
-        d.fraction = c.fraction;
-        d.sign = c.sign;
-
-        // 1. Sign Extend 8-bit to 64-bit
-        biased_exponent = c.exponent;
-        // 2. Add secondary Bias
-        biased_exponent += 0x3EF;
-        // Cast to 11-bit unsigned exponent
-        d.exponent = biased_exponent;
-
-        return d.val;
-}
-
-static __attribute__((always_inline)) BOOL isSmallDate(id obj) {
-    // Do a fast check if the object is also a small date.
-    // libobjc2 guarantees that the classes are 16-byte (word) aligned.
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdeprecated-objc-pointer-introspection"
-    return !!((uintptr_t)obj & SMALL_DATE_MASK);
-    #pragma clang diagnostic pop
-}
-
-// Populated in +[GSSmallDate load]
-static BOOL useSmallDate;
-
-
-#else
-#define GET_INTERVAL(obj) ((NSGDate*)obj)->_seconds_since_ref
-#define SET_INTERVAL(obj, interval) (((NSGDate*)obj)->_seconds_since_ref = interval)
-
-#define IS_CONCRETE_CLASS(obj) ([obj isKindOfClass: concreteClass])
+@end
 
 @interface	GSDateSingle : NSGDate
 @end
@@ -225,429 +82,10 @@ static BOOL useSmallDate;
 @interface	GSDateFuture : GSDateSingle
 @end
 
-#endif
+static id _distantPast = nil;
+static id _distantFuture = nil;
 
-@implementation DATE_CONCRETE_CLASS_NAME
-
-#if USE_SMALL_DATE
-
-+ (void) load
-{
-  useSmallDate = objc_registerSmallObjectClass_np(self, SMALL_DATE_MASK);
-  // If this fails, someone else has already registered a small object class for this slot.
-  if (unlikely(useSmallDate == NO))
-    {
-      [NSException raise: NSInternalInconsistencyException format: @"Failed to register GSSmallDate small object class"];
-    }
-}
-
-// Overwrite default memory management methods
-
-+ (id) alloc
-{
-  return (id)SMALL_DATE_MASK;
-}
-
-+ (id) allocWithZone: (NSZone*)aZone
-{
-  return (id)SMALL_DATE_MASK;
-}
-
-- (id) copy
-{
-  return self;
-}
-
-- (id) copyWithZone: (NSZone*)aZone
-{
-  return self;
-}
-
-- (id) retain
-{
-  return self;
-}
-
-- (NSUInteger) retainCount
-{
-  return UINT_MAX;
-}
-
-- (id) autorelease
-{
-  return self;
-}
-
-- (oneway void) release
-{
-  return;
-}
-
-// NSObject(MemoryFootprint) informal protocol
-
-- (NSUInteger) sizeInBytesExcluding: (NSHashTable*)exclude
-{
-  if (0 == NSHashGet(exclude, self))
-    {
-      return 0;
-    }
-  return 8;
-}
-
-- (NSUInteger) sizeOfContentExcluding: (NSHashTable*)exclude
-{
-    return 0;
-}
-
-- (NSUInteger) sizeOfInstance
-{
-  return 0;
-}
-
-#else
-
-+ (void) initialize
-{
-  if (self == [NSDate class])
-    {
-      [self setVersion: 1];
-    }
-}
-
-#endif
-
-// NSDate initialization
-
-- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
-{
-  if (isnan(secs))
-    {
-      [NSException raise: NSInvalidArgumentException
-	          format: @"[%@-%@] interval is not a number",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
-    }
-
-#if	USE_SMALL_DATE == 0 && GS_SIZEOF_VOIDP == 4
-  if (secs <= DISTANT_PAST)
-    {
-      secs = DISTANT_PAST;
-    }
-  else if (secs >= DISTANT_FUTURE)
-    {
-      secs = DISTANT_FUTURE;
-    }
-#endif
-
-#if    USE_SMALL_DATE == 0
-  _seconds_since_ref = secs;
-  return self;
-#else
-  return CREATE_SMALL_DATE(secs);
-#endif
-}
-
-- (id) initWithCoder: (NSCoder*)coder
-{
-  double secondsSinceRef;
-  if ([coder allowsKeyedCoding])
-    {
-      secondsSinceRef = [coder decodeDoubleForKey: @"NS.time"];
-    }
-  else
-    {
-      [coder decodeValueOfObjCType: @encode(NSTimeInterval)
-                                at: &secondsSinceRef];
-    }
-
-#if    USE_SMALL_DATE == 0
-  _seconds_since_ref = secondsSinceRef;
-  return self;
-#else
-  return CREATE_SMALL_DATE(secondsSinceRef);
-#endif
-}
-
-// NSDate Hashing, Comparison and Equality
-
-- (NSUInteger) hash
-{
-  #if USE_SMALL_DATE
-  return (NSUInteger)self;
-  #else
-  return (NSUInteger)GET_INTERVAL(self);
-  #endif
-}
-
-- (NSComparisonResult) compare: (NSDate*)otherDate
-{
-  double selfTime = GET_INTERVAL(self);
-  double otherTime;
-  
-  if (otherDate == self)
-    {
-      return NSOrderedSame;
-    }
-  if (unlikely(otherDate == nil))
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for compare:"];
-    }
-
-  if (IS_CONCRETE_CLASS(otherDate))
-  {
-      otherTime = GET_INTERVAL(otherDate);
-  } else {
-      otherTime = [otherDate timeIntervalSinceReferenceDate];
-  }
-
-  if (selfTime > otherTime)
-    {
-      return NSOrderedDescending;
-    }
-  if (selfTime < otherTime)
-    {
-      return NSOrderedAscending;
-    }
-  return NSOrderedSame;
-}
-
-- (BOOL) isEqual: (id)other
-{
-  double selfTime = GET_INTERVAL(self);
-  double otherTime;
-
-  if (other == self)
-    {
-      return YES;
-    }
-
-  if (IS_CONCRETE_CLASS(other))
-  {
-      otherTime = GET_INTERVAL(other);
-  } else if ([other isKindOfClass: abstractClass])
-  {
-      otherTime = [other timeIntervalSinceReferenceDate];
-  } else {
-    return NO;
-  }
-
-  return selfTime == otherTime;
-}
-
-- (BOOL) isEqualToDate: (NSDate*)other
-{
-  return [self isEqual: other];
-}
-
-- (NSDate*) laterDate: (NSDate*)otherDate
-{
-  double selfTime;
-  double otherTime;
-
-  if (unlikely(otherDate == nil))
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for laterDate:"];
-    }
-
-  selfTime = GET_INTERVAL(self);
-  if (IS_CONCRETE_CLASS(otherDate))
-  {
-      otherTime = GET_INTERVAL(otherDate);
-  } else {
-      otherTime = [otherDate timeIntervalSinceReferenceDate];
-  }
-
-  // If the receiver and anotherDate represent the same date, returns the receiver.
-  if (selfTime <= otherTime)
-    {
-      return otherDate;
-    }
-
-  return self;
-}
-
-- (NSDate*) earlierDate: (NSDate*)otherDate
-{
-  double selfTime;
-  double otherTime;
-
-  if (unlikely(otherDate == nil))
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for earlierDate:"];
-    }
-
-  selfTime = GET_INTERVAL(self);
-  if (IS_CONCRETE_CLASS(otherDate))
-  {
-      otherTime = GET_INTERVAL(otherDate);
-  } else {
-      otherTime = [otherDate timeIntervalSinceReferenceDate];
-  }
-
-  // If the receiver and anotherDate represent the same date, returns the receiver.
-  if (selfTime >= otherTime)
-    {
-      return otherDate;
-    }
-
-  return self;
-}
-
-- (void) encodeWithCoder: (NSCoder*)coder
-{
-  double time = GET_INTERVAL(self);
-  if ([coder allowsKeyedCoding])
-    {
-      [coder encodeDouble:time forKey:@"NS.time"];
-    }
-  else
-    {
-      [coder encodeValueOfObjCType: @encode(NSTimeInterval)
-                                at: &time];
-    }
-}
-
-// NSDate Accessors
-
-- (NSTimeInterval) timeIntervalSince1970
-{
-  return GET_INTERVAL(self) + NSTimeIntervalSince1970;
-}
-
-- (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
-{
-  double otherTime;
-  if (unlikely(otherDate == nil))
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for timeIntervalSinceDate:"];
-    }
-
-  if (IS_CONCRETE_CLASS(otherDate))
-  {
-      otherTime = GET_INTERVAL(otherDate);
-  } else {
-      otherTime = [otherDate timeIntervalSinceReferenceDate];
-  }
-
-  return GET_INTERVAL(self) - otherTime;
-}
-
-- (NSTimeInterval) timeIntervalSinceNow
-{
-  return GET_INTERVAL(self) - GSPrivateTimeNow();
-}
-
-- (NSTimeInterval) timeIntervalSinceReferenceDate
-{
-  return GET_INTERVAL(self);
-}
-
-@end
-
-#if USE_SMALL_DATE == 0
-/*
- *	This abstract class represents a date of which there can be only
- *	one instance.
- */
-@implementation GSDateSingle
-
-+ (void) initialize
-{
-  if (self == [GSDateSingle class])
-    {
-      [self setVersion: 1];
-      GSObjCAddClassBehavior(self, [NSGDate class]);
-    }
-}
-
-- (id) autorelease
-{
-  return self;
-}
-
-- (oneway void) release
-{
-}
-
-- (id) retain
-{
-  return self;
-}
-
-+ (id) allocWithZone: (NSZone*)z
-{
-  [NSException raise: NSInternalInconsistencyException
-	      format: @"Attempt to allocate fixed date"];
-  return nil;
-}
-
-- (id) copyWithZone: (NSZone*)z
-{
-  return self;
-}
-
-- (void) dealloc
-{
-  [NSException raise: NSInternalInconsistencyException
-	      format: @"Attempt to deallocate fixed date"];
-  GSNOSUPERDEALLOC;
-}
-
-- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
-{
-  return self;
-}
-
-@end
-
-@implementation GSDatePast
-
-+ (id) allocWithZone: (NSZone*)z
-{
-  if (_distantPast == nil)
-    {
-      id	obj = NSAllocateObject(self, 0, NSDefaultMallocZone());
-
-      _distantPast = [obj init];
-    }
-  return _distantPast;
-}
-
-- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
-{
-  SET_INTERVAL(self, DISTANT_PAST);
-  return self;
-}
-
-@end
-
-
-@implementation GSDateFuture
-
-+ (id) allocWithZone: (NSZone*)z
-{
-  if (_distantFuture == nil)
-    {
-      id	obj = NSAllocateObject(self, 0, NSDefaultMallocZone());
-
-      _distantFuture = [obj init];
-    }
-  return _distantFuture;
-}
-
-- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
-{
-  SET_INTERVAL(self, DISTANT_FUTURE);
-  return self;
-}
-
-@end
-
-#endif // USE_SMALL_DATE == 0
-
+
 static NSString*
 findInArray(NSArray *array, unsigned pos, NSString *str)
 {
@@ -668,10 +106,17 @@ findInArray(NSArray *array, unsigned pos, NSString *str)
 static inline NSTimeInterval
 otherTime(NSDate* other)
 {
-  if (unlikely(other == nil))
+  Class	c;
+
+  if (other == nil)
     [NSException raise: NSInvalidArgumentException format: @"other time nil"];
-  
-  return [other timeIntervalSinceReferenceDate];
+  if (GSObjCIsInstance(other) == NO)
+    [NSException raise: NSInvalidArgumentException format: @"other time bad"];
+  c = object_getClass(other);
+  if (c == concreteClass || c == calendarClass)
+    return ((NSGDate*)other)->_seconds_since_ref;
+  else
+    return [other timeIntervalSinceReferenceDate];
 }
 
 /**
@@ -690,7 +135,7 @@ otherTime(NSDate* other)
     {
       [self setVersion: 1];
       abstractClass = self;
-      concreteClass = [DATE_CONCRETE_CLASS_NAME class];
+      concreteClass = [NSGDate class];
       calendarClass = [NSCalendarDate class];
     }
 }
@@ -699,11 +144,7 @@ otherTime(NSDate* other)
 {
   if (self == abstractClass)
     {
-      #if USE_SMALL_DATE
-      return [DATE_CONCRETE_CLASS_NAME alloc]; // alloc is overridden to return a small object
-      #else
       return NSAllocateObject(concreteClass, 0, NSDefaultMallocZone());
-      #endif
     }
   return NSAllocateObject(self, 0, NSDefaultMallocZone());
 }
@@ -712,11 +153,7 @@ otherTime(NSDate* other)
 {
   if (self == abstractClass)
     {
-      #if USE_SMALL_DATE
-      return [DATE_CONCRETE_CLASS_NAME alloc]; // alloc is overridden to return a small object
-      #else
       return NSAllocateObject(concreteClass, 0, z);
-      #endif
     }
   return NSAllocateObject(self, 0, z);
 }
@@ -1448,7 +885,8 @@ otherTime(NSDate* other)
     }
   else
     {
-      return [self dateWithTimeIntervalSinceReferenceDate: otherTime(theDate)];
+      return [self dateWithTimeIntervalSinceReferenceDate:
+	otherTime(theDate)];
     }
 }
 
@@ -1485,16 +923,7 @@ otherTime(NSDate* other)
 {
   if (_distantPast == nil)
     {
-      GS_MUTEX_LOCK(classLock);
-      if (_distantPast == nil)
-      {
-        #if USE_SMALL_DATE
-        _distantPast = CREATE_SMALL_DATE(DISTANT_PAST);
-        #else
-        _distantPast = [GSDatePast allocWithZone: 0];
-        #endif
-      }
-      GS_MUTEX_UNLOCK(classLock);
+      _distantPast = [GSDatePast allocWithZone: 0];
     }
   return _distantPast;
 }
@@ -1503,16 +932,7 @@ otherTime(NSDate* other)
 {
   if (_distantFuture == nil)
     {
-      GS_MUTEX_LOCK(classLock);
-      if (_distantFuture == nil)
-      {
-        #if USE_SMALL_DATE
-        _distantFuture = CREATE_SMALL_DATE(DISTANT_FUTURE);
-        #else
-        _distantFuture = [GSDateFuture allocWithZone: 0];
-        #endif
-      }
-      GS_MUTEX_UNLOCK(classLock);
+      _distantFuture = [GSDateFuture allocWithZone: 0];
     }
   return _distantFuture;
 }
@@ -1719,7 +1139,8 @@ otherTime(NSDate* other)
       return nil;
     }
   // Get the other date's time, add the secs and init thyself
-  return [self initWithTimeIntervalSinceReferenceDate: otherTime(anotherDate) + secsToBeAdded];
+  return [self initWithTimeIntervalSinceReferenceDate:
+    otherTime(anotherDate) + secsToBeAdded];
 }
 
 - (instancetype) initWithTimeIntervalSince1970: (NSTimeInterval)seconds
@@ -1743,54 +1164,28 @@ otherTime(NSDate* other)
 
 - (BOOL) isEqual: (id)other
 {
-  if (other == nil)
-  {
-    return NO;
-  }
-
-  if (self == other)
+  if (other != nil
+    && [other isKindOfClass: abstractClass]
+    && otherTime(self) == otherTime(other))
     {
       return YES;
     }
-
-  if ([other isKindOfClass: abstractClass])
-    {
-      double selfTime = [self timeIntervalSinceReferenceDate];
-      return selfTime == otherTime(other);
-    }
-
   return NO;
 }
 
 - (BOOL) isEqualToDate: (NSDate*)other
 {
-  double selfTime;
-  double otherTime;
-  if (other == nil)
-    {
-      return NO;
-    }
-
-  selfTime = [self timeIntervalSinceReferenceDate];
-  otherTime = [other timeIntervalSinceReferenceDate];
-  if (selfTime == otherTime)
+  if (other != nil
+    && otherTime(self) == otherTime(other))
     {
       return YES;
     }
-
   return NO;
 }
 
 - (NSDate*) laterDate: (NSDate*)otherDate
 {
-  double selfTime;
-  if (otherDate == nil)
-  {
-    return nil;
-  }
-  
-  selfTime = [self timeIntervalSinceReferenceDate];
-  if (selfTime < otherTime(otherDate))
+  if (otherTime(self) < otherTime(otherDate))
     {
       return otherDate;
     }
@@ -1821,12 +1216,12 @@ otherTime(NSDate* other)
       return NAN;
 #endif
     }
-  return [self timeIntervalSinceReferenceDate] - otherTime(otherDate);
+  return otherTime(self) - otherTime(otherDate);
 }
 
 - (NSTimeInterval) timeIntervalSinceNow
 {
-  return [self timeIntervalSinceReferenceDate] - GSPrivateTimeNow();
+  return otherTime(self) - GSPrivateTimeNow();
 }
 
 - (NSTimeInterval) timeIntervalSinceReferenceDate
@@ -1836,3 +1231,270 @@ otherTime(NSDate* other)
 }
 
 @end
+
+@implementation NSGDate
+
++ (void) initialize
+{
+  if (self == [NSDate class])
+    {
+      [self setVersion: 1];
+    }
+}
+
+- (NSComparisonResult) compare: (NSDate*)otherDate
+{
+  if (otherDate == self)
+    {
+      return NSOrderedSame;
+    }
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for compare:"];
+    }
+  if (_seconds_since_ref > otherTime(otherDate))
+    {
+      return NSOrderedDescending;
+    }
+  if (_seconds_since_ref < otherTime(otherDate))
+    {
+      return NSOrderedAscending;
+    }
+  return NSOrderedSame;
+}
+
+- (NSDate*) earlierDate: (NSDate*)otherDate
+{
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for earlierDate:"];
+    }
+  if (_seconds_since_ref > otherTime(otherDate))
+    {
+      return otherDate;
+    }
+  return self;
+}
+
+- (void) encodeWithCoder: (NSCoder*)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      [coder encodeDouble:_seconds_since_ref forKey:@"NS.time"];
+    }
+  else
+    {
+      [coder encodeValueOfObjCType: @encode(NSTimeInterval)
+                                at: &_seconds_since_ref];
+    }
+}
+
+- (NSUInteger) hash
+{
+  return (unsigned)_seconds_since_ref;
+}
+
+- (id) initWithCoder: (NSCoder*)coder
+{
+  if ([coder allowsKeyedCoding])
+    {
+      _seconds_since_ref = [coder decodeDoubleForKey: @"NS.time"];
+    }
+  else
+    {
+      [coder decodeValueOfObjCType: @encode(NSTimeInterval)
+                                at: &_seconds_since_ref];
+    }
+  return self;
+}
+
+- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
+{
+  if (isnan(secs))
+    {
+      [NSException raise: NSInvalidArgumentException
+	          format: @"[%@-%@] interval is not a number",
+	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    }
+
+#if	GS_SIZEOF_VOIDP == 4
+  if (secs <= DISTANT_PAST)
+    {
+      secs = DISTANT_PAST;
+    }
+  else if (secs >= DISTANT_FUTURE)
+    {
+      secs = DISTANT_FUTURE;
+    }
+#endif
+  _seconds_since_ref = secs;
+  return self;
+}
+
+- (BOOL) isEqual: (id)other
+{
+  if (other != nil
+    && [other isKindOfClass: abstractClass]
+    && _seconds_since_ref == otherTime(other))
+    {
+      return YES;
+    }
+  return NO;
+}
+
+- (BOOL) isEqualToDate: (NSDate*)other
+{
+  if (other != nil
+    && _seconds_since_ref == otherTime(other))
+    {
+      return YES;
+    }
+  return NO;
+}
+
+- (NSDate*) laterDate: (NSDate*)otherDate
+{
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for laterDate:"];
+    }
+  if (_seconds_since_ref < otherTime(otherDate))
+    {
+      return otherDate;
+    }
+  return self;
+}
+
+- (NSTimeInterval) timeIntervalSince1970
+{
+  return _seconds_since_ref + NSTimeIntervalSince1970;
+}
+
+- (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
+{
+  if (otherDate == nil)
+    {
+      [NSException raise: NSInvalidArgumentException
+		  format: @"nil argument for timeIntervalSinceDate:"];
+    }
+  return _seconds_since_ref - otherTime(otherDate);
+}
+
+- (NSTimeInterval) timeIntervalSinceNow
+{
+  return _seconds_since_ref - GSPrivateTimeNow();
+}
+
+- (NSTimeInterval) timeIntervalSinceReferenceDate
+{
+  return _seconds_since_ref;
+}
+
+@end
+
+
+
+/*
+ *	This abstract class represents a date of which there can be only
+ *	one instance.
+ */
+@implementation GSDateSingle
+
++ (void) initialize
+{
+  if (self == [GSDateSingle class])
+    {
+      [self setVersion: 1];
+      GSObjCAddClassBehavior(self, [NSGDate class]);
+    }
+}
+
+- (id) autorelease
+{
+  return self;
+}
+
+- (oneway void) release
+{
+}
+
+- (id) retain
+{
+  return self;
+}
+
++ (id) allocWithZone: (NSZone*)z
+{
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"Attempt to allocate fixed date"];
+  return nil;
+}
+
+- (id) copyWithZone: (NSZone*)z
+{
+  return self;
+}
+
+- (void) dealloc
+{
+  [NSException raise: NSInternalInconsistencyException
+	      format: @"Attempt to deallocate fixed date"];
+  GSNOSUPERDEALLOC;
+}
+
+- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
+{
+  return self;
+}
+
+@end
+
+
+
+@implementation GSDatePast
+
++ (id) allocWithZone: (NSZone*)z
+{
+  if (_distantPast == nil)
+    {
+      id	obj = NSAllocateObject(self, 0, NSDefaultMallocZone());
+
+      _distantPast = [obj init];
+    }
+  return _distantPast;
+}
+
+- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
+{
+  _seconds_since_ref = DISTANT_PAST;
+  return self;
+}
+
+@end
+
+
+@implementation GSDateFuture
+
++ (id) allocWithZone: (NSZone*)z
+{
+  if (_distantFuture == nil)
+    {
+      id	obj = NSAllocateObject(self, 0, NSDefaultMallocZone());
+
+      _distantFuture = [obj init];
+    }
+  return _distantFuture;
+}
+
+- (id) initWithTimeIntervalSinceReferenceDate: (NSTimeInterval)secs
+{
+  _seconds_since_ref = DISTANT_FUTURE;
+  return self;
+}
+
+@end
+
+

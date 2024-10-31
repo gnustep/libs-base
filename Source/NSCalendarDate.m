@@ -58,6 +58,9 @@
 @class	GSAbsTimeZone;
 @interface	GSAbsTimeZone : NSObject	// Help the compiler
 @end
+@class	NSGDate;
+@interface	NSGDate : NSObject	// Help the compiler
+@end
 
 
 #define DISTANT_FUTURE	63113990400.0
@@ -393,6 +396,7 @@ GSPrivateTimeNow(void)
       absAbrIMP = (NSString* (*)(id,SEL,id))
 	[absClass instanceMethodForSelector: abrSEL];
 
+      GSObjCAddClassBehavior(self, [NSGDate class]);
       [pool release];
     }
 }
@@ -457,11 +461,6 @@ GSPrivateTimeNow(void)
 					  second: second
 					timeZone: aTimeZone];
   return AUTORELEASE(d);
-}
-
-- (NSTimeInterval) timeIntervalSinceReferenceDate
-{
-  return _seconds_since_ref;
 }
 
 /**
