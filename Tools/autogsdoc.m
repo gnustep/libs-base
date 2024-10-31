@@ -1408,7 +1408,7 @@ main(int argc, char **argv, char **env)
 		  attrs = [mgr fileAttributesAtPath: sfile
 				       traverseLink: YES];
 		  d = [attrs fileModificationDate];
-		  if (sDate == nil || [d earlierDate: sDate] == sDate)
+		  if (sDate == nil || [d earlierDate: sDate] != d)
 		    {
 		      sDate = d;
 		      IF_NO_ARC([[sDate retain] autorelease];)
@@ -1436,7 +1436,7 @@ main(int argc, char **argv, char **env)
 
 		  attrs = [mgr fileAttributesAtPath: ofile traverseLink: YES];
 		  d = [attrs fileModificationDate];
-		  if (gDate == nil || [d laterDate: gDate] == gDate)
+		  if (gDate == nil || [d laterDate: gDate] != d)
 		    {
 		      gDate = d;
 		      IF_NO_ARC([[gDate retain] autorelease];)
@@ -1448,7 +1448,7 @@ main(int argc, char **argv, char **env)
 		}
 	    }
 
-	  if (gDate == nil || [sDate earlierDate: gDate] == gDate)
+	  if (gDate == nil || [sDate earlierDate: gDate] != sDate)
 	    {
 	      NSArray	*modified;
 
@@ -1679,7 +1679,7 @@ main(int argc, char **argv, char **env)
 	   *     unless the project index is already more up to date than
 	   *     this file (or the gsdoc file does not exist of course).
 	   */
-	  if (gDate != nil && [gDate earlierDate: rDate] == rDate)
+	  if (gDate != nil && [gDate earlierDate: rDate] != gDate)
 	    {
 	      if (showDependencies == YES)
 		{
@@ -2170,7 +2170,7 @@ main(int argc, char **argv, char **env)
 
 	  if ([mgr isReadableFileAtPath: gsdocfile] == YES)
 	    {
-	      if (hDate == nil || [gDate earlierDate: hDate] == hDate)
+	      if (hDate == nil || [gDate earlierDate: hDate] != gDate)
 		{
 		  NSData	*d;
 		  GSXMLNode	*root;
