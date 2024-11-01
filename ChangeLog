@@ -1,3 +1,8 @@
+2024-11-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDate.m: Fix returing receiver when earlier/later argument
+	is equal to the receiver.  Various formatting fixes.
+
 2024-10-29 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSUndoManager.m: set zero/nil return value when forwarding
