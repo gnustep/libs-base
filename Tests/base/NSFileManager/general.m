@@ -12,7 +12,7 @@
 #ifdef  EQ
 #undef  EQ
 #endif
-#define EPSILON (FLT_EPSILON*100)
+#define EPSILON (DBL_EPSILON*100)
 #define EQ(x,y) ((x >= y - EPSILON) && (x <= y + EPSILON))
 
 @interface      MyHandler : NSObject
@@ -204,6 +204,7 @@ int main()
   NSTimeInterval        ot, nt;
   ot = [[oa fileCreationDate] timeIntervalSinceReferenceDate];
   nt = [[na fileCreationDate] timeIntervalSinceReferenceDate];
+  NSLog(@"ot = %f, nt = %f", ot, nt);
   PASS(EQ(ot, nt), "copy creation date equals original")
   ot = [[oa fileModificationDate] timeIntervalSinceReferenceDate];
   nt = [[na fileModificationDate] timeIntervalSinceReferenceDate];

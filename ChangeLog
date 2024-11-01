@@ -15,7 +15,22 @@
 	* Source/NSFileManager.m: Create an NSError object when we fail to
 	copy because the destination item already exists.
 
-2024-09-23: Hugo Melder <hugo@algoriddim.com>
+2024-10-10: Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSDate.m:
+	* Source/NSDatePrivate.h:
+	NSDate is now a small object in slot 6, when configuring GNUstep with the
+	clang/libobjc2 toolchain.  This is done by compressing the binary64 fp
+	holding the seconds since reference date (because someone at Apple thought
+	it would be a good idea to represent a time interval as a fp). Note that
+	this assumes that IEEE 754 is used.
+	* Source/NSCalendarDate.m:
+	Remove access to the NSDate private concrete Class
+	and implement -timeIntervalSinceReferenceDate instead.
+	Previously, all methods of the concrete date class were
+	added to NSCalendarDate via GSObjCAddClassBehavior.
+
+2024-23-09: Hugo Melder <hugo@algoriddim.com>
 
 	* Headers/Foundation/NSThread.h:
 	* Source/NSString.m:
