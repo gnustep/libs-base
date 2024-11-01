@@ -140,70 +140,74 @@ static id _distantFuture = nil;
 #define CREATE_SMALL_DATE(interval) (id)(compressTimeInterval(interval) | SMALL_DATE_MASK)
 
 union CompressedDouble {
-        uintptr_t data;
-        struct {
-          uintptr_t tag : 3; // placeholder for tag bits
-          uintptr_t fraction : 52;
-          intptr_t exponent : 8;  // signed!
-          uintptr_t sign : 1;
-        };
+  uintptr_t data;
+  struct {
+    uintptr_t tag : 3; // placeholder for tag bits
+    uintptr_t fraction : 52;
+    intptr_t exponent : 8;  // signed!
+    uintptr_t sign : 1;
+  };
 };
 
 union DoubleBits {
-        double val;
-        struct {
-          uintptr_t fraction : 52;
-          uintptr_t exponent : 11;
-          uintptr_t sign : 1;
-        };
+  double val;
+  struct {
+    uintptr_t fraction : 52;
+    uintptr_t exponent : 11;
+    uintptr_t sign : 1;
+  };
 };
 
-static __attribute__((always_inline)) uintptr_t compressTimeInterval(NSTimeInterval interval) {
-        union CompressedDouble c;
-        union DoubleBits db;
-        intptr_t exponent;
+static __attribute__((always_inline)) uintptr_t
+  compressTimeInterval(NSTimeInterval interval)
+{
+  union CompressedDouble c;
+  union DoubleBits db;
+  intptr_t exponent;
 
-        db.val = interval;
-        c.fraction = db.fraction;
-        c.sign = db.sign;
+  db.val = interval;
+  c.fraction = db.fraction;
+  c.sign = db.sign;
 
-        // 1. Cast 11-bit unsigned exponent to 64-bit signed
-        exponent = db.exponent;
-        // 2. Subtract secondary Bias first
-        exponent -= EXPONENT_BIAS;
-        // 3. Truncate to 8-bit signed
-        c.exponent = exponent;
-        c.tag = 0;
+  // 1. Cast 11-bit unsigned exponent to 64-bit signed
+  exponent = db.exponent;
+  // 2. Subtract secondary Bias first
+  exponent -= EXPONENT_BIAS;
+  // 3. Truncate to 8-bit signed
+  c.exponent = exponent;
+  c.tag = 0;
 
-        return c.data;
+  return c.data;
 }
 
-static __attribute__((always_inline)) NSTimeInterval decompressTimeInterval(uintptr_t compressed) {
-        union CompressedDouble c;
-        union DoubleBits d;
-        intptr_t biased_exponent;
+static __attribute__((always_inline)) NSTimeInterval
+  decompressTimeInterval(uintptr_t compressed)
+{
+  union CompressedDouble c;
+  union DoubleBits d;
+  intptr_t biased_exponent;
 
-        c.data = compressed;
-        d.fraction = c.fraction;
-        d.sign = c.sign;
+  c.data = compressed;
+  d.fraction = c.fraction;
+  d.sign = c.sign;
 
-        // 1. Sign Extend 8-bit to 64-bit
-        biased_exponent = c.exponent;
-        // 2. Add secondary Bias
-        biased_exponent += 0x3EF;
-        // Cast to 11-bit unsigned exponent
-        d.exponent = biased_exponent;
+  // 1. Sign Extend 8-bit to 64-bit
+  biased_exponent = c.exponent;
+  // 2. Add secondary Bias
+  biased_exponent += 0x3EF;
+  // Cast to 11-bit unsigned exponent
+  d.exponent = biased_exponent;
 
-        return d.val;
+  return d.val;
 }
 
 static __attribute__((always_inline)) BOOL isSmallDate(id obj) {
-    // Do a fast check if the object is also a small date.
-    // libobjc2 guarantees that the classes are 16-byte (word) aligned.
-    #pragma clang diagnostic push
-    #pragma clang diagnostic ignored "-Wdeprecated-objc-pointer-introspection"
-    return !!((uintptr_t)obj & SMALL_DATE_MASK);
-    #pragma clang diagnostic pop
+  // Do a fast check if the object is also a small date.
+  // libobjc2 guarantees that the classes are 16-byte (word) aligned.
+  #pragma clang diagnostic push
+  #pragma clang diagnostic ignored "-Wdeprecated-objc-pointer-introspection"
+  return !!((uintptr_t)obj & SMALL_DATE_MASK);
+  #pragma clang diagnostic pop
 }
 
 // Populated in +[GSSmallDate load]
@@ -234,10 +238,13 @@ static BOOL useSmallDate;
 + (void) load
 {
   useSmallDate = objc_registerSmallObjectClass_np(self, SMALL_DATE_MASK);
-  // If this fails, someone else has already registered a small object class for this slot.
+  /* If this fails, someone else has already registered
+   * a small object class for this slot.
+   */
   if (unlikely(useSmallDate == NO))
     {
-      [NSException raise: NSInternalInconsistencyException format: @"Failed to register GSSmallDate small object class"];
+      [NSException raise: NSInternalInconsistencyException
+		  format: @"Failed to register GSSmallDate small object class"];
     }
 }
 
@@ -349,6 +356,7 @@ static BOOL useSmallDate;
 - (id) initWithCoder: (NSCoder*)coder
 {
   double secondsSinceRef;
+
   if ([coder allowsKeyedCoding])
     {
       secondsSinceRef = [coder decodeDoubleForKey: @"NS.time"];
@@ -394,11 +402,13 @@ static BOOL useSmallDate;
     }
 
   if (IS_CONCRETE_CLASS(otherDate))
-  {
+    {
       otherTime = GET_INTERVAL(otherDate);
-  } else {
+    }
+  else
+    {
       otherTime = [otherDate timeIntervalSinceReferenceDate];
-  }
+    }
 
   if (selfTime > otherTime)
     {
@@ -422,14 +432,17 @@ static BOOL useSmallDate;
     }
 
   if (IS_CONCRETE_CLASS(other))
-  {
+    {
       otherTime = GET_INTERVAL(other);
-  } else if ([other isKindOfClass: abstractClass])
-  {
+    }
+  else if ([other isKindOfClass: abstractClass])
+    {
       otherTime = [other timeIntervalSinceReferenceDate];
-  } else {
-    return NO;
-  }
+    }
+  else
+    {
+      return NO;
+    }
 
   return selfTime == otherTime;
 }
@@ -452,14 +465,18 @@ static BOOL useSmallDate;
 
   selfTime = GET_INTERVAL(self);
   if (IS_CONCRETE_CLASS(otherDate))
-  {
+    {
       otherTime = GET_INTERVAL(otherDate);
-  } else {
+    }
+  else
+    {
       otherTime = [otherDate timeIntervalSinceReferenceDate];
-  }
+    }
 
-  // If the receiver and anotherDate represent the same date, returns the receiver.
-  if (selfTime <= otherTime)
+  /* If the receiver and anotherDate represent the same date,
+   * returns the receiver.
+   */
+  if (selfTime < otherTime)
     {
       return otherDate;
     }
@@ -480,14 +497,18 @@ static BOOL useSmallDate;
 
   selfTime = GET_INTERVAL(self);
   if (IS_CONCRETE_CLASS(otherDate))
-  {
+    {
       otherTime = GET_INTERVAL(otherDate);
-  } else {
+    }
+  else
+    {
       otherTime = [otherDate timeIntervalSinceReferenceDate];
-  }
+    }
 
-  // If the receiver and anotherDate represent the same date, returns the receiver.
-  if (selfTime >= otherTime)
+  /* If the receiver and anotherDate represent the same date,
+   * returns the receiver.
+   */
+  if (selfTime > otherTime)
     {
       return otherDate;
     }
@@ -498,9 +519,10 @@ static BOOL useSmallDate;
 - (void) encodeWithCoder: (NSCoder*)coder
 {
   double time = GET_INTERVAL(self);
+
   if ([coder allowsKeyedCoding])
     {
-      [coder encodeDouble:time forKey:@"NS.time"];
+      [coder encodeDouble: time forKey:@"NS.time"];
     }
   else
     {
@@ -519,6 +541,7 @@ static BOOL useSmallDate;
 - (NSTimeInterval) timeIntervalSinceDate: (NSDate*)otherDate
 {
   double otherTime;
+
   if (unlikely(otherDate == nil))
     {
       [NSException raise: NSInvalidArgumentException
@@ -526,11 +549,13 @@ static BOOL useSmallDate;
     }
 
   if (IS_CONCRETE_CLASS(otherDate))
-  {
+    {
       otherTime = GET_INTERVAL(otherDate);
-  } else {
+    }
+  else
+    {
       otherTime = [otherDate timeIntervalSinceReferenceDate];
-  }
+    }
 
   return GET_INTERVAL(self) - otherTime;
 }
@@ -700,7 +725,9 @@ otherTime(NSDate* other)
   if (self == abstractClass)
     {
       #if USE_SMALL_DATE
-      return [DATE_CONCRETE_CLASS_NAME alloc]; // alloc is overridden to return a small object
+      /* alloc is overridden to return a small object
+       */
+      return [DATE_CONCRETE_CLASS_NAME alloc];
       #else
       return NSAllocateObject(concreteClass, 0, NSDefaultMallocZone());
       #endif
@@ -713,7 +740,9 @@ otherTime(NSDate* other)
   if (self == abstractClass)
     {
       #if USE_SMALL_DATE
-      return [DATE_CONCRETE_CLASS_NAME alloc]; // alloc is overridden to return a small object
+      /* alloc is overridden to return a small object
+       */
+      return [DATE_CONCRETE_CLASS_NAME alloc];
       #else
       return NSAllocateObject(concreteClass, 0, z);
       #endif
@@ -1784,10 +1813,11 @@ otherTime(NSDate* other)
 - (NSDate*) laterDate: (NSDate*)otherDate
 {
   double selfTime;
+
   if (otherDate == nil)
-  {
-    return nil;
-  }
+    {
+      return nil;
+    }
   
   selfTime = [self timeIntervalSinceReferenceDate];
   if (selfTime < otherTime(otherDate))
