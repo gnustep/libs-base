@@ -1,3 +1,8 @@
+2024-11-03 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Fix case where positive result of asking
+	handler whether to proceed was ignored.
+
 2024-11-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSDate.m: Fix returing receiver when earlier/later argument
