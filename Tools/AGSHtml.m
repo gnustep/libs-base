@@ -2740,7 +2740,7 @@ static NSMutableSet	*textNodes = nil;
       [dot appendFormat: @"digraph class_%@ {\n", cNam];
       [dot appendString: @" rankdir = \"TB\";\n"];
       [dot appendString: @" {\n"];
-      [dot appendString: @"   node [class=figure margin=0 fontcolor=blue"
+      [dot appendString: @"   node [margin=0 fontcolor=blue"
 	@" fontsize=24 width=0.5 shape=rectangle style=filled]\n"];
       if (sNam)
 	{
