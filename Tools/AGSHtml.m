@@ -2744,27 +2744,28 @@ static NSMutableSet	*textNodes = nil;
 	@" fontsize=24 width=0.5 shape=rectangle style=filled]\n"];
       if (sNam)
 	{
+          [dot appendFormat: @"  %@ [class=figure_super", sNam];
 	  if (url)
 	    {
-	      [dot appendFormat: @"  %@ [URL=\"%@\"]\n", sNam, url];
+	      [dot appendFormat: @" URL=\"%@\"", url];
 	    }
-	  else
-	    {
-	      [dot appendFormat: @"  %@\n", sNam];
-	    }
+          [dot appendString: @"]\n"];
+	  [dot appendFormat: @"  %@ [class=figure_class fontcolor=\"green\"]\n",
+	    cNam];
 	}
       else
 	{
 	  sNam = cNam;	// This is a root class ... 
+	  [dot appendFormat: @"  %@ [class=figure_root fontcolor=\"green\"]\n",
+	    cNam];
 	}
-      [dot appendFormat: @"  %@ [fontcolor=\"green\"]\n", cNam];
       if (protocols)
 	{
 	  e = [protocols keyEnumerator];
 	  while ((p = [e nextObject]) != nil)
 	    {
-	      [dot appendFormat:
-		@"  p_%@ [label=\"%@\" URL=\"%@\" shape=hexagon]\n",
+	      [dot appendFormat: @"  p_%@ [class=figure_protocol"
+		@" label=\"%@\" URL=\"%@\" shape=hexagon]\n",
 		p, p, [protocols objectForKey: p]];
 	    }
 	}
