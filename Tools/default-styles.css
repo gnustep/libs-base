@@ -1,63 +1,63 @@
 .content-bar {
-	float: left;
-	position: fixed;
-	top: 0px;
-	left: 0px;
-	width: 20%;
-	height: 100%;
-	border-right: 1px solid grey;
+    float: left;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 20%;
+    height: 100%;
+    border-right: 1px solid grey;
 }
 
 .content-bar-top {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	height: 30%;
-	width: 100%;
-	overflow: auto;
-	border-bottom: 1px solid grey;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 30%;
+    width: 100%;
+    overflow: auto;
+    border-bottom: 1px solid grey;
 }
 
 .content-bar-top-body {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	padding-left: 10px;
-	padding-top: 10px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    padding-left: 10px;
+    padding-top: 10px;
 }
 
 .content-bar-bottom {
-	position: absolute;
-	bottom: 0px;
-	left: 0px;
-	height:70%;
-	width: 100%;
-	overflow: auto;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    height:70%;
+    width: 100%;
+    overflow: auto;
 }
 
 .content-bar-bottom-body {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	padding-left: 10px;
-	padding-top: 10px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    padding-left: 10px;
+    padding-top: 10px;
 }
 
 
 .content-pane {
-	position: fixed;
-	top: 0px;
-	right: 0px;
-	width: 80%;
-	height: 100%;
-	overflow-y: auto;
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    width: 80%;
+    height: 100%;
+    overflow-y: auto;
 }
 
 .content-pane-body {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	padding-left: 10px;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    padding-left: 10px;
 }
 
 hr.section-separator {
@@ -71,4 +71,20 @@ hr.method-separator {
     width:25%;
     margin-left:0;
     text-align:left;
+}
+
+h3.content-bar-index-section-header {
+    font-family: sans-serif;
+}
+
+h3.index-section-header {
+    font-family: sans-serif;
+}
+
+p {
+    font-family: Serif;
+}
+
+.desc {
+    font-family: Serif;
 }
