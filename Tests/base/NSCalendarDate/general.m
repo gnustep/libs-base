@@ -8,7 +8,7 @@ int main()
   NSDate *cdate, *date1, *date2;
   NSComparisonResult comp;
   
-  cdate = [NSDate date];
+  cdate = [NSCalendarDate date];
   
   comp = [cdate compare: [NSDate distantFuture]];
   PASS(comp == NSOrderedAscending, "+distantFuture is in the future");
