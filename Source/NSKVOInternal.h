@@ -60,8 +60,8 @@
   do                                                                           \
     {                                                                          \
       [NSException                                                             \
-         raise:NSInvalidArgumentException                                      \
-        format:@"-[%s %s] is not supported. Key path: %@",                     \
+         raise: NSInvalidArgumentException                                     \
+        format: @"-[%s %s] is not supported. Key path: %@",                    \
                object_getClassName(self), sel_getName(_cmd), keyPath];         \
   } while (false)
 

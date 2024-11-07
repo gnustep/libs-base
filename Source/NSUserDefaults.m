@@ -362,15 +362,15 @@ systemLanguages()
   NSMutableArray *names = [NSMutableArray arrayWithCapacity: 10];
 
   #if defined(_WIN32)
-  NSEnumerator *enumerator;
-  NSArray *languages;
-	NSString *locale;
-  BOOL ret;
-
+  NSEnumerator	*enumerator;
+  NSArray	*languages;
+  NSString	*locale;
+  BOOL 		ret;
   unsigned long numberOfLanguages = 0;
   unsigned long length = 7;
   unsigned long factor = sizeof(wchar_t);
-  wchar_t *buffer = malloc(length * factor);
+  wchar_t	*buffer = malloc(length * factor);
+
   if (!buffer)
     {
       return names;
@@ -380,56 +380,61 @@ systemLanguages()
    * two-letter language code, and CC is the two-letter country code.
    */
   ret = GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &numberOfLanguages,
-                                    buffer, &length);
+    buffer, &length);
   if (!ret)
     {
       length = 0;
-      if (GetLastError() == ERROR_INSUFFICIENT_BUFFER &&
-          GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &numberOfLanguages,
-                                      NULL, &length)) {
-        wchar_t *oldBuffer = buffer; 
-        buffer = realloc(buffer, length * factor);
-        if (!buffer)
-          {
-            free(oldBuffer);
-            return names;
-          }
+      if (GetLastError() == ERROR_INSUFFICIENT_BUFFER
+	&& GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &numberOfLanguages,
+	  NULL, &length))
+	{
+	  wchar_t *oldBuffer = buffer; 
 
-        ret = GetUserPreferredUILanguages(MUI_LANGUAGE_NAME, &numberOfLanguages, buffer, &length);
-        if (!ret)
-          {
-            free(buffer);
-            return names;
-          }
-      }
+	  buffer = realloc(buffer, length * factor);
+	  if (!buffer)
+	    {
+	      free(oldBuffer);
+	      return names;
+	    }
+
+	  ret = GetUserPreferredUILanguages(MUI_LANGUAGE_NAME,
+	    &numberOfLanguages, buffer, &length);
+	  if (!ret)
+	    {
+	      free(buffer);
+	      return names;
+	    }
+	}
     }
 
-  languages = [NSString arrayFromWCharList:buffer length:length];
+  languages = [NSString arrayFromWCharList: buffer length: length];
   enumerator = [languages objectEnumerator];
   free(buffer);
 
-	while (nil != (locale = [enumerator nextObject]))
-	  {
+  while (nil != (locale = [enumerator nextObject]))
+    {
       /* Replace "-" Separator with "_" */
-      locale = [locale stringByReplacingOccurrencesOfString:@"-" withString:@"_"];
-	    [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
-	  }
+      locale = [locale stringByReplacingOccurrencesOfString: @"-"
+						 withString: @"_"];
+      [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
+    }
   #elif defined(__ANDROID__)
-  // When running on Android, the process must be correctly initialized
-  // with GSInitializeProcessAndroid (See NSProcessInfo).
-  //
-  // If the minimum API level is 24 or higher, the user-prefered locales
-  // are retrieved from the Android system and passed as GSAndroidLocaleList
-  // process argument
-  NSArray *args = [[NSProcessInfo processInfo] arguments];
-  NSEnumerator *enumerator = [args objectEnumerator];
-  NSString *key = nil;
-  NSString *localeList = nil;
+  /* When running on Android, the process must be correctly initialized
+   * with GSInitializeProcessAndroid (See NSProcessInfo).
+   *
+   * If the minimum API level is 24 or higher, the user-prefered locales
+   * are retrieved from the Android system and passed as GSAndroidLocaleList
+   * process argument
+   */
+  NSArray	*args = [[NSProcessInfo processInfo] arguments];
+  NSEnumerator	*enumerator = [args objectEnumerator];
+  NSString	*key = nil;
+  NSString	*localeList = nil;
 
   [enumerator nextObject];	// Skip process name.
   while (nil != (key = [enumerator nextObject]))
     {
-      if ([key isEqualToString:@"-GSAndroidLocaleList"])
+      if ([key isEqualToString: @"-GSAndroidLocaleList"])
         {
           localeList = [enumerator nextObject];
           break;
@@ -439,8 +444,8 @@ systemLanguages()
   // The locale list is a comma-separated list of locales of form ll-CC
   if (localeList != nil)
     {
-      NSString *locale;
-      NSArray *locales = [localeList componentsSeparatedByString: @","];
+      NSString	*locale;
+      NSArray	*locales = [localeList componentsSeparatedByString: @","];
 
       enumerator = [locales objectEnumerator];
       while (nil != (locale = [enumerator nextObject]))
@@ -449,16 +454,19 @@ systemLanguages()
         }
     }
   #else
-  // Add the languages listed in the LANGUAGE environment variable
-  // (a non-POSIX GNU extension)
+  /* Add the languages listed in the LANGUAGE environment variable
+   * (a non-POSIX GNU extension)
+   */
   {
-    NSString	*env = [[[NSProcessInfo processInfo] environment]
-				 objectForKey: @"LANGUAGE"];
+    NSString	*env;
+
+    env = [[[NSProcessInfo processInfo] environment] objectForKey: @"LANGUAGE"];
     if (env != nil && [env length] > 0)
       {
-	NSArray *array = [env componentsSeparatedByString: @":"];
-	NSEnumerator *enumerator = [array objectEnumerator];
-	NSString *locale;
+	NSArray		*array = [env componentsSeparatedByString: @":"];
+	NSEnumerator	*enumerator = [array objectEnumerator];
+	NSString	*locale;
+
 	while (nil != (locale = [enumerator nextObject]))
 	  {
 	    [names addObjectsFromArray: GSLanguagesFromLocale(locale)];
@@ -666,8 +674,8 @@ newLanguages(NSArray *oldNames)
  * change the value of a key (the value is equal to the old value).
  *
  * https://developer.apple.com/documentation/foundation/nsuserdefaults#2926902
- * "You can use key-value observing to be notified of any updates to a particular
- * default value. You can also register as an observer for
+ * "You can use key-value observing to be notified of any updates to
+ * a particular default value. You can also register as an observer for
  * NSUserDefaultsDidChangeNotification on the defaultCenter notification center
  * in order to be notified of all updates to a local defaults database."
  */
@@ -1514,30 +1522,36 @@ newLanguages(NSArray *oldNames)
   NS_DURING
     {
       GSPersistentDomain	*pd = [_persDomains objectForKey: processName];
-      id old = [self objectForKey: defaultName];
+      id			old = [self objectForKey: defaultName];
 
       if (nil != pd)
 	{
-      if ([pd setObject: nil forKey: defaultName])
-	{
-          id new;
-	  [self _changePersistentDomain: processName];
-	  new = [self objectForKey: defaultName];
-	  // Emit only a KVO notification when the value has actually changed,
-	  // meaning -objectForKey: would return a different value than before.
-	  if ([new hash] != [old hash])
+	  if ([pd setObject: nil forKey: defaultName])
 	    {
-	      [self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue: new];
+	      id new;
+	      [self _changePersistentDomain: processName];
+	      new = [self objectForKey: defaultName];
+	      /* Emit only a KVO notification when the value has actually
+	       * changed, meaning -objectForKey: would return a different
+	       * value than before.
+	       */
+	      if ([new hash] != [old hash])
+		{
+		  [self _notifyObserversOfChangeForKey: defaultName
+					      oldValue: old
+					      newValue: new];
+		}
 	    }
-	}
-      else {
-        // We always notify observers of a change, even if the value
-        // itself is unchanged.
-        [[NSNotificationCenter defaultCenter]
-          postNotificationName: NSUserDefaultsDidChangeNotification
-            object: self];
+	  else
+	    {
+	      /* We always notify observers of a change, even if the value
+	       * itself is unchanged.
+	       */
+	      [[NSNotificationCenter defaultCenter]
+		postNotificationName: NSUserDefaultsDidChangeNotification
+		  object: self];
 
-      }
+	    }
 	}
       [_lock unlock];
     }
@@ -1672,25 +1686,29 @@ static BOOL isPlistObject(id o)
         {
           id new;
           
-          // New value must be fetched from all domains, as there might be
-          // a registered default if value is nil, or the value is
-          // superseded by GSPrimary or NSArgumentDomain
+          /* New value must be fetched from all domains, as there might be
+           * a registered default if value is nil, or the value is
+           * superseded by GSPrimary or NSArgumentDomain
+	   */
           new = [self objectForKey: defaultName];
           [self _changePersistentDomain: processName];
 	  
 	  // Emit only a KVO notification when the value has actually changed
 	  if ([new hash] != [old hash])
 	    {
-              [self _notifyObserversOfChangeForKey: defaultName oldValue:old newValue:new];
+              [self _notifyObserversOfChangeForKey: defaultName
+					  oldValue: old
+					  newValue: new];
 	    }
         }
       else
         {
-          // We always notify observers of a change, even if the value
-          // itself is unchanged.
+          /* We always notify observers of a change, even if the value
+           * itself is unchanged.
+	   */
           [[NSNotificationCenter defaultCenter]
             postNotificationName: NSUserDefaultsDidChangeNotification
-		        object: self];
+			  object: self];
         }
       [_lock unlock];
     }
