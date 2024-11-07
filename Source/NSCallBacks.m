@@ -24,8 +24,7 @@
 
    <title>NSCallBacks class reference</title>
    $Date$ $Revision$
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110 USA. */
+ * Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA. */
 
 /**** Included Headers *******************************************************/
 
