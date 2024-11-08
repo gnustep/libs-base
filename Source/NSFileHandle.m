@@ -467,6 +467,12 @@ static Class NSFileHandle_ssl_class = nil;
   [self subclassResponsibility: _cmd];
 }
 
+- (BOOL) truncateAtOffset: (unsigned long long)offset
+                    error: (out NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
 
 @end
 

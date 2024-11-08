@@ -243,7 +243,8 @@ GCObject.h \
 # directory.
 #
 Base_AGSDOC_FLAGS = \
-	-MakeFrames YES \
+	-MakeFrames NO \
+	-IndexFile Base \
 	-DocumentationDirectory ../Documentation/Base \
 	-HeaderDirectory ../Headers/Foundation \
 	-Declared Foundation \
@@ -252,14 +253,14 @@ Base_AGSDOC_FLAGS = \
 	-ConstantsTemplate TypesAndConstants \
 	-FunctionsTemplate Functions \
 	-MacrosTemplate Functions \
-	-StylesheetURL gnustepStyle \
 	-TypedefsTemplate TypesAndConstants \
 	-VariablesTemplate TypesAndConstants \
 	-WordMap '{\
 	}' -Up Base
 
 BaseAdditions_AGSDOC_FLAGS = \
-	-MakeFrames YES \
+	-MakeFrames NO \
+	-IndexFile BaseAdditions \
 	-DocumentationDirectory ../Documentation/BaseAdditions \
 	-HeaderDirectory ../Headers/GNUstepBase \
 	-Declared GNUstepBase \

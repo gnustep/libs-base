@@ -1722,7 +1722,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       [NSException raise: NSFileHandleOperationException
 		  format: @"attempt to truncate invalid file"];
-
     }
   if (ftruncate(descriptor, pos) < 0)
     {
@@ -1730,6 +1729,21 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
                   format: @"truncation failed"];
     }
   [self seekToFileOffset: pos];
+}
+
+- (BOOL) truncateAtOffset: (unsigned long long)offset
+                    error: (out NSError **)error
+{
+  if (ftruncate((isStandardFile ? descriptor : -1), offset) < 0)
+    {
+      if (error)
+	{
+	  *error = [NSError _last];
+	}
+      return NO;
+    }
+  [self seekToFileOffset: offset];
+  return YES;
 }
 
 - (void) writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes
