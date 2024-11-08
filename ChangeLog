@@ -3,7 +3,7 @@
 	* Headers/Foundation/NSFileHandle.h:
 	* Source/GSFileHandle.m:
 	* Source/NSFileHandle.m:
-	Add -truncateAtOffset:error: method (issue 325)
+	Add OSX 12.15 file offset methods (issue 325, pull 446 and more)
 
 2024-11-03 Richard Frith-Macdonald <rfm@gnu.org>
 

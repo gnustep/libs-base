@@ -100,6 +100,12 @@ GS_EXPORT_CLASS
 - (void) truncateFileAtOffset: (unsigned long long)pos;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_15, GS_API_LATEST)
+- (BOOL) getOffset: (out unsigned long long *)offsetInFile 
+             error: (out NSError **)error;
+- (BOOL) seekToEndReturningOffset: (out unsigned long long *)offsetInFile 
+                            error: (out NSError **)error;
+- (BOOL) seekToOffset: (unsigned long long)offset 
+                error: (out NSError **)error;
 - (BOOL) truncateAtOffset: (unsigned long long)offset 
                     error: (out NSError **)error;
 #endif

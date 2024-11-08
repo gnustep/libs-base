@@ -1521,7 +1521,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 // Seeking within a file
 
-- (unsigned long long) offsetInFile
+- (BOOL) getOffset: (out unsigned long long *)offsetInFile
+             error: (out NSError **)error;
 {
   off_t	result = -1;
 
@@ -1545,14 +1546,47 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   if (result < 0)
     {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"failed to move to offset in file - %@",
-                  [NSError _last]];
+      if (error)
+	{
+	  *error = [NSError _last];
+	}
+      return NO;
     }
-  return (unsigned long long)result;
+  if (offsetInFile)
+    {
+      *offsetInFile = (unsigned long long)result;
+    }
+  return YES;
+}
+
+- (unsigned long long) offsetInFile
+{
+  unsigned long long	result;
+  NSError		*error;
+
+  if ([self getOffset: &result error: &error] == NO)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"failed to move to offset in file - %@", error];
+    }
+  return result;
 }
 
 - (unsigned long long) seekToEndOfFile
+{
+  unsigned long long	result;
+  NSError		*error;
+
+  if ([self seekToEndReturningOffset: &result error: &error] == NO)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"failed to move to offset in file - %@", error];
+    }
+  return result;
+}
+
+- (BOOL) seekToEndReturningOffset: (out unsigned long long *)offsetInFile
+                            error: (out NSError **)error
 {
   off_t	result = -1;
 
@@ -1576,21 +1610,39 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   if (result < 0)
     {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"failed to move to offset in file - %@",
-                  [NSError _last]];
+      if (error)
+	{
+	  *error = [NSError _last];
+	}
+      return NO;
     }
-  return (unsigned long long)result;
+  if (offsetInFile)
+    {
+      *offsetInFile = (unsigned long long)result;
+    }
+  return YES;
 }
 
 - (void) seekToFileOffset: (unsigned long long)pos
+{
+  NSError	*error;
+
+  if ([self seekToOffset: pos error: &error] == NO)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"failed to move to offset in file - %@", error];
+    }
+}
+
+- (BOOL) seekToOffset: (unsigned long long)offset
+                error: (out NSError **)error
 {
   off_t	result = -1;
 
 #ifdef __ANDROID__
   if (asset)
     {
-      result = AAsset_seek(asset, (off_t)pos, SEEK_SET);
+      result = AAsset_seek(asset, (off_t)offset, SEEK_SET);
     }
   else
 #endif
@@ -1599,20 +1651,22 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 #if	USE_ZLIB
       if (gzDescriptor != 0)
 	{
-	  result = gzseek(gzDescriptor, (off_t)pos, SEEK_SET);
+	  result = gzseek(gzDescriptor, (off_t)offset, SEEK_SET);
 	}
       else
 #endif
-      result = lseek(descriptor, (off_t)pos, SEEK_SET);
+      result = lseek(descriptor, (off_t)offset, SEEK_SET);
     }
   if (result < 0)
     {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"failed to move to offset in file - %@",
-                  [NSError _last]];
+      if (error)
+	{
+	  *error = [NSError _last];
+	}
+      return NO;
     }
+  return YES;
 }
-
 
 // Operations on file
 
@@ -1716,21 +1770,6 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
 }
 
-- (void) truncateFileAtOffset: (unsigned long long)pos
-{
-  if (!(isStandardFile && descriptor >= 0))
-    {
-      [NSException raise: NSFileHandleOperationException
-		  format: @"attempt to truncate invalid file"];
-    }
-  if (ftruncate(descriptor, pos) < 0)
-    {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"truncation failed"];
-    }
-  [self seekToFileOffset: pos];
-}
-
 - (BOOL) truncateAtOffset: (unsigned long long)offset
                     error: (out NSError **)error
 {
@@ -1744,6 +1783,21 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   [self seekToFileOffset: offset];
   return YES;
+}
+
+- (void) truncateFileAtOffset: (unsigned long long)pos
+{
+  if (!(isStandardFile && descriptor >= 0))
+    {
+      [NSException raise: NSFileHandleOperationException
+		  format: @"attempt to truncate invalid file"];
+    }
+  if (ftruncate(descriptor, pos) < 0)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"truncation failed"];
+    }
+  [self seekToFileOffset: pos];
 }
 
 - (void) writeInBackgroundAndNotify: (NSData*)item forModes: (NSArray*)modes
