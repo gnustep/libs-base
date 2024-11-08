@@ -34,6 +34,7 @@
 	holding the seconds since reference date (because someone at Apple
 	thought it would be a good idea to represent a time interval as a fp).
 	Note that this assumes that IEEE 754 is used.
+
 	* Source/NSCalendarDate.m:
 	Remove access to the NSDate private concrete Class
 	and implement -timeIntervalSinceReferenceDate instead.
