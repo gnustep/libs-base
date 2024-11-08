@@ -657,6 +657,7 @@ GSICUCachedCollator(NSStringCompareOptions mask, NSLocale *locale)
       return cache->collator;
    }
 }
+#endif /* GS_USE_ICU = 1 */
 
 
 @implementation NSString
@@ -871,8 +872,7 @@ register_printf_atsign ()
 
   return AUTORELEASE(newString);
 }
-#endif
-#endif
+#endif /* HAVE_UNICODE_UNORM2_H || HAVE_ICU_H */
 
 + (void) atExit
 {
