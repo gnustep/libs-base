@@ -31,9 +31,9 @@
 	* Source/NSDatePrivate.h:
 	NSDate is now a small object in slot 6, when configuring GNUstep with the
 	clang/libobjc2 toolchain.  This is done by compressing the binary64 fp
-	holding the seconds since reference date (because someone at Apple thought
-	it would be a good idea to represent a time interval as a fp). Note that
-	this assumes that IEEE 754 is used.
+	holding the seconds since reference date (because someone at Apple
+	thought it would be a good idea to represent a time interval as a fp).
+	Note that this assumes that IEEE 754 is used.
 	* Source/NSCalendarDate.m:
 	Remove access to the NSDate private concrete Class
 	and implement -timeIntervalSinceReferenceDate instead.
