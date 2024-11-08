@@ -19,8 +19,7 @@
 #
 #  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#  Boston, MA 02111 USA.
+#  Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 #
 
 ifeq ($(GNUSTEP_MAKEFILES),)
@@ -370,6 +369,10 @@ else
   NSKeyValueObserving.m
 endif
 
+ifeq ($(OBJC_RUNTIME_LIB), ng)
+  BASE_MFILES += \
+  NSKeyValueCoding+Caching.m
+endif
 
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   ifneq ($(GNUSTEP_TARGET_OS), mingw64)
@@ -425,6 +428,11 @@ simple-load.h \
 win32-load.h \
 NSCallBacks.h \
 tzfile.h
+
+# Definitions for toll-free bridging of known structures
+# such as NSRect, NSPoint, or NSSize.
+COREFOUNDATION_HEADERS = \
+CFCGTypes.h
 
 FOUNDATION_HEADERS = \
 Foundation.h \
@@ -598,7 +606,8 @@ NSZone.h
 HEADERS_INSTALL = \
 	$(OBJECTIVEC2_HEADERS) \
 	$(GNUSTEPBASE_HEADERS) \
-	$(FOUNDATION_HEADERS)
+	$(FOUNDATION_HEADERS) \
+  $(COREFOUNDATION_HEADERS)
 
 GENERATED_HFILES = \
 dynamic-load.h \

@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSObject class reference</title>
    $Date$ $Revision$
@@ -2150,26 +2149,6 @@ static id gs_weak_load(id obj)
 + (NSZone *) zone
 {
   return NSDefaultMallocZone();
-}
-
-/**
- * Called to encode the instance variables of the receiver to aCoder.<br />
- * Subclasses should call the superclass method at the start of their
- * own implementation.
- */
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  return;
-}
-
-/**
- * Called to intialise instance variables of the receiver from aDecoder.<br />
- * Subclasses should call the superclass method at the start of their
- * own implementation.
- */
-- (id) initWithCoder: (NSCoder*)aDecoder
-{
-  return self;
 }
 
 + (BOOL) resolveClassMethod: (SEL)name

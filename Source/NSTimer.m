@@ -20,8 +20,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSTimer class reference</title>
    $Date$ $Revision$
@@ -35,9 +34,8 @@
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSInvocation.h"
 
-@class	NSGDate;
-@interface NSGDate : NSObject	// Help the compiler
-@end
+#import "NSDatePrivate.h"
+
 static Class	NSDate_class;
 
 /**
@@ -58,7 +56,7 @@ static Class	NSDate_class;
 {
   if (self == [NSTimer class])
     {
-      NSDate_class = [NSGDate class];
+      NSDate_class = [DATE_CONCRETE_CLASS_NAME class];
     }
 }
 

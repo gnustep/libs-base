@@ -1,32 +1,31 @@
 /**
-   NSURLSessionConfiguration.m
-
-   Copyright (C) 2017-2024 Free Software Foundation, Inc.
-
-   Written by: Hugo Melder <hugo@algoriddim.com>
-   Date: May 2024
-   Author: Hugo Melder <hugo@algoriddim.com>
-
-   This file is part of GNUStep-base
-
-   This library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2 of the License, or (at your option) any later version.
-
-   This library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
-
-   If you are interested in a warranty or support for this source code,
-   contact Scott Christley <scottc@net-community.com> for more information.
-
-   You should have received a copy of the GNU Lesser General Public
-   License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
-*/
+ * NSURLSessionConfiguration.m
+ *
+ * Copyright (C) 2017-2024 Free Software Foundation, Inc.
+ *
+ * Written by: Hugo Melder <hugo@algoriddim.com>
+ * Date: May 2024
+ * Author: Hugo Melder <hugo@algoriddim.com>
+ *
+ * This file is part of GNUStep-base
+ *
+ * This library is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU Lesser General Public
+ * License as published by the Free Software Foundation; either
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This library is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ * Lesser General Public License for more details.
+ *
+ * If you are interested in a warranty or support for this source code,
+ * contact Scott Christley <scottc@net-community.com> for more information.
+ *
+ * You should have received a copy of the GNU Lesser General Public
+ * License along with this library; if not, write to the Free
+ * Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
+ */
 
 #import "Foundation/NSURLSession.h"
 #import "Foundation/NSHTTPCookie.h"
@@ -35,9 +34,9 @@
 
 @implementation NSURLSessionConfiguration
 
-static NSURLSessionConfiguration *def = nil;
+static NSURLSessionConfiguration * def = nil;
 
-+ (void)initialize
++ (void) initialize
 {
   if (nil == def)
     {
@@ -45,26 +44,27 @@ static NSURLSessionConfiguration *def = nil;
     }
 }
 
-+ (NSURLSessionConfiguration *)defaultSessionConfiguration
++ (NSURLSessionConfiguration *) defaultSessionConfiguration
 {
   return AUTORELEASE([def copy]);
 }
 
-+ (NSURLSessionConfiguration *)ephemeralSessionConfiguration
++ (NSURLSessionConfiguration *) ephemeralSessionConfiguration
 {
   // return default session since we don't store any data on disk anyway
   return AUTORELEASE([def copy]);
 }
 
-+ (NSURLSessionConfiguration *)backgroundSessionConfigurationWithIdentifier:
++ (NSURLSessionConfiguration *) backgroundSessionConfigurationWithIdentifier:
   (NSString *)identifier
 {
-  NSURLSessionConfiguration *configuration = [def copy];
+  NSURLSessionConfiguration * configuration = [def copy];
+
   configuration->_identifier = [identifier copy];
   return AUTORELEASE(configuration);
 }
 
-- (instancetype)init
+- (instancetype) init
 {
   if (nil != (self = [super init]))
     {
@@ -83,7 +83,7 @@ static NSURLSessionConfiguration *def = nil;
   return self;
 }
 
-- (void)dealloc
+- (void) dealloc
 {
   DESTROY(_identifier);
   DESTROY(_HTTPAdditionalHeaders);
@@ -94,190 +94,191 @@ static NSURLSessionConfiguration *def = nil;
   [super dealloc];
 }
 
-- (NSString *)identifier
+- (NSString *) identifier
 {
   return _identifier;
 }
 
-- (NSURLCache *)URLCache
+- (NSURLCache *) URLCache
 {
   return _URLCache;
 }
 
-- (void)setURLCache:(NSURLCache *)cache
+- (void) setURLCache: (NSURLCache *)cache
 {
   ASSIGN(_URLCache, cache);
 }
 
-- (void)setURLCredentialStorage:(NSURLCredentialStorage *)storage
+- (void) setURLCredentialStorage: (NSURLCredentialStorage *)storage
 {
   ASSIGN(_URLCredentialStorage, storage);
 }
 
-- (NSURLRequestCachePolicy)requestCachePolicy
+- (NSURLRequestCachePolicy) requestCachePolicy
 {
   return _requestCachePolicy;
 }
 
-- (void)setRequestCachePolicy:(NSURLRequestCachePolicy)policy
+- (void) setRequestCachePolicy: (NSURLRequestCachePolicy)policy
 {
   _requestCachePolicy = policy;
 }
 
-- (NSArray *)protocolClasses
+- (NSArray *) protocolClasses
 {
   return _protocolClasses;
 }
 
-- (NSTimeInterval)timeoutIntervalForRequest
+- (NSTimeInterval) timeoutIntervalForRequest
 {
   return _timeoutIntervalForRequest;
 }
 
-- (void)setTimeoutIntervalForRequest:(NSTimeInterval)interval
+- (void) setTimeoutIntervalForRequest: (NSTimeInterval)interval
 {
   _timeoutIntervalForRequest = interval;
 }
 
-- (NSTimeInterval)timeoutIntervalForResource
+- (NSTimeInterval) timeoutIntervalForResource
 {
   return _timeoutIntervalForResource;
 }
 
-- (void)setTimeoutIntervalForResource:(NSTimeInterval)interval
+- (void) setTimeoutIntervalForResource: (NSTimeInterval)interval
 {
   _timeoutIntervalForResource = interval;
 }
 
-- (NSInteger)HTTPMaximumConnectionsPerHost
+- (NSInteger) HTTPMaximumConnectionsPerHost
 {
   return _HTTPMaximumConnectionsPerHost;
 }
 
-- (void)setHTTPMaximumConnectionsPerHost:(NSInteger)n
+- (void) setHTTPMaximumConnectionsPerHost: (NSInteger)n
 {
   _HTTPMaximumConnectionsPerHost = n;
 }
 
-- (NSInteger)HTTPMaximumConnectionLifetime
+- (NSInteger) HTTPMaximumConnectionLifetime
 {
   return _HTTPMaximumConnectionLifetime;
 }
 
-- (void)setHTTPMaximumConnectionLifetime:(NSInteger)n
+- (void) setHTTPMaximumConnectionLifetime: (NSInteger)n
 {
   _HTTPMaximumConnectionLifetime = n;
 }
 
-- (BOOL)HTTPShouldUsePipelining
+- (BOOL) HTTPShouldUsePipelining
 {
   return _HTTPShouldUsePipelining;
 }
 
-- (void)setHTTPShouldUsePipelining:(BOOL)flag
+- (void) setHTTPShouldUsePipelining: (BOOL)flag
 {
   _HTTPShouldUsePipelining = flag;
 }
 
-- (NSHTTPCookieAcceptPolicy)HTTPCookieAcceptPolicy
+- (NSHTTPCookieAcceptPolicy) HTTPCookieAcceptPolicy
 {
   return _HTTPCookieAcceptPolicy;
 }
 
-- (void)setHTTPCookieAcceptPolicy:(NSHTTPCookieAcceptPolicy)policy
+- (void) setHTTPCookieAcceptPolicy: (NSHTTPCookieAcceptPolicy)policy
 {
   _HTTPCookieAcceptPolicy = policy;
 }
 
-- (NSHTTPCookieStorage *)HTTPCookieStorage
+- (NSHTTPCookieStorage *) HTTPCookieStorage
 {
   return _HTTPCookieStorage;
 }
 
-- (void)setHTTPCookieStorage:(NSHTTPCookieStorage *)storage
+- (void) setHTTPCookieStorage: (NSHTTPCookieStorage *)storage
 {
   ASSIGN(_HTTPCookieStorage, storage);
 }
 
-- (BOOL)HTTPShouldSetCookies
+- (BOOL) HTTPShouldSetCookies
 {
   return _HTTPShouldSetCookies;
 }
 
-- (void)setHTTPShouldSetCookies:(BOOL)flag
+- (void) setHTTPShouldSetCookies: (BOOL)flag
 {
   _HTTPShouldSetCookies = flag;
 }
 
-- (NSDictionary *)HTTPAdditionalHeaders
+- (NSDictionary *) HTTPAdditionalHeaders
 {
   return _HTTPAdditionalHeaders;
 }
 
-- (void)setHTTPAdditionalHeaders:(NSDictionary *)headers
+- (void) setHTTPAdditionalHeaders: (NSDictionary *)headers
 {
   ASSIGN(_HTTPAdditionalHeaders, headers);
 }
 
-- (NSURLRequest *)configureRequest:(NSURLRequest *)request
+- (NSURLRequest *) configureRequest: (NSURLRequest *)request
 {
-  return [self setCookiesOnRequest:request];
+  return [self setCookiesOnRequest: request];
 }
 
-- (NSURLRequest *)setCookiesOnRequest:(NSURLRequest *)request
+- (NSURLRequest *) setCookiesOnRequest: (NSURLRequest *)request
 {
-  NSMutableURLRequest *r = AUTORELEASE([request mutableCopy]);
+  NSMutableURLRequest * r = AUTORELEASE([request mutableCopy]);
 
   if (_HTTPShouldSetCookies)
     {
       if (nil != _HTTPCookieStorage && nil != [request URL])
         {
-          NSArray *cookies = [_HTTPCookieStorage cookiesForURL:[request URL]];
+          NSArray * cookies = [_HTTPCookieStorage cookiesForURL: [request URL]];
           if (nil != cookies && [cookies count] > 0)
             {
-              NSDictionary *cookiesHeaderFields;
-              NSString     *cookieValue;
+              NSDictionary * cookiesHeaderFields;
+              NSString * cookieValue;
 
               cookiesHeaderFields =
-                [NSHTTPCookie requestHeaderFieldsWithCookies:cookies];
-              cookieValue = [cookiesHeaderFields objectForKey:@"Cookie"];
+                [NSHTTPCookie requestHeaderFieldsWithCookies: cookies];
+              cookieValue = [cookiesHeaderFields objectForKey: @"Cookie"];
               if (nil != cookieValue && [cookieValue length] > 0)
                 {
-                  [r setValue:cookieValue forHTTPHeaderField:@"Cookie"];
+                  [r setValue: cookieValue forHTTPHeaderField: @"Cookie"];
                 }
             }
         }
     }
 
   return AUTORELEASE([r copy]);
-}
+} /* setCookiesOnRequest */
 
-- (NSURLCredentialStorage *)URLCredentialStorage
+- (NSURLCredentialStorage *) URLCredentialStorage
 {
   return _URLCredentialStorage;
 }
 
-- (id)copyWithZone:(NSZone *)zone
+- (id) copyWithZone: (NSZone *)zone
 {
-  NSURLSessionConfiguration *copy = [[[self class] alloc] init];
+  NSURLSessionConfiguration * copy = [[[self class] alloc] init];
 
   if (copy)
     {
       copy->_identifier = [_identifier copy];
       copy->_URLCache = [_URLCache copy];
       copy->_URLCredentialStorage = [_URLCredentialStorage copy];
-      copy->_protocolClasses = [_protocolClasses copyWithZone:zone];
+      copy->_protocolClasses = [_protocolClasses copyWithZone: zone];
       copy->_HTTPMaximumConnectionsPerHost = _HTTPMaximumConnectionsPerHost;
       copy->_HTTPShouldUsePipelining = _HTTPShouldUsePipelining;
       copy->_HTTPCookieAcceptPolicy = _HTTPCookieAcceptPolicy;
       copy->_HTTPCookieStorage = [_HTTPCookieStorage retain];
       copy->_HTTPShouldSetCookies = _HTTPShouldSetCookies;
-      copy->_HTTPAdditionalHeaders = [_HTTPAdditionalHeaders copyWithZone:zone];
+      copy->_HTTPAdditionalHeaders =
+        [_HTTPAdditionalHeaders copyWithZone: zone];
       copy->_timeoutIntervalForRequest = _timeoutIntervalForRequest;
       copy->_timeoutIntervalForResource = _timeoutIntervalForResource;
     }
 
   return copy;
-}
+} /* copyWithZone */
 
 @end

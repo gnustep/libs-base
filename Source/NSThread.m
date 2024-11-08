@@ -24,8 +24,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSThread class reference</title>
 */
@@ -1337,7 +1336,15 @@ unregisterActiveThread(NSThread *thread)
         NSStringFromSelector(_cmd)];
     }
 
-  [_target performSelector: _selector withObject: _arg];
+  if (_targetIsBlock)
+    {
+      GSThreadBlock block = (GSThreadBlock)_target;
+      CALL_BLOCK_NO_ARGS(block);
+    }
+  else
+    {
+      [_target performSelector: _selector withObject: _arg];
+    }
 }
 
 - (NSString*) name
@@ -2410,6 +2417,31 @@ GSRunLoopInfoForThread(NSThread *aThread)
   [NSThread detachNewThreadSelector: aSelector
                            toTarget: self
                          withObject: anObject];
+}
+
+@end
+
+@implementation NSThread (BlockAdditions)
+
++ (void) detachNewThreadWithBlock: (GSThreadBlock)block
+{
+  NSThread	*thread;
+
+  thread = [[NSThread alloc] initWithBlock: block];
+  [thread start];
+
+  RELEASE(thread);
+}
+
+- (instancetype) initWithBlock: (GSThreadBlock)block
+{
+  if (nil != (self = [self init]))
+    {
+      _targetIsBlock = YES;
+      /* Copy block to heap */
+      _target = _Block_copy(block);
+    } 
+  return self;
 }
 
 @end

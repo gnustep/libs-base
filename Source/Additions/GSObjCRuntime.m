@@ -22,8 +22,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>GSObjCRuntime function and macro reference</title>
    */
@@ -48,6 +47,7 @@
 
 #import "../GSPrivate.h"
 #import "../GSPThread.h"
+#import "../typeEncodingHelper.h"
 
 #include <objc/Protocol.h>
 
@@ -1317,7 +1317,8 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
             break;
 
           case _C_STRUCT_B:
-            if (GSSelectorTypesMatch(@encode(NSPoint), type))
+		  {
+            if (IS_CGPOINT_ENCODING(type))
               {
                 NSPoint	v;
 
@@ -1334,7 +1335,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithPoint: v];
               }
-            else if (GSSelectorTypesMatch(@encode(NSRange), type))
+            else if (IS_NSRANGE_ENCODING(type))
               {
                 NSRange	v;
 
@@ -1351,7 +1352,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithRange: v];
               }
-            else if (GSSelectorTypesMatch(@encode(NSRect), type))
+            else if (IS_CGRECT_ENCODING(type))
               {
                 NSRect	v;
 
@@ -1368,7 +1369,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
                 val = [NSValue valueWithRect: v];
               }
-            else if (GSSelectorTypesMatch(@encode(NSSize), type))
+            else if (IS_CGSIZE_ENCODING(type))
               {
                 NSSize	v;
 
@@ -1410,6 +1411,7 @@ GSObjCGetVal(NSObject *self, const char *key, SEL sel,
                   }
               }
             break;
+		  }
 
 	  default:
 #ifdef __GNUSTEP_RUNTIME__

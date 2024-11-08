@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
     AutogsdocSource: NSObjCRuntime.m
     AutogsdocSource: NSLog.m
@@ -100,19 +99,6 @@ typedef	uintptr_t	NSUInteger;
 #	define NSIntegerMin  INTPTR_MIN
 #	define NSUIntegerMax UINTPTR_MAX
 #endif /* !defined(NSINTEGER_DEFINED) */
-
-#if     !defined(CGFLOAT_DEFINED)
-#if     GS_SIZEOF_VOIDP == 8
-#define CGFLOAT_IS_DBL  1
-typedef double          CGFloat;
-#define CGFLOAT_MIN	DBL_MIN
-#define CGFLOAT_MAX	DBL_MAX
-#else
-typedef float           CGFloat;
-#define CGFLOAT_MIN	FLT_MIN
-#define CGFLOAT_MAX	FLT_MAX
-#endif
-#endif /* !defined(CGFLOAT_DEFINED) */
 
 #define NSINTEGER_DEFINED 1
 #define CGFLOAT_DEFINED 1

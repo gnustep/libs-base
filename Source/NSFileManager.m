@@ -30,8 +30,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSFileManager class reference</title>
    $Date$ $Revision$
@@ -1323,10 +1322,17 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 
 /**
  * Copies the file or directory at source to destination, using a
- * handler object which should respond to
+ * handler object which may respond to
  * [NSObject(NSFileManagerHandler)-fileManager:willProcessPath:] and
  * [NSObject(NSFileManagerHandler)-fileManager:shouldProceedAfterError:]
  * messages.<br />
+ * If the handler responds to the first message, it is used to inform the
+ * handler when an item is about to be copied.  If the handler responds
+ * to the second message, it is used to ask the handler whether to
+ * continue with the copy after an error (when there is no handler the
+ * processing stops at the point when an error occurs).<br />
+ * Symbolic links are copied themselved rather than causing the items
+ * they link to be copied.<br />
  * Will not copy to a destination which already exists.
  */
 - (BOOL) copyPath: (NSString*)source
@@ -1379,11 +1385,30 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 
       if ([self createDirectoryAtPath: destination attributes: attrs] == NO)
 	{
-          return [self _proceedAccordingToHandler: handler
-					 forError: [self _lastError]
-					   inPath: destination
-					 fromPath: source
-					   toPath: destination];
+          if (NO == [self _proceedAccordingToHandler: handler
+					    forError: [self _lastError]
+					      inPath: destination
+					    fromPath: source
+					      toPath: destination])
+	    {
+	      return NO;
+	    }
+	  else
+	    {
+	      BOOL	dirOK;
+
+	      /* We may have managed to create the directory but not set
+	       * its attributes ... if so we can continue copying.
+	       */
+	      if (![self fileExistsAtPath: destination isDirectory: &dirOK])
+		{
+		  dirOK = NO;
+		}
+	      if (!dirOK)
+		{
+		  return NO;
+		}
+	    }
 	}
 
       if ([self _copyPath: source toPath: destination handler: handler] == NO)
@@ -1460,7 +1485,12 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
  * handler object which should respond to
  * [NSObject(NSFileManagerHandler)-fileManager:willProcessPath:] and
  * [NSObject(NSFileManagerHandler)-fileManager:shouldProceedAfterError:]
- * messages.
+ * messages.<br />
+ * If the handler responds to the first message, it is used to inform the
+ * handler when an item is about to be moved.  If the handler responds
+ * to the second message, it is used to ask the handler whether to
+ * continue with the move after an error (when there is no handler the
+ * processing stops at the point when an error occurs).<br />
  * Will not move to a destination which already exists.<br />
  */
 - (BOOL) movePath: (NSString*)source
@@ -3407,8 +3437,7 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
                   result = NO;
 		  break;
                 }
-	      /*
-	       * We may have managed to create the directory but not set
+	      /* We may have managed to create the directory but not set
 	       * its attributes ... if so we can continue copying.
 	       */
 	      if (![self fileExistsAtPath: destinationFile isDirectory: &dirOK])

@@ -18,17 +18,18 @@
  * 
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110 USA.
+ * Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
  */ 
 
 #ifndef __NSGeometry_h_GNUSTEP_BASE_INCLUDE
 #define __NSGeometry_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
+#import	<CoreFoundation/CFCGTypes.h>
 
+#ifdef __OBJC__
 #import <objc/objc.h>
-
 #import <Foundation/NSString.h>
+#endif
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -56,12 +57,7 @@ extern "C" {
   CGFloat y;
 }</example>
  <p>Represents a 2-d cartesian position.</p> */
-typedef struct _NSPoint NSPoint;
-struct _NSPoint
-{
-  CGFloat x;
-  CGFloat y;
-};
+typedef struct CGPoint NSPoint;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Array of NSPoint structs. */
@@ -76,12 +72,7 @@ typedef NSPoint *NSPointPointer;
   CGFloat height;
 }</example>
  <p>Floating point rectangle size.</p> */
-typedef struct _NSSize NSSize;
-struct _NSSize
-{
-  CGFloat width;
-  CGFloat height;
-};
+typedef struct CGSize NSSize;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Array of NSSize structs. */
@@ -97,12 +88,7 @@ typedef NSSize *NSSizePointer;
 }</example>
 
  <p>Rectangle.</p> */
-typedef struct _NSRect NSRect;
-struct _NSRect
-{
-  NSPoint origin;
-  NSSize size;
-};
+typedef struct CGRect NSRect;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Array of NSRect structs. */

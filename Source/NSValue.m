@@ -20,14 +20,14 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSValue class reference</title>
    $Date$ $Revision$
 */
 
 #import "common.h"
+#import "typeEncodingHelper.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDictionary.h"
@@ -411,28 +411,28 @@ static NSLock			*placeholderLock;
   size = strlen(objctype)+1;
   [coder encodeValueOfObjCType: @encode(unsigned) at: &size];
   [coder encodeArrayOfObjCType: @encode(signed char) count: size at: objctype];
-  if (strncmp("{_NSSize=", objctype, 9) == 0)
+  if (strncmp(CGSIZE_ENCODING_PREFIX, objctype, strlen(CGSIZE_ENCODING_PREFIX)) == 0)
     {
       NSSize    v = [self sizeValue];
 
       [coder encodeValueOfObjCType: objctype at: &v];
       return;
     }
-  else if (strncmp("{_NSPoint=", objctype, 10) == 0)
+  else if (strncmp(CGPOINT_ENCODING_PREFIX, objctype, strlen(CGPOINT_ENCODING_PREFIX)) == 0)
     {
       NSPoint    v = [self pointValue];
 
       [coder encodeValueOfObjCType: objctype at: &v];
       return;
     }
-  else if (strncmp("{_NSRect=", objctype, 9) == 0)
+  else if (strncmp(CGRECT_ENCODING_PREFIX, objctype, strlen(CGRECT_ENCODING_PREFIX)) == 0)
     {
       NSRect    v = [self rectValue];
 
       [coder encodeValueOfObjCType: objctype at: &v];
       return;
     }
-  else if (strncmp("{_NSRange=", objctype, 10) == 0)
+  else if (strncmp(NSRANGE_ENCODING_PREFIX, objctype, strlen(NSRANGE_ENCODING_PREFIX)) == 0)
     {
       NSRange    v = [self rangeValue];
 
@@ -480,13 +480,13 @@ static NSLock			*placeholderLock;
   [coder decodeArrayOfObjCType: @encode(signed char)
 			 count: size
 			    at: (void*)objctype];
-  if (strncmp("{_NSSize=", objctype, 9) == 0)
+  if (strncmp(CGSIZE_ENCODING_PREFIX, objctype, strlen(CGSIZE_ENCODING_PREFIX)) == 0)
     c = [abstractClass valueClassWithObjCType: @encode(NSSize)];
-  else if (strncmp("{_NSPoint=", objctype, 10) == 0)
+  else if (strncmp(CGPOINT_ENCODING_PREFIX, objctype, strlen(CGPOINT_ENCODING_PREFIX)) == 0)
     c = [abstractClass valueClassWithObjCType: @encode(NSPoint)];
-  else if (strncmp("{_NSRect=", objctype, 9) == 0)
+  else if (strncmp(CGRECT_ENCODING_PREFIX, objctype, strlen(CGRECT_ENCODING_PREFIX)) == 0)
     c = [abstractClass valueClassWithObjCType: @encode(NSRect)];
-  else if (strncmp("{_NSRange=", objctype, 10) == 0)
+  else if (strncmp(NSRANGE_ENCODING_PREFIX, objctype, strlen(NSRANGE_ENCODING_PREFIX)) == 0)
     c = [abstractClass valueClassWithObjCType: @encode(NSRange)];
   else
     c = [abstractClass valueClassWithObjCType: objctype];
