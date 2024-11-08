@@ -609,7 +609,8 @@ _GSICUCollatorCreate(NSStringCompareOptions mask, const char *localeCString)
   return self;
 }
 
-- (void) dealloc {
+- (void) dealloc
+{
   RELEASE(locale);
   if (collator != NULL)
     {
@@ -630,33 +631,37 @@ _GSICUCollatorCreate(NSStringCompareOptions mask, const char *localeCString)
 static UCollator *
 GSICUCachedCollator(NSStringCompareOptions mask, NSLocale *locale)
 {
-  NSThread *current;
-  GSICUCollatorCache *cache;
+  NSThread 		*current;
+  GSICUCollatorCache	*cache;
 
   current = [NSThread currentThread];
   cache = [current _stringCollatorCache];
-  if (nil == cache) {
-    cache = [[GSICUCollatorCache alloc] initWithMask: mask locale: locale];
-    [current _setStringCollatorCache: cache];
-    [cache release];
-    return cache->collator;
-  }
-
-  // Do a pointer comparison first to avoid the overhead of isEqual:
-  // The locale instance is likely a global constant object.
-  // If this fails, do a full comparison.
-  if ((cache->locale == locale || [cache->locale isEqual: locale]) && mask == cache->mask)
+  if (nil == cache)
     {
-      return cache->collator;
-    }
-  else
-   {
       cache = [[GSICUCollatorCache alloc] initWithMask: mask locale: locale];
       [current _setStringCollatorCache: cache];
       [cache release];
       return cache->collator;
-   }
+    }
+
+  /* Do a pointer comparison first to avoid the overhead of isEqual:
+   * The locale instance is likely a global constant object.
+   * If this fails, do a full comparison.
+   */
+  if ((cache->locale == locale || [cache->locale isEqual: locale])
+    && mask == cache->mask)
+    {
+      return cache->collator;
+    }
+  else
+    {
+      cache = [[GSICUCollatorCache alloc] initWithMask: mask locale: locale];
+      [current _setStringCollatorCache: cache];
+      [cache release];
+      return cache->collator;
+    }
 }
+#endif	// GS_USE_ICU
 
 
 @implementation NSString
@@ -772,7 +777,7 @@ register_printf_atsign ()
 				    0))
 #else
 	                            arginfo_func))
-#endif
+#endif	// PRINTF_ATSIGN_VA_LIST
 	[NSException raise: NSGenericException
 		     format: @"register printf handling of %%@ failed"];
 #elif   defined(HAVE_REGISTER_PRINTF_FUNCTION)
@@ -781,10 +786,10 @@ register_printf_atsign ()
 				    0))
 #else
 	                            arginfo_func))
-#endif
+#endif	// PRINTF_ATSIGN_VA_LIST
 	[NSException raise: NSGenericException
 		     format: @"register printf handling of %%@ failed"];
-#endif
+#endif	// defined(HAVE_REGISTER_PRINTF_FUNCTION)
 }
 
 
@@ -871,7 +876,6 @@ register_printf_atsign ()
 
   return AUTORELEASE(newString);
 }
-#endif
 #endif
 
 + (void) atExit
@@ -6393,14 +6397,12 @@ static NSFileManager *fm = nil;
   uint8_t	substringType;
   BOOL		isReverse;
   BOOL 		substringNotRequired;
-  BOOL 		localized; 
   NSUInteger	currentLocation;
   BOOL 		stop = NO;
 
   substringType = opts & 0xFF;
   isReverse = opts & NSStringEnumerationReverse;
   substringNotRequired = opts & NSStringEnumerationSubstringNotRequired;
-  localized = opts & NSStringEnumerationLocalized;
 
   if (isReverse)
     {
@@ -6511,7 +6513,7 @@ static NSFileManager *fm = nil;
       /* @ss=standard will use lists of common abbreviations,
        * such as Mr., Mrs., etc.
        */
-      locale = localized
+      locale = (opts & NSStringEnumerationLocalized)
         ? [[[[NSLocale currentLocale] localeIdentifier] 
 	  stringByAppendingString: @"@ss=standard"] UTF8String]
         : "en_US_POSIX";
