@@ -4,6 +4,10 @@
 #import <Foundation/Foundation.h>
 #import "ObjectTesting.h"
 
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+
 static int notificationCounter = 0;
 
 // Real object
@@ -81,6 +85,7 @@ static int notificationCounter = 0;
 }
 @end
 
+
 // Test program
 int
 main(int argc, char **argv)
@@ -126,6 +131,33 @@ main(int argc, char **argv)
   PASS(3 == notificationCounter, "notification via proxy works repeatedly")
 
   [nc removeObserver: proxy];
+
+#if __has_feature(blocks)
+  {
+    NSAutoreleasePool *pool = [NSAutoreleasePool new];
+    id<NSObject>	o;
+    unsigned		c;
+
+    NSLog(@"Adding block observer");
+    o = [nc addObserverForName: @"TestNotification"
+		        object: testObject
+			 queue: nil
+		    usingBlock: ^(NSNotification *n)
+    {
+      [real test: n];
+    }];
+    o = AUTORELEASE(RETAIN(o));
+    c = [o retainCount];
+    [nc postNotification: aNotification];
+    PASS(4 == notificationCounter, "notification via block works immediately")
+    PASS([o retainCount] == c,
+      "observer retain count unaltered on notification")
+    [nc removeObserver: o];
+    PASS([o retainCount] + 1 == c,
+      "observer retain count decremented on removal")
+    [pool release];
+  }
+#endif
 
   [pool release];
   return 0;

@@ -1,3 +1,10 @@
+2024-11-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m:
+	* Tests/base/NSNotification/general.m:
+	Rewrite mechanism for handling the behavior of observations using
+	blocks.  Add simple testcase checking reference counts of observer.
+
 2024-11-08 Richard Frith-Macdonald <rfm@gnu.org>
 	
 	* Headers/Foundation/NSFileHandle.h:

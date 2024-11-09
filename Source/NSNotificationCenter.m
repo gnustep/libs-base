@@ -39,6 +39,10 @@
 
 static NSZone	*_zone = 0;
 
+/* Cached class for fast test when removing observer.
+ */
+static Class	GSNotificationObserverClass = Nil;
+
 /**
  * Concrete class implementing NSNotification.
  */
@@ -214,7 +218,7 @@ static void obsFree(Observation *o);
  * Observation structures. When an Observation is removed from the
  * notification center, it's memory is returned to the free list of
  * the chunk table, rather than being released to the general
- * memory allocation system.  This means that, once a large numbner
+ * memory allocation system.  This means that, once a large number
  * of observers have been registered, memory usage will never shrink
  * even if the observers are removed.  On the other hand, the process
  * of adding and removing observers is speeded up.
@@ -239,7 +243,6 @@ typedef struct NCTbl {
   GSIMapTable		cache[CACHESIZE];
   unsigned short	chunkIndex;
   unsigned short	cacheIndex;
-  NSHashTable		*retainedObjectsTable;
 } NCTable;
 
 #define	TABLE		((NCTable*)_table)
@@ -388,7 +391,6 @@ static void endNCTable(NCTable *t)
       NSZoneFree(NSDefaultMallocZone(), (void*)t->cache[i]);
     }
   NSZoneFree(NSDefaultMallocZone(), t->chunks);
-  RELEASE(t->retainedObjectsTable);
   NSZoneFree(NSDefaultMallocZone(), t);
 
 }
@@ -406,7 +408,6 @@ static NCTable *newNCTable(void)
   GSIMapInitWithZoneAndCapacity(t->nameless, _zone, 16);
   GSIMapInitWithZoneAndCapacity(t->named, _zone, 128);
   t->named->extra = YES;        // This table retains keys
-  t->retainedObjectsTable = [[NSHashTable alloc] initWithOptions:NSHashTableObjectPointerPersonality capacity:10];
 
   t->_lock = [NSRecursiveLock new];
   return t;
@@ -431,6 +432,13 @@ static void obsFree(Observation *o)
     {
       NCTable	*t = o->link;
 
+      /* Instances of GSNotificationObserverClass are owned by the Observation
+       * and must be explicitly released when the observation is removed.
+       */
+      if (object_getClass(o->observer) == GSNotificationObserverClass)
+	{
+	  DESTROY(o->observer);
+	}
       o->link = (NCTable*)t->freeList;
       t->freeList = o;
     }
@@ -580,10 +588,6 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
 }
 
 @end
-
-/* Cached class for fast test when removing observer.
- */
-static Class	GSNotificationObserverClass = Nil;
 
 @interface GSNotificationObserver : NSObject
 {
@@ -804,11 +808,6 @@ static NSNotificationCenter *default_center = nil;
 
   o = obsNew(TABLE, selector, observer);
 
-  if (object_getClass(observer) == GSNotificationObserverClass)
-    {
-      [TABLE->retainedObjectsTable addObject:observer];
-    }
-
   /*
    * Record the Observation in one of the linked lists.
    *
@@ -905,6 +904,10 @@ static NSNotificationCenter *default_center = nil;
 	       name: name 
 	     object: object];
 
+  /* NB. The receiver takes ownership of the observer (without retaining)
+   * and will explicitly release it when the observation is removed, so we
+   * must not release it here.
+   */
   return observer;	// Released when observer is removed.
 }
 
@@ -1067,14 +1070,7 @@ static NSNotificationCenter *default_center = nil;
 	}
     }
 
-  if ([TABLE->retainedObjectsTable containsObject:observer])
-    {
-      [TABLE->retainedObjectsTable removeObject:observer];
-      RELEASE(observer);
-    }
-    
   unlockNCTable(TABLE);
-
 }
 
 /**
