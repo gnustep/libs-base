@@ -208,8 +208,19 @@ GS_EXPORT_CLASS
 }
 
 // Managing the blocks in the Operation
+/**
+ * Creates and returns an NSBlockOperationObject and adds the block.
+ */
 + (instancetype) blockOperationWithBlock: (GSBlockOperationBlock)block;
+
+/**
+ * Adds the execution block to the NSOperationBlock.
+ */
 - (void) addExecutionBlock: (GSBlockOperationBlock)block;
+
+/**
+ * Returns the block added to the NSOperationBlock.
+ */
 - (NSArray *) executionBlocks;
 
 @end
