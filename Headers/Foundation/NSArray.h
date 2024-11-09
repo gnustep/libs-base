@@ -122,6 +122,9 @@ GS_EXPORT_CLASS
 - (GS_GENERIC_TYPE(ElementT)) objectAtIndex: (NSUInteger)index;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_4, GS_API_LATEST)
+/**
+ * Returns array of objects at the indexes contained in NSIndexSet.
+ */
 - (GS_GENERIC_CLASS(NSArray, ElementT) *) objectsAtIndexes:
   (NSIndexSet *)indexes;
 #endif
