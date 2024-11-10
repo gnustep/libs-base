@@ -94,12 +94,16 @@ typedef GSIMapNode_t *GSIMapNode;
  (M->legacy ? M->cb.old.k.release(M, X.ptr) \
   : IS_WEAK_KEY(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf.k, &X.ptr))
 #define GSI_MAP_RETAIN_KEY(M, X)\
- (M->legacy ? M->cb.old.k.retain(M, X.ptr) : (IS_WEAK_KEY(M) ? nil : X.ptr))
+ (M->legacy ? M->cb.old.k.retain(M, X.ptr) \
+  : IS_WEAK_KEY(M) ? nil : pointerFunctionsAssign(&M->cb.pf.k, &X.ptr,\
+    pointerFunctionsAcquire(&M->cb.pf.k, X.ptr)))
 #define GSI_MAP_RELEASE_VAL(M, X)\
  (M->legacy ? M->cb.old.v.release(M, X.ptr) \
   : IS_WEAK_VALUE(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf.v, &X.ptr))
 #define GSI_MAP_RETAIN_VAL(M, X)\
- (M->legacy ? M->cb.old.v.retain(M, X.ptr) : (IS_WEAK_VALUE(M) ? nil : &X.ptr))
+ (M->legacy ? M->cb.old.v.retain(M, X.ptr) \
+  : IS_WEAK_VALUE(M) ? nil : pointerFunctionsAssign(&M->cb.pf.v, &X.ptr,\
+    pointerFunctionsAcquire(&M->cb.pf.v, X.ptr)))
 
 /* The GSI_MAP_WRITE_KEY() and GSI_MAP_WRITE_VAL() macros are expectd to
  * write without retain (GSI_MAP RETAIN macros are executed separately)
@@ -110,12 +114,14 @@ typedef GSIMapNode_t *GSIMapNode;
   if (M->legacy) \
     *(addr) = x;\
   else\
-    pointerFunctionsReplace(&M->cb.pf.k, (void**)addr, (x).obj);
+    (IS_WEAK_KEY(M) ? pointerFunctionsAssign(&M->cb.pf.k, (void**)addr,\
+      (x).obj) : (*(id*)(addr) = (x).obj));
 #define GSI_MAP_WRITE_VAL(M, addr, x) \
   if (M->legacy) \
     *(addr) = x;\
   else\
-    pointerFunctionsReplace(&M->cb.pf.v, (void**)addr, (x).obj);
+    (IS_WEAK_VALUE(M) ? pointerFunctionsAssign(&M->cb.pf.v, (void**)addr,\
+      (x).obj) : (*(id*)(addr) = (x).obj));
 #define GSI_MAP_READ_KEY(M,addr) \
   (M->legacy ? *(addr)\
     : (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf.k, (void**)addr))
