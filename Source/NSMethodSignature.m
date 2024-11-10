@@ -38,7 +38,28 @@
 #import "Foundation/NSException.h"
 #import "Foundation/NSCoder.h"
 
+
+static inline unsigned int
+gs_string_hash(const char *s)
+{
+  unsigned int val = 0;
+  while (*s != 0)
+    {
+      val = (val << 5) + val + *s++;
+    }
+  return val;
+}
+
+#define	GSI_MAP_RETAIN_KEY(M, X)
+#define	GSI_MAP_RELEASE_KEY(M, X)
+#define GSI_MAP_HASH(M, X)    (gs_string_hash(X.ptr))
+#define GSI_MAP_EQUAL(M, X,Y) (strcmp(X.ptr, Y.ptr) == 0)
+#define GSI_MAP_KTYPES	GSUNION_PTR
+#define GSI_MAP_VTYPES	GSUNION_OBJ
+#import "GNUstepBase/GSIMap.h"
+
 #import "GSInvocation.h"
+#import "GSPThread.h"
 
 #ifdef HAVE_MALLOC_H
 #if !defined(__OpenBSD__)
@@ -555,7 +576,29 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
 
 + (NSMethodSignature*) signatureWithObjCTypes: (const char*)t
 {
-  return AUTORELEASE([[[self class] alloc] _initWithObjCTypes: t]);
+  GSIMapNode node;
+  NSMethodSignature	*sig;
+
+  static GSIMapTable_t cacheTable = {};
+  static gs_mutex_t cacheTableLock = GS_MUTEX_INIT_STATIC;
+
+  GS_MUTEX_LOCK(cacheTableLock);
+  if (cacheTable.zone == 0)
+    {
+      GSIMapInitWithZoneAndCapacity(&cacheTable, [self zone], 8);
+    }
+
+  node = GSIMapNodeForKey(&cacheTable, (GSIMapKey)t);
+  if (node == 0)
+    {
+      sig = [[self alloc] _initWithObjCTypes: t];
+      GSIMapAddPair(&cacheTable, (GSIMapKey)t, (GSIMapVal)(id)sig);
+    } else {
+      sig =  RETAIN(node->value.obj);
+    }
+  GS_MUTEX_UNLOCK(cacheTableLock);
+  
+  return AUTORELEASE(sig);
 }
 
 - (NSArgumentInfo) argumentInfoAtIndex: (NSUInteger)index

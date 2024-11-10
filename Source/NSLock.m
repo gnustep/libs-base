@@ -951,12 +951,12 @@ gs_mutex_lock(gs_mutex_t *mutex)
     {
       assert(mutex->depth == 0);
       mutex->depth = 1;
-      atomic_store(&mutex->owner, thisThread);
+      gs_atomic_store(&mutex->owner, thisThread);
       return 0;
     }
 
   // needs to be atomic because another thread can concurrently set it
-  ownerThread = atomic_load(&mutex->owner);
+  ownerThread = gs_atomic_load(&mutex->owner);
   if (ownerThread == thisThread)
     {
       // this thread already owns this lock
@@ -985,7 +985,7 @@ gs_mutex_lock(gs_mutex_t *mutex)
   AcquireSRWLockExclusive(&mutex->lock);
   assert(mutex->depth == 0);
   mutex->depth = 1;
-  atomic_store(&mutex->owner, thisThread);
+  gs_atomic_store(&mutex->owner, thisThread);
   return 0;
 }
 
@@ -999,12 +999,12 @@ gs_mutex_trylock(gs_mutex_t *mutex)
     {
       assert(mutex->depth == 0);
       mutex->depth = 1;
-      atomic_store(&mutex->owner, thisThread);
+      gs_atomic_store(&mutex->owner, thisThread);
       return 0;
     }
 
   // needs to be atomic because another thread can concurrently set it
-  ownerThread = atomic_load(&mutex->owner);
+  ownerThread = gs_atomic_load(&mutex->owner);
   if (ownerThread == thisThread && mutex->attr == gs_mutex_attr_recursive)
     {
       // this thread already owns this lock and it's recursive
@@ -1028,7 +1028,7 @@ gs_mutex_unlock(gs_mutex_t *mutex)
       case gs_mutex_attr_recursive: {
         // return error if lock is not held by this thread
         DWORD thisThread = GetCurrentThreadId();
-        DWORD ownerThread = atomic_load(&mutex->owner);
+        DWORD ownerThread = gs_atomic_load(&mutex->owner);
         if (ownerThread != thisThread) {
           return EPERM;
         }
@@ -1046,7 +1046,7 @@ gs_mutex_unlock(gs_mutex_t *mutex)
     {
       assert(mutex->depth == 1);
       mutex->depth = 0;
-      atomic_store(&mutex->owner, 0);
+      gs_atomic_store(&mutex->owner, 0);
       ReleaseSRWLockExclusive(&mutex->lock);
       return 0;
     }
@@ -1060,7 +1060,7 @@ gs_cond_timedwait(gs_cond_t *cond, gs_mutex_t *mutex, DWORD millisecs)
 
   assert(mutex->depth == 1);
   mutex->depth = 0;
-  atomic_store(&mutex->owner, 0);
+  gs_atomic_store(&mutex->owner, 0);
 
   if (!SleepConditionVariableSRW(cond, &mutex->lock, millisecs, 0))
     {
@@ -1074,7 +1074,7 @@ gs_cond_timedwait(gs_cond_t *cond, gs_mutex_t *mutex, DWORD millisecs)
 
   assert(mutex->depth == 0);
   mutex->depth = 1;
-  atomic_store(&mutex->owner, GetCurrentThreadId());
+  gs_atomic_store(&mutex->owner, GetCurrentThreadId());
 
   return retVal;
 }

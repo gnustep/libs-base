@@ -61,12 +61,18 @@ typedef CONDITION_VARIABLE gs_cond_t;
 #define GS_COND_BROADCAST(cond) WakeAllConditionVariable(&(cond))
 
 /* Pthread-like locking primitives defined in NSLock.m */
+#ifdef __cplusplus
+extern "C" {
+#endif
 void gs_mutex_init(gs_mutex_t *l, gs_mutex_attr_t attr);
 int gs_mutex_lock(gs_mutex_t *l);
 int gs_mutex_trylock(gs_mutex_t *l);
 int gs_mutex_unlock(gs_mutex_t *l);
 int gs_cond_wait(gs_cond_t *cond, gs_mutex_t *mutex);
 int gs_cond_timedwait(gs_cond_t *cond, gs_mutex_t *mutex, DWORD millisecs);
+#ifdef __cplusplus
+}
+#endif
 
 /*
  * Threading primitives.

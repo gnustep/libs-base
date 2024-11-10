@@ -103,6 +103,8 @@
     }
 
 
+  /* Ordering as specified in "Accessor Search Patterns" from Key-Value Coding
+   * Programming Guide */
   proxy = [NSKeyValueFastMutableSet setForKey: aKey 
                                      ofObject: anObject
                            withCapitalizedKey: keybuf];
@@ -717,14 +719,14 @@
     {
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueUnionSetMutation
-                       usingObjects: [NSSet setWithObject: anObject]];
+                       usingObjects: anObject];
     }
   [set unionSet: anObject];
   if (notifiesObservers && !changeInProgress)
     {
       [object didChangeValueForKey: key
                    withSetMutation: NSKeyValueUnionSetMutation
-                      usingObjects: [NSSet setWithObject:anObject]];
+                      usingObjects: anObject];
     }
 }
 
@@ -734,14 +736,14 @@
     {
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueMinusSetMutation
-                       usingObjects: [NSSet setWithObject: anObject]];
+                       usingObjects: anObject];
     }
   [set minusSet: anObject];
   if (notifiesObservers && !changeInProgress)
     {
       [object didChangeValueForKey: key
                    withSetMutation: NSKeyValueMinusSetMutation
-                      usingObjects: [NSSet setWithObject: anObject]];
+                      usingObjects: anObject];
     }
 }
 
@@ -751,14 +753,14 @@
     {
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueIntersectSetMutation
-                       usingObjects: [NSSet setWithObject: anObject]];
+                       usingObjects: anObject];
     }
   [set intersectSet: anObject];
   if (notifiesObservers && !changeInProgress)
     {
       [object didChangeValueForKey: key
                    withSetMutation: NSKeyValueIntersectSetMutation
-                      usingObjects: [NSSet setWithObject: anObject]];
+                      usingObjects: anObject];
     }
 }
 
@@ -768,14 +770,14 @@
     {
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueSetSetMutation
-                       usingObjects: [NSSet setWithObject: anObject]];
+                       usingObjects: anObject];
     }
   [set setSet: anObject];
   if (notifiesObservers && !changeInProgress)
     {
       [object didChangeValueForKey: key
                    withSetMutation: NSKeyValueSetSetMutation
-                      usingObjects: [NSSet setWithObject: anObject]];
+                      usingObjects: anObject];
     }
 }
 @end

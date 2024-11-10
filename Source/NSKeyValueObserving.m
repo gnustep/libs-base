@@ -2071,6 +2071,60 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
 
 @end
 
+@implementation NSObject (NSKeyValueObservingPrivate)
+
+- (void)_notifyObserversOfChangeForKey:(NSString *)aKey
+                              oldValue:(id)old
+                              newValue:(id)new
+{
+  GSKVOPathInfo *pathInfo;
+  GSKVOInfo     *info;
+
+  info = (GSKVOInfo *)[self observationInfo];
+  if (info == nil)
+    {
+      return;
+    }
+          
+  if (new == nil)
+    {
+      new = null;
+    }
+  if (old == nil)
+    {
+      old = null;
+    }
+
+  pathInfo = [info lockReturningPathInfoForKey: aKey];
+  if (pathInfo != nil)
+    {
+      if (pathInfo->recursion++ == 0)
+        {
+          [pathInfo->change setObject: old
+                               forKey: NSKeyValueChangeOldKey];
+          [pathInfo->change removeObjectForKey: NSKeyValueChangeNewKey];
+          [pathInfo->change setValue:
+            [NSNumber numberWithInt: NSKeyValueChangeSetting]
+            forKey: NSKeyValueChangeKindKey];
+          [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: YES];
+
+          [pathInfo->change setValue: new
+                              forKey: NSKeyValueChangeNewKey];
+          [pathInfo notifyForKey: aKey ofInstance: [info instance] prior: NO];
+        }
+      if (pathInfo->recursion > 0)
+        {
+          pathInfo->recursion--;
+        }
+      [info unlock];
+    }
+
+  [self willChangeValueForDependentsOfKey: aKey];
+  [self didChangeValueForDependentsOfKey: aKey];
+}
+
+@end
+
 @implementation NSObject (NSKeyValueObservingCustomization)
 
 + (BOOL) automaticallyNotifiesObserversForKey: (NSString*)aKey
