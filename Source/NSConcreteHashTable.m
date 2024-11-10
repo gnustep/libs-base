@@ -87,18 +87,16 @@ typedef GSIMapNode_t *GSIMapNode;
  (M->legacy ? M->cb.old.release(M, X.ptr) \
   : IS_WEAK(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf, &X.ptr))
 #define GSI_MAP_RETAIN_KEY(M, X)\
- (M->legacy ? M->cb.old.retain(M, X.ptr) \
-  : IS_WEAK(M) ? nil : pointerFunctionsAssign(\
-    &M->cb.pf, &X.ptr, pointerFunctionsAcquire(&M->cb.pf, X.ptr)))
+ (M->legacy ? M->cb.old.retain(M, X.ptr) : (IS_WEAK(M) ? nil : X.ptr))
 #define GSI_MAP_ZEROED(M)\
  (M->legacy ? 0 \
  : (IS_WEAK(M) ? YES : NO))
 
 #define GSI_MAP_WRITE_KEY(M, addr, x) \
-	if (M->legacy) \
-		*(addr) = x;\
-	else\
-	 pointerFunctionsAssign(&M->cb.pf, (void**)addr, (x).obj);
+  if (M->legacy) \
+    *(addr) = x;\
+  else\
+    pointerFunctionsReplace(&M->cb.pf, (void**)addr, (x).obj);
 #define GSI_MAP_READ_KEY(M,addr) \
 	(M->legacy ? *(addr) :\
 	 (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf, (void**)addr))

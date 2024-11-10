@@ -1,3 +1,13 @@
+2024-11-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcreteMapTable.m:
+	* Source/NSConcretePointerFunctions.h:
+	* Tests/base/NSHashTable/general.m:
+	* Tests/base/NSMapTable/general.m:
+	Fix for strong memory hash/map table retain count with some simple
+	testcases. Arising from Larry Campbell's comments.
+
 2024-11-09 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNotificationCenter.m:
@@ -10,7 +20,7 @@
 	* Headers/Foundation/NSFileHandle.h:
 	* Source/GSFileHandle.m:
 	* Source/NSFileHandle.m:
-	Add OSX 10.15 file offset methods (issue 325, pull 446 and more)
+	Add OSX 10.15 file offset methods (issue #325, pull #446 and more)
 
 2024-11-03 Richard Frith-Macdonald <rfm@gnu.org>
 
