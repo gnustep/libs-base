@@ -1,5 +1,10 @@
 2024-11-12 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSNotificationCenter.m:
+	Fix last update for case where we have a non-block notification.
+
+2024-11-12 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/GNUstepBase/GSIMap.h:
 	Change (and document) the 'clear' macros for removing keys and values
 	from map tables so they can be used properly.  Change 'write' macros

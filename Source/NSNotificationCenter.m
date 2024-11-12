@@ -141,8 +141,9 @@ struct	NCTbl;		/* Notification Center Table structure	*/
 typedef	struct	Obs {
   id		observer;	/* Object to receive message.	*/
   SEL		selector;	/* Method selector.		*/
+  BOOL          owner;          /* If we own the observer.      */
+  int32_t	retained;	/* Retain count for structure.	*/
   struct Obs	*next;		/* Next item in linked list.	*/
-  int		retained;	/* Retain count for structure.	*/
   struct NCTbl	*link;		/* Pointer back to chunk table	*/
 } Observation;
 
@@ -296,6 +297,11 @@ obsNew(NCTable *t, SEL s, id o)
   obs->selector = s;
   obs->observer = o;
 
+  /* Instances of GSNotificationObserverClass are owned by the Observation
+   * and must be explicitly released when the observation is removed.
+   */
+  obs->owner = (GSNotificationObserverClass == object_getClass(o)) ? YES : NO;
+
   return obs;
 }
 
@@ -432,12 +438,10 @@ static void obsFree(Observation *o)
     {
       NCTable	*t = o->link;
 
-      /* Instances of GSNotificationObserverClass are owned by the Observation
-       * and must be explicitly released when the observation is removed.
-       */
-      if (object_getClass(o->observer) == GSNotificationObserverClass)
+      if (o->owner)
 	{
 	  DESTROY(o->observer);
+          o->owner = NO;
 	}
       o->link = (NCTable*)t->freeList;
       t->freeList = o;
