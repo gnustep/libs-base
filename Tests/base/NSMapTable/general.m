@@ -6,6 +6,14 @@
 @end
 
 @implementation	MyClass
+- (NSUInteger) hash
+{
+  return 42;
+}
+- (BOOL) isEqual: (id)other
+{
+  return [other isKindOfClass: [self class]];
+}
 #if 0
 - (oneway void) release
 {
@@ -27,6 +35,7 @@ int main()
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   NSMapTable		*t;
   MyClass		*o;
+  MyClass		*o2;
   int			c;
 
   t = [[NSMapTable alloc] initWithKeyOptions: NSMapTableObjectPointerPersonality
@@ -78,8 +87,15 @@ int main()
   [t removeObjectForKey: @"a"];
   PASS([o retainCount] == c, "remove map table val decrements retain count")
 
+  [t setObject: o forKey: @"a"];
+  o2 = [MyClass new];
+  [t setObject: o2 forKey: @"a"];
+  PASS([o retainCount] == 1, "old instance removed")
+  PASS([o2 retainCount] == 2, "new instance added")
+
   RELEASE(t);
   RELEASE(o);
+  RELEASE(o2);
 
   [arp release]; arp = nil;
   return 0;

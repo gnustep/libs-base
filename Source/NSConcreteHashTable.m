@@ -457,11 +457,20 @@ NSHashInsert(NSHashTable *table, const void *element)
 	  GSIMapAddKey(t, (GSIMapKey)element);
 	  ((NSConcreteHashTable*)table)->version++;
 	}
-      else if (element != n->key.ptr)
-	{
-	  GSI_MAP_RELEASE_KEY(t, n->key);
-	  n->key = (GSIMapKey)element;
-	  GSI_MAP_RETAIN_KEY(t, n->key);
+      else if (GSI_MAP_READ_KEY(t, &n->key).ptr != element)
+        {
+	  if (t->legacy)
+	    {
+	      t->cb.old.release(t, n->key.ptr);
+	      n->key = (GSIMapKey)element;
+	      t->cb.old.retain(t, n->key.ptr);
+	    }
+	  else
+	    {
+	      pointerFunctionsRelinquish(&t->cb.pf, (void**)&n->key);
+	      pointerFunctionsReplace(&t->cb.pf, (void**)&n->key,
+		(void*)element);
+	    }
 	  ((NSConcreteHashTable*)table)->version++;
 	}
     }
@@ -854,11 +863,19 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
       GSIMapAddKey(t, (GSIMapKey)anObject);
       version++;
     }
-  else if (n->key.obj != anObject)
+  else if (GSI_MAP_READ_KEY(t, &n->key).ptr != anObject)
     {
-      GSI_MAP_RELEASE_KEY(t, n->key);
-      n->key = (GSIMapKey)anObject;
-      GSI_MAP_RETAIN_KEY(t, n->key);
+      if (t->legacy)
+	{
+	  t->cb.old.release(t, n->key.ptr);
+	  n->key.ptr = anObject;
+	  t->cb.old.retain(t, n->key.ptr);
+	}
+      else
+	{
+	  pointerFunctionsRelinquish(&t->cb.pf, (void**)&n->key);
+	  pointerFunctionsReplace(&t->cb.pf, (void**)&n->key, (void*)anObject);
+	}
       version++;
     }
 }

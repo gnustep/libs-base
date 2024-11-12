@@ -641,7 +641,18 @@ NSMapInsert(NSMapTable *table, const void *key, const void *value)
 	}
       else if (GSI_MAP_READ_VALUE(t, &n->value).ptr != value)
 	{
-          GSI_MAP_STORE_VALUE(t, &n->value, (GSIMapVal)value);
+	  if (t->legacy)
+	    {
+	      t->cb.old.v.release(t, n->value.ptr);
+	      n->value = (GSIMapVal)value;
+	      t->cb.old.v.retain(t, n->value.ptr);
+	    }
+	  else
+	    {
+	      pointerFunctionsRelinquish(&t->cb.pf.v, (void**)&n->value);
+	      pointerFunctionsReplace(&t->cb.pf.v, (void**)&n->value,
+		(void*)value);
+	    }
 	  t->version++;
 	}
     }
@@ -1380,7 +1391,18 @@ const NSMapTableValueCallBacks NSOwnedPointerMapValueCallBacks =
     {
       if (GSI_MAP_READ_VALUE(self, &node->value).obj != anObject)
 	{
-          GSI_MAP_STORE_VALUE(self, &node->value, (GSIMapVal)anObject);
+	  if (self->legacy)
+	    {
+	      self->cb.old.v.release(self, node->value.ptr);
+	      node->value = (GSIMapVal)anObject;
+	      self->cb.old.v.retain(self, node->value.ptr);
+	    }
+	  else
+	    {
+	      pointerFunctionsRelinquish(&self->cb.pf.v, (void**)&node->value);
+	      pointerFunctionsReplace(&self->cb.pf.v, (void**)&node->value,
+		(void*)anObject);
+	    }
 	  version++;
 	}
     }

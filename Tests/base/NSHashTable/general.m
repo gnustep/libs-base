@@ -6,6 +6,14 @@
 @end
 
 @implementation	MyClass
+- (NSUInteger) hash
+{
+  return 42;
+}
+- (BOOL) isEqual: (id)other
+{
+  return [other isKindOfClass: [self class]];
+}
 #if 0
 - (oneway void) release
 {
@@ -27,6 +35,7 @@ int main()
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
   NSHashTable		*t;
   MyClass		*o;
+  MyClass		*o2;
   int			c;
 
   t = [[NSHashTable alloc] initWithOptions: NSHashTableObjectPointerPersonality
@@ -63,8 +72,17 @@ int main()
   [t removeObject: o];
   PASS([o retainCount] == c, "remove from hash table decrements retain count")
 
+  o2 = [MyClass new];
+  PASS([o2 retainCount] == 1, "initial retain count of second object OK")
+
+  [t addObject: o];
+  [t addObject: o2];
+  PASS([o retainCount] == 1, "first object was removed")
+  PASS([o2 retainCount] == 2, "second object was added")
+
   RELEASE(t);
   RELEASE(o);
+  RELEASE(o2);
 
   [arp release]; arp = nil;
   return 0;
