@@ -1,3 +1,30 @@
+2024-11-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSIMap.h:
+	Change (and document) the 'clear' macros for removing keys and values
+	from map tables so they can be used properly.  Change 'write' macros
+	to be 'store' macros, reflecting a roll of storing vvalues into the
+	map. Standardise macro names referring to values to end in 'VALUE'.
+	Tidy up and improve comments.
+	* Source/NSConcreteHashTable.m:
+	Replace macros with retain/release macros which do nothing and
+	store/clear macros which invoke the appropriate functions.
+	* Source/NSConcreteMapTable.m:
+	Replace macros with retain/release macros which do nothing and
+	store/clear macros which invoke the appropriate functions.
+	* Source/NSConcretePointerFunctions.h:
+	In pointerFunctionsReplace() fix bug setting the new value to zero
+	thather than the value supplied.
+	* Source/NSConcretePointerFunctions.m:
+	Set correct relinquish function for
+	NSPointerFunctionsObjectPointerPersonality
+	* Tests/base/NSHashTable/general.m:
+	Add tests for NSHashTableObjectPointerPersonality and
+	NSObjectHashCallBacks
+	* Tests/base/NSMapTable/general.m:
+	Add tests for NSMapTableObjectPointerPersonality and
+	NSObjectMapKeyCallBacks/NSObjectMapValueCallBacks
+
 2024-11-09 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNotificationCenter.m:

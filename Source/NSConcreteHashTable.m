@@ -83,22 +83,27 @@ typedef GSIMapNode_t *GSIMapNode;
 #define GSI_MAP_EQUAL(M, X, Y)\
  (M->legacy ? M->cb.old.isEqual(M, X.ptr, Y.ptr) \
  : pointerFunctionsEqual(&M->cb.pf, X.ptr, Y.ptr))
-#define GSI_MAP_RELEASE_KEY(M, X)\
- (M->legacy ? M->cb.old.release(M, X.ptr) \
-  : IS_WEAK(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf, &X.ptr))
-#define GSI_MAP_RETAIN_KEY(M, X)\
- (M->legacy ? M->cb.old.retain(M, X.ptr) \
-  : IS_WEAK(M) ? nil : pointerFunctionsAssign(\
-    &M->cb.pf, &X.ptr, pointerFunctionsAcquire(&M->cb.pf, X.ptr)))
 #define GSI_MAP_ZEROED(M)\
- (M->legacy ? 0 \
- : (IS_WEAK(M) ? YES : NO))
+ (M->legacy ? 0 : (IS_WEAK(M) ? YES : NO))
 
-#define GSI_MAP_WRITE_KEY(M, addr, x) \
-	if (M->legacy) \
-		*(addr) = x;\
-	else\
-	 pointerFunctionsAssign(&M->cb.pf, (void**)addr, (x).obj);
+/* NSPointerFunctions provides functions which combine the actions of
+ * memory allocation/deallocation with those of assignment, so we make
+ * the separete retain/release macros a no-op nd do all the work in the
+ * store/clear macros.
+ */
+#define GSI_MAP_RELEASE_KEY(M, X)
+#define GSI_MAP_RETAIN_KEY(M, X) nil
+#define GSI_MAP_CLEAR_KEY(M, addr)\
+  if (M->legacy) \
+    { M->cb.old.release(M, (*addr).ptr); (*addr).ptr = 0; }\
+  else\
+    pointerFunctionsRelinquish(&M->cb.pf, (void**)addr);
+#define GSI_MAP_STORE_KEY(M, addr, x)\
+  if (M->legacy)\
+    { *(addr) = x; M->cb.old.retain(M, (*addr).ptr); }\
+  else\
+    pointerFunctionsReplace(&M->cb.pf, (void**)addr, (x).obj);
+
 #define GSI_MAP_READ_KEY(M,addr) \
 	(M->legacy ? *(addr) :\
 	 (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf, (void**)addr))

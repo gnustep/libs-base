@@ -300,7 +300,7 @@ relinquishRetainedMemory(const void *item,
 	else
 	  {
 	    _x.acquireFunction = acquireRetainedObject;
-	    _x.relinquishFunction = 0;
+	    _x.relinquishFunction = relinquishRetainedMemory;
 	  }
 	_x.descriptionFunction = describeObject;
 	_x.hashFunction = hashShifted;

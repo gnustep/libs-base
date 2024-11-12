@@ -182,7 +182,6 @@ pointerFunctionsEqual(PFInfo *PF, void *item1, void *item2)
 static inline void
 pointerFunctionsRelinquish(PFInfo *PF, void **itemptr)
 {
-  
   if (PF->relinquishFunction != 0)
     (*PF->relinquishFunction)(*itemptr, PF->sizeFunction);
   if (memoryType(PF->options, NSPointerFunctionsWeakMemory))
@@ -203,7 +202,7 @@ pointerFunctionsReplace(PFInfo *PF, void **dst, void *src)
       if (PF->relinquishFunction != 0)
 	(*PF->relinquishFunction)(*dst, PF->sizeFunction);
       if (memoryType(PF->options, NSPointerFunctionsWeakMemory))
-        WEAK_WRITE(dst, 0);
+        WEAK_WRITE(dst, src);
       else
 	*dst = src;
     }
