@@ -96,7 +96,7 @@ static NSString		*defaultsFile = @".GNUstepDefaults";
 
 static NSUserDefaults	*sharedDefaults = nil;
 static NSDictionary     *argumentsDictionary = nil;
-static NSString	        *processName = nil;
+static NSString	        *bundleIdentifier = nil;
 static NSRecursiveLock	*classLock = nil;
 static NSLock	        *syncLock = nil;
 
@@ -660,7 +660,7 @@ newLanguages(NSArray *oldNames)
 + (void) atExit
 {
   DESTROY(sharedDefaults);
-  DESTROY(processName);
+  DESTROY(bundleIdentifier);
   DESTROY(argumentsDictionary);
   DESTROY(classLock);
   DESTROY(syncLock);
@@ -708,7 +708,17 @@ newLanguages(NSArray *oldNames)
       argumentsDictionary = [NSDictionary new];
       [self registerAtExit];
 
-      processName = [[[NSProcessInfo processInfo] processName] copy];
+      key = [GSPrivateInfoDictionary(nil) objectForKey: @"CFBundleIdentifier"];
+      if ([key isKindOfClass: [NSString class]])
+	{
+	  bundleIdentifier = [key copy];
+	}
+      else
+	{
+	  /* No bundle identifier found: use the process name instead.
+	   */
+	  bundleIdentifier = [[[NSProcessInfo processInfo] processName] copy];
+	}
 
       /* Initialise the defaults flags to take values from the
        * process arguments.  These are otherwise set in updateCache()
@@ -1036,8 +1046,8 @@ newLanguages(NSArray *oldNames)
        */
       [defs->_searchList addObject: GSPrimaryDomain];
       [defs->_searchList addObject: NSArgumentDomain];
-      [defs->_searchList addObject: processName];
-      [defs persistentDomainForName: processName];
+      [defs->_searchList addObject: bundleIdentifier];
+      [defs persistentDomainForName: bundleIdentifier];
       [defs->_searchList addObject: NSGlobalDomain];
       [defs persistentDomainForName: NSGlobalDomain];
       [defs->_searchList addObject: GSConfigDomain];
@@ -1378,7 +1388,7 @@ newLanguages(NSArray *oldNames)
     {
       DESTROY(_dictionaryRep);
       [_searchList removeObject: aName];
-      index = [_searchList indexOfObject: processName];
+      index = [_searchList indexOfObject: bundleIdentifier];
       index = (index == NSNotFound) ? 0 : (index + 1);
       aName = [aName copy];
       [_searchList insertObject: aName atIndex: index];
@@ -1520,7 +1530,7 @@ newLanguages(NSArray *oldNames)
   [_lock lock];
   NS_DURING
     {
-      GSPersistentDomain	*pd = [_persDomains objectForKey: processName];
+      GSPersistentDomain	*pd = [_persDomains objectForKey: bundleIdentifier];
       id			old = [self objectForKey: defaultName];
 
       if (nil != pd)
@@ -1528,7 +1538,7 @@ newLanguages(NSArray *oldNames)
 	  if ([pd setObject: nil forKey: defaultName])
 	    {
 	      id new;
-	      [self _changePersistentDomain: processName];
+	      [self _changePersistentDomain: bundleIdentifier];
 	      new = [self objectForKey: defaultName];
 	      /* Emit only a KVO notification when the value has actually
 	       * changed, meaning -objectForKey: would return a different
@@ -1671,12 +1681,12 @@ static BOOL isPlistObject(id o)
       GSPersistentDomain	*pd;
       id old;
 
-      pd = [_persDomains objectForKey: processName];
+      pd = [_persDomains objectForKey: bundleIdentifier];
       if (nil == pd)
 	{
-	  pd = [[GSPersistentDomain alloc] initWithName: processName
+	  pd = [[GSPersistentDomain alloc] initWithName: bundleIdentifier
 						  owner: self];
-          [_persDomains setObject: pd forKey: processName];
+          [_persDomains setObject: pd forKey: bundleIdentifier];
 	  RELEASE(pd);
 	}
       // Make sure to search all domains and not only the process domain
@@ -1690,7 +1700,7 @@ static BOOL isPlistObject(id o)
            * superseded by GSPrimary or NSArgumentDomain
 	   */
           new = [self objectForKey: defaultName];
-          [self _changePersistentDomain: processName];
+          [self _changePersistentDomain: bundleIdentifier];
 	  
 	  // Emit only a KVO notification when the value has actually changed
 	  if ([new hash] != [old hash])
@@ -2070,15 +2080,15 @@ static BOOL isPlistObject(id o)
       _lastSync = saved;
     }
   // Check and if not existent add the Application and the Global domains
-  if ([_persDomains objectForKey: processName] == nil)
+  if ([_persDomains objectForKey: bundleIdentifier] == nil)
     {
       GSPersistentDomain	*pd;
 
-      pd = [[GSPersistentDomain alloc] initWithName: processName
+      pd = [[GSPersistentDomain alloc] initWithName: bundleIdentifier
 					      owner: self];
-      [_persDomains setObject: pd forKey: processName];
+      [_persDomains setObject: pd forKey: bundleIdentifier];
       RELEASE(pd);
-      [self _changePersistentDomain: processName];
+      [self _changePersistentDomain: bundleIdentifier];
     }
   if ([_persDomains objectForKey: NSGlobalDomain] == nil)
     {

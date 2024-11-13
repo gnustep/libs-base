@@ -68,6 +68,8 @@ manager()
   return mgr;
 }
 
+#define	NOT_LOCALIZED	@""
+
 static NSDictionary     *langAliases = nil;
 static NSDictionary     *langCanonical = nil;
 
@@ -194,6 +196,8 @@ static NSString		*_base_version
  * An empty strings file table for use when localization files can't be found.
  */
 static NSDictionary	*_emptyTable = nil;
+
+static NSString		*_mainBundlePath = nil;
 
 /* When we are linking in an object file, GSPrivateLoadModule calls our
    callback routine for every Class and Category loaded.  The following
@@ -395,6 +399,213 @@ GSPrivateExecutablePath()
   return executablePath;
 }
 
+/* Try to locate resources for tool name (which is this tool) in
+ * standard places like xxx/Library/Tools/Resources/name */
+/* This could be converted into a public +bundleForTool:
+ * method.  At the moment it's only used privately
+ * to locate the main bundle for this tool.
+ */
+static inline NSString *
+_find_main_bundle_for_tool(NSString *toolName)
+{
+  NSArray *paths;
+  NSEnumerator *enumerator;
+  NSString *path;
+  NSString *tail;
+  NSFileManager *fm = manager();
+
+  /*
+   * Eliminate any base path or extensions.
+   */
+  toolName = [toolName lastPathComponent];
+  do
+    {
+      toolName = [toolName stringByDeletingPathExtension];
+    }
+  while ([[toolName pathExtension] length] > 0);
+
+  if ([toolName length] == 0)
+    {
+      return nil;
+    }
+
+  tail = [@"Tools" stringByAppendingPathComponent:
+	     [@"Resources" stringByAppendingPathComponent:
+		 toolName]];
+
+  paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
+					       NSAllDomainsMask, YES);
+
+  enumerator = [paths objectEnumerator];
+  while ((path = [enumerator nextObject]))
+    {
+      BOOL isDir;
+      path = [path stringByAppendingPathComponent: tail];
+
+      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
+	{
+	  return path;
+	}
+    }
+
+  return nil;
+}
+
+static NSString *
+_find_main_bundle_path()
+{
+  if (nil == _mainBundlePath)
+    {
+      /* We figure out the main bundle directory by examining the location
+	 of the executable on disk.  */
+      NSString *path, *s;
+
+      /* We don't know at the beginning if it's a tool or an application.  */
+      BOOL isApplication = YES;
+
+      /* Sometimes we detect that this is a non-installed tool.  That is
+       * special because we want to lookup local resources before installed
+       * ones.  Keep track of this special case in this variable.
+       */
+      BOOL isNonInstalledTool = NO;
+
+      /* If it's a tool, we will need the tool name.  Since we don't
+         know yet if it's a tool or an application, we always store
+         the executable name here - just in case it turns out it's a
+         tool.  */
+      NSString *toolName = [GSPrivateExecutablePath() lastPathComponent];
+#if defined(_WIN32) || defined(__CYGWIN__)
+      toolName = [toolName stringByDeletingPathExtension];
+#endif
+
+      /* Strip off the name of the program */
+      path = [GSPrivateExecutablePath() stringByDeletingLastPathComponent];
+
+      /* We now need to chop off the extra subdirectories, the library
+	 combo and the target directory if they exist.  The executable
+	 and this library should match so that is why we can use the
+	 compiled-in settings. */
+      /* library combo */
+      s = [path lastPathComponent];
+      if ([s isEqual: library_combo])
+	{
+	  path = [path stringByDeletingLastPathComponent];
+	}
+      /* target dir */
+      s = [path lastPathComponent];
+      if ([s isEqual: gnustep_target_dir])
+	{
+	  path = [path stringByDeletingLastPathComponent];
+	}
+      /* object dir */
+      s = [path lastPathComponent];
+      if ([s hasSuffix: @"obj"])
+	{
+	  path = [path stringByDeletingLastPathComponent];
+	  /* if it has an object dir it can only be a
+             non-yet-installed tool.  */
+	  isApplication = NO;
+	  isNonInstalledTool = YES;
+	}
+
+#ifndef __ANDROID__ /* don't check suffix on Android's fake executable path */
+      if (isApplication == YES)
+	{
+	  s = [path lastPathComponent];
+
+	  if ([s hasSuffix: @".app"] == NO
+	    && [s hasSuffix: @".debug"] == NO
+	    && [s hasSuffix: @".profile"] == NO
+	    && [s hasSuffix: @".gswa"] == NO	// GNUstep Web
+	    && [s hasSuffix: @".woa"] == NO	// GNUstep Web
+	    )
+	    {
+	      NSFileManager	*mgr = manager();
+	      BOOL		f;
+
+	      /* Not one of the common extensions, but
+	       * might be an app wrapper with another extension...
+	       * Look for Info-gnustep.plist or Info.plist in a
+	       * Resources subdirectory.
+	       */
+	      s = [path stringByAppendingPathComponent: @"Resources"];
+	      if ([mgr fileExistsAtPath: s isDirectory: &f] == NO || f == NO)
+		{
+		  isApplication = NO;
+		}
+	      else
+		{
+		  NSString	*i;
+
+		  i = [s stringByAppendingPathComponent: @"Info-gnustep.plist"];
+		  if ([mgr isReadableFileAtPath: i] == NO)
+		    {
+		      i = [s stringByAppendingPathComponent: @"Info.plist"];
+		      if ([mgr isReadableFileAtPath: i] == NO)
+			{
+			  isApplication = NO;
+			}
+		    }
+		}
+	    }
+	}
+#endif /* !__ANDROID__ */
+
+      if (isApplication == NO)
+	{
+	  NSString *maybePath = nil;
+
+	  if (isNonInstalledTool)
+	    {
+	      /* We're pretty confident about this case.  'path' is
+	       * obtained by {tool location on disk} and walking up
+	       * until we got out of the obj directory.  So we're
+	       * now in GNUSTEP_BUILD_DIR.  Resources will be in
+	       * Resources/{toolName}.
+	       */
+	      path = [path stringByAppendingPathComponent: @"Resources"];
+	      maybePath = [path stringByAppendingPathComponent: toolName];
+
+	      /* PS: We could check here if we found the resources,
+	       * and if not, keep going with the other attempts at
+	       * locating them.  But if we know that this is an
+	       * uninstalled tool, really we don't want to use
+	       * installed resources - we prefer resource lookup to
+	       * fail so the developer will fix whatever issue they
+	       * have with their building.
+	       */
+	    }
+	  else
+	    {
+	      if (maybePath == nil)
+		{
+		  /* This is for gnustep-make version 2, where tool resources
+		   * are in GNUSTEP_*_LIBRARY/Tools/Resources/{toolName}.
+		   */
+		  maybePath = _find_main_bundle_for_tool(toolName);
+		}
+
+	      /* If that didn't work, maybe the tool was created with
+	       * gnustep-make version 1.  So we try {tool location on
+	       * disk after walking up the non-flattened
+	       * dirs}/Resources/{toolName}, which is where
+	       * gnustep-make version 1 would put resources.
+	       */
+	      if (maybePath == nil)
+		{
+		  path = [path stringByAppendingPathComponent: @"Resources"];
+		  maybePath = [path stringByAppendingPathComponent: toolName];
+		}
+	    }
+
+	  path = maybePath;
+	}
+
+      ASSIGN(_mainBundlePath, path);
+    }
+  return _mainBundlePath;
+}
+
 static NSArray *
 bundle_directory_readable(NSString *path)
 {
@@ -508,7 +719,7 @@ addBundlePath(NSMutableArray *list, NSArray *contents,
 	    }	  
 	}
     }
-  if (nil == lang)
+  if ([lang length] == 0)
     {
       [list addObject: path];
     }
@@ -565,59 +776,126 @@ _find_framework(NSString *name)
   return nil;
 }
 
-
-/* Try to locate resources for tool name (which is this tool) in
- * standard places like xxx/Library/Tools/Resources/name */
-/* This could be converted into a public +bundleForTool:
- * method.  At the moment it's only used privately
- * to locate the main bundle for this tool.
+/* This method is the backbone of the resource searching for NSBundle. It
+ * constructs an array of paths, where each path is a possible location
+ * for a resource in the bundle.  The current algorithm for searching goes:
+ *
+ *   <rootPath>/Resources/<subPath>
+ *   <rootPath>/Resources/<subPath>/<language.lproj>
+ *   <rootPath>/<subPath>
+ *   <rootPath>/<subPath>/<language.lproj>
+ *
+ * NB. If localization is nil we ask NSUserDefaults for the preferred
+ * languages list (NSLanguages) and add language specific subdirectories
+ * for each language.  It is more efficient to search for a specific
+ * language by providing a non-nil value, or to provide an empty
+ * string if no language specific lookup is needed.
  */
-static inline NSString *
-_find_main_bundle_for_tool(NSString *toolName)
+static NSArray *
+_find_paths(NSString *rootPath, NSString *subPath, NSString *localization)
 {
-  NSArray *paths;
-  NSEnumerator *enumerator;
-  NSString *path;
-  NSString *tail;
-  NSFileManager *fm = manager();
+  NSString		*primary;
+  NSString		*language;
+  NSArray		*languages;
+  NSArray		*contents;
+  NSMutableArray	*array;
+  NSEnumerator		*enumerate;
 
-  /*
-   * Eliminate any base path or extensions.
+  array = [NSMutableArray arrayWithCapacity: 8];
+  languages = localization ? nil : [[NSUserDefaults standardUserDefaults]
+    stringArrayForKey: @"NSLanguages"];
+
+  primary = [rootPath stringByAppendingPathComponent: @"Resources"];
+  contents = bundle_directory_readable(primary);
+  addBundlePath(array, contents, primary, subPath, nil);
+  /* If we have been asked for a specific localization, we add it.
    */
-  toolName = [toolName lastPathComponent];
-  do
+  if (localization != nil)
     {
-      toolName = [toolName stringByDeletingPathExtension];
+      addBundlePath(array, contents, primary, subPath, localization);
     }
-  while ([[toolName pathExtension] length] > 0);
-
-  if ([toolName length] == 0)
+  else
     {
-      return nil;
-    }
-
-  tail = [@"Tools" stringByAppendingPathComponent:
-	     [@"Resources" stringByAppendingPathComponent:
-		 toolName]];
-
-  paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
-					       NSAllDomainsMask, YES);
-
-  enumerator = [paths objectEnumerator];
-  while ((path = [enumerator nextObject]))
-    {
-      BOOL isDir;
-      path = [path stringByAppendingPathComponent: tail];
-
-      if ([fm fileExistsAtPath: path  isDirectory: &isDir]  &&  isDir)
+      /* This matches OS X behavior, which only searches languages that
+       * are in the user's preference. Don't use -preferredLocalizations -
+       * that would cause a recursive loop.
+       */
+      enumerate = [languages objectEnumerator];
+      while ((language = [enumerate nextObject]))
 	{
-	  return path;
+	  addBundlePath(array, contents, primary, subPath, language);
 	}
     }
+  
+#ifdef __ANDROID__
+  /* Android: check subdir and localization directly, as AAssetDir and thereby
+   * NSDirectoryEnumerator doesn't list directories
+   */
+  NSString *originalPrimary = primary;
+  if (subPath)
+    {
+      primary = [originalPrimary stringByAppendingPathComponent: subPath];
+      contents = bundle_directory_readable(primary);
+      addBundlePath(array, contents, primary, nil, nil);
+      
+      if (localization)
+	{
+	  primary = [primary stringByAppendingPathComponent:
+	    [localization stringByAppendingPathExtension: @"lproj"]];
+	  contents = bundle_directory_readable(primary);
+	  addBundlePath(array, contents, primary, nil, nil);
+	}
+      else
+	{
+	  NSString *subPathPrimary = primary;
 
-  return nil;
+	  enumerate = [languages objectEnumerator];
+	  while ((language = [enumerate nextObject]))
+	    {
+	      primary = [subPathPrimary stringByAppendingPathComponent:
+		[language stringByAppendingPathExtension: @"lproj"]];
+	      contents = bundle_directory_readable(primary);
+	      addBundlePath(array, contents, primary, nil, nil);
+	    }
+	}
+    }
+  if (localization)
+    {
+      primary = [originalPrimary stringByAppendingPathComponent:
+	[localization stringByAppendingPathExtension: @"lproj"]];
+      contents = bundle_directory_readable(primary);
+      addBundlePath(array, contents, primary, nil, nil);
+    }
+  else
+    {
+      enumerate = [languages objectEnumerator];
+      while ((language = [enumerate nextObject]))
+	{
+	  primary = [originalPrimary stringByAppendingPathComponent:
+	    [language stringByAppendingPathExtension: @"lproj"]];
+	  contents = bundle_directory_readable(primary);
+	  addBundlePath(array, contents, primary, nil, nil);
+	}
+    }
+#endif /* __ANDROID__ */
+  
+  primary = rootPath;
+  contents = bundle_directory_readable(primary);
+  addBundlePath(array, contents, primary, subPath, nil);
+  if (localization != nil)
+    {
+      addBundlePath(array, contents, primary, subPath, localization);
+    }
+  else
+    {
+      enumerate = [languages objectEnumerator];
+      while ((language = [enumerate nextObject]))
+	{
+	  addBundlePath(array, contents, primary, subPath, language);
+	}
+    }
+  return array;
 }
-
 
 @implementation NSBundle (Private)
 
@@ -1144,6 +1422,99 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
     [NSValue valueWithPointer: (void*)theClass]];
 }
 
+/* Look up a resource in a bundle, outpinally with a sub-path and with
+ * a specific language preference.
+ * If the path of the bundle is nil, search the main bundle.
+ */
+NSString*
+GSPrivateResourcePath(NSString *name, NSString *extension, NSString *rootPath,
+  NSString *subPath, NSString *localization)
+{
+  NSFileManager	*mgr = manager();
+  NSString	*path;
+  NSString	*file;
+  NSEnumerator	*pathlist;
+
+  if (nil == rootPath)
+    {
+      rootPath = _find_main_bundle_path();
+    }
+  if (name == nil)
+    {
+      name = @"";
+    }
+  if ([extension length] == 0)
+    {
+      file = name;
+    }
+  else
+    {
+      file = [name stringByAppendingPathExtension: extension];
+    }
+
+  pathlist = [_find_paths(rootPath, subPath, localization) objectEnumerator];
+  while ((path = [pathlist nextObject]) != nil)
+    {
+      NSArray	*paths = bundle_directory_readable(path);
+
+      if (YES == [paths containsObject: file])
+	{
+	  path = [path stringByAppendingPathComponent: file];
+	  if (YES == [mgr isReadableFileAtPath: path])
+	    {
+	      return path;
+	    }
+	}
+    }
+
+#ifdef __ANDROID__
+  /* Android: check for directory resources by passing file path as subpath,
+   * as AAssetDir and thereby NSDirectoryEnumerator doesn't list directories
+   */
+  subPath = subPath ? [subPath stringByAppendingPathComponent: file] : file;
+  pathlist = [_find_paths(rootPath, subPath, localization) objectEnumerator];
+  while ((path = [pathlist nextObject]) != nil)
+    {
+      NSString *lastPathComponent = [path lastPathComponent];
+
+      if ([lastPathComponent isEqualToString:file]
+        && [mgr isReadableFileAtPath: path])
+        {
+          return path;
+        }
+    }
+#endif /* __ANDROID__ */
+
+  return nil;
+}
+
+NSDictionary*
+GSPrivateInfoDictionary(NSString *rootPath)
+{
+  NSString	*path;
+  NSDictionary	*info;
+
+  path = GSPrivateResourcePath(@"Info-gnustep", @"plist", rootPath,
+    nil, NOT_LOCALIZED);
+  if (path)
+    {
+      info = [NSDictionary dictionaryWithContentsOfFile: path];
+    }
+  else
+    {
+      path = GSPrivateResourcePath(@"Info", @"plist", rootPath,
+	nil, NOT_LOCALIZED);
+      if (path)
+	{
+	  info = [NSDictionary dictionaryWithContentsOfFile: path];
+	}
+      else
+	{
+	  info = [NSDictionary dictionary];
+	}
+    }
+  return info;
+}
 
 @implementation NSBundle
 
@@ -1151,6 +1522,7 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
 {
   if ([NSObject shouldCleanUp])
     {
+      DESTROY(_mainBundlePath);
       DESTROY(_emptyTable);
       DESTROY(langAliases);
       DESTROY(langCanonical);
@@ -1438,152 +1810,9 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
   [load_lock lock];
   if (!_mainBundle)
     {
-      /* We figure out the main bundle directory by examining the location
-	 of the executable on disk.  */
-      NSString *path, *s;
+      NSString	*path = _find_main_bundle_path();
 
-      /* We don't know at the beginning if it's a tool or an application.  */
-      BOOL isApplication = YES;
-
-      /* Sometimes we detect that this is a non-installed tool.  That is
-       * special because we want to lookup local resources before installed
-       * ones.  Keep track of this special case in this variable.
-       */
-      BOOL isNonInstalledTool = NO;
-
-      /* If it's a tool, we will need the tool name.  Since we don't
-         know yet if it's a tool or an application, we always store
-         the executable name here - just in case it turns out it's a
-         tool.  */
-      NSString *toolName = [GSPrivateExecutablePath() lastPathComponent];
-#if defined(_WIN32) || defined(__CYGWIN__)
-      toolName = [toolName stringByDeletingPathExtension];
-#endif
-
-      /* Strip off the name of the program */
-      path = [GSPrivateExecutablePath() stringByDeletingLastPathComponent];
-
-      /* We now need to chop off the extra subdirectories, the library
-	 combo and the target directory if they exist.  The executable
-	 and this library should match so that is why we can use the
-	 compiled-in settings. */
-      /* library combo */
-      s = [path lastPathComponent];
-      if ([s isEqual: library_combo])
-	{
-	  path = [path stringByDeletingLastPathComponent];
-	}
-      /* target dir */
-      s = [path lastPathComponent];
-      if ([s isEqual: gnustep_target_dir])
-	{
-	  path = [path stringByDeletingLastPathComponent];
-	}
-      /* object dir */
-      s = [path lastPathComponent];
-      if ([s hasSuffix: @"obj"])
-	{
-	  path = [path stringByDeletingLastPathComponent];
-	  /* if it has an object dir it can only be a
-             non-yet-installed tool.  */
-	  isApplication = NO;
-	  isNonInstalledTool = YES;
-	}
-
-#ifndef __ANDROID__ /* don't check suffix on Android's fake executable path */
-      if (isApplication == YES)
-	{
-	  s = [path lastPathComponent];
-
-	  if ([s hasSuffix: @".app"] == NO
-	    && [s hasSuffix: @".debug"] == NO
-	    && [s hasSuffix: @".profile"] == NO
-	    && [s hasSuffix: @".gswa"] == NO	// GNUstep Web
-	    && [s hasSuffix: @".woa"] == NO	// GNUstep Web
-	    )
-	    {
-	      NSFileManager	*mgr = manager();
-	      BOOL		f;
-
-	      /* Not one of the common extensions, but
-	       * might be an app wrapper with another extension...
-	       * Look for Info-gnustep.plist or Info.plist in a
-	       * Resources subdirectory.
-	       */
-	      s = [path stringByAppendingPathComponent: @"Resources"];
-	      if ([mgr fileExistsAtPath: s isDirectory: &f] == NO || f == NO)
-		{
-		  isApplication = NO;
-		}
-	      else
-		{
-		  NSString	*i;
-
-		  i = [s stringByAppendingPathComponent: @"Info-gnustep.plist"];
-		  if ([mgr isReadableFileAtPath: i] == NO)
-		    {
-		      i = [s stringByAppendingPathComponent: @"Info.plist"];
-		      if ([mgr isReadableFileAtPath: i] == NO)
-			{
-			  isApplication = NO;
-			}
-		    }
-		}
-	    }
-	}
-#endif /* !__ANDROID__ */
-
-      if (isApplication == NO)
-	{
-	  NSString *maybePath = nil;
-
-	  if (isNonInstalledTool)
-	    {
-	      /* We're pretty confident about this case.  'path' is
-	       * obtained by {tool location on disk} and walking up
-	       * until we got out of the obj directory.  So we're
-	       * now in GNUSTEP_BUILD_DIR.  Resources will be in
-	       * Resources/{toolName}.
-	       */
-	      path = [path stringByAppendingPathComponent: @"Resources"];
-	      maybePath = [path stringByAppendingPathComponent: toolName];
-
-	      /* PS: We could check here if we found the resources,
-	       * and if not, keep going with the other attempts at
-	       * locating them.  But if we know that this is an
-	       * uninstalled tool, really we don't want to use
-	       * installed resources - we prefer resource lookup to
-	       * fail so the developer will fix whatever issue they
-	       * have with their building.
-	       */
-	    }
-	  else
-	    {
-	      if (maybePath == nil)
-		{
-		  /* This is for gnustep-make version 2, where tool resources
-		   * are in GNUSTEP_*_LIBRARY/Tools/Resources/{toolName}.
-		   */
-		  maybePath = _find_main_bundle_for_tool (toolName);
-		}
-
-	      /* If that didn't work, maybe the tool was created with
-	       * gnustep-make version 1.  So we try {tool location on
-	       * disk after walking up the non-flattened
-	       * dirs}/Resources/{toolName}, which is where
-	       * gnustep-make version 1 would put resources.
-	       */
-	      if (maybePath == nil)
-		{
-		  path = [path stringByAppendingPathComponent: @"Resources"];
-		  maybePath = [path stringByAppendingPathComponent: toolName];
-		}
-	    }
-
-	  path = maybePath;
-	}
-
-      NSDebugMLLog(@"NSBundle", @"Found main in %@\n", path);
+      NSDebugMLLog(@"NSBundle", @"Main bundle path is %@\n", path);
       /* We do alloc and init separately so initWithPath: knows we are
           the _mainBundle.  Please note that we do *not* autorelease
           mainBundle, because we don't want it to be ever released.  */
@@ -1592,7 +1821,6 @@ _bundle_load_callback(Class theClass, struct objc_category *theCategory)
       _mainBundle = [_mainBundle initWithPath: path];
       NSAssert(_mainBundle != nil, NSInternalInconsistencyException);
     }
-
   [load_lock unlock];
   return _mainBundle;
 }
@@ -2198,202 +2426,20 @@ IF_NO_ARC(
   [load_lock unlock];
 }
 
-/* This method is the backbone of the resource searching for NSBundle. It
-   constructs an array of paths, where each path is a possible location
-   for a resource in the bundle.  The current algorithm for searching goes:
-
-     <rootPath>/Resources/<bundlePath>
-     <rootPath>/Resources/<bundlePath>/<language.lproj>
-     <rootPath>/<bundlePath>
-     <rootPath>/<bundlePath>/<language.lproj>
-*/
-+ (NSArray *) _bundleResourcePathsWithRootPath: (NSString*)rootPath
-				       subPath: (NSString*)subPath
-				  localization: (NSString*)localization
-{
-  NSString		*primary;
-  NSString		*language;
-  NSArray		*languages;
-  NSArray		*contents;
-  NSMutableArray	*array;
-  NSEnumerator		*enumerate;
-
-  array = [NSMutableArray arrayWithCapacity: 8];
-  languages = [[NSUserDefaults standardUserDefaults]
-    stringArrayForKey: @"NSLanguages"];
-
-  primary = [rootPath stringByAppendingPathComponent: @"Resources"];
-  contents = bundle_directory_readable(primary);
-  addBundlePath(array, contents, primary, subPath, nil);
-  /* If we have been asked for a specific localization, we add it.
-   */
-  if (localization != nil)
-    {
-      addBundlePath(array, contents, primary, subPath, localization);
-    }
-  else
-    {
-      /* This matches OS X behavior, which only searches languages that
-       * are in the user's preference. Don't use -preferredLocalizations -
-       * that would cause a recursive loop.
-       */
-      enumerate = [languages objectEnumerator];
-      while ((language = [enumerate nextObject]))
-	{
-	  addBundlePath(array, contents, primary, subPath, language);
-	}
-    }
-  
-#ifdef __ANDROID__
-  /* Android: check subdir and localization directly, as AAssetDir and thereby
-   * NSDirectoryEnumerator doesn't list directories
-   */
-  NSString *originalPrimary = primary;
-  if (subPath)
-    {
-      primary = [originalPrimary stringByAppendingPathComponent: subPath];
-      contents = bundle_directory_readable(primary);
-      addBundlePath(array, contents, primary, nil, nil);
-      
-      if (localization)
-	{
-	  primary = [primary stringByAppendingPathComponent:
-	    [localization stringByAppendingPathExtension: @"lproj"]];
-	  contents = bundle_directory_readable(primary);
-	  addBundlePath(array, contents, primary, nil, nil);
-	}
-      else
-	{
-	  NSString *subPathPrimary = primary;
-
-	  enumerate = [languages objectEnumerator];
-	  while ((language = [enumerate nextObject]))
-	    {
-	      primary = [subPathPrimary stringByAppendingPathComponent:
-		[language stringByAppendingPathExtension: @"lproj"]];
-	      contents = bundle_directory_readable(primary);
-	      addBundlePath(array, contents, primary, nil, nil);
-	    }
-	}
-    }
-  if (localization)
-    {
-      primary = [originalPrimary stringByAppendingPathComponent:
-	[localization stringByAppendingPathExtension: @"lproj"]];
-      contents = bundle_directory_readable(primary);
-      addBundlePath(array, contents, primary, nil, nil);
-    }
-  else
-    {
-      enumerate = [languages objectEnumerator];
-      while ((language = [enumerate nextObject]))
-	{
-	  primary = [originalPrimary stringByAppendingPathComponent:
-	    [language stringByAppendingPathExtension: @"lproj"]];
-	  contents = bundle_directory_readable(primary);
-	  addBundlePath(array, contents, primary, nil, nil);
-	}
-    }
-#endif /* __ANDROID__ */
-  
-  primary = rootPath;
-  contents = bundle_directory_readable(primary);
-  addBundlePath(array, contents, primary, subPath, nil);
-  if (localization != nil)
-    {
-      addBundlePath(array, contents, primary, subPath, localization);
-    }
-  else
-    {
-      enumerate = [languages objectEnumerator];
-      while ((language = [enumerate nextObject]))
-	{
-	  addBundlePath(array, contents, primary, subPath, language);
-	}
-    }
-  return array;
-}
-
-+ (NSString *) _pathForResource: (NSString *)name
-			 ofType: (NSString *)extension
-		     inRootPath: (NSString *)rootPath
-		    inDirectory: (NSString *)subPath
-{
-  NSFileManager	*mgr = manager();
-  NSString	*path;
-  NSString	*file;
-  NSEnumerator	*pathlist;
-
-  if (name == nil)
-    {
-      name = @"";
-    }
-  if ([extension length] == 0)
-    {
-      file = name;
-    }
-  else
-    {
-      file = [name stringByAppendingPathExtension: extension];
-    }
-
-  pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
-    subPath: subPath localization: nil] objectEnumerator];
-  while ((path = [pathlist nextObject]) != nil)
-    {
-      NSArray	*paths = bundle_directory_readable(path);
-
-      if (YES == [paths containsObject: file])
-	{
-	  path = [path stringByAppendingPathComponent: file];
-	  if (YES == [mgr isReadableFileAtPath: path])
-	    {
-	      return path;
-	    }
-	}
-    }
-
-#ifdef __ANDROID__
-  /* Android: check for directory resources by passing file path as subpath,
-   * as AAssetDir and thereby NSDirectoryEnumerator doesn't list directories
-   */
-  subPath = subPath ? [subPath stringByAppendingPathComponent: file] : file;
-  pathlist = [[self _bundleResourcePathsWithRootPath: rootPath
-    subPath: subPath localization: nil] objectEnumerator];
-  while ((path = [pathlist nextObject]) != nil)
-    {
-      NSString *lastPathComponent = [path lastPathComponent];
-      if ([lastPathComponent isEqualToString:file]
-        && [mgr isReadableFileAtPath: path])
-        {
-          return path;
-        }
-    }
-#endif /* __ANDROID__ */
-
-  return nil;
-}
-
 
 + (NSString *) pathForResource: (NSString *)name
 			ofType: (NSString *)extension
 		   inDirectory: (NSString *)bundlePath
 		   withVersion: (int)version
 {
-  return [self _pathForResource: name
-			 ofType: extension
-		     inRootPath: bundlePath
-		    inDirectory: nil];
+  return GSPrivateResourcePath(name, extension, bundlePath, nil, nil);
 }
 
 + (NSString *) pathForResource: (NSString *)name
 			ofType: (NSString *)extension
 		   inDirectory: (NSString *)bundlePath
 {
-  return [self _pathForResource: name
-			 ofType: extension
-		     inRootPath: bundlePath
-		    inDirectory: nil];
+  return GSPrivateResourcePath(name, extension, bundlePath, nil, nil);
 }
 
 + (NSURL*) URLForResource: (NSString*)name
@@ -2430,10 +2476,7 @@ IF_NO_ARC(
 #endif
     rootPath = [self bundlePath];
 
-  return [NSBundle _pathForResource: name
-			     ofType: extension
-			 inRootPath: rootPath
-		        inDirectory: subPath];
+  return GSPrivateResourcePath(name, extension, rootPath, subPath, nil);
 }
 
 - (NSURL *) URLForResource: (NSString *)name
@@ -2483,8 +2526,7 @@ IF_NO_ARC(
   NSMutableArray *resources;
   NSEnumerator *pathlist;
 
-  pathlist = [[NSBundle _bundleResourcePathsWithRootPath: bundlePath
-    subPath: subPath localization: localization] objectEnumerator];
+  pathlist = [_find_paths(bundlePath, subPath, localization) objectEnumerator];
   resources = [NSMutableArray arrayWithCapacity: 2];
   allfiles = (extension == nil || [extension length] == 0);
 
@@ -3002,27 +3044,9 @@ IF_NO_ARC(
 
 - (NSDictionary *) infoDictionary
 {
-  NSString* path;
-
-  if (_infoDict)
-    return _infoDict;
-
-  path = [self pathForResource: @"Info-gnustep" ofType: @"plist"];
-  if (path)
+  if (nil == _infoDict)
     {
-      _infoDict = [[NSDictionary alloc] initWithContentsOfFile: path];
-    }
-  else
-    {
-      path = [self pathForResource: @"Info" ofType: @"plist"];
-      if (path)
-	{
-	  _infoDict = [[NSDictionary alloc] initWithContentsOfFile: path];
-	}
-      else
-	{
-	  _infoDict = RETAIN([NSDictionary dictionary]);
-	}
+      _infoDict = [GSPrivateInfoDictionary(_path) copy];
     }
   return _infoDict;
 }
@@ -3332,7 +3356,7 @@ IF_NO_ARC(
 
 #ifdef __ANDROID__
 
-+ (AAssetManager *)assetManager
++ (AAssetManager *) assetManager
 {
   return _assetManager;
 }

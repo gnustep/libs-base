@@ -468,6 +468,21 @@ GSPrivateRangeOfString(NSString *receiver, NSString *target) GS_ATTRIB_PRIVATE;
 unsigned
 GSPrivateSmallHash(int n) GS_ATTRIB_PRIVATE;
 
+/* Function to return the info dictionary of the bundle at the sepecified
+ * path (the bundle of the current program if the path is nil) without
+ * involving initialisation of NSBundle or NSUserDefaults.
+ */
+NSDictionary*
+GSPrivateInfoDictionary(NSString *bundlePath) GS_ATTRIB_PRIVATE;
+
+/* Function to return resources of the running program without involving
+ * initialisation of NSBundle or (if localization is an empty string)
+ * NSUserDefaults.
+ */
+NSString* 
+GSPrivateResourcePath(NSString *name, NSString *extension, NSString *rootPath,
+  NSString *subPath, NSString *localization) GS_ATTRIB_PRIVATE;
+
 /* Function to append data to an GSStr
  */
 void

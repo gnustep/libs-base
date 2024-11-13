@@ -1,3 +1,12 @@
+2024-11-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: Restructure a bit to expose resource lookup
+	and info dictionary as GSPrivate... functions without needing full
+	NSBundle initialisation.
+	* Source/GSPrivate.h: declare new functions.
+	* Source/NSUserDefaults.m: use bundle identifier rather than process
+	name where it is available.
+
 2024-11-12 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSNotificationCenter.m:
