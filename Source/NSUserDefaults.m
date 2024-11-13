@@ -680,8 +680,9 @@ newLanguages(NSArray *oldNames)
   NSFileManager *filemgr     = [NSFileManager defaultManager];
 
   NSArray *fileNameArray = [NSArray arrayWithObjects: @"Info-gnustep.plist", @"Info.plist", nil];
-  for (subFile in fileNameArray)
+  for (NSUInteger i = 0; i < [fileNameArray count]; i++)
     {
+      subFile = [fileNameArray objectAtIndex:i];
       NSString *fullpath = [rootPath stringByAppendingPathComponent: subPath];
       fullpath           = [fullpath stringByAppendingPathComponent: subFile];
       if ([filemgr fileExistsAtPath: fullpath])
