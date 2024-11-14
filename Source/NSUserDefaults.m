@@ -1347,6 +1347,7 @@ newLanguages(NSArray *oldNames)
   RELEASE(_tempDomains);
   RELEASE(_changedDomains);
   RELEASE(_dictionaryRep);
+  RELEASE(_defaultsDatabase);
   RELEASE(_fileLock);
   RELEASE(_lock);
   [super dealloc];
