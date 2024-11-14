@@ -222,7 +222,8 @@ GSDomainFromDefaultLocale(void)
    */
   if (saved == nil)
     {
-      saved = [NSObject leak: dict];
+      saved = [dict copy];
+      [NSObject leaked: &saved];
     }
 
   /**

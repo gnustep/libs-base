@@ -251,7 +251,7 @@ extern "C" {
 
 /** Deprecated: use +leaked: instead.
  */
-+ (id) NS_RETURNS_RETAINED leak: (id)anObject ;//GS_DEPRECATED_FUNC;
++ (id) NS_RETURNS_RETAINED leak: (id)anObject GS_DEPRECATED_FUNC;
 
 /** Deprecated: use +leaked: instead.
  */
