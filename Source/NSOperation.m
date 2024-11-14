@@ -199,7 +199,9 @@ static NSArray	*empty = nil;
 
 - (void) dealloc
 {
-  if (internal != nil)
+  /* Only clean up if ivars have been initialised
+   */
+  if (internal && internal->lock)
     {
       NSOperation	*op;
 
@@ -832,7 +834,8 @@ static NSOperationQueue *mainQueue = nil;
       internal->cond = [[NSConditionLock alloc] initWithCondition: 0];
       [internal->cond setName:
         [NSString stringWithFormat: @"cond-for-op-%p", self]];
-      internal->name = [[NSString alloc] initWithFormat: @"NSOperationQueue %p", self];
+      internal->name
+	= [[NSString alloc] initWithFormat: @"NSOperationQueue %p", self];
 
       /* Ensure that default thread name can be displayed on systems with a
        * limited thread name length.
