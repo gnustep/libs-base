@@ -212,46 +212,49 @@ extern "C" {
 + (void) atExit;
 @end
 
-/** Category for methods handling leaked memory cleanup on exit of process
+/** Category for methods handling leaked memory clean-up on exit of process
  * (for use when debugging memory leaks).<br />
  * You enable this by calling the +setShouldCleanUp: method (done implicitly
  * by gnustep-base if the GNUSTEP_SHOULD_CLEAN_UP environment variable is
  * set to YES).<br />
- * Your class then has two options for performing cleanup when the process
+ * Your class then has two options for performing clean-up when the process
  * ends:
- * <p>1. Use the +leak: method to register objects which are simply to be 
+ * <p>1. Use the +leaked: method to register objects which are simply to be 
  * retained until the process ends, and then either ignored or released
- * depending on the cleanup setting in force.  This mechanism is simple
+ * depending on the clean-up setting in force.  This mechanism is simple
  * and should be sufficient for many classes.
  * </p>
  * <p>2. Implement a +atExit method to be run when the process ends and,
  * within your +initialize implementation, call +shouldCleanUp to determine
- * whether cleanup should be done, and if it returns YES then call
+ * whether clean-up should be done, and if it returns YES then call
  * +registerAtExit to have your +atExit method called when the process
  * terminates.
  * </p>
  * <p>The order in which 'leaked' objects are released and +atExit methods
  * are called on process exist is the reverse of the order in which they
- * werse set up suing this API.
+ * werse set up using this API.
  * </p>
  */
-@interface NSObject(GSCleanup)
+@interface NSObject(GSCleanUp)
 
-
-/** This method simply retains its argument so that it will never be
- * deallocated during normal operation, but keeps track of it so that
- * it is released during process exit if cleanup is enabled.<br />
- * Returns its argument.
+/** Returns YES if the process is exiting (and perhaps performing clean-up).
  */
-+ (id) NS_RETURNS_RETAINED leak: (id)anObject;
++ (BOOL) isExiting;
 
-/** This method retains the object at *anAddress so that it will never be
- * deallocated during normal operation, but keeps track of the address
- * so that the object is released and the address is zeroed during process
- * exit if cleanup is enabled.<br />
- * Returns the object at *anAddress.
+/** This method informs the system that the object at anAddress has been
+ * intentionally leaked (will not be deallocated by higher level code)
+ * and should be cleaned up at process exit (and the address content
+ * zeroed out) if clean-up is enabled.
  */
-+ (id) NS_RETURNS_RETAINED leakAt: (id*)anAddress;
++ (void) leaked: (id*)anAddress;
+
+/** Deprecated: use +leaked: instead.
+ */
++ (id) NS_RETURNS_RETAINED leak: (id)anObject ;//GS_DEPRECATED_FUNC;
+
+/** Deprecated: use +leaked: instead.
+ */
++ (id) NS_RETURNS_RETAINED leakAt: (id*)anAddress ;//GS_DEPRECATED_FUNC;
 
 /** Sets the receiver to have its +atExit method called at the point when
  * the process terminates.<br />
@@ -269,10 +272,10 @@ extern "C" {
  */
 + (BOOL) registerAtExit: (SEL)aSelector;
 
-/** Specifies the default cleanup behavior on process exit ... the value
+/** Specifies the default clean-up behavior on process exit ... the value
  * returned by the NSObject implementation of the +shouldCleanUp method.<br />
  * Calling this method with a YES argument implicitly enables the support for
- * cleanup at exit.<br />
+ * clean-up at exit.<br />
  * The GNUstep Base library calls this method with the value obtained from
  * the GNUSTEP_SHOULD_CLEAN_UP environment variable when NSObject is
  * initialised.

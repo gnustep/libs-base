@@ -156,6 +156,7 @@ struct exitLink {
 static struct exitLink	*exited = 0;
 static BOOL		enabled = NO;
 static BOOL		shouldCleanUp = NO;
+static BOOL		isExiting = NO;
 static NSLock           *exitLock = nil;
 
 static inline void setup()
@@ -176,7 +177,10 @@ static inline void setup()
 static void
 handleExit()
 {
-  BOOL  unknownThread = GSRegisterCurrentThread();
+  BOOL  unknownThread;
+
+  isExiting = YES;
+  unknownThread = GSRegisterCurrentThread();
   CREATE_AUTORELEASE_POOL(arp);
 
   while (exited != 0)
@@ -212,9 +216,32 @@ handleExit()
     {
       GSUnregisterCurrentThread();
     }
+  isExiting = NO;
 }
 
-@implementation NSObject(GSCleanup)
+@implementation NSObject(GSCleanUp)
+
++ (BOOL) isExiting
+{
+  return isExiting;
+}
+
++ (void) leaked: (id*)anAddress
+{
+  struct exitLink	*l;
+
+  NSAssert(*anAddress && [*anAddress isKindOfClass: [NSObject class]],
+    NSInvalidArgumentException);
+  l = (struct exitLink*)malloc(sizeof(struct exitLink));
+  l->at = anAddress;
+  l->obj = *anAddress;
+  l->sel = 0;
+  setup();
+  [exitLock lock];
+  l->next = exited;
+  exited = l;
+  [exitLock unlock];
+}
 
 + (id) leakAt: (id*)anAddress
 {

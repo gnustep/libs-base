@@ -166,9 +166,13 @@ static NSMapTable		*placeholderMap;
 static gs_mutex_t		placeholderLock = GS_MUTEX_INIT_STATIC;
 
 
-static SEL	                cMemberSel = 0;
-static NSCharacterSet	        *nonBase = nil;
-static BOOL                     (*nonBaseImp)(id, SEL, unichar) = 0;
+static SEL		cMemberSel = 0;
+static NSCharacterSet	*nonBase = nil;
+static BOOL             (*nonBaseImp)(id, SEL, unichar) = 0;
+
+static NSCharacterSet	*wPathSeps = nil;
+static NSCharacterSet	*uPathSeps = nil;
+static NSCharacterSet	*rPathSeps = nil;
 
 /* Macro to return the receiver if it is already immutable, but an
  * autoreleased copy otherwise.  Used where we have to return an
@@ -308,9 +312,6 @@ GSPathHandling(const char *mode)
 static NSCharacterSet*
 pathSeps(void)
 {
-  static NSCharacterSet	*wPathSeps = nil;
-  static NSCharacterSet	*uPathSeps = nil;
-  static NSCharacterSet	*rPathSeps = nil;
   if (GSPathHandlingRight())
     {
       if (rPathSeps == nil)
@@ -318,9 +319,8 @@ pathSeps(void)
 	  GS_MUTEX_LOCK(placeholderLock);
 	  if (rPathSeps == nil)
 	    {
-	      rPathSeps
-		= [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
-              rPathSeps = [NSObject leakAt: &rPathSeps];
+	      rPathSeps = RETAIN([NSCharacterSet
+		characterSetWithCharactersInString: @"/\\"]);
 	    }
 	  GS_MUTEX_UNLOCK(placeholderLock);
 	}
@@ -333,9 +333,8 @@ pathSeps(void)
 	  GS_MUTEX_LOCK(placeholderLock);
 	  if (uPathSeps == nil)
 	    {
-	      uPathSeps
-		= [NSCharacterSet characterSetWithCharactersInString: @"/"];
-              uPathSeps = [NSObject leakAt: &uPathSeps];
+	      uPathSeps = RETAIN([NSCharacterSet
+		characterSetWithCharactersInString: @"/"]);
 	    }
 	  GS_MUTEX_UNLOCK(placeholderLock);
 	}
@@ -348,9 +347,8 @@ pathSeps(void)
 	  GS_MUTEX_LOCK(placeholderLock);
 	  if (wPathSeps == nil)
 	    {
-	      wPathSeps
-		= [NSCharacterSet characterSetWithCharactersInString: @"\\"];
-              wPathSeps = [NSObject leakAt: &wPathSeps];
+	      wPathSeps = RETAIN([NSCharacterSet
+		characterSetWithCharactersInString: @"\\"]);
 	    }
 	  GS_MUTEX_UNLOCK(placeholderLock);
 	}
@@ -881,6 +879,10 @@ register_printf_atsign ()
 + (void) atExit
 {
   DESTROY(placeholderMap);
+  DESTROY(nonBase);
+  DESTROY(rPathSeps);
+  DESTROY(uPathSeps);
+  DESTROY(wPathSeps);
 }
 
 + (void) initialize
@@ -900,7 +902,6 @@ register_printf_atsign ()
       ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
 
       nonBase = [NSCharacterSet nonBaseCharacterSet];
-      nonBase = [NSObject leakAt: &nonBase];
       nonBaseImp
         = (BOOL(*)(id,SEL,unichar))[nonBase methodForSelector: cMemberSel];
 
@@ -3951,9 +3952,13 @@ register_printf_atsign ()
     }
   else
     {
+      BOOL	result;
+
+      ENTER_POOL
       NSData	*d = [self dataUsingEncoding: encoding];
       unsigned	length = [d length];
-      BOOL	result = (length < maxLength) ? YES : NO;
+
+      result = (length < maxLength) ? YES : NO;
 
       if (d == nil)
         {
@@ -3966,6 +3971,7 @@ register_printf_atsign ()
 	}
       memcpy(buffer, [d bytes], length);
       buffer[length] = '\0';
+      LEAVE_POOL
       return result;
     }
 }
@@ -4279,7 +4285,7 @@ register_printf_atsign ()
       if (GSFromUnicode(&b, &l, u, len, encoding, NSDefaultMallocZone(),
 	options) == YES)
 	{
-	  d = [NSDataClass dataWithBytesNoCopy: b length: l];
+	  d = [NSDataClass dataWithBytesNoCopy: b length: l freeWhenDone: YES];
 	}
       else
         {

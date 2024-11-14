@@ -105,7 +105,15 @@ static SEL	rlSel;
 
 + (void) atExit
 {
-  DESTROY(defaultPlaceholderArray);
+  id	o;
+
+  /* The default placeholder array overrides -dealloc so we must get rid of
+   * it directly.
+   */
+  o = defaultPlaceholderArray;
+  defaultPlaceholderArray = nil;
+  NSDeallocateObject(o);
+
   DESTROY(placeholderMap);
 }
 
