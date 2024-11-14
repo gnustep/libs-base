@@ -114,7 +114,23 @@ static SEL	rlSel;
   defaultPlaceholderArray = nil;
   NSDeallocateObject(o);
 
-  DESTROY(placeholderMap);
+  /* Deallocate all the placeholders in the map before destroying it.
+   */
+  GS_MUTEX_LOCK(placeholderLock);
+  if (placeholderMap)
+    {
+      NSMapEnumerator   mEnum = NSEnumerateMapTable(placeholderMap);
+      Class             c;
+      id                o;
+
+      while (NSNextMapEnumeratorPair(&mEnum, (void *)&c, (void *)&o))
+        {
+          NSDeallocateObject(o);
+        }
+      NSEndMapTableEnumeration(&mEnum);
+      DESTROY(placeholderMap);
+    }
+  GS_MUTEX_UNLOCK(placeholderLock);
 }
 
 + (void) initialize
@@ -176,7 +192,7 @@ static SEL	rlSel;
 	   */
 	  GS_MUTEX_LOCK(placeholderLock);
 	  obj = (id)NSMapGet(placeholderMap, (void*)z);
-	  if (obj == nil)
+	  if (obj == nil && NO == [NSObject isExiting])
 	    {
 	      /*
 	       * There is no placeholder object for this zone, so we

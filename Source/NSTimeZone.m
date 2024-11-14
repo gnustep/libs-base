@@ -189,12 +189,12 @@ _NSToICUTZDisplayStyle(NSTimeZoneNameStyle style)
 static inline UCalendar *
 ICUCalendarSetup (NSTimeZone *tz, NSLocale *locale)
 {
-  NSString *tzStr;
-  int32_t tzLen;
-  const char *cLocale;
-  UChar tzName[BUFFER_SIZE];
-  UCalendar *cal;
-  UErrorCode err = U_ZERO_ERROR;
+  NSString	*tzStr;
+  int32_t	tzLen;
+  const char	*cLocale;
+  UChar 	tzName[BUFFER_SIZE];
+  UCalendar	*cal;
+  UErrorCode	err = U_ZERO_ERROR;
   
   tzStr = [tz name];
   if ((tzLen = [tzStr length]) > BUFFER_SIZE)
@@ -286,6 +286,9 @@ static NSMutableDictionary *zoneDictionary;
 static NSMutableDictionary *abbreviationDictionary = nil;
 /* one-to-many abbreviation to time zone name dictionary. */
 static NSMutableDictionary *abbreviationMap = nil;
+
+static NSArray *namesArray = nil;
+static NSArray *regionsArray = nil;
 
 /* Lock for creating time zones. */
 static gs_mutex_t zone_mutex;
@@ -991,7 +994,7 @@ static NSMapTable	*absolutes = 0;
       NSAutoreleasePool	*pool = [NSAutoreleasePool new];
       NSString		*path;
 
-      path = _time_zone_path (ABBREV_DICT, @"plist");
+      path = _time_zone_path(ABBREV_DICT, @"plist");
       if (path != nil)
 	{
 	  /*
@@ -1195,8 +1198,6 @@ static NSMapTable	*absolutes = 0;
  */
 + (NSArray*) knownTimeZoneNames
 {
-  static NSArray *namesArray = nil;
-
   /* We create the array only when we need it to reduce overhead. */
   if (namesArray != nil)
     {
@@ -1204,7 +1205,7 @@ static NSMapTable	*absolutes = 0;
     }
 
   GS_MUTEX_LOCK(zone_mutex);
-  if (namesArray == nil)
+  if (namesArray == nil && NO == [NSObject isExiting])
     {
       unsigned		i;
       NSMutableArray	*ma;
@@ -1284,14 +1285,33 @@ static NSMapTable	*absolutes = 0;
 {
   id	o;
 
+  /* Deallocate all the placeholders in the map before destroying it.
+   */
+  GS_MUTEX_LOCK(zone_mutex);
+  if (placeholderMap)
+    {
+      NSMapEnumerator   mEnum = NSEnumerateMapTable(placeholderMap);
+      Class             c;
+      id                o;
+
+      while (NSNextMapEnumeratorPair(&mEnum, (void *)&c, (void *)&o))
+        {
+          NSDeallocateObject(o);
+        }
+      NSEndMapTableEnumeration(&mEnum);
+      DESTROY(placeholderMap);
+    }
+  GS_MUTEX_UNLOCK(zone_mutex);
+
   DESTROY(zoneDictionary);
-  DESTROY(placeholderMap);
   DESTROY(localTimeZone);
   DESTROY(defaultTimeZone);
   DESTROY(systemTimeZone);
   DESTROY(abbreviationDictionary);
   DESTROY(abbreviationMap);
   DESTROY(absolutes);
+  DESTROY(namesArray);
+  DESTROY(regionsArray);
 
   o = defaultPlaceholderTimeZone;
   defaultPlaceholderTimeZone = nil;
@@ -1653,7 +1673,8 @@ static NSMapTable	*absolutes = 0;
       if (localZoneString != nil)
 	{
 	  NSDebugLLog (@"NSTimeZone", @"Using zone %@", localZoneString);
-	  zone = [defaultPlaceholderTimeZone initWithName: localZoneString];
+	  zone = AUTORELEASE([defaultPlaceholderTimeZone
+	    initWithName: localZoneString]);
 	  if (zone == nil)
 	    {
 	      NSArray	*possibleZoneNames;
@@ -1689,7 +1710,7 @@ static NSMapTable	*absolutes = 0;
 			&& [dflt contentsEqualAtPath: fileName 
 					     andPath: SYSTEM_TIME_FILE])
 			{
-			  zone = [[self timeZoneWithName: zoneName] retain];
+			  zone = [self timeZoneWithName: zoneName];
 
 			  if (zone != nil)
 			    {
@@ -1737,7 +1758,7 @@ zoneName, LOCALDBKEY, LOCALDBKEY, zoneName);
 @"See '%@'\n"
 @"for the standard timezones such as 'GB-Eire' or 'America/Chicago'.\n",
 LOCALDBKEY, LOCALDBKEY, _time_zone_path (ZONES_DIR, nil));
-	      zone = [[self timeZoneWithAbbreviation: localZoneString] retain];
+	      zone = [self timeZoneWithAbbreviation: localZoneString];
 	      if (zone != nil)
 		{
 		  NSInteger	s;
@@ -1771,7 +1792,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
       if (zone == nil)
         {
           NSLog(@"Using time zone with absolute offset 0.");
-          zone = systemTimeZone;
+          zone = [self timeZoneForSecondsFromGMT: 0];
         }
       ASSIGN(systemTimeZone, zone);
     }
@@ -1786,17 +1807,15 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
  * Each element contains an array of NSStrings which are
  * the region names.
  */
-+ (NSArray *)timeZoneArray
++ (NSArray*) timeZoneArray
 {
-  static NSArray *regionsArray = nil;
-
   /* We create the array only when we need it to reduce overhead. */
   if (regionsArray != nil)
     {
       return regionsArray;
     }
   GS_MUTEX_LOCK(zone_mutex);
-  if (regionsArray == nil)
+  if (regionsArray == nil && NO == [NSObject isExiting])
     {
       NSAutoreleasePool *pool = [NSAutoreleasePool new];
       NSMutableArray	*temp_array[24];
@@ -1838,9 +1857,9 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 	  newLineSet = [NSCharacterSet newlineCharacterSet];
 	  scanner = [NSScanner scannerWithString: contents];
 
-	  while ([scanner scanInteger: &index] &&
-		 [scanner scanUpToCharactersFromSet: newLineSet
-					 intoString: &name])
+	  while ([scanner scanInteger: &index]
+	    && [scanner scanUpToCharactersFromSet: newLineSet
+				       intoString: &name])
 	    {
 	      if (index < 0)
 		index = 0;
@@ -1851,7 +1870,7 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
 	    }
 	}
       else
-	  {
+        {
 	  NSString	*zonedir = [NSTimeZone _getTimeZoneFile: @"WET"]; 
 
 	  if (tzdir != nil)
@@ -2367,21 +2386,21 @@ localZoneString, [zone name], sign, s/3600, (s/60)%60);
   UCalendar *cal;
   UErrorCode err = U_ZERO_ERROR;
   
-  cal = ICUCalendarSetup (self, locale);
+  cal = ICUCalendarSetup(self, locale);
   if (cal == NULL)
     return nil;
   
   cLocale = [[locale localeIdentifier] UTF8String];
-  result = NSZoneMalloc ([self zone], BUFFER_SIZE * sizeof(UChar));
-  len = ucal_getTimeZoneDisplayName (cal, _NSToICUTZDisplayStyle(style),
+  result = NSZoneMalloc([self zone], BUFFER_SIZE * sizeof(UChar));
+  len = ucal_getTimeZoneDisplayName(cal, _NSToICUTZDisplayStyle(style),
     cLocale, result, BUFFER_SIZE, &err);
   if (len > BUFFER_SIZE)
     {
-      result = NSZoneRealloc ([self zone], result, len * sizeof(UChar));
-      ucal_getTimeZoneDisplayName (cal, _NSToICUTZDisplayStyle(style),
+      result = NSZoneRealloc([self zone], result, len * sizeof(UChar));
+      ucal_getTimeZoneDisplayName(cal, _NSToICUTZDisplayStyle(style),
         cLocale, result, len, &err);
     }
-  
+  ucal_close(cal);
   return AUTORELEASE([[NSString alloc] initWithCharactersNoCopy: result
     length: len freeWhenDone: YES]);
 #else
