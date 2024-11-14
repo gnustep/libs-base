@@ -219,10 +219,10 @@ extern "C" {
  * set to YES).<br />
  * Your class then has two options for performing clean-up when the process
  * ends:
- * <p>1. Use the +leaked: method to register objects which are simply to be 
- * retained until the process ends, and then either ignored or released
- * depending on the clean-up setting in force.  This mechanism is simple
- * and should be sufficient for many classes.
+ * <p>1. Use the +leaked: method to register addresses whose contents are to
+ * be either ignored or released depending on the clean-up setting in force
+ * when the program exits.
+ * This mechanism is simple and should be sufficient for many classes.
  * </p>
  * <p>2. Implement a +atExit method to be run when the process ends and,
  * within your +initialize implementation, call +shouldCleanUp to determine
@@ -241,10 +241,11 @@ extern "C" {
  */
 + (BOOL) isExiting;
 
-/** This method informs the system that the object at anAddress has been
- * intentionally leaked (will not be deallocated by higher level code)
- * and should be cleaned up at process exit (and the address content
- * zeroed out) if clean-up is enabled.
+/** This method informs the system that anAddress is a pointer whose content
+ * has been leaked and should be released and zeroed out (if clean-up is
+ * enabled) at process exit.  If the content of the location is changed
+ * between the point where this method is called and the process exits,
+ * then the new content of the address is what will be released on clean-up.
  */
 + (void) leaked: (id*)anAddress;
 

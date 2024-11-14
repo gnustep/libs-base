@@ -643,7 +643,6 @@ static NSMapTable	*absolutes = 0;
     {
       absolutes = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
-      [[NSObject leakAt: (id*)&absolutes] release];
     }
 }
 
@@ -1281,6 +1280,24 @@ static NSMapTable	*absolutes = 0;
     }
 }
 
++ (void) atExit
+{
+  id	o;
+
+  DESTROY(zoneDictionary);
+  DESTROY(placeholderMap);
+  DESTROY(localTimeZone);
+  DESTROY(defaultTimeZone);
+  DESTROY(systemTimeZone);
+  DESTROY(abbreviationDictionary);
+  DESTROY(abbreviationMap);
+  DESTROY(absolutes);
+
+  o = defaultPlaceholderTimeZone;
+  defaultPlaceholderTimeZone = nil;
+  NSDeallocateObject(o);
+}
+
 /**
  * Return the default time zone for this process.
  */
@@ -1309,31 +1326,23 @@ static NSMapTable	*absolutes = 0;
       GS_MUTEX_INIT_RECURSIVE(zone_mutex);
       GSPlaceholderTimeZoneClass = [GSPlaceholderTimeZone class];
       zoneDictionary = [[NSMutableDictionary alloc] init];
-      [[NSObject leakAt: &zoneDictionary] release];
 
       /*
        * Set up infrastructure for placeholder timezones.
        */
       defaultPlaceholderTimeZone = (GSPlaceholderTimeZone*)
 	NSAllocateObject(GSPlaceholderTimeZoneClass, 0, NSDefaultMallocZone());
-      [[NSObject leakAt: &defaultPlaceholderTimeZone] release];
       placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
-      [[NSObject leakAt: (id*)&placeholderMap] release];
 
       localTimeZone = [[NSLocalTimeZone alloc] init];
-      [[NSObject leakAt: (id*)&localTimeZone] release];
-
-      [[NSObject leakAt: (id*)&defaultTimeZone] release];
-      [[NSObject leakAt: (id*)&systemTimeZone] release];
-      [[NSObject leakAt: (id*)&abbreviationDictionary] release];
-      [[NSObject leakAt: (id*)&abbreviationMap] release];
-      [[NSObject leakAt: (id*)&absolutes] release];
 
       [[NSNotificationCenter defaultCenter] addObserver: self
         selector: @selector(_notified:)
         name: NSUserDefaultsDidChangeNotification
         object: nil];
+
+      [self registerAtExit];
     }
 }
 

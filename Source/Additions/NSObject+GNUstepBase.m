@@ -181,7 +181,7 @@ handleExit()
 
   isExiting = YES;
   unknownThread = GSRegisterCurrentThread();
-  CREATE_AUTORELEASE_POOL(arp);
+  ENTER_POOL
 
   while (exited != 0)
     {
@@ -202,7 +202,7 @@ handleExit()
 	}
       else if (YES == shouldCleanUp)
 	{
-	  if (0 != tmp->at)
+	  if (tmp->at)
 	    {
 	      tmp->obj = *(tmp->at);
 	      *(tmp->at) = nil;
@@ -211,7 +211,8 @@ handleExit()
 	}
       free(tmp);
     }
-  DESTROY(arp);
+  LEAVE_POOL
+
   if (unknownThread == YES)
     {
       GSUnregisterCurrentThread();
