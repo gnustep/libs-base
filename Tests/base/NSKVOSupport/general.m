@@ -103,10 +103,10 @@
 @end
 
 @implementation TestKVOChange
-+ (id)changeWithKeypath:(NSString *)keypath
-                 object:(id)object
-                   info:(NSDictionary *)info
-                context:(void *)context
++ (id) changeWithKeypath: (NSString *)keypath
+                  object: (id)object
+                    info: (NSDictionary *)info
+                 context: (void *)context
 {
   TestKVOChange *change = [[[self alloc] init] autorelease];
   [change setKeypath: keypath];
@@ -116,55 +116,60 @@
   return change;
 }
 
-- (NSString *)keypath {
-    return _keypath;
+- (NSString *) keypath
+{
+  return _keypath;
 }
 
-- (void)setKeypath:(NSString *)newKeypath
+- (void) setKeypath: (NSString *)newKeypath
 {
-    if (_keypath != newKeypath)
+  if (_keypath != newKeypath)
     {
-        [_keypath release];
-        _keypath = [newKeypath copy];
+      [_keypath release];
+      _keypath = [newKeypath copy];
     }
 }
 
-- (id)object
+- (id) object
 {
-    return _object;
+  return _object;
 }
 
-- (void)setObject:(id)newObject
+- (void) setObject: (id)newObject
 {
   ASSIGN(_object, newObject);
 }
 
 - (NSDictionary *)info
 {
-    return _info;
+  return _info;
 }
 
-- (void)setInfo:(NSDictionary *)newInfo
+- (void) setInfo: (NSDictionary *)newInfo
 {
-    ASSIGN(_info, [newInfo copy]);
+  if (newInfo != _info)
+    {
+      [_info release];
+      _info = [newInfo copy];
+    }
 }
 
-- (void *)context
+- (void *) context
 {
-    return _context;
+  return _context;
 }
 
-- (void)setContext:(void *)newContext
+- (void) setContext:(void *)newContext
 {
-    _context = newContext;
+  _context = newContext;
 }
 
-- (void)dealloc
+- (void) dealloc
 {
-    [_object release];
-    [_keypath release];
-    [_info release];
-    [super dealloc];
+  [_object release];
+  [_keypath release];
+  [_info release];
+  [super dealloc];
 }
 
 @end
@@ -216,7 +221,7 @@
   [_lock lock];
   NSSet *paths = [[_changedKeypaths objectForKey:keypath] copy]; 
   [_lock unlock];
-  return paths;
+  return AUTORELEASE(paths);
 }
 - (void)clear
 {

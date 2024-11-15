@@ -4,13 +4,14 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSDictionary  *dict;
-  NSArray *cookies;
-  NSURL *url;
-  NSHTTPCookie  *cookie;
+  NSAutoreleasePool   	*arp = [NSAutoreleasePool new];
+  NSDictionary  	*dict;
+  NSArray 		*cookies;
+  NSURL 		*url;
+  NSHTTPCookie  	*cookie;
   
-  TEST_FOR_CLASS(@"NSHTTPCookie", [NSHTTPCookie alloc],
+  cookie = AUTORELEASE([NSHTTPCookie new]);
+  TEST_FOR_CLASS(@"NSHTTPCookie", cookie,
     "NSHTTPCookie +alloc returns an NSHTTPCookie");
   
   dict = [NSDictionary dictionaryWithObjectsAndKeys: @"myname", @"Name", 
