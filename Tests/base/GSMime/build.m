@@ -27,7 +27,6 @@ int main(int argc,char **argv)
   NSString		*string = nil;
   GSMimeDocument	*doc = AUTORELEASE([[GSMimeDocument alloc] init]);
   GSMimeDocument	*mul;
-  GSMimeHeader		*hdr;
   NSMutableDictionary	*par = AUTORELEASE([[NSMutableDictionary alloc] init]);
 
   [par setObject: @"my/type" forKey: @"type"];
@@ -63,9 +62,11 @@ int main(int argc,char **argv)
 					 value: @"€"
 				    parameters: nil]];
   data = [doc rawMimeData];
+/*
   const char *bytes = "MIME-Version: 1.0\r\n"
     "Content-Type: text/plain; type=\"my/type\"\r\n"
     "Subject: =?utf-8?B?4oKs?=\r\n\r\n";
+*/
   PASS(find((char*)[data bytes], (unsigned)[data length], "?B?4oKs?=") > 0,
     "encodes utf-8 euro in subject");
 
