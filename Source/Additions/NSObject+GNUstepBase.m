@@ -295,7 +295,7 @@ handleExit()
   [exitLock lock];
   for (l = exited; l != NULL; l = l->next)
     {
-      if (l->obj == anObject || (l->at != nil && *l->at == anObject))
+      if (l->obj == anObject || (l->at != NULL && *l->at == anObject))
 	{
 	  [exitLock unlock];
 	  [NSException raise: NSInvalidArgumentException
