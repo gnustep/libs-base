@@ -4,9 +4,11 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   test_alloc(@"NSArchiver");
-  test_NSObject(@"NSArchiver",[NSArray arrayWithObject:[[NSArchiver alloc] init]]);
+  test_NSObject(@"NSArchiver",
+    [NSArray arrayWithObject: AUTORELEASE([[NSArchiver alloc] init])]);
   test_alloc(@"NSUnarchiver");  
-  test_NSObject(@"NSUnarchiver",[NSArray arrayWithObject:[[NSUnarchiver alloc] init]]);
+  test_NSObject(@"NSUnarchiver",
+    [NSArray arrayWithObject: AUTORELEASE([[NSUnarchiver alloc] init])]);
   
   [arp release]; arp = nil;
   return 0;
