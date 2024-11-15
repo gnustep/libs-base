@@ -56,7 +56,7 @@ int main()
   NSAutoreleasePool   	*arp = [NSAutoreleasePool new];
   NSFileManager		*mgr = [NSFileManager defaultManager];
   NSString 		*dir = @"NSFileManagerTestDir"; 
-  MyHandler 		*handler = [MyHandler new];
+  MyHandler 		*handler = AUTORELEASE([MyHandler new]);
   NSDictionary 		*attr;
   NSString 		*dirInDir;
   NSString 		*str1;

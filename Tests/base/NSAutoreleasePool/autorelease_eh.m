@@ -3,13 +3,12 @@
 #import <Foundation/NSException.h>
 
 @interface TestClass : NSObject
-- (void)runTest;
-- (void)exceptionThrowingMethod;
-
+- (void) runTest;
+- (void) exceptionThrowingMethod;
 @end
 
 @implementation TestClass
-- (void)runTest
+- (void) runTest
 {
   int c = 0;
   int i;
@@ -19,21 +18,26 @@
       NSAutoreleasePool *pool = [NSAutoreleasePool new];
       
       NS_DURING
-          [self exceptionThrowingMethod];
+        [self exceptionThrowingMethod];
       NS_HANDLER
-          c++;
+        c++;
       NS_ENDHANDLER
       [pool release];
     }
-  PASS(c == 10, "Caught the correct number of exceptions without breaking the autorelease pool\n");
+  PASS(c == 10, "Caught the correct number of exceptions"
+    " without breaking the autorelease pool")
 }
 
-- (void)exceptionThrowingMethod
+- (void) exceptionThrowingMethod
 {
-  NSAutoreleasePool *pool = [NSAutoreleasePool new];
-  [@"Hello" stringByAppendingString: @" something to create a autoreleased object"];
+  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+
+  [@"Hello" stringByAppendingString:
+    @" something to create a autoreleased object"];
   NSLog(@"Throwing an exception");
-  [[NSException exceptionWithName: @"MyFunException" reason: @"it was always meant to happen" userInfo: [NSDictionary dictionary]] raise];
+  [[NSException exceptionWithName: @"MyFunException"
+			   reason: @"it was always meant to happen"
+			 userInfo: [NSDictionary dictionary]] raise];
   [pool release]; // Obviously this doesn't get run, but the [NSAutorelease new] at the top causes the problem
 }
 
@@ -41,8 +45,9 @@
 
 int main(int argc, char** argv)
 {
-  NSAutoreleasePool *pool = [NSAutoreleasePool new];
-  TestClass *testClass = [[TestClass new] autorelease];
+  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+  TestClass 		*testClass = [[TestClass new] autorelease];
+
   [testClass runTest];
   [pool release];
   PASS(1, "Destroying pools in the wrong order didn't break anything...");

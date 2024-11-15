@@ -75,8 +75,6 @@ static void     *isFinishedCtxt = (void*)"isFinished";
 static void     *isReadyCtxt = (void*)"isReady";
 static void     *queuePriorityCtxt = (void*)"queuePriority";
 
-static NSArray	*empty = nil;
-
 @interface	NSOperation (Private)
 - (void) _finish;
 - (void) _updateReadyState;
@@ -89,12 +87,6 @@ static NSArray	*empty = nil;
   /* Handle all KVO manually
    */
   return NO;
-}
-
-+ (void) initialize
-{
-  empty = [NSArray new];
-  RELEASE([NSObject leakAt: &empty]);
 }
 
 - (void) addDependency: (NSOperation *)op
@@ -228,7 +220,7 @@ static NSArray	*empty = nil;
 
   if (internal->dependencies == nil)
     {
-      a = empty;	// OSX return an empty array
+      a = [NSArray array];	// OSX return an empty array
     }
   else
     {
