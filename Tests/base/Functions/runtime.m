@@ -118,7 +118,7 @@ main(int argc, char *argv[])
   PASS(0 == class_getVersion(Nil), 
     "class_getVersion() for Nil is 0");
 
-  obj = [NSObject new];
+  obj = AUTORELEASE([NSObject new]);
   cls = [SubClass1 class];
 
   PASS(c1initialize != 0, "+initialize was called");
@@ -188,6 +188,7 @@ main(int argc, char *argv[])
       PASS(sel_isEqual(sel, sel_getUid("catMethod")),
         "method 1 has expected name");
     }
+  free(methods);
 
   ivars = class_copyIvarList(cls, &count);
   PASS(count == 1, "SubClass1 has one ivar");
@@ -196,12 +197,14 @@ main(int argc, char *argv[])
     "ivar has correct name");
   PASS(strcmp(ivar_getTypeEncoding(ivars[0]), @encode(int)) == 0,
     "ivar has correct type");
+  free(ivars);
 
   protocols = class_copyProtocolList(cls, &count);
   PASS(count == 1, "SubClass1 has one protocol");
   PASS(protocols[count] == 0, "protocol list is terminated");
   PASS(strcmp(protocol_getName(protocols[0]), "SubProto") == 0,
     "protocol has correct name");
+  free(protocols);
 
   cls = objc_allocateClassPair([NSString class], "runtime generated", 0);
   PASS(cls != Nil, "can allocate a class pair");
@@ -213,7 +216,7 @@ main(int argc, char *argv[])
     "able to add iVar 'iv3'");
   PASS(class_addIvar(cls, "iv4", 1, 3, "c") == YES,
     "able to add iVar 'iv4'");
-  objc_registerClassPair (cls);
+  objc_registerClassPair(cls);
   ivar = class_getInstanceVariable(cls, "iv1");
   PASS(ivar != 0, "iv1 exists");
   PASS(ivar_getOffset(ivar) == 64, "iv1 offset is 64");
