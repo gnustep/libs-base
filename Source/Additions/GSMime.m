@@ -3045,7 +3045,7 @@ unfold(const unsigned char *src, const unsigned char *end, BOOL *folded)
 	       */
 	      if (tmp > src)
 		{
-		  unsigned char	buf[tmp - src];
+		  unsigned char	buf[tmp - src + 1];
 		  unsigned char	*ptr;
 
 		  ptr = decodeWord(buf, src, tmp, encoding);
