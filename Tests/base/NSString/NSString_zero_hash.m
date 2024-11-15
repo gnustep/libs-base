@@ -31,7 +31,7 @@ int main(int argc, char **argv)
   h = [s hash];
   PASS(h != 0, "[NSConstantString hash] does not return 0");
 
-  s = [[NSString alloc] initWithString: s];
+  s = [NSString stringWithString: s];
   h = [s hash];
   PASS(h != 0, "[NSString hash] does not return 0");
 

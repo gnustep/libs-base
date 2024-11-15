@@ -39,7 +39,7 @@ Basic sanity test.
 */
 BOOL test_initWithCString(void)
 {
-  NSString *test1 = [[stringClass alloc] initWithCString: "ascii"];
+  NSString *test1 = AUTORELEASE([[stringClass alloc] initWithCString: "ascii"]);
   NSString *sanity = @"ascii";
 
   if (!test1)
@@ -117,9 +117,9 @@ test_encoding(void)
     NSData *d = [[NSData alloc] initWithBytes: "foo"  length: 3];
     NSString *s = [[stringClass alloc] initWithData: d  encoding: 0];
 
-    PASS(s == nil, "-initWithData:encoding: gives nil for invalid encodings")
-
     DESTROY(d);
+    PASS(s == nil, "-initWithData:encoding: gives nil for invalid encodings")
+    DESTROY(s);
   }
 
   test_encodings_helper(NSASCIIStringEncoding, 

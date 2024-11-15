@@ -6592,6 +6592,7 @@ static NSFileManager *fm = nil;
 		&stop);
 	    }
 	}
+      ubrk_close(breakIterator);
 #else
       NSWarnLog(@"NSStringEnumerationByWords and NSStringEnumerationBySentences"
 	@" are not supported when GNUstep-base is compiled without ICU.");
