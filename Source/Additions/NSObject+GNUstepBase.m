@@ -227,26 +227,9 @@ handleExit()
   return isExiting;
 }
 
-+ (void) leaked: (id*)anAddress
-{
-  struct exitLink	*l;
-
-  NSAssert(*anAddress && [*anAddress isKindOfClass: [NSObject class]],
-    NSInvalidArgumentException);
-  l = (struct exitLink*)malloc(sizeof(struct exitLink));
-  l->at = anAddress;
-  l->obj = *anAddress;
-  l->sel = 0;
-  setup();
-  [exitLock lock];
-  l->next = exited;
-  exited = l;
-  [exitLock unlock];
-}
-
 + (id) leakAt: (id*)anAddress
 {
-  struct exitLink	*l;
+  struct exitLink       *l;
 
   l = (struct exitLink*)malloc(sizeof(struct exitLink));
   l->at = anAddress;
@@ -260,16 +243,69 @@ handleExit()
   return l->obj;
 }
 
++ (void) leaked: (id*)anAddress
+{
+  struct exitLink	*l;
+
+  NSAssert(anAddress != NULL, NSInvalidArgumentException);
+  if (isExiting)
+    {
+      [*anAddress release];
+      *anAddress = nil;
+      return nil;
+    }
+  NSAssert([*anAddress isKindOfClass: [NSObject class]],
+    NSInvalidArgumentException);
+  setup();
+  [exitLock lock];
+  for (l = exited; l != NULL; l = l->next)
+    {
+      if (l->at == anAddress)
+	{
+	  [exitLock unlock];
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Repeated use of leak address %p", anAddress];
+	}
+      if (*anAddress != nil && *anAddress == l->obj)
+	{
+	  [exitLock unlock];
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Repeated use of leak object %p", *anAddress];
+	}
+    }
+  l = (struct exitLink*)malloc(sizeof(struct exitLink));
+  l->at = anAddress;
+  l->obj = *anAddress;
+  l->sel = 0;
+  l->next = exited;
+  exited = l;
+  [exitLock unlock];
+  return l->obj;
+}
+
 + (id) leak: (id)anObject
 {
   struct exitLink	*l;
 
+  if (nil == anObject || isExiting)
+    {
+      return nil;
+    }
+  setup();
+  [exitLock lock];
+  for (l = exited; l != NULL; l = l->next)
+    {
+      if (l->obj == anObject || (l->at != nil && *l->at == anObject))
+	{
+	  [exitLock unlock];
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Repeated use of leak object %p", anObject];
+	}
+    }
   l = (struct exitLink*)malloc(sizeof(struct exitLink));
   l->at = 0;
   l->obj = [anObject retain];
   l->sel = 0;
-  setup();
-  [exitLock lock];
   l->next = exited;
   exited = l;
   [exitLock unlock];

@@ -241,21 +241,31 @@ extern "C" {
  */
 + (BOOL) isExiting;
 
-/** This method informs the system that anAddress is a pointer whose content
- * has been leaked and should be released and zeroed out (if clean-up is
- * enabled) at process exit.  If the content of the location is changed
- * between the point where this method is called and the process exits,
- * then the new content of the address is what will be released on clean-up.
+/** This method informs the system that anObject should be retained to
+ * persist until the process exits.  If clean-up is enabled the object
+ * should be released upon process exit.
+ * If this method is called while the process is already existing it
+ * returns nil, otherwise it returnes the retained argument.
+ * Raises an exception if anObject has already been leaked or if it is
+ * nil (unless the process is exiting).
+ */
++ (id) NS_RETURNS_RETAINED leak: (id)anObject;
+
+/** This method informs the system that the object at anAddress has been
+ * retained to persist until the process exits.  If clean-up is enabled
+ * the object should be released (and the address content zeroed out)
+ * upon process exit.
+ * If this method is called while the process is already existing it releases
+ * the object and zeros out the memory location then returns nil, otherwise
+ * it returns the object found at the memory location.
+ * Raises an exception if anAddress (or the object at anAddress) has already
+ * been leaked or if it is nil (unless the process is exiting).
  */
 + (void) leaked: (id*)anAddress;
 
-/** Deprecated: use +leaked: instead.
+/** DEPRECATED ... use +leaked: instead.
  */
-+ (id) NS_RETURNS_RETAINED leak: (id)anObject GS_DEPRECATED_FUNC;
-
-/** Deprecated: use +leaked: instead.
- */
-+ (id) NS_RETURNS_RETAINED leakAt: (id*)anAddress ;//GS_DEPRECATED_FUNC;
++ (id) NS_RETURNS_RETAINED leakAt: (id*)anAddress;
 
 /** Sets the receiver to have its +atExit method called at the point when
  * the process terminates.<br />
