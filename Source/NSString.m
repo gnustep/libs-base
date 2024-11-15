@@ -169,6 +169,7 @@ static gs_mutex_t		placeholderLock = GS_MUTEX_INIT_STATIC;
 static SEL		cMemberSel = 0;
 static NSCharacterSet	*nonBase = nil;
 static BOOL             (*nonBaseImp)(id, SEL, unichar) = 0;
+static gs_mutex_t	nonBaseLock = GS_MUTEX_INIT_STATIC;
 
 static NSCharacterSet	*wPathSeps = nil;
 static NSCharacterSet	*uPathSeps = nil;
@@ -231,8 +232,24 @@ uni_isnonsp(unichar u)
    * to a number of issues with UTF-16
    */
   if ((u >= 0xdc00) && (u <= 0xdfff))
-    return YES;
-
+    {
+      return YES;
+    }
+  if (0 == nonBaseImp)
+    {
+      GS_MUTEX_LOCK(nonBaseLock);
+      if (nil == nonBase)
+	{
+          nonBase = RETAIN([NSCharacterSet nonBaseCharacterSet]);
+	  nonBaseImp
+	    = (BOOL(*)(id,SEL,unichar))[nonBase methodForSelector: cMemberSel];
+	}
+      GS_MUTEX_UNLOCK(nonBaseLock);
+      if (0 == nonBaseImp)
+	{
+	  return NO;	// if charset is missing (prerhaps during process exit)
+	}
+    }
   return (*nonBaseImp)(nonBase, cMemberSel, u);
 }
 
@@ -916,10 +933,6 @@ register_printf_atsign ()
       caiSel = @selector(characterAtIndex:);
       gcrSel = @selector(getCharacters:range:);
       ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
-
-      nonBase = [NSCharacterSet nonBaseCharacterSet];
-      nonBaseImp
-        = (BOOL(*)(id,SEL,unichar))[nonBase methodForSelector: cMemberSel];
 
       _DefaultStringEncoding = GSPrivateDefaultCStringEncoding();
       _ByteEncodingOk = GSPrivateIsByteEncoding(_DefaultStringEncoding);
