@@ -27,6 +27,7 @@
 #import "Foundation/NSInvocation.h"
 
 @class	NSMutableData;
+@class	NSPointerArray;
 
 typedef struct	{
   int		offset;
@@ -39,12 +40,16 @@ typedef struct	{
 } NSArgumentInfo;
 
 
-@interface GSFFIInvocation : NSInvocation
+@interface 	GSFFIInvocation : NSInvocation
 {
 @public
-  uint8_t	_retbuf[32];	// Store return values of up to 32 bytes here.
-  NSMutableData	*_frame;
+  uint8_t		_retbuf[32];	// Return values of up to 32 bytes here.
+  NSMutableData		*_frame;	// Frame information for invoking.
+  NSPointerArray	*_extra;	// Extra FFI data to be released.
 }
+@end
+@interface	GSFFIInvocation (FFI)
+- (void) setupFrameFFI: (NSMethodSignature*)sig;
 @end
 
 @interface GSFFCallInvocation : NSInvocation

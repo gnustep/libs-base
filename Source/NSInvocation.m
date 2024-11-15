@@ -70,6 +70,7 @@
 - (void) dealloc
 {
   DESTROY(frame);
+  DESTROY(extra);
   if (size > 0)
     {
 #if	defined(HAVE_FFI_PREP_CLOSURE_LOC)
@@ -173,9 +174,10 @@
 #endif
 }
 
-- (void) setFrame: (id)aFrame
+- (void) setFrame: (id)aFrame extra: (NSPointerArray*)pa
 {
   ASSIGN(frame, aFrame);
+  ASSIGN(extra, pa);
 }
 @end
 
