@@ -574,13 +574,16 @@ GSIArrayRemoveItemsFromIndex(GSIArray array, unsigned index)
 GS_STATIC_INLINE void
 GSIArrayRemoveAllItems(GSIArray array)
 {
-#ifndef	GSI_ARRAY_NO_RELEASE
-  while (array->count--)
+  if (array->count)
     {
-      GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
-    }
+#ifndef	GSI_ARRAY_NO_RELEASE
+      while (array->count--)
+        {
+          GSI_ARRAY_RELEASE(array, array->ptr[array->count]);
+        }
 #endif
-  array->count = 0;
+      array->count = 0;
+    }
 }
 
 GS_STATIC_INLINE void
