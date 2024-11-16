@@ -2,43 +2,20 @@
 #import "Testing.h"
 #import "ObjectTesting.h"
 
-@protocol NSMenuItem <NSObject>
-- (NSString*) keyEquivalent;
-- (void) setKeyEquivalent: (NSString*)aKeyEquivalent;
-@end
-
-@interface NSMenuItem : NSObject <NSMenuItem>
+@interface GSFakeNSString : NSObject
 {
-  NSString *_keyEquivalent;
-}
-@end
-
-@implementation NSMenuItem
-- (void) setKeyEquivalent: (NSString*)aKeyEquivalent
-{
-  ASSIGNCOPY(_keyEquivalent,  aKeyEquivalent);
+  NSString* _originalItem;
 }
 
-- (NSString*) keyEquivalent
-{
-  return _keyEquivalent;
-}
-@end
-
-@interface GSFakeNSMenuItem : NSObject
-{
-  NSMenuItem* _originalItem;
-}
-
-- (id) initWithItem: (NSMenuItem*)item;
-- (NSMenuItem*) originalItem;
+- (id) initWithItem: (NSString*)item;
+- (NSString*) originalItem;
 - (id) target;
 - (SEL)action;
 - (void) action: (id)sender;
 @end
 
-@implementation GSFakeNSMenuItem
-- (id) initWithItem: (NSMenuItem*)item
+@implementation GSFakeNSString
+- (id) initWithItem: (NSString*)item
 {
   self = [super init];
   if (self)
@@ -48,7 +25,7 @@
   return self;
 }
 
-- (NSMenuItem*) originalItem
+- (NSString*) originalItem
 {
   return _originalItem;
 }
@@ -99,16 +76,15 @@ int main(int argc,char **argv)
 {
   START_SET("GSFFIInvocation")
 
-  NSMenuItem *item = [NSMenuItem alloc];
-  [item setKeyEquivalent:@"Hello, World!"];
+  NSString *string = @"Hello, World!";
 
-  GSFakeNSMenuItem *fakeItem = [[GSFakeNSMenuItem alloc] initWithItem:item];
+  GSFakeNSString *fakeString = [[GSFakeNSString alloc] initWithItem:string];
 
-  NSString *itemKeyEquivalent = [item keyEquivalent];
-  NSString *fakeItemKeyEquivalent = [fakeItem keyEquivalent];
+  NSString *upperCaseString = [string uppercaseString];
+  NSString *fakeUpperCaseString = [fakeString uppercaseString];
 
-  PASS_EQUAL(itemKeyEquivalent, fakeItemKeyEquivalent, "keyEquivalent selector is forwarded from the fake item to the actual item");
-  NSLog(@"Item key equivalent: %@, fake item key equivalent: %@", itemKeyEquivalent, fakeItemKeyEquivalent);
+  PASS_EQUAL(upperCaseString, fakeUpperCaseString, "uppercaseString selector is forwarded from the fake string to the actual NSString object");
+  NSLog(@"Upper case string: %@, fake upper case string: %@", upperCaseString, fakeUpperCaseString);
 
   END_SET("GSFFIInvocation")
   return 0;
