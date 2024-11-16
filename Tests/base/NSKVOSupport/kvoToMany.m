@@ -873,8 +873,11 @@ NSArrayShouldThrowWhenTryingToObserveIndexesOutOfRange()
 {
   START_SET("NSArrayShouldThrowWhenTryingToObserveIndexesOutOfRange");
 
-  NSArray      *test = [NSArray arrayWithObjects: [Observee new], [Observee new], nil];
+  NSArray      *o1 = AUTORELEASE([Observee new]);
+  NSArray      *o2 = AUTORELEASE([Observee new]);
+  NSArray      *test = [NSArray arrayWithObjects: o1, o2, nil];
   TestObserver *observer = [TestObserver new];
+
   PASS_EXCEPTION([test addObserver:observer
                    toObjectsAtIndexes:[NSIndexSet indexSetWithIndex:4]
                            forKeyPath:@"bareArray"

@@ -22,7 +22,7 @@ int main()
   helpers = [helpers stringByAppendingPathComponent: @"obj"];
 
   command = [helpers stringByAppendingPathComponent: @"doubleNSLock"];
-  task = [[NSTask alloc] init];
+  task = AUTORELEASE([[NSTask alloc] init]);
   ePipe = [[NSPipe pipe] retain];
   [task setLaunchPath: command];
   [task setStandardError: ePipe]; 
@@ -34,8 +34,8 @@ int main()
     }
   data = [hdl availableData];
   NSLog(@"Data was %*.*s", [data length], [data length], [data bytes]);
-  string = [NSString alloc];
-  string = [string initWithData: data encoding: NSISOLatin1StringEncoding];
+  string = AUTORELEASE([[NSString alloc]
+    initWithData: data encoding: NSISOLatin1StringEncoding]);
   PASS([string rangeOfString: @"deadlock"].length > 0,
     "NSLock reported deadlock as expected");
   if (NO == testPassed)
@@ -46,8 +46,8 @@ int main()
   [task waitUntilExit];
 
   command = [helpers stringByAppendingPathComponent: @"doubleNSConditionLock"];
-  task = [[NSTask alloc] init];
-  ePipe = [[NSPipe pipe] retain];
+  task = AUTORELEASE([[NSTask alloc] init]);
+  ePipe = [NSPipe pipe];
   [task setLaunchPath: command];
   [task setStandardError: ePipe]; 
   hdl = [ePipe fileHandleForReading];
@@ -58,8 +58,8 @@ int main()
     }
   data = [hdl availableData];
   NSLog(@"Data was %*.*s", [data length], [data length], [data bytes]);
-  string = [NSString alloc];
-  string = [string initWithData: data encoding: NSISOLatin1StringEncoding];
+  string = AUTORELEASE([[NSString alloc]
+    initWithData: data encoding: NSISOLatin1StringEncoding]);
   PASS([string rangeOfString: @"deadlock"].length > 0,
     "NSConditionLock reported deadlock as expected");
   if (NO == testPassed)
@@ -69,23 +69,23 @@ int main()
     }
   [task waitUntilExit];
 
-  ASSIGN(lock,[NSRecursiveLock new]);
+  lock = AUTORELEASE([NSRecursiveLock new]);
   [lock lock];
   [lock lock];
   [lock unlock];
   [lock unlock];
 
-  ASSIGN(lock,[NSLock new]);
+  lock = AUTORELEASE([NSLock new]);
   PASS([lock tryLock] == YES, "NSLock can tryLock");
   PASS([lock tryLock] == NO, "NSLock says NO for recursive tryLock");
   [lock unlock];
 
-  ASSIGN(lock,[NSConditionLock new]);
+  lock = AUTORELEASE([NSConditionLock new]);
   PASS([lock tryLock] == YES, "NSConditionLock can tryLock");
   PASS([lock tryLock] == NO, "NSConditionLock says NO for recursive tryLock");
   [lock unlock];
 
-  ASSIGN(lock,[NSRecursiveLock new]);
+  lock = AUTORELEASE([NSRecursiveLock new]);
   PASS([lock tryLock] == YES, "NSRecursiveLock can tryLock");
   PASS([lock tryLock] == YES, "NSRecursiveLock says YES for recursive tryLock");
   [lock unlock];
