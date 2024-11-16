@@ -74,10 +74,12 @@ int main()
   id sub = @"Remote";
   
   PASS(theClass == [NSProxy class], "uses +class to return self");
-  PASS([[NSProxy alloc] isProxy] == YES,
+  obj = [NSProxy alloc];
+  PASS([obj isProxy] == YES,
        "%s implements -isProxy to return YES",prefix);
-  PASS([[NSProxy alloc] description] != nil, "%s implements -description",prefix);
-  obj = [[MyProxy alloc] init];
+  PASS([obj description] != nil, "%s implements -description",prefix);
+  RELEASE(obj);
+  obj = AUTORELEASE([[MyProxy alloc] init]);
   PASS(obj != nil, "Can create a MyProxy instance");
   PASS([obj isEqual: obj], "proxy isEqual: to self without remote");
   [obj setRemote: rem];
