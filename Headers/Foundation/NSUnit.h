@@ -1,21 +1,21 @@
 /** Definition of class NSUnit
    Copyright (C) 2019 Free Software Foundation, Inc.
-   
+
    By: Gregory John Casamento <greg.casamento@gmail.com>
    Date: Mon Sep 30 15:58:21 EDT 2019
 
    This file is part of the GNUstep Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
@@ -52,7 +52,7 @@ GS_EXPORT_CLASS
 }
 - (instancetype) initWithCoefficient: (double)coefficient;
 - (instancetype) initWithCoefficient: (double)coefficient
-                            constant: (double)constant;
+			    constant: (double)constant;
 - (double) coefficient;
 - (double) constant;
 @end
@@ -65,7 +65,7 @@ GS_EXPORT_CLASS
 {
   NSString *_symbol;
 }
-  
+
 - (instancetype) init;
 - (instancetype) initWithSymbol: (NSString *)symbol;
 - (NSString *) symbol;
@@ -93,7 +93,7 @@ GS_EXPORT_CLASS
  * Base unit - metersPerSecondSquared
  */
 GS_EXPORT_CLASS
-@interface NSUnitAcceleration : NSDimension 
+@interface NSUnitAcceleration : NSDimension
 
 + (NSUnitAcceleration *) metersPerSecondSquared;
 + (NSUnitAcceleration *) gravity;
@@ -104,7 +104,7 @@ GS_EXPORT_CLASS
  * Base unit - degrees
  */
 GS_EXPORT_CLASS
-@interface NSUnitAngle : NSDimension 
+@interface NSUnitAngle : NSDimension
 
 + (NSUnitAngle *) degrees;
 + (NSUnitAngle *) arcMinutes;
@@ -119,7 +119,7 @@ GS_EXPORT_CLASS
  * Base unit - squareMeters
  */
 GS_EXPORT_CLASS
-@interface NSUnitArea : NSDimension 
+@interface NSUnitArea : NSDimension
 
 + (NSUnitArea *) squareMegameters;
 + (NSUnitArea *) squareKilometers;
@@ -139,14 +139,24 @@ GS_EXPORT_CLASS
 @end
 
 /**
- * Base unit - gramsPerLiter
+ * Units of concentration.  Base unit - gramsPerLiter.
  */
 GS_EXPORT_CLASS
-@interface NSUnitConcentrationMass : NSDimension 
+@interface NSUnitConcentrationMass : NSDimension
 
+/**
+ * Concentration units in grams per liter.
+ */
 + (NSUnitConcentrationMass *) gramsPerLiter;
+
+/**
+ * Concentration units in milligrams per deciliter.
+ */
 + (NSUnitConcentrationMass *) milligramsPerDeciliter;
 
+/**
+ * Concentration units in grams per mole.
+ */
 + (NSUnitConcentrationMass *) millimolesPerLiterWithGramsPerMole: (double)gramsPerMole;
 
 @end
@@ -155,7 +165,7 @@ GS_EXPORT_CLASS
  * Units of dispersion.  Base unit - partsPerMillion
  */
 GS_EXPORT_CLASS
-@interface NSUnitDispersion : NSDimension 
+@interface NSUnitDispersion : NSDimension
 
 /**
  * Units of dispersion in parts per million.
@@ -168,20 +178,20 @@ GS_EXPORT_CLASS
  * Units of duration.  Base unit - seconds
  */
 GS_EXPORT_CLASS
-@interface NSUnitDuration : NSDimension   
+@interface NSUnitDuration : NSDimension
 
 /**
- * Units of during in seconds.
+ * Units of duration in seconds.
  */
 + (NSUnitDuration *) seconds;
 
 /**
- * Units of during in minutes.
+ * Units of duration in minutes.
  */
 + (NSUnitDuration *) minutes;
 
 /**
- * Units of during in hours.
+ * Units of duration in hours.
  */
 + (NSUnitDuration *) hours;
 
@@ -191,7 +201,7 @@ GS_EXPORT_CLASS
  * Units of electric charge.  Base unit - coulombs
  */
 GS_EXPORT_CLASS
-@interface NSUnitElectricCharge : NSDimension 
+@interface NSUnitElectricCharge : NSDimension
 
 /**
  * The units of eletric charge in coulombs.
@@ -229,7 +239,7 @@ GS_EXPORT_CLASS
  * Units of electric current.  Base unit - amperes
  */
 GS_EXPORT_CLASS
-@interface NSUnitElectricCurrent : NSDimension 
+@interface NSUnitElectricCurrent : NSDimension
 
 /**
  * The units of eletric current in megaamperes.
@@ -262,7 +272,7 @@ GS_EXPORT_CLASS
  * Units of electric potential.  Base unit - volts
  */
 GS_EXPORT_CLASS
-@interface NSUnitElectricPotentialDifference : NSDimension 
+@interface NSUnitElectricPotentialDifference : NSDimension
 
 /**
  * The units of eletric potential in megavolts.
@@ -295,7 +305,7 @@ GS_EXPORT_CLASS
  * Units of electric resistance. Base unit - ohms
  */
 GS_EXPORT_CLASS
-@interface NSUnitElectricResistance : NSDimension 
+@interface NSUnitElectricResistance : NSDimension
 
 /**
  * The units of eletric resistance in megaohms.
@@ -328,7 +338,7 @@ GS_EXPORT_CLASS
  * Units of Energy.  Base unit - joules
  */
 GS_EXPORT_CLASS
-@interface NSUnitEnergy : NSDimension 
+@interface NSUnitEnergy : NSDimension
 
 /**
  * The units of energy in kilojoules.
@@ -361,7 +371,7 @@ GS_EXPORT_CLASS
  * Units of frequency.  Base unit - hertz
  */
 GS_EXPORT_CLASS
-@interface NSUnitFrequency : NSDimension 
+@interface NSUnitFrequency : NSDimension
 
 /**
  * The units of frequency in terahertz.
@@ -409,7 +419,7 @@ GS_EXPORT_CLASS
  * Units of fuel efficiency.  Base unit - litersPer100Kilometers
  */
 GS_EXPORT_CLASS
-@interface NSUnitFuelEfficiency : NSDimension 
+@interface NSUnitFuelEfficiency : NSDimension
 
 /**
  * The units of fuel efficiency in liters per 100 kilometers.
@@ -432,7 +442,7 @@ GS_EXPORT_CLASS
  * Units of length. Base unit - meters
  */
 GS_EXPORT_CLASS
-@interface NSUnitLength : NSDimension 
+@interface NSUnitLength : NSDimension
 
 /**
  * The units of length in megameters.
@@ -550,7 +560,7 @@ GS_EXPORT_CLASS
  * Units of illumination.  Base unit - lux
  */
 GS_EXPORT_CLASS
-@interface NSUnitIlluminance : NSDimension 
+@interface NSUnitIlluminance : NSDimension
 
 /**
  * The units of illuminance in lux.
@@ -563,7 +573,7 @@ GS_EXPORT_CLASS
  * Units of mass. Base unit - kilograms
  */
 GS_EXPORT_CLASS
-@interface NSUnitMass : NSDimension 
+@interface NSUnitMass : NSDimension
 
 /**
  * The mass units in kilograms.
@@ -651,7 +661,7 @@ GS_EXPORT_CLASS
  * Used to represent power.  Base unit - watts
  */
 GS_EXPORT_CLASS
-@interface NSUnitPower : NSDimension 
+@interface NSUnitPower : NSDimension
 
 /**
  * The power units in terawatts.
@@ -714,7 +724,7 @@ GS_EXPORT_CLASS
  * Used to represent pressure. Base unit - newtonsPerMetersSquared (equivalent to 1 pascal)
  */
 GS_EXPORT_CLASS
-@interface NSUnitPressure : NSDimension 
+@interface NSUnitPressure : NSDimension
 
 /**
  * The newtons per meters squared unit of pressure.
@@ -772,7 +782,7 @@ GS_EXPORT_CLASS
  * Used to represent speed. Base unit is meters per second.
  */
 GS_EXPORT_CLASS
-@interface NSUnitSpeed : NSDimension 
+@interface NSUnitSpeed : NSDimension
 
 /**
  * The meters per second measurement of speed.
@@ -801,7 +811,7 @@ GS_EXPORT_CLASS
  * The base unit of this class is kelvin.
  */
 GS_EXPORT_CLASS
-@interface NSUnitTemperature : NSDimension 
+@interface NSUnitTemperature : NSDimension
 
 /**
  * The kelvin unit of temperature.
@@ -811,7 +821,7 @@ GS_EXPORT_CLASS
 /**
  * The kelvin unit of celsius.
  */
-+ (NSUnitTemperature *) celsius; 
++ (NSUnitTemperature *) celsius;
 
 /**
  * The kelvin unit of fahenheit.
@@ -825,7 +835,7 @@ GS_EXPORT_CLASS
  * The base unit of this class is liters.
  */
 GS_EXPORT_CLASS
-@interface NSUnitVolume : NSDimension 
+@interface NSUnitVolume : NSDimension
 
 /**
  * The megaliters unit of volume.
@@ -991,4 +1001,3 @@ GS_EXPORT_CLASS
 #endif	/* GS_API_MACOSX */
 
 #endif	/* _NSUnit_h_GNUSTEP_BASE_INCLUDE */
-
