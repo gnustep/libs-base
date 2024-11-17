@@ -54,6 +54,8 @@
   // Forward any invocation to the original item if it supports it...
   if ([_originalItem respondsToSelector:selector])
     [invocation invokeWithTarget:_originalItem];
+  else
+    [super forwardInvocation:invocation];
 }
 
 -(NSMethodSignature*)methodSignatureForSelector:(SEL)selector
@@ -83,8 +85,8 @@ int main(int argc,char **argv)
   NSString *upperCaseString = [string uppercaseString];
   NSString *fakeUpperCaseString = [fakeString uppercaseString];
 
-  PASS_EQUAL(upperCaseString, fakeUpperCaseString, "uppercaseString selector is forwarded from the fake string to the actual NSString object");
   NSLog(@"Upper case string: %@, fake upper case string: %@", upperCaseString, fakeUpperCaseString);
+  PASS_EQUAL(upperCaseString, fakeUpperCaseString, "uppercaseString selector is forwarded from the fake string to the actual NSString object");
 
   END_SET("GSFFIInvocation")
   return 0;

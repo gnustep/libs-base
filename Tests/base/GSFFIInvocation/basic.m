@@ -77,6 +77,8 @@
   // Forward any invocation to the original item if it supports it...
   if ([_originalItem respondsToSelector:selector])
     [invocation invokeWithTarget:_originalItem];
+  else
+    [super forwardInvocation:invocation];
 }
 
 -(NSMethodSignature*)methodSignatureForSelector:(SEL)selector
