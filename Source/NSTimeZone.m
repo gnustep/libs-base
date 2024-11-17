@@ -642,8 +642,11 @@ static NSMapTable	*absolutes = 0;
 
 + (void) initialize
 {
-  if (self == [GSAbsTimeZone class])
+  static BOOL	beenHere = NO;
+
+  if (NO == beenHere && self == [GSAbsTimeZone class])
     {
+      beenHere = YES;
       absolutes = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
     }
@@ -1340,8 +1343,11 @@ static NSMapTable	*absolutes = 0;
 
 + (void) initialize
 {
-  if (self == [NSTimeZone class])
+  static BOOL	beenHere = NO;
+
+  if (NO == beenHere && self == [NSTimeZone class])
     {
+      beenHere = YES;
       NSTimeZoneClass = self;
       GS_MUTEX_INIT_RECURSIVE(zone_mutex);
       GSPlaceholderTimeZoneClass = [GSPlaceholderTimeZone class];
