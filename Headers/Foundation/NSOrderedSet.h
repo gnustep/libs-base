@@ -53,30 +53,96 @@ GS_EXPORT_CLASS
   NSFastEnumeration>
 
 // class methods
+/**
+ * Create and return an empty ordered set.
+ */
 + (instancetype) orderedSet;
+
+/**
+ * Create and return an empty ordered set with the provided NSArray instance.
+ */
 + (instancetype) orderedSetWithArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)objects;
+
+/**
+ * Create and return an empty ordered set with the provided NSArray instance.
+ * Use the range to determine which elements to use.  If flag is YES copy the
+ * elements.
+ */
 + (instancetype) orderedSetWithArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)objects
 			       range: (NSRange)range
 			   copyItems: (BOOL)flag;
+
+/**
+ * Create and return an ordered set with anObject as the sole member.
+ */
 + (instancetype) orderedSetWithObject: (GS_GENERIC_TYPE(ElementT))anObject;
+
+/**
+ * Create and return an ordered set with list of arguments starting with
+ * firstObject and terminated with nil.
+ */
 + (instancetype) orderedSetWithObjects: (GS_GENERIC_TYPE(ElementT))firstObject, ...;
+
+/**
+ * Create and return an ordered set using the C array of objects with count.
+ */
 + (instancetype) orderedSetWithObjects: (const GS_GENERIC_TYPE(ElementT)[])objects
 				 count: (NSUInteger) count;
+
+/**
+ * Create and return an ordered set with the provided ordered set aSet.
+ */
 + (instancetype) orderedSetWithOrderedSet: (GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
+
+/**
+ * Create and return an ordered set with set aSet.
+ */
 + (instancetype) orderedSetWithSet: (GS_GENERIC_CLASS(NSSet, ElementT)*)aSet;
+
+/**
+ * Create and return an ordered set with the elements in aSet.  If flag is YES,
+ * copy the elements.
+ */
 + (instancetype) orderedSetWithSet: (GS_GENERIC_CLASS(NSSet, ElementT)*)aSet
 			 copyItems: (BOOL)flag;
 
 // instance methods
+/**
+ * Initialize and return an empty ordered set with the provided NSArray instance.
+ */
 - (instancetype) initWithArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)array;
+
+/**
+ * Initialize and return an empty ordered set with the provided NSArray instance.
+ * If flag is YES copy the elements.
+ */
 - (instancetype) initWithArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)array copyItems: (BOOL)flag;
+
+/**
+ * Initialize and return an empty ordered set with the provided NSArray instance.
+ * Use the range to determine which elements to use.  If flag is YES copy the
+ * elements.
+ */
 - (instancetype) initWithArray: (GS_GENERIC_CLASS(NSArray, ElementT)*)array
 			 range: (NSRange)range
 		     copyItems: (BOOL)flag;
+
+/**
+ * Initialize and return an ordered set with anObject as the sole member.
+ */
 - (instancetype) initWithObject: (id)object;
+
+/**
+ * Initialize and return an ordered set with list of arguments starting with
+ * firstObject and terminated with nil.
+ */
 - (instancetype) initWithObjects: (GS_GENERIC_TYPE(ElementT))firstObject, ...;
 - (instancetype) initWithObjects: (const GS_GENERIC_TYPE(ElementT)[])objects
 			   count: (NSUInteger)count;
+
+/**
+ * Initialize and return an ordered set using the C array of objects with count.
+ */
 - (instancetype) initWithOrderedSet: (GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet;
 - (instancetype) initWithOrderedSet: (GS_GENERIC_CLASS(NSOrderedSet, ElementT)*)aSet
 			  copyItems: (BOOL)flag;
