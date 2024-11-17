@@ -9,9 +9,6 @@
 
 - (id) initWithItem: (NSString*)item;
 - (NSString*) originalItem;
-- (id) target;
-- (SEL)action;
-- (void) action: (id)sender;
 @end
 
 @implementation GSFakeNSString
@@ -28,23 +25,6 @@
 - (NSString*) originalItem
 {
   return _originalItem;
-}
-
-- (id)target
-{
-  return self;
-}
-
-- (SEL)action
-{
-  return @selector(action:);
-}
-
-- (id)forwardingTargetForSelector:(SEL)selector
-{
-  if ([_originalItem respondsToSelector:selector])
-    return _originalItem;
-  return nil;
 }
 
 - (void)forwardInvocation:(NSInvocation *)invocation
@@ -66,11 +46,6 @@
 		signature = [NSMethodSignature signatureWithObjCTypes:"@^v^c"];
 	}
 	return(signature);
-}
-
-- (void)doesNotRecognizeSelector:(SEL)selector
-{
-  NSLog(@"%s:selector not recognized: %@", __PRETTY_FUNCTION__, NSStringFromSelector(selector));
 }
 @end
 
