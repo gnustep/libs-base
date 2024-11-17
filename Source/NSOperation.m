@@ -799,9 +799,9 @@ static NSOperationQueue *mainQueue = nil;
 
 - (void) dealloc
 {
-  [self cancelAllOperations];
   if (GS_EXISTS_INTERNAL && internal->lock != nil)
     {
+      [self cancelAllOperations];
       DESTROY(internal->operations);
       DESTROY(internal->starting);
       DESTROY(internal->waiting);
