@@ -1279,7 +1279,7 @@ static NSUInteger	urlAlign;
     }
   DESTROY(_urlString);
   DESTROY(_baseURL);
-  [super dealloc];
+  DEALLOC
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -2216,10 +2216,13 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
 
 - (void) dealloc
 {
-  RELEASE(internal->_name);
-  RELEASE(internal->_value);
-  GS_DESTROY_INTERNAL(NSURLQueryItem);
-  [super dealloc];
+  if (GS_EXISTS_INTERNAL)
+    {
+      RELEASE(internal->_name);
+      RELEASE(internal->_value);
+      GS_DESTROY_INTERNAL(NSURLQueryItem);
+    }
+  DEALLOC
 }
 
 // Reading a name and value from a query
@@ -2375,17 +2378,20 @@ static NSCharacterSet	*queryItemCharSet = nil;
 
 - (void) dealloc
 {
-  RELEASE(internal->_string);
-  RELEASE(internal->_fragment);
-  RELEASE(internal->_host);
-  RELEASE(internal->_password);
-  RELEASE(internal->_path);
-  RELEASE(internal->_port);
-  RELEASE(internal->_queryItems);
-  RELEASE(internal->_scheme);
-  RELEASE(internal->_user);
-  GS_DESTROY_INTERNAL(NSURLComponents);
-  [super dealloc];
+  if (GS_EXISTS_INTERNAL)
+    {
+      RELEASE(internal->_string);
+      RELEASE(internal->_fragment);
+      RELEASE(internal->_host);
+      RELEASE(internal->_password);
+      RELEASE(internal->_path);
+      RELEASE(internal->_port);
+      RELEASE(internal->_queryItems);
+      RELEASE(internal->_scheme);
+      RELEASE(internal->_user);
+      GS_DESTROY_INTERNAL(NSURLComponents);
+    }
+  DEALLOC
 }
 
 - (id) copyWithZone: (NSZone *)zone
