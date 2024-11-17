@@ -9,8 +9,8 @@
 
 int main()
 {
-  NSTask *task;
-  NSPipe *outPipe;
+  NSTask 	*task;
+  NSPipe 	*outPipe;
   NSFileManager *mgr;
   NSString      *helpers;
   NSFileHandle  *outHandle;
@@ -28,6 +28,7 @@ int main()
 
   env = [[[NSProcessInfo processInfo] environment] mutableCopy];
   [env setObject: @"YES" forKey: @"NSZombieEnabled"];
+  [env setObject: @"NO" forKey: @"CRASH_ON_ZOMBIE"];
   task = [[NSTask alloc] init];
   outPipe = [[NSPipe pipe] retain];
   [task setLaunchPath: [helpers stringByAppendingPathComponent: @"NSZombie"]];
