@@ -800,7 +800,7 @@ static NSOperationQueue *mainQueue = nil;
 - (void) dealloc
 {
   [self cancelAllOperations];
-  if (GS_EXISTS_INTERNAL)
+  if (GS_EXISTS_INTERNAL && internal->lock != nil)
     {
       DESTROY(internal->operations);
       DESTROY(internal->starting);
