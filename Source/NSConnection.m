@@ -857,7 +857,7 @@ static NSLock	*cached_proxies_gate = nil;
   if (debug_connection)
     NSLog(@"deallocating %@", self);
   [self finalize];
-  if (internal != nil)
+  if (GS_EXISTS_INTERNAL)
     {
       GS_DESTROY_INTERNAL(NSConnection);
     }

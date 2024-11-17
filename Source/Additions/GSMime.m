@@ -8440,7 +8440,7 @@ GS_PRIVATE_INTERNAL(GSMimeSMTPClient)
 - (void) dealloc
 {
   [self abort];
-  if (internal != nil)
+  if (GS_EXISTS_INTERNAL)
     {
       DESTROY(internal->reply);
       DESTROY(internal->wdata);

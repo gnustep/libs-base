@@ -193,7 +193,7 @@ static void     *queuePriorityCtxt = (void*)"queuePriority";
 {
   /* Only clean up if ivars have been initialised
    */
-  if (internal && internal->lock)
+  if (GS_EXISTS_INTERNAL)
     {
       NSOperation	*op;
 
@@ -800,13 +800,16 @@ static NSOperationQueue *mainQueue = nil;
 - (void) dealloc
 {
   [self cancelAllOperations];
-  DESTROY(internal->operations);
-  DESTROY(internal->starting);
-  DESTROY(internal->waiting);
-  DESTROY(internal->name);
-  DESTROY(internal->cond);
-  DESTROY(internal->lock);
-  GS_DESTROY_INTERNAL(NSOperationQueue);
+  if (GS_EXISTS_INTERNAL)
+    {
+      DESTROY(internal->operations);
+      DESTROY(internal->starting);
+      DESTROY(internal->waiting);
+      DESTROY(internal->name);
+      DESTROY(internal->cond);
+      DESTROY(internal->lock);
+      GS_DESTROY_INTERNAL(NSOperationQueue);
+    }
   [super dealloc];
 }
 
