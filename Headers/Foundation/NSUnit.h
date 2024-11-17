@@ -33,11 +33,18 @@ extern "C" {
 #endif
 
 /**
- * Unit converter
+ * Unit converter.  This is an abstract class.
  */
 GS_EXPORT_CLASS
 @interface NSUnitConverter : NSObject
+/**
+ * For a given unit, returns the specified value of that unit based on the units dimension.
+ */
 - (double) baseUnitValueFromValue: (double)value;
+
+/**
+ * For a unit, returns the specified value of the base unit in terms of that unit.
+ */
 - (double) valueFromBaseUnitValue: (double)baseUnitValue;
 @end
 
@@ -50,10 +57,26 @@ GS_EXPORT_CLASS
   double _coefficient;
   double _constant;
 }
+
+/**
+ * Initialize with the coefficient.
+ */
 - (instancetype) initWithCoefficient: (double)coefficient;
+
+/**
+ * Initialize with the coefficient and constant.
+ */
 - (instancetype) initWithCoefficient: (double)coefficient
 			    constant: (double)constant;
+
+/**
+ * Return the coefficient.
+ */
 - (double) coefficient;
+
+/**
+ * Return the constant.
+ */
 - (double) constant;
 @end
 
@@ -65,9 +88,19 @@ GS_EXPORT_CLASS
 {
   NSString *_symbol;
 }
-
+/**
+ * Initialize an NSUnit instance.
+ */
 - (instancetype) init;
+
+/**
+ * Initialize NSUnit with a given symbol.
+ */
 - (instancetype) initWithSymbol: (NSString *)symbol;
+
+/**
+ * The symbol used by a given unit.
+ */
 - (NSString *) symbol;
 
 @end
@@ -82,58 +115,154 @@ GS_EXPORT_CLASS
     NSUnitConverter *_converter;
 }
 
+/**
+ * The NSUnitConverter instance used for this NSDimension object.
+ */
 - (NSUnitConverter *) converter;
+
+/**
+ * Initialize with symbol and an NSUnitConverter.
+ */
 - (instancetype) initWithSymbol: (NSString *)symbol converter: (NSUnitConverter *)converter;
+
+/**
+ * Return a base unit.
+ */
 + (instancetype) baseUnit;
 
 @end
 
 // Predefined....
 /**
- * Base unit - metersPerSecondSquared
+ * Units of accelleration.  Base unit - metersPerSecondSquared
  */
 GS_EXPORT_CLASS
 @interface NSUnitAcceleration : NSDimension
 
+/**
+ * Units of accelleration in meters per second squared.
+ */
 + (NSUnitAcceleration *) metersPerSecondSquared;
+
+/**
+ * Units of accelleration equal to the gravitational constant.
+ */
 + (NSUnitAcceleration *) gravity;
 
 @end
 
 /**
- * Base unit - degrees
+ * Angle units.  Base unit - degrees
  */
 GS_EXPORT_CLASS
 @interface NSUnitAngle : NSDimension
 
+/**
+ * Units of angle in degrees.
+ */
 + (NSUnitAngle *) degrees;
+
+/**
+ * Units of angle in arc minutes.
+ */
 + (NSUnitAngle *) arcMinutes;
+
+/**
+ * Units of angle arc seconds.
+ */
 + (NSUnitAngle *) arcSeconds;
+
+/**
+ * Units of angle in radians.
+ */
 + (NSUnitAngle *) radians;
+
+/**
+ * Units of area in square megameters.
+ */
 + (NSUnitAngle *) gradians;
+
+/**
+ * Units of area in square megameters.
+ */
 + (NSUnitAngle *) revolutions;
 
 @end
 
 /**
- * Base unit - squareMeters
+ * Units of area.  Base unit - squareMeters
  */
 GS_EXPORT_CLASS
 @interface NSUnitArea : NSDimension
 
+/**
+ * Units of area in square megameters.
+ */
 + (NSUnitArea *) squareMegameters;
+
+/**
+ * Units of area in square kilometers.
+ */
 + (NSUnitArea *) squareKilometers;
+
+/**
+ * Units of area in square meters.
+ */
 + (NSUnitArea *) squareMeters;
+
+/**
+ * Units of area in square centimeters.
+ */
 + (NSUnitArea *) squareCentimeters;
+
+/**
+ * Units of area in square millimeters.
+ */
 + (NSUnitArea *) squareMillimeters;
+
+/**
+ * Units of area in square micrometers.
+ */
 + (NSUnitArea *) squareMicrometers;
+
+/**
+ * Units of area in square nanometers.
+ */
 + (NSUnitArea *) squareNanometers;
+
+/**
+ * Units of area in square inches.
+ */
 + (NSUnitArea *) squareInches;
+
+/**
+ * Units of area in square feet.
+ */
 + (NSUnitArea *) squareFeet;
+
+/**
+ * Units of area in square yards.
+ */
 + (NSUnitArea *) squareYards;
+
+/**
+ * Units of area in square miles.
+ */
 + (NSUnitArea *) squareMiles;
+
+/**
+ * Units of area in acres/
+ */
 + (NSUnitArea *) acres;
+
+/**
+ * Units of area in ares.
+ */
 + (NSUnitArea *) ares;
+
+/**
+ * Units of area in hectares.
+ */
 + (NSUnitArea *) hectares;
 
 @end
