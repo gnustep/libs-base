@@ -572,9 +572,9 @@ fprintf(stderr, "Registered retain count %d\n", (int)[registered retainCount]);
           [this->output close];
           DESTROY(this->input);
           DESTROY(this->output);
-          DESTROY(this->in);
-          DESTROY(this->out);
 	}
+      DESTROY(this->in);
+      DESTROY(this->out);
       DESTROY(this->cachedResponse);
       DESTROY(this->request);
 #if     GS_HAVE_NSURLSESSION
@@ -1769,18 +1769,18 @@ fprintf(stderr, "Registered retain count %d\n", (int)[registered retainCount]);
 	        {
 	          NSLog(@"%@ HTTP output stream opened", self);
 	        }
-              this->in = [[NSString alloc]
-                initWithFormat: @"(%@:%@ <-- %@:%@)",
+              s = [NSString stringWithFormat: @"(%@:%@ <-- %@:%@)",
                 [stream propertyForKey: GSStreamLocalAddressKey],
                 [stream propertyForKey: GSStreamLocalPortKey],
                 [stream propertyForKey: GSStreamRemoteAddressKey],
                 [stream propertyForKey: GSStreamRemotePortKey]];
-              this->out = [[NSString alloc]
-                initWithFormat: @"(%@:%@ --> %@:%@)",
+              ASSIGN(this->in, s);
+              s = [NSString stringWithFormat: @"(%@:%@ --> %@:%@)",
                 [stream propertyForKey: GSStreamLocalAddressKey],
                 [stream propertyForKey: GSStreamLocalPortKey],
                 [stream propertyForKey: GSStreamRemoteAddressKey],
                 [stream propertyForKey: GSStreamRemotePortKey]];
+              ASSIGN(this->out, s);
 	      DESTROY(_writeData);
 	      DESTROY(_masked);
 	      _writeOffset = 0;

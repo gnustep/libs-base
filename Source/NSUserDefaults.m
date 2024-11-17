@@ -685,13 +685,16 @@ newLanguages(NSArray *oldNames)
 
 + (void) initialize
 {
-  if (self == [NSUserDefaults class])
+  static BOOL	beenHere = NO;
+
+  if (NO == beenHere && self == [NSUserDefaults class])
     {
       ENTER_POOL
       NSEnumerator      *enumerator;
       NSArray           *args;
       NSString          *key;
 
+      beenHere = YES;
       nextObjectSel = @selector(nextObject);
       objectForKeySel = @selector(objectForKey:);
       addSel = @selector(addEntriesFromDictionary:);
