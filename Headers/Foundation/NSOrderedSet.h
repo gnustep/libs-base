@@ -491,7 +491,7 @@ GS_EXPORT_CLASS
  * Replace the object at index with object.
  */
 - (void) replaceObjectAtIndex: (NSUInteger)index
-                   withObject: (GS_GENERIC_TYPE(ElementT))object;
+		   withObject: (GS_GENERIC_TYPE(ElementT))object;
 
 /**
  * Replace objects at indexes with objects.  The number of objects must correspond to the number of indexes.
