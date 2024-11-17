@@ -199,7 +199,9 @@ static NSArray	*empty = nil;
 
 - (void) dealloc
 {
-  if (internal != nil)
+  /* Only clean up if ivars have been initialised
+   */
+  if (internal && internal->lock)
     {
       NSOperation	*op;
 
