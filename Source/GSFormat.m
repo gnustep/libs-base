@@ -1770,13 +1770,7 @@ NSDictionary *locale)
 
 	    if (-1 == prec)
               {
-		/* Find end of string, within the specified limit.
-		 */
-		len = 0;
-		while (str[len] != '\0' && len < width)
-		  {
-		    len++;
-		  }
+                len = strlen(str);      // Number of bytes to convert.
                 blen = len;		// Size of unichar output buffer.
               }
 	    else
