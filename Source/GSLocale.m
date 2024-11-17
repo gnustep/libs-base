@@ -24,6 +24,7 @@
 #import "common.h"
 #import "GSPrivate.h"
 #import "GNUstepBase/GSLocale.h"
+#import "Foundation/NSAutoreleasePool.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSLock.h"
@@ -262,6 +263,7 @@ GSLanguageFromLocale(NSString *locale)
       || [locale length] < 2)
     return @"English";
 
+  ENTER_POOL
   gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
   aliases = [gbundle pathForResource: @"Locale"
 		              ofType: @"aliases"
@@ -271,22 +273,27 @@ GSLanguageFromLocale(NSString *locale)
       NSDictionary	*dict;
 
       dict = [NSDictionary dictionaryWithContentsOfFile: aliases];
-      language = [dict objectForKey: locale];
+      language = [[dict objectForKey: locale] copy];
       if (language == nil && [locale pathExtension] != nil)
 	{
 	  locale = [locale stringByDeletingPathExtension];
           if ([locale isEqual: @"C"] || [locale isEqual: @"POSIX"])
-            return @"English";
-	  language = [dict objectForKey: locale];
+	    {
+              language = @"English";
+	    }
+	  else
+	    {
+	      language = [[dict objectForKey: locale] copy];
+	    }
 	}
       if (language == nil)
 	{
 	  locale = [locale substringWithRange: NSMakeRange(0, 2)];
-	  language = [dict objectForKey: locale];
+	  language = [[dict objectForKey: locale] copy];
 	}
     }
-
-  return language;
+  LEAVE_POOL
+  return AUTORELEASE(language);
 }
 
 NSArray *

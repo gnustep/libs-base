@@ -74,6 +74,8 @@ int main()
   PASS_RUNS([node setRootElement: nil], "setting a nil root is ignored");
   PASS_EQUAL([node rootElement], elem, "root element remains");
 
+  DESTROY(elem);
+  DESTROY(node);
   node = [[NSXMLDocument alloc] initWithXMLString:documentXML
 					  options:0
 					    error:NULL];
@@ -96,6 +98,8 @@ int main()
 					     error:NULL];
   PASS([node isEqual: node2],
        "Equal documents are equivalent");
+  RELEASE(node2);
+  RELEASE(node);
 #endif
 
   END_SET("NSXMLDocument")
