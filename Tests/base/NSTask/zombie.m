@@ -43,6 +43,7 @@ int main()
 			      encoding: NSISOLatin1StringEncoding];
   PASS(str != nil && [str rangeOfString: @"sent to deallocated"].length > 0,
     "was able to read zombie message from subtask");
+  RELEASE(str);
   [task terminate];
 
   [arp release];
