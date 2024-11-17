@@ -180,6 +180,13 @@ debugWrite(id handle, int len, const unsigned char *ptr)
 static NSMutableArray	*pairCache = nil;
 static NSLock		*pairLock = nil;
 
++ (void) atExit
+{
+  [[NSNotificationCenter defaultCenter] removeObserver: self];
+  DESTROY(pairLock);
+  DESTROY(pairCache);
+}
+
 + (void) initialize
 {
   if (pairCache == nil)
@@ -196,6 +203,7 @@ static NSLock		*pairLock = nil;
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(purge:)
 	name: @"GSHousekeeping" object: nil];
+      [self registerAtExit];
     }
 }
 
@@ -468,19 +476,36 @@ typedef struct {
   return o;
 }
 
++ (void) atExit
+{
+  if (placeholder)
+    {
+      id	o = placeholder;
+
+      placeholder = nil;
+      NSDeallocateObject(o);
+    }
+fprintf(stderr, "Registered retain count %d\n", (int)[registered retainCount]);
+  DESTROY(registered);
+  DESTROY(regLock);
+}
+
 + (void) initialize
 {
-  if (registered == nil)
+  static BOOL beenHere = NO;
+
+  if (NO == beenHere)
     {
+      beenHere = YES;
       abstractClass = [NSURLProtocol class];
       placeholderClass = [NSURLProtocolPlaceholder class];
+
+      [self registerAtExit];
+
       placeholder = (NSURLProtocol*)NSAllocateObject(placeholderClass, 0,
 	NSDefaultMallocZone());
-      [[NSObject leakAt: &placeholder] release];
       registered = [NSMutableArray new];
-      [[NSObject leakAt: &registered] release];
       regLock = [NSLock new];
-      [[NSObject leakAt: &regLock] release];
       [self registerClass: [_NSHTTPURLProtocol class]];
       [self registerClass: [_NSHTTPSURLProtocol class]];
       [self registerClass: [_NSFTPURLProtocol class]];

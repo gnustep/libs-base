@@ -219,9 +219,9 @@ extern "C" {
  * set to YES).<br />
  * Your class then has two options for performing clean-up when the process
  * ends:
- * <p>1. Use the +leaked: method to register addresses whose contents are to
- * be either ignored or released depending on the clean-up setting in force
- * when the program exits.
+ * <p>1. Use the +leak: at: method to register addresses whose contents are
+ * to be either ignored or released depending on the clean-up setting in
+ * force when the program exits.
  * This mechanism is simple and should be sufficient for many classes.
  * </p>
  * <p>2. Implement a +atExit method to be run when the process ends and,
@@ -241,36 +241,30 @@ extern "C" {
  */
 + (BOOL) isExiting;
 
-/** This method informs the system that anObject should be retained to
- * persist until the process exits.  If clean-up is enabled the object
- * should be released upon process exit.
- * If this method is called while the process is already existing it
- * returns nil, otherwise it returnes the retained argument.
- * Raises an exception if anObject has already been leaked or if it is
- * nil (unless the process is exiting).
+/** This method stored anObject at anAddress (retaining it) and notes
+ * that the object should persist until the process exits.  If clean-up
+ * is enabled the object should be released (and the address content
+ * zeroed out) upon process exit.
+ * If this method is called while the process is already exiting it
+ * simply zeros out the memory location then returns nil, otherwise
+ * it returns the object stored at the memory location.
+ * Raises an exception if anObject is nil or anAddress is NULL (unless 
+ * the process is already exiting).
+ */
++ (id) leak: (id)anObject at: (id*)anAddress;
+
+/** DEPRECATED ... use +leak: at: instead.
  */
 + (id) NS_RETURNS_RETAINED leak: (id)anObject;
 
-/** This method informs the system that the object at anAddress has been
- * retained to persist until the process exits.  If clean-up is enabled
- * the object should be released (and the address content zeroed out)
- * upon process exit.
- * If this method is called while the process is already existing it releases
- * the object and zeros out the memory location then returns nil, otherwise
- * it returns the object found at the memory location.
- * Raises an exception if anAddress (or the object at anAddress) has already
- * been leaked or if it is nil (unless the process is exiting).
- */
-+ (void) leaked: (id*)anAddress;
-
-/** DEPRECATED ... use +leaked: instead.
+/** DEPRECATED ... use +leak: at: instead.
  */
 + (id) NS_RETURNS_RETAINED leakAt: (id*)anAddress;
 
 /** Sets the receiver to have its +atExit method called at the point when
  * the process terminates.<br />
  * Returns YES on success and NO on failure (if the class does not implement
- * the method or if it is already registered to call it).<br />
+ * +atExit or if it is already registered to call it).<br />
  * Implemented as a call to +registerAtExit: with the selector for the +atExit
  * method as its argument.
  */
@@ -279,7 +273,7 @@ extern "C" {
 /** Sets the receiver to have the specified  method called at the point when
  * the process terminates.<br />
  * Returns YES on success and NO on failure (if the class does not implement
- * the method ir if it is already registered to call it).
+ * the method or if it is already registered to call a method at exit).
  */
 + (BOOL) registerAtExit: (SEL)aSelector;
 

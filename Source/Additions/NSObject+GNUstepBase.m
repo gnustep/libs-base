@@ -180,6 +180,10 @@ handleExit()
   BOOL  unknownThread;
 
   isExiting = YES;
+  /* We turn off zombies during exiting so that we don't leak deallocated
+   * objects during cleanup.
+   */
+//  NSZombieEnabled = NO;
   unknownThread = GSRegisterCurrentThread();
   ENTER_POOL
 
@@ -193,6 +197,7 @@ handleExit()
 	  Method	method;
 	  IMP		msg;
 
+fprintf(stderr, "*** +[%s %s]\n", class_getName(tmp->obj), sel_getName(tmp->sel));
 	  method = class_getClassMethod(tmp->obj, tmp->sel);
 	  msg = method_getImplementation(method);
 	  if (0 != msg)
@@ -200,13 +205,18 @@ handleExit()
 	      (*msg)(tmp->obj, tmp->sel);
 	    }
 	}
-      else if (YES == shouldCleanUp)
+      else if (shouldCleanUp)
 	{
 	  if (tmp->at)
 	    {
-	      tmp->obj = *(tmp->at);
+	      if (tmp->obj != *(tmp->at))
+		{
+fprintf(stderr, "*** leaked value %p at %p changed to %p\n", tmp->obj, (const void*)tmp->at, *(tmp->at));
+	          tmp->obj = *(tmp->at);
+		}
 	      *(tmp->at) = nil;
 	    }
+fprintf(stderr, "*** -[%s release] %p %p\n", class_getName(object_getClass(tmp->obj)), tmp->obj, (const void*)tmp->at);
 	  [tmp->obj release];
 	}
       free(tmp);
@@ -227,35 +237,22 @@ handleExit()
   return isExiting;
 }
 
-+ (id) leakAt: (id*)anAddress
-{
-  struct exitLink       *l;
-
-  l = (struct exitLink*)malloc(sizeof(struct exitLink));
-  l->at = anAddress;
-  l->obj = [*anAddress retain];
-  l->sel = 0;
-  setup();
-  [exitLock lock];
-  l->next = exited;
-  exited = l;
-  [exitLock unlock];
-  return l->obj;
-}
-
-+ (void) leaked: (id*)anAddress
++ (id) leak: (id)anObject at: (id*)anAddress
 {
   struct exitLink	*l;
 
-  NSAssert(anAddress != NULL, NSInvalidArgumentException);
   if (isExiting)
     {
-      [*anAddress release];
-      *anAddress = nil;
+      if (anAddress)
+	{
+          [*anAddress release];
+          *anAddress = nil;
+	}
       return nil;
     }
-  NSAssert([*anAddress isKindOfClass: [NSObject class]],
+  NSAssert([anObject isKindOfClass: [NSObject class]],
     NSInvalidArgumentException);
+  NSAssert(anAddress != NULL, NSInvalidArgumentException);
   setup();
   [exitLock lock];
   for (l = exited; l != NULL; l = l->next)
@@ -266,17 +263,34 @@ handleExit()
 	  [NSException raise: NSInvalidArgumentException
 		      format: @"Repeated use of leak address %p", anAddress];
 	}
-      if (*anAddress != nil && *anAddress == l->obj)
+      if (anObject != nil && anObject == l->obj)
 	{
 	  [exitLock unlock];
 	  [NSException raise: NSInvalidArgumentException
-		      format: @"Repeated use of leak object %p", *anAddress];
+		      format: @"Repeated use of leak object %p", anObject];
 	}
     }
+  ASSIGN(*anAddress, anObject);
   l = (struct exitLink*)malloc(sizeof(struct exitLink));
   l->at = anAddress;
-  l->obj = *anAddress;
+  l->obj = anObject;
   l->sel = 0;
+  l->next = exited;
+  exited = l;
+  [exitLock unlock];
+  return l->obj;
+}
+
++ (id) leakAt: (id*)anAddress
+{
+  struct exitLink       *l;
+
+  l = (struct exitLink*)malloc(sizeof(struct exitLink));
+  l->at = anAddress;
+  l->obj = [*anAddress retain];
+  l->sel = 0;
+  setup();
+  [exitLock lock];
   l->next = exited;
   exited = l;
   [exitLock unlock];
@@ -344,10 +358,16 @@ handleExit()
   [exitLock lock];
   for (l = exited; l != 0; l = l->next)
     {
-      if (l->obj == self && sel_isEqual(l->sel, sel))
+      if (l->obj == self)
 	{
-	  [exitLock unlock];
-	  return NO;	// Already registered
+	  if (sel_isEqual(l->sel, sel))
+	    {
+	      fprintf(stderr,
+		"*** +[%s registerAtExit: %s] already registered for %s.\n",
+		class_getName(self), sel_getName(sel), sel_getName(l->sel));
+	      [exitLock unlock];
+	      return NO;	// Already registered
+	    }
 	}
     }
   l = (struct exitLink*)malloc(sizeof(struct exitLink));
@@ -501,6 +521,12 @@ handleExit()
 /* Dummy implementation
  */
 @implementation NSObject(GSCleanup)
+
++ (id) leak: (id)anObject at: (id*)anAddress
+{
+  ASSIGN(*anAddress, anObject);
+  return *anAddress;
+}
 
 + (id) leakAt: (id*)anAddress
 {
