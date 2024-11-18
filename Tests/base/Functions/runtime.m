@@ -94,6 +94,8 @@ main(int argc, char *argv[])
   const char    *t0;
   const char    *t1;
   const char    *n;
+  unsigned	u;
+  int		i;
 
   t0 = "1@1:@";
   t1 = NSGetSizeAndAlignment(t0, &s, &a);
@@ -150,6 +152,55 @@ main(int argc, char *argv[])
   PASS(ivar != 0, "class_getInstanceVariable() works for superclass ivar");
   ivar = class_getInstanceVariable(cls, "ivar1obj");
   PASS(ivar != 0, "class_getInstanceVariable() works for superclass obj ivar");
+
+
+  i = objc_getClassList(NULL, 0);
+  PASS(i > 2, "class list contains a reasonable number of classes");
+  if (i > 2)
+    {
+      int	classCount = i;
+      Class	buf[classCount];
+      BOOL	foundClass = NO;
+      BOOL	foundSubClass = NO;
+
+      i = objc_getClassList(buf, classCount);
+      PASS(i == classCount, "retrieved all classes")
+      for (i = 0; i < classCount; i++)
+	{
+	  n = class_getName(buf[i]);
+	  if (n)
+	    {
+	      if (strcmp(n, "Class1") == 0)
+		{
+		  foundClass = YES;
+		}
+	      else if (strcmp(n, "SubClass1") == 0)
+		{
+		  foundSubClass = YES;
+		}
+	    }
+	}
+      PASS(foundClass && foundSubClass, "found classes in list")
+    }
+
+  u = 0;
+  protocols = objc_copyProtocolList(&u);
+  PASS(protocols && u, "we copied some protocols")
+  if (protocols)
+    {
+      BOOL	found = NO;
+
+      for (i = 0; i < u; i++)
+	{
+	  n = protocol_getName(protocols[i]);
+	  if (strcmp(n, "SubProto") == 0)
+	    {
+	      found = YES;
+	    }
+	}
+      free(protocols);
+      PASS(found, "we found our protocol in list")
+    }
 
   methods = class_copyMethodList(cls, &count);
   PASS(count == 3, "SubClass1 has three methods");
