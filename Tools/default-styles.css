@@ -95,6 +95,7 @@ g.figure_class polygon {
 }
 g.figure_class text {
     fill: darkblue;
+    font-family: Times, Times New Roman, Serif;
 }
 
 g.figure_super polygon {
@@ -103,6 +104,7 @@ g.figure_super polygon {
 }
 g.figure_super text {
     fill: purple;
+    font-family: Times, Times New Roman, Serif;
 }
 
 g.figure_root polygon {
@@ -111,6 +113,7 @@ g.figure_root polygon {
 }
 g.figure_root text {
     fill: green;
+    font-family: Times, Times New Roman, Serif;
 }
 
 g.figure_protocol polygon {
@@ -120,5 +123,6 @@ g.figure_protocol polygon {
 g.figure_protocol text {
     fill: black;
     font-style: italic;
+    font-family: Times, Times New Roman, Serif;
 }
 
