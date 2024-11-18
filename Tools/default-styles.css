@@ -88,3 +88,37 @@ p {
 .desc {
     font-family: Serif;
 }
+
+g.figure_class polygon {
+    fill: lightgrey;
+    stroke: black;
+}
+g.figure_class text {
+    fill: darkblue;
+}
+
+g.figure_super polygon {
+    fill: lightgrey;
+    stroke: black;
+}
+g.figure_super text {
+    fill: purple;
+}
+
+g.figure_root polygon {
+    fill: lightgrey;
+    stroke: black;
+}
+g.figure_root text {
+    fill: green;
+}
+
+g.figure_protocol polygon {
+    fill: lightgrey;
+    stroke: black;
+}
+g.figure_protocol text {
+    fill: black;
+    font-style: italic;
+}
+
