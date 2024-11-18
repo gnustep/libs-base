@@ -244,6 +244,7 @@
 - (void) dealloc {
   [_lock release];
   [_changedKeypaths release];
+  DEALLOC
 }
 @end
 
