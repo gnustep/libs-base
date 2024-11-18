@@ -221,18 +221,7 @@ NSGeometry:
 	<Foundation/NSValue.h>
 	<Foundation/NSCoder.h>
 
-	incompatible NSRectEdge
-	NSAlignmentOptions
-
 	@class NSString
-
-	NSRectFromCGRect()
-	NSRectToCGRect()
-	NSPointFromCGPoint()
-	NSPointToCGPoint()
-	NSSizeFromCGSize()
-	NSSizeToCGSize()
-	NSIntegralRectWithOptions()
 
 	@interface NSValue (NSValueGeometryExtensions)
 	@interface NSCoder (NSGeometryCoding)

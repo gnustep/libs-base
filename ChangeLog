@@ -1,3 +1,12 @@
+2024-11-18 Matvii Jarosh <matviijarosh@gmail.com>
+
+	* Source/NSGeometry.m: added NSIntegralRectWithOptions function.
+	* Header/Foundation/NSGeometry.h: Fixed incompatible NSRectEdge,
+	added enum NSAlignmentOptions, added NSRectFromCGRect,
+	NSRectToCGRect, NSPointFromCGPoint, NSPointToCGPoint,
+	NSSizeFromCGSize and NSSizeToCGSizea functions.
+	* MISSING:
+
 2024-11-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: Restructure a bit to expose resource lookup

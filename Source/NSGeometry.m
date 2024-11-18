@@ -100,6 +100,50 @@ NSIntegralRect(NSRect aRect)
   return rect;
 }
 
+NSRect
+NSIntegralRectWithOptions(NSRect aRect, NSAlignmentOptions options)
+{
+  NSRect rect;
+  CGFloat maxX, maxY;
+
+  if (NSIsEmptyRect(aRect))
+    return NSMakeRect(0, 0, 0, 0);
+
+  if (options & NSAlignMinXInward)
+    rect.origin.x = ceil(NSMinX(aRect));
+  else if (options & NSAlignMinXOutward)
+    rect.origin.x = floor(NSMinX(aRect));
+  else
+    rect.origin.x = round(NSMinX(aRect));
+
+  if (options & NSAlignMinYInward)
+    rect.origin.y = ceil(NSMinY(aRect));
+  else if (options & NSAlignMinYOutward)
+    rect.origin.y = floor(NSMinY(aRect));
+  else
+    rect.origin.y = round(NSMinY(aRect));
+
+  if (options & NSAlignMaxXInward)
+    maxX = floor(NSMaxX(aRect));
+  else if (options & NSAlignMaxXOutward)
+    maxX = ceil(NSMaxX(aRect));
+  else
+    maxX = round(NSMaxX(aRect));
+
+  if (options & NSAlignMaxYInward)
+    maxY = floor(NSMaxY(aRect));
+  else if (options & NSAlignMaxYOutward)
+    maxY = ceil(NSMaxY(aRect));
+  else
+    maxY = round(NSMaxY(aRect));
+
+  rect.size.width = maxX - rect.origin.x;
+  rect.size.height = maxY - rect.origin.y;
+
+  return rect;
+}
+
+
 void 	
 NSDivideRect(NSRect aRect,
              NSRect *slice,
@@ -508,4 +552,3 @@ NSEdgeInsetsEqual(NSEdgeInsets e1, NSEdgeInsets e2)
     && almostEqual(e1.right, e2.right)
   );
 }
-
