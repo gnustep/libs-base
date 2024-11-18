@@ -748,6 +748,7 @@ static int		uninitialisedOffset = 100000;
       z = self;
       NSMapInsert(absolutes, (void*)(uintptr_t)anOffset, (void*)z);
       [zoneDictionary setObject: self forKey: (NSString*)name];
+      RELEASE(self);
     }
   if (anOffset % 900 == 0)
     {
@@ -755,7 +756,7 @@ static int		uninitialisedOffset = 100000;
 
       if (nil == commonAbsolutes[index])
         {
-          commonAbsolutes[index] = RETAIN(self);
+          commonAbsolutes[index] = RETAIN(z);
         }
     }
   GS_MUTEX_UNLOCK(zone_mutex);
