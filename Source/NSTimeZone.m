@@ -225,6 +225,7 @@ static NSString *tzdir = nil;
 static GSPlaceholderTimeZone	*defaultPlaceholderTimeZone;
 static NSMapTable		*placeholderMap;
 static GSAbsTimeZone            *commonAbsolutes[145] = { 0 };
+static NSMapTable		*absolutes = 0;
 
 /*
  * Temporary structure for holding time zone details.
@@ -638,19 +639,6 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 @implementation GSAbsTimeZone
 
 static int		uninitialisedOffset = 100000;
-static NSMapTable	*absolutes = 0;
-
-+ (void) initialize
-{
-  static BOOL	beenHere = NO;
-
-  if (NO == beenHere && self == [GSAbsTimeZone class])
-    {
-      beenHere = YES;
-      absolutes = NSCreateMapTable(NSIntegerMapKeyCallBacks,
-	NSNonOwnedPointerMapValueCallBacks, 0);
-    }
-}
 
 - (NSString*) abbreviationForDate: (NSDate*)aDate
 {
@@ -1353,13 +1341,17 @@ static NSMapTable	*absolutes = 0;
       GSPlaceholderTimeZoneClass = [GSPlaceholderTimeZone class];
       zoneDictionary = [[NSMutableDictionary alloc] init];
 
-      /*
-       * Set up infrastructure for placeholder timezones.
+      /* Set up infrastructure for placeholder timezones.
        */
       defaultPlaceholderTimeZone = (GSPlaceholderTimeZone*)
 	NSAllocateObject(GSPlaceholderTimeZoneClass, 0, NSDefaultMallocZone());
       placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
+
+      /* Hash table lookup for absolute time zones.
+       */
+      absolutes = NSCreateMapTable(NSIntegerMapKeyCallBacks,
+	NSNonOwnedPointerMapValueCallBacks, 0);
 
       localTimeZone = [[NSLocalTimeZone alloc] init];
 
