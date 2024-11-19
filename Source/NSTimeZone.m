@@ -317,7 +317,6 @@ static NSString *_time_zone_path(NSString *subpath, NSString *type)
 {
 @public
   NSString	*name;
-  id		detail;
   int		offset; // Offset from UTC in seconds.
 }
 
@@ -654,7 +653,6 @@ static int		uninitialisedOffset = 100000;
       GS_MUTEX_UNLOCK(zone_mutex);
     }
   RELEASE(name);
-  RELEASE(detail);
   DEALLOC;
 }
 
@@ -696,60 +694,53 @@ static int		uninitialisedOffset = 100000;
     }
   anOffset *= sign;
 
+  GS_MUTEX_LOCK(zone_mutex);
   if (anOffset % 900 == 0)
     {
       z = commonAbsolutes[anOffset/900 + 72];
-      if (z != nil)
-        {
-          IF_NO_ARC(RETAIN(z);)
-          DESTROY(self);
-          return z;
-        }
-    }
-
-  GS_MUTEX_LOCK(zone_mutex);
-  z = (GSAbsTimeZone*)NSMapGet(absolutes, (void*)(uintptr_t)anOffset);
-  if (z != nil)
-    {
-      IF_NO_ARC(RETAIN(z);)
-      DESTROY(self);
     }
   else
     {
-      if (aName == nil)
+      z = (GSAbsTimeZone*)NSMapGet(absolutes, (void*)(uintptr_t)anOffset);
+    }
+  if (z)
+    {
+      IF_NO_ARC(RETAIN(z);)
+      DESTROY(self);
+      return z;
+    }
+  if (aName == nil)
+    {
+      if (anOffset % 60 == 0)
 	{
-	  if (anOffset % 60 == 0)
-	    {
-	      char	s = (anOffset >= 0) ? '+' : '-';
-	      unsigned	i = (anOffset >= 0) ? anOffset / 60 : -anOffset / 60;
-	      unsigned	h = (i / 60) % 24;
-	      unsigned	m = i % 60;
-	      char	buf[9];
+	  char	s = (anOffset >= 0) ? '+' : '-';
+	  unsigned	i = (anOffset >= 0) ? anOffset / 60 : -anOffset / 60;
+	  unsigned	h = (i / 60) % 24;
+	  unsigned	m = i % 60;
+	  char	buf[9];
 
-	      snprintf(buf, sizeof(buf), "GMT%c%02u%02u", s, h, m);
-	      name = [[NSString alloc] initWithUTF8String: buf];
-	    }
-	  else
-	    {
-	      /*
-	       * Should never happen now we round to the minute
-	       * for MacOS-X compatibnility.
-	       */
-	      name = [[NSString alloc]
-		initWithFormat: @"NSAbsoluteTimeZone:%"PRIdPTR, anOffset];
-	    }
+	  snprintf(buf, sizeof(buf), "GMT%c%02u%02u", s, h, m);
+	  name = [[NSString alloc] initWithUTF8String: buf];
 	}
       else
 	{
-	  name = [aName copy];
+	  /*
+	   * Should never happen now we round to the minute
+	   * for MacOS-X compatibnility.
+	   */
+	  name = [[NSString alloc]
+	    initWithFormat: @"NSAbsoluteTimeZone:%"PRIdPTR, anOffset];
 	}
-      detail = [[GSAbsTimeZoneDetail alloc] initWithTimeZone: self];
-      offset = anOffset;
-      z = self;
-      NSMapInsert(absolutes, (void*)(uintptr_t)anOffset, (void*)z);
-      [zoneDictionary setObject: self forKey: (NSString*)name];
-      RELEASE(self);
     }
+  else
+    {
+      name = [aName copy];
+    }
+  z = self;
+  offset = anOffset;
+  NSMapInsert(absolutes, (void*)(uintptr_t)anOffset, (void*)z);
+  [zoneDictionary setObject: z forKey: name];
+
   if (anOffset % 900 == 0)
     {
       int       index = anOffset/900 + 72;
@@ -780,12 +771,12 @@ static int		uninitialisedOffset = 100000;
 
 - (NSArray*) timeZoneDetailArray
 {
-  return [NSArray arrayWithObject: detail];
+  return [NSArray arrayWithObject: [self timeZoneDetailForDate: nil]];
 }
 
 - (NSTimeZoneDetail*) timeZoneDetailForDate: (NSDate*)date
 {
-  return detail;
+  return AUTORELEASE([[GSAbsTimeZoneDetail alloc] initWithTimeZone: self]);
 }
 
 - (NSString*) timeZoneName
