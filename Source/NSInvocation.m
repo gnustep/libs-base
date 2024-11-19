@@ -31,6 +31,7 @@
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSInvocation.h"
+#import "Foundation/NSPointerArray.h"
 #import "Foundation/NSZone.h"
 #import "GSInvocation.h"
 #import "GSPrivate.h"
