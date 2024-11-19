@@ -223,7 +223,7 @@ GSDomainFromDefaultLocale(void)
    */
   if (saved == nil)
     {
-      [NSObject leak: AUTORELEASE([dict copy]) at: &saved];
+      [NSObject keep: AUTORELEASE([dict copy]) at: &saved];
     }
 
   /**

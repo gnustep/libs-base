@@ -197,7 +197,11 @@ handleExit()
 	  Method	method;
 	  IMP		msg;
 
-fprintf(stderr, "*** +[%s %s]\n", class_getName(tmp->obj), sel_getName(tmp->sel));
+	  if (shouldCleanUp)
+	    {
+	      fprintf(stderr, "*** clean-up +[%s %s]\n",
+		class_getName(tmp->obj), sel_getName(tmp->sel));
+	    }
 	  method = class_getClassMethod(tmp->obj, tmp->sel);
 	  msg = method_getImplementation(method);
 	  if (0 != msg)
@@ -211,12 +215,16 @@ fprintf(stderr, "*** +[%s %s]\n", class_getName(tmp->obj), sel_getName(tmp->sel)
 	    {
 	      if (tmp->obj != *(tmp->at))
 		{
-fprintf(stderr, "*** leaked value %p at %p changed to %p\n", tmp->obj, (const void*)tmp->at, *(tmp->at));
+		  fprintf(stderr,
+		    "*** clean-up kept value %p at %p changed to %p\n",
+		    tmp->obj, (const void*)tmp->at, *(tmp->at));
 	          tmp->obj = *(tmp->at);
 		}
 	      *(tmp->at) = nil;
 	    }
-fprintf(stderr, "*** -[%s release] %p %p\n", class_getName(object_getClass(tmp->obj)), tmp->obj, (const void*)tmp->at);
+	  fprintf(stderr, "*** clean-up -[%s release] %p %p\n",
+	    class_getName(object_getClass(tmp->obj)),
+	    tmp->obj, (const void*)tmp->at);
 	  [tmp->obj release];
 	}
       free(tmp);
@@ -237,7 +245,7 @@ fprintf(stderr, "*** -[%s release] %p %p\n", class_getName(object_getClass(tmp->
   return isExiting;
 }
 
-+ (id) leak: (id)anObject at: (id*)anAddress
++ (id) keep: (id)anObject at: (id*)anAddress
 {
   struct exitLink	*l;
 
@@ -253,6 +261,7 @@ fprintf(stderr, "*** -[%s release] %p %p\n", class_getName(object_getClass(tmp->
   NSAssert([anObject isKindOfClass: [NSObject class]],
     NSInvalidArgumentException);
   NSAssert(anAddress != NULL, NSInvalidArgumentException);
+  NSAssert(*anAddress == nil, NSInvalidArgumentException);
   setup();
   [exitLock lock];
   for (l = exited; l != NULL; l = l->next)
@@ -520,9 +529,9 @@ fprintf(stderr, "*** -[%s release] %p %p\n", class_getName(object_getClass(tmp->
 
 /* Dummy implementation
  */
-@implementation NSObject(GSCleanup)
+@implementation NSObject(GSCleanUp)
 
-+ (id) leak: (id)anObject at: (id*)anAddress
++ (id) keep: (id)anObject at: (id*)anAddress
 {
   ASSIGN(*anAddress, anObject);
   return *anAddress;
