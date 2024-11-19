@@ -1312,11 +1312,16 @@ main(int argc, char **argv, char **env)
 	  [wm setObject: @"" forKey: @"GS_UNUSED_IVAR"];
 	  [wm setObject: @"" forKey: @"GS_ZONE_ATTR"];
 	  [wm setObject: @"extern" forKey: @"GS_ZONE_SCOPE"];
+	  [wm setObject: @"" forKey: @"NS_ASSUME_NONNULL_BEGIN"];
+	  [wm setObject: @"" forKey: @"NS_ASSUME_NONNULL_END"];
 	  [wm setObject: @"" forKey: @"NS_AUTOMATED_REFCOUNT_UNAVAILABLE"];
 	  [wm setObject: @"" forKey: @"NS_CONSUMED"];
 	  [wm setObject: @"" forKey: @"NS_CONSUMES_SELF"];
 	  [wm setObject: @"" forKey: @"NS_RETURNS_NOT_RETAINED"];
 	  [wm setObject: @"" forKey: @"NS_RETURNS_RETAINED"];
+	  [wm setObject: @"" forKey: @"_Nonnull"];
+	  [wm setObject: @"" forKey: @"_Null_unspecified"];
+	  [wm setObject: @"" forKey: @"_Nullable"];
 	  [wm setObject: @"" forKey: @"__strong"];
 	  [wm setObject: @"" forKey: @"__weak"];
 	  [wm setObject: @"" forKey: @"WEAK_ATTRIBUTE"];

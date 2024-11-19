@@ -1604,7 +1604,7 @@ recheck:
 	|| [s isEqualToString: @"NS_ENUM"]
 	|| [s isEqualToString: @"NS_OPTIONS"])
 	{
-	  BOOL      isEnum = NO;
+	  BOOL		isEnum = NO;
 	  NSString	*tmp = s;
 
 	  if ([s isEqualToString: @"NS_ENUM"]
@@ -1615,20 +1615,28 @@ recheck:
 		  pos++;
 		  [self parseSpace];
 		  s = [self parseIdentifier];
-		  if (nil != s && [self parseSpace] < length
-		    && buffer[pos] == ',')
+		  if (s)
 		    {
-		      tmp = [tmp stringByAppendingFormat: @"(%@)", s];
-		      pos++;
-		      [self parseSpace];
-		      s = [self parseIdentifier];
-		      if (nil != s && [self parseSpace] < length
-			&& buffer[pos] == ')')
+		      tmp = [tmp stringByAppendingFormat: @"(%@", s];
+		      while ([self parseSpace] < length
+			&& (s = [self parseIdentifier]) != nil)
 			{
-			  isEnum = YES;
+		          tmp = [tmp stringByAppendingFormat: @" %@", s];
+			}
+		      if (pos < length && buffer[pos] == ',')
+			{
+			  tmp = [tmp stringByAppendingString: @")"];
 			  pos++;
-			  baseName = s;
-			  s = tmp;
+			  [self parseSpace];
+			  s = [self parseIdentifier];
+			  if (nil != s && [self parseSpace] < length
+			    && buffer[pos] == ')')
+			    {
+			      isEnum = YES;
+			      pos++;
+			      baseName = s;
+			      s = tmp;
+			    }
 			}
 		    }
 		}
