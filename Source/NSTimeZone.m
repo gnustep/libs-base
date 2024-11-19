@@ -707,6 +707,7 @@ static int		uninitialisedOffset = 100000;
     {
       IF_NO_ARC(RETAIN(z);)
       DESTROY(self);
+      GS_MUTEX_UNLOCK(zone_mutex);
       return z;
     }
   if (aName == nil)
