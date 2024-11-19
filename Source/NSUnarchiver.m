@@ -488,6 +488,7 @@ static unsigned	encodingVersion;
 {
   if (anObject == nil)
     {
+      RELEASE(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"nil data passed to initForReadingWithData:"];
     }

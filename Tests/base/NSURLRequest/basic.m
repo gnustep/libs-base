@@ -13,7 +13,7 @@ int main()
   httpURL = [NSURL URLWithString: @"http://www.gnustep.org"];
   foobarURL = [NSURL URLWithString: @"foobar://localhost/madeupscheme"];
 
-  TEST_FOR_CLASS(@"NSURLRequest", [NSURLRequest alloc],
+  TEST_FOR_CLASS(@"NSURLRequest", AUTORELEASE([NSURLRequest alloc]),
     "NSURLRequest +alloc returns an NSURLRequest");
 
   request = [NSURLRequest requestWithURL: httpURL];
@@ -28,7 +28,7 @@ int main()
   PASS(request != nil,
     "NSURLRequest +requestWithURL returns a request from an invalid URL (unknown scheme)");
   
-  mutable = [request mutableCopy];
+  mutable = AUTORELEASE([request mutableCopy]);
   PASS(mutable != nil && [mutable isKindOfClass:[NSMutableURLRequest class]],
     "NSURLRequest -mutableCopy returns a mutable request");
   [mutable setHTTPMethod: @"POST"];
@@ -53,9 +53,8 @@ int main()
   [mutable setValue: nil forHTTPHeaderField: @"gnustep"];
   expected = [NSDictionary dictionaryWithObjectsAndKeys:@"object", @"key", nil];
   PASS_EQUAL([mutable allHTTPHeaderFields], expected, "Remove header field");
-  [mutable release];
 
-  mutable = [NSMutableURLRequest new];
+  mutable = AUTORELEASE([NSMutableURLRequest new]);
   PASS(mutable != nil && [mutable isKindOfClass:[NSMutableURLRequest class]],
     "NSURLRequest +new returns a mutable request");
 

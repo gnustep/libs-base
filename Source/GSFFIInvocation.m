@@ -295,8 +295,7 @@ exitedThread(void *slot)
   _sig = RETAIN(aSignature);
   _numArgs = [aSignature numberOfArguments];
   _info = [aSignature methodInfo];
-  _frame = cifframe_from_signature(_sig);
-  [_frame retain];
+  [self setupFrameFFI: _sig];
   _cframe = [_frame mutableBytes];
 
   /* Make sure we have somewhere to store the return value if needed.

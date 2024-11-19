@@ -10,10 +10,12 @@ int main()
   parser = [c new];
   test_alloc(@"GSSloppyXMLParser");
   test_NSObject(@"GSSloppyXMLParser", [NSArray arrayWithObject: parser]);
+  DESTROY(parser);
 
   parser = [NSXMLParser new];
   test_alloc(@"NSXMLParser");
   test_NSObject(@"NSXMLParser", [NSArray arrayWithObject: parser]);
+  DESTROY(parser);
 
   [arp release]; arp = nil;
 

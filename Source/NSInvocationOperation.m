@@ -121,6 +121,7 @@
 
 	  [_invocation getReturnValue: buffer];
 	  result = [NSValue valueWithBytes: buffer objCType: returnType];
+	  free(buffer);
 	}
     }
   return result;

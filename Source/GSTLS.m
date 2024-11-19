@@ -188,8 +188,21 @@ static gnutls_anon_client_credentials_t anoncred;
  */
 @implementation GSTLSObject
 
+static NSLock                   *certificateListLock = nil;
+static NSMutableDictionary      *certificateListCache = nil;
+
+static NSLock                   *credentialsLock = nil;
+static NSMutableDictionary      *credentialsCache = nil;
+
 static NSLock                   *fileLock = nil;
 static NSMutableDictionary      *fileMap = nil;
+
+static NSLock                   *paramsLock = nil;
+static NSMutableDictionary      *paramsCache = nil;
+
+static NSLock                   *privateKeyLock = nil;
+static NSMutableDictionary      *privateKeyCache0 = nil;
+static NSMutableDictionary      *privateKeyCache1 = nil;
 
 + (void) _defaultsChanged: (NSNotification*)n
 {
@@ -289,6 +302,21 @@ static NSMutableDictionary      *fileMap = nil;
   gnutls_global_set_log_level(globalDebug);
 }
 
++ (void) atExit
+{
+  DESTROY(certificateListLock);
+  DESTROY(certificateListCache);
+  DESTROY(credentialsLock);
+  DESTROY(credentialsCache);
+  DESTROY(fileLock);
+  DESTROY(fileMap);
+  DESTROY(paramsLock);
+  DESTROY(paramsCache);
+  DESTROY(privateKeyLock);
+  DESTROY(privateKeyCache0);
+  DESTROY(privateKeyCache1);
+}
+
 + (NSData*) dataForTLSFile: (NSString*)fileName
 {
   NSData        *result;
@@ -327,6 +355,8 @@ static NSMutableDictionary      *fileMap = nil;
       if (beenHere == NO)
         {
           beenHere = YES;
+
+	  [self registerAtExit];
 
           fileLock = [NSLock new];
           fileMap = [NSMutableDictionary new];
@@ -397,8 +427,6 @@ static NSMutableDictionary      *fileMap = nil;
 @end
 
 @implementation GSTLSDHParams
-static NSLock                   *paramsLock = nil;
-static NSMutableDictionary      *paramsCache = nil;
 static NSTimeInterval           paramsWhen = 0.0;
 static BOOL                     paramsGenerating = NO;
 static GSTLSDHParams            *paramsCurrent = nil;
@@ -496,10 +524,8 @@ static GSTLSDHParams            *paramsCurrent = nil;
   if (nil == paramsLock)
     {
       paramsLock = [NSLock new];
-      [[NSObject leakAt: &paramsLock] release];
       paramsWhen = [NSDate timeIntervalSinceReferenceDate];
       paramsCache = [NSMutableDictionary new];
-      [[NSObject leakAt: &paramsCache] release];
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
 	name: @"GSHousekeeping" object: nil];
@@ -570,8 +596,6 @@ static GSTLSDHParams            *paramsCurrent = nil;
 
 @implementation GSTLSCertificateList
 
-static NSLock                   *certificateListLock = nil;
-static NSMutableDictionary      *certificateListCache = nil;
 
 + (void) certInfo: (gnutls_x509_crt_t)cert to: (NSMutableString*)str
 {
@@ -700,9 +724,7 @@ static NSMutableDictionary      *certificateListCache = nil;
   if (nil == certificateListLock)
     {
       certificateListLock = [NSLock new];
-      [[NSObject leakAt: &certificateListLock] release];
       certificateListCache = [NSMutableDictionary new];
-      [[NSObject leakAt: &certificateListCache] release];
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
 	name: @"GSHousekeeping" object: nil];
@@ -884,9 +906,6 @@ static NSMutableDictionary      *certificateListCache = nil;
 
 @implementation GSTLSPrivateKey
 
-static NSLock                   *privateKeyLock = nil;
-static NSMutableDictionary      *privateKeyCache0 = nil;
-static NSMutableDictionary      *privateKeyCache1 = nil;
 
 /* Method to purge older keys from cache.
  */
@@ -940,11 +959,8 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
   if (nil == privateKeyLock)
     {
       privateKeyLock = [NSLock new];
-      [[NSObject leakAt: &privateKeyLock] release];
       privateKeyCache0 = [NSMutableDictionary new];
-      [[NSObject leakAt: &privateKeyCache0] release];
       privateKeyCache1 = [NSMutableDictionary new];
-      [[NSObject leakAt: &privateKeyCache1] release];
 
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)
@@ -1074,8 +1090,6 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
 
 @implementation GSTLSCredentials
 
-static NSLock                   *credentialsLock = nil;
-static NSMutableDictionary      *credentialsCache = nil;
 
 /* Method to purge older credentials from cache.
  */
@@ -1106,9 +1120,7 @@ static NSMutableDictionary      *credentialsCache = nil;
   if (nil == credentialsLock)
     {
       credentialsLock = [NSLock new];
-      [[NSObject leakAt: &credentialsLock] release];
       credentialsCache = [NSMutableDictionary new];
-      [[NSObject leakAt: &credentialsCache] release];
 
       [[NSNotificationCenter defaultCenter] addObserver: self
 	selector: @selector(housekeeping:)

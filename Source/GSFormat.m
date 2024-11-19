@@ -1770,7 +1770,7 @@ NSDictionary *locale)
 
 	    if (-1 == prec)
               {
-                len = strlen(str);	// Number of bytes to convert.
+                len = strlen(str);      // Number of bytes to convert.
                 blen = len;		// Size of unichar output buffer.
               }
 	    else

@@ -18,7 +18,7 @@ int main()
   NSArray		*a2;
   NSArray		*a3;
 
-  s1 = [[NSSortDescriptor alloc] initWithKey: @"name" ascending: YES];
+  s1 = [NSSortDescriptor sortDescriptorWithKey: @"name" ascending: YES];
   PASS(s1 != nil, "can create a sort descriptor");
    
   array = [NSArray arrayWithObject: s1];
@@ -27,9 +27,9 @@ int main()
   test_keyed_NSCoding(array);
   test_NSCopying(@"NSSortDescriptor", @"NSSortDescriptor", array, NO, NO);
 
-  s2 = [[NSSortDescriptor alloc] initWithKey: @"name" ascending: YES];
-  s3 = [[NSSortDescriptor alloc] initWithKey: @"other" ascending: YES];
-  s4 = [[NSSortDescriptor alloc] initWithKey: @"other" ascending: NO];
+  s2 = [NSSortDescriptor sortDescriptorWithKey: @"name" ascending: YES];
+  s3 = [NSSortDescriptor sortDescriptorWithKey: @"other" ascending: YES];
+  s4 = [NSSortDescriptor sortDescriptorWithKey: @"other" ascending: NO];
   PASS([s1 hash] == [s2 hash], "hash for similar descriptors is the same");
   PASS([s1 isEqual: s2], "similar descriptors are equal");
   PASS(![s1 isEqual: s3], "different keyed descriptors are not equal");

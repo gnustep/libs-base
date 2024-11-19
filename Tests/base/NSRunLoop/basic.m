@@ -5,17 +5,17 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  id testObj;
+  ENTER_POOL
+  id	testObj;
   
   PASS([NSRunLoop new] == nil, "run loop initialises to nil");
   testObj = [NSRunLoop currentRunLoop];
-  test_NSObject(@"NSRunLoop", [NSArray arrayWithObject:testObj]);
+  test_NSObject(@"NSRunLoop", [NSArray arrayWithObject: testObj]);
 
-  PASS([NSTimer new] == nil, "timer initialises to nil");
-  ASSIGN(testObj, [[NSTimer alloc] initWithFireDate: 0 interval: 0 target: [NSObject class] selector: @selector(description) userInfo: nil repeats: NO]);
-  test_NSObject(@"NSTimer", [NSArray arrayWithObject:testObj]);
+  PASS(AUTORELEASE([NSTimer new]) == nil, "timer initialises to nil");
+  testObj = AUTORELEASE([[NSTimer alloc] initWithFireDate: 0 interval: 0 target: [NSObject class] selector: @selector(description) userInfo: nil repeats: NO]);
+  test_NSObject(@"NSTimer", [NSArray arrayWithObject: testObj]);
   
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

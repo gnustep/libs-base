@@ -5,7 +5,8 @@
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  id testObj = [NSMutableCharacterSet new];
+  id testObj = AUTORELEASE([NSMutableCharacterSet new]);
+
   test_alloc(@"NSMutableCharacterSet");
   test_NSObject(@"NSMutableCharacterSet",[NSArray arrayWithObject:testObj]);
   test_NSCoding([NSArray arrayWithObject:testObj]);

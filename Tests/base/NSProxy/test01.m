@@ -188,7 +188,7 @@ main(int argc, char *argv[])
   NSRange	r0;
   NSRange	r1;
   
-  obj = [[MyProxy alloc] init];
+  obj = AUTORELEASE([[MyProxy alloc] init]);
   [obj setRemote:rem];
 
   [obj voidPvoid]; //shoudn't raise

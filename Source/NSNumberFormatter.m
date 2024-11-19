@@ -559,7 +559,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   RELEASE(_attributedStringForNil);
   RELEASE(_attributedStringForNotANumber);
   RELEASE(_attributedStringForZero);
-  if (internal != 0)
+  if (GS_EXISTS_INTERNAL)
     {
       int idx;
 

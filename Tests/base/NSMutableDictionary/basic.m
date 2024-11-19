@@ -7,7 +7,7 @@ int main()
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   NSMutableDictionary *testObj;
   
-  testObj = [NSMutableDictionary new];
+  testObj = [NSMutableDictionary dictionary];
   
   test_NSObject(@"NSMutableDictionary", [NSArray arrayWithObject:testObj]);
   

@@ -5,7 +5,7 @@
 int main()
 {
   NSAutoreleasePool	*arp = [NSAutoreleasePool new];
-  NSUserDefaults	*defs = [NSUserDefaults new];
+  NSUserDefaults	*defs = AUTORELEASE([NSUserDefaults new]);
 
   test_NSObject(@"NSUserDefaults", [NSArray arrayWithObject: defs]); 
 

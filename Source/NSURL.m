@@ -658,14 +658,17 @@ static NSUInteger	urlAlign;
 	       isDirectory: (BOOL)isDir
 	     relativeToURL: (NSURL *)baseURL
 {
-  NSFileManager *mgr = [NSFileManager defaultManager];
-  BOOL		 flag = NO;
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  BOOL		flag = NO;
 
   if (nil == aPath)
     {
+      NSString	*name = NSStringFromClass([self class]);
+
+      RELEASE(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@ %@] nil string parameter",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+	name, NSStringFromSelector(_cmd)];
     }
   if ([aPath isAbsolutePath] == NO)
     {
@@ -803,16 +806,22 @@ static NSUInteger	urlAlign;
     }
   if ([aUrlString isKindOfClass: [NSString class]] == NO)
     {
+      NSString	*name = NSStringFromClass([self class]);
+
+      RELEASE(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@ %@] bad string parameter",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+	name, NSStringFromSelector(_cmd)];
     }
   if (aBaseUrl != nil
     && [aBaseUrl isKindOfClass: [NSURL class]] == NO)
     {
+      NSString	*name = NSStringFromClass([self class]);
+      RELEASE(self);
+
       [NSException raise: NSInvalidArgumentException
 		  format: @"[%@ %@] bad base URL parameter",
-	NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+	name, NSStringFromSelector(_cmd)];
     }
   ASSIGNCOPY(_urlString, aUrlString);
   ASSIGN(_baseURL, [aBaseUrl absoluteURL]);
@@ -1270,7 +1279,7 @@ static NSUInteger	urlAlign;
     }
   DESTROY(_urlString);
   DESTROY(_baseURL);
-  [super dealloc];
+  DEALLOC
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -2207,10 +2216,13 @@ GS_PRIVATE_INTERNAL(NSURLQueryItem)
 
 - (void) dealloc
 {
-  RELEASE(internal->_name);
-  RELEASE(internal->_value);
-  GS_DESTROY_INTERNAL(NSURLQueryItem);
-  [super dealloc];
+  if (GS_EXISTS_INTERNAL)
+    {
+      RELEASE(internal->_name);
+      RELEASE(internal->_value);
+      GS_DESTROY_INTERNAL(NSURLQueryItem);
+    }
+  DEALLOC
 }
 
 // Reading a name and value from a query
@@ -2301,14 +2313,14 @@ static NSCharacterSet	*queryItemCharSet = nil;
 // Creating URL components...
 + (instancetype) componentsWithString: (NSString *)urlString
 {
-  return  AUTORELEASE([[NSURLComponents alloc] initWithString: urlString]);
+  return AUTORELEASE([[NSURLComponents alloc] initWithString: urlString]);
 }
 
 + (instancetype) componentsWithURL: (NSURL *)url 
            resolvingAgainstBaseURL: (BOOL)resolve
 {
-  return  AUTORELEASE([[NSURLComponents alloc] initWithURL: url
-                      resolvingAgainstBaseURL: resolve]);
+  return AUTORELEASE([[NSURLComponents alloc] initWithURL: url
+    resolvingAgainstBaseURL: resolve]);
 }
 
 - (instancetype) init
@@ -2342,6 +2354,7 @@ static NSCharacterSet	*queryItemCharSet = nil;
     }
   else
     {
+      RELEASE(self);
       return nil;
     }
 }
@@ -2365,17 +2378,20 @@ static NSCharacterSet	*queryItemCharSet = nil;
 
 - (void) dealloc
 {
-  RELEASE(internal->_string);
-  RELEASE(internal->_fragment);
-  RELEASE(internal->_host);
-  RELEASE(internal->_password);
-  RELEASE(internal->_path);
-  RELEASE(internal->_port);
-  RELEASE(internal->_queryItems);
-  RELEASE(internal->_scheme);
-  RELEASE(internal->_user);
-  GS_DESTROY_INTERNAL(NSURLComponents);
-  [super dealloc];
+  if (GS_EXISTS_INTERNAL)
+    {
+      RELEASE(internal->_string);
+      RELEASE(internal->_fragment);
+      RELEASE(internal->_host);
+      RELEASE(internal->_password);
+      RELEASE(internal->_path);
+      RELEASE(internal->_port);
+      RELEASE(internal->_queryItems);
+      RELEASE(internal->_scheme);
+      RELEASE(internal->_user);
+      GS_DESTROY_INTERNAL(NSURLComponents);
+    }
+  DEALLOC
 }
 
 - (id) copyWithZone: (NSZone *)zone

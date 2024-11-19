@@ -4,11 +4,11 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSArray *testObj = [NSTimeZone defaultTimeZone];
+  ENTER_POOL
+  NSTimeZone	*testObj = [NSTimeZone defaultTimeZone];
 
-  test_NSObject(@"NSTimeZone", [NSArray arrayWithObject:testObj]); 
+  test_NSObject(@"NSTimeZone", [NSArray arrayWithObject: testObj]); 
 
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

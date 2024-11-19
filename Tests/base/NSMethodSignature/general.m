@@ -198,7 +198,7 @@ typedef struct _MySmallStruct MySmallStruct;
 void
 test_compare_server_signature(void)
 {
-  id objct = [MyClass new];
+  id objct = AUTORELEASE([MyClass new]);
   id proxy = [NSConnection rootProxyForConnectionWithRegisteredName: SRV_NAME
 			   host: nil];
   if (proxy)

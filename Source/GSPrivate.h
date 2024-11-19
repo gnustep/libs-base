@@ -32,6 +32,7 @@
 @class	_GSMutableInsensitiveDictionary;
 
 @class	NSNotification;
+@class	NSPointerArray;
 @class	NSRecursiveLock;
 
 #if ( (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3) ) && HAVE_VISIBILITY_ATTRIBUTE )
@@ -555,17 +556,18 @@ GSPrivateUnloadModule(FILE *errorStream,
  */
 @interface      GSCodeBuffer : NSObject
 {
-  unsigned      size;
-  void          *buffer;
-  void		*executable;
-  id            frame;
+  unsigned      	size;
+  void          	*buffer;
+  void			*executable;
+  id            	frame;
+  NSPointerArray	*extra;
 }
 + (GSCodeBuffer*) memoryWithSize: (NSUInteger)_size;
 - (void*) buffer;
 - (void*) executable;
 - (id) initWithSize: (NSUInteger)_size;
 - (void) protect;
-- (void) setFrame: (id)aFrame;
+- (void) setFrame: (id)aFrame extra: (NSPointerArray*)pa;
 @end
 
 /* For tuning socket connections
