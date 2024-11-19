@@ -97,13 +97,13 @@ typedef NSRect *NSRectArray;
 typedef NSRect *NSRectPointer;
 #endif
 
-typedef enum
+typedef NS_ENUM(NSUInteger, NSRectEdge)
 {
   NSMinXEdge = 0,
   NSMinYEdge = 1,
   NSMaxXEdge = 2,
   NSMaxYEdge = 3
-} NSRectEdge;
+};
 /** Sides of a rectangle.
 <example>
 {
@@ -144,7 +144,7 @@ typedef enum
 </example>
  <p>NSAlignmentOptions</p>*/
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
-typedef enum
+typedef NS_ENUM(unsigned long long, NSAlignmentOptions)
 {
   NSAlignMinXInward = 1ULL << 0,
   NSAlignMinYInward = 1ULL << 1,
@@ -177,7 +177,7 @@ typedef enum
   | NSAlignMaxXNearest
   | NSAlignMinYNearest
   | NSAlignMaxYNearest
-} NSAlignmentOptions;
+};
 #endif
 
 /**

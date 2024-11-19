@@ -1,3 +1,8 @@
+2024-11-19 Matvii Jarosh <matviijarosh@gmail.com>
+
+	* Header/Foundation/NSGeometry.h: fixed NSRectEdge and
+	NSAlignmentOptions enums.
+
 2024-11-18 Matvii Jarosh <matviijarosh@gmail.com>
 
 	* Source/NSGeometry.m: added NSIntegralRectWithOptions function.
