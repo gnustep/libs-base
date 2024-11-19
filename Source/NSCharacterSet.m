@@ -720,13 +720,16 @@ static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
 
 + (void) atExit
 {
-  unsigned	i;
-
-  for (i = 0; i < MAX_STANDARD_SETS; i++)
+  if ([NSObject shouldCleanUp])
     {
-      GS_MUTEX_LOCK(cache_lock);
-      DESTROY(cache_set[i]);
-      GS_MUTEX_UNLOCK(cache_lock);
+      unsigned	i;
+
+      for (i = 0; i < MAX_STANDARD_SETS; i++)
+	{
+	  GS_MUTEX_LOCK(cache_lock);
+	  DESTROY(cache_set[i]);
+	  GS_MUTEX_UNLOCK(cache_lock);
+	}
     }
 }
 

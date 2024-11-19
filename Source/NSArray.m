@@ -105,32 +105,35 @@ static SEL	rlSel;
 
 + (void) atExit
 {
-  id	o;
-
-  /* The default placeholder array overrides -dealloc so we must get rid of
-   * it directly.
-   */
-  o = defaultPlaceholderArray;
-  defaultPlaceholderArray = nil;
-  NSDeallocateObject(o);
-
-  /* Deallocate all the placeholders in the map before destroying it.
-   */
-  GS_MUTEX_LOCK(placeholderLock);
-  if (placeholderMap)
+  if ([NSObject shouldCleanUp])
     {
-      NSMapEnumerator   mEnum = NSEnumerateMapTable(placeholderMap);
-      Class             c;
-      id                o;
+      id	o;
 
-      while (NSNextMapEnumeratorPair(&mEnum, (void *)&c, (void *)&o))
-        {
-          NSDeallocateObject(o);
-        }
-      NSEndMapTableEnumeration(&mEnum);
-      DESTROY(placeholderMap);
+      /* The default placeholder array overrides -dealloc so we must get rid of
+       * it directly.
+       */
+      o = defaultPlaceholderArray;
+      defaultPlaceholderArray = nil;
+      NSDeallocateObject(o);
+
+      /* Deallocate all the placeholders in the map before destroying it.
+       */
+      GS_MUTEX_LOCK(placeholderLock);
+      if (placeholderMap)
+	{
+	  NSMapEnumerator   mEnum = NSEnumerateMapTable(placeholderMap);
+	  Class             c;
+	  id                o;
+
+	  while (NSNextMapEnumeratorPair(&mEnum, (void *)&c, (void *)&o))
+	    {
+	      NSDeallocateObject(o);
+	    }
+	  NSEndMapTableEnumeration(&mEnum);
+	  DESTROY(placeholderMap);
+	}
+      GS_MUTEX_UNLOCK(placeholderLock);
     }
-  GS_MUTEX_UNLOCK(placeholderLock);
 }
 
 + (void) initialize

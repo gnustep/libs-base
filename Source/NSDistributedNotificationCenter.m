@@ -116,9 +116,12 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 
 + (void) atExit
 {
-  DESTROY(locCenter);
-  DESTROY(pubCenter);
-  DESTROY(netCenter);
+  if ([NSObject shouldCleanUp])
+    {
+      DESTROY(locCenter);
+      DESTROY(pubCenter);
+      DESTROY(netCenter);
+    }
 }
 
 /**

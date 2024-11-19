@@ -304,17 +304,20 @@ static NSMutableDictionary      *privateKeyCache1 = nil;
 
 + (void) atExit
 {
-  DESTROY(certificateListLock);
-  DESTROY(certificateListCache);
-  DESTROY(credentialsLock);
-  DESTROY(credentialsCache);
-  DESTROY(fileLock);
-  DESTROY(fileMap);
-  DESTROY(paramsLock);
-  DESTROY(paramsCache);
-  DESTROY(privateKeyLock);
-  DESTROY(privateKeyCache0);
-  DESTROY(privateKeyCache1);
+  if ([NSObject shouldCleanUp])
+    {
+      DESTROY(certificateListLock);
+      DESTROY(certificateListCache);
+      DESTROY(credentialsLock);
+      DESTROY(credentialsCache);
+      DESTROY(fileLock);
+      DESTROY(fileMap);
+      DESTROY(paramsLock);
+      DESTROY(paramsCache);
+      DESTROY(privateKeyLock);
+      DESTROY(privateKeyCache0);
+      DESTROY(privateKeyCache1);
+    }
 }
 
 + (NSData*) dataForTLSFile: (NSString*)fileName
