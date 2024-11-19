@@ -2734,8 +2734,9 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
             GSBinaryPLParser	*p = [GSBinaryPLParser alloc];
             
             p = [p initWithData: data mutability: anOption];
-            result = [p rootObject];
-            RELEASE(p);
+	    /* to avoid a leak on exception, autorelease before parse
+	     */
+            result = [AUTORELEASE(p) rootObject];
           }
           break;
           

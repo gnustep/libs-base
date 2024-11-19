@@ -31,7 +31,7 @@
 					     length: l
 					   encoding: encoding
 				       freeWhenDone: freeWhenDone];
-	  if (s == nil) return nil;
+	  if (s == nil) {RELEASE(self); return nil;}
 	  l = [s length] * sizeof(unichar);
 	  characters = malloc(l);
 	  [s getCharacters: characters];
@@ -66,22 +66,22 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   unichar	u0 = 'a';
   unichar	u1 = 0xfe66;
   NSMutableString *testObj,*base,*ext,*want, *str1, *str2;
   unichar chars[3];
 
   test_alloc(@"NSMutableString");
-  testObj = [[NSMutableString alloc] initWithCString:"Hello\n"];
-  test_NSCoding([NSArray arrayWithObject:testObj]);
-  test_keyed_NSCoding([NSArray arrayWithObject:testObj]);
+  testObj = AUTORELEASE([[NSMutableString alloc] initWithCString:"Hello\n"]);
+  test_NSCoding([NSArray arrayWithObject: testObj]);
+  test_keyed_NSCoding([NSArray arrayWithObject: testObj]);
   test_NSCopying(@"NSString",@"NSMutableString",
-                 [NSArray arrayWithObject:testObj],NO,NO); 
+                 [NSArray arrayWithObject: testObj],NO,NO); 
   test_NSMutableCopying(@"NSString",@"NSMutableString",
-                        [NSArray arrayWithObject:testObj]);
+                        [NSArray arrayWithObject: testObj]);
  
-  base = [[NSMutableString alloc] initWithCString:"hello"];
+  base = [NSMutableString stringWithCString:"hello"];
   ext = [@"\"\\UFE66???\"" propertyList];
   want = [@"\"hello\\UFE66???\"" propertyList];
   [base appendString:ext];
@@ -89,11 +89,11 @@ int main()
     && [want length] == 9 && [base isEqual:want],
     "We can append a unicode string to a C string");
 
-  PASS([[[NSMutableString alloc] initWithCharacters: &u0 length: 1]
+  PASS([AUTORELEASE([[NSMutableString alloc] initWithCharacters: &u0 length: 1])
     isKindOfClass: [NSMutableString class]],
     "initWithCharacters:length: creates mutable string for ascii");
 
-  PASS([[[NSMutableString alloc] initWithCharacters: &u1 length: 1]
+  PASS([AUTORELEASE([[NSMutableString alloc] initWithCharacters: &u1 length: 1])
     isKindOfClass: [NSMutableString class]],
     "initWithCharacters:length: creates mutable string for unicode");
 
@@ -101,7 +101,7 @@ int main()
 		  			appendString: @"bar"];,
 		"can append to string from NSMutableString +stringWithString:");
 
-  testObj = [@"hello" mutableCopy];
+  testObj = AUTORELEASE([@"hello" mutableCopy]);
   [testObj replaceCharactersInRange: NSMakeRange(1,1) withString: @"a"];
   PASS([testObj isEqual: @"hallo"],
     "replaceCharactersInRange:withString: works in middle of string");
@@ -179,7 +179,6 @@ int main()
     PASS_EQUAL(str, @"Text Message", "remove combining-tilde")
   }
 
-  [testObj release];
-  [arp release]; arp = nil; 
+  LEAVE_POOL
   return 0;
 }

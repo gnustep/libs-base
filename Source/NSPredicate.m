@@ -133,36 +133,26 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 }
 @end
 
-@interface GSKeyPathCompositionExpression : NSExpression
+@interface GSBinaryExpression : NSExpression
 {
   @public
   NSExpression	*_left;
   NSExpression  *_right;
 }
+- (NSExpression *) leftExpression;
+- (NSExpression *) rightExpression;
 @end
 
-@interface GSUnionSetExpression : NSExpression
-{
-  @public
-  NSExpression	*_left;
-  NSExpression  *_right;
-}
+@interface GSKeyPathCompositionExpression : GSBinaryExpression
 @end
 
-@interface GSIntersectSetExpression : NSExpression
-{
-  @public
-  NSExpression	*_left;
-  NSExpression  *_right;
-}
+@interface GSUnionSetExpression : GSBinaryExpression
 @end
 
-@interface GSMinusSetExpression : NSExpression
-{
-  @public
-  NSExpression	*_left;
-  NSExpression  *_right;
-}
+@interface GSIntersectSetExpression : GSBinaryExpression
+@end
+
+@interface GSMinusSetExpression : GSBinaryExpression
 @end
 
 @interface GSSubqueryExpression : NSExpression
@@ -224,10 +214,9 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
   GSPredicateScanner	*s;
   NSPredicate		*p;
 
-  s = [[GSPredicateScanner alloc] initWithString: format
-                                            args: args];
+  s = AUTORELEASE([[GSPredicateScanner alloc] initWithString: format
+							args: args]);
   p = [s parse];
-  RELEASE(s);
   return p;
 }
 
@@ -357,10 +346,9 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
             }
         }
     }
-  s = [[GSPredicateScanner alloc] initWithString: format
-                                            args: arr];
+  s = AUTORELEASE([[GSPredicateScanner alloc] initWithString: format
+							args: arr]);
   p = [s parse];
-  RELEASE(s);
   return p;
 }
 
@@ -519,7 +507,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 - (void) dealloc
 {
   RELEASE(_subs);
-  [super dealloc];
+  DEALLOC
 }
 
 - (id) copyWithZone: (NSZone *)z
@@ -755,7 +743,7 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 {
   RELEASE(_left);
   RELEASE(_right);
-  [super dealloc];
+  DEALLOC
 }
 
 - (NSComparisonPredicateModifier) comparisonPredicateModifier
@@ -1245,10 +1233,10 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 {
   GSConstantValueExpression *e;
 
-  e = [[GSConstantValueExpression alloc] 
-          initWithExpressionType: NSConstantValueExpressionType];
+  e = AUTORELEASE([[GSConstantValueExpression alloc] 
+    initWithExpressionType: NSConstantValueExpressionType]);
   ASSIGN(e->_obj, obj);
-  return AUTORELEASE(e);
+  return e;
 }
 
 + (NSExpression *) expressionForEvaluatedObject
@@ -1262,8 +1250,8 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   GSFunctionExpression	*e;
   NSString		*s;
 
-  e = [[GSFunctionExpression alloc]
-    initWithExpressionType: NSFunctionExpressionType];
+  e = AUTORELEASE([[GSFunctionExpression alloc]
+    initWithExpressionType: NSFunctionExpressionType]);
   s = [NSString stringWithFormat: @"_eval_%@:", name];
   e->_selector = NSSelectorFromString(s);
   if (![e respondsToSelector: e->_selector])
@@ -1279,7 +1267,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   else if ([name isEqualToString: @"_mul"]) e->_op = @"*";
   else if ([name isEqualToString: @"_div"]) e->_op = @"/";
   else if ([name isEqualToString: @"_pow"]) e->_op = @"**";
-  return AUTORELEASE(e);
+  return e;
 }
 
 + (NSExpression *) expressionForKeyPath: (NSString *)path
@@ -1291,10 +1279,10 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
       [NSException raise: NSInvalidArgumentException
 		  format: @"Keypath is not NSString: %@", path];
     }
-  e = [[GSKeyPathExpression alloc] 
-          initWithExpressionType: NSKeyPathExpressionType];
+  e = AUTORELEASE([[GSKeyPathExpression alloc] 
+    initWithExpressionType: NSKeyPathExpressionType]);
   ASSIGN(e->_keyPath, path);
-  return AUTORELEASE(e);
+  return e;
 }
 
 + (NSExpression *) expressionForKeyPathCompositionWithLeft: (NSExpression*)left
@@ -1302,21 +1290,21 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 {
   GSKeyPathCompositionExpression *e;
 
-  e = [[GSKeyPathCompositionExpression alloc] 
-    initWithExpressionType: NSKeyPathCompositionExpressionType];
+  e = AUTORELEASE([[GSKeyPathCompositionExpression alloc] 
+    initWithExpressionType: NSKeyPathCompositionExpressionType]);
   ASSIGN(e->_left, left);
   ASSIGN(e->_right, right);
-  return AUTORELEASE(e);
+  return e;
 }
 
 + (NSExpression *) expressionForVariable: (NSString *)string
 {
   GSVariableExpression *e;
 
-  e = [[GSVariableExpression alloc] 
-          initWithExpressionType: NSVariableExpressionType];
+  e = AUTORELEASE([[GSVariableExpression alloc] 
+    initWithExpressionType: NSVariableExpressionType]);
   ASSIGN(e->_variable, string);
-  return AUTORELEASE(e);
+  return e;
 }
 
 // 10.5 methods...
@@ -1325,23 +1313,23 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 {
   GSIntersectSetExpression *e;
 
-  e = [[GSIntersectSetExpression alloc]
-	initWithExpressionType: NSIntersectSetExpressionType];
+  e = AUTORELEASE([[GSIntersectSetExpression alloc]
+    initWithExpressionType: NSIntersectSetExpressionType]);
   ASSIGN(e->_left, left);
   ASSIGN(e->_right, right);
   
-  return AUTORELEASE(e);
+  return e;
 }
 
 + (NSExpression *) expressionForAggregate: (NSArray *)subExpressions
 {
   GSAggregateExpression *e;
 
-  e = [[GSAggregateExpression alloc]
-	initWithExpressionType: NSAggregateExpressionType];
+  e = AUTORELEASE([[GSAggregateExpression alloc]
+    initWithExpressionType: NSAggregateExpressionType]);
   ASSIGN(e->_collection, [NSSet setWithArray: subExpressions]);
   
-  return AUTORELEASE(e);
+  return e;
 }
 
 + (NSExpression *) expressionForUnionSet: (NSExpression *)left
@@ -1349,12 +1337,12 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 {
   GSUnionSetExpression *e;
 
-  e = [[GSUnionSetExpression alloc]
-	initWithExpressionType: NSUnionSetExpressionType];
+  e = AUTORELEASE([[GSUnionSetExpression alloc]
+    initWithExpressionType: NSUnionSetExpressionType]);
   ASSIGN(e->_left, left);
   ASSIGN(e->_right, right);
   
-  return AUTORELEASE(e);
+  return e;
 }
 
 + (NSExpression *) expressionForMinusSet: (NSExpression *)left
@@ -1362,12 +1350,12 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 {
   GSMinusSetExpression *e;
 
-  e = [[GSMinusSetExpression alloc]
-	initWithExpressionType: NSMinusSetExpressionType];
+  e = AUTORELEASE([[GSMinusSetExpression alloc]
+    initWithExpressionType: NSMinusSetExpressionType]);
   ASSIGN(e->_left, left);
   ASSIGN(e->_right, right);
   
-  return AUTORELEASE(e);
+  return e;
 }
 // end 10.5 methods
 
@@ -1587,7 +1575,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (void) dealloc
 {
   RELEASE(_obj);
-  [super dealloc];
+  DEALLOC
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -1651,7 +1639,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (void) dealloc;
 {
   RELEASE(_variable);
-  [super dealloc];
+  DEALLOC
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -1700,7 +1688,7 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (void) dealloc;
 {
   RELEASE(_keyPath);
-  [super dealloc];
+  DEALLOC
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -1715,6 +1703,37 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
 - (id) _expressionWithSubstitutionVariables: (NSDictionary *)variables
 {
   return self;
+}
+
+@end
+
+@implementation GSBinaryExpression
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  GSBinaryExpression	*copy;
+
+  copy = (GSBinaryExpression *)[super copyWithZone: zone];
+  copy->_left = [_left copyWithZone: zone];
+  copy->_right = [_right copyWithZone: zone];
+  return copy;
+}
+
+- (void) dealloc
+{
+  RELEASE(_left);
+  RELEASE(_right);
+  DEALLOC
+}
+
+- (NSExpression *) leftExpression
+{
+  return _left;
+}
+
+- (NSExpression *) rightExpression
+{
+  return _right;
 }
 
 @end
@@ -1738,23 +1757,6 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   return nil;
 }
 
-- (void) dealloc
-{
-  RELEASE(_left);
-  RELEASE(_right);
-  [super dealloc];
-}
-
-- (id) copyWithZone: (NSZone*)zone
-{
-  GSKeyPathCompositionExpression *copy;
-
-  copy = (GSKeyPathCompositionExpression *)[super copyWithZone: zone];
-  copy->_left = [_left copyWithZone: zone];
-  copy->_right = [_right copyWithZone: zone];
-  return copy;
-}
-
 - (id) _expressionWithSubstitutionVariables: (NSDictionary*)variables
 {
   NSExpression	*left;
@@ -1764,16 +1766,6 @@ GSICUStringMatchesRegex(NSString *string, NSString *regex, NSStringCompareOption
   right = [_right _expressionWithSubstitutionVariables: variables];
   return [NSExpression expressionForKeyPathCompositionWithLeft: left
 							 right: right];
-}
-
-- (NSExpression *) leftExpression
-{
-  return _left;
-}
-
-- (NSExpression *) rightExpression
-{
-  return _right;
 }
 
 @end
@@ -1808,16 +1800,6 @@ do { \
   return [NSString stringWithFormat: @"%@.%@", _left, _right];
 }
 
-- (NSExpression *) leftExpression
-{
-  return _left;
-}
-
-- (NSExpression *) rightExpression
-{
-  return _right;
-}
-
 - (id) expressionValueWithObject: (id)object
 			 context: (NSMutableDictionary *)context
 {
@@ -1842,16 +1824,6 @@ do { \
 - (NSString *) description
 {
   return [NSString stringWithFormat: @"%@.%@", _left, _right];
-}
-
-- (NSExpression *) leftExpression
-{
-  return _left;
-}
-
-- (NSExpression *) rightExpression
-{
-  return _right;
 }
 
 - (id) expressionValueWithObject: (id)object
@@ -1880,16 +1852,6 @@ do { \
   return [NSString stringWithFormat: @"%@.%@", _left, _right];
 }
 
-- (NSExpression *) leftExpression
-{
-  return _left;
-}
-
-- (NSExpression *) rightExpression
-{
-  return _right;
-}
-
 - (id) expressionValueWithObject: (id)object
 			 context: (NSMutableDictionary *)context
 {
@@ -1913,6 +1875,21 @@ do { \
 @end
 
 @implementation GSAggregateExpression
+
+- (id) copyWithZone: (NSZone*)zone
+{
+  GSAggregateExpression *copy;
+
+  copy = (GSAggregateExpression *)[super copyWithZone: zone];
+  copy->_collection = [_collection copyWithZone: zone];
+  return copy;
+}
+
+- (void) dealloc
+{
+  DESTROY(_collection);
+  DEALLOC
+}
 
 - (NSString *) description
 {
@@ -2016,7 +1993,7 @@ do { \
 {
   RELEASE(_args);
   RELEASE(_function);
-  [super dealloc];
+  DEALLOC
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -3173,8 +3150,8 @@ do { \
 - (instancetype) predicateWithSubstitutionVariables: 
   (GS_GENERIC_CLASS(NSDictionary,NSString*,id)*)variables
 {
-  return [[[GSBoundBlockPredicate alloc] initWithBlock: _block
-                                              bindings: variables] autorelease];
+  return AUTORELEASE([[GSBoundBlockPredicate alloc] initWithBlock: _block
+							 bindings: variables]);
 }
 
 - (BOOL) evaluateWithObject: (id)object
@@ -3194,7 +3171,7 @@ do { \
 {
   [(id)_block release];
   _block = NULL;
-  [super dealloc];
+  DEALLOC
 }
 
 - (NSString*) predicateFormat
@@ -3226,7 +3203,7 @@ do { \
 - (void) dealloc
 {
   DESTROY(_bindings);
-  [super dealloc];
+  DEALLOC
 }
 @end
 

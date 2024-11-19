@@ -35,6 +35,7 @@
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSData.h"
+#import "GSPThread.h"
 
 @interface	GSPlaceholderValue : NSValue
 @end
@@ -78,9 +79,40 @@ static Class	GSPlaceholderValueClass;
 
 static GSPlaceholderValue	*defaultPlaceholderValue;
 static NSMapTable		*placeholderMap;
-static NSLock			*placeholderLock;
+static gs_mutex_t               placeholderLock = GS_MUTEX_INIT_STATIC;
+
 
 @implementation NSValue
+
++ (void) atExit
+{
+  id	o;
+
+  /* The default placeholder array overrides -dealloc so we must get rid of
+   * it directly.
+   */
+  o = defaultPlaceholderValue;
+  defaultPlaceholderValue = nil;
+  NSDeallocateObject(o);
+
+  /* Deallocate all the placeholders in the map before destroying it.
+   */
+  GS_MUTEX_LOCK(placeholderLock);
+  if (placeholderMap)
+    {
+      NSMapEnumerator   mEnum = NSEnumerateMapTable(placeholderMap);
+      Class             c;
+      id                o;
+
+      while (NSNextMapEnumeratorPair(&mEnum, (void *)&c, (void *)&o))
+        {
+          NSDeallocateObject(o);
+        }
+      NSEndMapTableEnumeration(&mEnum);
+      DESTROY(placeholderMap);
+    }
+  GS_MUTEX_UNLOCK(placeholderLock);
+}
 
 + (void) initialize
 {
@@ -102,12 +134,9 @@ static NSLock			*placeholderLock;
        */
       defaultPlaceholderValue = (GSPlaceholderValue*)
 	NSAllocateObject(GSPlaceholderValueClass, 0, NSDefaultMallocZone());
-      [[NSObject leakAt: (id*)&defaultPlaceholderValue] release];
       placeholderMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonRetainedObjectMapValueCallBacks, 0);
-      [[NSObject leakAt: (id*)&placeholderMap] release];
-      placeholderLock = [NSLock new];
-      [[NSObject leakAt: (id*)&placeholderLock] release];
+      [self registerAtExit];
     }
 }
 
@@ -132,9 +161,9 @@ static NSLock			*placeholderLock;
 	   * locate the correct placeholder in the (lock protected)
 	   * table of placeholders.
 	   */
-	  [placeholderLock lock];
+	  GS_MUTEX_LOCK(placeholderLock);
 	  obj = (id)NSMapGet(placeholderMap, (void*)z);
-	  if (obj == nil)
+	  if (obj == nil && NO == [NSObject isExiting])
 	    {
 	      /*
 	       * There is no placeholder object for this zone, so we
@@ -143,7 +172,7 @@ static NSLock			*placeholderLock;
 	      obj = (id)NSAllocateObject(GSPlaceholderValueClass, 0, z);
 	      NSMapInsert(placeholderMap, (void*)z, (void*)obj);
 	    }
-	  [placeholderLock unlock];
+	  GS_MUTEX_UNLOCK(placeholderLock);
 	  return obj;
 	}
     }
@@ -720,11 +749,13 @@ static NSLock			*placeholderLock;
 
 - (oneway void) release
 {
+  NSWarnLog(@"-release sent to uninitialised value");
   return;		// placeholders never get released.
 }
 
 - (id) retain
 {
+  NSWarnLog(@"-retain sent to uninitialised value");
   return self;		// placeholders never get retained.
 }
 @end

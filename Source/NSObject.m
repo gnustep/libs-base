@@ -171,13 +171,13 @@ extern void GSLogZombie(id o, SEL sel)
     }
   if (c == 0)
     {
-      NSLog(@"*** -[??? %@]: message sent to deallocated instance %p",
-	NSStringFromSelector(sel), o);
+      fprintf(stderr, "*** -[??? %s]: message sent to deallocated instance %p",
+	sel_getName(sel), o);
     }
   else
     {
-      NSLog(@"*** -[%@ %@]: message sent to deallocated instance %p",
-	c, NSStringFromSelector(sel), o);
+      fprintf(stderr, "*** -[%s %s]: message sent to deallocated instance %p",
+	class_getName(c), sel_getName(sel), o);
     }
   if (GSPrivateEnvironmentFlag("CRASH_ON_ZOMBIE", NO) == YES)
     {
@@ -814,7 +814,7 @@ NSDeallocateObject(id anObject)
       (*finalize_imp)(anObject, finalize_sel);
 
       AREM(aClass, (id)anObject);
-      if (NSZombieEnabled == YES)
+      if (NSZombieEnabled)
 	{
 #ifdef OBJC_CAP_ARC
 	  if (0 != zombieMap)
@@ -1086,12 +1086,14 @@ static id gs_weak_load(id obj)
 
 + (void) _atExit
 {
+/*
   NSMapTable	*m = nil;
   GS_MUTEX_LOCK(allocationLock);
   m = zombieMap;
   zombieMap = nil;
   GS_MUTEX_UNLOCK(allocationLock);
   DESTROY(m);
+*/
 }
 
 /**

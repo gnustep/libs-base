@@ -155,7 +155,7 @@ static NSDateFormatterBehavior _defaultBehavior = 0;
 - (void) dealloc
 {
   RELEASE(_dateFormat);
-  if (internal != 0)
+  if (GS_EXISTS_INTERNAL)
     {
       RELEASE(internal->_locale);
       RELEASE(internal->_tz);

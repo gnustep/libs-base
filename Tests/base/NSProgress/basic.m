@@ -5,11 +5,12 @@
 
 int main()
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+
   [dict setObject:@"value" forKey:@"key"];
-  NSProgress *progress = [[NSProgress alloc] initWithParent: nil
-                                                   userInfo: dict];
+  NSProgress *progress = AUTORELEASE([[NSProgress alloc] initWithParent: nil
+							       userInfo: dict]);
   PASS(progress != nil,
     "[NSProgress initWithParent:userInfo:] returns instance");
   
@@ -42,14 +43,14 @@ int main()
   NSProgress *new_progress = [NSProgress progressWithTotalUnitCount:100
                                                              parent:progress
                                                    pendingUnitCount:50];
-  [new_progress addChild:[[NSProgress alloc] initWithParent: nil userInfo: nil]
-    withPendingUnitCount:50];
+  [new_progress addChild: AUTORELEASE([[NSProgress alloc]
+    initWithParent: nil userInfo: nil]) withPendingUnitCount:50];
   
   [currentProgress resignCurrent];
 
   PASS([NSProgress currentProgress] == nil,
     "Current progress is nil after resign current");
 
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

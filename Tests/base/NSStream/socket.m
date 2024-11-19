@@ -73,7 +73,7 @@ NSLog(@"Got %ld on %p", (long int)streamEvent, theStream);
 NSLog(@"%@", [defaultInput streamError]);
             NSAssert([defaultInput streamError]==nil, @"read error");
           }
-        if (readSize == 0)
+        else if (readSize == 0)
 	  {
             [defaultInput close];
 	    [defaultInput removeFromRunLoop: [NSRunLoop currentRunLoop]

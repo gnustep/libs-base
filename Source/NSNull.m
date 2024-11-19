@@ -48,7 +48,6 @@ static NSNull	*null = 0;
   if (null == 0)
     {
       null = (NSNull*)NSAllocateObject(self, 0, NSDefaultMallocZone());
-      [[NSObject leakAt: &null] release];
     }
 }
 

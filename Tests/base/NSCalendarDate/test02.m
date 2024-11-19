@@ -9,15 +9,15 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSMutableArray *tmpArray;
-  NSMutableDictionary *myLocale;
-  NSCalendarDate *myBirthday; 
-  NSCalendarDate *anotherDay; 
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  NSMutableArray 	*tmpArray;
+  NSMutableDictionary 	*myLocale;
+  NSCalendarDate 	*myBirthday; 
+  NSCalendarDate 	*anotherDay; 
 
   myLocale = westernLocale();
   
-  tmpArray = [NSMutableArray new];
+  tmpArray = [NSMutableArray array];
   [tmpArray addObject: @"Gen"]; 
   [tmpArray addObject: @"Feb"]; 
   [tmpArray addObject: @"Mar"]; 
@@ -32,7 +32,7 @@ int main()
   [tmpArray addObject: @"Dic"]; 
   [myLocale setObject: tmpArray forKey: NSShortMonthNameArray];
   
-  ASSIGN(tmpArray,[NSMutableArray new]);
+  tmpArray = [NSMutableArray array];
   [tmpArray addObject: @"Gennaio"]; 
   [tmpArray addObject: @"Febbraio"]; 
   [tmpArray addObject: @"Marzo"]; 
@@ -47,7 +47,7 @@ int main()
   [tmpArray addObject: @"Dicembre"]; 
   [myLocale setObject: tmpArray forKey: NSMonthNameArray];
   
-  ASSIGN(tmpArray,[NSMutableArray new]);
+  tmpArray = [NSMutableArray array];
   [tmpArray addObject: @"Dom"];
   [tmpArray addObject: @"Lun"];
   [tmpArray addObject: @"Mar"];
@@ -57,7 +57,7 @@ int main()
   [tmpArray addObject: @"Sab"];
   [myLocale setObject: tmpArray forKey: NSShortWeekDayNameArray];
   
-  ASSIGN(tmpArray,[NSMutableArray new]);
+  tmpArray = [NSMutableArray array];
   [tmpArray addObject: @"Domencia"];
   [tmpArray addObject: @"Lunedi"];
   [tmpArray addObject: @"Martedi"];
@@ -67,7 +67,7 @@ int main()
   [tmpArray addObject: @"Sabato"];
   [myLocale setObject: tmpArray forKey: NSWeekDayNameArray];
   
-  ASSIGN(tmpArray,[NSMutableArray new]);
+  tmpArray = [NSMutableArray array];
   [tmpArray addObject: @"AM"];
   [tmpArray addObject: @"PM"];
   [myLocale setObject: tmpArray forKey: NSAMPMDesignation];

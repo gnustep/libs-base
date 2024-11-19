@@ -45,7 +45,7 @@ int main(int argc,char **argv)
   result = [[array valueForKeyPath:@"@count"] intValue] == 2;
   PASS(result, "-[NSArray valueForKeyPath: @\"@count\"]");
 
-  aiv = [ArrayIVar new];
+  aiv = AUTORELEASE([ArrayIVar new]);
   ivar = [NSArray arrayWithObjects: @"Joe", @"Foo", @"Bar", @"Cat", nil];
   [aiv setTestArray: ivar];
 

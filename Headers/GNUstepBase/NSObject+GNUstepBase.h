@@ -219,16 +219,17 @@ extern "C" {
  * set to YES).<br />
  * Your class then has two options for performing clean-up when the process
  * ends:
- * <p>1. Use the +leaked: method to register objects which are simply to be 
- * retained until the process ends, and then either ignored or released
- * depending on the clean-up setting in force.  This mechanism is simple
- * and should be sufficient for many classes.
+ * <p>1. Use the +keep:at: method to register static/global variables whose
+ * contents are to be retained for the lifetime of the program (up to exit)
+ * and either ignored or released depending on the clean-up setting in force
+ * when the program exits.<br />
+ * This mechanism is simple and should be sufficient for many classes.
  * </p>
- * <p>2. Implement a +atExit method to be run when the process ends and,
- * within your +initialize implementation, call +shouldCleanUp to determine
- * whether clean-up should be done, and if it returns YES then call
- * +registerAtExit to have your +atExit method called when the process
- * terminates.
+ * <p>2. Implement an +atExit method to be run when the process ends and,
+ * within your +initialize implementation, +registerAtExit to have your
+ * +atExit method called when the process exits.  Within the +atExit method
+ * you may call +shouldCleanUp to determine whether celan up has been
+ * requested.
  * </p>
  * <p>The order in which 'leaked' objects are released and +atExit methods
  * are called on process exist is the reverse of the order in which they
@@ -241,25 +242,30 @@ extern "C" {
  */
 + (BOOL) isExiting;
 
-/** This method informs the system that the object at anAddress has been
- * intentionally leaked (will not be deallocated by higher level code)
- * and should be cleaned up at process exit (and the address content
- * zeroed out) if clean-up is enabled.
+/** This method stores anObject at anAddress (which should be a static or
+ * global variable) and retains it. The code notes that the object should
+ * persist until the process exits.  If clean-up is enabled the object will
+ *  be released (and the address content zeroed out) upon process exit.
+ * If this method is called while the process is already exiting it
+ * simply zeros out the memory location then returns nil, otherwise
+ * it returns the object stored at the memory location.
+ * Raises an exception if anObject is nil or anAddress is NULL or the old
+ * value at anAddresss is not nil (unless the process is already exiting).
  */
-+ (void) leaked: (id*)anAddress;
++ (id) NS_RETURNS_RETAINED keep: (id)anObject at: (id*)anAddress;
 
-/** Deprecated: use +leaked: instead.
+/** DEPRECATED ... use +keep:at: instead.
  */
-+ (id) NS_RETURNS_RETAINED leak: (id)anObject ;//GS_DEPRECATED_FUNC;
++ (id) NS_RETURNS_RETAINED leak: (id)anObject;
 
-/** Deprecated: use +leaked: instead.
+/** DEPRECATED ... use +keep:at: instead.
  */
-+ (id) NS_RETURNS_RETAINED leakAt: (id*)anAddress ;//GS_DEPRECATED_FUNC;
++ (id) NS_RETURNS_RETAINED leakAt: (id*)anAddress;
 
 /** Sets the receiver to have its +atExit method called at the point when
  * the process terminates.<br />
  * Returns YES on success and NO on failure (if the class does not implement
- * the method or if it is already registered to call it).<br />
+ * +atExit or if it is already registered to call it).<br />
  * Implemented as a call to +registerAtExit: with the selector for the +atExit
  * method as its argument.
  */
@@ -268,7 +274,7 @@ extern "C" {
 /** Sets the receiver to have the specified  method called at the point when
  * the process terminates.<br />
  * Returns YES on success and NO on failure (if the class does not implement
- * the method ir if it is already registered to call it).
+ * the method or if it is already registered to call a method at exit).
  */
 + (BOOL) registerAtExit: (SEL)aSelector;
 

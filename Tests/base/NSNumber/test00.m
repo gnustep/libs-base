@@ -132,9 +132,9 @@ int main()
   PASS(200 == [val1 unsignedShortValue],
     "NSDecimalNumber unsignedShortValue works")
 
-  val1 = [[NSNumber alloc] initWithLongLong: LLONG_MIN];
-  val2 = [[NSNumber alloc] initWithUnsignedLongLong:
-    (unsigned long long)LLONG_MAX + 1];
+  val1 = AUTORELEASE([[NSNumber alloc] initWithLongLong: LLONG_MIN]);
+  val2 = AUTORELEASE([[NSNumber alloc] initWithUnsignedLongLong:
+    (unsigned long long)LLONG_MAX + 1]);
   PASS([val1 compare: val2] == NSOrderedAscending,
    "comparison of min signed with max unsigned works")
 

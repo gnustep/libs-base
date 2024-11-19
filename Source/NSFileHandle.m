@@ -91,11 +91,11 @@ static Class NSFileHandle_ssl_class = nil;
 {
   if (self == NSFileHandle_abstract_class)
     {
-      return NSAllocateObject (NSFileHandle_concrete_class, 0, z);
+      return NSAllocateObject(NSFileHandle_concrete_class, 0, z);
     }
   else
     {
-      return NSAllocateObject (self, 0, z);
+      return NSAllocateObject(self, 0, z);
     }
 }
 

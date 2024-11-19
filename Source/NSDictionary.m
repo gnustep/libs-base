@@ -469,6 +469,7 @@ static SEL	appSel;
 
   if (objectCount != [keys count])
     {
+      RELEASE(self);
       [NSException raise: NSInvalidArgumentException
 		  format: @"init with obj and key arrays of different sizes"];
     }

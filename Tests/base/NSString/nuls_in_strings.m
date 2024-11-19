@@ -16,7 +16,7 @@ int main(int argc, char **argv)
   unichar characters[3]={'a',0,'b'};
   NSRange r;
 
-  normalString = [[NSString alloc] initWithCharacters: characters length: 3];
+  normalString = AUTORELEASE([[NSString alloc] initWithCharacters: characters length: 3]);
 
   PASS([constantString length] == 3, "nuls in constant strings");
   PASS([normalString length] == 3, "nuls in non-constant strings");

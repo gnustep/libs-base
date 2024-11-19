@@ -131,6 +131,7 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
       exp = [NSException exceptionWithName: NSInvalidArgumentException
                                     reason: @"nil argument"
       				  userInfo: nil];
+      RELEASE(self);
       [exp raise];
     }
 
@@ -961,10 +962,9 @@ prepareResult(NSRegularExpression *regex,
       return nil;
     }
   utext_clone(&ret->txt, output, TRUE, TRUE, &s);
-  uregex_close(r);
-
-  utext_close(&txt);
   utext_close(output);
+  uregex_close(r);
+  utext_close(&txt);
   utext_close(&replacement);
   return AUTORELEASE(ret);
 }

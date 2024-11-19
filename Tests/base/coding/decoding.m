@@ -34,7 +34,7 @@ copyright 2004 Alexander Malmberg <alexander@malmberg.org>
 @interface NSObject (DecodingTests)
 + (NSObject*) createTestInstance;
 + (BOOL) verifyTestInstance: (NSObject *)instance
-	ofVersion: (int)version;
+		  ofVersion: (int)version;
 - (BOOL) testEquality;
 @end
 
@@ -43,13 +43,13 @@ copyright 2004 Alexander Malmberg <alexander@malmberg.org>
 {
   if (self == [NSException class])
     {
-      return [[NSException alloc] initWithName: @"Test"
-					reason: @"Testing"
-				      userInfo: nil];
+      return AUTORELEASE([[NSException alloc] initWithName: @"Test"
+						    reason: @"Testing"
+						  userInfo: nil]);
     }
   else
     {
-      return [[self alloc] init];
+      return AUTORELEASE([[self alloc] init]);
     }
 }
 
@@ -86,14 +86,14 @@ copyright 2004 Alexander Malmberg <alexander@malmberg.org>
 @implementation NSCharacterSet (DecodingTests)
 + (NSObject *) createTestInstance
 {
-  return [[self characterSetWithCharactersInString: @"qwertzuiop"] retain];
+  return [self characterSetWithCharactersInString: @"qwertzuiop"];
 }
 @end
 
 @implementation NSValue (DecodingTests)
 + (NSObject *) createTestInstance
 {
-  return [[self valueWithSize: NSMakeSize(1.1, 1.2)] retain];
+  return [self valueWithSize: NSMakeSize(1.1, 1.2)];
 }
 - (BOOL) testEquality: (id)other
 {
@@ -113,7 +113,7 @@ copyright 2004 Alexander Malmberg <alexander@malmberg.org>
 @implementation NSNumber (DecodingTests)
 + (NSObject *) createTestInstance
 {
-  return [[self numberWithInt: 1] retain];
+  return [self numberWithInt: 1];
 }
 @end
 
@@ -125,7 +125,7 @@ copyright 2004 Alexander Malmberg <alexander@malmberg.org>
 
   if (NSHostByteOrder() == NS_BigEndian)
     {
-      NSMutableData	*m = [data mutableCopy];
+      NSMutableData	*m = AUTORELEASE([data mutableCopy]);
       uint8_t		*p = (uint8_t*)[m mutableBytes];
       uint8_t		*e = p + [m length];
 
@@ -141,7 +141,7 @@ copyright 2004 Alexander Malmberg <alexander@malmberg.org>
     }
   else
     {
-      return [data retain];
+      return data;
     }
 }
 @end
@@ -149,14 +149,14 @@ copyright 2004 Alexander Malmberg <alexander@malmberg.org>
 @implementation NSDate (DecodingTests)
 + (NSObject *) createTestInstance
 {
-  return [[NSDate dateWithTimeIntervalSince1970: 4294967296.0] retain];
+  return [NSDate dateWithTimeIntervalSince1970: 4294967296.0];
 }
 @end
 
 @implementation NSURL (DecodingTests)
 + (NSObject *) createTestInstance
 {
-  return [[self alloc] initWithString: @"http://www.gnustep.org/"];
+  return AUTORELEASE([[self alloc] initWithString: @"http://www.gnustep.org/"]);
 }
 @end
 

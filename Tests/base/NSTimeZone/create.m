@@ -6,7 +6,6 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   id current;
-  id localh;
 
   current = [NSTimeZone defaultTimeZone];
   PASS(current != nil && [current isKindOfClass: [NSTimeZone class]],

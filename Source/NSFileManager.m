@@ -989,7 +989,7 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
                                 errorHandler: handler
                                          for: self];
 
-  return direnum;  
+  return AUTORELEASE(direnum);  
 }
 
 - (NSArray*) contentsOfDirectoryAtPath: (NSString*)path error: (NSError**)error

@@ -12,13 +12,13 @@ static BOOL blockDidRun = NO;
 
 int main()
 {
+  ENTER_POOL
   id                    obj1;
   id                    obj2;
-  NSMutableArray        *testObjs = [[NSMutableArray alloc] init];
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
+  NSMutableArray        *testObjs = [NSMutableArray array];
 
   test_alloc(@"NSOperation");
-  obj1 = [NSOperation new];
+  obj1 = AUTORELEASE([NSOperation new]);
   PASS((obj1 != nil), "can create an operation");
   [testObjs addObject: obj1];
   test_NSObject(@"NSOperation", testObjs);
@@ -36,7 +36,7 @@ int main()
   PASS(([obj1 queuePriority] == NSOperationQueuePriorityVeryHigh),
     "operation has very high priority");
 
-  obj2 = [NSOperation new];
+  obj2 = AUTORELEASE([NSOperation new]);
   [obj2 addDependency: obj1];
   PASS(([[obj2 dependencies] isEqual: testObjs]),
     "operation has added dependency");
@@ -53,8 +53,7 @@ int main()
     "dependency removal works");
   PASS(([obj2 isReady] == YES), "operation without dependency is ready");
 
-  [obj1 release];
-  obj1 = [NSOperation new];
+  obj1 = AUTORELEASE([NSOperation new]);
   [testObjs replaceObjectAtIndex: 0 withObject: obj1];
   [obj2 addDependency: obj1];
 # if __has_feature(blocks)
@@ -72,8 +71,7 @@ int main()
   PASS(([obj2 isReady] == YES), "operation with finished dependency is ready");
 
   [obj2 removeDependency: obj1];
-  [obj1 release];
-  obj1 = [NSOperation new];
+  obj1 = AUTORELEASE([NSOperation new]);
   [testObjs replaceObjectAtIndex: 0 withObject: obj1];
   [obj2 addDependency: obj1];
   [obj2 cancel];
@@ -92,7 +90,7 @@ int main()
 
 
   test_alloc(@"NSOperationQueue");
-  obj1 = [NSOperationQueue new];
+  obj1 = AUTORELEASE([NSOperationQueue new]);
   PASS((obj1 != nil), "can create an operation queue");
   [testObjs removeAllObjects];
   [testObjs addObject: obj1];
@@ -121,11 +119,11 @@ int main()
   		 NSInvalidArgumentException,
 		 "NSOperationQueue cannot be given negative count");
 
-  obj2 = [NSOperation new];
+  obj2 = AUTORELEASE([NSOperation new]);
   [obj1 addOperation: obj2];
   [NSThread sleepForTimeInterval: 1.0];
   PASS(([obj2 isFinished] == YES), "queue ran operation");
 
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }
