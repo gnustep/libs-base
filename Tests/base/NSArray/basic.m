@@ -4,44 +4,46 @@
 
 int main()
 {
-  NSArray *obj;
-  NSMutableArray *testObjs = [[NSMutableArray alloc] init];
-  NSString *str;
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  NSAutoreleasePool   	*arp = [NSAutoreleasePool new];
+  NSArray		*obj;
+  NSMutableArray 	*testObjs = [NSMutableArray array];
+  NSString 		*str;
+
   test_alloc(@"NSArray"); 
-  obj = [NSArray new];
+  obj = [NSArray array];
   PASS((obj != nil && [obj count] == 0),"can create an empty array");
   str = @"hello";
   [testObjs addObject: obj];
-  obj = [NSArray arrayWithObject:str];
-  PASS((obj != nil && [obj count] == 1), "can create an array with one element");
+  obj = [NSArray arrayWithObject: str];
+  PASS((obj != nil && [obj count] == 1),
+    "can create an array with one element")
   [testObjs addObject: obj];
   test_NSObject(@"NSArray", testObjs);
   test_NSCoding(testObjs);
   test_keyed_NSCoding(testObjs);
-  test_NSCopying(@"NSArray",@"NSMutableArray",testObjs,YES,NO);
-  test_NSMutableCopying(@"NSArray",@"NSMutableArray",testObjs);
+  test_NSCopying(@"NSArray", @"NSMutableArray", testObjs, YES, NO);
+  test_NSMutableCopying(@"NSArray", @"NSMutableArray", testObjs);
   
   obj = [NSArray arrayWithContentsOfFile: @"test.plist"];
-  PASS((obj != nil && [obj count] > 0),"can create an array from file");
+  PASS((obj != nil && [obj count] > 0),"can create an array from file")
 #if 1
   /* The apple foundation is arguably buggy in that it seems to create a
    * mutable array ... we currently copy that
    */
-  PASS([obj isKindOfClass: [NSMutableArray class]] == YES,"array mutable");
-  PASS_RUNS([(NSMutableArray*)obj addObject: @"x"],"can add to array");
+  PASS([obj isKindOfClass: [NSMutableArray class]] == YES, "array mutable")
+  PASS_RUNS([(NSMutableArray*)obj addObject: @"x"], "can add to array")
 #else
-  PASS([obj isKindOfClass: [NSMutableArray class]] == NO,"array immutable");
+  PASS([obj isKindOfClass: [NSMutableArray class]] == NO, "array immutable")
 #endif
   obj = [obj objectAtIndex: 0];
-  PASS([obj isKindOfClass: [NSMutableArray class]] == YES,"array mutable");
+  PASS([obj isKindOfClass: [NSMutableArray class]] == YES, "array mutable")
   START_SET("NSArray subscripting")
 # ifndef __has_feature
 # define __has_feature(x) 0
 # endif
 #if __has_feature(objc_subscripting)
   NSArray *a = @[ @"foo", @"bar" ];
-  PASS([@"foo" isEqualToString:a[0]], "Array subscripting works");
+  PASS([@"foo" isEqualToString:a[0]], "Array subscripting works")
 # else
   SKIP("No collection subscripting support in the compiler.")
 # endif

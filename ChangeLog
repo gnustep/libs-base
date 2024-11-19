@@ -1,8 +1,11 @@
+<<<<<<< HEAD
 2024-11-19 Matvii Jarosh <matviijarosh@gmail.com>
 
 	* Header/Foundation/NSGeometry.h: fixed NSRectEdge and
 	NSAlignmentOptions enums.
 
+=======
+>>>>>>> e0b37c4a1b60bd93877d40d814ebb99944635478
 2024-11-18 Matvii Jarosh <matviijarosh@gmail.com>
 
 	* Source/NSGeometry.m: added NSIntegralRectWithOptions function.
@@ -12,6 +15,36 @@
 	NSSizeFromCGSize and NSSizeToCGSizea functions.
 	* MISSING:
 
+<<<<<<< HEAD
+=======
+2024-11-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* GSMime: fixed buffer overrun in rare circumstances when decoding
+	an encoded word in a header.
+	fix to cope with dealloc of uninitialised instances of GSMimeSMTPClient
+	* GSTLS: clean up used resources on exit
+	* NSCharacterSet: Fix retain count of cached character sets
+	* NSDateFormatter: fix to cope with dealloc of uninitialised instances
+	* NSFileManager: fix leak of enumerator when enumerating files at
+	a directory specified by URL
+	* NSHTTPCookie: fix buffer overrun parsing cookie header fields
+	* NSInvocation: fix leak of type information memory when passing
+	general struct argument/return values
+	* NSNumberFormatter: fix to cope with dealloc of uninitialised instances
+	* NSOperation: fix to cope with dealloc of uninitialised instances
+	* NSPredicate: fix leaks of keypath and set expressions
+	also fix leak of objects if exception occurs while scanning predicate
+	string
+	* NSPropertyList: fix leaks if exception occurs while parsing
+	* NSRegularExpression: fix leaks if exception occurs while parsing
+	* NSString: fix lead in dataUsingEncoding:allowLossyConversion:
+	* NSTimeZone: fix retain cycle in absolute time zones
+	fix leak of ICU calendar in -localizedName:locale:
+	* NSURL: fix leaks when initialising with unparseable string etc
+	* Testcases: fix many leaks so that most tests run to completion
+	without any leaked memory.
+	
+>>>>>>> e0b37c4a1b60bd93877d40d814ebb99944635478
 2024-11-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSBundle.m: Restructure a bit to expose resource lookup

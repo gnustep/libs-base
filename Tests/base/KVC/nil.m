@@ -43,9 +43,9 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
 
-  DefaultNil * defaultNil = [DefaultNil new];
-  DeprecatedNil * deprecatedNil = [DeprecatedNil new];
-  SetNil * setNil = [SetNil new];
+  DefaultNil	*defaultNil = AUTORELEASE([DefaultNil new]);
+  DeprecatedNil *deprecatedNil = AUTORELEASE([DeprecatedNil new]);
+  SetNil 	*setNil = AUTORELEASE([SetNil new]);
 
   PASS_EXCEPTION([defaultNil setValue: nil forKey: @"num"],
     NSInvalidArgumentException, "KVC handles setting nil for a scalar")

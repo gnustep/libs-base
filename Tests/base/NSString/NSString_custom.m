@@ -23,6 +23,8 @@ implementations of the NSString methods in NSString itself.
 	 length: (NSUInteger)l
        encoding: (NSStringEncoding)encoding
 {
+  if (characters) free(characters);
+  characters = NULL;
   if (l > 0)
     {
       if (encoding == NSUnicodeStringEncoding)
@@ -37,7 +39,7 @@ implementations of the NSString methods in NSString itself.
 	  s = [[NSString alloc] initWithBytes: c
 				       length: l
                                      encoding: encoding];
-	  if (s == nil) return nil;
+	  if (s == nil) {RELEASE(self); return nil;}
 	  l = [s length] * sizeof(unichar);
 	  characters = malloc(l);
 	  [s getCharacters: characters];
@@ -53,6 +55,8 @@ implementations of the NSString methods in NSString itself.
 	     encoding: (NSStringEncoding)encoding
          freeWhenDone: (BOOL)freeWhenDone
 {
+  if (characters) free(characters);
+  characters = NULL;
   if (l > 0)
     {
       if (encoding == NSUnicodeStringEncoding)
@@ -68,7 +72,7 @@ implementations of the NSString methods in NSString itself.
 					     length: l
 					   encoding: encoding
 				       freeWhenDone: freeWhenDone];
-	  if (s == nil) return nil;
+	  if (s == nil) {RELEASE(self); return nil;}
 	  l = [s length] * sizeof(unichar);
 	  characters = malloc(l);
 	  [s getCharacters: characters];

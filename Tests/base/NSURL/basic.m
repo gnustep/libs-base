@@ -20,7 +20,7 @@ int main()
   unichar	u = 163;
   unichar       buf[256];
   
-  TEST_FOR_CLASS(@"NSURL", [NSURL alloc],
+  TEST_FOR_CLASS(@"NSURL", AUTORELEASE([NSURL alloc]),
     "NSURL +alloc returns an NSURL");
   
   TEST_FOR_CLASS(@"NSURL", [NSURL fileURLWithPath: @"."],
@@ -366,16 +366,18 @@ GSPathHandling("right");
   NSURLQueryItem* item = [[NSURLQueryItem alloc] init];
   PASS_EQUAL(item.name, @"", "NSURLQueryItem.name should not be nil");
   PASS_EQUAL(item.value, nil, "NSURLQueryItem.value should be nil");
+  RELEASE(item);
     
   //OSX behavior is to return query item with an empty string name
   item = [[NSURLQueryItem alloc] initWithName:nil value:nil];
   PASS_EQUAL(item.name, @"", "NSURLQueryItem.name should not be nil");
   PASS_EQUAL(item.value, nil, "NSURLQueryItem.value should be nil");
+  RELEASE(item);
     
   item = [[NSURLQueryItem alloc] initWithName:@"myName" value:@"myValue"];
   PASS_EQUAL(item.name,  @"myName", "NSURLQueryItem.name should not be nil");
   PASS_EQUAL(item.value, @"myValue", "NSURLQueryItem.value should not be nil");
-
+  RELEASE(item);
     
   [arp release]; arp = nil;
   return 0;

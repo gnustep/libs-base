@@ -75,8 +75,6 @@ static void     *isFinishedCtxt = (void*)"isFinished";
 static void     *isReadyCtxt = (void*)"isReady";
 static void     *queuePriorityCtxt = (void*)"queuePriority";
 
-static NSArray	*empty = nil;
-
 @interface	NSOperation (Private)
 - (void) _finish;
 - (void) _updateReadyState;
@@ -89,12 +87,6 @@ static NSArray	*empty = nil;
   /* Handle all KVO manually
    */
   return NO;
-}
-
-+ (void) initialize
-{
-  empty = [NSArray new];
-  RELEASE([NSObject leakAt: &empty]);
 }
 
 - (void) addDependency: (NSOperation *)op
@@ -201,7 +193,7 @@ static NSArray	*empty = nil;
 {
   /* Only clean up if ivars have been initialised
    */
-  if (internal && internal->lock)
+  if (GS_EXISTS_INTERNAL && internal->lock != nil)
     {
       NSOperation	*op;
 
@@ -219,7 +211,7 @@ static NSArray	*empty = nil;
       RELEASE(internal->completionBlock);
       GS_DESTROY_INTERNAL(NSOperation);
     }
-  [super dealloc];
+  DEALLOC
 }
 
 - (NSArray *) dependencies
@@ -228,7 +220,7 @@ static NSArray	*empty = nil;
 
   if (internal->dependencies == nil)
     {
-      a = empty;	// OSX return an empty array
+      a = [NSArray array];	// OSX return an empty array
     }
   else
     {
@@ -576,7 +568,7 @@ static NSArray	*empty = nil;
 - (void) dealloc
 {
   RELEASE(_executionBlocks);
-  [super dealloc];
+  DEALLOC
 }
 
 - (NSArray *) executionBlocks
@@ -807,15 +799,18 @@ static NSOperationQueue *mainQueue = nil;
 
 - (void) dealloc
 {
-  [self cancelAllOperations];
-  DESTROY(internal->operations);
-  DESTROY(internal->starting);
-  DESTROY(internal->waiting);
-  DESTROY(internal->name);
-  DESTROY(internal->cond);
-  DESTROY(internal->lock);
-  GS_DESTROY_INTERNAL(NSOperationQueue);
-  [super dealloc];
+  if (GS_EXISTS_INTERNAL && internal->lock != nil)
+    {
+      [self cancelAllOperations];
+      DESTROY(internal->operations);
+      DESTROY(internal->starting);
+      DESTROY(internal->waiting);
+      DESTROY(internal->name);
+      DESTROY(internal->cond);
+      DESTROY(internal->lock);
+      GS_DESTROY_INTERNAL(NSOperationQueue);
+    }
+  DEALLOC
 }
 
 - (id) init
@@ -834,7 +829,8 @@ static NSOperationQueue *mainQueue = nil;
       internal->cond = [[NSConditionLock alloc] initWithCondition: 0];
       [internal->cond setName:
         [NSString stringWithFormat: @"cond-for-op-%p", self]];
-      internal->name = [[NSString alloc] initWithFormat: @"NSOperationQueue %p", self];
+      internal->name
+	= [[NSString alloc] initWithFormat: @"NSOperationQueue %p", self];
 
       /* Ensure that default thread name can be displayed on systems with a
        * limited thread name length.

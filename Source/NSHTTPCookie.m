@@ -197,19 +197,21 @@ static NSMutableArray *GSCookieStrings(NSString *string);
 + (NSArray *) cookiesWithResponseHeaderFields: (NSDictionary *)headerFields
 				       forURL: (NSURL *)URL
 {
-  NSEnumerator   *henum = [headerFields keyEnumerator];
-  NSMutableArray *a = [NSMutableArray array];
-  NSString *header;
+  NSEnumerator   	*henum = [headerFields keyEnumerator];
+  NSMutableArray 	*a = [NSMutableArray array];
+  NSString 		*header;
 
   while ((header = [henum nextObject]))
     {
-      NSMutableArray *suba 
-	= [self _parseField: [headerFields objectForKey: header] 
-		forHeader: header andURL: URL];
+      NSString		*field = [headerFields objectForKey: header];
+      NSMutableArray 	*suba = [self _parseField: field 
+					forHeader: header
+					   andURL: URL];
       if (suba)
-	[a addObjectsFromArray: suba];
+	{
+	  [a addObjectsFromArray: suba];
+	}
     }
-  
   return a;
 }
 
@@ -825,7 +827,7 @@ GSPropertyListFromCookieFormat(NSString *string, int version)
 	    }
 	  RELEASE(key);
 	  RELEASE(val);
-	  if (pld->ptr[pld->pos] == ';')
+	  if (pld->pos < pld->end && pld->ptr[pld->pos] == ';')
 	    {
 	      pld->pos++;
 	    }

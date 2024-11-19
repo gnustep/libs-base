@@ -8,7 +8,7 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSString *key1, *key2, *key3, *val1, *val2, *val3;
   NSArray *keys1, *keys2, *keys3, *vals1, *vals2, *vals3;
   id obj;
@@ -28,7 +28,7 @@ int main()
   vals3 = [NSArray arrayWithObjects:val1,val2,val3,nil];
    
   
-  dict = [NSMutableDictionary new];
+  dict = [NSMutableDictionary dictionary];
   PASS(dict != nil && 
        [dict isKindOfClass:[NSMutableDictionary class]] 
        && [dict count] == 0,
@@ -207,7 +207,7 @@ int main()
        [obj isEqual:dict],
        "-description gives us a text property-list");
  
-  dict = [NSMutableDictionary new];
+  dict = [NSMutableDictionary dictionary];
   [dict setObject:@"hello" forKey:@"world"];
   PASS(dict != nil &&
        [dict isKindOfClass:[NSMutableDictionary class]] &&
@@ -218,6 +218,6 @@ int main()
   PASS([[dict valueForKey:@"Lücke"] isEqualToString:@"hello"],
       "unicode keys work with setValue:forKey:");
 
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

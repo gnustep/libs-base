@@ -120,7 +120,7 @@ int main()
 
   NSOrderedSet *testObj, *testObj2;
   NSMutableOrderedSet *mutableTest1, *mutableTest2;
-  NSMutableArray *testObjs = [NSMutableArray new];
+  NSMutableArray *testObjs = [NSMutableArray array];
   NSData *data = [stringData dataUsingEncoding: NSUTF8StringEncoding];
   NSMutableSet *testSet;
 

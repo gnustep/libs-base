@@ -31,6 +31,7 @@
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSInvocation.h"
+#import "Foundation/NSPointerArray.h"
 #import "Foundation/NSZone.h"
 #import "GSInvocation.h"
 #import "GSPrivate.h"
@@ -70,6 +71,7 @@
 - (void) dealloc
 {
   DESTROY(frame);
+  DESTROY(extra);
   if (size > 0)
     {
 #if	defined(HAVE_FFI_PREP_CLOSURE_LOC)
@@ -173,9 +175,10 @@
 #endif
 }
 
-- (void) setFrame: (id)aFrame
+- (void) setFrame: (id)aFrame extra: (NSPointerArray*)pa
 {
   ASSIGN(frame, aFrame);
+  ASSIGN(extra, pa);
 }
 @end
 

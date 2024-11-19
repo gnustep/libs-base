@@ -164,8 +164,9 @@ copyDispatchDataToNSData(dispatch_data_t dispatchData)
 
   _routes = [routes copy];
 
-  struct sockaddr_in serverAddr;
-  NSUInteger         addrLen = sizeof(struct sockaddr_in);
+  struct sockaddr_in	serverAddr;
+  socklen_t		addrLen = sizeof(struct sockaddr_in);
+
   serverAddr.sin_family = AF_INET;
   serverAddr.sin_port = NSSwapHostShortToBig(port);
   serverAddr.sin_addr.s_addr = INADDR_ANY;
@@ -208,12 +209,12 @@ copyDispatchDataToNSData(dispatch_data_t dispatchData)
   return self;
 }
 
-- (void)acceptConnection
+- (void) acceptConnection
 {
-  struct sockaddr_in clientAddr;
-  dispatch_source_t clientSource;
-  NSUInteger         sin_size;
-  int                clientSocket;
+  struct sockaddr_in	clientAddr;
+  dispatch_source_t	clientSource;
+  socklen_t      	sin_size;
+  int                	clientSocket;
 
   sin_size = sizeof(struct sockaddr_in);
   clientSocket = accept(_socket, (struct sockaddr *) &clientAddr, &sin_size);

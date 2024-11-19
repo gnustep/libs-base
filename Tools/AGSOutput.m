@@ -1632,7 +1632,7 @@ static BOOL snuggleStart(NSString *t)
 		  unsigned	len = optr - buf;
 		  unichar	c[len + 1];
 
-		  memcpy(c, buf, (len+1)*sizeof(unichar));
+		  memcpy(c, buf, len*sizeof(unichar));
 		  c[len-2] = ' ';
 		  c[len-1] = '/';
 		  c[len] = '>';

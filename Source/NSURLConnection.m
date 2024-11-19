@@ -431,6 +431,7 @@ typedef struct
   this->_delegate = nil;
   [o connection: self didFailWithError: error];
   DESTROY(o);
+  DESTROY(this->_protocol);
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol
@@ -510,6 +511,7 @@ typedef struct
   this->_delegate = nil;
   [o connectionDidFinishLoading: self];
   DESTROY(o);
+  DESTROY(this->_protocol);
 }
 
 - (void) URLProtocol: (NSURLProtocol *)protocol

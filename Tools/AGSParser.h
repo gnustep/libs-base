@@ -104,6 +104,7 @@
 - (NSMutableArray*) parseProtocolList;
 - (unsigned) parseSpace: (NSCharacterSet*)spaceSet;
 - (unsigned) parseSpace;
+- (unsigned) parseSpaceOrGeneric;
 - (NSString*) parseVersion;
 - (void) reset;
 - (void) setDebug: (BOOL)aFlag;
@@ -115,9 +116,11 @@
 - (void) setWordMap: (NSDictionary*)map;
 - (void) setupBuffer;
 - (unsigned) skipArray;
+- (unsigned) skipAttribute: (NSString*)s;
 - (unsigned) skipBlock;
 - (unsigned) skipBlock: (BOOL*)isEmpty;
 - (unsigned) skipGeneric;
+- (unsigned) skipIfAttribute;
 - (unsigned) skipLiteral;
 - (unsigned) skipRemainderOfLine;
 - (unsigned) skipSpaces;

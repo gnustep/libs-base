@@ -2740,7 +2740,7 @@ static NSMutableSet	*textNodes = nil;
       [dot appendFormat: @"digraph class_%@ {\n", cNam];
       [dot appendString: @" rankdir = \"TB\";\n"];
       [dot appendString: @" {\n"];
-      [dot appendString: @"   node [margin=0 fontcolor=blue"
+      [dot appendString: @"   node [margin=0 "
 	@" fontsize=24 width=0.5 shape=rectangle style=filled]\n"];
       if (sNam)
 	{
@@ -2750,13 +2750,13 @@ static NSMutableSet	*textNodes = nil;
 	      [dot appendFormat: @" URL=\"%@\"", url];
 	    }
           [dot appendString: @"]\n"];
-	  [dot appendFormat: @"  %@ [class=figure_class fontcolor=\"green\"]\n",
+	  [dot appendFormat: @"  %@ [class=figure_class]\n",
 	    cNam];
 	}
       else
 	{
 	  sNam = cNam;	// This is a root class ... 
-	  [dot appendFormat: @"  %@ [class=figure_root fontcolor=\"green\"]\n",
+	  [dot appendFormat: @"  %@ [class=figure_root]\n",
 	    cNam];
 	}
       if (protocols)

@@ -1220,7 +1220,7 @@ AC_LANG_POP(C)
 
 AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
 PKG_PROG_PKG_CONFIG
-# If the modern mechanism failswe may havew an older pkg-config
+# If the modern mechanism fails we may have an older pkg-config
 # so try looking it up the old fashioned way.
 if test -z "$PKG_CONFIG"; then
   AC_PATH_PROG(PKG_CONFIG,pkg-config,,)
@@ -3562,6 +3562,7 @@ if test $enable_zeroconf = yes; then
 fi
 AC_SUBST(HAVE_MDNS)
 AC_SUBST(HAVE_AVAHI)
+
 #--------------------------------------------------------------------
 # Check for International Components for Unicode
 # See DEPENDENCIES POLICY at the start of this file.

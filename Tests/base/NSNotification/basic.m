@@ -22,10 +22,9 @@
 
 int main()
 {
-  NSNotification *obj;
-  NSMutableArray *testObjs = [[NSMutableArray alloc] init];
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-
+  ENTER_POOL
+  NSNotification 	*obj;
+  NSMutableArray 	*testObjs = [NSMutableArray array];
   NSDictionary          *info = [NSDictionary dictionaryWithObjectsAndKeys:
     @"obj", @"key", nil];
   NSNotification        *o1 = [NSNotification notificationWithName: @"hello"
@@ -34,18 +33,19 @@ int main()
   NSNotification        *o2 = [NSNotification notificationWithName: @"hello"
                                                             object: @"there"
                                                           userInfo: info]; 
+
   PASS([o1 hash] == [o2 hash], "equal notification hashes")
   PASS_EQUAL(o1, o2, "equal notifications")
 
   test_alloc(@"NSNotification"); 
 
-  obj = [NSNotification new];
+  obj = AUTORELEASE([NSNotification new]);
   [testObjs addObject: obj];
   test_NSObject(@"NSNotification", testObjs);
   test_NSCoding(testObjs);
   test_keyed_NSCoding(testObjs);
   test_NSCopying(@"NSNotification",@"NSNotification",testObjs,NO,NO);
   
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

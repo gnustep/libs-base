@@ -6314,7 +6314,7 @@ printf "%s\n" "no" >&6; }
 		PKG_CONFIG=""
 	fi
 fi
-# If the modern mechanism failswe may havew an older pkg-config
+# If the modern mechanism fails we may have an older pkg-config
 # so try looking it up the old fashioned way.
 if test -z "$PKG_CONFIG"; then
   # Extract the first word of "pkg-config", so it can be a program name with args.
@@ -14137,6 +14137,7 @@ fi
     LIBS="$AVAHI_LIBS $MDNS_LIBS $LIBS"
   fi
 fi
+
 
 
 #--------------------------------------------------------------------
