@@ -1486,8 +1486,8 @@ recheck:
 
 - (NSMutableArray*) parseDeclarations
 {
+  IF_NO_ARC(NSAutoreleasePool	*arp = [NSAutoreleasePool new];)
   NSMutableArray	*declarations = [NSMutableArray array];
-  CREATE_AUTORELEASE_POOL(arp);
   static NSSet		*qualifiers = nil;
   static NSSet		*keep = nil;
   NSString		*baseName = nil;
@@ -1516,7 +1516,7 @@ recheck:
 	@"unsigned",
 	@"volatile",
 	nil];
-      IF_NO_ARC([qualifiers retain];)
+      IF_NO_ARC(qualifiers = [qualifiers retain];)
       keep = [NSSet setWithObjects:
 	@"const",
 	@"long",
@@ -1525,7 +1525,7 @@ recheck:
 	@"unsigned",
 	@"volatile",
 	nil];
-      IF_NO_ARC([keep retain];)
+      IF_NO_ARC(keep = [keep retain];)
     }
 
     {
@@ -1573,7 +1573,7 @@ recheck:
 		      pos++;
 		      [self skipSpaces];
 		    }
-		  IF_NO_ARC(DESTROY(arp);)
+		  IF_NO_ARC([arp release];)
 		  return nil;
 		}
 
@@ -1644,7 +1644,7 @@ recheck:
 	      if (NO == isEnum)
 		{
 		  [self log: @"messed up NS_ENUM/NS_OPTIONS declaration"];
-		  [arp drain];
+		  IF_NO_ARC([arp release];)
 		  return nil;
 		}
 	    }
@@ -2008,8 +2008,8 @@ another:
 	{
 	  if (buffer[pos] == ')' || buffer[pos] == ',')
 	    {
-	      [arp drain];
-	      return declarations;
+	      IF_NO_ARC(declarations = [declarations retain]; [arp release];)
+	      return AUTORELEASE(declarations);
 	    }
 	  else
 	    {
@@ -2131,7 +2131,6 @@ another:
 	}
       DESTROY(comment);
 
-      [arp drain];
       if (inArgList == NO)
 	{
 	  /*
@@ -2149,11 +2148,13 @@ another:
 		{
 		  [self log: @"parse declaration with no name - %@", d];
 		}
+	      IF_NO_ARC([arp release];)
 	      return nil;
 	    }
 	}
       [self setStandards: declarations];
-      return declarations;
+      IF_NO_ARC(declarations = [declarations retain]; [arp release];)
+      return AUTORELEASE(declarations);
     }
   else
     {
@@ -2161,7 +2162,7 @@ another:
     }
 fail:
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return nil;
 }
 
