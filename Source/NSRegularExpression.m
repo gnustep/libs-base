@@ -868,35 +868,29 @@ prepareResult(NSRegularExpression *regex,
 {
   // FIXME: We're computing a value that is most likely ignored in an
   // expensive way.
-  NSInteger	results = [self numberOfMatchesInString: string
-						options: opts
-						  range: range];
-  UErrorCode	s = 0;
-  UText		txt = UTEXT_INITIALIZER;
-  UText		replacement = UTEXT_INITIALIZER;
-  GSUTextString	*ret = [GSUTextString new];
-  URegularExpression *r = setupRegex(regex, string, &txt, opts, range, 0);
-  UText		*output = NULL;
+  NSInteger		results = [self numberOfMatchesInString: string
+							options: opts
+						  	  range: range];
+  UErrorCode		s = 0;
+  UText			dst = UTEXT_INITIALIZER;
+  UText			txt = UTEXT_INITIALIZER;
+  UText			replacement = UTEXT_INITIALIZER;
+  NSMutableString	*ms = [NSMutableString string];
+  URegularExpression 	*r = setupRegex(regex, string, &txt, opts, range, 0);
 
   UTextInitWithNSString(&replacement, template);
+  UTextInitWithNSMutableString(&dst, ms);
 
-  output = uregex_replaceAllUText(r, &replacement, NULL, &s);
+  uregex_replaceAllUText(r, &replacement, &dst, &s);
+  uregex_close(r);
+  utext_close(&replacement);
+  utext_close(&txt);
+  utext_close(&dst);
   if (0 != s)
     {
-      uregex_close(r);
-      utext_close(&replacement);
-      utext_close(&txt);
-      DESTROY(ret);
       return 0;
     }
-  utext_clone(&ret->txt, output, TRUE, TRUE, &s);
-  [string setString: ret];
-  RELEASE(ret);
-  uregex_close(r);
-
-  utext_close(&txt);
-  utext_close(output);
-  utext_close(&replacement);
+  [string setString: ms];
   return results;
 }
 
@@ -905,31 +899,26 @@ prepareResult(NSRegularExpression *regex,
                                          range: (NSRange)range
                                   withTemplate: (NSString*)template
 {
-  UErrorCode	s = 0;
-  UText		txt = UTEXT_INITIALIZER;
-  UText		replacement = UTEXT_INITIALIZER;
-  UText		*output = NULL;
-  GSUTextString	*ret = [GSUTextString new];
-  URegularExpression *r = setupRegex(regex, string, &txt, opts, range, 0);
+  UErrorCode		s = 0;
+  UText			dst = UTEXT_INITIALIZER;
+  UText			txt = UTEXT_INITIALIZER;
+  UText			replacement = UTEXT_INITIALIZER;
+  NSMutableString	*ms = [NSMutableString string];
+  URegularExpression 	*r = setupRegex(regex, string, &txt, opts, range, 0);
 
   UTextInitWithNSString(&replacement, template);
+  UTextInitWithNSMutableString(&dst, ms);
 
-  output = uregex_replaceAllUText(r, &replacement, NULL, &s);
+  uregex_replaceAllUText(r, &replacement, &dst, &s);
+  uregex_close(r);
+  utext_close(&replacement);
+  utext_close(&txt);
+  utext_close(&dst);
   if (0 != s)
     {
-      uregex_close(r);
-      utext_close(&replacement);
-      utext_close(&txt);
-      DESTROY(ret);
       return nil;
     }
-  utext_clone(&ret->txt, output, TRUE, TRUE, &s);
-  uregex_close(r);
-
-  utext_close(&txt);
-  utext_close(output);
-  utext_close(&replacement);
-  return AUTORELEASE(ret);
+  return ms;
 }
 
 - (NSString*) replacementStringForResult: (NSTextCheckingResult*)result
@@ -937,13 +926,13 @@ prepareResult(NSRegularExpression *regex,
                                   offset: (NSInteger)offset
                                 template: (NSString*)template
 {
-  UErrorCode	s = 0;
-  UText		txt = UTEXT_INITIALIZER;
-  UText		replacement = UTEXT_INITIALIZER;
-  UText		*output = NULL;
-  GSUTextString	*ret = [GSUTextString new];
-  NSRange	range = [result range];
-  URegularExpression *r = setupRegex(regex,
+  UErrorCode		s = 0;
+  UText			dst = UTEXT_INITIALIZER;
+  UText			txt = UTEXT_INITIALIZER;
+  UText			replacement = UTEXT_INITIALIZER;
+  NSMutableString	*ms = [NSMutableString string];
+  NSRange		range = [result range];
+  URegularExpression 	*r = setupRegex(regex,
 				     [string substringWithRange: range],
 				     &txt,
 				     0,
@@ -951,22 +940,18 @@ prepareResult(NSRegularExpression *regex,
 				     0);
 
   UTextInitWithNSString(&replacement, template);
+  UTextInitWithNSMutableString(&dst, ms);
 
-  output = uregex_replaceFirstUText(r, &replacement, NULL, &s);
-  if (0 != s)
-    {
-      uregex_close(r);
-      utext_close(&replacement);
-      utext_close(&txt);
-      DESTROY(ret);
-      return nil;
-    }
-  utext_clone(&ret->txt, output, TRUE, TRUE, &s);
-  utext_close(output);
+  uregex_replaceFirstUText(r, &replacement, &dst, &s);
   uregex_close(r);
+  utext_close(&dst);
   utext_close(&txt);
   utext_close(&replacement);
-  return AUTORELEASE(ret);
+  if (0 != s)
+    {
+      return nil;
+    }
+  return ms;
 }
 #else
 - (NSUInteger) replaceMatchesInString: (NSMutableString*)string
