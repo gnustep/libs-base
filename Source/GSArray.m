@@ -40,6 +40,7 @@
 static SEL	eqSel;
 static SEL	oaiSel;
 
+static Class	GSArrayClass;
 static Class	GSInlineArrayClass;
 /* This class stores objects inline in data beyond the end of the instance.
  */
@@ -107,6 +108,7 @@ static Class	GSInlineArrayClass;
       [self setVersion: 1];
       eqSel = @selector(isEqual:);
       oaiSel = @selector(objectAtIndex:);
+      GSArrayClass = self;
       GSInlineArrayClass = [GSInlineArray class];
     }
 }
@@ -1195,8 +1197,17 @@ static Class	GSInlineArrayClass;
 
 - (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
-  self = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*count,
-    [self zone]);
+  NSZone	*z = [self zone];
+
+  /* The gnustep-make -asan=yes option enables LeakSanitizer but (Nov2024)
+   * that produces false positives for items held in an inline array, so
+   * we use the less efficient class in that case.
+   */
+#if	defined(GS_WITH_ASAN)
+  self = (id)NSAllocateObject(GSArrayClass, 0, z);
+#else
+  self = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*count, z);
+#endif
   return [self initWithObjects: objects count: count];
 }
 
