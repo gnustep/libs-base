@@ -295,6 +295,8 @@ extern "C" {
  */
 + (BOOL) shouldCleanUp;
 
++ (void) trackOwnership;
+
 @end
 
 /* Macro to take an autoreleased object and either make it immutable or

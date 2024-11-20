@@ -419,6 +419,113 @@ handleExit()
   return shouldCleanUp;
 }
 
+
+
+struct trackLink {
+  struct trackLink	*next;
+  Class			cls;		// Class whose instaances are tracked.
+  IMP			release;	// Original -release implementation
+  IMP			retain;		// Original -retain implementation
+};
+
+static struct trackLink	*tracked = 0;
+static gs_mutex_t	trackLock = GS_MUTEX_INIT_STATIC;
+
+- (void) _replacementRelease
+{
+  struct trackLink	*l;
+  Class			c = object_getClass(self);
+  IMP			release = 0;
+  unsigned		rc;
+
+  GS_MUTEX_LOCK(trackLock);
+  l = tracked;
+  while (l)
+    {
+      if (l->cls == c)
+	{
+	  release = l->release;
+	  break;
+	}
+      l = l->next;
+    }
+  GS_MUTEX_UNLOCK(trackLock);
+  rc = (unsigned)[self retainCount];
+  NSLog(@"-[%p release] %u->%u at %@",
+    self, rc, rc-1, [NSThread callStackSymbols]);
+  (*release)(self, _cmd);
+}
+- (id) _replacementRetain
+{
+  struct trackLink	*l;
+  Class			c = object_getClass(self);
+  IMP			retain = 0;
+  id			result;
+  unsigned		rc;
+
+  GS_MUTEX_LOCK(trackLock);
+  l = tracked;
+  while (l)
+    {
+      if (l->cls == c)
+	{
+	  retain = l->retain;
+	  break;
+	}
+      l = l->next;
+    }
+  GS_MUTEX_UNLOCK(trackLock);
+  rc = (unsigned)[self retainCount];
+  result = (*retain)(self, _cmd);
+  NSLog(@"-[%p retain] %u->%u at %@",
+    self, rc, (unsigned)[self retainCount], [NSThread callStackSymbols]);
+  return result;
+}
+
++ (void) trackOwnership
+{
+  Method 		replacementRelease;
+  Method 		replacementRetain;
+  Class			c = object_getClass(self);
+  struct trackLink	*l;
+
+  if (class_isMetaClass(c))
+    {
+      c = self;
+    }
+
+  GS_MUTEX_LOCK(trackLock);
+  l = tracked;
+  while (l)
+    {
+      if (l->cls == c)
+	{
+	  GS_MUTEX_UNLOCK(trackLock);
+	  return;
+	}
+      l = l->next;
+    }
+
+  replacementRelease = class_getInstanceMethod([NSObject class],
+    @selector(_replacementRelease));
+  replacementRetain = class_getInstanceMethod([NSObject class],
+    @selector(_replacementRetain));
+
+  l = (struct trackLink*)malloc(sizeof(struct trackLink));
+  l->cls = c;
+  l->release = class_getMethodImplementation(c, @selector(release));
+  class_replaceMethod(c, @selector(release),
+    method_getImplementation(replacementRelease),
+    method_getTypeEncoding(replacementRelease));
+  l->retain = class_getMethodImplementation(c, @selector(retain));
+  class_replaceMethod(c, @selector(retain),
+    method_getImplementation(replacementRetain),
+    method_getTypeEncoding(replacementRetain));
+  l->next = tracked;
+  tracked = l;
+  GS_MUTEX_UNLOCK(trackLock);
+}
+
 @end
 
 #else
