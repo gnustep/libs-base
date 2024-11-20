@@ -320,6 +320,7 @@ equalTypes(NSArray *t1, NSArray *t2)
 
 - (void) dealloc
 {
+  [self reset];
   DESTROY(wordMap);
   DESTROY(ifStack);
   DESTROY(declared);
@@ -1680,7 +1681,7 @@ recheck:
 
 	      /* We want to be able to parse new comments while retaining the 
 		 originally parsed comment for the enum/union/struct. */
-	      introComment = [comment copy];
+	      introComment = AUTORELEASE([comment copy]);
 	      DESTROY(comment);
 
 	      pos++; /* Skip '{' */
