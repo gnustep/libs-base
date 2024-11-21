@@ -146,6 +146,11 @@
 @end
 
 #if     defined(GNUSTEP)
+
+@interface NSAutoreleasePool (NSThread)
++ (void) _endThread: (NSThread*)thread;
+@end
+
 struct exitLink {
   struct exitLink	*next;
   id			obj;	// Object to release or class for atExit
@@ -234,6 +239,11 @@ handleExit()
   if (unknownThread == YES)
     {
       GSUnregisterCurrentThread();
+    }
+  else
+    {
+      [[NSAutoreleasePool currentPool] dealloc];
+      [NSAutoreleasePool _endThread: GSCurrentThread()];
     }
   isExiting = NO;
 }
