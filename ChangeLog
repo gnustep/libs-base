@@ -4,6 +4,8 @@
 	methods with a non-NULL destination.
 	* NSAutoreleasePool: fix leaks with libobjc2 ARC methods when a pool
 	is in a context that we leave due to an exception.
+	* NSObject: add -trackOwnership to log the retain/release/dealloc of
+	in individual instance.
 
 2024-11-19 Richard Frith-Macdonald <rfm@gnu.org>
 

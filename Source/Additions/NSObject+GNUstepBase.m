@@ -433,96 +433,191 @@ handleExit()
 
 struct trackLink {
   struct trackLink	*next;
-  Class			cls;		// Class whose instaances are tracked.
+  id			object;		// Instance or Class being tracked.
+  IMP			dealloc;	// Original -dealloc implementation
   IMP			release;	// Original -release implementation
   IMP			retain;		// Original -retain implementation
+  BOOL                  global;         // If all instance are tracked.
 };
 
 static struct trackLink	*tracked = 0;
 static gs_mutex_t	trackLock = GS_MUTEX_INIT_STATIC;
 
-- (void) _replacementRelease
+static inline struct trackLink *
+find(id o)
 {
-  struct trackLink	*l;
-  Class			c = object_getClass(self);
-  IMP			release = 0;
-  unsigned		rc;
+  struct trackLink      *l = tracked;
 
-  GS_MUTEX_LOCK(trackLock);
-  l = tracked;
   while (l)
     {
-      if (l->cls == c)
+      if (l->object == o)
 	{
-	  release = l->release;
-	  break;
+	  return l;
 	}
       l = l->next;
     }
+  return NULL;
+}
+
+/* Lookup the object in the tracking list.
+ * If found as a tracked instance or found as an instance of a class for which
+ * all instances are tracked, return YES.  Otherwise return NO (should not log).
+ */
+static BOOL
+findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
+{
+  struct trackLink	*l;
+  Class                 c;
+
+  GS_MUTEX_LOCK(trackLock);
+  l = find(o);
+  if (l)
+    {
+      *dea = l->dealloc;
+      *rel = l->release;
+      *ret = l->retain;
+      GS_MUTEX_UNLOCK(trackLock);
+      return YES;
+    }
+  c = object_getClass(o);
+  l = find((id)c);
+  if (l)
+    {
+      BOOL      all;
+
+      *dea = l->dealloc;
+      *rel = l->release;
+      *ret = l->retain;
+      all = l->global;
+      GS_MUTEX_UNLOCK(trackLock);
+      return all;
+    }
   GS_MUTEX_UNLOCK(trackLock);
-  rc = (unsigned)[self retainCount];
-  NSLog(@"-[%p release] %u->%u at %@",
-    self, rc, rc-1, [NSThread callStackSymbols]);
-  (*release)(self, _cmd);
+  /* Should never happen because we don't remove class entries, but I suppose
+   * someone could call the replacement methods directly.
+   */
+  *dea = [c instanceMethodForSelector: @selector(dealloc)];
+  *rel = [c instanceMethodForSelector: @selector(release)];
+  *ret = [c instanceMethodForSelector: @selector(retain)];
+  return NO;
+}
+
+- (void) _replacementDealloc
+{
+  IMP	dealloc = 0;
+  IMP	retain = 0;
+  IMP	release = 0;
+
+  if (findMethods(self, &dealloc, &release, &retain) == NO)
+    {
+      /* Not a tracked instance ... dealloc without logging.
+       */
+      (*dealloc)(self, _cmd);
+    }
+  else
+    {
+      struct trackLink	*l;
+
+      /* If there's a link for tracking this specific instance, remove it.
+       */
+      GS_MUTEX_LOCK(trackLock);
+      if ((l = tracked) != 0)
+        {
+          if (l->object == self)
+            {
+              tracked = l->next;
+              free(l);
+            }
+          else
+            {
+              struct trackLink  *n;
+
+              while ((n = l->next) != 0)
+                {
+                  if (n->object == self)
+                    {
+                      l->next = n->next;
+                      free(n);
+                      break;
+                    }
+                  l = n;
+                }
+            }
+        }
+      GS_MUTEX_UNLOCK(trackLock);
+      NSLog(@"Tracking ownership -[%p dealloc] at %@",
+        self, [NSThread callStackSymbols]);
+      (*dealloc)(self, _cmd);
+    }
+}
+- (void) _replacementRelease
+{
+  IMP	dealloc = 0;
+  IMP	retain = 0;
+  IMP	release = 0;
+
+  if (findMethods(self, &dealloc, &release, &retain) == NO)
+    {
+      /* Not a tracked instance ... release without logging.
+       */
+      (*release)(self, _cmd);
+    }
+  else
+    {
+      unsigned		rc;
+
+      rc = (unsigned)[self retainCount];
+      NSLog(@"Tracking ownership -[%p release] %u->%u at %@",
+        self, rc, rc-1, [NSThread callStackSymbols]);
+      (*release)(self, _cmd);
+    }
 }
 - (id) _replacementRetain
 {
-  struct trackLink	*l;
-  Class			c = object_getClass(self);
-  IMP			retain = 0;
-  id			result;
-  unsigned		rc;
+  IMP	dealloc = 0;
+  IMP	retain = 0;
+  IMP	release = 0;
+  id	result;
 
-  GS_MUTEX_LOCK(trackLock);
-  l = tracked;
-  while (l)
+  if (findMethods(self, &dealloc, &release, &retain) == NO)
     {
-      if (l->cls == c)
-	{
-	  retain = l->retain;
-	  break;
-	}
-      l = l->next;
+      /* Not a tracked instance ... retain without logging.
+       */
+      result = (*retain)(self, _cmd);
     }
-  GS_MUTEX_UNLOCK(trackLock);
-  rc = (unsigned)[self retainCount];
-  result = (*retain)(self, _cmd);
-  NSLog(@"-[%p retain] %u->%u at %@",
-    self, rc, (unsigned)[self retainCount], [NSThread callStackSymbols]);
+  else
+    {
+      unsigned		rc;
+
+      rc = (unsigned)[self retainCount];
+      result = (*retain)(self, _cmd);
+      NSLog(@"Tracking ownership -[%p retain] %u->%u at %@",
+        self, rc, (unsigned)[self retainCount], [NSThread callStackSymbols]);
+    }
   return result;
 }
 
-+ (void) trackOwnership
+static struct trackLink*
+makeLinkForClass(Class c)
 {
+  Method 		replacementDealloc;
   Method 		replacementRelease;
   Method 		replacementRetain;
-  Class			c = object_getClass(self);
-  struct trackLink	*l;
+  struct trackLink      *l;
 
-  if (class_isMetaClass(c))
-    {
-      c = self;
-    }
-
-  GS_MUTEX_LOCK(trackLock);
-  l = tracked;
-  while (l)
-    {
-      if (l->cls == c)
-	{
-	  GS_MUTEX_UNLOCK(trackLock);
-	  return;
-	}
-      l = l->next;
-    }
-
+  replacementDealloc = class_getInstanceMethod([NSObject class],
+    @selector(_replacementDealloc));
   replacementRelease = class_getInstanceMethod([NSObject class],
     @selector(_replacementRelease));
   replacementRetain = class_getInstanceMethod([NSObject class],
     @selector(_replacementRetain));
 
   l = (struct trackLink*)malloc(sizeof(struct trackLink));
-  l->cls = c;
+  l->object = c;
+  l->dealloc = class_getMethodImplementation(c, @selector(dealloc));
+  class_replaceMethod(c, @selector(dealloc),
+    method_getImplementation(replacementDealloc),
+    method_getTypeEncoding(replacementDealloc));
   l->release = class_getMethodImplementation(c, @selector(release));
   class_replaceMethod(c, @selector(release),
     method_getImplementation(replacementRelease),
@@ -531,9 +626,91 @@ static gs_mutex_t	trackLock = GS_MUTEX_INIT_STATIC;
   class_replaceMethod(c, @selector(retain),
     method_getImplementation(replacementRetain),
     method_getTypeEncoding(replacementRetain));
+
+  return l;
+}
+
++ (void) trackOwnership
+{
+  Class			c = self;
+  struct trackLink	*l;
+
+  NSAssert(NO == class_isMetaClass(object_getClass(self)),
+    NSInternalInconsistencyException);
+
+  GS_MUTEX_LOCK(trackLock);
+  if ((l = find((id)c)) != 0)
+    {
+      /* Class already tracked.  Set it so all instances are logged.
+       */
+      l->global = YES;
+      GS_MUTEX_UNLOCK(trackLock);
+      return;
+    }
+
+  l = makeLinkForClass(c);
+  l->global = YES;
   l->next = tracked;
   tracked = l;
   GS_MUTEX_UNLOCK(trackLock);
+  NSLog(@"Tracking ownership started for class %p at %@",
+    self, [NSThread callStackSymbols]);
+}
+
+- (void) trackOwnership
+{
+  Class			c = object_getClass(self);
+  struct trackLink	*l;
+  struct trackLink	*lc;
+  struct trackLink	*li;
+
+  NSAssert(NO == class_isMetaClass(c), NSInternalInconsistencyException);
+
+  GS_MUTEX_LOCK(trackLock);
+  if ((l = find(self)) != 0)
+    {
+      /* Instance already tracked.
+       */
+      GS_MUTEX_UNLOCK(trackLock);
+      return;
+    }
+
+  if ((l = find(c)) != 0)
+    {
+      /* The class already has tracking set up.
+       */
+      if (l->global)
+        {
+          /* All instances are logged, so we have nothing to do.
+           */
+          GS_MUTEX_UNLOCK(trackLock);
+          return;
+        }
+      lc = l;
+    }
+  else
+    {
+      /* Set this class up for tracking individual instances.
+       */
+      lc = makeLinkForClass(c);
+      lc->global = NO;
+      lc->next = tracked;
+      tracked = lc;
+    }
+
+  /* Now set up a record to track this one instance.
+   */
+  li = (struct trackLink*)malloc(sizeof(struct trackLink));
+  li->object = self;
+  li->global = NO;
+  li->dealloc = lc->dealloc;
+  li->release = lc->release;
+  li->retain = lc->retain;
+  li->next = tracked;
+  tracked = li;
+  GS_MUTEX_UNLOCK(trackLock);
+  NSLog(@"Tracking ownership started for instance %p at %@",
+    self, [NSThread callStackSymbols]);
 }
 
 @end
