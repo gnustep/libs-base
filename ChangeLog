@@ -1,7 +1,7 @@
 2024-11-21 Richard Frith-Macdonald <rfm@gnu.org>
 
-	* NSRegularExpression: avoid leaks in ICU code by calling replacement
-	methods with a non-NULL destination.
+	* NSRegularExpression: avoid leaks in ICU code by calling more
+	primitive methods.
 	* NSAutoreleasePool: fix leaks with libobjc2 ARC methods when a pool
 	is in a context that we leave due to an exception.
 	* NSObject: add -trackOwnership to log the retain/release/dealloc of
