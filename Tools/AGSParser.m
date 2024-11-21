@@ -2487,7 +2487,7 @@ fail:
        */
       [self skipUnit];
       DESTROY(comment);
-      [arp drain];
+      IF_NO_ARC([arp release];)
       return [NSMutableDictionary dictionary];
     }
   else
@@ -2526,13 +2526,13 @@ fail:
 
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return dict;
 
 fail:
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return nil;
 }
 
@@ -2692,13 +2692,13 @@ fail:
 
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return dict;
 
 fail:
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return nil;
 }
 
@@ -3052,7 +3052,7 @@ fail:
 
 - (NSMutableDictionary*) parseMethodIsDeclaration: (BOOL)flag
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  IF_NO_ARC(CREATE_AUTORELEASE_POOL(arp);)
   NSMutableDictionary	*method;
   NSMutableString	*mname;
   NSString		*token;
@@ -3340,14 +3340,14 @@ fail:
     }
 
   DESTROY(itemName);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   IF_NO_ARC([method autorelease];)
   return method;
 
 fail:
   DESTROY(itemName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   RELEASE(method);
   return nil;
 }
@@ -4290,7 +4290,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
   NSDictionary		*methods = nil;
   NSMutableDictionary	*dict;
   NSMutableDictionary	*d;
-  CREATE_AUTORELEASE_POOL(arp);
+  IF_NO_ARC(CREATE_AUTORELEASE_POOL(arp);)
 
   dict = [[NSMutableDictionary alloc] initWithCapacity: 8];
 
@@ -4381,14 +4381,14 @@ countAttributes(NSSet *keys, NSDictionary *a)
 
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   IF_NO_ARC([dict autorelease];)
   return dict;
 
 fail:
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   RELEASE(dict);
   return nil;
 }
@@ -4818,7 +4818,7 @@ fail:
   unichar		*inptr;
   unichar		*outptr;
   NSMutableArray	*a;
-  CREATE_AUTORELEASE_POOL(arp);
+  IF_NO_ARC(CREATE_AUTORELEASE_POOL(arp);)
 
   contents = [NSString stringWithContentsOfFile: fileName];
   length = [contents length];
@@ -4912,7 +4912,7 @@ fail:
   buffer = [data mutableBytes];
   pos = 0;
   ASSIGN(lines, [NSArray arrayWithArray: a]);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   IF_NO_ARC([data autorelease];)
 }
 
