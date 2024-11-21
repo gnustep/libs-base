@@ -1,3 +1,12 @@
+2024-11-21 Matvii Jarosh <matviijarosh@gmail.com>
+
+	* NSValue: add valueWithEdgeInsets and edgeInsetsValue.
+	* typeEncodingHelper.h: add NSINSETS_ENCODING_PREFIX and
+	IS_NSINSETS_ENCODING and update comment.
+	* type_encoding.m: add test NSINSETS_ENCODING_PREFIX.
+	* GSConcreteValueTamplate.m: add GSEdgeInsetsValue.
+	* GSConcreteValue.m: add TYPE_ORDER 6.
+
 2024-11-19 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* GSMime: fixed buffer overrun in rare circumstances when decoding

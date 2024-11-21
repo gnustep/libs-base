@@ -50,3 +50,7 @@
 #include "GSConcreteValueTemplate.m"
 #undef TYPE_ORDER
 
+#define TYPE_ORDER 6
+#include "GSConcreteValueTemplate.m"
+#undef TYPE_ORDER
+

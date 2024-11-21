@@ -35,6 +35,7 @@
 #import "Foundation/NSMapTable.h"
 #import "Foundation/NSLock.h"
 #import "Foundation/NSData.h"
+#import "Foundation/NSGeometry.h"
 #import "GSPThread.h"
 
 @interface	GSPlaceholderValue : NSValue
@@ -64,6 +65,11 @@
 @class	NSDataStatic;		// Needed for decoding.
 @interface NSDataStatic : NSData	// Help the compiler
 @end
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+@class GSEdgeInsetsValueValue;
+@interface GSEdgeInsetsValue : NSObject     // Help the compiler
+@end
+#endif
 
 
 static Class	abstractClass;
@@ -75,6 +81,9 @@ static Class	rangeValueClass;
 static Class	rectValueClass;
 static Class	sizeValueClass;
 static Class	GSPlaceholderValueClass;
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+static Class    edgeInsetsValueClass;
+#endif
 
 
 static GSPlaceholderValue	*defaultPlaceholderValue;
@@ -128,6 +137,9 @@ static gs_mutex_t               placeholderLock = GS_MUTEX_INIT_STATIC;
       rectValueClass = [GSRectValue class];
       sizeValueClass = [GSSizeValue class];
       GSPlaceholderValueClass = [GSPlaceholderValue class];
+      #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+      edgeInsetsValueClass = [GSEdgeInsetsValue class];
+      #endif
 
       /*
        * Set up infrastructure for placeholder values.
@@ -217,6 +229,10 @@ static gs_mutex_t               placeholderLock = GS_MUTEX_INIT_STATIC;
     theClass = rectValueClass;
   else if (strcmp(@encode(NSSize), type) == 0)
     theClass = sizeValueClass;
+  #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+  else if (strcmp(@encode(NSEdgeInsets), type) == 0)
+    theClass = edgeInsetsValueClass;
+  #endif
 
   /* Try for equivalent types match.
    */
@@ -232,6 +248,10 @@ static gs_mutex_t               placeholderLock = GS_MUTEX_INIT_STATIC;
     theClass = rectValueClass;
   else if (GSSelectorTypesMatch(@encode(NSSize), type))
     theClass = sizeValueClass;
+  #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+  else if (GSSelectorTypesMatch(@encode(NSEdgeInsets), type))
+    theClass = edgeInsetsValueClass;
+  #endif
 
   return theClass;
 }
@@ -313,6 +333,17 @@ static gs_mutex_t               placeholderLock = GS_MUTEX_INIT_STATIC;
   theObj = [theObj initWithBytes: &size objCType: @encode(NSSize)];
   return AUTORELEASE(theObj);
 }
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
++ (NSValue*) valueWithEdgeInsets: (NSEdgeInsets)insets
+{
+  NSValue	*theObj;
+
+  theObj = [edgeInsetsValueClass allocWithZone: NSDefaultMallocZone()];
+  theObj = [theObj initWithBytes: &insets objCType: @encode(NSEdgeInsets)];
+  return AUTORELEASE(theObj);
+}
+#endif
 
 + (NSValue*) valueFromString: (NSString *)string
 {
@@ -424,6 +455,14 @@ static gs_mutex_t               placeholderLock = GS_MUTEX_INIT_STATIC;
   return NSMakePoint(0,0);
 }
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+- (NSEdgeInsets) edgeInsetsValue
+{
+  [self subclassResponsibility: _cmd];
+  return NSEdgeInsetsMake(0,0,0,0);
+}
+#endif
+
 - (Class) classForCoder
 {
   return abstractClass;
@@ -468,6 +507,15 @@ static gs_mutex_t               placeholderLock = GS_MUTEX_INIT_STATIC;
       [coder encodeValueOfObjCType: objctype at: &v];
       return;
     }
+  #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+  else if (strncmp(NSINSETS_ENCODING_PREFIX, objctype, strlen(NSINSETS_ENCODING_PREFIX)) == 0)
+    {
+      NSEdgeInsets v = [self edgeInsetsValue];
+
+      [coder encodeValueOfObjCType: objctype at: &v];
+      return;
+    }
+  #endif
 
   NSGetSizeAndAlignment(objctype, &tsize, NULL);
   data = (void *)NSZoneMalloc([self zone], tsize);
@@ -517,6 +565,10 @@ static gs_mutex_t               placeholderLock = GS_MUTEX_INIT_STATIC;
     c = [abstractClass valueClassWithObjCType: @encode(NSRect)];
   else if (strncmp(NSRANGE_ENCODING_PREFIX, objctype, strlen(NSRANGE_ENCODING_PREFIX)) == 0)
     c = [abstractClass valueClassWithObjCType: @encode(NSRange)];
+  #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+  else if (strncmp(NSINSETS_ENCODING_PREFIX, objctype, strlen(NSINSETS_ENCODING_PREFIX)) == 0)
+    c = [abstractClass valueClassWithObjCType: @encode(NSEdgeInsets)];
+  #endif
   else
     c = [abstractClass valueClassWithObjCType: objctype];
   o = [c allocWithZone: [coder objectZone]];
@@ -556,6 +608,16 @@ static gs_mutex_t               placeholderLock = GS_MUTEX_INIT_STATIC;
           DESTROY(self);
           return [o initWithBytes: &v objCType: @encode(NSRect)];
         }
+      #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+      else if (c == edgeInsetsValueClass)
+        {
+          NSEdgeInsets	v;
+
+          [coder decodeValueOfObjCType: @encode(NSEdgeInsets) at: &v];
+          DESTROY(self);
+          return [o initWithBytes: &v objCType: @encode(NSEdgeInsets)];
+        }
+      #endif
     }
 
   if (ver < 2)
@@ -590,6 +652,16 @@ static gs_mutex_t               placeholderLock = GS_MUTEX_INIT_STATIC;
 	      [coder decodeValueOfObjCType: @encode(NSRect) at: &v];
 	      o = [o initWithBytes: &v objCType: @encode(NSRect)];
 	    }
+	  #if OS_API_VERSION(MAC_OS_X_VERSION_10_10, GS_API_LATEST)
+	  else if (c == edgeInsetsValueClass)
+	    {
+	      NSEdgeInsets	v;
+
+	      [coder decodeValueOfObjCType: @encode(NSEdgeInsets) at: &v];
+	      o = [o initWithBytes: &v objCType: @encode(NSEdgeInsets)];
+	    }
+
+	  #endif
 	  else
 	    {
 	      unsigned char	*data;
