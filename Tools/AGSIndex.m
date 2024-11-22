@@ -291,7 +291,6 @@ findKey(id refs, NSString *key, NSMutableArray *path, NSMutableArray *found)
 - (void) makeRefs: (GSXMLNode*)node
 {
   GSXMLNode	*children = [node firstChild];
-  GSXMLNode	*next = [node next];
   BOOL		newUnit = NO;
 
   if ([node type] == XML_ELEMENT_NODE)
@@ -541,19 +540,16 @@ findKey(id refs, NSString *key, NSMutableArray *path, NSMutableArray *found)
 	}
     }
 
-  if (children != nil)
+  while (children)
     {
       [self makeRefs: children];
+      children = [children next];
     }
   if (newUnit == YES)
     {
       unit = nil;
       category = nil;
       classname = nil;
-    }
-  if (next != nil)
-    {
-      [self makeRefs: next];
     }
 }
 

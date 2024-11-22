@@ -1,3 +1,10 @@
+2024-11-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSIndex: (-makeRefs:) process child nodes in loop rather
+	than recursively ... reduces the depth of recursion to the depth of
+	nesting children rather than the number of children, avoiding stack
+	overflow  for large projects.
+
 2024-11-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* NSRegularExpression: avoid leaks in ICU code by calling more
