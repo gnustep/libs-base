@@ -1173,12 +1173,12 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       return;
     }
 
-  ASSIGN(in, [NSString stringWithFormat: @"(%@:%@ <-- %@:%@)",
+  ASSIGN(in, ([NSString stringWithFormat: @"(%@:%@ <-- %@:%@)",
     [sock socketLocalAddress], [sock socketLocalService],
-    [sock socketAddress], [sock socketService]]);
-  ASSIGN(out, [NSString stringWithFormat: @"(%@:%@ --> %@:%@)",
+    [sock socketAddress], [sock socketService]]));
+  ASSIGN(out, ([NSString stringWithFormat: @"(%@:%@ --> %@:%@)",
     [sock socketLocalAddress], [sock socketLocalService],
-    [sock socketAddress], [sock socketService]]);
+    [sock socketAddress], [sock socketService]]));
 
   if (debug)
     {
