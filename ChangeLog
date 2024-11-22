@@ -4,6 +4,8 @@
 	than recursively ... reduces the depth of recursion to the depth of
 	nesting children rather than the number of children, avoiding stack
 	overflow  for large projects.
+	* Source/GSHTTPURLHandle.m: Fix leak of connection description strings
+	when reconnecting an existing handle.
 
 2024-11-21 Richard Frith-Macdonald <rfm@gnu.org>
 
