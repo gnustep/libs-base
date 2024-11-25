@@ -1,3 +1,10 @@
+2024-11-25 Matvii Jarosh <matviijarosh@gmail.com>
+
+	* NSInvocation.h: add enum _NSObjCValueType and
+	typedef structNSObjCValue. There are no functions not implemented
+	in NSInvocation.h left.
+	* MISSING:
+
 2024-11-21 Matvii Jarosh <matviijarosh@gmail.com>
 
 	* NSValue: add valueWithEdgeInsets and edgeInsetsValue.
