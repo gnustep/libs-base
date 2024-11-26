@@ -1,3 +1,8 @@
+2024-11-26 Matvii Jarosh <matviijarosh@gmail.com>
+
+	* NSByteOrder.h: fix NSSwappedFloat and NSSwappedDouble
+	* MISSING:
+
 2024-11-25 Matvii Jarosh <matviijarosh@gmail.com>
 
 	* NSInvocation.h: add enum _NSObjCValueType and

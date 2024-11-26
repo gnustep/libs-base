@@ -32,10 +32,6 @@ NSBundle:
 	/** Not implemented */ (GNUstep comment)
 	- executableArchitectures;
 -------------------------------------------------------------
-NSByteOrder:
-	NSSwappedFloat — incompatible declaration
-	NSSwappedDouble — incompatible declaration
--------------------------------------------------------------
 NSCalendar:
 	NSWeekOfMonthCalendarUnit
 	NSWeekOfYearCalendarUnit
@@ -881,3 +877,4 @@ Good headers:
 	<NSXMLDTDNode.h>
 	<NSXMLElement.h>
 	<NSInvocation.h>
+	<NSByteOrder.h>
