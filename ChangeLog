@@ -1,3 +1,8 @@
+2024-11-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSocketPort.m: fix leak of data object when establishing a
+	new connection.
+
 2024-11-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Tools/AGSIndex: (-makeRefs:) process child nodes in loop rather
