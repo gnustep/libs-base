@@ -166,7 +166,7 @@ UTextNSMutableStringReplace(UText *ut,
   // Setting the chunk length to 0 here forces UTextNSStringAccess to fetch
   // the data from the string object.
   ut->chunkLength = 0;
-  UTextNSStringAccess(ut, r.location + [replacement length] + 1, TRUE);
+  UTextNSStringAccess(ut, r.location + [replacement length], TRUE);
   ut->chunkOffset++;
   
   [replacement release];

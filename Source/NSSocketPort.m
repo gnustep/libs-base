@@ -1247,7 +1247,8 @@ static Class	runLoopClass;
                * first thing to do is send out port information (after setting
                * up a TLS session if necessary).
                */
-	      ASSIGN(cData, newDataWithEncodedPort(p));
+	      RELEASE(cData);
+	      cData = newDataWithEncodedPort(p);
 	      cLength = 0;
 
 #if	defined(HAVE_GNUTLS)

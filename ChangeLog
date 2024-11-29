@@ -18,6 +18,28 @@
 	* type_encoding.m: add test NSINSETS_ENCODING_PREFIX.
 	* GSConcreteValueTamplate.m: add GSEdgeInsetsValue.
 	* GSConcreteValue.m: add TYPE_ORDER 6.
+2024-11-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSocketPort.m: fix leak of data object when establishing a
+	new connection.
+
+2024-11-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSIndex: (-makeRefs:) process child nodes in loop rather
+	than recursively ... reduces the depth of recursion to the depth of
+	nesting children rather than the number of children, avoiding stack
+	overflow  for large projects.
+	* Source/GSHTTPURLHandle.m: Fix leak of connection description strings
+	when reconnecting an existing handle.
+
+2024-11-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSRegularExpression: avoid leaks in ICU code by calling more
+	primitive methods.
+	* NSAutoreleasePool: fix leaks with libobjc2 ARC methods when a pool
+	is in a context that we leave due to an exception.
+	* NSObject: add -trackOwnership to log the retain/release/dealloc of
+	in individual instance.
 
 2024-11-19 Richard Frith-Macdonald <rfm@gnu.org>
 

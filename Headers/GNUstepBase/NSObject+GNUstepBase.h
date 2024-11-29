@@ -295,6 +295,14 @@ extern "C" {
  */
 + (BOOL) shouldCleanUp;
 
+/** Turns on tracking of retain/release for instances of the receiver.
+ */
++ (void) trackOwnership;
+
+/** Turns on tracking of retain/release for the receiver.
+ */
+- (void) trackOwnership;
+
 @end
 
 /* Macro to take an autoreleased object and either make it immutable or

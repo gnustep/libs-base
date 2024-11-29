@@ -840,8 +840,11 @@ _find_paths(NSString *rootPath, NSString *subPath, NSString *localization)
       
       if (localization)
 	{
-	  primary = [primary stringByAppendingPathComponent:
-	    [localization stringByAppendingPathExtension: @"lproj"]];
+	  if ([localization length])
+	    {
+	      primary = [primary stringByAppendingPathComponent:
+		[localization stringByAppendingPathExtension: @"lproj"]];
+	    }
 	  contents = bundle_directory_readable(primary);
 	  addBundlePath(array, contents, primary, nil, nil);
 	}
@@ -861,8 +864,11 @@ _find_paths(NSString *rootPath, NSString *subPath, NSString *localization)
     }
   if (localization)
     {
-      primary = [originalPrimary stringByAppendingPathComponent:
-	[localization stringByAppendingPathExtension: @"lproj"]];
+      if ([localization length])
+	{
+	  primary = [originalPrimary stringByAppendingPathComponent:
+	    [localization stringByAppendingPathExtension: @"lproj"]];
+	}
       contents = bundle_directory_readable(primary);
       addBundlePath(array, contents, primary, nil, nil);
     }

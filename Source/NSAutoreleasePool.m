@@ -43,6 +43,8 @@
 
 
 
+#define	LOG_LIFETIME	0
+
 /* When this is `NO', autoreleased objects are never actually recorded
    in an NSAutoreleasePool, and are not sent a `release' message.
    Thus memory for objects use grows, and grows, and... */
@@ -73,10 +75,10 @@ static unsigned pool_number_warning_threshold = 10000;
    already alloc'ed.  The cache is kept in the autorelease_thread_var
    structure, which is an ivar of NSThread. */
 
-static id pop_pool_from_cache (struct autorelease_thread_vars *tv);
+static id pop_pool_from_cache(struct autorelease_thread_vars *tv);
 
 static inline void
-free_pool_cache (struct autorelease_thread_vars *tv)
+free_pool_cache(struct autorelease_thread_vars *tv)
 {
   while (tv->pool_cache_count)
     {
@@ -94,7 +96,7 @@ free_pool_cache (struct autorelease_thread_vars *tv)
 }
 
 static inline void
-init_pool_cache (struct autorelease_thread_vars *tv)
+init_pool_cache(struct autorelease_thread_vars *tv)
 {
   tv->pool_cache_size = 32;
   tv->pool_cache_count = 0;
@@ -103,11 +105,11 @@ init_pool_cache (struct autorelease_thread_vars *tv)
 }
 
 static void
-push_pool_to_cache (struct autorelease_thread_vars *tv, id p)
+push_pool_to_cache(struct autorelease_thread_vars *tv, id p)
 {
   if (!tv->pool_cache)
     {
-      init_pool_cache (tv);
+      init_pool_cache(tv);
     }
   else if (tv->pool_cache_count == tv->pool_cache_size)
     {
@@ -119,7 +121,7 @@ push_pool_to_cache (struct autorelease_thread_vars *tv, id p)
 }
 
 static id
-pop_pool_from_cache (struct autorelease_thread_vars *tv)
+pop_pool_from_cache(struct autorelease_thread_vars *tv)
 {
   return tv->pool_cache[--(tv->pool_cache_count)];
 }
@@ -138,10 +140,11 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 + (id) allocWithZone: (NSZone*)zone
 {
   struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
+  NSAutoreleasePool	*p;
 
   if (tv->pool_cache_count)
     {
-      NSAutoreleasePool *p = pop_pool_from_cache (tv);
+      p = pop_pool_from_cache(tv);
 
       /* When we cache a 'deallocated' pool, we set its _released_count to
        * UINT_MAX, so when we rtrieve it fromm the cache we must increment
@@ -154,7 +157,14 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
         }
       return p;
     }
-  return NSAllocateObject (self, 0, zone);
+  p = (NSAutoreleasePool*)NSAllocateObject (self, 0, zone);
+
+#if	LOG_LIFETIME
+  fprintf(stderr, "*** %p autorelease pool allocated in %p\n",
+    p, GSCurrentThread());
+#endif
+
+  return p;
 }
 
 + (id) new
@@ -174,6 +184,37 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   return (*initImp)(arp, @selector(init));
 }
 
+- (void) _emptyChild
+{
+  /* If there are NSAutoreleasePool below us in the list of
+   * NSAutoreleasePools, then deallocate them also.
+   * The (only) way we could get in this situation (in correctly
+   * written programs, that don't release NSAutoreleasePools in
+   * weird ways), is if an exception threw us up the stack.
+   * However, if a program has leaked pools we may be deallocating
+   * a pool with LOTS of children. To avoid stack overflow we
+   * therefore deallocate children starting with the oldest first.
+   */
+  if (nil != _child)
+    {
+      NSAutoreleasePool	*pool = _child;
+
+      /* Find other end of linked list ... oldest child.
+       */
+      while (nil != pool->_child)
+	{
+	  pool = pool->_child;
+	}
+      /* Deallocate the children in the list.
+       */
+      while (pool != self)
+	{
+	  pool = pool->_parent;
+	  [pool->_child dealloc];
+	}
+    }
+}
+
 #ifdef ARC_RUNTIME
 
 - (id) init
@@ -188,6 +229,7 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
       {
 	NSAutoreleasePool	*pool = _parent;
 
+	_child = _parent->_child;
 	while (nil != pool)
 	  {
 	    level++;
@@ -240,8 +282,13 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
 - (void) emptyPool
 {
   struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
-  tv->current_pool = self;
+
+  if (nil != _child)
+    {
+      [self _emptyChild];
+    }
   objc_autoreleasePoolPop(_released);
+  tv->current_pool = self;
 }
 /**
  * Indicate to the runtime that we have an ARC-compatible implementation of
@@ -282,11 +329,13 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   {
     struct autorelease_thread_vars *tv = ARP_THREAD_VARS;
     unsigned	level = 0;
+
     _parent = tv->current_pool;
     if (_parent)
       {
 	NSAutoreleasePool	*pool = _parent;
 
+	_child = _parent->_child;
 	while (nil != pool)
 	  {
 	    level++;
@@ -449,32 +498,9 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
     {
       volatile struct autorelease_array_list *released;
 
-      /* If there are NSAutoreleasePool below us in the list of
-       * NSAutoreleasePools, then deallocate them also.
-       * The (only) way we could get in this situation (in correctly
-       * written programs, that don't release NSAutoreleasePools in
-       * weird ways), is if an exception threw us up the stack.
-       * However, if a program has leaked pools we may be deallocating
-       * a pool with LOTS of children. To avoid stack overflow we
-       * therefore deallocate children starting with the oldest first.
-       */
       if (nil != _child)
 	{
-	  NSAutoreleasePool	*pool = _child;
-
-	  /* Find other end of linked list ... oldest child.
-	   */
-	  while (nil != pool->_child)
-	    {
-	      pool = pool->_child;
-	    }
-	  /* Deallocate the children in the list.
-	   */
-          while (pool != self)
-	    {
-	      pool = pool->_parent;
-	      [pool->_child dealloc];
-	    }
+	  [self _emptyChild];
 	}
 
       /* Take the object out of the released list just before releasing it,
@@ -593,13 +619,14 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
   _released_count = UINT_MAX;
 
   /* Don't deallocate ourself, just save us for later use. */
-  push_pool_to_cache (tv, self);
+  push_pool_to_cache(tv, self);
   GSNOSUPERDEALLOC;
 }
 
 - (void) _reallyDealloc
 {
   struct autorelease_array_list *a;
+
   for (a = _released_head; a;)
     {
       void *n = a->next;
@@ -607,6 +634,10 @@ pop_pool_from_cache (struct autorelease_thread_vars *tv)
       a = n;
     }
   _released = _released_head = 0;
+#if	LOG_LIFETIME
+    fprintf(stderr, "*** %p autorelease pool really dealloc\n", self);
+#endif
+
   [super dealloc];
 }
 

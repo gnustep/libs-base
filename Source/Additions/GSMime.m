@@ -121,7 +121,6 @@ static	Class		NSArrayClass = 0;
 static	Class		NSStringClass = 0;
 static	Class		NSDataClass = 0;
 static	Class		documentClass = 0;
-static	Class		headerClass = 0;
 
 static BOOL             oldStyleFolding = NO;
 static NSString         *Cte7bit = @"7bit";
@@ -888,6 +887,29 @@ wordData(NSString *word, BOOL *encoded)
 
 + (void) initialize
 {
+      NSMutableCharacterSet	*m = [[NSMutableCharacterSet alloc] init];
+
+      [m formUnionWithCharacterSet:
+	[NSCharacterSet characterSetWithCharactersInString:
+	@".()<>@,;:[]\"\\"]];
+      [m formUnionWithCharacterSet:
+	[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+      [m formUnionWithCharacterSet:
+	[NSCharacterSet controlCharacterSet]];
+      [m formUnionWithCharacterSet:
+	[NSCharacterSet illegalCharacterSet]];
+      rfc822Specials = [m copy];
+      [[NSObject leakAt: &rfc822Specials] release];
+      [m formUnionWithCharacterSet:
+	[NSCharacterSet characterSetWithCharactersInString:
+	@"/?="]];
+      [m removeCharactersInString: @"."];
+      rfc2045Specials = [m copy];
+      [[NSObject leakAt: &rfc2045Specials] release];
+      [m release];
+      whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
+      [[NSObject leakAt: &whitespace] release];
+
   if (NSArrayClass == 0)
     {
       NSArrayClass = [NSArray class];
@@ -903,10 +925,6 @@ wordData(NSString *word, BOOL *encoded)
   if (documentClass == 0)
     {
       documentClass = [GSMimeDocument class];
-    }
-  if (headerClass == 0)
-    {
-      headerClass = [GSMimeHeader class];
     }
 }
 
@@ -1745,9 +1763,9 @@ wordData(NSString *word, BOOL *encoded)
   /*
    * Set the header name.
    */
-  info = [headerClass headerWithName: name
-                               value: nil
-                          parameters: nil];
+  info = [GSMimeHeader headerWithName: name
+                                value: nil
+                           parameters: nil];
   name = [info name];
 
   /*
@@ -3395,10 +3413,6 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  documentClass = [GSMimeDocument class];
 	}
-      if (headerClass == 0)
-        {
-          headerClass = [GSMimeHeader class];
-        }
       [[NSNotificationCenter defaultCenter] addObserver: self
         selector: @selector(_defaultsChanged:)
         name: NSUserDefaultsDidChangeNotification
@@ -3607,7 +3621,7 @@ static NSCharacterSet	*tokenSet = nil;
   NSEnumerator	*e;
   NSString	*k;
 
-  c = [headerClass allocWithZone: z];
+  c = [[self class] allocWithZone: z];
   c = [c initWithName: [self namePreservingCase: YES]
 		value: [self value]
 	   parameters: [self parametersPreservingCase: YES]];
@@ -3722,7 +3736,7 @@ static NSCharacterSet	*tokenSet = nil;
 	{
 	  NSString	*v;
 
-	  v = [headerClass makeQuoted: [params objectForKey: k] always: NO];
+	  v = [[self class] makeQuoted: [params objectForKey: k] always: NO];
 	  [m appendString: @"; "];
 	  [m appendString: k];
 	  [m appendString: @"="];
@@ -3769,7 +3783,7 @@ static NSCharacterSet	*tokenSet = nil;
 	      value: (NSString*)v
 	 parameters: (NSDictionary*)p
 {
-  n = [headerClass makeToken: n preservingCase: YES];
+  n = [[self class] makeToken: n preservingCase: YES];
   if ([n length] == 0)
     {
       n = @"unknown";
@@ -3807,7 +3821,7 @@ static NSCharacterSet	*tokenSet = nil;
     {
       return YES;
     }
-  if (NO == [other isKindOfClass: headerClass])
+  if (NO == [other isKindOfClass: [self class]])
     {
       return NO;
     }
@@ -3876,7 +3890,7 @@ static NSCharacterSet	*tokenSet = nil;
 
   if (p == nil)
     {
-      k = [headerClass makeToken: k];
+      k = [[self class] makeToken: k];
       p = [params objectForKey: k];
     }
   return p;
@@ -4540,7 +4554,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       NSUInteger        kLength;
       NSUInteger        vLength;
 
-      v = [headerClass makeQuoted: [params objectForKey: k] always: NO];
+      v = [[self class] makeQuoted: [params objectForKey: k] always: NO];
       if (preserve == NO)
         {
 	  k = [k lowercaseString];
@@ -4628,7 +4642,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
  */
 - (void) setParameter: (NSString*)v forKey: (NSString*)k
 {
-  k = [headerClass makeToken: k preservingCase: YES];
+  k = [[self class] makeToken: k preservingCase: YES];
   if (v == nil)
     {
       [params removeObjectForKey: k];
@@ -4662,7 +4676,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	{
           NSString      *v = [d objectForKey: k];
 
-          k = [headerClass makeToken: k preservingCase: YES];
+          k = [[self class] makeToken: k preservingCase: YES];
 	  [m setObject: v forKey: k];
 	}
     }
@@ -5216,32 +5230,11 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   if (self == [GSMimeDocument class])
     {
-      NSMutableCharacterSet	*m = [[NSMutableCharacterSet alloc] init];
-
       if (documentClass == 0)
 	{
 	  documentClass = [GSMimeDocument class];
 	}
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet characterSetWithCharactersInString:
-	@".()<>@,;:[]\"\\"]];
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet controlCharacterSet]];
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet illegalCharacterSet]];
-      rfc822Specials = [m copy];
-      [[NSObject leakAt: &rfc822Specials] release];
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet characterSetWithCharactersInString:
-	@"/?="]];
-      [m removeCharactersInString: @"."];
-      rfc2045Specials = [m copy];
-      [[NSObject leakAt: &rfc2045Specials] release];
-      [m release];
-      whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
-      [[NSObject leakAt: &whitespace] release];
+
       if (NSArrayClass == 0)
 	{
 	  NSArrayClass = [NSArray class];
@@ -5812,10 +5805,6 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    (void*)@"gb18030");
 #endif
 	}
-      if (headerClass == 0)
-        {
-          headerClass = [GSMimeHeader class];
-        }
     }
 }
 
@@ -5926,7 +5915,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   GSMimeHeader	*hdr;
 
-  hdr = [headerClass alloc];
+  hdr = [GSMimeHeader alloc];
   hdr = [hdr initWithName: name
                     value: value
                parameters: parameters];
@@ -6685,7 +6674,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       oaiIMP		imp1;
       boolIMP		imp2;
 
-      name = [headerClass makeToken: name preservingCase: NO];
+      name = [GSMimeHeader makeToken: name preservingCase: NO];
       imp1 = (oaiIMP)[headers methodForSelector: @selector(objectAtIndex:)];
       imp2 = (boolIMP)[name methodForSelector: @selector(isEqualToString:)];
       for (index = 0; index < count; index++)
@@ -6710,7 +6699,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   NSUInteger	count;
 
-  name = [headerClass makeToken: name preservingCase: NO];
+  name = [GSMimeHeader makeToken: name preservingCase: NO];
   count = [headers count];
   if (count > 0)
     {
@@ -6841,9 +6830,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   GSMimeHeader	*hdr;
 
-  hdr = [[headerClass alloc] initWithName: name
-				    value: value
-                               parameters: parameters];
+  hdr = [[GSMimeHeader alloc] initWithName: name
+				     value: value
+                                parameters: parameters];
   [self setHeader: hdr];
   RELEASE(hdr);
   return hdr;
@@ -7504,9 +7493,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       GSMimeParser	*p = AUTORELEASE([GSMimeParser new]);
       NSScanner		*scanner = [NSScanner scannerWithString: type];
 
-      hdr = [headerClass headerWithName: @"Content-Type"
-                                  value: nil
-                             parameters: nil];
+      hdr = [GSMimeHeader headerWithName: @"Content-Type"
+                                   value: nil
+                              parameters: nil];
       if ([p scanHeaderBody: scanner into: hdr] == NO)
 	{
 	  [NSException raise: NSInvalidArgumentException
@@ -7519,7 +7508,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       NSString	*val;
 
       val = [NSStringClass stringWithFormat: @"%@/%@", type, subtype];
-      hdr = [headerClass alloc];
+      hdr = [GSMimeHeader alloc];
       hdr = [hdr initWithName: @"Content-Type" value: val parameters: nil];
       [hdr setObject: type forKey: @"Type"];
       [hdr setObject: subtype forKey: @"Subtype"];
@@ -7565,9 +7554,9 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
   p = AUTORELEASE([GSMimeParser new]);
   scanner = [NSScanner scannerWithString: newType];
-  hdr = [headerClass headerWithName: @"Content-Type"
-                              value: nil
-                         parameters: nil];
+  hdr = [GSMimeHeader headerWithName: @"Content-Type"
+                               value: nil
+                          parameters: nil];
   if ([p scanHeaderBody: scanner into: hdr] == NO)
     {
       [NSException raise: NSInvalidArgumentException
@@ -7600,7 +7589,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 {
   GSMimeHeader	*hdr;
 
-  hdr = [headerClass alloc];
+  hdr = [GSMimeHeader alloc];
   hdr = [hdr initWithName: name
                     value: value
                parameters: parameters];

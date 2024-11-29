@@ -35,8 +35,18 @@
  * won't work because libicu internally renames all entry points with some cpp
  * magic.
  */
+#if !defined(HAVE_UREGEX_OPENUTEXT)
 #if U_ICU_VERSION_MAJOR_NUM > 4 || (U_ICU_VERSION_MAJOR_NUM == 4 && U_ICU_VERSION_MINOR_NUM >= 4) || defined(HAVE_ICU_H)
 #define HAVE_UREGEX_OPENUTEXT 1
+#endif
+#endif
+
+/* Until the uregex_replaceAllUText() and uregex_replaceFirstUText() work
+ * without leaking memory, we can't use them :-(
+ * Preoblem exists on Ubuntu in 2024 with icu-74.2
+ */
+#if defined(HAVE_UREGEX_OPENUTEXT)
+#undef HAVE_UREGEX_OPENUTEXT
 #endif
 
 #define NSRegularExpressionWorks
@@ -158,7 +168,8 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
           NSDictionary  *userInfo;
           NSString      *description;
 
-          description = [NSString stringWithFormat: @"The value “%@” is invalid.", aPattern];
+          description = [NSString
+	    stringWithFormat: @"The value “%@” is invalid.", aPattern];
 
           userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
             aPattern, @"NSInvalidValue",
@@ -245,11 +256,46 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
     }
 #endif
 
+  // Raise an NSInvalidArgumentException to match macOS behaviour.
+  if (!aPattern)
+    {
+      NSException *exp;
+
+      exp = [NSException exceptionWithName: NSInvalidArgumentException
+                                    reason: @"nil argument"
+      				  userInfo: nil];
+      RELEASE(self);
+      [exp raise];
+    }
+
   [aPattern getCharacters: buffer range: NSMakeRange(0, length)];
   regex = uregex_open(buffer, length, flags, &pe, &s);
   if (U_FAILURE(s))
     {
-      // FIXME: Do something sensible with the error parameter.
+      /* Match macOS behaviour if the pattern is invalid.
+       * Example:
+       *   Domain=NSCocoaErrorDomain
+       *   Code=2048 "The value “<PATTERN>” is invalid."
+       *   UserInfo={NSInvalidValue=<PATTERN>}
+       */
+      if (e)
+        {
+          NSDictionary  *userInfo;
+          NSString      *description;
+
+          description = [NSString
+	    stringWithFormat: @"The value “%@” is invalid.", aPattern];
+
+          userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+            aPattern, @"NSInvalidValue",
+            description, NSLocalizedDescriptionKey,
+            nil];
+
+          *e = [NSError errorWithDomain: NSCocoaErrorDomain
+                                   code: NSFormattingError
+                               userInfo: userInfo];
+        }
+
       DESTROY(self);
       return self;
     }
@@ -979,31 +1025,51 @@ prepareResult(NSRegularExpression *regex,
   NSInteger	results = [self numberOfMatchesInString: string
 						options: opts
 						  range: range];
-  UErrorCode	s = 0;
-  uint32_t	length = [string length];
-  uint32_t	replLength = [template length];
-  unichar	replacement[replLength];
-  int32_t	outLength;
-  unichar	*output;
-  NSString	*out;
-  URegularExpression *r;
-  TEMP_BUFFER(buffer, length);
+  if (results > 0)
+    {
+      UErrorCode	s = 0;
+      uint32_t		length = [string length];
+      uint32_t		replLength = [template length];
+      unichar		replacement[replLength];
+      int32_t		outLength;
+      URegularExpression *r;
+      TEMP_BUFFER(buffer, length);
 
-  r = setupRegex(regex, string, buffer, length, opts, range, 0);
-  [template getCharacters: replacement range: NSMakeRange(0, replLength)];
+      r = setupRegex(regex, string, buffer, length, opts, range, 0);
+      [template getCharacters: replacement range: NSMakeRange(0, replLength)];
 
-  outLength = uregex_replaceAll(r, replacement, replLength, NULL, 0, &s);
+      outLength = uregex_replaceAll(r, replacement, replLength, NULL, 0, &s);
+      if (0 == s || U_BUFFER_OVERFLOW_ERROR == s)
+	{
+          unichar	*output;
 
-  s = 0;
-  output = NSZoneMalloc(0, outLength * sizeof(unichar));
-  uregex_replaceAll(r, replacement, replLength, output, outLength, &s);
-  out =
-    [[NSString alloc] initWithCharactersNoCopy: output
-					length: outLength
-				  freeWhenDone: YES];
-  [string setString: out];
-  RELEASE(out);
+          s = 0;	// May have been set to a buffer overflow error
 
+	  output = NSZoneMalloc(0, (outLength + 1) * sizeof(unichar));
+	  uregex_replaceAll(r, replacement, replLength,
+	    output, outLength + 1, &s);
+	  if (0 == s)
+	    {
+	      NSString	*out;
+
+	      out = [[NSString alloc] initWithCharactersNoCopy: output
+							length: outLength
+						  freeWhenDone: YES];
+	      [string setString: out];
+	      RELEASE(out);
+	    }
+	  else
+	    {
+	      NSZoneFree(0, output);
+	      results = 0;
+	    }
+	}
+      else
+	{
+	  results = 0;
+	}
+      uregex_close(r);
+    }
   return results;
 }
 
@@ -1018,20 +1084,36 @@ prepareResult(NSRegularExpression *regex,
   uint32_t	replLength = [template length];
   unichar	replacement[replLength];
   int32_t	outLength;
-  unichar	*output;
+  NSString	*result = nil;
   TEMP_BUFFER(buffer, length);
 
   r = setupRegex(regex, string, buffer, length, opts, range, 0);
   [template getCharacters: replacement range: NSMakeRange(0, replLength)];
 
   outLength = uregex_replaceAll(r, replacement, replLength, NULL, 0, &s);
+  if (0 == s || U_BUFFER_OVERFLOW_ERROR == s)
+    {
+      unichar	*output;
 
-  s = 0;
-  output = NSZoneMalloc(0, outLength * sizeof(unichar));
-  uregex_replaceAll(r, replacement, replLength, output, outLength, &s);
-  return AUTORELEASE([[NSString alloc] initWithCharactersNoCopy: output
-							 length: outLength
-						   freeWhenDone: YES]);
+      s = 0;	// may have been set to a buffer overflow error
+
+      output = NSZoneMalloc(0, (outLength + 1) * sizeof(unichar));
+      uregex_replaceAll(r, replacement, replLength, output, outLength + 1, &s);
+      if (0 == s)
+	{
+	  result = AUTORELEASE([[NSString alloc]
+	    initWithCharactersNoCopy: output
+	    length: outLength
+	    freeWhenDone: YES]);
+	}
+      else
+	{
+	  NSZoneFree(0, output);
+	}
+    }
+
+  uregex_close(r);
+  return result;
 }
 
 - (NSString*) replacementStringForResult: (NSTextCheckingResult*)result
@@ -1045,7 +1127,7 @@ prepareResult(NSRegularExpression *regex,
   uint32_t	replLength = [template length];
   unichar	replacement[replLength];
   int32_t	outLength;
-  unichar	*output;
+  NSString	*str = nil;
   TEMP_BUFFER(buffer, range.length);
 
   r = setupRegex(regex,
@@ -1058,12 +1140,28 @@ prepareResult(NSRegularExpression *regex,
   [template getCharacters: replacement range: NSMakeRange(0, replLength)];
 
   outLength = uregex_replaceFirst(r, replacement, replLength, NULL, 0, &s);
-  s = 0;
-  output = NSZoneMalloc(0, outLength * sizeof(unichar));
-  uregex_replaceFirst(r, replacement, replLength, output, outLength, &s);
-  return AUTORELEASE([[NSString alloc] initWithCharactersNoCopy: output
-							 length: outLength
-						   freeWhenDone: YES]);
+  if (0 == s || U_BUFFER_OVERFLOW_ERROR == s)
+    {
+      unichar	*output;
+
+      s = 0;
+      output = NSZoneMalloc(0, (outLength + 1) * sizeof(unichar));
+      uregex_replaceFirst(r, replacement, replLength,
+	output, outLength + 1, &s);
+      if (0 == s)
+	{
+	  str = AUTORELEASE([[NSString alloc]
+	    initWithCharactersNoCopy: output
+	    length: outLength
+	    freeWhenDone: YES]);
+	}
+      else
+	{
+	  NSZoneFree(0, output);
+	}
+    }
+  uregex_close(r);
+  return str;
 }
 #endif
 

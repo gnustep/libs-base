@@ -320,6 +320,7 @@ equalTypes(NSArray *t1, NSArray *t2)
 
 - (void) dealloc
 {
+  [self reset];
   DESTROY(wordMap);
   DESTROY(ifStack);
   DESTROY(declared);
@@ -1485,8 +1486,8 @@ recheck:
 
 - (NSMutableArray*) parseDeclarations
 {
+  IF_NO_ARC(NSAutoreleasePool	*arp = [NSAutoreleasePool new];)
   NSMutableArray	*declarations = [NSMutableArray array];
-  CREATE_AUTORELEASE_POOL(arp);
   static NSSet		*qualifiers = nil;
   static NSSet		*keep = nil;
   NSString		*baseName = nil;
@@ -1515,7 +1516,7 @@ recheck:
 	@"unsigned",
 	@"volatile",
 	nil];
-      IF_NO_ARC([qualifiers retain];)
+      IF_NO_ARC(qualifiers = [qualifiers retain];)
       keep = [NSSet setWithObjects:
 	@"const",
 	@"long",
@@ -1524,7 +1525,7 @@ recheck:
 	@"unsigned",
 	@"volatile",
 	nil];
-      IF_NO_ARC([keep retain];)
+      IF_NO_ARC(keep = [keep retain];)
     }
 
     {
@@ -1572,7 +1573,7 @@ recheck:
 		      pos++;
 		      [self skipSpaces];
 		    }
-		  IF_NO_ARC(DESTROY(arp);)
+		  IF_NO_ARC([arp release];)
 		  return nil;
 		}
 
@@ -1643,7 +1644,7 @@ recheck:
 	      if (NO == isEnum)
 		{
 		  [self log: @"messed up NS_ENUM/NS_OPTIONS declaration"];
-		  [arp drain];
+		  IF_NO_ARC([arp release];)
 		  return nil;
 		}
 	    }
@@ -1680,7 +1681,7 @@ recheck:
 
 	      /* We want to be able to parse new comments while retaining the 
 		 originally parsed comment for the enum/union/struct. */
-	      introComment = [comment copy];
+	      introComment = AUTORELEASE([comment copy]);
 	      DESTROY(comment);
 
 	      pos++; /* Skip '{' */
@@ -2007,8 +2008,8 @@ another:
 	{
 	  if (buffer[pos] == ')' || buffer[pos] == ',')
 	    {
-	      [arp drain];
-	      return declarations;
+	      IF_NO_ARC(declarations = [declarations retain]; [arp release];)
+	      return AUTORELEASE(declarations);
 	    }
 	  else
 	    {
@@ -2130,7 +2131,6 @@ another:
 	}
       DESTROY(comment);
 
-      [arp drain];
       if (inArgList == NO)
 	{
 	  /*
@@ -2148,11 +2148,13 @@ another:
 		{
 		  [self log: @"parse declaration with no name - %@", d];
 		}
+	      IF_NO_ARC([arp release];)
 	      return nil;
 	    }
 	}
       [self setStandards: declarations];
-      return declarations;
+      IF_NO_ARC(declarations = [declarations retain]; [arp release];)
+      return AUTORELEASE(declarations);
     }
   else
     {
@@ -2160,7 +2162,7 @@ another:
     }
 fail:
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return nil;
 }
 
@@ -2485,7 +2487,7 @@ fail:
        */
       [self skipUnit];
       DESTROY(comment);
-      [arp drain];
+      IF_NO_ARC([arp release];)
       return [NSMutableDictionary dictionary];
     }
   else
@@ -2524,13 +2526,13 @@ fail:
 
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return dict;
 
 fail:
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return nil;
 }
 
@@ -2690,13 +2692,13 @@ fail:
 
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return dict;
 
 fail:
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return nil;
 }
 
@@ -3050,7 +3052,7 @@ fail:
 
 - (NSMutableDictionary*) parseMethodIsDeclaration: (BOOL)flag
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  IF_NO_ARC(CREATE_AUTORELEASE_POOL(arp);)
   NSMutableDictionary	*method;
   NSMutableString	*mname;
   NSString		*token;
@@ -3338,14 +3340,14 @@ fail:
     }
 
   DESTROY(itemName);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   IF_NO_ARC([method autorelease];)
   return method;
 
 fail:
   DESTROY(itemName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   RELEASE(method);
   return nil;
 }
@@ -4288,7 +4290,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
   NSDictionary		*methods = nil;
   NSMutableDictionary	*dict;
   NSMutableDictionary	*d;
-  CREATE_AUTORELEASE_POOL(arp);
+  IF_NO_ARC(CREATE_AUTORELEASE_POOL(arp);)
 
   dict = [[NSMutableDictionary alloc] initWithCapacity: 8];
 
@@ -4379,14 +4381,14 @@ countAttributes(NSSet *keys, NSDictionary *a)
 
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   IF_NO_ARC([dict autorelease];)
   return dict;
 
 fail:
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   RELEASE(dict);
   return nil;
 }
@@ -4816,7 +4818,7 @@ fail:
   unichar		*inptr;
   unichar		*outptr;
   NSMutableArray	*a;
-  CREATE_AUTORELEASE_POOL(arp);
+  IF_NO_ARC(CREATE_AUTORELEASE_POOL(arp);)
 
   contents = [NSString stringWithContentsOfFile: fileName];
   length = [contents length];
@@ -4910,7 +4912,7 @@ fail:
   buffer = [data mutableBytes];
   pos = 0;
   ASSIGN(lines, [NSArray arrayWithArray: a]);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   IF_NO_ARC([data autorelease];)
 }
 
