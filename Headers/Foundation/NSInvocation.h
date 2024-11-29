@@ -27,6 +27,7 @@
 #import	<GNUstepBase/GSVersionMacros.h>
 
 #import	<Foundation/NSMethodSignature.h>
+#include <stdbool.h>
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -153,6 +154,47 @@ GS_EXPORT_CLASS
   [__proxy message]; \
   [NSInvocation _returnInvocationAndDestroyProxy: __proxy]; \
 })
+
+typedef NS_ENUM(char, _NSObjCValueType)
+{
+  NSObjCArrayType = '[',
+  NSObjCBitfield = 'b',
+  NSObjCBoolType = 'B',
+  NSObjCCharType = 'c',
+  NSObjCDoubleType = 'd',
+  NSObjCFloatType = 'f',
+  NSObjCLonglongType = 'q',
+  NSObjCLongType = 'l',
+  NSObjCNoType = '\0',
+  NSObjCObjectType = '@',
+  NSObjCPointerType = '^',
+  NSObjCSelectorType = ':',
+  NSObjCShortType = 's',
+  NSObjCStringType = '*',
+  NSObjCStructType = '{',
+  NSObjCUnionType = '(',
+  NSObjCVoidType = 'v',
+};
+
+typedef struct
+{
+  _NSObjCValueType type;
+  union
+  {
+    bool boolValue;
+    char charValue;
+    double doubleValue;
+    float floatValue;
+    long long longlongValue;
+    long longValue;
+    id objectValue;
+    void *pointerValue;
+    SEL selectorValue;
+    short shortValue;
+    char *cStringLocation;
+    void *structLocation;
+  } value;
+} NSObjCValue;
 
 #if	defined(__cplusplus)
 }

@@ -1,3 +1,23 @@
+2024-11-26 Matvii Jarosh <matviijarosh@gmail.com>
+
+	* NSByteOrder.h: fix NSSwappedFloat and NSSwappedDouble
+	* MISSING:
+
+2024-11-25 Matvii Jarosh <matviijarosh@gmail.com>
+
+	* NSInvocation.h: add enum _NSObjCValueType and
+	typedef structNSObjCValue. There are no functions not implemented
+	in NSInvocation.h left.
+	* MISSING:
+
+2024-11-21 Matvii Jarosh <matviijarosh@gmail.com>
+
+	* NSValue: add valueWithEdgeInsets and edgeInsetsValue.
+	* typeEncodingHelper.h: add NSINSETS_ENCODING_PREFIX and
+	IS_NSINSETS_ENCODING and update comment.
+	* type_encoding.m: add test NSINSETS_ENCODING_PREFIX.
+	* GSConcreteValueTamplate.m: add GSEdgeInsetsValue.
+	* GSConcreteValue.m: add TYPE_ORDER 6.
 2024-11-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSocketPort.m: fix leak of data object when establishing a

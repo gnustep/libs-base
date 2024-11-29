@@ -36,6 +36,7 @@
 * @encoding(CGSize) -> {CGSize=dd}
 * @encoding(NSRange) -> {_NSRange=QQ}
 * @encoding(CFRange) -> {?=qq}
+* @encoding(NSEdgeInsets) -> {NSEdgeInsets=dddd}
 *
 * Note that NSRange and CFRange are not toll-free bridged.
 * You cannot pass a CFRange to +[NSValue valueWithRange:]
@@ -49,11 +50,13 @@
 static const char *CGPOINT_ENCODING_PREFIX = "{CGPoint=";
 static const char *CGSIZE_ENCODING_PREFIX = "{CGSize=";
 static const char *CGRECT_ENCODING_PREFIX = "{CGRect=";
+static const char *NSINSETS_ENCODING_PREFIX __attribute__((used)) = "{NSEdgeInsets=";
 static const char *NSRANGE_ENCODING_PREFIX = "{_NSRange=";
 
 #define IS_CGPOINT_ENCODING(encoding) (strncmp(encoding, CGPOINT_ENCODING_PREFIX, strlen(CGPOINT_ENCODING_PREFIX)) == 0)
 #define IS_CGSIZE_ENCODING(encoding) (strncmp(encoding, CGSIZE_ENCODING_PREFIX, strlen(CGSIZE_ENCODING_PREFIX)) == 0)
 #define IS_CGRECT_ENCODING(encoding) (strncmp(encoding, CGRECT_ENCODING_PREFIX, strlen(CGRECT_ENCODING_PREFIX)) == 0)
+#define IS_NSINSETS_ENCODING(encoding) (strncmp(encoding, NSINSETS_ENCODING_PREFIX, strlen(NSINSETS_ENCODING_PREFIX)) == 0)
 #define IS_NSRANGE_ENCODING(encoding) (strncmp(encoding, NSRANGE_ENCODING_PREFIX, strlen(NSRANGE_ENCODING_PREFIX)) == 0)
 
 #endif /* __TYPE_ENCODING_HELPER_H */

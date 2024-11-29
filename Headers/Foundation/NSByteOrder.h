@@ -384,13 +384,37 @@ NSSwapShort(unsigned short in)
 static inline NSSwappedDouble
 NSSwapDouble(NSSwappedDouble num)
 {
+#if	GS_SIZEOF_DOUBLE == 2
+  return GSSwapI16(num);
+#else
+#if	GS_SIZEOF_DOUBLE == 4
+  return GSSwapI32(num);
+#else
+#if	GS_SIZEOF_DOUBLE == 8
   return GSSwapI64(num);
+#else
+  return GSSwapI128(num);
+#endif
+#endif
+#endif
 }
 
 static inline NSSwappedFloat
 NSSwapFloat(NSSwappedFloat num)
 {
+#if	GS_SIZEOF_FLOAT == 2
+  return GSSwapI16(num);
+#else
+#if	GS_SIZEOF_FLOAT == 4
   return GSSwapI32(num);
+#else
+#if	GS_SIZEOF_FLOAT == 8
+  return GSSwapI64(num);
+#else
+  return GSSwapI128(num);
+#endif
+#endif
+#endif
 }
 
 #if	GS_WORDS_BIGENDIAN

@@ -32,10 +32,6 @@ NSBundle:
 	/** Not implemented */ (GNUstep comment)
 	- executableArchitectures;
 -------------------------------------------------------------
-NSByteOrder:
-	NSSwappedFloat — incompatible declaration
-	NSSwappedDouble — incompatible declaration
--------------------------------------------------------------
 NSCalendar:
 	NSWeekOfMonthCalendarUnit
 	NSWeekOfYearCalendarUnit
@@ -257,12 +253,7 @@ NSIndexSet:
 	- enumerateRangesUsingBlock:
 	- enumerateRangesWithOptions:usingBlock:
 	- enumerateRangesInRange:options:usingBlock:
--------------------------------------------------------------
-NSInvocation:
-	<stdbool.h>
 
-	enum _NSObjCValueType
-	typedef struct NSObjCValue
 -------------------------------------------------------------
 NSKeyedArchiver:
 	<NSGeometry.h>
@@ -885,3 +876,5 @@ Good headers:
 	<NSXMLDTD.h>
 	<NSXMLDTDNode.h>
 	<NSXMLElement.h>
+	<NSInvocation.h>
+	<NSByteOrder.h>
