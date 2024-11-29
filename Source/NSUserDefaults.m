@@ -99,6 +99,7 @@ static NSDictionary     *argumentsDictionary = nil;
 static NSString	        *bundleIdentifier = nil;
 static NSRecursiveLock	*classLock = nil;
 static NSLock	        *syncLock = nil;
+static BOOL		initializing = NO;
 
 /* Flag to say whether the sharedDefaults variable has been set up by a
  * call to the +standardUserDefaults method.  If this is YES but the variable
@@ -695,6 +696,7 @@ newLanguages(NSArray *oldNames)
       NSString          *key;
 
       beenHere = YES;
+      initializing = YES;
       nextObjectSel = @selector(nextObject);
       objectForKeySel = @selector(objectForKey:);
       addSel = @selector(addEntriesFromDictionary:);
@@ -712,16 +714,19 @@ newLanguages(NSArray *oldNames)
       [self registerAtExit];
 
       key = [GSPrivateInfoDictionary(nil) objectForKey: @"CFBundleIdentifier"];
-      if ([key isKindOfClass: [NSString class]])
-	{
-	  bundleIdentifier = [key copy];
-	}
-      else
+      if (NO == [key isKindOfClass: [NSString class]])
 	{
 	  /* No bundle identifier found: use the process name instead.
 	   */
-	  bundleIdentifier = [[[NSProcessInfo processInfo] processName] copy];
+	  key = [[NSProcessInfo processInfo] processName];
+          if (NO == [key isKindOfClass: [NSString class]])
+	    {
+	      fprintf(stderr, "+[NSUserDefaults initialize] unable to"
+		" determine bundle identfier or process name.\n");
+	      key = nil;
+	    }
 	}
+      bundleIdentifier = [key copy];
 
       /* Initialise the defaults flags to take values from the
        * process arguments.  These are otherwise set in updateCache()
@@ -790,6 +795,7 @@ newLanguages(NSArray *oldNames)
 
       [self _createArgumentDictionary: args];
       LEAVE_POOL
+      initializing = NO;
     }
 }
 
@@ -1049,8 +1055,11 @@ newLanguages(NSArray *oldNames)
        */
       [defs->_searchList addObject: GSPrimaryDomain];
       [defs->_searchList addObject: NSArgumentDomain];
-      [defs->_searchList addObject: bundleIdentifier];
-      [defs persistentDomainForName: bundleIdentifier];
+      if (bundleIdentifier)
+	{
+	  [defs->_searchList addObject: bundleIdentifier];
+	  [defs persistentDomainForName: bundleIdentifier];
+	}
       [defs->_searchList addObject: NSGlobalDomain];
       [defs persistentDomainForName: NSGlobalDomain];
       [defs->_searchList addObject: GSConfigDomain];
@@ -2331,16 +2340,24 @@ GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
 {
   if (nil == classLock)
     {
-      /* The order of +initialise of NSUserDefaults is such that our
-       * flags[] array is set up directly from the process arguments
-       * before classLock is created, so once * that variable exists
-       * this function may be used safely.
-       */
-      [NSUserDefaults class];
-      if (NO == hasSharedDefaults)
-        {
-          [NSUserDefaults standardUserDefaults];
-        }
+      if (initializing)
+	{
+	  fprintf(stderr, "GSPrivateDefaultsFlag() called within"
+	    " +[NSUserDefaults initialize] always returns NO.\n");
+	}
+      else
+	{
+	  /* The order of +initialise of NSUserDefaults is such that our
+	   * flags[] array is set up directly from the process arguments
+	   * before classLock is created, so once that variable exists
+	   * this function may be used safely.
+	   */
+	  [NSUserDefaults class];
+	  if (NO == hasSharedDefaults)
+	    {
+	      [NSUserDefaults standardUserDefaults];
+	    }
+	}
     }
   return flags[type];
 }
