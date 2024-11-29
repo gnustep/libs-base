@@ -314,16 +314,12 @@ NSSwapInt(unsigned int in)
 {
 #if	GS_SIZEOF_INT == 2
   return GSSwapI16(in);
-#else
-#if	GS_SIZEOF_INT == 4
+#elif	GS_SIZEOF_INT == 4
   return GSSwapI32(in);
-#else
-#if	GS_SIZEOF_INT == 8
+#elif	GS_SIZEOF_INT == 8
   return GSSwapI64(in);
 #else
   return GSSwapI128(in);
-#endif
-#endif
 #endif
 }
 
@@ -332,16 +328,12 @@ NSSwapLongLong(unsigned long long in)
 {
 #if	GS_SIZEOF_LONG_LONG == 2
   return GSSwapI16(in);
-#else
-#if	GS_SIZEOF_LONG_LONG == 4
+#elif	GS_SIZEOF_LONG_LONG == 4
   return GSSwapI32(in);
-#else
-#if	GS_SIZEOF_LONG_LONG == 8
+#elif	GS_SIZEOF_LONG_LONG == 8
   return GSSwapI64(in);
 #else
   return GSSwapI128(in);
-#endif
-#endif
 #endif
 }
 
@@ -350,16 +342,12 @@ NSSwapLong(unsigned long in)
 {
 #if	GS_SIZEOF_LONG == 2
   return GSSwapI16(in);
-#else
-#if	GS_SIZEOF_LONG == 4
+#elif	GS_SIZEOF_LONG == 4
   return GSSwapI32(in);
-#else
-#if	GS_SIZEOF_LONG == 8
+#elif	GS_SIZEOF_LONG == 8
   return GSSwapI64(in);
 #else
   return GSSwapI128(in);
-#endif
-#endif
 #endif
 }
 
@@ -368,16 +356,12 @@ NSSwapShort(unsigned short in)
 {
 #if	GS_SIZEOF_SHORT == 2
   return GSSwapI16(in);
-#else
-#if	GS_SIZEOF_SHORT == 4
+#elif	GS_SIZEOF_SHORT == 4
   return GSSwapI32(in);
-#else
-#if	GS_SIZEOF_SHORT == 8
+#elif	GS_SIZEOF_SHORT == 8
   return GSSwapI64(in);
 #else
   return GSSwapI128(in);
-#endif
-#endif
 #endif
 }
 
@@ -386,16 +370,12 @@ NSSwapDouble(NSSwappedDouble num)
 {
 #if	GS_SIZEOF_DOUBLE == 2
   return GSSwapI16(num);
-#else
-#if	GS_SIZEOF_DOUBLE == 4
+#elif	GS_SIZEOF_DOUBLE == 4
   return GSSwapI32(num);
-#else
-#if	GS_SIZEOF_DOUBLE == 8
+#elif	GS_SIZEOF_DOUBLE == 8
   return GSSwapI64(num);
 #else
   return GSSwapI128(num);
-#endif
-#endif
 #endif
 }
 
@@ -404,16 +384,12 @@ NSSwapFloat(NSSwappedFloat num)
 {
 #if	GS_SIZEOF_FLOAT == 2
   return GSSwapI16(num);
-#else
-#if	GS_SIZEOF_FLOAT == 4
+#elif	GS_SIZEOF_FLOAT == 4
   return GSSwapI32(num);
-#else
-#if	GS_SIZEOF_FLOAT == 8
+#elif	GS_SIZEOF_FLOAT == 8
   return GSSwapI64(num);
 #else
   return GSSwapI128(num);
-#endif
-#endif
 #endif
 }
 
