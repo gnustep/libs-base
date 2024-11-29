@@ -164,6 +164,19 @@ static BOOL		shouldCleanUp = NO;
 static BOOL		isExiting = NO;
 static NSLock           *exitLock = nil;
 
+struct trackLink {
+  struct trackLink	*next;
+  id			object;		// Instance or Class being tracked.
+  IMP			dealloc;	// Original -dealloc implementation
+  IMP			release;	// Original -release implementation
+  IMP			retain;		// Original -retain implementation
+  BOOL                  global;         // If all instance are tracked.
+  BOOL			instance;	// If the object is an instance.
+};
+
+static struct trackLink	*tracked = 0;
+static gs_mutex_t	trackLock = GS_MUTEX_INIT_STATIC;
+
 static inline void setup()
 {
   if (nil == exitLock)
@@ -245,6 +258,27 @@ handleExit()
       [[NSAutoreleasePool currentPool] dealloc];
       [NSAutoreleasePool _endThread: GSCurrentThread()];
     }
+
+  /* Exit/clean-up done ... we can get rid of tracking data too.
+   */
+  if (tracked)
+    {
+      GS_MUTEX_LOCK(trackLock);
+      while (tracked)
+	{
+	  struct trackLink	*next = tracked->next;
+
+	  if (tracked->instance)
+	    {
+	      fprintf(stderr, "Tracking ownership -[%p dealloc]"
+		" not called by exit.\n", tracked->object);
+	    }
+	  free(tracked);
+	  tracked = next;
+	}
+      GS_MUTEX_UNLOCK(trackLock);
+    }
+
   isExiting = NO;
 }
 
@@ -431,18 +465,6 @@ handleExit()
 
 
 
-struct trackLink {
-  struct trackLink	*next;
-  id			object;		// Instance or Class being tracked.
-  IMP			dealloc;	// Original -dealloc implementation
-  IMP			release;	// Original -release implementation
-  IMP			retain;		// Original -retain implementation
-  BOOL                  global;         // If all instance are tracked.
-};
-
-static struct trackLink	*tracked = 0;
-static gs_mutex_t	trackLock = GS_MUTEX_INIT_STATIC;
-
 static inline struct trackLink *
 find(id o)
 {
@@ -614,6 +636,8 @@ makeLinkForClass(Class c)
 
   l = (struct trackLink*)malloc(sizeof(struct trackLink));
   l->object = c;
+  l->instance = NO;
+  l->global = NO;
   l->dealloc = class_getMethodImplementation(c, @selector(dealloc));
   class_replaceMethod(c, @selector(dealloc),
     method_getImplementation(replacementDealloc),
@@ -702,6 +726,7 @@ makeLinkForClass(Class c)
    */
   li = (struct trackLink*)malloc(sizeof(struct trackLink));
   li->object = self;
+  li->instance = YES;
   li->global = NO;
   li->dealloc = lc->dealloc;
   li->release = lc->release;
