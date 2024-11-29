@@ -29,6 +29,7 @@
 #import "Foundation/NSHost.h"
 #import "Foundation/NSNotification.h"
 #import "Foundation/NSRunLoop.h"
+#import "Foundation/NSSet.h"
 #import "Foundation/NSValue.h"
 
 #if     GS_HAVE_NSURLSESSION
@@ -485,7 +486,6 @@ typedef struct {
       placeholder = nil;
       NSDeallocateObject(o);
     }
-fprintf(stderr, "Registered retain count %d\n", (int)[registered retainCount]);
   DESTROY(registered);
   DESTROY(regLock);
 }
@@ -811,10 +811,11 @@ fprintf(stderr, "Registered retain count %d\n", (int)[registered retainCount]);
 
 - (void) dealloc
 {
-  [_parser release];			// received headers
-  [_body release];			// for sending the body
-  [_response release];
-  [_credential release];
+  DESTROY(_parser);			// received headers
+  DESTROY(_body);			// for sending the body
+  DESTROY(_response);
+  DESTROY(_challenge);
+  DESTROY(_credential);
   DESTROY(_writeData);
   DESTROY(_masked);
   [super dealloc];
@@ -822,7 +823,7 @@ fprintf(stderr, "Registered retain count %d\n", (int)[registered retainCount]);
 
 - (void) startLoading
 {
-  static NSDictionary *methods = nil;
+  static NSSet	*methods = nil;
 
   _debug = GSDebugSet(@"NSURLProtocol");
   if (YES == [this->request _debug])
@@ -836,18 +837,18 @@ fprintf(stderr, "Registered retain count %d\n", (int)[registered retainCount]);
 
   if (methods == nil)
     {
-      methods = [[NSDictionary alloc] initWithObjectsAndKeys: 
-	self, @"HEAD",
-	self, @"GET",
-	self, @"POST",
-	self, @"PUT",
-	self, @"DELETE",
-	self, @"TRACE",
-	self, @"OPTIONS",
-	self, @"CONNECT",
+      methods = [[NSSet alloc] initWithObjects: 
+	@"HEAD",
+	@"GET",
+	@"POST",
+	@"PUT",
+	@"DELETE",
+	@"TRACE",
+	@"OPTIONS",
+	@"CONNECT",
 	nil];
       }
-  if ([methods objectForKey: [this->request HTTPMethod]] == nil)
+  if ([methods member: [this->request HTTPMethod]] == nil)
     {
       NSLog(@"Invalid HTTP Method: %@", this->request);
       [self stopLoading];
@@ -1042,6 +1043,8 @@ fprintf(stderr, "Registered retain count %d\n", (int)[registered retainCount]);
   _isLoading = NO;
   DESTROY(_writeData);
   DESTROY(_masked);
+  DESTROY(_challenge);
+  DESTROY(_credential);
   if (this->input != nil)
     {
       [this->input setDelegate: nil];
@@ -1179,6 +1182,7 @@ fprintf(stderr, "Registered retain count %d\n", (int)[registered retainCount]);
 	    {
 	      ct = nil;
 	    }
+	  DESTROY(_response);
 	  _response = [[NSHTTPURLResponse alloc]
 	    initWithURL: [this->request URL]
 	    MIMEType: ct
