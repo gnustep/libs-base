@@ -663,6 +663,7 @@ DOT
 USE_GMP
 GS_HAVE_NSURLSESSION
 HAVE_LIBCURL
+HAVE_NEWKVO
 HAVE_LIBDISPATCH_RUNLOOP
 HAVE_LIBDISPATCH
 HAVE_ICU
@@ -862,6 +863,7 @@ enable_icu
 enable_libdispatch
 with_dispatch_include
 with_dispatch_library
+enable_newkvo
 with_curl
 enable_nsurlsession
 with_gmp_include
@@ -1556,6 +1558,7 @@ Optional Features:
   --disable-zeroconf		Disable NSNetServices support
   --disable-icu			Disable International Components for Unicode
   --disable-libdispatch		Disable dispatching blocks via libdispatch
+  --disable-newkvo		Disable new KVO implementation
   --disable-nsurlsession  		Disable support for NSURLSession
 
   --enable-setuid-gdomap        Enable installing gdomap as a setuid
@@ -14519,6 +14522,34 @@ fi
 
 fi
 
+
+
+#--------------------------------------------------------------------
+# Check for whether the new KVO implementation is enabled (only with
+# the NG runtime)
+#--------------------------------------------------------------------
+HAVE_NEWKVO=0
+# Check whether --enable-newkvo was given.
+if test ${enable_newkvo+y}
+then :
+  enableval=$enable_newkvo;
+else $as_nop
+
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
+  enable_newkvo=yes
+else
+  enable_newkvo=no
+fi
+fi
+
+if test "x$enable_newkvo" = "xyes"
+then
+  if test "$OBJC_RUNTIME_LIB" = "ng"; then
+    HAVE_NEWKVO=1
+  else
+    echo "You are not using the new runtime ... newkvo not available"
+  fi
+fi
 
 
 #--------------------------------------------------------------------

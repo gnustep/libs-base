@@ -3687,6 +3687,28 @@ AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 
 
 #--------------------------------------------------------------------
+# Check for whether the new KVO implementation is enabled (only with
+# the NG runtime)
+#--------------------------------------------------------------------
+HAVE_NEWKVO=0
+AC_ARG_ENABLE(newkvo,
+  [  --disable-newkvo		Disable new KVO implementation],,[
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
+  enable_newkvo=yes
+else
+  enable_newkvo=no
+fi])
+if test "x$enable_newkvo" = "xyes"
+then
+  if test "$OBJC_RUNTIME_LIB" = "ng"; then
+    HAVE_NEWKVO=1
+  else
+    echo "You are not using the new runtime ... newkvo not available"
+  fi
+fi
+AC_SUBST(HAVE_NEWKVO)
+
+#--------------------------------------------------------------------
 # Check for libcurl
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------

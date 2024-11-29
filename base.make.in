@@ -72,6 +72,9 @@ ifeq ($(BASE_MAKE_LOADED),)
   # Has ICU been found (for NSCalendar, NSLocale, and other locale related)?
   GNUSTEP_BASE_HAVE_ICU=@HAVE_ICU@
 
+  # Has the new KVO implementation been selected.
+  GNUSTEP_BASE_HAVE_NEWKVO=@HAVE_NEWKVO@
+
 
   # The next two are a special case ... we should have either one defined
   # for netservices.  FIXME ... shouldn't these be combined?

@@ -360,7 +360,7 @@ objc-load.m
 # We have two implementations for Key Value Observing.
 # One highly-optimised one that depends on libobjc2
 # and the original implementation.
-ifeq ($(OBJC_RUNTIME_LIB), ng)
+ifeq ($(GNUSTEP_BASE_HAVE_NEWKVO), 1)
   BASE_MFILES += \
   NSKVOSupport.m \
   NSKVOSwizzling.m
