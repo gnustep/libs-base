@@ -906,6 +906,7 @@ typedef struct {
 
 	  r = [[this->request mutableCopy] autorelease];
 	  [r setURL: url];
+	  AUTORELEASE(RETAIN(self));
 	  [this->client URLProtocol: self
 	     wasRedirectedToRequest: r
 		   redirectResponse: nil];
