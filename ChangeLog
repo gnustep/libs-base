@@ -1,3 +1,11 @@
+2024-11-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLProtocol.m: fix leaks due to retain loops.
+	* Source/Additions/NSObject+GNUstepBase.m: fix issues in new
+	-trackOownership mechanism to log tracked instances at exist and to
+	handle cases where we track instances of a class and instances of
+	its subclasses.
+
 2024-11-26 Matvii Jarosh <matviijarosh@gmail.com>
 
 	* NSByteOrder.h: fix NSSwappedFloat and NSSwappedDouble
@@ -18,6 +26,7 @@
 	* type_encoding.m: add test NSINSETS_ENCODING_PREFIX.
 	* GSConcreteValueTamplate.m: add GSEdgeInsetsValue.
 	* GSConcreteValue.m: add TYPE_ORDER 6.
+
 2024-11-24 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSSocketPort.m: fix leak of data object when establishing a
