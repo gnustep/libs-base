@@ -1399,7 +1399,8 @@ unregisterActiveThread(NSThread *thread)
               */
               if (i > 15)
                 {
-                  NSWarnLog(@"Truncating thread name '%s' to 15 characters due to platform limitations", buf);
+                  NSWarnLog(@"Truncating thread name '%s' to 15 characters"
+		    @" due to platform limitations", buf);
                   i = 15;
                 }
               else
@@ -1467,6 +1468,7 @@ nsthreadLauncher(void *thread)
 
   setThreadForCurrentThread(t);
 
+  ENTER_POOL
   /*
    * Let observers know a new thread is starting.
    */
@@ -1479,6 +1481,7 @@ nsthreadLauncher(void *thread)
 		  userInfo: nil];
 
   [t _setName: [t name]];
+  LEAVE_POOL
 
   [t main];
 

@@ -175,8 +175,8 @@ test_encoding(void)
 BOOL test_getCString_maxLength_range_remainingRange(void)
 {
   NS_DURING
-    unsigned char *referenceBytes;
-    int referenceBytesLength;
+    unsigned char referenceBytes[4];
+    int referenceBytesLength = 4;
     NSString *referenceString;
     unsigned char buffer[16];
     NSRange remainingRange;
@@ -186,8 +186,7 @@ BOOL test_getCString_maxLength_range_remainingRange(void)
     switch ([NSString defaultCStringEncoding])
       {
 	case NSUTF8StringEncoding:
-	  referenceBytes =(unsigned char []){0x41, 0xc3, 0xa5, 0x42};
-	  referenceBytesLength = 4;
+	  memcpy(referenceBytes, (unsigned char []){0x41, 0xc3, 0xa5, 0x42}, 4);
 	  referenceString = [stringClass stringWithCharacters:
 	    (unichar []){0x41, 0xe5, 0x42}
 		  length: 3];

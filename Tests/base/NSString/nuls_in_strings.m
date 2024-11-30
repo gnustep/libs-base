@@ -11,6 +11,7 @@ constants.
 
 int main(int argc, char **argv)
 {
+  START_SET("nuls in strings")
   NSString *constantString=@"a\0b";
   NSString *normalString;
   unichar characters[3]={'a',0,'b'};
@@ -26,6 +27,7 @@ int main(int argc, char **argv)
   r = [normalString rangeOfString: @"\0"];
   PASS(1 == r.length && 1 == r.location, "find nul in string");
 
+  END_SET("nuls in strings")
   return 0;
 }
 

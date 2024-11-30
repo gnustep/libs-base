@@ -8,6 +8,7 @@ copyright 2004 Alexander Malmberg <alexander@malmberg.org>
 
 int main(int argc, char **argv)
 {
+  START_SET("zero hash")
   NSString *s = @"!)9\" ;";
   unsigned int h;
 
@@ -34,7 +35,7 @@ int main(int argc, char **argv)
   s = [NSString stringWithString: s];
   h = [s hash];
   PASS(h != 0, "[NSString hash] does not return 0");
-
+  END_SET("zero hash")
   return 0;
 }
 
