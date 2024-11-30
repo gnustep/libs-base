@@ -5,7 +5,7 @@
 
 int main()
 { 
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSIndexPath	*index1;
   NSIndexPath	*index2;
   NSUInteger	i0[2];
@@ -70,10 +70,11 @@ int main()
   PASS([index2 compare: index1] == NSOrderedDescending,
        "longer index2 comparison the other way works");
 
-  [arp release]; arp = nil;
-  { 
+  LEAVE_POOL
+  START_SET("segfault")
     BOOL didNotSegfault = YES;
     PASS(didNotSegfault, "+indexPathWithIndex: doesn't mess up memory");
-  }
+  END_SET("segfault")
+
   return 0;
 }

@@ -10,9 +10,9 @@ int main()
   val1 = @"Hello";
   val2 = @"A Goodbye";
   val3 = @"Testing all strings";
-  vals1 = [[[NSArray arrayWithObject:val1] arrayByAddingObject:val2] retain];
-  vals2 = [[vals1 arrayByAddingObject:val2] retain];
-  vals3 = [[vals1 arrayByAddingObject:val3] retain];
+  vals1 = [[NSArray arrayWithObject:val1] arrayByAddingObject:val2];
+  vals2 = [vals1 arrayByAddingObject:val2];
+  vals3 = [vals1 arrayByAddingObject:val3];
 
   obj = [NSArray new];
   arr = obj;

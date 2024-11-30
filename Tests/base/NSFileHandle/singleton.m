@@ -5,7 +5,7 @@ id a,b,c;
 
 int main(void)
 {
-  NSAutoreleasePool     *p = [NSAutoreleasePool new];
+  ENTER_POOL
   NSFileHandle  *a;
   NSFileHandle  *b;
   NSFileHandle  *c;
@@ -19,6 +19,6 @@ int main(void)
   PASS_EXCEPTION([b release], NSGenericException, "Cannot dealloc stdout");
   PASS_EXCEPTION([c release], NSGenericException, "Cannot dealloc stderr");
 
-  [p drain];
+  LEAVE_POOL
   return 0;
 }

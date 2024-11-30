@@ -186,6 +186,7 @@ int main()
     NSData *dat1 = [mgr contentsAtPath: @"NSFMFile"];
     str2 = [[NSString alloc] initWithData: dat1 encoding: 1];
     PASS([str1 isEqualToString: str2], "NSFileManager file contents match");
+    DESTROY(str2);
   }
   [NSThread sleepForTimeInterval: 1.0]; // So date of file is clearly in past
   [handler reset];
@@ -198,6 +199,7 @@ int main()
     NSData *dat1 = [mgr contentsAtPath: @"NSFMCopy"];
     str2 = [[NSString alloc] initWithData: dat1 encoding: 1];
     PASS([str1 isEqual: str2],"NSFileManager copied file contents match");
+    DESTROY(str2);
   }
   NSDictionary *oa = [mgr fileAttributesAtPath: @"NSFMFile" traverseLink: NO];
   NSDictionary *na = [mgr fileAttributesAtPath: @"NSFMCopy" traverseLink: NO];
@@ -245,6 +247,7 @@ int main()
     NSData *dat1 = [mgr contentsAtPath: @"NSFMMove"];
     str2 = [[NSString alloc] initWithData: dat1 encoding: 1];
     PASS([str1 isEqualToString: str2],"NSFileManager moved file contents match")
+    DESTROY(str2);
   }
 
   PASS(![mgr copyPath: @"NSFMFile"

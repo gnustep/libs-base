@@ -124,8 +124,8 @@ static NSLock *lock = nil;
 static NSMutableArray *list = nil;
 + (void) initialize
 {
-  lock = [NSLock new];
-  list = [NSMutableArray new];
+  if (nil == lock) lock = [NSLock new];
+  if (nil == list) list = [NSMutableArray new];
 }
 - (void) main
 {

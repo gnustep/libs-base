@@ -79,6 +79,7 @@ static int      c1load = 0;
 int
 main(int argc, char *argv[])
 {
+  ENTER_POOL
   id            obj;
   Class         cls;
   Class         meta;
@@ -294,6 +295,7 @@ main(int argc, char *argv[])
   PASS([NSStringFromSelector(sel) isEqual: @"xxxyyy_odd_name_xxxyyy"],
     "NSStringFromSelector() works for existing selector");
 
+  LEAVE_POOL
   return 0;
 }
 

@@ -189,27 +189,8 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
 - (void) dealloc
 {
-  if (self == fh_stdin)
-    {
-      fh_stdin = nil;
-      [NSException raise: NSGenericException
-                  format: @"Attempt to deallocate standard input handle"];
-    }
-  if (self == fh_stdout)
-    {
-      fh_stdout = nil;
-      [NSException raise: NSGenericException
-                  format: @"Attempt to deallocate standard output handle"];
-    }
-  if (self == fh_stderr)
-    {
-      fh_stderr = nil;
-      [NSException raise: NSGenericException
-                  format: @"Attempt to deallocate standard error handle"];
-    }
-  DESTROY(address);
-  DESTROY(service);
-  DESTROY(protocol);
+  [self ignoreReadDescriptor];
+  [self ignoreWriteDescriptor];
 
   /* If a read operation is in progress, we need to remove the handle
    * from the run loop and destroy the operation information so that
@@ -217,7 +198,6 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
    */
   if (readInfo)
     {
-      [self ignoreReadDescriptor];
       DESTROY(readInfo);
     }
 
@@ -227,9 +207,33 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
    */
   if ([writeInfo count] > 0)
     {
-      [self ignoreWriteDescriptor];
       [writeInfo removeAllObjects];
     }
+
+  if (self == fh_stdin)
+    {
+      fh_stdin = nil;
+      DEALLOC
+      [NSException raise: NSGenericException
+                  format: @"Attempt to deallocate standard input handle"];
+    }
+  if (self == fh_stdout)
+    {
+      fh_stdout = nil;
+      DEALLOC
+      [NSException raise: NSGenericException
+                  format: @"Attempt to deallocate standard output handle"];
+    }
+  if (self == fh_stderr)
+    {
+      fh_stderr = nil;
+      DEALLOC
+      [NSException raise: NSGenericException
+                  format: @"Attempt to deallocate standard error handle"];
+    }
+  DESTROY(address);
+  DESTROY(service);
+  DESTROY(protocol);
 
   /* Finalize *after* ending read and write operations so that, if the
    * file handle needs to be closed, we don't generate any notifications

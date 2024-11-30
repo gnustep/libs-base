@@ -6,7 +6,7 @@
 
 int main()
 {
-  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  START_SET("basic")
   char 			*str1, *str2;
   NSData 		*data1, *data2;
   NSMutableData 	*mutable;
@@ -70,12 +70,12 @@ int main()
     && [data2 bytes] == str1,
     "+dataWithBytesNoCopy:length:freeWhenDone: works")
 
-  [arp release]; arp = nil;
+  END_SET("basic")
 
-  {
+  START_SET("segault check")
     BOOL didNotSegfault = YES;
     PASS(didNotSegfault, "+dataWithBytesNoCopy:length:freeWhenDone:NO doesn't free memory");
-  }
+  END_SET("segfault check")
 
 
   START_SET("deallocator blocks")
@@ -133,6 +133,6 @@ int main()
   # else
     SKIP("No Blocks support in the compiler.")
   # endif
-    END_SET("deallocator blocks")
+  END_SET("deallocator blocks")
   return 0;
 }

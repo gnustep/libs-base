@@ -89,7 +89,7 @@ setup()
 	  classTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	    NSNonOwnedPointerMapValueCallBacks, 128);
 	  infoTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
-	    NSNonOwnedPointerMapValueCallBacks, 1024);
+	    NSObjectMapValueCallBacks, 1024);
 	  dependentKeyTable = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	      NSOwnedPointerMapValueCallBacks, 128);
 	  baseClass = NSClassFromString(@"GSKVOBase");
@@ -111,9 +111,9 @@ setup()
  */
 @interface	GSKVOReplacement : NSObject
 {
-  Class         original;       /* The original class */
-  Class         replacement;    /* The replacement class */
-  NSMutableSet  *keys;          /* The observed setter keys */
+  Class         	original;       /* The original class */
+  Class         	replacement;    /* The replacement class */
+  NSMutableDictionary  	*keys;          /* The observed setter keys */
 }
 - (id) initWithClass: (Class)aClass;
 - (void) overrideSetterFor: (NSString*)aKey;
@@ -475,16 +475,16 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
   replacement = NSClassFromString(name);
   GSObjCAddClassBehavior(replacement, baseClass);
 
-  /* Create the set of setter methods overridden.
+  /* Create the dictionary of setter methods overridden.
    */
-  keys = [NSMutableSet new];
+  keys = [NSMutableDictionary new];
 
   return self;
 }
 
 - (void) overrideSetterFor: (NSString*)aKey
 {
-  if ([keys member: aKey] == nil)
+  if ([keys objectForKey: aKey] == nil)
     {
       NSMethodSignature	*sig;
       SEL		sel;
@@ -493,9 +493,13 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
       NSString          *suffix;
       NSString          *a[2];
       unsigned          i;
+      
       BOOL              found = NO;
       NSString		*tmp;
-      unichar u;
+      unichar 		u;
+#if defined(USE_LIBFFI)
+      GSCodeBuffer    	*b = nil;
+#endif
 
       suffix = [aKey substringFromIndex: 1];
       u = uni_toupper([aKey characterAtIndex: 0]);
@@ -610,10 +614,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
                 else
                   {
 #if defined(USE_LIBFFI)
-                    GSCodeBuffer    *b;
-
                     b = cifframe_closure(sig, cifframe_callback);
-                    [b retain];
                     imp = [b executable];
 #else
                     imp = 0;
@@ -640,7 +641,16 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
         }
       if (found == YES)
         {
-          [keys addObject: aKey];
+	  id	info = nil;
+
+#if defined(USE_LIBFFI)
+	  info = b;	// Need to safe the code buffer
+#endif
+	  if (nil == info)
+	    {
+	      info = [NSNull null];
+	    }
+          [keys setObject: info forKey: aKey];
         }
       else
         {
@@ -648,15 +658,15 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
 
           if (depKeys)
             {
-              NSMapEnumerator enumerator = NSEnumerateMapTable(depKeys);
-              NSString *mainKey;
-              NSHashTable *dependents;
+              NSMapEnumerator	enumerator = NSEnumerateMapTable(depKeys);
+              NSString 		*mainKey;
+              NSHashTable 	*dependents;
 
               while (NSNextMapEnumeratorPair(&enumerator, (void **)(&mainKey),
                 (void**)&dependents))
                 {
-                  NSHashEnumerator dependentKeyEnum;
-                  NSString *dependentKey;
+                  NSHashEnumerator	dependentKeyEnum;
+                  NSString 		*dependentKey;
 
                   if (!dependents) continue;
                   dependentKeyEnum = NSEnumerateHashTable(dependents);
@@ -667,7 +677,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
                         {
                           [self overrideSetterFor: mainKey];
                           // Mark the key as used
-                          [keys addObject: aKey];
+                          [keys setObject: [NSNull null] forKey: aKey];
                           found = YES;
                         }
                     }
@@ -1542,6 +1552,7 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
     {
       info = [[GSKVOInfo alloc] initWithInstance: self];
       [self setObservationInfo: info];
+      RELEASE(info);
       object_setClass(self, [r replacement]);
     }
 
@@ -1591,7 +1602,6 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
        * turn off key-value-observing for it.
        */
       object_setClass(self, [self class]);
-      IF_NO_ARC(AUTORELEASE(info);)
       [self setObservationInfo: nil];
     }
   if ([aPath rangeOfString:@"."].location != NSNotFound)
@@ -1618,7 +1628,6 @@ cifframe_callback(ffi_cif *cif, void *retp, void **args, void *user)
        * turn off key-value-observing for it.
        */
       object_setClass(self, [self class]);
-      IF_NO_GC(AUTORELEASE(info);)
       [self setObservationInfo: nil];
     }
   [kvoLock unlock];

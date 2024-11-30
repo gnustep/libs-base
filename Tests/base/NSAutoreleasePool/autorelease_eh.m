@@ -45,11 +45,13 @@
 
 int main(int argc, char** argv)
 {
-  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+  ENTER_POOL
   TestClass 		*testClass = [[TestClass new] autorelease];
 
   [testClass runTest];
-  [pool release];
-  PASS(1, "Destroying pools in the wrong order didn't break anything...");
+  LEAVE_POOL
+  ENTER_POOL
+  PASS(1, "Destroying pools in the wrong order didn't break anything...")
+  LEAVE_POOL
   return 0;
 }
