@@ -137,7 +137,10 @@ GS_EXPORT void		GSDebugAllocationRemove(Class c, id o);
  * Object allocation debugging
  * should not affect performance too much, and is very useful
  * as it allows you to monitor how many objects of each class
- * your application has allocated.
+ * your application has allocated.<br />
+ * NB. For much more detailed diagnosis of memory leaks, the GNUstep
+ * additional method [NSObject-trackOwnership] may be used to log
+ * the location of the memory lifcycle of a particular object.
  */
 GS_EXPORT BOOL		GSDebugAllocationActive(BOOL active);
 

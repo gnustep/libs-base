@@ -304,10 +304,9 @@ notice and this notice are preserved.
 		When this is set to YES, the GNUstep extension method
 		+setShouldCleanUp: is called when the NSObject class is
 		initialised, this turns on recording of some intentionally
-		leaked memory (data structures intended to persist for the
+		kept memory (data structures intended to persist for the
 		whole life of the process), and activates cleanup of that
-		memory on process exit so that external tools such as
-		valgrind will not report the memory as possibly lost. 
+		memory on process exit.
 	      </p>
 	      <p>
 		Use of this facility is a work in progress ... many classes

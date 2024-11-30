@@ -295,11 +295,28 @@ extern "C" {
  */
 + (BOOL) shouldCleanUp;
 
-/** Turns on tracking of retain/release for instances of the receiver.
+/** Turns on tracking of the ownership for all instances of the receiver.
+ * This could have major performance impact and if possible you should not
+ * call this class method but should use the instance method instead.
  */
 + (void) trackOwnership;
 
-/** Turns on tracking of retain/release for the receiver.
+/** Turns on tracking of ownership for the receiver.<br />
+ * This works best in conjunction with leak detection (eg as provided by
+ * AddressSanitizer/LeakSanitizer) which reports leaked memory at program
+ * exit:  once you know where leaked memory was allocated, you can alter
+ * the code to call -trackOwnership on the offending object, and can then
+ * see a log of the object life cycle to work out why it is leaked.<br />
+ * This operates by altering the class of the receiver by overriding the
+ * -retain, -release, and -dealloc methods to report when they are called
+ * for the instance.  The logs include the instance address and the stack
+ * trace at which the method was called.<br />
+ * This method also turns on atexit handing to report tracked instances
+ * which have not been deallocated by the time the process exits.
+ * All instances of a tracked class (and its subclasses) incur an overhead
+ * when the overridden methods are executed, and that overhead scales with
+ * the number of tracked instances (and classes) so tracking should be
+ * used sparingly (probably never in production code).
  */
 - (void) trackOwnership;
 
