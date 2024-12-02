@@ -435,21 +435,19 @@ GSFFIInvokeWithTargetAndImp(NSInvocation *inv, id anObject, IMP imp)
     }
   else
     {
-      GSMethod method;
-      method = GSGetMethod((GSObjCIsInstance(_target)
-                            ? (Class)object_getClass(_target)
-                            : (Class)_target),
-                           _selector,
-                           GSObjCIsInstance(_target),
-                           YES);
-      imp = method_getImplementation(method);
-      /*
-       * If fast lookup failed, we may be forwarding or something ...
+      /* The KVO implementation for libobjc2 (located in gnustep-base Source/NSKVO*)
+       * uses the non-portable `object_addMethod_np` API from libobjc2.
+       * `object_addMethod_np` creates or reuses a hidden subclass and adds the swizzled
+       * method to the hidden class.
+       *
+       * When retrieving the object's class with `object_getClass`, hidden classes are skipped
+       * and the original class is returned.
+       * This is also the case with `class_getInstanceMethod`, where the
+       * original class or (non-swizzled) method is returned instead.
+       * 
+       * The proper way to retrieve an IMP is with `objc_msg_lookup`.
        */
-      if (imp == 0)
-	{
-	  imp = objc_msg_lookup(_target, _selector);
-	}
+      imp = objc_msg_lookup(_target, _selector);
     }
 
   [self setTarget: old_target];
