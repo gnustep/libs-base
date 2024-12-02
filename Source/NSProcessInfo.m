@@ -1661,7 +1661,7 @@ GSInitializeProcessAndroid(JNIEnv *env, jobject context)
   jstring localeListJava = (*env)->CallObjectMethod(env, localeListObj, localeListToLanguageTagsMethod);
   GS_JNI_CHECK(env, localeListJava);
   
-  const char *localeListOrig = (*env)->GetStringUTFChars(env, localeIdJava, NULL);
+  const char *localeListOrig = (*env)->GetStringUTFChars(env, localeListJava, NULL);
 
   // Some devices return with it enclosed in []'s so check if both exists before
   // removing to ensure it is formatted correctly
