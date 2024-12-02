@@ -11,6 +11,11 @@
 
 #import "Testing.h"
 
+/**
+ * The new KVO implementation for libobjc2/clang, located in Source/NSKVO*, reuses
+ * or installs a hidden class and subsequently adds the swizzled method to the
+ * hidden class. Make sure that the invocation mechanism calls the swizzled method.
+ */
 
 @interface Observee : NSObject
 {
@@ -92,15 +97,15 @@
 @end
 
 @interface Observer: NSObject
+{
+    int count;
+}
 
 - (void)runTest;
 
 @end
 
 @implementation Observer
-{
-    int count;
-}
 
 - (void)runTest
 {
