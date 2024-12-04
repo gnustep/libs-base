@@ -1203,7 +1203,10 @@ static Class	GSInlineArrayClass;
    * that produces false positives for items held in an inline array, so
    * we use the less efficient class in that case.
    */
-#if	defined(GS_WITH_ASAN)
+#if	!defined(GNUSTEP_WITH_ASAN)
+#define	GNUSTEP_WITH_ASAN 0
+#endif
+#if	GNUSTEP_WITH_ASAN
   self = (id)NSAllocateObject(GSArrayClass, 0, z);
 #else
   self = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*count, z);
