@@ -1545,14 +1545,15 @@ newLanguages(NSArray *oldNames)
     {
       GSPersistentDomain	*pd;
 
-      if (nil != (pd = [_persDomains objectForKey: bundleIdentifier]))
+      pd = [_persDomains objectForKey: bundleIdentifier];
+      if (nil != pd)
 	{
+	  id	old = [self objectForKey: defaultName];
+
 	  if ([pd setObject: nil forKey: defaultName])
 	    {
-	      id	old;
 	      id 	new;
 
-	      old = [self objectForKey: defaultName];
 	      [self _changePersistentDomain: bundleIdentifier];
 	      new = [self objectForKey: defaultName];
 	      /* Emit only a KVO notification when the value has actually
@@ -2095,7 +2096,7 @@ static BOOL isPlistObject(id o)
       _lastSync = saved;
     }
   // Check and if not existent add the Application and the Global domains
-  if (bundleIdentifier && [_persDomains objectForKey: bundleIdentifier] == nil)
+  if ([_persDomains objectForKey: bundleIdentifier] == nil)
     {
       GSPersistentDomain	*pd;
 
