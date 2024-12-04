@@ -45,7 +45,7 @@
 #define	GNUSTEP_WITH_ASAN 0
 #endif
 #if	GNUSTEP_WITH_ASAN
-#define	GSARRAY(ITEMS,ZONE) (id)NSAllocateObject(GSArrayClass, 0, (ZONE);
+#define	GSARRAY(ITEMS,ZONE) (id)NSAllocateObject(GSArrayClass, 0, (ZONE))
 #else
 #define	GSARRAY(ITEMS,ZONE)\
  (id)NSAllocateObject(GSInlineArrayClass, (ITEMS)*sizeof(id), (ZONE))
