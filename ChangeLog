@@ -99,6 +99,18 @@
 	* Source/GSPrivate.h: declare new functions.
 	* Source/NSUserDefaults.m: use bundle identifier rather than process
 	name where it is available.
+	WARNING ... this brings behavior in line with MacOS but it means that
+	existing defaults databases will not be loaded.  If your app is called
+	MyApp and its bundle identifier (stored as the CFBundleIdentifier
+	value in the Info-gnustep.plist or Info.plist file in your app) is
+	mydomain.MyApp then you can copy the information by saving the old
+	information to a file, editing the domain name in the file, and then
+	importing from that file using the 'defaults' command.
+	Or use sed to do the editing in a pipeline like this:
+	  defaults read MyApp |\
+	  sed -e 's/^MyApp /mydomain.MyApp/' |\
+	  defaults write
+	Then remove the old information with 'defaults delete MyApp'.
 
 2024-11-12 Richard Frith-Macdonald <rfm@gnu.org>
 
