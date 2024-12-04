@@ -268,9 +268,9 @@ static NSString *_androidCacheDir = nil;
 static void
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSString	*arg0 = nil;
-  int i;
+  int 		i;
 
   if (_gnu_arg_zero != 0)
     {
@@ -330,7 +330,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     }
 
   /* Getting the process name */
-  IF_NO_ARC(RELEASE(_gnu_processName);)
+  IF_NO_ARC([_gnu_processName release];)
   _gnu_processName = [arg0 lastPathComponent];
 #if	defined(_WIN32)
   /* On windows we remove any .exe extension for consistency with app names
@@ -373,9 +373,9 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	}
     }
     
-  IF_NO_ARC(RELEASE(_gnu_arguments);)
+  IF_NO_ARC([_gnu_arguments release];)
   _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
-  RELEASE(arg0);
+  IF_NO_ARC([arg0 release];)
 }
 #else
   if (argv)
@@ -400,9 +400,9 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	    obj_argv[added++] = str;
 	}
 
-      IF_NO_ARC(RELEASE(_gnu_arguments);)
+      IF_NO_ARC([_gnu_arguments release];)
       _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
-      RELEASE(arg0);
+      IF_NO_ARC([arg0 release];)
     }
 #endif	
 	
@@ -482,13 +482,13 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	    i++;
 	  }
       }
-    IF_NO_ARC(RELEASE(_gnu_environment);)
+    IF_NO_ARC([_gnu_environment release];)
     _gnu_environment = [[NSDictionary alloc] initWithObjects: values
 						     forKeys: keys];
-    IF_NO_ARC(RELEASE(keys);)
-    IF_NO_ARC(RELEASE(values);)
+    IF_NO_ARC([keys release];)
+    IF_NO_ARC([values release];)
   }
-  [arp drain];
+  LEAVE_POOL
 }
 
 #if !GS_FAKE_MAIN && ((defined(HAVE_PROCFS)  || defined(HAVE_KVM_ENV) || defined(HAVE_PROCFS_PSINFO) || defined(__APPLE__)) && (defined(HAVE_LOAD_METHOD)))

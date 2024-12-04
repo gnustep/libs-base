@@ -735,7 +735,7 @@ newLanguages(NSArray *oldNames)
        * the +_createArgumentDictionary: method.
        */
       args = [[NSProcessInfo processInfo] arguments];
-      enumerator = [[[NSProcessInfo processInfo] arguments] objectEnumerator];
+      enumerator = [args objectEnumerator];
       [enumerator nextObject];	// Skip process name.
       while (nil != (key = [enumerator nextObject]))
         {
@@ -1543,14 +1543,16 @@ newLanguages(NSArray *oldNames)
   [_lock lock];
   NS_DURING
     {
-      GSPersistentDomain	*pd = [_persDomains objectForKey: bundleIdentifier];
-      id			old = [self objectForKey: defaultName];
+      GSPersistentDomain	*pd;
 
-      if (nil != pd)
+      if (nil != (pd = [_persDomains objectForKey: bundleIdentifier]))
 	{
 	  if ([pd setObject: nil forKey: defaultName])
 	    {
-	      id new;
+	      id	old;
+	      id 	new;
+
+	      old = [self objectForKey: defaultName];
 	      [self _changePersistentDomain: bundleIdentifier];
 	      new = [self objectForKey: defaultName];
 	      /* Emit only a KVO notification when the value has actually
@@ -2093,7 +2095,7 @@ static BOOL isPlistObject(id o)
       _lastSync = saved;
     }
   // Check and if not existent add the Application and the Global domains
-  if ([_persDomains objectForKey: bundleIdentifier] == nil)
+  if (bundleIdentifier && [_persDomains objectForKey: bundleIdentifier] == nil)
     {
       GSPersistentDomain	*pd;
 
