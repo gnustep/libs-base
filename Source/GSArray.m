@@ -37,11 +37,27 @@
 #import "GSPrivate.h"
 #import "GSSorting.h"
 
+/* The gnustep-make -asan=yes option enables LeakSanitizer but (Nov2024)
+ * that produces false positives for items held in an inline array, so
+ * we use the less efficient class in that case.
+ */
+#if	!defined(GNUSTEP_WITH_ASAN)
+#define	GNUSTEP_WITH_ASAN 0
+#endif
+#if	GNUSTEP_WITH_ASAN
+#define	GSARRAY(ITEMS,ZONE) (id)NSAllocateObject(GSArrayClass, 0, (ZONE);
+#else
+#define	GSARRAY(ITEMS,ZONE)\
+ (id)NSAllocateObject(GSInlineArrayClass, (ITEMS)*sizeof(id), (ZONE))
+#endif
+
 static SEL	eqSel;
 static SEL	oaiSel;
 
 static Class	GSArrayClass;
+#if	!GNUSTEP_WITH_ASAN
 static Class	GSInlineArrayClass;
+#endif
 /* This class stores objects inline in data beyond the end of the instance.
  */
 @interface GSInlineArray : GSArray
@@ -109,7 +125,9 @@ static Class	GSInlineArrayClass;
       eqSel = @selector(isEqual:);
       oaiSel = @selector(objectAtIndex:);
       GSArrayClass = self;
+#if	!GNUSTEP_WITH_ASAN
       GSInlineArrayClass = [GSInlineArray class];
+#endif
     }
 }
 
@@ -480,7 +498,7 @@ static Class	GSInlineArrayClass;
 {
   NSArray       *copy;
 
-  copy = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*_count, zone);
+  copy = GSARRAY(_count, zone);
   return [copy initWithObjects: _contents_array count: _count];
 }
 
@@ -1133,7 +1151,9 @@ static Class	GSInlineArrayClass;
 
 + (void) initialize
 {
+#if	!GNUSTEP_WITH_ASAN
   GSInlineArrayClass = [GSInlineArray class];
+#endif
 }
 
 - (id) autorelease
@@ -1180,8 +1200,7 @@ static Class	GSInlineArrayClass;
       GSInlineArray	*a;
 
       [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
-      a = (id)NSAllocateObject(GSInlineArrayClass,
-	sizeof(id)*c, [self zone]);
+      a = GSARRAY(c, [self zone]);
       a->_contents_array
         = (id*)(((void*)a) + class_getInstanceSize([a class]));
       if (c > 0)
@@ -1199,18 +1218,7 @@ static Class	GSInlineArrayClass;
 {
   NSZone	*z = [self zone];
 
-  /* The gnustep-make -asan=yes option enables LeakSanitizer but (Nov2024)
-   * that produces false positives for items held in an inline array, so
-   * we use the less efficient class in that case.
-   */
-#if	!defined(GNUSTEP_WITH_ASAN)
-#define	GNUSTEP_WITH_ASAN 0
-#endif
-#if	GNUSTEP_WITH_ASAN
-  self = (id)NSAllocateObject(GSArrayClass, 0, z);
-#else
-  self = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*count, z);
-#endif
+  self = GSARRAY(count, z);
   return [self initWithObjects: objects count: count];
 }
 
