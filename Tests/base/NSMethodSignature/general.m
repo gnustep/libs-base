@@ -27,159 +27,159 @@ typedef struct _MySmallStruct MySmallStruct;
 
 /*------------------------------------*/
 @interface MyClass : NSObject
--(void)void_void;
--(id)id_void;
+- (void) void_void;
+- (id)id_void;
 
--(char)char_void;
--(unsigned char)uchar_void;
--(signed char)schar_void;
+- (char)char_void;
+- (unsigned char)uchar_void;
+- (signed char)schar_void;
 
--(short)short_void;
--(unsigned short)ushort_void;
--(signed short)sshort_void;
+- (short)short_void;
+- (unsigned short)ushort_void;
+- (signed short)sshort_void;
 
--(int)int_void;
--(unsigned int)uint_void;
--(signed int)sint_void;
+- (int)int_void;
+- (unsigned int)uint_void;
+- (signed int)sint_void;
 
--(long)long_void;
--(unsigned long)ulong_void;
--(signed long)slong_void;
+- (long)long_void;
+- (unsigned long)ulong_void;
+- (signed long)slong_void;
 
--(float)float_void;
--(double)double_void;
+- (float)float_void;
+- (double)double_void;
 
--(MyLargeStruct)largeStruct_void;
--(MySmallStruct)smallStruct_void;
+- (MyLargeStruct)largeStruct_void;
+- (MySmallStruct)smallStruct_void;
 
 
 
--(void)void_id:(id)_id;
+- (void) void_id: (id)_id;
 
--(void)void_char:(char)_char;
--(void)void_uchar:(unsigned char)_char;
--(void)void_schar:(signed char)_char;
+- (void) void_char: (char)_char;
+- (void) void_uchar: (unsigned char)_char;
+- (void) void_schar: (signed char)_char;
 
--(void)void_short:(short)_short;
--(void)void_ushort:(unsigned short)_short;
--(void)void_sshort:(signed short)_short;
+- (void) void_short: (short)_short;
+- (void) void_ushort: (unsigned short)_short;
+- (void) void_sshort: (signed short)_short;
 
--(void)void_int:(int)_int;
--(void)void_uint:(unsigned int)_int;
--(void)void_sint:(signed int)_int;
+- (void) void_int: (int)_int;
+- (void) void_uint: (unsigned int)_int;
+- (void) void_sint: (signed int)_int;
 
--(void)void_long:(long)_long;
--(void)void_ulong:(unsigned long)_long;
--(void)void_slong:(signed long)_long;
+- (void) void_long: (long)_long;
+- (void) void_ulong: (unsigned long)_long;
+- (void) void_slong: (signed long)_long;
 
--(void)void_float:(float)_float;
--(void)void_double:(double)_double;
+- (void) void_float: (float)_float;
+- (void) void_double: (double)_double;
 
--(void)void_largeStruct:(MyLargeStruct)_str;
--(void)void_smallStruct:(MySmallStruct)_str;
+- (void) void_largeStruct: (MyLargeStruct)_str;
+- (void) void_smallStruct: (MySmallStruct)_str;
 
--(void)void_float:(float)_float double:(double)_double;
--(void)void_double:(double)_double float:(float)_float;
+- (void) void_float: (float)_float double:(double)_double;
+- (void) void_double: (double)_double float:(float)_float;
 
--(MyLargeStruct)largeStruct_id:(id)_id
-			  char:(char)_char
-			 short:(short)_short
-			   int:(int)_int
-			  long:(long)_long
-			 float:(float)_float
-			double:(double)_double
-		   largeStruct:(MyLargeStruct)_lstr
-		   smallStruct:(MySmallStruct)_sstr;
--(MySmallStruct)smallStruct_id:(id)_id
-			 uchar:(unsigned char)_uchar
-			ushort:(unsigned short)_ushort
-			  uint:(unsigned int)_uint
-			 ulong:(unsigned long)_ulong
-			 float:(float)_float
-			double:(double)_double
-		   largeStruct:(MyLargeStruct)_lstr
-		   smallStruct:(MySmallStruct)_sstr;
+- (MyLargeStruct)largeStruct_id: (id)_id
+			  char: (char)_char
+			 short: (short)_short
+			   int: (int)_int
+			  long: (long)_long
+			 float: (float)_float
+			double: (double)_double
+		   largeStruct: (MyLargeStruct)_lstr
+		   smallStruct: (MySmallStruct)_sstr;
+- (MySmallStruct)smallStruct_id: (id)_id
+			 uchar: (unsigned char)_uchar
+			ushort: (unsigned short)_ushort
+			  uint: (unsigned int)_uint
+			 ulong: (unsigned long)_ulong
+			 float: (float)_float
+			double: (double)_double
+		   largeStruct: (MyLargeStruct)_lstr
+		   smallStruct: (MySmallStruct)_sstr;
 
--(const char *)runtimeSignatureForSelector:(SEL)selector;
+- (const char *)runtimeSignatureForSelector: (SEL)selector;
 @end
 
 @implementation MyClass
--(void)void_void {}
--(id)id_void { return 0; }
+- (void) void_void {}
+- (id) id_void { return 0; }
 
--(char)char_void { return 0; }
--(unsigned char)uchar_void { return 0; }
--(signed char)schar_void { return 0; }
+- (char) char_void { return 0; }
+- (unsigned char) uchar_void { return 0; }
+- (signed char) schar_void { return 0; }
 
--(short)short_void { return 0; }
--(unsigned short)ushort_void { return 0; }
--(signed short)sshort_void { return 0; }
+- (short) short_void { return 0; }
+- (unsigned short) ushort_void { return 0; }
+- (signed short) sshort_void { return 0; }
 
--(int)int_void { return 0; }
--(unsigned int)uint_void { return 0; }
--(signed int)sint_void { return 0; }
+- (int) int_void { return 0; }
+- (unsigned int) uint_void { return 0; }
+- (signed int) sint_void { return 0; }
 
--(long)long_void { return 0; }
--(unsigned long)ulong_void { return 0; }
--(signed long)slong_void { return 0; }
+- (long) long_void { return 0; }
+- (unsigned long) ulong_void { return 0; }
+- (signed long) slong_void { return 0; }
 
--(float)float_void { return 0; }
--(double)double_void { return 0; }
+- (float) float_void { return 0; }
+- (double) double_void { return 0; }
 
--(MyLargeStruct)largeStruct_void { MyLargeStruct str; return str; }
--(MySmallStruct)smallStruct_void { MySmallStruct str; return str; }
-
-
-
--(void)void_id:(id)_id {}
-
--(void)void_char:(char)_char {}
--(void)void_uchar:(unsigned char)_char {}
--(void)void_schar:(signed char)_char {}
-
--(void)void_short:(short)_short {}
--(void)void_ushort:(unsigned short)_short {}
--(void)void_sshort:(signed short)_short {}
-
--(void)void_int:(int)_int {}
--(void)void_uint:(unsigned int)_int {}
--(void)void_sint:(signed int)_int {}
-
--(void)void_long:(long)_long {}
--(void)void_ulong:(unsigned long)_long {}
--(void)void_slong:(signed long)_long {}
-
--(void)void_float:(float)_float {}
--(void)void_double:(double)_double {}
-
--(void)void_largeStruct:(MyLargeStruct)_str {}
--(void)void_smallStruct:(MySmallStruct)_str {}
-
--(void)void_float:(float)_float double:(double)_double {}
--(void)void_double:(double)_double float:(float)_float {}
+- (MyLargeStruct) largeStruct_void { MyLargeStruct str; return str; }
+- (MySmallStruct) smallStruct_void { MySmallStruct str; return str; }
 
 
--(MyLargeStruct)largeStruct_id:(id)_id
-			  char:(char)_char
-			 short:(short)_short
-			   int:(int)_int
-			  long:(long)_long
-			 float:(float)_float
-			double:(double)_double
-		   largeStruct:(MyLargeStruct)_lstr
-		   smallStruct:(MySmallStruct)_sstr { return _lstr; }
 
--(MySmallStruct)smallStruct_id:(id)_id
-			 uchar:(unsigned char)_uchar
-			ushort:(unsigned short)_ushort
-			  uint:(unsigned int)_uint
-			 ulong:(unsigned long)_ulong
-			 float:(float)_float
-			double:(double)_double
-		   largeStruct:(MyLargeStruct)_lstr
-		   smallStruct:(MySmallStruct)_sstr { return _sstr; }
+- (void) void_id: (id)_id {}
 
--(const char *)runtimeSignatureForSelector:(SEL)selector
+- (void) void_char: (char)_char {}
+- (void) void_uchar: (unsigned char)_char {}
+- (void) void_schar: (signed char)_char {}
+
+- (void) void_short: (short)_short {}
+- (void) void_ushort: (unsigned short)_short {}
+- (void) void_sshort: (signed short)_short {}
+
+- (void) void_int: (int)_int {}
+- (void) void_uint: (unsigned int)_int {}
+- (void) void_sint: (signed int)_int {}
+
+- (void) void_long: (long)_long {}
+- (void) void_ulong: (unsigned long)_long {}
+- (void) void_slong: (signed long)_long {}
+
+- (void) void_float: (float)_float {}
+- (void) void_double: (double)_double {}
+
+- (void) void_largeStruct: (MyLargeStruct)_str {}
+- (void) void_smallStruct: (MySmallStruct)_str {}
+
+- (void) void_float: (float)_float double:(double)_double {}
+- (void) void_double: (double)_double float:(float)_float {}
+
+
+- (MyLargeStruct) largeStruct_id: (id)_id
+			    char: (char)_char
+			   short: (short)_short
+			     int: (int)_int
+			    long: (long)_long
+			   float: (float)_float
+			  double: (double)_double
+		     largeStruct: (MyLargeStruct)_lstr
+		     smallStruct: (MySmallStruct)_sstr { return _lstr; }
+
+- (MySmallStruct) smallStruct_id: (id)_id
+			   uchar: (unsigned char)_uchar
+			  ushort: (unsigned short)_ushort
+			    uint: (unsigned int)_uint
+			   ulong: (unsigned long)_ulong
+			   float: (float)_float
+			  double: (double)_double
+		     largeStruct: (MyLargeStruct)_lstr
+		     smallStruct: (MySmallStruct)_sstr { return _sstr; }
+
+- (const char *) runtimeSignatureForSelector: (SEL)selector
 {
   GSMethod meth = GSGetMethod(object_getClass(self), selector, YES, YES);
   return method_getTypeEncoding (meth);

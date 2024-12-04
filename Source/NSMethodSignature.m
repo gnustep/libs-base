@@ -51,7 +51,7 @@ gs_string_hash(const char *s)
 }
 
 #define	GSI_MAP_RETAIN_KEY(M, X)
-#define	GSI_MAP_RELEASE_KEY(M, X)
+#define	GSI_MAP_RELEASE_KEY(M, X)	free(X.ptr)
 #define GSI_MAP_HASH(M, X)    (gs_string_hash(X.ptr))
 #define GSI_MAP_EQUAL(M, X,Y) (strcmp(X.ptr, Y.ptr) == 0)
 #define GSI_MAP_KTYPES	GSUNION_PTR
@@ -591,10 +591,16 @@ next_arg(const char *typePtr, NSArgumentInfo *info, char *outTypes)
   node = GSIMapNodeForKey(&cacheTable, (GSIMapKey)t);
   if (node == 0)
     {
+      char	*buf;
+
       sig = [[self alloc] _initWithObjCTypes: t];
-      GSIMapAddPair(&cacheTable, (GSIMapKey)t, (GSIMapVal)(id)sig);
-    } else {
-      sig =  RETAIN(node->value.obj);
+      buf = malloc(strlen(t) + 1);
+      strcpy(buf, t);
+      GSIMapAddPair(&cacheTable, (GSIMapKey)buf, (GSIMapVal)(id)sig);
+    }
+  else
+    {
+      sig = RETAIN(node->value.obj);
     }
   GS_MUTEX_UNLOCK(cacheTableLock);
   
