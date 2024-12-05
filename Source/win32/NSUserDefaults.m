@@ -11,6 +11,8 @@
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSProcessInfo.h"
 
+#import "../GSPrivate.h"
+
 #define	UNISTR(X) \
 ((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
 
