@@ -358,6 +358,8 @@ GSPrivateExecutablePath()
       [load_lock lock];
       if (beenHere == NO)
 	{
+	  NSString	*tmp;
+
 #if	defined(PROCFS_EXE_LINK)
 	  executablePath = [manager()
 	    pathContentOfSymbolicLinkAtPath:
@@ -376,19 +378,45 @@ GSPrivateExecutablePath()
 	      executablePath = nil;
 	    }
 #endif
-	  if (executablePath == nil || [executablePath length] == 0)
+	  if ([executablePath length] == 0)
 	    {
 	      executablePath
 		= [[[NSProcessInfo processInfo] arguments] objectAtIndex: 0];
+	      if ([executablePath length] == 0)
+		{
+		  fprintf(stderr,
+		    "Unable to get executable path from NSProcessInfo.\n");
+		}
 	    }
 	  if (NO == [executablePath isAbsolutePath])
 	    {
-	      executablePath = AbsolutePathOfExecutable(executablePath, YES);
+	      tmp = executablePath;
+	      executablePath = AbsolutePathOfExecutable(tmp, YES);
+	      if ([executablePath length] == 0)
+		{
+		  fprintf(stderr,
+		    "Unable to get absolute value of executable path '%s'.\n",
+		    [tmp UTF8String]);
+		}
 	    }
 	  else
 	    {
-	      executablePath = [executablePath stringByResolvingSymlinksInPath];
-	      executablePath = [executablePath stringByStandardizingPath];
+	      tmp = executablePath;
+	      executablePath = [tmp stringByResolvingSymlinksInPath];
+	      if ([executablePath length] == 0)
+		{
+		  fprintf(stderr,
+		    "Unable to get resolve links in executable path '%s'.\n",
+		    [tmp UTF8String]);
+		}
+	      tmp = executablePath;
+	      executablePath = [tmp stringByStandardizingPath];
+	      if ([executablePath length] == 0)
+		{
+		  fprintf(stderr,
+		    "Unable to standardize executable path '%s'.\n",
+		    [tmp UTF8String]);
+		}
 	    }
 	  IF_NO_ARC([executablePath retain];)
 	  beenHere = YES;

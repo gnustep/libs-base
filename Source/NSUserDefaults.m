@@ -2345,8 +2345,9 @@ GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
     {
       if (initializing)
 	{
-	  fprintf(stderr, "GSPrivateDefaultsFlag() called within"
-	    " +[NSUserDefaults initialize] always returns NO.\n");
+	  fprintf(stderr, "GSPrivateDefaultsFlag(%d) called within"
+	    " +[NSUserDefaults initialize] always returns NO.\n",
+	    (int)type);
 	}
       else
 	{
