@@ -436,10 +436,10 @@ GSPrivateExecutablePath()
 static inline NSString *
 _find_main_bundle_for_tool(NSString *toolName)
 {
-  NSArray *paths;
-  NSEnumerator *enumerator;
-  NSString *path;
-  NSString *tail;
+  NSArray 	*paths;
+  NSEnumerator 	*enumerator;
+  NSString 	*path;
+  NSString 	*tail;
   NSFileManager *fm = manager();
 
   /*
@@ -458,11 +458,10 @@ _find_main_bundle_for_tool(NSString *toolName)
     }
 
   tail = [@"Tools" stringByAppendingPathComponent:
-	     [@"Resources" stringByAppendingPathComponent:
-		 toolName]];
+    [@"Resources" stringByAppendingPathComponent: toolName]];
 
-  paths = NSSearchPathForDirectoriesInDomains (NSLibraryDirectory,
-					       NSAllDomainsMask, YES);
+  paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory,
+    NSAllDomainsMask, YES);
 
   enumerator = [paths objectEnumerator];
   while ((path = [enumerator nextObject]))
@@ -502,12 +501,13 @@ _find_main_bundle_path()
          the executable name here - just in case it turns out it's a
          tool.  */
       NSString *toolName = [GSPrivateExecutablePath() lastPathComponent];
+
 #if defined(_WIN32) || defined(__CYGWIN__)
       toolName = [toolName stringByDeletingPathExtension];
 #endif
 
-      /* Strip off the name of the program */
-      path = [GSPrivateExecutablePath() stringByDeletingLastPathComponent];
+      /* Strip off the name of the executable */
+      path = [toolName stringByDeletingLastPathComponent];
 
       /* We now need to chop off the extra subdirectories, the library
 	 combo and the target directory if they exist.  The executable
@@ -1841,24 +1841,28 @@ GSPrivateInfoDictionary(NSString *rootPath)
  */
 + (NSBundle *) mainBundle
 {
-  [load_lock lock];
   if (!_mainBundle)
     {
-      NSString	*path = _find_main_bundle_path();
+      NSString	*path = nil;
 
-      NSDebugMLLog(@"NSBundle", @"Main bundle path is %@\n", path);
-      /* We do alloc and init separately so initWithPath: knows we are
-          the _mainBundle.  Please note that we do *not* autorelease
-          mainBundle, because we don't want it to be ever released.  */
-      _mainBundle = [self alloc];
-      /* Please note that _mainBundle should *not* be nil.  */
-      _mainBundle = [_mainBundle initWithPath: path];
+      [load_lock lock];
+      if (!_mainBundle)
+	{
+	  path = _find_main_bundle_path();
+	  /* We do alloc and init separately so initWithPath: knows we are
+	      the _mainBundle.  Please note that we do *not* autorelease
+	      mainBundle, because we don't want it to be ever released.  */
+	  _mainBundle = [self alloc];
+	  /* Please note that _mainBundle should *not* be nil.  */
+	  _mainBundle = [_mainBundle initWithPath: path];
+	}
+      [load_lock unlock];
+      NSAssert(path != nil, NSInternalInconsistencyException);
       NSAssert(_mainBundle != nil, NSInternalInconsistencyException);
+      NSDebugMLLog(@"NSBundle", @"Main bundle path is %@\n", path);
     }
-  [load_lock unlock];
   return _mainBundle;
 }
-
 /**
  * Returns the bundle whose code contains the specified class.<br />
  * NB: We will not find a class if the bundle has not been loaded yet!
