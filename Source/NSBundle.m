@@ -256,14 +256,23 @@ static AAssetManager *_assetManager = NULL;
 static NSString*
 AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 {
+  NSString	*tmp;
+
+  if (0 == [path length])
+    {
+      fprintf(stderr, "AbsolutePathOfExecutable() empty path.\n");
+      return nil;
+    }
   if (NO == [path isAbsolutePath])
     {
       NSFileManager	*mgr = manager();
       NSDictionary	*env;
       NSString		*pathlist;
-      NSString		*prefix;
-      id		patharr;
+      NSString		*prefix = nil;
+      id		pathArray;
+      NSEnumerator	*enumerator;
       NSString		*result = nil;
+      NSUInteger	index;
 
       env = [[NSProcessInfo processInfo] environment];
       pathlist = [env objectForKey: @"PATH"];
@@ -274,30 +283,53 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 	  pathlist = [env objectForKey: @"Path"];
 	}
 #if defined(_WIN32)
-      patharr = [pathlist componentsSeparatedByString: @";"];
+      pathArray = [pathlist componentsSeparatedByString: @";"];
 #else
-      patharr = [pathlist componentsSeparatedByString: @":"];
+      pathArray = [pathlist componentsSeparatedByString: @":"];
 #endif
-      /* Add . if not already in path */
-      if ([patharr indexOfObject: @"."] == NSNotFound)
+      pathArray = AUTORELEASE([pathArray mutableCopy]);
+
+      /* The directory value '.' can be replaced by either the
+       * path to the current directory or the launch directory
+       * if it is known.  Duplicates can be removed.
+       */
+      if (atLaunch == YES)
 	{
-	  patharr = AUTORELEASE([patharr mutableCopy]);
-	  [patharr addObject: @"."];
-	}
-      patharr = [patharr objectEnumerator];
-      while (nil != (prefix = [patharr nextObject]))
-	{
-	  if ([prefix isEqual: @"."])
+	  prefix = _launchDirectory;
+	  if ([prefix length] == 0)
 	    {
-	      if (atLaunch == YES)
-		{
-		  prefix = _launchDirectory;
-		}
-	      else
-		{
-		  prefix = [mgr currentDirectoryPath];
-		}
+	      fprintf(stderr, "AbsolutePathOfExecutable() failed to get"
+		" launch directory for '%s'.\n", [path UTF8String]);
+	      return nil;
 	    }
+	}
+      if (nil == prefix)
+	{
+	  prefix = [mgr currentDirectoryPath];
+	  if ([prefix length] == 0)
+	    {
+	      fprintf(stderr, "AbsolutePathOfExecutable() failed to get"
+		" current directory for '%s'.\n", [path UTF8String]);
+	      return nil;
+	    }
+	}
+      index = [pathArray indexOfObject: @"."];
+      if (NSNotFound == index)
+	{
+	  [pathArray addObject: prefix];
+	}
+      else
+	{
+	  [pathArray replaceObjectAtIndex: index withObject: prefix];
+	}
+      while ((index = [pathArray indexOfObject: @"."]) != NSNotFound)
+	{
+	  [pathArray removeObjectAtIndex: index];
+	}
+
+      enumerator = [pathArray objectEnumerator];
+      while (nil != (prefix = [enumerator nextObject]))
+	{
 	  prefix = [prefix stringByAppendingPathComponent: path];
 	  if ([mgr isExecutableFileAtPath: prefix])
 	    {
@@ -337,10 +369,31 @@ AbsolutePathOfExecutable(NSString *path, BOOL atLaunch)
 	    }
 #endif
 	}
+      if (nil == result)
+	{
+	  fprintf(stderr, "AbsolutePathOfExecutable() unable to find '%s'"
+	    " in any of %s.\n", [path UTF8String],
+	    [[pathArray description] UTF8String]);
+	  return nil;
+	}
       path = result;
     }
+  tmp = path;
   path = [path stringByResolvingSymlinksInPath];
+  if ([path length] == 0)
+    {
+      fprintf(stderr, "AbsolutePathOfExecutable() resolving symlinks failed"
+	" for '%s'.\n", [tmp UTF8String]);
+      return nil;
+    }
+  tmp = path;
   path = [path stringByStandardizingPath];
+  if ([path length] == 0)
+    {
+      fprintf(stderr, "AbsolutePathOfExecutable() standardizing path failed"
+	" for '%s'.\n", [tmp UTF8String]);
+      return nil;
+    }
   return path;
 }
 
@@ -358,8 +411,6 @@ GSPrivateExecutablePath()
       [load_lock lock];
       if (beenHere == NO)
 	{
-	  NSString	*tmp;
-
 #if	defined(PROCFS_EXE_LINK)
 	  executablePath = [manager()
 	    pathContentOfSymbolicLinkAtPath:
@@ -388,36 +439,7 @@ GSPrivateExecutablePath()
 		    "Unable to get executable path from NSProcessInfo.\n");
 		}
 	    }
-	  if (NO == [executablePath isAbsolutePath])
-	    {
-	      tmp = executablePath;
-	      executablePath = AbsolutePathOfExecutable(tmp, YES);
-	      if ([executablePath length] == 0)
-		{
-		  fprintf(stderr,
-		    "Unable to get absolute value of executable path '%s'.\n",
-		    [tmp UTF8String]);
-		}
-	    }
-	  else
-	    {
-	      tmp = executablePath;
-	      executablePath = [tmp stringByResolvingSymlinksInPath];
-	      if ([executablePath length] == 0)
-		{
-		  fprintf(stderr,
-		    "Unable to get resolve links in executable path '%s'.\n",
-		    [tmp UTF8String]);
-		}
-	      tmp = executablePath;
-	      executablePath = [tmp stringByStandardizingPath];
-	      if ([executablePath length] == 0)
-		{
-		  fprintf(stderr,
-		    "Unable to standardize executable path '%s'.\n",
-		    [tmp UTF8String]);
-		}
-	    }
+	  executablePath = AbsolutePathOfExecutable(executablePath, YES);
 	  IF_NO_ARC([executablePath retain];)
 	  beenHere = YES;
 	}
@@ -1843,23 +1865,28 @@ GSPrivateInfoDictionary(NSString *rootPath)
 {
   if (!_mainBundle)
     {
-      NSString	*path = nil;
+      BOOL	firstTime = NO;
 
       [load_lock lock];
       if (!_mainBundle)
 	{
-	  path = _find_main_bundle_path();
+	  NSString	*path = _find_main_bundle_path();
+
 	  /* We do alloc and init separately so initWithPath: knows we are
 	      the _mainBundle.  Please note that we do *not* autorelease
 	      mainBundle, because we don't want it to be ever released.  */
 	  _mainBundle = [self alloc];
 	  /* Please note that _mainBundle should *not* be nil.  */
 	  _mainBundle = [_mainBundle initWithPath: path];
+	  firstTime = YES;
 	}
       [load_lock unlock];
-      NSAssert(path != nil, NSInternalInconsistencyException);
       NSAssert(_mainBundle != nil, NSInternalInconsistencyException);
-      NSDebugMLLog(@"NSBundle", @"Main bundle path is %@\n", path);
+      if (firstTime)
+	{
+	  NSDebugMLLog(@"NSBundle", @"Main bundle path is %@\n",
+	    [_mainBundle bundlePath]);
+	}
     }
   return _mainBundle;
 }
