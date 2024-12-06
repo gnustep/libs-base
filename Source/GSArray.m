@@ -44,12 +44,6 @@
 #if	!defined(GNUSTEP_WITH_ASAN)
 #define	GNUSTEP_WITH_ASAN 0
 #endif
-#if	GNUSTEP_WITH_ASAN
-#define	GSARRAY(ITEMS,ZONE) (id)NSAllocateObject(GSArrayClass, 0, (ZONE))
-#else
-#define	GSARRAY(ITEMS,ZONE)\
- (id)NSAllocateObject(GSInlineArrayClass, (ITEMS)*sizeof(id), (ZONE))
-#endif
 
 static SEL	eqSel;
 static SEL	oaiSel;
@@ -498,7 +492,11 @@ static Class	GSInlineArrayClass;
 {
   NSArray       *copy;
 
-  copy = GSARRAY(_count, zone);
+#if     GNUSTEP_WITH_ASAN         
+  copy = (GSArray*)NSAllocateObject(GSArrayClass, 0, zone);
+#else
+  copy = (id)NSAllocateObject(GSInlineArrayClass, _count*sizeof(id), zone);
+#endif
   return [copy initWithObjects: _contents_array count: _count];
 }
 
@@ -1200,9 +1198,13 @@ static Class	GSInlineArrayClass;
       GSInlineArray	*a;
 
       [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
-      a = GSARRAY(c, [self zone]);
-      a->_contents_array
-        = (id*)(((void*)a) + class_getInstanceSize([a class]));
+#if     GNUSTEP_WITH_ASAN         
+      a = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
+      a->_contents_array = (id*)NSZoneMalloc([self zone], c*sizeof(id));
+#else
+      a = (id)NSAllocateObject(GSInlineArrayClass, c*sizeof(id), [self zone]);
+      a->_contents_array = (id*)(((void*)a) + class_getInstanceSize([a class]));
+#endif
       if (c > 0)
         {
 	  [aCoder decodeArrayOfObjCType: @encode(id)
@@ -1218,7 +1220,11 @@ static Class	GSInlineArrayClass;
 {
   NSZone	*z = [self zone];
 
-  self = GSARRAY(count, z);
+#if     GNUSTEP_WITH_ASAN         
+  self = (id)NSAllocateObject(GSArrayClass, 0, z);
+#else
+  self = (id)NSAllocateObject(GSInlineArrayClass, count*sizeof(id), z);
+#endif
   return [self initWithObjects: objects count: count];
 }
 
