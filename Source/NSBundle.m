@@ -529,7 +529,7 @@ _find_main_bundle_path()
 #endif
 
       /* Strip off the name of the executable */
-      path = [toolName stringByDeletingLastPathComponent];
+      path = [GSPrivateExecutablePath() stringByDeletingLastPathComponent];
 
       /* We now need to chop off the extra subdirectories, the library
 	 combo and the target directory if they exist.  The executable
@@ -3453,7 +3453,7 @@ IF_NO_ARC(
     {
       NSString *resourcePath = [_mainBundle resourcePath];
 
-      if ([path hasPrefix: resourcePath]
+      if (resourcePath && [path hasPrefix: resourcePath]
 	&& [path length] > [resourcePath length])
 	{
 	  NSString *assetPath;
