@@ -2096,7 +2096,7 @@ static BOOL isPlistObject(id o)
       _lastSync = saved;
     }
   // Check and if not existent add the Application and the Global domains
-  if ([_persDomains objectForKey: bundleIdentifier] == nil)
+  if (bundleIdentifier && [_persDomains objectForKey: bundleIdentifier] == nil)
     {
       GSPersistentDomain	*pd;
 
