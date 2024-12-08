@@ -55,14 +55,18 @@
 
 #import "GSPrivate.h"
 
+/* Store the working directory at startup */
+static NSString		*_launchDirectory = nil;
+
 static NSFileManager	*
 manager()
 {
   static NSFileManager	*mgr = nil;
 
-  if (mgr == nil)
+  if (nil == mgr)
     {
       mgr = RETAIN([NSFileManager defaultManager]);
+      ASSIGN(_launchDirectory, [mgr currentDirectoryPath]);
       [[NSObject leakAt: &mgr] release];
     }
   return mgr;
@@ -185,9 +189,6 @@ static NSBundle		*_mainBundle = nil;
 static NSMapTable	*_bundles = NULL;
 static NSMapTable	*_byClass = NULL;
 static NSMapTable	*_byIdentifier = NULL;
-
-/* Store the working directory at startup */
-static NSString		*_launchDirectory = nil;
 
 static NSString		*_base_version
   = OBJC_STRINGIFY(GNUSTEP_BASE_MAJOR_VERSION.GNUSTEP_BASE_MINOR_VERSION);
@@ -1718,8 +1719,6 @@ GSPrivateInfoDictionary(NSString *rootPath)
 
       if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
 	library_combo = RETAIN(str);
-
-      _launchDirectory = RETAIN([manager() currentDirectoryPath]);
 
       _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"
 					      version: _base_version]);
