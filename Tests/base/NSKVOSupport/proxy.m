@@ -157,7 +157,10 @@ main(int argc, char *argv[])
     NSAutoreleasePool *arp = [NSAutoreleasePool new];
     Observer *obs = [Observer new];
 
+    testHopeful = YES;
     [obs runTest];
+    testHopeful = NO;
+
     [obs release];
 
     DESTROY(arp);
