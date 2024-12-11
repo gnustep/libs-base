@@ -363,7 +363,8 @@ objc-load.m
 ifeq ($(GNUSTEP_BASE_HAVE_NEWKVO), 1)
   BASE_MFILES += \
   NSKVOSupport.m \
-  NSKVOSwizzling.m
+  NSKVOSwizzling.m \
+  NSKVOLegacy.m
 else
   BASE_MFILES += \
   NSKeyValueObserving.m
