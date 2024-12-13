@@ -82,6 +82,8 @@
 @property (nonatomic, retain) NSArray               *affectedObservers;
 @property (nonatomic, assign) BOOL                   root;
 @property (nonatomic, readonly) BOOL                 isRemoved;
+
+- (NSString *) debugDescription;
 @end
 
 @interface _NSKVOKeypathObserver : NSObject
@@ -97,6 +99,8 @@
 @property (nonatomic, assign) void                      *context;
 
 @property (atomic, retain) NSMutableDictionary *pendingChange;
+
+- (NSString *) debugDescription;
 @end
 
 @interface _NSKVOObservationInfo : NSObject
@@ -110,6 +114,8 @@
 - (instancetype)init;
 - (NSArray *)observersForKey:(NSString *)key;
 - (void)addObserver:(_NSKVOKeyObserver *)observer;
+
+- (NSString *) debugDescription;
 @end
 
 // From NSKVOSwizzling

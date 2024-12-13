@@ -51,6 +51,9 @@
 
 #import <Foundation/Foundation.h>
 
+// Uncomment for tracing KVO dispatch machinery
+#define GS_KVO_TRACING
+
 typedef void (^DispatchChangeBlock)(_NSKVOKeyObserver *);
 
 NSString *
@@ -112,6 +115,12 @@ _NSKVOKeyObserver ()
 {
   _isRemoved = removed;
 }
+
+- (NSString *) debugDescription {
+  return [NSString stringWithFormat:
+    @"<_NSKVOKeyObserver: %p, keypathObserver: %p, restOfKeypathObserver: %p, dependentObservers: %@, object: %@, key: %@, restOfKeypath: %@, affectedObservers: %@, root=%d isRemoved=%d>",
+    self, _keypathObserver, _restOfKeypathObserver, _dependentObservers, _object, _key, _restOfKeypath, _affectedObservers, _root, _isRemoved];
+}
 @end
 #pragma endregion
 
@@ -162,6 +171,13 @@ _NSKVOKeypathObserver ()
 {
   return atomic_fetch_sub(&_changeDepth, 1) == 1;
 }
+
+- (NSString *) debugDescription
+{
+  return [NSString stringWithFormat: @"<_NSKVOKeypathObserver: %p, object: %@, observer: %@, keyPath: %@, options: 0x%x, context: %p>",
+   self, _object, _observer, _keypath, _options, _context];
+}
+
 @end
 #pragma endregion
 
@@ -205,6 +221,12 @@ _NSKVOKeypathObserver ()
   GS_MUTEX_DESTROY(_lock);
 
   [super dealloc];
+}
+
+- (NSString *) debugDescription
+{
+  return [NSString stringWithFormat: @"<_NSKVOObservationInfo: %p, keyObserverMap: %@, dependencyDepth: %ld existingDependentKeys: %@>",
+    self, _keyObserverMap, _dependencyDepth, _existingDependentKeys];
 }
 
 - (void) pushDependencyStack
@@ -807,6 +829,11 @@ _dispatchWillChange(id notifyingObject, NSString *key,
 {
   _NSKVOObservationInfo *observationInfo
     = (__bridge _NSKVOObservationInfo *) [notifyingObject observationInfo];
+
+#if defined (GS_KVO_TRACING)
+NSLog(@"[KVO Tracing] _dispatchWillChange() notifyingObject=%p key=%@, observationInfo=%@\n", notifyingObject, key, [observationInfo debugDescription]);
+#endif
+
   for (_NSKVOKeyObserver *keyObserver in [observationInfo observersForKey:key])
     {
       _NSKVOKeypathObserver *keypathObserver;
@@ -855,6 +882,11 @@ _dispatchDidChange(id notifyingObject, NSString *key, DispatchChangeBlock block)
     = (__bridge _NSKVOObservationInfo *) [notifyingObject observationInfo];
   NSArray<_NSKVOKeyObserver *> *observers =
     [observationInfo observersForKey:key];
+
+#if defined (GS_KVO_TRACING)
+NSLog(@"[KVO Tracing] _dispatchDidChange() notifyingObject=%p key=%@, observationInfo=%@\n", notifyingObject, key, [observationInfo debugDescription]);
+#endif
+
   for (_NSKVOKeyObserver *keyObserver in [observers reverseObjectEnumerator])
     {
       _NSKVOKeypathObserver *keypathObserver;
