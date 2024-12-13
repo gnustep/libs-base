@@ -44,6 +44,7 @@
 
 /* This Key Value Observing Implementation is tied to libobjc2 */
 
+#include "GNUstepBase/GSObjCRuntime.h"
 #import "common.h"
 #import "NSKVOInternal.h"
 #import <objc/objc-arc.h>
@@ -719,10 +720,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
           free(selectorName);
         }
 
-      if ([self respondsToSelector:sel])
-        {
-          return [self performSelector:sel];
-        }
+      return ((NSSet *(*)(id, SEL))objc_msgSend)(self, sel);
     }
   return emptySet;
 }
