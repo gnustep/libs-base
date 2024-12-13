@@ -720,7 +720,10 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
           free(selectorName);
         }
 
-      return ((NSSet *(*)(id, SEL))objc_msgSend)(self, sel);
+      if ([self respondsToSelector:sel])
+        {
+          return ((NSSet *(*)(id, SEL))objc_msgSend)(self, sel);
+        }
     }
   return emptySet;
 }
