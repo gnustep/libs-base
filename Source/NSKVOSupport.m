@@ -720,10 +720,14 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
           free(selectorName);
         }
 
-      if ([self respondsToSelector:sel])
-        {
-          return ((NSSet *(*)(id, SEL))objc_msgSend)(self, sel);
-        }
+
+      if (class_respondsToSelector(self, sel))
+      {
+        // Look up slot without invoking any forwarding mechanisms
+        // as 'self' is a metaclass
+        struct objc_slot2 *slot = objc_get_slot2(self, sel, NULL);
+        return ((NSSet *(*)(id, SEL))slot->method)(self, sel);
+      }
     }
   return emptySet;
 }
