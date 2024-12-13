@@ -42,7 +42,7 @@ extern "C" {
  * or grow (adding nil/zero items).
  */
 GS_EXPORT_CLASS
-@interface NSPointerArray : NSObject <NSCopying, NSCoding>
+@interface NSPointerArray : NSObject <NSCoding, NSCopying, NSFastEnumeration>
 
 /** Allocate an instance, initialise using initWithOptions: and
  * return it autoreleased.

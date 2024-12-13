@@ -27,11 +27,13 @@ int main()
   PASS([obj count] == 1, "+addPointer: increments count");
   [obj addPointer: nil];
   PASS([obj count] == 2, "+addPointer: works with nil");
+  [obj addPointer: nil];
+  PASS([obj count] == 3, "+addPointer: respects duplicate values");
 
   [obj insertPointer: (void*)vals[0] atIndex: 0];
   [obj insertPointer: (void*)vals[1] atIndex: 0];
   [obj insertPointer: (void*)vals[2] atIndex: 0];
-  PASS([obj count] == 5 && [obj pointerAtIndex: 2] == (void*)vals[0],
+  PASS([obj count] == 6 && [obj pointerAtIndex: 2] == (void*)vals[0],
     "+insertPointer:atIndex: works");
   
   LEAVE_POOL

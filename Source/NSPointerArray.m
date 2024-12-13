@@ -197,6 +197,34 @@ static Class	concreteClass = Nil;
   [self subclassResponsibility: _cmd];
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+				   objects: (__unsafe_unretained id[])stackbuf
+				     count: (NSUInteger)len
+{
+  NSInteger count;
+
+  state->mutationsPtr = (unsigned long *)&state->mutationsPtr;
+  count = MIN(len, [self count] - state->state);
+  if (count > 0)
+    {
+      IMP	imp = [self methodForSelector: @selector(pointerAtIndex:)];
+      int	p = state->state;
+      int	i;
+
+      for (i = 0; i < count; i++, p++)
+	{
+	  stackbuf[i] = (*imp)(self, @selector(pointerAtIndex:), p);
+	}
+      state->state += count;
+    }
+  else
+    {
+      count = 0;
+    }
+  state->itemsPtr = stackbuf;
+  return count;
+}
+
 @end
 
 @implementation NSPointerArray (NSArrayConveniences)  
