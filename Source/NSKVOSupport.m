@@ -352,6 +352,10 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
     = (__bridge _NSKVOObservationInfo *) [object observationInfo]
         ?: _createObservationInfoForObject(object);
 
+  #if defined (GS_KVO_TRACING)
+  NSLog(@"[KVO Tracing] _addNestedObservers keyObserver=%@ dependents=%d key=%@ keypathObserver=%@ observationInfo=%@", keyObserver, dependents, key, keypathObserver, observationInfo);
+  #endif
+
   // Aggregate all keys whose values will affect us.
   if (dependents)
     {
