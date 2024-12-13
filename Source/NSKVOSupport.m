@@ -53,7 +53,7 @@
 #import <Foundation/Foundation.h>
 
 // Uncomment for tracing KVO dispatch machinery
-#define GS_KVO_TRACING
+//#define GS_KVO_TRACING
 
 typedef void (^DispatchChangeBlock)(_NSKVOKeyObserver *);
 
