@@ -141,6 +141,7 @@ main(int argc, char *argv[])
     Class httpServerClass;
     Class routeClass;
 
+    testHopeful = YES;
     fm = [NSFileManager defaultManager];
     currentDirectory = [fm currentDirectoryPath];
     helperPath =
@@ -193,6 +194,7 @@ main(int argc, char *argv[])
 
     [server release];
     [countLock release];
+    testHopeful = NO;
   }
   return 0;
 }

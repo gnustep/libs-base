@@ -841,6 +841,7 @@ main(int argc, char *argv[])
 
     NSLog(@"Test Server: baseURL=%@", baseURL);
 
+    testHopeful = YES;
     [server setRoutes:createRoutes(routeClass, baseURL)];
     [server resume];
 
@@ -873,6 +874,7 @@ main(int argc, char *argv[])
     [server suspend];
     PASS(expectedCountOfTasksToComplete == currentCountOfCompletedTasks,
          "All transfers were completed before a timeout occurred");
+    testHopeful = NO;
 
     [server release];
     [countLock release];
