@@ -333,7 +333,11 @@ _addNestedObserversAndOptionallyDependents(_NSKVOKeyObserver *keyObserver,
   // Aggregate all keys whose values will affect us.
   if (dependents)
     {
-      Class cls = [object class];
+      // Make sure to retrieve the underlying class of the observee.
+      // This is just [object class] for an NSObject derived class.
+      // When observing an object through a proxy, we instead use KVC
+      // to optain the underlying class.
+      Class cls = [object _underlyingClass];
       NSSet *valueInfluencingKeys = [cls keyPathsForValuesAffectingValueForKey: key];
       if (valueInfluencingKeys.count > 0)
         {
@@ -1123,6 +1127,11 @@ static const NSString *_NSKeyValueChangeOldSetValue
 @implementation
 NSObject (NSKeyValueObservingPrivate)
 
+- (Class)_underlyingClass
+{
+  return [self class];
+}
+
 - (void)_notifyObserversOfChangeForKey: (NSString *)key
                               oldValue: (id)oldValue
                               newValue: (id)newValue
@@ -1249,6 +1258,22 @@ NSSet (NSKeyValueObserving)
 - (void)removeObserver: (id)observer forKeyPath:(NSString *)keyPath
 {
   NS_COLLECTION_THROW_ILLEGAL_KVO(keyPath);
+}
+
+@end
+
+#pragma endregion
+
+#pragma region KVO forwarding - NSProxy category
+
+@implementation
+NSProxy (NSKeyValueObserving)
+
+- (Class)_underlyingClass
+{
+  // Retrieve the underlying class via KVC
+  // Note that we assume that the class is KVC-compliant, when KVO is used
+  return [(NSObject *)self valueForKey: @"class"];
 }
 
 @end
