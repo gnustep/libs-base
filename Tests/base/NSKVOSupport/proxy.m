@@ -197,16 +197,16 @@
     count += 1;
     switch (count) {
         case 1:
-            PASS_EQUAL(keyPath, keys[0], "change notification for dependent key 'derivedName' is emitted first");
+            PASS_EQUAL(keyPath, [keys objectAtIndex: 0], "change notification for dependent key 'derivedName' is emitted first");
             break;
         case 2:
-            PASS_EQUAL(keyPath, keys[1], "'name' change notification for proxy is second");
+            PASS_EQUAL(keyPath, [keys objectAtIndex: 1], "'name' change notification for proxy is second");
             break;
         case 3:
-            PASS_EQUAL(keyPath, keys[0], "'derivedName' change notification for object is third");
+            PASS_EQUAL(keyPath, [keys objectAtIndex: 0], "'derivedName' change notification for object is third");
             break;
         case 4:
-            PASS_EQUAL(keyPath, keys[1], "'name' change notification for object is fourth");
+            PASS_EQUAL(keyPath, [keys objectAtIndex: 1], "'name' change notification for object is fourth");
             break;
         default:
             PASS(0, "unexpected -[Observer observeValueForKeyPath:ofObject:change:context:] callback");
