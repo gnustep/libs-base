@@ -96,9 +96,41 @@
 
 @end
 
+@interface Wrapper : NSObject
+{
+    TProxy *_proxy;
+}
+
+- (instancetype) initWithProxy: (TProxy *) proxy; 
+
+- (TProxy *) proxy;
+
+@end
+
+@implementation Wrapper
+
+- (instancetype) initWithProxy: (TProxy *) proxy
+{
+    self = [super init];
+    if (self)
+    {
+        _proxy = proxy;
+    }
+
+    return self;
+}
+
+- (TProxy *) proxy
+{
+    return _proxy;
+}
+
+@end
+
 @interface Observer: NSObject
 {
     int count;
+    NSArray *keys;
 }
 
 - (void)runTest;
@@ -107,10 +139,13 @@
 
 @implementation Observer
 
-- (void)runTest
+- (void)simpleKeypathTest
 {
 	Observee *obj = [[Observee alloc] init];
 	TProxy *proxy = [[TProxy alloc] initWithProxiedObject:obj];
+
+    keys = [NSArray arrayWithObjects: @"derivedName", @"name", nil];
+    count = 0;
 	
 	[(Observee *)proxy addObserver:self forKeyPath:@"name" options:NSKeyValueObservingOptionNew context:NULL];
 	[(Observee *)proxy addObserver:self forKeyPath:@"derivedName" options:NSKeyValueObservingOptionNew context:NULL];
@@ -128,21 +163,50 @@
     [obj release];
 }
 
+- (void)nestedKeypathTest
+{
+	Observee *obj = [[Observee alloc] init];
+	TProxy *proxy = [[TProxy alloc] initWithProxiedObject:obj];
+    Wrapper *w = [[Wrapper alloc] initWithProxy: proxy];
+
+    keys = [NSArray arrayWithObjects: @"proxy.derivedName", @"proxy.name", nil];
+    count = 0;
+
+	[w addObserver:self forKeyPath:@"proxy.name" options:NSKeyValueObservingOptionNew context:NULL];
+	[w addObserver:self forKeyPath:@"proxy.derivedName" options:NSKeyValueObservingOptionNew context:NULL];
+	
+	[((Observee *)proxy) setName: @"MOO"];
+    PASS(count == 2, "Got two change notifications");
+	
+	[obj setName: @"BAH"];
+    PASS(count == 4, "Got two change notifications");
+	
+	[w removeObserver:self forKeyPath:@"proxy.name" context:NULL];
+	[w removeObserver:self forKeyPath:@"proxy.derivedName" context:NULL];
+
+    [w release];
+    [proxy release];
+    [obj release];
+
+    count = 0;
+
+}
+
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
 {
     count += 1;
     switch (count) {
         case 1:
-            PASS_EQUAL(keyPath, @"derivedName", "change notification for dependent key 'derivedName' is emitted first");
+            PASS_EQUAL(keyPath, keys[0], "change notification for dependent key 'derivedName' is emitted first");
             break;
         case 2:
-            PASS_EQUAL(keyPath, @"name", "'name' change notification for proxy is second");
+            PASS_EQUAL(keyPath, keys[1], "'name' change notification for proxy is second");
             break;
         case 3:
-            PASS_EQUAL(keyPath, @"derivedName", "'derivedName' change notification for object is third");
+            PASS_EQUAL(keyPath, keys[0], "'derivedName' change notification for object is third");
             break;
         case 4:
-            PASS_EQUAL(keyPath, @"name", "'name' change notification for object is fourth");
+            PASS_EQUAL(keyPath, keys[1], "'name' change notification for object is fourth");
             break;
         default:
             PASS(0, "unexpected -[Observer observeValueForKeyPath:ofObject:change:context:] callback");
@@ -154,15 +218,15 @@
 int
 main(int argc, char *argv[])
 {
-    NSAutoreleasePool *arp = [NSAutoreleasePool new];
+    START_SET("KVO Proxy Tests")
     Observer *obs = [Observer new];
 
     testHopeful = YES;
-    [obs runTest];
+    [obs simpleKeypathTest];
+    [obs nestedKeypathTest];
     testHopeful = NO;
 
     [obs release];
-
-    DESTROY(arp);
+    END_SET("KVO Proxy Tests")
     return 0;
 }
