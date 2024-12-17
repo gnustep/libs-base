@@ -123,6 +123,7 @@ _NSKVOEnsureKeyWillNotify(id object, NSString *key);
  */
 @interface
 NSObject (NSKeyValueObservingPrivate)
+- (Class)_underlyingClass;
 - (void)_notifyObserversOfChangeForKey:(NSString *)key
                               oldValue:(id)oldValue
                               newValue:(id)newValue;
