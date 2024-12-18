@@ -2966,7 +2966,11 @@ hasInternalSubsetFunction(void *ctx)
   has = [HANDLER hasInternalSubset];
   if (has < 0)
     {
-      has = TREEFUN(hasInternalSubset, (ctx));
+#if LIBXML_VERSION >= 20900
+      has = xmlSAX2HasInternalSubset (ctx);
+#else
+      has = xmlInternalSubset (ctxt);
+#endif
     }
   return has;
 }
@@ -2980,7 +2984,11 @@ hasExternalSubsetFunction(void *ctx)
   has = [HANDLER hasExternalSubset];
   if (has < 0)
     {
-      has = TREEFUN(hasExternalSubset, (ctx));
+#if LIBXML_VERSION >= 20900
+      has = xmlSAX2HasExternalSubset (ctx);
+#else
+      has = xmlExternalSubset (ctx);
+#endif
     }
   return has;
 }
@@ -3694,6 +3702,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       LIB->isStandalone           = (void*) isStandaloneFunction;
       LIB->hasInternalSubset      = (void*) hasInternalSubsetFunction;
       LIB->hasExternalSubset      = (void*) hasExternalSubsetFunction;
+      LIB->resolveEntity          = (void*) resolveEntityFunction;
       LIB->getEntity              = (void*) getEntityIgnoreExternal;
       LIB->entityDecl             = (void*) entityDeclFunction;
       LIB->notationDecl           = (void*) notationDeclFunction;
@@ -3712,7 +3721,6 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       LIB->fatalError             = (void*) fatalErrorFunction;
       LIB->getParameterEntity     = (void*) getParameterEntityFunction;
       LIB->cdataBlock             = (void*) cdataBlockFunction;
-      LIB->resolveEntity          = (void*) resolveEntityFunction;
 #undef	LIB
       return YES;
     }
@@ -3814,6 +3822,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       SETCB(isStandalone, isStandalone);
       SETCB(hasInternalSubset, hasInternalSubset);
       SETCB(hasExternalSubset, hasExternalSubset);
+      LIB->resolveEntity = resolveEntityFunction;
       SETCB(getEntity, getEntity:);
       if (LIB->getEntity != getEntityFunction)
         {
@@ -3871,6 +3880,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
       LIB->isStandalone           = (void*)isStandaloneFunction;
       LIB->hasInternalSubset      = (void*)hasInternalSubsetFunction;
       LIB->hasExternalSubset      = (void*)hasExternalSubsetFunction;
+      LIB->resolveEntity          = (void*)resolveEntityFunction;
       LIB->getEntity              = (void*)getEntityFunction;
       LIB->entityDecl             = (void*)entityDeclFunction;
       LIB->notationDecl           = (void*)notationDeclFunction;
