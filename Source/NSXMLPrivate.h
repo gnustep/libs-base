@@ -159,7 +159,7 @@ union\
   NSUInteger      	options; \
   id              	objectValue; \
   NSMutableArray 	*subNodes; \
-  xmlDoc		*detached;
+  xmlDoc		*detached; \
 
 
 /* When using the non-fragile ABI, the instance variables are exposed to the
