@@ -106,22 +106,22 @@ GS_EXPORT_CLASS
   NSString *_sessionDescription;
 }
 
-+ (NSURLSession *)sharedSession;
++ (NSURLSession *) sharedSession;
 
-+ (NSURLSession *)sessionWithConfiguration:
++ (NSURLSession *) sessionWithConfiguration:
   (NSURLSessionConfiguration *)configuration;
 
-/*
+/**
  * Customization of NSURLSession occurs during creation of a new session.
  * If you do specify a delegate, the delegate will be retained until after
  * the delegate has been sent the URLSession:didBecomeInvalidWithError: message.
  */
-+ (NSURLSession *)
-  sessionWithConfiguration:(NSURLSessionConfiguration *)configuration
-                  delegate:(nullable id<NSURLSessionDelegate>)delegate
-             delegateQueue:(nullable NSOperationQueue *)queue;
++ (NSURLSession *) sessionWithConfiguration:
+  (NSURLSessionConfiguration *)configuration
+  delegate: (nullable id<NSURLSessionDelegate>)delegate
+  delegateQueue: (nullable NSOperationQueue *)queue;
 
-/* -finishTasksAndInvalidate returns immediately and existing tasks will be
+/** -finishTasksAndInvalidate returns immediately and existing tasks will be
  * allowed to run to completion.  New tasks may not be created.  The session
  * will continue to make delegate callbacks until
  * URLSession:didBecomeInvalidWithError: has been issued.
@@ -130,14 +130,14 @@ GS_EXPORT_CLASS
  * background session with the same identifier until
  * URLSession:didBecomeInvalidWithError: has been issued.
  */
-- (void)finishTasksAndInvalidate;
+- (void) finishTasksAndInvalidate;
 
-/* -invalidateAndCancel acts as -finishTasksAndInvalidate, but issues
+/** -invalidateAndCancel acts as -finishTasksAndInvalidate, but issues
  * -cancel to all outstanding tasks for this session.  Note task
  * cancellation is subject to the state of the task, and some tasks may
  * have already have completed at the time they are sent -cancel.
  */
-- (void)invalidateAndCancel;
+- (void) invalidateAndCancel;
 
 /*
  * NSURLSessionTask objects are always created in a suspended state and
@@ -146,35 +146,34 @@ GS_EXPORT_CLASS
 
 /** Creates a data task with the given request.
  * The request may have a body stream. */
-- (NSURLSessionDataTask *)dataTaskWithRequest:(NSURLRequest *)request;
+- (NSURLSessionDataTask *) dataTaskWithRequest: (NSURLRequest *)request;
 
 /** Creates a data task to retrieve the contents of the given URL. */
-- (NSURLSessionDataTask *)dataTaskWithURL:(NSURL *)url;
+- (NSURLSessionDataTask *) dataTaskWithURL: (NSURL *)url;
 
-- (NSURLSessionUploadTask *)uploadTaskWithRequest:(NSURLRequest *)request
-                                         fromFile:(NSURL *)fileURL;
+- (NSURLSessionUploadTask *) uploadTaskWithRequest: (NSURLRequest *)request
+                                          fromFile: (NSURL *)fileURL;
 
-- (NSURLSessionUploadTask *)uploadTaskWithRequest:(NSURLRequest *)request
-                                         fromData:(NSData *)bodyData;
+- (NSURLSessionUploadTask *) uploadTaskWithRequest: (NSURLRequest *)request
+                                          fromData: (NSData *)bodyData;
 
-- (NSURLSessionUploadTask *)uploadTaskWithStreamedRequest:
+- (NSURLSessionUploadTask *) uploadTaskWithStreamedRequest:
   (NSURLRequest *)request;
 
 /* Creates a download task with the given request. */
-- (NSURLSessionDownloadTask *)downloadTaskWithRequest:(NSURLRequest *)request;
+- (NSURLSessionDownloadTask *) downloadTaskWithRequest: (NSURLRequest *)request;
 
 /* Creates a download task to download the contents of the given URL. */
-- (NSURLSessionDownloadTask *)downloadTaskWithURL:(NSURL *)url;
+- (NSURLSessionDownloadTask *) downloadTaskWithURL: (NSURL *)url;
 
-- (NSURLSessionDownloadTask *)downloadTaskWithResumeData:(NSData *)resumeData;
+- (NSURLSessionDownloadTask *) downloadTaskWithResumeData: (NSData *)resumeData;
 
-- (void)getTasksWithCompletionHandler:
-  (void (^)(NSArray<NSURLSessionDataTask *>     *dataTasks,
-            NSArray<NSURLSessionUploadTask *>   *uploadTasks,
-            NSArray<NSURLSessionDownloadTask *> *downloadTasks))
-    completionHandler;
+- (void) getTasksWithCompletionHandler:
+  (void (^)(NSArray<NSURLSessionDataTask *> *dataTasks,
+    NSArray<NSURLSessionUploadTask *> *uploadTasks,
+    NSArray<NSURLSessionDownloadTask *> *downloadTasks)) completionHandler;
 
-- (void)getAllTasksWithCompletionHandler:
+- (void) getAllTasksWithCompletionHandler:
   (void (^)(GS_GENERIC_CLASS(NSArray, __kindof NSURLSessionTask *) * tasks))
     completionHandler;
 
@@ -182,7 +181,7 @@ GS_EXPORT_CLASS
  * This serial NSOperationQueue queue is used for dispatching delegate messages
  * and completion handlers.
  */
-- (NSOperationQueue *)delegateQueue;
+- (NSOperationQueue *) delegateQueue;
 
 /**
  * The delegate for the session. This is the object to which delegate messages
@@ -190,7 +189,7 @@ GS_EXPORT_CLASS
  *
  * The session keeps a strong reference to the delegate.
  */
-- (nullable id<NSURLSessionDelegate>)delegate;
+- (nullable id<NSURLSessionDelegate>) delegate;
 
 /**
  * The configuration object used to create the session.
@@ -199,21 +198,21 @@ GS_EXPORT_CLASS
  * Changes to the configuration object after the session is created have no
  * effect.
  */
-- (NSURLSessionConfiguration *)configuration;
+- (NSURLSessionConfiguration *) configuration;
 
 /**
  * An App-specific description of the session.
  */
-- (nullable NSString *)sessionDescription;
+- (nullable NSString *) sessionDescription;
 
 /**
  * Sets an app-specific description of the session.
  */
-- (void)setSessionDescription:(NSString *)description;
+- (void) setSessionDescription: (NSString *)description;
 
 @end
 
-/*
+/**
  * NSURLSession convenience routines deliver results to
  * a completion handler block.  These convenience routines
  * are not available to NSURLSessions that are configured
@@ -222,8 +221,7 @@ GS_EXPORT_CLASS
  * Task objects are always created in a suspended state and
  * must be sent the -resume message before they will execute.
  */
-@interface
-NSURLSession (NSURLSessionAsynchronousConvenience)
+@interface NSURLSession (NSURLSessionAsynchronousConvenience)
 /*
  * data task convenience methods.  These methods create tasks that
  * bypass the normal delegate calls for response and data delivery,
@@ -232,22 +230,18 @@ NSURLSession (NSURLSessionAsynchronousConvenience)
  * see <Foundation/NSURLError.h>.  The delegate, if any, will still be
  * called for authentication challenges.
  */
-- (NSURLSessionDataTask *)
-  dataTaskWithRequest:(NSURLRequest *)request
-    completionHandler:(GSNSURLSessionDataCompletionHandler)completionHandler;
-- (NSURLSessionDataTask *)dataTaskWithURL:(NSURL *)url
-                        completionHandler:(GSNSURLSessionDataCompletionHandler)
-                                            completionHandler;
+- (NSURLSessionDataTask *) dataTaskWithRequest: (NSURLRequest *)request
+  completionHandler: (GSNSURLSessionDataCompletionHandler)completionHandler;
+- (NSURLSessionDataTask *) dataTaskWithURL: (NSURL *)url
+  completionHandler: (GSNSURLSessionDataCompletionHandler)completionHandler;
 
-- (NSURLSessionUploadTask *)
-  uploadTaskWithRequest:(NSURLRequest *)request
-               fromFile:(NSURL *)fileURL
-      completionHandler:(GSNSURLSessionDataCompletionHandler)completionHandler;
+- (NSURLSessionUploadTask *) uploadTaskWithRequest: (NSURLRequest *)request
+  fromFile: (NSURL *)fileURL
+  completionHandler: (GSNSURLSessionDataCompletionHandler)completionHandler;
 
-- (NSURLSessionUploadTask *)
-  uploadTaskWithRequest:(NSURLRequest *)request
-               fromData:(NSData *)bodyData
-      completionHandler:(GSNSURLSessionDataCompletionHandler)completionHandler;
+- (NSURLSessionUploadTask *) uploadTaskWithRequest: (NSURLRequest *)request
+  fromData: (NSData *)bodyData
+  completionHandler: (GSNSURLSessionDataCompletionHandler)completionHandler;
 
 /*
  * download task convenience methods.  When a download successfully
@@ -255,23 +249,18 @@ NSURLSession (NSURLSessionAsynchronousConvenience)
  * copied during the invocation of the completion routine.  The file
  * will be removed automatically.
  */
-- (NSURLSessionDownloadTask *)downloadTaskWithRequest:(NSURLRequest *)request
-                                    completionHandler:
-                                      (GSNSURLSessionDownloadCompletionHandler)
-                                        completionHandler;
-- (NSURLSessionDownloadTask *)downloadTaskWithURL:(NSURL *)url
-                                completionHandler:
-                                  (GSNSURLSessionDownloadCompletionHandler)
-                                    completionHandler;
+- (NSURLSessionDownloadTask *) downloadTaskWithRequest: (NSURLRequest *)request
+  completionHandler: (GSNSURLSessionDownloadCompletionHandler)completionHandler;
+- (NSURLSessionDownloadTask *) downloadTaskWithURL: (NSURL *)url
+  completionHandler: (GSNSURLSessionDownloadCompletionHandler)completionHandler;
 
-- (NSURLSessionDownloadTask *)
-  downloadTaskWithResumeData:(NSData *)resumeData
-           completionHandler:
-             (GSNSURLSessionDownloadCompletionHandler)completionHandler;
+- (NSURLSessionDownloadTask *) downloadTaskWithResumeData: (NSData *)resumeData
+  completionHandler: (GSNSURLSessionDownloadCompletionHandler)completionHandler;
 
 @end
 
-typedef NS_ENUM(NSUInteger, NSURLSessionTaskState) {
+typedef NS_ENUM(NSUInteger, NSURLSessionTaskState)
+{
   /* The task is currently being serviced by the session */
   NSURLSessionTaskStateRunning = 0,
   NSURLSessionTaskStateSuspended = 1,
@@ -318,49 +307,46 @@ GS_EXPORT_CLASS
   NSError  *_error;
 }
 
-- (NSUInteger)taskIdentifier;
-
-- (nullable NSURLRequest *)originalRequest;
-- (nullable NSURLRequest *)currentRequest;
-- (nullable NSURLResponse *)response;
-
-- (NSURLSessionTaskState)state;
-- (NSProgress *)progress;
-- (nullable NSError *)error;
-
-- (nullable id<NSURLSessionTaskDelegate>)delegate;
-- (void)setDelegate:(nullable id<NSURLSessionTaskDelegate>)delegate;
-
-- (nullable NSDate *)earliestBeginDate;
-- (void)setEarliestBeginDate:(nullable NSDate *)date;
-
-- (int64_t)countOfBytesClientExpectsToSend;
-- (int64_t)countOfBytesClientExpectsToReceive;
-- (int64_t)countOfBytesSent;
-- (int64_t)countOfBytesReceived;
-- (int64_t)countOfBytesExpectedToSend;
-- (int64_t)countOfBytesExpectedToReceive;
-
 /**
- * App-specific description of the task.
+ * Cancels the task and the ongoing transfer.
  */
-- (nullable NSString *)taskDescription;
+- (void) cancel;
+
+- (int64_t) countOfBytesClientExpectsToReceive;
+- (int64_t) countOfBytesClientExpectsToSend;
+- (int64_t) countOfBytesReceived;
+- (int64_t) countOfBytesSent;
+- (int64_t) countOfBytesExpectedToReceive;
+- (int64_t) countOfBytesExpectedToSend;
+
+- (nullable NSURLRequest *) currentRequest;
+- (nullable id<NSURLSessionTaskDelegate>) delegate;
+- (nullable NSDate *) earliestBeginDate;
+- (nullable NSError *) error;
+- (nullable NSURLRequest *) originalRequest;
+- (float) priority;
+- (NSProgress *) progress;
+- (nullable NSURLResponse *) response;
+- (void) resume;
+
+- (void) setDelegate: (nullable id<NSURLSessionTaskDelegate>)delegate;
+- (void) setEarliestBeginDate: (nullable NSDate *)date;
+- (void) setPriority: (float)priority;
 
 /**
  * Sets an app-specific description of the task.
  */
-- (void)setTaskDescription:(nullable NSString *)description;
+- (void) setTaskDescription: (nullable NSString *)description;
+
+- (NSURLSessionTaskState) state;
+- (void) suspend;
 
 /**
- * Cancels the task and the ongoing transfer.
+ * App-specific description of the task.
  */
-- (void)cancel;
+- (nullable NSString *) taskDescription;
 
-- (void)suspend;
-- (void)resume;
-
-- (float)priority;
-- (void)setPriority:(float)priority;
+- (NSUInteger) taskIdentifier;
 
 @end
 
@@ -413,53 +399,19 @@ GS_EXPORT_CLASS
   NSTimeInterval           _timeoutIntervalForResource;
 }
 
-- (NSURLRequest *)configureRequest:(NSURLRequest *)request;
-
-+ (NSURLSessionConfiguration *)defaultSessionConfiguration;
-+ (NSURLSessionConfiguration *)ephemeralSessionConfiguration;
-+ (NSURLSessionConfiguration *)backgroundSessionConfigurationWithIdentifier:
++ (NSURLSessionConfiguration *) backgroundSessionConfigurationWithIdentifier:
   (NSString *)identifier;
++ (NSURLSessionConfiguration *) defaultSessionConfiguration;
++ (NSURLSessionConfiguration *) ephemeralSessionConfiguration;
 
-- (nullable NSDictionary *)HTTPAdditionalHeaders;
-- (void)setHTTPAdditionalHeaders:(NSDictionary *)headers;
+- (NSURLRequest *) configureRequest: (NSURLRequest *)request;
 
-/**
- * Gets the timeout interval to use when waiting for additional data to arrive.
- * The request timeout interval controls how long (in seconds) a task should
- * wait for additional data to arrive before giving up. The timer is reset
- * whenever new data arrives. When the request timer reaches the specified
- * interval without receiving any new data, it triggers a timeout.
- *
- * Currently not used by NSURLSession.
- */
-- (NSTimeInterval)timeoutIntervalForRequest;
-/**
- * Sets the timeout interval to use when waiting for additional data to arrive.
- */
-- (void)setTimeoutIntervalForRequest:(NSTimeInterval)interval;
+- (nullable NSDictionary *) HTTPAdditionalHeaders;
+- (NSHTTPCookieAcceptPolicy) HTTPCookieAcceptPolicy;
+- (nullable NSHTTPCookieStorage *) HTTPCookieStorage;
+- (NSInteger) HTTPMaximumConnectionsPerHost;
 
-/**
- * Gets the maximum amount of time that a resource request should be allowed to
- * take. The resource timeout interval controls how long (in seconds) to wait
- * for an entire resource to transfer before giving up. The resource timer
- * starts when the request is initiated and counts until either the request
- * completes or this timeout interval is reached, whichever comes first.
- */
-- (NSTimeInterval)timeoutIntervalForResource;
-/**
- * Sets the maximum amount of time that a resource request should be allowed to
- * take.
- */
-- (void)setTimeoutIntervalForResource:(NSTimeInterval)interval;
-
-- (NSHTTPCookieAcceptPolicy)HTTPCookieAcceptPolicy;
-- (void)setHTTPCookieAcceptPolicy:(NSHTTPCookieAcceptPolicy)policy;
-
-- (nullable NSHTTPCookieStorage *)HTTPCookieStorage;
-- (void)setHTTPCookieStorage:(NSHTTPCookieStorage *)storage;
-
-- (NSInteger)HTTPMaximumConnectionsPerHost;
-- (void)setHTTPMaximumConnectionsPerHost:(NSInteger)n;
+- (nullable NSString *) identifier;
 
 /**
  * Indicates whether the session should set cookies.
@@ -480,7 +432,21 @@ GS_EXPORT_CLASS
  * - NSHTTPCookieStorage
  * - NSHTTPCookie
  */
-- (BOOL)HTTPShouldSetCookies;
+- (BOOL) HTTPShouldSetCookies;
+
+/**
+ * HTTP/1.1 pipelining is not implemented. This flag is ignored.
+ */
+- (BOOL) HTTPShouldUsePipelining;
+
+- (nullable NSArray *) protocolClasses;
+
+- (NSURLRequestCachePolicy) requestCachePolicy;
+
+- (void) setHTTPAdditionalHeaders: (NSDictionary *)headers;
+- (void) setHTTPCookieAcceptPolicy: (NSHTTPCookieAcceptPolicy)policy;
+- (void) setHTTPCookieStorage: (NSHTTPCookieStorage *)storage;
+- (void) setHTTPMaximumConnectionsPerHost: (NSInteger)n;
 
 /**
  * Sets whether the session should set cookies.
@@ -501,26 +467,49 @@ GS_EXPORT_CLASS
  * - NSHTTPCookieStorage
  * - NSHTTPCookie
  */
-- (void)setHTTPShouldSetCookies:(BOOL)flag;
+- (void) setHTTPShouldSetCookies: (BOOL)flag;
+
+- (void) setHTTPShouldUsePipelining: (BOOL)flag;
+
+- (void) setRequestCachePolicy: (NSURLRequestCachePolicy)policy;
 
 /**
- * HTTP/1.1 pipelining is not implemented. This flag is ignored.
+ * Sets the timeout interval to use when waiting for additional data to arrive.
  */
-- (BOOL)HTTPShouldUsePipelining;
-- (void)setHTTPShouldUsePipelining:(BOOL)flag;
+- (void) setTimeoutIntervalForRequest: (NSTimeInterval)interval;
 
-- (nullable NSString *)identifier;
+/**
+ * Sets the maximum amount of time that a resource request should be allowed to
+ * take.
+ */
+- (void) setTimeoutIntervalForResource: (NSTimeInterval)interval;
 
-- (nullable NSArray *)protocolClasses;
+- (void) setURLCache: (NSURLCache *)cache;
+- (void) setURLCredentialStorage: (NSURLCredentialStorage *)storage;
 
-- (NSURLRequestCachePolicy)requestCachePolicy;
-- (void)setRequestCachePolicy:(NSURLRequestCachePolicy)policy;
+/**
+ * Gets the timeout interval to use when waiting for additional data to arrive.
+ * The request timeout interval controls how long (in seconds) a task should
+ * wait for additional data to arrive before giving up. The timer is reset
+ * whenever new data arrives. When the request timer reaches the specified
+ * interval without receiving any new data, it triggers a timeout.
+ *
+ * Currently not used by NSURLSession.
+ */
+- (NSTimeInterval) timeoutIntervalForRequest;
 
-- (nullable NSURLCache *)URLCache;
-- (void)setURLCache:(NSURLCache *)cache;
+/**
+ * Gets the maximum amount of time that a resource request should be allowed to
+ * take. The resource timeout interval controls how long (in seconds) to wait
+ * for an entire resource to transfer before giving up. The resource timer
+ * starts when the request is initiated and counts until either the request
+ * completes or this timeout interval is reached, whichever comes first.
+ */
+- (NSTimeInterval) timeoutIntervalForResource;
 
-- (nullable NSURLCredentialStorage *)URLCredentialStorage;
-- (void)setURLCredentialStorage:(NSURLCredentialStorage *)storage;
+
+- (nullable NSURLCache *) URLCache;
+- (nullable NSURLCredentialStorage *) URLCredentialStorage;
 
 #if !NO_GNUSTEP
 /** Permits a session to be configured so that older connections are reused.
@@ -528,8 +517,8 @@ GS_EXPORT_CLASS
  * reused as long as they are not older than 118 seconds, which is reasonable
  * for the vast majority if situations.
  */
-- (NSInteger)HTTPMaximumConnectionLifetime;
-- (void)setHTTPMaximumConnectionLifetime:(NSInteger)n;
+- (NSInteger) HTTPMaximumConnectionLifetime;
+- (void) setHTTPMaximumConnectionLifetime: (NSInteger)n;
 #endif
 
 @end
@@ -554,15 +543,15 @@ typedef NS_ENUM(NSInteger, NSURLSessionResponseDisposition) {
  * invalid because of a systemic error or when it has been
  * explicitly invalidated, in which case the error parameter will be nil.
  */
-- (void)URLSession:(NSURLSession *)session
-  didBecomeInvalidWithError:(nullable NSError *)error;
+- (void) URLSession: (NSURLSession *)session
+  didBecomeInvalidWithError: (nullable NSError *)error;
 
 /* Implementing this method permits a delegate to provide authentication
  * credentials in response to a challenge from the remote server.
  */
-- (void)URLSession:(NSURLSession *)session
-  didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge
-    completionHandler:
+- (void) URLSession: (NSURLSession *)session
+  didReceiveChallenge: (NSURLAuthenticationChallenge *)challenge
+  completionHandler:
       (void (^)(NSURLSessionAuthChallengeDisposition disposition,
                 NSURLCredential                     *credential))handler;
 
@@ -572,36 +561,35 @@ typedef NS_ENUM(NSInteger, NSURLSessionResponseDisposition) {
 @optional
 
 #if OS_API_VERSION(MAC_OS_VERSION_13_0, GS_API_LATEST)
-- (void)URLSession:(NSURLSession *)session
-     didCreateTask:(NSURLSessionTask *)task;
+- (void) URLSession: (NSURLSession *)session
+  didCreateTask: (NSURLSessionTask *)task;
 #endif
 
 /* Sent as the last message related to a specific task.  Error may be
  * nil, which implies that no error occurred and this task is complete.
  */
-- (void)URLSession:(NSURLSession *)session
-                  task:(NSURLSessionTask *)task
-  didCompleteWithError:(nullable NSError *)error;
+- (void) URLSession: (NSURLSession *)session
+  task: (NSURLSessionTask *)task
+  didCompleteWithError: (nullable NSError *)error;
 
 /* Called to request authentication credentials from the delegate when
  * an authentication request is received from the server which is specific
  * to this task.
  */
-- (void)URLSession:(NSURLSession *)session
-                 task:(NSURLSessionTask *)task
-  didReceiveChallenge:(NSURLAuthenticationChallenge *)challenge
-    completionHandler:
-      (void (^)(NSURLSessionAuthChallengeDisposition disposition,
-                NSURLCredential                     *credential))handler;
+- (void) URLSession: (NSURLSession *)session
+  task: (NSURLSessionTask *)task
+  didReceiveChallenge: (NSURLAuthenticationChallenge *)challenge
+  completionHandler: (void (^)(NSURLSessionAuthChallengeDisposition disposition,
+    NSURLCredential *credential))handler;
 
 /* Periodically informs the delegate of the progress of sending body content
  * to the server.
  */
-- (void)URLSession:(NSURLSession *)session
-                      task:(NSURLSessionTask *)task
-           didSendBodyData:(int64_t)bytesSent
-            totalBytesSent:(int64_t)totalBytesSent
-  totalBytesExpectedToSend:(int64_t)totalBytesExpectedToSend;
+- (void) URLSession: (NSURLSession *)session
+  task: (NSURLSessionTask *)task
+  didSendBodyData: (int64_t)bytesSent
+  totalBytesSent: (int64_t)totalBytesSent
+  totalBytesExpectedToSend: (int64_t)totalBytesExpectedToSend;
 
 /* An HTTP request is attempting to perform a redirection to a different
  * URL. You must invoke the completion routine to allow the
@@ -611,15 +599,15 @@ typedef NS_ENUM(NSInteger, NSURLSessionResponseDisposition) {
  * is to follow redirections.
  *
  */
-- (void)URLSession:(NSURLSession *)session
-                        task:(NSURLSessionTask *)task
-  willPerformHTTPRedirection:(NSHTTPURLResponse *)response
-                  newRequest:(NSURLRequest *)request
-           completionHandler:(void (^)(NSURLRequest *))completionHandler;
+- (void) URLSession: (NSURLSession *)session
+  task: (NSURLSessionTask *)task
+  willPerformHTTPRedirection: (NSHTTPURLResponse *)response
+  newRequest: (NSURLRequest *)request
+  completionHandler: (void (^)(NSURLRequest *))completionHandler;
 
-- (void)URLSession:(NSURLSession *)session
-               task:(NSURLSessionTask *)task
-  needNewBodyStream:(void (^)(NSInputStream *bodyStream))completionHandler;
+- (void) URLSession: (NSURLSession *)session
+  task: (NSURLSessionTask *)task
+  needNewBodyStream: (void (^)(NSInputStream *bodyStream))completionHandler;
 
 @end
 
@@ -627,18 +615,18 @@ typedef NS_ENUM(NSInteger, NSURLSessionResponseDisposition) {
 @optional
 /* Sent when data is available for the delegate to consume.
  */
-- (void)URLSession:(NSURLSession *)session
-          dataTask:(NSURLSessionDataTask *)dataTask
-    didReceiveData:(NSData *)data;
+- (void) URLSession: (NSURLSession *)session
+  dataTask: (NSURLSessionDataTask *)dataTask
+  didReceiveData: (NSData *)data;
 
 /** Informs the delegate of a response.  This message is sent when all the
  * response headers have arrived, before the body of the response arrives.
  */
-- (void)URLSession:(NSURLSession *)session
-            dataTask:(NSURLSessionDataTask *)dataTask
-  didReceiveResponse:(NSURLResponse *)response
-   completionHandler:
-     (void (^)(NSURLSessionResponseDisposition disposition))completionHandler;
+- (void) URLSession: (NSURLSession *)session
+  dataTask: (NSURLSessionDataTask *)dataTask
+  didReceiveResponse: (NSURLResponse *)response
+  completionHandler:
+    (void (^)(NSURLSessionResponseDisposition disposition))completionHandler;
 
 @end
 
@@ -649,27 +637,27 @@ typedef NS_ENUM(NSInteger, NSURLSessionResponseDisposition) {
  * removed when the delegate message returns.
  * URLSession:task:didCompleteWithError: will still be called.
  */
-- (void)URLSession:(NSURLSession *)session
-               downloadTask:(NSURLSessionDownloadTask *)downloadTask
-  didFinishDownloadingToURL:(NSURL *)location;
+- (void) URLSession: (NSURLSession *)session
+  downloadTask: (NSURLSessionDownloadTask *)downloadTask
+  didFinishDownloadingToURL: (NSURL *)location;
 
 @optional
 /* Sent periodically to notify the delegate of download progress. */
-- (void)URLSession:(NSURLSession *)session
-               downloadTask:(NSURLSessionDownloadTask *)downloadTask
-               didWriteData:(int64_t)bytesWritten
-          totalBytesWritten:(int64_t)totalBytesWritten
-  totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite;
+- (void) URLSession: (NSURLSession *)session
+  downloadTask: (NSURLSessionDownloadTask *)downloadTask
+  didWriteData: (int64_t)bytesWritten
+  totalBytesWritten: (int64_t)totalBytesWritten
+  totalBytesExpectedToWrite: (int64_t)totalBytesExpectedToWrite;
 
 /* Sent when a download has been resumed. If a download failed with an
  * error, the -userInfo dictionary of the error will contain an
  * NSURLSessionDownloadTaskResumeData key, whose value is the resume
  * data.
  */
-- (void)URLSession:(NSURLSession *)session
-        downloadTask:(NSURLSessionDownloadTask *)downloadTask
-   didResumeAtOffset:(int64_t)fileOffset
-  expectedTotalBytes:(int64_t)expectedTotalBytes;
+- (void) URLSession: (NSURLSession *)session
+  downloadTask: (NSURLSessionDownloadTask *)downloadTask
+  didResumeAtOffset: (int64_t)fileOffset
+  expectedTotalBytes: (int64_t)expectedTotalBytes;
 
 @end
 
