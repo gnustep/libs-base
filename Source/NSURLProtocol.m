@@ -851,7 +851,7 @@ typedef struct {
   if ([methods member: [this->request HTTPMethod]] == nil)
     {
       NSLog(@"Invalid HTTP Method: %@", this->request);
-      [self stopLoading];
+      [self stopLoading];		// breaks retain loops
       [this->client URLProtocol: self didFailWithError:
 	[NSError errorWithDomain: @"Invalid HTTP Method"
 			    code: 0
@@ -896,7 +896,7 @@ typedef struct {
 	  e = [NSError errorWithDomain: @"Invalid redirect request"
 				  code: 0
 			      userInfo: nil];
-	  [self stopLoading];
+	  [self stopLoading];		// breaks retain loops
 	  [this->client URLProtocol: self
 		   didFailWithError: e];
 	}
@@ -959,7 +959,7 @@ typedef struct {
 	      NSLog(@"%@ did not create streams for %@:%@",
 		self, host, [url port]);
 	    }
-	  [self stopLoading];
+	  [self stopLoading];		// breaks retain loops
 	  [this->client URLProtocol: self didFailWithError:
 	    [NSError errorWithDomain: @"can't connect" code: 0 userInfo: 
 	      [NSDictionary dictionaryWithObjectsAndKeys: 
@@ -1044,7 +1044,7 @@ typedef struct {
   _isLoading = NO;
   DESTROY(_writeData);
   DESTROY(_masked);
-  DESTROY(_challenge);
+  DESTROY(_challenge);	// break loop where challenge retains us.
   DESTROY(_credential);
   if (this->input != nil)
     {
@@ -1085,7 +1085,7 @@ typedef struct {
 	    {
 	      NSLog(@"%@ receive error %@", self, e);
 	    }
-	  [self stopLoading];
+	  [self stopLoading];		// breaks retain loops
 	  [this->client URLProtocol: self didFailWithError: e];
 	}
       return;
@@ -1116,7 +1116,7 @@ typedef struct {
       e = [NSError errorWithDomain: @"parse error"
 			      code: 0
 			  userInfo: nil];
-      [self stopLoading];
+      [self stopLoading];		// breaks retain loops
       [this->client URLProtocol: self didFailWithError: e];
       return;
     }
@@ -1226,7 +1226,7 @@ typedef struct {
 		  e = [NSError errorWithDomain: @"Invalid redirect request"
 					  code: 0
 				      userInfo: nil];
-		  [self stopLoading];
+		  [self stopLoading];		// breaks retain loops
 		  [this->client URLProtocol: self
 			   didFailWithError: e];
 		}
@@ -1388,7 +1388,7 @@ typedef struct {
 		  e = [NSError errorWithDomain: @"Authentication cancelled"
 					  code: 0
 				      userInfo: nil];
-		  [self stopLoading];
+		  [self stopLoading];		// breaks retain loops
 		  [this->client URLProtocol: self
 			   didFailWithError: e];
 		}
@@ -1463,7 +1463,7 @@ typedef struct {
 		      r = [this->request mutableCopy];
 		      [r setValue: auth
 			forHTTPHeaderField: @"Authorization"];
-		      [self stopLoading];
+		      [self stopLoading];		// breaks retain loops
 		      RELEASE(this->request);
 		      this->request = r;
 		      DESTROY(this->cachedResponse);
@@ -1511,7 +1511,7 @@ typedef struct {
 	       */
 	      if (_isLoading == YES)
 	        {
-		  _isLoading = NO;
+		  [self stopLoading];	// Breaks retain loops
 	          [this->client URLProtocolDidFinishLoading: self];
 		}
 	    }
@@ -1549,7 +1549,7 @@ typedef struct {
 	    {
 	      NSLog(@"%@ HTTP response not received - %@", self, _parser);
 	    }
-	  [self stopLoading];
+	  [self stopLoading];		// Breaks retain loops
 	  [this->client URLProtocol: self didFailWithError:
 	    [NSError errorWithDomain: @"receive incomplete"
 				code: 0
@@ -1633,7 +1633,7 @@ typedef struct {
 		      NSLog(@"%@ error reading from HTTPBody stream %@",
 			self, [NSError _last]);
 		    }
-		  [self stopLoading];
+		  [self stopLoading];		// Breaks retain loops
 		  [this->client URLProtocol: self didFailWithError:
 		    [NSError errorWithDomain: @"can't read body"
 					code: 0
@@ -1940,7 +1940,7 @@ typedef struct {
     {
       NSError	*error = [[[stream streamError] retain] autorelease];
 
-      [self stopLoading];
+      [self stopLoading];		// Breaks retain loops
       [this->client URLProtocol: self didFailWithError: error];
     }
   else

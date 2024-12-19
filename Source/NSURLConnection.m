@@ -431,6 +431,7 @@ typedef struct
   this->_delegate = nil;
   [o connection: self didFailWithError: error];
   DESTROY(o);
+  [this->_protocol stopLoading];
   DESTROY(this->_protocol);
 }
 
@@ -511,6 +512,7 @@ typedef struct
   this->_delegate = nil;
   [o connectionDidFinishLoading: self];
   DESTROY(o);
+  [this->_protocol stopLoading];
   DESTROY(this->_protocol);
 }
 
