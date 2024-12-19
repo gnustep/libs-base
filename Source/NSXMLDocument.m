@@ -284,10 +284,10 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
   // FIXME: Should we use addChild: here? 
   xmlDocSetRootElement(internal->node.doc, [root _node]);
-  if (root->detached)
+  if (GSIVar(root, detached))
     {
-      xmlFreeDoc(root->detached);
-      root->detached = 0;
+      xmlFreeDoc(GSIVar(root, detached));
+      GSIVar(root, detached) = 0;
     }
 
   // Do our subNode housekeeping...

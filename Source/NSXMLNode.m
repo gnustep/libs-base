@@ -564,7 +564,7 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 
 	  if (ensure_oldNs(parentNode))
 	    {
-	      detached = parentNode->doc;
+	      internal->detached = parentNode->doc;
 	    }
 
           ns = tmp->oldNs;
@@ -641,9 +641,9 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 #else
           xmlSetTreeDoc(childNode, parentNode->doc);
 #endif
-	  if (tmp == child->detached)
+	  if (tmp == GSIVar(child, detached))
 	    {
-	      child->detached = 0;
+	      GSIVar(child, detached) = 0;
 	    }
           xmlFreeDoc(tmp);
         }
@@ -1308,7 +1308,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
         {
           if (theNode->doc)
             {
-	      if (theNode->doc == detached)
+	      if (theNode->doc == internal->detached)
 		{
 		  return;	// Already detached.
 		}
@@ -1316,11 +1316,11 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
                * This is needed so that the strings of the nodes subtree
                * get stored in the dictionary of this new document.
                */
-              detached = xmlNewDoc((xmlChar *)"1.0");
+              internal->detached = xmlNewDoc((xmlChar *)"1.0");
 
 #if LIBXML_VERSION >= 20620
-              xmlDOMWrapAdoptNode(NULL, theNode->doc, theNode, detached,
-		NULL, 0);
+              xmlDOMWrapAdoptNode(NULL, theNode->doc, theNode,
+		internal->detached, NULL, 0);
 #else
               xmlSetTreeDoc(theNode, detached);
 #endif
@@ -1753,7 +1753,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
       // but we don't want to return this.
       return nil;
     }
-  if (theNode->doc == detached)
+  if (theNode->doc == internal->detached)
     {
       return nil;	// the document is private from when we detached
     }
@@ -1849,7 +1849,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
 
 		      if (ensure_oldNs(theNode))
 			{
-			  detached = theNode->doc;
+			  internal->detached = theNode->doc;
 			}
 
                       // Fake the name space and fix it later
@@ -1982,7 +1982,7 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
               
               if (ensure_oldNs(theNode))
 		{
-		  detached = theNode->doc;
+		  internal->detached = theNode->doc;
 		}
               
               // Fake the name space and fix it later
