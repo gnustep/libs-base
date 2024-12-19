@@ -113,10 +113,10 @@ StringFromXMLString(const unsigned char *bytes, unsigned length)
 #define	GS_XMLNODETYPE \
 union\
 {\
-	xmlDoc *doc;\
-	xmlDtd *dtd;\
-	xmlEntity *entity;\
-	xmlNode *node;\
+  xmlDoc	*doc;\
+  xmlDtd	*dtd;\
+  xmlEntity	*entity;\
+  xmlNode	*node;\
 }
 
 #else
@@ -135,7 +135,7 @@ union\
  * The 'subNodes' array is used to retain the objects pointed to by subnodes.
  *
  * When we create an Objective-C object for a node we also create objects
- * for all parents up to the root object. (Reusing existing once as we find 
+ * for all parents up to the root object. (Reusing existing ones as we find 
  * them in the _private points of parent nodes)
  * This adds the object to the subnode array of the parent object, retaining 
  * the object in this process.
@@ -154,11 +154,12 @@ union\
  * URI is probably not needed at all ... I'm not sure
  */
 #define GS_NSXMLNode_IVARS \
-  NSUInteger	  kind; \
-  GS_XMLNODETYPE node;  \
-  NSUInteger      options; \
-  id              objectValue; \
-  NSMutableArray *subNodes;
+  NSUInteger	  	kind; \
+  GS_XMLNODETYPE	node;  \
+  NSUInteger      	options; \
+  id              	objectValue; \
+  NSMutableArray 	*subNodes; \
+  xmlDoc		*detached;
 
 
 /* When using the non-fragile ABI, the instance variables are exposed to the

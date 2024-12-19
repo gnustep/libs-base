@@ -506,8 +506,8 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   xmlNodePtr theNode = internal->node.node;
   xmlNodePtr children;
 
-  if ((theNode->type == XML_NAMESPACE_DECL) ||
-      (theNode->type == XML_ATTRIBUTE_NODE))
+  if ((theNode->type == XML_NAMESPACE_DECL)
+    || (theNode->type == XML_ATTRIBUTE_NODE))
     {
       return NULL;
     }
@@ -629,6 +629,10 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 #else
           xmlSetTreeDoc(childNode, parentNode->doc);
 #endif
+	  if (tmp == child->detached)
+	    {
+	      child->detached = 0;
+	    }
           xmlFreeDoc(tmp);
         }
     }
@@ -1292,18 +1296,21 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
         {
           if (theNode->doc)
             {
+	      if (theNode->doc == detached)
+		{
+		  return;	// Already detached.
+		}
               /* Create a private document and move the node over.
                * This is needed so that the strings of the nodes subtree
                * get stored in the dictionary of this new document.
                */
-              // FIXME: Should flag this doc so it wont get returned in
-              // the method rootDocument
-              xmlDocPtr tmp = xmlNewDoc((xmlChar *)"1.0");
+              detached = xmlNewDoc((xmlChar *)"1.0");
 
 #if LIBXML_VERSION >= 20620
-              xmlDOMWrapAdoptNode(NULL, theNode->doc, theNode, tmp, NULL, 0);
+              xmlDOMWrapAdoptNode(NULL, theNode->doc, theNode, detached,
+		NULL, 0);
 #else
-              xmlSetTreeDoc(theNode, tmp);
+              xmlSetTreeDoc(theNode, detached);
 #endif
             }
           else
@@ -1733,6 +1740,10 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
       // This is a standalone node, we still may have a private document,
       // but we don't want to return this.
       return nil;
+    }
+  if (theNode->doc == detached)
+    {
+      return nil;	// the document is private from when we detached
     }
 
   return

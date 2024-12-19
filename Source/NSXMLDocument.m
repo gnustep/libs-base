@@ -183,7 +183,12 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   self = [self initWithKind: NSXMLDocumentKind options: 0];
   if (self != nil)
     {
-      [self setRootElement: (NSXMLNode*)element];
+      NS_DURING
+        [self setRootElement: (NSXMLNode*)element];
+      NS_HANDLER
+	RELEASE(self);
+	[localException raise];
+      NS_ENDHANDLER
     }
   return self;
 }
@@ -279,6 +284,11 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
   // FIXME: Should we use addChild: here? 
   xmlDocSetRootElement(internal->node.doc, [root _node]);
+  if (root->detached)
+    {
+      xmlFreeDoc(root->detached);
+      root->detached = 0;
+    }
 
   // Do our subNode housekeeping...
   [self _addSubNode: root];
