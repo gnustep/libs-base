@@ -912,7 +912,6 @@ register_printf_atsign ()
       DESTROY(placeholderMap);
     }
   GS_MUTEX_UNLOCK(placeholderLock);
-  DESTROY(nonBase);
   DESTROY(rPathSeps);
   DESTROY(uPathSeps);
   DESTROY(wPathSeps);
