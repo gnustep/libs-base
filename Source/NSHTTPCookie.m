@@ -161,7 +161,7 @@ static NSMutableArray *GSCookieStrings(NSString *string);
      dates and also could have tokens without values. */
   while (count-- > 0)
     {
-      NSHTTPCookie 		*cookie;
+      NSHTTPCookie 		*cookie = nil;
       NSMutableDictionary	*dict;
       NSString			*onecookie = [cookies objectAtIndex: count];
 
@@ -181,14 +181,14 @@ static NSMutableArray *GSCookieStrings(NSString *string);
 	      [dict setObject: defaultDomain forKey: NSHTTPCookieDomain];
 	    }
 	  cookie = [NSHTTPCookie cookieWithProperties: dict];
-	  if (cookie)
-	    {
-	      [cookies replaceObjectAtIndex: count withObject: cookie];
-	    }
-	  else
-	    {
-	      [cookies removeObjectAtIndex: count];
-	    }
+	}
+      if (cookie)
+	{
+	  [cookies replaceObjectAtIndex: count withObject: cookie];
+	}
+      else
+	{
+	  [cookies removeObjectAtIndex: count];
 	}
     }
   return cookies;
