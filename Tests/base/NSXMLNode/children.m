@@ -50,7 +50,7 @@ int main()
     // NSLog(@"Last time");
     
     [node release];
-    //[docA release];
+    [docA release];
    }
   NS_HANDLER
   {

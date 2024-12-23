@@ -14,7 +14,6 @@ main(int argc, const char *argv[])
   NSXMLDocument *xmlDoc;
   NSXMLElement *rootElement;
   NSError *error;
-  unsigned i;
   
 
   START_SET("NSXMLNode - descriptions")
@@ -38,6 +37,7 @@ main(int argc, const char *argv[])
     @"<InvokeStampatore xmlns=\"http://tempuri.org/\"><Flusso><IdFlusso>DF247309-57F8-4CDB-8711-6E9DB69BCE74</IdFlusso><Sorgente>FOX/EDI</Sorgente><DataRichiesta>2012-06-26T17:00:00.717</DataRichiesta><OraRichiesta>17:00</OraRichiesta><NumeroDocumenti>10</NumeroDocumenti><Lettera><IdCrm>FakeField</IdCrm><TipoDocumento>1001</TipoDocumento><DataDocumento>2012-06-26T14:45:08.673Z</DataDocumento><Utente>FakeUser</Utente><Priorita>Normale</Priorita><PraticaName>FakeName</PraticaName><ContentHeader><fieldList><Field><name>Campaign.Name</name><value>Campagna ENP</value></Field><Field><name>Cliente.Cap</name><value>37053</value></Field></fieldList></ContentHeader></Lettera></Flusso></InvokeStampatore>",
     "child description");
 #endif
+  [xmlDoc release];
   END_SET("NSXMLNode - descriptions")
 
   return 0;
