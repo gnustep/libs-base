@@ -5,12 +5,13 @@
 int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  id testObj = [NSDate new];
+  id testObj = AUTORELEASE([NSDate new]);
   
-  test_NSObject(@"NSDate",[NSArray arrayWithObject:[NSDate new]]);
-  test_NSCoding([NSArray arrayWithObject:testObj]);
-  test_keyed_NSCoding([NSArray arrayWithObject:testObj]);
-  test_NSCopying(@"NSDate",@"NSDate",[NSArray arrayWithObject:testObj],NO,NO);
+  test_NSObject(@"NSDate", [NSArray arrayWithObject: [NSDate date]]);
+  test_NSCoding([NSArray arrayWithObject: testObj]);
+  test_keyed_NSCoding([NSArray arrayWithObject: testObj]);
+  test_NSCopying(@"NSDate", @"NSDate",
+    [NSArray arrayWithObject: testObj], NO, NO);
    
   [arp release]; arp = nil;
   return 0;
