@@ -105,8 +105,8 @@ typedef GSIMapNode_t *GSIMapNode;
     pointerFunctionsReplace(&M->cb.pf, (void**)addr, (x).obj);
 
 #define GSI_MAP_READ_KEY(M,addr) \
-	(M->legacy ? *(addr) :\
-	 (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf, (void**)addr))
+   (M->legacy ? *(addr) :\
+   (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf, (void**)addr))
 
 #define	GSI_MAP_ENUMERATOR	NSHashEnumerator
 

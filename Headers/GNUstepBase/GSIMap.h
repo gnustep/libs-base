@@ -132,6 +132,11 @@ extern "C" {
  *      GSI_MAP_ZEROED()
  *              Define this macro to check whether a map uses keys which may
  *              be zeroed weak pointers.  
+ *
+ *	GSI_MAP_NODE_CLASS
+ *		If defined, each node in the map has an 'isa' field at the
+ *		start which is initialised to be the specified class so that
+ *		the node looks like an instance of that class.
  */
 
 #ifndef	GSI_MAP_HAS_VALUE
@@ -384,6 +389,9 @@ typedef GSIMapNode_t *GSIMapNode;
 #endif
 
 struct	_GSIMapNode {
+#if	defined(GSI_MAP_NODE_CLASS)
+  void		*isa;		/* Node pretends to be instance of class */
+#endif
   GSIMapNode	nextInBucket;	/* Linked list of bucket.	*/
   GSIMapKey	key;
 #if	GSI_MAP_HAS_VALUE
@@ -1078,9 +1086,8 @@ GSIMapCountByEnumeratingWithStateObjectsCount(GSIMapTable map,
   return count;
 }
 
-#if	GSI_MAP_HAS_VALUE
 GS_STATIC_INLINE GSIMapNode
-GSIMapAddPairNoRetain(GSIMapTable map, GSIMapKey key, GSIMapVal value)
+GSIMapGetNode(GSIMapTable map)
 {
   GSIMapNode	node = map->freeNodes;
 
@@ -1090,11 +1097,24 @@ GSIMapAddPairNoRetain(GSIMapTable map, GSIMapKey key, GSIMapVal value)
       node = map->freeNodes;
     }
   map->freeNodes = node->nextInBucket;
+#if	defined(GSI_MAP_NODE_CLASS)
+  node->isa = (void*)(GSI_MAP_NODE_CLASS);
+#endif
+  node->nextInBucket = 0;
+  return node;
+}
+
+
+#if	GSI_MAP_HAS_VALUE
+GS_STATIC_INLINE GSIMapNode
+GSIMapAddPairNoRetain(GSIMapTable map, GSIMapKey key, GSIMapVal value)
+{
+  GSIMapNode	node = GSIMapGetNode(map);
+
   node->key = key;
   node->value = value;
   GSI_MAP_STORE_KEY(map, &node->key, key);
   GSI_MAP_STORE_VALUE(map, &node->value, value);
-  node->nextInBucket = 0;
   GSIMapRightSizeMap(map, map->nodeCount);
   GSIMapAddNodeToMap(map, node);
   return node;
@@ -1103,19 +1123,12 @@ GSIMapAddPairNoRetain(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 GS_STATIC_INLINE GSIMapNode
 GSIMapAddPair(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 {
-  GSIMapNode	node = map->freeNodes;
+  GSIMapNode	node = GSIMapGetNode(map);
 
-  if (node == 0)
-    {
-      GSIMapMoreNodes(map, map->nodeCount < map->increment ? 0: map->increment);
-      node = map->freeNodes;
-    }
-  map->freeNodes = node->nextInBucket;
   GSI_MAP_STORE_KEY(map, &node->key, key);
   GSI_MAP_RETAIN_KEY(map, node->key);
   GSI_MAP_STORE_VALUE(map, &node->value, value);
   GSI_MAP_RETAIN_VALUE(map, node->value);
-  node->nextInBucket = 0;
   GSIMapRightSizeMap(map, map->nodeCount);
   GSIMapAddNodeToMap(map, node);
   return node;
@@ -1124,16 +1137,9 @@ GSIMapAddPair(GSIMapTable map, GSIMapKey key, GSIMapVal value)
 GS_STATIC_INLINE GSIMapNode
 GSIMapAddKeyNoRetain(GSIMapTable map, GSIMapKey key)
 {
-  GSIMapNode	node = map->freeNodes;
+  GSIMapNode	node = GSIMapGetNode(map);
 
-  if (node == 0)
-    {
-      GSIMapMoreNodes(map, map->nodeCount < map->increment ? 0: map->increment);
-      node = map->freeNodes;
-    }
-  map->freeNodes = node->nextInBucket;
   GSI_MAP_STORE_KEY(map, &node->key, key);
-  node->nextInBucket = 0;
   GSIMapRightSizeMap(map, map->nodeCount);
   GSIMapAddNodeToMap(map, node);
   return node;
@@ -1142,17 +1148,10 @@ GSIMapAddKeyNoRetain(GSIMapTable map, GSIMapKey key)
 GS_STATIC_INLINE GSIMapNode
 GSIMapAddKey(GSIMapTable map, GSIMapKey key)
 {
-  GSIMapNode	node = map->freeNodes;
+  GSIMapNode	node = GSIMapGetNode(map);
 
-  if (node == 0)
-    {
-      GSIMapMoreNodes(map, map->nodeCount < map->increment ? 0: map->increment);
-      node = map->freeNodes;
-    }
-  map->freeNodes = node->nextInBucket;
   GSI_MAP_STORE_KEY(map, &node->key, key);
   GSI_MAP_RETAIN_KEY(map, node->key);
-  node->nextInBucket = 0;
   GSIMapRightSizeMap(map, map->nodeCount);
   GSIMapAddNodeToMap(map, node);
   return node;

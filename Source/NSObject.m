@@ -493,9 +493,7 @@ static BOOL objc_release_fast_no_destroy_internal(id anObject)
          * have been greater than zero)
          */
         (((obj)anObject)[-1].retained) = 0;
-#  ifdef OBJC_CAP_ARC
         objc_delete_weak_refs(anObject);
-#  endif
         return YES;
       }
 #else	/* GSATOMICREAD */
@@ -504,9 +502,7 @@ static BOOL objc_release_fast_no_destroy_internal(id anObject)
     pthread_mutex_lock(theLock);
     if (((obj)anObject)[-1].retained == 0)
       {
-#  ifdef OBJC_CAP_ARC
         objc_delete_weak_refs(anObject);
-#  endif
         pthread_mutex_unlock(theLock);
         return YES;
       }
@@ -947,6 +943,8 @@ static id gs_weak_load(id obj)
 {
 #ifdef OBJC_CAP_ARC
   _objc_weak_load = gs_weak_load;
+#else
+  GSWeakInit();
 #endif
   objc_create_block_classes_as_subclasses_of(self);
 }

@@ -29,14 +29,16 @@
 #endif
 
 #if defined(OBJC_CAP_ARC)
-#    include <objc/objc-arc.h>
-#    define WEAK_READ(x) objc_loadWeak((id*)x)
-#    define WEAK_WRITE(addr, x) objc_storeWeak((id*)addr, (id)x)
-#    define STRONG_WRITE(addr, x) objc_storeStrong((id*)addr, (id)x)
-#    define STRONG_ACQUIRE(x) objc_retain(x)
+#  include <objc/objc-arc.h>
+#  define WEAK_READ(x) objc_loadWeak((id*)x)
+#  define WEAK_WRITE(addr, x) objc_storeWeak((id*)addr, (id)x)
+#  define STRONG_WRITE(addr, x) objc_storeStrong((id*)addr, (id)x)
+#  define STRONG_ACQUIRE(x) objc_retain(x)
 #else
-#  define WEAK_READ(x) (*x)
-#  define WEAK_WRITE(addr, x) (*(addr) =  x)
+extern id objc_loadWeak(id *object);
+extern id objc_storeWeak(id *addr, id obj);
+#  define WEAK_READ(x) objc_loadWeak((id*)x)
+#  define WEAK_WRITE(addr, x) objc_storeWeak((id*)addr, (id)x)
 #  define STRONG_WRITE(addr, x) ASSIGN(*((id*)addr), ((id)x))
 #  define STRONG_ACQUIRE(x) RETAIN(((id)x))
 #endif
