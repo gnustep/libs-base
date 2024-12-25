@@ -641,6 +641,7 @@ GSPrivateEncodeBase64(const uint8_t *src, NSUInteger length, uint8_t *dst)
 /* When we don't have a runtime with ARC to support weak references, we
  * use our own version.
  */
+BOOL GSPrivateMarkedWeak(id obj, BOOL  mark) GS_ATTRIB_PRIVATE;
 void GSWeakInit() GS_ATTRIB_PRIVATE;
 BOOL objc_delete_weak_refs(id obj);
 #endif
