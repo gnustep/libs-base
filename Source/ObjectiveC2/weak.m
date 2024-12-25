@@ -171,6 +171,11 @@ incrementWeakRefCount(id obj)
   GSIMapKey	key;
   GSIMapBucket  bucket;
   WeakRef 	*ref;
+
+  /* Mark the instance as having had a weak reference at some point.
+   * This information is used when the instance is deallocated.
+   */
+  GSPrivateMarkedWeak(obj, YES);
   
   key.obj = obj;
   bucket = GSIMapBucketForKey(&weakRefs, key);
@@ -254,11 +259,11 @@ objc_delete_weak_refs(id obj)
   GSIMapBucket  bucket;
   WeakRef 	*ref;
 
-  /* FIXME ... for performance we should have marked the object as having
-   * weak references and we should check that in order to avoid the cost
+  /* For performance we should have marked the object as having
+   * weak references and we check that in order to avoid the cost
    * of the map table lookup when it's not needed.
    */
-  if (0)
+  if (NO == GSPrivateMarkedWeak(obj, NO))
     {
       return NO;
     }
