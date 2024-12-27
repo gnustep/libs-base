@@ -2,6 +2,7 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSException.h>
 #import <Foundation/NSDebug.h>
+#import <Foundation/NSDictionary.h>
 #import <Foundation/NSObject.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSObjCRuntime.h>
@@ -80,7 +81,6 @@ int
 main(int argc, char *argv[])
 {
   ENTER_POOL
-  id            obj;
   Class         cls;
   Class         meta;
   SEL           sel;
@@ -121,7 +121,6 @@ main(int argc, char *argv[])
   PASS(0 == class_getVersion(Nil), 
     "class_getVersion() for Nil is 0");
 
-  obj = AUTORELEASE([NSObject new]);
   cls = [SubClass1 class];
 
   PASS(c1initialize != 0, "+initialize was called");
@@ -296,6 +295,39 @@ main(int argc, char *argv[])
     "NSStringFromSelector() works for existing selector");
 
   LEAVE_POOL
+
+  START_SET("weakref")
+  Class	c = [NSObject class];
+  id	obj;
+  id	got;
+  id	ref;
+  int	rc;
+
+  ref = nil;
+
+  objc_storeWeak(&ref, nil);
+  PASS(ref == nil, "nil is stored unchanged")
+
+  objc_storeWeak(&ref, @"hello");
+  PASS(ref == @"hello", "literal string is stored unchanged")
+
+  objc_storeWeak(&ref, (id)c);
+  PASS(ref == (id)c, "a class is stored unchanged")
+
+  obj = [NSObject new];
+  objc_storeWeak(&ref, obj);
+  PASS(ref != obj, "object is stored as weak reference")
+  rc = [obj retainCount];
+  got = objc_loadWeakRetained(&ref);
+  PASS(got == obj && [obj retainCount] == rc + 1,
+    "objc_loadWeakRetained() returns original retained")
+  RELEASE(got);
+  RELEASE(obj);
+  got = objc_loadWeakRetained(&ref);
+  PASS(got == nil, "load of deallocated object returns nil")
+
+  END_SET("weakref")
+
   return 0;
 }
 
