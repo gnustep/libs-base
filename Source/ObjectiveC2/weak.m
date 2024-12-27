@@ -8,6 +8,9 @@
 #import "../GSPrivate.h"
 #import "../GSPThread.h"
 
+static Class	persistentClasses[1];
+static int	persistentClassCount = sizeof(persistentClasses)/sizeof(Class);
+
 /* This function needs to identify objects which should NOT be handled by
  * weak references.
  * Nil is a special case which can not be stored as a weak reference because
@@ -19,13 +22,42 @@ __attribute__((always_inline))
 static inline BOOL
 isPersistentObject(id obj)
 {
-  if (obj == nil)
+  Class	c;
+  int	i;
+
+  if (nil == obj)
     {
       return YES;
     }
-  if (object_getClass(obj) == [NSConstantString class])
+
+  /* If the alignment of the object does not match that needed for a
+   * pointer (to the class of the object) then the object must be a
+   * special one of some sort and we assume it's persistent.
+   */
+#if	GS_SIZEOF_VOIDP == 8
+  if ((intptr_t)obj & 15)
     {
       return YES;
+    }
+#else
+  if ((intptr_t)obj & 7)
+    {
+      return YES;
+    }
+#endif
+
+  c = object_getClass(obj);
+  if (class_isMetaClass(c))
+    {
+      return YES;	// obj was a class rather than an instance
+    }
+
+  for (i = 0; i < persistentClassCount; i++)
+    {
+      if (persistentClasses[i] == c)
+	{
+	  return YES;	// the object is a persistent instance
+	}
     }
   return NO;
 }
@@ -70,6 +102,7 @@ GSWeakInit()
     {
       GSIMapInitWithZoneAndCapacity(
 	&weakRefs, NSDefaultMallocZone(), 1024);
+      persistentClasses[0] = [NXConstantString class];
     }
   GS_MUTEX_UNLOCK(weakLock);
 }

@@ -8,14 +8,26 @@
 #define __has_feature(x) 0
 #endif
 
-static int notificationCounter = 0;
 
 // Real object
 @interface RealObject : NSObject
+{
+  int notificationCounter;
+}
+- (int) count;
+- (void) reset;
 - (void) test: (NSNotification *)aNotification;
 @end
 
 @implementation RealObject
+- (int) count
+{
+  return notificationCounter;
+}
+- (void) reset
+{
+  notificationCounter = 0;
+}
 - (void) test: (NSNotification *)aNotification
 {
   notificationCounter++;
@@ -100,23 +112,21 @@ main(int argc, char **argv)
 
   // Create the real object and its proxy
   RealObject *real = [[[RealObject alloc] init] autorelease];
-  ProxyObject *proxy =
-    [[[ProxyObject alloc] initWithRealObject: real] autorelease];
+  ProxyObject *proxy = [[[ProxyObject alloc]
+    initWithRealObject: real] autorelease];
 
   // Make the proxy object an observer for the sample notification
   // NB It is important (for the test) to perform this with a local
   //    autorelease pool.
-  {
-    NSAutoreleasePool *pool = [NSAutoreleasePool new];
+  ENTER_POOL
     NSLog(@"Adding proxy observer");
     [nc addObserver: proxy
 	   selector: @selector(test:)
 	       name: @"TestNotification"
 	     object: testObject];
     [nc postNotification: aNotification];
-    PASS(1 == notificationCounter, "notification via proxy works immediately")
-    [pool release];
-  }
+    PASS(1 == [real count], "notification via proxy works immediately")
+  LEAVE_POOL
 
   // Post the notification
   // NB It is not important that this code is performed with a
@@ -124,11 +134,11 @@ main(int argc, char **argv)
   {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
     [nc postNotification: aNotification];
-    PASS(2 == notificationCounter, "notification via proxy works after pool")
+    PASS(2 == [real count], "notification via proxy works after pool")
     [pool release];
   }
   [nc postNotification: aNotification];
-  PASS(3 == notificationCounter, "notification via proxy works repeatedly")
+  PASS(3 == [real count], "notification via proxy works repeatedly")
 
   [nc removeObserver: proxy];
 
@@ -149,7 +159,7 @@ main(int argc, char **argv)
     o = AUTORELEASE(RETAIN(o));
     c = [o retainCount];
     [nc postNotification: aNotification];
-    PASS(4 == notificationCounter, "notification via block works immediately")
+    PASS(4 == [real count], "notification via block works immediately")
     PASS([o retainCount] == c,
       "observer retain count unaltered on notification")
     [nc removeObserver: o];
@@ -158,6 +168,28 @@ main(int argc, char **argv)
     [pool release];
   }
 #endif
+
+  /* Now test the feature whereby a deallocated instance is automatically
+   * removed as an observer (so we don't post to it and crash).
+   */
+  real = [RealObject new];
+  PASS(0 == [real count], "initial count is zero")
+  ENTER_POOL
+    NSLog(@"Adding real observer");
+    [nc addObserver: real
+	   selector: @selector(test:)
+	       name: @"TestNotification"
+	     object: testObject];
+    [nc postNotification: aNotification];
+    PASS(1 == [real count], "notification works immediately")
+  LEAVE_POOL
+
+  ENTER_POOL
+    PASS([real retainCount] == 1, "retain count ready for dealloc")
+    DESTROY(real);
+    PASS_RUNS([nc postNotification: aNotification];,
+      "automatic removal of deallocated instance OK")
+  LEAVE_POOL
 
   [pool release];
   return 0;

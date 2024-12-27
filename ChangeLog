@@ -1,3 +1,27 @@
+2024-12-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSIMap.h:
+	* Headers/GNUstepBase/GSObjCRuntime.h:
+	* Source/GSPrivate.h:
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcretePointerFunctions.h:
+	* Source/NSNotificationCenter.m:
+	* Source/NSObject.m:
+	* Source/ObjectiveC2/GNUmakefile:
+	* Source/ObjectiveC2/README:
+	* Source/ObjectiveC2/weak.m:
+	* Tests/base/Functions/runtime.m:
+	* Tests/base/NSHashTable/weakObjects.m:
+	* Tests/base/NSMapTable/weakObjects.m:
+	* Tests/base/NSNotification/general.m:
+	* Tests/base/NSPointerArray/weakObjects.m:
+	Implement weak objects API support for classic/gnu runtime.
+	Use it to implement weak reference support in NSPointerFunctions
+	(for NSMapTable, NSHashTable, NSP{ointerArray) and to implement
+	safe observer support for NSNotificationCenter (if an observer is
+	deallocated then it is removed from the notification center the
+	next time a notification woudl be posted to it).
+
 2024-11-29 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSURLProtocol.m: fix leaks due to retain loops.
