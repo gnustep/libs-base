@@ -2486,6 +2486,10 @@ static id gs_weak_load(id obj)
     }
   return c;
 }
+- (NSUInteger) retainCount
+{
+  return 0;	// So that gs_weak_load() knows the object was deallocated
+}
 - (void) logZombie: (SEL)selector
 {
   GSLogZombie(self, selector);
