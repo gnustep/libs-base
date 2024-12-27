@@ -2474,8 +2474,9 @@ static Class		tcpPortClass;
 	{
 	  NSMapRemove(thePorts, host);
 	}
+      [self retain];
       M_UNLOCK(tcpPortLock);
-      [self dealloc];
+      [super release];
     }
   else
     {

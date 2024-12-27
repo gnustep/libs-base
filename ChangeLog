@@ -5,8 +5,10 @@
 	* Source/GSPrivate.h:
 	* Source/NSConcreteHashTable.m:
 	* Source/NSConcretePointerFunctions.h:
+	* Source/NSMessagePort.m:
 	* Source/NSNotificationCenter.m:
 	* Source/NSObject.m:
+	* Source/NSSocketPort.m:
 	* Source/ObjectiveC2/GNUmakefile:
 	* Source/ObjectiveC2/README:
 	* Source/ObjectiveC2/weak.m:

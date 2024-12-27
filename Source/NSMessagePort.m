@@ -1705,8 +1705,9 @@ typedef	struct {
         {
           NSMapRemove(messagePortMap, (void*)name);
 	}
+      [self retain];
       M_UNLOCK(messagePortLock);
-      [self dealloc];
+      [super release];
     }
   else
     {
