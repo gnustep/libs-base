@@ -962,7 +962,7 @@ static NSNotificationCenter *default_center = nil;
    *	of our map tables - while enumerating a table, it is safe to remove
    *	the entry returned by the enumerator.
    */
-
+  ENTER_POOL
   lockNCTable(TABLE);
 
   if (name == nil && object == nil)
@@ -1100,6 +1100,7 @@ static NSNotificationCenter *default_center = nil;
     }
 
   unlockNCTable(TABLE);
+  LEAVE_POOL
 }
 
 /**
@@ -1114,17 +1115,13 @@ static NSNotificationCenter *default_center = nil;
   [self removeObserver: observer name: nil object: nil];
 }
 
-static void
-addPost(Observation **head, GSIArray a)
+static Observation*
+addPost(Observation *head, GSIArray a)
 {
   Observation	*p = 0;
-  Observation	*o = *head;
+  Observation	*o = head;
   Observation	*t;
 
-  if (0 == o)
-    {
-      return;
-    }
   while (o != ENDOBS)
     {
       t = o->next;
@@ -1154,13 +1151,14 @@ addPost(Observation **head, GSIArray a)
 	    }
 	  else
 	    {
-	      *head = t;
+	      head = t;
 	    }
 	  o->next = 0;
 	  obsFree(o);
 	}
       o = t;
     }
+  return head;
 }
 
 
@@ -1203,7 +1201,7 @@ addPost(Observation **head, GSIArray a)
 
   /* Find all the observers that specified neither NAME nor OBJECT.
    */
-  addPost(&WILDCARD, a);
+  WILDCARD = addPost(WILDCARD, a);
 
   /* Find the observers that specified OBJECT, but didn't specify NAME.
    */
@@ -1212,7 +1210,13 @@ addPost(Observation **head, GSIArray a)
       n = GSIMapNodeForSimpleKey(NAMELESS, (GSIMapKey)object);
       if (n)
 	{
-	  addPost(&(n->value.ext), a);
+	  if (ENDOBS == (n->value.ext = addPost(n->value.ext, a)))
+	    {
+	      GSIMapBucket bucket = GSIMapBucketForKey(NAMELESS, n->key);
+
+              GSIMapRemoveNodeFromMap(NAMELESS, bucket, n);
+              GSIMapFreeNode(NAMELESS, n);
+	    }
 	}
     }
 
@@ -1237,7 +1241,13 @@ addPost(Observation **head, GSIArray a)
 	  n = GSIMapNodeForSimpleKey(m, (GSIMapKey)object);
 	  if (n != 0)
 	    {
-	      addPost(&(n->value.ext), a);
+	      if (ENDOBS == (n->value.ext = addPost(n->value.ext, a)))
+		{
+		  GSIMapBucket bucket = GSIMapBucketForKey(m, n->key);
+
+		  GSIMapRemoveNodeFromMap(m, bucket, n);
+		  GSIMapFreeNode(m, n);
+		}
 	    }
 
 	  if (object != nil)
@@ -1247,7 +1257,13 @@ addPost(Observation **head, GSIArray a)
 	      n = GSIMapNodeForSimpleKey(m, (GSIMapKey)(id)nil);
 	      if (n != 0)
 		{
-		  addPost(&(n->value.ext), a);
+		  if (ENDOBS == (n->value.ext = addPost(n->value.ext, a)))
+		    {
+		      GSIMapBucket bucket = GSIMapBucketForKey(m, n->key);
+
+		      GSIMapRemoveNodeFromMap(m, bucket, n);
+		      GSIMapFreeNode(m, n);
+		    }
 		}
 	    }
 	}
