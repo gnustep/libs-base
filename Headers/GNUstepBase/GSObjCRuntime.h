@@ -63,6 +63,10 @@
  #endif
 #endif
 
+#ifdef __GNUSTEP_RUNTIME__
+#  include <objc/capabilities.h>
+#endif
+
 #if defined(OBJC_CAP_ARC)
 #  include <objc/objc-arc.h>
 #else
