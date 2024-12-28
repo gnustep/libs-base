@@ -97,6 +97,7 @@ static NSString		*defaultsFile = @".GNUstepDefaults";
 static NSUserDefaults	*sharedDefaults = nil;
 static NSDictionary     *argumentsDictionary = nil;
 static NSString	        *bundleIdentifier = nil;
+static NSString	        *processName = nil;
 static NSRecursiveLock	*classLock = nil;
 static NSLock	        *syncLock = nil;
 static BOOL		initializing = NO;
@@ -662,6 +663,7 @@ newLanguages(NSArray *oldNames)
 {
   DESTROY(sharedDefaults);
   DESTROY(bundleIdentifier);
+  DESTROY(processName);
   DESTROY(argumentsDictionary);
   DESTROY(classLock);
   DESTROY(syncLock);
@@ -713,16 +715,17 @@ newLanguages(NSArray *oldNames)
       argumentsDictionary = [NSDictionary new];
       [self registerAtExit];
 
+      processName = [[[NSProcessInfo processInfo] processName] copy];
       key = [GSPrivateInfoDictionary(nil) objectForKey: @"CFBundleIdentifier"];
       if (NO == [key isKindOfClass: [NSString class]])
 	{
 	  /* No bundle identifier found: use the process name instead.
 	   */
-	  key = [[NSProcessInfo processInfo] processName];
+	  key = processName;
           if (NO == [key isKindOfClass: [NSString class]])
 	    {
 	      fprintf(stderr, "+[NSUserDefaults initialize] unable to"
-		" determine bundle identfier or process name.\n");
+		" determine bundle identifier or process name.\n");
 	      key = nil;
 	    }
 	}
@@ -2629,7 +2632,7 @@ static BOOL isLocked = NO;
 	}
       domainName = [domainName stringByDeletingPathExtension];
 
-      /* We may what to know what domains are being loaded.
+      /* We may want to know what domains are being loaded.
        */
       NSDebugMLog(@"domain name: %@", domainName);
 
@@ -2872,10 +2875,32 @@ static BOOL isLocked = NO;
     {
       NSFileManager	        *mgr;
       NSMutableDictionary       *disk;
+      BOOL			found;
 
       mgr = [NSFileManager defaultManager];
       disk = nil;
-      if (YES == [mgr isReadableFileAtPath: path])
+      found = [mgr isReadableFileAtPath: path];
+
+      /* The default domain name for a program changed from being the name
+       * of the executable to being the bundle identifier (if available).
+       * If the domain file does not exist for the new name but does exist
+       * for the old name, we move the file to the modern location.
+       */
+      if (NO == found
+	&& [name isEqual: bundleIdentifier]
+	&& NO == [name isEqual: processName])
+	{
+	  NSString	*pp = [owner _directory];
+
+	  pp = [pp stringByAppendingPathComponent: processName];
+	  pp = [pp stringByAppendingPathExtension: @"plist"];
+	  if ([mgr isReadableFileAtPath: pp])
+	    {
+	      found = [mgr movePath: pp toPath: path handler: nil];
+	    }
+	}
+
+      if (found)
         {
           NSData	*data;
 
