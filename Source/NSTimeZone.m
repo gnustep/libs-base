@@ -1288,7 +1288,6 @@ static int		uninitialisedOffset = 100000;
   GS_MUTEX_UNLOCK(zone_mutex);
 
   DESTROY(zoneDictionary);
-  DESTROY(localTimeZone);
   DESTROY(defaultTimeZone);
   DESTROY(systemTimeZone);
   DESTROY(abbreviationDictionary);
@@ -1346,6 +1345,10 @@ static int		uninitialisedOffset = 100000;
       absolutes = NSCreateMapTable(NSIntegerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
+      /* NB. the instance of NSLocalTimeZone overrides memory management
+       * so it is never deallocated.  This must not be destroyed in the
+       * +atExit: method becuse that would confuse leak analysis tools.
+       */
       localTimeZone = [[NSLocalTimeZone alloc] init];
 
       [[NSNotificationCenter defaultCenter] addObserver: self

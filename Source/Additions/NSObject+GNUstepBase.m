@@ -541,8 +541,8 @@ findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
     }
   GS_MUTEX_UNLOCK(trackLock);
   fprintf(stderr, "Tracking ownership - unable to find entry for"
-    " instance %p of '%s'\n", o, class_getName(c));
-  NSLog(@"Tracking ownership %p problem at %s",
+    " instance %p of '%s'.\n", o, class_getName(c));
+  fprintf(stderr, "Tracking ownership %p problem at %s.\n",
     o, stackTrace(1));
 
   /* Should never happen because we don't remove class entries, but I suppose
@@ -598,7 +598,7 @@ findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
             }
         }
       GS_MUTEX_UNLOCK(trackLock);
-      NSLog(@"Tracking ownership -[%p dealloc] at %s",
+      fprintf(stderr, "Tracking ownership -[%p dealloc] at %s.\n",
         self, stackTrace(2));
       (*dealloc)(self, _cmd);
     }
@@ -620,7 +620,7 @@ findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
       unsigned		rc;
 
       rc = (unsigned)[self retainCount];
-      NSLog(@"Tracking ownership -[%p release] %u->%u at %s",
+      fprintf(stderr, "Tracking ownership -[%p release] %u->%u at %s.\n",
         self, rc, rc-1, stackTrace(2));
       (*release)(self, _cmd);
     }
@@ -644,7 +644,7 @@ findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
 
       rc = (unsigned)[self retainCount];
       result = (*retain)(self, _cmd);
-      NSLog(@"Tracking ownership -[%p retain] %u->%u at %s",
+      fprintf(stderr, "Tracking ownership -[%p retain] %u->%u at %s.\n",
         self, rc, (unsigned)[self retainCount], stackTrace(2));
     }
   return result;
@@ -755,7 +755,7 @@ makeLinkForClass(Class c)
   l->next = tracked;
   tracked = l;
   GS_MUTEX_UNLOCK(trackLock);
-  NSLog(@"Tracking ownership started for class %p at %s",
+  fprintf(stderr, "Tracking ownership started for class %p at %s.\n",
     self, stackTrace(1));
 }
 
@@ -823,7 +823,7 @@ makeLinkForClass(Class c)
   li->next = tracked;
   tracked = li;
   GS_MUTEX_UNLOCK(trackLock);
-  NSLog(@"Tracking ownership started for instance %p at %s",
+  fprintf(stderr, "Tracking ownership started for instance %p at %s.\n",
     self, stackTrace(1));
 }
 
