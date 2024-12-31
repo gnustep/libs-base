@@ -13,7 +13,8 @@ int main()
   NSMutableArray 	*tmpArray;
   NSMutableDictionary 	*myLocale;
   NSCalendarDate 	*myBirthday; 
-  NSCalendarDate 	*anotherDay; 
+  NSCalendarDate 	*anotherDay;
+  NSTimeZone		*tz;
 
   myLocale = westernLocale();
   
@@ -72,13 +73,17 @@ int main()
   [tmpArray addObject: @"PM"];
   [myLocale setObject: tmpArray forKey: NSAMPMDesignation];
    
+  tz = [NSTimeZone timeZoneWithName: @"MET"];
+  PASS_EQUAL([tz name], @"MET", "got time zone for dates")
+
   myBirthday = [NSCalendarDate dateWithYear: 1974 
   			 month: 11
 			   day: 20
 			  hour: 13
 			minute: 0
 			second: 0
-		      timeZone: [NSTimeZone timeZoneWithName: @"MET"]];
+		      timeZone: tz];
+  PASS_EQUAL([myBirthday timeZone], tz, "myBirthday has expected time zone")
    
   anotherDay = [NSCalendarDate dateWithYear: 1974 
   			 month: 1
@@ -86,7 +91,8 @@ int main()
 			  hour: 3
 			minute: 0
 			second: 0
-		      timeZone: [NSTimeZone timeZoneWithName: @"MET"]];
+		      timeZone: tz];
+  PASS_EQUAL([anotherDay timeZone], tz, "anotherDay has expected time zone")
    
   PASS([[myBirthday descriptionWithCalendarFormat: @"%%" 
                      locale: myLocale] isEqualToString: @"%"],
