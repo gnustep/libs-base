@@ -1951,17 +1951,17 @@ static BOOL isPlistObject(id o)
 
 - (BOOL) wantToReadDefaultsSince: (NSDate*)lastSyncDate
 {
-  NSFileManager *mgr;
-  NSDictionary	*attr;
-
-  mgr = [NSFileManager defaultManager];
-  attr = [mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES];
-  if (lastSyncDate == nil)
+  if (nil == lastSyncDate)
     {
       return YES;
     }
   else
     {
+      NSFileManager	*mgr;
+      NSDictionary	*attr;
+
+      mgr = [NSFileManager defaultManager];
+      attr = [mgr fileAttributesAtPath: _defaultsDatabase traverseLink: YES];
       if (attr == nil)
 	{
 	  return YES;
@@ -2615,11 +2615,35 @@ static BOOL isLocked = NO;
 
 - (BOOL) _readDefaults
 {
-  NSEnumerator		*enumerator;
-  NSString		*domainName;
-  BOOL			haveChange = NO;
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSEnumerator	*enumerator;
+  NSString	*domainName;
+  BOOL		haveChange = NO;
+  static BOOL	beenHere = NO;
 
-  enumerator = [[[NSFileManager defaultManager]
+  if (NO == beenHere)
+    {
+      NSString	*npath = _defaultsDatabase;
+      NSString	*opath = _defaultsDatabase;
+
+      beenHere = YES;
+      /* The default domain name for a program changed from being the name
+       * of the executable to being the bundle identifier (if available).
+       * If the domain file does not exist for the new name but does exist
+       * for the old name, we move the file to the modern location.
+       */
+      opath = [npath stringByAppendingPathComponent: processName];
+      opath = [opath stringByAppendingPathExtension: @"plist"];
+      npath = [npath stringByAppendingPathComponent: bundleIdentifier];
+      npath = [npath stringByAppendingPathExtension: @"plist"];
+      if (NO == [mgr isReadableFileAtPath: npath]
+	&& YES == [mgr isReadableFileAtPath: opath])
+	{
+	  [mgr movePath: opath toPath: npath handler: nil];
+	}
+    }
+
+  enumerator = [[mgr
     directoryContentsAtPath: _defaultsDatabase] objectEnumerator];
   while (nil != (domainName = [enumerator nextObject]))
     {
@@ -2875,32 +2899,10 @@ static BOOL isLocked = NO;
     {
       NSFileManager	        *mgr;
       NSMutableDictionary       *disk;
-      BOOL			found;
 
       mgr = [NSFileManager defaultManager];
       disk = nil;
-      found = [mgr isReadableFileAtPath: path];
-
-      /* The default domain name for a program changed from being the name
-       * of the executable to being the bundle identifier (if available).
-       * If the domain file does not exist for the new name but does exist
-       * for the old name, we move the file to the modern location.
-       */
-      if (NO == found
-	&& [name isEqual: bundleIdentifier]
-	&& NO == [name isEqual: processName])
-	{
-	  NSString	*pp = [owner _directory];
-
-	  pp = [pp stringByAppendingPathComponent: processName];
-	  pp = [pp stringByAppendingPathExtension: @"plist"];
-	  if ([mgr isReadableFileAtPath: pp])
-	    {
-	      found = [mgr movePath: pp toPath: path handler: nil];
-	    }
-	}
-
-      if (found)
+      if ([mgr isReadableFileAtPath: path])
         {
           NSData	*data;
 
