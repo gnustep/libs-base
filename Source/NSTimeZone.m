@@ -33,6 +33,8 @@
    Time zone names can be different from system to system, but usually
    the user has already set up his timezone independant of GNUstep, so we
    should respect that information.
+   For testing purposes, the GNUSTEP_BUILTIN_TZ environment variable can
+   be set to force the system independent data to be used.
 
    We do not use a dictionary for storing time zones, since such a
    dictionary would be VERY large (~500K).  And we would have to use a
@@ -2500,17 +2502,23 @@ static NSString *zoneDirs[] = {
 	}
       GS_MUTEX_UNLOCK(zone_mutex);
     }
-  /* Use the system zone info if possible, otherwise, use our installed
-     info.  */
-  if (tzdir && [[NSFileManager defaultManager] fileExistsAtPath:
-    [tzdir stringByAppendingPathComponent: name] isDirectory: &isDir] == YES
-    && isDir == NO)
+
+  if (NO == [[[[NSProcessInfo processInfo] environment]
+    objectForKey: @"GNUSTEP_BUILTIN_TZ"] boolValue])
     {
-      dir = tzdir;
+      /* Use the system zone info if possible, otherwise, use our installed
+       * info.
+       */
+      if (tzdir && [[NSFileManager defaultManager] fileExistsAtPath:
+	[tzdir stringByAppendingPathComponent: name] isDirectory: &isDir]
+	&& isDir == NO)
+	{
+	  dir = tzdir;
+	}
     }
   if (dir == nil)
     {
-      dir = _time_zone_path (ZONES_DIR, nil);
+      dir = _time_zone_path(ZONES_DIR, nil);
     }
   return [dir stringByAppendingPathComponent: name];
 }
@@ -3065,7 +3073,7 @@ getTypeInfo(NSTimeInterval since, GSTimeZone *zone)
 
   NS_DURING
     {
-      size_t		nread;
+      size_t			nread;
       union input_buffer  	*up;
 
       lsp = malloc(sizeof(*lsp));
