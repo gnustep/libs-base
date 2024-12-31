@@ -168,9 +168,9 @@ int main()
                      locale: myLocale] isEqualToString: @"1974"],
        "%%Y format works in description");
   
-  PASS([[myBirthday descriptionWithCalendarFormat: @"%Z" 
-                     locale: myLocale] isEqualToString: @"MET"],
-       "%%Z format works in description");
+  PASS_EQUAL([myBirthday
+    descriptionWithCalendarFormat: @"%Z" locale: myLocale],
+    @"MET", "%%Z format works in description")
   
   PASS([[myBirthday descriptionWithCalendarFormat: @"%z" 
                      locale: myLocale] isEqualToString: @"+0100"],
@@ -192,9 +192,9 @@ int main()
                      locale: myLocale] isEqualToString: @"13%00%00"],
        "%%H%%%%%%M%%%%%%S format works in description");
   
-  PASS([[myBirthday descriptionWithCalendarFormat: @"%H:%M (%Z)" 
-                     locale: myLocale] isEqualToString: @"13:00 (MET)"],
-       "%%H%%M format works in description");
+  PASS_EQUAL([myBirthday
+    descriptionWithCalendarFormat: @"%H:%M (%Z)" locale: myLocale],
+    @"13:00 (MET)", "%%H%%M format works in description")
   
   PASS([[myBirthday descriptionWithCalendarFormat: @"%R" 
                      locale: myLocale] isEqualToString: @"13:00"],
