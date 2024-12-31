@@ -13,7 +13,8 @@ int main()
   NSMutableArray 	*tmpArray;
   NSMutableDictionary 	*myLocale;
   NSCalendarDate 	*myBirthday; 
-  NSCalendarDate 	*anotherDay; 
+  NSCalendarDate 	*anotherDay;
+  NSTimeZone		*tz;
 
   myLocale = westernLocale();
   
@@ -72,21 +73,26 @@ int main()
   [tmpArray addObject: @"PM"];
   [myLocale setObject: tmpArray forKey: NSAMPMDesignation];
    
+  tz = [NSTimeZone timeZoneWithName: @"CET"];
+  PASS_EQUAL([tz name], @"CET", "got time zone for dates")
+
   myBirthday = [NSCalendarDate dateWithYear: 1974 
-  			 month: 11
-			   day: 20
-			  hour: 13
-			minute: 0
-			second: 0
-		      timeZone: [NSTimeZone timeZoneWithName: @"MET"]];
+				      month: 11
+				        day: 20
+				       hour: 13
+				     minute: 0
+				     second: 0
+				   timeZone: tz];
+  PASS_EQUAL([myBirthday timeZone], tz, "myBirthday has expected time zone")
    
   anotherDay = [NSCalendarDate dateWithYear: 1974 
-  			 month: 1
-			   day: 2
-			  hour: 3
-			minute: 0
-			second: 0
-		      timeZone: [NSTimeZone timeZoneWithName: @"MET"]];
+				      month: 1
+				        day: 2
+				       hour: 3
+				     minute: 0
+				     second: 0
+				   timeZone: tz];
+  PASS_EQUAL([anotherDay timeZone], tz, "anotherDay has expected time zone")
    
   PASS([[myBirthday descriptionWithCalendarFormat: @"%%" 
                      locale: myLocale] isEqualToString: @"%"],
@@ -168,9 +174,9 @@ int main()
                      locale: myLocale] isEqualToString: @"1974"],
        "%%Y format works in description");
   
-  PASS([[myBirthday descriptionWithCalendarFormat: @"%Z" 
-                     locale: myLocale] isEqualToString: @"MET"],
-       "%%Z format works in description");
+  PASS_EQUAL([myBirthday
+    descriptionWithCalendarFormat: @"%Z" locale: myLocale],
+    @"CET", "%%Z format works in description")
   
   PASS([[myBirthday descriptionWithCalendarFormat: @"%z" 
                      locale: myLocale] isEqualToString: @"+0100"],
@@ -192,9 +198,9 @@ int main()
                      locale: myLocale] isEqualToString: @"13%00%00"],
        "%%H%%%%%%M%%%%%%S format works in description");
   
-  PASS([[myBirthday descriptionWithCalendarFormat: @"%H:%M (%Z)" 
-                     locale: myLocale] isEqualToString: @"13:00 (MET)"],
-       "%%H%%M format works in description");
+  PASS_EQUAL([myBirthday
+    descriptionWithCalendarFormat: @"%H:%M (%Z)" locale: myLocale],
+    @"13:00 (CET)", "%%H%%M format works in description")
   
   PASS([[myBirthday descriptionWithCalendarFormat: @"%R" 
                      locale: myLocale] isEqualToString: @"13:00"],

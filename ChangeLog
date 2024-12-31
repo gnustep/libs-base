@@ -1,3 +1,15 @@
+2024-12-31 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m: Add GNUSTEP_BUILTIN_TZ environment variable to
+	force the use of the IANA standard based time zone files we provide
+	in the distribution rather than the system supplied time zone data.
+	This allows us to standardise test behavior across different systems.
+	* Tests/base/NSCalendarDate/TestInfo: set GNUSTEP_BUILTIN_TZ=1
+	* Tests/base/NSCalendarDate/test02.m: Change from using the MET zone
+	to using CET for tests since the IANA data has changed to make MET
+	behave aas CET.
+	* Tests/base/NSTimeZone/TestInfo: set GNUSTEP_BUILTIN_TZ=1
+
 2024-12-27 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSIMap.h:
@@ -28,7 +40,7 @@
 
 	* Source/NSURLProtocol.m: fix leaks due to retain loops.
 	* Source/Additions/NSObject+GNUstepBase.m: fix issues in new
-	-trackOownership mechanism to log tracked instances at exist and to
+	-trackOwnership mechanism to log tracked instances at exist and to
 	handle cases where we track instances of a class and instances of
 	its subclasses.
 

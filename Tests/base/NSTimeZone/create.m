@@ -9,31 +9,34 @@ int main()
 
   current = [NSTimeZone defaultTimeZone];
   PASS(current != nil && [current isKindOfClass: [NSTimeZone class]],
-       "+defaultTimeZone works");
+       "+defaultTimeZone works")
 
   current = [NSTimeZone localTimeZone];
   PASS(current != nil && [current isKindOfClass: [NSTimeZone class]],
-       "+localTimeZone works");
+       "+localTimeZone works")
 
   current = [NSTimeZone systemTimeZone];
   PASS(current != nil && [current isKindOfClass: [NSTimeZone class]],
-       "+systemTimeZone works");
+       "+systemTimeZone works")
 
   current = [NSTimeZone timeZoneForSecondsFromGMT: 900];
   PASS(current != nil && [current isKindOfClass: [NSTimeZone class]],
-       "+timeZoneForSecondsFromGMT works");
+       "+timeZoneForSecondsFromGMT: works")
 
   current = [NSTimeZone timeZoneForSecondsFromGMT: 90000];
   PASS(current == nil,
-       "+timeZoneForSecondsFromGMT fails for bad offset");
+       "+timeZoneForSecondsFromGMT: fails for bad offset")
 
   current = [NSTimeZone timeZoneWithAbbreviation: @"MST"];
   PASS(current != nil && [current isKindOfClass: [NSTimeZone class]],
-       "+timeZoneWithAbbreviation works");
+       "+timeZoneWithAbbreviation: works")
 
   current = [NSTimeZone timeZoneWithName: @"GB"];
   PASS(current != nil && [current isKindOfClass: [NSTimeZone class]],
-       "+timeZoneWithName works");
+       "+timeZoneWithName: works")
+
+  current = [NSTimeZone timeZoneWithName: @"MET"];
+  PASS_EQUAL([current name], @"MET", "+timeZoneWithName: preserved name")
 
   [arp release]; arp = nil;
   return 0;
