@@ -63,6 +63,22 @@
  #endif
 #endif
 
+#ifdef __GNUSTEP_RUNTIME__
+#  include <objc/capabilities.h>
+#endif
+
+#if defined(OBJC_CAP_ARC)
+#  include <objc/objc-arc.h>
+#else
+GS_EXPORT void objc_copyWeak(id *dest, id *src);
+GS_EXPORT void objc_destroyWeak(id *obj);
+GS_EXPORT id objc_initWeak(id *addr, id obj);
+GS_EXPORT id objc_loadWeak(id *object);
+GS_EXPORT id objc_loadWeakRetained(id *addr);
+GS_EXPORT void objc_moveWeak(id *dest, id *src);
+GS_EXPORT id objc_storeWeak(id *addr, id obj);
+#endif
+
 /*
  * Hack for older compiler versions that don't have all defines
  * needed in  objc-api.h

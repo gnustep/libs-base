@@ -208,11 +208,19 @@ extern void GSLogZombie(id o, SEL sel)
 #undef	GSATOMICREAD
 #endif
 
-#if defined(__llvm__) || (defined(USE_ATOMIC_BUILTINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
-/* Use the GCC atomic operations with recent GCC versions */
+#ifdef OBJC_CAP_ARC
 
 typedef intptr_t volatile *gsatomic_t;
 typedef intptr_t gsrefcount_t;
+#define GSATOMICREAD(X) (*(X))
+#define GSAtomicIncrement(X)    __sync_add_and_fetch(X, 1)
+#define GSAtomicDecrement(X)    __sync_sub_and_fetch(X, 1)
+
+#elif (defined(USE_ATOMIC_BUILTINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
+/* Use the GCC atomic operations with recent GCC versions */
+
+typedef int32_t volatile *gsatomic_t;
+typedef int32_t gsrefcount_t;
 #define GSATOMICREAD(X) (*(X))
 #define GSAtomicIncrement(X)    __sync_add_and_fetch(X, 1)
 #define GSAtomicDecrement(X)    __sync_sub_and_fetch(X, 1)
@@ -382,7 +390,7 @@ GSAtomicDecrement(gsatomic_t X)
 
 #include <pthread.h>
 
-typedef int     gsrefcount_t;   // No atomics, use a simple integer
+typedef int32_t	gsrefcount_t;   // No atomics, use a simple integer
 
 /* Having just one allocationLock for all leads to lock contention
  * if there are lots of threads doing lots of retain/release calls.
@@ -415,12 +423,21 @@ static inline pthread_mutex_t   *GSAllocationLockForObject(id p)
 #endif
 #define alignof(type) __builtin_offsetof(struct { const char c; type member; }, member)
 
+#ifndef OBJC_CAP_ARC
+typedef struct {
+  BOOL	hadWeakReference: 1;	// set if the instance ever had a weak reference
+} gsinstinfo_t;
+#endif
+
 /*
  *	Define a structure to hold information that is held locally
  *	(before the start) in each object.
  */
 typedef struct obj_layout_unpadded {
   gsrefcount_t	retained;
+#ifndef OBJC_CAP_ARC
+  gsinstinfo_t	extra;
+#endif
 } unp;
 #define	UNP sizeof(unp)
 
@@ -441,8 +458,25 @@ struct obj_layout {
   char	padding[__BIGGEST_ALIGNMENT__ - ((UNP % __BIGGEST_ALIGNMENT__)
     ? (UNP % __BIGGEST_ALIGNMENT__) : __BIGGEST_ALIGNMENT__)];
   gsrefcount_t	retained;
+#ifndef OBJC_CAP_ARC
+  gsinstinfo_t	extra;
+#endif
 };
 typedef	struct obj_layout *obj;
+
+#ifndef OBJC_CAP_ARC
+BOOL
+GSPrivateMarkedWeak(id anObject, BOOL  mark)
+{
+  BOOL	wasMarked = ((obj)anObject)[-1].extra.hadWeakReference;
+
+  if (mark)
+    {
+      ((obj)anObject)[-1].extra.hadWeakReference = YES;
+    }
+  return wasMarked;
+}
+#endif
 
 /*
  * These symbols are provided by newer versions of the GNUstep Objective-C
@@ -493,9 +527,7 @@ static BOOL objc_release_fast_no_destroy_internal(id anObject)
          * have been greater than zero)
          */
         (((obj)anObject)[-1].retained) = 0;
-#  ifdef OBJC_CAP_ARC
         objc_delete_weak_refs(anObject);
-#  endif
         return YES;
       }
 #else	/* GSATOMICREAD */
@@ -504,9 +536,7 @@ static BOOL objc_release_fast_no_destroy_internal(id anObject)
     pthread_mutex_lock(theLock);
     if (((obj)anObject)[-1].retained == 0)
       {
-#  ifdef OBJC_CAP_ARC
         objc_delete_weak_refs(anObject);
-#  endif
         pthread_mutex_unlock(theLock);
         return YES;
       }
@@ -947,6 +977,8 @@ static id gs_weak_load(id obj)
 {
 #ifdef OBJC_CAP_ARC
   _objc_weak_load = gs_weak_load;
+#else
+  GSWeakInit();
 #endif
   objc_create_block_classes_as_subclasses_of(self);
 }
@@ -2453,6 +2485,10 @@ static id gs_weak_load(id obj)
       GS_MUTEX_UNLOCK(allocationLock);
     }
   return c;
+}
+- (NSUInteger) retainCount
+{
+  return 0;	// So that gs_weak_load() knows the object was deallocated
 }
 - (void) logZombie: (SEL)selector
 {

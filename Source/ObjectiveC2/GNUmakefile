@@ -56,7 +56,11 @@ ObjectiveC2_OBJC_FILES += \
 endif
 
 ifeq ($(CC), clang)
+  # We need the flag for blocks support and we have ARC built in.
   ADDITIONAL_OBJCFLAGS = -fblocks
+else
+  # We need to emulated the weak reference API from the ARC runtime.
+  ObjectiveC2_OBJC_FILES += weak.m
 endif
 
 -include Makefile.preamble
