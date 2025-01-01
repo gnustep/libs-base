@@ -1,3 +1,12 @@
+2025-01-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueMutableArray.m: Fix mutable array support so that
+	we can remove items from multiple indices at the same time and avoid
+	problems where the array being accessed is set by copy rendering our
+	cached infromation invalid (issue #480).
+	* Tests/base/KVC/remove.m: adapted test by Rupert Daniel for removal
+	of items from mutable array.
+
 2024-12-31 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTimeZone.m: Add GNUSTEP_BUILTIN_TZ environment variable to
