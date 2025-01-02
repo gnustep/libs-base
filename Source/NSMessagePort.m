@@ -1699,20 +1699,12 @@ typedef	struct {
 - (oneway void) release
 {
   M_LOCK(messagePortLock);
-  if (NSDecrementExtraRefCountWasZero(self))
+  if (_internal != 0 && 1 == [self retainCount])
     {
-      if (_internal != 0)
-        {
-          NSMapRemove(messagePortMap, (void*)name);
-	}
-      [self retain];
-      M_UNLOCK(messagePortLock);
-      [super release];
+      NSMapRemove(messagePortMap, (void*)name);
     }
-  else
-    {
-      M_UNLOCK(messagePortLock);
-    }
+  M_UNLOCK(messagePortLock);
+  [super release];
 }
 
 - (void) removeHandle: (GSMessageHandle*)handle

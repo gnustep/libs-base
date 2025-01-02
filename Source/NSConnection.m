@@ -1467,16 +1467,12 @@ static NSLock	*cached_proxies_gate = nil;
    * and try to use it while it is being deallocated.
    */
   GS_M_LOCK(connection_table_gate);
-  if (NSDecrementExtraRefCountWasZero(self))
+  if (1 == [self retainCount])
     {
       NSHashRemove(connection_table, self);
-      GSM_UNLOCK(connection_table_gate);
-      [self dealloc];
     }
-  else
-    {
-      GSM_UNLOCK(connection_table_gate);
-    }
+  GSM_UNLOCK(connection_table_gate);
+  [super release];
 }
 
 /**

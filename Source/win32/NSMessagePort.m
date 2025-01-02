@@ -949,16 +949,12 @@ again:
    * and try to use it while it is being deallocated.
    */
   M_LOCK(messagePortLock);
-  if (NSDecrementExtraRefCountWasZero(self))
+  if (1 == [self retainCount])
     {
       NSMapRemove(ports, (void*)[self name]);
-      M_UNLOCK(messagePortLock);
-      [self dealloc];
     }
-  else
-    {
-      M_UNLOCK(messagePortLock);
-    }
+  M_UNLOCK(messagePortLock);
+  [super release];
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when

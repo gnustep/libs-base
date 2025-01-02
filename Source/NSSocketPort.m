@@ -2465,7 +2465,7 @@ static Class		tcpPortClass;
 - (oneway void) release
 {
   M_LOCK(tcpPortLock);
-  if (NSDecrementExtraRefCountWasZero(self))
+  if (1 == [self retainCount])
     {
       NSMapTable	*thePorts;
 
@@ -2474,14 +2474,9 @@ static Class		tcpPortClass;
 	{
 	  NSMapRemove(thePorts, host);
 	}
-      [self retain];
-      M_UNLOCK(tcpPortLock);
-      [super release];
     }
-  else
-    {
-      M_UNLOCK(tcpPortLock);
-    }
+  M_UNLOCK(tcpPortLock);
+  [super release];
 }
 
 
