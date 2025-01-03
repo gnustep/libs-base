@@ -24,6 +24,7 @@
 #import "common.h"
 #define	EXPOSE_NSError_IVARS	1
 #import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSException.h"
 #import	"Foundation/NSError.h"
 #import	"Foundation/NSCoder.h"
 #import	"Foundation/NSArray.h"
@@ -32,10 +33,28 @@
 
 @implementation	NSError
 
+/* For NSFileManager we have a private method which produces an error
+ * with mutable userInfo so that information can be added before the
+ * file manager returns the error to higher level code.
+ */
++ (NSError*) _error: (NSInteger)aCode
+        description: (NSString*)description
+{
+  NSError		*e = [self allocWithZone: NSDefaultMallocZone()];
+  NSMutableDictionary	*m;
+
+  e = [e initWithDomain: NSCocoaErrorDomain code: aCode userInfo: nil];
+  m = [NSMutableDictionary allocWithZone: NSDefaultMallocZone()];
+  e->_userInfo = [m initWithCapacity: 3];
+  [m setObject: description forKey: NSLocalizedDescriptionKey];
+  return AUTORELEASE(e);
+}
+
 + (id) errorWithDomain: (NSErrorDomain)aDomain
 		  code: (NSInteger)aCode
 	      userInfo: (NSDictionary*)aDictionary
 {
+
   NSError	*e = [self allocWithZone: NSDefaultMallocZone()];
 
   e = [e initWithDomain: aDomain code: aCode userInfo: aDictionary];

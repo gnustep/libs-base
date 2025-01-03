@@ -1,13 +1,6 @@
 #import "Testing.h"
 #import "ObjectTesting.h"
-#import <Foundation/NSAutoreleasePool.h>
-#import <Foundation/NSError.h>
-#import <Foundation/NSFileManager.h>
-#import <Foundation/NSProcessInfo.h>
-#import <Foundation/NSPathUtilities.h>
-#import <Foundation/NSError.h>
-#import <Foundation/NSThread.h>
-#import <Foundation/NSURL.h>
+#import <Foundation/Foundation.h>
 
 #ifdef  EQ
 #undef  EQ
@@ -413,9 +406,14 @@ int main()
                error: &err];
   PASS([mgr fileExistsAtPath: @"sub2/sub1" isDirectory: &isDir]
     && isDir == YES, "NSFileManager copy item at URL");
-  [mgr copyItemAtPath: @"sub2" toPath: @"sub1/sub2" error: &err];
+  PASS([mgr copyItemAtPath: @"sub2" toPath: @"sub1/sub2" error: &err] == YES
+    && nil == err, "NSFileManager copy item at Path returns expected values")
   PASS([mgr fileExistsAtPath: @"sub1/sub2/sub1" isDirectory: &isDir]
-    && isDir == YES, "NSFileManager copy item at Path");
+    && isDir == YES, "NSFileManager copy item at Path actually works");
+  PASS([mgr copyItemAtPath: @"sub2" toPath: @"sub1/sub2" error: &err] == NO
+    && nil != err, "NSFileManager copy item at Path fails when dest exists")
+  PASS([err code] == NSFileWriteFileExistsError, "expected error code")
+
   [mgr moveItemAtURL: [NSURL fileURLWithPath: @"sub2/sub1"]
 	       toURL: [NSURL fileURLWithPath: @"sub1/moved"]
 	       error: &err];
