@@ -40,16 +40,29 @@ Other external libraries that you may need to install include:
 @item libdispatch (RECOMMENDED)
 @end itemize
 
-If you are installing the GNUstep libraries individually, make sure you
-have installed the GNUstep Makefile package (gnustep-make) already, and
-you have sourced the makefile script:
+In the alist above:
+
+@itemize
+@item OPTIONAL refers to libraries either not usually needed (because most
+systems provide the same features in other ways) or used only for minor
+extensions to the Apple implementation.
+@item RECOMMENDED refers to libraries which are needed to provide standard
+features, but where those features may not be used by most applications.
+@item HIGHLY RECOMMENDED refer to libraries needed by major features likely
+to be required by many/most applications.
+@end itemize
+
+Once you have installed the external libraries you want, you set up the
+build environment using the GNUstep.sh script:
+
 @example
 . $GNUSTEP_SYSTEM_ROOT/Library/Makefiles/GNUstep.sh
 @end example
-See the GNUstep-HOWTO for more information.
 
-After installing this library you should install gnustep-gui if you are
-going to use graphical applications.
+Then build/install this librayry: See the GNUstep-HOWTO for more information.
+
+After installing this library you should install gnustep-gui (and gnustep-back)
+if you are going to use graphical applications.
 
 When you configure this library, make sure you use the same
 configuration options as with gstep-make. Some additional options to
