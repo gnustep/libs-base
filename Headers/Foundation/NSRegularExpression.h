@@ -69,7 +69,7 @@ static const NSMatchingOptions NSMatchingWithoutAnchoringBounds = 1<<4;
 #if     GS_API_VERSION( 13100, GS_API_LATEST)
 /** Enumeration with a C function callback uses this prototype
  */
-typedef void (*GSRegexEnumerationCallback)(NSRegularExpression *regex,
+typedef void (*GSRegexEnumerationCallback)(
   void *context, NSTextCheckingResult *match,
   NSMatchingFlags flags, BOOL *shouldStop);
 #endif
@@ -135,7 +135,7 @@ GS_EXPORT_CLASS
  * Its behavior is like that of the
  * -enumerateMatchesInString:options:range:usingBlock: method, except that
  * it uses a callback rather than a block, and the callback is supplied with
- * both the NSRegularExpression instance being used and the context value.
+ * the context value specified as an argument to this method.
  * <br />
  * The operation of the method is basically to call the supplied callback
  * function for each match of the expression in the string.

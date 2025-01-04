@@ -1,8 +1,8 @@
 #import <Foundation/Foundation.h>
 #import "ObjectTesting.h"
 
-  static void callback(NSRegularExpression *re, void *context,
-    NSTextCheckingResult *match, NSMatchingFlags flags, BOOL *stop)
+  static void callback(void *context, NSTextCheckingResult *match,
+    NSMatchingFlags flags, BOOL *stop)
   {
     if (match)
       {

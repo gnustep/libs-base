@@ -65,7 +65,6 @@
 #import "Foundation/NSError.h"
 
 typedef struct {
-  NSRegularExpression		*e;	// The RE being used
   GSRegexEnumerationCallback	h;	// The handler callback function
   void				*c;	// Context for this enumeration
 } GSRegexContext;
@@ -119,7 +118,7 @@ NSRegularExpressionOptionsToURegexpFlags(NSRegularExpressionOptions opts)
 /* Callback method to invoke a block
  */
 static void
-blockCallback(NSRegularExpression *regex,
+blockCallback(
   void *context, NSTextCheckingResult *match,
   NSMatchingFlags flags, BOOL *shouldStop)
 {
@@ -401,7 +400,7 @@ callback(const void *context, int32_t steps)
     {
       return FALSE;
     }
-  (*c->h)(c->e, c->c, nil, NSMatchingProgress, &stop);
+  (*c->h)(c->c, nil, NSMatchingProgress, &stop);
 
   return (stop ? FALSE : TRUE);
 }
@@ -594,7 +593,7 @@ prepareResult(NSRegularExpression *regex,
   UErrorCode	        s = 0;
   UText		        txt = UTEXT_INITIALIZER;
   BOOL		        stop = NO;
-  GSRegexContext	ctx = { self, handler, context };
+  GSRegexContext	ctx = { handler, context };
   URegularExpression    *r = setupRegex(regex, string, &txt, opts, range, &ctx);
   NSUInteger	        groups = [self numberOfCaptureGroups] + 1;
   NSRange	        ranges[groups];
@@ -618,7 +617,7 @@ prepareResult(NSRegularExpression *regex,
 	    regularExpressionCheckingResultWithRanges: ranges
 						count: groups
 				    regularExpression: self];
-	  (*handler)(self, context, result, flags, &stop);
+	  (*handler)(context, result, flags, &stop);
 	}
     }
   else
@@ -634,12 +633,12 @@ prepareResult(NSRegularExpression *regex,
 	    regularExpressionCheckingResultWithRanges: ranges
 						count: groups
 				    regularExpression: self];
-	  (*handler)(self, context, result, flags, &stop);
+	  (*handler)(context, result, flags, &stop);
 	}
     }
   if (opts & NSMatchingCompleted)
     {
-      (*handler)(self, context, nil, NSMatchingCompleted, &stop);
+      (*handler)(context, nil, NSMatchingCompleted, &stop);
     }
   utext_close(&txt);
   uregex_close(r);
@@ -657,7 +656,7 @@ prepareResult(NSRegularExpression *regex,
   URegularExpression    *r;
   NSUInteger	        groups = [self numberOfCaptureGroups] + 1;
   NSRange	        ranges[groups];
-  GSRegexContext	ctx = { self, handler, context };
+  GSRegexContext	ctx = { handler, context };
   TEMP_BUFFER(buffer, length);
 
   r = setupRegex(regex, string, buffer, length, opts, range, &ctx);
@@ -681,7 +680,7 @@ prepareResult(NSRegularExpression *regex,
 	    regularExpressionCheckingResultWithRanges: ranges
 						count: groups
 				    regularExpression: self];
-	  (*handler)(self, context, result, flags, &stop);
+	  (*handler)(context, result, flags, &stop);
 	}
     }
   else
@@ -697,12 +696,12 @@ prepareResult(NSRegularExpression *regex,
 	    regularExpressionCheckingResultWithRanges: ranges
 						count: groups
 				    regularExpression: self];
-	  (*handler)(self, context, result, flags, &stop);
+	  (*handler)(context, result, flags, &stop);
 	}
     }
   if (opts & NSMatchingCompleted)
     {
-      (*handler)(self, context, nil, NSMatchingCompleted, &stop);
+      (*handler)(context, nil, NSMatchingCompleted, &stop);
     }
   uregex_close(r);
 }
