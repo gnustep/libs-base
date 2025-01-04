@@ -101,7 +101,7 @@ int main()
                                              withTemplate: @"c"];
   PASS_EQUAL(replacement, @"cb", "Replacement correct");
 
-  NSString *replMut = [NSMutableString stringWithString: @"ab"];
+  NSMutableString *replMut = [NSMutableString stringWithString: @"ab"];
   [testObj replaceMatchesInString: replMut
                           options: 0
                             range: NSMakeRange(0,2)
@@ -119,7 +119,7 @@ int main()
   NSTextCheckingResult *r = [testObj firstMatchInString: @"ab"
                                                 options: 0
                                                   range: NSMakeRange(0,2)];
-  PASS(r, "Found NSTextCheckingResult");
+  PASS(r != nil, "Found NSTextCheckingResult");
   replacement = @"should be unset on return";
   replacement = [testObj replacementStringForResult: r
                                            inString: @"ab"

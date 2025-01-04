@@ -66,7 +66,7 @@ static const NSMatchingOptions NSMatchingWithoutAnchoringBounds = 1<<4;
 
 @class	NSRegularExpression;
 
-#if     GS_API_VERSION(GS_API_NONE, GS_API_NONE)
+#if     GS_API_VERSION( 13100, GS_API_LATEST)
 /** Enumeration with a C function callback uses this prototype
  */
 typedef void (*GSRegexEnumerationCallback)(NSRegularExpression *regex,
@@ -129,7 +129,7 @@ GS_EXPORT_CLASS
 	       options: (NSRegularExpressionOptions)opts
 		 error: (NSError**)e;
 - (NSString*) pattern; 
-#if     GS_API_VERSION(GS_API_NONE, GS_API_NONE)
+#if     GS_API_VERSION( 13100, GS_API_LATEST)
 /** In the GNUstep implementation this method is the fundametal primitive
  * (unlike OSX which depends on blocks) upon which other methods are based.
  * Its behavior is like that of the
