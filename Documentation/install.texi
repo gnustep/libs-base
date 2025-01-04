@@ -40,7 +40,7 @@ Other external libraries that you may need to install include:
 @item libdispatch (RECOMMENDED)
 @end itemize
 
-In the alist above:
+In the list above:
 
 @itemize
 @item OPTIONAL refers to libraries either not usually needed (because most
@@ -59,7 +59,7 @@ build environment using the GNUstep.sh script:
 . $GNUSTEP_SYSTEM_ROOT/Library/Makefiles/GNUstep.sh
 @end example
 
-Then build/install this librayry: See the GNUstep-HOWTO for more information.
+Then build/install this library: See the GNUstep-HOWTO for more information.
 
 After installing this library you should install gnustep-gui (and gnustep-back)
 if you are going to use graphical applications.
