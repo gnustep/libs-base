@@ -64,6 +64,15 @@ static const NSMatchingOptions NSMatchingAnchored               = 1<<2;
 static const NSMatchingOptions NSMatchingWithTransparentBounds  = 1<<3;
 static const NSMatchingOptions NSMatchingWithoutAnchoringBounds = 1<<4;
 
+@class	NSRegularExpression;
+
+#if     GS_API_VERSION(GS_API_NONE, GS_API_NONE)
+/** Enumeration with a C function callback uses this prototype
+ */
+typedef void (*GSRegexEnumerationCallback)(NSRegularExpression *regex,
+  void *context, NSTextCheckingResult *match,
+  NSMatchingFlags flags, BOOL *shouldStop);
+#endif
 
 DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*,\
   NSMatchingFlags, BOOL*);
@@ -71,6 +80,7 @@ DEFINE_BLOCK_TYPE(GSRegexBlock, void, NSTextCheckingResult*,\
 #ifndef GSREGEXTYPE
 #  define GSREGEXTYPE void
 #endif
+
 /**
  * NSRegularExpression is used to inspect and manipulate strings using regular
  * expressions. The interface is thread safe: The same NSRegularExpression
@@ -118,7 +128,36 @@ GS_EXPORT_CLASS
 - (id) initWithPattern: (NSString*)aPattern
 	       options: (NSRegularExpressionOptions)opts
 		 error: (NSError**)e;
-- (NSString*) pattern;
+- (NSString*) pattern; 
+#if     GS_API_VERSION(GS_API_NONE, GS_API_NONE)
+/** In the GNUstep implementation this method is the fundametal primitive
+ * (unlike OSX which depends on blocks) upon which other methods are based.
+ * Its behavior is like that of the
+ * -enumerateMatchesInString:options:range:usingBlock: method, except that
+ * it uses a callback rather than a block, and the callback is supplied with
+ * both the NSRegularExpression instance being used and the context value.
+ * <br />
+ * The operation of the method is basically to call the supplied callback
+ * function for each match of the expression in the string.
+ * The callback may set the flag pointed to by stop to YES to cancel the
+ * enumeration at that point.
+ * <br />
+ * Setting the NSMatchingReportProgress option asks the underlying ICU code
+ * to call the callback at additional points during long operations (passing
+ * nil for the match information and NSMatchingProgress for the flags) so
+ * that the callback can terminate the enumeration earlier.
+ * <br />
+ * Setting the NSMatchingReportCompletion option causes the callback to be
+ * called once after the last match (with nil match information and the
+ * NSMatchingCompleted matching flag as well as any additional flags from
+ * NSMatchingHitEnd, NSMatchingRequiredEnd, or NSMatchingInternalError).
+ */
+- (void) enumerateMatchesInString: (NSString*)string
+                          options: (NSMatchingOptions)options
+                            range: (NSRange)range
+                         callback: (GSRegexEnumerationCallback)handler
+			  context: (void*)context;
+#endif
 - (void) enumerateMatchesInString: (NSString*)string
                           options: (NSMatchingOptions)options
                             range: (NSRange)range

@@ -1,3 +1,15 @@
+2025-01-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSRegularExpression.h:
+	* Source/NSRegularExpression.m:
+	* Tests/base/NSRegularExpression/bigSource.txt:
+	* Tests/base/NSRegularExpression/callbacks.m:
+	Restructure to allow enumeration of matches when using the classic
+	compiler/runtime (ie avoiding blocks) using a new primitive method
+	specifying a callback function and context.  Also fix callback bug
+	spotted by git user sensetalkdoug and add testcases based on his
+	pull request (#476) - thanks.
+
 2025-01-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSKeyValueMutableArray.m: Fix mutable array support so that
