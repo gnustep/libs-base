@@ -721,157 +721,18 @@ prepareResult(NSRegularExpression *regex,
 }
 
 
-/* The remaining methods are all meant to be wrappers around the primitive
- * method that takes a block argument.  Unfortunately, this is not really
- * possible when compiling with a compiler that doesn't support blocks.
+static void
+countCallback(void *context, NSTextCheckingResult *match,
+  NSMatchingFlags flags, BOOL *shouldStop)
+{
+  (*(NSUInteger*)context)++;
+  *shouldStop = NO;
+}
+
+/* The remaining methods are all meant (by Apple) to be wrappers around
+ * the primitive method that takes a block argument.  To avoid compiler
+ * dependency we use the more portable GNUstep specific primitive.
  */
-#if __has_feature(blocks)
-- (NSUInteger) numberOfMatchesInString: (NSString*)string
-                               options: (NSMatchingOptions)opts
-                                 range: (NSRange)range
-
-{
-  __block NSUInteger	count = 0;
-  GSRegexBlock		block;
-
-  opts &= ~NSMatchingReportProgress;
-  opts &= ~NSMatchingReportCompletion;
-
-  block =
-    ^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop)
-    {
-      count++;
-    };
-  [self enumerateMatchesInString: string
-			 options: opts
-			   range: range
-		      usingBlock: block];
-  return count;
-}
-
-- (NSTextCheckingResult*) firstMatchInString: (NSString*)string
-                                     options: (NSMatchingOptions)opts
-                                       range: (NSRange)range
-{
-  __block NSTextCheckingResult	*r = nil;
-  GSRegexBlock 			block;
-
-  opts &= ~NSMatchingReportProgress;
-  opts &= ~NSMatchingReportCompletion;
-
-  block =
-    ^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop)
-    {
-      r = result;
-      *stop = YES;
-    };
-  [self enumerateMatchesInString: string
-			 options: opts
-			   range: range
-		      usingBlock: block];
-  return r;
-}
-
-- (NSArray*) matchesInString: (NSString*)string
-                     options:(NSMatchingOptions)opts
-                       range:(NSRange)range
-{
-  NSMutableArray	*array = [NSMutableArray array];
-  GSRegexBlock 		block;
-
-  opts &= ~NSMatchingReportProgress;
-  opts &= ~NSMatchingReportCompletion;
-
-  block =
-    ^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop)
-    {
-      [array addObject: result];
-    };
-  [self enumerateMatchesInString: string
-			 options: opts
-			   range: range
-		      usingBlock: block];
-  return array;
-}
-
-- (NSRange) rangeOfFirstMatchInString: (NSString*)string
-                              options: (NSMatchingOptions)opts
-                                range: (NSRange)range
-{
-  __block NSRange	r = {NSNotFound, 0};
-  GSRegexBlock 		block;
-
-  opts &= ~NSMatchingReportProgress;
-  opts &= ~NSMatchingReportCompletion;
-
-  block =
-    ^(NSTextCheckingResult *result, NSMatchingFlags flags, BOOL *stop)
-    {
-      r = [result range];
-      *stop = YES;
-    };
-  [self enumerateMatchesInString: string
-			 options: opts
-			   range: range
-		      usingBlock: block];
-  return r;
-}
-
-#else
-#  ifdef __clang__ /* FIXME ... this is blocks specific, not clang specific */
-#    warning Your compiler does not support blocks.  NSRegularExpression will deviate from the documented behaviour when subclassing and any code that subclasses NSRegularExpression may break in unexpected ways.  If you must subclass NSRegularExpression, you may want to use a compiler with blocks support.
-#    warning Your compiler would support blocks if you added -fblocks to your OBJCFLAGS
-#  endif
-#if HAVE_UREGEX_OPENUTEXT
-#define FAKE_BLOCK_HACK(failRet, code) \
-  UErrorCode            s = 0;\
-  UText                 txt = UTEXT_INITIALIZER;\
-  BOOL                  stop = NO;\
-  URegularExpression    *r = setupRegex(regex, string, &txt, opts, range, 0);\
-\
-  if (NULL == r) { return failRet; }\
-  if (opts & NSMatchingAnchored)\
-    {\
-      if (uregex_lookingAt(r, -1, &s) && (0==s))\
-	{\
-	  code\
-	}\
-    }\
-  else\
-    {\
-      while (!stop && uregex_findNext(r, &s) && (s == 0))\
-	{\
-	  code\
-	}\
-    }\
-  utext_close(&txt);\
-  uregex_close(r);
-#else
-#define FAKE_BLOCK_HACK(failRet, code) \
-  UErrorCode s = 0;\
-  BOOL stop = NO;\
-  uint32_t length = [string length];\
-  URegularExpression *r;\
-  TEMP_BUFFER(buffer, length);\
-  r = setupRegex(regex, string, buffer, length, opts, range, 0);\
-  if (NULL == r) { return failRet; }\
-  if (opts & NSMatchingAnchored)\
-    {\
-      if (uregex_lookingAt(r, -1, &s) && (0==s))\
-	{\
-	  code\
-	}\
-    }\
-  else\
-    {\
-      while (!stop && uregex_findNext(r, &s) && (s == 0))\
-	{\
-	  code\
-	}\
-    }\
-  uregex_close(r);
-#endif
-
 - (NSUInteger) numberOfMatchesInString: (NSString*)string
                                options: (NSMatchingOptions)opts
                                  range: (NSRange)range
@@ -879,78 +740,91 @@ prepareResult(NSRegularExpression *regex,
 {
   NSUInteger	count = 0;
 
-  FAKE_BLOCK_HACK(count,
-    {
-      count++;
-    });
+  opts &= ~NSMatchingReportProgress;
+  opts &= ~NSMatchingReportCompletion;
+
+  [self enumerateMatchesInString: string
+                         options: opts
+                           range: range
+			callback: countCallback
+			 context: (void*)&count];
   return count;
+}
+
+static void
+firstCallback(void *context, NSTextCheckingResult *match,
+  NSMatchingFlags flags, BOOL *shouldStop)
+{
+  (*(NSTextCheckingResult**)context) = match;
+  *shouldStop = YES;
 }
 
 - (NSTextCheckingResult*) firstMatchInString: (NSString*)string
                                      options: (NSMatchingOptions)opts
                                        range: (NSRange)range
 {
-  NSTextCheckingResult	*result = nil;
-  NSUInteger		groups = [self numberOfCaptureGroups] + 1;
-  NSRange		ranges[groups];
+  NSTextCheckingResult	*r = nil;
 
-  FAKE_BLOCK_HACK(result,
-    {
-      uint32_t  flags;
+  opts &= ~NSMatchingReportProgress;
+  opts &= ~NSMatchingReportCompletion;
 
-      flags = prepareResult(self, r, ranges, groups, &s);
-      result = (flags & NSMatchingInternalError) ? nil
-        : [NSTextCheckingResult
-	regularExpressionCheckingResultWithRanges: ranges
-					    count: groups
-				regularExpression: self];
-      stop = YES;
-    });
-  return result;
+  [self enumerateMatchesInString: string
+			 options: opts
+			   range: range
+		        callback: firstCallback
+			 context: (void*)&r];
+  return r;
+}
+
+static void
+arrayCallback(void *context, NSTextCheckingResult *match,
+  NSMatchingFlags flags, BOOL *shouldStop)
+{
+  [((NSMutableArray*)context) addObject: match];
+  *shouldStop = NO;
 }
 
 - (NSArray*) matchesInString: (NSString*)string
-                     options: (NSMatchingOptions)opts
-                       range: (NSRange)range
+                     options:(NSMatchingOptions)opts
+                       range:(NSRange)range
 {
   NSMutableArray	*array = [NSMutableArray array];
-  NSUInteger		groups = [self numberOfCaptureGroups] + 1;
-  NSRange		ranges[groups];
 
-  FAKE_BLOCK_HACK(array,
-    {
-      NSTextCheckingResult	*result = NULL;
-      uint32_t                  flags;
+  opts &= ~NSMatchingReportProgress;
+  opts &= ~NSMatchingReportCompletion;
 
-      flags = prepareResult(self, r, ranges, groups, &s);
-      result = (flags & NSMatchingInternalError) ? nil
-        : [NSTextCheckingResult
-	regularExpressionCheckingResultWithRanges: ranges
-					    count: groups
-				regularExpression: self];
-      if (nil != result)
-        {
-          [array addObject: result];
-        }
-    });
+  [self enumerateMatchesInString: string
+			 options: opts
+			   range: range
+		        callback: arrayCallback
+			 context: (void*)array];
   return array;
+}
+
+static void
+rangeCallback(void *context, NSTextCheckingResult *match,
+  NSMatchingFlags flags, BOOL *shouldStop)
+{
+  *((NSRange*)context) = [match range];
+  *shouldStop = YES;
 }
 
 - (NSRange) rangeOfFirstMatchInString: (NSString*)string
                               options: (NSMatchingOptions)opts
                                 range: (NSRange)range
 {
-  NSRange result = {NSNotFound, 0};
+  NSRange	r = {NSNotFound, 0};
 
-  FAKE_BLOCK_HACK(result,
-    {
-      prepareResult(self, r, &result, 1, &s);
-      stop = YES;
-    });
-  return result;
+  opts &= ~NSMatchingReportProgress;
+  opts &= ~NSMatchingReportCompletion;
+
+  [self enumerateMatchesInString: string
+			 options: opts
+			   range: range
+		        callback: rangeCallback
+			 context: (void*)&r];
+  return r;
 }
-
-#endif
 
 #if HAVE_UREGEX_OPENUTEXT
 - (NSUInteger) replaceMatchesInString: (NSMutableString*)string
