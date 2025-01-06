@@ -1039,7 +1039,22 @@ static NSOperationQueue *mainQueue = nil;
       RELEASE(when);
       if (NO == found)
 	{
-	  break;	// Idle for 5 seconds ... exit thread.
+	  [internal->cond lock];
+	  if ([internal->starting count] == 0)
+	    {
+	      // Idle for 5 seconds ... exit thread.
+	      [[[NSThread currentThread] threadDictionary]
+		removeObjectForKey: threadKey];
+	      [internal->lock lock];
+	      internal->threadCount--;
+	      [internal->lock unlock];
+	      [internal->cond unlock];
+	      break;
+	    }
+	  /* An operation was added in the gap between the failed wait for
+	   * the condition and us unconditionally locking the condition, so
+	   * we fall through to execute that operation.
+	   */
 	}
 
       if ([internal->starting count] > 0)
@@ -1083,10 +1098,6 @@ static NSOperationQueue *mainQueue = nil;
 	}
     }
 
-  [[[NSThread currentThread] threadDictionary] removeObjectForKey: threadKey];
-  [internal->lock lock];
-  internal->threadCount--;
-  [internal->lock unlock];
   DESTROY(arp);
   [NSThread exit];
 }
@@ -1139,18 +1150,19 @@ static NSOperationQueue *mainQueue = nil;
 	   */
 	  if (internal->threadCount < max)
 	    {
-	      internal->threadCount++;
+	      NSInteger	count = internal->threadCount++;
+	      NSNumber 	*threadNumber = [NSNumber numberWithInteger: count];
+
 	      NS_DURING
 		{
-      NSNumber *threadNumber = [NSNumber numberWithInteger: internal->threadCount - 1];
 		  [NSThread detachNewThreadSelector: @selector(_thread:)
 					   toTarget: self
 					 withObject: threadNumber];
 		}
 	      NS_HANDLER
 		{
-		  NSLog(@"Failed to create thread for %@: %@",
-		    self, localException);
+		  NSLog(@"Failed to create thread %@ for %@: %@",
+		    threadNumber, self, localException);
 		}
 	      NS_ENDHANDLER
 	    }
