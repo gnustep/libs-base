@@ -50,6 +50,7 @@
 #import	<GNUstepBase/NSNetServices+GNUstepBase.h>
 #import	<GNUstepBase/NSNumber+GNUstepBase.h>
 #import	<GNUstepBase/NSObject+GNUstepBase.h>
+#import	<GNUstepBase/NSOperationQueue+GNUstepBase.h>
 #import	<GNUstepBase/NSProcessInfo+GNUstepBase.h>
 #import	<GNUstepBase/NSStream+GNUstepBase.h>
 #import	<GNUstepBase/NSString+GNUstepBase.h>

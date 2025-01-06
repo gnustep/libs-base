@@ -144,6 +144,7 @@ NSMutableString+GNUstepBase.h \
 NSNetServices+GNUstepBase.h \
 NSNumber+GNUstepBase.h \
 NSObject+GNUstepBase.h \
+NSOperationQueue+GNUstepBase.h \
 NSProcessInfo+GNUstepBase.h \
 NSStream+GNUstepBase.h \
 NSString+GNUstepBase.h \
