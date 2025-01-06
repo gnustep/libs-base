@@ -39,6 +39,19 @@ extern "C" {
 - (void) addOperationWithTarget: (id<NSObject>)aTarget
 		performSelector: (SEL)aSelector
 		     withObject: (id<NSObject>)object1
+		     withObject: (id<NSObject>)object2
+		     withObject: (id<NSObject>)object3
+		     withObject: (id<NSObject>)object4;
+
+- (void) addOperationWithTarget: (id<NSObject>)aTarget
+		performSelector: (SEL)aSelector
+		     withObject: (id<NSObject>)object1
+		     withObject: (id<NSObject>)object2
+		     withObject: (id<NSObject>)object3;
+
+- (void) addOperationWithTarget: (id<NSObject>)aTarget
+		performSelector: (SEL)aSelector
+		     withObject: (id<NSObject>)object1
 		     withObject: (id<NSObject>)object2;
 
 - (void) addOperationWithTarget: (id<NSObject>)aTarget
