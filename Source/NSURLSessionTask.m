@@ -75,11 +75,11 @@ static SEL didWriteDataSel;
 static SEL needNewBodyStreamSel;
 static SEL willPerformHTTPRedirectionSel;
 
-static NSString * taskTransferDataKey = @"transferData";
-static NSString * taskTemporaryFileLocationKey = @"tempFileLocation";
-static NSString * taskTemporaryFileHandleKey = @"tempFileHandle";
-static NSString * taskInputStreamKey = @"inputStream";
-static NSString * taskUploadData = @"uploadData";
+static NSString *taskTransferDataKey = @"transferData";
+static NSString *taskTemporaryFileLocationKey = @"tempFileLocation";
+static NSString *taskTemporaryFileHandleKey = @"tempFileHandle";
+static NSString *taskInputStreamKey = @"inputStream";
+static NSString *taskUploadData = @"uploadData";
 
 /* Translate WinSock2 Error Codes */
 #ifdef _WIN32
@@ -124,16 +124,15 @@ translateWinSockToPOSIXError(NSInteger err)
 #endif /* ifdef _WIN32 */
 
 static inline NSError *
-errorForCURLcode(CURL * handle, CURLcode code,
-                 char errorBuffer[CURL_ERROR_SIZE])
+errorForCURLcode(CURL *handle, CURLcode code, char errorBuffer[CURL_ERROR_SIZE])
 {
-  NSString * curlErrorString;
-  NSString * errorString;
-  NSDictionary * userInfo;
-  NSError * error;
-  NSInteger urlError = NSURLErrorUnknown;
-  NSInteger posixError;
-  NSInteger osError = 0;
+  NSString	*curlErrorString;
+  NSString	*errorString;
+  NSDictionary	*userInfo;
+  NSError	*error;
+  NSInteger 	urlError = NSURLErrorUnknown;
+  NSInteger 	posixError;
+  NSInteger 	osError = 0;
 
   if (NULL == handle || CURLE_OK == code)
     {
@@ -256,13 +255,13 @@ errorForCURLcode(CURL * handle, CURLcode code,
         }
     }
 
-  userInfo = @{
-    @"_curlErrorCode": [NSNumber numberWithInteger: code],
-    @"_curlErrorString": curlErrorString,
+  userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+    [NSNumber numberWithInteger: code], @"_curlErrorCode",
+    curlErrorString, @"_curlErrorString",
     /* This is the raw POSIX error or WinSock2 Error Code depending on OS */
-    @"_errno": [NSNumber numberWithInteger: osError],
-    NSLocalizedDescriptionKey: errorString
-  };
+    [NSNumber numberWithInteger: osError], @"_errno",
+    errorString, NSLocalizedDescriptionKey,
+    nil];
 
   error = [NSError errorWithDomain: NSURLErrorDomain
                               code: urlError
@@ -276,10 +275,10 @@ errorForCURLcode(CURL * handle, CURLcode code,
 
 /* CURLOPT_PROGRESSFUNCTION: progress reports by libcurl */
 static int
-progress_callback(void * clientp, curl_off_t dltotal, curl_off_t dlnow,
-                  curl_off_t ultotal, curl_off_t ulnow)
+progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow,
+  curl_off_t ultotal, curl_off_t ulnow)
 {
-  NSURLSessionTask * task = clientp;
+  NSURLSessionTask	*task = clientp;
 
   /* Returning -1 from this callback makes libcurl abort the transfer and return
    * CURLE_ABORTED_BY_CALLBACK.
@@ -305,15 +304,15 @@ progress_callback(void * clientp, curl_off_t dltotal, curl_off_t dlnow,
  * libcurl does not unfold HTTP "folded headers" (deprecated since RFC 7230).
  */
 size_t
-header_callback(char * ptr, size_t size, size_t nitems, void * userdata)
+header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
 {
-  NSURLSessionTask * task;
-  NSMutableDictionary * taskData;
-  NSMutableDictionary * headerFields;
-  NSString * headerLine;
-  NSInteger headerCallbackCount;
-  NSRange range;
-  NSCharacterSet * set;
+  NSURLSessionTask	*task;
+  NSMutableDictionary	*taskData;
+  NSMutableDictionary	*headerFields;
+  NSString 		*headerLine;
+  NSInteger 		headerCallbackCount;
+  NSRange 		range;
+  NSCharacterSet 	*set;
 
   task = (NSURLSessionTask *)userdata;
   taskData = [task _taskData];
@@ -353,30 +352,30 @@ header_callback(char * ptr, size_t size, size_t nitems, void * userdata)
    */
   if ((ptr[0] == ' ') || (ptr[0] == '\t'))
     {
-      NSString * key;
+      NSString	*key;
 
       if (nil != (key = [taskData objectForKey: @"lastHeaderKey"]))
         {
-          NSString * value;
-          NSString * trimmedLine;
+          NSString	*value;
+          NSString	*trimmedLine;
 
           value = [headerFields objectForKey: key];
           if (!value)
             {
-              NSError * error;
-              NSString * errorDescription;
+              NSError	*error;
+              NSString	*errorDescription;
 
               errorDescription = [NSString
                                   stringWithFormat:
                                   @"Header is line folded but previous header "
                                   @"key '%@' does not have an entry",
                                   key];
-              error =
-                [NSError errorWithDomain: NSURLErrorDomain
-                                    code: NSURLErrorCancelled
-                                userInfo: @{
-                   NSLocalizedDescriptionKey: errorDescription
-                 }];
+              error = [NSError errorWithDomain: NSURLErrorDomain
+					  code: NSURLErrorCancelled
+				      userInfo:
+		[NSDictionary dictionaryWithObjectsAndKeys:
+                  errorDescription, NSLocalizedDescriptionKey,
+		  nil]];
 
               [taskData setObject: error forKey: NSUnderlyingErrorKey];
 
@@ -397,8 +396,8 @@ header_callback(char * ptr, size_t size, size_t nitems, void * userdata)
   range = [headerLine rangeOfString: @":"];
   if (NSNotFound != range.location)
     {
-      NSString * key;
-      NSString * value;
+      NSString	*key;
+      NSString 	*value;
 
       key = [headerLine substringToIndex: range.location];
       value = [headerLine substringFromIndex: range.location + 1];
@@ -424,16 +423,16 @@ header_callback(char * ptr, size_t size, size_t nitems, void * userdata)
    */
   if (nitems > 1 && (ptr[0] == '\r') && (ptr[1] == '\n'))
     {
-      NSURLSession * session;
-      id delegate;
-      NSHTTPURLResponse * response;
-      NSString * version;
-      NSString * urlString;
-      NSURL * url;
-      CURL * handle;
-      char * effURL;
-      NSInteger numberOfRedirects = 0;
-      NSInteger statusCode = 0;
+      NSURLSession	*session;
+      id 		delegate;
+      NSHTTPURLResponse *response;
+      NSString		*version;
+      NSString 		*urlString;
+      NSURL 		*url;
+      CURL 		*handle;
+      char 		*effURL;
+      NSInteger 	numberOfRedirects = 0;
+      NSInteger 	statusCode = 0;
 
       session = [task _session];
       delegate = [task delegate];
@@ -477,9 +476,9 @@ header_callback(char * ptr, size_t size, size_t nitems, void * userdata)
        * attempts.
        */
       if ([task _properties] & GSURLSessionUpdatesDelegate && statusCode >= 300
-          && statusCode < 400)
+        && statusCode < 400)
         {
-          NSString * location;
+          NSString	*location;
 
           /*
            * RFC 7231: 7.1.2  Location [Header]
@@ -494,8 +493,8 @@ header_callback(char * ptr, size_t size, size_t nitems, void * userdata)
           location = [headerFields objectForKey: @"Location"];
           if (nil != location)
             {
-              NSURL * redirectURL;
-              NSMutableURLRequest * newRequest;
+              NSURL			*redirectURL;
+              NSMutableURLRequest 	*newRequest;
 
               /* baseURL is only used, if location is a relative reference */
               redirectURL = [NSURL URLWithString: location relativeToURL: url];
@@ -522,7 +521,7 @@ header_callback(char * ptr, size_t size, size_t nitems, void * userdata)
 
                   [[session delegateQueue] addOperationWithBlock:^{
                      void (^completionHandler)(NSURLRequest *) = ^(
-                       NSURLRequest * userRequest) {
+                       NSURLRequest *userRequest) {
                        /* Changes are dispatched onto workqueue */
                        dispatch_async(
                          [session _workQueue],
@@ -540,7 +539,7 @@ header_callback(char * ptr, size_t size, size_t nitems, void * userdata)
                            }
                            else
                            {
-                             NSString * newURLString;
+                             NSString	*newURLString;
 
                              newURLString = [[userRequest URL] absoluteString];
 
@@ -621,18 +620,19 @@ header_callback(char * ptr, size_t size, size_t nitems, void * userdata)
             }
           else
             {
-              NSError * error;
-              NSString * errorString;
+              NSError	*error;
+              NSString	*errorString;
 
               errorString = [NSString
                              stringWithFormat:
                              @"task=%@ status=%ld has no Location header",
                              task, statusCode];
-              error = [NSError
-                       errorWithDomain: NSURLErrorDomain
-                                  code: NSURLErrorBadServerResponse
-                              userInfo: @{ NSLocalizedDescriptionKey:
-                                           errorString }];
+              error = [NSError errorWithDomain: NSURLErrorDomain
+					  code: NSURLErrorBadServerResponse
+				      userInfo:
+		[NSDictionary dictionaryWithObjectsAndKeys:
+		  errorString, NSLocalizedDescriptionKey,
+		  nil]];
 
               NSDebugLLog(GS_NSURLSESSION_DEBUG_KEY, @"%@", errorString);
 
@@ -649,9 +649,9 @@ header_callback(char * ptr, size_t size, size_t nitems, void * userdata)
        *
        * FIXME: Enforce this and implement a custom redirect system
        */
-      if ([task _properties] & GSURLSessionUpdatesDelegate &&
-          [task isKindOfClass: dataTaskClass] &&
-          [delegate respondsToSelector: didReceiveResponseSel])
+      if ([task _properties] & GSURLSessionUpdatesDelegate
+	&& [task isKindOfClass: dataTaskClass]
+	&& [delegate respondsToSelector: didReceiveResponseSel])
         {
           dispatch_queue_t queue;
 
@@ -667,9 +667,9 @@ header_callback(char * ptr, size_t size, size_t nitems, void * userdata)
                 NSURLSessionResponseDisposition disposition) {
                 /* FIXME: Implement NSURLSessionResponseBecomeDownload */
                 if (disposition == NSURLSessionResponseCancel)
-                {
-                  [task _setShouldStopTransfer: YES];
-                }
+		  {
+		    [task _setShouldStopTransfer: YES];
+		  }
 
                 /* Unpause easy handle */
                 dispatch_async(
@@ -690,13 +690,13 @@ header_callback(char * ptr, size_t size, size_t nitems, void * userdata)
 
 /* CURLOPT_READFUNCTION: read callback for data uploads */
 size_t
-read_callback(char * buffer, size_t size, size_t nitems, void * userdata)
+read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
 {
-  NSURLSession * session;
-  NSURLSessionTask * task;
-  NSMutableDictionary * taskData;
-  NSInputStream * stream;
-  NSInteger bytesWritten;
+  NSURLSession 		*session;
+  NSURLSessionTask 	*task;
+  NSMutableDictionary	*taskData;
+  NSInputStream		*stream;
+  NSInteger 		bytesWritten;
 
   task = (NSURLSessionTask *)userdata;
   session = [task _session];
@@ -717,7 +717,7 @@ read_callback(char * buffer, size_t size, size_t nitems, void * userdata)
           [[[task _session] delegateQueue] addOperationWithBlock:^{
              [delegate URLSession: session
                              task: task
-                needNewBodyStream:^(NSInputStream * bodyStream) {
+                needNewBodyStream:^(NSInputStream *bodyStream) {
                 /* Add input stream to task data */
                 [taskData setObject: bodyStream forKey: taskInputStreamKey];
                 /* Continue with the transfer */
@@ -743,16 +743,17 @@ read_callback(char * buffer, size_t size, size_t nitems, void * userdata)
   /* An error occured while reading from the inputStream */
   if (bytesWritten < 0)
     {
-      NSError * error;
+      NSError	*error;
 
-      error = [NSError
-               errorWithDomain: NSURLErrorDomain
-                          code: NSURLErrorCancelled
-                      userInfo: @{
-                 NSLocalizedDescriptionKey:
-                 @"An error occured while reading from the body stream",
-                 NSUnderlyingErrorKey: [stream streamError]
-               }];
+      error = [NSError errorWithDomain: NSURLErrorDomain
+				  code: NSURLErrorCancelled
+			      userInfo:
+	[NSDictionary dictionaryWithObjectsAndKeys:
+	  @"An error occured while reading from the body stream",
+          NSLocalizedDescriptionKey,
+	 [stream streamError],
+	 NSUnderlyingErrorKey,
+	 nil]];
 
       [taskData setObject: error forKey: NSUnderlyingErrorKey];
       return CURL_READFUNC_ABORT;
@@ -763,13 +764,13 @@ read_callback(char * buffer, size_t size, size_t nitems, void * userdata)
 
 /* CURLOPT_WRITEFUNCTION: callback for writing received data from easy handle */
 static size_t
-write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
+write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 {
-  NSURLSessionTask * task;
-  NSURLSession * session;
-  NSMutableDictionary * taskData;
-  NSData * dataFragment;
-  NSInteger properties;
+  NSURLSessionTask	*task;
+  NSURLSession 		*session;
+  NSMutableDictionary 	*taskData;
+  NSData 		*dataFragment;
+  NSInteger 		properties;
 
   task = (NSURLSessionTask *)userdata;
   session = [task _session];
@@ -779,7 +780,7 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
 
   if (properties & GSURLSessionStoresDataInMemory)
     {
-      NSMutableData * data;
+      NSMutableData	*data;
 
       data = [taskData objectForKey: taskTransferDataKey];
       if (!data)
@@ -794,8 +795,8 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
     }
   else if (properties & GSURLSessionWritesDataToFile)
     {
-      NSFileHandle * handle;
-      NSError * error = NULL;
+      NSFileHandle	*handle;
+      NSError 		*error = NULL;
 
       // Get a temporary file path and create a file handle
       if (nil == (handle = [taskData objectForKey: taskTemporaryFileHandleKey]))
@@ -833,7 +834,7 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
       if ([task isKindOfClass: downloadTaskClass] &&
           [delegate respondsToSelector: didWriteDataSel])
         {
-          NSURLSessionDownloadTask * downloadTask;
+          NSURLSessionDownloadTask	*downloadTask;
           int64_t bytesWritten;
           int64_t totalBytesWritten;
           int64_t totalBytesExpectedToReceive;
@@ -869,16 +870,16 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
   NSInteger _properties;
 
   /* Internal task data */
-  NSMutableDictionary * _taskData;
-  NSInteger _numberOfRedirects;
-  NSInteger _headerCallbackCount;
-  NSUInteger _suspendCount;
+  NSMutableDictionary	*_taskData;
+  NSInteger 		_numberOfRedirects;
+  NSInteger 		_headerCallbackCount;
+  NSUInteger 		_suspendCount;
 
   char _curlErrorBuffer[CURL_ERROR_SIZE];
-  struct curl_slist * _headerList;
+  struct curl_slist	*_headerList;
 
-  CURL * _easyHandle;
-  NSURLSession * _session;
+  CURL			*_easyHandle;
+  NSURLSession 		*_session;
 }
 
 + (void) initialize
@@ -907,15 +908,15 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
 
   if (self)
     {
-      NSString * httpMethod;
-      NSData * certificateBlob;
-      NSURL * url;
-      NSDictionary * immConfigHeaders;
-      NSURLSessionConfiguration * configuration;
-      NSHTTPCookieStorage * storage;
+      NSString			*httpMethod;
+      NSData 			*certificateBlob;
+      NSURL 			*url;
+      NSDictionary 		*immConfigHeaders;
+      NSURLSessionConfiguration *configuration;
+      NSHTTPCookieStorage 	*storage;
 
-      _GSMutableInsensitiveDictionary * requestHeaders = nil;
-      _GSMutableInsensitiveDictionary * configHeaders = nil;
+      _GSMutableInsensitiveDictionary	*requestHeaders = nil;
+      _GSMutableInsensitiveDictionary	*configHeaders = nil;
 
       _taskIdentifier = identifier;
       _taskData = [[NSMutableDictionary alloc] init];
@@ -959,7 +960,7 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
        */
       if (nil != [_originalRequest HTTPBody])
         {
-          NSData * body = [_originalRequest HTTPBody];
+          NSData	*body = [_originalRequest HTTPBody];
 
           curl_easy_setopt(_easyHandle, CURLOPT_UPLOAD, 1L);
           curl_easy_setopt(
@@ -970,7 +971,7 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
         }
       else if (nil != [_originalRequest HTTPBodyStream])
         {
-          NSInputStream * stream = [_originalRequest HTTPBodyStream];
+          NSInputStream	*stream = [_originalRequest HTTPBodyStream];
 
           [_taskData setObject: stream forKey: taskInputStreamKey];
 
@@ -1104,8 +1105,8 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
       storage = [configuration HTTPCookieStorage];
       if (nil != storage && [configuration HTTPShouldSetCookies])
         {
-          NSDictionary * cookieHeaders;
-          NSArray<NSHTTPCookie *> * cookies;
+          NSDictionary			*cookieHeaders;
+          NSArray<NSHTTPCookie*>	*cookies;
 
           /* No headers were set */
           if (nil == requestHeaders)
@@ -1126,8 +1127,8 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
        */
       [requestHeaders
        enumerateKeysAndObjectsUsingBlock:^(id<NSCopying> key, id object,
-                                           BOOL * stop) {
-         NSString * headerLine;
+                                           BOOL *stop) {
+         NSString	*headerLine;
 
          headerLine = [NSString stringWithFormat: @"%@: %@", key, object];
 
@@ -1216,7 +1217,7 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
 
 - (void) _setResponse: (NSURLResponse *)response
 {
-  NSURLResponse * oldResponse = _response;
+  NSURLResponse	*oldResponse = _response;
 
   _response = [response retain];
   [oldResponse release];
@@ -1289,10 +1290,10 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
 /* Creates a temporary file and opens a file handle for writing */
 - (NSFileHandle *) _createTemporaryFileHandleWithError: (NSError **)error
 {
-  NSFileManager * mgr;
-  NSFileHandle * handle;
-  NSString * path;
-  NSURL * url;
+  NSFileManager	*mgr;
+  NSFileHandle	*handle;
+  NSString	*path;
+  NSURL		*url;
 
   mgr = [NSFileManager defaultManager];
   path = NSTemporaryDirectory();
@@ -1305,16 +1306,15 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
     {
       if (error)
         {
-          NSString * errorDescription = [NSString
-                                         stringWithFormat:
-                                         @"Failed to create temporary file at path %@",
-                                         path];
+          NSString	*errorDescription = [NSString stringWithFormat:
+	    @"Failed to create temporary file at path %@", path];
 
-          *error = [NSError
-                    errorWithDomain: NSCocoaErrorDomain
-                               code: NSURLErrorCannotCreateFile
-                           userInfo: @{ NSLocalizedDescriptionKey:
-                                        errorDescription }];
+          *error = [NSError errorWithDomain: NSCocoaErrorDomain
+				       code: NSURLErrorCannotCreateFile
+				   userInfo:
+	    [NSDictionary dictionaryWithObjectsAndKeys:
+	      errorDescription, NSLocalizedDescriptionKey,
+	      nil]];
         }
 
       return nil;
@@ -1329,11 +1329,11 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
 /* Called in _checkForCompletion */
 - (void) _transferFinishedWithCode: (CURLcode)code
 {
-  NSError * error = errorForCURLcode(_easyHandle, code, _curlErrorBuffer);
+  NSError	*error = errorForCURLcode(_easyHandle, code, _curlErrorBuffer);
 
   if (_properties & GSURLSessionWritesDataToFile)
     {
-      NSFileHandle * handle;
+      NSFileHandle	*handle;
 
       if (nil !=
           (handle = [_taskData objectForKey: taskTemporaryFileHandleKey]))
@@ -1347,7 +1347,7 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
       if (_properties & GSURLSessionWritesDataToFile &&
           [_delegate respondsToSelector: didFinishDownloadingToURLSel])
         {
-          NSURL * url = [_taskData objectForKey: taskTemporaryFileLocationKey];
+          NSURL	*url = [_taskData objectForKey: taskTemporaryFileLocationKey];
 
           [[_session delegateQueue] addOperationWithBlock:^{
              [(id<NSURLSessionDownloadDelegate>) _delegate
@@ -1371,11 +1371,11 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
    * same completion handler signature. It thus follows the same code path.
    */
   if ((_properties & GSURLSessionStoresDataInMemory)
-      && (_properties & GSURLSessionHasCompletionHandler) &&
-      [self isKindOfClass: dataTaskClass])
+    && (_properties & GSURLSessionHasCompletionHandler)
+    && [self isKindOfClass: dataTaskClass])
     {
-      NSURLSessionDataTask * dataTask;
-      NSData * data;
+      NSURLSessionDataTask	*dataTask;
+      NSData 			*data;
 
       dataTask = (NSURLSessionDataTask *)self;
       data = [_taskData objectForKey: taskTransferDataKey];
@@ -1385,11 +1385,11 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
        }];
     }
   else if ((_properties & GSURLSessionWritesDataToFile)
-           && (_properties & GSURLSessionHasCompletionHandler) &&
-           [self isKindOfClass: downloadTaskClass])
+    && (_properties & GSURLSessionHasCompletionHandler)
+    && [self isKindOfClass: downloadTaskClass])
     {
-      NSURLSessionDownloadTask * downloadTask;
-      NSURL * tempFile;
+      NSURLSessionDownloadTask	*downloadTask;
+      NSURL			*tempFile;
 
       downloadTask = (NSURLSessionDownloadTask *)self;
       tempFile = [_taskData objectForKey: taskTemporaryFileLocationKey];
@@ -1405,9 +1405,9 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
 /* Called in header_callback */
 - (void) _setCookiesFromHeaders: (NSDictionary *)headers
 {
-  NSURL * url;
-  NSArray * cookies;
-  NSURLSessionConfiguration * config;
+  NSURL				*url;
+  NSArray 			*cookies;
+  NSURLSessionConfiguration 	*config;
 
   config = [_session configuration];
   url = [_currentRequest URL];
@@ -1491,7 +1491,7 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
 
 - (id) copyWithZone: (NSZone *)zone
 {
-  NSURLSessionTask * copy = [[[self class] alloc] init];
+  NSURLSessionTask	*copy = [[[self class] alloc] init];
 
   if (copy)
     {
@@ -1566,7 +1566,7 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
 
 - (void) setEarliestBeginDate: (NSDate *)date
 {
-  NSDate * oldDate = _earliestBeginDate;
+  NSDate	*oldDate = _earliestBeginDate;
 
   _earliestBeginDate = RETAIN(date);
   RELEASE(oldDate);
@@ -1604,7 +1604,7 @@ write_callback(char * ptr, size_t size, size_t nmemb, void * userdata)
 
 - (void) setTaskDescription: (NSString *)description
 {
-  NSString * oldDescription = _taskDescription;
+  NSString	*oldDescription = _taskDescription;
 
   _taskDescription = [description copy];
   RELEASE(oldDescription);
