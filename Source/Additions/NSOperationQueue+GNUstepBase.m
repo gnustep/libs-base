@@ -22,9 +22,12 @@
 
 */
 #import "../common.h"
+#import "Foundation/NSDictionary.h"
 #import "Foundation/NSException.h"
+#import "Foundation/NSMapTable.h"
 #import "Foundation/NSObject.h"
 #import "Foundation/NSOperation.h"
+#import "GNUstepBase/GSObjCRuntime.h"
 #import "GNUstepBase/NSOperationQueue+GNUstepBase.h"
 
 
@@ -71,6 +74,23 @@
  * Extension methods for the NSObjectQueue class
  */
 @implementation NSOperationQueue (GNUstepBase)
+
+- (void) addOperationWithTarget: (id<NSObject>)aTarget
+                performSelector: (SEL)aSelector
+		        withMap: (id)firstKey, ...
+{
+  GSTargetOperation 	*top;
+  NSDictionary		*map;
+
+  map = [NSDictionary alloc];
+  GS_USEIDPAIRLIST(firstKey,
+    map = [map initWithObjects: __pairs forKeys: __objects count: __count/2]);
+
+  top = [GSTargetOperation operationWithTarget: aTarget
+			       performSelector: aSelector
+				    withObject: AUTORELEASE(map)];
+  [self addOperation: top];
+}
 
 - (void) addOperationWithTarget: (id<NSObject>)aTarget
 		performSelector: (SEL)aSelector

@@ -36,6 +36,14 @@ extern "C" {
 
 @interface NSOperationQueue (GNUstepBase)
 
+/** Wraps a nil terminated list of objects in key/value pairs in a
+ * dictionary and adds an operation to send a message to aTarget to
+ * perform aSelector (which takes the map as its single argument).
+ */
+- (void) addOperationWithTarget: (id<NSObject>)aTarget
+		performSelector: (SEL)aSelector
+		        withMap: (id)firstkey, ...;
+
 - (void) addOperationWithTarget: (id<NSObject>)aTarget
 		performSelector: (SEL)aSelector
 		     withObject: (id<NSObject>)object1
