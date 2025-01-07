@@ -519,8 +519,10 @@ static void listFree(Observation *list)
 static Observation *listPurge(Observation *list, id observer)
 {
   Observation	*tmp;
+  id		o;
 
-  while (list != ENDOBS && objc_loadWeak(&list->observer) == observer)
+  while (list != ENDOBS
+    && ((o = objc_loadWeak(&list->observer)) == observer || nil == o))
     {
       tmp = list->next;
       list->next = 0;
@@ -532,7 +534,7 @@ static Observation *listPurge(Observation *list, id observer)
       tmp = list;
       while (tmp->next != ENDOBS)
 	{
-	  if (objc_loadWeak(&tmp->next->observer) == observer)
+	  if ((o = objc_loadWeak(&tmp->next->observer)) == observer || nil == o)
 	    {
 	      Observation	*next = tmp->next;
 
@@ -561,7 +563,7 @@ purgeMapNode(GSIMapTable map, GSIMapNode node, id observer)
 {
   Observation	*list = node->value.ext;
 
-  if (observer == 0)
+  if (nil == observer)
     {
       listFree(list);
       GSIMapRemoveKey(map, node->key);
