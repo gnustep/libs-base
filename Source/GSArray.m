@@ -49,9 +49,23 @@ static SEL	eqSel;
 static SEL	oaiSel;
 
 static Class	GSArrayClass;
+
+/* Normally for immutable arrays we can use an array class where the buffer
+ * memory is allocated as part of the instance in a single allocation rather
+ * than being allocated separately (so each instance needs two allocations).
+ * However, this confuses the leak sanitizer, so if we are using that we
+ * need to disable the use of inline arrays to avoid false positives.
+ */
 #if	!GNUSTEP_WITH_ASAN
 static Class	GSInlineArrayClass;
+/* For runtime detection of LSAN, we use a weak symbol for one of its
+ * library functions.  Then, if lsanCheck is not zero we try to change
+ * behavior to avoid false positives.
+ */
+int     __lsan_do_recoverable_leak_check(void) __attribute__((weak));
+static int (*lsanCheck)(void) = __lsan_do_recoverable_leak_check;
 #endif
+
 /* This class stores objects inline in data beyond the end of the instance.
  */
 @interface GSInlineArray : GSArray
@@ -495,7 +509,14 @@ static Class	GSInlineArrayClass;
 #if     GNUSTEP_WITH_ASAN         
   copy = (GSArray*)NSAllocateObject(GSArrayClass, 0, zone);
 #else
-  copy = (id)NSAllocateObject(GSInlineArrayClass, _count*sizeof(id), zone);
+if (lsanCheck)
+  {
+    copy = (GSArray*)NSAllocateObject(GSArrayClass, 0, zone);
+  }
+else
+  {
+    copy = (id)NSAllocateObject(GSInlineArrayClass, _count*sizeof(id), zone);
+  }
 #endif
   return [copy initWithObjects: _contents_array count: _count];
 }
@@ -1202,8 +1223,16 @@ static Class	GSInlineArrayClass;
       a = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
       a->_contents_array = (id*)NSZoneMalloc([self zone], c*sizeof(id));
 #else
-      a = (id)NSAllocateObject(GSInlineArrayClass, c*sizeof(id), [self zone]);
-      a->_contents_array = (id*)(((void*)a) + class_getInstanceSize([a class]));
+if (lsanCheck)
+  {
+    a = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
+    a->_contents_array = (id*)NSZoneMalloc([self zone], c*sizeof(id));
+  }
+else
+  {
+    a = (id)NSAllocateObject(GSInlineArrayClass, c*sizeof(id), [self zone]);
+    a->_contents_array = (id*)(((void*)a) + class_getInstanceSize([a class]));
+  }
 #endif
       if (c > 0)
         {
@@ -1223,7 +1252,14 @@ static Class	GSInlineArrayClass;
 #if     GNUSTEP_WITH_ASAN         
   self = (id)NSAllocateObject(GSArrayClass, 0, z);
 #else
-  self = (id)NSAllocateObject(GSInlineArrayClass, count*sizeof(id), z);
+if (lsanCheck)
+  {
+    self = (id)NSAllocateObject(GSArrayClass, 0, z);
+  }
+else
+  {
+    self = (id)NSAllocateObject(GSInlineArrayClass, count*sizeof(id), z);
+  }
 #endif
   return [self initWithObjects: objects count: count];
 }
