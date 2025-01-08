@@ -366,7 +366,7 @@ static Class	concreteClass = Nil;
    */
   for (i = 0; i < _count; i++)
     {
-      pointerFunctionsAssign(&_pf, &_contents[i], 0);
+      pointerFunctionsRelinquish(&_pf, &_contents[i]);
     }
   if (_contents != 0)
     {
