@@ -140,6 +140,12 @@ withCapitalizedKey: (const char *)capitalized;
   return self;
 }
 
+- (void) dealloc
+{
+  RELEASE(key);
+  DEALLOC
+}
+
 - (NSUInteger) count
 {
   if (array == nil)
@@ -401,9 +407,9 @@ withCapitalizedKey: (const char *)capitalized
                  withCapitalizedKey: capitalized] autorelease];
 }
 
-- (id) initWithKey: (NSString *)aKey ofObject: (id)anObject
-withCapitalizedKey: (const char *)capitalized;
-
+- (id) initWithKey: (NSString *)aKey
+	  ofObject: (id)anObject
+withCapitalizedKey: (const char *)capitalized
 {
   SEL set = NSSelectorFromString([NSString stringWithFormat: 
     @"set%s:", capitalized]);
@@ -422,6 +428,12 @@ withCapitalizedKey: (const char *)capitalized;
       [setArrayInvocation setTarget: anObject];
    }
   return self;
+}
+
+- (void) dealloc
+{
+  RELEASE(setArrayInvocation);
+  DEALLOC
 }
 
 - (void) removeObjectsAtIndexes: (NSIndexSet*)indexes

@@ -78,6 +78,12 @@ typedef struct
 
 @implementation ReturnTypes
 
+- (void) dealloc
+{
+  RELEASE(_iId);
+  DEALLOC
+}
+
 - (instancetype)init
 {
   self = [super init];
