@@ -110,7 +110,7 @@ int main()
        [obj count] == 0,
        "-description gives us a text property-list");
 
-  dict = [[NSDictionary dictionaryWithObjects:vals1 forKeys:keys1] retain];
+  ASSIGN(dict, [NSDictionary dictionaryWithObjects:vals1 forKeys:keys1]);
   PASS(dict != nil &&
        [dict isKindOfClass:[NSDictionary class]] &&
        [dict count] == 2,
@@ -263,6 +263,7 @@ int main()
     @"val", a, @"val2", @"key2", nil];
   PASS_EQUAL([d objectForKey: a], @"val", "array as dictionary key works")
 
+  RELEASE(dict);
   [arp release]; arp = nil;
   return 0;
 }
