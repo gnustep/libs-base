@@ -14,7 +14,7 @@ int main()
   vals2 = [vals1 arrayByAddingObject:val2];
   vals3 = [vals1 arrayByAddingObject:val3];
 
-  obj = [NSArray new];
+  obj = [NSArray array];
   arr = obj;
   PASS(obj != nil && [obj isKindOfClass:[NSArray class]] && [obj count] == 0,
        "-count returns zero for an empty array");
