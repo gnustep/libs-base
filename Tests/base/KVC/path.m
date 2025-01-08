@@ -65,6 +65,13 @@
 @end
 
 @implementation DeprecatedCustomKVC
+
+- (void) dealloc
+{
+  RELEASE(storage);
+  DEALLOC
+}
+
 - (id)init
 {
   self = [super init];
