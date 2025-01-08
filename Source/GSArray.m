@@ -58,12 +58,16 @@ static Class	GSArrayClass;
  */
 #if	!GNUSTEP_WITH_ASAN
 static Class	GSInlineArrayClass;
+#if defined(__WIN32)
+static int (*lsanCheck)(void) = NULL;	// No weak symbol support :-(
+#else
 /* For runtime detection of LSAN, we use a weak symbol for one of its
  * library functions.  Then, if lsanCheck is not zero we try to change
  * behavior to avoid false positives.
  */
 int     __lsan_do_recoverable_leak_check(void) __attribute__((weak));
 static int (*lsanCheck)(void) = __lsan_do_recoverable_leak_check;
+#endif
 #endif
 
 /* This class stores objects inline in data beyond the end of the instance.
