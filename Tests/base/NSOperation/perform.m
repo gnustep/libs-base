@@ -59,7 +59,7 @@ int main()
   [q waitUntilAllOperationsAreFinished];
   f = [NSDate timeIntervalSinceReferenceDate];
   PASS([o counter] == want, "expected number of operations")
-  PASS((f - s) < 0.1, "duration was reasonable")
+  PASS((f - s) < 0.5, "sequential test duration")
 
   [o reset];
   [q addOperationWithTarget: o

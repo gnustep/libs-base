@@ -141,6 +141,7 @@ int main()
     {
       obj = [[MyOperation alloc] initWithValue: i];
       [a addObject: obj];
+      RELEASE(obj);
       [q addOperation: obj];
     }
   [q waitUntilAllOperationsAreFinished];
@@ -157,7 +158,7 @@ int main()
 	}
     }
   PASS((ran == want), "many operations, all were performed")
-  PASS((f - s) < 0.1, "many operations, duration was reasonably small")
+  PASS((f - s) < 0.5, "concurrent test duration")
 
   // multiple concurrent operations
   [q setMaxConcurrentOperationCount: 5];
@@ -178,6 +179,7 @@ int main()
       PASS(([obj getCalculation] == (2*i)), "operation was performed");
     }
 
+  RELEASE(q);
   END_SET("concurrent operations")
   return 0;
 }

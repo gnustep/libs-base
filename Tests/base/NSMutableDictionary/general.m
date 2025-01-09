@@ -97,7 +97,7 @@ int main()
        [obj count] == 0,
        "-description gives us a text property-list");
   
-  dict = [[NSMutableDictionary dictionaryWithObjects:vals1 forKeys:keys1] retain];
+  dict = [NSMutableDictionary dictionaryWithObjects:vals1 forKeys:keys1];
   PASS(dict != nil && 
        [dict isKindOfClass:[NSMutableDictionary class]] && 
        [dict count] == 2,

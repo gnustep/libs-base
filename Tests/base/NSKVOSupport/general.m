@@ -1462,7 +1462,7 @@ ObserveAllProperties()
   START_SET("ObserveAllProperties");
   FLAKY_ON_GCC_START
 
-  TestKVOObject   *observed = [[TestKVOObject alloc] init];
+  TestKVOObject   *observed = AUTORELEASE([[TestKVOObject alloc] init]);
   TestKVOObserver *observer = [[[TestKVOObserver alloc] init] autorelease];
 
   [observed addObserver:observer
@@ -2102,8 +2102,8 @@ SetValueForKeyPropertyNotification()
   // not get two notifications for the same change.
   START_SET("SetValueForKeyPropertyNotification");
 
-  TestKVOObject   *observed = [TestKVOObject new];
-  TestKVOObserver *observer = [TestKVOObserver new];
+  TestKVOObject   *observed = AUTORELEASE([TestKVOObject new]);
+  TestKVOObserver *observer = AUTORELEASE([TestKVOObserver new]);
 
   [observed addObserver:observer
              forKeyPath:@"basicObjectProperty"
