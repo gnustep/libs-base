@@ -375,7 +375,6 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     
   IF_NO_ARC([_gnu_arguments release];)
   _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
-  IF_NO_ARC([arg0 release];)
 }
 #else
   if (argv)
@@ -402,9 +401,14 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 
       IF_NO_ARC([_gnu_arguments release];)
       _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
-      IF_NO_ARC([arg0 release];)
+    }
+  else
+    {
+      IF_NO_ARC([_gnu_arguments release];)
+      _gnu_arguments = [[NSArray alloc] init];
     }
 #endif	
+  IF_NO_ARC([arg0 release];)
 	
   /* Copy the evironment list */
   {
