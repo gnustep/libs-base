@@ -110,9 +110,23 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
 @implementation GSFileHandle
 
++ (void) atExit
+{
+  DESTROY(fh_stdin);
+  DESTROY(fh_stdout);
+  DESTROY(fh_stderr);
+}
+
 + (void) initialize
 {
-  [GSTcpTune class];
+  static BOOL	beenHere = NO;
+
+  if (NO == beenHere)
+    {
+      beenHere = YES;
+      [GSTcpTune class];
+      [self registerAtExit];
+    }
 }
 
 /**
@@ -189,6 +203,8 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
 - (void) dealloc
 {
+  NSString	*err = nil;
+
   [self ignoreReadDescriptor];
   [self ignoreWriteDescriptor];
 
@@ -213,23 +229,17 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
   if (self == fh_stdin)
     {
       fh_stdin = nil;
-      DEALLOC
-      [NSException raise: NSGenericException
-                  format: @"Attempt to deallocate standard input handle"];
+      err = @"standard input";
     }
   if (self == fh_stdout)
     {
       fh_stdout = nil;
-      DEALLOC
-      [NSException raise: NSGenericException
-                  format: @"Attempt to deallocate standard output handle"];
+      err = @"standard output";
     }
   if (self == fh_stderr)
     {
       fh_stderr = nil;
-      DEALLOC
-      [NSException raise: NSGenericException
-                  format: @"Attempt to deallocate standard error handle"];
+      err = @"standard error";
     }
   DESTROY(address);
   DESTROY(service);
@@ -240,7 +250,12 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
    * containing the deallocated object.  Thanks to David for this fix.
    */
   [self finalize];
-  [super dealloc];
+  DEALLOC
+  if (err)
+    {
+      [NSException raise: NSGenericException
+                  format: @"Deallocation of %@ handle", err];
+    }
 }
 
 - (void) finalize
