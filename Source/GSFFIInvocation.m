@@ -317,13 +317,6 @@ exitedThread(void *slot)
   return self;
 }
 
-- (void) dealloc
-{
-  RELEASE(_frame);
-  RELEASE(_extra);
-  DEALLOC
-}
-
 /* Initializer used when we get a callback. uses the data provided by
    the callback. The cifframe was allocated by the forwarding function,
    but we own it now so we can free it */

@@ -308,17 +308,8 @@ relinquishRetainedMemory(const void *item,
 	break;
 
       case NSPointerFunctionsOpaquePersonality:
-	if (NSPointerFunctionsMachVirtualMemory == memoryType
-	  || NSPointerFunctionsMallocMemory == memoryType)
-	  {
-	    _x.acquireFunction = acquireMallocMemory;
-	    _x.relinquishFunction = relinquishMallocMemory;
-	  }
-	else
-	  {
-	    _x.acquireFunction = 0;
-	    _x.relinquishFunction = 0;
-	  }
+	_x.acquireFunction = 0;
+	_x.relinquishFunction = 0;
 	_x.descriptionFunction = describePointer;
 	_x.hashFunction = hashShifted;
 	_x.isEqualFunction = equalDirect;
