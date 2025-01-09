@@ -124,7 +124,7 @@ int main()
   NSData *data = [stringData dataUsingEncoding: NSUTF8StringEncoding];
   NSMutableSet *testSet;
 
-  testObj = [NSOrderedSet new];
+  testObj = AUTORELEASE([NSOrderedSet new]);
   [testObjs addObject: testObj];
   PASS(testObj != nil && [testObj count] == 0,
 	   "can create an empty ordered set");
