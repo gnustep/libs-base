@@ -83,6 +83,9 @@
 #endif
 #endif
 
+#if	!defined(GNUSTEP_WITH_ASAN)
+#define	GNUSTEP_WITH_ASAN 0
+#endif
 
 /* platforms which do not support weak */
 #if defined (__WIN32)
@@ -140,9 +143,15 @@ BOOL	NSDeallocateZombies = NO;
 static Class		zombieClass = Nil;
 static NSMapTable	*zombieMap = 0;
 
-#ifndef OBJC_CAP_ARC
 static void GSMakeZombie(NSObject *o, Class c)
 {
+#if	GNUSTEP_WITH_ASAN
+  /* If we have a leak checker running, we zero out the memory of the
+   * zombie instance so that pointers inside it do not cause it to
+   * think there are still references to those locations from the zombie.
+   */
+  memset(o, '\0', (size_t)[o sizeOfInstance]);
+#endif
   object_setClass(o, zombieClass);
   if (0 != zombieMap)
     {
@@ -154,7 +163,6 @@ static void GSMakeZombie(NSObject *o, Class c)
       GS_MUTEX_UNLOCK(allocationLock);
     }
 }
-#endif
 
 extern void GSLogZombie(id o, SEL sel)
 {
@@ -846,31 +854,26 @@ NSDeallocateObject(id anObject)
       AREM(aClass, (id)anObject);
       if (NSZombieEnabled)
 	{
-#ifdef OBJC_CAP_ARC
-	  if (0 != zombieMap)
-	    {
-              GS_MUTEX_LOCK(allocationLock);
-              if (0 != zombieMap)
-                {
-                  NSMapInsert(zombieMap, (void*)anObject, (void*)aClass);
-                }
-              GS_MUTEX_UNLOCK(allocationLock);
-	    }
-	  if (NSDeallocateZombies == YES)
-	    {
-	      object_dispose(anObject);
-	    }
-	  else
-	    {
-	      object_setClass(anObject, zombieClass);
-	    }
-#else
+	  /* Replace the isa pointer etc to turn the object into a zombie.
+	   */
 	  GSMakeZombie(anObject, aClass);
-	  if (NSDeallocateZombies == YES)
+
+	  if (NSDeallocateZombies)
 	    {
+#if	defined(OBJC_CAP_ARC)
+	      /* On the modern runtime object_dispose() is called to free
+	       * an instance, but that needs to look at the isa pointer
+	       * and that is now the zombie class so we cant use it.
+	       * So NSDeallocateZombies does nothing.
+	       */
+#else
+	      /* On the classic runtime it makes sense to have an option to
+	       * free memory as the isa pointer in the freed memory may let
+	       * it work as a zombie until it is overwritten.
+	       */
 	      NSZoneFree(z, o);
-	    }
 #endif
+	    }
 	}
       else
 	{
@@ -1102,7 +1105,18 @@ static id gs_weak_load(id obj)
        * information about zombie objects.
        */
       NSZombieEnabled = GSPrivateEnvironmentFlag("NSZombieEnabled", NO);
-      NSDeallocateZombies = GSPrivateEnvironmentFlag("NSDeallocateZombies", NO);
+      if (NSZombieEnabled)
+	{
+          NSDeallocateZombies
+	    = GSPrivateEnvironmentFlag("NSDeallocateZombies", NO);
+#ifdef OBJC_CAP_ARC
+	  if (NSDeallocateZombies)
+	    {
+	      fprintf(stderr, "WARNING the NSDeallocateZombies environment"
+		" setting has no effect with this Objective-C runtime.\n");
+	    }
+#endif
+	}
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
