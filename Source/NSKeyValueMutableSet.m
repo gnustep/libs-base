@@ -123,6 +123,12 @@
   return proxy;
 }
 
+- (void) dealloc
+{
+  DESTROY(key);
+  DEALLOC
+}
+
 - (id) initWithKey: (NSString *)aKey ofObject: (id)anObject
 {
   if ((self = [super init]) != nil)
@@ -278,7 +284,7 @@
   [addSetInvocation release];
   [removeObjectInvocation release];
   [addObjectInvocation release];
-  [super dealloc];
+  DEALLOC
 }
 
 - (void) addObject: (id)anObject
@@ -446,6 +452,12 @@
 {
   return [[[self alloc] initWithKey: aKey ofObject: anObject
                 withCapitalizedKey: capitalized] autorelease];
+}
+
+- (void) dealloc
+{
+  DESTROY(setSetInvocation);
+  DEALLOC
 }
 
 - (id) initWithKey: (NSString *)aKey ofObject: (id)anObject
