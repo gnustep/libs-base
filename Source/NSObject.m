@@ -83,10 +83,6 @@
 #endif
 #endif
 
-#if	!defined(GNUSTEP_WITH_ASAN)
-#define	GNUSTEP_WITH_ASAN 0
-#endif
-
 /* platforms which do not support weak */
 #if defined (__WIN32)
 #define WEAK_ATTRIBUTE
@@ -145,13 +141,6 @@ static NSMapTable	*zombieMap = 0;
 
 static void GSMakeZombie(NSObject *o, Class c)
 {
-#if	GNUSTEP_WITH_ASAN
-  /* If we have a leak checker running, we zero out the memory of the
-   * zombie instance so that pointers inside it do not cause it to
-   * think there are still references to those locations from the zombie.
-   */
-  memset(o, '\0', (size_t)[o sizeOfInstance]);
-#endif
   object_setClass(o, zombieClass);
   if (0 != zombieMap)
     {
