@@ -18,6 +18,12 @@
 
 static BOOL taskTerminationNotificationReceived;
 
+- (void) dealloc
+{
+  DESTROY(path);
+  DEALLOC
+}
+
 - (void) setLaunchPath: (NSString*)s
 {
   ASSIGNCOPY(path, s);

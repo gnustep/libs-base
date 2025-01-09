@@ -31,11 +31,11 @@ int main()
 #endif
   
   info = [NSProcessInfo processInfo];
-  env = [[info environment] mutableCopy];
+  env = [info environment];
   yes = YES;
   
   PASS(info != nil && [info isKindOfClass: [NSProcessInfo class]]
-       && env != nil && [env isKindOfClass: [NSMutableDictionary class]]
+       && env != nil && [env isKindOfClass: [NSDictionary class]]
        && yes == YES,
        "We can build some objects for task tests");
 
@@ -52,7 +52,7 @@ int main()
   task = [NSTask launchedTaskWithLaunchPath: pth1
 		 arguments: [NSArray array]];
   [task waitUntilExit];
-  PASS(YES, "launchedTaskWithLaunchPath:arguments: works");
+  PASS(YES, "launchedTaskWithLaunchPath:arguments: works")
 
   task = [NSTask new];
   args = [NSArray arrayWithObjects: @"xxx", @"yyy", nil];
@@ -62,7 +62,8 @@ int main()
   [task launch];
   [task waitUntilExit];
   PASS([task terminationReason] == NSTaskTerminationReasonExit,
-    "termination reason for normal exit works");
+    "termination reason for normal exit works")
+  DESTROY(task);
   
   [arp release]; arp = nil;
   return 0;

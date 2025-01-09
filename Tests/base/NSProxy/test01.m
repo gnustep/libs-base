@@ -180,7 +180,7 @@ main(int argc, char *argv[])
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   id obj = nil;
-  id rem = [TypeTester new];
+  id 		rem = AUTORELEASE([TypeTester new]);
   GSFinePoint	f0;
   GSFinePoint	f1;
   NSPoint	p0;
