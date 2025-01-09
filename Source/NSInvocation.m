@@ -383,6 +383,7 @@ _arg_addr(NSInvocation *inv, int index)
        * we can release it.
        */
       [((GSFFIInvocation*)self)->_frame release];
+      [((GSFFIInvocation*)self)->_extra release];
     }
 #elif defined(USE_FFCALL)
   if (_cframe)
