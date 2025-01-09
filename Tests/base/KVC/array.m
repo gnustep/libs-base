@@ -10,11 +10,14 @@
 @end
 
 @implementation ArrayIVar
+- (void) dealloc
+{
+  DESTROY(_testArray);
+  DEALLOC
+}
 - (void) setTestArray: (NSArray*)array
 {
-  [array retain];
-  [_testArray release];
-  _testArray = array;
+  ASSIGN(_testArray, array);
 }
 - (NSArray*) testArray
 {

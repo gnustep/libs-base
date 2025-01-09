@@ -63,11 +63,11 @@ typedef struct {
 
 @interface Lists : NSObject
 {
-  NSMutableArray * cities;
-  NSMutableArray * numbers;
-  NSMutableArray * third;
-  NSString *string;
-  NSString *string2;
+  NSMutableArray	*cities;
+  NSMutableArray	*numbers;
+  NSMutableArray	*third;
+  NSString 		*string;
+  NSString 		*string2;
   aStruct x;
 }
 
@@ -94,6 +94,16 @@ typedef struct {
   return x.c;
 }
 
+- (void) dealloc
+{
+  DESTROY(cities);
+  DESTROY(numbers);
+  DESTROY(third);
+  DESTROY(string);
+  DESTROY(string2);
+  DEALLOC
+}
+
 - (id) init
 {
   cities = [[NSMutableArray alloc] initWithObjects:
@@ -117,7 +127,7 @@ typedef struct {
 
 - (void) insertObject: (id)obj inNumbersAtIndex: (NSUInteger)index
 {
-  if (![obj isEqualToString:@"NaN"])
+  if (![obj isEqualToString: @"NaN"])
     {
       [numbers addObject:obj];
     }
@@ -125,7 +135,7 @@ typedef struct {
 
 - (void) removeObjectFromNumbersAtIndex: (NSUInteger)index
 {
-  if (![[numbers objectAtIndex:index] isEqualToString:@"One"])
+  if (![[numbers objectAtIndex:index] isEqualToString: @"One"])
     [numbers removeObjectAtIndex:index];
 }
 
@@ -171,15 +181,23 @@ typedef struct {
 
 @interface Sets : NSObject
 {
-  NSMutableSet * one;
-  NSMutableSet * two;
-  NSMutableSet * three;
+  NSMutableSet	*one;
+  NSMutableSet	*two;
+  NSMutableSet	*three;
 }
 @end
 
 @implementation Sets
 
-- (id)init
+- (void) dealloc
+{
+  DESTROY(one);
+  DESTROY(two);
+  DESTROY(three);
+  DEALLOC
+}
+
+- (id) init
 {
   [super init];
 
@@ -188,21 +206,21 @@ typedef struct {
     @"two",
     @"eight",
     nil];
-  two = [[NSMutableSet alloc] initWithSet:one];
-  three = [[NSMutableSet alloc] initWithSet:one];
+  two = [[NSMutableSet alloc] initWithSet: one];
+  three = [[NSMutableSet alloc] initWithSet: one];
 
   return self;
 }
 
 - (void) addOneObject: (id)anObject
 {
-  if (![anObject isEqualToString:@"ten"])
+  if (![anObject isEqualToString: @"ten"])
     [one addObject:anObject];
 }
 
 - (void) removeOneObject: (id)anObject
 {
-  if (![anObject isEqualToString:@"one"])
+  if (![anObject isEqualToString: @"one"])
     {
       [one removeObject:anObject];
     }
@@ -219,12 +237,12 @@ int main(void)
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
 
-  Lists *list = [[[Lists alloc] init] autorelease];
-  Observer *observer = [Observer new];
-  aStruct s = {1, 2, "3" };
-  id o;
-  NSMutableArray * proxy;
-  NSDictionary * temp;
+  Lists		*list = AUTORELEASE([[Lists alloc] init]);
+  Observer	*observer = AUTORELEASE([Observer new]);
+  aStruct 	s = {1, 2, "3" };
+  id 		o;
+  NSMutableArray *proxy;
+  NSDictionary	*temp;
 
   [observer reset];
   [list addObserver: observer forKeyPath: @"numbers" options: 15 context: 0];
@@ -238,7 +256,7 @@ int main(void)
   PASS([[observer keysChanged] containsObject: @"string2"],
        "string2 did change properly");
 
-  proxy = [list mutableArrayValueForKey:@"numbers"];
+  proxy = [list mutableArrayValueForKey: @"numbers"];
   PASS([proxy isKindOfClass:[NSMutableArray class]],
       "proxy is a kind of NSMutableArray")
   [proxy removeLastObject];
@@ -284,8 +302,8 @@ int main(void)
        "mutableArrayValueForKey: works")
   
 
-  Sets * set = [[[Sets alloc] init] autorelease];
-  NSMutableSet * setProxy;
+  Sets 		*set = [[[Sets alloc] init] autorelease];
+  NSMutableSet	*setProxy;
 
   setProxy = [set mutableSetValueForKey: @"one"];
   PASS([setProxy isKindOfClass: [NSMutableSet class]],
