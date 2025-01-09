@@ -19,8 +19,8 @@ static int      called = 0;
 
 int main(void)
 {
-  NSAutoreleasePool* pool = [NSAutoreleasePool new];
-  NSMessageTest* test = [NSMessageTest new];
+  NSAutoreleasePool	*pool = [NSAutoreleasePool new];
+  NSMessageTest		*test = AUTORELEASE([NSMessageTest new]);
 
   [NS_MESSAGE(test, methodToCall) invoke];
 

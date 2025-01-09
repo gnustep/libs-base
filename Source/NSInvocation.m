@@ -837,7 +837,7 @@ _arg_addr(NSInvocation *inv, int index)
 + (NSInvocation*) _returnInvocationAndDestroyProxy: (id)proxy
 {
   NSInvocation  *inv = [proxy _invocation];
-  NSDeallocateObject(proxy);
+  [proxy dealloc];
   return inv;
 }
 @end
@@ -887,6 +887,11 @@ _arg_addr(NSInvocation *inv, int index)
   o = (GSInvocationProxy*) NSAllocateObject(self, 0, NSDefaultMallocZone());
   o->target = RETAIN(t);
   return o;
+}
+- (void) dealloc
+{
+  DESTROY(target);
+  NSDeallocateObject(self);
 }
 - (NSInvocation*) _invocation
 {
