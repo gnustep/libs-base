@@ -513,7 +513,7 @@ static int (*lsanCheck)(void) = __lsan_do_recoverable_leak_check;
 #if     GNUSTEP_WITH_ASAN         
   copy = (GSArray*)NSAllocateObject(GSArrayClass, 0, zone);
 #else
-if (lsanCheck)
+if (unlikely(lsanCheck))
   {
     copy = (GSArray*)NSAllocateObject(GSArrayClass, 0, zone);
   }
@@ -1227,7 +1227,7 @@ else
       a = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
       a->_contents_array = (id*)NSZoneMalloc([self zone], c*sizeof(id));
 #else
-if (lsanCheck)
+if (unlikely(lsanCheck))
   {
     a = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
     a->_contents_array = (id*)NSZoneMalloc([self zone], c*sizeof(id));
@@ -1256,7 +1256,7 @@ else
 #if     GNUSTEP_WITH_ASAN         
   self = (id)NSAllocateObject(GSArrayClass, 0, z);
 #else
-if (lsanCheck)
+if (unlikely(lsanCheck))
   {
     self = (id)NSAllocateObject(GSArrayClass, 0, z);
   }
