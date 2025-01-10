@@ -99,6 +99,7 @@ typedef void (^PerformBlock)(Observee *);
   [_setWithHelpers release];
   [_kvcMediatedSet release];
   [_manualNotificationSet release];
+  [_roSet release];
   [super dealloc];
 }
 
