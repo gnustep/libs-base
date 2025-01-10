@@ -23,7 +23,7 @@ int main()
 
   command = [helpers stringByAppendingPathComponent: @"doubleNSLock"];
   task = AUTORELEASE([[NSTask alloc] init]);
-  ePipe = [[NSPipe pipe] retain];
+  ePipe = [NSPipe pipe];
   [task setLaunchPath: command];
   [task setStandardError: ePipe]; 
   hdl = [ePipe fileHandleForReading];
