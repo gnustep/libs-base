@@ -88,8 +88,8 @@ GS_EXPORT_CLASS
 @interface GSXMLDocument : NSObject <NSCopying>
 {
   void	*lib;	// pointer to xmllib pointer of xmlDoc struct
-  BOOL	_ownsLib;
   id	_parent;
+  BOOL	_ownsLib;
 }
 + (GSXMLDocument*) documentWithVersion: (NSString*)version;
 
@@ -141,6 +141,7 @@ GS_EXPORT_CLASS
 {
   void  *lib;      /* pointer to struct xmlNode from libxml */
   id	_parent;
+  BOOL	_ownsLib;
 }
 
 + (NSString*) descriptionFromType: (NSInteger)type;
