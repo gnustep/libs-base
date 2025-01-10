@@ -16,6 +16,12 @@
 @end
 
 @implementation Tester
+- (void) dealloc
+{
+  DESTROY(child);
+  DESTROY(dict);
+  DEALLOC
+}
 @end
 
 @interface CustomKVC : NSObject
