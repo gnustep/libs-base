@@ -116,17 +116,20 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) dealloc
 {
-  RELEASE(internal->_fileOperationKind);
-  RELEASE(internal->_kind);
-  RELEASE(internal->_estimatedTimeRemaining);
-  RELEASE(internal->_fileCompletedCount);
-  RELEASE(internal->_fileTotalCount);
-  RELEASE(internal->_throughput);
-  RELEASE(internal->_userInfo);
-  RELEASE(internal->_localizedDescription);
-  RELEASE(internal->_localizedAdditionalDescription);
-  
-  [super dealloc];
+  if (GS_EXISTS_INTERNAL)
+    {
+      RELEASE(internal->_fileOperationKind);
+      RELEASE(internal->_kind);
+      RELEASE(internal->_estimatedTimeRemaining);
+      RELEASE(internal->_fileCompletedCount);
+      RELEASE(internal->_fileTotalCount);
+      RELEASE(internal->_throughput);
+      RELEASE(internal->_userInfo);
+      RELEASE(internal->_localizedDescription);
+      RELEASE(internal->_localizedAdditionalDescription);
+      GS_DESTROY_INTERNAL(NSProgress);
+    }
+  DEALLOC
 }
 
 + (NSProgress *) discreteProgressWithTotalUnitCount: (int64_t)unitCount
