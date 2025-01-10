@@ -57,7 +57,7 @@ int main()
   [doc setRoot: node];
   PASS([[doc root] isEqual: node],"Can set document node as root node");
   
-  [doc makeNodeWithNamespace: nil name: @"nicola" content: nil];
+  node = [doc makeNodeWithNamespace: nil name: @"nicola" content: nil];
   [node makeChildWithNamespace: nil
 			  name: @"paragraph"
 		       content: @"Hi this is some text"];

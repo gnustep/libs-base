@@ -227,6 +227,7 @@ getEntityResolveExternal(void *ctx, const xmlChar *name);
 
 @interface GSXMLNode (GSPrivate)
 - (id) _initFrom: (void*)data parent: (id)p;
+- (void) _setOwnsLib: (BOOL)f;
 @end
 
 @interface GSXMLParser (Private)
@@ -500,6 +501,7 @@ static NSMapTable	*attrNames = 0;
   n = [n _initFrom:
     xmlNewDocNode(lib, [ns lib], UTF8STRING(name), UTF8STRING(content))
     parent: self];
+  [n _setOwnsLib: YES];	// Not part of document yet
   return AUTORELEASE(n);
 }
 
@@ -523,6 +525,7 @@ static NSMapTable	*attrNames = 0;
 {
   xmlNodePtr	nodeLib = (xmlNodePtr)[node lib];
   xmlNodePtr	selfLib = (xmlNodePtr)[self lib];
+  xmlNodePtr	old;
 
   if (node == nil)
     {
@@ -534,7 +537,20 @@ static NSMapTable	*attrNames = 0;
       [NSException raise: NSInvalidArgumentException
       		  format: @"Attempt to set root to node from other document"];
     }
-  xmlDocSetRootElement(lib, nodeLib);
+  old = xmlDocSetRootElement(lib, nodeLib);
+  [node _setOwnsLib: NO];
+  if (old)
+    {
+      /* The old root is detached from the document and can no longer be used.
+       */
+      if (old->_private != 0)
+	{
+	  GSXMLDocument	*owner = (GSXMLDocument*)old->_private;
+
+	  owner->lib = 0;
+	}
+      xmlFreeNode(old);
+    }
   return node;
 }
 
@@ -595,6 +611,7 @@ static NSMapTable	*attrNames = 0;
     }
   lib = data;
   _ownsLib = f;
+  ((xmlNodePtr)(lib))->_private = self;
   ASSIGN(_parent, p);
   return self;
 }
@@ -992,6 +1009,11 @@ static NSMapTable	*nodeNames = 0;
 - (void) dealloc
 {
   RELEASE(_parent);
+  if (lib && _ownsLib)
+    {
+      xmlFreeNode(lib);
+      lib = 0;
+    }
   [super dealloc];
 }
 
@@ -1652,6 +1674,10 @@ static NSMapTable	*nodeNames = 0;
   lib = data;
   ASSIGN(_parent, p);
   return self;
+}
+- (void) _setOwnsLib: (BOOL)f
+{
+  _ownsLib = f;
 }
 @end
 
