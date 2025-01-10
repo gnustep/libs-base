@@ -77,15 +77,16 @@
 - (void)dealloc
 {
   [self removeObserver:self forKeyPath:@"dummy"];
-  [super dealloc];
+  DESTROY(_dummy);
+  DEALLOC
 }
 @end
 
 @interface TestKVOChange : NSObject {
-    NSString *_keypath;
-    id _object;
-    NSDictionary *_info;
-    void *_context;
+  NSString *_keypath;
+  id _object;
+  NSDictionary *_info;
+  void *_context;
 }
 
 - (NSString *)keypath;
@@ -114,6 +115,14 @@
   [change setInfo: info];
   [change setContext: context];
   return change;
+}
+
+- (void) dealloc
+{
+  DESTROY(_keypath);
+  DESTROY(_object);
+  DESTROY(_info);
+  DEALLOC
 }
 
 - (NSString *) keypath
@@ -162,14 +171,6 @@
 - (void) setContext:(void *)newContext
 {
   _context = newContext;
-}
-
-- (void) dealloc
-{
-  [_object release];
-  [_keypath release];
-  [_info release];
-  [super dealloc];
 }
 
 @end
@@ -241,7 +242,8 @@
   return accumulator;
 }
 
-- (void) dealloc {
+- (void) dealloc
+{
   [_lock release];
   [_changedKeypaths release];
   DEALLOC
@@ -288,21 +290,21 @@ struct TestKVOStruct
 */
 
 @interface TestKVOObject : NSObject {
-    NSString *_internal_derivedObjectProperty;
-    NSString *_internal_keyDerivedTwoTimes;
-    int _manuallyNotifyingIntegerProperty;
-    int _ivarWithoutSetter;
+  NSString *_internal_derivedObjectProperty;
+  NSString *_internal_keyDerivedTwoTimes;
+  int _manuallyNotifyingIntegerProperty;
+  int _ivarWithoutSetter;
 
-    NSString *_nonNotifyingObjectProperty;
-    NSString *_basicObjectProperty;
-    uint32_t _basicPodProperty;
-    struct TestKVOStruct _structProperty;
-    TestKVOObject *_cascadableKey;
-    id _recursiveDependent1;
-    id _recursiveDependent2;
-    NSMutableDictionary *_dictionaryProperty;
-    id _boolTrigger1;
-    id _boolTrigger2;
+  NSString *_nonNotifyingObjectProperty;
+  NSString *_basicObjectProperty;
+  uint32_t _basicPodProperty;
+  struct TestKVOStruct _structProperty;
+  TestKVOObject *_cascadableKey;
+  id _recursiveDependent1;
+  id _recursiveDependent2;
+  NSMutableDictionary *_dictionaryProperty;
+  id _boolTrigger1;
+  id _boolTrigger2;
 }
 
 - (NSString *)nonNotifyingObjectProperty;
@@ -358,7 +360,8 @@ struct TestKVOStruct
   [_dictionaryProperty release];
   [_boolTrigger1 release];
   [_boolTrigger2 release];
-  [super dealloc];
+
+  DEALLOC
 }
 
 + (NSSet *)keyPathsForValuesAffectingDerivedObjectProperty
