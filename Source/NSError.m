@@ -81,14 +81,24 @@
   [super dealloc];
 }
 
+- (NSString*) _fallback
+{
+  return [NSString stringWithFormat: @"Error Domain=%@ Code=%lld",
+    [self domain], (long long)[self code]];
+}
+
 - (NSString*) description
 {
   NSMutableString	*m = [NSMutableString stringWithCapacity: 200];
   NSUInteger		count = [_userInfo count];
   NSString		*loc = [self localizedDescription];
+  NSString		*fallback = [self _fallback];
 
-  [m appendFormat: @"Error Domain=%@ Code=%lld \"%@\"",
-    [self domain], (long long)[self code], loc];
+  [m appendString: fallback];
+  if (NO == [fallback isEqual: loc])
+    {
+      [m appendFormat: @" \"%@\"", loc];
+    }
 
   if ([loc isEqual: [_userInfo objectForKey: NSLocalizedDescriptionKey]])
     {
@@ -206,7 +216,21 @@
 
 - (NSString *) localizedDescription
 {
-  return [_userInfo objectForKey: NSLocalizedDescriptionKey];
+  NSString	*s = [_userInfo objectForKey: NSLocalizedDescriptionKey];
+
+  if (nil == s)
+    {
+      s = [_userInfo objectForKey: NSLocalizedFailureReasonErrorKey];
+      if (s)
+	{
+	  s = [NSString stringWithFormat: @"Operation failed %@", s];
+	}
+      else
+        {
+          s = [self _fallback];
+        }
+    }
+  return s;
 }
 
 - (NSString *) localizedFailureReason
