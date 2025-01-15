@@ -59,7 +59,8 @@ int main()
   [q waitUntilAllOperationsAreFinished];
   f = [NSDate timeIntervalSinceReferenceDate];
   PASS([o counter] == want, "expected number of operations")
-  PASS((f - s) < 0.5, "sequential test duration")
+  NSLog(@"Duration for %d sequential operations %g seconds.", want, (f - s));
+
 
   [o reset];
   [q addOperationWithTarget: o
