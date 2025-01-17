@@ -54,6 +54,11 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
 
 + (id) allocWithZone: (NSZone*)z
 {
+  /* This is intended to be a singleton, but having +allocWithZone: return
+   * the shared object does mean that code can call alloc followed by init
+   * on the existing object, so the -init method needs to check that it is
+   * safe by only altering the state of the object first time it is called.
+   */
   return RETAIN([self sharedHTTPCookieStorage]);
 }
 
@@ -78,21 +83,26 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
   return storage;
 }
 
-- init
+- (id) init
 {
-  this->_policy = NSHTTPCookieAcceptPolicyAlways;
-  this->_cookies = [NSMutableArray new];
-  [[NSDistributedNotificationCenter defaultCenter] 
-    addObserver: self
-    selector: @selector(cookiesChangedNotification:)
-    name: NSHTTPCookieManagerCookiesChangedNotification
-    object: objectObserver];
-  [[NSDistributedNotificationCenter defaultCenter] 
-    addObserver: self
-    selector: @selector(acceptPolicyChangeNotification:)
-    name: NSHTTPCookieManagerAcceptPolicyChangedNotification
-    object: objectObserver];
-  [self _updateFromCookieStore];
+  /* Protect against someone re-initialising the shared store.
+   */
+  if (nil == this->_cookies)
+    {
+      this->_cookies = [NSMutableArray new];
+      this->_policy = NSHTTPCookieAcceptPolicyAlways;
+      [[NSDistributedNotificationCenter defaultCenter] 
+	addObserver: self
+	selector: @selector(cookiesChangedNotification:)
+	name: NSHTTPCookieManagerCookiesChangedNotification
+	object: objectObserver];
+      [[NSDistributedNotificationCenter defaultCenter] 
+	addObserver: self
+	selector: @selector(acceptPolicyChangeNotification:)
+	name: NSHTTPCookieManagerAcceptPolicyChangedNotification
+	object: objectObserver];
+      [self _updateFromCookieStore];
+    }
   return self;
 }
 
@@ -186,7 +196,7 @@ static gs_mutex_t            classLock = GS_MUTEX_INIT_STATIC;
       cookie = [NSHTTPCookie cookieWithProperties: props];
       if (NO == [this->_cookies containsObject: cookie])
 	{
-	  [this->_cookies addObject:cookie];
+	  [this->_cookies addObject: cookie];
 	}
     }
 }
