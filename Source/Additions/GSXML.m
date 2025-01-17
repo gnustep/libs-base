@@ -3872,7 +3872,7 @@ fatalErrorFunction(void *ctx, const unsigned char *msg, ...)
     }
   else
     {
-#if LIBXML_VERSION < 21100
+#if LIBXML_VERSION <= 21100
       memcpy(lib, &htmlDefaultSAXHandler, sizeof(htmlSAXHandler));
 #else
       xmlSAX2InitHtmlDefaultSAXHandler(lib);
