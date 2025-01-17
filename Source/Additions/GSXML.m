@@ -2702,6 +2702,8 @@ loadEntityFunction(const unsigned char *url,
   const unsigned char *eid,
   void *ctx)
 {
+  xmlParserCtxtPtr		cp = (xmlParserCtxtPtr)ctx;
+  BOOL				restricted = NO;
   NSString			*file = nil;
   NSString			*entityId;
   NSString			*location;
@@ -2718,7 +2720,19 @@ loadEntityFunction(const unsigned char *url,
   parser = [HANDLER parser];
   if (NO == [parser _resolves])
     {
-      return xmlNewStringInputStream(ctx, (const xmlChar *)"");
+      if (cp->inSubset && cp->validate)
+	{
+	  /* Resolving of external entities is turned off, but we are
+	   * doing validity checking and are loading a subset, so we
+	   * will need that subset to perform the validity checks.
+	   * Proceed to do loading.
+	   */
+	  restricted = YES;
+	}
+      else
+	{
+          return xmlNewStringInputStream(ctx, (const xmlChar *)"");
+	}
     }
 
   entityId = (eid != NULL) ? (id)UTF8Str(eid) : nil;
@@ -2901,10 +2915,15 @@ loadEntityFunction(const unsigned char *url,
   if ([file length] > 0)
     {
       NSURL *theURL = [NSURL fileURLWithPath: file];
+
       xmlCatalogAdd((const unsigned char*)"public", eid,
         UTF8STRING([theURL absoluteString]));
     }
-    
+  else if (restricted)
+    {
+      return xmlNewStringInputStream(ctx, (const xmlChar *)"");
+    }
+
   /* A local DTD will now be in the catalog: The builtin entity resolver can
    * take over.
    */
@@ -2915,7 +2934,7 @@ static xmlParserInputPtr
 resolveEntityFunction(void *ctx,
   const unsigned char *eid, const unsigned char *url)
 {
-NSLog(@"resolveEntityFunction called for %s %s", url, eid);
+//NSLog(@"resolveEntityFunction called for %s %s", url, eid);
   return loadEntityFunction(url, eid, ctx);
 }
 
