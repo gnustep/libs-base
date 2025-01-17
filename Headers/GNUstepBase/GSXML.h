@@ -195,10 +195,11 @@ GS_EXPORT_CLASS
 GS_EXPORT_CLASS
 @interface GSXMLParser : NSObject
 {
-   id			src;		/* source for parsing	*/
-   void			*lib;		/* parser context	*/
-   GSSAXHandler		*saxHandler;	/* handler for parsing	*/
-   NSMutableString	*messages;	/* append messages here	*/
+  id			src;		/* source for parsing	*/
+  void			*lib;		/* parser context	*/
+  GSSAXHandler		*saxHandler;	/* handler for parsing	*/
+  NSMutableString	*messages;	/* append messages here	*/
+  BOOL			resolve;
 }
 + (NSString*) loadEntity: (NSString*)publicId at: (NSString*)location;
 + (GSXMLParser*) parser;
