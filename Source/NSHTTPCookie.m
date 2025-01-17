@@ -280,13 +280,13 @@ static NSMutableArray *GSCookieStrings(NSString *string);
 
 - (BOOL) _isValidProperty: (NSString *)prop
 {
-  return ([prop length]
-	  && [prop rangeOfString: @"\n"].location == NSNotFound);
+  return ([prop length] && [prop rangeOfString: @"\n"].location == NSNotFound);
 }
 
 - (id) initWithProperties: (NSDictionary *)properties
 {
   NSMutableDictionary *rawProps;
+
   if ((self = [super init]) == nil)
     return nil;
 
@@ -301,7 +301,7 @@ static NSMutableArray *GSCookieStrings(NSString *string);
       return nil;
     }
 
-  rawProps = [[properties mutableCopy] autorelease];
+  rawProps = AUTORELEASE([properties mutableCopy]);
   if ([rawProps objectForKey: @"Created"] == nil)
     {
       NSInteger seconds;
@@ -317,13 +317,13 @@ static NSMutableArray *GSCookieStrings(NSString *string);
     }
   if ([rawProps objectForKey: NSHTTPCookieExpires] == nil
     || [[rawProps objectForKey: NSHTTPCookieExpires] 
-		isKindOfClass: [NSDate class]] == NO)
+		 isKindOfClass: [NSDate class]] == NO)
     {
       [rawProps setObject: [NSNumber numberWithBool: YES] 
 		   forKey: NSHTTPCookieDiscard];
     }
 
-  this->_properties = [rawProps copy];
+  ASSIGNCOPY(this->_properties, rawProps);
   return self;
 }
 
@@ -376,7 +376,7 @@ static NSMutableArray *GSCookieStrings(NSString *string);
 - (NSString *) description
 {
   return [NSString stringWithFormat: @"<NSHTTPCookie %p: %@=%@>", self,
-		   [self name], [self value]];
+    [self name], [self value]];
 }
 
 - (NSUInteger) hash
@@ -620,8 +620,8 @@ parseQuotedString(pldata* pld)
 
       obj = [NSString alloc];
       obj = [obj initWithCharactersNoCopy: chars
-		 length: length
-		 freeWhenDone: YES];
+				   length: length
+			     freeWhenDone: YES];
     }
   pld->pos++;
   return obj;
@@ -663,6 +663,8 @@ parseUnquotedString(pldata *pld, char endChar)
 static BOOL
 _setCookieKey(NSMutableDictionary *dict, NSString *key, NSString *value)
 {
+  NSString	*lKey;
+
   if ([dict count] == 0)
     {
       /* This must be the name=value pair */
@@ -672,21 +674,22 @@ _setCookieKey(NSMutableDictionary *dict, NSString *key, NSString *value)
       [dict setObject: value forKey: NSHTTPCookieValue];
       return YES;
     }
-  if ([[key lowercaseString] isEqual: @"comment"])
+  lKey = [key lowercaseString];
+  if ([lKey isEqual: @"comment"])
     [dict setObject: value forKey: NSHTTPCookieComment];
-  else if ([[key lowercaseString] isEqual: @"commenturl"])
+  else if ([lKey isEqual: @"commenturl"])
     [dict setObject: value forKey: NSHTTPCookieCommentURL];
-  else if ([[key lowercaseString] isEqual: @"discard"])
+  else if ([lKey isEqual: @"discard"])
     [dict setObject: [NSNumber numberWithBool: YES] 
 	     forKey: NSHTTPCookieDiscard];
-  else if ([[key lowercaseString] isEqual: @"domain"])
+  else if ([lKey isEqual: @"domain"])
     [dict setObject: value forKey: NSHTTPCookieDomain];
-  else if ([[key lowercaseString] isEqual: @"expires"])
+  else if ([lKey isEqual: @"expires"])
     {
-      NSDate *expireDate;
-      NSDateFormatter *formatter;
-      NSLocale *locale;
-      NSTimeZone *gmtTimeZone;
+      NSDate		*expireDate;
+      NSDateFormatter	*formatter;
+      NSLocale		*locale;
+      NSTimeZone	*gmtTimeZone;
 
       locale = [NSLocale localeWithLocaleIdentifier: @"en_US"];
       gmtTimeZone = [NSTimeZone timeZoneWithAbbreviation: @"GMT"];
@@ -696,26 +699,26 @@ _setCookieKey(NSMutableDictionary *dict, NSString *key, NSString *value)
       [formatter setLocale: locale];
       [formatter setTimeZone: gmtTimeZone];
 
-      expireDate = [formatter dateFromString:value];
+      expireDate = [formatter dateFromString: value];
       if (expireDate)
         [dict setObject: expireDate forKey: NSHTTPCookieExpires];
       RELEASE(formatter);
     }
-  else if ([[key lowercaseString] isEqual: @"max-age"])
+  else if ([lKey isEqual: @"max-age"])
     [dict setObject: value forKey: NSHTTPCookieMaximumAge];
-  else if ([[key lowercaseString] isEqual: @"originurl"])
+  else if ([lKey isEqual: @"originurl"])
     [dict setObject: value forKey: NSHTTPCookieOriginURL];
-  else if ([[key lowercaseString] isEqual: @"path"])
+  else if ([lKey isEqual: @"path"])
     [dict setObject: value forKey: NSHTTPCookiePath];
-  else if ([[key lowercaseString] isEqual: @"port"])
+  else if ([lKey isEqual: @"port"])
     [dict setObject: value forKey: NSHTTPCookiePort];
-  else if ([[key lowercaseString] isEqual: @"secure"])
+  else if ([lKey isEqual: @"secure"])
     [dict setObject: [NSNumber numberWithBool: YES] 
 	     forKey: NSHTTPCookieSecure];
-  else if ([[key lowercaseString] isEqual: @"httponly"])
+  else if ([lKey isEqual: @"httponly"])
     [dict setObject: [NSNumber numberWithBool: YES]
              forKey: HTTPCookieHTTPOnly];
-  else if ([[key lowercaseString] isEqual: @"version"])
+  else if ([lKey isEqual: @"version"])
     [dict setObject: value forKey: NSHTTPCookieVersion];
   return YES;
 }
