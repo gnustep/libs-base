@@ -6,32 +6,46 @@
 #import "ObjectTesting.h"
 #import "../../../Source/GSFastEnumeration.h"
 
+static SEL	add;
+static SEL	set;
+static SEL	key;
+
 void fast_enumeration_mutation_add(id mutableCollection)
 {
-  NSUInteger i = 0;
+  NSUInteger	i = 0;
+
   FOR_IN(id, o, mutableCollection)
-  if (i == [mutableCollection count]/2) {
-    if ([mutableCollection isKindOfClass: [NSMutableDictionary class]]) {
-      [mutableCollection setObject: @"boom" forKey: @"boom"];
-    } else {
-      [mutableCollection addObject: @"boom"];
+  if (i == [mutableCollection count]/2)
+    {
+      if ([mutableCollection respondsToSelector: set])
+	{
+	  [mutableCollection setObject: @"boom" forKey: @"boom"];
+	}
+      else
+	{
+	  [mutableCollection addObject: @"boom"];
+	}
     }
-  }
   i++;
   END_FOR_IN(mutableCollection)
 }
 
 void fast_enumeration_mutation_remove(id mutableCollection)
 {
-  NSUInteger i = 0;
+  NSUInteger 	i = 0;
+
   FOR_IN(id, o, mutableCollection)
-  if (i == [mutableCollection count]/2) {
-    if ([mutableCollection isKindOfClass: [NSMutableDictionary class]]) {
-      [mutableCollection removeObjectForKey: o];
-    } else {
-      [mutableCollection removeObject: o];
+  if (i == [mutableCollection count]/2)
+    {
+      if ([mutableCollection respondsToSelector: key])
+        {
+	  [mutableCollection removeObjectForKey: o];
+	}
+      else
+	{
+	  [mutableCollection removeObject: o];
+	}
     }
-  }
   i++;
   END_FOR_IN(mutableCollection)
 }
@@ -50,7 +64,20 @@ void test_fast_enumeration(id collection, NSArray *objects)
     }
   PASS_EQUAL(returnedObjects, objects, "fast enumeration returns all objects")
 
-  id mutableCollection = [collection mutableCopy];
+  id mutableCollection;
+  if ([collection respondsToSelector: @selector(mutableCopyWithZone:)])
+    {
+      mutableCollection = AUTORELEASE([collection mutableCopy]);
+    }
+  else if ([collection respondsToSelector: add]
+    || [collection respondsToSelector: set])
+    {
+      mutableCollection = collection;	// It has a method to mutate it
+    }
+  else
+    {
+      return;				// No mutable version
+    }
   PASS_EXCEPTION(
     fast_enumeration_mutation_add(mutableCollection),
     NSGenericException,
@@ -59,18 +86,22 @@ void test_fast_enumeration(id collection, NSArray *objects)
     fast_enumeration_mutation_remove(mutableCollection),
     NSGenericException,
     "Fast enumeration mutation remove properly calls @\"NSGenericException\"")
-  [mutableCollection release];
 }
 
 int main()
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
-  
-  NSMutableArray *objects = [NSMutableArray array];
-  int i;
-  for (i = 0; i < 10000; i++) {
-    [objects addObject: [NSString stringWithFormat: @"%.4d", i]];
-  }
+  NSAutoreleasePool	*arp = [NSAutoreleasePool new];
+  NSMutableArray 	*objects = [NSMutableArray array];
+  int 			i;
+
+  add = @selector(addObject:);
+  set = @selector(setObject:forKey:);
+  key = @selector(removeObjectForKey:);
+
+  for (i = 0; i < 10000; i++)
+    {
+      [objects addObject: [NSString stringWithFormat: @"%.4d", i]];
+    }
   
   START_SET("NSArray")
   id array = [NSArray arrayWithArray: objects];
@@ -91,6 +122,22 @@ int main()
   id dict = [NSDictionary dictionaryWithObjects: objects forKeys: objects];
   test_fast_enumeration(dict, objects);
   END_SET("NSDictionary")
+  
+  START_SET("NSMapTable")
+  id map = [NSMapTable strongToStrongObjectsMapTable];
+  FOR_IN(id, o, objects)
+  [map setObject: o forKey: o];
+  END_FOR_IN(objects)
+  test_fast_enumeration(map, objects);
+  END_SET("NSMapTable")
+  
+  START_SET("NSHashTable")
+  id table = [NSHashTable weakObjectsHashTable];
+  FOR_IN(id, o, objects)
+  [table addObject: o];
+  END_FOR_IN(objects)
+  test_fast_enumeration(table, objects);
+  END_SET("NSHashTable")
   
   [arp release]; arp = nil;
   return 0;
