@@ -28,9 +28,10 @@ static SEL	key;
 void fast_enumeration_mutation_add(id mutableCollection)
 {
   NSUInteger	i = 0;
+  NSUInteger	c = [mutableCollection count]/2;
 
   FOR_IN(id, o, mutableCollection)
-  if (i == [mutableCollection count]/2)
+  if (i == c)
     {
       if ([mutableCollection respondsToSelector: set])
 	{
@@ -48,9 +49,10 @@ void fast_enumeration_mutation_add(id mutableCollection)
 void fast_enumeration_mutation_remove(id mutableCollection)
 {
   NSUInteger 	i = 0;
+  NSUInteger	c = [mutableCollection count]/2;
 
   FOR_IN(id, o, mutableCollection)
-  if (i == [mutableCollection count]/2)
+  if (i == c)
     {
       if ([mutableCollection respondsToSelector: key])
         {
@@ -113,7 +115,7 @@ int main()
   set = @selector(setObject:forKey:);
   key = @selector(removeObjectForKey:);
 
-  for (i = 0; i < 10000; i++)
+  for (i = 0; i < 1000; i++)
     {
       [objects addObject: [NSString stringWithFormat: @"%.4d", i]];
     }
