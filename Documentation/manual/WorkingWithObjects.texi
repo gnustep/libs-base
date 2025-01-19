@@ -124,7 +124,7 @@ in the same area of memory, or allocate in chunks - perhaps for performance
 reasons, you may create a Zone from where you would allocate those objects by
 using the @code{NSCreateZone} function.  This will minimise the paging
 required by your application when accessing those objects frequently.
-In all normal yuse however, you should confine yourself to the default zone.
+In all normal use however, you should confine yourself to the default zone.
 
 Low level memory allocation is performed by the @code{NSAllocateObject()}
 function.  This is rarely used but available when you require more advanced
@@ -325,7 +325,7 @@ general you need to be careful in these cases that retains and releases match.
 One important case where the retain/release system has difficulties is when
 an object needs to be transferred or handed off to another.  You don't want
 to retain the transferred object in the transferring code, but neither do you
-want the object to be destroyed before the handoff can take place.  The
+want the object to be destroyed before the hand-off can take place.  The
 OpenStep/GNUstep solution to this is the @i{autorelease pool}.  An
 autorelease pool is a special mechanism that will retain objects it is given
 for a limited time -- always enough for a transfer to take place.  This
@@ -399,7 +399,7 @@ retain it if you want to hold onto it for a while.
 
 An autorelease pool is created automatically if you are using the GNUstep
 GUI classes, however if you are just using the GNUstep Base classes for a
-nongraphical application, you must create and release autorelease pools
+non-graphical application, you must create and release autorelease pools
 yourself:
 
 @example
@@ -414,7 +414,7 @@ pool itself:
   [pool release];
 @end example
 
-To achieve finer control over autorelease behavior you may also create
+To achieve finer control over autorelease behaviour you may also create
 additional pools and release them in a nested manner.  Calls to
 @code{autorelease} will always use the most recently created pool.
 
@@ -443,7 +443,7 @@ way that references to deallocated objects might be mistakenly used.
 To help solve the problem of retain cycles you can use weak references
 to break a cycle.  The runtime library provides functions to handle weak
 references so that you can safely check to see whether the reference is
-to an object that still exists or not.  To manage that th objc_storeWeak()
+to an object that still exists or not.  To manage that the objc_storeWeak()
 function is used whenever assigning a value to the variable (instead of
 retaining the value), and the objc_loadWeak() function is used to retrieve
 the value from the variable ... the retrieved value will be nil if the
@@ -556,16 +556,16 @@ Next it executes the method '-[Client executeCallSequence]' which:
 
   Creates an NSString which is NOT owned by the method.
 
-  The +stringWithFormat: method creates a new inmstance and adds it to the current autorelease pool before returning it.
+  The +stringWithFormat: method creates a new instance and adds it to the current autorelease pool before returning it.
 
   Creates a C string, which is NOT owned by the method.
 
   A non-object return value can't be retained or released, but it conforms to the convention that the memory is not owned by the caller, so the caller need not free it.  The -cString method is free to manage that however it likes (for instance it might return a pointer to some internal memory which exists until the NSString object is deallocated), but typically what's returned is a pointer to memory inside some other object which has been autoreleased.
 
-Finally, the 'return' caommand means that the program exits with a status of zero.
+Finally, the 'return' command means that the program exits with a status of zero.
 
 
-A simple look at the basic retain count and autorelease rules would say that all the memory is leaked (because the program contains no call to release anything), but there's a bit of behind the scenes magic:  when a thread exits it releases all the autorelease pools created in it which were not already released.
+A simple look at the basic retain count and autorelease rules would say that all the memory is leaked (because the program contains no call to release anything), but there's a bit of behind the scenes magic:  when a thread exits it releases all the autorelease pools created in it which were not already released.  That's not to say that the failure to release the autorelease pool was not a bug (the code should have released it), just that there is a fail-safe behaviour to protect multithreaded programs from this particular programmer error.
 
 So when you consider that, you can see that the autorelease pool is deallocated so the memory of the  pool is actually freed, and the memory of the NSString and C-String inside it are therefore also freed.
 
