@@ -1,14 +1,29 @@
-#import <Foundation/NSArray.h>
-#import <Foundation/NSAutoreleasePool.h>
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSSet.h>
-#import <Foundation/NSOrderedSet.h>
+#import <Foundation/Foundation.h>
 #import "ObjectTesting.h"
 #import "../../../Source/GSFastEnumeration.h"
 
 static SEL	add;
 static SEL	set;
 static SEL	key;
+
+@implementation NSPointerArray (TestHelpers)
+- (void) addObject: (id)anObject
+{
+  [self addPointer: anObject];
+}
+- (void) removeObject: (id)anObject
+{
+  int	i = [self count];
+
+  while (i-- > 0)
+    {
+      if ([self pointerAtIndex: i] == (void*)anObject)
+	{
+	  [self removePointerAtIndex: i];
+	}
+    }
+}
+@end
 
 void fast_enumeration_mutation_add(id mutableCollection)
 {
@@ -138,6 +153,14 @@ int main()
   END_FOR_IN(objects)
   test_fast_enumeration(table, objects);
   END_SET("NSHashTable")
+  
+  START_SET("NSPointerArray")
+  id array = [NSPointerArray weakObjectsPointerArray];
+  FOR_IN(id, o, objects)
+  [array addPointer: o];
+  END_FOR_IN(objects)
+  test_fast_enumeration(array, objects);
+  END_SET("NSPointerArray")
   
   [arp release]; arp = nil;
   return 0;

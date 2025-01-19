@@ -44,6 +44,7 @@ static Class	concreteClass = Nil;
   void		**_contents;
   unsigned	_capacity;
   unsigned	_grow_factor;
+  unsigned long	_version;
 }
 @end
 
@@ -203,7 +204,7 @@ static Class	concreteClass = Nil;
 {
   NSInteger count;
 
-  state->mutationsPtr = (unsigned long *)&state->mutationsPtr;
+  state->mutationsPtr = state->mutationsPtr;
   count = MIN(len, [self count] - state->state);
   if (count > 0)
     {
@@ -312,6 +313,8 @@ static Class	concreteClass = Nil;
   NSUInteger	insert = 0;
   NSUInteger	i;
 
+  _version++;
+
   /* We can't use memmove here for __weak pointers, because that would omit the
    * required read barriers.  We could use objc_memmoveCollectable() for strong
    * pointers, but we may as well use the same code path for everything
@@ -329,6 +332,7 @@ static Class	concreteClass = Nil;
         }
     }
   _count = insert;
+  _version++;
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -353,6 +357,16 @@ static Class	concreteClass = Nil;
 - (NSUInteger) count
 {
   return _count;
+}
+
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+				   objects: (__unsafe_unretained id[])stackbuf
+				     count: (NSUInteger)len
+{
+  state->mutationsPtr = &_version;
+  return [super countByEnumeratingWithState: state
+				    objects: stackbuf
+				      count: len];
 }
 
 - (void) dealloc
@@ -529,6 +543,7 @@ static Class	concreteClass = Nil;
 
 - (void) removePointerAtIndex: (NSUInteger)index
 {
+  _version++;
   if (index >= _count)
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
@@ -539,15 +554,18 @@ static Class	concreteClass = Nil;
       pointerFunctionsMove(&_pf, &_contents[index-1], &_contents[index]);
     }
   _contents[--_count] = NULL;
+  _version++;
 }
 
 - (void) replacePointerAtIndex: (NSUInteger)index withPointer: (void*)item
 {
+  _version++;
   if (index >= _count)
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
     }
   pointerFunctionsReplace(&_pf, &_contents[index], item);
+  _version++;
 }
 
 
@@ -555,6 +573,7 @@ static Class	concreteClass = Nil;
 
 - (void) setCount: (NSUInteger)count
 {
+  _version++;
   if (count > _count)
     {
 #if ZEROING
@@ -629,6 +648,7 @@ static Class	concreteClass = Nil;
 	  pointerFunctionsRelinquish(&_pf, &_contents[_count]);
 	}
     }
+  _version++;
 }
 
 @end
