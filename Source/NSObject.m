@@ -86,8 +86,10 @@
 /* objc_enumerationMutation() is called whenever a collection mutates in the
  * middle of fast enumeration.  We need to have this defined and linked into
  * any code that uses fast enumeration, so we define it in NSObject.h
+ * This symbol is exported to take precedence over the weak symbol provided
+ * by the runtime library.
  */
-void objc_enumerationMutation(id obj)
+GS_EXPORT void objc_enumerationMutation(id obj)
 {
   [NSException raise: NSGenericException 
     format: @"Collection %@ was mutated while being enumerated", obj];
