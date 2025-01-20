@@ -29,8 +29,12 @@
 
 #define CF_DEFINES_CG_TYPES
 
-#if defined(__has_attribute) && __has_attribute(objc_boxable)
-# define CF_BOXABLE __attribute__((objc_boxable))
+#if defined __has_attribute
+# if __has_attribute(objc_boxable)
+#  define CF_BOXABLE __attribute__((objc_boxable))
+# else
+#  define CF_BOXABLE
+# endif
 #else
 # define CF_BOXABLE
 #endif
