@@ -25,6 +25,7 @@
 #define	_INCLUDED_NSXMLPRIVATE_H
 
 #import "common.h"
+#import "GSPrivate.h"
 
 #ifdef	HAVE_LIBXML
 
@@ -64,6 +65,9 @@
  * Macro to cast string to correct type for libxml2
  */
 #define	XMLSTRING(X)	((const unsigned char*)[X UTF8String])
+
+void cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns) GS_ATTRIB_PRIVATE;
+BOOL ensure_oldNs(xmlNodePtr node) GS_ATTRIB_PRIVATE;
 
 inline static unsigned char *XMLStringCopy(NSString *source)
 {
