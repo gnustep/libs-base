@@ -476,7 +476,7 @@ GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplPointer, void *);
       break;                                                                   \
     }
 
-SEL
+static SEL
 KVCSetterForPropertyName(NSObject *self, const char *key)
 {
   SEL    sel = nil;
@@ -649,7 +649,7 @@ _NSKVOEnsureUnorderedCollectionWillNotify(id object, NSString *key,
     }
 }
 
-char *
+static char *
 mutableBufferFromString(NSString *string)
 {
   NSUInteger	lengthInBytes = [string length] + 1;

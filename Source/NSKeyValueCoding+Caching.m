@@ -426,7 +426,7 @@ _getBoxedBlockForMethod(NSString *key, Method method, SEL sel, uint64_t version)
 // resolveInstanceMethod:].
 //
 // objc_slot2 has the same struct layout as objc_method.
-Method _Nullable _class_getMethodRecursive(Class aClass, SEL aSelector,
+static Method _Nullable _class_getMethodRecursive(Class aClass, SEL aSelector,
                                            uint64_t *version)
 {
   struct objc_slot2 *slot;

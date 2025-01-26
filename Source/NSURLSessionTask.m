@@ -303,7 +303,7 @@ progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow,
  *
  * libcurl does not unfold HTTP "folded headers" (deprecated since RFC 7230).
  */
-size_t
+static size_t
 header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
 {
   NSURLSessionTask	*task;
@@ -689,7 +689,7 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
 } /* header_callback */
 
 /* CURLOPT_READFUNCTION: read callback for data uploads */
-size_t
+static size_t
 read_callback(char *buffer, size_t size, size_t nitems, void *userdata)
 {
   NSURLSession 		*session;

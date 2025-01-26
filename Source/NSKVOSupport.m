@@ -53,7 +53,7 @@
 
 typedef void (^DispatchChangeBlock)(_NSKVOKeyObserver *);
 
-NSString *
+static NSString *
 _NSKVCSplitKeypath(NSString *keyPath, NSString *__autoreleasing *pRemainder)
 {
   NSRange result = [keyPath rangeOfString:@"."];
