@@ -124,7 +124,7 @@ in the same area of memory, or allocate in chunks - perhaps for performance
 reasons, you may create a Zone from where you would allocate those objects by
 using the @code{NSCreateZone} function.  This will minimise the paging
 required by your application when accessing those objects frequently.
-In all normal yuse however, you should confine yourself to the default zone.
+In all normal use however, you should confine yourself to the default zone.
 
 Low level memory allocation is performed by the @code{NSAllocateObject()}
 function.  This is rarely used but available when you require more advanced
@@ -138,6 +138,10 @@ Zones include @code{-copy} and @code{-mutableCopy}.  For 95% of cases you
 will probably not need to worry about Zones at all; unless performance is
 critical, you can just use the methods without zone arguments, that take the
 default zone.
+
+With the ObjC-2 (NG) setup,  the use of zones is obsoleted:  the runtime
+library performs the actual allocation of objects and ignores the zone
+information.
 
 
 @subsection Memory Deallocation
@@ -159,6 +163,9 @@ As with @code{alloc}, the underlying implementation utilizes a function
 (@code{NSDeallocateObject()}) that can be used by your code if you know what
 you are doing.
 
+With the ObjC-2 (NG) setup,  the use of zones is obsoleted:  the runtime
+library performs the freeing of memory used by objects.
+
 
 @section Memory Management
 @cindex memory management
@@ -179,6 +186,13 @@ You use the OpenStep retain/release mechanism, along with autorelease
 pools which provide a degree of automated memory management.  This gives
 a good degree of control over memory management, but requires some care
 in following simple rules.  It's pretty efficient.
+
+@item Automated Reference Counts (ARC)@*
+Only available when using the ObjC-2 (NG) environment rather than classic
+Objective-C.  In this case the compiler generates code to use the retain
+count and autorelease pools.  The use of ARC can be turned on/off for
+individual files.
+
 
 @end itemize
 
@@ -226,6 +240,12 @@ object gets deallocated.
   [c release];	// Calls 'release' ... (retain count 0) then 'dealloc'
 @end example
 
+Retain count is best understood using the concept of ownership.  When we
+retain an object we own it and are responsible for releasing it again.
+When nobody owns an object (its retain count is zero) it is deallocated.
+The retain count of an object is the number of places which own the object
+and have therefore undertaken to release it when they have finished with it.
+
 One way of thinking about the initial retain count of 1 on the object is that
 a call to @code{alloc} (or @code{copy}) implicitly calls @code{retain} as
 well.  There are a couple of default conventions about how @code{retain} and
@@ -256,7 +276,7 @@ Thus, a typical usage pattern is:
 Retain and release must also be used for instance variables that are objects:
 
 @example
-- (void)setFoo:(FooClass *newFoo)
+- (void) setFoo: (FooClass *newFoo)
 @{
     // first, assert reference to newFoo
   [newFoo retain];
@@ -268,11 +288,15 @@ Retain and release must also be used for instance variables that are objects:
 @}
 @end example
 
+To write portable code (which will work with both the classic retain counting
+mechanism and with ARC) you should use the macros RETAIN(expr) and
+RELEASE(expr) along with the DESTROY(lvalue) and ASSIGN(lvalue, expr) macros.
+
 Because of this retain/release management, it is safest to use accessor
 methods to set variables even within a class:
 
 @example
-- (void)resetFoo
+- (void) resetFoo
 @{
   FooClass *foo = [[FooClass alloc] init];
   [self setFoo: foo];
@@ -301,17 +325,17 @@ general you need to be careful in these cases that retains and releases match.
 One important case where the retain/release system has difficulties is when
 an object needs to be transferred or handed off to another.  You don't want
 to retain the transferred object in the transferring code, but neither do you
-want the object to be destroyed before the handoff can take place.  The
+want the object to be destroyed before the hand-off can take place.  The
 OpenStep/GNUstep solution to this is the @i{autorelease pool}.  An
 autorelease pool is a special mechanism that will retain objects it is given
 for a limited time -- always enough for a transfer to take place.  This
 mechanism is accessed by calling @code{autorelease} on an object instead of
 @code{release}.  @code{Autorelease} first adds the object to the active
-autorelease pool, which retains it, then sends a @code{release} to the
-object.  At some point later on, the pool will send the object a second
-@code{release} message, but by this time the object will presumably either
-have been retained by some other code, or is no longer needed and can thus be
-deallocated.  For example:
+autorelease pool, which retains it, then sends a @code{release} to the object.
+ At some point later on (when the pool is destroyed), the pool will send the
+object a second @code{release} message, but by this time the object will
+presumably either have been retained by some other code, or is no longer
+needed and can thus be deallocated.  For example:
 
 @example
 - (NSString *) getStatus
@@ -346,6 +370,9 @@ stored and used later on however, it should be retained:
   [currentStatus retain];
 @end example
 
+To write portable code (for both classic retain counting and ARC) you should
+use the AUTORELEASE(expr) macro.
+
 @b{Convenience Constructors}
 
 A special case of object transfer occurs when a @i{convenience} constructor is
@@ -372,7 +399,7 @@ retain it if you want to hold onto it for a while.
 
 An autorelease pool is created automatically if you are using the GNUstep
 GUI classes, however if you are just using the GNUstep Base classes for a
-nongraphical application, you must create and release autorelease pools
+non-graphical application, you must create and release autorelease pools
 yourself:
 
 @example
@@ -387,13 +414,18 @@ pool itself:
   [pool release];
 @end example
 
-To achieve finer control over autorelease behavior you may also create
+To achieve finer control over autorelease behaviour you may also create
 additional pools and release them in a nested manner.  Calls to
 @code{autorelease} will always use the most recently created pool.
 
 Finally, note that @code{autorelease} calls are significantly slower than
 plain @code{release}.  Therefore you should only use them when they are
 necessary.
+
+The best way to manage autorelease pools is using macros which will work
+both for the classic system or when using ARC.  The ENTER_POOL macro
+begins a block in which a new pool handles autoreleases and the LEAVE_POOL
+macro ends that block and destroys the autorelease pool.
 
 
 @subsubsection Avoiding Retain Cycles
@@ -408,6 +440,21 @@ careful with your designs.  If you notice a situation where a retain cycle
 could arise, remove at least one of the links in the chain, but not in such a
 way that references to deallocated objects might be mistakenly used.
 
+To help solve the problem of retain cycles you can use weak references
+to break a cycle.  The runtime library provides functions to handle weak
+references so that you can safely check to see whether the reference is
+to an object that still exists or not.  To manage that the objc_storeWeak()
+function is used whenever assigning a value to the variable (instead of
+retaining the value), and the objc_loadWeak() function is used to retrieve
+the value from the variable ... the retrieved value will be nil if the
+object has been deallocated.  With the ObjC-2 (Next Generation) environment
+you can use the keyword `weak' to tell the compiler to automatically insert
+calls to those runtime functions whenever a value is written to or read from
+the variable.
+NB. weak references are relatively inefficient since each time objc_loadWeak()
+is called it both retains and autorelease the referenced value so that it
+will continue to exist for long enough for your code to work with it.
+
 
 @subsubsection Summary
 
@@ -416,18 +463,18 @@ The following summarizes the retain/release-related methods:
 @multitable @columnfractions 0.25 0.75
 @item Method @tab Description
 @item @code{-retain}
-@tab increases the reference count of an object by 1
+@tab increases the retain count of an object by 1
 @item @code{-release}
-@tab decreases the reference count of an object by 1
+@tab decreases the retain count of an object by 1
 @item @code{-autorelease}
-@tab decreases the reference count of an object by 1 at some stage in the future
+@tab decreases the retain count of an object by 1 at some stage in the future
 @item @code{+alloc} and @code{+allocWithZone:}
 @tab allocates memory for an object, and returns it with retain count of 1
 @item @code{-copy}, @code{-mutableCopy}, @code{copyWithZone:} and @code{-mutableCopyWithZone:}
 @tab makes a copy of an object, and returns it with retain count of 1
 @item @code{-init} and any method whose name begins with @code{init}
 @tab initialises the receiver, returning the retain count unchanged.
-@code{-init} has had no effect on the reference count.
+@code{-init} has had no effect on the retain count.
 @item @code{-new} and any method whose name begins with @code{new}
 @tab allocates memory for an object, initialises it, and returns the result.
 @item @code{-dealloc}
@@ -473,6 +520,57 @@ ownership rules (how you should use the returned values) remain the same.
 Special examples: delegate, target
 @end ignore
 
+@subsubsection Leak Checking
+
+Looking at the following code:
+
+@example
+#import "Client.h"
+
+@@implementation Client
+- (void) executeCallSequence
+@{
+  NSString *str = [NSString stringWithFormat: @@"one little string: %d\n", 100];
+  const char *strCharPtr = [str cString];
+@}
+@@end
+
+int main(int argv, char** argc)
+@{
+  Client *client = [[Client alloc] init];
+
+  [[NSAutoreleasePool alloc] init];
+  [client executeCallSequence];
+
+  return 0;
+@}
+@end example
+
+So, what do we expect this to do if we build the program with leak checking ('make asan=yes') or run it with a separate leak checker such as valgrind?
+
+Firstly this code creates a Client instance, owned by the main function.  This is because +alloc returns an instance owned by the caller, and -init consumes its receiver and returns an instance owned by the caller, so the alloc/init sequence produces an instance owned by the main function. 
+
+Next it creates/enters an autorelease pool, owned by the main function.
+
+Next it executes the method '-[Client executeCallSequence]' which:
+
+  Creates an NSString which is NOT owned by the method.
+
+  The +stringWithFormat: method creates a new instance and adds it to the current autorelease pool before returning it.
+
+  Creates a C string, which is NOT owned by the method.
+
+  A non-object return value can't be retained or released, but it conforms to the convention that the memory is not owned by the caller, so the caller need not free it.  The -cString method is free to manage that however it likes (for instance it might return a pointer to some internal memory which exists until the NSString object is deallocated), but typically what's returned is a pointer to memory inside some other object which has been autoreleased.
+
+Finally, the 'return' command means that the program exits with a status of zero.
+
+
+A simple look at the basic retain count and autorelease rules would say that all the memory is leaked (because the program contains no call to release anything), but there's a bit of behind the scenes magic:  when a thread exits it releases all the autorelease pools created in it which were not already released.  That's not to say that the failure to release the autorelease pool was not a bug (the code should have released it), just that there is a fail-safe behaviour to protect multithreaded programs from this particular programmer error.
+
+So when you consider that, you can see that the autorelease pool is deallocated so the memory of the  pool is actually freed, and the memory of the NSString and C-String inside it are therefore also freed.
+
+This leaves us with the memory of the Client object being leaked.  However, the idea that any unfreed memory is a leak is too simplistic (leak checkers would be useless if they reported so much) so the leak checker only reports some unfreed memory ... stuff that can't be reached from various standard routes.  The main case is that anything pointed to by global or static variables is not considered leaked, but also anything pointed to by a variable in the main() function is not considered leaked.  This is why the Client instance would not normally be reported by a leak checker.
+
 
 @subsection ObjC-2 and Automated Reference Counting
 @cindex ObjC-2 , automated reference counting
@@ -496,13 +594,13 @@ manual reference counting required when ARC is not available.
 @tab @code{[foo autorelease];}
 
 @item @code{ASSIGN(foo, bar);}
-@tab @code{[bar retain]; [foo release]; foo = bar;}
+@tab @code{id tmp = [bar retain]; [foo release]; foo = tmp;}
 
 @item @code{ASSIGNCOPY(foo, bar);}
-@tab @code{[foo release]; foo = [bar copy];}
+@tab @code{id tmp = [bar copy]; [foo release]; foo = tmp;}
 
 @item @code{ASSIGNMUTABLECOPY(foo, bar);}
-@tab @code{[foo release]; foo = [bar mutableCopy];}
+@tab @code{id tmp = [bar mutableCopy]; [foo release]; foo = tmp;}
 
 @item @code{DESTROY(foo);}
 @tab @code{[foo release]; foo = nil;}

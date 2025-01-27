@@ -31,9 +31,6 @@
 #import "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSXMLElement)
 
-extern void cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns);
-extern void ensure_oldNs(xmlNodePtr node);
-
 @implementation NSXMLElement
 
 - (void) dealloc

@@ -49,6 +49,7 @@
  */
 
 #import "Foundation/NSString.h"
+#import "GSPrivate.h"
 
 id
-valueForKeyWithCaching(id obj, NSString *aKey);
+valueForKeyWithCaching(id obj, NSString *aKey) GS_ATTRIB_PRIVATE;

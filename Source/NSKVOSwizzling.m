@@ -476,7 +476,7 @@ GENERATE_NOTIFYING_SET_IMPL(notifyingSetImplPointer, void *);
       break;                                                                   \
     }
 
-SEL
+static SEL
 KVCSetterForPropertyName(NSObject *self, const char *key)
 {
   SEL    sel = nil;
@@ -649,7 +649,7 @@ _NSKVOEnsureUnorderedCollectionWillNotify(id object, NSString *key,
     }
 }
 
-char *
+static char *
 mutableBufferFromString(NSString *string)
 {
   NSUInteger	lengthInBytes = [string length] + 1;
@@ -666,6 +666,8 @@ void
 _NSKVOEnsureKeyWillNotify(id object, NSString *key)
 {
   char *rawKey;
+  Class cls;
+  Class underlyingCls;
 
   // Since we cannot replace the isa of tagged pointer objects, we can't swizzle
   // them.
@@ -674,8 +676,17 @@ _NSKVOEnsureKeyWillNotify(id object, NSString *key)
       return;
     }
 
+  cls = [object class];
+  underlyingCls = [object _underlyingClass];
+  // If cls differs from underlyingCls, object is actually a proxy.
+  // Retrieve the underlying object with KVC.
+  if (cls != underlyingCls)
+  {
+    object = [object valueForKey: @"self"];
+  }
+
   // A class is allowed to decline automatic swizzling for any/all of its keys.
-  if (![[object class] automaticallyNotifiesObserversForKey: key])
+  if (![underlyingCls automaticallyNotifiesObserversForKey: key])
     {
       return;
     }

@@ -152,10 +152,9 @@ the NSApplicationMain function in a gui application).
 
 GNUstep's NSInvocations and Distributed Objects code involves detailed
 manipulation of the stack and function calls using a library that
-implements a Foreign-Function Interface (FFI), such as the 
-libffi library. Use of libffi is automatically enabled if the libffi
-library is found (and the same with ffcall, although libffi takes
-precedence), unless specifically disabled with @code{--disable-do}.
+implements a Foreign-Function Interface (FFI); the libffi library.
+Use of libffi is automatically enabled if the libffi library is found ,
+unless specifically disabled with @code{--disable-do}.
 
 @node Compilation,  , Configuration, Top
 @section Compilation

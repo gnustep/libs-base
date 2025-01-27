@@ -44,13 +44,15 @@
 
 /* This Key Value Observing Implementation is tied to libobjc2 */
 
-#import <Foundation/NSObject.h>
-#import <Foundation/NSString.h>
-#import <Foundation/NSDictionary.h>
-#import <Foundation/NSArray.h>
-#import <Foundation/NSSet.h>
-#import <Foundation/NSKeyValueObserving.h>
-#import <Foundation/NSException.h>
+#import "Foundation/NSObject.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSArray.h"
+#import "Foundation/NSSet.h"
+#import "Foundation/NSKeyValueObserving.h"
+#import "Foundation/NSException.h"
+
+#import "GSPrivate.h"
 
 #if defined(__OBJC2__)
 
@@ -114,7 +116,7 @@
 
 // From NSKVOSwizzling
 void
-_NSKVOEnsureKeyWillNotify(id object, NSString *key);
+_NSKVOEnsureKeyWillNotify(id object, NSString *key) GS_ATTRIB_PRIVATE;
 
 #endif
 
@@ -123,6 +125,7 @@ _NSKVOEnsureKeyWillNotify(id object, NSString *key);
  */
 @interface
 NSObject (NSKeyValueObservingPrivate)
+- (Class)_underlyingClass;
 - (void)_notifyObserversOfChangeForKey:(NSString *)key
                               oldValue:(id)oldValue
                               newValue:(id)newValue;
