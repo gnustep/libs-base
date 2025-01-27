@@ -96,6 +96,8 @@ typedef struct {
 
 #define	EXPOSE_NSThread_IVARS	1
 #define	GS_NSThread_IVARS \
+  id                    _stringCollatorCache; \
+  BOOL                  _targetIsBlock; \
   gs_thread_id_t        _pthreadID; \
   NSUInteger            _threadID; \
   GSLockInfo            _lockInfo

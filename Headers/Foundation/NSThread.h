@@ -71,14 +71,11 @@ GS_EXPORT_CLASS
   BOOL			_cancelled;
   BOOL			_active;
   BOOL			_finished;
-  BOOL			_targetIsBlock;
   NSHandler		*_exception_handler;    // Not retained.
   NSMutableDictionary	*_thread_dictionary;
   struct autorelease_thread_vars _autorelease_vars;
   id			_gcontext;
   void                  *_runLoopInfo;  // Per-thread runloop related info.
-  // Used to store a GSICUStringCollatorCache object for this thread.
-  id    _stringCollatorCache;
 #endif
 #if     GS_NONFRAGILE
 #  if defined(GS_NSThread_IVARS)
