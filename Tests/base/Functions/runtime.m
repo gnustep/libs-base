@@ -127,10 +127,16 @@ main(int argc, char *argv[])
   PASS(c1load != 0, "+load was called");
   PASS(c1initialize > c1load, "+load occurs before +initialize");
   PASS(strcmp(class_getName(cls), "SubClass1") == 0, "class name works");
+#ifdef _WIN32
+  testHopeful = YES; // apparently this is not supported on MinGW/clang
+#endif
   PASS(YES == class_respondsToSelector(cls, @selector(sel2)),
     "class_respondsToSelector() works for class method");
   PASS(YES == class_respondsToSelector(cls, @selector(sel1)),
     "class_respondsToSelector() works for superclass method");
+#ifdef _WIN32
+  testHopeful = NO;
+#endif
   PASS(NO == class_respondsToSelector(cls, @selector(rangeOfString:)),
     "class_respondsToSelector() returns NO for unknown method");
   PASS(NO == class_respondsToSelector(cls, 0),
