@@ -169,6 +169,8 @@ GS_PRIVATE_INTERNAL(NSThread)
 #define pthreadID (internal->_pthreadID)
 #define threadID (internal->_threadID)
 #define lockInfo (internal->_lockInfo)
+#define targetIsBlock (internal->_targetIsBlock)
+#define stringCollatorCache (internal->_stringCollatorCache)
 
 
 #if defined(HAVE_PTHREAD_MAIN_NP)
@@ -1195,7 +1197,7 @@ unregisterActiveThread(NSThread *thread)
   DESTROY(_target);
   DESTROY(_arg);
   DESTROY(_name);
-  DESTROY(_stringCollatorCache);
+  DESTROY(stringCollatorCache);
   if (_autorelease_vars.pool_cache != 0)
     {
       [NSAutoreleasePool _endThread: self];
@@ -1338,7 +1340,7 @@ unregisterActiveThread(NSThread *thread)
         NSStringFromSelector(_cmd)];
     }
 
-  if (_targetIsBlock)
+  if (targetIsBlock)
     {
       GSThreadBlock block = (GSThreadBlock)_target;
       CALL_BLOCK_NO_ARGS(block);
@@ -1585,11 +1587,11 @@ nsthreadLauncher(void *thread)
 
 - (id) _stringCollatorCache
 {
-  return (id)self->_stringCollatorCache;
+  return (id)stringCollatorCache;
 }
 - (void) _setStringCollatorCache: (id) cache
 {
-  ASSIGN(self->_stringCollatorCache, cache);
+  ASSIGN(stringCollatorCache, cache);
 }
 
 @end
@@ -2442,7 +2444,7 @@ GSRunLoopInfoForThread(NSThread *aThread)
 {
   if (nil != (self = [self init]))
     {
-      _targetIsBlock = YES;
+      targetIsBlock = YES;
       /* Copy block to heap */
       _target = _Block_copy(block);
     } 
