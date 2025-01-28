@@ -69,9 +69,9 @@ MAN8_PAGES = gdomap.8
 
 # The application to be compiled
 ifeq ($(add),yes)
-TOOL_NAME = autogsdoc cvtenc plmerge sfparse xmlparse
+TOOL_NAME = autogsdoc classes cvtenc plmerge sfparse xmlparse
 else
-TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults pl plmerge plutil \
+TOOL_NAME = autogsdoc classes cvtenc gdnc gspath defaults pl plmerge plutil \
 		plparse sfparse pldes plget plser pl2link xmlparse HTMLLinker
 # gdomap is currently not supported on Windows MSVC or Android (which
 # can be either "linux-android" or "linux-androideabi")
@@ -88,6 +88,7 @@ TEST_TOOL_NAME = locale_alias
 
 # The source files to be compiled
 autogsdoc_OBJC_FILES = autogsdoc.m AGSParser.m AGSOutput.m AGSIndex.m AGSHtml.m
+classes_OBJC_FILES = classes.m
 cvtenc_OBJC_FILES = cvtenc.m
 gdomap_C_FILES = gdomap.c
 gdnc_OBJC_FILES = gdnc.m
