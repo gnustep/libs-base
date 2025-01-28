@@ -228,7 +228,6 @@ NSFileHandle+GNUstepBase.h \
 NSMutableString+GNUstepBase.h \
 NSNumber+GNUstepBase.h \
 NSObject+GNUstepBase.h \
-NSOperationQueue+GNUstepBase.h \
 NSProcessInfo+GNUstepBase.h \
 NSString+GNUstepBase.h \
 NSTask+GNUstepBase.h \
