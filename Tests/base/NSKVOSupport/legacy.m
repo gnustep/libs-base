@@ -305,9 +305,17 @@ main(int argc, char *argv[])
 {
     START_SET("KVO Legacy Tests")
 
+    #if defined(__GNUC__)
+    testHopeful = YES;
+    #endif
+
     simpleDependency();
     registeringMultipleDependencies();
     mixedLegacy();
+
+    #if defined(__GNUC__)
+    testHopeful = NO;
+    #endif
 
     END_SET("KVO Legacy Tests")
 
