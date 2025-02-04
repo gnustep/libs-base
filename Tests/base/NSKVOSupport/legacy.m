@@ -103,9 +103,6 @@ return [NSString stringWithFormat: @"%@ %@ %@", _firstName, _middleName, _lastNa
 @end
 
 @interface Observer : NSObject
-@end
-
-@implementation Observer
 {
     @public
     NSString *lastKeyPath;
@@ -113,6 +110,9 @@ return [NSString stringWithFormat: @"%@ %@ %@", _firstName, _middleName, _lastNa
     NSDictionary *lastChange;
     int notificationCount;
 }
+@end
+
+@implementation Observer
 
 - (void) resetValues
 {
