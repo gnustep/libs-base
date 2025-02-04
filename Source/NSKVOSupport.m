@@ -50,6 +50,7 @@
 #import <stdatomic.h>
 
 #import <Foundation/Foundation.h>
+#import <GNUstepBase/GSConfig.h>
 
 typedef void (^DispatchChangeBlock)(_NSKVOKeyObserver *);
 
@@ -723,6 +724,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
           return [self performSelector:sel];
         }
 
+#if GS_LEGACY
       // We compute an NSSet from information provided by previous invocations
       // of the now-deprecated setKeys:triggerChangeNotificationsForDependentKey:
       // if the original imp returns an empty set.
@@ -737,6 +739,8 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
             }
         }
     }
+#endif
+
   return emptySet;
 }
 
