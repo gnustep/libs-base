@@ -139,9 +139,8 @@ errorForCURLcode(CURL *handle, CURLcode code, char errorBuffer[CURL_ERROR_SIZE])
       return NULL;
     }
 
-  errorString = [[NSString alloc] initWithCString: errorBuffer];
-  curlErrorString =
-    [[NSString alloc] initWithCString: curl_easy_strerror(code)];
+  errorString = [NSString stringWithCString: errorBuffer];
+  curlErrorString = [NSString stringWithCString: curl_easy_strerror(code)];
 
   /* Get errno number from the last connect failure.
    *
@@ -266,9 +265,6 @@ errorForCURLcode(CURL *handle, CURLcode code, char errorBuffer[CURL_ERROR_SIZE])
   error = [NSError errorWithDomain: NSURLErrorDomain
                               code: urlError
                           userInfo: userInfo];
-
-  [curlErrorString release];
-  [errorString release];
 
   return error;
 } /* errorForCURLcode */
@@ -1344,8 +1340,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
   if (_properties & GSURLSessionUpdatesDelegate)
     {
-      if (_properties & GSURLSessionWritesDataToFile &&
-          [_delegate respondsToSelector: didFinishDownloadingToURLSel])
+      if (_properties & GSURLSessionWritesDataToFile
+	&& [_delegate respondsToSelector: didFinishDownloadingToURLSel])
         {
           NSURL	*url = [_taskData objectForKey: taskTemporaryFileLocationKey];
 
