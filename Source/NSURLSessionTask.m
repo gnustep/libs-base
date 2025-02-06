@@ -908,6 +908,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
   if (self)
     {
+      ENTER_POOL
       NSString			*httpMethod;
       NSData 			*certificateBlob;
       NSURL 			*url;
@@ -929,7 +930,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
       httpMethod = [[_originalRequest HTTPMethod] lowercaseString];
       url = [_originalRequest URL];
-      requestHeaders = [[_originalRequest _insensitiveHeaders] mutableCopy];
+      requestHeaders
+	= AUTORELEASE([[_originalRequest _insensitiveHeaders] mutableCopy]);
       configuration = [session configuration];
 
       /* Only retain the session once the -resume method is called
@@ -1085,9 +1087,9 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       immConfigHeaders = [configuration HTTPAdditionalHeaders];
       if (nil != immConfigHeaders)
         {
-          configHeaders = [[_GSMutableInsensitiveDictionary alloc]
+          configHeaders = AUTORELEASE([[_GSMutableInsensitiveDictionary alloc]
                            initWithDictionary: immConfigHeaders
-                                    copyItems: NO];
+                                    copyItems: NO]);
 
           /* Merge Headers.
            *
@@ -1111,7 +1113,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
           /* No headers were set */
           if (nil == requestHeaders)
             {
-              requestHeaders = [_GSMutableInsensitiveDictionary new];
+              requestHeaders = [_GSMutableInsensitiveDictionary dictionary];
             }
 
           cookies = [storage cookiesForURL: url];
@@ -1125,17 +1127,18 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
       /* Append Headers to the libcurl header list
        */
-      [requestHeaders
-       enumerateKeysAndObjectsUsingBlock:^(id<NSCopying> key, id object,
-                                           BOOL *stop) {
-         NSString	*headerLine;
+      for (id key in requestHeaders)
+	{
+          NSString	*headerLine;
+	  id 		object = [requestHeaders objectForKey: key];
 
-         headerLine = [NSString stringWithFormat: @"%@: %@", key, object];
+          headerLine = [NSString stringWithFormat: @"%@: %@", key, object];
 
-         /* We have removed all reserved headers in NSURLRequest */
-         _headerList = curl_slist_append(_headerList, [headerLine UTF8String]);
-       }];
+          /* We have removed all reserved headers in NSURLRequest */
+          _headerList = curl_slist_append(_headerList, [headerLine UTF8String]);
+        }
       curl_easy_setopt(_easyHandle, CURLOPT_HTTPHEADER, _headerList);
+      LEAVE_POOL
     }
 
   return self;
