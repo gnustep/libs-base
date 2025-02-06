@@ -331,16 +331,16 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
       return 0;
     }
 
-  headerLine = [[NSString alloc] initWithBytes: ptr
-                                        length: nitems
-                                      encoding: NSUTF8StringEncoding];
+  headerLine = AUTORELEASE([[NSString alloc]
+    initWithBytes: ptr
+    length: nitems
+    encoding: NSUTF8StringEncoding]);
 
   // First line is the HTTP Version
   if (1 == headerCallbackCount)
     {
       [taskData setObject: headerLine forKey: @"version"];
 
-      [headerLine release];
       return size * nitems;
     }
 
@@ -379,7 +379,6 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
 
               [taskData setObject: error forKey: NSUnderlyingErrorKey];
 
-              [headerLine release];
               return 0;
             }
 
@@ -389,7 +388,6 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
           [headerFields setObject: value forKey: key];
         }
 
-      [headerLine release];
       return size * nitems;
     }
 
@@ -410,11 +408,8 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
       /* Used for line unfolding */
       [taskData setObject: key forKey: @"lastHeaderKey"];
 
-      [headerLine release];
       return size * nitems;
     }
-
-  [headerLine release];
 
   /* Final Header Line:
    *
@@ -431,6 +426,7 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
       NSURL 		*url;
       CURL 		*handle;
       char 		*effURL;
+      NSDictionary 	*fields;
       NSInteger 	numberOfRedirects = 0;
       NSInteger 	statusCode = 0;
 
@@ -459,12 +455,15 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
         statusCode,
         [headerFields count]);
 
-      urlString = [[NSString alloc] initWithCString: effURL];
+      urlString = [NSString stringWithCString: effURL];
       url = [NSURL URLWithString: urlString];
+      fields = [headerFields copy];
       response = [[NSHTTPURLResponse alloc] initWithURL: url
                                              statusCode: statusCode
                                             HTTPVersion: version
-                                           headerFields: [headerFields copy]];
+                                           headerFields: fields];
+      AUTORELEASE(response);
+      RELEASE(fields);
 
       [task _setCookiesFromHeaders: headerFields];
       [task _setResponse: response];
@@ -498,7 +497,7 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
 
               /* baseURL is only used, if location is a relative reference */
               redirectURL = [NSURL URLWithString: location relativeToURL: url];
-              newRequest = [[task originalRequest] mutableCopy];
+              newRequest = AUTORELEASE([[task originalRequest] mutableCopy]);
               [newRequest setURL: redirectURL];
 
               NSDebugLLog(
@@ -680,9 +679,6 @@ header_callback(char *ptr, size_t size, size_t nitems, void *userdata)
               }];
            }];
         }
-
-      [urlString release];
-      [response release];
     }
 
   return size * nitems;
@@ -908,6 +904,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
   if (self)
     {
+      ENTER_POOL
       NSString			*httpMethod;
       NSData 			*certificateBlob;
       NSURL 			*url;
@@ -929,7 +926,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
       httpMethod = [[_originalRequest HTTPMethod] lowercaseString];
       url = [_originalRequest URL];
-      requestHeaders = [[_originalRequest _insensitiveHeaders] mutableCopy];
+      requestHeaders
+	= AUTORELEASE([[_originalRequest _insensitiveHeaders] mutableCopy]);
       configuration = [session configuration];
 
       /* Only retain the session once the -resume method is called
@@ -944,7 +942,8 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
       /* Configure initial task data
        */
-      [_taskData setObject: [NSMutableDictionary new] forKey: @"headers"];
+      [_taskData setObject: [NSMutableDictionary dictionary]
+		    forKey: @"headers"];
 
       /* Easy Handle Configuration
        */
@@ -1085,9 +1084,9 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       immConfigHeaders = [configuration HTTPAdditionalHeaders];
       if (nil != immConfigHeaders)
         {
-          configHeaders = [[_GSMutableInsensitiveDictionary alloc]
+          configHeaders = AUTORELEASE([[_GSMutableInsensitiveDictionary alloc]
                            initWithDictionary: immConfigHeaders
-                                    copyItems: NO];
+                                    copyItems: NO]);
 
           /* Merge Headers.
            *
@@ -1111,7 +1110,7 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
           /* No headers were set */
           if (nil == requestHeaders)
             {
-              requestHeaders = [_GSMutableInsensitiveDictionary new];
+              requestHeaders = [_GSMutableInsensitiveDictionary dictionary];
             }
 
           cookies = [storage cookiesForURL: url];
@@ -1125,17 +1124,18 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
 
       /* Append Headers to the libcurl header list
        */
-      [requestHeaders
-       enumerateKeysAndObjectsUsingBlock:^(id<NSCopying> key, id object,
-                                           BOOL *stop) {
-         NSString	*headerLine;
+      for (id key in requestHeaders)
+	{
+          NSString	*headerLine;
+	  id 		object = [requestHeaders objectForKey: key];
 
-         headerLine = [NSString stringWithFormat: @"%@: %@", key, object];
+          headerLine = [NSString stringWithFormat: @"%@: %@", key, object];
 
-         /* We have removed all reserved headers in NSURLRequest */
-         _headerList = curl_slist_append(_headerList, [headerLine UTF8String]);
-       }];
+          /* We have removed all reserved headers in NSURLRequest */
+          _headerList = curl_slist_append(_headerList, [headerLine UTF8String]);
+        }
       curl_easy_setopt(_easyHandle, CURLOPT_HTTPHEADER, _headerList);
+      LEAVE_POOL
     }
 
   return self;
