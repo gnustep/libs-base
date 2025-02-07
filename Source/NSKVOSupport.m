@@ -50,6 +50,7 @@
 #import <stdatomic.h>
 
 #import <Foundation/Foundation.h>
+#import <GNUstepBase/GSConfig.h>
 
 typedef void (^DispatchChangeBlock)(_NSKVOKeyObserver *);
 
@@ -569,8 +570,28 @@ _removeKeypathObserver(id object, NSString *keypath, id observer, void *context)
 
 #pragma region KVO Core Implementation - NSObject category
 
+static const char *const KVO_MAP = "_NSKVOMap";
+
 @implementation
 NSObject (NSKeyValueObserving)
+
++ (void) setKeys: (NSArray *) triggerKeys 
+triggerChangeNotificationsForDependentKey: (NSString *) dependentKey
+{
+  NSMutableDictionary<NSString *, NSSet *> *affectingKeys;
+  NSSet *triggerKeySet;
+
+  affectingKeys = objc_getAssociatedObject(self, KVO_MAP);
+  if (nil == affectingKeys)
+    {
+      affectingKeys = [NSMutableDictionary dictionaryWithCapacity: 10];
+      objc_setAssociatedObject(self, KVO_MAP, affectingKeys,
+                               OBJC_ASSOCIATION_RETAIN);
+    }
+
+  triggerKeySet = [NSSet setWithArray: triggerKeys];
+  [affectingKeys setValue: triggerKeySet forKey: dependentKey];
+}
 
 - (void) observeValueForKeyPath: (NSString *)keyPath
                        ofObject: (id)object
@@ -631,6 +652,7 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
   static NSSet		*emptySet = nil;
   static gs_mutex_t	lock = GS_MUTEX_INIT_STATIC;
   NSUInteger 		keyLength;
+  NSDictionary *affectingKeys;
 
   if (nil == emptySet)
     {
@@ -701,7 +723,24 @@ static void *s_kvoObservationInfoAssociationKey; // has no value; pointer used
         {
           return [self performSelector:sel];
         }
+
+#if GS_LEGACY
+      // We compute an NSSet from information provided by previous invocations
+      // of the now-deprecated setKeys:triggerChangeNotificationsForDependentKey:
+      // if the original imp returns an empty set.
+      // This aligns with Apple's backwards compatibility.
+      affectingKeys = (NSDictionary *)objc_getAssociatedObject(self, KVO_MAP);
+      if (unlikely(nil != affectingKeys))
+        {
+          NSSet *set = [affectingKeys objectForKey:key];
+          if (set != nil)
+            {
+            return set;
+            }
+        }
     }
+#endif
+
   return emptySet;
 }
 

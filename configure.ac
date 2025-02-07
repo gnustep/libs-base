@@ -3852,6 +3852,14 @@ fi
 AC_SUBST(USE_GMP)
 
 #--------------------------------------------------------------------
+# Check if we should disable deprecated APIs that might affect overall performance 
+#--------------------------------------------------------------------
+GS_LEGACY=1
+AC_ARG_ENABLE(legacy,
+  [  --disable-legacy  		Disable support for deprecated APIs that might affect overall performance], GS_LEGACY=0, )
+AC_SUBST(GS_LEGACY)
+
+#--------------------------------------------------------------------
 # Check dor 'dot', needed for graphs in autogsdoc output.
 #--------------------------------------------------------------------
 AC_ARG_VAR([DOT], [The name or full path of the graphviz dot command.])

@@ -1,3 +1,14 @@
+2025-02-04 Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSKVOSupport.m:
+	* Tests/base/NSKVOSupport/legacy.m:
+	Implements the setKeys:triggerChangeNotificationsForDependentKey: class
+    method. Please do not use it. It is fundamentally broken, and requires
+    the object's meta class to hold additional state.
+    Keys from this class method are the last resort when retrieving
+    dependencies via keyPathsForValuesAffectingValueForKey:.
+    This aligns with the implementation in Foundation.
+
 2025-01-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSRegularExpression.h:
