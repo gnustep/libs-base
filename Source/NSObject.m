@@ -608,12 +608,12 @@ NSDecrementExtraRefCountWasZero(id anObject)
   return release_fast_no_destroy(anObject);
 }
 
-size_t object_getRetainCount_np_internal(id anObject)
+static size_t object_getRetainCount_np_internal(id anObject)
 {
   return ((obj)anObject)[-1].retained + 1;
 }
 
-size_t getRetainCount(id anObject)
+static size_t getRetainCount(id anObject)
 {
 #ifdef __GNUSTEP_RUNTIME__
   if (object_getRetainCount_np)

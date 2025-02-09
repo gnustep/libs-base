@@ -1,5 +1,6 @@
-#import <Foundation/NSString.h>
-#import <Foundation/NSException.h>
+#import "Foundation/NSString.h"
+#import "Foundation/NSException.h"
+#import "GSPrivate.h"
 
 #if defined(HAVE_UNICODE_UTEXT_H)
 #include <unicode/utext.h>
@@ -30,7 +31,7 @@
  * The returned UText object holds a reference to the NSString and accesses its
  * contents directly.  
  */
-UText* UTextInitWithNSString(UText *txt, NSString *str);
+UText* UTextInitWithNSString(UText *txt, NSString *str) GS_ATTRIB_PRIVATE;
 
 /**
  * Initialises a UText structure with an NSMutableString.  If txt is NULL, then
@@ -43,7 +44,8 @@ UText* UTextInitWithNSString(UText *txt, NSString *str);
  * This function returns a mutable UText, and changes made to it will be
  * reflected in the underlying NSMutableString.
  */
-UText* UTextInitWithNSMutableString(UText *txt, NSMutableString *str);
+UText* UTextInitWithNSMutableString(UText *txt, NSMutableString *str)
+  GS_ATTRIB_PRIVATE;
 
 /**
  * GSUTextString is an NSString subclass that is backed by a libicu UText

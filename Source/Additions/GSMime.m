@@ -8285,7 +8285,7 @@ typedef	enum	{
   SMTPE_DSN,		// delivery status notification extension
 } SMTPE;
 
-NSString *
+static NSString *
 eventText(NSStreamEvent e)
 {
   if (e == NSStreamEventNone)
@@ -8303,7 +8303,7 @@ eventText(NSStreamEvent e)
   return @"unknown event";
 }
 
-NSString *
+static NSString *
 statusText(NSStreamStatus s)
 {
   if (s == NSStreamStatusNotOpen) return @"NSStreamStatusNotOpen";

@@ -52,14 +52,17 @@ typedef struct _cifframe_t {
 
 @class	NSMutableData;
 
-extern GSCodeBuffer* cifframe_closure(NSMethodSignature *sig, void (*func)());
+extern GSCodeBuffer* cifframe_closure(NSMethodSignature *sig,
+  void (*func)()) GS_ATTRIB_PRIVATE;
 
 extern void cifframe_set_arg(cifframe_t *cframe, int index, void *buffer, 
-			     int size);
+  int size) GS_ATTRIB_PRIVATE;
 extern void cifframe_get_arg(cifframe_t *cframe, int index, void *buffer,
-			     int size);
-extern void *cifframe_arg_addr(cifframe_t *cframe, int index);
-extern BOOL cifframe_decode_arg(const char *type, void* buffer);
-extern BOOL cifframe_encode_arg(const char *type, void* buffer);
+  int size) GS_ATTRIB_PRIVATE;
+extern void *cifframe_arg_addr(cifframe_t *cframe, int index) GS_ATTRIB_PRIVATE;
+extern BOOL cifframe_decode_arg(const char *type,
+  void *buffer) GS_ATTRIB_PRIVATE;
+extern BOOL cifframe_encode_arg(const char *type,
+  void *buffer) GS_ATTRIB_PRIVATE;
 
 #endif

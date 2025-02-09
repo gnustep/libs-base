@@ -189,7 +189,7 @@ IMP gs_objc_msg_forward (SEL sel)
   return gs_objc_msg_forward2 (nil, sel);
 }
 #ifdef __GNUSTEP_RUNTIME__
-gs_thread_key_t thread_slot_key;
+static gs_thread_key_t thread_slot_key;
 static struct objc_slot *
 gs_objc_msg_forward3(id receiver, SEL op)
 {
