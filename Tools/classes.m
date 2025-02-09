@@ -1,6 +1,20 @@
 /* Crude tool to compare classes in different version of library code to
  * look for possible compatiblity issues.
- * Only for internal/test use at the momement.
+ *
+ * This tools is very much subject to change!
+ *
+ * At present, the tool simply looks for the methods available in public
+ * classes (excluding private methods).
+ *
+ * To check for public symbols of other kinds, use the 'nm' command on the
+ * library with -g (public/external) and -U (defined symbols) options.
+ * Filter the output to remove symbols we are not interested in.
+ * eg.
+ * nm -g -U Source/obj/libgnustep-base.so.1.31.0 | fgrep -v -e ' GS' -e ' NS' \
+ *   -e ' ._OBJC' -e '  __objc' -e ' __odr_asan' >/tmp/result.txt
+ *
+ * Names beginning GS or NS are assumed to be intentionally public.
+ * We probably arent intersted in classes, ivar offsets, or ASAN synbols.
  */
 #import "Foundation/Foundation.h"
 #import	"GNUstepBase/GSObjCRuntime.h"
