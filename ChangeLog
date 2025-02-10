@@ -1,3 +1,12 @@
+2025-01-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* ChangeLog: Update for new release
+	* ANNOUNCE:
+	* NEWS:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	Update release notes for 1.31.0 release.
+
 2025-01-04 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/Foundation/NSRegularExpression.h:

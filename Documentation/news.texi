@@ -11,9 +11,60 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
-@section Noteworthy changes in version @samp{1.30.0}
+@section Noteworthy changes in version @samp{1.31.0}
 
 @itemize @bullet
+@item Library version changed from 1.30 to 1.31
+@item Implementation of weak references for the GNU runtime, so that
+	weak references are now supported/available in portable code, and
+	in conjunction with NSPointerFunction fixes we now support weak
+	references in NSMapTable, NSHashTable, and NSPointerArray as well
+	as supporting automatic deregestration of deallocated observers
+	in NSNotificationCenter.
+@item Autogsdoc updated to support modern CSS based HTML and provide
+	simple diagrams of inheritence in the reference documentation.
+@item New experimental implementation of NSURLSession ... we still
+	need work to replace non-portable (blocks dependent) code before
+	it can be a supported class.
+@item New KeyValueObserving code for Clang and GNUstep runtime.
+@item Other new methods/features
+@itemize @minus{}
+
+@item BSByteOrder fixes for NSSwappedFloat and NSSwappedDouble
+@item [NSDate] small object optimisation when using Clang
+@item -[NSFileManager URLsForDirectory:inDomains:]
+@item NSGeometry missing functions implemented
+@item [NSInvocation] missing typedefs implemented
+@item [NSOperation] threads are now named for  easy identification
+@item [NSPredicate] BETWEEN operator for more types
+@item -[NSString enumerateLinesUsingBlock:]
+@item [NSThread] priority support now working on Android
+@item [NSString] NSRegularExpressionSearch option
+@item [NSString] ICU collator cached for improved performance
+@item -[NSURLRequest assumesHTTP3Capable]
+@item -[NSURLRequest setAssumesHTTP3Capable:]
+@item [NSUserDefaults] use bundle identifier rather than program name
+@item [NSValue] edge insets added
+@item -[NSZombie logZombie:]
+@end itemize
+
+@item Support for being built with the '-asan yes' command line option
+	or the GNUSTEP_WITH_ASAN=1 environment variable setting.  The library
+	is also aware when it was not built with that option but is linked to
+	an executable which was (and a few features which confuse the leak
+	checker are turned off).  In addition NSObject+GNUstepBase.h declares
+	new methods for tracking the ownership of objects of a particular
+	class (or individual instances) to help in identifying the cause of
+	any leak found by the leak sanitizer.
+@item Many minor bugfixes and very, very many minor memory leaks fixed
+	in both the library and the automated testcases.
+@item Removed deprecated locking code and changed many classes to use
+	lightweight and more fine-grained locking for simple cases protecting
+	short regions.  We retain a global lock for more complex situations
+	where there is a significant chance of deadlock.
+@item Several symbols (variables and functions) which were accidentally
+	public have been made static or internal to the library.
+@item Updated to work with recent versions of autoconf.
 
 @end itemize
 
