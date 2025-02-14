@@ -1,3 +1,9 @@
+2025-02-14  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/Makefile.postamble (after-install):
+	Don't install CoreFoundation header when installing base additions
+	on macOS.
+
 2025-01-14 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/NSURL+GNUstepBase.h:
