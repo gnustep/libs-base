@@ -573,8 +573,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	    }
 
 	  auth = [authentication authorizationForAuthentication: nil
-							 method: method
-							   path: [u fullPath]];
+	    method: method
+	    path: [u pathWithEscapes]];
 	  /* If authentication is nil then auth will also be nil
 	   */
 	  if (auth != nil)
@@ -893,7 +893,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 
 		  auth = [authentication authorizationForAuthentication: ac
 		    method: method
-		    path: [url fullPath]];
+		    path: [url pathWithEscapes]];
 		  if (auth != nil)
 		    {
 		      [self writeProperty: auth forKey: @"Authorization"];
@@ -1101,8 +1101,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   /*
    * Set up request - differs for proxy version unless tunneling via ssl.
    */
-  path = [[[u fullPath] stringByTrimmingSpaces]
-    stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
+  path = [[u pathWithEscapes] stringByTrimmingSpaces];
   if ([path length] == 0)
     {
       path = @"/";
@@ -1923,8 +1922,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      method = @"GET";
 	    }
 	}
-      path = [[[u fullPath] stringByTrimmingSpaces]
-        stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
+      path = [[u pathWithEscapes] stringByTrimmingSpaces];
       if ([path length] == 0)
 	{
 	  path = @"/";

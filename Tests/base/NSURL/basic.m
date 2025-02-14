@@ -3,6 +3,7 @@
 #import "ObjectTesting.h"
 
 #if     GNUSTEP
+#import <GNUstepBase/NSURL+GNUstepBase.h>
 extern const char *GSPathHandling(const char *);
 #endif
 
@@ -166,6 +167,20 @@ int main()
 #if     GNUSTEP
   PASS_EQUAL([rel fullPath], @"/testing/aaa/bbb/ccc/",
     "Simple relative URL fullPath works");
+  PASS_EQUAL([rel pathWithEscapes], @"/testing/aaa/bbb/ccc/",
+    "Simple relative URL pathWithEscapes works");
+#endif
+  rel = [NSURL URLWithString: @"aaa%2fbbb%2fccc/" relativeToURL: url];
+  PASS_EQUAL([rel absoluteString],
+    @"http://here.and.there/testing/aaa%2fbbb%2fccc/",
+    "Escaped relative URL absoluteString works");
+  PASS_EQUAL([rel path], @"/testing/aaa/bbb/ccc",
+    "Escaped relative URL path works");
+#if     GNUSTEP
+  PASS_EQUAL([rel fullPath], @"/testing/aaa/bbb/ccc/",
+    "Escaped relative URL fullPath works");
+  PASS_EQUAL([rel pathWithEscapes], @"/testing/aaa%2fbbb%2fccc/",
+    "Escaped relative URL pathWithEscapes works");
 #endif
 
   url = [NSURL URLWithString: @"http://1.2.3.4/a?b;foo"];

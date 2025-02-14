@@ -871,7 +871,7 @@ typedef struct {
   /* Perform a redirect if the path is empty.
    * As per MacOs-X documentation.
    */
-  if ([[[this->request URL] fullPath] length] == 0)
+  if ([[[this->request URL] pathWithEscapes] length] == 0)
     {
       NSString		*s = [[this->request URL] absoluteString];
       NSURL		*url;
@@ -1413,7 +1413,7 @@ typedef struct {
 		      auth = [authentication
 			authorizationForAuthentication: hdr
 			method: [this->request HTTPMethod]
-			path: [url fullPath]];
+			path: [url pathWithEscapes]];
 		    }
 
 		  if (auth == nil)
@@ -1813,8 +1813,7 @@ typedef struct {
                 dataUsingEncoding: NSASCIIStringEncoding]];
 	      [m appendBytes: " " length: 1];
 	      u = [this->request URL];
-	      s = [[u fullPath] stringByAddingPercentEscapesUsingEncoding:
-		NSUTF8StringEncoding];
+	      s = [u pathWithEscapes];
 	      if ([s hasPrefix: @"/"] == NO)
 	        {
 		  [m appendBytes: "/" length: 1];

@@ -2161,7 +2161,41 @@ static NSUInteger	urlAlign;
 
 - (NSString*) pathWithEscapes
 {
-  return [self _pathWithEscapes: YES];
+  NSString	*path = nil;
+
+  if (YES == myData->isGeneric || 0 == myData->scheme)
+    {
+      unsigned int	len = 3;
+
+      if (_baseURL != nil)
+        {
+          if (baseData->path && *baseData->path)
+            {
+              len += strlen(baseData->path);
+            }
+          else if (baseData->hasNoPath == NO)
+            {
+              len++;
+            }
+        }
+      if (myData->path && *myData->path)
+        {
+          len += strlen(myData->path);
+        }
+      else if (myData->hasNoPath == NO)
+        {
+          len++;
+        }
+      if (len > 3)
+        {
+          char		buf[len];
+          char		*ptr;
+
+          ptr = [self _path: buf withEscapes: YES];
+          path = [NSString stringWithUTF8String: ptr];
+        }
+    }
+  return path;
 }
 @end
 

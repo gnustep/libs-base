@@ -1,3 +1,15 @@
+2025-01-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/NSURL+GNUstepBase.h:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURL.m:
+	* Source/NSURLProtocol.m:
+	* Tests/base/NSURL/basic.m:
+	Fix -pathWithEscapes to return the full path as documented.
+	Change NSURLHandle/NSURLConnection to use this method (rather than
+	-fullPath) so that %2f escape sequences are preserved in the path
+	in the outgoing request (and also when used as a cache key).
+
 2025-01-10 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* ChangeLog: Update for new release
