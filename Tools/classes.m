@@ -17,6 +17,7 @@
  * We probably arent intersted in classes, ivar offsets, or ASAN synbols.
  */
 #import "Foundation/Foundation.h"
+#import "GNUstepBase/GNUstep.h"
 #import	"GNUstepBase/GSObjCRuntime.h"
 
 static NSSet *
