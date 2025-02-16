@@ -255,23 +255,16 @@ NSString *
 GSLanguageFromLocale(NSString *locale)
 {
   NSString	*language = nil;
-  NSString	*aliases = nil;
-  NSBundle      *gbundle;
+  NSDictionary	*dict;
 
   if (locale == nil || [locale isEqual: @"C"] || [locale isEqual: @"POSIX"]
       || [locale length] < 2)
     return @"English";
 
   ENTER_POOL
-  gbundle = [NSBundle bundleForLibrary: @"gnustep-base"];
-  aliases = [gbundle pathForResource: @"Locale"
-		              ofType: @"aliases"
-		         inDirectory: @"Languages"];
-  if (aliases != nil)
+  dict = GSPrivateLanguageAliases();
+  if (dict != nil)
     {
-      NSDictionary	*dict;
-
-      dict = [NSDictionary dictionaryWithContentsOfFile: aliases];
       language = [[dict objectForKey: locale] copy];
       if (language == nil && [locale pathExtension] != nil)
 	{
