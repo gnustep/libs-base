@@ -1,4 +1,9 @@
-2025-02-14  Wolfgang Lux  <wolfgang.lux@gmail.com>
+2025-01-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/ReleaseNotes.gsdoc: fix bad line break markup
+	* config/config.ffi.c: add some diagnostic logging
+
+2025-01-14  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/Makefile.postamble (after-install):
 	Don't install CoreFoundation header when installing base additions
