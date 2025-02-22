@@ -1,3 +1,8 @@
+2025-02-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/ObjectiveC2/weak.m: Comment out unnecessary code which does
+	not work on s390x machines (and broke weak references on them).
+
 2025-01-18 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Documentation/ReleaseNotes.gsdoc: fix bad line break markup

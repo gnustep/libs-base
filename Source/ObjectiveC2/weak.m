@@ -30,6 +30,11 @@ isPersistentObject(id obj)
       return YES;
     }
 
+/* Disabled check for addresses not matching alignment rules below.
+ * The test is broken for the s390x (which is a Debiam supported machine)
+ * and shouldn't actually be needed anyway.
+ */
+#if	0
   /* If the alignment of the object does not match that needed for a
    * pointer (to the class of the object) then the object must be a
    * special one of some sort and we assume it's persistent.
@@ -44,6 +49,7 @@ isPersistentObject(id obj)
     {
       return YES;
     }
+#endif
 #endif
 
   c = object_getClass(obj);
