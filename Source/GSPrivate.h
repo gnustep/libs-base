@@ -646,5 +646,13 @@ void GSWeakInit() GS_ATTRIB_PRIVATE;
 BOOL objc_delete_weak_refs(id obj);
 #endif
 
+/**
+ * Returns an unretained version of the language aliases,
+ * or nil if the NSBundle class is not initialised.
+ *
+ * Implementation in NSBundle.
+ */
+NSDictionary *GSPrivateLanguageAliases();
+
 #endif /* _GSPrivate_h_ */
 
