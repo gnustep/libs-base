@@ -298,6 +298,9 @@ extern "C" {
 /** Turns on tracking of the ownership for all instances of the receiver.
  * This could have major performance impact and if possible you should not
  * call this class method but should use the instance method instead.
+ * Using this method will will not work for NSObject itself or for classes
+ * whose instances are expected to live forever (literal strings, tiny objects
+ * etc).
  */
 + (void) trackOwnership;
 
@@ -316,7 +319,10 @@ extern "C" {
  * All instances of a tracked class (and its subclasses) incur an overhead
  * when the overridden methods are executed, and that overhead scales with
  * the number of tracked instances (and classes) so tracking should be
- * used sparingly (probably never in production code).
+ * used sparingly (probably never in production code).<br />
+ * Using this method will will not work for an instance of the root class
+ * or for most objects which are expected to live forever (literal strings,
+ * tiny objects etc).
  */
 - (void) trackOwnership;
 

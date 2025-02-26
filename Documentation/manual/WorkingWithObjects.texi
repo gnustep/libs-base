@@ -13,7 +13,7 @@ schemes for memory management.
 
 
 @section Initializing and Allocating Objects
-@cindex objects, initalizing and allocating
+@cindex objects, initializing and allocating
 @cindex allocating objects
 
 Unlike most object-oriented languages, Objective-C exposes memory allocation
@@ -93,7 +93,7 @@ system.  The OS would then keep these objects in memory at one time, and swap
 them out at the same time, perhaps to make way for a separate portion of the
 application that operated mostly independently.  (Think of a word processor
 that keeps structures for postscript generation for printing separate from
-those for managing widgets in the onscreen editor.)
+those for managing widgets in the on-screen editor.)
 
 With the growth of computer RAM and the increasing sophistication of memory
 management by operating systems, it is not as important these days to control
@@ -167,6 +167,7 @@ With the ObjC-2 (NG) setup,  the use of zones is obsoleted:  the runtime
 library performs the freeing of memory used by objects.
 
 
+@page
 @section Memory Management
 @cindex memory management
 
@@ -174,37 +175,14 @@ In an object-oriented environment, ensuring that all memory is freed when it
 is no longer needed can be a challenge.  To assist in this regard, there are
 three alternative forms of memory management available in Objective-C:
 
-@itemize @minus
-@item Explicit@*
+@subsection Basic strategies
+
+@subsubsection Explicit
+@cindex memory management, explicit
 You allocate objects using @code{alloc}, @code{copy} etc, and deallocate
 them when you have finished with them (using @code{dealloc}).
 This gives you complete control over memory management, and is highly
 efficient, but error prone.
-
-@item Retain count@*
-You use the OpenStep retain/release mechanism, along with autorelease
-pools which provide a degree of automated memory management.  This gives
-a good degree of control over memory management, but requires some care
-in following simple rules.  It's pretty efficient.
-
-@item Automated Reference Counts (ARC)@*
-Only available when using the ObjC-2 (NG) environment rather than classic
-Objective-C.  In this case the compiler generates code to use the retain
-count and autorelease pools.  The use of ARC can be turned on/off for
-individual files.
-
-
-@end itemize
-
-The recommended approach is to use some standard macros defined in
-@code{NSObject.h} which encapsulate the retain/release/autorelease mechanism,
-but which permit efficient use of Automated reference Counts (ARC) if you build
-your software with that.  We will justify this recommendation after describing
-the three alternatives in greater detail.
-
-
-@subsection Explicit Memory Management
-@cindex memory management, explicit
 
 This is the standard route to memory management taken in C and C++ programs.
 As in standard C when using @code{malloc}, or in C++ when using @code{new} and
@@ -218,10 +196,13 @@ This approach is generally @i{not} recommended since the Retain/Release style
 of memory management is significantly less leak-prone while still being quite
 efficient.
 
-
-@subsection OpenStep-Style (Retain/Release) Memory Management
+@subsubsection Retain count
 @cindex memory management, OpenStep-style
 @cindex memory management, retain count
+You use the OpenStep retain/release mechanism, along with autorelease
+pools which provide a degree of automated memory management.  This gives
+a good degree of control over memory management, but requires some care
+in following simple rules.  It's pretty efficient.
 
 The standard OpenStep system of memory management employs retain counts.
 When an object is created, it has a retain count of 1.  When an object
@@ -319,8 +300,28 @@ implementation of a container class @code{retain}s each object that is added
 to it, and @code{release}s it when it is removed, in a separate method.  In
 general you need to be careful in these cases that retains and releases match.
 
+@subsubsection Automated Reference Counts (ARC)
+@cindex ObjC-2 , automated reference counting
+@cindex ARC
+Only available when using the ObjC-2 (NG) environment rather than classic
+Objective-C.  In this case the compiler generates code to use the retain
+count and autorelease pools.  The use of ARC can be turned on/off for
+individual files.
 
-@subsubsection Autorelease Pools
+The automation of retain and release makes for much more reliable memory
+management but can still be broken by failure to annotate methods and functions
+which do anything unusual, as well as failing to handle certain patterns of
+using such as retain cycles.
+
+Despite the advantages of ARC, this is only available with one compiler/runtime
+and code dependent on ARC is therefore inherently non-portable. To make portable
+code which is more robust in the long run, it is therefore recommended that you
+use the portability macros (described later) to produce code which will work
+with both the basic OpenStep style manual retain/release and with ARC..
+
+
+@page
+@subsection Autorelease Pools
 
 One important case where the retain/release system has difficulties is when
 an object needs to be transferred or handed off to another.  You don't want
@@ -428,7 +429,7 @@ begins a block in which a new pool handles autoreleases and the LEAVE_POOL
 macro ends that block and destroys the autorelease pool.
 
 
-@subsubsection Avoiding Retain Cycles
+@subsection Avoiding Retain Cycles
 
 One difficulty that sometimes occurs with the retain/release system is that
 cycles can arise in which, essentially, Object A has retained Object B, and
@@ -456,8 +457,9 @@ is called it both retains and autorelease the referenced value so that it
 will continue to exist for long enough for your code to work with it.
 
 
-@subsubsection Summary
+@subsection Methods, Conventions, and Macros
 
+@subsubsection retain/release related methods
 The following summarizes the retain/release-related methods:
 
 @multitable @columnfractions 0.25 0.75
@@ -485,6 +487,8 @@ The following summarizes the retain/release-related methods:
 These constructors are class methods whose name generally begins with the
 name of the class (initial letter converted to lowercase).
 @end multitable
+
+@subsubsection retain/release related conventions
 
 The following are the main conventions you need to remember:
 
@@ -515,71 +519,7 @@ returned objects will obviously differ from the simple examples, but the
 ownership rules (how you should use the returned values) remain the same.
 @end itemize
 
-
-@ignore
-Special examples: delegate, target
-@end ignore
-
-@subsubsection Leak Checking
-
-Looking at the following code:
-
-@example
-#import "Client.h"
-
-@@implementation Client
-- (void) executeCallSequence
-@{
-  NSString *str = [NSString stringWithFormat: @@"one little string: %d\n", 100];
-  const char *strCharPtr = [str cString];
-@}
-@@end
-
-int main(int argv, char** argc)
-@{
-  Client *client = [[Client alloc] init];
-
-  [[NSAutoreleasePool alloc] init];
-  [client executeCallSequence];
-
-  return 0;
-@}
-@end example
-
-So, what do we expect this to do if we build the program with leak checking ('make asan=yes') or run it with a separate leak checker such as valgrind?
-
-Firstly this code creates a Client instance, owned by the main function.  This is because +alloc returns an instance owned by the caller, and -init consumes its receiver and returns an instance owned by the caller, so the alloc/init sequence produces an instance owned by the main function. 
-
-Next it creates/enters an autorelease pool, owned by the main function.
-
-Next it executes the method '-[Client executeCallSequence]' which:
-
-  Creates an NSString which is NOT owned by the method.
-
-  The +stringWithFormat: method creates a new instance and adds it to the current autorelease pool before returning it.
-
-  Creates a C string, which is NOT owned by the method.
-
-  A non-object return value can't be retained or released, but it conforms to the convention that the memory is not owned by the caller, so the caller need not free it.  The -cString method is free to manage that however it likes (for instance it might return a pointer to some internal memory which exists until the NSString object is deallocated), but typically what's returned is a pointer to memory inside some other object which has been autoreleased.
-
-Finally, the 'return' command means that the program exits with a status of zero.
-
-
-A simple look at the basic retain count and autorelease rules would say that all the memory is leaked (because the program contains no call to release anything), but there's a bit of behind the scenes magic:  when a thread exits it releases all the autorelease pools created in it which were not already released.  That's not to say that the failure to release the autorelease pool was not a bug (the code should have released it), just that there is a fail-safe behaviour to protect multithreaded programs from this particular programmer error.
-
-So when you consider that, you can see that the autorelease pool is deallocated so the memory of the  pool is actually freed, and the memory of the NSString and C-String inside it are therefore also freed.
-
-This leaves us with the memory of the Client object being leaked.  However, the idea that any unfreed memory is a leak is too simplistic (leak checkers would be useless if they reported so much) so the leak checker only reports some unfreed memory ... stuff that can't be reached from various standard routes.  The main case is that anything pointed to by global or static variables is not considered leaked, but also anything pointed to by a variable in the main() function is not considered leaked.  This is why the Client instance would not normally be reported by a leak checker.
-
-
-@subsection ObjC-2 and Automated Reference Counting
-@cindex ObjC-2 , automated reference counting
-@cindex ARC
-
-When using a compiler and runtime supporting ObjC-2 and ARC, the reference
-counting for objects is handled by the compiler.  To enable easy development
-(to ObjC-1) code, a number of macros are provided which encapsulate the
-manual reference counting required when ARC is not available.
+@subsubsection retain/release related macros
 
 @multitable @columnfractions 0.25 0.75
 @item Macro @tab Functionality
@@ -621,6 +561,288 @@ manual reference counting required when ARC is not available.
 
 In the assignment ``convenience'' macros, appropriate @code{nil} checks are
 made so that no retain/release messages are sent to @code{nil}.
+
+@page
+@subsection Leak Checking
+
+Consider a simple case of leaked objects in a program @code{a.m} built with the
+@code{asan=yes} make option.  The code looks like this:
+
+@example
+#import <Foundation/Foundation.h>
+
+int
+main(void)
+@{
+  id obj;
+
+  obj = [[NSString alloc] initWithString: @@"hello"];
+  obj = [[NSArray alloc] initWithObjects: &obj count: 1]; 
+
+  return 0;
+@}
+@end example
+
+The program creates an NSString and then creates an NSArray containing that
+string, before exiting without releasing either, so both are leaked.
+
+The leak sanitizer log on program exist looked like this:
+
+@example
+=================================================================
+==411363==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 28 byte(s) in 1 object(s) allocated from:
+    #0 0xb6b2805431d8 in calloc (/home/user/a+0xd31d8)
+    #1 0xf40da3d921c0 in allocate_class libobjc2/gc_none.c:19:3
+    #2 0xf40da3d94d0c in class_createInstance libobjc2/runtime.c:361:11
+    #3 0xf40da358a980 in NSAllocateObject Source/NSObject.m:800:14
+    #4 0xf40da3307968 in _i_GSPlaceholderArray__initWithObjects_count_
+      Source/GSArray.m:1257:14
+    #5 0xb6b2805809e4 in main /home/user/a.m:9:9
+    #6 0xf40da2df84c0 in __libc_start_call_main
+      libc_start_call_main.h:58:16
+    #7 0xf40da2df8594 in __libc_start_main libc-start.c:360:3
+    #8 0xb6b2804a43ec in _start (/home/user/obj/a+0x343ec)
+@end example
+
+This is just the first part, giving the stack trace of a direct leak (memory
+with nothing pointing to it): occurring at /home/user/a.m line 9 column 9.
+Clearly this is telling us that the array was leaked.
+
+@example
+Indirect leak of 42 byte(s) in 1 object(s) allocated from:
+    #0 0xb6b2805431d8 in calloc (/home/user/obj/a+0xd31d8)
+    #1 0xf40da3d921c0 in allocate_class libobjc2/gc_none.c:19:3
+    #2 0xf40da3d94d0c in class_createInstance libobjc2/runtime.c:361:11
+    #3 0xf40da358a980 in NSAllocateObject Source/NSObject.m:800:14
+    #4 0xf40da3370dc8 in newUInline Source/GSString.m:755:5
+    #5 0xf40da337685c in _i_GSPlaceholderString__initWithString_
+      Source/GSString.m:1727:19
+    #6 0xb6b280580998 in main /home/user/a.m:8:9
+    #7 0xf40da2df84c0 in __libc_start_call_main
+      libc_start_call_main.h:58:16
+    #8 0xf40da2df8594 in __libc_start_main c-start.c:360:3
+    #9 0xb6b2804a43ec in _start (/home/user/obj/a+0x343ec)
+@end example
+
+This second part of the report is an indirect leak (because it is memory which is pointed to by the leaked array).  It's the NSString object created at /home/user/a.m line 8 column 9.
+
+@example
+Indirect leak of 8 byte(s) in 1 object(s) allocated from:
+    #0 0xb6b280543004 in malloc (/home/user/obj/a+0xd3004)
+    #1 0xf40da373a6b8 in default_malloc Source/NSZone.m:164:9
+    #2 0xf40da373a3a4 in NSZoneMalloc Source/NSZone.m:1802:10
+    #3 0xf40da32fe710 in _i_GSArray__initWithObjects_count_
+      Source/GSArray.m:186:25
+    #4 0xf40da3307984 in _i_GSPlaceholderArray__initWithObjects_count_
+      Source/GSArray.m:1268:10
+    #5 0xb6b2805809e4 in main /home/user/a.m:9:9
+    #6 0xf40da2df84c0 in __libc_start_call_main
+      libc_start_call_main.h:58:16
+    #7 0xf40da2df8594 in __libc_start_main libc-start.c:360:3
+    #8 0xb6b2804a43ec in _start (/home/user/obj/a+0x343ec)
+@end example
+
+This third part is also an indirect leak ... it's the backing store allocated
+to hold the object in the array,  o fixing the leak of the array object should
+also fix this (since the array should free its backing store when it is done
+with it).
+
+@example
+SUMMARY: AddressSanitizer: 78 byte(s) leaked in 3 allocation(s).
+@end example
+
+The final part of the leak report is the summary.  In a big leak report you
+can quickly look to the end of the report to get an idea of the severity of 
+leaks in your program.
+
+In this trivial example it is easy to see, from the stack traces, exactly where
+the problems lie. In a more realistic situation the leak sanitizer tells you
+exactly where leaked memory was allocated, but it can still be very had to tell
+why that memory was not deallocated later ... a leaked object may have been
+retained, autoreleased and released multiple times during the life of the
+program as it is passed around between different sections of code and
+temporarily held in different data structures.
+
+@subsubsection tracking leaked objects
+
+If the leak sanitizer has detected a leak, but you can't figure out why the
+leak occurred from simple source code inspection,  the gnustep-base library
+can help you.
+
+The @code{GNUstepBase/NSObject+GNUstepBase.h} header contains the
+-trackOwnership method for tracking object lifecycles.  Immediately after the
+leaked object is allocated you can add code to send it the trackOwnership
+message, and a stack trace will be logged every time that object is retained,
+or released (or deallocated), allowing you to see what happened to it from the
+start of its life to the point where the program exited.
+
+@example
+#import <Foundation/Foundation.h>
+#import <GNUstepBase/NSObject+GNUstepBase.h>
+
+@@interface Leaked : NSObject
+@@end
+@@implementation Leaked
+@@end
+
+@@interface ItemHolder : NSObject
+@{
+  NSObject	*i;
+@}
++ (ItemHolder*) holderFor: (NSObject*)anItem;
+- (NSObject*) item;
+@@end
+
+@@implementation	ItemHolder
++ (ItemHolder*) holderFor: (NSObject*)anItem
+@{
+  ItemHolder	*h = [self new];
+  ASSIGN(h->i, anItem);
+  return AUTORELEASE(h);
+@}
+- (NSObject*) item
+@{
+  return i;
+@}
+@@end
+
+int
+main(void)
+@{
+  ENTER_POOL
+  NSObject	*leaked = [Leaked new];
+
+  [leaked trackOwnership];
+  [NSArray arrayWithObject: [ItemHolder holderFor: leaked]];
+  DESTROY(leaked);
+  LEAVE_POOL
+  return 0;
+@}
+@end example
+
+In this slightly more realistic example, the leaked instance of a new class
+called @code{Leaked} is explicitly destroyed, and the code is inside an
+autorelease pool so the cause of the leak is a little less obvious.
+
+@example
+Tracking ownership started for instance 0x50200008e858 at (
+ "... _i_NSObject_GSCleanUp_trackOwnership
+  Source/Additions/NSObject+GNUstepBase.m: 827",
+ "(./obj/a: 0x1114d4) main  /home/user/a.m: 36",
+ "(/libc.so.6: 0x284c4) __libc_start_call_main libc-start.c: 74",
+ "(libc.so.6: 0x28598) call_init  libc-start.c: 128",
+ "(./obj/a: 0x34eb0) _start  (null): 0").
+
+Tracking ownership -[0x50200008e858 retain] 1->2 at (
+ "(./obj/a: 0x111380) _c_ItemHolder__holderFor_  /a.m: 21",
+ "(./obj/a: 0x111520) main  /a.m: 37",
+ "(libc.so.6: 0x284c4) __libc_start_call_main  libc-start.c: 74",
+ "(libc.so.6: 0x28598) call_init  libc-start.c: 128",
+ "(./obj/a: 0x34eb0) _start  (null): 0").
+
+Tracking ownership -[0x50200008e858 release] 2->1 at (
+ "(./obj/a: 0x111548) main  /a.m: 39",
+ "(libc.so.6: 0x284c4) __libc_start_call_main  libc-start.c: 74",
+ "(libc.so.6: 0x28598) call_init  libc-start.c: 128",
+ "(./obj/a: 0x34eb0) _start  (null): 0").
+
+Tracking ownership -[0x50200008e858 dealloc] not called by exit.
+@end example
+The trace for the leaked object is edited to leave out some file path
+details etc for clarity, so you can see there are four logs; start of tracking,
+a retain, a release, and the end of the program.
+
+In each log the address of the traced object is shown (so if you are tracking
+more than one object you can tell which logs are which) along with the
+operation being traced.
+
+For the retain log, the address and operation information is followed by 1->2
+indicating that the retain count of the object changed from 1 to 2, and from
+the stack trace we can see that the retain was done by the +holderFor: method.
+
+For the release log, the address and operation information is followed by 2->1
+indicating that the retain count of the object changed from 1 to 1, and from
+the stack trace we can see that the release was done at line 39 in main.m
+(the -release produced by the DESTROY() macro).
+
+From this it's quite easy to see that the leaked object was NOT released when
+the ItemHolder was deallocated, so we now what we need to release it in the
+-dealloc method of ItemHolder (firgetting to do this is a common error, and
+iis something that ARC would do for us automatically).
+
+A portable fix would be to add an implementation as follows:
+@example
+- (void) dealloc
+@{
+  RELEASE(i);
+  DEALLOC
+@}
+@end example
+
+@subsubsection Not so simple
+
+Wonderful as leak sanitization is, it is far from perfect.
+It is subject to false positives, where things are reported as leaks which were intentionally leaked (eg because they are insignificant), often in library code that you don't really have much control over.  To handle that the sanitizer has a @emph{suppression} mechanism where a file can be specified to contain rules that the sanitizer will use to suppress reporting of false positives.  You need to refer to the LeakSanitizer documentation for the details of that.
+
+The report is also governed by what it considers a leak (which may not be what you think is a leak).  The general principle is that heap memory which is not reachable (either directly or indirectly) from some standard locations is considered leaked, but the exact definition of the standard locations vary.  Usually global variables, static variables, and variables on the stack may all be pointers to memory that prevent the memory from being considered leaks.
+
+There is also the consideration that often memory we would consider leaked
+(because it contributes to an ever expanding memory footprint of a long running process) is not considered leaked by the sanitiser simply because it is pointed
+to from within some data structure which is in use.  The leak sanitizer cannot help in this case unless you suspect the problem and deliberately leak that data structure (in which case the sanitizer can help by reporting where the items still in the data structure were created).
+
+@page
+Looking at the following code:
+
+@example
+#import <Foundation/Foundation.h>
+#import "Client.h"
+
+@@implementation Client
+- (void) executeCallSequence
+@{
+  NSString *str = [NSString stringWithFormat:
+    @@"one little string: %d\n", 100];
+  const char *strCharPtr = [str cString];
+@}
+@@end
+
+int main(int argv, char** argc)
+@{
+  Client *client = [[Client alloc] init];
+
+  [[NSAutoreleasePool alloc] init];
+  [client executeCallSequence];
+
+  return 0;
+@}
+@end example
+
+So, what do we expect this to do if we build the program with leak checking ('make asan=yes') or run it with a separate leak checker such as valgrind?
+
+Firstly this code creates a Client instance, owned by the main function.  This is because +alloc returns an instance owned by the caller, and -init consumes its receiver and returns an instance owned by the caller, so the alloc/init sequence produces an instance owned by the main function. 
+
+Next it creates/enters an autorelease pool, owned by the main function.
+
+Next it executes the method '-[Client executeCallSequence]' which:
+
+  Creates an NSString which is NOT owned by the method.
+
+  The +stringWithFormat: method creates a new instance and adds it to the current autorelease pool before returning it.
+
+  Creates a C string, which is NOT owned by the method.
+
+  A non-object return value can't be retained or released, but it conforms to the convention that the memory is not owned by the caller, so the caller need not free it.  The -cString method is free to manage that however it likes (for instance it might return a pointer to some internal memory which exists until the NSString object is deallocated), but typically what's returned is a pointer to memory inside some other object which has been autoreleased.
+
+Finally, the 'return' command means that the program exits with a status of zero.
+
+
+A simple look at the basic retain count and autorelease rules would say that all the memory is leaked (because the program contains no call to release anything), but there's a bit of behind the scenes magic:  when a thread exits it releases all the autorelease pools created in it which were not already released.  That's not to say that the failure to release the autorelease pool was not a bug (the code should have released it), just that there is a fail-safe behaviour to protect multithreaded programs from this particular programmer error.
+
+So when you consider that, you can see that the autorelease pool is deallocated so the memory of the  pool is actually freed, and the memory of the NSString and C-String inside it are therefore also freed.
+
+This leaves us with the memory of the Client object being leaked.  However, the idea that any unfreed memory is a leak is too simplistic (leak checkers would be useless if they reported so much) so the leak checker only reports some unfreed memory ... stuff that can't be reached from various standard routes.  The main case is that anything pointed to by global or static variables is not considered leaked, but also anything pointed to by a variable in the main() function is not considered leaked.  This is why the Client instance would not normally be reported by a leak checker.
 
 @page
 

@@ -1,10 +1,11 @@
 @paragraphindent 0
 
 @node Exception Handling
-@chapter Exception Handling, Logging, and Assertions
+@chapter Exception Handling, Assertions, Logging, and Sanitization
 @cindex exception facilities
 @cindex logging facilities
 @cindex assertion facilities
+@cindex memory sanitisation facilities
 
 No matter how well a program is designed, if it has to interact with a user or
 other aspect of the outside world in any way, the code is bound to
@@ -543,8 +544,9 @@ you wish the handler to be used.  This is done by calling:
 See @ref{Base Library, , Threads and Run Control} for more information on what
 this is doing.
 
+@page
 
-@section Comparison with Java
+@subsection Comparison with Java
 @cindex exception handling, compared with Java
 @cindex logging, compared with Java
 @cindex assertion handling, compared with Java
@@ -574,3 +576,155 @@ The assertion facilities are similar to but a bit more flexible than those in
 Java/JDK 1.4 since you can override the assertion handler.
 
 @page
+
+@section Address sanitization
+@cindex address sanitization
+@cindex memory access
+
+One of the powers of the C family of languages is the existence of pointer
+to memory locations containing information, indeed every Objective-C object
+variable is a pointer to a memory location containing that object.
+
+Aside from object specific problems, we have the standard problems of C in
+that a pointer to memory can result in access violations where we attempt
+to read from a memory location that we shouldn’t or write to one that we
+shouldn’t.  These operations can cause our program to crash or to misbehave
+(if we read from a memory location that doesn’t contain the information we
+are expecting).
+
+Modern compilers try to catch such errors and will warn about the more
+dangerous looking code.
+
+Operating systems catch some errors, and kill programs which access some
+memory locations.
+
+The combination of these mechanisms still doesn’t deal with everything.
+
+@subsection Building with ASAN
+
+The gnustep-make package provides an option (@code{asan=yes}) to build
+software with address sanitisation turned on, to catch many more errors
+when the program runs.
+
+This causes the compiler to add extra code to check things at runtime (as well as curing the code to link with different libraries to catch errors in the parameters passed to many standard functions).
+
+This is dangerous for production code, because the program will terminate as
+soon as such an error (even if it is harmless) is detected, but is a great
+feature for a software developer or QA tester to have turned on.
+
+In addition to building individual files or projects using @code{asan=yes} 
+gnustep-make understands the environment variable setting
+@code{GNUSTEP_WITH_ASAN=1} as turning on building with ASAN.
+
+@page
+@subsection Typical address issues
+
+The typical issues detected are buffer overflow (or overrun) where we write to
+a location just beyond the start or end of a section of memory allocated by the
+malloc() function, and buffer overread where we read beyond the meaningful data.
+
+@example
+for (char *ptr = buffer; *ptr != '\0'; ptr++)
+  @{
+    if (memcmp(ptr, key, keylen) == 0)
+      @{
+        return 1; // found the key
+      @}
+  @}
+return 0;	// key not found
+@end example
+
+The code to search for a key in a buffer containing a nul terminated C-string
+may (depending on exactly how memcmp() is implemented) read data beyond the
+terminating nul, and possibly outside the memory allocated for the buffer.
+This will be detected at runtime by the address sanitizer and cause the
+program to stop immediately and print a message to STDERR describing the
+location and nature of the problem:
+
+@example
+=================================================================
+==NNNNNN==ERROR: AddressSanitizer: heap-buffer-overflow on address ...
+READ of size N at ...
+    #0 ... in MemcmpInterceptorCommon...
+    #1 ... in memcmp (/home/username/a+...)...
+    #2 ... in main /home/username/a.m:120:40
+    ...
+
+... is located N bytes after N-byte region ... allocated by thread ... here:
+    #0 ... in malloc ...
+    #1 ... in main /home/username/a.m:55:22
+    ...
+
+SUMMARY: AddressSanitizer: heap-buffer-overflow ... 
+Shadow bytes around the buggy address: ...
+@end example
+
+The report says what happened, then gives a stack trace of where it happened,
+then a stack trace of where the buffer was allocated, then a summary, and
+finally some incomprehensible (unless you want to get deep into the details of
+how the address sanitizer works) 'shadow byte' details.
+
+Generally a look at the source code corresponding to the first reported stack
+trace, in conjunction with the knowledge of the type of error detected, is
+enough to spot the problem so that you can fix it.
+
+@page
+@subsection Leak sanitization
+@cindex leak sanitization
+
+Leak sanitization is a close cousin to address sanitization. Rather than
+attempting to detect general addressing errors of writing to incorrect
+locations, it concentrates on the issue of memory allocations which are not
+matched by deallocation when the memory is no longer needed.  Memory leaks
+typically result in crashes because the system runs out of memory.
+
+Like address sanitization, leak sanitization is turned on my the asan=yes
+option in gnustep-make.  Unlike address sanitization, it does not necessarily
+have to be turned on while compiling every file, only when compiling an linking
+the main executable.
+
+Memory leaks are normally checked at the point when a process is shut down,
+but can optionally be checked for and reported by a running process.
+
+Leak sanitization reports are somewhat similar to address sanitization reports:
+
+@example
+=================================================================
+==NNNNNN==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of N byte(s) in N object(s) allocated from:
+    #0 ... in malloc (/home/username/a.out+...)...
+    #1 ... in main /home/username/a.m:7:19
+    #2 ... in __libc_start_call_main ...
+    #3 ... in __libc_start_main csu/...
+    #4 ... in _start (/home/username/a.out+...)
+
+SUMMARY: AddressSanitizer: N byte(s) leaked in N allocation(s).
+
+@end example
+
+The above example is the approximate format for a program named a.out built
+by compiling the source file a.m and shows that the leaked memory was allocated
+by a call to malloc() at line 7 column 19 in a.m 
+
+For more information @pxref{Objects,,Working With Objects}
+
+@page
+@subsection Drawbacks of ASAN
+
+While address sanitization has great points: helping prevent crashes (writing
+to bad locations), program logic errors (reading and making decisions on bad
+data), and attacks (specially crafted data deliberately canging program logic),
+it also has drawbacks.
+
+@itemize
+@item It needs to be turned on when compiling each source file of any library or program.
+@item If turned on for a library, that library can only be used with programs
+for which it is also turned on.
+@item There is no error recovery possible; any detected error causes the program to stop immediately.
+@item The extra code for monitoring memory accesses makes your program run at (approximately) half the normal speed.
+@item It allocates a huge amount of virtual memory (terabytes) making making it impossible to monitor memory usage by your process using most tools.
+@item It uses a lot more real memory to record information about what your process does, possibly causing your system to run out of memory.
+@end itemize
+
+
