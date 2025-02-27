@@ -34,14 +34,8 @@ isPersistentObject(id obj)
    * pointer (to the class of the object) then the object must be a
    * special one of some sort and we assume it's persistent.
    */
-#if	ALIGNOF_OBJC_OBJECT == 8
-  if ((intptr_t)obj & 7)
-    {
-      return YES;
-    }
-#endif
-#if	ALIGNOF_OBJC_OBJECT == 4
-  if ((intptr_t)obj & 3)
+#if	ALIGNOF_OBJC_OBJECT > 1
+  if ((intptr_t)obj & (ALIGNOF_OBJC_OBJECT - 1))
     {
       return YES;
     }
