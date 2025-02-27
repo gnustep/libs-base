@@ -9,6 +9,9 @@
 /* The normal alignment of `gs_mutex_t', in bytes. */
 #undef ALIGNOF_GS_MUTEX_T
 
+/* The normal alignment of `objc_object', in bytes. */
+#undef ALIGNOF_OBJC_OBJECT
+
 /* The normal alignment of `pthread_cond_t', in bytes. */
 #undef ALIGNOF_PTHREAD_COND_T
 

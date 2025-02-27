@@ -1682,6 +1682,15 @@ AC_SUBST(BUGGY_PTR_LIMITS)
 AC_LANG_POP(C)
 
 #--------------------------------------------------------------------
+# Check alignment of an object in memory
+#--------------------------------------------------------------------
+AC_CHECK_ALIGNOF(objc_object,[AC_INCLUDES_DEFAULT
+  typedef struct { void *isa; } objc_object;])
+if test $ac_cv_alignof_objc_object = 0 ; then
+  AC_MSG_ERROR([Unable to find align of object (required).])
+fi
+
+#--------------------------------------------------------------------
 # Setup dynamic linking
 #--------------------------------------------------------------------
 OBJC_SYS_DYNAMIC_LINKER()

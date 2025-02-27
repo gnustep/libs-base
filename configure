@@ -7383,6 +7383,47 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 #--------------------------------------------------------------------
+# Check alignment of an object in memory
+#--------------------------------------------------------------------
+# The cast to long int works around a bug in the HP C Compiler,
+# see AC_CHECK_SIZEOF for more information.
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking alignment of objc_object" >&5
+printf %s "checking alignment of objc_object... " >&6; }
+if test ${ac_cv_alignof_objc_object+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  if ac_fn_c_compute_int "$LINENO" "(long int) offsetof (ac__type_alignof_, y)" "ac_cv_alignof_objc_object"        "$ac_includes_default
+  typedef struct { void *isa; } objc_object;
+
+typedef struct { char x; objc_object y; } ac__type_alignof_;"
+then :
+
+else $as_nop
+  if test "$ac_cv_type_objc_object" = yes; then
+     { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute alignment of objc_object
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_alignof_objc_object=0
+   fi
+fi
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_alignof_objc_object" >&5
+printf "%s\n" "$ac_cv_alignof_objc_object" >&6; }
+
+
+
+printf "%s\n" "#define ALIGNOF_OBJC_OBJECT $ac_cv_alignof_objc_object" >>confdefs.h
+
+
+if test $ac_cv_alignof_objc_object = 0 ; then
+  as_fn_error $? "Unable to find align of object (required)." "$LINENO" 5
+fi
+
+#--------------------------------------------------------------------
 # Setup dynamic linking
 #--------------------------------------------------------------------
 # Copyright (C) 2005 Free Software Foundation

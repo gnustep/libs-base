@@ -30,26 +30,21 @@ isPersistentObject(id obj)
       return YES;
     }
 
-/* Disabled check for addresses not matching alignment rules below.
- * The test is broken for the s390x (which is a Debiam supported machine)
- * and shouldn't actually be needed anyway.
- */
-#if	0
   /* If the alignment of the object does not match that needed for a
    * pointer (to the class of the object) then the object must be a
    * special one of some sort and we assume it's persistent.
    */
-#if	GS_SIZEOF_VOIDP == 8
-  if ((intptr_t)obj & 15)
-    {
-      return YES;
-    }
-#else
+#if	ALIGNOF_OBJC_OBJECT == 8
   if ((intptr_t)obj & 7)
     {
       return YES;
     }
 #endif
+#if	ALIGNOF_OBJC_OBJECT == 4
+  if ((intptr_t)obj & 3)
+    {
+      return YES;
+    }
 #endif
 
   c = object_getClass(obj);
