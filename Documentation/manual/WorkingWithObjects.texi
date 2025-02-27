@@ -593,17 +593,17 @@ The leak sanitizer log on program exist looked like this:
 ==411363==ERROR: LeakSanitizer: detected memory leaks
 
 Direct leak of 28 byte(s) in 1 object(s) allocated from:
-    #0 0xb6b2805431d8 in calloc (/home/user/a+0xd31d8)
-    #1 0xf40da3d921c0 in allocate_class libobjc2/gc_none.c:19:3
-    #2 0xf40da3d94d0c in class_createInstance libobjc2/runtime.c:361:11
-    #3 0xf40da358a980 in NSAllocateObject Source/NSObject.m:800:14
-    #4 0xf40da3307968 in _i_GSPlaceholderArray__initWithObjects_count_
+    #0 0x... in calloc (/home/user/a+0x...)
+    #1 0x... in allocate_class libobjc2/gc_none.c:19:3
+    #2 0x... in class_createInstance libobjc2/runtime.c:361:11
+    #3 0x... in NSAllocateObject Source/NSObject.m:800:14
+    #4 0x... in _i_GSPlaceholderArray__initWithObjects_count_
       Source/GSArray.m:1257:14
-    #5 0xb6b2805809e4 in main /home/user/a.m:9:9
-    #6 0xf40da2df84c0 in __libc_start_call_main
+    #5 0x... in main /home/user/a.m:9:9
+    #6 0x... in __libc_start_call_main
       libc_start_call_main.h:58:16
-    #7 0xf40da2df8594 in __libc_start_main libc-start.c:360:3
-    #8 0xb6b2804a43ec in _start (/home/user/obj/a+0x343ec)
+    #7 0x... in __libc_start_main libc-start.c:360:3
+    #8 0x... in _start (/home/user/obj/a+0x...)
 @end example
 
 This is just the first part, giving the stack trace of a direct leak (memory
@@ -612,40 +612,40 @@ Clearly this is telling us that the array was leaked.
 
 @example
 Indirect leak of 42 byte(s) in 1 object(s) allocated from:
-    #0 0xb6b2805431d8 in calloc (/home/user/obj/a+0xd31d8)
-    #1 0xf40da3d921c0 in allocate_class libobjc2/gc_none.c:19:3
-    #2 0xf40da3d94d0c in class_createInstance libobjc2/runtime.c:361:11
-    #3 0xf40da358a980 in NSAllocateObject Source/NSObject.m:800:14
-    #4 0xf40da3370dc8 in newUInline Source/GSString.m:755:5
-    #5 0xf40da337685c in _i_GSPlaceholderString__initWithString_
+    #0 0x... in calloc (/home/user/obj/a+0x...)
+    #1 0x... in allocate_class libobjc2/gc_none.c:19:3
+    #2 0x... in class_createInstance libobjc2/runtime.c:361:11
+    #3 0x... in NSAllocateObject Source/NSObject.m:800:14
+    #4 0x... in newUInline Source/GSString.m:755:5
+    #5 0x... in _i_GSPlaceholderString__initWithString_
       Source/GSString.m:1727:19
-    #6 0xb6b280580998 in main /home/user/a.m:8:9
-    #7 0xf40da2df84c0 in __libc_start_call_main
+    #6 0x... in main /home/user/a.m:8:9
+    #7 0x... in __libc_start_call_main
       libc_start_call_main.h:58:16
-    #8 0xf40da2df8594 in __libc_start_main c-start.c:360:3
-    #9 0xb6b2804a43ec in _start (/home/user/obj/a+0x343ec)
+    #8 0x... in __libc_start_main c-start.c:360:3
+    #9 0x... in _start (/home/user/obj/a+0x...)
 @end example
 
 This second part of the report is an indirect leak (because it is memory which is pointed to by the leaked array).  It's the NSString object created at /home/user/a.m line 8 column 9.
 
 @example
 Indirect leak of 8 byte(s) in 1 object(s) allocated from:
-    #0 0xb6b280543004 in malloc (/home/user/obj/a+0xd3004)
-    #1 0xf40da373a6b8 in default_malloc Source/NSZone.m:164:9
-    #2 0xf40da373a3a4 in NSZoneMalloc Source/NSZone.m:1802:10
-    #3 0xf40da32fe710 in _i_GSArray__initWithObjects_count_
+    #0 0x... in malloc (/home/user/obj/a+0x...)
+    #1 0x... in default_malloc Source/NSZone.m:164:9
+    #2 0x... in NSZoneMalloc Source/NSZone.m:1802:10
+    #3 0x... in _i_GSArray__initWithObjects_count_
       Source/GSArray.m:186:25
-    #4 0xf40da3307984 in _i_GSPlaceholderArray__initWithObjects_count_
+    #4 0x... in _i_GSPlaceholderArray__initWithObjects_count_
       Source/GSArray.m:1268:10
-    #5 0xb6b2805809e4 in main /home/user/a.m:9:9
-    #6 0xf40da2df84c0 in __libc_start_call_main
+    #5 0x... in main /home/user/a.m:9:9
+    #6 0x... in __libc_start_call_main
       libc_start_call_main.h:58:16
-    #7 0xf40da2df8594 in __libc_start_main libc-start.c:360:3
-    #8 0xb6b2804a43ec in _start (/home/user/obj/a+0x343ec)
+    #7 0x... in __libc_start_main libc-start.c:360:3
+    #8 0x... in _start (/home/user/obj/a+0x...)
 @end example
 
 This third part is also an indirect leak ... it's the backing store allocated
-to hold the object in the array,  o fixing the leak of the array object should
+to hold the object in the array, so fixing the leak of the array object should
 also fix this (since the array should free its backing store when it is done
 with it).
 
@@ -727,26 +727,26 @@ called @code{Leaked} is explicitly destroyed, and the code is inside an
 autorelease pool so the cause of the leak is a little less obvious.
 
 @example
-Tracking ownership started for instance 0x50200008e858 at (
+Tracking ownership started for instance 0x... at (
  "... _i_NSObject_GSCleanUp_trackOwnership
   Source/Additions/NSObject+GNUstepBase.m: 827",
- "(./obj/a: 0x1114d4) main  /home/user/a.m: 36",
- "(/libc.so.6: 0x284c4) __libc_start_call_main libc-start.c: 74",
- "(libc.so.6: 0x28598) call_init  libc-start.c: 128",
- "(./obj/a: 0x34eb0) _start  (null): 0").
+ "(./obj/a: 0x...) main  /home/user/a.m: 36",
+ "(/libc.so.6: 0x...) __libc_start_call_main libc-start.c: 74",
+ "(libc.so.6: 0x...) call_init  libc-start.c: 128",
+ "(./obj/a: 0x...) _start  (null): 0").
 
 Tracking ownership -[0x50200008e858 retain] 1->2 at (
- "(./obj/a: 0x111380) _c_ItemHolder__holderFor_  /a.m: 21",
- "(./obj/a: 0x111520) main  /a.m: 37",
- "(libc.so.6: 0x284c4) __libc_start_call_main  libc-start.c: 74",
- "(libc.so.6: 0x28598) call_init  libc-start.c: 128",
- "(./obj/a: 0x34eb0) _start  (null): 0").
+ "(./obj/a: 0x...) _c_ItemHolder__holderFor_  /a.m: 21",
+ "(./obj/a: 0x...) main  /a.m: 37",
+ "(libc.so.6: 0x...) __libc_start_call_main  libc-start.c: 74",
+ "(libc.so.6: 0x...) call_init  libc-start.c: 128",
+ "(./obj/a: 0x...) _start  (null): 0").
 
 Tracking ownership -[0x50200008e858 release] 2->1 at (
- "(./obj/a: 0x111548) main  /a.m: 39",
- "(libc.so.6: 0x284c4) __libc_start_call_main  libc-start.c: 74",
- "(libc.so.6: 0x28598) call_init  libc-start.c: 128",
- "(./obj/a: 0x34eb0) _start  (null): 0").
+ "(./obj/a: 0x...) main  /a.m: 39",
+ "(libc.so.6: 0x...) __libc_start_call_main  libc-start.c: 74",
+ "(libc.so.6: 0x...) call_init  libc-start.c: 128",
+ "(./obj/a: 0x...) _start  (null): 0").
 
 Tracking ownership -[0x50200008e858 dealloc] not called by exit.
 @end example
@@ -769,8 +769,8 @@ the stack trace we can see that the release was done at line 39 in main.m
 
 From this it's quite easy to see that the leaked object was NOT released when
 the ItemHolder was deallocated, so we now what we need to release it in the
--dealloc method of ItemHolder (firgetting to do this is a common error, and
-iis something that ARC would do for us automatically).
+-dealloc method of ItemHolder (forgetting to do this is a common error, and
+is something that ARC would do for us automatically).
 
 A portable fix would be to add an implementation as follows:
 @example

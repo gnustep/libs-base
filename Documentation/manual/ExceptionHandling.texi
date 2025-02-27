@@ -376,7 +376,7 @@ the @code{NSBundle}'' class, simply add '@code{NSBundle}' to the list of keys.
 The third category of key is the default key, '@code{dflt}'.  This key can be
 used whenever the specificity of the other key types is not required.  Note
 that it still needs to be turned on like any other logging key before
-messasges will actually be logged.
+messages will actually be logged.
 
 There is a family of @code{NSDebugLog} functions with slightly differing
 behaviors:
@@ -468,7 +468,7 @@ particularly useful if a leak checker (eg when your program was built using
 @code{(make asan=yes)} or run under valgrind) has reported a leak and the
 cause of the leak is hard to find:  the leak checker will have told you the
 stack trace where the leaked memory was allocated, so you can change your
-code to start tracking immediately after that and see exacly what happened
+code to start tracking immediately after that and see exactly what happened
 to the object ownership after its creation.
 
 @section Assertions
@@ -678,7 +678,7 @@ locations, it concentrates on the issue of memory allocations which are not
 matched by deallocation when the memory is no longer needed.  Memory leaks
 typically result in crashes because the system runs out of memory.
 
-Like address sanitization, leak sanitization is turned on my the asan=yes
+Like address sanitization, leak sanitization is turned on by the asan=yes
 option in gnustep-make.  Unlike address sanitization, it does not necessarily
 have to be turned on while compiling every file, only when compiling an linking
 the main executable.
@@ -714,7 +714,7 @@ For more information @pxref{Objects,,Working With Objects}
 
 While address sanitization has great points: helping prevent crashes (writing
 to bad locations), program logic errors (reading and making decisions on bad
-data), and attacks (specially crafted data deliberately canging program logic),
+data), and attacks (specially crafted data deliberately changing program logic),
 it also has drawbacks.
 
 @itemize
