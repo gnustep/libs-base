@@ -11,6 +11,17 @@ The currently released version of the library is
 See the @url{ReleaseNotes.html} document for more information.
 @end ifclear
 
+@section Noteworthy changes in version @samp{1.31.1}
+
+@itemize @bullet
+@item This is a bugfix release correcting a missing KVO method when using
+the ng runtime and an error in weak reference support when using the gnu
+runtimeR, along with a few other minor fixes and documentation improvements.
+@item The library version changes from 1.31.0 to 1.31.1
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
 @section Noteworthy changes in version @samp{1.31.0}
 
 @itemize @bullet
@@ -67,8 +78,6 @@ See the @url{ReleaseNotes.html} document for more information.
 @item Updated to work with recent versions of autoconf.
 
 @end itemize
-
-@ifclear ANNOUNCE-ONLY
 
 @section Noteworthy changes in version @samp{1.30.0}
 

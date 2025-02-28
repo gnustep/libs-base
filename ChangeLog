@@ -1,3 +1,13 @@
+2025-02-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* ChangeLog:
+	* Version:
+	* ANNOUNCE:
+	* NEWS:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	Bugfix 1.31.1 release.
+
 2025-02-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/ObjectiveC2/weak.m: Comment out unnecessary code which does

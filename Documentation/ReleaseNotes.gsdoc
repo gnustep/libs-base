@@ -28,7 +28,15 @@ notice and this notice are preserved.
       </p>
 
       <section>
-	<heading>Version 1.30.0</heading>
+	<heading>Version 1.31.1</heading>
+        <p>Bugfix realease correcting a missing KVO method when using the
+	ng runtime and an error in weak referece support when using the
+	gnu runtime.
+        </p>
+      </section>
+
+      <section>
+	<heading>Version 1.31.0</heading>
         <p>
         </p>
 
