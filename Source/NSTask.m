@@ -397,11 +397,8 @@ pty_slave(const char* name)
     {
       return NO;
     }
-  if (_hasCollected == NO)
-    {
-      [self _collectChild];
-    }
-  if (_hasTerminated == YES)
+  [self _collectChild];
+  if (_hasCollected)
     {
       return NO;
     }
@@ -462,6 +459,23 @@ pty_slave(const char* name)
   kill(-_taskId, SIGCONT);
 #endif
 #endif
+  return YES;
+}
+
+/**
+ * Checks to see if the task is currently running.
+ */
+- (BOOL) running
+{
+  if (_hasLaunched == NO)
+    {
+      return NO;
+    }
+  [self _collectChild];
+  if (_hasCollected)
+    {
+      return NO;
+    }
   return YES;
 }
 
@@ -672,12 +686,16 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
+
+  /* The _hasTerminated flag records whether this method has been called,
+   * not whether the task has *actually* terminated (_hasCollected does that).
+   */
   if (_hasTerminated)
     {
       return;
     }
-
   _hasTerminated = YES;
+
 #ifndef _WIN32
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGTERM);
@@ -699,11 +717,8 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
+  [self _collectChild];
   if (_hasCollected == NO)
-    {
-      [self _collectChild];
-    }
-  if (_hasTerminated == NO)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet terminated"];
@@ -723,11 +738,8 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
+  [self _collectChild];
   if (_hasCollected == NO)
-    {
-      [self _collectChild];
-    }
-  if (_hasTerminated == NO)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet terminated"];
@@ -1032,7 +1044,7 @@ pty_slave(const char* name)
   _terminationStatus = status;
   _terminationReason = reason;
   _hasCollected = YES;
-  _hasTerminated = YES;
+  _hasTerminated = YES;	// As if the -terminate method was called
   if (_hasNotified == NO)
     {
       _hasNotified = YES;
@@ -1119,15 +1131,18 @@ GSPrivateCheckTasks()
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
+
+  /* The _hasTerminated flag records whether this method has been called,
+   * not whether the task has *actually* terminated (_hasCollected does that).
+   */
   if (_hasTerminated)
     {
       return;
     }
-
+  _hasTerminated = YES;
   /* We use exit code 10 to denote a process termination.
    * Windows does nt have an exit code to denote termination this way.
    */
-  _hasTerminated = YES;
   TerminateProcess(procInfo.hProcess, WIN_SIGNALLED);
 }
 
