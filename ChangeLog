@@ -3,6 +3,7 @@
 	* Source/NSTask.m: bugfix for testing a running task ... the task may
 	still be running after a -terminate has been sent to it, until we have
 	been able to check for the termination status of the actual subprocess.
+	Fix for exception raised during launching.
 
 2025-02-28 Richard Frith-Macdonald <rfm@gnu.org>
 
