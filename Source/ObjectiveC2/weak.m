@@ -507,6 +507,7 @@ setAssociation(association *a, const void *key, id value,
 	value = [value retain];
 	break;
       default:
+	break;
     }
 
   oldObject = a->value;
@@ -525,6 +526,7 @@ setAssociation(association *a, const void *key, id value,
 	[oldObject release];
 	break;
       default:
+	break;
     }
 }
 
