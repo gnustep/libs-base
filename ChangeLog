@@ -1,3 +1,14 @@
+2025-03-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSObjCRuntime.h:
+	* Source/GSPrivate.h:
+	* Source/NSObject.m:
+	* Source/ObjectiveC2/weak.m:
+	* Tests/base/Functions/runtime.m:
+	Initial implementation of associated objects for GNU runtime ...
+	objc_getAssociatedObject(), objc_removeAssociatedObjects(),
+	and objc_setAssociatedObject()
+
 2025-03-06 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSTask.m: bugfix for testing a running task ... the task may

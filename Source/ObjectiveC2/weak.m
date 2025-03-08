@@ -1,6 +1,6 @@
 
-/* Emulation of ARC runtime support for weak references based on the gnustep
- * runtime implementation.
+/* Emulation of ARC runtime support for weak references and associated objects,
+ * partially based on the libobjc2 runtime implementation for weak objects.
  */
 
 #import "common.h"
@@ -68,7 +68,7 @@ static int  WeakRefClass = 0;
 #define GSI_MAP_RETAIN_VAL(M, X)        
 #define GSI_MAP_RELEASE_VAL(M, X)       
 #define GSI_MAP_KTYPES  GSUNION_OBJ
-#define GSI_MAP_VTYPES  GSUNION_NSINT
+#define GSI_MAP_VTYPES  GSUNION_NSINT | GSUNION_PTR
 
 #include "GNUstepBase/GSIMap.h"
 
@@ -86,8 +86,13 @@ static GSIMapTable_t	weakRefs = { 0 };
  */
 static WeakRef		*deallocated = NULL;
 
+/* The associated table contains associated object lists for any objects
+ * which have associated objects.
+ */
+static GSIMapTable_t	associated = { 0 };
 
-/* This must be called on startup before any weak references are taken.
+/* This must be called on startup before any weak references are taken
+ * or associated objects are used.
  */
 void
 GSWeakInit()
@@ -97,6 +102,8 @@ GSWeakInit()
     {
       GSIMapInitWithZoneAndCapacity(
 	&weakRefs, NSDefaultMallocZone(), 1024);
+      GSIMapInitWithZoneAndCapacity(
+	&associated, NSDefaultMallocZone(), 1024);
       persistentClasses[0] = [NXConstantString class];
     }
   GS_MUTEX_UNLOCK(weakLock);
@@ -186,9 +193,7 @@ setObjectHasWeakRefs(id obj)
 
   if (NO == isPersistent)
     {
-      /* FIXME ... for performance we should mark the object as having
-       * weak references and we should check that in objc_delete_weak_refs()
-       */
+      GSPrivateMarkedWeak(obj, YES);
     }
   return isPersistent;
 }
@@ -200,11 +205,6 @@ incrementWeakRefCount(id obj)
   GSIMapBucket  bucket;
   WeakRef 	*ref;
 
-  /* Mark the instance as having had a weak reference at some point.
-   * This information is used when the instance is deallocated.
-   */
-  GSPrivateMarkedWeak(obj, YES);
-  
   key.obj = obj;
   bucket = GSIMapBucketForKey(&weakRefs, key);
   ref = GSIMapNodeForKeyInBucket(&weakRefs, bucket, key);
@@ -442,5 +442,217 @@ objc_initWeak(id *addr, id obj)
     }
   GS_MUTEX_UNLOCK(weakLock);
   return obj;
+}
+
+
+
+static gs_mutex_t  	associatedLock = GS_MUTEX_INIT_STATIC;
+
+#define	REFBLOCKSIZE	8
+
+typedef struct association_t {
+  id				value;
+  const void			*key;
+  objc_AssociationPolicy	policy;
+} association;
+
+typedef struct assocblock_t {
+  gs_mutex_t		mutex;	// Protect this block
+  struct assocblock_t	*more;	// pointer to next block if any
+  struct association_t	associations[REFBLOCKSIZE];
+} *assocptr;
+
+/* Returns a slot matching the key or an empty slot (or NULL if neither
+ * exists and mayCreate is NO).
+ */
+static association *
+getAssociation(const void *key, assocptr ptr, BOOL mayCreate)
+{
+  unsigned	index;
+
+  for (index = 0; index < REFBLOCKSIZE; index++)
+    {
+      if (ptr->associations[index].key == key)
+	{
+	  return ptr->associations + index;
+	}
+    }
+  if (ptr->more)
+    {
+      return getAssociation(key, ptr->more, mayCreate);
+    }
+  if (mayCreate)
+    {
+      ptr->more = (assocptr)calloc(1, sizeof(struct assocblock_t));
+      return ptr->more->associations;
+    }
+  return NULL;
+}
+
+static void
+setAssociation(association *a, const void *key, id value,
+  objc_AssociationPolicy policy)
+{
+  objc_AssociationPolicy	oldPolicy;
+  id				oldObject;
+
+  switch (policy)
+    {
+      case OBJC_ASSOCIATION_COPY_NONATOMIC:
+      case OBJC_ASSOCIATION_COPY:
+	value = [value copy];
+	break;
+      case OBJC_ASSOCIATION_RETAIN_NONATOMIC:
+      case OBJC_ASSOCIATION_RETAIN:
+	value = [value retain];
+	break;
+      default:
+    }
+
+  oldObject = a->value;
+  oldPolicy = a->policy;
+
+  a->value = value;
+  a->key = key;
+  a->policy = policy;
+
+  switch (oldPolicy)
+    {
+      case OBJC_ASSOCIATION_COPY_NONATOMIC:
+      case OBJC_ASSOCIATION_COPY:
+      case OBJC_ASSOCIATION_RETAIN_NONATOMIC:
+      case OBJC_ASSOCIATION_RETAIN:
+	[oldObject release];
+	break;
+      default:
+    }
+}
+
+static void
+clearAssociations(assocptr ptr)
+{
+  if (ptr)
+    {
+      unsigned	index = REFBLOCKSIZE;
+
+      clearAssociations(ptr->more);
+      free(ptr->more);
+      ptr->more = NULL;
+      for (index = 0; index < REFBLOCKSIZE; index++)
+	{
+	  setAssociation(ptr->associations + index, NULL, nil, 0);
+	}
+    }
+}
+
+id
+objc_getAssociatedObject(id object, const void *key)
+{
+  GSIMapKey	nodeKey;
+  GSIMapBucket  bucket;
+  GSIMapNode	node;
+  assocptr	block = NULL;
+  id		found = nil;
+
+  nodeKey.obj = object;
+
+  /* Look up the associations for the object, ensuring that the lock
+   * for those associations is obtained before we release the global
+   * lock.
+   */
+  GS_MUTEX_LOCK(associatedLock);
+  bucket = GSIMapBucketForKey(&associated, nodeKey);
+  node = GSIMapNodeForKeyInBucket(&associated, bucket, nodeKey);
+  if (node)
+    {
+      block = node->value.ptr;
+      GS_MUTEX_LOCK(block->mutex);
+    }
+  GS_MUTEX_UNLOCK(associatedLock);
+
+  /* If there were any associated objects, search for the one matching
+   * the key and return it.
+   */
+  if (block)
+    {
+      association	*ptr = getAssociation(key, block, NO);
+
+      if (ptr != NULL)
+	{
+	  found = ptr->value;
+	}
+      GS_MUTEX_UNLOCK(block->mutex);
+    }
+  return found;
+}
+
+void
+objc_removeAssociatedObjects(id object)
+{
+  GSIMapKey	key;
+  GSIMapBucket  bucket;
+  GSIMapNode	node;
+  assocptr	ptr = NULL;
+
+  GS_MUTEX_LOCK(associatedLock);
+  key.obj = object;
+  bucket = GSIMapBucketForKey(&associated, key);
+  node = GSIMapNodeForKeyInBucket(&associated, bucket, key);
+  if (node)
+    {
+      GSIMapRemoveNodeFromMap(&associated, bucket, node);
+      ptr = node->value.ptr;
+      node->value.ptr = NULL;
+      GSIMapFreeNode(&associated, node);
+      GS_MUTEX_LOCK(ptr->mutex);
+    }
+  GS_MUTEX_UNLOCK(associatedLock);
+  if (ptr)
+    {
+      clearAssociations(ptr);
+      GS_MUTEX_UNLOCK(ptr->mutex);
+      free(ptr);
+    }
+}
+
+void
+objc_setAssociatedObject(id object, const void *key, id value,
+  objc_AssociationPolicy policy)
+{
+  GSIMapKey	nodeKey;
+  GSIMapBucket  bucket;
+  GSIMapNode	node;
+  assocptr	blk;
+  association	*association;
+
+  nodeKey.obj = object;
+
+  /* Look up the associations for the object, ensuring that the lock
+   * for those associations is obtained before we release the global
+   * lock.
+   */
+  GS_MUTEX_LOCK(associatedLock);
+  bucket = GSIMapBucketForKey(&associated, nodeKey);
+  node = GSIMapNodeForKeyInBucket(&associated, bucket, nodeKey);
+  if (NULL == node)
+    {
+      node = GSIMapGetNode(&associated);
+
+      node->key.obj = object;
+      node->value.ptr = calloc(1, sizeof(struct assocblock_t));
+      GSIMapAddNodeToBucket(bucket, node);
+      associated.nodeCount++;
+      if (NO == isPersistentObject(object))
+	{
+	  // Needs cleanup on dealloc
+	  GSPrivateMarkedAssociations(object, YES);
+	}
+    }
+  blk = (assocptr)(node->value.ptr);
+  GS_MUTEX_LOCK(blk->mutex);
+  GS_MUTEX_UNLOCK(associatedLock);
+  association = getAssociation(key, blk, YES);
+  setAssociation(association, key, value, policy);
+  GS_MUTEX_UNLOCK(blk->mutex);
 }
 

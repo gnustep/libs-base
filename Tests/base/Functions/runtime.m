@@ -97,6 +97,18 @@ main(int argc, char *argv[])
   const char    *n;
   unsigned	u;
   int		i;
+  NSObject	*assoc1 = AUTORELEASE([NSObject new]);
+  NSObject	*assoc2 = AUTORELEASE([NSObject new]);
+  NSObject	*o = AUTORELEASE([NSObject new]);
+
+  u = [assoc1 retainCount];
+  objc_setAssociatedObject(o, (void*)1, assoc1, OBJC_ASSOCIATION_ASSIGN);
+  u = [assoc1 retainCount];
+  PASS(1 == u, "OBJC_ASSOCIATION_ASSIGN does not retain")
+  PASS(objc_getAssociatedObject(o, (void*)1) == assoc1,
+    "can get and set an associated object")
+  objc_setAssociatedObject(o, (void*)1, assoc1, OBJC_ASSOCIATION_RETAIN);
+  PASS(1 == u, "OBJC_ASSOCIATION_RETAIN does retain")
 
   t0 = "1@1:@";
   t1 = NSGetSizeAndAlignment(t0, &s, &a);

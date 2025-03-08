@@ -77,6 +77,38 @@ GS_EXPORT id objc_loadWeak(id *object);
 GS_EXPORT id objc_loadWeakRetained(id *addr);
 GS_EXPORT void objc_moveWeak(id *dest, id *src);
 GS_EXPORT id objc_storeWeak(id *addr, id obj);
+
+/** objc_AssociationPolicy acts like a bitfield, but
+ * only specific combinations of flags are permitted.
+ */
+typedef enum uintptr_t {
+
+  /** Simple pointer assignment.
+   */
+  OBJC_ASSOCIATION_ASSIGN = 0,
+
+  /** Retain when set, release old value.
+   */
+  OBJC_ASSOCIATION_RETAIN_NONATOMIC = 1,
+
+  /** Copy when set (by sending a -copy message), release old value.
+   */
+  OBJC_ASSOCIATION_COPY_NONATOMIC = 3,
+
+  /** Atomic retain.
+   */
+  OBJC_ASSOCIATION_RETAIN = 0x301,
+
+  /** Atomic copy.
+   */
+  OBJC_ASSOCIATION_COPY = 0x303
+} objc_AssociationPolicy;
+
+GS_EXPORT id objc_getAssociatedObject(id object, const void *key);
+GS_EXPORT void objc_removeAssociatedObjects(id object);
+GS_EXPORT void objc_setAssociatedObject(id object, const void *key,
+  id value, objc_AssociationPolicy policy);
+
 #endif
 
 /*

@@ -434,7 +434,8 @@ static inline pthread_mutex_t   *GSAllocationLockForObject(id p)
 
 #ifndef OBJC_CAP_ARC
 typedef struct {
-  BOOL	hadWeakReference: 1;	// set if the instance ever had a weak reference
+  BOOL	hadWeakReference: 1;	// if the instance ever had a weak reference
+  BOOL	hadAssociations: 1;	// if the instance ever had associated objects
 } gsinstinfo_t;
 #endif
 
@@ -475,7 +476,18 @@ typedef	struct obj_layout *obj;
 
 #ifndef OBJC_CAP_ARC
 BOOL
-GSPrivateMarkedWeak(id anObject, BOOL  mark)
+GSPrivateMarkedAssociations(id anObject, BOOL mark)
+{
+  BOOL	wasMarked = ((obj)anObject)[-1].extra.hadAssociations;
+
+  if (mark)
+    {
+      ((obj)anObject)[-1].extra.hadAssociations = YES;
+    }
+  return wasMarked;
+}
+BOOL
+GSPrivateMarkedWeak(id anObject, BOOL mark)
 {
   BOOL	wasMarked = ((obj)anObject)[-1].extra.hadWeakReference;
 
@@ -853,6 +865,14 @@ NSDeallocateObject(id anObject)
       (*finalize_imp)(anObject, finalize_sel);
 
       AREM(aClass, (id)anObject);
+
+#ifndef OBJC_CAP_ARC
+      if (GSPrivateMarkedAssociations(anObject, NO))
+	{
+	  objc_removeAssociatedObjects(anObject);
+	}
+#endif
+
       if (NSZombieEnabled)
 	{
 	  /* Replace the isa pointer etc to turn the object into a zombie.
