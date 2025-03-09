@@ -83,23 +83,25 @@ GS_EXPORT id objc_storeWeak(id *addr, id obj);
  */
 typedef enum uintptr_t {
 
-  /** Simple pointer assignment.
+  /** Simple pointer assignment creating an unsafe unretained reference.
    */
   OBJC_ASSOCIATION_ASSIGN = 0,
 
-  /** Retain when set, release old value.
+  /** Retain when set, without a guarantee of atomicity.
    */
   OBJC_ASSOCIATION_RETAIN_NONATOMIC = 1,
 
-  /** Copy when set (by sending a -copy message), release old value.
+  /** Copy when set (by sending a -copy message), without a guarantee
+   * of atomicity.
    */
   OBJC_ASSOCIATION_COPY_NONATOMIC = 3,
 
-  /** Atomic retain.
+  /** Retain when set, with guaranteed atomicity.
    */
   OBJC_ASSOCIATION_RETAIN = 0x301,
 
-  /** Atomic copy.
+  /** Copy when set (by sending a -copy message), without guarantee
+   * of atomicity.
    */
   OBJC_ASSOCIATION_COPY = 0x303
 } objc_AssociationPolicy;
