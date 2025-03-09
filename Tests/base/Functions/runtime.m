@@ -101,14 +101,21 @@ main(int argc, char *argv[])
   NSObject	*assoc2 = AUTORELEASE([NSObject new]);
   NSObject	*o = AUTORELEASE([NSObject new]);
 
+#pragma clang diagnostic ignored "-Wnonnull"
   u = [assoc1 retainCount];
   objc_setAssociatedObject(o, (void*)1, assoc1, OBJC_ASSOCIATION_ASSIGN);
-  u = [assoc1 retainCount];
-  PASS(1 == u, "OBJC_ASSOCIATION_ASSIGN does not retain")
+  PASS(u == [assoc1 retainCount],
+    "OBJC_ASSOCIATION_ASSIGN does not retain")
   PASS(objc_getAssociatedObject(o, (void*)1) == assoc1,
     "can get and set an associated object")
   objc_setAssociatedObject(o, (void*)1, assoc1, OBJC_ASSOCIATION_RETAIN);
-  PASS(1 == u, "OBJC_ASSOCIATION_RETAIN does retain")
+  PASS(u + 1 == [assoc1 retainCount],
+    "OBJC_ASSOCIATION_RETAIN does retain")
+  ENTER_POOL
+  objc_setAssociatedObject(o, (void*)1, assoc2, OBJC_ASSOCIATION_RETAIN);
+  LEAVE_POOL
+  PASS(u == [assoc1 retainCount],
+    "OBJC_ASSOCIATION_RETAIN replace releases old value")
 
   t0 = "1@1:@";
   t1 = NSGetSizeAndAlignment(t0, &s, &a);
@@ -341,7 +348,7 @@ main(int argc, char *argv[])
   PASS(got == obj && [obj retainCount] == rc + 1,
     "objc_loadWeak() returns original retained + 1")
   LEAVE_POOL
-  PASS([obj retainCount] == rc, "objc_loadWeak() retan was autoreleased")
+  PASS([obj retainCount] == rc, "objc_loadWeak() retained obj was autoreleased")
 
   RELEASE(obj);
   got = objc_loadWeak(&ref);
