@@ -80,11 +80,6 @@ GS_EXPORT void objc_moveWeak(id *dest, id *src);
 GS_EXPORT id objc_loadWeak(id *object);
 GS_EXPORT id objc_storeWeak(id *addr, id obj);
 
-GS_EXPORT id objc_getAssociatedObject(id object, const void *key);
-GS_EXPORT void objc_removeAssociatedObjects(id object);
-GS_EXPORT void objc_setAssociatedObject(id object, const void *key,
-  id value, objc_AssociationPolicy policy);
-
 /** objc_AssociationPolicy acts like a bitfield, but
  * only specific combinations of flags are permitted.
  */
@@ -112,6 +107,12 @@ typedef enum uintptr_t {
    */
   OBJC_ASSOCIATION_COPY = 0x303
 } objc_AssociationPolicy;
+
+GS_EXPORT id objc_getAssociatedObject(id object, const void *key);
+GS_EXPORT void objc_removeAssociatedObjects(id object);
+GS_EXPORT void objc_setAssociatedObject(id object, const void *key,
+  id value, objc_AssociationPolicy policy);
+
 #endif
 
 /*
