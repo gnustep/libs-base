@@ -99,7 +99,8 @@ main(int argc, char *argv[])
   int		i;
   NSObject	*assoc1 = AUTORELEASE([NSObject new]);
   NSObject	*assoc2 = AUTORELEASE([NSObject new]);
-  NSObject	*o = AUTORELEASE([NSObject new]);
+  NSObject	*o = [NSObject new];
+  NSObject	*values[100];
 
 #pragma clang diagnostic ignored "-Wnonnull"
   u = [assoc1 retainCount];
@@ -114,8 +115,38 @@ main(int argc, char *argv[])
   ENTER_POOL
   objc_setAssociatedObject(o, (void*)1, assoc2, OBJC_ASSOCIATION_RETAIN);
   LEAVE_POOL
+  ENTER_POOL
   PASS(u == [assoc1 retainCount],
     "OBJC_ASSOCIATION_RETAIN replace releases old value")
+  u = [assoc2 retainCount];
+  DESTROY(o);
+  LEAVE_POOL
+  PASS(u - 1 == [assoc2 retainCount],
+    "OBJC_ASSOCIATION_RETAIN value released when object is deallocated")
+  ENTER_POOL
+  o = [NSObject new];
+  a = 0;
+  for (i = 0; i < sizeof(values)/sizeof(NSObject*); i++)
+    {
+      values[i] = [NSObject new];
+      objc_setAssociatedObject(o, (void*)i, values[i], OBJC_ASSOCIATION_RETAIN);
+      if ([values[i] retainCount] == 2) a++;
+    }
+  PASS(a == sizeof(values)/sizeof(NSObject*),
+    "many values were associated with a single object");
+  DESTROY(o);
+  LEAVE_POOL
+  a = 0;
+  for (i = 0; i < sizeof(values)/sizeof(NSObject*); i++)
+    {
+      if ([values[i] retainCount] == 1)
+	{
+	  a++;
+	}
+      DESTROY(values[i]);
+    }
+  PASS(a == sizeof(values)/sizeof(NSObject*),
+    "many values were released when object was deallocated");
 
   t0 = "1@1:@";
   t1 = NSGetSizeAndAlignment(t0, &s, &a);
