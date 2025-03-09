@@ -327,7 +327,7 @@ main(int argc, char *argv[])
   PASS(ref == nil, "nil is stored unchanged")
 
   objc_storeWeak(&ref, @"hello");
-  PASS(ref == @"hello", "literal string is stored unchanged")
+  PASS(ref == (id)@"hello", "literal string is stored unchanged")
 
   objc_storeWeak(&ref, (id)c);
   PASS(ref == (id)c, "a class is stored unchanged")
