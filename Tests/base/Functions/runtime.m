@@ -336,12 +336,15 @@ main(int argc, char *argv[])
   objc_storeWeak(&ref, obj);
   PASS(ref != obj, "object is stored as weak reference")
   rc = [obj retainCount];
-  got = objc_loadWeakRetained(&ref);
+  ENTER_POOL
+  got = objc_loadWeak(&ref);
   PASS(got == obj && [obj retainCount] == rc + 1,
-    "objc_loadWeakRetained() returns original retained")
-  RELEASE(got);
+    "objc_loadWeak() returns original retained + 1")
+  LEAVE_POOL
+  PASS([obj retainCount] == rc, "objc_loadWeak() retan was autoreleased")
+
   RELEASE(obj);
-  got = objc_loadWeakRetained(&ref);
+  got = objc_loadWeak(&ref);
   PASS(got == nil, "load of deallocated object returns nil")
 
   END_SET("weakref")
