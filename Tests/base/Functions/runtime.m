@@ -113,6 +113,11 @@ main(int argc, char *argv[])
   PASS(u + 1 == [assoc1 retainCount],
     "OBJC_ASSOCIATION_RETAIN does retain")
   ENTER_POOL
+  PASS(objc_getAssociatedObject(o, (void*)1) == assoc1,
+    "can get retained associated object")
+  PASS(u + 2 == [assoc1 retainCount], "getting retains associated value")
+  LEAVE_POOL
+  ENTER_POOL
   objc_setAssociatedObject(o, (void*)1, assoc2, OBJC_ASSOCIATION_RETAIN);
   LEAVE_POOL
   ENTER_POOL
