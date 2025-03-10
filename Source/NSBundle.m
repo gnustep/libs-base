@@ -77,6 +77,11 @@ manager()
 static NSDictionary     *langAliases = nil;
 static NSDictionary     *langCanonical = nil;
 
+NSDictionary *GSPrivateLanguageAliases()
+{
+  return langAliases;
+}
+
 /* Map a language name to any alternative versions.   This function should
  * return an array of alternative language/localisation directory names in
  * the preferred order of precedence (ie resources in the directories named
@@ -1720,8 +1725,14 @@ GSPrivateInfoDictionary(NSString *rootPath)
       if ((str = [env objectForKey: @"LIBRARY_COMBO"]) != nil)
 	library_combo = RETAIN(str);
 
+#if defined(__ANDROID__)
+      // TODO: Improve the overall bundle and domain system for platforms
+      // without a traditional filesystem hierarchy like Android
+      _gnustep_bundle = RETAIN([NSBundle mainBundle]);
+#else
       _gnustep_bundle = RETAIN([self bundleForLibrary: @"gnustep-base"
 					      version: _base_version]);
+#endif
 
       /* The Locale aliases map converts canonical names to old-style names
        */
