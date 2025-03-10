@@ -82,6 +82,8 @@ GS_EXPORT id objc_storeWeak(id *addr, id obj);
 
 /** objc_AssociationPolicy acts like a bitfield, but
  * only specific combinations of flags are permitted.
+ * NB The atomic forms are (non-atomic-form | 0x300), so 0x300 can be used
+ * as a marker for the atomic version.
  */
 typedef enum uintptr_t {
 

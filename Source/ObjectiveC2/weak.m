@@ -484,6 +484,7 @@ getAssociation(const void *key, assocptr ptr, BOOL mayCreate)
   if (mayCreate)
     {
       ptr->more = (assocptr)calloc(1, sizeof(struct assocblock_t));
+      ptr->more->associations[0].key = key;
       return ptr->more->associations;
     }
   return NULL;
@@ -579,11 +580,42 @@ objc_getAssociatedObject(id object, const void *key)
     {
       association	*ptr = getAssociation(key, block, NO);
 
-      if (ptr != NULL)
+      if (NULL == ptr)
 	{
-	  found = ptr->value;
+	  GS_MUTEX_UNLOCK(block->mutex);
 	}
-      GS_MUTEX_UNLOCK(block->mutex);
+      else
+	{
+	  objc_AssociationPolicy	policy = ptr->policy;
+
+	  found = ptr->value;
+	  if (policy & 0x300)
+	    {
+	      // Atomic ... hold lock until after we have retained the value.
+	      switch (policy)
+		{
+		  case OBJC_ASSOCIATION_COPY:
+		  case OBJC_ASSOCIATION_RETAIN:
+		    found = [found retain];
+		    break;
+		  default:
+		}
+	      GS_MUTEX_UNLOCK(block->mutex);
+	      switch (policy)
+		{
+		  case OBJC_ASSOCIATION_COPY:
+		  case OBJC_ASSOCIATION_RETAIN:
+		    found = [found autorelease];
+		    break;
+		  default:
+		}
+	    }
+	  else
+	    {
+	      // Non-Atomic ... assume we don't need retain/autorelease
+	      GS_MUTEX_UNLOCK(block->mutex);
+	    }
+	}
     }
   return found;
 }
@@ -654,7 +686,17 @@ objc_setAssociatedObject(id object, const void *key, id value,
   GS_MUTEX_LOCK(blk->mutex);
   GS_MUTEX_UNLOCK(associatedLock);
   association = getAssociation(key, blk, YES);
-  setAssociation(association, key, value, policy);
-  GS_MUTEX_UNLOCK(blk->mutex);
+  if (policy & 0x300)
+    {
+      // Atomic ... hold lock until new value is in place
+      setAssociation(association, key, value, policy);
+      GS_MUTEX_UNLOCK(blk->mutex);
+    }
+  else
+    {
+      // Non-Atomic ... release lock und then set association value
+      GS_MUTEX_UNLOCK(blk->mutex);
+      setAssociation(association, key, value, policy);
+    }
 }
 
