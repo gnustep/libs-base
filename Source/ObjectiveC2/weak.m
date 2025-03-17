@@ -599,6 +599,7 @@ objc_getAssociatedObject(id object, const void *key)
 		    found = [found retain];
 		    break;
 		  default:
+		    ;
 		}
 	      GS_MUTEX_UNLOCK(block->mutex);
 	      switch (policy)
@@ -608,6 +609,7 @@ objc_getAssociatedObject(id object, const void *key)
 		    found = [found autorelease];
 		    break;
 		  default:
+		    ;
 		}
 	    }
 	  else
