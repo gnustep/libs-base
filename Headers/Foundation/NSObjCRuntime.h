@@ -292,7 +292,7 @@ typedef NS_ENUM(NSInteger, NSComparisonResult)
   NSOrderedAscending = (NSInteger)-1, NSOrderedSame, NSOrderedDescending
 };
 
-enum {NSNotFound = NSIntegerMax};
+static const NSInteger NSNotFound = NSIntegerMax;
 
 DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
 
