@@ -100,7 +100,7 @@ static unsigned	systemVersion = MAX_SUPPORTED_SYSTEM_VERSION;
 - (NSInteger) versionForClassName: (NSString*)className
 {
   [self subclassResponsibility: _cmd];
-  return (NSInteger)NSNotFound;
+  return NSNotFound;
 }
 
 // Encoding Data
