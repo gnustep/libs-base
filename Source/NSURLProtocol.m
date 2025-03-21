@@ -1413,7 +1413,10 @@ typedef struct {
 		      auth = [authentication
 			authorizationForAuthentication: hdr
 			method: [this->request HTTPMethod]
-			path: [url pathWithEscapes]];
+			path: [[url query] length] == 0 ?
+				[url pathWithEscapes] :
+				[NSString stringWithFormat:@"%@?%@", [url pathWithEscapes], [url query]]
+		      ];
 		    }
 
 		  if (auth == nil)

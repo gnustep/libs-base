@@ -1,3 +1,9 @@
+2025-03-21 Earl Robsham <earl.robsham@savant.com>
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURLProtocol.m:
+	Updates `Authorization` header generation to include the query parameters (if present).
+	Brings the implementation inline with MacOS.
+
 2025-03-08 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Headers/GNUstepBase/GSObjCRuntime.h:
