@@ -124,27 +124,32 @@ altLang(NSString *full)
             }
         }
 
-      if ((r = [canon rangeOfString: @"-"]).length > 1)
+      if ((r = [full rangeOfString: @"-"]).length > 1)
         {
-          dialect = [canon substringFromIndex: NSMaxRange(r)];
-          lang = [canon substringToIndex: r.location];
+          dialect = [full substringFromIndex: NSMaxRange(r)];
+          lang = [full substringToIndex: r.location];
           if ((r = [dialect rangeOfString: @"_"]).length > 1)
             {
               region = [dialect substringFromIndex: NSMaxRange(r)];
               dialect = [dialect substringToIndex: r.location];
             }
         }
-      else if ((r = [canon rangeOfString: @"_"]).length > 1)
+      else if ((r = [full rangeOfString: @"_"]).length > 1)
         {
-          region = [canon substringFromIndex: NSMaxRange(r)];
-          lang = [canon substringToIndex: r.location];
+          region = [full substringFromIndex: NSMaxRange(r)];
+          lang = [full substringToIndex: r.location];
         }
       else
         {
-          lang = canon;
+          lang = full;
         }
 
       a = [NSMutableArray arrayWithCapacity: 5];
+      /* We now that the canonical language does not have a variant or region
+       * extension
+       */
+      [a addObject: canon];
+
       if (nil != dialect && nil != region)
         {
           [a addObject: [NSString stringWithFormat: @"%@-%@_%@",
@@ -165,6 +170,7 @@ altLang(NSString *full)
         {
           [a addObject: alias];
         }
+    NSLog(@"Alt ALngs: %@ canon=%@ alias=%@", a, canon, alias);
     }
   return a;
 }
