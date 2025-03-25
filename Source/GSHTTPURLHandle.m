@@ -536,6 +536,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  NSURLCredential	*cred;
 	  NSString		*method;
 	  NSString		*path;
+	  NSNumber		*omitQuery;
 
 	  /* Create credential from user and password stored in the URL.
 	   * Returns nil if we have no username or password.
@@ -573,7 +574,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		}
 	    }
 
-	  if ([[u query] length] == 0)
+	  omitQuery = [request objectForKey:GSDigestURIOmitsQuery];
+	  if ([[u query] length] == 0 || [omitQuery boolValue])
 	    {
 		  path = [u pathWithEscapes];
 		}
@@ -849,6 +851,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		  NSString		*method;
 		  NSString		*path;
 		  NSString		*auth;
+		  NSNumber		*omitQuery;
 
 		  ac = [ah value];
 		  space = [GSHTTPAuthentication
@@ -902,7 +905,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 			}
 		    }
 
-		  if ([[url query] length] == 0)
+		  omitQuery = [request objectForKey:GSDigestURIOmitsQuery];
+		  if ([[url query] length] == 0 || [omitQuery boolValue])
 			{
 			  path = [url pathWithEscapes];
 			}

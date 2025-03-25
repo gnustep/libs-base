@@ -1,8 +1,11 @@
 2025-03-21 Earl Robsham <earl.robsham@savant.com>
+	* Headers/Foundation/NSURLHandle.h:
+	* Sources/externs.m:
 	* Source/GSHTTPURLHandle.m:
 	* Source/NSURLProtocol.m:
 	Updates `Authorization` header generation to include the query parameters (if present).
 	Brings the implementation inline with MacOS.
+	Also adds the `GSDigestURIOmitsQuery` key for use with ` -[NSHTTPURLHandle writeProperty:forKey:]` / `+[NSURLProtocol setProperty:forKey:inRequest:]` to toggle off this updated behavior.
 
 2025-03-08 Richard Frith-Macdonald <rfm@gnu.org>
 
