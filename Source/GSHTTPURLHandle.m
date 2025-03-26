@@ -574,15 +574,17 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		}
 	    }
 
-	  omitQuery = [request objectForKey:GSDigestURIOmitsQuery];
+	  omitQuery = [request objectForKey:
+	    GSHTTPPropertyDigestURIOmitsQuery];
 	  if ([[u query] length] == 0 || [omitQuery boolValue])
 	    {
-		  path = [u pathWithEscapes];
-		}
-	      else
-		{
-		  path = [NSString stringWithFormat:@"%@?%@", [u pathWithEscapes], [u query]];
-		}
+	      path = [u pathWithEscapes];
+	    }
+	  else
+	    {
+	      path = [NSString stringWithFormat: @"%@?%@",
+		[u pathWithEscapes], [u query]];
+	    }
 
 	  auth = [authentication authorizationForAuthentication: nil
 	    method: method
@@ -905,15 +907,17 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 			}
 		    }
 
-		  omitQuery = [request objectForKey:GSDigestURIOmitsQuery];
+		  omitQuery = [request objectForKey:
+		    GSHTTPPropertyDigestURIOmitsQuery];
 		  if ([[url query] length] == 0 || [omitQuery boolValue])
-			{
-			  path = [url pathWithEscapes];
-			}
-		      else
-			{
-			  path = [NSString stringWithFormat:@"%@?%@", [url pathWithEscapes], [url query]];
-			}
+		    {
+		      path = [url pathWithEscapes];
+		    }
+		  else
+		    {
+		      path = [NSString stringWithFormat: @"%@?%@",
+			[url pathWithEscapes], [url query]];
+		    }
 
 		  auth = [authentication authorizationForAuthentication: ac
 		    method: method

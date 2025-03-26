@@ -1411,13 +1411,15 @@ typedef struct {
 		      /* Generate authentication header value for the
 		       * authentication type in the challenge.
 		       */
-		      omitQuery = [this->request _propertyForKey:GSDigestURIOmitsQuery];
+		      omitQuery = [this->request _propertyForKey:
+			GSHTTPPropertyDigestURIOmitsQuery];
 		      auth = [authentication
 			authorizationForAuthentication: hdr
 			method: [this->request HTTPMethod]
-			path: [[url query] length] == 0 || [omitQuery boolValue] ?
-				[url pathWithEscapes] :
-				[NSString stringWithFormat:@"%@?%@", [url pathWithEscapes], [url query]]
+			path: [[url query] length] == 0 || [omitQuery boolValue]
+			  ? [url pathWithEscapes]
+			  : [NSString stringWithFormat: @"%@?%@",
+			    [url pathWithEscapes], [url query]]
 		      ];
 		    }
 
