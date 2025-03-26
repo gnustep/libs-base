@@ -114,6 +114,14 @@ GS_EXPORT NSString * const GSHTTPPropertyKeyFileKey;
  */
 GS_EXPORT NSString * const GSHTTPPropertyPasswordKey;
 
+/**
+ * Key for passing to [NSURLHandle]'s and [NSHTTPURLProtocol]'s 
+ * <code>propertyForKey..</code> methods. Specifying <code>@YES</code> will 
+ * signal Digest Authentication logic to always omit the 'query' portion of the
+ * URI when generating the `Authorization` header.
+ */
+GS_EXPORT NSString * const GSDigestURIOmitsQuery;
+
 #endif
 
 /**

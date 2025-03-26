@@ -562,6 +562,7 @@ GS_DECLARE NSString* const GSHTTPPropertyProxyPortKey = @"GSHTTPPropertyProxyPor
 GS_DECLARE NSString* const GSHTTPPropertyCertificateFileKey = @"GSHTTPPropertyCertificateFileKey";
 GS_DECLARE NSString* const GSHTTPPropertyKeyFileKey = @"GSHTTPPropertyKeyFileKey";
 GS_DECLARE NSString* const GSHTTPPropertyPasswordKey = @"GSHTTPPropertyPasswordKey";
+GS_DECLARE NSString* const GSDigestURIOmitsQuery = @"GSDigestURIOmitsQuery";
 
 /* NSURLProtectionSpace */
 GS_DECLARE NSString* const NSURLProtectionSpaceFTPProxy = @"ftp";	

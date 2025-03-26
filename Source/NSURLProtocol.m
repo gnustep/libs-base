@@ -1399,6 +1399,7 @@ typedef struct {
 		  if (_credential != nil)
 		    {
 		      GSHTTPAuthentication	*authentication;
+		      NSNumber				*omitQuery;
 
 		      /* Get information about basic or
 		       * digest authentication.
@@ -1410,10 +1411,14 @@ typedef struct {
 		      /* Generate authentication header value for the
 		       * authentication type in the challenge.
 		       */
+		      omitQuery = [this->request _propertyForKey:GSDigestURIOmitsQuery];
 		      auth = [authentication
 			authorizationForAuthentication: hdr
 			method: [this->request HTTPMethod]
-			path: [url pathWithEscapes]];
+			path: [[url query] length] == 0 || [omitQuery boolValue] ?
+				[url pathWithEscapes] :
+				[NSString stringWithFormat:@"%@?%@", [url pathWithEscapes], [url query]]
+		      ];
 		    }
 
 		  if (auth == nil)

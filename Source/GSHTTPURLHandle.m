@@ -535,6 +535,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  GSHTTPAuthentication	*authentication;
 	  NSURLCredential	*cred;
 	  NSString		*method;
+	  NSString		*path;
+	  NSNumber		*omitQuery;
 
 	  /* Create credential from user and password stored in the URL.
 	   * Returns nil if we have no username or password.
@@ -572,9 +574,19 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		}
 	    }
 
+	  omitQuery = [request objectForKey:GSDigestURIOmitsQuery];
+	  if ([[u query] length] == 0 || [omitQuery boolValue])
+	    {
+		  path = [u pathWithEscapes];
+		}
+	      else
+		{
+		  path = [NSString stringWithFormat:@"%@?%@", [u pathWithEscapes], [u query]];
+		}
+
 	  auth = [authentication authorizationForAuthentication: nil
 	    method: method
-	    path: [u pathWithEscapes]];
+	    path: path];
 	  /* If authentication is nil then auth will also be nil
 	   */
 	  if (auth != nil)
@@ -837,7 +849,9 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		  NSString		*ac;
 		  GSHTTPAuthentication	*authentication;
 		  NSString		*method;
+		  NSString		*path;
 		  NSString		*auth;
+		  NSNumber		*omitQuery;
 
 		  ac = [ah value];
 		  space = [GSHTTPAuthentication
@@ -891,9 +905,19 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 			}
 		    }
 
+		  omitQuery = [request objectForKey:GSDigestURIOmitsQuery];
+		  if ([[url query] length] == 0 || [omitQuery boolValue])
+			{
+			  path = [url pathWithEscapes];
+			}
+		      else
+			{
+			  path = [NSString stringWithFormat:@"%@?%@", [url pathWithEscapes], [url query]];
+			}
+
 		  auth = [authentication authorizationForAuthentication: ac
 		    method: method
-		    path: [url pathWithEscapes]];
+		    path: path];
 		  if (auth != nil)
 		    {
 		      [self writeProperty: auth forKey: @"Authorization"];
