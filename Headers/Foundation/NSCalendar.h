@@ -139,7 +139,7 @@ enum
   NSWrapCalendarComponents = (1UL << 0)
 };
 
-NS_ENUM(NSInteger)
+typedef NS_ENUM(NSInteger, NSDateComponentEnum)
 {
   NSDateComponentUndefined = NSIntegerMax,
   NSUndefinedDateComponent = NSDateComponentUndefined
