@@ -661,7 +661,9 @@ newLanguages(NSArray *oldNames)
 
 + (void) atExit
 {
+  [classLock lock];
   DESTROY(sharedDefaults);
+  [classLock unlock];
   DESTROY(bundleIdentifier);
   DESTROY(processName);
   DESTROY(argumentsDictionary);
@@ -842,11 +844,13 @@ newLanguages(NSArray *oldNames)
   NS_ENDHANDLER
   if (nil != regDefs)
     {
-      [self standardUserDefaults];
-      if (sharedDefaults != nil)
+      NSUserDefaults	*defs = [self standardUserDefaults];
+
+      if (defs != nil)
 	{
-	  [sharedDefaults->_tempDomains setObject: regDefs
-	    forKey: NSRegistrationDomain];
+	  [defs->_lock lock];
+	  [defs->_tempDomains setObject: regDefs forKey: NSRegistrationDomain];
+	  [defs->_lock unlock];
 	}
     }
 }
@@ -1351,6 +1355,21 @@ newLanguages(NSArray *oldNames)
   path = [GSDefaultsRootForUser(userName)
     stringByAppendingPathComponent: defaultsFile];
   return [self initWithContentsOfFile: path];
+}
+
+/* This code ensures that, if the shared instance is about to be deallocated
+ * we clear the sharedDefaults variable first so that no other thread can
+ * grab a reference to the deallocated instance.
+ */
+- (void) release
+{
+  [classLock lock];
+  if (self == sharedDefaults && [self retainCount] < 2)
+    {
+      sharedDefaults = nil;
+    }
+  [classLock unlock];
+  [super release];
 }
 
 - (void) dealloc
