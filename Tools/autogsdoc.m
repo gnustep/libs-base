@@ -1292,8 +1292,8 @@ main(int argc, char **argv, char **env)
 	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE"];
 	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE"];
 	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE_NO_ARGS"];
-	  [wm setObject: @"" forKey: @"GS_ATTRIB_DEPRECATED"];
 	  [wm setObject: @"" forKey: @"GS_DECLARE"];
+	  [wm setObject: @"" forKey: @"GS_DEPRECATED"];
 	  [wm setObject: @"" forKey: @"GS_DEPRECATED_FUNC"];
 	  [wm setObject: @"extern" forKey: @"GS_EXPORT"];
 	  [wm setObject: @"" forKey: @"GS_EXPORT_CLASS"];
@@ -1301,6 +1301,7 @@ main(int argc, char **argv, char **env)
 	  [wm setObject: @"" forKey: @"GS_GEOM_ATTR"];
 	  [wm setObject: @"extern" forKey: @"GS_GEOM_SCOPE"];
 	  [wm setObject: @"" forKey: @"GS_IMPORT"];
+	  [wm setObject: @"" forKey: @"GS_NON_PORTABLE"];
 	  [wm setObject: @"" forKey: @"GS_NORETURN_METHOD"];
 	  [wm setObject: @"//" forKey: @"GS_PRIVATE_INTERNAL"];
 	  [wm setObject: @"" forKey: @"GS_RANGE_ATTR"];
