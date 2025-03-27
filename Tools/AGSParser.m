@@ -49,16 +49,20 @@ concreteType(NSString *t)
 {
   static NSString	*gClass = @"GS_GENERIC_CLASS";
   static NSString	*gType = @"GS_GENERIC_TYPE";
+  NSMutableString	*m = nil;
   NSRange		r;
 
   r = [t rangeOfString: gClass];
   while (r.length > 0)
     {
-      NSMutableString	*m = [t mutableCopy];
       unsigned		end;
       unsigned		len;
       unsigned		pos;
 
+      if (t != m)
+	{
+	  t = m = AUTORELEASE([t mutableCopy]);
+	}
       r = NSMakeRange(0, [gClass length]);
       [m deleteCharactersInRange: r];
       len = [m length];
@@ -106,18 +110,20 @@ concreteType(NSString *t)
 	   */
 	  [m deleteCharactersInRange: NSMakeRange(end, pos - end)];
 	}
-      t = AUTORELEASE(m);
       r = [t rangeOfString: gClass];
     }
 
   r = [t rangeOfString: gType];
   while (r.length > 0)
     {
-      NSMutableString	*m = [t mutableCopy];
-      unsigned		len = [m length];
+      unsigned		len = [t length];
       unsigned		pos = r.location;
       BOOL		found = NO;
 
+      if (t != m)
+	{
+	  t = m = AUTORELEASE([t mutableCopy]);
+	}
       while (pos < len)
 	{
 	  unichar	c = [m characterAtIndex: pos++];
@@ -169,18 +175,26 @@ concreteType(NSString *t)
 	   */
           [m replaceCharactersInRange: r withString: @"id"];
 	}
-      t = AUTORELEASE(m);
       r = [t rangeOfString: gType];
     }
 
+  if ([t hasPrefix: @"nullable "])
+    {
+      if (t != m)
+	{
+	  t = m = AUTORELEASE([t mutableCopy]);
+	}
+      [m replaceCharactersInRange: NSMakeRange(0, 9) withString: @""];
+    }
   return t;
 }
 
 static BOOL
 equalTypes(NSArray *t1, NSArray *t2)
 {
-  unsigned	count = (unsigned)[t1 count];
+  unsigned	count;
 
+  count = (unsigned)[t1 count];
   if ([t2 count] != count)
     {
       return NO;
