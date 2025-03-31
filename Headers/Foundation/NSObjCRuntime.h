@@ -292,7 +292,12 @@ typedef NS_ENUM(NSInteger, NSComparisonResult)
   NSOrderedAscending = (NSInteger)-1, NSOrderedSame, NSOrderedDescending
 };
 
+// check for older versions of GCC and try to ignore clang pretending to know GNUC dialects
+#if defined(__GNUC__) && !defined(__clang__) && GCC_VERSION < 80000
+enum {NSNotFound = NSIntegerMax};
+#else
 static const NSInteger NSNotFound = NSIntegerMax;
+#endif
 
 DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
 
