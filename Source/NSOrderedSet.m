@@ -1415,12 +1415,12 @@ static SEL	remSel;
 
   if (count > 0)
     {
-      NSUInteger	i;
       IMP	rem = [self methodForSelector: remSel];
       
-      for (i = 0; i < count; i++)
+      while (count-- > 0)
 	{
-	  NSUInteger idx = indexArray[i];
+	  NSUInteger idx = indexArray[count];
+
 	  (*rem)(self, remSel, idx);
 	}
     }

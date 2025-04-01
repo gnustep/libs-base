@@ -361,6 +361,17 @@ int main()
 	[uobj containsObject: @"Now"]),
        "Object unarchives correctly from macOS archive")
 
+  [array removeAllObjects];
+  [array addObject: @"1"];
+  [array addObject: @"2"];
+  [array addObject: @"3"];
+  [array addObject: @"4"];
+  [array addObject: @"5"];
+		
+  NSMutableOrderedSet *ms = [NSMutableOrderedSet orderedSetWithArray: array];
+  [ms removeObjectsAtIndexes:
+    [NSIndexSet indexSetWithIndexesInRange: NSMakeRange(0, [array count])]];
+
   test_NSObject(@"NSOrderedSet", testObjs);
   test_NSCoding(testObjs);
   test_NSCopying(@"NSOrderedSet", @"NSMutableOrderedSet", testObjs, YES, NO);
