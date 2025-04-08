@@ -1043,12 +1043,12 @@ static NSOperationQueue *mainQueue = nil;
 	  if ([internal->starting count] == 0)
 	    {
 	      // Idle for 5 seconds ... exit thread.
+	      [internal->cond unlock];
 	      [[[NSThread currentThread] threadDictionary]
 		removeObjectForKey: threadKey];
 	      [internal->lock lock];
 	      internal->threadCount--;
 	      [internal->lock unlock];
-	      [internal->cond unlock];
 	      break;
 	    }
 	  /* An operation was added in the gap between the failed wait for
