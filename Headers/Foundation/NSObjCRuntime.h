@@ -292,7 +292,13 @@ typedef NS_ENUM(NSInteger, NSComparisonResult)
   NSOrderedAscending = (NSInteger)-1, NSOrderedSame, NSOrderedDescending
 };
 
+// check for older versions of GCC and try to ignore clang pretending to know GNUC dialects
+// in order to work around error "initializer element is not constant" in older GCC versions
+#if defined(__GNUC__) && !defined(__clang__) && GCC_VERSION < 80000
+#define NSNotFound NSIntegerMax
+#else
 static const NSInteger NSNotFound = NSIntegerMax;
+#endif
 
 DEFINE_BLOCK_TYPE(NSComparator, NSComparisonResult, id, id);
 
