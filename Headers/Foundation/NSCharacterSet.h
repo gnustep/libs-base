@@ -46,106 +46,106 @@ GS_EXPORT_CLASS
  *  marks.  Note that "letters" includes all alphabetic as well as Chinese
  *  characters, etc..
  */
-+ (id) alphanumericCharacterSet;
++ (NSCharacterSet*) alphanumericCharacterSet;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  *  Returns a character set containing letters in the unicode
  *  Titlecase category.
  */
-+ (id) capitalizedLetterCharacterSet;
++ (NSCharacterSet*) capitalizedLetterCharacterSet;
 #endif
 
 /**
  * Returns a character set containing control and format characters.
  */
-+ (id) controlCharacterSet;
++ (NSCharacterSet*) controlCharacterSet;
 
 /**
  * Returns a character set containing characters that represent
  * the decimal digits 0 through 9.
  */
-+ (id) decimalDigitCharacterSet;
++ (NSCharacterSet*) decimalDigitCharacterSet;
 
 /**
  * Returns a character set containing individual characters that
  * can be represented also by a composed character sequence.
  */
-+ (id) decomposableCharacterSet;
++ (NSCharacterSet*) decomposableCharacterSet;
 
 /**
  * Returns a character set containing unassigned and explicitly illegal
  * character values.
  */
-+ (id) illegalCharacterSet;
++ (NSCharacterSet*) illegalCharacterSet;
 
 /**
  *  Returns a character set containing letters, including all alphabetic as
  *  well as Chinese characters, etc..
  */
-+ (id) letterCharacterSet;
++ (NSCharacterSet*) letterCharacterSet;
 
 /**
  * Returns a character set that contains the lowercase characters.
  * This set does not include caseless characters, only those that
  * have corresponding characters in uppercase and/or titlecase.
  */
-+ (id) lowercaseLetterCharacterSet;
++ (NSCharacterSet*) lowercaseLetterCharacterSet;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  * Returns a character set containing the newline characters, values 
  * 0x000A and 0x000D and nextline 0x0085 character.
  */
-+ (id) newlineCharacterSet;
++ (NSCharacterSet*) newlineCharacterSet;
 
 /**
  * Returns allowed characers for URL fragment component.
  */
-+ (id) URLFragmentAllowedCharacterSet;
++ (NSCharacterSet*) URLFragmentAllowedCharacterSet;
 
 /**
  * Returns allowed characers for URL host component.
  */
-+ (id) URLHostAllowedCharacterSet;
++ (NSCharacterSet*) URLHostAllowedCharacterSet;
 
 /**
  * Returns allowed characers for URL password component.
  */
-+ (id) URLPasswordAllowedCharacterSet;
++ (NSCharacterSet*) URLPasswordAllowedCharacterSet;
 
 /**
  * Returns allowed characers for URL path component.
  */
-+ (id) URLPathAllowedCharacterSet;
++ (NSCharacterSet*) URLPathAllowedCharacterSet;
 
 /**
  * Returns allowed characers for URL query component.
  */
-+ (id) URLQueryAllowedCharacterSet;
++ (NSCharacterSet*) URLQueryAllowedCharacterSet;
 
 /**
  * Returns allowed characers for URL USER component.
  */
-+ (id) URLUserAllowedCharacterSet;
++ (NSCharacterSet*) URLUserAllowedCharacterSet;
 #endif
 
 /**
  *  Returns a character set containing characters for diacritical marks, which
  *  are usually only rendered in conjunction with another character.
  */
-+ (id) nonBaseCharacterSet;
++ (NSCharacterSet*) nonBaseCharacterSet;
 
 /**
  *  Returns a character set containing punctuation marks.
  */
-+ (id) punctuationCharacterSet;
++ (NSCharacterSet*) punctuationCharacterSet;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /**
  *  Returns a character set containing mathematical symbols, etc..
  */
-+ (id) symbolCharacterSet;
++ (NSCharacterSet*) symbolCharacterSet;
 #endif
 
 /**
@@ -153,36 +153,36 @@ GS_EXPORT_CLASS
  * This set does not include caseless characters, only those that
  * have corresponding characters in lowercase and/or titlecase.
  */
-+ (id) uppercaseLetterCharacterSet;
++ (NSCharacterSet*) uppercaseLetterCharacterSet;
 
 /**
  * Returns a character set that contains the whitespace characters,
  * plus the newline characters, values 0x000A and 0x000D and nextline
  * 0x0085 character.
  */
-+ (id) whitespaceAndNewlineCharacterSet;
++ (NSCharacterSet*) whitespaceAndNewlineCharacterSet;
 
 /**
  * Returns a character set that contains the whitespace characters.
  */
-+ (id) whitespaceCharacterSet;
++ (NSCharacterSet*) whitespaceCharacterSet;
 
 /**
  * Returns a character set containing characters as encoded in the
  * data object (8192 bytes)
  */
-+ (id) characterSetWithBitmapRepresentation: (NSData*)data;
++ (NSCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data;
 
 /**
  *  Returns set with characters in aString, or empty set for empty string.
  *  Raises an exception if given a nil string.
  */
-+ (id) characterSetWithCharactersInString: (NSString*)aString;
++ (NSCharacterSet*) characterSetWithCharactersInString: (NSString*)aString;
 
 /**
  *  Returns set containing unicode index range given by aRange.
  */
-+ (id) characterSetWithRange: (NSRange)aRange;
++ (NSCharacterSet*) characterSetWithRange: (NSRange)aRange;
 
 #if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
 /**
@@ -193,7 +193,7 @@ GS_EXPORT_CLASS
  *  To get around this load the file into data yourself and use
  *  [NSCharacterSet -characterSetWithBitmapRepresentation].
  */
-+ (id) characterSetWithContentsOfFile: (NSString*)aFile;
++ (NSCharacterSet*) characterSetWithContentsOfFile: (NSString*)aFile;
 #endif
 
 /**

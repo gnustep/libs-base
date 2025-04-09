@@ -781,84 +781,84 @@ static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
   return AUTORELEASE(set);
 }
 
-+ (id) alphanumericCharacterSet
++ (NSCharacterSet*) alphanumericCharacterSet
 {
   return [self _staticSet: alphanumericCharSet
 		   length: sizeof(alphanumericCharSet)
 		   number: 0];
 }
 
-+ (id) capitalizedLetterCharacterSet
++ (NSCharacterSet*) capitalizedLetterCharacterSet
 {
   return [self _staticSet: titlecaseLetterCharSet
 		   length: sizeof(titlecaseLetterCharSet)
 		   number: 13];
 }
 
-+ (id) controlCharacterSet
++ (NSCharacterSet*) controlCharacterSet
 {
   return [self _staticSet: controlCharSet
 		   length: sizeof(controlCharSet)
 		   number: 1];
 }
 
-+ (id) decimalDigitCharacterSet
++ (NSCharacterSet*) decimalDigitCharacterSet
 {
   return [self _staticSet: decimalDigitCharSet
 		   length: sizeof(decimalDigitCharSet)
 		   number: 2];
 }
 
-+ (id) decomposableCharacterSet
++ (NSCharacterSet*) decomposableCharacterSet
 {
   return [self _staticSet: decomposableCharSet
 		   length: sizeof(decomposableCharSet)
 		   number: 3];
 }
 
-+ (id) illegalCharacterSet
++ (NSCharacterSet*) illegalCharacterSet
 {
   return [self _staticSet: illegalCharSet
 		   length: sizeof(illegalCharSet)
 		   number: 4];
 }
 
-+ (id) letterCharacterSet
++ (NSCharacterSet*) letterCharacterSet
 {
   return [self _staticSet: letterCharSet
 		   length: sizeof(letterCharSet)
 		   number: 5];
 }
 
-+ (id) lowercaseLetterCharacterSet
++ (NSCharacterSet*) lowercaseLetterCharacterSet
 {
   return [self _staticSet: lowercaseLetterCharSet
 		   length: sizeof(lowercaseLetterCharSet)
 		   number: 6];
 }
 
-+ (id) newlineCharacterSet
++ (NSCharacterSet*) newlineCharacterSet
 {
   return [self _staticSet: newlineCharSet
 		   length: sizeof(newlineCharSet)
 		   number: 14];
 }
 
-+ (id) nonBaseCharacterSet
++ (NSCharacterSet*) nonBaseCharacterSet
 {
   return [self _staticSet: nonBaseCharSet
 		   length: sizeof(nonBaseCharSet)
 		   number: 7];
 }
 
-+ (id) punctuationCharacterSet
++ (NSCharacterSet*) punctuationCharacterSet
 {
   return [self _staticSet: punctuationCharSet
 		   length: sizeof(punctuationCharSet)
 		   number: 8];
 }
 
-+ (id) symbolCharacterSet
++ (NSCharacterSet*) symbolCharacterSet
 {
   return [self _staticSet: symbolAndOperatorCharSet
 		   length: sizeof(symbolAndOperatorCharSet)
@@ -866,7 +866,7 @@ static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
 }
 
 // FIXME ... deprecated ... remove after next release.
-+ (id) symbolAndOperatorCharacterSet
++ (NSCharacterSet*) symbolAndOperatorCharacterSet
 {
   GSOnceMLog(@"symbolAndOperatorCharacterSet is deprecated ... use symbolCharacterSet");
   return [self _staticSet: symbolAndOperatorCharSet
@@ -874,33 +874,33 @@ static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
 		   number: 9];
 }
 
-+ (id) uppercaseLetterCharacterSet
++ (NSCharacterSet*) uppercaseLetterCharacterSet
 {
   return [self _staticSet: uppercaseLetterCharSet
 		   length: sizeof(uppercaseLetterCharSet)
 		   number: 10];
 }
 
-+ (id) whitespaceAndNewlineCharacterSet
++ (NSCharacterSet*) whitespaceAndNewlineCharacterSet
 {
   return [self _staticSet: whitespaceAndNlCharSet
 		   length: sizeof(whitespaceAndNlCharSet)
 		   number: 11];
 }
 
-+ (id) whitespaceCharacterSet
++ (NSCharacterSet*) whitespaceCharacterSet
 {
   return [self _staticSet: whitespaceCharSet
 		   length: sizeof(whitespaceCharSet)
 		   number: 12];
 }
 
-+ (id) characterSetWithBitmapRepresentation: (NSData*)data
++ (NSCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data
 {
   return AUTORELEASE([[concreteClass alloc] initWithBitmap: data]);
 }
 
-+ (id) characterSetWithCharactersInString: (NSString*)aString
++ (NSCharacterSet*) characterSetWithCharactersInString: (NSString*)aString
 {
   NSMutableCharacterSet	*ms;
   NSCharacterSet	*cs;
@@ -912,7 +912,7 @@ static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
   return AUTORELEASE(cs);
 }
 
-+ (id) characterSetWithRange: (NSRange)aRange
++ (NSCharacterSet*) characterSetWithRange: (NSRange)aRange
 {
   NSMutableCharacterSet	*ms;
   NSCharacterSet	*cs;
@@ -924,7 +924,7 @@ static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
   return AUTORELEASE(cs);
 }
 
-+ (id) characterSetWithContentsOfFile: (NSString*)aFile
++ (NSCharacterSet*) characterSetWithContentsOfFile: (NSString*)aFile
 {
   if ([@"bitmap" isEqual: [aFile pathExtension]])
     {
@@ -935,42 +935,42 @@ static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
     return nil;
 }
 
-+ (id) URLFragmentAllowedCharacterSet
++ (NSCharacterSet*) URLFragmentAllowedCharacterSet
 {
   return [self _staticSet: URLFragmentAllowedCharSet
 		   length: sizeof(URLFragmentAllowedCharSet)
 		   number: 15]; 
 }
 
-+ (id) URLPasswordAllowedCharacterSet
++ (NSCharacterSet*) URLPasswordAllowedCharacterSet
 {
   return [self _staticSet: URLPasswordAllowedCharSet
 		   length: sizeof(URLPasswordAllowedCharSet)
 		   number: 16];
 }
 
-+ (id) URLPathAllowedCharacterSet
++ (NSCharacterSet*) URLPathAllowedCharacterSet
 {
   return [self _staticSet: URLPathAllowedCharSet
 		   length: sizeof(URLPathAllowedCharSet)
 		   number: 17];
 }
 
-+ (id) URLQueryAllowedCharacterSet
++ (NSCharacterSet*) URLQueryAllowedCharacterSet
 {
   return [self _staticSet: URLQueryAllowedCharSet
 		   length: sizeof(URLQueryAllowedCharSet)
 		   number: 18];
 }
 
-+ (id) URLUserAllowedCharacterSet
++ (NSCharacterSet*) URLUserAllowedCharacterSet
 {
   return [self _staticSet: URLUserAllowedCharSet
 		   length: sizeof(URLUserAllowedCharSet)
 		   number: 19];
 }
 
-+ (id) URLHostAllowedCharacterSet
++ (NSCharacterSet*) URLHostAllowedCharacterSet
 {
   return [self _staticSet: URLHostAllowedCharSet
 		   length: sizeof(URLHostAllowedCharSet)
@@ -1182,123 +1182,123 @@ static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
 @implementation NSMutableCharacterSet
 
 /* Override this from NSCharacterSet to create the correct class */
-+ (id) characterSetWithBitmapRepresentation: (NSData*)data
++ (NSCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data
 {
   return AUTORELEASE([[concreteMutableClass alloc] initWithBitmap: data]);
 }
 
-+ (id) alphanumericCharacterSet
++ (NSCharacterSet*) alphanumericCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) capitalizedLetterCharacterSet
++ (NSCharacterSet*) capitalizedLetterCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) controlCharacterSet
++ (NSCharacterSet*) controlCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) decimalDigitCharacterSet
++ (NSCharacterSet*) decimalDigitCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) decomposableCharacterSet
++ (NSCharacterSet*) decomposableCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) illegalCharacterSet
++ (NSCharacterSet*) illegalCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) letterCharacterSet
++ (NSCharacterSet*) letterCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) lowercaseLetterCharacterSet
++ (NSCharacterSet*) lowercaseLetterCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) newlineCharacterSet
++ (NSCharacterSet*) newlineCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) nonBaseCharacterSet
++ (NSCharacterSet*) nonBaseCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) punctuationCharacterSet
++ (NSCharacterSet*) punctuationCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) symbolCharacterSet
++ (NSCharacterSet*) symbolCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
 // FIXME ... deprecated ... remove after next release.
-+ (id) symbolAndOperatorCharacterSet
++ (NSCharacterSet*) symbolAndOperatorCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) uppercaseLetterCharacterSet
++ (NSCharacterSet*) uppercaseLetterCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) whitespaceAndNewlineCharacterSet
++ (NSCharacterSet*) whitespaceAndNewlineCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) whitespaceCharacterSet
++ (NSCharacterSet*) whitespaceCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) URLFragmentAllowedCharacterSet
++ (NSCharacterSet*) URLFragmentAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) URLHostAllowedCharacterSet
++ (NSCharacterSet*) URLHostAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) URLPasswordAllowedCharacterSet
++ (NSCharacterSet*) URLPasswordAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) URLPathAllowedCharacterSet
++ (NSCharacterSet*) URLPathAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) URLQueryAllowedCharacterSet
++ (NSCharacterSet*) URLQueryAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) URLUserAllowedCharacterSet
++ (NSCharacterSet*) URLUserAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (id) characterSetWithCharactersInString: (NSString*)aString
++ (NSCharacterSet*) characterSetWithCharactersInString: (NSString*)aString
 {
   NSMutableCharacterSet	*ms;
 
@@ -1307,7 +1307,7 @@ static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
   return AUTORELEASE(ms);
 }
 
-+ (id) characterSetWithRange: (NSRange)aRange
++ (NSCharacterSet*) characterSetWithRange: (NSRange)aRange
 {
   NSMutableCharacterSet	*ms;
 
