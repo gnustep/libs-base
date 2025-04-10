@@ -277,12 +277,12 @@ GS_EXPORT_CLASS
 /**
  * Returns the current calendar.
  */
-+ (id) currentCalendar;
++ (NSCalendar*) currentCalendar;
 
 /**
  * Create a calendar with the given string as identifier.
  */
-+ (id) calendarWithIdentifier: (NSString *) string;
++ (instancetype) calendarWithIdentifier: (NSString *) string;
 
 /**
  * Instantiate a calendar with the given string as identifier.
@@ -397,7 +397,7 @@ GS_EXPORT_CLASS
 /**
  * A calendar that tracks changes to the user's calendar.
  */
-+ (id) autoupdatingCurrentCalendar;
++ (NSCalendar*) autoupdatingCurrentCalendar;
 
 /**
  * Returns by referene the started time and duration of a given unit containing the given date.

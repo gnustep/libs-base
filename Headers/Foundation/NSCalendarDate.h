@@ -42,34 +42,34 @@ GS_EXPORT_CLASS
 }
 
 // Getting an NSCalendar Date
-+ (id) calendarDate;
-+ (id) dateWithString: (NSString*)description
-       calendarFormat: (NSString*)format;
-+ (id) dateWithString: (NSString*)description
-       calendarFormat: (NSString*)format
-	       locale: (NSDictionary*)dictionary;
-+ (id) dateWithYear: (NSInteger)year
-	      month: (NSUInteger)month
-	        day: (NSUInteger)day
-	       hour: (NSUInteger)hour
-	     minute: (NSUInteger)minute
-	     second: (NSUInteger)second
-	   timeZone: (NSTimeZone*)aTimeZone;
++ (instancetype) calendarDate;
++ (instancetype) dateWithString: (NSString*)description
+                 calendarFormat: (NSString*)format;
++ (instancetype) dateWithString: (NSString*)description
+                 calendarFormat: (NSString*)format
+                         locale: (NSDictionary*)dictionary;
++ (instancetype) dateWithYear: (NSInteger)year
+                        month: (NSUInteger)month
+                          day: (NSUInteger)day
+                         hour: (NSUInteger)hour
+                       minute: (NSUInteger)minute
+                       second: (NSUInteger)second
+                     timeZone: (NSTimeZone*)aTimeZone;
 
 // Initializing an NSCalendar Date
-- (id) initWithString: (NSString*)description;
-- (id) initWithString: (NSString*)description
-       calendarFormat: (NSString*)format;
-- (id) initWithString: (NSString*)description
-       calendarFormat: (NSString*)fmt
-	       locale: (NSDictionary*)locale;
-- (id) initWithYear: (NSInteger)year
-	      month: (NSUInteger)month
-	        day: (NSUInteger)day
-	       hour: (NSUInteger)hour
-	     minute: (NSUInteger)minute
-	     second: (NSUInteger)second
-	   timeZone: (NSTimeZone*)aTimeZone;
+- (instancetype) initWithString: (NSString*)description;
+- (instancetype) initWithString: (NSString*)description
+                 calendarFormat: (NSString*)format;
+- (instancetype) initWithString: (NSString*)description
+                 calendarFormat: (NSString*)fmt
+                         locale: (NSDictionary*)locale;
+- (instancetype) initWithYear: (NSInteger)year
+                        month: (NSUInteger)month
+                          day: (NSUInteger)day
+                         hour: (NSUInteger)hour
+                       minute: (NSUInteger)minute
+                       second: (NSUInteger)second
+                     timeZone: (NSTimeZone*)aTimeZone;
 
 // Retrieving Date Elements
 - (NSInteger) dayOfCommonEra;
