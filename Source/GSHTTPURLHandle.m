@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #import "common.h"
@@ -536,6 +535,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  GSHTTPAuthentication	*authentication;
 	  NSURLCredential	*cred;
 	  NSString		*method;
+	  NSString		*path;
+	  NSNumber		*omitQuery;
 
 	  /* Create credential from user and password stored in the URL.
 	   * Returns nil if we have no username or password.
@@ -573,9 +574,21 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		}
 	    }
 
+	  omitQuery = [request objectForKey:
+	    GSHTTPPropertyDigestURIOmitsQuery];
+	  if ([[u query] length] == 0 || [omitQuery boolValue])
+	    {
+	      path = [u pathWithEscapes];
+	    }
+	  else
+	    {
+	      path = [NSString stringWithFormat: @"%@?%@",
+		[u pathWithEscapes], [u query]];
+	    }
+
 	  auth = [authentication authorizationForAuthentication: nil
-							 method: method
-							   path: [u fullPath]];
+	    method: method
+	    path: path];
 	  /* If authentication is nil then auth will also be nil
 	   */
 	  if (auth != nil)
@@ -838,7 +851,9 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		  NSString		*ac;
 		  GSHTTPAuthentication	*authentication;
 		  NSString		*method;
+		  NSString		*path;
 		  NSString		*auth;
+		  NSNumber		*omitQuery;
 
 		  ac = [ah value];
 		  space = [GSHTTPAuthentication
@@ -892,9 +907,21 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 			}
 		    }
 
+		  omitQuery = [request objectForKey:
+		    GSHTTPPropertyDigestURIOmitsQuery];
+		  if ([[url query] length] == 0 || [omitQuery boolValue])
+		    {
+		      path = [url pathWithEscapes];
+		    }
+		  else
+		    {
+		      path = [NSString stringWithFormat: @"%@?%@",
+			[url pathWithEscapes], [url query]];
+		    }
+
 		  auth = [authentication authorizationForAuthentication: ac
 		    method: method
-		    path: [url fullPath]];
+		    path: path];
 		  if (auth != nil)
 		    {
 		      [self writeProperty: auth forKey: @"Authorization"];
@@ -1102,8 +1129,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   /*
    * Set up request - differs for proxy version unless tunneling via ssl.
    */
-  path = [[[u fullPath] stringByTrimmingSpaces]
-    stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
+  path = [[u pathWithEscapes] stringByTrimmingSpaces];
   if ([path length] == 0)
     {
       path = @"/";
@@ -1174,12 +1200,12 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       return;
     }
 
-  in = [[NSString alloc] initWithFormat: @"(%@:%@ <-- %@:%@)",
+  ASSIGN(in, ([NSString stringWithFormat: @"(%@:%@ <-- %@:%@)",
     [sock socketLocalAddress], [sock socketLocalService],
-    [sock socketAddress], [sock socketService]];
-  out = [[NSString alloc] initWithFormat: @"(%@:%@ --> %@:%@)",
+    [sock socketAddress], [sock socketService]]));
+  ASSIGN(out, ([NSString stringWithFormat: @"(%@:%@ --> %@:%@)",
     [sock socketLocalAddress], [sock socketLocalService],
-    [sock socketAddress], [sock socketService]];
+    [sock socketAddress], [sock socketService]]));
 
   if (debug)
     {
@@ -1924,8 +1950,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      method = @"GET";
 	    }
 	}
-      path = [[[u fullPath] stringByTrimmingSpaces]
-        stringByAddingPercentEscapesUsingEncoding: NSUTF8StringEncoding];
+      path = [[u pathWithEscapes] stringByTrimmingSpaces];
       if ([path length] == 0)
 	{
 	  path = @"/";

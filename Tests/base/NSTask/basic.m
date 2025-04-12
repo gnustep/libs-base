@@ -4,11 +4,11 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSArray *testObj = [NSTask new];
+  ENTER_POOL
+  NSArray	*testObj = AUTORELEASE([NSTask new]);
 
-  test_NSObject(@"NSTask", [NSArray arrayWithObject:testObj]); 
+  test_NSObject(@"NSTask", [NSArray arrayWithObject: testObj]); 
 
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

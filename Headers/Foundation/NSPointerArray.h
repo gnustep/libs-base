@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */ 
 
@@ -43,7 +42,7 @@ extern "C" {
  * or grow (adding nil/zero items).
  */
 GS_EXPORT_CLASS
-@interface NSPointerArray : NSObject <NSCopying, NSCoding>
+@interface NSPointerArray : NSObject <NSCoding, NSCopying, NSFastEnumeration>
 
 /** Allocate an instance, initialise using initWithOptions: and
  * return it autoreleased.

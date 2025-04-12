@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public
    License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
@@ -50,6 +50,7 @@
   unsigned		sssect;
   BOOL			isContentsDoc;
   BOOL			ivarsAtEnd;
+  BOOL			cssNavigation;
   BOOL			verbose;
   BOOL			warn;
 }
@@ -61,6 +62,9 @@
 - (NSString*) makeLink: (NSString*)r
 		ofType: (NSString*)t
 		 isRef: (BOOL)f;
+- (NSString*) makeURL: (NSString*)r
+	       ofType: (NSString*)t
+                isRef: (BOOL)f;
 - (NSString*) makeLink: (NSString*)r
 		ofType: (NSString*)t
 		inUnit: (NSString*)u

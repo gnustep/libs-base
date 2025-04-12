@@ -25,8 +25,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    AutogsdocSource: Additions/GSXML.m
 
@@ -89,8 +88,8 @@ GS_EXPORT_CLASS
 @interface GSXMLDocument : NSObject <NSCopying>
 {
   void	*lib;	// pointer to xmllib pointer of xmlDoc struct
-  BOOL	_ownsLib;
   id	_parent;
+  BOOL	_ownsLib;
 }
 + (GSXMLDocument*) documentWithVersion: (NSString*)version;
 
@@ -142,6 +141,7 @@ GS_EXPORT_CLASS
 {
   void  *lib;      /* pointer to struct xmlNode from libxml */
   id	_parent;
+  BOOL	_ownsLib;
 }
 
 + (NSString*) descriptionFromType: (NSInteger)type;
@@ -195,10 +195,11 @@ GS_EXPORT_CLASS
 GS_EXPORT_CLASS
 @interface GSXMLParser : NSObject
 {
-   id			src;		/* source for parsing	*/
-   void			*lib;		/* parser context	*/
-   GSSAXHandler		*saxHandler;	/* handler for parsing	*/
-   NSMutableString	*messages;	/* append messages here	*/
+  id			src;		/* source for parsing	*/
+  void			*lib;		/* parser context	*/
+  GSSAXHandler		*saxHandler;	/* handler for parsing	*/
+  NSMutableString	*messages;	/* append messages here	*/
+  BOOL			resolve;
 }
 + (NSString*) loadEntity: (NSString*)publicId at: (NSString*)location;
 + (GSXMLParser*) parser;

@@ -11,6 +11,8 @@
 #import "Foundation/NSPathUtilities.h"
 #import "Foundation/NSProcessInfo.h"
 
+#import "../GSPrivate.h"
+
 #define	UNISTR(X) \
 ((const unichar*)[(X) cStringUsingEncoding: NSUnicodeStringEncoding])
 
@@ -133,8 +135,16 @@ struct NSUserDefaultsWin32_DomainInfo
   allDomains = [self persistentDomainNames];
   if ([allDomains count] == 0)
     {
+      NSString	*key;
+
+      key = [GSPrivateInfoDictionary(nil) objectForKey: @"CFBundleIdentifier"];
+      if (NO == [key isKindOfClass: [NSString class]])
+	{
+	  key = [[NSProcessInfo processInfo] processName];
+	}
+
       allDomains = [NSArray arrayWithObjects:
-	[[NSProcessInfo processInfo] processName],
+	key,
 	NSGlobalDomain,
 	nil];
     }

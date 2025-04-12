@@ -88,53 +88,60 @@ NSString *str = @"Do not taunt happy fun ball";
 #define TEST_DECL(testType,testName) \
 void testWriteBasicType_##testName (char *typeName, testType *toEncode) \
 { \
-  NSData *data; \
-  NSMutableData *mData;	\
-  NSString *fileName; \
-  long typeSize = sizeof(testType); \
-  fileName = [[NSString stringWithFormat:@"%s-%li.type",typeName,typeSize] retain]; \
-  if (![fm isReadableFileAtPath:fileName]) \
+  ENTER_POOL\
+  NSData		*data; \
+  NSMutableData		*mData;	\
+  NSString		*fileName; \
+  long			typeSize = sizeof(testType); \
+\
+  fileName = [NSString stringWithFormat:@"%s-%li.type", typeName, typeSize]; \
+  if (![fm isReadableFileAtPath: fileName]) \
     {	\
       NSArchiver *arch;	\
-      mData = [[NSMutableData alloc] init];	\
+\
+      mData = [NSMutableData data];	\
       arch = [[NSArchiver alloc] initForWritingWithMutableData: mData];	\
-      [arch encodeValueOfObjCType:@encode(testType) at:toEncode];	\
-      [arch encodeObject:str]; \
-      [mData writeToFile:fileName atomically:YES]; \
-      data = [NSData dataWithContentsOfFile:fileName]; \
-      PASS([data isEqual:mData], \
+      [arch encodeValueOfObjCType: @encode(testType) at: toEncode];	\
+      [arch encodeObject: str]; \
+      [mData writeToFile: fileName atomically: YES]; \
+      data = [NSData dataWithContentsOfFile: fileName]; \
+      PASS([data isEqual: mData], \
 	   "can write %s of size %li", typeName, typeSize); \
-      [fileName release]; \
-      [mData release]; \
-      [arch release]; \
+      RELEASE(arch); \
     } \
+  LEAVE_POOL\
 } \
 void testReadBasicType_##testName (char *pre, testType *expect, testType *toDecode) \
 { \
-  NSData *data; \
-  NSUnarchiver *unArch; \
-  NSString *str2; \
-  NSString *fileName; \
-  long typeSize = sizeof(testType); \
-  fileName = [[NSString stringWithFormat:@"%s-%li.type",pre,typeSize] retain]; \
-  if ([fm isReadableFileAtPath:fileName]) \
-	{ \
-	  data = [NSData dataWithContentsOfFile:fileName]; \
-	  unArch = [[NSUnarchiver alloc] initForReadingWithData:data]; \
-	  NS_DURING \
-	    [unArch decodeValueOfObjCType:@encode(testType) at:toDecode]; \
-	  NS_HANDLER \
-	    NSLog(@"%@ %@", [localException name], [localException reason]); \
-	    PASS(0, "can unarchive %s from %s", pre, [fileName UTF8String]); \
-	  NS_ENDHANDLER \
-	  str2 = [unArch decodeObject]; \
-	  PASS((VAL_TEST(*expect,*toDecode) && [str isEqual:str2]), \
-		"can unarchive %s from %s", pre, [fileName UTF8String]); \
-	} \
+  ENTER_POOL\
+  NSString	*fileName; \
+  long		typeSize = sizeof(testType); \
+\
+  fileName = [NSString stringWithFormat: @"%s-%li.type", pre, typeSize]; \
+  if ([fm isReadableFileAtPath: fileName]) \
+    { \
+      NSUnarchiver	*unArch; \
+      NSData		*data; \
+      NSString		*str2; \
+\
+      data = [NSData dataWithContentsOfFile: fileName]; \
+      unArch = [[NSUnarchiver alloc] initForReadingWithData: data]; \
+      NS_DURING \
+	[unArch decodeValueOfObjCType: @encode(testType) at: toDecode]; \
+      NS_HANDLER \
+	NSLog(@"%@ %@", [localException name], [localException reason]); \
+	PASS(0, "can unarchive %s from %s", pre, [fileName UTF8String]) \
+      NS_ENDHANDLER \
+      str2 = [unArch decodeObject]; \
+      PASS((VAL_TEST(*expect, *toDecode) && [str isEqual: str2]), \
+	"can unarchive %s from %s", pre, [fileName UTF8String]) \
+      DESTROY(unArch); \
+    } \
   else \
-  { \
-    PASS(1 == 2, "Archive %s not found.", [fileName UTF8String]); \
-  } \
+    { \
+      PASS(1 == 2, "Archive %s not found.", [fileName UTF8String]) \
+    } \
+  LEAVE_POOL\
 } 
 
 #define VAL_TEST(testX,testY) testX == testY
@@ -231,12 +238,17 @@ int main()
   [obj1 setValues];
   data = [NSArchiver archivedDataWithRootObject: obj1];
   obj2 = [NSUnarchiver unarchiveObjectWithData: data];
-  PASS([obj1 testCInt:obj2],       "archiving as int - dearchiving as NSInteger");
-  PASS([obj1 testCUInt:obj2],      "archiving as unsigned int - dearchiving as NSUInteger");
-  PASS([obj1 testNSInteger:obj2],  "archiving as NSInteger - dearchiving as int");
-  PASS([obj1 testNSUInteger:obj2], "archiving as NSUInteger - dearchiving as unsigned int");
-  PASS([obj1 testArray:obj2], "archiving as NSInteger array - dearchiving as long long");
-  
+  PASS([obj1 testCInt: obj2],
+    "archiving as int - dearchiving as NSInteger")
+  PASS([obj1 testCUInt: obj2],
+    "archiving as unsigned int - dearchiving as NSUInteger")
+  PASS([obj1 testNSInteger: obj2],
+    "archiving as NSInteger - dearchiving as int")
+  PASS([obj1 testNSUInteger: obj2],
+    "archiving as NSUInteger - dearchiving as unsigned int")
+  PASS([obj1 testArray: obj2],
+    "archiving as NSInteger array - dearchiving as long long")
+  RELEASE(obj1);
   [pool release]; pool = nil;
   return 0;
 }

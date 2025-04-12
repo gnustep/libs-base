@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSObject class reference</title>
    $Date$ $Revision$
@@ -84,6 +83,17 @@
 #endif
 #endif
 
+/* objc_enumerationMutation() is called whenever a collection mutates in the
+ * middle of fast enumeration.  We need to have this defined and linked into
+ * any code that uses fast enumeration, so we define it in NSObject.h
+ * This symbol is exported to take precedence over the weak symbol provided
+ * by the runtime library.
+ */
+GS_EXPORT void objc_enumerationMutation(id obj)
+{
+  [NSException raise: NSGenericException 
+    format: @"Collection %@ was mutated while being enumerated", obj];
+}
 
 /* platforms which do not support weak */
 #if defined (__WIN32)
@@ -141,7 +151,6 @@ BOOL	NSDeallocateZombies = NO;
 static Class		zombieClass = Nil;
 static NSMapTable	*zombieMap = 0;
 
-#ifndef OBJC_CAP_ARC
 static void GSMakeZombie(NSObject *o, Class c)
 {
   object_setClass(o, zombieClass);
@@ -155,7 +164,6 @@ static void GSMakeZombie(NSObject *o, Class c)
       GS_MUTEX_UNLOCK(allocationLock);
     }
 }
-#endif
 
 extern void GSLogZombie(id o, SEL sel)
 {
@@ -172,13 +180,13 @@ extern void GSLogZombie(id o, SEL sel)
     }
   if (c == 0)
     {
-      NSLog(@"*** -[??? %@]: message sent to deallocated instance %p",
-	NSStringFromSelector(sel), o);
+      fprintf(stderr, "*** -[??? %s]: message sent to deallocated instance %p",
+	sel_getName(sel), o);
     }
   else
     {
-      NSLog(@"*** -[%@ %@]: message sent to deallocated instance %p",
-	c, NSStringFromSelector(sel), o);
+      fprintf(stderr, "*** -[%s %s]: message sent to deallocated instance %p",
+	class_getName(c), sel_getName(sel), o);
     }
   if (GSPrivateEnvironmentFlag("CRASH_ON_ZOMBIE", NO) == YES)
     {
@@ -209,11 +217,19 @@ extern void GSLogZombie(id o, SEL sel)
 #undef	GSATOMICREAD
 #endif
 
-#if defined(__llvm__) || (defined(USE_ATOMIC_BUILTINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
-/* Use the GCC atomic operations with recent GCC versions */
+#ifdef OBJC_CAP_ARC
 
 typedef intptr_t volatile *gsatomic_t;
 typedef intptr_t gsrefcount_t;
+#define GSATOMICREAD(X) (*(X))
+#define GSAtomicIncrement(X)    __sync_add_and_fetch(X, 1)
+#define GSAtomicDecrement(X)    __sync_sub_and_fetch(X, 1)
+
+#elif (defined(USE_ATOMIC_BUILTINS) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1)))
+/* Use the GCC atomic operations with recent GCC versions */
+
+typedef int32_t volatile *gsatomic_t;
+typedef int32_t gsrefcount_t;
 #define GSATOMICREAD(X) (*(X))
 #define GSAtomicIncrement(X)    __sync_add_and_fetch(X, 1)
 #define GSAtomicDecrement(X)    __sync_sub_and_fetch(X, 1)
@@ -383,7 +399,7 @@ GSAtomicDecrement(gsatomic_t X)
 
 #include <pthread.h>
 
-typedef int     gsrefcount_t;   // No atomics, use a simple integer
+typedef int32_t	gsrefcount_t;   // No atomics, use a simple integer
 
 /* Having just one allocationLock for all leads to lock contention
  * if there are lots of threads doing lots of retain/release calls.
@@ -416,12 +432,22 @@ static inline pthread_mutex_t   *GSAllocationLockForObject(id p)
 #endif
 #define alignof(type) __builtin_offsetof(struct { const char c; type member; }, member)
 
+#ifndef OBJC_CAP_ARC
+typedef struct {
+  BOOL	hadWeakReference: 1;	// if the instance ever had a weak reference
+  BOOL	hadAssociations: 1;	// if the instance ever had associated objects
+} gsinstinfo_t;
+#endif
+
 /*
  *	Define a structure to hold information that is held locally
  *	(before the start) in each object.
  */
 typedef struct obj_layout_unpadded {
   gsrefcount_t	retained;
+#ifndef OBJC_CAP_ARC
+  gsinstinfo_t	extra;
+#endif
 } unp;
 #define	UNP sizeof(unp)
 
@@ -442,8 +468,36 @@ struct obj_layout {
   char	padding[__BIGGEST_ALIGNMENT__ - ((UNP % __BIGGEST_ALIGNMENT__)
     ? (UNP % __BIGGEST_ALIGNMENT__) : __BIGGEST_ALIGNMENT__)];
   gsrefcount_t	retained;
+#ifndef OBJC_CAP_ARC
+  gsinstinfo_t	extra;
+#endif
 };
 typedef	struct obj_layout *obj;
+
+#ifndef OBJC_CAP_ARC
+BOOL
+GSPrivateMarkedAssociations(id anObject, BOOL mark)
+{
+  BOOL	wasMarked = ((obj)anObject)[-1].extra.hadAssociations;
+
+  if (mark)
+    {
+      ((obj)anObject)[-1].extra.hadAssociations = YES;
+    }
+  return wasMarked;
+}
+BOOL
+GSPrivateMarkedWeak(id anObject, BOOL mark)
+{
+  BOOL	wasMarked = ((obj)anObject)[-1].extra.hadWeakReference;
+
+  if (mark)
+    {
+      ((obj)anObject)[-1].extra.hadWeakReference = YES;
+    }
+  return wasMarked;
+}
+#endif
 
 /*
  * These symbols are provided by newer versions of the GNUstep Objective-C
@@ -494,9 +548,7 @@ static BOOL objc_release_fast_no_destroy_internal(id anObject)
          * have been greater than zero)
          */
         (((obj)anObject)[-1].retained) = 0;
-#  ifdef OBJC_CAP_ARC
         objc_delete_weak_refs(anObject);
-#  endif
         return YES;
       }
 #else	/* GSATOMICREAD */
@@ -505,9 +557,7 @@ static BOOL objc_release_fast_no_destroy_internal(id anObject)
     pthread_mutex_lock(theLock);
     if (((obj)anObject)[-1].retained == 0)
       {
-#  ifdef OBJC_CAP_ARC
         objc_delete_weak_refs(anObject);
-#  endif
         pthread_mutex_unlock(theLock);
         return YES;
       }
@@ -570,12 +620,12 @@ NSDecrementExtraRefCountWasZero(id anObject)
   return release_fast_no_destroy(anObject);
 }
 
-size_t object_getRetainCount_np_internal(id anObject)
+static size_t object_getRetainCount_np_internal(id anObject)
 {
   return ((obj)anObject)[-1].retained + 1;
 }
 
-size_t getRetainCount(id anObject)
+static size_t getRetainCount(id anObject)
 {
 #ifdef __GNUSTEP_RUNTIME__
   if (object_getRetainCount_np)
@@ -815,33 +865,36 @@ NSDeallocateObject(id anObject)
       (*finalize_imp)(anObject, finalize_sel);
 
       AREM(aClass, (id)anObject);
-      if (NSZombieEnabled == YES)
+
+#ifndef OBJC_CAP_ARC
+      if (GSPrivateMarkedAssociations(anObject, NO))
 	{
-#ifdef OBJC_CAP_ARC
-	  if (0 != zombieMap)
-	    {
-              GS_MUTEX_LOCK(allocationLock);
-              if (0 != zombieMap)
-                {
-                  NSMapInsert(zombieMap, (void*)anObject, (void*)aClass);
-                }
-              GS_MUTEX_UNLOCK(allocationLock);
-	    }
-	  if (NSDeallocateZombies == YES)
-	    {
-	      object_dispose(anObject);
-	    }
-	  else
-	    {
-	      object_setClass(anObject, zombieClass);
-	    }
-#else
-	  GSMakeZombie(anObject, aClass);
-	  if (NSDeallocateZombies == YES)
-	    {
-	      NSZoneFree(z, o);
-	    }
+	  objc_removeAssociatedObjects(anObject);
+	}
 #endif
+
+      if (NSZombieEnabled)
+	{
+	  /* Replace the isa pointer etc to turn the object into a zombie.
+	   */
+	  GSMakeZombie(anObject, aClass);
+
+	  if (NSDeallocateZombies)
+	    {
+#if	defined(OBJC_CAP_ARC)
+	      /* On the modern runtime object_dispose() is called to free
+	       * an instance, but that needs to look at the isa pointer
+	       * and that is now the zombie class so we cant use it.
+	       * So NSDeallocateZombies does nothing.
+	       */
+#else
+	      /* On the classic runtime it makes sense to have an option to
+	       * free memory as the isa pointer in the freed memory may let
+	       * it work as a zombie until it is overwritten.
+	       */
+	      NSZoneFree(z, o);
+#endif
+	    }
 	}
       else
 	{
@@ -948,6 +1001,8 @@ static id gs_weak_load(id obj)
 {
 #ifdef OBJC_CAP_ARC
   _objc_weak_load = gs_weak_load;
+#else
+  GSWeakInit();
 #endif
   objc_create_block_classes_as_subclasses_of(self);
 }
@@ -1071,7 +1126,18 @@ static id gs_weak_load(id obj)
        * information about zombie objects.
        */
       NSZombieEnabled = GSPrivateEnvironmentFlag("NSZombieEnabled", NO);
-      NSDeallocateZombies = GSPrivateEnvironmentFlag("NSDeallocateZombies", NO);
+      if (NSZombieEnabled)
+	{
+          NSDeallocateZombies
+	    = GSPrivateEnvironmentFlag("NSDeallocateZombies", NO);
+#ifdef OBJC_CAP_ARC
+	  if (NSDeallocateZombies)
+	    {
+	      fprintf(stderr, "WARNING the NSDeallocateZombies environment"
+		" setting has no effect with this Objective-C runtime.\n");
+	    }
+#endif
+	}
       zombieMap = NSCreateMapTable(NSNonOwnedPointerMapKeyCallBacks,
 	NSNonOwnedPointerMapValueCallBacks, 0);
 
@@ -1087,12 +1153,14 @@ static id gs_weak_load(id obj)
 
 + (void) _atExit
 {
+/*
   NSMapTable	*m = nil;
   GS_MUTEX_LOCK(allocationLock);
   m = zombieMap;
   zombieMap = nil;
   GS_MUTEX_UNLOCK(allocationLock);
   DESTROY(m);
+*/
 }
 
 /**
@@ -2152,26 +2220,6 @@ static id gs_weak_load(id obj)
   return NSDefaultMallocZone();
 }
 
-/**
- * Called to encode the instance variables of the receiver to aCoder.<br />
- * Subclasses should call the superclass method at the start of their
- * own implementation.
- */
-- (void) encodeWithCoder: (NSCoder*)aCoder
-{
-  return;
-}
-
-/**
- * Called to intialise instance variables of the receiver from aDecoder.<br />
- * Subclasses should call the superclass method at the start of their
- * own implementation.
- */
-- (id) initWithCoder: (NSCoder*)aDecoder
-{
-  return self;
-}
-
 + (BOOL) resolveClassMethod: (SEL)name
 {
   return NO;
@@ -2472,6 +2520,10 @@ static id gs_weak_load(id obj)
       GS_MUTEX_UNLOCK(allocationLock);
     }
   return c;
+}
+- (NSUInteger) retainCount
+{
+  return 0;	// So that gs_weak_load() knows the object was deallocated
 }
 - (void) logZombie: (SEL)selector
 {

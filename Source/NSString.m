@@ -24,8 +24,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSString class reference</title>
 */
@@ -167,9 +166,14 @@ static NSMapTable		*placeholderMap;
 static gs_mutex_t		placeholderLock = GS_MUTEX_INIT_STATIC;
 
 
-static SEL	                cMemberSel = 0;
-static NSCharacterSet	        *nonBase = nil;
-static BOOL                     (*nonBaseImp)(id, SEL, unichar) = 0;
+static SEL		cMemberSel = 0;
+static NSCharacterSet	*nonBase = nil;
+static BOOL             (*nonBaseImp)(id, SEL, unichar) = 0;
+static gs_mutex_t	nonBaseLock = GS_MUTEX_INIT_STATIC;
+
+static NSCharacterSet	*wPathSeps = nil;
+static NSCharacterSet	*uPathSeps = nil;
+static NSCharacterSet	*rPathSeps = nil;
 
 /* Macro to return the receiver if it is already immutable, but an
  * autoreleased copy otherwise.  Used where we have to return an
@@ -228,8 +232,24 @@ uni_isnonsp(unichar u)
    * to a number of issues with UTF-16
    */
   if ((u >= 0xdc00) && (u <= 0xdfff))
-    return YES;
-
+    {
+      return YES;
+    }
+  if (0 == nonBaseImp)
+    {
+      GS_MUTEX_LOCK(nonBaseLock);
+      if (nil == nonBase)
+	{
+          nonBase = RETAIN([NSCharacterSet nonBaseCharacterSet]);
+	  nonBaseImp
+	    = (BOOL(*)(id,SEL,unichar))[nonBase methodForSelector: cMemberSel];
+	}
+      GS_MUTEX_UNLOCK(nonBaseLock);
+      if (0 == nonBaseImp)
+	{
+	  return NO;	// if charset is missing (prerhaps during process exit)
+	}
+    }
   return (*nonBaseImp)(nonBase, cMemberSel, u);
 }
 
@@ -309,9 +329,6 @@ GSPathHandling(const char *mode)
 static NSCharacterSet*
 pathSeps(void)
 {
-  static NSCharacterSet	*wPathSeps = nil;
-  static NSCharacterSet	*uPathSeps = nil;
-  static NSCharacterSet	*rPathSeps = nil;
   if (GSPathHandlingRight())
     {
       if (rPathSeps == nil)
@@ -319,9 +336,8 @@ pathSeps(void)
 	  GS_MUTEX_LOCK(placeholderLock);
 	  if (rPathSeps == nil)
 	    {
-	      rPathSeps
-		= [NSCharacterSet characterSetWithCharactersInString: @"/\\"];
-              rPathSeps = [NSObject leakAt: &rPathSeps];
+	      rPathSeps = RETAIN([NSCharacterSet
+		characterSetWithCharactersInString: @"/\\"]);
 	    }
 	  GS_MUTEX_UNLOCK(placeholderLock);
 	}
@@ -334,9 +350,8 @@ pathSeps(void)
 	  GS_MUTEX_LOCK(placeholderLock);
 	  if (uPathSeps == nil)
 	    {
-	      uPathSeps
-		= [NSCharacterSet characterSetWithCharactersInString: @"/"];
-              uPathSeps = [NSObject leakAt: &uPathSeps];
+	      uPathSeps = RETAIN([NSCharacterSet
+		characterSetWithCharactersInString: @"/"]);
 	    }
 	  GS_MUTEX_UNLOCK(placeholderLock);
 	}
@@ -349,9 +364,8 @@ pathSeps(void)
 	  GS_MUTEX_LOCK(placeholderLock);
 	  if (wPathSeps == nil)
 	    {
-	      wPathSeps
-		= [NSCharacterSet characterSetWithCharactersInString: @"\\"];
-              wPathSeps = [NSObject leakAt: &wPathSeps];
+	      wPathSeps = RETAIN([NSCharacterSet
+		characterSetWithCharactersInString: @"\\"]);
 	    }
 	  GS_MUTEX_UNLOCK(placeholderLock);
 	}
@@ -610,7 +624,8 @@ _GSICUCollatorCreate(NSStringCompareOptions mask, const char *localeCString)
   return self;
 }
 
-- (void) dealloc {
+- (void) dealloc
+{
   RELEASE(locale);
   if (collator != NULL)
     {
@@ -631,33 +646,37 @@ _GSICUCollatorCreate(NSStringCompareOptions mask, const char *localeCString)
 static UCollator *
 GSICUCachedCollator(NSStringCompareOptions mask, NSLocale *locale)
 {
-  NSThread *current;
-  GSICUCollatorCache *cache;
+  NSThread 		*current;
+  GSICUCollatorCache	*cache;
 
   current = [NSThread currentThread];
   cache = [current _stringCollatorCache];
-  if (nil == cache) {
-    cache = [[GSICUCollatorCache alloc] initWithMask: mask locale: locale];
-    [current _setStringCollatorCache: cache];
-    [cache release];
-    return cache->collator;
-  }
-
-  // Do a pointer comparison first to avoid the overhead of isEqual:
-  // The locale instance is likely a global constant object.
-  // If this fails, do a full comparison.
-  if ((cache->locale == locale || [cache->locale isEqual: locale]) && mask == cache->mask)
+  if (nil == cache)
     {
-      return cache->collator;
-    }
-  else
-   {
       cache = [[GSICUCollatorCache alloc] initWithMask: mask locale: locale];
       [current _setStringCollatorCache: cache];
       [cache release];
       return cache->collator;
-   }
+    }
+
+  /* Do a pointer comparison first to avoid the overhead of isEqual:
+   * The locale instance is likely a global constant object.
+   * If this fails, do a full comparison.
+   */
+  if ((cache->locale == locale || [cache->locale isEqual: locale])
+    && mask == cache->mask)
+    {
+      return cache->collator;
+    }
+  else
+    {
+      cache = [[GSICUCollatorCache alloc] initWithMask: mask locale: locale];
+      [current _setStringCollatorCache: cache];
+      [cache release];
+      return cache->collator;
+    }
 }
+#endif	// GS_USE_ICU
 
 
 @implementation NSString
@@ -773,7 +792,7 @@ register_printf_atsign ()
 				    0))
 #else
 	                            arginfo_func))
-#endif
+#endif	// PRINTF_ATSIGN_VA_LIST
 	[NSException raise: NSGenericException
 		     format: @"register printf handling of %%@ failed"];
 #elif   defined(HAVE_REGISTER_PRINTF_FUNCTION)
@@ -782,10 +801,10 @@ register_printf_atsign ()
 				    0))
 #else
 	                            arginfo_func))
-#endif
+#endif	// PRINTF_ATSIGN_VA_LIST
 	[NSException raise: NSGenericException
 		     format: @"register printf handling of %%@ failed"];
-#endif
+#endif	// defined(HAVE_REGISTER_PRINTF_FUNCTION)
 }
 
 
@@ -873,11 +892,29 @@ register_printf_atsign ()
   return AUTORELEASE(newString);
 }
 #endif
-#endif
 
 + (void) atExit
 {
-  DESTROY(placeholderMap);
+  /* Deallocate all the placeholders in the map before destroying it.
+   */
+  GS_MUTEX_LOCK(placeholderLock);
+  if (placeholderMap)
+    {
+      NSMapEnumerator	mEnum = NSEnumerateMapTable(placeholderMap);
+      Class		c;
+      id		o;
+
+      while (NSNextMapEnumeratorPair(&mEnum, (void *)&c, (void *)&o))
+	{
+	  NSDeallocateObject(o);
+	}
+      NSEndMapTableEnumeration(&mEnum);
+      DESTROY(placeholderMap);
+    }
+  GS_MUTEX_UNLOCK(placeholderLock);
+  DESTROY(rPathSeps);
+  DESTROY(uPathSeps);
+  DESTROY(wPathSeps);
 }
 
 + (void) initialize
@@ -895,11 +932,6 @@ register_printf_atsign ()
       caiSel = @selector(characterAtIndex:);
       gcrSel = @selector(getCharacters:range:);
       ranSel = @selector(rangeOfComposedCharacterSequenceAtIndex:);
-
-      nonBase = [NSCharacterSet nonBaseCharacterSet];
-      nonBase = [NSObject leakAt: &nonBase];
-      nonBaseImp
-        = (BOOL(*)(id,SEL,unichar))[nonBase methodForSelector: cMemberSel];
 
       _DefaultStringEncoding = GSPrivateDefaultCStringEncoding();
       _ByteEncodingOk = GSPrivateIsByteEncoding(_DefaultStringEncoding);
@@ -952,7 +984,7 @@ register_printf_atsign ()
 	   */
 	  GS_MUTEX_LOCK(placeholderLock);
 	  obj = (id)NSMapGet(placeholderMap, (void*)z);
-	  if (obj == nil)
+	  if (obj == nil && NO == [NSObject isExiting])
 	    {
 	      /*
 	       * There is no placeholder object for this zone, so we
@@ -3227,6 +3259,11 @@ register_printf_atsign ()
 - (NSString*) commonPrefixWithString: (NSString*)aString
 			     options: (NSUInteger)mask
 {
+  // Return empty string to match behaviour on macOS
+  if (nil == aString)
+    {
+      return @"";
+    }
   if (mask & NSLiteralSearch)
     {
       int prefix_len = 0;
@@ -3943,9 +3980,13 @@ register_printf_atsign ()
     }
   else
     {
+      BOOL	result;
+
+      ENTER_POOL
       NSData	*d = [self dataUsingEncoding: encoding];
       unsigned	length = [d length];
-      BOOL	result = (length < maxLength) ? YES : NO;
+
+      result = (length < maxLength) ? YES : NO;
 
       if (d == nil)
         {
@@ -3958,6 +3999,7 @@ register_printf_atsign ()
 	}
       memcpy(buffer, [d bytes], length);
       buffer[length] = '\0';
+      LEAVE_POOL
       return result;
     }
 }
@@ -4271,7 +4313,7 @@ register_printf_atsign ()
       if (GSFromUnicode(&b, &l, u, len, encoding, NSDefaultMallocZone(),
 	options) == YES)
 	{
-	  d = [NSDataClass dataWithBytesNoCopy: b length: l];
+	  d = [NSDataClass dataWithBytesNoCopy: b length: l freeWhenDone: YES];
 	}
       else
         {
@@ -6389,14 +6431,12 @@ static NSFileManager *fm = nil;
   uint8_t	substringType;
   BOOL		isReverse;
   BOOL 		substringNotRequired;
-  BOOL 		localized; 
   NSUInteger	currentLocation;
   BOOL 		stop = NO;
 
   substringType = opts & 0xFF;
   isReverse = opts & NSStringEnumerationReverse;
   substringNotRequired = opts & NSStringEnumerationSubstringNotRequired;
-  localized = opts & NSStringEnumerationLocalized;
 
   if (isReverse)
     {
@@ -6507,7 +6547,7 @@ static NSFileManager *fm = nil;
       /* @ss=standard will use lists of common abbreviations,
        * such as Mr., Mrs., etc.
        */
-      locale = localized
+      locale = (opts & NSStringEnumerationLocalized)
         ? [[[[NSLocale currentLocale] localeIdentifier] 
 	  stringByAppendingString: @"@ss=standard"] UTF8String]
         : "en_US_POSIX";
@@ -6551,6 +6591,7 @@ static NSFileManager *fm = nil;
 		&stop);
 	    }
 	}
+      ubrk_close(breakIterator);
 #else
       NSWarnLog(@"NSStringEnumerationByWords and NSStringEnumerationBySentences"
 	@" are not supported when GNUstep-base is compiled without ICU.");

@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #import "common.h"
@@ -184,7 +183,12 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
   self = [self initWithKind: NSXMLDocumentKind options: 0];
   if (self != nil)
     {
-      [self setRootElement: (NSXMLNode*)element];
+      NS_DURING
+        [self setRootElement: (NSXMLNode*)element];
+      NS_HANDLER
+	RELEASE(self);
+	[localException raise];
+      NS_ENDHANDLER
     }
   return self;
 }
@@ -280,6 +284,11 @@ GS_PRIVATE_INTERNAL(NSXMLDocument)
 
   // FIXME: Should we use addChild: here? 
   xmlDocSetRootElement(internal->node.doc, [root _node]);
+  if (GSIVar(root, detached))
+    {
+      xmlFreeDoc(GSIVar(root, detached));
+      GSIVar(root, detached) = 0;
+    }
 
   // Do our subNode housekeeping...
   [self _addSubNode: root];

@@ -18,7 +18,7 @@
    You should have received a copy of the GNU General Public
    License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 
    <abstract>
     This is the AGSParser class ... and some autogsdoc examples.
@@ -104,6 +104,7 @@
 - (NSMutableArray*) parseProtocolList;
 - (unsigned) parseSpace: (NSCharacterSet*)spaceSet;
 - (unsigned) parseSpace;
+- (unsigned) parseSpaceOrGeneric;
 - (NSString*) parseVersion;
 - (void) reset;
 - (void) setDebug: (BOOL)aFlag;
@@ -115,9 +116,11 @@
 - (void) setWordMap: (NSDictionary*)map;
 - (void) setupBuffer;
 - (unsigned) skipArray;
+- (unsigned) skipAttribute: (NSString*)s;
 - (unsigned) skipBlock;
 - (unsigned) skipBlock: (BOOL*)isEmpty;
 - (unsigned) skipGeneric;
+- (unsigned) skipIfAttribute;
 - (unsigned) skipLiteral;
 - (unsigned) skipRemainderOfLine;
 - (unsigned) skipSpaces;

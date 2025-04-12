@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #import "common.h"
@@ -1248,7 +1247,8 @@ static Class	runLoopClass;
                * first thing to do is send out port information (after setting
                * up a TLS session if necessary).
                */
-	      ASSIGN(cData, newDataWithEncodedPort(p));
+	      RELEASE(cData);
+	      cData = newDataWithEncodedPort(p);
 	      cLength = 0;
 
 #if	defined(HAVE_GNUTLS)
@@ -2465,7 +2465,7 @@ static Class		tcpPortClass;
 - (oneway void) release
 {
   M_LOCK(tcpPortLock);
-  if (NSDecrementExtraRefCountWasZero(self))
+  if (1 == [self retainCount])
     {
       NSMapTable	*thePorts;
 
@@ -2474,13 +2474,9 @@ static Class		tcpPortClass;
 	{
 	  NSMapRemove(thePorts, host);
 	}
-      M_UNLOCK(tcpPortLock);
-      [self dealloc];
     }
-  else
-    {
-      M_UNLOCK(tcpPortLock);
-    }
+  M_UNLOCK(tcpPortLock);
+  [super release];
 }
 
 

@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
@@ -38,10 +37,39 @@
 #import "GSPrivate.h"
 #import "GSSorting.h"
 
+/* The gnustep-make -asan=yes option enables LeakSanitizer but (Nov2024)
+ * that produces false positives for items held in an inline array, so
+ * we use the less efficient class in that case.
+ */
+#if	!defined(GNUSTEP_WITH_ASAN)
+#define	GNUSTEP_WITH_ASAN 0
+#endif
+
 static SEL	eqSel;
 static SEL	oaiSel;
 
+static Class	GSArrayClass;
+
+/* Normally for immutable arrays we can use an array class where the buffer
+ * memory is allocated as part of the instance in a single allocation rather
+ * than being allocated separately (so each instance needs two allocations).
+ * However, this confuses the leak sanitizer, so if we are using that we
+ * need to disable the use of inline arrays to avoid false positives.
+ */
+#if	!GNUSTEP_WITH_ASAN
 static Class	GSInlineArrayClass;
+#if defined(__WIN32)
+static int (*lsanCheck)(void) = NULL;	// No weak symbol support :-(
+#else
+/* For runtime detection of LSAN, we use a weak symbol for one of its
+ * library functions.  Then, if lsanCheck is not zero we try to change
+ * behavior to avoid false positives.
+ */
+int     __lsan_do_recoverable_leak_check(void) __attribute__((weak));
+static int (*lsanCheck)(void) = __lsan_do_recoverable_leak_check;
+#endif
+#endif
+
 /* This class stores objects inline in data beyond the end of the instance.
  */
 @interface GSInlineArray : GSArray
@@ -108,7 +136,10 @@ static Class	GSInlineArrayClass;
       [self setVersion: 1];
       eqSel = @selector(isEqual:);
       oaiSel = @selector(objectAtIndex:);
+      GSArrayClass = self;
+#if	!GNUSTEP_WITH_ASAN
       GSInlineArrayClass = [GSInlineArray class];
+#endif
     }
 }
 
@@ -479,7 +510,18 @@ static Class	GSInlineArrayClass;
 {
   NSArray       *copy;
 
-  copy = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*_count, zone);
+#if     GNUSTEP_WITH_ASAN         
+  copy = (GSArray*)NSAllocateObject(GSArrayClass, 0, zone);
+#else
+if (unlikely(lsanCheck))
+  {
+    copy = (GSArray*)NSAllocateObject(GSArrayClass, 0, zone);
+  }
+else
+  {
+    copy = (id)NSAllocateObject(GSInlineArrayClass, _count*sizeof(id), zone);
+  }
+#endif
   return [copy initWithObjects: _contents_array count: _count];
 }
 
@@ -1132,7 +1174,9 @@ static Class	GSInlineArrayClass;
 
 + (void) initialize
 {
+#if	!GNUSTEP_WITH_ASAN
   GSInlineArrayClass = [GSInlineArray class];
+#endif
 }
 
 - (id) autorelease
@@ -1179,10 +1223,21 @@ static Class	GSInlineArrayClass;
       GSInlineArray	*a;
 
       [aCoder decodeValueOfObjCType: @encode(unsigned) at: &c];
-      a = (id)NSAllocateObject(GSInlineArrayClass,
-	sizeof(id)*c, [self zone]);
-      a->_contents_array
-        = (id*)(((void*)a) + class_getInstanceSize([a class]));
+#if     GNUSTEP_WITH_ASAN         
+      a = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
+      a->_contents_array = (id*)NSZoneMalloc([self zone], c*sizeof(id));
+#else
+if (unlikely(lsanCheck))
+  {
+    a = (id)NSAllocateObject(GSArrayClass, 0, [self zone]);
+    a->_contents_array = (id*)NSZoneMalloc([self zone], c*sizeof(id));
+  }
+else
+  {
+    a = (id)NSAllocateObject(GSInlineArrayClass, c*sizeof(id), [self zone]);
+    a->_contents_array = (id*)(((void*)a) + class_getInstanceSize([a class]));
+  }
+#endif
       if (c > 0)
         {
 	  [aCoder decodeArrayOfObjCType: @encode(id)
@@ -1196,8 +1251,20 @@ static Class	GSInlineArrayClass;
 
 - (id) initWithObjects: (const id[])objects count: (NSUInteger)count
 {
-  self = (id)NSAllocateObject(GSInlineArrayClass, sizeof(id)*count,
-    [self zone]);
+  NSZone	*z = [self zone];
+
+#if     GNUSTEP_WITH_ASAN         
+  self = (id)NSAllocateObject(GSArrayClass, 0, z);
+#else
+if (unlikely(lsanCheck))
+  {
+    self = (id)NSAllocateObject(GSArrayClass, 0, z);
+  }
+else
+  {
+    self = (id)NSAllocateObject(GSInlineArrayClass, count*sizeof(id), z);
+  }
+#endif
   return [self initWithObjects: objects count: count];
 }
 

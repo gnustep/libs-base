@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSCharacterSet class reference</title>
    $Date$ $Revision$
@@ -633,6 +632,15 @@ static Class concreteMutableClass = nil;
   return abstractClass;
 }
 
+- (void) dealloc
+{
+  if (cache_map[_index] == self)
+    {
+      cache_map[_index] = nil;
+    }
+  [super dealloc];
+}
+
 - (void) encodeWithCoder: (NSCoder*)aCoder
 {
   [aCoder encodeValueOfObjCType: @encode(int) at: &_index];
@@ -708,6 +716,23 @@ static Class concreteMutableClass = nil;
 
 @implementation NSCharacterSet
 
+static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
+
++ (void) atExit
+{
+  if ([NSObject shouldCleanUp])
+    {
+      unsigned	i;
+
+      for (i = 0; i < MAX_STANDARD_SETS; i++)
+	{
+	  GS_MUTEX_LOCK(cache_lock);
+	  DESTROY(cache_set[i]);
+	  GS_MUTEX_UNLOCK(cache_lock);
+	}
+    }
+}
+
 + (void) initialize
 {
   static BOOL beenHere = NO;
@@ -724,6 +749,7 @@ static Class concreteMutableClass = nil;
       concreteMutableClass = [NSMutableBitmapCharSet class];
 #endif
       beenHere = YES;
+      [self registerAtExit];
     }
 }
 
@@ -736,7 +762,7 @@ static Class concreteMutableClass = nil;
 			length: (unsigned)length
 			number: (int)number
 {
-  static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
+  NSCharacterSet	*set;
 
   GS_MUTEX_LOCK(cache_lock);
   if (cache_set[number] == nil && bytes != 0)
@@ -748,11 +774,11 @@ static Class concreteMutableClass = nil;
 					    freeWhenDone: NO];
       cache_set[number]
 	= [[_GSStaticCharSet alloc] initWithBitmap: bitmap number: number];
-      [[NSObject leakAt: &cache_set[number]] release];
       RELEASE(bitmap);
     }
+  set = RETAIN(cache_set[number]);
   GS_MUTEX_UNLOCK(cache_lock);
-  return cache_set[number];
+  return AUTORELEASE(set);
 }
 
 + (id) alphanumericCharacterSet

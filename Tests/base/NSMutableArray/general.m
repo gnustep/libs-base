@@ -11,14 +11,14 @@ int main()
   val2 = @"A Goodbye";
   val3 = @"Testing all strings";
   
-  vals1 = [[NSMutableArray arrayWithObject: val1] retain];
+  vals1 = [NSMutableArray arrayWithObject: val1];
   [vals1 addObject: val2];
   vals2 = AUTORELEASE([vals1 mutableCopy]);
   [vals2 addObject: val2];
   vals3 = AUTORELEASE([vals2 mutableCopy]);
   [vals3 addObject: val3];
   
-  obj = [NSMutableArray new];
+  obj = [NSMutableArray array];
   arr = obj;
   PASS(obj != nil && [obj isKindOfClass:[NSMutableArray class]] && [obj count] == 0,
        "-count returns zero for an empty array");

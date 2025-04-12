@@ -69,15 +69,12 @@ int main()
     [dflts setVolatileDomain: domain
                      forName: @"GSTestDomain"];
 # endif
-  id testObj = [[NSRegularExpression alloc] initWithPattern: @"^a"
-                                                    options: 0
-                                                      error: NULL];
+  id testObj = AUTORELEASE([[NSRegularExpression alloc]
+    initWithPattern: @"^a" options: 0 error: NULL]);
 
   test_NSObject(@"NSRegularExpression",
-                [NSArray arrayWithObject:
-                  [[NSRegularExpression alloc] initWithPattern: @"^a"
-                                                       options: 0
-                                                         error: NULL]]);
+    [NSArray arrayWithObject: AUTORELEASE([[NSRegularExpression
+      alloc] initWithPattern: @"^a" options: 0 error: NULL])]);
   test_NSCopying(@"NSRegularExpression",@"NSRegularExpression",
                  [NSArray arrayWithObject:testObj],NO,NO);
 
@@ -104,7 +101,7 @@ int main()
                                              withTemplate: @"c"];
   PASS_EQUAL(replacement, @"cb", "Replacement correct");
 
-  NSString *replMut = [NSMutableString stringWithString: @"ab"];
+  NSMutableString *replMut = [NSMutableString stringWithString: @"ab"];
   [testObj replaceMatchesInString: replMut
                           options: 0
                             range: NSMakeRange(0,2)
@@ -122,7 +119,7 @@ int main()
   NSTextCheckingResult *r = [testObj firstMatchInString: @"ab"
                                                 options: 0
                                                   range: NSMakeRange(0,2)];
-  PASS(r, "Found NSTextCheckingResult");
+  PASS(r != nil, "Found NSTextCheckingResult");
   replacement = @"should be unset on return";
   replacement = [testObj replacementStringForResult: r
                                            inString: @"ab"
@@ -138,10 +135,8 @@ int main()
   PASS_EQUAL(replacement, @"c",
              "Custom replacement: Returns correct replacement");
 
-  NSRegularExpression *testObj2 =
-    [[NSRegularExpression alloc] initWithPattern: @"bc"
-					 options: 0
-					   error: NULL];
+  NSRegularExpression *testObj2 = AUTORELEASE([[NSRegularExpression alloc]
+    initWithPattern: @"bc" options: 0 error: NULL]);
   r = [testObj2 firstMatchInString: @"abcdeabcde"
 			   options: 0
 			     range: NSMakeRange(5, 5)];

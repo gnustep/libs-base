@@ -4,18 +4,19 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  id testObject = [NSData new];
+  NSAutoreleasePool   	*arp = [NSAutoreleasePool new];
+  id 			testObject = AUTORELEASE([NSData new]);
+
   test_alloc(@"NSData");
-  test_NSObject(@"NSData",[NSArray arrayWithObject:testObject]);
-  test_NSCoding([NSArray arrayWithObject:testObject]);
-  test_keyed_NSCoding([NSArray arrayWithObject:testObject]);
+  test_NSObject(@"NSData", [NSArray arrayWithObject: testObject]);
+  test_NSCoding([NSArray arrayWithObject: testObject]);
+  test_keyed_NSCoding([NSArray arrayWithObject: testObject]);
   test_NSCopying(@"NSData",
                  @"NSMutableData",
-		 [NSArray arrayWithObject:testObject], NO, NO);
+		 [NSArray arrayWithObject: testObject], NO, NO);
   test_NSMutableCopying(@"NSData",
                         @"NSMutableData",
-		        [NSArray arrayWithObject:testObject]);
+		        [NSArray arrayWithObject: testObject]);
 
   [arp release]; arp = nil;
   return 0;

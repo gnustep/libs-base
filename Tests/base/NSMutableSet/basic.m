@@ -6,7 +6,7 @@
 int main()
 {  
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSMutableSet *testObj = [NSMutableSet new];
+  NSMutableSet *testObj = [NSMutableSet set];
   test_NSObject(@"NSMutableSet", [NSArray arrayWithObject:testObj]);
   test_NSCoding([NSArray arrayWithObject:testObj]);
   test_NSCopying(@"NSSet",@"NSMutableSet",

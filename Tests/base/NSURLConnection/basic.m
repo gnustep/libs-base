@@ -16,7 +16,7 @@ int main()
 
   httpURL = [NSURL URLWithString: @"http://www.gnustep.org"];
 
-  TEST_FOR_CLASS(@"NSURLConnection", [NSURLConnection alloc],
+  TEST_FOR_CLASS(@"NSURLConnection", AUTORELEASE([NSURLConnection alloc]),
     "NSURLConnection +alloc returns an NSURLConnection");
 
   mutable = [NSMutableURLRequest requestWithURL: httpURL];

@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
 */
 #import "common.h"
@@ -147,6 +146,11 @@
 @end
 
 #if     defined(GNUSTEP)
+
+@interface NSAutoreleasePool (NSThread)
++ (void) _endThread: (NSThread*)thread;
+@end
+
 struct exitLink {
   struct exitLink	*next;
   id			obj;	// Object to release or class for atExit
@@ -155,30 +159,36 @@ struct exitLink {
 };
 
 static struct exitLink	*exited = 0;
+static gs_mutex_t	exitLock = GS_MUTEX_INIT_STATIC;
 static BOOL		enabled = NO;
 static BOOL		shouldCleanUp = NO;
-static NSLock           *exitLock = nil;
+static BOOL		isExiting = NO;
 
-static inline void setup()
-{
-  if (nil == exitLock)
-    {
-      static gs_mutex_t	setupLock = GS_MUTEX_INIT_STATIC;
+struct trackLink {
+  struct trackLink	*next;
+  id			object;		// Instance or Class being tracked.
+  IMP			dealloc;	// Original -dealloc implementation
+  IMP			release;	// Original -release implementation
+  IMP			retain;		// Original -retain implementation
+  BOOL                  global;         // If all instance are tracked.
+  BOOL			instance;	// If the object is an instance.
+};
 
-      GS_MUTEX_LOCK(setupLock);
-      if (nil == exitLock)
-        {
-          exitLock = [NSLock new];
-        } 
-      GS_MUTEX_UNLOCK(setupLock);
-    }
-}
+static struct trackLink	*tracked = 0;
+static gs_mutex_t	trackLock = GS_MUTEX_INIT_STATIC;
 
 static void
 handleExit()
 {
-  BOOL  unknownThread = GSRegisterCurrentThread();
-  CREATE_AUTORELEASE_POOL(arp);
+  BOOL  unknownThread;
+
+  isExiting = YES;
+  /* We turn off zombies during exiting so that we don't leak deallocated
+   * objects during cleanup.
+   */
+//  NSZombieEnabled = NO;
+  unknownThread = GSRegisterCurrentThread();
+  ENTER_POOL
 
   while (exited != 0)
     {
@@ -190,6 +200,11 @@ handleExit()
 	  Method	method;
 	  IMP		msg;
 
+	  if (shouldCleanUp)
+	    {
+	      fprintf(stderr, "*** clean-up +[%s %s]\n",
+		class_getName(tmp->obj), sel_getName(tmp->sel));
+	    }
 	  method = class_getClassMethod(tmp->obj, tmp->sel);
 	  msg = method_getImplementation(method);
 	  if (0 != msg)
@@ -197,39 +212,137 @@ handleExit()
 	      (*msg)(tmp->obj, tmp->sel);
 	    }
 	}
-      else if (YES == shouldCleanUp)
+      else if (shouldCleanUp)
 	{
-	  if (0 != tmp->at)
+	  if (tmp->at)
 	    {
-	      tmp->obj = *(tmp->at);
+	      if (tmp->obj != *(tmp->at))
+		{
+		  fprintf(stderr,
+		    "*** clean-up kept value %p at %p changed to %p\n",
+		    tmp->obj, (const void*)tmp->at, *(tmp->at));
+	          tmp->obj = *(tmp->at);
+		}
 	      *(tmp->at) = nil;
 	    }
+	  fprintf(stderr, "*** clean-up -[%s release] %p %p\n",
+	    class_getName(object_getClass(tmp->obj)),
+	    tmp->obj, (const void*)tmp->at);
 	  [tmp->obj release];
 	}
       free(tmp);
     }
-  DESTROY(arp);
+  LEAVE_POOL
+
   if (unknownThread == YES)
     {
       GSUnregisterCurrentThread();
     }
+  else
+    {
+      [[NSAutoreleasePool currentPool] dealloc];
+      [NSAutoreleasePool _endThread: GSCurrentThread()];
+    }
+
+  /* Exit/clean-up done ... we can get rid of tracking data too.
+   */
+  if (tracked)
+    {
+      GS_MUTEX_LOCK(trackLock);
+      while (tracked)
+	{
+	  struct trackLink	*next = tracked->next;
+
+	  if (tracked->instance)
+	    {
+	      fprintf(stderr, "Tracking ownership -[%p dealloc]"
+		" not called by exit.\n", tracked->object);
+	    }
+	  free(tracked);
+	  tracked = next;
+	}
+      GS_MUTEX_UNLOCK(trackLock);
+    }
+
+  isExiting = NO;
 }
 
-@implementation NSObject(GSCleanup)
+static inline void
+enable()
+{
+  if (NO == enabled)
+    {
+      atexit(handleExit);
+      enabled = YES;
+    }
+}
+
+@implementation NSObject(GSCleanUp)
+
++ (BOOL) isExiting
+{
+  return isExiting;
+}
+
++ (id) keep: (id)anObject at: (id*)anAddress
+{
+  struct exitLink	*l;
+
+  if (isExiting)
+    {
+      if (anAddress)
+	{
+          [*anAddress release];
+          *anAddress = nil;
+	}
+      return nil;
+    }
+  NSAssert([anObject isKindOfClass: [NSObject class]],
+    NSInvalidArgumentException);
+  NSAssert(anAddress != NULL, NSInvalidArgumentException);
+  NSAssert(*anAddress == nil, NSInvalidArgumentException);
+
+  GS_MUTEX_LOCK(exitLock);
+  for (l = exited; l != NULL; l = l->next)
+    {
+      if (l->at == anAddress)
+	{
+	  GS_MUTEX_UNLOCK(exitLock);
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Repeated use of leak address %p", anAddress];
+	}
+      if (anObject != nil && anObject == l->obj)
+	{
+	  GS_MUTEX_UNLOCK(exitLock);
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Repeated use of leak object %p", anObject];
+	}
+    }
+  ASSIGN(*anAddress, anObject);
+  l = (struct exitLink*)malloc(sizeof(struct exitLink));
+  l->at = anAddress;
+  l->obj = anObject;
+  l->sel = 0;
+  l->next = exited;
+  exited = l;
+  enable();
+  GS_MUTEX_UNLOCK(exitLock);
+  return l->obj;
+}
 
 + (id) leakAt: (id*)anAddress
 {
-  struct exitLink	*l;
+  struct exitLink       *l;
 
   l = (struct exitLink*)malloc(sizeof(struct exitLink));
   l->at = anAddress;
   l->obj = [*anAddress retain];
   l->sel = 0;
-  setup();
-  [exitLock lock];
+  GS_MUTEX_LOCK(exitLock);
   l->next = exited;
   exited = l;
-  [exitLock unlock];
+  enable();
+  GS_MUTEX_UNLOCK(exitLock);
   return l->obj;
 }
 
@@ -237,15 +350,28 @@ handleExit()
 {
   struct exitLink	*l;
 
+  if (nil == anObject || isExiting)
+    {
+      return nil;
+    }
+  GS_MUTEX_LOCK(exitLock);
+  for (l = exited; l != NULL; l = l->next)
+    {
+      if (l->obj == anObject || (l->at != NULL && *l->at == anObject))
+	{
+	  GS_MUTEX_UNLOCK(exitLock);
+	  [NSException raise: NSInvalidArgumentException
+		      format: @"Repeated use of leak object %p", anObject];
+	}
+    }
   l = (struct exitLink*)malloc(sizeof(struct exitLink));
   l->at = 0;
   l->obj = [anObject retain];
   l->sel = 0;
-  setup();
-  [exitLock lock];
   l->next = exited;
   exited = l;
-  [exitLock unlock];
+  enable();
+  GS_MUTEX_UNLOCK(exitLock);
   return l->obj;
 }
 
@@ -277,14 +403,19 @@ handleExit()
       return NO;	// method not implemented in this class
     }
 
-  setup();
-  [exitLock lock];
+  GS_MUTEX_LOCK(exitLock);
   for (l = exited; l != 0; l = l->next)
     {
-      if (l->obj == self && sel_isEqual(l->sel, sel))
+      if (l->obj == self)
 	{
-	  [exitLock unlock];
-	  return NO;	// Already registered
+	  if (sel_isEqual(l->sel, sel))
+	    {
+	      fprintf(stderr,
+		"*** +[%s registerAtExit: %s] already registered for %s.\n",
+		class_getName(self), sel_getName(sel), sel_getName(l->sel));
+	      GS_MUTEX_UNLOCK(exitLock);
+	      return NO;	// Already registered
+	    }
 	}
     }
   l = (struct exitLink*)malloc(sizeof(struct exitLink));
@@ -293,12 +424,8 @@ handleExit()
   l->at = 0;
   l->next = exited;
   exited = l;
-  if (NO == enabled)
-    {
-      atexit(handleExit);
-      enabled = YES;
-    }
-  [exitLock unlock];
+  enable();
+  GS_MUTEX_UNLOCK(exitLock);
   return YES;
 }
 
@@ -306,14 +433,12 @@ handleExit()
 {
   if (YES == aFlag)
     {
-      setup();
-      [exitLock lock];
       if (NO == enabled)
 	{
-	  atexit(handleExit);
-	  enabled = YES;
+	  GS_MUTEX_LOCK(exitLock);
+	  enable();
+	  GS_MUTEX_UNLOCK(exitLock);
 	}
-      [exitLock unlock];
       shouldCleanUp = YES;
     }
   else
@@ -325,6 +450,381 @@ handleExit()
 + (BOOL) shouldCleanUp
 {
   return shouldCleanUp;
+}
+
+
+static inline const char *
+stackTrace(unsigned skip)
+{
+  NSArray       *a = [NSThread callStackSymbols];
+
+  if ([a count] > skip)
+    {
+      a = [a subarrayWithRange: NSMakeRange(skip, [a count] - skip)];
+    }
+  return [[a description] UTF8String];
+}
+
+
+static inline struct trackLink *
+find(id o)
+{
+  struct trackLink      *l = tracked;
+
+  while (l)
+    {
+      if (l->object == o)
+	{
+	  return l;
+	}
+      l = l->next;
+    }
+  return NULL;
+}
+
+static inline struct trackLink *
+findSuper(Class c)
+{
+  while ((c = class_getSuperclass(c)) != Nil)
+    {
+      struct trackLink      *l = find((id)c);
+
+      if (l)
+	{
+	  return l;
+	}
+    }
+  return NULL;
+}
+
+/* Lookup the object in the tracking list.
+ * If found as a tracked instance or found as an instance of a class for which
+ * all instances are tracked, return YES.  Otherwise return NO (should not log).
+ */
+static BOOL
+findMethods(id o, IMP *dea, IMP *rel, IMP *ret)
+{
+  struct trackLink	*l;
+  Class                 c;
+
+  GS_MUTEX_LOCK(trackLock);
+  l = find(o);
+  if (l)
+    {
+      *dea = l->dealloc;
+      *rel = l->release;
+      *ret = l->retain;
+      GS_MUTEX_UNLOCK(trackLock);
+      return YES;
+    }
+  c = object_getClass(o);
+  l = find((id)c);
+  if (0 == l)
+    {
+      Class	s = c;
+
+      while (0 == l && (s = class_getSuperclass(s)))
+	{
+	  l = find((id)s);
+	}
+    }
+  if (l)
+    {
+      BOOL      all;
+
+      *dea = l->dealloc;
+      *rel = l->release;
+      *ret = l->retain;
+      all = l->global;
+      GS_MUTEX_UNLOCK(trackLock);
+      return all;
+    }
+  GS_MUTEX_UNLOCK(trackLock);
+  fprintf(stderr, "Tracking ownership - unable to find entry for"
+    " instance %p of '%s'.\n", o, class_getName(c));
+  fprintf(stderr, "Tracking ownership %p problem at %s.\n",
+    o, stackTrace(1));
+
+  /* Should never happen because we don't remove class entries, but I suppose
+   * someone could call the replacement methods directly.  The best we can do
+   * is return the superclass implementation.
+   */
+  *dea = [class_getSuperclass(c) instanceMethodForSelector: @selector(dealloc)];
+  *rel = [class_getSuperclass(c) instanceMethodForSelector: @selector(release)];
+  *ret = [class_getSuperclass(c) instanceMethodForSelector: @selector(retain)];
+  return NO;
+}
+
+- (void) _replacementDealloc
+{
+  IMP	dealloc = 0;
+  IMP	retain = 0;
+  IMP	release = 0;
+
+  if (findMethods(self, &dealloc, &release, &retain) == NO)
+    {
+      /* Not a tracked instance ... dealloc without logging.
+       */
+      (*dealloc)(self, _cmd);
+    }
+  else
+    {
+      struct trackLink	*l;
+
+      /* If there's a link for tracking this specific instance, remove it.
+       */
+      GS_MUTEX_LOCK(trackLock);
+      if ((l = tracked) != 0)
+        {
+          if (YES == l->instance && l->object == self)
+            {
+              tracked = l->next;
+              free(l);
+            }
+          else
+            {
+              struct trackLink  *n;
+
+              while ((n = l->next) != 0)
+                {
+                  if (YES == n->instance && n->object == self)
+                    {
+                      l->next = n->next;
+                      free(n);
+                      break;
+                    }
+                  l = n;
+                }
+            }
+        }
+      GS_MUTEX_UNLOCK(trackLock);
+      fprintf(stderr, "Tracking ownership -[%p dealloc] at %s.\n",
+        self, stackTrace(2));
+      (*dealloc)(self, _cmd);
+    }
+}
+- (void) _replacementRelease
+{
+  IMP	dealloc = 0;
+  IMP	retain = 0;
+  IMP	release = 0;
+
+  if (findMethods(self, &dealloc, &release, &retain) == NO)
+    {
+      /* Not a tracked instance ... release without logging.
+       */
+      (*release)(self, _cmd);
+    }
+  else
+    {
+      unsigned		rc;
+
+      rc = (unsigned)[self retainCount];
+      fprintf(stderr, "Tracking ownership -[%p release] %u->%u at %s.\n",
+        self, rc, rc-1, stackTrace(2));
+      (*release)(self, _cmd);
+    }
+}
+- (id) _replacementRetain
+{
+  IMP	dealloc = 0;
+  IMP	retain = 0;
+  IMP	release = 0;
+  id	result;
+
+  if (findMethods(self, &dealloc, &release, &retain) == NO)
+    {
+      /* Not a tracked instance ... retain without logging.
+       */
+      result = (*retain)(self, _cmd);
+    }
+  else
+    {
+      unsigned		rc;
+
+      rc = (unsigned)[self retainCount];
+      result = (*retain)(self, _cmd);
+      fprintf(stderr, "Tracking ownership -[%p retain] %u->%u at %s.\n",
+        self, rc, (unsigned)[self retainCount], stackTrace(2));
+    }
+  return result;
+}
+
+static struct trackLink*
+makeLinkForClass(Class c)
+{
+  Method 		replacementDealloc;
+  Method 		replacementRelease;
+  Method 		replacementRetain;
+  IMP			idea;
+  IMP			irel;
+  IMP			iret;
+  const char		*tdea;
+  const char		*trel;
+  const char		*tret;
+  struct trackLink      *l;
+  struct trackLink      *s = findSuper(c);
+
+  replacementDealloc = class_getInstanceMethod([NSObject class],
+    @selector(_replacementDealloc));
+  replacementRelease = class_getInstanceMethod([NSObject class],
+    @selector(_replacementRelease));
+  replacementRetain = class_getInstanceMethod([NSObject class],
+    @selector(_replacementRetain));
+  idea = method_getImplementation(replacementDealloc);
+  irel = method_getImplementation(replacementRelease);
+  iret = method_getImplementation(replacementRetain);
+  tdea = method_getTypeEncoding(replacementDealloc);
+  trel = method_getTypeEncoding(replacementRelease);
+  tret = method_getTypeEncoding(replacementRetain);
+
+  l = (struct trackLink*)malloc(sizeof(struct trackLink));
+  l->object = c;
+  l->instance = NO;
+  l->global = NO;
+
+  /* The new methods must be *added* to the specific class unless it already
+   * implementes them, in which case we can just change the implementation.
+   */
+  l->dealloc = class_getMethodImplementation(c, @selector(dealloc));
+  if (l->dealloc != idea)
+    {
+      if (!class_addMethod(c, @selector(dealloc), idea, tdea))
+	{
+	  method_setImplementation(
+	    class_getInstanceMethod(c, @selector(dealloc)), idea);
+	}
+    }
+  else
+    {
+      l->dealloc = s->dealloc;	// Already overridden in superclass
+    }
+  l->release = class_getMethodImplementation(c, @selector(release));
+  if (l->release != irel)
+    {
+      if (!class_addMethod(c, @selector(release), irel, trel))
+	{
+	  method_setImplementation(
+	    class_getInstanceMethod(c, @selector(release)), irel);
+	}
+    }
+  else
+    {
+      l->release = s->release;	// Already overridden in superclass
+    }
+  l->retain = class_getMethodImplementation(c, @selector(retain));
+  if (l->retain != iret)
+    {
+      if (!class_addMethod(c, @selector(retain), iret, tret))
+	{
+	  method_setImplementation(
+	    class_getInstanceMethod(c, @selector(retain)), iret);
+	}
+    }
+  else
+    {
+      l->retain = s->retain;	// Already overridden in superclass
+    }
+/*
+  fprintf(stderr, "Tracking ownership add class %p %s %p->%p, %p->%p, %p->%p\n",
+    c, class_getName(c), l->dealloc, idea, l->release, irel, l->retain, iret);
+*/
+  return l;
+}
+
++ (void) trackOwnership
+{
+  Class			c = self;
+  struct trackLink	*l;
+
+  NSAssert(NO == class_isMetaClass(object_getClass(self)),
+    NSInternalInconsistencyException);
+
+  GS_MUTEX_LOCK(trackLock);
+  if ((l = find((id)c)) != 0)
+    {
+      /* Class already tracked.  Set it so all instances are logged.
+       */
+      l->global = YES;
+      GS_MUTEX_UNLOCK(trackLock);
+      return;
+    }
+
+  l = makeLinkForClass(c);
+  l->global = YES;
+  l->next = tracked;
+  tracked = l;
+  GS_MUTEX_UNLOCK(trackLock);
+  fprintf(stderr, "Tracking ownership started for class %p at %s.\n",
+    self, stackTrace(1));
+}
+
+- (void) trackOwnership
+{
+  Class			c = object_getClass(self);
+  struct trackLink	*l;
+  struct trackLink	*lc;
+  struct trackLink	*li;
+
+  NSAssert(NO == class_isMetaClass(c), NSInternalInconsistencyException);
+
+  /* If we are tracking allocation and deallocation, we want to log
+   * the existence of tracked instances at exit so we need to have
+   * exit handling turned on.
+   */
+  if (NO == enabled)
+    {
+      GS_MUTEX_LOCK(exitLock);
+      enable();
+      GS_MUTEX_UNLOCK(exitLock);
+    }
+
+  GS_MUTEX_LOCK(trackLock);
+  if ((l = find(self)) != 0)
+    {
+      /* Instance already tracked.
+       */
+      GS_MUTEX_UNLOCK(trackLock);
+      return;
+    }
+
+  if ((l = find(c)) != 0)
+    {
+      /* The class already has tracking set up.
+       */
+      if (l->global)
+        {
+          /* All instances are logged, so we have nothing to do.
+           */
+          GS_MUTEX_UNLOCK(trackLock);
+          return;
+        }
+      lc = l;
+    }
+  else
+    {
+      /* Set this class up for tracking individual instances.
+       */
+      lc = makeLinkForClass(c);
+      lc->global = NO;
+      lc->next = tracked;
+      tracked = lc;
+    }
+
+  /* Now set up a record to track this one instance.
+   */
+  li = (struct trackLink*)malloc(sizeof(struct trackLink));
+  li->object = self;
+  li->instance = YES;
+  li->global = NO;
+  li->dealloc = lc->dealloc;
+  li->release = lc->release;
+  li->retain = lc->retain;
+  li->next = tracked;
+  tracked = li;
+  GS_MUTEX_UNLOCK(trackLock);
+  fprintf(stderr, "Tracking ownership started for instance %p at %s.\n",
+    self, stackTrace(1));
 }
 
 @end
@@ -437,7 +937,13 @@ handleExit()
 
 /* Dummy implementation
  */
-@implementation NSObject(GSCleanup)
+@implementation NSObject(GSCleanUp)
+
++ (id) keep: (id)anObject at: (id*)anAddress
+{
+  ASSIGN(*anAddress, anObject);
+  return *anAddress;
+}
 
 + (id) leakAt: (id*)anAddress
 {

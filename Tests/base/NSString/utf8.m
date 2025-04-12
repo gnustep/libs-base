@@ -45,7 +45,7 @@ int main(void)
 
   uni[0] = 0xdbff;
   uni[1] = 0xdfff;
-  exp = [[NSString alloc] initWithCharacters: uni length: 2];
+  exp = AUTORELEASE([[NSString alloc] initWithCharacters: uni length: 2]);
   buf[0] = 0xf4;
   buf[1] = 0x8f;
   buf[2] = 0xbf;

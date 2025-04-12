@@ -20,8 +20,7 @@
 #
 #   You should have received a copy of the GNU General Public
 #   License along with this library; if not, write to the Free
-#   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#   Boston, MA 02111 USA
+#   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA
 
 #
 # DEPENDENCIES POLICY
@@ -1120,17 +1119,14 @@ AC_PROG_CPP
 AC_USE_SYSTEM_EXTENSIONS
 
 AC_MSG_CHECKING(whether the compiler is clang)
-if test ! x"${GCC}" = x"yes" ; then
+# CC may have flags appended to it, so we need to extract the actual
+# compiler name.
+if "$(echo "${CC}" | awk '{print $1}')" -v 2>&1 | grep -q 'clang version'; then
+  CLANG_CC=yes
+  AC_MSG_RESULT(yes)
+else
   CLANG_CC=no
   AC_MSG_RESULT(no)
-else
-  if "${CC}" -v 2>&1 | grep -q 'clang version'; then
-    CLANG_CC=yes
-    AC_MSG_RESULT(yes)
-  else
-    CLANG_CC=no
-    AC_MSG_RESULT(no)
-  fi
 fi
 AC_SUBST(CLANG_CC)
 
@@ -1224,7 +1220,7 @@ AC_LANG_POP(C)
 
 AC_PATH_PROG(WHOAMI, whoami, echo, $PATH:/usr/ucb)
 PKG_PROG_PKG_CONFIG
-# If the modern mechanism failswe may havew an older pkg-config
+# If the modern mechanism fails we may have an older pkg-config
 # so try looking it up the old fashioned way.
 if test -z "$PKG_CONFIG"; then
   AC_PATH_PROG(PKG_CONFIG,pkg-config,,)
@@ -1686,6 +1682,15 @@ AC_SUBST(BUGGY_PTR_LIMITS)
 AC_LANG_POP(C)
 
 #--------------------------------------------------------------------
+# Check alignment of an object in memory
+#--------------------------------------------------------------------
+AC_CHECK_ALIGNOF(objc_object,[AC_INCLUDES_DEFAULT
+  typedef struct { void *isa; } objc_object;])
+if test $ac_cv_alignof_objc_object = 0 ; then
+  AC_MSG_ERROR([Unable to find align of object (required).])
+fi
+
+#--------------------------------------------------------------------
 # Setup dynamic linking
 #--------------------------------------------------------------------
 OBJC_SYS_DYNAMIC_LINKER()
@@ -1704,19 +1709,21 @@ AC_CHECK_FUNCS(getaddrinfo)
 # Windows: check if we have native threading APIs and SRW locks
 #--------------------------------------------------------------------
 HAVE_WIN32_THREADS_AND_LOCKS=0
-case "$target_os" in
-  mingw*|windows)
-    AC_MSG_CHECKING(for native Windows threads and locks)
-    AC_COMPILE_IFELSE(
-      [AC_LANG_SOURCE([
-        #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-        #include "$srcdir/Source/GSPThread.h"
-      ])],
-      AC_MSG_RESULT([yes])
-      HAVE_WIN32_THREADS_AND_LOCKS=1,
-      AC_MSG_RESULT([no]))
-    ;;
-esac
+if test "$CLANG_CC" = "yes"; then
+  case "$target_os" in
+    mingw*|windows)
+      AC_MSG_CHECKING(for native Windows threads and locks)
+      AC_COMPILE_IFELSE(
+        [AC_LANG_SOURCE([
+          #define GS_USE_WIN32_THREADS_AND_LOCKS 1
+          #include "$srcdir/Source/GSPThread.h"
+        ])],
+        AC_MSG_RESULT([yes])
+        HAVE_WIN32_THREADS_AND_LOCKS=1,
+        AC_MSG_RESULT([no]))
+      ;;
+  esac
+fi
 AC_SUBST(HAVE_WIN32_THREADS_AND_LOCKS)
 
 #--------------------------------------------------------------------
@@ -3564,6 +3571,7 @@ if test $enable_zeroconf = yes; then
 fi
 AC_SUBST(HAVE_MDNS)
 AC_SUBST(HAVE_AVAHI)
+
 #--------------------------------------------------------------------
 # Check for International Components for Unicode
 # See DEPENDENCIES POLICY at the start of this file.
@@ -3688,6 +3696,28 @@ AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 
 
 #--------------------------------------------------------------------
+# Check for whether the new KVO implementation is enabled (only with
+# the NG runtime)
+#--------------------------------------------------------------------
+HAVE_NEWKVO=0
+AC_ARG_ENABLE(newkvo,
+  [  --disable-newkvo		Disable new KVO implementation],,[
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
+  enable_newkvo=yes
+else
+  enable_newkvo=no
+fi])
+if test "x$enable_newkvo" = "xyes"
+then
+  if test "$OBJC_RUNTIME_LIB" = "ng"; then
+    HAVE_NEWKVO=1
+  else
+    echo "You are not using the new runtime ... newkvo not available"
+  fi
+fi
+AC_SUBST(HAVE_NEWKVO)
+
+#--------------------------------------------------------------------
 # Check for libcurl
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
@@ -3755,6 +3785,10 @@ else
   else
     AC_MSG_RESULT([FAILED (curl-config and pkg-config not found)])
   fi
+fi
+  
+if test "$OBJC_RUNTIME_LIB" = "ng" -a "$HAVE_LIBCURL" = 0; then
+AC_MSG_ERROR([libcurl is a hard-dependency when building with the Objective-C 2.0 toolchain])
 fi
 
 AC_SUBST(HAVE_LIBCURL)

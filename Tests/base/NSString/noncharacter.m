@@ -6,6 +6,7 @@
 
 int main(int argc, char **argv)
 {
+  START_SET("noncharacter")
   NSString *str;
   unichar u;
   unichar u2[2];
@@ -42,6 +43,7 @@ int main(int argc, char **argv)
   PASS([str characterAtIndex: 0] == 0xffff, "ffff is returned properly");
   [str release];
 
+  END_SET("noncharacter")
   return 0;
 }
 

@@ -16,14 +16,29 @@ int main()
   comp = [cdate compare: [NSDate distantPast]];
   PASS(comp == NSOrderedDescending, "+distantPast is in the past");
   
-  date1 = [NSDate dateWithTimeIntervalSinceNow:-600];
+  date1 = [NSDate dateWithTimeIntervalSinceNow: -600];
   date2 = [cdate earlierDate: date1];
-  PASS(date1 == date2, "-earlierDate works");
+  PASS(date1 == date2, "-earlierDate works for different dates");
   
   date2 = [cdate laterDate: date1];
-  PASS(cdate == date2, "-laterDate works");
+  PASS(cdate == date2, "-laterDate works for different dates");
   
-  date2 = [date1 addTimeInterval:0];
+  date1 = [NSDate dateWithTimeIntervalSinceReferenceDate:
+    [cdate timeIntervalSinceReferenceDate]];
+
+  date2 = [cdate earlierDate: date1];
+  PASS(cdate == date2, "-earlierDate works for equal dates");
+
+  date2 = [date1 earlierDate: cdate];
+  PASS(date1 == date2, "-earlierDate works for equal dates swapped");
+  
+  date2 = [cdate laterDate: date1];
+  PASS(cdate == date2, "-laterDate works for equal dates");
+
+  date2 = [date1 laterDate: cdate];
+  PASS(date1 == date2, "-laterDate works for equal dates swapped");
+  
+  date2 = [date1 addTimeInterval: 0];
   PASS ([date1 isEqualToDate:date2], "-isEqualToDate works");
 
   

@@ -19,8 +19,7 @@
 #
 #  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#  Boston, MA 02111 USA.
+#  Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 #
 
 ifeq ($(GNUSTEP_MAKEFILES),)
@@ -255,7 +254,6 @@ NSJSONSerialization.m \
 NSKeyedArchiver.m \
 NSKeyedUnarchiver.m \
 NSKeyValueCoding.m \
-NSKeyValueObserving.m \
 NSLengthFormatter.m \
 NSLinguisticTagger.m \
 NSLocale.m \
@@ -359,6 +357,23 @@ NSZone.m \
 externs.m \
 objc-load.m 
 
+# We have two implementations for Key Value Observing.
+# One highly-optimised one that depends on libobjc2
+# and the original implementation.
+ifeq ($(GNUSTEP_BASE_HAVE_NEWKVO), 1)
+  BASE_MFILES += \
+  NSKVOSupport.m \
+  NSKVOSwizzling.m
+else
+  BASE_MFILES += \
+  NSKeyValueObserving.m
+endif
+
+ifeq ($(OBJC_RUNTIME_LIB), ng)
+  BASE_MFILES += \
+  NSKeyValueCoding+Caching.m
+endif
+
 ifneq ($(GNUSTEP_TARGET_OS), mingw32)
   ifneq ($(GNUSTEP_TARGET_OS), mingw64)
     ifneq ($(GNUSTEP_TARGET_OS), windows)
@@ -413,6 +428,11 @@ simple-load.h \
 win32-load.h \
 NSCallBacks.h \
 tzfile.h
+
+# Definitions for toll-free bridging of known structures
+# such as NSRect, NSPoint, or NSSize.
+COREFOUNDATION_HEADERS = \
+CFCGTypes.h
 
 FOUNDATION_HEADERS = \
 Foundation.h \
@@ -586,7 +606,8 @@ NSZone.h
 HEADERS_INSTALL = \
 	$(OBJECTIVEC2_HEADERS) \
 	$(GNUSTEPBASE_HEADERS) \
-	$(FOUNDATION_HEADERS)
+	$(FOUNDATION_HEADERS) \
+  $(COREFOUNDATION_HEADERS)
 
 GENERATED_HFILES = \
 dynamic-load.h \

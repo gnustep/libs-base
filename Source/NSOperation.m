@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSOperation class reference</title>
    Created: 2008-06-08 11:38:33 +0100 (Sun, 08 Jun 2008)
@@ -76,8 +75,6 @@ static void     *isFinishedCtxt = (void*)"isFinished";
 static void     *isReadyCtxt = (void*)"isReady";
 static void     *queuePriorityCtxt = (void*)"queuePriority";
 
-static NSArray	*empty = nil;
-
 @interface	NSOperation (Private)
 - (void) _finish;
 - (void) _updateReadyState;
@@ -90,12 +87,6 @@ static NSArray	*empty = nil;
   /* Handle all KVO manually
    */
   return NO;
-}
-
-+ (void) initialize
-{
-  empty = [NSArray new];
-  RELEASE([NSObject leakAt: &empty]);
 }
 
 - (void) addDependency: (NSOperation *)op
@@ -200,7 +191,9 @@ static NSArray	*empty = nil;
 
 - (void) dealloc
 {
-  if (internal != nil)
+  /* Only clean up if ivars have been initialised
+   */
+  if (GS_EXISTS_INTERNAL && internal->lock != nil)
     {
       NSOperation	*op;
 
@@ -218,7 +211,7 @@ static NSArray	*empty = nil;
       RELEASE(internal->completionBlock);
       GS_DESTROY_INTERNAL(NSOperation);
     }
-  [super dealloc];
+  DEALLOC
 }
 
 - (NSArray *) dependencies
@@ -227,7 +220,7 @@ static NSArray	*empty = nil;
 
   if (internal->dependencies == nil)
     {
-      a = empty;	// OSX return an empty array
+      a = [NSArray array];	// OSX return an empty array
     }
   else
     {
@@ -575,7 +568,7 @@ static NSArray	*empty = nil;
 - (void) dealloc
 {
   RELEASE(_executionBlocks);
-  [super dealloc];
+  DEALLOC
 }
 
 - (NSArray *) executionBlocks
@@ -806,15 +799,18 @@ static NSOperationQueue *mainQueue = nil;
 
 - (void) dealloc
 {
-  [self cancelAllOperations];
-  DESTROY(internal->operations);
-  DESTROY(internal->starting);
-  DESTROY(internal->waiting);
-  DESTROY(internal->name);
-  DESTROY(internal->cond);
-  DESTROY(internal->lock);
-  GS_DESTROY_INTERNAL(NSOperationQueue);
-  [super dealloc];
+  if (GS_EXISTS_INTERNAL && internal->lock != nil)
+    {
+      [self cancelAllOperations];
+      DESTROY(internal->operations);
+      DESTROY(internal->starting);
+      DESTROY(internal->waiting);
+      DESTROY(internal->name);
+      DESTROY(internal->cond);
+      DESTROY(internal->lock);
+      GS_DESTROY_INTERNAL(NSOperationQueue);
+    }
+  DEALLOC
 }
 
 - (id) init
@@ -833,7 +829,8 @@ static NSOperationQueue *mainQueue = nil;
       internal->cond = [[NSConditionLock alloc] initWithCondition: 0];
       [internal->cond setName:
         [NSString stringWithFormat: @"cond-for-op-%p", self]];
-      internal->name = [[NSString alloc] initWithFormat: @"NSOperationQueue %p", self];
+      internal->name
+	= [[NSString alloc] initWithFormat: @"NSOperationQueue %p", self];
 
       /* Ensure that default thread name can be displayed on systems with a
        * limited thread name length.
@@ -1042,7 +1039,22 @@ static NSOperationQueue *mainQueue = nil;
       RELEASE(when);
       if (NO == found)
 	{
-	  break;	// Idle for 5 seconds ... exit thread.
+	  [internal->cond lock];
+	  if ([internal->starting count] == 0)
+	    {
+	      // Idle for 5 seconds ... exit thread.
+	      [internal->cond unlock];
+	      [[[NSThread currentThread] threadDictionary]
+		removeObjectForKey: threadKey];
+	      [internal->lock lock];
+	      internal->threadCount--;
+	      [internal->lock unlock];
+	      break;
+	    }
+	  /* An operation was added in the gap between the failed wait for
+	   * the condition and us unconditionally locking the condition, so
+	   * we fall through to execute that operation.
+	   */
 	}
 
       if ([internal->starting count] > 0)
@@ -1086,10 +1098,6 @@ static NSOperationQueue *mainQueue = nil;
 	}
     }
 
-  [[[NSThread currentThread] threadDictionary] removeObjectForKey: threadKey];
-  [internal->lock lock];
-  internal->threadCount--;
-  [internal->lock unlock];
   DESTROY(arp);
   [NSThread exit];
 }
@@ -1142,18 +1150,19 @@ static NSOperationQueue *mainQueue = nil;
 	   */
 	  if (internal->threadCount < max)
 	    {
-	      internal->threadCount++;
+	      NSInteger	count = internal->threadCount++;
+	      NSNumber 	*threadNumber = [NSNumber numberWithInteger: count];
+
 	      NS_DURING
 		{
-      NSNumber *threadNumber = [NSNumber numberWithInteger: internal->threadCount - 1];
 		  [NSThread detachNewThreadSelector: @selector(_thread:)
 					   toTarget: self
 					 withObject: threadNumber];
 		}
 	      NS_HANDLER
 		{
-		  NSLog(@"Failed to create thread for %@: %@",
-		    self, localException);
+		  NSLog(@"Failed to create thread %@ for %@: %@",
+		    threadNumber, self, localException);
 		}
 	      NS_ENDHANDLER
 	    }

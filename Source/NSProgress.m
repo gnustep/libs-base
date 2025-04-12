@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #define	GS_NSProgress_IVARS	 \
@@ -101,7 +100,7 @@ static NSMutableDictionary *__subscribers = nil;
       internal->_throughput = nil;
       internal->_totalUnitCount = 0;
       internal->_completedUnitCount = 0;
-      internal->_userInfo = RETAIN([userInfo mutableCopy]);
+      internal->_userInfo = [userInfo mutableCopy];
       internal->_cancelled = NO;
       internal->_cancellable = NO;
       internal->_paused = NO;
@@ -117,17 +116,20 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) dealloc
 {
-  RELEASE(internal->_fileOperationKind);
-  RELEASE(internal->_kind);
-  RELEASE(internal->_estimatedTimeRemaining);
-  RELEASE(internal->_fileCompletedCount);
-  RELEASE(internal->_fileTotalCount);
-  RELEASE(internal->_throughput);
-  RELEASE(internal->_userInfo);
-  RELEASE(internal->_localizedDescription);
-  RELEASE(internal->_localizedAdditionalDescription);
-  
-  [super dealloc];
+  if (GS_EXISTS_INTERNAL)
+    {
+      RELEASE(internal->_fileOperationKind);
+      RELEASE(internal->_kind);
+      RELEASE(internal->_estimatedTimeRemaining);
+      RELEASE(internal->_fileCompletedCount);
+      RELEASE(internal->_fileTotalCount);
+      RELEASE(internal->_throughput);
+      RELEASE(internal->_userInfo);
+      RELEASE(internal->_localizedDescription);
+      RELEASE(internal->_localizedAdditionalDescription);
+      GS_DESTROY_INTERNAL(NSProgress);
+    }
+  DEALLOC
 }
 
 + (NSProgress *) discreteProgressWithTotalUnitCount: (int64_t)unitCount

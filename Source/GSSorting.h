@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #import "Foundation/NSSortDescriptor.h"
@@ -46,7 +45,7 @@ typedef NSUInteger GSComparisonType;
  * GNUstep.
  */
 extern void (*_GSSortUnstable)(id *buffer, NSRange range, id comparisonEntity,
-  GSComparisonType cmprType, void *context);
+  GSComparisonType cmprType, void *context) GS_ATTRIB_PRIVATE;
 
 /**
  * This is the internal prototype of an stable, non-concurrency safe sorting
@@ -55,7 +54,7 @@ extern void (*_GSSortUnstable)(id *buffer, NSRange range, id comparisonEntity,
  * GNUstep.
  */
 extern void (*_GSSortStable)(id *buffer, NSRange range, id comparisonEntity,
-  GSComparisonType cmprType, void *context);
+  GSComparisonType cmprType, void *context) GS_ATTRIB_PRIVATE;
 
 /**
  * This is the internal prototype of an unstable, concurrency safe sorting
@@ -64,7 +63,8 @@ extern void (*_GSSortStable)(id *buffer, NSRange range, id comparisonEntity,
  * GNUstep.
  */
 extern void (*_GSSortUnstableConcurrent)(id *buffer, NSRange range,
-  id comparisonEntity, GSComparisonType cmprType, void *context);
+  id comparisonEntity, GSComparisonType cmprType, void *context)
+  GS_ATTRIB_PRIVATE;
 
 /**
  * This is the internal prototype of an stable, concurrency safe sorting
@@ -73,7 +73,8 @@ extern void (*_GSSortUnstableConcurrent)(id *buffer, NSRange range,
  * GNUstep.
  */
 extern void (*_GSSortStableConcurrent)(id *buffer, NSRange range,
-  id comparisonEntity, GSComparisonType cmprType, void *context);
+  id comparisonEntity, GSComparisonType cmprType, void *context)
+  GS_ATTRIB_PRIVATE;
 
 /**
  * GSSortUnstable() uses the above prototypes to provide sorting that does not

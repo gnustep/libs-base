@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
@@ -209,8 +208,19 @@ GS_EXPORT_CLASS
 }
 
 // Managing the blocks in the Operation
+/**
+ * Creates and returns an NSBlockOperationObject and adds the block.
+ */
 + (instancetype) blockOperationWithBlock: (GSBlockOperationBlock)block;
+
+/**
+ * Adds the execution block to the NSOperationBlock.
+ */
 - (void) addExecutionBlock: (GSBlockOperationBlock)block;
+
+/**
+ * Returns the block added to the NSOperationBlock.
+ */
 - (NSArray *) executionBlocks;
 
 @end
@@ -231,9 +241,9 @@ enum {
  * Depending on the configuration of the queue, operations may be executed
  * concurrently or serially.
  *
- * Worker threads are named "NSOperationQ_<number>" by default, but
+ * Worker threads are named "NSOperationQ_&lt;number&gt;" by default, but
  * you can set a name for the queue using the -setName: method.
- * The suffix "_<number>"" is automatically added to the thread name.
+ * The suffix "_&lt;number&gt;"" is automatically added to the thread name.
  */
 GS_EXPORT_CLASS
 @interface NSOperationQueue : NSObject

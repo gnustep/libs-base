@@ -89,6 +89,7 @@ int main()
 
   [node release];
   [other release];
+  [xml release];
 #endif
   END_SET("NSXMLElement")
   [arp release];

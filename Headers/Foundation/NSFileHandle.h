@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
     AutogsdocSource: NSFileHandle.m
     AutogsdocSource: NSPipe.m
@@ -99,6 +98,17 @@ GS_EXPORT_CLASS
 - (void) closeFile;
 - (void) synchronizeFile;
 - (void) truncateFileAtOffset: (unsigned long long)pos;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_15, GS_API_LATEST)
+- (BOOL) getOffset: (out unsigned long long *)offsetInFile 
+             error: (out NSError **)error;
+- (BOOL) seekToEndReturningOffset: (out unsigned long long *)offsetInFile 
+                            error: (out NSError **)error;
+- (BOOL) seekToOffset: (unsigned long long)offset 
+                error: (out NSError **)error;
+- (BOOL) truncateAtOffset: (unsigned long long)offset 
+                    error: (out NSError **)error;
+#endif
 
 @end
 

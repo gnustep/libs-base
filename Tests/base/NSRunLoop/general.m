@@ -21,7 +21,7 @@ int main()
 {
   NSAutoreleasePool     *arp = [NSAutoreleasePool new];
   NSString              *customMode = @"CustomRunLoopMode";
-  MyClass               *dummy = [MyClass new];
+  MyClass               *dummy = AUTORELEASE([MyClass new]);
   NSMethodSignature     *sig;
   NSInvocation          *inv;
   NSTimer	        *dly;

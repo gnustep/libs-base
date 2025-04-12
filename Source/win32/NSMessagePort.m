@@ -18,8 +18,7 @@
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc.,
-   51 Franklin Street, Fifth Floor, Boston, MA 02111 USA.
-   */
+   31 Milk Street #960789 Boston, MA 02196 USA.   */
 
 #include "common.h"
 #define	EXPOSE_NSPort_IVARS	1
@@ -950,16 +949,12 @@ again:
    * and try to use it while it is being deallocated.
    */
   M_LOCK(messagePortLock);
-  if (NSDecrementExtraRefCountWasZero(self))
+  if (1 == [self retainCount])
     {
       NSMapRemove(ports, (void*)[self name]);
-      M_UNLOCK(messagePortLock);
-      [self dealloc];
     }
-  else
-    {
-      M_UNLOCK(messagePortLock);
-    }
+  M_UNLOCK(messagePortLock);
+  [super release];
 }
 
 - (BOOL) sendBeforeDate: (NSDate*)when

@@ -18,17 +18,18 @@
  * 
  * You should have received a copy of the GNU Lesser General Public
  * License along with this library; if not, write to the Free
- * Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
- * Boston, MA 02110 USA.
+ * Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
  */ 
 
 #ifndef __NSGeometry_h_GNUSTEP_BASE_INCLUDE
 #define __NSGeometry_h_GNUSTEP_BASE_INCLUDE
 #import	<GNUstepBase/GSVersionMacros.h>
+#import	<CoreFoundation/CFCGTypes.h>
 
+#ifdef __OBJC__
 #import <objc/objc.h>
-
 #import <Foundation/NSString.h>
+#endif
 
 #if	defined(__cplusplus)
 extern "C" {
@@ -56,12 +57,7 @@ extern "C" {
   CGFloat y;
 }</example>
  <p>Represents a 2-d cartesian position.</p> */
-typedef struct _NSPoint NSPoint;
-struct _NSPoint
-{
-  CGFloat x;
-  CGFloat y;
-};
+typedef struct CGPoint NSPoint;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Array of NSPoint structs. */
@@ -76,12 +72,7 @@ typedef NSPoint *NSPointPointer;
   CGFloat height;
 }</example>
  <p>Floating point rectangle size.</p> */
-typedef struct _NSSize NSSize;
-struct _NSSize
-{
-  CGFloat width;
-  CGFloat height;
-};
+typedef struct CGSize NSSize;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Array of NSSize structs. */
@@ -97,12 +88,7 @@ typedef NSSize *NSSizePointer;
 }</example>
 
  <p>Rectangle.</p> */
-typedef struct _NSRect NSRect;
-struct _NSRect
-{
-  NSPoint origin;
-  NSSize size;
-};
+typedef struct CGRect NSRect;
 
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 /** Array of NSRect structs. */
@@ -111,7 +97,7 @@ typedef NSRect *NSRectArray;
 typedef NSRect *NSRectPointer;
 #endif
 
-enum
+typedef NS_ENUM(NSUInteger, NSRectEdge)
 {
   NSMinXEdge = 0,
   NSMinYEdge = 1,
@@ -127,8 +113,72 @@ enum
   NSMaxYEdge
 }
 </example>
- */
-typedef NSUInteger NSRectEdge;
+ <p>NSRectEdge</p>*/
+// typedef NSUInteger NSRectEdge;
+/** A value representing the alignment process
+<example>
+{
+  NSAlignMinXInward,
+  NSAlignMinYInward,
+  NSAlignMaxXInward,
+  NSAlignMaxYInward,
+  NSAlignWidthInward,
+  NSAlignHeightInward,   
+  NSAlignMinXOutward,
+  NSAlignMinYOutward,
+  NSAlignMaxXOutward,
+  NSAlignMaxYOutward,
+  NSAlignWidthOutward,
+  NSAlignHeightOutward,
+  NSAlignMinXNearest,
+  NSAlignMinYNearest,
+  NSAlignMaxXNearest,
+  NSAlignMaxYNearest,
+  NSAlignWidthNearest,
+  NSAlignHeightNearest,
+  NSAlignRectFlipped,
+  NSAlignAllEdgesInward,
+  NSAlignAllEdgesOutward,
+  NSAlignAllEdgesNearest
+}
+</example>
+ <p>NSAlignmentOptions</p>*/
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
+typedef NS_ENUM(unsigned long long, NSAlignmentOptions) 
+{
+  NSAlignMinXInward = 1ULL << 0,
+  NSAlignMinYInward = 1ULL << 1,
+  NSAlignMaxXInward = 1ULL << 2,
+  NSAlignMaxYInward = 1ULL << 3,
+  NSAlignWidthInward = 1ULL << 4,
+  NSAlignHeightInward = 1ULL << 5,    
+  NSAlignMinXOutward = 1ULL << 8,
+  NSAlignMinYOutward = 1ULL << 9,
+  NSAlignMaxXOutward = 1ULL << 10,
+  NSAlignMaxYOutward = 1ULL << 11,
+  NSAlignWidthOutward = 1ULL << 12,
+  NSAlignHeightOutward = 1ULL << 13,    
+  NSAlignMinXNearest = 1ULL << 16,
+  NSAlignMinYNearest = 1ULL << 17,
+  NSAlignMaxXNearest = 1ULL << 18,
+  NSAlignMaxYNearest = 1ULL << 19,
+  NSAlignWidthNearest = 1ULL << 20,
+  NSAlignHeightNearest = 1ULL << 21,    
+  NSAlignRectFlipped = 1ULL << 63,
+  NSAlignAllEdgesInward = NSAlignMinXInward
+  | NSAlignMaxXInward
+  | NSAlignMinYInward
+  | NSAlignMaxYInward,
+  NSAlignAllEdgesOutward = NSAlignMinXOutward
+  | NSAlignMaxXOutward
+  | NSAlignMinYOutward
+  | NSAlignMaxYOutward,
+  NSAlignAllEdgesNearest = NSAlignMinXNearest
+  | NSAlignMaxXNearest
+  | NSAlignMinYNearest
+  | NSAlignMaxYNearest
+};
+#endif
 
 /**
 <example>{
@@ -209,7 +259,7 @@ NSMakeSize(CGFloat w, CGFloat h)
 
 GS_GEOM_SCOPE NSRect
 NSMakeRect(CGFloat x, CGFloat y, CGFloat w, CGFloat h) GS_GEOM_ATTR;
-
+    
 /** Returns an NSRect having point of origin (x, y) and size {w, h}. */
 GS_GEOM_SCOPE NSRect
 NSMakeRect(CGFloat x, CGFloat y, CGFloat w, CGFloat h)
@@ -223,6 +273,68 @@ NSMakeRect(CGFloat x, CGFloat y, CGFloat w, CGFloat h)
   return rect;
 }
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_5, GS_API_LATEST)
+GS_GEOM_SCOPE NSRect
+NSRectFromCGRect(CGRect rect) GS_GEOM_ATTR;
+
+/** Return an NSRect from CGRect.  **/
+GS_GEOM_SCOPE NSRect
+NSRectFromCGRect(CGRect rect)
+{
+  return (NSRect)rect;
+}
+
+GS_GEOM_SCOPE CGRect
+NSRectToCGRect(NSRect rect) GS_GEOM_ATTR;
+
+/** Return an CGRect from NSRect.  **/
+GS_GEOM_SCOPE CGRect
+NSRectToCGRect(NSRect rect)
+{
+  return (CGRect)rect;
+}
+
+GS_GEOM_SCOPE NSPoint
+NSPointFromCGPoint(CGPoint point) GS_GEOM_ATTR;
+
+/** Return an NSPoint from CGPoint  **/
+GS_GEOM_SCOPE NSPoint
+NSPointFromCGPoint(CGPoint point)
+{
+  return (NSPoint)point;
+}
+
+GS_GEOM_SCOPE CGPoint
+NSPointToCGPoint(NSPoint point) GS_GEOM_ATTR;
+
+/** Return an CGPoint from NSPoint  **/
+GS_GEOM_SCOPE CGPoint
+NSPointToCGPoint(NSPoint point)
+{
+  return (CGPoint)point;
+}
+
+GS_GEOM_SCOPE NSSize
+NSSizeFromCGSize(CGSize size) GS_GEOM_ATTR;
+
+/** Return an NSSize from CGSize  **/
+GS_GEOM_SCOPE NSSize
+NSSizeFromCGSize(CGSize size)
+{
+  return (NSSize)size;
+}
+
+GS_GEOM_SCOPE CGSize
+NSSizeToCGSize(NSSize size) GS_GEOM_ATTR;
+
+/** Return an CGSize from NSSize  **/
+GS_GEOM_SCOPE CGSize
+NSSizeToCGSize(NSSize size)
+{
+  return (CGSize)size;
+}  
+#endif
+  
 /** Constructs NSEdgeInsets. **/
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_7, GS_API_LATEST)
 GS_GEOM_SCOPE NSEdgeInsets
@@ -395,6 +507,12 @@ NSDivideRect(NSRect aRect,
  * so that all four of its defining components are integers. */
 GS_EXPORT NSRect
 NSIntegralRect(NSRect aRect);
+
+/** Returns a rectangle obtained by expanding aRect minimally
+ * so that all four of its defining components are integers, 
+ * using the specified alignment options to control rounding behavior.  */
+GS_EXPORT NSRect
+NSIntegralRectWithOptions(NSRect aRect, NSAlignmentOptions options);
 
 /** Compute a Third Rectangle from Two Rectangles... **/
 

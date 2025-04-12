@@ -120,11 +120,11 @@ int main()
 
   NSOrderedSet *testObj, *testObj2;
   NSMutableOrderedSet *mutableTest1, *mutableTest2;
-  NSMutableArray *testObjs = [NSMutableArray new];
+  NSMutableArray *testObjs = [NSMutableArray array];
   NSData *data = [stringData dataUsingEncoding: NSUTF8StringEncoding];
   NSMutableSet *testSet;
 
-  testObj = [NSOrderedSet new];
+  testObj = AUTORELEASE([NSOrderedSet new]);
   [testObjs addObject: testObj];
   PASS(testObj != nil && [testObj count] == 0,
 	   "can create an empty ordered set");
@@ -360,6 +360,17 @@ int main()
 	[uobj isKindOfClass: [NSMutableOrderedSet class]] &&
 	[uobj containsObject: @"Now"]),
        "Object unarchives correctly from macOS archive")
+
+  [array removeAllObjects];
+  [array addObject: @"1"];
+  [array addObject: @"2"];
+  [array addObject: @"3"];
+  [array addObject: @"4"];
+  [array addObject: @"5"];
+		
+  NSMutableOrderedSet *ms = [NSMutableOrderedSet orderedSetWithArray: array];
+  [ms removeObjectsAtIndexes:
+    [NSIndexSet indexSetWithIndexesInRange: NSMakeRange(0, [array count])]];
 
   test_NSObject(@"NSOrderedSet", testObjs);
   test_NSCoding(testObjs);

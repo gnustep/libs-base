@@ -3,8 +3,10 @@
 #import "ObjectTesting.h"
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSArray *arr = [NSArray arrayWithObject:[NSAttributedString new]];
+  NSAutoreleasePool   	*arp = [NSAutoreleasePool new];
+  NSArray 		*arr;
+
+  arr = [NSArray arrayWithObject: AUTORELEASE([NSAttributedString new])];
   
   test_alloc(@"NSAttributedString");
   test_NSObject(@"NSAttributedString", arr);

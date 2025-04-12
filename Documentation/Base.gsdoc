@@ -304,14 +304,14 @@ notice and this notice are preserved.
 		When this is set to YES, the GNUstep extension method
 		+setShouldCleanUp: is called when the NSObject class is
 		initialised, this turns on recording of some intentionally
-		leaked memory (data structures intended to persist for the
+		kept memory (data structures intended to persist for the
 		whole life of the process), and activates cleanup of that
-		memory on process exit so that external tools such as
-		valgrind will not report the memory as possibly lost. 
+		memory on process exit.
 	      </p>
 	      <p>
-		Use of this facility is a work in progress ... many classes
-		do not yet clean up after themselves when this is enabled.
+		Many classes do not yet clean up after themselves when this
+	        is enabled.  Cleanup is currently problematic and may never
+		work nicely, so this feature may be removed.
 	      </p>
 	    </desc>
 	    <term>GNUSTEP_STACK_TRACE</term>
@@ -501,7 +501,9 @@ notice and this notice are preserved.
 		This may be used in conjunction with NSZombieEnabled to specify
 		whether the objects should really be deallocated.  If you set
 		this to YES, the zombie logging will only work until the
-		deallocated memory is re-used.
+		deallocated memory is re-used.<br />
+	        This feature only works with the classic runtime as the modern
+		runtime can't support both zombies and deallocation.
 	      </p>
 	    </desc>
 	    <term>NSZombieEnabled</term>
@@ -517,8 +519,9 @@ notice and this notice are preserved.
 		examine the process memory when you are running under a
 		debugger.<br />
 		As this overrides actual object deallocation, all memory
-		allocated for objects will be leaked unless the
-                NSDeallocateZombies environment variable is also set.<br />
+		allocated for objects will be leaked (unless using the
+		classic runtime with the NSDeallocateZombies environment
+		variable is also set).<br />
 		You can use the <code>CRASH_ON_ZOMBIE</code> environment
 		variable to force an abort after the message is logged.
 	      </p>

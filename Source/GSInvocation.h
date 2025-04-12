@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #ifndef __GSInvocation_h_GNUSTEP_BASE_INCLUDE
@@ -28,6 +27,7 @@
 #import "Foundation/NSInvocation.h"
 
 @class	NSMutableData;
+@class	NSPointerArray;
 
 typedef struct	{
   int		offset;
@@ -40,12 +40,16 @@ typedef struct	{
 } NSArgumentInfo;
 
 
-@interface GSFFIInvocation : NSInvocation
+@interface 	GSFFIInvocation : NSInvocation
 {
 @public
-  uint8_t	_retbuf[32];	// Store return values of up to 32 bytes here.
-  NSMutableData	*_frame;
+  uint8_t		_retbuf[32];	// Return values of up to 32 bytes here.
+  NSMutableData		*_frame;	// Frame information for invoking.
+  NSPointerArray	*_extra;	// Extra FFI data to be released.
 }
+@end
+@interface	GSFFIInvocation (FFI)
+- (void) setupFrameFFI: (NSMethodSignature*)sig;
 @end
 
 @interface GSFFCallInvocation : NSInvocation

@@ -18,13 +18,13 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #import "common.h"
 #define	EXPOSE_NSError_IVARS	1
 #import	"Foundation/NSDictionary.h"
+#import	"Foundation/NSException.h"
 #import	"Foundation/NSError.h"
 #import	"Foundation/NSCoder.h"
 #import	"Foundation/NSArray.h"
@@ -33,10 +33,28 @@
 
 @implementation	NSError
 
+/* For NSFileManager we have a private method which produces an error
+ * with mutable userInfo so that information can be added before the
+ * file manager returns the error to higher level code.
+ */
++ (NSError*) _error: (NSInteger)aCode
+        description: (NSString*)description
+{
+  NSError		*e = [self allocWithZone: NSDefaultMallocZone()];
+  NSMutableDictionary	*m;
+
+  e = [e initWithDomain: NSCocoaErrorDomain code: aCode userInfo: nil];
+  m = [NSMutableDictionary allocWithZone: NSDefaultMallocZone()];
+  e->_userInfo = [m initWithCapacity: 3];
+  [m setObject: description forKey: NSLocalizedDescriptionKey];
+  return AUTORELEASE(e);
+}
+
 + (id) errorWithDomain: (NSErrorDomain)aDomain
 		  code: (NSInteger)aCode
 	      userInfo: (NSDictionary*)aDictionary
 {
+
   NSError	*e = [self allocWithZone: NSDefaultMallocZone()];
 
   e = [e initWithDomain: aDomain code: aCode userInfo: aDictionary];
@@ -63,14 +81,24 @@
   [super dealloc];
 }
 
+- (NSString*) _fallback
+{
+  return [NSString stringWithFormat: @"Error Domain=%@ Code=%lld",
+    [self domain], (long long)[self code]];
+}
+
 - (NSString*) description
 {
   NSMutableString	*m = [NSMutableString stringWithCapacity: 200];
   NSUInteger		count = [_userInfo count];
   NSString		*loc = [self localizedDescription];
+  NSString		*fallback = [self _fallback];
 
-  [m appendFormat: @"Error Domain=%@ Code=%lld \"%@\"",
-    [self domain], (long long)[self code], loc];
+  [m appendString: fallback];
+  if (NO == [fallback isEqual: loc])
+    {
+      [m appendFormat: @" \"%@\"", loc];
+    }
 
   if ([loc isEqual: [_userInfo objectForKey: NSLocalizedDescriptionKey]])
     {
@@ -188,7 +216,21 @@
 
 - (NSString *) localizedDescription
 {
-  return [_userInfo objectForKey: NSLocalizedDescriptionKey];
+  NSString	*s = [_userInfo objectForKey: NSLocalizedDescriptionKey];
+
+  if (nil == s)
+    {
+      s = [_userInfo objectForKey: NSLocalizedFailureReasonErrorKey];
+      if (s)
+	{
+	  s = [NSString stringWithFormat: @"Operation failed %@", s];
+	}
+      else
+        {
+          s = [self _fallback];
+        }
+    }
+  return s;
 }
 
 - (NSString *) localizedFailureReason

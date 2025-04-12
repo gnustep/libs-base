@@ -13,7 +13,7 @@
    You should have received a copy of the GNU General Public
    License along with this program; see the file COPYING.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 

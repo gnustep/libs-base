@@ -17,8 +17,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */ 
 
 #ifndef _GSPrivate_h_
@@ -33,6 +32,7 @@
 @class	_GSMutableInsensitiveDictionary;
 
 @class	NSNotification;
+@class	NSPointerArray;
 @class	NSRecursiveLock;
 
 #if ( (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 3) ) && HAVE_VISIBILITY_ATTRIBUTE )
@@ -469,6 +469,21 @@ GSPrivateRangeOfString(NSString *receiver, NSString *target) GS_ATTRIB_PRIVATE;
 unsigned
 GSPrivateSmallHash(int n) GS_ATTRIB_PRIVATE;
 
+/* Function to return the info dictionary of the bundle at the sepecified
+ * path (the bundle of the current program if the path is nil) without
+ * involving initialisation of NSBundle or NSUserDefaults.
+ */
+NSDictionary*
+GSPrivateInfoDictionary(NSString *bundlePath) GS_ATTRIB_PRIVATE;
+
+/* Function to return resources of the running program without involving
+ * initialisation of NSBundle or (if localization is an empty string)
+ * NSUserDefaults.
+ */
+NSString* 
+GSPrivateResourcePath(NSString *name, NSString *extension, NSString *rootPath,
+  NSString *subPath, NSString *localization) GS_ATTRIB_PRIVATE;
+
 /* Function to append data to an GSStr
  */
 void
@@ -541,17 +556,18 @@ GSPrivateUnloadModule(FILE *errorStream,
  */
 @interface      GSCodeBuffer : NSObject
 {
-  unsigned      size;
-  void          *buffer;
-  void		*executable;
-  id            frame;
+  unsigned      	size;
+  void          	*buffer;
+  void			*executable;
+  id            	frame;
+  NSPointerArray	*extra;
 }
 + (GSCodeBuffer*) memoryWithSize: (NSUInteger)_size;
 - (void*) buffer;
 - (void*) executable;
 - (id) initWithSize: (NSUInteger)_size;
 - (void) protect;
-- (void) setFrame: (id)aFrame;
+- (void) setFrame: (id)aFrame extra: (NSPointerArray*)pa;
 @end
 
 /* For tuning socket connections
@@ -620,6 +636,16 @@ GSPrivateThreadID()
 void
 GSPrivateEncodeBase64(const uint8_t *src, NSUInteger length, uint8_t *dst)
   GS_ATTRIB_PRIVATE;
+
+#ifndef OBJC_CAP_ARC
+/* When we don't have a runtime with ARC to support weak references, we
+ * use our own version.
+ */
+BOOL GSPrivateMarkedAssociations(id obj, BOOL mark) GS_ATTRIB_PRIVATE;
+BOOL GSPrivateMarkedWeak(id obj, BOOL mark) GS_ATTRIB_PRIVATE;
+void GSWeakInit() GS_ATTRIB_PRIVATE;
+BOOL objc_delete_weak_refs(id obj);
+#endif
 
 #endif /* _GSPrivate_h_ */
 

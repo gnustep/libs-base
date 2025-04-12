@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
@@ -2380,30 +2379,46 @@ static BOOL	classInitialized = NO;
 
 + (void) initialize
 {
-  if (classInitialized == NO)
+  NSMutableCharacterSet	*s;
+
+  if (Nil == NSStringClass) NSStringClass = [NSString class];
+  if (Nil == GSStringClass) GSStringClass = [GSString class];
+  if (Nil == NSMutableStringClass)
+    NSMutableStringClass = [NSMutableString class];
+  if (Nil == GSMutableStringClass)
+    GSMutableStringClass = [GSMutableString class];
+
+  if (Nil == NSArrayClass) NSArrayClass = [NSArray class];
+  if (Nil == plArray)
     {
-      NSMutableCharacterSet	*s;
-
-      classInitialized = YES;
-
-      NSStringClass = [NSString class];
-      NSMutableStringClass = [NSMutableString class];
-      NSDataClass = [NSData class];
-      NSDateClass = [NSDate class];
-      NSNumberClass = [NSNumber class];
-      NSArrayClass = [NSArray class];
-      NSDictionaryClass = [NSDictionary class];
-      GSStringClass = [GSString class];
-      GSMutableStringClass = [GSMutableString class];
-
       plArray = [GSMutableArray class];
       plAdd = (id (*)(id, SEL, id))
 	[plArray instanceMethodForSelector: @selector(addObject:)];
+    }
 
+  if (Nil == NSDictionaryClass) NSDictionaryClass = [NSDictionary class];
+  if (Nil == plDictionary)
+    {
       plDictionary = [GSMutableDictionary class];
       plSet = (id (*)(id, SEL, id, id))
 	[plDictionary instanceMethodForSelector: @selector(setObject:forKey:)];
+    }
 
+  if (Nil == NSDataClass) NSDataClass = [NSData class];
+  if (Nil == NSNumberClass) NSNumberClass = [NSNumber class];
+  if (nil == boolN)
+    {
+      boolN = [[NSNumber numberWithBool: NO] retain];
+      [[NSObject leakAt: &boolN] release];
+    }
+  if (nil == boolY)
+    {
+      boolY = [[NSNumber numberWithBool: YES] retain];
+      [[NSObject leakAt: &boolY] release];
+    }
+
+  if (nil == oldQuotables)
+    {
       /* The '$', '.', '/' and '_' characters used to be OK to use in
        * property lists, but OSX now quotes them, so we follow suite.
        */
@@ -2414,7 +2429,10 @@ static BOOL	classInitialized = NO;
       [s invert];
       oldQuotables = s;
       [[NSObject leakAt: &oldQuotables] release];
+    }
 
+  if (nil == xmlQuotables)
+    {
       s = [NSMutableCharacterSet new];
       [s addCharactersInString: @"&<>'\\\""];
       [s addCharactersInRange: NSMakeRange(0x0001, 0x001f)];
@@ -2424,13 +2442,17 @@ static BOOL	classInitialized = NO;
       [s addCharactersInRange: NSMakeRange(0xFFFE, 0x0002)];
       xmlQuotables = s;
       [[NSObject leakAt: &xmlQuotables] release];
-
-      boolN = [[NSNumber numberWithBool: NO] retain];
-      [[NSObject leakAt: &boolN] release];
-
-      boolY = [[NSNumber numberWithBool: YES] retain];
-      [[NSObject leakAt: &boolY] release];
     }
+
+  /* Initialize the date class last as it has external dependencies on
+   * time zone data.
+   */
+  if (Nil == NSDateClass)
+    {
+      NSDateClass = [NSDate class];
+    }
+
+  classInitialized = YES;
 }
 
 + (NSData*) dataFromPropertyList: (id)aPropertyList
@@ -2735,8 +2757,9 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
             GSBinaryPLParser	*p = [GSBinaryPLParser alloc];
             
             p = [p initWithData: data mutability: anOption];
-            result = [p rootObject];
-            RELEASE(p);
+	    /* to avoid a leak on exception, autorelease before parse
+	     */
+            result = [AUTORELEASE(p) rootObject];
           }
           break;
           

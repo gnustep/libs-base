@@ -124,8 +124,8 @@ static NSLock *lock = nil;
 static NSMutableArray *list = nil;
 + (void) initialize
 {
-  lock = [NSLock new];
-  list = [NSMutableArray new];
+  if (nil == lock) lock = [NSLock new];
+  if (nil == list) list = [NSMutableArray new];
 }
 - (void) main
 {
@@ -224,14 +224,17 @@ int main()
 
   PASS(([NSOperationQueue currentQueue] == [NSOperationQueue mainQueue]), "current queue outside -main is main queue");
   PASS(([NSOperationQueue mainQueue] != nil), "main queue is not nil");
+
   obj = [OpFlag new];
   [q addOperation: obj];
   [q waitUntilAllOperationsAreFinished];
   PASS(([obj isFinished] == YES), "main queue runs an operation");
   PASS(([obj thread] != [NSThread currentThread]),
     "operation ran in other thread");
+  RELEASE(obj);
 
   [q setSuspended: YES];
+
   obj = [OpFlag new];
   [q addOperation: obj];
   [NSThread sleepForTimeInterval: 0.1];
@@ -239,7 +242,7 @@ int main()
   [q setSuspended: NO];
   [q waitUntilAllOperationsAreFinished];
   PASS(([obj isFinished] == YES), "unsuspend works");
-  [obj release];
+  RELEASE(obj);
 
   [q setMaxConcurrentOperationCount: 0];
   obj = [OpFlag new];

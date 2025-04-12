@@ -36,20 +36,22 @@
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
+  ENTER_POOL
+  id	instance = AUTORELEASE([NicolaTest new]);
+
   PASS([NicolaTest conformsToProtocol:@protocol(DoingNothing)],
        "+conformsToProtocol returns YES on an implemented protocol");
   PASS([NicolaTest conformsToProtocol:@protocol(DoingNothingCategory)],
        "+conformsToProtocol returns YES on a protocol implemented in a category");
   PASS(![NicolaTest conformsToProtocol:@protocol(NSCoding)],
        "+conformsToProtocol returns NO on an unimplemented protocol");
-  PASS([[NicolaTest new] conformsToProtocol:@protocol(DoingNothing)],
+  PASS([instance conformsToProtocol:@protocol(DoingNothing)],
        "-conformsToProtocol returns YES on an implemented protocol");
-  PASS([[NicolaTest new] conformsToProtocol:@protocol(DoingNothingCategory)],
+  PASS([instance conformsToProtocol:@protocol(DoingNothingCategory)],
        "-conformsToProtocol returns YES on a protocol implemented in a category"); 
-  PASS(![[NicolaTest new] conformsToProtocol:@protocol(NSCoding)],
+  PASS(![instance conformsToProtocol:@protocol(NSCoding)],
        "-conformsToProtocol returns NO on an unimplemented protocol");
 
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

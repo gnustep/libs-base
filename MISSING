@@ -32,10 +32,6 @@ NSBundle:
 	/** Not implemented */ (GNUstep comment)
 	- executableArchitectures;
 -------------------------------------------------------------
-NSByteOrder:
-	NSSwappedFloat — incompatible declaration
-	NSSwappedDouble — incompatible declaration
--------------------------------------------------------------
 NSCalendar:
 	NSWeekOfMonthCalendarUnit
 	NSWeekOfYearCalendarUnit
@@ -221,18 +217,7 @@ NSGeometry:
 	<Foundation/NSValue.h>
 	<Foundation/NSCoder.h>
 
-	incompatible NSRectEdge
-	NSAlignmentOptions
-
 	@class NSString
-
-	NSRectFromCGRect()
-	NSRectToCGRect()
-	NSPointFromCGPoint()
-	NSPointToCGPoint()
-	NSSizeFromCGSize()
-	NSSizeToCGSize()
-	NSIntegralRectWithOptions()
 
 	@interface NSValue (NSValueGeometryExtensions)
 	@interface NSCoder (NSGeometryCoding)
@@ -268,12 +253,7 @@ NSIndexSet:
 	- enumerateRangesUsingBlock:
 	- enumerateRangesWithOptions:usingBlock:
 	- enumerateRangesInRange:options:usingBlock:
--------------------------------------------------------------
-NSInvocation:
-	<stdbool.h>
 
-	enum _NSObjCValueType
-	typedef struct NSObjCValue
 -------------------------------------------------------------
 NSKeyedArchiver:
 	<NSGeometry.h>
@@ -896,3 +876,5 @@ Good headers:
 	<NSXMLDTD.h>
 	<NSXMLDTDNode.h>
 	<NSXMLElement.h>
+	<NSInvocation.h>
+	<NSByteOrder.h>
