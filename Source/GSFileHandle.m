@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #import "common.h"
@@ -111,9 +110,23 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
 @implementation GSFileHandle
 
++ (void) atExit
+{
+  DESTROY(fh_stdin);
+  DESTROY(fh_stdout);
+  DESTROY(fh_stderr);
+}
+
 + (void) initialize
 {
-  [GSTcpTune class];
+  static BOOL	beenHere = NO;
+
+  if (NO == beenHere)
+    {
+      beenHere = YES;
+      [GSTcpTune class];
+      [self registerAtExit];
+    }
 }
 
 /**
@@ -190,27 +203,10 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
 
 - (void) dealloc
 {
-  if (self == fh_stdin)
-    {
-      fh_stdin = nil;
-      [NSException raise: NSGenericException
-                  format: @"Attempt to deallocate standard input handle"];
-    }
-  if (self == fh_stdout)
-    {
-      fh_stdout = nil;
-      [NSException raise: NSGenericException
-                  format: @"Attempt to deallocate standard output handle"];
-    }
-  if (self == fh_stderr)
-    {
-      fh_stderr = nil;
-      [NSException raise: NSGenericException
-                  format: @"Attempt to deallocate standard error handle"];
-    }
-  DESTROY(address);
-  DESTROY(service);
-  DESTROY(protocol);
+  NSString	*err = nil;
+
+  [self ignoreReadDescriptor];
+  [self ignoreWriteDescriptor];
 
   /* If a read operation is in progress, we need to remove the handle
    * from the run loop and destroy the operation information so that
@@ -218,7 +214,6 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
    */
   if (readInfo)
     {
-      [self ignoreReadDescriptor];
       DESTROY(readInfo);
     }
 
@@ -228,16 +223,39 @@ static NSString*	NotificationKey = @"NSFileHandleNotificationKey";
    */
   if ([writeInfo count] > 0)
     {
-      [self ignoreWriteDescriptor];
       [writeInfo removeAllObjects];
     }
+
+  if (self == fh_stdin)
+    {
+      fh_stdin = nil;
+      err = @"standard input";
+    }
+  if (self == fh_stdout)
+    {
+      fh_stdout = nil;
+      err = @"standard output";
+    }
+  if (self == fh_stderr)
+    {
+      fh_stderr = nil;
+      err = @"standard error";
+    }
+  DESTROY(address);
+  DESTROY(service);
+  DESTROY(protocol);
 
   /* Finalize *after* ending read and write operations so that, if the
    * file handle needs to be closed, we don't generate any notifications
    * containing the deallocated object.  Thanks to David for this fix.
    */
   [self finalize];
-  [super dealloc];
+  DEALLOC
+  if (err)
+    {
+      [NSException raise: NSGenericException
+                  format: @"Deallocation of %@ handle", err];
+    }
 }
 
 - (void) finalize
@@ -1522,7 +1540,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 // Seeking within a file
 
-- (unsigned long long) offsetInFile
+- (BOOL) getOffset: (out unsigned long long *)offsetInFile
+             error: (out NSError **)error;
 {
   off_t	result = -1;
 
@@ -1546,14 +1565,47 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   if (result < 0)
     {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"failed to move to offset in file - %@",
-                  [NSError _last]];
+      if (error)
+	{
+	  *error = [NSError _last];
+	}
+      return NO;
     }
-  return (unsigned long long)result;
+  if (offsetInFile)
+    {
+      *offsetInFile = (unsigned long long)result;
+    }
+  return YES;
+}
+
+- (unsigned long long) offsetInFile
+{
+  unsigned long long	result;
+  NSError		*error;
+
+  if ([self getOffset: &result error: &error] == NO)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"failed to move to offset in file - %@", error];
+    }
+  return result;
 }
 
 - (unsigned long long) seekToEndOfFile
+{
+  unsigned long long	result;
+  NSError		*error;
+
+  if ([self seekToEndReturningOffset: &result error: &error] == NO)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"failed to move to offset in file - %@", error];
+    }
+  return result;
+}
+
+- (BOOL) seekToEndReturningOffset: (out unsigned long long *)offsetInFile
+                            error: (out NSError **)error
 {
   off_t	result = -1;
 
@@ -1577,21 +1629,39 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
   if (result < 0)
     {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"failed to move to offset in file - %@",
-                  [NSError _last]];
+      if (error)
+	{
+	  *error = [NSError _last];
+	}
+      return NO;
     }
-  return (unsigned long long)result;
+  if (offsetInFile)
+    {
+      *offsetInFile = (unsigned long long)result;
+    }
+  return YES;
 }
 
 - (void) seekToFileOffset: (unsigned long long)pos
+{
+  NSError	*error;
+
+  if ([self seekToOffset: pos error: &error] == NO)
+    {
+      [NSException raise: NSFileHandleOperationException
+                  format: @"failed to move to offset in file - %@", error];
+    }
+}
+
+- (BOOL) seekToOffset: (unsigned long long)offset
+                error: (out NSError **)error
 {
   off_t	result = -1;
 
 #ifdef __ANDROID__
   if (asset)
     {
-      result = AAsset_seek(asset, (off_t)pos, SEEK_SET);
+      result = AAsset_seek(asset, (off_t)offset, SEEK_SET);
     }
   else
 #endif
@@ -1600,20 +1670,22 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 #if	USE_ZLIB
       if (gzDescriptor != 0)
 	{
-	  result = gzseek(gzDescriptor, (off_t)pos, SEEK_SET);
+	  result = gzseek(gzDescriptor, (off_t)offset, SEEK_SET);
 	}
       else
 #endif
-      result = lseek(descriptor, (off_t)pos, SEEK_SET);
+      result = lseek(descriptor, (off_t)offset, SEEK_SET);
     }
   if (result < 0)
     {
-      [NSException raise: NSFileHandleOperationException
-                  format: @"failed to move to offset in file - %@",
-                  [NSError _last]];
+      if (error)
+	{
+	  *error = [NSError _last];
+	}
+      return NO;
     }
+  return YES;
 }
-
 
 // Operations on file
 
@@ -1717,13 +1789,27 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     }
 }
 
+- (BOOL) truncateAtOffset: (unsigned long long)offset
+                    error: (out NSError **)error
+{
+  if (ftruncate((isStandardFile ? descriptor : -1), offset) < 0)
+    {
+      if (error)
+	{
+	  *error = [NSError _last];
+	}
+      return NO;
+    }
+  [self seekToFileOffset: offset];
+  return YES;
+}
+
 - (void) truncateFileAtOffset: (unsigned long long)pos
 {
   if (!(isStandardFile && descriptor >= 0))
     {
       [NSException raise: NSFileHandleOperationException
 		  format: @"attempt to truncate invalid file"];
-
     }
   if (ftruncate(descriptor, pos) < 0)
     {

@@ -663,6 +663,7 @@ DOT
 USE_GMP
 GS_HAVE_NSURLSESSION
 HAVE_LIBCURL
+HAVE_NEWKVO
 HAVE_LIBDISPATCH_RUNLOOP
 HAVE_LIBDISPATCH
 HAVE_ICU
@@ -862,6 +863,7 @@ enable_icu
 enable_libdispatch
 with_dispatch_include
 with_dispatch_library
+enable_newkvo
 with_curl
 enable_nsurlsession
 with_gmp_include
@@ -1556,6 +1558,7 @@ Optional Features:
   --disable-zeroconf		Disable NSNetServices support
   --disable-icu			Disable International Components for Unicode
   --disable-libdispatch		Disable dispatching blocks via libdispatch
+  --disable-newkvo		Disable new KVO implementation
   --disable-nsurlsession  		Disable support for NSURLSession
 
   --enable-setuid-gdomap        Enable installing gdomap as a setuid
@@ -5696,20 +5699,16 @@ fi
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the compiler is clang" >&5
 printf %s "checking whether the compiler is clang... " >&6; }
-if test ! x"${GCC}" = x"yes" ; then
+# CC may have flags appended to it, so we need to extract the actual
+# compiler name.
+if "$(echo "${CC}" | awk '{print $1}')" -v 2>&1 | grep -q 'clang version'; then
+  CLANG_CC=yes
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+printf "%s\n" "yes" >&6; }
+else
   CLANG_CC=no
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
-else
-  if "${CC}" -v 2>&1 | grep -q 'clang version'; then
-    CLANG_CC=yes
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-  else
-    CLANG_CC=no
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-  fi
 fi
 
 
@@ -6318,7 +6317,7 @@ printf "%s\n" "no" >&6; }
 		PKG_CONFIG=""
 	fi
 fi
-# If the modern mechanism failswe may havew an older pkg-config
+# If the modern mechanism fails we may have an older pkg-config
 # so try looking it up the old fashioned way.
 if test -z "$PKG_CONFIG"; then
   # Extract the first word of "pkg-config", so it can be a program name with args.
@@ -7384,6 +7383,47 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
 #--------------------------------------------------------------------
+# Check alignment of an object in memory
+#--------------------------------------------------------------------
+# The cast to long int works around a bug in the HP C Compiler,
+# see AC_CHECK_SIZEOF for more information.
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking alignment of objc_object" >&5
+printf %s "checking alignment of objc_object... " >&6; }
+if test ${ac_cv_alignof_objc_object+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  if ac_fn_c_compute_int "$LINENO" "(long int) offsetof (ac__type_alignof_, y)" "ac_cv_alignof_objc_object"        "$ac_includes_default
+  typedef struct { void *isa; } objc_object;
+
+typedef struct { char x; objc_object y; } ac__type_alignof_;"
+then :
+
+else $as_nop
+  if test "$ac_cv_type_objc_object" = yes; then
+     { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error 77 "cannot compute alignment of objc_object
+See \`config.log' for more details" "$LINENO" 5; }
+   else
+     ac_cv_alignof_objc_object=0
+   fi
+fi
+
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_alignof_objc_object" >&5
+printf "%s\n" "$ac_cv_alignof_objc_object" >&6; }
+
+
+
+printf "%s\n" "#define ALIGNOF_OBJC_OBJECT $ac_cv_alignof_objc_object" >>confdefs.h
+
+
+if test $ac_cv_alignof_objc_object = 0 ; then
+  as_fn_error $? "Unable to find align of object (required)." "$LINENO" 5
+fi
+
+#--------------------------------------------------------------------
 # Setup dynamic linking
 #--------------------------------------------------------------------
 # Copyright (C) 2005 Free Software Foundation
@@ -7624,29 +7664,31 @@ fi
 # Windows: check if we have native threading APIs and SRW locks
 #--------------------------------------------------------------------
 HAVE_WIN32_THREADS_AND_LOCKS=0
-case "$target_os" in
-  mingw*|windows)
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for native Windows threads and locks" >&5
+if test "$CLANG_CC" = "yes"; then
+  case "$target_os" in
+    mingw*|windows)
+      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for native Windows threads and locks" >&5
 printf %s "checking for native Windows threads and locks... " >&6; }
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-        #define GS_USE_WIN32_THREADS_AND_LOCKS 1
-        #include "$srcdir/Source/GSPThread.h"
+          #define GS_USE_WIN32_THREADS_AND_LOCKS 1
+          #include "$srcdir/Source/GSPThread.h"
 
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"
 then :
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 printf "%s\n" "yes" >&6; }
-      HAVE_WIN32_THREADS_AND_LOCKS=1
+        HAVE_WIN32_THREADS_AND_LOCKS=1
 else $as_nop
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
 printf "%s\n" "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
-    ;;
-esac
+      ;;
+  esac
+fi
 
 
 #--------------------------------------------------------------------
@@ -14141,6 +14183,7 @@ fi
 fi
 
 
+
 #--------------------------------------------------------------------
 # Check for International Components for Unicode
 # See DEPENDENCIES POLICY at the start of this file.
@@ -14511,19 +14554,43 @@ fi
     HAVE_LIBDISPATCH_RUNLOOP=1
   fi
   # Check for availability of functions in more recent libdispatch versions.
-  for ac_func in dispatch_cancel
-do :
   ac_fn_c_check_func "$LINENO" "dispatch_cancel" "ac_cv_func_dispatch_cancel"
-if test "x$ac_cv_func_dispatch_cancel" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_DISPATCH_CANCEL 1
-_ACEOF
-
-fi
-done
+if test "x$ac_cv_func_dispatch_cancel" = xyes
+then :
+  printf "%s\n" "#define HAVE_DISPATCH_CANCEL 1" >>confdefs.h
 
 fi
 
+fi
+
+
+
+#--------------------------------------------------------------------
+# Check for whether the new KVO implementation is enabled (only with
+# the NG runtime)
+#--------------------------------------------------------------------
+HAVE_NEWKVO=0
+# Check whether --enable-newkvo was given.
+if test ${enable_newkvo+y}
+then :
+  enableval=$enable_newkvo;
+else $as_nop
+
+if test "$OBJC_RUNTIME_LIB" = "ng"; then
+  enable_newkvo=yes
+else
+  enable_newkvo=no
+fi
+fi
+
+if test "x$enable_newkvo" = "xyes"
+then
+  if test "$OBJC_RUNTIME_LIB" = "ng"; then
+    HAVE_NEWKVO=1
+  else
+    echo "You are not using the new runtime ... newkvo not available"
+  fi
+fi
 
 
 #--------------------------------------------------------------------
@@ -14628,6 +14695,10 @@ printf "%s\n" "FAILED (libcurl not found via pkg-config)" >&6; }
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (curl-config and pkg-config not found)" >&5
 printf "%s\n" "FAILED (curl-config and pkg-config not found)" >&6; }
   fi
+fi
+
+if test "$OBJC_RUNTIME_LIB" = "ng" -a "$HAVE_LIBCURL" = 0; then
+as_fn_error $? "libcurl is a hard-dependency when building with the Objective-C 2.0 toolchain" "$LINENO" 5
 fi
 
 

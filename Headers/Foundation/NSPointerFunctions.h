@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */ 
 
@@ -139,15 +138,15 @@ GS_EXPORT_CLASS
 
 - (void) setSizeFunction: (NSUInteger (*)(const void *item))func;
 
-- (void) setUsesStrongWriteBarrier: (BOOL)flag GS_DEPRECATED_FUNC;
+- (void) setUsesStrongWriteBarrier: (BOOL)flag GS_DEPRECATED;
 
-- (void) setUsesWeakReadAndWriteBarriers: (BOOL)flag GS_DEPRECATED_FUNC;
+- (void) setUsesWeakReadAndWriteBarriers: (BOOL)flag GS_DEPRECATED;
 
 - (NSUInteger (*)(const void *item)) sizeFunction;
 
-- (BOOL) usesStrongWriteBarrier GS_DEPRECATED_FUNC;
+- (BOOL) usesStrongWriteBarrier GS_DEPRECATED;
 
-- (BOOL) usesWeakReadAndWriteBarriers GS_DEPRECATED_FUNC;
+- (BOOL) usesWeakReadAndWriteBarriers GS_DEPRECATED;
 
 @end
 

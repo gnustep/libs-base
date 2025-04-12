@@ -6,7 +6,7 @@ int main()
 {
   NSAutoreleasePool   *arp = [NSAutoreleasePool new];
   BOOL ret;
-  NSLock *lock = [NSRecursiveLock new];
+  NSLock 	*lock = AUTORELEASE([NSRecursiveLock new]);
 
   ret = [lock tryLock];
   if (ret)

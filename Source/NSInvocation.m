@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSInvocation class reference</title>
    $Date$ $Revision$
@@ -32,6 +31,7 @@
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSInvocation.h"
+#import "Foundation/NSPointerArray.h"
 #import "Foundation/NSZone.h"
 #import "GSInvocation.h"
 #import "GSPrivate.h"
@@ -71,6 +71,7 @@
 - (void) dealloc
 {
   DESTROY(frame);
+  DESTROY(extra);
   if (size > 0)
     {
 #if	defined(HAVE_FFI_PREP_CLOSURE_LOC)
@@ -174,9 +175,10 @@
 #endif
 }
 
-- (void) setFrame: (id)aFrame
+- (void) setFrame: (id)aFrame extra: (NSPointerArray*)pa
 {
   ASSIGN(frame, aFrame);
+  ASSIGN(extra, pa);
 }
 @end
 
@@ -381,6 +383,7 @@ _arg_addr(NSInvocation *inv, int index)
        * we can release it.
        */
       [((GSFFIInvocation*)self)->_frame release];
+      [((GSFFIInvocation*)self)->_extra release];
     }
 #elif defined(USE_FFCALL)
   if (_cframe)
@@ -834,7 +837,7 @@ _arg_addr(NSInvocation *inv, int index)
 + (NSInvocation*) _returnInvocationAndDestroyProxy: (id)proxy
 {
   NSInvocation  *inv = [proxy _invocation];
-  NSDeallocateObject(proxy);
+  [proxy dealloc];
   return inv;
 }
 @end
@@ -884,6 +887,11 @@ _arg_addr(NSInvocation *inv, int index)
   o = (GSInvocationProxy*) NSAllocateObject(self, 0, NSDefaultMallocZone());
   o->target = RETAIN(t);
   return o;
+}
+- (void) dealloc
+{
+  DESTROY(target);
+  NSDeallocateObject(self);
 }
 - (NSInvocation*) _invocation
 {

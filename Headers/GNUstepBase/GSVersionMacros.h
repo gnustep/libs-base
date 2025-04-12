@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110-1301, USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #ifndef __GNUSTEP_GSVERSIONMACROS_H_INCLUDED_
@@ -242,19 +241,38 @@
  * depending on where the attribute can be applied.
  */
 
+/* This macro is placed immediately before the name of a method or function
+ * to mark it as deprecated (ie it should not be used and is likely to be
+ * removed in a later release).
+ * Please do not use the older GS_DEPRECATED_FUNC macro, it's deprecated ;-)
+ */
 #if defined(__clang__) || GS_GCC_MINREQ(3,1)
-#  define GS_DEPRECATED_FUNC __attribute__((deprecated))
+#  define GS_DEPRECATED __attribute__((deprecated))
 #else
-#  define GS_DEPRECATED_FUNC
+#  define GS_DEPRECATED
 #endif
+#define GS_DEPRECATED_FUNC
 
-/* This attribute is placed immediately before the name of a method
- * or function to mark it as unimplemented.
+/** This macro is placed immediately before the name of a method or function
+ * to mark it as unimplemented, though likley to become available in a later
+ * release.
  */
 #if defined(__clang__) || GS_GCC_MINREQ(3,1)
 #  define GS_UNIMPLEMENTED __attribute__((deprecated("*** not implemented - please contribute an implementation before using this feature ***")))
 #else
 #  define GS_UNIMPLEMENTED
+#endif
+
+/** This macro is placed immediately before the name of a method or function
+ * to mark it as non-portable... a feature which does not work on all platforms
+ * and should not be used unless you are specifically intending to write
+ * non portable code which will only ever be used on a platform known to
+ * support the feature.
+ */
+#if defined(__clang__) || GS_GCC_MINREQ(3,1)
+#  define GS_NON_PORTABLE __attribute__((deprecated("*** not portable - please do not use this feature ***")))
+#else
+#  define GS_NON_PORTABLE
 #endif
 
 #define GS_UNUSED_ARG __attribute__((unused))

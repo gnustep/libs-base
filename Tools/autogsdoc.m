@@ -16,7 +16,7 @@
    You should have received a copy of the GNU General Public
    License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 
 <chapter>
   <heading>autogsdoc</heading>
@@ -464,7 +464,8 @@
       </item>
       <item><strong>StylesheetURL</strong>
 	The URL of a CSS document to be used as the stadard stylesheet for
-	generated autogsdoc files.
+	generated autogsdoc files.  If this is not specified the default of
+	a local document default-styles.css is used.
       </item>
       <item><strong>SystemProjects</strong>
 	This value is used to control the automatic inclusion of system
@@ -751,6 +752,7 @@ main(int argc, char **argv, char **env)
   defs = [NSUserDefaults standardUserDefaults];
   [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
     @"Untitled", @"Project",
+    @"default-styles.css", @"StylesheetURL",
     nil]];
 
   // BEGIN test for any unrecognized arguments, or "--help"
@@ -811,6 +813,9 @@ main(int argc, char **argv, char **env)
     @"FunctionsTemplate",
     @"\t\tSTR\t(\"\")\n\tfile into which docs for macros "
       @"should be consolidated",
+    @"IndexFile",
+    @"\t\tSTR\t(\"\")\n\tHTML file name (extension omitted) "
+      @"copied to index.html",
     @"MacrosTemplate",
     @"\t\tSTR\t(\"\")\n\tfile into which docs for typedefs "
       @"should be consolidated",
@@ -848,6 +853,10 @@ main(int argc, char **argv, char **env)
 	{
 	  NSArray	*args = [argsRecognized allKeys];
 
+	  if (![@"help" isEqual: opt])
+	    {
+	      GSPrintf(stderr, @"Unknown option: '%@'\n", opt);
+	    }
 	  GSPrintf(stderr, @"Usage:\n");
 	  GSPrintf(stderr, [NSString stringWithFormat:
 	    @"    %@ [options] [files]\n", [argsGiven objectAtIndex: 0]]);
@@ -1283,8 +1292,8 @@ main(int argc, char **argv, char **env)
 	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE"];
 	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE"];
 	  [wm setObject: @"//" forKey: @"DEFINE_BLOCK_TYPE_NO_ARGS"];
-	  [wm setObject: @"" forKey: @"GS_ATTRIB_DEPRECATED"];
 	  [wm setObject: @"" forKey: @"GS_DECLARE"];
+	  [wm setObject: @"" forKey: @"GS_DEPRECATED"];
 	  [wm setObject: @"" forKey: @"GS_DEPRECATED_FUNC"];
 	  [wm setObject: @"extern" forKey: @"GS_EXPORT"];
 	  [wm setObject: @"" forKey: @"GS_EXPORT_CLASS"];
@@ -1292,6 +1301,7 @@ main(int argc, char **argv, char **env)
 	  [wm setObject: @"" forKey: @"GS_GEOM_ATTR"];
 	  [wm setObject: @"extern" forKey: @"GS_GEOM_SCOPE"];
 	  [wm setObject: @"" forKey: @"GS_IMPORT"];
+	  [wm setObject: @"" forKey: @"GS_NON_PORTABLE"];
 	  [wm setObject: @"" forKey: @"GS_NORETURN_METHOD"];
 	  [wm setObject: @"//" forKey: @"GS_PRIVATE_INTERNAL"];
 	  [wm setObject: @"" forKey: @"GS_RANGE_ATTR"];
@@ -1303,11 +1313,16 @@ main(int argc, char **argv, char **env)
 	  [wm setObject: @"" forKey: @"GS_UNUSED_IVAR"];
 	  [wm setObject: @"" forKey: @"GS_ZONE_ATTR"];
 	  [wm setObject: @"extern" forKey: @"GS_ZONE_SCOPE"];
+	  [wm setObject: @"" forKey: @"NS_ASSUME_NONNULL_BEGIN"];
+	  [wm setObject: @"" forKey: @"NS_ASSUME_NONNULL_END"];
 	  [wm setObject: @"" forKey: @"NS_AUTOMATED_REFCOUNT_UNAVAILABLE"];
 	  [wm setObject: @"" forKey: @"NS_CONSUMED"];
 	  [wm setObject: @"" forKey: @"NS_CONSUMES_SELF"];
 	  [wm setObject: @"" forKey: @"NS_RETURNS_NOT_RETAINED"];
 	  [wm setObject: @"" forKey: @"NS_RETURNS_RETAINED"];
+	  [wm setObject: @"" forKey: @"_Nonnull"];
+	  [wm setObject: @"" forKey: @"_Null_unspecified"];
+	  [wm setObject: @"" forKey: @"_Nullable"];
 	  [wm setObject: @"" forKey: @"__strong"];
 	  [wm setObject: @"" forKey: @"__weak"];
 	  [wm setObject: @"" forKey: @"WEAK_ATTRIBUTE"];
@@ -1399,7 +1414,7 @@ main(int argc, char **argv, char **env)
 		  attrs = [mgr fileAttributesAtPath: sfile
 				       traverseLink: YES];
 		  d = [attrs fileModificationDate];
-		  if (sDate == nil || [d earlierDate: sDate] == sDate)
+		  if (sDate == nil || [d earlierDate: sDate] != d)
 		    {
 		      sDate = d;
 		      IF_NO_ARC([[sDate retain] autorelease];)
@@ -1427,7 +1442,7 @@ main(int argc, char **argv, char **env)
 
 		  attrs = [mgr fileAttributesAtPath: ofile traverseLink: YES];
 		  d = [attrs fileModificationDate];
-		  if (gDate == nil || [d laterDate: gDate] == gDate)
+		  if (gDate == nil || [d laterDate: gDate] != d)
 		    {
 		      gDate = d;
 		      IF_NO_ARC([[gDate retain] autorelease];)
@@ -1439,7 +1454,7 @@ main(int argc, char **argv, char **env)
 		}
 	    }
 
-	  if (gDate == nil || [sDate earlierDate: gDate] == gDate)
+	  if (gDate == nil || [sDate earlierDate: gDate] != sDate)
 	    {
 	      NSArray	*modified;
 
@@ -1670,7 +1685,7 @@ main(int argc, char **argv, char **env)
 	   *     unless the project index is already more up to date than
 	   *     this file (or the gsdoc file does not exist of course).
 	   */
-	  if (gDate != nil && [gDate earlierDate: rDate] == rDate)
+	  if (gDate != nil && [gDate earlierDate: rDate] != gDate)
 	    {
 	      if (showDependencies == YES)
 		{
@@ -1977,14 +1992,20 @@ main(int argc, char **argv, char **env)
 
       // file for top-left frame (header only; rest appended below)
       idxIndexFile = [@"MainIndex" stringByAppendingPathExtension: @"html"];
-      [idxIndex setString: @"<HTML>\n  <BODY>\n"
-@"    <B>Index</B><BR/>\n"];
+      [idxIndex setString: @"<!DOCTYPE HTML>\n"
+@"<HTML>\n"
+@"  <HEAD>\n"
+@"    <META charset=\"utf-8\">\n"
+@"  </HEAD>\n"
+@"  <BODY>\n"
+@"    <B>Index</B><BR>\n"];
 
       // this becomes index.html
       framesetFile = [@"index" stringByAppendingPathExtension: @"html"];
-      [frameset setString: @"<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"\"http://www.w3.org/TR/REC-html40/loose.dtd\">\n"
-@"<HTML>\n"
+      [frameset setString: @"<!DOCTYPE HTML>\n"
+@"<HTML lang=\"en\">\n"
 @"  <HEAD>\n"
+@"  <META charset=\"utf-8\">\n"
 @"  <TITLE>\n"
 @"    Autogsdoc-generated Documentation for [prjName]\n"
 @"  </TITLE>\n"
@@ -2094,6 +2115,9 @@ main(int argc, char **argv, char **env)
   count = [gFiles count];
   if (generateHtml == YES && count > 0)
     {
+      NSString		*htmlIndexFile;
+
+      htmlIndexFile = [defs stringForKey: @"IndexFile"];
       pool = [NSAutoreleasePool new];
 
       for (i = 0; i < count; i++)
@@ -2152,7 +2176,7 @@ main(int argc, char **argv, char **env)
 
 	  if ([mgr isReadableFileAtPath: gsdocfile] == YES)
 	    {
-	      if (hDate == nil || [gDate earlierDate: hDate] == hDate)
+	      if (hDate == nil || [gDate earlierDate: hDate] != gDate)
 		{
 		  NSData	*d;
 		  GSXMLNode	*root;
@@ -2199,6 +2223,17 @@ main(int argc, char **argv, char **env)
 		  if ([d writeToFile: htmlfile atomically: YES] == NO)
 		    {
 		      NSLog(@"Sorry unable to write %@", htmlfile);
+		    }
+		  if ([file isEqual: htmlIndexFile])
+		    {
+		      NSString	*s;
+
+		      s = [documentationDirectory
+			stringByAppendingPathComponent: @"index.html"];
+		      if ([d writeToFile: s atomically: YES] == NO)
+			{
+			  NSLog(@"Sorry unable to write %@ to %@", htmlfile, s);
+			}
 		    }
 		}
 	    }

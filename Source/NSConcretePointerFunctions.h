@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */ 
 
@@ -29,15 +28,15 @@
 #  include <objc/capabilities.h>
 #endif
 
+#import	"GNUstepBase/GSObjCRuntime.h"
+
+#define WEAK_READ(x) objc_loadWeak((id*)x)
+#define WEAK_WRITE(addr, x) objc_storeWeak((id*)addr, (id)x)
+
 #if defined(OBJC_CAP_ARC)
-#    include <objc/objc-arc.h>
-#    define WEAK_READ(x) objc_loadWeak((id*)x)
-#    define WEAK_WRITE(addr, x) objc_storeWeak((id*)addr, (id)x)
-#    define STRONG_WRITE(addr, x) objc_storeStrong((id*)addr, (id)x)
-#    define STRONG_ACQUIRE(x) objc_retain(x)
+#  define STRONG_WRITE(addr, x) objc_storeStrong((id*)addr, (id)x)
+#  define STRONG_ACQUIRE(x) objc_retain(x)
 #else
-#  define WEAK_READ(x) (*x)
-#  define WEAK_WRITE(addr, x) (*(addr) =  x)
 #  define STRONG_WRITE(addr, x) ASSIGN(*((id*)addr), ((id)x))
 #  define STRONG_ACQUIRE(x) RETAIN(((id)x))
 #endif
@@ -183,7 +182,6 @@ pointerFunctionsEqual(PFInfo *PF, void *item1, void *item2)
 static inline void
 pointerFunctionsRelinquish(PFInfo *PF, void **itemptr)
 {
-  
   if (PF->relinquishFunction != 0)
     (*PF->relinquishFunction)(*itemptr, PF->sizeFunction);
   if (memoryType(PF->options, NSPointerFunctionsWeakMemory))
@@ -204,7 +202,7 @@ pointerFunctionsReplace(PFInfo *PF, void **dst, void *src)
       if (PF->relinquishFunction != 0)
 	(*PF->relinquishFunction)(*dst, PF->sizeFunction);
       if (memoryType(PF->options, NSPointerFunctionsWeakMemory))
-        WEAK_WRITE(dst, 0);
+        WEAK_WRITE(dst, src);
       else
 	*dst = src;
     }

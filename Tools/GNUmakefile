@@ -18,8 +18,7 @@
 #
 #  You should have received a copy of the GNU General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#  Boston, MA 02111 USA.
+#  Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
 ifeq ($(GNUSTEP_MAKEFILES),)
  GNUSTEP_MAKEFILES := $(shell gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null)
@@ -70,9 +69,9 @@ MAN8_PAGES = gdomap.8
 
 # The application to be compiled
 ifeq ($(add),yes)
-TOOL_NAME = autogsdoc cvtenc plmerge sfparse xmlparse
+TOOL_NAME = autogsdoc classes cvtenc plmerge sfparse xmlparse
 else
-TOOL_NAME = autogsdoc cvtenc gdnc gspath defaults pl plmerge plutil \
+TOOL_NAME = autogsdoc classes cvtenc gdnc gspath defaults pl plmerge plutil \
 		plparse sfparse pldes plget plser pl2link xmlparse HTMLLinker
 # gdomap is currently not supported on Windows MSVC or Android (which
 # can be either "linux-android" or "linux-androideabi")
@@ -89,6 +88,7 @@ TEST_TOOL_NAME = locale_alias
 
 # The source files to be compiled
 autogsdoc_OBJC_FILES = autogsdoc.m AGSParser.m AGSOutput.m AGSIndex.m AGSHtml.m
+classes_OBJC_FILES = classes.m
 cvtenc_OBJC_FILES = cvtenc.m
 gdomap_C_FILES = gdomap.c
 gdnc_OBJC_FILES = gdnc.m
@@ -116,6 +116,10 @@ endif
 ifneq ($(HAVE_DOT), )
 AGSHtml.m_FILE_FLAGS+= -DHAVE_DOT=$(HAVE_DOT)
 endif
+
+autogsdoc_HAS_RESOURCE_BUNDLE = yes
+autogsdoc_RESOURCE_FILES = \
+	default-styles.css
 
 # Reset this variable (defined in config.mak) to avoid useless linkage
 # against the libraries gnustep-base uses.

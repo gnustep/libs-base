@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */ 
 
@@ -45,6 +44,7 @@ static Class	concreteClass = Nil;
   void		**_contents;
   unsigned	_capacity;
   unsigned	_grow_factor;
+  unsigned long	_version;
 }
 @end
 
@@ -198,6 +198,34 @@ static Class	concreteClass = Nil;
   [self subclassResponsibility: _cmd];
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+				   objects: (__unsafe_unretained id[])stackbuf
+				     count: (NSUInteger)len
+{
+  NSInteger count;
+
+  state->mutationsPtr = state->mutationsPtr;
+  count = MIN(len, [self count] - state->state);
+  if (count > 0)
+    {
+      IMP	imp = [self methodForSelector: @selector(pointerAtIndex:)];
+      int	p = state->state;
+      int	i;
+
+      for (i = 0; i < count; i++, p++)
+	{
+	  stackbuf[i] = (*imp)(self, @selector(pointerAtIndex:), p);
+	}
+      state->state += count;
+    }
+  else
+    {
+      count = 0;
+    }
+  state->itemsPtr = stackbuf;
+  return count;
+}
+
 @end
 
 @implementation NSPointerArray (NSArrayConveniences)  
@@ -285,6 +313,8 @@ static Class	concreteClass = Nil;
   NSUInteger	insert = 0;
   NSUInteger	i;
 
+  _version++;
+
   /* We can't use memmove here for __weak pointers, because that would omit the
    * required read barriers.  We could use objc_memmoveCollectable() for strong
    * pointers, but we may as well use the same code path for everything
@@ -302,6 +332,7 @@ static Class	concreteClass = Nil;
         }
     }
   _count = insert;
+  _version++;
 }
 
 - (id) copyWithZone: (NSZone*)zone
@@ -328,6 +359,16 @@ static Class	concreteClass = Nil;
   return _count;
 }
 
+- (NSUInteger) countByEnumeratingWithState: (NSFastEnumerationState*)state
+				   objects: (__unsafe_unretained id[])stackbuf
+				     count: (NSUInteger)len
+{
+  state->mutationsPtr = &_version;
+  return [super countByEnumeratingWithState: state
+				    objects: stackbuf
+				      count: len];
+}
+
 - (void) dealloc
 {
   int   i;
@@ -339,7 +380,7 @@ static Class	concreteClass = Nil;
    */
   for (i = 0; i < _count; i++)
     {
-      pointerFunctionsAssign(&_pf, &_contents[i], 0);
+      pointerFunctionsRelinquish(&_pf, &_contents[i]);
     }
   if (_contents != 0)
     {
@@ -502,6 +543,7 @@ static Class	concreteClass = Nil;
 
 - (void) removePointerAtIndex: (NSUInteger)index
 {
+  _version++;
   if (index >= _count)
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
@@ -512,15 +554,18 @@ static Class	concreteClass = Nil;
       pointerFunctionsMove(&_pf, &_contents[index-1], &_contents[index]);
     }
   _contents[--_count] = NULL;
+  _version++;
 }
 
 - (void) replacePointerAtIndex: (NSUInteger)index withPointer: (void*)item
 {
+  _version++;
   if (index >= _count)
     {
       [self _raiseRangeExceptionWithIndex: index from: _cmd];
     }
   pointerFunctionsReplace(&_pf, &_contents[index], item);
+  _version++;
 }
 
 
@@ -528,6 +573,7 @@ static Class	concreteClass = Nil;
 
 - (void) setCount: (NSUInteger)count
 {
+  _version++;
   if (count > _count)
     {
 #if ZEROING
@@ -602,6 +648,7 @@ static Class	concreteClass = Nil;
 	  pointerFunctionsRelinquish(&_pf, &_contents[_count]);
 	}
     }
+  _version++;
 }
 
 @end

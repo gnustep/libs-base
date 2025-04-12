@@ -6,7 +6,7 @@ int main()
 {
   START_SET("Unbalanced unlocking")
 
-  NSLock		*lock = [NSLock new];
+  NSLock		*lock = AUTORELEASE([NSLock new]);
   NSUserDefaults	*defs = [NSUserDefaults standardUserDefaults];
   BOOL			mode = [defs boolForKey: @"GSMacOSXCompatible"]; 
 

@@ -1,3 +1,362 @@
+2025-04-08  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSOperation.m (_thread): Fix potential deadlock when
+	exiting a thread.
+
+2025-04-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSOrderedSet.m: Fix for git issue #500
+
+2025-03-21 Earl Robsham <earl.robsham@savant.com>
+	* Headers/Foundation/NSURLHandle.h:
+	* Sources/externs.m:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURLProtocol.m:
+	Updates 'Authorization' header generation to include the query
+	parameters (if present).
+	Brings the implementation inline with MacOS.
+	Also adds the 'GSHTTPPropertyDigestURIOmitsQuery' key for use with
+	'-[NSHTTPURLHandle writeProperty:forKey:]' or
+	'+[NSURLProtocol setProperty:forKey:inRequest:]' to toggle off this
+	updated behavior.
+
+2025-03-08 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSObjCRuntime.h:
+	* Source/GSPrivate.h:
+	* Source/NSObject.m:
+	* Source/ObjectiveC2/weak.m:
+	* Tests/base/Functions/runtime.m:
+	Initial implementation of associated objects for GNU runtime ...
+	objc_getAssociatedObject(), objc_removeAssociatedObjects(),
+	and objc_setAssociatedObject()
+
+2025-03-06 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTask.m: bugfix for testing a running task ... the task may
+	still be running after a -terminate has been sent to it, until we have
+	been able to check for the termination status of the actual subprocess.
+	Fix for exception raised during launching.
+
+2025-02-28 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Version:
+	* ANNOUNCE:
+	* NEWS:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	Bugfix 1.31.1 release.
+
+2025-02-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/ObjectiveC2/weak.m: Comment out unnecessary code which does
+	not work on s390x machines (and broke weak references on them).
+
+2025-01-18 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Documentation/ReleaseNotes.gsdoc: fix bad line break markup
+	* config/config.ffi.c: add some diagnostic logging
+
+2025-01-14  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/Makefile.postamble (after-install):
+	Don't install CoreFoundation header when installing base additions
+	on macOS.
+
+2025-01-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/NSURL+GNUstepBase.h:
+	* Source/GSHTTPURLHandle.m:
+	* Source/NSURL.m:
+	* Source/NSURLProtocol.m:
+	* Tests/base/NSURL/basic.m:
+	Fix -pathWithEscapes to return the full path as documented.
+	Change NSURLHandle/NSURLConnection to use this method (rather than
+	-fullPath) so that %2f escape sequences are preserved in the path
+	in the outgoing request (and also when used as a cache key).
+
+2025-01-10 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* ChangeLog: Update for new release
+	* ANNOUNCE:
+	* NEWS:
+	* Documentation/ReleaseNotes.gsdoc:
+	* Documentation/news.texi:
+	Update release notes for 1.31.0 release.
+
+2025-02-04 Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSKVOSupport.m:
+	* Tests/base/NSKVOSupport/legacy.m:
+	Implements the setKeys:triggerChangeNotificationsForDependentKey:
+	class method. Please do not use it. It is fundamentally broken, and
+	requires the object's meta class to hold additional state.
+    	Keys from this class method are the last resort when retrieving
+    	dependencies via keyPathsForValuesAffectingValueForKey:.
+    	This aligns with the implementation in Foundation.
+
+2025-01-04 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSRegularExpression.h:
+	* Source/NSRegularExpression.m:
+	* Tests/base/NSRegularExpression/bigSource.txt:
+	* Tests/base/NSRegularExpression/callbacks.m:
+	Restructure to allow enumeration of matches when using the classic
+	compiler/runtime (ie avoiding blocks) using a new primitive method
+	specifying a callback function and context.  Also fix callback bug
+	spotted by git user sensetalkdoug and add testcases based on his
+	pull request (#476) - thanks.
+
+2025-01-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSKeyValueMutableArray.m: Fix mutable array support so that
+	we can remove items from multiple indices at the same time and avoid
+	problems where the array being accessed is set by copy rendering our
+	cached infromation invalid (issue #480).
+	* Tests/base/KVC/remove.m: adapted test by Rupert Daniel for removal
+	of items from mutable array.
+
+2024-12-31 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSTimeZone.m: Add GNUSTEP_BUILTIN_TZ environment variable to
+	force the use of the IANA standard based time zone files we provide
+	in the distribution rather than the system supplied time zone data.
+	This allows us to standardise test behavior across different systems.
+	* Tests/base/NSCalendarDate/TestInfo: set GNUSTEP_BUILTIN_TZ=1
+	* Tests/base/NSCalendarDate/test02.m: Change from using the MET zone
+	to using CET for tests since the IANA data has changed to make MET
+	behave aas CET.
+	* Tests/base/NSTimeZone/TestInfo: set GNUSTEP_BUILTIN_TZ=1
+
+2024-12-27 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSIMap.h:
+	* Headers/GNUstepBase/GSObjCRuntime.h:
+	* Source/GSPrivate.h:
+	* Source/NSConcreteHashTable.m:
+	* Source/NSConcretePointerFunctions.h:
+	* Source/NSMessagePort.m:
+	* Source/NSNotificationCenter.m:
+	* Source/NSObject.m:
+	* Source/NSSocketPort.m:
+	* Source/ObjectiveC2/GNUmakefile:
+	* Source/ObjectiveC2/README:
+	* Source/ObjectiveC2/weak.m:
+	* Tests/base/Functions/runtime.m:
+	* Tests/base/NSHashTable/weakObjects.m:
+	* Tests/base/NSMapTable/weakObjects.m:
+	* Tests/base/NSNotification/general.m:
+	* Tests/base/NSPointerArray/weakObjects.m:
+	Implement weak objects API support for classic/gnu runtime.
+	Use it to implement weak reference support in NSPointerFunctions
+	(for NSMapTable, NSHashTable, NSP{ointerArray) and to implement
+	safe observer support for NSNotificationCenter (if an observer is
+	deallocated then it is removed from the notification center the
+	next time a notification woudl be posted to it).
+
+2024-11-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSURLProtocol.m: fix leaks due to retain loops.
+	* Source/Additions/NSObject+GNUstepBase.m: fix issues in new
+	-trackOwnership mechanism to log tracked instances at exist and to
+	handle cases where we track instances of a class and instances of
+	its subclasses.
+
+2024-11-26 Matvii Jarosh <matviijarosh@gmail.com>
+
+	* NSByteOrder.h: fix NSSwappedFloat and NSSwappedDouble
+	* MISSING:
+
+2024-11-25 Matvii Jarosh <matviijarosh@gmail.com>
+
+	* NSInvocation.h: add enum _NSObjCValueType and
+	typedef structNSObjCValue. There are no functions not implemented
+	in NSInvocation.h left.
+	* MISSING:
+
+2024-11-21 Matvii Jarosh <matviijarosh@gmail.com>
+
+	* NSValue: add valueWithEdgeInsets and edgeInsetsValue.
+	* typeEncodingHelper.h: add NSINSETS_ENCODING_PREFIX and
+	IS_NSINSETS_ENCODING and update comment.
+	* type_encoding.m: add test NSINSETS_ENCODING_PREFIX.
+	* GSConcreteValueTamplate.m: add GSEdgeInsetsValue.
+	* GSConcreteValue.m: add TYPE_ORDER 6.
+
+2024-11-24 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSSocketPort.m: fix leak of data object when establishing a
+	new connection.
+
+2024-11-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Tools/AGSIndex: (-makeRefs:) process child nodes in loop rather
+	than recursively ... reduces the depth of recursion to the depth of
+	nesting children rather than the number of children, avoiding stack
+	overflow  for large projects.
+	* Source/GSHTTPURLHandle.m: Fix leak of connection description strings
+	when reconnecting an existing handle.
+
+2024-11-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* NSRegularExpression: avoid leaks in ICU code by calling more
+	primitive methods.
+	* NSAutoreleasePool: fix leaks with libobjc2 ARC methods when a pool
+	is in a context that we leave due to an exception.
+	* NSObject: add -trackOwnership to log the retain/release/dealloc of
+	in individual instance.
+
+2024-11-19 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* GSMime: fixed buffer overrun in rare circumstances when decoding
+	an encoded word in a header.
+	fix to cope with dealloc of uninitialised instances of GSMimeSMTPClient
+	* GSTLS: clean up used resources on exit
+	* NSCharacterSet: Fix retain count of cached character sets
+	* NSDateFormatter: fix to cope with dealloc of uninitialised instances
+	* NSFileManager: fix leak of enumerator when enumerating files at
+	a directory specified by URL
+	* NSHTTPCookie: fix buffer overrun parsing cookie header fields
+	* NSInvocation: fix leak of type information memory when passing
+	general struct argument/return values
+	* NSNumberFormatter: fix to cope with dealloc of uninitialised instances
+	* NSOperation: fix to cope with dealloc of uninitialised instances
+	* NSPredicate: fix leaks of keypath and set expressions
+	also fix leak of objects if exception occurs while scanning predicate
+	string
+	* NSPropertyList: fix leaks if exception occurs while parsing
+	* NSRegularExpression: fix leaks if exception occurs while parsing
+	* NSString: fix lead in dataUsingEncoding:allowLossyConversion:
+	* NSTimeZone: fix retain cycle in absolute time zones
+	fix leak of ICU calendar in -localizedName:locale:
+	* NSURL: fix leaks when initialising with unparseable string etc
+	* Testcases: fix many leaks so that most tests run to completion
+	without any leaked memory.
+	
+2024-11-19 Matvii Jarosh <matviijarosh@gmail.com>
+
+	* Header/Foundation/NSGeometry.h: fixed NSRectEdge and
+	NSAlignmentOptions enums.  
+
+2024-11-18 Matvii Jarosh <matviijarosh@gmail.com>
+
+	* Source/NSGeometry.m: added NSIntegralRectWithOptions function.
+	* Header/Foundation/NSGeometry.h: Fixed incompatible NSRectEdge,
+	added enum NSAlignmentOptions, added NSRectFromCGRect,
+	NSRectToCGRect, NSPointFromCGPoint, NSPointToCGPoint,
+	NSSizeFromCGSize and NSSizeToCGSizea functions.
+	* MISSING:
+
+2024-11-14 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSBundle.m: Restructure a bit to expose resource lookup
+	and info dictionary as GSPrivate... functions without needing full
+	NSBundle initialisation.
+	* Source/GSPrivate.h: declare new functions.
+	* Source/NSUserDefaults.m: use bundle identifier rather than process
+	name where it is available.
+	WARNING ... this brings behavior in line with MacOS but it means that
+	existing defaults databases will not be loaded.  If your app is called
+	MyApp and its bundle identifier (stored as the CFBundleIdentifier
+	value in the Info-gnustep.plist or Info.plist file in your app) is
+	mydomain.MyApp then you can copy the information by saving the old
+	information to a file, editing the domain name in the file, and then
+	importing from that file using the 'defaults' command.
+	Or use sed to do the editing in a pipeline like this:
+	  defaults read MyApp |\
+	  sed -e 's/^MyApp /mydomain.MyApp/' |\
+	  defaults write
+	Then remove the old information with 'defaults delete MyApp'.
+
+2024-11-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m:
+	Fix last update for case where we have a non-block notification.
+
+2024-11-12 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSIMap.h:
+	Change (and document) the 'clear' macros for removing keys and values
+	from map tables so they can be used properly.  Change 'write' macros
+	to be 'store' macros, reflecting a roll of storing vvalues into the
+	map. Standardise macro names referring to values to end in 'VALUE'.
+	Tidy up and improve comments.
+	* Source/NSConcreteHashTable.m:
+	Replace macros with retain/release macros which do nothing and
+	store/clear macros which invoke the appropriate functions.
+	* Source/NSConcreteMapTable.m:
+	Replace macros with retain/release macros which do nothing and
+	store/clear macros which invoke the appropriate functions.
+	* Source/NSConcretePointerFunctions.h:
+	In pointerFunctionsReplace() fix bug setting the new value to zero
+	thather than the value supplied.
+	* Source/NSConcretePointerFunctions.m:
+	Set correct relinquish function for
+	NSPointerFunctionsObjectPointerPersonality
+	* Tests/base/NSHashTable/general.m:
+	Add tests for NSHashTableObjectPointerPersonality and
+	NSObjectHashCallBacks
+	* Tests/base/NSMapTable/general.m:
+	Add tests for NSMapTableObjectPointerPersonality and
+	NSObjectMapKeyCallBacks/NSObjectMapValueCallBacks
+
+2024-11-09 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSNotificationCenter.m:
+	* Tests/base/NSNotification/general.m:
+	Rewrite mechanism for handling the behavior of observations using
+	blocks.  Add simple testcase checking reference counts of observer.
+
+2024-11-08 Richard Frith-Macdonald <rfm@gnu.org>
+	
+	* Headers/Foundation/NSFileHandle.h:
+	* Source/GSFileHandle.m:
+	* Source/NSFileHandle.m:
+	Add OSX 10.15 file offset methods (issue 325, pull 446 and more)
+
+2024-11-03 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Fix case where positive result of asking
+	handler whether to proceed was ignored.
+
+2024-11-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSDate.m: Fix returing receiver when earlier/later argument
+	is equal to the receiver.  Various formatting fixes.
+
+2024-10-29 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSUndoManager.m: set zero/nil return value when forwarding
+	invocation ... in case calling code tries to use the result.
+
+2024-10-28 Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSString.m:
+	-commonPrefixWithString:options: returns nil when string supplied as
+	first argument is nil. On macOS, the empty string is returned instead.
+	Align implementation with macOS.
+
+2024-10-13 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSFileManager.m: Create an NSError object when we fail to
+	copy because the destination item already exists.
+
+2024-10-10: Hugo Melder <hugo@algoriddim.com>
+
+	* Source/NSDate.m:
+	* Source/NSDatePrivate.h:
+	NSDate is now a small object in slot 6, when configuring GNUstep with the
+	clang/libobjc2 toolchain.  This is done by compressing the binary64 fp
+	holding the seconds since reference date (because someone at Apple
+	thought it would be a good idea to represent a time interval as a fp).
+	Note that this assumes that IEEE 754 is used.
+
+	* Source/NSCalendarDate.m:
+	Remove access to the NSDate private concrete Class
+	and implement -timeIntervalSinceReferenceDate instead.
+	Previously, all methods of the concrete date class were
+	added to NSCalendarDate via GSObjCAddClassBehavior.
+
 2024-23-09: Hugo Melder <hugo@algoriddim.com>
 
 	* Headers/Foundation/NSThread.h:
@@ -6,14 +365,14 @@
 	Cache ICU collator in thread-local storage to avoid
 	expensive construction when comparing strings.
 
-2024-13-08: Hugo Melder <hugo@algoriddim.com>
+2024-08-13: Hugo Melder <hugo@algoriddim.com>
 
 	* Source/NSOperation.m:
 	* Headers/Foundation/NSOperation.h:
 	Give NSOperationQueue worker threads a proper thread
 	name for easy identification.
 
-2024-12-08 Hugo Melder <hugo@algoriddim.com>
+2024-08-12 Hugo Melder <hugo@algoriddim.com>
 	* Source/NSThread.m:
 	Fix threadPriority and setThreadPriority: on Android.
 

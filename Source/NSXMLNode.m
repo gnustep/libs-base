@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
 #import "common.h"
@@ -40,8 +39,8 @@ cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
   if ((node == NULL) || (ns == NULL))
     return;
 
-  if ((node->type == XML_ATTRIBUTE_NODE) ||
-      (node->type == XML_ELEMENT_NODE))
+  if ((node->type == XML_ATTRIBUTE_NODE)
+    || (node->type == XML_ELEMENT_NODE))
     {
       xmlNsPtr ns1 = node->ns;
       
@@ -51,19 +50,23 @@ cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
         }
 
       // Either both the same or one NULL and the other the same
-      if (ns1 != NULL &&
-          (((ns1->href == NULL) &&
-            (xmlStrcmp(ns1->prefix, ns->prefix) == 0)) ||
-           /*
-           ((ns1->prefix == NULL) &&
-            (xmlStrcmp(ns1->href, ns->href) == 0)) ||
-           */
-           ((xmlStrcmp(ns1->prefix, ns->prefix) == 0) &&
-            (xmlStrcmp(ns1->href, ns->href) == 0))))
-        {
-          //xmlFreeNs(ns1);
-          xmlSetNs(node, ns);
-        }
+      if (ns1 != NULL)
+	{
+	  BOOL	equalPrefix;
+
+	  equalPrefix = (xmlStrcmp(ns1->prefix, ns->prefix) == 0) ? YES : NO;
+
+	  if (equalPrefix
+	    && ((ns1->href == NULL)
+	      || (xmlStrcmp(ns1->href, ns->href) == 0)))
+	    {
+	      xmlSetNs(node, ns);
+	      if (ns1->href != NULL)
+		{
+	          //xmlFreeNs(ns1);
+		}
+	    }
+	}
  
       cleanup_namespaces(node->children, ns);
       cleanup_namespaces(node->next, ns);
@@ -74,9 +77,11 @@ cleanup_namespaces(xmlNodePtr node, xmlNsPtr ns)
     }
 }
 
-void
+BOOL
 ensure_oldNs(xmlNodePtr node)
 {
+  BOOL	newDoc = NO;
+
   if (node->doc == NULL)
     {
       // Create a private document for this node
@@ -87,6 +92,7 @@ ensure_oldNs(xmlNodePtr node)
 #else
       xmlSetTreeDoc(node, tmp);
 #endif
+      newDoc = YES;
     }
   if (node->doc->oldNs == NULL)
     {
@@ -97,6 +103,7 @@ ensure_oldNs(xmlNodePtr node)
       ns->prefix = xmlStrdup((const xmlChar *)"xml");
       node->doc->oldNs = ns;
     }
+  return newDoc;
 }
 
 static int
@@ -507,8 +514,8 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
   xmlNodePtr theNode = internal->node.node;
   xmlNodePtr children;
 
-  if ((theNode->type == XML_NAMESPACE_DECL) ||
-      (theNode->type == XML_ATTRIBUTE_NODE))
+  if ((theNode->type == XML_NAMESPACE_DECL)
+    || (theNode->type == XML_ATTRIBUTE_NODE))
     {
       return NULL;
     }
@@ -552,11 +559,15 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
       if (tmp)
         {
           // Try to resolve half defined namespaces
-          xmlNsPtr ns = tmp->oldNs;
+          xmlNsPtr ns;
           xmlNsPtr last = NULL;
 
-          ensure_oldNs(parentNode);
+	  if (ensure_oldNs(parentNode))
+	    {
+	      internal->detached = parentNode->doc;
+	    }
 
+          ns = tmp->oldNs;
           while (ns != NULL)
             {
               BOOL resolved = NO;
@@ -595,7 +606,7 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
                   // Unlink in old
                   if (last == NULL)
                     {
-                      tmp->oldNs = NULL;
+                      tmp->oldNs = tmp->oldNs->next;
                     }
                   else
                     {
@@ -630,6 +641,10 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 #else
           xmlSetTreeDoc(childNode, parentNode->doc);
 #endif
+	  if (tmp == GSIVar(child, detached))
+	    {
+	      GSIVar(child, detached) = 0;
+	    }
           xmlFreeDoc(tmp);
         }
     }
@@ -1293,18 +1308,21 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
         {
           if (theNode->doc)
             {
+	      if (theNode->doc == internal->detached)
+		{
+		  return;	// Already detached.
+		}
               /* Create a private document and move the node over.
                * This is needed so that the strings of the nodes subtree
                * get stored in the dictionary of this new document.
                */
-              // FIXME: Should flag this doc so it wont get returned in
-              // the method rootDocument
-              xmlDocPtr tmp = xmlNewDoc((xmlChar *)"1.0");
+              internal->detached = xmlNewDoc((xmlChar *)"1.0");
 
 #if LIBXML_VERSION >= 20620
-              xmlDOMWrapAdoptNode(NULL, theNode->doc, theNode, tmp, NULL, 0);
+              xmlDOMWrapAdoptNode(NULL, theNode->doc, theNode,
+		internal->detached, NULL, 0);
 #else
-              xmlSetTreeDoc(theNode, tmp);
+              xmlSetTreeDoc(theNode, detached);
 #endif
             }
           else
@@ -1735,6 +1753,10 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
       // but we don't want to return this.
       return nil;
     }
+  if (theNode->doc == internal->detached)
+    {
+      return nil;	// the document is private from when we detached
+    }
 
   return
     (NSXMLDocument *)[NSXMLNode _objectForNode: (xmlNodePtr)(theNode->doc)];
@@ -1791,9 +1813,9 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
     }
   else
     {
-      const xmlChar *xmlName = XMLSTRING(name); 
-      xmlChar *prefix = NULL;
-      xmlChar *localName;
+      const xmlChar	*xmlName = XMLSTRING(name); 
+      xmlChar 		*prefix = NULL;
+      xmlChar 		*localName;
       
       if (NULL == xmlName)
         {
@@ -1804,8 +1826,8 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
       localName = xmlSplitQName2(xmlName, &prefix);
       if (prefix != NULL)
         {
-          if ((theNode->type == XML_ATTRIBUTE_NODE) ||
-              (theNode->type == XML_ELEMENT_NODE))
+          if ((theNode->type == XML_ATTRIBUTE_NODE)
+	    || (theNode->type == XML_ELEMENT_NODE))
             {
               if ((theNode->ns != NULL && theNode->ns->prefix == NULL))
                 {
@@ -1825,7 +1847,10 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
                     {
                       xmlNsPtr oldNs;
 
-                      ensure_oldNs(theNode);
+		      if (ensure_oldNs(theNode))
+			{
+			  internal->detached = theNode->doc;
+			}
 
                       // Fake the name space and fix it later
                       // This function is private, so re reimplemt it.
@@ -1833,7 +1858,8 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
                       oldNs = theNode->doc->oldNs;
                       while (oldNs)
                         {
-                          if (oldNs->prefix != NULL && xmlStrEqual(oldNs->prefix, prefix))
+                          if (oldNs->prefix != NULL
+			    && xmlStrEqual(oldNs->prefix, prefix))
                             {
                               ns = oldNs;
                               break;
@@ -1954,7 +1980,10 @@ execute_xpath(xmlNodePtr node, NSString *xpath_exp, NSDictionary *constants,
             {
               xmlNsPtr oldNs;
               
-              ensure_oldNs(theNode);
+              if (ensure_oldNs(theNode))
+		{
+		  internal->detached = theNode->doc;
+		}
               
               // Fake the name space and fix it later
               // This function is private, so re reimplemt it.

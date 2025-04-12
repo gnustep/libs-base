@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSFileHandle class reference</title>
    $Date$ $Revision$
@@ -92,11 +91,11 @@ static Class NSFileHandle_ssl_class = nil;
 {
   if (self == NSFileHandle_abstract_class)
     {
-      return NSAllocateObject (NSFileHandle_concrete_class, 0, z);
+      return NSAllocateObject(NSFileHandle_concrete_class, 0, z);
     }
   else
     {
-      return NSAllocateObject (self, 0, z);
+      return NSAllocateObject(self, 0, z);
     }
 }
 
@@ -410,6 +409,13 @@ static Class NSFileHandle_ssl_class = nil;
 
 // Seeking within a file
 
+- (BOOL) getOffset: (out unsigned long long *)offsetInFile
+             error: (out NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
+
 /**
  *  Return current position in file, or raises exception if instance does
  *  not represent a regular file.
@@ -428,6 +434,20 @@ static Class NSFileHandle_ssl_class = nil;
 {
   [self subclassResponsibility: _cmd];
   return 0;
+}
+
+- (BOOL) seekToEndReturningOffset: (out unsigned long long *)offsetInFile
+                            error: (out NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
+
+- (BOOL) seekToOffset: (unsigned long long)offset
+                error: (out NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
 }
 
 /**
@@ -468,6 +488,12 @@ static Class NSFileHandle_ssl_class = nil;
   [self subclassResponsibility: _cmd];
 }
 
+- (BOOL) truncateAtOffset: (unsigned long long)offset
+                    error: (out NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
 
 @end
 

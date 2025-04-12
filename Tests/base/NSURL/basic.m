@@ -3,6 +3,7 @@
 #import "ObjectTesting.h"
 
 #if     GNUSTEP
+#import <GNUstepBase/NSURL+GNUstepBase.h>
 extern const char *GSPathHandling(const char *);
 #endif
 
@@ -20,7 +21,7 @@ int main()
   unichar	u = 163;
   unichar       buf[256];
   
-  TEST_FOR_CLASS(@"NSURL", [NSURL alloc],
+  TEST_FOR_CLASS(@"NSURL", AUTORELEASE([NSURL alloc]),
     "NSURL +alloc returns an NSURL");
   
   TEST_FOR_CLASS(@"NSURL", [NSURL fileURLWithPath: @"."],
@@ -45,6 +46,8 @@ int main()
   str = [url scheme];
   PASS([str isEqual: @"file"], "Scheme of file URL is file");
 
+  // Test depends on network connection
+  testHopeful = YES;
   url = [NSURL URLWithString: @"http://example.com/"];
   data = [url resourceDataUsingCache: NO];
   PASS(data != nil,
@@ -52,19 +55,20 @@ int main()
   num = [url propertyForKey: NSHTTPPropertyStatusCodeKey];
   PASS([num isKindOfClass: [NSNumber class]] && [num intValue] == 200,
     "Status of load is 200 for example.com");
+  testHopeful = NO;
 
   url = [NSURL URLWithString:@"this isn't a URL"];
   PASS(url == nil, "URL with 'this isn't a URL' returns nil");
 
+  // Test depends on network connection
+  testHopeful = YES;
   url = [NSURL URLWithString: @"https://httpbin.org/silly-file-name"];
   data = [url resourceDataUsingCache: NO];
   num = [url propertyForKey: NSHTTPPropertyStatusCodeKey];
-
-#if defined(_WIN64) && defined(_MSC_VER)
-  testHopeful = YES;
-#endif
   PASS_EQUAL(num, [NSNumber numberWithInt: 404],
     "Status of load is 404 for httpbin.org/silly-file-name");
+  testHopeful = NO;
+
 #if defined(_WIN64) && defined(_MSC_VER)
   testHopeful = YES;
 #endif
@@ -163,6 +167,20 @@ int main()
 #if     GNUSTEP
   PASS_EQUAL([rel fullPath], @"/testing/aaa/bbb/ccc/",
     "Simple relative URL fullPath works");
+  PASS_EQUAL([rel pathWithEscapes], @"/testing/aaa/bbb/ccc/",
+    "Simple relative URL pathWithEscapes works");
+#endif
+  rel = [NSURL URLWithString: @"aaa%2fbbb%2fccc/" relativeToURL: url];
+  PASS_EQUAL([rel absoluteString],
+    @"http://here.and.there/testing/aaa%2fbbb%2fccc/",
+    "Escaped relative URL absoluteString works");
+  PASS_EQUAL([rel path], @"/testing/aaa/bbb/ccc",
+    "Escaped relative URL path works");
+#if     GNUSTEP
+  PASS_EQUAL([rel fullPath], @"/testing/aaa/bbb/ccc/",
+    "Escaped relative URL fullPath works");
+  PASS_EQUAL([rel pathWithEscapes], @"/testing/aaa%2fbbb%2fccc/",
+    "Escaped relative URL pathWithEscapes works");
 #endif
 
   url = [NSURL URLWithString: @"http://1.2.3.4/a?b;foo"];
@@ -363,16 +381,18 @@ GSPathHandling("right");
   NSURLQueryItem* item = [[NSURLQueryItem alloc] init];
   PASS_EQUAL(item.name, @"", "NSURLQueryItem.name should not be nil");
   PASS_EQUAL(item.value, nil, "NSURLQueryItem.value should be nil");
+  RELEASE(item);
     
   //OSX behavior is to return query item with an empty string name
   item = [[NSURLQueryItem alloc] initWithName:nil value:nil];
   PASS_EQUAL(item.name, @"", "NSURLQueryItem.name should not be nil");
   PASS_EQUAL(item.value, nil, "NSURLQueryItem.value should be nil");
+  RELEASE(item);
     
   item = [[NSURLQueryItem alloc] initWithName:@"myName" value:@"myValue"];
   PASS_EQUAL(item.name,  @"myName", "NSURLQueryItem.name should not be nil");
   PASS_EQUAL(item.value, @"myValue", "NSURLQueryItem.value should not be nil");
-
+  RELEASE(item);
     
   [arp release]; arp = nil;
   return 0;

@@ -17,8 +17,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    $Date: 2007-06-08 04:04:14 -0400 (Fri, 08 Jun 2007) $ $Revision: 25230 $
    */
@@ -104,6 +103,8 @@
     }
 
 
+  /* Ordering as specified in "Accessor Search Patterns" from Key-Value Coding
+   * Programming Guide */
   proxy = [NSKeyValueFastMutableSet setForKey: aKey 
                                      ofObject: anObject
                            withCapitalizedKey: keybuf];
@@ -120,6 +121,12 @@
 	}
     }
   return proxy;
+}
+
+- (void) dealloc
+{
+  DESTROY(key);
+  DEALLOC
 }
 
 - (id) initWithKey: (NSString *)aKey ofObject: (id)anObject
@@ -277,7 +284,7 @@
   [addSetInvocation release];
   [removeObjectInvocation release];
   [addObjectInvocation release];
-  [super dealloc];
+  DEALLOC
 }
 
 - (void) addObject: (id)anObject
@@ -445,6 +452,12 @@
 {
   return [[[self alloc] initWithKey: aKey ofObject: anObject
                 withCapitalizedKey: capitalized] autorelease];
+}
+
+- (void) dealloc
+{
+  DESTROY(setSetInvocation);
+  DEALLOC
 }
 
 - (id) initWithKey: (NSString *)aKey ofObject: (id)anObject
@@ -718,14 +731,14 @@
     {
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueUnionSetMutation
-                       usingObjects: [NSSet setWithObject: anObject]];
+                       usingObjects: anObject];
     }
   [set unionSet: anObject];
   if (notifiesObservers && !changeInProgress)
     {
       [object didChangeValueForKey: key
                    withSetMutation: NSKeyValueUnionSetMutation
-                      usingObjects: [NSSet setWithObject:anObject]];
+                      usingObjects: anObject];
     }
 }
 
@@ -735,14 +748,14 @@
     {
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueMinusSetMutation
-                       usingObjects: [NSSet setWithObject: anObject]];
+                       usingObjects: anObject];
     }
   [set minusSet: anObject];
   if (notifiesObservers && !changeInProgress)
     {
       [object didChangeValueForKey: key
                    withSetMutation: NSKeyValueMinusSetMutation
-                      usingObjects: [NSSet setWithObject: anObject]];
+                      usingObjects: anObject];
     }
 }
 
@@ -752,14 +765,14 @@
     {
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueIntersectSetMutation
-                       usingObjects: [NSSet setWithObject: anObject]];
+                       usingObjects: anObject];
     }
   [set intersectSet: anObject];
   if (notifiesObservers && !changeInProgress)
     {
       [object didChangeValueForKey: key
                    withSetMutation: NSKeyValueIntersectSetMutation
-                      usingObjects: [NSSet setWithObject: anObject]];
+                      usingObjects: anObject];
     }
 }
 
@@ -769,14 +782,14 @@
     {
       [object willChangeValueForKey: key
                     withSetMutation: NSKeyValueSetSetMutation
-                       usingObjects: [NSSet setWithObject: anObject]];
+                       usingObjects: anObject];
     }
   [set setSet: anObject];
   if (notifiesObservers && !changeInProgress)
     {
       [object didChangeValueForKey: key
                    withSetMutation: NSKeyValueSetSetMutation
-                      usingObjects: [NSSet setWithObject: anObject]];
+                      usingObjects: anObject];
     }
 }
 @end

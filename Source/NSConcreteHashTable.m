@@ -20,8 +20,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    $Date: 2008-06-08 11:38:33 +0100 (Sun, 08 Jun 2008) $ $Revision: 26606 $
    */
@@ -84,25 +83,30 @@ typedef GSIMapNode_t *GSIMapNode;
 #define GSI_MAP_EQUAL(M, X, Y)\
  (M->legacy ? M->cb.old.isEqual(M, X.ptr, Y.ptr) \
  : pointerFunctionsEqual(&M->cb.pf, X.ptr, Y.ptr))
-#define GSI_MAP_RELEASE_KEY(M, X)\
- (M->legacy ? M->cb.old.release(M, X.ptr) \
-  : IS_WEAK(M) ? nil : pointerFunctionsRelinquish(&M->cb.pf, &X.ptr))
-#define GSI_MAP_RETAIN_KEY(M, X)\
- (M->legacy ? M->cb.old.retain(M, X.ptr) \
-  : IS_WEAK(M) ? nil : pointerFunctionsAssign(\
-    &M->cb.pf, &X.ptr, pointerFunctionsAcquire(&M->cb.pf, X.ptr)))
 #define GSI_MAP_ZEROED(M)\
- (M->legacy ? 0 \
- : (IS_WEAK(M) ? YES : NO))
+ (M->legacy ? 0 : (IS_WEAK(M) ? YES : NO))
 
-#define GSI_MAP_WRITE_KEY(M, addr, x) \
-	if (M->legacy) \
-		*(addr) = x;\
-	else\
-	 pointerFunctionsAssign(&M->cb.pf, (void**)addr, (x).obj);
+/* NSPointerFunctions provides functions which combine the actions of
+ * memory allocation/deallocation with those of assignment, so we make
+ * the separete retain/release macros a no-op nd do all the work in the
+ * store/clear macros.
+ */
+#define GSI_MAP_RELEASE_KEY(M, X)
+#define GSI_MAP_RETAIN_KEY(M, X) nil
+#define GSI_MAP_CLEAR_KEY(M, addr)\
+  if (M->legacy) \
+    { M->cb.old.release(M, (*addr).ptr); (*addr).ptr = 0; }\
+  else\
+    pointerFunctionsRelinquish(&M->cb.pf, (void**)addr);
+#define GSI_MAP_STORE_KEY(M, addr, x)\
+  if (M->legacy)\
+    { *(addr) = x; M->cb.old.retain(M, (*addr).ptr); }\
+  else\
+    pointerFunctionsReplace(&M->cb.pf, (void**)addr, (x).obj);
+
 #define GSI_MAP_READ_KEY(M,addr) \
-	(M->legacy ? *(addr) :\
-	 (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf, (void**)addr))
+   (M->legacy ? *(addr) :\
+   (__typeof__(*addr))pointerFunctionsRead(&M->cb.pf, (void**)addr))
 
 #define	GSI_MAP_ENUMERATOR	NSHashEnumerator
 
@@ -453,11 +457,20 @@ NSHashInsert(NSHashTable *table, const void *element)
 	  GSIMapAddKey(t, (GSIMapKey)element);
 	  ((NSConcreteHashTable*)table)->version++;
 	}
-      else if (element != n->key.ptr)
-	{
-	  GSI_MAP_RELEASE_KEY(t, n->key);
-	  n->key = (GSIMapKey)element;
-	  GSI_MAP_RETAIN_KEY(t, n->key);
+      else if (GSI_MAP_READ_KEY(t, &n->key).ptr != element)
+        {
+	  if (t->legacy)
+	    {
+	      t->cb.old.release(t, n->key.ptr);
+	      n->key = (GSIMapKey)element;
+	      t->cb.old.retain(t, n->key.ptr);
+	    }
+	  else
+	    {
+	      pointerFunctionsRelinquish(&t->cb.pf, (void**)&n->key);
+	      pointerFunctionsReplace(&t->cb.pf, (void**)&n->key,
+		(void*)element);
+	    }
 	  ((NSConcreteHashTable*)table)->version++;
 	}
     }
@@ -850,11 +863,19 @@ const NSHashTableCallBacks NSPointerToStructHashCallBacks =
       GSIMapAddKey(t, (GSIMapKey)anObject);
       version++;
     }
-  else if (n->key.obj != anObject)
+  else if (GSI_MAP_READ_KEY(t, &n->key).ptr != anObject)
     {
-      GSI_MAP_RELEASE_KEY(t, n->key);
-      n->key = (GSIMapKey)anObject;
-      GSI_MAP_RETAIN_KEY(t, n->key);
+      if (t->legacy)
+	{
+	  t->cb.old.release(t, n->key.ptr);
+	  n->key.ptr = anObject;
+	  t->cb.old.retain(t, n->key.ptr);
+	}
+      else
+	{
+	  pointerFunctionsRelinquish(&t->cb.pf, (void**)&n->key);
+	  pointerFunctionsReplace(&t->cb.pf, (void**)&n->key, (void*)anObject);
+	}
       version++;
     }
 }

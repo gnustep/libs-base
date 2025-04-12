@@ -10,11 +10,14 @@
 @end
 
 @implementation ArrayIVar
+- (void) dealloc
+{
+  DESTROY(_testArray);
+  DEALLOC
+}
 - (void) setTestArray: (NSArray*)array
 {
-  [array retain];
-  [_testArray release];
-  _testArray = array;
+  ASSIGN(_testArray, array);
 }
 - (NSArray*) testArray
 {
@@ -45,7 +48,7 @@ int main(int argc,char **argv)
   result = [[array valueForKeyPath:@"@count"] intValue] == 2;
   PASS(result, "-[NSArray valueForKeyPath: @\"@count\"]");
 
-  aiv = [ArrayIVar new];
+  aiv = AUTORELEASE([ArrayIVar new]);
   ivar = [NSArray arrayWithObjects: @"Joe", @"Foo", @"Bar", @"Cat", nil];
   [aiv setTestArray: ivar];
 

@@ -6,30 +6,31 @@
 #import "ObjectTesting.h"
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSFileManager *mgr;
-  GSXMLParser   *parser;
-  GSXMLDocument *doc;
-  GSXMLNamespace *namespace;
-  NSMutableArray *iparams;
-  NSMutableArray *oparams;
-  GSXMLNode	*node;
-  GSXMLRPC	*rpc;
-  NSString	*str;
-  NSString  *testPath;
-  NSString  *absolutePath;
-  NSData        *dat;
+  NSAutoreleasePool   	*arp = [NSAutoreleasePool new];
+  NSFileManager 	*mgr;
+  GSXMLParser   	*parser;
+  GSXMLDocument 	*doc;
+  GSXMLNamespace 	*namespace;
+  NSMutableArray 	*iparams;
+  NSMutableArray 	*oparams;
+  GSXMLNode		*node;
+  GSXMLRPC		*rpc;
+  NSString		*xml;
+  NSString		*str;
+  NSString  		*testPath;
+  NSString  		*absolutePath;
+  NSData        	*dat;
 
-  TEST_FOR_CLASS(@"GSXMLDocument",[GSXMLDocument alloc],
+  TEST_FOR_CLASS(@"GSXMLDocument", AUTORELEASE([GSXMLDocument alloc]),
     "GSXMLDocument +alloc returns a GSXMLDocument");
   
-  TEST_FOR_CLASS(@"GSXMLDocument",[GSXMLDocument documentWithVersion: @"1.0"],
+  TEST_FOR_CLASS(@"GSXMLDocument", [GSXMLDocument documentWithVersion: @"1.0"],
     "GSXMLDocument +documentWithVersion: returns a GSXMLDocument");
   
-  TEST_FOR_CLASS(@"GSXMLNode",[GSXMLNode alloc],
+  TEST_FOR_CLASS(@"GSXMLNode", AUTORELEASE([GSXMLNode alloc]),
     "GSXMLNode +alloc returns a GSXMLNode");
   
-  TEST_FOR_CLASS(@"GSXMLRPC",[GSXMLRPC alloc],
+  TEST_FOR_CLASS(@"GSXMLRPC", AUTORELEASE([GSXMLRPC alloc]),
     "GSXMLRPC +alloc returns a GSXMLRPC instance");
 
   NS_DURING
@@ -39,7 +40,7 @@ int main()
     PASS(node == nil, "GSXMLNode +new returns nil");
   NS_ENDHANDLER
   
-  TEST_FOR_CLASS(@"GSXMLNamespace",[GSXMLNamespace alloc],
+  TEST_FOR_CLASS(@"GSXMLNamespace", AUTORELEASE([GSXMLNamespace alloc]),
     "GSXMLNamespace +alloc returns a GSXMLNamespace");
   
 
@@ -54,11 +55,10 @@ int main()
   node = [doc makeNodeWithNamespace: nil name: @"nicola" content: nil]; 
   PASS (node != nil,"Can create a document node");
   
-  
   [doc setRoot: node];
   PASS([[doc root] isEqual: node],"Can set document node as root node");
   
-  [doc makeNodeWithNamespace: nil name: @"nicola" content: nil];
+  node = [doc makeNodeWithNamespace: nil name: @"nicola" content: nil];
   [node makeChildWithNamespace: nil
 			  name: @"paragraph"
 		       content: @"Hi this is some text"];
@@ -85,7 +85,8 @@ int main()
     "A namespace remembers its prefix");
   
 
-  rpc = [(GSXMLRPC*)[GSXMLRPC alloc] initWithURL: @"http://localhost/"];
+  rpc = AUTORELEASE([(GSXMLRPC*)[GSXMLRPC alloc]
+    initWithURL: @"http://localhost/"]);
   PASS(rpc != nil, "Can initialise an RPC instance");
 
   iparams = [NSMutableArray array];
@@ -155,44 +156,43 @@ int main()
               stringByAppendingPathComponent: @"GNUmakefile"];
   absolutePath = [[NSURL fileURLWithPath: testPath] absoluteString];
 
-  str = [NSString stringWithFormat:
+  xml = [NSString stringWithFormat:
 @"<?xml version=\"1.0\" encoding=\"UTF-8\" ?>\n"
 @"<!DOCTYPE foo [\n"
 @"<!ENTITY foo SYSTEM \"%@\">\n"
 @"]>\n"
 @"<file>&amp;&foo;&#65;</file>", absolutePath];
+  dat = [xml dataUsingEncoding: NSUTF8StringEncoding];
 
-  parser = [GSXMLParser parserWithData:
-    [str dataUsingEncoding: NSUTF8StringEncoding]];
+  parser = [GSXMLParser parserWithData: dat];
   [parser substituteEntities: YES];
   [parser parse];
-  PASS_EQUAL([[[parser document] root] content], @"&A",
-    "external entity is ignored")
+  str = [[[parser document] root] content];
+  PASS_EQUAL(str, @"&A", "external entity is ignored")
 
-  parser = [GSXMLParser parserWithData:
-    [str dataUsingEncoding: NSUTF8StringEncoding]];
+  parser = [GSXMLParser parserWithData: dat];
   [parser substituteEntities: YES];
   [parser resolveEntities: YES];
   [parser parse];
   str = [[[parser document] root] content];
-  PASS([str rangeOfString: @"MAKEFILES"].length > 0,
+  PASS(str != nil && [str rangeOfString: @"MAKEFILES"].length > 0,
     "external entity is resolved")
 
-  str = @"<!DOCTYPE plist PUBLIC \"-//GNUstep//DTD plist 0.9//EN\""
+  xml = @"<!DOCTYPE plist PUBLIC \"-//GNUstep//DTD plist 0.9//EN\""
     @" \"http://www.gnustep.org/plist-0_9.xml\">\n"
     @"<plist></plist>";
-  parser = [GSXMLParser parserWithData:
-    [str dataUsingEncoding: NSUTF8StringEncoding]];
+  dat = [xml dataUsingEncoding: NSUTF8StringEncoding];
+  parser = [GSXMLParser parserWithData: dat];
   [parser substituteEntities: YES];
   [parser resolveEntities: YES];
   [parser doValidityChecking: YES];
   PASS([parser parse] == NO, "empty plist is not valid")
 
-  str = @"<!DOCTYPE plist PUBLIC \"-//GNUstep//DTD plist 0.9//EN\""
+  xml = @"<!DOCTYPE plist PUBLIC \"-//GNUstep//DTD plist 0.9//EN\""
     @" \"http://www.gnustep.org/plist-0_9.xml\">\n"
     @"<plist><string>xxx</string></plist>";
-  parser = [GSXMLParser parserWithData:
-    [str dataUsingEncoding: NSUTF8StringEncoding]];
+  dat = [xml dataUsingEncoding: NSUTF8StringEncoding];
+  parser = [GSXMLParser parserWithData: dat];
   [parser substituteEntities: YES];
   [parser resolveEntities: YES];
   [parser doValidityChecking: YES];

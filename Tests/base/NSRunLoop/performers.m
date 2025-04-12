@@ -33,7 +33,8 @@ int main()
   date = [NSDate dateWithTimeIntervalSinceNow: delay];
   [run runUntilDate: date];
   PASS([str isEqual: @"foo"], 
-       "-performSelector:target:argument:order:modes: works for one performer");
+    "-performSelector:target:argument:order:modes: works for one performer")
+  DESTROY(str);
   
   str = [[NSMutableString alloc] init]; 
   [run performSelector: @selector(appendString:)
@@ -47,7 +48,8 @@ int main()
   if ([str isEqual: @""])
     SKIP("it looks like stdin is redirected")
   PASS([str isEqual: @"foo"],
-       "-performSelector:target:argument:order:modes: only sends the message once");
+    "-performSelector:target:argument:order:modes: only sends the message once")
+  DESTROY(str);
   
   str = [[NSMutableString alloc] init]; 
   [run performSelector: @selector(appendString:)
@@ -63,7 +65,8 @@ int main()
   date = [NSDate dateWithTimeIntervalSinceNow: delay];
   [run runUntilDate: date];
   PASS([str isEqual: @"foobar"],
-       "-performSelector:target:argument:order:modes: orders performers correctly");
+    "-performSelector:target:argument:order:modes: orders performers correctly")
+  DESTROY(str);
   
   str = [[NSMutableString alloc] init]; 
   [run performSelector: @selector(appendString:)
@@ -87,7 +90,8 @@ int main()
   date = [NSDate dateWithTimeIntervalSinceNow: delay];
   [run runUntilDate: date];
   PASS([str isEqual: @"foozot"],
-       "-cancelPerformSelector:target:argument: works");
+    "-cancelPerformSelector:target:argument: works")
+  DESTROY(str);
   
   str = [[NSMutableString alloc] init]; 
   [run performSelector: @selector(appendString:)
@@ -103,7 +107,9 @@ int main()
   [run cancelPerformSelectorsWithTarget: str];
   date = [NSDate dateWithTimeIntervalSinceNow: delay];
   [run runUntilDate: date];
-  PASS([str isEqualToString: @""], "-cancelPerformSelectorsWithTarget: works %s",[str UTF8String]); 
+  PASS([str isEqualToString: @""],
+    "-cancelPerformSelectorsWithTarget: works %s",[str UTF8String]) 
+  DESTROY(str);
 
   [fh closeFile];
   [fh release];

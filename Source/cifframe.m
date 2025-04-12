@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #import "common.h"
@@ -40,6 +39,7 @@
 #endif
 
 #include "cifframe.h"
+#import "Foundation/NSPointerArray.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSData.h"
 #import "GSInvocation.h"
@@ -92,11 +92,12 @@
 #endif
 #endif
 
-ffi_type *cifframe_type(const char *typePtr, const char **advance);
+static ffi_type *
+cifframe_type(const char *typePtr, const char **adv, NSPointerArray **extra);
 
 /* Best guess at the space needed for a structure, since we don't know
    for sure until it's calculated in ffi_prep_cif, which is too late */
-int
+static int
 cifframe_guess_struct_size(ffi_type *stype)
 {
   int      i, size;
@@ -123,30 +124,30 @@ cifframe_guess_struct_size(ffi_type *stype)
   return size;
 }
 
-
-NSMutableData *
-cifframe_from_signature (NSMethodSignature *info)
+static void
+cifframe_from_signature(NSMethodSignature *info,
+  NSMutableData **frame, NSPointerArray **extra)
 {
-  unsigned      size = sizeof(cifframe_t);
-  unsigned      align = __alignof(double);
-  unsigned      type_offset = 0;
-  unsigned      offset = 0;
-  NSMutableData	*result;
-  void          *buf;
-  int           i;
-  int		numargs = [info numberOfArguments];
-  ffi_type      *rtype;
-  ffi_type      *arg_types[numargs];
-  cifframe_t    *cframe;
+  unsigned      	size = sizeof(cifframe_t);
+  unsigned      	align = __alignof(double);
+  unsigned      	type_offset = 0;
+  unsigned      	offset = 0;
+  NSMutableData		*result;
+  void          	*buf;
+  int           	i;
+  int			numargs = [info numberOfArguments];
+  ffi_type      	*rtype;
+  ffi_type      	*arg_types[numargs];
+  cifframe_t    	*cframe;
 
-  /* FIXME: in cifframe_type, return values/arguments that are structures
-     have custom ffi_types with are allocated separately. We should allocate
-     them in our cifframe so we don't leak memory. Or maybe we could
-     cache structure types? */
-  rtype = cifframe_type([info methodReturnType], NULL);
+  /* The extra parameter returns an array of any allocated memory which
+   * needs freeing at the end of the invocation.
+   */
+  rtype = cifframe_type([info methodReturnType], NULL, extra);
   for (i = 0; i < numargs; i++)
     {
-      arg_types[i] = cifframe_type([info getArgumentTypeAtIndex: i], NULL);
+      arg_types[i]
+	= cifframe_type([info getArgumentTypeAtIndex: i], NULL, extra);
     }
 
   if (numargs > 0)
@@ -221,8 +222,20 @@ cifframe_from_signature (NSMethodSignature *info)
 	    }
 	}
     }
-  return result;
+  *frame = result;
 }
+
+@implementation GSFFIInvocation (FFI)
+- (void) setupFrameFFI: (NSMethodSignature*)info
+{
+  NSMutableData		*f = nil;
+  NSPointerArray	*e = nil;
+
+  cifframe_from_signature(info, &f, &e);
+  ASSIGN(_frame, f);
+  ASSIGN(_extra, e);
+}
+@end
 
 void
 cifframe_set_arg(cifframe_t *cframe, int index, void *buffer, int size)
@@ -251,8 +264,8 @@ cifframe_arg_addr(cifframe_t *cframe, int index)
 /*
  * Get the ffi_type for this type
  */
-ffi_type *
-cifframe_type(const char *typePtr, const char **advance)
+static ffi_type *
+cifframe_type(const char *typePtr, const char **advance, NSPointerArray **extra)
 {
   static ffi_type	stypeNSPoint = { 0 };
   static ffi_type	stypeNSRange = { 0 };
@@ -310,7 +323,7 @@ cifframe_type(const char *typePtr, const char **advance)
       else
 	{
 	  const char *adv;
-	  cifframe_type(typePtr, &adv);
+	  cifframe_type(typePtr, &adv, extra);
 	  typePtr = adv;
 	}
       break;
@@ -329,7 +342,7 @@ cifframe_type(const char *typePtr, const char **advance)
 	  {
 	    typePtr++;
 	  }
-	cifframe_type(typePtr, &adv);
+	cifframe_type(typePtr, &adv, extra);
 	typePtr = adv;
 	typePtr++;	/* Skip end-of-array	*/
       }
@@ -434,8 +447,8 @@ cifframe_type(const char *typePtr, const char **advance)
 		/* An NSRect is an NSPoint and an NSSize, but those
 	 	 * two structures are actually identical.
 		 */
-		elems[0] = cifframe_type(@encode(NSSize), NULL);
-		elems[1] = cifframe_type(@encode(NSPoint), NULL);
+		elems[0] = cifframe_type(@encode(NSSize), NULL, extra);
+		elems[1] = cifframe_type(@encode(NSPoint), NULL, extra);
 		elems[2] = 0;
 		ftype->elements = elems;
 		ftype->type = FFI_TYPE_STRUCT;
@@ -472,7 +485,7 @@ cifframe_type(const char *typePtr, const char **advance)
 	 */
 	while (*typePtr != _C_STRUCT_E)
 	  {
-	    local = cifframe_type(typePtr, &adv);
+	    local = cifframe_type(typePtr, &adv, extra);
 	    typePtr = adv;
 	    NSCAssert(typePtr, @"End of signature while parsing");
 	    ftype->elements[types++] = local;
@@ -486,6 +499,13 @@ cifframe_type(const char *typePtr, const char **advance)
 	  }
 	ftype->elements[types] = NULL;
 	typePtr++;	/* Skip end-of-struct	*/
+	if (nil == *extra)
+	  {
+	    *extra = [NSPointerArray pointerArrayWithOptions:
+	      NSPointerFunctionsOpaquePersonality
+	      | NSPointerFunctionsMallocMemory];
+	  }
+	[*extra addPointer: ftype];
       }
       break;
 
@@ -509,19 +529,11 @@ cifframe_type(const char *typePtr, const char **advance)
 	  {
 	    ffi_type *local;
 	    int align = objc_alignof_type(typePtr);
-	    local = cifframe_type(typePtr, &adv);
+	    local = cifframe_type(typePtr, &adv, extra);
 	    typePtr = adv;
 	    NSCAssert(typePtr, @"End of signature while parsing");
 	    if (align > max_align)
 	      {
-		if (ftype && ftype->type == FFI_TYPE_STRUCT
-		  && ftype != &stypeNSPoint
-		  && ftype != &stypeNSRange
-		  && ftype != &stypeNSRect
-		  && ftype != &stypeNSSize)
-		  {
-		    free(ftype);
-		  }
 		ftype = local;
 		max_align = align;
 	      }
@@ -558,21 +570,22 @@ cifframe_type(const char *typePtr, const char **advance)
 }
 
 GSCodeBuffer*
-cifframe_closure (NSMethodSignature *sig, void (*cb)())
+cifframe_closure(NSMethodSignature *sig, void (*cb)())
 {
-  NSMutableData		*frame;
+  NSMutableData		*frame = nil;
+  NSPointerArray	*extra = nil;
   cifframe_t            *cframe;
   ffi_closure           *cclosure;
   void			*executable;
   GSCodeBuffer          *memory;
 
-  /* Construct the frame (stored in an NSMutableDate object) and sety it
+  /* Construct the frame (stored in an NSMutableDate object) and set it
    * in a new closure.
    */
-  frame = cifframe_from_signature(sig);
+  cifframe_from_signature(sig, &frame, &extra);
   cframe = [frame mutableBytes];
   memory = [GSCodeBuffer memoryWithSize: sizeof(ffi_closure)];
-  [memory setFrame: frame];
+  [memory setFrame: frame extra: extra];
   cclosure = [memory buffer];
   executable = [memory executable];
   if (cframe == NULL || cclosure == NULL)

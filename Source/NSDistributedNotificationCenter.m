@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSDistributedNotificationCenter class reference</title>
    $Date$ $Revision$
@@ -115,6 +114,16 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
   return nil;
 }
 
++ (void) atExit
+{
+  if ([NSObject shouldCleanUp])
+    {
+      DESTROY(locCenter);
+      DESTROY(pubCenter);
+      DESTROY(netCenter);
+    }
+}
+
 /**
  * Returns the default notification center ... a shared notification
  * center for the local host.  This is simply a convenience method
@@ -124,6 +133,11 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 + (id) defaultCenter
 {
   return [self notificationCenterForType: NSLocalNotificationCenterType];
+}
+
++ (void) initialize
+{
+  [self registerAtExit];
 }
 
 /**
@@ -145,7 +159,7 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
       if (locCenter == nil)
 	{
 	  GS_MUTEX_LOCK(classLock);
-	  if (locCenter == nil)
+	  if (locCenter == nil && NO == [NSObject isExiting])
 	    {
 	      NS_DURING
 		{
@@ -155,8 +169,7 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 		    NSAllocateObject(self, 0, NSDefaultMallocZone());
 		  tmp->_centerLock = [NSRecursiveLock new];
 		  tmp->_type = RETAIN(NSLocalNotificationCenterType);
-		  locCenter = [NSObject leak: tmp];
-		  [tmp release];
+		  locCenter = tmp;
 		}
 	      NS_HANDLER
 		{
@@ -174,7 +187,7 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
       if (pubCenter == nil)
 	{
 	  GS_MUTEX_LOCK(classLock);
-	  if (pubCenter == nil)
+	  if (pubCenter == nil && NO == [NSObject isExiting])
 	    {
 	      NS_DURING
 		{
@@ -184,8 +197,7 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 		    NSAllocateObject(self, 0, NSDefaultMallocZone());
 		  tmp->_centerLock = [NSRecursiveLock new];
 		  tmp->_type = RETAIN(GSPublicNotificationCenterType);
-		  pubCenter = [NSObject leak: tmp];
-		  [tmp release];
+		  pubCenter = tmp;
 		}
 	      NS_HANDLER
 		{
@@ -203,7 +215,7 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
       if (netCenter == nil)
 	{
 	  GS_MUTEX_LOCK(classLock);
-	  if (netCenter == nil)
+	  if (netCenter == nil && NO == [NSObject isExiting])
 	    {
 	      NS_DURING
 		{
@@ -213,8 +225,7 @@ static gs_mutex_t 			classLock = GS_MUTEX_INIT_STATIC;
 		    NSAllocateObject(self, 0, NSDefaultMallocZone());
 		  tmp->_centerLock = [NSRecursiveLock new];
 		  tmp->_type = RETAIN(GSNetworkNotificationCenterType);
-		  netCenter = [NSObject leak: tmp];
-		  [tmp release];
+		  netCenter = tmp;
 		}
 	      NS_HANDLER
 		{

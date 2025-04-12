@@ -19,8 +19,7 @@
 #
 #  You should have received a copy of the GNU Lesser General Public
 #  License along with this library; if not, write to the Free
-#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-#  Boston, MA 02111 USA.
+#  Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 #
 
 PACKAGE_NAME = gnustep-base
@@ -57,7 +56,11 @@ ObjectiveC2_OBJC_FILES += \
 endif
 
 ifeq ($(CC), clang)
+  # We need the flag for blocks support and we have ARC built in.
   ADDITIONAL_OBJCFLAGS = -fblocks
+else
+  # We need to emulated the weak reference API from the ARC runtime.
+  ObjectiveC2_OBJC_FILES += weak.m
 endif
 
 -include Makefile.preamble

@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    $Date$ $Revision$
 */
@@ -594,16 +593,21 @@ struct GSBacktraceState
 static _Unwind_Reason_Code
 GSUnwindCallback(struct _Unwind_Context* context, void* arg)
 {
-    struct GSBacktraceState *state = (struct GSBacktraceState*)arg;
-    uintptr_t pc = _Unwind_GetIP(context);
-    if (pc) {
-      if (state->current == state->end) {
-        return _URC_END_OF_STACK;
-      } else {
-        *state->current++ = (void*)pc;
-      }
+  struct GSBacktraceState	*state = (struct GSBacktraceState*)arg;
+  uintptr_t 			pc = _Unwind_GetIP(context);
+
+  if (pc)
+    {
+      if (state->current == state->end)
+	{
+	  return _URC_END_OF_STACK;
+	}
+      else
+	{
+	  *state->current++ = (void*)pc;
+	}
     }
-    return 0; //_URC_OK/_URC_NO_REASON
+  return 0; //_URC_OK/_URC_NO_REASON
 }
 
 #endif	/* WITH_UNWIND && !HAVE_BACKTRACE */
@@ -995,7 +999,7 @@ GSPrivateReturnAddresses(NSUInteger **returns)
   GS_MUTEX_UNLOCK(traceLock);
 
 #elif	defined(HAVE_BACKTRACE)
-  void          *addr[MAXFRAMES*sizeof(NSUInteger)];
+  void          *addr[MAXFRAMES];
 
   numReturns = backtrace(addr, MAXFRAMES);
   if (numReturns > 0)

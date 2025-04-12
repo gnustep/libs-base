@@ -98,7 +98,6 @@ compile_commands.json
 # Documentation
 Documentation/Base*
 Documentation/General
-Documentation/manual
 Documentation/ReleaseNotes
 Documentation/ANNOUNCE
 Documentation/*.pdf
@@ -108,6 +107,7 @@ Documentation/*.aux
 Documentation/*.toc
 Documentation/INSTALL
 Documentation/NEWS
+Documentation/manual/manual.*
 **/dependencies
 Source/Base.gsdoc
 Source/BaseAdditions.gsdoc

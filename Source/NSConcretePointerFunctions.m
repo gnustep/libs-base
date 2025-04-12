@@ -18,8 +18,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    */ 
 
@@ -301,7 +300,7 @@ relinquishRetainedMemory(const void *item,
 	else
 	  {
 	    _x.acquireFunction = acquireRetainedObject;
-	    _x.relinquishFunction = 0;
+	    _x.relinquishFunction = relinquishRetainedMemory;
 	  }
 	_x.descriptionFunction = describeObject;
 	_x.hashFunction = hashShifted;
@@ -309,8 +308,17 @@ relinquishRetainedMemory(const void *item,
 	break;
 
       case NSPointerFunctionsOpaquePersonality:
-	_x.acquireFunction = 0;
-	_x.relinquishFunction = 0;
+	if (NSPointerFunctionsMachVirtualMemory == memoryType
+	  || NSPointerFunctionsMallocMemory == memoryType)
+	  {
+	    _x.acquireFunction = acquireMallocMemory;
+	    _x.relinquishFunction = relinquishMallocMemory;
+	  }
+	else
+	  {
+	    _x.acquireFunction = 0;
+	    _x.relinquishFunction = 0;
+	  }
 	_x.descriptionFunction = describePointer;
 	_x.hashFunction = hashShifted;
 	_x.isEqualFunction = equalDirect;

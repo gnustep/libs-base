@@ -20,18 +20,18 @@ static BOOL notifiedCurrent = NO;
 
 int main(void)
 {
+  ENTER_POOL
   NSNotificationCenter *nc;
-  id t = [Toggle new];
+  id t = AUTORELEASE([Toggle new]);
 
-  [NSAutoreleasePool new];
-  nc = [NSNotificationCenter new];
+  nc = AUTORELEASE([NSNotificationCenter new]);
   [nc addObserver: t selector: @selector(foo:) name: nil object: nil];
   class_replaceMethod([Toggle class],
     @selector(foo:),
     class_getMethodImplementation([Toggle class], @selector(bar:)),
     "v@:@");
   [nc postNotificationName: @"foo" object: t];
-  [t release];
   PASS(YES == notifiedCurrent, "implementation not cached");
+  LEAVE_POOL
   return 0;
 }

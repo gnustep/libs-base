@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSTask class reference</title>
    */
@@ -223,7 +222,6 @@ pty_slave(const char* name)
 #endif
 
 @interface NSTask (Private)
-- (NSString *) _fullLaunchPath;
 - (void) _collectChild;
 - (void) _notifyOfTermination;
 - (void) _terminatedChild: (int)status reason: (NSTaskTerminationReason)reason;
@@ -398,11 +396,8 @@ pty_slave(const char* name)
     {
       return NO;
     }
-  if (_hasCollected == NO)
-    {
-      [self _collectChild];
-    }
-  if (_hasTerminated == YES)
+  [self _collectChild];
+  if (_hasCollected)
     {
       return NO;
     }
@@ -463,6 +458,23 @@ pty_slave(const char* name)
   kill(-_taskId, SIGCONT);
 #endif
 #endif
+  return YES;
+}
+
+/**
+ * Checks to see if the task is currently running.
+ */
+- (BOOL) running
+{
+  if (_hasLaunched == NO)
+    {
+      return NO;
+    }
+  [self _collectChild];
+  if (_hasCollected)
+    {
+      return NO;
+    }
   return YES;
 }
 
@@ -673,12 +685,16 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
+
+  /* The _hasTerminated flag records whether this method has been called,
+   * not whether the task has *actually* terminated (_hasCollected does that).
+   */
   if (_hasTerminated)
     {
       return;
     }
-
   _hasTerminated = YES;
+
 #ifndef _WIN32
 #ifdef	HAVE_KILLPG
   killpg(_taskId, SIGTERM);
@@ -700,11 +716,8 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
+  [self _collectChild];
   if (_hasCollected == NO)
-    {
-      [self _collectChild];
-    }
-  if (_hasTerminated == NO)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet terminated"];
@@ -724,11 +737,8 @@ pty_slave(const char* name)
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
+  [self _collectChild];
   if (_hasCollected == NO)
-    {
-      [self _collectChild];
-    }
-  if (_hasTerminated == NO)
     {
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet terminated"];
@@ -915,19 +925,20 @@ pty_slave(const char* name)
 - (BOOL) launchAndReturnError: (NSError **)error
 {
   NSFileManager	*mgr = [NSFileManager defaultManager];
-  NSString	*cwd;
+  NSDictionary	*info;
+  NSString	*path;
   BOOL		ok;
 
   ASSIGN(_launchingThread, [NSThread currentThread]);
 
-  cwd = [self currentDirectoryPath];
-  if (NO == [mgr fileExistsAtPath: cwd isDirectory: &ok])
+  path = [self currentDirectoryPath];
+  if (NO == [mgr fileExistsAtPath: path isDirectory: &ok])
     {
       if (error)
 	{
 	  NSDictionary	*info = [NSDictionary dictionaryWithObjectsAndKeys:
 	    @"does not exist", NSLocalizedDescriptionKey,
-	    cwd, NSFilePathErrorKey,
+	    path, NSFilePathErrorKey,
 	    nil];
 	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
 				       code: NSFileNoSuchFileError
@@ -940,25 +951,46 @@ pty_slave(const char* name)
       if (error)
 	{
 	  *error = [NSError _systemError: ENOTDIR];
-	  [*error _setObject: cwd forKey: NSFilePathErrorKey];
+	  [*error _setObject: path forKey: NSFilePathErrorKey];
 	}
       return NO;
     }
-  if (NO == [mgr isExecutableFileAtPath: cwd])
+  if (NO == [mgr isExecutableFileAtPath: path])
     {
       if (error)
 	{
 	  *error = [NSError _systemError: EACCES];
-	  [*error _setObject: cwd forKey: NSFilePathErrorKey];
+	  [*error _setObject: path forKey: NSFilePathErrorKey];
 	}
       return NO;
     }
+  if (nil == _launchPath)
+    {
+      info = [NSDictionary dictionaryWithObjectsAndKeys:
+	@"task has no launch path set", NSLocalizedDescriptionKey, nil];
+      *error = [NSError errorWithDomain: NSCocoaErrorDomain
+				   code: 0
+			       userInfo: info];
+      return NO;
+    }
+  if (nil == (path = [self validatedLaunchPath]))
+    {
+      info = [NSDictionary dictionaryWithObjectsAndKeys:
+	@"task has invalid launch path", NSLocalizedDescriptionKey,
+	_launchPath, NSFilePathErrorKey,
+	nil];
+      *error = [NSError errorWithDomain: NSCocoaErrorDomain
+				   code: 0
+			       userInfo: info];
+      return NO;
+    }
+
   return YES;
 }
 
 - (NSURL *) executableURL
 {
-  return [NSURL URLWithString: [self launchPath]];;
+  return [NSURL URLWithString: [self launchPath]];
 }
 
 - (void) setExecutableURL: (NSURL *)url
@@ -978,25 +1010,6 @@ pty_slave(const char* name)
 @end
 
 @implementation	NSTask (Private)
-
-- (NSString *) _fullLaunchPath
-{
-  NSString	*val;
-
-  if (_launchPath == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-                  format: @"NSTask - no launch path set"];
-    }
-  val = [self validatedLaunchPath];
-  if (val == nil)
-    {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"NSTask - launch path (%@) not valid", _launchPath];
-    }
-
-  return val;
-}
 
 - (void) _collectChild
 {
@@ -1033,7 +1046,7 @@ pty_slave(const char* name)
   _terminationStatus = status;
   _terminationReason = reason;
   _hasCollected = YES;
-  _hasTerminated = YES;
+  _hasTerminated = YES;	// As if the -terminate method was called
   if (_hasNotified == NO)
     {
       _hasNotified = YES;
@@ -1120,15 +1133,18 @@ GSPrivateCheckTasks()
       [NSException raise: NSInvalidArgumentException
                   format: @"NSTask - task has not yet launched"];
     }
+
+  /* The _hasTerminated flag records whether this method has been called,
+   * not whether the task has *actually* terminated (_hasCollected does that).
+   */
   if (_hasTerminated)
     {
       return;
     }
-
+  _hasTerminated = YES;
   /* We use exit code 10 to denote a process termination.
    * Windows does nt have an exit code to denote termination this way.
    */
-  _hasTerminated = YES;
   TerminateProcess(procInfo.hProcess, WIN_SIGNALLED);
 }
 
@@ -1269,7 +1285,7 @@ quotedFromString(NSString *aString)
       return NO;
     }
 
-  lpath = [self _fullLaunchPath];
+  lpath = [self validatedLaunchPath];
   wexecutable = (const unichar*)[lpath fileSystemRepresentation];
 
   args = [[NSMutableString alloc] initWithString: quotedFromString(lpath)];
@@ -1615,7 +1631,7 @@ GSPrivateCheckTasks()
       return NO;
     }
 
-  lpath = [self _fullLaunchPath];
+  lpath = [self validatedLaunchPath];
   executable = [lpath fileSystemRepresentation];
   args[0] = executable;
 

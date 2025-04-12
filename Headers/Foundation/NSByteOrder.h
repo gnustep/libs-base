@@ -18,8 +18,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
 #ifndef __NSByteOrder_h_GNUSTEP_BASE_INCLUDE
@@ -315,16 +314,12 @@ NSSwapInt(unsigned int in)
 {
 #if	GS_SIZEOF_INT == 2
   return GSSwapI16(in);
-#else
-#if	GS_SIZEOF_INT == 4
+#elif	GS_SIZEOF_INT == 4
   return GSSwapI32(in);
-#else
-#if	GS_SIZEOF_INT == 8
+#elif	GS_SIZEOF_INT == 8
   return GSSwapI64(in);
 #else
   return GSSwapI128(in);
-#endif
-#endif
 #endif
 }
 
@@ -333,16 +328,12 @@ NSSwapLongLong(unsigned long long in)
 {
 #if	GS_SIZEOF_LONG_LONG == 2
   return GSSwapI16(in);
-#else
-#if	GS_SIZEOF_LONG_LONG == 4
+#elif	GS_SIZEOF_LONG_LONG == 4
   return GSSwapI32(in);
-#else
-#if	GS_SIZEOF_LONG_LONG == 8
+#elif	GS_SIZEOF_LONG_LONG == 8
   return GSSwapI64(in);
 #else
   return GSSwapI128(in);
-#endif
-#endif
 #endif
 }
 
@@ -351,16 +342,12 @@ NSSwapLong(unsigned long in)
 {
 #if	GS_SIZEOF_LONG == 2
   return GSSwapI16(in);
-#else
-#if	GS_SIZEOF_LONG == 4
+#elif	GS_SIZEOF_LONG == 4
   return GSSwapI32(in);
-#else
-#if	GS_SIZEOF_LONG == 8
+#elif	GS_SIZEOF_LONG == 8
   return GSSwapI64(in);
 #else
   return GSSwapI128(in);
-#endif
-#endif
 #endif
 }
 
@@ -369,29 +356,41 @@ NSSwapShort(unsigned short in)
 {
 #if	GS_SIZEOF_SHORT == 2
   return GSSwapI16(in);
-#else
-#if	GS_SIZEOF_SHORT == 4
+#elif	GS_SIZEOF_SHORT == 4
   return GSSwapI32(in);
-#else
-#if	GS_SIZEOF_SHORT == 8
+#elif	GS_SIZEOF_SHORT == 8
   return GSSwapI64(in);
 #else
   return GSSwapI128(in);
-#endif
-#endif
 #endif
 }
 
 static inline NSSwappedDouble
 NSSwapDouble(NSSwappedDouble num)
 {
+#if	GS_SIZEOF_DOUBLE == 2
+  return GSSwapI16(num);
+#elif	GS_SIZEOF_DOUBLE == 4
+  return GSSwapI32(num);
+#elif	GS_SIZEOF_DOUBLE == 8
   return GSSwapI64(num);
+#else
+  return GSSwapI128(num);
+#endif
 }
 
 static inline NSSwappedFloat
 NSSwapFloat(NSSwappedFloat num)
 {
+#if	GS_SIZEOF_FLOAT == 2
+  return GSSwapI16(num);
+#elif	GS_SIZEOF_FLOAT == 4
   return GSSwapI32(num);
+#elif	GS_SIZEOF_FLOAT == 8
+  return GSSwapI64(num);
+#else
+  return GSSwapI128(num);
+#endif
 }
 
 #if	GS_WORDS_BIGENDIAN

@@ -14,7 +14,7 @@
    You should have received a copy of the GNU General Public
    License along with this program; see the file COPYINGv3.
    If not, write to the Free Software Foundation,
-   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+   31 Milk Street #960789 Boston, MA 02196 USA.
 
    */
 
@@ -49,16 +49,20 @@ concreteType(NSString *t)
 {
   static NSString	*gClass = @"GS_GENERIC_CLASS";
   static NSString	*gType = @"GS_GENERIC_TYPE";
+  NSMutableString	*m = nil;
   NSRange		r;
 
   r = [t rangeOfString: gClass];
   while (r.length > 0)
     {
-      NSMutableString	*m = [t mutableCopy];
       unsigned		end;
       unsigned		len;
       unsigned		pos;
 
+      if (t != m)
+	{
+	  t = m = AUTORELEASE([t mutableCopy]);
+	}
       r = NSMakeRange(0, [gClass length]);
       [m deleteCharactersInRange: r];
       len = [m length];
@@ -106,18 +110,20 @@ concreteType(NSString *t)
 	   */
 	  [m deleteCharactersInRange: NSMakeRange(end, pos - end)];
 	}
-      t = AUTORELEASE(m);
       r = [t rangeOfString: gClass];
     }
 
   r = [t rangeOfString: gType];
   while (r.length > 0)
     {
-      NSMutableString	*m = [t mutableCopy];
-      unsigned		len = [m length];
+      unsigned		len = [t length];
       unsigned		pos = r.location;
       BOOL		found = NO;
 
+      if (t != m)
+	{
+	  t = m = AUTORELEASE([t mutableCopy]);
+	}
       while (pos < len)
 	{
 	  unichar	c = [m characterAtIndex: pos++];
@@ -169,18 +175,26 @@ concreteType(NSString *t)
 	   */
           [m replaceCharactersInRange: r withString: @"id"];
 	}
-      t = AUTORELEASE(m);
       r = [t rangeOfString: gType];
     }
 
+  if ([t hasPrefix: @"nullable "])
+    {
+      if (t != m)
+	{
+	  t = m = AUTORELEASE([t mutableCopy]);
+	}
+      [m replaceCharactersInRange: NSMakeRange(0, 9) withString: @""];
+    }
   return t;
 }
 
 static BOOL
 equalTypes(NSArray *t1, NSArray *t2)
 {
-  unsigned	count = (unsigned)[t1 count];
+  unsigned	count;
 
+  count = (unsigned)[t1 count];
   if ([t2 count] != count)
     {
       return NO;
@@ -320,6 +334,7 @@ equalTypes(NSArray *t1, NSArray *t2)
 
 - (void) dealloc
 {
+  [self reset];
   DESTROY(wordMap);
   DESTROY(ifStack);
   DESTROY(declared);
@@ -1345,6 +1360,7 @@ recheck:
 			if (buffer[pos + 1] == '/')
 			  {
 			    [self skipRemainderOfLine];
+			    break;
 			  }
 			else if (buffer[pos + 1] == '*')
 			  {
@@ -1484,8 +1500,8 @@ recheck:
 
 - (NSMutableArray*) parseDeclarations
 {
+  IF_NO_ARC(NSAutoreleasePool	*arp = [NSAutoreleasePool new];)
   NSMutableArray	*declarations = [NSMutableArray array];
-  CREATE_AUTORELEASE_POOL(arp);
   static NSSet		*qualifiers = nil;
   static NSSet		*keep = nil;
   NSString		*baseName = nil;
@@ -1514,7 +1530,7 @@ recheck:
 	@"unsigned",
 	@"volatile",
 	nil];
-      IF_NO_ARC([qualifiers retain];)
+      IF_NO_ARC(qualifiers = [qualifiers retain];)
       keep = [NSSet setWithObjects:
 	@"const",
 	@"long",
@@ -1523,7 +1539,7 @@ recheck:
 	@"unsigned",
 	@"volatile",
 	nil];
-      IF_NO_ARC([keep retain];)
+      IF_NO_ARC(keep = [keep retain];)
     }
 
     {
@@ -1571,7 +1587,7 @@ recheck:
 		      pos++;
 		      [self skipSpaces];
 		    }
-		  IF_NO_ARC(DESTROY(arp);)
+		  IF_NO_ARC([arp release];)
 		  return nil;
 		}
 
@@ -1603,7 +1619,7 @@ recheck:
 	|| [s isEqualToString: @"NS_ENUM"]
 	|| [s isEqualToString: @"NS_OPTIONS"])
 	{
-	  BOOL      isEnum = NO;
+	  BOOL		isEnum = NO;
 	  NSString	*tmp = s;
 
 	  if ([s isEqualToString: @"NS_ENUM"]
@@ -1614,27 +1630,35 @@ recheck:
 		  pos++;
 		  [self parseSpace];
 		  s = [self parseIdentifier];
-		  if (nil != s && [self parseSpace] < length
-		    && buffer[pos] == ',')
+		  if (s)
 		    {
-		      tmp = [tmp stringByAppendingFormat: @"(%@)", s];
-		      pos++;
-		      [self parseSpace];
-		      s = [self parseIdentifier];
-		      if (nil != s && [self parseSpace] < length
-			&& buffer[pos] == ')')
+		      tmp = [tmp stringByAppendingFormat: @"(%@", s];
+		      while ([self parseSpace] < length
+			&& (s = [self parseIdentifier]) != nil)
 			{
-			  isEnum = YES;
+		          tmp = [tmp stringByAppendingFormat: @" %@", s];
+			}
+		      if (pos < length && buffer[pos] == ',')
+			{
+			  tmp = [tmp stringByAppendingString: @")"];
 			  pos++;
-			  baseName = s;
-			  s = tmp;
+			  [self parseSpace];
+			  s = [self parseIdentifier];
+			  if (nil != s && [self parseSpace] < length
+			    && buffer[pos] == ')')
+			    {
+			      isEnum = YES;
+			      pos++;
+			      baseName = s;
+			      s = tmp;
+			    }
 			}
 		    }
 		}
 	      if (NO == isEnum)
 		{
 		  [self log: @"messed up NS_ENUM/NS_OPTIONS declaration"];
-		  [arp drain];
+		  IF_NO_ARC([arp release];)
 		  return nil;
 		}
 	    }
@@ -1671,7 +1695,7 @@ recheck:
 
 	      /* We want to be able to parse new comments while retaining the 
 		 originally parsed comment for the enum/union/struct. */
-	      introComment = [comment copy];
+	      introComment = AUTORELEASE([comment copy]);
 	      DESTROY(comment);
 
 	      pos++; /* Skip '{' */
@@ -1854,34 +1878,21 @@ recheck:
        */
       if ([self parseSpace] < length && buffer[pos] == '<')
 	{
-	  unsigned  save = pos;
-	  NSString	*p;
+          NSArray	*protocols = [self parseProtocolList];
 
-	  do
-	    {
-	      pos++;
-	      p = [self parseIdentifier];
-	      if (p != nil)
-		{
-		  [a addObject: p];
-		}
-	    }
-	  while ([self parseSpace] < length && buffer[pos] == ',');
-	  if ('>' == buffer[pos])
-	    {
-	      pos++;
-	      [self parseSpace];
+          if (protocols)
+            {
+              [a addObjectsFromArray: protocols];
 	      [a sortUsingSelector: @selector(compare:)];
 	      [t appendString: @"<"];
 	      [t appendString: [a componentsJoinedByString: @","]];
 	      [t appendString: @">"];
 	      [a removeAllObjects];
-	    }
-	  else
-	    {
-	      pos = save;
-	      [self skipGeneric];
-	    }
+            }
+          else
+            {
+              [self skipGeneric];
+            }
 	}
       baseType = t;
     }
@@ -2011,8 +2022,8 @@ another:
 	{
 	  if (buffer[pos] == ')' || buffer[pos] == ',')
 	    {
-	      [arp drain];
-	      return declarations;
+	      IF_NO_ARC(declarations = [declarations retain]; [arp release];)
+	      return AUTORELEASE(declarations);
 	    }
 	  else
 	    {
@@ -2134,7 +2145,6 @@ another:
 	}
       DESTROY(comment);
 
-      [arp drain];
       if (inArgList == NO)
 	{
 	  /*
@@ -2152,11 +2162,13 @@ another:
 		{
 		  [self log: @"parse declaration with no name - %@", d];
 		}
+	      IF_NO_ARC([arp release];)
 	      return nil;
 	    }
 	}
       [self setStandards: declarations];
-      return declarations;
+      IF_NO_ARC(declarations = [declarations retain]; [arp release];)
+      return AUTORELEASE(declarations);
     }
   else
     {
@@ -2164,7 +2176,7 @@ another:
     }
 fail:
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return nil;
 }
 
@@ -2463,7 +2475,7 @@ fail:
     {
       pos++;
       if ((base = [self parseIdentifier]) == nil
-	|| [self parseSpace] >= length)
+	|| [self parseSpaceOrGeneric] >= length)
 	{
 	  [self log: @"@interface with bad base class"];
 	  goto fail;
@@ -2489,7 +2501,7 @@ fail:
        */
       [self skipUnit];
       DESTROY(comment);
-      [arp drain];
+      IF_NO_ARC([arp release];)
       return [NSMutableDictionary dictionary];
     }
   else
@@ -2528,13 +2540,13 @@ fail:
 
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return dict;
 
 fail:
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return nil;
 }
 
@@ -2560,7 +2572,7 @@ fail:
     }
 
   if ((name = [self parseIdentifier]) == nil
-    || [self parseSpace] >= length)
+    || [self parseSpaceOrGeneric] >= length)
     {
       [self log: @"interface with bad name"];
       goto fail;
@@ -2625,7 +2637,17 @@ fail:
 
       if (protocols == nil)
 	{
-	  goto fail;
+          unsigned      saved = pos;
+
+          if ([self skipGeneric] > saved)
+            {
+              [self parseSpace];
+            }
+          else
+            {
+              [self log: @"bad protocol list"];
+              goto fail;
+            }
 	}
       else if ([protocols count] > 0)
 	{
@@ -2684,13 +2706,13 @@ fail:
 
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return dict;
 
 fail:
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   return nil;
 }
 
@@ -3044,7 +3066,7 @@ fail:
 
 - (NSMutableDictionary*) parseMethodIsDeclaration: (BOOL)flag
 {
-  CREATE_AUTORELEASE_POOL(arp);
+  IF_NO_ARC(CREATE_AUTORELEASE_POOL(arp);)
   NSMutableDictionary	*method;
   NSMutableString	*mname;
   NSString		*token;
@@ -3332,14 +3354,14 @@ fail:
     }
 
   DESTROY(itemName);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   IF_NO_ARC([method autorelease];)
   return method;
 
 fail:
   DESTROY(itemName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   RELEASE(method);
   return nil;
 }
@@ -4282,7 +4304,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
   NSDictionary		*methods = nil;
   NSMutableDictionary	*dict;
   NSMutableDictionary	*d;
-  CREATE_AUTORELEASE_POOL(arp);
+  IF_NO_ARC(CREATE_AUTORELEASE_POOL(arp);)
 
   dict = [[NSMutableDictionary alloc] initWithCapacity: 8];
 
@@ -4328,6 +4350,7 @@ countAttributes(NSSet *keys, NSDictionary *a)
 
       if (protocols == nil)
 	{
+          [self log: @"bad protocol list"];
 	  goto fail;
 	}
       else if ([protocols count] > 0)
@@ -4372,14 +4395,14 @@ countAttributes(NSSet *keys, NSDictionary *a)
 
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   IF_NO_ARC([dict autorelease];)
   return dict;
 
 fail:
   DESTROY(unitName);
   DESTROY(comment);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   RELEASE(dict);
   return nil;
 }
@@ -4388,6 +4411,7 @@ fail:
 {
   NSMutableArray	*protocols;
   NSString		*p;
+  unsigned              start = pos;
 
   protocols = [NSMutableArray arrayWithCapacity: 2];
   pos++;
@@ -4410,7 +4434,7 @@ fail:
   if (pos >= length || buffer[pos] != '>' || ++pos >= length
     || [self parseSpace] >= length || [protocols count] == 0)
     {
-      [self log: @"bad protocol list"];
+      pos = start;
       return nil;
     }
   return protocols;
@@ -4522,7 +4546,28 @@ fail:
 
 - (unsigned) parseSpace
 {
-  return [self parseSpace: spacenl];
+  [self parseSpace: spacenl];
+  return pos;
+}
+
+- (unsigned) parseSpaceOrGeneric
+{
+  [self parseSpace: spacenl];
+
+  if (pos < length && '<' == buffer[pos])
+    {
+      unsigned  saved = pos;
+
+      if ([self skipGeneric] > saved)
+        {
+          [self parseSpace];
+        }
+      else
+        {
+	  [self log: @"bad generic"];
+        }
+    }
+  return pos;
 }
 
 - (NSString*) parseVersion
@@ -4787,7 +4832,7 @@ fail:
   unichar		*inptr;
   unichar		*outptr;
   NSMutableArray	*a;
-  CREATE_AUTORELEASE_POOL(arp);
+  IF_NO_ARC(CREATE_AUTORELEASE_POOL(arp);)
 
   contents = [NSString stringWithContentsOfFile: fileName];
   length = [contents length];
@@ -4881,7 +4926,7 @@ fail:
   buffer = [data mutableBytes];
   pos = 0;
   ASSIGN(lines, [NSArray arrayWithArray: a]);
-  [arp drain];
+  IF_NO_ARC([arp release];)
   IF_NO_ARC([data autorelease];)
 }
 

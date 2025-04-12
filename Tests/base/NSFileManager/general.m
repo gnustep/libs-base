@@ -1,18 +1,11 @@
 #import "Testing.h"
 #import "ObjectTesting.h"
-#import <Foundation/NSAutoreleasePool.h>
-#import <Foundation/NSError.h>
-#import <Foundation/NSFileManager.h>
-#import <Foundation/NSProcessInfo.h>
-#import <Foundation/NSPathUtilities.h>
-#import <Foundation/NSError.h>
-#import <Foundation/NSThread.h>
-#import <Foundation/NSURL.h>
+#import <Foundation/Foundation.h>
 
 #ifdef  EQ
 #undef  EQ
 #endif
-#define EPSILON (FLT_EPSILON*100)
+#define EPSILON (DBL_EPSILON*100)
 #define EQ(x,y) ((x >= y - EPSILON) && (x <= y + EPSILON))
 
 @interface      MyHandler : NSObject
@@ -56,7 +49,7 @@ int main()
   NSAutoreleasePool   	*arp = [NSAutoreleasePool new];
   NSFileManager		*mgr = [NSFileManager defaultManager];
   NSString 		*dir = @"NSFileManagerTestDir"; 
-  MyHandler 		*handler = [MyHandler new];
+  MyHandler 		*handler = AUTORELEASE([MyHandler new]);
   NSDictionary 		*attr;
   NSString 		*dirInDir;
   NSString 		*str1;
@@ -186,6 +179,7 @@ int main()
     NSData *dat1 = [mgr contentsAtPath: @"NSFMFile"];
     str2 = [[NSString alloc] initWithData: dat1 encoding: 1];
     PASS([str1 isEqualToString: str2], "NSFileManager file contents match");
+    DESTROY(str2);
   }
   [NSThread sleepForTimeInterval: 1.0]; // So date of file is clearly in past
   [handler reset];
@@ -198,12 +192,14 @@ int main()
     NSData *dat1 = [mgr contentsAtPath: @"NSFMCopy"];
     str2 = [[NSString alloc] initWithData: dat1 encoding: 1];
     PASS([str1 isEqual: str2],"NSFileManager copied file contents match");
+    DESTROY(str2);
   }
   NSDictionary *oa = [mgr fileAttributesAtPath: @"NSFMFile" traverseLink: NO];
   NSDictionary *na = [mgr fileAttributesAtPath: @"NSFMCopy" traverseLink: NO];
   NSTimeInterval        ot, nt;
   ot = [[oa fileCreationDate] timeIntervalSinceReferenceDate];
   nt = [[na fileCreationDate] timeIntervalSinceReferenceDate];
+  NSLog(@"ot = %f, nt = %f", ot, nt);
   PASS(EQ(ot, nt), "copy creation date equals original")
   ot = [[oa fileModificationDate] timeIntervalSinceReferenceDate];
   nt = [[na fileModificationDate] timeIntervalSinceReferenceDate];
@@ -244,6 +240,7 @@ int main()
     NSData *dat1 = [mgr contentsAtPath: @"NSFMMove"];
     str2 = [[NSString alloc] initWithData: dat1 encoding: 1];
     PASS([str1 isEqualToString: str2],"NSFileManager moved file contents match")
+    DESTROY(str2);
   }
 
   PASS(![mgr copyPath: @"NSFMFile"
@@ -409,9 +406,14 @@ int main()
                error: &err];
   PASS([mgr fileExistsAtPath: @"sub2/sub1" isDirectory: &isDir]
     && isDir == YES, "NSFileManager copy item at URL");
-  [mgr copyItemAtPath: @"sub2" toPath: @"sub1/sub2" error: &err];
+  PASS([mgr copyItemAtPath: @"sub2" toPath: @"sub1/sub2" error: &err] == YES
+    && nil == err, "NSFileManager copy item at Path returns expected values")
   PASS([mgr fileExistsAtPath: @"sub1/sub2/sub1" isDirectory: &isDir]
-    && isDir == YES, "NSFileManager copy item at Path");
+    && isDir == YES, "NSFileManager copy item at Path actually works");
+  PASS([mgr copyItemAtPath: @"sub2" toPath: @"sub1/sub2" error: &err] == NO
+    && nil != err, "NSFileManager copy item at Path fails when dest exists")
+  PASS([err code] == NSFileWriteFileExistsError, "expected error code")
+
   [mgr moveItemAtURL: [NSURL fileURLWithPath: @"sub2/sub1"]
 	       toURL: [NSURL fileURLWithPath: @"sub1/moved"]
 	       error: &err];

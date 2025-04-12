@@ -22,8 +22,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSRunLoop class reference</title>
    $Date$ $Revision$
@@ -787,7 +786,7 @@ static inline BOOL timerInvalidated(NSTimer *t)
           NSTimer                       *timer;
           SEL			        sel;
           #ifdef RL_INTEGRATE_DISPATCH
-          GSMainQueueDrainer 		*drain;
+          static GSMainQueueDrainer 	*drainer = nil;
           #endif
 
           ctr = [NSNotificationCenter defaultCenter];
@@ -811,17 +810,20 @@ static inline BOOL timerInvalidated(NSTimer *t)
           [current addTimer: timer forMode: NSDefaultRunLoopMode];
 
           #ifdef RL_INTEGRATE_DISPATCH
-          /* We leak the queue drainer, because it's integral part of RL
-           * operations
-	   */
-          drain = [NSObject leak: [[GSMainQueueDrainer new] autorelease]];
+	  if (nil == drainer)
+	    {
+	      /* We leak the queue drainer, because it's integral part of RL
+	       * operations
+	       */
+	      drainer = [GSMainQueueDrainer new];
+	    }
           [current addEvent: [GSMainQueueDrainer mainQueueFileDescriptor]
 #ifdef _WIN32
                        type: ET_HANDLE
 #else
                        type: ET_RDESC
 #endif
-                    watcher: drain
+                    watcher: drainer
                     forMode: NSDefaultRunLoopMode];
 
           #endif

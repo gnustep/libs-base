@@ -19,8 +19,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSProcessInfo class reference</title>
    $Date$ $Revision$
@@ -269,9 +268,9 @@ static NSString *_androidCacheDir = nil;
 static void
 _gnu_process_args(int argc, char *argv[], char *env[])
 {
-  NSAutoreleasePool *arp = [NSAutoreleasePool new];
+  ENTER_POOL
   NSString	*arg0 = nil;
-  int i;
+  int 		i;
 
   if (_gnu_arg_zero != 0)
     {
@@ -331,7 +330,7 @@ _gnu_process_args(int argc, char *argv[], char *env[])
     }
 
   /* Getting the process name */
-  IF_NO_ARC(RELEASE(_gnu_processName);)
+  IF_NO_ARC([_gnu_processName release];)
   _gnu_processName = [arg0 lastPathComponent];
 #if	defined(_WIN32)
   /* On windows we remove any .exe extension for consistency with app names
@@ -374,9 +373,8 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	}
     }
     
-  IF_NO_ARC(RELEASE(_gnu_arguments);)
+  IF_NO_ARC([_gnu_arguments release];)
   _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
-  RELEASE(arg0);
 }
 #else
   if (argv)
@@ -401,11 +399,16 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	    obj_argv[added++] = str;
 	}
 
-      IF_NO_ARC(RELEASE(_gnu_arguments);)
+      IF_NO_ARC([_gnu_arguments release];)
       _gnu_arguments = [[NSArray alloc] initWithObjects: obj_argv count: added];
-      RELEASE(arg0);
+    }
+  else
+    {
+      IF_NO_ARC([_gnu_arguments release];)
+      _gnu_arguments = [[NSArray alloc] init];
     }
 #endif	
+  IF_NO_ARC([arg0 release];)
 	
   /* Copy the evironment list */
   {
@@ -483,13 +486,13 @@ _gnu_process_args(int argc, char *argv[], char *env[])
 	    i++;
 	  }
       }
-    IF_NO_ARC(RELEASE(_gnu_environment);)
+    IF_NO_ARC([_gnu_environment release];)
     _gnu_environment = [[NSDictionary alloc] initWithObjects: values
 						     forKeys: keys];
-    IF_NO_ARC(RELEASE(keys);)
-    IF_NO_ARC(RELEASE(values);)
+    IF_NO_ARC([keys release];)
+    IF_NO_ARC([values release];)
   }
-  [arp drain];
+  LEAVE_POOL
 }
 
 #if !GS_FAKE_MAIN && ((defined(HAVE_PROCFS)  || defined(HAVE_KVM_ENV) || defined(HAVE_PROCFS_PSINFO) || defined(__APPLE__)) && (defined(HAVE_LOAD_METHOD)))

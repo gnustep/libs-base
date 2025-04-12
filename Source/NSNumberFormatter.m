@@ -20,8 +20,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    <title>NSNumberFormatter class reference</title>
    $Date$ $Revision$
@@ -60,6 +59,7 @@
 #import "Foundation/NSCharacterSet.h"
 
 #import "GNUstepBase/GSLocale.h"
+#import "GSPrivate.h"
 
 @class NSDoubleNumber;
 
@@ -560,7 +560,7 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
   RELEASE(_attributedStringForNil);
   RELEASE(_attributedStringForNotANumber);
   RELEASE(_attributedStringForZero);
-  if (internal != 0)
+  if (GS_EXISTS_INTERNAL)
     {
       int idx;
 
@@ -1408,55 +1408,57 @@ static NSUInteger _defaultBehavior = NSNumberFormatterBehavior10_4;
 
 - (NSNumber *) numberFromString: (NSString *)string
 {
+  NSNumber	*result = nil;
 // This is a 10.4 and above method and should not work with earlier version.
 #if GS_USE_ICU == 1
-  NSNumber *result;
-  NSUInteger length;
-  NSRange range;
-  UErrorCode err = U_ZERO_ERROR;
-  unichar *ustring;
-  int64_t intNum;
-  double doubleNum;
-  
-  if (string == nil)
-    return nil;
-  
-  length = [string length];
-  ustring = NSZoneMalloc ([self zone], sizeof(unichar) * length);
-  if (ustring == NULL)
-    return nil;
-  
-  [string getCharacters: ustring range: NSMakeRange(0, length)];
-  
-  // FIXME: Not sure if this is correct....
-  range = [string rangeOfString: @"."];
-  if (range.location == NSNotFound)
+  NSUInteger 	length = [string length];
+
+  if (length > 0)
     {
-      intNum = unum_parseInt64(internal->_formatter,
-        ustring, length, NULL, &err);
-      if (U_FAILURE(err))
-        return nil;
-      if (intNum == 0 || intNum == 1)
-        result = [NSNumber numberWithBool: (BOOL) intNum];
-      else if (intNum < INT_MAX && intNum > INT_MIN)
-        result = [NSNumber numberWithInt: (int32_t)intNum];
+      NSRange 		range;
+      UErrorCode 	err = U_ZERO_ERROR;
+      int64_t 		intNum;
+      double 		doubleNum;
+      GS_BEGINITEMBUF(ustring, length * sizeof(unichar), unichar)
+  
+      [string getCharacters: ustring range: NSMakeRange(0, length)];
+  
+      // FIXME: Not sure if this is correct....
+      range = [string rangeOfString: @"."];
+      if (range.location == NSNotFound)
+	{
+	  intNum = unum_parseInt64(internal->_formatter,
+	    ustring, length, NULL, &err);
+	  if (!U_FAILURE(err))
+	    {
+	      if (intNum == 0 || intNum == 1)
+		{
+		  result = [NSNumber numberWithBool: (BOOL) intNum];
+		}
+	      else if (intNum < INT_MAX && intNum > INT_MIN)
+		{
+		  result = [NSNumber numberWithInt: (int32_t)intNum];
+		}
+	      else
+		{
+		  result = [NSNumber numberWithLongLong: intNum];
+		}
+	    }
+	}
       else
-        result = [NSNumber numberWithLongLong: intNum];
+	{
+	  doubleNum = unum_parseDouble(internal->_formatter,
+	    ustring, length, NULL, &err);
+	  if (!U_FAILURE(err))
+	    {
+	      result = [NSNumber numberWithDouble: doubleNum];
+	    }
+	}
+      
+      GS_ENDITEMBUF()
     }
-  else
-    {
-      doubleNum = unum_parseDouble(internal->_formatter,
-        ustring, length, NULL, &err);
-      if (U_FAILURE(err))
-        return nil;
-      result = [NSNumber numberWithDouble: doubleNum];
-    }
-  
-  NSZoneFree ([self zone], ustring);
-  return result;
-#else
-  return nil;
 #endif
+  return result;
 }
 
 

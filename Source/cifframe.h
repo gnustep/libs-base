@@ -19,8 +19,7 @@
    
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-   MA 02111 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */ 
 
 #ifndef cifframe_h_INCLUDE
@@ -53,16 +52,17 @@ typedef struct _cifframe_t {
 
 @class	NSMutableData;
 
-extern NSMutableData *cifframe_from_signature (NSMethodSignature *info);
-
-extern GSCodeBuffer* cifframe_closure (NSMethodSignature *sig, void (*func)());
+extern GSCodeBuffer* cifframe_closure(NSMethodSignature *sig,
+  void (*func)()) GS_ATTRIB_PRIVATE;
 
 extern void cifframe_set_arg(cifframe_t *cframe, int index, void *buffer, 
-			     int size);
+  int size) GS_ATTRIB_PRIVATE;
 extern void cifframe_get_arg(cifframe_t *cframe, int index, void *buffer,
-			     int size);
-extern void *cifframe_arg_addr(cifframe_t *cframe, int index);
-extern BOOL cifframe_decode_arg (const char *type, void* buffer);
-extern BOOL cifframe_encode_arg (const char *type, void* buffer);
+  int size) GS_ATTRIB_PRIVATE;
+extern void *cifframe_arg_addr(cifframe_t *cframe, int index) GS_ATTRIB_PRIVATE;
+extern BOOL cifframe_decode_arg(const char *type,
+  void *buffer) GS_ATTRIB_PRIVATE;
+extern BOOL cifframe_encode_arg(const char *type,
+  void *buffer) GS_ATTRIB_PRIVATE;
 
 #endif

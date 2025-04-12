@@ -16,8 +16,7 @@
 
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
-   Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-   Boston, MA 02110 USA.
+   Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 
    $Date: 2010-09-18 16:09:58 +0100 (Sat, 18 Sep 2010) $ $Revision: 31371 $
    */
@@ -51,7 +50,7 @@ UTextNSStringNativeLength(UText *ut)
  * Loads a group of characters into the buffer that can be directly accessed by
  * users of the UText.  This is used for iteration but UText users.
  */
-UBool
+static UBool
 UTextNSStringAccess(UText *ut, int64_t nativeIndex, UBool forward)
 {
   NSString	*str = (NSString*)ut->p;
@@ -167,7 +166,7 @@ UTextNSMutableStringReplace(UText *ut,
   // Setting the chunk length to 0 here forces UTextNSStringAccess to fetch
   // the data from the string object.
   ut->chunkLength = 0;
-  UTextNSStringAccess(ut, r.location + [replacement length] + 1, TRUE);
+  UTextNSStringAccess(ut, r.location + [replacement length], TRUE);
   ut->chunkOffset++;
   
   [replacement release];
@@ -224,7 +223,7 @@ UTextNSStringExtract(UText *ut,
 /**
  * Copy or move some characters within a UText.
  */
-void UTextNSStringCopy(UText *ut,
+static void UTextNSStringCopy(UText *ut,
   int64_t nativeStart,
   int64_t nativeLimit,
   int64_t nativeDest,
@@ -277,7 +276,7 @@ UTextNStringClose(UText *ut)
  * Typically, this should not actually copy the underlying storage, because it
  * is immutable.
  */
-UText*
+static UText*
 UTextNSStringClone(UText *dest,
   const UText *src,
   UBool deep,
@@ -295,7 +294,7 @@ UTextNSStringClone(UText *dest,
 /**
  * Copies the UText object, optionally copying the NSMutableString.
  */
-UText*
+static UText*
 UTextNSMutableStringClone(UText *dest,
   const UText *src,
   UBool deep,
@@ -320,7 +319,7 @@ UTextNSMutableStringClone(UText *dest,
 /**
  * Returns the index of the current character in the temporary buffer.
  */
-int64_t
+static int64_t
 UTextNSStringMapOffsetToNative(const UText *ut)
 {
   return ut->chunkNativeStart + ut->chunkOffset;

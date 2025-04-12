@@ -158,10 +158,11 @@ where those spaces might be omitted ((eg. when brackets are doubled)).
 This applies to square brackets too.
 
 Where round brackets are used to enclose function or macro paramters, there
-is no space between the function romacro name and the opening bracket, and
+is no space between the function or macro name and the opening bracket, and
 where round brackets are used for type-casts or at the end of a statement,
 there is normally no space between the closing bracket and the following
-expression or semicolon-
+expression or semicolon (however there is a space between the round bracket
+and the start of a method name in a method declaration or definition) -
 @example
 a = (int)b;
 - (void) methodWithArg1: (int)arg1 andArg2: (float)arg2;
@@ -300,7 +301,14 @@ using ObjectiveC-2.0, though compatibility with old compilers should be
 maintained wherever possible, and preprocessor macros must be used to at
 least conditionally build new code without breaking old code.
 
-One ObjectiveC-2.0 feature (the dot ('.') operator) is forbidden though.
+In particular, blocks are completely non-portable and must never be used
+internally (though methods with block arguments are provided for
+compatibilty with the Apple APIs).  As well as being similar to the 'goto'
+operation in making code hard to maintain, bllocks have a number of issues
+which mean they are never likely to become standard across compilers
+(eg https://thephd.dev/lambdas-nested-functions-block-expressions-oh-my).
+
+Another ObjectiveC-2.0 feature (the dot ('.') operator) is also forbidden.
 One problem is that, while apparently simple, the actual operation of this
 feature in unusual cases is actually undefined and varies between compiler
 versions.  

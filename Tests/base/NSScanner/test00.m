@@ -49,7 +49,7 @@ int main()
   PASS(scanThreeWords(str,charSet), 
        "scanning three words separated by newlines and spaces");
   
-  charSet = [charSet mutableCopy];
+  charSet = AUTORELEASE([charSet mutableCopy]);
   [charSet addCharactersInString:@";"];
   str = @"one ;two ;three ;";
   PASS(scanThreeWords(str,charSet), 

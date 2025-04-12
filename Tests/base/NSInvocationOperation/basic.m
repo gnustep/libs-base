@@ -16,7 +16,7 @@ int main()
   NSInteger             length;
   NSString              *hello = @"hello";
   NSString              *uppercaseHello;
-  NSOperationQueue      *queue = [NSOperationQueue new];
+  NSOperationQueue      *queue = AUTORELEASE([NSOperationQueue new]);
 
   op = [[NSInvocationOperation alloc] initWithTarget: hello
 					    selector: @selector(length)

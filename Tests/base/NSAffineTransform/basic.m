@@ -30,10 +30,10 @@ print_matrix (const char *str, NSAffineTransformStruct MM)
 
 int main()
 {
-  NSAutoreleasePool   *arp = [NSAutoreleasePool new];
-  NSAffineTransform *testObj;
+  NSAutoreleasePool   	*arp = [NSAutoreleasePool new];
+  NSAffineTransform 	*testObj;
   NSAffineTransformStruct flip = {1.0,0.0,0.0,-1.0,0.0,0.0};
-  NSMutableArray *testObjs = [NSMutableArray new];
+  NSMutableArray 	*testObjs = [NSMutableArray array];
   NSAffineTransform *aa, *bb, *cc;
   NSAffineTransformStruct as = {2, 3, 4, 5, 10, 20};
   NSAffineTransformStruct bs = {6, 7, 8, 9, 14, 15};
@@ -55,7 +55,7 @@ int main()
   NSPoint	p;
   NSSize	s;
 
-  testObj = [NSAffineTransform new];
+  testObj = AUTORELEASE([NSAffineTransform new]);
   [testObjs addObject:testObj];
   PASS(testObj != nil, "can create a new transfor");
    
@@ -109,19 +109,19 @@ int main()
   [bb setTransformStruct: bs];
 
   /* Append matrix */
-  cc = [aa copy];
+  cc = AUTORELEASE([aa copy]);
   [cc appendTransform: bb];
   cs = [cc transformStruct];
   PASS((is_equal_struct(cs, answer1)), "appendTransform:")
 
   /* Prepend matrix */
-  cc = [aa copy];
+  cc = AUTORELEASE([aa copy]);
   [cc prependTransform: bb];
   cs = [cc transformStruct];
   PASS((is_equal_struct(cs, answer2)), "prependTransform:")
 
   /* scaling */
-  cc = [aa copy];
+  cc = AUTORELEASE([aa copy]);
   [cc scaleXBy: 3 yBy: 2];
   cs = [cc transformStruct];
   PASS((is_equal_struct(cs, answer3)), "scaleXBy:yBy:")
@@ -132,7 +132,7 @@ int main()
   //print_matrix ("Trans X Scale X A", cs);
 
   /* rotation */
-  cc = [aa copy];
+  cc = AUTORELEASE([aa copy]);
   [cc rotateByDegrees: 2.5];
   cs = [cc transformStruct];
   PASS((is_equal_struct(cs, answer5)), "rotateByDegrees")

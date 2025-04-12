@@ -18,7 +18,7 @@
 #   You should have received a copy of the GNU General Public
 #   License along with this library; see the file COPYING.LIB.
 #   If not, write to the Free Software Foundation,
-#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#   31 Milk Street #960789 Boston, MA 02196 USA.
 
 ifeq ($(BASE_MAKE_LOADED),)
   BASE_MAKE_LOADED=yes
@@ -71,6 +71,9 @@ ifeq ($(BASE_MAKE_LOADED),)
 
   # Has ICU been found (for NSCalendar, NSLocale, and other locale related)?
   GNUSTEP_BASE_HAVE_ICU=@HAVE_ICU@
+
+  # Has the new KVO implementation been selected.
+  GNUSTEP_BASE_HAVE_NEWKVO=@HAVE_NEWKVO@
 
 
   # The next two are a special case ... we should have either one defined
