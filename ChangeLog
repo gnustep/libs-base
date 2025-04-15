@@ -1,3 +1,9 @@
+2025-04-15  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSFileManager.m: Use the documented key for the file path
+	in the error dictionary passed to the error handler and continue
+	setting the incorrect one as well for backward compatibility.
+
 2025-04-08  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSOperation.m (_thread): Fix potential deadlock when

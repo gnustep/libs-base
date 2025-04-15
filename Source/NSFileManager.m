@@ -3627,8 +3627,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   if ([handler respondsToSelector:
     @selector (fileManager:shouldProceedAfterError:)])
     {
+      /* wl 20250114: For a very long time, this method incorrectly was
+       * using NSFilePathErrorKey instead of the documented key @"Path"
+       * to report the affected path. For backward compatibility we keep
+       * setting the wrong key below.
+       */
       NSDictionary *errorInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                                                 path, NSFilePathErrorKey,
+                                              path, @"Path",
                                               error, @"Error", nil];
       return [handler fileManager: self
 	  shouldProceedAfterError: errorInfo];
@@ -3645,8 +3651,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   if ([handler respondsToSelector:
     @selector (fileManager:shouldProceedAfterError:)])
     {
+      /* wl 20250114: For a very long time, this method incorrectly was
+       * using NSFilePathErrorKey instead of the documented key @"Path"
+       * to report the affected path. For backward compatibility we keep
+       * setting the wrong key below.
+       */
       NSDictionary *errorInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                                                 path, NSFilePathErrorKey,
+                                              path, @"Path",
                                               fromPath, @"FromPath",
                                               toPath, @"ToPath",
                                               error, @"Error", nil];
