@@ -886,6 +886,11 @@ static inline id parseQuotedString(pldata* pld) NS_RETURNS_RETAINED
 				       length: length
 				 freeWhenDone: YES];
 	}
+      if (nil == obj)
+	{
+	  pld->err = @"escape sequence produces invalid unicode";
+	  return nil;
+	}
     }
   pld->pos++;
   return obj;

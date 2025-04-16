@@ -1,3 +1,9 @@
+2025-04-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: When parsing OpenStep style property list,
+	check for the case when a \U escape sequence produces invalid unicode
+	and produce an error message saying what happened.
+
 2025-04-15  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSFileManager.m: Use the documented key for the file path
