@@ -2,7 +2,6 @@
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSString.h>
 
-
 static NSString*
 makeFormattedString(NSString *theFormat, ...)
 {
@@ -21,6 +20,7 @@ int main()
   uint8_t       bytes[256];
   unichar	u0 = 'a';
   unichar	u1 = 0xfe66;
+  unichar	c;
   int           i = 256;
   char          buf[32];
   NSString	*s;
@@ -142,7 +142,38 @@ int main()
   s = [[NSString alloc] initWithBytes: "\\u20ac"
                                length: 6
                              encoding: NSNonLossyASCIIStringEncoding];
-  PASS_EQUAL(s, @"€", "lossy backslassh-u20ac is a euro");
+  PASS_EQUAL(s, @"€", "lossy backslash-u20ac is a euro");
+  DESTROY(s);
+
+  uint8_t	smiley[10] = {
+    'S', 'M', 'I', 'L', 'E', 'Y', 0xf0, 0x9f, 0x98, 0x8a
+  }; 
+  s = [[NSString alloc] initWithBytes: smiley
+                               length: 10
+                             encoding: NSUTF8StringEncoding];
+  PASS_EQUAL(s, @"SMILEY😊", "text with smiley at end");
+  DESTROY(s);
+
+  // Second half of surrogate pair
+  c = 0xde0a;
+  s = [[NSString alloc] initWithBytes: &c
+                               length: 2
+                             encoding: NSUnicodeStringEncoding];
+  PASS_EQUAL(s, nil, "native - second half of surrogate pair is invalid");
+  DESTROY(s);
+
+  c = GSSwapHostI16ToBig(0xde0a);
+  s = [[NSString alloc] initWithBytes: &c
+                               length: 2
+                             encoding: NSUTF16BigEndianStringEncoding];
+  PASS_EQUAL(s, nil, "big endian second half of surrogate pair is invalid");
+  DESTROY(s);
+
+  c = GSSwapHostI16ToLittle(0xde0a);
+  s = [[NSString alloc] initWithBytes: &c
+                               length: 2
+                             encoding: NSUTF16LittleEndianStringEncoding];
+  PASS_EQUAL(s, nil, "little endian second half of surrogate pair is invalid");
   DESTROY(s);
 
   s = makeFormattedString(@"%d.%d%s", 10, 20, "hello");
