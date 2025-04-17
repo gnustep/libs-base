@@ -1361,7 +1361,7 @@ newLanguages(NSArray *oldNames)
  * we clear the sharedDefaults variable first so that no other thread can
  * grab a reference to the deallocated instance.
  */
-- (void) release
+- (oneway void) release
 {
   [classLock lock];
   if (self == sharedDefaults && [self retainCount] < 2)
