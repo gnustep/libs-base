@@ -1748,7 +1748,11 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 
       if (res == WIN32ERR)
 	{
-	  return NO;
+	  NSString	*message = [[NSError _last] localizedDescription];
+
+	  return [self _proceedAccordingToHandler: handler
+					 forError: message
+					   inPath: path];
 	}
       if (res & FILE_ATTRIBUTE_DIRECTORY)
 	{
@@ -1763,7 +1767,11 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 
       if (lstat(lpath, &statbuf) != 0)
 	{
-	  return NO;
+	  NSString	*message = [[NSError _last] localizedDescription];
+
+	  return [self _proceedAccordingToHandler: handler
+					 forError: message
+					   inPath: path];
 	}
       is_dir = ((statbuf.st_mode & S_IFMT) == S_IFDIR);
 #endif /* _WIN32 */
