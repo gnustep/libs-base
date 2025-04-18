@@ -1462,7 +1462,7 @@ static int		uninitialisedOffset = 100000;
        * Try to get timezone from windows system call.
        */
       {
-        TIME_ZONE_INFORMATION tz;
+        DYNAMIC_TIME_ZONE_INFORMATION tz;
         DWORD dst;
         wchar_t *tzName;
 
@@ -1470,15 +1470,14 @@ static int		uninitialisedOffset = 100000;
         // Get time zone name for US locale as expected by ICU method below
         LANGID origLangID = GetThreadUILanguage();
         SetThreadUILanguage(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US));
-        dst = GetTimeZoneInformation(&tz);
+        dst = GetDynamicTimeZoneInformation(&tz);
         SetThreadUILanguage(origLangID);
 
-        // Only tz.StandardName time zone conversions are supported, as
-        // the Zone-Tzid table lacks all daylight time conversions:
+        // The Zone-Tzid table lacks all daylight time conversions:
         // e.g. 'W. Europe Daylight Time' <-> 'Europe/Berlin' is not listed.
         //
         // See: https://unicode-org.github.io/cldr-staging/charts/latest/supplemental/zone_tzid.html
-        tzName = tz.StandardName;
+        tzName = tz.TimeZoneKeyName;
 #else
         dst = GetTimeZoneInformation(&tz);
 
