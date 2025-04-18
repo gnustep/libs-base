@@ -860,7 +860,7 @@ writeNewline(NSMutableString *output, NSInteger tabs)
 }
 
 static BOOL
-writeObject(id obj, NSMutableString *output, NSInteger tabs)
+writeObject(id obj, NSMutableString *output, NSInteger tabs, NSJSONWritingOptions opt)
 {
   if ([obj isKindOfClass: NSArrayClass])
     {
@@ -874,7 +874,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
         writeComma = YES;
         writeNewline(output, tabs);
         writeTabs(output, tabs);
-        writeObject(o, output, tabs + 1);
+        writeObject(o, output, tabs + 1, opt);
       END_FOR_IN(obj)
       writeNewline(output, tabs);
       writeTabs(output, tabs);
@@ -883,8 +883,15 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
   else if ([obj isKindOfClass: NSDictionaryClass])
     {
       BOOL writeComma = NO;
+      NSArray *keys = [obj allKeys];
       [output appendString: @"{"];
-      FOR_IN(id, o, obj)
+
+      if ((opt & NSJSONWritingSortedKeys) == NSJSONWritingSortedKeys)
+        {
+          keys = [keys sortedArrayUsingSelector: @selector(compare:)];
+        }
+
+      FOR_IN(id, o, keys)
         // Keys in dictionaries must be strings
         if (![o isKindOfClass: NSStringClass]) { return NO; }
         if (writeComma)
@@ -894,10 +901,11 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
         writeComma = YES;
         writeNewline(output, tabs);
         writeTabs(output, tabs);
-        writeObject(o, output, tabs + 1);
-        [output appendString: @": "];
-        writeObject([obj objectForKey: o], output, tabs + 1);
-      END_FOR_IN(obj)
+        writeObject(o, output, tabs + 1, opt);
+        [output appendString: @":"];
+        writeObject([obj objectForKey: o], output, tabs + 1, opt);
+      END_FOR_IN(keys)
+
       writeNewline(output, tabs);
       writeTabs(output, tabs);
       [output appendString: @"}"];
@@ -1062,7 +1070,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
 
   tabs = ((opt & NSJSONWritingPrettyPrinted) == NSJSONWritingPrettyPrinted) ?
     0 : NSIntegerMin;
-  if (writeObject(obj, str, tabs))
+  if (writeObject(obj, str, tabs, opt))
     {
       data = [str dataUsingEncoding: NSUTF8StringEncoding];
       if (NULL != error)
@@ -1089,7 +1097,7 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs)
 
 + (BOOL) isValidJSONObject: (id)obj
 {
-  return writeObject(obj, nil, NSIntegerMin);
+  return writeObject(obj, nil, NSIntegerMin, 0);
 }
 
 + (id) JSONObjectWithData: (NSData *)data
