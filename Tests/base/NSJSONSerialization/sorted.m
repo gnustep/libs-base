@@ -31,4 +31,5 @@ int main(void) {
   testLexicographicalOrder();
 
   [arp release];
+  return 0;
 }
