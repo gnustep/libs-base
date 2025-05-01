@@ -54,6 +54,7 @@
 #import "GNUstepBase/NSTask+GNUstepBase.h"
 
 #import "GSPrivate.h"
+#import "NSPropertyListPrivate.h"
 
 /* Store the working directory at startup */
 static NSString		*_launchDirectory = nil;
@@ -2872,21 +2873,58 @@ IF_NO_ARC(
       tablePath = [self pathForResource: tableName ofType: @"strings"];
       if (tablePath != nil)
         {
+          NSPropertyListFormat format;
           NSStringEncoding	encoding;
           NSString		*tableContent;
           NSData		*tableData;
           const unsigned char	*bytes;
           unsigned		length;
 
-          tableData = [[NSData alloc] initWithContentsOfFile: tablePath];
-          bytes = [tableData bytes];
-          length = [tableData length];
           /*
            * A localisation file can be:
-           * - UTF-16 with a leading BOM,
-           * - UTF-8,
-           * - or ASCII with \U escapes.
+           *   1. A reduced "old-style" plist containing only one top-level dictionary
+           *   2. An xml-based or binary plist.
            */
+          tableData = [[NSData alloc] initWithContentsOfFile: tablePath];
+          if (tableData == nil)
+            {
+              NSWarnMLog(@"Failed read contents of file at path %@", tablePath);
+              goto end;
+            }
+
+          /*
+           * Check if tableData is a proper plist
+           */
+          format = [NSPropertyListSerialization formatFromData: tableData];
+          if (format != 0)
+            {
+              NSString *errorDescription = nil;
+              table = [NSPropertyListSerialization propertyListFromData: tableData
+                                                      mutabilityOption: NSPropertyListImmutable
+                                                                format: &format
+                                                      errorDescription: &errorDescription];
+              if (table == nil)
+                {
+                  NSWarnMLog(@"Expected localization file at path %@ to be a property list"
+                    @" of type %lu, but parsing failed - %@", tableData, format, errorDescription);
+                }
+              else
+                {
+                  [_localizations setObject: table forKey: tableName];
+                }
+
+              goto end;
+            }
+
+
+          /*
+           * The following encodings are supported for the reduced "old-style" plist:
+           *   - UTF-16 with a leading BOM,
+           *   - UTF-8,
+           *   - or ASCII with \U escapes.
+           */
+          bytes = [tableData bytes];
+          length = [tableData length];
           if (length > 2
               && ((bytes[0] == 0xFF && bytes[1] == 0xFE)
                   || (bytes[0] == 0xFE && bytes[1] == 0xFF)))
@@ -2949,6 +2987,7 @@ IF_NO_ARC(
         [_localizations setObject: table forKey: tableName];
     }
 
+  end:
   if (key == nil || (newString = [table objectForKey: key]) == nil)
     {
       NSString	*show = [[NSUserDefaults standardUserDefaults]

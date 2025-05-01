@@ -23,6 +23,7 @@
    */
 
 #import "common.h"
+#include <stdint.h>
 #import "GNUstepBase/GSMime.h"
 
 #import "Foundation/NSArray.h"
@@ -2458,6 +2459,40 @@ static BOOL	classInitialized = NO;
     }
 
   classInitialized = YES;
+}
+
+// Private class method for retrieving the format from an encoding plist
++ (NSPropertyListFormat) formatFromData: (NSData *) data
+{
+  const uint8_t *bytes = [data bytes];
+  NSUInteger length = [data length];
+  if (length >= 8 && memcmp(bytes, "bplist00", 8) == 0)
+    {
+      return NSPropertyListBinaryFormat_v1_0;
+    }
+  else if (bytes[0] == 0 || bytes[0] == 1)
+    {
+      return NSPropertyListGNUstepBinaryFormat;
+    }
+  else
+    {
+      unsigned int index = 0;
+
+      // Skip any leading white space.
+      while (index < length && GS_IS_WHITESPACE(bytes[index]) == YES)
+        {
+          index++;
+        }
+      
+      if (length - index > 2
+        && bytes[index] == '<' && bytes[index+1] == '?')
+        {
+          // It begins with '<?' so it is xml
+          return NSPropertyListXMLFormat_v1_0;
+        }
+    }
+
+  return 0;
 }
 
 + (NSData*) dataFromPropertyList: (id)aPropertyList
