@@ -1434,7 +1434,10 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     {
       int	toWrite = len - pos;
 
-      toWrite = [GSTcpTune sendSize: toWrite];
+      if (NO == isStandardFile)
+	{
+	  toWrite = [GSTcpTune sendSize: toWrite];
+	}
       rval = [self write: (char*)ptr+pos length: toWrite];
       if (rval < 0)
 	{
