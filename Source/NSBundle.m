@@ -170,7 +170,7 @@ altLang(NSString *full)
         {
           [a addObject: alias];
         }
-    NSLog(@"Alt ALngs: %@ canon=%@ alias=%@", a, canon, alias);
+      NSDebugLog(@"Alt ALngs: %@ canon=%@ alias=%@", a, canon, alias);
     }
   return a;
 }
