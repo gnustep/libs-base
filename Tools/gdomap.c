@@ -192,7 +192,7 @@ static char	*local_hostname = 0;
  */
 static void	dump_stats();
 #ifndef __MINGW__
-static void	dump_tables();
+static void	dump_tables(int);
 #endif
 static void	handle_accept();
 static void	handle_io();
@@ -1135,7 +1135,7 @@ dump_stats()
 
 #ifndef __MINGW__
 static void
-dump_tables()
+dump_tables(int sig)
 {
   FILE	*fptr;
 
@@ -1143,7 +1143,7 @@ dump_tables()
   if (access(".", W_OK) != 0)
     {
       snprintf(ebuf, sizeof(ebuf),
-	"Failed to access gdomap.dump file for output\n");
+	"Failed to access gdomap.dump file for output (sig %d)\n", sig);
       gdomap_log(LOG_ERR);
       return;
     }
@@ -1174,7 +1174,7 @@ dump_tables()
   else
     {
       snprintf(ebuf, sizeof(ebuf),
-	"Failed to open gdomap.dump file for output\n");
+	"Failed to open gdomap.dump file for output (sig %d)\n", sig);
       gdomap_log(LOG_ERR);
     }
 }
@@ -2026,7 +2026,7 @@ init_ports()
   /*
    *	Enable table dumping to /tmp/gdomap.dump
    */
-  signal(SIGUSR1, dump_tables);
+  signal(SIGUSR1, (void(*)(int))dump_tables);
 #endif /* !__MINGW__  */
 }
 
@@ -3704,7 +3704,7 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
 #if	defined(__MINGW__) /* FIXME: Is this correct? */
 	  rval = send(desc, (const char*)&dat[pos], len - pos, 0);
 #else
-	  void	(*ifun)();
+	  void	(*ifun)(int);
 
 	  /*
 	   *	Should be able to write this short a message immediately, but
