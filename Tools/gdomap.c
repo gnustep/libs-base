@@ -2022,11 +2022,11 @@ init_ports()
    *	Turn off pipe signals so we don't get interrupted if we attempt
    *	to write a response to a process which has died.
    */
-  signal(SIGPIPE, SIG_IGN);
+  signal(SIGPIPE, (sighandler_t)SIG_IGN);
   /*
    *	Enable table dumping to /tmp/gdomap.dump
    */
-  signal(SIGUSR1, dump_tables);
+  signal(SIGUSR1, (sighandler_t)dump_tables);
 #endif /* !__MINGW__  */
 }
 
@@ -3704,13 +3704,13 @@ tryWrite(int desc, int tim, unsigned char* dat, int len)
 #if	defined(__MINGW__) /* FIXME: Is this correct? */
 	  rval = send(desc, (const char*)&dat[pos], len - pos, 0);
 #else
-	  void	(*ifun)();
+	  sighandler_t ifun;
 
 	  /*
 	   *	Should be able to write this short a message immediately, but
 	   *	if the connection is lost we will get a signal we must trap.
 	   */
-	  ifun = signal(SIGPIPE, (void(*)(int))SIG_IGN);
+	  ifun = signal(SIGPIPE, (sighandler_t)SIG_IGN);
 	  rval = write(desc, &dat[pos], len - pos);
 	  signal(SIGPIPE, ifun);
 #endif
