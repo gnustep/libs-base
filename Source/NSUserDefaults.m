@@ -659,18 +659,6 @@ newLanguages(NSArray *oldNames)
  */
 @implementation NSUserDefaults: NSObject
 
-+ (void) atExit
-{
-  [classLock lock];
-  DESTROY(sharedDefaults);
-  [classLock unlock];
-  DESTROY(bundleIdentifier);
-  DESTROY(processName);
-  DESTROY(argumentsDictionary);
-  DESTROY(classLock);
-  DESTROY(syncLock);
-}
-
 /* Opt-out off automatic willChange/didChange notifications 
  * as the KVO behaviour for NSUserDefaults is slightly different.
  *
@@ -715,7 +703,6 @@ newLanguages(NSArray *oldNames)
       NSMutableDictionaryClass = [NSMutableDictionary class];
       NSStringClass = [NSString class];
       argumentsDictionary = [NSDictionary new];
-      [self registerAtExit];
 
       processName = [[[NSProcessInfo processInfo] processName] copy];
       key = [GSPrivateInfoDictionary(nil) objectForKey: @"CFBundleIdentifier"];
