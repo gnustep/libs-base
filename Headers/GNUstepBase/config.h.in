@@ -397,6 +397,9 @@
 /* Define to 1 if you have the `m' library (-lm). */
 #undef HAVE_LIBM
 
+/* Define to 1 if you have the `resolv' library (-lresolv). */
+#undef HAVE_LIBRESOLV
+
 /* Define to 1 if you have the `rt' library (-lrt). */
 #undef HAVE_LIBRT
 
@@ -543,6 +546,9 @@
 
 /* Define to 1 if you have the `register_printf_specifier' function. */
 #undef HAVE_REGISTER_PRINTF_SPECIFIER
+
+/* Define to 1 if you have the <resolv.h> header file. */
+#undef HAVE_RESOLV_H
 
 /* Define to 1 if you have the `rint' function. */
 #undef HAVE_RINT

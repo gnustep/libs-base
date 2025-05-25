@@ -7660,6 +7660,64 @@ then :
 fi
 
 
+ac_fn_c_check_header_compile "$LINENO" "resolv.h" "ac_cv_header_resolv_h" "$ac_includes_default"
+if test "x$ac_cv_header_resolv_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_RESOLV_H 1" >>confdefs.h
+
+fi
+
+if test $ac_cv_header_resolv_h = yes; then
+  saveLIBS="$LIBS"
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for res_query in -lresolv" >&5
+printf %s "checking for res_query in -lresolv... " >&6; }
+if test ${ac_cv_lib_resolv_res_query+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lresolv  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char res_query ();
+int
+main (void)
+{
+return res_query ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_resolv_res_query=yes
+else $as_nop
+  ac_cv_lib_resolv_res_query=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv_res_query" >&5
+printf "%s\n" "$ac_cv_lib_resolv_res_query" >&6; }
+if test "x$ac_cv_lib_resolv_res_query" = xyes
+then :
+  resolv_ok=yes
+else $as_nop
+  resolv_ok=no
+fi
+
+  if test "$resolv_ok" = yes; then
+    LIBS="$saveLIBS -lresolv";
+  else
+    LIBS="$saveLIBS"
+  fi
+fi
+
 #--------------------------------------------------------------------
 # Windows: check if we have native threading APIs and SRW locks
 #--------------------------------------------------------------------
