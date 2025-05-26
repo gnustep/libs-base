@@ -122,13 +122,16 @@ myHostName()
   [_hostCacheLock lock];
   if (host)
     {
-      FOR_IN (id, name, host->_names)
-      [_hostCache setObject: host forKey: name];
-      END_FOR_IN (host->_names)
+      NSSet *names = host->_names;
+      NSSet *addresses = host->_addresses;
 
-      FOR_IN (id, address, host->_addresses)
+      FOR_IN (id, name, names)
+      [_hostCache setObject: host forKey: name];
+      END_FOR_IN (names)
+
+      FOR_IN (id, address, addresses)
       [_hostCache setObject: host forKey: address];
-      END_FOR_IN (host->_addresses)
+      END_FOR_IN (addresses)
       [_hostCache setObject: host forKey: key];
     }
   else
