@@ -1,14 +1,9 @@
 \input texinfo  @c -*-texinfo-*-
 @setfilename gs-standards.info
+@settitle Coding Standards for GNUstep Libraries
 @set DATE 26 Jun 1996
 
-@dircategory GNU organization
-@direntry
-* GNUstepStandards: (gs-standards).     Coding Standards for GNUstep
-                                          Libraries.
-@end direntry
-
-@ifinfo
+@copying
 Copyright @copyright{} 1997-2005 Free Software Foundation
 
 Permission is granted to make and distribute verbatim copies of
@@ -22,10 +17,15 @@ permission notice identical to this one.
 
 Permission is granted to copy and distribute translations of this manual
 into another language, under the above conditions for modified versions.
-@end ifinfo
+@end copying
+
+@dircategory GNU organization
+@direntry
+* GNUstepStandards: (gs-standards).     Coding Standards for GNUstep
+                                          Libraries.
+@end direntry
 
 @setchapternewpage odd
-@settitle Coding Standards for GNUstep Libraries
 @titlepage
 @finalout
 @title Coding Standards for GNUstep Libraries
@@ -35,26 +35,13 @@ into another language, under the above conditions for modified versions.
 @author Adam Fedor
 @page
 
-@vskip 0pt plus 1filll
-Copyright @copyright{} 1997-2005 Free Software Foundation
-
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
-
-Permission is granted to copy and distribute modified versions of this
-manual under the conditions for verbatim copying, provided also that
-the entire resulting derived work is distributed under the terms of a
-permission notice identical to this one.
-
-Permission is granted to copy and distribute translations of this manual
-into another language, under the above conditions for modified versions.
 @end titlepage
 
 @node Top
 @top Coding Standards
 
 @menu
+* Coding Standards::
 * Introduction::                
 * ChangeLog Entries::           
 * Coding Style::                
@@ -68,6 +55,8 @@ into another language, under the above conditions for modified versions.
 * Before You Commit::           
 * Contributing::                
 @end menu
+
+@insertcopying
 
 @c ******************************************************************
 @node Introduction, ChangeLog Entries, Top, Top
@@ -91,7 +80,7 @@ have questions, ask on @email{bug-gnustep@@gnu.org} or
 
 @c ******************************************************************
 @node ChangeLog Entries, Coding Style, Introduction, Top
-@section ChangeLog Entries
+@chapter ChangeLog Entries
 
 Always include a ChangeLog entry for work that you do. Look for the
 ChangeLog file in the current directory or look up to any number of
@@ -119,7 +108,7 @@ someone can find it, or in the documentation.
 
 @c ******************************************************************
 @node Coding Style, ObjectiveC, ChangeLog Entries, Top
-@section Coding Style
+@chapter Coding Style
 
 The point is not what style is 'better' in the abstract -- it's what
 style is standard and readily usable by all the people wanting to
@@ -289,7 +278,7 @@ the matching lines.
 
 @c ******************************************************************
 @node ObjectiveC, Memory Management, Coding Style, Top
-@section ObjectiveC
+@chapter ObjectiveC
 
 Since GNUstep is primarily written in ObjectiveC the C language coding
 standards largely apply with modifications as specified in the previous
@@ -480,7 +469,7 @@ use the same keys that are used in OSX.
 
 @c ******************************************************************
 @node Documentation, Before You Commit, Object Persistence, Top
-@section Documentation
+@chapter Documentation
 
 Document every method you change or add!  This makes it easier to fix our
 lack of documentation and keep up to date with changes. Make sure you
@@ -493,7 +482,7 @@ autogsdoc tool can extract it.
 
 @c ******************************************************************
 @node Before You Commit, Contributing, Documentation, Top
-@section Before You Commit
+@chapter Before You Commit
 
 @itemize @bullet
 @item Make sure you have a ChangeLog entry
@@ -513,7 +502,7 @@ in the Documentation directory.
 
 @c ******************************************************************
 @node Contributing,  , Before You Commit, Top
-@section Contributing
+@chapter Contributing
 
 Contributing code is not difficult. Here are
 some general guidelines:
@@ -548,4 +537,5 @@ support is strongly encouraged.
 Extensions, comments, and suggested modifications of existing GNUstep
 features are also very welcome.
 
+@contents
 @bye
