@@ -1,7 +1,7 @@
 \input texinfo  @c -*-texinfo-*-
 @setfilename gs-standards.info
 @settitle Coding Standards for GNUstep Libraries
-@set DATE 26 Jun 1996
+@set DATE @today{}
 
 @copying
 Copyright @copyright{} 1997-2005 Free Software Foundation
