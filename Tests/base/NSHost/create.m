@@ -18,6 +18,7 @@ int main()
   localh = [NSHost localHost];
   PASS(localh != nil && [localh isKindOfClass: [NSHost class]],
        "NSHost understands +localHost");
+  NSLog(@"localHost: %@", localh);
 #else
   localh = current;
 #endif

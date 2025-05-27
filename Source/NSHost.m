@@ -199,21 +199,10 @@ myHostName()
   hints.ai_flags = AI_CANONNAME;
   hints.ai_family = AF_UNSPEC; 
 
-  if ([key isEqualToString: myHostName()])
+  if ([key isEqualToString: localHostName])
     {
-      [addresses addObject: @"127.0.0.1"];
-#if     defined(AF_INET6)
-      [addresses addObject: @"::1"];
-#endif
-      [names addObject: @"localhost"];
-    }
-  else if ([key isEqualToString: localHostName]
-    || [key isEqualToString: @"localhost"])
-    {
-#if     defined(AF_INET6)
-      [addresses addObject: @"::1"];
-#endif
-      ptr = "127.0.0.1";
+      [addresses unionSet: [hostClass _localAddresses]];
+      ptr = "localhost";
     }
 
   err = getaddrinfo(ptr, 0, &hints, &entry);
