@@ -214,6 +214,7 @@ myHostName()
   for (tmp = entry; tmp != NULL; tmp = tmp->ai_next)
     {
       char	ipstr[INET6_ADDRSTRLEN];
+      char 	host[NI_MAXHOST];
       void	*addr;
 
 #pragma clang diagnostic push
@@ -236,9 +237,22 @@ myHostName()
       inet_ntop(tmp->ai_family, addr, ipstr, sizeof(ipstr));
       [addresses addObject: [NSString stringWithUTF8String: ipstr]];
 
+      /* Possibly a reverse lookup of the address will give us a different
+       * result to our key (if the key was an address or an alias) so we
+       * might be able to get a new name for the host.
+       */ 
+      if (getnameinfo(tmp->ai_addr, tmp->ai_addrlen, host, sizeof(host),
+	NULL, 0, NI_NAMEREQD) == 0)
+	{
+	  [names addObject: [NSString stringWithUTF8String: host]];
+        }
+
+      /* If we have a conaonical name for the host, use it.
+       */
       if (tmp->ai_canonname && *tmp->ai_canonname)
 	{
 	  unsigned char response[NS_PACKETSZ];
+	  extern int 	h_errno;
 	  ns_msg 	msg;
 	  int		count;
 	  int 		len;
@@ -248,13 +262,17 @@ myHostName()
 	  n = [NSString stringWithUTF8String: tmp->ai_canonname];
 	  [names addObject: n];
 
-	  /* Perform DNS query for CNAME record (type CNAME = 5)
+	  /* Perform DNS query for CNAME records so that we can get
+	   * any name pointed to by this one.
 	   */
 	  len = res_query(tmp->ai_canonname, ns_c_in, ns_t_cname,
 	    response, sizeof(response));
 	  if (len < 0)
 	    {
-	      perror("res_query");
+	      if (h_errno != NO_DATA)
+		{
+	          herror("res_query");
+		}
 	      continue;
 	    }
 
@@ -284,6 +302,12 @@ myHostName()
     }
   if (entry)
     {
+      if (nil == [addresses member: key])
+	{
+	  /* The key was not an address ... so it must be a host name
+	   */
+	  [names addObject: key];
+	}
       freeaddrinfo(entry);
     }
   if ([names count] || [addresses count])
@@ -438,6 +462,12 @@ myHostName()
       [[NSObject leakAt: &_hostCacheLock] release];
       _hostCache = [NSMutableDictionary new];
       [[NSObject leakAt: &_hostCache] release];
+#if     defined(HAVE_GETADDRINFO) && defined(HAVE_RESOLV_H)
+      if (res_init() < 0)
+	{
+	  NSLog(@"+[NSHost initialize] error in res_init()");
+	}
+#endif
     }
 }
 
