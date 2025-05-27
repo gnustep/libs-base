@@ -58,6 +58,12 @@ extern int WSAAPI inet_pton(int , const char *, void *);
 #define	INADDR_NONE	-1
 #endif
 
+/* Use posix definition if not already defined
+ */
+#ifndef	INET6_ADDRSTRLEN
+#define	INET6_ADDRSTRLEN	46
+#endif
+
 static NSString			*localHostName = @"GNUstep local host";
 static Class			hostClass;
 static NSRecursiveLock		*_hostCacheLock = nil;
@@ -196,10 +202,17 @@ myHostName()
   if ([key isEqualToString: myHostName()])
     {
       [addresses addObject: @"127.0.0.1"];
+#if     defined(AF_INET6)
+      [addresses addObject: @"::1"];
+#endif
       [names addObject: @"localhost"];
     }
-  else if ([key isEqualToString: localHostName])
+  else if ([key isEqualToString: localHostName]
+    || [key isEqualToString: @"localhost"])
     {
+#if     defined(AF_INET6)
+      [addresses addObject: @"::1"];
+#endif
       ptr = "127.0.0.1";
     }
 
