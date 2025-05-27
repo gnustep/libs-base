@@ -128,16 +128,23 @@ myHostName()
   [_hostCacheLock lock];
   if (host)
     {
-      NSSet *names = host->_names;
-      NSSet *addresses = host->_addresses;
+      /* The local host is a special case which tries to have all local
+       * addresses.  To avoid confustion with other hosts we do not cache
+       * it using those addresses/names which migth conflict.
+       */
+      if (NO == [key isEqualToString: localHostName])
+	{
+	  NSSet	*names = host->_names;
+	  NSSet *addresses = host->_addresses;
 
-      FOR_IN (id, name, names)
-      [_hostCache setObject: host forKey: name];
-      END_FOR_IN (names)
+	  FOR_IN (id, name, names)
+	  [_hostCache setObject: host forKey: name];
+	  END_FOR_IN (names)
 
-      FOR_IN (id, address, addresses)
-      [_hostCache setObject: host forKey: address];
-      END_FOR_IN (addresses)
+	  FOR_IN (id, address, addresses)
+	  [_hostCache setObject: host forKey: address];
+	  END_FOR_IN (addresses)
+	}
       [_hostCache setObject: host forKey: key];
     }
   else
