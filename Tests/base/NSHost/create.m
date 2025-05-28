@@ -11,6 +11,10 @@ int main()
   NSHost *localh;
   NSHost *tmp; 
 
+  tmp = [NSHost hostWithName: @"localhost"];
+  PASS(tmp != nil, "NSHost gets localhost");
+  NSLog(@"localhost is %@", tmp);
+
   tmp = [NSHost hostWithName: @"www.w3.org"];
   PASS(tmp != nil, "NSHost gets www.w3.org");
   NSLog(@"www.w3.org is %@", tmp);
