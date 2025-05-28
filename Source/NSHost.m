@@ -52,7 +52,7 @@ extern int WSAAPI inet_pton(int , const char *, void *);
 #endif /* !_WIN32 */
 
 // Temporary hack  ... dusable new code because it seems to break CI
-#undef	HAVE_RESOLV_H
+//#undef	HAVE_RESOLV_H
 
 #if	defined(HAVE_RESOLV_H)
 #include <resolv.h>
@@ -75,11 +75,34 @@ static BOOL			_hostCacheEnabled = YES;
 static NSMutableDictionary	*_hostCache = nil;
 static id			null = nil;
 
-
 /*
  *	Max hostname length in line with RFC  1123
  */
 #define	GSMAXHOSTNAMELEN	255
+
+static BOOL
+isName(const char *n)
+{
+  if (NULL == n
+    || (isdigit(n[0]) && sscanf(n, "%*d.%*d.%*d.%*d") == 4)
+    || 0 != strchr(n, ':'))
+    {
+      return NO;
+    }
+  return YES;
+}
+
+static const char *
+getName(NSString *str)
+{
+  const char	*n = [str UTF8String];
+
+  if (isName(n))
+    {
+      return n;
+    }
+  return NULL;
+}
 
 /**
  * Return the current host name ... may change if we are using dhcp etc
@@ -195,6 +218,74 @@ myHostName()
 
 #if     defined(HAVE_GETADDRINFO) && defined(HAVE_RESOLV_H)
 
+static unsigned
+getCNames(NSString *host, NSMutableSet *cnames)
+{
+  unsigned char response[NS_PACKETSZ];
+  extern int 	h_errno;
+  const char	*name;
+  unsigned	added = 0;
+  int 		len;
+
+  if ([cnames member: host] != nil)
+    {
+      return 0;
+    }
+  if (NULL == (name = getName(host)))
+    {
+      return 0;
+    }
+
+  /* Perform DNS query for CNAME records so that we can get
+   * any name pointed to by this one.
+   */
+  len = res_query(name, ns_c_in, ns_t_cname, response, sizeof(response));
+  if (len < 0)
+    {
+      if (h_errno != NO_DATA)
+	{
+	  herror(name);
+	}
+    }
+  else
+    {
+      ns_msg 	msg;
+      int	count;
+      int	i;
+
+      ns_initparse(response, len, &msg);
+      count = ns_msg_count(msg, ns_s_an);
+      for (i = 0; i < count; i++)
+	{
+	  ns_rr	rr;
+
+	  ns_parserr(&msg, ns_s_an, i, &rr);
+
+	  // Check if the record is a CNAME
+	  if (ns_rr_type(rr) == ns_t_cname)
+	    {
+	      char cname[NS_MAXDNAME];
+
+	      if (ns_name_uncompress(ns_msg_base(msg), ns_msg_end(msg),
+		ns_rr_rdata(rr), cname, sizeof(cname)) < 0)
+		{
+		  fprintf(stderr, "Failed to uncompress CNAME\n");
+		  continue;
+		}
+	      NSDebugFLLog(@"NSHost", @"res_query for '%@' found '%s'",
+		host, cname);
+	      [cnames addObject: [NSString stringWithUTF8String: cname]];
+	      added++;
+	    }
+	}
+    }
+  if (0 == added)
+    {
+      NSDebugFLLog(@"NSHost", @"res_query for '%@' found no CNAMEs", host);
+    }
+  return added;
+}
+
 - (id) _initWithKey: (NSString*)key
 {
   ENTER_POOL
@@ -205,6 +296,7 @@ myHostName()
   struct addrinfo       hints;
   struct addrinfo	*tmp;
   int			err;
+  BOOL			keyIsName;
 
   memset(&hints, '\0', sizeof(hints));
   hints.ai_flags = AI_CANONNAME;
@@ -214,12 +306,19 @@ myHostName()
     {
       [addresses unionSet: [hostClass _localAddresses]];
       ptr = "localhost";
+      keyIsName = NO;
+    }
+  else
+    {
+      getCNames(key, names);
+      ptr = [key UTF8String];
+      keyIsName = isName(ptr);
     }
 
   err = getaddrinfo(ptr, 0, &hints, &entry);
   if (err)
     {
-      fprintf(stderr, "getaddrinfo failed: %s\n", gai_strerror(err));
+      fprintf(stderr, "getaddrinfo '%s' failed: %s\n", ptr, gai_strerror(err));
       entry = NULL;
     }
   for (tmp = entry; tmp != NULL; tmp = tmp->ai_next)
@@ -227,6 +326,7 @@ myHostName()
       char	ipstr[INET6_ADDRSTRLEN];
       char 	host[NI_MAXHOST];
       void	*addr;
+      NSString	*a;
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcast-align"
@@ -246,85 +346,71 @@ myHostName()
         }
 #pragma clang diagnostic pop
       inet_ntop(tmp->ai_family, addr, ipstr, sizeof(ipstr));
-      [addresses addObject: [NSString stringWithUTF8String: ipstr]];
-
-      /* Possibly a reverse lookup of the address will give us a different
-       * result to our key (if the key was an address or an alias) so we
-       * might be able to get a new name for the host.
-       */ 
-      if (getnameinfo(tmp->ai_addr, tmp->ai_addrlen, host, sizeof(host),
-	NULL, 0, NI_NAMEREQD) == 0)
+      a = [NSString stringWithUTF8String: ipstr];
+      if (nil == [addresses member: a])
 	{
-	  [names addObject: [NSString stringWithUTF8String: host]];
-        }
+	  [addresses addObject: a];
 
-      /* If we have a conaonical name for the host, use it.
-       */
-      if (tmp->ai_canonname && *tmp->ai_canonname)
-	{
-	  unsigned char response[NS_PACKETSZ];
-	  extern int 	h_errno;
-	  ns_msg 	msg;
-	  int		count;
-	  int 		len;
-	  int		i;
-	  NSString	*n;
-
-	  n = [NSString stringWithUTF8String: tmp->ai_canonname];
-	  [names addObject: n];
-
-	  /* Perform DNS query for CNAME records so that we can get
-	   * any name pointed to by this one.
-	   */
-	  len = res_query(tmp->ai_canonname, ns_c_in, ns_t_cname,
-	    response, sizeof(response));
-	  if (len < 0)
+	  /* Possibly a reverse lookup of the address will give us a different
+	   * result to our key (if the key was an address or an alias) so we
+	   * might be able to get a new name for the host.
+	   */ 
+	  if (getnameinfo(tmp->ai_addr, tmp->ai_addrlen, host, sizeof(host),
+	    NULL, 0, NI_NAMEREQD) == 0)
 	    {
-	      if (h_errno != NO_DATA)
+	      NSString	*n = [NSString stringWithUTF8String: host];
+
+	      NSDebugMLog(@"NSHost", @"getnameinfo for '%s' found '%s'",
+		ipstr, host);
+	      if (nil == [names member: n])
 		{
-	          herror("res_query");
+		  [names addObject: n];
+		  getCNames(n, names);
 		}
-	      continue;
+	    }
+	  else
+	    {
+	      NSDebugMLog(@"NSHost", @"getnameinfo for '%s' found nothing",
+		ipstr);
+	      *host = '\0';
 	    }
 
-	  ns_initparse(response, len, &msg);
-	  count = ns_msg_count(msg, ns_s_an);
-	  for (i = 0; i < count; i++)
+	  /* If we have a canonical name for the host, use it.
+	   */
+	  if (tmp->ai_canonname && *tmp->ai_canonname
+	    && strcmp(tmp->ai_canonname, host) != 0)
 	    {
-	      ns_rr	rr;
+	      NSString	*n = [NSString stringWithUTF8String: tmp->ai_canonname];
 
-	      ns_parserr(&msg, ns_s_an, i, &rr);
-
-	      // Check if the record is a CNAME
-	      if (ns_rr_type(rr) == ns_t_cname)
+	      if (nil == [names member: n])
 		{
-		  char cname[NS_MAXDNAME];
-
-		  if (ns_name_uncompress(ns_msg_base(msg), ns_msg_end(msg),
-		    ns_rr_rdata(rr), cname, sizeof(cname)) < 0)
-		    {
-		      fprintf(stderr, "Failed to uncompress CNAME\n");
-		      continue;
-		    }
-		  [names addObject: [NSString stringWithUTF8String: cname]];
+		  [names addObject: n];
+		  getCNames(n, names);
 		}
 	    }
 	}
     }
   if (entry)
     {
-      if (nil == [addresses member: key])
-	{
-	  /* The key was not an address ... so it must be a host name
-	   */
-	  [names addObject: key];
-	}
       freeaddrinfo(entry);
     }
   if ([names count] || [addresses count])
     {
-      _names = [names copy];
       _addresses = [addresses copy];
+      if (keyIsName)
+	{
+	  [names addObject: key];
+	}
+      if ([names count])
+	{
+	  _names = [names copy];
+	}
+      else
+	{
+	  /* No names, so we duplicate addresses as names
+	   */
+	  _names = [_addresses copy];
+	}
     }
   else
     {
@@ -490,7 +576,6 @@ myHostName()
 + (NSHost*) hostWithName: (NSString*)name
 {
   NSHost	*host = nil;
-  const char	*n;
 
   if (name == nil)
     {
@@ -506,9 +591,7 @@ myHostName()
   /* If this looks like an address rather than a host name ...
    * call the correct method instead of this one.
    */
-  n = [name UTF8String];
-  if ((isdigit(n[0]) && sscanf(n, "%*d.%*d.%*d.%*d") == 4)
-    || 0 != strchr(n, ':'))
+  if (NULL == getName(name))
     {
       return [self hostWithAddress: name];
     }
@@ -536,7 +619,7 @@ myHostName()
 	{
 	  struct hostent	*h;
 
-	  h = gethostbyname((char*)n);
+	  h = gethostbyname((char*)[name UTF8String]);
 	  if (0 == h)
 	    {
 	      if ([name isEqualToString: myHostName()] == YES)
