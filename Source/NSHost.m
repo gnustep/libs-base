@@ -52,7 +52,7 @@ extern int WSAAPI inet_pton(int , const char *, void *);
 #endif /* !_WIN32 */
 
 // Temporary hack  ... disable new code because it seems to break CI
-#undef	HAVE_RESOLV_H
+//#undef	HAVE_RESOLV_H
 
 #if	defined(HAVE_RESOLV_H)
 #include <resolv.h>
@@ -415,6 +415,14 @@ getCNames(NSString *host, NSMutableSet *cnames)
   else
     {
       DESTROY(self);
+      /* As a special case, if we have no networking matching the
+       * current host name, return a host with the loopback address.
+       */
+      if ([key isEqualToString: myHostName()])
+	{
+	  self = RETAIN([NSHost hostWithAddress: @"127.0.0.1"]);
+	  [self _addName: key];
+	}
     }
   LEAVE_POOL
   return self;
