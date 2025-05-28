@@ -52,7 +52,7 @@ extern int WSAAPI inet_pton(int , const char *, void *);
 #endif /* !_WIN32 */
 
 // Temporary hack  ... disable new code because it seems to break CI
-//#undef	HAVE_RESOLV_H
+#undef	HAVE_RESOLV_H
 
 #if	defined(HAVE_RESOLV_H)
 #include <resolv.h>
