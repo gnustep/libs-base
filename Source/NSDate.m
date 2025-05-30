@@ -396,8 +396,7 @@ static BOOL useSmallDate;
     }
   if (unlikely(otherDate == nil))
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"nil argument for compare:"];
+      return NSOrderedSame;
     }
 
   if (IS_CONCRETE_CLASS(otherDate))

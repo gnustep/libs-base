@@ -5914,8 +5914,7 @@ static NSFileManager *fm = nil;
   GS_RANGE_CHECK(compareRange, [self length]);
   if (nil == string)
     {
-      [NSException raise: NSInvalidArgumentException
-		  format: @"compare with nil"];
+      return NSOrderedDescending;
     }
 
   /* A nil locale should trigger POSIX collation (i.e. 'A'-'Z' sort
