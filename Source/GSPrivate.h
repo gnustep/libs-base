@@ -379,9 +379,10 @@ GSPrivateDefaultCStringEncoding() GS_ATTRIB_PRIVATE;
 NSDictionary *
 GSPrivateDefaultLocale() GS_ATTRIB_PRIVATE;
 
-/* Get one of several standard values.
+/* Get one of several standard values.  An integer value which is normally
+ * a flag (where a value of zero is false, anything else is true).
  */
-BOOL
+int
 GSPrivateDefaultsFlag(GSUserDefaultFlagType type) GS_ATTRIB_PRIVATE;
 
 /* get the name of a string encoding as an NSString.

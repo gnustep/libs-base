@@ -1676,7 +1676,7 @@ XString(NSString* obj, NSMutableData *output)
       unsigned	wpos;
       BOOL	osx;
 
-      osx = GSPrivateDefaultsFlag(GSMacOSXCompatible);
+      osx = GSPrivateDefaultsFlag(GSMacOSXCompatible) ? YES : NO;
 
       base = NSAllocateCollectable(sizeof(unichar) * end, 0);
       [obj getCharacters: base];
