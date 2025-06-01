@@ -40,12 +40,21 @@ extern "C" {
 #endif
 
 enum {
-    NSDataReadingMappedIfSafe =   1UL << 0,    // Suggests using memory mapping for the file if it can be done securely
-    NSDataReadingUncached =       1UL << 1,    // Suggests avoiding file system caching for the read operation
+  /** Suggests using memory mapping for the file if it can be done securely
+   */
+  NSDataReadingMappedIfSafe =   1UL << 0,
+  /** Suggests avoiding file system caching for the read operation
+   */
+  NSDataReadingUncached =       1UL << 1,
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST)
-    NSDataReadingMappedAlways =   1UL << 3,    // Strongly requests memory mapping the file; overrides MappedIfSafe if both are set
+  /** Strongly requests memory mapping the file; overrides MappedIfSafe
+   * if both are set
+   */
+  NSDataReadingMappedAlways =   1UL << 3,
 #endif
 };
+/** A bitmask of options for intiialising an NSData instance by reading.
+ */
 typedef NSUInteger NSDataReadingOptions;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
@@ -104,9 +113,9 @@ GS_EXPORT_CLASS
                               length: (NSUInteger)bufferSize
                         freeWhenDone: (BOOL)shouldFree;
 #endif
-+ (instancetype)dataWithContentsOfFile: (NSString *)path
-                               options: (NSDataReadingOptions)readOptionsMask
-                                 error: (NSError **)errorPtr;
++ (instancetype) dataWithContentsOfFile: (NSString *)path
+                                options: (NSDataReadingOptions)readOptionsMask
+                                  error: (NSError **)errorPtr;
 + (instancetype) dataWithContentsOfFile: (NSString*)path;
 + (instancetype) dataWithContentsOfMappedFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
@@ -118,9 +127,9 @@ GS_EXPORT_CLASS
 + (instancetype) dataWithData: (NSData*)data;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
 - (instancetype) initWithBase64EncodedData: (NSData*)base64Data
-                                   options: (NSDataBase64DecodingOptions)options;
+  options: (NSDataBase64DecodingOptions)options;
 - (instancetype) initWithBase64EncodedString: (NSString*)base64String
-                                     options: (NSDataBase64DecodingOptions)options;
+  options: (NSDataBase64DecodingOptions)options;
 /**
  * <override-subclass/>
  * Initialize the receiver to hold memory pointed to by bytes without copying.
@@ -142,9 +151,9 @@ GS_EXPORT_CLASS
                         freeWhenDone: (BOOL)shouldFree;
 #endif
 - (instancetype) initWithContentsOfFile: (NSString*)path;
-- (instancetype) initWithContentsOfFile:(NSString *) path 
-                                options:(NSDataReadingOptions) readOptionsMask 
-                                  error:(NSError **) errorPtr;
+- (instancetype) initWithContentsOfFile: (NSString *) path 
+                                options: (NSDataReadingOptions) readOptionsMask 
+                                  error: (NSError **) errorPtr;
 - (instancetype) initWithContentsOfMappedFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
 - (instancetype) initWithContentsOfURL: (NSURL*)url;
@@ -174,7 +183,8 @@ GS_EXPORT_CLASS
 // base64
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
 - (NSData *) base64EncodedDataWithOptions: (NSDataBase64EncodingOptions)options;
-- (NSString *) base64EncodedStringWithOptions: (NSDataBase64EncodingOptions)options;
+- (NSString *) base64EncodedStringWithOptions:
+  (NSDataBase64EncodingOptions)options;
 #endif
 
 // Querying a Data Object
