@@ -1097,7 +1097,7 @@ failure:
  */
 - (id) initWithContentsOfFile: (NSString*)path
 {
-  return [self initWithContentsOfFile: path options: 0 error: nil];
+  return [self initWithContentsOfFile: path options: 0 error: NULL];
 }
 
 /**
@@ -1123,7 +1123,7 @@ failure:
  */
 - (id) initWithContentsOfURL: (NSURL*)url
 {
-  return [self initWithContentsOfURL: url options: 0 error: nil];
+  return [self initWithContentsOfURL: url options: 0 error: NULL];
 }
 
 /**
@@ -2576,7 +2576,7 @@ failure:
 
 + (id) dataWithContentsOfURL: (NSURL*)url
 {
-  return [NSMutableData dataWithContentsOfURL: url options:0 error: nil];
+  return [NSMutableData dataWithContentsOfURL: url options:0 error: NULL];
 }
 
 + (id) dataWithContentsOfURL: (NSURL*)url
