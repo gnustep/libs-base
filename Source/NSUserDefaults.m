@@ -2419,6 +2419,12 @@ GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
   return flags[type];
 }
 
+int
+GSMacOSXVersion()
+{
+  return GSPrivateDefaultsFlag(GSMacOSXCompatible);
+}
+
 /* Slightly faster than
  * [[NSUserDefaults standardUserDefaults] dictionaryRepresentation]
  * Avoiding the autorelease of the standard defaults turns out to be

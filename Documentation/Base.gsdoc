@@ -193,6 +193,17 @@ notice and this notice are preserved.
 		or have undefined behaviors (such as methods which fail
 		to check for invalid arguments).
 	      </p>
+	      <p>Developers on OSX are encouraged to contribute code to
+		mimic unsupported behaviors corresponding to a particular
+		OSX version as a stop-gap to allow their code to operate
+		with GNUstep until they have a chance to fix it.
+	      </p>
+	      <p>The GSMaxOSXVersion() function is provided as a convenience
+		to allow code to check the requested version compatibility
+		at runtime,  while GNUstep headers contain version checking
+		macros to help avoid the use of version dependent APIs at
+		compile time.
+	      </p>
 	    </desc>
 	    <term>GSOldStyleGeometry</term>
 	    <desc>
