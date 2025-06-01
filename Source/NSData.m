@@ -497,6 +497,10 @@ getContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone,
 	}
     }
 
+  if (theFile != 0)
+    {
+      fclose(theFile);
+    }
   if (buf)
     {
       *buf = tmp;
@@ -2018,6 +2022,7 @@ failure:
       NSFileManager		*mgr = [NSFileManager defaultManager];
       NSMutableDictionary	*att = nil;
       NSUInteger		perm;
+      DWORD			err;
 
       if ([mgr fileExistsAtPath: path])
 	{
@@ -2044,48 +2049,56 @@ failure:
 	{
 	  c = 0;
 	}
-	/* Windows 9x does not support MoveFileEx */
-      else if (GetLastError() == ERROR_CALL_NOT_IMPLEMENTED)
+      else
 	{
-	  GSNativeChar	secondaryFile[length + 100];
-
-	  wcscpy(secondaryFile, wthePath);
-	  wcscat(secondaryFile, L"-delete");
-	  // Delete the intermediate name just in case
-	  DeleteFileW(secondaryFile);
-	  // Move the existing file to the temp name
-	  if (MoveFileW(wtheRealPath, secondaryFile) != 0)
+	  /* Try harder if we can't use MoveFileEx */
+	  err = GetLastError();
+	  if (ERROR_CALL_NOT_IMPLEMENTED == err
+	    || ERROR_ACCESS_DENIED == err)
 	    {
-	      if (MoveFileW(wthePath, wtheRealPath) != 0)
+	      GSNativeChar	secondaryFile[length + 100];
+
+	      wcscpy(secondaryFile, wthePath);
+	      wcscat(secondaryFile, L"-delete");
+	      // Delete the intermediate name just in case
+	      DeleteFileW(secondaryFile);
+	      // Move the existing file to the temp name
+	      if (MoveFileW(wtheRealPath, secondaryFile) != 0)
 		{
-		  c = 0;
-		  // Delete the old file if possible
-		  DeleteFileW(secondaryFile);
+		  if (MoveFileW(wthePath, wtheRealPath) != 0)
+		    {
+		      c = 0;
+		      // Delete the old file if possible
+		      DeleteFileW(secondaryFile);
+		    }
+		  else
+		    {
+		      c = -1; // failure, restore the old file if possible
+		      MoveFileW(secondaryFile, wtheRealPath);
+		    }
 		}
 	      else
 		{
-		  c = -1; // failure, restore the old file if possible
-		  MoveFileW(secondaryFile, wtheRealPath);
+		  c = -1; // failure
 		}
+	      err = GetLastError();
 	    }
 	  else
 	    {
-	      c = -1; // failure
+	      c = -1;
 	    }
-	}
-      else
-	{
-	  c = -1;
 	}
 
       if (c != 0)               /* Many things could go wrong, I guess. */
         {
+	  NSError	*e = [NSError _systemError: err];
+
           NSWarnMLog(@"Rename ('%@' to '%@') failed - %@",
 	    [NSString stringWithCharacters: wthePath
 				    length: wcslen(wthePath)],
 	    [NSString stringWithCharacters: wtheRealPath
 				    length: wcslen(wtheRealPath)],
-	    [NSError _last]);
+	    e);
           goto failure;
         }
 
