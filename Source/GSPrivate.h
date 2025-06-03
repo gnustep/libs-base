@@ -254,6 +254,11 @@ typedef union {
 
 typedef	GSMutableString *GSStr;
 
+/** Method to get a strings mappings (key/value pairs of strings) from file.
+ */
+id
+GSPropertyListFromStringsFormat(NSData *data) GS_ATTRIB_PRIVATE;;
+
 /*
  * Enumeration for MacOS-X compatibility user defaults settings.
  * For efficiency, we save defaults information which is used by the

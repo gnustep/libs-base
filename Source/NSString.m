@@ -6330,11 +6330,9 @@ static NSFileManager *fm = nil;
 
   if (result == nil)
     {
-      extern id	GSPropertyListFromStringsFormat(NSString *string);
-
       NS_DURING
         {
-          result = GSPropertyListFromStringsFormat(self);
+          result = GSPropertyListFromStringsFormat(data);
         }
       NS_HANDLER
         {
@@ -6374,9 +6372,9 @@ static NSFileManager *fm = nil;
  */
 - (NSDictionary*) propertyListFromStringsFileFormat
 {
-  extern id	GSPropertyListFromStringsFormat(NSString *string);
+  NSData	*data = [self dataUsingEncoding: NSUTF8StringEncoding];
 
-  return GSPropertyListFromStringsFormat(self);
+  return GSPropertyListFromStringsFormat(data);
 }
 
 /**
