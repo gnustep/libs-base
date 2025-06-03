@@ -1613,7 +1613,7 @@ newLanguages(NSArray *oldNames)
 	       * changed, meaning -objectForKey: would return a different
 	       * value than before.
 	       */
-	      if ([new hash] != [old hash])
+	      if (![new isEqual: old])
 		{
 		  [self _notifyObserversOfChangeForKey: defaultName
 					      oldValue: old
@@ -1772,7 +1772,7 @@ static BOOL isPlistObject(id o)
           [self _changePersistentDomain: bundleIdentifier];
 	  
 	  // Emit only a KVO notification when the value has actually changed
-	  if ([new hash] != [old hash])
+	  if (![new isEqual: old])
 	    {
               [self _notifyObserversOfChangeForKey: defaultName
 					  oldValue: old
