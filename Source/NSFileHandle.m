@@ -319,6 +319,23 @@ static Class NSFileHandle_ssl_class = nil;
   [self subclassResponsibility: _cmd];
 }
 
+- (BOOL)writeData:(NSData *)data error:(NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
+
+- (NSData *)readDataUpToLength:(NSUInteger)length error:(NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (NSData *)readDataToEndOfFileAndReturnError:(NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
 
 // Asynchronous I/O operations
 

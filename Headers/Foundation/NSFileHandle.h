@@ -76,6 +76,26 @@ GS_EXPORT_CLASS
 - (NSData*) readDataOfLength: (unsigned int)len;
 - (void) writeData: (NSData*)item;
 
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_15, GS_API_LATEST)
+/**
+ * Writes the specified data synchronously to the file handle.
+ */
+- (BOOL) writeData: (NSData *) data 
+             error: (NSError **) error;
+
+/**
+ * Reads the data synchronously up to the specified number of bytes.
+ */
+- (NSData *) readDataUpToLength: (NSUInteger) length 
+                          error: (NSError **) error;
+
+/**
+ * Reads the data synchronously up to the end of file or maximum number of
+ * bytes.
+ */
+- (NSData *) readDataToEndOfFileAndReturnError: (NSError **) error;
+#endif
+
 // Asynchronous I/O operations
 
 - (void) acceptConnectionInBackgroundAndNotify;
@@ -92,6 +112,27 @@ GS_EXPORT_CLASS
 - (unsigned long long) offsetInFile;
 - (unsigned long long) seekToEndOfFile;
 - (void) seekToFileOffset: (unsigned long long)pos;
+
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_15, GS_API_LATEST)
+/**
+ * Get the current position of the file pointer within the file.
+ */
+- (BOOL) getOffset: (unsigned long long *) offsetInFile 
+             error: (NSError **) error;
+
+/**
+ * Sets the file pointer at the end of the file and returns the new file offset.
+ */
+- (BOOL) seekToEndReturningOffset: (unsigned long long *) offsetInFile 
+                            error: (NSError **) error;
+
+/**
+ * Sets the file pointer to the specified offset within the file.
+ */
+- (BOOL) seekToOffset: (unsigned long long) offset 
+                error: (NSError **) error;
+
+#endif
 
 // Operations on file
 
