@@ -305,7 +305,7 @@ static Class NSFileHandle_ssl_class = nil;
 /**
  *  Reads up to len bytes from file or communications channel into return data.
  */
-- (NSData*) readDataOfLength: (unsigned int)len
+- (NSData*) readDataOfLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return nil;

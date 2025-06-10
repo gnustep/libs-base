@@ -1468,7 +1468,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
     return  data;
 }
 
-- (NSData*) readDataOfLength: (unsigned)len error: (NSError **) error
+- (NSData*) readDataUpToLength: (NSUInteger)len error: (NSError **) error
 {
   NSMutableData	*d;
   int		got;
@@ -1506,12 +1506,12 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   return d;
 }
 
-- (NSData*) readDataOfLength: (unsigned)len
+- (NSData*) readDataOfLength: (NSUInteger)len
 {
   NSData *data;
   NSError *error = nil;
 
-  data = [self readDataOfLength: len error: &error];
+  data = [self readDataUpToLength: len error: &error];
   if (!data)
     {
       NSError *underlying = [[error userInfo] objectForKey: NSUnderlyingErrorKey];

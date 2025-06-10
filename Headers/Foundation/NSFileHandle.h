@@ -73,7 +73,7 @@ GS_EXPORT_CLASS
 
 - (NSData*) availableData;
 - (NSData*) readDataToEndOfFile;
-- (NSData*) readDataOfLength: (unsigned int)len;
+- (NSData*) readDataOfLength: (NSUInteger)len;
 - (void) writeData: (NSData*)item;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_15, GS_API_LATEST)
