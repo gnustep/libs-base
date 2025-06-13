@@ -1,7 +1,7 @@
 /** Interface for NSLog for GNUStep
    Copyright (C) 1996, 1997 Free Software Foundation, Inc.
 
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  Adam Fedor <fedor@gnu.org>
    Date: November 1996
 
    This file is part of the GNUstep Base Library.

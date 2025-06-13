@@ -1,7 +1,7 @@
 /** NSCharacterSet - Character set holder
    Copyright (C) 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
 
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  Adam Fedor <fedor@gnu.org>
    Date: Apr 1995
    Updates by:  Richard Frith-Macdonald <rfm@gnu.org>
 

@@ -1,7 +1,7 @@
 /** Implementation of NSBundle class
    Copyright (C) 1993-2002 Free Software Foundation, Inc.
 
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  Adam Fedor <fedor@gnu.org>
    Date: May 1993
 
    Author: Mirko Viviani <mirko.viviani@rccr.cremona.it>
