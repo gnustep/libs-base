@@ -2646,26 +2646,69 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
   RELEASE(tmp);
 }
 
+static BOOL
+checkPL(id aPropertyList, NSPropertyListFormat aFormat)
+{
+  if ([aPropertyList isKindOfClass: NSArrayClass])
+    {
+      NSArray	*a = (NSArray*)aPropertyList;
+
+      FOR_IN(id, obj, a)
+	{
+	  if (NO == checkPL(obj, aFormat))
+	    {
+	      return NO;
+	    }
+	}
+      END_FOR_IN(a)
+    }
+  else if ([aPropertyList isKindOfClass: NSArrayClass])
+    {
+      NSDictionary	*d = (NSDictionary*)aPropertyList;
+
+      FOR_IN(id, obj, d)
+	{
+	  if (NO == checkPL(obj, aFormat))
+	    {
+	      return NO;
+	    }
+	  obj = [d objectForKey: obj];
+	  if (NO == checkPL(obj, aFormat))
+	    {
+	      return NO;
+	    }
+	}
+      END_FOR_IN(d)
+    }
+  else if (NO == [aPropertyList isKindOfClass: NSStringClass]
+    && NO == [aPropertyList isKindOfClass: NSDataClass])
+    {
+      if (NSPropertyListOpenStepFormat == YES)
+	{
+	  /* We have tried string, data, array, dictionary
+	   */
+	  return NO;
+	}
+      if (NO == [aPropertyList isKindOfClass: NSNumberClass]
+	&& NO == [aPropertyList isKindOfClass: NSDateClass])
+	{
+	  return NO;
+	}
+    }
+  return YES;
+}
+
 + (BOOL) propertyList: (id)aPropertyList
      isValidForFormat: (NSPropertyListFormat)aFormat
 {
-// FIXME ... need to check properly.
   switch (aFormat)
     {
       case NSPropertyListGNUstepFormat:
-	return YES;
-
       case NSPropertyListGNUstepBinaryFormat:
-	return YES;
-
       case NSPropertyListOpenStepFormat:
-	return YES;
-
       case NSPropertyListXMLFormat_v1_0:
-	return YES;
-
       case NSPropertyListBinaryFormat_v1_0:
-	return YES;
+	break;
 
       default:
 	[NSException raise: NSInvalidArgumentException
@@ -2673,6 +2716,7 @@ GSPropertyListMake(id obj, NSDictionary *loc, BOOL xml,
 	  NSStringFromClass(self), NSStringFromSelector(_cmd)];
 	return NO;
     }
+  return checkPL(aPropertyList, aFormat);
 }
 
 + (id) propertyListFromData: (NSData*)data
