@@ -305,7 +305,7 @@ static Class NSFileHandle_ssl_class = nil;
 /**
  *  Reads up to len bytes from file or communications channel into return data.
  */
-- (NSData*) readDataOfLength: (unsigned int)len
+- (NSData*) readDataOfLength: (NSUInteger)len
 {
   [self subclassResponsibility: _cmd];
   return nil;
@@ -319,6 +319,23 @@ static Class NSFileHandle_ssl_class = nil;
   [self subclassResponsibility: _cmd];
 }
 
+- (BOOL)writeData:(NSData *)data error:(NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return NO;
+}
+
+- (NSData *)readDataUpToLength:(NSUInteger)length error:(NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
+
+- (NSData *)readDataToEndOfFileAndReturnError:(NSError **)error
+{
+  [self subclassResponsibility: _cmd];
+  return nil;
+}
 
 // Asynchronous I/O operations
 
