@@ -186,9 +186,10 @@ static Class NSFileHandle_ssl_class = nil;
   return AUTORELEASE([o initWithNullDevice]);
 }
 
-+ (id) fileHandleForReadingFromURL: (NSURL*)url error:(NSError**)error
++ (id) fileHandleForReadingFromURL: (NSURL*)url error: (NSError**)error
 {
   id	o = [self fileHandleForReadingAtPath: [url path]];
+
   if (!o && error)
     {
       *error = [NSError _last];
@@ -196,9 +197,10 @@ static Class NSFileHandle_ssl_class = nil;
   return o;
 }
 
-+ (id) fileHandleForWritingToURL: (NSURL*)url error:(NSError**)error
++ (id) fileHandleForWritingToURL: (NSURL*)url error: (NSError**)error
 {
   id	o = [self fileHandleForWritingAtPath: [url path]];
+
   if (!o && error)
     {
       *error = [NSError _last];
@@ -209,6 +211,7 @@ static Class NSFileHandle_ssl_class = nil;
 + (id) fileHandleForUpdatingURL: (NSURL*)url error:(NSError**)error
 {
   id	o = [self fileHandleForUpdatingAtPath: [url path]];
+
   if (!o && error)
     {
       *error = [NSError _last];
@@ -319,19 +322,19 @@ static Class NSFileHandle_ssl_class = nil;
   [self subclassResponsibility: _cmd];
 }
 
-- (BOOL)writeData:(NSData *)data error:(NSError **)error
+- (BOOL) writeData:(NSData *)data error: (NSError **)error
 {
   [self subclassResponsibility: _cmd];
   return NO;
 }
 
-- (NSData *)readDataUpToLength:(NSUInteger)length error:(NSError **)error
+- (NSData *) readDataUpToLength:(NSUInteger)length error: (NSError **)error
 {
   [self subclassResponsibility: _cmd];
   return nil;
 }
 
-- (NSData *)readDataToEndOfFileAndReturnError:(NSError **)error
+- (NSData *) readDataToEndOfFileAndReturnError: (NSError **)error
 {
   [self subclassResponsibility: _cmd];
   return nil;

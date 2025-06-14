@@ -21,14 +21,14 @@
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
    */
 
-#include "Foundation/FoundationErrors.h"
-#include "Foundation/NSError.h"
 #import "common.h"
 #define	EXPOSE_NSFileHandle_IVARS	1
 #define	EXPOSE_GSFileHandle_IVARS	1
+#import "Foundation/FoundationErrors.h"
 #import "Foundation/NSData.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSFileHandle.h"
+#import "Foundation/NSError.h"
 #import "Foundation/NSException.h"
 #import "Foundation/NSRunLoop.h"
 #import "Foundation/NSNotification.h"

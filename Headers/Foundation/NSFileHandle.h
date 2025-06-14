@@ -54,9 +54,12 @@ GS_EXPORT_CLASS
 + (instancetype) fileHandleWithNullDevice;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6, GS_API_LATEST)
-+ (instancetype) fileHandleForReadingFromURL: (NSURL*)url error:(NSError**)error;
-+ (instancetype) fileHandleForWritingToURL: (NSURL*)url error:(NSError**)error;
-+ (instancetype) fileHandleForUpdatingURL: (NSURL*)url error:(NSError**)error;
++ (instancetype) fileHandleForReadingFromURL: (NSURL*)url
+				       error: (NSError**)error;
++ (instancetype) fileHandleForWritingToURL: (NSURL*)url
+				     error: (NSError**)error;
++ (instancetype) fileHandleForUpdatingURL: (NSURL*)url
+				    error: (NSError**)error;
 #endif
 
 - (id) initWithFileDescriptor: (int)desc;
@@ -80,20 +83,20 @@ GS_EXPORT_CLASS
 /**
  * Writes the specified data synchronously to the file handle.
  */
-- (BOOL) writeData: (NSData *) data 
-             error: (NSError **) error;
+- (BOOL) writeData: (NSData *)data 
+             error: (NSError **)error;
 
 /**
  * Reads the data synchronously up to the specified number of bytes.
  */
-- (NSData *) readDataUpToLength: (NSUInteger) length 
-                          error: (NSError **) error;
+- (NSData *) readDataUpToLength: (NSUInteger)length 
+                          error: (NSError **)error;
 
 /**
  * Reads the data synchronously up to the end of file or maximum number of
  * bytes.
  */
-- (NSData *) readDataToEndOfFileAndReturnError: (NSError **) error;
+- (NSData *) readDataToEndOfFileAndReturnError: (NSError **)error;
 #endif
 
 // Asynchronous I/O operations
@@ -117,20 +120,20 @@ GS_EXPORT_CLASS
 /**
  * Get the current position of the file pointer within the file.
  */
-- (BOOL) getOffset: (unsigned long long *) offsetInFile 
-             error: (NSError **) error;
+- (BOOL) getOffset: (unsigned long long *)offsetInFile 
+             error: (NSError **)error;
 
 /**
  * Sets the file pointer at the end of the file and returns the new file offset.
  */
-- (BOOL) seekToEndReturningOffset: (unsigned long long *) offsetInFile 
-                            error: (NSError **) error;
+- (BOOL) seekToEndReturningOffset: (unsigned long long *)offsetInFile 
+                            error: (NSError **)error;
 
 /**
  * Sets the file pointer to the specified offset within the file.
  */
-- (BOOL) seekToOffset: (unsigned long long) offset 
-                error: (NSError **) error;
+- (BOOL) seekToOffset: (unsigned long long)offset 
+                error: (NSError **)error;
 
 - (BOOL) truncateAtOffset: (unsigned long long)offset 
                     error: (out NSError **)error;
