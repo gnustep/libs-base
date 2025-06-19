@@ -535,7 +535,9 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  GSHTTPAuthentication	*authentication;
 	  NSURLCredential	*cred;
 	  NSString		*method;
+	  NSString		*params;
 	  NSString		*path;
+	  NSString		*query;
 	  NSNumber		*omitQuery;
 
 	  /* Create credential from user and password stored in the URL.
@@ -574,16 +576,21 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		}
 	    }
 
-	  omitQuery = [request objectForKey:
-	    GSHTTPPropertyDigestURIOmitsQuery];
-	  if ([[u query] length] == 0 || [omitQuery boolValue])
+          path = [u pathWithEscapes];
+	  params = [u parameterString];
+	  if ([params length])
 	    {
-	      path = [u pathWithEscapes];
+	      path = [path stringByAppendingFormat: @";%@", params];
 	    }
-	  else
+	  query = [u query];
+	  if ([query length])
 	    {
-	      path = [NSString stringWithFormat: @"%@?%@",
-		[u pathWithEscapes], [u query]];
+	      omitQuery = [request objectForKey:
+		GSHTTPPropertyDigestURIOmitsQuery];
+	      if (NO == [omitQuery boolValue])
+		{
+		  path = [path stringByAppendingFormat: @"?%@", query];
+		}
 	    }
 
 	  auth = [authentication authorizationForAuthentication: nil
@@ -1123,6 +1130,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 - (void) _apply
 {
   NSString	*method;
+  NSString	*params;
   NSString	*path;
   NSString	*s;
 
@@ -1133,6 +1141,11 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   if ([path length] == 0)
     {
       path = @"/";
+    }
+  params = [u parameterString];
+  if ([params length])
+    {
+      path = [path stringByAppendingFormat: @";%@", params];
     }
 
   method = [request objectForKey: GSHTTPPropertyMethodKey];
@@ -1924,6 +1937,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   else
     {
       NSString	*method;
+      NSString	*params;
       NSString	*path;
       NSString	*basic;
 
@@ -1954,6 +1968,11 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
       if ([path length] == 0)
 	{
 	  path = @"/";
+	}
+      params = [u parameterString];
+      if ([params length])
+	{
+	  path = [path stringByAppendingFormat: @";%@", params];
 	}
       basic = [NSString stringWithFormat: @"%@ %@", method, path];
       [self bgdApply: basic];

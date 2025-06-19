@@ -345,6 +345,11 @@ GSPathHandling("right");
   PASS_EQUAL([url description],
     @"file:///pathtofile;parameters?query#anchor",
     "description");
+#if     GNUSTEP
+  PASS_EQUAL([url fullPath], @"/pathtofile;parameters", "complex -fullPath")
+  PASS_EQUAL([url pathWithEscapes], @"/pathtofile;parameters",
+    "complex -pathWithEscapes")
+#endif
 
   url = [NSURL URLWithString: @"file:///pathtofile; parameters? query #anchor"];     // can't initialize with spaces (must be %20)
   PASS(nil == url, "url with spaces");

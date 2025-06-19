@@ -59,7 +59,8 @@ extern "C" {
 
 @interface NSURL (GNUstepBase)
 /** Returns the full path for this URL including any trailing slash but
- * without escapes.
+ * without escapes.<br />
+ * This path includes parameters but not the query string.
  */
 - (NSString*) fullPath;
 
@@ -67,7 +68,8 @@ extern "C" {
  * This is useful if you need to distinguish between "/" and "%2F" in the path.
  * The normal -path method will convert all "%2F" value in the path into "/"
  * so that you have no way of knowing whether a "/" is part of a path component
- * or is a path separator.
+ * or is a path separator.<br />
+ * This path includes parameters but not the query string.
  */
 - (NSString*) pathWithEscapes;
 @end

@@ -1441,11 +1441,13 @@ static NSUInteger	urlAlign;
   return fragment;
 }
 
-- (char*) _path: (char*)buf withEscapes: (BOOL)withEscapes
+- (char*) _path: (char*)buf
+    withEscapes: (BOOL)withEscapes
+         params: (unsigned)plen
 {
   char	*ptr = buf;
   char	*tmp = buf;
-  int	l;
+  int	l = 0;
 
   *buf = '\0';
   if (myData->pathIsAbsolute == YES)
@@ -1500,6 +1502,12 @@ static NSUInteger	urlAlign;
 	  l = strlen(myData->path);
           memcpy(tmp, myData->path, l + 1);
 	}
+    }
+  if (plen)
+    {
+      tmp += l;
+      *tmp++ = ';';
+      memcpy(tmp, myData->parameters, plen);
     }
 
   if (!withEscapes)
@@ -1699,7 +1707,9 @@ static NSUInteger	urlAlign;
           char		*ptr;
           char		*tmp;
 
-          ptr = [self _path: buf withEscapes: withEscapes];
+	  /* Path without parameters
+	   */
+          ptr = [self _path: buf withEscapes: withEscapes params: 0];
 
           /* Remove any trailing '/' from the path for MacOS-X compatibility.
            */
@@ -2127,6 +2137,7 @@ static NSUInteger	urlAlign;
   if (YES == myData->isGeneric || 0 == myData->scheme)
     {
       unsigned int	len = 3;
+      unsigned int	plen = 0;
 
       if (_baseURL != nil)
         {
@@ -2147,12 +2158,16 @@ static NSUInteger	urlAlign;
         {
           len++;
         }
+      if (myData->parameters)
+	{
+	  plen += strlen(myData->parameters) + 1;
+	}
       if (len > 3)
         {
-          char		buf[len];
+          char		buf[len + plen];
           char		*ptr;
 
-          ptr = [self _path: buf withEscapes: NO];
+          ptr = [self _path: buf withEscapes: NO params: plen];
           path = [NSString stringWithUTF8String: ptr];
         }
     }
@@ -2166,6 +2181,7 @@ static NSUInteger	urlAlign;
   if (YES == myData->isGeneric || 0 == myData->scheme)
     {
       unsigned int	len = 3;
+      unsigned int	plen = 0;
 
       if (_baseURL != nil)
         {
@@ -2186,12 +2202,16 @@ static NSUInteger	urlAlign;
         {
           len++;
         }
+      if (myData->parameters)
+	{
+	  plen += strlen(myData->parameters) + 1;
+	}
       if (len > 3)
         {
-          char		buf[len];
+          char		buf[len + plen];
           char		*ptr;
 
-          ptr = [self _path: buf withEscapes: YES];
+          ptr = [self _path: buf withEscapes: YES params: plen];
           path = [NSString stringWithUTF8String: ptr];
         }
     }
