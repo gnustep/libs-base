@@ -90,9 +90,10 @@ function may be incorrect
 @end
 
 @implementation	NSURL (GSPrivate)
-
 - (NSURL*) _URLBySettingPath: (NSString*)newPath 
 {
+  NSAssert([newPath isKindOfClass: [NSString class]],
+    NSInvalidArgumentException);
   if ([self isFileURL]) 
     {
       return [NSURL fileURLWithPath: newPath];
@@ -100,6 +101,18 @@ function may be incorrect
   else
     {
       NSURL	*u;
+      NSString	*params;
+      NSRange	r = [newPath rangeOfString: @";"];
+
+      if (r.length > 0)
+	{
+	  params = [newPath substringFromIndex: NSMaxRange(r)];
+	  newPath = [newPath substringToIndex: r.location];
+	}
+      else
+	{
+	  params = [self parameterString];
+	}
 
       u = [[NSURL alloc] initWithScheme: [self scheme]
 				   user: [self user]
@@ -107,19 +120,56 @@ function may be incorrect
 				   host: [self host]
 				   port: [self port]
 			       fullPath: newPath
-			parameterString: [self parameterString]
+			parameterString: params
 				  query: [self query]
 			       fragment: [self fragment]];
       return [u autorelease];
     }
 }
+@end
 
+@implementation	NSURL (Private)
+/* This method should return the full (and correctly escaped) ASCII string
+ * of the path oa an http/https request, as it  should appear in the first
+ * line of the request sent over the wire.
+ * The withoutQuery option may be used to return a truncated request which
+ * does not include the query string (or fragment) part.  This is intended
+ * as a convenience for code which wants to add the query string later, or
+ * for request digests where the remote server doesn't expect the query to
+ * be included in the digest path.
+ */
+- (NSString*) _requestPath: (BOOL)withoutQuery
+{
+  NSString	*params = [self parameterString];
+  NSString	*path = [self pathWithEscapes];
+
+  if ([path length] == 0)
+    {
+      path = @"/";
+    }
+  if ([params length])
+    {
+      path = [path stringByAppendingFormat: @";%@", params];
+    }
+  if (NO == withoutQuery)
+    {
+      NSString	*query = [self query];
+
+      if ([query length])
+	{
+	  path = [path stringByAppendingFormat: @"?%@", query];
+	}
+    }
+  return path;
+}
 @end
 
 /*
  * Structure describing a URL.
  * All the char* fields may be NULL pointers, except path, which
  * is *always* non-null (though it may be an empty string).
+ * The sgtored values are percent escaped and must be unescaped when used
+ * to return an unescaped part of the URL.
  */
 typedef struct {
   id	absolute;		// Cache absolute string or nil
@@ -1441,13 +1491,11 @@ static NSUInteger	urlAlign;
   return fragment;
 }
 
-- (char*) _path: (char*)buf
-    withEscapes: (BOOL)withEscapes
-         params: (unsigned)plen
+- (char*) _path: (char*)buf withEscapes: (BOOL)withEscapes
 {
   char	*ptr = buf;
   char	*tmp = buf;
-  int	l = 0;
+  int	l;
 
   *buf = '\0';
   if (myData->pathIsAbsolute == YES)
@@ -1502,12 +1550,6 @@ static NSUInteger	urlAlign;
 	  l = strlen(myData->path);
           memcpy(tmp, myData->path, l + 1);
 	}
-    }
-  if (plen)
-    {
-      tmp += l;
-      *tmp++ = ';';
-      memcpy(tmp, myData->parameters, plen);
     }
 
   if (!withEscapes)
@@ -1707,9 +1749,7 @@ static NSUInteger	urlAlign;
           char		*ptr;
           char		*tmp;
 
-	  /* Path without parameters
-	   */
-          ptr = [self _path: buf withEscapes: withEscapes params: 0];
+          ptr = [self _path: buf withEscapes: withEscapes];
 
           /* Remove any trailing '/' from the path for MacOS-X compatibility.
            */
@@ -2137,7 +2177,6 @@ static NSUInteger	urlAlign;
   if (YES == myData->isGeneric || 0 == myData->scheme)
     {
       unsigned int	len = 3;
-      unsigned int	plen = 0;
 
       if (_baseURL != nil)
         {
@@ -2158,16 +2197,12 @@ static NSUInteger	urlAlign;
         {
           len++;
         }
-      if (myData->parameters)
-	{
-	  plen += strlen(myData->parameters) + 1;
-	}
       if (len > 3)
         {
-          char		buf[len + plen];
+          char		buf[len];
           char		*ptr;
 
-          ptr = [self _path: buf withEscapes: NO params: plen];
+          ptr = [self _path: buf withEscapes: NO];
           path = [NSString stringWithUTF8String: ptr];
         }
     }
@@ -2181,7 +2216,6 @@ static NSUInteger	urlAlign;
   if (YES == myData->isGeneric || 0 == myData->scheme)
     {
       unsigned int	len = 3;
-      unsigned int	plen = 0;
 
       if (_baseURL != nil)
         {
@@ -2202,16 +2236,12 @@ static NSUInteger	urlAlign;
         {
           len++;
         }
-      if (myData->parameters)
-	{
-	  plen += strlen(myData->parameters) + 1;
-	}
       if (len > 3)
         {
-          char		buf[len + plen];
+          char		buf[len];
           char		*ptr;
 
-          ptr = [self _path: buf withEscapes: YES params: plen];
+          ptr = [self _path: buf withEscapes: YES];
           path = [NSString stringWithUTF8String: ptr];
         }
     }

@@ -443,6 +443,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   NSMutableString	*s;
   NSString              *key;
   NSString		*val;
+  NSString		*query;
   NSMutableData		*buf;
   NSMutableData		*masked = nil;
   NSString		*version;
@@ -457,9 +458,10 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
     }
 
   s = [basic mutableCopy];
-  if ([[u query] length] > 0)
+  query = [u query];
+  if ([query length] > 0)
     {
-      [s appendFormat: @"?%@", [u query]];
+      [s appendFormat: @"?%@", query];
     }
 
   version = [request objectForKey: NSHTTPPropertyServerHTTPVersionKey];
@@ -535,10 +537,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	  GSHTTPAuthentication	*authentication;
 	  NSURLCredential	*cred;
 	  NSString		*method;
-	  NSString		*params;
 	  NSString		*path;
-	  NSString		*query;
-	  NSNumber		*omitQuery;
 
 	  /* Create credential from user and password stored in the URL.
 	   * Returns nil if we have no username or password.
@@ -576,22 +575,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		}
 	    }
 
-          path = [u pathWithEscapes];
-	  params = [u parameterString];
-	  if ([params length])
-	    {
-	      path = [path stringByAppendingFormat: @";%@", params];
-	    }
-	  query = [u query];
-	  if ([query length])
-	    {
-	      omitQuery = [request objectForKey:
-		GSHTTPPropertyDigestURIOmitsQuery];
-	      if (NO == [omitQuery boolValue])
-		{
-		  path = [path stringByAppendingFormat: @"?%@", query];
-		}
-	    }
+	  path = [u _requestPath: [[request
+	    objectForKey: GSHTTPPropertyDigestURIOmitsQuery] boolValue]];
 
 	  auth = [authentication authorizationForAuthentication: nil
 	    method: method
@@ -860,7 +845,6 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 		  NSString		*method;
 		  NSString		*path;
 		  NSString		*auth;
-		  NSNumber		*omitQuery;
 
 		  ac = [ah value];
 		  space = [GSHTTPAuthentication
@@ -914,17 +898,8 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 			}
 		    }
 
-		  omitQuery = [request objectForKey:
-		    GSHTTPPropertyDigestURIOmitsQuery];
-		  if ([[url query] length] == 0 || [omitQuery boolValue])
-		    {
-		      path = [url pathWithEscapes];
-		    }
-		  else
-		    {
-		      path = [NSString stringWithFormat: @"%@?%@",
-			[url pathWithEscapes], [url query]];
-		    }
+		  path = [u _requestPath: [[request objectForKey:
+		    GSHTTPPropertyDigestURIOmitsQuery] boolValue]];
 
 		  auth = [authentication authorizationForAuthentication: ac
 		    method: method
@@ -1130,23 +1105,13 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 - (void) _apply
 {
   NSString	*method;
-  NSString	*params;
   NSString	*path;
   NSString	*s;
 
   /*
    * Set up request - differs for proxy version unless tunneling via ssl.
    */
-  path = [[u pathWithEscapes] stringByTrimmingSpaces];
-  if ([path length] == 0)
-    {
-      path = @"/";
-    }
-  params = [u parameterString];
-  if ([params length])
-    {
-      path = [path stringByAppendingFormat: @";%@", params];
-    }
+  path = [u _requestPath: YES];
 
   method = [request objectForKey: GSHTTPPropertyMethodKey];
   if (method == nil)
@@ -1937,7 +1902,6 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
   else
     {
       NSString	*method;
-      NSString	*params;
       NSString	*path;
       NSString	*basic;
 
@@ -1964,16 +1928,7 @@ debugWrite(GSHTTPURLHandle *handle, NSData *data)
 	      method = @"GET";
 	    }
 	}
-      path = [[u pathWithEscapes] stringByTrimmingSpaces];
-      if ([path length] == 0)
-	{
-	  path = @"/";
-	}
-      params = [u parameterString];
-      if ([params length])
-	{
-	  path = [path stringByAppendingFormat: @";%@", params];
-	}
+      path = [u _requestPath: YES];
       basic = [NSString stringWithFormat: @"%@ %@", method, path];
       [self bgdApply: basic];
     }

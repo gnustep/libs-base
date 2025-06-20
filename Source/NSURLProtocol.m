@@ -1399,7 +1399,7 @@ typedef struct {
 		  if (_credential != nil)
 		    {
 		      GSHTTPAuthentication	*authentication;
-		      NSNumber				*omitQuery;
+		      NSString			*path;
 
 		      /* Get information about basic or
 		       * digest authentication.
@@ -1408,19 +1408,16 @@ typedef struct {
 			authenticationWithCredential: _credential
 			inProtectionSpace: space];
 
+		      path = [url _requestPath: [[this->request _propertyForKey:
+		        GSHTTPPropertyDigestURIOmitsQuery] boolValue]];
+
 		      /* Generate authentication header value for the
 		       * authentication type in the challenge.
 		       */
-		      omitQuery = [this->request _propertyForKey:
-			GSHTTPPropertyDigestURIOmitsQuery];
 		      auth = [authentication
 			authorizationForAuthentication: hdr
 			method: [this->request HTTPMethod]
-			path: [[url query] length] == 0 || [omitQuery boolValue]
-			  ? [url pathWithEscapes]
-			  : [NSString stringWithFormat: @"%@?%@",
-			    [url pathWithEscapes], [url query]]
-		      ];
+			path: path];
 		    }
 
 		  if (auth == nil)
@@ -1813,25 +1810,15 @@ typedef struct {
 	      m = [[NSMutableData alloc] initWithCapacity: 1024];
 
 	      /* The request line is of the form:
-	       * method /path?query HTTP/version
-	       * where the query part may be missing
+	       * method /path;params?query HTTP/version
+	       * where the params or query parts may be missing
 	       */
 	      [m appendData: [[this->request HTTPMethod]
                 dataUsingEncoding: NSASCIIStringEncoding]];
 	      [m appendBytes: " " length: 1];
 	      u = [this->request URL];
-	      s = [u pathWithEscapes];
-	      if ([s hasPrefix: @"/"] == NO)
-	        {
-		  [m appendBytes: "/" length: 1];
-		}
+	      s = [u _requestPath: 0];
 	      [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
-	      s = [u query];
-	      if ([s length] > 0)
-	        {
-		  [m appendBytes: "?" length: 1];
-		  [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
-		}
 	      s = [NSString stringWithFormat: @" HTTP/%0.1f\r\n", _version];
 	      [m appendData: [s dataUsingEncoding: NSASCIIStringEncoding]];
 
