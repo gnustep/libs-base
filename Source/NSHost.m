@@ -176,7 +176,7 @@ myHostName()
     }
   else
     {
-      [_hostCache setObject: [NSNull null] forKey: key];
+      [_hostCache setObject: null forKey: key];
       NSLog(@"Host '%@' not found - "
 	@"perhaps the hostname is wrong or networking is not "
 	@"set up on your machine", key);
@@ -642,12 +642,16 @@ getCNames(NSString *host, NSMutableSet *cnames)
 	    }
 	}
 #endif
+      if (_hostCacheEnabled)
+	{
+	  [self _cacheHost: host forKey: name];
+	}
     }
-  if (_hostCacheEnabled)
+  if (AUTORELEASE(host) != null)
     {
-      [self _cacheHost: host forKey: name];
+      return host;
     }
-  return AUTORELEASE(host);
+  return nil;
 }
 
 + (NSHost*) hostWithAddress: (NSString*)address
@@ -729,12 +733,16 @@ getCNames(NSString *host, NSMutableSet *cnames)
 	  host = [[self alloc] _initWithHostEntry: h key: address];
 	}
 #endif
+      if (_hostCacheEnabled)
+	{
+	  [self _cacheHost: host forKey: address];
+	}
     }
-  if (_hostCacheEnabled)
+  if (AUTORELEASE(host) != null)
     {
-      [self _cacheHost: host forKey: address];
+      return host;
     }
-  return AUTORELEASE(host);
+  return nil;
 }
 
 + (void) setHostCacheEnabled: (BOOL)flag
