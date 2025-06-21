@@ -3890,7 +3890,7 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     }
   else
     {
-      bytes = mmap(0, length, PROT_READ, MAP_SHARED, fd, 0);
+      bytes = mmap(0, off, PROT_READ, MAP_SHARED, fd, 0);
       if (MAP_FAILED == bytes)
 	{
 	  NSWarnMLog(@"mapping failed for %@ - %@", path, [NSError _last]);
