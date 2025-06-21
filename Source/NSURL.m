@@ -130,13 +130,14 @@ function may be incorrect
 
 @implementation	NSURL (Private)
 /* This method should return the full (and correctly escaped) ASCII string
- * of the path oa an http/https request, as it  should appear in the first
+ * of the path oa an http/https request, as it should appear in the first
  * line of the request sent over the wire.
  * The withoutQuery option may be used to return a truncated request which
- * does not include the query string (or fragment) part.  This is intended
- * as a convenience for code which wants to add the query string later, or
- * for request digests where the remote server doesn't expect the query to
- * be included in the digest path.
+ * does not include the query string part, so it can be used for digest
+ * authentication where the path is needed to establish the authentication
+ * domain.
+ * Neither of these include the fragment part of the URL, as that is only
+ * for use within the browser and never sent to the server.
  */
 - (NSString*) _requestPath: (BOOL)withoutQuery
 {
