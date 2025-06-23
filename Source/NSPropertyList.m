@@ -964,6 +964,7 @@ static id parsePlItem(pldata* pld) NS_RETURNS_RETAINED
 	      pld->key = NO;
 	      if (key == nil)
 		{
+		  RELEASE(dict);
 		  return nil;
 		}
 	      if (skipSpace(pld) == NO)
