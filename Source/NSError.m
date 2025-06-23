@@ -44,9 +44,10 @@
   NSMutableDictionary	*m;
 
   e = [e initWithDomain: NSCocoaErrorDomain code: aCode userInfo: nil];
-  m = [NSMutableDictionary allocWithZone: NSDefaultMallocZone()];
-  e->_userInfo = [m initWithCapacity: 3];
+  m = [[NSMutableDictionary allocWithZone: NSDefaultMallocZone()]
+    initWithCapacity: 3];
   [m setObject: description forKey: NSLocalizedDescriptionKey];
+  e->_userInfo = m;
   return AUTORELEASE(e);
 }
 
