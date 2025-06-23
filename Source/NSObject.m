@@ -749,13 +749,8 @@ NSIncrementExtraRefCount(id anObject)
    retain_fast(anObject);
 }
 
-#ifndef	NDEBUG
 #define	AADD(c, o) GSDebugAllocationAdd(c, o)
 #define	AREM(c, o) GSDebugAllocationRemove(c, o)
-#else
-#define	AADD(c, o)
-#define	AREM(c, o)
-#endif
 
 
 #ifndef OBJC_CAP_ARC
