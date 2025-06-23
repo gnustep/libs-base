@@ -227,6 +227,7 @@ static NSMutableArray *GSCookieStrings(NSString *string);
   else
     {
       NSUInteger	index;
+      int		version = 0;
       NSString 		*field = nil;
 
       for (index = 0; index < count; index++)
@@ -236,8 +237,6 @@ static NSMutableArray *GSCookieStrings(NSString *string);
 
 	  if (0 == index)
 	    {
-	      int	version;
-
 	      /* Assume these cookies all came from the same URL so
 	       * we format based on the version of the first. */
 	      version = [(NSHTTPCookie *)[cookies objectAtIndex: 0] version];
@@ -262,8 +261,8 @@ static NSMutableArray *GSCookieStrings(NSString *string);
 		[ck path]];
 	    }
 	}
+      return [NSDictionary dictionaryWithObject: field forKey: @"Cookie"];
     }
-  return [NSDictionary dictionaryWithObject: field forKey: @"Cookie"];
 }
 
 - (NSString *) comment
