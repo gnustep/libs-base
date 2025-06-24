@@ -74,7 +74,7 @@ jobs:
   linux:
     name: ${{ matrix.name }}
     container: ${{ matrix.container }}
-    runs-on: ubuntu-24.04 # Change CMake Mirror URL, before changing the Ubuntu Version
+    runs-on: ubuntu-latest
     # don't run pull requests from local branches twice
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
 
@@ -83,24 +83,24 @@ jobs:
       matrix:
         include:
           - name: Ubuntu x64 GCC
-            container: ubuntu:22.04
+            container: ubuntu:24.04
             library-combo: gnu-gnu-gnu
             CC: gcc
             CXX: g++
             libdir: lib
 
-          - name: Ubuntu x64 Clang gnustep-2.0
-            container: ubuntu:22.04
+          - name: Ubuntu x64 Clang gnustep-2.2
+            container: ubuntu:24.04
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
+            runtime-version: gnustep-2.2
             CC: clang
             CXX: clang++
             libdir: lib
 
-          - name: Rocky Linux x64 Clang gnustep-2.0
+          - name: Rocky Linux x64 Clang gnustep-2.2
             container: rockylinux:9
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
+            runtime-version: gnustep-2.2
             CC: clang
             CXX: clang++
             libdir: lib64
@@ -127,21 +127,11 @@ jobs:
       - name: Install apt packages
         run: |
           apt-get -q -y update
-          apt-get -q -y upgrade
-
-          # Install the kitware apt repository for a newer CMake version required by libdispatch.
-          # The one bundled in Ubuntu LTS is ancient
-          apt-get -q -y install ca-certificates gpg wget
-          test -f /usr/share/doc/kitware-archive-keyring/copyright ||
-          wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg
-          # Change this when upgrading the ubuntu version
-          echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null
-          apt-get -q -y update
 
           apt-get -q -y install $APT_PACKAGES $APT_PACKAGES_${{ matrix.library-combo == 'ng-gnu-gnu' && 'clang' || 'gcc' }}
 
-          # gnustep-2.0 runtime requires ld.gold or lld
-          if [ "$RUNTIME_VERSION" = "gnustep-2.0" ]; then
+          # gnustep-2.2 runtime requires ld.gold or lld
+          if [ "$RUNTIME_VERSION" = "gnustep-2.2" ]; then
             update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.gold" 10
           fi
         if: ${{ startsWith(matrix.container, 'ubuntu') }}
@@ -150,8 +140,8 @@ jobs:
         run: |
           yum install -y $RPM_PACKAGES
 
-          # gnustep-2.0 runtime requires ld.gold or lld
-          if [ "$RUNTIME_VERSION" = "gnustep-2.0" ]; then
+          # gnustep-2.2 runtime requires ld.gold or lld
+          if [ "$RUNTIME_VERSION" = "gnustep-2.2" ]; then
             update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/lld" 10
           fi
         if: ${{ startsWith(matrix.container, 'rockylinux') }}
@@ -199,20 +189,20 @@ jobs:
             CC: gcc
             CXX: g++
 
-          - name: Windows x64 MinGW Clang gnustep-2.0
+          - name: Windows x64 MinGW Clang gnustep-2.2
             arch: x86_64
             msystem: MINGW64
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
+            runtime-version: gnustep-2.2
             CC: clang
             CXX: clang
             LDFLAGS: -fuse-ld=lld -lstdc++ -lgcc_s
 
-          - name: Windows x64 MSVC Clang gnustep-2.0
+          - name: Windows x64 MSVC Clang gnustep-2.2
             arch: x64
             host: x86_64-pc-windows
             library-combo: ng-gnu-gnu
-            runtime-version: gnustep-2.0
+            runtime-version: gnustep-2.2
             configure-opts: --disable-tls
             CC: clang -m64
             CXX: clang++ -m64
