@@ -134,7 +134,7 @@ jobs:
           test -f /usr/share/doc/kitware-archive-keyring/copyright ||
           wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | gpg --dearmor - | tee /usr/share/keyrings/kitware-archive-keyring.gpg
           # Change this when upgrading the ubuntu version
-          echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | sudo tee /etc/apt/sources.list.d/kitware.list >/dev/null
+          echo 'deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ noble main' | tee /etc/apt/sources.list.d/kitware.list >/dev/null
           apt-get -q -y update
 
           apt-get -q -y install $APT_PACKAGES $APT_PACKAGES_${{ matrix.library-combo == 'ng-gnu-gnu' && 'clang' || 'gcc' }}
