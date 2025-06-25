@@ -206,16 +206,28 @@ GS_EXPORT_CLASS
                   options: (NSLinguisticTaggerOptions)options
               tokenRanges: (NSArray **)tokenRanges;
 
+/**
+ * Enumerate over the tags in range, using tagScheme, with opts,
+ * execute block for each iteration.
+ */
 - (void) enumerateTagsInRange: (NSRange)range
                        scheme: (NSLinguisticTagScheme)tagScheme
                       options: (NSLinguisticTaggerOptions)opts
                    usingBlock: (GSLinguisticTagRangeRangeBoolBlock)block;
 
+/**
+ * return the NSLinguisticTag starting at charIndex, with the given scheme
+ * and within tokenRange, also return sentenceRange;
+ */
 - (NSLinguisticTag) tagAtIndex: (NSUInteger)charIndex
                         scheme: (NSLinguisticTagScheme)scheme
                     tokenRange: (NSRangePointer)tokenRange
                  sentenceRange: (NSRangePointer)sentenceRange;
   
+/**
+ * Get the tags in the given range, for tagScheme, with opts
+ * return the ranges for those tags in tokenRanges.
+ */
 - (NSArray *) tagsInRange: (NSRange)range
                    scheme: (NSString *)tagScheme
                   options: (NSLinguisticTaggerOptions)opts
@@ -275,14 +287,36 @@ GS_EXPORT_CLASS
 
 @end
 
+
+/**
+ * Category for NSString providing convenience linguistic analysis methods.
+ */
 @interface NSString (NSLinguisticAnalysis)
 
+/**
+ * Returns linguistic tags in the specified range using the given scheme and orthography.
+ *
+ * @param range Range of the string to analyze.
+ * @param scheme Tagging scheme to use.
+ * @param options Tagging options.
+ * @param orthography Orthography to guide analysis.
+ * @param tokenRanges Optional output for token ranges.
+ */
 - (NSArray *) linguisticTagsInRange: (NSRange)range
                              scheme: (NSLinguisticTagScheme)scheme
                             options: (NSLinguisticTaggerOptions)options
                         orthography: (NSOrthography *)orthography
                         tokenRanges: (NSArray **)tokenRanges;
 
+/**
+ * Enumerates linguistic tags in a given range, passing each to the provided block.
+ *
+ * @param range Range to enumerate.
+ * @param scheme Tagging scheme.
+ * @param options Options for tagging.
+ * @param orthography Orthography reference.
+ * @param block Block to call with each result.
+ */
 - (void) enumerateLinguisticTagsInRange: (NSRange)range
                                  scheme: (NSLinguisticTagScheme)scheme
                                 options: (NSLinguisticTaggerOptions)options
