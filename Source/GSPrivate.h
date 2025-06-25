@@ -254,6 +254,11 @@ typedef union {
 
 typedef	GSMutableString *GSStr;
 
+/** Method to get a strings mappings (key/value pairs of strings) from file.
+ */
+id
+GSPropertyListFromStringsFormat(NSData *data) GS_ATTRIB_PRIVATE;;
+
 /*
  * Enumeration for MacOS-X compatibility user defaults settings.
  * For efficiency, we save defaults information which is used by the
@@ -379,9 +384,10 @@ GSPrivateDefaultCStringEncoding() GS_ATTRIB_PRIVATE;
 NSDictionary *
 GSPrivateDefaultLocale() GS_ATTRIB_PRIVATE;
 
-/* Get one of several standard values.
+/* Get one of several standard values.  An integer value which is normally
+ * a flag (where a value of zero is false, anything else is true).
  */
-BOOL
+int
 GSPrivateDefaultsFlag(GSUserDefaultFlagType type) GS_ATTRIB_PRIVATE;
 
 /* get the name of a string encoding as an NSString.

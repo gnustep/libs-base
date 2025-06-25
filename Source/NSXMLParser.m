@@ -935,6 +935,10 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
   if (*ep == '#')
     {
+      /* The maximum unicode codepoint is defined as U+10FFFF
+       * so we only need to parse 6 hex digits (or 7 decimal)
+       * and those can be nul terminated in an 8 byte buffer.
+       */
       if (len < 8)
         {
           uint32_t val;
@@ -942,7 +946,7 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
 
           memcpy(buf, ep + 1, len - 1);
           buf[len - 1] = '\0';
-          // &#ddd; or &#xhh;
+          // &#xhhhhhh; or &#ddddddd;
           if (sscanf(buf, "x%x;", &val) || sscanf(buf, "%d;", &val))
             {
               // &#xhh; hex value or &ddd; decimal value
@@ -950,6 +954,12 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
                 {
                   unichar       buf[2];
 
+		  if (val > 0x10FFFF)
+		    {
+		      [self _parseError: @"invalid numeric entity codepoint"
+				   code: NSXMLParserInvalidCharacterError];
+		      return @"";	// Bad codepoint
+		    }
                   /* Convert codepoint outside base plane to surrogate pair
                    */
                   val -= 0x010000;

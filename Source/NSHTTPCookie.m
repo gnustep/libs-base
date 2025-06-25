@@ -217,35 +217,52 @@ static NSMutableArray *GSCookieStrings(NSString *string);
 
 + (NSDictionary *) requestHeaderFieldsWithCookies: (NSArray *)cookies
 {
-  int version;
-  NSString *field;
-  NSHTTPCookie *ck;
-  NSEnumerator *ckenum = [cookies objectEnumerator];
+  NSUInteger	count;
 
-  if ([cookies count] == 0)
+  if ((count = [cookies count]) == 0)
     {
       NSLog(@"NSHTTPCookie requestHeaderFieldWithCookies: empty array");
       return nil;
     }
-  /* Assume these cookies all came from the same URL so we format based
-     on the version of the first. */
-  field = nil;
-  version = [(NSHTTPCookie *)[cookies objectAtIndex: 0] version];
-  if (version)
-    field = @"$Version=\"1\"";
-  while ((ck = [ckenum nextObject]))
+  else
     {
-      NSString *str;
-      str = [NSString stringWithFormat: @"%@=%@", [ck name], [ck value]];
-      if (field)
-	field = [field stringByAppendingFormat: @"; %@", str];
-      else
-	field = str;
-      if (version && [ck path])
-	field = [field stringByAppendingFormat: @"; $Path=\"%@\"", [ck path]];
-    }
+      NSUInteger	index;
+      int		version = 0;
+      NSString 		*field = nil;
 
-  return [NSDictionary dictionaryWithObject: field forKey: @"Cookie"];
+      for (index = 0; index < count; index++)
+	{
+	  NSHTTPCookie	*ck = [cookies objectAtIndex: index];
+	  NSString	*str;
+
+	  if (0 == index)
+	    {
+	      /* Assume these cookies all came from the same URL so
+	       * we format based on the version of the first. */
+	      version = [(NSHTTPCookie *)[cookies objectAtIndex: 0] version];
+	      if (version)
+		{
+		  field = @"$Version=\"1\"";
+		}
+	    }
+
+	  str = [NSString stringWithFormat: @"%@=%@", [ck name], [ck value]];
+	  if (field)
+	    {
+	      field = [field stringByAppendingFormat: @"; %@", str];
+	    }
+	  else
+	    {
+	      field = str;
+	    }
+	  if (version && [ck path])
+	    {
+	      field = [field stringByAppendingFormat: @"; $Path=\"%@\"",
+		[ck path]];
+	    }
+	}
+      return [NSDictionary dictionaryWithObject: field forKey: @"Cookie"];
+    }
 }
 
 - (NSString *) comment

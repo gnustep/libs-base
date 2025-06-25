@@ -371,6 +371,10 @@ static Class	NSDate_class;
     {
       DESTROY(_info);
     }
+  if (_block != nil)
+    {
+      DESTROY(_block);
+    }
 }
 
 /**

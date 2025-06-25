@@ -179,9 +179,30 @@ notice and this notice are preserved.
 	    <desc>
 	      <p>
 		Setting the user default <code>GSMacOSXCompatible</code> to
-		<code>YES</code> will cause MacOS compatible behavior to be
-		the default at runtime.  This default may however be overridden
-		to provide more fine grained control of system behavior.
+		<code>YES</code> will cause various (normally undesirable)
+		MacOS compatible behaviors to be the default at runtime.<br />
+		Since OSX behavors vary from release to release, this default
+		may also be set to an OSX version number (eg. 10.06) to say
+		that the desired behavior is the one used by that version
+		of the system.  The full version number format is NN.NN.NN
+		(major.minor.subminor) but NN.NN and NN alone are also
+		accepted.
+	      </p>
+	      <p>Typical usage within GNUstep is when Apple remove
+		functionality from their API, break existing behaviors,
+		or have undefined behaviors (such as methods which fail
+		to check for invalid arguments).
+	      </p>
+	      <p>Developers on OSX are encouraged to contribute code to
+		mimic unsupported behaviors corresponding to a particular
+		OSX version as a stop-gap to allow their code to operate
+		with GNUstep until they have a chance to fix it.
+	      </p>
+	      <p>The GSMaxOSXVersion() function is provided as a convenience
+		to allow code to check the requested version compatibility
+		at runtime,  while GNUstep headers contain version checking
+		macros to help avoid the use of version dependent APIs at
+		compile time.
 	      </p>
 	    </desc>
 	    <term>GSOldStyleGeometry</term>

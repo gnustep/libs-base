@@ -17,8 +17,8 @@ void testLexicographicalOrder() {
   PASS_EQUAL(error, nil, "no error occurred during serialisation");
 
 
-  NSString *actual = [[NSString alloc] initWithData:actualData
-                                           encoding:NSUTF8StringEncoding];
+  NSString *actual = AUTORELEASE([[NSString alloc] initWithData:actualData
+    encoding: NSUTF8StringEncoding]);
   NSString *expected = @"{\"a_ab\":\"b\",\"c_ab\":\"a\",\"d_ab\":\"c\",\"f_"
                         "ab\":\"e\",\"f_cb\":\"d\"}";
   PASS_EQUAL(actual, expected, "JSON is correctly sorted");

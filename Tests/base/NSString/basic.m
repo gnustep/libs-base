@@ -1,6 +1,7 @@
 #import "ObjectTesting.h"
 #import <Foundation/NSAutoreleasePool.h>
 #import <Foundation/NSString.h>
+#import <Foundation/NSByteOrder.h>
 
 static NSString*
 makeFormattedString(NSString *theFormat, ...)

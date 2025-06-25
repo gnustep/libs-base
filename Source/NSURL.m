@@ -90,9 +90,10 @@ function may be incorrect
 @end
 
 @implementation	NSURL (GSPrivate)
-
 - (NSURL*) _URLBySettingPath: (NSString*)newPath 
 {
+  NSAssert([newPath isKindOfClass: [NSString class]],
+    NSInvalidArgumentException);
   if ([self isFileURL]) 
     {
       return [NSURL fileURLWithPath: newPath];
@@ -100,6 +101,18 @@ function may be incorrect
   else
     {
       NSURL	*u;
+      NSString	*params;
+      NSRange	r = [newPath rangeOfString: @";"];
+
+      if (r.length > 0)
+	{
+	  params = [newPath substringFromIndex: NSMaxRange(r)];
+	  newPath = [newPath substringToIndex: r.location];
+	}
+      else
+	{
+	  params = [self parameterString];
+	}
 
       u = [[NSURL alloc] initWithScheme: [self scheme]
 				   user: [self user]
@@ -107,19 +120,57 @@ function may be incorrect
 				   host: [self host]
 				   port: [self port]
 			       fullPath: newPath
-			parameterString: [self parameterString]
+			parameterString: params
 				  query: [self query]
 			       fragment: [self fragment]];
       return [u autorelease];
     }
 }
+@end
 
+@implementation	NSURL (Private)
+/* This method should return the full (and correctly escaped) ASCII string
+ * of the path oa an http/https request, as it should appear in the first
+ * line of the request sent over the wire.
+ * The withoutQuery option may be used to return a truncated request which
+ * does not include the query string part, so it can be used for digest
+ * authentication where the path is needed to establish the authentication
+ * domain.
+ * Neither of these include the fragment part of the URL, as that is only
+ * for use within the browser and never sent to the server.
+ */
+- (NSString*) _requestPath: (BOOL)withoutQuery
+{
+  NSString	*params = [self parameterString];
+  NSString	*path = [self pathWithEscapes];
+
+  if ([path length] == 0)
+    {
+      path = @"/";
+    }
+  if ([params length])
+    {
+      path = [path stringByAppendingFormat: @";%@", params];
+    }
+  if (NO == withoutQuery)
+    {
+      NSString	*query = [self query];
+
+      if ([query length])
+	{
+	  path = [path stringByAppendingFormat: @"?%@", query];
+	}
+    }
+  return path;
+}
 @end
 
 /*
  * Structure describing a URL.
  * All the char* fields may be NULL pointers, except path, which
  * is *always* non-null (though it may be an empty string).
+ * The sgtored values are percent escaped and must be unescaped when used
+ * to return an unescaped part of the URL.
  */
 typedef struct {
   id	absolute;		// Cache absolute string or nil
