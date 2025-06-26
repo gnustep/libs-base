@@ -887,28 +887,28 @@ wordData(NSString *word, BOOL *encoded)
 
 + (void) initialize
 {
-      NSMutableCharacterSet	*m = [[NSMutableCharacterSet alloc] init];
+  NSMutableCharacterSet	*m = [[NSMutableCharacterSet alloc] init];
 
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet characterSetWithCharactersInString:
-	@".()<>@,;:[]\"\\"]];
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet controlCharacterSet]];
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet illegalCharacterSet]];
-      rfc822Specials = [m copy];
-      [[NSObject leakAt: &rfc822Specials] release];
-      [m formUnionWithCharacterSet:
-	[NSCharacterSet characterSetWithCharactersInString:
-	@"/?="]];
-      [m removeCharactersInString: @"."];
-      rfc2045Specials = [m copy];
-      [[NSObject leakAt: &rfc2045Specials] release];
-      [m release];
-      whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
-      [[NSObject leakAt: &whitespace] release];
+  [m formUnionWithCharacterSet:
+    [NSCharacterSet characterSetWithCharactersInString:
+    @".()<>@,;:[]\"\\"]];
+  [m formUnionWithCharacterSet:
+    [NSCharacterSet whitespaceAndNewlineCharacterSet]];
+  [m formUnionWithCharacterSet:
+    [NSCharacterSet controlCharacterSet]];
+  [m formUnionWithCharacterSet:
+    [NSCharacterSet illegalCharacterSet]];
+  rfc822Specials = [m copy];
+  [[NSObject leakAt: &rfc822Specials] release];
+  [m formUnionWithCharacterSet:
+    [NSCharacterSet characterSetWithCharactersInString:
+    @"/?="]];
+  [m removeCharactersInString: @"."];
+  rfc2045Specials = [m copy];
+  [[NSObject leakAt: &rfc2045Specials] release];
+  [m release];
+  whitespace = RETAIN([NSCharacterSet whitespaceAndNewlineCharacterSet]);
+  [[NSObject leakAt: &whitespace] release];
 
   if (NSArrayClass == 0)
     {
@@ -3389,6 +3389,8 @@ static NSCharacterSet	*tokenSet = nil;
 
 + (void) initialize
 {
+  [GSMimeParser class];	// Force initialisation of some stuff we need
+
   if (nonToken == nil)
     {
       NSMutableCharacterSet	*ms;
@@ -3401,18 +3403,6 @@ static NSCharacterSet	*tokenSet = nil;
       RELEASE(ms);
       nonToken = RETAIN([tokenSet invertedSet]);
       [[NSObject leakAt: &nonToken] release];
-      if (NSArrayClass == 0)
-	{
-	  NSArrayClass = [NSArray class];
-	}
-      if (NSStringClass == 0)
-	{
-	  NSStringClass = [NSString class];
-	}
-      if (documentClass == 0)
-	{
-	  documentClass = [GSMimeDocument class];
-	}
       [[NSNotificationCenter defaultCenter] addObserver: self
         selector: @selector(_defaultsChanged:)
         name: NSUserDefaultsDidChangeNotification
@@ -5228,21 +5218,10 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 + (void) initialize
 {
+  [GSMimeParser class];	// Force initialisation of some stuff we need
+
   if (self == [GSMimeDocument class])
     {
-      if (documentClass == 0)
-	{
-	  documentClass = [GSMimeDocument class];
-	}
-
-      if (NSArrayClass == 0)
-	{
-	  NSArrayClass = [NSArray class];
-	}
-      if (NSStringClass == 0)
-	{
-	  NSStringClass = [NSString class];
-	}
       if (0 == charsets)
 	{
 	  charsets = NSCreateMapTable (NSObjectMapKeyCallBacks,
