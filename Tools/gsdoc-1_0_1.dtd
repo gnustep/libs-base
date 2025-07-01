@@ -209,7 +209,7 @@
 <!ELEMENT MacOS-X EMPTY>
 <!ELEMENT NotMacOS-X EMPTY>
 
-<!-- A standard that something is or isn't  compliant with. -->
+<!-- A standard that something is or isn't compliant with. -->
 <!ENTITY % standard "GNUstep | OpenStep | NotOpenStep | MacOS-X | NotMacOS-X">
 
 <!ELEMENT standards (%standard;)*>
@@ -429,7 +429,7 @@
   caption CDATA #IMPLIED
 >
 
-<!-- An embedded object.  If it is of a type that the SGML processor
+<!-- An embedded object. If it is of a type that the SGML processor
   cannot handle, then use the content, which is ignored otherwise.
   refer - method of referring to object (default is file)
   src - the reference to the object
@@ -483,10 +483,10 @@
   'scope' determines whether the index is generated for the current file
   or for the whole of the current project, or for everything the software
   can find (global) ... if the document is processed in a standalone manner,
-  the scope if always file.  For method or ivariable indexing, if the index
+  the scope if always file. For method or ivariable indexing, if the index
   is inside a class, protocol, or category, only  indexes for that unit
   should be generated.
-  'type' determines the type of entry listed in the index.  The 'title'
+  'type' determines the type of entry listed in the index. The 'title'
   type really only makes sense for a project scope index as it produces
   a list of the files in the project (by title).
 -->
