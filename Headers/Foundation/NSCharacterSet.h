@@ -35,7 +35,7 @@ extern "C" {
 @class NSData;
 
 /**
- *  Represents a set of unicode characters.  Used by [NSScanner] and [NSString]
+ *  Represents a set of unicode characters. Used by [NSScanner] and [NSString]
  *  for parsing-related methods.
  */
 GS_EXPORT_CLASS
