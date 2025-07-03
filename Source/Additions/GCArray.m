@@ -2,8 +2,8 @@
 
    Copyright (C) 2002 Free Software Foundation, Inc.
 
-   Written by:  Richard Frith-Macdonald <rfm@gnu.org>
-   Inspired by gc classes of  Ovidiu Predescu and Mircea Oancea
+   Written by: Richard Frith-Macdonald <rfm@gnu.org>
+   Inspired by gc classes of Ovidiu Predescu and Mircea Oancea
 
    This file is part of the GNUstep Base Library.
 
@@ -184,7 +184,7 @@ static Class	gcClass = 0;
 
 /**
  * We use the same initial instance variable layout as a GCObject and
- * ue the <em>behavior</em> mechanism to inherit methods from that class
+ * use the <em>behavior</em> mechanism to inherit methods from that class
  * to implement a form of multiple inheritance.  We need to implement
  * this method to make this apparent at runtime.
  */

@@ -3,7 +3,7 @@
 	* Source/Additions/GSMime.m:
 	Fix initialisation error which could cause crash in HTTP load.
 
-2025-04-17  Wolfgang Lux  <wolfgang.lux@gmail.com>
+2025-04-17  Wolfgang Lux <wolfgang.lux@gmail.com>
 
 	* Source/NSFileManager.m (removeFileAtPath:handler:):
 	Call the error handler also when a file to be removed does not
@@ -80,7 +80,7 @@
 	* Documentation/ReleaseNotes.gsdoc: fix bad line break markup
 	* config/config.ffi.c: add some diagnostic logging
 
-2025-01-14  Wolfgang Lux  <wolfgang.lux@gmail.com>
+2025-01-14  Wolfgang Lux <wolfgang.lux@gmail.com>
 
 	* Source/Makefile.postamble (after-install):
 	Don't install CoreFoundation header when installing base additions
@@ -673,7 +673,7 @@
 	Update release notes for 1.30.0 release.
 	* Version: bump to 1.30.0
 
-2024-04-29  Doug Simons <douglas.simons@keysight.com>
+2024-04-29 Doug Simons <douglas.simons@keysight.com>
 
 	* NSXMLNode.m:
 	Fix execute_xpath() to return an NSError when xpath expression can't
@@ -989,8 +989,8 @@
 	* Tools/autogsdoc.m:
 	* Tools/gsdoc-1_0_4.dtd:
 	Autogsdoc changes to avoide parser being confused by ObjectiveC-2
-	features.  Automatic generation for the setter/getter methods of
-	properties.  Various fixes and cleanups in documentation generation.
+	features. Automatic generation for the setter/getter methods of
+	properties. Various fixes and cleanups in documentation generation.
 	Many tweaks to correct documentation errors in comments etc.
 
 2023-11-14 Richard Frith-Macdonald <rfm@gnu.org>
@@ -1050,11 +1050,11 @@
 	Change NSNumberFormatter minimum/maximum properties from
 	NSDecimalNumber to NSNumber to match Apple platforms.
 
-2023-07-30  Yavor Doganov  <yavor@gnu.org>
+2023-07-30 Yavor Doganov  <yavor@gnu.org>
 
 	* Tools/HTMLLinker.1: Fix a groff warning.
 
-2023-07-30  Yavor Doganov  <yavor@gnu.org>
+2023-07-30 Yavor Doganov  <yavor@gnu.org>
 
        * Tools/gdnc.m ([GDNCServer init]):
        * Tools/gspath.1: Fix spelling errors.
@@ -1076,7 +1076,7 @@
 	* Source/NSFileManager.m:
 	Fixed NSFileManager thread safety.
 
-2023-07-17  Yavor Doganov  <yavor@gnu.org>
+2023-07-17 Yavor Doganov  <yavor@gnu.org>
 
 	* Tests/base/NSTimeZone/localtime.m (testTZDB): Skip tests relying
 	on 64bit time_t on all 32bit architectures.
@@ -1211,7 +1211,7 @@
 	* Source/Additions/GSXML.m: Remove usage of deprecated function
 	when a newer version of libxml is used.
 
-2022-11-25  Florian Weimer
+2022-11-25 Florian Weimer
 
 	* config/config.poll-dev.c:
 	* config/config.proccmd.c:
@@ -1220,7 +1220,7 @@
 	* config/config.vsprintf.c:
 	Make config tests work with C99 compiler
 
-2022-11-21  Wolfgang Lux  <wolfgang.lux@gmail.com>
+2022-11-21 Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSFileManager.m:
 	Call NSDirectoryEnumerator's constructor with either YES or NO for
@@ -1674,7 +1674,7 @@
 	* test02.m:
 	Rewrite helper launching so that the test process waits for up to
 	ten seconds for the helper to tell it that it's ready to accept
-	requests.  This should make tests run a bit quicker (no longer
+	requests. This should make tests run a bit quicker (no longer
 	waiting a fixed interval for the helper to start) while allowing
 	longer for the helpers to start on slow systems, and thus making
 	the tests more reliable.
@@ -2047,7 +2047,7 @@
 	* Source/GSHTTPURLHandle.m:
 	Rewrite handling of tls handshake to operate asynchronously,
 	attempting continuation of the handshake when the socket becomes
-	readable.  The point of this is to prevent recursive entry into the
+	readable. The point of this is to prevent recursive entry into the
 	runloop (and possible stack overflow) if the remote end fails to send
 	anything for a while.
 
@@ -2822,7 +2822,7 @@
 	pre-existing break/continue/return statements). You should not break,
 	continue, or return from such a block of code (to do so could leak
 	an autorelease pool and give objects a longer lifetime than they
-	ought to have.  If you wish to leave the block of code early,
+	ought to have. If you wish to leave the block of code early,
 	you should ensure that doing so causes the autorelease pool outside
 	the block to be released promptly (since that will implicitly
 	release the pool created at the start of the block too).
@@ -3167,8 +3167,8 @@
 	* Source/NSOperation.m:
         Fix leak of new operation in -blockOperationWithBlock: method.
 	Make -addExecutionBlock: ensure it works with an on-heap copy
-	of its argument.  Tidy code to have NSBlockOperation methods
-	with normal formatting and alphabetical order.  Tidy code to
+	of its argument. Tidy code to have NSBlockOperation methods
+	with normal formatting and alphabetical order. Tidy code to
 	use standard macros for memory management.
 
 2020-06-05 Riccardo Mottola <rm@gnu.org>

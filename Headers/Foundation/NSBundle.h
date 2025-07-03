@@ -1,7 +1,7 @@
 /** Interface for NSBundle for GNUStep   -*-objc-*-
    Copyright (C) 1995, 1997, 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   Written by:  Adam Fedor <fedor@gnu.org>
+   Written by: Adam Fedor <fedor@gnu.org>
    Date: 1995
 
    Updates by various authors.
@@ -56,7 +56,7 @@ enum {
 
 /**
  *  Notification posted when a bundle is loaded.  The notification object is
- *  the [NSBundle] itself.  The notification also contains a <em>userInfo</em>
+ *  the [NSBundle] itself. The notification also contains a <em>userInfo</em>
  *  dictionary, containing the single key '<code>NSLoadedClasses</code>',
  *  mapped to an [NSArray] containing the names of each class and category
  *  loaded (as strings).
@@ -67,7 +67,7 @@ GS_EXPORT NSString* const NSBundleDidLoadNotification;
  * A user default affecting the behavior of
  * [NSBundle-localizedStringForKey:value:table:].  If set, the value of the
  * key will be returned as an uppercase string rather than any localized
- * equivalent found.  This can be useful during development to check where
+ * equivalent found. This can be useful during development to check where
  * a given string in the UI is "coming from".
  */
 GS_EXPORT NSString* const NSShowNonLocalizedStrings;
@@ -143,7 +143,7 @@ GS_EXPORT_CLASS
 + (NSArray*) allFrameworks;
 
 /**
- * <p>Return the bundle containing the resources for the executable.  If
+ * <p>Return the bundle containing the resources for the executable. If
  * the executable is an application, this is the main application
  * bundle (the xxx.app directory); if the executable is a tool, this
  * is a bundle 'naturally' associated with the tool: if the tool
@@ -185,7 +185,7 @@ GS_EXPORT_CLASS
 + (NSBundle*) bundleWithIdentifier: (NSString*)identifier;
 
 /** Return a bundle for the path at path.  If path doesn't exist or is
- * not readable, return nil.  If you want the main bundle of an
+ * not readable, return nil. If you want the main bundle of an
  * application or a tool, it's better if you use +mainBundle.  */
 + (NSBundle*) bundleWithPath: (NSString*)path;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST) 
@@ -194,7 +194,7 @@ GS_EXPORT_CLASS
 
 /**
   Returns an absolute path for a resource name with the extension
-  in the specified bundlePath.  See also
+  in the specified bundlePath. See also
   -pathForResource:ofType:inDirectory: for more information on
   searching a bundle.  
  */
@@ -339,7 +339,7 @@ GS_EXPORT_CLASS
  * </p>
  * <p>If the user default <code>NSShowNonLocalizedStrings</code> is set, the
  * value of the key will be returned as an uppercase string rather than any
- * localized equivalent found.  This can be useful during development to check
+ * localized equivalent found. This can be useful during development to check
  * where a given string in the UI is "coming from".</p>
  */
 - (NSString*) localizedStringForKey: (NSString*)key
@@ -524,7 +524,7 @@ GS_EXPORT_CLASS
  * <p>The bundle for the library <em>gnustep-base</em> is a special case ...
  * for this bundle the -principalClass method returns [NSObject] and the
  * -executablePath method returns the path to the gnustep-base dynamic
- *  library (if it can be found).  As a general rule, library bundles are
+ *  library (if it can be found). As a general rule, library bundles are
  *  not guaranteed to return values for these methods as the library may
  *  not exist on disk.
  * </p>
@@ -594,7 +594,7 @@ GS_EXPORT_CLASS
  *   translation of the string <code>key</code>.
  *   <code>key</code> is looked up in the
  *   <code>Localizable.strings</code> file for the current
- *   language.  The current language is determined by the
+ *   language. The current language is determined by the
  *   available languages in which the application is
  *   translated, and by using the <code>NSLanguages</code> user
  *   defaults (which should contain an array of the languages
@@ -669,7 +669,7 @@ GS_EXPORT_CLASS
 
 /**
  * This function is the full-blown localization function (it
- * is actually a macro).  It looks up the string
+ * is actually a macro). It looks up the string
  * <code>key</code> for translation in the table
  * <code>table</code> of the bundle <code>bundle</code>
  * (please refer to the NSBundle documentation for more

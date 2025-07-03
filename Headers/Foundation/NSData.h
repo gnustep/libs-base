@@ -194,7 +194,7 @@ GS_EXPORT_CLASS
 
 /**
  * <p>Writes a copy of the data encapsulated by the receiver to a file
- * at path.  If the useAuxiliaryFile flag is YES, this writes to a
+ * at path. If the useAuxiliaryFile flag is YES, this writes to a
  * temporary file and then renames that to the file at path, thus
  * ensuring that path exists and does not contain partially written
  * data at any point.
