@@ -97,7 +97,15 @@ jobs:
             CXX: clang++
             libdir: lib
 
-          - name: Rocky Linux x64 Clang gnustep-2.2
+          - name: Rocky Linux 8 x64 Clang gnustep-2.2
+            container: rockylinux:8
+            library-combo: ng-gnu-gnu
+            runtime-version: gnustep-2.2
+            CC: clang
+            CXX: clang++
+            libdir: lib64
+
+          - name: Rocky Linux 9 x64 Clang gnustep-2.2
             container: rockylinux:9
             library-combo: ng-gnu-gnu
             runtime-version: gnustep-2.2
