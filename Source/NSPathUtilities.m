@@ -2477,6 +2477,12 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 	}
 	break;
 	
+      case NSInputMethodsDirectory:
+	{
+	  ADD_PATH(NSUserDomainMask, gnustepUserLibrary, @"Input");
+	}
+	break;
+
       case NSMoviesDirectory:
 	{
 	  /* Be consistent with NSDocumentDirectory */
@@ -2498,11 +2504,40 @@ L"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\App Paths\\GNUstep",
 	}
 	break;
 
+      case NSPrinterDescriptionDirectory:
+	{
+	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary, @"PPDs");
+	}
+	break;
+
+      case NSSharedPublicDirectory:
+	{
+	  ADD_PATH(NSUserDomainMask, gnustepUserHome, @"Public");
+	}
+	break;
+
+      case NSPreferencePanesDirectory:
+	{
+	  NSString	*p = @"PreferencePanes";
+	  ADD_PATH(NSUserDomainMask, gnustepUserLibrary, p);
+	  ADD_PATH(NSLocalDomainMask, gnustepLocalLibrary, p);
+	  ADD_PATH(NSNetworkDomainMask, gnustepNetworkLibrary, p);
+	  ADD_PATH(NSSystemDomainMask, gnustepSystemLibrary, p);
+	}
+	break;
+
+      case NSApplicationScriptsDirectory:
+	{
+	  ADD_PATH(NSUserDomainMask, gnustepUserLibrary, @"Scripts");
+	}
+	break;
+
       case NSCachesDirectory:
 	{
 #ifdef __ANDROID__
 	  /* Use system-provided cache directory on Android */
-	  ADD_PATH(NSUserDomainMask, [[NSProcessInfo processInfo] androidCacheDir], @"");
+	  ADD_PATH(NSUserDomainMask,
+	    [[NSProcessInfo processInfo] androidCacheDir], @"");
 #else
 	  /* Uff - at the moment the only place to put Caches seems to
 	   * be Library.  Unfortunately under GNU/Linux Library will
