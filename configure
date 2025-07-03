@@ -14686,9 +14686,9 @@ if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG
   curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
   curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
   curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
-  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 66 \); then
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
-printf "%s\n" "FAILED (version too old to use" >&6; }
+  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 61 \); then
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (version $curl_ver too old to use, need at least 7.61)" >&5
+printf "%s\n" "FAILED (version $curl_ver too old to use, need at least 7.61)" >&6; }
   else
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes ... version $curl_ver" >&5
 printf "%s\n" "yes ... version $curl_ver" >&6; }
@@ -14718,7 +14718,7 @@ else
     if pkg-config --exists libcurl; then
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes ... via pkg-config" >&5
 printf "%s\n" "yes ... via pkg-config" >&6; }
-      if $PKG_CONFIG --atleast-version 2.66.0 libcurl; then
+      if $PKG_CONFIG --atleast-version 7.61.0 libcurl; then
                for ac_header in curl/curl.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "curl/curl.h" "ac_cv_header_curl_curl_h" "$ac_includes_default"
@@ -14740,8 +14740,8 @@ done
           curl_all=yes
         fi
         else
-          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
-printf "%s\n" "FAILED (version too old to use" >&6; }
+          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use, need at least 7.61)" >&5
+printf "%s\n" "FAILED (version too old to use, need at least 7.61)" >&6; }
           curl_all=no
       fi
     else
