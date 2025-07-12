@@ -10,6 +10,7 @@ Tests/base/*/GNUmakefile
 *.sum
 Tools/BaseTools/dependencies
 Source/gnustep-base.pc
+Tools/Resources/autogsdoc/default-styles.css
 
 # Unit test byproducts
 *.err
@@ -111,3 +112,7 @@ Documentation/manual/manual.*
 **/dependencies
 Source/Base.gsdoc
 Source/BaseAdditions.gsdoc
+Documentation/manual/gs-base.info
+Documentation/manual/gs-base
+Documentation/gs-standards
+
