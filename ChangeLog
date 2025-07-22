@@ -1,3 +1,11 @@
+2025-07-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m:
+	Modify libxml2 initialisation code to continue after 5 seconds if the
+	main thread fails to run (rather than hanging).  An initialisation in
+	the wrong thread causes a warning to be generated (using NSLog) to say
+	that XML operations after the thread exits will crash.
+
 2025-06-26 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSMime.m:

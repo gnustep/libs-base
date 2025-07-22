@@ -171,6 +171,10 @@ static char * xml_strdup(const char *from)
       usImp = (id (*)(id, SEL, const unsigned char*))
 	[NSString_class methodForSelector: usSel];
       cacheDone = YES;
+      if (NO == [NSThread isMainThread])
+	{
+	  NSLog(@"WARNING libxml2 not initialised in main thread ... XML operations performed after this thread exits may crash.");
+	}
     }
 }
 @end
@@ -182,9 +186,28 @@ setupCache()
     {
       /* Setup of libxml2 must be done on main thread.
        */
-      [NSObject performSelectorOnMainThread: @selector(_setupForGSXML)
-				 withObject: nil
-			      waitUntilDone: YES];
+      if ([NSThread isMainThread])
+	{
+	  [NSObject _setupForGSXML];
+	}
+      else
+	{
+	  NSTimeInterval	limit;
+
+	  limit = [NSDate timeIntervalSinceReferenceDate] + 5.0;
+	  [NSObject performSelectorOnMainThread: @selector(_setupForGSXML)
+				     withObject: nil
+				  waitUntilDone: NO];
+	  while (NO == cacheDone
+	    && [NSDate timeIntervalSinceReferenceDate] < limit)
+	    {
+	      [NSThread sleepForTimeInterval: 0.1];
+	    }
+	  if (NO == cacheDone)
+	    {
+	      [NSObject _setupForGSXML];
+	    }
+	}
     }
 }
 
