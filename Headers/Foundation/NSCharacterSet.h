@@ -242,6 +242,12 @@ GS_EXPORT_CLASS
 @interface NSMutableCharacterSet : NSCharacterSet
 
 /**
+ *  Returns set with characters in aString, or empty set for empty string.
+ *  Raises an exception if given a nil string.
+ */
++ (NSMutableCharacterSet*) characterSetWithCharactersInString: (NSString*)aString;
+
+/**
  *  Adds characters specified by unicode indices in aRange to set.
  */
 - (void) addCharactersInRange: (NSRange)aRange;
