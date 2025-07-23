@@ -1182,123 +1182,123 @@ static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
 @implementation NSMutableCharacterSet
 
 /* Override this from NSCharacterSet to create the correct class */
-+ (NSCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data
++ (NSMutableCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data
 {
   return AUTORELEASE([[concreteMutableClass alloc] initWithBitmap: data]);
 }
 
-+ (NSCharacterSet*) alphanumericCharacterSet
++ (NSMutableCharacterSet*) alphanumericCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) capitalizedLetterCharacterSet
++ (NSMutableCharacterSet*) capitalizedLetterCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) controlCharacterSet
++ (NSMutableCharacterSet*) controlCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) decimalDigitCharacterSet
++ (NSMutableCharacterSet*) decimalDigitCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) decomposableCharacterSet
++ (NSMutableCharacterSet*) decomposableCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) illegalCharacterSet
++ (NSMutableCharacterSet*) illegalCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) letterCharacterSet
++ (NSMutableCharacterSet*) letterCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) lowercaseLetterCharacterSet
++ (NSMutableCharacterSet*) lowercaseLetterCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) newlineCharacterSet
++ (NSMutableCharacterSet*) newlineCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) nonBaseCharacterSet
++ (NSMutableCharacterSet*) nonBaseCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) punctuationCharacterSet
++ (NSMutableCharacterSet*) punctuationCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) symbolCharacterSet
++ (NSMutableCharacterSet*) symbolCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
 // FIXME ... deprecated ... remove after next release.
-+ (NSCharacterSet*) symbolAndOperatorCharacterSet
++ (NSMutableCharacterSet*) symbolAndOperatorCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) uppercaseLetterCharacterSet
++ (NSMutableCharacterSet*) uppercaseLetterCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) whitespaceAndNewlineCharacterSet
++ (NSMutableCharacterSet*) whitespaceAndNewlineCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) whitespaceCharacterSet
++ (NSMutableCharacterSet*) whitespaceCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) URLFragmentAllowedCharacterSet
++ (NSMutableCharacterSet*) URLFragmentAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) URLHostAllowedCharacterSet
++ (NSMutableCharacterSet*) URLHostAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) URLPasswordAllowedCharacterSet
++ (NSMutableCharacterSet*) URLPasswordAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) URLPathAllowedCharacterSet
++ (NSMutableCharacterSet*) URLPathAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) URLQueryAllowedCharacterSet
++ (NSMutableCharacterSet*) URLQueryAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) URLUserAllowedCharacterSet
++ (NSMutableCharacterSet*) URLUserAllowedCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);
 }
 
-+ (NSCharacterSet*) characterSetWithCharactersInString: (NSString*)aString
++ (NSMutableCharacterSet*) characterSetWithCharactersInString: (NSString*)aString
 {
   NSMutableCharacterSet	*ms;
 
@@ -1307,7 +1307,7 @@ static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
   return AUTORELEASE(ms);
 }
 
-+ (NSCharacterSet*) characterSetWithRange: (NSRange)aRange
++ (NSMutableCharacterSet*) characterSetWithRange: (NSRange)aRange
 {
   NSMutableCharacterSet	*ms;
 
