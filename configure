@@ -12263,7 +12263,7 @@ printf "%s\n" "#define USE_LIBFFI 1" >>confdefs.h
 
   WITH_FFI=libffi
   if test "$pkg_config_libffi" = "yes"; then
-    ffi_LIBS=`pkg-config --libs libffi`
+    ffi_LIBS=`$PKG_CONFIG --libs libffi`
   else
     ffi_LIBS=-lffi
   fi
@@ -13734,7 +13734,7 @@ if test $enable_tls = yes; then
   saved_CFLAGS="$CFLAGS"
 
   if test -n "$PKG_CONFIG"; then
-    if pkg-config --exists gnutls; then
+    if $PKG_CONFIG --exists gnutls; then
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking gnutls support" >&5
 printf %s "checking gnutls support... " >&6; }
       HAVE_GNUTLS=1
@@ -13981,7 +13981,7 @@ printf "%s\n" "no" >&6; }
     fi
   fi
   if test $HAVE_GNUTLS = 1; then
-    if ! pkg-config --atleast-version=2.12 gnutls; then
+    if ! $PKG_CONFIG --atleast-version=2.12 gnutls; then
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gcry_control in -lgcrypt" >&5
 printf %s "checking for gcry_control in -lgcrypt... " >&6; }
 if test ${ac_cv_lib_gcrypt_gcry_control+y}
@@ -14715,7 +14715,7 @@ done
   fi
 else
   if test -n "$PKG_CONFIG"; then
-    if pkg-config --exists libcurl; then
+    if $PKG_CONFIG --exists libcurl; then
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes ... via pkg-config" >&5
 printf "%s\n" "yes ... via pkg-config" >&6; }
       if $PKG_CONFIG --atleast-version 2.66.0 libcurl; then

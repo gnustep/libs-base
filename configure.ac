@@ -3125,7 +3125,7 @@ if test $enable_libffi = yes; then
             [Define if using the libffi library for invocations])
   WITH_FFI=libffi
   if test "$pkg_config_libffi" = "yes"; then
-    ffi_LIBS=`pkg-config --libs libffi`
+    ffi_LIBS=`$PKG_CONFIG --libs libffi`
   else
     ffi_LIBS=-lffi
   fi
@@ -3478,7 +3478,7 @@ if test $enable_tls = yes; then
   saved_CFLAGS="$CFLAGS"
 
   if test -n "$PKG_CONFIG"; then
-    if pkg-config --exists gnutls; then
+    if $PKG_CONFIG --exists gnutls; then
       AC_MSG_CHECKING(gnutls support)
       HAVE_GNUTLS=1
       TLS_CFLAGS=`$PKG_CONFIG --cflags gnutls`
@@ -3496,7 +3496,7 @@ if test $enable_tls = yes; then
     fi
   fi
   if test $HAVE_GNUTLS = 1; then
-    if ! pkg-config --atleast-version=2.12 gnutls; then
+    if ! $PKG_CONFIG --atleast-version=2.12 gnutls; then
       AC_CHECK_LIB(gcrypt, gcry_control, have_gcrypt=yes, have_gcrypt=no)
       if test "$have_gcrypt" = "no"; then
         HAVE_GNUTLS=0
@@ -3773,7 +3773,7 @@ if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG
   fi
 else
   if test -n "$PKG_CONFIG"; then
-    if pkg-config --exists libcurl; then
+    if $PKG_CONFIG --exists libcurl; then
       AC_MSG_RESULT(yes ... via pkg-config)
       if $PKG_CONFIG --atleast-version 2.66.0 libcurl; then
         AC_CHECK_HEADERS(curl/curl.h, curl_ok=yes, curl_ok=no)
