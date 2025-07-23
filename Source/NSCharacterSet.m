@@ -1187,6 +1187,17 @@ static gs_mutex_t cache_lock = GS_MUTEX_INIT_STATIC;
   return AUTORELEASE([[concreteMutableClass alloc] initWithBitmap: data]);
 }
 
++ (NSMutableCharacterSet*) characterSetWithContentsOfFile: (NSString*)aFile
+{
+  if ([@"bitmap" isEqual: [aFile pathExtension]])
+    {
+      NSData	*bitmap = [NSData dataWithContentsOfFile: aFile];
+      return [self characterSetWithBitmapRepresentation: bitmap];
+    }
+  else
+    return nil;
+}
+
 + (NSMutableCharacterSet*) alphanumericCharacterSet
 {
   return AUTORELEASE([[abstractClass performSelector: _cmd] mutableCopy]);

@@ -242,10 +242,159 @@ GS_EXPORT_CLASS
 @interface NSMutableCharacterSet : NSCharacterSet
 
 /**
+ *  Returns a character set containing letters, numbers, and diacritical
+ *  marks.  Note that "letters" includes all alphabetic as well as Chinese
+ *  characters, etc..
+ */
++ (NSMutableCharacterSet*) alphanumericCharacterSet;
+
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+/**
+ *  Returns a character set containing letters in the unicode
+ *  Titlecase category.
+ */
++ (NSMutableCharacterSet*) capitalizedLetterCharacterSet;
+#endif
+
+/**
+ * Returns a character set containing control and format characters.
+ */
++ (NSMutableCharacterSet*) controlCharacterSet;
+
+/**
+ * Returns a character set containing characters that represent
+ * the decimal digits 0 through 9.
+ */
++ (NSMutableCharacterSet*) decimalDigitCharacterSet;
+
+/**
+ * Returns a character set containing individual characters that
+ * can be represented also by a composed character sequence.
+ */
++ (NSMutableCharacterSet*) decomposableCharacterSet;
+
+/**
+ * Returns a character set containing unassigned and explicitly illegal
+ * character values.
+ */
++ (NSMutableCharacterSet*) illegalCharacterSet;
+
+/**
+ *  Returns a character set containing letters, including all alphabetic as
+ *  well as Chinese characters, etc..
+ */
++ (NSMutableCharacterSet*) letterCharacterSet;
+
+/**
+ * Returns a character set that contains the lowercase characters.
+ * This set does not include caseless characters, only those that
+ * have corresponding characters in uppercase and/or titlecase.
+ */
++ (NSMutableCharacterSet*) lowercaseLetterCharacterSet;
+
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+/**
+ * Returns a character set containing the newline characters, values 
+ * 0x000A and 0x000D and nextline 0x0085 character.
+ */
++ (NSMutableCharacterSet*) newlineCharacterSet;
+
+/**
+ * Returns allowed characers for URL fragment component.
+ */
++ (NSMutableCharacterSet*) URLFragmentAllowedCharacterSet;
+
+/**
+ * Returns allowed characers for URL host component.
+ */
++ (NSMutableCharacterSet*) URLHostAllowedCharacterSet;
+
+/**
+ * Returns allowed characers for URL password component.
+ */
++ (NSMutableCharacterSet*) URLPasswordAllowedCharacterSet;
+
+/**
+ * Returns allowed characers for URL path component.
+ */
++ (NSMutableCharacterSet*) URLPathAllowedCharacterSet;
+
+/**
+ * Returns allowed characers for URL query component.
+ */
++ (NSMutableCharacterSet*) URLQueryAllowedCharacterSet;
+
+/**
+ * Returns allowed characers for URL USER component.
+ */
++ (NSMutableCharacterSet*) URLUserAllowedCharacterSet;
+#endif
+
+/**
+ *  Returns a character set containing characters for diacritical marks, which
+ *  are usually only rendered in conjunction with another character.
+ */
++ (NSMutableCharacterSet*) nonBaseCharacterSet;
+
+/**
+ *  Returns a character set containing punctuation marks.
+ */
++ (NSMutableCharacterSet*) punctuationCharacterSet;
+
+#if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
+/**
+ *  Returns a character set containing mathematical symbols, etc..
+ */
++ (NSMutableCharacterSet*) symbolCharacterSet;
+#endif
+
+/**
+ * Returns a character set that contains the uppercase characters.
+ * This set does not include caseless characters, only those that
+ * have corresponding characters in lowercase and/or titlecase.
+ */
++ (NSMutableCharacterSet*) uppercaseLetterCharacterSet;
+
+/**
+ * Returns a character set that contains the whitespace characters,
+ * plus the newline characters, values 0x000A and 0x000D and nextline
+ * 0x0085 character.
+ */
++ (NSMutableCharacterSet*) whitespaceAndNewlineCharacterSet;
+
+/**
+ * Returns a character set that contains the whitespace characters.
+ */
++ (NSMutableCharacterSet*) whitespaceCharacterSet;
+
+/**
+ * Returns a character set containing characters as encoded in the
+ * data object (8192 bytes)
+ */
++ (NSMutableCharacterSet*) characterSetWithBitmapRepresentation: (NSData*)data;
+
+/**
  *  Returns set with characters in aString, or empty set for empty string.
  *  Raises an exception if given a nil string.
  */
 + (NSMutableCharacterSet*) characterSetWithCharactersInString: (NSString*)aString;
+
+/**
+ *  Returns set containing unicode index range given by aRange.
+ */
++ (NSMutableCharacterSet*) characterSetWithRange: (NSRange)aRange;
+
+#if OS_API_VERSION(GS_API_OPENSTEP, GS_API_MACOSX)
+/**
+ *  Initializes from a bitmap (8192 bytes representing 65536 values).<br />
+ *  Each bit set in the bitmap represents the fact that a character at
+ *  that position in the unicode base plane exists in the characterset.<br />
+ *  File must have extension "<code>.bitmap</code>".
+ *  To get around this load the file into data yourself and use
+ *  [NSMutableCharacterSet -characterSetWithBitmapRepresentation].
+ */
++ (NSMutableCharacterSet*) characterSetWithContentsOfFile: (NSString*)aFile;
+#endif
 
 /**
  *  Adds characters specified by unicode indices in aRange to set.
