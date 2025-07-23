@@ -3662,9 +3662,7 @@ transmute(GSStr self, NSString *aString)
     }
   GS_RANGE_CHECK(aRange, _count);
   if (aString == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] nil string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    return NSOrderedDescending;
   if (GSObjCIsInstance(aString) == NO)
     [NSException raise: NSInvalidArgumentException
 		format: @"[%@ -%@] not a string argument",
@@ -4041,9 +4039,7 @@ agree, create a new GSCInlineString otherwise.
     }
   GS_RANGE_CHECK(aRange, _count);
   if (aString == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] nil string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    return NSOrderedDescending;
   if (GSObjCIsInstance(aString) == NO)
     [NSException raise: NSInvalidArgumentException
 		format: @"[%@ -%@] not a string argument",
@@ -4497,9 +4493,7 @@ agree, create a new GSUInlineString otherwise.
     }
   GS_RANGE_CHECK(aRange, _count);
   if (aString == nil)
-    [NSException raise: NSInvalidArgumentException
-		format: @"[%@ -%@] nil string argument",
-      NSStringFromClass([self class]), NSStringFromSelector(_cmd)];
+    return NSOrderedDescending;
   if (GSObjCIsInstance(aString) == NO)
     [NSException raise: NSInvalidArgumentException
 		format: @"[%@ -%@] not a string argument",
