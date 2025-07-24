@@ -77,13 +77,14 @@ id process_plist(NSData *inputData)
   NSString *string = nil;
 
   // return if nil
-  if (inputData == NULL || inputData == nil)
+  if (nil == inputData)
     {
       return nil;
     }
   
   // Initialize a string with the contents of the file.
-  string = [NSString stringWithUTF8String: (char *)[inputData bytes]];
+  string = AUTORELEASE([[NSString alloc] initWithData: inputData
+					     encoding: NSUTF8StringEncoding]);
 
   // Convert the string into a property list.  If there is a parsing error
   // the property list interpreter will throw an exception.
@@ -114,10 +115,6 @@ NSData *read_input()
 
       // Read in the input from the file.
       inputData = [fileHandle readDataToEndOfFile];
-      if ([inputData length] == 0)
-	{
-	  return nil;
-	}
     }
   else
     {
