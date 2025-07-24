@@ -114,7 +114,7 @@ NSData *read_input()
 
       // Read in the input from the file.
       inputData = [fileHandle readDataToEndOfFile];
-      if (inputData == NULL)
+      if ([inputData length] == 0)
 	{
 	  return nil;
 	}
