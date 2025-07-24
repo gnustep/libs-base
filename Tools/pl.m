@@ -41,6 +41,9 @@ void create_output(id propertyList)
   NSArray *arguments = [processInfo arguments];
   NSUInteger outputIndex = 0;
 
+  if (propertyList == nil)
+    return;
+  
   // insert your code here
   outputIndex = [arguments indexOfObject: @"-output"];
   if (outputIndex == NSNotFound)
@@ -73,6 +76,12 @@ id process_plist(NSData *inputData)
   id propertyList = nil;
   NSString *string = nil;
 
+  // return if nil
+  if (inputData == NULL || inputData == nil)
+    {
+      return nil;
+    }
+  
   // Initialize a string with the contents of the file.
   string = [NSString stringWithUTF8String: (char *)[inputData bytes]];
 
@@ -102,8 +111,13 @@ NSData *read_input()
     {
       // setup the file handle.
       fileHandle = [NSFileHandle fileHandleWithStandardInput];
+
       // Read in the input from the file.
       inputData = [fileHandle readDataToEndOfFile];
+      if (inputData == NULL)
+	{
+	  return nil;
+	}
     }
   else
     {
