@@ -64,7 +64,11 @@ static  __attribute__((unused)) const char *inet_ntop6(const u_char *src, char *
  */
 const char *
 WSAAPI
+#if (defined(__BEOS__) || defined(__HAIKU__))
+inet_ntop(int af, const void *src, char *dst, socklen_t size)
+#else
 inet_ntop(int af, const void *src, char *dst, size_t size)
+#endif
 {
         switch (af) {
         case AF_INET:
