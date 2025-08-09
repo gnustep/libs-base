@@ -884,10 +884,10 @@ NSDictionary *locale)
   /* Initialize local variables.  */
   done = 0;
   grouping = (const char *) -1;
-#ifdef __va_copy
+#ifdef va_copy
   /* This macro will be available soon in gcc's <stdarg.h>.  We need it
      since on some systems `va_list' is not an integral type.  */
-  __va_copy (ap_save, ap);
+  va_copy (ap_save, ap);
 #else
   ap_save = ap;
 #endif
