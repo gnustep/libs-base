@@ -45,7 +45,6 @@
   GSProgressPausingHandler _pausingHandler; \
   NSProgressPublishingHandler _publishingHandler; \
   NSProgressUnpublishingHandler _unpublishingHandler; \
-  GSProgressPendingUnitCountBlock _pendingUnitCountHandler; \
   GSProgressResumingHandler _resumingHandler;              \
   NSString *_localizedDescription; \
   NSString *_localizedAdditionalDescription; \
@@ -125,6 +124,9 @@ static NSMutableDictionary *__subscribers = nil;
       RELEASE(internal->_fileTotalCount);
       RELEASE(internal->_throughput);
       RELEASE(internal->_userInfo);
+      RELEASE(internal->_cancellationHandler);
+      RELEASE(internal->_pausingHandler);
+      RELEASE(internal->_resumingHandler);
       RELEASE(internal->_localizedDescription);
       RELEASE(internal->_localizedAdditionalDescription);
       GS_DESTROY_INTERNAL(NSProgress);
@@ -279,7 +281,7 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setCancellationHandler: (GSProgressCancellationHandler) handler
 {
-  internal->_cancellationHandler = handler;
+  ASSIGNCOPY(internal->_cancellationHandler, handler);
 }
 
 - (BOOL) isPausable
@@ -302,7 +304,7 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setPausingHandler: (GSProgressPausingHandler) handler
 {
-  internal->_pausingHandler = handler;
+  ASSIGNCOPY(internal->_pausingHandler, handler);
 }
 
 - (void) resume
@@ -312,7 +314,7 @@ static NSMutableDictionary *__subscribers = nil;
 
 - (void) setResumingHandler: (GSProgressResumingHandler) handler
 {
-  internal->_resumingHandler = handler;
+  ASSIGNCOPY(internal->_resumingHandler, handler);
 }
 
 // Progress Information
