@@ -194,7 +194,9 @@ myHostName()
   RELEASE(s);
   if (YES == _hostCacheEnabled)
     {
+      [_hostCacheLock lock];
       [_hostCache setObject: self forKey: name];
+      [_hostCacheLock unlock];
     }
   RELEASE(name);
 }
@@ -210,7 +212,9 @@ myHostName()
   _addresses = RETAIN(_names);
   if (YES == _hostCacheEnabled)
     {
+      [_hostCacheLock lock];
       [_hostCache setObject: self forKey: name];
+      [_hostCacheLock unlock];
     }
   RELEASE(name);
   return self;
@@ -536,7 +540,9 @@ getCNames(NSString *host, NSMutableSet *cnames)
 
   if (YES == _hostCacheEnabled)
     {
+      [_hostCacheLock lock];
       [_hostCache setObject: self forKey: name];
+      [_hostCacheLock unlock];
     }
 
   return self;
