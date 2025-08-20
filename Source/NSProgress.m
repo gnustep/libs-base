@@ -23,6 +23,7 @@
 
 #include "GNUstepBase/GNUstep.h"
 #import "GSPThread.h"
+#include <math.h>
 #define	GS_NSProgress_IVARS	 \
   NSProgressKind _kind;  \
   NSProgressFileOperationKind _fileOperationKind; \
@@ -37,10 +38,10 @@
   int64_t _pendingUnitCountForChild; \
   double _fractionCompleted; \
   NSMutableDictionary *_userInfo; \
-  _Atomic(BOOL) _cancelled; \
-  _Atomic(BOOL) _cancellable; \
-  _Atomic(BOOL) _indeterminate; \
-  _Atomic(BOOL) _finished; \
+  BOOL _cancelled; \
+  BOOL _cancellable; \
+  BOOL _indeterminate; \
+  BOOL _finished; \
   BOOL _allowImplicitChild; \
   GSProgressCancellationHandler _cancellationHandler; \
   GSProgressPausingHandler _pausingHandler; \
@@ -126,6 +127,25 @@ static void tls_current_progress_pop(void)
   }
 }
 
+@interface NSProgress (Private)
+- (instancetype) initWithParent: (NSProgress *)parent 
+                       userInfo: (NSDictionary *)userInfo
+                  implicitChild: (BOOL) implicitChild;
+
+- (void) _setParent: (NSProgress *)p;
+
+- (void) _setTotalUnitCount: (int64_t) count;
+
+- (void) _setPendingUnitCountForParent: (int64_t) count;
+
+- (int64_t) _pendingUnitCountForChild;
+
+- (NSMutableSet *) _children;
+
+- (BOOL) _allowImplicitChild;
+- (void) _setAllowImplicitChild: (BOOL) implicitChild;
+@end
+
 /**
  * Implementation Note: GNUstep currently, as of August 2025, lacks the ability
  * to create RW locks.  RW locks would make the NSProgress implementation more
@@ -178,7 +198,7 @@ static void tls_current_progress_pop(void)
 - (instancetype) initWithParent: (NSProgress *)parent 
                        userInfo: (NSDictionary *)userInfo
 {
-  [self initWithParent: parent userInfo: userInfo implicitChild: YES];
+  return [self initWithParent: parent userInfo: userInfo implicitChild: YES];
 }
 
 - (instancetype) initWithParent: (NSProgress *)parent 
@@ -229,10 +249,10 @@ static void tls_current_progress_pop(void)
       objc_storeWeak(&internal->_parent, parent);
       GS_MUTEX_INIT_RECURSIVE(internal->_lock);
 
-      if (implicitChild && current && current->_allowImplicitChild)
+      if (implicitChild && current && [current _allowImplicitChild])
       {
-        current->_allowImplicitChild = NO;
-        [current addChild: self withPendingUnitCount: current->_pendingUnitCountForChild];
+        [current _setAllowImplicitChild: NO];
+        [current addChild: self withPendingUnitCount: [current _pendingUnitCountForChild]];
       }
     }
   return self;
@@ -268,7 +288,7 @@ static void tls_current_progress_pop(void)
   NSProgress *p = [[NSProgress alloc] initWithParent: nil
     userInfo: nil implicitChild: NO];
 
-  p->_totalUnitCount = unitCount;
+  [p _setTotalUnitCount: unitCount];
 
   return AUTORELEASE(p);
 }
@@ -278,7 +298,7 @@ static void tls_current_progress_pop(void)
   NSProgress *p = [[NSProgress alloc] initWithParent: nil
     userInfo: nil];
 
-  p->_totalUnitCount = unitCount;
+  [p _setTotalUnitCount: unitCount];
 
   return AUTORELEASE(p);
 }
@@ -290,7 +310,7 @@ static void tls_current_progress_pop(void)
   NSProgress *p = [[NSProgress alloc] initWithParent: parent
     userInfo: nil];
 
-  p->_totalUnitCount = unitCount;
+  [p _setTotalUnitCount: unitCount];
   [parent addChild: p withPendingUnitCount: portionOfParentTotalUnitCount];
 
   return AUTORELEASE(p);
@@ -299,6 +319,36 @@ static void tls_current_progress_pop(void)
 - (void) _setParent: (NSProgress *)p
 {
   objc_storeWeak(&internal->_parent, p);
+}
+
+- (void) _setTotalUnitCount: (int64_t) count
+{
+  internal->_totalUnitCount = count;
+}
+
+- (void) _setPendingUnitCountForParent: (int64_t) count
+{
+  internal->_pendingUnitCountForParent = count;
+}
+
+- (int64_t) _pendingUnitCountForChild
+{
+  return internal->_pendingUnitCountForChild;
+}
+
+- (NSMutableSet *) _children
+{
+  return internal->_children;
+}
+
+- (BOOL) _allowImplicitChild
+{
+  return internal->_allowImplicitChild;
+}
+
+- (void) _setAllowImplicitChild: (BOOL) implicitChild
+{
+  internal->_allowImplicitChild = implicitChild;
 }
 
 // Logic adapted from WinObjC implementation
@@ -315,16 +365,16 @@ static void tls_current_progress_pop(void)
   // This is one big atomic operation. An exclusive lock is required, as reading
   // from _completedUnitCount and _fractionCompleted might be inconsistent over
   // the update period.
-  GS_MUTEX_LOCK(_lock);
-  prevFraction = _fractionCompleted;
+  GS_MUTEX_LOCK(internal->_lock);
+  prevFraction = internal->_fractionCompleted;
 
   // If this function is called from a child, deltaFraction needs to be adjusted
   // according to the pending unit count of the child
   // If this function is called from self, unitCountForFraction is equal to _totalUnitCount.
   // Therefore deltaFractionForSelf = deltaFraction.
-  adjustedDeltaFraction = deltaFraction * unitCountForFraction / _totalUnitCount;
+  adjustedDeltaFraction = deltaFraction * unitCountForFraction / internal->_totalUnitCount;
   newFraction = prevFraction + adjustedDeltaFraction;
-  newCompletedUnitCount = _completedUnitCount + deltaCompletedUnit;
+  newCompletedUnitCount = internal->_completedUnitCount + deltaCompletedUnit;
 
   if (prevFraction != newFraction)
   {
@@ -336,53 +386,56 @@ static void tls_current_progress_pop(void)
   }
 
   // In macOS the finished check is placed before the didChangeValueForKey: @"completedUnitCount" message
-  if (newCompletedUnitCount == _totalUnitCount)
+  if (newCompletedUnitCount == internal->_totalUnitCount)
   {
     [self willChangeValueForKey:@"finished"];
-    _finished = YES;
+    internal->_finished = YES;
     [self didChangeValueForKey: @"finished"];
   }
 
   if (deltaCompletedUnit != 0)
   {
-    _completedUnitCount = newCompletedUnitCount;
+    internal->_completedUnitCount = newCompletedUnitCount;
     [self didChangeValueForKey:@"completedUnitCount"];
   }
 
   if (prevFraction != newFraction)
   {
-    _fractionCompleted = newFraction;
+    internal->_fractionCompleted = newFraction;
     [self didChangeValueForKey:@"fractionCompleted"];
   }
 
 
-  if (_fractionCompleted < 0)
+  if (internal->_fractionCompleted < 0)
   {
-      _fractionCompleted = 0;
+      internal->_fractionCompleted = 0;
   }
 
-  parent = objc_loadWeakRetained(&_parent);
+  parent = objc_loadWeakRetained(&internal->_parent);
   if (parent) {
-    if (_fractionCompleted >= 1)
+    if (internal->_fractionCompleted >= 1)
     {
-        [parent _updateCompletedUnitsBy: _pendingUnitCountForParent
-                     fractionCompletedBy: (1.0f - prevFraction)
-                    unitCountForFraction: _pendingUnitCountForParent];
+      int64_t pendingCount = internal->_pendingUnitCountForParent;
+
+     [parent _updateCompletedUnitsBy: pendingCount 
+                 fractionCompletedBy: (1.0f - prevFraction)
+                unitCountForFraction: pendingCount];
     } else
     {
-        [parent _updateCompletedUnitsBy: 0
-                     fractionCompletedBy: adjustedDeltaFraction
-                    unitCountForFraction: _pendingUnitCountForParent];
+      [parent _updateCompletedUnitsBy: 0
+                  fractionCompletedBy: adjustedDeltaFraction
+                 unitCountForFraction: internal->_pendingUnitCountForParent];
     }
 
     // Remove child from parent
-    if (_finished)
+    if (internal->_finished)
     {
-      [parent->_children removeObject: self];
+      NSMutableSet *children = [parent _children];
+      [children removeObject: self];
     }
     RELEASE(parent);
   }
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (void) becomeCurrentWithPendingUnitCount: (int64_t)unitCount
@@ -398,8 +451,8 @@ static void tls_current_progress_pop(void)
 
   // Signal that the next instantiated progress object should become an implicit
   // child of the receiver.
-  _allowImplicitChild = YES;
-  _pendingUnitCountForChild = unitCount;
+  internal->_allowImplicitChild = YES;
+  internal->_pendingUnitCountForChild = unitCount;
 }
 
 - (void) addChild: (NSProgress *)child
@@ -417,18 +470,18 @@ static void tls_current_progress_pop(void)
 
   // Store the pending unit count in the child object. We will add it to the
   // parent after completion of the child progress.
-  child->_pendingUnitCountForParent = inUnitCount;
+  [child _setPendingUnitCountForParent: inUnitCount];
 
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
 
-  if (!_children)
+  if (!internal->_children)
   {
-    _children = [[NSMutableSet alloc] initWithCapacity: 2];
+    internal->_children = [[NSMutableSet alloc] initWithCapacity: 2];
   }
   // Track the unfinished child progress.
-  [_children addObject: child];
+  [internal->_children addObject: child];
 
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (void) resignCurrent
@@ -441,9 +494,9 @@ static void tls_current_progress_pop(void)
 {
   int64_t count;
   
-  GS_MUTEX_LOCK(_lock);
-  count = _totalUnitCount;
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
+  count = internal->_totalUnitCount;
+  GS_MUTEX_UNLOCK(internal->_lock);
 
   return count;
 }
@@ -461,24 +514,24 @@ static void tls_current_progress_pop(void)
 {
   double ratio;
 
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
 
-  ratio = (double)count / _totalUnitCount;
-  _totalUnitCount = count;
+  ratio = (double)count / internal->_totalUnitCount;
+  internal->_totalUnitCount = count;
   [self _updateCompletedUnitsBy: 0
-            fractionCompletedBy: (_fractionCompleted / ratio) - _fractionCompleted
-           unitCountForFraction: _totalUnitCount];
+            fractionCompletedBy: (internal->_fractionCompleted / ratio) - internal->_fractionCompleted
+           unitCountForFraction: internal->_totalUnitCount];
 
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (int64_t) completedUnitCount
 {
   int64_t count;
 
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   count =  internal->_completedUnitCount;
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 
   return count;
 }
@@ -486,25 +539,25 @@ static void tls_current_progress_pop(void)
 - (void) setCompletedUnitCount: (int64_t)count
 {
   // This is one big atomic operation
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
 
-  if (count != _completedUnitCount) {
-    int64_t deltaCompletedUnit = count - _completedUnitCount;
-    double deltaFraction = deltaCompletedUnit / (double) _totalUnitCount;
+  if (count != internal->_completedUnitCount) {
+    int64_t deltaCompletedUnit = count - internal->_completedUnitCount;
+    double deltaFraction = deltaCompletedUnit / (double) internal->_totalUnitCount;
     [self _updateCompletedUnitsBy: deltaCompletedUnit
               fractionCompletedBy: deltaFraction
-             unitCountForFraction: _totalUnitCount];
+             unitCountForFraction: internal->_totalUnitCount];
   }
 
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (double) fractionCompleted {
   double fraction;
 
-  GS_MUTEX_LOCK(_lock);
-  fraction = _fractionCompleted;
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
+  fraction = internal->_fractionCompleted;
+  GS_MUTEX_UNLOCK(internal->_lock);
 
   return fraction;
 }
@@ -515,44 +568,56 @@ static void tls_current_progress_pop(void)
 
 - (BOOL) isCancellable
 {
-  // _cancellable is atomic
-  return internal->_cancellable;
+  BOOL cancellable;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  cancellable =  internal->_cancellable;
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return cancellable;
 }
 
 - (BOOL) isCancelled
 {
-  // _cancelled is atomic
-  return internal->_cancelled;
+  BOOL cancelled;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  cancelled = internal->_cancelled;
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return cancelled;
 }
 
 - (void) cancel
 {
   if (!internal->_cancelled)
   {
-    GS_MUTEX_LOCK(_lock);
+    GS_MUTEX_LOCK(internal->_lock);
     if (!internal->_cancelled)
     {
+      NSMutableSet *children;
       [self willChangeValueForKey: @"cancelled"];
       CALL_BLOCK_NO_ARGS(internal->_cancellationHandler);
       internal->_cancelled = YES;
       [self didChangeValueForKey: @"cancelled"];
 
       // Cancel all child progresses
-      FOR_IN(NSProgress*, child, _children)
+      children = internal->_children;
+      FOR_IN(NSProgress*, child, children)
         {
           [child cancel];
         }
       END_FOR_IN(children)
     }
-    GS_MUTEX_UNLOCK(_lock);
+    GS_MUTEX_UNLOCK(internal->_lock);
   }
 }
 
 - (void) setCancellationHandler: (GSProgressCancellationHandler) handler
 {
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   ASSIGNCOPY(internal->_cancellationHandler, handler);
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 /**
@@ -578,14 +643,20 @@ static void tls_current_progress_pop(void)
 
 - (void) setPausingHandler: (GSProgressPausingHandler) handler
 {
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   ASSIGNCOPY(internal->_pausingHandler, handler);
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (BOOL) isFinished
 {
-  return internal->_finished;
+  BOOL finished;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  finished = internal->_finished;
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return finished;
 }
 
 /**
@@ -599,9 +670,9 @@ static void tls_current_progress_pop(void)
 
 - (void) setResumingHandler: (GSProgressResumingHandler) handler
 {
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   ASSIGNCOPY(internal->_resumingHandler, handler);
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (BOOL) isIndeterminate
@@ -617,18 +688,18 @@ static void tls_current_progress_pop(void)
 
 - (void) setKind: (NSProgressKind)k
 {
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   ASSIGN(internal->_kind, k);
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (NSProgressKind) kind
 {
   NSProgressKind kind;
 
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   kind = AUTORELEASE(RETAIN(internal->_kind));
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 
   return kind;
 }
@@ -636,115 +707,115 @@ static void tls_current_progress_pop(void)
 - (void)setUserInfoObject: (id)obj
                    forKey: (NSProgressUserInfoKey)key
 {
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   [internal->_userInfo setObject: obj forKey: key];
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (void) setEstimatedTimeRemaining: (NSNumber *)n
 {
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   ASSIGNCOPY(internal->_estimatedTimeRemaining, n);
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (NSNumber *) estimatedTimeRemaining
 {
   NSNumber *number;
 
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   number = AUTORELEASE(RETAIN(internal->_estimatedTimeRemaining));
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 
   return number;
 }
 
 - (void) setFileOperationKind: (NSProgressFileOperationKind)k
 {
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   ASSIGN(internal->_fileOperationKind, k);
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (NSProgressFileOperationKind) fileOperationKind
 {
   NSProgressFileOperationKind kind;
 
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   kind =  AUTORELEASE(RETAIN(internal->_fileOperationKind));
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 
   return kind;
 }
 
 - (void) setFileUrl: (NSURL *)u
 {
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   ASSIGN(internal->_fileUrl, u);
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (NSURL*) fileUrl
 {
   NSURL *url;
 
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   url = AUTORELEASE(RETAIN(internal->_fileUrl));
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 
   return url;
 }
 
 - (void) setFileCompletedCount: (NSNumber *)n
 {
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   ASSIGNCOPY(internal->_fileCompletedCount, n);
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (NSNumber *) fileCompletedCount
 {
   NSNumber *count;
 
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   count = AUTORELEASE(RETAIN(internal->_fileCompletedCount));
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 
   return count;
 }
 
 - (void) setFileTotalCount: (NSNumber *)n
 {
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   ASSIGNCOPY(internal->_fileTotalCount, n);
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (NSNumber *) fileTotalCount
 {
   NSNumber *count;
 
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   count = AUTORELEASE(RETAIN(internal->_fileTotalCount));
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 
   return count;
 }
 
 - (void) setThroughput: (NSNumber *)n
 {
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   ASSIGNCOPY(internal->_throughput, n);
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 - (NSNumber *) throughput
 {
   NSNumber *throughput;
 
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   throughput = AUTORELEASE(RETAIN(internal->_throughput));
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 
   return throughput;
 }
@@ -772,9 +843,9 @@ static void tls_current_progress_pop(void)
 
 - (void) setLocalizedDescription: (NSString *)localDescription
 {
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   ASSIGNCOPY(internal->_localizedDescription, localDescription);
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 
@@ -782,9 +853,9 @@ static void tls_current_progress_pop(void)
 {
   NSString *description;
 
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   description = AUTORELEASE(RETAIN(internal->_localizedDescription));
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 
   return description;
 }
@@ -793,9 +864,9 @@ static void tls_current_progress_pop(void)
 {
   NSString *description;
 
-  GS_MUTEX_LOCK(_lock);
+  GS_MUTEX_LOCK(internal->_lock);
   description = AUTORELEASE(RETAIN(internal->_localizedAdditionalDescription));
-  GS_MUTEX_UNLOCK(_lock);
+  GS_MUTEX_UNLOCK(internal->_lock);
 
   return description;
 }
