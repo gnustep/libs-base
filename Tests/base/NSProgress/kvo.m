@@ -62,6 +62,12 @@
                         change:(NSDictionary *)change
                        context:(void *)context
 {
+  // The KVO implementation of GCC is _special_ and does not behave according to
+  // the specification.
+  #if defined(__GNUC__)
+  testHopeful = YES;
+  #endif
+ 
   switch (_counter)
   {
     case 0: // child change fractionCompleted (prior)
@@ -86,12 +92,16 @@
         PASS(0, "Unexpected KVO change event");
   }
   _counter += 1;
+
+  #if defined(__GNUC__)
+  testHopeful = NO;
+  #endif
 }
 @end
 
 int main(void)
 {
-  @autoreleasepool {
+    ENTER_POOL
     ParentObserver *parentObserver = [ParentObserver new];
     NSProgress *parent = [[NSProgress alloc] initWithParent: nil userInfo: nil];
     NSKeyValueObservingOptions options = NSKeyValueObservingOptionNew |
@@ -142,6 +152,6 @@ int main(void)
     [parent removeObserver: parentObserver forKeyPath: @"finished"];
     [parentObserver release];
     [parent release];
-  }
+  LEAVE_POOL
   return 0;
 }
