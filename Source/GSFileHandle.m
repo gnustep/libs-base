@@ -1663,8 +1663,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 
 // Seeking within a file
 
-- (BOOL) getOffset: (out unsigned long long *)offsetInFile
-             error: (out NSError **)error;
+- (BOOL) getOffset: (unsigned long long *)offsetInFile
+             error: (NSError **)error;
 {
   off_t	result = -1;
 
@@ -1727,8 +1727,8 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
   return result;
 }
 
-- (BOOL) seekToEndReturningOffset: (out unsigned long long *)offsetInFile
-                            error: (out NSError **)error
+- (BOOL) seekToEndReturningOffset: (unsigned long long *)offsetInFile
+                            error: (NSError **)error
 {
   off_t	result = -1;
 
@@ -1777,7 +1777,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 }
 
 - (BOOL) seekToOffset: (unsigned long long)offset
-                error: (out NSError **)error
+                error: (NSError **)error
 {
   off_t	result = -1;
 
@@ -1913,7 +1913,7 @@ NSString * const GSSOCKSRecvAddr = @"GSSOCKSRecvAddr";
 }
 
 - (BOOL) truncateAtOffset: (unsigned long long)offset
-                    error: (out NSError **)error
+                    error: (NSError **)error
 {
   if (ftruncate((isStandardFile ? descriptor : -1), offset) < 0)
     {
