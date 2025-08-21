@@ -51,8 +51,7 @@ extern int WSAAPI inet_pton(int , const char *, void *);
 #include <arpa/inet.h>
 #endif /* !_WIN32 */
 
-// Temporary hack  ... disable new code because it seems to break CI
-#undef	HAVE_RESOLV_H
+//#undef	HAVE_RESOLV_H // HACK  ... disable code which seems to break CI
 
 #if	defined(HAVE_RESOLV_H)
 #include <resolv.h>
@@ -70,7 +69,9 @@ extern int WSAAPI inet_pton(int , const char *, void *);
 
 static NSString			*localHostName = @"GNUstep local host";
 static Class			hostClass;
+#if     !defined(HAVE_GETADDRINFO) || !defined(HAVE_RESOLV_H)
 static NSRecursiveLock		*_deprecateLock = nil;
+#endif
 static NSRecursiveLock		*_hostCacheLock = nil;
 static NSLock			*_nameCacheLock = nil;
 static BOOL			_hostCacheEnabled = YES;
@@ -366,7 +367,7 @@ getCNames(NSString *host, NSMutableSet *cnames)
 	    {
 	      NSString	*n = [NSString stringWithUTF8String: host];
 
-	      NSDebugMLog(@"NSHost", @"getnameinfo for '%s' found '%s'",
+	      NSDebugMLLog(@"NSHost", @"getnameinfo for '%s' found '%s'",
 		ipstr, host);
 	      if (nil == [names member: n])
 		{
@@ -376,7 +377,7 @@ getCNames(NSString *host, NSMutableSet *cnames)
 	    }
 	  else
 	    {
-	      NSDebugMLog(@"NSHost", @"getnameinfo for '%s' found nothing",
+	      NSDebugMLLog(@"NSHost", @"getnameinfo for '%s' found nothing",
 		ipstr);
 	      *host = '\0';
 	    }
