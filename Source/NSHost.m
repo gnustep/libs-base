@@ -932,14 +932,13 @@ getCNames(NSString *host, NSMutableSet *cnames)
     {
       if ([a rangeOfString: @":"].length > 0)
 	{
-	  for (NSString *tmp in _addresses)
+	  FOR_IN (NSString*, tmp, _addresses)
+	  if ([tmp rangeOfString: @":"].length == 0)
 	    {
-	      if ([tmp rangeOfString: @":"].length == 0)
-		{
-		  a = tmp;
-		  break;
-		}
+	      a = tmp;
+	      break;
 	    }
+	  END_FOR_IN (_addresses)
 	}
     }
   return a;
