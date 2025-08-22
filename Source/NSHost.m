@@ -923,7 +923,26 @@ getCNames(NSString *host, NSMutableSet *cnames)
 
 - (NSString*) address
 {
-  return [_addresses anyObject];
+  NSString	*a = [_addresses anyObject];
+
+  /* Prefer IPV4 addresses to IPV6 for backward compatibility with code
+   * which does not yet support IPV6
+   */
+  if (a)
+    {
+      if ([a rangeOfString: @":"].length > 0)
+	{
+	  for (NSString *tmp in _addresses)
+	    {
+	      if ([tmp rangeOfString: @":"].length == 0)
+		{
+		  a = tmp;
+		  break;
+		}
+	    }
+	}
+    }
+  return a;
 }
 
 - (NSArray*) addresses
