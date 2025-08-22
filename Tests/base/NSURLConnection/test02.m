@@ -35,7 +35,6 @@ int main(int argc, char **argv, char **env)
       NSURLConnectionTest *testCase;
       BOOL debug = GSDebugSet(@"dflt");
   
-debug = YES;
       testClass = [bundle principalClass]; // NSURLConnectionTest
 
       // create a shared TestWebServer instance for performance
