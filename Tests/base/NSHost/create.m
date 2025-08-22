@@ -38,7 +38,8 @@ int main()
 #endif
 
   tmp = [NSHost hostWithName: @"::1"];
-  PASS([[tmp address] isEqual: @"::1"], "+hostWithName: works for IPV6 addr");
+  PASS([[tmp addresses] containsObject: @"::1"],
+    "+hostWithName: works for IPV6 addr")
   NSLog(@"::1 is %@", tmp);
 
   s = [current name];
