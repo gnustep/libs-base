@@ -60,6 +60,7 @@ int main()
   PASS([[url absoluteString]
     isEqual: @"http://testing%40free.fr:password@127.0.0.1/dav.php/short/"],
     "Full -initWithScheme... works");
+  DESTROY(url);
 #endif
 
   // Test depends on network connection
