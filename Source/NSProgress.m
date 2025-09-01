@@ -712,6 +712,17 @@ static void tls_current_progress_pop(void)
   GS_MUTEX_UNLOCK(internal->_lock);
 }
 
+- (NSDictionary *) userInfo
+{
+  NSDictionary *obj;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  obj = AUTORELEASE(RETAIN(internal->_userInfo));
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return obj;
+}
+
 - (void) setEstimatedTimeRemaining: (NSNumber *)n
 {
   GS_MUTEX_LOCK(internal->_lock);
