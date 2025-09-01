@@ -1,8 +1,8 @@
 /**Definition of class NSProgress
-   Copyright (C) 2019 Free Software Foundation, Inc.
+   Copyright (C) 2025 Free Software Foundation, Inc.
    
-   Written by: 	Gregory Casamento <greg.casamento@gmail.com>
-   Date: 	July 2019
+   Written by: Hugo Melder <hugo@algoriddim.com>
+   Date: August 2025
    
    This file is part of the GNUstep Library.
    
@@ -246,6 +246,7 @@ GS_NSProgress_IVARS;
 
 - (void) setUserInfoObject: (id)obj
                     forKey: (NSProgressUserInfoKey)key;
+- (NSDictionary *) userInfo;
 
 - (void) setFileOperationKind: (NSProgressFileOperationKind)k;
 - (NSProgressFileOperationKind) fileOperationKind;
