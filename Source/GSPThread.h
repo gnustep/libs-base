@@ -22,8 +22,6 @@
 #ifndef _GSPThread_h_
 #define _GSPThread_h_
 
-#include <GNUstepBase/GSConfig.h>
-
 #if GS_USE_WIN32_THREADS_AND_LOCKS
 
 #include <windows.h>
