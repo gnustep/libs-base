@@ -182,7 +182,7 @@ jobs:
   ########### Windows ###########
   windows:
     name: ${{ matrix.name }}
-    runs-on: windows-2022
+    runs-on: ${{ matrix.os }}
     # don't run pull requests from local branches twice
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
 
@@ -191,6 +191,7 @@ jobs:
       matrix:
         include:
           - name: Windows x64 MinGW GCC
+            os: windows-2025
             arch: x86_64
             msystem: MINGW64
             library-combo: gnu-gnu-gnu
@@ -198,6 +199,7 @@ jobs:
             CXX: g++
 
           - name: Windows x64 MinGW Clang gnustep-2.2
+            os: windows-2025
             arch: x86_64
             msystem: MINGW64
             library-combo: ng-gnu-gnu
@@ -207,6 +209,7 @@ jobs:
             LDFLAGS: -fuse-ld=lld -lstdc++ -lgcc_s
 
           - name: Windows x64 MSVC Clang gnustep-2.2
+            os: windows-2025
             arch: x64
             host: x86_64-pc-windows
             library-combo: ng-gnu-gnu
@@ -214,6 +217,17 @@ jobs:
             configure-opts: --disable-tls
             CC: clang -m64
             CXX: clang++ -m64
+            LDFLAGS: -fuse-ld=lld
+
+          - name: Windows arm64 MSVC Clang gnustep-2.2
+            os: windows-11-arm
+            arch: arm64
+            host: aarch64-pc-windows
+            library-combo: ng-gnu-gnu
+            runtime-version: gnustep-2.2
+            configure-opts: --disable-tls
+            CC: clang
+            CXX: clang++
             LDFLAGS: -fuse-ld=lld
 
     env:
@@ -277,7 +291,7 @@ jobs:
           pacman -S --noconfirm mingw-w64-${{matrix.arch}}-gcc-objc
 
       - name: Set up MSYS2 (clang)
-        if: env.CC == 'clang'
+        if: (env.CC == 'clang') && (env.MSYSTEM == 'MINGW64')
         shell: msys2 {0}
         run: |
           pacman -S --noconfirm \
@@ -303,11 +317,6 @@ jobs:
         # so we delete everything that could mess up our builds
         run: rmdir /S /Q C:\Strawberry
         shell: cmd
-
-      - name: Install Windows packages (MSVC)
-        if: env.IS_WINDOWS_MSVC == 'true'
-        shell: cmd
-        run: choco install ninja
 
       - name: Set up VS Developer Command Prompt (MSVC)
         if: env.IS_WINDOWS_MSVC == 'true'
