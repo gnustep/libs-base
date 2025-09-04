@@ -40,7 +40,6 @@
 #  endif
 #endif
 
-
 #import "common.h"
 #import "Foundation/NSCoder.h"
 #import "Foundation/NSDecimalNumber.h"
@@ -708,7 +707,68 @@ static NSBoolNumber *boolN;		// Boolean NO (integer 0)
 
 - (NSUInteger) hash
 {
-  return (unsigned)[self doubleValue];
+  NSUInteger hash;
+  const char type = *[self objCType];
+
+  union DoubleComponents
+  {
+    double d;
+    uint64_t u; 
+  };
+  union FloatComponents
+  {
+    float f;
+    uint32_t u;
+  };
+
+  switch (type)
+  {
+    case 'd':
+      {
+        union DoubleComponents c;
+
+        c.d = [self doubleValue];
+
+        // Return the unsignedIntegerValue if the floating point's fractional
+        // component is zero.
+        if (c.d == floor(c.d))
+        {
+          return [self unsignedIntegerValue];
+        }
+
+        // Special cases. There is a positive and negative zero, make sure that
+        // the hashes are not different.
+        if (isnan(c.d) || c.d == 0.0)
+        {
+          return 0;
+        }
+
+        // Return the raw bit representation of the floating point.
+        return c.u;
+     }
+    case 'f':
+      {
+        union FloatComponents c;
+
+        c.f = [self floatValue];
+
+        if (c.f == floorf(c.f))
+        {
+          return [self unsignedIntegerValue];
+        }
+
+        if (isnanf(c.f) || c.f == 0.0)
+        {
+          return 0;
+        }
+
+        return c.u;
+     }
+    default:
+      hash = [self unsignedIntegerValue];
+  }
+
+  return hash;
 }
 
 - (NSString*) stringValue
