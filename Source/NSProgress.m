@@ -21,6 +21,7 @@
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
+#include "GNUstepBase/GSConfig.h"
 #include "GNUstepBase/GNUstep.h"
 #import "GSPThread.h"
 #include <math.h>

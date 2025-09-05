@@ -3799,7 +3799,12 @@ else
 fi
   
 if test "$OBJC_RUNTIME_LIB" = "ng" -a "$HAVE_LIBCURL" = 0; then
-AC_MSG_ERROR([libcurl is a hard-dependency when building with the Objective-C 2.0 toolchain])
+    HAVE_LIBCURL=1
+    LIBS="$LIBS -lcurl"
+    curl_all=yes
+    AC_MSG_WARN([libcurl is a hard-dependency when building with the
+		 Objective-C 2.0 runtime, but could not be found with
+		 pkg-config. I assume it is present.])
 fi
 
 AC_SUBST(HAVE_LIBCURL)
