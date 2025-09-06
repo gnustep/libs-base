@@ -120,6 +120,10 @@
 						  name: NSFileHandleConnectionAcceptedNotification
 						object: _fh];
   [self _close];
+  if (_fh)
+    {
+      NSLog(@"%@ stopped listening on %@:%@", self, _address, _port);
+    }
   DESTROY(_fh);
   DESTROY(_address);
   DESTROY(_port);
@@ -158,6 +162,7 @@
 					       name: NSFileHandleConnectionAcceptedNotification
 					     object: _fh];
 
+  NSLog(@"%@ started listening on %@:%@", self, _address, _port);
   [_fh acceptConnectionInBackgroundAndNotify];
   _isRunning = YES;
 

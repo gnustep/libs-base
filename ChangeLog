@@ -1,3 +1,9 @@
+2025-08-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSHost.m: Improve lock granularity with a lock for host name.
+	Add a new lock to protect regions using the thread-unsafe gethostbyname
+	function.
+
 2025-07-22 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/GSXML.m:

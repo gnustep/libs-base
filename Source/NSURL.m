@@ -2623,7 +2623,7 @@ static NSCharacterSet	*queryItemCharSet = nil;
                                               port: [self port]
                                           fullPath: [self path]
                                    parameterString: nil
-                                             query: [self percentEncodedQuery]
+                                             query: [self query]
                                           fragment: [self fragment]]);
 }
 
@@ -2636,7 +2636,7 @@ static NSCharacterSet	*queryItemCharSet = nil;
   [self setUser: [url user]];
   [self setPassword: [url password]];
   [self setPath: [url path]];
-  [self setPercentEncodedQuery:[url query]];
+  [self setPercentEncodedQuery: [url query]];
   [self setFragment: [url fragment]];
 }
 

@@ -51,8 +51,7 @@ extern int WSAAPI inet_pton(int , const char *, void *);
 #include <arpa/inet.h>
 #endif /* !_WIN32 */
 
-// Temporary hack  ... disable new code because it seems to break CI
-#undef	HAVE_RESOLV_H
+//#undef	HAVE_RESOLV_H // HACK  ... disable code which seems to break CI
 
 #if	defined(HAVE_RESOLV_H)
 #include <resolv.h>
@@ -70,7 +69,11 @@ extern int WSAAPI inet_pton(int , const char *, void *);
 
 static NSString			*localHostName = @"GNUstep local host";
 static Class			hostClass;
+#if     !defined(HAVE_GETADDRINFO) || !defined(HAVE_RESOLV_H)
+static NSRecursiveLock		*_deprecateLock = nil;
+#endif
 static NSRecursiveLock		*_hostCacheLock = nil;
+static NSLock			*_nameCacheLock = nil;
 static BOOL			_hostCacheEnabled = YES;
 static NSMutableDictionary	*_hostCache = nil;
 static id			null = nil;
@@ -115,7 +118,7 @@ myHostName()
   char			buf[GSMAXHOSTNAMELEN+1];
   int			res;
 
-  [_hostCacheLock lock];
+  [_nameCacheLock lock];
   res = gethostname(buf, GSMAXHOSTNAMELEN);
   if (res < 0 || *buf == '\0')
     {
@@ -129,7 +132,7 @@ myHostName()
       RELEASE(name);
       name = [[NSString alloc] initWithCString: buf];
     }
-  [_hostCacheLock unlock];
+  [_nameCacheLock unlock];
   return name;
 }
 
@@ -194,7 +197,9 @@ myHostName()
   RELEASE(s);
   if (YES == _hostCacheEnabled)
     {
+      [_hostCacheLock lock];
       [_hostCache setObject: self forKey: name];
+      [_hostCacheLock unlock];
     }
   RELEASE(name);
 }
@@ -210,7 +215,9 @@ myHostName()
   _addresses = RETAIN(_names);
   if (YES == _hostCacheEnabled)
     {
+      [_hostCacheLock lock];
       [_hostCache setObject: self forKey: name];
+      [_hostCacheLock unlock];
     }
   RELEASE(name);
   return self;
@@ -360,7 +367,7 @@ getCNames(NSString *host, NSMutableSet *cnames)
 	    {
 	      NSString	*n = [NSString stringWithUTF8String: host];
 
-	      NSDebugMLog(@"NSHost", @"getnameinfo for '%s' found '%s'",
+	      NSDebugMLLog(@"NSHost", @"getnameinfo for '%s' found '%s'",
 		ipstr, host);
 	      if (nil == [names member: n])
 		{
@@ -370,7 +377,7 @@ getCNames(NSString *host, NSMutableSet *cnames)
 	    }
 	  else
 	    {
-	      NSDebugMLog(@"NSHost", @"getnameinfo for '%s' found nothing",
+	      NSDebugMLLog(@"NSHost", @"getnameinfo for '%s' found nothing",
 		ipstr);
 	      *host = '\0';
 	    }
@@ -430,6 +437,11 @@ getCNames(NSString *host, NSMutableSet *cnames)
 
 #else
 
+/* The gethostbyname() function is deprecated because it is not thread-safe
+ * so we must lock-protect the region where it is used.  Since the unsafe
+ * output from the function is passed to this method, this method must only
+ * be called with a NULL entry or inside a lock protected region. 
+ */
 - (id) _initWithHostEntry: (struct hostent*)entry key: (NSString*)name
 {
   int			i;
@@ -471,6 +483,7 @@ getCNames(NSString *host, NSMutableSet *cnames)
       extra = nil;
     }
 
+  [_deprecateLock lock];
   for (;;)
     {
       /*
@@ -528,6 +541,7 @@ getCNames(NSString *host, NSMutableSet *cnames)
 	}
       entry = 0;
     }
+  [_deprecateLock unlock];
 
   _names = [names copy];
   RELEASE(names);
@@ -536,7 +550,9 @@ getCNames(NSString *host, NSMutableSet *cnames)
 
   if (YES == _hostCacheEnabled)
     {
+      [_hostCacheLock lock];
       [_hostCache setObject: self forKey: name];
+      [_hostCacheLock unlock];
     }
 
   return self;
@@ -565,6 +581,8 @@ getCNames(NSString *host, NSMutableSet *cnames)
       [[NSObject leakAt: &null] release];
       _hostCacheLock = [[NSRecursiveLock alloc] init];
       [[NSObject leakAt: &_hostCacheLock] release];
+      _nameCacheLock = [[NSLock alloc] init];
+      [[NSObject leakAt: &_nameCacheLock] release];
       _hostCache = [NSMutableDictionary new];
       [[NSObject leakAt: &_hostCache] release];
 #if     defined(HAVE_GETADDRINFO) && defined(HAVE_RESOLV_H)
@@ -572,6 +590,9 @@ getCNames(NSString *host, NSMutableSet *cnames)
 	{
 	  NSLog(@"+[NSHost initialize] error in res_init()");
 	}
+#else
+      _deprecateLock = [[NSRecursiveLock alloc] init];
+      [[NSObject leakAt: &_deprecateLock] release];
 #endif
     }
 }
@@ -627,6 +648,10 @@ getCNames(NSString *host, NSMutableSet *cnames)
 	{
 	  struct hostent	*h;
 
+	  /* The gethostbyname() function is deprecated because it is not
+	   * thread-safe, so we lock-protect the region where it is used.
+	   */
+	  [_deprecateLock lock];
 	  h = gethostbyname((char*)[name UTF8String]);
 	  if (0 == h)
 	    {
@@ -640,6 +665,7 @@ getCNames(NSString *host, NSMutableSet *cnames)
 	    {
 	      host = [[self alloc] _initWithHostEntry: h key: name];
 	    }
+	  [_deprecateLock unlock];
 	}
 #endif
       if (_hostCacheEnabled)
@@ -722,7 +748,10 @@ getCNames(NSString *host, NSMutableSet *cnames)
 
       /* The gethostbyname() function should handle names, ipv4 addresses,
        * and ipv6 addresses ... so we can use it whatever we have.
+       * However gethostbyname() is deprecated because it is not thread-safe
+       * so we lock-protect the region where it is used.
        */
+      [_deprecateLock lock];
       h = gethostbyname(a);
       if (0 == h)
 	{
@@ -732,6 +761,7 @@ getCNames(NSString *host, NSMutableSet *cnames)
 	{
 	  host = [[self alloc] _initWithHostEntry: h key: address];
 	}
+      [_deprecateLock unlock];
 #endif
       if (_hostCacheEnabled)
 	{
@@ -893,7 +923,25 @@ getCNames(NSString *host, NSMutableSet *cnames)
 
 - (NSString*) address
 {
-  return [_addresses anyObject];
+  NSString	*a = [_addresses anyObject];
+
+  /* Prefer IPV4 addresses to IPV6 for backward compatibility with code
+   * which does not yet support IPV6
+   */
+  if (a)
+    {
+      if ([a rangeOfString: @":"].length > 0)
+	{
+	  FOR_IN (NSString*, tmp, _addresses)
+	  if ([tmp rangeOfString: @":"].length == 0)
+	    {
+	      a = tmp;
+	      break;
+	    }
+	  END_FOR_IN (_addresses)
+	}
+    }
+  return a;
 }
 
 - (NSArray*) addresses
