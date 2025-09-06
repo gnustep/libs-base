@@ -885,9 +885,10 @@ static void tls_current_progress_pop(void)
 
 - (void) setLocalizedAdditionalDescription: (NSString *)localDescription
 {
+  GS_MUTEX_LOCK(internal->_lock);
   ASSIGNCOPY(internal->_localizedAdditionalDescription, localDescription);
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
 @end
-
 
