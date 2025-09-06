@@ -225,6 +225,10 @@ GS_NSProgress_IVARS;
  * cancellable but not pausable.
  */
 - (BOOL) isCancellable;
+
+/**
+ * Returns YES if the reciever is cancelled.
+ */
 - (BOOL) isCancelled;
 
 /**
