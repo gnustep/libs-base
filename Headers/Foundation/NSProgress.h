@@ -1,21 +1,21 @@
 /**Definition of class NSProgress
    Copyright (C) 2025 Free Software Foundation, Inc.
-   
+
    Written by: Hugo Melder <hugo@algoriddim.com>
    Date: August 2025
-   
+
    This file is part of the GNUstep Library.
-   
+
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
    License as published by the Free Software Foundation; either
    version 2 of the License, or (at your option) any later version.
-   
+
    This library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
    Lesser General Public License for more details.
-   
+
    You should have received a copy of the GNU Lesser General Public
    License along with this library; if not, write to the Free
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
@@ -41,14 +41,14 @@ extern "C" {
 
 typedef NSString* NSProgressKind;
 typedef NSString* NSProgressUserInfoKey;
-typedef NSString* NSProgressFileOperationKind;  
+typedef NSString* NSProgressFileOperationKind;
 
 DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressCancellationHandler, void);
 DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressPausingHandler, void);
 DEFINE_BLOCK_TYPE(NSProgressPublishingHandler, void, NSProgress*);
-DEFINE_BLOCK_TYPE_NO_ARGS(NSProgressUnpublishingHandler, void); 
-DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressPendingUnitCountBlock, void); 
-DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressResumingHandler, void); 
+DEFINE_BLOCK_TYPE_NO_ARGS(NSProgressUnpublishingHandler, void);
+DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressPendingUnitCountBlock, void);
+DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressResumingHandler, void);
 
 /**
  * A progress object tracks an amount of work that is yet to be completed.  Work
@@ -74,7 +74,7 @@ DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressResumingHandler, void);
  * discreteProgressWithTotalUnitCount:) becomes a child of this current progress.
  * This is the second mechanism to implicitly add a child to a progress object.
  */
-  
+
 GS_EXPORT_CLASS
 @interface NSProgress : NSObject
 {
@@ -101,9 +101,9 @@ GS_NSProgress_IVARS;
  *
  * The parent progress must either be the current progress object of the current
  * thread, or nil.
- */ 
-- (instancetype) initWithParent: (NSProgress *)parent 
-                       userInfo: (NSDictionary *)userInfo;
+ */
+- (instancetype) initWithParent: (NSProgress *)parent
+		       userInfo: (NSDictionary *)userInfo;
 
 /**
  * Creates a progress object for a total number of work units. This object will
@@ -119,7 +119,7 @@ GS_NSProgress_IVARS;
  * Creates a progress object for a total number of work units.
  *
  * Note that this object may become an implicit child of the thread-local
- * current progress object, if requested by the current progress object. 
+ * current progress object, if requested by the current progress object.
  */
 + (NSProgress *) progressWithTotalUnitCount: (int64_t)unitCount;
 
@@ -127,8 +127,8 @@ GS_NSProgress_IVARS;
  * Creates a progress object for a total number of work units. This object is
  * then added as a child to the parent with a pending number of units.
  */
-+ (NSProgress *) progressWithTotalUnitCount: (int64_t)unitCount 
-  parent: (NSProgress *)parent 
++ (NSProgress *) progressWithTotalUnitCount: (int64_t)unitCount
+  parent: (NSProgress *)parent
   pendingUnitCount: (int64_t)portionOfParentTotalUnitCount;
 
 /**
@@ -140,7 +140,7 @@ GS_NSProgress_IVARS;
 /**
  * Push the receiver to the thread-local current progress stack.
  * The first object on the stack can be accessed with
- * +[NSProgress currentProgress]. 
+ * +[NSProgress currentProgress].
  *
  * Upon initialisation of the next progress object, the newly created object
  * becomes a child of receiver. Note that this only holds for the first object
@@ -193,9 +193,24 @@ GS_NSProgress_IVARS;
  */
 - (void) setCompletedUnitCount: (int64_t)unitCount;
 
+/**
+ * Returns the localized description string.
+ */
 - (NSString *) localizedDescription;
+
+/**
+ * Sets the localized description string.
+ */
 - (void) setLocalizedDescription: (NSString *)desc;
+
+/**
+ * Returns the additional localized description string.
+ */
 - (NSString *) localizedAdditionalDescription;
+
+/**
+ * Sets the additional localized description string.
+ */
 - (void) setLocalizedAdditionalDescription: (NSString *)addDesc;
 
 /**
@@ -247,7 +262,7 @@ GS_NSProgress_IVARS;
 - (NSProgressKind) kind;
 
 - (void) setUserInfoObject: (id)obj
-                    forKey: (NSProgressUserInfoKey)key;
+		    forKey: (NSProgressUserInfoKey)key;
 - (NSDictionary *) userInfo;
 
 - (void) setFileOperationKind: (NSProgressFileOperationKind)k;
@@ -277,13 +292,13 @@ GS_NSProgress_IVARS;
  */
 - (void) publish;
 - (void) unpublish;
-- (void) performAsCurrentWithPendingUnitCount: (int64_t)unitCount 
+- (void) performAsCurrentWithPendingUnitCount: (int64_t)unitCount
   usingBlock: (GSProgressPendingUnitCountBlock)work;
 
-+ (id) addSubscriberForFileURL: (NSURL *)url 
-         withPublishingHandler: (NSProgressPublishingHandler)publishingHandler;
++ (id) addSubscriberForFileURL: (NSURL *)url
+	 withPublishingHandler: (NSProgressPublishingHandler)publishingHandler;
 + (void) removeSubscriber: (id)subscriber;
-  
+
 @end
 
 
@@ -300,4 +315,3 @@ GS_NSProgress_IVARS;
 #endif	/* GS_API_MACOSX */
 
 #endif	/* _NSProgress_h_GNUSTEP_BASE_INCLUDE */
-
