@@ -63,13 +63,7 @@
 
 #if GS_USE_LIBDISPATCH_RUNLOOP
 #  define RL_INTEGRATE_DISPATCH 1
-#  ifdef HAVE_DISPATCH_H
-#    include <dispatch.h>
-#  elif HAVE_DISPATCH_PRIVATE_H
-#    include <dispatch/private.h>
-#  elif HAVE_DISPATCH_DISPATCH_H
-#    include <dispatch/dispatch.h>
-#  endif
+#  import "GSDispatch.h"
 #endif
 
 
