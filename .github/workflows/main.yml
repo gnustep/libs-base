@@ -198,6 +198,16 @@ jobs:
             CC: gcc
             CXX: g++
 
+          - name: Windows x64 MinGW Clang gnustep-1.9
+            os: windows-2025
+            arch: x86_64
+            msystem: MINGW64
+            library-combo: ng-gnu-gnu
+            runtime-version: gnustep-1.9
+            CC: clang
+            CXX: clang
+            LDFLAGS: -fuse-ld=lld -lstdc++ -lgcc_s
+
           - name: Windows x64 MinGW Clang gnustep-2.2
             os: windows-2025
             arch: x86_64
