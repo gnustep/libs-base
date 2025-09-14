@@ -89,6 +89,14 @@ jobs:
             CXX: g++
             libdir: lib
 
+          - name: Ubuntu x64 Clang gnustep-1.9
+            container: ubuntu:24.04
+            library-combo: ng-gnu-gnu
+            runtime-version: gnustep-1.9
+            CC: clang
+            CXX: clang++
+            libdir: lib
+
           - name: Ubuntu x64 Clang gnustep-2.2
             container: ubuntu:24.04
             library-combo: ng-gnu-gnu
