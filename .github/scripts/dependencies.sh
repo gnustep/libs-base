@@ -39,17 +39,18 @@ install_libobjc2() {
         -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH \
         -DEMBEDDED_BLOCKS_RUNTIME=ON \
         ../
+      make install
     else
       cmake \
         -DTESTS=off \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-        -DGNUSTEP_INSTALL_TYPE=SYSTEM \
-        -DCMAKE_INSTALL_PREFIX=/mingw64 \
+        -DGNUSTEP_INSTALL_TYPE=NONE \
+        -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH \
+        -DEMBEDDED_BLOCKS_RUNTIME=ON \
         -DOLDABI_COMPAT=ON \
-        -DEMBEDDED_BLOCKS_RUNTIME=OFF \
         ../
+      make
     fi
-    make install
     echo "::endgroup::"
 }
 
