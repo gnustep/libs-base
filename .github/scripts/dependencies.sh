@@ -31,12 +31,19 @@ install_libobjc2() {
     git submodule update --init
     mkdir build
     cd build
+    if [ "$RUNTIME_VERSION" = "gnustep-1.9"  ]; then
+      OLDABI_COMPAT="ON"
+    else
+      OLDABI_COMPAT="OFF"
+    fi
+
     cmake \
       -DTESTS=off \
       -DCMAKE_BUILD_TYPE=RelWithDebInfo \
       -DGNUSTEP_INSTALL_TYPE=NONE \
       -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH \
       -DEMBEDDED_BLOCKS_RUNTIME=ON \
+      -DOLDABI_COMPAT=$OLDABI_COMPAT \
       ../
     make install
     echo "::endgroup::"
@@ -62,9 +69,13 @@ mkdir -p $DEPS_PATH
 
 # Windows MSVC toolchain uses tools-windows-msvc scripts to install non-GNUstep dependencies;
 # the MSYS2 toolchain uses Pacman to install non-GNUstep dependencies.
-if [ "$LIBRARY_COMBO" = "ng-gnu-gnu" -a "$IS_WINDOWS_MSVC" != "true" -a "$IS_WINDOWS_MINGW" != "true" ]; then
-    install_libobjc2
-    install_libdispatch
+if [ "$LIBRARY_COMBO" = "ng-gnu-gnu" -a "$IS_WINDOWS_MSVC" != "true" ]; then
+    if [ "$IS_WINDOWS_MINGW" != "true" ]; then
+      install_libobjc2
+      install_libdispatch
+    elif [ "$RUNTIME_VERSION" = "gnustep-1.9" ]; then
+      install_libobjc2
+    fi
 fi
 
 install_gnustep_make

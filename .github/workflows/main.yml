@@ -313,9 +313,22 @@ jobs:
         shell: msys2 {0}
         run: |
           pacman -S --noconfirm \
-            mingw-w64-${{matrix.arch}}-libobjc2 \
             mingw-w64-${{matrix.arch}}-clang \
             mingw-w64-${{matrix.arch}}-lld
+
+      - name: Set up MSYS2 libobjc2 (clang)
+        if: (env.CC == 'clang') && (env.MSYSTEM == 'MINGW64') && (env.RUNTIME_VERSION != 'gnustep-1.9')
+        shell: msys2 {0}
+        run: |
+          pacman -S --noconfirm mingw-w64-${{matrix.arch}}-libobjc2
+
+      - name: Set up MSYS2 1.9 ABI (clang)
+        if: (env.CC == 'clang') && (env.MSYSTEM == 'MINGW64') && (env.RUNTIME_VERSION == 'gnustep-1.9')
+        shell: msys2 {0}
+        run: |
+          pacman -S --noconfirm \
+            mingw-w64-${{matrix.arch}}-cmake \
+            mingw-w64-${{matrix.arch}}-robin-map
 
       - name: Set up MSYS2 (MSVC)
         uses: msys2/setup-msys2@v2
