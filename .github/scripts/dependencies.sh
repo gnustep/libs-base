@@ -44,6 +44,7 @@ install_libobjc2() {
         -DTESTS=off \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
         -DGNUSTEP_INSTALL_TYPE=SYSTEM \
+        -DCMAKE_INSTALL_PREFIX=/mingw64 \
         -DOLDABI_COMPAT=ON \
         ../
     fi
