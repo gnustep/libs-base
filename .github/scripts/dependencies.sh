@@ -31,26 +31,22 @@ install_libobjc2() {
     git submodule update --init
     mkdir build
     cd build
-    if [ "$IS_WINDOWS_MINGW" != "true" ]; then
-      cmake \
-        -DTESTS=off \
-        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-        -DGNUSTEP_INSTALL_TYPE=NONE \
-        -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH \
-        -DEMBEDDED_BLOCKS_RUNTIME=ON \
-        ../
-      make install
+    if [ "$RUNTIME_VERSION" = "gnustep-1.9"  ]; then
+      OLDABI_COMPAT="ON"
     else
-      cmake \
-        -DTESTS=off \
-        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-        -DGNUSTEP_INSTALL_TYPE=NONE \
-        -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH \
-        -DEMBEDDED_BLOCKS_RUNTIME=ON \
-        -DOLDABI_COMPAT=ON \
-        ../
-      make
+      OLDABI_COMPAT="OFF"
     fi
+
+    cmake \
+      -DTESTS=off \
+      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+      -DGNUSTEP_INSTALL_TYPE=NONE \
+      -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH \
+      -DEMBEDDED_BLOCKS_RUNTIME=ON \
+      -DOLDABI_COMPAT=$OLDABI_COMPAT \
+      ../
+    cmake --build .
+    cmake --install .
     echo "::endgroup::"
 }
 
