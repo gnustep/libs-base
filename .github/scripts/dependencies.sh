@@ -31,20 +31,21 @@ install_libobjc2() {
     git submodule update --init
     mkdir build
     cd build
-    if [ "$RUNTIME_VERSION" = "gnustep-1.9"  ]; then
-      OLDABI_COMPAT="ON"
+    if [ "$IS_WINDOWS_MINGW" != "true" ]; then
+      cmake \
+        -DTESTS=off \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+        -DGNUSTEP_INSTALL_TYPE=NONE \
+        -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH \
+        -DEMBEDDED_BLOCKS_RUNTIME=ON \
+        ../
     else
-      OLDABI_COMPAT="OFF"
+      cmake \
+        -DTESTS=off \
+        -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+        -DOLDABI_COMPAT=ON \
+        ../
     fi
-
-    cmake \
-      -DTESTS=off \
-      -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-      -DGNUSTEP_INSTALL_TYPE=NONE \
-      -DCMAKE_INSTALL_PREFIX:PATH=$INSTALL_PATH \
-      -DEMBEDDED_BLOCKS_RUNTIME=ON \
-      -DOLDABI_COMPAT=$OLDABI_COMPAT \
-      ../
     make install
     echo "::endgroup::"
 }
@@ -73,7 +74,7 @@ if [ "$LIBRARY_COMBO" = "ng-gnu-gnu" -a "$IS_WINDOWS_MSVC" != "true" ]; then
     if [ "$IS_WINDOWS_MINGW" != "true" ]; then
       install_libobjc2
       install_libdispatch
-    elif [ "$RUNTIME_VERSION" = "gnustep-1.9" ]; then
+    elif [ "$RUNTIME_VERSION" = "gnustep-1.9"  ]; then
       install_libobjc2
     fi
 fi
