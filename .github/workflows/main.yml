@@ -327,8 +327,7 @@ jobs:
         shell: msys2 {0}
         run: |
           pacman -S --noconfirm \
-            mingw-w64-${{matrix.arch}}-cmake \
-            mingw-w64-${{matrix.arch}}-robin-map
+            mingw-w64-${{matrix.arch}}-cmake
 
       - name: Set up MSYS2 (MSVC)
         uses: msys2/setup-msys2@v2
