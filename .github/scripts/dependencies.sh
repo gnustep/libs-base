@@ -43,6 +43,7 @@ install_libobjc2() {
       cmake \
         -DTESTS=off \
         -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+        -DGNUSTEP_INSTALL_TYPE=SYSTEM \
         -DOLDABI_COMPAT=ON \
         ../
     fi
