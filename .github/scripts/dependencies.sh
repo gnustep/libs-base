@@ -46,6 +46,7 @@ install_libobjc2() {
         -DGNUSTEP_INSTALL_TYPE=SYSTEM \
         -DCMAKE_INSTALL_PREFIX=/mingw64 \
         -DOLDABI_COMPAT=ON \
+        -DEMBEDDED_BLOCKS_RUNTIME=OFF \
         ../
     fi
     make install
