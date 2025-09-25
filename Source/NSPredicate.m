@@ -183,6 +183,8 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 }
 
 - (instancetype) initWithBlock: (GSBlockPredicateBlock)block;
+- (id) copyWithZone: (NSZone *)z;
+
 @end
 
 
@@ -192,6 +194,8 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 }
 - (instancetype) initWithBlock: (GSBlockPredicateBlock)block
                       bindings: (GS_GENERIC_CLASS(NSDictionary,NSString*,id)*)bindings;
+- (id) copyWithZone: (NSZone *)z;
+
 @end
 #endif
 
@@ -368,7 +372,8 @@ extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
 
 - (id) copyWithZone: (NSZone *)z
 {
-  return NSCopyObject(self, 0, z);
+  [self subclassResponsibility: _cmd];
+  return nil;
 }
 
 - (BOOL) evaluateWithObject: (id)object
@@ -3167,6 +3172,14 @@ do { \
             substitutionVariables: nil];
 }
 
+- (id) copyWithZone: (NSZone *) z
+{
+  Class c;
+
+  c = [self class];
+  return [[c allocWithZone: z] initWithBlock: _block];
+}
+
 - (void) dealloc
 {
   [(id)_block release];
@@ -3198,6 +3211,14 @@ do { \
 {
   return [self evaluateWithObject: object
             substitutionVariables: _bindings];
+}
+
+- (id) copyWithZone: (NSZone *) z
+{
+  Class c;
+
+  c = [self class];
+  return [[c allocWithZone: z] initWithBlock: _block bindings: _bindings];
 }
 
 - (void) dealloc
