@@ -196,6 +196,11 @@ static void tls_current_progress_pop(void)
   return AUTORELEASE(RETAIN(current));
 }
 
+- (instancetype) init
+{
+  return [self initWithParent: nil userInfo: nil];
+}
+
 - (instancetype) initWithParent: (NSProgress *)parent 
                        userInfo: (NSDictionary *)userInfo
 {
