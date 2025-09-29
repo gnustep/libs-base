@@ -849,7 +849,7 @@ with_ffi_library
 enable_iconv
 with_libiconv_library
 with_libiconv_include
-enable_stricticonv
+enable_limitediconv
 enable_xml
 with_xml_prefix
 enable_xmltest
@@ -1512,132 +1512,126 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-environment-config-file
-                                Disables the use of the GNUSTEP_CONFIG_FILE
-				environment variable to specify/override
-				the location of the GNUstep config file
-				at runtime.  This option is occasionally
-				useful to disable the environment variable
-				for sites which wish to 'lock down' users
-				to always work with a specific system-wide
-				configuration.  On unix-like systems the
-				default is for this option to be enabled.
-				It is disabled by default on windows systems
-				so that the base library will not use a
-				config file intended for the gnustep-make
-				system (and containing unix-style paths
-				which cannot be used by windows apps).
-				Normally this should be left at its default
-				setting.
+                          Disables the use of the GNUSTEP_CONFIG_FILE
+                          environment variable to specify/override the
+                          location of the GNUstep config file at runtime. This
+                          option is occasionally useful to disable the
+                          environment variable for sites which wish to 'lock
+                          down' users to always work with a specific
+                          system-wide configuration. On unix-like systems the
+                          default is for this option to be enabled. It is
+                          disabled by default on windows systems so that the
+                          base library will not use a config file intended for
+                          the gnustep-make system (and containing unix-style
+                          paths which cannot be used by windows apps).
+                          Normally this should be left at its default setting.
   --disable-importing-config-file
-                                Disable importing of an existing GNUstep config
-				file and use inbuilt defaults instead.
+                          Disable importing of an existing GNUstep config file
+                          and use inbuilt defaults instead.
   --disable-largefile     omit support for large files
   --enable-nxconstantstring
-	    Enables the use of the NXConstantString class for old compilers.
-  --enable-bfd
-	Enables the use of libbfd to provide symbolic stack traces.
-	Enabling this option provides support for symbolic stack traces
-	on platforms where the backtrace_symbols() function is not
-	available or does not work properly.
-	Enabling this option also has the effect of changing the license
-	of gnustep-base from LGPL to GPL since libbfd uses the GPL license
-  --enable-procfs               Use /proc filesystem (default)
-  --enable-procfs-psinfo         Use /proc/%pid% to get info
-  --enable-pass-arguments	Force user main call to NSProcessInfo initialize
-  --enable-fake-main  		Force redefine of user main function
-  --disable-libffi  		Disable use of libffi library
-  --enable-ffcall  		Enable use of the deprecated ffcall library
-  --disable-invocations		Build even if invocation-dependencies are not met
-  --disable-iconv		Build even if iconv is not available
-  --enable-stricticonv		Build even if iconv is strict
-  --disable-xml			Build even if XML-dependencies are not met
-  --disable-xmltest		Do not try to compile and run a test XML program
-  --disable-xslt		Build even if XSLT-dependency is not met
-  --disable-tls			Disable use of GNUTLS
-  --disable-tlstest		Do not try to compile and run a test TLS program
-  --disable-zeroconf		Disable NSNetServices support
-  --disable-icu			Disable International Components for Unicode
-  --disable-libdispatch		Disable dispatching blocks via libdispatch
-  --disable-newkvo		Disable new KVO implementation
-  --disable-nsurlsession  		Disable support for NSURLSession
-
-  --enable-setuid-gdomap        Enable installing gdomap as a setuid
-                                executable.  By default, it is installed
-                                as a normal program intended to be started
-				by root at system boot time, but it can
-                                also be started up automatically
-                                by any user at any time.  Use this
-                                option if you are happy having the program
-                                started automatically on demand.
-
+                          Enables the use of the NXConstantString class for
+                          old compilers.
+  --enable-bfd            Enables the use of libbfd to provide symbolic stack
+                          traces. Enabling this option provides support for
+                          symbolic stack traces on platforms where the
+                          backtrace_symbols() function is not available or
+                          does not work properly. Enabling this option also
+                          has the effect of changing the license of
+                          gnustep-base from LGPL to GPL since libbfd uses the
+                          GPL license
+  --enable-procfs         Use /proc filesystem (default)
+  --enable-procfs-psinfo  Use /proc/%pid% to get info
+  --enable-pass-arguments Force user main call to NSProcessInfo initialize
+  --enable-fake-main      Force redefine of user main function
+  --disable-libffi        Disable use of libffi library
+  --enable-ffcall         Enable use of the deprecated ffcall library
+  --disable-invocations   Build even if invocation-dependencies are not met
+  --disable-iconv         Build even if iconv is not available
+  --enable-limitediconv   Build even if iconv does not support lossy
+                          conversion
+  --disable-xm            Build even if XML-dependencies are not met
+  --disable-xmltest       Do not try to compile and run a test XML program
+  --disable-xslt          Build even if XSLT-dependency is not met
+  --disable-tls           Disable use of GNUTLS
+  --disable-tlstest       Do not try to compile and run a test TLS program
+  --disable-zeroconf      Disable NSNetServices support
+  --disable-icu           Disable International Components for Unicode
+  --disable-libdispatch   Disable dispatching blocks via libdispatch
+  --disable-newkvo        Disable new KVO implementation
+  --disable-nsurlsession  Disable support for NSURLSession
+  --enable-setuid-gdomap  Enable installing gdomap as a setuid executable. By
+                          default, it is installed as a normal program
+                          intended to be started by root at system boot time,
+                          but it can also be started up automatically by any
+                          user at any time. Use this option if you are happy
+                          having the program started automatically on demand.
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-cross-compilation-info=PATH
-				Specify path to the configuration file that
-				contains information for the configure script in
-				case of cross compilation. This information
-				replaces those obtained from running programmes
-				during the configuration phase.
-  --with-config-file=PATH       Specify path to the GNUstep config file.
-				This is the location to be used by the base
-				library to locate path information at
-				application or tool runtime.
-				This file might not even exist now; it is
-				not read at configure time.  The base library
-				will only read it at runtime.
-				If unspecified, this uses the same value as
-				the GNUstep make package on unix-like systems,
-				but uses ./GNUstep.conf on mingw so that
-				it is relative to the location of the
-				base library DLL.
-				If a leading './' is specified, the path
-				is taken to be relative to the base library
-				linked runtime, not all operating systems
-				can support this, so on some platforms you
-				may need to specify the location of the
-				config file using the GNUSTEP_CONFIG_FILE
-				environment variable at runtime.
-				If a trailing '/' is specified, the path is
-				used for locating domains but no GNUstep
-				config file is read at runtime.
-  --with-default-config=PATH   Specify path to a GNUstep config file to be
-				imported at configure time (now) and used to
-				provide default values for the base library
-				to use at runtime if no GNUstep config file
-				is found at runtime.  If this is not specified
-				then the path from the gnustep-make package
-				is used.
+                          Specify path to the configuration file that contains
+                          information for the configure script in case of
+                          cross compilation. This information replaces those
+                          obtained from running programmes during the
+                          configuration phase.
+  --with-config-file=PATH Specify path to the GNUstep config file. This is the
+                          location to be used by the base library to locate
+                          path information at application or tool runtime.
+                          This file might not even exist now; it is not read
+                          at configure time. The base library will only read
+                          it at runtime. If unspecified, this uses the same
+                          value as the GNUstep make package on unix-like
+                          systems, but uses ./GNUstep.conf on mingw so that it
+                          is relative to the location of the base library DLL.
+                          If a leading './' is specified, the path is taken to
+                          be relative to the base library linked runtime, not
+                          all operating systems can support this, so on some
+                          platforms you may need to specify the location of
+                          the config file using the GNUSTEP_CONFIG_FILE
+                          environment variable at runtime. If a trailing '/'
+                          is specified, the path is used for locating domains
+                          but no GNUstep config file is read at runtime.
+  --with-default-config=PATH
+                          Specify path to a GNUstep config file to be imported
+                          at configure time (now) and used to provide default
+                          values for the base library to use at runtime if no
+                          GNUstep config file is found at runtime. If this is
+                          not specified then the path from the gnustep-make
+                          package is used.
   --with-installation-domain=DOMAIN
-				Specify the domain (SYSTEM, LOCAL,
-				NETWORK or USER) into which
-				gnustep-base will be installed.
-				Whenever relative paths are hardcoded
-				into gnustep-base (at the moment, this
-				happens only on MinGW) this option
-				must be used and must match the domain
-				where you will be installing
-				gnustep-base.
-				If this is not specified, the output of
-				gnustep-config --installation-domain-for=gnustep-base
-				(which should normally be LOCAL) is used.
+                          Specify the domain (SYSTEM, LOCAL, NETWORK or USER)
+                          into which gnustep-base will be installed. Whenever
+                          relative paths are hardcoded into gnustep-base (at
+                          the moment, this happens only on MinGW) this option
+                          must be used and must match the domain where you
+                          will be installing gnustep-base. If this is not
+                          specified, the output of gnustep-config
+                          --installation-domain-for=gnustep-base (which should
+                          normally be LOCAL) is used.
   --without-unwind        Ignore unwind if found and disable it
-  --with-include-flags=FLAGS    Specify all include flags at once
-  --with-library-flags=FLAGS    Specify all library flags at once
-  --with-ffi-include=PATH       Include path for ffi headers
-  --with-ffi-library=PATH       Library path for ffi libs
-  --with-libiconv-library=PATH  Library path for libiconv libraries
-  --with-libiconv-include=PATH  Include path for libiconv header
-  --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
-  --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
-  --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)
-  --with-dispatch-include=PATH       Include path for dispatch header
-  --with-dispatch-library=PATH       Library path for dispatch lib
+  --with-include-flags=FLAGS
+                          Specify all include flags at once
+  --with-library-flags=FLAGS
+                          Specify all library flags at once
+  --with-ffi-include=PATH Include path for ffi headers
+  --with-ffi-library=PATH Library path for ffi libs
+  --with-libiconv-library=PATH
+                          Library path for libiconv libraries
+  --with-libiconv-include=PATH
+                          Include path for libiconv header
+  --with-xml-prefix=PFX   Prefix where libxml is installed (optional)
+  --with-tls-prefix=PFX   Prefix where libgnutls is installed (optional)
+  --with-zeroconf-api=API force use of a specific zeroconf API (mdns or avahi)
+  --with-dispatch-include=PATH
+                          Include path for dispatch header
+  --with-dispatch-library=PATH
+                          Library path for dispatch lib
   --with-curl=<DIR>       use curl installed in directory <DIR>
-  --with-gmp-include=PATH  include path for gmp headers
-  --with-gmp-library=PATH  library path for gmp libraries
-  --with-gdomap-port=PORT  alternative port for gdomap
+  --with-gmp-include=PATH include path for gmp headers
+  --with-gmp-library=PATH library path for gmp libraries
+  --with-gdomap-port=PORT alternative port for gdomap
 
 Some influential environment variables:
   CC          C compiler command
@@ -2207,7 +2201,7 @@ else $as_nop
 #define $2 innocuous_$2
 
 /* System header to define __stub macros and hopefully few prototypes,
-   which can conflict with char $2 (); below.  */
+   which can conflict with char $2 (void); below.  */
 
 #include <limits.h>
 #undef $2
@@ -2218,7 +2212,7 @@ else $as_nop
 #ifdef __cplusplus
 extern "C"
 #endif
-char $2 ();
+char $2 (void);
 /* The GNU C library defines this for functions which it implements
     to always fail with ENOSYS.  Some functions are actually named
     something starting with __ and the normal name is an alias.  */
@@ -2671,9 +2665,7 @@ struct stat;
 /* Most of the following tests are stolen from RCS 5.7 src/conf.sh.  */
 struct buf { int x; };
 struct buf * (*rcsopen) (struct buf *, struct stat *, int);
-static char *e (p, i)
-     char **p;
-     int i;
+static char *e (char **p, int i)
 {
   return p[i];
 }
@@ -2724,6 +2716,7 @@ extern int puts (const char *);
 extern int printf (const char *, ...);
 extern int dprintf (int, const char *, ...);
 extern void *malloc (size_t);
+extern void free (void *);
 
 // Check varargs macros.  These examples are taken from C99 6.10.3.5.
 // dprintf is used instead of fprintf to avoid needing to declare
@@ -6813,22 +6806,23 @@ unsigned short int ascii_mm[] =
 		int use_ebcdic (int i) {
 		  return ebcdic_mm[i] + ebcdic_ii[i];
 		}
-		extern int foo;
-
-int
-main (void)
-{
-return use_ascii (foo) == use_ebcdic (foo);
-  ;
-  return 0;
-}
+		int
+		main (int argc, char **argv)
+		{
+		  /* Intimidate the compiler so that it does not
+		     optimize the arrays away.  */
+		  char *p = argv[0];
+		  ascii_mm[1] = *p++; ebcdic_mm[1] = *p++;
+		  ascii_ii[1] = *p++; ebcdic_ii[1] = *p++;
+		  return use_ascii (argc) == use_ebcdic (*p);
+		}
 _ACEOF
-if ac_fn_c_try_compile "$LINENO"
+if ac_fn_c_try_link "$LINENO"
 then :
-  if grep BIGenDianSyS conftest.$ac_objext >/dev/null; then
+  if grep BIGenDianSyS conftest$ac_exeext >/dev/null; then
 	      ac_cv_c_bigendian=yes
 	    fi
-	    if grep LiTTleEnDian conftest.$ac_objext >/dev/null ; then
+	    if grep LiTTleEnDian conftest$ac_exeext >/dev/null ; then
 	      if test "$ac_cv_c_bigendian" = unknown; then
 		ac_cv_c_bigendian=no
 	      else
@@ -6837,7 +6831,8 @@ then :
 	      fi
 	    fi
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.beam conftest.$ac_ext
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
 else $as_nop
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -7556,8 +7551,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char dladdr ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dladdr (void);
 int
 main (void)
 {
@@ -7620,8 +7621,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char gethostbyname ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gethostbyname (void);
 int
 main (void)
 {
@@ -7682,8 +7689,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char res_query ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char res_query (void);
 int
 main (void)
 {
@@ -7971,8 +7984,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char pthread_join ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pthread_join (void);
 int
 main (void)
 {
@@ -8019,8 +8038,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char pthread_join ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pthread_join (void);
 int
 main (void)
 {
@@ -8066,8 +8091,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char pthread_join ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pthread_join (void);
 int
 main (void)
 {
@@ -8114,8 +8145,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char pthread_join ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char pthread_join (void);
 int
 main (void)
 {
@@ -8182,8 +8219,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char sched_yield ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char sched_yield (void);
 int
 main (void)
 {
@@ -9984,8 +10027,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char libintl_fprintf ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char libintl_fprintf (void);
 int
 main (void)
 {
@@ -10027,8 +10076,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char ZSTD_compress ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char ZSTD_compress (void);
 int
 main (void)
 {
@@ -10070,8 +10125,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char dyn_string_append ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dyn_string_append (void);
 int
 main (void)
 {
@@ -10113,8 +10174,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char gzseek ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gzseek (void);
 int
 main (void)
 {
@@ -10155,8 +10222,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char sframe ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char sframe (void);
 int
 main (void)
 {
@@ -10215,8 +10288,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char bfd_openr ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char bfd_openr (void);
 int
 main (void)
 {
@@ -10616,8 +10695,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char opendir ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char opendir (void);
 int
 main (void)
 {
@@ -10676,8 +10761,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char opendir ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char opendir (void);
 int
 main (void)
 {
@@ -11140,8 +11231,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char inet_ntop ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char inet_ntop (void);
 int
 main (void)
 {
@@ -11241,8 +11338,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char gzseek ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gzseek (void);
 int
 main (void)
 {
@@ -11695,7 +11798,7 @@ then :
 
 fi
 
- # Check whether --enable-procfs was given.
+# Check whether --enable-procfs was given.
 if test ${enable_procfs+y}
 then :
   enableval=$enable_procfs; enable_procfs="$enableval"
@@ -11747,7 +11850,7 @@ printf "%s\n" "#define HAVE_PROCFS 1" >>confdefs.h
   fi
 
 
- # Check whether --enable-procfs-psinfo was given.
+# Check whether --enable-procfs-psinfo was given.
 if test ${enable_procfs_psinfo+y}
 then :
   enableval=$enable_procfs_psinfo; enable_procfs_psinfo="$enableval"
@@ -11885,8 +11988,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char kvm_getenvv ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char kvm_getenvv (void);
 int
 main (void)
 {
@@ -12447,7 +12556,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }
+{ return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12529,7 +12638,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <iconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12579,7 +12688,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <giconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12605,17 +12714,17 @@ fi
 
 fi
 
-# Check whether --enable-stricticonv was given.
-if test ${enable_stricticonv+y}
+# Check whether --enable-limitediconv was given.
+if test ${enable_limitediconv+y}
 then :
-  enableval=$enable_stricticonv;
+  enableval=$enable_limitediconv;
 else $as_nop
-  enable_stricticonv=no
+  enable_limitediconv=no
 fi
 
-if test $enable_stricticonv = yes; then
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking non-lossy iconv support" >&5
-printf %s "checking non-lossy iconv support... " >&6; }
+if test $enable_limitediconv = yes; then
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking iconv without lossy conversion support" >&5
+printf %s "checking iconv without lossy conversion support... " >&6; }
 if test "$cross_compiling" = yes
 then :
   { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
@@ -12627,7 +12736,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }
+{ return iconv_open("UTF-8","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12761,7 +12870,12 @@ printf "%s\n" "no" >&6; }
   echo
   echo "You do not appear to have usable iconv header/library."
   echo "Building without them will disable much characterset support."
-  echo "If you really want to build gnustep-base without character conversion"
+  echo "Try adjusting --with-libiconv-include and --with-libiconv-library"
+  echo " if you have iconv installed in an unusual location."
+  echo "If your iconv does not support the TRANSLIT operation (needed for"
+  echo " lossy character conversion), either install a more fully featured"
+  echo " version of iconv, or use the --enable-limitediconv argument."
+  echo "If you want to build gnustep-base with minimal character conversion"
   echo " support, please add --disable-iconv to the configure arguments."
   as_fn_error $? "Missing support for character conversion functionality." "$LINENO" 5
 fi
@@ -13995,8 +14109,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char gcry_control ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char gcry_control (void);
 int
 main (void)
 {
@@ -14132,8 +14252,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char DNSServiceBrowse ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char DNSServiceBrowse (void);
 int
 main (void)
 {
@@ -14194,8 +14320,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char avahi_client_new ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char avahi_client_new (void);
 int
 main (void)
 {
@@ -14500,8 +14632,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char dispatch_queue_create ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char dispatch_queue_create (void);
 int
 main (void)
 {
@@ -14863,8 +15001,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char mpf_abs ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char mpf_abs (void);
 int
 main (void)
 {
@@ -14906,8 +15050,14 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 /* Override any GCC internal prototype to avoid an error.
    Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-char __gmpf_abs ();
+   builtin and then its argument prototype would still apply.
+   The 'extern "C"' is for builds by C++ compilers;
+   although this is not generally supported in C code supporting it here
+   has little cost and some practical benefit (sr 110532).  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char __gmpf_abs (void);
 int
 main (void)
 {
