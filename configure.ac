@@ -3390,6 +3390,8 @@ if test $found_iconv = no ; then
   echo "Building without them will disable much characterset support."
   echo "If you really want to build gnustep-base without character conversion"
   echo " support, please add --disable-iconv to the configure arguments."
+  echo "Try adjusting --with-libiconv-include and --with-libiconv-library"
+  echo "If you have iconv installed."
   AC_MSG_ERROR([Missing support for character conversion functionality.])
 fi
 fi
