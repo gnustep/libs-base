@@ -12529,7 +12529,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <iconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12579,7 +12579,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <giconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12627,7 +12627,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }
+{ return iconv_open("UTF-8","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"

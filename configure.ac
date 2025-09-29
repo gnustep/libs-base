@@ -3271,7 +3271,7 @@ if test $found_iconv = no ; then
   LIBS="-liconv $LIBS"
   AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }])]
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
   ,
     # -liconv works.
     AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
@@ -3298,7 +3298,7 @@ if test $found_iconv = no ; then
   LIBS="-lgiconv $LIBS"
   AC_RUN_IFELSE([AC_LANG_SOURCE([#include <giconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }])]
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
   ,
     AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
     AC_DEFINE(HAVE_GICONV,1, [Define if you have this function])
@@ -3326,7 +3326,7 @@ if test $enable_stricticonv = yes; then
 AC_MSG_CHECKING(non-lossy iconv support)
 AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }])]
+{ return iconv_open("UTF-8","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
 ,
   # libc has a working iconv.
   AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
