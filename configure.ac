@@ -3232,7 +3232,7 @@ if test $enable_iconv = yes; then
 AC_MSG_CHECKING(iconv support)
 AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }])]
+{ return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
 ,
   # libc has a working iconv.
   AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
