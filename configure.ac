@@ -3319,11 +3319,11 @@ if test $found_iconv = no ; then
   )
 fi
 
-AC_ARG_ENABLE(stricticonv,
-  [  --enable-stricticonv		Build even if iconv is strict],,
-  enable_stricticonv=no)
-if test $enable_stricticonv = yes; then
-AC_MSG_CHECKING(non-lossy iconv support)
+AC_ARG_ENABLE(limitediconv,
+  [  --enable-limitediconv		Build even if iconv does not support lossy conversion],,
+  enable_limitediconv=no)
+if test $enable_limitediconv = yes; then
+AC_MSG_CHECKING(iconv without lossy conversion support)
 AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
 int main(int argc,char **argv)
 { return iconv_open("UTF-8","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
