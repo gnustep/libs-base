@@ -3388,10 +3388,13 @@ if test $found_iconv = no ; then
   echo
   echo "You do not appear to have usable iconv header/library."
   echo "Building without them will disable much characterset support."
-  echo "If you really want to build gnustep-base without character conversion"
-  echo " support, please add --disable-iconv to the configure arguments."
   echo "Try adjusting --with-libiconv-include and --with-libiconv-library"
-  echo "If you have iconv installed."
+  echo " if you have iconv installed in an unusual location."
+  echo "If your iconv does not support the TRANSLIT operation (needed for"
+  echo " lossy character conversion), either install a more fully featured"
+  echo " version of iconv, or use the --enable-limitediconv argument."
+  echo "If you want to build gnustep-base with minimal character conversion"
+  echo " support, please add --disable-iconv to the configure arguments."
   AC_MSG_ERROR([Missing support for character conversion functionality.])
 fi
 fi
