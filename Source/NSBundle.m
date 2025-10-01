@@ -2156,22 +2156,38 @@ IF_NO_ARC(
     }
   [load_lock unlock];
 
-  if (bundle_directory_readable(path) == nil)
+  if (self == _mainBundle)
     {
-      NSDebugMLLog(@"NSBundle", @"Could not access path %@ for bundle", path);
-      // if this is not the main bundle ... deallocate and return.
-      if (self != _mainBundle)
+      /* Make the path available so the code in bundle_directory_readable()
+       * can use [[NSBundle mainBundle] resourcePath].
+       */
+      _path = [path copy];
+      if (bundle_directory_readable(path) == nil)
 	{
+	  NSDebugMLLog(@"NSBundle",
+	    @"Could not access path %@ for main bundle", path);
+	}
+    }
+  else
+    {
+      if (bundle_directory_readable(path) == nil)
+	{
+	  NSDebugMLLog(@"NSBundle",
+	    @"Could not access path %@ for bundle", path);
 	  [self dealloc];
 	  return nil;
 	}
+      /* It is now safe to set the path because we will not be deallocated
+       * until after we have set up the things -dealloc expects to clean up
+       * if it finds a path set.
+       */
+      _path = [path copy];
     }
 
   /* OK ... this is a new bundle ... need to insert it in the global map
    * to be found by this path so that a leter call to -bundleIdentifier
    * can work.
    */
-  _path = [path copy];
   [load_lock lock];
   NSMapInsert(_bundles, _path, self);
   [load_lock unlock];
