@@ -1642,10 +1642,18 @@ OBJC_SYS_DYNAMIC_LINKER()
 # NOTE: libdl should be in LIBS now if it's available.
 AC_CHECK_FUNCS(dladdr)
 
-AC_CHECK_FUNCS(gethostbyname)
-if test "$ac_cv_func_gethostbyname" = "no"; then
+AC_CHECK_FUNCS(gethostbyname_r)
+if test "$ac_cv_func_gethostbyname_r" = "no"; then
   # QNX has gethostbyname and friends in libsocket
-  AC_CHECK_LIB(socket, gethostbyname)
+  AC_CHECK_LIB(socket, gethostbyname_r)
+fi
+
+if test "$ac_cv_func_gethostbyname_r" = "no"; then
+  AC_CHECK_FUNCS(gethostbyname)
+  if test "$ac_cv_func_gethostbyname" = "no"; then
+    # QNX has gethostbyname and friends in libsocket
+    AC_CHECK_LIB(socket, gethostbyname)
+  fi
 fi
 
 AC_CHECK_FUNCS(getaddrinfo)
