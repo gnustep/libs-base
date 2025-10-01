@@ -6,11 +6,11 @@
 
 int main()
 {
-  NSAutoreleasePool     *arp = [NSAutoreleasePool new];
-  NSHost                *h = [NSHost currentHost];
+  ENTER_POOL
+  NSHost        *h = [NSHost currentHost];
 
   test_NSObject(@"NSHost", [NSArray arrayWithObject: h]);
   NSLog(@"%@", h);
-  [arp release]; arp = nil;
+  LEAVE_POOL
   return 0;
 }

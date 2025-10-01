@@ -51,7 +51,9 @@ extern int WSAAPI inet_pton(int , const char *, void *);
 #include <arpa/inet.h>
 #endif /* !_WIN32 */
 
-//#undef	HAVE_RESOLV_H // HACK  ... disable code which seems to break CI
+//#undef	HAVE_RESOLV_H
+//#undef	HAVE_GETHOSTBYNAME_R
+#undef	HAVE_GETADDRINFO
 
 #if	defined(HAVE_RESOLV_H)
 #include <resolv.h>
@@ -138,8 +140,23 @@ myHostName()
 
 @interface NSHost (Private)
 + (void) _cacheHost: (NSHost*)host forKey: (NSString*)key;
+#if   defined(HAVE_GETHOSTBYNAME_R)
+- (void) _addEntry: (struct hostent*)entry
+	 withNames: (NSMutableSet*)names
+	 addresses: (NSMutableSet*)addresses;
+#endif
+#if   defined(HAVE_GETHOSTBYNAME_R) || defined(HAVE_GETADDRINFO)
+- (void) _addHostAddress: (NSString*)address
+	       withNames: (NSMutableSet*)names
+	       addresses: (NSMutableSet*)addresses;
+- (void) _addHostName: (NSString*)address
+	    withNames: (NSMutableSet*)names
+	    addresses: (NSMutableSet*)addresses;
+#endif
 - (void) _addName: (NSString*)name;
-#if     defined(HAVE_GETADDRINFO) && defined(HAVE_RESOLV_H)
+#if   defined(HAVE_GETHOSTBYNAME_R)
+- (id) _initWithKey: (NSString*)key;
+#elif defined(HAVE_GETADDRINFO) && defined(HAVE_RESOLV_H)
 - (id) _initWithKey: (NSString*)key;
 #else
 - (id) _initWithHostEntry: (struct hostent*)entry key: (NSString*)name;
@@ -187,6 +204,178 @@ myHostName()
   [_hostCacheLock unlock];
 }
 
+#if     defined(HAVE_GETADDRINFO)
+- (void) _addHostInfo: (NSString*)name
+	    withNames: (NSMutableSet*)names
+	    addresses: (NSMutableSet*)addresses
+{
+  if ([name length] > 0)
+    {
+      ENTER_POOL
+      const char	*ptr = [name UTF8String];
+      struct addrinfo	*entry;
+      struct addrinfo   hints;
+      struct addrinfo	*tmp;
+      int		err;
+
+      memset(&hints, '\0', sizeof(hints));
+      hints.ai_flags = AI_CANONNAME;
+      hints.ai_family = AF_UNSPEC; 
+
+      err = getaddrinfo(ptr, 0, &hints, &entry);
+      if (err)
+	{
+	  fprintf(stderr, "getaddrinfo '%s' failed: %s\n",
+	    ptr, gai_strerror(err));
+	  entry = NULL;
+	}
+      for (tmp = entry; tmp != NULL; tmp = tmp->ai_next)
+	{
+	  char	ipstr[INET6_ADDRSTRLEN];
+	  char 	host[NI_MAXHOST];
+	  void	*addr;
+	  NSString	*a;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-align"
+	  if (AF_INET == tmp->ai_family)
+	    {
+	      struct sockaddr_in *ipv4 = (struct sockaddr_in *)(tmp->ai_addr);
+	      addr = &(ipv4->sin_addr);
+	    }
+	  else if (AF_INET6 == tmp->ai_family)
+	    {
+	      struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)tmp->ai_addr;
+	      addr = &(ipv6->sin6_addr);
+	    }
+	  else
+	    {
+	      continue;	// Unsupported family
+	    }
+#pragma clang diagnostic pop
+	  inet_ntop(tmp->ai_family, addr, ipstr, sizeof(ipstr));
+	  a = [NSString stringWithUTF8String: ipstr];
+	  [self _addHostAddress: a withNames: names addresses: addresses];
+
+	  /* Possibly a reverse lookup of the address will give us a different
+	   * result to our key (if the key was an address or an alias) so we
+	   * might be able to get a new name for the host.
+	   */ 
+	  if (getnameinfo(tmp->ai_addr, tmp->ai_addrlen, host, sizeof(host),
+	    NULL, 0, NI_NAMEREQD) == 0)
+	    {
+	      NSString	*n = [NSString stringWithUTF8String: host];
+
+	      NSDebugMLLog(@"NSHost", @"getnameinfo for '%s' found '%s'",
+		ipstr, host);
+	      [self _addHostName: n withNames: names addresses: addresses];
+	    }
+	  else
+	    {
+	      NSDebugMLLog(@"NSHost", @"getnameinfo for '%s' found nothing",
+		ipstr);
+	      *host = '\0';
+	    }
+
+	  /* If we have a canonical name for the host, use it.
+	   */
+	  if (tmp->ai_canonname && *tmp->ai_canonname
+	    && strcmp(tmp->ai_canonname, host) != 0)
+	    {
+	      NSString	*n = [NSString stringWithUTF8String: tmp->ai_canonname];
+
+	      [self _addHostName: n withNames: names addresses: addresses];
+	    }
+	}
+      if (entry)
+	{
+	  freeaddrinfo(entry);
+	}
+      LEAVE_POOL
+    }
+}
+#endif
+
+#if     defined(HAVE_GETHOSTBYNAME_R)
+- (void) _addHostAddress: (NSString*)address
+	       withNames: (NSMutableSet*)names
+	       addresses: (NSMutableSet*)addresses
+{
+  if ([address length] > 0 && nil == [addresses member: address])
+    {
+      const char	*addr = [address UTF8String];
+      struct in_addr 	ip_addr;
+      struct hostent	entry_buf;
+      struct hostent	*entry;
+      char		buf[BUFSIZ];
+      int		err;
+
+      [addresses addObject: address];
+      if (inet_pton(AF_INET, addr, &ip_addr) != 1)
+	{
+	  /* This is not IPV4 so it must be IPV6 and getaddrinfo_r()
+	   * does not reliably support that.
+	   */
+#if	defined(HAVE_GETADDRINFO)
+	  [self _addHostInfo: address withNames: names addresses: addresses];
+#endif
+	  return;
+	}
+
+      if (0 == gethostbyaddr_r(&ip_addr, sizeof(ip_addr), AF_INET,
+	&entry_buf, buf, sizeof(buf), &entry, &err) && entry != NULL)
+	{
+	  [self _addEntry: entry withNames: names addresses: addresses];
+	}
+    }
+}
+#elif	defined(HAVE_GETADDRINFO)
+- (void) _addHostAddress: (NSString*)address
+	       withNames: (NSMutableSet*)names
+	       addresses: (NSMutableSet*)addresses
+{
+  if ([address length] > 0 && nil == [addresses member: address])
+    {
+      [addresses addObject: address];
+      [self _addHostInfo: address withNames: names addresses: addresses];
+    }
+}
+#endif
+
+#if	defined(HAVE_GETHOSTBYNAME_R)
+- (void) _addHostName: (NSString*)name
+	    withNames: (NSMutableSet*)names
+	    addresses: (NSMutableSet*)addresses
+{
+  if ([name length] > 0 && nil == [names member: name])
+    {
+      const char	*n = [name UTF8String];
+      struct hostent	entry_buf;
+      struct hostent	*entry;
+      char		buf[BUFSIZ];
+      int		err;
+
+      [names addObject: name];
+      if (0 == gethostbyname_r(n, &entry_buf, buf, sizeof(buf), &entry, &err)
+	&& entry != NULL)
+	{
+	  [self _addEntry: entry withNames: names addresses: addresses];
+	}
+    }
+}
+#elif	defined(HAVE_GETADDRINFO)
+- (void) _addHostName: (NSString*)name
+	    withNames: (NSMutableSet*)names
+	    addresses: (NSMutableSet*)addresses
+{
+  if ([name length] > 0 && nil == [names member: name])
+    {
+      [names addObject: name];
+      [self _addHostInfo: name withNames: names addresses: addresses];
+    }
+}
+#endif
+
 - (void) _addName: (NSString*)name
 {
   NSMutableSet	*s = [_names mutableCopy];
@@ -223,7 +412,96 @@ myHostName()
   return self;
 }
 
-#if     defined(HAVE_GETADDRINFO) && defined(HAVE_RESOLV_H)
+#if	defined(HAVE_GETHOSTBYNAME_R)
+- (void) _addEntry: (struct hostent*)entry
+	 withNames: (NSMutableSet*)names
+	 addresses: (NSMutableSet*)addresses
+{
+  ENTER_POOL
+  NSString	*name = [NSString stringWithUTF8String: entry->h_name];
+
+  [self _addHostName: name withNames: names addresses: addresses];
+
+  if (entry->h_aliases)
+    {
+      char	**aliases;
+
+      for (aliases = entry->h_aliases; *aliases != NULL; aliases++)
+	{
+	  [self _addHostName: [NSString stringWithUTF8String: *aliases]
+		   withNames: names
+		   addresses: addresses];
+	}
+    }
+  if (entry->h_addr_list != 0)
+    {
+      char	**addrs;
+
+      for (addrs = entry->h_addr_list; *addrs != NULL; addrs++)
+	{
+	  NSString		*addr;
+	  struct in_addr	in;
+
+	  memset((void*)&in, '\0', sizeof(in));
+	  memcpy((void*)&in.s_addr, (const void*)*addrs, entry->h_length);
+	  addr = [NSString stringWithUTF8String: (char*)inet_ntoa(in)];
+	  [self _addHostAddress: addr withNames: names addresses: addresses];
+	}
+    }
+  LEAVE_POOL
+}
+
+- (id) _initWithKey: (NSString*)name
+{
+  NSMutableSet	*names;
+  NSMutableSet	*addresses;
+
+  if ((self = [super init]) == nil)
+    {
+      return nil;
+    }
+  if (nil == name)
+    {
+      DESTROY(self);
+      return nil;
+    }
+
+  names = [NSMutableSet new];
+  addresses = [NSMutableSet new];
+
+  if (isName([name UTF8String]))
+    {
+      [self _addHostName: name withNames: names addresses: addresses];
+    }
+  else
+    {
+      [self _addHostAddress: name withNames: names addresses: addresses];
+    }
+
+  if ([name isEqualToString: localHostName] == YES)
+    {
+      NSSet	*extra = [hostClass _localAddresses];
+
+      FOR_IN (NSString*, address, extra)
+      [self _addHostAddress: address withNames: names addresses: addresses];
+      END_FOR_IN(extra)
+    }
+
+  _names = [names copy];
+  RELEASE(names);
+  _addresses = [addresses copy];
+  RELEASE(addresses);
+
+  if (YES == _hostCacheEnabled)
+    {
+      [_hostCacheLock lock];
+      [_hostCache setObject: self forKey: name];
+      [_hostCacheLock unlock];
+    }
+
+  return self;
+}
+#elif     defined(HAVE_GETADDRINFO) && defined(HAVE_RESOLV_H)
 
 static unsigned
 getCNames(NSString *host, NSMutableSet *cnames)
@@ -260,13 +538,20 @@ getCNames(NSString *host, NSMutableSet *cnames)
       int	count;
       int	i;
 
-      ns_initparse(response, len, &msg);
+      if (ns_initparse(response, len, &msg) < 0)
+	{
+	  perror("ns_initparse");
+	}
       count = ns_msg_count(msg, ns_s_an);
       for (i = 0; i < count; i++)
 	{
 	  ns_rr	rr;
 
-	  ns_parserr(&msg, ns_s_an, i, &rr);
+	  if (ns_parserr(&msg, ns_s_an, i, &rr) != 0)
+	    {
+	      perror("ns_parserr");
+	      continue;
+	    }
 
 	  // Check if the record is a CNAME
 	  if (ns_rr_type(rr) == ns_t_cname)
@@ -283,6 +568,11 @@ getCNames(NSString *host, NSMutableSet *cnames)
 		host, cname);
 	      [cnames addObject: [NSString stringWithUTF8String: cname]];
 	      added++;
+	    }
+	  else
+	    {
+	      NSDebugFLLog(@"NSHost", @"res_query for '%@' unused type '%d'",
+		host, ns_rr_type(rr));
 	    }
 	}
     }
@@ -633,10 +923,11 @@ getCNames(NSString *host, NSMutableSet *cnames)
     }
   if (nil == host)
     {
-#if     defined(HAVE_GETADDRINFO) && defined(HAVE_RESOLV_H)
+#if	defined(HAVE_GETHOSTBYNAME_R)
+      host = [[self alloc] _initWithKey: name];
+#elif   defined(HAVE_GETADDRINFO) && defined(HAVE_RESOLV_H)
       host = [[self alloc] _initWithKey: name];
 #else
-
       if ([name isEqualToString: localHostName] == YES)
 	{
 	  /* Special GNUstep extension host - we try to have a host entry
@@ -741,7 +1032,9 @@ getCNames(NSString *host, NSMutableSet *cnames)
     }
   if (nil == host)
     {
-#if     defined(HAVE_GETADDRINFO) && defined(HAVE_RESOLV_H)
+#if     defined(HAVE_GETHOSTBYNAME_R)
+      host = [[self alloc] _initWithKey: address];
+#elif   defined(HAVE_GETADDRINFO) && defined(HAVE_RESOLV_H)
       host = [[self alloc] _initWithKey: address];
 #else
       struct hostent	*h;
