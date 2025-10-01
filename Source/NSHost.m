@@ -424,7 +424,9 @@ myHostName()
 
   if (entry->h_aliases)
     {
-      for (char **aliases = entry->h_aliases; *aliases != NULL; aliases++)
+      char	**aliases;
+
+      for (aliases = entry->h_aliases; *aliases != NULL; aliases++)
 	{
 	  [self _addHostName: [NSString stringWithUTF8String: *aliases]
 		   withNames: names
@@ -433,7 +435,9 @@ myHostName()
     }
   if (entry->h_addr_list != 0)
     {
-      for (char **addrs = entry->h_addr_list; *addrs != NULL; addrs++)
+      char	**addrs;
+
+      for (addrs = entry->h_addr_list; *addrs != NULL; addrs++)
 	{
 	  NSString		*addr;
 	  struct in_addr	in;
