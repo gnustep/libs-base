@@ -26,6 +26,40 @@
    $Date$ $Revision$
   */
 
+/* WARNING - README!
+ * 
+ * The unix code here is messy!
+ *
+ * The original code using gethostbyname() has problems because the
+ * underlying system library function is not thread-safe.  This is
+ * mitigated by using locks so that all NSHost usage of the function
+ * is thread-safe, but that does not ensure safety if a thread uses
+ * gethostbyname() via some other route, and we have no realistic
+ * way of knowing what third party libraries do.
+ * For that reason, the original code is only used as a last resort
+ * where more recent system PIs are not available.
+ *
+ * The approved modern API (thread-safe) on unix is getaddrinfo(),
+ * but that API provides no way to get all the names of a host
+ * (only the address corresponding to a name, or the canonical
+ * name corresponding to an address), so it can’t, on its own be
+ * used to generate NSHost objects that provide all the names of
+ * a host.
+ *
+ * The glibc extension gethostbyname_r() is thread-safe, but doesn’t
+ * properly support IPV6.
+ *
+ * So, the new code prefers gethostbyname_r() if it is available,
+ * but uses getaddrinfo() to look up IPV6 addresses.
+ *
+ * If gethostbyname_r() is not available, it uses getaddrinfo() and
+ * supplements that by using:
+ * a. res_query() to try to get host aliases from DNS
+ * b. reading /etc/hosts directly to get local host aliases
+ * This may give different results from other software depending on
+ * how the system is configured to give precedence to /etc/hosts and
+ * to DNS, but should generally be doing the right thing.
+ */
 #import "common.h"
 #define	EXPOSE_NSHost_IVARS	1
 #import "Foundation/Foundation.h"
@@ -152,7 +186,7 @@ myHostName()
 #if   defined(HAVE_GETADDRINFO) && !defined(HAVE_GETHOSTBYNAME_R)
 
 /* If /etc/hosts exists and is readable, assume it is in standard hosts file
- * format and read it.  Populate return a dictionary with addresses as keys
+ * format and read it.  Populates a dictionary with addresses as keys
  * and sets of names as values. On subsequent calls returns the cached info.
  * With the flush argument set, this destroys any cached information and
  * return nil.
