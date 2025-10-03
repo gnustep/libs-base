@@ -3449,7 +3449,7 @@ IF_NO_ARC(
     {
       NSString *resourcePath = [_mainBundle resourcePath];
 
-      if ([path hasPrefix: resourcePath])
+      if (resourcePath && [path hasPrefix: resourcePath])
 	{
 	  NSString *assetPath = @"";
 
