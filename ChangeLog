@@ -1,5 +1,10 @@
 2025-10-01 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/Additions/Unicode.m:
+	Fix possible crash decoding bad GSM0338 data (buffer overrun).
+
+2025-10-01 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Resources/GNUmakefile:
 	* Source/GNUmakefile:
 	Install resources to directory using major and minor version number

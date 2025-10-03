@@ -1488,6 +1488,13 @@ tables:
 	  {
 	    unc c = (unc)src[spos];
 
+	    if (c > 127)
+	      {
+		/* Byte out of range for NSGSM0338StringEncoding
+		 */
+		result = NO;
+		goto done;
+	      }
 	    if (dpos >= bsize)
 	      {
 		GROW();
