@@ -1,8 +1,8 @@
 /* Definition of class NSProgress
-   Copyright (C) 2019 Free Software Foundation, Inc.
+   Copyright (C) 2025 Free Software Foundation, Inc.
    
-   Written by: 	Gregory Casamento <greg.casamento@gmail.com>
-   Date: 	July 2019
+   Written by: Hugo Melder <hugo@algoriddim.com>
+   Date: August 2025
    
    This file is part of the GNUstep Library.
    
@@ -21,55 +21,148 @@
    Software Foundation, Inc., 31 Milk Street #960789 Boston, MA 02196 USA.
 */
 
+#include "GNUstepBase/GSConfig.h"
+#include "GNUstepBase/GNUstep.h"
+#import "GSPThread.h"
+#include <math.h>
 #define	GS_NSProgress_IVARS	 \
   NSProgressKind _kind;  \
   NSProgressFileOperationKind _fileOperationKind; \
   NSURL *_fileUrl; \
-  BOOL _isFinished; \
-  BOOL _old; \
   NSNumber *_estimatedTimeRemaining; \
   NSNumber *_fileCompletedCount; \
   NSNumber *_fileTotalCount; \
   NSNumber *_throughput; \
   int64_t _totalUnitCount; \
   int64_t _completedUnitCount; \
+  int64_t _pendingUnitCountForParent; \
+  int64_t _pendingUnitCountForChild; \
   double _fractionCompleted; \
   NSMutableDictionary *_userInfo; \
   BOOL _cancelled; \
-  BOOL _paused; \
   BOOL _cancellable; \
-  BOOL _pausable; \
   BOOL _indeterminate; \
   BOOL _finished; \
+  BOOL _allowImplicitChild; \
   GSProgressCancellationHandler _cancellationHandler; \
   GSProgressPausingHandler _pausingHandler; \
   NSProgressPublishingHandler _publishingHandler; \
   NSProgressUnpublishingHandler _unpublishingHandler; \
   GSProgressPendingUnitCountBlock _pendingUnitCountHandler; \
   GSProgressResumingHandler _resumingHandler;              \
-  NSString *_localizedDescription; \
-  NSString *_localizedAdditionalDescription; \
-  NSProgress *_parent;
+  NSString * _localizedDescription; \
+  NSString * _localizedAdditionalDescription; \
+  NSProgress *_parent; \
+  NSMutableSet *_children; \
+  gs_mutex_t _lock;
 
 #define	EXPOSE_NSProgress_IVARS
 
+#import "Foundation/NSException.h"
 #import "Foundation/NSObject.h"
 #import "Foundation/NSDictionary.h"
 #import "Foundation/NSArray.h"
 #import "Foundation/NSValue.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSString.h"
+#import "Foundation/NSSet.h"
 #import	"Foundation/NSProgress.h"
+#import "Foundation/NSThread.h"
 #import "Foundation/NSKeyValueObserving.h"
 #import "GNUstepBase/NSObject+GNUstepBase.h"
+#import "GSFastEnumeration.h"
 
 #define	GSInternal NSProgressInternal
 #include "GSInternal.h"
 GS_PRIVATE_INTERNAL(NSProgress)
 
-// NSProgress for current thread....
-static NSProgress *__currentProgress = nil;
-static NSMutableDictionary *__subscribers = nil; 
+/* The current progress is specific to the current thread. Below are helper
+ * functions that manage the TLS entry. Progresses marked current are stored in
+ * LIFO order. We use an NSMutableArray to model this behaviour. */
+static gs_thread_key_t tls_current_progress_key;
+static NSMutableArray * tls_current_progress_create(void)
+{
+  NSMutableArray *stack = [[NSMutableArray alloc] initWithCapacity: 2];
+  GS_THREAD_KEY_SET(tls_current_progress_key, stack);
+  return stack;
+}
+/* The destructor is only invoked when the TLS value is non-NULL */
+static void tls_current_progress_destroy(void *value)
+{
+  NSMutableArray *stack = value;
+  RELEASE(stack);
+}
+static void tls_create_keys(void)
+{
+  GS_THREAD_KEY_INIT(tls_current_progress_key, tls_current_progress_destroy);
+}
+
+/* Returns an unretained pointer of the current progress */
+static NSProgress *tls_current_progress_get(void)
+{
+  NSMutableArray *stack = GS_THREAD_KEY_GET(tls_current_progress_key);
+  if (stack != NULL)
+  {
+    return [stack lastObject];
+  }
+  else
+  {
+    return nil;
+  }
+}
+static void tls_current_progress_push(NSProgress *new)
+{
+  NSMutableArray *stack = GS_THREAD_KEY_GET(tls_current_progress_key);
+  if (stack == NULL)
+  {
+    stack = tls_current_progress_create();
+  }
+  [stack addObject: new];
+}
+static void tls_current_progress_pop(void)
+{
+  NSMutableArray *stack = GS_THREAD_KEY_GET(tls_current_progress_key);
+  if (stack != NULL)
+  {
+    [stack removeLastObject];
+  }
+}
+
+@interface NSProgress (Private)
+- (instancetype) initWithParent: (NSProgress *)parent 
+                       userInfo: (NSDictionary *)userInfo
+                  implicitChild: (BOOL) implicitChild;
+
+- (void) _setParent: (NSProgress *)p;
+
+- (void) _setTotalUnitCount: (int64_t) count;
+
+- (void) _setPendingUnitCountForParent: (int64_t) count;
+
+- (int64_t) _pendingUnitCountForChild;
+
+- (NSMutableSet *) _children;
+
+- (BOOL) _allowImplicitChild;
+- (void) _setAllowImplicitChild: (BOOL) implicitChild;
+@end
+
+/**
+ * Implementation Note: GNUstep currently, as of August 2025, lacks the ability
+ * to create RW locks.  RW locks would make the NSProgress implementation more
+ * efficient, as getters (and other readers) could request shared, instead of
+ * exclusive access.
+ *
+ * While not explicitly mentioned in the Apple API documentation, NSProgress
+ * relies on a per-object NSLock to synchronize progress update operations.
+ * Apple's API documentation is terrible for the NSProgress implementation, as
+ * it does not describe important implementation details and side-effects.
+ * To give you an example, there is no mention of the usage of a thread-specific
+ * stack for current progress.
+ *
+ * We conducted experiments on macOS 15.5 to match this implementation with the
+ * one present in Foundation.
+ */
 
 @implementation NSProgress
 
@@ -77,14 +170,56 @@ static NSMutableDictionary *__subscribers = nil;
 {
   if (self == [NSProgress class])
     {
-      __subscribers = [[NSMutableDictionary alloc] initWithCapacity: 10];
+      /* +initialize is called in a thread-safe manner and only once */
+      tls_create_keys();
     }
 }
 
-// Creating progress objects...
++ (BOOL) automaticallyNotifiesObserversOfCompletedUnitCount
+{
+  return NO; // We handle this in an internal method
+}
+
++ (NSSet *)keyPathsForValuesAffectingLocalizedDescription {
+    return [NSSet setWithObjects: @"userInfo.NSProgressFileOperationKindKey",
+                                  @"userInfo.NSProgressFileTotalCountKey",
+                                  @"completedUnitCount",
+                                  @"totalUnitCount",
+                                  @"fractionCompleted",
+                                  @"kind",
+                                  nil];
+}
+
++ (NSProgress *) currentProgress
+{
+  NSProgress *current = tls_current_progress_get();
+  return AUTORELEASE(RETAIN(current));
+}
+
+- (instancetype) init
+{
+  return [self initWithParent: nil userInfo: nil];
+}
+
 - (instancetype) initWithParent: (NSProgress *)parent 
                        userInfo: (NSDictionary *)userInfo
 {
+  return [self initWithParent: parent userInfo: userInfo implicitChild: YES];
+}
+
+- (instancetype) initWithParent: (NSProgress *)parent 
+                       userInfo: (NSDictionary *)userInfo
+                  implicitChild: (BOOL) implicitChild
+{
+  NSProgress *current = tls_current_progress_get();
+
+  if (parent != nil && ![parent isEqual: current])
+    {
+      RELEASE(self);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"The parent of an NSProgress object must be the currentProgress."];
+    }
+
   self = [super init];
   if (self != nil)
     {
@@ -92,24 +227,42 @@ static NSMutableDictionary *__subscribers = nil;
       internal->_kind = nil;
       internal->_fileOperationKind = nil;
       internal->_fileUrl = nil;
-      internal->_isFinished = NO;
-      internal->_old = NO;
       internal->_estimatedTimeRemaining = nil;
       internal->_fileCompletedCount = nil;
       internal->_fileTotalCount = nil;
       internal->_throughput = nil;
+
       internal->_totalUnitCount = 0;
       internal->_completedUnitCount = 0;
+
+      /* This pendingUnitCount is used by a child to track the unitCount that is
+       * added to the parent, after completion of the child progress. */
+      internal->_pendingUnitCountForParent = 0;
+
+      /* A progress may hold a pendingUnitCount that is transferred to a newly
+       * created (implicit) child. You can see the hand-off at the end of this
+       * method. */
+      internal->_pendingUnitCountForChild = 0;
       internal->_userInfo = [userInfo mutableCopy];
       internal->_cancelled = NO;
-      internal->_cancellable = NO;
-      internal->_paused = NO;
-      internal->_pausable = NO;
+      internal->_cancellable = YES;
       internal->_indeterminate = NO;
       internal->_finished = NO;
       internal->_localizedDescription = nil;
       internal->_localizedAdditionalDescription = nil;
-      internal->_parent = parent;  // this is a weak reference and not retained.
+      internal->_children = nil; // Lazily initialize this set
+      internal->_allowImplicitChild = NO;
+
+      // _parent is a weak reference
+      objc_storeWeak(&internal->_parent, parent);
+      GS_MUTEX_INIT_RECURSIVE(internal->_lock);
+
+      if (implicitChild && current && [current _allowImplicitChild])
+	{
+	  [current _setAllowImplicitChild: NO];
+	  [current addChild: self
+	    withPendingUnitCount: [current _pendingUnitCountForChild]];
+	}
     }
   return self;
 }
@@ -125,8 +278,16 @@ static NSMutableDictionary *__subscribers = nil;
       RELEASE(internal->_fileTotalCount);
       RELEASE(internal->_throughput);
       RELEASE(internal->_userInfo);
+      RELEASE(internal->_cancellationHandler);
+      RELEASE(internal->_pausingHandler);
+      RELEASE(internal->_resumingHandler);
       RELEASE(internal->_localizedDescription);
       RELEASE(internal->_localizedAdditionalDescription);
+      RELEASE(internal->_children);
+
+      objc_destroyWeak(&internal->_parent);
+      GS_MUTEX_DESTROY(internal->_lock);
+
       GS_DESTROY_INTERNAL(NSProgress);
     }
   DEALLOC
@@ -135,16 +296,20 @@ static NSMutableDictionary *__subscribers = nil;
 + (NSProgress *) discreteProgressWithTotalUnitCount: (int64_t)unitCount
 {
   NSProgress *p = [[NSProgress alloc] initWithParent: nil
-    userInfo: [NSDictionary dictionary]];
-  [p setTotalUnitCount: unitCount];
+    userInfo: nil implicitChild: NO];
+
+  [p _setTotalUnitCount: unitCount];
+
   return AUTORELEASE(p);
 }
 
 + (NSProgress *) progressWithTotalUnitCount: (int64_t)unitCount
 {
   NSProgress *p = [[NSProgress alloc] initWithParent: nil
-    userInfo: [NSDictionary dictionary]];
-  [p setTotalUnitCount: unitCount];
+    userInfo: nil];
+
+  [p _setTotalUnitCount: unitCount];
+
   return AUTORELEASE(p);
 }
 
@@ -153,322 +318,590 @@ static NSMutableDictionary *__subscribers = nil;
   pendingUnitCount: (int64_t)portionOfParentTotalUnitCount
 {
   NSProgress *p = [[NSProgress alloc] initWithParent: parent
-    userInfo: [NSDictionary dictionary]];
-  [p setTotalUnitCount: portionOfParentTotalUnitCount];
+    userInfo: nil];
+
+  [p _setTotalUnitCount: unitCount];
+  [parent addChild: p withPendingUnitCount: portionOfParentTotalUnitCount];
+
   return AUTORELEASE(p);
 }
 
-// Private methods
 - (void) _setParent: (NSProgress *)p
 {
-  internal->_parent = p; // Not retained since this is defined in docs as a weak reference
+  objc_storeWeak(&internal->_parent, p);
 }
 
-- (NSProgress *) _parent
-{
-  return internal->_parent;
-}
-
-// Current progress
-+ (NSProgress *) currentProgress
-{
-  return __currentProgress;
-}
-
-- (void) becomeCurrentWithPendingUnitCount: (int64_t)unitCount
-{
-  [self setTotalUnitCount: unitCount];
-  __currentProgress = self;
-}
-
-- (void) addChild: (NSProgress *)child
-  withPendingUnitCount: (int64_t)inUnitCount
-{
-  [child _setParent: self];
-  [child setTotalUnitCount: inUnitCount];
-}
-
-- (void) resignCurrent
-{
-  int64_t completed = [__currentProgress completedUnitCount];
-  [__currentProgress setCompletedUnitCount: completed + [self totalUnitCount]];
-}
-
-// Reporting progress
-- (int64_t) totalUnitCount
-{
-  return internal->_totalUnitCount;
-}
-
-- (void) setTotalUnitCount: (int64_t)count
+- (void) _setTotalUnitCount: (int64_t) count
 {
   internal->_totalUnitCount = count;
 }
 
-- (int64_t) completedUnitCount
+- (void) _setPendingUnitCountForParent: (int64_t) count
 {
-  return internal->_completedUnitCount;
+  internal->_pendingUnitCountForParent = count;
 }
 
-- (void) setCompletedUnitCount: (int64_t)count
+- (int64_t) _pendingUnitCountForChild
 {
-  internal->_completedUnitCount = count;
-  [self willChangeValueForKey: @"fractionCompleted"];
-  internal->_fractionCompleted = (double)((double)internal->_completedUnitCount
-                                         / (double)internal->_totalUnitCount);
-  if(internal->_fractionCompleted >= 1)
+  return internal->_pendingUnitCountForChild;
+}
+
+- (NSMutableSet *) _children
+{
+  return internal->_children;
+}
+
+- (BOOL) _allowImplicitChild
+{
+  return internal->_allowImplicitChild;
+}
+
+- (void) _setAllowImplicitChild: (BOOL) implicitChild
+{
+  internal->_allowImplicitChild = implicitChild;
+}
+
+// Logic adapted from WinObjC implementation
+- (void)_updateCompletedUnitsBy:(int64_t)deltaCompletedUnit
+            fractionCompletedBy:(double)deltaFraction
+           unitCountForFraction:(int64_t)unitCountForFraction
+{
+  NSProgress *parent;
+  int64_t newCompletedUnitCount;
+  double prevFraction;
+  double newFraction;
+  double adjustedDeltaFraction;
+
+  // This is one big atomic operation. An exclusive lock is required, as reading
+  // from _completedUnitCount and _fractionCompleted might be inconsistent over
+  // the update period.
+  GS_MUTEX_LOCK(internal->_lock);
+  prevFraction = internal->_fractionCompleted;
+
+  // If this function is called from a child, deltaFraction needs to be adjusted
+  // according to the pending unit count of the child
+  // If this function is called from self, unitCountForFraction is equal to _totalUnitCount.
+  // Therefore deltaFractionForSelf = deltaFraction.
+  adjustedDeltaFraction = deltaFraction * unitCountForFraction / internal->_totalUnitCount;
+  newFraction = prevFraction + adjustedDeltaFraction;
+  newCompletedUnitCount = internal->_completedUnitCount + deltaCompletedUnit;
+
+  if (prevFraction != newFraction)
+    {
+      [self willChangeValueForKey: @"fractionCompleted"];
+    }
+  if (deltaCompletedUnit != 0)
+    {
+      [self willChangeValueForKey: @"completedUnitCount"];
+    }
+
+  // In macOS the finished check is placed before the didChangeValueForKey: @"completedUnitCount" message
+  if (newCompletedUnitCount == internal->_totalUnitCount)
     {
       [self willChangeValueForKey: @"finished"];
       internal->_finished = YES;
       [self didChangeValueForKey: @"finished"];
     }
-  [self didChangeValueForKey: @"fractionCompleted"];
 
-  __currentProgress = nil;
+  if (deltaCompletedUnit != 0)
+    {
+      internal->_completedUnitCount = newCompletedUnitCount;
+      [self didChangeValueForKey: @"completedUnitCount"];
+    }
+
+  if (prevFraction != newFraction)
+    {
+      internal->_fractionCompleted = newFraction;
+      [self didChangeValueForKey: @"fractionCompleted"];
+    }
+
+
+  if (internal->_fractionCompleted < 0)
+    {
+      internal->_fractionCompleted = 0;
+    }
+
+  parent = objc_loadWeakRetained(&internal->_parent);
+  if (parent)
+    {
+      if (internal->_fractionCompleted >= 1)
+	{
+	  int64_t pendingCount = internal->_pendingUnitCountForParent;
+
+	 [parent _updateCompletedUnitsBy: pendingCount 
+		     fractionCompletedBy: (1.0f - prevFraction)
+		    unitCountForFraction: pendingCount];
+	}
+      else
+	{
+	  [parent _updateCompletedUnitsBy: 0
+		      fractionCompletedBy: adjustedDeltaFraction
+		     unitCountForFraction: internal->_pendingUnitCountForParent];
+	}
+
+      // Remove child from parent
+      if (internal->_finished)
+	{
+	  NSMutableSet *children = [parent _children];
+	  [children removeObject: self];
+	}
+      RELEASE(parent);
+    }
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
-- (NSString *) localizedDescription
+- (void) becomeCurrentWithPendingUnitCount: (int64_t)unitCount
 {
-  return internal->_localizedDescription;
+  if ([self isEqual:[NSProgress currentProgress]])
+  {
+    [NSException raise: NSInvalidArgumentException
+                format: @"NSProgress object is already current on this thread %@", [NSThread currentThread]];
+  }
+
+  // Push the receiver onto the thread-local current progress stack.
+  tls_current_progress_push(self);
+
+  // Signal that the next instantiated progress object should become an implicit
+  // child of the receiver.
+  internal->_allowImplicitChild = YES;
+  internal->_pendingUnitCountForChild = unitCount;
 }
 
-- (void) setLocalizedDescription: (NSString *)localDescription
+- (void) addChild: (NSProgress *)child
+  withPendingUnitCount: (int64_t)inUnitCount
 {
-  ASSIGNCOPY(internal->_localizedDescription, localDescription);
+  // Weakly reference the parent progress from the child progress.
+  [child _setParent: self];
+
+  /* Do not add child to set if the progress is already finished */
+  if ([child isFinished])
+    {
+      [self setCompletedUnitCount: [self completedUnitCount] + inUnitCount];
+      return;
+    }
+
+  // Store the pending unit count in the child object. We will add it to the
+  // parent after completion of the child progress.
+  [child _setPendingUnitCountForParent: inUnitCount];
+
+  GS_MUTEX_LOCK(internal->_lock);
+
+  if (!internal->_children)
+    {
+      internal->_children = [[NSMutableSet alloc] initWithCapacity: 2];
+    }
+  // Track the unfinished child progress.
+  [internal->_children addObject: child];
+
+  GS_MUTEX_UNLOCK(internal->_lock);
 }
 
-- (NSString *) localizedAdditionalDescription
+- (void) resignCurrent
 {
-  return internal->_localizedAdditionalDescription;
+  // Pop the current progress from the thread-local current progress stack.
+  tls_current_progress_pop();
 }
 
-- (void) setLocalizedAdditionalDescription: (NSString *)localDescription
+- (int64_t) totalUnitCount
 {
-  ASSIGNCOPY(internal->_localizedAdditionalDescription, localDescription);
-}
+  int64_t count;
+  
+  GS_MUTEX_LOCK(internal->_lock);
+  count = internal->_totalUnitCount;
+  GS_MUTEX_UNLOCK(internal->_lock);
 
-// Observing progress
-- (double) fractionCompleted
-{
-  return internal->_fractionCompleted;
-}
-
-// Controlling progress
-- (BOOL) isCancellable
-{
-  return internal->_cancellable;
-}
-
-- (BOOL) isCancelled
-{
-  return internal->_cancelled;
-}
-
-- (BOOL) cancelled
-{
-  return internal->_cancelled;
-}
-
-- (void) cancel
-{
-  [self willChangeValueForKey: @"cancelled"];
-  CALL_BLOCK_NO_ARGS(internal->_cancellationHandler);
-  internal->_cancelled = YES;
-  [self didChangeValueForKey: @"cancelled"];
-}
-
-- (void) setCancellationHandler: (GSProgressCancellationHandler) handler
-{
-  internal->_cancellationHandler = handler;
-}
-
-- (BOOL) isPausable
-{
-  return internal->_pausable;
-}
-
-- (BOOL) isPaused
-{
-  return internal->_paused;
-}
-
-- (void) pause
-{
-  [self willChangeValueForKey: @"paused"];
-  CALL_BLOCK_NO_ARGS(internal->_pausingHandler);
-  internal->_paused = YES;
-  [self didChangeValueForKey: @"paused"];
-}
-
-- (void) setPausingHandler: (GSProgressPausingHandler) handler
-{
-  internal->_pausingHandler = handler;
-}
-
-- (void) resume
-{
-  CALL_BLOCK_NO_ARGS(internal->_resumingHandler);
-}
-
-- (void) setResumingHandler: (GSProgressResumingHandler) handler
-{
-  internal->_resumingHandler = handler;
-}
-
-// Progress Information
-- (BOOL) isIndeterminate
-{
-  return internal->_indeterminate;
-}
-
-- (BOOL) indeterminate
-{
-  return internal->_indeterminate;
-}
-
-- (void) setIndeterminate: (BOOL)flag
-{
-  internal->_indeterminate = flag;
-}
-
-- (NSProgressKind) kind
-{
-  return internal->_kind;
-}
-
-- (void) setKind: (NSProgressKind)k
-{
-  ASSIGN(internal->_kind, k);
-}
-
-- (void)setUserInfoObject: (id)obj
-                   forKey: (NSProgressUserInfoKey)key
-{
-  [internal->_userInfo setObject: obj forKey: key];
-}
-
-- (GS_GENERIC_CLASS(NSDictionary,NSProgressUserInfoKey,id) *)userInfo
-{
-  return AUTORELEASE([internal->_userInfo copy]);
-}
-
-// Instance property accessors...
-- (void) setFileOperationKind: (NSProgressFileOperationKind)k
-{
-  ASSIGN(internal->_fileOperationKind, k);
-}
-
-- (NSProgressFileOperationKind) fileOperationKind
-{
-  return internal->_fileOperationKind;
-}
-
-- (void) setFileUrl: (NSURL *)u
-{
-  ASSIGN(internal->_fileUrl, u);
-}
-
-- (NSURL*) fileUrl
-{
-  return internal->_fileUrl;
-}
-
-- (BOOL) isFinished
-{
-  return internal->_finished;
-}
-
-- (BOOL) finished
-{
-  return internal->_finished;
-}
-
-- (BOOL) isOld
-{
-  return internal->_old;
-}
-
-- (BOOL) old
-{
-  return internal->_old;
-}
-
-- (void) setEstimatedTimeRemaining: (NSNumber *)n
-{
-  ASSIGNCOPY(internal->_estimatedTimeRemaining, n);
-}
-
-- (NSNumber *) estimatedTimeRemaining
-{
-  return internal->_estimatedTimeRemaining;
-}
-
-- (void) setFileCompletedCount: (NSNumber *)n
-{
-  ASSIGNCOPY(internal->_fileCompletedCount, n);
-}
-
-- (NSNumber *) fileCompletedCount
-{
-  return internal->_fileCompletedCount;
-}
-
-- (void) setFileTotalCount: (NSNumber *)n
-{
-  ASSIGNCOPY(internal->_fileTotalCount, n);
-}
-
-- (NSNumber *) fileTotalCount
-{
-  return internal->_fileTotalCount;
-}
-
-- (void) setThroughput: (NSNumber *)n
-{
-  ASSIGNCOPY(internal->_throughput, n);
-}
-
-- (NSNumber *) throughtput
-{
-  return internal->_throughput;
-}
-
-// Instance methods
-- (void) publish
-{
-  CALL_BLOCK(internal->_publishingHandler, self);
-}
-
-- (void) unpublish
-{
-  CALL_BLOCK_NO_ARGS(internal->_unpublishingHandler);
+  return count;
 }
 
 - (void) performAsCurrentWithPendingUnitCount: (int64_t)unitCount 
   usingBlock: (GSProgressPendingUnitCountBlock)work
 {
-  
-  int64_t completed = [__currentProgress completedUnitCount];
-  // Do pending work...
+  NSProgress *current = [NSProgress currentProgress];
   CALL_BLOCK_NO_ARGS(work);
-  // Update completion count...
-  [self setCompletedUnitCount: completed + unitCount];
+  [current setCompletedUnitCount: [current completedUnitCount] + unitCount];
 }
 
-// Type methods
+
+- (void) setTotalUnitCount: (int64_t)count
+{
+  double ratio;
+
+  GS_MUTEX_LOCK(internal->_lock);
+
+  ratio = (double)count / internal->_totalUnitCount;
+  internal->_totalUnitCount = count;
+  [self _updateCompletedUnitsBy: 0
+            fractionCompletedBy: (internal->_fractionCompleted / ratio) - internal->_fractionCompleted
+           unitCountForFraction: internal->_totalUnitCount];
+
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+- (int64_t) completedUnitCount
+{
+  int64_t count;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  count =  internal->_completedUnitCount;
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return count;
+}
+
+- (void) setCompletedUnitCount: (int64_t)count
+{
+  // This is one big atomic operation
+  GS_MUTEX_LOCK(internal->_lock);
+
+  if (count != internal->_completedUnitCount)
+    {
+      int64_t deltaCompletedUnit = count - internal->_completedUnitCount;
+      double deltaFraction = deltaCompletedUnit / (double) internal->_totalUnitCount;
+      [self _updateCompletedUnitsBy: deltaCompletedUnit
+		fractionCompletedBy: deltaFraction
+	       unitCountForFraction: internal->_totalUnitCount];
+    }
+
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+- (double) fractionCompleted
+{
+  double fraction;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  fraction = internal->_fractionCompleted;
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return fraction;
+}
+
+/**
+ * Progress Cancellation
+ */
+
+- (BOOL) isCancellable
+{
+  BOOL cancellable;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  cancellable =  internal->_cancellable;
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return cancellable;
+}
+
+- (BOOL) isCancelled
+{
+  BOOL cancelled;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  cancelled = internal->_cancelled;
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return cancelled;
+}
+
+- (void) cancel
+{
+  if (!internal->_cancelled)
+    {
+      GS_MUTEX_LOCK(internal->_lock);
+      if (!internal->_cancelled)
+	{
+	  NSMutableSet *children;
+	  [self willChangeValueForKey: @"cancelled"];
+	  CALL_BLOCK_NO_ARGS(internal->_cancellationHandler);
+	  internal->_cancelled = YES;
+	  [self didChangeValueForKey: @"cancelled"];
+
+	  // Cancel all child progresses
+	  children = internal->_children;
+	  FOR_IN(NSProgress*, child, children)
+	    {
+	      [child cancel];
+	    }
+	  END_FOR_IN(children)
+	}
+      GS_MUTEX_UNLOCK(internal->_lock);
+    }
+}
+
+- (void) setCancellationHandler: (GSProgressCancellationHandler) handler
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  ASSIGNCOPY(internal->_cancellationHandler, handler);
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+/**
+ * Progress Pausation (Not Implemented)
+ */
+
+- (BOOL) isPausable
+{
+  // Stub
+  return NO;
+}
+
+- (BOOL) isPaused
+{
+  // Stub
+  return NO;
+}
+
+- (void) pause
+{
+  [self notImplemented: _cmd];
+}
+
+- (void) setPausingHandler: (GSProgressPausingHandler) handler
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  ASSIGNCOPY(internal->_pausingHandler, handler);
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+- (BOOL) isFinished
+{
+  BOOL finished;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  finished = internal->_finished;
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return finished;
+}
+
+/**
+ * Progress Resumption (Not Implemented)
+ */
+
+- (void) resume
+{
+  [self notImplemented: _cmd];
+}
+
+- (void) setResumingHandler: (GSProgressResumingHandler) handler
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  ASSIGNCOPY(internal->_resumingHandler, handler);
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+- (BOOL) isIndeterminate
+{
+  return NO;
+}
+
+- (BOOL) isOld
+{
+  // Stub
+  return NO;
+}
+
+- (void) setKind: (NSProgressKind)k
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  ASSIGN(internal->_kind, k);
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+- (NSProgressKind) kind
+{
+  NSProgressKind kind;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  kind = AUTORELEASE(RETAIN(internal->_kind));
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return kind;
+}
+
+- (void)setUserInfoObject: (id)obj
+                   forKey: (NSProgressUserInfoKey)key
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  [internal->_userInfo setObject: obj forKey: key];
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+- (NSDictionary *) userInfo
+{
+  NSDictionary *obj;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  obj = AUTORELEASE(RETAIN(internal->_userInfo));
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return obj;
+}
+
+- (void) setEstimatedTimeRemaining: (NSNumber *)n
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  ASSIGNCOPY(internal->_estimatedTimeRemaining, n);
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+- (NSNumber *) estimatedTimeRemaining
+{
+  NSNumber *number;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  number = AUTORELEASE(RETAIN(internal->_estimatedTimeRemaining));
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return number;
+}
+
+- (void) setFileOperationKind: (NSProgressFileOperationKind)k
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  ASSIGN(internal->_fileOperationKind, k);
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+- (NSProgressFileOperationKind) fileOperationKind
+{
+  NSProgressFileOperationKind kind;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  kind =  AUTORELEASE(RETAIN(internal->_fileOperationKind));
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return kind;
+}
+
+- (void) setFileUrl: (NSURL *)u
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  ASSIGN(internal->_fileUrl, u);
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+- (NSURL*) fileUrl
+{
+  NSURL *url;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  url = AUTORELEASE(RETAIN(internal->_fileUrl));
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return url;
+}
+
+- (void) setFileCompletedCount: (NSNumber *)n
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  ASSIGNCOPY(internal->_fileCompletedCount, n);
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+- (NSNumber *) fileCompletedCount
+{
+  NSNumber *count;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  count = AUTORELEASE(RETAIN(internal->_fileCompletedCount));
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return count;
+}
+
+- (void) setFileTotalCount: (NSNumber *)n
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  ASSIGNCOPY(internal->_fileTotalCount, n);
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+- (NSNumber *) fileTotalCount
+{
+  NSNumber *count;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  count = AUTORELEASE(RETAIN(internal->_fileTotalCount));
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return count;
+}
+
+- (void) setThroughput: (NSNumber *)n
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  ASSIGNCOPY(internal->_throughput, n);
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+- (NSNumber *) throughput
+{
+  NSNumber *throughput;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  throughput = AUTORELEASE(RETAIN(internal->_throughput));
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return throughput;
+}
+
+- (void) publish
+{
+  [self notImplemented: _cmd];
+}
+
+- (void) unpublish
+{
+  [self notImplemented: _cmd];
+}
+
 + (id) addSubscriberForFileURL: (NSURL *)url 
          withPublishingHandler: (NSProgressPublishingHandler)publishingHandler
 {
-  // [__subscribers addObject: publishingHandler forObject: url];
   return [self notImplemented: _cmd];
 }
 
 + (void) removeSubscriber: (id)subscriber
 {
-  // [__subscribers removeObject: subscriber];
   [self notImplemented: _cmd];
 }
-  
-@end
 
+- (void) setLocalizedDescription: (NSString *)localDescription
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  ASSIGNCOPY(internal->_localizedDescription, localDescription);
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+
+- (NSString *) localizedDescription
+{
+  NSString *description;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  description = AUTORELEASE(RETAIN(internal->_localizedDescription));
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return description;
+}
+
+- (NSString *) localizedAdditionalDescription
+{
+  NSString *description;
+
+  GS_MUTEX_LOCK(internal->_lock);
+  description = AUTORELEASE(RETAIN(internal->_localizedAdditionalDescription));
+  GS_MUTEX_UNLOCK(internal->_lock);
+
+  return description;
+}
+
+- (void) setLocalizedAdditionalDescription: (NSString *)localDescription
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  ASSIGNCOPY(internal->_localizedAdditionalDescription, localDescription);
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
+@end
 

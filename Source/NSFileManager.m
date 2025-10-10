@@ -1748,7 +1748,11 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 
       if (res == WIN32ERR)
 	{
-	  return NO;
+	  NSString	*message = [[NSError _last] localizedDescription];
+
+	  return [self _proceedAccordingToHandler: handler
+					 forError: message
+					   inPath: path];
 	}
       if (res & FILE_ATTRIBUTE_DIRECTORY)
 	{
@@ -1763,7 +1767,11 @@ static gs_mutex_t       classLock = GS_MUTEX_INIT_STATIC;
 
       if (lstat(lpath, &statbuf) != 0)
 	{
-	  return NO;
+	  NSString	*message = [[NSError _last] localizedDescription];
+
+	  return [self _proceedAccordingToHandler: handler
+					 forError: message
+					   inPath: path];
 	}
       is_dir = ((statbuf.st_mode & S_IFMT) == S_IFDIR);
 #endif /* _WIN32 */
@@ -3627,8 +3635,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   if ([handler respondsToSelector:
     @selector (fileManager:shouldProceedAfterError:)])
     {
+      /* wl 20250114: For a very long time, this method incorrectly was
+       * using NSFilePathErrorKey instead of the documented key @"Path"
+       * to report the affected path. For backward compatibility we keep
+       * setting the wrong key below.
+       */
       NSDictionary *errorInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                                                 path, NSFilePathErrorKey,
+                                              path, @"Path",
                                               error, @"Error", nil];
       return [handler fileManager: self
 	  shouldProceedAfterError: errorInfo];
@@ -3645,8 +3659,14 @@ static inline void gsedRelease(GSEnumeratedDirectory X)
   if ([handler respondsToSelector:
     @selector (fileManager:shouldProceedAfterError:)])
     {
+      /* wl 20250114: For a very long time, this method incorrectly was
+       * using NSFilePathErrorKey instead of the documented key @"Path"
+       * to report the affected path. For backward compatibility we keep
+       * setting the wrong key below.
+       */
       NSDictionary *errorInfo = [NSDictionary dictionaryWithObjectsAndKeys:
                                                 path, NSFilePathErrorKey,
+                                              path, @"Path",
                                               fromPath, @"FromPath",
                                               toPath, @"ToPath",
                                               error, @"Error", nil];

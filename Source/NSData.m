@@ -84,6 +84,10 @@
 #import "Foundation/NSRange.h"
 #import "Foundation/NSURL.h"
 #import "Foundation/NSValue.h"
+#import "Foundation/NSDictionary.h"
+#import "Foundation/NSString.h"
+#import "Foundation/NSError.h"
+#import "Foundation/FoundationErrors.h"
 #import "GSPrivate.h"
 #include <stdio.h>
 
@@ -227,17 +231,23 @@ encodebase64(unsigned char **dstRef,
   return dIndex;
 }
 
+/* A NULL value for buf causes the existence and length of the file to
+ * be checked but no data to be read.
+ * The value of error must not be NULL.
+ */
 static BOOL
-readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
+getContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone,
+  NSError **error)
 {
   NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSDictionary  *userInfo;
   NSDictionary	*att;
   const GSNativeChar	*thePath = 0;
   FILE		*theFile = 0;
   void		*tmp = 0;
   int		c;
   off_t         fileLength;
-  
+
 #ifdef __ANDROID__
   // Android: try using asset manager if path is in main bundle resources
   AAsset *asset = [NSBundle assetForPath: path withMode: AASSET_MODE_BUFFER];
@@ -245,25 +255,41 @@ readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
     {
       fileLength = AAsset_getLength(asset);
 
-      tmp = NSZoneMalloc(zone, fileLength);
-      if (tmp == 0)
+      if (buf)
 	{
-	  NSLog(@"Malloc failed for file (%@) of length %jd - %@", path,
-	    (intmax_t)fileLength, [NSError _last]);
-	  AAsset_close(asset);
-	  goto failure;
-	}
+	  tmp = NSZoneMalloc(zone, fileLength);
+	  if (tmp == 0)
+	    {
+	      userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+		@"Memory allocation failed", NSLocalizedDescriptionKey,
+		path, @"NSFilePath",
+		[NSError _last], NSUnderlyingErrorKey,
+		nil];
+	      *error = [NSError errorWithDomain: NSCocoaErrorDomain
+					   code: NSFileReadUnknownError
+				       userInfo: userInfo];
+	      AAsset_close(asset);
+	      goto failure;
+	    }
 
-      int result = AAsset_read(asset, tmp, fileLength);
-      AAsset_close(asset);
-      
-      if (result < 0)
-	{
-	  NSWarnFLog(@"read of file (%@) contents failed - %@", path,
-	    [NSError errorWithDomain: NSPOSIXErrorDomain
-				code: result
-			    userInfo: nil]);
-	  goto failure;
+	  int result = AAsset_read(asset, tmp, fileLength);
+	  AAsset_close(asset);
+	  
+	  if (result < 0)
+	    {
+	      userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+		@"Read from Android asset failed", NSLocalizedDescriptionKey,
+		path, @"NSFilePath",
+		[NSError errorWithDomain: NSPOSIXErrorDomain
+				    code: result
+				userInfo: nil], NSUnderlyingErrorKey,
+		nil];
+
+	      *error = [NSError errorWithDomain: NSCocoaErrorDomain
+					   code: NSFileReadUnknownError
+				       userInfo: userInfo];
+	      goto failure;
+	    }
 	}
       
       *buf = tmp;
@@ -275,19 +301,46 @@ readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
   thePath = [path fileSystemRepresentation];
   if (thePath == 0)
     {
-      NSWarnFLog(@"Open (%@) attempt failed - bad path", path);
+      userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"The path is invalid", NSLocalizedDescriptionKey,
+        path, @"NSFilePath",
+        nil];
+      *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                   code: NSFileReadInvalidFileNameError
+                               userInfo: userInfo];
+
       return NO;
     }
 
   att = [mgr fileAttributesAtPath: path traverseLink: YES];
   if (nil == att)
     {
-      return NO;        // No such file ... fail quietly
+      NSString	*description;
+
+      description = [NSString stringWithFormat:
+	@"The file '%@' couldn't be opened because there is no such file.",
+	path];
+      userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+        description, NSLocalizedDescriptionKey,
+        path, @"NSFilePath",
+        nil];
+      *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                   code: NSFileReadNoSuchFileError
+                               userInfo: userInfo];
+
+      return NO;
     }
 
   if ([att fileType] != NSFileTypeRegular)
     {
-      NSWarnFLog(@"Open (%@) attempt failed - not a regular file", path);
+      userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"Open attempt failed - not a regular file", NSLocalizedDescriptionKey,
+        path, @"NSFilePath",
+        nil];
+      *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                   code: NSFileReadUnknownError
+                               userInfo: userInfo];
+
       return NO;
     }
 
@@ -297,9 +350,17 @@ readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
   theFile = fopen(thePath, "rb");
 #endif
 
-  if (theFile == 0)		/* We failed to open the file. */
+  if (theFile == 0)
     {
-      NSDebugFLog(@"Open (%@) attempt failed - %@", path, [NSError _last]);
+      userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"Open attempt failed", NSLocalizedDescriptionKey,
+        path, @"NSFilePath",
+        [NSError _last], NSUnderlyingErrorKey,
+        nil];
+      *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                   code: NSFileReadUnknownError
+                               userInfo: userInfo];
+
       goto failure;
     }
 
@@ -309,8 +370,14 @@ readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
   c = fseeko(theFile, 0, SEEK_END);
   if (c != 0)
     {
-      NSWarnFLog(@"Seek to end of file (%@) failed - %@", path,
-	[NSError _last]);
+      userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"Seek to end of file failed", NSLocalizedDescriptionKey,
+        path, @"NSFilePath",
+        [NSError _last], NSUnderlyingErrorKey,
+        nil];
+      *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                   code: NSFileReadUnknownError
+                               userInfo: userInfo];
       goto failure;
     }
 
@@ -321,7 +388,14 @@ readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
   fileLength = ftello(theFile);
   if (fileLength == (off_t)-1)
     {
-      NSWarnFLog(@"Ftell on %@ failed - %@", path, [NSError _last]);
+      userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+        @"ftello failed", NSLocalizedDescriptionKey,
+        path, @"NSFilePath",
+        [NSError _last], NSUnderlyingErrorKey,
+        nil];
+      *error = [NSError errorWithDomain: NSCocoaErrorDomain
+                                   code: NSFileReadUnknownError
+                               userInfo: userInfo];
       goto failure;
     }
   if (fileLength >= 2147483647)
@@ -329,87 +403,116 @@ readContentsOfFile(NSString *path, void **buf, off_t *len, NSZone *zone)
       fileLength = 0;
     }
 
-  /*
-   *	Rewind the file pointer to the beginning, preparing to read in
-   *	the file.
+  /* Rewind the file pointer to the beginning, preparing to read in
+   * or map the file.
    */
   c = fseeko(theFile, 0, SEEK_SET);
   if (c != 0)
     {
-      NSWarnFLog(@"Fseek to start of file (%@) failed - %@", path,
-	[NSError _last]);
+      userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+	@"Seek to start of file failed", NSLocalizedDescriptionKey,
+	path, @"NSFilePath",
+	[NSError _last], NSUnderlyingErrorKey,
+	nil];
+      *error = [NSError errorWithDomain: NSCocoaErrorDomain
+				   code: NSFileReadUnknownError
+			       userInfo: userInfo];
       goto failure;
     }
 
   clearerr(theFile);
-  if (fileLength == 0)
-    {
-      unsigned char	buf[BUFSIZ];
 
-      /*
-       * Special case ... a file of length zero may be a named pipe or some
-       * file in the /proc filesystem, which will return us data if we read
-       * from it ... so we try reading as much as we can.
-       */
-      while ((c = fread(buf, 1, BUFSIZ, theFile)) != 0)
+  if (buf)
+    {
+      if (fileLength == 0)
 	{
+	  unsigned char	buf[BUFSIZ];
+
+	  while ((c = fread(buf, 1, BUFSIZ, theFile)) != 0)
+	    {
+	      if (tmp == 0)
+		{
+		  tmp = NSZoneMalloc(zone, c);
+		}
+	      else
+		{
+		  tmp = NSZoneRealloc(zone, tmp, fileLength + c);
+		}
+	      if (tmp == 0)
+		{
+		  userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+		    @"Memory allocation failed", NSLocalizedDescriptionKey,
+		    path, @"NSFilePath",
+		    [NSError _last], NSUnderlyingErrorKey,
+		    nil];
+		  *error = [NSError errorWithDomain: NSCocoaErrorDomain
+					       code: NSFileReadUnknownError
+					   userInfo: userInfo];
+		  goto failure;
+		}
+	      memcpy(tmp + fileLength, buf, c);
+	      fileLength += c;
+	    }
+	}
+      else
+	{
+	  off_t	offset = 0;
+
+	  tmp = NSZoneMalloc(zone, fileLength);
 	  if (tmp == 0)
 	    {
-	      tmp = NSZoneMalloc(zone, c);
-	    }
-	  else
-	    {
-	      tmp = NSZoneRealloc(zone, tmp, fileLength + c);
-	    }
-	  if (tmp == 0)
-	    {
-	      NSLog(@"Malloc failed for file (%@) of length %jd - %@", path,
-		(intmax_t)fileLength + c, [NSError _last]);
+	      userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+		@"Memory allocation failed", NSLocalizedDescriptionKey,
+		path, @"NSFilePath",
+		[NSError _last], NSUnderlyingErrorKey,
+		nil];
+	      *error = [NSError errorWithDomain: NSCocoaErrorDomain
+					   code: NSFileReadUnknownError
+				       userInfo: userInfo];
 	      goto failure;
 	    }
-	  memcpy(tmp + fileLength, buf, c);
-	  fileLength += c;
-	}
-    }
-  else
-    {
-      off_t	offset = 0;
 
-      tmp = NSZoneMalloc(zone, fileLength);
-      if (tmp == 0)
+	  while (offset < fileLength
+	    && (c = fread(tmp + offset, 1, fileLength - offset, theFile)) != 0)
+	    {
+	      offset += c;
+	    }
+	  if (offset < fileLength)
+	    {
+	      fileLength = offset;
+	      tmp = NSZoneRealloc(zone, tmp, fileLength);
+	    }
+	}
+      if (ferror(theFile))
 	{
-	  NSLog(@"Malloc failed for file (%@) of length %jd - %@", path,
-	    (intmax_t)fileLength, [NSError _last]);
+	  NSDictionary *userInfo = [NSDictionary dictionaryWithObjectsAndKeys:
+	    @"File read failed", NSLocalizedDescriptionKey,
+	    path, @"NSFilePath",
+	    [NSError _last], NSUnderlyingErrorKey,
+	    nil];
+	  *error = [NSError errorWithDomain: NSCocoaErrorDomain
+				       code: NSFileReadCorruptFileError
+				   userInfo: userInfo];
 	  goto failure;
 	}
-
-      while (offset < fileLength
-	&& (c = fread(tmp + offset, 1, fileLength - offset, theFile)) != 0)
-	{
-	  offset += c;
-	}
-      if (offset < fileLength)
-	{
-          fileLength = offset;
-	  tmp = NSZoneRealloc(zone, tmp, fileLength);
-	}
     }
-  if (ferror(theFile))
+
+  if (theFile != 0)
     {
-      NSWarnFLog(@"read of file (%@) contents failed - %@", path,
-        [NSError _last]);
-      goto failure;
+      fclose(theFile);
     }
-
-  *buf = tmp;
+  if (buf)
+    {
+      *buf = tmp;
+    }
   *len = fileLength;
-  fclose(theFile);
   return YES;
 
   /*
    *	Just in case the failure action needs to be changed.
    */
 failure:
+  if (tmp)
     {
       NSZoneFree(zone, tmp);
     }
@@ -419,6 +522,7 @@ failure:
     }
   return NO;
 }
+
 
 /*
  *	NB, The start of the NSMutableDataMalloc instance variables must be
@@ -615,6 +719,17 @@ failure:
   return AUTORELEASE(d);
 }
 
++ (id) dataWithContentsOfFile: (NSString*)path
+                      options: (NSDataReadingOptions)readOptionsMask
+                        error: (NSError **)errorPtr
+{
+  NSData	*d;
+
+  d = [dataMalloc allocWithZone: NSDefaultMallocZone()];
+  d = [d initWithContentsOfFile: path options: readOptionsMask error: errorPtr];
+  return AUTORELEASE(d);
+}
+
 /**
  * Returns a data object encapsulating the contents of the specified
  * file mapped directly into memory.
@@ -650,6 +765,29 @@ failure:
   else
     {
       d = [url resourceDataUsingCache: YES];
+    }
+  return d;
+}
+
++ (id) dataWithContentsOfURL: (NSURL*)url
+                     options: (NSDataReadingOptions)readOptionsMask
+                       error: (NSError **)errorPtr
+{
+  NSData	*d;
+
+  if ([url isFileURL])
+    {
+      d = [dataMalloc allocWithZone: NSDefaultMallocZone()];
+      d = AUTORELEASE([d initWithContentsOfFile: [url path]
+	options: readOptionsMask error: errorPtr]);
+    }
+  else
+    {
+      BOOL useCache;
+
+      useCache
+	= (readOptionsMask & NSDataReadingUncached) != NSDataReadingUncached; 
+      d = [url resourceDataUsingCache: useCache];
     }
   return d;
 }
@@ -918,6 +1056,40 @@ failure:
   return nil;
 }
 
+- (instancetype) initWithContentsOfFile: (NSString *)path 
+                                options: (NSDataReadingOptions)readOptionsMask 
+                                  error: (NSError **)errorPtr
+{
+  void		*fileBytes;
+  off_t 	fileLength;
+  NSError 	*error = nil;
+
+#ifdef	HAVE_MMAP
+  if (readOptionsMask & NSDataReadingMappedAlways)
+    {
+      NSZone	*z = [self zone];
+      DESTROY(self);
+      self = [NSDataMappedFile allocWithZone: z];
+      return [self initWithContentsOfFile: path
+				  options: readOptionsMask
+				    error: errorPtr];
+    }
+#endif
+  if (!getContentsOfFile(path, &fileBytes, &fileLength, [self zone], &error))
+    {
+      DESTROY(self);
+      if (errorPtr)
+	{
+	  *errorPtr = error;
+	}
+      return nil;
+    }
+  self = [self initWithBytesNoCopy: fileBytes
+			    length: (NSUInteger)fileLength
+		      freeWhenDone: YES];
+  return self;
+}
+
 /**
  * Initialises the receiver with the contents of the specified file.<br />
  * Returns the resulting object.<br />
@@ -925,18 +1097,7 @@ failure:
  */
 - (id) initWithContentsOfFile: (NSString*)path
 {
-  void		*fileBytes;
-  off_t         fileLength;
-
-  if (readContentsOfFile(path, &fileBytes, &fileLength, [self zone]) == NO)
-    {
-      DESTROY(self);
-      return nil;
-    }
-  self = [self initWithBytesNoCopy: fileBytes
-			    length: (NSUInteger)fileLength
-		      freeWhenDone: YES];
-  return self;
+  return [self initWithContentsOfFile: path options: 0 error: NULL];
 }
 
 /**
@@ -962,13 +1123,33 @@ failure:
  */
 - (id) initWithContentsOfURL: (NSURL*)url
 {
+  return [self initWithContentsOfURL: url options: 0 error: NULL];
+}
+
+/**
+ *  Initialize with data pointing to contents of URL, which will be
+ *  retrieved immediately in a blocking manner.
+ *  The readOptionsMark is used for additional directions, such as
+ *  disabling of the url content cache.
+ */
+- (id) initWithContentsOfURL: (NSURL *)url
+                     options: (NSDataReadingOptions)readOptionsMask
+                       error: (NSError **)errorPtr
+{
   if ([url isFileURL])
     {
-      return [self initWithContentsOfFile: [url path]];
+      return [self initWithContentsOfFile: [url path]
+				  options: readOptionsMask
+				    error: errorPtr];
     }
   else
     {
-      NSData *data = [url resourceDataUsingCache: YES];
+      NSData	*data;
+      BOOL 	useCache;
+
+      useCache
+	= (NSDataReadingUncached & readOptionsMask) != NSDataReadingUncached;
+      data = [url resourceDataUsingCache: useCache];
       return [self initWithData: data];
     }
 }
@@ -1009,7 +1190,7 @@ failure:
 - (NSString*) description
 {
   extern void     GSPropertyListMake(id,NSDictionary*,BOOL,BOOL,unsigned,id*);
-  NSMutableString       *result = nil;
+  NSMutableString *result = nil;
 
   GSPropertyListMake(self, nil, NO, YES, 0, &result);
   return result;
@@ -1841,6 +2022,7 @@ failure:
       NSFileManager		*mgr = [NSFileManager defaultManager];
       NSMutableDictionary	*att = nil;
       NSUInteger		perm;
+      DWORD			err;
 
       if ([mgr fileExistsAtPath: path])
 	{
@@ -1867,48 +2049,56 @@ failure:
 	{
 	  c = 0;
 	}
-	/* Windows 9x does not support MoveFileEx */
-      else if (GetLastError() == ERROR_CALL_NOT_IMPLEMENTED)
+      else
 	{
-	  GSNativeChar	secondaryFile[length + 100];
-
-	  wcscpy(secondaryFile, wthePath);
-	  wcscat(secondaryFile, L"-delete");
-	  // Delete the intermediate name just in case
-	  DeleteFileW(secondaryFile);
-	  // Move the existing file to the temp name
-	  if (MoveFileW(wtheRealPath, secondaryFile) != 0)
+	  /* Try harder if we can't use MoveFileEx */
+	  err = GetLastError();
+	  if (ERROR_CALL_NOT_IMPLEMENTED == err
+	    || ERROR_ACCESS_DENIED == err)
 	    {
-	      if (MoveFileW(wthePath, wtheRealPath) != 0)
+	      GSNativeChar	secondaryFile[length + 100];
+
+	      wcscpy(secondaryFile, wthePath);
+	      wcscat(secondaryFile, L"-delete");
+	      // Delete the intermediate name just in case
+	      DeleteFileW(secondaryFile);
+	      // Move the existing file to the temp name
+	      if (MoveFileW(wtheRealPath, secondaryFile) != 0)
 		{
-		  c = 0;
-		  // Delete the old file if possible
-		  DeleteFileW(secondaryFile);
+		  if (MoveFileW(wthePath, wtheRealPath) != 0)
+		    {
+		      c = 0;
+		      // Delete the old file if possible
+		      DeleteFileW(secondaryFile);
+		    }
+		  else
+		    {
+		      c = -1; // failure, restore the old file if possible
+		      MoveFileW(secondaryFile, wtheRealPath);
+		    }
 		}
 	      else
 		{
-		  c = -1; // failure, restore the old file if possible
-		  MoveFileW(secondaryFile, wtheRealPath);
+		  c = -1; // failure
 		}
+	      err = GetLastError();
 	    }
 	  else
 	    {
-	      c = -1; // failure
+	      c = -1;
 	    }
-	}
-      else
-	{
-	  c = -1;
 	}
 
       if (c != 0)               /* Many things could go wrong, I guess. */
         {
+	  NSError	*e = [NSError _systemError: err];
+
           NSWarnMLog(@"Rename ('%@' to '%@') failed - %@",
 	    [NSString stringWithCharacters: wthePath
 				    length: wcslen(wthePath)],
 	    [NSString stringWithCharacters: wtheRealPath
 				    length: wcslen(wtheRealPath)],
-	    [NSError _last]);
+	    e);
           goto failure;
         }
 
@@ -2364,6 +2554,17 @@ failure:
   return AUTORELEASE(d);
 }
 
++ (id) dataWithContentsOfFile: (NSString*)path
+                      options: (NSDataReadingOptions)readOptionsMask
+                        error: (NSError **)errorPtr
+{
+  NSMutableData	*d;
+
+  d = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
+  d = [d initWithContentsOfFile: path options: readOptionsMask error: errorPtr];
+  return AUTORELEASE(d);
+}
+
 + (id) dataWithContentsOfMappedFile: (NSString*)path
 {
   NSMutableData	*d;
@@ -2375,17 +2576,31 @@ failure:
 
 + (id) dataWithContentsOfURL: (NSURL*)url
 {
+  return [NSMutableData dataWithContentsOfURL: url options:0 error: NULL];
+}
+
++ (id) dataWithContentsOfURL: (NSURL*)url
+                     options: (NSDataReadingOptions)readOptionsMask
+                       error: (NSError **)errorPtr
+{
   NSMutableData	*d;
 
   d = [mutableDataMalloc allocWithZone: NSDefaultMallocZone()];
 
   if ([url isFileURL])
     {
-      d = [d initWithContentsOfFile: [url path]];
+      d = [d initWithContentsOfFile: [url path]
+			    options: readOptionsMask
+			      error: errorPtr];
     }
-  else
+  else 
     {
-      NSData *data = [url resourceDataUsingCache: YES];
+      BOOL	useCache;
+      NSData 	*data;
+
+      useCache
+	= (readOptionsMask & NSDataReadingUncached) != NSDataReadingUncached;
+      data = [url resourceDataUsingCache: useCache];
       d = [d initWithBytes: [data bytes] length: [data length]];
     }
   return AUTORELEASE(d);
@@ -3643,18 +3858,26 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
  */
 - (id) initWithContentsOfMappedFile: (NSString*)path
 {
-  off_t		off;
-  int		fd;
+  return [self initWithContentsOfFile: path
+			      options: NSDataReadingMappedAlways
+				error: NULL];
+}
 
+- (instancetype) initWithContentsOfFile: (NSString *)path 
+                                options: (NSDataReadingOptions)readOptionsMask 
+                                  error: (NSError **)errorPtr
+{
   const GSNativeChar	*thePath = [path fileSystemRepresentation];
+  off_t			off;
+  int			fd;
 
-  if (thePath == 0)
+  /* Check that the file is readable and find its length.
+   */
+  if (NO == getContentsOfFile(path, NULL, &off, (NSZone*)0, errorPtr))
     {
-      NSWarnMLog(@"Open (%@) attempt failed - bad path", path);
       DESTROY(self);
       return nil;
     }
-
 #if defined(_WIN32)
   fd = _wopen(thePath, _O_RDONLY);
 #else
@@ -3664,35 +3887,30 @@ getBytes(void* dst, void* src, unsigned len, unsigned limit, unsigned *pos)
     {
       NSWarnMLog(@"unable to open %@ - %@", path, [NSError _last]);
       DESTROY(self);
-      return nil;
     }
-  /* Find size of file to be mapped. */
-  off = lseek(fd, 0, SEEK_END);
-  if (off < 0)
+  else
     {
-      NSWarnMLog(@"unable to seek to eof %@ - %@", path, [NSError _last]);
+      bytes = mmap(0, off, PROT_READ, MAP_SHARED, fd, 0);
+      if (MAP_FAILED == bytes)
+	{
+	  NSWarnMLog(@"mapping failed for %@ - %@", path, [NSError _last]);
+	  DESTROY(self);
+	}
+      else
+	{
+	  length = off;
+	}
       close(fd);
-      DESTROY(self);
-      return nil;
     }
-  length = off;
-  /* Position at start of file. */
-  if (lseek(fd, 0, SEEK_SET) != 0)
+  if (nil == self)
     {
-      NSWarnMLog(@"unable to seek to sof %@ - %@", path, [NSError _last]);
-      close(fd);
-      DESTROY(self);
-      return nil;
-    }
-  bytes = mmap(0, length, PROT_READ, MAP_SHARED, fd, 0);
-  if (bytes == MAP_FAILED)
-    {
-      NSWarnMLog(@"mapping failed for %@ - %@", path, [NSError _last]);
-      DESTROY(self);
       self = [dataMalloc allocWithZone: NSDefaultMallocZone()];
-      self = [self initWithContentsOfFile: path];
+      readOptionsMask &= ~NSDataReadingMappedIfSafe;
+      readOptionsMask &= ~NSDataReadingMappedAlways;
+      self = [self initWithContentsOfFile: path 
+				  options: readOptionsMask 
+				    error: errorPtr];
     }
-  close(fd);
   return self;
 }
 

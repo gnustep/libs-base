@@ -26,17 +26,46 @@
    $Date$ $Revision$
   */
 
+/* WARNING - README!
+ * 
+ * The unix code here is messy!
+ *
+ * The original code using gethostbyname() has problems because the
+ * underlying system library function is not thread-safe.  This is
+ * mitigated by using locks so that all NSHost usage of the function
+ * is thread-safe, but that does not ensure safety if a thread uses
+ * gethostbyname() via some other route, and we have no realistic
+ * way of knowing what third party libraries do.
+ * For that reason, the original code is only used as a last resort
+ * where more recent system PIs are not available.
+ *
+ * The approved modern API (thread-safe) on unix is getaddrinfo(),
+ * but that API provides no way to get all the names of a host
+ * (only the address corresponding to a name, or the canonical
+ * name corresponding to an address), so it can’t, on its own be
+ * used to generate NSHost objects that provide all the names of
+ * a host.
+ *
+ * The glibc extension gethostbyname_r() is thread-safe, but doesn’t
+ * properly support IPV6.
+ *
+ * So, the new code prefers gethostbyname_r() if it is available,
+ * but uses getaddrinfo() to look up IPV6 addresses.
+ *
+ * If gethostbyname_r() is not available, it uses getaddrinfo() and
+ * supplements that by using:
+ * a. res_query() to try to get host aliases from DNS
+ * b. reading /etc/hosts directly to get local host aliases
+ * This may give different results from other software depending on
+ * how the system is configured to give precedence to /etc/hosts and
+ * to DNS, but should generally be doing the right thing.
+ */
 #import "common.h"
 #define	EXPOSE_NSHost_IVARS	1
-#import "Foundation/NSLock.h"
-#import "Foundation/NSHost.h"
-#import "Foundation/NSArray.h"
-#import "Foundation/NSDictionary.h"
-#import "Foundation/NSEnumerator.h"
-#import "Foundation/NSNull.h"
-#import "Foundation/NSSet.h"
-#import "Foundation/NSCoder.h"
-#import "Foundation/NSUserDefaults.h"
+#import "Foundation/Foundation.h"
+
+#import	"GSFastEnumeration.h"
+#import	"GNUstepBase/GNUstep.h"
 
 #if defined(_WIN32)
 #ifdef HAVE_WS2TCPIP_H
@@ -56,28 +85,529 @@ extern int WSAAPI inet_pton(int , const char *, void *);
 #include <arpa/inet.h>
 #endif /* !_WIN32 */
 
+//#undef	HAVE_RESOLV_H
+//#undef	HAVE_GETHOSTBYNAME_R
+//#undef	HAVE_GETADDRINFO
+
+#if	defined(HAVE_RESOLV_H)
+#include <resolv.h>
+#endif
+
 #ifndef	INADDR_NONE
 #define	INADDR_NONE	-1
 #endif
 
+/* Use posix definition if not already defined
+ */
+#ifndef	INET6_ADDRSTRLEN
+#define	INET6_ADDRSTRLEN	46
+#endif
+
 static NSString			*localHostName = @"GNUstep local host";
 static Class			hostClass;
+#if     !defined(HAVE_GETADDRINFO) || !defined(HAVE_RESOLV_H)
+static NSRecursiveLock		*_deprecateLock = nil;
+#endif
 static NSRecursiveLock		*_hostCacheLock = nil;
+static NSLock			*_nameCacheLock = nil;
 static BOOL			_hostCacheEnabled = YES;
 static NSMutableDictionary	*_hostCache = nil;
 static id			null = nil;
 
+/*
+ *	Max hostname length in line with RFC  1123
+ */
+#define	GSMAXHOSTNAMELEN	255
+
+static BOOL
+isName(const char *n)
+{
+  if (NULL == n)
+    {
+      return NO;
+    }
+  else if (strchr(n, ':') != 0)
+    {
+      return NO;	// IPV6
+    }
+  else
+    {
+      struct in_addr	hostaddr;
+
+      if (inet_pton(AF_INET, n, (void*)&hostaddr) == 1)
+	{
+	  return NO;
+	}
+      return YES;	// IPV4
+    }
+}
+
+static const char *
+getName(NSString *str)
+{
+  const char	*n = [str UTF8String];
+
+  if (isName(n))
+    {
+      return n;
+    }
+  return NULL;
+}
+
+/**
+ * Return the current host name ... may change if we are using dhcp etc
+ */
+static NSString*
+myHostName()
+{
+  static NSString	*name = nil;
+  static char		old[GSMAXHOSTNAMELEN+1];
+  char			buf[GSMAXHOSTNAMELEN+1];
+  int			res;
+
+  [_nameCacheLock lock];
+  res = gethostname(buf, GSMAXHOSTNAMELEN);
+  if (res < 0 || *buf == '\0')
+    {
+      NSLog(@"Unable to get name of current host - using 'localhost'");
+      ASSIGN(name, @"localhost");
+    }
+  else if (name == nil || strcmp(old, buf) != 0)
+    {
+      strncpy(old, buf, sizeof(old) - 1);
+      old[sizeof(old) - 1] = '\0';
+      RELEASE(name);
+      name = [[NSString alloc] initWithCString: buf];
+    }
+  [_nameCacheLock unlock];
+  return name;
+}
+
+#if   defined(HAVE_GETADDRINFO) && !defined(HAVE_GETHOSTBYNAME_R)
+
+/* If /etc/hosts exists and is readable, assume it is in standard hosts file
+ * format and read it.  Populates a dictionary with addresses as keys
+ * and sets of names as values. On subsequent calls returns the cached info.
+ * With the flush argument set, this destroys any cached information and
+ * return nil.
+ */
+static NSDictionary *
+etcHosts(BOOL flush)
+{
+  static NSDictionary	*etcHosts = nil;
+  NSDictionary 		*result;
+  BOOL			loaded = NO;
+
+  if (flush)
+    {
+      [_hostCacheLock lock];
+      DESTROY(etcHosts);
+      [_hostCacheLock unlock];
+      return nil;
+    }
+  [_hostCacheLock lock];
+  if (nil == etcHosts)
+    {
+      NSMutableDictionary	*hosts = [NSMutableDictionary dictionary];
+      char			buf[BUFSIZ];
+      FILE			*fp;
+
+      if ((fp = fopen("/etc/hosts", "r")) != NULL)
+	{
+	  while (fgets(buf, sizeof(buf), fp))
+	    {
+	      NSMutableSet	*names = nil;
+	      NSString		*key;
+	      char		*line = buf;
+	      char		*save = 0;
+	      char		*addr;
+	      char		*name;
+
+	      // Skip comments
+	      while (isspace(*line))
+		{
+		  line++;
+		}
+	      if ('#' == *line || '\0' == *line)
+		{
+		  continue;
+		}
+
+	      if (0 == (addr = strtok_r(line, " \t", &save)))
+		{
+		  continue;
+		}
+	      key = [NSString stringWithUTF8String: addr];
+	      names = [hosts objectForKey: key];
+	      if (nil == names)
+		{
+		  names = [NSMutableSet set];
+		  [hosts setObject: names forKey: key];
+		}
+
+	      name = strtok_r(NULL, " \t\n", &save);
+	      while (name)
+		{
+		  [names addObject: [NSString stringWithUTF8String: name]];
+		  name = strtok_r(NULL, " \t\n", &save);
+		}
+	    }
+	  fclose(fp);
+	}
+      ASSIGNCOPY(etcHosts, hosts);
+      loaded = YES;
+    }
+  result = RETAIN(etcHosts);
+  [_hostCacheLock unlock];
+  if (loaded)
+    {
+      NSDebugFLLog(@"NSHost", @"etcHosts content %@", result);
+    }
+  return AUTORELEASE(result);
+}
+#endif
 
 @interface NSHost (Private)
-- (void) _addName: (NSString*)name;
-#if     defined(HAVE_GETADDRINFO)
-- (id) _initWithAddrinfo: (struct addrinfo*)entry key: (NSString*)name;
++ (void) _cacheHost: (NSHost*)host forKey: (NSString*)key;
+#if   defined(HAVE_GETHOSTBYNAME_R)
+- (void) _addEntry: (struct hostent*)entry
+	 withNames: (NSMutableSet*)names
+	 addresses: (NSMutableSet*)addresses;
 #endif
+#if   defined(HAVE_GETHOSTBYNAME_R) || defined(HAVE_GETADDRINFO)
+- (void) _addHostAddress: (NSString*)address
+	       withNames: (NSMutableSet*)names
+	       addresses: (NSMutableSet*)addresses;
+#endif
+#if   defined(HAVE_GETADDRINFO)
+- (void) _addHostInfo: (NSString*)name
+	    withNames: (NSMutableSet*)names
+	    addresses: (NSMutableSet*)addresses;
+#endif
+#if   defined(HAVE_GETHOSTBYNAME_R) || defined(HAVE_GETADDRINFO)
+- (void) _addHostName: (NSString*)address
+	    withNames: (NSMutableSet*)names
+	    addresses: (NSMutableSet*)addresses;
+#endif
+- (void) _addName: (NSString*)name;
+#if   defined(HAVE_GETHOSTBYNAME_R) || defined(HAVE_GETADDRINFO)
+- (id) _initWithKey: (NSString*)key;
+#else
 - (id) _initWithHostEntry: (struct hostent*)entry key: (NSString*)name;
+#endif
 + (NSMutableSet*) _localAddresses;
 @end
 
 @implementation NSHost (Private)
+
++ (void) _cacheHost: (NSHost*)host forKey: (NSString*)key
+{
+  NSAssert(nil == host || [host isKindOfClass: [NSHost class]],
+    NSInvalidArgumentException);
+  NSAssert([key isKindOfClass: [NSString class]], NSInvalidArgumentException);
+
+  [_hostCacheLock lock];
+  if (host)
+    {
+      /* The local host is a special case which tries to have all local
+       * addresses.  To avoid confustion with other hosts we do not cache
+       * it using those addresses/names which migth conflict.
+       */
+      if (NO == [key isEqualToString: localHostName])
+	{
+	  NSSet	*names = host->_names;
+	  NSSet *addresses = host->_addresses;
+
+	  FOR_IN (id, name, names)
+	    [_hostCache setObject: host forKey: name];
+	  END_FOR_IN (names)
+
+	  FOR_IN (id, address, addresses)
+	    [_hostCache setObject: host forKey: address];
+	  END_FOR_IN (addresses)
+	}
+      [_hostCache setObject: host forKey: key];
+    }
+  else
+    {
+      [_hostCache setObject: null forKey: key];
+      NSLog(@"Host '%@' not found - "
+	@"perhaps the hostname is wrong or networking is not "
+	@"set up on your machine", key);
+    }
+  [_hostCacheLock unlock];
+}
+
+#if     defined(HAVE_GETADDRINFO)
+- (void) _addHostInfo: (NSString*)name
+	    withNames: (NSMutableSet*)names
+	    addresses: (NSMutableSet*)addresses
+{
+  if ([name length] > 0)
+    {
+      ENTER_POOL
+      const char	*ptr = [name UTF8String];
+      struct addrinfo	*entry;
+      struct addrinfo   hints;
+      struct addrinfo	*tmp;
+      int		err;
+
+      memset(&hints, '\0', sizeof(hints));
+      hints.ai_flags = AI_CANONNAME;
+      hints.ai_family = AF_UNSPEC; 
+
+      err = getaddrinfo(ptr, 0, &hints, &entry);
+      if (err)
+	{
+	  fprintf(stderr, "getaddrinfo '%s' failed: %s\n",
+	    ptr, gai_strerror(err));
+	  entry = NULL;
+	}
+      for (tmp = entry; tmp != NULL; tmp = tmp->ai_next)
+	{
+	  char	ipstr[INET6_ADDRSTRLEN];
+	  char 	host[NI_MAXHOST];
+	  void	*addr;
+	  NSString	*a;
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wcast-align"
+	  if (AF_INET == tmp->ai_family)
+	    {
+	      struct sockaddr_in *ipv4 = (struct sockaddr_in *)(tmp->ai_addr);
+	      addr = &(ipv4->sin_addr);
+	    }
+	  else if (AF_INET6 == tmp->ai_family)
+	    {
+	      struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)tmp->ai_addr;
+	      addr = &(ipv6->sin6_addr);
+	    }
+	  else
+	    {
+	      continue;	// Unsupported family
+	    }
+#pragma clang diagnostic pop
+	  inet_ntop(tmp->ai_family, addr, ipstr, sizeof(ipstr));
+	  a = [NSString stringWithUTF8String: ipstr];
+	  [self _addHostAddress: a withNames: names addresses: addresses];
+
+	  /* If we have a canonical name for the host, use it.
+	   */
+	  if (tmp->ai_canonname && *tmp->ai_canonname
+	    && strcmp(tmp->ai_canonname, host) != 0)
+	    {
+	      NSString	*s = [NSString stringWithUTF8String: tmp->ai_canonname];
+
+	      if (isName(tmp->ai_canonname))
+		{
+		  [self _addHostName: s
+			   withNames: names
+			   addresses: addresses];
+		}
+	      else
+		{
+		  [self _addHostAddress: s
+			      withNames: names
+			      addresses: addresses];
+		}
+	    }
+	}
+      if (entry)
+	{
+	  freeaddrinfo(entry);
+	}
+      LEAVE_POOL
+    }
+}
+#endif
+
+#if     defined(HAVE_GETHOSTBYNAME_R)
+- (void) _addHostAddress: (NSString*)address
+	       withNames: (NSMutableSet*)names
+	       addresses: (NSMutableSet*)addresses
+{
+  if ([address length] > 0 && nil == [addresses member: address])
+    {
+      const char	*addr = [address UTF8String];
+      struct in_addr 	ip_addr;
+      struct hostent	entry_buf;
+      struct hostent	*entry;
+      char		buf[BUFSIZ];
+      int		err;
+
+      [addresses addObject: address];
+      if (inet_pton(AF_INET, addr, &ip_addr) != 1)
+	{
+	  /* This is not IPV4 so it must be IPV6 and getaddrinfo_r()
+	   * does not reliably support that.
+	   */
+#if	defined(HAVE_GETADDRINFO)
+	  [self _addHostInfo: address withNames: names addresses: addresses];
+#endif
+	  return;
+	}
+
+      if (0 == gethostbyaddr_r(&ip_addr, sizeof(ip_addr), AF_INET,
+	&entry_buf, buf, sizeof(buf), &entry, &err) && entry != NULL)
+	{
+	  [self _addEntry: entry withNames: names addresses: addresses];
+	}
+    }
+}
+#elif	defined(HAVE_GETADDRINFO)
+- (void) _addHostAddress: (NSString*)address
+	       withNames: (NSMutableSet*)names
+	       addresses: (NSMutableSet*)addresses
+{
+  if ([address length] > 0 && nil == [addresses member: address])
+    {
+      NSSet	*loc;
+
+      [addresses addObject: address];
+      [self _addHostInfo: address withNames: names addresses: addresses];
+
+      /* On a system with HAVE_GETADDRINFO but no HAVE_GETADDRBYNAME_R
+       * there is no library call to look up all the addresses in the
+       * local /etc/hosts file so we try to add them here.
+       */
+      loc = [etcHosts(NO) objectForKey: address];
+      FOR_IN(NSString*, name, loc)
+	[self _addHostName: name withNames: names addresses: addresses];
+      END_FOR_IN(loc)
+    }
+}
+#endif
+
+#if	defined(HAVE_GETHOSTBYNAME_R)
+- (void) _addHostName: (NSString*)name
+	    withNames: (NSMutableSet*)names
+	    addresses: (NSMutableSet*)addresses
+{
+  if ([name length] > 0 && nil == [names member: name])
+    {
+      const char	*n = [name UTF8String];
+      struct hostent	entry_buf;
+      struct hostent	*entry;
+      char		buf[BUFSIZ];
+      int		err;
+
+      [names addObject: name];
+      if (0 == gethostbyname_r(n, &entry_buf, buf, sizeof(buf), &entry, &err)
+	&& entry != NULL)
+	{
+	  [self _addEntry: entry withNames: names addresses: addresses];
+	}
+    }
+}
+#elif	defined(HAVE_GETADDRINFO)
+
+#if	defined(HAVE_RESOLVE_H)
+static NSSet *
+dnsaliases(NSString *host, NSSet *names);
+{
+  NSMutableSet	*found = nil;
+  unsigned char response[NS_PACKETSZ];
+  extern int 	h_errno;
+  const char	*name;
+  unsigned	added = 0;
+  int 		len;
+
+  if (NULL == (name = getName(host)))
+    {
+      return nil;
+    }
+
+  /* Perform DNS query for CNAME records so that we can get
+   * any name pointed to by this one.
+   */
+  len = res_query(name, ns_c_in, ns_t_cname, response, sizeof(response));
+  if (len < 0)
+    {
+      if (h_errno != NO_DATA)
+	{
+	  herror(name);
+	}
+    }
+  else
+    {
+      ns_msg 	msg;
+      int	count;
+      int	i;
+
+      if (ns_initparse(response, len, &msg) < 0)
+	{
+	  perror("ns_initparse");
+	}
+      count = ns_msg_count(msg, ns_s_an);
+      for (i = 0; i < count; i++)
+	{
+	  ns_rr	rr;
+
+	  if (ns_parserr(&msg, ns_s_an, i, &rr) != 0)
+	    {
+	      perror("ns_parserr");
+	      continue;
+	    }
+
+	  // Check if the record is a CNAME
+	  if (ns_rr_type(rr) == ns_t_cname)
+	    {
+	      char 	cname[NS_MAXDNAME];
+	      NSString	*alias;
+
+	      if (ns_name_uncompress(ns_msg_base(msg), ns_msg_end(msg),
+		ns_rr_rdata(rr), cname, sizeof(cname)) < 0)
+		{
+		  fprintf(stderr, "Failed to uncompress CNAME\n");
+		  continue;
+		}
+	      NSDebugFLLog(@"NSHost", @"res_query for '%@' found '%s'",
+		host, cname);
+	      alias = [NSString stringWithUTF8String: cname];
+	      if ([names member: alias] == nil)
+		{
+		  if (nil == found)
+		    {
+		      found = [NSMutableSet set];
+		    }
+		  [found addObject: alias];
+		}
+	    }
+	  else
+	    {
+	      NSDebugFLLog(@"NSHost", @"res_query for '%@' unused type '%d'",
+		host, ns_rr_type(rr));
+	    }
+	}
+    }
+  if (nil == found)
+    {
+      NSDebugFLLog(@"NSHost", @"res_query for '%@' found no CNAMEs", host);
+    }
+  return found;
+}
+#endif
+
+- (void) _addHostName: (NSString*)name
+	    withNames: (NSMutableSet*)names
+	    addresses: (NSMutableSet*)addresses
+{
+  if ([name length] > 0 && nil == [names member: name])
+    {
+      [names addObject: name];
+      [self _addHostInfo: name withNames: names addresses: addresses];
+#if	defined(HAVE_RESOLVE_H)
+    {
+      NSSet	*aliases = dnsaliases(name, names);
+
+      FOR_IN(NSString*, name, aliases)
+	[self _addHostInfo: name withNames: names addresses: addresses];
+      END_FOR_IN(aliases)
+    }
+#endif
+    }
+}
+#endif
 
 - (void) _addName: (NSString*)name
 {
@@ -89,7 +619,9 @@ static id			null = nil;
   RELEASE(s);
   if (YES == _hostCacheEnabled)
     {
+      [_hostCacheLock lock];
       [_hostCache setObject: self forKey: name];
+      [_hostCacheLock unlock];
     }
   RELEASE(name);
 }
@@ -105,130 +637,121 @@ static id			null = nil;
   _addresses = RETAIN(_names);
   if (YES == _hostCacheEnabled)
     {
+      [_hostCacheLock lock];
       [_hostCache setObject: self forKey: name];
+      [_hostCacheLock unlock];
     }
   RELEASE(name);
   return self;
 }
 
-#if     defined(HAVE_GETADDRINFO)
-- (id) _initWithAddrinfo: (struct addrinfo*)entry key: (NSString*)name
+#if	defined(HAVE_GETHOSTBYNAME_R)
+- (void) _addEntry: (struct hostent*)entry
+	 withNames: (NSMutableSet*)names
+	 addresses: (NSMutableSet*)addresses
 {
-  NSMutableSet		*names;
-  NSMutableSet		*addresses;
-  NSMutableSet		*extra;
+  ENTER_POOL
+  NSString	*name = [NSString stringWithUTF8String: entry->h_name];
+
+  [self _addHostName: name withNames: names addresses: addresses];
+
+  if (entry->h_aliases)
+    {
+      char	**aliases;
+
+      for (aliases = entry->h_aliases; *aliases != NULL; aliases++)
+	{
+	  [self _addHostName: [NSString stringWithUTF8String: *aliases]
+		   withNames: names
+		   addresses: addresses];
+	}
+    }
+  if (entry->h_addr_list != 0)
+    {
+      char	**addrs;
+
+      for (addrs = entry->h_addr_list; *addrs != NULL; addrs++)
+	{
+	  NSString		*addr;
+	  struct in_addr	in;
+
+	  memset((void*)&in, '\0', sizeof(in));
+	  memcpy((void*)&in.s_addr, (const void*)*addrs, entry->h_length);
+	  addr = [NSString stringWithUTF8String: (char*)inet_ntoa(in)];
+	  [self _addHostAddress: addr withNames: names addresses: addresses];
+	}
+    }
+  LEAVE_POOL
+}
+#endif
+
+#if	defined(HAVE_GETHOSTBYNAME_R) || defined(HAVE_GETADDRINFO)
+- (id) _initWithKey: (NSString*)name
+{
+  NSMutableSet	*names;
+  NSMutableSet	*addresses;
 
   if ((self = [super init]) == nil)
     {
       return nil;
     }
-  if ([name isEqualToString: localHostName] == NO
-    && entry == (struct addrinfo*)NULL)
+  if (nil == name)
     {
-      NSLog(@"Host '%@' init failed - perhaps the name/address is wrong or "
-	@"networking is not set up on your machine", name);
-      DESTROY(self);
-      return nil;
-    }
-  else if (name == nil && entry != (struct addrinfo*)NULL)
-    {
-      NSLog(@"Nil hostname supplied but network database entry is not empty");
       DESTROY(self);
       return nil;
     }
 
-  names = [NSMutableSet new];
-  addresses = [NSMutableSet new];
+  names = [NSMutableSet set];
+  addresses = [NSMutableSet set];
 
-  if ([name isEqualToString: localHostName] == YES)
+  if (isName([name UTF8String]))
     {
-      extra = [hostClass _localAddresses];
+      [self _addHostName: name withNames: names addresses: addresses];
     }
   else
     {
-      extra = nil;
+      [self _addHostAddress: name withNames: names addresses: addresses];
     }
 
-  for (;;)
+  if ([name isEqualToString: localHostName] == YES)
     {
-      struct addrinfo   *tmp;
+      NSSet	*extra = [hostClass _localAddresses];
 
-      /*
-       * We remove all the IP addresses that we have added to the host so
-       * far from the set of extra addresses available on the current host.
-       * Then we try to find a new network database entry for one of the
-       * remaining extra addresses, and loop round to add all the names
-       * and addresses for that entry.
-       */
-      [extra minusSet: addresses];
-      while (entry == 0 && [extra count] > 0)
-	{
-	  NSString	        *a = [extra anyObject];
-          struct addrinfo       hints;
-
-          memset(&hints, '\0', sizeof(hints));
-          hints.ai_flags = AI_CANONNAME;
-	  if (getaddrinfo([a UTF8String], 0, &hints, &entry) != 0)
-	    {
-	      /*
-	       * Can't find a database entry for this IP address, but since
-	       * we know the address is valid, we add it to the list of
-	       * addresses for this host anyway.
-	       */
-	      [addresses addObject: a];
-	      [extra removeObject: a];
-	    }
-	}
-      if (0 == entry)
-	{
-	  break;
-	}
-
-      for (tmp = entry; tmp != 0; tmp = tmp->ai_next)
-        {
-          if (tmp->ai_canonname && *tmp->ai_canonname)
-            {
-              NSString          *n;
-
-              n = [[NSString alloc] initWithUTF8String: tmp->ai_canonname];
-              [names addObject: n];
-              [n release];
-            }
-
-          if (tmp->ai_addrlen > 0)
-            {
-              char      host[NI_MAXHOST];
-              char      port[NI_MAXSERV];
-
-              if (0 == getnameinfo(tmp->ai_addr, tmp->ai_addrlen,
-                host, NI_MAXHOST, port, NI_MAXSERV, NI_NUMERICSERV))
-                {
-                  NSString      *a;
-
-                  a = [[NSString alloc] initWithUTF8String: host];
-                  [addresses addObject: a];
-                  [a release];
-                }
-            }
-        }
-      freeaddrinfo(entry);
-      entry = 0;
+      FOR_IN(NSString*, address, extra)
+        [self _addHostAddress: address withNames: names addresses: addresses];
+      END_FOR_IN(extra)
     }
 
+  if ([addresses count] == 0 && [name isEqualToString: myHostName()])
+    {
+      /* As a special case, if we have no networking matching the
+       * current host name, return a host with the loopback address.
+       */
+      DESTROY(self);
+      self = RETAIN([NSHost hostWithAddress: @"127.0.0.1"]);
+      [self _addName: name];
+      return self;
+    }
   _names = [names copy];
-  RELEASE(names);
   _addresses = [addresses copy];
-  RELEASE(addresses);
 
   if (YES == _hostCacheEnabled)
     {
+      [_hostCacheLock lock];
       [_hostCache setObject: self forKey: name];
+      [_hostCacheLock unlock];
     }
 
   return self;
 }
-#endif
 
+#elif     !defined(HAVE_GETADDRINFO)
+
+/* The gethostbyname() function is deprecated because it is not thread-safe
+ * so we must lock-protect the region where it is used.  Since the unsafe
+ * output from the function is passed to this method, this method must only
+ * be called with a NULL entry or inside a lock protected region. 
+ */
 - (id) _initWithHostEntry: (struct hostent*)entry key: (NSString*)name
 {
   int			i;
@@ -270,6 +793,7 @@ static id			null = nil;
       extra = nil;
     }
 
+  [_deprecateLock lock];
   for (;;)
     {
       /*
@@ -327,6 +851,7 @@ static id			null = nil;
 	}
       entry = 0;
     }
+  [_deprecateLock unlock];
 
   _names = [names copy];
   RELEASE(names);
@@ -335,11 +860,15 @@ static id			null = nil;
 
   if (YES == _hostCacheEnabled)
     {
+      [_hostCacheLock lock];
       [_hostCache setObject: self forKey: name];
+      [_hostCacheLock unlock];
     }
 
   return self;
 }
+
+#endif
 
 + (NSMutableSet*) _localAddresses
 {
@@ -353,50 +882,6 @@ static id			null = nil;
 
 @implementation NSHost
 
-/*
- *	Max hostname length in line with RFC  1123
- */
-#define	GSMAXHOSTNAMELEN	255
-
-/**
- * Return the current host name ... may change if we are using dhcp etc
- */
-static NSString*
-myHostName()
-{
-  static NSString	*name = nil;
-  static char		old[GSMAXHOSTNAMELEN+1];
-  char			buf[GSMAXHOSTNAMELEN+1];
-  int			res;
-  NSUserDefaults        *defs = [NSUserDefaults standardUserDefaults];
-
-  [_hostCacheLock lock];
-  res = gethostname(buf, GSMAXHOSTNAMELEN);
-  if (res < 0 || *buf == '\0')
-    {
-      NSLog(@"Unable to get name of current host - using 'localhost'");
-      ASSIGN(name, @"localhost");
-    }
-  else if (name == nil || strcmp(old, buf) != 0)
-    {
-      if ([defs boolForKey:@"NSHostNameIsLocalhost"] == YES)
-	{
-      	  //NSLog(@"Force current host to 'localhost'");
-	  RELEASE(name);
-          name = [[NSString alloc] initWithCString: "localhost"];
-	}
-      else
-        {
-          strncpy(old, buf, sizeof(old) - 1);
-          old[sizeof(old) - 1] = '\0';
-          RELEASE(name);
-          name = [[NSString alloc] initWithCString: buf];
-        }
-    }
-  [_hostCacheLock unlock];
-  return name;
-}
-
 + (void) initialize
 {
   if (self == [NSHost class])
@@ -406,8 +891,19 @@ myHostName()
       [[NSObject leakAt: &null] release];
       _hostCacheLock = [[NSRecursiveLock alloc] init];
       [[NSObject leakAt: &_hostCacheLock] release];
+      _nameCacheLock = [[NSLock alloc] init];
+      [[NSObject leakAt: &_nameCacheLock] release];
       _hostCache = [NSMutableDictionary new];
       [[NSObject leakAt: &_hostCache] release];
+#if     defined(HAVE_GETADDRINFO) && defined(HAVE_RESOLV_H)
+      if (res_init() < 0)
+	{
+	  NSLog(@"+[NSHost initialize] error in res_init()");
+	}
+#else
+      _deprecateLock = [[NSRecursiveLock alloc] init];
+      [[NSObject leakAt: &_deprecateLock] release];
+#endif
     }
 }
 
@@ -419,7 +915,6 @@ myHostName()
 + (NSHost*) hostWithName: (NSString*)name
 {
   NSHost	*host = nil;
-  const char	*n;
 
   if (name == nil)
     {
@@ -435,69 +930,63 @@ myHostName()
   /* If this looks like an address rather than a host name ...
    * call the correct method instead of this one.
    */
-  n = [name UTF8String];
-  if ((isdigit(n[0]) && sscanf(n, "%*d.%*d.%*d.%*d") == 4)
-    || 0 != strchr(n, ':'))
+  if (NULL == getName(name))
     {
       return [self hostWithAddress: name];
     }
 
-  [_hostCacheLock lock];
   if (YES == _hostCacheEnabled)
     {
-      host = [_hostCache objectForKey: name];
+      [_hostCacheLock lock];
+      host = RETAIN([_hostCache objectForKey: name]);
+      [_hostCacheLock unlock];
     }
-  if (host == nil)
+  if (nil == host)
     {
+#if	defined(HAVE_GETHOSTBYNAME_R) || defined(HAVE_GETADDRINFO)
+      host = [[self alloc] _initWithKey: name];
+#else
       if ([name isEqualToString: localHostName] == YES)
 	{
-	  /*
-	   * Special GNUstep extension host - we try to have a host entry
+	  /* Special GNUstep extension host - we try to have a host entry
 	   * with ALL the IP addresses of any interfaces on the local machine
 	   */
 	  host = [[self alloc] _initWithHostEntry: 0 key: localHostName];
-	  IF_NO_ARC([host autorelease];)
 	}
       else
 	{
 	  struct hostent	*h;
 
-	  h = gethostbyname((char*)n);
+	  /* The gethostbyname() function is deprecated because it is not
+	   * thread-safe, so we lock-protect the region where it is used.
+	   */
+	  [_deprecateLock lock];
+	  h = gethostbyname((char*)[name UTF8String]);
 	  if (0 == h)
 	    {
 	      if ([name isEqualToString: myHostName()] == YES)
 		{
-		  host = [self hostWithAddress: @"127.0.0.1"];
+		  host = RETAIN([self hostWithAddress: @"127.0.0.1"]);
 		  [host _addName: name];
-		}
-	      else
-		{
-		  if (YES == _hostCacheEnabled)
-		    {
-		      [_hostCache setObject: null forKey: name];
-		    }
-		  NSLog(@"Host '%@' not found using 'gethostbyname()' - "
-		    @"perhaps the hostname is wrong or networking is not "
-		    @"set up on your machine", name);
 		}
 	    }
 	  else
 	    {
 	      host = [[self alloc] _initWithHostEntry: h key: name];
-	      IF_NO_ARC([host autorelease];)
 	    }
+	  [_deprecateLock unlock];
+	}
+#endif
+      if (_hostCacheEnabled)
+	{
+	  [self _cacheHost: host forKey: name];
 	}
     }
-  else if ((id)host == null)
+  if (AUTORELEASE(host) != null)
     {
-      host = nil;
+      return host;
     }
-  else
-    {
-      IF_NO_ARC([[host retain] autorelease];)
-    }
-  [_hostCacheLock unlock];
-  return host;
+  return nil;
 }
 
 + (NSHost*) hostWithAddress: (NSString*)address
@@ -553,36 +1042,46 @@ myHostName()
   return nil;
 #endif
 
-  [_hostCacheLock lock];
   if (YES == _hostCacheEnabled)
     {
-      host = [_hostCache objectForKey: address];
+      [_hostCacheLock lock];
+      host = RETAIN([_hostCache objectForKey: address]);
+      [_hostCacheLock unlock];
     }
   if (nil == host)
     {
+#if     defined(HAVE_GETHOSTBYNAME_R) || defined(HAVE_GETADDRINFO)
+      host = [[self alloc] _initWithKey: address];
+#else
       struct hostent	*h;
 
       /* The gethostbyname() function should handle names, ipv4 addresses,
        * and ipv6 addresses ... so we can use it whatever we have.
+       * However gethostbyname() is deprecated because it is not thread-safe
+       * so we lock-protect the region where it is used.
        */
+      [_deprecateLock lock];
       h = gethostbyname(a);
       if (0 == h)
 	{
 	  host = [[self alloc] _initWithAddress: address];
-	  IF_NO_ARC([host autorelease];)
 	}
       else
 	{
 	  host = [[self alloc] _initWithHostEntry: h key: address];
-	  IF_NO_ARC([host autorelease];)
+	}
+      [_deprecateLock unlock];
+#endif
+      if (_hostCacheEnabled)
+	{
+	  [self _cacheHost: host forKey: address];
 	}
     }
-  else
+  if (AUTORELEASE(host) != null)
     {
-      IF_NO_ARC([[host retain] autorelease];)
+      return host;
     }
-  [_hostCacheLock unlock];
-  return host;
+  return nil;
 }
 
 + (void) setHostCacheEnabled: (BOOL)flag
@@ -602,9 +1101,12 @@ myHostName()
   [_hostCacheLock lock];
   [_hostCache removeAllObjects];
   [_hostCacheLock unlock];
+#if   defined(HAVE_GETADDRINFO) && !defined(HAVE_GETHOSTBYNAME_R)
+  etcHosts(YES);
+#endif
 }
 
-/* Methods for encoding/decoding*/
+/* Methods for encoding/decoding */
 
 - (id) replacementObjectForPortCoder: (NSPortCoder*)aCoder
 {
@@ -733,7 +1235,25 @@ myHostName()
 
 - (NSString*) address
 {
-  return [_addresses anyObject];
+  NSString	*a = [_addresses anyObject];
+
+  /* Prefer IPV4 addresses to IPV6 for backward compatibility with code
+   * which does not yet support IPV6
+   */
+  if (a)
+    {
+      if ([a rangeOfString: @":"].length > 0)
+	{
+	  FOR_IN (NSString*, tmp, _addresses)
+	    if ([tmp rangeOfString: @":"].length == 0)
+	      {
+		a = tmp;
+		break;
+	      }
+	  END_FOR_IN (_addresses)
+	}
+    }
+  return a;
 }
 
 - (NSArray*) addresses

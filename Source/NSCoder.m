@@ -2,7 +2,7 @@
    Copyright (C) 1995, 1996 Free Software Foundation, Inc.
 
    Written by:  Andrew Kachites McCallum <mccallum@gnu.ai.mit.edu>
-   From skeleton by:  Adam Fedor <fedor@boulder.colorado.edu>
+   From skeleton by:  Adam Fedor <fedor@gnu.org>
    Date: Mar 1995
 
    This file is part of the GNUstep Base Library.

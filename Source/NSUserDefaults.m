@@ -111,8 +111,10 @@ static BOOL		hasSharedDefaults = NO;
 
 /* Caching some default flag values.  Until the standard defaults have
  * been loaded, these values are taken from the process arguments.
+ * NB. while these mostly represent boolean values, some may hold more
+ * information.
  */
-static BOOL	flags[GSUserDefaultMaxFlag] = { 0 };
+static int		flags[GSUserDefaultMaxFlag] = { 0 };
 
 /* An instance of the GSPersistentDomain class is used to encapsulate
  * a single persistent domain (represented as a property list file in
@@ -239,6 +241,7 @@ updateCache(NSUserDefaults *self)
   if (self == sharedDefaults)
     {
       NSArray	*debug;
+      NSString	*str;
 
       /**
        * If there is an array NSUserDefault called GNU-Debug,
@@ -261,8 +264,49 @@ updateCache(NSUserDefaults *self)
 
       /* NB the following flags are first set up, in the +initialize method.
        */
-      flags[GSMacOSXCompatible]
-	= [self boolForKey: @"GSMacOSXCompatible"];
+      str = [self stringForKey: @"GSMacOSXCompatible"];
+      if ([str length] > 0 && isdigit([str characterAtIndex: 0]))
+	{
+	  /* A numeric version number for OSX compatibility desired.
+	   */
+	  const char	*ptr = [str UTF8String];
+	  unsigned	maj;
+	  unsigned	min;
+	  unsigned	sub;
+
+	  if (sscanf(ptr, "%2u.%2u.%2u", &maj, &min, &sub) != 3)
+	    {
+	      if (sscanf(ptr, "%2u.%2u", &maj, &min) != 2)
+		{
+		  if (sscanf(ptr, "%2u", &maj) != 1)
+		    {
+		      NSLog(@"Bad value for GSMacOSXCompatible; assuming YES");
+		      maj = 0;
+		    }
+		  min = 0;
+		}
+	      sub = 0;
+	    }
+	  if (maj > 10 || min > 9)
+	    {
+	      // Newer constant format ...  101000 upwards
+	      flags[GSMacOSXCompatible] = (maj * 100 + min) * 100 + sub;
+	    }
+	  else if (10 == maj)
+	    {
+	      // Older constant format ...  1000 to 1090
+	      flags[GSMacOSXCompatible] = 1000 + min;
+	    }
+	  else
+	    {
+	      flags[GSMacOSXCompatible] = 1;
+	    }
+	}
+      else
+	{
+	  flags[GSMacOSXCompatible]
+	    = [self boolForKey: @"GSMacOSXCompatible"] ? 1 : 0;
+	}
       flags[GSOldStyleGeometry]
 	= [self boolForKey: @"GSOldStyleGeometry"];
       flags[GSLogSyslog]
@@ -659,18 +703,6 @@ newLanguages(NSArray *oldNames)
  */
 @implementation NSUserDefaults: NSObject
 
-+ (void) atExit
-{
-  [classLock lock];
-  DESTROY(sharedDefaults);
-  [classLock unlock];
-  DESTROY(bundleIdentifier);
-  DESTROY(processName);
-  DESTROY(argumentsDictionary);
-  DESTROY(classLock);
-  DESTROY(syncLock);
-}
-
 /* Opt-out off automatic willChange/didChange notifications 
  * as the KVO behaviour for NSUserDefaults is slightly different.
  *
@@ -715,7 +747,6 @@ newLanguages(NSArray *oldNames)
       NSMutableDictionaryClass = [NSMutableDictionary class];
       NSStringClass = [NSString class];
       argumentsDictionary = [NSDictionary new];
-      [self registerAtExit];
 
       processName = [[[NSProcessInfo processInfo] processName] copy];
       key = [GSPrivateInfoDictionary(nil) objectForKey: @"CFBundleIdentifier"];
@@ -1361,7 +1392,7 @@ newLanguages(NSArray *oldNames)
  * we clear the sharedDefaults variable first so that no other thread can
  * grab a reference to the deallocated instance.
  */
-- (void) release
+- (oneway void) release
 {
   [classLock lock];
   if (self == sharedDefaults && [self retainCount] < 2)
@@ -1582,7 +1613,7 @@ newLanguages(NSArray *oldNames)
 	       * changed, meaning -objectForKey: would return a different
 	       * value than before.
 	       */
-	      if ([new hash] != [old hash])
+	      if (![new isEqual: old])
 		{
 		  [self _notifyObserversOfChangeForKey: defaultName
 					      oldValue: old
@@ -1741,7 +1772,7 @@ static BOOL isPlistObject(id o)
           [self _changePersistentDomain: bundleIdentifier];
 	  
 	  // Emit only a KVO notification when the value has actually changed
-	  if ([new hash] != [old hash])
+	  if (![new isEqual: old])
 	    {
               [self _notifyObserversOfChangeForKey: defaultName
 					  oldValue: old
@@ -2360,7 +2391,7 @@ static BOOL isPlistObject(id o)
 
 @end
 
-BOOL
+int
 GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
 {
   if (nil == classLock)
@@ -2386,6 +2417,12 @@ GSPrivateDefaultsFlag(GSUserDefaultFlagType type)
 	}
     }
   return flags[type];
+}
+
+int
+GSMacOSXVersion()
+{
+  return GSPrivateDefaultsFlag(GSMacOSXCompatible);
 }
 
 /* Slightly faster than

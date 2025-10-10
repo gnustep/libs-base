@@ -1,7 +1,7 @@
 /** Implementation of NSBundle class
    Copyright (C) 1993-2002 Free Software Foundation, Inc.
 
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  Adam Fedor <fedor@gnu.org>
    Date: May 1993
 
    Author: Mirko Viviani <mirko.viviani@rccr.cremona.it>
@@ -124,27 +124,32 @@ altLang(NSString *full)
             }
         }
 
-      if ((r = [canon rangeOfString: @"-"]).length > 1)
+      if ((r = [full rangeOfString: @"-"]).length > 1)
         {
-          dialect = [canon substringFromIndex: NSMaxRange(r)];
-          lang = [canon substringToIndex: r.location];
+          dialect = [full substringFromIndex: NSMaxRange(r)];
+          lang = [full substringToIndex: r.location];
           if ((r = [dialect rangeOfString: @"_"]).length > 1)
             {
               region = [dialect substringFromIndex: NSMaxRange(r)];
               dialect = [dialect substringToIndex: r.location];
             }
         }
-      else if ((r = [canon rangeOfString: @"_"]).length > 1)
+      else if ((r = [full rangeOfString: @"_"]).length > 1)
         {
-          region = [canon substringFromIndex: NSMaxRange(r)];
-          lang = [canon substringToIndex: r.location];
+          region = [full substringFromIndex: NSMaxRange(r)];
+          lang = [full substringToIndex: r.location];
         }
       else
         {
-          lang = canon;
+          lang = full;
         }
 
       a = [NSMutableArray arrayWithCapacity: 5];
+      /* We now that the canonical language does not have a variant or region
+       * extension
+       */
+      [a addObject: canon];
+
       if (nil != dialect && nil != region)
         {
           [a addObject: [NSString stringWithFormat: @"%@-%@_%@",
@@ -165,6 +170,7 @@ altLang(NSString *full)
         {
           [a addObject: alias];
         }
+      NSDebugLog(@"Alt ALngs: %@ canon=%@ alias=%@", a, canon, alias);
     }
   return a;
 }
@@ -2150,22 +2156,38 @@ IF_NO_ARC(
     }
   [load_lock unlock];
 
-  if (bundle_directory_readable(path) == nil)
+  if (self == _mainBundle)
     {
-      NSDebugMLLog(@"NSBundle", @"Could not access path %@ for bundle", path);
-      // if this is not the main bundle ... deallocate and return.
-      if (self != _mainBundle)
+      /* Make the path available so the code in bundle_directory_readable()
+       * can use [[NSBundle mainBundle] resourcePath].
+       */
+      _path = [path copy];
+      if (bundle_directory_readable(path) == nil)
 	{
+	  NSDebugMLLog(@"NSBundle",
+	    @"Could not access path %@ for main bundle", path);
+	}
+    }
+  else
+    {
+      if (bundle_directory_readable(path) == nil)
+	{
+	  NSDebugMLLog(@"NSBundle",
+	    @"Could not access path %@ for bundle", path);
 	  [self dealloc];
 	  return nil;
 	}
+      /* It is now safe to set the path because we will not be deallocated
+       * until after we have set up the things -dealloc expects to clean up
+       * if it finds a path set.
+       */
+      _path = [path copy];
     }
 
   /* OK ... this is a new bundle ... need to insert it in the global map
    * to be found by this path so that a leter call to -bundleIdentifier
    * can work.
    */
-  _path = [path copy];
   [load_lock lock];
   NSMapInsert(_bundles, _path, self);
   [load_lock unlock];
@@ -2866,73 +2888,26 @@ IF_NO_ARC(
       tablePath = [self pathForResource: tableName ofType: @"strings"];
       if (tablePath != nil)
         {
-          NSStringEncoding	encoding;
-          NSString		*tableContent;
-          NSData		*tableData;
-          const unsigned char	*bytes;
-          unsigned		length;
+          NSData	*tableData;
 
-          tableData = [[NSData alloc] initWithContentsOfFile: tablePath];
-          bytes = [tableData bytes];
-          length = [tableData length];
-          /*
-           * A localisation file can be:
-           * - UTF-16 with a leading BOM,
-           * - UTF-8,
-           * - or ASCII with \U escapes.
-           */
-          if (length > 2
-              && ((bytes[0] == 0xFF && bytes[1] == 0xFE)
-                  || (bytes[0] == 0xFE && bytes[1] == 0xFF)))
-            {
-              encoding = NSUnicodeStringEncoding;
-            }
-          else
-            {
-              encoding = NSUTF8StringEncoding;
-            }
-          tableContent = [[NSString alloc] initWithData: tableData
-                                           encoding: encoding];
-          if (tableContent == nil && encoding == NSUTF8StringEncoding)
-            {
-              encoding = [NSString defaultCStringEncoding];
-              tableContent = [[NSString alloc] initWithData: tableData
-                                               encoding: encoding];
-              if (tableContent != nil)
-                {
-                  NSWarnMLog (@"Localisation file %@ not in portable encoding,"
-                    @" so I'm using the default encoding for the current"
-                    @" system, which may not display messages correctly.\n"
-                    @"The file should be UTF-8, UTF-16 with a leading"
-                    @" byte-order-marker, or ASCII (using \\U escapes for"
-                    @" unicode characters.\n", tablePath);
-                }
-            }
-          if (tableContent == nil)
-            {
-              NSWarnMLog(@"Failed to load strings file %@ - bad character"
-                         @" encoding", tablePath);
-            }
-          else
-            {
-              NS_DURING
-                {
-                  table = [tableContent propertyListFromStringsFileFormat];
-                }
-              NS_HANDLER
-                {
-                  NSWarnMLog(@"Failed to parse strings file %@ - %@",
-                             tablePath, localException);
-                }
-              NS_ENDHANDLER
-            }
-          RELEASE(tableData);
-          RELEASE(tableContent);
+          tableData = [NSData dataWithContentsOfFile: tablePath];
+	  NS_DURING
+	    {
+	      table = GSPropertyListFromStringsFormat(tableData);
+	    }
+	  NS_HANDLER
+	    {
+	      NSWarnMLog (@"Failed to parse Localisation file %@ - %@"
+		@"The file should be UTF-8, UTF-16 with a leading"
+		@" byte-order-marker, or ASCII (using \\U escapes for"
+		@" unicode characters.\n", tablePath, localException);
+	    }
+	  NS_ENDHANDLER
         }
       else
         {
           NSDebugMLLog(@"NSBundle", @"Failed to locate strings file %@",
-                       tableName);
+	    tableName);
         }
       /*
        * If we couldn't found and parsed the strings table, we put it in

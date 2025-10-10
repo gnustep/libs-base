@@ -46,6 +46,23 @@ int main()
   str = [url scheme];
   PASS([str isEqual: @"file"], "Scheme of file URL is file");
 
+#if     GNUSTEP
+  url = [[NSURL alloc]
+    initWithScheme: @"http"
+	      user: @"testing@free.fr"
+	  password: @"password"
+	      host: @"127.0.0.1"
+	      port: nil
+	  fullPath: @"dav.php/short/"
+   parameterString: nil
+	     query: nil
+	  fragment: nil];
+  PASS([[url absoluteString]
+    isEqual: @"http://testing%40free.fr:password@127.0.0.1/dav.php/short/"],
+    "Full -initWithScheme... works");
+  DESTROY(url);
+#endif
+
   // Test depends on network connection
   testHopeful = YES;
   url = [NSURL URLWithString: @"http://example.com/"];

@@ -39,6 +39,24 @@ extern "C" {
 @class	NSURL;
 #endif
 
+enum {
+  /** Suggests using memory mapping for the file if it can be done securely
+   */
+  NSDataReadingMappedIfSafe =   1UL << 0,
+  /** Suggests avoiding file system caching for the read operation
+   */
+  NSDataReadingUncached =       1UL << 1,
+#if OS_API_VERSION(MAC_OS_X_VERSION_10_7,GS_API_LATEST)
+  /** Strongly requests memory mapping the file; overrides MappedIfSafe
+   * if both are set
+   */
+  NSDataReadingMappedAlways =   1UL << 3,
+#endif
+};
+/** A bitmask of options for intiialising an NSData instance by reading.
+ */
+typedef NSUInteger NSDataReadingOptions;
+
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_6,GS_API_LATEST)
 enum {
   NSDataSearchBackwards = (1UL << 0),
@@ -85,27 +103,33 @@ GS_EXPORT_CLASS
 
 // Allocating and Initializing a Data Object
 
-+ (id) data;
-+ (id) dataWithBytes: (const void*)bytes
-	      length: (NSUInteger)length;
-+ (id) dataWithBytesNoCopy: (void*)bytes
-		    length: (NSUInteger)length;
++ (instancetype) data;
++ (instancetype) dataWithBytes: (const void*)bytes
+                        length: (NSUInteger)length;
++ (instancetype) dataWithBytesNoCopy: (void*)bytes
+                              length: (NSUInteger)length;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-+ (id) dataWithBytesNoCopy: (void*)aBuffer
-		    length: (NSUInteger)bufferSize
-	      freeWhenDone: (BOOL)shouldFree;
++ (instancetype) dataWithBytesNoCopy: (void*)aBuffer
+                              length: (NSUInteger)bufferSize
+                        freeWhenDone: (BOOL)shouldFree;
 #endif
-+ (id) dataWithContentsOfFile: (NSString*)path;
-+ (id) dataWithContentsOfMappedFile: (NSString*)path;
++ (instancetype) dataWithContentsOfFile: (NSString *)path
+                                options: (NSDataReadingOptions)readOptionsMask
+                                  error: (NSError **)errorPtr;
++ (instancetype) dataWithContentsOfFile: (NSString*)path;
++ (instancetype) dataWithContentsOfMappedFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-+ (id) dataWithContentsOfURL: (NSURL*)url;
++ (instancetype) dataWithContentsOfURL: (NSURL *)url
+                               options: (NSDataReadingOptions)readOptionsMask
+                                 error: (NSError **)errorPtr;
++ (instancetype) dataWithContentsOfURL: (NSURL*)url;
 #endif
-+ (id) dataWithData: (NSData*)data;
++ (instancetype) dataWithData: (NSData*)data;
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
-- (id) initWithBase64EncodedData: (NSData*)base64Data
-                         options: (NSDataBase64DecodingOptions)options;
-- (id) initWithBase64EncodedString: (NSString*)base64String
-                           options: (NSDataBase64DecodingOptions)options;
+- (instancetype) initWithBase64EncodedData: (NSData*)base64Data
+  options: (NSDataBase64DecodingOptions)options;
+- (instancetype) initWithBase64EncodedString: (NSString*)base64String
+  options: (NSDataBase64DecodingOptions)options;
 /**
  * <override-subclass/>
  * Initialize the receiver to hold memory pointed to by bytes without copying.
@@ -117,21 +141,27 @@ GS_EXPORT_CLASS
                               length: (NSUInteger)length
                          deallocator: (GSDataDeallocatorBlock)deallocBlock;
 #endif
-- (id) initWithBytes: (const void*)aBuffer
-	      length: (NSUInteger)bufferSize;
-- (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (NSUInteger)bufferSize;
+- (instancetype) initWithBytes: (const void*)aBuffer
+                        length: (NSUInteger)bufferSize;
+- (instancetype) initWithBytesNoCopy: (void*)aBuffer
+                              length: (NSUInteger)bufferSize;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (id) initWithBytesNoCopy: (void*)aBuffer
-		    length: (NSUInteger)bufferSize
-	      freeWhenDone: (BOOL)shouldFree;
+- (instancetype) initWithBytesNoCopy: (void*)aBuffer
+                              length: (NSUInteger)bufferSize
+                        freeWhenDone: (BOOL)shouldFree;
 #endif
-- (id) initWithContentsOfFile: (NSString*)path;
-- (id) initWithContentsOfMappedFile: (NSString*)path;
+- (instancetype) initWithContentsOfFile: (NSString*)path;
+- (instancetype) initWithContentsOfFile: (NSString *) path 
+                                options: (NSDataReadingOptions) readOptionsMask 
+                                  error: (NSError **) errorPtr;
+- (instancetype) initWithContentsOfMappedFile: (NSString*)path;
 #if OS_API_VERSION(GS_API_MACOSX, GS_API_LATEST)
-- (id) initWithContentsOfURL: (NSURL*)url;
+- (instancetype) initWithContentsOfURL: (NSURL*)url;
+- (instancetype) initWithContentsOfURL: (NSURL *)url
+                               options: (NSDataReadingOptions)readOptionsMask
+                                 error: (NSError **)errorPtr;
 #endif
-- (id) initWithData: (NSData*)data;
+- (instancetype) initWithData: (NSData*)data;
 
 // Accessing Data
 
@@ -153,7 +183,8 @@ GS_EXPORT_CLASS
 // base64
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_9,GS_API_LATEST)
 - (NSData *) base64EncodedDataWithOptions: (NSDataBase64EncodingOptions)options;
-- (NSString *) base64EncodedStringWithOptions: (NSDataBase64EncodingOptions)options;
+- (NSString *) base64EncodedStringWithOptions:
+  (NSDataBase64EncodingOptions)options;
 #endif
 
 // Querying a Data Object
@@ -315,10 +346,10 @@ GS_EXPORT_CLASS
 GS_EXPORT_CLASS
 @interface NSMutableData :  NSData
 
-+ (id) dataWithCapacity: (NSUInteger)numBytes;
-+ (id) dataWithLength: (NSUInteger)length;
-- (id) initWithCapacity: (NSUInteger)capacity;
-- (id) initWithLength: (NSUInteger)length;
++ (instancetype) dataWithCapacity: (NSUInteger)numBytes;
++ (instancetype) dataWithLength: (NSUInteger)length;
+- (instancetype) initWithCapacity: (NSUInteger)capacity;
+- (instancetype) initWithLength: (NSUInteger)length;
 
 // Adjusting Capacity
 

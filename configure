@@ -849,7 +849,7 @@ with_ffi_library
 enable_iconv
 with_libiconv_library
 with_libiconv_include
-enable_stricticonv
+enable_limitediconv
 enable_xml
 with_xml_prefix
 enable_xmltest
@@ -1512,132 +1512,126 @@ Optional Features:
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
   --disable-environment-config-file
-                                Disables the use of the GNUSTEP_CONFIG_FILE
-				environment variable to specify/override
-				the location of the GNUstep config file
-				at runtime.  This option is occasionally
-				useful to disable the environment variable
-				for sites which wish to 'lock down' users
-				to always work with a specific system-wide
-				configuration.  On unix-like systems the
-				default is for this option to be enabled.
-				It is disabled by default on windows systems
-				so that the base library will not use a
-				config file intended for the gnustep-make
-				system (and containing unix-style paths
-				which cannot be used by windows apps).
-				Normally this should be left at its default
-				setting.
+                          Disables the use of the GNUSTEP_CONFIG_FILE
+                          environment variable to specify/override the
+                          location of the GNUstep config file at runtime. This
+                          option is occasionally useful to disable the
+                          environment variable for sites which wish to 'lock
+                          down' users to always work with a specific
+                          system-wide configuration. On unix-like systems the
+                          default is for this option to be enabled. It is
+                          disabled by default on windows systems so that the
+                          base library will not use a config file intended for
+                          the gnustep-make system (and containing unix-style
+                          paths which cannot be used by windows apps).
+                          Normally this should be left at its default setting.
   --disable-importing-config-file
-                                Disable importing of an existing GNUstep config
-				file and use inbuilt defaults instead.
+                          Disable importing of an existing GNUstep config file
+                          and use inbuilt defaults instead.
   --disable-largefile     omit support for large files
   --enable-nxconstantstring
-	    Enables the use of the NXConstantString class for old compilers.
-  --enable-bfd
-	Enables the use of libbfd to provide symbolic stack traces.
-	Enabling this option provides support for symbolic stack traces
-	on platforms where the backtrace_symbols() function is not
-	available or does not work properly.
-	Enabling this option also has the effect of changing the license
-	of gnustep-base from LGPL to GPL since libbfd uses the GPL license
-  --enable-procfs               Use /proc filesystem (default)
-  --enable-procfs-psinfo         Use /proc/%pid% to get info
-  --enable-pass-arguments	Force user main call to NSProcessInfo initialize
-  --enable-fake-main  		Force redefine of user main function
-  --disable-libffi  		Disable use of libffi library
-  --enable-ffcall  		Enable use of the deprecated ffcall library
-  --disable-invocations		Build even if invocation-dependencies are not met
-  --disable-iconv		Build even if iconv is not available
-  --enable-stricticonv		Build even if iconv is strict
-  --disable-xml			Build even if XML-dependencies are not met
-  --disable-xmltest		Do not try to compile and run a test XML program
-  --disable-xslt		Build even if XSLT-dependency is not met
-  --disable-tls			Disable use of GNUTLS
-  --disable-tlstest		Do not try to compile and run a test TLS program
-  --disable-zeroconf		Disable NSNetServices support
-  --disable-icu			Disable International Components for Unicode
-  --disable-libdispatch		Disable dispatching blocks via libdispatch
-  --disable-newkvo		Disable new KVO implementation
-  --disable-nsurlsession  		Disable support for NSURLSession
-
-  --enable-setuid-gdomap        Enable installing gdomap as a setuid
-                                executable.  By default, it is installed
-                                as a normal program intended to be started
-				by root at system boot time, but it can
-                                also be started up automatically
-                                by any user at any time.  Use this
-                                option if you are happy having the program
-                                started automatically on demand.
-
+                          Enables the use of the NXConstantString class for
+                          old compilers.
+  --enable-bfd            Enables the use of libbfd to provide symbolic stack
+                          traces. Enabling this option provides support for
+                          symbolic stack traces on platforms where the
+                          backtrace_symbols() function is not available or
+                          does not work properly. Enabling this option also
+                          has the effect of changing the license of
+                          gnustep-base from LGPL to GPL since libbfd uses the
+                          GPL license
+  --enable-procfs         Use /proc filesystem (default)
+  --enable-procfs-psinfo  Use /proc/%pid% to get info
+  --enable-pass-arguments Force user main call to NSProcessInfo initialize
+  --enable-fake-main      Force redefine of user main function
+  --disable-libffi        Disable use of libffi library
+  --enable-ffcall         Enable use of the deprecated ffcall library
+  --disable-invocations   Build even if invocation-dependencies are not met
+  --disable-iconv         Build even if iconv is not available
+  --enable-limitediconv   Build even if iconv does not support lossy
+                          conversion
+  --disable-xm            Build even if XML-dependencies are not met
+  --disable-xmltest       Do not try to compile and run a test XML program
+  --disable-xslt          Build even if XSLT-dependency is not met
+  --disable-tls           Disable use of GNUTLS
+  --disable-tlstest       Do not try to compile and run a test TLS program
+  --disable-zeroconf      Disable NSNetServices support
+  --disable-icu           Disable International Components for Unicode
+  --disable-libdispatch   Disable dispatching blocks via libdispatch
+  --disable-newkvo        Disable new KVO implementation
+  --disable-nsurlsession  Disable support for NSURLSession
+  --enable-setuid-gdomap  Enable installing gdomap as a setuid executable. By
+                          default, it is installed as a normal program
+                          intended to be started by root at system boot time,
+                          but it can also be started up automatically by any
+                          user at any time. Use this option if you are happy
+                          having the program started automatically on demand.
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-cross-compilation-info=PATH
-				Specify path to the configuration file that
-				contains information for the configure script in
-				case of cross compilation. This information
-				replaces those obtained from running programmes
-				during the configuration phase.
-  --with-config-file=PATH       Specify path to the GNUstep config file.
-				This is the location to be used by the base
-				library to locate path information at
-				application or tool runtime.
-				This file might not even exist now; it is
-				not read at configure time.  The base library
-				will only read it at runtime.
-				If unspecified, this uses the same value as
-				the GNUstep make package on unix-like systems,
-				but uses ./GNUstep.conf on mingw so that
-				it is relative to the location of the
-				base library DLL.
-				If a leading './' is specified, the path
-				is taken to be relative to the base library
-				linked runtime, not all operating systems
-				can support this, so on some platforms you
-				may need to specify the location of the
-				config file using the GNUSTEP_CONFIG_FILE
-				environment variable at runtime.
-				If a trailing '/' is specified, the path is
-				used for locating domains but no GNUstep
-				config file is read at runtime.
-  --with-default-config=PATH   Specify path to a GNUstep config file to be
-				imported at configure time (now) and used to
-				provide default values for the base library
-				to use at runtime if no GNUstep config file
-				is found at runtime.  If this is not specified
-				then the path from the gnustep-make package
-				is used.
+                          Specify path to the configuration file that contains
+                          information for the configure script in case of
+                          cross compilation. This information replaces those
+                          obtained from running programmes during the
+                          configuration phase.
+  --with-config-file=PATH Specify path to the GNUstep config file. This is the
+                          location to be used by the base library to locate
+                          path information at application or tool runtime.
+                          This file might not even exist now; it is not read
+                          at configure time. The base library will only read
+                          it at runtime. If unspecified, this uses the same
+                          value as the GNUstep make package on unix-like
+                          systems, but uses ./GNUstep.conf on mingw so that it
+                          is relative to the location of the base library DLL.
+                          If a leading './' is specified, the path is taken to
+                          be relative to the base library linked runtime, not
+                          all operating systems can support this, so on some
+                          platforms you may need to specify the location of
+                          the config file using the GNUSTEP_CONFIG_FILE
+                          environment variable at runtime. If a trailing '/'
+                          is specified, the path is used for locating domains
+                          but no GNUstep config file is read at runtime.
+  --with-default-config=PATH
+                          Specify path to a GNUstep config file to be imported
+                          at configure time (now) and used to provide default
+                          values for the base library to use at runtime if no
+                          GNUstep config file is found at runtime. If this is
+                          not specified then the path from the gnustep-make
+                          package is used.
   --with-installation-domain=DOMAIN
-				Specify the domain (SYSTEM, LOCAL,
-				NETWORK or USER) into which
-				gnustep-base will be installed.
-				Whenever relative paths are hardcoded
-				into gnustep-base (at the moment, this
-				happens only on MinGW) this option
-				must be used and must match the domain
-				where you will be installing
-				gnustep-base.
-				If this is not specified, the output of
-				gnustep-config --installation-domain-for=gnustep-base
-				(which should normally be LOCAL) is used.
+                          Specify the domain (SYSTEM, LOCAL, NETWORK or USER)
+                          into which gnustep-base will be installed. Whenever
+                          relative paths are hardcoded into gnustep-base (at
+                          the moment, this happens only on MinGW) this option
+                          must be used and must match the domain where you
+                          will be installing gnustep-base. If this is not
+                          specified, the output of gnustep-config
+                          --installation-domain-for=gnustep-base (which should
+                          normally be LOCAL) is used.
   --without-unwind        Ignore unwind if found and disable it
-  --with-include-flags=FLAGS    Specify all include flags at once
-  --with-library-flags=FLAGS    Specify all library flags at once
-  --with-ffi-include=PATH       Include path for ffi headers
-  --with-ffi-library=PATH       Library path for ffi libs
-  --with-libiconv-library=PATH  Library path for libiconv libraries
-  --with-libiconv-include=PATH  Include path for libiconv header
-  --with-xml-prefix=PFX    Prefix where libxml is installed (optional)
-  --with-tls-prefix=PFX    Prefix where libgnutls is installed (optional)
-  --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)
-  --with-dispatch-include=PATH       Include path for dispatch header
-  --with-dispatch-library=PATH       Library path for dispatch lib
+  --with-include-flags=FLAGS
+                          Specify all include flags at once
+  --with-library-flags=FLAGS
+                          Specify all library flags at once
+  --with-ffi-include=PATH Include path for ffi headers
+  --with-ffi-library=PATH Library path for ffi libs
+  --with-libiconv-library=PATH
+                          Library path for libiconv libraries
+  --with-libiconv-include=PATH
+                          Include path for libiconv header
+  --with-xml-prefix=PFX   Prefix where libxml is installed (optional)
+  --with-tls-prefix=PFX   Prefix where libgnutls is installed (optional)
+  --with-zeroconf-api=API force use of a specific zeroconf API (mdns or avahi)
+  --with-dispatch-include=PATH
+                          Include path for dispatch header
+  --with-dispatch-library=PATH
+                          Library path for dispatch lib
   --with-curl=<DIR>       use curl installed in directory <DIR>
-  --with-gmp-include=PATH  include path for gmp headers
-  --with-gmp-library=PATH  library path for gmp libraries
-  --with-gdomap-port=PORT  alternative port for gdomap
+  --with-gmp-include=PATH include path for gmp headers
+  --with-gmp-library=PATH library path for gmp libraries
+  --with-gdomap-port=PORT alternative port for gdomap
 
 Some influential environment variables:
   CC          C compiler command
@@ -7598,16 +7592,71 @@ then :
 fi
 
 
-ac_fn_c_check_func "$LINENO" "gethostbyname" "ac_cv_func_gethostbyname"
+ac_fn_c_check_func "$LINENO" "gethostbyname_r" "ac_cv_func_gethostbyname_r"
+if test "x$ac_cv_func_gethostbyname_r" = xyes
+then :
+  printf "%s\n" "#define HAVE_GETHOSTBYNAME_R 1" >>confdefs.h
+
+fi
+
+if test "$ac_cv_func_gethostbyname_r" = "no"; then
+  # QNX has gethostbyname and friends in libsocket
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gethostbyname_r in -lsocket" >&5
+printf %s "checking for gethostbyname_r in -lsocket... " >&6; }
+if test ${ac_cv_lib_socket_gethostbyname_r+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lsocket  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char gethostbyname_r ();
+int
+main (void)
+{
+return gethostbyname_r ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_socket_gethostbyname_r=yes
+else $as_nop
+  ac_cv_lib_socket_gethostbyname_r=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_socket_gethostbyname_r" >&5
+printf "%s\n" "$ac_cv_lib_socket_gethostbyname_r" >&6; }
+if test "x$ac_cv_lib_socket_gethostbyname_r" = xyes
+then :
+  printf "%s\n" "#define HAVE_LIBSOCKET 1" >>confdefs.h
+
+  LIBS="-lsocket $LIBS"
+
+fi
+
+fi
+
+if test "$ac_cv_func_gethostbyname_r" = "no"; then
+  ac_fn_c_check_func "$LINENO" "gethostbyname" "ac_cv_func_gethostbyname"
 if test "x$ac_cv_func_gethostbyname" = xyes
 then :
   printf "%s\n" "#define HAVE_GETHOSTBYNAME 1" >>confdefs.h
 
 fi
 
-if test "$ac_cv_func_gethostbyname" = "no"; then
-  # QNX has gethostbyname and friends in libsocket
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gethostbyname in -lsocket" >&5
+  if test "$ac_cv_func_gethostbyname" = "no"; then
+    # QNX has gethostbyname and friends in libsocket
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gethostbyname in -lsocket" >&5
 printf %s "checking for gethostbyname in -lsocket... " >&6; }
 if test ${ac_cv_lib_socket_gethostbyname+y}
 then :
@@ -7650,6 +7699,7 @@ then :
 
 fi
 
+  fi
 fi
 
 ac_fn_c_check_func "$LINENO" "getaddrinfo" "ac_cv_func_getaddrinfo"
@@ -7659,6 +7709,64 @@ then :
 
 fi
 
+
+ac_fn_c_check_header_compile "$LINENO" "resolv.h" "ac_cv_header_resolv_h" "$ac_includes_default"
+if test "x$ac_cv_header_resolv_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_RESOLV_H 1" >>confdefs.h
+
+fi
+
+if test $ac_cv_header_resolv_h = yes; then
+  saveLIBS="$LIBS"
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for res_query in -lresolv" >&5
+printf %s "checking for res_query in -lresolv... " >&6; }
+if test ${ac_cv_lib_resolv_res_query+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lresolv  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+char res_query ();
+int
+main (void)
+{
+return res_query ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  ac_cv_lib_resolv_res_query=yes
+else $as_nop
+  ac_cv_lib_resolv_res_query=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_resolv_res_query" >&5
+printf "%s\n" "$ac_cv_lib_resolv_res_query" >&6; }
+if test "x$ac_cv_lib_resolv_res_query" = xyes
+then :
+  resolv_ok=yes
+else $as_nop
+  resolv_ok=no
+fi
+
+  if test "$resolv_ok" = yes; then
+    LIBS="$saveLIBS -lresolv";
+  else
+    LIBS="$saveLIBS"
+  fi
+fi
 
 #--------------------------------------------------------------------
 # Windows: check if we have native threading APIs and SRW locks
@@ -11637,7 +11745,7 @@ then :
 
 fi
 
- # Check whether --enable-procfs was given.
+# Check whether --enable-procfs was given.
 if test ${enable_procfs+y}
 then :
   enableval=$enable_procfs; enable_procfs="$enableval"
@@ -11689,7 +11797,7 @@ printf "%s\n" "#define HAVE_PROCFS 1" >>confdefs.h
   fi
 
 
- # Check whether --enable-procfs-psinfo was given.
+# Check whether --enable-procfs-psinfo was given.
 if test ${enable_procfs_psinfo+y}
 then :
   enableval=$enable_procfs_psinfo; enable_procfs_psinfo="$enableval"
@@ -12205,7 +12313,7 @@ printf "%s\n" "#define USE_LIBFFI 1" >>confdefs.h
 
   WITH_FFI=libffi
   if test "$pkg_config_libffi" = "yes"; then
-    ffi_LIBS=`pkg-config --libs libffi`
+    ffi_LIBS=`$PKG_CONFIG --libs libffi`
   else
     ffi_LIBS=-lffi
   fi
@@ -12389,7 +12497,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }
+{ return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12471,7 +12579,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <iconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12521,7 +12629,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <giconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12547,17 +12655,17 @@ fi
 
 fi
 
-# Check whether --enable-stricticonv was given.
-if test ${enable_stricticonv+y}
+# Check whether --enable-limitediconv was given.
+if test ${enable_limitediconv+y}
 then :
-  enableval=$enable_stricticonv;
+  enableval=$enable_limitediconv;
 else $as_nop
-  enable_stricticonv=no
+  enable_limitediconv=no
 fi
 
-if test $enable_stricticonv = yes; then
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking non-lossy iconv support" >&5
-printf %s "checking non-lossy iconv support... " >&6; }
+if test $enable_limitediconv = yes; then
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking iconv without lossy conversion support" >&5
+printf %s "checking iconv without lossy conversion support... " >&6; }
 if test "$cross_compiling" = yes
 then :
   { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
@@ -12569,7 +12677,7 @@ else $as_nop
 /* end confdefs.h.  */
 #include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }
+{ return iconv_open("UTF-8","ASCII") == (iconv_t)-1 ? 1 : 0; }
 
 _ACEOF
 if ac_fn_c_try_run "$LINENO"
@@ -12703,7 +12811,12 @@ printf "%s\n" "no" >&6; }
   echo
   echo "You do not appear to have usable iconv header/library."
   echo "Building without them will disable much characterset support."
-  echo "If you really want to build gnustep-base without character conversion"
+  echo "Try adjusting --with-libiconv-include and --with-libiconv-library"
+  echo " if you have iconv installed in an unusual location."
+  echo "If your iconv does not support the TRANSLIT operation (needed for"
+  echo " lossy character conversion), either install a more fully featured"
+  echo " version of iconv, or use the --enable-limitediconv argument."
+  echo "If you want to build gnustep-base with minimal character conversion"
   echo " support, please add --disable-iconv to the configure arguments."
   as_fn_error $? "Missing support for character conversion functionality." "$LINENO" 5
 fi
@@ -13676,7 +13789,7 @@ if test $enable_tls = yes; then
   saved_CFLAGS="$CFLAGS"
 
   if test -n "$PKG_CONFIG"; then
-    if pkg-config --exists gnutls; then
+    if $PKG_CONFIG --exists gnutls; then
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking gnutls support" >&5
 printf %s "checking gnutls support... " >&6; }
       HAVE_GNUTLS=1
@@ -13923,7 +14036,7 @@ printf "%s\n" "no" >&6; }
     fi
   fi
   if test $HAVE_GNUTLS = 1; then
-    if ! pkg-config --atleast-version=2.12 gnutls; then
+    if ! $PKG_CONFIG --atleast-version=2.12 gnutls; then
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for gcry_control in -lgcrypt" >&5
 printf %s "checking for gcry_control in -lgcrypt... " >&6; }
 if test ${ac_cv_lib_gcrypt_gcry_control+y}
@@ -14628,9 +14741,9 @@ if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG
   curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
   curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
   curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
-  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 66 \); then
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
-printf "%s\n" "FAILED (version too old to use" >&6; }
+  if test $curl_maj -lt 7 -o \( $curl_maj -eq 7 -a $curl_min -lt 61 \); then
+    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (version $curl_ver too old to use, need at least 7.61)" >&5
+printf "%s\n" "FAILED (version $curl_ver too old to use, need at least 7.61)" >&6; }
   else
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes ... version $curl_ver" >&5
 printf "%s\n" "yes ... version $curl_ver" >&6; }
@@ -14657,10 +14770,10 @@ done
   fi
 else
   if test -n "$PKG_CONFIG"; then
-    if pkg-config --exists libcurl; then
+    if $PKG_CONFIG --exists libcurl; then
       { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes ... via pkg-config" >&5
 printf "%s\n" "yes ... via pkg-config" >&6; }
-      if $PKG_CONFIG --atleast-version 2.66.0 libcurl; then
+      if $PKG_CONFIG --atleast-version 7.61.0 libcurl; then
                for ac_header in curl/curl.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "curl/curl.h" "ac_cv_header_curl_curl_h" "$ac_includes_default"
@@ -14682,8 +14795,8 @@ done
           curl_all=yes
         fi
         else
-          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use" >&5
-printf "%s\n" "FAILED (version too old to use" >&6; }
+          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (version too old to use, need at least 7.61)" >&5
+printf "%s\n" "FAILED (version too old to use, need at least 7.61)" >&6; }
           curl_all=no
       fi
     else
@@ -14695,10 +14808,6 @@ printf "%s\n" "FAILED (libcurl not found via pkg-config)" >&6; }
     { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: FAILED (curl-config and pkg-config not found)" >&5
 printf "%s\n" "FAILED (curl-config and pkg-config not found)" >&6; }
   fi
-fi
-
-if test "$OBJC_RUNTIME_LIB" = "ng" -a "$HAVE_LIBCURL" = 0; then
-as_fn_error $? "libcurl is a hard-dependency when building with the Objective-C 2.0 toolchain" "$LINENO" 5
 fi
 
 

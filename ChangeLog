@@ -1,3 +1,59 @@
+2025-10-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m:
+	Fix possible crash decoding bad GSM0338 data (buffer overrun).
+
+2025-10-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Resources/GNUmakefile:
+	* Source/GNUmakefile:
+	Install resources to directory using major and minor version number
+	rather than using the library interface version; the NSBundle code
+	for loading library resources uses the major and minor number to
+	find the resource.
+
+2025-10-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for gethostbyname_r()
+	* Source/NSHost.m: Use gethostbyname_r() if available
+
+2025-08-21 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSHost.m: Improve lock granularity with a lock for host name.
+	Add a new lock to protect regions using the thread-unsafe gethostbyname
+	function.
+
+2025-07-22 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSXML.m:
+	Modify libxml2 initialisation code to continue after 5 seconds if the
+	main thread fails to run (rather than hanging).  An initialisation in
+	the wrong thread causes a warning to be generated (using NSLog) to say
+	that XML operations after the thread exits will crash.
+
+2025-06-26 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/GSMime.m:
+	Fix initialisation error which could cause crash in HTTP load.
+
+2025-04-17  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSFileManager.m (removeFileAtPath:handler:):
+	Call the error handler also when a file to be removed does not
+	exist.
+
+2025-04-16 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/NSPropertyList.m: When parsing OpenStep style property list,
+	check for the case when a \U escape sequence produces invalid unicode
+	and produce an error message saying what happened.
+
+2025-04-15  Wolfgang Lux  <wolfgang.lux@gmail.com>
+
+	* Source/NSFileManager.m: Use the documented key for the file path
+	in the error dictionary passed to the error handler and continue
+	setting the incorrect one as well for backward compatibility.
+
 2025-04-08  Wolfgang Lux  <wolfgang.lux@gmail.com>
 
 	* Source/NSOperation.m (_thread): Fix potential deadlock when

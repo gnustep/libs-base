@@ -27,8 +27,8 @@
  */
 
 #import "NSURLSessionPrivate.h"
+#import "GSDispatch.h"
 #include <curl/curl.h>
-#include <dispatch/dispatch.h>
 #import "NSURLSessionTaskPrivate.h"
 
 #import "Foundation/NSOperation.h"
@@ -174,7 +174,9 @@ errorForCURLcode(CURL *handle, CURLcode code, char errorBuffer[CURL_ERROR_SIZE])
       case CURLE_COULDNT_RESOLVE_HOST:
         urlError = NSURLErrorDNSLookupFailed;
         break;
+#if CURL_AT_LEAST_VERSION(7, 69, 0)
       case CURLE_QUIC_CONNECT_ERROR:
+#endif
       case CURLE_COULDNT_CONNECT:
         urlError = NSURLErrorCannotConnectToHost;
         break;
@@ -1048,10 +1050,12 @@ write_callback(char *ptr, size_t size, size_t nmemb, void *userdata)
       /* Set to HTTP/3 if requested */
       if ([request assumesHTTP3Capable])
         {
+#if CURL_AT_LEAST_VERSION(7, 66, 0)
           curl_easy_setopt(
             _easyHandle,
             CURLOPT_HTTP_VERSION,
             CURL_HTTP_VERSION_3);
+#endif
         }
 
       /* Configure the custom CA certificate if available */

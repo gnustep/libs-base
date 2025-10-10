@@ -2325,13 +2325,11 @@ setNonBlocking(SOCKET fd)
 	  error = WSAGetLastError();
           NSDebugMLLog(@"NSStream", @"%@ Error %d", self, error);
 	}
-#ifndef	NDEBUG
       else
 	{
 	  NSDebugMLLog(@"NSStream", @"%@ EVENTS 0x%lx",
 	    self, events.lNetworkEvents);
 	}
-#endif
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{
@@ -2845,13 +2843,11 @@ setNonBlocking(SOCKET fd)
 	  error = WSAGetLastError();
           NSDebugMLLog(@"NSStream", @"%@ Error %d", self, error);
 	}
-#ifndef	NDEBUG
       else
 	{
 	  NSDebugMLLog(@"NSStream", @"%@ EVENTS 0x%lx",
 	    self, events.lNetworkEvents);
 	}
-#endif
 
       if ([self streamStatus] == NSStreamStatusOpening)
 	{

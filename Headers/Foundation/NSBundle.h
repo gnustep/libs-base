@@ -1,7 +1,7 @@
 /** Interface for NSBundle for GNUStep   -*-objc-*-
    Copyright (C) 1995, 1997, 1999, 2001, 2002 Free Software Foundation, Inc.
 
-   Written by:  Adam Fedor <fedor@boulder.colorado.edu>
+   Written by:  Adam Fedor <fedor@gnu.org>
    Date: 1995
 
    Updates by various authors.

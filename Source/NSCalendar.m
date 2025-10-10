@@ -262,7 +262,7 @@ static NSRecursiveLock *classLock = nil;
     }
 }
 
-+ (id) currentCalendar
++ (NSCalendar*) currentCalendar
 {
   NSCalendar *result;
   NSString *identifier;
@@ -274,7 +274,7 @@ static NSRecursiveLock *classLock = nil;
   return AUTORELEASE(result);
 }
 
-+ (id) autoupdatingCurrentCalendar
++ (NSCalendar*) autoupdatingCurrentCalendar
 {
   [classLock lock];
   if (nil == autoupdatingCalendar)
