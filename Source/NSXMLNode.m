@@ -383,8 +383,8 @@ isEqualTree(xmlNodePtr nodeA, xmlNodePtr nodeB)
 		kind = NSXMLDTDKind;
 		break;
 	      case XML_ATTRIBUTE_DECL: 
-		// DTD nodes are not handled correctly and cause crashes. This just ignores them until a proper way to deal with them is found
-        return nil;
+		cls = [NSXMLDTDNode class];
+		kind = NSXMLAttributeDeclarationKind;
 		break;
 	      case XML_ELEMENT_DECL: 
 		cls = [NSXMLDTDNode class];
