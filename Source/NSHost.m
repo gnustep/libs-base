@@ -365,9 +365,8 @@ etcHosts(BOOL flush)
 	}
       for (tmp = entry; tmp != NULL; tmp = tmp->ai_next)
 	{
-	  char	ipstr[INET6_ADDRSTRLEN];
-	  char 	host[NI_MAXHOST];
-	  void	*addr;
+	  char		ipstr[INET6_ADDRSTRLEN];
+	  void		*addr;
 	  NSString	*a;
 
 #pragma clang diagnostic push
@@ -394,7 +393,7 @@ etcHosts(BOOL flush)
 	  /* If we have a canonical name for the host, use it.
 	   */
 	  if (tmp->ai_canonname && *tmp->ai_canonname
-	    && strcmp(tmp->ai_canonname, host) != 0)
+	    && strcmp(tmp->ai_canonname, ptr) != 0)
 	    {
 	      NSString	*s = [NSString stringWithUTF8String: tmp->ai_canonname];
 
