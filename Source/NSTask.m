@@ -60,20 +60,20 @@
 #  include <windows.h>
 #endif
 
-#if	defined(HAVE_SYS_SIGNAL_H)
-#  include <sys/signal.h>
-#elif	defined(HAVE_SIGNAL_H)
+#if	defined(HAVE_SIGNAL_H)
 #  include <signal.h>
+#elif	defined(HAVE_SYS_SIGNAL_H)
+#  include <sys/signal.h>
 #endif
 
 #if	defined(HAVE_SYS_FILE_H)
 #  include	<sys/file.h>
 #endif
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include <sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include <fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include <sys/fcntl.h>
 #endif
 
 #ifdef	HAVE_SYS_IOCTL_H

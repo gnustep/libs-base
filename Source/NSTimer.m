@@ -371,7 +371,7 @@ static Class	NSDate_class;
     {
       DESTROY(_info);
     }
-  if (_block != nil)
+  if ((id)_block != nil)
     {
       DESTROY(_block);
     }

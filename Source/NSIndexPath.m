@@ -62,7 +62,7 @@ static	NSIndexPath	*dummy = nil;
   return AUTORELEASE(o);
 }
 
-+ (NSIndexPath *) indexPathForItem: (NSInteger)item inSection: (NSInteger)section
++ (instancetype) indexPathForItem: (NSInteger)item inSection: (NSInteger)section
 {
   NSUInteger idxs[2];
 
@@ -72,7 +72,7 @@ static	NSIndexPath	*dummy = nil;
   return [self indexPathWithIndexes: idxs length: 2];
 }
 
-+ (NSIndexPath *) indexPathForRow: (NSInteger)row inSection: (NSInteger)section
++ (instancetype) indexPathForRow: (NSInteger)row inSection: (NSInteger)section
 {
   NSUInteger idxs[2];
 
