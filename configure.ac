@@ -3218,10 +3218,17 @@ if test $found_iconv = no ; then
     GS_ADD_LIBRARY_PATH([${libiconv_libdir}])
   fi
 
+  # If the header is in a subdirectory, adjust the default loc
+  liidef=no
+  AC_CHECK_HEADERS(gnu-libiconv/iconv.h, iconv_subdir=yes, iconv_subdir=no)
+  if test "${iconv_subdir}" != "no"; then
+    liidef=/usr/include/gnu-libiconv
+  fi
+
   AC_ARG_WITH(libiconv-include,
     [AS_HELP_STRING([--with-libiconv-include=PATH],
     [Include path for libiconv header])],
-    libiconv_incdir="$withval", libiconv_incdir="no")
+    libiconv_incdir="$withval", libiconv_incdir="$liidef")
   if test ${libiconv_incdir} != "no"; then
       CPPFLAGS="$CPPFLAGS -I${libiconv_incdir}"
       INCLUDE_FLAGS="$INCLUDE_FLAGS -I${libiconv_incdir}"
