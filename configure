@@ -12545,13 +12545,31 @@ esac
 
   fi
 
+  # If the header is in a subdirectory, adjust the default loc
+  liidef=no
+         for ac_header in gnu-libiconv/iconv.h
+do :
+  ac_fn_c_check_header_compile "$LINENO" "gnu-libiconv/iconv.h" "ac_cv_header_gnu_libiconv_iconv_h" "$ac_includes_default"
+if test "x$ac_cv_header_gnu_libiconv_iconv_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_GNU_LIBICONV_ICONV_H 1" >>confdefs.h
+ iconv_subdir=yes
+else $as_nop
+  iconv_subdir=no
+fi
+
+done
+  if test "${iconv_subdir}" != "no"; then
+    liidef=/usr/include/gnu-libiconv
+  fi
+
 
 # Check whether --with-libiconv-include was given.
 if test ${with_libiconv_include+y}
 then :
   withval=$with_libiconv_include; libiconv_incdir="$withval"
 else $as_nop
-  libiconv_incdir="no"
+  libiconv_incdir="$liidef"
 fi
 
   if test ${libiconv_incdir} != "no"; then
