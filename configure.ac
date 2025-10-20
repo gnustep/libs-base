@@ -1644,15 +1644,33 @@ OBJC_SYS_DYNAMIC_LINKER()
 # NOTE: libdl should be in LIBS now if it's available.
 AC_CHECK_FUNCS(dladdr)
 
-AC_CHECK_FUNCS(gethostbyname_r)
-if test "$ac_cv_func_gethostbyname_r" = "no"; then
-  # QNX has gethostbyname and friends in libsocket
-  AC_CHECK_LIB(socket, gethostbyname_r)
+# NetBSD libc ships with an internal-only incompatible symbol gethostbyname_r
+AC_CHECK_DECLS([gethostbyname_r],
+        [have_gethostbyname_r_public_declaration=yes],
+        [have_gethostbyname_r_public_declaration=no],
+        [#include <stdlib.h>
+         #include <netdb.h>]
+)
+
+if test "x$have_gethostbyname_r_public_declaration" = "xyes"; then
+  # some systems already have gethostbyname_r so we don't need to build ours in main/utils.c
+  AC_SEARCH_LIBS(gethostbyname_r, [socket nsl])
+
+  #we check for 6 argument version, 5 argument version exists in the wild but we don't support it
+  AC_MSG_CHECKING(for gethostbyname_r with 6 arguments)
+  AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([#include <stdlib.h>
+                          #include <netdb.h>],
+                         [int r = gethostbyname_r((const char *)NULL, (struct hostent *)NULL, (char *)NULL, (int)0, (struct hostent **)NULL, (int *)NULL);])],
+         AC_MSG_RESULT(yes)
+         AC_DEFINE([HAVE_GETHOSTBYNAME_R], 1, [Define to 1 if your system has gethostbyname_r with 6 arguments.]),
+         AC_MSG_RESULT(no)
+  )
 fi
 
-if test "$ac_cv_func_gethostbyname_r" = "no"; then
+if test "x$ac_cv_func_gethostbyname_r" = "xno"; then
   AC_CHECK_FUNCS(gethostbyname)
-  if test "$ac_cv_func_gethostbyname" = "no"; then
+  if test "x$ac_cv_func_gethostbyname" = "xno"; then
     # QNX has gethostbyname and friends in libsocket
     AC_CHECK_LIB(socket, gethostbyname)
   fi
