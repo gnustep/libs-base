@@ -65,6 +65,20 @@ env:
     libxslt-devel
     glibc-gconv-extra
 
+  NETBSD_PACKAGES: >-
+    gmake
+    bash
+    git
+    pkgconfig
+    gnutls
+    libiconv
+    icu
+    libxml2
+    libslt
+    libffi
+    curl
+    gnutls
+
   # GNUstep Windows MSVC toolchain release tag to be used (keep up to date with latest release):
   # https://github.com/gnustep/tools-windows-msvc/releases
   TOOLS_WINDOWS_MSVC_RELEASE_TAG: latest
@@ -169,6 +183,70 @@ jobs:
         run: |
           . $INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh
           make check
+
+      - name: Upload logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Logs - ${{ matrix.name }}
+          path: |
+            source/config.log
+            source/Tests/tests.log
+
+  ########### NetBSD ###########
+  netbsd:
+    name: ${{ matrix.name }}
+    container: ${{ matrix.container }}
+    runs-on: netbsd-latest
+    # don't run pull requests from local branches twice
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name != github.repository
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: NetBSD amd64 GCC (system compiler)
+            container: ubuntu:10.1
+            library-combo: gnu-gnu-gnu
+            CC: gcc
+            CXX: g++
+            libdir: lib
+
+    env:
+      SRC_PATH: ${{ github.workspace }}/source
+      DEPS_PATH: ${{ github.workspace }}/dependencies
+      INSTALL_PATH: ${{ github.workspace }}/build
+      CC: ${{ matrix.CC }}
+      CXX: ${{ matrix.CXX }}
+      LIBRARY_COMBO: ${{ matrix.library-combo }}
+      RUNTIME_VERSION: ${{ matrix.runtime-version }}
+      LIBDIR: ${{ matrix.libdir }}
+
+    defaults:
+      run:
+        working-directory: ${{ env.SRC_PATH }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: ${{ env.SRC_PATH }}
+
+      - name: Install pkgin packages
+        run: |
+          pkgin update
+
+          pkgin install $PKGIN_PACKAGES
+ 
+      - name: Build source
+        run: |
+          . $INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh
+          ./configure
+          gmake -j$(nproc) && gmake install
+
+      - name: Run tests
+        run: |
+          . $INSTALL_PATH/share/GNUstep/Makefiles/GNUstep.sh
+          gmake -j$(nproc) check
 
       - name: Upload logs
         uses: actions/upload-artifact@v4
