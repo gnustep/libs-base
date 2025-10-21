@@ -591,6 +591,13 @@ static void tls_current_progress_pop(void)
   return cancellable;
 }
 
+- (void) setCancellable: (BOOL) cancellable
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  internal->_cancellable = cancellable;
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
 - (BOOL) isCancelled
 {
   BOOL cancelled;
@@ -604,6 +611,12 @@ static void tls_current_progress_pop(void)
 
 - (void) cancel
 {
+  /*
+   * You are still able to cancel a progress despite it being marked as
+   * non-cancellable. We therefore do not exit early when cancellable is set to
+   * true. This was tested on macOS 26.0 (25A354).
+   */
+
   if (!internal->_cancelled)
     {
       GS_MUTEX_LOCK(internal->_lock);
