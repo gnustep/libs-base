@@ -3208,6 +3208,32 @@ AC_ARG_ENABLE(iconv,
 
 if test $enable_iconv = yes; then
 AC_MSG_CHECKING(iconv support)
+
+# If the header is in a subdirectory, adjust the default loc
+liidef=no
+AC_CHECK_HEADERS(gnu-libiconv/iconv.h, iconv_subdir=yes, iconv_subdir=no)
+if test "${iconv_subdir}" != "no"; then
+  liidef=/usr/include/gnu-libiconv
+fi
+
+AC_ARG_WITH(libiconv-include,
+  [AS_HELP_STRING([--with-libiconv-include=PATH],
+  [Include path for libiconv header])],
+  libiconv_incdir="$withval", libiconv_incdir="$liidef")
+if test ${libiconv_incdir} != "no"; then
+  CPPFLAGS="$CPPFLAGS -I${libiconv_incdir}"
+  INCLUDE_FLAGS="$INCLUDE_FLAGS -I${libiconv_incdir}"
+fi
+
+AC_ARG_WITH(libiconv-library,
+  [AS_HELP_STRING([--with-libiconv-library=PATH],
+  [Library path for libiconv libraries])],
+  libiconv_libdir="$withval", libiconv_libdir="no")
+
+if test "$libiconv_libdir" != "no"; then
+  GS_ADD_LIBRARY_PATH([${libiconv_libdir}])
+fi
+
 AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
 int main(int argc,char **argv)
 { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
@@ -3228,31 +3254,7 @@ int main(int argc,char **argv)
 
 if test $found_iconv = no ; then
   # libc doesn't have a working iconv with translit.
-  # Try adding -liconv and any user supplied directory.
-  AC_ARG_WITH(libiconv-library,
-    [AS_HELP_STRING([--with-libiconv-library=PATH],
-    [Library path for libiconv libraries])],
-    libiconv_libdir="$withval", libiconv_libdir="no")
-
-  if test "$libiconv_libdir" != "no"; then
-    GS_ADD_LIBRARY_PATH([${libiconv_libdir}])
-  fi
-
-  # If the header is in a subdirectory, adjust the default loc
-  liidef=no
-  AC_CHECK_HEADERS(gnu-libiconv/iconv.h, iconv_subdir=yes, iconv_subdir=no)
-  if test "${iconv_subdir}" != "no"; then
-    liidef=/usr/include/gnu-libiconv
-  fi
-
-  AC_ARG_WITH(libiconv-include,
-    [AS_HELP_STRING([--with-libiconv-include=PATH],
-    [Include path for libiconv header])],
-    libiconv_incdir="$withval", libiconv_incdir="$liidef")
-  if test ${libiconv_incdir} != "no"; then
-      CPPFLAGS="$CPPFLAGS -I${libiconv_incdir}"
-      INCLUDE_FLAGS="$INCLUDE_FLAGS -I${libiconv_incdir}"
-  fi
+  # Try adding -liconv
 
   old_LIBS="$LIBS"
   LIBS="-liconv $LIBS"
