@@ -1,3 +1,8 @@
+2025-10-22 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSURL.m: Fix parsing of URLs with query or fragment delimiters
+	but no path component.
+
 2025-10-01 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m:
