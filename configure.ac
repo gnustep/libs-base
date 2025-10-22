@@ -959,6 +959,9 @@ GNUSTEP_MAKEFILES="$CURRENT_GNUSTEP_MAKEFILES"
 GNUSTEP_SH_EXPORT_ALL_VARIABLES=yes
 . "$CURRENT_GNUSTEP_MAKEFILES/GNUstep.sh"
 unset GNUSTEP_SH_EXPORT_ALL_VARIABLES
+# We do not want address/memory sanitisation to confuse later testcases,
+# so we ensure that the environment variable doesn't turn it on.
+unset GNUSTEP_WITH_ASAN
 
 # For backwards compatibility, define GNUSTEP_SYSTEM_HEADERS from
 # GNUSTEP_SYSTEM_ROOT if not set yet.
@@ -3759,7 +3762,7 @@ esac
 # and a different (MSVC) curl library might interfere and produce an incorrect configuration.
 #
 # Skip the curl-config check on Windows.
-if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG" == "0"; then
+if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG" = "0"; then
   curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
   curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
   curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
