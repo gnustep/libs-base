@@ -526,7 +526,8 @@ static BOOL legal_bounded(const char *str, const char *end, const char *extras)
     {
       while (str < end)
 	{
-	  if (*str == '%' && str + 2 < end && isxdigit(str[1]) && isxdigit(str[2]))
+	  if (*str == '%' && str + 2 < end
+	    && isxdigit(str[1]) && isxdigit(str[2]))
 	    {
 	      str += 3;
 	    }
@@ -707,13 +708,17 @@ static NSUInteger	urlAlign;
 
 - (id) initFileURLWithPath: (NSString *)aPath isDirectory: (BOOL)isDir
 {
-  return [self initFileURLWithPath: aPath isDirectory: isDir relativeToURL: nil];
+  return [self initFileURLWithPath: aPath
+                       isDirectory: isDir
+                     relativeToURL: nil];
 }
 
 - (id) initFileURLWithPath: (NSString *)aPath relativeToURL: (NSURL *)baseURL
 {
   /* isDirectory flag will be overwritten if a directory exists. */
-  return [self initFileURLWithPath: aPath isDirectory: NO relativeToURL: baseURL];
+  return [self initFileURLWithPath: aPath
+                       isDirectory: NO
+                     relativeToURL: baseURL];
 }
 
 - (id) initFileURLWithPath: (NSString *)aPath
@@ -822,7 +827,8 @@ static NSUInteger	urlAlign;
        *
        * "file:///c:/path/to/file"
        */
-      else if ([aScheme isEqualToString: @"file"] && [aPath characterAtIndex:1] == ':')
+      else if ([aScheme isEqualToString: @"file"]
+        && [aPath characterAtIndex:1] == ':')
         {
           aUrlString = [aUrlString initWithFormat: @"%@:///%@%@",
             aScheme, aHost, aPath];
@@ -1000,24 +1006,28 @@ static NSUInteger	urlAlign;
 	   */
 	  if (start[0] == '/' && start[1] == '/')
 	    {
+	      char	*authEnd;       // End of authority section
+	      char 	*hostEnd;
+	      char	*pathStart;	// Where path/query/fragment starts
+
 	      buf->isGeneric = YES;
 	      start = &end[2];
 
 	      /*
 	       * Set 'end' to point to the start of the path, or just past
 	       * the 'authority' if there is no path.
-	       * Check for delimiters in order: '/' (path), '?' (query), '#' (fragment).
-	       * We find the authority end without modifying the string, using legal_bounded()
-	       * for validation (RFC 3986).
+	       * Check for delimiters in order: '/' (path), '?' (query),
+               * '#' (fragment).
+	       * We find the authority end without modifying the string,
+               * using legal_bounded() for validation (RFC 3986).
 	       */
-	      char	*authEnd;	// End of authority section
-	      char	*pathStart = NULL;  // Where path/query/fragment starts
-
+	      pathStart = NULL;
 	      end = strchr(start, '/');
 	      if (end == 0)
 		{
+		  char	*alt = strchr(start, '?');
+
 		  buf->hasNoPath = YES;
-		  char *alt = strchr(start, '?');
 		  if (alt == 0)
 		    {
 		      alt = strchr(start, '#');
@@ -1046,16 +1056,20 @@ static NSUInteger	urlAlign;
 	      ptr = strchr(start, '@');
 	      if (ptr != 0 && ptr < authEnd)
 		{
+		  char	*userEnd = ptr;
+		  char 	*colonPos;
+
 		  buf->user = start;
-		  char *userEnd = ptr;
 		  *ptr++ = '\0';
 		  start = ptr;
-		  /* Validate user[:password] without the null terminator at ':' */
-		  char *colonPos = strchr(buf->user, ':');
+		  /* Validate user[:password] without the null terminator
+                   * at ':'
+                   */
+		  colonPos = strchr(buf->user, ':');
 		  if (colonPos != 0 && colonPos < userEnd)
 		    {
-		      if (legal_bounded(buf->user, colonPos, ";:&=+$,") == NO
-			|| legal_bounded(colonPos + 1, userEnd, ";:&=+$,") == NO)
+		      if (!legal_bounded(buf->user, colonPos, ";:&=+$,")
+			|| !legal_bounded(colonPos + 1, userEnd, ";:&=+$,"))
 			{
 			  [NSException raise: NSInvalidArgumentException
 				      format: @"[%@ %@](%@, %@) "
@@ -1193,9 +1207,10 @@ static NSUInteger	urlAlign;
 	      start = pathStart;
 	      /* Check for a legal host, unless it's an ipv6 address
 	       * (which would have been checked earlier).
-	       * Use legal_bounded to validate only the host portion without modifying the string.
+	       * Use legal_bounded to validate only the host portion
+               * without modifying the string.
 	       */
-	      char *hostEnd = authEnd;
+	      hostEnd = authEnd;
 	      /* Account for port if present */
 	      if (*buf->host != '[')
 		{
@@ -1205,7 +1220,8 @@ static NSUInteger	urlAlign;
 		      hostEnd = colon;
 		    }
 		}
-	      if (*buf->host != '[' && legal_bounded(buf->host, hostEnd, "-") == NO)
+	      if (*buf->host != '['
+                && legal_bounded(buf->host, hostEnd, "-") == NO)
 		{
 		  [NSException raise: NSInvalidArgumentException
                     format: @"[%@ %@](%@, %@) "
