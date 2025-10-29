@@ -24,6 +24,12 @@ GNUstep-HOWTO is located in the gnustep-make package or at
 
 This version of gnustep-base requires gnustep-make version 2.0.0 or higher.
 
+You MUST have an Objective-C runtime library, either
+@itemize
+@item the gnu runtime library (for use with the gcc compiler, when using the gnu-gnu-gnu library combo) or,
+@item the gnustep runtime library (for use with the clang compiler, when using the ng-gnu-gnu library combo).
+@end
+
 Other external libraries that you may need to install include:
 
 @itemize
