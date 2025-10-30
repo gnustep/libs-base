@@ -51,27 +51,31 @@ DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressPendingUnitCountBlock, void);
 DEFINE_BLOCK_TYPE_NO_ARGS(GSProgressResumingHandler, void);
 
 /**
- * A progress object tracks an amount of work that is yet to be completed.  Work
- * is tracked in units. A progress is finished when the completed number of unit
- * work is equal to the total number of unit work.
+ * A progress object tracks an amount of work that is yet to be completed.
+ * Work is tracked in units. A progress is finished when the completed
+ * number of unit work is equal to the total number of unit work.
  *
- * Progress objects can be arranged in a tree formation. Children of a parent progress
- * continuosly report their progress and update the parents fractionCompleted property.
+ * Progress objects can be arranged in a tree formation. Children of a parent
+ * progress continuosly report their progress and update the parents
+ * fractionCompleted property.
  * When a child is added to a parent progress, a pending unit count is
  * specified. This count is added to the parent after completion of the child.
  *
- * There are two mechanisms to add a progress as a child to another progress object:
- * One can explicitly add a child with -addChild:withPendingUnitCount:. There is also
- * a way to implicitly add newly instantiated progress object as a child to an existing progress.
+ * There are two mechanisms to add a progress as a child to another progress
+ * object:
+ * One can explicitly add a child with -addChild:withPendingUnitCount:.
+ * There is also a way to implicitly add newly instantiated progress object
+ * as a child to an existing progress.
  *
  * For this, we first need to define how the "currentProgress" API works:
  * Every thread has a thread-specific current progress stack. The top-most
- * element on this stack can be accessed by +currentProgress class method.  By
- * sending -becomeCurrentWithPendingUnitCount: to a progress, the progress
+ * element on this stack can be accessed by +currentProgress class method.
+ * By sending -becomeCurrentWithPendingUnitCount: to a progress, the progress
  * object is pushed onto the stack and becomes the new current progress.
  *
  * The next progress object instantiated (excluding creation with
- * discreteProgressWithTotalUnitCount:) becomes a child of this current progress.
+ * discreteProgressWithTotalUnitCount:) becomes a child of this current
+ * progress.
  * This is the second mechanism to implicitly add a child to a progress object.
  */
 
@@ -132,8 +136,8 @@ GS_NSProgress_IVARS;
   pendingUnitCount: (int64_t)portionOfParentTotalUnitCount;
 
 /**
- * Retrieve the first progress object that is on the thread-local current progress
- * stack.
+ * Retrieve the first progress object that is on the thread-local current
+ * progress stack.
  */
 + (NSProgress *) currentProgress;
 
@@ -147,15 +151,16 @@ GS_NSProgress_IVARS;
  * created. If the child progress completes, the pending unit count is added to
  * the receiver.
  *
- * The pending unit count represents the portion of work to perform in relation to
- * the total number of units of work, which is the value of the receivers
- * totalUnitCount property. The pending units of work should be less than or equal
- * to the total units of work of the receiver. Ensure that the total number is not
- * exceeded.
+ * The pending unit count represents the portion of work to perform in
+ * relation to the total number of units of work, which is the value of
+ * the receivers totalUnitCount property. The pending units of work should
+ * be less than or equal to the total units of work of the receiver.
+ * Ensure that the total number is not exceeded.
  *
  * Calls to this method must be matched by -[NSProgress resignCurrent].
  */
 - (void) becomeCurrentWithPendingUnitCount: (int64_t)unitCount;
+
 /**
  * Receiver resigns the role of the current progress. The receiver is popped
  * from the thread-local current progress stack.
@@ -178,6 +183,7 @@ GS_NSProgress_IVARS;
  * Returns the total number of unit work to be tracked by the receiver.
  */
 - (int64_t) totalUnitCount;
+
 /**
  * Sets the total nubmer of unit work to be tracked by the receiver.
  */
@@ -187,6 +193,7 @@ GS_NSProgress_IVARS;
  * Returns the number of unit work already completed.
  */
 - (int64_t) completedUnitCount;
+
 /**
  * Updates the number of unit work already completed. Monotonicity of this
  * count is not enforced.
@@ -221,21 +228,26 @@ GS_NSProgress_IVARS;
 - (double) fractionCompleted;
 
 /**
- * Indicates whether the progress is cancellable. By default, a progress is
- * cancellable but not pausable.
+ * Indicates whether the underlying work whose progress is being tracked
+ * can be cancelled.  This has no effect on whether the receiver can be
+ * cancelled.  By default, a progress instance assumes that the
+ * work is cancellable but not pausable.
  */
 - (BOOL) isCancellable;
 
 /**
- * Returns YES if the reciever is cancelled.
+ * Returns YES if the reciever has been cancelled.
  */
 - (BOOL) isCancelled;
 
 /**
- * Cancels a progress and its unfinished children.  If a cancellation handler is
- * set, it will be called before cancelling child progresses.
+ * Cancels tracking by the receiver (so subsequent calls to -isCancelled will
+ * return YES), and also cancels unfinished children.
+ * If a cancellation handler is set, it will be called before cancelling child
+ * progresses.
  */
 - (void) cancel;
+
 /**
  * Sets a cancellation handler that is called when a progress gets cancelled.
  */
@@ -245,19 +257,23 @@ GS_NSProgress_IVARS;
  * Pausation of a progress is not implemented. This method always returns 'NO'.
  */
 - (BOOL) isPausable;
+
 /**
  * Pausation of a progress is not implemented. Therefore a progress is never
  * paused and this method always returns 'NO'.
  */
 - (BOOL) isPaused;
+
 /**
  * Pausation of a progress is not implemented. This method will throw an
  * exception.
  */
 - (void) pause;
+
 - (void) setPausingHandler: (GSProgressPausingHandler) handler;
 
 - (void) resume;
+
 - (void) setResumingHandler: (GSProgressResumingHandler) handler;
 
 - (BOOL) isIndeterminate;
