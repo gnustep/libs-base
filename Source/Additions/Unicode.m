@@ -72,7 +72,7 @@ typedef struct {unichar from; unsigned char to;} _ucc_;
 #include "unicode/gsm0338.h"
 #include "unicode/thai.h"
 
-#undef HAVE_ICONV
+
 #ifdef HAVE_ICONV
 #ifdef HAVE_GICONV_H
 #include <giconv.h>
