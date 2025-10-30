@@ -1,3 +1,8 @@
+2025-10-30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m:
+	Implement support for 16 and 23 bit unicode when icnv is not available.
+
 2025-10-22 Frederik Seiffert <frederik@algoriddim.com>
 
 	* Source/NSURL.m: Fix parsing of URLs with query or fragment delimiters
