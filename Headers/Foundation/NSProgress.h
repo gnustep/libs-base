@@ -234,6 +234,7 @@ GS_NSProgress_IVARS;
  * work is cancellable but not pausable.
  */
 - (BOOL) isCancellable;
+- (void) setCancellable: (BOOL) cancellable;
 
 /**
  * Returns YES if the reciever has been cancelled.
