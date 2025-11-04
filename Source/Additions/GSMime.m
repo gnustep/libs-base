@@ -5196,7 +5196,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 + (NSStringEncoding) encodingForXml: (id)xml
 {
-  NSString	*charset = [self charsetFirXml: xml];
+  NSString	*charset = [self charsetForXml: xml];
 
   if (nil == charset)
     {
