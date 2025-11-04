@@ -27,8 +27,8 @@
  */
 
 #import "NSURLSessionPrivate.h"
+#import "GSDispatch.h"
 #include <curl/curl.h>
-#include <dispatch/dispatch.h>
 #import "NSURLSessionTaskPrivate.h"
 
 #import "Foundation/NSOperation.h"

@@ -1,3 +1,32 @@
+2025-10-30 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m:
+	Implement support for 16 and 23 bit unicode when icnv is not available.
+
+2025-10-22 Frederik Seiffert <frederik@algoriddim.com>
+
+	* Source/NSURL.m: Fix parsing of URLs with query or fragment delimiters
+	but no path component.
+
+2025-10-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Source/Additions/Unicode.m:
+	Fix possible crash decoding bad GSM0338 data (buffer overrun).
+
+2025-10-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Resources/GNUmakefile:
+	* Source/GNUmakefile:
+	Install resources to directory using major and minor version number
+	rather than using the library interface version; the NSBundle code
+	for loading library resources uses the major and minor number to
+	find the resource.
+
+2025-10-01 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* configure.ac: Check for gethostbyname_r()
+	* Source/NSHost.m: Use gethostbyname_r() if available
+
 2025-08-21 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/NSHost.m: Improve lock granularity with a lock for host name.

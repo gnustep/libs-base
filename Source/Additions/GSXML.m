@@ -155,6 +155,10 @@ static char * xml_strdup(const char *from)
   return to;
 }
 
+@interface	NSObject (SetupForGSXML)
++ (void) _setupForGSXML;
+@end
+
 @implementation	NSObject (SetupForGSXML)
 + (void) _setupForGSXML
 {

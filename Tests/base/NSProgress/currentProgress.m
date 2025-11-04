@@ -72,7 +72,8 @@ int main(void)
 
 
     
-    [parent release];
+    RELEASE(parent);
+    RELEASE(parent1);
 
     LEAVE_POOL
     return 0;

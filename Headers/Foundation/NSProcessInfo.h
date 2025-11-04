@@ -220,11 +220,11 @@ GS_EXPORT_CLASS
 - (void) setProcessName: (NSString*)newName;
 
 #if OS_API_VERSION(MAC_OS_X_VERSION_10_5,GS_API_LATEST) 
-/** Not implemented */
+/** Returns the number of CPUs or Cores detected on the device */
 - (NSUInteger) processorCount;
-/** Not implemented */
+/** Returns the number of CPUs or Cores actively on the running device */
 - (NSUInteger) activeProcessorCount;
-/** Not implemented */
+/** Amount of physical Memory */
 - (unsigned long long) physicalMemory;
 #endif
 

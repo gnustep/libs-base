@@ -181,19 +181,24 @@ static void tls_current_progress_pop(void)
 }
 
 + (NSSet *)keyPathsForValuesAffectingLocalizedDescription {
-    return [NSSet setWithObjects:@"userInfo.NSProgressFileOperationKindKey",
-                                 @"userInfo.NSProgressFileTotalCountKey",
-                                 @"completedUnitCount",
-                                 @"totalUnitCount",
-                                 @"fractionCompleted",
-                                 @"kind",
-                                 nil];
+    return [NSSet setWithObjects: @"userInfo.NSProgressFileOperationKindKey",
+                                  @"userInfo.NSProgressFileTotalCountKey",
+                                  @"completedUnitCount",
+                                  @"totalUnitCount",
+                                  @"fractionCompleted",
+                                  @"kind",
+                                  nil];
 }
 
 + (NSProgress *) currentProgress
 {
   NSProgress *current = tls_current_progress_get();
   return AUTORELEASE(RETAIN(current));
+}
+
+- (instancetype) init
+{
+  return [self initWithParent: nil userInfo: nil];
 }
 
 - (instancetype) initWithParent: (NSProgress *)parent 
@@ -207,11 +212,13 @@ static void tls_current_progress_pop(void)
                   implicitChild: (BOOL) implicitChild
 {
   NSProgress *current = tls_current_progress_get();
+
   if (parent != nil && ![parent isEqual: current])
-  {
-    [NSException raise: NSInvalidArgumentException
-                format: @"The parent of an NSProgress object must be the currentProgress."];
-  }
+    {
+      RELEASE(self);
+      [NSException raise: NSInvalidArgumentException
+		  format: @"The parent of an NSProgress object must be the currentProgress."];
+    }
 
   self = [super init];
   if (self != nil)
@@ -251,10 +258,11 @@ static void tls_current_progress_pop(void)
       GS_MUTEX_INIT_RECURSIVE(internal->_lock);
 
       if (implicitChild && current && [current _allowImplicitChild])
-      {
-        [current _setAllowImplicitChild: NO];
-        [current addChild: self withPendingUnitCount: [current _pendingUnitCountForChild]];
-      }
+	{
+	  [current _setAllowImplicitChild: NO];
+	  [current addChild: self
+	    withPendingUnitCount: [current _pendingUnitCountForChild]];
+	}
     }
   return self;
 }
@@ -275,6 +283,7 @@ static void tls_current_progress_pop(void)
       RELEASE(internal->_resumingHandler);
       RELEASE(internal->_localizedDescription);
       RELEASE(internal->_localizedAdditionalDescription);
+      RELEASE(internal->_children);
 
       objc_destroyWeak(&internal->_parent);
       GS_MUTEX_DESTROY(internal->_lock);
@@ -378,64 +387,66 @@ static void tls_current_progress_pop(void)
   newCompletedUnitCount = internal->_completedUnitCount + deltaCompletedUnit;
 
   if (prevFraction != newFraction)
-  {
-    [self willChangeValueForKey:@"fractionCompleted"];
-  }
+    {
+      [self willChangeValueForKey: @"fractionCompleted"];
+    }
   if (deltaCompletedUnit != 0)
-  {
-    [self willChangeValueForKey:@"completedUnitCount"];
-  }
+    {
+      [self willChangeValueForKey: @"completedUnitCount"];
+    }
 
   // In macOS the finished check is placed before the didChangeValueForKey: @"completedUnitCount" message
   if (newCompletedUnitCount == internal->_totalUnitCount)
-  {
-    [self willChangeValueForKey:@"finished"];
-    internal->_finished = YES;
-    [self didChangeValueForKey: @"finished"];
-  }
+    {
+      [self willChangeValueForKey: @"finished"];
+      internal->_finished = YES;
+      [self didChangeValueForKey: @"finished"];
+    }
 
   if (deltaCompletedUnit != 0)
-  {
-    internal->_completedUnitCount = newCompletedUnitCount;
-    [self didChangeValueForKey:@"completedUnitCount"];
-  }
+    {
+      internal->_completedUnitCount = newCompletedUnitCount;
+      [self didChangeValueForKey: @"completedUnitCount"];
+    }
 
   if (prevFraction != newFraction)
-  {
-    internal->_fractionCompleted = newFraction;
-    [self didChangeValueForKey:@"fractionCompleted"];
-  }
+    {
+      internal->_fractionCompleted = newFraction;
+      [self didChangeValueForKey: @"fractionCompleted"];
+    }
 
 
   if (internal->_fractionCompleted < 0)
-  {
+    {
       internal->_fractionCompleted = 0;
-  }
+    }
 
   parent = objc_loadWeakRetained(&internal->_parent);
-  if (parent) {
-    if (internal->_fractionCompleted >= 1)
+  if (parent)
     {
-      int64_t pendingCount = internal->_pendingUnitCountForParent;
+      if (internal->_fractionCompleted >= 1)
+	{
+	  int64_t pendingCount = internal->_pendingUnitCountForParent;
 
-     [parent _updateCompletedUnitsBy: pendingCount 
-                 fractionCompletedBy: (1.0f - prevFraction)
-                unitCountForFraction: pendingCount];
-    } else
-    {
-      [parent _updateCompletedUnitsBy: 0
-                  fractionCompletedBy: adjustedDeltaFraction
-                 unitCountForFraction: internal->_pendingUnitCountForParent];
-    }
+	 [parent _updateCompletedUnitsBy: pendingCount 
+		     fractionCompletedBy: (1.0f - prevFraction)
+		    unitCountForFraction: pendingCount];
+	}
+      else
+	{
+	  [parent _updateCompletedUnitsBy: 0
+		      fractionCompletedBy: adjustedDeltaFraction
+		     unitCountForFraction: internal->_pendingUnitCountForParent];
+	}
 
-    // Remove child from parent
-    if (internal->_finished)
-    {
-      NSMutableSet *children = [parent _children];
-      [children removeObject: self];
+      // Remove child from parent
+      if (internal->_finished)
+	{
+	  NSMutableSet *children = [parent _children];
+	  [children removeObject: self];
+	}
+      RELEASE(parent);
     }
-    RELEASE(parent);
-  }
   GS_MUTEX_UNLOCK(internal->_lock);
 }
 
@@ -443,8 +454,8 @@ static void tls_current_progress_pop(void)
 {
   if ([self isEqual:[NSProgress currentProgress]])
   {
-    [NSException raise:NSInvalidArgumentException
-                format:@"NSProgress object is already current on this thread %@", [NSThread currentThread]];
+    [NSException raise: NSInvalidArgumentException
+                format: @"NSProgress object is already current on this thread %@", [NSThread currentThread]];
   }
 
   // Push the receiver onto the thread-local current progress stack.
@@ -464,10 +475,10 @@ static void tls_current_progress_pop(void)
 
   /* Do not add child to set if the progress is already finished */
   if ([child isFinished])
-  {
-    [self setCompletedUnitCount: [self completedUnitCount] + inUnitCount];
-    return;
-  }
+    {
+      [self setCompletedUnitCount: [self completedUnitCount] + inUnitCount];
+      return;
+    }
 
   // Store the pending unit count in the child object. We will add it to the
   // parent after completion of the child progress.
@@ -476,9 +487,9 @@ static void tls_current_progress_pop(void)
   GS_MUTEX_LOCK(internal->_lock);
 
   if (!internal->_children)
-  {
-    internal->_children = [[NSMutableSet alloc] initWithCapacity: 2];
-  }
+    {
+      internal->_children = [[NSMutableSet alloc] initWithCapacity: 2];
+    }
   // Track the unfinished child progress.
   [internal->_children addObject: child];
 
@@ -542,18 +553,20 @@ static void tls_current_progress_pop(void)
   // This is one big atomic operation
   GS_MUTEX_LOCK(internal->_lock);
 
-  if (count != internal->_completedUnitCount) {
-    int64_t deltaCompletedUnit = count - internal->_completedUnitCount;
-    double deltaFraction = deltaCompletedUnit / (double) internal->_totalUnitCount;
-    [self _updateCompletedUnitsBy: deltaCompletedUnit
-              fractionCompletedBy: deltaFraction
-             unitCountForFraction: internal->_totalUnitCount];
-  }
+  if (count != internal->_completedUnitCount)
+    {
+      int64_t deltaCompletedUnit = count - internal->_completedUnitCount;
+      double deltaFraction = deltaCompletedUnit / (double) internal->_totalUnitCount;
+      [self _updateCompletedUnitsBy: deltaCompletedUnit
+		fractionCompletedBy: deltaFraction
+	       unitCountForFraction: internal->_totalUnitCount];
+    }
 
   GS_MUTEX_UNLOCK(internal->_lock);
 }
 
-- (double) fractionCompleted {
+- (double) fractionCompleted
+{
   double fraction;
 
   GS_MUTEX_LOCK(internal->_lock);
@@ -578,6 +591,13 @@ static void tls_current_progress_pop(void)
   return cancellable;
 }
 
+- (void) setCancellable: (BOOL) cancellable
+{
+  GS_MUTEX_LOCK(internal->_lock);
+  internal->_cancellable = cancellable;
+  GS_MUTEX_UNLOCK(internal->_lock);
+}
+
 - (BOOL) isCancelled
 {
   BOOL cancelled;
@@ -591,27 +611,33 @@ static void tls_current_progress_pop(void)
 
 - (void) cancel
 {
-  if (!internal->_cancelled)
-  {
-    GS_MUTEX_LOCK(internal->_lock);
-    if (!internal->_cancelled)
-    {
-      NSMutableSet *children;
-      [self willChangeValueForKey: @"cancelled"];
-      CALL_BLOCK_NO_ARGS(internal->_cancellationHandler);
-      internal->_cancelled = YES;
-      [self didChangeValueForKey: @"cancelled"];
+  /*
+   * You are still able to cancel a progress despite it being marked as
+   * non-cancellable. We therefore do not exit early when cancellable is set to
+   * true. This was tested on macOS 26.0 (25A354).
+   */
 
-      // Cancel all child progresses
-      children = internal->_children;
-      FOR_IN(NSProgress*, child, children)
-        {
-          [child cancel];
-        }
-      END_FOR_IN(children)
+  if (!internal->_cancelled)
+    {
+      GS_MUTEX_LOCK(internal->_lock);
+      if (!internal->_cancelled)
+	{
+	  NSMutableSet *children;
+	  [self willChangeValueForKey: @"cancelled"];
+	  CALL_BLOCK_NO_ARGS(internal->_cancellationHandler);
+	  internal->_cancelled = YES;
+	  [self didChangeValueForKey: @"cancelled"];
+
+	  // Cancel all child progresses
+	  children = internal->_children;
+	  FOR_IN(NSProgress*, child, children)
+	    {
+	      [child cancel];
+	    }
+	  END_FOR_IN(children)
+	}
+      GS_MUTEX_UNLOCK(internal->_lock);
     }
-    GS_MUTEX_UNLOCK(internal->_lock);
-  }
 }
 
 - (void) setCancellationHandler: (GSProgressCancellationHandler) handler

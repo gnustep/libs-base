@@ -392,6 +392,34 @@ GSPathHandling("right");
   PASS_EQUAL([rel absoluteString], @"data:,$2A", "relative data URL works");
   PASS_EQUAL([rel baseURL], nil, "Base URL of relative data URL is nil");
 
+  /* Test URLs with query but no path */
+  url = [NSURL URLWithString: @"https://example.com?key=value"];
+  PASS(url != nil, "URL with query but no path should be valid");
+  PASS_EQUAL([url scheme], @"https", "scheme of https://example.com?key=value is https");
+  PASS_EQUAL([url host], @"example.com", "host of https://example.com?key=value is example.com");
+  PASS_EQUAL([url path], @"", "path of https://example.com?key=value is empty");
+  PASS_EQUAL([url query], @"key=value", "query of https://example.com?key=value is key=value");
+  PASS_EQUAL([url absoluteString], @"https://example.com?key=value", "absoluteString works for URL with query but no path");
+
+  /* Test URLs with fragment but no path */
+  url = [NSURL URLWithString: @"https://example.com#section"];
+  PASS(url != nil, "URL with fragment but no path should be valid");
+  PASS_EQUAL([url scheme], @"https", "scheme of https://example.com#section is https");
+  PASS_EQUAL([url host], @"example.com", "host of https://example.com#section is example.com");
+  PASS_EQUAL([url path], @"", "path of https://example.com#section is empty");
+  PASS_EQUAL([url fragment], @"section", "fragment of https://example.com#section is section");
+  PASS_EQUAL([url absoluteString], @"https://example.com#section", "absoluteString works for URL with fragment but no path");
+
+  /* Test URLs with query and fragment but no path */
+  url = [NSURL URLWithString: @"https://example.com?key=value#section"];
+  PASS(url != nil, "URL with query and fragment but no path should be valid");
+  PASS_EQUAL([url scheme], @"https", "scheme of https://example.com?key=value#section is https");
+  PASS_EQUAL([url host], @"example.com", "host of https://example.com?key=value#section is example.com");
+  PASS_EQUAL([url path], @"", "path of https://example.com?key=value#section is empty");
+  PASS_EQUAL([url query], @"key=value", "query of https://example.com?key=value#section is key=value");
+  PASS_EQUAL([url fragment], @"section", "fragment of https://example.com?key=value#section is section");
+  PASS_EQUAL([url absoluteString], @"https://example.com?key=value#section", "absoluteString works for URL with query and fragment but no path");
+
   ///NSURLQueryItem
   
   //OSX behavior is to return query item with an empty string name

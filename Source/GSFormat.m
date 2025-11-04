@@ -85,10 +85,10 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#if	defined(HAVE_SYS_FCNTL_H)
-#  include	<sys/fcntl.h>
-#elif	defined(HAVE_FCNTL_H)
+#if	defined(HAVE_FCNTL_H)
 #  include	<fcntl.h>
+#elif	defined(HAVE_SYS_FCNTL_H)
+#  include	<sys/fcntl.h>
 #endif
 
 #include <stdio.h>
@@ -883,10 +883,10 @@ NSDictionary *locale)
   /* Initialize local variables.  */
   done = 0;
   grouping = (const char *) -1;
-#ifdef __va_copy
+#ifdef va_copy
   /* This macro will be available soon in gcc's <stdarg.h>.  We need it
      since on some systems `va_list' is not an integral type.  */
-  __va_copy (ap_save, ap);
+  va_copy (ap_save, ap);
 #else
   ap_save = ap;
 #endif

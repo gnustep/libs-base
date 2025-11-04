@@ -515,18 +515,19 @@ static char *findUp(char *str)
 }
 
 /*
- * Check a string to see if it contains only legal data characters
- * or percent escape sequences.
+ * Check a bounded string (up to end pointer) to see if it contains only
+ * legal data characters or percent escape sequences.
  */
-static BOOL legal(const char *str, const char *extras)
+static BOOL legal_bounded(const char *str, const char *end, const char *extras)
 {
   const char	*mark = "-_.!~*'()";
 
   if (str != 0)
     {
-      while (*str != 0)
+      while (str < end)
 	{
-	  if (*str == '%' && isxdigit(str[1]) && isxdigit(str[2]))
+	  if (*str == '%' && str + 2 < end
+	    && isxdigit(str[1]) && isxdigit(str[2]))
 	    {
 	      str += 3;
 	    }
@@ -549,6 +550,17 @@ static BOOL legal(const char *str, const char *extras)
 	}
     }
   return YES;
+}
+
+/*
+ * Check a string to see if it contains only legal data characters
+ * or percent escape sequences. Wrapper around legal_bounded.
+ */
+static BOOL legal(const char *str, const char *extras)
+{
+  if (str == 0)
+    return YES;
+  return legal_bounded(str, str + strlen(str), extras);
 }
 
 /*
@@ -696,13 +708,17 @@ static NSUInteger	urlAlign;
 
 - (id) initFileURLWithPath: (NSString *)aPath isDirectory: (BOOL)isDir
 {
-  return [self initFileURLWithPath: aPath isDirectory: isDir relativeToURL: nil];
+  return [self initFileURLWithPath: aPath
+                       isDirectory: isDir
+                     relativeToURL: nil];
 }
 
 - (id) initFileURLWithPath: (NSString *)aPath relativeToURL: (NSURL *)baseURL
 {
   /* isDirectory flag will be overwritten if a directory exists. */
-  return [self initFileURLWithPath: aPath isDirectory: NO relativeToURL: baseURL];
+  return [self initFileURLWithPath: aPath
+                       isDirectory: NO
+                     relativeToURL: baseURL];
 }
 
 - (id) initFileURLWithPath: (NSString *)aPath
@@ -811,7 +827,8 @@ static NSUInteger	urlAlign;
        *
        * "file:///c:/path/to/file"
        */
-      else if ([aScheme isEqualToString: @"file"] && [aPath characterAtIndex:1] == ':')
+      else if ([aScheme isEqualToString: @"file"]
+        && [aPath characterAtIndex:1] == ':')
         {
           aUrlString = [aUrlString initWithFormat: @"%@:///%@%@",
             aScheme, aHost, aPath];
@@ -989,47 +1006,92 @@ static NSUInteger	urlAlign;
 	   */
 	  if (start[0] == '/' && start[1] == '/')
 	    {
+	      char	*authEnd;       // End of authority section
+	      char 	*hostEnd;
+	      char	*pathStart;	// Where path/query/fragment starts
+
 	      buf->isGeneric = YES;
 	      start = &end[2];
 
 	      /*
 	       * Set 'end' to point to the start of the path, or just past
 	       * the 'authority' if there is no path.
+	       * Check for delimiters in order: '/' (path), '?' (query),
+               * '#' (fragment).
+	       * We find the authority end without modifying the string,
+               * using legal_bounded() for validation (RFC 3986).
 	       */
+	      pathStart = NULL;
 	      end = strchr(start, '/');
 	      if (end == 0)
 		{
+		  char	*alt = strchr(start, '?');
+
 		  buf->hasNoPath = YES;
-		  end = &start[strlen(start)];
+		  if (alt == 0)
+		    {
+		      alt = strchr(start, '#');
+		    }
+		  if (alt == 0)
+		    {
+		      authEnd = &start[strlen(start)];
+		      pathStart = authEnd;
+		    }
+		  else
+		    {
+		      authEnd = alt;
+		      pathStart = alt;
+		    }
 		}
 	      else
 		{
+		  authEnd = end;
+		  pathStart = end + 1;  // Skip the '/' we found
 		  *end++ = '\0';
 		}
 
 	      /*
-	       * Parser username:password part
+	       * Parser username:password part within authority bounds
 	       */
 	      ptr = strchr(start, '@');
-	      if (ptr != 0)
+	      if (ptr != 0 && ptr < authEnd)
 		{
+		  char	*userEnd = ptr;
+		  char 	*colonPos;
+
 		  buf->user = start;
 		  *ptr++ = '\0';
 		  start = ptr;
-		  if (legal(buf->user, ";:&=+$,") == NO)
+		  /* Validate user[:password] without the null terminator
+                   * at ':'
+                   */
+		  colonPos = strchr(buf->user, ':');
+		  if (colonPos != 0 && colonPos < userEnd)
 		    {
-		      [NSException raise: NSInvalidArgumentException
-                        format: @"[%@ %@](%@, %@) "
-			@"illegal character in user/password part",
-                        NSStringFromClass([self class]),
-                        NSStringFromSelector(_cmd),
-                        aUrlString, aBaseUrl];
+		      if (!legal_bounded(buf->user, colonPos, ";:&=+$,")
+			|| !legal_bounded(colonPos + 1, userEnd, ";:&=+$,"))
+			{
+			  [NSException raise: NSInvalidArgumentException
+				      format: @"[%@ %@](%@, %@) "
+			    @"illegal character in user/password part",
+			    NSStringFromClass([self class]),
+			    NSStringFromSelector(_cmd),
+			    aUrlString, aBaseUrl];
+			}
+		      *colonPos = '\0';
+		      buf->password = colonPos + 1;
 		    }
-		  ptr = strchr(buf->user, ':');
-		  if (ptr != 0)
+		  else
 		    {
-		      *ptr++ = '\0';
-		      buf->password = ptr;
+		      if (legal_bounded(buf->user, userEnd, ";:&=+$,") == NO)
+			{
+			  [NSException raise: NSInvalidArgumentException
+				      format: @"[%@ %@](%@, %@) "
+			    @"illegal character in user/password part",
+			    NSStringFromClass([self class]),
+			    NSStringFromSelector(_cmd),
+			    aUrlString, aBaseUrl];
+			}
 		    }
 		}
 
@@ -1142,11 +1204,24 @@ static NSUInteger	urlAlign;
 			}
 		    }
 		}
-	      start = end;
+	      start = pathStart;
 	      /* Check for a legal host, unless it's an ipv6 address
 	       * (which would have been checked earlier).
+	       * Use legal_bounded to validate only the host portion
+               * without modifying the string.
 	       */
-	      if (*buf->host != '[' && legal(buf->host, "-") == NO)
+	      hostEnd = authEnd;
+	      /* Account for port if present */
+	      if (*buf->host != '[')
+		{
+		  char *colon = strchr(buf->host, ':');
+		  if (colon != 0 && colon < authEnd)
+		    {
+		      hostEnd = colon;
+		    }
+		}
+	      if (*buf->host != '['
+                && legal_bounded(buf->host, hostEnd, "-") == NO)
 		{
 		  [NSException raise: NSInvalidArgumentException
                     format: @"[%@ %@](%@, %@) "

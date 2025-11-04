@@ -100,32 +100,32 @@ GS_EXPORT_CLASS
 + (NSCharacterSet*) newlineCharacterSet;
 
 /**
- * Returns allowed characers for URL fragment component.
+ * Returns allowed characters for URL fragment component.
  */
 + (NSCharacterSet*) URLFragmentAllowedCharacterSet;
 
 /**
- * Returns allowed characers for URL host component.
+ * Returns allowed characters for URL host component.
  */
 + (NSCharacterSet*) URLHostAllowedCharacterSet;
 
 /**
- * Returns allowed characers for URL password component.
+ * Returns allowed characters for URL password component.
  */
 + (NSCharacterSet*) URLPasswordAllowedCharacterSet;
 
 /**
- * Returns allowed characers for URL path component.
+ * Returns allowed characters for URL path component.
  */
 + (NSCharacterSet*) URLPathAllowedCharacterSet;
 
 /**
- * Returns allowed characers for URL query component.
+ * Returns allowed characters for URL query component.
  */
 + (NSCharacterSet*) URLQueryAllowedCharacterSet;
 
 /**
- * Returns allowed characers for URL USER component.
+ * Returns allowed characters for URL USER component.
  */
 + (NSCharacterSet*) URLUserAllowedCharacterSet;
 #endif
@@ -300,32 +300,32 @@ GS_EXPORT_CLASS
 + (NSMutableCharacterSet*) newlineCharacterSet;
 
 /**
- * Returns allowed characers for URL fragment component.
+ * Returns allowed characters for URL fragment component.
  */
 + (NSMutableCharacterSet*) URLFragmentAllowedCharacterSet;
 
 /**
- * Returns allowed characers for URL host component.
+ * Returns allowed characters for URL host component.
  */
 + (NSMutableCharacterSet*) URLHostAllowedCharacterSet;
 
 /**
- * Returns allowed characers for URL password component.
+ * Returns allowed characters for URL password component.
  */
 + (NSMutableCharacterSet*) URLPasswordAllowedCharacterSet;
 
 /**
- * Returns allowed characers for URL path component.
+ * Returns allowed characters for URL path component.
  */
 + (NSMutableCharacterSet*) URLPathAllowedCharacterSet;
 
 /**
- * Returns allowed characers for URL query component.
+ * Returns allowed characters for URL query component.
  */
 + (NSMutableCharacterSet*) URLQueryAllowedCharacterSet;
 
 /**
- * Returns allowed characers for URL USER component.
+ * Returns allowed characters for URL USER component.
  */
 + (NSMutableCharacterSet*) URLUserAllowedCharacterSet;
 #endif

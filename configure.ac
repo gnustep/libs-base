@@ -168,12 +168,8 @@ AC_CANONICAL_TARGET([])
 #--------------------------------------------------------------------
 
 AC_ARG_WITH(cross-compilation-info,
-[  --with-cross-compilation-info=PATH
-				Specify path to the configuration file that
-				contains information for the configure script in
-				case of cross compilation. This information
-				replaces those obtained from running programmes
-				during the configuration phase.],
+[AS_HELP_STRING([--with-cross-compilation-info=PATH],
+[Specify path to the configuration file that contains information for the configure script in case of cross compilation. This information replaces those obtained from running programmes during the configuration phase.])],
   cross_result="$withval",
   cross_result="no"
 )
@@ -214,28 +210,9 @@ if test "$GNUSTEP_MAKE_CONFIG"  = ""; then
 fi
 
 AC_ARG_WITH(config-file,
-[  --with-config-file=PATH       Specify path to the GNUstep config file.
-				This is the location to be used by the base
-				library to locate path information at
-				application or tool runtime.
-				This file might not even exist now; it is
-				not read at configure time.  The base library
-				will only read it at runtime.
-				If unspecified, this uses the same value as
-				the GNUstep make package on unix-like systems,
-				but uses ./GNUstep.conf on mingw so that
-				it is relative to the location of the
-				base library DLL.
-				If a leading './' is specified, the path
-				is taken to be relative to the base library
-				linked runtime, not all operating systems
-				can support this, so on some platforms you
-				may need to specify the location of the
-				config file using the GNUSTEP_CONFIG_FILE
-				environment variable at runtime.
-				If a trailing '/' is specified, the path is
-				used for locating domains but no GNUstep
-				config file is read at runtime.],
+  [AS_HELP_STRING([--with-config-file=PATH],
+  [Specify path to the GNUstep config file.  This is the location to be used by the base library to locate path information at application or tool runtime.
+  This file might not even exist now; it is not read at configure time.  The base library will only read it at runtime.   If unspecified, this uses the same value as the GNUstep make package on unix-like systems, but uses ./GNUstep.conf on mingw so that it is relative to the location of the base library DLL. If a leading './' is specified, the path is taken to be relative to the base library linked runtime, not all operating systems can support this, so on some platforms you may need to specify the location of the config file using the GNUSTEP_CONFIG_FILE environment variable at runtime.   If a trailing '/' is specified, the path is used for locating domains but no GNUstep config file is read at runtime.])],
   result="$withval",
   result="no"
 )
@@ -267,23 +244,8 @@ case "$target_os" in
 esac
 AC_MSG_CHECKING([whether the GNUstep.conf file path can be set in the environment])
 AC_ARG_ENABLE(environment-config-file,
-[  --disable-environment-config-file
-                                Disables the use of the GNUSTEP_CONFIG_FILE
-				environment variable to specify/override
-				the location of the GNUstep config file
-				at runtime.  This option is occasionally
-				useful to disable the environment variable
-				for sites which wish to 'lock down' users
-				to always work with a specific system-wide
-				configuration.  On unix-like systems the
-				default is for this option to be enabled.
-				It is disabled by default on windows systems
-				so that the base library will not use a
-				config file intended for the gnustep-make
-				system (and containing unix-style paths
-				which cannot be used by windows apps).
-				Normally this should be left at its default
-				setting.],
+  [AS_HELP_STRING([--disable-environment-config-file],
+  [Disables the use of the GNUSTEP_CONFIG_FILE environment variable to specify/override the location of the GNUstep config file at runtime. This option is occasionally useful to disable the environment variable for sites which wish to 'lock down' users to always work with a specific system-wide configuration. On unix-like systems the default is for this option to be enabled. It is disabled by default on windows systems so that the base library will not use a config file intended for the gnustep-make system (and containing unix-style paths which cannot be used by windows apps). Normally this should be left at its default setting.])],
   ac_cv_environment_config_file=$enableval,
   ac_cv_environment_config_file=$enable_env_config)
 if test "$ac_cv_environment_config_file" = "yes"; then
@@ -328,9 +290,8 @@ esac
 # turn it off.
 AC_MSG_CHECKING([if we should import an existing configuration file now])
 AC_ARG_ENABLE(importing-config-file,
-[  --disable-importing-config-file
-                                Disable importing of an existing GNUstep config
-				file and use inbuilt defaults instead.],
+  [AS_HELP_STRING([--disable-importing-config-file],
+  [Disable importing of an existing GNUstep config file and use inbuilt defaults instead.])],
   ac_cv_importing_config_file=$enableval,
   ac_cv_importing_config_file="yes")
 if test "$ac_cv_importing_config_file" = "no"; then
@@ -344,13 +305,8 @@ if test "$ac_cv_importing_config_file" = "yes" ;
 then
   AC_MSG_CHECKING([for default GNUstep configuration file to use])
   AC_ARG_WITH(default-config,
-[  --with-default-config=PATH   Specify path to a GNUstep config file to be
-				imported at configure time (now) and used to
-				provide default values for the base library
-				to use at runtime if no GNUstep config file
-				is found at runtime.  If this is not specified
-				then the path from the gnustep-make package
-				is used.],
+  [AS_HELP_STRING([--with-default-config=PATH],
+  [Specify path to a GNUstep config file to be imported at configure time (now) and used to provide default values for the base library to use at runtime if no GNUstep config file is found at runtime.  If this is not specified then the path from the gnustep-make package is used.])],
     result="$withval",
     result="no"
   )
@@ -478,19 +434,8 @@ if test x"$GNUSTEP_USER_DIR_DOC_INFO" = x""; then GNUSTEP_USER_DIR_DOC_INFO=$GNU
 
 AC_MSG_CHECKING([for GNUstep-base installation domain])
 AC_ARG_WITH(installation-domain,
-[  --with-installation-domain=DOMAIN
-				Specify the domain (SYSTEM, LOCAL,
-				NETWORK or USER) into which
-				gnustep-base will be installed.
-				Whenever relative paths are hardcoded
-				into gnustep-base (at the moment, this
-				happens only on MinGW) this option
-				must be used and must match the domain
-				where you will be installing
-				gnustep-base.
-				If this is not specified, the output of
-				gnustep-config --installation-domain-for=gnustep-base
-				(which should normally be LOCAL) is used.],
+[AS_HELP_STRING([--with-installation-domain=DOMAIN],
+[Specify the domain (SYSTEM, LOCAL, NETWORK or USER) into which gnustep-base will be installed.  Whenever relative paths are hardcoded into gnustep-base (at the moment, this happens only on MinGW) this option must be used and must match the domain where you will be installing gnustep-base.  If this is not specified, the output of gnustep-config --installation-domain-for=gnustep-base (which should normally be LOCAL) is used.])],
   result="$withval",
   result="no"
 )
@@ -1014,6 +959,9 @@ GNUSTEP_MAKEFILES="$CURRENT_GNUSTEP_MAKEFILES"
 GNUSTEP_SH_EXPORT_ALL_VARIABLES=yes
 . "$CURRENT_GNUSTEP_MAKEFILES/GNUstep.sh"
 unset GNUSTEP_SH_EXPORT_ALL_VARIABLES
+# We do not want address/memory sanitisation to confuse later testcases,
+# so we ensure that the environment variable doesn't turn it on.
+unset GNUSTEP_WITH_ASAN
 
 # For backwards compatibility, define GNUSTEP_SYSTEM_HEADERS from
 # GNUSTEP_SYSTEM_ROOT if not set yet.
@@ -1240,6 +1188,8 @@ case "$target_os" in
 		LDFLAGS="$LDFLAGS -L/usr/local/lib";;
   netbsd*)	CPPFLAGS="$CPPFLAGS -I/usr/pkg/include"
 		LDFLAGS="$LDFLAGS -Wl,-R/usr/pkg/lib -L/usr/pkg/lib";;
+  solaris*)
+                LDFLAGS="$LDFLAGS -lsocket -lnsl";;
   linux-android* )
 		# link against libandroid for native application APIs
 		LIBS="$LIBS -landroid";;
@@ -1697,10 +1647,36 @@ OBJC_SYS_DYNAMIC_LINKER()
 # NOTE: libdl should be in LIBS now if it's available.
 AC_CHECK_FUNCS(dladdr)
 
-AC_CHECK_FUNCS(gethostbyname)
-if test "$ac_cv_func_gethostbyname" = "no"; then
-  # QNX has gethostbyname and friends in libsocket
-  AC_CHECK_LIB(socket, gethostbyname)
+# NetBSD libc ships with an internal-only incompatible symbol gethostbyname_r
+AC_CHECK_DECLS([gethostbyname_r],
+        [have_gethostbyname_r_public_declaration=yes],
+        [have_gethostbyname_r_public_declaration=no],
+        [#include <stdlib.h>
+         #include <netdb.h>]
+)
+
+if test "x$have_gethostbyname_r_public_declaration" = "xyes"; then
+  # some systems already have gethostbyname_r so we don't need to build ours in main/utils.c
+  AC_SEARCH_LIBS(gethostbyname_r, [socket nsl])
+
+  #we check for 6 argument version, 5 argument version exists in the wild but we don't support it
+  AC_MSG_CHECKING(for gethostbyname_r with 6 arguments)
+  AC_LINK_IFELSE(
+	[AC_LANG_PROGRAM([#include <stdlib.h>
+                          #include <netdb.h>],
+                         [int r = gethostbyname_r((const char *)NULL, (struct hostent *)NULL, (char *)NULL, (int)0, (struct hostent **)NULL, (int *)NULL);])],
+         AC_MSG_RESULT(yes)
+         AC_DEFINE([HAVE_GETHOSTBYNAME_R], 1, [Define to 1 if your system has gethostbyname_r with 6 arguments.]),
+         AC_MSG_RESULT(no)
+  )
+fi
+
+if test "x$ac_cv_func_gethostbyname_r" = "xno"; then
+  AC_CHECK_FUNCS(gethostbyname)
+  if test "x$ac_cv_func_gethostbyname" = "xno"; then
+    # QNX has gethostbyname and friends in libsocket
+    AC_CHECK_LIB(socket, gethostbyname)
+  fi
 fi
 
 AC_CHECK_FUNCS(getaddrinfo)
@@ -2041,8 +2017,8 @@ else
   else
     AC_MSG_RESULT(no)
     AC_ARG_ENABLE(nxconstantstring,
-        [  --enable-nxconstantstring
-	    Enables the use of the NXConstantString class for old compilers.],,
+        [AS_HELP_STRING([--enable-nxconstantstring],
+	[Enables the use of the NXConstantString class for old compilers.])],,
         enable_nxconstantstring=no)
     if test $enable_nxconstantstring = yes; then
       NX_CONST_STRING_OBJCFLAGS=""
@@ -2469,13 +2445,8 @@ dnl AC_REPLACE_FUNCS(recvfrom)
 # These headers/functions needed for stacktrace in NSException.m
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(bfd,
-  [  --enable-bfd
-	Enables the use of libbfd to provide symbolic stack traces.
-	Enabling this option provides support for symbolic stack traces
-	on platforms where the backtrace_symbols() function is not
-	available or does not work properly.
-	Enabling this option also has the effect of changing the license
-	of gnustep-base from LGPL to GPL since libbfd uses the GPL license],,
+  [AS_HELP_STRING([--enable-bfd],
+  [Enables the use of libbfd to provide symbolic stack traces. Enabling this option provides support for symbolic stack traces on platforms where the backtrace_symbols() function is not available or does not work properly.  Enabling this option also has the effect of changing the license of gnustep-base from LGPL to GPL since libbfd uses the GPL license])],,
   enable_bfd=no)
 if test $enable_bfd = yes ; then
   AC_DEFINE(USE_BFD,1, [Define to use bfd library for stack traces])
@@ -2928,7 +2899,8 @@ esac
 
 AC_MSG_CHECKING(use of pass-through arguments)
 AC_ARG_ENABLE(pass-arguments,
-  [  --enable-pass-arguments	Force user main call to NSProcessInfo initialize],,
+  [AS_HELP_STRING([--enable-pass-arguments],
+  [Force user main call to NSProcessInfo initialize])],,
   enable_pass_arguments=$PASS_ARG)
 
 if test "$enable_pass_arguments" = "yes"; then
@@ -2941,7 +2913,8 @@ AC_MSG_RESULT($enable_pass_arguments)
 
 AC_MSG_CHECKING(use of fake-main definition)
 AC_ARG_ENABLE(fake-main,
-  [  --enable-fake-main  		Force redefine of user main function],,
+  [AS_HELP_STRING([--enable-fake-main],
+  [Force redefine of user main function])],,
   enable_fake_main=no)
 
 if test "$enable_pass_arguments" = "no"; then
@@ -2983,7 +2956,8 @@ AC_MSG_RESULT($enable_fake_main)
 # Simple way to add a bunch of paths to the flags
 #--------------------------------------------------------------------
 AC_ARG_WITH(include-flags,
-    [  --with-include-flags=FLAGS    Specify all include flags at once],
+    [AS_HELP_STRING([--with-include-flags=FLAGS],
+    [Specify all include flags at once])],
     include_flags="$withval", include_flags="no")
 if test ${include_flags} != "no"; then
     CPPFLAGS="$CPPFLAGS ${include_flags}"
@@ -2991,7 +2965,8 @@ if test ${include_flags} != "no"; then
 fi
 
 AC_ARG_WITH(library-flags,
-    [  --with-library-flags=FLAGS    Specify all library flags at once],
+    [AS_HELP_STRING([--with-library-flags=FLAGS],
+    [Specify all library flags at once])],
     library_flags="$withval", library_flags="no")
 if test ${library_flags} != "no"; then
     LDFLAGS="$LDFLAGS ${library_flags}"
@@ -3026,11 +3001,13 @@ if test "$exceptions" = "yes"; then
 fi
 
 AC_ARG_ENABLE(libffi,
-  [  --disable-libffi  		Disable use of libffi library],,
+  [AS_HELP_STRING([--disable-libffi],
+  [Disable use of libffi library])],,
   enable_libffi=$do_enable_libffi)
 
 AC_ARG_ENABLE(ffcall,
-  [  --enable-ffcall  		Enable use of the deprecated ffcall library],,
+  [AS_HELP_STRING([--enable-ffcall],
+  [Enable use of the deprecated ffcall library])],,
   enable_ffcall=$do_enable_libffcall)
 
 if test $enable_ffcall = yes; then
@@ -3038,7 +3015,8 @@ if test $enable_ffcall = yes; then
 fi
 
 AC_ARG_ENABLE(invocations,
-  [  --disable-invocations		Build even if invocation-dependencies are not met],,
+  [AS_HELP_STRING([--disable-invocations],
+  [Build even if invocation-dependencies are not met])],,
   enable_invocations=yes)
 
 # DO isn't used on apple-apple-apple
@@ -3047,7 +3025,8 @@ if test $LIBRARY_COMBO = apple-apple-apple; then
 fi
 
 AC_ARG_WITH(ffi-include,
-[  --with-ffi-include=PATH       Include path for ffi headers],
+  [AS_HELP_STRING([--with-ffi-include=PATH],
+  [Include path for ffi headers])],
     ffi_incdir="$withval", ffi_incdir="no")
 if test ${ffi_incdir} != "no"; then
     CPPFLAGS="$CPPFLAGS -I${ffi_incdir}"
@@ -3055,7 +3034,8 @@ if test ${ffi_incdir} != "no"; then
 fi
 
 AC_ARG_WITH(ffi-library,
-[  --with-ffi-library=PATH       Library path for ffi libs],
+  [AS_HELP_STRING([--with-ffi-library=PATH],
+  [Library path for ffi libs])],
     ffi_libdir="$withval", ffi_libdir="no")
 if test ${ffi_libdir} != "no"; then
   GS_ADD_LIBRARY_PATH([${ffi_libdir}])
@@ -3225,14 +3205,41 @@ AC_SUBST(WITH_FFI)
 # First, check if there's a working iconv in libc (ie. if the test program
 # runs without any extra flags).
 AC_ARG_ENABLE(iconv,
-  [  --disable-iconv		Build even if iconv is not available],,
+  [AS_HELP_STRING([--disable-iconv],
+  [Build even if iconv is not available])],,
   enable_iconv=yes)
 
 if test $enable_iconv = yes; then
 AC_MSG_CHECKING(iconv support)
+
+# If the header is in a subdirectory, adjust the default loc
+liidef=no
+AC_CHECK_HEADERS(gnu-libiconv/iconv.h, iconv_subdir=yes, iconv_subdir=no)
+if test "${iconv_subdir}" != "no"; then
+  liidef=/usr/include/gnu-libiconv
+fi
+
+AC_ARG_WITH(libiconv-include,
+  [AS_HELP_STRING([--with-libiconv-include=PATH],
+  [Include path for libiconv header])],
+  libiconv_incdir="$withval", libiconv_incdir="$liidef")
+if test ${libiconv_incdir} != "no"; then
+  CPPFLAGS="$CPPFLAGS -I${libiconv_incdir}"
+  INCLUDE_FLAGS="$INCLUDE_FLAGS -I${libiconv_incdir}"
+fi
+
+AC_ARG_WITH(libiconv-library,
+  [AS_HELP_STRING([--with-libiconv-library=PATH],
+  [Library path for libiconv libraries])],
+  libiconv_libdir="$withval", libiconv_libdir="no")
+
+if test "$libiconv_libdir" != "no"; then
+  GS_ADD_LIBRARY_PATH([${libiconv_libdir}])
+fi
+
 AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }])]
+{ return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
 ,
   # libc has a working iconv.
   AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
@@ -3250,28 +3257,13 @@ int main(int argc,char **argv)
 
 if test $found_iconv = no ; then
   # libc doesn't have a working iconv with translit.
-  # Try adding -liconv and any user supplied directory.
-  AC_ARG_WITH(libiconv-library,
-    [  --with-libiconv-library=PATH  Library path for libiconv libraries],
-    libiconv_libdir="$withval", libiconv_libdir="no")
-
-  if test "$libiconv_libdir" != "no"; then
-    GS_ADD_LIBRARY_PATH([${libiconv_libdir}])
-  fi
-
-  AC_ARG_WITH(libiconv-include,
-    [  --with-libiconv-include=PATH  Include path for libiconv header],
-    libiconv_incdir="$withval", libiconv_incdir="no")
-  if test ${libiconv_incdir} != "no"; then
-      CPPFLAGS="$CPPFLAGS -I${libiconv_incdir}"
-      INCLUDE_FLAGS="$INCLUDE_FLAGS -I${libiconv_incdir}"
-  fi
+  # Try adding -liconv
 
   old_LIBS="$LIBS"
   LIBS="-liconv $LIBS"
   AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }])]
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
   ,
     # -liconv works.
     AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
@@ -3298,7 +3290,7 @@ if test $found_iconv = no ; then
   LIBS="-lgiconv $LIBS"
   AC_RUN_IFELSE([AC_LANG_SOURCE([#include <giconv.h>
   int main(int argc,char **argv)
-  { return iconv_open("UTF-8//TRANSLIT","ASCII") == -1 ? 1 : 0; }])]
+  { return iconv_open("UTF-8//TRANSLIT","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
   ,
     AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
     AC_DEFINE(HAVE_GICONV,1, [Define if you have this function])
@@ -3319,14 +3311,15 @@ if test $found_iconv = no ; then
   )
 fi
 
-AC_ARG_ENABLE(stricticonv,
-  [  --enable-stricticonv		Build even if iconv is strict],,
-  enable_stricticonv=no)
-if test $enable_stricticonv = yes; then
-AC_MSG_CHECKING(non-lossy iconv support)
+AC_ARG_ENABLE(limitediconv,
+  [AS_HELP_STRING([--enable-limitediconv],
+  [Build even if iconv does not support lossy conversion])],,
+  enable_limitediconv=no)
+if test $enable_limitediconv = yes; then
+AC_MSG_CHECKING(iconv without lossy conversion support)
 AC_RUN_IFELSE([AC_LANG_SOURCE([#include <iconv.h>
 int main(int argc,char **argv)
-{ return iconv_open("UTF-8","ASCII") == -1 ? 1 : 0; }])]
+{ return iconv_open("UTF-8","ASCII") == (iconv_t)-1 ? 1 : 0; }])]
 ,
   # libc has a working iconv.
   AC_DEFINE(HAVE_ICONV,1, [Define if you have this function])
@@ -3340,7 +3333,8 @@ if test $found_iconv = no ; then
   # libc doesn't have a working iconv. Try adding -liconv and any user
   # supplied directory.
   AC_ARG_WITH(libiconv-library,
-    [  --with-libiconv-library=PATH  Library path for libiconv libraries],
+    [AS_HELP_STRING([--with-libiconv-library=PATH],
+    [Library path for libiconv libraries])],
     libiconv_libdir="$withval", libiconv_libdir="no")
 
   if test "$libiconv_libdir" != "no"; then
@@ -3388,7 +3382,12 @@ if test $found_iconv = no ; then
   echo
   echo "You do not appear to have usable iconv header/library."
   echo "Building without them will disable much characterset support."
-  echo "If you really want to build gnustep-base without character conversion"
+  echo "Try adjusting --with-libiconv-include and --with-libiconv-library"
+  echo " if you have iconv installed in an unusual location."
+  echo "If your iconv does not support the TRANSLIT operation (needed for"
+  echo " lossy character conversion), either install a more fully featured"
+  echo " version of iconv, or use the --enable-limitediconv argument."
+  echo "If you want to build gnustep-base with minimal character conversion"
   echo " support, please add --disable-iconv to the configure arguments."
   AC_MSG_ERROR([Missing support for character conversion functionality.])
 fi
@@ -3399,7 +3398,8 @@ fi
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(xml,
-  [  --disable-xml			Build even if XML-dependencies are not met],,
+  [AS_HELP_STRING([--disable-xm],
+  [Build even if XML-dependencies are not met])],,
   enable_xml=yes)
 
 HAVE_LIBXML=0
@@ -3421,7 +3421,8 @@ if test $enable_xml = yes; then
     # Check for (optional) libxslt
     #--------------------------------------------------------------------
     AC_ARG_ENABLE(xslt,
-      [  --disable-xslt		Build even if XSLT-dependency is not met],,
+      [AS_HELP_STRING([--disable-xslt],
+      [Build even if XSLT-dependency is not met])],,
       enable_xslt=yes)
 
     if test $enable_xslt = yes; then
@@ -3467,7 +3468,8 @@ AC_SUBST(HAVE_LIBXML)
 # See DEPENDENCIES POLICY at the start of this file.
 #--------------------------------------------------------------------
 AC_ARG_ENABLE(tls,
-  [  --disable-tls			Disable use of GNUTLS],,
+  [AS_HELP_STRING([--disable-tls],
+  [Disable use of GNUTLS])],,
   enable_tls=yes)
 
 if test $enable_tls = yes; then
@@ -3544,10 +3546,12 @@ AC_SUBST(HAVE_GNUTLS)
 HAVE_MDNS=0
 HAVE_AVAHI=0
 AC_ARG_ENABLE(zeroconf,
-  [  --disable-zeroconf		Disable NSNetServices support],,
+  [AS_HELP_STRING([--disable-zeroconf],
+  [Disable NSNetServices support])],,
   enable_zeroconf=yes)
 AC_ARG_WITH(zeroconf-api,
-  [  --with-zeroconf-api=API  force use of a specific zeroconf API (mdns or avahi)],
+  [AS_HELP_STRING([--with-zeroconf-api=API],
+  [force use of a specific zeroconf API (mdns or avahi)])],
   zeroconf_api="$withval", zeroconf_api="any")
 if test $enable_zeroconf = yes; then
   if test "$zeroconf_api" = "any" || test "$zeroconf_api" = "mdns"; then
@@ -3589,7 +3593,8 @@ AC_SUBST(HAVE_AVAHI)
 #--------------------------------------------------------------------
 HAVE_ICU=0
 AC_ARG_ENABLE(icu,
-  [  --disable-icu			Disable International Components for Unicode],,
+  [AS_HELP_STRING([--disable-icu],
+  [Disable International Components for Unicode])],,
   enable_icu=yes)
 
 AS_IF([test "x$enable_icu" = "xyes"], [
@@ -3630,13 +3635,15 @@ AC_SUBST(HAVE_ICU)
 
 HAVE_LIBDISPATCH=0
 AC_ARG_ENABLE(libdispatch,
-  [  --disable-libdispatch		Disable dispatching blocks via libdispatch],
+  [AS_HELP_STRING([--disable-libdispatch],
+  [Disable dispatching blocks via libdispatch])],
   enable_libdispatch=$enableval,
   enable_libdispatch=yes)
 
 if test $enable_libdispatch = yes; then
   AC_ARG_WITH(dispatch-include,
-  [  --with-dispatch-include=PATH       Include path for dispatch header],
+  [AS_HELP_STRING([--with-dispatch-include=PATH],
+  [Include path for dispatch header])],
       dispatch_incdir="$withval", dispatch_incdir="no")
   if test ${dispatch_incdir} != "no"; then
       CPPFLAGS="$CPPFLAGS -I${dispatch_incdir}"
@@ -3644,7 +3651,8 @@ if test $enable_libdispatch = yes; then
   fi
 
   AC_ARG_WITH(dispatch-library,
-  [  --with-dispatch-library=PATH       Library path for dispatch lib],
+  [AS_HELP_STRING([--with-dispatch-library=PATH],
+  [Library path for dispatch lib])],
       dispatch_libdir="$withval", dispatch_libdir="no")
   if test ${dispatch_libdir} != "no"; then
     GS_ADD_LIBRARY_PATH([${dispatch_libdir}])
@@ -3712,7 +3720,8 @@ AC_SUBST(HAVE_LIBDISPATCH_RUNLOOP)
 #--------------------------------------------------------------------
 HAVE_NEWKVO=0
 AC_ARG_ENABLE(newkvo,
-  [  --disable-newkvo		Disable new KVO implementation],,[
+  [AS_HELP_STRING([--disable-newkvo],
+  [Disable new KVO implementation])],,[
 if test "$OBJC_RUNTIME_LIB" = "ng"; then
   enable_newkvo=yes
 else
@@ -3753,7 +3762,7 @@ esac
 # and a different (MSVC) curl library might interfere and produce an incorrect configuration.
 #
 # Skip the curl-config check on Windows.
-if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG" == "0"; then
+if eval $CURL_CONFIG --version 2>/dev/null >/dev/null && test "$SKIP_CURL_CONFIG" = "0"; then
   curl_ver=`$CURL_CONFIG --version | sed -e "s/libcurl //g"`
   curl_maj=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\1/"`
   curl_min=`echo $curl_ver | sed -e "s/^\(.*\)\.\(.*\)\.\(.*\)$/\2/"`
@@ -3798,15 +3807,6 @@ else
   fi
 fi
   
-if test "$OBJC_RUNTIME_LIB" = "ng" -a "$HAVE_LIBCURL" = 0; then
-    HAVE_LIBCURL=1
-    LIBS="$LIBS -lcurl"
-    curl_all=yes
-    AC_MSG_WARN([libcurl is a hard-dependency when building with the
-		 Objective-C 2.0 runtime, but could not be found with
-		 pkg-config. I assume it is present.])
-fi
-
 AC_SUBST(HAVE_LIBCURL)
 
 #--------------------------------------------------------------------
@@ -3819,7 +3819,8 @@ fi
 
 GS_HAVE_NSURLSESSION=0
 AC_ARG_ENABLE(nsurlsession,
-  [  --disable-nsurlsession  		Disable support for NSURLSession],,
+  [AS_HELP_STRING([--disable-nsurlsession],
+  [Disable support for NSURLSession])],,
   enable_nsurlsession=$nsurlsessiondefault)
 if test $enable_nsurlsession = yes; then
   if test "$OBJC_RUNTIME_LIB" != "ng"; then
@@ -3844,11 +3845,13 @@ AC_SUBST(GS_HAVE_NSURLSESSION)
 # Check GMP for NSDecimal
 #--------------------------------------------------------------------
 AC_ARG_WITH(gmp-include,
-  [  --with-gmp-include=PATH  include path for gmp headers],
+  [AS_HELP_STRING([--with-gmp-include=PATH],
+  [include path for gmp headers])],
   gmp_incdir="$withval", gmp_incdir="no")
 
 AC_ARG_WITH(gmp-library,
-  [  --with-gmp-library=PATH  library path for gmp libraries],
+  [AS_HELP_STRING([--with-gmp-library=PATH],
+  [library path for gmp libraries])],
   gmp_libdir="$withval", gmp_libdir="no")
 
 libs_temp=$LIBS
@@ -3917,7 +3920,8 @@ AC_SUBST(WARN_FLAGS)
 # Check if we should use an alternative gdomap port
 #--------------------------------------------------------------------
 AC_ARG_WITH(gdomap-port,
-  [  --with-gdomap-port=PORT  alternative port for gdomap],
+  [AS_HELP_STRING([--with-gdomap-port=PORT],
+  [alternative port for gdomap])],
   gdomap_port="$withval", gdomap_port="no")
 
 if test "$gdomap_port" = "no"; then
@@ -3931,16 +3935,9 @@ AC_SUBST(GNUSTEP_GDOMAP_PORT_OVERRIDE)
 # Check if we should install gdomap as setuid
 #--------------------------------------------------------------------
 AC_MSG_CHECKING([if we should install gdomap as setuid])
-AC_ARG_ENABLE(setuid-gdomap,[
-  --enable-setuid-gdomap        Enable installing gdomap as a setuid
-                                executable.  By default, it is installed
-                                as a normal program intended to be started
-				by root at system boot time, but it can
-                                also be started up automatically
-                                by any user at any time.  Use this
-                                option if you are happy having the program
-                                started automatically on demand.
-],
+AC_ARG_ENABLE(setuid-gdomap,
+  [AS_HELP_STRING([--enable-setuid-gdomap],
+  [Enable installing gdomap as a setuid executable.  By default, it is installed as a normal program intended to be started by root at system boot time, but it can also be started up automatically by any user at any time.  Use this option if you are happy having the program started automatically on demand.])],
   ac_cv_setuid_gdomap=$enableval,
   ac_cv_setuid_gdomap="no")
 
