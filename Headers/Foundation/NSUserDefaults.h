@@ -523,6 +523,18 @@ GS_EXPORT_CLASS
  * available thereafter.
  */
 - (void) registerDefaults: (NSDictionary*)newVals;
+
+/**
+ * Set appropriate file permissions
+*/
+- (void) setPermissions: (NSString *) file;
+
+/**
+ * Writes dictionary to a file or removes empty defaults dictionary if
+ * supplied dictioonary is nil.
+*/
+- (BOOL) writeDictionary: (NSDictionary*)dict
+                  toFile: (NSString*)file;
 @end
 
 #if	defined(__cplusplus)
