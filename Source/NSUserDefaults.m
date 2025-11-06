@@ -2315,40 +2315,6 @@ static BOOL isPlistObject(id o)
   NS_ENDHANDLER
 }
 
-- (void) setPermissions: (NSString *) file
-{
-  NSFileManager	*mgr = [NSFileManager defaultManager];
-  NSDictionary	*attr;
-  uint32_t	desired;
-  uint32_t	attributes;
-
-  attr = [mgr fileAttributesAtPath: file
-		      traverseLink: YES];
-  attributes = [attr filePosixPermissions];
-#if	!(defined(S_IRUSR) && defined(S_IWUSR))
-  desired = 0600;
-#else
-  desired = (S_IRUSR|S_IWUSR);
-#endif
-  if (attributes != desired)
-    {
-      NSMutableDictionary	*enforced_attributes;
-      NSNumber			*permissions;
-
-      enforced_attributes
-	= [NSMutableDictionary dictionaryWithDictionary:
-	[mgr fileAttributesAtPath: file
-		     traverseLink: YES]];
-
-      permissions = [NSNumberClass numberWithUnsignedLong: desired];
-      [enforced_attributes setObject: permissions
-			      forKey: NSFilePosixPermissions];
-
-      [mgr changeFileAttributes: enforced_attributes
-			 atPath: file];
-    }
-}
-
 - (BOOL) writeDictionary: (NSDictionary*)dict
                   toFile: (NSString*)file
 {
@@ -2381,7 +2347,6 @@ static BOOL isPlistObject(id o)
 	}
       else
 	{
-	  [self setPermissions: file];
 	  return YES;
 	}
     }
@@ -2929,6 +2894,41 @@ static BOOL isLocked = NO;
     }
 }
 
+static void
+setPermissions(NSString *file)
+{
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSDictionary	*attr;
+  uint32_t	desired;
+  uint32_t	attributes;
+
+  attr = [mgr fileAttributesAtPath: file
+		      traverseLink: YES];
+  attributes = [attr filePosixPermissions];
+#if	!(defined(S_IRUSR) && defined(S_IWUSR))
+  desired = 0600;
+#else
+  desired = (S_IRUSR|S_IWUSR);
+#endif
+  if (attributes != desired)
+    {
+      NSMutableDictionary	*enforced_attributes;
+      NSNumber			*permissions;
+
+      enforced_attributes
+	= [NSMutableDictionary dictionaryWithDictionary:
+	[mgr fileAttributesAtPath: file
+		     traverseLink: YES]];
+
+      permissions = [NSNumberClass numberWithUnsignedLong: desired];
+      [enforced_attributes setObject: permissions
+			      forKey: NSFilePosixPermissions];
+
+      [mgr changeFileAttributes: enforced_attributes
+			 atPath: file];
+    }
+}
+
 - (BOOL) synchronize
 {
   BOOL  isLocked = NO;
@@ -3027,6 +3027,7 @@ static BOOL isLocked = NO;
                       /* Write dictionary to file.
                        */
                       written = [owner writeDictionary: contents toFile: path];
+	   	      setPermissions(path);
                     }
                 }
             }
