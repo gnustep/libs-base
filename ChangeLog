@@ -1,5 +1,11 @@
 2025-11-11 Richard Frith-Macdonald <rfm@gnu.org>
 
+	* Source/NSCharacterSetData.h:
+	* Tests/base/NSURL/charsets.m:
+	Changes URLPathAllowedCharSet to contain semicolon as on OSX
+
+2025-11-11 Richard Frith-Macdonald <rfm@gnu.org>
+
 	* Headers/GNUstepBase/GSURITemplate.h:
 	* Source/Additions/GNUmakefile:
 	* Source/Additions/GSURITemplate.m:
