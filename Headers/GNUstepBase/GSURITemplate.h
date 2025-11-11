@@ -40,7 +40,7 @@ extern "C" {
 
 /** The domain of errors returned by `GSURITemplate` objects.
  */
-extern NSString *const GSURITemplateErrorDomain;
+GS_EXPORT NSString* const GSURITemplateErrorDomain;
 
 typedef NS_ENUM(NSInteger, GSURITemplateError)
 {

@@ -33,8 +33,8 @@
 
 /* Constants for NSError results.
  */
-NSString *const GSURITemplateDomain = @"org.gnustep.GSURITemplate";
-NSString *const GSURITemplateScanLocationKey = @"scanLocation";
+GS_DECLARE NSString *const GSURITemplateDomain = @"org.gnustep.GSURITemplate";
+GS_DECLARE NSString *const GSURITemplateScanLocationKey = @"scanLocation";
 
 /* Cached character sets for scanning patterns.
  */
