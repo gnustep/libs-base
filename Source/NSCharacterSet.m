@@ -188,6 +188,10 @@
       unsigned	i = GSBITMAP_SIZE * aPlane;
       unsigned	e = GSBITMAP_SIZE * (aPlane + 1);
 
+      if (e > _length)
+	{
+	  e = _length;
+	}
       while (i < e)
 	{
 	  if (_data[i] != 0)
@@ -449,6 +453,10 @@
 	{
 	  i--;
 	}
+    }
+  else if (_length < i)
+    {
+      i = _length;
     }
   return [NSData dataWithBytes: _data length: i];
 }
