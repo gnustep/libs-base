@@ -523,6 +523,18 @@ GS_EXPORT_CLASS
  * available thereafter.
  */
 - (void) registerDefaults: (NSDictionary*)newVals;
+
+#if OS_API_VERSION(GS_API_NONE, GS_API_NONE)
+/** Writes dictionary to a file or removes empty defaults dictionary if
+ * supplied dictionary is nil.<br />
+ * GNUstep provides this method so that the process of writing a persistent
+ * domain may be overridden.  NB. this is not used on windows when defaults
+ * are saved to the windows registry.
+ */
+- (BOOL) writeDictionary: (NSDictionary*)dict
+                  toFile: (NSString*)file;
+#endif
+
 @end
 
 #if	defined(__cplusplus)

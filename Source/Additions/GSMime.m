@@ -4777,20 +4777,25 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
       /*
        * Determine encoding using byte-order-mark if present
        */
-      if ((ptr[0] == 0xFE && ptr[1] == 0xFF)
-        || (ptr[0] == 0xFF && ptr[1] == 0xFE))
+      if (ptr[0] == 0xFE && ptr[1] == 0xFF)
+	{
+          return @"utf-16be";
+	}
+      if (ptr[0] == 0xFF && ptr[1] == 0xFE)
         {
-          return @"utf-16";
+          return @"utf-16le";
         }
       if (ptr[0] == 0xEF && ptr[1] == 0xBB && ptr[2] == 0xBF)
         {
           return @"utf-8";
         }
-      if ((ptr[0] == 0x00 && ptr[1] == 0x00)
-        && ((ptr[2] == 0xFE && ptr[3] == 0xFF)
-          || (ptr[2] == 0xFF && ptr[3] == 0xFE)))
+      if (ptr[0] == 0x00 && ptr[1] == 0x00 && ptr[2] == 0xFE && ptr[3] == 0xFF)
+	{
+          return @"utf-32be";
+	}
+      if (ptr[0] == 0xFF && ptr[1] == 0xFE && ptr[2] == 0x00 && ptr[3] == 0x00)
         {
-          return @"ucs-4";
+          return @"utf-32le";
         }
 
       /*
@@ -4848,7 +4853,7 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
             }
           else
             {
-              return @"ucs-4";
+              return @"utf-32";
             }
         }
       ptr += size * 5;	// Step past '<?xml' prefix
@@ -5189,6 +5194,17 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
   return r;
 }
 
++ (NSStringEncoding) encodingForXml: (id)xml
+{
+  NSString	*charset = [self charsetForXml: xml];
+
+  if (nil == charset)
+    {
+      return GSUndefinedEncoding;
+    }
+  return [self encodingFromCharset: charset];
+}
+
 /**
  * Return the string encoding corresponding to the specified MIME
  * characterset name.<br />
@@ -5383,13 +5399,33 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 
 	  NSMapInsert(charsets, (void*)@"NSUTF16BigEndianStringEncoding",
 	    (void*)NSUTF16BigEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-16be",
+	    (void*)NSUTF16BigEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf16be",
+	    (void*)NSUTF16BigEndianStringEncoding);
 	  NSMapInsert(charsets, (void*)@"NSUTF16LittleEndianStringEncoding",
+	    (void*)NSUTF16LittleEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-16le",
+	    (void*)NSUTF16LittleEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf16le",
 	    (void*)NSUTF16LittleEndianStringEncoding);
 	  NSMapInsert(charsets, (void*)@"NSUTF32StringEncoding",
 	    (void*)NSUTF32StringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-32",
+	    (void*)NSUTF32StringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf32",
+	    (void*)NSUTF32StringEncoding);
 	  NSMapInsert(charsets, (void*)@"NSUTF32BigEndianStringEncoding",
 	    (void*)NSUTF32BigEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-32be",
+	    (void*)NSUTF32BigEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf32be",
+	    (void*)NSUTF32BigEndianStringEncoding);
 	  NSMapInsert(charsets, (void*)@"NSUTF32LittleEndianStringEncoding",
+	    (void*)NSUTF32LittleEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf-32le",
+	    (void*)NSUTF32LittleEndianStringEncoding);
+	  NSMapInsert(charsets, (void*)@"utf32le",
 	    (void*)NSUTF32LittleEndianStringEncoding);
 
 #if     !defined(NeXT_Foundation_LIBRARY)
@@ -5691,6 +5727,18 @@ appendString(NSMutableData *m, NSUInteger offset, NSUInteger fold,
 	    (void*)@"shift_JIS");
 	  NSMapInsert(encodings, (void*)NSUTF8StringEncoding,
 	    (void*)@"utf-8");
+	  NSMapInsert(encodings, (void*)NSUnicodeStringEncoding,
+	    (void*)@"utf-16");
+	  NSMapInsert(encodings, (void*)NSUTF16BigEndianStringEncoding,
+	    (void*)@"utf-16be");
+	  NSMapInsert(encodings, (void*)NSUTF16LittleEndianStringEncoding,
+	    (void*)@"utf-16le");
+	  NSMapInsert(encodings, (void*)NSUTF32StringEncoding,
+	    (void*)@"utf-32");
+	  NSMapInsert(encodings, (void*)NSUTF32BigEndianStringEncoding,
+	    (void*)@"utf-32be");
+	  NSMapInsert(encodings, (void*)NSUTF32LittleEndianStringEncoding,
+	    (void*)@"utf-32le");
 	  NSMapInsert(encodings, (void*)NSMacOSRomanStringEncoding,
 	    (void*)@"apple-roman");
 #if     !defined(NeXT_Foundation_LIBRARY)

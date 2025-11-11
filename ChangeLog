@@ -14,6 +14,13 @@
 	Add new class to handle RFC6570 URI templates and use them to create
 	URLs from a set of variables.
 
+2025-11-06 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/Foundation/NSUserDefaults.h:
+	* Source/NSUserDefaults.m:
+	Patch by Mike Carans to allow overriding of the storage of a defaults
+	domain
+
 2025-10-30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m:

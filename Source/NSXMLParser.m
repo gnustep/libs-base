@@ -268,27 +268,29 @@ static	Class	strict = Nil;
       if (self)
 	{
 	  NSStringEncoding	enc;
+          NSString		*tmp;
 
 	  _parser = [GSXMLParserIvars new];
-	  /* Determine character encoding and convert to utf-8 if needed.
+	  /* Determine character encoding and convert to utf-8
 	   */
 	  enc = [GSMimeDocument encodingFromCharset:
 	    [GSMimeDocument charsetForXml: data]];
-	  if (enc == NSUTF8StringEncoding
-	    || enc == NSASCIIStringEncoding
-	    || enc == GSUndefinedEncoding)
+	  if (GSUndefinedEncoding == enc)
 	    {
-	      this->data = [data copy];
+	      enc = NSUTF8StringEncoding;	// Guess at UTF8
 	    }
-	  else
-	    {
-	      NSString	*tmp;
 
+          tmp = [[NSString alloc] initWithData: data encoding: enc];
+	  if (nil == tmp)
+	    {
+	      /* Bad encoding... fall back to latin1, guaranteed to work.
+	       */
+	      enc = NSISOLatin1StringEncoding;
 	      tmp = [[NSString alloc] initWithData: data encoding: enc];
-	      this->data
-		= [[tmp dataUsingEncoding: NSUTF8StringEncoding] retain];
-	      RELEASE(tmp);
-	    }
+	    }  
+	  this->data = RETAIN([tmp dataUsingEncoding: NSUTF8StringEncoding]);
+	  RELEASE(tmp);
+
 	  this->tagPath = [[NSMutableArray alloc] init];
 	  this->namespaces = [[NSMutableArray alloc] init];
 	  this->bytes = [this->data bytes];
@@ -1357,24 +1359,22 @@ NSLog(@"_processTag <%@%@ %@>", flag?@"/": @"", tag, attributes);
             {
               if ([this->tagPath count] != 0)
                 {
-                  if (!this->acceptHTML)
+                  if (this->acceptHTML)
+		    {
+		      /* Implicitly closes all open tags.
+		       */
+		      while ([this->tagPath count] > 0)
+			{
+			  [self _closeLastTag];
+			}
+		    }
+                  else
                     {
                       /* strict XML nesting error
                        */
                       return [self _parseError: @"unexpected end of file"
 			code: NSXMLParserNotWellBalancedError];
                     }
-                while ([this->tagPath count] > 0)
-                  {
-                    // lazily close all open tags
-                    if (this->didEndElement != 0)
-                      {
-                        (*this->didEndElement)(_del,
-			  didEndElementSel, self,
-                          [this->tagPath lastObject], nil, nil);
-                      }
-                    [this->tagPath removeLastObject];  // pop from stack
-                  }
                 }
 #if EXTRA_DEBUG
               NSLog(@"parserDidEndDocument: ");

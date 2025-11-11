@@ -322,80 +322,6 @@ updateCache(NSUserDefaults *self)
     }
 }
 
-static void
-setPermissions(NSString *file)
-{
-  NSFileManager	*mgr = [NSFileManager defaultManager];
-  NSDictionary	*attr;
-  uint32_t	desired;
-  uint32_t	attributes;
-
-  attr = [mgr fileAttributesAtPath: file
-		      traverseLink: YES];
-  attributes = [attr filePosixPermissions];
-#if	!(defined(S_IRUSR) && defined(S_IWUSR))
-  desired = 0600;
-#else
-  desired = (S_IRUSR|S_IWUSR);
-#endif
-  if (attributes != desired)
-    {
-      NSMutableDictionary	*enforced_attributes;
-      NSNumber			*permissions;
-
-      enforced_attributes
-	= [NSMutableDictionary dictionaryWithDictionary:
-	[mgr fileAttributesAtPath: file
-		     traverseLink: YES]];
-
-      permissions = [NSNumberClass numberWithUnsignedLong: desired];
-      [enforced_attributes setObject: permissions
-			      forKey: NSFilePosixPermissions];
-
-      [mgr changeFileAttributes: enforced_attributes
-			 atPath: file];
-    }
-}
-
-static BOOL
-writeDictionary(NSDictionary *dict, NSString *file)
-{
-  if ([file length] == 0)
-    {
-      NSLog(@"Defaults database filename is empty when writing");
-    }
-  else if (nil == dict)
-    {
-      NSFileManager	*mgr = [NSFileManager defaultManager];
-
-      return [mgr removeFileAtPath: file handler: nil];
-    }
-  else
-    {
-      NSData	*data;
-      NSString	*err;
-
-      err = nil;
-      data = [NSPropertyListSerialization dataFromPropertyList: dict
-	       format: NSPropertyListXMLFormat_v1_0
-	       errorDescription: &err];
-      if (data == nil)
-	{
-	  NSLog(@"Failed to serialize defaults database for writing: %@", err);
-	}
-      else if ([data writeToFile: file atomically: YES] == NO)
-	{
-	  NSLog(@"Failed to write defaults database to file: %@", file);
-	}
-      else
-	{
-	  setPermissions(file);
-	  return YES;
-	}
-    }
-  return NO;
-}
-
 /**
  * Returns the list of languages retrieved from the operating system, in
  * decreasing order of preference. Returns an empty array if the information
@@ -2389,6 +2315,43 @@ static BOOL isPlistObject(id o)
   NS_ENDHANDLER
 }
 
+- (BOOL) writeDictionary: (NSDictionary*)dict
+                  toFile: (NSString*)file
+{
+  if ([file length] == 0)
+    {
+      NSLog(@"Defaults database filename is empty when writing");
+    }
+  else if (nil == dict)
+    {
+      NSFileManager	*mgr = [NSFileManager defaultManager];
+
+      return [mgr removeFileAtPath: file handler: nil];
+    }
+  else
+    {
+      NSData	*data;
+      NSString	*err;
+
+      err = nil;
+      data = [NSPropertyListSerialization dataFromPropertyList: dict
+	       format: NSPropertyListXMLFormat_v1_0
+	       errorDescription: &err];
+      if (data == nil)
+	{
+	  NSLog(@"Failed to serialize defaults database for writing: %@", err);
+	}
+      else if ([data writeToFile: file atomically: YES] == NO)
+	{
+	  NSLog(@"Failed to write defaults database to file: %@", file);
+	}
+      else
+	{
+	  return YES;
+	}
+    }
+  return NO;
+}
 @end
 
 int
@@ -2931,6 +2894,41 @@ static BOOL isLocked = NO;
     }
 }
 
+static void
+setPermissions(NSString *file)
+{
+  NSFileManager	*mgr = [NSFileManager defaultManager];
+  NSDictionary	*attr;
+  uint32_t	desired;
+  uint32_t	attributes;
+
+  attr = [mgr fileAttributesAtPath: file
+		      traverseLink: YES];
+  attributes = [attr filePosixPermissions];
+#if	!(defined(S_IRUSR) && defined(S_IWUSR))
+  desired = 0600;
+#else
+  desired = (S_IRUSR|S_IWUSR);
+#endif
+  if (attributes != desired)
+    {
+      NSMutableDictionary	*enforced_attributes;
+      NSNumber			*permissions;
+
+      enforced_attributes
+	= [NSMutableDictionary dictionaryWithDictionary:
+	[mgr fileAttributesAtPath: file
+		     traverseLink: YES]];
+
+      permissions = [NSNumberClass numberWithUnsignedLong: desired];
+      [enforced_attributes setObject: permissions
+			      forKey: NSFilePosixPermissions];
+
+      [mgr changeFileAttributes: enforced_attributes
+			 atPath: file];
+    }
+}
+
 - (BOOL) synchronize
 {
   BOOL  isLocked = NO;
@@ -3022,13 +3020,14 @@ static BOOL isLocked = NO;
                     {
                       /* Remove empty defaults dictionary.
                        */
-                      written = writeDictionary(nil, path);
+                      written = [owner writeDictionary: nil toFile: path];
                     }
                   else
                     {
                       /* Write dictionary to file.
                        */
-                      written = writeDictionary(contents, path);
+                      written = [owner writeDictionary: contents toFile: path];
+	   	      setPermissions(path);
                     }
                 }
             }
