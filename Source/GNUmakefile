@@ -131,6 +131,7 @@ GSFunctions.h \
 GSLocale.h \
 GSMime.h \
 GSTLS.h \
+GSURITemplate.h \
 GSXML.h \
 NSArray+GNUstepBase.h \
 NSAttributedString+GNUstepBase.h \

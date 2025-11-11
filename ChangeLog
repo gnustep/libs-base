@@ -1,3 +1,19 @@
+2025-11-11 Richard Frith-Macdonald <rfm@gnu.org>
+
+	* Headers/GNUstepBase/GSURITemplate.h:
+	* Source/Additions/GNUmakefile:
+	* Source/Additions/GSURITemplate.m:
+	* Source/DocMakefile:
+	* Source/GNUmakefile:
+	* Tests/base/GSURITemplate/README:
+	* Tests/base/GSURITemplate/TestInfo:
+	* Tests/base/GSURITemplate/extended-tests.json:
+	* Tests/base/GSURITemplate/general.m:
+	* Tests/base/GSURITemplate/negative-tests.json:
+	* Tests/base/GSURITemplate/spec-examples.json:
+	Add new class to handle RFC6570 URI templates and use them to create
+	URLs from a set of variables.
+
 2025-10-30 Richard Frith-Macdonald <rfm@gnu.org>
 
 	* Source/Additions/Unicode.m:
