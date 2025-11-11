@@ -143,7 +143,7 @@ mkError(GSURITemplateError code, NSString *desc, NSString *reason)
 static NSError *
 modError(NSError *e, int pos)
 {
-  NSMutableDictionary	*m = [[e userInfo] mutableCopy];
+  NSMutableDictionary	*m = AUTORELEASE([[e userInfo] mutableCopy]);
 
   if (m)
     {
