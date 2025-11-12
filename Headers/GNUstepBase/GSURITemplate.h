@@ -40,7 +40,7 @@ extern "C" {
 
 /** The domain of errors returned by `GSURITemplate` objects.
  */
-GS_EXPORT NSString* const GSURITemplateErrorDomain;
+GS_EXPORT NSString * const GSURITemplateErrorDomain;
 
 typedef NS_ENUM(NSInteger, GSURITemplateError)
 {
@@ -60,7 +60,7 @@ typedef NS_ENUM(NSInteger, GSURITemplateError)
  * the is key may be used to fetch the character offset within the
  * pattern at which the error occurred from the userInfo Dictionary.
  */
-extern NSString *const GSURITemplateScanLocationKey;
+GS_EXPORT NSString * const GSURITemplateScanLocationKey;
 
 /** Class for parsing and expanding URL templates acording to the
  * RFC6570 specification (see https://tools.ietf.org/html/rfc6570).
