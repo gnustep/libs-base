@@ -205,12 +205,13 @@ int main()
    * with thanks, from CSURITemplater.
    * See the README file fr details.
    */
-
+  ENTER_POOL
   runFile(@"spec-examples.json");
 
   runFile(@"negative-tests.json");
 
   runFile(@"extended-tests.json");
+  LEAVE_POOL
 
   return 0;
 }
