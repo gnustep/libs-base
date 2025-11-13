@@ -1379,6 +1379,8 @@ static BOOL snuggleStart(NSString *t)
 	      to: str];
 }
 
+static NSString	*padding[100];
+
 - (unsigned) reformat: (NSString*)str
 	   withIndent: (unsigned)ind
 		   to: (NSMutableString*)buf
@@ -1387,7 +1389,19 @@ static BOOL snuggleStart(NSString *t)
   unsigned	l = [str length];
   NSRange	r = [str rangeOfString: @"<example"];
   unsigned	i = 0;
+  unsigned	c;
   NSArray	*a;
+
+  if (nil == padding[0])
+    {
+      int	p;
+
+      padding[0] = @" ";
+      for (p = 1; p < sizeof(padding)/sizeof(*padding); p++)
+	{
+	  padding[p] = [[padding[p-1] stringByAppendingString: @" "] copy];
+	}
+    }
 
   /*
    * Split out <example>...</example> sequences and output them literally.
@@ -1442,10 +1456,11 @@ static BOOL snuggleStart(NSString *t)
     }
 
   /*
-   * Split the string up into parts separated by newlines.
+   * Split the string up into parts separated by whitespace.
    */
   a = [self split: str];
-  for (i = 0; i < [a count]; i++)
+  c = [a count];
+  for (i = 0; i < c; i++)
     {
       unsigned int	j;
 
@@ -1460,9 +1475,14 @@ static BOOL snuggleStart(NSString *t)
 	       */
 	      ind -= 2;
 	    }
-	  for (j = 0; j < ind; j++)
+	  while (j < ind)
 	    {
-	      [buf appendString: @" "];
+	      unsigned	size = ind - j;
+
+	      if (size > sizeof(padding)/sizeof(*padding))
+		size = sizeof(padding)/sizeof(*padding);
+	      [buf appendString: padding[size - 1]];
+	      j += size;
 	    }
 	  [buf appendString: str];
 	  [buf appendString: @"\n"];
@@ -1472,9 +1492,14 @@ static BOOL snuggleStart(NSString *t)
 	  unsigned	size = 70 - ind - [str length];
 	  unsigned	end;
 
-	  for (j = 0; j < ind; j++)
+	  if (j < ind)
 	    {
-	      [buf appendString: @" "];
+	      unsigned	size = ind - j;
+
+	      if (size > sizeof(padding)/sizeof(*padding))
+		size = sizeof(padding)/sizeof(*padding);
+	      [buf appendString: padding[size - 1]];
+	      j += size;
 	    }
 	  end = [self fitWords: a
 			  from: i
