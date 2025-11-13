@@ -885,7 +885,7 @@ main(int argc, char **argv, char **env)
   for (i = 0; i < [argsGiven count]; i++)
     {
       arg = [argsGiven objectAtIndex: i];
-      if ([arg characterAtIndex: 0] == '-')
+      if ([arg length] > 0 && [arg characterAtIndex: 0] == '-')
 	{
 	  opt = ([arg characterAtIndex: 1] == '-')
 	    ? [arg substringFromIndex: 2] : [arg substringFromIndex: 1];
