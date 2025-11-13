@@ -67,8 +67,8 @@ GS_EXPORT NSString * const GSURITemplateScanLocationKey;
  * 
  *  eg. 
  * 
- * template = [GSURITemplate templateWithString: @"/search{?q}"
- *				  relativeToURL: aURL error: &error];
+ * template = [GSURITemplate templateWithString: @&quot;/search{?q}&quot;
+ *				  relativeToURL: aURL error: &amp;error];
  */
 GS_EXPORT_CLASS
 @interface GSURITemplate : NSObject
