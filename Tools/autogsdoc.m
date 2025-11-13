@@ -358,16 +358,22 @@
 	May be used to specify where the documentation is to be installed,
 	so that relative references to documentation in other projects can
 	be used (otherwise references to other docuentation will use the
-	absolute loacation of that documentation in the filesystem).
+	absolute location of that documentation in the filesystem).
 	By default this is the LOCAL domain, but it can also be set to
-	SYSTEM, NETWORK, or USER.
+	SYSTEM, NETWORK, or USER.<br />
+	When autogsdoc is run by gnustep-make this argument is automatically
+	added unless you have specifically set it in ...AGSDOC_FLAGS.
       </item>
       <item><strong>InstallDir</strong>
 	This is used to enable generation of HTML output with relative links
 	to documentation created for other projects.  The value of this must
 	be the relative path at which this documentation will be installed
 	within the installation domain (see -InstallationDomain) used.
-	Relative links will not work until the documentation is installed.
+	Relative links will not work until the documentation is installed.<br />
+	When autogsdoc is run by gnustep-make this argument is automatically
+	added unless you have specifically set it in ...AGSDOC_FLAGS.<br />
+	You may set the environment variable AUTOGSDOC_DISABLE_RELATIVE=1
+	to disable the use of relative links even if this argument is set.
       </item>
       <item><strong>Files</strong>
 	Specifies the name of a file containing a list of file names as
@@ -665,6 +671,7 @@ int
 main(int argc, char **argv, char **env)
 {
   NSProcessInfo		*proc;
+  NSDictionary		*environment;
   unsigned		i;
   NSString		*str;
   NSMutableDictionary	*safe;
@@ -790,6 +797,15 @@ main(int argc, char **argv, char **env)
   /*
    * 1) Get/test defaults and arguments.
    */
+  proc = [NSProcessInfo processInfo];
+  if (proc == nil)
+    {
+      NSLog(@"unable to get process information!");
+      exit(EXIT_FAILURE);
+    }
+  environment = [proc environment];
+  argsGiven = [proc arguments];
+
   defs = [NSUserDefaults standardUserDefaults];
   [defs registerDefaults: [NSDictionary dictionaryWithObjectsAndKeys:
     @"Untitled", @"Project",
@@ -880,7 +896,6 @@ main(int argc, char **argv, char **env)
     @"GenerateParagraphMarkup",
     nil];
   argSet = [NSSet setWithArray: [argsRecognized allKeys]];
-  argsGiven = [[NSProcessInfo processInfo] arguments];
 
   for (i = 0; i < [argsGiven count]; i++)
     {
@@ -1002,16 +1017,17 @@ main(int argc, char **argv, char **env)
       exit(1);
     }
 
-  installDir = [defs stringForKey: @"InstallDir"];
-
   symbolDeclsFile = [documentationDirectory 
     stringByAppendingPathComponent: @"OrderedSymbolDeclarations.plist"];
 
-  proc = [NSProcessInfo processInfo];
-  if (proc == nil)
+  installDir = [defs stringForKey: @"InstallDir"];
+
+  /* Use this environment variable to disable relative links and use
+   * absolute filesystem locations, disregarding the -InstallDir arg.
+   */
+  if ([[environment objectForKey: @"AUTOGSDOC_DISABLE_RELATIVE"] intValue])
     {
-      NSLog(@"unable to get process information!");
-      exit(EXIT_FAILURE);
+      installDir = nil;
     }
 
   /*
