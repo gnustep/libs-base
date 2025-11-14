@@ -840,13 +840,17 @@ static Class NSStringClass;
 static NSMutableCharacterSet *escapeSet;
 
 static inline void
-writeTabs(NSMutableString *output, NSInteger tabs)
+writeTabs(NSMutableString *output, NSInteger tabs, NSUInteger opt)
 {
-  NSInteger i;
-
-  for (i = 0 ; i < tabs ; i++)
+  if (opt & NSJSONWritingPrettyPrinted)
     {
-      [output appendString: @"\t"];
+      NSInteger	i;
+
+      for (i = 0 ; i < tabs ; i++)
+	{
+//	  [output appendString: @"\t"];
+  	  [output appendString: @"  "];	// One tabstop is two spaces
+	}
     }
 }
 
@@ -873,11 +877,11 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs, NSJSONWritingOption
           }
         writeComma = YES;
         writeNewline(output, tabs);
-        writeTabs(output, tabs);
+        writeTabs(output, tabs, opt);
         writeObject(o, output, tabs + 1, opt);
       END_FOR_IN(obj)
       writeNewline(output, tabs);
-      writeTabs(output, tabs);
+      writeTabs(output, tabs, opt);
       [output appendString: @"]"];
     }
   else if ([obj isKindOfClass: NSDictionaryClass])
@@ -900,14 +904,14 @@ writeObject(id obj, NSMutableString *output, NSInteger tabs, NSJSONWritingOption
           }
         writeComma = YES;
         writeNewline(output, tabs);
-        writeTabs(output, tabs);
+        writeTabs(output, tabs, opt);
         writeObject(o, output, tabs + 1, opt);
         [output appendString: @":"];
         writeObject([obj objectForKey: o], output, tabs + 1, opt);
       END_FOR_IN(keys)
 
       writeNewline(output, tabs);
-      writeTabs(output, tabs);
+      writeTabs(output, tabs, opt);
       [output appendString: @"}"];
     }
   else if ([obj isKindOfClass: NSStringClass])
