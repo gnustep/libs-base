@@ -647,9 +647,11 @@
 static NSString *
 commonRoot(NSString *s1, NSString *s2)
 {
+  static BOOL	hadFailure = NO;
   NSString	*s;
   unsigned	l;
 
+  if (hadFailure) return nil;
   if (nil == s1) return s2;
 
   s = [s1 commonPrefixWithString: s2 options: NSLiteralSearch];
@@ -660,9 +662,11 @@ commonRoot(NSString *s1, NSString *s2)
     }
   if (0 == l)
     {
+      /* I guess this can happen on windows where paths are on different disks.
+       */
       NSLog(@"Unable to make relative links because projects '%@' and '%@'"
 	@" share no common prefix.", s1, s2);
-      exit(1);
+      hadFailure = YES;
     }
   return [s substringToIndex: l];
 }
@@ -1990,8 +1994,13 @@ main(int argc, char **argv, char **env)
 	      file = [project stringByAppendingPathExtension: @"html"];
 	      path = [base stringByAppendingPathComponent: file];
 	      installRoot = commonRoot(installRoot, path);
-	      installLength = [installRoot length];
-	      if ([base length] < installLength)
+	      if (nil == installRoot)
+		{
+		  /* No common root ... use absolute links instead.
+		   */
+		  relative = nil;
+		}
+	      else if ([base length] < (installLength = [installRoot length]))
 		{
 		  /* All referenced project documentation is relative to the
 		   * directory that this project will be installed in.
@@ -2048,7 +2057,7 @@ main(int argc, char **argv, char **env)
 			{
 			  p = [k stringByDeletingLastPathComponent];
 			}
-		      if (installRoot)
+		      if (installDir && relative)
 			{
 			  /* Replace the root part with the prefix
 			   * to make the path relative.
