@@ -55,8 +55,8 @@ enum
 #if     OS_API_VERSION(GS_API_NONE,GS_API_LATEST)
   /** Additional modified for indentation control when pretty-printing
    */
-  GSJSONWritingIndentOneSpace = (0UL << 24),
-  GSJSONWritingIndentTwoSpaces = (1UL << 24),
+  GSJSONWritingIndentTwoSpaces = (0UL << 24),
+  GSJSONWritingIndentOneSpace = (1UL << 24),
   GSJSONWritingIndentFourSpaces = (2UL << 24),
   GSJSONWritingIndentUsingTab = (3UL << 24),
   GSJSONWritingIndentMask = (3UL << 24),
